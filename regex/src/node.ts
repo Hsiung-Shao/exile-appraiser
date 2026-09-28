@@ -2,7 +2,9 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { parseRegexCatalogue, type RegexCatalogue, type RegexGame, type RegexPage } from './data'
+import { mergeLabels, parseLabels, parseRegexCatalogue, type RegexCatalogue, type RegexGame, type RegexLabels, type RegexPage } from './data'
+import { algoPages } from './pages'
+import { parseTemplates, type RegexTemplate } from './share'
 
 /** repo 的 `data/regex/` */
 export function defaultRegexDataDir (): string {
@@ -31,4 +33,21 @@ export function loadAllRegexPages (preferred: RegexGame = 'poe1', dir = defaultR
   }
   if (pages.length === 0) throw new Error(`${dir} 底下沒有可用的 regex_*.json 清單檔\n${errors.join('\n')}`)
   return { pages, errors }
+}
+
+/** 演算法頁標籤:資料檔自帶 labels(schema 2)逐鍵優先,暫代檔 `labels.<game>.json` 補缺鍵(mergeLabels) */
+export function loadLabelsFor (cat: RegexCatalogue, dir = defaultRegexDataDir()): RegexLabels | null {
+  const file = path.join(dir, `labels.${cat.game}.json`)
+  const fallback = fs.existsSync(file) ? parseLabels(fs.readFileSync(file, 'utf8')) : null
+  return mergeLabels(cat.labels, fallback)
+}
+
+/** 語料頁 + 演算法頁(與 renderer store 相同的組法) */
+export function loadAllPagesFor (game: RegexGame, dir = defaultRegexDataDir()): RegexPage[] {
+  const cat = loadRegexCatalogueFile(game, dir)
+  return [...cat.pages, ...algoPages(game, loadLabelsFor(cat, dir))]
+}
+
+export function loadTemplatesFile (dir = defaultRegexDataDir()): RegexTemplate[] {
+  return parseTemplates(fs.readFileSync(path.join(dir, 'templates.json'), 'utf8')).templates
 }

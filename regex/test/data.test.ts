@@ -1,19 +1,34 @@
 // 資料 schema 斷言 + 載入規則(移植自 regex_data.cpp LoadOne:缺鍵為空、zh/en 皆空丟棄、g 越界歸 0)。
 import { describe, expect, it } from 'vitest'
 import { parseRegexCatalogue } from '../src/data'
-import { loadRegexCatalogueFile } from '../src/node'
+import { defaultRegexDataDir, loadRegexCatalogueFile } from '../src/node'
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
 
+// schema 2(2026-09-29 PobTools gen_regex_data{,2}.py 擴頁):PoE1 十頁、PoE2 七頁。
+// tablet_mods 78→81、expedition_relic_mods 內容異動是 PoE2 GGPK 4.5.5 快取更新(非產生器改動)。
 const EXPECTED = {
-  poe1: { map_mods: 125, logbook_mods: 62 },
-  poe2: { waystone_mods: 34, tablet_mods: 78, relic_mods: 36, expedition_relic_mods: 55 }
+  poe1: {
+    map_mods: 125, logbook_mods: 62, scarabs: 138, flask_mods: 82, cluster_jewel: 388,
+    gem_names: 892, tattoos: 132, heist_equipment_mods: 141, heist_contracts: 107, vendor_bases: 1057
+  },
+  poe2: {
+    waystone_mods: 34, tablet_mods: 81, relic_mods: 36, expedition_relic_mods: 55,
+    flask_charm_mods: 21, gem_names: 1050, vendor_bases: 1763
+  }
 } as const
+const KIND: Record<string, 'mods' | 'names'> = {
+  scarabs: 'names', gem_names: 'names', tattoos: 'names', vendor_bases: 'names'
+}
 
 describe('shipped catalogues(data/regex)', () => {
   for (const game of ['poe1', 'poe2'] as const) {
     const cat = loadRegexCatalogueFile(game)
-    it(`${game}: schema 1, pages and entry counts`, () => {
-      expect(cat.schema).toBe(1)
+    it(`${game}: schema 2, pages, kinds and entry counts`, () => {
+      expect(cat.schema).toBe(2)
       expect(Object.fromEntries(cat.pages.map(p => [p.id, p.entries.length]))).toEqual(EXPECTED[game])
+      const raw = JSON.parse(readFileSync(path.join(defaultRegexDataDir(), `regex_${game}.json`), 'utf8'))
+      for (const p of raw.pages) expect(`${p.id}:${p.kind}`).toBe(`${p.id}:${KIND[p.id] ?? 'mods'}`)
     })
     for (const p of cat.pages) {
       it(`${game}/${p.id}: limit 250, bilingual titles, groups aligned`, () => {

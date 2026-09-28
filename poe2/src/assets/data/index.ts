@@ -16,6 +16,7 @@ import { GEM, ItemCategory } from "@/parser/meta";
 import { ItemRarity } from "@/parser/ParsedItem";
 // exile-appraiser: 資料不再靠 `fetch(import.meta.env.BASE_URL + 'data/…')`,改由呼叫端注入 DataSource
 import { source } from "./source";
+import type { BaseProfiles, DesecrationTiers } from "@/desecration/types"; // exile-appraiser(WP-R)
 export { configureDataSource } from "./source";
 
 export * from "./interfaces";
@@ -69,6 +70,10 @@ export let UNIQUE_NS_NAMES: () => Generator<string> = function* () {};
 export let ITEM_NS_NAMES: () => Generator<string> = function* () {};
 
 export let TRADE_TAG_TO_REF = new Map<string, string>();
+
+// exile-appraiser(WP-R):褻瀆詞綴 Tier 資料(`data/poe2/desecration/`,語言無關;init() 載一次,loadForLang 不重載)
+export let DESECRATION_TIERS: DesecrationTiers | undefined;
+export let BASE_PROFILES: BaseProfiles | undefined;
 
 export let STAT_BY_MATCH_STR: (
   name: string,
@@ -272,6 +277,7 @@ export async function init(lang: string) {
   ITEM_DROP = JSON.parse(await source().text("item-drop.json")); // exile-appraiser: fetch → DataSource
 
   await loadForLang(lang);
+  await loadDesecration(); // exile-appraiser(WP-R)
 
   let failed = false;
   const missing = [];
@@ -292,6 +298,25 @@ export async function init(lang: string) {
     );
   }
   DELAYED_STAT_VALIDATION.clear();
+}
+
+/**
+ * exile-appraiser(WP-R):褻瀆 Tier 資料表。缺檔不擋啟動(只是不推定),但一定要大聲記錄 ——
+ * 否則症狀會是「一般複製的褻瀆詞綴永遠沒有 Tier」而看不出是資料缺了。
+ */
+async function loadDesecration() {
+  try {
+    const [tiers, profiles] = await Promise.all([
+      source().text("desecration/tiers.json"),
+      source().text("desecration/base_profiles.json"),
+    ]);
+    DESECRATION_TIERS = JSON.parse(tiers) as DesecrationTiers;
+    BASE_PROFILES = JSON.parse(profiles) as BaseProfiles;
+  } catch (e) {
+    DESECRATION_TIERS = undefined;
+    BASE_PROFILES = undefined;
+    console.error("[desecration] 褻瀆 Tier 資料載入失敗,一般複製的褻瀆詞綴不會推定 Tier:", e);
+  }
 }
 
 export async function loadForLang(lang: string) {

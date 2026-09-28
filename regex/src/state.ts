@@ -2,9 +2,14 @@
 //
 // 鍵用英文那一行(語言中性、跨賽季不變;列號每季會變),中文當後援;還原不到的**計數回報,不靜默丟掉**。
 // 這裡只做模型 + JSON 字串的序列化 / 反序列化;檔案 IO(temp + rename 原子寫入)由呼叫端做(main 或 CLI)。
+//
+// 存檔格式 schema 2(WP-C):多了演算法頁的數值 `numeric{pageId:{entryId:{min,max,choice}}}`、自訂文字 `custom[]`、
+// 排除詞 `excludes[]`、輸出範圍 `outScope`(合併 / 單頁)與書籤的 `numeric`(演算法頁書籤的值)。
+// schema 1 的舊檔照讀:缺的欄位 = 空 / 預設值。
 
 import type { Mode } from './gen'
 import type { RegexEntry, RegexGame, RegexLang, RegexPage } from './data'
+import type { AlgoValue } from './pages/types'
 
 /** regex_state.h `RegexBookmark` */
 export interface RegexBookmark {
@@ -20,6 +25,8 @@ export interface RegexBookmark {
   keys: string[]
   /** 中文行,與 keys 同順序;後援 */
   alt: string[]
+  /** 演算法頁書籤:entryId → 值(schema 2;語料頁沒有) */
+  numeric?: Record<string, AlgoValue>
 }
 
 /** regex_state.h `RegexPagePicks` */
@@ -38,11 +45,45 @@ export interface RegexUiState {
   bilingual: boolean
   current: RegexPagePicks[]
   bookmarks: RegexBookmark[]
+  /** 演算法頁的輸入值:pageId → entryId → 值(schema 2) */
+  numeric: Record<string, Record<string, AlgoValue>>
+  /** 自訂文字(每項一個獨立 term,不驗證;schema 2) */
+  custom: string[]
+  /** 排除詞(併進 none 的 `!` term;schema 2) */
+  excludes: string[]
+  /** 輸出區顯示合併後(combined)或目前這一頁(page);schema 2 */
+  outScope: 'combined' | 'page'
 }
 
 export function defaultRegexState (): RegexUiState {
-  return { game: '', page: '', mode: 'any', lang: 'zh', bilingual: true, current: [], bookmarks: [] }
+  return {
+    game: '', page: '', mode: 'any', lang: 'zh', bilingual: true, current: [], bookmarks: [],
+    numeric: {}, custom: [], excludes: [], outScope: 'combined'
+  }
 }
+
+/** 只留 AlgoValue 認得的欄位(與 pages/index.ts sanitizeValue 相同規則;這裡不 import 它以免 state ↔ pages 循環) */
+function numericValue (raw: unknown): AlgoValue | null {
+  if (!isObj(raw)) return null
+  const v: AlgoValue = {}
+  if (typeof raw.min === 'number' && Number.isFinite(raw.min)) v.min = Math.trunc(raw.min)
+  if (typeof raw.max === 'number' && Number.isFinite(raw.max)) v.max = Math.trunc(raw.max)
+  if (typeof raw.choice === 'string') v.choice = raw.choice.slice(0, 16)
+  return v
+}
+
+function numericMap (raw: unknown): Record<string, AlgoValue> {
+  const m: Record<string, AlgoValue> = {}
+  if (!isObj(raw)) return m
+  for (const [k, v] of Object.entries(raw)) {
+    const x = numericValue(v)
+    if (x) m[k] = x
+  }
+  return m
+}
+
+type Json = Record<string, unknown>
+function isObj (v: unknown): v is Json { return typeof v === 'object' && v !== null && !Array.isArray(v) }
 
 /** regex_state.cpp:60 `RegexUiState::PicksFor`:該頁的勾選,沒有就建立 */
 export function picksFor (s: RegexUiState, pageId: string): RegexPagePicks {
@@ -54,8 +95,6 @@ export function picksFor (s: RegexUiState, pageId: string): RegexPagePicks {
   return p
 }
 
-type Json = Record<string, unknown>
-const isObj = (v: unknown): v is Json => typeof v === 'object' && v !== null && !Array.isArray(v)
 
 function str (j: Json, key: string, def: string): string {
   const v = j[key]
@@ -118,11 +157,18 @@ export function parseRegexState (text: string): ParsedRegexState {
           keys: stringArray(b, 'keys'),
           alt: stringArray(b, 'alt')
         }
+        if (isObj(b.numeric)) rec.numeric = numericMap(b.numeric)
         // 沒名字 / 沒頁 / 沒鍵的書籤 UI 無法提供,留著只會多一列永遠空白的東西
         if (!rec.name || !rec.page || rec.keys.length === 0) continue
         s.bookmarks.push(rec)
       }
     }
+    if (isObj(doc.numeric)) {
+      for (const [pid, m] of Object.entries(doc.numeric)) s.numeric[pid] = numericMap(m)
+    }
+    s.custom = stringArray(doc, 'custom')
+    s.excludes = stringArray(doc, 'excludes')
+    s.outScope = oneOf(str(doc, 'outScope', 'combined'), 'combined', 'page')
     return { ok: true, state: s }
   } catch {
     return { ok: false, state: defaultRegexState() }
@@ -132,14 +178,21 @@ export function parseRegexState (text: string): ParsedRegexState {
 /** regex_state.cpp:137 `RegexUiState::Save` 的內容部分(`dump(1, '\t')`);寫檔請 temp + rename */
 export function serializeRegexState (s: RegexUiState): string {
   const doc = {
-    schema: 1,
+    schema: 2,
     game: s.game,
     page: s.page,
     mode: s.mode,
     lang: s.lang,
     bilingual: s.bilingual,
     current: s.current.filter(p => p.keys.length > 0).map(p => ({ page: p.page, keys: p.keys, alt: p.alt })),
-    bookmarks: s.bookmarks.map(b => ({ name: b.name, page: b.page, game: b.game, mode: b.mode, lang: b.lang, keys: b.keys, alt: b.alt }))
+    bookmarks: s.bookmarks.map(b => ({
+      name: b.name, page: b.page, game: b.game, mode: b.mode, lang: b.lang, keys: b.keys, alt: b.alt,
+      ...(b.numeric && Object.keys(b.numeric).length ? { numeric: b.numeric } : {})
+    })),
+    numeric: Object.fromEntries(Object.entries(s.numeric).filter(([, m]) => Object.keys(m).length > 0)),
+    custom: s.custom,
+    excludes: s.excludes,
+    outScope: s.outScope
   }
   return JSON.stringify(doc, null, '\t')
 }

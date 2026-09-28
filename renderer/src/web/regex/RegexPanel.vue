@@ -1,26 +1,33 @@
 <!--
-  Poe Regex 面板(WP5,設定 › 正則):勾選詞綴 → 產生貼進遊戲搜尋列的字串。
-  版面照 PobTools `host/regex_tool_ui.cpp`:標題列(遊戲 / 清單 / 模式 / 已勾選 / 雙語)→ 清單(RegexList.vue)
-  → 輸出(長度三色、複製、輸出語言、無法單獨指定、用到的片段)→ 書籤(RegexBookmarks.vue)。
-  演算法全在 `@exile-appraiser/regex`(純 TS,與 C++ golden 逐字相同);狀態在 ./store.ts。
+  Poe Regex 面板(WP5 + WP-C,設定 › 正則):勾選詞綴 / 數值條件 → 產生貼進遊戲搜尋列的字串。
+  版面照 PobTools `host/regex_tool_ui.cpp`:標題列(遊戲 / 檢視 / 清單 / 模式 / 已勾選 / 雙語)+ 範本與分享碼
+  → 清單(語料頁 RegexList.vue、演算法頁 RegexAlgoList.vue、已選合併 RegexCombined.vue)
+  → 輸出(合併 / 單頁、長度三色、複製、輸出語言、無法單獨指定、用到的片段)→ 書籤(RegexBookmarks.vue)。
+  演算法全在 `@exile-appraiser/regex`(純 TS);狀態在 ./store.ts。
 -->
 <template>
-  <div class="rx-panel" data-regex="panel" :data-game="selGame" :data-page="page?.id ?? ''">
+  <div class="rx-panel" data-regex="panel" :data-game="selGame" :data-page="page?.id ?? ''" :data-view="panelView">
     <section class="card rx-head" data-regex="header">
       <div class="rx-head-row">
         <div class="seg" data-regex="game">
           <button v-for="g in games" :key="g" :class="{ on: selGame === g }" :data-value="g"
             @click="switchGame(g)">{{ gameLabel(g) }}</button>
         </div>
+        <div v-if="catalogue" class="seg" data-regex="view">
+          <button :class="{ on: panelView === 'combined' }" data-value="combined" @click="setPanelView('combined')">
+            {{ t('ppz.regex.view_combined', { n: pickedPages.length }) }}
+          </button>
+          <button :class="{ on: panelView === 'page' }" data-value="page" @click="setPanelView('page')">{{ t('ppz.regex.view_page') }}</button>
+        </div>
         <select v-if="catalogue" class="select sm rx-page" data-regex="page" :value="page?.id"
           @change="switchPage(($event.target as HTMLSelectElement).value)">
-          <option v-for="p in catalogue.pages" :key="p.id" :value="p.id">{{ pageTitle(p) }}</option>
+          <option v-for="p in catalogue.pages" :key="p.id" :value="p.id">{{ pageTitle(p) }}{{ (picks[p.id]?.length ?? 0) ? ` (${picks[p.id].length})` : '' }}</option>
         </select>
         <div class="seg" data-regex="mode">
           <button v-for="m in modes" :key="m" :class="{ on: ui.mode === m }" :data-value="m"
             :title="m === 'none' ? t('ppz.regex.mode_none_tip') : ''" @click="setMode(m)">{{ t(`ppz.regex.mode_${m}`) }}</button>
         </div>
-        <span v-if="page" class="rx-count num" data-regex="count">{{ t('ppz.regex.picked', { n: picked.length, total: page.entries.length }) }}</span>
+        <span v-if="page && panelView === 'page'" class="rx-count num" data-regex="count">{{ t('ppz.regex.picked', { n: picked.length, total: page.entries.length }) }}</span>
         <span class="grow" />
         <label class="chk" :title="t('ppz.regex.bilingual_tip')">
           <input type="checkbox" data-regex="bilingual" :checked="ui.bilingual"
@@ -28,7 +35,18 @@
           {{ t('ppz.regex.bilingual') }}
         </label>
       </div>
-      <p v-if="page && pageNote" class="rx-note">{{ pageNote }}</p>
+      <div v-if="catalogue" class="rx-head-row rx-head-tools">
+        <select class="select sm rx-tpl" data-regex="template" :value="''" @change="onTemplate">
+          <option value="" disabled>{{ t('ppz.regex.template_ph', { n: myTemplates.length }) }}</option>
+          <option v-for="tp in myTemplates" :key="tp.id" :value="tp.id">{{ uiEn ? tp.name.en : tp.name.zh }}</option>
+        </select>
+        <button class="btn sm" data-regex="share-copy" :disabled="!pickedPages.length && !ui.custom.length && !ui.excludes.length"
+          :title="t('ppz.regex.share_copy_tip')" @click="copyShare">
+          {{ shareState === 'ok' ? t('ppz.regex.copied') : shareState === 'fail' ? t('ppz.regex.copy_failed') : t('ppz.regex.share_copy') }}
+        </button>
+        <button class="btn sm" data-regex="share-paste" :title="t('ppz.regex.share_paste_tip')" @click="openPaste">{{ t('ppz.regex.share_paste') }}</button>
+      </div>
+      <p v-if="page && panelView === 'page' && pageNote" class="rx-note">{{ pageNote }}</p>
     </section>
 
     <section v-if="!catalogue" class="card" :class="{ bad: slot.phase === 'error' }" data-regex="status">
@@ -39,20 +57,33 @@
       <p v-else class="rx-loading pulse">{{ t('ppz.regex.loading') }}</p>
     </section>
 
-    <template v-if="page && result">
-      <RegexList />
+    <template v-if="page && out">
+      <RegexCombined v-if="panelView === 'combined'" />
+      <RegexAlgoList v-else-if="algoPage" :page="algoPage" />
+      <RegexList v-else />
 
-      <section class="card rx-out" data-regex="output">
-        <span class="label">{{ t('ppz.regex.output_hint') }}</span>
-        <textarea class="input rx-query selectable" readonly rows="3" spellcheck="false" data-regex="query"
-          :value="result.query" @focus="($event.target as HTMLTextAreaElement).select()" />
+      <section class="card rx-out" data-regex="output" :data-scope="scope">
         <div class="rx-out-row">
-          <span class="num rx-len" :class="lenLevel" data-regex="length" :data-level="lenLevel">
-            {{ t('ppz.regex.length', { len: result.length, limit: page.limit }) }}
+          <span class="label rx-out-label">{{ t('ppz.regex.output_hint') }}</span>
+          <span class="grow" />
+          <div class="seg" data-regex="out-scope" :title="t('ppz.regex.out_scope_tip')">
+            <button :class="{ on: scope === 'combined' }" data-value="combined" @click="setOutScope('combined')">{{ t('ppz.regex.scope_combined') }}</button>
+            <button :class="{ on: scope === 'page' }" data-value="page" @click="setOutScope('page')">{{ t('ppz.regex.scope_page') }}</button>
+          </div>
+        </div>
+        <textarea class="input rx-query selectable" readonly rows="3" spellcheck="false" data-regex="query"
+          :value="out.query" @focus="($event.target as HTMLTextAreaElement).select()" />
+        <div class="rx-out-row">
+          <span class="num rx-len" :class="lenLevel" data-regex="length" :data-level="lenLevel" :data-len="out.length">
+            {{ t('ppz.regex.length', { len: out.length, limit: out.limit }) }}
+          </span>
+          <span v-if="scope === 'combined' && out.perPage.length + (out.custom.length ? 1 : 0) + (out.excludes.length ? 1 : 0) > 1"
+            class="rx-parts" data-regex="parts">
+            {{ partsText }}
           </span>
           <span v-if="lenLevel === 'bad'" class="rx-bad" data-regex="over-limit">{{ t('ppz.regex.over_limit') }}</span>
           <span class="grow" />
-          <button class="btn primary sm rx-copy" data-regex="copy" :disabled="!result.query" @click="copy">
+          <button class="btn primary sm rx-copy" data-regex="copy" :disabled="!out.query" @click="copy">
             {{ copyState === 'ok' ? t('ppz.regex.copied') : copyState === 'fail' ? t('ppz.regex.copy_failed') : t('ppz.regex.copy') }}
           </button>
           <select class="select sm" data-regex="lang" :value="ui.lang" :title="t('ppz.regex.lang_tip')"
@@ -66,37 +97,73 @@
           <button class="btn ghost sm" @click="dismissNotice">{{ t('ppz.regex.dismiss') }}</button>
         </div>
         <p v-if="saveError" class="rx-bad">{{ t('ppz.regex.save_failed', { error: saveError }) }}</p>
-        <details v-if="result.unresolved.length" class="rx-details" data-regex="unresolved">
-          <summary class="rx-warn">{{ t('ppz.regex.unresolved', { n: result.unresolved.length }) }}</summary>
-          <ul>
-            <li v-for="i in result.unresolved" :key="i">{{ lineIn(page.entries[i], ui.lang) }}</li>
-          </ul>
-          <p class="dim">{{ t('ppz.regex.unresolved_why') }}</p>
-        </details>
-        <details v-if="result.usedTokens.length" class="rx-details" data-regex="tokens">
-          <summary>{{ t('ppz.regex.tokens', { n: result.usedTokens.length }) }}</summary>
-          <p class="dim">{{ t('ppz.regex.tokens_hint') }}</p>
-          <ul class="rx-tokens">
-            <li v-for="(tk, i) in result.usedTokens" :key="i">「{{ tk }}」</li>
-          </ul>
-        </details>
+        <p v-if="scope === 'combined' && out.conflicts.length" class="rx-warn rx-conflict-line" data-regex="conflict-count">
+          {{ t('ppz.regex.conflicts', { n: out.conflicts.length }) }}
+          <a v-if="panelView !== 'combined'" href="#" @click.prevent="setPanelView('combined')">{{ t('ppz.regex.see_combined') }}</a>
+        </p>
+        <p v-if="scope === 'combined' && out.custom.length" class="dim rx-conflict-line">{{ t('ppz.regex.custom_unverified') }}</p>
+        <template v-if="scope === 'page' && result">
+          <details v-if="result.unresolved.length" class="rx-details" data-regex="unresolved">
+            <summary class="rx-warn">{{ t('ppz.regex.unresolved', { n: result.unresolved.length }) }}</summary>
+            <ul>
+              <li v-for="i in result.unresolved" :key="i">{{ lineIn(page.entries[i], ui.lang) }}</li>
+            </ul>
+            <p class="dim">{{ t('ppz.regex.unresolved_why') }}</p>
+          </details>
+          <details v-if="result.usedTokens.length" class="rx-details" data-regex="tokens">
+            <summary>{{ t('ppz.regex.tokens', { n: result.usedTokens.length }) }}</summary>
+            <p class="dim">{{ t('ppz.regex.tokens_hint') }}</p>
+            <ul class="rx-tokens">
+              <li v-for="(tk, i) in result.usedTokens" :key="i">「{{ tk }}」</li>
+            </ul>
+          </details>
+        </template>
       </section>
 
       <RegexBookmarks />
     </template>
+
+    <Teleport to="body">
+      <div v-if="tplConfirm" class="modal rx-modal" @mousedown.self="tplConfirm = null">
+        <div class="rx-dialog" role="dialog" aria-modal="true" data-regex="template-dialog">
+          <div class="rx-dialog-title">{{ t('ppz.regex.template_apply_title', { name: uiEn ? tplConfirm.name.en : tplConfirm.name.zh }) }}</div>
+          <p>{{ uiEn ? tplConfirm.desc.en : tplConfirm.desc.zh }}</p>
+          <p class="dim">{{ t('ppz.regex.template_apply_warn', { game: gameLabel(tplConfirm.game) }) }}</p>
+          <div class="rx-dialog-btns">
+            <button class="btn primary" data-regex="template-ok" @click="confirmTemplate">{{ t('ppz.regex.apply') }}</button>
+            <button class="btn" @click="tplConfirm = null">{{ t('ppz.regex.cancel') }}</button>
+          </div>
+        </div>
+      </div>
+      <div v-if="paste" class="modal rx-modal" @mousedown.self="paste = null">
+        <div class="rx-dialog" role="dialog" aria-modal="true" data-regex="share-dialog">
+          <div class="rx-dialog-title">{{ t('ppz.regex.share_paste') }}</div>
+          <p class="dim">{{ t('ppz.regex.share_paste_warn') }}</p>
+          <textarea v-model="paste.code" class="input rx-share-input" rows="4" spellcheck="false" data-regex="share-input"
+            :placeholder="t('ppz.regex.share_paste_ph')" />
+          <p v-if="paste.error" class="rx-bad" data-regex="share-error">{{ paste.error }}</p>
+          <div class="rx-dialog-btns">
+            <button class="btn primary" data-regex="share-ok" :disabled="!paste.code.trim() || paste.busy" @click="confirmPaste">{{ t('ppz.regex.apply') }}</button>
+            <button class="btn" @click="paste = null">{{ t('ppz.regex.cancel') }}</button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <script lang="ts">
 import { computed, defineComponent, onBeforeUnmount, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { lengthLevel, lineIn, type Mode, type RegexPage } from '@exile-appraiser/regex'
+import { isAlgoPage, lengthLevel, lineIn, type Mode, type RegexPage, type RegexTemplate } from '@exile-appraiser/regex'
 import { AppConfig } from '@/web/Config'
 import RegexList from './RegexList.vue'
+import RegexAlgoList from './RegexAlgoList.vue'
+import RegexCombined from './RegexCombined.vue'
 import RegexBookmarks from './RegexBookmarks.vue'
 import {
-  GAMES, dismissNotice, ensureStarted, flushSave, gameLabel, hasPendingSave, retryCatalogue, setBilingual, setLang,
-  setMode, switchGame, switchPage, useRegexStore
+  GAMES, applyShareCode, applyTemplate, dismissNotice, ensureStarted, flushSave, gameLabel, hasPendingSave, makeShareCode,
+  retryCatalogue, setBilingual, setLang, setMode, setOutScope, setPanelView, switchGame, switchPage, useRegexStore
 } from './store'
 
 /** 按鈕文字只能放純文字;複製失敗(例如視窗沒有焦點)時退回 execCommand */
@@ -116,7 +183,7 @@ async function writeClipboard (text: string): Promise<void> {
 }
 
 export default defineComponent({
-  components: { RegexList, RegexBookmarks },
+  components: { RegexList, RegexAlgoList, RegexCombined, RegexBookmarks },
   setup () {
     const { t, te } = useI18n()
     const store = useRegexStore()
@@ -125,36 +192,65 @@ export default defineComponent({
 
     const uiEn = computed(() => config.uiLanguage === 'en')
     const copyState = shallowRef<'' | 'ok' | 'fail'>('')
+    const shareState = shallowRef<'' | 'ok' | 'fail'>('')
     let copyTimer: ReturnType<typeof setTimeout> | undefined
+    let shareTimer: ReturnType<typeof setTimeout> | undefined
+
+    const scope = computed(() => store.ui.outScope)
+    const out = computed(() => scope.value === 'combined' ? store.combined.value : store.pageCombined.value)
+    const pageTitle = (p: RegexPage) => (uiEn.value ? p.titleEn : '') || p.title
 
     // 字串變了,「已複製」就不再成立
-    watch(() => store.result.value?.query, () => { copyState.value = '' })
+    watch(() => out.value?.query, () => { copyState.value = '' })
     onBeforeUnmount(() => {
       clearTimeout(copyTimer)
+      clearTimeout(shareTimer)
       if (hasPendingSave()) void flushSave()
     })
 
+    const tplConfirm = shallowRef<RegexTemplate | null>(null)
+    const paste = shallowRef<{ code: string, error: string, busy: boolean } | null>(null)
+
     return {
       t,
+      uiEn,
       games: GAMES,
       modes: ['any', 'all', 'none'] as Mode[],
       gameLabel,
       ui: store.ui,
+      picks: store.picks,
       selGame: store.selGame,
       catalogue: store.catalogue,
       page: store.page,
       picked: store.picked,
-      result: store.result,
+      pickedPages: store.pickedPages,
+      panelView: store.panelView,
+      result: computed(() => store.result.value),
+      algoPage: computed(() => isAlgoPage(store.page.value) ? store.page.value : null),
+      out,
+      scope,
       notice: store.notice,
       saveError: store.saveError,
       slot: computed(() => store.catalogues[store.selGame.value]),
+      myTemplates: computed(() => store.templates.value.filter(x => x.game === store.selGame.value)),
       copyState,
+      shareState,
+      tplConfirm,
+      paste,
       lenLevel: computed(() => {
-        const r = store.result.value
-        const p = store.page.value
-        return r && p ? lengthLevel(r.length, p.limit) : 'ok'
+        const r = out.value
+        return r ? lengthLevel(r.length, r.limit) : 'ok'
       }),
-      pageTitle: (p: RegexPage) => (uiEn.value ? p.titleEn : '') || p.title,
+      /** 每頁貢獻:「地圖詞綴 38 · 地圖數值條件 55 · 自訂 9」 */
+      partsText: computed(() => {
+        const r = out.value
+        if (!r) return ''
+        const parts = r.perPage.map(c => { const p = store.pageById(c.id); return `${p ? pageTitle(p) : c.id} ${c.length}` })
+        if (r.custom.length) parts.push(`${t('ppz.regex.custom')} ${r.customLength}`)
+        if (r.excludes.length) parts.push(`${t('ppz.regex.excludes')} ${r.excludesLength}`)
+        return parts.join(' · ')
+      }),
+      pageTitle,
       // 資料檔的 note 只有中文;英文介面用 i18n 的譯文(沒有就照原文)
       pageNote: computed(() => {
         const p = store.page.value
@@ -166,14 +262,56 @@ export default defineComponent({
       switchGame,
       switchPage,
       setMode,
+      setOutScope,
+      setPanelView,
       onLang (e: Event) {
         setLang((e.target as HTMLSelectElement).value === 'en' ? 'en' : 'zh')
       },
       setBilingual,
       retryCatalogue,
       dismissNotice,
+      onTemplate (e: Event) {
+        const sel = e.target as HTMLSelectElement
+        const tp = store.templates.value.find(x => x.id === sel.value)
+        sel.value = ''
+        if (tp) tplConfirm.value = tp
+      },
+      confirmTemplate () {
+        const tp = tplConfirm.value
+        tplConfirm.value = null
+        if (tp) applyTemplate(tp)
+      },
+      async copyShare () {
+        clearTimeout(shareTimer)
+        try {
+          await writeClipboard(await makeShareCode())
+          shareState.value = 'ok'
+        } catch {
+          shareState.value = 'fail'
+        }
+        shareTimer = setTimeout(() => { shareState.value = '' }, 1600)
+      },
+      async openPaste () {
+        paste.value = { code: '', error: '', busy: false }
+        try {
+          const clip = (await navigator.clipboard.readText()).trim()
+          if (paste.value && !paste.value.code && /^[A-Za-z0-9_-]{16,}$/.test(clip)) paste.value = { ...paste.value, code: clip }
+        } catch {}
+      },
+      async confirmPaste () {
+        const p = paste.value
+        if (!p) return
+        paste.value = { ...p, busy: true, error: '' }
+        try {
+          const warnings = await applyShareCode(p.code)
+          if (warnings.length) console.warn('[regex] 分享碼警告', warnings)
+          paste.value = null
+        } catch (e) {
+          paste.value = { ...p, busy: false, error: t('ppz.regex.share_bad', { error: e instanceof Error ? e.message : String(e) }) }
+        }
+      },
       async copy () {
-        const q = store.result.value?.query
+        const q = out.value?.query
         if (!q) return
         clearTimeout(copyTimer)
         try {
@@ -203,6 +341,9 @@ export default defineComponent({
   align-items: center;
   gap: 6px 8px;
 }
+.rx-head-tools {
+  margin-top: 8px;
+}
 .rx-head-row .grow,
 .rx-out-row .grow {
   flex: 1;
@@ -210,6 +351,10 @@ export default defineComponent({
 .rx-page {
   min-width: 120px;
   max-width: 220px;
+}
+.rx-tpl {
+  min-width: 140px;
+  max-width: 260px;
 }
 .rx-count {
   font-size: var(--fs-xs);
@@ -238,7 +383,7 @@ export default defineComponent({
   flex-direction: column;
   gap: 6px;
 }
-.rx-out > .label {
+.rx-out-label {
   margin: 0 !important;
 }
 .rx-query {
@@ -260,6 +405,21 @@ export default defineComponent({
 .rx-len.bad {
   color: var(--bad);
   font-weight: 600;
+}
+.rx-parts {
+  font-size: var(--fs-2xs);
+  color: var(--ink-3);
+}
+.rx-conflict-line {
+  margin: 0;
+  font-size: var(--fs-xs);
+}
+.rx-conflict-line.dim {
+  color: var(--ink-3);
+}
+.rx-conflict-line a {
+  margin-left: 6px;
+  color: var(--gold);
 }
 .rx-copy {
   min-width: 72px;
@@ -290,5 +450,15 @@ export default defineComponent({
 .rx-tokens li {
   font-family: var(--font-mono);
   white-space: pre;
+}
+.rx-share-input {
+  width: 100%;
+  height: auto;
+  margin: 6px 0;
+  padding: 6px 9px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  word-break: break-all;
+  resize: vertical;
 }
 </style>

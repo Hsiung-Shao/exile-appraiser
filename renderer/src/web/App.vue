@@ -9,6 +9,9 @@
   外觀(WP2,PobTools 語彙):標題列 = 金色菱形 + 品牌名 + 遊戲/區服徽章(.chip)+ 聯盟下拉(.select.sm)+ 齒輪/關閉(.btn.ghost.sm);
   面板容器 --surface-1 + 左 3px 金邊(overlay 另加 --shadow-float 與圓角);重載 / 限流 / 失敗用面板頂端的細條;
   限流狀態鈕:視窗模式在底列右側,overlay 在面板外側(不與面板重疊)。
+  WP-Q:設定仍獨佔整個面板;其餘時候是 .price-stack(上:查價 <main>,下:停靠的拆粉排行)。
+  ⚖ = 顯示/收合拆粉;中間的 .dust-splitter 可拖曳或用 ↑↓ 調整拆粉佔比(AppConfig().dustDockRatio,15–50%)。
+  收到新物品不會收起拆粉;window 模式開拆粉時視窗高不足 900 會放大(只放大不縮小)。
 -->
 <template>
   <div id="app" class="font-ui text-ink-0"
@@ -34,8 +37,10 @@
               <option v-for="l in leagues.list.value" :key="l.id" :value="l.id">{{ l.id }}</option>
             </select>
           </div>
+          <button class="btn ghost sm icon-btn" :class="{ on: showDust && !showSettings }" :title="t('ppz.dust.toggle')" :aria-label="t('ppz.dust.toggle')"
+            :aria-pressed="showDust && !showSettings" style="-webkit-app-region: no-drag;" data-action="dust" @click="toggleDust">⚖</button>
           <button class="btn ghost sm icon-btn" :class="{ on: showSettings }" :title="t('ppz.settings')" :aria-label="t('ppz.settings')"
-            style="-webkit-app-region: no-drag;" data-action="settings" @click="showSettings = !showSettings">⚙</button>
+            style="-webkit-app-region: no-drag;" data-action="settings" @click="toggleSettings">⚙</button>
           <button class="btn ghost sm icon-btn" :title="t('ppz.close')" :aria-label="t('ppz.close')"
             style="-webkit-app-region: no-drag;" data-action="close" @click="close">✕</button>
         </header>
@@ -56,47 +61,58 @@
 
         <settings-panel v-if="showSettings" class="grow min-h-0" @close="showSettings = false" />
 
-        <main v-else class="grow layout-column min-h-0 relative">
-          <ui-error-box v-if="leagues.error.value" class="m-3">
-            <template #name>{{ t('ppz.league_failed', { error: leagues.error.value }) }}</template>
-            <p>{{ t('ppz.league_failed_help') }}</p>
-            <template #actions>
-              <button class="btn sm" @click="openCaptcha">{{ t('ppz.open_captcha') }}</button>
-              <button class="btn sm primary" @click="leagues.load()">{{ t('Retry') }}</button>
-            </template>
-          </ui-error-box>
-          <ui-error-box v-else-if="!supported" class="m-3" data-error="unsupported-combo">
-            <template #name>{{ t('ppz.unsupported_combo') }}</template>
-            <template #actions>
-              <button class="btn sm" data-action="switch-intl" @click="switchToIntl">{{ t('ppz.switch_to_intl') }}</button>
-              <button class="btn sm primary" data-action="switch-zh" @click="switchToZh">{{ t('ppz.switch_to_zh') }}</button>
-            </template>
-          </ui-error-box>
-
-          <template v-if="parsed?.isErr()">
-            <ui-error-box class="m-3" data-error="parse">
-              <template #name>{{ t('ppz.parse_error') }}</template>
-              <p>{{ parseErrorText(parsed.error) }}</p>
+        <div v-else ref="stackEl" class="price-stack grow min-h-0" data-layout="price-stack">
+          <main class="price-main relative">
+            <ui-error-box v-if="leagues.error.value" class="m-3">
+              <template #name>{{ t('ppz.league_failed', { error: leagues.error.value }) }}</template>
+              <p>{{ t('ppz.league_failed_help') }}</p>
               <template #actions>
-                <button class="btn sm" data-action="copy-raw" @click="copyRaw">{{ copied ? t('ppz.copied') : t('ppz.copy_raw') }}</button>
-                <button class="btn sm" data-action="report-parse" @click="reportParseError">{{ t('ppz.report.parse') }} ↗</button>
+                <button class="btn sm" @click="openCaptcha">{{ t('ppz.open_captcha') }}</button>
+                <button class="btn sm primary" @click="leagues.load()">{{ t('Retry') }}</button>
               </template>
             </ui-error-box>
-            <pre class="raw-text selectable mx-3 mb-3">{{ rawText }}</pre>
-          </template>
-          <component :is="checkedItemComponent" v-else-if="parsed?.isOk() && leagueId && supported"
-            :key="itemKey"
-            :item="parsed.value" :advanced-check="advancedCheck" />
+            <ui-error-box v-else-if="!supported" class="m-3" data-error="unsupported-combo">
+              <template #name>{{ t('ppz.unsupported_combo') }}</template>
+              <template #actions>
+                <button class="btn sm" data-action="switch-intl" @click="switchToIntl">{{ t('ppz.switch_to_intl') }}</button>
+                <button class="btn sm primary" data-action="switch-zh" @click="switchToZh">{{ t('ppz.switch_to_zh') }}</button>
+              </template>
+            </ui-error-box>
 
-          <div v-if="!parsed" class="paste-area">
-            <p class="paste-hint">{{ t('ppz.paste_hint', { hotkey: hotkeyLabel }) }}</p>
-            <textarea v-model="pasteText" class="input paste-input" rows="10"
-              :placeholder="t('ppz.paste_placeholder')" @keydown.ctrl.enter="parsePasted" />
-            <div class="flex gap-2">
-              <button class="btn primary" @click="parsePasted">{{ t('ppz.parse') }}</button>
+            <template v-if="parsed?.isErr()">
+              <ui-error-box class="m-3" data-error="parse">
+                <template #name>{{ t('ppz.parse_error') }}</template>
+                <p>{{ parseErrorText(parsed.error) }}</p>
+                <template #actions>
+                  <button class="btn sm" data-action="copy-raw" @click="copyRaw">{{ copied ? t('ppz.copied') : t('ppz.copy_raw') }}</button>
+                  <button class="btn sm" data-action="report-parse" @click="reportParseError">{{ t('ppz.report.parse') }} ↗</button>
+                </template>
+              </ui-error-box>
+              <pre class="raw-text selectable mx-3 mb-3">{{ rawText }}</pre>
+            </template>
+            <component :is="checkedItemComponent" v-else-if="parsed?.isOk() && leagueId && supported"
+              :key="itemKey"
+              :item="parsed.value" :advanced-check="advancedCheck" />
+
+            <div v-if="!parsed" class="paste-area">
+              <p class="paste-hint">{{ t('ppz.paste_hint', { hotkey: hotkeyLabel }) }}</p>
+              <textarea v-model="pasteText" class="input paste-input" rows="10"
+                :placeholder="t('ppz.paste_placeholder')" @keydown.ctrl.enter="parsePasted" />
+              <div class="flex gap-2">
+                <button class="btn primary" @click="parsePasted">{{ t('ppz.parse') }}</button>
+              </div>
             </div>
-          </div>
-        </main>
+          </main>
+
+          <template v-if="showDust">
+            <div class="dust-splitter" role="separator" aria-orientation="horizontal" tabindex="0"
+              :aria-label="t('ppz.dust.splitter')" :title="t('ppz.dust.splitter')"
+              aria-valuemin="15" aria-valuemax="50" :aria-valuenow="dustRatio" data-action="dust-splitter"
+              :class="{ dragging: splitterDragging }"
+              @pointerdown="startSplitterDrag" @keydown="onSplitterKey" />
+            <dust-panel class="dust-docked" :docked="true" :style="{ flexBasis: `${dustRatio}%` }" @close="showDust = false" />
+          </template>
+        </div>
 
         <footer v-if="!showSettings && (parsed || !isOverlay)" class="bottombar">
           <button v-if="parsed" class="btn sm" data-action="paste-another" @click="reset">{{ t('ppz.paste') }}</button>
@@ -133,7 +149,8 @@ import { loadedGame } from './games/active'
 import { TRADE_PATHS } from '@exile-appraiser/core/realm'
 import UiErrorBox from '@/web/ui/UiErrorBox.vue'
 import SettingsPanel from './settings/SettingsPanel.vue'
-import { AppConfig } from './Config'
+import DustPanel from './dust/DustPanel.vue'
+import { AppConfig, clampDustDockRatio } from './Config'
 import { Host } from './background/IPC'
 import { useLeagues } from './background/Leagues'
 import { REALMS, isSupportedCombination } from '@exile-appraiser/core/realm'
@@ -148,9 +165,13 @@ const PANEL_WIDTH_EM = 28.75
  * fsBase 13 時維持原本 460px 的視覺寬度,並隨 fsBase 等比縮放。
  */
 const LEGACY_FS_SCALE = 1.23
+/** window 模式開拆粉時希望的最小視窗高(外框 px;只放大不縮小,且不超過螢幕可用高)。 */
+const DUST_WINDOW_MIN_HEIGHT = 900
+/** 分隔條鍵盤 ↑↓ 一次調整的百分點。 */
+const SPLITTER_STEP = 2
 
 export default defineComponent({
-  components: { UiErrorBox, SettingsPanel },
+  components: { UiErrorBox, SettingsPanel, DustPanel },
   setup () {
     const { t, te } = useI18n()
     const leagues = useLeagues()
@@ -159,6 +180,56 @@ export default defineComponent({
     const rawText = shallowRef('')
     const pasteText = shallowRef('')
     const showSettings = shallowRef(false)
+    /** 拆粉排行面板(停靠在查價下方;設定開著時被設定蓋住,關設定後回來) */
+    const showDust = shallowRef(false)
+    const stackEl = shallowRef<HTMLElement | null>(null)
+    const splitterDragging = shallowRef(false)
+    const dustRatio = computed(() => clampDustDockRatio(AppConfig().dustDockRatio))
+    function setDustRatio (n: number) {
+      const v = clampDustDockRatio(n)
+      if (v !== AppConfig().dustDockRatio) AppConfig().dustDockRatio = v
+    }
+    /** 拖曳分隔條:比例 = 指標到 stack 底的距離 / stack 高(pointer capture,放開才結束)。 */
+    function startSplitterDrag (e: PointerEvent) {
+      const el = stackEl.value
+      const target = e.currentTarget as HTMLElement | null
+      if (!el || !target || e.button !== 0) return
+      e.preventDefault()
+      try { target.setPointerCapture(e.pointerId) } catch { /* 合成事件沒有對應的指標:照樣以 target 的事件拖曳 */ }
+      splitterDragging.value = true
+      const onMove = (ev: PointerEvent) => {
+        const r = el.getBoundingClientRect()
+        if (r.height > 0) setDustRatio((r.bottom - ev.clientY) / r.height * 100)
+      }
+      const onUp = (ev: PointerEvent) => {
+        splitterDragging.value = false
+        try { target.releasePointerCapture(ev.pointerId) } catch { /* 同上 */ }
+        target.removeEventListener('pointermove', onMove)
+        target.removeEventListener('pointerup', onUp)
+        target.removeEventListener('pointercancel', onUp)
+        console.log(`[app] 拆粉停靠比例 ${AppConfig().dustDockRatio}%`)
+      }
+      target.addEventListener('pointermove', onMove)
+      target.addEventListener('pointerup', onUp)
+      target.addEventListener('pointercancel', onUp)
+    }
+    function onSplitterKey (e: KeyboardEvent) {
+      if (e.key === 'ArrowUp') setDustRatio(dustRatio.value + SPLITTER_STEP)
+      else if (e.key === 'ArrowDown') setDustRatio(dustRatio.value - SPLITTER_STEP)
+      else if (e.key === 'Home') setDustRatio(50)
+      else if (e.key === 'End') setDustRatio(15)
+      else return
+      e.preventDefault()
+    }
+    /** window 模式:開拆粉時視窗太矮就放大(main 的 window-resize 是 BrowserWindow.setSize = 外框尺寸)。 */
+    function ensureDustWindowHeight () {
+      if (isOverlay || !Host.isElectron) return
+      const want = Math.min(DUST_WINDOW_MIN_HEIGHT, window.screen?.availHeight || DUST_WINDOW_MIN_HEIGHT)
+      if (window.outerHeight < want) {
+        console.log(`[app] 拆粉:視窗高 ${window.outerHeight} < ${want},放大`)
+        void Host.resizeWindow(window.outerWidth, want)
+      }
+    }
     const itemKey = shallowRef(0)
     const rateLimitWait = shallowRef(0)
     // ---- overlay 狀態(APT WidgetManager 的最小子集) ----
@@ -218,6 +289,7 @@ export default defineComponent({
       checkPosition.value = e.position
       advancedCheck.value = e.focusOverlay
       showSettings.value = false
+      // WP-Q:拆粉停靠在查價下方,收到新物品不收起
       panelShown.value = true
       load(e.clipboard)
       if (isOverlay) {
@@ -239,6 +311,7 @@ export default defineComponent({
       // 托盤「設定」「關於」:main 已把視窗叫到前景(overlay:assertOverlayActive),這裡開設定到該分頁
       unsubscribers.push(Host.onOpenSettings(({ tab }) => {
         settingsTab.value = tab
+        showDust.value = false
         showSettings.value = true
         if (isOverlay) {
           panelShown.value = true
@@ -256,7 +329,7 @@ export default defineComponent({
           } else if (state.usingHotkey && !panelShown.value) {
             // overlayKey 叫出 overlay 但沒有物品:開面板 + 設定(本專案沒有 APT 的選單 widget)
             parsed.value = null
-            showSettings.value = true
+            showSettings.value = !showDust.value
             panelShown.value = true
             advancedCheck.value = true
             console.log('[app] overlayKey 叫出設定面板')
@@ -348,6 +421,26 @@ export default defineComponent({
       rawText,
       pasteText,
       showSettings,
+      showDust,
+      toggleSettings () {
+        showSettings.value = !showSettings.value
+        if (showSettings.value) showDust.value = false
+      },
+      /** ⚖ = 顯示/收合拆粉;設定開著時按 ⚖ = 關設定並顯示拆粉。 */
+      toggleDust () {
+        if (showSettings.value) {
+          showSettings.value = false
+          showDust.value = true
+        } else {
+          showDust.value = !showDust.value
+        }
+        if (showDust.value) ensureDustWindowHeight()
+      },
+      stackEl,
+      dustRatio,
+      splitterDragging,
+      startSplitterDrag,
+      onSplitterKey,
       itemKey,
       rateLimitWait,
       checkedItemComponent: computed(() => loadedGame.value === 'poe2' ? Poe2.CheckedItem : CheckedItem),
@@ -570,6 +663,20 @@ input[type=number]::-webkit-outer-spin-button {
 .strip.warn {
   color: var(--warn);
   background: color-mix(in srgb, var(--warn) 12%, var(--surface-1));
+}
+
+/* WP-Q:查價(上)+ 停靠拆粉(下);拆粉的 flex/邊框/分隔條樣式在 pobtools.css(.dust-docked / .dust-splitter) */
+.price-stack {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.price-main {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 /* 貼上框(視窗模式 / 沒有物品時) */

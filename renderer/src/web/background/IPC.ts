@@ -5,15 +5,18 @@
  *   session fetch 送出,才帶得到 Cloudflare 的 cookie。
  * - 在純瀏覽器(`npm run dev` 直接開 5173 看 UI):沒有 host,`proxy` 直接用 `fetch`(會被 CORS/CF 擋,
  *   只夠看畫面),設定存 localStorage。
+ * - 瀏覽器預覽(main 的 preview-server,docs/browser-preview.md):boot script 造的 `window.host` shim(`isPreview: true`),
+ *   方法經 RPC 到 main,與 Electron 內行為相同(設定寫同一份 config.json);視窗控制類是 no-op。
  */
 import type { HostApi, HostFetchInit, HostFetchResult, ItemTextEvent, HostConfigForMain, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId } from '@ipc/types'
-import type { HotkeyRegistration, SettingsTabId, UpdaterInfo } from '@ipc/types'
+import type { ConfigChangedEvent, HotkeyRegistration, SettingsTabId, UpdaterInfo } from '@ipc/types'
 import { shallowRef } from 'vue'
 import type { HttpFetch } from '@exile-appraiser/core/http'
 import { withRetryAfter } from '@exile-appraiser/core/http'
 
 const LS_KEY = 'exile-appraiser.config'
 const LS_REGEX_KEY = 'exile-appraiser.regex_state'
+const LS_DUST_KEY = 'exile-appraiser.dust_ui'
 
 function toResponse (r: HostFetchResult): Response {
   return new Response(r.body, { status: r.status, statusText: r.statusText, headers: r.headers })
@@ -25,6 +28,8 @@ class HostTransport {
   /** 純瀏覽器(沒有 host)一律當備援視窗版面。 */
   get windowMode (): WindowMode { return window.host?.windowMode ?? 'window' }
   get isOverlay (): boolean { return this.windowMode === 'overlay' }
+  /** 在一般瀏覽器裡透過 main 的預覽伺服器執行(不是 Electron 視窗)。 */
+  get isPreview (): boolean { return window.host?.isPreview === true }
 
   /**
    * 最近一次送出的交易站查詢(POST `/api/trade{,2}/search|exchange/…` 的 body),一鍵回報附上「實際送出的查詢」用。
@@ -74,6 +79,30 @@ class HostTransport {
   async regexStateSave (contents: string): Promise<void> {
     if (window.host) return window.host.regexStateSave(contents)
     try { localStorage.setItem(LS_REGEX_KEY, contents) } catch {}
+  }
+
+  // ---- 拆粉排行面板狀態(main 寫 userData/dust_ui.json;純瀏覽器用 localStorage) ----
+  async dustUiLoad (): Promise<string | null> {
+    if (window.host?.dustUiLoad) return window.host.dustUiLoad()
+    try { return localStorage.getItem(LS_DUST_KEY) } catch { return null }
+  }
+
+  async dustUiSave (contents: string): Promise<void> {
+    if (window.host?.dustUiSave) return window.host.dustUiSave(contents)
+    try { localStorage.setItem(LS_DUST_KEY, contents) } catch {}
+  }
+
+  // ---- poe.ninja 價格表快取(main 寫 userData/cache/ninja/<game>_<league>.json;純瀏覽器只存在記憶體) ----
+  private readonly ninjaMemory = new Map<string, string>()
+
+  async ninjaCacheLoad (game: GameId, league: string): Promise<string | null> {
+    if (window.host?.ninjaCacheLoad) return window.host.ninjaCacheLoad(game, league)
+    return this.ninjaMemory.get(`${game}|${league}`) ?? null
+  }
+
+  async ninjaCacheSave (game: GameId, league: string, contents: string): Promise<void> {
+    if (window.host?.ninjaCacheSave) return window.host.ninjaCacheSave(game, league, contents)
+    this.ninjaMemory.set(`${game}|${league}`, contents)
   }
 
   /** 送設定給 main,回傳熱鍵註冊結果;純瀏覽器沒有 main → `null`。 */
@@ -135,6 +164,22 @@ class HostTransport {
 
   onUpdaterState (cb: (info: UpdaterInfo) => void): () => void {
     return window.host?.onUpdaterState(cb) ?? (() => {})
+  }
+
+  // ---- 瀏覽器預覽同步(main 在 config-save 後廣播;自己存的不會收到) ----
+  onConfigChanged (cb: (e: ConfigChangedEvent) => void): () => void {
+    return window.host?.onConfigChanged?.(cb) ?? (() => {})
+  }
+
+  /** 啟動(或沿用)預覽伺服器並用預設瀏覽器開啟;純瀏覽器沒有 main → null。 */
+  async openPreview (): Promise<{ url: string } | null> {
+    if (!window.host?.openPreview) return null
+    return await window.host.openPreview()
+  }
+
+  async getPreviewUrl (): Promise<string | null> {
+    if (!window.host?.getPreviewUrl) return null
+    return await window.host.getPreviewUrl()
   }
 }
 

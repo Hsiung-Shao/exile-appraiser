@@ -6,12 +6,28 @@
 // 語料組法移植自 `host/regex_tool_ui.cpp` `buildCorpus()`(:1059)與 `regex_selftest.cpp` DataTests 的 build():
 //   選定語言的行為主,整筆退回另一語言;hidden 跟著該筆實際用的語言走;ambient / 名稱字用選定語言。
 // 純 TS:不讀檔(讀檔在 `node.ts` 或呼叫端)。
+//
+// schema 2(PobTools 產生器升版後):頂層多 `labels{zh,en}`(clientstrings 鍵 → 文字,`{0}` 已換成 `#`)、
+// 頁面多 `kind`(mods / names;演算法頁 numeric / sockets 由 `pages/` 在程式裡組,不在資料檔)。schema 1 照樣可讀:
+// 缺 `kind` = mods、缺 `labels` = null(呼叫端改讀 `data/regex/labels.<game>.json` 暫代檔,見 parseLabels)。
 
 import { Corpus, type Ambient, type Entry, type Options } from './gen'
 
 export type RegexGame = 'poe1' | 'poe2'
 /** 輸出語言 = 語料語言(「不會誤中」是對單一語言清單講的,兩邊的 token 不能互換) */
 export type RegexLang = 'zh' | 'en'
+/**
+ * 頁面種類(schema 2 `kind`):mods / names = 語料頁(Corpus 覆蓋演算法);
+ * numeric / sockets = 演算法頁(`pages/` 產生片段,不經 Corpus,見 combine.ts)
+ */
+export type PageKind = 'mods' | 'names' | 'numeric' | 'sockets'
+export const PAGE_KINDS: readonly PageKind[] = ['mods', 'names', 'numeric', 'sockets']
+
+/** clientstrings 鍵 → 顯示文字(兩語);`{0}` 已換成 `#`、`[Id|文字]` 已剝成「文字」 */
+export interface RegexLabels {
+  zh: Record<string, string>
+  en: Record<string, string>
+}
 
 export interface RegexEntry {
   id: string
@@ -28,6 +44,8 @@ export interface RegexEntry {
 export interface RegexPage {
   game: RegexGame
   id: string
+  /** schema 2 `kind`;schema 1 沒有 = 'mods' */
+  kind?: PageKind
   title: string
   titleEn: string
   note: string
@@ -48,6 +66,13 @@ export interface RegexCatalogue {
   schema: number
   source: string
   pages: RegexPage[]
+  /** schema 2 頂層 `labels`;schema 1 = null */
+  labels: RegexLabels | null
+}
+
+/** 是否為語料頁(mods / names;缺 kind 也算) */
+export function isCorpusPage (p: RegexPage): boolean {
+  return p.kind === undefined || p.kind === 'mods' || p.kind === 'names'
 }
 
 type Json = Record<string, unknown>
@@ -94,6 +119,7 @@ export function parseRegexCatalogue (input: string | unknown, game: RegexGame): 
     const page: RegexPage = {
       game,
       id: value(p, 'id', ''),
+      kind: pageKind(value(p, 'kind', 'mods')),
       title: value(p, 'title', ''),
       titleEn: value(p, 'titleEn', ''),
       note: value(p, 'note', ''),
@@ -132,8 +158,52 @@ export function parseRegexCatalogue (input: string | unknown, game: RegexGame): 
     game,
     schema: typeof doc.schema === 'number' ? doc.schema : 0,
     source: typeof doc.source === 'string' ? doc.source : '',
-    pages
+    pages,
+    labels: isObj(doc.labels) ? parseLabels(doc.labels) : null
   }
+}
+
+/** 未知的 kind 當 mods(新版產生器加了本版不認得的種類時,至少還能當語料頁用) */
+function pageKind (v: string): PageKind {
+  return (PAGE_KINDS as readonly string[]).includes(v) ? v as PageKind : 'mods'
+}
+
+/**
+ * clientstrings 文字 → 搜尋列看得到的樣子:`[Id|顯示]` → 顯示、`[Id]` → Id(PoE2 的標記)、`{0}` → `#`。
+ * (與資料檔的 `#` 慣例一致:`#` = 一個數值)
+ */
+export function normalizeLabel (s: string): string {
+  return s
+    .replace(/\[([^\]|]*)\|([^\]]*)\]/g, '$2')
+    .replace(/\[([^\]|]*)\]/g, '$1')
+    .replace(/\{\d+\}/g, '#')
+}
+
+/**
+ * 合併兩份 labels:primary(schema 2 資料檔自帶)逐鍵優先,fallback(暫代檔)只補 primary 缺的鍵。
+ * 兩者都 null → null。
+ */
+export function mergeLabels (primary: RegexLabels | null, fallback: RegexLabels | null): RegexLabels | null {
+  if (!primary) return fallback
+  if (!fallback) return primary
+  return { zh: { ...fallback.zh, ...primary.zh }, en: { ...fallback.en, ...primary.en } }
+}
+
+/**
+ * labels 物件:接受 `{zh:{…}, en:{…}}`(schema 2 頂層 `labels`)或暫代檔 `{schema, source, labels:{zh,en}}`。
+ * 非字串值略過;文字經 normalizeLabel。
+ */
+export function parseLabels (input: string | unknown): RegexLabels {
+  let doc: unknown = typeof input === 'string' ? JSON.parse(input) : input
+  if (isObj(doc) && isObj(doc.labels)) doc = doc.labels
+  const out: RegexLabels = { zh: {}, en: {} }
+  if (!isObj(doc)) return out
+  for (const lang of ['zh', 'en'] as const) {
+    const m = doc[lang]
+    if (!isObj(m)) continue
+    for (const [k, v] of Object.entries(m)) if (typeof v === 'string') out[lang][k] = normalizeLabel(v)
+  }
+  return out
 }
 
 /** 一筆項目在某語言下實際用的行(`buildCorpus` 的 want/fallback);`usedWant=false` 表示退回另一語言 */

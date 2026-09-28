@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { HostApi, HostFetchInit, HostConfigForMain, ItemTextEvent, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId, UpdaterInfo, SettingsTabId } from '@ipc/types'
+import type { HostApi, HostFetchInit, HostConfigForMain, ItemTextEvent, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId, UpdaterInfo, SettingsTabId, ConfigChangedEvent } from '@ipc/types'
 
 function subscribe<T> (channel: string, cb: (e: T) => void): () => void {
   const listener = (_: unknown, e: T) => cb(e)
@@ -16,6 +16,10 @@ const api: HostApi = {
   saveConfig: (contents: string) => ipcRenderer.invoke('config-save', contents),
   regexStateLoad: () => ipcRenderer.invoke('regex-state-load'),
   regexStateSave: (contents: string) => ipcRenderer.invoke('regex-state-save', contents),
+  dustUiLoad: () => ipcRenderer.invoke('dust-ui-load'),
+  dustUiSave: (contents: string) => ipcRenderer.invoke('dust-ui-save', contents),
+  ninjaCacheLoad: (game: GameId, league: string) => ipcRenderer.invoke('ninja-cache-load', game, league),
+  ninjaCacheSave: (game: GameId, league: string, contents: string) => ipcRenderer.invoke('ninja-cache-save', game, league, contents),
   updateHostConfig: (cfg: HostConfigForMain) => ipcRenderer.invoke('host-config', cfg),
   onItemText: (cb: (e: ItemTextEvent) => void) => subscribe('item-text', cb),
   onFocusChange: (cb: (e: FocusChangeEvent) => void) => subscribe('focus-change', cb),
@@ -34,7 +38,13 @@ const api: HostApi = {
   checkForUpdate: () => ipcRenderer.invoke('updater-check'),
   downloadUpdate: () => ipcRenderer.invoke('updater-download'),
   installUpdate: () => ipcRenderer.invoke('updater-install'),
-  onUpdaterState: (cb: (info: UpdaterInfo) => void) => subscribe('updater-state', cb)
+  onUpdaterState: (cb: (info: UpdaterInfo) => void) => subscribe('updater-state', cb),
+  // 自己(Electron 視窗)存的設定也會被廣播回來,這裡略過;只轉交預覽分頁存的
+  onConfigChanged: (cb: (e: ConfigChangedEvent) => void) => subscribe<ConfigChangedEvent>('config-changed', (e) => {
+    if (e?.source !== 'electron') cb(e)
+  }),
+  openPreview: () => ipcRenderer.invoke('preview-open'),
+  getPreviewUrl: () => ipcRenderer.invoke('preview-url')
 }
 
 contextBridge.exposeInMainWorld('host', api)

@@ -35,11 +35,12 @@
       <i class="fas fa-info-circle" />
       {{ t('item.complexity_hint') }}
     </p>
+    <dust-value v-if="item.dustEquivalent" :item="item"/>
   </div>
 </template>
 
 <script lang="ts">
-// exile-appraiser: 移除 PriceTrend / PricePrediction / StackValue / DustValue 與贊助區塊(showPredictedPrice / showSupportLinks);overlay 型別改 @/web alias;交易站網址 ?q= 改 encodeURIComponent
+// exile-appraiser: 移除 PriceTrend / PricePrediction / StackValue 與贊助區塊(showPredictedPrice / showSupportLinks);DustValue 已加回(拆粉量 + poe.ninja dust/chaos);overlay 型別改 @/web alias;交易站網址 ?q= 改 encodeURIComponent
 import { defineComponent, PropType, watch, ref, nextTick, computed, ComponentPublicInstance } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ItemRarity, ItemCategory, ParsedItem } from '@/parser'
@@ -50,6 +51,7 @@ import { apiToSatisfySearch, getTradeEndpoint } from './trade/common'
 import FiltersBlock from './filters/FiltersBlock.vue'
 import { createPresets } from './filters/create-presets'
 import FilterName from './filters/FilterName.vue'
+import DustValue from './expected-value/DustValue.vue'
 import { CATEGORY_TO_TRADE_ID, createTradeRequest } from './trade/pathofexile-trade'
 import { AppConfig } from '@/web/Config'
 import { FilterPreset } from './filters/interfaces'
@@ -63,7 +65,8 @@ export default defineComponent({
     TradeBulk,
     TradeLinks,
     FiltersBlock,
-    FilterName
+    FilterName,
+    DustValue
   },
   props: {
     item: {

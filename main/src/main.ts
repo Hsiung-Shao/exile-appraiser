@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Menu, nativeImage, net, protocol, screen, shell, Tray, type BrowserWindowConstructorOptions } from 'electron'
+import { app, BrowserWindow, Menu, nativeImage, net, protocol, screen, shell, Tray, type BrowserWindowConstructorOptions } from 'electron'
 import { uIOhook } from 'uiohook-napi'
 import { OVERLAY_WINDOW_OPTS } from 'electron-overlay-window'
 import fs from 'node:fs/promises'
@@ -6,7 +6,7 @@ import fsSync from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { format } from 'node:util'
-import type { GameId, HostConfigForMain, HostFetchInit, ItemTextEvent, SettingsTabId, WindowMode } from '@ipc/types'
+import type { ConfigChangedEvent, GameId, HostConfigForMain, HostFetchInit, HotkeyRegistration, ItemTextEvent, SettingsTabId, TrackAreaOpts, WindowMode } from '@ipc/types'
 import { hostFetch, installCookiePatch } from './http'
 import { Shortcuts, normalizeHotkey } from './Shortcuts'
 import { GameWindow } from './windowing/GameWindow'
@@ -16,6 +16,8 @@ import { OverlayVisibility } from './windowing/OverlayVisibility'
 import { WidgetAreaTracker } from './windowing/WidgetAreaTracker'
 import { AppUpdater } from './AppUpdater'
 import { trayStrings, type TrayLang } from './tray-strings'
+import { Broadcaster, previewHandlers, registerIpc, type HandlerCtx, type HandlerTable } from './host-handlers'
+import { startPreviewServer, type PreviewServer } from './preview-server'
 
 // `--ppz-log-file=<path>`:main 的 console 另外附加寫到檔案(驗證自我重新啟動用;relaunch 會沿用同一組參數,
 // 新行程的 stdout 不一定接得回原終端機)。不用 `--log-file`,那是 Chromium 自己的開關。
@@ -57,7 +59,7 @@ function installAppProtocol () {
 
 const DEV_URL = process.env.VITE_DEV_SERVER_URL
 const CONFIG_PATH = () => path.join(app.getPath('userData'), 'config.json')
-const DEFAULT_SIZE = { width: 480, height: 640 }
+const DEFAULT_SIZE = { width: 480, height: 720 }
 
 /**
  * 改名搬移:本專案原名 poe-price-zh(開發與打包的 userData 都是 `%APPDATA%\poe-price-zh`)。
@@ -255,6 +257,7 @@ function showNear (position: { x: number, y: number }) {
 interface TrayActions {
   show: () => void
   openSettings: (tab: SettingsTabId) => void
+  openInBrowser: () => void
   checkUpdate: () => void
 }
 
@@ -281,6 +284,7 @@ function rebuildTrayMenu (lang: TrayLang) {
   tray.setContextMenu(Menu.buildFromTemplate([
     { label: s.show, click: a.show },
     { label: s.settings, click: () => { a.openSettings('general') } },
+    { label: s.openInBrowser, click: a.openInBrowser },
     { label: s.checkUpdate, click: a.checkUpdate },
     { label: s.openConfigFolder, click: () => { void shell.openPath(app.getPath('userData')) } },
     { label: s.about, click: () => { a.openSettings('about') } },
@@ -304,9 +308,23 @@ function createTray (actions: TrayActions) {
   tray.on('double-click', actions.show)
 }
 
+/** 瀏覽器預覽(WP-P,docs/browser-preview.md):`--preview` 啟動即開伺服器並印網址;托盤 / 設定「一般」分頁可隨時開。 */
+const PREVIEW_ON_START = process.argv.includes('--preview')
+let preview: PreviewServer | null = null
+
+/**
+ * 預覽的靜態檔根目錄 = `app://` 的根目錄(打包後 app 根目錄 = renderer/dist 的內容)。
+ * 開發模式(Vite 5173)不代理 Vite:Vite 的模組路徑是絕對路徑(`/src/…`、`/@vite/client`),放不進 `/t/<token>/` 前綴,
+ * 所以開發模式一律供應**已 build 的** `renderer/dist`(先 `npm run build --workspace renderer`)。
+ */
+function previewStaticRoot (): string {
+  return DEV_URL ? path.resolve(__dirname, '../../renderer/dist') : __dirname
+}
+
 app.on('before-quit', () => { quitting = true })
 app.on('will-quit', () => {
   try { uIOhook.stop() } catch {}
+  if (preview && !preview.closed) void preview.close('app quit')
 })
 
 app.whenReady().then(() => {
@@ -316,9 +334,9 @@ app.whenReady().then(() => {
   const windowMode = resolveWindowMode()
   console.log(`[main] 視窗模式 ${windowMode}${process.argv.includes('--window') ? '(--window)' : ''} pid=${process.pid} config=${CONFIG_PATH()}`)
   const w = win = createWindow(windowMode)
-  const send: SendToRenderer = (channel, payload) => {
-    if (!w.isDestroyed()) w.webContents.send(channel, payload)
-  }
+  // 事件一律經 Broadcaster:送 webContents,放行清單內的(config-changed / updater-state / switch-game)也送預覽分頁
+  const broadcaster = new Broadcaster(() => w.isDestroyed() ? null : w.webContents)
+  const send: SendToRenderer = broadcaster.broadcast
 
   let overlay: OverlayWindow | undefined
   let poeWindow: GameWindow | undefined
@@ -357,46 +375,85 @@ app.whenReady().then(() => {
     console.log(`[tray] open-settings tab=${tab}`)
     send('open-settings', { tab })
   }
-  createTray({ show: showApp, openSettings, checkUpdate: () => { void updater.check() } })
+
+  // ---- 瀏覽器預覽伺服器(啟動或沿用;閒置自動關閉後可再開) ----
+  let previewStarting: Promise<PreviewServer> | null = null
+  const ensurePreview = async (): Promise<PreviewServer> => {
+    if (preview && !preview.closed) return preview
+    if (previewStarting) return await previewStarting
+    const root = previewStaticRoot()
+    if (!fsSync.existsSync(path.join(root, 'index.html'))) {
+      console.error(`[preview] 找不到 ${path.join(root, 'index.html')}${DEV_URL ? '(開發模式請先 npm run build --workspace renderer)' : ''}`)
+    }
+    previewStarting = startPreviewServer({
+      staticRoot: root,
+      handlers: previewHandlers(table),
+      version: app.getVersion(),
+      log: (m) => { console.log(m) },
+      onClose: () => { broadcaster.setPreviewSink(null) }
+    }).then((srv) => {
+      preview = srv
+      broadcaster.setPreviewSink(srv.push)
+      return srv
+    }).finally(() => { previewStarting = null })
+    return await previewStarting
+  }
+  const openPreviewInBrowser = async (): Promise<{ url: string }> => {
+    const srv = await ensurePreview()
+    console.log(`[preview] 以預設瀏覽器開啟 ${srv.url}`)
+    await shell.openExternal(srv.url)
+    return { url: srv.url }
+  }
+
+  createTray({
+    show: showApp,
+    openSettings,
+    openInBrowser: () => { openPreviewInBrowser().catch((e) => { console.error('[preview] 開啟失敗', e) }) },
+    checkUpdate: () => { void updater.check() }
+  })
   app.on('second-instance', showApp)
 
-  ipcMain.on('app-version', (e) => { e.returnValue = app.getVersion() })
-  ipcMain.on('window-mode', (e) => { e.returnValue = windowMode })
-  ipcMain.on('focus-game', () => { overlay?.assertGameActive() })
-  ipcMain.on('used-recently', (_e, isOverlay: boolean) => { if (overlay) overlay.wasUsedRecently = isOverlay })
-  ipcMain.handle('http-fetch', (_e, url: string, init?: HostFetchInit) => hostFetch(url, init))
-  ipcMain.handle('config-load', async () => {
-    try { return await fs.readFile(CONFIG_PATH(), 'utf8') } catch { return null }
-  })
-  ipcMain.handle('config-save', async (_e, contents: string) => {
-    await fs.mkdir(path.dirname(CONFIG_PATH()), { recursive: true })
-    await fs.writeFile(CONFIG_PATH(), contents)
-  })
   // Poe Regex 面板狀態(勾選 + 書籤)。原子寫入:先寫 .tmp 再 rename(Windows 上 libuv 用 MoveFileEx REPLACE_EXISTING);
   // 存檔依序排隊,兩次連續存檔不會同時寫同一個 .tmp。
   const REGEX_STATE_PATH = () => path.join(app.getPath('userData'), 'regex_state.json')
   let regexSaveChain: Promise<void> = Promise.resolve()
-  ipcMain.handle('regex-state-load', async () => {
-    try { return await fs.readFile(REGEX_STATE_PATH(), 'utf8') } catch { return null }
-  })
-  ipcMain.handle('regex-state-save', (_e, contents: string) => {
-    const run = async () => {
-      const file = REGEX_STATE_PATH()
-      const tmp = file + '.tmp'
-      await fs.mkdir(path.dirname(file), { recursive: true })
-      await fs.writeFile(tmp, contents, 'utf8')
-      await fs.rename(tmp, file)
-    }
-    const next = regexSaveChain.then(run, run)
-    regexSaveChain = next.catch(() => {})
-    return next
-  })
+  // 拆粉排行面板狀態(core/src/dust/ui-state.ts 的 JSON:選項 + 按聯盟的標記/隱藏):userData/dust_ui.json。
+  // 原子寫入同 regex_state(.tmp → rename,依序排隊;失敗時刪掉 .tmp)。
+  const DUST_UI_PATH = () => path.join(app.getPath('userData'), 'dust_ui.json')
+  let dustSaveChain: Promise<void> = Promise.resolve()
+  // poe.ninja 價格表快取(core/src/ninja/cache.ts 的快照 JSON):userData/cache/ninja/<game>_<league>.json。
+  // 原子寫入(每次寫各自的 .tmp 再 rename,依序排隊);啟動時清掉 30 天以上沒動過的檔(同 PobTools PruneNinjaCache)。
+  const NINJA_DIR = () => path.join(app.getPath('userData'), 'cache', 'ninja')
+  const ninjaFile = (game: unknown, league: unknown) => {
+    if (game !== 'poe1' && game !== 'poe2') throw new Error(`bad game: ${String(game)}`)
+    const safe = String(league ?? '').replace(/[^A-Za-z0-9_-]/g, '_') || 'league'
+    return path.join(NINJA_DIR(), `${game}_${safe}.json`)
+  }
+  void (async () => {
+    try {
+      const dir = NINJA_DIR()
+      const cutoff = Date.now() - 30 * 86400 * 1000
+      for (const name of await fs.readdir(dir)) {
+        if (!/^poe[12]_.*[.]json([.]tmp.*)?$/.test(name)) continue
+        const file = path.join(dir, name)
+        const st = await fs.stat(file)
+        if (st.isFile() && st.mtimeMs < cutoff) await fs.rm(file, { force: true })
+      }
+    } catch {}
+  })()
+  let ninjaSaveChain: Promise<void> = Promise.resolve()
+
   // ---- PoE1 / PoE2 切換 ----
   // overlay:第一次 host-config 決定綁哪款遊戲(attachByTitle 一次);之後 game / 該遊戲標題 / overlayMode 變了 → 重新啟動。
   // window:沒有綁定,game 跟著 renderer 走,不重啟。
+  // 瀏覽器預覽送來的 host-config 一律不重新啟動(只回 needsRestart);Electron 視窗隨後套用同一份設定時也不重啟(`deferredByPreview`)。
   let hostCfg: HostConfigForMain | null = null
+  /** 只由 Electron 視窗的 host-config 更新(overlayMode 變更判斷用;預覽端的不算)。 */
+  let electronCfg: HostConfigForMain | null = null
   let bound: { game: GameId, title: string } | null = null
   let relaunching = false
+  /** 預覽端改了需要重新啟動的欄位:記下那組值,Electron 視窗跟著套用時不重啟。 */
+  let deferredByPreview: { game: GameId, title: string, overlayMode: boolean } | null = null
   const scheduleRelaunch = (reason: string, game?: GameId) => {
     if (relaunching) return
     relaunching = true
@@ -426,16 +483,56 @@ app.whenReady().then(() => {
     }
   })
 
-  ipcMain.handle('host-config', (_e, cfg: HostConfigForMain) => {
+  /** 這份設定需要重新啟動的原因(沒有回 null)。`prevOverlayMode` = 比較基準的 overlayMode(undefined = 不比)。 */
+  const relaunchReason = (cfg: HostConfigForMain, prevOverlayMode: boolean | undefined): string | null => {
+    if (!FORCED_WINDOW_MODE && prevOverlayMode !== undefined && prevOverlayMode !== cfg.overlayMode) {
+      return `overlayMode ${prevOverlayMode}→${cfg.overlayMode}`
+    }
+    if (overlay && bound) {
+      const title = windowTitleFor(cfg, cfg.game)
+      if (cfg.game !== bound.game) return `手動切換遊戲 ${bound.game}→${cfg.game}`
+      if (title !== bound.title) return `${cfg.game} 視窗標題 "${bound.title}"→"${title}"`
+    }
+    return null
+  }
+  const sameAsDeferred = (cfg: HostConfigForMain) => deferredByPreview != null &&
+    deferredByPreview.game === cfg.game && deferredByPreview.overlayMode === cfg.overlayMode &&
+    deferredByPreview.title === windowTitleFor(cfg, cfg.game)
+  const applyDetector = (cfg: HostConfigForMain) => {
+    if (cfg.autoSwitchGame) detector.start()
+    else detector.stop()
+  }
+
+  const onHostConfig = (ctx: HandlerCtx, cfg: HostConfigForMain): HotkeyRegistration => {
     const result = shortcuts.updateActions(cfg)
-    const prev = hostCfg
     hostCfg = cfg
     if (cfg.uiLanguage === 'en' || cfg.uiLanguage === 'cmn-Hant') rebuildTrayMenu(cfg.uiLanguage)
     updater.checkAtStartup()
     if (relaunching) return result
 
-    if (prev && !FORCED_WINDOW_MODE && prev.overlayMode !== cfg.overlayMode) {
-      scheduleRelaunch(`overlayMode ${prev.overlayMode}→${cfg.overlayMode}`)
+    if (ctx.source === 'preview') {
+      // 預覽端:與目前實際的視窗模式 / overlay 綁定比較;不同只記下,不重新啟動
+      const reason = relaunchReason(cfg, windowMode === 'overlay')
+      if (reason) {
+        deferredByPreview = { game: cfg.game, title: windowTitleFor(cfg, cfg.game), overlayMode: cfg.overlayMode }
+        console.log(`[main] 預覽端設定需要重新啟動才生效(${reason});只存檔,不重新啟動`)
+        return { ...result, needsRestart: true }
+      }
+      applyDetector(cfg)
+      return result
+    }
+
+    const prev = electronCfg
+    electronCfg = cfg
+    const reason = relaunchReason(cfg, prev?.overlayMode)
+    if (reason) {
+      if (sameAsDeferred(cfg)) {
+        console.log(`[main] ${reason}:來自瀏覽器預覽的變更,下次啟動才生效(不重新啟動)`)
+        applyDetector(cfg)
+        return { ...result, needsRestart: true }
+      }
+      deferredByPreview = null
+      scheduleRelaunch(reason, reason.startsWith('手動切換遊戲') ? cfg.game : undefined)
       return result
     }
     if (overlay) {
@@ -443,36 +540,153 @@ app.whenReady().then(() => {
       if (!bound) {
         bound = { game: cfg.game, title }
         overlay.updateOpts(normalizeHotkey(cfg.overlayKey), title, cfg.game)
-      } else if (cfg.game !== bound.game) {
-        scheduleRelaunch(`手動切換遊戲 ${bound.game}→${cfg.game}`, cfg.game)
-        return result
-      } else if (title !== bound.title) {
-        scheduleRelaunch(`${cfg.game} 視窗標題 "${bound.title}"→"${title}"`)
-        return result
       } else {
         overlay.setOverlayKey(normalizeHotkey(cfg.overlayKey))
       }
     }
-    if (cfg.autoSwitchGame) detector.start()
-    else detector.stop()
+    applyDetector(cfg)
     return result
-  })
-  ipcMain.handle('open-external', (_e, url: string) => shell.openExternal(url))
-  ipcMain.handle('open-captcha', (_e, url: string) => {
-    if (captchaWin && !captchaWin.isDestroyed()) { captchaWin.focus(); void captchaWin.loadURL(url); return }
-    captchaWin = new BrowserWindow({ width: 1000, height: 760, title: 'ExileAppraiser — trade site', autoHideMenuBar: true })
-    captchaWin.on('closed', () => { captchaWin = null })
-    void captchaWin.loadURL(url)
-  })
-  ipcMain.handle('window-hide', () => {
-    if (overlay) overlay.assertGameActive()
-    else win?.hide()
-  })
-  ipcMain.handle('window-resize', (_e, width: number, height: number) => {
-    if (!win || overlay) return
-    const [cw, ch] = win.getSize()
-    if (Math.abs(cw - width) > 2 || Math.abs(ch - height) > 2) win.setSize(Math.round(width), Math.round(height))
-  })
+  }
+
+  // ---- 所有 IPC handler 的登錄表(ipcMain 與瀏覽器預覽共用;見 host-handlers.ts) ----
+  const table: HandlerTable = {
+    'app-version': { kind: 'sync', fn: () => app.getVersion() },
+    'window-mode': { kind: 'sync', fn: () => windowMode },
+    'focus-game': { kind: 'send', fn: () => { overlay?.assertGameActive() } },
+    'used-recently': { kind: 'send', fn: (_ctx, isOverlay: boolean) => { if (overlay) overlay.wasUsedRecently = isOverlay } },
+    'track-area': { kind: 'send', fn: (_ctx, opts: TrackAreaOpts) => { areaTracker?.track(opts) } },
+    'http-fetch': { kind: 'invoke', fn: (_ctx, url: string, init?: HostFetchInit) => hostFetch(url, init) },
+    'config-load': {
+      kind: 'invoke',
+      fn: async () => {
+        try { return await fs.readFile(CONFIG_PATH(), 'utf8') } catch { return null }
+      }
+    },
+    'config-save': {
+      kind: 'invoke',
+      fn: async (ctx, contents: string) => {
+        if (typeof contents !== 'string') throw new Error('config-save: contents 不是字串')
+        await fs.mkdir(path.dirname(CONFIG_PATH()), { recursive: true })
+        await fs.writeFile(CONFIG_PATH(), contents)
+        const ev: ConfigChangedEvent = { contents, source: ctx.source === 'preview' ? `preview:${ctx.clientId ?? ''}` : 'electron' }
+        console.log(`[main] config-save from ${ev.source}(${contents.length} 字元)→ broadcast config-changed`)
+        send('config-changed', ev)
+      }
+    },
+    'regex-state-load': {
+      kind: 'invoke',
+      fn: async () => {
+        try { return await fs.readFile(REGEX_STATE_PATH(), 'utf8') } catch { return null }
+      }
+    },
+    'regex-state-save': {
+      kind: 'invoke',
+      fn: (_ctx, contents: string) => {
+        const run = async () => {
+          const file = REGEX_STATE_PATH()
+          const tmp = file + '.tmp'
+          await fs.mkdir(path.dirname(file), { recursive: true })
+          await fs.writeFile(tmp, contents, 'utf8')
+          await fs.rename(tmp, file)
+        }
+        const next = regexSaveChain.then(run, run)
+        regexSaveChain = next.catch(() => {})
+        return next
+      }
+    },
+    'dust-ui-load': {
+      kind: 'invoke',
+      fn: async () => {
+        try { return await fs.readFile(DUST_UI_PATH(), 'utf8') } catch { return null }
+      }
+    },
+    'dust-ui-save': {
+      kind: 'invoke',
+      fn: (_ctx, contents: string) => {
+        const run = async () => {
+          if (typeof contents !== 'string') throw new Error('dust-ui-save: contents 不是字串')
+          const file = DUST_UI_PATH()
+          const tmp = file + '.tmp'
+          await fs.mkdir(path.dirname(file), { recursive: true })
+          try {
+            await fs.writeFile(tmp, contents, 'utf8')
+            await fs.rename(tmp, file)
+          } catch (e) {
+            await fs.rm(tmp, { force: true })
+            throw e
+          }
+        }
+        const next = dustSaveChain.then(run, run)
+        dustSaveChain = next.catch(() => {})
+        return next
+      }
+    },
+    'ninja-cache-load': {
+      kind: 'invoke',
+      fn: async (_ctx, game: string, league: string) => {
+        try { return await fs.readFile(ninjaFile(game, league), 'utf8') } catch { return null }
+      }
+    },
+    'ninja-cache-save': {
+      kind: 'invoke',
+      fn: (_ctx, game: string, league: string, contents: string) => {
+        const run = async () => {
+          const file = ninjaFile(game, league)
+          const tmp = `${file}.tmp${process.pid}`
+          await fs.mkdir(path.dirname(file), { recursive: true })
+          try {
+            await fs.writeFile(tmp, contents, 'utf8')
+            await fs.rename(tmp, file)
+          } catch (e) {
+            await fs.rm(tmp, { force: true })
+            throw e
+          }
+        }
+        const next = ninjaSaveChain.then(run, run)
+        ninjaSaveChain = next.catch(() => {})
+        return next
+      }
+    },
+    'host-config': { kind: 'invoke', fn: onHostConfig },
+    'open-external': { kind: 'invoke', fn: (_ctx, url: string) => shell.openExternal(url) },
+    'open-captcha': {
+      kind: 'invoke',
+      // 預覽端也開 Electron 視窗:Cloudflare cookie 要進 Electron session 才對 http-fetch 有用
+      fn: (_ctx, url: string) => {
+        if (captchaWin && !captchaWin.isDestroyed()) { captchaWin.focus(); void captchaWin.loadURL(url); return }
+        captchaWin = new BrowserWindow({ width: 1000, height: 760, title: 'ExileAppraiser — trade site', autoHideMenuBar: true })
+        captchaWin.on('closed', () => { captchaWin = null })
+        void captchaWin.loadURL(url)
+      }
+    },
+    'window-hide': {
+      kind: 'invoke',
+      preview: false,
+      fn: () => {
+        if (overlay) overlay.assertGameActive()
+        else win?.hide()
+      }
+    },
+    'window-resize': {
+      kind: 'invoke',
+      preview: false,
+      fn: (_ctx, width: number, height: number) => {
+        if (!win || overlay) return
+        const [cw, ch] = win.getSize()
+        if (Math.abs(cw - width) > 2 || Math.abs(ch - height) > 2) win.setSize(Math.round(width), Math.round(height))
+      }
+    },
+    'preview-open': { kind: 'invoke', fn: () => openPreviewInBrowser() },
+    'preview-url': { kind: 'invoke', fn: () => preview && !preview.closed ? preview.url : null },
+    ...updater.handlers()
+  }
+  registerIpc(table)
+
+  if (PREVIEW_ON_START) {
+    ensurePreview()
+      .then((srv) => { console.log(`[preview] --preview:${srv.url}`) })
+      .catch((e) => { console.error('[preview] 啟動失敗', e) })
+  }
 
   // 備援視窗模式的開發版直接顯示視窗方便看;正式版等熱鍵或托盤。overlay 由 OverlayController 控制顯示。
   if (DEV_URL && windowMode === 'window') win.show()

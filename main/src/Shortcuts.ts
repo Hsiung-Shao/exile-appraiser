@@ -6,12 +6,16 @@
  * - 只有兩個查價動作(快速 = hotkeyHold + hotkey、keepModKeys;鎖定 = hotkeyLocked、focusOverlay)加 overlayKey。
  * - overlay 模式:**只在遊戲視窗前景時註冊**(GameWindow active-change);失焦就 unregister。
  * - window(備援)模式:沒有遊戲視窗可追,一律註冊;收到物品由 main.ts 把視窗移到游標旁。
- * - 3.29 起遊戲複製一律是進階格式,固定 Ctrl+C,不讀 production_Config.ini。
+ * - PoE1:3.29 起遊戲複製一律是進階格式,固定 Ctrl+C,不讀 production_Config.ini。
+ * - PoE2(WP-R):Ctrl+C 只給一般格式(沒有 `{ 前綴 …(階層：N) }` 標頭),進階格式要多按「顯示進階詞綴」鍵,
+ *   遊戲預設 Alt → 送 Ctrl+Alt+C。照 Exiled Exchange 2 `main/src/shortcuts/Shortcuts.ts` 的 pressKeysToCopyItemText
+ *   (`mergeTwoHotkeys("Ctrl + C", showModsKey)`,showModsKey 預設 "Alt")。EE2 另外讀 poe2_production_Config.ini 的
+ *   `show_advanced_item_descriptions` 改鍵;本專案先固定 Alt(改過這個鍵的玩家待支援,見 docs/desecration-tiers.md)。
  */
 import { globalShortcut, screen } from 'electron'
 import { uIOhook, UiohookKey } from 'uiohook-napi'
 import { isModKey, KeyToElectron, mergeTwoHotkeys, hotkeyToString } from '@ipc/KeyToCode'
-import type { HostConfigForMain, HotkeyRegistration, ItemTextEvent } from '@ipc/types'
+import type { GameId, HostConfigForMain, HotkeyRegistration, ItemTextEvent } from '@ipc/types'
 import { HostClipboard } from './HostClipboard'
 import type { OverlayWindow } from './windowing/OverlayWindow'
 import type { GameWindow } from './windowing/GameWindow'
@@ -45,6 +49,8 @@ function shortcutToElectron (shortcut: string): string | null {
 
 export class Shortcuts {
   private actions: ShortcutAction[] = []
+  /** 目前遊戲:決定送給遊戲的複製組合鍵(PoE1 Ctrl+C / PoE2 Ctrl+Alt+C) */
+  private game: GameId = 'poe1'
   private isRegistered = false
   readonly clipboard = new HostClipboard()
 
@@ -79,6 +85,7 @@ export class Shortcuts {
 
   updateActions (cfg: HostConfigForMain): HotkeyRegistration {
     this.clipboard.updateOptions(cfg.restoreClipboard)
+    this.game = cfg.game
     const quick = mergeTwoHotkeys(normalizeHotkey(cfg.hotkeyHold), normalizeHotkey(cfg.hotkey))
     const locked = normalizeHotkey(cfg.hotkeyLocked)
     const overlayKey = normalizeHotkey(cfg.overlayKey)
@@ -96,6 +103,7 @@ export class Shortcuts {
       seen.add(a.shortcut)
       return true
     })
+    console.log(`[shortcuts] 複製鍵(${this.game}):${copyItemHotkey(this.game)}`)
     console.log(`[shortcuts] 動作:${this.actions.map(a => `${a.shortcut}=${a.action.type}${a.action.type === 'copy-item' && a.action.focusOverlay ? '(locked)' : ''}`).join(', ')}`)
 
     if (this.isRegistered) this.unregister()
@@ -157,15 +165,28 @@ export class Shortcuts {
         }
       }).catch(() => { /* 逾時:游標下沒有物品 */ })
 
+    const combo = copyItemHotkey(this.game)
+    console.log(`[shortcuts] 送出複製鍵 ${combo}(${this.game})`)
     pressKeysToCopyItemText(
+      combo,
       entry.keepModKeys ? entry.shortcut.split(' + ').filter(key => isModKey(key)) : undefined
     )
   }
 }
 
-function pressKeysToCopyItemText (pressedModKeys: string[] = []) {
-  // 3.29: Copying an item's text now always copies the advanced description format.
-  let keys = mergeTwoHotkeys('Ctrl + C', 'Ctrl').split(' + ')
+/**
+ * 送給遊戲的「複製物品文字」組合鍵。
+ * - PoE1(3.29):Ctrl+C 一律是進階格式。
+ * - PoE2:進階格式(含褻瀆詞綴的遊戲階層)要 Ctrl + 顯示進階詞綴鍵(預設 Alt)+ C,與 EE2 相同。
+ */
+export function copyItemHotkey (game: GameId): string {
+  return game === 'poe2'
+    ? mergeTwoHotkeys('Ctrl + C', 'Alt')
+    : mergeTwoHotkeys('Ctrl + C', 'Ctrl')
+}
+
+function pressKeysToCopyItemText (combo: string, pressedModKeys: string[] = []) {
+  let keys = combo.split(' + ')
   keys = keys.filter(key => key !== 'C')
   if (process.platform !== 'darwin') {
     // On non-Mac platforms, don't toggle keys that are already being pressed.

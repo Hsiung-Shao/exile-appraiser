@@ -19,7 +19,7 @@
     "make-index-files": "node scripts/make-index-files.mjs",
     "build-icons": "node scripts/build-icons.mjs",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "test": "npm run verify-data && npm run test --workspace poe1 && npm run test --workspace poe2 && npm run test --workspace regex && npm run test --workspace renderer",
+    "test": "npm run verify-data && npm run test --workspace core && npm run test --workspace poe1 && npm run test --workspace poe2 && npm run test --workspace regex && npm run test --workspace renderer && npm run test --workspace main",
     "check": "node scripts/check.mjs",
     "check-user-agent": "node scripts/check-user-agent.mjs",
     "dev": "npm run dev --workspace renderer & npm run dev --workspace main",

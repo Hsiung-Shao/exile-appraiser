@@ -3,6 +3,7 @@
 //   node scripts/verify-data-manifest.mjs            → 驗證(不符 exit 1)
 //   node scripts/verify-data-manifest.mjs --write --prefix <data/xxx> [--commit <sha>] [--source <text>] [--path <來源路徑>] [--fetched-at <ISO>]
 //                                                     → 只重寫該前綴底下的檔案雜湊與來源紀錄(其他前綴原封不動)
+//     [--dirty [--dirty-files '{"檔名":"sha256"}']]   → 另註記來源 repo 有未提交變更(commit 不等於內容)與來源檔雜湊
 //
 // 來源(sources 的鍵):
 //   data/poe1        ← apt-patched `renderer/public/data`(sync-data --game poe1)
@@ -74,7 +75,13 @@ if (args.includes('--write')) {
     'data/poe1': { repo: 'apt-patched (Hsiung-Shao/awakened-poe-trade-zh-TW)', path: 'renderer/public/data' },
     'data/poe2': { repo: 'ee2-patched (Hsiung-Shao/Exiled-Exchange-2-zh-TW)', path: 'renderer/public/data' }
   }
-  const prev = manifest.sources[prefix] ?? {}
+  const prev = { ...(manifest.sources[prefix] ?? {}) }
+  // --dirty:來源檔在來源 repo 有未提交變更(commit 欄位對不上內容),記下旗標與來源檔雜湊;
+  // 不帶 --dirty 的正常同步會清掉上一次留下的這兩欄。
+  delete prev.dirty
+  delete prev.dirtyFiles
+  const dirty = args.includes('--dirty')
+  const dirtyFiles = flag('--dirty-files')
   manifest.sources[prefix] = {
     ...(defaults[prefix] ?? {}),
     ...prev,
@@ -82,6 +89,8 @@ if (args.includes('--write')) {
     ...(flag('--path') ? { path: flag('--path') } : {}),
     ...(commit ? { commit } : {}),
     ...(fetchedAt ? { fetchedAt } : {}),
+    ...(dirty ? { dirty: true } : {}),
+    ...(dirty && dirtyFiles ? { dirtyFiles: JSON.parse(dirtyFiles) } : {}),
     generatedAt: new Date().toISOString()
   }
   const prefixes = Object.keys(manifest.sources)
@@ -128,6 +137,6 @@ if (failed) {
 const summary = prefixes.map(p => {
   const s = manifest.sources[p]
   const count = actual.filter(f => ownerOf(f, prefixes) === p).length
-  return `  ${p}(${count} 檔)← ${s.repo ?? ''}${s.commit ? ` @ ${s.commit}` : ''}${s.fetchedAt ? ` 抓取於 ${s.fetchedAt}` : ''}`
+  return `  ${p}(${count} 檔)← ${s.repo ?? ''}${s.commit ? ` @ ${s.commit}` : ''}${s.dirty ? '(dirty:含未提交變更)' : ''}${s.fetchedAt ? ` 抓取於 ${s.fetchedAt}` : ''}`
 }).join('\n')
 console.log(`MANIFEST 驗證通過:${actual.length} 個檔案\n${summary}`)

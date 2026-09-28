@@ -45,6 +45,8 @@ import { calcPropPercentile, QUALITY_STATS } from "./calc-q20";
 import { hostOptions } from "./host-options";
 import { buildEditorItems, getSavedAugments } from "./augment-builder";
 import { useAugment } from "@/web/price-check/item-editor/augment";
+// exile-appraiser(WP-R):一般複製的褻瀆詞綴推定 Tier(見 @/desecration、docs/desecration-tiers.md)
+import { inferDesecratedTiers } from "@/desecration";
 import { avg, combinations } from "./utils";
 
 type SectionParseResult =
@@ -178,6 +180,10 @@ const parsers: Array<ParserFn | { virtual: VirtualParserFn }> = [
   parseModifiers, // implicit
   parseModifiers, // grant skill
   parseModifiers, // explicit
+  // exile-appraiser(WP-R):一般複製(Ctrl+C,沒有 `{…}` 標頭)的固有 / 外加詞綴區;上游只認進階格式,
+  // 一般格式的詞綴區會被整段略過(連 unknownModifiers 都沒有)。見 parsePlainModifiers 的防護條件。
+  parsePlainModifiers, // implicit(plain)
+  parsePlainModifiers, // explicit(plain)
   { virtual: transformToLegacyModifiers },
   { virtual: parseFractured },
   { virtual: parseBlightedMap },
@@ -185,6 +191,8 @@ const parsers: Array<ParserFn | { virtual: VirtualParserFn }> = [
   { virtual: applyElementalAdded },
   { virtual: pickCorrectVariant },
   { virtual: calcBasePercentile },
+  // exile-appraiser(WP-R):解析末段補推定 Tier(只動 Desecrated 且沒有 tier 的詞綴;進階複製不受影響)
+  { virtual: inferDesecratedTiers },
 ];
 
 export function parseClipboard(clipboard: string): Result<ParsedItem, string> {
@@ -1324,6 +1332,38 @@ function parseModifiers(section: string[], item: ParsedItem) {
   }
 
   return "SECTION_PARSED";
+}
+
+/**
+ * exile-appraiser(WP-R):一般複製格式的詞綴區(每行一條,行尾可能帶 ` (desecrated)` / ` (implicit)` /
+ * ` (fractured)` …)。沿用上游既有但未掛上的 `parseModifiersPoe2`(逐行一個 mod)。
+ *
+ * 防護(寧可不解析也不要吃錯段):
+ * - 只在普通/魔法/稀有/傳奇物品;段落內不得有 `{…}` 標頭行(那是進階格式,由 parseModifiers 處理)。
+ * - 段落「每一行」都必須能單獨翻成 stat(或是未揭露的 Veiled 行),否則整段略過 ——
+ *   跨行的 stat 在一般格式下因此不會被解析(已知限制,見 docs/desecration-tiers.md)。
+ */
+function parsePlainModifiers(section: string[], item: ParsedItem) {
+  if (
+    item.rarity !== ItemRarity.Normal &&
+    item.rarity !== ItemRarity.Magic &&
+    item.rarity !== ItemRarity.Rare &&
+    item.rarity !== ItemRarity.Unique
+  ) {
+    return "PARSER_SKIPPED";
+  }
+  if (!section.length || section.some(isModInfoLine)) return "SECTION_SKIPPED";
+  for (const line of section) {
+    if (line === _$.VEILED_PREFIX || line === _$.VEILED_SUFFIX) continue;
+    const { modType, lines } = parseModType([line]);
+    let str = lines[0] ?? "";
+    const unscalable = str.endsWith(_$.UNSCALABLE_VALUE);
+    if (unscalable) str = str.slice(0, -_$.UNSCALABLE_VALUE.length);
+    if (!str || !tryParseTranslation({ string: str, unscalable }, modType, item.category)) {
+      return "SECTION_SKIPPED";
+    }
+  }
+  return parseModifiersPoe2(section, item);
 }
 
 function applyAugmentSockets(item: ParsedItem) {

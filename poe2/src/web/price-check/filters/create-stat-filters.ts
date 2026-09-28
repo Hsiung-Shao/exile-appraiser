@@ -145,10 +145,14 @@ export function createExactStatFilters(
     if (item.category === ItemCategory.Tablet) {
       filter.disabled = false;
     } else if (filter.tag === FilterTag.Explicit) {
-      filter.disabled = !filter.sources.some(
-        (source) =>
-          source.modifier.info.tier != null && source.modifier.info.tier <= 2,
-      );
+      // exile-appraiser(WP-R):一般複製的褻瀆詞綴推定 Tier 視同遊戲給的 Tier(唯一時 info.tier 已填);
+      // 多個候選(tierCandidates)時取最差的那個 —— 全部候選都 ≤ T2 才預設勾選
+      filter.disabled = !filter.sources.some((source) => {
+        const { tier, tierCandidates } = source.modifier.info;
+        const effective =
+          tier ?? (tierCandidates?.length ? Math.max(...tierCandidates) : undefined);
+        return effective != null && effective <= 2;
+      });
     } else if (filter.tag !== FilterTag.Property) {
       filter.disabled = false;
     }

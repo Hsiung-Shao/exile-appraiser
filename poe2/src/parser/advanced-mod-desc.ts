@@ -1,5 +1,9 @@
 import { CLIENT_STRINGS as _$ } from "@/assets/data";
 import type { ParsedStat } from "./stat-translations";
+import type {
+  DesecrationCandidate,
+  DesecrationPool,
+} from "@/desecration/types"; // exile-appraiser(WP-R)
 import { ModifierType } from "./modifiers";
 import { removeLinesEnding } from "./Parser";
 
@@ -27,6 +31,19 @@ export interface ModifierInfo {
   rollIncr?: number;
   addedIncr?: boolean;
   hybridWithRef?: Set<string>;
+  // exile-appraiser(WP-R):一般複製(沒有 `{…}` 標頭)的褻瀆詞綴由 @/desecration 推定 Tier;進階複製不會有這些欄位
+  /** `tier` 是推定值(不是遊戲給的) */
+  tierInferred?: boolean;
+  /** 推定到多個 Tier 時的候選(`tier` 維持空),UI 顯示 `T2/T3` */
+  tierCandidates?: number[];
+  /** 推定結果唯一屬於哪個詞綴池 */
+  pool?: DesecrationPool;
+  /** 與 stats 同序的數值範圍 [lo, hi](所有候選一致時才有) */
+  ranges?: Array<[number, number] | null>;
+  /** 全部候選(tooltip) */
+  inferredCandidates?: DesecrationCandidate[];
+  /** profile 由底材名精確對到(false = 以物品類別推) */
+  profileExact?: boolean;
 }
 
 export function parseModInfoLine(

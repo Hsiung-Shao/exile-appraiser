@@ -577,3 +577,25 @@ html.ppz-overlay body {
 .pulse {
   animation: pulse 1.2s ease-in-out infinite;
 }
+
+/* ---- WP-Q:拆粉停靠在查價下方(App.vue .price-stack)---- */
+/* flex-basis 由 App.vue 依 AppConfig().dustDockRatio 寫在 inline style;min-height 優先於 max-height(矮視窗仍保底 260px) */
+.dust-panel.dust-docked {
+  flex: 0 0 45%;
+  max-height: calc(50% - 4px); /* 扣掉分隔條:查價區至少佔 stack 一半 */
+  min-height: 260px;
+  border-top: 1px solid var(--edge-1);
+}
+.dust-splitter {
+  flex: 0 0 4px;
+  cursor: row-resize;
+  background: transparent;
+  touch-action: none;
+  outline: none;
+  transition: background-color 0.12s;
+}
+.dust-splitter:hover,
+.dust-splitter.dragging,
+.dust-splitter:focus-visible {
+  background: var(--gold);
+}

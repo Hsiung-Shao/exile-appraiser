@@ -1,6 +1,6 @@
 /**
  * 自動更新(electron-updater + GitHub Releases)。移植自 apt-patched `main/src/AppUpdater.ts`,
- * 差別:APT 走 WebSocket broadcast,這裡用 `webContents.send('updater-state')` + `ipcMain.handle`。
+ * 差別:APT 走 WebSocket broadcast,這裡用 `send('updater-state')`(`Broadcaster`,也送預覽 client)+ `handlers()` 登錄表。
  *
  * 狀態流:initial → checking → available | not-available | error;
  *         available →(使用者按下載)downloading → downloaded →(使用者按安裝)quitAndInstall。
@@ -11,9 +11,10 @@
  *   離線驗證用,見 `main/dev-app-update.yml.example` 與 `scripts/make-fake-update-feed.mjs`)。
  * - GitHub repo / Release 還不存在時檢查會 404:歸類成 `error`(errorKind `not-found`)**只寫 log,不彈對話框**。
  */
-import { app, ipcMain } from 'electron'
+import { app } from 'electron'
 import { autoUpdater } from 'electron-updater'
 import type { NoDownloadReason, UpdaterInfo } from '@ipc/types'
+import type { HandlerTable } from './host-handlers'
 
 const RELEASES_URL = 'https://github.com/Hsiung-Shao/exile-appraiser/releases'
 const CHECK_INTERVAL_MS = 16 * 60 * 60 * 1000
@@ -114,11 +115,16 @@ export class AppUpdater {
     })
 
     setInterval(() => { void this.check() }, CHECK_INTERVAL_MS).unref()
+  }
 
-    ipcMain.handle('updater-info', () => this._info)
-    ipcMain.handle('updater-check', () => this.check())
-    ipcMain.handle('updater-download', () => this.download())
-    ipcMain.handle('updater-install', () => { this.install() })
+  /** 四個 IPC handler(由 main.ts 併入 `host-handlers.ts` 的登錄表;ipcMain 與瀏覽器預覽共用)。 */
+  handlers (): HandlerTable {
+    return {
+      'updater-info': { kind: 'invoke', fn: () => this._info },
+      'updater-check': { kind: 'invoke', fn: () => this.check() },
+      'updater-download': { kind: 'invoke', fn: () => this.download() },
+      'updater-install': { kind: 'invoke', fn: () => { this.install() } }
+    }
   }
 
   get info (): UpdaterInfo { return this._info }

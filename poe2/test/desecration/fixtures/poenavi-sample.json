@@ -1,0 +1,2037 @@
+{
+ "source": {
+  "pob2_revision": "ce566eac45ea8a86477f513c7ee65a1ebe60014e",
+  "note": "poenavi data/poetore/poe2/desecration_tiers.json 抽樣(日文文字已移除,profile 以 category|tags 為鍵)"
+ },
+ "entries": [
+  {
+   "mod_id": "AbyssMod1HMaceAmanamuPrefixDamageAgainstFullyArmourBrokenEnemies",
+   "pool": "desecration_exclusive",
+   "type": "Prefix",
+   "group": "DamagevsArmourBrokenEnemies",
+   "required_level": 65,
+   "profile_tiers": {
+    "one_hand_mace|default,ezomyte_basetype,mace,one_hand_weapon,onehand,runeforged,weapon": 1,
+    "one_hand_mace|default,ezomyte_basetype,mace,one_hand_weapon,onehand,weapon": 1,
+    "one_hand_mace|default,karui_basetype,mace,one_hand_weapon,onehand,weapon": 1,
+    "one_hand_mace|default,mace,maraketh_basetype,one_hand_weapon,onehand,runeforged,weapon": 1,
+    "one_hand_mace|default,mace,maraketh_basetype,one_hand_weapon,onehand,weapon": 1,
+    "one_hand_mace|default,mace,one_hand_weapon,onehand,runeforged,weapon": 1,
+    "one_hand_mace|default,mace,one_hand_weapon,onehand,vaal_basetype,weapon": 1,
+    "one_hand_mace|default,mace,one_hand_weapon,onehand,weapon": 1
+   },
+   "parts": [
+    {
+     "stat_hash": "2301718443",
+     "ranges": [
+      [
+       41,
+       59
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "mod_id": "AbyssModAmuletAmanamuPrefixGlobalDefences",
+   "pool": "desecration_exclusive",
+   "type": "Prefix",
+   "group": "AllDefences",
+   "required_level": 65,
+   "profile_tiers": {
+    "amulet|amulet,default": 1,
+    "amulet|amulet,default,runeforged": 1
+   },
+   "parts": [
+    {
+     "stat_hash": "1177404658",
+     "ranges": [
+      [
+       15,
+       25
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "mod_id": "AbyssModBeltAmanamuPrefixChanceToNotConsumeCharmCharges",
+   "pool": "desecration_exclusive",
+   "type": "Prefix",
+   "group": "CharmChanceToNotConsumeCharges",
+   "required_level": 65,
+   "profile_tiers": {
+    "belt|belt,default,demigods,genesis_tree_caster,genesis_tree_minion,not_for_sale": 1,
+    "belt|belt,default,genesis_tree_caster,genesis_tree_minion": 1,
+    "belt|belt,default,genesis_tree_caster,genesis_tree_minion,runeforged": 1
+   },
+   "parts": [
+    {
+     "stat_hash": "501873429",
+     "ranges": [
+      [
+       10,
+       18
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "mod_id": "AbyssModBodyShieldKurgalSuffixElementalEnergyShieldRecoup",
+   "pool": "desecration_exclusive",
+   "type": "Suffix",
+   "group": "ElementalDamageTakenGoesToEnergyShield",
+   "required_level": 65,
+   "profile_tiers": {
+    "helmet|armour,default,demigods,helmet,not_for_sale": 1,
+    "helmet|armour,default,dex_armour,ezomyte_basetype,helmet": 1,
+    "helmet|armour,default,dex_armour,ezomyte_basetype,helmet,runeforged": 1,
+    "helmet|armour,default,dex_armour,helmet": 1,
+    "helmet|armour,default,dex_armour,helmet,karui_basetype": 1,
+    "helmet|armour,default,dex_armour,helmet,karui_basetype,runeforged": 1,
+    "helmet|armour,default,dex_armour,helmet,maraketh_basetype": 1,
+    "helmet|armour,default,dex_armour,helmet,maraketh_basetype,runeforged": 1,
+    "helmet|armour,default,dex_armour,helmet,runeforged": 1,
+    "helmet|armour,default,dex_armour,helmet,runeforged,vaal_basetype": 1,
+    "helmet|armour,default,dex_armour,helmet,vaal_basetype": 1,
+    "helmet|armour,default,dex_int_armour,ezomyte_basetype,helmet": 1,
+    "helmet|armour,default,dex_int_armour,ezomyte_basetype,helmet,runeforged": 1,
+    "helmet|armour,default,dex_int_armour,helmet": 1,
+    "helmet|armour,default,dex_int_armour,helmet,karui_basetype": 1,
+    "helmet|armour,default,dex_int_armour,helmet,karui_basetype,runeforged": 1,
+    "helmet|armour,default,dex_int_armour,helmet,maraketh_basetype": 1,
+    "helmet|armour,default,dex_int_armour,helmet,maraketh_basetype,runeforged": 1,
+    "helmet|armour,default,dex_int_armour,helmet,runeforged": 1,
+    "helmet|armour,default,dex_int_armour,helmet,runeforged,vaal_basetype": 1,
+    "helmet|armour,default,dex_int_armour,helmet,vaal_basetype": 1,
+    "helmet|armour,default,ezomyte_basetype,helmet,int_armour": 1,
+    "helmet|armour,default,ezomyte_basetype,helmet,int_armour,runeforged": 1,
+    "helmet|armour,default,ezomyte_basetype,helmet,runeforged,str_armour": 1,
+    "helmet|armour,default,ezomyte_basetype,helmet,runeforged,str_dex_armour": 1,
+    "helmet|armour,default,ezomyte_basetype,helmet,runeforged,str_int_armour": 1,
+    "helmet|armour,default,ezomyte_basetype,helmet,str_armour": 1,
+    "helmet|armour,default,ezomyte_basetype,helmet,str_dex_armour": 1,
+    "helmet|armour,default,ezomyte_basetype,helmet,str_int_armour": 1,
+    "helmet|armour,default,helmet,int_armour": 1,
+    "helmet|armour,default,helmet,int_armour,karui_basetype": 1,
+    "helmet|armour,default,helmet,int_armour,karui_basetype,runeforged": 1,
+    "helmet|armour,default,helmet,int_armour,maraketh_basetype": 1,
+    "helmet|armour,default,helmet,int_armour,maraketh_basetype,runeforged": 1,
+    "helmet|armour,default,helmet,int_armour,runeforged": 1,
+    "helmet|armour,default,helmet,int_armour,runeforged,vaal_basetype": 1,
+    "helmet|armour,default,helmet,int_armour,vaal_basetype": 1,
+    "helmet|armour,default,helmet,karui_basetype,runeforged,str_armour": 1,
+    "helmet|armour,default,helmet,karui_basetype,runeforged,str_dex_armour": 1,
+    "helmet|armour,default,helmet,karui_basetype,runeforged,str_int_armour": 1,
+    "helmet|armour,default,helmet,karui_basetype,str_armour": 1,
+    "helmet|armour,default,helmet,karui_basetype,str_dex_armour": 1,
+    "helmet|armour,default,helmet,karui_basetype,str_int_armour": 1,
+    "helmet|armour,default,helmet,maraketh_basetype,runeforged,str_armour": 1,
+    "helmet|armour,default,helmet,maraketh_basetype,runeforged,str_dex_armour": 1,
+    "helmet|armour,default,helmet,maraketh_basetype,runeforged,str_int_armour": 1,
+    "helmet|armour,default,helmet,maraketh_basetype,str_armour": 1,
+    "helmet|armour,default,helmet,maraketh_basetype,str_dex_armour": 1,
+    "helmet|armour,default,helmet,maraketh_basetype,str_int_armour": 1,
+    "helmet|armour,default,helmet,runeforged,str_armour": 1,
+    "helmet|armour,default,helmet,runeforged,str_armour,vaal_basetype": 1,
+    "helmet|armour,default,helmet,runeforged,str_dex_armour": 1,
+    "helmet|armour,default,helmet,runeforged,str_dex_armour,vaal_basetype": 1,
+    "helmet|armour,default,helmet,runeforged,str_dex_int_armour": 1,
+    "helmet|armour,default,helmet,runeforged,str_int_armour": 1,
+    "helmet|armour,default,helmet,runeforged,str_int_armour,vaal_basetype": 1,
+    "helmet|armour,default,helmet,str_armour": 1,
+    "helmet|armour,default,helmet,str_armour,vaal_basetype": 1,
+    "helmet|armour,default,helmet,str_dex_armour": 1,
+    "helmet|armour,default,helmet,str_dex_armour,vaal_basetype": 1,
+    "helmet|armour,default,helmet,str_dex_int_armour": 1,
+    "helmet|armour,default,helmet,str_int_armour": 1,
+    "helmet|armour,default,helmet,str_int_armour,vaal_basetype": 1,
+    "shield|armour,default,demigods,not_for_sale,shield": 1,
+    "shield|armour,default,ezomyte_basetype,runeforged,shield,str_int_armour,str_int_shield": 1,
+    "shield|armour,default,ezomyte_basetype,shield,str_int_armour,str_int_shield": 1,
+    "shield|armour,default,karui_basetype,runeforged,shield,str_int_armour,str_int_shield": 1,
+    "shield|armour,default,karui_basetype,shield,str_int_armour,str_int_shield": 1,
+    "shield|armour,default,maraketh_basetype,runeforged,shield,str_int_armour,str_int_shield": 1,
+    "shield|armour,default,maraketh_basetype,shield,str_int_armour,str_int_shield": 1,
+    "shield|armour,default,runeforged,shield,str_int_armour,str_int_shield": 1,
+    "shield|armour,default,runeforged,shield,str_int_armour,str_int_shield,vaal_basetype": 1,
+    "shield|armour,default,shield,str_int_armour,str_int_shield": 1,
+    "shield|armour,default,shield,str_int_armour,str_int_shield,vaal_basetype": 1
+   },
+   "parts": [
+    {
+     "stat_hash": "2896115339",
+     "ranges": [
+      [
+       10,
+       20
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "mod_id": "AbyssModBowSpearKurgalSuffixImmobilisationBuildup",
+   "pool": "desecration_exclusive",
+   "type": "Suffix",
+   "group": "ImmobilisationBuildup",
+   "required_level": 65,
+   "profile_tiers": {
+    "bow|bow,default,ezomyte_basetype,ranged,runeforged,two_hand_weapon,twohand,weapon": 1,
+    "bow|bow,default,ezomyte_basetype,ranged,two_hand_weapon,twohand,weapon": 1,
+    "bow|bow,default,karui_basetype,ranged,two_hand_weapon,twohand,weapon": 1,
+    "bow|bow,default,maraketh_basetype,ranged,runeforged,two_hand_weapon,twohand,weapon": 1,
+    "bow|bow,default,maraketh_basetype,ranged,two_hand_weapon,twohand,weapon": 1,
+    "bow|bow,default,ranged,runeforged,two_hand_weapon,twohand,vaal_basetype,weapon": 1,
+    "bow|bow,default,ranged,two_hand_weapon,twohand,vaal_basetype,weapon": 1,
+    "bow|bow,default,ranged,two_hand_weapon,twohand,weapon": 1,
+    "spear|default,ezomyte_basetype,one_hand_weapon,onehand,runeforged,spear,weapon": 1,
+    "spear|default,ezomyte_basetype,one_hand_weapon,onehand,spear,weapon": 1,
+    "spear|default,karui_basetype,one_hand_weapon,onehand,spear,weapon": 1,
+    "spear|default,maraketh_basetype,one_hand_weapon,onehand,runeforged,spear,weapon": 1,
+    "spear|default,maraketh_basetype,one_hand_weapon,onehand,spear,weapon": 1,
+    "spear|default,one_hand_weapon,onehand,runeforged,spear,vaal_basetype,weapon": 1,
+    "spear|default,one_hand_weapon,onehand,spear,vaal_basetype,weapon": 1,
+    "spear|default,one_hand_weapon,onehand,spear,weapon": 1
+   },
+   "parts": [
+    {
+     "stat_hash": "330530785",
+     "ranges": [
+      [
+       25,
+       34
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "mod_id": "AbyssModFocusKurgalPrefixSpellAreaOfEffect",
+   "pool": "desecration_exclusive",
+   "type": "Prefix",
+   "group": "SpellAreaOfEffectPercent",
+   "required_level": 65,
+   "profile_tiers": {
+    "focus|armour,default,ezomyte_basetype,focus,int_armour": 1,
+    "focus|armour,default,ezomyte_basetype,focus,int_armour,runeforged": 1,
+    "focus|armour,default,focus,int_armour": 1,
+    "focus|armour,default,focus,int_armour,karui_basetype": 1,
+    "focus|armour,default,focus,int_armour,karui_basetype,runeforged": 1,
+    "focus|armour,default,focus,int_armour,maraketh_basetype": 1,
+    "focus|armour,default,focus,int_armour,maraketh_basetype,runeforged": 1,
+    "focus|armour,default,focus,int_armour,runeforged": 1,
+    "focus|armour,default,focus,int_armour,runeforged,vaal_basetype": 1,
+    "focus|armour,default,focus,int_armour,vaal_basetype": 1
+   },
+   "parts": [
+    {
+     "stat_hash": "1967040409",
+     "ranges": [
+      [
+       10,
+       20
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "mod_id": "AbyssModGlovesUlamanSuffixAilmentMagnitude",
+   "pool": "desecration_exclusive",
+   "type": "Suffix",
+   "group": "AilmentEffect",
+   "required_level": 65,
+   "profile_tiers": {
+    "gloves|armour,default,dex_armour,ezomyte_basetype,gloves": 1,
+    "gloves|armour,default,dex_armour,ezomyte_basetype,gloves,runeforged": 1,
+    "gloves|armour,default,dex_armour,gloves": 1,
+    "gloves|armour,default,dex_armour,gloves,karui_basetype": 1,
+    "gloves|armour,default,dex_armour,gloves,karui_basetype,runeforged": 1,
+    "gloves|armour,default,dex_armour,gloves,maraketh_basetype": 1,
+    "gloves|armour,default,dex_armour,gloves,maraketh_basetype,runeforged": 1,
+    "gloves|armour,default,dex_armour,gloves,runeforged": 1,
+    "gloves|armour,default,dex_armour,gloves,runeforged,vaal_basetype": 1,
+    "gloves|armour,default,dex_armour,gloves,vaal_basetype": 1,
+    "gloves|armour,default,dex_int_armour,ezomyte_basetype,gloves": 1,
+    "gloves|armour,default,dex_int_armour,ezomyte_basetype,gloves,runeforged": 1,
+    "gloves|armour,default,dex_int_armour,gloves": 1,
+    "gloves|armour,default,dex_int_armour,gloves,karui_basetype": 1,
+    "gloves|armour,default,dex_int_armour,gloves,karui_basetype,runeforged": 1,
+    "gloves|armour,default,dex_int_armour,gloves,maraketh_basetype": 1,
+    "gloves|armour,default,dex_int_armour,gloves,maraketh_basetype,runeforged": 1,
+    "gloves|armour,default,dex_int_armour,gloves,runeforged": 1,
+    "gloves|armour,default,dex_int_armour,gloves,runeforged,vaal_basetype": 1,
+    "gloves|armour,default,dex_int_armour,gloves,vaal_basetype": 1,
+    "gloves|armour,default,ezomyte_basetype,gloves,int_armour": 1,
+    "gloves|armour,default,ezomyte_basetype,gloves,int_armour,runeforged": 1,
+    "gloves|armour,default,ezomyte_basetype,gloves,runeforged,str_armour": 1,
+    "gloves|armour,default,ezomyte_basetype,gloves,runeforged,str_dex_armour": 1,
+    "gloves|armour,default,ezomyte_basetype,gloves,runeforged,str_int_armour": 1,
+    "gloves|armour,default,ezomyte_basetype,gloves,str_armour": 1,
+    "gloves|armour,default,ezomyte_basetype,gloves,str_dex_armour": 1,
+    "gloves|armour,default,ezomyte_basetype,gloves,str_int_armour": 1,
+    "gloves|armour,default,gloves,int_armour": 1,
+    "gloves|armour,default,gloves,int_armour,karui_basetype": 1,
+    "gloves|armour,default,gloves,int_armour,karui_basetype,runeforged": 1,
+    "gloves|armour,default,gloves,int_armour,maraketh_basetype": 1,
+    "gloves|armour,default,gloves,int_armour,maraketh_basetype,runeforged": 1,
+    "gloves|armour,default,gloves,int_armour,runeforged": 1,
+    "gloves|armour,default,gloves,int_armour,runeforged,vaal_basetype": 1,
+    "gloves|armour,default,gloves,int_armour,vaal_basetype": 1,
+    "gloves|armour,default,gloves,karui_basetype,runeforged,str_armour": 1,
+    "gloves|armour,default,gloves,karui_basetype,runeforged,str_dex_armour": 1,
+    "gloves|armour,default,gloves,karui_basetype,runeforged,str_int_armour": 1,
+    "gloves|armour,default,gloves,karui_basetype,str_armour": 1,
+    "gloves|armour,default,gloves,karui_basetype,str_dex_armour": 1,
+    "gloves|armour,default,gloves,karui_basetype,str_int_armour": 1,
+    "gloves|armour,default,gloves,maraketh_basetype,runeforged,str_armour": 1,
+    "gloves|armour,default,gloves,maraketh_basetype,runeforged,str_dex_armour": 1,
+    "gloves|armour,default,gloves,maraketh_basetype,runeforged,str_int_armour": 1,
+    "gloves|armour,default,gloves,maraketh_basetype,str_armour": 1,
+    "gloves|armour,default,gloves,maraketh_basetype,str_dex_armour": 1,
+    "gloves|armour,default,gloves,maraketh_basetype,str_int_armour": 1,
+    "gloves|armour,default,gloves,runeforged,str_armour": 1,
+    "gloves|armour,default,gloves,runeforged,str_armour,vaal_basetype": 1,
+    "gloves|armour,default,gloves,runeforged,str_dex_armour": 1,
+    "gloves|armour,default,gloves,runeforged,str_dex_armour,vaal_basetype": 1,
+    "gloves|armour,default,gloves,runeforged,str_dex_int_armour": 1,
+    "gloves|armour,default,gloves,runeforged,str_int_armour": 1,
+    "gloves|armour,default,gloves,runeforged,str_int_armour,vaal_basetype": 1,
+    "gloves|armour,default,gloves,str_armour": 1,
+    "gloves|armour,default,gloves,str_armour,vaal_basetype": 1,
+    "gloves|armour,default,gloves,str_dex_armour": 1,
+    "gloves|armour,default,gloves,str_dex_armour,vaal_basetype": 1,
+    "gloves|armour,default,gloves,str_dex_int_armour": 1,
+    "gloves|armour,default,gloves,str_int_armour": 1,
+    "gloves|armour,default,gloves,str_int_armour,vaal_basetype": 1
+   },
+   "parts": [
+    {
+     "stat_hash": "1303248024",
+     "ranges": [
+      [
+       10,
+       20
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "mod_id": "AbyssModQuiverAmanamuSuffixProjectileCriticalHitDamageCloseRange",
+   "pool": "desecration_exclusive",
+   "type": "Suffix",
+   "group": "ProjectileCriticalDamageCloseRange",
+   "required_level": 65,
+   "profile_tiers": {
+    "quiver|default,quiver": 1
+   },
+   "parts": [
+    {
+     "stat_hash": "2573406169",
+     "ranges": [
+      [
+       18,
+       26
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "mod_id": "AbyssModRingKurgalPrefixFreezeBuildupIfConsumedPowerCharge",
+   "pool": "desecration_exclusive",
+   "type": "Prefix",
+   "group": "FreezeBuildupIfConsumedPowerChargeRecently",
+   "required_level": 65,
+   "profile_tiers": {
+    "ring|default,demigods,genesis_tree_caster,genesis_tree_minion,not_for_sale,ring": 1,
+    "ring|default,genesis_tree_caster,genesis_tree_minion,ring": 1
+   },
+   "parts": [
+    {
+     "stat_hash": "232701452",
+     "ranges": [
+      [
+       20,
+       30
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "mod_id": "AbyssModStaffKurgalPrefixMaximumInfusions",
+   "pool": "desecration_exclusive",
+   "type": "Prefix",
+   "group": "MaximumElementalInfusion",
+   "required_level": 65,
+   "profile_tiers": {
+    "staff|chaos_implicit_skill,default,no_cold_spell_mods,no_fire_spell_mods,no_lightning_spell_mods,no_physical_spell_mods,staff,twohand": 1,
+    "staff|cold_implicit_skill,default,no_chaos_spell_mods,no_fire_spell_mods,no_lightning_spell_mods,no_physical_spell_mods,staff,twohand": 1,
+    "staff|default,fire_implicit_skill,no_chaos_spell_mods,no_cold_spell_mods,no_lightning_spell_mods,no_physical_spell_mods,staff,twohand": 1,
+    "staff|default,lightning_implicit_skill,no_chaos_spell_mods,no_cold_spell_mods,no_fire_spell_mods,no_physical_spell_mods,staff,twohand": 1,
+    "staff|default,no_chaos_spell_mods,no_cold_spell_mods,no_fire_spell_mods,no_lightning_spell_mods,physical_implicit_skill,staff,twohand": 1,
+    "staff|default,staff,twohand": 1
+   },
+   "parts": [
+    {
+     "stat_hash": "4097212302",
+     "ranges": [
+      [
+       1,
+       2
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "mod_id": "AbyssModJewelPrefixAbyssalWastingEffect",
+   "pool": "desecration_exclusive_jewel",
+   "type": "Prefix",
+   "group": "HybridAbyssModJewelAbyssalWastingEffect",
+   "required_level": 1,
+   "profile_tiers": {
+    "jewel|default,dexjewel,intjewel,jewel,not_for_sale,strjewel": 1,
+    "jewel|default,dexjewel,jewel": 1,
+    "jewel|default,intjewel,jewel": 1,
+    "jewel|default,jewel,strjewel": 1
+   },
+   "parts": [
+    {
+     "stat_hash": "4043376133",
+     "ranges": [
+      [
+       10,
+       20
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "mod_id": "AbyssModJewelPrefixChaosDamageWitherEffect",
+   "pool": "desecration_exclusive_jewel",
+   "type": "Prefix",
+   "group": "HybridAbyssModJewelChaosDamageWitherEffect",
+   "required_level": 1,
+   "profile_tiers": {
+    "jewel|default,dexjewel,intjewel,jewel,not_for_sale,strjewel": 1,
+    "jewel|default,dexjewel,jewel": 1,
+    "jewel|default,intjewel,jewel": 1,
+    "jewel|default,jewel,strjewel": 1
+   },
+   "parts": [
+    {
+     "stat_hash": "736967255",
+     "ranges": [
+      [
+       4,
+       8
+      ]
+     ]
+    },
+    {
+     "stat_hash": "3973629633",
+     "ranges": [
+      [
+       3,
+       6
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "mod_id": "AbyssModJewelPrefixGlobalPhysicalDamageArmourBreak",
+   "pool": "desecration_exclusive_jewel",
+   "type": "Prefix",
+   "group": "HybridAbyssModJewelGlobalPhysicalDamageArmourBreak",
+   "required_level": 1,
+   "profile_tiers": {
+    "jewel|default,dexjewel,intjewel,jewel,not_for_sale,strjewel": 1,
+    "jewel|default,dexjewel,jewel": 1,
+    "jewel|default,intjewel,jewel": 1,
+    "jewel|default,jewel,strjewel": 1
+   },
+   "parts": [
+    {
+     "stat_hash": "1776411443",
+     "ranges": [
+      [
+       4,
+       8
+      ]
+     ]
+    },
+    {
+     "stat_hash": "1310194496",
+     "ranges": [
+      [
+       4,
+       8
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "mod_id": "AbyssModJewelPrefixPoisonChanceAndMagnitude",
+   "pool": "desecration_exclusive_jewel",
+   "type": "Prefix",
+   "group": "HybridAbyssModJewelPoisonChanceAndMagnitude",
+   "required_level": 1,
+   "profile_tiers": {
+    "jewel|default,dexjewel,intjewel,jewel,not_for_sale,strjewel": 1,
+    "jewel|default,dexjewel,jewel": 1,
+    "jewel|default,intjewel,jewel": 1,
+    "jewel|default,jewel,strjewel": 1
+   },
+   "parts": [
+    {
+     "stat_hash": "3481083201",
+     "ranges": [
+      [
+       15,
+       15
+      ]
+     ]
+    },
+    {
+     "stat_hash": "2487305362",
+     "ranges": [
+      [
+       5,
+       10
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "mod_id": "AbyssModJewelPrefixThornsDamageEvasion",
+   "pool": "desecration_exclusive_jewel",
+   "type": "Prefix",
+   "group": "HybridAbyssModJewelThornsDamageEvasion",
+   "required_level": 1,
+   "profile_tiers": {
+    "jewel|default,dexjewel,intjewel,jewel,not_for_sale,strjewel": 1,
+    "jewel|default,dexjewel,jewel": 1,
+    "jewel|default,intjewel,jewel": 1,
+    "jewel|default,jewel,strjewel": 1
+   },
+   "parts": [
+    {
+     "stat_hash": "2106365538",
+     "ranges": [
+      [
+       5,
+       10
+      ]
+     ]
+    },
+    {
+     "stat_hash": "1315743832",
+     "ranges": [
+      [
+       4,
+       8
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "mod_id": "AddedColdDamage1",
+   "pool": "normal",
+   "type": "Prefix",
+   "group": "ColdDamage",
+   "required_level": 1,
+   "profile_tiers": {
+    "gloves|armour,default,dex_armour,ezomyte_basetype,gloves": 9,
+    "gloves|armour,default,dex_armour,ezomyte_basetype,gloves,runeforged": 9,
+    "gloves|armour,default,dex_armour,gloves": 9,
+    "gloves|armour,default,dex_armour,gloves,karui_basetype": 9,
+    "gloves|armour,default,dex_armour,gloves,karui_basetype,runeforged": 9,
+    "gloves|armour,default,dex_armour,gloves,maraketh_basetype": 9,
+    "gloves|armour,default,dex_armour,gloves,maraketh_basetype,runeforged": 9,
+    "gloves|armour,default,dex_armour,gloves,runeforged": 9,
+    "gloves|armour,default,dex_armour,gloves,runeforged,vaal_basetype": 9,
+    "gloves|armour,default,dex_armour,gloves,vaal_basetype": 9,
+    "gloves|armour,default,dex_int_armour,ezomyte_basetype,gloves": 9,
+    "gloves|armour,default,dex_int_armour,ezomyte_basetype,gloves,runeforged": 9,
+    "gloves|armour,default,dex_int_armour,gloves": 9,
+    "gloves|armour,default,dex_int_armour,gloves,karui_basetype": 9,
+    "gloves|armour,default,dex_int_armour,gloves,karui_basetype,runeforged": 9,
+    "gloves|armour,default,dex_int_armour,gloves,maraketh_basetype": 9,
+    "gloves|armour,default,dex_int_armour,gloves,maraketh_basetype,runeforged": 9,
+    "gloves|armour,default,dex_int_armour,gloves,runeforged": 9,
+    "gloves|armour,default,dex_int_armour,gloves,runeforged,vaal_basetype": 9,
+    "gloves|armour,default,dex_int_armour,gloves,vaal_basetype": 9,
+    "gloves|armour,default,ezomyte_basetype,gloves,int_armour": 9,
+    "gloves|armour,default,ezomyte_basetype,gloves,int_armour,runeforged": 9,
+    "gloves|armour,default,ezomyte_basetype,gloves,runeforged,str_armour": 9,
+    "gloves|armour,default,ezomyte_basetype,gloves,runeforged,str_dex_armour": 9,
+    "gloves|armour,default,ezomyte_basetype,gloves,runeforged,str_int_armour": 9,
+    "gloves|armour,default,ezomyte_basetype,gloves,str_armour": 9,
+    "gloves|armour,default,ezomyte_basetype,gloves,str_dex_armour": 9,
+    "gloves|armour,default,ezomyte_basetype,gloves,str_int_armour": 9,
+    "gloves|armour,default,gloves,int_armour": 9,
+    "gloves|armour,default,gloves,int_armour,karui_basetype": 9,
+    "gloves|armour,default,gloves,int_armour,karui_basetype,runeforged": 9,
+    "gloves|armour,default,gloves,int_armour,maraketh_basetype": 9,
+    "gloves|armour,default,gloves,int_armour,maraketh_basetype,runeforged": 9,
+    "gloves|armour,default,gloves,int_armour,runeforged": 9,
+    "gloves|armour,default,gloves,int_armour,runeforged,vaal_basetype": 9,
+    "gloves|armour,default,gloves,int_armour,vaal_basetype": 9,
+    "gloves|armour,default,gloves,karui_basetype,runeforged,str_armour": 9,
+    "gloves|armour,default,gloves,karui_basetype,runeforged,str_dex_armour": 9,
+    "gloves|armour,default,gloves,karui_basetype,runeforged,str_int_armour": 9,
+    "gloves|armour,default,gloves,karui_basetype,str_armour": 9,
+    "gloves|armour,default,gloves,karui_basetype,str_dex_armour": 9,
+    "gloves|armour,default,gloves,karui_basetype,str_int_armour": 9,
+    "gloves|armour,default,gloves,maraketh_basetype,runeforged,str_armour": 9,
+    "gloves|armour,default,gloves,maraketh_basetype,runeforged,str_dex_armour": 9,
+    "gloves|armour,default,gloves,maraketh_basetype,runeforged,str_int_armour": 9,
+    "gloves|armour,default,gloves,maraketh_basetype,str_armour": 9,
+    "gloves|armour,default,gloves,maraketh_basetype,str_dex_armour": 9,
+    "gloves|armour,default,gloves,maraketh_basetype,str_int_armour": 9,
+    "gloves|armour,default,gloves,runeforged,str_armour": 9,
+    "gloves|armour,default,gloves,runeforged,str_armour,vaal_basetype": 9,
+    "gloves|armour,default,gloves,runeforged,str_dex_armour": 9,
+    "gloves|armour,default,gloves,runeforged,str_dex_armour,vaal_basetype": 9,
+    "gloves|armour,default,gloves,runeforged,str_dex_int_armour": 9,
+    "gloves|armour,default,gloves,runeforged,str_int_armour": 9,
+    "gloves|armour,default,gloves,runeforged,str_int_armour,vaal_basetype": 9,
+    "gloves|armour,default,gloves,str_armour": 9,
+    "gloves|armour,default,gloves,str_armour,vaal_basetype": 9,
+    "gloves|armour,default,gloves,str_dex_armour": 9,
+    "gloves|armour,default,gloves,str_dex_armour,vaal_basetype": 9,
+    "gloves|armour,default,gloves,str_dex_int_armour": 9,
+    "gloves|armour,default,gloves,str_int_armour": 9,
+    "gloves|armour,default,gloves,str_int_armour,vaal_basetype": 9,
+    "quiver|default,quiver": 9,
+    "ring|default,demigods,genesis_tree_caster,genesis_tree_minion,not_for_sale,ring": 9,
+    "ring|default,genesis_tree_caster,genesis_tree_minion,ring": 9
+   },
+   "parts": [
+    {
+     "stat_hash": "4067062424",
+     "ranges": [
+      [
+       1,
+       1
+      ],
+      [
+       2,
+       3
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "mod_id": "BeltReducedCharmChargesUsed6",
+   "pool": "normal",
+   "type": "Suffix",
+   "group": "BeltReducedCharmChargesUsed",
+   "required_level": 81,
+   "profile_tiers": {
+    "belt|belt,default,demigods,genesis_tree_caster,genesis_tree_minion,not_for_sale": 1,
+    "belt|belt,default,genesis_tree_caster,genesis_tree_minion": 1,
+    "belt|belt,default,genesis_tree_caster,genesis_tree_minion,runeforged": 1
+   },
+   "parts": [
+    {
+     "stat_hash": "1570770415",
+     "ranges": [
+      [
+       23,
+       25
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "mod_id": "FireDamagePrefixOnTwoHandWeapon2___",
+   "pool": "normal",
+   "type": "Prefix",
+   "group": "FireDamageWeaponPrefix",
+   "required_level": 8,
+   "profile_tiers": {
+    "staff|default,fire_implicit_skill,no_chaos_spell_mods,no_cold_spell_mods,no_lightning_spell_mods,no_physical_spell_mods,staff,twohand": 7,
+    "staff|default,staff,twohand": 7
+   },
+   "parts": [
+    {
+     "stat_hash": "3962278098",
+     "ranges": [
+      [
+       69,
+       88
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "mod_id": "IncreasedAccuracy1",
+   "pool": "normal",
+   "type": "Prefix",
+   "group": "IncreasedAccuracy",
+   "required_level": 1,
+   "profile_tiers": {
+    "amulet|amulet,default": 8,
+    "amulet|amulet,default,runeforged": 8,
+    "gloves|armour,default,dex_armour,ezomyte_basetype,gloves": 9,
+    "gloves|armour,default,dex_armour,ezomyte_basetype,gloves,runeforged": 9,
+    "gloves|armour,default,dex_armour,gloves": 9,
+    "gloves|armour,default,dex_armour,gloves,karui_basetype": 9,
+    "gloves|armour,default,dex_armour,gloves,karui_basetype,runeforged": 9,
+    "gloves|armour,default,dex_armour,gloves,maraketh_basetype": 9,
+    "gloves|armour,default,dex_armour,gloves,maraketh_basetype,runeforged": 9,
+    "gloves|armour,default,dex_armour,gloves,runeforged": 9,
+    "gloves|armour,default,dex_armour,gloves,runeforged,vaal_basetype": 9,
+    "gloves|armour,default,dex_armour,gloves,vaal_basetype": 9,
+    "gloves|armour,default,dex_int_armour,ezomyte_basetype,gloves": 9,
+    "gloves|armour,default,dex_int_armour,ezomyte_basetype,gloves,runeforged": 9,
+    "gloves|armour,default,dex_int_armour,gloves": 9,
+    "gloves|armour,default,dex_int_armour,gloves,karui_basetype": 9,
+    "gloves|armour,default,dex_int_armour,gloves,karui_basetype,runeforged": 9,
+    "gloves|armour,default,dex_int_armour,gloves,maraketh_basetype": 9,
+    "gloves|armour,default,dex_int_armour,gloves,maraketh_basetype,runeforged": 9,
+    "gloves|armour,default,dex_int_armour,gloves,runeforged": 9,
+    "gloves|armour,default,dex_int_armour,gloves,runeforged,vaal_basetype": 9,
+    "gloves|armour,default,dex_int_armour,gloves,vaal_basetype": 9,
+    "gloves|armour,default,ezomyte_basetype,gloves,int_armour": 9,
+    "gloves|armour,default,ezomyte_basetype,gloves,int_armour,runeforged": 9,
+    "gloves|armour,default,ezomyte_basetype,gloves,runeforged,str_armour": 9,
+    "gloves|armour,default,ezomyte_basetype,gloves,runeforged,str_dex_armour": 9,
+    "gloves|armour,default,ezomyte_basetype,gloves,runeforged,str_int_armour": 9,
+    "gloves|armour,default,ezomyte_basetype,gloves,str_armour": 9,
+    "gloves|armour,default,ezomyte_basetype,gloves,str_dex_armour": 9,
+    "gloves|armour,default,ezomyte_basetype,gloves,str_int_armour": 9,
+    "gloves|armour,default,gloves,int_armour": 9,
+    "gloves|armour,default,gloves,int_armour,karui_basetype": 9,
+    "gloves|armour,default,gloves,int_armour,karui_basetype,runeforged": 9,
+    "gloves|armour,default,gloves,int_armour,maraketh_basetype": 9,
+    "gloves|armour,default,gloves,int_armour,maraketh_basetype,runeforged": 9,
+    "gloves|armour,default,gloves,int_armour,runeforged": 9,
+    "gloves|armour,default,gloves,int_armour,runeforged,vaal_basetype": 9,
+    "gloves|armour,default,gloves,int_armour,vaal_basetype": 9,
+    "gloves|armour,default,gloves,karui_basetype,runeforged,str_armour": 9,
+    "gloves|armour,default,gloves,karui_basetype,runeforged,str_dex_armour": 9,
+    "gloves|armour,default,gloves,karui_basetype,runeforged,str_int_armour": 9,
+    "gloves|armour,default,gloves,karui_basetype,str_armour": 9,
+    "gloves|armour,default,gloves,karui_basetype,str_dex_armour": 9,
+    "gloves|armour,default,gloves,karui_basetype,str_int_armour": 9,
+    "gloves|armour,default,gloves,maraketh_basetype,runeforged,str_armour": 9,
+    "gloves|armour,default,gloves,maraketh_basetype,runeforged,str_dex_armour": 9,
+    "gloves|armour,default,gloves,maraketh_basetype,runeforged,str_int_armour": 9,
+    "gloves|armour,default,gloves,maraketh_basetype,str_armour": 9,
+    "gloves|armour,default,gloves,maraketh_basetype,str_dex_armour": 9,
+    "gloves|armour,default,gloves,maraketh_basetype,str_int_armour": 9,
+    "gloves|armour,default,gloves,runeforged,str_armour": 9,
+    "gloves|armour,default,gloves,runeforged,str_armour,vaal_basetype": 9,
+    "gloves|armour,default,gloves,runeforged,str_dex_armour": 9,
+    "gloves|armour,default,gloves,runeforged,str_dex_armour,vaal_basetype": 9,
+    "gloves|armour,default,gloves,runeforged,str_dex_int_armour": 9,
+    "gloves|armour,default,gloves,runeforged,str_int_armour": 9,
+    "gloves|armour,default,gloves,runeforged,str_int_armour,vaal_basetype": 9,
+    "gloves|armour,default,gloves,str_armour": 9,
+    "gloves|armour,default,gloves,str_armour,vaal_basetype": 9,
+    "gloves|armour,default,gloves,str_dex_armour": 9,
+    "gloves|armour,default,gloves,str_dex_armour,vaal_basetype": 9,
+    "gloves|armour,default,gloves,str_dex_int_armour": 9,
+    "gloves|armour,default,gloves,str_int_armour": 9,
+    "gloves|armour,default,gloves,str_int_armour,vaal_basetype": 9,
+    "helmet|armour,default,demigods,helmet,not_for_sale": 9,
+    "helmet|armour,default,dex_armour,ezomyte_basetype,helmet": 9,
+    "helmet|armour,default,dex_armour,ezomyte_basetype,helmet,runeforged": 9,
+    "helmet|armour,default,dex_armour,helmet": 9,
+    "helmet|armour,default,dex_armour,helmet,karui_basetype": 9,
+    "helmet|armour,default,dex_armour,helmet,karui_basetype,runeforged": 9,
+    "helmet|armour,default,dex_armour,helmet,maraketh_basetype": 9,
+    "helmet|armour,default,dex_armour,helmet,maraketh_basetype,runeforged": 9,
+    "helmet|armour,default,dex_armour,helmet,runeforged": 9,
+    "helmet|armour,default,dex_armour,helmet,runeforged,vaal_basetype": 9,
+    "helmet|armour,default,dex_armour,helmet,vaal_basetype": 9,
+    "helmet|armour,default,dex_int_armour,ezomyte_basetype,helmet": 9,
+    "helmet|armour,default,dex_int_armour,ezomyte_basetype,helmet,runeforged": 9,
+    "helmet|armour,default,dex_int_armour,helmet": 9,
+    "helmet|armour,default,dex_int_armour,helmet,karui_basetype": 9,
+    "helmet|armour,default,dex_int_armour,helmet,karui_basetype,runeforged": 9,
+    "helmet|armour,default,dex_int_armour,helmet,maraketh_basetype": 9,
+    "helmet|armour,default,dex_int_armour,helmet,maraketh_basetype,runeforged": 9,
+    "helmet|armour,default,dex_int_armour,helmet,runeforged": 9,
+    "helmet|armour,default,dex_int_armour,helmet,runeforged,vaal_basetype": 9,
+    "helmet|armour,default,dex_int_armour,helmet,vaal_basetype": 9,
+    "helmet|armour,default,ezomyte_basetype,helmet,int_armour": 9,
+    "helmet|armour,default,ezomyte_basetype,helmet,int_armour,runeforged": 9,
+    "helmet|armour,default,ezomyte_basetype,helmet,runeforged,str_armour": 9,
+    "helmet|armour,default,ezomyte_basetype,helmet,runeforged,str_dex_armour": 9,
+    "helmet|armour,default,ezomyte_basetype,helmet,runeforged,str_int_armour": 9,
+    "helmet|armour,default,ezomyte_basetype,helmet,str_armour": 9,
+    "helmet|armour,default,ezomyte_basetype,helmet,str_dex_armour": 9,
+    "helmet|armour,default,ezomyte_basetype,helmet,str_int_armour": 9,
+    "helmet|armour,default,helmet,int_armour": 9,
+    "helmet|armour,default,helmet,int_armour,karui_basetype": 9,
+    "helmet|armour,default,helmet,int_armour,karui_basetype,runeforged": 9,
+    "helmet|armour,default,helmet,int_armour,maraketh_basetype": 9,
+    "helmet|armour,default,helmet,int_armour,maraketh_basetype,runeforged": 9,
+    "helmet|armour,default,helmet,int_armour,runeforged": 9,
+    "helmet|armour,default,helmet,int_armour,runeforged,vaal_basetype": 9,
+    "helmet|armour,default,helmet,int_armour,vaal_basetype": 9,
+    "helmet|armour,default,helmet,karui_basetype,runeforged,str_armour": 9,
+    "helmet|armour,default,helmet,karui_basetype,runeforged,str_dex_armour": 9,
+    "helmet|armour,default,helmet,karui_basetype,runeforged,str_int_armour": 9,
+    "helmet|armour,default,helmet,karui_basetype,str_armour": 9,
+    "helmet|armour,default,helmet,karui_basetype,str_dex_armour": 9,
+    "helmet|armour,default,helmet,karui_basetype,str_int_armour": 9,
+    "helmet|armour,default,helmet,maraketh_basetype,runeforged,str_armour": 9,
+    "helmet|armour,default,helmet,maraketh_basetype,runeforged,str_dex_armour": 9,
+    "helmet|armour,default,helmet,maraketh_basetype,runeforged,str_int_armour": 9,
+    "helmet|armour,default,helmet,maraketh_basetype,str_armour": 9,
+    "helmet|armour,default,helmet,maraketh_basetype,str_dex_armour": 9,
+    "helmet|armour,default,helmet,maraketh_basetype,str_int_armour": 9,
+    "helmet|armour,default,helmet,runeforged,str_armour": 9,
+    "helmet|armour,default,helmet,runeforged,str_armour,vaal_basetype": 9,
+    "helmet|armour,default,helmet,runeforged,str_dex_armour": 9,
+    "helmet|armour,default,helmet,runeforged,str_dex_armour,vaal_basetype": 9,
+    "helmet|armour,default,helmet,runeforged,str_dex_int_armour": 9,
+    "helmet|armour,default,helmet,runeforged,str_int_armour": 9,
+    "helmet|armour,default,helmet,runeforged,str_int_armour,vaal_basetype": 9,
+    "helmet|armour,default,helmet,str_armour": 9,
+    "helmet|armour,default,helmet,str_armour,vaal_basetype": 9,
+    "helmet|armour,default,helmet,str_dex_armour": 9,
+    "helmet|armour,default,helmet,str_dex_armour,vaal_basetype": 9,
+    "helmet|armour,default,helmet,str_dex_int_armour": 9,
+    "helmet|armour,default,helmet,str_int_armour": 9,
+    "helmet|armour,default,helmet,str_int_armour,vaal_basetype": 9,
+    "quiver|default,quiver": 9,
+    "ring|default,demigods,genesis_tree_caster,genesis_tree_minion,not_for_sale,ring": 8,
+    "ring|default,genesis_tree_caster,genesis_tree_minion,ring": 8
+   },
+   "parts": [
+    {
+     "stat_hash": "803737631",
+     "ranges": [
+      [
+       11,
+       32
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "mod_id": "Intelligence2",
+   "pool": "normal",
+   "type": "Suffix",
+   "group": "Intelligence",
+   "required_level": 11,
+   "profile_tiers": {
+    "amulet|amulet,default": 7,
+    "amulet|amulet,default,runeforged": 7,
+    "body_armour|armour,body_armour,default,demigods,not_for_sale,str_dex_int_armour": 7,
+    "body_armour|armour,body_armour,default,dex_int_armour": 7,
+    "body_armour|armour,body_armour,default,dex_int_armour,ezomyte_basetype": 7,
+    "body_armour|armour,body_armour,default,dex_int_armour,ezomyte_basetype,runeforged": 7,
+    "body_armour|armour,body_armour,default,dex_int_armour,karui_basetype": 7,
+    "body_armour|armour,body_armour,default,dex_int_armour,karui_basetype,runeforged": 7,
+    "body_armour|armour,body_armour,default,dex_int_armour,maraketh_basetype": 7,
+    "body_armour|armour,body_armour,default,dex_int_armour,maraketh_basetype,runeforged": 7,
+    "body_armour|armour,body_armour,default,dex_int_armour,runeforged": 7,
+    "body_armour|armour,body_armour,default,dex_int_armour,runeforged,vaal_basetype": 7,
+    "body_armour|armour,body_armour,default,dex_int_armour,vaal_basetype": 7,
+    "body_armour|armour,body_armour,default,ezomyte_basetype,int_armour": 7,
+    "body_armour|armour,body_armour,default,ezomyte_basetype,int_armour,runeforged": 7,
+    "body_armour|armour,body_armour,default,ezomyte_basetype,runeforged,str_int_armour": 7,
+    "body_armour|armour,body_armour,default,ezomyte_basetype,str_int_armour": 7,
+    "body_armour|armour,body_armour,default,int_armour": 7,
+    "body_armour|armour,body_armour,default,int_armour,karui_basetype": 7,
+    "body_armour|armour,body_armour,default,int_armour,karui_basetype,runeforged": 7,
+    "body_armour|armour,body_armour,default,int_armour,maraketh_basetype": 7,
+    "body_armour|armour,body_armour,default,int_armour,maraketh_basetype,runeforged": 7,
+    "body_armour|armour,body_armour,default,int_armour,runeforged": 7,
+    "body_armour|armour,body_armour,default,int_armour,runeforged,vaal_basetype": 7,
+    "body_armour|armour,body_armour,default,int_armour,vaal_basetype": 7,
+    "body_armour|armour,body_armour,default,karui_basetype,runeforged,str_int_armour": 7,
+    "body_armour|armour,body_armour,default,karui_basetype,str_int_armour": 7,
+    "body_armour|armour,body_armour,default,maraketh_basetype,runeforged,str_int_armour": 7,
+    "body_armour|armour,body_armour,default,maraketh_basetype,str_int_armour": 7,
+    "body_armour|armour,body_armour,default,runeforged,str_dex_int_armour": 7,
+    "body_armour|armour,body_armour,default,runeforged,str_int_armour": 7,
+    "body_armour|armour,body_armour,default,runeforged,str_int_armour,vaal_basetype": 7,
+    "body_armour|armour,body_armour,default,str_dex_int_armour": 7,
+    "body_armour|armour,body_armour,default,str_int_armour": 7,
+    "body_armour|armour,body_armour,default,str_int_armour,vaal_basetype": 7,
+    "boots|armour,boots,default,dex_int_armour": 7,
+    "boots|armour,boots,default,dex_int_armour,ezomyte_basetype": 7,
+    "boots|armour,boots,default,dex_int_armour,ezomyte_basetype,runeforged": 7,
+    "boots|armour,boots,default,dex_int_armour,karui_basetype": 7,
+    "boots|armour,boots,default,dex_int_armour,karui_basetype,runeforged": 7,
+    "boots|armour,boots,default,dex_int_armour,maraketh_basetype": 7,
+    "boots|armour,boots,default,dex_int_armour,maraketh_basetype,runeforged": 7,
+    "boots|armour,boots,default,dex_int_armour,runeforged": 7,
+    "boots|armour,boots,default,dex_int_armour,runeforged,vaal_basetype": 7,
+    "boots|armour,boots,default,dex_int_armour,vaal_basetype": 7,
+    "boots|armour,boots,default,ezomyte_basetype,int_armour": 7,
+    "boots|armour,boots,default,ezomyte_basetype,int_armour,runeforged": 7,
+    "boots|armour,boots,default,ezomyte_basetype,runeforged,str_int_armour": 7,
+    "boots|armour,boots,default,ezomyte_basetype,str_int_armour": 7,
+    "boots|armour,boots,default,int_armour": 7,
+    "boots|armour,boots,default,int_armour,karui_basetype": 7,
+    "boots|armour,boots,default,int_armour,karui_basetype,runeforged": 7,
+    "boots|armour,boots,default,int_armour,maraketh_basetype": 7,
+    "boots|armour,boots,default,int_armour,maraketh_basetype,runeforged": 7,
+    "boots|armour,boots,default,int_armour,runeforged": 7,
+    "boots|armour,boots,default,int_armour,runeforged,vaal_basetype": 7,
+    "boots|armour,boots,default,int_armour,vaal_basetype": 7,
+    "boots|armour,boots,default,karui_basetype,runeforged,str_int_armour": 7,
+    "boots|armour,boots,default,karui_basetype,str_int_armour": 7,
+    "boots|armour,boots,default,maraketh_basetype,runeforged,str_int_armour": 7,
+    "boots|armour,boots,default,maraketh_basetype,str_int_armour": 7,
+    "boots|armour,boots,default,runeforged,str_dex_int_armour": 7,
+    "boots|armour,boots,default,runeforged,str_int_armour": 7,
+    "boots|armour,boots,default,runeforged,str_int_armour,vaal_basetype": 7,
+    "boots|armour,boots,default,str_dex_int_armour": 7,
+    "boots|armour,boots,default,str_int_armour": 7,
+    "boots|armour,boots,default,str_int_armour,vaal_basetype": 7,
+    "dagger|dagger,default,ezomyte_basetype,one_hand_weapon,onehand,weapon": 7,
+    "dagger|dagger,default,maraketh_basetype,one_hand_weapon,onehand,weapon": 7,
+    "dagger|dagger,default,not_for_sale,one_hand_weapon,onehand,weapon": 7,
+    "dagger|dagger,default,one_hand_weapon,onehand,vaal_basetype,weapon": 7,
+    "dagger|dagger,default,one_hand_weapon,onehand,weapon": 7,
+    "flail|default,ezomyte_basetype,flail,one_hand_weapon,onehand,weapon": 7,
+    "flail|default,flail,maraketh_basetype,one_hand_weapon,onehand,weapon": 7,
+    "flail|default,flail,one_hand_weapon,onehand,vaal_basetype,weapon": 7,
+    "flail|default,flail,one_hand_weapon,onehand,weapon": 7,
+    "focus|armour,default,ezomyte_basetype,focus,int_armour": 7,
+    "focus|armour,default,ezomyte_basetype,focus,int_armour,runeforged": 7,
+    "focus|armour,default,focus,int_armour": 7,
+    "focus|armour,default,focus,int_armour,karui_basetype": 7,
+    "focus|armour,default,focus,int_armour,karui_basetype,runeforged": 7,
+    "focus|armour,default,focus,int_armour,maraketh_basetype": 7,
+    "focus|armour,default,focus,int_armour,maraketh_basetype,runeforged": 7,
+    "focus|armour,default,focus,int_armour,runeforged": 7,
+    "focus|armour,default,focus,int_armour,runeforged,vaal_basetype": 7,
+    "focus|armour,default,focus,int_armour,vaal_basetype": 7,
+    "gloves|armour,default,dex_int_armour,ezomyte_basetype,gloves": 7,
+    "gloves|armour,default,dex_int_armour,ezomyte_basetype,gloves,runeforged": 7,
+    "gloves|armour,default,dex_int_armour,gloves": 7,
+    "gloves|armour,default,dex_int_armour,gloves,karui_basetype": 7,
+    "gloves|armour,default,dex_int_armour,gloves,karui_basetype,runeforged": 7,
+    "gloves|armour,default,dex_int_armour,gloves,maraketh_basetype": 7,
+    "gloves|armour,default,dex_int_armour,gloves,maraketh_basetype,runeforged": 7,
+    "gloves|armour,default,dex_int_armour,gloves,runeforged": 7,
+    "gloves|armour,default,dex_int_armour,gloves,runeforged,vaal_basetype": 7,
+    "gloves|armour,default,dex_int_armour,gloves,vaal_basetype": 7,
+    "gloves|armour,default,ezomyte_basetype,gloves,int_armour": 7,
+    "gloves|armour,default,ezomyte_basetype,gloves,int_armour,runeforged": 7,
+    "gloves|armour,default,ezomyte_basetype,gloves,runeforged,str_int_armour": 7,
+    "gloves|armour,default,ezomyte_basetype,gloves,str_int_armour": 7,
+    "gloves|armour,default,gloves,int_armour": 7,
+    "gloves|armour,default,gloves,int_armour,karui_basetype": 7,
+    "gloves|armour,default,gloves,int_armour,karui_basetype,runeforged": 7,
+    "gloves|armour,default,gloves,int_armour,maraketh_basetype": 7,
+    "gloves|armour,default,gloves,int_armour,maraketh_basetype,runeforged": 7,
+    "gloves|armour,default,gloves,int_armour,runeforged": 7,
+    "gloves|armour,default,gloves,int_armour,runeforged,vaal_basetype": 7,
+    "gloves|armour,default,gloves,int_armour,vaal_basetype": 7,
+    "gloves|armour,default,gloves,karui_basetype,runeforged,str_int_armour": 7,
+    "gloves|armour,default,gloves,karui_basetype,str_int_armour": 7,
+    "gloves|armour,default,gloves,maraketh_basetype,runeforged,str_int_armour": 7,
+    "gloves|armour,default,gloves,maraketh_basetype,str_int_armour": 7,
+    "gloves|armour,default,gloves,runeforged,str_dex_int_armour": 7,
+    "gloves|armour,default,gloves,runeforged,str_int_armour": 7,
+    "gloves|armour,default,gloves,runeforged,str_int_armour,vaal_basetype": 7,
+    "gloves|armour,default,gloves,str_dex_int_armour": 7,
+    "gloves|armour,default,gloves,str_int_armour": 7,
+    "gloves|armour,default,gloves,str_int_armour,vaal_basetype": 7,
+    "helmet|armour,default,demigods,helmet,not_for_sale": 8,
+    "helmet|armour,default,dex_armour,ezomyte_basetype,helmet": 8,
+    "helmet|armour,default,dex_armour,ezomyte_basetype,helmet,runeforged": 8,
+    "helmet|armour,default,dex_armour,helmet": 8,
+    "helmet|armour,default,dex_armour,helmet,karui_basetype": 8,
+    "helmet|armour,default,dex_armour,helmet,karui_basetype,runeforged": 8,
+    "helmet|armour,default,dex_armour,helmet,maraketh_basetype": 8,
+    "helmet|armour,default,dex_armour,helmet,maraketh_basetype,runeforged": 8,
+    "helmet|armour,default,dex_armour,helmet,runeforged": 8,
+    "helmet|armour,default,dex_armour,helmet,runeforged,vaal_basetype": 8,
+    "helmet|armour,default,dex_armour,helmet,vaal_basetype": 8,
+    "helmet|armour,default,dex_int_armour,ezomyte_basetype,helmet": 8,
+    "helmet|armour,default,dex_int_armour,ezomyte_basetype,helmet,runeforged": 8,
+    "helmet|armour,default,dex_int_armour,helmet": 8,
+    "helmet|armour,default,dex_int_armour,helmet,karui_basetype": 8,
+    "helmet|armour,default,dex_int_armour,helmet,karui_basetype,runeforged": 8,
+    "helmet|armour,default,dex_int_armour,helmet,maraketh_basetype": 8,
+    "helmet|armour,default,dex_int_armour,helmet,maraketh_basetype,runeforged": 8,
+    "helmet|armour,default,dex_int_armour,helmet,runeforged": 8,
+    "helmet|armour,default,dex_int_armour,helmet,runeforged,vaal_basetype": 8,
+    "helmet|armour,default,dex_int_armour,helmet,vaal_basetype": 8,
+    "helmet|armour,default,ezomyte_basetype,helmet,int_armour": 8,
+    "helmet|armour,default,ezomyte_basetype,helmet,int_armour,runeforged": 8,
+    "helmet|armour,default,ezomyte_basetype,helmet,runeforged,str_armour": 8,
+    "helmet|armour,default,ezomyte_basetype,helmet,runeforged,str_dex_armour": 8,
+    "helmet|armour,default,ezomyte_basetype,helmet,runeforged,str_int_armour": 8,
+    "helmet|armour,default,ezomyte_basetype,helmet,str_armour": 8,
+    "helmet|armour,default,ezomyte_basetype,helmet,str_dex_armour": 8,
+    "helmet|armour,default,ezomyte_basetype,helmet,str_int_armour": 8,
+    "helmet|armour,default,helmet,int_armour": 8,
+    "helmet|armour,default,helmet,int_armour,karui_basetype": 8,
+    "helmet|armour,default,helmet,int_armour,karui_basetype,runeforged": 8,
+    "helmet|armour,default,helmet,int_armour,maraketh_basetype": 8,
+    "helmet|armour,default,helmet,int_armour,maraketh_basetype,runeforged": 8,
+    "helmet|armour,default,helmet,int_armour,runeforged": 8,
+    "helmet|armour,default,helmet,int_armour,runeforged,vaal_basetype": 8,
+    "helmet|armour,default,helmet,int_armour,vaal_basetype": 8,
+    "helmet|armour,default,helmet,karui_basetype,runeforged,str_armour": 8,
+    "helmet|armour,default,helmet,karui_basetype,runeforged,str_dex_armour": 8,
+    "helmet|armour,default,helmet,karui_basetype,runeforged,str_int_armour": 8,
+    "helmet|armour,default,helmet,karui_basetype,str_armour": 8,
+    "helmet|armour,default,helmet,karui_basetype,str_dex_armour": 8,
+    "helmet|armour,default,helmet,karui_basetype,str_int_armour": 8,
+    "helmet|armour,default,helmet,maraketh_basetype,runeforged,str_armour": 8,
+    "helmet|armour,default,helmet,maraketh_basetype,runeforged,str_dex_armour": 8,
+    "helmet|armour,default,helmet,maraketh_basetype,runeforged,str_int_armour": 8,
+    "helmet|armour,default,helmet,maraketh_basetype,str_armour": 8,
+    "helmet|armour,default,helmet,maraketh_basetype,str_dex_armour": 8,
+    "helmet|armour,default,helmet,maraketh_basetype,str_int_armour": 8,
+    "helmet|armour,default,helmet,runeforged,str_armour": 8,
+    "helmet|armour,default,helmet,runeforged,str_armour,vaal_basetype": 8,
+    "helmet|armour,default,helmet,runeforged,str_dex_armour": 8,
+    "helmet|armour,default,helmet,runeforged,str_dex_armour,vaal_basetype": 8,
+    "helmet|armour,default,helmet,runeforged,str_dex_int_armour": 8,
+    "helmet|armour,default,helmet,runeforged,str_int_armour": 8,
+    "helmet|armour,default,helmet,runeforged,str_int_armour,vaal_basetype": 8,
+    "helmet|armour,default,helmet,str_armour": 8,
+    "helmet|armour,default,helmet,str_armour,vaal_basetype": 8,
+    "helmet|armour,default,helmet,str_dex_armour": 8,
+    "helmet|armour,default,helmet,str_dex_armour,vaal_basetype": 8,
+    "helmet|armour,default,helmet,str_dex_int_armour": 8,
+    "helmet|armour,default,helmet,str_int_armour": 8,
+    "helmet|armour,default,helmet,str_int_armour,vaal_basetype": 8,
+    "quarterstaff|default,ezomyte_basetype,two_hand_weapon,twohand,warstaff,weapon": 7,
+    "quarterstaff|default,karui_basetype,two_hand_weapon,twohand,warstaff,weapon": 7,
+    "quarterstaff|default,maraketh_basetype,two_hand_weapon,twohand,warstaff,weapon": 7,
+    "quarterstaff|default,runeforged,two_hand_weapon,twohand,warstaff,weapon": 7,
+    "quarterstaff|default,two_hand_weapon,twohand,vaal_basetype,warstaff,weapon": 7,
+    "quarterstaff|default,two_hand_weapon,twohand,warstaff,weapon": 7,
+    "ring|default,demigods,genesis_tree_caster,genesis_tree_minion,not_for_sale,ring": 7,
+    "ring|default,genesis_tree_caster,genesis_tree_minion,ring": 7,
+    "sceptre|cold_implicit_skill,default,onehand,sceptre": 7,
+    "sceptre|default,fire_implicit_skill,onehand,sceptre": 7,
+    "sceptre|default,lightning_implicit_skill,onehand,sceptre": 7,
+    "sceptre|default,onehand,physical_implicit_skill,sceptre": 7,
+    "sceptre|default,onehand,sceptre": 7,
+    "shield|armour,default,ezomyte_basetype,runeforged,shield,str_int_armour,str_int_shield": 7,
+    "shield|armour,default,ezomyte_basetype,shield,str_int_armour,str_int_shield": 7,
+    "shield|armour,default,karui_basetype,runeforged,shield,str_int_armour,str_int_shield": 7,
+    "shield|armour,default,karui_basetype,shield,str_int_armour,str_int_shield": 7,
+    "shield|armour,default,maraketh_basetype,runeforged,shield,str_int_armour,str_int_shield": 7,
+    "shield|armour,default,maraketh_basetype,shield,str_int_armour,str_int_shield": 7,
+    "shield|armour,default,runeforged,shield,str_int_armour,str_int_shield": 7,
+    "shield|armour,default,runeforged,shield,str_int_armour,str_int_shield,vaal_basetype": 7,
+    "shield|armour,default,shield,str_int_armour,str_int_shield": 7,
+    "shield|armour,default,shield,str_int_armour,str_int_shield,vaal_basetype": 7,
+    "staff|chaos_implicit_skill,default,no_cold_spell_mods,no_fire_spell_mods,no_lightning_spell_mods,no_physical_spell_mods,staff,twohand": 7,
+    "staff|cold_implicit_skill,default,no_chaos_spell_mods,no_fire_spell_mods,no_lightning_spell_mods,no_physical_spell_mods,staff,twohand": 7,
+    "staff|default,fire_implicit_skill,no_chaos_spell_mods,no_cold_spell_mods,no_lightning_spell_mods,no_physical_spell_mods,staff,twohand": 7,
+    "staff|default,lightning_implicit_skill,no_chaos_spell_mods,no_cold_spell_mods,no_fire_spell_mods,no_physical_spell_mods,staff,twohand": 7,
+    "staff|default,no_chaos_spell_mods,no_cold_spell_mods,no_fire_spell_mods,no_lightning_spell_mods,physical_implicit_skill,staff,twohand": 7,
+    "staff|default,staff,twohand": 7,
+    "talisman|default,ezomyte_basetype,runeforged,talisman,two_hand_weapon,twohand,weapon": 7,
+    "talisman|default,ezomyte_basetype,talisman,two_hand_weapon,twohand,weapon": 7,
+    "talisman|default,karui_basetype,talisman,two_hand_weapon,twohand,weapon": 7,
+    "talisman|default,maraketh_basetype,runeforged,talisman,two_hand_weapon,twohand,weapon": 7,
+    "talisman|default,maraketh_basetype,talisman,two_hand_weapon,twohand,weapon": 7,
+    "talisman|default,runeforged,talisman,two_hand_weapon,twohand,vaal_basetype,weapon": 7,
+    "talisman|default,talisman,two_hand_weapon,twohand,vaal_basetype,weapon": 7,
+    "talisman|default,talisman,two_hand_weapon,twohand,weapon": 7,
+    "wand|chaos_implicit_skill,default,no_cold_spell_mods,no_fire_spell_mods,no_lightning_spell_mods,no_physical_spell_mods,onehand,wand": 7,
+    "wand|cold_implicit_skill,default,no_chaos_spell_mods,no_fire_spell_mods,no_lightning_spell_mods,no_physical_spell_mods,onehand,wand": 7,
+    "wand|default,fire_implicit_skill,no_chaos_spell_mods,no_cold_spell_mods,no_lightning_spell_mods,no_physical_spell_mods,onehand,wand": 7,
+    "wand|default,lightning_implicit_skill,no_chaos_spell_mods,no_cold_spell_mods,no_fire_spell_mods,no_physical_spell_mods,onehand,wand": 7,
+    "wand|default,no_chaos_spell_mods,no_cold_spell_mods,no_fire_spell_mods,no_lightning_spell_mods,onehand,physical_implicit_skill,wand": 7,
+    "wand|default,onehand,runeforged,wand": 7,
+    "wand|default,onehand,wand": 7
+   },
+   "parts": [
+    {
+     "stat_hash": "328541901",
+     "ranges": [
+      [
+       9,
+       12
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "mod_id": "JewelMinionPhysicalDamageReduction",
+   "pool": "normal",
+   "type": "Suffix",
+   "group": "MinionPhysicalDamageReduction",
+   "required_level": 1,
+   "profile_tiers": {
+    "jewel|default,dexjewel,intjewel,jewel,not_for_sale,strjewel": 1,
+    "jewel|default,jewel,strjewel": 1
+   },
+   "parts": [
+    {
+     "stat_hash": "3119612865",
+     "ranges": [
+      [
+       6,
+       16
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "mod_id": "LocalAddedColdDamage10__",
+   "pool": "normal",
+   "type": "Prefix",
+   "group": "LocalColdDamage",
+   "required_level": 81,
+   "profile_tiers": {
+    "bow|bow,default,ezomyte_basetype,ranged,runeforged,two_hand_weapon,twohand,weapon": 1,
+    "bow|bow,default,ezomyte_basetype,ranged,two_hand_weapon,twohand,weapon": 1,
+    "bow|bow,default,karui_basetype,ranged,two_hand_weapon,twohand,weapon": 1,
+    "bow|bow,default,maraketh_basetype,ranged,runeforged,two_hand_weapon,twohand,weapon": 1,
+    "bow|bow,default,maraketh_basetype,ranged,two_hand_weapon,twohand,weapon": 1,
+    "bow|bow,default,ranged,runeforged,two_hand_weapon,twohand,vaal_basetype,weapon": 1,
+    "bow|bow,default,ranged,two_hand_weapon,twohand,vaal_basetype,weapon": 1,
+    "bow|bow,default,ranged,two_hand_weapon,twohand,weapon": 1,
+    "claw|claw,default,ezomyte_basetype,one_hand_weapon,onehand,weapon": 1,
+    "claw|claw,default,maraketh_basetype,one_hand_weapon,onehand,weapon": 1,
+    "claw|claw,default,one_hand_weapon,onehand,vaal_basetype,weapon": 1,
+    "claw|claw,default,one_hand_weapon,onehand,weapon": 1,
+    "dagger|dagger,default,ezomyte_basetype,one_hand_weapon,onehand,weapon": 1,
+    "dagger|dagger,default,maraketh_basetype,one_hand_weapon,onehand,weapon": 1,
+    "dagger|dagger,default,not_for_sale,one_hand_weapon,onehand,weapon": 1,
+    "dagger|dagger,default,one_hand_weapon,onehand,vaal_basetype,weapon": 1,
+    "dagger|dagger,default,one_hand_weapon,onehand,weapon": 1,
+    "flail|default,ezomyte_basetype,flail,one_hand_weapon,onehand,weapon": 1,
+    "flail|default,flail,maraketh_basetype,one_hand_weapon,onehand,weapon": 1,
+    "flail|default,flail,one_hand_weapon,onehand,vaal_basetype,weapon": 1,
+    "flail|default,flail,one_hand_weapon,onehand,weapon": 1,
+    "one_hand_axe|axe,default,ezomyte_basetype,one_hand_weapon,onehand,weapon": 1,
+    "one_hand_axe|axe,default,maraketh_basetype,one_hand_weapon,onehand,weapon": 1,
+    "one_hand_axe|axe,default,one_hand_weapon,onehand,vaal_basetype,weapon": 1,
+    "one_hand_axe|axe,default,one_hand_weapon,onehand,weapon": 1,
+    "one_hand_mace|default,ezomyte_basetype,mace,one_hand_weapon,onehand,runeforged,weapon": 1,
+    "one_hand_mace|default,ezomyte_basetype,mace,one_hand_weapon,onehand,weapon": 1,
+    "one_hand_mace|default,karui_basetype,mace,one_hand_weapon,onehand,weapon": 1,
+    "one_hand_mace|default,mace,maraketh_basetype,one_hand_weapon,onehand,runeforged,weapon": 1,
+    "one_hand_mace|default,mace,maraketh_basetype,one_hand_weapon,onehand,weapon": 1,
+    "one_hand_mace|default,mace,one_hand_weapon,onehand,runeforged,weapon": 1,
+    "one_hand_mace|default,mace,one_hand_weapon,onehand,vaal_basetype,weapon": 1,
+    "one_hand_mace|default,mace,one_hand_weapon,onehand,weapon": 1,
+    "one_hand_sword|default,demigods,not_for_sale,one_hand_weapon,onehand,sword,weapon": 1,
+    "one_hand_sword|default,ezomyte_basetype,one_hand_weapon,onehand,sword,weapon": 1,
+    "one_hand_sword|default,maraketh_basetype,one_hand_weapon,onehand,sword,weapon": 1,
+    "one_hand_sword|default,not_for_sale,one_hand_weapon,onehand,sword,weapon": 1,
+    "one_hand_sword|default,one_hand_weapon,onehand,sword,vaal_basetype,weapon": 1,
+    "one_hand_sword|default,one_hand_weapon,onehand,sword,weapon": 1,
+    "spear|default,ezomyte_basetype,one_hand_weapon,onehand,runeforged,spear,weapon": 1,
+    "spear|default,ezomyte_basetype,one_hand_weapon,onehand,spear,weapon": 1,
+    "spear|default,karui_basetype,one_hand_weapon,onehand,spear,weapon": 1,
+    "spear|default,maraketh_basetype,one_hand_weapon,onehand,runeforged,spear,weapon": 1,
+    "spear|default,maraketh_basetype,one_hand_weapon,onehand,spear,weapon": 1,
+    "spear|default,one_hand_weapon,onehand,runeforged,spear,vaal_basetype,weapon": 1,
+    "spear|default,one_hand_weapon,onehand,spear,vaal_basetype,weapon": 1,
+    "spear|default,one_hand_weapon,onehand,spear,weapon": 1
+   },
+   "parts": [
+    {
+     "stat_hash": "1037193709",
+     "ranges": [
+      [
+       72,
+       81
+      ],
+      [
+       110,
+       123
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "mod_id": "LocalCriticalMultiplier2",
+   "pool": "normal",
+   "type": "Suffix",
+   "group": "LocalCriticalStrikeMultiplier",
+   "required_level": 21,
+   "profile_tiers": {
+    "bow|bow,default,ezomyte_basetype,ranged,runeforged,two_hand_weapon,twohand,weapon": 5,
+    "bow|bow,default,ezomyte_basetype,ranged,two_hand_weapon,twohand,weapon": 5,
+    "bow|bow,default,karui_basetype,ranged,two_hand_weapon,twohand,weapon": 5,
+    "bow|bow,default,maraketh_basetype,ranged,runeforged,two_hand_weapon,twohand,weapon": 5,
+    "bow|bow,default,maraketh_basetype,ranged,two_hand_weapon,twohand,weapon": 5,
+    "bow|bow,default,ranged,runeforged,two_hand_weapon,twohand,vaal_basetype,weapon": 5,
+    "bow|bow,default,ranged,two_hand_weapon,twohand,vaal_basetype,weapon": 5,
+    "bow|bow,default,ranged,two_hand_weapon,twohand,weapon": 5,
+    "claw|claw,default,ezomyte_basetype,one_hand_weapon,onehand,weapon": 5,
+    "claw|claw,default,maraketh_basetype,one_hand_weapon,onehand,weapon": 5,
+    "claw|claw,default,one_hand_weapon,onehand,vaal_basetype,weapon": 5,
+    "claw|claw,default,one_hand_weapon,onehand,weapon": 5,
+    "crossbow|cannon,crossbow,default,ranged,two_hand_weapon,twohand,weapon": 5,
+    "crossbow|crossbow,default,ezomyte_basetype,ranged,runeforged,two_hand_weapon,twohand,weapon": 5,
+    "crossbow|crossbow,default,ezomyte_basetype,ranged,two_hand_weapon,twohand,weapon": 5,
+    "crossbow|crossbow,default,karui_basetype,ranged,two_hand_weapon,twohand,weapon": 5,
+    "crossbow|crossbow,default,maraketh_basetype,ranged,runeforged,two_hand_weapon,twohand,weapon": 5,
+    "crossbow|crossbow,default,maraketh_basetype,ranged,two_hand_weapon,twohand,weapon": 5,
+    "crossbow|crossbow,default,ranged,runeforged,two_hand_weapon,twohand,vaal_basetype,weapon": 5,
+    "crossbow|crossbow,default,ranged,two_hand_weapon,twohand,vaal_basetype,weapon": 5,
+    "crossbow|crossbow,default,ranged,two_hand_weapon,twohand,weapon": 5,
+    "dagger|dagger,default,ezomyte_basetype,one_hand_weapon,onehand,weapon": 5,
+    "dagger|dagger,default,maraketh_basetype,one_hand_weapon,onehand,weapon": 5,
+    "dagger|dagger,default,not_for_sale,one_hand_weapon,onehand,weapon": 5,
+    "dagger|dagger,default,one_hand_weapon,onehand,vaal_basetype,weapon": 5,
+    "dagger|dagger,default,one_hand_weapon,onehand,weapon": 5,
+    "flail|default,ezomyte_basetype,flail,one_hand_weapon,onehand,weapon": 5,
+    "flail|default,flail,maraketh_basetype,one_hand_weapon,onehand,weapon": 5,
+    "flail|default,flail,one_hand_weapon,onehand,vaal_basetype,weapon": 5,
+    "flail|default,flail,one_hand_weapon,onehand,weapon": 5,
+    "one_hand_axe|axe,default,ezomyte_basetype,one_hand_weapon,onehand,weapon": 5,
+    "one_hand_axe|axe,default,maraketh_basetype,one_hand_weapon,onehand,weapon": 5,
+    "one_hand_axe|axe,default,one_hand_weapon,onehand,vaal_basetype,weapon": 5,
+    "one_hand_axe|axe,default,one_hand_weapon,onehand,weapon": 5,
+    "one_hand_mace|default,ezomyte_basetype,mace,one_hand_weapon,onehand,runeforged,weapon": 5,
+    "one_hand_mace|default,ezomyte_basetype,mace,one_hand_weapon,onehand,weapon": 5,
+    "one_hand_mace|default,karui_basetype,mace,one_hand_weapon,onehand,weapon": 5,
+    "one_hand_mace|default,mace,maraketh_basetype,one_hand_weapon,onehand,runeforged,weapon": 5,
+    "one_hand_mace|default,mace,maraketh_basetype,one_hand_weapon,onehand,weapon": 5,
+    "one_hand_mace|default,mace,one_hand_weapon,onehand,runeforged,weapon": 5,
+    "one_hand_mace|default,mace,one_hand_weapon,onehand,vaal_basetype,weapon": 5,
+    "one_hand_mace|default,mace,one_hand_weapon,onehand,weapon": 5,
+    "one_hand_sword|default,demigods,not_for_sale,one_hand_weapon,onehand,sword,weapon": 5,
+    "one_hand_sword|default,ezomyte_basetype,one_hand_weapon,onehand,sword,weapon": 5,
+    "one_hand_sword|default,maraketh_basetype,one_hand_weapon,onehand,sword,weapon": 5,
+    "one_hand_sword|default,not_for_sale,one_hand_weapon,onehand,sword,weapon": 5,
+    "one_hand_sword|default,one_hand_weapon,onehand,sword,vaal_basetype,weapon": 5,
+    "one_hand_sword|default,one_hand_weapon,onehand,sword,weapon": 5,
+    "quarterstaff|default,ezomyte_basetype,two_hand_weapon,twohand,warstaff,weapon": 5,
+    "quarterstaff|default,karui_basetype,two_hand_weapon,twohand,warstaff,weapon": 5,
+    "quarterstaff|default,maraketh_basetype,two_hand_weapon,twohand,warstaff,weapon": 5,
+    "quarterstaff|default,runeforged,two_hand_weapon,twohand,warstaff,weapon": 5,
+    "quarterstaff|default,two_hand_weapon,twohand,vaal_basetype,warstaff,weapon": 5,
+    "quarterstaff|default,two_hand_weapon,twohand,warstaff,weapon": 5,
+    "spear|default,ezomyte_basetype,one_hand_weapon,onehand,runeforged,spear,weapon": 5,
+    "spear|default,ezomyte_basetype,one_hand_weapon,onehand,spear,weapon": 5,
+    "spear|default,karui_basetype,one_hand_weapon,onehand,spear,weapon": 5,
+    "spear|default,maraketh_basetype,one_hand_weapon,onehand,runeforged,spear,weapon": 5,
+    "spear|default,maraketh_basetype,one_hand_weapon,onehand,spear,weapon": 5,
+    "spear|default,one_hand_weapon,onehand,runeforged,spear,vaal_basetype,weapon": 5,
+    "spear|default,one_hand_weapon,onehand,spear,vaal_basetype,weapon": 5,
+    "spear|default,one_hand_weapon,onehand,spear,weapon": 5,
+    "talisman|default,ezomyte_basetype,runeforged,talisman,two_hand_weapon,twohand,weapon": 5,
+    "talisman|default,ezomyte_basetype,talisman,two_hand_weapon,twohand,weapon": 5,
+    "talisman|default,karui_basetype,talisman,two_hand_weapon,twohand,weapon": 5,
+    "talisman|default,maraketh_basetype,runeforged,talisman,two_hand_weapon,twohand,weapon": 5,
+    "talisman|default,maraketh_basetype,talisman,two_hand_weapon,twohand,weapon": 5,
+    "talisman|default,runeforged,talisman,two_hand_weapon,twohand,vaal_basetype,weapon": 5,
+    "talisman|default,talisman,two_hand_weapon,twohand,vaal_basetype,weapon": 5,
+    "talisman|default,talisman,two_hand_weapon,twohand,weapon": 5,
+    "two_hand_axe|axe,default,ezomyte_basetype,two_hand_weapon,twohand,weapon": 5,
+    "two_hand_axe|axe,default,maraketh_basetype,two_hand_weapon,twohand,weapon": 5,
+    "two_hand_axe|axe,default,two_hand_weapon,twohand,vaal_basetype,weapon": 5,
+    "two_hand_axe|axe,default,two_hand_weapon,twohand,weapon": 5,
+    "two_hand_mace|default,ezomyte_basetype,mace,runeforged,two_hand_weapon,twohand,weapon": 5,
+    "two_hand_mace|default,ezomyte_basetype,mace,two_hand_weapon,twohand,weapon": 5,
+    "two_hand_mace|default,karui_basetype,mace,runeforged,two_hand_weapon,twohand,weapon": 5,
+    "two_hand_mace|default,karui_basetype,mace,two_hand_weapon,twohand,weapon": 5,
+    "two_hand_mace|default,mace,maraketh_basetype,runeforged,two_hand_weapon,twohand,weapon": 5,
+    "two_hand_mace|default,mace,maraketh_basetype,two_hand_weapon,twohand,weapon": 5,
+    "two_hand_mace|default,mace,runeforged,two_hand_weapon,twohand,vaal_basetype,weapon": 5,
+    "two_hand_mace|default,mace,runeforged,two_hand_weapon,twohand,weapon": 5,
+    "two_hand_mace|default,mace,two_hand_weapon,twohand,vaal_basetype,weapon": 5,
+    "two_hand_mace|default,mace,two_hand_weapon,twohand,weapon": 5,
+    "two_hand_sword|default,ezomyte_basetype,sword,two_hand_weapon,twohand,weapon": 5,
+    "two_hand_sword|default,maraketh_basetype,sword,two_hand_weapon,twohand,weapon": 5,
+    "two_hand_sword|default,not_for_sale,sword,two_hand_weapon,twohand,weapon": 5,
+    "two_hand_sword|default,sword,two_hand_weapon,twohand,vaal_basetype,weapon": 5,
+    "two_hand_sword|default,sword,two_hand_weapon,twohand,weapon": 5
+   },
+   "parts": [
+    {
+     "stat_hash": "2694482655",
+     "ranges": [
+      [
+       12,
+       13
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "mod_id": "LocalIncreasedAttackSpeed8",
+   "pool": "normal",
+   "type": "Suffix",
+   "group": "LocalIncreasedAttackSpeed",
+   "required_level": 77,
+   "profile_tiers": {
+    "claw|claw,default,ezomyte_basetype,one_hand_weapon,onehand,weapon": 1,
+    "claw|claw,default,maraketh_basetype,one_hand_weapon,onehand,weapon": 1,
+    "claw|claw,default,one_hand_weapon,onehand,vaal_basetype,weapon": 1,
+    "claw|claw,default,one_hand_weapon,onehand,weapon": 1,
+    "dagger|dagger,default,ezomyte_basetype,one_hand_weapon,onehand,weapon": 1,
+    "dagger|dagger,default,maraketh_basetype,one_hand_weapon,onehand,weapon": 1,
+    "dagger|dagger,default,not_for_sale,one_hand_weapon,onehand,weapon": 1,
+    "dagger|dagger,default,one_hand_weapon,onehand,vaal_basetype,weapon": 1,
+    "dagger|dagger,default,one_hand_weapon,onehand,weapon": 1,
+    "flail|default,ezomyte_basetype,flail,one_hand_weapon,onehand,weapon": 1,
+    "flail|default,flail,maraketh_basetype,one_hand_weapon,onehand,weapon": 1,
+    "flail|default,flail,one_hand_weapon,onehand,vaal_basetype,weapon": 1,
+    "flail|default,flail,one_hand_weapon,onehand,weapon": 1,
+    "one_hand_axe|axe,default,ezomyte_basetype,one_hand_weapon,onehand,weapon": 1,
+    "one_hand_axe|axe,default,maraketh_basetype,one_hand_weapon,onehand,weapon": 1,
+    "one_hand_axe|axe,default,one_hand_weapon,onehand,vaal_basetype,weapon": 1,
+    "one_hand_axe|axe,default,one_hand_weapon,onehand,weapon": 1,
+    "one_hand_mace|default,ezomyte_basetype,mace,one_hand_weapon,onehand,runeforged,weapon": 1,
+    "one_hand_mace|default,ezomyte_basetype,mace,one_hand_weapon,onehand,weapon": 1,
+    "one_hand_mace|default,karui_basetype,mace,one_hand_weapon,onehand,weapon": 1,
+    "one_hand_mace|default,mace,maraketh_basetype,one_hand_weapon,onehand,runeforged,weapon": 1,
+    "one_hand_mace|default,mace,maraketh_basetype,one_hand_weapon,onehand,weapon": 1,
+    "one_hand_mace|default,mace,one_hand_weapon,onehand,runeforged,weapon": 1,
+    "one_hand_mace|default,mace,one_hand_weapon,onehand,vaal_basetype,weapon": 1,
+    "one_hand_mace|default,mace,one_hand_weapon,onehand,weapon": 1,
+    "one_hand_sword|default,demigods,not_for_sale,one_hand_weapon,onehand,sword,weapon": 1,
+    "one_hand_sword|default,ezomyte_basetype,one_hand_weapon,onehand,sword,weapon": 1,
+    "one_hand_sword|default,maraketh_basetype,one_hand_weapon,onehand,sword,weapon": 1,
+    "one_hand_sword|default,not_for_sale,one_hand_weapon,onehand,sword,weapon": 1,
+    "one_hand_sword|default,one_hand_weapon,onehand,sword,vaal_basetype,weapon": 1,
+    "one_hand_sword|default,one_hand_weapon,onehand,sword,weapon": 1,
+    "quarterstaff|default,ezomyte_basetype,two_hand_weapon,twohand,warstaff,weapon": 1,
+    "quarterstaff|default,karui_basetype,two_hand_weapon,twohand,warstaff,weapon": 1,
+    "quarterstaff|default,maraketh_basetype,two_hand_weapon,twohand,warstaff,weapon": 1,
+    "quarterstaff|default,runeforged,two_hand_weapon,twohand,warstaff,weapon": 1,
+    "quarterstaff|default,two_hand_weapon,twohand,vaal_basetype,warstaff,weapon": 1,
+    "quarterstaff|default,two_hand_weapon,twohand,warstaff,weapon": 1,
+    "spear|default,ezomyte_basetype,one_hand_weapon,onehand,runeforged,spear,weapon": 1,
+    "spear|default,ezomyte_basetype,one_hand_weapon,onehand,spear,weapon": 1,
+    "spear|default,karui_basetype,one_hand_weapon,onehand,spear,weapon": 1,
+    "spear|default,maraketh_basetype,one_hand_weapon,onehand,runeforged,spear,weapon": 1,
+    "spear|default,maraketh_basetype,one_hand_weapon,onehand,spear,weapon": 1,
+    "spear|default,one_hand_weapon,onehand,runeforged,spear,vaal_basetype,weapon": 1,
+    "spear|default,one_hand_weapon,onehand,spear,vaal_basetype,weapon": 1,
+    "spear|default,one_hand_weapon,onehand,spear,weapon": 1,
+    "talisman|default,ezomyte_basetype,runeforged,talisman,two_hand_weapon,twohand,weapon": 1,
+    "talisman|default,ezomyte_basetype,talisman,two_hand_weapon,twohand,weapon": 1,
+    "talisman|default,karui_basetype,talisman,two_hand_weapon,twohand,weapon": 1,
+    "talisman|default,maraketh_basetype,runeforged,talisman,two_hand_weapon,twohand,weapon": 1,
+    "talisman|default,maraketh_basetype,talisman,two_hand_weapon,twohand,weapon": 1,
+    "talisman|default,runeforged,talisman,two_hand_weapon,twohand,vaal_basetype,weapon": 1,
+    "talisman|default,talisman,two_hand_weapon,twohand,vaal_basetype,weapon": 1,
+    "talisman|default,talisman,two_hand_weapon,twohand,weapon": 1,
+    "two_hand_axe|axe,default,ezomyte_basetype,two_hand_weapon,twohand,weapon": 1,
+    "two_hand_axe|axe,default,maraketh_basetype,two_hand_weapon,twohand,weapon": 1,
+    "two_hand_axe|axe,default,two_hand_weapon,twohand,vaal_basetype,weapon": 1,
+    "two_hand_axe|axe,default,two_hand_weapon,twohand,weapon": 1,
+    "two_hand_mace|default,ezomyte_basetype,mace,runeforged,two_hand_weapon,twohand,weapon": 1,
+    "two_hand_mace|default,ezomyte_basetype,mace,two_hand_weapon,twohand,weapon": 1,
+    "two_hand_mace|default,karui_basetype,mace,runeforged,two_hand_weapon,twohand,weapon": 1,
+    "two_hand_mace|default,karui_basetype,mace,two_hand_weapon,twohand,weapon": 1,
+    "two_hand_mace|default,mace,maraketh_basetype,runeforged,two_hand_weapon,twohand,weapon": 1,
+    "two_hand_mace|default,mace,maraketh_basetype,two_hand_weapon,twohand,weapon": 1,
+    "two_hand_mace|default,mace,runeforged,two_hand_weapon,twohand,vaal_basetype,weapon": 1,
+    "two_hand_mace|default,mace,runeforged,two_hand_weapon,twohand,weapon": 1,
+    "two_hand_mace|default,mace,two_hand_weapon,twohand,vaal_basetype,weapon": 1,
+    "two_hand_mace|default,mace,two_hand_weapon,twohand,weapon": 1,
+    "two_hand_sword|default,ezomyte_basetype,sword,two_hand_weapon,twohand,weapon": 1,
+    "two_hand_sword|default,maraketh_basetype,sword,two_hand_weapon,twohand,weapon": 1,
+    "two_hand_sword|default,not_for_sale,sword,two_hand_weapon,twohand,weapon": 1,
+    "two_hand_sword|default,sword,two_hand_weapon,twohand,vaal_basetype,weapon": 1,
+    "two_hand_sword|default,sword,two_hand_weapon,twohand,weapon": 1
+   },
+   "parts": [
+    {
+     "stat_hash": "210067635",
+     "ranges": [
+      [
+       26,
+       28
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "mod_id": "LocalIncreasedPhysicalDamageReductionRating5",
+   "pool": "normal",
+   "type": "Prefix",
+   "group": "LocalPhysicalDamageReductionRating",
+   "required_level": 33,
+   "profile_tiers": {
+    "body_armour|armour,body_armour,default,demigods,not_for_sale,str_dex_int_armour": 7,
+    "body_armour|armour,body_armour,default,ezomyte_basetype,runeforged,str_armour": 7,
+    "body_armour|armour,body_armour,default,ezomyte_basetype,str_armour": 7,
+    "body_armour|armour,body_armour,default,karui_basetype,runeforged,str_armour": 7,
+    "body_armour|armour,body_armour,default,karui_basetype,str_armour": 7,
+    "body_armour|armour,body_armour,default,maraketh_basetype,runeforged,str_armour": 7,
+    "body_armour|armour,body_armour,default,maraketh_basetype,str_armour": 7,
+    "body_armour|armour,body_armour,default,runeforged,str_armour": 7,
+    "body_armour|armour,body_armour,default,runeforged,str_armour,vaal_basetype": 7,
+    "body_armour|armour,body_armour,default,runeforged,str_dex_int_armour": 7,
+    "body_armour|armour,body_armour,default,str_armour": 7,
+    "body_armour|armour,body_armour,default,str_armour,vaal_basetype": 7,
+    "body_armour|armour,body_armour,default,str_dex_int_armour": 7,
+    "boots|armour,boots,default,ezomyte_basetype,runeforged,str_armour": 3,
+    "boots|armour,boots,default,ezomyte_basetype,str_armour": 3,
+    "boots|armour,boots,default,karui_basetype,runeforged,str_armour": 3,
+    "boots|armour,boots,default,karui_basetype,str_armour": 3,
+    "boots|armour,boots,default,maraketh_basetype,runeforged,str_armour": 3,
+    "boots|armour,boots,default,maraketh_basetype,str_armour": 3,
+    "boots|armour,boots,default,runeforged,str_armour": 3,
+    "boots|armour,boots,default,runeforged,str_armour,vaal_basetype": 3,
+    "boots|armour,boots,default,runeforged,str_dex_int_armour": 3,
+    "boots|armour,boots,default,str_armour": 3,
+    "boots|armour,boots,default,str_armour,vaal_basetype": 3,
+    "boots|armour,boots,default,str_dex_int_armour": 3,
+    "gloves|armour,default,ezomyte_basetype,gloves,runeforged,str_armour": 3,
+    "gloves|armour,default,ezomyte_basetype,gloves,str_armour": 3,
+    "gloves|armour,default,gloves,karui_basetype,runeforged,str_armour": 3,
+    "gloves|armour,default,gloves,karui_basetype,str_armour": 3,
+    "gloves|armour,default,gloves,maraketh_basetype,runeforged,str_armour": 3,
+    "gloves|armour,default,gloves,maraketh_basetype,str_armour": 3,
+    "gloves|armour,default,gloves,runeforged,str_armour": 3,
+    "gloves|armour,default,gloves,runeforged,str_armour,vaal_basetype": 3,
+    "gloves|armour,default,gloves,runeforged,str_dex_int_armour": 3,
+    "gloves|armour,default,gloves,str_armour": 3,
+    "gloves|armour,default,gloves,str_armour,vaal_basetype": 3,
+    "gloves|armour,default,gloves,str_dex_int_armour": 3,
+    "helmet|armour,default,ezomyte_basetype,helmet,runeforged,str_armour": 4,
+    "helmet|armour,default,ezomyte_basetype,helmet,str_armour": 4,
+    "helmet|armour,default,helmet,karui_basetype,runeforged,str_armour": 4,
+    "helmet|armour,default,helmet,karui_basetype,str_armour": 4,
+    "helmet|armour,default,helmet,maraketh_basetype,runeforged,str_armour": 4,
+    "helmet|armour,default,helmet,maraketh_basetype,str_armour": 4,
+    "helmet|armour,default,helmet,runeforged,str_armour": 4,
+    "helmet|armour,default,helmet,runeforged,str_armour,vaal_basetype": 4,
+    "helmet|armour,default,helmet,runeforged,str_dex_int_armour": 4,
+    "helmet|armour,default,helmet,str_armour": 4,
+    "helmet|armour,default,helmet,str_armour,vaal_basetype": 4,
+    "helmet|armour,default,helmet,str_dex_int_armour": 4,
+    "shield|armour,default,ezomyte_basetype,runeforged,shield,str_armour,str_shield": 6,
+    "shield|armour,default,ezomyte_basetype,shield,str_armour,str_shield": 6,
+    "shield|armour,default,karui_basetype,runeforged,shield,str_armour,str_shield": 6,
+    "shield|armour,default,karui_basetype,shield,str_armour,str_shield": 6,
+    "shield|armour,default,maraketh_basetype,runeforged,shield,str_armour,str_shield": 6,
+    "shield|armour,default,maraketh_basetype,shield,str_armour,str_shield": 6,
+    "shield|armour,default,runeforged,shield,str_armour,str_shield": 6,
+    "shield|armour,default,runeforged,shield,str_armour,str_shield,vaal_basetype": 6,
+    "shield|armour,default,shield,str_armour,str_shield": 6,
+    "shield|armour,default,shield,str_armour,str_shield,vaal_basetype": 6
+   },
+   "parts": [
+    {
+     "stat_hash": "3484657501",
+     "ranges": [
+      [
+       99,
+       127
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "mod_id": "NearbyAlliesAddedPhysicalDamage6",
+   "pool": "normal",
+   "type": "Prefix",
+   "group": "AlliesInPresenceAddedPhysicalDamage",
+   "required_level": 54,
+   "profile_tiers": {
+    "sceptre|cold_implicit_skill,default,onehand,sceptre": 4,
+    "sceptre|default,fire_implicit_skill,onehand,sceptre": 4,
+    "sceptre|default,lightning_implicit_skill,onehand,sceptre": 4,
+    "sceptre|default,onehand,physical_implicit_skill,sceptre": 4,
+    "sceptre|default,onehand,sceptre": 4
+   },
+   "parts": [
+    {
+     "stat_hash": "1574590649",
+     "ranges": [
+      [
+       6,
+       10
+      ],
+      [
+       12,
+       17
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "mod_id": "SpellCriticalStrikeChanceTwoHand5",
+   "pool": "normal",
+   "type": "Suffix",
+   "group": "SpellCriticalStrikeChance",
+   "required_level": 59,
+   "profile_tiers": {
+    "staff|chaos_implicit_skill,default,no_cold_spell_mods,no_fire_spell_mods,no_lightning_spell_mods,no_physical_spell_mods,staff,twohand": 2,
+    "staff|cold_implicit_skill,default,no_chaos_spell_mods,no_fire_spell_mods,no_lightning_spell_mods,no_physical_spell_mods,staff,twohand": 2,
+    "staff|default,fire_implicit_skill,no_chaos_spell_mods,no_cold_spell_mods,no_lightning_spell_mods,no_physical_spell_mods,staff,twohand": 2,
+    "staff|default,lightning_implicit_skill,no_chaos_spell_mods,no_cold_spell_mods,no_fire_spell_mods,no_physical_spell_mods,staff,twohand": 2,
+    "staff|default,no_chaos_spell_mods,no_cold_spell_mods,no_fire_spell_mods,no_lightning_spell_mods,physical_implicit_skill,staff,twohand": 2,
+    "staff|default,staff,twohand": 2
+   },
+   "parts": [
+    {
+     "stat_hash": "737908626",
+     "ranges": [
+      [
+       80,
+       89
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "mod_id": "AbyssModAllMacesKurgalPrefixIncreasedPhysicalDamageReducedAttackSpeed",
+   "pool": "desecration_exclusive",
+   "type": "Prefix",
+   "group": "LocalIncreasedPhysicalDamageAttackSpeedHybrid",
+   "required_level": 65,
+   "profile_tiers": {
+    "one_hand_mace|default,ezomyte_basetype,mace,one_hand_weapon,onehand,runeforged,weapon": 1,
+    "one_hand_mace|default,ezomyte_basetype,mace,one_hand_weapon,onehand,weapon": 1,
+    "one_hand_mace|default,karui_basetype,mace,one_hand_weapon,onehand,weapon": 1,
+    "one_hand_mace|default,mace,maraketh_basetype,one_hand_weapon,onehand,runeforged,weapon": 1,
+    "one_hand_mace|default,mace,maraketh_basetype,one_hand_weapon,onehand,weapon": 1,
+    "one_hand_mace|default,mace,one_hand_weapon,onehand,runeforged,weapon": 1,
+    "one_hand_mace|default,mace,one_hand_weapon,onehand,vaal_basetype,weapon": 1,
+    "one_hand_mace|default,mace,one_hand_weapon,onehand,weapon": 1,
+    "two_hand_mace|default,ezomyte_basetype,mace,runeforged,two_hand_weapon,twohand,weapon": 1,
+    "two_hand_mace|default,ezomyte_basetype,mace,two_hand_weapon,twohand,weapon": 1,
+    "two_hand_mace|default,karui_basetype,mace,runeforged,two_hand_weapon,twohand,weapon": 1,
+    "two_hand_mace|default,karui_basetype,mace,two_hand_weapon,twohand,weapon": 1,
+    "two_hand_mace|default,mace,maraketh_basetype,runeforged,two_hand_weapon,twohand,weapon": 1,
+    "two_hand_mace|default,mace,maraketh_basetype,two_hand_weapon,twohand,weapon": 1,
+    "two_hand_mace|default,mace,runeforged,two_hand_weapon,twohand,vaal_basetype,weapon": 1,
+    "two_hand_mace|default,mace,runeforged,two_hand_weapon,twohand,weapon": 1,
+    "two_hand_mace|default,mace,two_hand_weapon,twohand,vaal_basetype,weapon": 1,
+    "two_hand_mace|default,mace,two_hand_weapon,twohand,weapon": 1
+   },
+   "parts": [
+    {
+     "stat_hash": "210067635",
+     "ranges": [
+      [
+       15,
+       15
+      ]
+     ],
+     "direction": "decrease"
+    },
+    {
+     "stat_hash": "1509134228",
+     "ranges": [
+      [
+       110,
+       154
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "mod_id": "AbyssModBootsAmanamuSuffixReducedPotencyOfSlows",
+   "pool": "desecration_exclusive",
+   "type": "Suffix",
+   "group": "SlowPotency",
+   "required_level": 65,
+   "profile_tiers": {
+    "boots|armour,boots,default,demigods,not_for_sale": 1,
+    "boots|armour,boots,default,dex_armour": 1,
+    "boots|armour,boots,default,dex_armour,ezomyte_basetype": 1,
+    "boots|armour,boots,default,dex_armour,ezomyte_basetype,runeforged": 1,
+    "boots|armour,boots,default,dex_armour,karui_basetype": 1,
+    "boots|armour,boots,default,dex_armour,karui_basetype,runeforged": 1,
+    "boots|armour,boots,default,dex_armour,maraketh_basetype": 1,
+    "boots|armour,boots,default,dex_armour,maraketh_basetype,runeforged": 1,
+    "boots|armour,boots,default,dex_armour,runeforged": 1,
+    "boots|armour,boots,default,dex_armour,runeforged,vaal_basetype": 1,
+    "boots|armour,boots,default,dex_armour,vaal_basetype": 1,
+    "boots|armour,boots,default,dex_int_armour": 1,
+    "boots|armour,boots,default,dex_int_armour,ezomyte_basetype": 1,
+    "boots|armour,boots,default,dex_int_armour,ezomyte_basetype,runeforged": 1,
+    "boots|armour,boots,default,dex_int_armour,karui_basetype": 1,
+    "boots|armour,boots,default,dex_int_armour,karui_basetype,runeforged": 1,
+    "boots|armour,boots,default,dex_int_armour,maraketh_basetype": 1,
+    "boots|armour,boots,default,dex_int_armour,maraketh_basetype,runeforged": 1,
+    "boots|armour,boots,default,dex_int_armour,runeforged": 1,
+    "boots|armour,boots,default,dex_int_armour,runeforged,vaal_basetype": 1,
+    "boots|armour,boots,default,dex_int_armour,vaal_basetype": 1,
+    "boots|armour,boots,default,ezomyte_basetype,int_armour": 1,
+    "boots|armour,boots,default,ezomyte_basetype,int_armour,runeforged": 1,
+    "boots|armour,boots,default,ezomyte_basetype,runeforged,str_armour": 1,
+    "boots|armour,boots,default,ezomyte_basetype,runeforged,str_dex_armour": 1,
+    "boots|armour,boots,default,ezomyte_basetype,runeforged,str_int_armour": 1,
+    "boots|armour,boots,default,ezomyte_basetype,str_armour": 1,
+    "boots|armour,boots,default,ezomyte_basetype,str_dex_armour": 1,
+    "boots|armour,boots,default,ezomyte_basetype,str_int_armour": 1,
+    "boots|armour,boots,default,int_armour": 1,
+    "boots|armour,boots,default,int_armour,karui_basetype": 1,
+    "boots|armour,boots,default,int_armour,karui_basetype,runeforged": 1,
+    "boots|armour,boots,default,int_armour,maraketh_basetype": 1,
+    "boots|armour,boots,default,int_armour,maraketh_basetype,runeforged": 1,
+    "boots|armour,boots,default,int_armour,runeforged": 1,
+    "boots|armour,boots,default,int_armour,runeforged,vaal_basetype": 1,
+    "boots|armour,boots,default,int_armour,vaal_basetype": 1,
+    "boots|armour,boots,default,karui_basetype,runeforged,str_armour": 1,
+    "boots|armour,boots,default,karui_basetype,runeforged,str_dex_armour": 1,
+    "boots|armour,boots,default,karui_basetype,runeforged,str_int_armour": 1,
+    "boots|armour,boots,default,karui_basetype,str_armour": 1,
+    "boots|armour,boots,default,karui_basetype,str_dex_armour": 1,
+    "boots|armour,boots,default,karui_basetype,str_int_armour": 1,
+    "boots|armour,boots,default,maraketh_basetype,runeforged,str_armour": 1,
+    "boots|armour,boots,default,maraketh_basetype,runeforged,str_dex_armour": 1,
+    "boots|armour,boots,default,maraketh_basetype,runeforged,str_int_armour": 1,
+    "boots|armour,boots,default,maraketh_basetype,str_armour": 1,
+    "boots|armour,boots,default,maraketh_basetype,str_dex_armour": 1,
+    "boots|armour,boots,default,maraketh_basetype,str_int_armour": 1,
+    "boots|armour,boots,default,runeforged,str_armour": 1,
+    "boots|armour,boots,default,runeforged,str_armour,vaal_basetype": 1,
+    "boots|armour,boots,default,runeforged,str_dex_armour": 1,
+    "boots|armour,boots,default,runeforged,str_dex_armour,vaal_basetype": 1,
+    "boots|armour,boots,default,runeforged,str_dex_int_armour": 1,
+    "boots|armour,boots,default,runeforged,str_int_armour": 1,
+    "boots|armour,boots,default,runeforged,str_int_armour,vaal_basetype": 1,
+    "boots|armour,boots,default,str_armour": 1,
+    "boots|armour,boots,default,str_armour,vaal_basetype": 1,
+    "boots|armour,boots,default,str_dex_armour": 1,
+    "boots|armour,boots,default,str_dex_armour,vaal_basetype": 1,
+    "boots|armour,boots,default,str_dex_int_armour": 1,
+    "boots|armour,boots,default,str_int_armour": 1,
+    "boots|armour,boots,default,str_int_armour,vaal_basetype": 1
+   },
+   "parts": [
+    {
+     "stat_hash": "924253255",
+     "ranges": [
+      [
+       12,
+       20
+      ]
+     ],
+     "direction": "decrease"
+    }
+   ]
+  },
+  {
+   "mod_id": "JewelManaonKill",
+   "pool": "normal",
+   "type": "Suffix",
+   "group": "ManaGainedOnKillPercentage",
+   "required_level": 1,
+   "profile_tiers": {
+    "jewel|default,dexjewel,intjewel,jewel,not_for_sale,strjewel": 1,
+    "jewel|default,intjewel,jewel": 1
+   },
+   "parts": [
+    {
+     "stat_hash": "1604736568",
+     "ranges": null
+    }
+   ]
+  },
+  {
+   "mod_id": "AbyssModHelmAmanamuSuffixSpiritReservationEfficiency",
+   "pool": "desecration_exclusive",
+   "type": "Suffix",
+   "group": "SpiritReservationEfficiency",
+   "required_level": 65,
+   "profile_tiers": {
+    "helmet|armour,default,demigods,helmet,not_for_sale": 1,
+    "helmet|armour,default,dex_armour,ezomyte_basetype,helmet": 1,
+    "helmet|armour,default,dex_armour,ezomyte_basetype,helmet,runeforged": 1,
+    "helmet|armour,default,dex_armour,helmet": 1,
+    "helmet|armour,default,dex_armour,helmet,karui_basetype": 1,
+    "helmet|armour,default,dex_armour,helmet,karui_basetype,runeforged": 1,
+    "helmet|armour,default,dex_armour,helmet,maraketh_basetype": 1,
+    "helmet|armour,default,dex_armour,helmet,maraketh_basetype,runeforged": 1,
+    "helmet|armour,default,dex_armour,helmet,runeforged": 1,
+    "helmet|armour,default,dex_armour,helmet,runeforged,vaal_basetype": 1,
+    "helmet|armour,default,dex_armour,helmet,vaal_basetype": 1,
+    "helmet|armour,default,dex_int_armour,ezomyte_basetype,helmet": 1,
+    "helmet|armour,default,dex_int_armour,ezomyte_basetype,helmet,runeforged": 1,
+    "helmet|armour,default,dex_int_armour,helmet": 1,
+    "helmet|armour,default,dex_int_armour,helmet,karui_basetype": 1,
+    "helmet|armour,default,dex_int_armour,helmet,karui_basetype,runeforged": 1,
+    "helmet|armour,default,dex_int_armour,helmet,maraketh_basetype": 1,
+    "helmet|armour,default,dex_int_armour,helmet,maraketh_basetype,runeforged": 1,
+    "helmet|armour,default,dex_int_armour,helmet,runeforged": 1,
+    "helmet|armour,default,dex_int_armour,helmet,runeforged,vaal_basetype": 1,
+    "helmet|armour,default,dex_int_armour,helmet,vaal_basetype": 1,
+    "helmet|armour,default,ezomyte_basetype,helmet,int_armour": 1,
+    "helmet|armour,default,ezomyte_basetype,helmet,int_armour,runeforged": 1,
+    "helmet|armour,default,ezomyte_basetype,helmet,runeforged,str_armour": 1,
+    "helmet|armour,default,ezomyte_basetype,helmet,runeforged,str_dex_armour": 1,
+    "helmet|armour,default,ezomyte_basetype,helmet,runeforged,str_int_armour": 1,
+    "helmet|armour,default,ezomyte_basetype,helmet,str_armour": 1,
+    "helmet|armour,default,ezomyte_basetype,helmet,str_dex_armour": 1,
+    "helmet|armour,default,ezomyte_basetype,helmet,str_int_armour": 1,
+    "helmet|armour,default,helmet,int_armour": 1,
+    "helmet|armour,default,helmet,int_armour,karui_basetype": 1,
+    "helmet|armour,default,helmet,int_armour,karui_basetype,runeforged": 1,
+    "helmet|armour,default,helmet,int_armour,maraketh_basetype": 1,
+    "helmet|armour,default,helmet,int_armour,maraketh_basetype,runeforged": 1,
+    "helmet|armour,default,helmet,int_armour,runeforged": 1,
+    "helmet|armour,default,helmet,int_armour,runeforged,vaal_basetype": 1,
+    "helmet|armour,default,helmet,int_armour,vaal_basetype": 1,
+    "helmet|armour,default,helmet,karui_basetype,runeforged,str_armour": 1,
+    "helmet|armour,default,helmet,karui_basetype,runeforged,str_dex_armour": 1,
+    "helmet|armour,default,helmet,karui_basetype,runeforged,str_int_armour": 1,
+    "helmet|armour,default,helmet,karui_basetype,str_armour": 1,
+    "helmet|armour,default,helmet,karui_basetype,str_dex_armour": 1,
+    "helmet|armour,default,helmet,karui_basetype,str_int_armour": 1,
+    "helmet|armour,default,helmet,maraketh_basetype,runeforged,str_armour": 1,
+    "helmet|armour,default,helmet,maraketh_basetype,runeforged,str_dex_armour": 1,
+    "helmet|armour,default,helmet,maraketh_basetype,runeforged,str_int_armour": 1,
+    "helmet|armour,default,helmet,maraketh_basetype,str_armour": 1,
+    "helmet|armour,default,helmet,maraketh_basetype,str_dex_armour": 1,
+    "helmet|armour,default,helmet,maraketh_basetype,str_int_armour": 1,
+    "helmet|armour,default,helmet,runeforged,str_armour": 1,
+    "helmet|armour,default,helmet,runeforged,str_armour,vaal_basetype": 1,
+    "helmet|armour,default,helmet,runeforged,str_dex_armour": 1,
+    "helmet|armour,default,helmet,runeforged,str_dex_armour,vaal_basetype": 1,
+    "helmet|armour,default,helmet,runeforged,str_dex_int_armour": 1,
+    "helmet|armour,default,helmet,runeforged,str_int_armour": 1,
+    "helmet|armour,default,helmet,runeforged,str_int_armour,vaal_basetype": 1,
+    "helmet|armour,default,helmet,str_armour": 1,
+    "helmet|armour,default,helmet,str_armour,vaal_basetype": 1,
+    "helmet|armour,default,helmet,str_dex_armour": 1,
+    "helmet|armour,default,helmet,str_dex_armour,vaal_basetype": 1,
+    "helmet|armour,default,helmet,str_dex_int_armour": 1,
+    "helmet|armour,default,helmet,str_int_armour": 1,
+    "helmet|armour,default,helmet,str_int_armour,vaal_basetype": 1
+   },
+   "parts": [
+    {
+     "stat_hash": "53386210",
+     "ranges": null
+    }
+   ]
+  },
+  {
+   "mod_id": "AbyssModFocusKurgalSuffixChanceForAdditionalInfusion",
+   "pool": "desecration_exclusive",
+   "type": "Suffix",
+   "group": "ChanceToGainAdditionalInfusion",
+   "required_level": 65,
+   "profile_tiers": {
+    "focus|armour,default,ezomyte_basetype,focus,int_armour": 1,
+    "focus|armour,default,ezomyte_basetype,focus,int_armour,runeforged": 1,
+    "focus|armour,default,focus,int_armour": 1,
+    "focus|armour,default,focus,int_armour,karui_basetype": 1,
+    "focus|armour,default,focus,int_armour,karui_basetype,runeforged": 1,
+    "focus|armour,default,focus,int_armour,maraketh_basetype": 1,
+    "focus|armour,default,focus,int_armour,maraketh_basetype,runeforged": 1,
+    "focus|armour,default,focus,int_armour,runeforged": 1,
+    "focus|armour,default,focus,int_armour,runeforged,vaal_basetype": 1,
+    "focus|armour,default,focus,int_armour,vaal_basetype": 1
+   },
+   "parts": [
+    {
+     "stat_hash": "3927679277",
+     "ranges": null
+    },
+    {
+     "stat_hash": "3927679277",
+     "ranges": null
+    }
+   ]
+  },
+  {
+   "mod_id": "LightRadiusAndAccuracy1",
+   "pool": "normal",
+   "type": "Suffix",
+   "group": "LightRadiusAndAccuracy",
+   "required_level": 8,
+   "profile_tiers": {
+    "helmet|armour,default,demigods,helmet,not_for_sale": 3,
+    "helmet|armour,default,dex_armour,ezomyte_basetype,helmet": 3,
+    "helmet|armour,default,dex_armour,ezomyte_basetype,helmet,runeforged": 3,
+    "helmet|armour,default,dex_armour,helmet": 3,
+    "helmet|armour,default,dex_armour,helmet,karui_basetype": 3,
+    "helmet|armour,default,dex_armour,helmet,karui_basetype,runeforged": 3,
+    "helmet|armour,default,dex_armour,helmet,maraketh_basetype": 3,
+    "helmet|armour,default,dex_armour,helmet,maraketh_basetype,runeforged": 3,
+    "helmet|armour,default,dex_armour,helmet,runeforged": 3,
+    "helmet|armour,default,dex_armour,helmet,runeforged,vaal_basetype": 3,
+    "helmet|armour,default,dex_armour,helmet,vaal_basetype": 3,
+    "helmet|armour,default,dex_int_armour,ezomyte_basetype,helmet": 3,
+    "helmet|armour,default,dex_int_armour,ezomyte_basetype,helmet,runeforged": 3,
+    "helmet|armour,default,dex_int_armour,helmet": 3,
+    "helmet|armour,default,dex_int_armour,helmet,karui_basetype": 3,
+    "helmet|armour,default,dex_int_armour,helmet,karui_basetype,runeforged": 3,
+    "helmet|armour,default,dex_int_armour,helmet,maraketh_basetype": 3,
+    "helmet|armour,default,dex_int_armour,helmet,maraketh_basetype,runeforged": 3,
+    "helmet|armour,default,dex_int_armour,helmet,runeforged": 3,
+    "helmet|armour,default,dex_int_armour,helmet,runeforged,vaal_basetype": 3,
+    "helmet|armour,default,dex_int_armour,helmet,vaal_basetype": 3,
+    "helmet|armour,default,ezomyte_basetype,helmet,int_armour": 3,
+    "helmet|armour,default,ezomyte_basetype,helmet,int_armour,runeforged": 3,
+    "helmet|armour,default,ezomyte_basetype,helmet,runeforged,str_armour": 3,
+    "helmet|armour,default,ezomyte_basetype,helmet,runeforged,str_dex_armour": 3,
+    "helmet|armour,default,ezomyte_basetype,helmet,runeforged,str_int_armour": 3,
+    "helmet|armour,default,ezomyte_basetype,helmet,str_armour": 3,
+    "helmet|armour,default,ezomyte_basetype,helmet,str_dex_armour": 3,
+    "helmet|armour,default,ezomyte_basetype,helmet,str_int_armour": 3,
+    "helmet|armour,default,helmet,int_armour": 3,
+    "helmet|armour,default,helmet,int_armour,karui_basetype": 3,
+    "helmet|armour,default,helmet,int_armour,karui_basetype,runeforged": 3,
+    "helmet|armour,default,helmet,int_armour,maraketh_basetype": 3,
+    "helmet|armour,default,helmet,int_armour,maraketh_basetype,runeforged": 3,
+    "helmet|armour,default,helmet,int_armour,runeforged": 3,
+    "helmet|armour,default,helmet,int_armour,runeforged,vaal_basetype": 3,
+    "helmet|armour,default,helmet,int_armour,vaal_basetype": 3,
+    "helmet|armour,default,helmet,karui_basetype,runeforged,str_armour": 3,
+    "helmet|armour,default,helmet,karui_basetype,runeforged,str_dex_armour": 3,
+    "helmet|armour,default,helmet,karui_basetype,runeforged,str_int_armour": 3,
+    "helmet|armour,default,helmet,karui_basetype,str_armour": 3,
+    "helmet|armour,default,helmet,karui_basetype,str_dex_armour": 3,
+    "helmet|armour,default,helmet,karui_basetype,str_int_armour": 3,
+    "helmet|armour,default,helmet,maraketh_basetype,runeforged,str_armour": 3,
+    "helmet|armour,default,helmet,maraketh_basetype,runeforged,str_dex_armour": 3,
+    "helmet|armour,default,helmet,maraketh_basetype,runeforged,str_int_armour": 3,
+    "helmet|armour,default,helmet,maraketh_basetype,str_armour": 3,
+    "helmet|armour,default,helmet,maraketh_basetype,str_dex_armour": 3,
+    "helmet|armour,default,helmet,maraketh_basetype,str_int_armour": 3,
+    "helmet|armour,default,helmet,runeforged,str_armour": 3,
+    "helmet|armour,default,helmet,runeforged,str_armour,vaal_basetype": 3,
+    "helmet|armour,default,helmet,runeforged,str_dex_armour": 3,
+    "helmet|armour,default,helmet,runeforged,str_dex_armour,vaal_basetype": 3,
+    "helmet|armour,default,helmet,runeforged,str_dex_int_armour": 3,
+    "helmet|armour,default,helmet,runeforged,str_int_armour": 3,
+    "helmet|armour,default,helmet,runeforged,str_int_armour,vaal_basetype": 3,
+    "helmet|armour,default,helmet,str_armour": 3,
+    "helmet|armour,default,helmet,str_armour,vaal_basetype": 3,
+    "helmet|armour,default,helmet,str_dex_armour": 3,
+    "helmet|armour,default,helmet,str_dex_armour,vaal_basetype": 3,
+    "helmet|armour,default,helmet,str_dex_int_armour": 3,
+    "helmet|armour,default,helmet,str_int_armour": 3,
+    "helmet|armour,default,helmet,str_int_armour,vaal_basetype": 3
+   },
+   "parts": [
+    {
+     "stat_hash": "1263695895",
+     "ranges": [
+      [
+       5,
+       5
+      ]
+     ]
+    },
+    {
+     "stat_hash": "803737631",
+     "ranges": [
+      [
+       10,
+       20
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "mod_id": "LightRadiusAndAccuracy2",
+   "pool": "normal",
+   "type": "Suffix",
+   "group": "LightRadiusAndAccuracy",
+   "required_level": 15,
+   "profile_tiers": {
+    "helmet|armour,default,demigods,helmet,not_for_sale": 2,
+    "helmet|armour,default,dex_armour,ezomyte_basetype,helmet": 2,
+    "helmet|armour,default,dex_armour,ezomyte_basetype,helmet,runeforged": 2,
+    "helmet|armour,default,dex_armour,helmet": 2,
+    "helmet|armour,default,dex_armour,helmet,karui_basetype": 2,
+    "helmet|armour,default,dex_armour,helmet,karui_basetype,runeforged": 2,
+    "helmet|armour,default,dex_armour,helmet,maraketh_basetype": 2,
+    "helmet|armour,default,dex_armour,helmet,maraketh_basetype,runeforged": 2,
+    "helmet|armour,default,dex_armour,helmet,runeforged": 2,
+    "helmet|armour,default,dex_armour,helmet,runeforged,vaal_basetype": 2,
+    "helmet|armour,default,dex_armour,helmet,vaal_basetype": 2,
+    "helmet|armour,default,dex_int_armour,ezomyte_basetype,helmet": 2,
+    "helmet|armour,default,dex_int_armour,ezomyte_basetype,helmet,runeforged": 2,
+    "helmet|armour,default,dex_int_armour,helmet": 2,
+    "helmet|armour,default,dex_int_armour,helmet,karui_basetype": 2,
+    "helmet|armour,default,dex_int_armour,helmet,karui_basetype,runeforged": 2,
+    "helmet|armour,default,dex_int_armour,helmet,maraketh_basetype": 2,
+    "helmet|armour,default,dex_int_armour,helmet,maraketh_basetype,runeforged": 2,
+    "helmet|armour,default,dex_int_armour,helmet,runeforged": 2,
+    "helmet|armour,default,dex_int_armour,helmet,runeforged,vaal_basetype": 2,
+    "helmet|armour,default,dex_int_armour,helmet,vaal_basetype": 2,
+    "helmet|armour,default,ezomyte_basetype,helmet,int_armour": 2,
+    "helmet|armour,default,ezomyte_basetype,helmet,int_armour,runeforged": 2,
+    "helmet|armour,default,ezomyte_basetype,helmet,runeforged,str_armour": 2,
+    "helmet|armour,default,ezomyte_basetype,helmet,runeforged,str_dex_armour": 2,
+    "helmet|armour,default,ezomyte_basetype,helmet,runeforged,str_int_armour": 2,
+    "helmet|armour,default,ezomyte_basetype,helmet,str_armour": 2,
+    "helmet|armour,default,ezomyte_basetype,helmet,str_dex_armour": 2,
+    "helmet|armour,default,ezomyte_basetype,helmet,str_int_armour": 2,
+    "helmet|armour,default,helmet,int_armour": 2,
+    "helmet|armour,default,helmet,int_armour,karui_basetype": 2,
+    "helmet|armour,default,helmet,int_armour,karui_basetype,runeforged": 2,
+    "helmet|armour,default,helmet,int_armour,maraketh_basetype": 2,
+    "helmet|armour,default,helmet,int_armour,maraketh_basetype,runeforged": 2,
+    "helmet|armour,default,helmet,int_armour,runeforged": 2,
+    "helmet|armour,default,helmet,int_armour,runeforged,vaal_basetype": 2,
+    "helmet|armour,default,helmet,int_armour,vaal_basetype": 2,
+    "helmet|armour,default,helmet,karui_basetype,runeforged,str_armour": 2,
+    "helmet|armour,default,helmet,karui_basetype,runeforged,str_dex_armour": 2,
+    "helmet|armour,default,helmet,karui_basetype,runeforged,str_int_armour": 2,
+    "helmet|armour,default,helmet,karui_basetype,str_armour": 2,
+    "helmet|armour,default,helmet,karui_basetype,str_dex_armour": 2,
+    "helmet|armour,default,helmet,karui_basetype,str_int_armour": 2,
+    "helmet|armour,default,helmet,maraketh_basetype,runeforged,str_armour": 2,
+    "helmet|armour,default,helmet,maraketh_basetype,runeforged,str_dex_armour": 2,
+    "helmet|armour,default,helmet,maraketh_basetype,runeforged,str_int_armour": 2,
+    "helmet|armour,default,helmet,maraketh_basetype,str_armour": 2,
+    "helmet|armour,default,helmet,maraketh_basetype,str_dex_armour": 2,
+    "helmet|armour,default,helmet,maraketh_basetype,str_int_armour": 2,
+    "helmet|armour,default,helmet,runeforged,str_armour": 2,
+    "helmet|armour,default,helmet,runeforged,str_armour,vaal_basetype": 2,
+    "helmet|armour,default,helmet,runeforged,str_dex_armour": 2,
+    "helmet|armour,default,helmet,runeforged,str_dex_armour,vaal_basetype": 2,
+    "helmet|armour,default,helmet,runeforged,str_dex_int_armour": 2,
+    "helmet|armour,default,helmet,runeforged,str_int_armour": 2,
+    "helmet|armour,default,helmet,runeforged,str_int_armour,vaal_basetype": 2,
+    "helmet|armour,default,helmet,str_armour": 2,
+    "helmet|armour,default,helmet,str_armour,vaal_basetype": 2,
+    "helmet|armour,default,helmet,str_dex_armour": 2,
+    "helmet|armour,default,helmet,str_dex_armour,vaal_basetype": 2,
+    "helmet|armour,default,helmet,str_dex_int_armour": 2,
+    "helmet|armour,default,helmet,str_int_armour": 2,
+    "helmet|armour,default,helmet,str_int_armour,vaal_basetype": 2
+   },
+   "parts": [
+    {
+     "stat_hash": "1263695895",
+     "ranges": [
+      [
+       10,
+       10
+      ]
+     ]
+    },
+    {
+     "stat_hash": "803737631",
+     "ranges": [
+      [
+       21,
+       40
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "mod_id": "LightRadiusAndAccuracy3",
+   "pool": "normal",
+   "type": "Suffix",
+   "group": "LightRadiusAndAccuracy",
+   "required_level": 30,
+   "profile_tiers": {
+    "helmet|armour,default,demigods,helmet,not_for_sale": 1,
+    "helmet|armour,default,dex_armour,ezomyte_basetype,helmet": 1,
+    "helmet|armour,default,dex_armour,ezomyte_basetype,helmet,runeforged": 1,
+    "helmet|armour,default,dex_armour,helmet": 1,
+    "helmet|armour,default,dex_armour,helmet,karui_basetype": 1,
+    "helmet|armour,default,dex_armour,helmet,karui_basetype,runeforged": 1,
+    "helmet|armour,default,dex_armour,helmet,maraketh_basetype": 1,
+    "helmet|armour,default,dex_armour,helmet,maraketh_basetype,runeforged": 1,
+    "helmet|armour,default,dex_armour,helmet,runeforged": 1,
+    "helmet|armour,default,dex_armour,helmet,runeforged,vaal_basetype": 1,
+    "helmet|armour,default,dex_armour,helmet,vaal_basetype": 1,
+    "helmet|armour,default,dex_int_armour,ezomyte_basetype,helmet": 1,
+    "helmet|armour,default,dex_int_armour,ezomyte_basetype,helmet,runeforged": 1,
+    "helmet|armour,default,dex_int_armour,helmet": 1,
+    "helmet|armour,default,dex_int_armour,helmet,karui_basetype": 1,
+    "helmet|armour,default,dex_int_armour,helmet,karui_basetype,runeforged": 1,
+    "helmet|armour,default,dex_int_armour,helmet,maraketh_basetype": 1,
+    "helmet|armour,default,dex_int_armour,helmet,maraketh_basetype,runeforged": 1,
+    "helmet|armour,default,dex_int_armour,helmet,runeforged": 1,
+    "helmet|armour,default,dex_int_armour,helmet,runeforged,vaal_basetype": 1,
+    "helmet|armour,default,dex_int_armour,helmet,vaal_basetype": 1,
+    "helmet|armour,default,ezomyte_basetype,helmet,int_armour": 1,
+    "helmet|armour,default,ezomyte_basetype,helmet,int_armour,runeforged": 1,
+    "helmet|armour,default,ezomyte_basetype,helmet,runeforged,str_armour": 1,
+    "helmet|armour,default,ezomyte_basetype,helmet,runeforged,str_dex_armour": 1,
+    "helmet|armour,default,ezomyte_basetype,helmet,runeforged,str_int_armour": 1,
+    "helmet|armour,default,ezomyte_basetype,helmet,str_armour": 1,
+    "helmet|armour,default,ezomyte_basetype,helmet,str_dex_armour": 1,
+    "helmet|armour,default,ezomyte_basetype,helmet,str_int_armour": 1,
+    "helmet|armour,default,helmet,int_armour": 1,
+    "helmet|armour,default,helmet,int_armour,karui_basetype": 1,
+    "helmet|armour,default,helmet,int_armour,karui_basetype,runeforged": 1,
+    "helmet|armour,default,helmet,int_armour,maraketh_basetype": 1,
+    "helmet|armour,default,helmet,int_armour,maraketh_basetype,runeforged": 1,
+    "helmet|armour,default,helmet,int_armour,runeforged": 1,
+    "helmet|armour,default,helmet,int_armour,runeforged,vaal_basetype": 1,
+    "helmet|armour,default,helmet,int_armour,vaal_basetype": 1,
+    "helmet|armour,default,helmet,karui_basetype,runeforged,str_armour": 1,
+    "helmet|armour,default,helmet,karui_basetype,runeforged,str_dex_armour": 1,
+    "helmet|armour,default,helmet,karui_basetype,runeforged,str_int_armour": 1,
+    "helmet|armour,default,helmet,karui_basetype,str_armour": 1,
+    "helmet|armour,default,helmet,karui_basetype,str_dex_armour": 1,
+    "helmet|armour,default,helmet,karui_basetype,str_int_armour": 1,
+    "helmet|armour,default,helmet,maraketh_basetype,runeforged,str_armour": 1,
+    "helmet|armour,default,helmet,maraketh_basetype,runeforged,str_dex_armour": 1,
+    "helmet|armour,default,helmet,maraketh_basetype,runeforged,str_int_armour": 1,
+    "helmet|armour,default,helmet,maraketh_basetype,str_armour": 1,
+    "helmet|armour,default,helmet,maraketh_basetype,str_dex_armour": 1,
+    "helmet|armour,default,helmet,maraketh_basetype,str_int_armour": 1,
+    "helmet|armour,default,helmet,runeforged,str_armour": 1,
+    "helmet|armour,default,helmet,runeforged,str_armour,vaal_basetype": 1,
+    "helmet|armour,default,helmet,runeforged,str_dex_armour": 1,
+    "helmet|armour,default,helmet,runeforged,str_dex_armour,vaal_basetype": 1,
+    "helmet|armour,default,helmet,runeforged,str_dex_int_armour": 1,
+    "helmet|armour,default,helmet,runeforged,str_int_armour": 1,
+    "helmet|armour,default,helmet,runeforged,str_int_armour,vaal_basetype": 1,
+    "helmet|armour,default,helmet,str_armour": 1,
+    "helmet|armour,default,helmet,str_armour,vaal_basetype": 1,
+    "helmet|armour,default,helmet,str_dex_armour": 1,
+    "helmet|armour,default,helmet,str_dex_armour,vaal_basetype": 1,
+    "helmet|armour,default,helmet,str_dex_int_armour": 1,
+    "helmet|armour,default,helmet,str_int_armour": 1,
+    "helmet|armour,default,helmet,str_int_armour,vaal_basetype": 1
+   },
+   "parts": [
+    {
+     "stat_hash": "1263695895",
+     "ranges": [
+      [
+       15,
+       15
+      ]
+     ]
+    },
+    {
+     "stat_hash": "803737631",
+     "ranges": [
+      [
+       41,
+       60
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

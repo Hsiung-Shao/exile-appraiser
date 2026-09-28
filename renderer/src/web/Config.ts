@@ -62,6 +62,8 @@ export interface Config {
   /** 點 overlay 透明背景 = 關閉面板(APT `overlayBackgroundClose`)。 */
   overlayBackgroundClose: boolean
   priceCheck: PriceCheckWidget
+  /** 拆粉面板停靠在查價下方時佔面板高度的百分比(15–50;WP-Q 分隔條拖曳)。 */
+  dustDockRatio: number
   // ---- 相容上游元件的推導屬性 ----
   readonly useIntlSite: boolean
   /** 上游元件讀的字級;= `fsBase`(不進檔)。 */
@@ -99,6 +101,13 @@ export function defaultPriceCheck (): PriceCheckWidget {
 
 export const DEFAULT_WINDOW_TITLE: Readonly<Record<Game, string>> = { poe1: 'Path of Exile', poe2: 'Path of Exile 2' }
 
+/** 拆粉停靠比例(%):預設 45,夾在 15–50(上限與 `.dust-docked` 的 max-height:50% 一致)。 */
+export const DEFAULT_DUST_DOCK_RATIO = 45
+export function clampDustDockRatio (n: unknown): number {
+  if (typeof n !== 'number' || !Number.isFinite(n)) return DEFAULT_DUST_DOCK_RATIO
+  return Math.min(50, Math.max(15, Math.round(n)))
+}
+
 function createConfig (): Config {
   const base = {
     configVersion: 1,
@@ -120,7 +129,8 @@ function createConfig (): Config {
     autoSwitchGame: true,
     overlayMode: true,
     overlayBackgroundClose: true,
-    priceCheck: defaultPriceCheck()
+    priceCheck: defaultPriceCheck(),
+    dustDockRatio: DEFAULT_DUST_DOCK_RATIO
   }
   return {
     ...base,
@@ -160,7 +170,7 @@ function serialize (): string {
   return JSON.stringify({
     configVersion, game, realm, language, uiLanguage, theme, accent, fsBase, leagueBy, accountName, restoreClipboard,
     hotkey, hotkeyHold, hotkeyLocked, overlayKey, windowTitleBy, autoSwitchGame, overlayMode, overlayBackgroundClose,
-    priceCheck
+    priceCheck, dustDockRatio: config.dustDockRatio
   }, null, 2)
 }
 
@@ -220,9 +230,12 @@ function applyLoaded (raw: string) {
   }
   config.windowTitleBy = titles
   if (typeof config.autoSwitchGame !== 'boolean') config.autoSwitchGame = fresh.autoSwitchGame
+  config.dustDockRatio = clampDustDockRatio(loaded.dustDockRatio)
 }
 
 let saveTimer: ReturnType<typeof setTimeout> | null = null
+/** 剛從 `config-changed` 套用的內容(serialize 後):watch 看到同一份就不再存檔,避免兩端互相回存。 */
+let appliedExternal: string | null = null
 
 /** main 的 `Shortcuts.updateActions` 回傳(熱鍵註冊結果);設定頁「熱鍵與視窗」分頁顯示在對應欄位下方。 */
 export type { HotkeyRegistration }
@@ -244,7 +257,21 @@ export async function initConfig (): Promise<void> {
   }
   watch(() => serialize(), (contents) => {
     if (saveTimer) clearTimeout(saveTimer)
+    saveTimer = null
+    if (contents === appliedExternal) return
+    appliedExternal = null
     saveTimer = setTimeout(() => { void Host.saveConfig(contents) }, 300)
+  })
+  // 另一端(Electron 視窗 ↔ 瀏覽器預覽分頁)存了設定:內容不同才套用,且不觸發再次存檔
+  Host.onConfigChanged(({ contents, source }) => {
+    if (contents === serialize()) return
+    try {
+      applyLoaded(contents)
+      appliedExternal = serialize()
+      console.log(`[app] config-changed from ${source}:已套用`)
+    } catch (e) {
+      console.error('[app] config-changed 內容無法解析,略過', e)
+    }
   })
   // main 偵測到另一款遊戲(window 模式;overlay 模式 main 直接寫設定並重新啟動)
   Host.onSwitchGame((game) => {

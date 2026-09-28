@@ -1,7 +1,7 @@
 {
   "_source": "pob-zh-engine dist/regex_selftest.txt(pob-zh.exe --regex-selftest);由 extract-from-report.mjs 產生,勿手改",
   "_cppPassFail": {
-    "pass": 222,
+    "pass": 486,
     "fail": 0
   },
   "synthetic": {
@@ -28,80 +28,247 @@
   "tenPicks": [
     {
       "lang": "zh",
+      "game": "poe1",
       "page": "map_mods",
       "length": 30,
       "plain": 146
     },
     {
       "lang": "zh",
+      "game": "poe1",
       "page": "logbook_mods",
       "length": 24,
       "plain": 131
     },
     {
       "lang": "zh",
+      "game": "poe1",
+      "page": "scarabs",
+      "length": 20,
+      "plain": 82
+    },
+    {
+      "lang": "zh",
+      "game": "poe1",
+      "page": "flask_mods",
+      "length": 29,
+      "plain": 163
+    },
+    {
+      "lang": "zh",
+      "game": "poe1",
+      "page": "cluster_jewel",
+      "length": 27,
+      "plain": 147
+    },
+    {
+      "lang": "zh",
+      "game": "poe1",
+      "page": "gem_names",
+      "length": 36,
+      "plain": 71
+    },
+    {
+      "lang": "zh",
+      "game": "poe1",
+      "page": "tattoos",
+      "length": 25,
+      "plain": 90
+    },
+    {
+      "lang": "zh",
+      "game": "poe1",
+      "page": "heist_equipment_mods",
+      "length": 36,
+      "plain": 210
+    },
+    {
+      "lang": "zh",
+      "game": "poe1",
+      "page": "heist_contracts",
+      "length": 30,
+      "plain": 154
+    },
+    {
+      "lang": "zh",
+      "game": "poe1",
+      "page": "vendor_bases",
+      "length": 33,
+      "plain": 53
+    },
+    {
+      "lang": "zh",
+      "game": "poe2",
       "page": "waystone_mods",
       "length": 21,
       "plain": 157
     },
     {
       "lang": "zh",
+      "game": "poe2",
       "page": "tablet_mods",
-      "length": 26,
-      "plain": 180
+      "length": 23,
+      "plain": 199
     },
     {
       "lang": "zh",
+      "game": "poe2",
       "page": "relic_mods",
       "length": 24,
       "plain": 135
     },
     {
       "lang": "zh",
+      "game": "poe2",
       "page": "expedition_relic_mods",
       "length": 23,
       "plain": 135
     },
     {
+      "lang": "zh",
+      "game": "poe2",
+      "page": "flask_charm_mods",
+      "length": 20,
+      "plain": 112
+    },
+    {
+      "lang": "zh",
+      "game": "poe2",
+      "page": "gem_names",
+      "length": 41,
+      "plain": 53
+    },
+    {
+      "lang": "zh",
+      "game": "poe2",
+      "page": "vendor_bases",
+      "length": 31,
+      "plain": 59
+    },
+    {
       "lang": "en",
+      "game": "poe1",
       "page": "map_mods",
       "length": 43,
       "plain": 421
     },
     {
       "lang": "en",
+      "game": "poe1",
       "page": "logbook_mods",
       "length": 42,
       "plain": 388
     },
     {
       "lang": "en",
+      "game": "poe1",
+      "page": "scarabs",
+      "length": 34,
+      "plain": 260
+    },
+    {
+      "lang": "en",
+      "game": "poe1",
+      "page": "flask_mods",
+      "length": 48,
+      "plain": 437
+    },
+    {
+      "lang": "en",
+      "game": "poe1",
+      "page": "cluster_jewel",
+      "length": 42,
+      "plain": 440
+    },
+    {
+      "lang": "en",
+      "game": "poe1",
+      "page": "gem_names",
+      "length": 67,
+      "plain": 219
+    },
+    {
+      "lang": "en",
+      "game": "poe1",
+      "page": "tattoos",
+      "length": 36,
+      "plain": 303
+    },
+    {
+      "lang": "en",
+      "game": "poe1",
+      "page": "heist_equipment_mods",
+      "length": 23,
+      "plain": 626
+    },
+    {
+      "lang": "en",
+      "game": "poe1",
+      "page": "heist_contracts",
+      "length": 46,
+      "plain": 488
+    },
+    {
+      "lang": "en",
+      "game": "poe1",
+      "page": "vendor_bases",
+      "length": 53,
+      "plain": 163
+    },
+    {
+      "lang": "en",
+      "game": "poe2",
       "page": "waystone_mods",
       "length": 27,
       "plain": 490
     },
     {
       "lang": "en",
+      "game": "poe2",
       "page": "tablet_mods",
-      "length": 45,
-      "plain": 510
+      "length": 38,
+      "plain": 553
     },
     {
       "lang": "en",
+      "game": "poe2",
       "page": "relic_mods",
       "length": 35,
       "plain": 431
     },
     {
       "lang": "en",
+      "game": "poe2",
       "page": "expedition_relic_mods",
       "length": 32,
       "plain": 440
+    },
+    {
+      "lang": "en",
+      "game": "poe2",
+      "page": "flask_charm_mods",
+      "length": 32,
+      "plain": 320
+    },
+    {
+      "lang": "en",
+      "game": "poe2",
+      "page": "gem_names",
+      "length": 68,
+      "plain": 133
+    },
+    {
+      "lang": "en",
+      "game": "poe2",
+      "page": "vendor_bases",
+      "length": 56,
+      "plain": 190
     }
   ],
   "pages": [
     {
       "lang": "zh",
+      "game": "poe1",
       "page": "map_mods",
       "entries": 125,
       "ambientLines": 337,
@@ -113,6 +280,7 @@
     },
     {
       "lang": "zh",
+      "game": "poe1",
       "page": "logbook_mods",
       "entries": 62,
       "ambientLines": 107,
@@ -124,6 +292,127 @@
     },
     {
       "lang": "zh",
+      "game": "poe1",
+      "page": "scarabs",
+      "entries": 138,
+      "ambientLines": 7,
+      "findable": 138,
+      "tried": 138,
+      "stuckExamples": [],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
+    },
+    {
+      "lang": "zh",
+      "game": "poe1",
+      "page": "flask_mods",
+      "entries": 82,
+      "ambientLines": 82,
+      "findable": 73,
+      "tried": 82,
+      "stuckExamples": [
+        "增加 #% 恢復率",
+        "增加 #% 恢復量",
+        "減少 #% 恢復率",
+        "減少 #% 恢復量",
+        "減少 #% 持續時間"
+      ],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
+    },
+    {
+      "lang": "zh",
+      "game": "poe1",
+      "page": "cluster_jewel",
+      "entries": 388,
+      "ambientLines": 186,
+      "findable": 362,
+      "tried": 388,
+      "stuckExamples": [
+        "附加的小型天賦給予：引導施放技能增加 #% 攻擊和施放速度",
+        "附加的小天賦給予：增加 #% 持續傷害",
+        "附加的小型天賦給予：# 護甲",
+        "附加的小天賦給予：# 力量",
+        "附加的小天賦給予：# 敏捷"
+      ],
+      "stuckByHidden": 1,
+      "stuckByHiddenExamples": [
+        "附加的小天賦給予：# 閃避"
+      ]
+    },
+    {
+      "lang": "zh",
+      "game": "poe1",
+      "page": "gem_names",
+      "entries": 892,
+      "ambientLines": 21,
+      "findable": 445,
+      "tried": 446,
+      "stuckExamples": [
+        "..."
+      ],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
+    },
+    {
+      "lang": "zh",
+      "game": "poe1",
+      "page": "tattoos",
+      "entries": 132,
+      "ambientLines": 8,
+      "findable": 132,
+      "tried": 132,
+      "stuckExamples": [],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
+    },
+    {
+      "lang": "zh",
+      "game": "poe1",
+      "page": "heist_equipment_mods",
+      "entries": 141,
+      "ambientLines": 232,
+      "findable": 123,
+      "tried": 141,
+      "stuckExamples": [
+        "增加 #% 暴擊率",
+        "玩家和他們的召喚物附加 # 至 # 冰冷傷害",
+        "玩家和他們的召喚物附加 # 至 # 火焰傷害",
+        "玩家和他們的召喚物附加 # 至 # 物理傷害",
+        "玩家和他們的召喚物附加 # 至 # 閃電傷害"
+      ],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
+    },
+    {
+      "lang": "zh",
+      "game": "poe1",
+      "page": "heist_contracts",
+      "entries": 107,
+      "ambientLines": 153,
+      "findable": 106,
+      "tried": 107,
+      "stuckExamples": [
+        "玩家有 #% 更少護甲"
+      ],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
+    },
+    {
+      "lang": "zh",
+      "game": "poe1",
+      "page": "vendor_bases",
+      "entries": 1057,
+      "ambientLines": 52,
+      "findable": 529,
+      "tried": 529,
+      "stuckExamples": [],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
+    },
+    {
+      "lang": "zh",
+      "game": "poe2",
       "page": "waystone_mods",
       "entries": 34,
       "ambientLines": 117,
@@ -135,17 +424,19 @@
     },
     {
       "lang": "zh",
+      "game": "poe2",
       "page": "tablet_mods",
-      "entries": 78,
+      "entries": 81,
       "ambientLines": 67,
-      "findable": 78,
-      "tried": 78,
+      "findable": 81,
+      "tried": 81,
       "stuckExamples": [],
       "stuckByHidden": 0,
       "stuckByHiddenExamples": []
     },
     {
       "lang": "zh",
+      "game": "poe2",
       "page": "relic_mods",
       "entries": 36,
       "ambientLines": 20,
@@ -160,6 +451,7 @@
     },
     {
       "lang": "zh",
+      "game": "poe2",
       "page": "expedition_relic_mods",
       "entries": 55,
       "ambientLines": 12,
@@ -167,16 +459,58 @@
       "tried": 55,
       "stuckExamples": [
         "怪物增加#%攻擊速度",
-        "怪物增加#%施放速度",
+        "怪物增加#%施法速度",
         "怪物增加#%移動速度",
         "怪物貧血時增加#%攻擊速度",
-        "怪物貧血時增加#%施放速度"
+        "怪物貧血時增加#%施法速度"
       ],
       "stuckByHidden": 0,
       "stuckByHiddenExamples": []
     },
     {
+      "lang": "zh",
+      "game": "poe2",
+      "page": "flask_charm_mods",
+      "entries": 21,
+      "ambientLines": 52,
+      "findable": 17,
+      "tried": 21,
+      "stuckExamples": [
+        "增加#%恢復量",
+        "使用後恢復#生命",
+        "使用後恢復#魔力",
+        "增加#%充能"
+      ],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
+    },
+    {
+      "lang": "zh",
+      "game": "poe2",
+      "page": "gem_names",
+      "entries": 1050,
+      "ambientLines": 6,
+      "findable": 525,
+      "tried": 525,
+      "stuckExamples": [],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
+    },
+    {
+      "lang": "zh",
+      "game": "poe2",
+      "page": "vendor_bases",
+      "entries": 1763,
+      "ambientLines": 48,
+      "findable": 441,
+      "tried": 441,
+      "stuckExamples": [],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
+    },
+    {
       "lang": "en",
+      "game": "poe1",
       "page": "map_mods",
       "entries": 125,
       "ambientLines": 338,
@@ -194,6 +528,7 @@
     },
     {
       "lang": "en",
+      "game": "poe1",
       "page": "logbook_mods",
       "entries": 62,
       "ambientLines": 107,
@@ -209,6 +544,136 @@
     },
     {
       "lang": "en",
+      "game": "poe1",
+      "page": "scarabs",
+      "entries": 138,
+      "ambientLines": 7,
+      "findable": 138,
+      "tried": 138,
+      "stuckExamples": [],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
+    },
+    {
+      "lang": "en",
+      "game": "poe1",
+      "page": "flask_mods",
+      "entries": 82,
+      "ambientLines": 83,
+      "findable": 81,
+      "tried": 82,
+      "stuckExamples": [
+        "Hinders nearby Enemies with #% reduced Movement Speed if used while not on Full Life"
+      ],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
+    },
+    {
+      "lang": "en",
+      "game": "poe1",
+      "page": "cluster_jewel",
+      "entries": 388,
+      "ambientLines": 186,
+      "findable": 353,
+      "tried": 388,
+      "stuckExamples": [
+        "Added Small Passive Skills also grant: Minions have #% increased Attack and Cast Speed",
+        "Added Small Passive Skills also grant: #% increased Damage over Time",
+        "Added Small Passive Skills also grant: # to Strength",
+        "Added Small Passive Skills also grant: # to Dexterity",
+        "Added Small Passive Skills also grant: # to Intelligence"
+      ],
+      "stuckByHidden": 13,
+      "stuckByHiddenExamples": [
+        "Added Small Passive Skills grant: #% Chance to Block Attack Damage",
+        "Added Small Passive Skills grant: #% Chance to Block Spell Damage",
+        "Added Small Passive Skills grant: Minions deal #% increased Damage while you are affected by a Herald",
+        "Added Small Passive Skills grant: #% increased Projectile Damage",
+        "Added Small Passive Skills grant: #% increased Cold Damage over Time"
+      ]
+    },
+    {
+      "lang": "en",
+      "game": "poe1",
+      "page": "gem_names",
+      "entries": 892,
+      "ambientLines": 21,
+      "findable": 433,
+      "tried": 446,
+      "stuckExamples": [
+        "...",
+        "Wave of Conviction",
+        "Summon Skeletons",
+        "Detonate Dead",
+        "Animate Weapon"
+      ],
+      "stuckByHidden": 2,
+      "stuckByHiddenExamples": [
+        "Vaal Lightning Warp",
+        "Vaal Lightning Arrow"
+      ]
+    },
+    {
+      "lang": "en",
+      "game": "poe1",
+      "page": "tattoos",
+      "entries": 132,
+      "ambientLines": 9,
+      "findable": 132,
+      "tried": 132,
+      "stuckExamples": [],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
+    },
+    {
+      "lang": "en",
+      "game": "poe1",
+      "page": "heist_equipment_mods",
+      "entries": 141,
+      "ambientLines": 234,
+      "findable": 112,
+      "tried": 141,
+      "stuckExamples": [
+        "Players and their Minions have # to # added Cold Damage",
+        "Players and their Minions have # to # added Fire Damage",
+        "Players and their Minions have # to # added Physical Damage",
+        "Players and their Minions have # to # added Lightning Damage",
+        "# to # added Cold Damage"
+      ],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
+    },
+    {
+      "lang": "en",
+      "game": "poe1",
+      "page": "heist_contracts",
+      "entries": 107,
+      "ambientLines": 152,
+      "findable": 106,
+      "tried": 107,
+      "stuckExamples": [
+        "Players have #% less Accuracy Rating"
+      ],
+      "stuckByHidden": 1,
+      "stuckByHiddenExamples": [
+        "Players have #% less Accuracy Rating"
+      ]
+    },
+    {
+      "lang": "en",
+      "game": "poe1",
+      "page": "vendor_bases",
+      "entries": 1057,
+      "ambientLines": 57,
+      "findable": 529,
+      "tried": 529,
+      "stuckExamples": [],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
+    },
+    {
+      "lang": "en",
+      "game": "poe2",
       "page": "waystone_mods",
       "entries": 34,
       "ambientLines": 119,
@@ -220,11 +685,12 @@
     },
     {
       "lang": "en",
+      "game": "poe2",
       "page": "tablet_mods",
-      "entries": 78,
+      "entries": 81,
       "ambientLines": 69,
-      "findable": 75,
-      "tried": 78,
+      "findable": 78,
+      "tried": 81,
       "stuckExamples": [
         "Map contains # additional Azmeri Spirit",
         "Map contains an additional Azmeri Spirit",
@@ -235,6 +701,7 @@
     },
     {
       "lang": "en",
+      "game": "poe2",
       "page": "relic_mods",
       "entries": 36,
       "ambientLines": 20,
@@ -246,6 +713,7 @@
     },
     {
       "lang": "en",
+      "game": "poe2",
       "page": "expedition_relic_mods",
       "entries": 55,
       "ambientLines": 12,
@@ -256,6 +724,56 @@
         "#% increased Rarity of Items Dropped by Monsters",
         "#% increased Rarity of Items Found in Excavated Chests",
         "#% increased Quantity of Items Found in Excavated Chests"
+      ],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
+    },
+    {
+      "lang": "en",
+      "game": "poe2",
+      "page": "flask_charm_mods",
+      "entries": 21,
+      "ambientLines": 56,
+      "findable": 19,
+      "tried": 21,
+      "stuckExamples": [
+        "Recover # Life when Used",
+        "Recover # Mana when Used"
+      ],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
+    },
+    {
+      "lang": "en",
+      "game": "poe2",
+      "page": "gem_names",
+      "entries": 1050,
+      "ambientLines": 6,
+      "findable": 521,
+      "tried": 525,
+      "stuckExamples": [
+        "Prolonged Duration II",
+        "Projectile Acceleration II",
+        "Projectile Deceleration I",
+        "Compressed Duration I"
+      ],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
+    },
+    {
+      "lang": "en",
+      "game": "poe2",
+      "page": "vendor_bases",
+      "entries": 1763,
+      "ambientLines": 49,
+      "findable": 425,
+      "tried": 441,
+      "stuckExamples": [
+        "Runeforged Armoured Vest",
+        "Serpentscale Coat",
+        "Embroidered Boots",
+        "Runemastered Feathered Sandals",
+        "Runeforged Elegant Greaves"
       ],
       "stuckByHidden": 0,
       "stuckByHiddenExamples": []

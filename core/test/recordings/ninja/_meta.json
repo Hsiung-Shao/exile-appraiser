@@ -1,0 +1,169 @@
+{
+  "fetchedAt": "2026-09-28T17:00:30Z",
+  "league": "Allflame",
+  "game": "poe1",
+  "note": "poe.ninja 真實回應錄製(一次,請求間隔 400ms)。exchange_*.json 為原樣;item_*.json 只保留 lines 的子集(前 15 列 + KEEP 名單內同名的所有列),每一列逐位元組保留原物件,不改欄位。",
+  "files": {
+    "exchange_Catalyst.json": {
+      "url": "https://poe.ninja/poe1/api/economy/exchange/current/overview?league=Allflame&type=Catalyst",
+      "status": 200,
+      "bytes": 93,
+      "lines": 0
+    },
+    "exchange_Currency.json": {
+      "url": "https://poe.ninja/poe1/api/economy/exchange/current/overview?league=Allflame&type=Currency",
+      "status": 200,
+      "bytes": 46650,
+      "lines": 100
+    },
+    "exchange_DeliriumOrb.json": {
+      "url": "https://poe.ninja/poe1/api/economy/exchange/current/overview?league=Allflame&type=DeliriumOrb",
+      "status": 200,
+      "bytes": 6470,
+      "lines": 12
+    },
+    "exchange_DivinationCard.json": {
+      "url": "https://poe.ninja/poe1/api/economy/exchange/current/overview?league=Allflame&type=DivinationCard",
+      "status": 200,
+      "bytes": 62257,
+      "lines": 205
+    },
+    "exchange_Essence.json": {
+      "url": "https://poe.ninja/poe1/api/economy/exchange/current/overview?league=Allflame&type=Essence",
+      "status": 200,
+      "bytes": 36886,
+      "lines": 77
+    },
+    "exchange_Fossil.json": {
+      "url": "https://poe.ninja/poe1/api/economy/exchange/current/overview?league=Allflame&type=Fossil",
+      "status": 200,
+      "bytes": 11619,
+      "lines": 25
+    },
+    "exchange_Fragment.json": {
+      "url": "https://poe.ninja/poe1/api/economy/exchange/current/overview?league=Allflame&type=Fragment",
+      "status": 200,
+      "bytes": 32734,
+      "lines": 71
+    },
+    "exchange_Oil.json": {
+      "url": "https://poe.ninja/poe1/api/economy/exchange/current/overview?league=Allflame&type=Oil",
+      "status": 200,
+      "bytes": 7132,
+      "lines": 16
+    },
+    "exchange_Omen.json": {
+      "url": "https://poe.ninja/poe1/api/economy/exchange/current/overview?league=Allflame&type=Omen",
+      "status": 200,
+      "bytes": 5232,
+      "lines": 10
+    },
+    "exchange_Resonator.json": {
+      "url": "https://poe.ninja/poe1/api/economy/exchange/current/overview?league=Allflame&type=Resonator",
+      "status": 200,
+      "bytes": 2445,
+      "lines": 4
+    },
+    "exchange_Runegraft.json": {
+      "url": "https://poe.ninja/poe1/api/economy/exchange/current/overview?league=Allflame&type=Runegraft",
+      "status": 200,
+      "bytes": 15472,
+      "lines": 31
+    },
+    "exchange_Scarab.json": {
+      "url": "https://poe.ninja/poe1/api/economy/exchange/current/overview?league=Allflame&type=Scarab",
+      "status": 200,
+      "bytes": 58657,
+      "lines": 115
+    },
+    "exchange_Tattoo.json": {
+      "url": "https://poe.ninja/poe1/api/economy/exchange/current/overview?league=Allflame&type=Tattoo",
+      "status": 200,
+      "bytes": 26331,
+      "lines": 48
+    },
+    "item_Map.json": {
+      "url": "https://poe.ninja/poe1/api/economy/stash/current/item/overview?league=Allflame&type=Map",
+      "status": 200,
+      "bytes": 16821,
+      "lines": 35,
+      "keptLines": 15,
+      "keep": []
+    },
+    "item_SkillGem.json": {
+      "url": "https://poe.ninja/poe1/api/economy/stash/current/item/overview?league=Allflame&type=SkillGem",
+      "status": 200,
+      "bytes": 3408378,
+      "lines": 6438,
+      "keptLines": 33,
+      "keep": [
+        "Awakened Enlighten Support",
+        "Invert the Rules Support",
+        "Empower Support"
+      ]
+    },
+    "item_UniqueAccessory.json": {
+      "url": "https://poe.ninja/poe1/api/economy/stash/current/item/overview?league=Allflame&type=UniqueAccessory",
+      "status": 200,
+      "bytes": 555551,
+      "lines": 365,
+      "keptLines": 17,
+      "keep": [
+        "Mageblood",
+        "Headhunter"
+      ]
+    },
+    "item_UniqueArmour.json": {
+      "url": "https://poe.ninja/poe1/api/economy/stash/current/item/overview?league=Allflame&type=UniqueArmour",
+      "status": 200,
+      "bytes": 1075242,
+      "lines": 928,
+      "keptLines": 24,
+      "keep": [
+        "Sundance",
+        "Sin Trek",
+        "Foulborn Dialla's Malefaction",
+        "Kaom's Heart",
+        "Tabula Rasa",
+        "Shavronne's Wrappings"
+      ]
+    },
+    "item_UniqueFlask.json": {
+      "url": "https://poe.ninja/poe1/api/economy/stash/current/item/overview?league=Allflame&type=UniqueFlask",
+      "status": 200,
+      "bytes": 38134,
+      "lines": 40,
+      "keptLines": 15,
+      "keep": []
+    },
+    "item_UniqueJewel.json": {
+      "url": "https://poe.ninja/poe1/api/economy/stash/current/item/overview?league=Allflame&type=UniqueJewel",
+      "status": 200,
+      "bytes": 209653,
+      "lines": 164,
+      "keptLines": 17,
+      "keep": [
+        "Voices"
+      ]
+    },
+    "item_UniqueMap.json": {
+      "url": "https://poe.ninja/poe1/api/economy/stash/current/item/overview?league=Allflame&type=UniqueMap",
+      "status": 200,
+      "bytes": 26018,
+      "lines": 26,
+      "keptLines": 15,
+      "keep": []
+    },
+    "item_UniqueWeapon.json": {
+      "url": "https://poe.ninja/poe1/api/economy/stash/current/item/overview?league=Allflame&type=UniqueWeapon",
+      "status": 200,
+      "bytes": 704788,
+      "lines": 592,
+      "keptLines": 15,
+      "keep": [
+        "Kingmaker",
+        "Foulborn Reefbane"
+      ]
+    }
+  }
+}

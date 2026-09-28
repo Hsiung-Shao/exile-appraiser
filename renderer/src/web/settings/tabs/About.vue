@@ -35,6 +35,10 @@
       <span class="k">{{ t(row.key) }}</span>
       <div class="ctl source-text">{{ row.text }}</div>
     </div>
+    <div v-if="ninjaText" class="srow" data-source="poe.ninja">
+      <span class="k">{{ t('ppz.ninja.source') }}</span>
+      <div class="ctl source-text" :title="ninjaError">{{ ninjaText }}</div>
+    </div>
     <p v-if="manifestError" class="err-line">{{ manifestError }}</p>
   </section>
 
@@ -92,6 +96,7 @@ import type { UpdaterInfo } from '@ipc/types'
 import { AppConfig } from '@/web/Config'
 import { Host } from '@/web/background/IPC'
 import { reportIssue, copyIssueReport, reportStatus } from '@/web/report'
+import { usePoeninja } from '@/web/background/Prices'
 
 interface ManifestSource {
   repo?: string
@@ -145,7 +150,9 @@ const THANKS: Credit[] = [
   { name: 'Exiled Exchange 2', author: 'Kvan7', license: 'MIT', url: 'https://github.com/Kvan7/Exiled-Exchange-2', desc: 'ppz.about.ee2', licenseFile: 'exiled-exchange-2.MIT' },
   { name: 'Exiled-Exchange-2-zh-TW', author: 'Hsiung-Shao', license: 'MIT', url: 'https://github.com/Hsiung-Shao/Exiled-Exchange-2-zh-TW', desc: 'ppz.about.ee2_zh', licenseFile: 'exiled-exchange-2.MIT' },
   { name: 'PoENavi', author: 'Buri', license: 'MIT', url: 'https://github.com/buri34/poenavi', desc: 'ppz.about.poenavi', licenseFile: 'poenavi.MIT' },
-  { name: 'PobTools', author: 'Hsiung-Shao', url: 'https://github.com/Hsiung-Shao/PobTools-zh', desc: 'ppz.about.pobtools' }
+  { name: 'PobTools', author: 'Hsiung-Shao', url: 'https://github.com/Hsiung-Shao/PobTools-zh', desc: 'ppz.about.pobtools' },
+  { name: 'poe-disenchant-tool', author: 'deronek', license: 'MIT', url: 'https://github.com/deronek/poe-disenchant-tool', desc: 'ppz.about.disenchant', licenseFile: 'poe-disenchant-tool.MIT' },
+  { name: 'poe-dust (gist)', author: '@alserom', url: 'https://gist.github.com/alserom/22bdd4106806cbd4f85a5cb8c4345c08', desc: 'ppz.about.alserom' }
 ]
 
 export default defineComponent({
@@ -172,6 +179,18 @@ export default defineComponent({
       }
     })
     onUnmounted(() => { unsubscribe?.() })
+
+    // poe.ninja 價格表(PoE1 查價元件用;Prices.ts 的快取時間)
+    const ninja = usePoeninja()
+    const ninjaText = computed(() => {
+      if (AppConfig().game !== 'poe1') return ''
+      if (AppConfig().realm !== 'intl') return t('ppz.ninja.tw_unavailable')
+      const at = ninja.lastFetchedAt.value
+      if (at) return t('ppz.ninja.updated', { time: new Date(at).toLocaleString(AppConfig().uiLanguage === 'en' ? 'en-US' : 'zh-TW') })
+      if (ninja.isLoading.value) return t('ppz.ninja.loading')
+      if (ninja.lastError.value) return t('ppz.ninja.error', { error: ninja.lastError.value })
+      return t('ppz.ninja.never')
+    })
 
     const rows = computed(() => PREFIXES[AppConfig().game].map(({ prefix, key }) => {
       const s = sources.value[prefix]
@@ -235,6 +254,8 @@ export default defineComponent({
       version: Host.version,
       rows,
       manifestError,
+      ninjaText,
+      ninjaError: computed(() => ninja.lastError.value ?? undefined),
       info,
       updateText,
       updateTone,

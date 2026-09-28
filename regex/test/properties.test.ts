@@ -1,5 +1,5 @@
 // 真實資料性質測試:逐條改寫自 PobTools `host/regex_selftest.cpp` DataTests()(:541–830)。
-// 兩語言 × 六頁(PoE1 map/logbook + PoE2 waystone/tablet/relic/expedition_relic),順序與 C++ 報告相同。
+// 兩語言 × 全部出貨頁(schema 2:PoE1 十頁 + PoE2 七頁),順序與 C++ 報告相同。
 // 數字基準(ambient 行數、單獨可指定數、卡住的名稱)來自 C++ 報告 `dist/regex_selftest.txt`,
 // 由 golden/extract-from-report.mjs 抽成 golden/selftest-report.json;**允許差 0**。
 import { describe, expect, it } from 'vitest'
@@ -28,12 +28,17 @@ it('both games shipped, every page names a known game(:552–569)', () => {
   expect(pages.length).toBeGreaterThanOrEqual(2)
   expect(pages.some(p => p.game === 'poe1')).toBe(true)
   expect(pages.some(p => p.game === 'poe2')).toBe(true)
-  expect(pages.map(p => p.id)).toEqual(['map_mods', 'logbook_mods', 'waystone_mods', 'tablet_mods', 'relic_mods', 'expedition_relic_mods'])
+  expect(pages.map(p => `${p.game}/${p.id}`)).toEqual([
+    'poe1/map_mods', 'poe1/logbook_mods', 'poe1/scarabs', 'poe1/flask_mods', 'poe1/cluster_jewel',
+    'poe1/gem_names', 'poe1/tattoos', 'poe1/heist_equipment_mods', 'poe1/heist_contracts', 'poe1/vendor_bases',
+    'poe2/waystone_mods', 'poe2/tablet_mods', 'poe2/relic_mods', 'poe2/expedition_relic_mods',
+    'poe2/flask_charm_mods', 'poe2/gem_names', 'poe2/vendor_bases'])
 })
 
 for (const lang of ['zh', 'en'] as const) {
   for (const page of pages) {
-    const base = golden.pages.find(g => g.lang === lang && g.page === page.id)!
+    // 頁 id 在兩個遊戲會重複(gem_names、vendor_bases),golden 以 遊戲 + 頁 id 對位
+    const base = golden.pages.find(g => g.lang === lang && g.page === page.id && g.game === page.game)!
     describe(`[data] ${lang === 'zh' ? '繁中' : 'English'} ${page.title} (${page.game}/${page.id}) -- ${page.entries.length} entries`, () => {
       it('entry count matches the C++ report', () => {
         expect(base, 'golden 缺這一頁').toBeDefined()

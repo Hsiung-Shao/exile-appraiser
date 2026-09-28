@@ -377,6 +377,8 @@ export default defineComponent({
             props.filter.sources.length >= 2 ||
             props.filter.sources[0].modifier.info.name != null ||
             props.filter.sources[0].modifier.info.tier != null ||
+            // exile-appraiser(WP-R):推定到多個 Tier(tier 為空)也要顯示詞綴來源(T2/T3 推定)
+            props.filter.sources[0].modifier.info.tierCandidates != null ||
             props.filter.sources[0].modifier.info.rank != null),
       ),
       inputFocus,

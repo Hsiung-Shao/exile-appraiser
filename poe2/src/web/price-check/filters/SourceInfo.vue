@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div :class="$style['modinfo']">{{ modText }}</div>
+    <div :class="$style['modinfo']" :title="modTitle">{{ modText }}</div>
     <div v-for="stat of stats" :key="stat.text" class="flex items-baseline">
       <ItemModifierText
         :text="stat.text"
@@ -26,6 +26,14 @@ import type { StatCalculated } from "@/parser/modifiers";
 import type { StatFilter } from "./interfaces";
 
 import ItemModifierText from "@/web/ui/ItemModifierText.vue";
+// exile-appraiser(WP-R):推定 Tier 顯示「T1 推定 · 烏拉曼 · 13–17」,tooltip 同 FilterModifierTiers
+import {
+  inferredTierLabel,
+  inferredTierTitle,
+  poolLabel,
+  rangeLabel,
+  type Translate,
+} from "@/desecration/display";
 
 const props = defineProps<{
   source: StatCalculated["sources"][number];
@@ -41,13 +49,27 @@ const modText = computed(() => {
   if (info.name) {
     text += ` "${info.name}"`;
   }
-  if (info.tier != null || info.rank != null) {
+  if (info.tierInferred) {
+    const parts = [
+      `${inferredTierLabel(info, t as Translate)} ${t("ppz.desecration.inferred")}`,
+    ];
+    const only =
+      info.inferredCandidates?.length === 1 ? info.inferredCandidates[0] : undefined;
+    if (only) parts.push(poolLabel(only, t as Translate));
+    if (info.ranges) parts.push(rangeLabel(info.ranges));
+    text += ` (${parts.join(" · ")})`;
+  } else if (info.tier != null || info.rank != null) {
     text += ` (${t("item.mod_tier", [info.tier])})`;
   }
   if (info.rank != null) {
     text += ` (${t("item.mod_rank", [info.rank])})`;
   }
   return text;
+});
+
+const modTitle = computed(() => {
+  const { info } = props.source.modifier;
+  return info.tierInferred ? inferredTierTitle(info, t as Translate) : undefined;
 });
 
 const stats = computed(() => {

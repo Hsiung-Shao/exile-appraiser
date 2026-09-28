@@ -14,6 +14,7 @@
     "dev": "node build/script.mjs",
     "build": "tsc --noEmit -p tsconfig.json && node build/script.mjs --prod",
     "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
     "_comment_package": "-p never:electron-builder 預設 onTagOrDraft 會在 HEAD 在 tag 上時自動建 draft release 並上傳。發布必須是刻意的動作(gh release create)。",
     "package": "electron-builder build -p never"
   },
@@ -27,6 +28,7 @@
     "electron": "40.10.6",
     "electron-builder": "^26.9.0",
     "esbuild": "^0.28.0",
-    "typescript": "5.6.x"
+    "typescript": "5.6.x",
+    "vitest": "^2.1.9"
   }
 }

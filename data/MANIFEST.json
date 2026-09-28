@@ -1,5 +1,11 @@
 {
   "sources": {
+    "data/dust": {
+      "repo": "deronek/poe-disenchant-tool data/dust/poe-dust.js",
+      "path": "https://github.com/deronek/poe-disenchant-tool/blob/75eb61132f2d6c94952b260f67dbb65d170332a3/data/dust/poe-dust.js",
+      "commit": "75eb61132f2d6c94952b260f67dbb65d170332a3",
+      "generatedAt": "2026-09-28T17:27:49.065Z"
+    },
     "data/poe1": {
       "repo": "apt-patched (Hsiung-Shao/awakened-poe-trade-zh-TW)",
       "path": "renderer/public/data",
@@ -12,6 +18,12 @@
       "commit": "fc7de73c04b5bae6b0f80cf6e6417553b313b762",
       "generatedAt": "2026-09-28T12:46:01.999Z"
     },
+    "data/poe2/desecration": {
+      "repo": "PoB2 0.23.1 Data/*.lua + stats.ndjson",
+      "path": "scripts/build-desecration-tiers.mjs(PathOfBuildingCommunity-PoE2-Portable/Data;commit 欄 = manifest.xml 的 ModVeiled.lua sha1)",
+      "commit": "c73c115603815d875214b7de9057bf0bd10ecc8d",
+      "generatedAt": "2026-09-28T20:43:24.860Z"
+    },
     "data/poe2/trade": {
       "repo": "GGG trade2 data API(www.pathofexile.com / pathofexile.tw)",
       "path": "/api/trade2/data/{stats,items}",
@@ -22,10 +34,37 @@
       "repo": "pob-zh-engine dist/Data (PobTools Poe Regex)",
       "path": "pob-zh-engine/dist/Data(git 追蹤於 pob-zh-engine/host/data)",
       "commit": "d9ef0b6739349eb8021bd81fd3fb60c8e35391a2",
-      "generatedAt": "2026-09-28T14:48:46.005Z"
+      "generatedAt": "2026-09-28T17:29:24.501Z",
+      "dirty": true,
+      "dirtyFiles": {
+        "regex_poe1.json": "3204747e7d8b5a5869835770c6ef023ddcb1979215e69175a643224270b27a30",
+        "regex_poe2.json": "69d89daab1e7365726343aa8ce5760137d99d537d79cf9710e222ba3354eec98"
+      }
+    },
+    "data/regex/labels.poe1.json": {
+      "repo": "clientstrings(pob-zh-engine tools/ggpk_zh/out/poe1/tables/clientstrings.json(clientstrings,欄 Text;meta game_version 3.29.0.1);regex/scripts/gen-labels.mjs 產生)",
+      "path": "../pob-zh-engine/tools/ggpk_zh/out/poe1/tables/clientstrings.json",
+      "fetchedAt": "2026-08-22T03:25:46.343Z",
+      "generatedAt": "2026-09-28T17:10:10.127Z"
+    },
+    "data/regex/labels.poe2.json": {
+      "repo": "clientstrings(pob-zh-engine tools/ggpk2_zh/out/poe2/tables/clientstrings.json(clientstrings,欄 Text;meta game_version 4.5.5.2);regex/scripts/gen-labels.mjs 產生)",
+      "path": "../pob-zh-engine/tools/ggpk2_zh/out/poe2/tables/clientstrings.json",
+      "fetchedAt": "2026-09-14T17:02:59.512Z",
+      "generatedAt": "2026-09-28T17:10:10.265Z"
+    },
+    "data/regex/templates.json": {
+      "repo": "exile-appraiser 內建範本(手寫,鍵對應 data/regex/regex_poe*.json 與 regex/src/pages/)",
+      "path": "data/regex/templates.json",
+      "fetchedAt": "2026-09-28T17:15:48Z",
+      "generatedAt": "2026-09-28T17:15:48.835Z"
     }
   },
   "files": {
+    "data/dust/poe-dust.json": {
+      "sha256": "740a67f60e454e94f82dde34ddb94a54b4423113e8aa5806c7f432ef507c558f",
+      "bytes": 143495
+    },
     "data/poe1/cmn-Hant/app_i18n.json": {
       "sha256": "6dbbdb08ee56403e69e7c10e9d3921c0a340ec752d827827aae33a116f0b8247",
       "bytes": 15763
@@ -126,6 +165,14 @@
       "sha256": "9aa5101f985b88cb572a56ed9d0341d083c2c48f98a4414c7c73d63ca9b48590",
       "bytes": 866912
     },
+    "data/poe2/desecration/base_profiles.json": {
+      "sha256": "10ab08180ffe7ee324eb2402fff57885412793d1716322f5060b3449d65e29e5",
+      "bytes": 54497
+    },
+    "data/poe2/desecration/tiers.json": {
+      "sha256": "9c2b4bebcdee653c467808859d71488bf6ae48c535fabbb68be6289ff639ad25",
+      "bytes": 1460612
+    },
     "data/poe2/en/app_i18n.json": {
       "sha256": "921236c1d64d21e849c0270d7a6357574c3ac02c30a273b74cab0db2baf43314",
       "bytes": 23883
@@ -182,13 +229,25 @@
       "sha256": "1b19454b6b6ef465138e60941af6f286589c59c9e8009cf9595c999d0fe0ece0",
       "bytes": 792687
     },
+    "data/regex/labels.poe1.json": {
+      "sha256": "b693c733b8e752310680a09ba4f6788a30b5cb647d1ba8754af9bec1772404ff",
+      "bytes": 2282
+    },
+    "data/regex/labels.poe2.json": {
+      "sha256": "066df703dd1b58c8c300d1dfaa6a44b58c6906eb1e3edcce0a5be1d5de29a58d",
+      "bytes": 1664
+    },
     "data/regex/regex_poe1.json": {
-      "sha256": "9c54d69fb3f04e19575ca35a2201ab892fa6394032b51448399dfe2cf9bb5d94",
-      "bytes": 150274
+      "sha256": "3204747e7d8b5a5869835770c6ef023ddcb1979215e69175a643224270b27a30",
+      "bytes": 1755360
     },
     "data/regex/regex_poe2.json": {
-      "sha256": "885e9bc246a7278c12912bd8740dd0cfbfdb9e595ec923ce6480b123965007f8",
-      "bytes": 198296
+      "sha256": "69d89daab1e7365726343aa8ce5760137d99d537d79cf9710e222ba3354eec98",
+      "bytes": 1406070
+    },
+    "data/regex/templates.json": {
+      "sha256": "697e60418b47465d6eded560260f39e3d2e4ac6f6340e0605a8799ec508bd91d",
+      "bytes": 5716
     }
   }
 }

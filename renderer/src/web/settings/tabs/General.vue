@@ -1,4 +1,4 @@
-<!-- 設定 › 一般:介面(語言、主題、強調色、字級)與遊戲(遊戲、區服、客戶端語言、聯盟)。 -->
+<!-- 設定 › 一般:介面(語言、主題、強調色、字級)與遊戲(遊戲、區服、客戶端語言、聯盟);最後一張卡是瀏覽器預覽。 -->
 <template>
   <section class="card">
     <span class="label">{{ t('ppz.section_interface') }}</span>
@@ -96,12 +96,36 @@
       </div>
     </div>
   </section>
+
+  <section v-if="hasHost" class="card" data-setting="browser-preview">
+    <span class="label">{{ t('ppz.preview.section') }}</span>
+    <template v-if="isPreview">
+      <p class="preview-note" data-preview="active">{{ t('ppz.preview.active') }}</p>
+      <p v-if="needsRestart" class="preview-note warn" data-preview="needs-restart">{{ t('ppz.preview.needs_restart') }}</p>
+    </template>
+    <template v-else>
+      <div class="srow">
+        <span class="k">{{ t('ppz.preview.open') }}</span>
+        <div class="ctl">
+          <button class="btn sm" :disabled="previewBusy" data-action="open-preview" @click="openPreview">{{ t('ppz.preview.open') }}</button>
+        </div>
+      </div>
+      <div v-if="previewUrl" class="srow stack">
+        <div class="ctl preview-url">
+          <input class="input sm" readonly :value="previewUrl" :aria-label="t('ppz.preview.url')" @focus="($event.target as HTMLInputElement).select()">
+          <button class="btn ghost sm" data-action="copy-preview-url" @click="copyPreviewUrl">{{ copied ? t('ppz.preview.copied') : t('ppz.preview.copy') }}</button>
+        </div>
+      </div>
+      <p class="preview-note">{{ t('ppz.preview.hint') }}</p>
+      <p v-if="previewError" class="err">{{ t('ppz.preview.failed', { error: previewError }) }}</p>
+    </template>
+  </section>
 </template>
 
 <script lang="ts">
-import { computed, defineComponent } from 'vue'
+import { computed, defineComponent, onMounted, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { AppConfig } from '@/web/Config'
+import { AppConfig, hotkeyRegistration } from '@/web/Config'
 import { Host } from '@/web/background/IPC'
 import { useLeagues } from '@/web/background/Leagues'
 import { REALMS, REALM_IDS, TRADE_PATHS, type Language } from '@exile-appraiser/core/realm'
@@ -120,6 +144,16 @@ export default defineComponent({
     const { t } = useI18n()
     const leagues = useLeagues()
     const config = AppConfig()
+
+    // ---- 瀏覽器預覽(main 的 preview-server;docs/browser-preview.md) ----
+    const previewUrl = shallowRef<string | null>(null)
+    const previewBusy = shallowRef(false)
+    const previewError = shallowRef<string | null>(null)
+    const copied = shallowRef(false)
+    onMounted(async () => {
+      if (!Host.isElectron || Host.isPreview) return
+      try { previewUrl.value = await Host.getPreviewUrl() } catch {}
+    })
     return {
       t,
       leagues,
@@ -147,6 +181,35 @@ export default defineComponent({
       }),
       openCaptcha () {
         void Host.openCaptcha(`https://${REALMS[config.realm].host}${TRADE_PATHS[config.game].web}`)
+      },
+      hasHost: Host.isElectron,
+      isPreview: Host.isPreview,
+      needsRestart: computed(() => hotkeyRegistration.value?.needsRestart === true),
+      previewUrl,
+      previewBusy,
+      previewError,
+      copied,
+      async openPreview () {
+        previewBusy.value = true
+        previewError.value = null
+        try {
+          const r = await Host.openPreview()
+          if (r) previewUrl.value = r.url
+        } catch (e) {
+          previewError.value = e instanceof Error ? e.message : String(e)
+        } finally {
+          previewBusy.value = false
+        }
+      },
+      async copyPreviewUrl () {
+        if (!previewUrl.value) return
+        try {
+          await navigator.clipboard.writeText(previewUrl.value)
+          copied.value = true
+          setTimeout(() => { copied.value = false }, 1500)
+        } catch (e) {
+          previewError.value = e instanceof Error ? e.message : String(e)
+        }
       }
     }
   }
@@ -154,6 +217,23 @@ export default defineComponent({
 </script>
 
 <style>
+.settings-panel .preview-note {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--fs-xs);
+}
+.settings-panel .preview-note.warn {
+  color: var(--warn, var(--gold));
+}
+.settings-panel .preview-url {
+  gap: 6px;
+}
+.settings-panel .preview-url input {
+  flex: 1;
+  min-width: 0;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: var(--fs-2xs);
+}
 .settings-panel .srow.stack {
   grid-template-columns: minmax(0, 1fr);
 }

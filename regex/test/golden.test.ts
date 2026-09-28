@@ -65,8 +65,8 @@ describe('golden: shipped data', () => {
 
   // regex_selftest.cpp:714–734:種子 0x5EED1234 抽 10 個不重複列,Any 模式的長度與逐字寫出長度
   for (const g of golden.tenPicks) {
-    it(`${g.lang} ${g.page}: 10 picks = ${g.length} characters (spelled out ${g.plain})`, () => {
-      const page = pages.find(p => p.id === g.page)!
+    it(`${g.lang} ${g.game}/${g.page}: 10 picks = ${g.length} characters (spelled out ${g.plain})`, () => {
+      const page = pages.find(p => p.id === g.page && p.game === g.game)!
       expect(page, g.page).toBeDefined()
       const c = buildCorpus(page, g.lang as 'zh' | 'en')
       const sel = samplePicks(0x5EED1234, page.entries.length, 10)

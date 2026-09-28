@@ -1,6 +1,8 @@
 /**
  * main ↔ renderer 的合約(經 preload 的 contextBridge 暴露成 `window.host`)。
  * 上游 APT 是 WebSocket + 本機 HTTP server;本專案直接用 ipcMain.handle / contextBridge,不開 port。
+ * 例外:瀏覽器預覽(`main/src/preview-server.ts`,docs/browser-preview.md)用 boot script 在一般瀏覽器裡造出同形狀的
+ * `window.host`(`isPreview: true`),方法走 `POST ~rpc`、事件走 SSE。
  * 視窗模式兩種:`overlay`(預設,照 APT 疊在遊戲視窗上)與 `window`(備援:獨立小視窗,`--window` 或設定 overlayMode=false)。
  */
 export interface HostFetchInit {
@@ -77,6 +79,17 @@ export interface HotkeyRegistration {
   error?: string
   /** 第一個註冊失敗的 Electron accelerator(如 `Ctrl+D`)。 */
   accelerator?: string
+  /**
+   * 只在瀏覽器預覽送出時可能為 true:遊戲 / 視窗標題 / overlayMode 與 overlay 目前綁定的不同,
+   * main 只存檔不重新啟動(下次啟動 ExileAppraiser 才生效)。
+   */
+  needsRestart?: boolean
+}
+
+/** 設定檔寫入後 main 廣播(Electron 與所有預覽分頁)。`source`:`electron` 或 `preview:<clientId>`(發起端自己會略過)。 */
+export interface ConfigChangedEvent {
+  contents: string
+  source: string
 }
 
 /** 設定面板的分頁(托盤「設定」「關於」用 `open-settings` 指定要開哪頁)。 */
@@ -85,6 +98,8 @@ export type SettingsTabId = 'general' | 'price-check' | 'hotkeys' | 'regex' | 'a
 export interface HostApi {
   readonly isElectron: true
   readonly version: string
+  /** 瀏覽器預覽頁(boot script 的 shim)為 true;Electron preload 沒有這個欄位。 */
+  readonly isPreview?: boolean
   fetch: (url: string, init?: HostFetchInit) => Promise<HostFetchResult>
   loadConfig: () => Promise<string | null>
   saveConfig: (contents: string) => Promise<void>
@@ -92,6 +107,14 @@ export interface HostApi {
   regexStateLoad: () => Promise<string | null>
   /** 原子寫入:`regex_state.json.tmp` → rename。 */
   regexStateSave: (contents: string) => Promise<void>
+  /** 拆粉排行面板狀態(`core/src/dust/ui-state.ts` 的 JSON)。`userData/dust_ui.json`,沒有檔案回 null。 */
+  dustUiLoad: () => Promise<string | null>
+  /** 原子寫入:`dust_ui.json.tmp` → rename。 */
+  dustUiSave: (contents: string) => Promise<void>
+  /** poe.ninja 價格表快照(`core/src/ninja/cache.ts`)。`userData/cache/ninja/<game>_<league>.json`,沒有檔案回 null。 */
+  ninjaCacheLoad: (game: GameId, league: string) => Promise<string | null>
+  /** 原子寫入(`.tmp<pid>` → rename);啟動時 main 清 30 天以上的檔。 */
+  ninjaCacheSave: (game: GameId, league: string, contents: string) => Promise<void>
   /** 送設定給 main;回傳熱鍵註冊結果。 */
   updateHostConfig: (cfg: HostConfigForMain) => Promise<HotkeyRegistration>
   onItemText: (cb: (e: ItemTextEvent) => void) => () => void
@@ -121,6 +144,12 @@ export interface HostApi {
   /** `downloaded` 後結束並執行安裝程式(`quitAndInstall(false)`)。 */
   installUpdate: () => Promise<void>
   onUpdaterState: (cb: (info: UpdaterInfo) => void) => () => void
+  /** 另一端(Electron 視窗或其他預覽分頁)存了設定;自己存的不會收到。 */
+  onConfigChanged: (cb: (e: ConfigChangedEvent) => void) => () => void
+  /** 啟動(或沿用)瀏覽器預覽伺服器並用預設瀏覽器開啟,回傳網址。 */
+  openPreview: () => Promise<{ url: string }>
+  /** 預覽伺服器目前的網址(沒在跑回 null)。 */
+  getPreviewUrl: () => Promise<string | null>
 }
 
 /**

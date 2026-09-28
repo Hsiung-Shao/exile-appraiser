@@ -113,6 +113,52 @@ PobTools 語彙(`.card .seg .chk .select .input .btn .pulse`):
 3. `node regex/test/golden/extract-from-report.mjs ../pob-zh-engine/dist/regex_selftest.txt` 更新基準 → `npm test`。
    數量類斷言(data.test.ts 的 `EXPECTED`)也要跟著改;任何差異都要能用資料變更解釋。
 
+## WP-C:演算法頁 / 合併 / 分享碼 / 範本(2026-09-29)
+
+全部自寫;**不參考 poe.re 原始碼**(無 LICENSE)。
+
+### 資料 schema 2
+- `regex_poe*.json` 頂層 `labels{zh,en}`(clientstrings 鍵 → 文字)、頁面 `kind`(`mods` / `names`)。`data.ts` 同時接受 schema 1(缺 `kind` = mods、缺 `labels` = null);未知 kind 當 mods。
+- `normalizeLabel`:`{0}` → `#`、PoE2 的 `[Id|文字]` → 文字、`[Id]` → Id。
+- 標籤合併 `mergeLabels(資料檔 labels, 暫代檔)`:資料檔**逐鍵優先**,暫代檔 `data/regex/labels.poe{1,2}.json` 只補缺鍵(PoE2 schema 2 目前缺 `ItemDisplayMap{Magic,Rare}MonsterQuantityBonus`、`ExperienceGained`、`MonsterEffectiveness`、`ItemPopupCorrupted`)。兩份都有的鍵在測試裡斷言逐字相同。
+- 暫代檔產生:`node regex/scripts/gen-labels.mjs --from ../pob-zh-engine`(讀 `tools/ggpk_zh/out/poe1/tables/clientstrings.json`、`tools/ggpk2_zh/out/poe2/tables/clientstrings.json` 的 `Text` 欄,以**鍵**取值、缺鍵 exit 1、與 `regex_poe*.json` ambient 行交叉比對),寫完以 `verify-data-manifest --write --prefix data/regex/labels.<game>.json` 各記一個來源(最長前綴歸屬,不併入 PobTools 同步的 `data/regex` 前綴)。`templates.json` 同樣自成一個前綴。
+
+### 數值 → 正則(`regex/src/numeric.ts`)
+`rangeRegex({min?, max?}, {digits: 1|2|3})`:依位數切等長區間 → 首位頭 / 中 / 尾三段遞迴拆成字元類序列 → 兩位數以上首位 `[1-9]` 換 `\d` → `P` 與 `X P` 合併成 `X?P` → 與逐一列舉比取短。只用 `\d [] ? | ()`(不用 `{n}`、不用大寫跳脫)。
+測試(`numeric.test.ts`):digits 1/2/3 每個 N 的 ≥N、≤N(2220 組)、digits=2 全部 5050 個區間、digits=3 常見 + 3000 組 LCG 區間,每組對 0–999 逐值 `RegExp.test`,且長度 ≤ 樸素寫法。
+
+### 演算法頁(`regex/src/pages/`,kind `numeric` / `sockets`)
+| 頁 | 遊戲 | 項目 |
+|---|---|---|
+| `map_numeric` | PoE1 | 地圖階級、物品數量、物品稀有度、怪物群大小、更多聖甲蟲 / 通貨 / 地圖 / 命運卡 |
+| `waystone_numeric` | PoE2 | 換界石階級、物品稀有度、怪群大小、怪物稀有度、換界石掉落機率、魔法 / 稀有怪物、獲得經驗值、怪物效能 |
+| `vendor_items` | PoE1 | 連結數 ≥(3–6L)、鏈接顏色(任意順序、需相鄰)、插槽顏色數 ≥、物品等級、品質、寶石等級 ≥、已汙染、勢力基底 |
+| `vendor_items_poe2` | PoE2 | 物品等級、品質、寶石等級 ≥、已汙染 |
+
+- 形狀與語料頁相同(`RegexPage` + entries),多 `input`(`range` / `select` / `colors` / `count`)與 `fragment(value, lang)`。鍵用**項目 id**(標籤文字會隨賽季變)。
+- 屬性行片段(`propertyFragment`):≥ 百分比 `標籤.*數值%`;≥ 非百分比 `標籤.*[^\d]數值`;≤ / 區間 `標籤.*[^\d]數值(%|$)`。邊界推理見 `frag.ts` 註解;`pages.test.ts` 對 0–999、PoE1「：」/ PoE2 空白 / 剪貼簿「: 」與「+」逐值驗證。寶石等級行首錨定 `^等級`。
+- 插槽:`.-.-.-.-.-.`(6L)、`r-(g-b|b-g)|…`(trie + 相同子樹合成字元類)、`插槽.*b.*b.*b`。⚠ **假設繁中客戶端插槽顯示 `R-G-B` 不翻譯,未實測**:這三項 `untested`,UI 標「待實測」。所有屬性行的分隔字元與「+」顯示也還沒進遊戲確認(頁 note 已寫)。
+
+### 合併(`regex/src/combine.ts`)
+- 語料頁依面板模式:any → 全部頁 token `|` 併成一個 term;all → 每 token 一個 term;none → 併進唯一的 `"!…"` term。演算法頁每個勾選各一個 term(AND)。自訂文字 → `escapeTerm` 跳脫後獨立 term(`unverified`)。排除詞 → 併進 none term(開頭 `!` 也跳脫)。順序:any、all、演算法、自訂、none。單一語料頁時與 `Corpus.build().query` 逐字相同(測試 3 模式 × 2 語言 × 20 組)。
+- 驗證:參與的語料頁 **corpus 聯集**(entries 與 ambient 都聯集)對 `verifyQuery`(只含語料 token)做 `Verify`;跨頁誤中 → `extra` 衝突。演算法片段**不送進 Verify**(它把 term 當字面 token,片段裡的 `.`、`-`、數字在它的模型是數值字元,只會得到無意義的 extra),改以 `RegExp` 對聯集每一條詞綴行(`#` 代入 11 個樣本值)檢查 → `fragment` 衝突;排除詞命中已勾選詞綴 → `exclude` 衝突;輸入不成立 → `invalid`。
+- 已知真衝突:PoE2「稀有怪物 ≥N%」會中聖物頁「稀有怪物減少 #% 傷害」(兩頁一起合併才會報)。
+- 回傳 `perPage[{id, kind, picked, length, unresolved, fragments}]`(貢獻 = 片段字數 + 每片段 1 分隔)、`customLength`、`excludesLength`、`length`(整串碼點數)、`limit`(參與頁最小值,250)。
+
+### 分享碼與範本(`regex/src/share.ts`、`data/regex/templates.json`)
+- `ShareState = {v:1, game, mode, pages:{pageId:[鍵]}, numeric:{pageId:{entryId:{min,max,choice}}}, custom[], excludes[]}` → JSON → gzip(`CompressionStream`)→ base64url(無填充,開頭 `H4sI`)。解碼:版本 / 遊戲不符丟例外;未知欄位與型別不符的欄位丟掉並回 warnings。`resolveState` 還原勾選,回報還原不到的鍵數與不存在的頁。
+- 範本 7 組(PoE1:T17 危險詞綴、地圖無反射 / 無 -最大抗性、6L 商店、RGB 鏈接商店、探險日誌(排除難打詞綴);PoE2:換界石危險詞綴、碑牌高價值),雙語名稱 / 說明;測試斷言每個鍵都還原得到、兩語合併無衝突且不超長。⚠「探險日誌 高價值」:日誌清單只有怪物 / 玩家詞綴,沒有標示價值的行,所以做成「排除難打詞綴」。
+
+### UI
+- 標題列:遊戲 / **檢視**(`已選(合併)· N 頁` | `單頁清單`)/ 清單(下拉,附勾選數)/ 模式 / 雙語;第二列「套用範本…」下拉(套用前確認一次,覆蓋該遊戲全部頁)、「複製分享碼」、「貼上分享碼」(對話框,貼上 = 套用)。
+- `RegexCombined.vue`:各頁勾選數 / 貢獻長度 / 無法單獨指定、自訂文字與排除詞 chips、衝突清單。`RegexAlgoList.vue`:演算法頁每列 勾選 + `.seg`(≥ / ≤ / 區間、選項)+ `.input.sm` + 片段預覽;改值自動勾選。
+- 輸出區 `.seg` 合併 / 單頁(`outScope`,預設合併),合併時列出每頁貢獻。
+- 狀態 schema 2(`state.ts`):`numeric`、`custom`、`excludes`、`outScope`、書籤的 `numeric`;schema 1 舊檔照讀。
+- DOM 錨點新增:`[data-regex=view|template|template-dialog|template-ok|share-copy|share-paste|share-dialog|share-input|share-ok|out-scope|parts|conflict-count|combined|combined-pages|clear-all|custom-input|custom-add|excludes-input|excludes-add|excludes-remove|algo-list|algo-check-<id>|algo-op-<id>|algo-min-<id>|algo-max-<id>|algo-choice-<id>|algo-color-<id>-<c>|algo-frag|untested]`。
+
+### WP-C 驗證(2026-09-29,headless Chrome + CDP,只用 DOM 事件)
+PoE1 地圖詞綴 3 條 + 階級 ≥16 + 物品數量 ≥80 + 6L → `"成凋| 怪物傷| 怪物攻" 地圖階級.*[^\d](1[6-9]|[2-9]\d) 物品數量.*([89]\d|\d\d\d)% .-.-.-.-.-.`(77 字,每頁 13 / 51 / 12,與 combine.test 同一串);None + 排除詞「反射」→ 只有一個 `!`;分享碼複製 → 全部清除 → 貼上 → 同一串、同樣勾選;範本 T17 → map_mods 8 條、None;淺色、英文介面各截一張;console 無錯誤。
+
 ## 相關文件
 - [phase2-summary.md](phase2-summary.md)(WP5 摘要與待辦:逐字 golden)
 - [release-flow.md](release-flow.md)(資料同步後照發版流程出版)
