@@ -1,0 +1,285 @@
+{
+  "influences": [],
+  "info": {
+    "icon": "",
+    "name": "浸血碑器",
+    "namespace": "ITEM",
+    "refName": "Blood-filled Vessel",
+    "src": "zh-tw-missing"
+  },
+  "infoVariants": [
+    {
+      "icon": "",
+      "name": "浸血碑器",
+      "namespace": "ITEM",
+      "refName": "Blood-filled Vessel",
+      "src": "zh-tw-missing"
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": false,
+  "name": "浸血碑器",
+  "newMods": [
+    {
+      "info": {
+        "tags": [],
+        "type": "pseudo"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 3,
+            "min": 3,
+            "unscalable": true,
+            "value": 3
+          },
+          "stat": {
+            "better": 1,
+            "matchers": [
+              {
+                "string": "傳奇怪物(浸血碑器): # "
+              }
+            ],
+            "ref": "Unique Monsters (Blood-Filled Vessel): #",
+            "trade": {
+              "ids": {
+                "pseudo": [
+                  "pseudo.pseudo_ritual_unique_monsters"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "傳奇怪物(浸血碑器): # "
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [],
+        "type": "pseudo"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 41,
+            "min": 41,
+            "unscalable": true,
+            "value": 41
+          },
+          "stat": {
+            "better": 1,
+            "matchers": [
+              {
+                "string": "非傳奇怪物(浸血碑器): # "
+              }
+            ],
+            "ref": "Non-Unique Monsters (Blood-Filled Vessel): #",
+            "trade": {
+              "ids": {
+                "pseudo": [
+                  "pseudo.pseudo_ritual_other_monsters"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "非傳奇怪物(浸血碑器): # "
+          }
+        }
+      ]
+    }
+  ],
+  "rarity": "Normal",
+  "rawText": "物品種類: 地圖碎片\r\n稀有度: 普通\r\n浸血碑器\r\n--------\r\n怪物：\r\n超然的卡洛斯\r\n焚屍者波莉亞\r\n燃屍者波莉亞\r\n41 其他怪物\r\n怪物等級: 83\r\n來自: 危城廣場\r\n--------\r\n祭祀有優化 20% 恩賜獎勵\r\n祭祀產生怪物比平常快 20%\r\n祭祀存活 20% 更多上限怪物\r\n--------\r\n可以和地圖同時使用於個人的地圖裝置，將你之前祭祀神壇保存的怪物加入至該地圖的祭祀神壇中。\r\n",
+  "statsByType": [
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 3,
+            "min": 3,
+            "value": 3
+          },
+          "modifier": {
+            "info": {
+              "tags": [],
+              "type": "pseudo"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 3,
+                  "min": 3,
+                  "unscalable": true,
+                  "value": 3
+                },
+                "stat": {
+                  "better": 1,
+                  "matchers": [
+                    {
+                      "string": "傳奇怪物(浸血碑器): # "
+                    }
+                  ],
+                  "ref": "Unique Monsters (Blood-Filled Vessel): #",
+                  "trade": {
+                    "ids": {
+                      "pseudo": [
+                        "pseudo.pseudo_ritual_unique_monsters"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "傳奇怪物(浸血碑器): # "
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 3,
+              "min": 3,
+              "unscalable": true,
+              "value": 3
+            },
+            "stat": {
+              "better": 1,
+              "matchers": [
+                {
+                  "string": "傳奇怪物(浸血碑器): # "
+                }
+              ],
+              "ref": "Unique Monsters (Blood-Filled Vessel): #",
+              "trade": {
+                "ids": {
+                  "pseudo": [
+                    "pseudo.pseudo_ritual_unique_monsters"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "傳奇怪物(浸血碑器): # "
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "matchers": [
+          {
+            "string": "傳奇怪物(浸血碑器): # "
+          }
+        ],
+        "ref": "Unique Monsters (Blood-Filled Vessel): #",
+        "trade": {
+          "ids": {
+            "pseudo": [
+              "pseudo.pseudo_ritual_unique_monsters"
+            ]
+          }
+        }
+      },
+      "type": "pseudo"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 41,
+            "min": 41,
+            "value": 41
+          },
+          "modifier": {
+            "info": {
+              "tags": [],
+              "type": "pseudo"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 41,
+                  "min": 41,
+                  "unscalable": true,
+                  "value": 41
+                },
+                "stat": {
+                  "better": 1,
+                  "matchers": [
+                    {
+                      "string": "非傳奇怪物(浸血碑器): # "
+                    }
+                  ],
+                  "ref": "Non-Unique Monsters (Blood-Filled Vessel): #",
+                  "trade": {
+                    "ids": {
+                      "pseudo": [
+                        "pseudo.pseudo_ritual_other_monsters"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "非傳奇怪物(浸血碑器): # "
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 41,
+              "min": 41,
+              "unscalable": true,
+              "value": 41
+            },
+            "stat": {
+              "better": 1,
+              "matchers": [
+                {
+                  "string": "非傳奇怪物(浸血碑器): # "
+                }
+              ],
+              "ref": "Non-Unique Monsters (Blood-Filled Vessel): #",
+              "trade": {
+                "ids": {
+                  "pseudo": [
+                    "pseudo.pseudo_ritual_other_monsters"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "非傳奇怪物(浸血碑器): # "
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "matchers": [
+          {
+            "string": "非傳奇怪物(浸血碑器): # "
+          }
+        ],
+        "ref": "Non-Unique Monsters (Blood-Filled Vessel): #",
+        "trade": {
+          "ids": {
+            "pseudo": [
+              "pseudo.pseudo_ritual_other_monsters"
+            ]
+          }
+        }
+      },
+      "type": "pseudo"
+    }
+  ],
+  "unknownModifiers": []
+}

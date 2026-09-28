@@ -1,0 +1,220 @@
+{
+  "baseType": "緊繃十字弓",
+  "category": "Crossbow",
+  "influences": [],
+  "info": {
+    "name": "壁壘猛禽",
+    "namespace": "UNIQUE",
+    "refName": "Rampart Raptor",
+    "unique": {
+      "base": "Tense Crossbow"
+    }
+  },
+  "infoVariants": [
+    {
+      "name": "壁壘猛禽",
+      "namespace": "UNIQUE",
+      "refName": "Rampart Raptor",
+      "unique": {
+        "base": "Tense Crossbow"
+      }
+    },
+    {
+      "name": "壁壘猛禽",
+      "namespace": "UNIQUE",
+      "refName": "Rampart Raptor",
+      "unique": {
+        "base": "Runeforged Tense Crossbow"
+      }
+    },
+    {
+      "name": "壁壘猛禽",
+      "namespace": "UNIQUE",
+      "refName": "Rampart Raptor",
+      "unique": {
+        "base": "Runemastered Tense Crossbow"
+      }
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": false,
+  "itemLevel": 15,
+  "name": "壁壘猛禽",
+  "newMods": [
+    {
+      "info": {
+        "tags": [],
+        "type": "implicit"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Bolt Speed",
+          "roll": {
+            "dp": false,
+            "max": 30,
+            "min": 20,
+            "unscalable": false,
+            "value": 29
+          },
+          "tradeIds": {
+            "implicit": [
+              "implicit.stat_1803308202"
+            ]
+          },
+          "translation": "增加#%弩箭速度"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "傷害,物理,攻擊"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Physical Damage",
+          "roll": {
+            "dp": false,
+            "max": 60,
+            "min": 40,
+            "unscalable": false,
+            "value": 59
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_1509134228"
+            ],
+            "desecrated": [
+              "desecrated.stat_1509134228"
+            ],
+            "enchant": [
+              "enchant.stat_1509134228"
+            ],
+            "explicit": [
+              "explicit.stat_1509134228"
+            ],
+            "fractured": [
+              "fractured.stat_1509134228"
+            ],
+            "rune": [
+              "rune.stat_1509134228"
+            ]
+          },
+          "translation": "增加#%物理傷害"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "攻擊,速度"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Reload Speed",
+          "roll": {
+            "dp": false,
+            "max": -30,
+            "min": -30,
+            "unscalable": false,
+            "value": -30
+          },
+          "tradeIds": {
+            "desecrated": [
+              "desecrated.stat_710476746"
+            ],
+            "explicit": [
+              "explicit.stat_710476746"
+            ]
+          },
+          "translation": "減少#%裝填速度"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "Bolts fired by Crossbow Attacks have #% chance to not\nexpend Ammunition if you've Reloaded Recently",
+          "roll": {
+            "dp": false,
+            "max": 100,
+            "min": 100,
+            "unscalable": false,
+            "value": 100
+          },
+          "tradeIds": {
+            "explicit": [
+              "explicit.stat_842299438"
+            ]
+          },
+          "translation": "若你近期裝填過時，十字弓攻擊發射的弩箭有#%機率不會消耗彈藥"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "攻擊,速度"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Attack Speed",
+          "roll": {
+            "dp": false,
+            "max": 40,
+            "min": 30,
+            "unscalable": false,
+            "value": 32
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_210067635",
+              "crafted.stat_681332047"
+            ],
+            "desecrated": [
+              "desecrated.stat_210067635",
+              "desecrated.stat_681332047"
+            ],
+            "enchant": [
+              "enchant.stat_210067635"
+            ],
+            "explicit": [
+              "explicit.stat_210067635",
+              "explicit.stat_681332047"
+            ],
+            "fractured": [
+              "fractured.stat_210067635",
+              "fractured.stat_681332047"
+            ],
+            "implicit": [
+              "implicit.stat_681332047"
+            ],
+            "rune": [
+              "rune.stat_210067635",
+              "rune.stat_681332047"
+            ]
+          },
+          "translation": "增加#%攻擊速度"
+        }
+      ]
+    }
+  ],
+  "rarity": "Unique",
+  "requires": {
+    "dex": 8,
+    "int": 0,
+    "level": 0,
+    "str": 8
+  },
+  "unknownModifiers": []
+}

@@ -1,0 +1,12 @@
+# 開發模式離線驗證自動更新用的範本。複製成 main/dev-app-update.yml(已 gitignore,不進 repo)。
+# electron-updater 在未打包環境只有 `forceDevUpdateConfig = true` 時才檢查,並讀 app 目錄(= main/)下的這個檔;
+# AppUpdater 只在開發模式加 `--force-update-check` 時打開它。
+#
+# 產生假來源:node scripts/make-fake-update-feed.mjs --serve 45678 --write-dev-config
+#   (會直接寫好 main/dev-app-update.yml;也可手動照下面填)
+provider: generic
+# 檢查(latest.yml)用 file:// 也可以;要驗「下載」請用 --serve 的 HTTP 網址。
+url: file:///D:/codeproject/Pob2/exile-appraiser/.fake-update-feed/
+# url: http://127.0.0.1:45678/
+# 下載暫存目錄名:%LOCALAPPDATA%\<updaterCacheDirName>\pending\(與正式版分開)
+updaterCacheDirName: exile-appraiser-updater-dev

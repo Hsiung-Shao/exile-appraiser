@@ -1,0 +1,81 @@
+{
+  "api": "trade",
+  "request": {
+    "query": {
+      "status": {
+        "option": "securable"
+      },
+      "stats": [
+        {
+          "type": "and",
+          "filters": [
+            {
+              "id": "rune.stat_4220027924",
+              "value": {
+                "min": 18
+              },
+              "disabled": true
+            },
+            {
+              "id": "rune.stat_1671376347",
+              "value": {
+                "min": 18
+              },
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_2451402625",
+              "value": {
+                "min": 86
+              },
+              "disabled": false
+            },
+            {
+              "id": "explicit.stat_3299347043",
+              "value": {
+                "min": 66
+              },
+              "disabled": false
+            },
+            {
+              "id": "explicit.stat_2134207902",
+              "value": {},
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_3999959974",
+              "value": {},
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_1546580830",
+              "value": {},
+              "disabled": true
+            }
+          ]
+        }
+      ],
+      "filters": {
+        "trade_filters": {
+          "filters": {
+            "collapse": {
+              "option": "true"
+            }
+          }
+        },
+        "misc_filters": {
+          "filters": {
+            "corrupted": {
+              "option": "false"
+            }
+          }
+        }
+      },
+      "name": "Doryani's Prototype",
+      "type": "Scale Mail"
+    },
+    "sort": {
+      "price": "asc"
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "es2022",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "allowJs": true,
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "types": ["node"],
+    "lib": ["es2022", "dom", "dom.iterable"]
+  },
+  "_comment_paths": "沿用上游的 `@/…` 匯入路徑,讓移植檔案逐字不改、日後對照 apt-patched diff 最小。vitest.config.mts 的 alias 必須與這裡一致。",
+  "_comment_include_test": "測試檔一起檢查(上游教訓:vitest 用 esbuild 轉譯、型別直接丟掉,測試裡的型別錯誤跑測試時完全看不到)。",
+  "include": [
+    "src/**/*.ts",
+    "test/**/*.ts"
+  ]
+}

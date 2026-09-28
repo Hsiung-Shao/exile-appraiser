@@ -1,0 +1,207 @@
+{
+  "category": "Map",
+  "influences": [],
+  "info": {
+    "area": {
+      "blighted": true
+    },
+    "craftable": {
+      "category": "Map"
+    },
+    "icon": "/images/maps/blight1.png",
+    "name": "凋落的 地圖",
+    "namespace": "ITEM",
+    "refName": "Blighted Map",
+    "tradeDisc": "blighted"
+  },
+  "infoVariants": [
+    {
+      "area": {
+        "blighted": true
+      },
+      "craftable": {
+        "category": "Map"
+      },
+      "icon": "/images/maps/blight1.png",
+      "name": "凋落的 地圖",
+      "namespace": "ITEM",
+      "refName": "Blighted Map",
+      "tradeDisc": "blighted"
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": false,
+  "itemLevel": 83,
+  "mapArea": {
+    "icon": "",
+    "name": "禁忌之森",
+    "namespace": "AREA",
+    "refName": "Forbidden Woods",
+    "tradeDisc": "26156"
+  },
+  "mapTier": 14,
+  "name": "凋落的 地圖",
+  "newMods": [
+    {
+      "info": {
+        "tags": [],
+        "type": "implicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 1,
+            "min": 1,
+            "unscalable": true,
+            "value": 1
+          },
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "yes",
+            "matchers": [
+              {
+                "string": "區域被毒菌滋長蔓延\n地圖物品數量詞綴同時以 40% 的值影響凋落保險箱\n最多可以抹油 # 次"
+              },
+              {
+                "string": "區域被毒菌滋長蔓延\n地圖物品數量詞綴同時以 20% 的值影響凋落保險箱\n最多可以抹油 3 次",
+                "value": 1
+              }
+            ],
+            "ref": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 25% value\nCan be Anointed up to 3 times",
+            "trade": {
+              "ids": {
+                "implicit": [
+                  "implicit.stat_299373046"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "區域被毒菌滋長蔓延\n地圖物品數量詞綴同時以 20% 的值影響凋落保險箱\n最多可以抹油 3 次",
+            "value": 1
+          }
+        }
+      ]
+    }
+  ],
+  "rarity": "Normal",
+  "rawText": "物品種類: 地圖\r\n稀有度: 普通\r\n凋落的 地圖（階級 14）\r\n--------\r\n地圖區域: 禁忌之森\r\n--------\r\n物品等級: 83\r\n--------\r\n怪物等級：81\r\n--------\r\n{ 固定詞綴 }\r\n區域被毒菌滋長蔓延\r\n地圖物品數量詞綴同時以 20% 的值影響凋落保險箱\r\n最多可以抹油 3 次 — 無法使用的值\r\n此區域原生怪物被移除 — 無法使用的值\r\n--------\r\n透過個人的地圖裝置來使用這張地圖以前往這個階級或更低的該地圖。每張地圖只能被使用一次。\r\n",
+  "statsByType": [
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 1,
+            "min": 1,
+            "value": 1
+          },
+          "modifier": {
+            "info": {
+              "tags": [],
+              "type": "implicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 1,
+                  "min": 1,
+                  "unscalable": true,
+                  "value": 1
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "區域被毒菌滋長蔓延\n地圖物品數量詞綴同時以 40% 的值影響凋落保險箱\n最多可以抹油 # 次"
+                    },
+                    {
+                      "string": "區域被毒菌滋長蔓延\n地圖物品數量詞綴同時以 20% 的值影響凋落保險箱\n最多可以抹油 3 次",
+                      "value": 1
+                    }
+                  ],
+                  "ref": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 25% value\nCan be Anointed up to 3 times",
+                  "trade": {
+                    "ids": {
+                      "implicit": [
+                        "implicit.stat_299373046"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "區域被毒菌滋長蔓延\n地圖物品數量詞綴同時以 20% 的值影響凋落保險箱\n最多可以抹油 3 次",
+                  "value": 1
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 1,
+              "min": 1,
+              "unscalable": true,
+              "value": 1
+            },
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "yes",
+              "matchers": [
+                {
+                  "string": "區域被毒菌滋長蔓延\n地圖物品數量詞綴同時以 40% 的值影響凋落保險箱\n最多可以抹油 # 次"
+                },
+                {
+                  "string": "區域被毒菌滋長蔓延\n地圖物品數量詞綴同時以 20% 的值影響凋落保險箱\n最多可以抹油 3 次",
+                  "value": 1
+                }
+              ],
+              "ref": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 25% value\nCan be Anointed up to 3 times",
+              "trade": {
+                "ids": {
+                  "implicit": [
+                    "implicit.stat_299373046"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "區域被毒菌滋長蔓延\n地圖物品數量詞綴同時以 20% 的值影響凋落保險箱\n最多可以抹油 3 次",
+              "value": 1
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "fromAreaMods": "yes",
+        "matchers": [
+          {
+            "string": "區域被毒菌滋長蔓延\n地圖物品數量詞綴同時以 40% 的值影響凋落保險箱\n最多可以抹油 # 次"
+          },
+          {
+            "string": "區域被毒菌滋長蔓延\n地圖物品數量詞綴同時以 20% 的值影響凋落保險箱\n最多可以抹油 3 次",
+            "value": 1
+          }
+        ],
+        "ref": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 25% value\nCan be Anointed up to 3 times",
+        "trade": {
+          "ids": {
+            "implicit": [
+              "implicit.stat_299373046"
+            ]
+          }
+        }
+      },
+      "type": "implicit"
+    }
+  ],
+  "unknownModifiers": [
+    {
+      "text": "此區域原生怪物被移除 — 無法使用的值",
+      "type": "implicit"
+    }
+  ]
+}

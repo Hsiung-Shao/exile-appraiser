@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "strict": true,
+    "jsx": "preserve",
+    "moduleResolution": "bundler",
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "allowJs": true,
+    "useDefineForClassFields": true,
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/parser": ["../poe1/src/parser/index.ts"],
+      "@/parser/*": ["../poe1/src/parser/*"],
+      "@/assets/data": ["../poe1/src/assets/data/index.ts"],
+      "@/assets/data/*": ["../poe1/src/assets/data/*"],
+      "@/web/price-check/*": ["../poe1/src/web/price-check/*"],
+      "@poe1/*": ["../poe1/src/web/price-check/*"],
+      "@poe2-entry": ["./src/web/games/poe2-entry.d.ts"],
+      "@/*": ["./src/*"],
+      "@ipc/*": ["../ipc/*"]
+    },
+    "types": ["vite/client", "node"],
+    "lib": ["esnext", "dom", "dom.iterable"]
+  },
+  "_comment_paths": "與 vite.config.mts 的 alias 一致:price-check 層(含 .vue)住在 poe1 package 裡,其餘 @/web/* 在本 renderer。PoE2 刻意不進這個 program(它的 `@/…` 必須指 poe2,與 poe1 衝突):renderer 只認 `@poe2-entry` 的手寫宣告,`@poe2/*.vue` 走 env.d.ts 的 *.vue 宣告;poe2 的 .vue 由 poe2/tsconfig.vue.json 另外檢查。",
+  "include": [
+    "src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue",
+    "../poe1/src/web/price-check/**/*.vue",
+    "../ipc/*.ts"
+  ]
+}

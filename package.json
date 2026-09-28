@@ -1,0 +1,37 @@
+{
+  "name": "exile-appraiser",
+  "version": "3.29.0",
+  "private": true,
+  "description": "Path of Exile 查價工具(繁中/英文客戶端,國際服與台服;PoE1 + PoE2)",
+  "license": "MIT",
+  "type": "module",
+  "workspaces": [
+    "core",
+    "poe1",
+    "poe2",
+    "renderer",
+    "main",
+    "regex"
+  ],
+  "scripts": {
+    "verify-data": "node scripts/verify-data-manifest.mjs",
+    "sync-data": "node scripts/sync-data-from-apt.mjs",
+    "make-index-files": "node scripts/make-index-files.mjs",
+    "build-icons": "node scripts/build-icons.mjs",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run verify-data && npm run test --workspace poe1 && npm run test --workspace poe2 && npm run test --workspace regex && npm run test --workspace renderer",
+    "check": "node scripts/check.mjs",
+    "check-user-agent": "node scripts/check-user-agent.mjs",
+    "dev": "npm run dev --workspace renderer & npm run dev --workspace main",
+    "dev:renderer": "npm run dev --workspace renderer",
+    "dev:main": "npm run dev --workspace main",
+    "build": "npm run build --workspace renderer && npm run build --workspace main",
+    "package": "npm run build && npm run package --workspace main"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "sharp": "^0.35.5"
+  }
+}

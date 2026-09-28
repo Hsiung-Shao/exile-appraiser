@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="14 14 228 228" width="228" height="228">
+  <!-- ExileAppraiser 托盤圖示:icon.svg 的天平去掉底板、單色 #f0c96a、線寬 20(16px 下約 1.4px)。
+       viewBox 收緊到天平本體,讓 16px 能用滿;深色描邊由 scripts/build-icons.mjs 在點陣化時加上。 -->
+  <g stroke="#f0c96a" stroke-width="20" stroke-linecap="round" fill="none">
+    <line x1="128" y1="62" x2="128" y2="196"/>
+    <line x1="52" y1="84" x2="204" y2="84"/>
+    <line x1="64" y1="84" x2="44" y2="140"/>
+    <line x1="64" y1="84" x2="84" y2="140"/>
+    <line x1="192" y1="84" x2="172" y2="140"/>
+    <line x1="192" y1="84" x2="212" y2="140"/>
+    <line x1="86" y1="204" x2="170" y2="204"/>
+  </g>
+  <path d="M30 142 H98 A34 20 0 0 1 30 142 Z" fill="#f0c96a"/>
+  <path d="M158 142 H226 A34 20 0 0 1 158 142 Z" fill="#f0c96a"/>
+  <rect x="116" y="42" width="24" height="24" rx="3" transform="rotate(45 128 54)" fill="#f0c96a"/>
+</svg>

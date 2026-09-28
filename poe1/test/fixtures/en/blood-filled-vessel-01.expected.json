@@ -1,0 +1,285 @@
+{
+  "influences": [],
+  "info": {
+    "icon": "",
+    "name": "Blood-filled Vessel",
+    "namespace": "ITEM",
+    "refName": "Blood-filled Vessel",
+    "src": "zh-tw-missing"
+  },
+  "infoVariants": [
+    {
+      "icon": "",
+      "name": "Blood-filled Vessel",
+      "namespace": "ITEM",
+      "refName": "Blood-filled Vessel",
+      "src": "zh-tw-missing"
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": false,
+  "name": "Blood-filled Vessel",
+  "newMods": [
+    {
+      "info": {
+        "tags": [],
+        "type": "pseudo"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 3,
+            "min": 3,
+            "unscalable": true,
+            "value": 3
+          },
+          "stat": {
+            "better": 1,
+            "matchers": [
+              {
+                "string": "Unique Monsters (Blood-Filled Vessel): # "
+              }
+            ],
+            "ref": "Unique Monsters (Blood-Filled Vessel): #",
+            "trade": {
+              "ids": {
+                "pseudo": [
+                  "pseudo.pseudo_ritual_unique_monsters"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "Unique Monsters (Blood-Filled Vessel): # "
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [],
+        "type": "pseudo"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 41,
+            "min": 41,
+            "unscalable": true,
+            "value": 41
+          },
+          "stat": {
+            "better": 1,
+            "matchers": [
+              {
+                "string": "Non-Unique Monsters (Blood-Filled Vessel): # "
+              }
+            ],
+            "ref": "Non-Unique Monsters (Blood-Filled Vessel): #",
+            "trade": {
+              "ids": {
+                "pseudo": [
+                  "pseudo.pseudo_ritual_other_monsters"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "Non-Unique Monsters (Blood-Filled Vessel): # "
+          }
+        }
+      ]
+    }
+  ],
+  "rarity": "Normal",
+  "rawText": "Item Class: Map Fragment\r\nRarity: Normal\r\nBlood-filled Vessel\r\n--------\r\nMonsters:\r\nCarius, the Unnatural\r\nPileah, Corpse Burner\r\nPileah, Burning Corpse\r\n41 Other Monsters\r\nMonster Level: 83\r\nFrom: City Square\r\n--------\r\nRituals have 20% improved Favour Rewards\r\nRituals spawn Monsters 20% faster\r\nRituals have 20% more maximum monsters alive\r\n--------\r\nCan be used in a personal Map Device alongside a Map to add the monsters stored from a previous Ritual Altar to a Ritual Altar in that Map.\r\n",
+  "statsByType": [
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 3,
+            "min": 3,
+            "value": 3
+          },
+          "modifier": {
+            "info": {
+              "tags": [],
+              "type": "pseudo"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 3,
+                  "min": 3,
+                  "unscalable": true,
+                  "value": 3
+                },
+                "stat": {
+                  "better": 1,
+                  "matchers": [
+                    {
+                      "string": "Unique Monsters (Blood-Filled Vessel): # "
+                    }
+                  ],
+                  "ref": "Unique Monsters (Blood-Filled Vessel): #",
+                  "trade": {
+                    "ids": {
+                      "pseudo": [
+                        "pseudo.pseudo_ritual_unique_monsters"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "Unique Monsters (Blood-Filled Vessel): # "
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 3,
+              "min": 3,
+              "unscalable": true,
+              "value": 3
+            },
+            "stat": {
+              "better": 1,
+              "matchers": [
+                {
+                  "string": "Unique Monsters (Blood-Filled Vessel): # "
+                }
+              ],
+              "ref": "Unique Monsters (Blood-Filled Vessel): #",
+              "trade": {
+                "ids": {
+                  "pseudo": [
+                    "pseudo.pseudo_ritual_unique_monsters"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "Unique Monsters (Blood-Filled Vessel): # "
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "matchers": [
+          {
+            "string": "Unique Monsters (Blood-Filled Vessel): # "
+          }
+        ],
+        "ref": "Unique Monsters (Blood-Filled Vessel): #",
+        "trade": {
+          "ids": {
+            "pseudo": [
+              "pseudo.pseudo_ritual_unique_monsters"
+            ]
+          }
+        }
+      },
+      "type": "pseudo"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 41,
+            "min": 41,
+            "value": 41
+          },
+          "modifier": {
+            "info": {
+              "tags": [],
+              "type": "pseudo"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 41,
+                  "min": 41,
+                  "unscalable": true,
+                  "value": 41
+                },
+                "stat": {
+                  "better": 1,
+                  "matchers": [
+                    {
+                      "string": "Non-Unique Monsters (Blood-Filled Vessel): # "
+                    }
+                  ],
+                  "ref": "Non-Unique Monsters (Blood-Filled Vessel): #",
+                  "trade": {
+                    "ids": {
+                      "pseudo": [
+                        "pseudo.pseudo_ritual_other_monsters"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "Non-Unique Monsters (Blood-Filled Vessel): # "
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 41,
+              "min": 41,
+              "unscalable": true,
+              "value": 41
+            },
+            "stat": {
+              "better": 1,
+              "matchers": [
+                {
+                  "string": "Non-Unique Monsters (Blood-Filled Vessel): # "
+                }
+              ],
+              "ref": "Non-Unique Monsters (Blood-Filled Vessel): #",
+              "trade": {
+                "ids": {
+                  "pseudo": [
+                    "pseudo.pseudo_ritual_other_monsters"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "Non-Unique Monsters (Blood-Filled Vessel): # "
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "matchers": [
+          {
+            "string": "Non-Unique Monsters (Blood-Filled Vessel): # "
+          }
+        ],
+        "ref": "Non-Unique Monsters (Blood-Filled Vessel): #",
+        "trade": {
+          "ids": {
+            "pseudo": [
+              "pseudo.pseudo_ritual_other_monsters"
+            ]
+          }
+        }
+      },
+      "type": "pseudo"
+    }
+  ],
+  "unknownModifiers": []
+}

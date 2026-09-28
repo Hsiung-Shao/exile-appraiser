@@ -1,0 +1,268 @@
+{
+  "baseType": "赤紅項鍊",
+  "category": "Amulet",
+  "influences": [],
+  "info": {
+    "name": "奧敦塑像",
+    "namespace": "UNIQUE",
+    "refName": "Idol of Uldurn",
+    "unique": {
+      "base": "Crimson Amulet"
+    }
+  },
+  "infoVariants": [
+    {
+      "name": "奧敦塑像",
+      "namespace": "UNIQUE",
+      "refName": "Idol of Uldurn",
+      "unique": {
+        "base": "Crimson Amulet"
+      }
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": false,
+  "itemLevel": 81,
+  "name": "奧敦塑像",
+  "newMods": [
+    {
+      "info": {
+        "tags": [
+          "生命"
+        ],
+        "type": "implicit"
+      },
+      "stats": [
+        {
+          "ref": "# Life Regeneration per second",
+          "roll": {
+            "dp": true,
+            "max": 4,
+            "min": 2,
+            "unscalable": false,
+            "value": 4
+          },
+          "tradeIds": {
+            "desecrated": [
+              "desecrated.stat_3325883026"
+            ],
+            "explicit": [
+              "explicit.stat_3325883026"
+            ],
+            "fractured": [
+              "fractured.stat_3325883026"
+            ],
+            "implicit": [
+              "implicit.stat_3325883026"
+            ],
+            "rune": [
+              "rune.stat_3325883026"
+            ]
+          },
+          "translation": "#每秒生命回復"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "生命"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "# to maximum Life",
+          "roll": {
+            "dp": false,
+            "max": 80,
+            "min": 60,
+            "unscalable": false,
+            "value": 77
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_3299347043"
+            ],
+            "desecrated": [
+              "desecrated.stat_3299347043"
+            ],
+            "enchant": [
+              "enchant.stat_3299347043"
+            ],
+            "explicit": [
+              "explicit.stat_3299347043"
+            ],
+            "fractured": [
+              "fractured.stat_3299347043"
+            ],
+            "implicit": [
+              "implicit.stat_3299347043"
+            ],
+            "rune": [
+              "rune.stat_3299347043"
+            ]
+          },
+          "translation": "#最大生命"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "能力"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "# to Dexterity",
+          "roll": {
+            "dp": false,
+            "max": 20,
+            "min": 10,
+            "unscalable": false,
+            "value": 16
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_3261801346"
+            ],
+            "desecrated": [
+              "desecrated.stat_3261801346"
+            ],
+            "enchant": [
+              "enchant.stat_3261801346"
+            ],
+            "explicit": [
+              "explicit.stat_3261801346"
+            ],
+            "fractured": [
+              "fractured.stat_3261801346"
+            ],
+            "implicit": [
+              "implicit.stat_3261801346"
+            ],
+            "rune": [
+              "rune.stat_3261801346"
+            ]
+          },
+          "translation": "#點敏捷"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "光環"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Presence Area of Effect",
+          "roll": {
+            "dp": false,
+            "max": -20,
+            "min": -40,
+            "unscalable": false,
+            "value": -24
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_101878827"
+            ],
+            "desecrated": [
+              "desecrated.stat_101878827"
+            ],
+            "enchant": [
+              "enchant.stat_101878827"
+            ],
+            "explicit": [
+              "explicit.stat_101878827"
+            ],
+            "fractured": [
+              "fractured.stat_101878827"
+            ],
+            "rune": [
+              "rune.stat_101878827"
+            ]
+          },
+          "translation": "減少#%存在範圍的範圍效果"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Spirit",
+          "roll": {
+            "dp": false,
+            "max": 15,
+            "min": 10,
+            "unscalable": false,
+            "value": 15
+          },
+          "tradeIds": {
+            "desecrated": [
+              "desecrated.stat_1416406066",
+              "desecrated.stat_3984865854"
+            ],
+            "enchant": [
+              "enchant.stat_3984865854"
+            ],
+            "explicit": [
+              "explicit.stat_1416406066",
+              "explicit.stat_3984865854"
+            ],
+            "fractured": [
+              "fractured.stat_1416406066",
+              "fractured.stat_3984865854"
+            ],
+            "rune": [
+              "rune.stat_1416406066",
+              "rune.stat_3984865854"
+            ]
+          },
+          "translation": "增加#%精魂"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "Skills have +# to Limit",
+          "roll": {
+            "dp": false,
+            "max": 1,
+            "min": 1,
+            "unscalable": false,
+            "value": 1
+          },
+          "tradeIds": {
+            "explicit": [
+              "explicit.stat_2942704390"
+            ]
+          },
+          "translation": "技能上限+#"
+        }
+      ]
+    }
+  ],
+  "rarity": "Unique",
+  "requires": {
+    "dex": 0,
+    "int": 0,
+    "level": 24,
+    "str": 0
+  },
+  "unknownModifiers": []
+}

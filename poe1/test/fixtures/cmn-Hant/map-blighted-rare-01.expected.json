@@ -1,0 +1,1045 @@
+{
+  "areaItemQuantity": 58,
+  "areaItemRarity": 33,
+  "areaPackSize": 22,
+  "baseType": "凋落的 地圖",
+  "category": "Map",
+  "influences": [],
+  "info": {
+    "area": {
+      "blighted": true
+    },
+    "craftable": {
+      "category": "Map"
+    },
+    "icon": "/images/maps/blight1.png",
+    "name": "凋落的 地圖",
+    "namespace": "ITEM",
+    "refName": "Blighted Map",
+    "tradeDisc": "blighted"
+  },
+  "infoVariants": [
+    {
+      "area": {
+        "blighted": true
+      },
+      "craftable": {
+        "category": "Map"
+      },
+      "icon": "/images/maps/blight1.png",
+      "name": "凋落的 地圖",
+      "namespace": "ITEM",
+      "refName": "Blighted Map",
+      "tradeDisc": "blighted"
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": false,
+  "itemLevel": 83,
+  "mapArea": {
+    "icon": "",
+    "name": "禁忌之森",
+    "namespace": "AREA",
+    "refName": "Forbidden Woods",
+    "tradeDisc": "26156"
+  },
+  "mapTier": 14,
+  "name": "汙濁方向",
+  "newMods": [
+    {
+      "info": {
+        "tags": [],
+        "type": "implicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 1,
+            "min": 1,
+            "unscalable": true,
+            "value": 1
+          },
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "yes",
+            "matchers": [
+              {
+                "string": "區域被毒菌滋長蔓延\n地圖物品數量詞綴同時以 40% 的值影響凋落保險箱\n最多可以抹油 # 次"
+              },
+              {
+                "string": "區域被毒菌滋長蔓延\n地圖物品數量詞綴同時以 20% 的值影響凋落保險箱\n最多可以抹油 3 次",
+                "value": 1
+              }
+            ],
+            "ref": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 25% value\nCan be Anointed up to 3 times",
+            "trade": {
+              "ids": {
+                "implicit": [
+                  "implicit.stat_299373046"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "區域被毒菌滋長蔓延\n地圖物品數量詞綴同時以 20% 的值影響凋落保險箱\n最多可以抹油 3 次",
+            "value": 1
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "prefix",
+        "name": "抗滲的",
+        "tags": [
+          "物理",
+          "混沌",
+          "攻擊",
+          "異常狀態"
+        ],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 50,
+            "min": 50,
+            "unscalable": false,
+            "value": 50
+          },
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "yes",
+            "matchers": [
+              {
+                "string": "怪物有 #% 機率避免中毒、穿刺和流血"
+              }
+            ],
+            "ref": "Monsters have a #% chance to avoid Poison, Impale, and Bleeding",
+            "trade": {
+              "ids": {
+                "explicit": [
+                  "explicit.stat_144665660"
+                ],
+                "fractured": [
+                  "fractured.stat_144665660"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "怪物有 #% 機率避免中毒、穿刺和流血"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "prefix",
+        "name": "燃燒的",
+        "tags": [
+          "傷害",
+          "物理",
+          "元素",
+          "火焰"
+        ],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 110,
+            "min": 90,
+            "unscalable": false,
+            "value": 100
+          },
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "yes",
+            "matchers": [
+              {
+                "string": "怪物造成 #% 額外物理傷害視為火焰"
+              }
+            ],
+            "ref": "Monsters deal #% extra Physical Damage as Fire",
+            "trade": {
+              "ids": {
+                "explicit": [
+                  "explicit.stat_1497673356"
+                ],
+                "fractured": [
+                  "fractured.stat_1497673356"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "怪物造成 #% 額外物理傷害視為火焰"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "prefix",
+        "name": "霸主的",
+        "tags": [
+          "攻擊",
+          "法術",
+          "速度"
+        ],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 25,
+            "min": 25,
+            "unscalable": false,
+            "value": 25
+          },
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "yes",
+            "matchers": [
+              {
+                "string": "傳奇頭目增加 #% 傷害"
+              }
+            ],
+            "ref": "Unique Boss deals #% increased Damage",
+            "trade": {
+              "ids": {
+                "enchant": [
+                  "enchant.stat_124877078"
+                ],
+                "explicit": [
+                  "explicit.stat_124877078"
+                ],
+                "fractured": [
+                  "fractured.stat_124877078"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "傳奇頭目增加 #% 傷害"
+          }
+        },
+        {
+          "roll": {
+            "dp": false,
+            "max": 30,
+            "min": 30,
+            "unscalable": false,
+            "value": 30
+          },
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "yes",
+            "matchers": [
+              {
+                "string": "傳奇頭目增加 #% 攻擊速度及施放速度"
+              }
+            ],
+            "ref": "Unique Boss has #% increased Attack and Cast Speed",
+            "trade": {
+              "ids": {
+                "explicit": [
+                  "explicit.stat_2109106920"
+                ],
+                "fractured": [
+                  "fractured.stat_2109106920"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "傳奇頭目增加 #% 攻擊速度及施放速度"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "suffix",
+        "name": "瘀血之",
+        "tags": [
+          "生命",
+          "魔力",
+          "防禦",
+          "能量護盾"
+        ],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "yes",
+            "matchers": [
+              {
+                "string": "玩家不能回復生命、魔力和能量護盾"
+              }
+            ],
+            "ref": "Players cannot Regenerate Life, Mana or Energy Shield",
+            "trade": {
+              "ids": {
+                "explicit": [
+                  "explicit.stat_1910157106"
+                ],
+                "fractured": [
+                  "fractured.stat_1910157106"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "玩家不能回復生命、魔力和能量護盾"
+          }
+        }
+      ]
+    }
+  ],
+  "rarity": "Rare",
+  "rawText": "物品種類: 地圖\r\n稀有度: 稀有\r\n汙濁方向\r\n凋落的 地圖（階級 14）\r\n--------\r\n地圖區域: 禁忌之森\r\n物品數量: +58% (augmented)\r\n物品稀有度: +33% (augmented)\r\n怪物群大小: +22% (augmented)\r\n--------\r\n物品等級: 83\r\n--------\r\n怪物等級：81\r\n--------\r\n{ 固定詞綴 }\r\n區域被毒菌滋長蔓延\r\n地圖物品數量詞綴同時以 20% 的值影響凋落保險箱\r\n最多可以抹油 3 次 — 無法使用的值\r\n此區域原生怪物被移除 — 無法使用的值\r\n--------\r\n{ 前綴 \"抗滲的\"(階層：1)— 物理,混沌,攻擊,異常狀態 }\r\n怪物有 50% 機率避免中毒、穿刺和流血\r\n{ 前綴 \"燃燒的\"(階層：1)— 傷害,物理,元素,火焰 }\r\n怪物造成 100(90-110)% 額外物理傷害視為火焰\r\n{ 前綴 \"霸主的\"(階層：1)— 攻擊,法術,速度 }\r\n傳奇頭目增加 25% 傷害\r\n傳奇頭目增加 30% 攻擊速度及施放速度\r\n{ 後綴 \"瘀血之\"(階層：1)— 生命,魔力,防禦,能量護盾 }\r\n玩家不能回復生命、魔力和能量護盾 — 無法使用的值\r\n--------\r\n透過個人的地圖裝置來使用這張地圖以前往這個階級或更低的該地圖。每張地圖只能被使用一次。\r\n",
+  "statsByType": [
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 1,
+            "min": 1,
+            "value": 1
+          },
+          "modifier": {
+            "info": {
+              "tags": [],
+              "type": "implicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 1,
+                  "min": 1,
+                  "unscalable": true,
+                  "value": 1
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "區域被毒菌滋長蔓延\n地圖物品數量詞綴同時以 40% 的值影響凋落保險箱\n最多可以抹油 # 次"
+                    },
+                    {
+                      "string": "區域被毒菌滋長蔓延\n地圖物品數量詞綴同時以 20% 的值影響凋落保險箱\n最多可以抹油 3 次",
+                      "value": 1
+                    }
+                  ],
+                  "ref": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 25% value\nCan be Anointed up to 3 times",
+                  "trade": {
+                    "ids": {
+                      "implicit": [
+                        "implicit.stat_299373046"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "區域被毒菌滋長蔓延\n地圖物品數量詞綴同時以 20% 的值影響凋落保險箱\n最多可以抹油 3 次",
+                  "value": 1
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 1,
+              "min": 1,
+              "unscalable": true,
+              "value": 1
+            },
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "yes",
+              "matchers": [
+                {
+                  "string": "區域被毒菌滋長蔓延\n地圖物品數量詞綴同時以 40% 的值影響凋落保險箱\n最多可以抹油 # 次"
+                },
+                {
+                  "string": "區域被毒菌滋長蔓延\n地圖物品數量詞綴同時以 20% 的值影響凋落保險箱\n最多可以抹油 3 次",
+                  "value": 1
+                }
+              ],
+              "ref": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 25% value\nCan be Anointed up to 3 times",
+              "trade": {
+                "ids": {
+                  "implicit": [
+                    "implicit.stat_299373046"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "區域被毒菌滋長蔓延\n地圖物品數量詞綴同時以 20% 的值影響凋落保險箱\n最多可以抹油 3 次",
+              "value": 1
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "fromAreaMods": "yes",
+        "matchers": [
+          {
+            "string": "區域被毒菌滋長蔓延\n地圖物品數量詞綴同時以 40% 的值影響凋落保險箱\n最多可以抹油 # 次"
+          },
+          {
+            "string": "區域被毒菌滋長蔓延\n地圖物品數量詞綴同時以 20% 的值影響凋落保險箱\n最多可以抹油 3 次",
+            "value": 1
+          }
+        ],
+        "ref": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 25% value\nCan be Anointed up to 3 times",
+        "trade": {
+          "ids": {
+            "implicit": [
+              "implicit.stat_299373046"
+            ]
+          }
+        }
+      },
+      "type": "implicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 50,
+            "min": 50,
+            "value": 50
+          },
+          "modifier": {
+            "info": {
+              "generation": "prefix",
+              "name": "抗滲的",
+              "tags": [
+                "物理",
+                "混沌",
+                "攻擊",
+                "異常狀態"
+              ],
+              "tier": 1,
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 50,
+                  "min": 50,
+                  "unscalable": false,
+                  "value": 50
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "怪物有 #% 機率避免中毒、穿刺和流血"
+                    }
+                  ],
+                  "ref": "Monsters have a #% chance to avoid Poison, Impale, and Bleeding",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_144665660"
+                      ],
+                      "fractured": [
+                        "fractured.stat_144665660"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "怪物有 #% 機率避免中毒、穿刺和流血"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 50,
+              "min": 50,
+              "unscalable": false,
+              "value": 50
+            },
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "yes",
+              "matchers": [
+                {
+                  "string": "怪物有 #% 機率避免中毒、穿刺和流血"
+                }
+              ],
+              "ref": "Monsters have a #% chance to avoid Poison, Impale, and Bleeding",
+              "trade": {
+                "ids": {
+                  "explicit": [
+                    "explicit.stat_144665660"
+                  ],
+                  "fractured": [
+                    "fractured.stat_144665660"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "怪物有 #% 機率避免中毒、穿刺和流血"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "fromAreaMods": "yes",
+        "matchers": [
+          {
+            "string": "怪物有 #% 機率避免中毒、穿刺和流血"
+          }
+        ],
+        "ref": "Monsters have a #% chance to avoid Poison, Impale, and Bleeding",
+        "trade": {
+          "ids": {
+            "explicit": [
+              "explicit.stat_144665660"
+            ],
+            "fractured": [
+              "fractured.stat_144665660"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 110,
+            "min": 90,
+            "value": 100
+          },
+          "modifier": {
+            "info": {
+              "generation": "prefix",
+              "name": "燃燒的",
+              "tags": [
+                "傷害",
+                "物理",
+                "元素",
+                "火焰"
+              ],
+              "tier": 1,
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 110,
+                  "min": 90,
+                  "unscalable": false,
+                  "value": 100
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "怪物造成 #% 額外物理傷害視為火焰"
+                    }
+                  ],
+                  "ref": "Monsters deal #% extra Physical Damage as Fire",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_1497673356"
+                      ],
+                      "fractured": [
+                        "fractured.stat_1497673356"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "怪物造成 #% 額外物理傷害視為火焰"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 110,
+              "min": 90,
+              "unscalable": false,
+              "value": 100
+            },
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "yes",
+              "matchers": [
+                {
+                  "string": "怪物造成 #% 額外物理傷害視為火焰"
+                }
+              ],
+              "ref": "Monsters deal #% extra Physical Damage as Fire",
+              "trade": {
+                "ids": {
+                  "explicit": [
+                    "explicit.stat_1497673356"
+                  ],
+                  "fractured": [
+                    "fractured.stat_1497673356"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "怪物造成 #% 額外物理傷害視為火焰"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "fromAreaMods": "yes",
+        "matchers": [
+          {
+            "string": "怪物造成 #% 額外物理傷害視為火焰"
+          }
+        ],
+        "ref": "Monsters deal #% extra Physical Damage as Fire",
+        "trade": {
+          "ids": {
+            "explicit": [
+              "explicit.stat_1497673356"
+            ],
+            "fractured": [
+              "fractured.stat_1497673356"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 25,
+            "min": 25,
+            "value": 25
+          },
+          "modifier": {
+            "info": {
+              "generation": "prefix",
+              "name": "霸主的",
+              "tags": [
+                "攻擊",
+                "法術",
+                "速度"
+              ],
+              "tier": 1,
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 25,
+                  "min": 25,
+                  "unscalable": false,
+                  "value": 25
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "傳奇頭目增加 #% 傷害"
+                    }
+                  ],
+                  "ref": "Unique Boss deals #% increased Damage",
+                  "trade": {
+                    "ids": {
+                      "enchant": [
+                        "enchant.stat_124877078"
+                      ],
+                      "explicit": [
+                        "explicit.stat_124877078"
+                      ],
+                      "fractured": [
+                        "fractured.stat_124877078"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "傳奇頭目增加 #% 傷害"
+                }
+              },
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 30,
+                  "min": 30,
+                  "unscalable": false,
+                  "value": 30
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "傳奇頭目增加 #% 攻擊速度及施放速度"
+                    }
+                  ],
+                  "ref": "Unique Boss has #% increased Attack and Cast Speed",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_2109106920"
+                      ],
+                      "fractured": [
+                        "fractured.stat_2109106920"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "傳奇頭目增加 #% 攻擊速度及施放速度"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 25,
+              "min": 25,
+              "unscalable": false,
+              "value": 25
+            },
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "yes",
+              "matchers": [
+                {
+                  "string": "傳奇頭目增加 #% 傷害"
+                }
+              ],
+              "ref": "Unique Boss deals #% increased Damage",
+              "trade": {
+                "ids": {
+                  "enchant": [
+                    "enchant.stat_124877078"
+                  ],
+                  "explicit": [
+                    "explicit.stat_124877078"
+                  ],
+                  "fractured": [
+                    "fractured.stat_124877078"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "傳奇頭目增加 #% 傷害"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "fromAreaMods": "yes",
+        "matchers": [
+          {
+            "string": "傳奇頭目增加 #% 傷害"
+          }
+        ],
+        "ref": "Unique Boss deals #% increased Damage",
+        "trade": {
+          "ids": {
+            "enchant": [
+              "enchant.stat_124877078"
+            ],
+            "explicit": [
+              "explicit.stat_124877078"
+            ],
+            "fractured": [
+              "fractured.stat_124877078"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 30,
+            "min": 30,
+            "value": 30
+          },
+          "modifier": {
+            "info": {
+              "generation": "prefix",
+              "name": "霸主的",
+              "tags": [
+                "攻擊",
+                "法術",
+                "速度"
+              ],
+              "tier": 1,
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 25,
+                  "min": 25,
+                  "unscalable": false,
+                  "value": 25
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "傳奇頭目增加 #% 傷害"
+                    }
+                  ],
+                  "ref": "Unique Boss deals #% increased Damage",
+                  "trade": {
+                    "ids": {
+                      "enchant": [
+                        "enchant.stat_124877078"
+                      ],
+                      "explicit": [
+                        "explicit.stat_124877078"
+                      ],
+                      "fractured": [
+                        "fractured.stat_124877078"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "傳奇頭目增加 #% 傷害"
+                }
+              },
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 30,
+                  "min": 30,
+                  "unscalable": false,
+                  "value": 30
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "傳奇頭目增加 #% 攻擊速度及施放速度"
+                    }
+                  ],
+                  "ref": "Unique Boss has #% increased Attack and Cast Speed",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_2109106920"
+                      ],
+                      "fractured": [
+                        "fractured.stat_2109106920"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "傳奇頭目增加 #% 攻擊速度及施放速度"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 30,
+              "min": 30,
+              "unscalable": false,
+              "value": 30
+            },
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "yes",
+              "matchers": [
+                {
+                  "string": "傳奇頭目增加 #% 攻擊速度及施放速度"
+                }
+              ],
+              "ref": "Unique Boss has #% increased Attack and Cast Speed",
+              "trade": {
+                "ids": {
+                  "explicit": [
+                    "explicit.stat_2109106920"
+                  ],
+                  "fractured": [
+                    "fractured.stat_2109106920"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "傳奇頭目增加 #% 攻擊速度及施放速度"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "fromAreaMods": "yes",
+        "matchers": [
+          {
+            "string": "傳奇頭目增加 #% 攻擊速度及施放速度"
+          }
+        ],
+        "ref": "Unique Boss has #% increased Attack and Cast Speed",
+        "trade": {
+          "ids": {
+            "explicit": [
+              "explicit.stat_2109106920"
+            ],
+            "fractured": [
+              "fractured.stat_2109106920"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "modifier": {
+            "info": {
+              "generation": "suffix",
+              "name": "瘀血之",
+              "tags": [
+                "生命",
+                "魔力",
+                "防禦",
+                "能量護盾"
+              ],
+              "tier": 1,
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "玩家不能回復生命、魔力和能量護盾"
+                    }
+                  ],
+                  "ref": "Players cannot Regenerate Life, Mana or Energy Shield",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_1910157106"
+                      ],
+                      "fractured": [
+                        "fractured.stat_1910157106"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "玩家不能回復生命、魔力和能量護盾"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "yes",
+              "matchers": [
+                {
+                  "string": "玩家不能回復生命、魔力和能量護盾"
+                }
+              ],
+              "ref": "Players cannot Regenerate Life, Mana or Energy Shield",
+              "trade": {
+                "ids": {
+                  "explicit": [
+                    "explicit.stat_1910157106"
+                  ],
+                  "fractured": [
+                    "fractured.stat_1910157106"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "玩家不能回復生命、魔力和能量護盾"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "fromAreaMods": "yes",
+        "matchers": [
+          {
+            "string": "玩家不能回復生命、魔力和能量護盾"
+          }
+        ],
+        "ref": "Players cannot Regenerate Life, Mana or Energy Shield",
+        "trade": {
+          "ids": {
+            "explicit": [
+              "explicit.stat_1910157106"
+            ],
+            "fractured": [
+              "fractured.stat_1910157106"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    }
+  ],
+  "unknownModifiers": [
+    {
+      "text": "此區域原生怪物被移除 — 無法使用的值",
+      "type": "implicit"
+    }
+  ]
+}

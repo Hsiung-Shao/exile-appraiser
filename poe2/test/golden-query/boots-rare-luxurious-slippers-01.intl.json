@@ -1,0 +1,122 @@
+{
+  "api": "trade",
+  "request": {
+    "query": {
+      "status": {
+        "option": "securable"
+      },
+      "stats": [
+        {
+          "type": "and",
+          "filters": [
+            {
+              "id": "explicit.stat_4015621042",
+              "value": {
+                "min": 95
+              },
+              "disabled": true
+            },
+            {
+              "id": "pseudo.pseudo_total_elemental_resistance",
+              "value": {
+                "min": 45
+              },
+              "disabled": false
+            },
+            {
+              "id": "pseudo.pseudo_total_lightning_resistance",
+              "value": {
+                "min": 45
+              },
+              "disabled": true
+            },
+            {
+              "id": "pseudo.pseudo_total_chaos_resistance",
+              "value": {
+                "min": 14
+              },
+              "disabled": false
+            },
+            {
+              "id": "pseudo.pseudo_increased_movement_speed",
+              "value": {
+                "min": 30
+              },
+              "disabled": false
+            },
+            {
+              "id": "rune.stat_789117908",
+              "value": {
+                "min": 18
+              },
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_915769802",
+              "value": {
+                "min": 55
+              },
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_3639275092",
+              "value": {
+                "max": -35
+              },
+              "disabled": true
+            },
+            {
+              "id": "desecrated.stat_3465022881",
+              "value": {
+                "min": 14
+              },
+              "disabled": true
+            }
+          ]
+        }
+      ],
+      "filters": {
+        "trade_filters": {
+          "filters": {
+            "collapse": {
+              "option": "true"
+            }
+          }
+        },
+        "type_filters": {
+          "filters": {
+            "category": {
+              "option": "armour.boots"
+            },
+            "rarity": {
+              "option": "nonunique"
+            }
+          }
+        },
+        "misc_filters": {
+          "filters": {
+            "corrupted": {
+              "option": "false"
+            },
+            "mirrored": {
+              "option": "false"
+            },
+            "sanctified": {
+              "option": "false"
+            }
+          }
+        },
+        "equipment_filters": {
+          "filters": {
+            "es": {
+              "min": 170
+            }
+          }
+        }
+      }
+    },
+    "sort": {
+      "price": "asc"
+    }
+  }
+}

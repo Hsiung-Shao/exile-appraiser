@@ -1,0 +1,1401 @@
+{
+  "influences": [],
+  "info": {
+    "disc": {
+      "sectionText": "風暴之手"
+    },
+    "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+    "name": "傭兵契約書",
+    "namespace": "ITEM",
+    "refName": "Mercenary Warrant",
+    "tradeDisc": "mercenary_warrant",
+    "tradeType": "ElementalWitchLightning"
+  },
+  "infoVariants": [
+    {
+      "disc": {
+        "sectionText": "萬惡盧庫斯戰爭牧師"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "AurasMinionsTemplarSmiteRuckusNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "萬惡刀刃噬咬者"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "Crit1HShadowPoisonNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "萬惡刀鋒伏擊者"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "TrapsMinesShadowAttackNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "萬惡風暴狂熱者"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "PhysConvertTemplarLightningNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "萬惡電襲伏擊者"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "TrapsMinesShadowLightningNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "萬惡刀刃術者"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "Crit1HShadowPhysSpellNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "萬惡冰霜之手"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "ElementalWitchColdNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "萬惡紅衣主教"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "AurasMinionsTemplarStaffNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "萬惡風暴之手"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "ElementalWitchLightningNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "萬惡凋靈之觸"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "ChaosMinionWitchDotNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "萬惡殘忍女王"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "ChaosMinionWitchChaosHitNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "萬惡腥紅術師"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "MiscScionPhysDotNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "萬惡墮落教士"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "AurasMinionsTemplarSpectresNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "萬惡戰爭牧師"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "AurasMinionsTemplarSmiteNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "刀刃噬咬者"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "Crit1HShadowPoison"
+    },
+    {
+      "disc": {
+        "sectionText": "刀鋒伏擊者"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "TrapsMinesShadowAttack"
+    },
+    {
+      "disc": {
+        "sectionText": "冰霜伏擊者"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "TrapsMinesShadowCold"
+    },
+    {
+      "disc": {
+        "sectionText": "風暴狂熱者"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "PhysConvertTemplarLightning"
+    },
+    {
+      "disc": {
+        "sectionText": "烈火詐欺者"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "PhysConvertTemplarFire"
+    },
+    {
+      "disc": {
+        "sectionText": "萬惡放血者"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "PhysicalDuelistBleedNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "萬惡狙擊手"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "NonEleBowRangerPhysNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "萬惡秘潛者"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "DivingDuelistNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "萬惡動能師"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "MiscScionWandAttacksNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "萬惡復生師"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "ChaosMinionWitchInstabilityNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "萬惡裂地者"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "MeleeAOEMarauderPhysSlamNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "萬惡撕裂者"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "MeleeAOEMarauderNonSlamNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "萬惡暴射者"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "EleBowRangerClonesNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "萬惡戰鬥者"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "MeleeAOEStrikeDuelistRangeStrikesNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "萬惡爆發者"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "MeleeAOEMarauderFireSlamNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "萬惡襲擊者"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "MeleeStrikesMaraduerPhysNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "電襲伏擊者"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "TrapsMinesShadowLightning"
+    },
+    {
+      "disc": {
+        "sectionText": "刀刃術者"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "Crit1HShadowPhysSpell"
+    },
+    {
+      "disc": {
+        "sectionText": "火炎之手"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "ElementalWitchFire"
+    },
+    {
+      "disc": {
+        "sectionText": "冬之助祭"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "PhysConvertTemplarCold"
+    },
+    {
+      "disc": {
+        "sectionText": "冰霜之手"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "ElementalWitchCold"
+    },
+    {
+      "disc": {
+        "sectionText": "紅衣主教"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "AurasMinionsTemplarStaff"
+    },
+    {
+      "disc": {
+        "sectionText": "風暴之手"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "ElementalWitchLightning"
+    },
+    {
+      "disc": {
+        "sectionText": "凋靈之觸"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "ChaosMinionWitchDot"
+    },
+    {
+      "disc": {
+        "sectionText": "殘忍女王"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "ChaosMinionWitchChaosHit"
+    },
+    {
+      "disc": {
+        "sectionText": "碎鋒之劍"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "PhysicalDuelistSteel"
+    },
+    {
+      "disc": {
+        "sectionText": "萬惡迅刃"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "MeleeAOEStrikeDuelistCycloneNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "萬惡炎鏃"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "EleBowRangerFireNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "萬惡毒師"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "NonEleBowRangerChaosNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "萬惡堅堡"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "PhysicalDuelistShieldsNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "腥紅術師"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "MiscScionPhysDot"
+    },
+    {
+      "disc": {
+        "sectionText": "熔炎之擊"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "MeleeStrikesMarauderFire"
+    },
+    {
+      "disc": {
+        "sectionText": "墮落教士"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "AurasMinionsTemplarSpectres"
+    },
+    {
+      "disc": {
+        "sectionText": "戰爭牧師"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "AurasMinionsTemplarSmite"
+    },
+    {
+      "disc": {
+        "sectionText": "放血者"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "PhysicalDuelistBleed"
+    },
+    {
+      "disc": {
+        "sectionText": "狙擊手"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "NonEleBowRangerPhys"
+    },
+    {
+      "disc": {
+        "sectionText": "秘潛者"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "DivingDuelist"
+    },
+    {
+      "disc": {
+        "sectionText": "動能師"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "MiscScionWandAttacks"
+    },
+    {
+      "disc": {
+        "sectionText": "復生師"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "ChaosMinionWitchInstability"
+    },
+    {
+      "disc": {
+        "sectionText": "裂地者"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "MeleeAOEMarauderPhysSlam"
+    },
+    {
+      "disc": {
+        "sectionText": "撕裂者"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "MeleeAOEMarauderNonSlam"
+    },
+    {
+      "disc": {
+        "sectionText": "暴射者"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "EleBowRangerClones"
+    },
+    {
+      "disc": {
+        "sectionText": "戰鬥者"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "MeleeAOEStrikeDuelistRangeStrikes"
+    },
+    {
+      "disc": {
+        "sectionText": "爆發者"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "MeleeAOEMarauderFireSlam"
+    },
+    {
+      "disc": {
+        "sectionText": "襲擊者"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "MeleeStrikesMaraduerPhys"
+    },
+    {
+      "disc": {
+        "sectionText": "迅刃"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "MeleeAOEStrikeDuelistCyclone"
+    },
+    {
+      "disc": {
+        "sectionText": "炎鏃"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "EleBowRangerFire"
+    },
+    {
+      "disc": {
+        "sectionText": "毒師"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "NonEleBowRangerChaos"
+    },
+    {
+      "disc": {
+        "sectionText": "堅堡"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "PhysicalDuelistShields"
+    },
+    {
+      "disc": {
+        "sectionText": "雷鏃"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "EleBowRangerLightning"
+    },
+    {
+      "disc": {},
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant"
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": false,
+  "itemLevel": 83,
+  "mercenaryBuild": {
+    "icon": "",
+    "mercenaryBuild": {
+      "skills": [
+        {
+          "name": "Conductivity",
+          "type": "primary"
+        },
+        {
+          "name": "Sigil of Power",
+          "type": "primary"
+        },
+        {
+          "name": "Spark",
+          "type": "secondary"
+        },
+        {
+          "name": "Arc",
+          "type": "secondary"
+        },
+        {
+          "name": "Ball Lightning of Static",
+          "type": "secondary"
+        },
+        {
+          "name": "Greater Stormcall",
+          "type": "secondary"
+        },
+        {
+          "name": "Greater Shock Nova",
+          "type": "secondary"
+        },
+        {
+          "name": "Orb of Storms",
+          "type": "secondary"
+        },
+        {
+          "name": "Stormcall",
+          "type": "secondary"
+        },
+        {
+          "name": "Lightning Warp",
+          "type": "utility"
+        },
+        {
+          "name": "Frostblink",
+          "type": "utility"
+        },
+        {
+          "name": "Flame Dash",
+          "type": "utility"
+        },
+        {
+          "name": "Wrath",
+          "type": "utility"
+        },
+        {
+          "name": "Purity of Lightning",
+          "type": "utility"
+        },
+        {
+          "name": "Proximity Shield",
+          "type": "utility"
+        }
+      ]
+    },
+    "name": "風暴之手",
+    "namespace": "MERCENARY_BUILD",
+    "refName": "Stormhand"
+  },
+  "mercenarySkills": [
+    [
+      {
+        "stat": {
+          "better": 0,
+          "matchers": [
+            {
+              "string": "導電"
+            }
+          ],
+          "mercenary": {
+            "icon": "https://webtw.poecdn.com/gen/image/WzIxLDE0LHsiayI6IjJEQXJ0L1NraWxsSWNvbnMvQ29uZHVjdGl2aXR5In1d/98031379d0/Conductivity.png"
+          },
+          "ref": "Conductivity",
+          "trade": {
+            "ids": {
+              "pseudo": [
+                "mercenary.skill_41484"
+              ]
+            }
+          }
+        },
+        "translation": {
+          "string": "導電"
+        }
+      },
+      {
+        "stat": {
+          "better": 1,
+          "matchers": [
+            {
+              "advanced": "增加效果範圍(階層：2)",
+              "string": "增加效果範圍"
+            }
+          ],
+          "mercenary": {
+            "canonical": "Increased Area of Effect",
+            "tier": 2
+          },
+          "modFamily": [
+            "Lesser Increased Area of Effect",
+            "Increased Area of Effect",
+            "Greater Area of Effect"
+          ],
+          "ref": "Increased Area of Effect",
+          "trade": {
+            "ids": {
+              "pseudo": [
+                "mercenary.support_53342"
+              ]
+            }
+          }
+        },
+        "translation": {
+          "advanced": "增加效果範圍(階層：2)",
+          "string": "增加效果範圍"
+        }
+      },
+      {
+        "stat": {
+          "better": 1,
+          "matchers": [
+            {
+              "advanced": "高階更多持續時間(階層：3)",
+              "string": "高階更多持續時間"
+            }
+          ],
+          "mercenary": {
+            "canonical": "More Duration",
+            "tier": 3
+          },
+          "modFamily": [
+            "Lesser More Duration",
+            "More Duration",
+            "Greater More Duration"
+          ],
+          "ref": "Greater More Duration",
+          "trade": {
+            "ids": {
+              "pseudo": [
+                "mercenary.support_26568"
+              ]
+            }
+          }
+        },
+        "translation": {
+          "advanced": "高階更多持續時間(階層：3)",
+          "string": "高階更多持續時間"
+        }
+      }
+    ],
+    [
+      {
+        "stat": {
+          "better": 0,
+          "matchers": [
+            {
+              "string": "咒符之力"
+            }
+          ],
+          "mercenary": {
+            "icon": "https://webtw.poecdn.com/gen/image/WzIxLDE0LHsiayI6IjJEQXJ0L1NraWxsSWNvbnMvQ2lyY2xlb2ZQb3dlciJ9XQ/4a1ea647b9/CircleofPower.png"
+          },
+          "ref": "Sigil of Power",
+          "trade": {
+            "ids": {
+              "pseudo": [
+                "mercenary.skill_33661"
+              ]
+            }
+          }
+        },
+        "translation": {
+          "string": "咒符之力"
+        }
+      },
+      {
+        "stat": {
+          "better": 1,
+          "matchers": [
+            {
+              "advanced": "增加效果範圍(階層：2)",
+              "string": "增加效果範圍"
+            }
+          ],
+          "mercenary": {
+            "canonical": "Increased Area of Effect",
+            "tier": 2
+          },
+          "modFamily": [
+            "Lesser Increased Area of Effect",
+            "Increased Area of Effect",
+            "Greater Area of Effect"
+          ],
+          "ref": "Increased Area of Effect",
+          "trade": {
+            "ids": {
+              "pseudo": [
+                "mercenary.support_53342"
+              ]
+            }
+          }
+        },
+        "translation": {
+          "advanced": "增加效果範圍(階層：2)",
+          "string": "增加效果範圍"
+        }
+      },
+      {
+        "stat": {
+          "better": 1,
+          "matchers": [
+            {
+              "advanced": "高階更多持續時間(階層：3)",
+              "string": "高階更多持續時間"
+            }
+          ],
+          "mercenary": {
+            "canonical": "More Duration",
+            "tier": 3
+          },
+          "modFamily": [
+            "Lesser More Duration",
+            "More Duration",
+            "Greater More Duration"
+          ],
+          "ref": "Greater More Duration",
+          "trade": {
+            "ids": {
+              "pseudo": [
+                "mercenary.support_26568"
+              ]
+            }
+          }
+        },
+        "translation": {
+          "advanced": "高階更多持續時間(階層：3)",
+          "string": "高階更多持續時間"
+        }
+      }
+    ],
+    [
+      {
+        "stat": {
+          "better": 0,
+          "matchers": [
+            {
+              "string": "電球"
+            }
+          ],
+          "mercenary": {
+            "icon": "https://webtw.poecdn.com/gen/image/WzIxLDE0LHsiayI6IjJEQXJ0L1NraWxsSWNvbnMvc3BhcmsifV0/54ff50a3dd/spark.png",
+            "supports": [
+              "Multiple Projectiles",
+              "Greater Lucky Lightning Damage",
+              "Faster Casting",
+              "Lightning Penetration",
+              "Shock Chance",
+              "Return",
+              "Faster Projectiles",
+              "Elemental Focus",
+              "Pierce",
+              "Gilded Nova"
+            ]
+          },
+          "ref": "Spark",
+          "trade": {
+            "ids": {
+              "pseudo": [
+                "mercenary.skill_5893"
+              ]
+            }
+          }
+        },
+        "translation": {
+          "string": "電球"
+        }
+      },
+      {
+        "stat": {
+          "better": 1,
+          "matchers": [
+            {
+              "advanced": "高階多重投射物(階層：3)",
+              "string": "高階多重投射物"
+            }
+          ],
+          "mercenary": {
+            "canonical": "Multiple Projectiles",
+            "tier": 3
+          },
+          "modFamily": [
+            "Multiple Projectiles",
+            "Greater Multiple Projectiles"
+          ],
+          "ref": "Greater Multiple Projectiles",
+          "trade": {
+            "ids": {
+              "pseudo": [
+                "mercenary.support_49419"
+              ]
+            }
+          }
+        },
+        "translation": {
+          "advanced": "高階多重投射物(階層：3)",
+          "string": "高階多重投射物"
+        }
+      },
+      {
+        "stat": {
+          "better": 1,
+          "matchers": [
+            {
+              "advanced": "元素專注(階層：2)",
+              "string": "元素專注"
+            }
+          ],
+          "mercenary": {
+            "canonical": "Elemental Focus",
+            "tier": 2
+          },
+          "modFamily": [
+            "Lesser Elemental Focus",
+            "Elemental Focus",
+            "Greater Elemental Focus"
+          ],
+          "ref": "Elemental Focus",
+          "trade": {
+            "ids": {
+              "pseudo": [
+                "mercenary.support_37388"
+              ]
+            }
+          }
+        },
+        "translation": {
+          "advanced": "元素專注(階層：2)",
+          "string": "元素專注"
+        }
+      },
+      {
+        "stat": {
+          "better": 1,
+          "matchers": [
+            {
+              "advanced": "閃電穿透(階層：2)",
+              "string": "閃電穿透"
+            }
+          ],
+          "mercenary": {
+            "canonical": "Lightning Penetration",
+            "tier": 2
+          },
+          "modFamily": [
+            "Lesser Lightning Penetration",
+            "Lightning Penetration",
+            "Greater Lightning Penetration"
+          ],
+          "ref": "Lightning Penetration",
+          "trade": {
+            "ids": {
+              "pseudo": [
+                "mercenary.support_41256"
+              ]
+            }
+          }
+        },
+        "translation": {
+          "advanced": "閃電穿透(階層：2)",
+          "string": "閃電穿透"
+        }
+      },
+      {
+        "stat": {
+          "better": 1,
+          "matchers": [
+            {
+              "advanced": "高階投射物加速(階層：3)",
+              "string": "高階投射物加速"
+            }
+          ],
+          "mercenary": {
+            "canonical": "Faster Projectiles",
+            "tier": 3
+          },
+          "modFamily": [
+            "Lesser Faster Projectiles",
+            "Faster Projectiles",
+            "Greater Faster Projectiles"
+          ],
+          "ref": "Greater Faster Projectiles",
+          "trade": {
+            "ids": {
+              "pseudo": [
+                "mercenary.support_14517"
+              ]
+            }
+          }
+        },
+        "translation": {
+          "advanced": "高階投射物加速(階層：3)",
+          "string": "高階投射物加速"
+        }
+      }
+    ],
+    [
+      {
+        "stat": {
+          "better": 0,
+          "matchers": [
+            {
+              "string": "高階風暴呼喚"
+            }
+          ],
+          "mercenary": {
+            "icon": "https://webtw.poecdn.com/gen/image/WzIxLDE0LHsiayI6IjJEQXJ0L1NraWxsSWNvbnMvc3Rvcm1jYWxsIn1d/181146c69d/stormcall.png",
+            "supports": [
+              "Greater Lucky Lightning Damage",
+              "Lightning Penetration",
+              "Increased Area of Effect",
+              "Less Duration",
+              "Spell Cascade",
+              "Shock Chance",
+              "Cooldown Recovery",
+              "Elemental Focus"
+            ]
+          },
+          "ref": "Greater Stormcall",
+          "trade": {
+            "ids": {
+              "pseudo": [
+                "mercenary.skill_3148"
+              ]
+            }
+          }
+        },
+        "translation": {
+          "string": "高階風暴呼喚"
+        }
+      },
+      {
+        "stat": {
+          "better": 1,
+          "matchers": [
+            {
+              "advanced": "元素專注(階層：2)",
+              "string": "元素專注"
+            }
+          ],
+          "mercenary": {
+            "canonical": "Elemental Focus",
+            "tier": 2
+          },
+          "modFamily": [
+            "Lesser Elemental Focus",
+            "Elemental Focus",
+            "Greater Elemental Focus"
+          ],
+          "ref": "Elemental Focus",
+          "trade": {
+            "ids": {
+              "pseudo": [
+                "mercenary.support_37388"
+              ]
+            }
+          }
+        },
+        "translation": {
+          "advanced": "元素專注(階層：2)",
+          "string": "元素專注"
+        }
+      },
+      {
+        "stat": {
+          "better": 1,
+          "matchers": [
+            {
+              "advanced": "高階冷卻時間恢復(階層：3)",
+              "string": "高階冷卻時間恢復"
+            }
+          ],
+          "mercenary": {
+            "canonical": "Cooldown Recovery",
+            "tier": 3
+          },
+          "modFamily": [
+            "Lesser Cooldown Recovery",
+            "Cooldown Recovery",
+            "Greater Cooldown Recovery"
+          ],
+          "ref": "Greater Cooldown Recovery",
+          "trade": {
+            "ids": {
+              "pseudo": [
+                "mercenary.support_10608"
+              ]
+            }
+          }
+        },
+        "translation": {
+          "advanced": "高階冷卻時間恢復(階層：3)",
+          "string": "高階冷卻時間恢復"
+        }
+      },
+      {
+        "stat": {
+          "better": 1,
+          "matchers": [
+            {
+              "advanced": "低階秘能爆發(階層：1)",
+              "string": "低階秘能爆發"
+            }
+          ],
+          "mercenary": {
+            "canonical": "Spell Cascade",
+            "tier": 1
+          },
+          "modFamily": [
+            "Lesser Spell Cascade",
+            "Spell Cascade"
+          ],
+          "ref": "Lesser Spell Cascade",
+          "trade": {
+            "ids": {
+              "pseudo": [
+                "mercenary.support_65120"
+              ]
+            }
+          }
+        },
+        "translation": {
+          "advanced": "低階秘能爆發(階層：1)",
+          "string": "低階秘能爆發"
+        }
+      },
+      {
+        "stat": {
+          "better": 1,
+          "matchers": [
+            {
+              "advanced": "感電機率(階層：2)",
+              "string": "感電機率"
+            }
+          ],
+          "mercenary": {
+            "canonical": "Shock Chance",
+            "tier": 2
+          },
+          "modFamily": [
+            "Lesser Shock Chance",
+            "Shock Chance",
+            "Greater Shock Chance"
+          ],
+          "ref": "Shock Chance",
+          "trade": {
+            "ids": {
+              "pseudo": [
+                "mercenary.support_64846"
+              ]
+            }
+          }
+        },
+        "translation": {
+          "advanced": "感電機率(階層：2)",
+          "string": "感電機率"
+        }
+      },
+      {
+        "stat": {
+          "better": 1,
+          "matchers": [
+            {
+              "advanced": "高階閃電穿透(階層：3)",
+              "string": "高階閃電穿透"
+            }
+          ],
+          "mercenary": {
+            "canonical": "Lightning Penetration",
+            "tier": 3
+          },
+          "modFamily": [
+            "Lesser Lightning Penetration",
+            "Lightning Penetration",
+            "Greater Lightning Penetration"
+          ],
+          "ref": "Greater Lightning Penetration",
+          "trade": {
+            "ids": {
+              "pseudo": [
+                "mercenary.support_26815"
+              ]
+            }
+          }
+        },
+        "translation": {
+          "advanced": "高階閃電穿透(階層：3)",
+          "string": "高階閃電穿透"
+        }
+      }
+    ],
+    [
+      {
+        "stat": {
+          "better": 0,
+          "matchers": [
+            {
+              "string": "閃電淨化"
+            }
+          ],
+          "mercenary": {
+            "icon": "https://webtw.poecdn.com/gen/image/WzIxLDE0LHsiayI6IjJEQXJ0L1NraWxsSWNvbnMvYXVyYWxpZ2h0bmluZ3Jlc2lzdCJ9XQ/ffa182802b/auralightningresist.png"
+          },
+          "ref": "Purity of Lightning",
+          "trade": {
+            "ids": {
+              "pseudo": [
+                "mercenary.skill_63233"
+              ]
+            }
+          }
+        },
+        "translation": {
+          "string": "閃電淨化"
+        }
+      }
+    ],
+    [
+      {
+        "stat": {
+          "better": 0,
+          "matchers": [
+            {
+              "string": "雷霆"
+            }
+          ],
+          "mercenary": {
+            "icon": "https://webtw.poecdn.com/gen/image/WzIxLDE0LHsiayI6IjJEQXJ0L1NraWxsSWNvbnMvYXVyYWxpZ2h0bmluZyJ9XQ/bf24ac8da8/auralightning.png"
+          },
+          "ref": "Wrath",
+          "trade": {
+            "ids": {
+              "pseudo": [
+                "mercenary.skill_38326"
+              ]
+            }
+          }
+        },
+        "translation": {
+          "string": "雷霆"
+        }
+      }
+    ]
+  ],
+  "name": "傭兵契約書",
+  "newMods": [],
+  "rarity": "Normal",
+  "rawText": "物品種類: 地圖碎片\r\n稀有度: 普通\r\n傭兵契約書\r\n--------\r\n維拉．猜疑者\r\n--------\r\n流派: 風暴之手\r\n傭兵等級: 83\r\n--------\r\n導電\r\n增加效果範圍(階層：2)\r\n高階更多持續時間(階層：3)\r\n--------\r\n咒符之力\r\n增加效果範圍(階層：2)\r\n高階更多持續時間(階層：3)\r\n--------\r\n電球\r\n高階多重投射物(階層：3)\r\n元素專注(階層：2)\r\n閃電穿透(階層：2)\r\n高階投射物加速(階層：3)\r\n--------\r\n高階風暴呼喚\r\n元素專注(階層：2)\r\n高階冷卻時間恢復(階層：3)\r\n低階秘能爆發(階層：1)\r\n感電機率(階層：2)\r\n高階閃電穿透(階層：3)\r\n--------\r\n閃電淨化\r\n--------\r\n雷霆\r\n--------\r\n右鍵點擊此物品以查看傭兵細節。\r\n可於個人的地圖裝置和地圖一起使用，使這位先前已對戰過的傭兵再次於區域內出現並再戰。\r\n",
+  "statsByType": [],
+  "unknownModifiers": []
+}

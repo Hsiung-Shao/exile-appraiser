@@ -1,0 +1,1205 @@
+{
+  "armourES": 108,
+  "armourEV": 441,
+  "basePercentile": 19,
+  "baseType": "匿蹤短靴",
+  "category": "Boots",
+  "dustEquivalent": 15175,
+  "influences": [],
+  "info": {
+    "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQXJtb3Vycy9Cb290cy9TaW5UcmVrIiwidyI6MiwiaCI6Miwic2NhbGUiOjF9XQ/84281e0f84/SinTrek.png",
+    "name": "敏銳思維",
+    "namespace": "UNIQUE",
+    "refName": "Sin Trek",
+    "unique": {
+      "base": "Stealth Boots",
+      "disenchantValue": 6.07
+    }
+  },
+  "infoVariants": [
+    {
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQXJtb3Vycy9Cb290cy9TaW5UcmVrIiwidyI6MiwiaCI6Miwic2NhbGUiOjF9XQ/84281e0f84/SinTrek.png",
+      "name": "敏銳思維",
+      "namespace": "UNIQUE",
+      "refName": "Sin Trek",
+      "unique": {
+        "base": "Stealth Boots",
+        "disenchantValue": 6.07
+      }
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": false,
+  "isVestigial": true,
+  "itemLevel": 85,
+  "name": "敏銳思維",
+  "newMods": [
+    {
+      "info": {
+        "generation": "vestigial",
+        "tags": [
+          "元素",
+          "火焰",
+          "冰冷",
+          "閃電",
+          "異常狀態"
+        ],
+        "type": "implicit"
+      },
+      "stats": [
+        {
+          "stat": {
+            "better": 1,
+            "matchers": [
+              {
+                "string": "被榮耀瘋癲影響時，免疫元素異常狀態"
+              }
+            ],
+            "ref": "Immune to Elemental Ailments while affected by Glorious Madness",
+            "trade": {
+              "ids": {
+                "explicit": [
+                  "explicit.stat_1065479853"
+                ],
+                "implicit": [
+                  "implicit.stat_1065479853"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "被榮耀瘋癲影響時，免疫元素異常狀態"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "防禦",
+          "閃避"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 100,
+            "min": 80,
+            "unscalable": false,
+            "value": 95
+          },
+          "stat": {
+            "better": 1,
+            "matchers": [
+              {
+                "string": "增加 #% 閃避值"
+              },
+              {
+                "negate": true,
+                "string": "減少 #% 閃避值"
+              }
+            ],
+            "ref": "#% increased Evasion Rating",
+            "trade": {
+              "ids": {
+                "crafted": [
+                  "crafted.stat_124859000"
+                ],
+                "explicit": [
+                  "explicit.stat_124859000"
+                ],
+                "fractured": [
+                  "fractured.stat_124859000"
+                ],
+                "implicit": [
+                  "implicit.stat_124859000"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "增加 #% 閃避值"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "防禦",
+          "能量護盾"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 150,
+            "min": 100,
+            "unscalable": false,
+            "value": 108
+          },
+          "stat": {
+            "better": 1,
+            "matchers": [
+              {
+                "string": "# 最大能量護盾"
+              }
+            ],
+            "ref": "+# to maximum Energy Shield",
+            "trade": {
+              "ids": {
+                "crafted": [
+                  "crafted.stat_4052037485"
+                ],
+                "explicit": [
+                  "explicit.stat_4052037485"
+                ],
+                "fractured": [
+                  "fractured.stat_4052037485"
+                ],
+                "implicit": [
+                  "implicit.stat_4052037485"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "# 最大能量護盾"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "能力"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 30,
+            "min": 20,
+            "unscalable": false,
+            "value": 26
+          },
+          "stat": {
+            "better": 1,
+            "matchers": [
+              {
+                "string": "# 敏捷"
+              }
+            ],
+            "ref": "+# to Dexterity",
+            "trade": {
+              "ids": {
+                "crafted": [
+                  "crafted.stat_3261801346"
+                ],
+                "explicit": [
+                  "explicit.stat_3261801346"
+                ],
+                "fractured": [
+                  "fractured.stat_3261801346"
+                ],
+                "implicit": [
+                  "implicit.stat_3261801346"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "# 敏捷"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "能力"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 30,
+            "min": 20,
+            "unscalable": false,
+            "value": 23
+          },
+          "stat": {
+            "better": 1,
+            "matchers": [
+              {
+                "string": "# 智慧"
+              }
+            ],
+            "ref": "+# to Intelligence",
+            "trade": {
+              "ids": {
+                "crafted": [
+                  "crafted.stat_328541901"
+                ],
+                "explicit": [
+                  "explicit.stat_328541901"
+                ],
+                "fractured": [
+                  "fractured.stat_328541901"
+                ],
+                "implicit": [
+                  "implicit.stat_328541901"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "# 智慧"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "stat": {
+            "better": 1,
+            "matchers": [
+              {
+                "string": "敵人不能偷取你的生命"
+              }
+            ],
+            "ref": "Enemies Cannot Leech Life From you",
+            "trade": {
+              "ids": {
+                "explicit": [
+                  "explicit.stat_4293455942"
+                ],
+                "implicit": [
+                  "implicit.stat_4293455942"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "敵人不能偷取你的生命"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "速度"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 30,
+            "min": 30,
+            "unscalable": false,
+            "value": 30
+          },
+          "stat": {
+            "better": 1,
+            "matchers": [
+              {
+                "string": "增加 #% 移動速度"
+              },
+              {
+                "negate": true,
+                "string": "減少 #% 移動速度"
+              }
+            ],
+            "ref": "#% increased Movement Speed",
+            "trade": {
+              "ids": {
+                "crafted": [
+                  "crafted.stat_2250533757"
+                ],
+                "enchant": [
+                  "enchant.stat_2250533757"
+                ],
+                "explicit": [
+                  "explicit.stat_2250533757"
+                ],
+                "fractured": [
+                  "fractured.stat_2250533757"
+                ],
+                "implicit": [
+                  "implicit.stat_2250533757"
+                ],
+                "pseudo": [
+                  "pseudo.pseudo_increased_movement_speed"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "增加 #% 移動速度"
+          }
+        }
+      ]
+    }
+  ],
+  "rarity": "Unique",
+  "rawText": "物品種類: 鞋子\r\n稀有度: 傳奇\r\n敏銳思維\r\n殘存 匿蹤短靴\r\n--------\r\n閃避值: 441 (augmented)\r\n能量護盾: 108 (augmented)\r\n--------\r\n需求:\r\n等級: 62\r\n敏捷: 117\r\n--------\r\n插槽: W-W-W\r\n--------\r\n物品等級: 85\r\n--------\r\n{ 殘存固定詞綴— 元素,火焰,冰冷,閃電,異常狀態 }\r\n被榮耀瘋癲影響時，免疫元素異常狀態 — 無法使用的值\r\n（元素異常狀態包含點燃、焦灼、冰緩、冰凍、易碎、感電和殘喘）\r\n--------\r\n{ 傳奇詞綴— 防禦,閃避 }\r\n增加 95(80-100)% 閃避值\r\n{ 傳奇詞綴— 防禦,能量護盾 }\r\n+108(100-150) 最大能量護盾\r\n{ 傳奇詞綴— 能力 }\r\n+26(20-30) 敏捷\r\n{ 傳奇詞綴— 能力 }\r\n+23(20-30) 智慧\r\n{ 傳奇詞綴 }\r\n敵人不能偷取你的生命 — 無法使用的值\r\n{ 傳奇詞綴— 速度 }\r\n增加 30% 移動速度\r\n--------\r\n保持距離，以策安全。\r\n",
+  "sockets": {
+    "white": 3
+  },
+  "statsByType": [
+    {
+      "sources": [
+        {
+          "modifier": {
+            "info": {
+              "generation": "vestigial",
+              "tags": [
+                "元素",
+                "火焰",
+                "冰冷",
+                "閃電",
+                "異常狀態"
+              ],
+              "type": "implicit"
+            },
+            "stats": [
+              {
+                "stat": {
+                  "better": 1,
+                  "matchers": [
+                    {
+                      "string": "被榮耀瘋癲影響時，免疫元素異常狀態"
+                    }
+                  ],
+                  "ref": "Immune to Elemental Ailments while affected by Glorious Madness",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_1065479853"
+                      ],
+                      "implicit": [
+                        "implicit.stat_1065479853"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "被榮耀瘋癲影響時，免疫元素異常狀態"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "stat": {
+              "better": 1,
+              "matchers": [
+                {
+                  "string": "被榮耀瘋癲影響時，免疫元素異常狀態"
+                }
+              ],
+              "ref": "Immune to Elemental Ailments while affected by Glorious Madness",
+              "trade": {
+                "ids": {
+                  "explicit": [
+                    "explicit.stat_1065479853"
+                  ],
+                  "implicit": [
+                    "implicit.stat_1065479853"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "被榮耀瘋癲影響時，免疫元素異常狀態"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "matchers": [
+          {
+            "string": "被榮耀瘋癲影響時，免疫元素異常狀態"
+          }
+        ],
+        "ref": "Immune to Elemental Ailments while affected by Glorious Madness",
+        "trade": {
+          "ids": {
+            "explicit": [
+              "explicit.stat_1065479853"
+            ],
+            "implicit": [
+              "implicit.stat_1065479853"
+            ]
+          }
+        }
+      },
+      "type": "implicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 100,
+            "min": 80,
+            "value": 95
+          },
+          "modifier": {
+            "info": {
+              "tags": [
+                "防禦",
+                "閃避"
+              ],
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 100,
+                  "min": 80,
+                  "unscalable": false,
+                  "value": 95
+                },
+                "stat": {
+                  "better": 1,
+                  "matchers": [
+                    {
+                      "string": "增加 #% 閃避值"
+                    },
+                    {
+                      "negate": true,
+                      "string": "減少 #% 閃避值"
+                    }
+                  ],
+                  "ref": "#% increased Evasion Rating",
+                  "trade": {
+                    "ids": {
+                      "crafted": [
+                        "crafted.stat_124859000"
+                      ],
+                      "explicit": [
+                        "explicit.stat_124859000"
+                      ],
+                      "fractured": [
+                        "fractured.stat_124859000"
+                      ],
+                      "implicit": [
+                        "implicit.stat_124859000"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "增加 #% 閃避值"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 100,
+              "min": 80,
+              "unscalable": false,
+              "value": 95
+            },
+            "stat": {
+              "better": 1,
+              "matchers": [
+                {
+                  "string": "增加 #% 閃避值"
+                },
+                {
+                  "negate": true,
+                  "string": "減少 #% 閃避值"
+                }
+              ],
+              "ref": "#% increased Evasion Rating",
+              "trade": {
+                "ids": {
+                  "crafted": [
+                    "crafted.stat_124859000"
+                  ],
+                  "explicit": [
+                    "explicit.stat_124859000"
+                  ],
+                  "fractured": [
+                    "fractured.stat_124859000"
+                  ],
+                  "implicit": [
+                    "implicit.stat_124859000"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "增加 #% 閃避值"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "matchers": [
+          {
+            "string": "增加 #% 閃避值"
+          },
+          {
+            "negate": true,
+            "string": "減少 #% 閃避值"
+          }
+        ],
+        "ref": "#% increased Evasion Rating",
+        "trade": {
+          "ids": {
+            "crafted": [
+              "crafted.stat_124859000"
+            ],
+            "explicit": [
+              "explicit.stat_124859000"
+            ],
+            "fractured": [
+              "fractured.stat_124859000"
+            ],
+            "implicit": [
+              "implicit.stat_124859000"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 150,
+            "min": 100,
+            "value": 108
+          },
+          "modifier": {
+            "info": {
+              "tags": [
+                "防禦",
+                "能量護盾"
+              ],
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 150,
+                  "min": 100,
+                  "unscalable": false,
+                  "value": 108
+                },
+                "stat": {
+                  "better": 1,
+                  "matchers": [
+                    {
+                      "string": "# 最大能量護盾"
+                    }
+                  ],
+                  "ref": "+# to maximum Energy Shield",
+                  "trade": {
+                    "ids": {
+                      "crafted": [
+                        "crafted.stat_4052037485"
+                      ],
+                      "explicit": [
+                        "explicit.stat_4052037485"
+                      ],
+                      "fractured": [
+                        "fractured.stat_4052037485"
+                      ],
+                      "implicit": [
+                        "implicit.stat_4052037485"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "# 最大能量護盾"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 150,
+              "min": 100,
+              "unscalable": false,
+              "value": 108
+            },
+            "stat": {
+              "better": 1,
+              "matchers": [
+                {
+                  "string": "# 最大能量護盾"
+                }
+              ],
+              "ref": "+# to maximum Energy Shield",
+              "trade": {
+                "ids": {
+                  "crafted": [
+                    "crafted.stat_4052037485"
+                  ],
+                  "explicit": [
+                    "explicit.stat_4052037485"
+                  ],
+                  "fractured": [
+                    "fractured.stat_4052037485"
+                  ],
+                  "implicit": [
+                    "implicit.stat_4052037485"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "# 最大能量護盾"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "matchers": [
+          {
+            "string": "# 最大能量護盾"
+          }
+        ],
+        "ref": "+# to maximum Energy Shield",
+        "trade": {
+          "ids": {
+            "crafted": [
+              "crafted.stat_4052037485"
+            ],
+            "explicit": [
+              "explicit.stat_4052037485"
+            ],
+            "fractured": [
+              "fractured.stat_4052037485"
+            ],
+            "implicit": [
+              "implicit.stat_4052037485"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 30,
+            "min": 20,
+            "value": 26
+          },
+          "modifier": {
+            "info": {
+              "tags": [
+                "能力"
+              ],
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 30,
+                  "min": 20,
+                  "unscalable": false,
+                  "value": 26
+                },
+                "stat": {
+                  "better": 1,
+                  "matchers": [
+                    {
+                      "string": "# 敏捷"
+                    }
+                  ],
+                  "ref": "+# to Dexterity",
+                  "trade": {
+                    "ids": {
+                      "crafted": [
+                        "crafted.stat_3261801346"
+                      ],
+                      "explicit": [
+                        "explicit.stat_3261801346"
+                      ],
+                      "fractured": [
+                        "fractured.stat_3261801346"
+                      ],
+                      "implicit": [
+                        "implicit.stat_3261801346"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "# 敏捷"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 30,
+              "min": 20,
+              "unscalable": false,
+              "value": 26
+            },
+            "stat": {
+              "better": 1,
+              "matchers": [
+                {
+                  "string": "# 敏捷"
+                }
+              ],
+              "ref": "+# to Dexterity",
+              "trade": {
+                "ids": {
+                  "crafted": [
+                    "crafted.stat_3261801346"
+                  ],
+                  "explicit": [
+                    "explicit.stat_3261801346"
+                  ],
+                  "fractured": [
+                    "fractured.stat_3261801346"
+                  ],
+                  "implicit": [
+                    "implicit.stat_3261801346"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "# 敏捷"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "matchers": [
+          {
+            "string": "# 敏捷"
+          }
+        ],
+        "ref": "+# to Dexterity",
+        "trade": {
+          "ids": {
+            "crafted": [
+              "crafted.stat_3261801346"
+            ],
+            "explicit": [
+              "explicit.stat_3261801346"
+            ],
+            "fractured": [
+              "fractured.stat_3261801346"
+            ],
+            "implicit": [
+              "implicit.stat_3261801346"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 30,
+            "min": 20,
+            "value": 23
+          },
+          "modifier": {
+            "info": {
+              "tags": [
+                "能力"
+              ],
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 30,
+                  "min": 20,
+                  "unscalable": false,
+                  "value": 23
+                },
+                "stat": {
+                  "better": 1,
+                  "matchers": [
+                    {
+                      "string": "# 智慧"
+                    }
+                  ],
+                  "ref": "+# to Intelligence",
+                  "trade": {
+                    "ids": {
+                      "crafted": [
+                        "crafted.stat_328541901"
+                      ],
+                      "explicit": [
+                        "explicit.stat_328541901"
+                      ],
+                      "fractured": [
+                        "fractured.stat_328541901"
+                      ],
+                      "implicit": [
+                        "implicit.stat_328541901"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "# 智慧"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 30,
+              "min": 20,
+              "unscalable": false,
+              "value": 23
+            },
+            "stat": {
+              "better": 1,
+              "matchers": [
+                {
+                  "string": "# 智慧"
+                }
+              ],
+              "ref": "+# to Intelligence",
+              "trade": {
+                "ids": {
+                  "crafted": [
+                    "crafted.stat_328541901"
+                  ],
+                  "explicit": [
+                    "explicit.stat_328541901"
+                  ],
+                  "fractured": [
+                    "fractured.stat_328541901"
+                  ],
+                  "implicit": [
+                    "implicit.stat_328541901"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "# 智慧"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "matchers": [
+          {
+            "string": "# 智慧"
+          }
+        ],
+        "ref": "+# to Intelligence",
+        "trade": {
+          "ids": {
+            "crafted": [
+              "crafted.stat_328541901"
+            ],
+            "explicit": [
+              "explicit.stat_328541901"
+            ],
+            "fractured": [
+              "fractured.stat_328541901"
+            ],
+            "implicit": [
+              "implicit.stat_328541901"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "modifier": {
+            "info": {
+              "tags": [],
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "stat": {
+                  "better": 1,
+                  "matchers": [
+                    {
+                      "string": "敵人不能偷取你的生命"
+                    }
+                  ],
+                  "ref": "Enemies Cannot Leech Life From you",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_4293455942"
+                      ],
+                      "implicit": [
+                        "implicit.stat_4293455942"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "敵人不能偷取你的生命"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "stat": {
+              "better": 1,
+              "matchers": [
+                {
+                  "string": "敵人不能偷取你的生命"
+                }
+              ],
+              "ref": "Enemies Cannot Leech Life From you",
+              "trade": {
+                "ids": {
+                  "explicit": [
+                    "explicit.stat_4293455942"
+                  ],
+                  "implicit": [
+                    "implicit.stat_4293455942"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "敵人不能偷取你的生命"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "matchers": [
+          {
+            "string": "敵人不能偷取你的生命"
+          }
+        ],
+        "ref": "Enemies Cannot Leech Life From you",
+        "trade": {
+          "ids": {
+            "explicit": [
+              "explicit.stat_4293455942"
+            ],
+            "implicit": [
+              "implicit.stat_4293455942"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 30,
+            "min": 30,
+            "value": 30
+          },
+          "modifier": {
+            "info": {
+              "tags": [
+                "速度"
+              ],
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 30,
+                  "min": 30,
+                  "unscalable": false,
+                  "value": 30
+                },
+                "stat": {
+                  "better": 1,
+                  "matchers": [
+                    {
+                      "string": "增加 #% 移動速度"
+                    },
+                    {
+                      "negate": true,
+                      "string": "減少 #% 移動速度"
+                    }
+                  ],
+                  "ref": "#% increased Movement Speed",
+                  "trade": {
+                    "ids": {
+                      "crafted": [
+                        "crafted.stat_2250533757"
+                      ],
+                      "enchant": [
+                        "enchant.stat_2250533757"
+                      ],
+                      "explicit": [
+                        "explicit.stat_2250533757"
+                      ],
+                      "fractured": [
+                        "fractured.stat_2250533757"
+                      ],
+                      "implicit": [
+                        "implicit.stat_2250533757"
+                      ],
+                      "pseudo": [
+                        "pseudo.pseudo_increased_movement_speed"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "增加 #% 移動速度"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 30,
+              "min": 30,
+              "unscalable": false,
+              "value": 30
+            },
+            "stat": {
+              "better": 1,
+              "matchers": [
+                {
+                  "string": "增加 #% 移動速度"
+                },
+                {
+                  "negate": true,
+                  "string": "減少 #% 移動速度"
+                }
+              ],
+              "ref": "#% increased Movement Speed",
+              "trade": {
+                "ids": {
+                  "crafted": [
+                    "crafted.stat_2250533757"
+                  ],
+                  "enchant": [
+                    "enchant.stat_2250533757"
+                  ],
+                  "explicit": [
+                    "explicit.stat_2250533757"
+                  ],
+                  "fractured": [
+                    "fractured.stat_2250533757"
+                  ],
+                  "implicit": [
+                    "implicit.stat_2250533757"
+                  ],
+                  "pseudo": [
+                    "pseudo.pseudo_increased_movement_speed"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "增加 #% 移動速度"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "matchers": [
+          {
+            "string": "增加 #% 移動速度"
+          },
+          {
+            "negate": true,
+            "string": "減少 #% 移動速度"
+          }
+        ],
+        "ref": "#% increased Movement Speed",
+        "trade": {
+          "ids": {
+            "crafted": [
+              "crafted.stat_2250533757"
+            ],
+            "enchant": [
+              "enchant.stat_2250533757"
+            ],
+            "explicit": [
+              "explicit.stat_2250533757"
+            ],
+            "fractured": [
+              "fractured.stat_2250533757"
+            ],
+            "implicit": [
+              "implicit.stat_2250533757"
+            ],
+            "pseudo": [
+              "pseudo.pseudo_increased_movement_speed"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    }
+  ],
+  "uniqueBase": {
+    "armour": {
+      "ev": [
+        220,
+        253
+      ]
+    },
+    "craftable": {
+      "category": "Boots"
+    },
+    "h": 2,
+    "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQXJtb3Vycy9Cb290cy9Cb290c0RleDMiLCJ3IjoyLCJoIjoyLCJzY2FsZSI6MX1d/f2e9a30d4a/BootsDex3.png",
+    "name": "匿蹤短靴",
+    "namespace": "ITEM",
+    "refName": "Stealth Boots",
+    "w": 2
+  },
+  "unknownModifiers": []
+}

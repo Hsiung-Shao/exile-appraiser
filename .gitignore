@@ -1,0 +1,19 @@
+node_modules/
+dist/
+dist-*/
+out/
+*.log
+.DS_Store
+Thumbs.db
+# 本機工具與筆記(比照 apt-patched:維護者管線不進公開 repo)
+tools-local/
+notes/
+# vitest / vite 快取
+.vite/
+coverage/
+# 環境
+.env
+.env.*
+# electron-updater 開發模式離線驗證(scripts/make-fake-update-feed.mjs);範本是 main/dev-app-update.yml.example
+main/dev-app-update.yml
+.fake-update-feed/

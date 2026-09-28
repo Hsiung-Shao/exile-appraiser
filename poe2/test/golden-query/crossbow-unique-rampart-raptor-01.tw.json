@@ -1,0 +1,85 @@
+{
+  "api": "trade",
+  "request": {
+    "query": {
+      "status": {
+        "option": "securable"
+      },
+      "stats": [
+        {
+          "type": "and",
+          "filters": [
+            {
+              "id": "implicit.stat_1803308202",
+              "value": {
+                "min": 28
+              },
+              "disabled": false
+            },
+            {
+              "id": "explicit.stat_1509134228",
+              "value": {
+                "min": 57
+              },
+              "disabled": false
+            },
+            {
+              "id": "explicit.stat_710476746",
+              "value": {},
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_842299438",
+              "value": {},
+              "disabled": true
+            }
+          ]
+        },
+        {
+          "type": "count",
+          "value": {
+            "min": 1
+          },
+          "disabled": false,
+          "filters": [
+            {
+              "id": "explicit.stat_210067635",
+              "value": {
+                "min": 31
+              },
+              "disabled": false
+            },
+            {
+              "id": "explicit.stat_681332047",
+              "value": {
+                "min": 31
+              },
+              "disabled": false
+            }
+          ]
+        }
+      ],
+      "filters": {
+        "trade_filters": {
+          "filters": {
+            "collapse": {
+              "option": "true"
+            }
+          }
+        },
+        "misc_filters": {
+          "filters": {
+            "corrupted": {
+              "option": "false"
+            }
+          }
+        }
+      },
+      "name": "壁壘猛禽",
+      "type": "緊繃十字弓"
+    },
+    "sort": {
+      "price": "asc"
+    }
+  }
+}

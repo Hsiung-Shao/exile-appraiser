@@ -1,0 +1,214 @@
+{
+  "baseType": "實用腰帶",
+  "category": "Belt",
+  "influences": [],
+  "info": {
+    "name": "魔血",
+    "namespace": "UNIQUE",
+    "refName": "Mageblood",
+    "unique": {
+      "base": "Utility Belt"
+    }
+  },
+  "infoVariants": [
+    {
+      "name": "魔血",
+      "namespace": "UNIQUE",
+      "refName": "Mageblood",
+      "unique": {
+        "base": "Utility Belt"
+      }
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": false,
+  "itemLevel": 79,
+  "name": "魔血",
+  "newMods": [
+    {
+      "info": {
+        "tags": [],
+        "type": "implicit"
+      },
+      "stats": [
+        {
+          "ref": "#% of Flask Recovery applied Instantly",
+          "roll": {
+            "dp": false,
+            "max": 20,
+            "min": 20,
+            "unscalable": false,
+            "value": 20
+          },
+          "tradeIds": {
+            "implicit": [
+              "implicit.stat_462041840"
+            ]
+          },
+          "translation": "#%的藥劑回復立即生效"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "護符"
+        ],
+        "type": "implicit"
+      },
+      "stats": [
+        {
+          "ref": "Has # Charm Slot",
+          "roll": {
+            "dp": false,
+            "max": 3,
+            "min": 1,
+            "unscalable": false,
+            "value": 3
+          },
+          "tradeIds": {
+            "explicit": [
+              "explicit.stat_1416292992"
+            ],
+            "implicit": [
+              "implicit.stat_1416292992"
+            ]
+          },
+          "translation": "有#個護符欄位"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "Legacy of #",
+          "roll": {
+            "dp": false,
+            "max": 8,
+            "min": 8,
+            "option": 8,
+            "unscalable": true,
+            "value": 8
+          },
+          "tradeIds": {
+            "explicit": [
+              "explicit.stat_264262054"
+            ]
+          },
+          "translation": "水銀之遺"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "Legacy of #",
+          "roll": {
+            "dp": false,
+            "max": 5,
+            "min": 5,
+            "option": 5,
+            "unscalable": true,
+            "value": 5
+          },
+          "tradeIds": {
+            "explicit": [
+              "explicit.stat_264262054"
+            ]
+          },
+          "translation": "黃金之遺"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "Legacy of #",
+          "roll": {
+            "dp": false,
+            "max": 2,
+            "min": 2,
+            "option": 2,
+            "unscalable": true,
+            "value": 2
+          },
+          "tradeIds": {
+            "explicit": [
+              "explicit.stat_264262054"
+            ]
+          },
+          "translation": "堅岩之遺"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "Legacy of #",
+          "roll": {
+            "dp": false,
+            "max": 5,
+            "min": 5,
+            "option": 5,
+            "unscalable": true,
+            "value": 5
+          },
+          "tradeIds": {
+            "explicit": [
+              "explicit.stat_264262054"
+            ]
+          },
+          "translation": "黃金之遺"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "All Mage's Legacies have #% increased effect per duplicate Mage's Legacy you have",
+          "roll": {
+            "dp": false,
+            "max": 50,
+            "min": 25,
+            "unscalable": false,
+            "value": 44
+          },
+          "tradeIds": {
+            "explicit": [
+              "explicit.stat_3874491706"
+            ]
+          },
+          "translation": "你每擁有一個重複的魔遺，即增加#%所有魔遺效果"
+        }
+      ]
+    }
+  ],
+  "rarity": "Unique",
+  "requires": {
+    "dex": 0,
+    "int": 0,
+    "level": 55,
+    "str": 0
+  },
+  "unknownModifiers": []
+}

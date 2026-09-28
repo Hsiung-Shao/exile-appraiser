@@ -1,0 +1,39 @@
+{
+  "api": "trade",
+  "request": {
+    "query": {
+      "status": {
+        "option": "available"
+      },
+      "stats": [
+        {
+          "type": "and",
+          "filters": []
+        }
+      ],
+      "filters": {
+        "trade_filters": {
+          "filters": {
+            "price": {
+              "option": "chaos_divine"
+            },
+            "collapse": {
+              "option": "true"
+            }
+          }
+        },
+        "misc_filters": {
+          "filters": {
+            "corrupted": {
+              "option": "false"
+            }
+          }
+        }
+      },
+      "type": "雷鳴湍流輔助"
+    },
+    "sort": {
+      "price": "asc"
+    }
+  }
+}

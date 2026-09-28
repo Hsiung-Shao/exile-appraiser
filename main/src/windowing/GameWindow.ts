@@ -1,0 +1,53 @@
+// 移植自 Awakened PoE Trade `main/src/windowing/GameWindow.ts`(MIT)。
+// exile-appraiser: 去掉 screenshot(沒有 OCR);attach 事件多印 log(含 game)。
+import type { BrowserWindow } from 'electron'
+import { EventEmitter } from 'events'
+import { OverlayController, type AttachEvent } from 'electron-overlay-window'
+
+export interface GameWindow {
+  on: (event: 'active-change', listener: (isActive: boolean) => void) => this
+}
+export class GameWindow extends EventEmitter {
+  private _isActive = false
+  private _isTracking = false
+
+  get bounds () { return OverlayController.targetBounds }
+
+  get isActive () { return this._isActive }
+
+  set isActive (active: boolean) {
+    if (this.isActive !== active) {
+      this._isActive = active
+      this.emit('active-change', this._isActive)
+    }
+  }
+
+  get uiSidebarWidth () {
+    // sidebar is 370px at 800x600
+    const ratio = 370 / 600
+    return Math.round(this.bounds.height * ratio)
+  }
+
+  get isTracking () { return this._isTracking }
+
+  attach (window: BrowserWindow | undefined, title: string, game?: string) {
+    if (!this._isTracking) {
+      OverlayController.events.on('focus', () => { console.log('[overlay] 遊戲視窗 focus'); this.isActive = true })
+      OverlayController.events.on('blur', () => { console.log('[overlay] 遊戲視窗 blur'); this.isActive = false })
+      OverlayController.events.on('detach', () => { console.log('[overlay] detach(遊戲視窗關閉)') })
+      console.log(`[overlay] attachByTitle "${title}"${game ? ` (game=${game})` : ''}`)
+      OverlayController.attachByTitle(window, title, { hasTitleBarOnMac: true })
+      this._isTracking = true
+    } else {
+      // 原生碼只允許 attach 一次(windows.c 以 strcmp 比對單一標題);換標題/換遊戲由 main.ts 重新啟動處理
+      console.log(`[overlay] 已在追蹤視窗;"${title}" 需重新啟動才生效`)
+    }
+  }
+
+  onAttach (cb: (hasAccess: boolean | undefined) => void) {
+    OverlayController.events.on('attach', (e: AttachEvent) => {
+      console.log(`[overlay] attach hasAccess=${e.hasAccess} fullscreen=${e.isFullscreen} bounds=${e.x},${e.y} ${e.width}x${e.height}`)
+      cb(e.hasAccess)
+    })
+  }
+}

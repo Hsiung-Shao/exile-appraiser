@@ -1,0 +1,27 @@
+/**
+ * 交易層對外唯一的網路介面。
+ *
+ * 形狀刻意與 WHATWG `fetch` 相同,所以:
+ * - Electron renderer 端可以直接傳「經 main process 代理(帶 session cookie 過 Cloudflare)」的包裝函式;
+ * - Node CLI 傳全域 `fetch`(會缺 Cloudflare cookie,只適合 dry-run 或偶爾一次的驗證);
+ * - 測試傳讀錄製檔的假函式(含 `x-rate-limit-*` 標頭、429、`Query is too complex`)。
+ *
+ * ⚠ 不要在 core 裡直接呼叫全域 `fetch`;所有請求都要經過注入的 HttpFetch,
+ *   否則「其實打了外部 API」這種缺陷會躲過測試。
+ */
+export type HttpFetch = (url: string, init?: HttpRequestInit) => Promise<HttpResponse>
+
+export interface HttpRequestInit {
+  method?: 'GET' | 'POST'
+  headers?: Record<string, string>
+  body?: string
+}
+
+/** `Response` 的子集,夠交易層用即可;真的 `Response` 物件直接滿足這個介面。 */
+export interface HttpResponse {
+  ok: boolean
+  status: number
+  headers: Headers
+  json: () => Promise<unknown>
+  text: () => Promise<string>
+}

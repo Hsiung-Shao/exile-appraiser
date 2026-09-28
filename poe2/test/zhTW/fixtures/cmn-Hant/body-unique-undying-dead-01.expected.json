@@ -1,0 +1,164 @@
+{
+  "augmentSockets": {
+    "augments": [
+      null,
+      null,
+      null,
+      null
+    ],
+    "current": 4,
+    "empty": 4,
+    "normal": 4
+  },
+  "baseType": "宏偉華服",
+  "category": "Body Armour",
+  "influences": [],
+  "info": {
+    "name": "不敗亡者",
+    "namespace": "UNIQUE",
+    "refName": "Morior Invictus",
+    "unique": {
+      "base": "Grand Regalia",
+      "fixedStats": [
+        "#% increased Armour, Evasion and Energy Shield"
+      ]
+    }
+  },
+  "infoVariants": [
+    {
+      "name": "不敗亡者",
+      "namespace": "UNIQUE",
+      "refName": "Morior Invictus",
+      "unique": {
+        "base": "Grand Regalia",
+        "fixedStats": [
+          "#% increased Armour, Evasion and Energy Shield"
+        ]
+      }
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": false,
+  "itemLevel": 84,
+  "name": "不敗亡者",
+  "newMods": [
+    {
+      "info": {
+        "tags": [
+          "護甲,閃避,能量護盾"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Armour, Evasion and Energy Shield",
+          "roll": {
+            "dp": false,
+            "max": 400,
+            "min": 300,
+            "unscalable": false,
+            "value": 303
+          },
+          "tradeIds": {
+            "desecrated": [
+              "desecrated.stat_3523867985"
+            ],
+            "explicit": [
+              "explicit.stat_3523867985"
+            ],
+            "fractured": [
+              "fractured.stat_3523867985"
+            ],
+            "rune": [
+              "rune.stat_3523867985"
+            ],
+            "sanctum": [
+              "sanctum.stat_1016362888"
+            ]
+          },
+          "translation": "增加#%護甲值、閃避和能量護盾"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "# Life Regeneration per second per Socket filled",
+          "roll": {
+            "dp": true,
+            "max": 12,
+            "min": 8,
+            "unscalable": false,
+            "value": 11.5
+          },
+          "tradeIds": {
+            "explicit": [
+              "explicit.stat_332337290"
+            ]
+          },
+          "translation": "每個鑲嵌的插槽每秒具有#生命回復"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "+# to Spirit per Socket filled",
+          "roll": {
+            "dp": false,
+            "max": 14,
+            "min": 10,
+            "unscalable": false,
+            "value": 12
+          },
+          "tradeIds": {
+            "explicit": [
+              "explicit.stat_4163415912"
+            ]
+          },
+          "translation": "每個鑲嵌的插槽使精魂+#"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "# to maximum Mana per Socket filled",
+          "roll": {
+            "dp": false,
+            "max": 60,
+            "min": 50,
+            "unscalable": false,
+            "value": 56
+          },
+          "tradeIds": {
+            "explicit": [
+              "explicit.stat_1036267537"
+            ]
+          },
+          "translation": "每個鑲嵌的插槽使最大魔力#"
+        }
+      ]
+    }
+  ],
+  "rarity": "Unique",
+  "requires": {
+    "dex": 41,
+    "int": 41,
+    "level": 65,
+    "str": 41
+  },
+  "unknownModifiers": []
+}

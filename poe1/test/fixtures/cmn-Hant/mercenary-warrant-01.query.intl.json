@@ -1,0 +1,207 @@
+{
+  "api": "trade",
+  "request": {
+    "query": {
+      "status": {
+        "option": "available"
+      },
+      "stats": [
+        {
+          "type": "and",
+          "filters": [
+            {
+              "id": "mercenary.skill_41484",
+              "value": {},
+              "disabled": false
+            },
+            {
+              "id": "mercenary.skill_33661",
+              "value": {},
+              "disabled": false
+            },
+            {
+              "id": "mercenary.skill_63233",
+              "value": {},
+              "disabled": true
+            },
+            {
+              "id": "mercenary.skill_38326",
+              "value": {},
+              "disabled": true
+            }
+          ]
+        },
+        {
+          "type": "mercenary",
+          "disabled": true,
+          "filters": [
+            {
+              "id": "mercenary.skill_41484",
+              "value": {},
+              "disabled": true
+            },
+            {
+              "id": "mercenary.support_26568",
+              "value": {},
+              "disabled": true
+            },
+            {
+              "id": "mercenary.support_53342",
+              "value": {},
+              "disabled": true
+            },
+            {
+              "id": "mercenary.support_19113",
+              "value": {},
+              "disabled": true
+            }
+          ]
+        },
+        {
+          "type": "mercenary",
+          "disabled": true,
+          "filters": [
+            {
+              "id": "mercenary.skill_33661",
+              "value": {},
+              "disabled": true
+            },
+            {
+              "id": "mercenary.support_26568",
+              "value": {},
+              "disabled": true
+            },
+            {
+              "id": "mercenary.support_53342",
+              "value": {},
+              "disabled": true
+            },
+            {
+              "id": "mercenary.support_19113",
+              "value": {},
+              "disabled": true
+            }
+          ]
+        },
+        {
+          "type": "mercenary",
+          "disabled": true,
+          "filters": [
+            {
+              "id": "mercenary.skill_5893",
+              "value": {},
+              "disabled": true
+            },
+            {
+              "id": "mercenary.support_49419",
+              "value": {},
+              "disabled": true
+            },
+            {
+              "id": "mercenary.support_14517",
+              "value": {},
+              "disabled": true
+            },
+            {
+              "id": "mercenary.support_37388",
+              "value": {},
+              "disabled": true
+            },
+            {
+              "id": "mercenary.support_31600",
+              "value": {},
+              "disabled": true
+            },
+            {
+              "id": "mercenary.support_41256",
+              "value": {},
+              "disabled": true
+            },
+            {
+              "id": "mercenary.support_26815",
+              "value": {},
+              "disabled": true
+            }
+          ]
+        },
+        {
+          "type": "mercenary",
+          "disabled": true,
+          "filters": [
+            {
+              "id": "mercenary.skill_3148",
+              "value": {},
+              "disabled": true
+            },
+            {
+              "id": "mercenary.support_10608",
+              "value": {},
+              "disabled": true
+            },
+            {
+              "id": "mercenary.support_26815",
+              "value": {},
+              "disabled": true
+            },
+            {
+              "id": "mercenary.support_37388",
+              "value": {},
+              "disabled": true
+            },
+            {
+              "id": "mercenary.support_31600",
+              "value": {},
+              "disabled": true
+            },
+            {
+              "id": "mercenary.support_64846",
+              "value": {},
+              "disabled": true
+            },
+            {
+              "id": "mercenary.support_38046",
+              "value": {},
+              "disabled": true
+            },
+            {
+              "id": "mercenary.support_65120",
+              "value": {},
+              "disabled": true
+            },
+            {
+              "id": "mercenary.support_1751",
+              "value": {},
+              "disabled": true
+            }
+          ]
+        }
+      ],
+      "filters": {
+        "trade_filters": {
+          "filters": {
+            "price": {
+              "option": "chaos_divine"
+            },
+            "collapse": {
+              "option": "true"
+            }
+          }
+        },
+        "misc_filters": {
+          "filters": {
+            "ilvl": {
+              "min": 83
+            }
+          }
+        }
+      },
+      "type": {
+        "discriminator": "mercenary_warrant",
+        "option": "ElementalWitchLightning"
+      }
+    },
+    "sort": {
+      "price": "asc"
+    }
+  }
+}

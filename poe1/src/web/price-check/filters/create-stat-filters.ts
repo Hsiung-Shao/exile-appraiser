@@ -1,0 +1,660 @@
+import { ParsedItem, ItemRarity, ItemCategory } from '@/parser'
+import { ModifierType, StatCalculated, statSourcesTotal, translateStatWithRoll } from '@/parser/modifiers'
+import { percentRoll, percentRollDelta, roundRoll } from './util'
+import { FilterTag, ItemHasEmptyModifier, StatFilter, FilterGroup, FilterOrGroup } from './interfaces'
+import { filterPseudo } from './pseudo'
+import { applyRules as applyAtzoatlRules } from './pseudo/atzoatl-rules'
+import { applyRules as applyMirroredTabletRules } from './pseudo/reflection-rules'
+import { filterEquipmentProps, filterBasePercentile, filterMemoryStrands, BASE_PCTL_AFFECTED_IDS } from './pseudo/item-property'
+import { mapProps, valdoBadMods, chartProps } from './pseudo/maps'
+import { applyFlaskHybridMod } from './pseudo/flasks'
+import { applyHeistRules } from './pseudo/heist'
+import { filterTimelessJewelKeystones } from './pseudo/timeless-jewel'
+import { decodeOils, applyAnointmentRules } from './pseudo/anointments'
+import { StatBetter, CLIENT_STRINGS } from '@/assets/data'
+
+export interface FiltersCreationContext {
+  readonly item: ParsedItem
+  readonly searchInRange: number
+  filters: StatFilter[]
+  groups: FilterGroup[]
+  statsByType: StatCalculated[]
+}
+
+export function createExactStatFilters (
+  item: ParsedItem,
+  statsByType: StatCalculated[],
+  opts: { searchStatRange: number, mode?: 'props' | 'bulk' }
+): StatFilter[] {
+  if (
+    item.info.area?.blighted ||
+    item.category === ItemCategory.Invitation
+  ) return []
+
+  const keepByType = [ModifierType.Pseudo, ModifierType.Fractured, ModifierType.Enchant, ModifierType.Necropolis, ModifierType.Imbued]
+
+  if (
+    !item.influences.length &&
+    !item.isFractured &&
+    item.category !== ItemCategory.Tincture &&
+    item.category !== ItemCategory.Idol &&
+    item.category !== ItemCategory.Chart
+  ) {
+    keepByType.push(ModifierType.Implicit)
+  }
+
+  if (item.rarity === ItemRarity.Magic && (
+    item.category !== ItemCategory.ClusterJewel &&
+    item.category !== ItemCategory.Map &&
+    item.category !== ItemCategory.HeistContract &&
+    item.category !== ItemCategory.HeistBlueprint &&
+    item.category !== ItemCategory.Chart &&
+    item.category !== ItemCategory.Sentinel
+  )) {
+    keepByType.push(ModifierType.Explicit)
+  } else if (item.rarity === ItemRarity.Rare && (
+    item.category === ItemCategory.Idol ||
+    // 稀有地圖的詞綴上游整批不收,所以「釋界干擾玩家」「區域內含有不穩定的惡魔觸手」
+    // 這些決定要不要買的詞綴**連勾都勾不到**。收進來但預設不勾(見下方地圖分支),
+    // 送出的查詢因此與收之前逐字相同,只是多了可勾的選項。
+    item.category === ItemCategory.Map
+  )) {
+    keepByType.push(ModifierType.Explicit)
+  }
+
+  if (item.category === ItemCategory.Flask) {
+    keepByType.push(ModifierType.Crafted)
+  }
+
+  const ctx: FiltersCreationContext = {
+    item,
+    searchInRange: (opts.mode !== 'props')
+      ? Math.min(2, opts.searchStatRange)
+      : opts.searchStatRange,
+    filters: [],
+    groups: [],
+    statsByType: statsByType.filter(calc => keepByType.includes(calc.type))
+  }
+
+  filterBasePercentile(ctx)
+  filterMemoryStrands(ctx)
+  mapProps(opts.mode === 'bulk', ctx)
+  chartProps(opts.mode === 'bulk', ctx)
+  valdoBadMods(ctx)
+
+  ctx.filters.push(
+    ...ctx.statsByType.map(mod => calculatedStatToFilter(mod, ctx.searchInRange, item))
+  )
+
+  if (item.info.refName === 'Chronicle of Atzoatl') {
+    applyAtzoatlRules(ctx.filters)
+    return ctx.filters
+  }
+  if (item.info.refName === 'Mirrored Tablet') {
+    applyMirroredTabletRules(ctx.filters)
+    return ctx.filters
+  }
+  if (item.category === ItemCategory.Map) {
+    for (const filter of ctx.filters) {
+      if (filter.tag === FilterTag.Property || filter.tag === FilterTag.Pseudo) continue
+      // 稀有地圖有 6-8 條詞綴,全部當條件送出必定 0 筆 —— 所以顯示出來讓使用者自己挑,
+      // 但預設不勾。魔法地圖只有 1-2 條,維持原本的全勾。
+      const isRandomRareMapMod = (item.rarity === ItemRarity.Rare && filter.tag === FilterTag.Explicit)
+      filter.disabled = isRandomRareMapMod
+
+      // 地圖的定價看的是**產出**(物品數量/稀有度/怪物群大小 = property,更多地圖/
+      // 聖甲蟲/通貨/命運卡 = pseudo,上面那行 continue 掉的就是它們)與**固定詞綴**
+      // (區域受到開創者的記憶影響、地圖被異界佔據、地圖含有壁壘 —— 一律是 implicit,
+      // 預設勾選)。是否汙染、是否鑑定不是詞綴,那兩顆是 FiltersBlock 的按鈕。
+      //
+      // 剩下的就是這一段自己剛停用掉的隨機詞綴:它們占滿版面,害使用者得先略過
+      // 一長串才找得到真正在看的那幾條。收進「已隱藏」而不是不產生 —— 地圖的負面
+      // 詞綴偶爾還是有人要搜,使用者按開關就能叫回來。
+      //
+      // ⚠ 隱藏的範圍必須與**這一行剛停用的範圍逐字相同**。被隱藏卻仍勾選的條件
+      //   會變成看不見的查詢條件 —— 使用者搜不到東西也看不出是哪一條在擋。
+      if (isRandomRareMapMod) {
+        filter.hidden = 'filters.hide_map_random_mod'
+      }
+    }
+    return ctx.filters
+  }
+
+  for (const filter of ctx.filters) {
+    if (filter.not) continue
+
+    filter.hidden = undefined
+
+    if (filter.tag === FilterTag.Explicit) {
+      filter.disabled = !filter.sources.some(source =>
+        source.modifier.info.tier != null &&
+        source.modifier.info.tier <= 2
+      )
+    } else if (filter.tag !== FilterTag.Property && filter.tag !== FilterTag.Pseudo) {
+      filter.disabled = false
+    }
+
+    if (filter.statRef === '# uses remaining') {
+      filter.roll!.min = filter.roll!.value
+      filter.roll!.default.min = filter.roll!.value
+      filter.roll!.default.max = filter.roll!.value
+    }
+  }
+
+  if (item.category === ItemCategory.ClusterJewel) {
+    applyClusterJewelRules(ctx.filters, true)
+  } if (
+    item.category === ItemCategory.HeistContract ||
+    item.category === ItemCategory.HeistBlueprint
+  ) {
+    applyHeistRules(ctx)
+  } else if (item.category === ItemCategory.Flask) {
+    applyFlaskRules(ctx.filters)
+    applyFlaskHybridMod(ctx)
+  } else if (
+    item.category === ItemCategory.MemoryLine ||
+    item.category === ItemCategory.SanctumRelic ||
+    item.category === ItemCategory.Charm
+  ) {
+    enableAllFilters(ctx.filters)
+  } else if (item.category === ItemCategory.Idol) {
+    enableGoodRolledFilters(ctx.filters, 0.66)
+  }
+
+  return ctx.filters
+}
+
+export function initUiModFilters (
+  item: ParsedItem,
+  opts: {
+    searchStatRange: number
+  }
+): FilterOrGroup[] {
+  const ctx: FiltersCreationContext = {
+    item,
+    filters: [],
+    groups: [],
+    searchInRange: (item.rarity === ItemRarity.Normal) ? 100 : opts.searchStatRange,
+    statsByType: item.statsByType.map(calc => {
+      if (calc.type === ModifierType.Fractured && calc.stat.trade.ids[ModifierType.Explicit]) {
+        return { ...calc, type: ModifierType.Explicit }
+      } else {
+        return calc
+      }
+    })
+  }
+
+  filterEquipmentProps(ctx)
+  if (item.rarity === ItemRarity.Unique) {
+    filterBasePercentile(ctx)
+  }
+  filterMemoryStrands(ctx, 'hide_memory_strands')
+  if (item.info.refName !== 'Split Personality') {
+    filterPseudo(ctx)
+  }
+  if (item.uniqueBase?.refName === 'Timeless Jewel') {
+    filterTimelessJewelKeystones(ctx)
+  }
+
+  if (!item.isCorrupted && !item.isMirrored) {
+    ctx.statsByType = ctx.statsByType.filter(mod => mod.type !== ModifierType.Fractured)
+    ctx.statsByType.push(...item.statsByType.filter(mod => mod.type === ModifierType.Fractured))
+  }
+
+  if (item.isVeiled) {
+    ctx.statsByType = ctx.statsByType.filter(mod => mod.type !== ModifierType.Veiled)
+  }
+
+  ctx.filters.push(
+    ...ctx.statsByType.map(mod => calculatedStatToFilter(mod, ctx.searchInRange, item))
+  )
+
+  if (item.isVeiled) {
+    ctx.filters.forEach(filter => { filter.disabled = true })
+  }
+
+  finalFilterTweaks(ctx)
+
+  return [...ctx.filters, ...ctx.groups]
+}
+
+export function calculatedStatToFilter (
+  calc: StatCalculated,
+  percent: number,
+  item: ParsedItem
+): StatFilter {
+  const { stat, sources, type } = calc
+  let filter: StatFilter
+
+  if (stat.trade.option) {
+    filter = {
+      tradeId: stat.trade.ids[type],
+      statRef: stat.ref,
+      text: sources[0].stat.translation.string,
+      tag: (type === ModifierType.Enchant)
+        ? FilterTag.Enchant
+        : FilterTag.Variant,
+      sources: sources,
+      option: {
+        value: sources[0].contributes!.value
+      },
+      disabled: false
+    }
+  }
+
+  const roll = statSourcesTotal(
+    calc.sources,
+    (item.info.refName === 'Mirrored Tablet') ? 'max' : 'sum'
+  )
+  const translation = translateStatWithRoll(calc, roll)
+
+  filter ??= {
+    tradeId: stat.trade.ids[type],
+    statRef: stat.ref,
+    text: translation.string,
+    tag: (type as unknown) as FilterTag,
+    oils: decodeOils(calc),
+    sources: sources,
+    roll: undefined,
+    disabled: true
+  }
+
+  if (calc.stat.better === StatBetter.NotComparable) {
+    if (type !== ModifierType.Enchant) {
+      filter.tag = FilterTag.Variant
+    }
+    if (!filter.oils) {
+      filter.disabled = false
+    }
+  }
+
+  if (type === ModifierType.Implicit) {
+    if (sources.some(s => s.modifier.info.generation === 'corrupted')) {
+      filter.tag = FilterTag.Corrupted
+    } else if (sources.some(s => s.modifier.info.generation === 'eldritch')) {
+      filter.tag = FilterTag.Eldritch
+    } else if (sources.some(s => s.modifier.info.generation === 'vestigial')) {
+      filter.tag = FilterTag.Vestigial
+    } else if (item.isSynthesised) {
+      filter.tag = FilterTag.Synthesised
+    }
+  } else if (type === ModifierType.Explicit) {
+    if (item.info.unique) {
+      if (item.info.unique.fixedStats) {
+        const fixedStats = item.info.unique.fixedStats
+        if (!fixedStats.includes(filter.statRef)) {
+          filter.tag = FilterTag.Variant
+        }
+      } else if (sources.some(s =>
+        s.modifier.info.generation === 'prefix' ||
+        s.modifier.info.generation === 'suffix'
+      )) {
+        filter.tag = FilterTag.Variant
+      }
+    }
+    if (sources.some(s => s.modifier.info.generation === 'foulborn')) {
+      filter.tag = FilterTag.Foulborn
+    } else if (sources.some(s => CLIENT_STRINGS.SHAPER_MODS.includes(s.modifier.info.name!))) {
+      filter.tag = FilterTag.Shaper
+    } else if (sources.some(s => CLIENT_STRINGS.ELDER_MODS.includes(s.modifier.info.name!))) {
+      filter.tag = FilterTag.Elder
+    } else if (sources.some(s => CLIENT_STRINGS.HUNTER_MODS.includes(s.modifier.info.name!))) {
+      filter.tag = FilterTag.Hunter
+    } else if (sources.some(s => CLIENT_STRINGS.WARLORD_MODS.includes(s.modifier.info.name!))) {
+      filter.tag = FilterTag.Warlord
+    } else if (sources.some(s => CLIENT_STRINGS.REDEEMER_MODS.includes(s.modifier.info.name!))) {
+      filter.tag = FilterTag.Redeemer
+    } else if (sources.some(s => CLIENT_STRINGS.CRUSADER_MODS.includes(s.modifier.info.name!))) {
+      filter.tag = FilterTag.Crusader
+    } else if (sources.some(s => CLIENT_STRINGS.DELVE_MODS.includes(s.modifier.info.name!))) {
+      filter.tag = FilterTag.Delve
+    } else if (sources.some(s => CLIENT_STRINGS.VEILED_MODS.includes(s.modifier.info.name!))) {
+      // can't drop from ground, so don't show
+      // filter.tag = FilterTag.Unveiled
+    } else if (sources.some(s => CLIENT_STRINGS.INCURSION_MODS.includes(s.modifier.info.name!))) {
+      filter.tag = FilterTag.Incursion
+    } else if (sources.some(s => CLIENT_STRINGS.ESSENCE_MODS.includes(s.modifier.info.name!))) {
+      filter.tag = FilterTag.Essence
+    } else if (sources.some(s => CLIENT_STRINGS.INFAMOUS_MODS.includes(s.modifier.info.name!))) {
+      filter.tag = FilterTag.Infamous
+    }
+  }
+
+  if (roll && !filter.option) {
+    if (item.rarity === ItemRarity.Magic && (
+      item.isUnmodifiable || item.isCorrupted || item.isMirrored
+    )) {
+      percent = 0
+    } else if (
+      item.rarity === ItemRarity.Unique ||
+      (item.rarity === ItemRarity.Magic && item.category === ItemCategory.Jewel) ||
+      calc.sources.some(({ modifier }) => modifier.info.tier === 1 && modifier.info.type === ModifierType.Fractured)
+    ) {
+      const perfectRoll = (
+        (calc.stat.better === StatBetter.PositiveRoll && roll.value >= roll.max) ||
+        (calc.stat.better === StatBetter.NegativeRoll && roll.value <= roll.min)
+      )
+      if (perfectRoll) {
+        percent = 0
+      }
+    }
+
+    let goodness: number | undefined
+    if (calc.stat.better !== StatBetter.NotComparable) {
+      if (roll.min === roll.max) {
+        goodness = 1
+      } else {
+        goodness = (roll.value - roll.min) / (roll.max - roll.min)
+        if (calc.stat.better === StatBetter.NegativeRoll) {
+          goodness = 1 - goodness
+        }
+      }
+    }
+
+    const dp =
+    calc.stat.dp ||
+    calc.sources.some(s => s.stat.stat.ref === calc.stat.ref && s.stat.roll?.dp)
+
+    const filterBounds = {
+      min: percentRoll(roll.min, -0, Math.floor, dp),
+      max: percentRoll(roll.max, +0, Math.ceil, dp)
+    }
+
+    const filterDefault = (calc.stat.better === StatBetter.NotComparable)
+      ? { min: roll.value, max: roll.value }
+      : (item.rarity === ItemRarity.Unique)
+          ? {
+              min: percentRollDelta(roll.value, (roll.max - roll.min), -percent, Math.floor, dp),
+              max: percentRollDelta(roll.value, (roll.max - roll.min), +percent, Math.ceil, dp)
+            }
+          : {
+              min: percentRoll(roll.value, -percent, Math.floor, dp),
+              max: percentRoll(roll.value, +percent, Math.ceil, dp)
+            }
+    filterDefault.min = Math.max(filterDefault.min, filterBounds.min)
+    filterDefault.max = Math.min(filterDefault.max, filterBounds.max)
+
+    filter.roll = {
+      value: roundRoll(roll.value, dp),
+      min: undefined,
+      max: undefined,
+      default: filterDefault,
+      bounds: (roll.min !== roll.max && calc.stat.better !== StatBetter.NotComparable)
+        ? filterBounds
+        : undefined,
+      dp: dp,
+      isNegated: false,
+      tradeInvert: calc.stat.trade.inverted,
+      goodness
+    }
+
+    filterFillMinMax(filter.roll, calc.stat.better)
+
+    if (translation.negate) {
+      filterAdjustmentForNegate(filter.roll)
+    }
+  }
+
+  return filter
+}
+
+function hideNotVariableStat (filter: StatFilter, item: ParsedItem) {
+  if (item.rarity !== ItemRarity.Unique || (
+    filter.tag !== FilterTag.Explicit &&
+    filter.tag !== FilterTag.Property
+  )) return
+
+  if (!filter.roll) {
+    filter.hidden = 'filters.hide_const_roll'
+    filter.disabled = true
+  } else if (!filter.roll.bounds) {
+    filter.roll.min = undefined
+    filter.roll.max = undefined
+    filter.hidden = 'filters.hide_const_roll'
+    filter.disabled = true
+  }
+
+  if (item.isFoulborn && (
+    filter.tag === FilterTag.Explicit ||
+    (filter.tag === FilterTag.Property && filter.sources.length)
+  )) {
+    // some mod not being replaced with foulborn one can be important
+    filter.disabled = false
+  }
+}
+
+function filterFillMinMax (
+  roll: NonNullable<StatFilter['roll']>,
+  better: StatBetter
+) {
+  switch (better) {
+    case StatBetter.PositiveRoll:
+      roll.min = roll.default.min
+      break
+    case StatBetter.NegativeRoll:
+      roll.max = roll.default.max
+      break
+    case StatBetter.NotComparable:
+      roll.min = roll.default.min
+      roll.max = roll.default.max
+      break
+  }
+}
+
+function filterAdjustmentForNegate (
+  roll: NonNullable<StatFilter['roll']>
+) {
+  roll.tradeInvert = !roll.tradeInvert
+  roll.isNegated = true
+  const swap = structuredClone(roll)
+
+  if (swap.bounds && roll.bounds) {
+    roll.bounds.min = -1 * swap.bounds.max
+    roll.bounds.max = -1 * swap.bounds.min
+  }
+
+  roll.default.min = -1 * swap.default.max
+  roll.default.max = -1 * swap.default.min
+
+  roll.value = -1 * swap.value
+  roll.min = (typeof swap.max === 'number')
+    ? -1 * swap.max
+    : undefined
+  roll.max = (typeof swap.min === 'number')
+    ? -1 * swap.min
+    : undefined
+}
+
+function finalFilterTweaks (ctx: FiltersCreationContext) {
+  const { item } = ctx
+
+  if (item.category === ItemCategory.ClusterJewel && item.rarity !== ItemRarity.Unique) {
+    applyClusterJewelRules(ctx.filters, false)
+  } else if (item.category === ItemCategory.Flask) {
+    applyFlaskRules(ctx.filters)
+    applyFlaskHybridMod(ctx)
+  }
+
+  const hasEmptyModifier = showHasEmptyModifier(ctx)
+  if (hasEmptyModifier !== false) {
+    ctx.filters.push({
+      tradeId: ['item.has_empty_modifier'],
+      text: '1 Empty or Crafted Modifier',
+      statRef: '1 Empty or Crafted Modifier',
+      disabled: true,
+      hidden: 'filters.hide_empty_mod',
+      tag: FilterTag.Pseudo,
+      sources: [],
+      option: {
+        value: hasEmptyModifier
+      }
+    })
+  }
+
+  if (item.category === ItemCategory.Amulet || item.category === ItemCategory.Ring) {
+    applyAnointmentRules(ctx.filters, ctx.item)
+  }
+
+  for (const filter of ctx.filters) {
+    hideNotVariableStat(filter, item)
+
+    if (filter.tag === FilterTag.Fractured) {
+      const mod = ctx.item.statsByType.find(mod => mod.stat.ref === filter.statRef)!
+      if (mod.stat.trade.ids[ModifierType.Explicit]) {
+        // hide only if fractured mod has corresponding explicit variant
+        filter.hidden = 'filters.hide_for_crafting'
+      }
+    } else if (filter.sources[0]?.stat.stat.jewelleryQuality) {
+      filter.hidden = 'hide_jewellery_quality'
+    } else if (filter.tag === FilterTag.Implicit) {
+      if (item.rarity === ItemRarity.Unique && !item.isCorrupted && item.category !== ItemCategory.Jewel) {
+        // hide not Corrupted, Vestigial implicits etc., that were not consumed by pseudo stats
+        filter.hidden = 'hide_unique_base_implicit'
+        filter.disabled = true
+      }
+    } else if (filter.tag === FilterTag.Property) {
+      if (
+        item.rarity === ItemRarity.Unique &&
+        BASE_PCTL_AFFECTED_IDS.includes(filter.tradeId[0]) &&
+        filter.sources.every(source => source.stat.roll?.min === source.stat.roll?.max) &&
+        (item.quality ?? 0) < 21
+      ) {
+        filter.hidden = 'hide_variable_by_base_percentile_only'
+        filter.disabled = true
+      }
+    } else if (
+      filter.tag === FilterTag.Foulborn ||
+      filter.tag === FilterTag.Vestigial ||
+      filter.tag === FilterTag.Variant
+    ) {
+      // 殘存詞綴與穢生詞綴同一類:是這件物品**額外被賦予**的東西,不是底材本來
+      // 就有的。它決定值不值錢,所以預設勾選。
+      filter.disabled = false
+    }
+  }
+
+  const basePercentile = ctx.filters.find(fitler => fitler.tradeId[0] === 'item.base_percentile')
+  if (basePercentile && item.rarity === ItemRarity.Unique) {
+    const hasVisibleArmourProp = ctx.filters.some(filter =>
+      BASE_PCTL_AFFECTED_IDS.includes(filter.tradeId[0]) &&
+      !filter.hidden)
+    if (hasVisibleArmourProp) {
+      basePercentile.hidden = 'hide_redundant'
+      basePercentile.disabled = true
+    }
+  }
+
+  if (item.rarity === ItemRarity.Unique) {
+    const countVisible = ctx.filters.reduce((cnt, filter) => filter.hidden ? cnt : cnt + 1, 0)
+    if (countVisible <= 3) {
+      enableAllFilters(ctx.filters)
+    }
+  }
+}
+
+function applyClusterJewelRules (filters: StatFilter[], exact: boolean) {
+  for (const filter of filters) {
+    if (filter.statRef === '# Added Passive Skills are Jewel Sockets') {
+      filter.hidden = 'filters.hide_const_roll'
+      filter.disabled = true
+    }
+
+    // https://www.poewiki.net/wiki/Cluster_Jewel#Optimal_passive_skill_amounts
+    if (filter.statRef === 'Adds # Passive Skills') {
+      filter.disabled = false
+
+      // 4 is [_, 5]
+      if (filter.roll!.value === 4) {
+        filter.roll!.max = 5
+      // 5 is [5, 5] (and [_, 5] for Rare jewel)
+      } else if (filter.roll!.value === 5 && exact) {
+        filter.roll!.min = filter.roll!.default.min
+      // 3, 6, 10, 11, 12 are [n, _]
+      } else if (
+        filter.roll!.value === 3 ||
+        filter.roll!.value === 6 ||
+        filter.roll!.value === 10 ||
+        filter.roll!.value === 11 ||
+        filter.roll!.value === 12
+      ) {
+        filter.roll!.min = filter.roll!.default.min
+        filter.roll!.max = undefined
+      }
+      // else 2, 5(Rare), 8, 9 are [_ , n]
+    }
+  }
+}
+
+function applyFlaskRules (filters: StatFilter[]) {
+  const usedEnkindling = filters.find(filter => filter.statRef === 'Gains no Charges during Flask Effect')
+  for (const filter of filters) {
+    if (filter.tag === FilterTag.Enchant && !usedEnkindling) {
+      filter.hidden = 'hide_harvest_and_instilling'
+      filter.disabled = true
+    }
+  }
+}
+
+// TODO
+// +1 Prefix Modifier allowed
+// -1 Suffix Modifier allowed
+function showHasEmptyModifier (ctx: FiltersCreationContext): ItemHasEmptyModifier | false {
+  const { item } = ctx
+
+  if (
+    item.rarity !== ItemRarity.Rare ||
+    item.isCorrupted ||
+    item.isMirrored
+  ) return false
+
+  const randomMods = item.newMods.filter(mod =>
+    mod.info.type === ModifierType.Explicit ||
+    mod.info.type === ModifierType.Fractured ||
+    mod.info.type === ModifierType.Veiled ||
+    mod.info.type === ModifierType.Crafted)
+
+  const craftedMod = randomMods.find(mod => mod.info.type === ModifierType.Crafted)
+
+  if (
+    (randomMods.length === 5 && !craftedMod) ||
+    (randomMods.length === 6 && craftedMod)
+  ) {
+    let prefixes = randomMods.filter(mod => mod.info.generation === 'prefix').length
+    let suffixes = randomMods.filter(mod => mod.info.generation === 'suffix').length
+
+    if (craftedMod) {
+      if (craftedMod.info.generation === 'prefix') {
+        prefixes -= 1
+      } else {
+        suffixes -= 1
+      }
+    }
+
+    if (prefixes === 2) return ItemHasEmptyModifier.Prefix
+    if (suffixes === 2) return ItemHasEmptyModifier.Suffix
+  }
+
+  return false
+}
+
+function enableAllFilters (filters: StatFilter[]) {
+  for (const filter of filters) {
+    if (!filter.hidden) {
+      filter.disabled = false
+    }
+  }
+}
+
+function enableGoodRolledFilters (filters: StatFilter[], abovePct: number) {
+  for (const filter of filters) {
+    if (filter.hidden) continue
+    if (!filter.roll || filter.roll.goodness == null) {
+      filter.disabled = false
+      continue
+    }
+
+    if (filter.roll.goodness >= abovePct) {
+      filter.disabled = false
+    }
+  }
+}

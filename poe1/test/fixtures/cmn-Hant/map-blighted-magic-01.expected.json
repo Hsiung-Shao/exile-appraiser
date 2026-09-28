@@ -1,0 +1,786 @@
+{
+  "areaItemQuantity": 26,
+  "areaItemRarity": 16,
+  "areaPackSize": 10,
+  "category": "Map",
+  "influences": [],
+  "info": {
+    "area": {
+      "blighted": true
+    },
+    "craftable": {
+      "category": "Map"
+    },
+    "icon": "/images/maps/blight1.png",
+    "name": "凋落的 地圖",
+    "namespace": "ITEM",
+    "refName": "Blighted Map",
+    "tradeDisc": "blighted"
+  },
+  "infoVariants": [
+    {
+      "area": {
+        "blighted": true
+      },
+      "craftable": {
+        "category": "Map"
+      },
+      "icon": "/images/maps/blight1.png",
+      "name": "凋落的 地圖",
+      "namespace": "ITEM",
+      "refName": "Blighted Map",
+      "tradeDisc": "blighted"
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": false,
+  "itemLevel": 83,
+  "mapArea": {
+    "icon": "",
+    "name": "致命岩灘",
+    "namespace": "AREA",
+    "refName": "Strand",
+    "tradeDisc": "10021"
+  },
+  "mapTier": 8,
+  "name": "凋落的 地圖",
+  "newMods": [
+    {
+      "info": {
+        "tags": [],
+        "type": "implicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 1,
+            "min": 1,
+            "unscalable": true,
+            "value": 1
+          },
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "yes",
+            "matchers": [
+              {
+                "string": "區域被毒菌滋長蔓延\n地圖物品數量詞綴同時以 40% 的值影響凋落保險箱\n最多可以抹油 # 次"
+              },
+              {
+                "string": "區域被毒菌滋長蔓延\n地圖物品數量詞綴同時以 20% 的值影響凋落保險箱\n最多可以抹油 3 次",
+                "value": 1
+              }
+            ],
+            "ref": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 25% value\nCan be Anointed up to 3 times",
+            "trade": {
+              "ids": {
+                "implicit": [
+                  "implicit.stat_299373046"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "區域被毒菌滋長蔓延\n地圖物品數量詞綴同時以 20% 的值影響凋落保險箱\n最多可以抹油 3 次",
+            "value": 1
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "prefix",
+        "name": "豐饒的",
+        "tags": [
+          "生命"
+        ],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 39,
+            "min": 30,
+            "unscalable": false,
+            "value": 31
+          },
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "yes",
+            "matchers": [
+              {
+                "string": "#% 更多怪物生命"
+              },
+              {
+                "negate": true,
+                "string": "#% 更少怪物生命"
+              }
+            ],
+            "ref": "#% more Monster Life",
+            "trade": {
+              "ids": {
+                "explicit": [
+                  "explicit.stat_95249895"
+                ],
+                "fractured": [
+                  "fractured.stat_95249895"
+                ],
+                "implicit": [
+                  "implicit.stat_95249895"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "#% 更多怪物生命"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "suffix",
+        "name": "傾斜之",
+        "tags": [
+          "攻擊"
+        ],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 40,
+            "min": 40,
+            "unscalable": false,
+            "value": 40
+          },
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "yes",
+            "matchers": [
+              {
+                "string": "怪物增加 #% 命中值"
+              },
+              {
+                "negate": true,
+                "string": "怪物減少 #% 命中值"
+              }
+            ],
+            "ref": "Monsters have #% increased Accuracy Rating",
+            "trade": {
+              "ids": {
+                "explicit": [
+                  "explicit.stat_1588049749"
+                ],
+                "fractured": [
+                  "fractured.stat_1588049749"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "怪物增加 #% 命中值"
+          }
+        },
+        {
+          "roll": {
+            "dp": false,
+            "max": -15,
+            "min": -15,
+            "unscalable": false,
+            "value": -15
+          },
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "yes",
+            "matchers": [
+              {
+                "string": "玩家 #% 防止壓抑法術傷害的總量"
+              },
+              {
+                "string": "玩家阻止 #% 壓抑法術傷害"
+              }
+            ],
+            "ref": "Players Prevent +#% of Suppressed Spell Damage",
+            "trade": {
+              "ids": {
+                "explicit": [
+                  "explicit.stat_286947568"
+                ],
+                "fractured": [
+                  "fractured.stat_286947568"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "玩家 #% 防止壓抑法術傷害的總量"
+          }
+        }
+      ]
+    }
+  ],
+  "rarity": "Magic",
+  "rawText": "物品種類: 地圖\r\n稀有度: 魔法\r\n豐饒的傾斜之凋落的 地圖（階級 8）\r\n--------\r\n地圖區域: 致命岩灘\r\n物品數量: +26% (augmented)\r\n物品稀有度: +16% (augmented)\r\n怪物群大小: +10% (augmented)\r\n--------\r\n物品等級: 83\r\n--------\r\n怪物等級：75\r\n--------\r\n{ 固定詞綴 }\r\n區域被毒菌滋長蔓延\r\n地圖物品數量詞綴同時以 20% 的值影響凋落保險箱\r\n最多可以抹油 3 次 — 無法使用的值\r\n此區域原生怪物被移除 — 無法使用的值\r\n--------\r\n{ 前綴 \"豐饒的\"(階層：1)— 生命 }\r\n31(30-39)% 更多怪物生命\r\n{ 後綴 \"傾斜之\"(階層：1)— 攻擊 }\r\n怪物增加 40% 命中值\r\n玩家 -15% 防止壓抑法術傷害的總量\r\n（ 阻止40% 來自被壓抑的擊中，並避免它們所施加異常狀態傷害 ）\r\n--------\r\n透過個人的地圖裝置來使用這張地圖以前往這個階級或更低的該地圖。每張地圖只能被使用一次。\r\n",
+  "statsByType": [
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 1,
+            "min": 1,
+            "value": 1
+          },
+          "modifier": {
+            "info": {
+              "tags": [],
+              "type": "implicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 1,
+                  "min": 1,
+                  "unscalable": true,
+                  "value": 1
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "區域被毒菌滋長蔓延\n地圖物品數量詞綴同時以 40% 的值影響凋落保險箱\n最多可以抹油 # 次"
+                    },
+                    {
+                      "string": "區域被毒菌滋長蔓延\n地圖物品數量詞綴同時以 20% 的值影響凋落保險箱\n最多可以抹油 3 次",
+                      "value": 1
+                    }
+                  ],
+                  "ref": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 25% value\nCan be Anointed up to 3 times",
+                  "trade": {
+                    "ids": {
+                      "implicit": [
+                        "implicit.stat_299373046"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "區域被毒菌滋長蔓延\n地圖物品數量詞綴同時以 20% 的值影響凋落保險箱\n最多可以抹油 3 次",
+                  "value": 1
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 1,
+              "min": 1,
+              "unscalable": true,
+              "value": 1
+            },
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "yes",
+              "matchers": [
+                {
+                  "string": "區域被毒菌滋長蔓延\n地圖物品數量詞綴同時以 40% 的值影響凋落保險箱\n最多可以抹油 # 次"
+                },
+                {
+                  "string": "區域被毒菌滋長蔓延\n地圖物品數量詞綴同時以 20% 的值影響凋落保險箱\n最多可以抹油 3 次",
+                  "value": 1
+                }
+              ],
+              "ref": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 25% value\nCan be Anointed up to 3 times",
+              "trade": {
+                "ids": {
+                  "implicit": [
+                    "implicit.stat_299373046"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "區域被毒菌滋長蔓延\n地圖物品數量詞綴同時以 20% 的值影響凋落保險箱\n最多可以抹油 3 次",
+              "value": 1
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "fromAreaMods": "yes",
+        "matchers": [
+          {
+            "string": "區域被毒菌滋長蔓延\n地圖物品數量詞綴同時以 40% 的值影響凋落保險箱\n最多可以抹油 # 次"
+          },
+          {
+            "string": "區域被毒菌滋長蔓延\n地圖物品數量詞綴同時以 20% 的值影響凋落保險箱\n最多可以抹油 3 次",
+            "value": 1
+          }
+        ],
+        "ref": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 25% value\nCan be Anointed up to 3 times",
+        "trade": {
+          "ids": {
+            "implicit": [
+              "implicit.stat_299373046"
+            ]
+          }
+        }
+      },
+      "type": "implicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 39,
+            "min": 30,
+            "value": 31
+          },
+          "modifier": {
+            "info": {
+              "generation": "prefix",
+              "name": "豐饒的",
+              "tags": [
+                "生命"
+              ],
+              "tier": 1,
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 39,
+                  "min": 30,
+                  "unscalable": false,
+                  "value": 31
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "#% 更多怪物生命"
+                    },
+                    {
+                      "negate": true,
+                      "string": "#% 更少怪物生命"
+                    }
+                  ],
+                  "ref": "#% more Monster Life",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_95249895"
+                      ],
+                      "fractured": [
+                        "fractured.stat_95249895"
+                      ],
+                      "implicit": [
+                        "implicit.stat_95249895"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "#% 更多怪物生命"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 39,
+              "min": 30,
+              "unscalable": false,
+              "value": 31
+            },
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "yes",
+              "matchers": [
+                {
+                  "string": "#% 更多怪物生命"
+                },
+                {
+                  "negate": true,
+                  "string": "#% 更少怪物生命"
+                }
+              ],
+              "ref": "#% more Monster Life",
+              "trade": {
+                "ids": {
+                  "explicit": [
+                    "explicit.stat_95249895"
+                  ],
+                  "fractured": [
+                    "fractured.stat_95249895"
+                  ],
+                  "implicit": [
+                    "implicit.stat_95249895"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "#% 更多怪物生命"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "fromAreaMods": "yes",
+        "matchers": [
+          {
+            "string": "#% 更多怪物生命"
+          },
+          {
+            "negate": true,
+            "string": "#% 更少怪物生命"
+          }
+        ],
+        "ref": "#% more Monster Life",
+        "trade": {
+          "ids": {
+            "explicit": [
+              "explicit.stat_95249895"
+            ],
+            "fractured": [
+              "fractured.stat_95249895"
+            ],
+            "implicit": [
+              "implicit.stat_95249895"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 40,
+            "min": 40,
+            "value": 40
+          },
+          "modifier": {
+            "info": {
+              "generation": "suffix",
+              "name": "傾斜之",
+              "tags": [
+                "攻擊"
+              ],
+              "tier": 1,
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 40,
+                  "min": 40,
+                  "unscalable": false,
+                  "value": 40
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "怪物增加 #% 命中值"
+                    },
+                    {
+                      "negate": true,
+                      "string": "怪物減少 #% 命中值"
+                    }
+                  ],
+                  "ref": "Monsters have #% increased Accuracy Rating",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_1588049749"
+                      ],
+                      "fractured": [
+                        "fractured.stat_1588049749"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "怪物增加 #% 命中值"
+                }
+              },
+              {
+                "roll": {
+                  "dp": false,
+                  "max": -15,
+                  "min": -15,
+                  "unscalable": false,
+                  "value": -15
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "玩家 #% 防止壓抑法術傷害的總量"
+                    },
+                    {
+                      "string": "玩家阻止 #% 壓抑法術傷害"
+                    }
+                  ],
+                  "ref": "Players Prevent +#% of Suppressed Spell Damage",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_286947568"
+                      ],
+                      "fractured": [
+                        "fractured.stat_286947568"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "玩家 #% 防止壓抑法術傷害的總量"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 40,
+              "min": 40,
+              "unscalable": false,
+              "value": 40
+            },
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "yes",
+              "matchers": [
+                {
+                  "string": "怪物增加 #% 命中值"
+                },
+                {
+                  "negate": true,
+                  "string": "怪物減少 #% 命中值"
+                }
+              ],
+              "ref": "Monsters have #% increased Accuracy Rating",
+              "trade": {
+                "ids": {
+                  "explicit": [
+                    "explicit.stat_1588049749"
+                  ],
+                  "fractured": [
+                    "fractured.stat_1588049749"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "怪物增加 #% 命中值"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "fromAreaMods": "yes",
+        "matchers": [
+          {
+            "string": "怪物增加 #% 命中值"
+          },
+          {
+            "negate": true,
+            "string": "怪物減少 #% 命中值"
+          }
+        ],
+        "ref": "Monsters have #% increased Accuracy Rating",
+        "trade": {
+          "ids": {
+            "explicit": [
+              "explicit.stat_1588049749"
+            ],
+            "fractured": [
+              "fractured.stat_1588049749"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": -15,
+            "min": -15,
+            "value": -15
+          },
+          "modifier": {
+            "info": {
+              "generation": "suffix",
+              "name": "傾斜之",
+              "tags": [
+                "攻擊"
+              ],
+              "tier": 1,
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 40,
+                  "min": 40,
+                  "unscalable": false,
+                  "value": 40
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "怪物增加 #% 命中值"
+                    },
+                    {
+                      "negate": true,
+                      "string": "怪物減少 #% 命中值"
+                    }
+                  ],
+                  "ref": "Monsters have #% increased Accuracy Rating",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_1588049749"
+                      ],
+                      "fractured": [
+                        "fractured.stat_1588049749"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "怪物增加 #% 命中值"
+                }
+              },
+              {
+                "roll": {
+                  "dp": false,
+                  "max": -15,
+                  "min": -15,
+                  "unscalable": false,
+                  "value": -15
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "玩家 #% 防止壓抑法術傷害的總量"
+                    },
+                    {
+                      "string": "玩家阻止 #% 壓抑法術傷害"
+                    }
+                  ],
+                  "ref": "Players Prevent +#% of Suppressed Spell Damage",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_286947568"
+                      ],
+                      "fractured": [
+                        "fractured.stat_286947568"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "玩家 #% 防止壓抑法術傷害的總量"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": -15,
+              "min": -15,
+              "unscalable": false,
+              "value": -15
+            },
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "yes",
+              "matchers": [
+                {
+                  "string": "玩家 #% 防止壓抑法術傷害的總量"
+                },
+                {
+                  "string": "玩家阻止 #% 壓抑法術傷害"
+                }
+              ],
+              "ref": "Players Prevent +#% of Suppressed Spell Damage",
+              "trade": {
+                "ids": {
+                  "explicit": [
+                    "explicit.stat_286947568"
+                  ],
+                  "fractured": [
+                    "fractured.stat_286947568"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "玩家 #% 防止壓抑法術傷害的總量"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "fromAreaMods": "yes",
+        "matchers": [
+          {
+            "string": "玩家 #% 防止壓抑法術傷害的總量"
+          },
+          {
+            "string": "玩家阻止 #% 壓抑法術傷害"
+          }
+        ],
+        "ref": "Players Prevent +#% of Suppressed Spell Damage",
+        "trade": {
+          "ids": {
+            "explicit": [
+              "explicit.stat_286947568"
+            ],
+            "fractured": [
+              "fractured.stat_286947568"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    }
+  ],
+  "unknownModifiers": [
+    {
+      "text": "此區域原生怪物被移除 — 無法使用的值",
+      "type": "implicit"
+    }
+  ]
+}

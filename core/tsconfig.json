@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "es2022",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "noEmit": true,
+    "types": ["node"],
+    "lib": ["es2022", "dom", "dom.iterable"]
+  },
+  "_comment_lib_dom": "只為了 Headers / Response 型別(HttpClient 介面照 fetch 的形狀);core 程式碼不得碰 window / document。",
+  "include": ["src/**/*.ts"]
+}

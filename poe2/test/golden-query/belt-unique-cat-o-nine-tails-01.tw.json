@@ -1,0 +1,79 @@
+{
+  "api": "trade",
+  "request": {
+    "query": {
+      "status": {
+        "option": "securable"
+      },
+      "stats": [
+        {
+          "type": "and",
+          "filters": [
+            {
+              "id": "pseudo.pseudo_total_life",
+              "value": {
+                "min": 139
+              },
+              "disabled": false
+            },
+            {
+              "id": "implicit.stat_462041840",
+              "value": {},
+              "disabled": true
+            },
+            {
+              "id": "implicit.stat_1416292992",
+              "value": {
+                "min": 2
+              },
+              "disabled": false
+            },
+            {
+              "id": "explicit.stat_2201614328",
+              "value": {},
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_3240073117",
+              "value": {
+                "min": 46
+              },
+              "disabled": false
+            },
+            {
+              "id": "explicit.stat_451403019",
+              "value": {},
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_2163764037",
+              "value": {},
+              "disabled": true
+            }
+          ]
+        }
+      ],
+      "filters": {
+        "trade_filters": {
+          "filters": {
+            "collapse": {
+              "option": "true"
+            }
+          }
+        },
+        "misc_filters": {
+          "filters": {
+            "corrupted": {
+              "option": "false"
+            }
+          }
+        }
+      },
+      "name": "九尾貓",
+      "type": "實用腰帶"
+    },
+    "sort": {
+      "price": "asc"
+    }
+  }
+}

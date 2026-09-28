@@ -1,0 +1,269 @@
+{
+  "_source": "pob-zh-engine dist/regex_selftest.txt(pob-zh.exe --regex-selftest);由 extract-from-report.mjs 產生,勿手改",
+  "_cppPassFail": {
+    "pass": 222,
+    "fail": 0
+  },
+  "synthetic": {
+    "T1 one pick": "\"咒\"",
+    "T1 two picks": "\"不\"",
+    "T2 different tails": "\"火\"",
+    "T3 prefix": "\"^a\"",
+    "T3 suffix": "\"c$\"",
+    "T4 mixed case": "\"f\"",
+    "T5 any": "\"乙|甲\"",
+    "T5 none": "\"!乙|甲\"",
+    "T5 all": "甲 乙",
+    "T7 build": "\"二\"",
+    "T9 repeat": "\"一|^三\"",
+    "T13 printed only": "\"乙\"",
+    "T14 longer piece": "\"素異\"",
+    "T14 both picked": "\"元|家\"",
+    "T14 all": "素異 家",
+    "T15 past ambient": "\"加\"",
+    "T15 name seam": "\" \"",
+    "T16 mid-way": "\"^a\"",
+    "T16 fully anchored": "\"^abc$\""
+  },
+  "tenPicks": [
+    {
+      "lang": "zh",
+      "page": "map_mods",
+      "length": 30,
+      "plain": 146
+    },
+    {
+      "lang": "zh",
+      "page": "logbook_mods",
+      "length": 24,
+      "plain": 131
+    },
+    {
+      "lang": "zh",
+      "page": "waystone_mods",
+      "length": 21,
+      "plain": 157
+    },
+    {
+      "lang": "zh",
+      "page": "tablet_mods",
+      "length": 26,
+      "plain": 180
+    },
+    {
+      "lang": "zh",
+      "page": "relic_mods",
+      "length": 24,
+      "plain": 135
+    },
+    {
+      "lang": "zh",
+      "page": "expedition_relic_mods",
+      "length": 23,
+      "plain": 135
+    },
+    {
+      "lang": "en",
+      "page": "map_mods",
+      "length": 43,
+      "plain": 421
+    },
+    {
+      "lang": "en",
+      "page": "logbook_mods",
+      "length": 42,
+      "plain": 388
+    },
+    {
+      "lang": "en",
+      "page": "waystone_mods",
+      "length": 27,
+      "plain": 490
+    },
+    {
+      "lang": "en",
+      "page": "tablet_mods",
+      "length": 45,
+      "plain": 510
+    },
+    {
+      "lang": "en",
+      "page": "relic_mods",
+      "length": 35,
+      "plain": 431
+    },
+    {
+      "lang": "en",
+      "page": "expedition_relic_mods",
+      "length": 32,
+      "plain": 440
+    }
+  ],
+  "pages": [
+    {
+      "lang": "zh",
+      "page": "map_mods",
+      "entries": 125,
+      "ambientLines": 337,
+      "findable": 125,
+      "tried": 125,
+      "stuckExamples": [],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
+    },
+    {
+      "lang": "zh",
+      "page": "logbook_mods",
+      "entries": 62,
+      "ambientLines": 107,
+      "findable": 62,
+      "tried": 62,
+      "stuckExamples": [],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
+    },
+    {
+      "lang": "zh",
+      "page": "waystone_mods",
+      "entries": 34,
+      "ambientLines": 117,
+      "findable": 34,
+      "tried": 34,
+      "stuckExamples": [],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
+    },
+    {
+      "lang": "zh",
+      "page": "tablet_mods",
+      "entries": 78,
+      "ambientLines": 67,
+      "findable": 78,
+      "tried": 78,
+      "stuckExamples": [],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
+    },
+    {
+      "lang": "zh",
+      "page": "relic_mods",
+      "entries": 36,
+      "ambientLines": 20,
+      "findable": 34,
+      "tried": 36,
+      "stuckExamples": [
+        "試煉地圖額外揭露#個房間",
+        "試煉地圖額外揭露1個房間"
+      ],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
+    },
+    {
+      "lang": "zh",
+      "page": "expedition_relic_mods",
+      "entries": 55,
+      "ambientLines": 12,
+      "findable": 49,
+      "tried": 55,
+      "stuckExamples": [
+        "怪物增加#%攻擊速度",
+        "怪物增加#%施放速度",
+        "怪物增加#%移動速度",
+        "怪物貧血時增加#%攻擊速度",
+        "怪物貧血時增加#%施放速度"
+      ],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
+    },
+    {
+      "lang": "en",
+      "page": "map_mods",
+      "entries": 125,
+      "ambientLines": 338,
+      "findable": 122,
+      "tried": 125,
+      "stuckExamples": [
+        "Unique Boss has #% increased Area of Effect",
+        "Players have #% less Accuracy Rating",
+        "Monsters have #% increased Area of Effect"
+      ],
+      "stuckByHidden": 1,
+      "stuckByHiddenExamples": [
+        "Players have #% less Accuracy Rating"
+      ]
+    },
+    {
+      "lang": "en",
+      "page": "logbook_mods",
+      "entries": 62,
+      "ambientLines": 107,
+      "findable": 61,
+      "tried": 62,
+      "stuckExamples": [
+        "Players have #% less Accuracy Rating"
+      ],
+      "stuckByHidden": 1,
+      "stuckByHiddenExamples": [
+        "Players have #% less Accuracy Rating"
+      ]
+    },
+    {
+      "lang": "en",
+      "page": "waystone_mods",
+      "entries": 34,
+      "ambientLines": 119,
+      "findable": 34,
+      "tried": 34,
+      "stuckExamples": [],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
+    },
+    {
+      "lang": "en",
+      "page": "tablet_mods",
+      "entries": 78,
+      "ambientLines": 69,
+      "findable": 75,
+      "tried": 78,
+      "stuckExamples": [
+        "Map contains # additional Azmeri Spirit",
+        "Map contains an additional Azmeri Spirit",
+        "#% increased Rarity of Items dropped by Map Bosses"
+      ],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
+    },
+    {
+      "lang": "en",
+      "page": "relic_mods",
+      "entries": 36,
+      "ambientLines": 20,
+      "findable": 36,
+      "tried": 36,
+      "stuckExamples": [],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
+    },
+    {
+      "lang": "en",
+      "page": "expedition_relic_mods",
+      "entries": 55,
+      "ambientLines": 12,
+      "findable": 51,
+      "tried": 55,
+      "stuckExamples": [
+        "#% increased Quantity of Items Dropped by Monsters",
+        "#% increased Rarity of Items Dropped by Monsters",
+        "#% increased Rarity of Items Found in Excavated Chests",
+        "#% increased Quantity of Items Found in Excavated Chests"
+      ],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
+    }
+  ],
+  "mapAilment": {
+    "query": "\"免元\"",
+    "bareExtra": 11,
+    "bareAmbient": 0
+  }
+}

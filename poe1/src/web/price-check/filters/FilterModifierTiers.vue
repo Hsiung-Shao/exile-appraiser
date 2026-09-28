@@ -1,0 +1,91 @@
+<template>
+  <div v-if="tags.length" class="flex items-center text-xs leading-none gap-x-1">
+    <span v-for="tag of tags"
+      :class="$style[tag.type]"
+    >{{ t((tag.type === 'merc-gilded') ? 'filters.tier_gilded' : 'filters.tier', [tag.tier]) }}</span>
+  </div>
+</template>
+
+<script lang="ts">
+import { defineComponent, PropType, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { ItemCategory, ParsedItem } from '@/parser'
+import { FilterTag, StatFilter } from './interfaces'
+
+export default defineComponent({
+  props: {
+    filter: {
+      type: Object as PropType<StatFilter>,
+      required: true
+    },
+    item: {
+      type: Object as PropType<ParsedItem>,
+      required: true
+    }
+  },
+  setup (props) {
+    const tags = computed(() => {
+      const { filter, item } = props
+      const out: Array<{ type: string, tier: number }> = []
+
+      if (filter.mercenary?.tier) {
+        let type: string
+        switch (filter.mercenary.tier) {
+          case 4: type = 'merc-gilded'; break
+          case 3: type = 'tier-1'; break
+          default: type = 'not-tier-1'; break
+        }
+        out.push({ type: type, tier: filter.mercenary.tier })
+      }
+
+      for (const source of filter.sources) {
+        const tier = source.modifier.info.tier
+        if (!tier) continue
+
+        if ((
+          filter.tag === FilterTag.Explicit ||
+          filter.tag === FilterTag.Pseudo ||
+          filter.tag === FilterTag.Property
+        ) && (
+          item.category !== ItemCategory.Jewel &&
+          item.category !== ItemCategory.ClusterJewel &&
+          item.category !== ItemCategory.MemoryLine &&
+          item.category !== ItemCategory.Idol
+        )) {
+          if (tier === 1) out.push({ type: 'tier-1', tier })
+          else if (tier === 2) out.push({ type: 'tier-2', tier })
+        } else if (tier >= 2) {
+          // fractured, explicit-* filters
+          out.push({ type: 'not-tier-1', tier })
+        }
+      }
+      out.sort((a, b) => a.tier - b.tier)
+      return out
+    })
+
+    const { t } = useI18n()
+    return { t, tags }
+  }
+})
+</script>
+
+<style lang="postcss" module>
+.tier-1, .tier-2, .not-tier-1, .merc-gilded {
+  @apply rounded px-1;
+  white-space: nowrap;
+}
+
+.tier-1 {
+  @apply bg-yellow-500 text-black;
+}
+.tier-2 {
+  @apply border -my-px border-yellow-500 text-yellow-500;
+}
+/* exile-appraiser: T1 黃底黑字保留(固定底色);灰階別名底的 not-tier-1 改 token 前景(原本黑字在深色主題看不見) */
+.not-tier-1 {
+  @apply bg-surface-3 text-ink-1;
+}
+.merc-gilded {
+  @apply bg-yellow-700 text-yellow-100;
+}
+</style>

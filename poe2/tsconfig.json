@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "es2022",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "allowJs": true,
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/web/Config": ["./test/shims/web-Config.ts"],
+      "@/*": ["./src/*"],
+      "@specs/*": ["./test/*"]
+    },
+    "types": ["node", "vitest/globals"],
+    "lib": ["esnext", "dom", "dom.iterable"]
+  },
+  "_comment_paths": "沿用上游的 `@/…` 匯入路徑,讓移植檔案逐字不改、日後對照 ee2-patched diff 最小。vitest.config.mts 的 alias 必須與這裡一致。",
+  "_comment_lib": "lib 用 esnext:上游 E 用了 Array#toSorted、Set#intersection(tsconfig 同為 esnext)。Electron 33+/Node 22+ 執行期都有。",
+  "_comment_include_test": "測試檔一起檢查(上游教訓:vitest 用 esbuild 轉譯、型別直接丟掉,測試裡的型別錯誤跑測試時完全看不到)。",
+  "include": [
+    "src/**/*.ts",
+    "test/**/*.ts"
+  ],
+  "_comment_exclude": "renderer-entry*.ts 會 import .vue,屬於 tsconfig.vue.json(vue-tsc)那個專案。",
+  "exclude": ["src/renderer-entry.ts", "src/renderer-entry.check.ts"]
+}

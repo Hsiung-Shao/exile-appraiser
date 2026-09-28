@@ -1,0 +1,368 @@
+{
+  "armourES": 173,
+  "augmentSockets": {
+    "augments": [
+      {
+        "displayString": "增加18%魔力回復率",
+        "existing": true,
+        "name": "高階啟發符文",
+        "refName": "Greater Inspiration Rune"
+      }
+    ],
+    "current": 1,
+    "empty": 0,
+    "normal": 1
+  },
+  "basePercentile": 0,
+  "baseType": "奢華便鞋",
+  "category": "Boots",
+  "influences": [],
+  "info": {
+    "name": "奢華便鞋",
+    "namespace": "ITEM",
+    "refName": "Luxurious Slippers"
+  },
+  "infoVariants": [
+    {
+      "name": "奢華便鞋",
+      "namespace": "ITEM",
+      "refName": "Luxurious Slippers"
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": false,
+  "itemLevel": 80,
+  "name": "怨懟 涼靴",
+  "newMods": [
+    {
+      "info": {
+        "tags": [],
+        "type": "rune"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Mana Regeneration Rate",
+          "roll": {
+            "dp": false,
+            "max": 18,
+            "min": 18,
+            "unscalable": false,
+            "value": 18
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_789117908"
+            ],
+            "desecrated": [
+              "desecrated.stat_789117908"
+            ],
+            "enchant": [
+              "enchant.stat_789117908"
+            ],
+            "explicit": [
+              "explicit.stat_789117908"
+            ],
+            "fractured": [
+              "fractured.stat_789117908"
+            ],
+            "implicit": [
+              "implicit.stat_789117908"
+            ],
+            "rune": [
+              "rune.stat_789117908"
+            ]
+          },
+          "translation": "增加#%魔力回復率"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "prefix",
+        "name": "獵豹的",
+        "tags": [
+          "速度"
+        ],
+        "tier": 2,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Movement Speed",
+          "roll": {
+            "dp": false,
+            "max": 30,
+            "min": 30,
+            "unscalable": false,
+            "value": 30
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_2250533757"
+            ],
+            "desecrated": [
+              "desecrated.stat_2250533757"
+            ],
+            "enchant": [
+              "enchant.stat_2250533757"
+            ],
+            "explicit": [
+              "explicit.stat_2250533757"
+            ],
+            "fractured": [
+              "fractured.stat_2250533757"
+            ],
+            "implicit": [
+              "implicit.stat_2250533757"
+            ],
+            "pseudo": [
+              "pseudo.pseudo_increased_movement_speed"
+            ],
+            "rune": [
+              "rune.stat_2250533757"
+            ],
+            "sanctum": [
+              "sanctum.stat_1416455556"
+            ]
+          },
+          "translation": "增加#%移動速度"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "prefix",
+        "name": "納迦的",
+        "tags": [],
+        "tier": 3,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Energy Shield",
+          "roll": {
+            "dp": false,
+            "max": 32,
+            "min": 27,
+            "unscalable": false,
+            "value": 30
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_4015621042"
+            ],
+            "desecrated": [
+              "desecrated.stat_4015621042"
+            ],
+            "enchant": [
+              "enchant.stat_4015621042"
+            ],
+            "explicit": [
+              "explicit.stat_4015621042"
+            ],
+            "fractured": [
+              "fractured.stat_4015621042"
+            ]
+          },
+          "translation": "增加#%能量護盾"
+        },
+        {
+          "ref": "# to Stun Threshold",
+          "roll": {
+            "dp": false,
+            "max": 63,
+            "min": 41,
+            "unscalable": false,
+            "value": 62
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_915769802"
+            ],
+            "desecrated": [
+              "desecrated.stat_915769802"
+            ],
+            "explicit": [
+              "explicit.stat_915769802"
+            ],
+            "fractured": [
+              "fractured.stat_915769802"
+            ],
+            "rune": [
+              "rune.stat_915769802"
+            ]
+          },
+          "translation": "暈眩門檻#"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "prefix",
+        "name": "無畏的",
+        "tags": [
+          "能量護盾"
+        ],
+        "tier": 3,
+        "type": "crafted"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Energy Shield",
+          "roll": {
+            "dp": false,
+            "max": 79,
+            "min": 68,
+            "unscalable": false,
+            "value": 68
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_4015621042"
+            ],
+            "desecrated": [
+              "desecrated.stat_4015621042"
+            ],
+            "enchant": [
+              "enchant.stat_4015621042"
+            ],
+            "explicit": [
+              "explicit.stat_4015621042"
+            ],
+            "fractured": [
+              "fractured.stat_4015621042"
+            ]
+          },
+          "translation": "增加#%能量護盾"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "suffix",
+        "name": "熟習之",
+        "tags": [],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Attribute Requirements",
+          "roll": {
+            "dp": false,
+            "max": -35,
+            "min": -35,
+            "unscalable": false,
+            "value": -35
+          },
+          "tradeIds": {
+            "desecrated": [
+              "desecrated.stat_3639275092"
+            ],
+            "enchant": [
+              "enchant.stat_3639275092"
+            ],
+            "explicit": [
+              "explicit.stat_3639275092"
+            ],
+            "fractured": [
+              "fractured.stat_3639275092"
+            ]
+          },
+          "translation": "減少#%能力值需求"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "suffix",
+        "name": "颱風之",
+        "tags": [
+          "元素,閃電,抗性"
+        ],
+        "tier": 3,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "#% to Lightning Resistance",
+          "roll": {
+            "dp": false,
+            "max": 35,
+            "min": 31,
+            "unscalable": false,
+            "value": 35
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_1671376347"
+            ],
+            "desecrated": [
+              "desecrated.stat_1671376347"
+            ],
+            "enchant": [
+              "enchant.stat_1671376347"
+            ],
+            "explicit": [
+              "explicit.stat_1671376347"
+            ],
+            "fractured": [
+              "fractured.stat_1671376347"
+            ],
+            "implicit": [
+              "implicit.stat_1671376347"
+            ],
+            "rune": [
+              "rune.stat_1671376347"
+            ]
+          },
+          "translation": "#%閃電抗性"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "suffix",
+        "name": "烏拉曼之",
+        "tags": [
+          "元素,閃電,混沌,抗性"
+        ],
+        "tier": 1,
+        "type": "desecrated"
+      },
+      "stats": [
+        {
+          "ref": "#% to Lightning and Chaos Resistances",
+          "roll": {
+            "dp": false,
+            "max": 17,
+            "min": 13,
+            "unscalable": false,
+            "value": 16
+          },
+          "tradeIds": {
+            "desecrated": [
+              "desecrated.stat_3465022881"
+            ],
+            "explicit": [
+              "explicit.stat_3465022881"
+            ],
+            "fractured": [
+              "fractured.stat_3465022881"
+            ]
+          },
+          "translation": "#%閃電和混沌抗性"
+        }
+      ]
+    }
+  ],
+  "quality": 20,
+  "rarity": "Rare",
+  "requires": {
+    "dex": 0,
+    "int": 58,
+    "level": 70,
+    "str": 0
+  },
+  "unknownModifiers": []
+}

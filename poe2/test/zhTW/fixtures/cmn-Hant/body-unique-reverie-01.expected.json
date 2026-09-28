@@ -1,0 +1,228 @@
+{
+  "baseType": "薩滿披肩",
+  "category": "Body Armour",
+  "influences": [],
+  "info": {
+    "name": "綺夢",
+    "namespace": "UNIQUE",
+    "refName": "Reverie",
+    "unique": {
+      "base": "Shaman Mantle"
+    }
+  },
+  "infoVariants": [
+    {
+      "name": "綺夢",
+      "namespace": "UNIQUE",
+      "refName": "Reverie",
+      "unique": {
+        "base": "Shaman Mantle"
+      }
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": false,
+  "itemLevel": 80,
+  "name": "綺夢",
+  "newMods": [
+    {
+      "info": {
+        "tags": [],
+        "type": "skill"
+      },
+      "stats": [
+        {
+          "ref": "Grants Skill: Level # Rite of Restoration",
+          "roll": {
+            "dp": false,
+            "max": 18,
+            "min": 18,
+            "unscalable": false,
+            "value": 18
+          },
+          "tradeIds": {
+            "skill": [
+              "skill.sigil_of_life"
+            ]
+          },
+          "translation": "賦予技能: 等級 # 新生之儀"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "護甲,能量護盾"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Armour and Energy Shield",
+          "roll": {
+            "dp": false,
+            "max": 150,
+            "min": 100,
+            "unscalable": false,
+            "value": 141
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_3321629045"
+            ],
+            "desecrated": [
+              "desecrated.stat_3321629045"
+            ],
+            "enchant": [
+              "enchant.stat_3321629045"
+            ],
+            "explicit": [
+              "explicit.stat_3321629045"
+            ],
+            "fractured": [
+              "fractured.stat_3321629045"
+            ]
+          },
+          "translation": "增加#%護甲值和能量護盾"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "元素,火焰,抗性"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "#% to Fire Resistance",
+          "roll": {
+            "dp": false,
+            "max": -10,
+            "min": -10,
+            "unscalable": false,
+            "value": -10
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_3372524247"
+            ],
+            "desecrated": [
+              "desecrated.stat_3372524247"
+            ],
+            "enchant": [
+              "enchant.stat_3372524247"
+            ],
+            "explicit": [
+              "explicit.stat_3372524247"
+            ],
+            "fractured": [
+              "fractured.stat_3372524247"
+            ],
+            "implicit": [
+              "implicit.stat_3372524247"
+            ],
+            "rune": [
+              "rune.stat_3372524247"
+            ]
+          },
+          "translation": "#%火焰抗性"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "混沌,抗性"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "#% to Chaos Resistance",
+          "roll": {
+            "dp": false,
+            "max": 23,
+            "min": 17,
+            "unscalable": false,
+            "value": 19
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_2923486259"
+            ],
+            "desecrated": [
+              "desecrated.stat_2923486259"
+            ],
+            "enchant": [
+              "enchant.stat_2923486259"
+            ],
+            "explicit": [
+              "explicit.stat_2923486259"
+            ],
+            "fractured": [
+              "fractured.stat_2923486259"
+            ],
+            "implicit": [
+              "implicit.stat_2923486259"
+            ],
+            "rune": [
+              "rune.stat_2923486259"
+            ]
+          },
+          "translation": "#%混沌抗性"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "Cannot use Life Flasks\nNon-Unique Life Flasks apply their Effects constantly\nRecovery from Life Flasks cannot be Instant\nRecovery from your Life Flasks cannot be applied to anything other than you",
+          "tradeIds": {
+            "explicit": [
+              "explicit.stat_1580426064"
+            ]
+          },
+          "translation": "無法使用生命藥劑\n非傳奇生命藥劑將持續套用其效果\n來自生命藥劑的恢復無法為立即恢復\n來自生命藥劑的恢復僅能套用於你"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "#% more Life Flask Recovery",
+          "roll": {
+            "dp": false,
+            "max": -40,
+            "min": -60,
+            "unscalable": false,
+            "value": -42
+          },
+          "tradeIds": {
+            "explicit": [
+              "explicit.stat_1972661424"
+            ]
+          },
+          "translation": "#%更少生命藥劑恢復量"
+        }
+      ]
+    }
+  ],
+  "rarity": "Unique",
+  "requires": {
+    "dex": 0,
+    "int": 26,
+    "level": 28,
+    "str": 26
+  },
+  "unknownModifiers": []
+}

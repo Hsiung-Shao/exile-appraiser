@@ -1,0 +1,76 @@
+{
+  "api": "trade",
+  "request": {
+    "query": {
+      "status": {
+        "option": "securable"
+      },
+      "stats": [
+        {
+          "type": "and",
+          "filters": [
+            {
+              "id": "skill.sigil_of_life",
+              "value": {
+                "min": 18
+              },
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_3321629045",
+              "value": {
+                "min": 136
+              },
+              "disabled": false
+            },
+            {
+              "id": "explicit.stat_3372524247",
+              "value": {},
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_2923486259",
+              "value": {
+                "min": 18
+              },
+              "disabled": false
+            },
+            {
+              "id": "explicit.stat_1580426064",
+              "value": {},
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_1972661424",
+              "value": {
+                "min": -44
+              },
+              "disabled": false
+            }
+          ]
+        }
+      ],
+      "filters": {
+        "trade_filters": {
+          "filters": {
+            "collapse": {
+              "option": "true"
+            }
+          }
+        },
+        "misc_filters": {
+          "filters": {
+            "corrupted": {
+              "option": "false"
+            }
+          }
+        }
+      },
+      "name": "綺夢",
+      "type": "薩滿披肩"
+    },
+    "sort": {
+      "price": "asc"
+    }
+  }
+}

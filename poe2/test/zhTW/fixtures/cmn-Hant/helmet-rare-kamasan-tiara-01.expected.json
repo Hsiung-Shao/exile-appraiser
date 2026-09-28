@@ -1,0 +1,469 @@
+{
+  "armourES": 528,
+  "armourRW": 55,
+  "augmentSockets": {
+    "augments": [
+      {
+        "displayString": "渡鴉所觸",
+        "existing": true,
+        "name": "渡鴉碎片",
+        "refName": "Raven-Touched Shard"
+      },
+      {
+        "displayString": "增加20%護甲、閃避、和能量護盾",
+        "existing": true,
+        "name": "完美鍛鐵符文",
+        "refName": "Perfect Iron Rune"
+      },
+      null
+    ],
+    "current": 3,
+    "empty": 1,
+    "normal": 1
+  },
+  "basePercentile": 0,
+  "baseType": "符鍛卡瑪薩頭冠",
+  "category": "Helmet",
+  "influences": [],
+  "info": {
+    "name": "符鍛卡瑪薩頭冠",
+    "namespace": "ITEM",
+    "refName": "Runeforged Kamasan Tiara"
+  },
+  "infoVariants": [
+    {
+      "name": "符鍛卡瑪薩頭冠",
+      "namespace": "ITEM",
+      "refName": "Runeforged Kamasan Tiara"
+    }
+  ],
+  "isCorrupted": true,
+  "isFractured": true,
+  "isUnidentified": false,
+  "itemLevel": 81,
+  "name": "復仇 真實之衛",
+  "newMods": [
+    {
+      "info": {
+        "tags": [],
+        "type": "enchant"
+      },
+      "stats": [
+        {
+          "ref": "Allocates #",
+          "roll": {
+            "dp": false,
+            "max": 26214,
+            "min": 26214,
+            "option": 26214,
+            "unscalable": true,
+            "value": 26214
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_2954116742"
+            ],
+            "enchant": [
+              "enchant.stat_2954116742"
+            ],
+            "explicit": [
+              "explicit.stat_2954116742"
+            ],
+            "fractured": [
+              "fractured.stat_2954116742"
+            ]
+          },
+          "translation": "配置統御"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "corrupted",
+        "tags": [
+          "能量護盾"
+        ],
+        "type": "enchant"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Energy Shield",
+          "roll": {
+            "dp": false,
+            "max": 25,
+            "min": 15,
+            "unscalable": false,
+            "value": 23
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_4015621042"
+            ],
+            "desecrated": [
+              "desecrated.stat_4015621042"
+            ],
+            "enchant": [
+              "enchant.stat_4015621042"
+            ],
+            "explicit": [
+              "explicit.stat_4015621042"
+            ],
+            "fractured": [
+              "fractured.stat_4015621042"
+            ]
+          },
+          "translation": "增加#%能量護盾"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [],
+        "type": "rune"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Armour, Evasion and Energy Shield",
+          "roll": {
+            "dp": false,
+            "max": 20,
+            "min": 20,
+            "unscalable": false,
+            "value": 20
+          },
+          "tradeIds": {
+            "desecrated": [
+              "desecrated.stat_3523867985"
+            ],
+            "explicit": [
+              "explicit.stat_3523867985"
+            ],
+            "fractured": [
+              "fractured.stat_3523867985"
+            ],
+            "rune": [
+              "rune.stat_3523867985"
+            ],
+            "sanctum": [
+              "sanctum.stat_1016362888"
+            ]
+          },
+          "translation": "增加#%護甲值、閃避和能量護盾"
+        },
+        {
+          "ref": "# to maximum Mana per 3 Item Armour on Equipped Helmet",
+          "roll": {
+            "dp": false,
+            "max": 1,
+            "min": 1,
+            "unscalable": false,
+            "value": 1
+          },
+          "tradeIds": {
+            "rune": [
+              "rune.stat_995044379"
+            ]
+          },
+          "translation": "裝備的頭盔每有3物品護甲即#最大魔力"
+        },
+        {
+          "ref": "Raven-Touched",
+          "tradeIds": {
+            "explicit": [
+              "explicit.stat_3198163869"
+            ],
+            "rune": [
+              "rune.stat_3198163869"
+            ]
+          },
+          "translation": "渡鴉所觸"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "prefix",
+        "name": "眩目的",
+        "tags": [
+          "能量護盾"
+        ],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "# to maximum Energy Shield",
+          "roll": {
+            "dp": false,
+            "max": 73,
+            "min": 61,
+            "unscalable": false,
+            "value": 73
+          },
+          "tradeIds": {
+            "desecrated": [
+              "desecrated.stat_3489782002",
+              "desecrated.stat_4052037485"
+            ],
+            "explicit": [
+              "explicit.stat_3489782002",
+              "explicit.stat_4052037485"
+            ],
+            "fractured": [
+              "fractured.stat_3489782002",
+              "fractured.stat_4052037485"
+            ],
+            "implicit": [
+              "implicit.stat_3489782002"
+            ],
+            "rune": [
+              "rune.stat_3489782002",
+              "rune.stat_4052037485"
+            ]
+          },
+          "translation": "#最大能量護盾"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "prefix",
+        "name": "深藍的",
+        "tags": [
+          "魔力"
+        ],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "# to maximum Mana",
+          "roll": {
+            "dp": false,
+            "max": 149,
+            "min": 125,
+            "unscalable": false,
+            "value": 148
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_1050105434"
+            ],
+            "desecrated": [
+              "desecrated.stat_1050105434"
+            ],
+            "enchant": [
+              "enchant.stat_1050105434"
+            ],
+            "explicit": [
+              "explicit.stat_1050105434"
+            ],
+            "fractured": [
+              "fractured.stat_1050105434"
+            ],
+            "implicit": [
+              "implicit.stat_1050105434"
+            ],
+            "rune": [
+              "rune.stat_1050105434"
+            ]
+          },
+          "translation": "#最大魔力"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "prefix",
+        "name": "攻不可破的",
+        "tags": [
+          "能量護盾"
+        ],
+        "tier": 1,
+        "type": "desecrated"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Energy Shield",
+          "roll": {
+            "dp": false,
+            "max": 100,
+            "min": 92,
+            "unscalable": false,
+            "value": 96
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_4015621042"
+            ],
+            "desecrated": [
+              "desecrated.stat_4015621042"
+            ],
+            "enchant": [
+              "enchant.stat_4015621042"
+            ],
+            "explicit": [
+              "explicit.stat_4015621042"
+            ],
+            "fractured": [
+              "fractured.stat_4015621042"
+            ]
+          },
+          "translation": "增加#%能量護盾"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "suffix",
+        "name": "考古之",
+        "tags": [
+          "丟置"
+        ],
+        "tier": 1,
+        "type": "fractured"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Rarity of Items found",
+          "roll": {
+            "dp": false,
+            "max": 18,
+            "min": 15,
+            "unscalable": false,
+            "value": 16
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_3917489142"
+            ],
+            "desecrated": [
+              "desecrated.stat_3917489142"
+            ],
+            "enchant": [
+              "enchant.stat_3917489142",
+              "enchant.stat_2306002879"
+            ],
+            "explicit": [
+              "explicit.stat_3917489142",
+              "explicit.stat_2306002879"
+            ],
+            "fractured": [
+              "fractured.stat_3917489142"
+            ],
+            "implicit": [
+              "implicit.stat_3917489142"
+            ],
+            "rune": [
+              "rune.stat_3917489142"
+            ]
+          },
+          "translation": "增加#%找到的物品稀有度"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "suffix",
+        "name": "巴曼斯之",
+        "tags": [
+          "混沌,抗性"
+        ],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "#% to Chaos Resistance",
+          "roll": {
+            "dp": false,
+            "max": 27,
+            "min": 24,
+            "unscalable": false,
+            "value": 25
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_2923486259"
+            ],
+            "desecrated": [
+              "desecrated.stat_2923486259"
+            ],
+            "enchant": [
+              "enchant.stat_2923486259"
+            ],
+            "explicit": [
+              "explicit.stat_2923486259"
+            ],
+            "fractured": [
+              "fractured.stat_2923486259"
+            ],
+            "implicit": [
+              "implicit.stat_2923486259"
+            ],
+            "rune": [
+              "rune.stat_2923486259"
+            ]
+          },
+          "translation": "#%混沌抗性"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "suffix",
+        "name": "天才之",
+        "tags": [
+          "能力"
+        ],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "# to Intelligence",
+          "roll": {
+            "dp": false,
+            "max": 36,
+            "min": 34,
+            "unscalable": false,
+            "value": 34
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_328541901"
+            ],
+            "desecrated": [
+              "desecrated.stat_328541901"
+            ],
+            "enchant": [
+              "enchant.stat_328541901"
+            ],
+            "explicit": [
+              "explicit.stat_328541901"
+            ],
+            "fractured": [
+              "fractured.stat_328541901"
+            ],
+            "implicit": [
+              "implicit.stat_328541901"
+            ],
+            "rune": [
+              "rune.stat_328541901"
+            ]
+          },
+          "translation": "#點智慧"
+        }
+      ]
+    }
+  ],
+  "quality": 30,
+  "rarity": "Rare",
+  "requires": {
+    "dex": 0,
+    "int": 107,
+    "level": 75,
+    "str": 0
+  },
+  "unknownModifiers": []
+}

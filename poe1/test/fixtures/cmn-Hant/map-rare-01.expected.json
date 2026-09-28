@@ -1,0 +1,1765 @@
+{
+  "areaItemQuantity": 84,
+  "areaItemRarity": 102,
+  "areaPackSize": 62,
+  "baseType": "地圖",
+  "category": "Map",
+  "influences": [],
+  "info": {
+    "area": {},
+    "craftable": {
+      "category": "Map"
+    },
+    "icon": "/images/maps/normal.png",
+    "name": "地圖",
+    "namespace": "ITEM",
+    "refName": "Map"
+  },
+  "infoVariants": [
+    {
+      "area": {},
+      "craftable": {
+        "category": "Map"
+      },
+      "icon": "/images/maps/normal.png",
+      "name": "地圖",
+      "namespace": "ITEM",
+      "refName": "Map"
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": false,
+  "itemLevel": 83,
+  "mapMoreCurrency": 47,
+  "mapMoreMaps": 35,
+  "mapMoreScarabs": 53,
+  "mapTier": 16,
+  "name": "死寂禮拜",
+  "newMods": [
+    {
+      "info": {
+        "tags": [],
+        "type": "implicit"
+      },
+      "stats": [
+        {
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "yes",
+            "matchers": [
+              {
+                "string": "區域受到開創者的記憶影響"
+              }
+            ],
+            "ref": "Area is Influenced by the Originator's Memories",
+            "trade": {
+              "ids": {
+                "implicit": [
+                  "implicit.stat_2696470877"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "區域受到開創者的記憶影響"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [],
+        "type": "implicit"
+      },
+      "stats": [
+        {
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "yes",
+            "matchers": [
+              {
+                "string": "區域受到開創者的記憶影響"
+              }
+            ],
+            "ref": "Area is Influenced by the Originator's Memories",
+            "trade": {
+              "ids": {
+                "implicit": [
+                  "implicit.stat_2696470877"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "區域受到開創者的記憶影響"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "prefix",
+        "name": "易爆之",
+        "tags": [],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 100,
+            "min": 100,
+            "unscalable": false,
+            "value": 100
+          },
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "ubermap_exclusive",
+            "matchers": [
+              {
+                "string": "稀有怪物有 #% 機率擁有核息"
+              },
+              {
+                "string": "稀有怪物擁有核息",
+                "value": 100
+              }
+            ],
+            "ref": "Rare Monsters have #% chance to have a Volatile Core",
+            "trade": {
+              "ids": {
+                "explicit": [
+                  "explicit.stat_1706239920"
+                ],
+                "fractured": [
+                  "fractured.stat_1706239920"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "稀有怪物擁有核息",
+            "value": 100
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "prefix",
+        "name": "懲戒的",
+        "tags": [],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 1500,
+            "min": 1500,
+            "unscalable": false,
+            "value": 1500
+          },
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "yes",
+            "matchers": [
+              {
+                "string": "稀有怪物擁有會反射 # 物理傷害的物理荊棘"
+              }
+            ],
+            "ref": "Rare Monsters have Physical Thorns reflecting # Physical Damage",
+            "trade": {
+              "ids": {
+                "explicit": [
+                  "explicit.stat_3278889477"
+                ],
+                "fractured": [
+                  "fractured.stat_3278889477"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "稀有怪物擁有會反射 # 物理傷害的物理荊棘"
+          }
+        },
+        {
+          "roll": {
+            "dp": false,
+            "max": 2500,
+            "min": 2500,
+            "unscalable": false,
+            "value": 2500
+          },
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "yes",
+            "matchers": [
+              {
+                "string": "稀有怪物擁有會反射 # 元素傷害的元素荊棘"
+              }
+            ],
+            "ref": "Rare Monsters have Elemental Thorns reflecting # Elemental Damage",
+            "trade": {
+              "ids": {
+                "explicit": [
+                  "explicit.stat_3938822425"
+                ],
+                "fractured": [
+                  "fractured.stat_3938822425"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "稀有怪物擁有會反射 # 元素傷害的元素荊棘"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "prefix",
+        "name": "放大的",
+        "tags": [],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 100,
+            "min": 100,
+            "unscalable": false,
+            "value": 100
+          },
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "yes",
+            "matchers": [
+              {
+                "string": "增加怪物 #% 範圍效果"
+              },
+              {
+                "negate": true,
+                "string": "減少怪物 #% 範圍效果"
+              }
+            ],
+            "ref": "Monsters have #% increased Area of Effect",
+            "trade": {
+              "ids": {
+                "explicit": [
+                  "explicit.stat_1708461270"
+                ],
+                "fractured": [
+                  "fractured.stat_1708461270"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "增加怪物 #% 範圍效果"
+          }
+        },
+        {
+          "roll": {
+            "dp": false,
+            "max": 2,
+            "min": 2,
+            "unscalable": false,
+            "value": 2
+          },
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "yes",
+            "matchers": [
+              {
+                "string": "怪物發射 # 額外投射物"
+              }
+            ],
+            "ref": "Monsters fire # additional Projectiles",
+            "trade": {
+              "ids": {
+                "explicit": [
+                  "explicit.stat_1309819744"
+                ],
+                "fractured": [
+                  "fractured.stat_1309819744"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "怪物發射 # 額外投射物"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "suffix",
+        "name": "珍藏之",
+        "tags": [],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "ubermap_exclusive",
+            "matchers": [
+              {
+                "string": "釋界干擾玩家"
+              }
+            ],
+            "ref": "The Maven interferes with Players",
+            "trade": {
+              "ids": {
+                "explicit": [
+                  "explicit.stat_1594156261"
+                ],
+                "fractured": [
+                  "fractured.stat_1594156261"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "釋界干擾玩家"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "suffix",
+        "name": "耐久之",
+        "tags": [],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 1,
+            "min": 1,
+            "unscalable": false,
+            "value": 1
+          },
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "ubermap_exclusive",
+            "matchers": [
+              {
+                "string": "怪物耐力球上限 #"
+              }
+            ],
+            "ref": "Monsters have +# to Maximum Endurance Charges",
+            "trade": {
+              "ids": {
+                "explicit": [
+                  "explicit.stat_4067268731"
+                ],
+                "fractured": [
+                  "fractured.stat_4067268731"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "怪物耐力球上限 #"
+          }
+        },
+        {
+          "roll": {
+            "dp": false,
+            "max": 100,
+            "min": 100,
+            "unscalable": false,
+            "value": 100
+          },
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "yes",
+            "matchers": [
+              {
+                "string": "怪物擊中時有 #% 機率獲得 1 顆耐力球"
+              },
+              {
+                "string": "怪物擊中時獲得 1 顆耐力球",
+                "value": 100
+              }
+            ],
+            "ref": "Monsters have #% chance to gain an Endurance Charge on Hit",
+            "trade": {
+              "ids": {
+                "explicit": [
+                  "explicit.stat_687813731",
+                  "explicit.stat_3707756896"
+                ],
+                "fractured": [
+                  "fractured.stat_687813731",
+                  "fractured.stat_3707756896"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "怪物擊中時獲得 1 顆耐力球",
+            "value": 100
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "suffix",
+        "name": "腐朽之",
+        "tags": [],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "ubermap_exclusive",
+            "matchers": [
+              {
+                "string": "區域內含有不穩定的惡魔觸手"
+              }
+            ],
+            "ref": "Area contains Unstable Tentacle Fiends",
+            "trade": {
+              "ids": {
+                "explicit": [
+                  "explicit.stat_1943574423"
+                ],
+                "fractured": [
+                  "fractured.stat_1943574423"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "區域內含有不穩定的惡魔觸手"
+          }
+        }
+      ]
+    }
+  ],
+  "rarity": "Rare",
+  "rawText": "物品種類: 地圖\r\n稀有度: 稀有\r\n死寂禮拜\r\n地圖（階級 16）\r\n--------\r\n物品數量: +84% (augmented)\r\n物品稀有度: +102% (augmented)\r\n怪物群大小: +62% (augmented)\r\n更多地圖: +35% (augmented)\r\n更多聖甲蟲: +53% (augmented)\r\n更多通貨: +47% (augmented)\r\n--------\r\n物品等級: 83\r\n--------\r\n怪物等級：83\r\n--------\r\n{ 固定詞綴 }\r\n區域受到開創者的記憶影響\r\n{ 固定詞綴 }\r\n區域受到開創者的記憶影響\r\n--------\r\n{ 前綴 \"易爆之\"(階層：1) }\r\n稀有怪物擁有核息\r\n{ 前綴 \"懲戒的\"(階層：1) }\r\n稀有怪物擁有會反射 1500 物理傷害的物理荊棘\r\n稀有怪物擁有會反射 2500 元素傷害的元素荊棘\r\n{ 前綴 \"放大的\"(階層：1) }\r\n增加怪物 100% 範圍效果\r\n怪物發射 2 額外投射物\r\n{ 後綴 \"珍藏之\"(階層：1) }\r\n釋界干擾玩家\r\n{ 後綴 \"耐久之\"(階層：1) }\r\n怪物耐力球上限 +1\r\n怪物擊中時獲得 1 顆耐力球\r\n{ 後綴 \"腐朽之\"(階層：1) }\r\n區域內含有不穩定的惡魔觸手\r\n--------\r\n透過個人的地圖裝置來使用這張地圖以前往這個階級或更低的該地圖。每張地圖只能被使用一次。\r\n",
+  "statsByType": [
+    {
+      "sources": [
+        {
+          "modifier": {
+            "info": {
+              "tags": [],
+              "type": "implicit"
+            },
+            "stats": [
+              {
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "區域受到開創者的記憶影響"
+                    }
+                  ],
+                  "ref": "Area is Influenced by the Originator's Memories",
+                  "trade": {
+                    "ids": {
+                      "implicit": [
+                        "implicit.stat_2696470877"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "區域受到開創者的記憶影響"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "yes",
+              "matchers": [
+                {
+                  "string": "區域受到開創者的記憶影響"
+                }
+              ],
+              "ref": "Area is Influenced by the Originator's Memories",
+              "trade": {
+                "ids": {
+                  "implicit": [
+                    "implicit.stat_2696470877"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "區域受到開創者的記憶影響"
+            }
+          }
+        },
+        {
+          "modifier": {
+            "info": {
+              "tags": [],
+              "type": "implicit"
+            },
+            "stats": [
+              {
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "區域受到開創者的記憶影響"
+                    }
+                  ],
+                  "ref": "Area is Influenced by the Originator's Memories",
+                  "trade": {
+                    "ids": {
+                      "implicit": [
+                        "implicit.stat_2696470877"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "區域受到開創者的記憶影響"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "yes",
+              "matchers": [
+                {
+                  "string": "區域受到開創者的記憶影響"
+                }
+              ],
+              "ref": "Area is Influenced by the Originator's Memories",
+              "trade": {
+                "ids": {
+                  "implicit": [
+                    "implicit.stat_2696470877"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "區域受到開創者的記憶影響"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "fromAreaMods": "yes",
+        "matchers": [
+          {
+            "string": "區域受到開創者的記憶影響"
+          }
+        ],
+        "ref": "Area is Influenced by the Originator's Memories",
+        "trade": {
+          "ids": {
+            "implicit": [
+              "implicit.stat_2696470877"
+            ]
+          }
+        }
+      },
+      "type": "implicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 100,
+            "min": 100,
+            "value": 100
+          },
+          "modifier": {
+            "info": {
+              "generation": "prefix",
+              "name": "易爆之",
+              "tags": [],
+              "tier": 1,
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 100,
+                  "min": 100,
+                  "unscalable": false,
+                  "value": 100
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "ubermap_exclusive",
+                  "matchers": [
+                    {
+                      "string": "稀有怪物有 #% 機率擁有核息"
+                    },
+                    {
+                      "string": "稀有怪物擁有核息",
+                      "value": 100
+                    }
+                  ],
+                  "ref": "Rare Monsters have #% chance to have a Volatile Core",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_1706239920"
+                      ],
+                      "fractured": [
+                        "fractured.stat_1706239920"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "稀有怪物擁有核息",
+                  "value": 100
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 100,
+              "min": 100,
+              "unscalable": false,
+              "value": 100
+            },
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "ubermap_exclusive",
+              "matchers": [
+                {
+                  "string": "稀有怪物有 #% 機率擁有核息"
+                },
+                {
+                  "string": "稀有怪物擁有核息",
+                  "value": 100
+                }
+              ],
+              "ref": "Rare Monsters have #% chance to have a Volatile Core",
+              "trade": {
+                "ids": {
+                  "explicit": [
+                    "explicit.stat_1706239920"
+                  ],
+                  "fractured": [
+                    "fractured.stat_1706239920"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "稀有怪物擁有核息",
+              "value": 100
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "fromAreaMods": "ubermap_exclusive",
+        "matchers": [
+          {
+            "string": "稀有怪物有 #% 機率擁有核息"
+          },
+          {
+            "string": "稀有怪物擁有核息",
+            "value": 100
+          }
+        ],
+        "ref": "Rare Monsters have #% chance to have a Volatile Core",
+        "trade": {
+          "ids": {
+            "explicit": [
+              "explicit.stat_1706239920"
+            ],
+            "fractured": [
+              "fractured.stat_1706239920"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 1500,
+            "min": 1500,
+            "value": 1500
+          },
+          "modifier": {
+            "info": {
+              "generation": "prefix",
+              "name": "懲戒的",
+              "tags": [],
+              "tier": 1,
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 1500,
+                  "min": 1500,
+                  "unscalable": false,
+                  "value": 1500
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "稀有怪物擁有會反射 # 物理傷害的物理荊棘"
+                    }
+                  ],
+                  "ref": "Rare Monsters have Physical Thorns reflecting # Physical Damage",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_3278889477"
+                      ],
+                      "fractured": [
+                        "fractured.stat_3278889477"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "稀有怪物擁有會反射 # 物理傷害的物理荊棘"
+                }
+              },
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 2500,
+                  "min": 2500,
+                  "unscalable": false,
+                  "value": 2500
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "稀有怪物擁有會反射 # 元素傷害的元素荊棘"
+                    }
+                  ],
+                  "ref": "Rare Monsters have Elemental Thorns reflecting # Elemental Damage",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_3938822425"
+                      ],
+                      "fractured": [
+                        "fractured.stat_3938822425"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "稀有怪物擁有會反射 # 元素傷害的元素荊棘"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 1500,
+              "min": 1500,
+              "unscalable": false,
+              "value": 1500
+            },
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "yes",
+              "matchers": [
+                {
+                  "string": "稀有怪物擁有會反射 # 物理傷害的物理荊棘"
+                }
+              ],
+              "ref": "Rare Monsters have Physical Thorns reflecting # Physical Damage",
+              "trade": {
+                "ids": {
+                  "explicit": [
+                    "explicit.stat_3278889477"
+                  ],
+                  "fractured": [
+                    "fractured.stat_3278889477"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "稀有怪物擁有會反射 # 物理傷害的物理荊棘"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "fromAreaMods": "yes",
+        "matchers": [
+          {
+            "string": "稀有怪物擁有會反射 # 物理傷害的物理荊棘"
+          }
+        ],
+        "ref": "Rare Monsters have Physical Thorns reflecting # Physical Damage",
+        "trade": {
+          "ids": {
+            "explicit": [
+              "explicit.stat_3278889477"
+            ],
+            "fractured": [
+              "fractured.stat_3278889477"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 2500,
+            "min": 2500,
+            "value": 2500
+          },
+          "modifier": {
+            "info": {
+              "generation": "prefix",
+              "name": "懲戒的",
+              "tags": [],
+              "tier": 1,
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 1500,
+                  "min": 1500,
+                  "unscalable": false,
+                  "value": 1500
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "稀有怪物擁有會反射 # 物理傷害的物理荊棘"
+                    }
+                  ],
+                  "ref": "Rare Monsters have Physical Thorns reflecting # Physical Damage",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_3278889477"
+                      ],
+                      "fractured": [
+                        "fractured.stat_3278889477"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "稀有怪物擁有會反射 # 物理傷害的物理荊棘"
+                }
+              },
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 2500,
+                  "min": 2500,
+                  "unscalable": false,
+                  "value": 2500
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "稀有怪物擁有會反射 # 元素傷害的元素荊棘"
+                    }
+                  ],
+                  "ref": "Rare Monsters have Elemental Thorns reflecting # Elemental Damage",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_3938822425"
+                      ],
+                      "fractured": [
+                        "fractured.stat_3938822425"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "稀有怪物擁有會反射 # 元素傷害的元素荊棘"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 2500,
+              "min": 2500,
+              "unscalable": false,
+              "value": 2500
+            },
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "yes",
+              "matchers": [
+                {
+                  "string": "稀有怪物擁有會反射 # 元素傷害的元素荊棘"
+                }
+              ],
+              "ref": "Rare Monsters have Elemental Thorns reflecting # Elemental Damage",
+              "trade": {
+                "ids": {
+                  "explicit": [
+                    "explicit.stat_3938822425"
+                  ],
+                  "fractured": [
+                    "fractured.stat_3938822425"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "稀有怪物擁有會反射 # 元素傷害的元素荊棘"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "fromAreaMods": "yes",
+        "matchers": [
+          {
+            "string": "稀有怪物擁有會反射 # 元素傷害的元素荊棘"
+          }
+        ],
+        "ref": "Rare Monsters have Elemental Thorns reflecting # Elemental Damage",
+        "trade": {
+          "ids": {
+            "explicit": [
+              "explicit.stat_3938822425"
+            ],
+            "fractured": [
+              "fractured.stat_3938822425"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 100,
+            "min": 100,
+            "value": 100
+          },
+          "modifier": {
+            "info": {
+              "generation": "prefix",
+              "name": "放大的",
+              "tags": [],
+              "tier": 1,
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 100,
+                  "min": 100,
+                  "unscalable": false,
+                  "value": 100
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "增加怪物 #% 範圍效果"
+                    },
+                    {
+                      "negate": true,
+                      "string": "減少怪物 #% 範圍效果"
+                    }
+                  ],
+                  "ref": "Monsters have #% increased Area of Effect",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_1708461270"
+                      ],
+                      "fractured": [
+                        "fractured.stat_1708461270"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "增加怪物 #% 範圍效果"
+                }
+              },
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 2,
+                  "min": 2,
+                  "unscalable": false,
+                  "value": 2
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "怪物發射 # 額外投射物"
+                    }
+                  ],
+                  "ref": "Monsters fire # additional Projectiles",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_1309819744"
+                      ],
+                      "fractured": [
+                        "fractured.stat_1309819744"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "怪物發射 # 額外投射物"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 100,
+              "min": 100,
+              "unscalable": false,
+              "value": 100
+            },
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "yes",
+              "matchers": [
+                {
+                  "string": "增加怪物 #% 範圍效果"
+                },
+                {
+                  "negate": true,
+                  "string": "減少怪物 #% 範圍效果"
+                }
+              ],
+              "ref": "Monsters have #% increased Area of Effect",
+              "trade": {
+                "ids": {
+                  "explicit": [
+                    "explicit.stat_1708461270"
+                  ],
+                  "fractured": [
+                    "fractured.stat_1708461270"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "增加怪物 #% 範圍效果"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "fromAreaMods": "yes",
+        "matchers": [
+          {
+            "string": "增加怪物 #% 範圍效果"
+          },
+          {
+            "negate": true,
+            "string": "減少怪物 #% 範圍效果"
+          }
+        ],
+        "ref": "Monsters have #% increased Area of Effect",
+        "trade": {
+          "ids": {
+            "explicit": [
+              "explicit.stat_1708461270"
+            ],
+            "fractured": [
+              "fractured.stat_1708461270"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 2,
+            "min": 2,
+            "value": 2
+          },
+          "modifier": {
+            "info": {
+              "generation": "prefix",
+              "name": "放大的",
+              "tags": [],
+              "tier": 1,
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 100,
+                  "min": 100,
+                  "unscalable": false,
+                  "value": 100
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "增加怪物 #% 範圍效果"
+                    },
+                    {
+                      "negate": true,
+                      "string": "減少怪物 #% 範圍效果"
+                    }
+                  ],
+                  "ref": "Monsters have #% increased Area of Effect",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_1708461270"
+                      ],
+                      "fractured": [
+                        "fractured.stat_1708461270"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "增加怪物 #% 範圍效果"
+                }
+              },
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 2,
+                  "min": 2,
+                  "unscalable": false,
+                  "value": 2
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "怪物發射 # 額外投射物"
+                    }
+                  ],
+                  "ref": "Monsters fire # additional Projectiles",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_1309819744"
+                      ],
+                      "fractured": [
+                        "fractured.stat_1309819744"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "怪物發射 # 額外投射物"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 2,
+              "min": 2,
+              "unscalable": false,
+              "value": 2
+            },
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "yes",
+              "matchers": [
+                {
+                  "string": "怪物發射 # 額外投射物"
+                }
+              ],
+              "ref": "Monsters fire # additional Projectiles",
+              "trade": {
+                "ids": {
+                  "explicit": [
+                    "explicit.stat_1309819744"
+                  ],
+                  "fractured": [
+                    "fractured.stat_1309819744"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "怪物發射 # 額外投射物"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "fromAreaMods": "yes",
+        "matchers": [
+          {
+            "string": "怪物發射 # 額外投射物"
+          }
+        ],
+        "ref": "Monsters fire # additional Projectiles",
+        "trade": {
+          "ids": {
+            "explicit": [
+              "explicit.stat_1309819744"
+            ],
+            "fractured": [
+              "fractured.stat_1309819744"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "modifier": {
+            "info": {
+              "generation": "suffix",
+              "name": "珍藏之",
+              "tags": [],
+              "tier": 1,
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "ubermap_exclusive",
+                  "matchers": [
+                    {
+                      "string": "釋界干擾玩家"
+                    }
+                  ],
+                  "ref": "The Maven interferes with Players",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_1594156261"
+                      ],
+                      "fractured": [
+                        "fractured.stat_1594156261"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "釋界干擾玩家"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "ubermap_exclusive",
+              "matchers": [
+                {
+                  "string": "釋界干擾玩家"
+                }
+              ],
+              "ref": "The Maven interferes with Players",
+              "trade": {
+                "ids": {
+                  "explicit": [
+                    "explicit.stat_1594156261"
+                  ],
+                  "fractured": [
+                    "fractured.stat_1594156261"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "釋界干擾玩家"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "fromAreaMods": "ubermap_exclusive",
+        "matchers": [
+          {
+            "string": "釋界干擾玩家"
+          }
+        ],
+        "ref": "The Maven interferes with Players",
+        "trade": {
+          "ids": {
+            "explicit": [
+              "explicit.stat_1594156261"
+            ],
+            "fractured": [
+              "fractured.stat_1594156261"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 1,
+            "min": 1,
+            "value": 1
+          },
+          "modifier": {
+            "info": {
+              "generation": "suffix",
+              "name": "耐久之",
+              "tags": [],
+              "tier": 1,
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 1,
+                  "min": 1,
+                  "unscalable": false,
+                  "value": 1
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "ubermap_exclusive",
+                  "matchers": [
+                    {
+                      "string": "怪物耐力球上限 #"
+                    }
+                  ],
+                  "ref": "Monsters have +# to Maximum Endurance Charges",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_4067268731"
+                      ],
+                      "fractured": [
+                        "fractured.stat_4067268731"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "怪物耐力球上限 #"
+                }
+              },
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 100,
+                  "min": 100,
+                  "unscalable": false,
+                  "value": 100
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "怪物擊中時有 #% 機率獲得 1 顆耐力球"
+                    },
+                    {
+                      "string": "怪物擊中時獲得 1 顆耐力球",
+                      "value": 100
+                    }
+                  ],
+                  "ref": "Monsters have #% chance to gain an Endurance Charge on Hit",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_687813731",
+                        "explicit.stat_3707756896"
+                      ],
+                      "fractured": [
+                        "fractured.stat_687813731",
+                        "fractured.stat_3707756896"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "怪物擊中時獲得 1 顆耐力球",
+                  "value": 100
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 1,
+              "min": 1,
+              "unscalable": false,
+              "value": 1
+            },
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "ubermap_exclusive",
+              "matchers": [
+                {
+                  "string": "怪物耐力球上限 #"
+                }
+              ],
+              "ref": "Monsters have +# to Maximum Endurance Charges",
+              "trade": {
+                "ids": {
+                  "explicit": [
+                    "explicit.stat_4067268731"
+                  ],
+                  "fractured": [
+                    "fractured.stat_4067268731"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "怪物耐力球上限 #"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "fromAreaMods": "ubermap_exclusive",
+        "matchers": [
+          {
+            "string": "怪物耐力球上限 #"
+          }
+        ],
+        "ref": "Monsters have +# to Maximum Endurance Charges",
+        "trade": {
+          "ids": {
+            "explicit": [
+              "explicit.stat_4067268731"
+            ],
+            "fractured": [
+              "fractured.stat_4067268731"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 100,
+            "min": 100,
+            "value": 100
+          },
+          "modifier": {
+            "info": {
+              "generation": "suffix",
+              "name": "耐久之",
+              "tags": [],
+              "tier": 1,
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 1,
+                  "min": 1,
+                  "unscalable": false,
+                  "value": 1
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "ubermap_exclusive",
+                  "matchers": [
+                    {
+                      "string": "怪物耐力球上限 #"
+                    }
+                  ],
+                  "ref": "Monsters have +# to Maximum Endurance Charges",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_4067268731"
+                      ],
+                      "fractured": [
+                        "fractured.stat_4067268731"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "怪物耐力球上限 #"
+                }
+              },
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 100,
+                  "min": 100,
+                  "unscalable": false,
+                  "value": 100
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "怪物擊中時有 #% 機率獲得 1 顆耐力球"
+                    },
+                    {
+                      "string": "怪物擊中時獲得 1 顆耐力球",
+                      "value": 100
+                    }
+                  ],
+                  "ref": "Monsters have #% chance to gain an Endurance Charge on Hit",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_687813731",
+                        "explicit.stat_3707756896"
+                      ],
+                      "fractured": [
+                        "fractured.stat_687813731",
+                        "fractured.stat_3707756896"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "怪物擊中時獲得 1 顆耐力球",
+                  "value": 100
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 100,
+              "min": 100,
+              "unscalable": false,
+              "value": 100
+            },
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "yes",
+              "matchers": [
+                {
+                  "string": "怪物擊中時有 #% 機率獲得 1 顆耐力球"
+                },
+                {
+                  "string": "怪物擊中時獲得 1 顆耐力球",
+                  "value": 100
+                }
+              ],
+              "ref": "Monsters have #% chance to gain an Endurance Charge on Hit",
+              "trade": {
+                "ids": {
+                  "explicit": [
+                    "explicit.stat_687813731",
+                    "explicit.stat_3707756896"
+                  ],
+                  "fractured": [
+                    "fractured.stat_687813731",
+                    "fractured.stat_3707756896"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "怪物擊中時獲得 1 顆耐力球",
+              "value": 100
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "fromAreaMods": "yes",
+        "matchers": [
+          {
+            "string": "怪物擊中時有 #% 機率獲得 1 顆耐力球"
+          },
+          {
+            "string": "怪物擊中時獲得 1 顆耐力球",
+            "value": 100
+          }
+        ],
+        "ref": "Monsters have #% chance to gain an Endurance Charge on Hit",
+        "trade": {
+          "ids": {
+            "explicit": [
+              "explicit.stat_687813731",
+              "explicit.stat_3707756896"
+            ],
+            "fractured": [
+              "fractured.stat_687813731",
+              "fractured.stat_3707756896"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "modifier": {
+            "info": {
+              "generation": "suffix",
+              "name": "腐朽之",
+              "tags": [],
+              "tier": 1,
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "ubermap_exclusive",
+                  "matchers": [
+                    {
+                      "string": "區域內含有不穩定的惡魔觸手"
+                    }
+                  ],
+                  "ref": "Area contains Unstable Tentacle Fiends",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_1943574423"
+                      ],
+                      "fractured": [
+                        "fractured.stat_1943574423"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "區域內含有不穩定的惡魔觸手"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "ubermap_exclusive",
+              "matchers": [
+                {
+                  "string": "區域內含有不穩定的惡魔觸手"
+                }
+              ],
+              "ref": "Area contains Unstable Tentacle Fiends",
+              "trade": {
+                "ids": {
+                  "explicit": [
+                    "explicit.stat_1943574423"
+                  ],
+                  "fractured": [
+                    "fractured.stat_1943574423"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "區域內含有不穩定的惡魔觸手"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "fromAreaMods": "ubermap_exclusive",
+        "matchers": [
+          {
+            "string": "區域內含有不穩定的惡魔觸手"
+          }
+        ],
+        "ref": "Area contains Unstable Tentacle Fiends",
+        "trade": {
+          "ids": {
+            "explicit": [
+              "explicit.stat_1943574423"
+            ],
+            "fractured": [
+              "fractured.stat_1943574423"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    }
+  ],
+  "unknownModifiers": []
+}

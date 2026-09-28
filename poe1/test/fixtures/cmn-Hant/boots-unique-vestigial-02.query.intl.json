@@ -1,0 +1,73 @@
+{
+  "api": "trade",
+  "request": {
+    "query": {
+      "status": {
+        "option": "available"
+      },
+      "stats": [
+        {
+          "type": "and",
+          "filters": [
+            {
+              "id": "implicit.stat_1065479853",
+              "value": {},
+              "disabled": false
+            },
+            {
+              "id": "explicit.stat_3261801346",
+              "value": {
+                "min": 25
+              },
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_328541901",
+              "value": {
+                "min": 22
+              },
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_4293455942",
+              "value": {},
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_2250533757",
+              "value": {},
+              "disabled": true
+            }
+          ]
+        }
+      ],
+      "filters": {
+        "trade_filters": {
+          "filters": {
+            "collapse": {
+              "option": "true"
+            }
+          }
+        },
+        "misc_filters": {
+          "filters": {
+            "corrupted": {
+              "option": "false"
+            },
+            "foulborn_item": {
+              "option": "false"
+            },
+            "vestigial": {
+              "option": "true"
+            }
+          }
+        }
+      },
+      "name": "Sin Trek",
+      "type": "Stealth Boots"
+    },
+    "sort": {
+      "price": "asc"
+    }
+  }
+}

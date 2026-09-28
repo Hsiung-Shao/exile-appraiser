@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <link rel="icon" href="./icon.ico">
+    <title>ExileAppraiser</title>
+  </head>
+  <body>
+    <!-- exile-appraiser: 啟動載入畫面(Vue 掛上後整個 #app 內容被取代)。只用 inline style,不依賴任何 CSS 檔;
+         overlay 模式(透明視窗疊在遊戲上)不顯示,免得遊戲畫面被一片深底蓋住。 -->
+    <div id="app"><div id="boot-placeholder" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#0e1116;color:#c3bfb4;font:13px 'Noto Sans TC','Segoe UI',system-ui,sans-serif;letter-spacing:0.05em"><style>@keyframes boot-pulse{0%,100%{opacity:.35}50%{opacity:1}}</style><span style="animation:boot-pulse 1.2s ease-in-out infinite"><span id="boot-text">載入中… / Loading…</span></span></div></div>
+    <script>
+      (function () {
+        var host = window.host
+        if (host && host.windowMode === 'overlay') {
+          var el = document.getElementById('boot-placeholder')
+          if (el) el.style.display = 'none'
+          return
+        }
+        var zh = /^zh/i.test(navigator.language || '')
+        var t = document.getElementById('boot-text')
+        if (t) t.textContent = zh ? '載入中…' : 'Loading…'
+      })()
+    </script>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

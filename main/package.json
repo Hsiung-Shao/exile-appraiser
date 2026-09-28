@@ -1,0 +1,32 @@
+{
+  "_comment_name": "name 決定 Electron 的 %APPDATA%\\<name> 與預設 User-Agent 的 app 名;改名請改 electron-builder.yml 的 productName/appId。",
+  "name": "exile-appraiser",
+  "_comment_version": "⚠ major.minor 必須等於當前遊戲版本系列(現為 3.29),否則 GGG 的 Cloudflare 會擋整個 app(403,連聯盟清單都載不到)。Electron 把版號寫進 User-Agent。遊戲改版務必先跑 `npm run check-user-agent`。與 root package.json 的 version 保持一致。",
+  "version": "3.29.0",
+  "private": true,
+  "description": "Path of Exile 查價工具(國際服/台服,PoE1 + PoE2)",
+  "author": {
+    "name": "Hsiung-Shao"
+  },
+  "license": "MIT",
+  "main": "dist/main.js",
+  "scripts": {
+    "dev": "node build/script.mjs",
+    "build": "tsc --noEmit -p tsconfig.json && node build/script.mjs --prod",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "_comment_package": "-p never:electron-builder 預設 onTagOrDraft 會在 HEAD 在 tag 上時自動建 draft release 並上傳。發布必須是刻意的動作(gh release create)。",
+    "package": "electron-builder build -p never"
+  },
+  "dependencies": {
+    "electron-overlay-window": "4.1.0",
+    "electron-updater": "^6.8.3",
+    "uiohook-napi": "1.5.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "electron": "40.10.6",
+    "electron-builder": "^26.9.0",
+    "esbuild": "^0.28.0",
+    "typescript": "5.6.x"
+  }
+}

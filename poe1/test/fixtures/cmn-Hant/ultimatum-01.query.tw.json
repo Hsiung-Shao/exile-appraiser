@@ -1,0 +1,49 @@
+{
+  "api": "trade",
+  "request": {
+    "query": {
+      "status": {
+        "option": "available"
+      },
+      "stats": [
+        {
+          "type": "and",
+          "filters": []
+        }
+      ],
+      "filters": {
+        "trade_filters": {
+          "filters": {
+            "price": {
+              "option": "chaos_divine"
+            },
+            "collapse": {
+              "option": "true"
+            }
+          }
+        },
+        "map_filters": {
+          "filters": {
+            "area_level": {
+              "min": 83
+            }
+          }
+        },
+        "ultimatum_filters": {
+          "filters": {
+            "ultimatum_challenge": {
+              "option": "Survival"
+            },
+            "ultimatum_reward": {
+              "option": "MirrorRare"
+            }
+          }
+        }
+      },
+      "type": "最後通牒雕刻"
+    },
+    "sort": {
+      "price": "asc"
+    }
+  }
+}

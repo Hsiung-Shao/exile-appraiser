@@ -1,0 +1,161 @@
+{
+  "api": "trade",
+  "request": {
+    "query": {
+      "status": {
+        "option": "securable"
+      },
+      "stats": [
+        {
+          "type": "and",
+          "filters": [
+            {
+              "id": "explicit.stat_264262054|8",
+              "value": {},
+              "disabled": false
+            },
+            {
+              "id": "explicit.stat_264262054|5",
+              "value": {},
+              "disabled": false
+            },
+            {
+              "id": "explicit.stat_264262054|2",
+              "value": {},
+              "disabled": false
+            },
+            {
+              "id": "implicit.stat_462041840",
+              "value": {},
+              "disabled": true
+            },
+            {
+              "id": "implicit.stat_1416292992",
+              "value": {
+                "min": 3
+              },
+              "disabled": false
+            },
+            {
+              "id": "explicit.stat_3874491706",
+              "value": {
+                "min": 43
+              },
+              "disabled": false
+            },
+            {
+              "id": "explicit.stat_264262054|8",
+              "value": {},
+              "disabled": false
+            },
+            {
+              "id": "explicit.stat_264262054|5",
+              "value": {},
+              "disabled": false
+            },
+            {
+              "id": "explicit.stat_264262054|2",
+              "value": {},
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "type": "count",
+          "filters": [
+            {
+              "id": "explicit.stat_264262054|8",
+              "value": {
+                "min": 1
+              },
+              "disabled": false
+            },
+            {
+              "id": "explicit.stat_264262054|8",
+              "value": {
+                "min": 2
+              },
+              "disabled": false
+            },
+            {
+              "id": "explicit.stat_264262054|8",
+              "value": {
+                "max": 2
+              },
+              "disabled": false
+            },
+            {
+              "id": "explicit.stat_264262054|5",
+              "value": {
+                "min": 1
+              },
+              "disabled": false
+            },
+            {
+              "id": "explicit.stat_264262054|5",
+              "value": {
+                "min": 2
+              },
+              "disabled": false
+            },
+            {
+              "id": "explicit.stat_264262054|5",
+              "value": {
+                "max": 2
+              },
+              "disabled": false
+            },
+            {
+              "id": "explicit.stat_264262054|2",
+              "value": {
+                "min": 1
+              },
+              "disabled": false
+            },
+            {
+              "id": "explicit.stat_264262054|2",
+              "value": {
+                "min": 2
+              },
+              "disabled": false
+            },
+            {
+              "id": "explicit.stat_264262054|2",
+              "value": {
+                "max": 2
+              },
+              "disabled": false
+            }
+          ],
+          "value": {
+            "min": 7
+          }
+        }
+      ],
+      "filters": {
+        "trade_filters": {
+          "filters": {
+            "collapse": {
+              "option": "true"
+            }
+          }
+        },
+        "misc_filters": {
+          "filters": {
+            "corrupted": {
+              "option": "false"
+            },
+            "fractured_item": {
+              "option": "false"
+            }
+          }
+        }
+      },
+      "name": "Mageblood",
+      "type": "Utility Belt"
+    },
+    "sort": {
+      "price": "asc"
+    }
+  }
+}

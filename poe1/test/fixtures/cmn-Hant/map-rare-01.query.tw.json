@@ -1,0 +1,180 @@
+{
+  "api": "trade",
+  "request": {
+    "query": {
+      "status": {
+        "option": "available"
+      },
+      "stats": [
+        {
+          "type": "and",
+          "filters": [
+            {
+              "id": "pseudo.pseudo_map_more_map_drops",
+              "value": {
+                "min": 31
+              },
+              "disabled": false
+            },
+            {
+              "id": "pseudo.pseudo_map_more_scarab_drops",
+              "value": {
+                "min": 47
+              },
+              "disabled": false
+            },
+            {
+              "id": "pseudo.pseudo_map_more_currency_drops",
+              "value": {
+                "min": 42
+              },
+              "disabled": false
+            },
+            {
+              "id": "implicit.stat_2696470877",
+              "value": {},
+              "disabled": false
+            },
+            {
+              "id": "explicit.stat_1706239920",
+              "value": {
+                "min": 100
+              },
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_3278889477",
+              "value": {
+                "min": 1500
+              },
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_3938822425",
+              "value": {
+                "min": 2500
+              },
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_1708461270",
+              "value": {
+                "min": 100
+              },
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_1309819744",
+              "value": {
+                "min": 2
+              },
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_1594156261",
+              "value": {},
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_4067268731",
+              "value": {
+                "min": 1
+              },
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_1943574423",
+              "value": {},
+              "disabled": true
+            }
+          ]
+        },
+        {
+          "type": "count",
+          "value": {
+            "min": 1
+          },
+          "disabled": true,
+          "filters": [
+            {
+              "id": "explicit.stat_687813731",
+              "value": {
+                "min": 100
+              },
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_3707756896",
+              "value": {
+                "min": 100
+              },
+              "disabled": true
+            }
+          ]
+        }
+      ],
+      "filters": {
+        "trade_filters": {
+          "filters": {
+            "price": {
+              "option": "chaos_divine"
+            },
+            "collapse": {
+              "option": "true"
+            }
+          }
+        },
+        "type_filters": {
+          "filters": {
+            "rarity": {
+              "option": "nonunique"
+            }
+          }
+        },
+        "misc_filters": {
+          "filters": {
+            "corrupted": {
+              "option": "false"
+            },
+            "fractured_item": {
+              "option": "false"
+            },
+            "split": {
+              "option": "false"
+            },
+            "mirrored": {
+              "option": "false"
+            }
+          }
+        },
+        "map_filters": {
+          "filters": {
+            "map_tier": {
+              "min": 16,
+              "max": 16
+            },
+            "map_blighted": {
+              "option": "false"
+            },
+            "map_uberblighted": {
+              "option": "false"
+            },
+            "map_iiq": {
+              "min": 75
+            },
+            "map_packsize": {
+              "min": 55
+            }
+          }
+        }
+      },
+      "type": {
+        "discriminator": "map",
+        "option": "地圖"
+      }
+    },
+    "sort": {
+      "price": "asc"
+    }
+  }
+}

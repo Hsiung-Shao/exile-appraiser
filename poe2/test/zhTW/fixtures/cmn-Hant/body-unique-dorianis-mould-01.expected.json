@@ -1,0 +1,271 @@
+{
+  "augmentSockets": {
+    "augments": [
+      {
+        "displayString": "18%冰冷抗性",
+        "existing": true,
+        "name": "高階冰川符文",
+        "refName": "Greater Glacial Rune"
+      },
+      {
+        "displayString": "18%閃電抗性",
+        "existing": true,
+        "name": "高階暴風符文",
+        "refName": "Greater Storm Rune"
+      }
+    ],
+    "current": 2,
+    "empty": 0,
+    "normal": 2
+  },
+  "baseType": "鱗片鎖甲",
+  "category": "Body Armour",
+  "influences": [],
+  "info": {
+    "name": "多里亞尼之型",
+    "namespace": "UNIQUE",
+    "refName": "Doryani's Prototype",
+    "unique": {
+      "base": "Scale Mail"
+    }
+  },
+  "infoVariants": [
+    {
+      "name": "多里亞尼之型",
+      "namespace": "UNIQUE",
+      "refName": "Doryani's Prototype",
+      "unique": {
+        "base": "Scale Mail"
+      }
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": false,
+  "itemLevel": 78,
+  "name": "多里亞尼之型",
+  "newMods": [
+    {
+      "info": {
+        "tags": [],
+        "type": "rune"
+      },
+      "stats": [
+        {
+          "ref": "#% to Cold Resistance",
+          "roll": {
+            "dp": false,
+            "max": 18,
+            "min": 18,
+            "unscalable": false,
+            "value": 18
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_4220027924"
+            ],
+            "desecrated": [
+              "desecrated.stat_4220027924"
+            ],
+            "enchant": [
+              "enchant.stat_4220027924"
+            ],
+            "explicit": [
+              "explicit.stat_4220027924"
+            ],
+            "fractured": [
+              "fractured.stat_4220027924"
+            ],
+            "implicit": [
+              "implicit.stat_4220027924"
+            ],
+            "rune": [
+              "rune.stat_4220027924"
+            ]
+          },
+          "translation": "#%冰冷抗性"
+        },
+        {
+          "ref": "#% to Lightning Resistance",
+          "roll": {
+            "dp": false,
+            "max": 18,
+            "min": 18,
+            "unscalable": false,
+            "value": 18
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_1671376347"
+            ],
+            "desecrated": [
+              "desecrated.stat_1671376347"
+            ],
+            "enchant": [
+              "enchant.stat_1671376347"
+            ],
+            "explicit": [
+              "explicit.stat_1671376347"
+            ],
+            "fractured": [
+              "fractured.stat_1671376347"
+            ],
+            "implicit": [
+              "implicit.stat_1671376347"
+            ],
+            "rune": [
+              "rune.stat_1671376347"
+            ]
+          },
+          "translation": "#%閃電抗性"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "護甲,閃避"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Armour and Evasion",
+          "roll": {
+            "dp": false,
+            "max": 100,
+            "min": 50,
+            "unscalable": false,
+            "value": 91
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_2451402625"
+            ],
+            "desecrated": [
+              "desecrated.stat_2451402625"
+            ],
+            "enchant": [
+              "enchant.stat_2451402625"
+            ],
+            "explicit": [
+              "explicit.stat_2451402625"
+            ],
+            "fractured": [
+              "fractured.stat_2451402625"
+            ]
+          },
+          "translation": "增加#%護甲值和閃避"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "生命"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "# to maximum Life",
+          "roll": {
+            "dp": false,
+            "max": 80,
+            "min": 60,
+            "unscalable": false,
+            "value": 68
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_3299347043"
+            ],
+            "desecrated": [
+              "desecrated.stat_3299347043"
+            ],
+            "enchant": [
+              "enchant.stat_3299347043"
+            ],
+            "explicit": [
+              "explicit.stat_3299347043"
+            ],
+            "fractured": [
+              "fractured.stat_3299347043"
+            ],
+            "implicit": [
+              "implicit.stat_3299347043"
+            ],
+            "rune": [
+              "rune.stat_3299347043"
+            ]
+          },
+          "translation": "#最大生命"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "護甲,元素,閃電"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "+100% of Armour also applies to Lightning Damage",
+          "tradeIds": {
+            "explicit": [
+              "explicit.stat_2134207902"
+            ]
+          },
+          "translation": "100%的護甲值也會套用至閃電傷害"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "元素,閃電,抗性"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "Lightning Resistance does not affect Lightning damage taken",
+          "tradeIds": {
+            "explicit": [
+              "explicit.stat_3999959974"
+            ]
+          },
+          "translation": "閃電抗性不影響承受的閃電傷害"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "傷害,元素,閃電"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "Enemies in your Presence have Lightning Resistance equal to yours",
+          "tradeIds": {
+            "explicit": [
+              "explicit.stat_1546580830"
+            ]
+          },
+          "translation": "敵人處於你的存在範圍之中時，其閃電抗性與你相同"
+        }
+      ]
+    }
+  ],
+  "rarity": "Unique",
+  "requires": {
+    "dex": 34,
+    "int": 0,
+    "level": 37,
+    "str": 34
+  },
+  "unknownModifiers": []
+}

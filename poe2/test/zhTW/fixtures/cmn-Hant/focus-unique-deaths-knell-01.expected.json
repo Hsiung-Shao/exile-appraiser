@@ -1,0 +1,245 @@
+{
+  "augmentSockets": {
+    "augments": [
+      {
+        "displayString": "18%火焰抗性",
+        "existing": true,
+        "name": "高階沙漠符文",
+        "refName": "Greater Desert Rune"
+      }
+    ],
+    "current": 1,
+    "empty": 0,
+    "normal": 1
+  },
+  "baseType": "枝條法器",
+  "category": "Focus",
+  "influences": [],
+  "info": {
+    "name": "死亡之聲",
+    "namespace": "UNIQUE",
+    "refName": "Deathrattle",
+    "unique": {
+      "base": "Twig Focus"
+    }
+  },
+  "infoVariants": [
+    {
+      "name": "死亡之聲",
+      "namespace": "UNIQUE",
+      "refName": "Deathrattle",
+      "unique": {
+        "base": "Twig Focus"
+      }
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": false,
+  "itemLevel": 78,
+  "name": "死亡之聲",
+  "newMods": [
+    {
+      "info": {
+        "tags": [],
+        "type": "rune"
+      },
+      "stats": [
+        {
+          "ref": "#% to Fire Resistance",
+          "roll": {
+            "dp": false,
+            "max": 18,
+            "min": 18,
+            "unscalable": false,
+            "value": 18
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_3372524247"
+            ],
+            "desecrated": [
+              "desecrated.stat_3372524247"
+            ],
+            "enchant": [
+              "enchant.stat_3372524247"
+            ],
+            "explicit": [
+              "explicit.stat_3372524247"
+            ],
+            "fractured": [
+              "fractured.stat_3372524247"
+            ],
+            "implicit": [
+              "implicit.stat_3372524247"
+            ],
+            "rune": [
+              "rune.stat_3372524247"
+            ]
+          },
+          "translation": "#%火焰抗性"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "傷害,法術"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Spell Damage",
+          "roll": {
+            "dp": false,
+            "max": 40,
+            "min": 20,
+            "unscalable": false,
+            "value": 23
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_2974417149"
+            ],
+            "desecrated": [
+              "desecrated.stat_2974417149"
+            ],
+            "enchant": [
+              "enchant.stat_2974417149"
+            ],
+            "explicit": [
+              "explicit.stat_2974417149"
+            ],
+            "fractured": [
+              "fractured.stat_2974417149"
+            ],
+            "rune": [
+              "rune.stat_2974417149"
+            ]
+          },
+          "translation": "增加#%法術傷害"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "能量護盾"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "# to maximum Energy Shield",
+          "roll": {
+            "dp": false,
+            "max": 20,
+            "min": 10,
+            "unscalable": false,
+            "value": 18
+          },
+          "tradeIds": {
+            "desecrated": [
+              "desecrated.stat_3489782002",
+              "desecrated.stat_4052037485"
+            ],
+            "explicit": [
+              "explicit.stat_3489782002",
+              "explicit.stat_4052037485"
+            ],
+            "fractured": [
+              "fractured.stat_3489782002",
+              "fractured.stat_4052037485"
+            ],
+            "implicit": [
+              "implicit.stat_3489782002"
+            ],
+            "rune": [
+              "rune.stat_3489782002",
+              "rune.stat_4052037485"
+            ]
+          },
+          "translation": "#最大能量護盾"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "能力"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "# to Intelligence",
+          "roll": {
+            "dp": false,
+            "max": 10,
+            "min": 5,
+            "unscalable": false,
+            "value": 10
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_328541901"
+            ],
+            "desecrated": [
+              "desecrated.stat_328541901"
+            ],
+            "enchant": [
+              "enchant.stat_328541901"
+            ],
+            "explicit": [
+              "explicit.stat_328541901"
+            ],
+            "fractured": [
+              "fractured.stat_328541901"
+            ],
+            "implicit": [
+              "implicit.stat_328541901"
+            ],
+            "rune": [
+              "rune.stat_328541901"
+            ]
+          },
+          "translation": "#點智慧"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "能量護盾"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "#% chance for Energy Shield Recharge to start when you Kill an Enemy",
+          "roll": {
+            "dp": false,
+            "max": 20,
+            "min": 20,
+            "unscalable": false,
+            "value": 20
+          },
+          "tradeIds": {
+            "explicit": [
+              "explicit.stat_1618482990"
+            ]
+          },
+          "translation": "當你擊殺一名敵人時，有#%機率開始能量護盾充能"
+        }
+      ]
+    }
+  ],
+  "rarity": "Unique",
+  "requires": {
+    "dex": 0,
+    "int": 0,
+    "level": 30,
+    "str": 0
+  },
+  "unknownModifiers": []
+}

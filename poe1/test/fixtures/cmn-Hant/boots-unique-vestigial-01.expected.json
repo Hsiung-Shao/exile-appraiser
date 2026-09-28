@@ -1,0 +1,1135 @@
+{
+  "armourES": 12,
+  "armourEV": 102,
+  "basePercentile": 61,
+  "baseType": "環帶長靴",
+  "category": "Boots",
+  "dustEquivalent": 5400,
+  "influences": [],
+  "info": {
+    "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQXJtb3Vycy9Cb290cy9TdW5kYW5jZSIsInciOjIsImgiOjIsInNjYWxlIjoxfV0/b3a611197c/Sundance.png",
+    "name": "日耀",
+    "namespace": "UNIQUE",
+    "refName": "Sundance",
+    "unique": {
+      "base": "Clasped Boots",
+      "disenchantValue": 2.16
+    }
+  },
+  "infoVariants": [
+    {
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQXJtb3Vycy9Cb290cy9TdW5kYW5jZSIsInciOjIsImgiOjIsInNjYWxlIjoxfV0/b3a611197c/Sundance.png",
+      "name": "日耀",
+      "namespace": "UNIQUE",
+      "refName": "Sundance",
+      "unique": {
+        "base": "Clasped Boots",
+        "disenchantValue": 2.16
+      }
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": false,
+  "isVestigial": true,
+  "itemLevel": 85,
+  "name": "日耀",
+  "newMods": [
+    {
+      "info": {
+        "generation": "vestigial",
+        "tags": [
+          "速度"
+        ],
+        "type": "implicit"
+      },
+      "stats": [
+        {
+          "stat": {
+            "better": 1,
+            "matchers": [
+              {
+                "string": "行動速度不能被調整至低於基礎值"
+              }
+            ],
+            "ref": "Action Speed cannot be modified to below Base Value",
+            "trade": {
+              "ids": {
+                "explicit": [
+                  "explicit.stat_628716294"
+                ],
+                "implicit": [
+                  "implicit.stat_628716294"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "行動速度不能被調整至低於基礎值"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "防禦",
+          "閃避"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 120,
+            "min": 80,
+            "unscalable": false,
+            "value": 88
+          },
+          "stat": {
+            "better": 1,
+            "matchers": [
+              {
+                "string": "增加 #% 閃避值"
+              },
+              {
+                "negate": true,
+                "string": "減少 #% 閃避值"
+              }
+            ],
+            "ref": "#% increased Evasion Rating",
+            "trade": {
+              "ids": {
+                "crafted": [
+                  "crafted.stat_124859000"
+                ],
+                "explicit": [
+                  "explicit.stat_124859000"
+                ],
+                "fractured": [
+                  "fractured.stat_124859000"
+                ],
+                "implicit": [
+                  "implicit.stat_124859000"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "增加 #% 閃避值"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "元素",
+          "火焰",
+          "抗性"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 40,
+            "min": 30,
+            "unscalable": false,
+            "value": 36
+          },
+          "stat": {
+            "better": 1,
+            "matchers": [
+              {
+                "string": "#% 火焰抗性"
+              }
+            ],
+            "ref": "+#% to Fire Resistance",
+            "trade": {
+              "ids": {
+                "crafted": [
+                  "crafted.stat_3372524247"
+                ],
+                "explicit": [
+                  "explicit.stat_3372524247"
+                ],
+                "fractured": [
+                  "fractured.stat_3372524247"
+                ],
+                "implicit": [
+                  "implicit.stat_3372524247"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "#% 火焰抗性"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "丟置"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 30,
+            "min": 20,
+            "unscalable": false,
+            "value": 22
+          },
+          "stat": {
+            "better": 1,
+            "matchers": [
+              {
+                "string": "增加 #% 物品稀有度"
+              },
+              {
+                "negate": true,
+                "string": "減少 #% 物品稀有度"
+              }
+            ],
+            "ref": "#% increased Rarity of Items found",
+            "trade": {
+              "ids": {
+                "crafted": [
+                  "crafted.stat_3917489142"
+                ],
+                "explicit": [
+                  "explicit.stat_3917489142"
+                ],
+                "fractured": [
+                  "fractured.stat_3917489142"
+                ],
+                "implicit": [
+                  "implicit.stat_3917489142"
+                ],
+                "pseudo": [
+                  "pseudo.pseudo_increased_rarity"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "增加 #% 物品稀有度"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "攻擊",
+          "速度"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 10,
+            "min": 10,
+            "unscalable": false,
+            "value": 10
+          },
+          "stat": {
+            "better": 1,
+            "matchers": [
+              {
+                "string": "增加 #% 攻擊速度"
+              },
+              {
+                "negate": true,
+                "string": "減少 #% 攻擊速度"
+              }
+            ],
+            "ref": "#% increased Attack Speed",
+            "trade": {
+              "ids": {
+                "crafted": [
+                  "crafted.stat_681332047"
+                ],
+                "explicit": [
+                  "explicit.stat_681332047"
+                ],
+                "fractured": [
+                  "fractured.stat_681332047"
+                ],
+                "implicit": [
+                  "implicit.stat_681332047"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "增加 #% 攻擊速度"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "速度"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 20,
+            "min": 20,
+            "unscalable": false,
+            "value": 20
+          },
+          "stat": {
+            "better": 1,
+            "matchers": [
+              {
+                "string": "增加 #% 移動速度"
+              },
+              {
+                "negate": true,
+                "string": "減少 #% 移動速度"
+              }
+            ],
+            "ref": "#% increased Movement Speed",
+            "trade": {
+              "ids": {
+                "crafted": [
+                  "crafted.stat_2250533757"
+                ],
+                "enchant": [
+                  "enchant.stat_2250533757"
+                ],
+                "explicit": [
+                  "explicit.stat_2250533757"
+                ],
+                "fractured": [
+                  "fractured.stat_2250533757"
+                ],
+                "implicit": [
+                  "implicit.stat_2250533757"
+                ],
+                "pseudo": [
+                  "pseudo.pseudo_increased_movement_speed"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "增加 #% 移動速度"
+          }
+        }
+      ]
+    }
+  ],
+  "rarity": "Unique",
+  "rawText": "物品種類: 鞋子\r\n稀有度: 傳奇\r\n日耀\r\n殘存 環帶長靴\r\n--------\r\n閃避值: 102 (augmented)\r\n能量護盾: 12\r\n--------\r\n需求:\r\n等級: 54\r\n敏捷: 27\r\n智慧: 27\r\n--------\r\n插槽: W-W W\r\n--------\r\n物品等級: 85\r\n--------\r\n{ 殘存固定詞綴— 速度 }\r\n行動速度不能被調整至低於基礎值\r\n--------\r\n{ 傳奇詞綴— 防禦,閃避 }\r\n增加 88(80-120)% 閃避值\r\n{ 傳奇詞綴— 元素,火焰,抗性 }\r\n+36(30-40)% 火焰抗性\r\n{ 傳奇詞綴— 丟置 }\r\n增加 22(20-30)% 物品稀有度\r\n{ 傳奇詞綴— 攻擊,速度 }\r\n增加 10% 攻擊速度\r\n{ 傳奇詞綴— 速度 }\r\n增加 20% 移動速度\r\n--------\r\n貴體耀、惜資穎，\r\n豪門權勢試真金。\r\n--------\r\n備註: ~b/o 10 chaos\r\n",
+  "sockets": {
+    "white": 3
+  },
+  "statsByType": [
+    {
+      "sources": [
+        {
+          "modifier": {
+            "info": {
+              "generation": "vestigial",
+              "tags": [
+                "速度"
+              ],
+              "type": "implicit"
+            },
+            "stats": [
+              {
+                "stat": {
+                  "better": 1,
+                  "matchers": [
+                    {
+                      "string": "行動速度不能被調整至低於基礎值"
+                    }
+                  ],
+                  "ref": "Action Speed cannot be modified to below Base Value",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_628716294"
+                      ],
+                      "implicit": [
+                        "implicit.stat_628716294"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "行動速度不能被調整至低於基礎值"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "stat": {
+              "better": 1,
+              "matchers": [
+                {
+                  "string": "行動速度不能被調整至低於基礎值"
+                }
+              ],
+              "ref": "Action Speed cannot be modified to below Base Value",
+              "trade": {
+                "ids": {
+                  "explicit": [
+                    "explicit.stat_628716294"
+                  ],
+                  "implicit": [
+                    "implicit.stat_628716294"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "行動速度不能被調整至低於基礎值"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "matchers": [
+          {
+            "string": "行動速度不能被調整至低於基礎值"
+          }
+        ],
+        "ref": "Action Speed cannot be modified to below Base Value",
+        "trade": {
+          "ids": {
+            "explicit": [
+              "explicit.stat_628716294"
+            ],
+            "implicit": [
+              "implicit.stat_628716294"
+            ]
+          }
+        }
+      },
+      "type": "implicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 120,
+            "min": 80,
+            "value": 88
+          },
+          "modifier": {
+            "info": {
+              "tags": [
+                "防禦",
+                "閃避"
+              ],
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 120,
+                  "min": 80,
+                  "unscalable": false,
+                  "value": 88
+                },
+                "stat": {
+                  "better": 1,
+                  "matchers": [
+                    {
+                      "string": "增加 #% 閃避值"
+                    },
+                    {
+                      "negate": true,
+                      "string": "減少 #% 閃避值"
+                    }
+                  ],
+                  "ref": "#% increased Evasion Rating",
+                  "trade": {
+                    "ids": {
+                      "crafted": [
+                        "crafted.stat_124859000"
+                      ],
+                      "explicit": [
+                        "explicit.stat_124859000"
+                      ],
+                      "fractured": [
+                        "fractured.stat_124859000"
+                      ],
+                      "implicit": [
+                        "implicit.stat_124859000"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "增加 #% 閃避值"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 120,
+              "min": 80,
+              "unscalable": false,
+              "value": 88
+            },
+            "stat": {
+              "better": 1,
+              "matchers": [
+                {
+                  "string": "增加 #% 閃避值"
+                },
+                {
+                  "negate": true,
+                  "string": "減少 #% 閃避值"
+                }
+              ],
+              "ref": "#% increased Evasion Rating",
+              "trade": {
+                "ids": {
+                  "crafted": [
+                    "crafted.stat_124859000"
+                  ],
+                  "explicit": [
+                    "explicit.stat_124859000"
+                  ],
+                  "fractured": [
+                    "fractured.stat_124859000"
+                  ],
+                  "implicit": [
+                    "implicit.stat_124859000"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "增加 #% 閃避值"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "matchers": [
+          {
+            "string": "增加 #% 閃避值"
+          },
+          {
+            "negate": true,
+            "string": "減少 #% 閃避值"
+          }
+        ],
+        "ref": "#% increased Evasion Rating",
+        "trade": {
+          "ids": {
+            "crafted": [
+              "crafted.stat_124859000"
+            ],
+            "explicit": [
+              "explicit.stat_124859000"
+            ],
+            "fractured": [
+              "fractured.stat_124859000"
+            ],
+            "implicit": [
+              "implicit.stat_124859000"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 40,
+            "min": 30,
+            "value": 36
+          },
+          "modifier": {
+            "info": {
+              "tags": [
+                "元素",
+                "火焰",
+                "抗性"
+              ],
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 40,
+                  "min": 30,
+                  "unscalable": false,
+                  "value": 36
+                },
+                "stat": {
+                  "better": 1,
+                  "matchers": [
+                    {
+                      "string": "#% 火焰抗性"
+                    }
+                  ],
+                  "ref": "+#% to Fire Resistance",
+                  "trade": {
+                    "ids": {
+                      "crafted": [
+                        "crafted.stat_3372524247"
+                      ],
+                      "explicit": [
+                        "explicit.stat_3372524247"
+                      ],
+                      "fractured": [
+                        "fractured.stat_3372524247"
+                      ],
+                      "implicit": [
+                        "implicit.stat_3372524247"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "#% 火焰抗性"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 40,
+              "min": 30,
+              "unscalable": false,
+              "value": 36
+            },
+            "stat": {
+              "better": 1,
+              "matchers": [
+                {
+                  "string": "#% 火焰抗性"
+                }
+              ],
+              "ref": "+#% to Fire Resistance",
+              "trade": {
+                "ids": {
+                  "crafted": [
+                    "crafted.stat_3372524247"
+                  ],
+                  "explicit": [
+                    "explicit.stat_3372524247"
+                  ],
+                  "fractured": [
+                    "fractured.stat_3372524247"
+                  ],
+                  "implicit": [
+                    "implicit.stat_3372524247"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "#% 火焰抗性"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "matchers": [
+          {
+            "string": "#% 火焰抗性"
+          }
+        ],
+        "ref": "+#% to Fire Resistance",
+        "trade": {
+          "ids": {
+            "crafted": [
+              "crafted.stat_3372524247"
+            ],
+            "explicit": [
+              "explicit.stat_3372524247"
+            ],
+            "fractured": [
+              "fractured.stat_3372524247"
+            ],
+            "implicit": [
+              "implicit.stat_3372524247"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 30,
+            "min": 20,
+            "value": 22
+          },
+          "modifier": {
+            "info": {
+              "tags": [
+                "丟置"
+              ],
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 30,
+                  "min": 20,
+                  "unscalable": false,
+                  "value": 22
+                },
+                "stat": {
+                  "better": 1,
+                  "matchers": [
+                    {
+                      "string": "增加 #% 物品稀有度"
+                    },
+                    {
+                      "negate": true,
+                      "string": "減少 #% 物品稀有度"
+                    }
+                  ],
+                  "ref": "#% increased Rarity of Items found",
+                  "trade": {
+                    "ids": {
+                      "crafted": [
+                        "crafted.stat_3917489142"
+                      ],
+                      "explicit": [
+                        "explicit.stat_3917489142"
+                      ],
+                      "fractured": [
+                        "fractured.stat_3917489142"
+                      ],
+                      "implicit": [
+                        "implicit.stat_3917489142"
+                      ],
+                      "pseudo": [
+                        "pseudo.pseudo_increased_rarity"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "增加 #% 物品稀有度"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 30,
+              "min": 20,
+              "unscalable": false,
+              "value": 22
+            },
+            "stat": {
+              "better": 1,
+              "matchers": [
+                {
+                  "string": "增加 #% 物品稀有度"
+                },
+                {
+                  "negate": true,
+                  "string": "減少 #% 物品稀有度"
+                }
+              ],
+              "ref": "#% increased Rarity of Items found",
+              "trade": {
+                "ids": {
+                  "crafted": [
+                    "crafted.stat_3917489142"
+                  ],
+                  "explicit": [
+                    "explicit.stat_3917489142"
+                  ],
+                  "fractured": [
+                    "fractured.stat_3917489142"
+                  ],
+                  "implicit": [
+                    "implicit.stat_3917489142"
+                  ],
+                  "pseudo": [
+                    "pseudo.pseudo_increased_rarity"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "增加 #% 物品稀有度"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "matchers": [
+          {
+            "string": "增加 #% 物品稀有度"
+          },
+          {
+            "negate": true,
+            "string": "減少 #% 物品稀有度"
+          }
+        ],
+        "ref": "#% increased Rarity of Items found",
+        "trade": {
+          "ids": {
+            "crafted": [
+              "crafted.stat_3917489142"
+            ],
+            "explicit": [
+              "explicit.stat_3917489142"
+            ],
+            "fractured": [
+              "fractured.stat_3917489142"
+            ],
+            "implicit": [
+              "implicit.stat_3917489142"
+            ],
+            "pseudo": [
+              "pseudo.pseudo_increased_rarity"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 10,
+            "min": 10,
+            "value": 10
+          },
+          "modifier": {
+            "info": {
+              "tags": [
+                "攻擊",
+                "速度"
+              ],
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 10,
+                  "min": 10,
+                  "unscalable": false,
+                  "value": 10
+                },
+                "stat": {
+                  "better": 1,
+                  "matchers": [
+                    {
+                      "string": "增加 #% 攻擊速度"
+                    },
+                    {
+                      "negate": true,
+                      "string": "減少 #% 攻擊速度"
+                    }
+                  ],
+                  "ref": "#% increased Attack Speed",
+                  "trade": {
+                    "ids": {
+                      "crafted": [
+                        "crafted.stat_681332047"
+                      ],
+                      "explicit": [
+                        "explicit.stat_681332047"
+                      ],
+                      "fractured": [
+                        "fractured.stat_681332047"
+                      ],
+                      "implicit": [
+                        "implicit.stat_681332047"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "增加 #% 攻擊速度"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 10,
+              "min": 10,
+              "unscalable": false,
+              "value": 10
+            },
+            "stat": {
+              "better": 1,
+              "matchers": [
+                {
+                  "string": "增加 #% 攻擊速度"
+                },
+                {
+                  "negate": true,
+                  "string": "減少 #% 攻擊速度"
+                }
+              ],
+              "ref": "#% increased Attack Speed",
+              "trade": {
+                "ids": {
+                  "crafted": [
+                    "crafted.stat_681332047"
+                  ],
+                  "explicit": [
+                    "explicit.stat_681332047"
+                  ],
+                  "fractured": [
+                    "fractured.stat_681332047"
+                  ],
+                  "implicit": [
+                    "implicit.stat_681332047"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "增加 #% 攻擊速度"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "matchers": [
+          {
+            "string": "增加 #% 攻擊速度"
+          },
+          {
+            "negate": true,
+            "string": "減少 #% 攻擊速度"
+          }
+        ],
+        "ref": "#% increased Attack Speed",
+        "trade": {
+          "ids": {
+            "crafted": [
+              "crafted.stat_681332047"
+            ],
+            "explicit": [
+              "explicit.stat_681332047"
+            ],
+            "fractured": [
+              "fractured.stat_681332047"
+            ],
+            "implicit": [
+              "implicit.stat_681332047"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 20,
+            "min": 20,
+            "value": 20
+          },
+          "modifier": {
+            "info": {
+              "tags": [
+                "速度"
+              ],
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 20,
+                  "min": 20,
+                  "unscalable": false,
+                  "value": 20
+                },
+                "stat": {
+                  "better": 1,
+                  "matchers": [
+                    {
+                      "string": "增加 #% 移動速度"
+                    },
+                    {
+                      "negate": true,
+                      "string": "減少 #% 移動速度"
+                    }
+                  ],
+                  "ref": "#% increased Movement Speed",
+                  "trade": {
+                    "ids": {
+                      "crafted": [
+                        "crafted.stat_2250533757"
+                      ],
+                      "enchant": [
+                        "enchant.stat_2250533757"
+                      ],
+                      "explicit": [
+                        "explicit.stat_2250533757"
+                      ],
+                      "fractured": [
+                        "fractured.stat_2250533757"
+                      ],
+                      "implicit": [
+                        "implicit.stat_2250533757"
+                      ],
+                      "pseudo": [
+                        "pseudo.pseudo_increased_movement_speed"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "增加 #% 移動速度"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 20,
+              "min": 20,
+              "unscalable": false,
+              "value": 20
+            },
+            "stat": {
+              "better": 1,
+              "matchers": [
+                {
+                  "string": "增加 #% 移動速度"
+                },
+                {
+                  "negate": true,
+                  "string": "減少 #% 移動速度"
+                }
+              ],
+              "ref": "#% increased Movement Speed",
+              "trade": {
+                "ids": {
+                  "crafted": [
+                    "crafted.stat_2250533757"
+                  ],
+                  "enchant": [
+                    "enchant.stat_2250533757"
+                  ],
+                  "explicit": [
+                    "explicit.stat_2250533757"
+                  ],
+                  "fractured": [
+                    "fractured.stat_2250533757"
+                  ],
+                  "implicit": [
+                    "implicit.stat_2250533757"
+                  ],
+                  "pseudo": [
+                    "pseudo.pseudo_increased_movement_speed"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "增加 #% 移動速度"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "matchers": [
+          {
+            "string": "增加 #% 移動速度"
+          },
+          {
+            "negate": true,
+            "string": "減少 #% 移動速度"
+          }
+        ],
+        "ref": "#% increased Movement Speed",
+        "trade": {
+          "ids": {
+            "crafted": [
+              "crafted.stat_2250533757"
+            ],
+            "enchant": [
+              "enchant.stat_2250533757"
+            ],
+            "explicit": [
+              "explicit.stat_2250533757"
+            ],
+            "fractured": [
+              "fractured.stat_2250533757"
+            ],
+            "implicit": [
+              "implicit.stat_2250533757"
+            ],
+            "pseudo": [
+              "pseudo.pseudo_increased_movement_speed"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    }
+  ],
+  "uniqueBase": {
+    "armour": {
+      "es": [
+        11,
+        12
+      ],
+      "ev": [
+        50,
+        57
+      ]
+    },
+    "craftable": {
+      "category": "Boots"
+    },
+    "h": 2,
+    "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQXJtb3Vycy9Cb290cy9Cb290c0RleEludDMiLCJ3IjoyLCJoIjoyLCJzY2FsZSI6MX1d/0c80b843d0/BootsDexInt3.png",
+    "name": "環帶長靴",
+    "namespace": "ITEM",
+    "refName": "Clasped Boots",
+    "w": 2
+  },
+  "unknownModifiers": []
+}

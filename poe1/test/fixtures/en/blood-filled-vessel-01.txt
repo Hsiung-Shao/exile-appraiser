@@ -1,0 +1,17 @@
+Item Class: Map Fragment
+Rarity: Normal
+Blood-filled Vessel
+--------
+Monsters:
+Carius, the Unnatural
+Pileah, Corpse Burner
+Pileah, Burning Corpse
+41 Other Monsters
+Monster Level: 83
+From: City Square
+--------
+Rituals have 20% improved Favour Rewards
+Rituals spawn Monsters 20% faster
+Rituals have 20% more maximum monsters alive
+--------
+Can be used in a personal Map Device alongside a Map to add the monsters stored from a previous Ritual Altar to a Ritual Altar in that Map.

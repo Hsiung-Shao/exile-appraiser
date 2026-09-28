@@ -1,0 +1,26 @@
+{
+  "name": "@exile-appraiser/core",
+  "version": "3.29.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./http": "./src/http/index.ts",
+    "./http/RateLimiter": "./src/http/RateLimiter.ts",
+    "./http/Cache": "./src/http/Cache.ts",
+    "./realm": "./src/realm/config.ts",
+    "./realm/leagues": "./src/realm/leagues.ts",
+    "./games/adapter": "./src/games/adapter.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "object-hash": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/object-hash": "^3.0.0",
+    "typescript": "5.6.x"
+  }
+}

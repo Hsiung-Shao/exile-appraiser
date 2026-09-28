@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "jsx": "preserve",
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "allowJs": true,
+    "useDefineForClassFields": true,
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*", "../renderer/src/*"],
+      "@ipc/*": ["../ipc/*"]
+    },
+    "types": ["vite/client", "node"],
+    "lib": ["esnext", "dom", "dom.iterable"]
+  },
+  "_comment": "PoE2 的 .vue(移植自 ee2-patched)在 renderer 裡執行,但 renderer 的 tsconfig 把 `@/…` 指到 poe1,所以另開這個專案檢查:`@/…` 先找 poe2/src、找不到才退回 renderer/src(殼:Config / IPC / Leagues / i18n / overlay),與 renderer/vite.config.mts 的 importer 感知解析器同一套規則。",
+  "include": [
+    "src/**/*.vue",
+    "src/renderer-entry.ts",
+    "src/renderer-entry.check.ts",
+    "../renderer/src/env.d.ts",
+    "../ipc/*.ts"
+  ]
+}

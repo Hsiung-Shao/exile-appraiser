@@ -1,0 +1,29 @@
+{
+  "name": "@exile-appraiser/poe1",
+  "version": "3.29.0",
+  "private": true,
+  "type": "module",
+  "description": "PoE1 adapter:parser / filters / trade,逐檔移植自 awakened-poe-trade-zh-TW(MIT)",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "check": "tsx src/cli.ts"
+  },
+  "dependencies": {
+    "@exile-appraiser/core": "*",
+    "@sindresorhus/fnv1a": "^3.0.0",
+    "dot-prop": "9.x.x",
+    "luxon": "3.x.x",
+    "neverthrow": "^8.0.0"
+  },
+  "devDependencies": {
+    "@types/luxon": "^3.0.0",
+    "@types/node": "^20.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "5.6.x",
+    "vitest": "^2.1.9"
+  }
+}

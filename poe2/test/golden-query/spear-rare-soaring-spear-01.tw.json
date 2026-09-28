@@ -1,0 +1,114 @@
+{
+  "api": "trade",
+  "request": {
+    "query": {
+      "status": {
+        "option": "securable"
+      },
+      "stats": [
+        {
+          "type": "and",
+          "filters": [
+            {
+              "id": "explicit.stat_1509134228",
+              "value": {
+                "min": 170
+              },
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_709508406",
+              "value": {
+                "min": 36
+              },
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_1037193709",
+              "value": {
+                "min": 8
+              },
+              "disabled": true
+            },
+            {
+              "id": "implicit.stat_535217483",
+              "value": {
+                "min": 26
+              },
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_1368271171",
+              "value": {
+                "min": 39
+              },
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_55876295",
+              "value": {
+                "min": 9
+              },
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_748522257",
+              "value": {
+                "min": 20
+              },
+              "disabled": true
+            }
+          ]
+        }
+      ],
+      "filters": {
+        "trade_filters": {
+          "filters": {
+            "collapse": {
+              "option": "true"
+            }
+          }
+        },
+        "type_filters": {
+          "filters": {
+            "category": {
+              "option": "weapon.spear"
+            },
+            "rarity": {
+              "option": "nonunique"
+            }
+          }
+        },
+        "misc_filters": {
+          "filters": {
+            "corrupted": {
+              "option": "false"
+            },
+            "mirrored": {
+              "option": "false"
+            },
+            "sanctified": {
+              "option": "false"
+            }
+          }
+        },
+        "equipment_filters": {
+          "filters": {
+            "dps": {
+              "min": 382
+            },
+            "edps": {
+              "min": 72
+            },
+            "pdps": {
+              "min": 319
+            }
+          }
+        }
+      }
+    },
+    "sort": {
+      "price": "asc"
+    }
+  }
+}

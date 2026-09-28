@@ -1,0 +1,231 @@
+{
+  "baseType": "實用腰帶",
+  "category": "Belt",
+  "influences": [],
+  "info": {
+    "name": "九尾貓",
+    "namespace": "UNIQUE",
+    "refName": "Cat O' Nine Tails",
+    "unique": {
+      "base": "Utility Belt"
+    }
+  },
+  "infoVariants": [
+    {
+      "name": "九尾貓",
+      "namespace": "UNIQUE",
+      "refName": "Cat O' Nine Tails",
+      "unique": {
+        "base": "Utility Belt"
+      }
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": false,
+  "itemLevel": 80,
+  "name": "九尾貓",
+  "newMods": [
+    {
+      "info": {
+        "tags": [],
+        "type": "implicit"
+      },
+      "stats": [
+        {
+          "ref": "#% of Flask Recovery applied Instantly",
+          "roll": {
+            "dp": false,
+            "max": 20,
+            "min": 20,
+            "unscalable": false,
+            "value": 20
+          },
+          "tradeIds": {
+            "implicit": [
+              "implicit.stat_462041840"
+            ]
+          },
+          "translation": "#%的藥劑回復立即生效"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "護符"
+        ],
+        "type": "implicit"
+      },
+      "stats": [
+        {
+          "ref": "Has # Charm Slot",
+          "roll": {
+            "dp": false,
+            "max": 3,
+            "min": 1,
+            "unscalable": false,
+            "value": 2
+          },
+          "tradeIds": {
+            "explicit": [
+              "explicit.stat_1416292992"
+            ],
+            "implicit": [
+              "implicit.stat_1416292992"
+            ]
+          },
+          "translation": "有#個護符欄位"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "生命"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "# to maximum Life",
+          "roll": {
+            "dp": false,
+            "max": 200,
+            "min": 120,
+            "unscalable": false,
+            "value": 147
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_3299347043"
+            ],
+            "desecrated": [
+              "desecrated.stat_3299347043"
+            ],
+            "enchant": [
+              "enchant.stat_3299347043"
+            ],
+            "explicit": [
+              "explicit.stat_3299347043"
+            ],
+            "fractured": [
+              "fractured.stat_3299347043"
+            ],
+            "implicit": [
+              "implicit.stat_3299347043"
+            ],
+            "rune": [
+              "rune.stat_3299347043"
+            ]
+          },
+          "translation": "#最大生命"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "生命"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "Regenerate #% of maximum Life per second if you have been Hit Recently",
+          "roll": {
+            "dp": false,
+            "max": 5,
+            "min": 5,
+            "unscalable": false,
+            "value": 5
+          },
+          "tradeIds": {
+            "explicit": [
+              "explicit.stat_2201614328"
+            ]
+          },
+          "translation": "若你近期被擊中，每秒回復#%最大生命"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "生命"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Life Recovery rate",
+          "roll": {
+            "dp": false,
+            "max": 50,
+            "min": 25,
+            "unscalable": false,
+            "value": 49
+          },
+          "tradeIds": {
+            "explicit": [
+              "explicit.stat_3240073117"
+            ]
+          },
+          "translation": "增加#%生命恢復率"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "生命"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "Life Recovery other than Flasks cannot Recover Life to above Low Life",
+          "tradeIds": {
+            "explicit": [
+              "explicit.stat_451403019"
+            ]
+          },
+          "translation": "藥劑以外的生命恢復無法使生命恢復到高於貧血狀態"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "傷害,物理"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "Gain Physical Thorns damage equal to #% - #% of maximum Life",
+          "roll": {
+            "dp": false,
+            "max": 10,
+            "min": 10,
+            "unscalable": false,
+            "value": 10
+          },
+          "tradeIds": {
+            "explicit": [
+              "explicit.stat_2163764037"
+            ]
+          },
+          "translation": "獲得等同於最大生命#%-#%的物理荊棘傷害"
+        }
+      ]
+    }
+  ],
+  "rarity": "Unique",
+  "requires": {
+    "dex": 0,
+    "int": 0,
+    "level": 55,
+    "str": 0
+  },
+  "unknownModifiers": []
+}

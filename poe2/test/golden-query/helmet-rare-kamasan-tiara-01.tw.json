@@ -1,0 +1,161 @@
+{
+  "api": "trade",
+  "request": {
+    "query": {
+      "status": {
+        "option": "securable"
+      },
+      "stats": [
+        {
+          "type": "and",
+          "filters": [
+            {
+              "id": "enchant.stat_4015621042",
+              "value": {
+                "min": 20
+              },
+              "disabled": true
+            },
+            {
+              "id": "rune.stat_3523867985",
+              "value": {
+                "min": 20
+              },
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_4015621042",
+              "value": {
+                "min": 92
+              },
+              "disabled": true
+            },
+            {
+              "id": "pseudo.pseudo_total_chaos_resistance",
+              "value": {
+                "min": 24
+              },
+              "disabled": false
+            },
+            {
+              "id": "pseudo.pseudo_total_intelligence",
+              "value": {
+                "min": 34
+              },
+              "disabled": true
+            },
+            {
+              "id": "pseudo.pseudo_total_mana",
+              "value": {
+                "min": 194
+              },
+              "disabled": true
+            },
+            {
+              "id": "enchant.stat_2954116742|26214",
+              "value": {},
+              "disabled": false
+            },
+            {
+              "id": "rune.stat_995044379",
+              "value": {
+                "min": 1
+              },
+              "disabled": true
+            },
+            {
+              "id": "rune.stat_3198163869",
+              "value": {},
+              "disabled": true
+            }
+          ]
+        },
+        {
+          "type": "count",
+          "value": {
+            "min": 1
+          },
+          "disabled": true,
+          "filters": [
+            {
+              "id": "explicit.stat_3489782002",
+              "value": {
+                "min": 65
+              },
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_4052037485",
+              "value": {
+                "min": 65
+              },
+              "disabled": true
+            }
+          ]
+        },
+        {
+          "type": "count",
+          "value": {
+            "min": 1
+          },
+          "disabled": true,
+          "filters": [
+            {
+              "id": "explicit.stat_3917489142",
+              "value": {
+                "min": 15
+              },
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_2306002879",
+              "value": {
+                "min": 15
+              },
+              "disabled": true
+            }
+          ]
+        }
+      ],
+      "filters": {
+        "trade_filters": {
+          "filters": {
+            "collapse": {
+              "option": "true"
+            }
+          }
+        },
+        "type_filters": {
+          "filters": {
+            "category": {
+              "option": "armour.helmet"
+            },
+            "rarity": {
+              "option": "nonunique"
+            }
+          }
+        },
+        "equipment_filters": {
+          "filters": {
+            "rune_sockets": {
+              "min": 3
+            },
+            "es": {
+              "min": 475
+            }
+          }
+        },
+        "misc_filters": {
+          "filters": {
+            "mirrored": {
+              "option": "false"
+            }
+          }
+        }
+      }
+    },
+    "sort": {
+      "price": "asc"
+    }
+  }
+}

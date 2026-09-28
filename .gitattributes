@@ -1,0 +1,7 @@
+# 所有檔案原樣進版:資料檔(ndjson/index.bin)與 MANIFEST sha256 逐位元組綁定,不可做行尾轉換
+* -text
+*.png binary
+*.ico binary
+*.ttf binary
+*.bin binary
+*.exe binary

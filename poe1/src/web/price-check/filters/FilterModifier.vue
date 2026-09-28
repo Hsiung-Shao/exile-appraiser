@@ -1,0 +1,540 @@
+<template>
+  <div :class="[$style.filter, { [$style.grouped]: grouped }]">
+    <div v-if="showSourceInfo" :class="$style['mods']">
+      <div class="pl-5 py-1" v-for="(source, idx) of filter.sources" :key="idx">
+        <source-info :source="source" :filter="filter" />
+      </div>
+    </div>
+    <div class="flex flex-col min-w-0 flex-1">
+      <div class="flex items-baseline">
+        <div class="flex items-baseline min-w-0 mr-2">
+          <button :class="[$style.checkbox, { [$style.checked]: !isDisabled, [$style.uncheckedHint]: isDisabled && groupExpanded }]"
+            @click="toggleFilter" type="submit">
+            <i :class="isDisabled ? 'far fa-square' : 'fas fa-check-square'" />
+          </button>
+          <button :class="$style.labelBtn" @click="smartToggle" type="submit">
+            <img v-if="filter.mercenary?.icon"
+              :src="filter.mercenary.icon">
+            <span v-if="filter.not && miniFilter"
+              :class="[$style.tag, $style['tag-not']]">{{ t('filters.tag_not') }}</span>
+            <div class="search-text flex-1 relative flex min-w-0" style="line-height: 1rem;">
+              <span class="truncate"><item-modifier-text :text="text" :roll="roll?.value" /></span>
+              <span class="search-text-full whitespace-pre-wrap"><item-modifier-text :text="text" :roll="roll?.value" /></span>
+            </div>
+          </button>
+          <button v-if="groupExpanded !== undefined"
+            :class="$style.expandBtn" @click="toggleExpanded" type="button">
+            <i :class="groupExpanded ? 'fas fa-chevron-down' : 'fas fa-chevron-right'" />
+          </button>
+        </div>
+        <filter-modifier-tiers v-if="miniFilter && !showInputs"
+          :filter="filter" :item="item"
+          :class="{ 'mr-4': Boolean(rollOptions) }" />
+        <slot name="inputs">
+          <div v-if="showInputs"
+            class="flex items-baseline gap-x-1 ml-auto">
+            <div v-if="showQ20Notice" :class="$style['qualityLabel']">{{ t('item.prop_quality', [calcQuality]) }}</div>
+            <div class="flex gap-x-px">
+              <input :class="$style['rollInput']" :placeholder="t('min')" :min="roll?.bounds?.min" :max="roll?.bounds?.max" :step="changeStep" type="number"
+                ref="inputMinEl"
+                v-model.number="inputMin" @focus="inputFocus($event, 'min')" @mousewheel.stop>
+              <input :class="$style['rollInput']" :placeholder="t('max')" :min="roll?.bounds?.min" :max="roll?.bounds?.max" :step="changeStep" type="number"
+                ref="inputMaxEl"
+                v-model.number="inputMax" @focus="inputFocus($event, 'max')" @mousewheel.stop>
+            </div>
+          </div>
+          <filter-modifier-options v-else-if="miniFilter && rollOptions"
+            :class="$style.miniRollOptions"
+            show-checked="currentDisabled"
+            :options="rollOptions"
+            :filter="filter" />
+        </slot>
+      </div>
+      <div class="flex pt-px" v-if="!miniFilter">
+        <div class="w-5 flex items-start">
+          <ui-popover v-if="isHidden" tag-name="div" class="flex" placement="right-start" boundary="#price-window">
+            <template #target>
+              <span class="text-xs leading-none text-gray-600 cursor-pointer">
+                <i class="fas fa-eye-slash" :class="{ 'faa-ring': !isDisabled }"></i>
+              </span>
+            </template>
+            <template #content>
+              <div style="max-width: 18.5rem;">{{ hiddenReason }}</div>
+            </template>
+          </ui-popover>
+        </div>
+        <div class="flex-1 min-w-0 flex items-start gap-x-2">
+          <span v-if="filter.not"
+            :class="[$style['tag'], $style['tag-not']]">{{ t('filters.tag_not') }}</span>
+          <span v-if="showTag"
+            :class="[$style['tag'], $style[`tag-${tag}`]]">{{ t(`filters.tag_${tag.replace('-', '_')}`) }}{{ (filter.sources.length > 1) ? ` x ${filter.sources.length}` : null }}</span>
+          <filter-modifier-tiers :filter="filter" :item="item" />
+          <filter-modifier-options v-if="rollOptions"
+            show-checked="always"
+            :options="rollOptions"
+            :filter="filter" />
+        </div>
+        <stat-roll-slider v-if="roll && roll.bounds && showBounds()"
+          class="ml-2 mr-4" style="width: 12.5rem;"
+          v-model="sliderValue"
+          :roll="roll.value"
+          :dp="roll.dp"
+          :bounds="roll.bounds"
+        />
+        <div style="width: calc(2*3rem + 1px)" />
+      </div>
+    </div>
+    <modifier-anointment class="self-center" :filter="filter" />
+  </div>
+</template>
+
+<script lang="ts">
+// exile-appraiser: ui/ 元件住在 renderer package,相對路徑 ../../ui 改成 @/web/ui alias
+import { defineComponent, PropType, computed, ref, nextTick, useCssModule, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import UiPopover from '@/web/ui/Popover.vue'
+import StatRollSlider from '@/web/ui/StatRollSlider.vue'
+import ItemModifierText from '@/web/ui/ItemModifierText.vue'
+import ModifierAnointment from './FilterModifierAnointment.vue'
+import FilterModifierOptions, { RollOption } from './FilterModifierOptions.vue'
+import FilterModifierTiers from './FilterModifierTiers.vue'
+import { AppConfig } from '@/web/Config'
+import { ItemCategory, ItemRarity, ParsedItem } from '@/parser'
+import { FilterTag, StatFilter, INTERNAL_TRADE_IDS, ItemHasEmptyModifier } from './interfaces'
+import SourceInfo from './SourceInfo.vue'
+import { SearchMode as MercSearchMode } from './pseudo/mercenary.js'
+
+export default defineComponent({
+  components: { ItemModifierText, ModifierAnointment, FilterModifierOptions, FilterModifierTiers, SourceInfo, StatRollSlider, UiPopover },
+  emits: ['update:groupExpanded'],
+  props: {
+    filter: {
+      type: Object as PropType<StatFilter>,
+      required: true
+    },
+    item: {
+      type: Object as PropType<ParsedItem>,
+      required: true
+    },
+    showSources: {
+      type: Boolean
+    },
+    groupExpanded: {
+      type: Boolean,
+      default: undefined
+    },
+    grouped: {
+      type: Boolean
+    }
+  },
+  setup (props, ctx) {
+    const $style = useCssModule()
+
+    watch(() => props.filter.disabled && props.groupExpanded, (uncheckedHint) => {
+      if (!uncheckedHint) return
+
+      const animations = document.getAnimations().filter(animation =>
+        animation instanceof CSSAnimation &&
+        animation.animationName === $style.uncheckedHintAnim)
+      const time = animations.find(animation =>
+        animation.currentTime !== 0)?.currentTime ?? 0
+      for (const animation of animations) {
+        animation.currentTime = time
+      }
+    }, { flush: 'post' })
+
+    const showTag = computed(() =>
+      props.filter.tag !== FilterTag.Property &&
+      props.filter.tag !== FilterTag.MercenarySupport &&
+      props.filter.tradeId[0] !== 'item.has_empty_modifier' &&
+      props.item.info.refName !== 'Chronicle of Atzoatl' &&
+      props.item.info.refName !== 'Mirrored Tablet' &&
+      props.item.info.refName !== 'Filled Coffin' &&
+      props.item.category !== ItemCategory.Gem &&
+      !(props.item.rarity === ItemRarity.Unique && props.filter.tag === FilterTag.Explicit && (props.filter.roll?.bounds || props.filter.hidden) && !props.grouped)
+    )
+
+    const showQ20Notice = computed(() => {
+      return [
+        'item.armour',
+        'item.evasion_rating',
+        'item.energy_shield',
+        'item.ward',
+        'item.total_dps',
+        'item.physical_dps'
+      ].includes(props.filter.tradeId[0])
+    })
+
+    const calcQuality = computed(() => Math.max(20, props.item.quality || 0))
+
+    const inputMinEl = ref<HTMLInputElement | null>(null)
+    const inputMaxEl = ref<HTMLInputElement | null>(null)
+
+    const sliderValue = computed<Array<number | '' | undefined>>({
+      get () {
+        const roll = props.filter.roll!
+        return [roll.min, roll.max]
+      },
+      set (value) {
+        if (typeof value[0] === 'number') {
+          props.filter.roll!.min = value[0]
+          nextTick(() => {
+            inputMinEl.value!.focus()
+          })
+        } else if (typeof value[1] === 'number') {
+          props.filter.roll!.max = value[1]
+          nextTick(() => {
+            inputMaxEl.value!.focus()
+          })
+        }
+        props.filter.disabled = false
+      }
+    })
+
+    function inputFocus (e: FocusEvent, type: 'min' | 'max') {
+      const target = e.target as HTMLInputElement
+      if (target.value === '') {
+        if (type === 'max') {
+          props.filter.roll!.max = props.filter.roll!.default.max
+        } else if (type === 'min') {
+          props.filter.roll!.min = props.filter.roll!.default.min
+        }
+        nextTick(() => {
+          target.select()
+        })
+      } else {
+        target.select()
+      }
+      props.filter.disabled = false
+    }
+
+    function toggleFilter (e: MouseEvent) {
+      if (e.detail === 0) return
+      e.preventDefault()
+
+      props.filter.disabled = !props.filter.disabled
+    }
+
+    function toggleExpanded () {
+      ctx.emit('update:groupExpanded', !props.groupExpanded)
+    }
+
+    function smartToggle (e: MouseEvent) {
+      if (e.detail === 0) return
+      e.preventDefault()
+
+      if (!props.filter.disabled && props.groupExpanded === true) {
+        ctx.emit('update:groupExpanded', false)
+      } else {
+        props.filter.disabled = !props.filter.disabled
+
+        if (!props.filter.disabled && props.groupExpanded === false) {
+          ctx.emit('update:groupExpanded', true)
+        }
+      }
+    }
+
+    const { t } = useI18n()
+
+    return {
+      t,
+      showTag,
+      showQ20Notice,
+      calcQuality,
+      inputMinEl,
+      inputMaxEl,
+      sliderValue,
+      inputMin: computed({
+        get () { return props.filter.roll!.min },
+        set (value: '' | number | undefined) { props.filter.roll!.min = value }
+      }),
+      inputMax: computed({
+        get () { return props.filter.roll!.max },
+        set (value: '' | number | undefined) { props.filter.roll!.max = value }
+      }),
+      tag: computed(() => props.filter.tag),
+      miniFilter: computed(() => !props.filter.hidden && (
+        props.filter.tag === FilterTag.MercenarySupport ||
+        (props.filter.tag === FilterTag.Property && props.item.info.refName === 'Mercenary Warrant') ||
+        props.item.info.refName === 'Chronicle of Atzoatl' ||
+        props.item.info.refName === 'Mirrored Tablet' ||
+        props.item.info.refName === 'Filled Coffin' ||
+        props.item.category === ItemCategory.Gem
+      )),
+      // TODO: change
+      changeStep: computed(() => props.filter.roll!.dp ? 0.01 : 1),
+      showInputs: computed(() => props.filter.roll != null && !props.filter.oils),
+      rollOptions: computed<RollOption[] | undefined>(() => {
+        if (props.filter.tag === FilterTag.MercenarySupport && props.filter.option) {
+          return [
+            { text: t('filters.option_merc_required'), value: MercSearchMode.Required },
+            { text: t('filters.option_merc_optional'), value: MercSearchMode.Optional }
+          ]
+        } else if (props.filter.tradeId[0] === 'item.has_empty_modifier') {
+          return [
+            { text: t('filters.option_empty_affix'), value: ItemHasEmptyModifier.Any },
+            { text: t('filters.option_empty_prefix'), value: ItemHasEmptyModifier.Prefix },
+            { text: t('filters.option_empty_suffix'), value: ItemHasEmptyModifier.Suffix }
+          ]
+        }
+      }),
+      fontSize: computed(() => AppConfig().fontSize),
+      isDisabled: computed(() => props.filter.disabled),
+      text: computed(() => {
+        if (!INTERNAL_TRADE_IDS.includes(props.filter.tradeId[0])) {
+          return props.filter.text
+        } else {
+          return t(props.filter.tradeId[0], ['#', '#'])
+        }
+      }),
+      roll: computed(() => props.filter.roll),
+      isHidden: computed(() => props.filter.hidden != null),
+      hiddenReason: computed(() => t(props.filter.hidden!)),
+      showSourceInfo: computed(() =>
+        props.showSources &&
+        props.filter.sources.length &&
+        props.filter.option == null && (
+          props.filter.tag === FilterTag.Pseudo ||
+          (
+            props.filter.sources.length >= 2 ||
+            props.filter.sources[0].modifier.info.name != null ||
+            props.filter.sources[0].modifier.info.tier != null ||
+            props.filter.sources[0].modifier.info.rank != null
+          )
+        )),
+      showBounds: () => props.item.rarity === ItemRarity.Unique,
+      inputFocus,
+      toggleFilter,
+      toggleExpanded,
+      smartToggle
+    }
+  }
+})
+</script>
+
+<style lang="postcss" module>
+.filter {
+  padding: theme('spacing.2') 0;
+  border-bottom: 1px solid theme('colors.gray.700');
+  display: flex;
+  align-items: baseline;
+  position: relative;
+}
+.filter.grouped {
+  padding-left: theme('spacing.5');
+}
+
+.checkbox {
+  display: flex;
+  min-width: theme('width.5');
+  margin-top: -99px; /* not allowed to extend baseline */
+
+  &:not(.checked) {
+    color: theme('colors.gray.500');
+  }
+
+  &.uncheckedHint {
+    animation: uncheckedHintAnim 0.5s ease-out infinite alternate;
+  }
+}
+
+@keyframes uncheckedHintAnim {
+  from {
+    color: theme('colors.gray.700');
+  }
+  to {
+    color: theme('colors.gray.500');
+  }
+}
+
+.labelBtn {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+  text-align: left;
+
+  & > img {
+    width: theme('width.4');
+    margin-right: theme('spacing.1');
+    position: relative;
+    top: 2px;
+    margin-top: -99px; /* not allowed to extend baseline */
+  }
+
+  & > .tag {
+    margin-right: theme('spacing.1');
+  }
+}
+
+.expandBtn {
+  display: flex;
+  min-width: theme('width.5');
+  padding-left: theme('spacing[1.5]');
+  color: theme('colors.gray.500');
+  margin-top: -99px; /* not allowed to extend baseline */
+}
+
+.rollInput {
+  @apply bg-gray-900;
+  @apply text-gray-300;
+  @apply text-center;
+  @apply w-12;
+  @apply px-1;
+  @apply border border-transparent;
+
+  &:first-child { @apply rounded-l; }
+  &:last-child { @apply rounded-r; }
+
+  &::placeholder {
+    @apply text-gray-700;
+    font-size: 0.8125rem;
+  }
+
+  /* &:not(:placeholder-shown) { @apply border-gray-600; } */
+
+  &:focus {
+    @apply border-gray-500;
+    cursor: none;
+  }
+}
+
+.qualityLabel {
+  @apply text-gray-500;
+  @apply border border-gray-700;
+  @apply rounded;
+  @apply px-2;
+  text-align: center;
+}
+
+.miniRollOptions {
+  margin: -99px 0; /* not allowed to extend baseline */
+  margin-left: auto;
+}
+
+.mods {
+  @apply border-b-4 border-gray-500;
+  background: linear-gradient(to bottom, theme('colors.gray.800') , theme('colors.gray.900') );
+  @apply -mx-4 px-4;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.filter:not(:hover) > .mods {
+  display: none;
+}
+
+.tag {
+  @apply px-1;
+  @apply rounded;
+  @apply text-xs;
+  line-height: 1;
+  overflow: hidden;
+  text-overflow: clip;
+}
+.tag-variant {
+  @apply bg-yellow-700 text-yellow-100; }
+.tag-eldritch {
+  background: linear-gradient(to right, theme('colors.red.700'), theme('colors.blue.700'));
+}
+.tag-explicit-shaper,
+.tag-explicit-elder,
+.tag-explicit-crusader,
+.tag-explicit-hunter,
+.tag-explicit-redeemer,
+.tag-explicit-warlord,
+.tag-explicit-delve,
+.tag-explicit-veiled,
+.tag-explicit-incursion,
+.tag-explicit-infamous,
+.tag-explicit-essence {
+  display: flex;
+  align-items: center;
+  @apply -mx-1 pl-0.5 gap-x-0.5 text-gray-600;
+  text-shadow: 0 0 4px theme('colors.gray.900');
+  overflow: clip visible;
+  min-width: 0;
+
+  &::before {
+    background-size: contain;
+    @apply w-5 h-5 -my-5;
+    content: '';
+    flex-shrink: 0;
+  }
+}
+.tag-explicit-shaper::before {
+  background-image: url('/images/influence-Shaper.png'); }
+.tag-explicit-elder::before {
+  background-image: url('/images/influence-Elder.png'); }
+.tag-explicit-crusader::before {
+  background-image: url('/images/influence-Crusader.png'); }
+.tag-explicit-hunter::before {
+  background-image: url('/images/influence-Hunter.png'); }
+.tag-explicit-redeemer::before {
+  background-image: url('/images/influence-Redeemer.png'); }
+.tag-explicit-warlord::before {
+  background-image: url('/images/influence-Warlord.png'); }
+.tag-explicit-delve::before {
+  background-image: url('/images/delve.png'); }
+.tag-explicit-veiled::before {
+  background-image: url('/images/veiled.png'); }
+.tag-explicit-incursion::before {
+  background-image: url('/images/incursion.png'); }
+.tag-explicit-infamous::before {
+  background-image: url('/images/mercenary.png'); }
+.tag-explicit-essence::before {
+  background-image: url('/images/essence.png'); }
+
+.tag-corrupted,
+.tag-brick {
+  @apply bg-red-700 text-red-100; }
+/* exile-appraiser: 固定底色的標籤(裂痕/天譴/穢生/附魔)保留原本的黑/白字 —— 底色不隨主題變,字色也不該變;
+   底色是灰階別名(gray-700 = --surface-2)的偽屬性/非標籤改成 token 前景,灰字標籤改 --ink-3(原 gray-600 = 邊框色,讀不清)。 */
+.tag-fractured {
+  @apply bg-yellow-400 text-black; }
+.tag-crafted, .tag-synthesised {
+  @apply bg-blue-600 text-blue-100; }
+.tag-implicit,
+.tag-explicit,
+.tag-mercenary-primary,
+.tag-mercenary-secondary,
+.tag-mercenary-utility,
+.tag-filter-group {
+  @apply -mx-1 text-ink-3;
+  text-shadow: 0 0 4px theme('colors.gray.900');
+}
+.tag-scourge {
+  @apply bg-orange-600 text-white; }
+.tag-foulborn {
+  @apply bg-pink-700 text-white; }
+.tag-vestigial {
+  @apply bg-purple-600 text-purple-100; }
+.tag-enchant {
+  @apply bg-indigo-200 text-black; }
+.tag-pseudo,
+.tag-not {
+  @apply bg-surface-3 text-ink-1; }
+</style>
+
+<style lang="postcss">
+.search-text-full {
+  position: absolute;
+  left: 0px;
+  right: 0px;
+  top: -2px;
+  padding-top: 2px;
+  padding-bottom: 1px;
+  z-index: 10;
+
+  .search-text:not(:hover) & {
+    display: none;
+  }
+
+  .search-text:hover & {
+    @apply bg-gray-700;
+  }
+}
+</style>

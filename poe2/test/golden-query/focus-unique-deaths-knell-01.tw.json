@@ -1,0 +1,87 @@
+{
+  "api": "trade",
+  "request": {
+    "query": {
+      "status": {
+        "option": "securable"
+      },
+      "stats": [
+        {
+          "type": "and",
+          "filters": [
+            {
+              "id": "rune.stat_3372524247",
+              "value": {
+                "min": 18
+              },
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_2974417149",
+              "value": {
+                "min": 21
+              },
+              "disabled": false
+            },
+            {
+              "id": "explicit.stat_328541901",
+              "value": {
+                "min": 10
+              },
+              "disabled": false
+            },
+            {
+              "id": "explicit.stat_1618482990",
+              "value": {},
+              "disabled": true
+            }
+          ]
+        },
+        {
+          "type": "count",
+          "value": {
+            "min": 1
+          },
+          "disabled": false,
+          "filters": [
+            {
+              "id": "explicit.stat_3489782002",
+              "value": {
+                "min": 17
+              },
+              "disabled": false
+            },
+            {
+              "id": "explicit.stat_4052037485",
+              "value": {
+                "min": 17
+              },
+              "disabled": false
+            }
+          ]
+        }
+      ],
+      "filters": {
+        "trade_filters": {
+          "filters": {
+            "collapse": {
+              "option": "true"
+            }
+          }
+        },
+        "misc_filters": {
+          "filters": {
+            "corrupted": {
+              "option": "false"
+            }
+          }
+        }
+      },
+      "name": "死亡之聲",
+      "type": "枝條法器"
+    },
+    "sort": {
+      "price": "asc"
+    }
+  }
+}

@@ -1,0 +1,45 @@
+# 發布必須顯式指定 owner/repo(省略會讀 package.json 的 repository)。
+# 這份 publish 設定也是 electron-updater 的更新來源:打包時寫進 resources/app-update.yml(即使 `-p never` 也會產生),
+# 執行時讀 https://github.com/Hsiung-Shao/exile-appraiser/releases/latest 的 latest.yml。repo 尚未建立前檢查會 404(只記 log)。
+# 實際上傳一律手動 `gh release create`,見 docs/release-flow.md。
+publish:
+  - provider: github
+    owner: Hsiung-Shao
+    repo: exile-appraiser
+
+productName: "ExileAppraiser"
+appId: "com.hsiungshao.exile-appraiser"
+copyright: "Copyright © 2026 Hsiung-Shao. Includes code from Awakened PoE Trade (© 2020 Alexander Drozdov, MIT) and Exiled Exchange 2 (MIT)."
+npmRebuild: false
+files:
+  - "package.json"
+  - from: "dist"
+    to: "."
+    filter: ["main.js", "preload.js"]
+  - from: "../renderer/dist"
+    to: "."
+# MIT 要求著作權聲明**與授權全文**隨副本出貨;`copyright:` 只寫進 exe 的 VERSIONINFO,不算。
+# 放 extraFiles 而非 files:後者會塞進 app.asar,使用者打不開。
+extraFiles:
+  - from: "../LICENSE"
+    to: "LICENSE.txt"
+  - from: "../NOTICE.md"
+    to: "NOTICE.md"
+  - from: "../LICENSES"
+    to: "LICENSES"
+extraMetadata:
+  main: "main.js"
+nsis:
+  oneClick: false
+  # 檔名固定(無空白):latest.yml 的 path/url 指向它,GitHub Release 的資產名必須一致
+  artifactName: "${productName}-Setup-${version}.${ext}"
+  allowToChangeInstallationDirectory: true
+win:
+  # 安裝檔/exe 圖示;由 npm run build-icons 產生(renderer/public/brand/icon.svg)
+  icon: "../renderer/public/icon.ico"
+  target:
+    - "nsis"
+    - "portable"
+portable:
+  # 預設檔名與 nsis 只差 "Setup",且含空白;改成固定格式。portable 不支援就地更新(AppUpdater → not-supported)
+  artifactName: "${productName}-${version}-portable.${ext}"

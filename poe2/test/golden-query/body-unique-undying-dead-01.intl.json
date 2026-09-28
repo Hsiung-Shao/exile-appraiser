@@ -1,0 +1,66 @@
+{
+  "api": "trade",
+  "request": {
+    "query": {
+      "status": {
+        "option": "securable"
+      },
+      "stats": [
+        {
+          "type": "and",
+          "filters": [
+            {
+              "id": "explicit.stat_3523867985",
+              "value": {
+                "min": 300
+              },
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_332337290",
+              "value": {
+                "min": 11
+              },
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_4163415912",
+              "value": {
+                "min": 11
+              },
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_1036267537",
+              "value": {
+                "min": 55
+              },
+              "disabled": true
+            }
+          ]
+        }
+      ],
+      "filters": {
+        "trade_filters": {
+          "filters": {
+            "collapse": {
+              "option": "true"
+            }
+          }
+        },
+        "misc_filters": {
+          "filters": {
+            "corrupted": {
+              "option": "false"
+            }
+          }
+        }
+      },
+      "name": "Morior Invictus",
+      "type": "Grand Regalia"
+    },
+    "sort": {
+      "price": "asc"
+    }
+  }
+}

@@ -1,0 +1,2262 @@
+{
+ "source": "GGPK 4.5.5.3 data/statdescriptions/tablet_stat_descriptions.csd + 國際服 trade2 data/stats",
+ "note": "由 tools-local/gen-tablet-fixture.mjs 產生;原文不可手改,要改就重新產生",
+ "cases": [
+  {
+   "gid": "map_item_drop_quantity_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%地圖內找到的物品數量",
+   "line": "增加13%地圖內找到的物品數量",
+   "tradeIds": [
+    "explicit.stat_2390685262"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_item_drop_quantity_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "減少#%地圖內找到的物品數量",
+   "line": "減少13%地圖內找到的物品數量",
+   "tradeIds": [
+    "explicit.stat_2390685262"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_item_drop_rarity_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%地圖內找到的物品稀有度",
+   "line": "增加13%地圖內找到的物品稀有度",
+   "tradeIds": [
+    "explicit.stat_2306002879"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_item_drop_rarity_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "減少#%地圖內找到的物品稀有度",
+   "line": "減少13%地圖內找到的物品稀有度",
+   "tradeIds": [
+    "explicit.stat_2306002879"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_pack_size_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%地圖內的怪物群大小",
+   "line": "增加13%地圖內的怪物群大小",
+   "tradeIds": [
+    "explicit.stat_2017682521"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_pack_size_+%",
+   "cond": "#",
+   "printed": "tc",
+   "template": "減少#%地圖內的怪物群大小",
+   "line": "減少13%地圖內的怪物群大小",
+   "tradeIds": [
+    "explicit.stat_2017682521"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_breach_monster_quantity_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%地圖內裂痕的怪物群大小",
+   "line": "增加13%地圖內裂痕的怪物群大小",
+   "tradeIds": [
+    "explicit.stat_1210760818"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_breach_monster_quantity_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "減少#%地圖內裂痕的怪物群大小",
+   "line": "減少13%地圖內裂痕的怪物群大小",
+   "tradeIds": [
+    "explicit.stat_1210760818"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_chance_for_breaches_to_contain_boss_+%",
+   "cond": "#",
+   "printed": "tc",
+   "template": "增加#%地圖內的不穩定裂痕含有烈許的統領．弗倫的機率",
+   "line": "增加13%地圖內的不穩定裂痕含有烈許的統領．弗倫的機率",
+   "tradeIds": [
+    "explicit.stat_2433436306"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "expedition_monsters_logbook_chance_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%地圖內的探險事件所生成的符文怪物掉落的探險日誌數量",
+   "line": "增加13%地圖內的探險事件所生成的符文怪物掉落的探險日誌數量",
+   "tradeIds": [
+    "explicit.stat_1083387327"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "expedition_monsters_logbook_chance_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "減少#%地圖內的探險事件所生成的符文怪物掉落的探險日誌數量",
+   "line": "減少13%地圖內的探險事件所生成的符文怪物掉落的探險日誌數量",
+   "tradeIds": [
+    "explicit.stat_1083387327"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_abyss_depths_chance_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "地圖內的深淵增加有#%機率前往無盡深淵",
+   "line": "地圖內的深淵增加有13%機率前往無盡深淵",
+   "tradeIds": [
+    "explicit.stat_2722831300"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_abyss_depths_chance_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "地圖內的深淵減少有#%機率前往無盡深淵",
+   "line": "地圖內的深淵減少有13%機率前往無盡深淵",
+   "tradeIds": [
+    "explicit.stat_2722831300"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_abyss_monster_abyssal_modifier_chance_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "地圖內的深淵怪物增加#%擁有深淵詞綴的機率",
+   "line": "地圖內的深淵怪物增加13%擁有深淵詞綴的機率",
+   "tradeIds": [
+    "explicit.stat_2789248444"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_abyss_monster_abyssal_modifier_chance_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "地圖內的深淵怪物減少#%擁有深淵詞綴的機率",
+   "line": "地圖內的深淵怪物減少13%擁有深淵詞綴的機率",
+   "tradeIds": [
+    "explicit.stat_2789248444"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_abyss_monster_potency_+%_per_chasm_closed",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "每有一個已關閉的坑洞，增加#%深淵怪物效用，最多100%",
+   "line": "每有一個已關閉的坑洞，增加13%深淵怪物效用，最多100%",
+   "tradeIds": [
+    "explicit.stat_664606484"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_abyss_monster_potency_+%_per_chasm_closed",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "每有一個已關閉的坑洞，增加#%深淵怪物效用",
+   "line": "每有一個已關閉的坑洞，增加13%深淵怪物效用",
+   "tradeIds": [
+    "explicit.stat_664606484"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_abyss_monster_spawn_amount_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%地圖內的深淵生成的怪物數量",
+   "line": "增加13%地圖內的深淵生成的怪物數量",
+   "tradeIds": [
+    "explicit.stat_944630113"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_abyss_monster_spawn_amount_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "減少#%地圖內的深淵生成的怪物數量",
+   "line": "減少13%地圖內的深淵生成的怪物數量",
+   "tradeIds": [
+    "explicit.stat_944630113"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_abyss_monsters_enhanced_per_chasm_closed",
+   "cond": "#",
+   "printed": "tc",
+   "template": "地圖內的深淵怪物根據每1關閉的坑洞增加難度和獎勵",
+   "line": "地圖內的深淵怪物根據每1關閉的坑洞增加難度和獎勵",
+   "tradeIds": [
+    "explicit.stat_360553763"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_abyss_no_reward_chance_+%",
+   "cond": "-50",
+   "printed": "tc",
+   "template": "地圖內的深淵坑洞有兩倍機率含有獎勵",
+   "line": "地圖內的深淵坑洞有兩倍機率含有獎勵",
+   "tradeIds": [
+    "explicit.stat_4256531808"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_abyss_no_reward_chance_+%",
+   "cond": "-100",
+   "printed": "tc",
+   "template": "地圖內的深淵坑洞總是含有獎勵",
+   "line": "地圖內的深淵坑洞總是含有獎勵",
+   "tradeIds": [
+    "explicit.stat_4256531808"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_abyss_no_reward_chance_+%",
+   "cond": "#",
+   "printed": "tc",
+   "template": "地圖內的深淵坑洞有#%更少機率不含有獎勵",
+   "line": "地圖內的深淵坑洞有13%更少機率不含有獎勵",
+   "tradeIds": [
+    "explicit.stat_4256531808"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_abyss_num_additional_rare_monsters",
+   "cond": "#",
+   "printed": "tc",
+   "template": "地圖內的深淵生成#隻額外稀有怪物",
+   "line": "地圖內的深淵生成13隻額外稀有怪物",
+   "tradeIds": [
+    "explicit.stat_243380454"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_abyss_overrun_extra_pits",
+   "cond": "1",
+   "printed": "tc",
+   "template": "地圖內含有額外一道深淵",
+   "line": "地圖內含有額外一道深淵",
+   "tradeIds": [
+    "explicit.stat_1070816711",
+    "explicit.stat_3490187949"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_abyss_overrun_extra_pits",
+   "cond": "2|#",
+   "printed": "tc",
+   "template": "地圖內含有額外#道深淵",
+   "line": "地圖內含有額外2道深淵",
+   "tradeIds": [
+    "explicit.stat_1070816711",
+    "explicit.stat_3490187949"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_abyss_overrun_no_monsters",
+   "cond": "#",
+   "printed": "tc",
+   "template": "區域被深淵佔據",
+   "line": "區域被深淵佔據",
+   "tradeIds": [
+    "explicit.stat_2741291867"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_abyss_ticket_chance_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%來自地圖內深淵的褻瀆通貨掉落機率",
+   "line": "增加13%來自地圖內深淵的褻瀆通貨掉落機率",
+   "tradeIds": [
+    "explicit.stat_1710200734"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_abyss_ticket_chance_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "減少#%來自地圖內深淵的褻瀆通貨掉落機率",
+   "line": "減少13%來自地圖內深淵的褻瀆通貨掉落機率",
+   "tradeIds": [
+    "explicit.stat_1710200734"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_addtional_rare_chest_amount",
+   "cond": "1",
+   "printed": "tc",
+   "template": "地圖內含有額外的一個稀有箱子",
+   "line": "地圖內含有額外的一個稀有箱子",
+   "tradeIds": [
+    "explicit.stat_231864447"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_addtional_rare_chest_amount",
+   "cond": "#",
+   "printed": "tc",
+   "template": "地圖內含有額外的#個稀有箱子",
+   "line": "地圖內含有額外的13個稀有箱子",
+   "tradeIds": [
+    "explicit.stat_231864447"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_affliction_encounter_boss_chance_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "地圖內的譫妄有#%更多機率生成傳奇頭目",
+   "line": "地圖內的譫妄有13%更多機率生成傳奇頭目",
+   "tradeIds": [
+    "explicit.stat_3962960008"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_affliction_encounter_boss_chance_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "地圖內的譫妄有#%更少機率生成傳奇頭目",
+   "line": "地圖內的譫妄有13%更少機率生成傳奇頭目",
+   "tradeIds": [
+    "explicit.stat_3962960008"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_affliction_encounter_monster_depth_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "地圖中的譫妄會增加#%玩家的譫妄程度",
+   "line": "地圖中的譫妄會增加13%玩家的譫妄程度",
+   "tradeIds": [
+    "explicit.stat_1769611692"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_affliction_encounter_monster_depth_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "地圖中的譫妄會增加#%玩家的譫妄程度",
+   "line": "地圖中的譫妄會增加13%玩家的譫妄程度",
+   "tradeIds": [
+    "explicit.stat_1769611692"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_affliction_pack_size_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%地圖內的譫妄怪物怪物群大小",
+   "line": "增加13%地圖內的譫妄怪物怪物群大小",
+   "tradeIds": [
+    "explicit.stat_3465791711"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_affliction_pack_size_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "減少#%地圖內的譫妄怪物怪物群大小",
+   "line": "減少13%地圖內的譫妄怪物怪物群大小",
+   "tradeIds": [
+    "explicit.stat_3465791711"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_affliction_reward_progress_on_kill_+%",
+   "cond": "#",
+   "printed": "tc",
+   "template": "增加#%地圖內的譫妄怪物擊殺時的獎勵進度量",
+   "line": "增加13%地圖內的譫妄怪物擊殺時的獎勵進度量",
+   "tradeIds": [
+    "explicit.stat_3428124128"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_affliction_secondary_wave_acceleration_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%地圖內的譫妄迷霧消散速度",
+   "line": "增加13%地圖內的譫妄迷霧消散速度",
+   "tradeIds": [
+    "explicit.stat_3350944114"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_affliction_secondary_wave_acceleration_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "減少#%地圖內的譫妄迷霧消散速度",
+   "line": "減少13%地圖內的譫妄迷霧消散速度",
+   "tradeIds": [
+    "explicit.stat_3350944114"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_affliction_secondary_wave_delay_ms_+",
+   "cond": "#",
+   "printed": "tc",
+   "template": "地圖內的譫妄迷霧在消散前會額外持續#秒",
+   "line": "地圖內的譫妄迷霧在消散前會額外持續13秒",
+   "tradeIds": [
+    "explicit.stat_1174954559",
+    "explicit.stat_3226351972"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_affliction_secondary_wave_delay_seconds_+",
+   "cond": "#",
+   "printed": "tc",
+   "template": "地圖內含有的譫妄迷霧會在消散前額外持續#秒",
+   "line": "地圖內含有的譫妄迷霧會在消散前額外持續13秒",
+   "tradeIds": [
+    "explicit.stat_1174954559",
+    "explicit.stat_3226351972"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_boss_dropped_item_quantity_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%地圖頭目的掉落物品數量",
+   "line": "增加13%地圖頭目的掉落物品數量",
+   "tradeIds": [
+    "explicit.stat_3119172063"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_boss_dropped_item_quantity_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "減少#%地圖頭目的掉落物品數量",
+   "line": "減少13%地圖頭目的掉落物品數量",
+   "tradeIds": [
+    "explicit.stat_3119172063"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_boss_experience_+%_final",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%地圖頭目賦予的經驗",
+   "line": "增加13%地圖頭目賦予的經驗",
+   "tradeIds": [
+    "explicit.stat_3860150265"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_boss_experience_+%_final",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "減少#%地圖頭目賦予的經驗",
+   "line": "減少13%地圖頭目賦予的經驗",
+   "tradeIds": [
+    "explicit.stat_3860150265"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_boss_item_rarity_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%地圖頭目掉落物品的稀有度",
+   "line": "增加13%地圖頭目掉落物品的稀有度",
+   "tradeIds": [
+    "explicit.stat_4255069232"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_boss_item_rarity_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "減少#%地圖頭目掉落物品的稀有度",
+   "line": "減少13%地圖頭目掉落物品的稀有度",
+   "tradeIds": [
+    "explicit.stat_4255069232"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_breach_%_chance_for_1_additional_breach",
+   "cond": "1|99",
+   "printed": "tc",
+   "template": "地圖有#%的機率含有額外的裂痕",
+   "line": "地圖有13%的機率含有額外的裂痕",
+   "tradeIds": [
+    "explicit.stat_3049505189"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_breach_%_chance_for_1_additional_breach",
+   "cond": "100|#",
+   "printed": "tc",
+   "template": "地圖有含有額外的裂痕",
+   "line": "地圖有含有額外的裂痕",
+   "tradeIds": [
+    "explicit.stat_3049505189"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_breach_%_chance_for_3_additional_breach",
+   "cond": "1|99",
+   "printed": "tc",
+   "template": "地圖有#%的機率含有額外三個裂痕",
+   "line": "地圖有13%的機率含有額外三個裂痕",
+   "tradeIds": [
+    "explicit.stat_2440265466"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_breach_%_chance_for_3_additional_breach",
+   "cond": "100|#",
+   "printed": "tc",
+   "template": "地圖有含有額外三個裂痕",
+   "line": "地圖有含有額外三個裂痕",
+   "tradeIds": [
+    "explicit.stat_2440265466"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_breach_X_additional_rare_monsters",
+   "cond": "1",
+   "printed": "tc",
+   "template": "地圖內的裂痕會生成額外一個稀有怪物",
+   "line": "地圖內的裂痕會生成額外一個稀有怪物",
+   "tradeIds": [
+    "explicit.stat_1653625239"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_breach_X_additional_rare_monsters",
+   "cond": "2|#",
+   "printed": "tc",
+   "template": "地圖內的裂痕會生成額外#個稀有怪物",
+   "line": "地圖內的裂痕會生成額外2個稀有怪物",
+   "tradeIds": [
+    "explicit.stat_1653625239"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_breach_hiveblood_quantity_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%地圖內找到的巢裔之血數量",
+   "line": "增加13%地圖內找到的巢裔之血數量",
+   "tradeIds": [
+    "explicit.stat_2778285247"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_breach_hiveblood_quantity_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "減少#%地圖內找到的巢裔之血數量",
+   "line": "減少13%地圖內找到的巢裔之血數量",
+   "tradeIds": [
+    "explicit.stat_2778285247"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_breach_hives_additional_waves_+",
+   "cond": "1",
+   "printed": "tc",
+   "template": "地圖內的裂痕巢穴擁有額外一波巢裔怪物",
+   "line": "地圖內的裂痕巢穴擁有額外一波巢裔怪物",
+   "tradeIds": [
+    "explicit.stat_2734787892"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_breach_hives_additional_waves_+",
+   "cond": "#",
+   "printed": "tc",
+   "template": "地圖內的裂痕巢穴擁有額外#波巢裔怪物",
+   "line": "地圖內的裂痕巢穴擁有額外13波巢裔怪物",
+   "tradeIds": [
+    "explicit.stat_2734787892"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_breach_monster_quantity_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%地圖內裂痕的怪物群大小",
+   "line": "增加13%地圖內裂痕的怪物群大小",
+   "tradeIds": [
+    "explicit.stat_1210760818"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_breach_monster_quantity_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "減少#%地圖內裂痕的怪物群大小",
+   "line": "減少13%地圖內裂痕的怪物群大小",
+   "tradeIds": [
+    "explicit.stat_1210760818"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_breach_monster_splinter_quantity_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%地圖內包含的裂痕怪物所掉落的裂痕裂片數量",
+   "line": "增加13%地圖內包含的裂痕怪物所掉落的裂痕裂片數量",
+   "tradeIds": [
+    "explicit.stat_624534143"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_breach_monster_splinter_quantity_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "減少#%地圖內包含的裂痕怪物所掉落的裂痕裂片數量",
+   "line": "減少13%地圖內包含的裂痕怪物所掉落的裂痕裂片數量",
+   "tradeIds": [
+    "explicit.stat_624534143"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_breach_number_of_magic_packs_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%地圖內裂痕生成的魔法怪物",
+   "line": "增加13%地圖內裂痕生成的魔法怪物",
+   "tradeIds": [
+    "explicit.stat_1090596078"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_breach_number_of_magic_packs_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "減少#%地圖內裂痕生成的魔法怪物",
+   "line": "減少13%地圖內裂痕生成的魔法怪物",
+   "tradeIds": [
+    "explicit.stat_1090596078"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_breach_rare_monster_potency_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%地圖內稀有裂痕怪物的效用",
+   "line": "增加13%地圖內稀有裂痕怪物的效用",
+   "tradeIds": [
+    "explicit.stat_2895378479"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_breach_rare_monster_potency_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "減少#%地圖內稀有裂痕怪物的效用",
+   "line": "減少13%地圖內稀有裂痕怪物的效用",
+   "tradeIds": [
+    "explicit.stat_2895378479"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_breach_time_passed_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%地圖內包含的裂痕擴張和關閉的速度",
+   "line": "增加13%地圖內包含的裂痕擴張和關閉的速度",
+   "tradeIds": [
+    "explicit.stat_2504358770"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_breach_time_passed_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "減少#%地圖內包含的裂痕擴張和關閉的速度",
+   "line": "減少13%地圖內包含的裂痕擴張和關閉的速度",
+   "tradeIds": [
+    "explicit.stat_2504358770"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_breach_wombgift_additional_item_level_chance_%",
+   "cond": "#",
+   "printed": "tc",
+   "template": "地圖內有#%機率掉落高一等級的胎贈",
+   "line": "地圖內有13%機率掉落高一等級的胎贈",
+   "tradeIds": [
+    "explicit.stat_2889272422"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_breach_wombgift_quantity_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%地圖內找到的胎贈數量",
+   "line": "增加13%地圖內找到的胎贈數量",
+   "tradeIds": [
+    "explicit.stat_472809816"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_breach_wombgift_quantity_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "減少#%地圖內找到的胎贈數量",
+   "line": "減少13%地圖內找到的胎贈數量",
+   "tradeIds": [
+    "explicit.stat_472809816"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_breaches_num_additional_chests_to_spawn",
+   "cond": "1",
+   "printed": "tc",
+   "template": "地圖內的裂痕含有#個額外的抑制之手",
+   "line": "地圖內的裂痕含有1個額外的抑制之手",
+   "tradeIds": [
+    "explicit.stat_2224050171"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_breaches_num_additional_chests_to_spawn",
+   "cond": "#",
+   "printed": "tc",
+   "template": "地圖內的裂痕含有#個額外的抑制之手",
+   "line": "地圖內的裂痕含有13個額外的抑制之手",
+   "tradeIds": [
+    "explicit.stat_2224050171"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_chance_for_4_additional_abysses_%",
+   "cond": "1|99",
+   "printed": "tc",
+   "template": "地圖有#%機率包含4道額外深淵",
+   "line": "地圖有13%機率包含4道額外深淵",
+   "tradeIds": [
+    "explicit.stat_2890355696"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_chance_for_4_additional_abysses_%",
+   "cond": "100|#",
+   "printed": "tc",
+   "template": "地圖包含4道額外深淵",
+   "line": "地圖包含4道額外深淵",
+   "tradeIds": [
+    "explicit.stat_2890355696"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_delirium_additional_reward_type_chance_%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "受影響的地圖內包含的譫妄有#%機率生成額外獎勵",
+   "line": "受影響的地圖內包含的譫妄有13%機率生成額外獎勵",
+   "tradeIds": [
+    "explicit.stat_1770833858"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_delirium_doodads_+%_final",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%地圖內的譫妄生成破碎之鏡",
+   "line": "增加13%地圖內的譫妄生成破碎之鏡",
+   "tradeIds": [
+    "explicit.stat_551040294"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_delirium_doodads_+%_final",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "減少#%地圖內的譫妄生成破碎之鏡",
+   "line": "減少13%地圖內的譫妄生成破碎之鏡",
+   "tradeIds": [
+    "explicit.stat_551040294"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_delirium_special_event_all_chance_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "地圖中的譫妄迷霧增加#%裂鏡碎片的生成量",
+   "line": "地圖中的譫妄迷霧增加13%裂鏡碎片的生成量",
+   "tradeIds": [
+    "explicit.stat_900933517"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_delirium_special_event_all_chance_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "地圖中的譫妄迷霧減少#%裂鏡碎片的生成量",
+   "line": "地圖中的譫妄迷霧減少13%裂鏡碎片的生成量",
+   "tradeIds": [
+    "explicit.stat_900933517"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_delirium_splinter_stack_size_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%地圖內掉落的幻像斷片數量",
+   "line": "增加13%地圖內掉落的幻像斷片數量",
+   "tradeIds": [
+    "explicit.stat_3836551197"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_delirium_splinter_stack_size_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "減少#%地圖內掉落的幻像斷片數量",
+   "line": "減少13%地圖內掉落的幻像斷片數量",
+   "tradeIds": [
+    "explicit.stat_3836551197"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_desert_biome",
+   "cond": "#",
+   "printed": "tc",
+   "template": "地圖同時被視為沙漠地圖",
+   "line": "地圖同時被視為沙漠地圖",
+   "tradeIds": [
+    "explicit.stat_3517228691"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_expedition_artifact_quantity_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%地圖內的探險事件怪物所掉落的文物數量",
+   "line": "增加13%地圖內的探險事件怪物所掉落的文物數量",
+   "tradeIds": [
+    "explicit.stat_4219583418"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_expedition_artifact_quantity_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "減少#%地圖內的探險事件怪物所掉落的文物數量",
+   "line": "減少13%地圖內的探險事件怪物所掉落的文物數量",
+   "tradeIds": [
+    "explicit.stat_4219583418"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_expedition_elite_marker_count_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%地圖內含有的符文怪物印記的數量",
+   "line": "增加13%地圖內含有的符文怪物印記的數量",
+   "tradeIds": [
+    "explicit.stat_1640965354"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_expedition_elite_marker_count_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "減少#%地圖內含有的符文怪物印記的數量",
+   "line": "減少13%地圖內含有的符文怪物印記的數量",
+   "tradeIds": [
+    "explicit.stat_1640965354"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_expedition_explosion_area_of_effect_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%地圖中探險炸藥的範圍效果",
+   "line": "增加13%地圖中探險炸藥的範圍效果",
+   "tradeIds": [
+    "explicit.stat_3039133122"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_expedition_explosion_radius_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%地圖內的探險事件爆炸的範圍",
+   "line": "增加13%地圖內的探險事件爆炸的範圍",
+   "tradeIds": [
+    "explicit.stat_3289828378"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_expedition_first_X_unearthed_runic_monsters_are_rare",
+   "cond": "1",
+   "printed": "tc",
+   "template": "地圖中首名出土的符文怪物會是稀有怪物",
+   "line": "地圖中首名出土的符文怪物會是稀有怪物",
+   "tradeIds": [
+    "explicit.stat_3963944561"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_expedition_first_X_unearthed_runic_monsters_are_rare",
+   "cond": "2|#",
+   "printed": "tc",
+   "template": "地圖中前#名出土的符文怪物會是稀有怪物",
+   "line": "地圖中前2名出土的符文怪物會是稀有怪物",
+   "tradeIds": [
+    "explicit.stat_3963944561"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_expedition_maximum_placement_distance_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%地圖內的探險事件放置炸藥的距離",
+   "line": "增加13%地圖內的探險事件放置炸藥的距離",
+   "tradeIds": [
+    "explicit.stat_1539368271"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_expedition_maximum_placement_distance_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "減少#%地圖內的探險事件放置炸藥的距離",
+   "line": "減少13%地圖內的探險事件放置炸藥的距離",
+   "tradeIds": [
+    "explicit.stat_1539368271"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_expedition_num_buried_strongboxes_+",
+   "cond": "1",
+   "printed": "tc",
+   "template": "地圖中的探險含有1個埋藏的保險箱",
+   "line": "地圖中的探險含有1個埋藏的保險箱",
+   "tradeIds": [
+    "explicit.stat_181823691"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_expedition_num_buried_strongboxes_+",
+   "cond": "2|#",
+   "printed": "tc",
+   "template": "地圖中的探險含有#個埋藏的保險箱",
+   "line": "地圖中的探險含有2個埋藏的保險箱",
+   "tradeIds": [
+    "explicit.stat_181823691"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_expedition_num_frozen_bosses_+",
+   "cond": "1",
+   "printed": "tc",
+   "template": "地圖中的探險含有1個額外封存於冰霜中的頭目",
+   "line": "地圖中的探險含有1個額外封存於冰霜中的頭目",
+   "tradeIds": [
+    "explicit.stat_1183698646"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_expedition_num_frozen_bosses_+",
+   "cond": "2|#",
+   "printed": "tc",
+   "template": "地圖中的探險含有#個額外封存於冰霜中的頭目",
+   "line": "地圖中的探險含有2個額外封存於冰霜中的頭目",
+   "tradeIds": [
+    "explicit.stat_1183698646"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_expedition_num_sentinels_+",
+   "cond": "1",
+   "printed": "tc",
+   "template": "地圖中的探險含有1個額外維里西姆守望",
+   "line": "地圖中的探險含有1個額外維里西姆守望",
+   "tradeIds": [
+    "explicit.stat_1109460697"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_expedition_num_sentinels_+",
+   "cond": "2|#",
+   "printed": "tc",
+   "template": "地圖中的探險含有#個額外維里西姆守望",
+   "line": "地圖中的探險含有2個額外維里西姆守望",
+   "tradeIds": [
+    "explicit.stat_1109460697"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_expedition_num_vaal_relics_+",
+   "cond": "1",
+   "printed": "tc",
+   "template": "地圖中的探險含有1個瓦爾遺物",
+   "line": "地圖中的探險含有1個瓦爾遺物",
+   "tradeIds": [
+    "explicit.stat_2852112245"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_expedition_num_vaal_relics_+",
+   "cond": "2|#",
+   "printed": "tc",
+   "template": "地圖中的探險含有#個瓦爾遺物",
+   "line": "地圖中的探險含有2個瓦爾遺物",
+   "tradeIds": [
+    "explicit.stat_2852112245"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_expedition_number_of_magic_and_rare_packs_+%_and_rare_monster_modifiers_chance_%",
+   "cond": "#",
+   "printed": "tc",
+   "template": "增加#%地圖中的探險怪物稀有度",
+   "line": "增加13%地圖中的探險怪物稀有度",
+   "tradeIds": [
+    "explicit.stat_2905096233"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_expedition_rare_monsters_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%地圖內的探險事件含有稀有怪物的數量",
+   "line": "增加13%地圖內的探險事件含有稀有怪物的數量",
+   "tradeIds": [
+    "explicit.stat_2694800111"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_expedition_rare_monsters_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "減少#%地圖內的探險事件含有稀有怪物的數量",
+   "line": "減少13%地圖內的探險事件含有稀有怪物的數量",
+   "tradeIds": [
+    "explicit.stat_2694800111"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_expedition_relic_mod_effect_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%地圖內的探險事件魔符的效果",
+   "line": "增加13%地圖內的探險事件魔符的效果",
+   "tradeIds": [
+    "explicit.stat_3078574625"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_expedition_relic_mod_effect_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "減少#%地圖內的探險事件魔符的效果",
+   "line": "減少13%地圖內的探險事件魔符的效果",
+   "tradeIds": [
+    "explicit.stat_3078574625"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_expedition_relics_+",
+   "cond": "1",
+   "printed": "tc",
+   "template": "地圖內的探險事件含有#魔符",
+   "line": "地圖內的探險事件含有1魔符",
+   "tradeIds": [
+    "explicit.stat_3753446846"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_expedition_relics_+",
+   "cond": "#",
+   "printed": "tc",
+   "template": "地圖內的探險事件含有#魔符",
+   "line": "地圖內的探險事件含有13魔符",
+   "tradeIds": [
+    "explicit.stat_3753446846"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_expedition_remnants_pass_2_runic_modifiers_chance_%",
+   "cond": "#",
+   "printed": "tc",
+   "template": "地圖中的維里西姆遺物擁有+#%機率添加一條額外符文詞綴",
+   "line": "地圖中的維里西姆遺物擁有+13%機率添加一條額外符文詞綴",
+   "tradeIds": [
+    "explicit.stat_3871299443"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_expedition_remnants_surpassing_chance_%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "探險擁有+#%滿溢機率含有額外一個維里西姆遺物",
+   "line": "探險擁有+13%滿溢機率含有額外一個維里西姆遺物",
+   "tradeIds": [
+    "explicit.stat_3653794255"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_expedition_twinned_elites",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "在你的地圖內，符文怪物具有複生體",
+   "line": "在你的地圖內，符文怪物具有複生體",
+   "tradeIds": [
+    "explicit.stat_2816104578"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_expedition_twinned_elites_surpassing_chance_%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "探險擁有+#%滿溢機率複製地圖中的符文怪物",
+   "line": "探險擁有+13%滿溢機率複製地圖中的符文怪物",
+   "tradeIds": [
+    "explicit.stat_779964546"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_experience_gain_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%地圖內所獲取的經驗量",
+   "line": "增加13%地圖內所獲取的經驗量",
+   "tradeIds": [
+    "explicit.stat_57434274"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_experience_gain_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "減少#%地圖內所獲取的經驗量",
+   "line": "減少13%地圖內所獲取的經驗量",
+   "tradeIds": [
+    "explicit.stat_57434274"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_extra_gold_piles_chance_%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%地圖內所獲取的金幣數量",
+   "line": "增加13%地圖內所獲取的金幣數量",
+   "tradeIds": [
+    "explicit.stat_1133965702",
+    "explicit.stat_1276056105"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_extra_gold_piles_chance_%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "減少#%地圖內所獲取的金幣數量",
+   "line": "減少13%地圖內所獲取的金幣數量",
+   "tradeIds": [
+    "explicit.stat_1133965702",
+    "explicit.stat_1276056105"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_extra_monoliths",
+   "cond": "1",
+   "printed": "tc",
+   "template": "地圖內含有額外的一個精髓",
+   "line": "地圖內含有額外的一個精髓",
+   "tradeIds": [
+    "explicit.stat_2162684861",
+    "explicit.stat_395808938"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_extra_monoliths",
+   "cond": "2|#",
+   "printed": "tc",
+   "template": "地圖內含有額外的#個精髓",
+   "line": "地圖內含有額外的2個精髓",
+   "tradeIds": [
+    "explicit.stat_2162684861",
+    "explicit.stat_395808938"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_forest_biome",
+   "cond": "#",
+   "printed": "tc",
+   "template": "地圖同時被視為森林地圖",
+   "line": "地圖同時被視為森林地圖",
+   "tradeIds": [
+    "explicit.stat_864099561"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_grass_biome",
+   "cond": "#",
+   "printed": "tc",
+   "template": "地圖同時被視為草原地圖",
+   "line": "地圖同時被視為草原地圖",
+   "tradeIds": [
+    "explicit.stat_3160511599"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_incursion_token_chance_+%",
+   "cond": "#",
+   "printed": "tc",
+   "template": "有#%機率從地圖內的瓦爾烽塔獲得額外一個額外水晶",
+   "line": "有13%機率從地圖內的瓦爾烽塔獲得額外一個額外水晶",
+   "tradeIds": [
+    "explicit.stat_1940774881"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_incursion_vaal_beacon_boss_added_to_area_chance_%",
+   "cond": "#",
+   "printed": "tc",
+   "template": "有#%機率為地圖新增一名瓦爾烽塔傳奇怪物",
+   "line": "有13%機率為地圖新增一名瓦爾烽塔傳奇怪物",
+   "tradeIds": [
+    "explicit.stat_3937291366"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_incursion_vaal_beacon_chest_rare_chance_+%",
+   "cond": "#",
+   "printed": "tc",
+   "template": "增加#%地圖內瓦爾烽塔的寶箱為稀有的機率",
+   "line": "增加13%地圖內瓦爾烽塔的寶箱為稀有的機率",
+   "tradeIds": [
+    "explicit.stat_2514439422"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_incursion_vaal_beacon_extra_packs_+",
+   "cond": "1",
+   "printed": "tc",
+   "template": "地圖內的瓦爾烽塔周遭擁有額外#群怪物",
+   "line": "地圖內的瓦爾烽塔周遭擁有額外1群怪物",
+   "tradeIds": [
+    "explicit.stat_3294218801"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_incursion_vaal_beacon_extra_packs_+",
+   "cond": "#",
+   "printed": "tc",
+   "template": "地圖內的瓦爾烽塔周遭擁有額外#群怪物",
+   "line": "地圖內的瓦爾烽塔周遭擁有額外13群怪物",
+   "tradeIds": [
+    "explicit.stat_3294218801"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_incursion_vaal_beacon_extra_packs_chance_%",
+   "cond": "#",
+   "printed": "tc",
+   "template": "有#%機率擁有一群額外怪物在地圖內的瓦爾烽塔周遭",
+   "line": "有13%機率擁有一群額外怪物在地圖內的瓦爾烽塔周遭",
+   "tradeIds": [
+    "explicit.stat_1359775981"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_incursion_vaal_beacon_pack_size_+%",
+   "cond": "#",
+   "printed": "tc",
+   "template": "增加#%地圖內瓦爾烽塔周遭的怪物群大小",
+   "line": "增加13%地圖內瓦爾烽塔周遭的怪物群大小",
+   "tradeIds": [
+    "explicit.stat_890040946"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_incursion_vaal_beacon_secondary_encounter_chance_+%",
+   "cond": "#",
+   "printed": "tc",
+   "template": "增加#%地圖內的瓦爾烽塔召喚額外怪物的機率",
+   "line": "增加13%地圖內的瓦爾烽塔召喚額外怪物的機率",
+   "tradeIds": [
+    "explicit.stat_632698321"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_killing_rare_monsters_pauses_delirium_mirror_timer_for_x_seconds",
+   "cond": "1",
+   "printed": "tc",
+   "template": "地圖內的譫妄迷霧在擊殺稀有怪物時會暫停1秒",
+   "line": "地圖內的譫妄迷霧在擊殺稀有怪物時會暫停1秒",
+   "tradeIds": [
+    "explicit.stat_2323782229"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_killing_rare_monsters_pauses_delirium_mirror_timer_for_x_seconds",
+   "cond": "#",
+   "printed": "tc",
+   "template": "地圖內的譫妄迷霧在擊殺稀有怪物時會暫停#秒",
+   "line": "地圖內的譫妄迷霧在擊殺稀有怪物時會暫停13秒",
+   "tradeIds": [
+    "explicit.stat_2323782229"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_map_boss_bonus_map_drop_chance_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%地圖頭目掉落的換界石數量",
+   "line": "增加13%地圖頭目掉落的換界石數量",
+   "tradeIds": [
+    "explicit.stat_1457896329"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_map_boss_bonus_map_drop_chance_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "減少#%地圖頭目掉落的換界石數量",
+   "line": "減少13%地圖頭目掉落的換界石數量",
+   "tradeIds": [
+    "explicit.stat_1457896329"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_map_item_drop_chance_+%",
+   "cond": "#",
+   "printed": "tc",
+   "template": "增加#%地圖內找到的換界石數量",
+   "line": "增加13%地圖內找到的換界石數量",
+   "tradeIds": [
+    "explicit.stat_2777224821"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_monolith_chance_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%地圖內含有精髓的機率",
+   "line": "增加13%地圖內含有精髓的機率",
+   "tradeIds": [
+    "explicit.stat_1825943485"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_monolith_chance_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "減少#%地圖內含有精髓的機率",
+   "line": "減少13%地圖內含有精髓的機率",
+   "tradeIds": [
+    "explicit.stat_1825943485"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_monster_potency_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%怪物的效用",
+   "line": "增加13%怪物的效用",
+   "tradeIds": [
+    "explicit.stat_2065500219"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_monster_potency_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "增加#%怪物的效用",
+   "line": "增加13%怪物的效用",
+   "tradeIds": [
+    "explicit.stat_2065500219"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_mountain_biome",
+   "cond": "#",
+   "printed": "tc",
+   "template": "地圖同時被視為山地地圖",
+   "line": "地圖同時被視為山地地圖",
+   "tradeIds": [
+    "explicit.stat_1583884108"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_num_extra_abysses",
+   "cond": "1",
+   "printed": "tc",
+   "template": "地圖內含有額外一道深淵",
+   "line": "地圖內含有額外一道深淵",
+   "tradeIds": [
+    "explicit.stat_1070816711",
+    "explicit.stat_3490187949"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_num_extra_abysses",
+   "cond": "2|#",
+   "printed": "tc",
+   "template": "地圖內含有額外#道深淵",
+   "line": "地圖內含有額外2道深淵",
+   "tradeIds": [
+    "explicit.stat_1070816711",
+    "explicit.stat_3490187949"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_num_extra_shrines",
+   "cond": "1",
+   "printed": "tc",
+   "template": "地圖內含有額外的一個神殿",
+   "line": "地圖內含有額外的一個神殿",
+   "tradeIds": [
+    "explicit.stat_1468737867",
+    "explicit.stat_3042527515"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_num_extra_shrines",
+   "cond": "2|#",
+   "printed": "tc",
+   "template": "地圖內含有額外的#個神殿",
+   "line": "地圖內含有額外的2個神殿",
+   "tradeIds": [
+    "explicit.stat_1468737867",
+    "explicit.stat_3042527515"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_num_extra_stone_circles",
+   "cond": "1",
+   "printed": "tc",
+   "template": "地圖內含有額外的一個召喚法陣",
+   "line": "地圖內含有額外的一個召喚法陣",
+   "tradeIds": [
+    "explicit.stat_2839545956"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_num_extra_stone_circles",
+   "cond": "2|#",
+   "printed": "tc",
+   "template": "地圖內含有額外的#個召喚法陣",
+   "line": "地圖內含有額外的2個召喚法陣",
+   "tradeIds": [
+    "explicit.stat_2839545956"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_num_extra_strongboxes",
+   "cond": "1",
+   "printed": "tc",
+   "template": "地圖內含有額外的一個保險箱",
+   "line": "地圖內含有額外的一個保險箱",
+   "tradeIds": [
+    "explicit.stat_3040603554",
+    "explicit.stat_3240183538"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_num_extra_strongboxes",
+   "cond": "2|#",
+   "printed": "tc",
+   "template": "地圖內含有額外的#個保險箱",
+   "line": "地圖內含有額外的2個保險箱",
+   "tradeIds": [
+    "explicit.stat_3040603554",
+    "explicit.stat_3240183538"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_number_of_additional_mods",
+   "cond": "1",
+   "printed": "tc",
+   "template": "地圖有#個額外變動詞綴",
+   "line": "地圖有1個額外變動詞綴",
+   "tradeIds": [
+    "explicit.stat_588512487"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_number_of_additional_mods",
+   "cond": "2|#",
+   "printed": "tc",
+   "template": "地圖有#個額外變動詞綴",
+   "line": "地圖有2個額外變動詞綴",
+   "tradeIds": [
+    "explicit.stat_588512487"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_number_of_magic_and_rare_packs_+%_and_rare_monster_modifiers_chance_%",
+   "cond": "#",
+   "printed": "tc",
+   "template": "地圖增加#%怪物稀有度",
+   "line": "地圖增加13%怪物稀有度",
+   "tradeIds": [
+    "explicit.stat_4142653832"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_number_of_magic_packs_+%",
+   "cond": "#",
+   "printed": "tc",
+   "template": "增加#%地圖含有的魔法怪物",
+   "line": "增加13%地圖含有的魔法怪物",
+   "tradeIds": [
+    "explicit.stat_3873704640"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_number_of_rare_packs_+%",
+   "cond": "#",
+   "printed": "tc",
+   "template": "增加#%地圖含有的稀有怪物數量",
+   "line": "增加13%地圖含有的稀有怪物數量",
+   "tradeIds": [
+    "explicit.stat_3793155082"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_rare_monster_additional_modifier_chance_%_with_rollover",
+   "cond": "#",
+   "printed": "tc",
+   "template": "地圖內的稀有怪物有#%滿溢機率獲得一條額外詞綴",
+   "line": "地圖內的稀有怪物有13%滿溢機率獲得一條額外詞綴",
+   "tradeIds": [
+    "explicit.stat_3732878551"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_ritual_additional_reward_rerolls",
+   "cond": "1",
+   "printed": "tc",
+   "template": "地圖內的祭祀神壇可以額外重骰一次",
+   "line": "地圖內的祭祀神壇可以額外重骰一次",
+   "tradeIds": [
+    "explicit.stat_120737942"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_ritual_additional_reward_rerolls",
+   "cond": "2|#",
+   "printed": "tc",
+   "template": "地圖內的祭祀神壇可以額外重骰#次",
+   "line": "地圖內的祭祀神壇可以額外重骰2次",
+   "tradeIds": [
+    "explicit.stat_120737942"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_ritual_defer_reward_tribute_cost_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%地圖內的祭祀神壇所需的貢禮數量",
+   "line": "增加13%地圖內的祭祀神壇所需的貢禮數量",
+   "tradeIds": [
+    "explicit.stat_1345835998"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_ritual_defer_reward_tribute_cost_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "減少#%地圖內的祭祀神壇所需的貢禮數量",
+   "line": "減少13%地圖內的祭祀神壇所需的貢禮數量",
+   "tradeIds": [
+    "explicit.stat_1345835998"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_ritual_deferred_rewards_are_offered_again_+%_sooner",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "地圖內的祭祀神壇所延遲的恩惠之物出現速度加快#%",
+   "line": "地圖內的祭祀神壇所延遲的恩惠之物出現速度加快13%",
+   "tradeIds": [
+    "explicit.stat_28208665"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_ritual_magic_monsters_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "地圖內的祭祀神壇所復活的怪物增加#%為魔法怪物的機率",
+   "line": "地圖內的祭祀神壇所復活的怪物增加13%為魔法怪物的機率",
+   "tradeIds": [
+    "explicit.stat_1031644647"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_ritual_magic_monsters_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "地圖內的祭祀神壇所復活的怪物減少#%為魔法怪物的機率",
+   "line": "地圖內的祭祀神壇所復活的怪物減少13%為魔法怪物的機率",
+   "tradeIds": [
+    "explicit.stat_1031644647"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_ritual_offered_rewards_from_rerolls_have_permyriad_chance_to_cost_no_tribute",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "地圖內的祭祀神壇有#%機率不消耗貢禮",
+   "line": "地圖內的祭祀神壇有13%機率不消耗貢禮",
+   "tradeIds": [
+    "explicit.stat_937291386"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_ritual_omen_chance_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%地圖內的祭祀神壇獎勵為預兆的機率",
+   "line": "增加13%地圖內的祭祀神壇獎勵為預兆的機率",
+   "tradeIds": [
+    "explicit.stat_4219853180"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_ritual_omen_chance_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "減少#%地圖內的祭祀神壇獎勵為預兆的機率",
+   "line": "減少13%地圖內的祭祀神壇獎勵為預兆的機率",
+   "tradeIds": [
+    "explicit.stat_4219853180"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_ritual_rare_monsters_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "地圖內的祭祀神壇所復活的怪物增加#%為稀有怪物的機率",
+   "line": "地圖內的祭祀神壇所復活的怪物增加13%為稀有怪物的機率",
+   "tradeIds": [
+    "explicit.stat_3979184174"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_ritual_rare_monsters_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "地圖內的祭祀神壇所復活的怪物減少#%為稀有怪物的機率",
+   "line": "地圖內的祭祀神壇所復活的怪物減少13%為稀有怪物的機率",
+   "tradeIds": [
+    "explicit.stat_3979184174"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_ritual_rewards_reroll_cost_+%_final",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%地圖內的祭祀神壇重骰所需的貢禮數量",
+   "line": "增加13%地圖內的祭祀神壇重骰所需的貢禮數量",
+   "tradeIds": [
+    "explicit.stat_2282052746"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_ritual_rewards_reroll_cost_+%_final",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "減少#%地圖內的祭祀神壇重骰所需的貢禮數量",
+   "line": "減少13%地圖內的祭祀神壇重骰所需的貢禮數量",
+   "tradeIds": [
+    "explicit.stat_2282052746"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_ritual_tribute_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%在地圖內的祭祀神壇所獻祭的怪物提供的貢禮數量",
+   "line": "增加13%在地圖內的祭祀神壇所獻祭的怪物提供的貢禮數量",
+   "tradeIds": [
+    "explicit.stat_159726667"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_ritual_tribute_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "減少#%在地圖內的祭祀神壇所獻祭的怪物提供的貢禮數量",
+   "line": "減少13%在地圖內的祭祀神壇所獻祭的怪物提供的貢禮數量",
+   "tradeIds": [
+    "explicit.stat_159726667"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_rogue_exile_chance_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%地圖內含有盜賊流亡者的機率",
+   "line": "增加13%地圖內含有盜賊流亡者的機率",
+   "tradeIds": [
+    "explicit.stat_1352729973"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_rogue_exile_chance_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "減少#%地圖內含有盜賊流亡者的機率",
+   "line": "減少13%地圖內含有盜賊流亡者的機率",
+   "tradeIds": [
+    "explicit.stat_1352729973"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_shrine_chance_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%地圖內含有神殿的機率",
+   "line": "增加13%地圖內含有神殿的機率",
+   "tradeIds": [
+    "explicit.stat_689816330"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_shrine_chance_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "減少#%地圖內含有神殿的機率",
+   "line": "減少13%地圖內含有神殿的機率",
+   "tradeIds": [
+    "explicit.stat_689816330"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_spawn_extra_exiles",
+   "cond": "1",
+   "printed": "tc",
+   "template": "地圖內含有#名額外盜賊流亡者",
+   "line": "地圖內含有1名額外盜賊流亡者",
+   "tradeIds": [
+    "explicit.stat_3550168289"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_spawn_extra_exiles",
+   "cond": "2|#",
+   "printed": "tc",
+   "template": "地圖內含有#名額外盜賊流亡者",
+   "line": "地圖內含有2名額外盜賊流亡者",
+   "tradeIds": [
+    "explicit.stat_3550168289"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_spawn_extra_torment_spirits",
+   "cond": "1",
+   "printed": "tc",
+   "template": "地圖內含有#個額外阿茲莫里魂靈",
+   "line": "地圖內含有1個額外阿茲莫里魂靈",
+   "tradeIds": [
+    "explicit.stat_358129101",
+    "explicit.stat_775597083"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_spawn_extra_torment_spirits",
+   "cond": "2|#",
+   "printed": "tc",
+   "template": "地圖內含有#個額外阿茲莫里魂靈",
+   "line": "地圖內含有2個額外阿茲莫里魂靈",
+   "tradeIds": [
+    "explicit.stat_358129101",
+    "explicit.stat_775597083"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_stone_circle_chance_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%地圖內有含有召喚法陣的機率",
+   "line": "增加13%地圖內有含有召喚法陣的機率",
+   "tradeIds": [
+    "explicit.stat_267210597"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_stone_circle_chance_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "減少#%地圖內有含有召喚法陣的機率",
+   "line": "減少13%地圖內有含有召喚法陣的機率",
+   "tradeIds": [
+    "explicit.stat_267210597"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_strongbox_chance_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%地圖內有含有保險箱的機率",
+   "line": "增加13%地圖內有含有保險箱的機率",
+   "tradeIds": [
+    "explicit.stat_4279535856"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_strongbox_chance_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "減少#%地圖內有含有保險箱的機率",
+   "line": "減少13%地圖內有含有保險箱的機率",
+   "tradeIds": [
+    "explicit.stat_4279535856"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_swamp_biome",
+   "cond": "#",
+   "printed": "tc",
+   "template": "地圖同時被視為沼澤地圖",
+   "line": "地圖同時被視為沼澤地圖",
+   "tradeIds": [
+    "explicit.stat_3755999954"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_tormented_spirit_chance_+%",
+   "cond": "1|#",
+   "printed": "tc",
+   "template": "增加#%地圖內有含有阿茲莫里魂靈的機率",
+   "line": "增加13%地圖內有含有阿茲莫里魂靈的機率",
+   "tradeIds": [
+    "explicit.stat_3815617979"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_tormented_spirit_chance_+%",
+   "cond": "#|-1",
+   "printed": "tc",
+   "template": "減少#%地圖內有含有阿茲莫里魂靈的機率",
+   "line": "減少13%地圖內有含有阿茲莫里魂靈的機率",
+   "tradeIds": [
+    "explicit.stat_3815617979"
+   ],
+   "sign": -1
+  },
+  {
+   "gid": "map_unstable_breach_additional_x_seconds_before_collapse",
+   "cond": "1",
+   "printed": "tc",
+   "template": "地圖內的不穩定裂痕會在計時器填滿後再過額外一秒才崩塌",
+   "line": "地圖內的不穩定裂痕會在計時器填滿後再過額外一秒才崩塌",
+   "tradeIds": [
+    "explicit.stat_4104094246"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_unstable_breach_additional_x_seconds_before_collapse",
+   "cond": "#",
+   "printed": "tc",
+   "template": "地圖內的不穩定裂痕會在計時器填滿後再過額外#秒才崩塌",
+   "line": "地圖內的不穩定裂痕會在計時器填滿後再過額外13秒才崩塌",
+   "tradeIds": [
+    "explicit.stat_4104094246"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_unstable_breach_enrage_x_additional_rare_monsters",
+   "cond": "1",
+   "printed": "tc",
+   "template": "地圖內的不穩定裂痕會在穩定後生成一名額外稀有怪物]",
+   "line": "地圖內的不穩定裂痕會在穩定後生成一名額外稀有怪物]",
+   "tradeIds": [
+    "explicit.stat_3762913035"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "map_unstable_breach_enrage_x_additional_rare_monsters",
+   "cond": "#",
+   "printed": "tc",
+   "template": "地圖內的不穩定裂痕會在穩定後生成#名額外稀有怪物]",
+   "line": "地圖內的不穩定裂痕會在穩定後生成13名額外稀有怪物]",
+   "tradeIds": [
+    "explicit.stat_3762913035"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "map_water_biome",
+   "cond": "#",
+   "printed": "tc",
+   "template": "地圖同時被視為水域地圖",
+   "line": "地圖同時被視為水域地圖",
+   "tradeIds": [
+    "explicit.stat_3271982291"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "maps_with_powerful_bosses_additional_essence_+",
+   "cond": "1",
+   "printed": "tc",
+   "template": "地圖內含有額外的一個精髓",
+   "line": "地圖內含有額外的一個精髓",
+   "tradeIds": [
+    "explicit.stat_2162684861",
+    "explicit.stat_395808938"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "maps_with_powerful_bosses_additional_essence_+",
+   "cond": "#",
+   "printed": "tc",
+   "template": "地圖內含有額外的#個精髓",
+   "line": "地圖內含有額外的13個精髓",
+   "tradeIds": [
+    "explicit.stat_2162684861",
+    "explicit.stat_395808938"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "maps_with_powerful_bosses_additional_shrine_+",
+   "cond": "1",
+   "printed": "tc",
+   "template": "地圖內含有額外的一個神殿",
+   "line": "地圖內含有額外的一個神殿",
+   "tradeIds": [
+    "explicit.stat_1468737867",
+    "explicit.stat_3042527515"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "maps_with_powerful_bosses_additional_shrine_+",
+   "cond": "#",
+   "printed": "tc",
+   "template": "地圖內含有額外的#個神殿",
+   "line": "地圖內含有額外的13個神殿",
+   "tradeIds": [
+    "explicit.stat_1468737867",
+    "explicit.stat_3042527515"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "maps_with_powerful_bosses_additional_spirit_+",
+   "cond": "1",
+   "printed": "tc",
+   "template": "地圖內含有額外的一個阿茲莫里魂靈",
+   "line": "地圖內含有額外的一個阿茲莫里魂靈",
+   "tradeIds": [
+    "explicit.stat_775597083"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "maps_with_powerful_bosses_additional_spirit_+",
+   "cond": "#",
+   "printed": "tc",
+   "template": "地圖內含有額外的#個阿茲莫里魂靈",
+   "line": "地圖內含有額外的13個阿茲莫里魂靈",
+   "tradeIds": [
+    "explicit.stat_775597083"
+   ],
+   "sign": 1
+  },
+  {
+   "gid": "maps_with_powerful_bosses_additional_strongbox_+",
+   "cond": "1",
+   "printed": "tc",
+   "template": "地圖內含有額外的一個保險箱",
+   "line": "地圖內含有額外的一個保險箱",
+   "tradeIds": [
+    "explicit.stat_3040603554",
+    "explicit.stat_3240183538"
+   ],
+   "sign": null
+  },
+  {
+   "gid": "maps_with_powerful_bosses_additional_strongbox_+",
+   "cond": "#",
+   "printed": "tc",
+   "template": "地圖內含有額外的#個保險箱",
+   "line": "地圖內含有額外的13個保險箱",
+   "tradeIds": [
+    "explicit.stat_3040603554",
+    "explicit.stat_3240183538"
+   ],
+   "sign": 1
+  }
+ ],
+ "combos": [
+  {
+   "from": "poe2db Abyss normal #11",
+   "cases": [
+    5,
+    132,
+    141
+   ]
+  },
+  {
+   "from": "poe2db Abyss normal #13",
+   "cases": [
+    5,
+    132,
+    145
+   ]
+  },
+  {
+   "from": "poe2db Abyss normal #15",
+   "cases": [
+    117,
+    132
+   ]
+  },
+  {
+   "from": "poe2db Abyss normal #17",
+   "cases": [
+    132,
+    174
+   ]
+  },
+  {
+   "from": "poe2db Abyss normal #19",
+   "cases": [
+    132,
+    172
+   ]
+  }
+ ],
+ "unsupported": [
+  {
+   "gid": "map_abyss_monster_lichborn_modifier_chance_+%",
+   "reason": "資料集沒有這個 GGPK stat id,國際服交易站 explicit 群組也沒有逐字相同的句子",
+   "lines": [
+    "增加#%深淵怪物擁有巫妖詞綴的機率",
+    "減少#%深淵怪物擁有巫妖詞綴的機率"
+   ]
+  },
+  {
+   "gid": "map_ezomyte_city_biome",
+   "reason": "資料集沒有這個 GGPK stat id,國際服交易站 explicit 群組也沒有逐字相同的句子",
+   "lines": [
+    "地圖同時被視為艾茲麥城市地圖"
+   ]
+  },
+  {
+   "gid": "map_faridun_city_biome",
+   "reason": "資料集沒有這個 GGPK stat id,國際服交易站 explicit 群組也沒有逐字相同的句子",
+   "lines": [
+    "地圖同時被視為法里登城市地圖"
+   ]
+  },
+  {
+   "gid": "map_ritual_offered_rewards_amount_+%",
+   "reason": "資料集沒有這個 GGPK stat id,國際服交易站 explicit 群組也沒有逐字相同的句子",
+   "lines": [
+    "增加#%區域中祭祀神壇提供的恩惠之物數量",
+    "減少#%區域中祭祀神壇提供的恩惠之物數量"
+   ]
+  },
+  {
+   "gid": "map_vaal_city_biome",
+   "reason": "資料集沒有這個 GGPK stat id,國際服交易站 explicit 群組也沒有逐字相同的句子",
+   "lines": [
+    "地圖同時被視為瓦爾城市地圖"
+   ]
+  }
+ ]
+}

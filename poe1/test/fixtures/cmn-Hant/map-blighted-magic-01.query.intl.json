@@ -1,0 +1,69 @@
+{
+  "api": "trade",
+  "request": {
+    "query": {
+      "status": {
+        "option": "available"
+      },
+      "stats": [
+        {
+          "type": "and",
+          "filters": []
+        }
+      ],
+      "filters": {
+        "trade_filters": {
+          "filters": {
+            "price": {
+              "option": "chaos_divine"
+            },
+            "collapse": {
+              "option": "true"
+            }
+          }
+        },
+        "type_filters": {
+          "filters": {
+            "rarity": {
+              "option": "nonunique"
+            }
+          }
+        },
+        "misc_filters": {
+          "filters": {
+            "corrupted": {
+              "option": "false"
+            },
+            "fractured_item": {
+              "option": "false"
+            },
+            "split": {
+              "option": "false"
+            },
+            "mirrored": {
+              "option": "false"
+            }
+          }
+        },
+        "map_filters": {
+          "filters": {
+            "map_tier": {
+              "min": 8,
+              "max": 8
+            },
+            "map_blighted": {
+              "option": "true"
+            }
+          }
+        }
+      },
+      "type": {
+        "discriminator": "blighted",
+        "option": "10021"
+      }
+    },
+    "sort": {
+      "price": "asc"
+    }
+  }
+}

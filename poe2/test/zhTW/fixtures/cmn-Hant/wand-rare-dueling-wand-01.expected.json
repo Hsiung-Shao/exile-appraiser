@@ -1,0 +1,389 @@
+{
+  "augmentSockets": {
+    "augments": [
+      {
+        "displayString": "全部法術技能等級1",
+        "existing": true,
+        "name": "流浪女巫艾珊德菈的智慧符文",
+        "refName": "Hedgewitch Assandra's Rune of Wisdom"
+      }
+    ],
+    "current": 1,
+    "empty": 0,
+    "normal": 1
+  },
+  "baseType": "單挑法杖",
+  "category": "Wand",
+  "influences": [],
+  "info": {
+    "name": "單挑法杖",
+    "namespace": "ITEM",
+    "refName": "Dueling Wand"
+  },
+  "infoVariants": [
+    {
+      "name": "單挑法杖",
+      "namespace": "ITEM",
+      "refName": "Dueling Wand"
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": false,
+  "itemLevel": 82,
+  "name": "活屍 聖曲",
+  "newMods": [
+    {
+      "info": {
+        "tags": [],
+        "type": "rune"
+      },
+      "stats": [
+        {
+          "ref": "# to Level of all Spell Skills",
+          "roll": {
+            "dp": false,
+            "max": 1,
+            "min": 1,
+            "unscalable": false,
+            "value": 1
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_124131830"
+            ],
+            "desecrated": [
+              "desecrated.stat_124131830"
+            ],
+            "explicit": [
+              "explicit.stat_124131830"
+            ],
+            "fractured": [
+              "fractured.stat_124131830"
+            ],
+            "rune": [
+              "rune.stat_124131830"
+            ]
+          },
+          "translation": "全部法術技能等級#"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [],
+        "type": "skill"
+      },
+      "stats": [
+        {
+          "ref": "Grants Skill: Level # Spellslinger",
+          "roll": {
+            "dp": false,
+            "max": 19,
+            "min": 19,
+            "unscalable": false,
+            "value": 19
+          },
+          "tradeIds": {
+            "skill": [
+              "skill.spellslinger_invocation"
+            ]
+          },
+          "translation": "賦予技能: 等級 # 拋法者"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "prefix",
+        "name": "霜縛的",
+        "tags": [
+          "傷害,元素,冰冷"
+        ],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "Gain #% of Damage as Extra Cold Damage",
+          "roll": {
+            "dp": false,
+            "max": 30,
+            "min": 28,
+            "unscalable": false,
+            "value": 28
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_2505884597"
+            ],
+            "desecrated": [
+              "desecrated.stat_2505884597"
+            ],
+            "explicit": [
+              "explicit.stat_2505884597"
+            ],
+            "fractured": [
+              "fractured.stat_2505884597"
+            ],
+            "rune": [
+              "rune.stat_2505884597"
+            ]
+          },
+          "translation": "獲得等同於傷害#%的額外冰冷傷害"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "prefix",
+        "name": "通電的",
+        "tags": [
+          "傷害,元素,閃電"
+        ],
+        "tier": 2,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "Gain #% of Damage as Extra Lightning Damage",
+          "roll": {
+            "dp": false,
+            "max": 27,
+            "min": 25,
+            "unscalable": false,
+            "value": 27
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_3278136794"
+            ],
+            "desecrated": [
+              "desecrated.stat_3278136794"
+            ],
+            "explicit": [
+              "explicit.stat_3278136794"
+            ],
+            "fractured": [
+              "fractured.stat_3278136794"
+            ],
+            "rune": [
+              "rune.stat_3278136794"
+            ]
+          },
+          "translation": "獲得等同於傷害#%的額外閃電傷害"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "prefix",
+        "name": "維里西姆",
+        "tags": [
+          "魔力"
+        ],
+        "type": "crafted"
+      },
+      "stats": [
+        {
+          "ref": "# to maximum Mana",
+          "roll": {
+            "dp": false,
+            "max": 188,
+            "min": 142,
+            "unscalable": false,
+            "value": 183
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_1050105434"
+            ],
+            "desecrated": [
+              "desecrated.stat_1050105434"
+            ],
+            "enchant": [
+              "enchant.stat_1050105434"
+            ],
+            "explicit": [
+              "explicit.stat_1050105434"
+            ],
+            "fractured": [
+              "fractured.stat_1050105434"
+            ],
+            "implicit": [
+              "implicit.stat_1050105434"
+            ],
+            "rune": [
+              "rune.stat_1050105434"
+            ]
+          },
+          "translation": "#最大魔力"
+        },
+        {
+          "ref": "# to Level of all Spell Skills",
+          "roll": {
+            "dp": false,
+            "max": 1,
+            "min": 1,
+            "unscalable": false,
+            "value": 1
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_124131830"
+            ],
+            "desecrated": [
+              "desecrated.stat_124131830"
+            ],
+            "explicit": [
+              "explicit.stat_124131830"
+            ],
+            "fractured": [
+              "fractured.stat_124131830"
+            ],
+            "rune": [
+              "rune.stat_124131830"
+            ]
+          },
+          "translation": "全部法術技能等級#"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "suffix",
+        "name": "浩劫之",
+        "tags": [
+          "法術,暴擊"
+        ],
+        "tier": 5,
+        "type": "desecrated"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Critical Hit Chance for Spells",
+          "roll": {
+            "dp": false,
+            "max": 39,
+            "min": 34,
+            "unscalable": false,
+            "value": 38
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_737908626"
+            ],
+            "desecrated": [
+              "desecrated.stat_737908626"
+            ],
+            "enchant": [
+              "enchant.stat_737908626"
+            ],
+            "explicit": [
+              "explicit.stat_737908626"
+            ],
+            "fractured": [
+              "fractured.stat_737908626"
+            ],
+            "rune": [
+              "rune.stat_737908626"
+            ]
+          },
+          "translation": "增加#%法術暴擊率"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "suffix",
+        "name": "同化之",
+        "tags": [
+          "魔力"
+        ],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "Gain # Mana per enemy killed",
+          "roll": {
+            "dp": false,
+            "max": 45,
+            "min": 36,
+            "unscalable": false,
+            "value": 40
+          },
+          "tradeIds": {
+            "desecrated": [
+              "desecrated.stat_1368271171"
+            ],
+            "enchant": [
+              "enchant.stat_1368271171"
+            ],
+            "explicit": [
+              "explicit.stat_1368271171"
+            ],
+            "fractured": [
+              "fractured.stat_1368271171"
+            ],
+            "implicit": [
+              "implicit.stat_1368271171"
+            ],
+            "rune": [
+              "rune.stat_1368271171"
+            ]
+          },
+          "translation": "每個被擊殺的敵人，獲得#魔力"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "suffix",
+        "name": "精髓之",
+        "tags": [
+          "法術,寶石"
+        ],
+        "type": "crafted"
+      },
+      "stats": [
+        {
+          "ref": "# to Level of all Spell Skills",
+          "roll": {
+            "dp": false,
+            "max": 3,
+            "min": 3,
+            "unscalable": false,
+            "value": 3
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_124131830"
+            ],
+            "desecrated": [
+              "desecrated.stat_124131830"
+            ],
+            "explicit": [
+              "explicit.stat_124131830"
+            ],
+            "fractured": [
+              "fractured.stat_124131830"
+            ],
+            "rune": [
+              "rune.stat_124131830"
+            ]
+          },
+          "translation": "全部法術技能等級#"
+        }
+      ]
+    }
+  ],
+  "quality": 20,
+  "rarity": "Rare",
+  "requires": {
+    "dex": 0,
+    "int": 109,
+    "level": 65,
+    "str": 0
+  },
+  "unknownModifiers": []
+}

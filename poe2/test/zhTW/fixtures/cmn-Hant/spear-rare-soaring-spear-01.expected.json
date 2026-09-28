@@ -1,0 +1,326 @@
+{
+  "augmentSockets": {
+    "augments": [
+      null
+    ],
+    "current": 0,
+    "empty": 1,
+    "normal": 1
+  },
+  "baseType": "翱翔長矛",
+  "category": "Spear",
+  "influences": [],
+  "info": {
+    "name": "翱翔長矛",
+    "namespace": "ITEM",
+    "refName": "Flying Spear"
+  },
+  "infoVariants": [
+    {
+      "name": "翱翔長矛",
+      "namespace": "ITEM",
+      "refName": "Flying Spear"
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": false,
+  "itemLevel": 82,
+  "name": "活屍 刀鋒",
+  "newMods": [
+    {
+      "info": {
+        "tags": [],
+        "type": "implicit"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Projectile Speed with this Weapon",
+          "roll": {
+            "dp": false,
+            "max": 35,
+            "min": 25,
+            "unscalable": false,
+            "value": 29
+          },
+          "tradeIds": {
+            "explicit": [
+              "explicit.stat_535217483"
+            ],
+            "implicit": [
+              "implicit.stat_535217483"
+            ]
+          },
+          "translation": "增加#%此武器的投射物速度"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [],
+        "type": "skill"
+      },
+      "stats": []
+    },
+    {
+      "info": {
+        "generation": "prefix",
+        "name": "無情的",
+        "tags": [
+          "傷害,物理,攻擊"
+        ],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Physical Damage",
+          "roll": {
+            "dp": false,
+            "max": 179,
+            "min": 170,
+            "unscalable": false,
+            "value": 176
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_1509134228"
+            ],
+            "desecrated": [
+              "desecrated.stat_1509134228"
+            ],
+            "enchant": [
+              "enchant.stat_1509134228"
+            ],
+            "explicit": [
+              "explicit.stat_1509134228"
+            ],
+            "fractured": [
+              "fractured.stat_1509134228"
+            ],
+            "rune": [
+              "rune.stat_1509134228"
+            ]
+          },
+          "translation": "增加#%物理傷害"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "prefix",
+        "name": "酷熱的",
+        "tags": [
+          "傷害,元素,火焰,攻擊"
+        ],
+        "tier": 5,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "Adds # to # Fire Damage",
+          "roll": {
+            "dp": false,
+            "max": 43.5,
+            "min": 31.5,
+            "unscalable": false,
+            "value": 41
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_709508406"
+            ],
+            "desecrated": [
+              "desecrated.stat_709508406"
+            ],
+            "enchant": [
+              "enchant.stat_709508406"
+            ],
+            "explicit": [
+              "explicit.stat_709508406"
+            ],
+            "fractured": [
+              "fractured.stat_709508406"
+            ],
+            "rune": [
+              "rune.stat_709508406"
+            ]
+          },
+          "translation": "附加#至#火焰傷害"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "prefix",
+        "name": "結冰的",
+        "tags": [
+          "傷害,元素,冰冷,攻擊"
+        ],
+        "tier": 8,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "Adds # to # Cold Damage",
+          "roll": {
+            "dp": false,
+            "max": 12.5,
+            "min": 8,
+            "unscalable": false,
+            "value": 9.5
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_1037193709"
+            ],
+            "desecrated": [
+              "desecrated.stat_1037193709"
+            ],
+            "enchant": [
+              "enchant.stat_1037193709"
+            ],
+            "explicit": [
+              "explicit.stat_1037193709"
+            ],
+            "fractured": [
+              "fractured.stat_1037193709"
+            ],
+            "rune": [
+              "rune.stat_1037193709"
+            ]
+          },
+          "translation": "附加#至#冰冷傷害"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "suffix",
+        "name": "同化之",
+        "tags": [
+          "魔力"
+        ],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "Gain # Mana per enemy killed",
+          "roll": {
+            "dp": false,
+            "max": 45,
+            "min": 36,
+            "unscalable": false,
+            "value": 44
+          },
+          "tradeIds": {
+            "desecrated": [
+              "desecrated.stat_1368271171"
+            ],
+            "enchant": [
+              "enchant.stat_1368271171"
+            ],
+            "explicit": [
+              "explicit.stat_1368271171"
+            ],
+            "fractured": [
+              "fractured.stat_1368271171"
+            ],
+            "implicit": [
+              "implicit.stat_1368271171"
+            ],
+            "rune": [
+              "rune.stat_1368271171"
+            ]
+          },
+          "translation": "每個被擊殺的敵人，獲得#魔力"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "suffix",
+        "name": "吸血鬼之",
+        "tags": [
+          "生命,物理,攻擊"
+        ],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "Leeches #% of Physical Damage as Life",
+          "roll": {
+            "dp": true,
+            "max": 9.9,
+            "min": 9,
+            "unscalable": false,
+            "value": 9.02
+          },
+          "tradeIds": {
+            "desecrated": [
+              "desecrated.stat_55876295"
+            ],
+            "explicit": [
+              "explicit.stat_55876295"
+            ],
+            "fractured": [
+              "fractured.stat_55876295"
+            ],
+            "rune": [
+              "rune.stat_55876295"
+            ]
+          },
+          "translation": "以#%物理傷害偷取生命"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "suffix",
+        "name": "轟擊之",
+        "tags": [],
+        "tier": 3,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Stun Duration",
+          "roll": {
+            "dp": false,
+            "max": 22,
+            "min": 20,
+            "unscalable": false,
+            "value": 21
+          },
+          "tradeIds": {
+            "desecrated": [
+              "desecrated.stat_748522257"
+            ],
+            "explicit": [
+              "explicit.stat_748522257"
+            ],
+            "fractured": [
+              "fractured.stat_748522257"
+            ]
+          },
+          "translation": "增加#%暈眩持續時間"
+        }
+      ]
+    }
+  ],
+  "rarity": "Rare",
+  "requires": {
+    "dex": 122,
+    "int": 0,
+    "level": 78,
+    "str": 48
+  },
+  "unknownModifiers": [],
+  "weaponAS": 1.6,
+  "weaponCOLD": 9.5,
+  "weaponCRIT": 5,
+  "weaponELEMENTAL": 50.5,
+  "weaponFIRE": 41,
+  "weaponPHYSICAL": 170
+}

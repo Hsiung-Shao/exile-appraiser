@@ -1,0 +1,168 @@
+import { ItemCategory, ItemRarity, ParsedItem } from "@/parser";
+import { StatFilter } from "./interfaces";
+import { applyEleAugment, recalculateItemProperties } from "@/parser/calc-base";
+import { BaseType, ITEM_BY_REF, AUGMENT_DATA_BY_AUGMENT } from "@/assets/data";
+import { parseModifiersPoe2, replaceHashWithValues } from "@/parser/Parser";
+import { ModifierType, sumStatsByModType } from "@/parser/modifiers";
+import {
+  calculatedStatToFilter,
+  FiltersCreationContext,
+  finalFilterTweaks,
+} from "./create-stat-filters";
+// exile-appraiser: AppConfig("price-check").searchStatRange → hostOptions().searchStatRange(見 @/parser/host-options.ts)
+import { hostOptions } from "@/parser/host-options";
+import { filterItemProp } from "./pseudo/item-property";
+import { ADDED_AUGMENT_LINE } from "@/parser/advanced-mod-desc";
+import { filterPseudo } from "./pseudo";
+import { ItemEditorType } from "@/parser/meta";
+
+export function handleApplyItemEdits(
+  filters: StatFilter[],
+  item: ParsedItem,
+  filterStorage: StatFilter[],
+  currencyItem: string,
+  editType?: ItemEditorType,
+) {
+  if (editType && editType !== ItemEditorType.Augment) return;
+  if (filterStorage.length !== 0) return;
+  // Testing with just one stat
+  const newFilters = createNewStatFilter(item, currencyItem);
+  if (!newFilters) return;
+
+  for (const filter of newFilters) {
+    // get on/off state of old filter
+    const oldFilter = filters.find(
+      (stat) => stat.statRef === filter.statRef && stat.tag === filter.tag,
+    );
+    if (oldFilter) {
+      filter.disabled = oldFilter.disabled;
+    }
+  }
+  // Store a copy of the current filters, then replace contents
+  filterStorage.splice(
+    0,
+    filterStorage.length,
+    ...JSON.parse(JSON.stringify(filters)),
+  );
+
+  // Clear and add new filters into the `filters` array
+  filters.splice(0, filters.length, ...newFilters);
+}
+
+export function handleRemoveItemEdits(
+  filters: StatFilter[],
+  item: ParsedItem,
+  filterStorage: StatFilter[],
+) {
+  // reset back to normal
+  for (const filterToApply of filterStorage) {
+    // get on/off state of old filter
+    const oldFilter = filters.find(
+      (stat) =>
+        stat.statRef === filterToApply.statRef &&
+        stat.tag === filterToApply.tag,
+    );
+    if (oldFilter) {
+      filterToApply.disabled = oldFilter.disabled;
+    }
+  }
+
+  filters.splice(0, filters.length, ...filterStorage);
+  filterStorage.length = 0;
+}
+
+function createNewStatFilter(
+  item: ParsedItem,
+  newAugment: string,
+): StatFilter[] | undefined {
+  if (!item.category) return;
+  const newItem = JSON.parse(JSON.stringify(item)) as ParsedItem;
+  const allCatAugData = AUGMENT_DATA_BY_AUGMENT[newAugment];
+  if (!allCatAugData) return;
+  const augmentData = allCatAugData.find((rune) =>
+    rune.categories.includes(item.category!),
+  );
+  if (!augmentData) return;
+  const runeItem = ITEM_BY_REF("ITEM", augmentData.refName)![0];
+
+  const emptyAugmentCount = item.augmentSockets!.empty;
+  const statString = replaceHashWithValues(
+    `${augmentData.baseStat}${ADDED_AUGMENT_LINE}`,
+    augmentData.values.map((v) => v * emptyAugmentCount),
+  );
+  parseModifiersPoe2([statString], newItem);
+  newItem.statsByType = sumStatsByModType(newItem.newMods);
+  const range = hostOptions().searchStatRange;
+  const ctx: FiltersCreationContext = {
+    item: newItem,
+    filters: [],
+    searchInRange: newItem.rarity === ItemRarity.Normal ? 100 : range,
+    statsByType: newItem.statsByType.map((calc) => {
+      if (
+        calc.type === ModifierType.Fractured &&
+        calc.stat.trade.ids[ModifierType.Explicit]
+      ) {
+        return { ...calc, type: ModifierType.Explicit };
+      } else {
+        return calc;
+      }
+    }),
+  };
+
+  if (
+    runeItem.refName.includes("Glacial Rune") ||
+    runeItem.refName.includes("Storm Rune") ||
+    runeItem.refName.includes("Desert Rune")
+  ) {
+    applyEleAugment(newItem, runeItem.refName, augmentData.values);
+  }
+
+  recalculateItemProperties(newItem, item);
+  filterItemProp(ctx);
+  filterPseudo(ctx);
+  if (item.isVeiled) {
+    ctx.statsByType = ctx.statsByType.filter(
+      (mod) => mod.type !== ModifierType.Veiled,
+    );
+  }
+
+  ctx.filters.push(
+    ...ctx.statsByType.map((mod) =>
+      calculatedStatToFilter(
+        mod,
+        ctx.searchInRange,
+        newItem,
+        mod.type !== "added-rune",
+      ),
+    ),
+  );
+
+  finalFilterTweaks(ctx);
+
+  ctx.filters = ctx.filters.map((filter) => {
+    if (
+      filter.sources.some(
+        (source) => source.modifier.info.type === ModifierType.AddedAugment,
+      )
+    ) {
+      filter.editorAdded = runeItem;
+    }
+    return filter;
+  });
+  return ctx.filters;
+}
+
+export function selectAugmentEffectByItemCategory(
+  category: ItemCategory,
+  rune: BaseType["augment"],
+) {
+  if (!rune) return;
+
+  return rune.find((rune) => rune.categories.includes(category));
+}
+
+export function getAugmentNameByRef(ref: string) {
+  const rune = ITEM_BY_REF("ITEM", ref);
+  if (!rune) return "error";
+  return rune[0].name;
+}

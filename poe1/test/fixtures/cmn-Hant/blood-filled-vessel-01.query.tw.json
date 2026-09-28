@@ -1,0 +1,47 @@
+{
+  "api": "trade",
+  "request": {
+    "query": {
+      "status": {
+        "option": "available"
+      },
+      "stats": [
+        {
+          "type": "and",
+          "filters": [
+            {
+              "id": "pseudo.pseudo_ritual_unique_monsters",
+              "value": {
+                "min": 3
+              },
+              "disabled": true
+            },
+            {
+              "id": "pseudo.pseudo_ritual_other_monsters",
+              "value": {
+                "min": 41
+              },
+              "disabled": true
+            }
+          ]
+        }
+      ],
+      "filters": {
+        "trade_filters": {
+          "filters": {
+            "price": {
+              "option": "chaos_divine"
+            },
+            "collapse": {
+              "option": "true"
+            }
+          }
+        }
+      },
+      "type": "浸血碑器"
+    },
+    "sort": {
+      "price": "asc"
+    }
+  }
+}

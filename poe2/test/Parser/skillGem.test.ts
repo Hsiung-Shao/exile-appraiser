@@ -1,0 +1,101 @@
+import { beforeEach, describe, expect, it } from "vitest";
+import { setupTests } from "@specs/vitest.setup";
+import { __testExports, parseClipboard } from "@/parser/Parser";
+import {
+  MetaSkillGem,
+  RareItem,
+  UncutSkillGem,
+  UncutSpiritGem,
+  UncutSupportGem,
+} from "./items";
+import { init } from "@/assets/data";
+import { createFilters } from "@/web/price-check/filters/create-item-filters";
+
+describe("isItemMissingItemClass", () => {
+  beforeEach(async () => {
+    setupTests();
+    await init("en");
+  });
+  it("so should now be false for meta skill gem", () => {
+    const sections = __testExports.itemTextToSections(MetaSkillGem.rawText);
+    expect(__testExports.isItemMissingItemClass(sections[0])).toBeTruthy();
+  });
+
+  it("should return false for any other item", () => {
+    const sections = __testExports.itemTextToSections(RareItem.rawText);
+    expect(__testExports.isItemMissingItemClass(sections[0])).toBe(false);
+  });
+});
+
+describe("Uncut gems parse correctly", () => {
+  beforeEach(async () => {
+    setupTests();
+    await init("en");
+  });
+  it("should parse uncut skill gem", () => {
+    const result = parseClipboard(UncutSkillGem.rawText).unwrapOr(null);
+    expect(result).not.toBeNull();
+    expect(result!.category).toBe(UncutSkillGem.category);
+    expect(result!.gemLevel).toBeUndefined();
+  });
+  it("should parse uncut spirit gem", () => {
+    const result = parseClipboard(UncutSpiritGem.rawText).unwrapOr(null);
+    expect(result).not.toBeNull();
+    expect(result!.category).toBe(UncutSpiritGem.category);
+    expect(result!.gemLevel).toBeUndefined();
+  });
+  it("should parse uncut support gem", () => {
+    const result = parseClipboard(UncutSupportGem.rawText).unwrapOr(null);
+    expect(result).not.toBeNull();
+    expect(result!.category).toBe(UncutSupportGem.category);
+    expect(result!.gemLevel).toBeUndefined();
+  });
+  it("should parse meta skill gem", () => {
+    const result = parseClipboard(MetaSkillGem.rawText).unwrapOr(null);
+    expect(result).not.toBeNull();
+    expect(result!.category).toBe(MetaSkillGem.category);
+    expect(result!.gemLevel).toBe(MetaSkillGem.gemLevel);
+  });
+});
+
+describe("Skill gems parse correctly", () => {
+  beforeEach(async () => {
+    setupTests();
+    await init("en");
+  });
+
+  it("should parse meta skill gem", () => {
+    const result = parseClipboard(MetaSkillGem.rawText).unwrapOr(null);
+    expect(result).not.toBeNull();
+    expect(result!.category).toBe(MetaSkillGem.category);
+    expect(result!.gemLevel).toBe(MetaSkillGem.gemLevel);
+  });
+});
+
+describe("Create Filter for uncut gems", () => {
+  beforeEach(async () => {
+    setupTests();
+    await init("en");
+  });
+  it.each([
+    { gem: UncutSkillGem },
+    { gem: UncutSpiritGem },
+    { gem: UncutSupportGem },
+  ])("createFilters should call createUncutGemFilters, %#", async ({ gem }) => {
+    const opts = {
+      league: "Standard",
+      currency: "exalt",
+      listingType: undefined,
+      collapseListings: "app" as const,
+      activateStockFilter: true,
+      exact: true,
+      useEn: true,
+      autoFillEmptyAugmentSockets: false as const,
+    };
+
+    const result = createFilters(gem, opts);
+
+    expect(result.searchExact).toBeTruthy();
+    expect(result.gemLevel).toBeUndefined();
+  });
+});
