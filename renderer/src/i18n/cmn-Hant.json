@@ -166,6 +166,7 @@
       "ee2_zh": "Exiled Exchange 2 的繁中 fork(PoE2 繁中資料來源)",
       "poenavi": "設計參考:PoE1 / PoE2 一體化查價流程(未複製程式碼)",
       "pobtools": "Poe Regex 搜尋字串演算法與資料(同作者專案)",
+      "pob_poe2": "PoE2 褻瀆詞綴 Tier 資料由其 Data/*.lua 推導",
       "disenchant": "拆粉排行的 gold 手續費、背包格數、固有勢力推算與交叉比對用粉塵數值",
       "alserom": "poe-dust 資料表(poe-disenchant-tool 的粉塵數值來源)"
     },

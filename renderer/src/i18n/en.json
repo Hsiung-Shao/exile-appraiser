@@ -166,6 +166,7 @@
       "ee2_zh": "Traditional Chinese fork of Exiled Exchange 2 (PoE2 zh-TW data)",
       "poenavi": "Design reference: unified PoE1 / PoE2 price check flow (no code copied)",
       "pobtools": "Poe Regex search-string algorithm and data (same author)",
+      "pob_poe2": "PoE2 desecrated modifier tier data derived from its Data/*.lua",
       "disenchant": "Disenchant ranking: gold fees, inventory slots, inherent-influence inference and dust values for cross-checking",
       "alserom": "poe-dust table (source of poe-disenchant-tool dust values)"
     },

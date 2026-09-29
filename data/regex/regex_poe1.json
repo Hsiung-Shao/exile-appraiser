@@ -2884,7 +2884,9 @@
       "支配之地圖（階級#）",
       "前綴 \"抓緊的\"(階層：#)",
       "（ 至多 10 條藤蔓可以抓住你，每個藤蔓造成 8% 更少移動速度。移動時掙脫 ）",
-      "抓緊的地圖（階級#）"
+      "抓緊的地圖（階級#）",
+      "前綴 \"受保護的\"(階層：#)",
+      "受保護的地圖（階級#）"
      ],
      "hiddenEn": [
       "Suffix Modifier \"of Power\" (Tier: #)",
@@ -2902,7 +2904,9 @@
       "Map (Tier #) of Domination",
       "Prefix Modifier \"Grasping\" (Tier: #)",
       "(Up to 10 Vines can grasp you, inflicting 8% less Movement Speed per Vine. Broken by moving)",
-      "Grasping Map (Tier #)"
+      "Grasping Map (Tier #)",
+      "Prefix Modifier \"Protected\" (Tier: #)",
+      "Protected Map (Tier #)"
      ]
     },
     {
@@ -2914,9 +2918,14 @@
       "#% more Scarabs found in Area"
      ],
      "g": 2,
-     "affixZh": "易爆之、傾斜之、折磨的、轉瞬之",
+     "affixZh": "詛咒之、易爆之、傾斜之、折磨的",
      "t17": true,
      "hiddenZh": [
+      "後綴 \"詛咒之\"(階層：#)",
+      "（脆弱為咒術，增加 15% 承受物理傷害，使擊中對目標 +25% 流血機率。脆弱持續 8 秒）",
+      "（時空鎖鏈為咒術，減少 15% 行動速度或 9% 對稀有或傳奇目標，並且使目標上的效果比平常慢 40% 失效。對玩家有 50% 更少效果並持續 5 秒）",
+      "（元素要害為咒術，減少 15% 全部元素抗性。持續 8 秒）",
+      "詛咒之地圖（階級#）",
       "前綴 \"易爆之\"(階層：#)",
       "易爆之地圖（階級#）",
       "後綴 \"傾斜之\"(階層：#)",
@@ -2933,6 +2942,11 @@
       "印記之地圖（階級#）"
      ],
      "hiddenEn": [
+      "Suffix Modifier \"of Curses\" (Tier: #)",
+      "(Vulnerability is a Hex which increases Physical Damage taken by 15% and causes Hits to have +25% chance to inflict Bleeding on the target. It lasts 8 seconds)",
+      "(Temporal Chains is a Hex which reduces Action Speed by 15%, or 9% on Rare or Unique targets, and makes other effects on the target expire 40% slower. It has 50% less effect on Players and lasts 5 seconds)",
+      "(Elemental Weakness is a Hex which inficts -15% to all Elemental Resistances. It lasts 8 seconds)",
+      "Map (Tier #) of Curses",
       "Prefix Modifier \"Volatile\" (Tier: #)",
       "Volatile Map (Tier #)",
       "Suffix Modifier \"of Miring\" (Tier: #)",
@@ -2969,6 +2983,8 @@
       "豐饒的地圖（階級#）",
       "前綴 \"終極的\"(階層：#)",
       "終極的地圖（階級#）",
+      "後綴 \"勇士之\"(階層：#)",
+      "勇士之地圖（階級#）",
       "後綴 \"飲用之\"(階層：#)",
       "飲用之地圖（階級#）",
       "後綴 \"反抗之\"(階層：#)",
@@ -2985,6 +3001,8 @@
       "Fecund Map (Tier #)",
       "Prefix Modifier \"Ultimate\" (Tier: #)",
       "Ultimate Map (Tier #)",
+      "Suffix Modifier \"of the Juggernaut\" (Tier: #)",
+      "Map (Tier #) of the Juggernaut",
       "Suffix Modifier \"of Imbibing\" (Tier: #)",
       "Map (Tier #) of Imbibing",
       "Suffix Modifier \"of Defiance\" (Tier: #)",

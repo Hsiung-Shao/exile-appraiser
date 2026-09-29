@@ -151,6 +151,7 @@ const THANKS: Credit[] = [
   { name: 'Exiled-Exchange-2-zh-TW', author: 'Hsiung-Shao', license: 'MIT', url: 'https://github.com/Hsiung-Shao/Exiled-Exchange-2-zh-TW', desc: 'ppz.about.ee2_zh', licenseFile: 'exiled-exchange-2.MIT' },
   { name: 'PoENavi', author: 'Buri', license: 'MIT', url: 'https://github.com/buri34/poenavi', desc: 'ppz.about.poenavi', licenseFile: 'poenavi.MIT' },
   { name: 'PobTools', author: 'Hsiung-Shao', url: 'https://github.com/Hsiung-Shao/PobTools-zh', desc: 'ppz.about.pobtools' },
+  { name: 'Path of Building Community (PoE2)', author: 'PathOfBuildingCommunity', license: 'MIT', url: 'https://github.com/PathOfBuildingCommunity/PathOfBuilding-PoE2', desc: 'ppz.about.pob_poe2', licenseFile: 'path-of-building.MIT' },
   { name: 'poe-disenchant-tool', author: 'deronek', license: 'MIT', url: 'https://github.com/deronek/poe-disenchant-tool', desc: 'ppz.about.disenchant', licenseFile: 'poe-disenchant-tool.MIT' },
   { name: 'poe-dust (gist)', author: '@alserom', url: 'https://gist.github.com/alserom/22bdd4106806cbd4f85a5cb8c4345c08', desc: 'ppz.about.alserom' }
 ]
