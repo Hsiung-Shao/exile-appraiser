@@ -54,6 +54,12 @@ describe('buildShortcutActions', () => {
     const a = buildShortcutActions({ ...base, runeshapeEnabled: true, hotkeyRuneshapeToggle: 'Ctrl + Shift + R' }, 'overlay')
     expect(a.filter(x => x.shortcut === 'Ctrl + Shift + R').map(x => x.action.type)).toEqual(['ocr-reveal'])
   })
+  // 2026-10-01:ocr-reveal = 暫停 / 繼續褻瀆自動辨識;自動辨識關掉就不註冊(省略 = 開,舊設定檔照舊註冊)
+  it('褻瀆自動辨識關閉 → 不註冊 ocr-reveal;省略 / 開 → 註冊', () => {
+    expect(buildShortcutActions({ ...base, revealAutoEnabled: false }, 'overlay').some(x => x.action.type === 'ocr-reveal')).toBe(false)
+    expect(buildShortcutActions({ ...base, revealAutoEnabled: true }, 'overlay').some(x => x.action.type === 'ocr-reveal')).toBe(true)
+    expect(buildShortcutActions(base, 'overlay').some(x => x.action.type === 'ocr-reveal')).toBe(true)
+  })
   it('normalizeHotkey', () => {
     expect(normalizeHotkey('ctrl+shift+t')).toBe('Ctrl + Shift + T')
     expect(normalizeHotkey('')).toBe('')

@@ -48,7 +48,7 @@ A price checker for Path of Exile 1 and 2: hover an item in game, press a hotkey
 - **Poe Regex search string builder**: tick mods or names to build a string for the in-game search bar; supports combining pages, bookmarks, share codes and templates.
 - **Disenchant ranking (PoE1)**: the price panel shows how much Thaumaturgic Dust a unique yields, plus a ranking of dust efficiency across all uniques.
 - **PoE2 desecrated mod tiers**: shows the tier reported by the game; when only plain copied text is available, the tier is inferred from PoB2 mod data and marked as inferred.
-- **PoE2 Well of Souls reveal OCR**: press one hotkey and each option is labelled with the tier, mod pool and value range of its desecrated mods.
+- **PoE2 Well of Souls reveal OCR**: open the reveal panel and it is recognized automatically; each option is labelled with the tier, mod pool and value range of its desecrated mods.
 - **PoE2 runeshape auto price check**: while the runeshape panel is open, each row gets a poe.ninja reference price.
 - **Browser preview of settings**: view and edit settings in a normal browser; changes sync back to the overlay instantly.
 - **Automatic updates**: the installed version downloads updates in the background and applies them when you quit; later updates only download what changed.
@@ -124,9 +124,9 @@ The Well of Souls three-option reveal panel cannot be copied as text, so the app
 
 **Usage**:
 
-1. On the Well of Souls reveal screen, press **`Ctrl + Shift + R`**.
-2. Each option gets a badge on its right: `Tier · mod pool · value range`.
-3. Badges disappear when you press the hotkey again, press `Esc`, after 15 seconds, or when the game window moves.
+1. Open the Well of Souls reveal screen; it is recognized automatically (on by default, can be turned off in Settings › Hotkeys & window).
+2. Each option gets a badge on its right: `Tier · mod pool · value range`, also while the price panel is open.
+3. Badges disappear when the reveal panel closes. **`Ctrl + Shift + R`** pauses / resumes auto-recognition.
 
 - A **"?"** on a badge means you have not price checked this item in the last 10 minutes, so the base type is unknown and tiers are inferred from the bases common to all three options. **Price check the item once before opening the reveal panel** for exact results.
 - **Recognition area (optional)**: in Settings › Hotkeys & window, click "Select on game screen" and drag a box around the reveal panel on the game screen; `Enter` confirms, `Esc` cancels. Recognition then looks at that area first (faster and more accurate) and falls back to the whole screen if the panel is not found there. A separate "Select OCR area" hotkey can also be set (unset by default).

@@ -1,10 +1,38 @@
 # 靈魂之井三選一揭露面板 OCR(WP-S)
 
-PoE2 靈魂之井的「三選一」揭露面板無法複製文字。按熱鍵(預設 **`Ctrl + Shift + R`**)→ 擷取遊戲畫面 → Windows 內建 OCR
+PoE2 靈魂之井的「三選一」揭露面板無法複製文字。擷取遊戲畫面 → Windows 內建 OCR
 → 對 `data/poe2/desecration/tiers.json` 比對 → overlay 在每個選項右側顯示 `T4 · 一般 · 21–26 / 20–25`。
-只在 **overlay 模式 + PoE2** 註冊熱鍵;PoE1 不註冊。**不送任何鍵盤 / 滑鼠輸入**(觸發時也不放開修飾鍵)。
+**2026-10-01 起改為自動持續辨識**(設定 `revealAutoEnabled`,預設開;見下節),原本的熱鍵(預設 **`Ctrl + Shift + R`**)改為「暫停 / 繼續」。
+只在 **overlay 模式 + PoE2** 運作;PoE1 不掃描、不註冊熱鍵。**不送任何鍵盤 / 滑鼠輸入**(觸發時也不放開修飾鍵)。
 
-## 管線
+## 自動持續辨識(2026-10-01)
+
+使用者要求「與符文塑形一致:開關 + 自動持續辨識」。符文塑形的掃描骨架泛化成 `main/src/ocr/panel-scan.ts` 的 `PanelScan<PanelDetector>`
+(排程、`scanBlock` 暫停條件、`bgraToGray` / `frameDiff` / `isChanged` 變化偵測、`ScanClock` / `ScanCapture` 注入、自動定位快取),
+符文與褻瀆各注入自己的偵測器;褻瀆在 `main/src/ocr/reveal-scan.ts`(`RevealScan`、`createRevealDetector`)。
+
+| 項目 | 褻瀆(`reveal-scan.ts`) | 符文塑形(`runeshape-scan.ts`,行為不變) |
+|---|---|---|
+| 設定 | `revealAutoEnabled`(預設**開**)、`revealIntervalMs`(500–3000,預設 1000)、區域沿用 `ocrRegion` | `runeshapeEnabled`(預設關)、`runeshapeIntervalMs`、`runeshapeRegion` |
+| 資料 | `ready()` 第一次讀 `tiers.json` 建模板索引(`locate-data.ts`);讀不到 → 停止(`no-data`,清徽章) | 不需要 |
+| 自動定位(沒快取時每 3 秒最多一次整個 client ×1) | `locatePanel`(像詞綴的行成簇 → 外擴) | `locateRunePanel` |
+| 有沒有面板 | `findPanelHits` ≥ 2 行像詞綴(`REVEAL_MIN_HITS`,同 `checkRegion`) | ≥ 1 列 `isPanelRow` |
+| 送出的行 | 區域 OCR 的**全部行**(renderer `matchRevealLines` 要用對不上的行補中間沒認出的組) | 含 CJK 的行 |
+| 有框區域 | 優先區域;區域內連續 2 次沒面板 → **退回自動定位**(事件帶 `fallback: true`,設定頁顯示「區域內沒找到,改找整個畫面」),區域的縮圖有變化才回到區域 | 只看區域,不退回 |
+| 暫停 | 遊戲失焦、設定 / 框選層開著;**查價面板開著不暫停**(看褻瀆時常同時開查價) | 另加查價面板開著 |
+| 事件 | `reveal-scan-result`(`RevealScanEvent` = `PanelScanEvent`,不進 `PREVIEW_EVENTS`) | `runeshape-scan-result` |
+| 熱鍵 | `hotkeyOcrReveal` = 暫停 / 繼續(`revealAutoEnabled` 關時不註冊) | `hotkeyRuneshapeToggle` |
+
+- **共用 WinOcr**:兩個掃描的 `ocrBusy` 互看對方的 `busy`,忙碌就丟掉這個 tick(不排隊);main 啟動時褻瀆第一個 tick 立刻跑、符文延後半個間隔,兩者同時開著時交錯。
+- **徽章**(`OcrBadges.vue` + `ocr-reveal.ts` `revealScanAction`):`rows` → 重新比對並重畫;比對不成面板(背包物品浮窗等,main 端只看得出「≥ 2 行像詞綴」)→ 靜靜清掉、不跳錯誤;
+  `empty` / `inactive` / `user-paused` → 清除。**沒有 15 秒自動消失、沒有「再按一次清除」**;Esc 暫時清掉;overlay 改大小以最後結果重排;退回整個畫面的提示只在剛切過去時顯示 5 秒(`fallbackNoteShows`)。
+- 框選確認後 `ocr-reveal-now` → `revealScan.rescan()`(丟掉差分基準與退回狀態,下一個 tick 一定重看)。
+- 設定頁(熱鍵與視窗 › 褻瀆自動辨識卡片):開關、掃描間隔、狀態列(`reveal-stats`:找到 / 尋找中 / 退回 / 暫停,`revealScanStatus`)。
+- 舊的按熱鍵辨識一次(`RevealOcr`、`ocr-reveal-result`)已移除;兩段式 `strategy.ts`(`smartRecognize` / `recognizeRegionFirst`)仍給 `--ocr-selftest` 用,下文「兩段式辨識」「框選辨識區域」的**單次**流程描述保留作歷史紀錄。
+- 測試:`main/test/reveal-scan.test.ts`(三張真實截圖快照當畫面:偵測器定位 / 判定、自動定位 → ×3、畫面沒變不 OCR、面板關了 empty、查價面板開著照常、設定開著暫停、no-data、共用 WinOcr 忙碌、暫停熱鍵、區域 / 退回 / 回到區域、rescan、停用清徽章)、
+  `renderer/test/reveal-scan.test.ts`(事件 → 徽章動作、狀態列、設定往返)、`main/test/runeshape-scan.test.ts`(泛化後符文行為不變)。
+
+## 管線(2026-09-30 單次辨識時的設計;擷取 / OCR / 比對 / 座標系沿用)
 
 | 段 | 檔案 | 做什麼 |
 |---|---|---|
@@ -175,7 +203,10 @@ OCR 使用 Windows 內建辨識,在本機執行;截圖只在記憶體裡傳給�
 
 ## 待使用者親測
 
-1. PoE2 開井 → `Ctrl + Shift + R` → 三枚徽章位置與內容;視窗化 / 無邊框 / 全螢幕三種模式各一次。
+0. **2026-10-01 自動持續辨識**:PoE2 開井 → 不按任何鍵,約 1–3 秒內出現三枚徽章;關掉面板徽章消失;開著查價面板時仍會出現;
+   `Ctrl + Shift + R` 暫停(徽章消失)/ 繼續;與符文塑形同時開著時兩邊都會更新;平常遊玩時的 CPU(沒面板時約每 3 秒整張 ×1 一次);
+   背包物品浮窗不會誤出徽章;框了區域但面板不在區域內時,設定頁顯示「改找整個畫面」且仍出徽章。
+1. PoE2 開井 → 三枚徽章位置與內容;視窗化 / 無邊框 / 全螢幕三種模式各一次。
 2. 先查價那件物品(10 分鐘內)再按,徽章沒有「?」。
 3. PoE1 下熱鍵無反應;再按一次熱鍵清除;移動遊戲視窗清除。
 4. WP-S2:設定 › 熱鍵與視窗 ›「在遊戲上框選」→ 設定視窗隱藏、框選層出現且可拖曳(overlay 真的取得焦點)→ 框住揭露面板按「確認」→ 設定視窗回來停在熱鍵分頁、顯示「已設定」;

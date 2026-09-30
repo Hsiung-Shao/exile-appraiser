@@ -56,8 +56,8 @@ export const HOST_EVENT_METHODS: Readonly<Record<string, string>> = {
   onOpenSettings: 'open-settings',
   onUpdaterState: 'updater-state',
   onConfigChanged: 'config-changed',
-  // WP-S:事件不在 PREVIEW_EVENTS,預覽端永遠收不到(只訂閱不報錯)
-  onOcrRevealResult: 'ocr-reveal-result',
+  // 褻瀆自動辨識:事件不在 PREVIEW_EVENTS,預覽端永遠收不到(只訂閱不報錯)
+  onRevealScanResult: 'reveal-scan-result',
   // WP-S2:框選熱鍵事件同樣只給 overlay
   onOcrRegionPick: 'ocr-region-pick',
   // WP-R2:符文塑形掃描結果同樣只給 overlay(不在 PREVIEW_EVENTS)
@@ -68,7 +68,7 @@ export const HOST_EVENT_METHODS: Readonly<Record<string, string>> = {
  * 瀏覽器端沒有視窗可控:這幾個在 shim 裡直接 no-op(不走 RPC)。`ocrRevealAvailable`(WP-S)回 undefined = 預覽端不適用;
  * WP-S2 的 `overlayActivate` / `ocrRevealNow` 也是(預覽端設定卡片隱藏「在遊戲上框選」)。
  */
-export const PREVIEW_NOOP_ASYNC = ['hideWindow', 'resizeWindow', 'ocrRevealAvailable', 'overlayActivate', 'ocrRevealNow', 'runeshapeStats'] as const
+export const PREVIEW_NOOP_ASYNC = ['hideWindow', 'resizeWindow', 'ocrRevealAvailable', 'overlayActivate', 'ocrRevealNow', 'runeshapeStats', 'revealStats'] as const
 /** WP-R2:`runeshapeUiState`(預覽分頁開設定不該暫停 overlay 的掃描)也是 no-op */
 export const PREVIEW_NOOP_SYNC = ['trackArea', 'focusGame', 'usedRecently', 'runeshapeUiState'] as const
 

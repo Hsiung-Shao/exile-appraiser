@@ -11,8 +11,8 @@
  *   遊戲預設 Alt → 送 Ctrl+Alt+C。照 Exiled Exchange 2 `main/src/shortcuts/Shortcuts.ts` 的 pressKeysToCopyItemText
  *   (`mergeTwoHotkeys("Ctrl + C", showModsKey)`,showModsKey 預設 "Alt")。EE2 另外讀 poe2_production_Config.ini 的
  *   `show_advanced_item_descriptions` 改鍵;本專案先固定 Alt(改過這個鍵的玩家待支援,見 docs/desecration-tiers.md)。
- * - WP-S:`ocr-reveal`(`hotkeyOcrReveal`,預設 Ctrl+Shift+R)只在 overlay + PoE2 註冊;觸發時只呼叫 `onOcrReveal`,
- *   **不送也不放開任何按鍵**(見 docs/reveal-ocr.md)。
+ * - WP-S:`ocr-reveal`(`hotkeyOcrReveal`,預設 Ctrl+Shift+R)只在 overlay + PoE2 + 褻瀆自動辨識開著時註冊;觸發時只呼叫 `onOcrReveal`
+ *   (2026-10-01 起 = 暫停 / 繼續褻瀆自動辨識),**不送也不放開任何按鍵**(見 docs/reveal-ocr.md)。
  * - WP-S2:`ocr-region`(`hotkeyOcrRegion`,預設空 = 不註冊)註冊條件同 `ocr-reveal`;觸發時只呼叫 `onOcrRegionPick`
  *   (renderer 開框選層),同樣不送也不放開任何按鍵。動作表抽到 `shortcut-actions.ts`(純函式,有測試)。
  * - WP-R2:`runeshape-toggle`(`hotkeyRuneshapeToggle`,預設空)= 符文塑形自動查價暫停 / 繼續;只呼叫 `onRuneshapeToggle`。

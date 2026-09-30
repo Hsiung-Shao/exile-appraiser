@@ -70,8 +70,15 @@ export interface HostConfigForMain {
   language: 'cmn-Hant' | 'en'
   /** 介面語言:main 的托盤選單依它重建(main/src/tray-strings.ts)。 */
   uiLanguage: 'cmn-Hant' | 'en'
-  /** WP-S:PoE2 靈魂之井揭露面板 OCR 熱鍵(預設 `Ctrl + Shift + R`;空字串 = 不註冊)。只在 overlay 模式 + PoE2 註冊。 */
+  /**
+   * WP-S:PoE2 靈魂之井揭露面板熱鍵(預設 `Ctrl + Shift + R`;空字串 = 不註冊)。只在 overlay 模式 + PoE2 + `revealAutoEnabled` 時註冊。
+   * 2026-10-01 起 = **暫停 / 繼續褻瀆自動辨識**(原本是「按一次辨識一次」)。
+   */
   hotkeyOcrReveal: string
+  /** 2026-10-01:褻瀆(揭露面板)自動持續辨識(預設開;舊設定檔沒有這欄 = 開)。 */
+  revealAutoEnabled?: boolean
+  /** 2026-10-01:褻瀆自動辨識的掃描間隔(ms,500–3000,預設 1000)。 */
+  revealIntervalMs?: number
   /** WP-S:OCR 搜尋範圍(client 比例座標 0–1);null = 整個遊戲畫面(自動找面板)。WP-S2 起優先用它、區域內沒找到再找整個畫面。 */
   ocrRegion: OcrRegion | null
   /** WP-S2:在遊戲畫面上框選 OCR 區域的熱鍵(預設空字串 = 不註冊);註冊條件同 `hotkeyOcrReveal`(overlay + PoE2 + 遊戲前景)。 */
@@ -90,14 +97,16 @@ export interface HostConfigForMain {
   startupToast: boolean
 }
 
-/** WP-R2:一列 OCR 文字(座標 = 遊戲 client 區實體像素)。名稱比對在 renderer(poe2 `matchRunesRows`)。 */
-export interface RuneshapeScanRow {
+/** 面板掃描(符文塑形 / 褻瀆)的一行 OCR 文字(座標 = 遊戲 client 區實體像素)。比對在 renderer。 */
+export interface PanelScanRow {
   text: string
   x: number
   y: number
   w: number
   h: number
 }
+/** WP-R2:符文塑形的一列(名稱比對在 renderer poe2 `matchRunesRows`) */
+export type RuneshapeScanRow = PanelScanRow
 
 /** WP-R2:一次掃描各段耗時(ms)。沒跑到的段省略。 */
 export interface RuneshapeTimings {
@@ -121,19 +130,29 @@ export interface RuneshapeTimings {
 }
 
 /**
- * WP-R2:`runeshape-scan-result`(main → overlay;**不送瀏覽器預覽**)。
- * - `rows`:面板區 OCR 到的列(含 CJK 的行;至少要有 1 列面板格式的列 `isPanelRow`,否則視為沒有列);空陣列 = 清除徽章。
- * - `reason`:`rows` 有內容;`empty` = 連續 2 次 OCR 沒有列(面板關了);`inactive` = 停用 / 不是 PoE2 overlay / 沒有遊戲視窗;
+ * 面板掃描結果(main `panel-scan.ts`;main → overlay;**不送瀏覽器預覽**)。
+ * - `rows`:面板區 OCR 到的行(detector 判定有面板才有;空陣列 = 清除徽章)。
+ * - `reason`:`rows` 有內容;`empty` = 連續 2 次 OCR 沒有面板(面板關了);`inactive` = 停用 / 不是 PoE2 overlay / 沒有遊戲視窗 / 資料讀不到;
  *   `user-paused` / `user-resumed` = 暫停熱鍵。
+ * - `fallback`:手動區域內沒找到面板、這次結果來自自動定位(只有褻瀆會發生)。
  */
-export interface RuneshapeScanEvent {
+export interface PanelScanEvent {
   seq: number
   ts: number
   reason: 'rows' | 'empty' | 'inactive' | 'user-paused' | 'user-resumed'
-  rows: RuneshapeScanRow[]
+  rows: PanelScanRow[]
   client: { w: number, h: number }
   timings?: RuneshapeTimings
+  fallback?: boolean
 }
+/**
+ * WP-R2:`runeshape-scan-result`。`rows` = 含 CJK 的行(至少要有 1 列面板格式的列 `isPanelRow`,否則視為沒有列)。
+ */
+export type RuneshapeScanEvent = PanelScanEvent
+/**
+ * 2026-10-01:`reveal-scan-result`(褻瀆自動辨識)。`rows` = 面板區 OCR 的全部行(≥ 2 行像詞綴才送),比對在 renderer(poe2 `matchRevealLines`)。
+ */
+export type RevealScanEvent = PanelScanEvent
 
 /** WP-R2:renderer 回報的 UI 狀態(任一為 true → 暫停掃描)。 */
 export interface RuneshapeUiState {
@@ -148,8 +167,10 @@ export interface RuneshapeUiState {
 export interface RuneshapeStats {
   /** 目前在掃描 */
   active: boolean
-  /** 沒在掃描的原因(`disabled` / `not-poe2` / `not-overlay` / `no-window` / `game-inactive` / `ui-open` / `user-paused` / `stopped`) */
+  /** 沒在掃描的原因(`disabled` / `not-poe2` / `not-overlay` / `no-window` / `game-inactive` / `ui-open` / `user-paused` / `no-data` / `stopped`) */
   reason?: string
+  /** 褻瀆:手動區域內沒找到面板,目前退回自動定位中 */
+  fallback?: boolean
   ticks: number
   ocrRuns: number
   skippedUnchanged: number
@@ -188,66 +209,7 @@ export interface OcrRevealLine {
   h: number
 }
 
-export type OcrRevealError =
-  /** 沒有繁中 OCR 語言包(設定 → 時間與語言 → 語言 → 中文(台灣)→ 語言選項 → 光學字元辨識) */
-  | 'lang-missing'
-  | 'unsupported-platform'
-  /** overlay 還沒綁到遊戲視窗(或視窗大小為 0) */
-  | 'no-game-window'
-  /** desktopCapturer 拿不到畫面(全螢幕獨占模式可能是黑畫面) */
-  | 'capture-failed'
-  | 'timeout'
-  | 'ocr-failed'
-
-/**
- * `ocr-reveal-result` 事件(main → overlay;不送瀏覽器預覽)。
- * - `pending`:按下熱鍵、開始擷取(UI 顯示「辨識中」)。
- * - `result`:`ok` 時 `lines` 是整個搜尋範圍的 OCR 行,比對在 renderer(poe2 `matchReveal`)。
- */
-export type OcrRevealEvent =
-  | { phase: 'pending', seq: number }
-  | {
-    phase: 'result'
-    seq: number
-    ok: boolean
-    error?: OcrRevealError
-    message?: string
-    lines: OcrRevealLine[]
-    /** client 區實體像素大小(renderer 以比例換算成 CSS 座標) */
-    client: { w: number, h: number }
-    /** OCR 前的放大倍率 */
-    scale: number
-    /** 擷取 + OCR 總耗時 / 其中 OCR 本身 */
-    tookMs: number
-    ocrMs: number
-    /**
-     * 兩段式診斷:走了哪條路(cached = 快取區 ×3;two-pass = 整張 ×1 定位 + 面板區 ×3;full = 整張 ×3)。
-     * WP-S2:有設定區域時 = `region`(區域內找到)或 `region-fallback`(區域內沒找到,改找整個畫面;renderer 提示一次)。
-     */
-    stage?: OcrRevealStage
-    /** WP-S2:被採用那一輪實際走的內層路徑 */
-    inner?: 'cached' | 'two-pass' | 'full'
-    /** 各段耗時(依執行順序;失敗的段帶 `rejected`) */
-    stages?: OcrRevealStageTiming[]
-  }
-
-/** WP-S 兩段式辨識走的路(docs/reveal-ocr.md);WP-S2 加 `region` / `region-fallback` */
-export type OcrRevealStage = 'cached' | 'two-pass' | 'full' | 'region' | 'region-fallback'
-
-export interface OcrRevealStageTiming {
-  name: 'cached' | 'locate' | 'detail' | 'full'
-  /** 這段 OCR 的範圍(client 實體像素) */
-  rect: { x: number, y: number, width: number, height: number }
-  scale: number
-  /** 前處理 + OCR + 傳輸 */
-  ms: number
-  ocrMs: number
-  lines: number
-  hits?: number
-  rejected?: string
-  /** WP-S2:`region` = 使用者框的區域那一輪;`screen` = 整個畫面那一輪(沒設定區域時省略) */
-  scope?: 'region' | 'screen'
-}
+// 2026-10-01:按熱鍵辨識一次的 `ocr-reveal-result`(OcrRevealEvent / 兩段式 stage)已由持續掃描的 `reveal-scan-result`(RevealScanEvent)取代。
 
 /** `ocrRevealAvailable()` 的結果(設定頁顯示)。 */
 export type OcrAvailability =
@@ -333,19 +295,21 @@ export interface HostApi {
   openPreview: () => Promise<{ url: string }>
   /** 預覽伺服器目前的網址(沒在跑回 null)。 */
   getPreviewUrl: () => Promise<string | null>
-  /** WP-S:靈魂之井揭露面板 OCR(熱鍵觸發;只有 overlay 會收到)。 */
-  onOcrRevealResult: (cb: (e: OcrRevealEvent) => void) => () => void
+  /** 靈魂之井揭露面板(褻瀆)自動辨識結果(`reveal-scan-result`;只有 overlay 會收到)。 */
+  onRevealScanResult?: (cb: (e: RevealScanEvent) => void) => () => void
+  /** 褻瀆自動辨識統計(設定頁);預覽端回 undefined。 */
+  revealStats?: () => Promise<RuneshapeStats | undefined>
   /** WP-S:Windows OCR 繁中語言包是否可用(會視需要啟動 OCR 行程;瀏覽器預覽端回 undefined)。 */
   ocrRevealAvailable: () => Promise<OcrAvailability | undefined>
   /** WP-S2:overlay 取得焦點(可點擊;main `assertOverlayActive`)。框選層開啟時呼叫;預覽端 no-op。 */
   overlayActivate: () => Promise<void>
-  /** WP-S2:立刻跑一次揭露面板 OCR(= 按 OCR 熱鍵;框選確認後自動試辨識)。沒有遊戲視窗 / 不是 PoE2 overlay 時回 false;預覽端 no-op。 */
+  /** WP-S2:框選確認後請褻瀆自動辨識立刻重看一次(丟掉差分基準 / 退回狀態)。沒有遊戲視窗 / 不是 PoE2 overlay 時回 false;預覽端 no-op。 */
   ocrRevealNow: () => Promise<boolean | undefined>
   /** WP-S2:框選熱鍵(`hotkeyOcrRegion`)按下 → renderer 開框選層(只有 overlay 會收到)。 */
   onOcrRegionPick: (cb: () => void) => () => void
   /** WP-R2:符文塑形自動查價的掃描結果(只有 overlay 會收到)。 */
   onRuneshapeScanResult?: (cb: (e: RuneshapeScanEvent) => void) => () => void
-  /** WP-R2:回報查價面板 / 設定 / 框選層是否開著(任一開著 → main 暫停掃描);預覽端 no-op。 */
+  /** WP-R2:回報查價面板 / 設定 / 框選層是否開著(符文塑形:任一開著 → 暫停;褻瀆:設定 / 框選層才暫停);預覽端 no-op。 */
   runeshapeUiState?: (s: RuneshapeUiState) => void
   /** WP-R2:掃描統計(設定頁);預覽端回 undefined。 */
   runeshapeStats?: () => Promise<RuneshapeStats | undefined>

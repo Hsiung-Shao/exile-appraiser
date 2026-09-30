@@ -1,21 +1,56 @@
 /**
- * exile-appraiser(WP-S):靈魂之井揭露面板 OCR 的 renderer 端純邏輯(`OcrBadges.vue` 用;`renderer/test/ocr-reveal.test.ts` 測)。
+ * exile-appraiser(WP-S):靈魂之井揭露面板(褻瀆)的 renderer 端純邏輯(`OcrBadges.vue` 用;`renderer/test/ocr-reveal.test.ts` 測)。
  * - profile 來源:最近 10 分鐘內查價的 PoE2 物品(`App.vue` 解析成功時 `recordPoe2Item`);超過就不給 → 比對端推 profile、徽章加「?」。
  * - 徽章位置:比對結果的組矩形(client 實體像素)× 視窗 CSS 大小 / client 大小(overlay 視窗與 client 區對齊,CSS 原點 = client 左上)。
+ * - 2026-10-01 起徽章跟著 main 的自動辨識事件(`reveal-scan-result`)持續更新:有列 → 重新比對;`empty` / `inactive` / 暫停 → 清除
+ *   (沒有 15 秒自動消失、沒有「再按一次清除」)。`revealScanAction` 決定每個事件要做什麼。
  * 只做型別匯入(renderer vitest 沒有別名)。
  */
 import { shallowRef } from 'vue'
 import type { Poe2RevealCandidate, Poe2RevealResult } from '@poe2-entry'
-import type { OcrRegion } from '@ipc/types'
+import type { OcrRegion, RevealScanEvent, RuneshapeStats } from '@ipc/types'
 
 /** 最近查價物品當 profile 的有效期 */
 export const LAST_ITEM_TTL_MS = 10 * 60_000
-/** 徽章自動清除 */
-export const BADGE_TTL_MS = 15_000
-/** 錯誤訊息自動清除 */
-export const ERROR_TTL_MS = 8_000
 /** 徽章與該組右緣的間距(CSS px) */
 export const BADGE_GAP_PX = 14
+
+export type RevealScanAction =
+  /** 有列:交給 `matchRevealLines` 比對並重畫徽章 */
+  | { kind: 'match' }
+  /** 清掉徽章 */
+  | { kind: 'clear', reason: string }
+  /** 不動(繼續辨識:下一個有列的事件再畫) */
+  | { kind: 'ignore' }
+
+/** 自動辨識事件 → 徽章層動作(只清除於 empty / inactive / 暫停;PoE1 一律清) */
+export function revealScanAction (ev: Pick<RevealScanEvent, 'reason' | 'rows'>, game: 'poe1' | 'poe2'): RevealScanAction {
+  if (ev.reason === 'rows') {
+    if (game !== 'poe2') return { kind: 'clear', reason: '不是 PoE2' }
+    return ev.rows.length ? { kind: 'match' } : { kind: 'clear', reason: '沒有列' }
+  }
+  if (ev.reason === 'user-resumed') return { kind: 'ignore' }
+  const why: Record<string, string> = { empty: '面板關了', inactive: '停止辨識', 'user-paused': '使用者暫停' }
+  return { kind: 'clear', reason: why[ev.reason] ?? ev.reason }
+}
+
+/** 設定頁的褻瀆自動辨識狀態列(main `reveal-stats`);沒有統計 / 不在掃描(非暫停)→ null */
+export function revealScanStatus (
+  s: Pick<RuneshapeStats, 'reason' | 'panel' | 'fallback' | 'mode'> | undefined,
+  t: (key: string, args?: Record<string, unknown>) => string,
+  hotkey: string
+): { code: string, warn: boolean, text: string } | null {
+  if (!s) return null
+  if (s.reason === 'user-paused') return { code: 'paused', warn: true, text: t('ppz.ocr.scan_status_paused', { hotkey: hotkey || '—' }) }
+  if (s.fallback) return { code: 'fallback', warn: true, text: t('ppz.ocr.scan_status_fallback') }
+  if (s.panel === 'found') return { code: 'found', warn: false, text: t('ppz.ocr.scan_status_found') }
+  return { code: 'searching', warn: false, text: t('ppz.ocr.scan_status_searching') }
+}
+
+/** 「框選區域內沒找到,改找整個畫面」提示:只在剛切到退回模式的那一次顯示(之後同一段退回期間不重複) */
+export function fallbackNoteShows (fallback: boolean | undefined, prevFallback: boolean): boolean {
+  return Boolean(fallback) && !prevFallback
+}
 
 export interface LastPoe2Item { refName: string, category?: string, at: number }
 
@@ -86,7 +121,7 @@ export function layoutBadges (
 // ---- WP-S2:在遊戲畫面上框選 OCR 區域(OcrRegionPicker.vue)的共用狀態 ----
 
 /**
- * 框選層是否開著(App.vue 據此忽略 Alt 隱藏與背景點擊、隱藏設定視窗;OcrBadges 開啟時清掉徽章)。
+ * 框選層是否開著(App.vue 據此忽略背景點擊、隱藏設定視窗;OcrBadges 開啟時清掉徽章)。
  * WP-R2:同一個框選層也框符文塑形面板(`regionPickerTarget` / `REGION_PICKER_SPECS`)。
  */
 export const regionPickerOpen = shallowRef(false)
@@ -117,7 +152,10 @@ export interface RegionPickerSpec {
   /** 說明條標題 / 副標(i18n 鍵) */
   titleKey: string
   subKey: string
-  /** 確認後(不回設定時):`reveal-now` = focus-game + 150 ms 後試辨識一次;`focus-game` = 只把焦點還給遊戲(掃描迴圈會自己開始) */
+  /**
+   * 確認後(不回設定時):`reveal-now` = focus-game + 150 ms 後請褻瀆自動辨識立刻重看(`ocr-reveal-now` → `rescan`);
+   * `focus-game` = 只把焦點還給遊戲(掃描迴圈會自己開始)
+   */
   afterConfirm: 'reveal-now' | 'focus-game'
   /** 顯示「上次偵測」參考框與「套用上次偵測」鈕(只有揭露面板有偵測結果) */
   showLastDetected: boolean

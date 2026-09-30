@@ -1,12 +1,12 @@
 <!--
   exile-appraiser(WP-S2):在遊戲畫面上直接框選 OCR 辨識區域(只在 overlay 掛;見 docs/reveal-ocr.md「框選辨識區域」)。
-  - 開啟:設定 › 熱鍵與視窗 › 靈魂之井揭露 OCR 卡片的「在遊戲上框選」,或 `hotkeyOcrRegion` 熱鍵(main 送 `ocr-region-pick`)。
+  - 開啟:設定 › 熱鍵與視窗 › 靈魂之井褻瀆自動辨識卡片的「在遊戲上框選」,或 `hotkeyOcrRegion` 熱鍵(main 送 `ocr-region-pick`)。
     開啟時呼叫 `overlay-activate`(main `assertOverlayActive`)讓 overlay 可點擊。
   - 畫面:暗幕 rgba(0,0,0,.55),選取框內挖空看得到遊戲原圖;頂部說明條與按鈕是深色島(淺色主題也維持深色,與徽章一致)。
     參考框:目前已存的區域(實線)、上次 OCR 偵測到的面板外框(虛線,`lastDetectedRegion`)。
   - 操作:拖曳新框、框內拖曳移動、8 個把手調大小(最小 40×40 CSS px)、方向鍵移動 1 px(Shift 10 px)、Ctrl + 方向鍵調右 / 下邊。
     幾何全部在 `region-geom.ts`(純函式,有測試)。
-  - 確認(Enter / 按鈕):寫 `config.ocrRegion`(client 比例,經 `normOcrRegion`)→ 關層 → `focus-game` → 150 ms 後 `ocr-reveal-now`(自動試辨識一次)。
+  - 確認(Enter / 按鈕):寫 `config.ocrRegion`(client 比例,經 `normOcrRegion`)→ 關層 → `focus-game` → 150 ms 後 `ocr-reveal-now`(請褻瀆自動辨識立刻重看新區域)。
   - 取消:Esc / 按鈕 / overlay 失焦(focus-change overlay=false)/ 視窗隱藏(document hidden)→ 不存、關層。
     overlay 內的 Esc 會先被 main 的 before-input-event 攔下並把焦點還給遊戲 → 走「失焦」取消,結果相同。
   - 由設定視窗開啟(`regionPickerSource === 'settings'`)時,確認 / 取消鈕 / 清除後**回到設定的熱鍵分頁**(App.vue 讀

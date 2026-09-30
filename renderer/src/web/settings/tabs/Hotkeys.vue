@@ -4,6 +4,8 @@
   error 形如 `hotkey "Ctrl + D", "Shift + Space" is already registered by another application`,
   依引號裡的熱鍵對回欄位,在該欄位下方以 --bad 顯示;對不回任何欄位的錯誤顯示在卡片底部。
   WP-S:PoE2 時多一個「靈魂之井揭露 OCR」熱鍵與一張卡片(語言包狀態、進階搜尋範圍 ocrRegion、隱私說明)。
+  2026-10-01:卡片改為「褻瀆自動辨識」:開關 revealAutoEnabled(預設開)、掃描間隔 revealIntervalMs、狀態(main `reveal-stats`:
+  找到 / 尋找中 / 區域內沒找到改找整個畫面 / 暫停);原本的 OCR 熱鍵改為「暫停 / 繼續」。
   WP-S2:辨識區域改成狀態文字 + 「在遊戲上框選」(關設定面板、開 overlay 框選層 OcrRegionPicker.vue)+「清除」;
   四個數字欄位收進 <details>「進階」。瀏覽器預覽與 window 模式沒有 overlay → 不顯示框選鈕、改顯示說明。
   另有選用的框選熱鍵 hotkeyOcrRegion(預設空 = 不註冊)。
@@ -63,6 +65,19 @@
   <section v-if="config.game === 'poe2'" class="card" data-setting="ocr-section">
     <span class="label">{{ t('ppz.ocr.section') }}</span>
     <p class="hint">{{ t('ppz.ocr.hint', { hotkey: config.hotkeyOcrReveal || '—' }) }}</p>
+    <div class="chk-row">
+      <label class="chk"><input v-model="config.revealAutoEnabled" type="checkbox" data-setting="reveal-auto-enabled"><span>{{ t('ppz.ocr.auto_enabled') }}</span></label>
+    </div>
+    <p v-if="config.revealAutoEnabled && revealStatus" class="err-line" :class="revealStatus.warn ? 'warn' : 'ok'"
+      data-setting="reveal-scan-status" :data-status="revealStatus.code">{{ revealStatus.text }}</p>
+    <div class="srow">
+      <span class="k">{{ t('ppz.ocr.interval') }}</span>
+      <div class="ctl">
+        <input v-model.lazy.number="revealIntervalDraft" class="input sm rs-num" type="number" min="500" max="3000" step="100" data-setting="reveal-interval" @change="applyRevealInterval">
+        <span class="dim">ms</span>
+        <button v-if="canCheck" class="btn ghost sm" data-action="reveal-stats" @click="refreshRevealStats">{{ t('ppz.runeshape.refresh') }}</button>
+      </div>
+    </div>
     <div class="srow">
       <span class="k">{{ t('ppz.ocr.status') }}</span>
       <div class="ctl">
@@ -99,6 +114,7 @@
       </div>
       <p class="foot">{{ t('ppz.ocr.region.advanced_hint') }}</p>
     </details>
+    <p class="foot">{{ t('ppz.ocr.cpu_hint') }}</p>
     <p class="foot">{{ t('ppz.ocr.privacy') }}</p>
   </section>
 
@@ -197,7 +213,7 @@ import { runeshapeLastTimings } from '@/web/overlay/runeshape-view'
 import { Host } from '@/web/background/IPC'
 import { hotkeyToString, mergeTwoHotkeys } from '@ipc/KeyToCode'
 import HotkeyInput from '../HotkeyInput.vue'
-import { openRegionPicker } from '@/web/overlay/ocr-reveal'
+import { openRegionPicker, revealScanStatus } from '@/web/overlay/ocr-reveal'
 import { regionPercent } from '@/web/overlay/region-geom'
 
 /** 同 main/src/Shortcuts.ts 的 normalizeHotkey(`Ctrl+D` / `ctrl + d` → `Ctrl + D`),用來把錯誤對回欄位。 */
@@ -304,6 +320,24 @@ export default defineComponent({
       openRegionPicker('settings')
     }
 
+    // ---- 2026-10-01:褻瀆自動辨識 ----
+    const revealIntervalDraft = shallowRef<number>(config.revealIntervalMs)
+    watch(() => config.revealIntervalMs, (v) => { revealIntervalDraft.value = v })
+    function applyRevealInterval () {
+      config.revealIntervalMs = clampRuneshapeInterval(Number(revealIntervalDraft.value))
+      revealIntervalDraft.value = config.revealIntervalMs
+    }
+    const revealStats = shallowRef<RuneshapeStats | undefined>(undefined)
+    async function refreshRevealStats () {
+      try { revealStats.value = await Host.revealStats() } catch (e) { console.warn('[reveal-scan] 讀統計失敗', e) }
+    }
+    onMounted(() => { if (config.game === 'poe2' && canCheck) void refreshRevealStats() })
+    watch(() => [config.ocrRegion, config.revealAutoEnabled], () => {
+      if (config.game === 'poe2' && canCheck) setTimeout(() => { void refreshRevealStats() }, 300)
+    })
+    /** 狀態(設定開著時掃描暫停,顯示的是暫停前最後一次的結果) */
+    const revealStatus = computed(() => revealScanStatus(revealStats.value, (k, a) => t(k, a ?? {}), config.hotkeyOcrReveal))
+
     // ---- WP-R2:符文塑形面板自動查價 ----
     const runeshapeRegionStatus = computed(() => {
       const r = config.runeshapeRegion
@@ -367,6 +401,7 @@ export default defineComponent({
     return {
       t, config, failed, ocrAvail, ocrStatus, checking, canCheck, checkOcr, regionKeys, regionDraft, regionError, applyRegion, clearRegion,
       canPick, pickUnavailable, regionStatus, pickRegion,
+      revealIntervalDraft, applyRevealInterval, refreshRevealStats, revealStatus,
       runeshapeRegionStatus, pickRuneshapeRegion, intervalDraft, applyInterval, thresholdDraft, applyThresholds, timingText, refreshStats, panelStatus
     }
   }

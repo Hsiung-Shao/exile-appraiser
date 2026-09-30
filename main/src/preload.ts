@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { HostApi, HostFetchInit, HostConfigForMain, ItemTextEvent, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId, UpdaterInfo, SettingsTabId, ConfigChangedEvent, OcrRevealEvent, RuneshapeScanEvent, RuneshapeUiState } from '@ipc/types'
+import type { HostApi, HostFetchInit, HostConfigForMain, ItemTextEvent, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId, UpdaterInfo, SettingsTabId, ConfigChangedEvent, RevealScanEvent, RuneshapeScanEvent, RuneshapeUiState } from '@ipc/types'
 
 function subscribe<T> (channel: string, cb: (e: T) => void): () => void {
   const listener = (_: unknown, e: T) => cb(e)
@@ -45,8 +45,9 @@ const api: HostApi = {
   }),
   openPreview: () => ipcRenderer.invoke('preview-open'),
   getPreviewUrl: () => ipcRenderer.invoke('preview-url'),
-  // WP-S:靈魂之井揭露面板 OCR
-  onOcrRevealResult: (cb: (e: OcrRevealEvent) => void) => subscribe('ocr-reveal-result', cb),
+  // 靈魂之井揭露面板(褻瀆)自動辨識
+  onRevealScanResult: (cb: (e: RevealScanEvent) => void) => subscribe('reveal-scan-result', cb),
+  revealStats: () => ipcRenderer.invoke('reveal-stats'),
   ocrRevealAvailable: () => ipcRenderer.invoke('ocr-available'),
   // WP-S2:在遊戲畫面上框選 OCR 區域
   overlayActivate: () => ipcRenderer.invoke('overlay-activate'),

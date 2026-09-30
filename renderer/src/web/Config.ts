@@ -62,8 +62,12 @@ export interface Config {
   /** 點 overlay 透明背景 = 關閉面板(APT `overlayBackgroundClose`)。 */
   overlayBackgroundClose: boolean
   priceCheck: PriceCheckWidget
-  /** WP-S:PoE2 靈魂之井揭露面板 OCR 熱鍵(overlay 模式 + PoE2 才註冊;空字串 = 停用)。 */
+  /** WP-S:PoE2 靈魂之井揭露面板熱鍵(overlay 模式 + PoE2 + 自動辨識開著才註冊;空字串 = 不註冊)。2026-10-01 起 = 暫停 / 繼續褻瀆自動辨識。 */
   hotkeyOcrReveal: string
+  /** 2026-10-01:褻瀆(揭露面板)自動持續辨識(預設開;舊設定檔沒有 = 開)。 */
+  revealAutoEnabled: boolean
+  /** 2026-10-01:褻瀆自動辨識掃描間隔 ms(500–3000,預設 1000)。 */
+  revealIntervalMs: number
   /** WP-S:OCR 搜尋範圍(client 比例 0–1);null = 整個遊戲畫面自動找面板。 */
   ocrRegion: OcrRegion | null
   /** WP-S2:在遊戲畫面上框選 OCR 區域的熱鍵(預設空 = 不註冊;overlay 模式 + PoE2 才註冊)。 */
@@ -180,6 +184,8 @@ function createConfig (): Config {
     overlayBackgroundClose: true,
     priceCheck: defaultPriceCheck(),
     hotkeyOcrReveal: DEFAULT_HOTKEY_OCR_REVEAL,
+    revealAutoEnabled: true,
+    revealIntervalMs: DEFAULT_RUNESHAPE_INTERVAL_MS,
     ocrRegion: null as OcrRegion | null,
     hotkeyOcrRegion: '',
     runeshapeEnabled: false,
@@ -230,6 +236,8 @@ function serialize (): string {
     hotkey, hotkeyHold, hotkeyLocked, overlayKey, windowTitleBy, autoSwitchGame, overlayMode, overlayBackgroundClose,
     priceCheck,
     hotkeyOcrReveal: config.hotkeyOcrReveal, ocrRegion: config.ocrRegion, hotkeyOcrRegion: config.hotkeyOcrRegion,
+    revealAutoEnabled: config.revealAutoEnabled,
+    revealIntervalMs: config.revealIntervalMs,
     runeshapeEnabled: config.runeshapeEnabled,
     runeshapeRegion: config.runeshapeRegion,
     runeshapeIntervalMs: config.runeshapeIntervalMs,
@@ -301,6 +309,9 @@ function applyLoaded (raw: string) {
   // WP-S:舊設定檔沒有 → 預設熱鍵;使用者清成空字串 = 停用(保留空字串)
   config.hotkeyOcrReveal = typeof loaded.hotkeyOcrReveal === 'string' ? loaded.hotkeyOcrReveal : fresh.hotkeyOcrReveal
   config.ocrRegion = normOcrRegion(loaded.ocrRegion)
+  // 2026-10-01:褻瀆自動辨識(舊設定檔沒有 → 開;只有明確 false 才關)、掃描間隔同符文塑形的夾限
+  config.revealAutoEnabled = loaded.revealAutoEnabled !== false
+  config.revealIntervalMs = clampRuneshapeInterval(loaded.revealIntervalMs)
   // WP-S2:框選熱鍵預設空字串(不註冊)
   config.hotkeyOcrRegion = typeof loaded.hotkeyOcrRegion === 'string' ? loaded.hotkeyOcrRegion : fresh.hotkeyOcrRegion
   // WP-R2:符文塑形自動查價(舊設定檔沒有 → 預設關、未框選、1000 ms)
@@ -386,6 +397,8 @@ export async function initConfig (): Promise<void> {
     language: config.language,
     uiLanguage: config.uiLanguage,
     hotkeyOcrReveal: config.hotkeyOcrReveal,
+    revealAutoEnabled: config.revealAutoEnabled,
+    revealIntervalMs: config.revealIntervalMs,
     ocrRegion: config.ocrRegion ? { ...config.ocrRegion } : null,
     hotkeyOcrRegion: config.hotkeyOcrRegion,
     runeshapeEnabled: config.runeshapeEnabled,

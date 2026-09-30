@@ -6,7 +6,7 @@ PoE2 **符文塑形面板**(Runes of Aldur 機制)開著時,自動辨識每一�
 
 | 段 | 檔案 |
 |---|---|
-| 掃描迴圈(擷取、變化偵測、自動定位、OCR) | `main/src/ocr/runeshape-scan.ts`(測試 `main/test/runeshape-scan.test.ts`,假時鐘) |
+| 掃描迴圈(擷取、變化偵測、自動定位、OCR) | 2026-10-01 起骨架泛化為 `main/src/ocr/panel-scan.ts`(`PanelScan` + `PanelDetector`,褻瀆自動辨識 `reveal-scan.ts` 共用);`main/src/ocr/runeshape-scan.ts` 只剩符文偵測器(`RUNESHAPE_DETECTOR`:`locateRunePanel` / `isPanelRow` / `looksVertical`、區域不退回、查價面板開著暫停)與 `RuneshapeScan`,行為不變(測試 `main/test/runeshape-scan.test.ts`,假時鐘)。與褻瀆掃描共用 WinOcr:對方忙碌丟 tick,main 把符文第一個 tick 錯開半個間隔 |
 | 列格式 + 面板定位 + 直書判定(零依賴,main / renderer 共用) | `poe2/src/runeshape/row-format.ts` |
 | 名稱比對(零依賴核心 + renderer 入口) | `poe2/src/runeshape/match-core.ts`、`match.ts`(測試 `poe2/test/runeshape/match.test.ts`) |
 | 配方結果資料 | `data/poe2/runeshape/recipes.json`(`scripts/sync-runeshape-data.mjs` 產生;renderer 由 `assets/data` 的 `RUNESHAPE_RECIPES` 載入) |

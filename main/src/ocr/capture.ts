@@ -11,8 +11,8 @@ import type { OcrRegion } from '@ipc/types'
 // 兩段式:幾何 / 倍率的純函式搬到 strategy.ts(不 import electron,main vitest 可測)
 import { ocrScale, regionRect, type PhysRect, type RecognizeRect } from './strategy'
 import type { WinOcr } from './WinOcr'
-// WP-R2:符文塑形掃描的縮圖差分
-import { FINGERPRINT_WIDTH, bgraToGray, type Fingerprint, type ScanCapture } from './runeshape-scan'
+// WP-R2:面板掃描(符文塑形 / 褻瀆)的縮圖差分
+import { FINGERPRINT_WIDTH, bgraToGray, type Fingerprint, type ScanCapture } from './panel-scan'
 
 export { ocrScale, regionRect, type PhysRect }
 

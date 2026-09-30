@@ -19,7 +19,7 @@ import { Broadcaster, previewHandlers, registerIpc, type HandlerCtx, type Handle
 import { startPreviewServer, type PreviewServer } from './preview-server'
 import { WinOcr } from './ocr/WinOcr'
 import { WIN_OCR_SCRIPT } from './ocr/script'
-import { RevealOcr } from './ocr/reveal'
+import { RevealScan } from './ocr/reveal-scan'
 import { runOcrSelftest, runRuneshapeSelftest } from './ocr/selftest'
 import { loadLocateIndex } from './ocr/locate-data'
 import { captureGameClient, toScanCapture } from './ocr/capture'
@@ -525,41 +525,55 @@ if (!skipStartup) app.whenReady().then(() => {
     areaTracker = new WidgetAreaTracker(send, overlay)
   }
 
-  // WP-S:靈魂之井揭露面板 OCR(常駐 PowerShell 行程第一次按熱鍵才啟動,閒置 10 分鐘自動結束)
+  // WP-S:OCR 常駐 PowerShell 行程(第一次辨識才啟動,閒置 10 分鐘自動結束);褻瀆與符文塑形兩個掃描共用
   const winOcr = new WinOcr(WIN_OCR_SCRIPT, { idleMs: 10 * 60_000 })
   app.on('will-quit', () => { winOcr.close('app quit') })
   const gameBounds = () => {
     const b = poeWindow?.bounds
     return b && b.width > 0 && b.height > 0 ? { x: b.x, y: b.y, width: b.width, height: b.height } : null
   }
-  const revealOcr = new RevealOcr({
-    ocr: () => winOcr,
-    bounds: gameBounds,
-    region: () => hostCfg?.ocrRegion ?? null,
-    // 兩段式:面板定位用 tiers.json 的模板 skeleton(第一次按熱鍵才讀)
+  const scanEnv = () => ({ overlay: windowMode === 'overlay', gameActive: Boolean(poeWindow?.isActive), bounds: gameBounds() })
+  const scanCapture = async (b: { x: number, y: number, width: number, height: number }) => toScanCapture(await captureGameClient(b), () => winOcr)
+
+  // 2026-10-01:褻瀆(靈魂之井揭露面板)自動持續辨識(取代按熱鍵辨識一次;預設開)。
+  // 查價面板開著不暫停;與符文塑形共用 WinOcr,對方忙碌就丟 tick。hostCfg 在下方宣告,計時器觸發時已初始化。
+  // eslint-disable-next-line prefer-const
+  let runeshapeScan: RuneshapeScan
+  const revealScan = new RevealScan({
+    config: () => ({
+      enabled: hostCfg?.revealAutoEnabled !== false,
+      game: hostCfg?.game ?? 'poe1',
+      region: hostCfg?.ocrRegion ?? null,
+      intervalMs: hostCfg?.revealIntervalMs ?? DEFAULT_SCAN_INTERVAL_MS
+    }),
+    env: scanEnv,
+    ocrBusy: () => runeshapeScan.busy,
+    capture: scanCapture,
+    // 面板定位 / 判定用 tiers.json 的模板 skeleton(第一次掃描才讀)
     locateIndex: () => loadLocateIndex(),
-    send
+    send: (ev) => { send('reveal-scan-result', ev) }
   })
 
   // WP-R2:PoE2 符文塑形面板自動查價(掃描迴圈常駐;條件不符時每個 tick 只做判斷,不擷取)。
-  // 與揭露面板共用同一個 WinOcr;揭露面板辨識中 → 丟掉那個 tick。hostCfg 在下方宣告,計時器觸發時已初始化。
-  const runeshapeScan = new RuneshapeScan({
+  runeshapeScan = new RuneshapeScan({
     config: () => ({
       enabled: hostCfg?.runeshapeEnabled === true,
       game: hostCfg?.game ?? 'poe1',
       region: hostCfg?.runeshapeRegion ?? null,
       intervalMs: hostCfg?.runeshapeIntervalMs ?? DEFAULT_SCAN_INTERVAL_MS
     }),
-    env: () => ({ overlay: windowMode === 'overlay', gameActive: Boolean(poeWindow?.isActive), bounds: gameBounds() }),
-    ocrBusy: () => revealOcr.busy,
-    capture: async (b) => toScanCapture(await captureGameClient(b), () => winOcr),
+    env: scanEnv,
+    ocrBusy: () => revealScan.busy,
+    capture: scanCapture,
     send: (ev) => { send('runeshape-scan-result', ev) }
   })
   if (windowMode === 'overlay') {
-    runeshapeScan.start()
-    poeWindow?.on('active-change', () => { runeshapeScan.poke() })
+    // 兩個掃描同時開著時錯開半個間隔,輪流使用 WinOcr
+    revealScan.start(0)
+    runeshapeScan.start(DEFAULT_SCAN_INTERVAL_MS / 2)
+    poeWindow?.on('active-change', () => { revealScan.poke(); runeshapeScan.poke() })
   }
-  app.on('will-quit', () => { runeshapeScan.stop() })
+  app.on('will-quit', () => { revealScan.stop(); runeshapeScan.stop() })
 
   const shortcuts = new Shortcuts({
     mode: windowMode,
@@ -570,7 +584,8 @@ if (!skipStartup) app.whenReady().then(() => {
       send('item-text', e)
       if (windowMode === 'window') showNear(e.position)
     },
-    onOcrReveal: () => { void revealOcr.trigger() },
+    // 2026-10-01:原本「按一次辨識一次」→ 暫停 / 繼續褻瀆自動辨識
+    onOcrReveal: () => { revealScan.toggleUserPause() },
     // WP-S2:框選 OCR 區域熱鍵 → renderer 開框選層(它自己呼叫 overlay-activate 取得焦點)
     onOcrRegionPick: () => { send('ocr-region-pick') },
     // WP-R2:符文塑形自動查價暫停 / 繼續
@@ -739,9 +754,8 @@ if (!skipStartup) app.whenReady().then(() => {
   const onHostConfig = (ctx: HandlerCtx, cfg: HostConfigForMain): HotkeyRegistration => {
     const result = shortcuts.updateActions(cfg)
     hostCfg = cfg
-    // WP-S2:辨識區域改了 → 舊區域算出來的面板區快取作廢
-    revealOcr.regionChanged(cfg.ocrRegion)
-    // WP-R2:開關 / 區域 / 間隔改了 → 立刻重新判斷(停用時即時清徽章)
+    // 開關 / 區域 / 間隔改了 → 立刻重新判斷(停用時即時清徽章;區域改了差分基準的鍵就不同,自然重看)
+    revealScan.poke()
     runeshapeScan.poke()
     if (cfg.uiLanguage === 'en' || cfg.uiLanguage === 'cmn-Hant') rebuildTrayMenu(cfg.uiLanguage)
     // 先套用 autoUpdate 再做第一次檢查(舊 renderer / 缺欄位 → 預設開)
@@ -955,22 +969,24 @@ if (!skipStartup) app.whenReady().then(() => {
     'ocr-available': { kind: 'invoke', preview: false, fn: () => winOcr.available() },
     // WP-S2:框選層開啟時讓 overlay 取得焦點(可點擊);預覽端不開放
     'overlay-activate': { kind: 'invoke', preview: false, fn: () => { overlay?.assertOverlayActive() } },
-    // WP-S2:框選確認後自動試辨識一次(= 按 OCR 熱鍵);先確認是 PoE2 overlay 且遊戲視窗還在
+    // WP-S2:框選確認後請褻瀆自動辨識立刻重看(丟掉差分基準);先確認是 PoE2 overlay 且遊戲視窗還在
     'ocr-reveal-now': {
       kind: 'invoke',
       preview: false,
       fn: () => {
         const b = poeWindow?.bounds
         if (!overlay || hostCfg?.game !== 'poe2' || !b || !(b.width > 0 && b.height > 0)) {
-          console.log('[ocr-reveal] ocr-reveal-now 略過(不是 PoE2 overlay 或沒有遊戲視窗)')
+          console.log('[reveal-scan] ocr-reveal-now 略過(不是 PoE2 overlay 或沒有遊戲視窗)')
           return false
         }
-        void revealOcr.trigger()
+        revealScan.rescan()
         return true
       }
     },
-    // WP-R2:renderer 回報查價面板 / 設定 / 框選層開著(任一 → 暫停掃描);send 一律不開放給預覽
-    'runeshape-ui-state': { kind: 'send', fn: (_ctx, s: RuneshapeUiState) => { runeshapeScan.setUiState(s) } },
+    // renderer 回報查價面板 / 設定 / 框選層開著(符文塑形任一 → 暫停;褻瀆只看設定 / 框選層);send 一律不開放給預覽
+    'runeshape-ui-state': { kind: 'send', fn: (_ctx, s: RuneshapeUiState) => { runeshapeScan.setUiState(s); revealScan.setUiState(s) } },
+    // 設定頁顯示褻瀆自動辨識統計;預覽端不開放
+    'reveal-stats': { kind: 'invoke', preview: false, fn: () => revealScan.snapshot() },
     // WP-R2:設定頁顯示掃描統計;預覽端不開放
     'runeshape-stats': { kind: 'invoke', preview: false, fn: () => runeshapeScan.snapshot() },
     ...updater.handlers()

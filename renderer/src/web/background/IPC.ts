@@ -9,7 +9,7 @@
  *   方法經 RPC 到 main,與 Electron 內行為相同(設定寫同一份 config.json);視窗控制類是 no-op。
  */
 import type { HostApi, HostFetchInit, HostFetchResult, ItemTextEvent, HostConfigForMain, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId } from '@ipc/types'
-import type { ConfigChangedEvent, HotkeyRegistration, OcrAvailability, OcrRevealEvent, SettingsTabId, UpdaterInfo } from '@ipc/types'
+import type { ConfigChangedEvent, HotkeyRegistration, OcrAvailability, RevealScanEvent, SettingsTabId, UpdaterInfo } from '@ipc/types'
 import type { RuneshapeScanEvent, RuneshapeStats, RuneshapeUiState } from '@ipc/types'
 import { shallowRef } from 'vue'
 import type { HttpFetch } from '@exile-appraiser/core/http'
@@ -183,9 +183,13 @@ class HostTransport {
     return await window.host.getPreviewUrl()
   }
 
-  // ---- WP-S:靈魂之井揭露面板 OCR(main/src/ocr/;只有 overlay 會收到事件) ----
-  onOcrRevealResult (cb: (e: OcrRevealEvent) => void): () => void {
-    return window.host?.onOcrRevealResult?.(cb) ?? (() => {})
+  // ---- 靈魂之井揭露面板(褻瀆)自動辨識(main/src/ocr/reveal-scan.ts;只有 overlay 會收到事件) ----
+  onRevealScanResult (cb: (e: RevealScanEvent) => void): () => void {
+    return window.host?.onRevealScanResult?.(cb) ?? (() => {})
+  }
+
+  async revealStats (): Promise<RuneshapeStats | undefined> {
+    return await window.host?.revealStats?.()
   }
 
   /** 純瀏覽器 / 預覽端 → undefined(無從檢查)。 */
@@ -197,7 +201,7 @@ class HostTransport {
   // ---- WP-S2:在遊戲畫面上框選 OCR 區域(overlay 限定;預覽端 / 純瀏覽器 no-op) ----
   /** overlay 取得焦點(可點擊),框選層開啟時呼叫 */
   async overlayActivate (): Promise<void> { await window.host?.overlayActivate?.() }
-  /** 立刻跑一次揭露面板 OCR(框選確認後自動試辨識);main 判斷不適用時回 false */
+  /** 框選確認後請褻瀆自動辨識立刻重看;main 判斷不適用時回 false */
   async ocrRevealNow (): Promise<boolean | undefined> { return await window.host?.ocrRevealNow?.() }
   /** 框選熱鍵(`hotkeyOcrRegion`) */
   onOcrRegionPick (cb: () => void): () => void {

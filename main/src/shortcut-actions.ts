@@ -25,12 +25,13 @@ export function normalizeHotkey (hotkey: string): string {
 }
 
 type ActionCfg = Pick<HostConfigForMain, 'hotkey' | 'hotkeyHold' | 'hotkeyLocked' | 'overlayKey' | 'game' | 'hotkeyOcrReveal' | 'hotkeyOcrRegion'> &
-  Partial<Pick<HostConfigForMain, 'runeshapeEnabled' | 'hotkeyRuneshapeToggle'>>
+  Partial<Pick<HostConfigForMain, 'runeshapeEnabled' | 'hotkeyRuneshapeToggle' | 'revealAutoEnabled'>>
 
 /**
  * 依設定組出要註冊的熱鍵(先到先得;空字串 / 重複的不註冊)。
  * - 查價兩個動作一律有;overlay 模式多 `toggle-overlay`。
  * - WP-S / WP-S2:`ocr-reveal`、`ocr-region` 只在 overlay + PoE2、熱鍵非空時註冊(要 overlay 才有地方疊徽章 / 框選層)。
+ *   2026-10-01 起 `ocr-reveal` = 暫停 / 繼續褻瀆自動辨識,另外要 `revealAutoEnabled`(省略 = 開)。
  * - WP-R2:`runeshape-toggle`(符文塑形自動查價暫停 / 繼續)另外要 `runeshapeEnabled`。
  *   「遊戲在前景才註冊」由 `Shortcuts` 的 active-change 處理(對所有動作一樣)。
  */
@@ -45,7 +46,7 @@ export function buildShortcutActions (cfg: ActionCfg, mode: WindowMode): Shortcu
   if (mode === 'overlay') {
     actions.push({ shortcut: overlayKey, keepModKeys: false, action: { type: 'toggle-overlay' } })
     if (cfg.game === 'poe2') {
-      if (cfg.hotkeyOcrReveal) {
+      if (cfg.hotkeyOcrReveal && cfg.revealAutoEnabled !== false) {
         actions.push({ shortcut: normalizeHotkey(cfg.hotkeyOcrReveal), keepModKeys: false, action: { type: 'ocr-reveal' } })
       }
       if (cfg.hotkeyOcrRegion) {
