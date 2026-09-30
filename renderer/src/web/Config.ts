@@ -15,7 +15,7 @@
 import { reactive, shallowRef, watch } from 'vue'
 import { REALMS, useEnglishNames, type Game, type Language, type Realm } from '@exile-appraiser/core/realm'
 import type { PriceCheckWidget } from './overlay/interfaces'
-import type { HostConfigForMain, HotkeyRegistration, OcrRegion } from '@ipc/types'
+import type { ChatCommand, HostConfigForMain, HotkeyRegistration, OcrRegion, StashSearchEntry } from '@ipc/types'
 import { Host } from './background/IPC'
 import { BG_DEFAULT, clampFsBase, normAccent, normBg, normTheme, DEFAULT_FS_BASE, type BgSettings, type Theme } from './useTheme'
 
@@ -88,6 +88,10 @@ export interface Config {
   autoUpdate: boolean
   /** 啟動時短暫顯示「已在背景執行」提示(預設 true;main/src/startup-toast.ts)。 */
   startupToast: boolean
+  /** 2026-10-01:聊天指令熱鍵(移植 APT `commands`;預設同 APT)。 */
+  commands: ChatCommand[]
+  /** 2026-10-01:倉庫搜尋一鍵輸入熱鍵(預設空)。 */
+  stashSearch: StashSearchEntry[]
   // ---- 相容上游元件的推導屬性 ----
   readonly useIntlSite: boolean
   /** 上游元件讀的字級;= `fsBase`(不進檔)。 */
@@ -137,6 +141,50 @@ export function normOcrRegion (v: unknown): OcrRegion | null {
   const [x, y, w, h] = nums as number[]
   if (w <= 0 || h <= 0 || x + w > 1.0001 || y + h > 1.0001) return null
   return { x, y, w, h }
+}
+
+/**
+ * 聊天指令預設(移植自 APT `renderer/src/web/Config.ts` defaultConfig().commands,MIT):
+ * `/hideout` = F5、`/exit` = F9,其餘四條沒有熱鍵;全部直接送出。
+ */
+export function defaultCommands (): ChatCommand[] {
+  return [
+    { text: '/hideout', hotkey: 'F5', send: true },
+    { text: '/exit', hotkey: 'F9', send: true },
+    { text: '@last ty', hotkey: '', send: true },
+    { text: '/invite @last', hotkey: '', send: true },
+    { text: '/tradewith @last', hotkey: '', send: true },
+    { text: '/hideout @last', hotkey: '', send: true }
+  ]
+}
+
+/** 最多幾條(與 main `MAX_TEXT_ACTIONS` 相同) */
+export const MAX_TEXT_ENTRIES = 50
+
+/** 聊天指令正規化:不是陣列 → 預設;每條 text 字串(最多 500 字)、hotkey 字串(APT 的 null → '')、send 布林(省略 = true) */
+export function normCommands (v: unknown): ChatCommand[] {
+  if (!Array.isArray(v)) return defaultCommands()
+  return v.slice(0, MAX_TEXT_ENTRIES).filter(c => c && typeof c === 'object').map((c: Record<string, unknown>) => ({
+    text: typeof c.text === 'string' ? c.text.slice(0, 500) : '',
+    hotkey: typeof c.hotkey === 'string' ? c.hotkey : '',
+    send: c.send !== false
+  }))
+}
+
+/** 倉庫搜尋正規化:不是陣列 → 空;text 最多 250 字(遊戲搜尋框上限) */
+export function normStashSearch (v: unknown): StashSearchEntry[] {
+  if (!Array.isArray(v)) return []
+  return v.slice(0, MAX_TEXT_ENTRIES).filter(s => s && typeof s === 'object').map((s: Record<string, unknown>) => ({
+    text: typeof s.text === 'string' ? s.text.slice(0, 250) : '',
+    hotkey: typeof s.hotkey === 'string' ? s.hotkey : ''
+  }))
+}
+
+/** Poe Regex「加到倉庫搜尋」:能不能加(空白 / 超過 250 字 = invalid;已有同字串 = duplicate;清單滿了 = invalid) */
+export function addStashSearchEntry (list: StashSearchEntry[], text: string): 'added' | 'duplicate' | 'invalid' {
+  const q = text.trim()
+  if (!q || q.length > 250 || list.length >= MAX_TEXT_ENTRIES) return 'invalid'
+  return list.some(s => s.text.trim() === q) ? 'duplicate' : 'added'
 }
 
 /** WP-R2:徽章顏色門檻(單位:崇高石) */
@@ -197,7 +245,9 @@ function createConfig (): Config {
     runeshapeThresholds: { ...DEFAULT_RUNESHAPE_THRESHOLDS },
     hotkeyRuneshapeToggle: '',
     autoUpdate: true,
-    startupToast: true
+    startupToast: true,
+    commands: defaultCommands(),
+    stashSearch: [] as StashSearchEntry[]
   }
   return {
     ...base,
@@ -247,7 +297,9 @@ function serialize (): string {
     runeshapeThresholds: config.runeshapeThresholds,
     hotkeyRuneshapeToggle: config.hotkeyRuneshapeToggle,
     autoUpdate: config.autoUpdate,
-    startupToast: config.startupToast
+    startupToast: config.startupToast,
+    commands: config.commands,
+    stashSearch: config.stashSearch
   }, null, 2)
 }
 
@@ -329,6 +381,9 @@ function applyLoaded (raw: string) {
   config.autoUpdate = loaded.autoUpdate !== false
   // 啟動提示:舊設定檔沒有 → 預設開;只有明確 false 才關
   config.startupToast = loaded.startupToast !== false
+  // 聊天指令:舊設定檔沒有 → APT 預設六條;倉庫搜尋 → 空
+  config.commands = normCommands(loaded.commands)
+  config.stashSearch = normStashSearch(loaded.stashSearch)
 }
 
 /** 測試用:套用一份設定檔內容後回傳序列化結果(`renderer/test/runeshape-config.test.ts`) */
@@ -411,7 +466,9 @@ export async function initConfig (): Promise<void> {
     runeshapeIntervalMs: config.runeshapeIntervalMs,
     hotkeyRuneshapeToggle: config.hotkeyRuneshapeToggle,
     autoUpdate: config.autoUpdate,
-    startupToast: config.startupToast
+    startupToast: config.startupToast,
+    commands: config.commands.map(c => ({ ...c })),
+    stashSearch: config.stashSearch.map(s => ({ ...s }))
   }), (cfg) => {
     void sendHostConfig(cfg)
   }, { immediate: true })

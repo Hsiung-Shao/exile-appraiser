@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest'
 import type { RevealScanEvent } from '@ipc/types'
 import { buildLocateIndex, type LocateIndex, type LocateTiersLike } from '../../poe2/src/desecration/ocr-locate'
 import { LOCATE_INTERVAL_MS, scanBlock, type Fingerprint, type ScanCapture, type ScanClock, type ScanConfig, type ScanEnv } from '../src/ocr/panel-scan'
-import { REVEAL_MIN_HITS, RevealScan, createRevealDetector } from '../src/ocr/reveal-scan'
+import { REVEAL_MIN_HITS, RevealScan, createRevealDetector, modGroupCount } from '../src/ocr/reveal-scan'
 
 const ROOT = path.resolve(__dirname, '../..')
 const index: LocateIndex = buildLocateIndex(JSON.parse(fs.readFileSync(path.join(ROOT, 'data/poe2/desecration/tiers.json'), 'utf8')) as LocateTiersLike)
@@ -115,6 +115,17 @@ describe('褻瀆偵測器(真實截圖快照)', () => {
     const one = FULL02.lines.filter(l => norm(l.text) === '+16最大生命')
     expect(det.classify(one)).toEqual({ found: false, hits: 1, rows: [] })
     expect(det.classify([{ text: '深 井', x: 0, y: 0, w: 10, h: 10 }]).found).toBe(false)
+  })
+  it('連續的詞綴行(同一個選項 / 物品浮窗)不算面板:要分成 ≥ 2 組(選項之間有空隙)', async () => {
+    await det.ready!()
+    // fullscreen-02 的第二個選項本身就是連續兩行 → 單獨拿出來 = 像物品浮窗
+    const tooltip = FULL02.lines.filter(l => ['+60護甲值', '+59閃避值'].includes(norm(l.text)))
+    expect(tooltip).toHaveLength(2)
+    expect(modGroupCount(tooltip)).toBe(1)
+    expect(det.classify(tooltip)).toEqual({ found: false, hits: 2, rows: [] })
+    // 三個選項 = 3 組
+    const mods = FULL02.lines.filter(l => MODS02.includes(norm(l.text)))
+    expect(modGroupCount(mods)).toBe(3)
   })
   it('設定:查價面板開著不暫停(褻瀆常與查價同時看);設定 / 框選層開著暫停', () => {
     expect(det.pauseOnPricePanel).toBe(false)

@@ -16,13 +16,17 @@
  * - WP-S2:`ocr-region`(`hotkeyOcrRegion`,預設空 = 不註冊)註冊條件同 `ocr-reveal`;觸發時只呼叫 `onOcrRegionPick`
  *   (renderer 開框選層),同樣不送也不放開任何按鍵。動作表抽到 `shortcut-actions.ts`(純函式,有測試)。
  * - WP-R2:`runeshape-toggle`(`hotkeyRuneshapeToggle`,預設空)= 符文塑形自動查價暫停 / 繼續;只呼叫 `onRuneshapeToggle`。
+ * - 2026-10-01(移植 APT `Shortcuts.ts` 的 paste-in-chat / stash-search 分支):聊天指令與倉庫搜尋。照 APT 先放開熱鍵本身的按鍵,
+ *   再交給 `text-box.ts`(寫剪貼簿 + 送按鍵序列,包在 `HostClipboard.restoreShortly`);兩個遊戲都可用,只在 overlay 模式註冊。
+ *   遊戲保留鍵(`ipc/reserved-hotkeys.ts`,含 PoE2 的 Ctrl+Alt+C)不註冊。
  */
 import { globalShortcut, screen } from 'electron'
 import { uIOhook, UiohookKey } from 'uiohook-napi'
 import { isModKey, KeyToElectron, mergeTwoHotkeys } from '@ipc/KeyToCode'
 import type { GameId, HostConfigForMain, HotkeyRegistration, ItemTextEvent } from '@ipc/types'
 import { HostClipboard } from './HostClipboard'
-import { buildShortcutActions, normalizeHotkey, type ShortcutAction } from './shortcut-actions'
+import { buildShortcutActions, normalizeHotkey, reservedShortcuts, type ShortcutAction } from './shortcut-actions'
+import { stashSearch, typeInChat, type TextBoxDeps } from './text-box'
 import type { OverlayWindow } from './windowing/OverlayWindow'
 import type { GameWindow } from './windowing/GameWindow'
 import type { WidgetAreaTracker } from './windowing/WidgetAreaTracker'
@@ -74,6 +78,14 @@ export class Shortcuts {
     }
   }
 
+  /** 聊天指令 / 倉庫搜尋的真實送鍵(uiohook keyTap)與剪貼簿;純邏輯與按鍵序列在 text-box.ts(測試注入假的) */
+  private textBoxDeps (): TextBoxDeps {
+    return {
+      tap: (key, mods) => { uIOhook.keyTap(UiohookKey[key as UiohookKeyT], mods.map(m => UiohookKey[m as UiohookKeyT])) },
+      clipboard: this.clipboard
+    }
+  }
+
   private get shouldBeRegistered (): boolean {
     return this.opts.mode === 'window' || Boolean(this.opts.poeWindow?.isActive)
   }
@@ -83,6 +95,8 @@ export class Shortcuts {
     this.game = cfg.game
     // WP-S / WP-S2:OCR 兩個熱鍵只在 overlay + PoE2 註冊;空字串 / 重複的熱鍵不註冊(shortcut-actions.ts)
     this.actions = buildShortcutActions(cfg, this.opts.mode)
+    const reserved = reservedShortcuts(cfg)
+    if (reserved.length) console.warn(`[shortcuts] 遊戲保留的熱鍵不註冊:${reserved.join(', ')}`)
     console.log(`[shortcuts] 複製鍵(${this.game}):${copyItemHotkey(this.game)}`)
     console.log(`[shortcuts] 動作:${this.actions.map(a => `${a.shortcut}=${a.action.type}${a.action.type === 'copy-item' && a.action.focusOverlay ? '(locked)' : ''}`).join(', ')}`)
 
@@ -145,6 +159,17 @@ export class Shortcuts {
     if (action.type === 'toggle-overlay') {
       this.opts.areaTracker?.removeListeners()
       this.opts.overlay?.toggleActiveState()
+      return
+    }
+    if (action.type === 'paste-in-chat') {
+      // 只記指令是第幾類,不記內容(可能含玩家名)
+      console.log(`[shortcuts] 聊天指令(${action.text.startsWith('@last') ? '@last 前綴' : action.text.endsWith('@last') ? '@last 後綴' : action.text[0] ?? ''}${action.send ? ',送出' : ''})`)
+      typeInChat(action.text, action.send, this.textBoxDeps())
+      return
+    }
+    if (action.type === 'stash-search') {
+      console.log('[shortcuts] 倉庫搜尋')
+      stashSearch(action.text, { ...this.textBoxDeps(), assertGameActive: () => { this.opts.overlay?.assertGameActive() } })
       return
     }
 

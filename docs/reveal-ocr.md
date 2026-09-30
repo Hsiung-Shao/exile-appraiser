@@ -16,7 +16,7 @@ PoE2 靈魂之井的「三選一」揭露面板無法複製文字。擷取遊戲
 | 設定 | `revealAutoEnabled`(預設**開**)、`revealIntervalMs`(500–3000,預設 1000)、區域沿用 `ocrRegion` | `runeshapeEnabled`(預設關)、`runeshapeIntervalMs`、`runeshapeRegion` |
 | 資料 | `ready()` 第一次讀 `tiers.json` 建模板索引(`locate-data.ts`);讀不到 → 停止(`no-data`,清徽章) | 不需要 |
 | 自動定位(沒快取時每 3 秒最多一次整個 client ×1) | `locatePanel`(像詞綴的行成簇 → 外擴) | `locateRunePanel` |
-| 有沒有面板 | `findPanelHits` ≥ 2 行像詞綴(`REVEAL_MIN_HITS`,同 `checkRegion`) | ≥ 1 列 `isPanelRow` |
+| 有沒有面板 | `findPanelHits` ≥ 2 行像詞綴(`REVEAL_MIN_HITS`,同 `checkRegion`),**且依 y 分成 ≥ 2 組**(`modGroupCount`:相鄰中心距 > 1.9 × 行高 = 下一組,同 renderer 分組門檻)——選項之間有空隙,物品浮窗的連續詞綴行不算(無頭驗證發現只看行數會把浮窗當面板) | ≥ 1 列 `isPanelRow` |
 | 送出的行 | 區域 OCR 的**全部行**(renderer `matchRevealLines` 要用對不上的行補中間沒認出的組) | 含 CJK 的行 |
 | 有框區域 | 優先區域;區域內連續 2 次沒面板 → **退回自動定位**(事件帶 `fallback: true`,設定頁顯示「區域內沒找到,改找整個畫面」),區域的縮圖有變化才回到區域 | 只看區域,不退回 |
 | 暫停 | 遊戲失焦、設定 / 框選層開著;**查價面板開著不暫停**(看褻瀆時常同時開查價) | 另加查價面板開著 |

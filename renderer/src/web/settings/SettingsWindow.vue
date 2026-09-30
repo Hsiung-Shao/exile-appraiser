@@ -1,6 +1,6 @@
 <!--
   設定視窗(取代 WP2 的查價側欄內細長面板):照 APT `SettingsWindow.vue` 的版面 + PobTools 配色。
-  - 版面:標題列(「設定」+ 遊戲/區服徽章 + ✕)→ 左側選單(一般/查價/熱鍵與視窗/正則/拆粉排行/關於,active 用 --gold 左邊條,
+  - 版面:標題列(「設定」+ 遊戲/區服徽章 + ✕)→ 左側選單(一般/查價/熱鍵與視窗/聊天指令/正則/拆粉排行/關於,active 用 --gold 左邊條,
     底部「結束程式」)+ 右側可捲動內容。容器寬 < 640px(container query)時左選單收成上方分頁。
   - 拆粉排行分頁(tabs/Dust.vue,2026-09-30 起;原本停靠在查價下方):內容區加 .fill = 不捲動、子元素撐滿,
     表格自己虛擬捲動。查價標題列的 ⚖ 直接開到這一頁。
@@ -48,6 +48,7 @@ import { useI18n } from 'vue-i18n'
 import GeneralTab from './tabs/General.vue'
 import PriceCheckTab from './tabs/PriceCheck.vue'
 import HotkeysTab from './tabs/Hotkeys.vue'
+import ChatTab from './tabs/Chat.vue'
 import RegexTab from './tabs/Regex.vue'
 import DustTab from './tabs/Dust.vue'
 import AboutTab from './tabs/About.vue'
@@ -70,6 +71,7 @@ export default defineComponent({
       { id: 'general', key: 'ppz.tab_general' },
       { id: 'price-check', key: 'ppz.tab_price_check' },
       { id: 'hotkeys', key: 'ppz.tab_hotkeys' },
+      { id: 'chat', key: 'ppz.tab_chat' },
       { id: 'regex', key: 'ppz.tab_regex' },
       { id: 'dust', key: 'ppz.tab_dust' },
       { id: 'about', key: 'ppz.tab_about' }
@@ -78,6 +80,7 @@ export default defineComponent({
       general: GeneralTab,
       'price-check': PriceCheckTab,
       hotkeys: HotkeysTab,
+      chat: ChatTab,
       regex: RegexTab,
       dust: DustTab,
       about: AboutTab

@@ -86,6 +86,10 @@
           <button class="btn primary sm rx-copy" data-regex="copy" :disabled="!out.query" @click="copy">
             {{ copyState === 'ok' ? t('ppz.regex.copied') : copyState === 'fail' ? t('ppz.regex.copy_failed') : t('ppz.regex.copy') }}
           </button>
+          <!-- 2026-10-01:把目前字串加到「聊天指令 › 倉庫搜尋」(熱鍵在那一頁設) -->
+          <button class="btn ghost sm" data-regex="add-stash" :disabled="!out.query || out.query.length > 250" :title="t('ppz.regex.add_stash_tip')" @click="addStash">
+            {{ stashState === 'ok' ? t('ppz.regex.add_stash_done') : stashState === 'dup' ? t('ppz.regex.add_stash_dup') : t('ppz.regex.add_stash') }}
+          </button>
           <select class="select sm" data-regex="lang" :value="ui.lang" :title="t('ppz.regex.lang_tip')"
             @change="onLang">
             <option value="zh">{{ t('ppz.regex.out_zh') }}</option>
@@ -156,7 +160,7 @@
 import { computed, defineComponent, onBeforeUnmount, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { isAlgoPage, lengthLevel, lineIn, type Mode, type RegexPage, type RegexTemplate } from '@exile-appraiser/regex'
-import { AppConfig } from '@/web/Config'
+import { AppConfig, addStashSearchEntry } from '@/web/Config'
 import RegexList from './RegexList.vue'
 import RegexAlgoList from './RegexAlgoList.vue'
 import RegexCombined from './RegexCombined.vue'
@@ -200,10 +204,13 @@ export default defineComponent({
     const out = computed(() => scope.value === 'combined' ? store.combined.value : store.pageCombined.value)
     const pageTitle = (p: RegexPage) => (uiEn.value ? p.titleEn : '') || p.title
 
-    // 字串變了,「已複製」就不再成立
-    watch(() => out.value?.query, () => { copyState.value = '' })
+    // 字串變了,「已複製」「已加入」就不再成立
+    const stashState = shallowRef<'' | 'ok' | 'dup'>('')
+    let stashTimer: ReturnType<typeof setTimeout> | undefined
+    watch(() => out.value?.query, () => { copyState.value = ''; stashState.value = '' })
     onBeforeUnmount(() => {
       clearTimeout(copyTimer)
+      clearTimeout(stashTimer)
       clearTimeout(shareTimer)
       if (hasPendingSave()) void flushSave()
     })
@@ -309,6 +316,16 @@ export default defineComponent({
         } catch (e) {
           paste.value = { ...p, busy: false, error: t('ppz.regex.share_bad', { error: e instanceof Error ? e.message : String(e) }) }
         }
+      },
+      stashState,
+      /** 加到倉庫搜尋一鍵輸入(聊天指令分頁;熱鍵空白,使用者自己設);同一字串已在清單就不重複加 */
+      addStash () {
+        const r = addStashSearchEntry(config.stashSearch, out.value?.query ?? '')
+        if (r === 'invalid') return
+        if (r === 'added') config.stashSearch = [...config.stashSearch, { text: (out.value?.query ?? '').trim(), hotkey: '' }]
+        stashState.value = r === 'added' ? 'ok' : 'dup'
+        clearTimeout(stashTimer)
+        stashTimer = setTimeout(() => { stashState.value = '' }, 1600)
       },
       async copy () {
         const q = out.value?.query

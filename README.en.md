@@ -33,6 +33,7 @@ A price checker for Path of Exile 1 and 2: hover an item in game, press a hotkey
   - [Runeshape auto price check (PoE2)](#runeshape-auto-price-check-poe2)
   - [Poe Regex search string builder](#poe-regex-search-string-builder)
   - [Disenchant ranking (PoE1)](#disenchant-ranking-poe1)
+  - [Chat commands and stash search](#chat-commands-and-stash-search)
   - [Browser preview of settings](#browser-preview-of-settings)
 - [FAQ](#faq)
 - [Privacy](#privacy)
@@ -50,6 +51,7 @@ A price checker for Path of Exile 1 and 2: hover an item in game, press a hotkey
 - **PoE2 desecrated mod tiers**: shows the tier reported by the game; when only plain copied text is available, the tier is inferred from PoB2 mod data and marked as inferred.
 - **PoE2 Well of Souls reveal OCR**: open the reveal panel and it is recognized automatically; each option is labelled with the tier, mod pool and value range of its desecrated mods.
 - **PoE2 runeshape auto price check**: while the runeshape panel is open, each row gets a poe.ninja reference price.
+- **Chat command and stash search hotkeys**: one key types chat commands such as `/hideout` or `@last ty`, or a saved string into the stash search box (PoE1 and PoE2).
 - **Browser preview of settings**: view and edit settings in a normal browser; changes sync back to the overlay instantly.
 - **Automatic updates**: the installed version downloads updates in the background and applies them when you quit; later updates only download what changed.
 - **Startup notice**: a short "running in the background" notice with your price-check hotkey appears at the bottom right after launch, and shows the new version after an update.
@@ -188,6 +190,14 @@ Found in **Settings › Regex**.
 - The **Disenchant ranking** is the "Disenchant ranking" tab of the Settings window (the ⚖ button in the price panel's title bar opens it too). It lists every unique, sortable by dust / c, dust / total cost, dust / gold and dust / c / slot, and accounts for item level, quality, jewellery catalysts, gold fees and inherent influences.
 - Each row's "Trade ↗" and "ninja ↗" open the trade search or the poe.ninja page in your **system browser**.
 - Prices come from poe.ninja and are **international realm only**; on the Taiwan realm only dust amounts are shown.
+
+### Chat commands and stash search
+
+- Configure them in Settings › Chat commands. Defaults: `F5` = `/hideout`, `F9` = `/exit`; `@last ty`, `/invite @last` and others can get their own hotkeys.
+- `@last` = the last player who whispered you. Without "Send immediately" the text is only pasted into the chat box so you can edit it and press Enter.
+- **Stash search**: a hotkey types a saved string into the stash search box. "Add to stash search" on the Regex tab fills one in for you.
+- Hotkeys only work in overlay mode while the game window is in the foreground; keys the game itself uses (`Ctrl + C`, `Enter`, …) cannot be hotkeys.
+- This feature pastes text through the clipboard and sends keys to the game (the same approach as Awakened PoE Trade).
 
 ### Browser preview of settings
 

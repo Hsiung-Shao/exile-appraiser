@@ -246,9 +246,11 @@ export default defineComponent({
       const ocr = normalizeHotkey(config.hotkeyOcrReveal)
       const region = normalizeHotkey(config.hotkeyOcrRegion)
       const runeshape = normalizeHotkey(config.hotkeyRuneshapeToggle)
+      // 聊天指令 / 倉庫搜尋的熱鍵在「聊天指令」分頁顯示,這裡只算作已對上(不落到「其他錯誤」)
+      const textKeys = new Set([...config.commands, ...config.stashSearch].map(x => x.hotkey).filter(Boolean).map(normalizeHotkey))
       let matched = 0
       for (const k of keys) {
-        if (k === quick) { res.quick = k; matched++ } else if (k === locked) { res.locked = k; matched++ } else if (k === overlay) { res.overlay = k; matched++ } else if (k === ocr) { res.ocr = k; matched++ } else if (region && k === region) { res.region = k; matched++ } else if (runeshape && k === runeshape) { res.runeshape = k; matched++ }
+        if (k === quick) { res.quick = k; matched++ } else if (k === locked) { res.locked = k; matched++ } else if (k === overlay) { res.overlay = k; matched++ } else if (k === ocr) { res.ocr = k; matched++ } else if (region && k === region) { res.region = k; matched++ } else if (runeshape && k === runeshape) { res.runeshape = k; matched++ } else if (textKeys.has(k)) { matched++ }
       }
       if (matched === 0) res.other = reg.error
       return res

@@ -95,6 +95,10 @@ export interface HostConfigForMain {
   autoUpdate: boolean
   /** 啟動時在主螢幕右下角短暫顯示「已在背景執行」提示(預設 true;main/src/startup-toast.ts)。 */
   startupToast: boolean
+  /** 2026-10-01:聊天指令熱鍵(兩個遊戲皆可;只在 overlay 模式、遊戲前景時註冊)。 */
+  commands?: ChatCommand[]
+  /** 2026-10-01:倉庫搜尋一鍵輸入熱鍵(同上)。 */
+  stashSearch?: StashSearchEntry[]
 }
 
 /** 面板掃描(符文塑形 / 褻瀆)的一行 OCR 文字(座標 = 遊戲 client 區實體像素)。比對在 renderer。 */
@@ -237,7 +241,22 @@ export interface ConfigChangedEvent {
 }
 
 /** 設定面板的分頁(托盤「設定」「關於」用 `open-settings` 指定要開哪頁;查價標題列 ⚖ 開 `dust`)。 */
-export type SettingsTabId = 'general' | 'price-check' | 'hotkeys' | 'regex' | 'dust' | 'about'
+export type SettingsTabId = 'general' | 'price-check' | 'hotkeys' | 'chat' | 'regex' | 'dust' | 'about'
+
+/** 聊天指令(移植 APT `commands`):熱鍵 → 在遊戲聊天框輸入 `text`(`@last` 前綴 / 後綴規則見 main/src/text-box.ts);`send` = 直接送出。 */
+export interface ChatCommand {
+  text: string
+  /** '' = 不註冊 */
+  hotkey: string
+  send: boolean
+}
+
+/** 倉庫搜尋一鍵輸入(APT stash-search):熱鍵 → Ctrl+F → 貼上 `text` → Enter。 */
+export interface StashSearchEntry {
+  text: string
+  /** '' = 不註冊 */
+  hotkey: string
+}
 
 export interface HostApi {
   readonly isElectron: true
