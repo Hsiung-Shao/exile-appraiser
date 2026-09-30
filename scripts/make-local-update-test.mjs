@@ -1,8 +1,8 @@
 // 本機實測自動更新:打包兩個**真的** nsis 安裝檔(A 舊、B 新),更新來源指向本機 generic feed,不對外發布任何東西。
 // 流程與驗證步驟見 docs/release-flow.md「本機實測」。
 //
-//   node scripts/make-local-update-test.mjs [--a 3.29.90] [--b 3.29.91] [--port 45679] [--skip-build] [--only a|b]
-//   node scripts/make-local-update-test.mjs --serve [--b 3.29.91] [--port 45679]
+//   node scripts/make-local-update-test.mjs [--a 0.0.90] [--b 0.0.91] [--port 45679] [--skip-build] [--only a|b]
+//   node scripts/make-local-update-test.mjs --serve [--b 0.0.91] [--port 45679]
 //
 // - 打包:先 `npm run build`(renderer/dist + main/dist,`--skip-build` 略過),再對每個版本跑 electron-builder CLI(只 nsis):
 //     -p never --win nsis
@@ -11,8 +11,8 @@
 //     -c.extraMetadata.version=<ver>                        → app.asar 內 package.json 的 version = app.getVersion()
 //     -c.directories.output=.local-update-test/<ver>        → 各版獨立輸出夾(gitignored)
 //   打完檢查 latest.yml 的 version 與 win-unpacked/resources/app-update.yml 的 provider/url,不符就失敗。
-// - 版號:預設 A=3.29.90、B=3.29.91。不用 `-localtest.1` 之類的 prerelease:electron-builder 會依 prerelease 標籤
-//   改用 `<tag>.yml` 通道檔、electron-updater 也會切通道。major.minor 維持 3.29(User-Agent 規則,CLAUDE.md 規則 4)。
+// - 版號:預設 A=0.0.90、B=0.0.91(低於任何正式版,測完殘留的安裝仍會被正式版自動更新蓋掉)。
+//   不用 `-localtest.1` 之類的 prerelease:electron-builder 會依 prerelease 標籤改用 `<tag>.yml` 通道檔、electron-updater 也會切通道。
 // - `--serve`:只綁 127.0.0.1,供應 `.local-update-test/<B>/`(latest.yml、Setup.exe、.blockmap);支援單一 Range(差分下載),
 //   每個請求印一行(含時間)。Ctrl+C 或結束行程即停。
 import child_process from 'node:child_process'
@@ -28,15 +28,15 @@ const opt = (name, def) => {
   const i = args.indexOf(name)
   return i >= 0 && args[i + 1] && !args[i + 1].startsWith('--') ? args[i + 1] : def
 }
-const verA = opt('--a', '3.29.90')
-const verB = opt('--b', '3.29.91')
+const verA = opt('--a', '0.0.90')
+const verB = opt('--b', '0.0.91')
 const port = Number(opt('--port', '45679'))
 const feedUrl = `http://127.0.0.1:${port}/`
 const only = opt('--only', null)
 const stamp = () => new Date().toISOString()
 
 for (const v of [verA, verB]) {
-  if (!/^3\.29\.\d+$/.test(v)) throw new Error(`版號 ${v} 必須是 3.29.<n>(不帶 prerelease;見檔頭)`)
+  if (!/^\d+\.\d+\.\d+$/.test(v)) throw new Error(`版號 ${v} 必須是 <major>.<minor>.<patch>(不帶 prerelease;見檔頭)`)
 }
 
 function run (cmd, cmdArgs, cwd) {

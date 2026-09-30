@@ -16,7 +16,8 @@
 2. 首次 commit + push 由使用者決定時機。
 
 ## 每次發版
-1. 改 root 與 `main/package.json` 的 `version`(`3.29.x`;major.minor 必須等於遊戲版本,見 CLAUDE.md 規則 4)→ `npm run check-user-agent`。
+1. 改 root、`main/package.json` 與各 workspace 的 `version`(`0.x.y` 語意版號:新功能升 minor、只有修正升 patch;見 CLAUDE.md 規則 4)
+   → `npm run check-user-agent`(以實際 UA 打 GGG,必須全 200)。更新說明寫 `docs/release-notes/v<version>.md`(`--notes-file` 用它)。
 2. `npm test`、`npm run typecheck` 全綠。
 3. `npm run package` → 產物在 `main/dist/`(electron-builder 預設輸出目錄,`-p never` 不會上傳):
    - `ExileAppraiser-Setup-<version>.exe`(nsis,可就地更新)
@@ -49,27 +50,29 @@ npm run dev:main -- --window --force-update-check                           # lo
 `http://127.0.0.1:45679/`,產物在 gitignored `.local-update-test/<版號>/`。
 
 ```powershell
-node scripts/make-local-update-test.mjs                # npm run build + 打包 A=3.29.90、B=3.29.91(--a/--b/--port/--skip-build/--only a|b)
+node scripts/make-local-update-test.mjs                # npm run build + 打包 A=0.0.90、B=0.0.91(--a/--b/--port/--skip-build/--only a|b)
 # 1. 關掉執行中的 ExileAppraiser;備份 %APPDATA%\exile-appraiser\config.json(記 SHA256)
 # 2. 靜默安裝 A
-Start-Process .local-update-test\3.29.90\ExileAppraiser-Setup-3.29.90.exe -ArgumentList '/S' -Wait
-#    驗:%LOCALAPPDATA%\Programs\ExileAppraiser\resources\app-update.yml = provider generic + 本機 url;app.asar 內 package.json version = 3.29.90
+Start-Process .local-update-test\0.0.90\ExileAppraiser-Setup-0.0.90.exe -ArgumentList '/S' -Wait
+#    驗:%LOCALAPPDATA%\Programs\ExileAppraiser\resources\app-update.yml = provider generic + 本機 url;app.asar 內 package.json version = 0.0.90
 # 3. 起 feed(背景),啟動 A 並寫 log
 node scripts/make-local-update-test.mjs --serve
 Start-Process "$env:LOCALAPPDATA\Programs\ExileAppraiser\ExileAppraiser.exe" -ArgumentList "--ppz-log-file=$env:TEMP\a.log"
-#    log 應依序:updater-state checking → downloading 3.29.91 → downloaded 3.29.91 → autoInstallOnAppQuit=true
+#    log 應依序:updater-state checking → downloading 0.0.91 → downloaded 0.0.91 → autoInstallOnAppQuit=true
 #    下載檔在 %LOCALAPPDATA%\exile-appraiser-updater\pending\(SHA256 應等於 B 的 Setup.exe)
 # 4. 無輸入正常結束(第二個行程帶 --quit → 主行程走托盤「結束」同一條 quit 路徑)
 Start-Process "$env:LOCALAPPDATA\Programs\ExileAppraiser\ExileAppraiser.exe" -ArgumentList '--quit' -Wait
-#    A 的 log:second-instance --quit → Auto install update on quit → Executing …Setup-3.29.91.exe --updated /S
-#    約 15 秒後安裝完成:app.asar version / exe FileVersion = 3.29.91
-# 5. 啟動 B:log 應為 current=3.29.91、updater-state not-available
+#    A 的 log:second-instance --quit → Auto install update on quit → Executing …Setup-0.0.91.exe --updated /S
+#    約 15 秒後安裝完成:app.asar version / exe FileVersion = 0.0.91
+# 5. 啟動 B:log 應為 current=0.0.91、updater-state not-available
 # 6. 「立即重啟並更新」路徑:重裝 A、等 downloaded 後 `ExileAppraiser.exe --install-update`(= 關於頁按鈕,quitAndInstall(true, true))
 # 7. 收尾:停 feed;`npm run package`(正常 GitHub 設定)→ 靜默安裝 main\dist\ExileAppraiser-Setup-<正式版號>.exe;
 #    確認 app-update.yml 指回 GitHub、版本正確;刪 %LOCALAPPDATA%\exile-appraiser-updater\pending 與 current.blockmap(測試留下的);
 #    config.json SHA256 應與步驟 1 相同
 ```
-- 版號不用 prerelease(`-localtest.1`):electron-builder 會改用 `<tag>.yml` 通道檔、electron-updater 也會切通道。major.minor 維持 3.29(CLAUDE.md 規則 4)。
+- 版號不用 prerelease(`-localtest.1`):electron-builder 會改用 `<tag>.yml` 通道檔、electron-updater 也會切通道。
+  預設用 `0.0.9x`(低於任何正式版),測完殘留的安裝仍會被正式版的自動更新蓋掉。
+  (2026-09-30 的實測當時用 3.29.90 / 3.29.91 兩個版號,流程與下方結果相同。)
 - 不能用 `-c.publish.provider=generic`:yml 的 publish 是陣列,CLI 物件會併進第一筆、殘留 owner/repo → schema 驗證失敗;腳本改產生
   `.local-update-test/electron-builder.local.yml`(publish 換成 generic,其餘逐字相同)再 `--config` 指過去。
 - A 沒有舊版 blockmap(feed 只供應 B),log 會出現「Cannot download differentially, fallback to full download」,屬預期。

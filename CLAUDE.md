@@ -48,8 +48,10 @@ Path of Exile 查價工具(Electron + TypeScript)。把 `apt-patched`(Awakened P
 2. **語言無關鍵對接**:詞綴送 trade stat id、物品名送 `refName`(intl)或 `name`(tw)。`items` 端點沒有 id,**禁止位置對位**。
 3. **realm 模型**:`intl` = `www.pathofexile.com` + 英文名;`tw` = `pathofexile.tw`(裸 host)+ 繁中名。`useIntlSite` 由 realm+language 推導,不是開關。
    `TradeClient` 狀態(限流、快取)每個 realm 各一套(`tradeSession(realm)`)。
-4. **User-Agent 版號**:`main/package.json` 與 root 的 `version` major.minor **必須等於現行遊戲版本**(3.29),否則 GGG Cloudflare 403。
-   遊戲改版先跑 `npm run check-user-agent`。
+4. **版號與 User-Agent**:版號用 `0.x.y` 語意版號(v0.1.0 起),root、`main/` 與各 workspace 的 `version` 保持一致。
+   Electron 把 `exile-appraiser/<version>` 寫進 User-Agent;GGG 的 Cloudflare 擋過舊版 Awakened PoE Trade 的產品名+版號
+   (`awakened-poe-trade/0.1.0` 403),但本產品名 0.1.0 / 0.1.1 / 3.29.0 實測皆 200(2026-09-30)——「major.minor 必須等於遊戲版本」是從 APT 照搬、**不適用本專案**。
+   **發版前跑 `npm run check-user-agent`**(以實際 UA 打 GGG 驗 200);遊戲改版或 GGG 政策改變時重驗。
 5. **匿名查詢**:沒有 POESESSID、沒有登入。Cloudflare cookie 靠內建瀏覽器視窗(`openCaptcha`)解一次,與 `session.fetch` 共用。
    **給使用者看的交易站網頁一律開系統瀏覽器**(`trade-site.ts` `openTradeSite` / `Host.openExternal`,使用者在那裡已登入);`openCaptcha` 只給「開啟驗證視窗」。
 6. **移植檔只切耦合點**,每處加 `// exile-appraiser:` 註解。已切的:
@@ -116,7 +118,7 @@ UPDATE_FIXTURES=1 npm test       # 改寫 parser / golden-query 快照;產出必
 ```
 
 ## 發版 checklist
-1. 遊戲改版 → 改 root 與 main 的 `version`(3.XX.n)→ `npm run check-user-agent`。
+1. 改 root、main 與各 workspace 的 `version`(`0.x.y`)→ `npm run check-user-agent`;更新說明寫在 `docs/release-notes/v<version>.md`。
 2. `npm run sync-data -- --from ../apt-patched` → `npm test` 全綠(快照差異逐筆 review)。
 3. `npm run typecheck` → `npm run package` → 乾淨機器裝一次:熱鍵 → 列表;intl / tw 各查一件真實物品。
 4. 產物內含 `LICENSE.txt`、`NOTICE.md`、`LICENSES/`;`latest.yml` 的 `path` = `ExileAppraiser-Setup-<version>.exe`。GitHub Release 由 `gh release create` 手動建(electron-builder 永遠 `-p never`),四個檔與步驟見 `docs/release-flow.md`。

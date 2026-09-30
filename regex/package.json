@@ -1,6 +1,6 @@
 {
   "name": "@exile-appraiser/regex",
-  "version": "3.29.0",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "description": "Poe Regex(遊戲搜尋列字串產生器)核心,移植自 PobTools pob-zh-engine host/regex_gen.cpp",
