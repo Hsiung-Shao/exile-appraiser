@@ -233,12 +233,56 @@
   isolation: isolate;
   overflow: hidden;
   --panel-pct: var(--bg-panel-pct, 100%);
-  --surface-0: color-mix(in srgb, var(--surface-0-c) var(--panel-pct), transparent);
-  --surface-1: color-mix(in srgb, var(--surface-1-c) var(--panel-pct), transparent);
-  --surface-2: color-mix(in srgb, var(--surface-2-c) var(--panel-pct), transparent);
-  --surface-3: color-mix(in srgb, var(--surface-3-c) var(--panel-pct), transparent);
-  --surface-hover: color-mix(in srgb, var(--surface-hover-c) var(--panel-pct), transparent);
-  --surface-active: color-mix(in srgb, var(--surface-active-c) var(--panel-pct), transparent);
+  /* 可讀性(2026-10-01):圖上那層底色(.bgtint)照使用者的面板不透明度,區塊之間的間隙 / 邊緣透出圖;
+     容器內元件用到的表面色(物品名列、篩選器、輸入框、標題列、表頭、條紋列、按鈕、設定卡片)不透明度至少到地板值
+     --bg-read-pct = max(使用者值, 地板值)(useTheme.ts bgReadability)。容器自己的底色畫在圖層下面,看不到 */
+  --read-pct: var(--bg-read-pct, var(--panel-pct));
+  --surface-0: color-mix(in srgb, var(--surface-0-c) var(--read-pct), transparent);
+  --surface-1: color-mix(in srgb, var(--surface-1-c) var(--read-pct), transparent);
+  --surface-2: color-mix(in srgb, var(--surface-2-c) var(--read-pct), transparent);
+  --surface-3: color-mix(in srgb, var(--surface-3-c) var(--read-pct), transparent);
+  --surface-hover: color-mix(in srgb, var(--surface-hover-c) var(--read-pct), transparent);
+  --surface-active: color-mix(in srgb, var(--surface-active-c) var(--read-pct), transparent);
+  /* 文字光暈:主題底色(深色主題 = 深色、淺色主題 = 淺色),濃度隨面板透明度提高;
+     text-shadow 會繼承,整個容器一次到位,需要例外的在下方清掉 */
+  --halo: color-mix(in srgb, var(--surface-0-c) calc(var(--bg-halo, 0) * 100%), transparent);
+  text-shadow: 0 0 1px var(--halo), 0 0 3px var(--halo), 0 0 6px var(--halo);
+}
+/* 次要文字提亮 / 壓暗一階(背景模式才有;實色時維持主題原值)。主要文字(--ink-0/1)不動 */
+:root[data-bg] .bg-host {
+  --ink-2: #aeaba2;
+  --ink-3: #979590;
+}
+:root[data-bg][data-theme="light"] .bg-host {
+  --ink-2: #44464d;
+  --ink-3: #55575e;
+}
+:root[data-bg][data-theme="contrast"] .bg-host {
+  --ink-2: #e6e6e6;
+  --ink-3: #cfcfcf;
+}
+:root[data-bg][data-theme="parchment"] .bg-host {
+  --ink-2: #c0b192;
+  --ink-3: #a79878;
+}
+/* 移植的 .vue 拿 text-gray-600(= --edge-2,邊框色)當最淡的字;背景模式改用 --ink-3,不然在圖上直接消失 */
+:root[data-bg] .bg-host .text-gray-600 {
+  color: var(--ink-3);
+}
+/* 本身沒有底色、字直接壓在圖上的閱讀區塊:補一層主題底色,總覆蓋到地板值(--bg-lift 已換算成疊加後的量);
+   區塊之間的間隙、面板內距照使用者值透出圖。
+   查價:.price-main 裡每一塊(物品名、篩選器、查價結果表格、貼上框、錯誤框)的子區塊;設定:卡片以外的直接內容。
+   :where() 讓特異度歸零:子區塊自己有底色(按鈕、表頭、Tailwind bg-*)時一律以它為準 */
+:where(:root[data-bg] .bg-host .price-main > * > *, :root[data-bg] .bg-host .settings-body > :not(.card)) {
+  background-color: color-mix(in srgb, var(--surface-0-c) var(--bg-lift, 0%), transparent);
+}
+/* 瀏覽器預設樣式把按鈕 / 輸入框 / 下拉的 text-shadow 設成 none(不繼承):背景模式下讓它們也吃容器的光暈 */
+:root[data-bg] .bg-host :is(button, input, select, textarea) {
+  text-shadow: inherit;
+}
+/* 光暈例外:實色底的強調元件(金底按鈕 / 徽章)與彈出層、深色島(永遠實色,不需要) */
+:root[data-bg] .bg-host :is(.btn.primary, .chip:not(.soft), .pob-dark, .modal, .float, .drop, .menu, [role="menu"], [role="listbox"]) {
+  text-shadow: none;
 }
 .bgimg,
 .bgtint {
@@ -254,9 +298,9 @@
   /* 模糊會把邊緣往內吃,放大一點點把它推到框外 */
   transform: scale(1.04);
 }
-/* 圖上面一層面板底色(面板不透明度):讓文字讀得清 */
+/* 圖上面一層面板底色 = 使用者的面板不透明度(容器內的 --surface-0 已拉到地板值,這層直接用 --panel-pct) */
 .bgtint {
-  background: var(--surface-0);
+  background: color-mix(in srgb, var(--surface-0-c) var(--panel-pct), transparent);
 }
 :root[data-bg] .bg-host > .bgimg,
 :root[data-bg] .bg-host > .bgtint {

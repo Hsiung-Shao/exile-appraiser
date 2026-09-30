@@ -49,6 +49,7 @@
       "pick_unavailable": "Choosing an image needs the ExileAppraiser window (the browser preview cannot open a file dialog).",
       "bright": "Brightness",
       "panel_opacity": "Panel opacity",
+      "readability_hint": "With a see-through panel, text automatically gets a soft outline and extra contrast, and tables, filters and inputs keep a minimum backing. If text is still hard to read, raise the panel opacity or turn on Frosted.",
       "blur": "Frosted",
       "hint": "The image is only shown inside the price panel and the settings window (the rest of the game screen stays clear). PNG, JPG and WebP are supported; the chosen image is copied into the settings folder."
     },

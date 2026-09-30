@@ -85,6 +85,7 @@
         <span class="num fs-val">{{ config.bg.panelOpacity }}%</span>
       </div>
     </div>
+    <p class="preview-note" data-setting="bg-readability-hint">{{ t('ppz.bg.readability_hint') }}</p>
     <div class="srow">
       <span class="k">{{ t('ppz.bg.blur') }}</span>
       <div class="ctl" data-setting="bg-blur">
