@@ -12,7 +12,7 @@
   - 由設定視窗開啟(`regionPickerSource === 'settings'`)時,確認 / 取消鈕 / 清除後**回到設定的熱鍵分頁**(App.vue 讀
     `regionPickerClosed`,見 ocr-reveal.ts `returnsToSettings`):這時不 `focus-game`,確認也**不自動試辨識**
     (置中的設定視窗會擋住揭露面板,截圖辨識必失準);失焦 / 視窗隱藏照舊直接結束。熱鍵開啟的行為不變。
-  - 框選中 App.vue 忽略 Alt 隱藏(hideUI)與背景點擊。不送任何作業系統層輸入。
+  - 框選中 App.vue 忽略背景點擊。不送任何作業系統層輸入。
   - WP-R2 參數化(`ocr-reveal.ts` 的 `regionPickerTarget` / `REGION_PICKER_SPECS`):同一層也框符文塑形面板 —
     目標欄位(`ocrRegion` / `runeshapeRegion`)、確認後動作(試辨識 / 只還焦點)、說明條標題、有沒有「上次偵測」都由 spec 決定。
     `openRegionPicker(source)` 不帶 target = 揭露面板,行為與 WP-S2 相同。

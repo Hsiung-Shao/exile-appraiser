@@ -1,6 +1,9 @@
-// 熱鍵擷取與「按住 Alt 讓路」的純邏輯(renderer/src/web/settings/hotkey-capture.ts)
+// 熱鍵擷取的純邏輯(renderer/src/web/settings/hotkey-capture.ts)
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { hideOverlayForAlt, isClearKey, keyEventToHotkey, type AltHideState } from '../src/web/settings/hotkey-capture'
+import * as capture from '../src/web/settings/hotkey-capture'
+import { isClearKey, keyEventToHotkey } from '../src/web/settings/hotkey-capture'
 
 const key = (code: string, mods: { ctrl?: boolean, shift?: boolean, alt?: boolean } = {}, k = '') =>
   ({ code, key: k, ctrlKey: !!mods.ctrl, shiftKey: !!mods.shift, altKey: !!mods.alt })
@@ -38,20 +41,23 @@ describe('keyEventToHotkey', () => {
   })
 })
 
-describe('hideOverlayForAlt', () => {
-  const base: AltHideState = { hideRequested: true, settingsVisible: false, regionPickerOpen: false, hotkeyCapturing: false }
+// 2026-10-01 使用者裁定拿掉「按住 Alt 隱藏 overlay」:不留開關,renderer 與 main 都不能再有這條路
+describe('按住 Alt 不再隱藏 overlay', () => {
+  const read = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8')
 
-  it('沒有 hide 要求就不隱藏', () => {
-    expect(hideOverlayForAlt({ ...base, hideRequested: false })).toBe(false)
+  it('hotkey-capture 不再匯出 Alt 讓路判斷', () => {
+    expect('hideOverlayForAlt' in capture).toBe(false)
+    expect('hotkeyCaptureActive' in capture).toBe(false)
   })
 
-  it('查價面板 / 徽章(沒有其他 UI 狀態)照舊隱藏', () => {
-    expect(hideOverlayForAlt(base)).toBe(true)
+  it('App.vue 不訂閱 visibility、根元素不設 visibility: hidden', () => {
+    const app = read('../src/web/App.vue')
+    expect(app).not.toMatch(/onVisibility|hideUI|visibility:\s*hide/)
   })
 
-  it('設定開著、擷取熱鍵、框選中都不隱藏', () => {
-    expect(hideOverlayForAlt({ ...base, settingsVisible: true })).toBe(false)
-    expect(hideOverlayForAlt({ ...base, hotkeyCapturing: true })).toBe(false)
-    expect(hideOverlayForAlt({ ...base, regionPickerOpen: true })).toBe(false)
+  it('main 不再建立 OverlayVisibility、preload / 預覽不再有 visibility 事件', () => {
+    expect(read('../../main/src/main.ts')).not.toMatch(/new OverlayVisibility|from '\.\/windowing\/OverlayVisibility'/)
+    expect(read('../../main/src/preload.ts')).not.toMatch(/'visibility'/)
+    expect(read('../../main/src/preview-server.ts')).not.toMatch(/onVisibility/)
   })
 })

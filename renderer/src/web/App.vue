@@ -18,8 +18,7 @@
   收到新物品關閉設定;OCR 框選開啟時隱藏設定,由設定開的框選結束後回到設定的熱鍵分頁(ocr-reveal.ts returnsToSettings)。
   overlayKey(預設 Shift + Space)一律開設定(符文塑形徽章不可點;無 ninja 價的列由 RuneshapePrices.vue 自動查市集)。
   查價面板 / 設定開著時寫 `runeshapeTradeHold`(overlay/runeshape-view.ts)→ 自動查市集佇列暫停,限流額度讓給一般查價。
-  按住 Alt 讓路(main OverlayVisibility → hideUI):設定開著、熱鍵擷取欄取得焦點、框選中不隱藏
-  (settings/hotkey-capture.ts `hideOverlayForAlt`);查價面板(快速 / 鎖定)與符文塑形徽章照舊隱藏。
+  2026-10-01 起沒有「按住 Alt 讓路」(APT OverlayVisibility 已移除):查價中按 Alt 不會藏任何 overlay 介面。
 -->
 <template>
   <div id="app" class="font-ui text-ink-0"
@@ -147,11 +146,11 @@
       </settings-window>
     </div>
 
-    <!-- WP-S:靈魂之井揭露面板 OCR 徽章(與查價面板並列,不受 panelShown 控制;按住 Alt 時隨根元素隱藏) -->
+    <!-- WP-S:靈魂之井揭露面板 OCR 徽章(與查價面板並列,不受 panelShown 控制) -->
     <ocr-badges v-if="isOverlay" />
-    <!-- WP-R2:符文塑形面板自動查價徽章(同 OCR 徽章層級;按住 Alt 時隨根元素隱藏) -->
+    <!-- WP-R2:符文塑形面板自動查價徽章(同 OCR 徽章層級) -->
     <runeshape-prices v-if="isOverlay" />
-    <!-- WP-S2:在遊戲畫面上框選 OCR 區域(開著時忽略 Alt 隱藏與背景點擊) -->
+    <!-- WP-S2:在遊戲畫面上框選 OCR 區域(開著時忽略背景點擊) -->
     <ocr-region-picker v-if="isOverlay" />
   </div>
 </template>
@@ -184,7 +183,6 @@ import { REALMS, isSupportedCombination } from '@exile-appraiser/core/realm'
 import { reloadPhase, reloadError, retryReload } from './loadState'
 import { reportIssue, copyIssueReport, reportStatus, type ReportContext } from './report'
 import { settingsTab } from './settings/tabState'
-import { hideOverlayForAlt, hotkeyCaptureActive } from './settings/hotkey-capture'
 
 /** APT 的面板寬 28.75rem(rem 當時 = 16px → 460px)。 */
 const PANEL_WIDTH_EM = 28.75
@@ -210,7 +208,6 @@ export default defineComponent({
     const panelShown = shallowRef(false)
     const advancedCheck = shallowRef(false)
     const checkPosition = shallowRef({ x: 1, y: 1 })
-    const hideUI = shallowRef(false)
     const overlayActive = shallowRef(false)
     const winHeight = shallowRef(window.innerHeight)
     const copied = shallowRef(false)
@@ -338,10 +335,6 @@ export default defineComponent({
             advancedCheck.value = true
             console.log('[app] overlayKey 叫出設定面板')
           }
-        }))
-        unsubscribers.push(Host.onVisibility((e) => {
-          hideUI.value = !e.isVisible
-          console.log(`[app] visibility ${e.isVisible}`)
         }))
         window.addEventListener('resize', onResize)
       }
@@ -489,15 +482,7 @@ export default defineComponent({
       handleBackgroundClick,
       panelWidth,
       rootStyle: computed(() => ({
-        '--game-panel': `${gamePanel.value}px`,
-        // 按住 Alt 讓路;框選中(WP-S2,拖到一半不能消失)、設定開著、擷取熱鍵時不隱藏
-        // (visibility: hidden 會讓取得焦點的擷取欄失焦,Ctrl+Alt+D 這類組合收不到)
-        visibility: hideOverlayForAlt({
-          hideRequested: hideUI.value,
-          settingsVisible: settingsVisible.value,
-          regionPickerOpen: regionPickerOpen.value,
-          hotkeyCapturing: hotkeyCaptureActive.value
-        }) ? 'hidden' as const : undefined
+        '--game-panel': `${gamePanel.value}px`
       })),
       hotkeyLabel: computed(() => {
         const c = AppConfig()

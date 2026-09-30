@@ -119,7 +119,7 @@ export function defaultPriceCheck (): PriceCheckWidget {
 
 export const DEFAULT_WINDOW_TITLE: Readonly<Record<Game, string>> = { poe1: 'Path of Exile', poe2: 'Path of Exile 2' }
 
-/** WP-S:靈魂之井揭露面板 OCR 預設熱鍵(避開 Alt:OverlayVisibility 按住 Alt 會藏 overlay)。 */
+/** WP-S:靈魂之井揭露面板 OCR 預設熱鍵(當初為了避開已移除的「按住 Alt 藏 overlay」選了不含 Alt 的組合,沿用不改)。 */
 export const DEFAULT_HOTKEY_OCR_REVEAL = 'Ctrl + Shift + R'
 
 /** OCR 範圍:四個 0–1 的有限數且寬高 > 0 才算數,其餘 → null(整個畫面)。 */

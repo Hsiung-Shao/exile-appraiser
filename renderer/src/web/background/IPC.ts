@@ -120,10 +120,6 @@ class HostTransport {
     return window.host?.onFocusChange(cb) ?? (() => {})
   }
 
-  onVisibility (cb: (e: { isVisible: boolean }) => void): () => void {
-    return window.host?.onVisibility(cb) ?? (() => {})
-  }
-
   onHideWidget (cb: () => void): () => void {
     return window.host?.onHideWidget(cb) ?? (() => {})
   }

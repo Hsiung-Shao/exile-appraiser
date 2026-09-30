@@ -11,7 +11,7 @@
     查價面板 / 設定開著暫停(`runeshapeTradeHold`,App.vue 寫);一般查價收到 429 → 整個佇列暫停到期滿)。
     徽章:`市 …`(排隊中)→ `市 查詢中` → `市 80 崇高`(筆數 < 3 加「少」),後接關鍵篩選短字(`· L20` / `· 等級不限`);完整篩選寫進 log。
   - 台服:poe.ninja 沒有台服價格 → 全部走市集查詢(原幣顯示)+ 一次提示。
-  - 整層 `pointer-events: none`(徽章不可點);按住 Alt 時隨 App.vue 根元素 `hideUI` 隱藏。不送任何輸入。
+  - 整層 `pointer-events: none`(徽章不可點)。不送任何輸入。
 -->
 <template>
   <div v-if="active" class="rs-layer pob-dark" data-runeshape-layer :data-runeshape-state="state">

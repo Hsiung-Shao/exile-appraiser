@@ -311,7 +311,6 @@ export interface HostApi {
   /** main 建立視窗時決定的模式(啟動後不變)。 */
   readonly windowMode: WindowMode
   onFocusChange: (cb: (e: FocusChangeEvent) => void) => () => void
-  onVisibility: (cb: (e: { isVisible: boolean }) => void) => () => void
   onHideWidget: (cb: () => void) => () => void
   /** window 模式下偵測器切遊戲:renderer 跟著切 `config.game`(overlay 模式改走重新啟動)。 */
   onSwitchGame: (cb: (game: GameId) => void) => () => void

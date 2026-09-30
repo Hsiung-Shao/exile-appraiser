@@ -51,7 +51,6 @@ export const HOST_METHOD_CHANNELS: Readonly<Record<string, string>> = {
 export const HOST_EVENT_METHODS: Readonly<Record<string, string>> = {
   onItemText: 'item-text',
   onFocusChange: 'focus-change',
-  onVisibility: 'visibility',
   onHideWidget: 'hide-exclusive-widget',
   onSwitchGame: 'switch-game',
   onOpenSettings: 'open-settings',

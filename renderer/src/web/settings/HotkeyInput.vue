@@ -8,7 +8,6 @@
   - 在非修飾鍵 keydown 時組字串(上游是 keyup:先放開 Alt 再放開 D 會變 `Ctrl + D`);keyup 只補沒有 keydown 的鍵
     (PrintScreen)。純邏輯在 hotkey-capture.ts。
   - keydown / keyup 一律 preventDefault:單按 Alt 不讓 Electron 切選單列、不進 Windows 選單模式
-  - 取得焦點時設 `hotkeyCaptureActive`:App.vue 擷取中不因按住 Alt 隱藏 overlay(否則欄位失焦收不到 Ctrl+Alt+D)
 -->
 <template>
   <input
@@ -20,14 +19,13 @@
     :title="t('ppz.hotkey_capture_hint')"
     @keydown="handleKeydown"
     @keyup="handleKeyup"
-    @focus="onFocus"
     @blur="onBlur">
 </template>
 
 <script lang="ts">
 import { defineComponent, onUnmounted, type PropType } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { hotkeyCaptureActive, isClearKey, keyEventToHotkey } from './hotkey-capture'
+import { isClearKey, keyEventToHotkey } from './hotkey-capture'
 
 export default defineComponent({
   emits: ['update:modelValue'],
@@ -49,7 +47,6 @@ export default defineComponent({
     const { t } = useI18n()
     /** 已在 keydown 處理過的鍵(keyup 時略過) */
     const handledDown = new Set<string>()
-    let focused = false
 
     function apply (e: KeyboardEvent) {
       if (isClearKey(e.code)) {
@@ -62,10 +59,6 @@ export default defineComponent({
 
     function release () {
       handledDown.clear()
-      if (focused) {
-        focused = false
-        hotkeyCaptureActive.value = false
-      }
     }
     onUnmounted(release)
 
@@ -81,10 +74,6 @@ export default defineComponent({
         e.stopPropagation()
         if (handledDown.delete(e.code)) return
         apply(e)
-      },
-      onFocus () {
-        focused = true
-        hotkeyCaptureActive.value = true
       },
       onBlur: release
     }

@@ -23,7 +23,6 @@ const api: HostApi = {
   updateHostConfig: (cfg: HostConfigForMain) => ipcRenderer.invoke('host-config', cfg),
   onItemText: (cb: (e: ItemTextEvent) => void) => subscribe('item-text', cb),
   onFocusChange: (cb: (e: FocusChangeEvent) => void) => subscribe('focus-change', cb),
-  onVisibility: (cb: (e: { isVisible: boolean }) => void) => subscribe('visibility', cb),
   onHideWidget: (cb: () => void) => subscribe('hide-exclusive-widget', () => cb()),
   onSwitchGame: (cb: (game: GameId) => void) => subscribe('switch-game', cb),
   onOpenSettings: (cb: (e: { tab: SettingsTabId }) => void) => subscribe('open-settings', cb),

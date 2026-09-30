@@ -15,7 +15,7 @@ PoE2 靈魂之井的「三選一」揭露面板無法複製文字。按熱鍵(�
 | OCR | `main/src/ocr/win-ocr.ps1` + `WinOcr.ts` | 常駐 PowerShell 5.1 + WinRT `Windows.Media.Ocr`(`zh-Hant-TW`);`-EncodedCommand` 傳腳本(stdin 留給資料);協定見 ps1 檔頭;單張逾時 8 秒 / 崩潰 → 下一次自動重啟;閒置 10 分鐘結束;缺語言包的結果記 30 秒 |
 | 廣播 | `main/src/ocr/reveal.ts` | `ocr-reveal-result`:先 `{phase:'pending'}`,再 `{phase:'result', ok, lines(client 實體像素), client, scale, tookMs, ocrMs, stage, stages}` 或 `{ok:false, error}`;`stage` = `cached \| two-pass \| full`(有框選區域時 `region \| region-fallback`,`inner` = 採用那一輪的內層路徑)、`stages` = 各段範圍 / 倍率 / 耗時 / 命中數 / 未採用原因 / `scope`(`region` / `screen`)(診斷用;renderer 只讀 `stage === 'region-fallback'` 顯示提示);**不在** `PREVIEW_EVENTS`(預覽端收不到) |
 | 比對 | `poe2/src/desecration/ocr-match.ts`(renderer 經 `@poe2-entry` 的 `matchRevealLines`) | 正規化 → skeleton → 精確 / 模糊命中 → 折行合併 → 分組 → entry 一一對應 → profile → Tier(見下) |
-| 顯示 | `renderer/src/web/overlay/OcrBadges.vue` + `ocr-reveal.ts` | 每組右側一枚徽章;清除:再按一次熱鍵、Esc(overlay 有焦點時)、15 秒、overlay 視窗移動或改大小;按住 Alt 時隨 `hideUI` 藏 |
+| 顯示 | `renderer/src/web/overlay/OcrBadges.vue` + `ocr-reveal.ts` | 每組右側一枚徽章;清除:再按一次熱鍵、Esc(overlay 有焦點時)、15 秒、overlay 視窗移動或改大小(2026-10-01 起按住 Alt 不再隱藏) |
 
 ## 座標系
 
@@ -58,7 +58,7 @@ PoE2 靈魂之井的「三選一」揭露面板無法複製文字。按熱鍵(�
 | 操作 | `overlay/region-geom.ts`(純函式) | 空白處拖曳 = 新框(點一下 < 3 px 不改選取);框內拖曳 = 移動;把手 = 只動該邊;最小 40×40 CSS px;全部夾在視窗內;方向鍵移動 1 px、Shift 10 px,Ctrl + 方向鍵調右 / 下邊 |
 | 確認 | `OcrRegionPicker.vue` | Enter 或「確認」→ `config.ocrRegion = normOcrRegion(toRegion(box))`(四位小數)→ 關層 → `focus-game` → **150 ms 後 `ocr-reveal-now`**(= 按一次 OCR 熱鍵;main 先確認是 PoE2 overlay 且有遊戲視窗)。面板還開著就能立刻看到徽章驗證(由設定開的框選例外,見「回到設定」) |
 | 取消 | 同上 | Esc、「取消」、overlay 失焦(`focus-change` overlay=false)、視窗隱藏(`document.hidden`)→ 不存、關層。overlay 內按 Esc 會先被 main 的 `before-input-event` 攔下並把焦點還給遊戲 → 走「失焦」取消,結果相同 |
-| 框選中 | `App.vue` | 忽略 Alt 隱藏(`hideUI`,拖到一半不能消失)與背景點擊關閉 |
+| 框選中 | `App.vue` | 忽略背景點擊關閉(overlay 已沒有按住 Alt 隱藏) |
 | 清快取 | `main.ts` → `RevealOcr.regionChanged` → `RegionCacheGuard` | `host-config` 帶來的 `ocrRegion` 與上次不同 → 清 `RevealOcr.cache`(舊區域算出的面板區不再可信) |
 
 「上次偵測」= renderer 最近一次比對成功的所有組矩形聯集(client 實體像素),外擴水平每邊 50% 框寬、垂直每邊 2 × 平均行高,換成 client 比例夾在 0–1(`detectedRegion`)。
@@ -130,7 +130,7 @@ PoE2 靈魂之井的「三選一」揭露面板無法複製文字。按熱鍵(�
   `main/test/ocr-strategy.test.ts`(`regionSearchRect` 400 組對照舊版 / 出界偏移、`recognizeRegionFirst` 區域找到 / 退回整張 / 只框到 1 行 / 沒區域 / 沒索引、`RegionCacheGuard`)、
   `main/test/shortcut-actions.test.ts`(`ocr-region` 註冊條件:預設空不註冊、PoE1 / window 不註冊、撞鍵先到先得)。
   無頭 Chrome + 假 host 用 CDP `Input.dispatchMouseEvent` / `dispatchKeyEvent`(只作用於無頭頁面,不是作業系統層輸入)拖曳、調把手、方向鍵、Enter / Esc,驗證寫入值與呼叫序列(見 `docs/phase5-summary.md` S6)。
-- 無頭 Chrome + 假 `window.host`:注入快照事件,徽章位置 = 各組右緣 + 14 px / 垂直中心(誤差 0 px)、Alt 隱藏、再按清除、Esc、錯誤提示。
+- 無頭 Chrome + 假 `window.host`:注入快照事件,徽章位置 = 各組右緣 + 14 px / 垂直中心(誤差 0 px)、再按清除、Esc、錯誤提示(Alt 隱藏已於 2026-10-01 移除)。
 
 ### 本機實測(2026-09-29,`--ocr-selftest`)
 
@@ -179,5 +179,5 @@ OCR 使用 Windows 內建辨識,在本機執行;截圖只在記憶體裡傳給�
 2. 先查價那件物品(10 分鐘內)再按,徽章沒有「?」。
 3. PoE1 下熱鍵無反應;再按一次熱鍵清除;移動遊戲視窗清除。
 4. WP-S2:設定 › 熱鍵與視窗 ›「在遊戲上框選」→ 設定視窗隱藏、框選層出現且可拖曳(overlay 真的取得焦點)→ 框住揭露面板按「確認」→ 設定視窗回來停在熱鍵分頁、顯示「已設定」;
-   用框選熱鍵(`hotkeyOcrRegion`)開的框選按 Enter → 焦點回遊戲、約 0.15 秒後自動出徽章;關掉設定後按 `Ctrl + Shift + R` 走區域路徑(log `region:` + `[region]cached`,應約 0.1 秒)。框選中按住 Alt 不消失;Esc / 點回遊戲取消且設定不變。
+   用框選熱鍵(`hotkeyOcrRegion`)開的框選按 Enter → 焦點回遊戲、約 0.15 秒後自動出徽章;關掉設定後按 `Ctrl + Shift + R` 走區域路徑(log `region:` + `[region]cached`,應約 0.1 秒)。Esc / 點回遊戲取消且設定不變。
 5. WP-S2:把區域框在面板以外的地方 → 仍出徽章並提示「框選的區域內沒找到面板,已改找整個畫面」;視窗化且遊戲視窗部分拖出螢幕時,區域仍對得上。

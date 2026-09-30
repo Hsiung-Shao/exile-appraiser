@@ -12,7 +12,6 @@ import { Shortcuts, normalizeHotkey } from './Shortcuts'
 import { GameWindow } from './windowing/GameWindow'
 import { GameDetector } from './windowing/GameDetector'
 import { OverlayWindow, type SendToRenderer } from './windowing/OverlayWindow'
-import { OverlayVisibility } from './windowing/OverlayVisibility'
 import { WidgetAreaTracker } from './windowing/WidgetAreaTracker'
 import { AppUpdater } from './AppUpdater'
 import { trayStrings, type TrayLang } from './tray-strings'
@@ -522,7 +521,7 @@ if (!skipStartup) app.whenReady().then(() => {
   if (windowMode === 'overlay') {
     poeWindow = new GameWindow()
     overlay = new OverlayWindow(w, send, poeWindow)
-    new OverlayVisibility(send, overlay) // eslint-disable-line no-new
+    // 2026-10-01 使用者裁定拿掉 APT 的「按住 Alt 隱藏 overlay」(OverlayVisibility):查價中按 Alt 不再藏介面
     areaTracker = new WidgetAreaTracker(send, overlay)
   }
 
