@@ -254,15 +254,14 @@ Bug reports and suggestions: [GitHub Issues](https://github.com/Hsiung-Shao/exil
 
 ## License and credits
 
-Released under the [MIT License](LICENSE). Third-party notices are in [`NOTICE.md`](NOTICE.md), with full license texts in [`LICENSES/`](LICENSES/).
+Released under the [MIT License](LICENSE).
 
 This tool builds on the following projects — please consider supporting their authors too:
 
 - [Awakened PoE Trade](https://github.com/SnosMe/awakened-poe-trade) (SnosMe, MIT): PoE1 clipboard parsing, filters, trade queries and data files (via the Traditional Chinese fork [awakened-poe-trade-zh-TW](https://github.com/Hsiung-Shao/awakened-poe-trade-zh-TW)). Support the author: https://patreon.com/awakened_poe_trade
 - [Exiled Exchange 2](https://github.com/Kvan7/Exiled-Exchange-2) (Kvan7, MIT): PoE2 clipboard parsing, filters, trade queries, data files and icons (via the Traditional Chinese version [Exiled-Exchange-2-zh-TW](https://github.com/Hsiung-Shao/Exiled-Exchange-2-zh-TW)).
-- [PoENavi](https://github.com/buri34/poenavi) (Buri, MIT): design reference for the combined PoE1 / PoE2 price-check flow; generation rules for the PoE2 desecration tier table.
-- [Path of Building Community (PoE2)](https://github.com/PathOfBuildingCommunity/PathOfBuilding-PoE2) (MIT): source of the PoE2 desecrated mod tier data.
 - [poe-disenchant-tool](https://github.com/deronek/poe-disenchant-tool) (deronek, MIT) and the poe-dust data compiled by [@alserom](https://gist.github.com/alserom/22bdd4106806cbd4f85a5cb8c4345c08): gold fees, inventory sizes and cross-check values for disenchanting.
-- [poe.ninja](https://poe.ninja): reference prices for disenchanting and runeshaping.
+
+License notices for other third-party components are in [`NOTICE.md`](NOTICE.md) and [`LICENSES/`](LICENSES/).
 
 Path of Exile, in-game terms, items and related data are the property of Grinding Gear Games. This project is not affiliated with or endorsed by Grinding Gear Games.

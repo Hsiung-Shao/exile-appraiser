@@ -256,15 +256,14 @@ Path of Exile 1 / 2 查價工具:在遊戲裡把滑鼠移到物品上按熱鍵,�
 
 ## 授權與致謝
 
-本專案以 [MIT 授權](LICENSE) 釋出。第三方元件的授權聲明見 [`NOTICE.md`](NOTICE.md),授權全文放在 [`LICENSES/`](LICENSES/)。
+本專案以 [MIT 授權](LICENSE) 釋出。
 
 本工具建立在以下專案之上,也請考慮支持原作者:
 
 - [Awakened PoE Trade](https://github.com/SnosMe/awakened-poe-trade)(SnosMe,MIT):PoE1 剪貼簿解析、篩選器、交易查詢與資料檔(經由繁中 fork [awakened-poe-trade-zh-TW](https://github.com/Hsiung-Shao/awakened-poe-trade-zh-TW))。支持原作者:https://patreon.com/awakened_poe_trade
 - [Exiled Exchange 2](https://github.com/Kvan7/Exiled-Exchange-2)(Kvan7,MIT):PoE2 剪貼簿解析、篩選器、交易查詢、資料檔與圖示(經由繁中版 [Exiled-Exchange-2-zh-TW](https://github.com/Hsiung-Shao/Exiled-Exchange-2-zh-TW))。
-- [PoENavi](https://github.com/buri34/poenavi)(Buri,MIT):PoE1 / PoE2 一體化查價流程的設計參考;PoE2 褻瀆 Tier 資料表的產生規則。
-- [Path of Building Community(PoE2)](https://github.com/PathOfBuildingCommunity/PathOfBuilding-PoE2)(MIT):PoE2 褻瀆詞綴 Tier 資料的來源。
 - [poe-disenchant-tool](https://github.com/deronek/poe-disenchant-tool)(deronek,MIT)與 [@alserom](https://gist.github.com/alserom/22bdd4106806cbd4f85a5cb8c4345c08) 整理的 poe-dust 資料:拆粉的 gold 手續費、背包格數與交叉比對數值。
-- [poe.ninja](https://poe.ninja):拆粉與符文塑形的參考價格。
+
+其他第三方元件的授權聲明見 [`NOTICE.md`](NOTICE.md) 與 [`LICENSES/`](LICENSES/)。
 
 Path of Exile、遊戲內名詞、物品與相關資料為 Grinding Gear Games 所有。本專案與 Grinding Gear Games 無關,亦未獲其背書。
