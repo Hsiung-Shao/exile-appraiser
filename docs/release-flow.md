@@ -35,7 +35,25 @@
    ```
    - 不要用 `--prerelease` / `--draft`:electron-updater 的 GitHub provider 預設只看正式 Release。
    - 四個檔缺一不可:少了 `latest.yml` 客戶端永遠看不到新版;少了 `.blockmap` 只是退回完整下載。
-6. 發完用舊版安裝檔驗一次:關於頁顯示「已下載 vX,結束程式時自動套用」→ 托盤「結束」→ 再啟動應為新版。
+6. 發完用舊版安裝檔驗一次:關於頁顯示「已下載 vX,結束程式時自動套用」→ 托盤「結束」→ 再啟動應為新版
+   (右下角啟動提示第一行為「已更新至 vX,在背景執行中」)。
+   ⚠ Release 建立後約 1 分鐘內,GitHub 的 `releases/latest` 可能仍回舊版(客戶端看到「沒有新版」),稍等再檢查。
+
+## 發版紀錄
+- **v0.1.0**:首個公開版本(2026-09-30 重新發佈;舊的 v0.1.0 Release / tag 已刪除重建)。
+- **v0.1.1**:線上自動更新測試版(驗證 GitHub Releases 上的自動下載與結束時套用),**已撤下**(Release 與 tag 刪除,版號還原為 0.1.0)。
+
+## 啟動提示(已在背景執行)
+程式啟動後沒有可見視窗,所以第一次收到 Electron 視窗的 host-config 時,在主螢幕工作區右下角(托盤上方,邊距 16px)
+顯示約 3 秒的提示後淡出銷毀(`main/src/startup-toast.ts` 純邏輯 + `main.ts` `showStartupToast`):
+- 視窗:無框、透明、置頂、不進工作列、`focusable: false` + `showInactive()`(不搶遊戲焦點)、`setIgnoreMouseEvents(true)`(點擊穿透);
+  內容是 data URL(內嵌 CSS、無腳本、CSP `default-src 'none'`),深色島配色不隨淺色主題變。
+- 文字:「流亡鑑價 v<版本> 已在背景執行」+「在遊戲中按 <查價熱鍵> 查價 · 系統匣圖示開啟設定」(依介面語言);
+  `userData/last_run.json` 的 `lastRunVersion` 比目前版本舊 = 更新後第一次啟動 → 第一行改「已更新至 v<版本>,在背景執行中」。
+- 不顯示:設定 › 一般「啟動時顯示背景執行提示」關(`startupToast`,預設開)、`--quit` / `--install-update`、`--preview` 啟動、
+  預覽分頁送來的設定、第二實例、各種 `--*-selftest`。
+- 自我測試(不送任何輸入):`npx electron main/dist/main.js --toast-selftest <out.png> [--toast-lang=en] [--toast-updated] [--toast-hotkey=Ctrl + D]`
+  → 開出提示視窗(不動畫、不自動關)、`webContents.capturePage()` 存 PNG、印 bounds / focusable 後結束。
 
 ## 離線驗證(不需 GitHub)
 ```bash

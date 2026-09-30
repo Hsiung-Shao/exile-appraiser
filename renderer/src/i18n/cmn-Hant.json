@@ -218,6 +218,7 @@
     "section_data": "資料來源",
     "accent_custom": "自訂顏色",
     "font_size_reset": "預設",
+    "startup_toast": "啟動時顯示背景執行提示",
     "hotkey_hold": "按住",
     "hotkey_none": "未設定",
     "hotkey_capture_hint": "點一下欄位後直接按下按鍵組合;Esc / Backspace 清除。",

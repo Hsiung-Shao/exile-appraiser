@@ -72,6 +72,10 @@ Path of Exile 查價工具(Electron + TypeScript)。把 `apt-patched`(Awakened P
     ⚠ electron-updater 只在**下載完成那一刻** `autoInstallOnAppQuit` 為 true 才註冊 quit handler,下載完成前旗標必須維持 true。
     無輸入控制:第二個行程帶 `--quit`(= 托盤「結束」)/ `--install-update`(= 立即重啟並更新)轉交主行程(`second-instance`)。
     本機真安裝檔實測:`scripts/make-local-update-test.mjs`(docs/release-flow.md「本機實測」)。`electron-builder` 永遠 `-p never`;發版照 `docs/release-flow.md`,**使用者說「發」才 `gh release create`**。
+    發版紀錄:v0.1.1 為線上更新測試版,已撤下(Release / tag 刪除,版號還原為 0.1.0 重新發佈)。Release 建立後約 1 分鐘內 GitHub `releases/latest` 可能仍回舊版。
+    **啟動提示**(`main/src/startup-toast.ts` 純邏輯有測試 + `main.ts` `showStartupToast`):第一次收到 Electron 視窗的 host-config 時在主螢幕工作區右下角顯示約 3 秒
+    (不搶焦點 `showInactive`、點擊穿透、data URL 無腳本);`userData/last_run.json` 的 `lastRunVersion` 較舊 = 更新後第一次啟動 → 顯示「已更新至 vX」。
+    設定 `startupToast`(一般分頁,預設開);控制參數 / `--preview` / 預覽端 / 第二實例 / selftest 不顯示;`--toast-selftest <png>` 只截自己的 webContents(docs/release-flow.md「啟動提示」)。
 13. **一鍵回報不含 accountName**(`feedback.ts` 也會遞迴剝掉 account/token/cookie 類鍵);只開預填網址,不自動上傳。
 14. **派工/驗證禁止合成鍵盤/滑鼠輸入**(SendInput、uiohook 模擬、PowerShell SendKeys 等):GUI 行為由使用者實測,自動驗證只用 log、DOM 錨點、`--window` 無輸入啟動。
 15. **poe.ninja 只有國際服**:只在 `realm === 'intl'` 抓;價格表快照 15 分鐘 TTL(`userData/cache/ninja/`),同一執行抓過後 31 分鐘才更新,且最近 20 分鐘有人查價才上網。
@@ -138,6 +142,7 @@ UPDATE_FIXTURES=1 npm test       # 改寫 parser / golden-query 快照;產出必
 - `poe2/test/desecration/`:資料表統計與 poenavi 抽樣逐欄比對(`build.test.ts`)、推定(`infer.test.ts`,含三件真實物品的進階 vs 一般複製)、
   揭露面板 OCR 比對(`ocr-match.test.ts`:真實截圖快照、394 模板 round-trip、模糊、分組)。`renderer/test/ocr-reveal.test.ts` 測徽章座標與文字;`renderer/test/region-geom.test.ts` 測框選幾何(WP-S2)。
 - `main/test/updater-core.test.ts`:自動更新狀態轉移(假 updater 模仿 electron-updater 下載完成才註冊 quit handler)、`autoUpdate` 開關、portable / `--no-updates` / 開發模式、錯誤分類。
+- `main/test/startup-toast.test.ts`:啟動提示是否顯示、更新後首次(版本比較 / `last_run.json`)、訊息組字(熱鍵、兩語)、HTML 跳脫與 CSP、位置;`renderer/test/startup-toast-config.test.ts`:`startupToast` 設定往返。
 - `main/test/ocr-strategy.test.ts`:兩段式路徑、WP-S2 區域換算(client / 擷取偏移)與「優先區域、失敗退回整張」、快取清除;`main/test/shortcut-actions.test.ts`:熱鍵註冊條件。
 - GUI(熱鍵、Cloudflare、真實掛單)由使用者實測;不得宣稱已驗。
 

@@ -218,6 +218,7 @@
     "section_data": "Data sources",
     "accent_custom": "Custom colour",
     "font_size_reset": "Default",
+    "startup_toast": "Show a \"running in the background\" notice at startup",
     "hotkey_hold": "Hold",
     "hotkey_none": "Not set",
     "hotkey_capture_hint": "Click a field, then press the key combination; Esc / Backspace clears it.",

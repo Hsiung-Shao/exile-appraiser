@@ -86,6 +86,8 @@ export interface HostConfigForMain {
   hotkeyRuneshapeToggle: string
   /** 自動更新(預設 true):安裝版背景下載新版、結束程式時靜默套用;false = 手動(按下載 → 按安裝)。見 main/src/updater-core.ts。 */
   autoUpdate: boolean
+  /** 啟動時在主螢幕右下角短暫顯示「已在背景執行」提示(預設 true;main/src/startup-toast.ts)。 */
+  startupToast: boolean
 }
 
 /** WP-R2:一列 OCR 文字(座標 = 遊戲 client 區實體像素)。名稱比對在 renderer(poe2 `matchRunesRows`)。 */

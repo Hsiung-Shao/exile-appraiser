@@ -26,6 +26,10 @@ import { loadLocateIndex } from './ocr/locate-data'
 import { captureGameClient, toScanCapture } from './ocr/capture'
 import { DEFAULT_SCAN_INTERVAL_MS, RuneshapeScan } from './ocr/runeshape-scan'
 import { isAppNavigation, isExternalWebUrl } from './external-links'
+import {
+  TOAST_FADE_MS, TOAST_VISIBLE_MS, isFirstRunAfterUpdate, parseLastRun, priceCheckHotkeyLabel, serializeLastRun,
+  shouldShowStartupToast, toastBounds, toastHtml, toastLang, toastMessage, type ToastMessage
+} from './startup-toast'
 
 // WP-S:`--ocr-selftest <png>`:無視窗跑 OCR(capture 以外的整條)後結束;不拿單一實例鎖、不建視窗/托盤/熱鍵。
 // WP-R2:`--runeshape-selftest <png>`:同上,跑符文塑形掃描管線(變化偵測 + OCR)。
@@ -35,6 +39,9 @@ const argAfter = (flag: string) => {
 }
 const RUNESHAPE_SELFTEST = argAfter('--runeshape-selftest')
 const OCR_SELFTEST = RUNESHAPE_SELFTEST ?? argAfter('--ocr-selftest')
+// `--toast-selftest <out.png> [--toast-lang=en] [--toast-updated] [--toast-hotkey=Ctrl + D]`:開出啟動提示視窗、
+// `capturePage()` 存 PNG 後結束(不送任何輸入、不拿單一實例鎖、不建主視窗/托盤/熱鍵)。
+const TOAST_SELFTEST = argAfter('--toast-selftest')
 
 // `--ppz-log-file=<path>`:main 的 console 另外附加寫到檔案(驗證自我重新啟動用;relaunch 會沿用同一組參數,
 // 新行程的 stdout 不一定接得回原終端機)。不用 `--log-file`,那是 Chromium 自己的開關。
@@ -56,12 +63,17 @@ if (LOG_FILE) {
  * 無輸入的控制方式(自動驗證 / 腳本用),見 docs/release-flow.md「本機實測」。
  */
 const CONTROL_REQUEST = ['--quit', '--install-update'].find(f => process.argv.includes(f))
-let skipStartup = OCR_SELFTEST != null
+let skipStartup = OCR_SELFTEST != null || TOAST_SELFTEST != null
 
 if (OCR_SELFTEST != null) {
   (RUNESHAPE_SELFTEST != null ? runRuneshapeSelftest(RUNESHAPE_SELFTEST, process.argv) : runOcrSelftest(OCR_SELFTEST, process.argv))
     .then((code) => { app.exit(code) })
     .catch((e) => { console.error('[ocr-selftest]', e); app.exit(1) })
+} else if (TOAST_SELFTEST != null) {
+  app.whenReady()
+    .then(() => runToastSelftest(TOAST_SELFTEST))
+    .then((code) => { app.exit(code) })
+    .catch((e) => { console.error('[toast-selftest]', e); app.exit(1) })
 } else if (!app.requestSingleInstanceLock()) {
   console.log(CONTROL_REQUEST ? `[main] ${CONTROL_REQUEST}:已轉交執行中的 ExileAppraiser` : '[main] 已有另一個 ExileAppraiser 在執行,結束')
   skipStartup = true
@@ -307,6 +319,103 @@ function iconPath (file = 'icon.png'): string {
     : path.join(__dirname, file)
 }
 
+// ---- 啟動時「已在背景執行」提示(startup-toast.ts;docs/release-flow.md「啟動提示」) ----
+
+/** `userData/last_run.json`:上次啟動的版本(判斷「更新後第一次啟動」)。 */
+const LAST_RUN_PATH = () => path.join(app.getPath('userData'), 'last_run.json')
+
+/** 讀上次啟動的版本、寫入目前版本;回傳這次是不是更新後第一次啟動。失敗一律當成不是(只影響提示文字)。 */
+function recordLastRun (): boolean {
+  const current = app.getVersion()
+  let raw: string | null = null
+  try { raw = fsSync.readFileSync(LAST_RUN_PATH(), 'utf8') } catch {}
+  const last = parseLastRun(raw)
+  const updated = isFirstRunAfterUpdate(last, current)
+  if (last !== current) {
+    try {
+      fsSync.mkdirSync(path.dirname(LAST_RUN_PATH()), { recursive: true })
+      fsSync.writeFileSync(LAST_RUN_PATH(), serializeLastRun(current))
+    } catch (e) {
+      console.warn('[toast] last_run.json 寫入失敗', e)
+    }
+  }
+  console.log(`[toast] lastRunVersion=${last ?? '(none)'} current=${current} updated=${String(updated)}`)
+  return updated
+}
+
+function iconDataUrl (): string | null {
+  try {
+    return `data:image/png;base64,${fsSync.readFileSync(iconPath('icon.png')).toString('base64')}`
+  } catch {
+    return null
+  }
+}
+
+/**
+ * 主螢幕工作區右下角(托盤上方)的提示小視窗:無框、透明、置頂、不進工作列、不可取得焦點(`showInactive`)、點擊穿透。
+ * 內容是 data URL(`toastHtml`:內嵌 CSS、無腳本、CSP default-src 'none');`autoClose` = 淡出後銷毀。
+ */
+function showStartupToast (msg: ToastMessage, opts: { animate?: boolean, autoClose?: boolean } = {}): BrowserWindow {
+  const bounds = toastBounds(screen.getPrimaryDisplay().workArea)
+  const t = new BrowserWindow({
+    ...bounds,
+    show: false,
+    frame: false,
+    transparent: true,
+    backgroundColor: '#00000000',
+    resizable: false,
+    movable: false,
+    minimizable: false,
+    maximizable: false,
+    fullscreenable: false,
+    focusable: false,
+    skipTaskbar: true,
+    alwaysOnTop: true,
+    hasShadow: false,
+    title: 'ExileAppraiser',
+    webPreferences: { contextIsolation: true, sandbox: true, nodeIntegration: false, spellcheck: false }
+  })
+  t.setAlwaysOnTop(true, 'screen-saver')
+  t.setIgnoreMouseEvents(true)
+  t.setMenu(null)
+  denyNewWindows(t.webContents, '啟動提示')
+  t.webContents.on('will-navigate', (e) => { e.preventDefault() })
+  t.once('ready-to-show', () => {
+    if (t.isDestroyed()) return
+    t.showInactive()
+    if (opts.autoClose !== false) {
+      setTimeout(() => { if (!t.isDestroyed()) t.destroy() }, TOAST_VISIBLE_MS + TOAST_FADE_MS + 150)
+    }
+  })
+  void t.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(toastHtml(msg, iconDataUrl(), { animate: opts.animate }))}`)
+  console.log(`[toast] 顯示啟動提示 ${JSON.stringify(bounds)}:${msg.title} / ${msg.hint}`)
+  return t
+}
+
+/** `--toast-selftest <out.png>`:開提示視窗(不動畫、不自動關)、截圖存檔後結束。只截自己的 webContents,不送任何輸入。 */
+async function runToastSelftest (out: string): Promise<number> {
+  if (!out) { console.error('[toast-selftest] 用法:--toast-selftest <out.png> [--toast-lang=en] [--toast-updated] [--toast-hotkey=Ctrl + D]'); return 2 }
+  const argValue = (prefix: string) => process.argv.find(a => a.startsWith(prefix))?.slice(prefix.length)
+  const msg = toastMessage({
+    lang: toastLang(argValue('--toast-lang=')),
+    version: app.getVersion(),
+    // 預設 = 設定預設值(按住 Ctrl + D)
+    hotkey: argValue('--toast-hotkey=') ?? priceCheckHotkeyLabel('Ctrl', 'D'),
+    updated: process.argv.includes('--toast-updated')
+  })
+  const t = showStartupToast(msg, { animate: false, autoClose: false })
+  await new Promise<void>((resolve) => { t.once('show', () => { resolve() }) })
+  await new Promise<void>((resolve) => { setTimeout(resolve, 400) })
+  const img = await t.webContents.capturePage()
+  const size = img.getSize()
+  fsSync.mkdirSync(path.dirname(path.resolve(out)), { recursive: true })
+  fsSync.writeFileSync(out, img.toPNG())
+  console.log(`[toast-selftest] bounds=${JSON.stringify(t.getBounds())} focusable=${String(t.isFocusable())} focused=${String(t.isFocused())} ` +
+    `alwaysOnTop=${String(t.isAlwaysOnTop())} capture=${size.width}x${size.height} → ${path.resolve(out)}`)
+  t.destroy()
+  return size.width > 0 && size.height > 0 ? 0 : 1
+}
+
 /** 備援視窗模式:把視窗放到游標旁邊,不超出該螢幕的工作區。 */
 function showNear (position: { x: number, y: number }) {
   if (!win) return
@@ -395,6 +504,10 @@ app.on('will-quit', () => {
 if (!skipStartup) app.whenReady().then(() => {
   installCookiePatch()
   if (!DEV_URL) installAppProtocol()
+
+  // 啟動提示:先記下這次是不是更新後第一次啟動(第一次 host-config 時才顯示,那時才有熱鍵與介面語言)
+  const startupUpdated = recordLastRun()
+  let startupToastShown = false
 
   const windowMode = resolveWindowMode()
   console.log(`[main] 視窗模式 ${windowMode}${process.argv.includes('--window') ? '(--window)' : ''} pid=${process.pid} config=${CONFIG_PATH()}`)
@@ -635,6 +748,25 @@ if (!skipStartup) app.whenReady().then(() => {
     // 先套用 autoUpdate 再做第一次檢查(舊 renderer / 缺欄位 → 預設開)
     updater.setAutoUpdate(cfg.autoUpdate !== false)
     updater.checkAtStartup()
+    // 啟動提示:Electron 視窗第一次送來的設定(renderer 已就緒、熱鍵 / 介面語言已知);預覽端與 `--preview` 啟動不顯示
+    if (shouldShowStartupToast({
+      enabled: cfg.startupToast,
+      controlRequest: false, // 帶控制參數的行程不會走到這裡(上方直接結束)
+      selftest: false,
+      preview: ctx.source === 'preview' || PREVIEW_ON_START,
+      secondInstance: false, // 第二實例沒拿到鎖就結束了;這裡一定是拿到鎖的主行程
+      alreadyShown: startupToastShown || relaunching
+    })) {
+      startupToastShown = true
+      showStartupToast(toastMessage({
+        lang: toastLang(cfg.uiLanguage),
+        version: app.getVersion(),
+        hotkey: priceCheckHotkeyLabel(cfg.hotkeyHold, cfg.hotkey),
+        updated: startupUpdated
+      }))
+    } else if (ctx.source !== 'preview') {
+      startupToastShown = true // 第一次設定就關著 → 之後打開也不補顯示(只在啟動時)
+    }
     if (relaunching) return result
 
     if (ctx.source === 'preview') {

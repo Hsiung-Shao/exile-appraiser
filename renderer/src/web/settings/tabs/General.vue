@@ -48,6 +48,9 @@
         <button class="btn ghost sm" :disabled="config.fsBase === fsDefault" @click="config.fsBase = fsDefault">{{ t('ppz.font_size_reset') }}</button>
       </div>
     </div>
+    <div class="chk-row">
+      <label class="chk"><input v-model="config.startupToast" type="checkbox" data-setting="startup-toast"><span>{{ t('ppz.startup_toast') }}</span></label>
+    </div>
   </section>
 
   <section class="card">

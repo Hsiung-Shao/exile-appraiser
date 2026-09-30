@@ -22,7 +22,7 @@ import {
 } from './index'
 
 const DATA_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../data/poe1')
-const USER_AGENT = 'exile-appraiser/0.1.1 (cli; +https://github.com/Hsiung-Shao)'
+const USER_AGENT = 'exile-appraiser/0.1.0 (cli; +https://github.com/Hsiung-Shao)'
 
 function arg (name: string, fallback?: string): string | undefined {
   const i = process.argv.indexOf(name)

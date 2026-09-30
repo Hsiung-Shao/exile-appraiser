@@ -80,6 +80,8 @@ export interface Config {
   hotkeyRuneshapeToggle: string
   /** 自動更新(預設 true):安裝版背景下載、結束程式時靜默套用;false = 手動下載 / 安裝(main/src/updater-core.ts)。 */
   autoUpdate: boolean
+  /** 啟動時短暫顯示「已在背景執行」提示(預設 true;main/src/startup-toast.ts)。 */
+  startupToast: boolean
   // ---- 相容上游元件的推導屬性 ----
   readonly useIntlSite: boolean
   /** 上游元件讀的字級;= `fsBase`(不進檔)。 */
@@ -185,7 +187,8 @@ function createConfig (): Config {
     runeshapeIntervalMs: DEFAULT_RUNESHAPE_INTERVAL_MS,
     runeshapeThresholds: { ...DEFAULT_RUNESHAPE_THRESHOLDS },
     hotkeyRuneshapeToggle: '',
-    autoUpdate: true
+    autoUpdate: true,
+    startupToast: true
   }
   return {
     ...base,
@@ -232,7 +235,8 @@ function serialize (): string {
     runeshapeIntervalMs: config.runeshapeIntervalMs,
     runeshapeThresholds: config.runeshapeThresholds,
     hotkeyRuneshapeToggle: config.hotkeyRuneshapeToggle,
-    autoUpdate: config.autoUpdate
+    autoUpdate: config.autoUpdate,
+    startupToast: config.startupToast
   }, null, 2)
 }
 
@@ -307,6 +311,8 @@ function applyLoaded (raw: string) {
   config.hotkeyRuneshapeToggle = typeof loaded.hotkeyRuneshapeToggle === 'string' ? loaded.hotkeyRuneshapeToggle : fresh.hotkeyRuneshapeToggle
   // 自動更新:舊設定檔沒有 → 預設開;只有明確 false 才關
   config.autoUpdate = loaded.autoUpdate !== false
+  // 啟動提示:舊設定檔沒有 → 預設開;只有明確 false 才關
+  config.startupToast = loaded.startupToast !== false
 }
 
 /** 測試用:套用一份設定檔內容後回傳序列化結果(`renderer/test/runeshape-config.test.ts`) */
@@ -386,7 +392,8 @@ export async function initConfig (): Promise<void> {
     runeshapeRegion: config.runeshapeRegion ? { ...config.runeshapeRegion } : null,
     runeshapeIntervalMs: config.runeshapeIntervalMs,
     hotkeyRuneshapeToggle: config.hotkeyRuneshapeToggle,
-    autoUpdate: config.autoUpdate
+    autoUpdate: config.autoUpdate,
+    startupToast: config.startupToast
   }), (cfg) => {
     void sendHostConfig(cfg)
   }, { immediate: true })
