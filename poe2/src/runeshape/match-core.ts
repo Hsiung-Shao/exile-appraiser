@@ -14,13 +14,14 @@
  * 4. 價格鍵:ITEM → poe.ninja exchange `currency|<refName>`(帶等級的物品 refName 本身就是 `Thaumaturgic Flux (Level 18)`);
  *    GEM(技能 / 輔助寶石)→ poe.ninja PoE2 沒有技能寶石類別(已錄 LineageSupportGems 也沒有這些符文技能)→ `ninjaKey: null`、`unpriced: 'gem'`,UI 顯示「無價格」。
  * 5. 面板外的列:右緣與面板列(有前綴的列)中位右緣差 > 2.5 行高 → `offPanel`(面板標題、別的 UI),UI 不畫徽章。
+ * 6. 「未發現」列(面板上尚未解鎖的配方,`row-format.ts` `UNDISCOVERED_ROW_NAMES`)→ `undiscovered`,不比對,UI 不畫徽章。
  * 對不上的列保留原文(`refName` 留空)。
  *
  * 本檔**零依賴**(相對路徑 import `ocr-text` / `row-format`,不碰 `@/assets/data`):renderer 由 `match.ts` 包上目前語系的索引;
  * main 的 `--runeshape-selftest` 自己讀 items.ndjson + recipes.json 建索引後直接呼叫 `matchRunesRowsWith`。
  */
 import { EPS, FUZZY_MAX_LEN_DIFF, FUZZY_MIN_SIM, levenshtein, normalizeOcrText } from "../desecration/ocr-text";
-import { RIGHT_ALIGN_LINES, parseRuneRow, type ParsedRuneRow, type RuneRowKind } from "./row-format";
+import { RIGHT_ALIGN_LINES, UNDISCOVERED_ROW_NAMES, parseRuneRow, type ParsedRuneRow, type RuneRowKind } from "./row-format";
 
 /** 與 `@ipc/types` 的 `RuneshapeScanRow` 同形(client 實體像素) */
 export interface RuneshapeOcrRow {
@@ -63,6 +64,8 @@ export interface RuneshapeMatchRow extends RuneshapeOcrRow {
   unpriced?: "gem" | "recipe";
   /** 不在面板上(右緣沒對齊面板列) */
   offPanel?: boolean;
+  /** 面板上尚未解鎖的配方(整列「未發現」,`isUndiscoveredRow`)→ 不比對、UI 不畫徽章 */
+  undiscovered?: boolean;
   /** 目前語系 items.ndjson 的 `name`(台服交易站查詢送這個;配方沒有) */
   name?: string;
   /** items.ndjson 的 `tradeTag`(可堆疊物品 → 交易站 bulk exchange 的 want) */
@@ -281,6 +284,11 @@ export function matchRunesRowsWith(lines: RuneshapeOcrRow[], index: RuneshapeInd
     const row: RuneshapeMatchRow = { ...l, kind: p.kind, norm: p.fullName, quantity: p.quantity, match: null };
     const level = p.kind === "gem" ? p.gemLevel : p.level;
     if (level != null) row.level = level;
+    // 尚未解鎖的配方(「未發現」):不比對(免得模糊到別的東西)、UI 不畫徽章
+    if (UNDISCOVERED_ROW_NAMES.includes(p.name)) {
+      row.undiscovered = true;
+      return row;
+    }
     if (panelRight != null && !p.prefixed && Math.abs(l.x + l.w - panelRight) > RIGHT_ALIGN_LINES * lineH) row.offPanel = true;
     const map = p.kind === "item" ? index.item : p.kind === "support" ? index.support : index.skill;
     // 帶等級後綴的物品(奇術熔劑(等級18)、未切割寶石)以含等級的全名比對:等級不同就是不同物品

@@ -92,6 +92,17 @@ export function parseRuneRow(text: string): ParsedRuneRow {
   return row;
 }
 
+/**
+ * 面板上尚未解鎖的配方,整列只寫「未發現」(2026-10-01 使用者繁中截圖)。英文客戶端的對應字串未確認,暫不收。
+ * 比對的是 `parseRuneRow` 剝掉前綴 / 頭尾雜訊後的名稱(`?未發現`、`未發現,` 都算)。
+ */
+export const UNDISCOVERED_ROW_NAMES: readonly string[] = ["未發現"];
+
+/** 「未發現」列(尚未解鎖的配方):UI 不畫徽章、不比對、不查價 */
+export function isUndiscoveredRow(text: string): boolean {
+  return UNDISCOVERED_ROW_NAMES.includes(parseRuneRow(text).name);
+}
+
 /** 面板列:有前綴、名稱至少 2 個 CJK 字(自動定位與「面板還在不在」都用這個判準) */
 export function isPanelRow(text: string): boolean {
   const p = parseRuneRow(text);

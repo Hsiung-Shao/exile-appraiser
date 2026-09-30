@@ -9,6 +9,7 @@ import type { DefineComponent } from 'vue'
 import type { Result } from 'neverthrow'
 import type { DataSource, GameAdapter, PresetOptions, TradeContext } from '@exile-appraiser/core/games/adapter'
 import type { Language, Realm } from '@exile-appraiser/core/realm'
+import type { HttpFetch } from '@exile-appraiser/core/http'
 
 /** App.vue 只讀名稱做 log;其餘欄位原樣交給 poe2 的 CheckedItem.vue。 */
 export interface Poe2ParsedItem {
@@ -100,6 +101,8 @@ export interface Poe2RuneshapeMatchRow extends Poe2OcrLine {
   unpriced?: 'gem' | 'recipe'
   recipeId?: string
   offPanel?: boolean
+  /** 面板上尚未解鎖的配方(「未發現」)→ 不畫徽章 */
+  undiscovered?: boolean
   /** 目前語系 items.ndjson 的名稱(台服交易站查詢用) */
   name?: string
   /** 可堆疊物品的交易站 bulk tag */
@@ -107,7 +110,7 @@ export interface Poe2RuneshapeMatchRow extends Poe2OcrLine {
 }
 export declare function matchRunesRows (lines: Poe2OcrLine[]): Poe2RuneshapeMatchRow[]
 
-// ---- 符文塑形點選查交易站(poe2/src/runeshape/trade-lookup.ts;docs/runeshape.md「點選查交易站」) ----
+// ---- 符文塑形自動查市集(poe2/src/runeshape/trade-lookup.ts;docs/runeshape.md「自動查市集」) ----
 export type Poe2RuneTradeRowInput = Pick<Poe2RuneshapeMatchRow, 'kind' | 'refName' | 'name' | 'level' | 'tradeTag' | 'ambiguous' | 'offPanel'>
 export type Poe2RuneTradeFilter =
   | { id: 'realm', value: Realm }
@@ -153,19 +156,32 @@ export interface Poe2RuneTradeSummary {
   few: boolean
   skipped: number
 }
-export type Poe2RuneTradeOutcome =
-  | { ok: true, raw: Poe2RuneTradeRaw, cached: boolean }
-  | { ok: false, error: 'busy' }
-  | { ok: false, error: 'rate-limited', seconds: number }
-  | { ok: false, error: 'failed', message: string }
+export type Poe2RuneTradeEntry =
+  | { state: 'queued', plan: Poe2RuneTradePlan }
+  | { state: 'loading', plan: Poe2RuneTradePlan }
+  | { state: 'done', plan: Poe2RuneTradePlan, raw: Poe2RuneTradeRaw, cached: boolean }
+  | { state: 'failed', plan: Poe2RuneTradePlan, message: string, at: number }
 /** method 語法(參數雙變):實作收完整的 plan 聯集 */
-export interface Poe2RuneTradeStore {
-  lookup (plan: Poe2RuneTradePlan): Promise<Poe2RuneTradeOutcome>
-  cached (key: string): Poe2RuneTradeRaw | undefined
+export interface Poe2RuneTradeQueue {
+  enqueue (plan: Poe2RuneTradePlan): boolean
+  entry (key: string): Poe2RuneTradeEntry | undefined
+  clearPending (): number
+  pauseFor (seconds: number, reason: string): void
+  kick (): void
+  readonly pending: number
   readonly busy: boolean
+  readonly pausedUntil: number
+  dispose (): void
+}
+export interface Poe2RuneTradeQueueDeps {
+  ctx?: () => TradeContext
+  held?: () => string | null
+  onChange?: (key: string, entry: Poe2RuneTradeEntry | undefined) => void
+  log?: (msg: string) => void
 }
 export declare function runeTradeUnavailable (row: Poe2RuneTradeRowInput, opts?: { realm: Realm, language: Language }): Poe2RuneTradeUnavailable | null
 export declare function planRuneTradeQuery (row: Poe2RuneTradeRowInput, opts: { realm: Realm, language: Language, league: string }):
   { ok: true, plan: Poe2RuneTradePlan } | { ok: false, reason: Poe2RuneTradeUnavailable }
 export declare function summarizeRuneTrade (listings: readonly Poe2RuneTradeListing[], toExalted?: (amount: number, currency: string) => number | undefined): Poe2RuneTradeSummary
-export declare const runeTradeStore: Poe2RuneTradeStore
+export declare function createRuneTradeQueue (deps?: Poe2RuneTradeQueueDeps): Poe2RuneTradeQueue
+export declare function withRuneTrade429 (http: HttpFetch): HttpFetch

@@ -12,7 +12,7 @@ PoE2 **符文塑形面板**(Runes of Aldur 機制)開著時,自動辨識每一�
 | 配方結果資料 | `data/poe2/runeshape/recipes.json`(`scripts/sync-runeshape-data.mjs` 產生;renderer 由 `assets/data` 的 `RUNESHAPE_RECIPES` 載入) |
 | 價格 | `renderer/src/web/background/{Prices,price-of}.ts`、`core/src/ninja/`(格式見 `docs/ninja-poe2.md`) |
 | 徽章 | `renderer/src/web/overlay/{RuneshapePrices.vue,runeshape-view.ts}`(測試 `renderer/test/runeshape-prices.test.ts`) |
-| 點選查交易站 | `poe2/src/runeshape/trade-lookup.ts`(測試 `poe2/test/runeshape/trade-lookup.test.ts`,錄製回應 `fixtures/trade/`)、`runeshape-view.ts` 可點模式 / 市價顯示(測試 `renderer/test/runeshape-trade.test.ts`)、`App.vue` overlayKey 分支 |
+| 自動查市集 | `poe2/src/runeshape/trade-lookup.ts`(查詢組法 + 佇列;測試 `poe2/test/runeshape/trade-lookup.test.ts`,錄製回應 `fixtures/trade/`)、`runeshape-view.ts` 市價換算 / 徽章文字(測試 `renderer/test/runeshape-trade.test.ts`)、`App.vue` 查價面板開著 → `runeshapeTradeHold` |
 | 設定 | `renderer/src/web/settings/tabs/Hotkeys.vue`「符文塑形自動查價」卡片 |
 | 無頭驗證 | `--runeshape-selftest`(`main/src/ocr/runeshape-selftest.ts`)、`node scripts/ocr-fixture.mjs --set runeshape` |
 
@@ -29,6 +29,7 @@ PoE2 **符文塑形面板**(Runes of Aldur 機制)開著時,自動辨識每一�
 | `Nx 名稱` | `item` + 數量 | `1x 遠古控制符文`、`3x 富豪石` |
 | `名稱（等級N）` | `item` + 名稱等級 | `1x 奇術熔劑（等級18）` |
 | 沒有前綴 | `item` | `維里西姆堆` |
+| `未發現`(尚未解鎖的配方) | `item` + `undiscovered`(不畫徽章) | `未發現` |
 
 `normalizeOcrText` 先刪所有空白、全形轉半形(`：`→`:`、`（`→`(`);OCR 常見誤讀一併容忍:
 
@@ -52,6 +53,8 @@ PoE2 **符文塑形面板**(Runes of Aldur 機制)開著時,自動辨識每一�
    不在表上的類別排表後、QuestItem 最後)。最高那層仍有 2 個以上不同 refName(或模糊同分)→ `ambiguous`(候選清單),**不給 refName、不查價**。
    例:`破碎三曲` 通貨 vs 任務物品 → 通貨;`絕望` 靠前綴分技能 `Despair` / 輔助 `Desperation`。
 5. 面板外的列:沒前綴且右緣與面板列中位右緣差 > 2.5 行高 → `offPanel`(面板標題「符形組合」、英文紅框殘留),不畫徽章。
+   「未發現」列(面板上尚未解鎖的配方,整列只寫「未發現」;2026-10-01 使用者截圖「寶石」分頁)→ `undiscovered`,不比對、不畫徽章
+   (以前顯示「?」)。判準 `row-format.ts` `isUndiscoveredRow` / `UNDISCOVERED_ROW_NAMES`(剝掉頭尾 OCR 雜訊後名稱 = `未發現`);英文客戶端字串未確認,暫不收。
 6. **配方結果**(只對 `Nx` / 沒有前綴的列):見下節。
 
 ## 配方結果(泛稱列)
@@ -86,7 +89,7 @@ PoE2 **符文塑形面板**(Runes of Aldur 機制)開著時,自動辨識每一�
 | 類型 | poe.ninja 鍵 | 說明 |
 |---|---|---|
 | `item` | `currency\|<refName>` | exchange 各類(Currency、Runes、SoulCores、UncutGems、Verisium、Expedition…)的名稱就是英文 refName;帶等級的物品 refName 本身帶 `(Level N)` |
-| `gem` / `skill` / `support` | 無(`ninjaKey: null`、`unpriced: 'gem'`) | poe.ninja PoE2 的類別沒有技能寶石;已錄的 `LineageSupportGems` 也沒有這些符文技能 → 徽章「無價格」,不猜(可點選查交易站,見下節) |
+| `gem` / `skill` / `support` | 無(`ninjaKey: null`、`unpriced: 'gem'`) | poe.ninja PoE2 的類別沒有技能寶石;已錄的 `LineageSupportGems` 也沒有這些符文技能 → 不猜 → 自動查市集(見下節);查不了才顯示「無價格」 |
 | `recipe` | 無(`ninjaKey: null`、`unpriced: 'recipe'`) | 配方結果泛稱沒有單一價格 → 徽章「無固定價格」,不查 |
 
 兩張樣本在錄製檔(2026-09-30 Forbidden Rites;1 div = 610.9 ex)上的結果:
@@ -100,35 +103,40 @@ PoE2 **符文塑形面板**(Runes of Aldur 機制)開著時,自動辨識每一�
 | `1x 適應合金` | Adaptive Alloy | 50 ex |
 | `3x 富豪石` | Regal Orb | 5.3 ex(每個 1.8 ex) |
 
-## 點選查交易站(無 ninja 價的列)
+## 自動查市集(無 ninja 價的列)
 
-poe.ninja 沒有價格的列(技能 / 輔助寶石、ninja 沒收錄的等級、台服全部)可以**點一下**查交易站。
+poe.ninja 沒有價格的列(技能 / 輔助寶石、ninja 沒收錄的等級、台服全部)**自動**排隊查交易站,不必點(2026-10-01 使用者回饋:
+「市集的功能要在查不到價格時直接顯示」;舊的 Shift+Space 徽章可點模式會讓 Shift+Space 叫不出設定,已移除 —— overlayKey 一律開設定,徽章整層點擊穿透)。
 同名寶石價差極大(使用者實例:維里西姆強化 等級 14、品質 20%、已汙染掛 415 c,等級 20、無品質、未汙染只要 3 c),
-所以查詢**一定帶與產物相符的篩選**,並在卡片上**列出用了哪些篩選**。
-
-**操作**:徽章平常點擊穿透。按 overlayKey(預設 `Shift + Space`)時,若畫面上有符文徽章 → 進「徽章可點模式」
-(`runeshape-view.ts` `runeshapeClickMode`;main 的 `assertOverlayActive` 照舊,穿透機制不改):整層接點擊、頂部提示、
-可查的徽章顯示「查市集」(虛線外框)。點下 → 徽章「市 查詢中…」→「市 X 崇高」(冷色左框,與 ninja 參考價區分)+ 旁邊卡片。
-Esc / 點空白處 / 再按 overlayKey → `focusGame()`,overlay 失焦即結束可點模式(App.vue `focus-change`);收到新物品或開設定也結束。
-**沒有符文徽章時 overlayKey 行為不變(開設定)**。結束後徽章保留「市」價格。
+所以查詢**一定帶與產物相符的篩選**;徽章不能點,關鍵篩選以短字寫在徽章上,完整篩選寫進 log(`[runeshape] 市集排入 / 市集查詢 …`)。
 
 **查詢內容**(`planRuneTradeQuery`;欄位位置以 `GET /api/trade2/data/filters` 2026-09-30 為準:`quality` 在 `type_filters`,
 `gem_level` / `corrupted` 在 `misc_filters`):
 
-| 列類型 | 方式 | 篩選(卡片全部列出) |
-|---|---|---|
-| `gem`(`技能等級 N：`) | search | type = 名稱、category = `gem`、`gem_level` min = max = N、`corrupted` = false、`quality` max = 0、status `securable` |
-| `skill` / `support`(面板沒寫等級) | search | 同上但不帶 `gem_level`;卡片標「等級不限,價格可能依等級差異很大」 |
-| `item` 有 `tradeTag` | bulk exchange | want = tag、have = `exalted` / `divine`、status `online` |
-| `item` 沒有 `tradeTag` | search | type = 名稱、status `securable` |
-| `recipe`、`ambiguous`、對不上、面板外 | 不可點 | — |
+| 列類型 | 方式 | 完整篩選(log) | 徽章短字 |
+|---|---|---|---|
+| `gem`(`技能等級 N：`) | search | realm、聯盟、type = 名稱、category = `gem`、`gem_level` min = max = N、`corrupted` = false、`quality` max = 0、status `securable` | `· L20` |
+| `skill` / `support`(面板沒寫等級) | search | 同上但不帶 `gem_level`(等級不限,價格可能依等級差異很大) | `· 等級不限` |
+| `item` 有 `tradeTag` | bulk exchange(1 次) | realm、聯盟、want = tag、have = `exalted` / `divine`、status `online` | (無) |
+| `item` 沒有 `tradeTag` | search | realm、聯盟、type = 名稱、status `securable` | (無) |
+| `recipe`、`ambiguous`、對不上、面板外、「未發現」 | 不查 | — | — |
 
 - 名稱:國際服(繁中客戶端)送 refName、台服送繁中 name(`useEnglishNames`,同一般查價;`match-core.ts` 列多帶 `name` / `tradeTag`)。
-- 價格:取最便宜 10 筆;≥ 3 筆給**中位數**,不到 3 筆顯示最低價並標「筆數少」;卡片另列最低 / 最高、筆數(共幾筆)、查詢時間。
-  國際服用 poe.ninja 匯率換成崇高石(≥ 1 神聖石改神聖石;換不了的幣別記「未計入」);**台服沒有匯率 → 取筆數最多的幣別原幣顯示**。
-- 快取與限流(`createRuneTradeStore`):同一組篩選 30 分鐘內重點不重查(另有交易層原本的快取);同時只跑一筆(進行中再點 →「稍後再點」);
-  限流預估要等 ≥ 1.5 秒(`preventQueueCreation`)→ 直接顯示「約 N 秒後再試」、**不排隊**,不擠一般查價的額度。
-- 「在交易站開啟」:有搜尋 id 開同一個搜尋(`/trade2/search/poe2/<聯盟>/<id>`、bulk `/trade2/exchange/poe2/<聯盟>/<id>`),走 `openTradeSite`(系統瀏覽器)。
+- 價格:每次 search 只 fetch 一批(最便宜 10 筆);≥ 3 筆給**中位數**,不到 3 筆顯示最低價並標「少」。
+  國際服用 poe.ninja 匯率換成崇高石(≥ 1 神聖石改神聖石;換不了的幣別不計);**台服沒有匯率 → 取筆數最多的幣別原幣顯示**。
+- **徽章文字**(`runeshape-view.ts` `runeTradeBadge`,冷色左框 + 「市」字,與 ninja 參考價區分):
+  排隊中 `市 … · L20` → 查詢中 `市 查詢中 · L20` → `市 80 崇高 · L20`(筆數少:`市 5 崇高 少 · L20`;沒有掛單:`市 無掛單`;失敗:`市 查詢失敗`)。
+- **佇列**(`trade-lookup.ts` `createRuneTradeQueue`,renderer 在 `RuneshapePrices.vue` 建一個):
+  - 單一佇列、同時一筆,由上而下依列順序;每筆物品最多 1 search + 1 fetch(bulk 1 次 exchange)。
+  - 同一組篩選(plan key = realm + 聯盟 + 查詢內容)30 分鐘記憶體快取(重啟失效;另有交易層原本的快取);已排隊 / 查詢中 / 快取內的列重複出現不重排;
+    非限流的失敗 5 分鐘內不再自動排入。
+  - **不影響一般查價**:送出前用限流器預估(`runeTradeWaitMs`:search 看 SEARCH + FETCH、bulk 看 EXCHANGE;限流器上已有人排隊也算要等),
+    要等就延後「預估 + 300 ms」再試 —— 不丟錯、不呼叫 `waitMulti` 排進限流器的佇列;search 完、fetch 前再預估一次,要等就把該筆放回隊首
+    (search 結果在交易層快取,重試不會再 search)。
+  - 查價面板 / 設定開著(App.vue 寫 `runeshapeTradeHold`)→ 暫停,關掉立刻繼續。
+  - 429:佇列自己的請求走原始 http(`Host.proxy`,不經 `withRetryAfter` 的背景等待)包 `withRuneTrade429` → 整個佇列暫停到 Retry-After 期滿(沒給 = 60 秒);
+    一般查價收到 429(`Host.rateLimitWait`)也 `pauseFor` 同樣秒數。
+  - 面板消失(空結果 / 暫停)→ `clearPending` 清掉尚未送出的項目(查詢中那筆照跑);快取保留,面板再出現時直接顯示。換區服 / 聯盟也清。
 - 錄製回應:`poe2/test/runeshape/fixtures/trade/`(2026-09-30 intl、Runes of Aldur,search / fetch / exchange 各打一次,UA = `exile-appraiser/0.1.0`,
   已剝帳號 / 角色名 / 密語 / 倉庫)。實測:`Powered by Verisium` 等級 20 + 未汙染 + 品質 max 0 → 共 379 筆,前 10 筆全是等級 20、無品質、未汙染,
   30~199 ex,中位數 80 ex(`quality` max 0 會命中沒有品質屬性的寶石)。
@@ -171,8 +179,10 @@ npx electron main/dist/main.js --runeshape-selftest <png> [--runeshape-selftest-
 ## 已知限制
 
 - 英文客戶端的前綴寫法未確認(`Nx` 以外只認繁中 `技能等級` / `技能` / `輔助`);沒有任何前綴列的面板自動定位找不到(請手動框選)。
-- 配方泛稱(`維里西姆堆`、傳奇某部位、隨機通貨)只標「無固定價格」,不估價、不可點;poe.ninja 沒有的等級 / 新物品標「無價格」,可點選查交易站。
-- 點選查交易站:真實 overlay 的焦點切換、點擊與交易站實際價格待使用者親測(自動驗證只在無頭頁面 + 錄製回應);
-  `skill` / `support` 列面板沒寫等級,只能等級不限查詢;bulk 的神聖石 / 崇高石混合掛單在少量掛單時中位數波動大。
+- 配方泛稱(`維里西姆堆`、傳奇某部位、隨機通貨)只標「無固定價格」,不估價、不查市集;poe.ninja 沒有的等級 / 新物品自動查市集。
+- 自動查市集:真實遊戲中的交易站實際價格、與一般查價同時進行時的限流表現待使用者親測(自動驗證只在無頭頁面 + 錄製回應 + 假時鐘);
+  `skill` / `support` 列面板沒寫等級,只能等級不限查詢;bulk 的神聖石 / 崇高石混合掛單在少量掛單時中位數波動大;
+  面板列很多時,交易站 1 次 / 5 秒的限流下全部查完要一段時間(每筆約 5 秒)。
+- 「未發現」列只認繁中字串;英文客戶端的對應字串未確認,暫不收(會顯示「?」)。
 - 配方表只收 GGPK `expedition2recipes` 的 Description;面板若出現不在表裡的泛稱寫法仍會對不上(「?」),新賽季要重抽 GGPK + 重跑同步。
 - 只有兩張 1 倍縮放的截圖;4K / 其他 UI 縮放、面板捲動、列數很多時的定位與 OCR 準確度待使用者親測。

@@ -1,8 +1,9 @@
 /**
- * exile-appraiser:符文塑形「點選無 ninja 價的列 → 查交易站」(poe2/src/runeshape/trade-lookup.ts;docs/runeshape.md「點選查交易站」)。
- * - 查詢組法:gem 有 / 無等級、support、item bulk / search、不可查類型;intl 送英文名、tw 送繁中名;篩選清單(給 UI 顯示)。
+ * exile-appraiser:符文塑形「無 ninja 價的列 → 自動查交易站」(poe2/src/runeshape/trade-lookup.ts;docs/runeshape.md「自動查市集」)。
+ * - 查詢組法:gem 有 / 無等級、support、item bulk / search、不可查類型;intl 送英文名、tw 送繁中名;篩選清單(log / 徽章短字)。
  * - 執行:錄製的真實交易站回應(fixtures/trade/,2026-09-30 intl 各打一次,已剝帳號 / 角色名 / 密語)經離線 HttpFetch 回放。
- * - 中位數與筆數規則、原幣 / 換算、本地快取 30 分鐘、同時一筆、限流不排隊。
+ * - 中位數與筆數規則、原幣 / 換算。
+ * - 自動查詢佇列(假時鐘 + 假 http):同時一筆、快取命中不重送、重複不重排、限流需等待時延後、429 整個暫停、面板消失清佇列、查價面板開著暫停。
  * 沒有任何真實網路請求。
  */
 import fs from "node:fs";
@@ -11,12 +12,19 @@ import { afterEach, beforeAll, describe, expect, it } from "vitest";
 import type { HttpFetch, HttpResponse } from "@exile-appraiser/core/http";
 import type { TradeContext } from "@exile-appraiser/core/games/adapter";
 import { init } from "@/assets/data";
-import { resetTradeSessions } from "@/web/price-check/trade/common";
+import { resetTradeSessions, tradeSession } from "@/web/price-check/trade/common";
 import { matchRunesRows } from "@/runeshape/match";
 import {
   RUNE_TRADE_CACHE_MS,
-  createRuneTradeStore,
+  RUNE_TRADE_DEFER_MARGIN_MS,
+  RUNE_TRADE_FAIL_RETRY_MS,
+  RuneTradeRateLimitedError,
+  createRuneTradeQueue,
   executeRuneTradePlan,
+  runeTradeWaitMs,
+  withRuneTrade429,
+  type RuneTradeQueueDeps,
+  type RuneTradeRaw,
   planRuneTradeQuery,
   runeTradeUnavailable,
   summarizeRuneTrade,
@@ -228,52 +236,240 @@ describe("中位數與筆數規則(summarizeRuneTrade)", () => {
   });
 });
 
-describe("本地快取與限流(createRuneTradeStore)", () => {
-  const rawOf = (key: string, at: number) => ({ key, mode: "search" as const, total: 1, listings: [], webUrl: "u", at });
-
-  it("同一組篩選 30 分鐘內不重查,過期才重查", async () => {
-    let t = 0;
-    let calls = 0;
-    const store = createRuneTradeStore({ now: () => t, exec: async (_c, p, now) => { calls++; return rawOf(p.key, now ? now() : 0); } });
-    const p = plan(gemRow);
-    const ctx = ctxOf(recordedHttp([]));
-    expect(await store.lookup(p, ctx)).toMatchObject({ ok: true, cached: false });
-    t = RUNE_TRADE_CACHE_MS - 1;
-    expect(await store.lookup(p, ctx)).toMatchObject({ ok: true, cached: true });
-    expect(store.cached(p.key)).toBeDefined();
-    t = RUNE_TRADE_CACHE_MS;
-    expect(store.cached(p.key)).toBeUndefined();
-    expect(await store.lookup(p, ctx)).toMatchObject({ ok: true, cached: false });
-    expect(calls).toBe(2);
-  });
-
-  it("同時只跑一筆:進行中再點另一列 → busy(不排隊)", async () => {
-    let release!: () => void;
-    const store = createRuneTradeStore({ exec: (_c, p) => new Promise((r) => { release = () => r(rawOf(p.key, 0)); }) });
-    const ctx = ctxOf(recordedHttp([]));
-    const first = store.lookup(plan(gemRow), ctx);
-    expect(store.busy).toBe(true);
-    expect(await store.lookup(plan({ kind: "skill", refName: "Repulsion", name: "排斥" }), ctx)).toEqual({ ok: false, error: "busy" });
-    release();
-    expect(await first).toMatchObject({ ok: true });
-    expect(store.busy).toBe(false);
-  });
-
-  it("限流預估要等 → rate-limited 帶秒數(真的限流器:連續兩筆不同搜尋,第二筆不排隊直接拒絕)", async () => {
+describe("429 偵測(withRuneTrade429)", () => {
+  it("佇列自己的請求收到 429 → RuneTradeRateLimitedError 帶 Retry-After 秒數(沒給 = 60);其他狀態原樣回傳", async () => {
+    const h429 = (headers: Record<string, string>): HttpFetch => async () => ({ ...response(429, {}), headers: new Headers(headers) });
+    const e = await withRuneTrade429(h429({ "retry-after": "12" }))("u").catch((x) => x);
+    expect(e).toBeInstanceOf(RuneTradeRateLimitedError);
+    expect(e.seconds).toBe(12);
+    expect((await withRuneTrade429(h429({}))("u").catch((x) => x)).seconds).toBe(60);
+    // 真的 executeRuneTradePlan:search 就 429 → 丟出,不 fetch
     const log: Recorded[] = [];
-    const store = createRuneTradeStore();
-    const ctx = ctxOf(recordedHttp(log));
-    expect(await store.lookup(plan(gemRow), ctx)).toMatchObject({ ok: true });
-    const second = await store.lookup(plan({ kind: "skill", refName: "Repulsion", name: "排斥" }), ctx);
-    expect(second).toMatchObject({ ok: false, error: "rate-limited" });
-    expect(second.ok === false && second.error === "rate-limited" && second.seconds).toBeGreaterThan(0);
-    // 第二筆沒有送出任何請求
-    expect(log).toHaveLength(2);
+    const http: HttpFetch = async (url, init) => { log.push({ url, init: init as Recorded["init"] }); return { ...response(429, {}), headers: new Headers({ "retry-after": "30" }) }; };
+    const err = await executeRuneTradePlan(ctxOf(withRuneTrade429(http)), plan(gemRow)).catch((x) => x);
+    expect(err).toBeInstanceOf(RuneTradeRateLimitedError);
+    expect(log).toHaveLength(1);
+    const ok = await withRuneTrade429(recordedHttp([]))("https://www.pathofexile.com/api/trade2/search/x");
+    expect(ok.status).toBe(200);
+  });
+});
+
+/** 假時鐘 + 假計時器(setTimer / clearTimer 注入佇列);advance 依序觸發到期的計時器,每次觸發後讓 promise 跑完 */
+function fakeClock() {
+  let t = 0;
+  let seq = 0;
+  const timers: Array<{ at: number; id: number; fn: () => void }> = [];
+  const flush = async () => { for (let i = 0; i < 5; i++) await new Promise((r) => setTimeout(r, 0)); };
+  return {
+    now: () => t,
+    setTimer: (fn: () => void, ms: number) => { const id = ++seq; timers.push({ at: t + ms, id, fn }); return id; },
+    clearTimer: (id: unknown) => { const i = timers.findIndex((x) => x.id === id); if (i >= 0) timers.splice(i, 1); },
+    flush,
+    async advance(ms: number) {
+      const end = t + ms;
+      for (;;) {
+        timers.sort((a, b) => a.at - b.at || a.id - b.id);
+        const next = timers[0];
+        if (!next || next.at > end) break;
+        timers.shift();
+        t = next.at;
+        next.fn();
+        await flush();
+      }
+      t = end;
+      await flush();
+    },
+    get timers() { return timers.length; },
+  };
+}
+
+describe("自動查詢佇列(createRuneTradeQueue)", () => {
+  const skillRow: RuneTradeRowInput = { kind: "skill", refName: "Repulsion", name: "排斥" };
+  const supportRow: RuneTradeRowInput = { kind: "support", refName: "Concussive Runes", name: "震盪符文" };
+  const rawOf = (key: string, at: number): RuneTradeRaw => ({ key, mode: "search", total: 1, listings: [{ amount: 5, currency: "exalted" }], webUrl: "u", at });
+
+  /** 假 exec:每筆都掛起,測試手動 resolve / reject */
+  function manualExec() {
+    const calls: Array<{ key: string; resolve: () => void; reject: (e: unknown) => void }> = [];
+    const exec: RuneTradeQueueDeps["exec"] = (_c, p, now) =>
+      new Promise<RuneTradeRaw>((resolve, reject) => { calls.push({ key: p.key, resolve: () => resolve(rawOf(p.key, now())), reject }); });
+    return { calls, exec };
+  }
+  function setup(over: Partial<RuneTradeQueueDeps> = {}) {
+    const clock = fakeClock();
+    const m = manualExec();
+    const logs: string[] = [];
+    const changes: Array<[string, string | undefined]> = [];
+    const q = createRuneTradeQueue({
+      now: clock.now, setTimer: clock.setTimer, clearTimer: clock.clearTimer,
+      ctx: () => ctxOf(recordedHttp([])),
+      exec: m.exec,
+      waitMs: () => 0,
+      log: (s) => logs.push(s),
+      onChange: (k, e) => changes.push([k, e?.state]),
+      ...over,
+    });
+    return { clock, q, calls: m.calls, logs, changes };
+  }
+
+  it("單一佇列、同時一筆:依排入順序一筆做完才送下一筆", async () => {
+    const { clock, q, calls } = setup();
+    const [a, b, c] = [plan(gemRow), plan(skillRow), plan(supportRow)];
+    expect([q.enqueue(a), q.enqueue(b), q.enqueue(c)]).toEqual([true, true, true]);
+    expect(calls.map((x) => x.key)).toEqual([a.key]);
+    expect([q.entry(a.key)?.state, q.entry(b.key)?.state, q.entry(c.key)?.state]).toEqual(["loading", "queued", "queued"]);
+    expect(q.busy).toBe(true);
+    calls[0].resolve();
+    await clock.flush();
+    expect(q.entry(a.key)?.state).toBe("done");
+    expect(calls.map((x) => x.key)).toEqual([a.key, b.key]);
+    calls[1].resolve();
+    await clock.flush();
+    calls[2].resolve();
+    await clock.flush();
+    expect(calls).toHaveLength(3);
+    expect(q.busy).toBe(false);
+    expect(q.pending).toBe(0);
   });
 
-  it("其他錯誤 → failed 帶訊息", async () => {
-    const store = createRuneTradeStore({ exec: async () => { throw new Error("boom"); } });
-    expect(await store.lookup(plan(gemRow), ctxOf(recordedHttp([])))).toEqual({ ok: false, error: "failed", message: "boom" });
-    expect(store.busy).toBe(false);
+  it("重複出現的列不重排;快取 30 分鐘內命中不重送,過期才重查", async () => {
+    const { clock, q, calls } = setup();
+    const a = plan(gemRow);
+    expect(q.enqueue(a)).toBe(true);
+    expect(q.enqueue(a)).toBe(false); // 查詢中
+    const b = plan(skillRow);
+    expect(q.enqueue(b)).toBe(true);
+    expect(q.enqueue(b)).toBe(false); // 排隊中
+    expect(q.pending).toBe(1);
+    calls[0].resolve();
+    await clock.flush();
+    calls[1].resolve();
+    await clock.flush();
+    expect(q.enqueue(a)).toBe(false); // 30 分鐘內有結果
+    expect(q.entry(a.key)).toMatchObject({ state: "done", cached: false });
+    await clock.advance(RUNE_TRADE_CACHE_MS - 1);
+    expect(q.enqueue(a)).toBe(false);
+    expect(calls).toHaveLength(2);
+    await clock.advance(1);
+    expect(q.enqueue(a)).toBe(true); // 過期 → 重查
+    expect(calls).toHaveLength(3);
+  });
+
+  it("送出前限流預估要等 → 延後重試(不丟錯、不送請求),等到期滿 + 餘裕才送", async () => {
+    let wait = 4000;
+    const { clock, q, calls } = setup({ waitMs: () => wait });
+    const a = plan(gemRow);
+    q.enqueue(a);
+    expect(calls).toHaveLength(0);
+    expect(q.entry(a.key)?.state).toBe("queued");
+    wait = 0;
+    await clock.advance(4000 + RUNE_TRADE_DEFER_MARGIN_MS - 1);
+    expect(calls).toHaveLength(0);
+    await clock.advance(1);
+    expect(calls).toHaveLength(1);
+  });
+
+  it("真的限流器:第一筆 search + fetch 後,第二筆預估要等 → 不送、不進限流器的佇列(一般查價不受影響)", async () => {
+    const log: Recorded[] = [];
+    const { clock, q } = setup({ exec: undefined, waitMs: runeTradeWaitMs, ctx: () => ctxOf(recordedHttp(log)) });
+    const a = plan(gemRow);
+    const b = plan(skillRow);
+    q.enqueue(a);
+    q.enqueue(b);
+    await clock.flush();
+    expect(q.entry(a.key)?.state).toBe("done");
+    expect(log.map((l) => l.url.split("/api/trade2/")[1].split("/")[0])).toEqual(["search", "fetch"]);
+    expect(q.entry(b.key)?.state).toBe("queued");
+    expect(runeTradeWaitMs(b, "intl", "start")).toBeGreaterThan(0);
+    const { limits } = tradeSession("intl");
+    for (const set of [limits.SEARCH, limits.FETCH]) for (const rl of set) expect(rl.queue.value).toBe(0);
+    expect(log).toHaveLength(2);
+    q.dispose();
+  });
+
+  it("fetch 前限流要等 → 延後;重試時 search 走交易層快取,總共 1 search + 1 fetch", async () => {
+    const log: Recorded[] = [];
+    let fetchWait = 2000;
+    const { clock, q } = setup({
+      exec: undefined,
+      ctx: () => ctxOf(recordedHttp(log)),
+      waitMs: (_p, _r, step) => (step === "fetch" ? fetchWait : 0),
+    });
+    const a = plan(gemRow);
+    q.enqueue(a);
+    await clock.flush();
+    expect(log.map((l) => l.url.includes("/search/"))).toEqual([true]);
+    expect(q.entry(a.key)?.state).toBe("queued");
+    fetchWait = 0;
+    await clock.advance(2000 + RUNE_TRADE_DEFER_MARGIN_MS);
+    expect(q.entry(a.key)?.state).toBe("done");
+    expect(log.map((l) => (l.url.includes("/search/") ? "search" : "fetch"))).toEqual(["search", "fetch"]);
+  });
+
+  it("收到 429 → 整個佇列暫停到 Retry-After 期滿,該筆放回隊首", async () => {
+    const { clock, q, calls, logs } = setup();
+    const [a, b] = [plan(gemRow), plan(skillRow)];
+    q.enqueue(a);
+    q.enqueue(b);
+    calls[0].reject(new RuneTradeRateLimitedError(20));
+    await clock.flush();
+    expect(q.pausedUntil).toBe(20_000);
+    expect([q.entry(a.key)?.state, q.entry(b.key)?.state]).toEqual(["queued", "queued"]);
+    expect(logs.some((l) => l.includes("429"))).toBe(true);
+    await clock.advance(19_999);
+    expect(calls).toHaveLength(1);
+    await clock.advance(1);
+    expect(calls.map((x) => x.key)).toEqual([a.key, a.key]);
+  });
+
+  it("一般查價收到 429(pauseFor)→ 佇列一起暫停", async () => {
+    const { clock, q, calls } = setup();
+    q.pauseFor(10, "一般查價收到 429");
+    q.enqueue(plan(gemRow));
+    expect(calls).toHaveLength(0);
+    await clock.advance(10_000);
+    expect(calls).toHaveLength(1);
+  });
+
+  it("面板消失 → 清掉尚未送出的項目(查詢中那筆照跑、快取保留)", async () => {
+    const { clock, q, calls, changes } = setup();
+    const [a, b, c] = [plan(gemRow), plan(skillRow), plan(supportRow)];
+    q.enqueue(a); q.enqueue(b); q.enqueue(c);
+    expect(q.clearPending()).toBe(2);
+    expect([q.entry(b.key), q.entry(c.key)]).toEqual([undefined, undefined]);
+    expect(changes.filter(([, s]) => s === undefined).map(([k]) => k)).toEqual([b.key, c.key]);
+    calls[0].resolve();
+    await clock.flush();
+    expect(calls).toHaveLength(1);
+    expect(q.entry(a.key)?.state).toBe("done");
+    // 面板再出現:快取命中不重送;清掉的那筆重新排入
+    expect(q.enqueue(a)).toBe(false);
+    expect(q.enqueue(b)).toBe(true);
+    expect(calls.map((x) => x.key)).toEqual([a.key, b.key]);
+  });
+
+  it("查價面板開著(held)→ 暫停不送;解除後 kick 立刻送", async () => {
+    let held: string | null = "查價面板開著";
+    const { clock, q, calls, logs } = setup({ held: () => held });
+    q.enqueue(plan(gemRow));
+    await clock.advance(5000);
+    expect(calls).toHaveLength(0);
+    expect(logs.filter((l) => l.includes("暫停(查價面板開著)"))).toHaveLength(1);
+    held = null;
+    q.kick();
+    await clock.advance(0);
+    expect(calls).toHaveLength(1);
+  });
+
+  it("其他錯誤 → failed;5 分鐘內同一組篩選不再自動排入", async () => {
+    const { clock, q, calls } = setup();
+    const a = plan(gemRow);
+    q.enqueue(a);
+    calls[0].reject(new Error("boom"));
+    await clock.flush();
+    expect(q.entry(a.key)).toMatchObject({ state: "failed", message: "boom" });
+    expect(q.enqueue(a)).toBe(false);
+    await clock.advance(RUNE_TRADE_FAIL_RETRY_MS);
+    expect(q.enqueue(a)).toBe(true);
   });
 });

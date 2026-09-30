@@ -1,21 +1,23 @@
-// 符文塑形點選查交易站(renderer 純邏輯):哪些徽章可點、overlayKey 何時進可點模式、市價換算與顯示、篩選清單字串
+// 符文塑形自動查市集(renderer 純邏輯):哪些列查市集、「未發現」不畫、市價換算與顯示、徽章文字(含篩選短字)
 import { describe, expect, it } from 'vitest'
 import {
-  enterClickModeOnOverlayKey, formatRuneTrade, layoutRunePrices, placeTradeCard, runeTradeFilterLines, runeTradeToExalted, tradeCurrencyUnit, type MatchedRow
+  formatRuneTrade, layoutRunePrices, runeTradeBadge, runeTradeShortFilter, runeTradeToExalted, tradeCurrencyUnit, type MatchedRow
 } from '../src/web/overlay/runeshape-view'
 import type { PriceOfResult } from '../src/web/background/price-of'
+import type { Poe2RuneTradeFilter } from '@poe2-entry'
+import zh from '../src/i18n/cmn-Hant.json'
 
 // 1 div = 600 ex、1 ex = 0.1 c(比例好算即可)
 const RATES = { exalted: 0.1, divine: 60 }
 const th = { low: 0.5, high: 5 }
 const row = (over: Partial<MatchedRow>): MatchedRow => ({ text: 'x', x: 100, y: 40, w: 200, h: 20, quantity: 1, match: 'exact', ...over })
 
-describe('哪些徽章可點(tradeKey)', () => {
+describe('哪些列查市集(tradeKey)', () => {
   const priceOf = (ref: string): PriceOfResult =>
     ref === 'Priced' ? { status: 'ok', key: 'currency|Priced', chaos: 1, exalted: 10, lowConfidence: false } : { status: 'no-price' }
   const keyOf = (r: MatchedRow) => (r.refName ? `k:${r.refName}` : undefined)
 
-  it('只有「沒有 ninja 價」的列帶 tradeKey:技能寶石、價格表沒有的物品可點;有價、配方泛稱、對不上不可點', () => {
+  it('只有「沒有 ninja 價」的列帶 tradeKey:技能寶石、價格表沒有的物品;有價、配方泛稱、對不上不查', () => {
     const v = layoutRunePrices([
       row({ kind: 'gem', refName: 'Powered by Verisium', level: 20, unpriced: 'gem' }),
       row({ kind: 'item', refName: 'Nope', y: 80 }),
@@ -32,26 +34,25 @@ describe('哪些徽章可點(tradeKey)', () => {
     ])
   })
 
-  it('查詢計畫組不出來(tradeKeyOf 回 undefined)→ 不可點;沒給 tradeKeyOf → 全部不可點', () => {
+  it('查詢計畫組不出來(tradeKeyOf 回 undefined)→ 不查;沒給 tradeKeyOf → 全部不查', () => {
     const v = layoutRunePrices([row({ kind: 'gem', refName: 'X', unpriced: 'gem' })], priceOf, { w: 1, h: 1 }, { w: 1, h: 1 }, th, () => undefined)
     expect(v[0].tradeKey).toBeUndefined()
     expect(layoutRunePrices([row({ kind: 'gem', refName: 'X', unpriced: 'gem' })], priceOf, { w: 1, h: 1 }, { w: 1, h: 1 }, th)[0].tradeKey).toBeUndefined()
   })
 
-  it('台服(priceOf = no-source)→ noPrice no-source,仍可點', () => {
+  it('台服(priceOf = no-source)→ noPrice no-source,照樣查市集', () => {
     const v = layoutRunePrices([row({ kind: 'item', refName: 'Regal Orb' })], () => ({ status: 'no-source' }), { w: 1, h: 1 }, { w: 1, h: 1 }, th, keyOf)
     expect([v[0].noPrice, v[0].tradeKey]).toEqual(['no-source', 'k:Regal Orb'])
   })
-})
 
-describe('overlayKey → 徽章可點模式', () => {
-  it('overlay 由 overlayKey 叫出、查價面板沒開、畫面上有徽章才進;否則維持原行為(開設定)', () => {
-    const hot = { overlay: true, usingHotkey: true }
-    expect(enterClickModeOnOverlayKey(hot, false, true)).toBe(true)
-    expect(enterClickModeOnOverlayKey(hot, false, false)).toBe(false)
-    expect(enterClickModeOnOverlayKey(hot, true, true)).toBe(false)
-    expect(enterClickModeOnOverlayKey({ overlay: true, usingHotkey: false }, false, true)).toBe(false)
-    expect(enterClickModeOnOverlayKey({ overlay: false, usingHotkey: true }, false, true)).toBe(false)
+  it('「未發現」列(尚未解鎖的配方)→ 不畫徽章(原本顯示「?」);rowIndex 仍對應原列', () => {
+    const v = layoutRunePrices([
+      row({ kind: 'gem', refName: 'Powered by Verisium', unpriced: 'gem' }),
+      row({ text: '未發現', kind: 'item', refName: undefined, match: null, undiscovered: true, y: 80 }),
+      row({ text: '未發現', kind: 'item', refName: undefined, match: null, undiscovered: true, y: 120 }),
+      row({ kind: 'item', refName: 'Priced', y: 160 })
+    ], priceOf, { w: 1, h: 1 }, { w: 1, h: 1 }, th, keyOf)
+    expect(v.map(b => [b.kind, b.rowIndex])).toEqual([['no-price', 0], ['price', 3]])
   })
 })
 
@@ -90,46 +91,60 @@ describe('市價換算與顯示', () => {
   })
 })
 
-describe('市價卡片位置(placeTradeCard)', () => {
-  const size = { w: 340, h: 330 }
-  it('徽章欄右側、上緣對齊徽章往上 24 px(不蓋住其他列的徽章)', () => {
-    expect(placeTradeCard({ top: 160, rowLeft: 420, columnRight: 900 }, { w: 1400, h: 800 }, size)).toEqual({ left: 912, top: 136 })
-  })
-  it('右邊放不下 → 面板左側;夾進視窗', () => {
-    expect(placeTradeCard({ top: 160, rowLeft: 800, columnRight: 1200 }, { w: 1400, h: 800 }, size)).toEqual({ left: 448, top: 136 })
-    expect(placeTradeCard({ top: 780, rowLeft: 100, columnRight: 1200 }, { w: 1400, h: 800 }, size)).toEqual({ left: 8, top: 462 })
-    expect(placeTradeCard({ top: 5, rowLeft: 500, columnRight: 600 }, { w: 1400, h: 800 }, size).top).toBe(8)
-  })
-})
+/** 用真的繁中字串檔翻譯(徽章文字要和畫面一致) */
+function tZh (key: string, args?: Record<string, unknown>): string {
+  let v: unknown = zh
+  for (const k of key.split('.')) v = (v as Record<string, unknown>)?.[k]
+  if (typeof v !== 'string') throw new Error(`missing i18n ${key}`)
+  return v.replace(/\{(\w+)\}/g, (_, k: string) => String(args?.[k] ?? ''))
+}
 
-describe('篩選清單字串(卡片「使用的篩選」)', () => {
-  const t = (key: string) => `<${key}>`
-  it('每個篩選都有標籤與值;寶石等級 / 未汙染 / 品質 0 照實列出', () => {
-    const lines = runeTradeFilterLines([
-      { id: 'realm', value: 'intl' },
-      { id: 'league', value: 'Runes of Aldur' },
-      { id: 'mode', value: 'search' },
-      { id: 'type', value: 'Powered by Verisium' },
-      { id: 'category', value: 'gem' },
-      { id: 'gem_level', value: 20 },
-      { id: 'corrupted', value: false },
-      { id: 'quality', value: 0 },
-      { id: 'status', value: 'securable' }
-    ], t)
-    expect(lines.map(l => `${l.label}=${l.value}`)).toEqual([
-      '<ppz.runeshape.trade.f_realm>=<ppz.realm_intl_short>',
-      '<ppz.runeshape.trade.f_league>=Runes of Aldur',
-      '<ppz.runeshape.trade.f_mode>=<ppz.runeshape.trade.mode_search>',
-      '<ppz.runeshape.trade.f_type>=Powered by Verisium',
-      '<ppz.runeshape.trade.f_category>=<ppz.runeshape.trade.v_gem>',
-      '<ppz.runeshape.trade.f_gem_level>=20',
-      '<ppz.runeshape.trade.f_corrupted>=<ppz.runeshape.trade.v_uncorrupted>',
-      '<ppz.runeshape.trade.f_quality>=<ppz.runeshape.trade.v_quality_zero>',
-      '<ppz.runeshape.trade.f_status>=<ppz.runeshape.trade.status_securable>'
-    ])
+describe('徽章文字(runeTradeBadge / runeTradeShortFilter)', () => {
+  const GEM_L20: Poe2RuneTradeFilter[] = [
+    { id: 'realm', value: 'intl' }, { id: 'league', value: 'Runes of Aldur' }, { id: 'mode', value: 'search' },
+    { id: 'type', value: 'Powered by Verisium' }, { id: 'category', value: 'gem' }, { id: 'gem_level', value: 20 },
+    { id: 'corrupted', value: false }, { id: 'quality', value: 0 }, { id: 'status', value: 'securable' }
+  ]
+  const SKILL_ANY: Poe2RuneTradeFilter[] = [
+    { id: 'mode', value: 'search' }, { id: 'type', value: 'Rain of Blades' }, { id: 'category', value: 'gem' },
+    { id: 'gem_level_any' }, { id: 'corrupted', value: false }, { id: 'quality', value: 0 }
+  ]
+  const BULK: Poe2RuneTradeFilter[] = [{ id: 'mode', value: 'bulk' }, { id: 'want', value: 'thaumaturgic-flux-18' }, { id: 'have', value: ['exalted', 'divine'] }]
+  const disp = (s: Parameters<typeof formatRuneTrade>[0], rates = RATES) => formatRuneTrade(s, rates)
+
+  it('篩選短字:寶石等級 → L20;技能 / 輔助沒寫等級 → 等級不限;bulk / 一般物品不標', () => {
+    expect(runeTradeShortFilter(GEM_L20, tZh)).toBe('L20')
+    expect(runeTradeShortFilter(SKILL_ANY, tZh)).toBe('等級不限')
+    expect(runeTradeShortFilter(BULK, tZh)).toBeUndefined()
   })
-  it('bulk:支付幣別轉成單位字;等級不限', () => {
-    const lines = runeTradeFilterLines([{ id: 'have', value: ['exalted', 'divine', 'annul'] }, { id: 'gem_level_any' }, { id: 'want', value: 'thaumaturgic-flux-18' }], t)
-    expect(lines.map(l => l.value)).toEqual(['<ppz.runeshape.unit_ex> / <ppz.runeshape.unit_div> / annul', '<ppz.runeshape.trade.v_level_any>', 'thaumaturgic-flux-18'])
+
+  it('排隊中 / 查詢中 / 沒有 entry(剛出現)', () => {
+    expect(runeTradeBadge({ state: 'queued' }, undefined, GEM_L20, tZh)).toMatchObject({ status: 'queued', text: '市 … · L20' })
+    expect(runeTradeBadge(undefined, undefined, SKILL_ANY, tZh)).toMatchObject({ status: 'queued', text: '市 … · 等級不限' })
+    expect(runeTradeBadge({ state: 'loading' }, undefined, GEM_L20, tZh)).toMatchObject({ status: 'loading', text: '市 查詢中 · L20' })
+  })
+
+  it('結果:中位數 → 「市 80 崇高 · L20」;≥ 1 神聖石改神聖;筆數 < 3 → 最低價 + 「少」', () => {
+    const d = disp({ unit: 'exalted', converted: true, count: 10, median: 80, min: 30, max: 199, few: false, skipped: 0 })
+    expect(runeTradeBadge({ state: 'done' }, d, GEM_L20, tZh)).toEqual({ status: 'price', value: '80', unit: '崇高', few: false, short: 'L20', text: '市 80 崇高 · L20' })
+    const dv = disp({ unit: 'exalted', converted: true, count: 8, median: 1200, min: 1, max: 30000, few: false, skipped: 0 })
+    expect(runeTradeBadge({ state: 'done' }, dv, SKILL_ANY, tZh).text).toBe('市 2 神聖 · 等級不限')
+    const few = disp({ unit: 'exalted', converted: true, count: 2, min: 5, max: 9, few: true, skipped: 0 })
+    expect(runeTradeBadge({ state: 'done' }, few, GEM_L20, tZh)).toMatchObject({ status: 'price', value: '5', few: true, text: '市 5 崇高 少 · L20' })
+    const bulk = disp({ unit: 'exalted', converted: true, count: 8, median: 3, min: 1, max: 30, few: false, skipped: 0 })
+    expect(runeTradeBadge({ state: 'done' }, bulk, BULK, tZh).text).toBe('市 3 崇高')
+  })
+
+  it('台服原幣:神聖 / 認不得的幣別照原 id', () => {
+    const d = disp({ unit: 'divine', converted: false, count: 5, median: 1, min: 1, max: 50, few: false, skipped: 3 }, {})
+    expect(runeTradeBadge({ state: 'done' }, d, GEM_L20, tZh).text).toBe('市 1 神聖 · L20')
+    const a = disp({ unit: 'annul', converted: false, count: 3, median: 2, min: 1, max: 3, few: false, skipped: 0 }, {})
+    expect(runeTradeBadge({ state: 'done' }, a, GEM_L20, tZh).text).toBe('市 2 annul · L20')
+  })
+
+  it('沒有掛單 / 查詢失敗', () => {
+    const empty = disp({ unit: 'exalted', converted: false, count: 0, few: true, skipped: 0 })
+    expect(runeTradeBadge({ state: 'done' }, empty, GEM_L20, tZh)).toMatchObject({ status: 'empty', text: '市 無掛單 · L20' })
+    expect(runeTradeBadge({ state: 'failed' }, undefined, SKILL_ANY, tZh)).toMatchObject({ status: 'failed', text: '市 查詢失敗 · 等級不限' })
   })
 })

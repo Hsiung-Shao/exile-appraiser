@@ -15,7 +15,7 @@ export { parseClipboard } from '@/parser'
 export { matchRevealLines, poolLabel as revealPoolLabel, rangeLabel as revealRangeLabel } from './desecration/reveal-entry'
 // exile-appraiser(WP-R2):符文塑形面板 OCR 列 → refName / poe.ninja 鍵(renderer/src/web/overlay/RuneshapePrices.vue;docs/runeshape.md)
 export { matchRunesRows } from './runeshape/match'
-// exile-appraiser:符文塑形點選無 ninja 價的列 → 查交易站(帶與產物相符的篩選;docs/runeshape.md「點選查交易站」)
-export { planRuneTradeQuery, runeTradeUnavailable, summarizeRuneTrade, runeTradeStore } from './runeshape/trade-lookup'
+// exile-appraiser:符文塑形無 ninja 價的列 → 自動查交易站(帶與產物相符的篩選;docs/runeshape.md「自動查市集」)
+export { planRuneTradeQuery, runeTradeUnavailable, summarizeRuneTrade, createRuneTradeQueue, withRuneTrade429 } from './runeshape/trade-lookup'
 export { default as CheckedItem } from '@/web/price-check/CheckedItem.vue'
 export { default as RateLimiterState } from '@/web/price-check/trade/RateLimiterState.vue'

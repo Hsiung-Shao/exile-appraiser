@@ -16,8 +16,8 @@
   點暗幕 / Esc / ✕ 關閉;設定開著時查價面板整個隱藏,只剩設定視窗,關閉後有物品回到查價面板、沒物品整個收起);
   window 模式與瀏覽器預覽填滿視窗內容區(取代 .window-body)。
   收到新物品關閉設定;OCR 框選開啟時隱藏設定,由設定開的框選結束後回到設定的熱鍵分頁(ocr-reveal.ts returnsToSettings)。
-  overlayKey 叫出 overlay 時畫面上有符文塑形徽章 → 不開設定,改進「徽章可點模式」(overlay/runeshape-view.ts `runeshapeClickMode`,
-  點無 ninja 價的列查交易站);overlay 失焦 / 收到新物品 / 開設定即結束。沒有徽章時行為不變。
+  overlayKey(預設 Shift + Space)一律開設定(符文塑形徽章不可點;無 ninja 價的列由 RuneshapePrices.vue 自動查市集)。
+  查價面板 / 設定開著時寫 `runeshapeTradeHold`(overlay/runeshape-view.ts)→ 自動查市集佇列暫停,限流額度讓給一般查價。
   按住 Alt 讓路(main OverlayVisibility → hideUI):設定開著、熱鍵擷取欄取得焦點、框選中不隱藏
   (settings/hotkey-capture.ts `hideOverlayForAlt`);查價面板(快速 / 鎖定)與符文塑形徽章照舊隱藏。
 -->
@@ -173,7 +173,7 @@ import SettingsWindow from './settings/SettingsWindow.vue'
 import OcrBadges from './overlay/OcrBadges.vue'
 import OcrRegionPicker from './overlay/OcrRegionPicker.vue'
 import RuneshapePrices from './overlay/RuneshapePrices.vue'
-import { enterClickModeOnOverlayKey, runeshapeBadgesShown, runeshapeClickMode } from './overlay/runeshape-view'
+import { runeshapeTradeHold } from './overlay/runeshape-view'
 import { recordPoe2Item, regionPickerClosed, regionPickerOpen, returnsToSettings } from './overlay/ocr-reveal'
 import type { SettingsTabId } from '@ipc/types'
 import { AppConfig } from './Config'
@@ -267,8 +267,6 @@ export default defineComponent({
       checkPosition.value = e.position
       advancedCheck.value = e.focusOverlay
       showSettings.value = false
-      // 查價面板要蓋在最上面接點擊:符文塑形徽章可點模式讓位
-      runeshapeClickMode.value = false
       panelShown.value = true
       load(e.clipboard)
       if (isOverlay) {
@@ -287,7 +285,6 @@ export default defineComponent({
 
     /** 開設定到指定分頁(托盤、OCR 框選返回);overlay 要讓面板可互動(main 已 / 另行 assertOverlayActive) */
     function openSettingsTo (tab: SettingsTabId, reason: string) {
-      runeshapeClickMode.value = false
       settingsTab.value = tab
       showSettings.value = true
       if (isOverlay) {
@@ -333,15 +330,6 @@ export default defineComponent({
           if (state.overlay === false) {
             // APT: wmFlags 'hide-on-blur'
             hidePanel(`focus-change game=${state.game} overlay=false`)
-            // 符文塑形徽章可點模式:焦點回遊戲(Esc / 再按 overlayKey / 點空白處 / 點回遊戲)→ 恢復穿透
-            if (runeshapeClickMode.value) {
-              runeshapeClickMode.value = false
-              console.log('[app] 結束符文塑形徽章可點模式(overlay 失焦)')
-            }
-          } else if (enterClickModeOnOverlayKey(state, panelShown.value, runeshapeBadgesShown.value)) {
-            // overlayKey 叫出 overlay 且畫面上有符文塑形徽章:進徽章可點模式(點無 ninja 價的列查交易站),不開設定
-            runeshapeClickMode.value = true
-            console.log('[app] overlayKey → 符文塑形徽章可點模式')
           } else if (state.usingHotkey && !panelShown.value) {
             // overlayKey 叫出 overlay 但沒有物品:開面板 + 設定(本專案沒有 APT 的選單 widget)
             parsed.value = null
@@ -419,6 +407,8 @@ export default defineComponent({
     if (isOverlay) {
       watch(() => ({ panel: panelShown.value, settings: settingsVisible.value, picker: regionPickerOpen.value }), (s) => {
         Host.runeshapeUiState(s)
+        // 符文塑形自動查市集:查價面板 / 設定開著 → 佇列暫停,限流額度讓給一般查價
+        runeshapeTradeHold.value = s.settings ? '設定開著' : s.panel ? '查價面板開著' : null
       }, { immediate: true })
     }
 

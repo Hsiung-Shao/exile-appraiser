@@ -3,13 +3,14 @@
  * - 座標:掃描列(client 實體像素)× 視窗 CSS 大小 / client 大小(與揭露面板徽章相同,見 ocr-reveal.ts `layoutBadges`)。
  * - 計價:預設崇高石;≥ 1 神聖石改神聖石;沒有匯率時退回混沌石。數量 > 1 → 總價 + 單價。
  * - 顏色:以**總價**(崇高石)分三段:< low 暗、≥ high 金、之間一般(門檻在設定)。
- * - 點選查交易站(docs/runeshape.md「點選查交易站」):overlayKey 叫出 overlay 且畫面上有徽章 → 徽章可點模式
- *   (`runeshapeClickMode`,App.vue 切換);無 ninja 價且可查的列帶 `tradeKey`;市價換算 / 顯示字串 / 篩選清單在這裡。
+ * - 自動查市集(docs/runeshape.md「自動查市集」):無 ninja 價且可查的列帶 `tradeKey`(RuneshapePrices.vue 排進佇列);
+ *   市價換算 / 徽章文字(`runeTradeBadge`,含篩選短字 `runeTradeShortFilter`)在這裡。徽章不可點(平常點擊穿透)。
+ * - 「未發現」列(尚未解鎖的配方)不畫徽章。
  * 只做型別匯入 + vue 的 shallowRef(renderer vitest 沒有別名)。
  */
 import { shallowRef } from 'vue'
 import type { RuneshapeScanEvent, RuneshapeTimings } from '@ipc/types'
-import type { Poe2RuneTradeFilter, Poe2RuneTradeSummary } from '@poe2-entry'
+import type { Poe2RuneTradeEntry, Poe2RuneTradeFilter, Poe2RuneTradeSummary } from '@poe2-entry'
 import type { PriceOfResult } from '../background/price-of'
 import { BADGE_GAP_PX } from './ocr-reveal'
 
@@ -66,6 +67,8 @@ export interface MatchedRow {
   unpriced?: 'gem' | 'recipe'
   /** 不在面板上(面板標題等)→ 不畫徽章 */
   offPanel?: boolean
+  /** 面板上尚未解鎖的配方(「未發現」)→ 不畫徽章 */
+  undiscovered?: boolean
   /** 列類型(查交易站決定篩選) */
   kind?: 'gem' | 'skill' | 'support' | 'item' | 'recipe'
   /** 目前語系名稱(台服查詢用、卡片標題) */
@@ -93,9 +96,9 @@ export interface RuneBadgeView {
    * `no-source` = 台服,poe.ninja 沒有台服價格
    */
   noPrice?: 'gem' | 'not-listed' | 'recipe' | 'no-source'
-  /** 可點選查交易站(無 ninja 價且列可查)→ 查詢計畫的快取鍵 */
+  /** 自動查交易站(無 ninja 價且列可查)→ 查詢計畫的快取鍵 */
   tradeKey?: string
-  /** 列在 rows 裡的索引(點選時找回原列) */
+  /** 列在 rows 裡的索引(排入佇列時找回原列) */
   rowIndex: number
   /** 對不上時的 OCR 原文(去空白) */
   raw?: string
@@ -110,16 +113,17 @@ export function layoutRunePrices (
   client: { w: number, h: number },
   viewport: { w: number, h: number },
   th: RuneThresholds,
-  /** 點選查交易站:可查的列 → 查詢計畫快取鍵(不給 = 不可點) */
+  /** 自動查市集:可查的列 → 查詢計畫快取鍵(不給 = 不查) */
   tradeKeyOf?: (row: MatchedRow) => string | undefined
 ): RuneBadgeView[] {
   const sx = client.w > 0 ? viewport.w / client.w : 1
   const sy = client.h > 0 ? viewport.h / client.h : 1
   const out: RuneBadgeView[] = []
   rows.forEach((r, i) => {
-    if (r.offPanel) return
+    // 面板外的列、「未發現」(尚未解鎖的配方)不畫徽章
+    if (r.offPanel || r.undiscovered) return
     const v = layoutRow(r, i)
-    // 只有「沒有 ninja 價」的列可點(配方泛稱本來就沒有單一市價,不查)
+    // 只有「沒有 ninja 價」的列查市集(配方泛稱本來就沒有單一市價,不查)
     if (v.kind === 'no-price' && v.noPrice !== 'recipe' && tradeKeyOf) {
       const k = tradeKeyOf(r)
       if (k) v.tradeKey = k
@@ -170,20 +174,13 @@ export function layoutRunePrices (
   }
 }
 
-// ---------------- 點選查交易站(docs/runeshape.md「點選查交易站」) ----------------
-
-/** 徽章可點模式:overlayKey 叫出 overlay 時畫面上有符文徽章(App.vue 設;overlay 失焦 / Esc / 點空白處結束) */
-export const runeshapeClickMode = shallowRef(false)
-/** 畫面上目前有符文徽章(RuneshapePrices.vue 寫;App.vue 決定 overlayKey 要進可點模式還是開設定) */
-export const runeshapeBadgesShown = shallowRef(false)
+// ---------------- 自動查市集(docs/runeshape.md「自動查市集」) ----------------
 
 /**
- * overlayKey 叫出 overlay(`focus-change` overlay = true 且 usingHotkey)時:查價面板沒開、畫面上有符文徽章 → 進徽章可點模式;
- * 否則維持原本行為(開設定)。
+ * 查價面板 / 設定開著(App.vue 寫)→ 自動查市集佇列暫停,把限流額度留給一般查價。
+ * null = 沒有;有值 = 暫停原因(寫進 log)。
  */
-export function enterClickModeOnOverlayKey (focus: { overlay: boolean, usingHotkey: boolean }, panelShown: boolean, badgesShown: boolean): boolean {
-  return focus.overlay && focus.usingHotkey && !panelShown && badgesShown
-}
+export const runeshapeTradeHold = shallowRef<string | null>(null)
 
 /** poe.ninja 匯率:1 崇高石 / 1 神聖石 = 幾混沌石 */
 export interface ChaosRates { exalted?: number, divine?: number }
@@ -244,43 +241,61 @@ export function formatRuneTrade (s: Poe2RuneTradeSummary, rates: ChaosRates): Ru
   return out
 }
 
-/**
- * 市價卡片位置:徽章欄右側(不蓋住其他列的徽章),右邊放不下 → 面板左側(列文字左緣再往左);
- * 上緣對齊點選的徽章(往上 24 px),夾進視窗(留 8 px)。
- */
-export function placeTradeCard (
-  anchor: { top: number, rowLeft: number, columnRight: number },
-  viewport: { w: number, h: number },
-  size: { w: number, h: number },
-  gap = 12
-): { left: number, top: number } {
-  let left = anchor.columnRight + gap
-  if (left + size.w > viewport.w - 8) left = anchor.rowLeft - gap - size.w
-  left = Math.max(8, Math.min(left, viewport.w - size.w - 8))
-  const top = Math.max(8, Math.min(anchor.top - 24, viewport.h - size.h - 8))
-  return { left: Math.round(left), top: Math.round(top) }
-}
-
 export type Translate = (key: string, args?: Record<string, unknown>) => string
 
-/** 篩選清單 → 卡片上的「名稱:值」列(順序照查詢計畫) */
-export function runeTradeFilterLines (filters: readonly Poe2RuneTradeFilter[], t: Translate): Array<{ id: string, label: string, value: string }> {
-  const unitText = (c: string) => { const u = tradeCurrencyUnit(c); return u ? t(`ppz.runeshape.unit_${u}`) : c }
-  return filters.map((f) => {
-    const label = t(`ppz.runeshape.trade.f_${f.id}`)
-    let value: string
-    switch (f.id) {
-      case 'realm': value = t(`ppz.realm_${f.value}_short`); break
-      case 'mode': value = t(`ppz.runeshape.trade.mode_${f.value}`); break
-      case 'status': value = t(`ppz.runeshape.trade.status_${f.value}`); break
-      case 'category': value = t('ppz.runeshape.trade.v_gem'); break
-      case 'gem_level': value = String(f.value); break
-      case 'gem_level_any': value = t('ppz.runeshape.trade.v_level_any'); break
-      case 'corrupted': value = t('ppz.runeshape.trade.v_uncorrupted'); break
-      case 'quality': value = t('ppz.runeshape.trade.v_quality_zero'); break
-      case 'have': value = f.value.map(unitText).join(' / '); break
-      default: value = String(f.value)
-    }
-    return { id: f.id, label, value }
-  })
+/**
+ * 徽章上的關鍵篩選短字(徽章不能點,完整篩選寫在 log 與 docs/runeshape.md):
+ * 技能寶石帶等級 → `L20`;技能 / 輔助沒寫等級 → `等級不限`;其他(物品 search / bulk)不標。
+ * 未汙染、品質 0 每一筆寶石查詢都帶,不另標。
+ */
+export function runeTradeShortFilter (filters: readonly Poe2RuneTradeFilter[], t: Translate): string | undefined {
+  for (const f of filters) {
+    if (f.id === 'gem_level') return t('ppz.runeshape.trade.short_level', { n: f.value })
+    if (f.id === 'gem_level_any') return t('ppz.runeshape.trade.short_level_any')
+  }
+  return undefined
 }
+
+export type RuneTradeBadgeStatus = 'queued' | 'loading' | 'price' | 'empty' | 'failed'
+
+export interface RuneTradeBadge {
+  status: RuneTradeBadgeStatus
+  /** status = price:主價(≥ 3 筆中位數,否則最低價) */
+  value?: string
+  /** status = price:單位字(已翻譯;認不得的交易站幣別顯示原 id) */
+  unit?: string
+  /** 筆數 < 3(主價是最低價)→ 標「少」 */
+  few: boolean
+  /** 關鍵篩選短字(`runeTradeShortFilter`) */
+  short?: string
+  /** 整枚徽章的文字(log / 測試 / data 屬性用):`市 80 崇高 · L20`、`市 … · 等級不限` */
+  text: string
+}
+
+/**
+ * 自動查市集徽章:排隊中 `…`、查詢中、結果「市 X 崇高」(筆數少加「少」)、沒有掛單、查詢失敗;後面接關鍵篩選短字。
+ * `display` = `formatRuneTrade(summary)`(entry = done 時由呼叫端算好)。
+ */
+export function runeTradeBadge (
+  entry: Pick<Poe2RuneTradeEntry, 'state'> | undefined,
+  display: RuneTradeDisplay | undefined,
+  filters: readonly Poe2RuneTradeFilter[],
+  t: Translate
+): RuneTradeBadge {
+  const short = runeTradeShortFilter(filters, t)
+  const mkt = t('ppz.runeshape.trade.market_short')
+  const tail = short ? ` · ${short}` : ''
+  const state = entry?.state ?? 'queued'
+  if (state === 'done' && display?.headline != null) {
+    const unit = display.known ? t(`ppz.runeshape.unit_${display.unit}`) : display.unit
+    const few = !display.isMedian
+    const fewText = few ? ` ${t('ppz.runeshape.trade.few_short')}` : ''
+    return { status: 'price', value: display.headline, unit, few, short, text: `${mkt} ${display.headline} ${unit}${fewText}${tail}` }
+  }
+  const status: RuneTradeBadgeStatus = state === 'done' ? 'empty' : state === 'failed' ? 'failed' : state === 'loading' ? 'loading' : 'queued'
+  const word = status === 'empty'
+    ? t('ppz.runeshape.trade.empty_short')
+    : status === 'failed' ? t('ppz.runeshape.trade.failed_short') : status === 'loading' ? t('ppz.runeshape.trade.loading') : '…'
+  return { status, few: false, short, text: `${mkt} ${word}${tail}` }
+}
+

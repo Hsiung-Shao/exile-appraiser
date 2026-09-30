@@ -17,9 +17,10 @@ export const conforms: {
   revealRangeLabel: typeof decl.revealRangeLabel
   // WP-R2
   matchRunesRows: typeof decl.matchRunesRows
-  // 符文塑形點選查交易站
+  // 符文塑形自動查市集
   planRuneTradeQuery: typeof decl.planRuneTradeQuery
   runeTradeUnavailable: typeof decl.runeTradeUnavailable
   summarizeRuneTrade: typeof decl.summarizeRuneTrade
-  runeTradeStore: typeof decl.runeTradeStore
+  createRuneTradeQueue: typeof decl.createRuneTradeQueue
+  withRuneTrade429: typeof decl.withRuneTrade429
 } = real

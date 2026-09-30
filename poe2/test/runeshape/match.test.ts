@@ -11,7 +11,7 @@ import { createNinjaClient, toSnapshot, type NinjaSnapshot } from "@exile-apprai
 import type { HttpFetch } from "@exile-appraiser/core/http";
 import { init, ITEMS_ITERATOR, RUNESHAPE_RECIPES } from "@/assets/data";
 import { buildRuneshapeIndex, matchRunesRows, type RuneshapeOcrRow, type RuneshapeRecipesFile } from "@/runeshape/match";
-import { isPanelRow, locateRunePanel, looksVertical, parseRuneRow } from "@/runeshape/row-format";
+import { UNDISCOVERED_ROW_NAMES, isPanelRow, isUndiscoveredRow, locateRunePanel, looksVertical, parseRuneRow } from "@/runeshape/row-format";
 
 const FIX = path.join(__dirname, "fixtures/ocr");
 const REC = path.join(__dirname, "../../../core/test/recordings/ninja/poe2");
@@ -229,6 +229,39 @@ describe("名稱比對:模糊、重名、類別", () => {
 
   it("座標原樣帶回", () => {
     expect(matchRunesRows([{ text: "3x 富豪石", x: 10, y: 30, w: 100, h: 20 }])[0]).toMatchObject({ x: 10, y: 30, w: 100, h: 20, quantity: 3 });
+  });
+});
+
+describe("「未發現」列(尚未解鎖的配方,2026-10-01 使用者截圖「寶石」分頁)", () => {
+  const row = (text: string, y: number): RuneshapeOcrRow => ({ text, x: 400, y, w: 300, h: 20 });
+
+  it("isUndiscoveredRow:整列只有「未發現」(容許頭尾 OCR 雜訊);帶其他字的不算", () => {
+    for (const t of ["未發現", " 未 發 現 ", "?未發現", "…未發現,", "未發現丨"]) expect(isUndiscoveredRow(t), t).toBe(true);
+    for (const t of ["技能：刀刃之雨", "未發現的寶石", "發現", "未切割的精魂寶石（等級 19）", ""]) expect(isUndiscoveredRow(t), t).toBe(false);
+    expect(UNDISCOVERED_ROW_NAMES).toEqual(["未發現"]);
+  });
+
+  it("截圖對應的列:寶石 / 技能照常比對,「未發現」列標 undiscovered、不比對", () => {
+    const rows = matchRunesRows([
+      row("1x 未切割的精魂寶石（等級 19）", 100),
+      row("技能：刀刃之雨", 150),
+      row("技能：空無披甲", 200),
+      row("技能：卡爾葛之痕", 250),
+      row("技能：維里西姆強化", 300),
+      row("未發現", 350),
+      row("未發現", 400),
+    ]);
+    expect(rows.map((r) => [r.kind, r.refName ?? null, r.undiscovered ?? false])).toEqual([
+      ["item", "Uncut Spirit Gem (Level 19)", false],
+      ["skill", "Rain of Blades", false],
+      ["skill", "Hollow Shell", false],
+      ["skill", "Remnants of Kalguur", false],
+      ["skill", "Powered by Verisium", false],
+      ["item", null, true],
+      ["item", null, true],
+    ]);
+    expect(rows[5].match).toBeNull();
+    expect(rows[5].offPanel).toBeUndefined();
   });
 });
 
