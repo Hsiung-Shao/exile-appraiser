@@ -9,7 +9,8 @@
  *   方法經 RPC 到 main,與 Electron 內行為相同(設定寫同一份 config.json);視窗控制類是 no-op。
  */
 import type { HostApi, HostFetchInit, HostFetchResult, ItemTextEvent, HostConfigForMain, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId } from '@ipc/types'
-import type { ConfigChangedEvent, HotkeyRegistration, SettingsTabId, UpdaterInfo } from '@ipc/types'
+import type { ConfigChangedEvent, HotkeyRegistration, OcrAvailability, OcrRevealEvent, SettingsTabId, UpdaterInfo } from '@ipc/types'
+import type { RuneshapeScanEvent, RuneshapeStats, RuneshapeUiState } from '@ipc/types'
 import { shallowRef } from 'vue'
 import type { HttpFetch } from '@exile-appraiser/core/http'
 import { withRetryAfter } from '@exile-appraiser/core/http'
@@ -152,6 +153,10 @@ class HostTransport {
   async hideWindow (): Promise<void> { await window.host?.hideWindow() }
   async resizeWindow (w: number, h: number): Promise<void> { await window.host?.resizeWindow(w, h) }
 
+  /** 設定視窗「結束程式」可用:只有 Electron 視窗(預覽端 / 純瀏覽器沒有 `app-quit`)。 */
+  get canQuit (): boolean { return !this.isPreview && typeof window.host?.appQuit === 'function' }
+  async appQuit (): Promise<void> { if (this.canQuit) await window.host?.appQuit?.() }
+
   // ---- 自動更新(main/src/AppUpdater.ts)。純瀏覽器沒有更新器:一律「不支援」。 ----
   async getUpdaterInfo (): Promise<UpdaterInfo> {
     if (window.host) return window.host.getUpdaterInfo()
@@ -180,6 +185,39 @@ class HostTransport {
   async getPreviewUrl (): Promise<string | null> {
     if (!window.host?.getPreviewUrl) return null
     return await window.host.getPreviewUrl()
+  }
+
+  // ---- WP-S:靈魂之井揭露面板 OCR(main/src/ocr/;只有 overlay 會收到事件) ----
+  onOcrRevealResult (cb: (e: OcrRevealEvent) => void): () => void {
+    return window.host?.onOcrRevealResult?.(cb) ?? (() => {})
+  }
+
+  /** 純瀏覽器 / 預覽端 → undefined(無從檢查)。 */
+  async ocrRevealAvailable (): Promise<OcrAvailability | undefined> {
+    if (!window.host?.ocrRevealAvailable) return undefined
+    return await window.host.ocrRevealAvailable()
+  }
+
+  // ---- WP-S2:在遊戲畫面上框選 OCR 區域(overlay 限定;預覽端 / 純瀏覽器 no-op) ----
+  /** overlay 取得焦點(可點擊),框選層開啟時呼叫 */
+  async overlayActivate (): Promise<void> { await window.host?.overlayActivate?.() }
+  /** 立刻跑一次揭露面板 OCR(框選確認後自動試辨識);main 判斷不適用時回 false */
+  async ocrRevealNow (): Promise<boolean | undefined> { return await window.host?.ocrRevealNow?.() }
+  /** 框選熱鍵(`hotkeyOcrRegion`) */
+  onOcrRegionPick (cb: () => void): () => void {
+    return window.host?.onOcrRegionPick?.(cb) ?? (() => {})
+  }
+
+  // ---- WP-R2:符文塑形面板自動查價(overlay 限定;預覽端 / 純瀏覽器 no-op) ----
+  onRuneshapeScanResult (cb: (e: RuneshapeScanEvent) => void): () => void {
+    return window.host?.onRuneshapeScanResult?.(cb) ?? (() => {})
+  }
+
+  /** 查價面板 / 設定 / 框選層開著 → main 暫停掃描 */
+  runeshapeUiState (s: RuneshapeUiState): void { window.host?.runeshapeUiState?.(s) }
+
+  async runeshapeStats (): Promise<RuneshapeStats | undefined> {
+    return await window.host?.runeshapeStats?.()
   }
 }
 

@@ -3,7 +3,8 @@
 //   node scripts/make-fake-update-feed.mjs [--out <dir>] [--version 3.29.1] [--serve <port>] [--write-dev-config]
 //
 // - 產出 `<out>/latest.yml` + `<out>/ExileAppraiser-Setup-<version>.exe`(隨機內容的假檔,**不可執行、也不會被執行**:
-//   AppUpdater 只在使用者按「安裝」才 quitAndInstall,驗證時不按)。
+//   `autoUpdate` 開時會自動下載到 downloaded,但開發模式 `autoInstallOnAppQuit` 恆為 false(updater-core.ts),
+//   結束程式不會執行它;只有按「安裝」才會 quitAndInstall,驗證時不按)。真的安裝檔端到端請用 make-local-update-test.mjs。
 // - `--serve <port>`:在 127.0.0.1:<port> 以 HTTP 供應 <out>(electron-updater 的下載走 Electron net,
 //   file:// 只保證「檢查」可用;要驗下載請用 --serve)。Ctrl+C 結束。
 // - `--write-dev-config`:寫 `main/dev-app-update.yml`(已 gitignore)指向這個來源;

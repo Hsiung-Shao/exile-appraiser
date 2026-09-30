@@ -1,7 +1,8 @@
 <!--
-  拆粉排行面板(WP-B;WP-Q 起一律停靠在查價下方,App.vue 的 .price-stack,入口是標題列的「⚖」顯示/收合)。
-  標題列(一行):⚖ 標題、聯盟(唯讀,來自標題列選擇)· divine 匯率 · 資料時間、重新整理(usePoeninja().load(true))、
-       選項展開/收合 ▾、收合 ✕(emit close)。
+  拆粉排行面板(WP-B)。2026-09-30 起是設定視窗的「拆粉排行」分頁(../settings/tabs/Dust.vue 包它,填滿設定視窗右側內容區);
+  入口:設定左選單,或查價標題列的「⚖」(開設定並切到這一頁)。WP-Q 的「停靠在查價下方」已移除。
+  標題列(一行):⚖ 標題、聯盟(唯讀,來自查價標題列選擇)· divine 匯率 · 資料時間、重新整理(usePoeninja().load(true))、
+       選項展開/收合 ▾(關閉 = 設定視窗的 ✕,這裡沒有自己的關閉鈕)。
        台服:poe.ninja 沒有台服價格 → 提示 + 切到國際服;PoE2:拆粉只適用 PoE1。
   選項卡(.card,預設收合):ilvl、品質(.seg 0/20)、催化劑(auto/never)、gold 估值、效率指標、最低 dust、最高 gold、
        隱藏無價/低信心/已隱藏、交易站腐化與掛單時間、計算前提說明。選項與標記/隱藏存 userData/dust_ui.json(./store.ts);
@@ -9,7 +10,7 @@
   表格在 ./DustTable.vue(虛擬捲動)。計算邏輯全在 @exile-appraiser/core/dust(有 vitest)。
 -->
 <template>
-  <div class="dust-panel" data-panel="dust" :data-docked="docked ? '' : undefined">
+  <div class="dust-panel" data-panel="dust">
     <header class="dust-head" data-dust="top">
       <span class="dust-title">⚖ {{ t('ppz.dust.title') }}</span>
       <span class="dust-meta">
@@ -24,8 +25,6 @@
         :aria-label="t('ppz.dust.refresh')" @click="refresh">⟳</button>
       <button class="btn ghost sm" :class="{ on: optsOpen }" data-action="dust-options" :aria-expanded="optsOpen"
         :title="optsOpen ? t('ppz.dust.options_hide') : t('ppz.dust.options_show')" @click="optsOpen = !optsOpen">{{ t('ppz.dust.options') }} {{ optsOpen ? '▴' : '▾' }}</button>
-      <button class="btn ghost sm dust-icon" data-action="dust-close" :title="t('ppz.dust.collapse')" :aria-label="t('ppz.dust.collapse')"
-        @click="$emit('close')">✕</button>
     </header>
 
     <div v-if="game !== 'poe1'" class="strip warn" data-strip="dust-poe2">{{ t('ppz.dust.poe1_only') }}</div>
@@ -122,21 +121,18 @@ import { useLeagues } from '@/web/background/Leagues'
 import DustTable from './DustTable.vue'
 import { useDustStore } from './store'
 
+const optionsOpen = shallowRef(false)
+
 export default defineComponent({
   components: { DustTable },
-  props: {
-    /** 停靠在查價下方(WP-Q 起唯一版面;保留 prop 讓呼叫端表明意圖、樣式可掛 data-docked)。 */
-    docked: { type: Boolean, default: true }
-  },
-  emits: ['close'],
   setup () {
     const { t } = useI18n()
     const store = useDustStore()
     const ninja = usePoeninja()
     const leagues = useLeagues()
     const config = AppConfig()
-    /** 選項卡展開(預設收合,停靠時省高度)。 */
-    const optsOpen = shallowRef(false)
+    /** 選項卡展開(預設收合,讓表格多幾列);模組層級,換設定分頁再回來維持原樣,不進檔。 */
+    const optsOpen = optionsOpen
 
     onMounted(() => {
       void store.load()

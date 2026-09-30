@@ -16,6 +16,7 @@
 //   * parts:tradeHash → stats.ndjson 的 `trade.ids`(desecrated 優先、其次 explicit)取 `ref`(英文模板)與
 //     cmn-Hant 同 `ref` 的 `matchers[0].string`(繁中);ranges 以 `ref` 的 `#` 對 PoB 文字 fullmatch 取得;
 //     increased/reduced 極性不一致時翻轉一次並記 `direction`
+//   * (exile-appraiser 追加)`text.zhVariants`:同 ref 的其他繁中 matcher(`negate` 相對 `text.zh`),揭露面板 OCR 用
 // 與 poenavi 的差異(本專案):日文模板 → 繁中模板;poenavi 的 stat_index(GGG trade2 文字)→ EE2 stats.ndjson 的 `ref`;
 // 版本鎖由 git revision 改為 portable 的 `manifest.xml`(版本號 + 逐檔 sha1,且驗證磁碟上的檔與 manifest 相符)。
 // 輸出不含時間戳,同一輸入重跑逐位元組相同。說明見 docs/desecration-tiers.md。
@@ -261,7 +262,7 @@ function assignProfileTiers (/** @type {ModRow[]} */ rows) {
 }
 
 // ---- stats.ndjson ----
-/** @typedef {{ ref: string, matchers: Array<{ string: string }>, trade?: { ids?: Record<string, string[]> } }} StatLine */
+/** @typedef {{ ref: string, matchers: Array<{ string: string, negate?: boolean }>, trade?: { ids?: Record<string, string[]> } }} StatLine */
 function readNdjson (/** @type {string} */ file) {
   return /** @type {any[]} */ (readText(file).split('\n').filter(Boolean).map(l => JSON.parse(l)))
 }
@@ -280,12 +281,34 @@ function loadStats () {
       }
     }
   }
-  /** @type {Map<string, string>} */
+  /** @type {Map<string, StatLine>} ref → cmn-Hant 同 ref 的第一列(`matchers[0].string` = 繁中模板,其餘 matcher = 其他寫法) */
   const zhByRef = new Map()
   for (const s of /** @type {StatLine[]} */ (readNdjson(STATS_ZH))) {
-    if (!zhByRef.has(s.ref) && s.matchers?.[0]) zhByRef.set(s.ref, s.matchers[0].string)
+    if (!zhByRef.has(s.ref) && s.matchers?.[0]) zhByRef.set(s.ref, s)
   }
   return { byHash, zhByRef }
+}
+
+/**
+ * exile-appraiser(WP-S 揭露面板 OCR):同一 ref 的其他繁中寫法(遊戲實際顯示可能是 `技能增加#%精魂保留效用`,
+ * `text.zh` 只收了 `增加#%精魂保留效用`)。去重、去掉等於 `text.zh` 的那個與空字串;不含 `#` 的寫法也收(比對時當精確文字)。
+ * `negate` = 這個寫法顯示的極性與 **`text.zh`** 相反(stats.ndjson 的 negate 是相對英文 `ref`;
+ * `text.zh` 本身相對 ref 的極性 = matchers[0].negate XOR 產生器的 increased/reduced 翻轉,兩者再 XOR)。
+ * @param {StatLine | undefined} line
+ * @param {string} textZh 最後寫進 `text.zh` 的模板
+ * @param {boolean} textNegated `text.zh` 相對 ref 是否為反向寫法
+ * @returns {Array<{ text: string, negate?: true }>}
+ */
+function zhVariants (line, textZh, textNegated) {
+  /** @type {Array<{ text: string, negate?: true }>} */
+  const out = []
+  const seen = new Set([textZh])
+  for (const m of line?.matchers ?? []) {
+    if (!m.string?.trim() || seen.has(m.string)) continue
+    seen.add(m.string)
+    out.push(Boolean(m.negate) !== textNegated ? { text: m.string, negate: true } : { text: m.string })
+  }
+  return out
 }
 
 /** @returns {number[][] | null} */
@@ -332,7 +355,8 @@ function buildParts (/** @type {ModRow} */ row, /** @type {ReturnType<typeof loa
     const stat = slot?.desecrated ?? slot?.explicit
     if (!stat) continue
     const en = stat.ref
-    const zh = stats.zhByRef.get(stat.ref) ?? ''
+    const zhLine = stats.zhByRef.get(stat.ref)
+    const zh = zhLine?.matchers[0].string ?? ''
     // exile-appraiser 追加:模板本身跨兩行(`…gain an\nadditional…`)而 PoB 把它拆成兩段文字 → 接回一段
     const lines = en.includes('\n') && descriptions.length === en.split('\n').length ? [descriptions.join('\n')] : descriptions
     for (const description of lines) {
@@ -349,12 +373,15 @@ function buildParts (/** @type {ModRow} */ row, /** @type {ReturnType<typeof loa
           if (r) { ranges = r; viaMatcher = m.string; break }
         }
       }
+      const textZh = directional ? directional.zh : zh
+      // exile-appraiser 追加(WP-S):其他繁中寫法;沒有就不輸出這個鍵(舊資料相容、其餘欄位逐位元組不變)
+      const variants = zhVariants(zhLine, textZh, Boolean(zhLine?.matchers[0].negate) !== Boolean(directional))
       /** @type {Record<string, unknown>} */
       const part = {
         stat_hash: hash,
         stat_id: `desecrated.stat_${hash}`,
         ref: stat.ref,
-        text: { en: directional ? directional.en : en, zh: directional ? directional.zh : zh },
+        text: { en: directional ? directional.en : en, zh: textZh, ...(variants.length ? { zhVariants: variants } : {}) },
         ranges,
         source_text: description
       }
@@ -527,6 +554,15 @@ console.log(`entries: ${entries.length}(${Object.entries(byPool).map(([k, v]) =>
 console.log(`fully matchable: ${entries.length - skipped.length};unparsed: ${skipped.length};polarity adjusted: ${polarity.length}`)
 console.log(`zh mixed fixed/dynamic parts: ${tiers.diagnostics.mixed_fixed_dynamic_parts};numeric skeleton collisions: ${tiers.diagnostics.numeric_skeleton_collisions.length}`)
 console.log(`base_profiles: ${Object.keys(sortedBaseProfiles).length}(unique ${uniqueMapped});未對上的裝備 refName ${tiers.diagnostics.base_profiles.unmapped_equipment_refnames.length}`)
+{
+  /** @type {Map<string, Array<{ text: string, negate?: true }>>} */
+  const byTemplate = new Map()
+  for (const e of entries) {
+    for (const p of /** @type {any[]} */ (e.parts)) if (p.text.zhVariants && p.text.zh.trim()) byTemplate.set(p.text.zh, p.text.zhVariants)
+  }
+  const all = [...byTemplate.values()].flat()
+  console.log(`zhVariants: ${byTemplate.size} 個模板有其他寫法,共 ${all.length} 個(negate ${all.filter(v => v.negate).length}、不含 # ${all.filter(v => !v.text.includes('#')).length})`)
+}
 
 if (!args.includes('--no-manifest')) {
   execFileSync(process.execPath, [

@@ -1,0 +1,50 @@
+{
+  "fetchedAt": "2026-09-30T08:28:51.608Z",
+  "league": "Forbidden Rites",
+  "game": "poe2",
+  "note": "poe.ninja PoE2 exchange 真實回應錄製(一次,請求間隔 1.6 秒),檔案為原樣回應。",
+  "files": {
+    "exchange_Runes.json": {
+      "url": "https://poe.ninja/poe2/api/economy/exchange/current/overview?league=Forbidden%20Rites&type=Runes",
+      "status": 200,
+      "bytes": 69973,
+      "lines": 140
+    },
+    "exchange_SoulCores.json": {
+      "url": "https://poe.ninja/poe2/api/economy/exchange/current/overview?league=Forbidden%20Rites&type=SoulCores",
+      "status": 200,
+      "bytes": 28617,
+      "lines": 52
+    },
+    "exchange_UncutGems.json": {
+      "url": "https://poe.ninja/poe2/api/economy/exchange/current/overview?league=Forbidden%20Rites&type=UncutGems",
+      "status": 200,
+      "bytes": 21322,
+      "lines": 42
+    },
+    "exchange_Currency.json": {
+      "url": "https://poe.ninja/poe2/api/economy/exchange/current/overview?league=Forbidden%20Rites&type=Currency",
+      "status": 200,
+      "bytes": 25975,
+      "lines": 51
+    },
+    "exchange_Verisium.json": {
+      "url": "https://poe.ninja/poe2/api/economy/exchange/current/overview?league=Forbidden%20Rites&type=Verisium",
+      "status": 200,
+      "bytes": 12644,
+      "lines": 24
+    },
+    "exchange_Expedition.json": {
+      "url": "https://poe.ninja/poe2/api/economy/exchange/current/overview?league=Forbidden%20Rites&type=Expedition",
+      "status": 200,
+      "bytes": 9942,
+      "lines": 18
+    },
+    "exchange_LineageSupportGems.json": {
+      "url": "https://poe.ninja/poe2/api/economy/exchange/current/overview?league=Forbidden%20Rites&type=LineageSupportGems",
+      "status": 200,
+      "bytes": 37966,
+      "lines": 75
+    }
+  }
+}

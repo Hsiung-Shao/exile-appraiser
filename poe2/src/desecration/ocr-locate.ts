@@ -1,0 +1,204 @@
+/**
+ * exile-appraiser(WP-S 兩段式):揭露面板「定位」—— 在低倍率(×1)的整張 OCR 結果裡找出**對得上褻瀆詞綴模板**的行,
+ * 算出面板所在的裁切框,第 2 段只把那一塊 ×3 送 OCR(docs/reveal-ocr.md「兩段式辨識」)。
+ *
+ * - 純函式、零依賴(只 import `ocr-text.ts` 與型別),main process 經 esbuild 打包使用(`main/src/ocr/locate-data.ts`);
+ *   poe2 vitest 直接測(`test/desecration/ocr-locate.test.ts`)。
+ * - 命中規則與 renderer 的 `matchLine` 同一套 skeleton(精確 / Levenshtein ≥ 0.85 且長度差 ≤ 2),但**只回答「像不像詞綴」**:
+ *   不看數值範圍、不分 entry、不推 Tier(那些仍在 renderer 的 `matchReveal`)。
+ * - 座標單位由呼叫端決定(main 用擷取影像的實體像素)。
+ */
+import {
+  ALIGN_RATIO,
+  CJK,
+  FUZZY_MIN_SIM,
+  EPS,
+  GROUP_GAP_RATIO,
+  PANEL_GAP_RATIO,
+  normalizeOcrText,
+  ocrSkeleton,
+  skeletonSimilarity,
+  templateSkeleton,
+  type OcrTextLine,
+} from "./ocr-text";
+
+export interface Rect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+export interface LocateIndex {
+  set: Set<string>;
+  list: string[];
+}
+
+/** tiers.json 最小形狀(main 端只 JSON.parse,不引入完整型別) */
+export interface LocateTiersLike {
+  entries: Array<{ parts: Array<{ text: { zh: string; zhVariants?: Array<{ text: string }> } }> }>;
+}
+
+/**
+ * 從 tiers.json 取模板 skeleton(排除規則與 `ocr-match.ts` `ocrIndex` 相同:有空字串模板的 entry 整條不收;
+ * `text.zh` 與 `text.zhVariants` 的其他寫法都收 —— 定位只問「像不像詞綴」,反向寫法也算)
+ */
+export function buildLocateIndex(tiers: LocateTiersLike): LocateIndex {
+  const set = new Set<string>();
+  for (const entry of tiers.entries) {
+    if (entry.parts.some((p) => !p.text.zh.trim())) continue;
+    for (const part of entry.parts) {
+      set.add(templateSkeleton(part.text.zh).skeleton);
+      for (const v of part.text.zhVariants ?? []) if (v.text.trim()) set.add(templateSkeleton(v.text).skeleton);
+    }
+  }
+  return { set, list: [...set] };
+}
+
+/** 這行文字像不像某個詞綴模板(精確或模糊) */
+export function lineLooksLikeMod(text: string, idx: LocateIndex): boolean {
+  const norm = normalizeOcrText(text);
+  if (!CJK.test(norm)) return false;
+  const { skeleton } = ocrSkeleton(norm);
+  if (idx.set.has(skeleton)) return true;
+  for (const t of idx.list) {
+    if (skeletonSimilarity(skeleton, t) >= FUZZY_MIN_SIM - EPS) return true;
+  }
+  return false;
+}
+
+const cy = (l: Rect) => l.y + l.h / 2;
+const cx = (l: Rect) => l.x + l.w / 2;
+
+function median(xs: number[]): number {
+  if (!xs.length) return 0;
+  const s = [...xs].sort((a, b) => a - b);
+  return s[Math.floor(s.length / 2)];
+}
+
+export function unionRect(rs: Rect[]): Rect {
+  const x0 = Math.min(...rs.map((r) => r.x));
+  const y0 = Math.min(...rs.map((r) => r.y));
+  const x1 = Math.max(...rs.map((r) => r.x + r.w));
+  const y1 = Math.max(...rs.map((r) => r.y + r.h));
+  return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
+}
+
+/** 命中的行(折行:一行自己不像、接下一行才像 → 兩行一起算命中) */
+export function modLines(lines: OcrTextLine[], idx: LocateIndex): OcrTextLine[] {
+  const sorted = lines.filter((l) => CJK.test(l.text)).sort((a, b) => cy(a) - cy(b) || a.x - b.x);
+  const hMed = median(sorted.map((l) => l.h)) || 1;
+  const out: OcrTextLine[] = [];
+  for (let i = 0; i < sorted.length; i++) {
+    const a = sorted[i];
+    if (lineLooksLikeMod(a.text, idx)) {
+      out.push(a);
+      continue;
+    }
+    const b = sorted[i + 1];
+    if (
+      b &&
+      cy(b) - cy(a) <= GROUP_GAP_RATIO * hMed &&
+      Math.abs(cx(b) - cx(a)) <= ALIGN_RATIO * hMed &&
+      !lineLooksLikeMod(b.text, idx) &&
+      lineLooksLikeMod(a.text + b.text, idx)
+    ) {
+      out.push(a, b);
+      i++;
+    }
+  }
+  return out;
+}
+
+export interface PanelHits {
+  /** 被採用的命中行(可能來自 1 個以上的簇) */
+  hits: OcrTextLine[];
+  /** hits 的外框 */
+  box: Rect;
+  /** 命中行的中位行高 */
+  lineH: number;
+  /** 所有簇的命中數(除錯用) */
+  clusters: number[];
+}
+
+/**
+ * 找面板上的詞綴行:命中行依 y 排序成簇(相鄰中心距 ≤ PANEL_GAP_RATIO × 行高、x 中心與簇對齊);
+ * 採用所有 ≥ 2 行的簇(面板至少 2 個選項;畫面上若還有別的詞綴簇,例如背包物品浮窗,一起框進來 —— 寧可框大也不框錯,
+ * 真正挑面板是 renderer `matchReveal` 的事);沒有 ≥ 2 行的簇就採用全部命中行。沒有命中回 null。
+ */
+export function findPanelHits(lines: OcrTextLine[], idx: LocateIndex): PanelHits | null {
+  const hits = modLines(lines, idx);
+  if (!hits.length) return null;
+  const lineH = median(hits.map((l) => l.h)) || 1;
+  const clusters: OcrTextLine[][] = [];
+  for (const l of [...hits].sort((a, b) => cy(a) - cy(b))) {
+    const c = clusters.find((g) => {
+      const last = g[g.length - 1];
+      return cy(l) - cy(last) <= PANEL_GAP_RATIO * lineH && Math.abs(cx(l) - median(g.map(cx))) <= ALIGN_RATIO * lineH;
+    });
+    if (c) c.push(l);
+    else clusters.push([l]);
+  }
+  const multi = clusters.filter((g) => g.length >= 2);
+  const used = multi.length ? multi.flat() : hits;
+  return { hits: used, box: unionRect(used), lineH, clusters: clusters.map((g) => g.length) };
+}
+
+/** 外擴後至少要有這麼高(行高倍數):命中行太少(×1 只認出 1–2 行)時,垂直方向仍要蓋得住 3 組 × 最多 3 行 + 組距 */
+export const MIN_PANEL_LINES = 14;
+/** 水平每邊外擴 ≥ 框寬 × 0.75(= 1.5 × 半寬)且 ≥ 8 × 行高(最長的詞綴行可能比命中的行寬很多) */
+export const EXPAND_X_RATIO = 0.75;
+export const EXPAND_X_LINES = 8;
+/** 垂直每邊外擴 ≥ 3 × 行高 */
+export const EXPAND_Y_LINES = 3;
+
+/** 命中框四邊外擴,夾在 bounds 內(整數像素) */
+export function expandBox(box: Rect, lineH: number, bounds: Rect): Rect {
+  const dx = Math.max(EXPAND_X_RATIO * box.w, EXPAND_X_LINES * lineH);
+  const dy = Math.max(EXPAND_Y_LINES * lineH, (MIN_PANEL_LINES * lineH - box.h) / 2);
+  const x0 = Math.max(bounds.x, Math.floor(box.x - dx));
+  const y0 = Math.max(bounds.y, Math.floor(box.y - dy));
+  const x1 = Math.min(bounds.x + bounds.w, Math.ceil(box.x + box.w + dx));
+  const y1 = Math.min(bounds.y + bounds.h, Math.ceil(box.y + box.h + dy));
+  return { x: x0, y: y0, w: Math.max(0, x1 - x0), h: Math.max(0, y1 - y0) };
+}
+
+/** 第 1 段:整張 ×1 的行 → 第 2 段的裁切框;一行都不像詞綴回 null(呼叫端退回整張 ×3) */
+export function locatePanel(
+  lines: OcrTextLine[],
+  idx: LocateIndex,
+  bounds: Rect,
+): (PanelHits & { crop: Rect }) | null {
+  const found = findPanelHits(lines, idx);
+  if (!found) return null;
+  const crop = expandBox(found.box, found.lineH, bounds);
+  if (crop.w <= 0 || crop.h <= 0) return null;
+  return { ...found, crop };
+}
+
+export type RegionCheck =
+  | { ok: true; hits: number }
+  | { ok: false; hits: number; reason: "too-few-hits" | "touches-edge" };
+
+/**
+ * 某個裁切範圍(快取區或第 2 段)的辨識結果是否「完整框住面板」:
+ * ≥ 2 行像詞綴,且命中框離範圍的每個邊至少 1 個行高(該邊本來就是 bounds 邊界時不算 —— 再外擴也沒有東西)。
+ * 貼邊 = 面板可能有一部分在範圍外(遊戲 UI 位置變了、面板變高),呼叫端應改走下一條路。
+ */
+export function checkRegion(lines: OcrTextLine[], idx: LocateIndex, region: Rect, bounds: Rect): RegionCheck {
+  const found = findPanelHits(lines, idx);
+  const hits = found?.hits.length ?? 0;
+  if (!found || hits < 2) return { ok: false, hits, reason: "too-few-hits" };
+  const m = found.lineH;
+  const b = found.box;
+  const near = (d: number, atBounds: boolean) => !atBounds && d < m;
+  if (
+    near(b.x - region.x, region.x <= bounds.x) ||
+    near(b.y - region.y, region.y <= bounds.y) ||
+    near(region.x + region.w - (b.x + b.w), region.x + region.w >= bounds.x + bounds.w) ||
+    near(region.y + region.h - (b.y + b.h), region.y + region.h >= bounds.y + bounds.h)
+  ) {
+    return { ok: false, hits, reason: "touches-edge" };
+  }
+  return { ok: true, hits };
+}

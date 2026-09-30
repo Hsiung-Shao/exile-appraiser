@@ -11,4 +11,10 @@ export const conforms: {
   parseClipboard: typeof decl.parseClipboard
   createPresets: typeof decl.createPresets
   createTradeRequest: typeof decl.createTradeRequest
+  // WP-S
+  matchRevealLines: typeof decl.matchRevealLines
+  revealPoolLabel: typeof decl.revealPoolLabel
+  revealRangeLabel: typeof decl.revealRangeLabel
+  // WP-R2
+  matchRunesRows: typeof decl.matchRunesRows
 } = real

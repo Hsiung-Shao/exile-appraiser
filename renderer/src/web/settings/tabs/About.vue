@@ -25,8 +25,12 @@
       <button class="btn sm" data-action="update-check" :disabled="!canCheck" @click="check">{{ t('ppz.update.check') }}</button>
       <button v-if="showDownload" class="btn sm primary" data-action="update-download" @click="download">{{ t('ppz.update.download') }}</button>
       <button v-if="showReleases" class="btn sm" data-action="update-releases" @click="open(releasesUrl)">{{ t('ppz.update.releases') }} ↗</button>
-      <button v-if="info?.state === 'downloaded'" class="btn sm primary" data-action="update-install" @click="install">{{ t('ppz.update.restart_install') }}</button>
+      <button v-if="info?.state === 'downloaded'" class="btn sm primary" data-action="update-install" @click="install">{{ autoApply ? t('ppz.update.restart_now') : t('ppz.update.restart_install') }}</button>
     </div>
+    <div class="chk-row">
+      <label class="chk"><input v-model="config.autoUpdate" type="checkbox" data-setting="auto-update"><span>{{ t('ppz.update.auto') }}</span></label>
+    </div>
+    <p class="hint" data-about="auto-update-hint">{{ info?.reason === 'not-supported' ? t('ppz.update.auto_hint_portable') : t('ppz.update.auto_hint') }}</p>
   </section>
 
   <section class="card">
@@ -149,9 +153,6 @@ const THANKS: Credit[] = [
   { name: 'awakened-poe-trade-zh-TW', author: 'Hsiung-Shao', license: 'MIT', url: 'https://github.com/Hsiung-Shao/awakened-poe-trade-zh-TW', desc: 'ppz.about.apt_zh', licenseFile: 'awakened-poe-trade.MIT' },
   { name: 'Exiled Exchange 2', author: 'Kvan7', license: 'MIT', url: 'https://github.com/Kvan7/Exiled-Exchange-2', desc: 'ppz.about.ee2', licenseFile: 'exiled-exchange-2.MIT' },
   { name: 'Exiled-Exchange-2-zh-TW', author: 'Hsiung-Shao', license: 'MIT', url: 'https://github.com/Hsiung-Shao/Exiled-Exchange-2-zh-TW', desc: 'ppz.about.ee2_zh', licenseFile: 'exiled-exchange-2.MIT' },
-  { name: 'PoENavi', author: 'Buri', license: 'MIT', url: 'https://github.com/buri34/poenavi', desc: 'ppz.about.poenavi', licenseFile: 'poenavi.MIT' },
-  { name: 'PobTools', author: 'Hsiung-Shao', url: 'https://github.com/Hsiung-Shao/PobTools-zh', desc: 'ppz.about.pobtools' },
-  { name: 'Path of Building Community (PoE2)', author: 'PathOfBuildingCommunity', license: 'MIT', url: 'https://github.com/PathOfBuildingCommunity/PathOfBuilding-PoE2', desc: 'ppz.about.pob_poe2', licenseFile: 'path-of-building.MIT' },
   { name: 'poe-disenchant-tool', author: 'deronek', license: 'MIT', url: 'https://github.com/deronek/poe-disenchant-tool', desc: 'ppz.about.disenchant', licenseFile: 'poe-disenchant-tool.MIT' },
   { name: 'poe-dust (gist)', author: '@alserom', url: 'https://gist.github.com/alserom/22bdd4106806cbd4f85a5cb8c4345c08', desc: 'ppz.about.alserom' }
 ]
@@ -209,6 +210,9 @@ export default defineComponent({
       return { prefix, key, text }
     }))
 
+    /** 安裝版 + main 已套用 autoUpdate:下載完成後「結束程式時自動套用」。 */
+    const autoApply = computed(() => info.value?.reason === 'unsigned-build' && info.value.autoUpdate !== false)
+
     const updateText = computed(() => {
       const i = info.value
       if (!i) return t('ppz.loading')
@@ -222,7 +226,10 @@ export default defineComponent({
             : t('updates.available', [i.version ?? '?'])
         case 'not-available': return t('updates.latest')
         case 'downloading': return t('updates.downloading')
-        case 'downloaded': return t('ppz.update.downloaded', { version: i.version ?? '?' })
+        case 'downloaded':
+          return autoApply.value
+            ? t('ppz.update.downloaded_auto', { version: i.version ?? '?' })
+            : t('ppz.update.downloaded', { version: i.version ?? '?' })
         case 'error':
           return i.errorKind === 'not-found'
             ? t('ppz.update.not_found')
@@ -252,6 +259,8 @@ export default defineComponent({
 
     return {
       t,
+      config: AppConfig(),
+      autoApply,
       version: Host.version,
       rows,
       manifestError,
@@ -422,6 +431,7 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   width: 100%;
+  max-width: calc(var(--fs-base) * 50);
   max-height: 100%;
   background: var(--surface-1);
   border: 1px solid var(--edge-1);

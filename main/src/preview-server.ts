@@ -56,12 +56,22 @@ export const HOST_EVENT_METHODS: Readonly<Record<string, string>> = {
   onSwitchGame: 'switch-game',
   onOpenSettings: 'open-settings',
   onUpdaterState: 'updater-state',
-  onConfigChanged: 'config-changed'
+  onConfigChanged: 'config-changed',
+  // WP-S:事件不在 PREVIEW_EVENTS,預覽端永遠收不到(只訂閱不報錯)
+  onOcrRevealResult: 'ocr-reveal-result',
+  // WP-S2:框選熱鍵事件同樣只給 overlay
+  onOcrRegionPick: 'ocr-region-pick',
+  // WP-R2:符文塑形掃描結果同樣只給 overlay(不在 PREVIEW_EVENTS)
+  onRuneshapeScanResult: 'runeshape-scan-result'
 }
 
-/** 瀏覽器端沒有視窗可控:這幾個在 shim 裡直接 no-op(不走 RPC)。 */
-export const PREVIEW_NOOP_ASYNC = ['hideWindow', 'resizeWindow'] as const
-export const PREVIEW_NOOP_SYNC = ['trackArea', 'focusGame', 'usedRecently'] as const
+/**
+ * 瀏覽器端沒有視窗可控:這幾個在 shim 裡直接 no-op(不走 RPC)。`ocrRevealAvailable`(WP-S)回 undefined = 預覽端不適用;
+ * WP-S2 的 `overlayActivate` / `ocrRevealNow` 也是(預覽端設定卡片隱藏「在遊戲上框選」)。
+ */
+export const PREVIEW_NOOP_ASYNC = ['hideWindow', 'resizeWindow', 'ocrRevealAvailable', 'overlayActivate', 'ocrRevealNow', 'runeshapeStats'] as const
+/** WP-R2:`runeshapeUiState`(預覽分頁開設定不該暫停 overlay 的掃描)也是 no-op */
+export const PREVIEW_NOOP_SYNC = ['trackArea', 'focusGame', 'usedRecently', 'runeshapeUiState'] as const
 
 export interface PreviewServerOptions {
   /** 靜態檔根目錄(與 `app://` 相同:打包後是 app 根目錄,開發模式是 renderer/dist)。 */
@@ -164,7 +174,7 @@ export function bootScript (opts: { prefix: string, version: string, methodChann
   return `(function(){var C=${json};
 var cid=(Math.random().toString(36).slice(2)+Date.now().toString(36)).replace(/[^a-z0-9]/g,'').slice(0,40);
 var seq=0,pending={},subs={},es=null,lostT=null,lost=false,autoOpened=false;
-var TABS=['general','price-check','hotkeys','regex','about'];
+var TABS=['general','price-check','hotkeys','regex','dust','about'];
 var m=/(?:^|[#&])tab=([a-z-]+)/.exec(location.hash||'');var tab=m&&TABS.indexOf(m[1])>=0?m[1]:'general';
 function emit(n,d){var a=subs[n];if(!a)return;a.slice().forEach(function(cb){try{cb(d)}catch(e){console.error(e)}})}
 function banner(on){try{var id='host-preview-lost',el=document.getElementById(id);

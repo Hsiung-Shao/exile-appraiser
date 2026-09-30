@@ -12,7 +12,43 @@ import type { DataSource, GameAdapter, PresetOptions, TradeContext } from '@exil
 /** App.vue 只讀名稱做 log;其餘欄位原樣交給 poe2 的 CheckedItem.vue。 */
 export interface Poe2ParsedItem {
   info: { name: string, refName: string }
+  /** WP-S:揭露面板 OCR 的 profile 後援(ItemCategory 字串) */
+  category?: string
 }
+
+// ---- WP-S:靈魂之井揭露面板 OCR(poe2/src/desecration/ocr-match.ts 的子集) ----
+export interface Poe2OcrLine {
+  text: string
+  x: number
+  y: number
+  w: number
+  h: number
+}
+export interface Poe2RevealLine extends Poe2OcrLine {
+  /** null = 對不上任何模板(UI 灰色顯示原文) */
+  match: { norm: string } | null
+  merged?: boolean
+}
+export type Poe2DesecrationPool = 'normal' | 'desecration_exclusive' | 'desecration_exclusive_jewel'
+export interface Poe2RevealCandidate {
+  tier?: number
+  tierRange: [number, number]
+  pool: Poe2DesecrationPool
+  gods?: string[]
+  ranges: Array<[number, number] | null>
+  fuzzy: boolean
+  entryIds: string[]
+}
+export interface Poe2RevealGroup {
+  lines: Poe2RevealLine[]
+  rect: { x: number, y: number, w: number, h: number }
+  candidates: Poe2RevealCandidate[]
+  partial: boolean
+}
+export type Poe2RevealResult =
+  | { ok: true, groups: Poe2RevealGroup[], profileExact: boolean, profileSource: 'refName' | 'category' | 'intersection' | 'all' }
+  | { ok: false, error: 'no-panel', lines: Poe2RevealLine[] }
+export type Poe2Translate = (key: string, args?: unknown) => string
 
 export interface Poe2HostOptions {
   language: string
@@ -43,3 +79,25 @@ export declare const CheckedItem: DefineComponent<{}, {}, any>
 export declare const RateLimiterState: DefineComponent<{}, {}, any>
 export declare const createPresets: Poe2ReportFns['createPresets']
 export declare const createTradeRequest: Poe2ReportFns['createTradeRequest']
+/** 資料沒載入(不是 PoE2 / 舊安裝缺檔)→ undefined */
+export declare function matchRevealLines (lines: Poe2OcrLine[], opts?: { refName?: string, category?: string }): Poe2RevealResult | undefined
+export declare function revealPoolLabel (c: { pool: Poe2DesecrationPool, gods?: string[] }, t: Poe2Translate): string
+export declare function revealRangeLabel (ranges: Array<[number, number] | null>): string
+
+// ---- WP-R2:符文塑形面板 OCR 列 → refName / poe.ninja 鍵(poe2/src/runeshape/match.ts;規則見 docs/runeshape.md) ----
+export interface Poe2RuneshapeMatchRow extends Poe2OcrLine {
+  kind: 'gem' | 'skill' | 'support' | 'item' | 'recipe'
+  norm: string
+  refName?: string
+  level?: number
+  quantity: number
+  match: 'exact' | 'fuzzy' | null
+  similarity?: number
+  ambiguous?: string[]
+  category?: string
+  ninjaKey?: string | null
+  unpriced?: 'gem' | 'recipe'
+  recipeId?: string
+  offPanel?: boolean
+}
+export declare function matchRunesRows (lines: Poe2OcrLine[]): Poe2RuneshapeMatchRow[]

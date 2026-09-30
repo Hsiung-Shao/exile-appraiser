@@ -70,7 +70,187 @@ export interface HostConfigForMain {
   language: 'cmn-Hant' | 'en'
   /** 介面語言:main 的托盤選單依它重建(main/src/tray-strings.ts)。 */
   uiLanguage: 'cmn-Hant' | 'en'
+  /** WP-S:PoE2 靈魂之井揭露面板 OCR 熱鍵(預設 `Ctrl + Shift + R`;空字串 = 不註冊)。只在 overlay 模式 + PoE2 註冊。 */
+  hotkeyOcrReveal: string
+  /** WP-S:OCR 搜尋範圍(client 比例座標 0–1);null = 整個遊戲畫面(自動找面板)。WP-S2 起優先用它、區域內沒找到再找整個畫面。 */
+  ocrRegion: OcrRegion | null
+  /** WP-S2:在遊戲畫面上框選 OCR 區域的熱鍵(預設空字串 = 不註冊);註冊條件同 `hotkeyOcrReveal`(overlay + PoE2 + 遊戲前景)。 */
+  hotkeyOcrRegion: string
+  /** WP-R2:PoE2 符文塑形面板自動查價(預設關)。 */
+  runeshapeEnabled: boolean
+  /** WP-R2:符文塑形面板區域(client 比例 0–1);null = 未框選 → 自動尋找面板(低頻整個 client ×1 定位 + 記憶體快取)。 */
+  runeshapeRegion: OcrRegion | null
+  /** WP-R2:掃描間隔(ms,500–3000,預設 1000)。 */
+  runeshapeIntervalMs: number
+  /** WP-R2:暫停 / 繼續自動查價的熱鍵(預設空 = 不註冊;overlay + PoE2 + 已啟用才註冊)。 */
+  hotkeyRuneshapeToggle: string
+  /** 自動更新(預設 true):安裝版背景下載新版、結束程式時靜默套用;false = 手動(按下載 → 按安裝)。見 main/src/updater-core.ts。 */
+  autoUpdate: boolean
 }
+
+/** WP-R2:一列 OCR 文字(座標 = 遊戲 client 區實體像素)。名稱比對在 renderer(poe2 `matchRunesRows`)。 */
+export interface RuneshapeScanRow {
+  text: string
+  x: number
+  y: number
+  w: number
+  h: number
+}
+
+/** WP-R2:一次掃描各段耗時(ms)。沒跑到的段省略。 */
+export interface RuneshapeTimings {
+  /** desktopCapturer 擷取 + 裁 client */
+  captureMs: number
+  /** 區域縮圖灰階 + 差分 */
+  diffMs: number
+  /** 前處理 + OCR + 傳輸(wall clock) */
+  ocrWallMs?: number
+  /** OCR 本身(PowerShell 行程內量測) */
+  ocrMs?: number
+  totalMs: number
+  /** 差分結果(平均絕對差 0–255、變動像素比例 0–1);沒有基準時省略 */
+  diff?: { mean: number, changedRatio: number }
+  /** 區域來源:`manual` = 使用者框的 `runeshapeRegion`;`auto` = 自動定位的快取區 */
+  mode?: 'manual' | 'auto'
+  /** 這次有跑自動定位(整個 client ×1 OCR)時的 wall clock */
+  locateMs?: number
+  /** WinRT 把區域當成直書 → 改走 ×1 定位 + 裁切重辨識 */
+  retry?: 'vertical'
+}
+
+/**
+ * WP-R2:`runeshape-scan-result`(main → overlay;**不送瀏覽器預覽**)。
+ * - `rows`:面板區 OCR 到的列(含 CJK 的行;至少要有 1 列面板格式的列 `isPanelRow`,否則視為沒有列);空陣列 = 清除徽章。
+ * - `reason`:`rows` 有內容;`empty` = 連續 2 次 OCR 沒有列(面板關了);`inactive` = 停用 / 不是 PoE2 overlay / 沒有遊戲視窗;
+ *   `user-paused` / `user-resumed` = 暫停熱鍵。
+ */
+export interface RuneshapeScanEvent {
+  seq: number
+  ts: number
+  reason: 'rows' | 'empty' | 'inactive' | 'user-paused' | 'user-resumed'
+  rows: RuneshapeScanRow[]
+  client: { w: number, h: number }
+  timings?: RuneshapeTimings
+}
+
+/** WP-R2:renderer 回報的 UI 狀態(任一為 true → 暫停掃描)。 */
+export interface RuneshapeUiState {
+  /** 查價面板 */
+  panel: boolean
+  settings: boolean
+  /** 框選層 */
+  picker: boolean
+}
+
+/** WP-R2:設定頁顯示的掃描統計(`runeshape-stats`)。 */
+export interface RuneshapeStats {
+  /** 目前在掃描 */
+  active: boolean
+  /** 沒在掃描的原因(`disabled` / `not-poe2` / `not-overlay` / `no-window` / `game-inactive` / `ui-open` / `user-paused` / `stopped`) */
+  reason?: string
+  ticks: number
+  ocrRuns: number
+  skippedUnchanged: number
+  skippedBusy: number
+  /** 區域來源:有框 `runeshapeRegion` = manual;沒框 = auto(自動定位) */
+  mode: 'manual' | 'auto'
+  /** 最近一次看區域的結果:`found` = 有面板列;`not-found` = 沒有;`unknown` = 還沒掃過 */
+  panel: 'found' | 'not-found' | 'unknown'
+  /** auto:目前快取的面板區(client 比例);沒有 = 尚未找到(低頻全畫面定位中) */
+  autoRegion?: OcrRegion
+  /** 自動定位(整個 client ×1)次數與沒找到的次數 */
+  locates: number
+  locateMisses: number
+  last?: RuneshapeTimings
+  /** 最近 20 次的平均(擷取 / OCR wall) */
+  avgCaptureMs?: number
+  avgOcrMs?: number
+  /** 最近一次失敗(擷取 / OCR);成功後不清,設定頁一併顯示 */
+  lastError?: string
+}
+
+/** client 比例矩形(0–1,左上原點)。 */
+export interface OcrRegion {
+  x: number
+  y: number
+  w: number
+  h: number
+}
+
+/** 一行 OCR 文字;座標 = 遊戲 client 區的實體像素(左上原點)。 */
+export interface OcrRevealLine {
+  text: string
+  x: number
+  y: number
+  w: number
+  h: number
+}
+
+export type OcrRevealError =
+  /** 沒有繁中 OCR 語言包(設定 → 時間與語言 → 語言 → 中文(台灣)→ 語言選項 → 光學字元辨識) */
+  | 'lang-missing'
+  | 'unsupported-platform'
+  /** overlay 還沒綁到遊戲視窗(或視窗大小為 0) */
+  | 'no-game-window'
+  /** desktopCapturer 拿不到畫面(全螢幕獨占模式可能是黑畫面) */
+  | 'capture-failed'
+  | 'timeout'
+  | 'ocr-failed'
+
+/**
+ * `ocr-reveal-result` 事件(main → overlay;不送瀏覽器預覽)。
+ * - `pending`:按下熱鍵、開始擷取(UI 顯示「辨識中」)。
+ * - `result`:`ok` 時 `lines` 是整個搜尋範圍的 OCR 行,比對在 renderer(poe2 `matchReveal`)。
+ */
+export type OcrRevealEvent =
+  | { phase: 'pending', seq: number }
+  | {
+    phase: 'result'
+    seq: number
+    ok: boolean
+    error?: OcrRevealError
+    message?: string
+    lines: OcrRevealLine[]
+    /** client 區實體像素大小(renderer 以比例換算成 CSS 座標) */
+    client: { w: number, h: number }
+    /** OCR 前的放大倍率 */
+    scale: number
+    /** 擷取 + OCR 總耗時 / 其中 OCR 本身 */
+    tookMs: number
+    ocrMs: number
+    /**
+     * 兩段式診斷:走了哪條路(cached = 快取區 ×3;two-pass = 整張 ×1 定位 + 面板區 ×3;full = 整張 ×3)。
+     * WP-S2:有設定區域時 = `region`(區域內找到)或 `region-fallback`(區域內沒找到,改找整個畫面;renderer 提示一次)。
+     */
+    stage?: OcrRevealStage
+    /** WP-S2:被採用那一輪實際走的內層路徑 */
+    inner?: 'cached' | 'two-pass' | 'full'
+    /** 各段耗時(依執行順序;失敗的段帶 `rejected`) */
+    stages?: OcrRevealStageTiming[]
+  }
+
+/** WP-S 兩段式辨識走的路(docs/reveal-ocr.md);WP-S2 加 `region` / `region-fallback` */
+export type OcrRevealStage = 'cached' | 'two-pass' | 'full' | 'region' | 'region-fallback'
+
+export interface OcrRevealStageTiming {
+  name: 'cached' | 'locate' | 'detail' | 'full'
+  /** 這段 OCR 的範圍(client 實體像素) */
+  rect: { x: number, y: number, width: number, height: number }
+  scale: number
+  /** 前處理 + OCR + 傳輸 */
+  ms: number
+  ocrMs: number
+  lines: number
+  hits?: number
+  rejected?: string
+  /** WP-S2:`region` = 使用者框的區域那一輪;`screen` = 整個畫面那一輪(沒設定區域時省略) */
+  scope?: 'region' | 'screen'
+}
+
+/** `ocrRevealAvailable()` 的結果(設定頁顯示)。 */
+export type OcrAvailability =
+  | { ok: true, lang: string, langs: string[] }
+  | { ok: false, error: string, langs?: string[], message?: string }
 
 /** `host-config` 的回傳 = main `Shortcuts.updateActions` 的熱鍵註冊結果(設定頁「熱鍵與視窗」顯示)。 */
 export interface HotkeyRegistration {
@@ -92,8 +272,8 @@ export interface ConfigChangedEvent {
   source: string
 }
 
-/** 設定面板的分頁(托盤「設定」「關於」用 `open-settings` 指定要開哪頁)。 */
-export type SettingsTabId = 'general' | 'price-check' | 'hotkeys' | 'regex' | 'about'
+/** 設定面板的分頁(托盤「設定」「關於」用 `open-settings` 指定要開哪頁;查價標題列 ⚖ 開 `dust`)。 */
+export type SettingsTabId = 'general' | 'price-check' | 'hotkeys' | 'regex' | 'dust' | 'about'
 
 export interface HostApi {
   readonly isElectron: true
@@ -124,6 +304,8 @@ export interface HostApi {
   hideWindow: () => Promise<void>
   /** 由 renderer 通知 main 目前視窗想要的大小(內容驅動;overlay 模式無作用)。 */
   resizeWindow: (width: number, height: number) => Promise<void>
+  /** 設定視窗「結束程式」(= 托盤「結束」,IPC `app-quit`)。瀏覽器預覽 shim 沒有這個方法(`preview: false`)。 */
+  appQuit?: () => Promise<void>
   /** main 建立視窗時決定的模式(啟動後不變)。 */
   readonly windowMode: WindowMode
   onFocusChange: (cb: (e: FocusChangeEvent) => void) => () => void
@@ -139,9 +321,9 @@ export interface HostApi {
   /** 自動更新(electron-updater,GitHub Releases)。 */
   getUpdaterInfo: () => Promise<UpdaterInfo>
   checkForUpdate: () => Promise<void>
-  /** 只在 `reason === 'unsigned-build'` 且 `state === 'available'` 時有作用;下載完成 → `downloaded`,不自動安裝。 */
+  /** 只在 `reason === 'unsigned-build'` 且 `state === 'available'` 時有作用(`autoUpdate` 關的手動流程);下載完成 → `downloaded`。 */
   downloadUpdate: () => Promise<void>
-  /** `downloaded` 後結束並執行安裝程式(`quitAndInstall(false)`)。 */
+  /** `downloaded` 後結束並執行安裝程式:`autoUpdate` 開 = 靜默安裝並重新啟動(`quitAndInstall(true, true)`);關 = 顯示安裝程式(`quitAndInstall(false)`)。 */
   installUpdate: () => Promise<void>
   onUpdaterState: (cb: (info: UpdaterInfo) => void) => () => void
   /** 另一端(Electron 視窗或其他預覽分頁)存了設定;自己存的不會收到。 */
@@ -150,11 +332,27 @@ export interface HostApi {
   openPreview: () => Promise<{ url: string }>
   /** 預覽伺服器目前的網址(沒在跑回 null)。 */
   getPreviewUrl: () => Promise<string | null>
+  /** WP-S:靈魂之井揭露面板 OCR(熱鍵觸發;只有 overlay 會收到)。 */
+  onOcrRevealResult: (cb: (e: OcrRevealEvent) => void) => () => void
+  /** WP-S:Windows OCR 繁中語言包是否可用(會視需要啟動 OCR 行程;瀏覽器預覽端回 undefined)。 */
+  ocrRevealAvailable: () => Promise<OcrAvailability | undefined>
+  /** WP-S2:overlay 取得焦點(可點擊;main `assertOverlayActive`)。框選層開啟時呼叫;預覽端 no-op。 */
+  overlayActivate: () => Promise<void>
+  /** WP-S2:立刻跑一次揭露面板 OCR(= 按 OCR 熱鍵;框選確認後自動試辨識)。沒有遊戲視窗 / 不是 PoE2 overlay 時回 false;預覽端 no-op。 */
+  ocrRevealNow: () => Promise<boolean | undefined>
+  /** WP-S2:框選熱鍵(`hotkeyOcrRegion`)按下 → renderer 開框選層(只有 overlay 會收到)。 */
+  onOcrRegionPick: (cb: () => void) => () => void
+  /** WP-R2:符文塑形自動查價的掃描結果(只有 overlay 會收到)。 */
+  onRuneshapeScanResult?: (cb: (e: RuneshapeScanEvent) => void) => () => void
+  /** WP-R2:回報查價面板 / 設定 / 框選層是否開著(任一開著 → main 暫停掃描);預覽端 no-op。 */
+  runeshapeUiState?: (s: RuneshapeUiState) => void
+  /** WP-R2:掃描統計(設定頁);預覽端回 undefined。 */
+  runeshapeStats?: () => Promise<RuneshapeStats | undefined>
 }
 
 /**
- * 為什麼不能「一鍵下載安裝」(移植 APT `noDownloadReason`,見 main/src/AppUpdater.ts):
- * - `unsigned-build`:安裝版的預設。沒有 code signing 憑證,所以**不自動下載**;使用者按下才下載(`downloadUpdate`)。
+ * 更新能力(移植 APT `noDownloadReason`,見 main/src/AppUpdater.ts、updater-core.ts):
+ * - `unsigned-build`:安裝版(沒有 code signing)。`autoUpdate` 開 = 背景自動下載、結束程式時套用;關 = 使用者按下才下載(`downloadUpdate`)。
  * - `not-supported`:portable(或非 Windows)沒有就地安裝的能力,只能引導去 Releases 頁。
  * - `disabled-by-flag`:使用者用 `--no-updates` 關掉(連檢查都不做)。
  */
@@ -162,7 +360,8 @@ export type NoDownloadReason = 'not-supported' | 'disabled-by-flag' | 'unsigned-
 
 /**
  * - `initial`:還沒檢查過(或開發模式不檢查)
- * - `downloading`:使用者按了下載、進行中
+ * - `downloading`:下載中(`autoUpdate` 開 = 檢查到就自動下載;關 = 使用者按了下載)
+ * - `downloaded`:已下載;`autoUpdate` 開時正常結束程式就會靜默套用
  * - `error`:檢查/下載失敗(含 GitHub repo 或 Release 不存在的 404、斷網);只寫 log,不彈對話框
  */
 export type UpdaterState = 'initial' | 'checking' | 'available' | 'not-available' | 'downloading' | 'downloaded' | 'error'
@@ -171,6 +370,8 @@ export interface UpdaterInfo {
   state: UpdaterState
   /** 不能一鍵下載安裝的原因(固定值,啟動時決定)。 */
   reason: NoDownloadReason
+  /** main 目前套用的設定 `autoUpdate`(UI 依它顯示「結束程式時自動套用」與按鈕)。 */
+  autoUpdate?: boolean
   /** 目前執行中的版本。 */
   currentVersion?: string
   /** `available` / `downloading` / `downloaded`:新版版號。 */

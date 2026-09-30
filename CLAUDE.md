@@ -11,28 +11,32 @@ Path of Exile 查價工具(Electron + TypeScript)。把 `apt-patched`(Awakened P
 | 目錄 | 內容 | 規則 |
 |---|---|---|
 | `core/` | 純 TS 共用層:`http/`(HttpFetch 介面、RateLimiter 去 Vue 版、Cache、429 Retry-After)、`realm/`(intl/tw 模型、聯盟純函式)、`realm/config.ts` 的 `TRADE_PATHS` / `tradeApiBase(realm, game)`(PoE1 `/api/trade`、PoE2 `/api/trade2`)、`games/adapter.ts`(GameAdapter 介面) | 不得 import Vue / Electron / DOM API |
-| `core/src/ninja/` | poe.ninja 價格源(WP-A):`client.ts`(item overview + exchange 端點、300ms 間隔、AbortController)、`keys.ts`(`unique\|name\|baseType[\|6L]`、`currency\|name`…)、`cache.ts`(快照 schema、15 分鐘 TTL、30 天清除)、`lookup.ts` | 只 intl;renderer 殼 `web/background/Prices.ts` 呼叫;PoE2 的 `Prices.ts` 仍是「沒有價格」 |
+| `core/src/ninja/` | poe.ninja 價格源(WP-A):`client.ts`(item overview + exchange 端點、300ms 間隔、AbortController)、`keys.ts`(`unique\|name\|baseType[\|6L]`、`currency\|name`…)、`cache.ts`(快照 schema、15 分鐘 TTL、30 天清除)、`lookup.ts` | 只 intl;renderer 殼 `web/background/Prices.ts` 呼叫(WP-R2 起 PoE2 也抓,`priceOf(refName, level?)` 給符文塑形自動查價;快照 schema 2 多存 `exaltedRate`,格式見 `docs/ninja-poe2.md`);poe2 查價元件自己的 `poe2/src/web/background/Prices.ts` 仍是「沒有價格」 |
 | `core/src/dust/` | 拆粉純函式(WP-A/B):`formula.ts`(`dustAt` = APT `calcDisenchantDust` 逐字)、`data.ts`(poe-dust / items.ndjson 解析、`inherentInfluencesFromPoeDust`)、`crosscheck.ts`、`rank.ts`(`rankUniques` 四種效率、催化劑、固有勢力)、`trade.ts`、`ui-state.ts` | 對接一律英文 `name + baseType`;說明見 `docs/dust-tool.md` |
 | `poe1/` | PoE1 adapter。`src/{parser,assets/data,web/price-check/{filters,trade}}` **與 apt-patched `renderer/src` 同路徑、同 `@/…` 匯入**;`src/index.ts` 是對外入口;`src/cli.ts` 無頭驗證;`test/` 回歸網 | 移植檔逐字不改,只切耦合點(見下) |
 | `poe2/` | PoE2 adapter。`src/{parser,assets,web/price-check/{filters,trade,item-editor},web/{background,ui}}` 與 ee2-patched `renderer/src` 同路徑、同 `@/…` 匯入(含 .vue);`src/index.ts` 對外入口、`src/renderer-entry.ts` 給 renderer(`@poe2-entry`)、`src/cli.ts`;`test/` = E 的 `renderer/specs` + golden-query / trade-client / src-coupling | 同 poe1;耦合點清單在 `docs/poe2-port-notes.md`。型別檢查兩段:`tsconfig.json`(.ts)+ `tsconfig.vue.json`(.vue,`@/*` → poe2/src 再退回 renderer/src)|
 | `renderer/` | Vite + Vue 3 殼:`App.vue`、`settings/`、`web/{Config,i18n}.ts`、`web/background/{IPC,Leagues,Prices}.ts`(取代上游同名模組)、`web/ui/*.vue` | `@/…` 由 `vite.config.mts` 的 `gameAwareAtAlias()` 依 importer 解析:poe2/src 的檔先找 poe2/src 再退回本目錄;其餘把 `@/parser*`、`@/assets/data*`、`@/web/price-check/*` 指到 poe1、其餘 `@/web/*` 指本目錄。renderer 引用遊戲元件用 `@poe1/…`、`@poe2/…`、`@poe2-entry`(tsconfig 不讀 poe2 原始碼,只認 `src/web/games/poe2-entry.d.ts`)。設定 `game` 切換 → main.ts 重載資料與 app_i18n、`web/games/active.ts` 的 `loadedGame` 決定 parser 與元件 |
 | `renderer/src/theme/pobtools.css` + `renderer/src/web/useTheme.ts` | 主題 token(取自 PobTools `pob-zh-engine/ui/src/app.css`,四主題 `data-theme=slate|light|contrast|parchment`)與套用(`<html>` 的 `data-theme`、`--fs-base`、`--accent-user`、`--on-accent-user`) | Tailwind `gray.*` 等色階是 token 的**別名**(`renderer/tailwind.config.cjs`),移植元件的 class 不改 |
-| `renderer/src/web/settings/` | `SettingsPanel.vue` + `tabs/{General,PriceCheck,Hotkeys,Regex,About}.vue` 五分頁、`HotkeyInput.vue`(移植自 APT) | |
-| `renderer/src/web/dust/` | 拆粉排行面板(標題列 ⚖):`DustPanel.vue`、`DustTable.vue`(虛擬捲動)、`store.ts`;記憶 `userData/dust_ui.json`(標記/隱藏按聯盟分)。WP-Q 起**停靠在查價面板下方**(`App.vue` 的 `.price-stack` + `.dust-splitter`,拖曳或 ↑↓ 調整;比例 `AppConfig().dustDockRatio`,15–50%) | 單件拆粉在 `poe1/src/web/price-check/expected-value/DustValue.vue`;設定頁仍獨佔整個面板 |
+| `renderer/src/web/settings/` | `SettingsWindow.vue`(APT 式方正設定視窗:標題列 + 左選單 + 右側捲動內容,選單底部「結束程式」= IPC `app-quit`,`preview: false`)+ `tabs/{General,PriceCheck,Hotkeys,Regex,Dust,About}.vue` 六分頁(`Dust` = 拆粉排行,內容區加 `.fill` 不捲動、表格自己虛擬捲動)、`HotkeyInput.vue`(移植自 APT)、`tabState.ts`。overlay:`App.vue` 的 `.settings-layer` 暗幕 + 置中浮動(寬 min(50rem, 92vw)、高 min(38rem, 88vh),rem = `--fs-base` × 1.23),點暗幕 / Esc / ✕ 關閉;設定開著時查價面板(含標題列、側邊限流鈕)整個隱藏,只剩設定視窗,關閉後有物品回查價面板、沒物品(overlayKey 叫出)整個收起並還焦點給遊戲;window 模式 / 瀏覽器預覽填滿內容區,容器寬 < 640px 左選單收成上方分頁(container query)。即時套用,沒有儲存 / 取消 | 根元素保留 `.settings-panel`(各分頁 unscoped 選擇器與關於頁授權 modal 以它為範圍);`.srow` 等列樣式在 `SettingsWindow.vue`。OCR 框選由設定開啟時隱藏設定,確認 / 取消 / 清除後回到熱鍵分頁(`ocr-reveal.ts` `returnsToSettings`;這條路徑確認後**不**自動試辨識) |
+| `renderer/src/web/dust/` | 拆粉排行面板:`DustPanel.vue`、`DustTable.vue`(虛擬捲動,欄寬依表格寬 container query)、`store.ts`;記憶 `userData/dust_ui.json`(標記/隱藏按聯盟分)。2026-09-30 起**在設定視窗的「拆粉排行」分頁**(`settings/tabs/Dust.vue`);查價標題列 ⚖ = 開設定並切到該分頁。WP-Q 的停靠 / 分隔條 / `dustDockRatio` 已移除(`Config.ts` 只挑已知欄位,舊設定檔帶這個鍵照常載入、不再寫出) | 單件拆粉在 `poe1/src/web/price-check/expected-value/DustValue.vue`(留在查價面板) |
+| `renderer/src/web/trade-site.ts` | **開交易站網頁的唯一入口** `openTradeSite(url)`:預設系統瀏覽器(`Host.openExternal`,與查價「交易」鈕 TradeLinks 同一條路,使用者已登入);只有上游 `priceCheck.builtinBrowser`(設定頁不提供、預設 false)開著才用內建視窗 `Host.openCaptcha`。App.vue `provide('builtin-browser', openTradeSite)`(兩遊戲錯誤框「瀏覽器」鈕)、拆粉排行「交易 ↗」都走它 | `Host.openCaptcha` 只留給「開啟驗證視窗」(Cloudflare cookie,沒有登入狀態);**不要**再把看交易站接到 openCaptcha(使用者回報要重新登入)|
 | `main/src/host-handlers.ts` | IPC handler 登錄表(`kind: invoke\|send\|sync`、`preview: false` 不開放給預覽);`registerIpc(table)` 給 ipcMain、`previewHandlers(table)` 給預覽伺服器;事件走 `Broadcaster.broadcast` | 新增 IPC 一律加在登錄表,並決定預覽能不能用 |
 | `main/src/preview-server.ts` | 瀏覽器預覽(WP-P):Node `http` 供應 `renderer/dist` + 注入 boot script 造 `window.host`,`POST ~rpc` + SSE `~events`;入口:托盤、設定 › 一般、`--preview`。見 `docs/browser-preview.md` | 測試 `main/test/preview-server.test.ts`(純 Node) |
 | `poe2/src/desecration/` | PoE2 褻瀆詞綴 Tier 推定(WP-R):`infer.ts`(`inferDesecratedTiers`,Parser 末段 virtual;`matchStats()` 與 ParsedItem 解耦)、`display.ts`(推定/候選字串)、`types.ts`。一般格式詞綴區由 `Parser.ts` 的 `parsePlainModifiers` 解析 | 見 `docs/desecration-tiers.md`;測試 `poe2/test/desecration/` |
+| `main/src/ocr/` + `poe2/src/desecration/ocr-match.ts` + `renderer/src/web/overlay/{OcrBadges.vue,ocr-reveal.ts}` | 靈魂之井三選一揭露面板 OCR(WP-S):`win-ocr.ps1`(常駐 PowerShell 5.1 + WinRT OCR,esbuild text loader 內嵌)、`WinOcr.ts`、`capture.ts`(整個螢幕 desktopCapturer → 裁 client → 放大 → JPEG)、`reveal.ts`(廣播 `ocr-reveal-result`)、`selftest.ts`(`--ocr-selftest`);比對在 renderer(`@poe2-entry` 的 `matchRevealLines`);熱鍵 `hotkeyOcrReveal` 預設 `Ctrl + Shift + R`,只在 overlay + PoE2 註冊。WP-S2 框選辨識區域:`renderer/src/web/overlay/{OcrRegionPicker.vue,region-geom.ts}`(在遊戲畫面上拖曳 → `ocrRegion` client 比例 → `focus-game` → 150 ms 後 `ocr-reveal-now`)、`strategy.ts` `recognizeRegionFirst`(優先區域、命中 < 2 退回整張,`stage` `region` / `region-fallback`)、`shortcut-actions.ts`(熱鍵動作表純函式;`hotkeyOcrRegion` 預設空)、IPC `overlay-activate` / `ocr-reveal-now`(`preview: false`)、事件 `ocr-region-pick` | 見 `docs/reveal-ocr.md`;`WinOcr.ts` 只用可抹除 TS 語法(`scripts/ocr-fixture.mjs` 以 Node 型別剝除直接 import);快照 `poe2/test/desecration/fixtures/ocr/*.ocr.json` 由 fixture 腳本產生 |
+| `main/src/ocr/{runeshape-scan,runeshape-selftest}.ts` + `poe2/src/runeshape/{row-format,match-core,match}.ts` + `renderer/src/web/overlay/{RuneshapePrices.vue,runeshape-view.ts}` + `renderer/src/web/background/price-of.ts` | PoE2 符文塑形面板自動查價(WP-R2,計畫 `wise-seeking-hippo.md`,規則全文 `docs/runeshape.md`):main 掃描迴圈(`runeshapeEnabled` + PoE2 + overlay + 遊戲前景;**有框 `runeshapeRegion` 優先用它(沒找到面板不改掃全畫面,設定頁顯示「區域內沒找到面板」),沒框就自動定位**:沒快取時每 3 秒最多一次整個 client ×1 → `locateRunePanel`(≥ 2 列面板列、右緣對齊)→ 外擴框記憶體快取(鍵 = client 大小 + 擷取偏移),連續 5 次框內沒面板列清快取;每 `runeshapeIntervalMs` 500–3000 擷取 → 區域寬 64 灰階縮圖差分,沒變不 OCR → 共用 `WinOcr` ×3(直書 `looksVertical` → ×1 找列 + 只裁面板列重辨識並記住),揭露面板忙碌就丟 tick;沒有任何 `isPanelRow` 的結果當成沒有列;連續 2 次無列送空結果)→ 事件 `runeshape-scan-result`(不進 `PREVIEW_EVENTS`)→ renderer `matchRunesRows`(前綴限定 namespace:`技能等級N:` / `技能:` → 技能寶石、`輔助:` → 輔助寶石、`Nx` / 無前綴 → ITEM;items.ndjson 繁中名精確 → 模糊 0.85(數字須相同)→ 類別優先序,無法唯一 = ambiguous 不查價;技能 / 輔助寶石 poe.ninja 沒有 →「無價格」;面板外的列不畫)→ `priceOf`(`currency\|<refName>`)→ 徽章(崇高石計價、≥ 1 div 改神聖石、數量 > 1 總價 + 單價、三段顏色 `runeshapeThresholds`)。renderer 以 `runeshape-ui-state` 回報查價面板 / 設定 / 框選層開著 → 暫停;選用熱鍵 `hotkeyRuneshapeToggle`(預設空)。框選沿用 `OcrRegionPicker.vue`(`ocr-reveal.ts` `REGION_PICKER_SPECS` 參數化,不帶 target = 揭露面板)。`--runeshape-selftest <png> [--runeshape-selftest-region=x,y,w,h]`(自動定位 + 手動區域兩條路,印耗時、定位框、每列比對與錄製檔價格) | 台服沒有 poe.ninja → 只提示不畫徽章;不送任何輸入;`row-format.ts` / `match-core.ts` 零依賴(main 經 esbuild 打包,只准相對路徑);名稱只用 repo 資料、不自行翻譯;測試 `main/test/runeshape-scan.test.ts`(假時鐘,含自動定位 / 快取 / 失效 / 直書)、`poe2/test/runeshape/`(兩張真實截圖快照 `fixtures/ocr/*.ocr.json`,`node scripts/ocr-fixture.mjs --set runeshape` 產生)、`renderer/test/runeshape-*.test.ts` |
 | `data/poe2/desecration/` | `tiers.json`(profiles / entries / diagnostics)、`base_profiles.json`(refName → profile);`scripts/build-desecration-tiers.mjs` 由 PoB2 portable `Data/*.lua` + `data/poe2/*/stats.ndjson` 產生 | 不手改;MANIFEST `commit` = PoB2 `manifest.xml` 裡 `ModVeiled.lua` 的 sha1 |
+| `data/poe2/runeshape/` | `recipes.json`:符文塑形配方結果泛稱(GGPK `expedition2recipes` Description,29 筆;`zhPlain` / `enPlain` 已剝 `[Rarity|X]`);`scripts/sync-runeshape-data.mjs` 由 pob-zh-engine 本機 GGPK 抽取表產生 | 不手改;MANIFEST 記 `fetchedAt` = 抽取時間 + game_version + 來源檔 sha256(來源在 gitignored `tools/`,沒有 commit) |
 | `renderer/src/web/regex/` | Poe Regex UI(`RegexPanel/RegexList/RegexBookmarks.vue`、`store.ts`);書籤與勾選存 `userData/regex_state.json`(main tmp + rename) | UI 用的純邏輯放 `regex/src/view.ts`(有 vitest) |
 | `renderer/src/web/{feedback,report}.ts` | 一鍵回報:組 issue 標題/內文 → 開預填的 `issues/new`;網址 > 6000 字元改只帶標題、全文進剪貼簿 | 不自動上傳;不含 accountName |
 | `regex/` | `@exile-appraiser/regex`:`gen/data/state/rng/view.ts` 逐函式移植 PobTools `host/regex_gen.cpp` 等(純 TS,可在 renderer 與 Node 跑)、`node.ts`(讀檔)、`cli.ts`;資料 `data/regex/regex_poe{1,2}.json`(schema 2:`labels`、頁 `kind`)。WP-C 自寫:`numeric.ts`(數值範圍 → 最短正則)、`pages/`(演算法頁 `map_numeric` / `waystone_numeric` / `vendor_items` / `vendor_items_poe2`)、`combine.ts`(多頁合併 + 聯集 Verify)、`share.ts`(分享碼 gzip+base64url)、`scripts/gen-labels.mjs` | renderer 不得 import `@exile-appraiser/regex/node`;對應表與已知差異見 `docs/regex-port.md` |
-| `main/` | Electron main + preload:熱鍵(`Shortcuts.ts`,globalShortcut + uiohook Ctrl+C)、`windowing/`(照 APT 的 overlay:`electron-overlay-window` 附著遊戲視窗、WidgetAreaTracker、OverlayVisibility、`GameDetector` 自動切換;`--window` / `overlayMode:false` 為獨立視窗備援)、`AppUpdater.ts`(electron-updater,GitHub Releases)、`tray-strings.ts`(托盤選單雙語字串,跟 `uiLanguage`)、剪貼簿輪詢、session fetch(帶 Cloudflare cookie)、設定檔、`app://` 協定 | session fetch(`http.ts` `ALLOWED_HOSTS`)只准 www.pathofexile.com / pathofexile.tw / poe.ninja;更新檢查由 electron-updater 直連 github.com |
+| `main/` | Electron main + preload:熱鍵(`Shortcuts.ts`,globalShortcut + uiohook Ctrl+C)、`windowing/`(照 APT 的 overlay:`electron-overlay-window` 附著遊戲視窗、WidgetAreaTracker、OverlayVisibility、`GameDetector` 自動切換;`--window` / `overlayMode:false` 為獨立視窗備援)、`AppUpdater.ts` + `updater-core.ts`(electron-updater,GitHub Releases;自動下載、結束時套用)、`tray-strings.ts`(托盤選單雙語字串,跟 `uiLanguage`)、剪貼簿輪詢、session fetch(帶 Cloudflare cookie)、設定檔、`app://` 協定。外部網址規則 `external-links.ts`(有測試):IPC `open-external` 只收 http(s);主視窗與驗證視窗 `setWindowOpenHandler` 一律 deny、http(s) 轉系統瀏覽器(不讓 Electron 自開沒有登入狀態的新視窗);主視窗 `will-navigate` 非 app 頁面攔下並轉系統瀏覽器 | session fetch(`http.ts` `ALLOWED_HOSTS`)只准 www.pathofexile.com / pathofexile.tw / poe.ninja;更新檢查由 electron-updater 直連 github.com |
 | `renderer/public/brand/{icon,tray}.svg` | app 圖示來源 → `npm run build-icons`(sharp,冪等)產生 `renderer/public/icon.{png,ico}`、`tray-*.png`;`electron-builder.yml` `win.icon` 指向 `icon.ico` | 改圖只改 SVG 再重跑,不手改 png/ico |
 | `data/dust/` | `poe-dust.json`(poe-disenchant-tool `data/dust/poe-dust.js` 逐筆轉 JSON,`scripts/sync-dust-data.mjs`) | 不手改;goldCost / slots / 固有勢力只從這裡取 |
 | `data/regex/` | `regex_poe{1,2}.json`(PobTools 單向同步)、`labels.poe{1,2}.json`(clientstrings 暫代標籤,`regex/scripts/gen-labels.mjs`,只補資料檔缺鍵)、`templates.json`(內建範本,手寫) | 三者在 MANIFEST 各自一個前綴 |
 | `data/poe1/`、`data/poe2/` | 資料檔,**逐位元組來自 apt-patched / ee2-patched**(poe2 的 `*.index.bin` 由 `make-index-files --game poe2` 產生);`data/poe2/trade/` 是 GGG `/api/trade2/data/{stats,items}` 兩區快照(parser 後援用 intl);`data/MANIFEST.json` 每個前綴一個來源(commit 或 fetchedAt)+ sha256 | 不在這裡改資料 |
-| `scripts/` | `sync-data-from-apt.mjs`(`--game poe1|poe2`)、`sync-regex-data.mjs`、`sync-dust-data.mjs`、`dust-crosscheck.mjs`(→ `docs/dust-crosscheck.md`)、`fetch-poe2-trade-data.mjs`、`check.mjs`(CLI 依 `--game` 轉 workspace)、`verify-data-manifest.mjs`、`make-index-files.mjs`、`verify-datasets.mjs`、`check-user-agent.mjs`、`build-icons.mjs`、`make-fake-update-feed.mjs`(更新器離線驗證) | |
-| `docs/` | `poe2-port-notes.md`(PoE2 移植紀錄)、`game-auto-switch.md`(PoE1/PoE2 自動切換)、`regex-port.md`(Poe Regex 移植、資料同步、WP-C 演算法頁/合併/分享碼/範本)、`dust-tool.md`(拆粉公式/資料/排行)、`dust-crosscheck.md`(產生的交叉比對報告,勿手改)、`release-flow.md`(發版 + 自動更新)、`browser-preview.md`(瀏覽器預覽:用法、同步、安全模型、協定)、`desecration-tiers.md`(褻瀆 Tier 資料表與推定、PoE2 複製鍵)、`phase2-summary.md`、`phase3-summary.md`、`phase4-summary.md`(各工作包摘要與已知限制) | |
+| `scripts/` | `sync-data-from-apt.mjs`(`--game poe1|poe2`)、`sync-regex-data.mjs`、`sync-runeshape-data.mjs`、`sync-dust-data.mjs`、`dust-crosscheck.mjs`(→ `docs/dust-crosscheck.md`)、`fetch-poe2-trade-data.mjs`、`check.mjs`(CLI 依 `--game` 轉 workspace)、`verify-data-manifest.mjs`、`make-index-files.mjs`、`verify-datasets.mjs`、`check-user-agent.mjs`、`build-icons.mjs`、`make-fake-update-feed.mjs`(更新器離線驗證)、`make-local-update-test.mjs`(兩個真安裝檔 + 本機 feed 的端到端更新實測,產物在 gitignored `.local-update-test/`) | |
+| `docs/` | `poe2-port-notes.md`(PoE2 移植紀錄)、`game-auto-switch.md`(PoE1/PoE2 自動切換)、`regex-port.md`(Poe Regex 移植、資料同步、WP-C 演算法頁/合併/分享碼/範本)、`dust-tool.md`(拆粉公式/資料/排行)、`dust-crosscheck.md`(產生的交叉比對報告,勿手改)、`release-flow.md`(發版 + 自動更新)、`browser-preview.md`(瀏覽器預覽:用法、同步、安全模型、協定)、`desecration-tiers.md`(褻瀆 Tier 資料表與推定、PoE2 複製鍵)、`reveal-ocr.md`(靈魂之井揭露面板 OCR)、`ninja-poe2.md`(poe.ninja PoE2 exchange 回應格式、exalted 匯率、快照 schema 2)、`runeshape.md`(符文塑形面板:列格式、名稱比對、價格對應、手動 / 自動定位與快取、耗時)、`phase5-summary.md`、`phase2-summary.md`、`phase3-summary.md`、`phase4-summary.md`(各工作包摘要與已知限制) | |
 
 **PoE1 / PoE2 切換 = 寫 config.json 的 `game` + 自我重新啟動,不是換綁**:`electron-overlay-window` 原生碼 `windows.c:176`
 用 `strcmp` 精確比對單一視窗標題,`attachByTitle` 每行程只能呼叫一次。`GameDetector` 每 2 秒看視窗清單,
@@ -47,6 +51,7 @@ Path of Exile 查價工具(Electron + TypeScript)。把 `apt-patched`(Awakened P
 4. **User-Agent 版號**:`main/package.json` 與 root 的 `version` major.minor **必須等於現行遊戲版本**(3.29),否則 GGG Cloudflare 403。
    遊戲改版先跑 `npm run check-user-agent`。
 5. **匿名查詢**:沒有 POESESSID、沒有登入。Cloudflare cookie 靠內建瀏覽器視窗(`openCaptcha`)解一次,與 `session.fetch` 共用。
+   **給使用者看的交易站網頁一律開系統瀏覽器**(`trade-site.ts` `openTradeSite` / `Host.openExternal`,使用者在那裡已登入);`openCaptcha` 只給「開啟驗證視窗」。
 6. **移植檔只切耦合點**,每處加 `// exile-appraiser:` 註解。已切的:
    - `poe1/src/assets/data/index.ts`:fetch/import.meta → `configureDataSource(DataSource)`
    - `poe1/src/web/price-check/trade/common.ts`:Vue/AppConfig → `createRateLimitRules` / `tradeSession(realm)` / `adjustRateLimits(..., latencySeconds)`;`activeTradeContext()` 由 shell 注入
@@ -60,7 +65,11 @@ Path of Exile 查價工具(Electron + TypeScript)。把 `apt-patched`(Awakened P
 9. **介面語言 `uiLanguage` ≠ 客戶端語言 `language`**:`language` 決定資料集與剪貼簿解析(切換要重載資料);`uiLanguage`(`cmn-Hant|en`)只換 UI 字串與托盤選單,不重載資料。新增 UI 字串兩語系都要補(`renderer/src/i18n/{cmn-Hant,en}.json` 的 `ppz.*`;托盤在 `main/src/tray-strings.ts`)。
 10. **主題 token 來自 PobTools `app.css`**(`renderer/src/theme/pobtools.css`);Tailwind 的 gray 色階等是指向 token 的別名,**移植的 poe1/poe2 `.vue` 不改 class**;要改色改 token。淺色主題下 tooltip 維持深色島。
 11. **Regex 資料只單向同步**:`node scripts/sync-regex-data.mjs --from ../pob-zh-engine`(來源 `dist/Data/regex_poe*.json`,必須與 `host/data` 已提交版本逐位元組相同;PobTools 未 commit 時只能 `--allow-dirty`,MANIFEST 會記 `dirty: true`)→ 重寫 MANIFEST `data/regex`。不在本 repo 改 regex 資料;演算法改動要與 C++ 版同步並對 `regex/test/golden/` 比對。
-12. **更新器**:`autoDownload=false`(沒有 code signing,使用者按了才下載/安裝)、portable 只導去 Releases;`electron-builder` 永遠 `-p never`;發版照 `docs/release-flow.md`,**使用者說「發」才 `gh release create`**。
+12. **更新器**(2026-09-30 使用者裁定改為自動):設定 `autoUpdate`(預設開)+ 安裝版 = 背景自動下載、**正常結束程式時靜默套用**(`autoInstallOnAppQuit`),
+    關於頁另有「立即重啟並更新」(`quitAndInstall(true, true)`);`autoUpdate` 關 = 手動下載 / 安裝;portable 只導去 Releases。狀態機與旗標規則在 `main/src/updater-core.ts`(有測試)。
+    ⚠ electron-updater 只在**下載完成那一刻** `autoInstallOnAppQuit` 為 true 才註冊 quit handler,下載完成前旗標必須維持 true。
+    無輸入控制:第二個行程帶 `--quit`(= 托盤「結束」)/ `--install-update`(= 立即重啟並更新)轉交主行程(`second-instance`)。
+    本機真安裝檔實測:`scripts/make-local-update-test.mjs`(docs/release-flow.md「本機實測」)。`electron-builder` 永遠 `-p never`;發版照 `docs/release-flow.md`,**使用者說「發」才 `gh release create`**。
 13. **一鍵回報不含 accountName**(`feedback.ts` 也會遞迴剝掉 account/token/cookie 類鍵);只開預填網址,不自動上傳。
 14. **派工/驗證禁止合成鍵盤/滑鼠輸入**(SendInput、uiohook 模擬、PowerShell SendKeys 等):GUI 行為由使用者實測,自動驗證只用 log、DOM 錨點、`--window` 無輸入啟動。
 15. **poe.ninja 只有國際服**:只在 `realm === 'intl'` 抓;價格表快照 15 分鐘 TTL(`userData/cache/ninja/`),同一執行抓過後 31 分鐘才更新,且最近 20 分鐘有人查價才上網。
@@ -76,6 +85,10 @@ Path of Exile 查價工具(Electron + TypeScript)。把 `apt-patched`(Awakened P
     **PoE2 的複製鍵是 `Ctrl + Alt + C`**(進階格式;`Shortcuts.ts` `copyItemHotkey`),PoE1 維持 `Ctrl + C`。
 20. **PoB2 資料版本鎖 = portable `manifest.xml` 的逐檔 sha1**:`build-desecration-tiers.mjs` 驗證磁碟檔與 manifest 相符才產生(`--allow-mismatch` 只給本機實驗);
     輸出不含時間戳、可逐位元組重現;profile id(`p000…`)隨 PoB2 版本漂移,不得存到資料檔以外的地方。
+21. **揭露面板 OCR 不送任何輸入、不上傳**:`ocr-reveal` 熱鍵只截圖 + 本機 Windows OCR;`ocr-reveal-result` 不進 `PREVIEW_EVENTS`;
+    OCR 腳本只有 `main/src/ocr/win-ocr.ps1` 一份(runtime 內嵌、fixture 工具讀同檔);比對結果一律標出 profile 不精確(「?」)與模糊命中(「≈」),對不上的行顯示原文。
+    **框選區域(WP-S2)只在 overlay 的無頭頁面 / 假 host 驗證**(CDP `Input.dispatch*` 只作用於無頭頁面);`ocrRegion` 一律存 client 比例,main 以 client 尺寸換算再減擷取偏移;
+    區域內沒找到面板必須退回整張並提示,不能靜默失敗;`ocr-region-pick` 不進 `PREVIEW_EVENTS`。
 
 ## 指令
 ```bash
@@ -85,6 +98,7 @@ npm run typecheck                # core / poe1 / poe2(tsc + vue-tsc)/ renderer(v
 npm run check -- <物品.txt> [--game poe2] --realm both [--online]   # 無頭驗證:兩區 payload / 端點 / 網頁網址;--online 真的打(可能被 CF 擋)
 npm run cli --workspace regex -- --game poe1 --page map_mods --lang zh --mode any --random 7,5   # Regex 無頭產生 + Verify(--list 列頁面)
 node scripts/sync-regex-data.mjs --from ../pob-zh-engine   # Regex 資料單向同步(PobTools host/data 有未提交變更時加 --allow-dirty,MANIFEST 記 dirty: true)
+node scripts/sync-runeshape-data.mjs --from ../pob-zh-engine   # 符文塑形配方結果 → data/poe2/runeshape/recipes.json + MANIFEST(來源 tools/ggpk2_zh/out/poe2/tables/expedition2recipes.json;新賽季重抽 GGPK 後重跑)
 node regex/scripts/gen-labels.mjs --from ../pob-zh-engine  # Regex 暫代標籤 data/regex/labels.poe*.json(clientstrings,以鍵取值)
 node scripts/sync-dust-data.mjs --from <poe-disenchant-tool clone>   # 拆粉資料 data/dust/poe-dust.json + LICENSE + MANIFEST
 node scripts/dust-crosscheck.mjs                            # APT vs poe-dust 交叉比對 → docs/dust-crosscheck.md
@@ -93,6 +107,10 @@ npm run dev:renderer             # Vite 5173(純瀏覽器只能看 UI)
 npm run dev:main                 # esbuild watch + 啟動 Electron(需先起 dev:renderer)
 npm run dev:main -- --window --preview --no-updates   # 另開瀏覽器預覽,log 印 `[preview] --preview:<網址>`(預覽供應已 build 的 renderer/dist)
 node scripts/build-desecration-tiers.mjs --from ../pob-zh-engine/dist/PathOfBuildingCommunity-PoE2-Portable/Data   # 褻瀆 Tier 資料表 → data/poe2/desecration + MANIFEST
+node scripts/ocr-fixture.mjs     # WP-S:fixtures/ocr/*.{webp,png} → *.ocr.json 快照(需 Windows + zh-Hant-TW OCR 語言包)
+node scripts/ocr-fixture.mjs --set runeshape   # WP-R2:poe2/test/runeshape/fixtures/ocr(整張 ×3 + 定位段 ×1 + 定位框 ×3);--set all 兩組都跑
+npx electron main/dist/main.js --runeshape-selftest <png>   # WP-R2:自動定位 + 手動區域兩條路的耗時、定位框、每列比對與錄製檔價格
+npx electron main/dist/main.js --ocr-selftest <png>   # WP-S:無視窗跑 prepare + WinOcr,印行與耗時(先 build main、清 ELECTRON_RUN_AS_NODE)
 npm run package                  # 先 build(renderer/dist + main/dist)再 electron-builder(nsis + portable),-p never;產物見 docs/release-flow.md
 UPDATE_FIXTURES=1 npm test       # 改寫 parser / golden-query 快照;產出必人工 review
 ```
@@ -110,22 +128,30 @@ UPDATE_FIXTURES=1 npm test       # 改寫 parser / golden-query 快照;產出必
 - `poe1/test/trade-client`:離線 HttpFetch:host、POST JSON、10+10 分批、快取鍵含 realm、`X-Rate-Limit-*` 對齊、error.message、429 Retry-After。
 - `poe2/test/`:E 的 `renderer/specs/`(zhTW 回歸網 14 組 fixture、`KNOWN_STAT_GAPS` 棘輪)+ `golden-query`(快照在 `test/golden-query/`)+ `trade-client`(`/api/trade2/*`)+ `src-coupling`。
 - `regex/test/`:合成 T1–T16 + 資料性質測試(兩遊戲 × 兩語言 × 各頁),基準抽自 PobTools `dist/regex_selftest.txt`(`test/golden/selftest-report.json`)。
-- `core/test/`:`ninja.test.ts`(錄製的 poe.ninja 回應 `recordings/ninja/`)、`dust.test.ts`(公式金標、交叉比對統計、排行含固有勢力)。
+- `core/test/`:`ninja.test.ts`(錄製的 poe.ninja 回應 `recordings/ninja/`;PoE2 exchange 在 `recordings/ninja/poe2/`)、`dust.test.ts`(公式金標、交叉比對統計、排行含固有勢力)。
 - `regex/test/` 另有 `numeric`(0–999 逐值)、`pages`、`combine`、`share`(含範本鍵可還原)、`state` 測試。
-- `renderer/test/`:`feedback.test.ts`(回報網址/剪貼簿路徑/剝帳號鍵)等純函式測試。
+- `renderer/test/`:`feedback.test.ts`(回報網址/剪貼簿路徑/剝帳號鍵)、`trade-site.test.ts`(交易站開啟方式、舊 `dustDockRatio` 相容)等純函式測試。
+- `main/test/external-links.test.ts`:`open-external` 只收 http(s)、主視窗導覽放行 / 攔截規則。
 - `main/test/preview-server.test.ts`:預覽伺服器(token 404 / Host 421 / Origin 403、防穿越、boot script、RPC 往返、SSE 續傳、自動關閉),純 Node。
-- `poe2/test/desecration/`:資料表統計與 poenavi 抽樣逐欄比對(`build.test.ts`)、推定(`infer.test.ts`,含三件真實物品的進階 vs 一般複製)。
+- `poe2/test/desecration/`:資料表統計與 poenavi 抽樣逐欄比對(`build.test.ts`)、推定(`infer.test.ts`,含三件真實物品的進階 vs 一般複製)、
+  揭露面板 OCR 比對(`ocr-match.test.ts`:真實截圖快照、394 模板 round-trip、模糊、分組)。`renderer/test/ocr-reveal.test.ts` 測徽章座標與文字;`renderer/test/region-geom.test.ts` 測框選幾何(WP-S2)。
+- `main/test/updater-core.test.ts`:自動更新狀態轉移(假 updater 模仿 electron-updater 下載完成才註冊 quit handler)、`autoUpdate` 開關、portable / `--no-updates` / 開發模式、錯誤分類。
+- `main/test/ocr-strategy.test.ts`:兩段式路徑、WP-S2 區域換算(client / 擷取偏移)與「優先區域、失敗退回整張」、快取清除;`main/test/shortcut-actions.test.ts`:熱鍵註冊條件。
 - GUI(熱鍵、Cloudflare、真實掛單)由使用者實測;不得宣稱已驗。
 
 ## 剩餘待辦(Phase 4 完成後)
 Phase 2 / 3 / 4 各工作包的摘要與已知限制見 `docs/phase2-summary.md`、`docs/phase3-summary.md`、`docs/phase4-summary.md`。
-- **OCR 三選一揭露面板(WP-S)**:沿用 `data/poe2/desecration` 與 `matchStats()`;前置清單見 `docs/desecration-tiers.md` 文末(需使用者截圖 + 繁中 OCR 語言包)。
+- **OCR 三選一揭露面板(WP-S)**:已實作(`docs/reveal-ocr.md`、`docs/phase5-summary.md`);**待使用者親測**真實遊戲擷取(視窗化 / 無邊框 / 全螢幕)與徽章位置;只有一張真實截圖,需要更多(武器 / 珠寶、折行、其他解析度)補 fixture。
+  **WP-S2 在遊戲畫面上框選辨識區域**已實作(`docs/reveal-ocr.md`「框選辨識區域」);**待使用者親測**真實 overlay 焦點切換、框選後自動試辨識、區域路徑耗時與退回整張提示。
 - **自訂「顯示進階詞綴」鍵**:照 EE2 讀 `poe2_production_Config.ini` 的 `show_advanced_item_descriptions`;目前固定送 `Ctrl + Alt + C`,改過鍵的玩家會拿到一般格式 → 走推定。
 - **poe.ninja Map 類沒有 `mapTier`**:地圖類價格無法依階級對上,目前不處理。
-- **待使用者親測(Phase 4)**:PoE2 `Ctrl + Alt + C` 是否讓 Alt 卡住;overlay 下預覽改遊戲不重啟;拆粉停靠真實拖曳(見 `docs/phase4-summary.md`)。
+- **待使用者親測(Phase 4)**:PoE2 `Ctrl + Alt + C` 是否讓 Alt 卡住;overlay 下預覽改遊戲不重啟(見 `docs/phase4-summary.md`)。拆粉排行 2026-09-30 移進設定視窗(停靠已移除),待使用者親測設定視窗內的觀感與「交易 ↗」開到已登入的系統瀏覽器。
 - **待使用者實測**:Regex 商店頁插槽 `R-G-B` 在繁中客戶端的寫法、寶石等級行首錨定 `^等級`、各屬性行分隔字元(`：` / `: ` / 空白)與「+」;拆粉排行與單件拆粉在真實聯盟的觀感。
 - **PobTools 端**:`host/data/regex_poe{1,2}.json`(schema 2 + 新頁)**尚未 commit**,本 repo 以 `--allow-dirty` 同步(MANIFEST `data/regex` 帶 `dirty: true`);PoE1 既有兩頁 `max_stats` 維持 6(改 8 會替 3 行補上隱藏文字)——commit 與 6→8 都等使用者決定,commit 後不帶旗標重跑同步。
-- PoE2 的 poe.ninja 參考價(`poe2/src/web/background/Prices.ts` 仍是「沒有價格」)。
+- PoE2 的 poe.ninja 參考價(`poe2/src/web/background/Prices.ts` 仍是「沒有價格」;renderer 殼的 `priceOf` 已可用,目前只接符文塑形自動查價)。
+- **符文塑形自動查價(WP-R2)**:§1–§5 與區域自動定位已實作(`docs/runeshape.md`;§2 以兩張真實繁中截圖定案)。**待使用者親測**:真實擷取、CPU、
+  自動定位在真實 client(2560×1440 / 4K、其他 UI 縮放)的準確度與耗時、面板捲動 / 列數變化時的重新定位。只有兩張截圖(1 倍縮放);
+  英文客戶端的前綴寫法未確認;`維里西姆堆` 不在 items.ndjson(對不上);技能 / 輔助寶石 poe.ninja 沒有價格。
 - Regex 逐字 golden:需在 PobTools 端(`pob-zh.exe --regex-selftest`)加匯出固定勾選集 `Build().query` 的旗標(另開 PobTools 任務)。
 - 台服 + 英文客戶端組合驗證後解禁(`isSupportedCombination`)。
 - commit / push / 發版逐項等使用者指示。

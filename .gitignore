@@ -17,3 +17,5 @@ coverage/
 # electron-updater 開發模式離線驗證(scripts/make-fake-update-feed.mjs);範本是 main/dev-app-update.yml.example
 main/dev-app-update.yml
 .fake-update-feed/
+# 本機實測自動更新的兩版安裝檔(scripts/make-local-update-test.mjs;docs/release-flow.md「本機實測」)
+.local-update-test/

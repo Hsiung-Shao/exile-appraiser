@@ -17,6 +17,7 @@ import { ItemRarity } from "@/parser/ParsedItem";
 // exile-appraiser: 資料不再靠 `fetch(import.meta.env.BASE_URL + 'data/…')`,改由呼叫端注入 DataSource
 import { source } from "./source";
 import type { BaseProfiles, DesecrationTiers } from "@/desecration/types"; // exile-appraiser(WP-R)
+import type { RuneshapeRecipesFile } from "@/runeshape/match-core"; // exile-appraiser(WP-R2)
 export { configureDataSource } from "./source";
 
 export * from "./interfaces";
@@ -74,6 +75,8 @@ export let TRADE_TAG_TO_REF = new Map<string, string>();
 // exile-appraiser(WP-R):褻瀆詞綴 Tier 資料(`data/poe2/desecration/`,語言無關;init() 載一次,loadForLang 不重載)
 export let DESECRATION_TIERS: DesecrationTiers | undefined;
 export let BASE_PROFILES: BaseProfiles | undefined;
+// exile-appraiser(WP-R2):符文塑形配方結果(`data/poe2/runeshape/recipes.json`,GGPK expedition2recipes;語言無關,init() 載一次)
+export let RUNESHAPE_RECIPES: RuneshapeRecipesFile | undefined;
 
 export let STAT_BY_MATCH_STR: (
   name: string,
@@ -278,6 +281,7 @@ export async function init(lang: string) {
 
   await loadForLang(lang);
   await loadDesecration(); // exile-appraiser(WP-R)
+  await loadRuneshapeRecipes(); // exile-appraiser(WP-R2)
 
   let failed = false;
   const missing = [];
@@ -316,6 +320,21 @@ async function loadDesecration() {
     DESECRATION_TIERS = undefined;
     BASE_PROFILES = undefined;
     console.error("[desecration] 褻瀆 Tier 資料載入失敗,一般複製的褻瀆詞綴不會推定 Tier:", e);
+  }
+}
+
+/**
+ * exile-appraiser(WP-R2):符文塑形配方結果(泛稱列:`維里西姆堆`、`[傳奇]胸甲`、`5x 隨機通貨`)。
+ * 缺檔不擋啟動(只是這些列變成「?」),但要記錄。
+ */
+async function loadRuneshapeRecipes() {
+  try {
+    const file = JSON.parse(await source().text("runeshape/recipes.json")) as RuneshapeRecipesFile;
+    if (file.schema !== 1 || !Array.isArray(file.recipes)) throw new Error(`不支援的 schema:${String(file.schema)}`);
+    RUNESHAPE_RECIPES = file;
+  } catch (e) {
+    RUNESHAPE_RECIPES = undefined;
+    console.error("[runeshape] 配方結果資料載入失敗,面板上的泛稱列(維里西姆堆、傳奇某部位…)會對不上:", e);
   }
 }
 

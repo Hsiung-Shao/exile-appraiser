@@ -68,6 +68,8 @@ export interface ParsedOverview {
   lines: NinjaLine[]
   /** 回應 `core` 說的 1 divine = 幾 chaos(沒有 core 或無法換算就沒有)。 */
   chaosPerDivine?: number
+  /** WP-R2:回應 `core` 說的 1 exalted = 幾 chaos(PoE2 的 core.rates 有 exalted;PoE1 沒有)。 */
+  chaosPerExalted?: number
 }
 
 type Json = Record<string, unknown>
@@ -100,23 +102,34 @@ function rateOf (rates: Json, unit: string): number {
  * 回應的計價單位換成 chaos 的倍數(C++ `ChaosFactor`)。0 = 無法換算。
  * primary 是 chaos(或沒有 core):factor 1,divine 匯率 = 1 / rates.divine;
  * primary 是 divine:factor = rates.chaos;其他 primary:只能經 rates.chaos 換算。
+ *
+ * WP-R2:另算 `chaosPerExalted`(1 exalted = 幾 chaos)。`rates.X` = 1 primary 可換幾個 X,
+ * 所以 1 X = factor / rates.X chaos;primary 本身是 exalted 時 = factor。PoE2 2026-09-30 錄製:
+ * `primary: "divine"`、`rates: { exalted: 557, chaos: 9.48 }` → 1 ex = 9.48 / 557 ≈ 0.01702 c(見 docs/ninja-poe2.md)。
+ * 只有在算得出來時才帶這個欄位(PoE1 的 core 沒有 exalted)。
  */
-export function chaosFactor (doc: unknown): { factor: number, chaosPerDivine?: number } {
+export function chaosFactor (doc: unknown): { factor: number, chaosPerDivine?: number, chaosPerExalted?: number } {
   if (!isObj(doc) || !isObj(doc.core)) return { factor: 1 }
   const core = doc.core
   const primary = str(core, 'primary')
   const rates = isObj(core.rates) ? core.rates : {}
   const rChaos = rateOf(rates, 'chaos')
   const rDivine = rateOf(rates, 'divine')
+  const rExalted = rateOf(rates, 'exalted')
+  const withExalted = <T extends { factor: number }>(r: T): T & { chaosPerExalted?: number } => {
+    if (!(r.factor > 0)) return r
+    if (primary === 'exalted') return { ...r, chaosPerExalted: r.factor }
+    return rExalted > 0 ? { ...r, chaosPerExalted: r.factor / rExalted } : r
+  }
   if (primary === '' || primary === 'chaos') {
-    return { factor: 1, chaosPerDivine: rDivine > 0 ? 1 / rDivine : undefined }
+    return withExalted({ factor: 1, chaosPerDivine: rDivine > 0 ? 1 / rDivine : undefined })
   }
   if (primary === 'divine') {
     if (rChaos <= 0) return { factor: 0 }
-    return { factor: rChaos, chaosPerDivine: rChaos }
+    return withExalted({ factor: rChaos, chaosPerDivine: rChaos })
   }
   if (rChaos <= 0) return { factor: 0 }
-  return { factor: rChaos, chaosPerDivine: rDivine > 0 ? rChaos / rDivine : undefined }
+  return withExalted({ factor: rChaos, chaosPerDivine: rDivine > 0 ? rChaos / rDivine : undefined })
 }
 
 function lowConfidence (count: number): boolean {
@@ -126,7 +139,7 @@ function lowConfidence (count: number): boolean {
 /** exchange 回應 → 價格列。`DivinationCard` 進 `card|`,其餘進 `currency|`。格式不對就丟錯(該類別略過)。 */
 export function parseExchangeOverview (doc: unknown, type: string): ParsedOverview {
   if (!isObj(doc)) throw new Error('exchange 回應不是物件')
-  const { factor, chaosPerDivine } = chaosFactor(doc)
+  const { factor, chaosPerDivine, chaosPerExalted } = chaosFactor(doc)
   if (factor <= 0) throw new Error('exchange 回應的計價單位無法換算成混沌石')
   if (!Array.isArray(doc.lines)) throw new Error('exchange 回應缺 lines')
   const toKey = type === 'DivinationCard' ? cardKey : currencyKey
@@ -165,13 +178,13 @@ export function parseExchangeOverview (doc: unknown, type: string): ParsedOvervi
       sparkline: sparklineOf(l, 'sparkline')
     })
   }
-  return { lines, chaosPerDivine }
+  return { lines, chaosPerDivine, chaosPerExalted }
 }
 
 /** item overview 回應 → 價格列(C++ `ParseItemOverview`)。 */
 export function parseItemOverview (doc: unknown, type: string): ParsedOverview {
   if (!isObj(doc)) throw new Error('item overview 回應不是物件')
-  const { factor, chaosPerDivine } = chaosFactor(doc)
+  const { factor, chaosPerDivine, chaosPerExalted } = chaosFactor(doc)
   if (!Array.isArray(doc.lines)) throw new Error('item overview 回應缺 lines')
   const lines: NinjaLine[] = []
   for (const l of doc.lines) {
@@ -208,7 +221,7 @@ export function parseItemOverview (doc: unknown, type: string): ParsedOverview {
       sparkline: sparklineOf(l, 'sparkLine')
     })
   }
-  return { lines, chaosPerDivine }
+  return { lines, chaosPerDivine, chaosPerExalted }
 }
 
 /** 同鍵合併:沒有、或新列的 count 較大才取代(C++ runItems 的規則)。 */
@@ -225,6 +238,8 @@ export interface NinjaFetchResult {
   fetchedAt: number
   /** 1 divine = 幾 chaos;取不到為 undefined。 */
   divineRate: number | undefined
+  /** WP-R2:1 exalted = 幾 chaos;取不到為 undefined(PoE1 一律 undefined)。 */
+  exaltedRate?: number
   prices: Map<string, NinjaLine>
   fetchedTypes: string[]
   failedTypes: Array<{ type: string, error: string }>
@@ -291,6 +306,7 @@ export function createNinjaClient (opts: NinjaClientOptions) {
     const fetchedTypes: string[] = []
     const failedTypes: Array<{ type: string, error: string }> = []
     let coreDivine: number | undefined
+    let coreExalted: number | undefined
 
     for (let i = 0; i < plan.length; i++) {
       if (signal?.aborted) throw abortError(signal)
@@ -305,6 +321,7 @@ export function createNinjaClient (opts: NinjaClientOptions) {
         if (kind === 'exchange') {
           for (const line of parsed.lines) prices.set(line.key, line)
           if (coreDivine === undefined && parsed.chaosPerDivine && parsed.chaosPerDivine > 0) coreDivine = parsed.chaosPerDivine
+          if (coreExalted === undefined && parsed.chaosPerExalted && parsed.chaosPerExalted > 0) coreExalted = parsed.chaosPerExalted
         } else {
           mergeByCount(prices, parsed.lines)
         }
@@ -332,7 +349,18 @@ export function createNinjaClient (opts: NinjaClientOptions) {
       if (divine && divine.chaos >= 30) divineRate = divine.chaos
     }
 
-    return { game, league, fetchedAt: now(), divineRate, prices, fetchedTypes, failedTypes }
+    // WP-R2:exalted 匯率(PoE2 以崇高石計價用):同樣以 core 為準;PoE2 缺 core.rates.exalted 時用 Exalted Orb 那列。
+    // PoE1 不需要(也不提供),一律 undefined。
+    let exaltedRate: number | undefined
+    if (game === 'poe2') {
+      exaltedRate = coreExalted
+      if (exaltedRate === undefined) {
+        const ex = prices.get(currencyKey('Exalted Orb'))
+        if (ex && ex.chaos > 0) exaltedRate = ex.chaos
+      }
+    }
+
+    return { game, league, fetchedAt: now(), divineRate, exaltedRate, prices, fetchedTypes, failedTypes }
   }
 
   return { game, league, fetchItemOverview, fetchExchange, fetchAll }

@@ -637,7 +637,11 @@ function parseNamePlate(section: string[]) {
       break;
   }
 
-  if (missingItemClass) {
+  // exile-appraiser:沒有「物品種類」行時,上游一律當成寶石(meta 技能寶石 `Rarity: Gem` 的 hack)。
+  // 交易站「複製物品」組出的文字(poe-market-zh 等;官方 trade2 JSON 沒有 Item Class)也沒有那一行,
+  // 傳奇 / 稀有 / 魔法 / 普通物品因此被當成寶石 → item.unknown(整件連詞綴都不解析)。
+  // 稀有度是物品稀有度時不強制歸類,交給 findInDatabase 依 craftable.category / unique.base 決定。
+  if (missingItemClass && item.rarity === undefined) {
     item.category = ItemCategory.Gem;
   }
 

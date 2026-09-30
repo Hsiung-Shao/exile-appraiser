@@ -12,7 +12,11 @@
  */
 import type { NinjaFetchResult, NinjaGame } from './client'
 
-export const NINJA_SNAPSHOT_SCHEMA = 1
+/**
+ * 1 = 初版;2 = WP-R2 多存 `exaltedRate`(PoE2 以崇高石計價)。
+ * 舊的 schema 1 快照沒有 exalted 匯率 → 一律丟棄重抓(`parseSnapshot` 回 null)。
+ */
+export const NINJA_SNAPSHOT_SCHEMA = 2
 export const NINJA_CACHE_TTL_MS = 15 * 60 * 1000
 export const NINJA_CACHE_PRUNE_DAYS = 30
 
@@ -37,6 +41,8 @@ export interface NinjaSnapshot {
   fetchedAt: number
   /** 1 divine = 幾 chaos;取不到為 null */
   divineRate: number | null
+  /** WP-R2(schema 2):1 exalted = 幾 chaos;取不到(含 PoE1)為 null */
+  exaltedRate: number | null
   prices: Record<string, NinjaSnapshotEntry>
 }
 
@@ -58,6 +64,7 @@ export function toSnapshot (result: NinjaFetchResult): NinjaSnapshot {
     league: result.league,
     fetchedAt: result.fetchedAt,
     divineRate: result.divineRate ?? null,
+    exaltedRate: result.exaltedRate ?? null,
     prices
   }
 }
@@ -77,8 +84,9 @@ export function parseSnapshot (text: string | null | undefined, game: NinjaGame,
     if (doc.schema !== NINJA_SNAPSHOT_SCHEMA || doc.game !== game || doc.league !== league) return null
     if (typeof doc.fetchedAt !== 'number' || doc.prices == null || typeof doc.prices !== 'object') return null
     const divineRate = typeof doc.divineRate === 'number' && doc.divineRate > 0 ? doc.divineRate : null
+    const exaltedRate = typeof doc.exaltedRate === 'number' && doc.exaltedRate > 0 ? doc.exaltedRate : null
     if (!Object.keys(doc.prices).length) return null
-    return { schema: NINJA_SNAPSHOT_SCHEMA, game, league, fetchedAt: doc.fetchedAt, divineRate, prices: doc.prices }
+    return { schema: NINJA_SNAPSHOT_SCHEMA, game, league, fetchedAt: doc.fetchedAt, divineRate, exaltedRate, prices: doc.prices }
   } catch {
     return null
   }

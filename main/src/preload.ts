@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { HostApi, HostFetchInit, HostConfigForMain, ItemTextEvent, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId, UpdaterInfo, SettingsTabId, ConfigChangedEvent } from '@ipc/types'
+import type { HostApi, HostFetchInit, HostConfigForMain, ItemTextEvent, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId, UpdaterInfo, SettingsTabId, ConfigChangedEvent, OcrRevealEvent, RuneshapeScanEvent, RuneshapeUiState } from '@ipc/types'
 
 function subscribe<T> (channel: string, cb: (e: T) => void): () => void {
   const listener = (_: unknown, e: T) => cb(e)
@@ -34,6 +34,7 @@ const api: HostApi = {
   openCaptcha: (url: string) => ipcRenderer.invoke('open-captcha', url),
   hideWindow: () => ipcRenderer.invoke('window-hide'),
   resizeWindow: (width: number, height: number) => ipcRenderer.invoke('window-resize', width, height),
+  appQuit: () => ipcRenderer.invoke('app-quit'),
   getUpdaterInfo: () => ipcRenderer.invoke('updater-info'),
   checkForUpdate: () => ipcRenderer.invoke('updater-check'),
   downloadUpdate: () => ipcRenderer.invoke('updater-download'),
@@ -44,7 +45,18 @@ const api: HostApi = {
     if (e?.source !== 'electron') cb(e)
   }),
   openPreview: () => ipcRenderer.invoke('preview-open'),
-  getPreviewUrl: () => ipcRenderer.invoke('preview-url')
+  getPreviewUrl: () => ipcRenderer.invoke('preview-url'),
+  // WP-S:靈魂之井揭露面板 OCR
+  onOcrRevealResult: (cb: (e: OcrRevealEvent) => void) => subscribe('ocr-reveal-result', cb),
+  ocrRevealAvailable: () => ipcRenderer.invoke('ocr-available'),
+  // WP-S2:在遊戲畫面上框選 OCR 區域
+  overlayActivate: () => ipcRenderer.invoke('overlay-activate'),
+  ocrRevealNow: () => ipcRenderer.invoke('ocr-reveal-now'),
+  onOcrRegionPick: (cb: () => void) => subscribe('ocr-region-pick', () => { cb() }),
+  // WP-R2:符文塑形面板自動查價
+  onRuneshapeScanResult: (cb: (e: RuneshapeScanEvent) => void) => subscribe('runeshape-scan-result', cb),
+  runeshapeUiState: (s: RuneshapeUiState) => { ipcRenderer.send('runeshape-ui-state', s) },
+  runeshapeStats: () => ipcRenderer.invoke('runeshape-stats')
 }
 
 contextBridge.exposeInMainWorld('host', api)

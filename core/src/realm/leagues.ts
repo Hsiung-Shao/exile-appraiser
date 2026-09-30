@@ -64,17 +64,33 @@ export function isPrivateLeague (id: string): boolean {
 }
 
 /**
- * 決定目前要用哪個聯盟:既有選擇還活著就沿用(私人聯盟不在清單裡,照使用者填的用);否則
- * - PoE1:取第一個非 Standard 的 SC(index 1),只剩一個時才落到 Standard。
- * - PoE2(照 E `TMP_CHALLENGE = 2`):清單超過 2 項取 index 2,否則 index 0。
+ * 是否為「賽季(挑戰)聯盟的軟核交易聯盟」:排除永久聯盟(Standard / Hardcore 與台服繁中名)、
+ * `HC ` / `Hardcore` / `專家模式` 開頭的 HC 變體、SSF(含 `Solo Self-Found`)與 Ruthless 變體。
+ */
+export function isChallengeSoftcoreLeague (id: string): boolean {
+  if (PERMANENT_SC.includes(id) || PERMANENT_HC.includes(id)) return false
+  if (id.startsWith('HC ') || id.startsWith('Hardcore') || PERMANENT_HC.some(hc => id.startsWith(hc))) return false
+  if (/\bSSF\b|Solo Self-Found|Ruthless/.test(id)) return false
+  return true
+}
+
+/**
+ * 決定目前要用哪個聯盟:既有選擇還在清單裡、或是私人聯盟(不在清單裡,照使用者填的用)就沿用;否則
+ * 取清單中**第一個**賽季軟核聯盟(`isChallengeSoftcoreLeague`),都沒有才退 Standard(含台服 `標準模式`),
+ * 再退 `list[0]`。兩個遊戲同一規則,**不依清單位置**:
+ * - PoE2 交易站清單同時列出多個賽季聯盟(2026-09-30 實測 `Forbidden Rites, HC Forbidden Rites, Runes of Aldur,
+ *   HC Runes of Aldur, Standard, Hardcore`,目前聯盟是第一個 Forbidden Rites);上游 E 的 `TMP_CHALLENGE = 2`
+ *   位置假設會挑到舊的 Runes of Aldur。
+ * - PoE1 `filterTradeLeagues` 過濾後是 `Standard, Allflame, Hardcore Allflame`(2026-09-30 實測),
+ *   舊的 index 1 規則恰好命中,但依賴 Standard 排第一;改用同一規則後結果不變。
  */
 export function pickLeague (list: League[], current: string | undefined, game: Game = 'poe1'): string | undefined {
+  void game // 兩個遊戲規則相同;保留參數讓呼叫端不必改
   if (current && (list.some(l => l.id === current) || isPrivateLeague(current))) return current
-  if (game === 'poe2') {
-    if (list.length > 2) return list[2].id
-    return list[0]?.id
-  }
-  if (list.length > 1) return list[1].id
+  const challenge = list.find(l => isChallengeSoftcoreLeague(l.id))
+  if (challenge) return challenge.id
+  const standard = list.find(l => PERMANENT_SC.includes(l.id))
+  if (standard) return standard.id
   return list[0]?.id
 }
 

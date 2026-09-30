@@ -11,36 +11,25 @@
  *   遊戲預設 Alt → 送 Ctrl+Alt+C。照 Exiled Exchange 2 `main/src/shortcuts/Shortcuts.ts` 的 pressKeysToCopyItemText
  *   (`mergeTwoHotkeys("Ctrl + C", showModsKey)`,showModsKey 預設 "Alt")。EE2 另外讀 poe2_production_Config.ini 的
  *   `show_advanced_item_descriptions` 改鍵;本專案先固定 Alt(改過這個鍵的玩家待支援,見 docs/desecration-tiers.md)。
+ * - WP-S:`ocr-reveal`(`hotkeyOcrReveal`,預設 Ctrl+Shift+R)只在 overlay + PoE2 註冊;觸發時只呼叫 `onOcrReveal`,
+ *   **不送也不放開任何按鍵**(見 docs/reveal-ocr.md)。
+ * - WP-S2:`ocr-region`(`hotkeyOcrRegion`,預設空 = 不註冊)註冊條件同 `ocr-reveal`;觸發時只呼叫 `onOcrRegionPick`
+ *   (renderer 開框選層),同樣不送也不放開任何按鍵。動作表抽到 `shortcut-actions.ts`(純函式,有測試)。
+ * - WP-R2:`runeshape-toggle`(`hotkeyRuneshapeToggle`,預設空)= 符文塑形自動查價暫停 / 繼續;只呼叫 `onRuneshapeToggle`。
  */
 import { globalShortcut, screen } from 'electron'
 import { uIOhook, UiohookKey } from 'uiohook-napi'
-import { isModKey, KeyToElectron, mergeTwoHotkeys, hotkeyToString } from '@ipc/KeyToCode'
+import { isModKey, KeyToElectron, mergeTwoHotkeys } from '@ipc/KeyToCode'
 import type { GameId, HostConfigForMain, HotkeyRegistration, ItemTextEvent } from '@ipc/types'
 import { HostClipboard } from './HostClipboard'
+import { buildShortcutActions, normalizeHotkey, type ShortcutAction } from './shortcut-actions'
 import type { OverlayWindow } from './windowing/OverlayWindow'
 import type { GameWindow } from './windowing/GameWindow'
 import type { WidgetAreaTracker } from './windowing/WidgetAreaTracker'
 
 type UiohookKeyT = keyof typeof UiohookKey
 
-interface ShortcutAction {
-  shortcut: string
-  keepModKeys: boolean
-  action: { type: 'copy-item', focusOverlay: boolean } | { type: 'toggle-overlay' }
-}
-
-/** 設定檔可能寫 `Ctrl+D` / `ctrl + d`;統一成 APT 的 `Ctrl + D`。 */
-export function normalizeHotkey (hotkey: string): string {
-  const keys = hotkey.split('+').map(s => s.trim()).filter(Boolean)
-    .map(k => {
-      const lower = k.toLowerCase()
-      if (lower === 'ctrl' || lower === 'control') return 'Ctrl'
-      if (lower === 'alt') return 'Alt'
-      if (lower === 'shift') return 'Shift'
-      return k.length === 1 ? k.toUpperCase() : k
-    })
-  return hotkeyToString(keys)
-}
+export { normalizeHotkey }
 
 function shortcutToElectron (shortcut: string): string | null {
   const parts = shortcut.split(' + ').map(k => KeyToElectron[k as keyof typeof KeyToElectron])
@@ -61,6 +50,12 @@ export class Shortcuts {
       poeWindow?: GameWindow
       areaTracker?: WidgetAreaTracker
       onItem: (e: ItemTextEvent) => void
+      /** WP-S:靈魂之井揭露面板 OCR(只在 overlay + PoE2 註冊;不送任何按鍵) */
+      onOcrReveal?: () => void
+      /** WP-S2:框選 OCR 區域熱鍵(註冊條件同 onOcrReveal;不送任何按鍵) */
+      onOcrRegionPick?: () => void
+      /** WP-R2:符文塑形自動查價暫停 / 繼續(不送任何按鍵) */
+      onRuneshapeToggle?: () => void
     }
   ) {
     const { poeWindow } = opts
@@ -86,23 +81,8 @@ export class Shortcuts {
   updateActions (cfg: HostConfigForMain): HotkeyRegistration {
     this.clipboard.updateOptions(cfg.restoreClipboard)
     this.game = cfg.game
-    const quick = mergeTwoHotkeys(normalizeHotkey(cfg.hotkeyHold), normalizeHotkey(cfg.hotkey))
-    const locked = normalizeHotkey(cfg.hotkeyLocked)
-    const overlayKey = normalizeHotkey(cfg.overlayKey)
-    const actions: ShortcutAction[] = [
-      { shortcut: quick, keepModKeys: true, action: { type: 'copy-item', focusOverlay: false } },
-      { shortcut: locked, keepModKeys: false, action: { type: 'copy-item', focusOverlay: true } }
-    ]
-    if (this.opts.mode === 'overlay') {
-      actions.push({ shortcut: overlayKey, keepModKeys: false, action: { type: 'toggle-overlay' } })
-    }
-    // 空字串 / 重複的熱鍵不註冊
-    const seen = new Set<string>()
-    this.actions = actions.filter(a => {
-      if (!a.shortcut || seen.has(a.shortcut)) return false
-      seen.add(a.shortcut)
-      return true
-    })
+    // WP-S / WP-S2:OCR 兩個熱鍵只在 overlay + PoE2 註冊;空字串 / 重複的熱鍵不註冊(shortcut-actions.ts)
+    this.actions = buildShortcutActions(cfg, this.opts.mode)
     console.log(`[shortcuts] 複製鍵(${this.game}):${copyItemHotkey(this.game)}`)
     console.log(`[shortcuts] 動作:${this.actions.map(a => `${a.shortcut}=${a.action.type}${a.action.type === 'copy-item' && a.action.focusOverlay ? '(locked)' : ''}`).join(', ')}`)
 
@@ -139,6 +119,21 @@ export class Shortcuts {
 
   private trigger (entry: ShortcutAction) {
     console.log(`[shortcuts] 觸發 ${entry.shortcut} (${entry.action.type})`)
+    if (entry.action.type === 'ocr-reveal') {
+      // WP-S:只截圖 + OCR,不動鍵盤(不放開修飾鍵、不送複製鍵)
+      this.opts.onOcrReveal?.()
+      return
+    }
+    if (entry.action.type === 'ocr-region') {
+      // WP-S2:只請 renderer 開框選層(overlay 焦點由 renderer 的 overlay-activate 取得),不動鍵盤
+      this.opts.onOcrRegionPick?.()
+      return
+    }
+    if (entry.action.type === 'runeshape-toggle') {
+      // WP-R2:只切換掃描狀態,不動鍵盤
+      this.opts.onRuneshapeToggle?.()
+      return
+    }
     if (entry.keepModKeys) {
       const nonModKey = entry.shortcut.split(' + ').filter(key => !isModKey(key))[0]
       uIOhook.keyToggle(UiohookKey[nonModKey as UiohookKeyT], 'up')

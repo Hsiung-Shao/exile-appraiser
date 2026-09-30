@@ -2,8 +2,10 @@
 
 兩層:
 - **單件**(WP-A):查價面板的 `DustValue.vue` 顯示這件的粉塵量,有 poe.ninja 價時加「每 chaos ≈ N 粉塵」。
-- **排行**(WP-B,本文件):標題列齒輪旁的「⚖」開啟獨立面板(window / overlay 兩種版面都有;overlay 用 overlayKey 叫出面板後同樣在標題列),
-  列出所有有拆粉基數的 PoE1 傳奇,依效率排序。
+- **排行**(WP-B,本文件):**設定視窗的「拆粉排行」分頁**(2026-09-30 起;左選單 一般/查價/熱鍵與視窗/正則/**拆粉排行**/關於),
+  內容顯示在設定視窗右側內容區;查價標題列齒輪旁的「⚖」= 開設定並直接切到這一頁。列出所有有拆粉基數的 PoE1 傳奇,依效率排序。
+  (WP-Q 曾把排行停靠在查價面板下方、用分隔條調高度,設定 `dustDockRatio`;已移除,舊設定檔帶這個鍵照常載入、下次存檔不再寫出。)
+  單件拆粉仍在查價面板,不受影響。
 
 ## 公式
 
@@ -68,13 +70,22 @@ base(i) = 50 + 2×(clamp(i,46,68)−46) + floor(3×(clamp(i,46,68)−46)/11) + 2
 - **區服**:poe.ninja 只有國際服。台服顯示「poe.ninja 無台服價格,排行以國際服計算」+ 切到國際服鈕;台服下排行只有粉塵量,
   交易站 ↗ 開台服網站並送繁中名。PoE2 沒有拆粉,面板提示只適用 PoE1。
 
-## 面板
+## 面板(設定 › 拆粉排行)
 
-- 檔案:`renderer/src/web/dust/{DustPanel,DustTable}.vue`、`store.ts`;字串 `renderer/src/i18n/*.json` 的 `ppz.dust.*`。
-- 表格:表頭可排序(名稱 / gold / 粉塵 / 價格 / 效率),虛擬捲動(同 `regex/RegexList.vue`)。每列兩行(面板只有 ~460px 寬):
+- 檔案:`renderer/src/web/settings/tabs/Dust.vue`(分頁,包 `DustPanel`)、`renderer/src/web/dust/{DustPanel,DustTable}.vue`、`store.ts`;
+  字串 `renderer/src/i18n/*.json` 的 `ppz.dust.*`、分頁名 `ppz.tab_dust`。
+- 版面:這一頁 `SettingsWindow.vue` 替內容區加 `.fill`(不捲動、`DustPanel` 撐滿),表格自己虛擬捲動;關閉 = 設定視窗的 ✕ / Esc / 點暗幕
+  (面板沒有自己的關閉鈕)。選項卡預設收合,展開與否模組層級記住(換分頁再回來不變,不進檔)。
+- 表格:表頭可排序(名稱 / gold / 粉塵 / 價格 / 效率),虛擬捲動(同 `regex/RegexList.vue`)。每列兩行:
   名稱(介面語言)、粉塵、價格(`autoCurrency`:接近或超過 1 div 顯示 div)、效率、動作;第二行 另一語言名稱 · 基底 · gold · 催化劑註記 · ⚠。
+  欄寬依表格寬(container query):≥ 600px 數值欄與間距放寬、< 480px(window 模式預設 480px 寬)收緊,名稱欄吃掉其餘寬度。
 - 動作:交易站 ↗(`@exile-appraiser/poe1` 的 `webSearchUrl`;`name` + `type`、`misc_filters.ilvl.min`、`corrupted`(預設不限)、
-  `indexed`(預設 1 週內)、`status: available`;用內建瀏覽器開,與查價共用 Cloudflare cookie)、ninja ↗(詳細頁)、★ 標記、⊘ 隱藏。
+  `indexed`(預設 1 週內)、`status: available`)、ninja ↗(詳細頁,`Host.openExternal`)、★ 標記、⊘ 隱藏。
+- **交易站 ↗ 的開啟方式 = 一般查價的「交易」鈕**:都走系統預設瀏覽器(`Host.openExternal` → main `shell.openExternal`),
+  使用者在自己的瀏覽器已登入。拆粉呼叫 `renderer/src/web/trade-site.ts` 的 `openTradeSite`(App.vue `provide('builtin-browser')` 也是它);
+  只有上游 APT 選項 `priceCheck.builtinBrowser`(設定頁不提供,預設 false)開著才改開內建視窗。
+  網址規則兩者相同:intl = `https://www.pathofexile.com/trade/search/<聯盟>`、tw = `https://pathofexile.tw/trade/search/<繁中聯盟>`(送繁中名)。
+  2026-09-30 以前拆粉走 `inject('builtin-browser')` = `Host.openCaptcha`,開的是沒有登入狀態的 Electron 視窗(使用者回報要重新登入),已修正。
 - 記憶:`userData/dust_ui.json`(IPC `dust-ui-load/save`,main 端 `.tmp` → rename、依序排隊;純瀏覽器 localStorage):
   選項全域一份;標記 / 隱藏**按聯盟分開**(`leagues[<聯盟 id>]`,鍵 = 英文 `name|baseType`)。格式與解析在 `core/src/dust/ui-state.ts`。
 
@@ -84,3 +95,5 @@ base(i) = 50 + 2×(clamp(i,46,68)−46) + floor(3×(clamp(i,46,68)−46)/11) + 2
 固有勢力(`inherentInfluencesFromPoeDust` 合成案例;真資料:Starforge n=1 且排行 dust 與 poe-dust 差 ≤ 1、Voidforge n=2 恰等、
 Venarius 不套、套用集合 = 交叉比對可解釋的 24 件且 n 相同、套用後所有對得上的列 q0 都在 ±1 內)、
 排行(排序、6L 不採用、催化劑決策、無價 / 低信心、gold 估值、四種指標、篩選)、錄製的 poe.ninja 回應實測、交易站查詢、記憶狀態往返。
+`renderer/test/trade-site.test.ts`:開啟方式判定(預設系統瀏覽器、只有 builtinBrowser + Electron 才內建視窗)、舊設定檔 `dustDockRatio` 相容。
+`main/test/external-links.test.ts`:`open-external` 只收 http(s)、主視窗導覽攔截規則。

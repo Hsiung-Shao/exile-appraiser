@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, nativeImage, net, protocol, screen, shell, Tray, type BrowserWindowConstructorOptions } from 'electron'
+import { app, BrowserWindow, Menu, nativeImage, net, protocol, screen, shell, Tray, type BrowserWindowConstructorOptions, type WebContents } from 'electron'
 import { uIOhook } from 'uiohook-napi'
 import { OVERLAY_WINDOW_OPTS } from 'electron-overlay-window'
 import fs from 'node:fs/promises'
@@ -6,7 +6,7 @@ import fsSync from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { format } from 'node:util'
-import type { ConfigChangedEvent, GameId, HostConfigForMain, HostFetchInit, HotkeyRegistration, ItemTextEvent, SettingsTabId, TrackAreaOpts, WindowMode } from '@ipc/types'
+import type { ConfigChangedEvent, GameId, HostConfigForMain, HostFetchInit, HotkeyRegistration, ItemTextEvent, RuneshapeUiState, SettingsTabId, TrackAreaOpts, WindowMode } from '@ipc/types'
 import { hostFetch, installCookiePatch } from './http'
 import { Shortcuts, normalizeHotkey } from './Shortcuts'
 import { GameWindow } from './windowing/GameWindow'
@@ -18,6 +18,23 @@ import { AppUpdater } from './AppUpdater'
 import { trayStrings, type TrayLang } from './tray-strings'
 import { Broadcaster, previewHandlers, registerIpc, type HandlerCtx, type HandlerTable } from './host-handlers'
 import { startPreviewServer, type PreviewServer } from './preview-server'
+import { WinOcr } from './ocr/WinOcr'
+import { WIN_OCR_SCRIPT } from './ocr/script'
+import { RevealOcr } from './ocr/reveal'
+import { runOcrSelftest, runRuneshapeSelftest } from './ocr/selftest'
+import { loadLocateIndex } from './ocr/locate-data'
+import { captureGameClient, toScanCapture } from './ocr/capture'
+import { DEFAULT_SCAN_INTERVAL_MS, RuneshapeScan } from './ocr/runeshape-scan'
+import { isAppNavigation, isExternalWebUrl } from './external-links'
+
+// WP-S:`--ocr-selftest <png>`:無視窗跑 OCR(capture 以外的整條)後結束;不拿單一實例鎖、不建視窗/托盤/熱鍵。
+// WP-R2:`--runeshape-selftest <png>`:同上,跑符文塑形掃描管線(變化偵測 + OCR)。
+const argAfter = (flag: string) => {
+  const i = process.argv.indexOf(flag)
+  return i >= 0 ? (process.argv[i + 1] ?? '') : null
+}
+const RUNESHAPE_SELFTEST = argAfter('--runeshape-selftest')
+const OCR_SELFTEST = RUNESHAPE_SELFTEST ?? argAfter('--ocr-selftest')
 
 // `--ppz-log-file=<path>`:main 的 console 另外附加寫到檔案(驗證自我重新啟動用;relaunch 會沿用同一組參數,
 // 新行程的 stdout 不一定接得回原終端機)。不用 `--log-file`,那是 Chromium 自己的開關。
@@ -32,8 +49,26 @@ if (LOG_FILE) {
   }
 }
 
-if (!app.requestSingleInstanceLock()) {
-  console.log('[main] 已有另一個 ExileAppraiser 在執行,結束')
+/**
+ * `--quit`:請**已在執行的**主行程正常結束(= 托盤「結束」,會觸發「結束時自動套用更新」)。
+ * 這個行程拿不到單一實例鎖 → 把參數交給主行程(`second-instance`)後自己結束;拿到鎖 = 沒有主行程,什麼都不做直接結束。
+ * `--install-update` 同理,等同關於頁「立即重啟並更新」。
+ * 無輸入的控制方式(自動驗證 / 腳本用),見 docs/release-flow.md「本機實測」。
+ */
+const CONTROL_REQUEST = ['--quit', '--install-update'].find(f => process.argv.includes(f))
+let skipStartup = OCR_SELFTEST != null
+
+if (OCR_SELFTEST != null) {
+  (RUNESHAPE_SELFTEST != null ? runRuneshapeSelftest(RUNESHAPE_SELFTEST, process.argv) : runOcrSelftest(OCR_SELFTEST, process.argv))
+    .then((code) => { app.exit(code) })
+    .catch((e) => { console.error('[ocr-selftest]', e); app.exit(1) })
+} else if (!app.requestSingleInstanceLock()) {
+  console.log(CONTROL_REQUEST ? `[main] ${CONTROL_REQUEST}:已轉交執行中的 ExileAppraiser` : '[main] 已有另一個 ExileAppraiser 在執行,結束')
+  skipStartup = true
+  app.exit()
+} else if (CONTROL_REQUEST) {
+  console.log(`[main] ${CONTROL_REQUEST}:沒有執行中的 ExileAppraiser,直接結束`)
+  skipStartup = true
   app.exit()
 }
 app.disableHardwareAcceleration()
@@ -58,6 +93,33 @@ function installAppProtocol () {
 }
 
 const DEV_URL = process.env.VITE_DEV_SERVER_URL
+/** 主視窗自己的頁面(`will-navigate` 放行):正式版 app://app、開發模式 Vite。 */
+const APP_ORIGINS = [`${APP_SCHEME}://app`, ...(DEV_URL ? [DEV_URL] : [])]
+
+/**
+ * 系統預設瀏覽器開網址(IPC `open-external` = renderer / 預覽的 `Host.openExternal`、各視窗的新視窗 / 導覽攔截共用)。
+ * 只准 http(s)(external-links.ts);其他 scheme 記 log 並丟錯,不交給 shell。
+ */
+function openExternalSafe (url: unknown, source: string): Promise<void> {
+  if (!isExternalWebUrl(url)) {
+    console.warn(`[main] 拒絕交給系統瀏覽器(${source}):不是 http(s) 網址 ${String(url).slice(0, 120)}`)
+    return Promise.reject(new Error('open-external: only http(s) URLs are allowed'))
+  }
+  console.log(`[main] 系統瀏覽器開啟(${source}):${new URL(url).host}`)
+  return shell.openExternal(url)
+}
+
+/**
+ * 新視窗(`window.open`、`<a target="_blank">`)一律不在 Electron 裡開:deny,http(s) 轉系統瀏覽器。
+ * Electron 預設會開一個新的 BrowserWindow —— 那個視窗沒有使用者瀏覽器的登入狀態(交易站要重新登入)。
+ */
+function denyNewWindows (wc: WebContents, source: string) {
+  wc.setWindowOpenHandler(({ url }) => {
+    void openExternalSafe(url, source).catch(() => {})
+    return { action: 'deny' }
+  })
+}
+
 const CONFIG_PATH = () => path.join(app.getPath('userData'), 'config.json')
 const DEFAULT_SIZE = { width: 480, height: 720 }
 
@@ -83,7 +145,7 @@ function migrateLegacyConfig () {
     console.warn('[main] 舊版設定搬移失敗', err)
   }
 }
-migrateLegacyConfig()
+if (!skipStartup) migrateLegacyConfig()
 
 let win: BrowserWindow | null = null
 let captchaWin: BrowserWindow | null = null
@@ -183,9 +245,12 @@ function createWindow (mode: WindowMode): BrowserWindow {
   w.on('close', (e) => {
     if (!quitting) { e.preventDefault(); w.hide() }
   })
-  w.webContents.setWindowOpenHandler(({ url }) => {
-    void shell.openExternal(url)
-    return { action: 'deny' }
+  denyNewWindows(w.webContents, '主視窗新視窗')
+  // `<a href>` 沒有 target 時是主視窗自己導覽:不是 app 自己的頁面就攔下(否則整個 UI 被換成外部網站),http(s) 轉系統瀏覽器
+  w.webContents.on('will-navigate', (e, url) => {
+    if (isAppNavigation(url, APP_ORIGINS)) return
+    e.preventDefault()
+    void openExternalSafe(url, '主視窗導覽').catch(() => {})
   })
   // renderer 的 console 轉印到 main log(沒有 DevTools 時驗證用)
   w.webContents.on('console-message', (...args: unknown[]) => {
@@ -327,7 +392,7 @@ app.on('will-quit', () => {
   if (preview && !preview.closed) void preview.close('app quit')
 })
 
-app.whenReady().then(() => {
+if (!skipStartup) app.whenReady().then(() => {
   installCookiePatch()
   if (!DEV_URL) installAppProtocol()
 
@@ -348,6 +413,42 @@ app.whenReady().then(() => {
     areaTracker = new WidgetAreaTracker(send, overlay)
   }
 
+  // WP-S:靈魂之井揭露面板 OCR(常駐 PowerShell 行程第一次按熱鍵才啟動,閒置 10 分鐘自動結束)
+  const winOcr = new WinOcr(WIN_OCR_SCRIPT, { idleMs: 10 * 60_000 })
+  app.on('will-quit', () => { winOcr.close('app quit') })
+  const gameBounds = () => {
+    const b = poeWindow?.bounds
+    return b && b.width > 0 && b.height > 0 ? { x: b.x, y: b.y, width: b.width, height: b.height } : null
+  }
+  const revealOcr = new RevealOcr({
+    ocr: () => winOcr,
+    bounds: gameBounds,
+    region: () => hostCfg?.ocrRegion ?? null,
+    // 兩段式:面板定位用 tiers.json 的模板 skeleton(第一次按熱鍵才讀)
+    locateIndex: () => loadLocateIndex(),
+    send
+  })
+
+  // WP-R2:PoE2 符文塑形面板自動查價(掃描迴圈常駐;條件不符時每個 tick 只做判斷,不擷取)。
+  // 與揭露面板共用同一個 WinOcr;揭露面板辨識中 → 丟掉那個 tick。hostCfg 在下方宣告,計時器觸發時已初始化。
+  const runeshapeScan = new RuneshapeScan({
+    config: () => ({
+      enabled: hostCfg?.runeshapeEnabled === true,
+      game: hostCfg?.game ?? 'poe1',
+      region: hostCfg?.runeshapeRegion ?? null,
+      intervalMs: hostCfg?.runeshapeIntervalMs ?? DEFAULT_SCAN_INTERVAL_MS
+    }),
+    env: () => ({ overlay: windowMode === 'overlay', gameActive: Boolean(poeWindow?.isActive), bounds: gameBounds() }),
+    ocrBusy: () => revealOcr.busy,
+    capture: async (b) => toScanCapture(await captureGameClient(b), () => winOcr),
+    send: (ev) => { send('runeshape-scan-result', ev) }
+  })
+  if (windowMode === 'overlay') {
+    runeshapeScan.start()
+    poeWindow?.on('active-change', () => { runeshapeScan.poke() })
+  }
+  app.on('will-quit', () => { runeshapeScan.stop() })
+
   const shortcuts = new Shortcuts({
     mode: windowMode,
     overlay,
@@ -356,7 +457,12 @@ app.whenReady().then(() => {
     onItem: (e: ItemTextEvent) => {
       send('item-text', e)
       if (windowMode === 'window') showNear(e.position)
-    }
+    },
+    onOcrReveal: () => { void revealOcr.trigger() },
+    // WP-S2:框選 OCR 區域熱鍵 → renderer 開框選層(它自己呼叫 overlay-activate 取得焦點)
+    onOcrRegionPick: () => { send('ocr-region-pick') },
+    // WP-R2:符文塑形自動查價暫停 / 繼續
+    onRuneshapeToggle: () => { runeshapeScan.toggleUserPause() }
   })
   try { uIOhook.start() } catch (e) { console.error('[uiohook] start failed', e) }
 
@@ -411,7 +517,22 @@ app.whenReady().then(() => {
     openInBrowser: () => { openPreviewInBrowser().catch((e) => { console.error('[preview] 開啟失敗', e) }) },
     checkUpdate: () => { void updater.check() }
   })
-  app.on('second-instance', showApp)
+  // 第二個行程帶 `--quit` → 走與托盤「結束」相同的正常結束(exit code 0,會觸發結束時自動套用更新);
+  // `--install-update` → 等同關於頁「立即重啟並更新」(只在 downloaded 時有作用);其餘 = 叫出視窗
+  app.on('second-instance', (_e, argv) => {
+    if (argv.includes('--quit')) {
+      console.log('[main] second-instance --quit:結束程式')
+      quitting = true
+      app.quit()
+      return
+    }
+    if (argv.includes('--install-update')) {
+      console.log(`[main] second-instance --install-update(state=${updater.info.state})`)
+      updater.install()
+      return
+    }
+    showApp()
+  })
 
   // Poe Regex 面板狀態(勾選 + 書籤)。原子寫入:先寫 .tmp 再 rename(Windows 上 libuv 用 MoveFileEx REPLACE_EXISTING);
   // 存檔依序排隊,兩次連續存檔不會同時寫同一個 .tmp。
@@ -506,7 +627,13 @@ app.whenReady().then(() => {
   const onHostConfig = (ctx: HandlerCtx, cfg: HostConfigForMain): HotkeyRegistration => {
     const result = shortcuts.updateActions(cfg)
     hostCfg = cfg
+    // WP-S2:辨識區域改了 → 舊區域算出來的面板區快取作廢
+    revealOcr.regionChanged(cfg.ocrRegion)
+    // WP-R2:開關 / 區域 / 間隔改了 → 立刻重新判斷(停用時即時清徽章)
+    runeshapeScan.poke()
     if (cfg.uiLanguage === 'en' || cfg.uiLanguage === 'cmn-Hant') rebuildTrayMenu(cfg.uiLanguage)
+    // 先套用 autoUpdate 再做第一次檢查(舊 renderer / 缺欄位 → 預設開)
+    updater.setAutoUpdate(cfg.autoUpdate !== false)
     updater.checkAtStartup()
     if (relaunching) return result
 
@@ -648,14 +775,19 @@ app.whenReady().then(() => {
       }
     },
     'host-config': { kind: 'invoke', fn: onHostConfig },
-    'open-external': { kind: 'invoke', fn: (_ctx, url: string) => shell.openExternal(url) },
+    // 交易站網頁、poe.ninja、關於頁連結、一鍵回報都走這裡(renderer 的 Host.openExternal;拆粉排行的交易 ↗ 經 trade-site.ts 也是)
+    'open-external': { kind: 'invoke', fn: (_ctx, url: string) => openExternalSafe(url, 'open-external') },
     'open-captcha': {
       kind: 'invoke',
-      // 預覽端也開 Electron 視窗:Cloudflare cookie 要進 Electron session 才對 http-fetch 有用
+      // 只給「開啟驗證視窗」(Cloudflare cookie 要進 Electron session 才對 http-fetch 有用;沒有登入狀態)。
+      // 預覽端也開 Electron 視窗。一般「看交易站」請用 open-external(renderer 的 trade-site.ts)。
       fn: (_ctx, url: string) => {
+        if (!isExternalWebUrl(url)) throw new Error('open-captcha: only http(s) URLs are allowed')
         if (captchaWin && !captchaWin.isDestroyed()) { captchaWin.focus(); void captchaWin.loadURL(url); return }
         captchaWin = new BrowserWindow({ width: 1000, height: 760, title: 'ExileAppraiser — trade site', autoHideMenuBar: true })
         captchaWin.on('closed', () => { captchaWin = null })
+        // 驗證視窗裡交易站開的新視窗(物品連結、登入…)也不在 Electron 裡開
+        denyNewWindows(captchaWin.webContents, '驗證視窗新視窗')
         void captchaWin.loadURL(url)
       }
     },
@@ -676,8 +808,40 @@ app.whenReady().then(() => {
         if (Math.abs(cw - width) > 2 || Math.abs(ch - height) > 2) win.setSize(Math.round(width), Math.round(height))
       }
     },
-    'preview-open': { kind: 'invoke', fn: () => openPreviewInBrowser() },
+    // 設定視窗「結束程式」= 托盤「結束」;預覽端不開放(瀏覽器分頁不該能關掉程式)
+    'app-quit': {
+      kind: 'invoke',
+      preview: false,
+      fn: () => {
+        console.log('[app] 設定視窗:結束程式')
+        quitting = true
+        app.quit()
+      }
+    },
+    'preview-open':{ kind: 'invoke', fn: () => openPreviewInBrowser() },
     'preview-url': { kind: 'invoke', fn: () => preview && !preview.closed ? preview.url : null },
+    // WP-S:設定頁顯示 OCR 語言包狀態;預覽端不開放(shim 回 undefined)
+    'ocr-available': { kind: 'invoke', preview: false, fn: () => winOcr.available() },
+    // WP-S2:框選層開啟時讓 overlay 取得焦點(可點擊);預覽端不開放
+    'overlay-activate': { kind: 'invoke', preview: false, fn: () => { overlay?.assertOverlayActive() } },
+    // WP-S2:框選確認後自動試辨識一次(= 按 OCR 熱鍵);先確認是 PoE2 overlay 且遊戲視窗還在
+    'ocr-reveal-now': {
+      kind: 'invoke',
+      preview: false,
+      fn: () => {
+        const b = poeWindow?.bounds
+        if (!overlay || hostCfg?.game !== 'poe2' || !b || !(b.width > 0 && b.height > 0)) {
+          console.log('[ocr-reveal] ocr-reveal-now 略過(不是 PoE2 overlay 或沒有遊戲視窗)')
+          return false
+        }
+        void revealOcr.trigger()
+        return true
+      }
+    },
+    // WP-R2:renderer 回報查價面板 / 設定 / 框選層開著(任一 → 暫停掃描);send 一律不開放給預覽
+    'runeshape-ui-state': { kind: 'send', fn: (_ctx, s: RuneshapeUiState) => { runeshapeScan.setUiState(s) } },
+    // WP-R2:設定頁顯示掃描統計;預覽端不開放
+    'runeshape-stats': { kind: 'invoke', preview: false, fn: () => runeshapeScan.snapshot() },
     ...updater.handlers()
   }
   registerIpc(table)

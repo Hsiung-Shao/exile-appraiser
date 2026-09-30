@@ -1,0 +1,215 @@
+{
+  "schema": 1,
+  "source": {
+    "table": "expedition2recipes",
+    "column": "Description",
+    "sha256": "9d33c0f326f59e1a4baeb8b72b7d467e88a6a6969bcb1a07388abd1712fd79e8",
+    "ggpkVersion": "4.5.5.2",
+    "extractedAt": "2026-09-14T17:03:00+00:00"
+  },
+  "recipes": [
+    {
+      "id": "10SlotBait",
+      "en": "Krillson's Bay Key",
+      "zh": "克里爾森的海灣鑰匙",
+      "enPlain": "Krillson's Bay Key",
+      "zhPlain": "克里爾森的海灣鑰匙"
+    },
+    {
+      "id": "2SlotUncutSkillGem1",
+      "en": "Uncut Skill Gem",
+      "zh": "未切割的寶石",
+      "enPlain": "Uncut Skill Gem",
+      "zhPlain": "未切割的寶石"
+    },
+    {
+      "id": "2SlotUncutSpiritGem1",
+      "en": "Uncut Spirit Gem",
+      "zh": "精魂寶石",
+      "enPlain": "Uncut Spirit Gem",
+      "zhPlain": "精魂寶石"
+    },
+    {
+      "id": "2SlotUncutSupportGem1",
+      "en": "Uncut Support Gem",
+      "zh": "未切割的輔助寶石",
+      "enPlain": "Uncut Support Gem",
+      "zhPlain": "未切割的輔助寶石"
+    },
+    {
+      "id": "3SlotPileofVerisium1",
+      "en": "Verisium Pile",
+      "zh": "維里西姆堆",
+      "enPlain": "Verisium Pile",
+      "zhPlain": "維里西姆堆"
+    },
+    {
+      "id": "3SlotUniqueBodyArmour1",
+      "en": "[Rarity|Unique] Body Armour",
+      "zh": "[Rarity|傳奇]胸甲",
+      "enPlain": "Unique Body Armour",
+      "zhPlain": "傳奇胸甲"
+    },
+    {
+      "id": "3SlotUniqueBoots1",
+      "en": "[Rarity|Unique] Boots",
+      "zh": "[Rarity|傳奇]鞋子",
+      "enPlain": "Unique Boots",
+      "zhPlain": "傳奇鞋子"
+    },
+    {
+      "id": "3SlotUniqueGloves1",
+      "en": "[Rarity|Unique] Gloves",
+      "zh": "[Rarity|傳奇]手套",
+      "enPlain": "Unique Gloves",
+      "zhPlain": "傳奇手套"
+    },
+    {
+      "id": "3SlotUniqueHelmet1",
+      "en": "[Rarity|Unique] Helmet",
+      "zh": "[Rarity|傳奇]頭盔",
+      "enPlain": "Unique Helmet",
+      "zhPlain": "傳奇頭盔"
+    },
+    {
+      "id": "4SlotUniqueAmulet1",
+      "en": "[Rarity|Unique] Amulet",
+      "zh": "[Rarity|傳奇]項鍊",
+      "enPlain": "Unique Amulet",
+      "zhPlain": "傳奇項鍊"
+    },
+    {
+      "id": "4SlotUniqueBelt1",
+      "en": "[Rarity|Unique] Belt",
+      "zh": "[Rarity|傳奇]腰帶",
+      "enPlain": "Unique Belt",
+      "zhPlain": "傳奇腰帶"
+    },
+    {
+      "id": "4SlotUniqueBow1",
+      "en": "[Rarity|Unique] Bow",
+      "zh": "[Rarity|傳奇]弓",
+      "enPlain": "Unique Bow",
+      "zhPlain": "傳奇弓"
+    },
+    {
+      "id": "4SlotUniqueCrossbow1",
+      "en": "[Rarity|Unique] Crossbow",
+      "zh": "[Rarity|傳奇]十字弓",
+      "enPlain": "Unique Crossbow",
+      "zhPlain": "傳奇十字弓"
+    },
+    {
+      "id": "4SlotUniqueFocus1",
+      "en": "[Rarity|Unique] Focus",
+      "zh": "[Rarity|傳奇]法器",
+      "enPlain": "Unique Focus",
+      "zhPlain": "傳奇法器"
+    },
+    {
+      "id": "4SlotUniqueJewellery1",
+      "en": "[Rarity|Unique] Jewellery",
+      "zh": "[Rarity|傳奇]飾品",
+      "enPlain": "Unique Jewellery",
+      "zhPlain": "傳奇飾品"
+    },
+    {
+      "id": "4SlotUniqueOneHandMace1",
+      "en": "[Rarity|Unique] One Hand Mace",
+      "zh": "[Rarity|傳奇]單手錘",
+      "enPlain": "Unique One Hand Mace",
+      "zhPlain": "傳奇單手錘"
+    },
+    {
+      "id": "4SlotUniqueQuarterstaff1",
+      "en": "[Rarity|Unique] Quarterstaff",
+      "zh": "[Rarity|傳奇]細杖",
+      "enPlain": "Unique Quarterstaff",
+      "zhPlain": "傳奇細杖"
+    },
+    {
+      "id": "4SlotUniqueQuiver1",
+      "en": "[Rarity|Unique] Quiver",
+      "zh": "[Rarity|傳奇]箭袋",
+      "enPlain": "Unique Quiver",
+      "zhPlain": "傳奇箭袋"
+    },
+    {
+      "id": "4SlotUniqueRing1",
+      "en": "[Rarity|Unique] Ring",
+      "zh": "[Rarity|傳奇]戒指",
+      "enPlain": "Unique Ring",
+      "zhPlain": "傳奇戒指"
+    },
+    {
+      "id": "4SlotUniqueSceptre1",
+      "en": "[Rarity|Unique] Sceptre",
+      "zh": "[Rarity|傳奇]權杖",
+      "enPlain": "Unique Sceptre",
+      "zhPlain": "傳奇權杖"
+    },
+    {
+      "id": "4SlotUniqueShield1",
+      "en": "[Rarity|Unique] Shield",
+      "zh": "[Rarity|傳奇]盾牌",
+      "enPlain": "Unique Shield",
+      "zhPlain": "傳奇盾牌"
+    },
+    {
+      "id": "4SlotUniqueSpear1",
+      "en": "[Rarity|Unique] Spear",
+      "zh": "[Rarity|傳奇]長矛",
+      "enPlain": "Unique Spear",
+      "zhPlain": "傳奇長矛"
+    },
+    {
+      "id": "4SlotUniqueStaff1",
+      "en": "[Rarity|Unique] Staff",
+      "zh": "[Rarity|傳奇]長杖",
+      "enPlain": "Unique Staff",
+      "zhPlain": "傳奇長杖"
+    },
+    {
+      "id": "4SlotUniqueTalisman1",
+      "en": "[Rarity|Unique] Talisman",
+      "zh": "[Rarity|傳奇]魔符",
+      "enPlain": "Unique Talisman",
+      "zhPlain": "傳奇魔符"
+    },
+    {
+      "id": "4SlotUniqueTwoHandMace1",
+      "en": "[Rarity|Unique] Two Hand Mace",
+      "zh": "[Rarity|傳奇]雙手錘",
+      "enPlain": "Unique Two Hand Mace",
+      "zhPlain": "傳奇雙手錘"
+    },
+    {
+      "id": "4SlotUniqueWand1",
+      "en": "[Rarity|Unique] Wand",
+      "zh": "[Rarity|傳奇]法杖",
+      "enPlain": "Unique Wand",
+      "zhPlain": "傳奇法杖"
+    },
+    {
+      "id": "5SlotAstackofrandomcurrency1",
+      "en": "5x Random Currency",
+      "zh": "5x 隨機通貨",
+      "enPlain": "5x Random Currency",
+      "zhPlain": "5x 隨機通貨"
+    },
+    {
+      "id": "5SlotRareUnique1",
+      "en": "Rare [Rarity|Unique] Item",
+      "zh": "稀有[Rarity|傳奇]物品",
+      "enPlain": "Rare Unique Item",
+      "zhPlain": "稀有傳奇物品"
+    },
+    {
+      "id": "9SlotExtremelyRareUnique1",
+      "en": "Very Rare [Rarity|Unique] item",
+      "zh": "極稀有[Rarity|傳奇]物品",
+      "enPlain": "Very Rare Unique item",
+      "zhPlain": "極稀有傳奇物品"
+    }
+  ]
+}

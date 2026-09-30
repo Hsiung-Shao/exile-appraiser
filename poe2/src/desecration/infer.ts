@@ -103,8 +103,11 @@ function statHashes(stat: ParsedStat): Set<string> {
 
 const EPS = 1e-6;
 
-/** 一個 part 的 ranges → 與 roll.value 同語意的 [lo, hi](多個 `#` 取平均) */
-function partRange(part: DesecrationEntry["parts"][number]): [number, number] | null {
+/**
+ * 一個 part 的 ranges → 與 roll.value 同語意的 [lo, hi](多個 `#` 取平均)。
+ * WP-S:export 給 `ocr-match.ts`(OCR 候選的顯示範圍與這裡同語意)。
+ */
+export function partRange(part: DesecrationEntry["parts"][number]): [number, number] | null {
   if (!part.ranges || !part.ranges.length) return null;
   const n = part.ranges.length;
   const lo = part.ranges.reduce((s, r) => s + Math.min(r[0], r[1]), 0) / n;

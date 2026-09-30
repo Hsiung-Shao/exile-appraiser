@@ -15,7 +15,7 @@
 import { reactive, shallowRef, watch } from 'vue'
 import { REALMS, useEnglishNames, type Game, type Language, type Realm } from '@exile-appraiser/core/realm'
 import type { PriceCheckWidget } from './overlay/interfaces'
-import type { HostConfigForMain, HotkeyRegistration } from '@ipc/types'
+import type { HostConfigForMain, HotkeyRegistration, OcrRegion } from '@ipc/types'
 import { Host } from './background/IPC'
 import { clampFsBase, normAccent, normTheme, DEFAULT_FS_BASE, type Theme } from './useTheme'
 
@@ -62,8 +62,24 @@ export interface Config {
   /** 點 overlay 透明背景 = 關閉面板(APT `overlayBackgroundClose`)。 */
   overlayBackgroundClose: boolean
   priceCheck: PriceCheckWidget
-  /** 拆粉面板停靠在查價下方時佔面板高度的百分比(15–50;WP-Q 分隔條拖曳)。 */
-  dustDockRatio: number
+  /** WP-S:PoE2 靈魂之井揭露面板 OCR 熱鍵(overlay 模式 + PoE2 才註冊;空字串 = 停用)。 */
+  hotkeyOcrReveal: string
+  /** WP-S:OCR 搜尋範圍(client 比例 0–1);null = 整個遊戲畫面自動找面板。 */
+  ocrRegion: OcrRegion | null
+  /** WP-S2:在遊戲畫面上框選 OCR 區域的熱鍵(預設空 = 不註冊;overlay 模式 + PoE2 才註冊)。 */
+  hotkeyOcrRegion: string
+  /** WP-R2:PoE2 符文塑形面板自動查價(預設關;overlay + PoE2 + 已框選區域才掃描)。 */
+  runeshapeEnabled: boolean
+  /** WP-R2:符文塑形面板區域(client 比例 0–1);null = 未框選。 */
+  runeshapeRegion: OcrRegion | null
+  /** WP-R2:掃描間隔 ms(500–3000,預設 1000)。 */
+  runeshapeIntervalMs: number
+  /** WP-R2:徽章顏色門檻(崇高石):< low 暗色、≥ high 金色、之間一般。 */
+  runeshapeThresholds: RuneshapeThresholds
+  /** WP-R2:暫停 / 繼續自動查價的熱鍵(預設空 = 不註冊)。 */
+  hotkeyRuneshapeToggle: string
+  /** 自動更新(預設 true):安裝版背景下載、結束程式時靜默套用;false = 手動下載 / 安裝(main/src/updater-core.ts)。 */
+  autoUpdate: boolean
   // ---- 相容上游元件的推導屬性 ----
   readonly useIntlSite: boolean
   /** 上游元件讀的字級;= `fsBase`(不進檔)。 */
@@ -101,11 +117,42 @@ export function defaultPriceCheck (): PriceCheckWidget {
 
 export const DEFAULT_WINDOW_TITLE: Readonly<Record<Game, string>> = { poe1: 'Path of Exile', poe2: 'Path of Exile 2' }
 
-/** 拆粉停靠比例(%):預設 45,夾在 15–50(上限與 `.dust-docked` 的 max-height:50% 一致)。 */
-export const DEFAULT_DUST_DOCK_RATIO = 45
-export function clampDustDockRatio (n: unknown): number {
-  if (typeof n !== 'number' || !Number.isFinite(n)) return DEFAULT_DUST_DOCK_RATIO
-  return Math.min(50, Math.max(15, Math.round(n)))
+/** WP-S:靈魂之井揭露面板 OCR 預設熱鍵(避開 Alt:OverlayVisibility 按住 Alt 會藏 overlay)。 */
+export const DEFAULT_HOTKEY_OCR_REVEAL = 'Ctrl + Shift + R'
+
+/** OCR 範圍:四個 0–1 的有限數且寬高 > 0 才算數,其餘 → null(整個畫面)。 */
+export function normOcrRegion (v: unknown): OcrRegion | null {
+  if (!v || typeof v !== 'object') return null
+  const r = v as Record<string, unknown>
+  const nums = [r.x, r.y, r.w, r.h]
+  if (!nums.every(n => typeof n === 'number' && Number.isFinite(n) && n >= 0 && n <= 1)) return null
+  const [x, y, w, h] = nums as number[]
+  if (w <= 0 || h <= 0 || x + w > 1.0001 || y + h > 1.0001) return null
+  return { x, y, w, h }
+}
+
+/** WP-R2:徽章顏色門檻(單位:崇高石) */
+export interface RuneshapeThresholds {
+  low: number
+  high: number
+}
+export const DEFAULT_RUNESHAPE_THRESHOLDS: Readonly<RuneshapeThresholds> = { low: 0.5, high: 5 }
+export const DEFAULT_RUNESHAPE_INTERVAL_MS = 1000
+
+/** WP-R2:掃描間隔 500–3000 ms(main `clampScanInterval` 同規則);不是數字 → 1000 */
+export function clampRuneshapeInterval (v: unknown): number {
+  if (typeof v !== 'number' || !Number.isFinite(v)) return DEFAULT_RUNESHAPE_INTERVAL_MS
+  return Math.min(3000, Math.max(500, Math.round(v)))
+}
+
+/** WP-R2:門檻正規化:兩個非負有限數,high < low 時對調;壞掉 → 預設 */
+export function normRuneshapeThresholds (v: unknown): RuneshapeThresholds {
+  if (!v || typeof v !== 'object') return { ...DEFAULT_RUNESHAPE_THRESHOLDS }
+  const r = v as Record<string, unknown>
+  const ok = (n: unknown): n is number => typeof n === 'number' && Number.isFinite(n) && n >= 0
+  const low = ok(r.low) ? r.low : DEFAULT_RUNESHAPE_THRESHOLDS.low
+  const high = ok(r.high) ? r.high : DEFAULT_RUNESHAPE_THRESHOLDS.high
+  return high < low ? { low: high, high: low } : { low, high }
 }
 
 function createConfig (): Config {
@@ -130,7 +177,15 @@ function createConfig (): Config {
     overlayMode: true,
     overlayBackgroundClose: true,
     priceCheck: defaultPriceCheck(),
-    dustDockRatio: DEFAULT_DUST_DOCK_RATIO
+    hotkeyOcrReveal: DEFAULT_HOTKEY_OCR_REVEAL,
+    ocrRegion: null as OcrRegion | null,
+    hotkeyOcrRegion: '',
+    runeshapeEnabled: false,
+    runeshapeRegion: null as OcrRegion | null,
+    runeshapeIntervalMs: DEFAULT_RUNESHAPE_INTERVAL_MS,
+    runeshapeThresholds: { ...DEFAULT_RUNESHAPE_THRESHOLDS },
+    hotkeyRuneshapeToggle: '',
+    autoUpdate: true
   }
   return {
     ...base,
@@ -170,7 +225,14 @@ function serialize (): string {
   return JSON.stringify({
     configVersion, game, realm, language, uiLanguage, theme, accent, fsBase, leagueBy, accountName, restoreClipboard,
     hotkey, hotkeyHold, hotkeyLocked, overlayKey, windowTitleBy, autoSwitchGame, overlayMode, overlayBackgroundClose,
-    priceCheck, dustDockRatio: config.dustDockRatio
+    priceCheck,
+    hotkeyOcrReveal: config.hotkeyOcrReveal, ocrRegion: config.ocrRegion, hotkeyOcrRegion: config.hotkeyOcrRegion,
+    runeshapeEnabled: config.runeshapeEnabled,
+    runeshapeRegion: config.runeshapeRegion,
+    runeshapeIntervalMs: config.runeshapeIntervalMs,
+    runeshapeThresholds: config.runeshapeThresholds,
+    hotkeyRuneshapeToggle: config.hotkeyRuneshapeToggle,
+    autoUpdate: config.autoUpdate
   }, null, 2)
 }
 
@@ -230,7 +292,32 @@ function applyLoaded (raw: string) {
   }
   config.windowTitleBy = titles
   if (typeof config.autoSwitchGame !== 'boolean') config.autoSwitchGame = fresh.autoSwitchGame
-  config.dustDockRatio = clampDustDockRatio(loaded.dustDockRatio)
+  // 舊設定檔的 `dustDockRatio`(WP-Q 拆粉停靠比例;2026-09-30 拆粉排行移進設定視窗後不再使用):
+  // 這裡只挑已知欄位,舊鍵直接略過,下次存檔就不會再寫出
+  // WP-S:舊設定檔沒有 → 預設熱鍵;使用者清成空字串 = 停用(保留空字串)
+  config.hotkeyOcrReveal = typeof loaded.hotkeyOcrReveal === 'string' ? loaded.hotkeyOcrReveal : fresh.hotkeyOcrReveal
+  config.ocrRegion = normOcrRegion(loaded.ocrRegion)
+  // WP-S2:框選熱鍵預設空字串(不註冊)
+  config.hotkeyOcrRegion = typeof loaded.hotkeyOcrRegion === 'string' ? loaded.hotkeyOcrRegion : fresh.hotkeyOcrRegion
+  // WP-R2:符文塑形自動查價(舊設定檔沒有 → 預設關、未框選、1000 ms)
+  config.runeshapeEnabled = loaded.runeshapeEnabled === true
+  config.runeshapeRegion = normOcrRegion(loaded.runeshapeRegion)
+  config.runeshapeIntervalMs = clampRuneshapeInterval(loaded.runeshapeIntervalMs)
+  config.runeshapeThresholds = normRuneshapeThresholds(loaded.runeshapeThresholds)
+  config.hotkeyRuneshapeToggle = typeof loaded.hotkeyRuneshapeToggle === 'string' ? loaded.hotkeyRuneshapeToggle : fresh.hotkeyRuneshapeToggle
+  // 自動更新:舊設定檔沒有 → 預設開;只有明確 false 才關
+  config.autoUpdate = loaded.autoUpdate !== false
+}
+
+/** 測試用:套用一份設定檔內容後回傳序列化結果(`renderer/test/runeshape-config.test.ts`) */
+export function _roundTripForTest (raw: string | null): { config: Config, serialized: string } {
+  const fresh = createConfig()
+  for (const k of Object.keys(fresh) as Array<keyof Config>) {
+    if (k === 'useIntlSite' || k === 'fontSize' || k === 'leagueId') continue // getter
+    ;(config as any)[k] = (fresh as any)[k]
+  }
+  if (raw) applyLoaded(raw)
+  return { config, serialized: serialize() }
 }
 
 let saveTimer: ReturnType<typeof setTimeout> | null = null
@@ -291,7 +378,15 @@ export async function initConfig (): Promise<void> {
     overlayMode: config.overlayMode,
     restoreClipboard: config.restoreClipboard,
     language: config.language,
-    uiLanguage: config.uiLanguage
+    uiLanguage: config.uiLanguage,
+    hotkeyOcrReveal: config.hotkeyOcrReveal,
+    ocrRegion: config.ocrRegion ? { ...config.ocrRegion } : null,
+    hotkeyOcrRegion: config.hotkeyOcrRegion,
+    runeshapeEnabled: config.runeshapeEnabled,
+    runeshapeRegion: config.runeshapeRegion ? { ...config.runeshapeRegion } : null,
+    runeshapeIntervalMs: config.runeshapeIntervalMs,
+    hotkeyRuneshapeToggle: config.hotkeyRuneshapeToggle,
+    autoUpdate: config.autoUpdate
   }), (cfg) => {
     void sendHostConfig(cfg)
   }, { immediate: true })

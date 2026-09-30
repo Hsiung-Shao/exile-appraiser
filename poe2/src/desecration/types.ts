@@ -3,7 +3,7 @@
  * 產生器:`scripts/build-desecration-tiers.mjs`;說明:`docs/desecration-tiers.md`。
  */
 
-/** normal = 一般詞綴池(褻瀆也可能擲出)、desecration_exclusive = 三神(烏拉曼/阿瑪納姆/庫爾加)專屬、_jewel = 深淵珠寶專屬 */
+/** normal = 一般詞綴池(褻瀆也可能擲出)、desecration_exclusive = 三神(烏拉曼/阿姆那姆/柯戈)專屬、_jewel = 深淵珠寶專屬 */
 export type DesecrationPool =
   | "normal"
   | "desecration_exclusive"
@@ -14,7 +14,16 @@ export interface DesecrationPart {
   stat_id: string;
   /** EE2 stats.ndjson 的 `ref`(英文模板,語言無關鍵) */
   ref: string;
-  text: { en: string; zh: string };
+  text: {
+    en: string;
+    zh: string;
+    /**
+     * exile-appraiser(WP-S):同一 ref 的其他繁中寫法(cmn-Hant stats.ndjson 的其餘 matcher,去重、不含等於 `zh` 的那個)。
+     * `negate: true` = 這個寫法顯示的極性與 **`zh`** 相反(`增加` ↔ `減少` 等;不是相對英文 ref)。
+     * 可能不含 `#`(`無物理傷害`、`擊中時必定造成流血`),比對時當精確文字。舊資料沒有這個欄位。
+     */
+    zhVariants?: Array<{ text: string; negate?: true }>;
+  };
   /** 每個 `#` 一組 [lo, hi];PoB 文字對不上模板時為 null(產生器 diagnostics 會列出) */
   ranges: number[][] | null;
   source_text: string;

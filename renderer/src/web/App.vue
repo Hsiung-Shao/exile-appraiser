@@ -9,9 +9,13 @@
   外觀(WP2,PobTools 語彙):標題列 = 金色菱形 + 品牌名 + 遊戲/區服徽章(.chip)+ 聯盟下拉(.select.sm)+ 齒輪/關閉(.btn.ghost.sm);
   面板容器 --surface-1 + 左 3px 金邊(overlay 另加 --shadow-float 與圓角);重載 / 限流 / 失敗用面板頂端的細條;
   限流狀態鈕:視窗模式在底列右側,overlay 在面板外側(不與面板重疊)。
-  WP-Q:設定仍獨佔整個面板;其餘時候是 .price-stack(上:查價 <main>,下:停靠的拆粉排行)。
-  ⚖ = 顯示/收合拆粉;中間的 .dust-splitter 可拖曳或用 ↑↓ 調整拆粉佔比(AppConfig().dustDockRatio,15–50%)。
-  收到新物品不會收起拆粉;window 模式開拆粉時視窗高不足 900 會放大(只放大不縮小)。
+  拆粉排行(2026-09-30 起)是設定視窗的「拆粉排行」分頁(settings/tabs/Dust.vue);標題列 ⚖ = 開設定並切到該分頁
+  (設定開著時查價面板隱藏,⚖ 只會是「開」)。WP-Q 的「停靠在查價下方 + 分隔條」已移除。
+  交易站網頁一律經 ./trade-site.ts 的 openTradeSite(provide 'builtin-browser' 也是它;預設系統瀏覽器)。
+  設定(settings/SettingsWindow.vue,APT 式方正視窗):overlay 是獨立於 #price-window 的置中浮動層(.settings-layer 暗幕,
+  點暗幕 / Esc / ✕ 關閉;設定開著時查價面板整個隱藏,只剩設定視窗,關閉後有物品回到查價面板、沒物品整個收起);
+  window 模式與瀏覽器預覽填滿視窗內容區(取代 .window-body)。
+  收到新物品關閉設定;OCR 框選開啟時隱藏設定,由設定開的框選結束後回到設定的熱鍵分頁(ocr-reveal.ts returnsToSettings)。
 -->
 <template>
   <div id="app" class="font-ui text-ink-0"
@@ -19,7 +23,8 @@
     :style="rootStyle">
     <div v-if="isOverlay" class="absolute inset-0" @click="handleBackgroundClick" />
 
-    <div v-show="!isOverlay || panelShown"
+    <!-- 設定開著時查價面板(含標題列、側邊限流鈕)一律讓位;overlay 只是 v-show 藏起,關設定後原樣回來 -->
+    <div v-show="isOverlay ? panelShown && !settingsVisible : !settingsVisible"
       :class="isOverlay ? ['absolute', 'inset-0', 'flex', 'pointer-events-none', clickPosition === 'stash' ? 'flex-row' : 'flex-row-reverse'] : 'window-body'">
       <div v-if="isOverlay" class="layout-column shrink-0" style="width: var(--game-panel);" />
 
@@ -37,8 +42,8 @@
               <option v-for="l in leagues.list.value" :key="l.id" :value="l.id">{{ l.id }}</option>
             </select>
           </div>
-          <button class="btn ghost sm icon-btn" :class="{ on: showDust && !showSettings }" :title="t('ppz.dust.toggle')" :aria-label="t('ppz.dust.toggle')"
-            :aria-pressed="showDust && !showSettings" style="-webkit-app-region: no-drag;" data-action="dust" @click="toggleDust">⚖</button>
+          <button class="btn ghost sm icon-btn" :title="t('ppz.dust.toggle')" :aria-label="t('ppz.dust.toggle')"
+            style="-webkit-app-region: no-drag;" data-action="dust" @click="openDust">⚖</button>
           <button class="btn ghost sm icon-btn" :class="{ on: showSettings }" :title="t('ppz.settings')" :aria-label="t('ppz.settings')"
             style="-webkit-app-region: no-drag;" data-action="settings" @click="toggleSettings">⚙</button>
           <button class="btn ghost sm icon-btn" :title="t('ppz.close')" :aria-label="t('ppz.close')"
@@ -55,13 +60,11 @@
         <div v-if="rateLimitWait" class="strip warn" data-strip="rate-limit">
           <span>{{ t('ppz.rate_limited', { seconds: rateLimitWait }) }}</span>
         </div>
-        <div v-if="reportMessage && !showSettings" class="strip" :class="{ bad: reportMessage.bad }" data-strip="report">
+        <div v-if="reportMessage" class="strip" :class="{ bad: reportMessage.bad }" data-strip="report">
           <span class="grow">{{ reportMessage.text }}</span>
         </div>
 
-        <settings-panel v-if="showSettings" class="grow min-h-0" @close="showSettings = false" />
-
-        <div v-else ref="stackEl" class="price-stack grow min-h-0" data-layout="price-stack">
+        <div class="price-body grow min-h-0" data-layout="price-body">
           <main class="price-main relative">
             <ui-error-box v-if="leagues.error.value" class="m-3">
               <template #name>{{ t('ppz.league_failed', { error: leagues.error.value }) }}</template>
@@ -103,18 +106,9 @@
               </div>
             </div>
           </main>
-
-          <template v-if="showDust">
-            <div class="dust-splitter" role="separator" aria-orientation="horizontal" tabindex="0"
-              :aria-label="t('ppz.dust.splitter')" :title="t('ppz.dust.splitter')"
-              aria-valuemin="15" aria-valuemax="50" :aria-valuenow="dustRatio" data-action="dust-splitter"
-              :class="{ dragging: splitterDragging }"
-              @pointerdown="startSplitterDrag" @keydown="onSplitterKey" />
-            <dust-panel class="dust-docked" :docked="true" :style="{ flexBasis: `${dustRatio}%` }" @close="showDust = false" />
-          </template>
         </div>
 
-        <footer v-if="!showSettings && (parsed || !isOverlay)" class="bottombar">
+        <footer v-if="parsed || !isOverlay" class="bottombar">
           <button v-if="parsed" class="btn sm" data-action="paste-another" @click="reset">{{ t('ppz.paste') }}</button>
           <template v-if="parsed?.isOk()">
             <button class="btn ghost sm" data-action="report-item" @click="reportItem">{{ t('ppz.report.item') }} ↗</button>
@@ -132,6 +126,29 @@
         </div>
       </div>
     </div>
+
+    <!-- 設定視窗:overlay = 暗幕 + 置中浮動(點暗幕關閉);window / 預覽 = 填滿內容區 -->
+    <div v-if="settingsVisible" class="settings-layer" :class="isOverlay ? 'is-overlay' : 'is-window'" data-layer="settings"
+      @pointerdown="onSettingsLayerPointerDown" @click="onSettingsLayerClick">
+      <settings-window :floating="isOverlay" :game-badge="gameBadge" :realm-badge="realmBadge" @close="closeSettings('✕')">
+        <template #strips>
+          <div v-if="reloadPhase === 'loading'" class="strip" data-strip="settings-loading">
+            <span class="pulse">{{ t('ppz.reloading') }}</span>
+          </div>
+          <div v-else-if="reloadPhase === 'error'" class="strip bad" data-strip="settings-error">
+            <span class="grow truncate">{{ t('ppz.reload_failed', { error: reloadError }) }}</span>
+            <button class="btn sm" @click="retryReload">{{ t('Retry') }}</button>
+          </div>
+        </template>
+      </settings-window>
+    </div>
+
+    <!-- WP-S:靈魂之井揭露面板 OCR 徽章(與查價面板並列,不受 panelShown 控制;按住 Alt 時隨根元素隱藏) -->
+    <ocr-badges v-if="isOverlay" />
+    <!-- WP-R2:符文塑形面板自動查價徽章(同 OCR 徽章層級;按住 Alt 時隨根元素隱藏) -->
+    <runeshape-prices v-if="isOverlay" />
+    <!-- WP-S2:在遊戲畫面上框選 OCR 區域(開著時忽略 Alt 隱藏與背景點擊) -->
+    <ocr-region-picker v-if="isOverlay" />
   </div>
 </template>
 
@@ -148,10 +165,15 @@ import * as Poe2 from '@poe2-entry'
 import { loadedGame } from './games/active'
 import { TRADE_PATHS } from '@exile-appraiser/core/realm'
 import UiErrorBox from '@/web/ui/UiErrorBox.vue'
-import SettingsPanel from './settings/SettingsPanel.vue'
-import DustPanel from './dust/DustPanel.vue'
-import { AppConfig, clampDustDockRatio } from './Config'
+import SettingsWindow from './settings/SettingsWindow.vue'
+import OcrBadges from './overlay/OcrBadges.vue'
+import OcrRegionPicker from './overlay/OcrRegionPicker.vue'
+import RuneshapePrices from './overlay/RuneshapePrices.vue'
+import { recordPoe2Item, regionPickerClosed, regionPickerOpen, returnsToSettings } from './overlay/ocr-reveal'
+import type { SettingsTabId } from '@ipc/types'
+import { AppConfig } from './Config'
 import { Host } from './background/IPC'
+import { openTradeSite } from './trade-site'
 import { useLeagues } from './background/Leagues'
 import { REALMS, isSupportedCombination } from '@exile-appraiser/core/realm'
 import { reloadPhase, reloadError, retryReload } from './loadState'
@@ -165,13 +187,9 @@ const PANEL_WIDTH_EM = 28.75
  * fsBase 13 時維持原本 460px 的視覺寬度,並隨 fsBase 等比縮放。
  */
 const LEGACY_FS_SCALE = 1.23
-/** window 模式開拆粉時希望的最小視窗高(外框 px;只放大不縮小,且不超過螢幕可用高)。 */
-const DUST_WINDOW_MIN_HEIGHT = 900
-/** 分隔條鍵盤 ↑↓ 一次調整的百分點。 */
-const SPLITTER_STEP = 2
 
 export default defineComponent({
-  components: { UiErrorBox, SettingsPanel, DustPanel },
+  components: { UiErrorBox, SettingsWindow, OcrBadges, OcrRegionPicker, RuneshapePrices },
   setup () {
     const { t, te } = useI18n()
     const leagues = useLeagues()
@@ -180,56 +198,6 @@ export default defineComponent({
     const rawText = shallowRef('')
     const pasteText = shallowRef('')
     const showSettings = shallowRef(false)
-    /** 拆粉排行面板(停靠在查價下方;設定開著時被設定蓋住,關設定後回來) */
-    const showDust = shallowRef(false)
-    const stackEl = shallowRef<HTMLElement | null>(null)
-    const splitterDragging = shallowRef(false)
-    const dustRatio = computed(() => clampDustDockRatio(AppConfig().dustDockRatio))
-    function setDustRatio (n: number) {
-      const v = clampDustDockRatio(n)
-      if (v !== AppConfig().dustDockRatio) AppConfig().dustDockRatio = v
-    }
-    /** 拖曳分隔條:比例 = 指標到 stack 底的距離 / stack 高(pointer capture,放開才結束)。 */
-    function startSplitterDrag (e: PointerEvent) {
-      const el = stackEl.value
-      const target = e.currentTarget as HTMLElement | null
-      if (!el || !target || e.button !== 0) return
-      e.preventDefault()
-      try { target.setPointerCapture(e.pointerId) } catch { /* 合成事件沒有對應的指標:照樣以 target 的事件拖曳 */ }
-      splitterDragging.value = true
-      const onMove = (ev: PointerEvent) => {
-        const r = el.getBoundingClientRect()
-        if (r.height > 0) setDustRatio((r.bottom - ev.clientY) / r.height * 100)
-      }
-      const onUp = (ev: PointerEvent) => {
-        splitterDragging.value = false
-        try { target.releasePointerCapture(ev.pointerId) } catch { /* 同上 */ }
-        target.removeEventListener('pointermove', onMove)
-        target.removeEventListener('pointerup', onUp)
-        target.removeEventListener('pointercancel', onUp)
-        console.log(`[app] 拆粉停靠比例 ${AppConfig().dustDockRatio}%`)
-      }
-      target.addEventListener('pointermove', onMove)
-      target.addEventListener('pointerup', onUp)
-      target.addEventListener('pointercancel', onUp)
-    }
-    function onSplitterKey (e: KeyboardEvent) {
-      if (e.key === 'ArrowUp') setDustRatio(dustRatio.value + SPLITTER_STEP)
-      else if (e.key === 'ArrowDown') setDustRatio(dustRatio.value - SPLITTER_STEP)
-      else if (e.key === 'Home') setDustRatio(50)
-      else if (e.key === 'End') setDustRatio(15)
-      else return
-      e.preventDefault()
-    }
-    /** window 模式:開拆粉時視窗太矮就放大(main 的 window-resize 是 BrowserWindow.setSize = 外框尺寸)。 */
-    function ensureDustWindowHeight () {
-      if (isOverlay || !Host.isElectron) return
-      const want = Math.min(DUST_WINDOW_MIN_HEIGHT, window.screen?.availHeight || DUST_WINDOW_MIN_HEIGHT)
-      if (window.outerHeight < want) {
-        console.log(`[app] 拆粉:視窗高 ${window.outerHeight} < ${want},放大`)
-        void Host.resizeWindow(window.outerWidth, want)
-      }
-    }
     const itemKey = shallowRef(0)
     const rateLimitWait = shallowRef(0)
     // ---- overlay 狀態(APT WidgetManager 的最小子集) ----
@@ -247,8 +215,10 @@ export default defineComponent({
     const reportNotice = shallowRef<{ text: string, bad: boolean } | null>(null)
     let reportTimer: ReturnType<typeof setTimeout> | null = null
 
-    // 上游元件用 inject('builtin-browser') 開交易站;本專案開內建瀏覽器視窗(與 fetch 共用 cookie)
-    provide('builtin-browser', (url: string) => { void Host.openCaptcha(url) })
+    // 上游元件用 inject('builtin-browser') 開交易站網頁(錯誤框「瀏覽器」、builtinBrowser 時 TradeLinks 主鈕)。
+    // 一律交給 openTradeSite:預設系統瀏覽器(同「交易」鈕的 Host.openExternal,使用者已登入);
+    // 以前這裡直接開 Host.openCaptcha(沒有登入狀態的 Electron 視窗)。Cloudflare 驗證另有「開啟驗證視窗」鈕。
+    provide('builtin-browser', openTradeSite)
 
     function load (text: string) {
       rawText.value = text
@@ -258,6 +228,8 @@ export default defineComponent({
       itemKey.value += 1
       const p = parsed.value
       console.log(`[app] 解析(${loadedGame.value}) ${p.isOk() ? `OK: ${p.value.info.name ?? ''} / ${p.value.info.refName ?? ''}` : `失敗: ${p.error}`}`)
+      // WP-S:揭露面板 OCR 的 profile 來源 = 最近 10 分鐘內查價的 PoE2 物品
+      if (loadedGame.value === 'poe2' && p.isOk()) recordPoe2Item(p.value as Poe2.Poe2ParsedItem)
     }
 
     /** 面板寬(CSS px),隨 fsBase。 */
@@ -289,7 +261,6 @@ export default defineComponent({
       checkPosition.value = e.position
       advancedCheck.value = e.focusOverlay
       showSettings.value = false
-      // WP-Q:拆粉停靠在查價下方,收到新物品不收起
       panelShown.value = true
       load(e.clipboard)
       if (isOverlay) {
@@ -303,22 +274,49 @@ export default defineComponent({
       console.log(`[app] 面板隱藏(${reason})`)
     }
 
+    /** 設定視窗實際顯示:overlay 還要面板開著(失焦 hide-on-blur 一起收);框選層開著時讓出整個畫面 */
+    const settingsVisible = computed(() => showSettings.value && !regionPickerOpen.value && (!isOverlay || panelShown.value))
+
+    /** 開設定到指定分頁(托盤、OCR 框選返回);overlay 要讓面板可互動(main 已 / 另行 assertOverlayActive) */
+    function openSettingsTo (tab: SettingsTabId, reason: string) {
+      settingsTab.value = tab
+      showSettings.value = true
+      if (isOverlay) {
+        panelShown.value = true
+        advancedCheck.value = true
+      }
+      console.log(`[app] 開啟設定 tab=${tab}(${reason})`)
+    }
+
+    function closeSettings (reason: string) {
+      if (!showSettings.value) return
+      showSettings.value = false
+      console.log(`[app] 關閉設定(${reason})`)
+      // overlay 沒有物品時,面板只是為了設定才開的:一起收起並把焦點還給遊戲
+      if (isOverlay && !parsed.value) {
+        hidePanel('關閉設定且沒有物品')
+        Host.focusGame()
+      }
+    }
+
+    // 點暗幕關閉:按下與放開都在暗幕上才算(在視窗內按住拖到暗幕外放開不關)
+    let pressedOnBackdrop = false
+    function onSettingsLayerPointerDown (e: PointerEvent) {
+      pressedOnBackdrop = e.target === e.currentTarget
+    }
+    function onSettingsLayerClick (e: MouseEvent) {
+      const onBackdrop = pressedOnBackdrop && e.target === e.currentTarget
+      pressedOnBackdrop = false
+      if (onBackdrop && isOverlay) closeSettings('點暗幕')
+    }
+
     const unsubscribers: Array<() => void> = []
     const onResize = () => { winHeight.value = window.innerHeight }
     const onFocus = () => { Host.usedRecently(Host.isElectron) }
     onMounted(() => {
       unsubscribers.push(Host.onItemText(handleItemText))
       // 托盤「設定」「關於」:main 已把視窗叫到前景(overlay:assertOverlayActive),這裡開設定到該分頁
-      unsubscribers.push(Host.onOpenSettings(({ tab }) => {
-        settingsTab.value = tab
-        showDust.value = false
-        showSettings.value = true
-        if (isOverlay) {
-          panelShown.value = true
-          advancedCheck.value = true
-        }
-        console.log(`[app] 托盤開啟設定 tab=${tab}`)
-      }))
+      unsubscribers.push(Host.onOpenSettings(({ tab }) => { openSettingsTo(tab, '托盤') }))
       if (isOverlay) {
         unsubscribers.push(Host.onHideWidget(() => { hidePanel('hide-exclusive-widget') }))
         unsubscribers.push(Host.onFocusChange((state) => {
@@ -329,7 +327,7 @@ export default defineComponent({
           } else if (state.usingHotkey && !panelShown.value) {
             // overlayKey 叫出 overlay 但沒有物品:開面板 + 設定(本專案沒有 APT 的選單 widget)
             parsed.value = null
-            showSettings.value = !showDust.value
+            showSettings.value = true
             panelShown.value = true
             advancedCheck.value = true
             console.log('[app] overlayKey 叫出設定面板')
@@ -354,8 +352,16 @@ export default defineComponent({
     })
 
     function onKey (e: KeyboardEvent) {
-      // overlay 模式的 Escape 由 main 的 before-input-event 處理(→ 焦點回遊戲 → hide-on-blur)
-      if (e.key === 'Escape' && !isOverlay) close()
+      // overlay 模式的 Escape 通常先被 main 的 before-input-event 攔下(→ 焦點回遊戲 → hide-on-blur);
+      // renderer 收得到時(window 模式、預覽):設定開著先關設定,否則 window 模式隱藏視窗。
+      // 熱鍵擷取欄(HotkeyInput)用 Esc 清除,會 preventDefault;框選層在 capture 階段自己處理。
+      if (e.key !== 'Escape' || e.defaultPrevented || regionPickerOpen.value) return
+      if (settingsVisible.value) {
+        e.preventDefault()
+        closeSettings('Esc')
+      } else if (!isOverlay) {
+        close()
+      }
     }
 
     function close () {
@@ -368,6 +374,8 @@ export default defineComponent({
     }
 
     function handleBackgroundClick () {
+      // WP-S2:框選中不因背景點擊關閉(框選層本身在最上層,這裡是保險)
+      if (regionPickerOpen.value) return
       if (AppConfig().overlayBackgroundClose) {
         hidePanel('點背景')
         Host.focusGame()
@@ -375,6 +383,27 @@ export default defineComponent({
     }
 
     let waitTimer: ReturnType<typeof setInterval> | null = null
+    // WP-S2:開框選層(設定頁按鈕或熱鍵)→ 關掉設定 / 查價面板,整個遊戲畫面留給框選;
+    // 由設定開的,使用者確認 / 取消 / 清除後回到設定的熱鍵分頁(失焦結束的不回)
+    watch(regionPickerOpen, (open) => {
+      if (open) {
+        showSettings.value = false
+        hidePanel('開啟框選層')
+        return
+      }
+      const c = regionPickerClosed.value
+      if (c && returnsToSettings(c.source, c.outcome)) {
+        openSettingsTo('hotkeys', `框選結束:${c.outcome}`)
+      }
+    })
+
+    // WP-R2:查價面板 / 設定 / 框選層開著 → main 暫停符文塑形掃描(overlay 限定;預覽 / window 模式是 no-op)
+    if (isOverlay) {
+      watch(() => ({ panel: panelShown.value, settings: settingsVisible.value, picker: regionPickerOpen.value }), (s) => {
+        Host.runeshapeUiState(s)
+      }, { immediate: true })
+    }
+
     // 換遊戲後舊物品是另一個 parser 的結果,不能交給新遊戲的 CheckedItem
     watch(loadedGame, (game) => {
       parsed.value = null
@@ -421,26 +450,26 @@ export default defineComponent({
       rawText,
       pasteText,
       showSettings,
-      showDust,
+      settingsVisible,
+      closeSettings,
+      onSettingsLayerPointerDown,
+      onSettingsLayerClick,
       toggleSettings () {
-        showSettings.value = !showSettings.value
-        if (showSettings.value) showDust.value = false
-      },
-      /** ⚖ = 顯示/收合拆粉;設定開著時按 ⚖ = 關設定並顯示拆粉。 */
-      toggleDust () {
+        // 按得到 ⚙ = 面板已可互動,不必再動 panelShown / advancedCheck
         if (showSettings.value) {
-          showSettings.value = false
-          showDust.value = true
+          closeSettings('⚙')
         } else {
-          showDust.value = !showDust.value
+          showSettings.value = true
+          console.log(`[app] 開啟設定 tab=${settingsTab.value}(⚙)`)
         }
-        if (showDust.value) ensureDustWindowHeight()
       },
-      stackEl,
-      dustRatio,
-      splitterDragging,
-      startSplitterDrag,
-      onSplitterKey,
+      /**
+       * ⚖ = 開設定並切到「拆粉排行」分頁(拆粉排行 2026-09-30 起在設定視窗裡)。
+       * 設定開著時查價面板整個隱藏、按不到 ⚖,所以這裡只會是「開」;關閉走設定視窗的 ✕ / Esc / 暗幕。
+       */
+      openDust () {
+        openSettingsTo('dust', '⚖')
+      },
       itemKey,
       rateLimitWait,
       checkedItemComponent: computed(() => loadedGame.value === 'poe2' ? Poe2.CheckedItem : CheckedItem),
@@ -453,7 +482,8 @@ export default defineComponent({
       panelWidth,
       rootStyle: computed(() => ({
         '--game-panel': `${gamePanel.value}px`,
-        visibility: hideUI.value ? 'hidden' as const : undefined
+        // WP-S2:框選中忽略 Alt 隱藏(拖到一半不能消失)
+        visibility: hideUI.value && !regionPickerOpen.value ? 'hidden' as const : undefined
       })),
       hotkeyLabel: computed(() => {
         const c = AppConfig()
@@ -665,8 +695,8 @@ input[type=number]::-webkit-outer-spin-button {
   background: color-mix(in srgb, var(--warn) 12%, var(--surface-1));
 }
 
-/* WP-Q:查價(上)+ 停靠拆粉(下);拆粉的 flex/邊框/分隔條樣式在 pobtools.css(.dust-docked / .dust-splitter) */
-.price-stack {
+/* 查價內容區(拆粉排行已移到設定視窗的分頁) */
+.price-body {
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -722,6 +752,28 @@ input[type=number]::-webkit-outer-spin-button {
   border-top: 1px solid var(--edge-0);
 }
 .bottombar .grow {
+  flex: 1;
+}
+
+/* 設定視窗的外層:overlay = 全螢幕暗幕 + 置中;window / 預覽 = 填滿內容區 */
+.settings-layer.is-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 50; /* 在 OCR 徽章(40)之上、框選層(60)之下;查價面板此時已隱藏 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.45);
+  pointer-events: auto;
+}
+.settings-layer.is-window {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.settings-layer.is-window > .settings-window {
   flex: 1;
 }
 

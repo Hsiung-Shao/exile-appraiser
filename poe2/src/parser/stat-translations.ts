@@ -8,6 +8,7 @@ import {
 import type { StatMatcher, Stat, BaseType } from "@/assets/data";
 import { ModifierType } from "./modifiers";
 import { ItemCategory } from "./meta";
+import { STAT_VALUE_RE } from "./stat-value-re"; // exile-appraiser(WP-S):regex 字面搬到零依賴模組
 
 // This file is a little messy and scary,
 // but that's how stats translations are parsed :-D
@@ -103,6 +104,13 @@ const PLACEHOLDER_MAP = [
   ],
 ];
 
+/**
+ * exile-appraiser(WP-S):數值(含進階格式的 `(lo-hi)`)的 regex,抽成 export 給
+ * `desecration/ocr-match.ts` 重用;字面與旗標與原本內嵌的完全相同(`String.replace` 對 /g regex 每次從頭,行為不變)。
+ * exile-appraiser(WP-S 兩段式):字面搬到零依賴的 `./stat-value-re`(main process 的面板定位也要 import),這裡 re-export。
+ */
+export { STAT_VALUE_RE };
+
 function* _statPlaceholderGenerator(stat: string) {
   const matches: Array<{
     roll: number;
@@ -113,7 +121,7 @@ function* _statPlaceholderGenerator(stat: string) {
   const withPlaceholders = stat
     .replace(/\(\)/gm, "") // when GGG didn't provide advanced desc, like in "Passives in Radius of Wicked Ward() can be Allocated"
     .replace(
-      /(?<value>(?<!\d|\))[+-]?\d+(?:\.\d+)?)(?:\((?<min>.[^)-]*)(?:-(?<max>[^)]+))?\))?/gm,
+      STAT_VALUE_RE, // exile-appraiser(WP-S):原本的 regex 字面,抽成 export
       (_, roll: string, min?: string, max?: string) => {
         if (min != null && max == null) {
           // example: Sextant "# uses remaining", legacy rolls

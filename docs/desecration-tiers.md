@@ -20,7 +20,7 @@ MANIFEST 前綴 `data/poe2/desecration`,`commit` 欄 = PoB2 `manifest.xml` 裡 `
   產生器會驗證磁碟上的檔與 manifest 相符(照 PoB `UpdateCheck.lua`:`sha1(content)` 或 `sha1(LF→CRLF)` 任一相符;
   manifest 記的是 CRLF 版,portable 磁碟上是 LF),不符就拒絕產生(`--allow-mismatch` 只給本機實驗)。
 - **stats.ndjson**(`data/poe2/{en,cmn-Hant}/`,來自 ee2-patched):tradeHash → `trade.ids`(desecrated 優先,其次 explicit)
-  → 英文 `ref`(模板)與 cmn-Hant 同 `ref` 的 `matchers[0].string`(繁中模板)。`source.statsCommit` = MANIFEST `data/poe2` 的 commit,
+  → 英文 `ref`(模板)與 cmn-Hant 同 `ref` 的 `matchers[0].string`(繁中模板;其餘 matcher 進 `text.zhVariants`,見產生規則 8)。`source.statsCommit` = MANIFEST `data/poe2` 的 commit,
   `source.statsSha256` 記三個輸入 ndjson 的雜湊。
 - 輸出不含時間戳,同一輸入重跑逐位元組相同。
 
@@ -39,11 +39,19 @@ MANIFEST 前綴 `data/poe2/desecration`,`commit` 欄 = PoB2 `manifest.xml` 裡 `
    模板 increased/reduced 與 PoB 文字相反時翻轉一次、ranges 取絕對值、記 `direction`。
    **本專案追加**(poenavi 沒有):`ref` 對不上時改試同一 stat 的其他英文 matcher(單複數 / 措辭變體,記 `matched_template`);
    模板跨兩行而 PoB 拆成兩段文字時接回一段。
+8. **`text.zhVariants`(本專案追加,2026-09-30,揭露面板 OCR 用)**:cmn-Hant stats.ndjson 同一 `ref` 的**其他** matcher
+   (去重、不含等於 `text.zh` 的那個與空字串;沒有就不輸出這個鍵,舊資料相容)。每筆 `{ text, negate?: true }`:
+   `negate` 是**相對 `text.zh`** 的極性(stats.ndjson 的 `negate` 相對英文 `ref`;`text.zh` 本身相對 ref 的極性 = `matchers[0].negate` XOR 第 7 步的
+   increased/reduced 翻轉,兩者再 XOR)。例:`減少#%攻擊速度`(direction decrease)的變體是 `{ text: "增加#%攻擊速度", negate: true }`。
+   不含 `#` 的寫法(`無物理傷害`、`擊中時必定造成流血`)也收。數值語意與用法見 [reveal-ocr.md](reveal-ocr.md)「比對規則」。
+   加這個欄位時驗證過:去掉 `zhVariants` 後的 tiers.json 與加之前**逐位元組相同**(entries / profiles / ranges / diagnostics 全不變)。
 
 ### 目前統計(PoB2 0.23.1)
 
 - profiles 422;entries 1,713(normal 1,483 / desecration_exclusive 198〔amanamu 70、kurgal 63、ulaman 65〕/ desecration_exclusive_jewel 32)
 - 全部 1,713 條可比對(unparsed 0);極性翻轉 23 條;base_profiles 1,673(含 unique 168);未對上的裝備 refName 8 個(6 個 Runeforged 長棍/弓、2 個 Runemastered 長棍)
+- `zhVariants`:395 個繁中模板中 269 個有其他寫法,共 317 個(相對 `text.zh` 反向 270、不含 `#` 18);1,054 個 part 帶這個欄位。
+  OCR 索引 skeleton 394(只有 `text.zh`)→ 706(加上變體)
 - 與 poenavi 產物(PoB2 revision `ce566eac…`,1,713 條 / 426 profiles)對照:mod_id 集合相同、三 pool 數量相同;
   1,698 條 pool/type/group/level/共有 profile 的 Tier/ranges 完全一致;15 條差在 poenavi 解析不到範圍(ranges null)而這裡解得出來
   (模板來源不同:poenavi 用 GGG trade2 文字,如 `Recover #% of maximum Mana on Kill (Jewel)` 多了尾綴)。
@@ -69,7 +77,7 @@ MANIFEST 前綴 `data/poe2/desecration`,`commit` 欄 = PoB2 `manifest.xml` 裡 `
 ### 顯示
 
 - `FilterModifierTiers.vue`:推定 Tier 加虛線框與「推定」小字,**不受 `alwaysShowTier` 限制**(一般複製唯一的 Tier 來源);
-  `title` tooltip:說明 + 每個候選一行「等級 N · 詞綴池 · 範圍」(詞綴池:一般 / 烏拉曼 / 阿瑪納姆 / 庫爾加 / 深淵珠寶專屬)。
+  `title` tooltip:說明 + 每個候選一行「等級 N · 詞綴池 · 範圍」(詞綴池:一般 / 烏拉曼 / 阿姆那姆 / 柯戈 / 深淵珠寶專屬)。
 - `SourceInfo.vue`(「修改詞綴」開關展開的詞綴來源):`已褻瀆 (等級 1 推定 · 烏拉曼 · 13–17)`,tooltip 同上。
 - `create-stat-filters.ts`(精確查詢的預設勾選):推定 Tier 視同遊戲 Tier;多個候選取最差者,全部 ≤ T2 才勾。
 - i18n:`renderer/src/i18n/{cmn-Hant,en}.json` 的 `ppz.desecration.*`。
@@ -115,14 +123,15 @@ node scripts/build-desecration-tiers.mjs --from ../pob-zh-engine/dist/PathOfBuil
 cd poe2 && npx vitest run test/desecration   # 統計斷言(1713 / 198 / 32 / 1483 / 422)會紅 → 逐項確認後更新
 ```
 
-## 階段 2(OCR 三選一揭露面板)前置清單
+## 階段 2(OCR 三選一揭露面板)——已實作(WP-S)
 
-- 使用者提供 2–3 張繁中揭露畫面截圖(含三個選項、數值、不同底材)。
-- 安裝 Windows 繁中 OCR 語言包(`zh-Hant-TW`)。
-- 比對引擎沿用本資料表:OCR 文字 → 繁中模板(`parts[].text.zh`,`#` 為數值槽;`diagnostics.numeric_skeleton_collisions` 目前 0)
-  → stat hash → `matchStats()`(`poe2/src/desecration/infer.ts`,已與 ParsedItem 解耦,輸入是 stats + profiles)。
-- `diagnostics.mixed_fixed_dynamic_parts`(22 條繁中模板同時含 `#` 與固定數字)是 OCR 形狀比對要特別處理的清單。
-- 底材來源:揭露面板上方的物品名 → refName → base_profiles。
+見 [reveal-ocr.md](reveal-ocr.md)。與原前置清單的差異:
+- 比對不經 stat hash / `matchStats()`:OCR 行直接對繁中模板的 skeleton(`poe2/src/desecration/ocr-match.ts`),再以 entry 的 parts 一一對應 + 數值落在 ranges 內;
+  寫死數字的模板(`diagnostics.mixed_fixed_dynamic_parts`)以固定槽處理;`擲彈技能有+#次…` 這種自帶正負號的模板 `+#` 視為一個槽。
+- 底材:揭露面板上沒有物品名 → 改用「最近 10 分鐘查價的 PoE2 物品」`refName`;沒有就取三組共同可擲出的 profile 交集,Tier 顯示範圍並加「?」。
+- 目前有三張使用者截圖(`poe2/test/desecration/fixtures/ocr/well-of-souls-body-armour-01.webp`、`well-of-souls-fullscreen-02.webp`、`well-of-souls-fullscreen-03.webp`;
+  03 帶出「只收一種寫法」與「中間行沒對上就拆散面板」兩個缺陷,已修);更多截圖(武器 / 珠寶、折行、其他解析度)請放同目錄再跑 `node scripts/ocr-fixture.mjs`。
+- 遊戲顯示的寫法不一定是 `text.zh`(`技能增加#%精魂保留效用`),比對同時用 `text.zhVariants`(產生規則 8)。
 
 ## 相關文件
 

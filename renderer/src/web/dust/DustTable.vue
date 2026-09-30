@@ -1,9 +1,11 @@
 <!--
   拆粉排行表(WP-B):表頭可點排序 + 虛擬捲動(做法同 regex/RegexList.vue:列高依字級算成整數 px、每列釘死,
-  只畫可見範圍 ± OVERSCAN)。面板寬只有 ~460px(overlay 固定寬),所以每列兩行:
+  只畫可見範圍 ± OVERSCAN)。每列兩行(設定視窗窄版 / 上方分頁版面也要放得下):
     第一行 ★ 名稱(介面語言)| dust | 價格 | 效率(粗體,依選項指標)| 動作
     第二行 另一語言名稱 · 基底 · gold · 格數 · 催化劑註記 · 低信心 ⚠
-  動作:交易站 ↗(目前區服的 /trade/search,`?q=` 帶 name/type/ilvl/腐化/掛單時間)、poe.ninja ↗、隱藏 / 取消隱藏。
+  表格寬 ≥ 600px(設定視窗右側內容區,container query)時數值欄與間距放寬,名稱欄吃掉其餘寬度。
+  動作:交易站 ↗(目前區服的 /trade/search,`?q=` 帶 name/type/ilvl/腐化/掛單時間;走 ../trade-site.ts 的 openTradeSite,
+  與查價「交易」鈕同一條路 = 系統預設瀏覽器)、poe.ninja ↗(Host.openExternal)、隱藏 / 取消隱藏。
 -->
 <template>
   <section class="dust-table" data-dust="table">
@@ -68,12 +70,13 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, inject, onBeforeUnmount, ref, shallowRef, watch, type PropType } from 'vue'
+import { computed, defineComponent, onBeforeUnmount, ref, shallowRef, watch, type PropType } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { RankedDust } from '@exile-appraiser/core/dust'
 import { AppConfig } from '@/web/Config'
 import { Host } from '@/web/background/IPC'
 import { displayRounding, usePoeninja } from '@/web/background/Prices'
+import { openTradeSite } from '@/web/trade-site'
 import { useDustStore, type SortKey } from './store'
 
 const OVERSCAN = 6
@@ -87,7 +90,6 @@ export default defineComponent({
     const store = useDustStore()
     const ninja = usePoeninja()
     const config = AppConfig()
-    const openBuiltin = inject<((url: string) => void) | null>('builtin-browser', null)
     const scroller = ref<HTMLElement | null>(null)
     const scrollTop = shallowRef(0)
     const viewH = shallowRef(360)
@@ -164,8 +166,9 @@ export default defineComponent({
       const url = store.tradeUrl(r)
       store.lastTradeUrl.value = url
       console.log(`[dust] 交易站 ${url}`)
-      if (openBuiltin) openBuiltin(url)
-      else void Host.openExternal(url)
+      // 與查價「交易」鈕同一條路(系統預設瀏覽器,使用者已登入);以前走 inject('builtin-browser') = Host.openCaptcha,
+      // 會開一個沒有登入狀態的 Electron 視窗
+      openTradeSite(url)
     }
     function openNinja (r: RankedDust) {
       const url = store.ninjaUrl(r)
@@ -209,6 +212,8 @@ export default defineComponent({
   border-radius: var(--radius-m);
   background: var(--surface-1);
   overflow: hidden;
+  container-type: inline-size;
+  container-name: dust-table;
 }
 .dust-table .dt-head,
 .dust-table .dt-row {
@@ -333,5 +338,27 @@ export default defineComponent({
 }
 .dust-table .dt-act .btn {
   padding: 0 4px;
+}
+/* 寬(設定視窗右側內容區):數值欄與間距放寬,名稱欄吃掉其餘寬度 */
+@container dust-table (min-width: 600px) {
+  .dust-table .dt-head,
+  .dust-table .dt-row {
+    grid-template-columns: 20px minmax(0, 1fr) 7em 5em 5em auto;
+    column-gap: 10px;
+    padding: 0 10px;
+  }
+  .dust-table .dt-sub { gap: 8px; }
+  .dust-table .dt-act { gap: 2px; }
+  .dust-table .dt-act .btn { padding: 0 6px; }
+}
+/* 窄(window 模式預設 480px 寬的設定視窗):數值欄與間距收緊,把寬度讓給名稱 */
+@container dust-table (max-width: 479px) {
+  .dust-table .dt-head,
+  .dust-table .dt-row {
+    grid-template-columns: 16px minmax(0, 1fr) 5.6em 3.9em 3.9em auto;
+    column-gap: 4px;
+    padding: 0 4px;
+  }
+  .dust-table .dt-act .btn { padding: 0 3px; }
 }
 </style>

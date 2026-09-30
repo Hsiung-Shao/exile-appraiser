@@ -1,0 +1,23 @@
+Item Class: Body Armours
+Rarity: Unique
+The Auspex
+Exquisite Vest
+--------
+Evasion Rating: 1475 (augmented)
+--------
+Requires: Level 65, 242 Dex
+--------
+Item Level: 84
+--------
+227% increased Evasion Rating
++75 to maximum Life
+100% increased Attribute Requirements
+Chance to Deflect is Lucky while on Low Life
+Enemies in your Presence gain 1 Gruelling Madness each second
+Raven-Touched
+--------
+"The boy is a bad omen," he cried. "Ravens gather
+before him!" That night, a new raven appeared, and
+shadowed the Auspex for the rest of his days.
+--------
+Note: ~b/o 10 exalted

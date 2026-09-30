@@ -29,6 +29,8 @@ const common = {
   platform: 'node',
   target: 'node20',
   external: ['electron', 'uiohook-napi', 'electron-overlay-window'],
+  // WP-S:main/src/ocr/win-ocr.ps1 以字串內嵌(scripts/ocr-fixture.mjs 讀同一個檔)
+  loader: { '.ps1': 'text' },
   define: {
     'process.env.VITE_DEV_SERVER_URL': isDev ? '"http://localhost:5173"' : 'null'
   }

@@ -13,7 +13,7 @@ const POOL_KEY: Record<string, string> = {
   desecration_exclusive_jewel: "ppz.desecration.pool_exclusive_jewel",
 };
 
-/** 詞綴池名:三神專屬顯示神名(烏拉曼 / 阿瑪納姆 / 庫爾加),其餘顯示「一般」/「深淵珠寶專屬」 */
+/** 詞綴池名:三神專屬顯示神名(烏拉曼 / 阿姆那姆 / 柯戈),其餘顯示「一般」/「深淵珠寶專屬」 */
 export function poolLabel(
   c: Pick<DesecrationCandidate, "pool" | "gods">,
   t: Translate,

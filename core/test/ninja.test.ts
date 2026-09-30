@@ -143,7 +143,10 @@ describe('fetchAll(PoE1 錄製檔)', () => {
 
   it('快照:toSnapshot → JSON → parseSnapshot 往返', () => {
     const snap = toSnapshot(result)
-    expect(snap.schema).toBe(1)
+    expect(snap.schema).toBe(2)
+    // WP-R2:PoE1 沒有 exalted 匯率
+    expect(result.exaltedRate).toBeUndefined()
+    expect(snap.exaltedRate).toBeNull()
     expect(snap.prices['unique|Sundance|Clasped Boots']).toEqual({ c: 1, n: 97, lc: false, id: 'sundance-clasped-boots', t: 'UniqueArmour' })
     const back = parseSnapshot(JSON.stringify(snap), 'poe1', LEAGUE)
     expect(back).toEqual(snap)
@@ -193,7 +196,11 @@ describe('解析規則(合成回應)', () => {
     expect(chaosFactor({ lines: [] })).toEqual({ factor: 1 })
     expect(chaosFactor({ core: { primary: 'chaos', rates: { divine: 0.005 } } })).toEqual({ factor: 1, chaosPerDivine: 200 })
     expect(chaosFactor({ core: { primary: 'divine', rates: {} } })).toEqual({ factor: 0 })
-    expect(chaosFactor({ core: { primary: 'exalted', rates: { chaos: 3, divine: 0.1 } } })).toEqual({ factor: 3, chaosPerDivine: 30 })
+    // WP-R2:primary 是 exalted → 1 ex = factor chaos
+    expect(chaosFactor({ core: { primary: 'exalted', rates: { chaos: 3, divine: 0.1 } } })).toEqual({ factor: 3, chaosPerDivine: 30, chaosPerExalted: 3 })
+    // WP-R2:primary divine + rates.exalted → 1 ex = rates.chaos / rates.exalted;primary chaos + rates.exalted → 1 / rates.exalted
+    expect(chaosFactor({ core: { primary: 'divine', rates: { chaos: 10, exalted: 400 } } })).toEqual({ factor: 10, chaosPerDivine: 10, chaosPerExalted: 0.025 })
+    expect(chaosFactor({ core: { primary: 'chaos', rates: { exalted: 4 } } })).toEqual({ factor: 1, chaosPerDivine: undefined, chaosPerExalted: 0.25 })
     expect(() => parseExchangeOverview({ core: { primary: 'divine', rates: {} }, lines: [] }, 'Currency')).toThrow()
   })
 
@@ -240,7 +247,7 @@ describe('解析規則(合成回應)', () => {
 })
 
 describe('快取與 TTL', () => {
-  const snap: NinjaSnapshot = { schema: 1, game: 'poe1', league: 'Hardcore Allflame', fetchedAt: 1_000_000, divineRate: 300, prices: { 'currency|Divine Orb': { c: 300, n: 0, lc: false, t: 'Currency' } } }
+  const snap: NinjaSnapshot = { schema: 2, game: 'poe1', league: 'Hardcore Allflame', fetchedAt: 1_000_000, divineRate: 300, exaltedRate: null, prices: { 'currency|Divine Orb': { c: 300, n: 0, lc: false, t: 'Currency' } } }
 
   it('isFresh:15 分鐘內為新鮮', () => {
     expect(NINJA_CACHE_TTL_MS).toBe(15 * 60 * 1000)
@@ -257,7 +264,13 @@ describe('快取與 TTL', () => {
     expect(await cache.load('poe1', 'Hardcore Allflame')).toEqual(snap)
     expect(await cache.load('poe2', 'Hardcore Allflame')).toBeNull()
     expect(await cache.load('poe1', 'Allflame')).toBeNull()
-    expect(parseSnapshot(JSON.stringify({ ...snap, schema: 2 }), 'poe1', 'Hardcore Allflame')).toBeNull()
+    // WP-R2:schema 1(沒有 exaltedRate 的舊快取)與未來的 schema 3 一律丟棄
+    expect(parseSnapshot(JSON.stringify({ ...snap, schema: 1 }), 'poe1', 'Hardcore Allflame')).toBeNull()
+    expect(parseSnapshot(JSON.stringify({ ...snap, schema: 3 }), 'poe1', 'Hardcore Allflame')).toBeNull()
+    // 使用者 userData 裡 WP-R2 之前寫的真實舊快取格式(schema 1、沒有 exaltedRate)
+    const legacy = '{"schema":1,"game":"poe2","league":"Forbidden Rites","fetchedAt":1790668051310,"divineRate":8.18,"prices":{"currency|Exalted Orb":{"c":0.01590192,"n":0,"lc":false,"t":"Currency","id":"exalted-orb"}}}'
+    expect(parseSnapshot(legacy, 'poe2', 'Forbidden Rites')).toBeNull()
+    expect(await cache.load('poe1', 'Allflame')).toBeNull()
     expect(parseSnapshot('{broken', 'poe1', 'Hardcore Allflame')).toBeNull()
     expect(parseSnapshot(JSON.stringify({ ...snap, prices: {} }), 'poe1', 'Hardcore Allflame')).toBeNull()
   })
@@ -269,5 +282,126 @@ describe('快取與 TTL', () => {
     expect(ninjaLeagueSlug('Hardcore Allflame')).toBe('allflamehc')
     expect(ninjaLeagueSlug('Standard')).toBe('standard')
     expect(ninjaLeagueSlug('Hardcore')).toBe('hardcore')
+  })
+})
+
+// ---- WP-R2:PoE2 exchange 真實回應(recordings/ninja/poe2/,2026-09-30 Forbidden Rites;格式說明見 docs/ninja-poe2.md) ----
+describe('PoE2 exchange 錄製檔', () => {
+  const DIR2 = path.join(DIR, 'poe2')
+  const LEAGUE2 = 'Forbidden Rites'
+  const TYPES2 = ['Runes', 'SoulCores', 'UncutGems', 'Currency']
+  const read2 = (file: string) => fs.readFileSync(path.join(DIR2, file), 'utf8')
+  const doc = (type: string) => JSON.parse(read2(`exchange_${type}.json`))
+  /** 以錄製檔回應;沒錄的類別 404(只算 failedTypes) */
+  const http2: HttpFetch = async (url) => {
+    const u = new URL(url)
+    expect(u.pathname).toBe('/poe2/api/economy/exchange/current/overview')
+    expect(u.searchParams.get('league')).toBe(LEAGUE2)
+    const file = `exchange_${u.searchParams.get('type')}.json`
+    if (!fs.existsSync(path.join(DIR2, file))) return response(404, 'not found')
+    return response(200, read2(file))
+  }
+  /** 七個類別同一次錄製,匯率相同:1 div = 610.9 ex = 9.61 c */
+  const RATE_CHAOS = 9.61
+  const RATE_EXALTED = 610.9
+  /** WP-R2 §2:符文塑形面板實際出現的合金 / 熔劑 / 傳承輔助寶石 */
+  const TYPES2_LATER = ['Verisium', 'Expedition', 'LineageSupportGems']
+
+  it('_meta.json:七個類別各一個原樣回應', () => {
+    const meta = JSON.parse(read2('_meta.json'))
+    expect(meta.game).toBe('poe2')
+    expect(meta.league).toBe(LEAGUE2)
+    expect(Object.keys(meta.files).sort()).toEqual([...TYPES2, ...TYPES2_LATER].map(t => `exchange_${t}.json`).sort())
+    for (const [file, info] of Object.entries<{ url: string, status: number, bytes: number }>(meta.files)) {
+      expect(info.url).toMatch(/^https:\/\/poe\.ninja\/poe2\/api\/economy\/exchange\/current\/overview\?league=Forbidden%20Rites&type=/)
+      expect(info.status).toBe(200)
+      expect(Buffer.byteLength(read2(file))).toBe(info.bytes)
+    }
+  })
+
+  it('回應格式:core 以 divine 計價、rates 有 exalted / chaos;lines 與 items 以字串 id 對接', () => {
+    for (const type of [...TYPES2, ...TYPES2_LATER]) {
+      const d = doc(type)
+      const rates = { exalted: RATE_EXALTED, chaos: RATE_CHAOS }
+      expect(Object.keys(d).sort()).toEqual(['core', 'items', 'lines'])
+      expect(d.core).toMatchObject({ primary: 'divine', secondary: 'chaos', rates })
+      expect(d.core.items.map((i: { id: string }) => i.id)).toEqual(['divine', 'exalted', 'chaos'])
+      expect(d.lines.every((l: { id: unknown }) => typeof l.id === 'string')).toBe(true)
+      const ids = new Set(d.items.map((i: { id: string }) => i.id))
+      expect(d.lines.every((l: { id: string }) => ids.has(l.id))).toBe(true)
+    }
+  })
+
+  it('chaosFactor:1 divine = 9.61c、1 exalted = 9.61 / 610.9 c', () => {
+    const f = chaosFactor(doc('Runes'))
+    expect(f.factor).toBe(RATE_CHAOS)
+    expect(f.chaosPerDivine).toBe(RATE_CHAOS)
+    expect(f.chaosPerExalted).toBeCloseTo(RATE_CHAOS / RATE_EXALTED, 12)
+  })
+
+  it('解析:每一列都收(價 = primaryValue × 9.61),鍵 currency|<英文名>', () => {
+    for (const type of TYPES2) {
+      const d = doc(type)
+      const parsed = parseExchangeOverview(d, type)
+      expect(parsed.lines).toHaveLength(d.lines.length)
+      expect(parsed.chaosPerExalted).toBeCloseTo(RATE_CHAOS / RATE_EXALTED, 12)
+      expect(parsed.lines.every(l => l.key.startsWith('currency|') && l.type === type && l.count === 0)).toBe(true)
+    }
+    const runes = parseExchangeOverview(doc('Runes'), 'Runes')
+    expect(runes.lines.find(l => l.key === "currency|Aldur's Legacy")).toMatchObject({ chaos: 385.3 * RATE_CHAOS, detailsId: 'aldurs-legacy' })
+    // 0.001637 divine ≈ 1 exalted(同 Currency 的 exalted 列;0.001637 × 610.9 = 1.0000433)
+    expect(runes.lines.find(l => l.key === 'currency|Ancient Rune of Control')!.chaos / (RATE_CHAOS / RATE_EXALTED)).toBeCloseTo(1.0000433, 5)
+    const cores = parseExchangeOverview(doc('SoulCores'), 'SoulCores')
+    expect(cores.lines.find(l => l.key === "currency|Atziri's Soul Core of Alacrity")?.chaos).toBeCloseTo(0.3056 * RATE_CHAOS, 10)
+  })
+
+  it('WP-R2 §2:合金在 Verisium、奇術熔劑在 Expedition(名稱帶等級,錄製時有 13~20 級);符文技能寶石不在 LineageSupportGems', () => {
+    const ver = parseExchangeOverview(doc('Verisium'), 'Verisium')
+    expect(ver.lines.find(l => l.key === 'currency|Adaptive Alloy')).toMatchObject({ chaos: 0.08164 * RATE_CHAOS, detailsId: 'adaptive-alloy' })
+    const exp = parseExchangeOverview(doc('Expedition'), 'Expedition')
+    const flux = exp.lines.map(l => l.key).filter(k => k.startsWith('currency|Thaumaturgic Flux')).sort()
+    expect(flux).toEqual([13, 14, 15, 16, 17, 18, 19, 20].map(n => `currency|Thaumaturgic Flux (Level ${n})`))
+    const lineage = parseExchangeOverview(doc('LineageSupportGems'), 'LineageSupportGems').lines.map(l => l.key)
+    for (const n of ['Conductive Runes', 'Concussive Runes', 'Repulsion', 'Frostflame Nova']) expect(lineage).not.toContain(`currency|${n}`)
+  })
+
+  it('未切割寶石:名稱帶等級 `Uncut Skill Gem (Level 20)`,每個等級一列', () => {
+    const gems = parseExchangeOverview(doc('UncutGems'), 'UncutGems')
+    const keys = gems.lines.map(l => l.key)
+    expect(keys).toContain('currency|Uncut Skill Gem (Level 20)')
+    expect(keys).toContain('currency|Uncut Spirit Gem (Level 20)')
+    expect(keys).toContain('currency|Uncut Support Gem (Level 5)')
+    expect(keys.every(k => /^currency\|Uncut (Skill|Spirit|Support) Gem \(Level \d+\)$/.test(k))).toBe(true)
+    expect(gems.lines.find(l => l.key === 'currency|Uncut Skill Gem (Level 20)')).toMatchObject({ chaos: 6.27 * RATE_CHAOS, detailsId: 'uncut-skill-gem-level-20' })
+  })
+
+  it('fetchAll:divineRate / exaltedRate 取 core;Exalted Orb 列與匯率一致;快照 schema 2 往返', async () => {
+    const client = createNinjaClient({ http: http2, game: 'poe2', league: LEAGUE2, sleep: async () => {}, now: () => 5 })
+    const r = await client.fetchAll({ exchange: TYPES2, item: [] })
+    expect(r.fetchedTypes).toEqual(TYPES2)
+    expect(r.divineRate).toBe(RATE_CHAOS)
+    expect(r.exaltedRate).toBeCloseTo(RATE_CHAOS / RATE_EXALTED, 12)
+    // Currency 的 Exalted Orb 列 = 0.001637 divine;與 core 匯率差 < 0.1%
+    expect(r.prices.get('currency|Exalted Orb')!.chaos / r.exaltedRate!).toBeCloseTo(1, 3)
+    expect(r.prices.get('currency|Chaos Orb')).toMatchObject({ chaos: 1 })
+    const snap = toSnapshot(r)
+    expect(snap).toMatchObject({ schema: 2, game: 'poe2', league: LEAGUE2, divineRate: RATE_CHAOS })
+    expect(snap.exaltedRate).toBeCloseTo(RATE_CHAOS / RATE_EXALTED, 12)
+    expect(parseSnapshot(JSON.stringify(snap), 'poe2', LEAGUE2)).toEqual(snap)
+    expect(lookupPrice(snap, { ns: 'ITEM', name: "Aldur's Legacy" })?.entry.c).toBeCloseTo(385.3 * RATE_CHAOS, 10)
+  })
+
+  it('exaltedRate 後援:core 沒有 rates.exalted 時用 Exalted Orb 列(只限 PoE2)', async () => {
+    const body = JSON.stringify({
+      core: { primary: 'divine', rates: { chaos: 10 } },
+      items: [{ id: 'exalted', name: 'Exalted Orb' }],
+      lines: [{ id: 'exalted', primaryValue: 0.002 }]
+    })
+    const http: HttpFetch = async () => response(200, body)
+    const cats = { exchange: ['Currency'], item: [] }
+    const poe2 = await createNinjaClient({ http, game: 'poe2', league: 'X', sleep: async () => {} }).fetchAll(cats)
+    expect(poe2.exaltedRate).toBeCloseTo(0.02, 12)
+    const poe1 = await createNinjaClient({ http, game: 'poe1', league: 'X', sleep: async () => {} }).fetchAll(cats)
+    expect(poe1.exaltedRate).toBeUndefined()
   })
 })

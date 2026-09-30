@@ -9,6 +9,8 @@ import { inferDesecratedTiersWith, type DesecrationData } from "./infer";
 
 export * from "./types";
 export * from "./display";
+// WP-S:靈魂之井揭露面板 OCR 比對
+export * from "./ocr-match";
 export {
   inferDesecratedTiersWith,
   matchStats,
