@@ -18,6 +18,8 @@
   收到新物品關閉設定;OCR 框選開啟時隱藏設定,由設定開的框選結束後回到設定的熱鍵分頁(ocr-reveal.ts returnsToSettings)。
   overlayKey 叫出 overlay 時畫面上有符文塑形徽章 → 不開設定,改進「徽章可點模式」(overlay/runeshape-view.ts `runeshapeClickMode`,
   點無 ninja 價的列查交易站);overlay 失焦 / 收到新物品 / 開設定即結束。沒有徽章時行為不變。
+  按住 Alt 讓路(main OverlayVisibility → hideUI):設定開著、熱鍵擷取欄取得焦點、框選中不隱藏
+  (settings/hotkey-capture.ts `hideOverlayForAlt`);查價面板(快速 / 鎖定)與符文塑形徽章照舊隱藏。
 -->
 <template>
   <div id="app" class="font-ui text-ink-0"
@@ -182,6 +184,7 @@ import { REALMS, isSupportedCombination } from '@exile-appraiser/core/realm'
 import { reloadPhase, reloadError, retryReload } from './loadState'
 import { reportIssue, copyIssueReport, reportStatus, type ReportContext } from './report'
 import { settingsTab } from './settings/tabState'
+import { hideOverlayForAlt, hotkeyCaptureActive } from './settings/hotkey-capture'
 
 /** APT 的面板寬 28.75rem(rem 當時 = 16px → 460px)。 */
 const PANEL_WIDTH_EM = 28.75
@@ -497,8 +500,14 @@ export default defineComponent({
       panelWidth,
       rootStyle: computed(() => ({
         '--game-panel': `${gamePanel.value}px`,
-        // WP-S2:框選中忽略 Alt 隱藏(拖到一半不能消失)
-        visibility: hideUI.value && !regionPickerOpen.value ? 'hidden' as const : undefined
+        // 按住 Alt 讓路;框選中(WP-S2,拖到一半不能消失)、設定開著、擷取熱鍵時不隱藏
+        // (visibility: hidden 會讓取得焦點的擷取欄失焦,Ctrl+Alt+D 這類組合收不到)
+        visibility: hideOverlayForAlt({
+          hideRequested: hideUI.value,
+          settingsVisible: settingsVisible.value,
+          regionPickerOpen: regionPickerOpen.value,
+          hotkeyCapturing: hotkeyCaptureActive.value
+        }) ? 'hidden' as const : undefined
       })),
       hotkeyLabel: computed(() => {
         const c = AppConfig()

@@ -1,10 +1,14 @@
 <!--
   exile-appraiser: 熱鍵擷取欄。移植自 apt-patched `renderer/src/web/settings/HotkeyInput.vue`(MIT):
-  keyup 時把 e.code 轉成 APT 的熱鍵字串(`Ctrl + Shift + F`,ipc/KeyToCode 的 hotkeyToString),
+  把 e.code 轉成 APT 的熱鍵字串(`Ctrl + Shift + F`,ipc/KeyToCode 的 hotkeyToString),
   F12 保留給開發者工具不收。改動:
   - Backspace / Delete / Esc 清除(上游只有 Backspace);`required` 時不清除
   - 樣式改 pobtools 的 .input(置中、等寬),空值時 placeholder 用 --bad 提示
   - `noModKeys`:只收單鍵(快速查價的主鍵;修飾鍵另由「按住」下拉決定)
+  - 在非修飾鍵 keydown 時組字串(上游是 keyup:先放開 Alt 再放開 D 會變 `Ctrl + D`);keyup 只補沒有 keydown 的鍵
+    (PrintScreen)。純邏輯在 hotkey-capture.ts。
+  - keydown / keyup 一律 preventDefault:單按 Alt 不讓 Electron 切選單列、不進 Windows 選單模式
+  - 取得焦點時設 `hotkeyCaptureActive`:App.vue 擷取中不因按住 Alt 隱藏 overlay(否則欄位失焦收不到 Ctrl+Alt+D)
 -->
 <template>
   <input
@@ -14,14 +18,16 @@
     :value="modelValue || ''"
     :placeholder="modelValue || t('ppz.hotkey_none')"
     :title="t('ppz.hotkey_capture_hint')"
+    @keydown="handleKeydown"
     @keyup="handleKeyup"
-    @keydown.prevent>
+    @focus="onFocus"
+    @blur="onBlur">
 </template>
 
 <script lang="ts">
-import { defineComponent, type PropType } from 'vue'
+import { defineComponent, onUnmounted, type PropType } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { KeyToCode, hotkeyToString } from '@ipc/KeyToCode'
+import { hotkeyCaptureActive, isClearKey, keyEventToHotkey } from './hotkey-capture'
 
 export default defineComponent({
   emits: ['update:modelValue'],
@@ -41,38 +47,46 @@ export default defineComponent({
   },
   setup (props, ctx) {
     const { t } = useI18n()
+    /** 已在 keydown 處理過的鍵(keyup 時略過) */
+    const handledDown = new Set<string>()
+    let focused = false
+
+    function apply (e: KeyboardEvent) {
+      if (isClearKey(e.code)) {
+        if (!props.required) ctx.emit('update:modelValue', '')
+        return
+      }
+      const hotkey = keyEventToHotkey(e, props.noModKeys)
+      if (hotkey) ctx.emit('update:modelValue', hotkey)
+    }
+
+    function release () {
+      handledDown.clear()
+      if (focused) {
+        focused = false
+        hotkeyCaptureActive.value = false
+      }
+    }
+    onUnmounted(release)
 
     return {
       t,
+      handleKeydown (e: KeyboardEvent) {
+        e.preventDefault()
+        handledDown.add(e.code)
+        apply(e)
+      },
       handleKeyup (e: KeyboardEvent) {
         e.preventDefault()
         e.stopPropagation()
-
-        if (e.code === 'Backspace' || e.code === 'Delete' || e.code === 'Escape') {
-          if (!props.required) {
-            ctx.emit('update:modelValue', '')
-          }
-          return
-        }
-
-        let { code } = e
-        const { ctrlKey, shiftKey, altKey } = e
-
-        if (code.startsWith('Key')) {
-          code = code.slice('Key'.length)
-        } else if (code.startsWith('Digit')) {
-          code = code.slice('Digit'.length)
-        } else if (e.key === 'Cancel' && code === 'Pause') {
-          code = 'Cancel'
-        }
-
-        if ((KeyToCode as Record<string, number>)[code]) {
-          code = hotkeyToString([code], ctrlKey, shiftKey, altKey)
-          if (code.includes('F12')) return
-          if (props.noModKeys && code.includes('+')) return
-          ctx.emit('update:modelValue', code)
-        }
-      }
+        if (handledDown.delete(e.code)) return
+        apply(e)
+      },
+      onFocus () {
+        focused = true
+        hotkeyCaptureActive.value = true
+      },
+      onBlur: release
     }
   }
 })
