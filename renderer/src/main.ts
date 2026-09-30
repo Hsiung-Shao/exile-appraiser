@@ -10,7 +10,7 @@ import * as Poe2 from '@poe2-entry'
 import type { Game, Language } from '@exile-appraiser/core/realm'
 import type { TradeContext } from '@exile-appraiser/core/games/adapter'
 import { loadedGame } from './web/games/active'
-import { useTheme } from './web/useTheme'
+import { bgImageUrl, useBackground, useTheme } from './web/useTheme'
 import { runReload } from './web/loadState'
 
 /** 載入某個遊戲的資料集(每個 adapter 各自持有模組層級資料;切回來時語言沒變就是 no-op)。 */
@@ -51,6 +51,9 @@ async function boot () {
   await initConfig()
   // 外觀(data-theme / --fs-base / 強調色)先套,載資料期間畫面就是正確主題
   useTheme(() => AppConfig())
+  // 自訂背景圖(查價面板與設定視窗內的 .bgimg 層;overlay 其他區域維持透明)
+  useBackground(() => AppConfig().bg,
+    file => bgImageUrl(file, { electron: Host.isElectron, preview: Host.isPreview, baseURI: document.baseURI }))
   // 介面字串跟 uiLanguage;資料集跟 language(客戶端語言)
   const i18nPlugin = await I18n.init(AppConfig().uiLanguage, AppConfig().game)
   await loadGameData(AppConfig().game, AppConfig().language)

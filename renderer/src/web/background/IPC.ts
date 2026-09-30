@@ -153,6 +153,11 @@ class HostTransport {
   get canQuit (): boolean { return !this.isPreview && typeof window.host?.appQuit === 'function' }
   async appQuit (): Promise<void> { if (this.canQuit) await window.host?.appQuit?.() }
 
+  /** 自訂背景圖:只有 Electron 視窗能開檔案對話框(預覽 / 純瀏覽器沒有) */
+  get canPickBg (): boolean { return !this.isPreview && typeof window.host?.bgPick === 'function' }
+  /** 檔案對話框選圖 → main 複製到 userData/backgrounds → 檔名;取消 / 失敗 / 不支援 → null */
+  async bgPick (): Promise<string | null> { return this.canPickBg ? (await window.host?.bgPick?.()) ?? null : null }
+
   // ---- 自動更新(main/src/AppUpdater.ts)。純瀏覽器沒有更新器:一律「不支援」。 ----
   async getUpdaterInfo (): Promise<UpdaterInfo> {
     if (window.host) return window.host.getUpdaterInfo()

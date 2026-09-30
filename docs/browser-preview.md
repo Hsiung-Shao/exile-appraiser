@@ -55,6 +55,7 @@ npm run dev:main -- --window --preview --no-updates    # log 印預覽網址
 | DNS rebinding(惡意網域解析到 127.0.0.1) | `Host` 標頭必須**正好**是 `127.0.0.1:<port>`,否則 421(`localhost:<port>` 也拒) |
 | 其他網頁跨站 POST `~rpc` | 帶 `Origin` 且不是本伺服器 origin → 403;且仍需 token |
 | 路徑穿越 | 與 `app://` 相同的 `path.normalize` + 根目錄前綴檢查;`%00`、壞的百分比編碼一律拒 |
+| 自訂背景圖 `<prefix>bg/<檔名>`(2026-10-01) | 同樣在 token 之後;與 `app://bg/` 共用 `main/src/backgrounds.ts` `resolveBgPath`:只准 png / jpg / jpeg / webp、檔名不含路徑字元、解析後必須正好在 `userData/backgrounds/`,其餘一律 404。選圖(`bg-pick`,檔案對話框)`preview: false`,預覽端只能看不能選 |
 | 伺服器常駐 | 曾連線後 20 秒沒有任何 SSE 連線、或啟動 180 秒都沒人連 → 自動關閉並記 log(可從托盤 / 設定頁再開,會換新 token 與埠) |
 
 RPC 能做的事與 Electron renderer 相同(沒有更多權限):`http-fetch` 仍受 `main/src/http.ts` 的 `ALLOWED_HOSTS` 限制。

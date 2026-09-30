@@ -9,6 +9,7 @@
  * - `Host` 標頭必須正好是 `127.0.0.1:<port>`,否則 421(擋 DNS rebinding);
  * - 帶 `Origin` 的請求必須是本伺服器的 origin,否則 403(擋其他網頁跨站 POST);
  * - 靜態檔與 `app://` 相同的根目錄與防穿越規則。
+ * - 自訂背景圖 `<prefix>bg/<檔名>`(同樣在 token 之後):與 `app://bg/` 同一支 `resolveBgPath`(只准 png / jpg / webp、不跳出資料夾)。
  *
  * 協定(boot script 產生的 `window.host` shim 用):
  * - `POST ~rpc` `{id, cid, method, args}` → 202;結果之後從 SSE 回 `{id, result}` 或 `{id, error:{message}}`(只送給該 cid)。
@@ -21,6 +22,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import crypto from 'node:crypto'
 import type { AddressInfo, Socket } from 'node:net'
+import { bgContentType, bgFileFromPath, resolveBgPath } from './backgrounds'
 
 export interface PreviewCtx { source: 'preview', clientId: string }
 export type PreviewHandler = (ctx: PreviewCtx, ...args: any[]) => unknown
@@ -75,6 +77,8 @@ export const PREVIEW_NOOP_SYNC = ['trackArea', 'focusGame', 'usedRecently', 'run
 export interface PreviewServerOptions {
   /** 靜態檔根目錄(與 `app://` 相同:打包後是 app 根目錄,開發模式是 renderer/dist)。 */
   staticRoot: string
+  /** 自訂背景圖資料夾(`userData/backgrounds`);`<prefix>bg/<檔名>` 供應,與 `app://bg/` 同一套檔名 / 防穿越規則。省略 = 沒有這條路由 */
+  bgDir?: string
   /** channel → handler(只含開放給預覽端的)。 */
   handlers: Readonly<Record<string, PreviewHandler>>
   version: string
@@ -359,6 +363,28 @@ export async function startPreviewServer (opts: PreviewServerOptions): Promise<P
     res.end(headOnly ? undefined : body)
   }
 
+  /** 自訂背景圖(token 之後的 `bg/<檔名>`;檔名不合法 / 跳出資料夾 / 不存在一律 404) */
+  const serveBg = async (res: http.ServerResponse, rest: string, headOnly: boolean) => {
+    const name = opts.bgDir ? bgFileFromPath(rest.slice('bg/'.length)) : null
+    const file = name == null || !opts.bgDir ? null : resolveBgPath(opts.bgDir, name)
+    if (!file) return respond(res, 404, 'not found')
+    let data: Buffer
+    try {
+      const st = await fs.stat(file)
+      if (!st.isFile()) return respond(res, 404, 'not found')
+      data = await fs.readFile(file)
+    } catch {
+      return respond(res, 404, 'not found')
+    }
+    res.writeHead(200, {
+      'Content-Type': bgContentType(file),
+      'Content-Length': data.length,
+      'Cache-Control': 'no-cache',
+      'X-Content-Type-Options': 'nosniff'
+    })
+    res.end(headOnly ? undefined : data)
+  }
+
   const server = http.createServer((req, res) => {
     if (closed) return respond(res, 503, 'closed')
     // Host 必須正好是本機位址(擋 DNS rebinding)
@@ -385,6 +411,7 @@ export async function startPreviewServer (opts: PreviewServerOptions): Promise<P
       return handleEvents(req, res, cid)
     }
     if (req.method !== 'GET' && req.method !== 'HEAD') return respond(res, 405, 'method not allowed')
+    if (rest.startsWith('bg/')) return void serveBg(res, rest, req.method === 'HEAD')
     void serveStatic(res, '/' + rest, req.method === 'HEAD')
   })
   server.on('connection', (sock) => {

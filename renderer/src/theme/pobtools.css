@@ -215,31 +215,60 @@
   --tree-line-lit: #5d4b33;
 }
 
-/* 背景圖(設定頁「背景」;App.svelte 的 .bgimg 層)。
-   html 底色是實色,圖畫在它上面,body 透明,頁面底色改由 .app 以面板透明度畫。
-   提示框(深色島)永遠實色,圖再亮也讀得清。 */
+/* 自訂背景圖(exile-appraiser 2026-10-01;設定 › 一般 › 背景,useTheme.ts 寫 data-bg 與 --bg-*)。
+   與 PobTools 不同:圖**只畫在查價面板(#price-window)與設定視窗裡**(容器加 .bg-host,第一個子元素是 BgLayer.vue 的
+   .bgimg + .bgtint),不畫整頁 —— overlay 是疊在遊戲上的透明全螢幕視窗,其他區域必須維持透明
+   (html.ppz-overlay 的透明底色不被這裡蓋掉;這裡不再設 :root[data-bg] 的 html 底色)。
+   面板不透明度只在 .bg-host 內生效(--panel-pct 由 --bg-panel-pct 帶入,表面色在這裡重算);
+   容器外(側邊限流鈕、OCR / 符文徽章)照舊實色。提示框(深色島)與彈出層永遠實色。 */
 :root {
   --panel-pct: 100%;
 }
-:root[data-bg] body {
-  background: transparent;
-}
-:root[data-bg] {
+/* window 模式(非 overlay):整個視窗就是 app,html 保持實色 */
+:root[data-bg]:not(.ppz-overlay) {
   background: var(--surface-0-c);
 }
-:root[data-bg] .view {
+:root[data-bg] .bg-host {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  --panel-pct: var(--bg-panel-pct, 100%);
+  --surface-0: color-mix(in srgb, var(--surface-0-c) var(--panel-pct), transparent);
+  --surface-1: color-mix(in srgb, var(--surface-1-c) var(--panel-pct), transparent);
+  --surface-2: color-mix(in srgb, var(--surface-2-c) var(--panel-pct), transparent);
+  --surface-3: color-mix(in srgb, var(--surface-3-c) var(--panel-pct), transparent);
+  --surface-hover: color-mix(in srgb, var(--surface-hover-c) var(--panel-pct), transparent);
+  --surface-active: color-mix(in srgb, var(--surface-active-c) var(--panel-pct), transparent);
+}
+.bgimg,
+.bgtint {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+.bgimg {
+  background: var(--bg-image, none) center / cover no-repeat var(--surface-0-c);
+  filter: brightness(var(--bg-bright, 1)) blur(var(--bg-blur, 0px));
+  /* 模糊會把邊緣往內吃,放大一點點把它推到框外 */
+  transform: scale(1.04);
+}
+/* 圖上面一層面板底色(面板不透明度):讓文字讀得清 */
+.bgtint {
   background: var(--surface-0);
 }
-/* 天賦樹自己畫底(TreeView 依「天賦樹底圖」透明度),不再疊一層頁面底色 */
-:root[data-bg] .view:has(.stage) {
-  background: transparent;
+:root[data-bg] .bg-host > .bgimg,
+:root[data-bg] .bg-host > .bgtint {
+  display: block;
 }
 /* Pop-up layers stay solid too: a dialog, menu or floating panel at the panel
    opacity blends into the page it covers and reads as one mess (the minion
    library over the Config tab). .modal is every dialog's backdrop, so its
-   dialog box and everything inside inherit the solid set from it. */
+   dialog box and everything inside inherit the solid set from it.
+   exile-appraiser:設定視窗本身是 role="dialog" 且是 .bg-host,排除(它就是要透出背景的容器)。 */
 :root[data-bg] .pob-dark,
-:root[data-bg] :is(.modal, .float, .drop, .menu, .linkveil, [role="dialog"], [role="menu"], [role="listbox"]) {
+:root[data-bg] :is(.modal, .float, .drop, .menu, .linkveil, [role="dialog"], [role="menu"], [role="listbox"]):not(.bg-host) {
   --panel-pct: 100%;
   --surface-0: var(--surface-0-c);
   --surface-1: var(--surface-1-c);

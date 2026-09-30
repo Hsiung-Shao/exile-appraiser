@@ -17,7 +17,7 @@ import { REALMS, useEnglishNames, type Game, type Language, type Realm } from '@
 import type { PriceCheckWidget } from './overlay/interfaces'
 import type { HostConfigForMain, HotkeyRegistration, OcrRegion } from '@ipc/types'
 import { Host } from './background/IPC'
-import { clampFsBase, normAccent, normTheme, DEFAULT_FS_BASE, type Theme } from './useTheme'
+import { BG_DEFAULT, clampFsBase, normAccent, normBg, normTheme, DEFAULT_FS_BASE, type BgSettings, type Theme } from './useTheme'
 
 /** 介面字串語言(與客戶端語言 `language` 分開)。 */
 export type UiLanguage = 'cmn-Hant' | 'en'
@@ -41,6 +41,8 @@ export interface Config {
   accent: string
   /** 基準字級 px(11–18,`--fs-base`);舊設定檔的 `fontSize: 16` → 13。 */
   fsBase: number
+  /** 2026-10-01:自訂背景圖(查價面板與設定視窗;useTheme.ts `BgSettings`)。 */
+  bg: BgSettings
   /** 聯盟選擇,依遊戲再依伺服器區分開存(舊版 `leagueByRealm` 讀檔時併入 `poe1`)。 */
   leagueBy: Record<Game, Partial<Record<Realm, string>>>
   accountName: string
@@ -171,6 +173,7 @@ function createConfig (): Config {
     theme: 'slate' as Theme,
     accent: '',
     fsBase: DEFAULT_FS_BASE,
+    bg: { ...BG_DEFAULT } as BgSettings,
     leagueBy: { poe1: {}, poe2: {} } as Record<Game, Partial<Record<Realm, string>>>,
     accountName: '',
     restoreClipboard: false,
@@ -232,7 +235,7 @@ function serialize (): string {
   const { configVersion, game, realm, language, uiLanguage, theme, accent, fsBase, leagueBy, accountName, restoreClipboard, priceCheck } = config
   const { hotkey, hotkeyHold, hotkeyLocked, overlayKey, windowTitleBy, autoSwitchGame, overlayMode, overlayBackgroundClose } = config
   return JSON.stringify({
-    configVersion, game, realm, language, uiLanguage, theme, accent, fsBase, leagueBy, accountName, restoreClipboard,
+    configVersion, game, realm, language, uiLanguage, theme, accent, fsBase, bg: config.bg, leagueBy, accountName, restoreClipboard,
     hotkey, hotkeyHold, hotkeyLocked, overlayKey, windowTitleBy, autoSwitchGame, overlayMode, overlayBackgroundClose,
     priceCheck,
     hotkeyOcrReveal: config.hotkeyOcrReveal, ocrRegion: config.ocrRegion, hotkeyOcrRegion: config.hotkeyOcrRegion,
@@ -279,6 +282,8 @@ function applyLoaded (raw: string) {
     : config.language
   config.theme = normTheme(loaded.theme)
   config.accent = normAccent(loaded.accent)
+  // 自訂背景圖:舊設定檔沒有 → 預設(沒選圖);檔名不合法(含路徑字元 / 非 png·jpg·webp)→ 清成 ''
+  config.bg = normBg(loaded.bg)
   // 字級:新欄位 fsBase;舊欄位 fontSize(px,套在 #app)16 = 舊預設 → 13 = 新預設,其他夾到 11–18
   if (typeof loaded.fsBase === 'number') {
     config.fsBase = clampFsBase(loaded.fsBase)

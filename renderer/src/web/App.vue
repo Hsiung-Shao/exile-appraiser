@@ -18,6 +18,8 @@
   收到新物品關閉設定;OCR 框選開啟時隱藏設定,由設定開的框選結束後回到設定的熱鍵分頁(ocr-reveal.ts returnsToSettings)。
   overlayKey(預設 Shift + Space)一律開設定(符文塑形徽章不可點;無 ninja 價的列由 RuneshapePrices.vue 自動查市集)。
   查價面板 / 設定開著時寫 `runeshapeTradeHold`(overlay/runeshape-view.ts)→ 自動查市集佇列暫停,限流額度讓給一般查價。
+  自訂背景圖(2026-10-01):#price-window 與設定視窗是 .bg-host,第一個子元素 BgLayer.vue(圖 + 面板底色層),只畫在容器內;
+  overlay 根元素與其他區域維持透明(theme/pobtools.css「自訂背景圖」)。
   2026-10-01 起沒有「按住 Alt 讓路」(APT OverlayVisibility 已移除):查價中按 Alt 不會藏任何 overlay 介面。
 -->
 <template>
@@ -31,9 +33,11 @@
       :class="isOverlay ? ['absolute', 'inset-0', 'flex', 'pointer-events-none', clickPosition === 'stash' ? 'flex-row' : 'flex-row-reverse'] : 'window-body'">
       <div v-if="isOverlay" class="layout-column shrink-0" style="width: var(--game-panel);" />
 
-      <div id="price-window" class="layout-column min-h-0 price-panel"
+      <div id="price-window" class="layout-column min-h-0 price-panel bg-host"
         :class="isOverlay ? 'is-overlay shrink-0 pointer-events-auto' : 'is-window grow'"
         :style="isOverlay ? { width: `${panelWidth}px` } : undefined">
+        <!-- 自訂背景圖(設定 › 一般 › 背景;只畫在面板裡,overlay 其他區域維持透明) -->
+        <bg-layer />
         <header class="titlebar" :style="isOverlay ? undefined : '-webkit-app-region: drag;'">
           <span class="brand"><i class="mark" />{{ t('ppz.title') }}</span>
           <span class="chip" data-badge="game">{{ gameBadge }}</span>
@@ -168,6 +172,7 @@ import * as Poe2 from '@poe2-entry'
 import { loadedGame } from './games/active'
 import { TRADE_PATHS } from '@exile-appraiser/core/realm'
 import UiErrorBox from '@/web/ui/UiErrorBox.vue'
+import BgLayer from './ui/BgLayer.vue'
 import SettingsWindow from './settings/SettingsWindow.vue'
 import OcrBadges from './overlay/OcrBadges.vue'
 import OcrRegionPicker from './overlay/OcrRegionPicker.vue'
@@ -193,7 +198,7 @@ const PANEL_WIDTH_EM = 28.75
 const LEGACY_FS_SCALE = 1.23
 
 export default defineComponent({
-  components: { UiErrorBox, SettingsWindow, OcrBadges, OcrRegionPicker, RuneshapePrices },
+  components: { UiErrorBox, BgLayer, SettingsWindow, OcrBadges, OcrRegionPicker, RuneshapePrices },
   setup () {
     const { t, te } = useI18n()
     const leagues = useLeagues()

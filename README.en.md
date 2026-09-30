@@ -44,7 +44,7 @@ A price checker for Path of Exile 1 and 2: hover an item in game, press a hotkey
 - **PoE1 and PoE2 in one app**: switches automatically based on which game window is in front.
 - **International and Taiwan realms**: both trade sites are supported; item text from Traditional Chinese and English clients is parsed.
 - **In-game overlay price check**: the panel appears over the game next to your cursor; a standalone window mode is also available.
-- **Separate interface language** (中文 / English), independent of the client language; four themes, accent colour and font size.
+- **Separate interface language** (中文 / English), independent of the client language; four themes, accent colour and font size; your own background image for the price panel and settings window (PNG / JPG / WebP, with brightness, panel opacity and frosted blur).
 - **Poe Regex search string builder**: tick mods or names to build a string for the in-game search bar; supports combining pages, bookmarks, share codes and templates.
 - **Disenchant ranking (PoE1)**: the price panel shows how much Thaumaturgic Dust a unique yields, plus a ranking of dust efficiency across all uniques.
 - **PoE2 desecrated mod tiers**: shows the tier reported by the game; when only plain copied text is available, the tier is inferred from PoB2 mod data and marked as inferred.

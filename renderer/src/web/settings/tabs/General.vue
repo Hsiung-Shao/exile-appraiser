@@ -1,4 +1,4 @@
-<!-- 設定 › 一般:介面(語言、主題、強調色、字級)與遊戲(遊戲、區服、客戶端語言、聯盟);最後一張卡是瀏覽器預覽。 -->
+<!-- 設定 › 一般:介面(語言、主題、強調色、字級)、背景(自訂背景圖,2026-10-01)與遊戲(遊戲、區服、客戶端語言、聯盟);最後一張卡是瀏覽器預覽。 -->
 <template>
   <section class="card">
     <span class="label">{{ t('ppz.section_interface') }}</span>
@@ -51,6 +51,49 @@
     <div class="chk-row">
       <label class="chk"><input v-model="config.startupToast" type="checkbox" data-setting="startup-toast"><span>{{ t('ppz.startup_toast') }}</span></label>
     </div>
+  </section>
+
+  <!-- 自訂背景圖(2026-10-01):查價面板與設定視窗;檔案對話框選 png / jpg / webp(main bg-pick 複製到 userData/backgrounds) -->
+  <section class="card" data-setting="background">
+    <span class="label">{{ t('ppz.bg.section') }}</span>
+    <div class="bg-row">
+      <div class="bg-thumb" :class="{ empty: !bgThumb }" data-setting="bg-thumb"
+        :style="bgThumb ? { backgroundImage: bgThumb, filter: `brightness(${config.bg.bright / 100}) blur(${config.bg.blur / 100 * 4}px)` } : undefined">
+        <span v-if="!bgThumb">{{ t('ppz.bg.none') }}</span>
+      </div>
+      <div class="bg-actions">
+        <div class="bg-file" data-setting="bg-file">{{ config.bg.file || t('ppz.bg.none') }}</div>
+        <div class="ctl">
+          <button v-if="canPickBg" class="btn sm primary" data-action="bg-pick" :disabled="bgBusy" @click="pickBg">{{ t('ppz.bg.pick') }}</button>
+          <button class="btn sm" data-action="bg-clear" :disabled="!config.bg.file" @click="config.bg.file = ''">{{ t('ppz.bg.clear') }}</button>
+        </div>
+        <label class="chk"><input v-model="config.bg.enabled" type="checkbox" data-setting="bg-enabled"><span>{{ t('ppz.bg.enabled') }}</span></label>
+      </div>
+    </div>
+    <p v-if="!canPickBg" class="preview-note" data-setting="bg-pick-unavailable">{{ t('ppz.bg.pick_unavailable') }}</p>
+    <div class="srow">
+      <span class="k">{{ t('ppz.bg.bright') }}</span>
+      <div class="ctl" data-setting="bg-bright">
+        <input v-model.number="config.bg.bright" class="slider" type="range" min="0" max="100" step="5">
+        <span class="num fs-val">{{ config.bg.bright }}%</span>
+      </div>
+    </div>
+    <div class="srow">
+      <span class="k">{{ t('ppz.bg.panel_opacity') }}</span>
+      <div class="ctl" data-setting="bg-panel-opacity">
+        <input v-model.number="config.bg.panelOpacity" class="slider" type="range" min="0" max="100" step="5">
+        <span class="num fs-val">{{ config.bg.panelOpacity }}%</span>
+      </div>
+    </div>
+    <div class="srow">
+      <span class="k">{{ t('ppz.bg.blur') }}</span>
+      <div class="ctl" data-setting="bg-blur">
+        <input v-model.number="config.bg.blur" class="slider" type="range" min="0" max="100" step="5">
+        <span class="num fs-val">{{ config.bg.blur }}%</span>
+      </div>
+    </div>
+    <p class="preview-note">{{ t('ppz.bg.hint') }}</p>
+    <p v-if="bgError" class="err" data-setting="bg-error">{{ bgError }}</p>
   </section>
 
   <section class="card">
@@ -132,7 +175,7 @@ import { AppConfig, hotkeyRegistration } from '@/web/Config'
 import { Host } from '@/web/background/IPC'
 import { useLeagues } from '@/web/background/Leagues'
 import { REALMS, REALM_IDS, TRADE_PATHS, type Language } from '@exile-appraiser/core/realm'
-import { ACCENTS, THEMES, FS_BASE_MIN, FS_BASE_MAX, DEFAULT_FS_BASE, normAccent, type Theme } from '@/web/useTheme'
+import { ACCENTS, THEMES, FS_BASE_MIN, FS_BASE_MAX, DEFAULT_FS_BASE, bgImageUrl, normAccent, normBgFile, type Theme } from '@/web/useTheme'
 
 /** 主題縮圖:[底, 面板, 字, 強調](同 pob-zh-engine/ui/src/views/SettingsView.svelte 的 SWATCH)。 */
 const SWATCH: Record<Theme, [string, string, string, string]> = {
@@ -157,7 +200,35 @@ export default defineComponent({
       if (!Host.isElectron || Host.isPreview) return
       try { previewUrl.value = await Host.getPreviewUrl() } catch {}
     })
+
+    // ---- 自訂背景圖 ----
+    const bgBusy = shallowRef(false)
+    const bgError = shallowRef<string | null>(null)
+    const bgThumb = computed(() => {
+      const u = bgImageUrl(config.bg.file, { electron: Host.isElectron, preview: Host.isPreview, baseURI: document.baseURI })
+      return u ? `url("${u.replace(/["\\]/g, '\\$&')}")` : null
+    })
+    async function pickBg () {
+      bgBusy.value = true
+      bgError.value = null
+      try {
+        const name = normBgFile(await Host.bgPick())
+        if (name) {
+          config.bg.file = name
+          config.bg.enabled = true
+        }
+      } catch (e) {
+        bgError.value = e instanceof Error ? e.message : String(e)
+      } finally {
+        bgBusy.value = false
+      }
+    }
     return {
+      canPickBg: Host.canPickBg,
+      bgBusy,
+      bgError,
+      bgThumb,
+      pickBg,
       t,
       leagues,
       config,
@@ -333,6 +404,46 @@ export default defineComponent({
   flex: 1;
   min-width: 60px;
   accent-color: var(--gold);
+}
+/* 自訂背景圖卡片 */
+.settings-panel .bg-row {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+  margin-bottom: 6px;
+}
+.settings-panel .bg-thumb {
+  flex: 0 0 auto;
+  width: 120px;
+  height: 68px;
+  border-radius: var(--radius-s);
+  border: 1px solid var(--edge-1);
+  background: center / cover no-repeat var(--surface-0-c);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.settings-panel .bg-thumb.empty {
+  color: var(--ink-3);
+  font-size: var(--fs-2xs);
+}
+.settings-panel .bg-actions {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 4px;
+  min-width: 0;
+}
+.settings-panel .bg-actions .ctl {
+  gap: 6px;
+}
+.settings-panel .bg-file {
+  font-size: var(--fs-xs);
+  color: var(--ink-1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .settings-panel .fs-val {
   min-width: 38px;

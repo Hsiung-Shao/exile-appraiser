@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, nativeImage, net, protocol, screen, shell, Tray, type BrowserWindowConstructorOptions, type WebContents } from 'electron'
+import { app, BrowserWindow, dialog, Menu, nativeImage, net, protocol, screen, shell, Tray, type BrowserWindowConstructorOptions, type WebContents } from 'electron'
 import { uIOhook } from 'uiohook-napi'
 import { OVERLAY_WINDOW_OPTS } from 'electron-overlay-window'
 import fs from 'node:fs/promises'
@@ -25,6 +25,7 @@ import { loadLocateIndex } from './ocr/locate-data'
 import { captureGameClient, toScanCapture } from './ocr/capture'
 import { DEFAULT_SCAN_INTERVAL_MS, RuneshapeScan } from './ocr/runeshape-scan'
 import { isAppNavigation, isExternalWebUrl } from './external-links'
+import { BG_DIR_NAME, bgContentType, bgFileFromPath, normBgFile, resolveBgPath, storedBgName } from './backgrounds'
 import {
   TOAST_FADE_MS, TOAST_VISIBLE_MS, isFirstRunAfterUpdate, parseLastRun, priceCheckHotkeyLabel, serializeLastRun,
   shouldShowStartupToast, toastBounds, toastHtml, toastLang, toastMessage, type ToastMessage
@@ -91,10 +92,26 @@ protocol.registerSchemesAsPrivileged([{
   privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true }
 }])
 
-function installAppProtocol () {
+/** 自訂背景圖的資料夾(`userData/backgrounds`;backgrounds.ts) */
+const BG_DIR = () => path.join(app.getPath('userData'), BG_DIR_NAME)
+
+/**
+ * `app://app/…` = renderer/dist(只有正式版;開發模式走 Vite);`app://bg/<檔名>` = 自訂背景圖(兩種模式都有)。
+ * 背景檔名經 `resolveBgPath`(只准 png / jpg / webp、不含路徑字元、解析後不跳出 backgrounds 資料夾),其他一律 404。
+ */
+function installAppProtocol (serveRenderer: boolean) {
   const root = __dirname
   protocol.handle(APP_SCHEME, (request) => {
     const url = new URL(request.url)
+    if (url.host === 'bg') {
+      const name = bgFileFromPath(url.pathname)
+      const file = name == null ? null : resolveBgPath(BG_DIR(), name)
+      if (!file) return new Response('not found', { status: 404 })
+      return net.fetch(pathToFileURL(file).toString()).then(r => r.ok
+        ? new Response(r.body, { status: 200, headers: { 'Content-Type': bgContentType(file), 'Cache-Control': 'no-cache' } })
+        : new Response('not found', { status: 404 }))
+    }
+    if (!serveRenderer) return new Response('not found', { status: 404 })
     let rel = decodeURIComponent(url.pathname)
     if (rel === '/' || rel === '') rel = '/index.html'
     const file = path.normalize(path.join(root, rel))
@@ -502,7 +519,8 @@ app.on('will-quit', () => {
 
 if (!skipStartup) app.whenReady().then(() => {
   installCookiePatch()
-  if (!DEV_URL) installAppProtocol()
+  // 正式版供應 renderer/dist;自訂背景圖 app://bg/ 兩種模式都要
+  installAppProtocol(!DEV_URL)
 
   // 啟動提示:先記下這次是不是更新後第一次啟動(第一次 host-config 時才顯示,那時才有熱鍵與介面語言)
   const startupUpdated = recordLastRun()
@@ -620,6 +638,8 @@ if (!skipStartup) app.whenReady().then(() => {
     }
     previewStarting = startPreviewServer({
       staticRoot: root,
+      // 自訂背景圖:`<prefix>bg/<檔名>`(同樣要 token)
+      bgDir: BG_DIR(),
       handlers: previewHandlers(table),
       version: app.getVersion(),
       log: (m) => { console.log(m) },
@@ -961,6 +981,40 @@ if (!skipStartup) app.whenReady().then(() => {
         console.log('[app] 設定視窗:結束程式')
         quitting = true
         app.quit()
+      }
+    },
+    // 自訂背景圖:檔案對話框選圖(只列 png / jpg / webp)→ 複製到 userData/backgrounds → 回傳檔名(取消 / 失敗回 null)。
+    // 只複製選到的那一個檔;成功後刪掉資料夾裡其他舊的背景圖(只刪合法檔名的檔)。預覽端不開放(對話框在桌面上)
+    'bg-pick': {
+      kind: 'invoke',
+      preview: false,
+      fn: async () => {
+        const opts = {
+          title: 'Background image',
+          properties: ['openFile' as const],
+          filters: [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp'] }]
+        }
+        const res = win && !win.isDestroyed() ? await dialog.showOpenDialog(win, opts) : await dialog.showOpenDialog(opts)
+        if (res.canceled || !res.filePaths[0]) return null
+        const src = res.filePaths[0]
+        try {
+          const data = await fs.readFile(src)
+          const name = storedBgName(src, data)
+          if (!name) { console.warn('[bg] 不支援的檔案類型'); return null }
+          const dir = BG_DIR()
+          await fs.mkdir(dir, { recursive: true })
+          const dest = resolveBgPath(dir, name)
+          if (!dest) return null
+          await fs.writeFile(dest, data)
+          for (const f of await fs.readdir(dir)) {
+            if (f !== name && normBgFile(f)) await fs.rm(path.join(dir, f), { force: true }).catch(() => {})
+          }
+          console.log(`[bg] 背景圖 → ${name}(${data.length} bytes)`)
+          return name
+        } catch (e) {
+          console.error('[bg] 複製背景圖失敗', e)
+          return null
+        }
       }
     },
     'preview-open':{ kind: 'invoke', fn: () => openPreviewInBrowser() },

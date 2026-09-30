@@ -270,6 +270,11 @@ export interface HostApi {
   resizeWindow: (width: number, height: number) => Promise<void>
   /** 設定視窗「結束程式」(= 托盤「結束」,IPC `app-quit`)。瀏覽器預覽 shim 沒有這個方法(`preview: false`)。 */
   appQuit?: () => Promise<void>
+  /**
+   * 自訂背景圖:檔案對話框選 png / jpg / webp → main 複製到 `userData/backgrounds/` → 回傳檔名(取消 / 失敗 = null)。
+   * 圖片由 `app://bg/<檔名>`(預覽:`<prefix>bg/<檔名>`)載入。瀏覽器預覽 shim 沒有這個方法(`preview: false`)。
+   */
+  bgPick?: () => Promise<string | null>
   /** main 建立視窗時決定的模式(啟動後不變)。 */
   readonly windowMode: WindowMode
   onFocusChange: (cb: (e: FocusChangeEvent) => void) => () => void

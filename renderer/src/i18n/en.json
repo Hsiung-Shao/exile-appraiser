@@ -40,6 +40,18 @@
       "god_kurgal": "Kurgal",
       "profile_guessed": "Base not in the table; estimated from the item class"
     },
+    "bg": {
+      "section": "Background",
+      "none": "None",
+      "pick": "Choose image…",
+      "clear": "Clear",
+      "enabled": "Show background image",
+      "pick_unavailable": "Choosing an image needs the ExileAppraiser window (the browser preview cannot open a file dialog).",
+      "bright": "Brightness",
+      "panel_opacity": "Panel opacity",
+      "blur": "Frosted",
+      "hint": "The image is only shown inside the price panel and the settings window (the rest of the game screen stays clear). PNG, JPG and WebP are supported; the chosen image is copied into the settings folder."
+    },
     "ocr": {
       "hotkey": "Pause / resume desecration recognition",
       "section": "Well of Souls desecration auto-recognition (PoE2)",

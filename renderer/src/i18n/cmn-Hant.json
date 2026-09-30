@@ -40,6 +40,18 @@
       "god_kurgal": "柯戈",
       "profile_guessed": "底材不在資料表,依物品類別推定"
     },
+    "bg": {
+      "section": "背景",
+      "none": "未選擇",
+      "pick": "選擇圖片…",
+      "clear": "清除",
+      "enabled": "顯示背景圖",
+      "pick_unavailable": "選擇圖片要在 ExileAppraiser 視窗裡操作(瀏覽器預覽無法開檔案對話框)。",
+      "bright": "亮度",
+      "panel_opacity": "面板不透明度",
+      "blur": "霧面",
+      "hint": "圖片只顯示在查價面板與設定視窗裡(遊戲畫面上的其他地方維持透明)。支援 PNG、JPG、WebP;選好的圖會複製一份到設定資料夾。"
+    },
     "ocr": {
       "hotkey": "暫停 / 繼續褻瀆辨識",
       "section": "靈魂之井褻瀆自動辨識(PoE2)",

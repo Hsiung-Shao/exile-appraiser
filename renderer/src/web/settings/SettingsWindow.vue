@@ -12,10 +12,13 @@
     (position:absolute; inset:0)都以它為範圍 / 定位。列版面 `.srow` 等也定義在本檔。
   - 「結束程式」走 IPC `app-quit`(`preview: false`;瀏覽器預覽 / 純瀏覽器不顯示)。
   - 分頁狀態在 ./tabState.ts(托盤「設定」「關於」、OCR 框選返回直接指定分頁)。
+  - 自訂背景圖(2026-10-01):根元素加 `.bg-host`、第一個子元素 BgLayer.vue(圖只畫在視窗裡;pobtools.css「自訂背景圖」)。
 -->
 <template>
-  <div class="settings-panel settings-window" :class="{ floating }" role="dialog" aria-modal="true"
+  <div class="settings-panel settings-window bg-host" :class="{ floating }" role="dialog" aria-modal="true"
     aria-labelledby="settings-window-title" data-settings="window">
+    <!-- 自訂背景圖(設定 › 一般 › 背景;與查價面板同一張) -->
+    <bg-layer />
     <header class="sw-titlebar" :style="dragRegion ? '-webkit-app-region: drag;' : undefined">
       <span id="settings-window-title" class="sw-title"><i class="mark" />{{ t('ppz.settings') }}</span>
       <span class="chip" data-badge="settings-game">{{ gameBadge }}</span>
@@ -50,8 +53,10 @@ import DustTab from './tabs/Dust.vue'
 import AboutTab from './tabs/About.vue'
 import { settingsTab as lastTab, type TabId } from './tabState'
 import { Host } from '@/web/background/IPC'
+import BgLayer from '../ui/BgLayer.vue'
 
 export default defineComponent({
+  components: { BgLayer },
   props: {
     /** overlay:置中浮動(App.vue 提供暗幕);否則填滿內容區 */
     floating: { type: Boolean, default: false },
