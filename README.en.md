@@ -137,7 +137,7 @@ The Well of Souls three-option reveal panel cannot be copied as text, so the app
 
 While the runeshape panel is open, the app periodically reads the panel and shows a poe.ninja reference price to the right of each row. It only takes screenshots and runs OCR locally; no keys are sent.
 
-**Requirements**: PoE2, overlay mode, **international realm** (poe.ninja has no Taiwan prices), Traditional Chinese game client, and the Traditional Chinese OCR language pack (see above).
+**Requirements**: PoE2, overlay mode, Traditional Chinese game client, and the Traditional Chinese OCR language pack (see above). poe.ninja reference prices are **international realm only**; on the Taiwan realm the badges only identify items, and you can use "click to search the trade site" below.
 
 **Enable**: Settings › Hotkeys & window → tick "Enable runeshape auto price check (PoE2, overlay mode)" (off by default).
 
@@ -156,6 +156,9 @@ While the runeshape panel is open, the app periodically reads the panel and show
 | `≈` before the name | The name was matched approximately and may be wrong. |
 | **no price** | A specific item with no poe.ninja price (for example skill gems, or a level that is not listed). |
 | **no fixed price** (dashed, italic) | A generic reward such as a Verisium Pile, random currency or any unique of a slot, which has no single market price. |
+| `Mkt 80 ex` (blue left border) | Trade site price you looked up by clicking (median of the cheapest 10 listings; under 3 listings shows the lowest, marked `?`). |
+
+**Click to search the trade site**: rows without a poe.ninja price (for example skill gems) can be looked up on the trade site. Press `Shift + Space` (the overlay key) → rows marked "trade" become clickable → a card shows the price, listing count and **the filters used** (gems use the same level as the reward, uncorrupted and 0% quality, so high-spec listings do not mislead you), with a button to open the same search on the trade site. Esc or clicking empty space returns to the game. The same row is not searched again within 30 minutes; when the trade site rate limit is hit you are told to retry later instead of queuing. The Taiwan realm shows prices in the listed currency.
 | `?` | The name could not be matched (or matched several candidates); no price is looked up. |
 
 ### Poe Regex search string builder
@@ -220,7 +223,7 @@ The trade site is protected by Cloudflare. In Settings › General, click **"Ope
 <summary><b>What differs between the Taiwan and international realms?</b></summary>
 
 - The Taiwan realm queries `pathofexile.tw` and currently supports the Traditional Chinese client only.
-- poe.ninja has no Taiwan prices, so the Taiwan realm has no disenchant prices (dust amounts only) and no runeshape auto price check.
+- poe.ninja has no Taiwan prices, so the Taiwan realm has no disenchant prices (dust amounts only) and runeshape badges have no reference price; you can still click a row to search the Taiwan trade site (prices in the listed currency).
 </details>
 
 <details>

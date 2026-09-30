@@ -1,0 +1,234 @@
+{
+ "_meta": {
+  "recordedAt": "2026-09-30",
+  "realm": "intl",
+  "league": "Runes of Aldur",
+  "note": "exile-appraiser 符文塑形點選查交易站:真實回應(各打一次,UA = exile-appraiser/0.1.0),已剝除帳號 / 角色名 / 密語 / 倉庫等個資",
+  "request": {
+   "engine": "new",
+   "query": {
+    "have": [
+     "exalted",
+     "divine"
+    ],
+    "want": [
+     "thaumaturgic-flux-18"
+    ],
+    "status": {
+     "option": "online"
+    }
+   },
+   "sort": {
+    "have": "asc"
+   }
+  }
+ },
+ "id": "H4sIAAAAAAAAAxXLQQqAIBBG4bv8a1u0C68SLYa0FGyMHE0Q715u38drcFQs9ApbKYg1UDC-eLbYFF5iGSaO8kWSn9Pv0xFyneZleJI_JuiGeIuPDI3IYcy9f48eaJtaAAAA",
+ "total": 8,
+ "result": {
+  "6b4734f4d5a18f78a0f3140e1d627f87ed88225718209f7ea1c68a": {
+   "id": "f7d622bc796b4734f4d5a18f78a0f3140e1d627f87ed88225718209f7ea1c68a",
+   "listing": {
+    "indexed": "2026-07-05T07:00:08+00:00",
+    "account": {
+     "name": "seller1",
+     "lastCharacterName": "Seller1",
+     "online": {}
+    },
+    "offers": [
+     {
+      "exchange": {
+       "currency": "exalted",
+       "amount": 1
+      },
+      "item": {
+       "currency": "thaumaturgic-flux-18",
+       "amount": 1,
+       "stock": 1,
+       "id": "f7d622bc796b4734f4d5a18f78a0f3140e1d627f87ed88225718209f7ea1c68a"
+      }
+     }
+    ]
+   }
+  },
+  "2f8568dbfd2e908f9ca3b5361588ca6d043f380c005b9b5d0c4174": {
+   "id": "ce270567402f8568dbfd2e908f9ca3b5361588ca6d043f380c005b9b5d0c4174",
+   "listing": {
+    "indexed": "2026-09-22T05:40:15+00:00",
+    "account": {
+     "name": "seller2",
+     "lastCharacterName": "Seller2",
+     "online": {}
+    },
+    "offers": [
+     {
+      "exchange": {
+       "currency": "exalted",
+       "amount": 1
+      },
+      "item": {
+       "currency": "thaumaturgic-flux-18",
+       "amount": 1,
+       "stock": 3,
+       "id": "ce270567402f8568dbfd2e908f9ca3b5361588ca6d043f380c005b9b5d0c4174"
+      }
+     }
+    ]
+   }
+  },
+  "55d75e9fefebb6e6ad2415d85f3d8ed9e1bbc2752306103f75c500": {
+   "id": "beed498e6e55d75e9fefebb6e6ad2415d85f3d8ed9e1bbc2752306103f75c500",
+   "listing": {
+    "indexed": "2026-06-20T19:31:17+00:00",
+    "account": {
+     "name": "seller3",
+     "lastCharacterName": "Seller3",
+     "online": {}
+    },
+    "offers": [
+     {
+      "exchange": {
+       "currency": "divine",
+       "amount": 1
+      },
+      "item": {
+       "currency": "thaumaturgic-flux-18",
+       "amount": 1,
+       "stock": 1,
+       "id": "beed498e6e55d75e9fefebb6e6ad2415d85f3d8ed9e1bbc2752306103f75c500"
+      }
+     }
+    ]
+   }
+  },
+  "c8857be1ce563da467de09148f738c3a689b56a0617cc9a121f41a": {
+   "id": "506ebd6f41c8857be1ce563da467de09148f738c3a689b56a0617cc9a121f41a",
+   "listing": {
+    "indexed": "2026-09-30T12:21:52+00:00",
+    "account": {
+     "name": "seller4",
+     "lastCharacterName": "Seller4",
+     "online": {}
+    },
+    "offers": [
+     {
+      "exchange": {
+       "currency": "divine",
+       "amount": 1
+      },
+      "item": {
+       "currency": "thaumaturgic-flux-18",
+       "amount": 1,
+       "stock": 1,
+       "id": "506ebd6f41c8857be1ce563da467de09148f738c3a689b56a0617cc9a121f41a"
+      }
+     }
+    ]
+   }
+  },
+  "176a42d2a64cb2f33cc7016a06dd1d8ee34793dd7a3c800a624214": {
+   "id": "eb7172e99e176a42d2a64cb2f33cc7016a06dd1d8ee34793dd7a3c800a624214",
+   "listing": {
+    "indexed": "2026-09-30T06:31:04+00:00",
+    "account": {
+     "name": "seller5",
+     "lastCharacterName": "Seller5",
+     "online": {
+      "status": "afk"
+     }
+    },
+    "offers": [
+     {
+      "exchange": {
+       "currency": "divine",
+       "amount": 1
+      },
+      "item": {
+       "currency": "thaumaturgic-flux-18",
+       "amount": 1,
+       "stock": 1,
+       "id": "eb7172e99e176a42d2a64cb2f33cc7016a06dd1d8ee34793dd7a3c800a624214"
+      }
+     }
+    ]
+   }
+  },
+  "812a645d9a7c5e2a1956d4a36f10baad5ffc2bf71746cb86a97a65": {
+   "id": "c601cdd9e8812a645d9a7c5e2a1956d4a36f10baad5ffc2bf71746cb86a97a65",
+   "listing": {
+    "indexed": "2026-09-30T14:57:12+00:00",
+    "account": {
+     "name": "seller6",
+     "lastCharacterName": "Seller6",
+     "online": {}
+    },
+    "offers": [
+     {
+      "exchange": {
+       "currency": "divine",
+       "amount": 10
+      },
+      "item": {
+       "currency": "thaumaturgic-flux-18",
+       "amount": 1,
+       "stock": 2,
+       "id": "c601cdd9e8812a645d9a7c5e2a1956d4a36f10baad5ffc2bf71746cb86a97a65"
+      }
+     }
+    ]
+   }
+  },
+  "27ea44ebfbaf266c4b5ae47c1a6bc1a5a18e40a119002045780fbb": {
+   "id": "15655b9d9027ea44ebfbaf266c4b5ae47c1a6bc1a5a18e40a119002045780fbb",
+   "listing": {
+    "indexed": "2026-09-06T14:22:26+00:00",
+    "account": {
+     "name": "seller7",
+     "lastCharacterName": "Seller7",
+     "online": {}
+    },
+    "offers": [
+     {
+      "exchange": {
+       "currency": "divine",
+       "amount": 50
+      },
+      "item": {
+       "currency": "thaumaturgic-flux-18",
+       "amount": 1,
+       "stock": 1,
+       "id": "15655b9d9027ea44ebfbaf266c4b5ae47c1a6bc1a5a18e40a119002045780fbb"
+      }
+     }
+    ]
+   }
+  },
+  "8aec47dd3f1b6df6c7ab84c2d497eb8a6990026459c16ee1a84bef": {
+   "id": "537443c0b18aec47dd3f1b6df6c7ab84c2d497eb8a6990026459c16ee1a84bef",
+   "listing": {
+    "indexed": "2026-09-30T05:58:56+00:00",
+    "account": {
+     "name": "seller8",
+     "lastCharacterName": "Seller8",
+     "online": {
+      "status": "afk"
+     }
+    },
+    "offers": [
+     {
+      "exchange": {
+       "currency": "exalted",
+       "amount": 50
+      },
+      "item": {
+       "currency": "thaumaturgic-flux-18",
+       "amount": 1,
+       "stock": 4,
+       "id": "537443c0b18aec47dd3f1b6df6c7ab84c2d497eb8a6990026459c16ee1a84bef"
+      }
+     }
+    ]
+   }
+  }
+ }
+}

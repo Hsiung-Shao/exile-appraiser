@@ -8,6 +8,7 @@
 import type { DefineComponent } from 'vue'
 import type { Result } from 'neverthrow'
 import type { DataSource, GameAdapter, PresetOptions, TradeContext } from '@exile-appraiser/core/games/adapter'
+import type { Language, Realm } from '@exile-appraiser/core/realm'
 
 /** App.vue 只讀名稱做 log;其餘欄位原樣交給 poe2 的 CheckedItem.vue。 */
 export interface Poe2ParsedItem {
@@ -99,5 +100,72 @@ export interface Poe2RuneshapeMatchRow extends Poe2OcrLine {
   unpriced?: 'gem' | 'recipe'
   recipeId?: string
   offPanel?: boolean
+  /** 目前語系 items.ndjson 的名稱(台服交易站查詢用) */
+  name?: string
+  /** 可堆疊物品的交易站 bulk tag */
+  tradeTag?: string
 }
 export declare function matchRunesRows (lines: Poe2OcrLine[]): Poe2RuneshapeMatchRow[]
+
+// ---- 符文塑形點選查交易站(poe2/src/runeshape/trade-lookup.ts;docs/runeshape.md「點選查交易站」) ----
+export type Poe2RuneTradeRowInput = Pick<Poe2RuneshapeMatchRow, 'kind' | 'refName' | 'name' | 'level' | 'tradeTag' | 'ambiguous' | 'offPanel'>
+export type Poe2RuneTradeFilter =
+  | { id: 'realm', value: Realm }
+  | { id: 'league', value: string }
+  | { id: 'mode', value: 'search' | 'bulk' }
+  | { id: 'type', value: string }
+  | { id: 'category', value: 'gem' }
+  | { id: 'gem_level', value: number }
+  | { id: 'gem_level_any' }
+  | { id: 'corrupted', value: false }
+  | { id: 'quality', value: 0 }
+  | { id: 'want', value: string }
+  | { id: 'have', value: string[] }
+  | { id: 'status', value: 'securable' | 'online' }
+export type Poe2RuneTradeUnavailable = 'recipe' | 'ambiguous' | 'no-ref' | 'off-panel' | 'no-name'
+/** 查詢計畫(renderer 只讀這些欄位;search body / bulk 參數原樣交回 store) */
+export interface Poe2RuneTradePlan {
+  mode: 'search' | 'bulk'
+  key: string
+  realm: Realm
+  league: string
+  filters: Poe2RuneTradeFilter[]
+  levelAny: boolean
+  webUrl: string
+}
+export interface Poe2RuneTradeListing { amount: number, currency: string }
+export interface Poe2RuneTradeRaw {
+  key: string
+  mode: 'search' | 'bulk'
+  queryId?: string
+  total: number
+  listings: Poe2RuneTradeListing[]
+  webUrl: string
+  at: number
+}
+export interface Poe2RuneTradeSummary {
+  unit: string
+  converted: boolean
+  count: number
+  median?: number
+  min?: number
+  max?: number
+  few: boolean
+  skipped: number
+}
+export type Poe2RuneTradeOutcome =
+  | { ok: true, raw: Poe2RuneTradeRaw, cached: boolean }
+  | { ok: false, error: 'busy' }
+  | { ok: false, error: 'rate-limited', seconds: number }
+  | { ok: false, error: 'failed', message: string }
+/** method 語法(參數雙變):實作收完整的 plan 聯集 */
+export interface Poe2RuneTradeStore {
+  lookup (plan: Poe2RuneTradePlan): Promise<Poe2RuneTradeOutcome>
+  cached (key: string): Poe2RuneTradeRaw | undefined
+  readonly busy: boolean
+}
+export declare function runeTradeUnavailable (row: Poe2RuneTradeRowInput, opts?: { realm: Realm, language: Language }): Poe2RuneTradeUnavailable | null
+export declare function planRuneTradeQuery (row: Poe2RuneTradeRowInput, opts: { realm: Realm, language: Language, league: string }):
+  { ok: true, plan: Poe2RuneTradePlan } | { ok: false, reason: Poe2RuneTradeUnavailable }
+export declare function summarizeRuneTrade (listings: readonly Poe2RuneTradeListing[], toExalted?: (amount: number, currency: string) => number | undefined): Poe2RuneTradeSummary
+export declare const runeTradeStore: Poe2RuneTradeStore

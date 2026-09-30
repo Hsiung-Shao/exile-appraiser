@@ -63,6 +63,10 @@ export interface RuneshapeMatchRow extends RuneshapeOcrRow {
   unpriced?: "gem" | "recipe";
   /** 不在面板上(右緣沒對齊面板列) */
   offPanel?: boolean;
+  /** 目前語系 items.ndjson 的 `name`(台服交易站查詢送這個;配方沒有) */
+  name?: string;
+  /** items.ndjson 的 `tradeTag`(可堆疊物品 → 交易站 bulk exchange 的 want) */
+  tradeTag?: string;
 }
 
 interface Entry {
@@ -72,6 +76,9 @@ interface Entry {
   rank: number;
   /** 配方結果的 id */
   recipeId?: string;
+  /** 目前語系的名稱(原樣,未正規化) */
+  name?: string;
+  tradeTag?: string;
 }
 
 export interface RuneshapeIndex {
@@ -122,6 +129,7 @@ export interface NameEntry {
   refName: string;
   namespace: string;
   craftable?: { category?: string };
+  tradeTag?: string;
 }
 
 /** `data/poe2/runeshape/recipes.json` 一筆(`scripts/sync-runeshape-data.mjs` 產生) */
@@ -153,11 +161,12 @@ export function buildRuneshapeIndex(items: Iterable<NameEntry>, recipes: Iterabl
     if (!it.name || !it.refName) continue;
     const key = normalizeOcrText(it.name);
     const category = it.craftable?.category ?? "";
+    const extra = it.tradeTag ? { name: it.name, tradeTag: it.tradeTag } : { name: it.name };
     if (it.namespace === "ITEM") {
-      add(idx.item, key, { refName: it.refName, category, rank: itemRank(category) });
+      add(idx.item, key, { refName: it.refName, category, rank: itemRank(category), ...extra });
     } else if (it.namespace === "GEM") {
       const support = category === "Support Skill Gem";
-      add(support ? idx.support : idx.skill, key, { refName: it.refName, category, rank: 0 });
+      add(support ? idx.support : idx.skill, key, { refName: it.refName, category, rank: 0, ...extra });
     }
   }
   for (const r of recipes) {
@@ -296,6 +305,8 @@ export function matchRunesRowsWith(lines: RuneshapeOcrRow[], index: RuneshapeInd
     const e = found.entries[0];
     row.refName = e.refName;
     if (e.category) row.category = e.category;
+    if (e.name) row.name = e.name;
+    if (e.tradeTag) row.tradeTag = e.tradeTag;
     if (row.kind === "recipe") {
       if (e.recipeId) row.recipeId = e.recipeId;
       row.ninjaKey = null;

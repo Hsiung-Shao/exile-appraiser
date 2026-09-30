@@ -1,0 +1,423 @@
+{
+ "_meta": {
+  "recordedAt": "2026-09-30",
+  "realm": "intl",
+  "league": "Runes of Aldur",
+  "note": "exile-appraiser 符文塑形點選查交易站:真實回應(各打一次,UA = exile-appraiser/0.1.0),已剝除帳號 / 角色名 / 密語 / 倉庫等個資",
+  "query": "H4sIAAAAAAAAA3WPsQ6DMAxEfwV5ZkCMfEWnLhVCBgyylBCaOG0jlH9vCKoEQzf7zvd03sAJinfQbGBWYbNAA44Gb7FXBLEECSsl7WbeZGks-lDcybJjr6HM4ZR9bL8zXMYkT6yE7G60sT2tx1l32k_jgEKzseFSZSa9l3h6VCzZ0viBpooxqZrd8A9mrPWr0HihTahcfiphO0UvUpnIyaur8kDXOzvGL968csUZAQAA",
+  "ids": [
+   "eed7affd14bb232aaf5539cdf8a42934ce13c0d7b84c74d78c7e6b8208617f64",
+   "3a8b2e9c155f716c3ebb9982f227a917e27eaef4240ca02b7dab30d77ae19895",
+   "e4f95bbcad336d3fcee2af7c311b7ab144c3e9cb6e56c3d2b787195cec6939fa",
+   "d733e91baa7f1af8cdee814aa1b8a3b35a5c8db6a6dd0bd85be2bb70a38e5ca2",
+   "9ee15f161cfb5a84d7abebbe57bc681cf346ca42372b074723305501f29b5b15",
+   "c30cefe057531c65a8a7f1114d72625fb8e65c5eb5089a27b8154d8f9edae432",
+   "b959ae3ea2a888ffd374cd2dd0d874fda4b38fa1ade4a6a0ed9afaf3cccb8c3c",
+   "3ac53c3863277bd6c83fa244a66d1afdfc245db380ffd70ad5bb579e1ada782e",
+   "9b678cb473c4ef9b5249aa8d420a70a7e2923750dfa1aa97e2eb63bc4bbe8487",
+   "9ac256a1b1fe3f83b0c12aff6af96f24ca02bfccc6c2ba4b9593d858b0920850"
+  ]
+ },
+ "result": [
+  {
+   "id": "eed7affd14bb232aaf5539cdf8a42934ce13c0d7b84c74d78c7e6b8208617f64",
+   "item": {
+    "realm": "poe2",
+    "league": "Runes of Aldur",
+    "frameType": 4,
+    "identified": true,
+    "name": "",
+    "typeLine": "Powered by Verisium",
+    "baseType": "Powered by Verisium",
+    "ilvl": 0,
+    "properties": [
+     {
+      "name": "Level",
+      "values": [
+       [
+        "20 (Max)",
+        0
+       ]
+      ],
+      "displayMode": 0,
+      "type": 5
+     }
+    ]
+   },
+   "listing": {
+    "method": "psapi",
+    "indexed": "2026-09-30T14:17:50Z",
+    "price": {
+     "type": "~b/o",
+     "amount": 30,
+     "currency": "exalted"
+    },
+    "fee": 6875,
+    "account": {
+     "name": "seller1",
+     "lastCharacterName": "Seller1"
+    }
+   }
+  },
+  {
+   "id": "3a8b2e9c155f716c3ebb9982f227a917e27eaef4240ca02b7dab30d77ae19895",
+   "item": {
+    "realm": "poe2",
+    "league": "Runes of Aldur",
+    "frameType": 4,
+    "identified": true,
+    "name": "",
+    "typeLine": "Powered by Verisium",
+    "baseType": "Powered by Verisium",
+    "ilvl": 0,
+    "properties": [
+     {
+      "name": "Level",
+      "values": [
+       [
+        "20 (Max)",
+        0
+       ]
+      ],
+      "displayMode": 0,
+      "type": 5
+     }
+    ]
+   },
+   "listing": {
+    "method": "psapi",
+    "indexed": "2026-09-28T17:47:39Z",
+    "price": {
+     "type": "~b/o",
+     "amount": 70,
+     "currency": "exalted"
+    },
+    "fee": 6875,
+    "account": {
+     "name": "seller2",
+     "lastCharacterName": "Seller2"
+    }
+   }
+  },
+  {
+   "id": "e4f95bbcad336d3fcee2af7c311b7ab144c3e9cb6e56c3d2b787195cec6939fa",
+   "item": {
+    "realm": "poe2",
+    "league": "Runes of Aldur",
+    "frameType": 4,
+    "identified": true,
+    "name": "",
+    "typeLine": "Powered by Verisium",
+    "baseType": "Powered by Verisium",
+    "ilvl": 0,
+    "properties": [
+     {
+      "name": "Level",
+      "values": [
+       [
+        "20 (Max)",
+        0
+       ]
+      ],
+      "displayMode": 0,
+      "type": 5
+     }
+    ]
+   },
+   "listing": {
+    "method": "psapi",
+    "indexed": "2026-09-28T11:45:08Z",
+    "price": {
+     "type": "~b/o",
+     "amount": 70,
+     "currency": "exalted"
+    },
+    "fee": 6875,
+    "account": {
+     "name": "seller3",
+     "lastCharacterName": "Seller3"
+    }
+   }
+  },
+  {
+   "id": "d733e91baa7f1af8cdee814aa1b8a3b35a5c8db6a6dd0bd85be2bb70a38e5ca2",
+   "item": {
+    "realm": "poe2",
+    "league": "Runes of Aldur",
+    "frameType": 4,
+    "identified": true,
+    "name": "",
+    "typeLine": "Powered by Verisium",
+    "baseType": "Powered by Verisium",
+    "ilvl": 0,
+    "properties": [
+     {
+      "name": "Level",
+      "values": [
+       [
+        "20 (Max)",
+        0
+       ]
+      ],
+      "displayMode": 0,
+      "type": 5
+     }
+    ]
+   },
+   "listing": {
+    "method": "psapi",
+    "indexed": "2026-09-22T18:09:51Z",
+    "price": {
+     "type": "~b/o",
+     "amount": 75,
+     "currency": "exalted"
+    },
+    "fee": 6875,
+    "account": {
+     "name": "seller4",
+     "lastCharacterName": "Seller4"
+    }
+   }
+  },
+  {
+   "id": "9ee15f161cfb5a84d7abebbe57bc681cf346ca42372b074723305501f29b5b15",
+   "item": {
+    "realm": "poe2",
+    "league": "Runes of Aldur",
+    "frameType": 4,
+    "identified": true,
+    "name": "",
+    "typeLine": "Powered by Verisium",
+    "baseType": "Powered by Verisium",
+    "ilvl": 0,
+    "properties": [
+     {
+      "name": "Level",
+      "values": [
+       [
+        "20 (Max)",
+        0
+       ]
+      ],
+      "displayMode": 0,
+      "type": 5
+     }
+    ]
+   },
+   "listing": {
+    "method": "psapi",
+    "indexed": "2026-09-22T13:20:41Z",
+    "price": {
+     "type": "~b/o",
+     "amount": 80,
+     "currency": "exalted"
+    },
+    "fee": 6875,
+    "account": {
+     "name": "seller5",
+     "lastCharacterName": "Seller5"
+    }
+   }
+  },
+  {
+   "id": "c30cefe057531c65a8a7f1114d72625fb8e65c5eb5089a27b8154d8f9edae432",
+   "item": {
+    "realm": "poe2",
+    "league": "Runes of Aldur",
+    "frameType": 4,
+    "identified": true,
+    "name": "",
+    "typeLine": "Powered by Verisium",
+    "baseType": "Powered by Verisium",
+    "ilvl": 0,
+    "properties": [
+     {
+      "name": "Level",
+      "values": [
+       [
+        "20 (Max)",
+        0
+       ]
+      ],
+      "displayMode": 0,
+      "type": 5
+     }
+    ]
+   },
+   "listing": {
+    "method": "psapi",
+    "indexed": "2026-09-22T21:00:00Z",
+    "price": {
+     "type": "~b/o",
+     "amount": 80,
+     "currency": "exalted"
+    },
+    "fee": 6875,
+    "account": {
+     "name": "seller6",
+     "lastCharacterName": "Seller6"
+    }
+   }
+  },
+  {
+   "id": "b959ae3ea2a888ffd374cd2dd0d874fda4b38fa1ade4a6a0ed9afaf3cccb8c3c",
+   "item": {
+    "realm": "poe2",
+    "league": "Runes of Aldur",
+    "frameType": 4,
+    "identified": true,
+    "name": "",
+    "typeLine": "Powered by Verisium",
+    "baseType": "Powered by Verisium",
+    "ilvl": 0,
+    "properties": [
+     {
+      "name": "Level",
+      "values": [
+       [
+        "20 (Max)",
+        0
+       ]
+      ],
+      "displayMode": 0,
+      "type": 5
+     }
+    ]
+   },
+   "listing": {
+    "method": "psapi",
+    "indexed": "2026-09-22T13:20:41Z",
+    "price": {
+     "type": "~b/o",
+     "amount": 80,
+     "currency": "exalted"
+    },
+    "fee": 6875,
+    "account": {
+     "name": "seller7",
+     "lastCharacterName": "Seller7"
+    }
+   }
+  },
+  {
+   "id": "3ac53c3863277bd6c83fa244a66d1afdfc245db380ffd70ad5bb579e1ada782e",
+   "item": {
+    "realm": "poe2",
+    "league": "Runes of Aldur",
+    "frameType": 4,
+    "identified": true,
+    "name": "",
+    "typeLine": "Powered by Verisium",
+    "baseType": "Powered by Verisium",
+    "ilvl": 0,
+    "properties": [
+     {
+      "name": "Level",
+      "values": [
+       [
+        "20 (Max)",
+        0
+       ]
+      ],
+      "displayMode": 0,
+      "type": 5
+     }
+    ]
+   },
+   "listing": {
+    "method": "psapi",
+    "indexed": "2026-09-22T13:20:41Z",
+    "price": {
+     "type": "~b/o",
+     "amount": 80,
+     "currency": "exalted"
+    },
+    "fee": 6875,
+    "account": {
+     "name": "seller8",
+     "lastCharacterName": "Seller8"
+    }
+   }
+  },
+  {
+   "id": "9b678cb473c4ef9b5249aa8d420a70a7e2923750dfa1aa97e2eb63bc4bbe8487",
+   "item": {
+    "realm": "poe2",
+    "league": "Runes of Aldur",
+    "frameType": 4,
+    "identified": true,
+    "name": "",
+    "typeLine": "Powered by Verisium",
+    "baseType": "Powered by Verisium",
+    "ilvl": 0,
+    "properties": [
+     {
+      "name": "Level",
+      "values": [
+       [
+        "20 (Max)",
+        0
+       ]
+      ],
+      "displayMode": 0,
+      "type": 5
+     }
+    ]
+   },
+   "listing": {
+    "method": "psapi",
+    "indexed": "2026-09-22T13:20:41Z",
+    "price": {
+     "type": "~b/o",
+     "amount": 80,
+     "currency": "exalted"
+    },
+    "fee": 6875,
+    "account": {
+     "name": "seller9",
+     "lastCharacterName": "Seller9"
+    }
+   }
+  },
+  {
+   "id": "9ac256a1b1fe3f83b0c12aff6af96f24ca02bfccc6c2ba4b9593d858b0920850",
+   "item": {
+    "realm": "poe2",
+    "league": "Runes of Aldur",
+    "frameType": 4,
+    "identified": true,
+    "name": "",
+    "typeLine": "Powered by Verisium",
+    "baseType": "Powered by Verisium",
+    "ilvl": 0,
+    "properties": [
+     {
+      "name": "Level",
+      "values": [
+       [
+        "20 (Max)",
+        0
+       ]
+      ],
+      "displayMode": 0,
+      "type": 5
+     }
+    ]
+   },
+   "listing": {
+    "method": "psapi",
+    "indexed": "2026-09-04T04:35:25Z",
+    "price": {
+     "type": "~b/o",
+     "amount": 199,
+     "currency": "exalted"
+    },
+    "fee": 6875,
+    "account": {
+     "name": "seller10",
+     "lastCharacterName": "Seller10"
+    }
+   }
+  }
+ ]
+}

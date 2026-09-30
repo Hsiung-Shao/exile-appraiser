@@ -262,7 +262,8 @@ interface FilterRange {
   max?: number;
 }
 
-interface TradeRequest {
+// exile-appraiser: export(符文塑形點選查交易站 `runeshape/trade-lookup.ts` 直接組 body,不經 ParsedItem)
+export interface TradeRequest {
   query: {
     status: { option: "available" | "securable" | "online" | "any" };
     name?: string | { discriminator: string; option: string };

@@ -25,7 +25,7 @@
 | 6 | `parser/augment-builder.ts` | `AppConfig('price-check').savedAugments` | `hostOptions().savedAugments`(預設 `{}`)|
 | 7 | `web/price-check/filters/fill-augments.ts` | `AppConfig('price-check').searchStatRange` | `hostOptions().searchStatRange` |
 | 8 | `trade/common.ts` | `shallowReactive` 單例 `RATE_LIMIT_RULES`、`AppConfig().apiLatencySeconds`、`getTradeEndpoint` re-export | `tradeSession(realm)`(每 realm 一套限流 + 快取)、`adjustRateLimits(..., latencySeconds)`、`getTradeEndpoint()` 讀 `activeTradeContext()`;provider 持有者在 `trade/context.ts` |
-| 9 | `trade/pathofexile-trade.ts` / `pathofexile-bulk.ts` | `Host.proxy`、`opts.accountName` | `ctx.http`、`ctx.accountName`;函式第一參數 `TradeContext`;URL 用 core `tradeApiBase(realm, 'poe2')`(`/api/trade2/*`,聯盟 encode);快取鍵含 realm |
+| 9 | `trade/pathofexile-trade.ts` / `pathofexile-bulk.ts` | `Host.proxy`、`opts.accountName` | `ctx.http`、`ctx.accountName`;函式第一參數 `TradeContext`;URL 用 core `tradeApiBase(realm, 'poe2')`(`/api/trade2/*`,聯盟 encode);快取鍵含 realm;`pathofexile-trade.ts` 的 `TradeRequest` 型別改 export(符文塑形點選查交易站 `runeshape/trade-lookup.ts` 直接組 body) |
 | 10 | `trade/trade-api.ts` / `bulk-api.ts`(Vue composable) | `AppConfig().accountName` | `activeTradeContext()` |
 | 11 | `trade/RateLimiter.ts` / `Cache.ts` | Vue 版 | 轉接 core(core `Cache` 併入 E 的 `purgeIfDifferentCurrency`)|
 | 12 | `web/background/Prices.ts`(整檔取代) | poe.ninja | 「沒有價格」同介面實作(型別、`DivCurrency`、`displayRounding` 照抄;換算價不顯示)|
