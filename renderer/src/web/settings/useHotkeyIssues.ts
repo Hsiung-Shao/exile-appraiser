@@ -1,0 +1,60 @@
+/**
+ * 設定頁熱鍵欄位下方的問題文字(熱鍵與視窗分頁、褻瀆 / 符文塑形區塊、聊天指令分頁共用)。
+ * 三種來源,依序:遊戲保留鍵 / 與前面的熱鍵重複(`hotkey-conflicts.ts`,與 main 註冊規則相同,涵蓋**全部**熱鍵欄位)
+ * → main 回報被其他程式佔用(`hotkeyRegistration` 錯誤字串裡引號內的鍵)。
+ * 對不回任何欄位的 main 錯誤由 `otherError` 給熱鍵卡片底部顯示。
+ */
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { AppConfig, hotkeyRegistration } from '@/web/Config'
+import { hotkeyIssues, hotkeySlots, normalizeHotkey } from './hotkey-conflicts'
+
+/** 衝突對象的顯示名稱(i18n 鍵) */
+const SLOT_LABEL: Record<string, string> = {
+  quick: 'ppz.hotkey',
+  locked: 'ppz.hotkey_locked',
+  overlay: 'ppz.overlay_key',
+  ocr: 'ppz.scan.slot_reveal_pause',
+  region: 'ppz.scan.slot_reveal_region',
+  runeshape: 'ppz.scan.slot_rune_pause',
+  runeRegion: 'ppz.scan.slot_rune_region'
+}
+
+export function useHotkeyIssues () {
+  const { t } = useI18n()
+  const config = AppConfig()
+  const slots = computed(() => hotkeySlots(config))
+  const issues = computed(() => hotkeyIssues(slots.value))
+  /** main 回報被其他程式佔用的熱鍵(錯誤字串裡引號內的鍵) */
+  const takenKeys = computed(() => {
+    const reg = hotkeyRegistration.value
+    if (!reg || reg.ok || !reg.error) return [] as string[]
+    return [...reg.error.matchAll(/"([^"]+)"/g)].map(m => m[1])
+  })
+  const quote = (s: string) => config.uiLanguage === 'en' ? `"${s}"` : `「${s}」`
+  function slotName (id: string): string {
+    const m = /^(cmd|stash):(\d+)$/.exec(id)
+    if (m) {
+      const n = Number(m[2])
+      const text = m[1] === 'cmd' ? config.commands[n]?.text : config.stashSearch[n]?.text
+      return quote((text ?? '').slice(0, 24))
+    }
+    return quote(t(SLOT_LABEL[id] ?? id))
+  }
+  /** 欄位 `id`(`hotkey-conflicts.ts` 的 slot id)目前填的 `hotkey` 有什麼問題;沒有 → '' */
+  function issueText (id: string, hotkey: string): string {
+    const is = issues.value.get(id)
+    if (is?.kind === 'reserved') return t('ppz.chat.issue_reserved', { key: is.key })
+    if (is?.kind === 'duplicate') return t('ppz.chat.issue_duplicate', { key: is.key, other: slotName(is.with) })
+    if (hotkey && takenKeys.value.includes(normalizeHotkey(hotkey))) return t('ppz.hotkey_conflict', { key: normalizeHotkey(hotkey) })
+    return ''
+  }
+  /** main 的註冊錯誤裡沒有任何一個鍵對得回目前的欄位 → 整句顯示在熱鍵卡片底部 */
+  const otherError = computed(() => {
+    const reg = hotkeyRegistration.value
+    if (!reg || reg.ok || !reg.error) return ''
+    const mine = new Set(slots.value.map(s => s.hotkey).filter(Boolean))
+    return takenKeys.value.some(k => mine.has(k)) ? '' : reg.error
+  })
+  return { issueText, otherError, slotName }
+}

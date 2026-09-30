@@ -77,7 +77,7 @@ export interface HostConfigForMain {
   hotkeyOcrReveal: string
   /** 2026-10-01:褻瀆(揭露面板)自動持續辨識(預設開;舊設定檔沒有這欄 = 開)。 */
   revealAutoEnabled?: boolean
-  /** 2026-10-01:褻瀆自動辨識的掃描間隔(ms,500–3000,預設 1000)。 */
+  /** 2026-10-01:褻瀆自動辨識的掃描間隔(ms,100–3000,預設 1000;下限 2026-10-01 由 500 放寬)。 */
   revealIntervalMs?: number
   /** WP-S:OCR 搜尋範圍(client 比例座標 0–1);null = 整個遊戲畫面(自動找面板)。WP-S2 起優先用它、區域內沒找到再找整個畫面。 */
   ocrRegion: OcrRegion | null
@@ -87,10 +87,12 @@ export interface HostConfigForMain {
   runeshapeEnabled: boolean
   /** WP-R2:符文塑形面板區域(client 比例 0–1);null = 未框選 → 自動尋找面板(低頻整個 client ×1 定位 + 記憶體快取)。 */
   runeshapeRegion: OcrRegion | null
-  /** WP-R2:掃描間隔(ms,500–3000,預設 1000)。 */
+  /** WP-R2:掃描間隔(ms,100–3000,預設 1000;下限 2026-10-01 由 500 放寬)。 */
   runeshapeIntervalMs: number
   /** WP-R2:暫停 / 繼續自動查價的熱鍵(預設空 = 不註冊;overlay + PoE2 + 已啟用才註冊)。 */
   hotkeyRuneshapeToggle: string
+  /** 2026-10-01:框選符文塑形面板區域的熱鍵(預設空 = 不註冊;註冊條件同 `hotkeyOcrRegion`:overlay + PoE2 + 遊戲前景)。 */
+  hotkeyRuneshapeRegion?: string
   /** 自動更新(預設 true):安裝版背景下載新版、結束程式時靜默套用;false = 手動(按下載 → 按安裝)。見 main/src/updater-core.ts。 */
   autoUpdate: boolean
   /** 啟動時在主螢幕右下角短暫顯示「已在背景執行」提示(預設 true;main/src/startup-toast.ts)。 */
@@ -203,6 +205,9 @@ export interface OcrRegion {
   w: number
   h: number
 }
+
+/** 框選熱鍵要框哪一種區域(事件 `ocr-region-pick` 的內容;省略 = 揭露面板) */
+export type OcrRegionPickTarget = 'reveal' | 'runeshape'
 
 /** 一行 OCR 文字;座標 = 遊戲 client 區的實體像素(左上原點)。 */
 export interface OcrRevealLine {
@@ -329,8 +334,11 @@ export interface HostApi {
   overlayActivate: () => Promise<void>
   /** WP-S2:框選確認後請褻瀆自動辨識立刻重看一次(丟掉差分基準 / 退回狀態)。沒有遊戲視窗 / 不是 PoE2 overlay 時回 false;預覽端 no-op。 */
   ocrRevealNow: () => Promise<boolean | undefined>
-  /** WP-S2:框選熱鍵(`hotkeyOcrRegion`)按下 → renderer 開框選層(只有 overlay 會收到)。 */
-  onOcrRegionPick: (cb: () => void) => () => void
+  /**
+   * WP-S2:框選熱鍵按下 → renderer 開框選層(只有 overlay 會收到)。`target` 省略 = 揭露面板(`hotkeyOcrRegion`);
+   * `'runeshape'` = 符文塑形面板(`hotkeyRuneshapeRegion`,2026-10-01)。
+   */
+  onOcrRegionPick: (cb: (target?: OcrRegionPickTarget) => void) => () => void
   /** WP-R2:符文塑形自動查價的掃描結果(只有 overlay 會收到)。 */
   onRuneshapeScanResult?: (cb: (e: RuneshapeScanEvent) => void) => () => void
   /** WP-R2:回報查價面板 / 設定 / 框選層是否開著(符文塑形:任一開著 → 暫停;褻瀆:設定 / 框選層才暫停);預覽端 no-op。 */

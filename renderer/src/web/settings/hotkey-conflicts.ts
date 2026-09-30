@@ -1,6 +1,6 @@
 /**
  * 設定頁的熱鍵衝突表(純函式;`renderer/test/chat-commands.test.ts` 測)。
- * 與 main `shortcut-actions.ts` 同一套規則:依註冊順序先到先得(查價 → 鎖定 → overlay → OCR / 框選 / 符文暫停 → 聊天指令 → 倉庫搜尋),
+ * 與 main `shortcut-actions.ts` 同一套規則:依註冊順序先到先得(查價 → 鎖定 → overlay → 褻瀆暫停 / 褻瀆框選 / 符文暫停 / 符文框選 → 聊天指令 → 倉庫搜尋),
  * 重複的後者不註冊;遊戲保留鍵(`ipc/reserved-hotkeys.ts`)一律不註冊。熱鍵與視窗分頁、聊天指令分頁共用。
  * 相對路徑匯入(renderer vitest 不載別名)。
  */
@@ -21,7 +21,7 @@ export function normalizeHotkey (hotkey: string): string {
 }
 
 export interface HotkeySlot {
-  /** `quick` / `locked` / `overlay` / `ocr` / `region` / `runeshape` / `cmd:<i>` / `stash:<i>` */
+  /** `quick` / `locked` / `overlay` / `ocr` / `region` / `runeshape` / `runeRegion` / `cmd:<i>` / `stash:<i>` */
   id: string
   hotkey: string
 }
@@ -35,6 +35,7 @@ export interface HotkeyConfigLike {
   hotkeyOcrReveal: string
   hotkeyOcrRegion: string
   hotkeyRuneshapeToggle: string
+  hotkeyRuneshapeRegion?: string
   revealAutoEnabled?: boolean
   runeshapeEnabled?: boolean
   commands: Array<{ text: string, hotkey: string }>
@@ -55,6 +56,7 @@ export function hotkeySlots (c: HotkeyConfigLike): HotkeySlot[] {
     if (c.revealAutoEnabled !== false) slots.push({ id: 'ocr', hotkey: c.hotkeyOcrReveal })
     slots.push({ id: 'region', hotkey: c.hotkeyOcrRegion })
     if (c.runeshapeEnabled) slots.push({ id: 'runeshape', hotkey: c.hotkeyRuneshapeToggle })
+    slots.push({ id: 'runeRegion', hotkey: c.hotkeyRuneshapeRegion ?? '' })
   }
   c.commands.forEach((x, i) => { if (x.text.trim()) slots.push({ id: `cmd:${i}`, hotkey: x.hotkey }) })
   c.stashSearch.forEach((x, i) => { if (x.text.trim()) slots.push({ id: `stash:${i}`, hotkey: x.hotkey }) })

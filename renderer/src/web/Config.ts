@@ -68,7 +68,7 @@ export interface Config {
   hotkeyOcrReveal: string
   /** 2026-10-01:褻瀆(揭露面板)自動持續辨識(預設開;舊設定檔沒有 = 開)。 */
   revealAutoEnabled: boolean
-  /** 2026-10-01:褻瀆自動辨識掃描間隔 ms(500–3000,預設 1000)。 */
+  /** 2026-10-01:褻瀆自動辨識掃描間隔 ms(100–3000,預設 1000)。 */
   revealIntervalMs: number
   /** WP-S:OCR 搜尋範圍(client 比例 0–1);null = 整個遊戲畫面自動找面板。 */
   ocrRegion: OcrRegion | null
@@ -78,12 +78,14 @@ export interface Config {
   runeshapeEnabled: boolean
   /** WP-R2:符文塑形面板區域(client 比例 0–1);null = 未框選。 */
   runeshapeRegion: OcrRegion | null
-  /** WP-R2:掃描間隔 ms(500–3000,預設 1000)。 */
+  /** WP-R2:掃描間隔 ms(100–3000,預設 1000)。 */
   runeshapeIntervalMs: number
   /** WP-R2:徽章顏色門檻(崇高石):< low 暗色、≥ high 金色、之間一般。 */
   runeshapeThresholds: RuneshapeThresholds
   /** WP-R2:暫停 / 繼續自動查價的熱鍵(預設空 = 不註冊)。 */
   hotkeyRuneshapeToggle: string
+  /** 2026-10-01:框選符文塑形面板區域的熱鍵(預設空 = 不註冊;overlay 模式 + PoE2 才註冊)。 */
+  hotkeyRuneshapeRegion: string
   /** 自動更新(預設 true):安裝版背景下載、結束程式時靜默套用;false = 手動下載 / 安裝(main/src/updater-core.ts)。 */
   autoUpdate: boolean
   /** 啟動時短暫顯示「已在背景執行」提示(預設 true;main/src/startup-toast.ts)。 */
@@ -195,10 +197,16 @@ export interface RuneshapeThresholds {
 export const DEFAULT_RUNESHAPE_THRESHOLDS: Readonly<RuneshapeThresholds> = { low: 0.5, high: 5 }
 export const DEFAULT_RUNESHAPE_INTERVAL_MS = 1000
 
-/** WP-R2:掃描間隔 500–3000 ms(main `clampScanInterval` 同規則);不是數字 → 1000 */
+/** 掃描間隔夾限(符文塑形與褻瀆共用;main `panel-scan.ts` 的 `SCAN_INTERVAL_MIN_MS` / `MAX` 同值)。下限 2026-10-01 由 500 放寬到 100 */
+export const SCAN_INTERVAL_MIN_MS = 100
+export const SCAN_INTERVAL_MAX_MS = 3000
+/** 低於這個值設定頁顯示 CPU 負擔提示 */
+export const SCAN_INTERVAL_CPU_WARN_MS = 500
+
+/** WP-R2:掃描間隔 100–3000 ms(main `clampScanInterval` 同規則);不是數字 → 1000 */
 export function clampRuneshapeInterval (v: unknown): number {
   if (typeof v !== 'number' || !Number.isFinite(v)) return DEFAULT_RUNESHAPE_INTERVAL_MS
-  return Math.min(3000, Math.max(500, Math.round(v)))
+  return Math.min(SCAN_INTERVAL_MAX_MS, Math.max(SCAN_INTERVAL_MIN_MS, Math.round(v)))
 }
 
 /** WP-R2:門檻正規化:兩個非負有限數,high < low 時對調;壞掉 → 預設 */
@@ -244,6 +252,7 @@ function createConfig (): Config {
     runeshapeIntervalMs: DEFAULT_RUNESHAPE_INTERVAL_MS,
     runeshapeThresholds: { ...DEFAULT_RUNESHAPE_THRESHOLDS },
     hotkeyRuneshapeToggle: '',
+    hotkeyRuneshapeRegion: '',
     autoUpdate: true,
     startupToast: true,
     commands: defaultCommands(),
@@ -296,6 +305,7 @@ function serialize (): string {
     runeshapeIntervalMs: config.runeshapeIntervalMs,
     runeshapeThresholds: config.runeshapeThresholds,
     hotkeyRuneshapeToggle: config.hotkeyRuneshapeToggle,
+    hotkeyRuneshapeRegion: config.hotkeyRuneshapeRegion,
     autoUpdate: config.autoUpdate,
     startupToast: config.startupToast,
     commands: config.commands,
@@ -377,6 +387,8 @@ function applyLoaded (raw: string) {
   config.runeshapeIntervalMs = clampRuneshapeInterval(loaded.runeshapeIntervalMs)
   config.runeshapeThresholds = normRuneshapeThresholds(loaded.runeshapeThresholds)
   config.hotkeyRuneshapeToggle = typeof loaded.hotkeyRuneshapeToggle === 'string' ? loaded.hotkeyRuneshapeToggle : fresh.hotkeyRuneshapeToggle
+  // 2026-10-01:符文塑形框選熱鍵(舊設定檔沒有 → 空字串 = 不註冊)
+  config.hotkeyRuneshapeRegion = typeof loaded.hotkeyRuneshapeRegion === 'string' ? loaded.hotkeyRuneshapeRegion : fresh.hotkeyRuneshapeRegion
   // 自動更新:舊設定檔沒有 → 預設開;只有明確 false 才關
   config.autoUpdate = loaded.autoUpdate !== false
   // 啟動提示:舊設定檔沒有 → 預設開;只有明確 false 才關
@@ -465,6 +477,7 @@ export async function initConfig (): Promise<void> {
     runeshapeRegion: config.runeshapeRegion ? { ...config.runeshapeRegion } : null,
     runeshapeIntervalMs: config.runeshapeIntervalMs,
     hotkeyRuneshapeToggle: config.hotkeyRuneshapeToggle,
+    hotkeyRuneshapeRegion: config.hotkeyRuneshapeRegion,
     autoUpdate: config.autoUpdate,
     startupToast: config.startupToast,
     commands: config.commands.map(c => ({ ...c })),

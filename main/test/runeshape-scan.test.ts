@@ -144,8 +144,10 @@ describe('變化偵測(純函式)', () => {
     expect(isRowText('x 12')).toBe(false)
     expect(isRowText('')).toBe(false)
   })
-  it('clampScanInterval:500–3000,預設 1000', () => {
-    expect(clampScanInterval(100)).toBe(500)
+  it('clampScanInterval:100–3000(下限 2026-10-01 由 500 放寬),預設 1000', () => {
+    expect(clampScanInterval(50)).toBe(100)
+    expect(clampScanInterval(100)).toBe(100)
+    expect(clampScanInterval(250)).toBe(250)
     expect(clampScanInterval(9000)).toBe(3000)
     expect(clampScanInterval(1234.4)).toBe(1234)
     expect(clampScanInterval('x')).toBe(1000)

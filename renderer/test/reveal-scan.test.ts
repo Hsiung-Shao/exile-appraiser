@@ -50,10 +50,16 @@ describe('設定欄位 revealAutoEnabled / revealIntervalMs', () => {
     expect(config.revealIntervalMs).toBe(1000)
     expect(JSON.parse(serialized)).toMatchObject({ revealAutoEnabled: true, revealIntervalMs: 1000, hotkeyOcrReveal: 'Ctrl + Shift + R', ocrRegion: null })
   })
-  it('只有明確 false 才關;間隔夾在 500–3000', () => {
+  it('只有明確 false 才關;間隔夾在 100–3000(下限 2026-10-01 由 500 放寬)', () => {
     expect(_roundTripForTest(JSON.stringify({ revealAutoEnabled: false })).config.revealAutoEnabled).toBe(false)
     expect(_roundTripForTest(JSON.stringify({ revealAutoEnabled: 'no' })).config.revealAutoEnabled).toBe(true)
-    expect(_roundTripForTest(JSON.stringify({ revealIntervalMs: 100 })).config.revealIntervalMs).toBe(500)
+    expect(_roundTripForTest(JSON.stringify({ revealIntervalMs: 100 })).config.revealIntervalMs).toBe(100)
+    expect(_roundTripForTest(JSON.stringify({ revealIntervalMs: 20 })).config.revealIntervalMs).toBe(100)
+    // 2026-10-01 設定頁拿掉手動比例欄位,但舊設定檔(或手改)的 ocrRegion 仍照常讀寫
+    const region = { x: 0.19, y: 0.44, w: 0.28, h: 0.25 }
+    const r = _roundTripForTest(JSON.stringify({ ocrRegion: region }))
+    expect(r.config.ocrRegion).toEqual(region)
+    expect(JSON.parse(r.serialized).ocrRegion).toEqual(region)
     expect(_roundTripForTest(JSON.stringify({ revealIntervalMs: 1800 })).config.revealIntervalMs).toBe(1800)
     expect(_roundTripForTest(JSON.stringify({ revealIntervalMs: 'x' })).config.revealIntervalMs).toBe(1000)
   })

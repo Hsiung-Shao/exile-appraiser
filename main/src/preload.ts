@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { HostApi, HostFetchInit, HostConfigForMain, ItemTextEvent, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId, UpdaterInfo, SettingsTabId, ConfigChangedEvent, RevealScanEvent, RuneshapeScanEvent, RuneshapeUiState } from '@ipc/types'
+import type { HostApi, HostFetchInit, HostConfigForMain, ItemTextEvent, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId, UpdaterInfo, SettingsTabId, ConfigChangedEvent, OcrRegionPickTarget, RevealScanEvent, RuneshapeScanEvent, RuneshapeUiState } from '@ipc/types'
 
 function subscribe<T> (channel: string, cb: (e: T) => void): () => void {
   const listener = (_: unknown, e: T) => cb(e)
@@ -54,7 +54,8 @@ const api: HostApi = {
   // WP-S2:在遊戲畫面上框選 OCR 區域
   overlayActivate: () => ipcRenderer.invoke('overlay-activate'),
   ocrRevealNow: () => ipcRenderer.invoke('ocr-reveal-now'),
-  onOcrRegionPick: (cb: () => void) => subscribe('ocr-region-pick', () => { cb() }),
+  // 2026-10-01:符文塑形的框選熱鍵帶 { target: 'runeshape' };揭露面板不帶(= undefined)
+  onOcrRegionPick: (cb: (target?: OcrRegionPickTarget) => void) => subscribe<{ target?: OcrRegionPickTarget } | undefined>('ocr-region-pick', (e) => { cb(e?.target === 'runeshape' ? 'runeshape' : undefined) }),
   // WP-R2:符文塑形面板自動查價
   onRuneshapeScanResult: (cb: (e: RuneshapeScanEvent) => void) => subscribe('runeshape-scan-result', cb),
   runeshapeUiState: (s: RuneshapeUiState) => { ipcRenderer.send('runeshape-ui-state', s) },

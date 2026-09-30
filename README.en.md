@@ -131,7 +131,8 @@ The Well of Souls three-option reveal panel cannot be copied as text, so the app
 3. Badges disappear when the reveal panel closes. **`Ctrl + Shift + R`** pauses / resumes auto-recognition.
 
 - A **"?"** on a badge means you have not price checked this item in the last 10 minutes, so the base type is unknown and tiers are inferred from the bases common to all three options. **Price check the item once before opening the reveal panel** for exact results.
-- **Recognition area (optional)**: in Settings › Hotkeys & window, click "Select on game screen" and drag a box around the reveal panel on the game screen; `Enter` confirms, `Esc` cancels. Recognition then looks at that area first (faster and more accurate) and falls back to the whole screen if the panel is not found there. A separate "Select OCR area" hotkey can also be set (unset by default).
+- **Recognition area (optional)**: in Settings › Hotkeys & window, click "Select on game screen" and drag a box around the reveal panel on the game screen; `Enter` confirms, `Esc` cancels. Recognition then looks at that area first (faster and more accurate) and falls back to the whole screen if the panel is not found there.
+- **Settings** (the desecration and runeshape sections offer the same items): enable, current status, scan interval (1000 ms by default, 100–3000; below 500 ms costs noticeably more CPU), recognition area, pause / resume hotkey, select-area hotkey (unset by default).
 
 ### Runeshape auto price check (PoE2)
 
@@ -144,8 +145,8 @@ While the runeshape panel is open, the app periodically reads the panel and show
 **Enable**: Settings › Hotkeys & window → tick "Enable runeshape auto price check (PoE2, overlay mode)" (off by default).
 
 - **Panel area**: without a selection, the app finds the panel by itself (looks at the whole screen about every 3 seconds, then scans only the panel once found). If recognition is unstable, select the area manually, covering every item row including quantities. A manual area that does not contain the panel is **not** widened to the whole screen automatically; select again or clear the area.
-- **Scan interval**: 1000 ms by default (500–3000). Increase it if CPU use bothers you. Scanning pauses while the price panel, Settings or the area picker is open, or when the game is not in front.
-- **Pause / resume hotkey**: unset by default; assign one if you like.
+- **Scan interval**: 1000 ms by default (100–3000; below 500 ms costs noticeably more CPU). Increase it if CPU use bothers you. Scanning pauses while the price panel, Settings or the area picker is open, or when the game is not in front.
+- **Pause / resume hotkey** and **select-area hotkey**: unset by default; assign them in this section if you like.
 
 **Reading the badges**:
 

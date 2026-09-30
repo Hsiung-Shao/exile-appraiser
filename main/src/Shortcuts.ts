@@ -16,6 +16,7 @@
  * - WP-S2:`ocr-region`(`hotkeyOcrRegion`,預設空 = 不註冊)註冊條件同 `ocr-reveal`;觸發時只呼叫 `onOcrRegionPick`
  *   (renderer 開框選層),同樣不送也不放開任何按鍵。動作表抽到 `shortcut-actions.ts`(純函式,有測試)。
  * - WP-R2:`runeshape-toggle`(`hotkeyRuneshapeToggle`,預設空)= 符文塑形自動查價暫停 / 繼續;只呼叫 `onRuneshapeToggle`。
+ *   2026-10-01:`runeshape-region`(`hotkeyRuneshapeRegion`,預設空)= 框選符文塑形面板,呼叫 `onOcrRegionPick('runeshape')`。
  * - 2026-10-01(移植 APT `Shortcuts.ts` 的 paste-in-chat / stash-search 分支):聊天指令與倉庫搜尋。照 APT 先放開熱鍵本身的按鍵,
  *   再交給 `text-box.ts`(寫剪貼簿 + 送按鍵序列,包在 `HostClipboard.restoreShortly`);兩個遊戲都可用,只在 overlay 模式註冊。
  *   遊戲保留鍵(`ipc/reserved-hotkeys.ts`,含 PoE2 的 Ctrl+Alt+C)不註冊。
@@ -23,7 +24,7 @@
 import { globalShortcut, screen } from 'electron'
 import { uIOhook, UiohookKey } from 'uiohook-napi'
 import { isModKey, KeyToElectron, mergeTwoHotkeys } from '@ipc/KeyToCode'
-import type { GameId, HostConfigForMain, HotkeyRegistration, ItemTextEvent } from '@ipc/types'
+import type { GameId, HostConfigForMain, HotkeyRegistration, ItemTextEvent, OcrRegionPickTarget } from '@ipc/types'
 import { HostClipboard } from './HostClipboard'
 import { buildShortcutActions, normalizeHotkey, reservedShortcuts, type ShortcutAction } from './shortcut-actions'
 import { stashSearch, typeInChat, type TextBoxDeps } from './text-box'
@@ -56,8 +57,8 @@ export class Shortcuts {
       onItem: (e: ItemTextEvent) => void
       /** WP-S:靈魂之井揭露面板 OCR(只在 overlay + PoE2 註冊;不送任何按鍵) */
       onOcrReveal?: () => void
-      /** WP-S2:框選 OCR 區域熱鍵(註冊條件同 onOcrReveal;不送任何按鍵) */
-      onOcrRegionPick?: () => void
+      /** WP-S2:框選 OCR 區域熱鍵(註冊條件同 onOcrReveal;不送任何按鍵)。2026-10-01:`runeshape` = 符文塑形面板的框選熱鍵 */
+      onOcrRegionPick?: (target: OcrRegionPickTarget) => void
       /** WP-R2:符文塑形自動查價暫停 / 繼續(不送任何按鍵) */
       onRuneshapeToggle?: () => void
     }
@@ -138,9 +139,9 @@ export class Shortcuts {
       this.opts.onOcrReveal?.()
       return
     }
-    if (entry.action.type === 'ocr-region') {
+    if (entry.action.type === 'ocr-region' || entry.action.type === 'runeshape-region') {
       // WP-S2:只請 renderer 開框選層(overlay 焦點由 renderer 的 overlay-activate 取得),不動鍵盤
-      this.opts.onOcrRegionPick?.()
+      this.opts.onOcrRegionPick?.(entry.action.type === 'runeshape-region' ? 'runeshape' : 'reveal')
       return
     }
     if (entry.action.type === 'runeshape-toggle') {

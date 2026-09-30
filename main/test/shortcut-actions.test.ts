@@ -51,6 +51,27 @@ describe('buildShortcutActions', () => {
       expect(a.some(x => x.action.type === 'runeshape-toggle')).toBe(false)
     }
   })
+  // 2026-10-01:符文塑形框選熱鍵(hotkeyRuneshapeRegion)
+  it('符文框選熱鍵:預設空 / 省略 → 不註冊;設了 + PoE2 + overlay → 註冊(不看 runeshapeEnabled)', () => {
+    expect(buildShortcutActions(base, 'overlay').some(x => x.action.type === 'runeshape-region')).toBe(false)
+    expect(buildShortcutActions({ ...base, hotkeyRuneshapeRegion: '' }, 'overlay').some(x => x.action.type === 'runeshape-region')).toBe(false)
+    const a = buildShortcutActions({ ...base, runeshapeEnabled: false, hotkeyRuneshapeRegion: 'ctrl+shift+o' }, 'overlay')
+    expect(types(a)).toContain('Ctrl + Shift + O=runeshape-region')
+    expect(a.find(x => x.action.type === 'runeshape-region')?.keepModKeys).toBe(false)
+    for (const b of [
+      buildShortcutActions({ ...base, game: 'poe1', hotkeyRuneshapeRegion: 'Ctrl + Shift + O' }, 'overlay'),
+      buildShortcutActions({ ...base, hotkeyRuneshapeRegion: 'Ctrl + Shift + O' }, 'window')
+    ]) {
+      expect(b.some(x => x.action.type === 'runeshape-region')).toBe(false)
+    }
+  })
+  it('符文框選熱鍵與褻瀆框選熱鍵重複 → 先到先得(褻瀆先);遊戲保留鍵不註冊並列入 reservedShortcuts', () => {
+    const a = buildShortcutActions({ ...base, hotkeyOcrRegion: 'Ctrl + Shift + T', hotkeyRuneshapeRegion: 'Ctrl + Shift + T' }, 'overlay')
+    expect(a.filter(x => x.shortcut === 'Ctrl + Shift + T').map(x => x.action.type)).toEqual(['ocr-region'])
+    const r = { ...base, hotkeyRuneshapeRegion: 'Ctrl + V' }
+    expect(buildShortcutActions(r, 'overlay').some(x => x.action.type === 'runeshape-region')).toBe(false)
+    expect(reservedShortcuts(r)).toContain('Ctrl + V')
+  })
   it('暫停熱鍵與 OCR 熱鍵重複 → 先到先得', () => {
     const a = buildShortcutActions({ ...base, runeshapeEnabled: true, hotkeyRuneshapeToggle: 'Ctrl + Shift + R' }, 'overlay')
     expect(a.filter(x => x.shortcut === 'Ctrl + Shift + R').map(x => x.action.type)).toEqual(['ocr-reveal'])

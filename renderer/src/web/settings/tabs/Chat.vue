@@ -48,57 +48,26 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent } from 'vue'
+import { defineComponent } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { AppConfig, MAX_TEXT_ENTRIES, defaultCommands, hotkeyRegistration } from '@/web/Config'
+import { AppConfig, MAX_TEXT_ENTRIES, defaultCommands } from '@/web/Config'
 import { Host } from '@/web/background/IPC'
 import HotkeyInput from '../HotkeyInput.vue'
-import { hotkeyIssues, hotkeySlots, normalizeHotkey } from '../hotkey-conflicts'
-
-/** 衝突對象的顯示名稱(i18n 鍵) */
-const SLOT_LABEL: Record<string, string> = {
-  quick: 'ppz.hotkey',
-  locked: 'ppz.hotkey_locked',
-  overlay: 'ppz.overlay_key',
-  ocr: 'ppz.ocr.hotkey',
-  region: 'ppz.ocr.region.hotkey',
-  runeshape: 'ppz.runeshape.hotkey'
-}
+import { useHotkeyIssues } from '../useHotkeyIssues'
 
 export default defineComponent({
   components: { HotkeyInput },
   setup () {
     const { t } = useI18n()
     const config = AppConfig()
-    const issues = computed(() => hotkeyIssues(hotkeySlots(config)))
-    /** main 回報被其他程式佔用的熱鍵(錯誤字串裡引號內的鍵) */
-    const taken = computed(() => {
-      const reg = hotkeyRegistration.value
-      if (!reg || reg.ok || !reg.error) return new Set<string>()
-      return new Set([...reg.error.matchAll(/"([^"]+)"/g)].map(m => m[1]))
-    })
-    function slotName (id: string): string {
-      const m = /^(cmd|stash):(\d+)$/.exec(id)
-      if (m) {
-        const n = Number(m[2])
-        const text = m[1] === 'cmd' ? config.commands[n]?.text : config.stashSearch[n]?.text
-        return quote((text ?? '').slice(0, 24))
-      }
-      return quote(t(SLOT_LABEL[id] ?? id))
-    }
-    const quote = (s: string) => config.uiLanguage === 'en' ? `"${s}"` : `「${s}」`
+    // 衝突 / 保留鍵 / 被佔用:與熱鍵與視窗分頁同一套(2026-10-01 抽成 useHotkeyIssues)
+    const { issueText } = useHotkeyIssues()
     return {
       t,
       config,
       max: MAX_TEXT_ENTRIES,
       isOverlay: Host.isOverlay || !Host.isElectron || Host.isPreview,
-      issueText (id: string, hotkey: string): string {
-        const is = issues.value.get(id)
-        if (is?.kind === 'reserved') return t('ppz.chat.issue_reserved', { key: is.key })
-        if (is?.kind === 'duplicate') return t('ppz.chat.issue_duplicate', { key: is.key, other: slotName(is.with) })
-        if (hotkey && taken.value.has(normalizeHotkey(hotkey))) return t('ppz.hotkey_conflict', { key: normalizeHotkey(hotkey) })
-        return ''
-      },
+      issueText,
       addCommand () {
         config.commands.push({ text: '', hotkey: '', send: true })
       },

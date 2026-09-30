@@ -3,7 +3,7 @@
  * 2026-10-01 由 WP-R2 的符文塑形掃描(`runeshape-scan.ts`)泛化而來;符文塑形與褻瀆(靈魂之井揭露面板,`reveal-scan.ts`)
  * 各注入自己的 `PanelDetector`,排程 / 暫停條件 / 變化偵測 / 自動定位快取 / 事件節奏都在這裡。
  *
- * 每 `intervalMs`(500–3000,預設 1000)一次:
+ * 每 `intervalMs`(100–3000,預設 1000;上一次 tick 做完才排下一次)一次:
  *   啟用條件(`scanBlock`)→ 擷取遊戲 client(`captureGameClient`)→ 決定要看哪一塊:
  *     - **manual**:使用者框的區域(優先)。detector `regionFallback` = false(符文)時區域內沒找到面板也**不**改掃全畫面;
  *       = true(褻瀆)時連續 2 次區域內沒有面板 → 進入「退回自動定位」,直到區域的畫面有變化才回到區域。
@@ -115,11 +115,16 @@ export function scanBlock (cfg: ScanConfig, env: ScanEnv, ui: RuneshapeUiState, 
   return null
 }
 
-/** 掃描間隔:500–3000 ms,預設 1000(與 renderer `clampRuneshapeInterval` 相同) */
+/**
+ * 掃描間隔:100–3000 ms,預設 1000(與 renderer `clampRuneshapeInterval` 相同)。
+ * 2026-10-01 使用者要求下限由 500 放寬到 100(設定頁 < 500 顯示 CPU 負擔提示);下一次 tick 在上一次做完後才排,不會重疊。
+ */
 export const DEFAULT_SCAN_INTERVAL_MS = 1000
+export const SCAN_INTERVAL_MIN_MS = 100
+export const SCAN_INTERVAL_MAX_MS = 3000
 export function clampScanInterval (v: unknown): number {
   if (typeof v !== 'number' || !Number.isFinite(v)) return DEFAULT_SCAN_INTERVAL_MS
-  return Math.min(3000, Math.max(500, Math.round(v)))
+  return Math.min(SCAN_INTERVAL_MAX_MS, Math.max(SCAN_INTERVAL_MIN_MS, Math.round(v)))
 }
 
 /** 含 CJK 字的 OCR 行(數字 / 符號雜訊不算) */

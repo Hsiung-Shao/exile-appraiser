@@ -604,8 +604,9 @@ if (!skipStartup) app.whenReady().then(() => {
     },
     // 2026-10-01:原本「按一次辨識一次」→ 暫停 / 繼續褻瀆自動辨識
     onOcrReveal: () => { revealScan.toggleUserPause() },
-    // WP-S2:框選 OCR 區域熱鍵 → renderer 開框選層(它自己呼叫 overlay-activate 取得焦點)
-    onOcrRegionPick: () => { send('ocr-region-pick') },
+    // WP-S2:框選 OCR 區域熱鍵 → renderer 開框選層(它自己呼叫 overlay-activate 取得焦點);
+    // 2026-10-01:符文塑形的框選熱鍵帶 { target: 'runeshape' }(揭露面板不帶,形狀不變)
+    onOcrRegionPick: (target) => { if (target === 'runeshape') send('ocr-region-pick', { target }); else send('ocr-region-pick') },
     // WP-R2:符文塑形自動查價暫停 / 繼續
     onRuneshapeToggle: () => { runeshapeScan.toggleUserPause() }
   })

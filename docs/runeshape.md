@@ -13,7 +13,7 @@ PoE2 **符文塑形面板**(Runes of Aldur 機制)開著時,自動辨識每一�
 | 價格 | `renderer/src/web/background/{Prices,price-of}.ts`、`core/src/ninja/`(格式見 `docs/ninja-poe2.md`) |
 | 徽章 | `renderer/src/web/overlay/{RuneshapePrices.vue,runeshape-view.ts}`(測試 `renderer/test/runeshape-prices.test.ts`) |
 | 自動查市集 | `poe2/src/runeshape/trade-lookup.ts`(查詢組法 + 佇列;測試 `poe2/test/runeshape/trade-lookup.test.ts`,錄製回應 `fixtures/trade/`)、`runeshape-view.ts` 市價換算 / 徽章文字(測試 `renderer/test/runeshape-trade.test.ts`)、`App.vue` 查價面板開著 → `runeshapeTradeHold` |
-| 設定 | `renderer/src/web/settings/tabs/Hotkeys.vue`「符文塑形自動查價」卡片 |
+| 設定 | `renderer/src/web/settings/tabs/Hotkeys.vue`「符文塑形自動查價」卡片;2026-10-01 起與褻瀆卡片共用 `settings/OcrScanSection.vue`(同一套列:啟用、目前狀態、掃描間隔 **100–3000 ms**(原 500–3000,< 500 顯示 CPU 提示)、面板區域 + 框選 / 清除、暫停 / 繼續熱鍵 `hotkeyRuneshapeToggle`、**框選區域熱鍵 `hotkeyRuneshapeRegion`**(新增,預設空;main 動作 `runeshape-region` → `ocr-region-pick` 帶 `{ target: 'runeshape' }`)、最近耗時;專屬:台服提示、顏色門檻)。兩個熱鍵已從通用熱鍵卡片移入本卡片,衝突檢查仍涵蓋全部熱鍵。細節見 `docs/reveal-ocr.md`「設定頁(與符文塑形對等)」 |
 | 無頭驗證 | `--runeshape-selftest`(`main/src/ocr/runeshape-selftest.ts`)、`node scripts/ocr-fixture.mjs --set runeshape` |
 
 ## 列格式(2026-09-30 兩張繁中截圖確認)

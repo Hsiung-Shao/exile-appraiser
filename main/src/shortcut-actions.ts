@@ -11,6 +11,8 @@ export interface ShortcutAction {
   keepModKeys: boolean
   action:
   | { type: 'copy-item', focusOverlay: boolean } | { type: 'toggle-overlay' } | { type: 'ocr-reveal' } | { type: 'ocr-region' } | { type: 'runeshape-toggle' }
+  /** 2026-10-01:框選符文塑形面板區域(renderer 開同一個框選層,target = runeshape) */
+  | { type: 'runeshape-region' }
   /** 2026-10-01(移植 APT):聊天指令 / 倉庫搜尋 —— 會對遊戲送出按鍵(main/src/text-box.ts) */
   | { type: 'paste-in-chat', text: string, send: boolean } | { type: 'stash-search', text: string }
 }
@@ -32,7 +34,7 @@ export function normalizeHotkey (hotkey: string): string {
 }
 
 type ActionCfg = Pick<HostConfigForMain, 'hotkey' | 'hotkeyHold' | 'hotkeyLocked' | 'overlayKey' | 'game' | 'hotkeyOcrReveal' | 'hotkeyOcrRegion'> &
-  Partial<Pick<HostConfigForMain, 'runeshapeEnabled' | 'hotkeyRuneshapeToggle' | 'revealAutoEnabled' | 'commands' | 'stashSearch'>>
+  Partial<Pick<HostConfigForMain, 'runeshapeEnabled' | 'hotkeyRuneshapeToggle' | 'hotkeyRuneshapeRegion' | 'revealAutoEnabled' | 'commands' | 'stashSearch'>>
 
 /**
  * 依設定組出要註冊的熱鍵(先到先得;空字串 / 重複 / 遊戲保留的不註冊)。
@@ -44,6 +46,8 @@ type ActionCfg = Pick<HostConfigForMain, 'hotkey' | 'hotkeyHold' | 'hotkeyLocked
  * - WP-S / WP-S2:`ocr-reveal`、`ocr-region` 只在 overlay + PoE2、熱鍵非空時註冊(要 overlay 才有地方疊徽章 / 框選層)。
  *   2026-10-01 起 `ocr-reveal` = 暫停 / 繼續褻瀆自動辨識,另外要 `revealAutoEnabled`(省略 = 開)。
  * - WP-R2:`runeshape-toggle`(符文塑形自動查價暫停 / 繼續)另外要 `runeshapeEnabled`。
+ *   2026-10-01:`runeshape-region`(框選符文塑形面板,`hotkeyRuneshapeRegion` 預設空)註冊條件同 `ocr-region`(不看是否啟用,
+ *   關著時也能先框好區域)。
  *   「遊戲在前景才註冊」由 `Shortcuts` 的 active-change 處理(對所有動作一樣)。
  */
 export function buildShortcutActions (cfg: ActionCfg, mode: WindowMode): ShortcutAction[] {
@@ -66,6 +70,9 @@ export function buildShortcutActions (cfg: ActionCfg, mode: WindowMode): Shortcu
       // WP-R2:符文塑形自動查價「暫停 / 繼續」只在功能開著時註冊(預設空 = 不註冊)
       if (cfg.runeshapeEnabled && cfg.hotkeyRuneshapeToggle) {
         actions.push({ shortcut: normalizeHotkey(cfg.hotkeyRuneshapeToggle), keepModKeys: false, action: { type: 'runeshape-toggle' } })
+      }
+      if (cfg.hotkeyRuneshapeRegion) {
+        actions.push({ shortcut: normalizeHotkey(cfg.hotkeyRuneshapeRegion), keepModKeys: false, action: { type: 'runeshape-region' } })
       }
     }
     for (const c of (cfg.commands ?? []).slice(0, MAX_TEXT_ACTIONS)) {
@@ -91,7 +98,7 @@ export function buildShortcutActions (cfg: ActionCfg, mode: WindowMode): Shortcu
 export function reservedShortcuts (cfg: ActionCfg): string[] {
   const all = [
     mergeTwoHotkeys(normalizeHotkey(cfg.hotkeyHold), normalizeHotkey(cfg.hotkey)), cfg.hotkeyLocked, cfg.overlayKey, cfg.hotkeyOcrReveal, cfg.hotkeyOcrRegion,
-    cfg.hotkeyRuneshapeToggle ?? '', ...(cfg.commands ?? []).map(c => c?.hotkey ?? ''), ...(cfg.stashSearch ?? []).map(s => s?.hotkey ?? '')
+    cfg.hotkeyRuneshapeToggle ?? '', cfg.hotkeyRuneshapeRegion ?? '', ...(cfg.commands ?? []).map(c => c?.hotkey ?? ''), ...(cfg.stashSearch ?? []).map(s => s?.hotkey ?? '')
   ]
   return [...new Set(all.filter(Boolean).map(k => normalizeHotkey(k)).filter(isGameReservedHotkey))]
 }

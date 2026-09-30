@@ -9,7 +9,7 @@
  *   方法經 RPC 到 main,與 Electron 內行為相同(設定寫同一份 config.json);視窗控制類是 no-op。
  */
 import type { HostApi, HostFetchInit, HostFetchResult, ItemTextEvent, HostConfigForMain, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId } from '@ipc/types'
-import type { ConfigChangedEvent, HotkeyRegistration, OcrAvailability, RevealScanEvent, SettingsTabId, UpdaterInfo } from '@ipc/types'
+import type { ConfigChangedEvent, HotkeyRegistration, OcrAvailability, OcrRegionPickTarget, RevealScanEvent, SettingsTabId, UpdaterInfo } from '@ipc/types'
 import type { RuneshapeScanEvent, RuneshapeStats, RuneshapeUiState } from '@ipc/types'
 import { shallowRef } from 'vue'
 import type { HttpFetch } from '@exile-appraiser/core/http'
@@ -208,8 +208,8 @@ class HostTransport {
   async overlayActivate (): Promise<void> { await window.host?.overlayActivate?.() }
   /** 框選確認後請褻瀆自動辨識立刻重看;main 判斷不適用時回 false */
   async ocrRevealNow (): Promise<boolean | undefined> { return await window.host?.ocrRevealNow?.() }
-  /** 框選熱鍵(`hotkeyOcrRegion`) */
-  onOcrRegionPick (cb: () => void): () => void {
+  /** 框選熱鍵:`hotkeyOcrRegion`(target 省略 = 揭露面板)、`hotkeyRuneshapeRegion`(target = runeshape,2026-10-01) */
+  onOcrRegionPick (cb: (target?: OcrRegionPickTarget) => void): () => void {
     return window.host?.onOcrRegionPick?.(cb) ?? (() => {})
   }
 

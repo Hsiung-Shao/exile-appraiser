@@ -71,6 +71,13 @@ describe('熱鍵衝突表(與 main 註冊規則相同)', () => {
     expect(m.get('stash:0')).toEqual({ kind: 'reserved', key: 'Enter' })
     expect(m.get('stash:1')).toEqual({ kind: 'duplicate', key: 'Ctrl + Shift + R', with: 'ocr' })
   })
+  it('符文塑形框選熱鍵也在表內(PoE2;不看是否啟用),與其他熱鍵重複標 duplicate', () => {
+    const c: HotkeyConfigLike = { ...cfg, hotkeyOcrRegion: 'Ctrl + Shift + T', hotkeyRuneshapeRegion: 'ctrl+shift+t' }
+    const slots = hotkeySlots(c).map(s => s.id)
+    expect(slots.slice(0, 6)).toEqual(['quick', 'locked', 'overlay', 'ocr', 'region', 'runeRegion'])
+    expect(hotkeyIssues(hotkeySlots(c)).get('runeRegion')).toEqual({ kind: 'duplicate', key: 'Ctrl + Shift + T', with: 'region' })
+    expect(hotkeySlots({ ...c, game: 'poe1' }).some(s => s.id === 'runeRegion')).toBe(false)
+  })
   it('沒註冊的欄位不參與(褻瀆自動辨識關掉 → 暫停鍵不算;PoE1 沒有 OCR 熱鍵)', () => {
     const c = { ...cfg, stashSearch: [{ text: 'y', hotkey: 'Ctrl + Shift + R' }] }
     expect(hotkeyIssues(hotkeySlots({ ...c, revealAutoEnabled: false })).has('stash:0')).toBe(false)

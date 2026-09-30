@@ -13,7 +13,7 @@ PoE2 靈魂之井的「三選一」揭露面板無法複製文字。擷取遊戲
 
 | 項目 | 褻瀆(`reveal-scan.ts`) | 符文塑形(`runeshape-scan.ts`,行為不變) |
 |---|---|---|
-| 設定 | `revealAutoEnabled`(預設**開**)、`revealIntervalMs`(500–3000,預設 1000)、區域沿用 `ocrRegion` | `runeshapeEnabled`(預設關)、`runeshapeIntervalMs`、`runeshapeRegion` |
+| 設定 | `revealAutoEnabled`(預設**開**)、`revealIntervalMs`(100–3000,預設 1000)、區域沿用 `ocrRegion` | `runeshapeEnabled`(預設關)、`runeshapeIntervalMs`(同夾限)、`runeshapeRegion` |
 | 資料 | `ready()` 第一次讀 `tiers.json` 建模板索引(`locate-data.ts`);讀不到 → 停止(`no-data`,清徽章) | 不需要 |
 | 自動定位(沒快取時每 3 秒最多一次整個 client ×1) | `locatePanel`(像詞綴的行成簇 → 外擴) | `locateRunePanel` |
 | 有沒有面板 | `findPanelHits` ≥ 2 行像詞綴(`REVEAL_MIN_HITS`,同 `checkRegion`),**且依 y 分成 ≥ 2 組**(`modGroupCount`:相鄰中心距 > 1.9 × 行高 = 下一組,同 renderer 分組門檻)——選項之間有空隙,物品浮窗的連續詞綴行不算(無頭驗證發現只看行數會把浮窗當面板) | ≥ 1 列 `isPanelRow` |
@@ -21,13 +21,37 @@ PoE2 靈魂之井的「三選一」揭露面板無法複製文字。擷取遊戲
 | 有框區域 | 優先區域;區域內連續 2 次沒面板 → **退回自動定位**(事件帶 `fallback: true`,設定頁顯示「區域內沒找到,改找整個畫面」),區域的縮圖有變化才回到區域 | 只看區域,不退回 |
 | 暫停 | 遊戲失焦、設定 / 框選層開著;**查價面板開著不暫停**(看褻瀆時常同時開查價) | 另加查價面板開著 |
 | 事件 | `reveal-scan-result`(`RevealScanEvent` = `PanelScanEvent`,不進 `PREVIEW_EVENTS`) | `runeshape-scan-result` |
-| 熱鍵 | `hotkeyOcrReveal` = 暫停 / 繼續(`revealAutoEnabled` 關時不註冊) | `hotkeyRuneshapeToggle` |
+| 熱鍵 | `hotkeyOcrReveal` = 暫停 / 繼續(`revealAutoEnabled` 關時不註冊);`hotkeyOcrRegion` = 框選區域 | `hotkeyRuneshapeToggle`(要啟用才註冊);`hotkeyRuneshapeRegion` = 框選區域(2026-10-01 新增) |
 
 - **共用 WinOcr**:兩個掃描的 `ocrBusy` 互看對方的 `busy`,忙碌就丟掉這個 tick(不排隊);main 啟動時褻瀆第一個 tick 立刻跑、符文延後半個間隔,兩者同時開著時交錯。
 - **徽章**(`OcrBadges.vue` + `ocr-reveal.ts` `revealScanAction`):`rows` → 重新比對並重畫;比對不成面板(背包物品浮窗等,main 端只看得出「≥ 2 行像詞綴」)→ 靜靜清掉、不跳錯誤;
   `empty` / `inactive` / `user-paused` → 清除。**沒有 15 秒自動消失、沒有「再按一次清除」**;Esc 暫時清掉;overlay 改大小以最後結果重排;退回整個畫面的提示只在剛切過去時顯示 5 秒(`fallbackNoteShows`)。
 - 框選確認後 `ocr-reveal-now` → `revealScan.rescan()`(丟掉差分基準與退回狀態,下一個 tick 一定重看)。
-- 設定頁(熱鍵與視窗 › 褻瀆自動辨識卡片):開關、掃描間隔、狀態列(`reveal-stats`:找到 / 尋找中 / 退回 / 暫停,`revealScanStatus`)。
+- 設定頁(熱鍵與視窗 › 褻瀆自動辨識卡片):開關、狀態列(`reveal-stats`:找到 / 尋找中 / 退回 / 暫停,`revealScanStatus`)、掃描間隔等,見下節「設定頁(與符文塑形對等)」。
+
+### 設定頁(與符文塑形對等,2026-10-01)
+
+使用者要求「褻瀆詞綴辨識與符文的辨識開關一樣可以做設定;設定褻瀆的快捷設定位置移到褻瀆框中;移除褻瀆手動輸入比例;
+框選 OCR 區域快捷鍵都於各自的設定中給予按鈕設定;掃描的間隔開放下限」。兩張卡片共用 `renderer/src/web/settings/OcrScanSection.vue`(`kind` = `reveal` / `runeshape`):
+
+| 列(兩者相同順序) | 褻瀆 | 符文塑形 |
+|---|---|---|
+| 啟用 | `revealAutoEnabled` | `runeshapeEnabled` |
+| 目前狀態(+「更新」讀 main 統計) | `revealScanStatus`:找到 / 尋找中 / 區域內沒找到改找整個畫面 / 已暫停 | 自動定位:已找到 / 尋找中、框選區域內有 / 沒有找到、已暫停 |
+| 掃描間隔 | `revealIntervalMs` | `runeshapeIntervalMs` |
+| 區域 + 「在遊戲上框選」「清除」 | `ocrRegion` | `runeshapeRegion` |
+| 暫停 / 繼續熱鍵 | `hotkeyOcrReveal` | `hotkeyRuneshapeToggle` |
+| 框選區域熱鍵 | `hotkeyOcrRegion` | `hotkeyRuneshapeRegion` |
+| 最近耗時 | `reveal-stats` 的 `last` / 平均 | renderer 最近一次事件 + `runeshape-stats` 平均 |
+| 專屬 | OCR 語言包狀態 +「重新檢查」 | 台服提示、顏色門檻 |
+
+- **掃描間隔 100–3000 ms**(main `clampScanInterval` / renderer `clampRuneshapeInterval` 同值 `SCAN_INTERVAL_MIN_MS` / `MAX`;原本 500–3000);低於 500 ms(`SCAN_INTERVAL_CPU_WARN_MS`)設定頁顯示 CPU 負擔提示。
+  `PanelScan` 在上一次 tick 做完才排下一次,間隔再短也不會重疊;兩個掃描共用 WinOcr,對方忙碌就丟 tick。
+- **熱鍵移進各自卡片**:通用「熱鍵」卡片只剩查價 / 鎖定 / overlay;四個辨識熱鍵在卡片內。衝突檢查(`hotkey-conflicts.ts` + `useHotkeyIssues.ts`)仍涵蓋全部熱鍵(含聊天指令),依 main 註冊順序先到先得,
+  保留鍵 / 重複 / 被其他程式佔用都顯示在該欄位下方;對不回任何欄位的 main 錯誤顯示在熱鍵卡片底部。
+- **符文框選熱鍵** `hotkeyRuneshapeRegion`(預設空):`shortcut-actions.ts` 動作 `runeshape-region`(overlay + PoE2,不看是否啟用)→ `Shortcuts.ts` `onOcrRegionPick('runeshape')`
+  → main 送 `ocr-region-pick` 帶 `{ target: 'runeshape' }`(揭露面板照舊不帶內容)→ `OcrRegionPicker.vue` `openRegionPicker('hotkey', 'runeshape')`。
+- **手動比例欄位已移除**(原「進階:手動輸入比例」四個數字欄位);`Config.ts` 仍讀寫舊檔的 `ocrRegion`(`normOcrRegion`)。
 - 舊的按熱鍵辨識一次(`RevealOcr`、`ocr-reveal-result`)已移除;兩段式 `strategy.ts`(`smartRecognize` / `recognizeRegionFirst`)仍給 `--ocr-selftest` 用,下文「兩段式辨識」「框選辨識區域」的**單次**流程描述保留作歷史紀錄。
 - 測試:`main/test/reveal-scan.test.ts`(三張真實截圖快照當畫面:偵測器定位 / 判定、自動定位 → ×3、畫面沒變不 OCR、面板關了 empty、查價面板開著照常、設定開著暫停、no-data、共用 WinOcr 忙碌、暫停熱鍵、區域 / 退回 / 回到區域、rescan、停用清徽章)、
   `renderer/test/reveal-scan.test.ts`(事件 → 徽章動作、狀態列、設定往返)、`main/test/runeshape-scan.test.ts`(泛化後符文行為不變)。
@@ -79,7 +103,7 @@ PoE2 靈魂之井的「三選一」揭露面板無法複製文字。擷取遊戲
 
 | 步驟 | 檔案 | 做什麼 |
 |---|---|---|
-| 入口 | `settings/tabs/Hotkeys.vue`、`Shortcuts.ts` / `shortcut-actions.ts` | 設定 › 熱鍵與視窗 › 靈魂之井揭露 OCR 卡片:狀態(「未設定(自動找整個畫面)」/「已設定:左 19%、上 44%、寬 28%、高 25%」)+「在遊戲上框選」「清除」;四個數字欄位收進「進階」`<details>`。選用熱鍵 `hotkeyOcrRegion`(預設空 = 不註冊;註冊條件同 OCR 熱鍵:overlay + PoE2 + 遊戲前景)→ main 送 `ocr-region-pick`。瀏覽器預覽 / window 模式沒有框選鈕,改顯示說明 |
+| 入口 | `settings/tabs/Hotkeys.vue`、`Shortcuts.ts` / `shortcut-actions.ts` | 設定 › 熱鍵與視窗 › 靈魂之井揭露 OCR 卡片:狀態(「未設定(自動找整個畫面)」/「已設定:左 19%、上 44%、寬 28%、高 25%」)+「在遊戲上框選」「清除」(2026-10-01 起手動比例欄位已移除,見「設定頁(與符文塑形對等)」)。選用熱鍵 `hotkeyOcrRegion`(預設空 = 不註冊;註冊條件同 OCR 熱鍵:overlay + PoE2 + 遊戲前景)→ main 送 `ocr-region-pick`。瀏覽器預覽 / window 模式沒有框選鈕,改顯示說明 |
 | 開啟 | `overlay/OcrRegionPicker.vue`、`overlay/ocr-reveal.ts` | `regionPickerOpen = true` → 呼叫 `overlay-activate`(main `assertOverlayActive`,overlay 可點擊);`App.vue` 隱藏設定視窗 / 查價面板;`OcrBadges.vue` 清掉徽章 |
 | 回到設定 | `App.vue`、`ocr-reveal.ts` `returnsToSettings` | 由設定視窗開的框選(`regionPickerSource = 'settings'`),確認 / 取消鈕 / 清除後**自動重開設定並停在熱鍵分頁**(不 `focus-game`,overlay 維持可點擊);**這條路徑確認後不自動試辨識**(置中的設定視窗會擋住揭露面板)。失焦 / 視窗隱藏結束的不回設定;熱鍵開的框選行為不變 |
 | 畫面 | 同上 | 暗幕 `rgba(0,0,0,.55)`,選取框內挖空(選取框的超大 `box-shadow`);選取框 `--gold` 邊框 + 8 個方形把手 + 即時百分比;參考框:「目前區域」實線、「上次偵測」`--accent` 虛線;頂部說明條與按鈕(確認 / 套用上次偵測 / 清除區域 / 取消)是深色島(`.pob-dark`,淺色主題也維持深色,與徽章一致) |
@@ -194,7 +218,7 @@ PowerShell 行程第一次啟動約 0.3–1.8 秒(之後常駐)。
 - 英文客戶端不支援(OCR 固定 `zh-Hant-TW`、比對用繁中模板)。
 - profile 不明時只能給範圍(標「?」);查價過同一件物品(10 分鐘內)才是精確底材。
 - Esc 只在 overlay 有焦點時收得到(遊戲在前景時 Esc 屬於遊戲);其餘靠再按熱鍵 / 15 秒。
-- 框選(WP-S2)只在 overlay 模式;window 模式與瀏覽器預覽只能用「進階」的數字欄位。區域以 client 比例存,遊戲換解析度 / UI 縮放後面板位置可能不同 → 區域內找不到時會退回整張並提示,重新框選即可。
+- 框選(WP-S2)只在 overlay 模式;window 模式與瀏覽器預覽不能框選(2026-10-01 起設定頁沒有數字欄位,只能沿用既有 `ocrRegion` 或清除)。區域以 client 比例存,遊戲換解析度 / UI 縮放後面板位置可能不同 → 區域內找不到時會退回整張並提示,重新框選即可。
 - 框選熱鍵與 OCR 熱鍵一樣只在遊戲前景時註冊;overlay 取得焦點後熱鍵暫停(要用設定頁按鈕或先回遊戲)。
 
 ## 隱私
