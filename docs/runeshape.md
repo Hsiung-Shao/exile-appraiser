@@ -192,6 +192,27 @@ node scripts/ocr-fixture.mjs --set runeshape        # 兩張樣本 → *.ocr.jso
 npx electron main/dist/main.js --runeshape-selftest <png> [--runeshape-selftest-region=x,y,w,h]   # 先 build main、清 ELECTRON_RUN_AS_NODE;樣本要先轉 PNG
 ```
 
+## 徽章外觀(第 11 步,2026-10-02)
+
+設定 › 熱鍵與視窗 › 兩張辨識卡片之後的「徽章外觀」卡片(`renderer/src/web/settings/BadgeStyleSection.vue`),符文價格徽章與褻瀆徽章共用 `config.ocrBadgeStyle`
+(`renderer/src/web/overlay/badge-style.ts`;只影響 overlay 顯示,不送 main;舊設定檔沒有 → 預設 = 改版前外觀):
+
+| 欄位 | 值 | 符文 | 褻瀆 |
+|---|---|---|---|
+| `fontFamily` | 系統已安裝字體名(main IPC `list-fonts`)/ `''` = 跟隨介面 `--font-ui` | ✓ | ✓ |
+| `fontSize` | 10–32 px / `null` = 跟隨(符文主字 `--fs-sm`、褻瀆 `--fs-base`);小字 = 主 − 1(符文)/ 主 − 2(褻瀆),與原本 `--fs-xs` 的差相同 | ✓ | ✓ |
+| `bold` | 一般字 700、原本就粗的(總價、≈)800 | ✓ | ✓ |
+| `tierColors.{low,mid,high}` | `#rrggbb` / `null` = 主題預設(低 `--ink-2` + `--ink-4` 條、中 `--ink-0` + `--accent` 條、高 `--gold`);字色 + 左條 | ✓(只有 `kind-price`) | ✗(語意色保留) |
+| `outline` | `none` / `shadow`(黑色模糊陰影)/ `outline`(8 方向 1 px 黑);`text-shadow`,不影響點擊穿透 | ✓ | ✓ |
+
+- 套用:徽章層根元素 `:style` = `badgeStyleVars(style, 'rune' | 'reveal')`(`--badge-font` / `--badge-fs` / `--badge-fs-xs` / `--badge-weight(-strong)` / `--badge-low|mid|high` / `--badge-halo`),
+  樣式寫 `var(--badge-x, 原值)`;**全部預設時不輸出任何變數**。`font-weight` / `text-shadow` 沒有後援:變數不存在時 `var()` 無效 → 照舊繼承(與改版前相同)。
+  三段色只寫在 `.rs-badge.kind-price.tier-*`:對不上「?」/ 無價格 / 載入中 / 市集徽章也帶 `tier-*` class,但不是價格分段,維持原樣。toast / 「?」說明不吃字級。
+- 系統字體(`main/src/system-fonts.ts`):一次性 PowerShell 5.1 `InstalledFontCollection`,名稱以 UTF-8 → base64 輸出(避開 5.1 的 ANSI 碼頁),去重排序、記憶體快取(成功才快取);
+  失敗 / 非 Windows → `[]`,下拉只剩「跟隨介面」與內建 Noto Sans TC。本機實測 314 項、約 0.35–1.4 秒。名稱是目前 UI 語系的(繁中 Windows =「微軟正黑體」),Chromium 認得。
+- 驗證:預設設定下改前 / 改後 overlay 截圖逐位元組相同、徽章所有元素計算樣式相同(無頭頁面 + 假 `window.host` + 真實 OCR 快照事件);`renderer/test/badge-style.test.ts`、`main/test/system-fonts.test.ts`。
+- 限制:符文徽章沒有防碰撞(每列置中於該列),字級很大(約 > 列高)時相鄰兩列的徽章可能上下重疊。
+
 ## 已知限制
 
 - 英文客戶端的前綴寫法未確認(`Nx` 以外只認繁中 `技能等級` / `技能` / `輔助`);沒有任何前綴列的面板自動定位找不到(請手動框選)。

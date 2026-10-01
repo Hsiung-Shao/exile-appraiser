@@ -14,9 +14,11 @@
   - 整層 `pointer-events: none`(徽章不可點)。不送任何輸入。
   - 效能修正第 6 步:事件的列(+ client、遊戲、資料集世代)與目前畫著的相同 → 不重新比對 / 排版 / 印 log(`scan-dedupe.ts`;
     耗時紀錄與「有人在查價」照舊);每列的市集查詢計畫每次結果只算一次(`plans` computed)。
+  - 第 11 步:徽章外觀(`config.ocrBadgeStyle`,與褻瀆徽章共用;`badge-style.ts`):根元素設 CSS 變數(字體 / 字級 / 粗體 /
+    三段價格色 / 外框陰影),樣式寫 `var(--badge-x, 原值)`,預設不輸出變數 = 外觀不變。市集徽章(冷色左框)不吃三段色。
 -->
 <template>
-  <div v-if="active" class="rs-layer pob-dark" data-runeshape-layer :data-runeshape-state="state">
+  <div v-if="active" class="rs-layer pob-dark" data-runeshape-layer :data-runeshape-state="state" :style="styleVars">
     <template v-if="state === 'rows'">
       <div v-for="b in badges" :key="b.key" class="rs-badge"
         :class="[`tier-${b.tier}`, `kind-${b.kind}`, b.noPrice ? `no-price-${b.noPrice}` : '', { market: !!b.tradeKey, [`trade-${marketOf(b)?.status}`]: !!b.tradeKey }]"
@@ -65,6 +67,7 @@ import {
   type MatchedRow, type PriceUnit, type RuneBadgeView, type RuneTradeBadge, type RuneTradeBadgeStatus
 } from './runeshape-view'
 import { createScanResultGate, dataGeneration, scanResultKey } from './scan-dedupe'
+import { badgeStyleVars } from './badge-style'
 
 const TOAST_MS = 2_500
 
@@ -242,6 +245,7 @@ export default defineComponent({
       badgeTitle,
       marketOf,
       marketWord,
+      styleVars: computed(() => badgeStyleVars(config.ocrBadgeStyle, 'rune')),
       active: computed(() => state.value !== 'idle' || toast.value != null)
     }
   }
@@ -268,33 +272,43 @@ export default defineComponent({
   background: color-mix(in srgb, var(--surface-1-c) 92%, transparent);
   box-shadow: var(--shadow-float);
   color: var(--ink-0);
-  font-size: var(--fs-sm);
+  /* 第 11 步徽章外觀:變數沒設 = 原值(font-weight / text-shadow 沒設時 var() 無效 → 照舊繼承) */
+  font-family: var(--badge-font, var(--font-ui));
+  font-size: var(--badge-fs, var(--fs-sm));
+  font-weight: var(--badge-weight);
+  text-shadow: var(--badge-halo);
   line-height: 1.4;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
-.rs-badge .rs-total { font-weight: 600; }
-.rs-badge .rs-unit { margin-left: 0.2em; font-weight: 400; font-size: var(--fs-xs); color: var(--ink-1); }
-.rs-badge .rs-each { font-size: var(--fs-xs); color: var(--ink-2); }
-.rs-badge .rs-lc { font-size: var(--fs-xs); color: var(--warn); }
-.rs-badge .rs-approx { margin-right: -0.25em; color: var(--warn); font-weight: 600; }
+.rs-badge .rs-total { font-weight: var(--badge-weight-strong, 600); }
+.rs-badge .rs-unit { margin-left: 0.2em; font-weight: var(--badge-weight, 400); font-size: var(--badge-fs-xs, var(--fs-xs)); color: var(--ink-1); }
+.rs-badge .rs-each { font-size: var(--badge-fs-xs, var(--fs-xs)); color: var(--ink-2); }
+.rs-badge .rs-lc { font-size: var(--badge-fs-xs, var(--fs-xs)); color: var(--warn); }
+.rs-badge .rs-approx { margin-right: -0.25em; color: var(--warn); font-weight: var(--badge-weight-strong, 600); }
 /* 三段顏色:低 = 暗、中 = 一般、高 = 金 */
 .rs-badge.tier-low { color: var(--ink-2); border-left-color: var(--ink-4); background: color-mix(in srgb, var(--surface-1-c) 80%, transparent); }
 .rs-badge.tier-mid { border-left-color: var(--accent); }
 .rs-badge.tier-high { color: var(--gold); border-left-color: var(--gold); box-shadow: var(--shadow-float), 0 0 0 1px color-mix(in srgb, var(--gold) 45%, transparent); }
 .rs-badge.tier-high .rs-unit { color: var(--gold); }
-.rs-badge.kind-unmatched, .rs-badge.kind-no-price, .rs-badge.kind-loading { font-size: var(--fs-xs); color: var(--ink-2); }
+/* 第 11 步:有價格的徽章三段色各自可設(`--badge-low/mid/high`,字色 + 左條);沒設 = 上面的原值。
+   只套 kind-price:對不上「?」/ 無價格 / 載入中 / 市集徽章也帶 tier class,但不是價格分段,維持原樣 */
+.rs-badge.kind-price.tier-low { color: var(--badge-low, var(--ink-2)); border-left-color: var(--badge-low, var(--ink-4)); }
+.rs-badge.kind-price.tier-mid { color: var(--badge-mid, var(--ink-0)); border-left-color: var(--badge-mid, var(--accent)); }
+.rs-badge.kind-price.tier-high { color: var(--badge-high, var(--gold)); border-left-color: var(--badge-high, var(--gold)); box-shadow: var(--shadow-float), 0 0 0 1px color-mix(in srgb, var(--badge-high, var(--gold)) 45%, transparent); }
+.rs-badge.kind-price.tier-high .rs-unit { color: var(--badge-high, var(--gold)); }
+.rs-badge.kind-unmatched, .rs-badge.kind-no-price, .rs-badge.kind-loading { font-size: var(--badge-fs-xs, var(--fs-xs)); color: var(--ink-2); }
 /* 「無固定價格」(配方泛稱,本來就沒有單一價格)比「無價格」(有具體物品但價格表沒有)更淡、左框虛線,一眼分得出 */
 .rs-badge.no-price-recipe { color: var(--ink-3); border-left-style: dashed; border-left-color: var(--ink-3); font-style: italic; }
 /* 交易站市價:冷色左框 + 「市」字,與 poe.ninja 參考價區分 */
 .rs-badge.market {
-  font-size: var(--fs-sm);
+  font-size: var(--badge-fs, var(--fs-sm));
   color: var(--ink-0);
   border-left-color: var(--c-cold);
   background: color-mix(in srgb, var(--surface-1-c) 94%, transparent);
 }
 /* 排隊中 / 查詢中 / 沒有掛單 / 失敗:淡一點 */
-.rs-badge.market.trade-queued, .rs-badge.market.trade-loading, .rs-badge.market.trade-empty, .rs-badge.market.trade-failed { color: var(--ink-2); font-size: var(--fs-xs); }
+.rs-badge.market.trade-queued, .rs-badge.market.trade-loading, .rs-badge.market.trade-empty, .rs-badge.market.trade-failed { color: var(--ink-2); font-size: var(--badge-fs-xs, var(--fs-xs)); }
 .rs-badge.market.trade-loading .rs-mkt-state { animation: rs-pulse 1.2s ease-in-out infinite; }
 @keyframes rs-pulse { 50% { opacity: 0.45; } }
 .rs-badge .rs-mkt {
@@ -302,7 +316,7 @@ export default defineComponent({
   border-radius: 3px;
   background: color-mix(in srgb, var(--c-cold) 28%, transparent);
   color: var(--c-cold);
-  font-size: var(--fs-xs);
+  font-size: var(--badge-fs-xs, var(--fs-xs));
   font-weight: 600;
 }
 .rs-badge .rs-few {
@@ -310,10 +324,10 @@ export default defineComponent({
   border-radius: 3px;
   background: color-mix(in srgb, var(--warn) 22%, transparent);
   color: var(--warn);
-  font-size: var(--fs-xs);
+  font-size: var(--badge-fs-xs, var(--fs-xs));
   font-weight: 600;
 }
-.rs-badge .rs-short { font-size: var(--fs-xs); color: var(--ink-2); }
+.rs-badge .rs-short { font-size: var(--badge-fs-xs, var(--fs-xs)); color: var(--ink-2); }
 .rs-toast {
   position: absolute;
   top: 10%;

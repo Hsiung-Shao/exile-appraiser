@@ -53,7 +53,8 @@ export const HOST_METHOD_CHANNELS: Readonly<Record<string, string>> = {
   downloadUpdate: 'updater-download',
   installUpdate: 'updater-install',
   openPreview: 'preview-open',
-  getPreviewUrl: 'preview-url'
+  getPreviewUrl: 'preview-url',
+  listFonts: 'list-fonts'
 }
 
 /** `HostApi` 訂閱方法 → 事件名(預覽端只會收到 main `PREVIEW_EVENTS` 放行的那幾個)。 */

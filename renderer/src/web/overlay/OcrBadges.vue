@@ -14,9 +14,12 @@
   - 第 13 步:徽章左緣對齊、上下不重疊(`layoutBadges` 先用估計高度排,畫出來後量實際高度再排一次 `stackBadges`);
     一組多候選預設只列最可能的一個 + 「+N」(設定 `revealShowAllCandidates` 開 = 全列;overlay 點擊穿透,不做滑鼠展開);
     「?」說明依 profile 來源換文案(`guessNoteKey`:交集為空 = 依全部可能底材推算)。
+  - 第 11 步:徽章外觀(`config.ocrBadgeStyle`,與符文徽章共用;`badge-style.ts`):根元素設 CSS 變數,樣式寫 `var(--badge-x, 原值)`,
+    預設不輸出變數 = 外觀不變。字體 / 字級 / 粗體 / 外框;語意色(模糊命中警告色、dim)保留,不吃價格三段色。
+    改外觀 → 以最後結果重排(估計高度用設定的字級),字型載入完成後再量一次實際高度。
 -->
 <template>
-  <div v-if="state !== 'idle'" ref="layer" class="ocr-layer pob-dark" :data-ocr-state="state">
+  <div v-if="state !== 'idle'" ref="layer" class="ocr-layer pob-dark" :data-ocr-state="state" :style="styleVars">
     <div v-for="b in badges" :key="b.key" class="ocr-badge" data-ocr="badge" :data-key="b.key"
       :style="{ left: `${b.left}px`, top: `${b.top}px` }">
       <div v-for="(r, i) in b.rows" :key="i" class="ocr-row" :class="{ fuzzy: r.fuzzy }"
@@ -30,7 +33,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, nextTick, onMounted, onUnmounted, shallowRef, watch } from 'vue'
+import { computed, defineComponent, nextTick, onMounted, onUnmounted, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { RevealScanEvent } from '@ipc/types'
 import * as Poe2 from '@poe2-entry'
@@ -41,6 +44,7 @@ import {
   badgeMetrics, guessNoteKey, lastDetectedRegion, lastPoe2Item, layoutBadges, profileHint, regionPickerOpen, revealScanAction, stackBadges, tierText,
   type BadgeView
 } from './ocr-reveal'
+import { badgeStyleVars, revealBadgeFontPx } from './badge-style'
 import { detectedRegion } from './region-geom'
 import { createScanResultGate, dataGeneration, scanResultKey } from './scan-dedupe'
 
@@ -93,9 +97,12 @@ export default defineComponent({
         tier: tierText,
         pool: c => Poe2.revealPoolLabel(c, tr),
         range: c => Poe2.revealRangeLabel(c.ranges)
-      }, { showAll: config.revealShowAllCandidates, metrics: badgeMetrics(fsBasePx()) })
+      }, { showAll: config.revealShowAllCandidates, metrics: badgeMetrics(revealBadgeFontPx(config.ocrBadgeStyle, fsBasePx())) })
       void restackMeasured()
+      // 換了字體:字型檔載入完成後字寬 / 行高才定,再量一次
+      void document.fonts?.ready.then(() => restackMeasured())
     }
+    const styleVars = computed(() => badgeStyleVars(config.ocrBadgeStyle, 'reveal'))
 
     function onEvent (e: RevealScanEvent) {
       const act = revealScanAction(e, loadedGame.value === 'poe2' ? 'poe2' : 'poe1')
@@ -153,8 +160,10 @@ export default defineComponent({
     watch(regionPickerOpen, (open) => { if (open) clear('開啟框選層') })
     // 設定「顯示全部候選」切換 → 以最後結果重排
     watch(() => config.revealShowAllCandidates, () => { layout() })
+    // 第 11 步:徽章外觀改了 → 以最後結果重排(字級 / 字體影響高度)
+    watch(styleVars, () => { layout() })
 
-    return { t, state, badges, guessKey, layer }
+    return { t, state, badges, guessKey, layer, styleVars }
   }
 })
 </script>
@@ -177,14 +186,18 @@ export default defineComponent({
   background: color-mix(in srgb, var(--surface-1-c) 94%, transparent);
   box-shadow: var(--shadow-float);
   color: var(--ink-0);
-  font-size: var(--fs-base);
+  /* 第 11 步徽章外觀:變數沒設 = 原值(font-weight / text-shadow 沒設時 var() 無效 → 照舊繼承) */
+  font-family: var(--badge-font, var(--font-ui));
+  font-size: var(--badge-fs, var(--fs-base));
+  font-weight: var(--badge-weight);
+  text-shadow: var(--badge-halo);
   line-height: 1.45;
   white-space: nowrap;
 }
 .ocr-row.fuzzy { color: var(--warn); }
 .ocr-row.dim, .ocr-row.raw { color: var(--ink-2); }
-.ocr-row.raw { font-size: var(--fs-xs); }
-.ocr-more { margin-left: 0.5em; color: var(--ink-2); font-size: var(--fs-xs); }
+.ocr-row.raw { font-size: var(--badge-fs-xs, var(--fs-xs)); }
+.ocr-more { margin-left: 0.5em; color: var(--ink-2); font-size: var(--badge-fs-xs, var(--fs-xs)); }
 .ocr-note {
   position: absolute;
   left: 50%;

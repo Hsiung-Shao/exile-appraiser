@@ -179,6 +179,32 @@
         "sub": "Include every item row (and its quantity); drag inside to move · drag corners / edges to resize · arrow keys nudge (Shift 10 px, Ctrl resizes)"
       }
     },
+    "badge_style": {
+      "section": "Badge appearance (rune and desecration)",
+      "hint": "The rune-crafting price badges and desecration badges on the game screen share this appearance. Font, size, bold and outline apply to both; the three price colours only apply to rune badges (desecration keeps its own colours, such as the fuzzy-match warning). Changes apply immediately.",
+      "font": "Font",
+      "font_filter": "Filter fonts…",
+      "font_ui": "Same as interface",
+      "font_builtin": "{name} (built-in)",
+      "font_loading": "Reading installed fonts…",
+      "font_none": "Could not read the installed font list; only \"Same as interface\" and the built-in font are available.",
+      "size": "Font size",
+      "size_follow": "Default",
+      "follow": "Use default",
+      "bold": "Bold",
+      "outline": "Text outline / shadow",
+      "outline_none": "None",
+      "outline_shadow": "Shadow",
+      "outline_outline": "Outline",
+      "tier_low": "Low price colour",
+      "tier_mid": "Mid price colour",
+      "tier_high": "High price colour",
+      "tier_hint": "The thresholds are set in the Rune crafting card above; the colour applies to the text and the left bar.",
+      "color_default": "Theme default",
+      "color_reset": "Reset",
+      "sample_reveal": "T4 · Normal · 21–26",
+      "reset_all": "Reset all"
+    },
     "preview": {
       "section": "Browser preview",
       "open": "Open settings in browser",

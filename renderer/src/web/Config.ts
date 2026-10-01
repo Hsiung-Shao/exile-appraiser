@@ -19,6 +19,7 @@ import type { ChatCommand, HostConfigForMain, HotkeyRegistration, OcrRegion, Sta
 import { Host } from './background/IPC'
 import { createHostConfigSync } from './host-config-sync'
 import { BG_DEFAULT, clampFsBase, normAccent, normBg, normTheme, DEFAULT_FS_BASE, type BgSettings, type Theme } from './useTheme'
+import { defaultOcrBadgeStyle, normOcrBadgeStyle, type OcrBadgeStyle } from './overlay/badge-style'
 
 /** 介面字串語言(與客戶端語言 `language` 分開)。 */
 export type UiLanguage = 'cmn-Hant' | 'en'
@@ -85,6 +86,11 @@ export interface Config {
   runeshapeIntervalMs: number
   /** WP-R2:徽章顏色門檻(崇高石):< low 暗色、≥ high 金色、之間一般。 */
   runeshapeThresholds: RuneshapeThresholds
+  /**
+   * 第 11 步:OCR 徽章外觀(符文價格徽章與褻瀆徽章共用;字體 / 大小 / 粗體 / 外框陰影,三段價格色只給符文)。
+   * 只影響 overlay 顯示,不送 main;舊設定檔沒有 → 預設(= 改版前外觀)。`overlay/badge-style.ts`。
+   */
+  ocrBadgeStyle: OcrBadgeStyle
   /** WP-R2:暫停 / 繼續自動查價的熱鍵(預設空 = 不註冊)。 */
   hotkeyRuneshapeToggle: string
   /** 2026-10-01:框選符文塑形面板區域的熱鍵(預設空 = 不註冊;overlay 模式 + PoE2 才註冊)。 */
@@ -257,6 +263,7 @@ function createConfig (): Config {
     runeshapeRegion: null as OcrRegion | null,
     runeshapeIntervalMs: DEFAULT_RUNESHAPE_INTERVAL_MS,
     runeshapeThresholds: { ...DEFAULT_RUNESHAPE_THRESHOLDS },
+    ocrBadgeStyle: defaultOcrBadgeStyle(),
     hotkeyRuneshapeToggle: '',
     hotkeyRuneshapeRegion: '',
     autoUpdate: true,
@@ -312,6 +319,7 @@ function serialize (): string {
     runeshapeRegion: config.runeshapeRegion,
     runeshapeIntervalMs: config.runeshapeIntervalMs,
     runeshapeThresholds: config.runeshapeThresholds,
+    ocrBadgeStyle: config.ocrBadgeStyle,
     hotkeyRuneshapeToggle: config.hotkeyRuneshapeToggle,
     hotkeyRuneshapeRegion: config.hotkeyRuneshapeRegion,
     autoUpdate: config.autoUpdate,
@@ -397,6 +405,8 @@ function applyLoaded (raw: string) {
   config.runeshapeRegion = normOcrRegion(loaded.runeshapeRegion)
   config.runeshapeIntervalMs = clampRuneshapeInterval(loaded.runeshapeIntervalMs)
   config.runeshapeThresholds = normRuneshapeThresholds(loaded.runeshapeThresholds)
+  // 第 11 步:徽章外觀(舊設定檔沒有 → 預設;壞值逐欄回預設)
+  config.ocrBadgeStyle = normOcrBadgeStyle(loaded.ocrBadgeStyle)
   config.hotkeyRuneshapeToggle = typeof loaded.hotkeyRuneshapeToggle === 'string' ? loaded.hotkeyRuneshapeToggle : fresh.hotkeyRuneshapeToggle
   // 2026-10-01:符文塑形框選熱鍵(舊設定檔沒有 → 空字串 = 不註冊)
   config.hotkeyRuneshapeRegion = typeof loaded.hotkeyRuneshapeRegion === 'string' ? loaded.hotkeyRuneshapeRegion : fresh.hotkeyRuneshapeRegion

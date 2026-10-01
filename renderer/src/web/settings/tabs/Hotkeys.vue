@@ -9,6 +9,7 @@
   啟用、狀態、掃描間隔(100–3000 ms)、區域 + 在遊戲上框選 / 清除、暫停 / 繼續熱鍵、框選區域熱鍵、最近耗時;
   各自保留專屬設定(褻瀆:OCR 語言包狀態;符文:台服提示、顏色門檻)。兩者的熱鍵已從上方通用熱鍵卡片移入各自區塊;
   褻瀆原本「進階:手動輸入比例」四個數字欄位已移除(舊設定檔的 ocrRegion 照常讀取)。
+  第 11 步:兩張辨識卡片之後是共用的「徽章外觀」卡片(BadgeStyleSection.vue;字體 / 大小 / 粗體 / 符文三段色 / 外框陰影 + 即時預覽)。
 -->
 <template>
   <section class="card">
@@ -99,6 +100,9 @@
     </template>
   </ocr-scan-section>
 
+  <!-- 第 11 步:OCR 徽章外觀(符文與褻瀆共用;只有 PoE2) -->
+  <badge-style-section v-if="config.game === 'poe2'" />
+
   <section class="card">
     <span class="label">{{ t('ppz.section_window') }}</span>
     <div class="srow">
@@ -134,11 +138,12 @@ import { Host } from '@/web/background/IPC'
 import { mergeTwoHotkeys } from '@ipc/KeyToCode'
 import HotkeyInput from '../HotkeyInput.vue'
 import OcrScanSection from '../OcrScanSection.vue'
+import BadgeStyleSection from '../BadgeStyleSection.vue'
 import { normalizeHotkey } from '../hotkey-conflicts'
 import { useHotkeyIssues } from '../useHotkeyIssues'
 
 export default defineComponent({
-  components: { HotkeyInput, OcrScanSection },
+  components: { HotkeyInput, OcrScanSection, BadgeStyleSection },
   setup () {
     const { t } = useI18n()
     const config = AppConfig()

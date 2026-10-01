@@ -332,6 +332,8 @@ export interface HostApi {
   openPreview: () => Promise<{ url: string }>
   /** 預覽伺服器目前的網址(沒在跑回 null)。 */
   getPreviewUrl: () => Promise<string | null>
+  /** 第 11 步:系統已安裝字體 family 名稱(main `system-fonts.ts`;去重排序,失敗 = [])。預覽端經 RPC 可用。 */
+  listFonts?: () => Promise<string[]>
   /** 靈魂之井揭露面板(褻瀆)自動辨識結果(`reveal-scan-result`;只有 overlay 會收到)。 */
   onRevealScanResult?: (cb: (e: RevealScanEvent) => void) => () => void
   /** 褻瀆自動辨識統計(設定頁);預覽端回 undefined。 */

@@ -187,6 +187,17 @@ class HostTransport {
     return await window.host.openPreview()
   }
 
+  /** 系統字體清單(設定 › 徽章外觀);純瀏覽器 / 失敗 → [] */
+  async listFonts (): Promise<string[]> {
+    try {
+      const r = await window.host?.listFonts?.()
+      return Array.isArray(r) ? r.filter((n): n is string => typeof n === 'string') : []
+    } catch (e) {
+      console.warn('[fonts] 讀系統字體失敗', e)
+      return []
+    }
+  }
+
   async getPreviewUrl (): Promise<string | null> {
     if (!window.host?.getPreviewUrl) return null
     return await window.host.getPreviewUrl()

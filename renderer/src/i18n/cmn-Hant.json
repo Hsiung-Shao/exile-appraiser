@@ -179,6 +179,32 @@
         "sub": "框住面板上所有物品列(含數量);框內拖曳可移動、拖角 / 邊調大小、方向鍵微調(Shift 10 px、Ctrl 調大小)"
       }
     },
+    "badge_style": {
+      "section": "徽章外觀(符文與褻瀆共用)",
+      "hint": "遊戲畫面上的符文塑形價格徽章與褻瀆徽章共用這組外觀;字體、大小、粗體、外框兩者都套用,價格三段顏色只用在符文徽章(褻瀆的模糊命中警告色等維持原樣)。改了立即生效。",
+      "font": "字體",
+      "font_filter": "篩選字體…",
+      "font_ui": "跟隨介面",
+      "font_builtin": "{name}(內建)",
+      "font_loading": "正在讀取系統字體…",
+      "font_none": "讀不到系統字體清單,只能選「跟隨介面」或內建字型。",
+      "size": "字體大小",
+      "size_follow": "跟隨",
+      "follow": "跟隨預設",
+      "bold": "粗體",
+      "outline": "文字外框 / 陰影",
+      "outline_none": "無",
+      "outline_shadow": "陰影",
+      "outline_outline": "外框",
+      "tier_low": "低價顏色",
+      "tier_mid": "中價顏色",
+      "tier_high": "高價顏色",
+      "tier_hint": "三段的門檻在上方「符文塑形」卡片設定;顏色同時套用到文字與左側色條。",
+      "color_default": "主題預設",
+      "color_reset": "還原預設",
+      "sample_reveal": "T4 · 一般 · 21–26",
+      "reset_all": "全部還原預設"
+    },
     "preview": {
       "section": "瀏覽器預覽",
       "open": "在瀏覽器開啟設定",

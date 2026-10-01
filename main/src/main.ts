@@ -31,6 +31,7 @@ import { DEFAULT_SCAN_INTERVAL_MS, RuneshapeScan } from './ocr/runeshape-scan'
 import { SharedCapture, SharedLocateOcr } from './ocr/panel-scan'
 import { isAppNavigation, isExternalWebUrl } from './external-links'
 import { BG_DIR_NAME, bgContentType, bgCorsHeaders, bgFileFromPath, normBgFile, resolveBgPath, storedBgName } from './backgrounds'
+import { createFontLister } from './system-fonts'
 import {
   TOAST_FADE_MS, TOAST_VISIBLE_MS, isFirstRunAfterUpdate, parseLastRun, priceCheckHotkeyLabel, scanToastMessage, serializeLastRun,
   shouldShowGameAttachToast, shouldShowStartupToast, toastBounds, toastHtml, toastLang, toastMessage, type ScanToastKind, type ToastMessage
@@ -589,6 +590,8 @@ if (!skipStartup) app.whenReady().then(() => {
 
   // WP-S:OCR 常駐 PowerShell 行程(第一次辨識才啟動,閒置 10 分鐘自動結束);褻瀆與符文塑形兩個掃描共用
   const winOcr = new WinOcr(WIN_OCR_SCRIPT, { idleMs: 10 * 60_000 })
+  /** 第 11 步:設定頁「徽章外觀」的系統字體清單(一次性 PowerShell,成功後快取) */
+  const fontLister = createFontLister()
   app.on('will-quit', () => { winOcr.close('app quit') })
   const gameBounds = () => {
     const b = poeWindow?.bounds
@@ -1145,6 +1148,8 @@ if (!skipStartup) app.whenReady().then(() => {
     },
     'preview-open':{ kind: 'invoke', fn: () => openPreviewInBrowser() },
     'preview-url': { kind: 'invoke', fn: () => preview && !preview.closed ? preview.url : null },
+    // 第 11 步:系統已安裝字體(設定 › 徽章外觀的字體下拉);唯讀,預覽端可用;失敗回 []
+    'list-fonts': { kind: 'invoke', fn: async () => await fontLister.list() },
     // WP-S:設定頁顯示 OCR 語言包狀態;預覽端不開放(shim 回 undefined)
     'ocr-available': { kind: 'invoke', preview: false, fn: () => winOcr.available() },
     // WP-S2:框選層開啟時讓 overlay 取得焦點(可點擊);預覽端不開放
