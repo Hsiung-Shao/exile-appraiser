@@ -52,6 +52,41 @@ PoE2 靈魂之井的「三選一」揭露面板無法複製文字。擷取遊戲
 「面板出現 → 徽章」的延遲:面板出現屬大幅變化 → 與原本同一個 tick OCR(手動區域);自動定位仍在原本的 3 秒擷取節奏內定位到。
 殘留風險:面板出現時最大一塊的變化 < 門檻(例如暗色面板疊在幾乎一樣暗的背景、而且框的區域遠大於面板)→ 最多晚 2.5 秒(手動)/ 15 秒(自動定位退避上限)。待使用者實機確認。
 
+### 擷取與 OCR 傳輸(效能修正第 7 步,2026-10-01;褻瀆與符文共用)
+
+硬性要求「辨識結果不可變」:送進 WinRT 的影像位元組完全不變(仍是 `nativeImage.resize({ quality: 'best' })` + `toJPEG(95)`),只改傳輸與腳本輸出。
+`--ocr-selftest`(整張 / 加 `--ocr-selftest-region`)、`--runeshape-selftest`(兩張樣本 × 自動定位 / 預設整張 / 指定區域)改前改後去掉耗時逐行相同(含每列名稱比對與價格);
+`node scripts/ocr-fixture.mjs --set all` 重產的 5 份快照與 repo 位元組相同;舊 / 新腳本對 5 張樣本 ×1 / ×3 的 stdout 原始行(去掉 `ms`)位元組相同,`words:false` 的回應 = 舊回應去掉 `words`。
+
+1. **影像改走暫存檔**(`WinOcr.ts`):原本整張 JPEG base64 塞進 stdin 一行(整張 ×3 約 4 MB),PowerShell 要對 4 MB 字串跑 regex + `FromBase64String`。
+   改為非同步寫到 `os.tmpdir()/exile-appraiser-ocr/<pid>-<實例>-<id>.img`、stdin 只送 `{"id","path","words":false}`;回應 / 錯誤 / 逾時 / 行程結束後刪檔;
+   第一次寫入前清掉殘留(檔名的 pid 已不在、或超過 1 小時;本行程的檔與其他檔名不碰,`cleanStaleOcrFiles`)。暫存目錄寫不進去 → 退回舊的 stdin base64(只警告一次)。
+2. **不輸出 words**:runtime(`rectRecognizer`)帶 `words:false`,腳本不組每個 word 的 JSON(行的外框仍由 word 算,與原本相同);不帶時照舊輸出(fixture 快照沿用)。全 repo 沒有讀 `.words` 的地方。
+3. **腳本小修**(`win-ocr.ps1`):三個 `AsTask<T>` 啟動時建好(原本每次反射 `MakeGenericMethod`);`Esc` 改 .NET `Regex.Replace` + `MatchEvaluator`
+   (只有要跳脫的字元進 PowerShell;0–0xFFFF 全部字元與舊版逐位元組比對相同,一行約 0.19 → 0.11 ms);有 `path` 時先讀路徑。
+4. **兩個掃描共用擷取**(`panel-scan.ts` `SharedCapture`,main 建一個):同一 client bounds 進行中的擷取一起等、完成後 100 ms 內直接用同一張。
+   兩個掃描本來就錯開半個間隔且對方擷取 / OCR 中會丟 tick,所以只在「對方剛擷取完、沒 OCR」時命中;命中時省一次 `getSources`(見下)。
+5. **評估後不做**(實測會改結果,或量到沒有效益):
+   - **差分 tick 用小縮圖、要 OCR 才抓全解析度**:本機(2560×1440 + 1440×2560 兩個螢幕)量 `desktopCapturer.getSources`,每次在 main 執行緒卡 **300–480 ms**,
+     縮圖 2560×1440 / 1280×720 / 1024×576 / 512×288 都一樣(時間花在擷取本身,不在縮圖大小);兩階段反而讓要 OCR 的 tick 多一次 `getSources`。
+     真正的解法是常駐的擷取串流(例如隱藏 renderer 的 `getDisplayMedia`),屬架構變更,未做。
+   - **放大 / JPEG 移出 main 執行緒**:(a) 送 ×1 給 PowerShell 用 `BitmapTransform` 放大 —— Cubic / Fant / Linear / NearestNeighbor 對 5 張樣本(整張 + 面板區)
+     都有文字改變(例:`1 × 崇 敬 狩 獵 符 文` → `lx 崇 敬 狩 獵 符 文`、整張 ×3 行數 15 → 7~13);連「同一張 'best' 放大圖改送無損 BMP」都會改文字。
+     (b) `utilityProcess` / worker 沒有 `nativeImage`,換別的縮放 / 編碼器位元組必不同。→ 維持原做法(本機 1440p 以下:面板區 ×3 約 11 ms、整張 ×1 約 15 ms、整張 ×3 約 165 ms)。
+
+耗時(本機,同一張圖、各兩次):
+
+| 項目 | 改前 | 改後 |
+|---|---|---|
+| WinOcr 往返:整張 2000×1125 ×1(定位) | 264 ms(傳輸 + 解析 12 ms) | 186 ms(3 ms) |
+| WinOcr 往返:面板 499×302 ×3 | 92 ms(4 ms) | 78 ms(3 ms) |
+| WinOcr 往返:整張 ×3(JPEG 3 MB) | 1071 ms(61 ms) | 846 ms(6 ms) |
+| `--ocr-selftest` ① two-pass(冷) / ④ two-pass(熱) | 502–554 / 303–471 ms | 427–443 / 254–261 ms |
+| `--ocr-selftest` ③ 整張 ×3 | 1096–1260 ms | 1001–1054 ms |
+| `--runeshape-selftest` 整張 ×1 定位(skills-01 / rewards-02) | 400–416 / 250–271 ms | 265–296 / 199–212 ms |
+
+「行程內」耗時也下降(不再對大字串跑 regex / base64 解碼、少組 words 字串)。main 執行緒上原本的 base64 + JSON 只有 1.4 ms(595 KB)~ 3.3 ms(3 MB),省下的主要是 PowerShell 端。
+
 ### 設定頁(與符文塑形對等,2026-10-01)
 
 使用者要求「褻瀆詞綴辨識與符文的辨識開關一樣可以做設定;設定褻瀆的快捷設定位置移到褻瀆框中;移除褻瀆手動輸入比例;
@@ -88,7 +123,7 @@ PoE2 靈魂之井的「三選一」揭露面板無法複製文字。擷取遊戲
 | 擷取 | `main/src/ocr/capture.ts` | `desktopCapturer.getSources({ types: ['screen'], thumbnailSize: 該螢幕實體像素 })` → 用 `GameWindow.bounds`(client 區螢幕實體像素)減螢幕原點(`display.nativeOrigin`,沒有就 DIP × scaleFactor)裁出 client 區 |
 | 前處理 | `capture.ts` `prepareRect()` / `rectRecognizer()` | 可選 `ocrRegion`(client 比例,`strategy.ts` `regionSearchRect` 以 client 尺寸換算再減擷取偏移)= 優先搜尋範圍 → 依下一列選的矩形裁切 → 放大(`×1` 或 `s = min(3, floor(9000 / max(w, h)))`:1080p / 1440p 3×、4K 2×;WinRT `MaxImageDimension` = 10000)→ `nativeImage.resize({ quality: 'best' })` → **JPEG q95**(`toPNG` 對 5760×3240 要 1.3–1.6 秒,JPEG 約 0.1 秒;逐字結果相同) |
 | 選範圍 | `main/src/ocr/strategy.ts` `recognizeRegionFirst` / `smartRecognize` + `poe2/src/desecration/ocr-locate.ts` | 有框選區域 → 先只在區域內跑、找不到再整張(WP-S2,見「框選辨識區域」);每一輪都是**兩段式**:快取區 ×3 → 整張 ×1 定位 + 面板區 ×3 → 整張 ×3(見下節) |
-| OCR | `main/src/ocr/win-ocr.ps1` + `WinOcr.ts` | 常駐 PowerShell 5.1 + WinRT `Windows.Media.Ocr`(`zh-Hant-TW`);`-EncodedCommand` 傳腳本(stdin 留給資料);協定見 ps1 檔頭;單張逾時 8 秒 / 崩潰 → 下一次自動重啟;閒置 10 分鐘結束;缺語言包的結果記 30 秒 |
+| OCR | `main/src/ocr/win-ocr.ps1` + `WinOcr.ts` | 常駐 PowerShell 5.1 + WinRT `Windows.Media.Ocr`(`zh-Hant-TW`);`-EncodedCommand` 傳腳本(stdin 留給資料);協定見 ps1 檔頭(2026-10-01 第 7 步起影像寫暫存檔送路徑、runtime 不要 words,見「擷取與 OCR 傳輸」);單張逾時 8 秒 / 崩潰 → 下一次自動重啟;閒置 10 分鐘結束;缺語言包的結果記 30 秒 |
 | 廣播 | `main/src/ocr/reveal.ts` | `ocr-reveal-result`:先 `{phase:'pending'}`,再 `{phase:'result', ok, lines(client 實體像素), client, scale, tookMs, ocrMs, stage, stages}` 或 `{ok:false, error}`;`stage` = `cached \| two-pass \| full`(有框選區域時 `region \| region-fallback`,`inner` = 採用那一輪的內層路徑)、`stages` = 各段範圍 / 倍率 / 耗時 / 命中數 / 未採用原因 / `scope`(`region` / `screen`)(診斷用;renderer 只讀 `stage === 'region-fallback'` 顯示提示);**不在** `PREVIEW_EVENTS`(預覽端收不到) |
 | 比對 | `poe2/src/desecration/ocr-match.ts`(renderer 經 `@poe2-entry` 的 `matchRevealLines`) | 正規化 → skeleton → 精確 / 模糊命中 → 折行合併 → 分組 → entry 一一對應 → profile → Tier(見下) |
 | 顯示 | `renderer/src/web/overlay/OcrBadges.vue` + `ocr-reveal.ts` | 每組右側一枚徽章;清除:再按一次熱鍵、Esc(overlay 有焦點時)、15 秒、overlay 視窗移動或改大小(2026-10-01 起按住 Alt 不再隱藏) |

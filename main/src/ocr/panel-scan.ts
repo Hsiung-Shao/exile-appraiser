@@ -26,6 +26,8 @@
  *   - **自動定位的退避**:沒快取時仍最多每 3 秒擷取一次;連續沒找到 → 定位間隔 3 → 6 → 12 → 15 秒(`locateGapMs`);整個 client 縮圖與
  *     上次定位時幾乎一樣(`isChanged` 為否)也跳過;距上次定位 ≥ `LOCATE_BACKOFF_MAX_MS`(15 秒)必跑;大幅變化立刻定位並重置。
  *   - **共用定位 OCR**(`SharedLocateOcr`,main 建一個給兩個掃描):同一 client 大小 / 擷取偏移 1 秒內的整個 client ×1 只跑一次。
+ *   - 第 7 步:**共用擷取**(`SharedCapture`,main 建一個給兩個掃描):同一 client bounds 進行中的擷取一起等、完成後 100 ms 內直接用同一張
+ *     (`desktopCapturer.getSources` 每次在 main 執行緒卡 300–480 ms,與縮圖大小無關,見 docs/reveal-ocr.md「擷取與 OCR 傳輸」)。
  *   - tick 一進來就設旗標(`ticking`):讀 tiers.json 的 await 期間 `poke()` 不會再開第二個 tick。
  *   - 與上次送出內容相同的 `rows`(列文字 + 四捨五入座標 + client + fallback)`REPEAT_ROWS_MS`(10 秒)內不重送;狀態轉換一律照送。
  *
@@ -276,6 +278,64 @@ export class SharedLocateOcr {
       this.runs++
       this.last = { key, at: now, lines: r.lines, ms: r.ms }
       return { lines: copy(r.lines), ms: r.ms, shared: false }
+    } finally {
+      if (this.pending?.p === p) this.pending = null
+    }
+  }
+}
+
+/** 兩個掃描共用同一次擷取的時間窗(從擷取完成起算) */
+export const SHARED_CAPTURE_TTL_MS = 100
+
+/**
+ * 效能修正第 7 步:褻瀆與符文塑形兩個掃描的擷取共用。同一個 client bounds(螢幕實體像素 x / y / 寬 / 高)
+ * 正在擷取 → 一起等同一個 promise;擷取完成後 `SHARED_CAPTURE_TTL_MS`(100 ms)內再要 → 直接給同一張(`ScanCapture` 無狀態,
+ * 縮圖 / OCR 都是對同一張影像的純運算)。bounds 不同、過了時間窗 → 重新擷取。擷取失敗不快取(進行中一起等的會拿到同一個錯誤)。
+ * 時間窗過了就放掉影像參考(整個螢幕的影像不留在記憶體裡)。main 建一個給兩個掃描;selftest / 測試不經過這裡。
+ */
+export class SharedCapture {
+  private readonly fn: (bounds: PhysRect) => Promise<ScanCapture>
+  private readonly clock: ScanClock
+  private readonly ttlMs: number
+  private last: { key: string, at: number, cap: ScanCapture } | null = null
+  private pending: { key: string, p: Promise<ScanCapture> } | null = null
+  private dropTimer: unknown = null
+  /** 測試 / log:實際擷取次數、共用次數 */
+  runs = 0
+  reuses = 0
+
+  constructor (capture: (bounds: PhysRect) => Promise<ScanCapture>, opts: { clock?: ScanClock, ttlMs?: number } = {}) {
+    this.fn = capture
+    this.clock = opts.clock ?? REAL_CLOCK
+    this.ttlMs = opts.ttlMs ?? SHARED_CAPTURE_TTL_MS
+  }
+
+  readonly capture = async (bounds: PhysRect): Promise<ScanCapture> => {
+    const key = `${bounds.x},${bounds.y},${bounds.width}x${bounds.height}`
+    if (this.pending?.key === key) {
+      const cap = await this.pending.p
+      this.reuses++
+      return cap
+    }
+    const now = this.clock.now()
+    const last = this.last
+    if (last && last.key === key && now >= last.at && now - last.at <= this.ttlMs) {
+      this.reuses++
+      return last.cap
+    }
+    const p = this.fn(bounds)
+    this.pending = { key, p }
+    try {
+      const cap = await p
+      this.runs++
+      this.last = { key, at: this.clock.now(), cap }
+      if (this.dropTimer != null) this.clock.clearTimeout(this.dropTimer)
+      const mine = this.last
+      this.dropTimer = this.clock.setTimeout(() => {
+        this.dropTimer = null
+        if (this.last === mine) this.last = null
+      }, this.ttlMs + 1)
+      return cap
     } finally {
       if (this.pending?.p === p) this.pending = null
     }

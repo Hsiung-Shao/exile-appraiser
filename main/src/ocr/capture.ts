@@ -77,7 +77,12 @@ export async function captureGameClient (bounds: PhysRect): Promise<{ image: Nat
   return { image, offset: { x: x0 - bounds.x, y: y0 - bounds.y }, client: { w: bounds.width, h: bounds.height } }
 }
 
-/** JPEG 品質:放大後的白灰字邊緣 q95 仍逐字正確(--ocr-selftest 驗過);toPNG 對 5760×3240 要 1.3–1.6 秒,toJPEG 約 0.1 秒 */
+/**
+ * JPEG 品質:放大後的白灰字邊緣 q95 仍逐字正確(--ocr-selftest 驗過);toPNG 對 5760×3240 要 1.3–1.6 秒,toJPEG 約 0.1 秒。
+ * 效能修正第 7 步評估過把放大 / JPEG 移出 main 執行緒,都會改變 OCR 結果而不採用(docs/reveal-ocr.md「擷取與 OCR 傳輸」):
+ * 送 ×1 給 PowerShell 用 `BitmapTransform` 放大(Cubic / Fant / Linear / NearestNeighbor 四種)、甚至同一張 'best' 放大圖改送無損 BMP,
+ * 辨識文字都會變;utilityProcess / worker 沒有 `nativeImage`,換別的縮放 / 編碼器位元組必不同。→ 維持 `resize({ quality: 'best' })` + `toJPEG(95)`。
+ */
 export const OCR_JPEG_QUALITY = 95
 
 /** 裁切 + 放大 → JPEG;`offset` = 裁切左上(影像像素),OCR 座標 ÷ scale + offset = 影像座標 */
@@ -90,7 +95,8 @@ export function prepare (img: NativeImage, region: OcrRegion | null | undefined,
 export function rectRecognizer (img: NativeImage, ocr: () => WinOcr): RecognizeRect {
   return async (rect, scale) => {
     const prep = prepareRect(img, rect, scale)
-    const res = await ocr().recognize(prep.image)
+    // 第 7 步:只要行(掃描 / smartRecognize 都不看 words)→ 腳本不輸出 words
+    const res = await ocr().recognize(prep.image, { words: false })
     return {
       ms: res.ms,
       lines: res.lines.map(l => ({

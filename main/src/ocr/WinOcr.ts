@@ -3,14 +3,22 @@
  *
  * - 腳本 = `win-ocr.ps1`(main 由 esbuild text loader 內嵌,見 `script.ts`;`scripts/ocr-fixture.mjs` 讀同一個檔),
  *   以 `-EncodedCommand` 傳入(stdin 留給資料;`-Command -` 會把 stdin 當腳本)。
- * - 協定:stdin 一行 `{"id","image":base64(JPEG/PNG)}` / `{"id","path"}` → stdout 一行 `{"id","ms","w","h","lines":[…]}` 或 `{"id","error"}`;
+ * - 協定:stdin 一行 `{"id","path"[,"words":false]}` → stdout 一行 `{"id","ms","w","h","lines":[…]}` 或 `{"id","error"}`;
  *   啟動先回 `{"ready":true,…}` 或 `{"error":"lang-missing",…}`。細節見 win-ocr.ps1 檔頭。
+ * - 影像(JPEG/PNG)**寫進暫存檔再送路徑**(效能修正第 7 步):原本整張 base64 塞進 stdin 一行(×3 整張畫面約 4 MB),
+ *   main 要同步 base64 + 寫 pipe、PowerShell 要對 4 MB 字串跑 regex + FromBase64String。暫存檔在 `os.tmpdir()/exile-appraiser-ocr/`
+ *   (`<pid>-<實例>-<id>.img`,非同步寫入、回應 / 逾時 / 行程結束後刪;第一次寫入前清掉已結束行程或 1 小時以上的殘留);
+ *   暫存檔寫不進去 → 退回舊的 `{"id","image":base64}`(腳本兩種都認)。
+ * - `recognize(img, { words: false })`:腳本不輸出每個 word(runtime 掃描只用行;fixture 快照照舊帶 words)。
  * - 請求一次一個(行程本來就循序處理);逾時(預設 8 秒)→ 殺掉行程,下一次呼叫自動重啟;行程崩潰同樣。
  * - 缺語言包(`lang-missing`)記住結果 30 秒,避免每按一次熱鍵就 spawn 一次 PowerShell。
  *
  * ⚠ 本檔只能用「可抹除」的 TS 語法(不用 enum、參數屬性):`scripts/ocr-fixture.mjs` 以 Node 24 原生型別剝除直接 import 它。
  */
 import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process'
+import { promises as fsp } from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 
 export interface OcrWord {
   text: string
@@ -21,7 +29,13 @@ export interface OcrWord {
 }
 
 export interface OcrLine extends OcrWord {
-  words: OcrWord[]
+  /** 請求帶 `words: false` 時沒有 */
+  words?: OcrWord[]
+}
+
+export interface RecognizeOptions {
+  /** false = 腳本不輸出每個 word(只要行);預設 true(同舊協定) */
+  words?: boolean
 }
 
 export interface OcrResult {
@@ -61,8 +75,61 @@ export interface WinOcrOptions {
   lang?: string
   /** 閒置多久自動結束行程(ms);0 = 不自動結束(預設) */
   idleMs?: number
+  /** 影像暫存檔目錄;預設 `os.tmpdir()/exile-appraiser-ocr`(測試注入) */
+  tmpDir?: string
   log?: (msg: string) => void
 }
+
+/** 預設暫存目錄(只放 OCR 影像暫存檔) */
+export function defaultOcrTmpDir (): string {
+  return path.join(os.tmpdir(), 'exile-appraiser-ocr')
+}
+
+/** 殘留暫存檔超過這個時間一律刪(請求逾時最長 60 秒,不會有正常請求用到這麼舊的檔) */
+export const OCR_TMP_MAX_AGE_MS = 60 * 60_000
+const TMP_NAME_RE = /^(\d+)-\d+-[^.\\/]+\.img$/
+
+function pidAlive (pid: number): boolean {
+  try {
+    process.kill(pid, 0)
+    return true
+  } catch (e) {
+    // EPERM = 行程在、只是沒權限
+    return (e as NodeJS.ErrnoException).code === 'EPERM'
+  }
+}
+
+/**
+ * 清掉暫存目錄裡的殘留(上次當掉 / 被強制結束沒刪到的):檔名的 pid 已不在、或檔案超過 `maxAgeMs`。
+ * 本行程(`process.pid`)的檔不碰(請求結束自己會刪)。只認 `<pid>-<n>-<id>.img` 這種檔名,別的檔一律不動。回傳刪掉幾個。
+ */
+export async function cleanStaleOcrFiles (dir: string, opts: { now?: number, maxAgeMs?: number, isAlive?: (pid: number) => boolean } = {}): Promise<number> {
+  const now = opts.now ?? Date.now()
+  const maxAge = opts.maxAgeMs ?? OCR_TMP_MAX_AGE_MS
+  const alive = opts.isAlive ?? pidAlive
+  let names: string[]
+  try { names = await fsp.readdir(dir) } catch { return 0 }
+  let removed = 0
+  for (const name of names) {
+    const m = TMP_NAME_RE.exec(name)
+    if (!m) continue
+    const pid = Number(m[1])
+    if (pid === process.pid) continue
+    const file = path.join(dir, name)
+    let stale = !alive(pid)
+    if (!stale) {
+      try { stale = now - (await fsp.stat(file)).mtimeMs > maxAge } catch { continue }
+    }
+    if (!stale) continue
+    try {
+      await fsp.unlink(file)
+      removed++
+    } catch {}
+  }
+  return removed
+}
+
+let instanceSeq = 0
 
 /** 去掉整行註解後轉 UTF-16LE base64(`-EncodedCommand` 的格式;命令列上限 32767 字元)。 */
 export function encodeScript (script: string): string {
@@ -92,6 +159,10 @@ export class WinOcr {
   private chain: Promise<unknown> = Promise.resolve()
   private langMissing: { at: number, error: OcrError } | null = null
   private idleTimer: ReturnType<typeof setTimeout> | null = null
+  private readonly instance = ++instanceSeq
+  /** 暫存目錄建好 + 殘留清過(第一次寫暫存檔前做一次;失敗 = null,下次再試) */
+  private tmpReady: Promise<void> | null = null
+  private tmpWarned = false
 
   constructor (script: string, opts: WinOcrOptions = {}) {
     this.script = script
@@ -100,6 +171,7 @@ export class WinOcr {
       startTimeoutMs: opts.startTimeoutMs ?? 15000,
       lang: opts.lang ?? 'zh-Hant-TW',
       idleMs: opts.idleMs ?? 0,
+      tmpDir: opts.tmpDir ?? defaultOcrTmpDir(),
       log: opts.log ?? ((m) => { console.log(m) })
     }
   }
@@ -237,31 +309,71 @@ export class WinOcr {
     }
   }
 
-  /** `image` = BitmapDecoder 認得的編碼影像(JPEG / PNG) */
-  recognize (image: Buffer): Promise<OcrResult> {
-    return this.enqueue({ image: image.toString('base64') })
+  /** `image` = BitmapDecoder 認得的編碼影像(JPEG / PNG);寫進暫存檔後送路徑 */
+  recognize (image: Buffer, opts: RecognizeOptions = {}): Promise<OcrResult> {
+    return this.enqueue({ image }, opts)
   }
 
-  recognizeFile (file: string): Promise<OcrResult> {
-    return this.enqueue({ path: file })
+  recognizeFile (file: string, opts: RecognizeOptions = {}): Promise<OcrResult> {
+    return this.enqueue({ path: file }, opts)
   }
 
-  private enqueue (payload: { image?: string, path?: string }): Promise<OcrResult> {
+  /** 影像寫進暫存檔;寫不進去回 null(呼叫端退回 base64) */
+  private async writeTemp (id: string, image: Buffer): Promise<string | null> {
+    const dir = this.opts.tmpDir
+    try {
+      if (!this.tmpReady) {
+        this.tmpReady = fsp.mkdir(dir, { recursive: true }).then(async () => {
+          const n = await cleanStaleOcrFiles(dir)
+          if (n) this.opts.log(`[ocr] 清掉 ${n} 個殘留暫存檔(${dir})`)
+        })
+        this.tmpReady.catch(() => { this.tmpReady = null })
+      }
+      await this.tmpReady
+      const file = path.join(dir, `${process.pid}-${this.instance}-${id}.img`)
+      await fsp.writeFile(file, image)
+      return file
+    } catch (e) {
+      if (!this.tmpWarned) {
+        this.tmpWarned = true
+        this.opts.log(`[ocr] 暫存檔寫不進去(${dir}:${(e as Error).message}),改用 stdin base64`)
+      }
+      return null
+    }
+  }
+
+  private enqueue (src: { image?: Buffer, path?: string }, opts: RecognizeOptions): Promise<OcrResult> {
     const run = async (): Promise<OcrResult> => {
       await this.start()
       const proc = this.proc
       if (!proc) throw new OcrError('crashed', 'OCR 行程不在')
       const id = String(++this.seq)
-      return await new Promise<OcrResult>((resolve, reject) => {
-        const timer = setTimeout(() => {
-          if (!this.pending.has(id)) return
-          this.pending.delete(id)
-          reject(new OcrError('timeout', `OCR 逾時(${this.opts.timeoutMs} ms)`))
-          this.kill('request timeout')
-        }, this.opts.timeoutMs)
-        this.pending.set(id, { resolve, reject, timer })
-        proc.stdin.write(JSON.stringify({ id, ...payload }) + '\n')
-      })
+      const payload: { id: string, path?: string, image?: string, words?: false } = { id }
+      let tmp: string | null = null
+      if (src.path != null) {
+        payload.path = src.path
+      } else if (src.image) {
+        tmp = await this.writeTemp(id, src.image)
+        if (tmp) payload.path = tmp
+        else payload.image = src.image.toString('base64')
+      }
+      if (opts.words === false) payload.words = false
+      try {
+        // 寫暫存檔期間行程可能已經結束(逾時 / 崩潰 / close)
+        if (this.proc !== proc) throw new OcrError('crashed', 'OCR 行程不在')
+        return await new Promise<OcrResult>((resolve, reject) => {
+          const timer = setTimeout(() => {
+            if (!this.pending.has(id)) return
+            this.pending.delete(id)
+            reject(new OcrError('timeout', `OCR 逾時(${this.opts.timeoutMs} ms)`))
+            this.kill('request timeout')
+          }, this.opts.timeoutMs)
+          this.pending.set(id, { resolve, reject, timer })
+          proc.stdin.write(JSON.stringify(payload) + '\n')
+        })
+      } finally {
+        if (tmp) await fsp.unlink(tmp).catch(() => {})
+      }
     }
     if (this.idleTimer) { clearTimeout(this.idleTimer); this.idleTimer = null }
     const next = this.chain.then(run, run)

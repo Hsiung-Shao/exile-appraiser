@@ -25,7 +25,7 @@ import { runOcrSelftest, runRuneshapeSelftest } from './ocr/selftest'
 import { loadLocateIndex } from './ocr/locate-data'
 import { captureGameClient, toScanCapture } from './ocr/capture'
 import { DEFAULT_SCAN_INTERVAL_MS, RuneshapeScan } from './ocr/runeshape-scan'
-import { SharedLocateOcr } from './ocr/panel-scan'
+import { SharedCapture, SharedLocateOcr } from './ocr/panel-scan'
 import { isAppNavigation, isExternalWebUrl } from './external-links'
 import { BG_DIR_NAME, bgContentType, bgFileFromPath, normBgFile, resolveBgPath, storedBgName } from './backgrounds'
 import {
@@ -553,7 +553,9 @@ if (!skipStartup) app.whenReady().then(() => {
     return b && b.width > 0 && b.height > 0 ? { x: b.x, y: b.y, width: b.width, height: b.height } : null
   }
   const scanEnv = () => ({ overlay: windowMode === 'overlay', gameActive: Boolean(poeWindow?.isActive), bounds: gameBounds() })
-  const scanCapture = async (b: { x: number, y: number, width: number, height: number }) => toScanCapture(await captureGameClient(b), () => winOcr)
+  // 效能修正第 7 步:兩個掃描同一 client bounds 的擷取共用(進行中一起等、完成後 100 ms 內用同一張)
+  const sharedCapture = new SharedCapture(async (b) => toScanCapture(await captureGameClient(b), () => winOcr))
+  const scanCapture = sharedCapture.capture
   // 效能修正第 6 步:兩個掃描的自動定位(整個 client ×1、同一個 WinOcr / 語言)1 秒內共用同一次 OCR
   const sharedLocateOcr = new SharedLocateOcr()
 
