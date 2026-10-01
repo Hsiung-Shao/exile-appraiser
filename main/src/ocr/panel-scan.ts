@@ -30,6 +30,9 @@
  *     第 17 步起擷取先用 overlay 原生 `screenshot()`(約 20 ms),共用仍保留)。
  *   - tick 一進來就設旗標(`ticking`):讀 tiers.json 的 await 期間 `poke()` 不會再開第二個 tick。
  *   - 與上次送出內容相同的 `rows`(列文字 + 四捨五入座標 + client)`REPEAT_ROWS_MS`(10 秒)內不重送;狀態轉換一律照送。
+ * 2026-10-02 效能修正第 18 步(遮掉自己畫的東西,`scan-mask.ts`):擷取會截到 overlay 自己的徽章 → 擷取影像由 main 先遮掉再給這裡
+ *   (`ScanCapture.recognize` 已填掉、`fingerprint` 帶 `ignore` 格 → 徽章出現 / 消失不算變化);送出 rows 後 renderer 回報遮罩(ack)之前
+ *   `drawPending` 為真 → tick 不擷取(`mask-wait`),ack 到了 `drawSettled()` 立刻補一個 tick。
  *
  * 暫停(不送事件、保留徽章、清掉差分基準):遊戲不在前景、renderer 回報設定 / 框選層開著(detector `pauseOnPricePanel` 時查價面板開著也算)。
  * 停止(送一次空結果清徽章):停用、不是 PoE2、不是 overlay、沒有遊戲視窗、detector 資料讀不到、使用者按暫停熱鍵。
@@ -46,6 +49,11 @@ export interface Fingerprint {
   w: number
   h: number
   data: Uint8Array
+  /**
+   * 第 18 步:被遮罩蓋到的縮圖像素(1 = 不比;我們自己畫的徽章 / 提示,`scan-mask.ts` `fingerprintIgnore`)。
+   * 兩張比較時任一張標了就跳過那一格 → 徽章出現 / 消失本身不算畫面變化。沒有 = 全比(與第 18 步之前相同)。
+   */
+  ignore?: Uint8Array
 }
 
 /** 縮圖寬(高依比例);64 × 約 40 = 2–3 千像素,差分 < 1 ms */
@@ -73,17 +81,31 @@ export function bgraToGray (bgra: Uint8Array | Buffer, w: number, h: number): Fi
   return { w, h, data }
 }
 
-/** 兩張縮圖的差;大小不同 → null(一律當成有變化) */
+/** 兩張的「不比」遮罩合併(任一張標了就不比);兩張都沒有 → undefined */
+function mergedIgnore (a: Fingerprint, b: Fingerprint): Uint8Array | undefined {
+  if (!a.ignore && !b.ignore) return undefined
+  if (!a.ignore || !b.ignore) return a.ignore ?? b.ignore
+  const out = new Uint8Array(a.data.length)
+  for (let i = 0; i < out.length; i++) out[i] = a.ignore[i] | b.ignore[i]
+  return out
+}
+
+/** 兩張縮圖的差;大小不同 → null(一律當成有變化)。遮罩蓋到的格子不算(全被蓋住 = 沒變化) */
 export function frameDiff (a: Fingerprint, b: Fingerprint, pixelDelta = PIXEL_DELTA): { mean: number, changedRatio: number } | null {
   if (a.w !== b.w || a.h !== b.h || a.data.length !== b.data.length || !a.data.length) return null
+  const ign = mergedIgnore(a, b)
   let sum = 0
   let changed = 0
+  let n = 0
   for (let i = 0; i < a.data.length; i++) {
+    if (ign?.[i]) continue
     const d = Math.abs(a.data[i] - b.data[i])
     sum += d
+    n++
     if (d >= pixelDelta) changed++
   }
-  return { mean: sum / a.data.length, changedRatio: changed / a.data.length }
+  if (!n) return { mean: 0, changedRatio: 0 }
+  return { mean: sum / n, changedRatio: changed / n }
 }
 
 export function isChanged (d: { mean: number, changedRatio: number } | null, th: DiffThresholds = DEFAULT_DIFF_THRESHOLDS): boolean {
@@ -109,6 +131,7 @@ export const LARGE_DIFF_THRESHOLDS: DiffThresholds = { mean: 6, ratio: 0.15 }
  */
 export function tileMaxDiff (a: Fingerprint, b: Fingerprint, tile = LARGE_TILE, pixelDelta = PIXEL_DELTA): { mean: number, changedRatio: number } | null {
   if (a.w !== b.w || a.h !== b.h || a.data.length !== b.data.length || !a.data.length) return null
+  const ign = mergedIgnore(a, b)
   let bestMean = 0
   let bestRatio = 0
   let counted = 0
@@ -116,18 +139,21 @@ export function tileMaxDiff (a: Fingerprint, b: Fingerprint, tile = LARGE_TILE, 
     const y1 = Math.min(a.h, ty + tile)
     for (let tx = 0; tx < a.w; tx += tile) {
       const x1 = Math.min(a.w, tx + tile)
-      const n = (x1 - tx) * (y1 - ty)
-      if (n * 2 < tile * tile) continue
+      // 第 18 步:遮罩蓋到的格子不算;一塊剩不到半塊可比的就略過(與邊緣不足半塊同規則)
+      let n = 0
       let sum = 0
       let changed = 0
       for (let y = ty; y < y1; y++) {
         const row = y * a.w
         for (let x = tx; x < x1; x++) {
+          if (ign?.[row + x]) continue
           const d = Math.abs(a.data[row + x] - b.data[row + x])
           sum += d
+          n++
           if (d >= pixelDelta) changed++
         }
       }
+      if (n * 2 < tile * tile) continue
       counted++
       if (sum / n > bestMean) bestMean = sum / n
       if (changed / n > bestRatio) bestRatio = changed / n
@@ -379,6 +405,8 @@ export interface ScanCapture {
   fingerprint: (rect: PhysRect) => Fingerprint
   /** 影像某塊以某倍率 OCR;行座標 = 影像像素 */
   recognize: (rect: PhysRect, scale: number) => Promise<{ lines: OcrTextLine[], ms: number }>
+  /** 第 18 步:這次擷取遮掉了幾塊我們自己畫的東西(log 用;0 / 省略 = 沒有) */
+  masked?: number
 }
 
 export interface ScanClock {
@@ -399,6 +427,11 @@ export interface PanelScanDeps {
   thresholds?: DiffThresholds
   /** 兩個掃描共用的整個 client ×1 定位 OCR(main 傳同一個);省略 = 各自 OCR */
   locateOcr?: SharedLocateOcr
+  /**
+   * 第 18 步:送出的 `rows` 還沒被 renderer 回報遮罩(ack)→ 這個 tick 不擷取(畫面上可能已有還沒遮到的新徽章;
+   * main 的 `ScanMaskStore.pending`,逾時自動放行)。ack 到了 main 呼叫 `drawSettled()` 立刻補一個 tick。省略 = 不等(selftest / 測試)
+   */
+  drawPending?: () => boolean
 }
 
 export type TickResult =
@@ -411,6 +444,8 @@ export type TickResult =
   | { kind: 'locate-skip', why: 'unchanged' | 'backoff' }
   /** auto:全畫面 ×1 定位沒找到面板 */
   | { kind: 'locate-miss', timings: RuneshapeTimings }
+  /** 第 18 步:等 renderer 回報剛送出那份結果畫出來的徽章位置(遮罩),這個 tick 不擷取 */
+  | { kind: 'mask-wait' }
   | { kind: 'unchanged', mode: 'manual' | 'auto', rect: PhysRect, timings: RuneshapeTimings }
   /** manual:區域沒有面板、畫面有變化但不大 → 退避中,這個 tick 不 OCR(差分基準不動) */
   | { kind: 'backoff', mode: 'manual', rect: PhysRect, waitMs: number, timings: RuneshapeTimings }
@@ -482,11 +517,13 @@ export class PanelScan {
   /** 上次送出的 `rows` 簽章與時間(相同內容 `REPEAT_ROWS_MS` 內不重送);送過非 rows 的事件就清掉 */
   private rowsSig = ''
   private rowsSigAt = Number.NEGATIVE_INFINITY
+  /** 第 18 步:上一個 tick 因等遮罩沒擷取(`drawSettled` 據此補 tick) */
+  private maskWaiting = false
   /** log:上一行 OCR 結果的鍵,與連續相同而略過的次數 */
   private lastLogKey = ''
   private logRepeats = 0
   /** 排程層的計數(不進設定頁統計;測試 / 診斷用) */
-  readonly sched = { idleBackoffSkips: 0, locateSkips: 0, locateShared: 0, dedupedRows: 0 }
+  readonly sched = { idleBackoffSkips: 0, locateSkips: 0, locateShared: 0, dedupedRows: 0, maskWaits: 0 }
   readonly stats: Omit<RuneshapeStats, 'active' | 'reason' | 'avgCaptureMs' | 'avgOcrMs' | 'mode' | 'panel' | 'autoRegion'> & { lastError?: string } = {
     ticks: 0, ocrRuns: 0, skippedUnchanged: 0, skippedBusy: 0, locates: 0, locateMisses: 0
   }
@@ -529,6 +566,13 @@ export class PanelScan {
     if (!this.running || this.ticking) return
     if (this.timer != null) this.clock.clearTimeout(this.timer)
     this.schedule(0)
+  }
+
+  /** 第 18 步:renderer 回報了遮罩(main `scan-mask`);上一個 tick 在等它 → 立刻補一個 tick */
+  drawSettled (): void {
+    if (!this.maskWaiting) return
+    this.maskWaiting = false
+    this.poke()
   }
 
   /** 丟掉差分基準,下一個 tick 一定重新 OCR(框選確認後) */
@@ -791,6 +835,13 @@ export class PanelScan {
     const eff: 'manual' | 'auto' = mode
     // auto 且沒有快取:低頻定位,沒到時間連擷取都不做
     if (eff === 'auto' && !this.auto && now() - Math.max(this.lastLocateAt, this.lastLocateCheckAt) < LOCATE_INTERVAL_MS) return { kind: 'locate-wait' }
+    // 第 18 步:剛送出的結果 renderer 還沒回報遮罩 → 先別擷取(否則會截到還沒遮的新徽章);ack 到了 drawSettled() 補 tick
+    if (this.deps.drawPending?.()) {
+      this.maskWaiting = true
+      this.sched.maskWaits++
+      return { kind: 'mask-wait' }
+    }
+    this.maskWaiting = false
     this.inFlight = true
     const t0 = now()
     try {
@@ -920,7 +971,7 @@ export class PanelScan {
         const d = timings.diff ? `差分 ${timings.diff.mean}/${(timings.diff.changedRatio * 100).toFixed(2)}%` : '無基準'
         this.log(`${this.tag} #${this.seq + 1} ${eff} 區域 ${rect.width}x${rect.height} ×${ocrScale(rect.width, rect.height)}:擷取 ${captureMs} ms、` +
           `${timings.locateMs != null ? `定位 ${timings.locateMs} ms、` : ''}${d}(${timings.diffMs} ms)、OCR ${timings.ocrWallMs} ms(行程內 ${res.ms}${timings.retry ? ',直書重試' : ''})、` +
-          `總計 ${timings.totalMs} ms;${res.lines.length} 行 → ${rows.length} 列(面板命中 ${panelRows}${cls.veto ? `;不是面板:${cls.veto}` : ''})` +
+          `總計 ${timings.totalMs} ms${cap.masked ? `、遮掉自己的徽章 ${cap.masked} 塊` : ''};${res.lines.length} 行 → ${rows.length} 列(面板命中 ${panelRows}${cls.veto ? `;不是面板:${cls.veto}` : ''})` +
           `${this.logRepeats ? `;其間 ${this.logRepeats} 次結果與前一行相同未記` : ''}`)
         this.lastLogKey = logKey
         this.logRepeats = 0

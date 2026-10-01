@@ -168,6 +168,20 @@ export type RuneshapeScanEvent = PanelScanEvent
  */
 export type RevealScanEvent = PanelScanEvent
 
+/**
+ * 效能修正第 18 步:renderer 回報畫在遊戲上的東西(`scan-mask`;main `scan-mask.ts`)。擷取會截到 overlay 自己,
+ * main 擷取後把這些矩形填掉再 OCR、差分不比那幾格。`source` = 哪一層(褻瀆徽章層 / 符文徽章層),每層一份、新的取代舊的。
+ */
+export interface ScanMaskReport {
+  source: 'reveal' | 'rune'
+  /** 這份反映到哪一個掃描事件為止(`PanelScanEvent.seq`,ack;main 送出 rows 後等它才擷取下一張);純外觀變動可省略 */
+  seq?: number
+  /** overlay 視窗的 CSS 大小(`innerWidth` / `innerHeight`;main 以 client.w / innerWidth 換算成 client 實體像素) */
+  viewport: { w: number, h: number }
+  /** 目前可見元素的外框(CSS px,`getBoundingClientRect`);清除 = [] */
+  rects: Array<{ x: number, y: number, w: number, h: number }>
+}
+
 /** WP-R2:renderer 回報的 UI 狀態(任一為 true → 暫停掃描)。 */
 export interface RuneshapeUiState {
   /** 查價面板 */
@@ -355,6 +369,8 @@ export interface HostApi {
   runeshapeUiState?: (s: RuneshapeUiState) => void
   /** WP-R2:掃描統計(設定頁);預覽端回 undefined。 */
   runeshapeStats?: () => Promise<RuneshapeStats | undefined>
+  /** 第 18 步:回報畫在遊戲上的徽章 / 提示外框(main 擷取後遮掉);預覽端 no-op。 */
+  scanMask?: (r: ScanMaskReport) => void
 }
 
 /**

@@ -79,8 +79,8 @@ export const HOST_EVENT_METHODS: Readonly<Record<string, string>> = {
  * WP-S2 的 `overlayActivate` / `ocrRevealNow` 也是(預覽端設定卡片隱藏「在遊戲上框選」)。
  */
 export const PREVIEW_NOOP_ASYNC = ['hideWindow', 'resizeWindow', 'ocrRevealAvailable', 'overlayActivate', 'ocrRevealNow', 'runeshapeStats', 'revealStats'] as const
-/** WP-R2:`runeshapeUiState`(預覽分頁開設定不該暫停 overlay 的掃描)也是 no-op */
-export const PREVIEW_NOOP_SYNC = ['trackArea', 'focusGame', 'usedRecently', 'runeshapeUiState'] as const
+/** WP-R2:`runeshapeUiState`(預覽分頁開設定不該暫停 overlay 的掃描)也是 no-op;第 18 步 `scanMask` 同理(預覽分頁畫的不在遊戲上) */
+export const PREVIEW_NOOP_SYNC = ['trackArea', 'focusGame', 'usedRecently', 'runeshapeUiState', 'scanMask'] as const
 
 export interface PreviewServerOptions {
   /** 靜態檔根目錄(與 `app://` 相同:打包後是 app 根目錄,開發模式是 renderer/dist)。 */

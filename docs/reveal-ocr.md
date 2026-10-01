@@ -260,12 +260,69 @@ GDI 序列在另一個行程(`scripts/capture-bench-bitblt.ps1`,與 `ow_screensh
   第 6 步:區域沒面板時小變化退避且從不整張定位、兩個掃描共用定位 OCR 且結果與自己 OCR 相同、tick 不重入;第 13 步:負樣本 classify / locate / PanelScan 不送列、使用者的區域 + 浮窗截圖只看區域、浮窗與面板同框)、
   `renderer/test/reveal-scan.test.ts`(事件 → 徽章動作、狀態列、設定往返)、`renderer/test/scan-dedupe.test.ts`(同一份列不重算)、`main/test/runeshape-scan.test.ts`(泛化後符文行為不變;第 6 步的退避 / 大幅門檻 / 定位退避 / 不重送)。
 
+#### 遮掉自己畫的東西(效能修正第 18 步,2026-10-02;褻瀆與符文共用)
+
+**症狀**(使用者錄影 + log #32–#40,手動區域 1258×907 ×3):乾淨畫面「5 行 → 5 列(面板命中 3)」→ 畫出三枚徽章 → 下一輪「7 行 → 7 列(面板命中 2)」只剩 2 組
+(第一行「此武器的攻擊穿透25%的火焰抗性」那組掉了)→ 再下一輪「5 行 → 0 列(面板命中 1)」→「清除徽章(面板關了)」→ 回到乾淨,約 3 秒一循環。
+**根因**:擷取(第 17 步的 overlay `screenshot()` = BitBlt 桌面,舊的 `desktopCapturer` 也一樣)會截到我們自己的 overlay 視窗。徽章畫在每組右側
+(左緣 = 組右緣 + 14 px、與該組同高),WinRT 把徽章文字(`T1? · 阿姆那姆 · 15–25`)併進同一行的詞綴或自成一行 → 那組對不上 → 少組 / 判定沒有面板 → 清徽章 → 畫面又乾淨。
+合成重現(`scripts/ocr-mask-check.mjs`,見下):fullscreen-02 dpr 1 → 3 組變 2 組、fullscreen-03 dpr 1 → 判定沒有面板、body-armour-01 → 第 1 / 3 組 Tier 改變。
+
+**做法**(不用 `setContentProtection`:會讓使用者自己的截圖 / 錄影也看不到徽章):
+
+| 段 | 檔案 | 做什麼 |
+|---|---|---|
+| 回報 | `renderer/src/web/overlay/scan-mask.ts` + `OcrBadges.vue` / `RuneshapePrices.vue` | 每層在 DOM 更新後、paint 前(`watch(..., { flush: 'post' })`、`nextTick`)量自己的**直接子元素**(褻瀆:徽章 + 「?」說明;符文:徽章 + 提示)的 `getBoundingClientRect`,送 IPC `scan-mask`(`{ source, seq?, viewport: innerWidth/innerHeight, rects }`,CSS px);**每個掃描事件處理完都帶它的 `seq`(ack)**,不論畫 / 清 / 被 dedupe 略過;內容相同且沒有新 seq 不重送;清除 = 空陣列。**字型**:量外框會強制排版,第一次用到的字型這時才開始載入、載完寬度會變(離屏實測徽章 139 → 161 px)→ `reportWithAck` 先送外框不 ack,`document.fonts` 載完(褻瀆再 `restackMeasured`)重量才 ack;另聽 `loadingdone` 重量 |
+| 保存 / 換算 | `main/src/ocr/scan-mask.ts` `ScanMaskStore` + `main.ts` | 每個來源一份(新的取代舊的;被取代的那份再遮 `MASK_LINGER_MS` 300 ms = DOM 已移除、畫面上可能還有一兩幀)。擷取當下依**這次擷取的 client 大小**換算:client px = CSS × client.w / innerWidth(renderer 收結果時 `innerWidth / client.w` 的反向)、外擴 `MASK_PAD_CSS_PX` 3 CSS px、外取整,再減擷取偏移成影像像素、夾在影像內(`imageRects`)。不讓 renderer 自己換成 client px:提示可能比第一個掃描結果先出現(還不知道 client 大小),而 main 擷取時一定知道 |
+| OCR 前填掉 | `capture.ts` `toScanCapture(cap, ocr, mask)` → `prepareRect` | 與裁切塊有交集才處理:裁切後 `toBitmap` → `fillMaskRects` → `createFromBitmap` → 照舊 `resize('best')` + JPEG q95;沒有交集時影像位元組與之前完全相同。1258×907 區域遮 3 塊:填色約 1 ms + 點陣往返約 1.3 ms(`prepareRect` ×3 中位數 70.8 → 76.1 ms) |
+| 差分不比 | `panel-scan.ts` `Fingerprint.ignore`、`frameDiff` / `tileMaxDiff`;`capture.ts` `grayFingerprint` | 遮罩蓋到的縮圖格子(再外擴 1 格,縮放濾鏡會混邊)標成不比;前後兩張**任一張**標了就跳過 → 徽章出現 / 消失本身不算畫面變化(否則徽章一畫上就是「大幅變化」立即 OCR)。小塊剩不到半塊可比的略過;全被蓋住 = 沒變化。沒有遮罩時與之前逐值相同 |
+| 競態 | `panel-scan.ts` `drawPending` / `drawSettled`、`ScanMaskStore.pending` | 見下 |
+
+- **填色**(`fillMaskRects`,runtime 用 `feather`):每塊外第 1–2 圈、不在任何遮罩內的像素逐通道取中位數實心填滿,靠邊 4 px 從外圈原像素線性漸變到填色(不留硬邊);
+  全部先取樣再填,相鄰 / 重疊的徽章(褻瀆徽章間距 4 px < 兩邊各外擴 3 px)不會吃到彼此的填色。
+- **外擴只取 3 CSS px**:涵蓋 `box-shadow` 的 1 px 外框環與量測取整(第 11 步外框是 8 方向 1 px `text-shadow`,在徽章框內);柔和陰影(blur 32 px)不遮 ——
+  徽章左緣距該組最右的字只有 14 px,遮大了會蓋到面板自己的字;陰影只讓背景變暗,下表實驗 OCR 不受影響。
+
+**填色的選擇**(`node scripts/ocr-mask-check.mjs --fill feather,ring-median,dark --control`;褻瀆 3 張 + 符文 2 張正樣本 × dpr 1 / 1.5 × 自動定位框 / 「定位框 ∪ 徽章外擴 40 px」手動框 = 20 個情境,真 WinOcr;
+徽章依 runtime 排版(褻瀆 `layoutBadges` → 以畫出的實際高度 `stackBadges`;符文 = 列右緣 + 14、垂直置中)用 sharp 畫:暗底 #131820、金色左條 3 px、`--ink-0` 字、13 / 12 CSS px × dpr、1 px 黑環):
+
+| | 比對結果與無徽章原圖相同 | 行文字逐字相同 |
+|---|---|---|
+| 有徽章、不遮 | 褻瀆 6 / 12 改變(重現掉組) | 5 / 20 |
+| `feather`(採用) | **20 / 20** | 17 / 20 |
+| `ring-median`(只填中位色,硬邊) | 19 / 20(符文 skills-01 一列尾巴多了「ㄗ」被判成面板外) | 18 / 20 |
+| `dark`(固定 #101010) | 20 / 20 | 16 / 20 |
+| Coons 曲面內插(四邊往內插,試過後刪除) | 20 / 20 | 12 / 20 |
+| 對照:原圖掃描區平移 1 px(沒有徽章) | 20 / 20 | **8 / 20** |
+
+比對結果(褻瀆 = 分組與每組候選;符文 = 每列名稱比對 `matchRunesRowsWith`)是判準;逐字差異全是列尾的 `|` `!` `,` `~` 之類雜字,
+原圖本身換個裁切(平移 1 px)就有 12 / 20 會出現,屬 WinRT 的雜訊範圍。
+Electron 端到端(runtime 的 `toScanCapture` + `ScanMaskStore` + `prepareRect` 遮罩 + `nativeImage` 'best' 放大 + 真 WinOcr,offset = 裁切左上模擬遊戲部分在螢幕外;scratchpad 腳本,未進 repo):
+褻瀆 12 個情境的詞綴行全部與乾淨圖相同(fullscreen-03 整張時只有背景雜訊行不同),遮罩後的差分縮圖 20 / 20 判為沒變化。
+
+**競態**(徽章剛畫上、遮罩還沒到 main 的那一次擷取):兩道防線。
+1. renderer 在 paint **之前**就送遮罩(`flush: 'post'` / `nextTick` 都在同一個 task 的 microtask 裡,畫面還沒合成),IPC 依序送達;正常情況遮罩一定比像素先到。
+2. main 送出 `rows` 後記下 seq(`noteSent`),renderer 回報的 `seq` ≥ 它之前 `pending` 為真 → 掃描 tick 不擷取(`mask-wait`);回報一到 `drawSettled()` 立刻補一個 tick;
+   最多等 `MASK_ACK_TIMEOUT_MS` 1 秒(renderer 沒在聽 / 卡住 / 重新載入時照常掃描,不會卡死)。只在 `rows` 之後等:清除(`empty` / 暫停)不會畫新東西,移除的部分由 300 ms 保留期涵蓋。
+   兩個來源共用:褻瀆的 rows 還沒 ack 時,符文掃描也不擷取(徽章可能落在符文區域內)。
+   選這個而不是「main 依送出的列推算徽章位置」:徽章大小取決於字型 / 字級 / 候選數 / 設定,main 推不準;也不用固定延遲:正常 ack 只要幾 ms,固定延遲要嘛太長拖慢、要嘛 renderer 忙時不夠。
+- 假時鐘(`main/test/scan-mask.test.ts`,fullscreen-02 快照當畫面、假 OCR 把「畫面上沒被遮掉」的徽章文字併進最近一行):不遮 → 3 組 / 清除反覆出現(重現);
+  遮罩 + ack → 20 秒內一直 3 組、沒有 empty、只 OCR 1 次(徽章出現不算變化);renderer → main IPC 400 ms、掃描間隔 100 ms 時,只遮不等會截到沒遮的徽章並掉組,加上 ack 等待後 0 次。
+
+**renderer 端實測**(Electron 隱藏的離屏視窗載入 `renderer/dist` + 假 `window.host`,注入 fullscreen-02 / skills-01 快照事件;scratchpad 腳本,不顯示視窗、不送輸入):
+褻瀆 4 個元素(3 徽章 + 「?」說明)、符文 12 枚徽章,ack 那份外框 = 字型載完後的 DOM 外框(逐值相同);字型已載入後,事件 → 帶 seq 的回報在同一個 task 的 microtask 內送出(paint 前);`empty` → 空陣列 + seq。
+
+**涵蓋範圍**:overlay 視窗裡的褻瀆徽章層與符文徽章層(含「?」說明列、符文提示)。**不含**:查價面板本身(褻瀆在查價面板開著時照常掃描;面板若蓋到框的區域,上面的字仍會被 OCR —— 與第 18 步之前相同)、
+右下角的啟動 / 辨識開關提示視窗(另一個視窗,約 3 秒,文字不像詞綴)。
+
+log:擷取有遮到東西時,掃描結果那行多「遮掉自己的徽章 N 塊」(`[reveal-scan] #n manual 區域 … 總計 … ms、遮掉自己的徽章 3 塊;5 行 → 5 列`)。
+
 ## 管線(2026-09-30 單次辨識時的設計;擷取 / OCR / 比對 / 座標系沿用)
 
 | 段 | 檔案 | 做什麼 |
 |---|---|---|
 | 熱鍵 | `main/src/Shortcuts.ts` | 動作 `ocr-reveal`(`hotkeyOcrReveal`);`trigger` 最前面分支,只呼叫 `onOcrReveal` |
-| 擷取 | `main/src/ocr/capture.ts` + `overlay-shot.ts` | **第 17 步起先用 overlay 原生 `OverlayController.screenshot()`**(只抓 attach 的遊戲 client,同步約 20 ms;throw / 尺寸不符 / 全黑才退回下面這條,見「擷取改用 overlay 原生 `screenshot()`」);後援:`desktopCapturer.getSources({ types: ['screen'], thumbnailSize: 該螢幕實體像素 })` → 用 `GameWindow.bounds`(client 區螢幕實體像素)減螢幕原點(`display.nativeOrigin`,沒有就 DIP × scaleFactor)裁出 client 區 |
+| 擷取 | `main/src/ocr/capture.ts` + `overlay-shot.ts`(+ 第 18 步 `scan-mask.ts`:擷取後遮掉我們自己的徽章 / 提示再 OCR / 差分,見「遮掉自己畫的東西」) | **第 17 步起先用 overlay 原生 `OverlayController.screenshot()`**(只抓 attach 的遊戲 client,同步約 20 ms;throw / 尺寸不符 / 全黑才退回下面這條,見「擷取改用 overlay 原生 `screenshot()`」);後援:`desktopCapturer.getSources({ types: ['screen'], thumbnailSize: 該螢幕實體像素 })` → 用 `GameWindow.bounds`(client 區螢幕實體像素)減螢幕原點(`display.nativeOrigin`,沒有就 DIP × scaleFactor)裁出 client 區 |
 | 前處理 | `capture.ts` `prepareRect()` / `rectRecognizer()` | 可選 `ocrRegion`(client 比例,`strategy.ts` `regionSearchRect` 以 client 尺寸換算再減擷取偏移)= 優先搜尋範圍 → 依下一列選的矩形裁切 → 放大(`×1` 或 `s = min(3, floor(9000 / max(w, h)))`:1080p / 1440p 3×、4K 2×;WinRT `MaxImageDimension` = 10000)→ `nativeImage.resize({ quality: 'best' })` → **JPEG q95**(`toPNG` 對 5760×3240 要 1.3–1.6 秒,JPEG 約 0.1 秒;逐字結果相同) |
 | 選範圍 | `main/src/ocr/strategy.ts` `recognizeRegionFirst` / `smartRecognize` + `poe2/src/desecration/ocr-locate.ts` | 有框選區域 → 先只在區域內跑、找不到再整張(WP-S2,見「框選辨識區域」);每一輪都是**兩段式**:快取區 ×3 → 整張 ×1 定位 + 面板區 ×3 → 整張 ×3(見下節) |
 | OCR | `main/src/ocr/win-ocr.ps1` + `WinOcr.ts` | 常駐 PowerShell 5.1 + WinRT `Windows.Media.Ocr`(`zh-Hant-TW`);`-EncodedCommand` 傳腳本(stdin 留給資料);協定見 ps1 檔頭(2026-10-01 第 7 步起影像寫暫存檔送路徑、runtime 不要 words,見「擷取與 OCR 傳輸」);單張逾時 8 秒 / 崩潰 → 下一次自動重啟;閒置 10 分鐘結束;缺語言包的結果記 30 秒 |
@@ -390,6 +447,8 @@ GDI 序列在另一個行程(`scripts/capture-bench-bitblt.ps1`,與 `ow_screensh
   `main/test/shortcut-actions.test.ts`(`ocr-region` 註冊條件:預設空不註冊、PoE1 / window 不註冊、撞鍵先到先得)。
   無頭 Chrome + 假 host 用 CDP `Input.dispatchMouseEvent` / `dispatchKeyEvent`(只作用於無頭頁面,不是作業系統層輸入)拖曳、調把手、方向鍵、Enter / Esc,驗證寫入值與呼叫序列(見 `docs/phase5-summary.md` S6)。
 - 無頭 Chrome + 假 `window.host`:注入快照事件,徽章位置 = 各組右緣 + 14 px / 垂直中心(誤差 0 px)、再按清除、Esc、錯誤提示(Alt 隱藏已於 2026-10-01 移除)。
+- 第 18 步(遮掉自己畫的東西):`node scripts/ocr-mask-check.mjs [--fill feather,ring-median,dark] [--dpr 1,1.5] [--control] [--keep <資料夾>]`(需 Windows + 語言包;不開視窗、不送輸入)——
+  正樣本畫上徽章 → 不遮(必須重現掉組,否則結束碼 1)/ 遮罩後(比對結果必須與原圖相同)走真 WinOcr;`main/test/scan-mask.test.ts`(純函式 + 假時鐘循環 / 競態)、`renderer/test/scan-mask.test.ts`(回報與 ack)。
 
 ### 本機實測(2026-09-29,`--ocr-selftest`)
 
@@ -435,6 +494,8 @@ OCR 使用 Windows 內建辨識,在本機執行;截圖只在記憶體裡傳給�
 
 ## 待使用者親測
 
+- **第 18 步遮掉自己的徽章**:開井(手動框區域與自動定位各一次)→ 三枚徽章出現後**不再 3 組 → 2 組 → 消失地循環**,會一直留著直到關面板;
+  log 的掃描行有「遮掉自己的徽章 N 塊」、徽章出現後不再每秒 OCR(畫面沒變);同時開符文塑形時符文徽章也不閃;用自己的截圖 / 錄影工具仍拍得到徽章。
 - **第 11 步徽章外觀**:設定 › 熱鍵與視窗 › 「徽章外觀」字體下拉列出系統字體(含中文名)、可篩選;改字體 / 大小 / 粗體 / 外框 / 三段色後遊戲上的符文與褻瀆徽章立即改變、
   預設設定下外觀與改版前相同;大字級(例 28 px)時褻瀆徽章不重疊、符文徽章相鄰列是否重疊;外框 / 陰影在遊戲亮處(雪地、亮色面板)是否清楚。
 0. **2026-10-01 自動持續辨識**:PoE2 開井 → 不按任何鍵,約 1–3 秒內出現三枚徽章;關掉面板徽章消失;開著查價面板時仍會出現;

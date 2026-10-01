@@ -213,6 +213,16 @@ npx electron main/dist/main.js --runeshape-selftest <png> [--runeshape-selftest-
 - 驗證:預設設定下改前 / 改後 overlay 截圖逐位元組相同、徽章所有元素計算樣式相同(無頭頁面 + 假 `window.host` + 真實 OCR 快照事件);`renderer/test/badge-style.test.ts`、`main/test/system-fonts.test.ts`。
 - 限制:符文徽章沒有防碰撞(每列置中於該列),字級很大(約 > 列高)時相鄰兩列的徽章可能上下重疊。
 
+## 徽章不被自己擷取(效能修正第 18 步,2026-10-02)
+
+擷取(overlay `screenshot()` / desktopCapturer)會截到 overlay 自己。符文徽章畫在每列右側(左緣 = 列右緣 + 14 px、垂直置中):
+- **手動框**:框通常比面板寬,徽章落在區域內 → WinRT 把徽章文字讀成多餘的列(合成實驗 skills-01:多出 `6崇高(0`、`丨市80`、`市益` 等被判成面板外的「?」列;
+  rewards-02 dpr 1.5:列尾多雜字)。
+- **自動定位框**:右側只外擴 0.6 行高,徽章幾乎都在框外(實驗 4 個情境 OCR 行與無徽章相同);徽章字級很大或面板右緣不齊時仍可能壓進框內。
+與褻瀆共用同一套遮罩(`docs/reveal-ocr.md`「遮掉自己畫的東西」):`RuneshapePrices.vue` 回報徽章與提示外框(`source: 'rune'`,每個事件帶 seq ack),
+main 擷取後填掉、差分不比那幾格,送出 rows 後等 ack 才擷取下一張。實驗(`scripts/ocr-mask-check.mjs`,兩張樣本 × dpr 1 / 1.5 × 自動 / 手動 = 8 個情境):
+遮罩後每列名稱比對(`matchRunesRowsWith`)與無徽章原圖 8 / 8 相同。掃描兩邊共用遮罩:褻瀆徽章落在符文區域內也會被遮,反之亦然。
+
 ## 已知限制
 
 - 英文客戶端的前綴寫法未確認(`Nx` 以外只認繁中 `技能等級` / `技能` / `輔助`);沒有任何前綴列的面板自動定位找不到(請手動框選)。

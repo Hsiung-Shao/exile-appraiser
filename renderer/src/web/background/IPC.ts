@@ -10,7 +10,7 @@
  */
 import type { HostApi, HostFetchResult, ItemTextEvent, HostConfigForMain, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId } from '@ipc/types'
 import type { ConfigChangedEvent, HotkeyRegistration, OcrAvailability, OcrRegionPickTarget, RevealScanEvent, SettingsTabId, UpdaterInfo } from '@ipc/types'
-import type { RuneshapeScanEvent, RuneshapeStats, RuneshapeUiState } from '@ipc/types'
+import type { RuneshapeScanEvent, RuneshapeStats, RuneshapeUiState, ScanMaskReport } from '@ipc/types'
 import { shallowRef } from 'vue'
 import type { HttpFetch } from '@exile-appraiser/core/http'
 import { withRetryAfter } from '@exile-appraiser/core/http'
@@ -239,6 +239,9 @@ class HostTransport {
   async runeshapeStats (): Promise<RuneshapeStats | undefined> {
     return await window.host?.runeshapeStats?.()
   }
+
+  /** 第 18 步:畫在遊戲上的徽章 / 提示外框(main 擷取後遮掉;overlay/scan-mask.ts) */
+  scanMask (r: ScanMaskReport): void { window.host?.scanMask?.(r) }
 }
 
 export const MainProcess = new HostTransport()

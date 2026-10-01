@@ -16,9 +16,11 @@
     耗時紀錄與「有人在查價」照舊);每列的市集查詢計畫每次結果只算一次(`plans` computed)。
   - 第 11 步:徽章外觀(`config.ocrBadgeStyle`,與褻瀆徽章共用;`badge-style.ts`):根元素設 CSS 變數(字體 / 字級 / 粗體 /
     三段價格色 / 外框陰影),樣式寫 `var(--badge-x, 原值)`,預設不輸出變數 = 外觀不變。市集徽章(冷色左框)不吃三段色。
+  - 第 18 步:main 的擷取會截到這一層(徽章 / 提示可能落在符文掃描區:手動框或自動定位外擴框)。DOM 更新後、paint 前把可見元素外框送 main 遮掉
+    (`scan-mask.ts`);每個掃描事件處理完都帶它的 seq(ack)。
 -->
 <template>
-  <div v-if="active" class="rs-layer pob-dark" data-runeshape-layer :data-runeshape-state="state" :style="styleVars">
+  <div v-if="active" ref="layer" class="rs-layer pob-dark" data-runeshape-layer :data-runeshape-state="state" :style="styleVars">
     <template v-if="state === 'rows'">
       <div v-for="b in badges" :key="b.key" class="rs-badge"
         :class="[`tier-${b.tier}`, `kind-${b.kind}`, b.noPrice ? `no-price-${b.noPrice}` : '', { market: !!b.tradeKey, [`trade-${marketOf(b)?.status}`]: !!b.tradeKey }]"
@@ -53,7 +55,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onMounted, onUnmounted, shallowRef, triggerRef, watch } from 'vue'
+import { computed, defineComponent, nextTick, onMounted, onUnmounted, shallowRef, triggerRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { RuneshapeScanEvent } from '@ipc/types'
 import * as Poe2 from '@poe2-entry'
@@ -68,6 +70,7 @@ import {
 } from './runeshape-view'
 import { createScanResultGate, dataGeneration, scanResultKey } from './scan-dedupe'
 import { badgeStyleVars } from './badge-style'
+import { createScanMaskReporter, reportWithAck } from './scan-mask'
 
 const TOAST_MS = 2_500
 
@@ -91,6 +94,9 @@ export default defineComponent({
     let twNoticeShown = false
     /** 與目前畫著的列相同的事件不重新比對 */
     const gate = createScanResultGate()
+    const layer = shallowRef<HTMLElement | null>(null)
+    /** 第 18 步:畫在遊戲上的東西回報給 main 遮掉 */
+    const mask = createScanMaskReporter('rune', r => { Host.scanMask(r) }, () => ({ w: window.innerWidth, h: window.innerHeight }))
 
     // 佇列自己打的請求用原始 http(不含 withRetryAfter 的等待重試):收到 429 → 整個佇列暫停,不在背景睡著等
     const queue = Poe2.createRuneTradeQueue({
@@ -125,7 +131,12 @@ export default defineComponent({
       console.log(`[runeshape] 清除徽章(${reason})`)
     }
 
+    /** 每個事件處理完(不論畫 / 清 / 略過)都在 DOM 更新後回報一次並帶 seq(ack) */
     function onEvent (e: RuneshapeScanEvent) {
+      handleEvent(e)
+      void nextTick(() => reportWithAck(mask, () => layer.value, e.seq, document.fonts))
+    }
+    function handleEvent (e: RuneshapeScanEvent) {
       recordScanTimings(e)
       if (e.reason === 'user-paused') { clear('暫停'); showToast('paused', t('ppz.runeshape.paused')); return }
       if (e.reason === 'user-resumed') { showToast('resumed', t('ppz.runeshape.resumed')); return }
@@ -209,6 +220,9 @@ export default defineComponent({
     const marketWord = (s: RuneTradeBadgeStatus) =>
       s === 'empty' ? t('ppz.runeshape.trade.empty_short') : s === 'failed' ? t('ppz.runeshape.trade.failed_short') : s === 'loading' ? t('ppz.runeshape.trade.loading') : '…'
 
+    // 第 18 步:畫面上的東西變了(DOM 已更新、還沒 paint)→ 回報外框給 main 遮掉(市集徽章文字變了寬度也會變)
+    watch([state, badges, markets, toast], () => { mask.report(layer.value) }, { flush: 'post' })
+
     // 查價面板 / 設定關掉 → 佇列立刻再試
     watch(runeshapeTradeHold, (h) => { if (!h) queue.kick() })
     // 一般查價收到 429(Retry-After 等待)→ 整個佇列暫停到期滿
@@ -224,13 +238,18 @@ export default defineComponent({
         : b.noPrice === 'recipe' ? t('ppz.runeshape.recipe_title', { name: b.refName }) : b.refName
 
     const onResize = () => { viewport.value = { w: window.innerWidth, h: window.innerHeight } }
+    // 第 18 步:字型載入完成 → 徽章寬度可能變了,重量一次(相同就不送)
+    const onFontsLoaded = () => { mask.report(layer.value) }
     const unsub: Array<() => void> = []
     onMounted(() => {
       unsub.push(Host.onRuneshapeScanResult(onEvent))
       window.addEventListener('resize', onResize)
+      document.fonts?.addEventListener?.('loadingdone', onFontsLoaded)
     })
     onUnmounted(() => {
       unsub.forEach(fn => fn())
+      mask.report(null)
+      document.fonts?.removeEventListener?.('loadingdone', onFontsLoaded)
       window.removeEventListener('resize', onResize)
       if (toastTimer) clearTimeout(toastTimer)
       queue.dispose()
@@ -238,6 +257,7 @@ export default defineComponent({
 
     return {
       t,
+      layer,
       state,
       badges,
       toast,

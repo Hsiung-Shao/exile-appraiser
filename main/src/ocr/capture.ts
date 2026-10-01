@@ -18,6 +18,8 @@ import type { WinOcr } from './WinOcr'
 import { clientCropOnDisplay, createGameClientCapture, type ClientCapture, type GameClientCapture } from './overlay-shot'
 // WP-R2:面板掃描(符文塑形 / 褻瀆)的縮圖差分
 import { FINGERPRINT_WIDTH, bgraToGray, type Fingerprint, type ScanCapture } from './panel-scan'
+// 第 18 步:遮掉我們自己畫在遊戲上的徽章 / 提示(擷取後、OCR / 差分前)
+import { clipRects, fillMaskRects, fingerprintIgnore, type MaskRect } from './scan-mask'
 
 export { ocrScale, regionRect, type PhysRect }
 
@@ -118,10 +120,13 @@ export function prepare (img: NativeImage, region: OcrRegion | null | undefined,
   return prepareRect(img, regionRect({ w: size.width, h: size.height }, region), scale)
 }
 
-/** 兩段式:`smartRecognize` 用的「對影像某塊以某倍率 OCR」;行座標換回影像像素(÷ scale + 裁切偏移) */
-export function rectRecognizer (img: NativeImage, ocr: () => WinOcr): RecognizeRect {
+/**
+ * 兩段式:`smartRecognize` 用的「對影像某塊以某倍率 OCR」;行座標換回影像像素(÷ scale + 裁切偏移)。
+ * 第 18 步 `mask`:影像像素的遮罩矩形(徽章等),裁切後、放大前填掉(`prepareRect`)。
+ */
+export function rectRecognizer (img: NativeImage, ocr: () => WinOcr, mask?: MaskRect[]): RecognizeRect {
   return async (rect, scale) => {
-    const prep = prepareRect(img, rect, scale)
+    const prep = prepareRect(img, rect, scale, mask)
     // 第 7 步:只要行(掃描 / smartRecognize 都不看 words)→ 腳本不輸出 words
     const res = await ocr().recognize(prep.image, { words: false })
     return {
@@ -140,8 +145,9 @@ export function rectRecognizer (img: NativeImage, ocr: () => WinOcr): RecognizeR
 /**
  * WP-R2:影像某塊 → 寬 `width` 的灰階縮圖(符文塑形掃描的變化偵測)。
  * `resize` 用 'good'(比 'best' 快;只拿來比對前後差異,不給 OCR)。
+ * 第 18 步 `mask`:遮罩蓋到的縮圖像素標成不比(`Fingerprint.ignore`;縮圖本身不填色)。
  */
-export function grayFingerprint (img: NativeImage, rect: PhysRect, width = FINGERPRINT_WIDTH): Fingerprint {
+export function grayFingerprint (img: NativeImage, rect: PhysRect, width = FINGERPRINT_WIDTH, mask?: MaskRect[]): Fingerprint {
   const size = img.getSize()
   const x = Math.max(0, Math.min(size.width - 1, Math.round(rect.x)))
   const y = Math.max(0, Math.min(size.height - 1, Math.round(rect.y)))
@@ -155,23 +161,35 @@ export function grayFingerprint (img: NativeImage, rect: PhysRect, width = FINGE
   const h = Math.max(1, Math.round(r.height * w / r.width))
   const small = img.crop(r).resize({ width: w, height: h, quality: 'good' })
   const s = small.getSize()
-  return bgraToGray(small.toBitmap(), s.width, s.height)
+  const fp = bgraToGray(small.toBitmap(), s.width, s.height)
+  const ign = mask?.length ? fingerprintIgnore(mask, r, s.width, s.height) : undefined
+  if (ign) fp.ignore = ign
+  return fp
 }
 
-/** WP-R2:把一次擷取包成掃描迴圈要的形狀(`runeshape-scan.ts` 不碰 electron) */
-export function toScanCapture (cap: { image: NativeImage, offset: { x: number, y: number }, client: { w: number, h: number } }, ocr: () => WinOcr): ScanCapture {
+/**
+ * WP-R2:把一次擷取包成掃描迴圈要的形狀(`runeshape-scan.ts` 不碰 electron)。
+ * 第 18 步 `mask`:這次擷取要遮掉的矩形(影像像素,main `ScanMaskStore.imageRects` 在擷取當下算好);空 / 省略 = 與之前完全相同。
+ */
+export function toScanCapture (cap: { image: NativeImage, offset: { x: number, y: number }, client: { w: number, h: number } }, ocr: () => WinOcr, mask?: MaskRect[]): ScanCapture {
   const size = cap.image.getSize()
+  const m = mask?.length ? mask : undefined
   return {
     size: { w: size.width, h: size.height },
     offset: cap.offset,
     client: cap.client,
-    fingerprint: rect => grayFingerprint(cap.image, rect),
-    recognize: rectRecognizer(cap.image, ocr)
+    fingerprint: rect => grayFingerprint(cap.image, rect, FINGERPRINT_WIDTH, m),
+    recognize: rectRecognizer(cap.image, ocr, m),
+    masked: m?.length ?? 0
   }
 }
 
-/** 兩段式:以影像像素矩形裁切(會夾在影像內)+ 放大 → JPEG;`scale` 省略 = `ocrScale` */
-export function prepareRect (img: NativeImage, rect: PhysRect, scale?: number): { image: Buffer, scale: number, offset: { x: number, y: number } } {
+/**
+ * 兩段式:以影像像素矩形裁切(會夾在影像內)+ 放大 → JPEG;`scale` 省略 = `ocrScale`。
+ * 第 18 步 `mask`(影像像素):與裁切塊有交集時,裁切後先把那幾塊填掉(`fillMaskRects`,外緣中位色 + 邊緣漸變)再放大;
+ * 沒有交集 → 影像位元組與之前完全相同(不經 toBitmap / createFromBitmap)。
+ */
+export function prepareRect (img: NativeImage, rect: PhysRect, scale?: number, mask?: MaskRect[]): { image: Buffer, scale: number, offset: { x: number, y: number } } {
   const size = img.getSize()
   const x = Math.max(0, Math.min(size.width - 1, Math.round(rect.x)))
   const y = Math.max(0, Math.min(size.height - 1, Math.round(rect.y)))
@@ -181,7 +199,16 @@ export function prepareRect (img: NativeImage, rect: PhysRect, scale?: number): 
     width: Math.max(1, Math.min(size.width - x, Math.round(rect.width))),
     height: Math.max(1, Math.min(size.height - y, Math.round(rect.height)))
   }
-  const cropped = (r.x === 0 && r.y === 0 && r.width === size.width && r.height === size.height) ? img : img.crop(r)
+  let cropped = (r.x === 0 && r.y === 0 && r.width === size.width && r.height === size.height) ? img : img.crop(r)
+  const local = mask?.length ? clipRects(mask.map(m => ({ x: m.x - r.x, y: m.y - r.y, w: m.w, h: m.h })), r.width, r.height) : []
+  if (local.length) {
+    const bmp = cropped.toBitmap()
+    // 點陣大小與裁切塊不符(不該發生;縮放因子怪況)→ 不遮,照原圖
+    if (bmp.length === r.width * r.height * 4) {
+      fillMaskRects(bmp, r.width, r.height, local)
+      cropped = nativeImage.createFromBitmap(bmp, { width: r.width, height: r.height })
+    }
+  }
   const s = scale ?? ocrScale(r.width, r.height)
   const scaled = s === 1 ? cropped : cropped.resize({ width: r.width * s, height: r.height * s, quality: 'best' })
   return { image: scaled.toJPEG(OCR_JPEG_QUALITY), scale: s, offset: { x: r.x, y: r.y } }

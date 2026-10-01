@@ -30,6 +30,7 @@ import { createOverlayClientCapture, toScanCapture } from './ocr/capture'
 import { runCaptureBench } from './ocr/capture-bench'
 import { DEFAULT_SCAN_INTERVAL_MS, RuneshapeScan } from './ocr/runeshape-scan'
 import { SharedCapture, SharedLocateOcr } from './ocr/panel-scan'
+import { ScanMaskStore, sanitizeMaskReport } from './ocr/scan-mask'
 import { isAppNavigation, isExternalWebUrl } from './external-links'
 import { BG_DIR_NAME, bgContentType, bgCorsHeaders, bgFileFromPath, normBgFile, resolveBgPath, storedBgName } from './backgrounds'
 import { createFontLister } from './system-fonts'
@@ -613,8 +614,15 @@ if (!skipStartup) app.whenReady().then(() => {
     shotBounds: () => poeWindow?.bounds ?? { x: 0, y: 0, width: 0, height: 0 },
     log: (msg) => { console.log(msg) }
   })
+  // 效能修正第 18 步:擷取會截到我們自己的 overlay(徽章 / 提示)→ renderer 回報位置(`scan-mask`),擷取當下換算成影像像素,
+  // OCR 前填掉、差分不比那幾格;送出 rows 後等 renderer ack 才擷取下一張(docs/reveal-ocr.md「遮掉自己畫的東西」)
+  const scanMask = new ScanMaskStore()
   // 效能修正第 7 步:兩個掃描同一 client bounds 的擷取共用(進行中一起等、完成後 100 ms 內用同一張)
-  const sharedCapture = new SharedCapture(async (b) => toScanCapture(await clientCapture.capture(b), () => winOcr))
+  const sharedCapture = new SharedCapture(async (b) => {
+    const c = await clientCapture.capture(b)
+    const sz = c.image.getSize()
+    return toScanCapture(c, () => winOcr, scanMask.imageRects(c.client, c.offset, { w: sz.width, h: sz.height }, Date.now()))
+  })
   const scanCapture = sharedCapture.capture
   // 效能修正第 6 步:兩個掃描的自動定位(整個 client ×1、同一個 WinOcr / 語言)1 秒內共用同一次 OCR
   const sharedLocateOcr = new SharedLocateOcr()
@@ -636,7 +644,11 @@ if (!skipStartup) app.whenReady().then(() => {
     locateOcr: sharedLocateOcr,
     // 面板定位 / 判定用 tiers.json 的模板 skeleton(第一次掃描才讀)
     locateIndex: () => loadLocateIndex(),
-    send: (ev) => { send('reveal-scan-result', ev) }
+    drawPending: () => scanMask.pending(Date.now()),
+    send: (ev) => {
+      if (ev.reason === 'rows') scanMask.noteSent('reveal', ev.seq, Date.now())
+      send('reveal-scan-result', ev)
+    }
   })
 
   // WP-R2:PoE2 符文塑形面板自動查價(掃描迴圈常駐;條件不符時每個 tick 只做判斷,不擷取)。
@@ -651,7 +663,11 @@ if (!skipStartup) app.whenReady().then(() => {
     ocrBusy: () => revealScan.busy,
     capture: scanCapture,
     locateOcr: sharedLocateOcr,
-    send: (ev) => { send('runeshape-scan-result', ev) }
+    drawPending: () => scanMask.pending(Date.now()),
+    send: (ev) => {
+      if (ev.reason === 'rows') scanMask.noteSent('rune', ev.seq, Date.now())
+      send('runeshape-scan-result', ev)
+    }
   })
   if (windowMode === 'overlay') {
     // 兩個掃描同時開著時錯開半個間隔,輪流使用 WinOcr
@@ -1185,6 +1201,19 @@ if (!skipStartup) app.whenReady().then(() => {
     },
     // renderer 回報查價面板 / 設定 / 框選層開著(符文塑形任一 → 暫停;褻瀆只看設定 / 框選層);send 一律不開放給預覽
     'runeshape-ui-state': { kind: 'send', fn: (_ctx, s: RuneshapeUiState) => { runeshapeScan.setUiState(s); revealScan.setUiState(s) } },
+    // 第 18 步:renderer 回報畫在遊戲上的徽章 / 提示外框(CSS px + 視窗大小 + 處理到的掃描事件 seq);
+    // 擷取後遮掉;在等這份回報的掃描立刻補一個 tick。send 一律不開放給預覽(預覽分頁畫的東西不在遊戲上)
+    'scan-mask': {
+      kind: 'send',
+      preview: false,
+      fn: (_ctx, r: unknown) => {
+        const rep = sanitizeMaskReport(r)
+        if (!rep) return
+        scanMask.report(rep, Date.now())
+        revealScan.drawSettled()
+        runeshapeScan.drawSettled()
+      }
+    },
     // 設定頁顯示褻瀆自動辨識統計;預覽端不開放
     'reveal-stats': { kind: 'invoke', preview: false, fn: () => revealScan.snapshot() },
     // WP-R2:設定頁顯示掃描統計;預覽端不開放
