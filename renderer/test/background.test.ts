@@ -4,8 +4,10 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { _roundTripForTest } from '../src/web/Config'
 import {
-  BG_DEFAULT, BG_READ_FLOOR, BG_READ_FLOOR_BLURRED, BG_READ_FLOOR_BLUR_AT, bgImageUrl, bgReadability, bgReadFloor, bgVars, normBg, normBgFile
+  BG_DEFAULT, BG_READ_FLOOR, BG_READ_FLOOR_BLURRED, BG_READ_FLOOR_BLUR_AT, bgBakeSpec, bgBlurPx, bgImageUrl, bgReadability, bgReadFloor, bgVars, normBg, normBgFile,
+  type BgSettings
 } from '../src/web/useTheme'
+import { BG_SCALE, BgBaker, bgBakeKey, bgBakePlan, bgCoverRect, type BgBakeInput } from '../src/web/bg-bake'
 
 const read = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8')
 
@@ -119,5 +121,192 @@ describe('樣式守門:圖只畫在查價面板 / 設定視窗裡,overlay 其他
   it('查價面板與設定視窗是 .bg-host 且第一個子元素是 BgLayer', () => {
     expect(read('../src/web/App.vue')).toMatch(/id="price-window" class="[^"]*\bbg-host\b[^"]*"[\s\S]{0,300}?<bg-layer \/>/)
     expect(read('../src/web/settings/SettingsWindow.vue')).toMatch(/class="[^"]*settings-window bg-host"[\s\S]{0,300}?<bg-layer \/>/)
+  })
+})
+
+// ---- 效能修正第 10 步:背景圖預先模糊(bg-bake.ts)----
+
+describe('bgBakeSpec / bgBlurPx(何時預先模糊)', () => {
+  const bg = (o: Partial<BgSettings> = {}): BgSettings => ({ ...BG_DEFAULT, file: 'a.png', ...o })
+  it('霧面 0 / 沒選圖 / 關閉 / 沒網址 → null(維持原本的 CSS,原圖直接用)', () => {
+    expect(bgBakeSpec(bg({ blur: 0 }), 'app://bg/a.png')).toBeNull()
+    expect(bgBakeSpec(bg({ blur: 1 }), 'app://bg/a.png')).toBeNull() // 1% → round(0.24) = 0 px
+    expect(bgBakeSpec(bg({ file: '', blur: 50 }), 'app://bg/a.png')).toBeNull()
+    expect(bgBakeSpec(bg({ enabled: false, blur: 50 }), 'app://bg/a.png')).toBeNull()
+    expect(bgBakeSpec(bg({ blur: 50 }), null)).toBeNull()
+  })
+  it('霧面 > 0 → 與 CSS 變數同值(亮度 0–1、模糊 px)', () => {
+    expect(bgBakeSpec(bg({ blur: 50, bright: 60 }), 'app://bg/a.png')).toEqual({ url: 'app://bg/a.png', bright: 0.6, blurPx: 12 })
+    expect(bgBlurPx(100)).toBe(24)
+    expect(bgVars(bg({ blur: 50 }), 'app://bg/a.png')?.['--bg-blur']).toBe(`${bgBlurPx(50)}px`)
+  })
+})
+
+describe('bgBakePlan(與 CSS .bgimg 等價的繪製參數)', () => {
+  const input: BgBakeInput = { url: 'u', bright: 0.6, blurPx: 12, width: 900, height: 700, dpr: 1.5, color: '#0e1116' }
+  it('畫布 = 框 × 1.04(CSS scale);blur std-dev × dpr × 1.04;亮度在模糊前(同 CSS filter 順序)', () => {
+    const p = bgBakePlan(input, 1920, 1200)
+    expect(BG_SCALE).toBe(1.04)
+    expect([p.width, p.height]).toEqual([936, 728])
+    expect(p.filter).toBe('brightness(0.6) blur(18.72px)')
+  })
+  it('cover + 置中:蓋滿畫布、多出的部分兩邊平分', () => {
+    expect(bgCoverRect(1920, 1200, 960, 960)).toEqual({ x: -288, y: 0, w: 1536, h: 960 })
+    expect(bgCoverRect(1000, 2000, 500, 500)).toEqual({ x: 0, y: -250, w: 500, h: 1000 })
+  })
+  it('鍵包含所有會改變結果的輸入', () => {
+    const k = bgBakeKey(input)
+    for (const ch of [{ url: 'v' }, { bright: 0.5 }, { blurPx: 13 }, { width: 901 }, { height: 701 }, { dpr: 1 }, { color: '#fff' }]) {
+      expect(bgBakeKey({ ...input, ...ch })).not.toBe(k)
+    }
+  })
+})
+
+describe('BgBaker(何時重算、revoke、霧面 0 不模糊、只套用最新的)', () => {
+  const flush = async () => { for (let i = 0; i < 10; i++) await Promise.resolve() }
+  function harness (opts: { failLoad?: boolean, failRender?: boolean } = {}) {
+    const log: string[] = []
+    const loads: Array<{ url: string, resolve: () => void, reject: () => void }> = []
+    const renders: Array<{ key: string, resolve: () => void, reject: () => void }> = []
+    let n = 0
+    const baker = new BgBaker<string, string>({
+      load: async (url) => await new Promise<string>((resolve, reject) => {
+        log.push(`load ${url}`)
+        loads.push({ url, resolve: () => resolve(`img:${url}`), reject: () => reject(new Error('x')) })
+        if (opts.failLoad) reject(new Error('x'))
+      }),
+      render: async (img, i) => await new Promise<string>((resolve, reject) => {
+        const out = `blob${++n}`
+        log.push(`render ${img} ${i.blurPx}`)
+        renders.push({ key: bgBakeKey(i), resolve: () => resolve(out), reject: () => reject(new Error('x')) })
+        if (opts.failRender) reject(new Error('x'))
+      }),
+      show: (o) => log.push(`show ${o}`),
+      discard: (o) => log.push(`revoke ${o}`),
+      release: (img) => log.push(`release ${img}`),
+      clear: () => log.push('css')
+    })
+    return { baker, log, loads, renders }
+  }
+  const inp = (o: Partial<BgBakeInput> = {}): BgBakeInput => ({ url: 'a', bright: 0.6, blurPx: 12, width: 100, height: 80, dpr: 1, color: '#000', ...o })
+
+  it('霧面 0 / 沒有設定 → 不載入不繪製,維持 CSS', async () => {
+    const h = harness()
+    h.baker.update(inp({ blurPx: 0 }))
+    h.baker.update(null)
+    await flush()
+    expect(h.log).toEqual([])
+    expect(h.baker.key).toBeNull()
+  })
+  it('首次:載入 → 繪製 → 換上;同一個鍵不重畫', async () => {
+    const h = harness()
+    h.baker.update(inp())
+    await flush(); h.loads[0].resolve(); await flush(); h.renders[0].resolve(); await flush()
+    expect(h.log).toEqual(['load a', 'render img:a 12', 'show blob1'])
+    expect(h.baker.key).toBe(bgBakeKey(inp()))
+    h.baker.update(inp())
+    await flush()
+    expect(h.log).toHaveLength(3)
+  })
+  it('設定 / 大小 / 主題底色變了才重畫;同一張圖不重新載入;新圖換上後 revoke 舊的', async () => {
+    const h = harness()
+    h.baker.update(inp())
+    await flush(); h.loads[0].resolve(); await flush(); h.renders[0].resolve(); await flush()
+    h.baker.update(inp({ width: 120 }))
+    await flush(); h.renders[1].resolve(); await flush()
+    h.baker.update(inp({ width: 120, color: '#fff' }))
+    await flush(); h.renders[2].resolve(); await flush()
+    expect(h.log.filter(l => l.startsWith('load'))).toEqual(['load a'])
+    expect(h.log.slice(3)).toEqual(['render img:a 12', 'show blob2', 'revoke blob1', 'render img:a 12', 'show blob3', 'revoke blob2'])
+  })
+  it('繪製途中又變了:不排隊,畫完的過期結果 revoke 不套用,接著只畫最新的', async () => {
+    const h = harness()
+    h.baker.update(inp())
+    await flush(); h.loads[0].resolve(); await flush()
+    h.baker.update(inp({ blurPx: 13 }))
+    h.baker.update(inp({ blurPx: 14 }))
+    h.renders[0].resolve(); await flush()
+    expect(h.renders).toHaveLength(2)
+    h.renders[1].resolve(); await flush()
+    expect(h.log).toEqual(['load a', 'render img:a 12', 'revoke blob1', 'render img:a 14', 'show blob2'])
+  })
+  it('霧面調回 0 → 立刻回到 CSS、revoke 目前的圖、釋放來源圖', async () => {
+    const h = harness()
+    h.baker.update(inp())
+    await flush(); h.loads[0].resolve(); await flush(); h.renders[0].resolve(); await flush()
+    h.baker.update(inp({ blurPx: 0 }))
+    expect(h.log.slice(3)).toEqual(['css', 'revoke blob1', 'release img:a'])
+    expect(h.baker.key).toBeNull()
+  })
+  it('框大小 0(容器隱藏)→ 回到 CSS 但保留來源圖;顯示回來不必重新載入', async () => {
+    const h = harness()
+    h.baker.update(inp())
+    await flush(); h.loads[0].resolve(); await flush(); h.renders[0].resolve(); await flush()
+    h.baker.update(inp({ width: 0 }))
+    h.baker.update(inp())
+    await flush(); h.renders[1].resolve(); await flush()
+    expect(h.log.slice(3)).toEqual(['css', 'revoke blob1', 'render img:a 12', 'show blob2'])
+  })
+  it('換圖:釋放舊來源圖、載入新圖;載入期間舊的預先模糊圖留著(不閃爍),新圖好了才換', async () => {
+    const h = harness()
+    h.baker.update(inp())
+    await flush(); h.loads[0].resolve(); await flush(); h.renders[0].resolve(); await flush()
+    h.baker.update(inp({ url: 'b' }))
+    await flush()
+    expect(h.log.slice(3)).toEqual(['release img:a', 'load b'])
+    expect(h.baker.key).toBe(bgBakeKey(inp()))
+    h.loads[1].resolve(); await flush(); h.renders[1].resolve(); await flush()
+    expect(h.log.slice(5)).toEqual(['render img:b 12', 'show blob2', 'revoke blob1'])
+  })
+  it('載入 / 繪製失敗 → 回到 CSS,同一張圖 / 同一個鍵不重試', async () => {
+    const h = harness({ failLoad: true })
+    h.baker.update(inp())
+    await flush()
+    h.baker.update(inp({ width: 120 }))
+    await flush()
+    expect(h.log).toEqual(['load a'])
+    const r = harness({ failRender: true })
+    r.baker.update(inp())
+    await flush(); r.loads[0].resolve(); await flush()
+    r.baker.update(inp())
+    await flush()
+    expect(r.log).toEqual(['load a', 'render img:a 12'])
+    expect(r.baker.key).toBeNull()
+  })
+  it('卸載:釋放來源圖、revoke 目前的圖;途中完成的結果直接 revoke', async () => {
+    const h = harness()
+    h.baker.update(inp())
+    await flush(); h.loads[0].resolve(); await flush(); h.renders[0].resolve(); await flush()
+    h.baker.update(inp({ width: 120 }))
+    await flush()
+    h.baker.dispose()
+    expect(h.log.slice(3)).toEqual(['render img:a 12', 'release img:a', 'css', 'revoke blob1'])
+    h.renders[1].resolve(); await flush()
+    expect(h.log.slice(-1)).toEqual(['revoke blob2'])
+    h.baker.update(inp())
+    await flush()
+    expect(h.log.slice(-1)).toEqual(['revoke blob2'])
+  })
+})
+
+describe('樣式守門:預先模糊(效能修正第 10 步)', () => {
+  const css = read('../src/theme/pobtools.css')
+  it('預先模糊後拿掉即時的背景與 filter,改貼 --bg-baked(100% 100%);霧面 0 的原本規則不變', () => {
+    expect(css).toMatch(/\.bgimg\[data-baked\] \{\s*background: var\(--bg-baked\) 0 0 \/ 100% 100% no-repeat;\s*filter: none;/)
+    expect(css).toMatch(/\.bgimg \{\s*background: var\(--bg-image, none\) center \/ cover no-repeat var\(--surface-0-c\);\s*filter: brightness\(var\(--bg-bright, 1\)\) blur\(var\(--bg-blur, 0px\)\);/)
+  })
+  it('CSS 的 scale 與 BG_SCALE 一致(預先模糊的解析度靠它對齊)', () => {
+    const m = css.match(/\.bgimg \{[^}]*transform: scale\(([\d.]+)\)/)
+    expect(Number(m?.[1])).toBe(BG_SCALE)
+  })
+  it('BgLayer 不把 canvas 放進 DOM(會自成合成層,文字變灰階反鋸齒),只寫 --bg-baked;來源圖以 CORS 載入', () => {
+    const vue = read('../src/web/ui/BgLayer.vue')
+    expect(vue).not.toMatch(/<canvas/)
+    expect(vue).toMatch(/setProperty\('--bg-baked'/)
+    expect(vue).toMatch(/URL\.revokeObjectURL/)
+    expect(vue).toMatch(/crossOrigin = 'anonymous'/)
+  })
+  it('文字光暈維持三層(量測:減層後最差對比下降,見 CLAUDE.md)', () => {
+    expect(css).toMatch(/text-shadow: 0 0 1px var\(--halo\), 0 0 3px var\(--halo\), 0 0 6px var\(--halo\);/)
   })
 })

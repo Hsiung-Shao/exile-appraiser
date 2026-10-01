@@ -29,7 +29,7 @@ import { captureGameClient, toScanCapture } from './ocr/capture'
 import { DEFAULT_SCAN_INTERVAL_MS, RuneshapeScan } from './ocr/runeshape-scan'
 import { SharedCapture, SharedLocateOcr } from './ocr/panel-scan'
 import { isAppNavigation, isExternalWebUrl } from './external-links'
-import { BG_DIR_NAME, bgContentType, bgFileFromPath, normBgFile, resolveBgPath, storedBgName } from './backgrounds'
+import { BG_DIR_NAME, bgContentType, bgCorsHeaders, bgFileFromPath, normBgFile, resolveBgPath, storedBgName } from './backgrounds'
 import {
   TOAST_FADE_MS, TOAST_VISIBLE_MS, isFirstRunAfterUpdate, parseLastRun, priceCheckHotkeyLabel, serializeLastRun,
   shouldShowStartupToast, toastBounds, toastHtml, toastLang, toastMessage, type ToastMessage
@@ -102,6 +102,7 @@ const BG_DIR = () => path.join(app.getPath('userData'), BG_DIR_NAME)
 /**
  * `app://app/…` = renderer/dist(只有正式版;開發模式走 Vite);`app://bg/<檔名>` = 自訂背景圖(兩種模式都有)。
  * 背景檔名經 `resolveBgPath`(只准 png / jpg / webp、不含路徑字元、解析後不跳出 backgrounds 資料夾),其他一律 404。
+ * 背景圖回應另依 `bgCorsHeaders` 只對 app 自己的頁面(APP_ORIGINS)加 CORS 標頭(renderer 預先模糊要畫進 canvas,效能修正第 10 步)。
  */
 function installAppProtocol (serveRenderer: boolean) {
   const root = __dirname
@@ -112,7 +113,7 @@ function installAppProtocol (serveRenderer: boolean) {
       const file = name == null ? null : resolveBgPath(BG_DIR(), name)
       if (!file) return new Response('not found', { status: 404 })
       return net.fetch(pathToFileURL(file).toString()).then(r => r.ok
-        ? new Response(r.body, { status: 200, headers: { 'Content-Type': bgContentType(file), 'Cache-Control': 'no-cache' } })
+        ? new Response(r.body, { status: 200, headers: { 'Content-Type': bgContentType(file), 'Cache-Control': 'no-cache', ...bgCorsHeaders(request.headers.get('origin'), APP_ORIGINS) } })
         : new Response('not found', { status: 404 }))
     }
     if (!serveRenderer) return new Response('not found', { status: 404 })

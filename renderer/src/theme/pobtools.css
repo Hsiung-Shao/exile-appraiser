@@ -298,6 +298,13 @@
   /* 模糊會把邊緣往內吃,放大一點點把它推到框外 */
   transform: scale(1.04);
 }
+/* 效能修正第 10 步(2026-10-01):霧面 > 0 時 BgLayer.vue 用 canvas 照同一串 filter 預先畫好(bg-bake.ts,底色 / 亮度 / 模糊都已含在圖裡,
+   邊緣淡出也一樣),輸出 blob URL 寫進 --bg-baked;這裡拿掉即時的背景與 filter,改貼這張圖(解析度 = 框 × 1.04,經 100% 100% + 同一個 scale(1.04) 在螢幕上剛好 1:1)。
+   捲動 / 查價結果更新時不必每次重做模糊 */
+.bgimg[data-baked] {
+  background: var(--bg-baked) 0 0 / 100% 100% no-repeat;
+  filter: none;
+}
 /* 圖上面一層面板底色 = 使用者的面板不透明度(容器內的 --surface-0 已拉到地板值,這層直接用 --panel-pct) */
 .bgtint {
   background: color-mix(in srgb, var(--surface-0-c) var(--panel-pct), transparent);

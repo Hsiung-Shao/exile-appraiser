@@ -44,6 +44,27 @@ export function bgFileFromPath (pathname: string): string | null {
   return raw
 }
 
+/** origin 字串正規化成 `scheme://host[:port]`(app:// 這類非特殊 scheme 的 URL.origin 是 "null",所以自己組) */
+function originOf (v: string): string | null {
+  try {
+    const u = new URL(v)
+    return u.host ? `${u.protocol}//${u.host}` : null
+  } catch { return null }
+}
+
+/**
+ * 效能修正第 10 步(2026-10-01):`app://bg/<檔名>` 回應的 CORS 標頭。renderer 要把背景圖畫進 canvas 預先模糊並輸出 blob,
+ * 圖必須以 CORS 載入(`crossOrigin = 'anonymous'`),否則畫布被汙染、`toBlob` 失敗。
+ * 只有請求的 `Origin` 正好是 app 自己的頁面(`allowed` = main.ts 的 APP_ORIGINS:正式版 app://app、開發模式 Vite)才回
+ * `Access-Control-Allow-Origin: <該 origin>` + `Vary: Origin`;其他來源 / 沒有 Origin → 不加(絕不用 `*`)。
+ */
+export function bgCorsHeaders (origin: string | null | undefined, allowed: readonly string[]): Record<string, string> {
+  if (!origin) return {}
+  const o = originOf(origin)
+  if (!o || o !== origin) return {}
+  return allowed.some(a => originOf(a) === o) ? { 'Access-Control-Allow-Origin': o, Vary: 'Origin' } : {}
+}
+
 export function bgContentType (file: string): string {
   const ext = path.extname(file).toLowerCase()
   return ext === '.png' ? 'image/png' : ext === '.webp' ? 'image/webp' : 'image/jpeg'

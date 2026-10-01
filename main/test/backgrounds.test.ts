@@ -5,8 +5,27 @@ import fs from 'node:fs'
 import http from 'node:http'
 import os from 'node:os'
 import path from 'node:path'
-import { bgContentType, bgFileFromPath, normBgFile, resolveBgPath, storedBgName } from '../src/backgrounds'
+import { bgContentType, bgCorsHeaders, bgFileFromPath, normBgFile, resolveBgPath, storedBgName } from '../src/backgrounds'
 import { startPreviewServer, type PreviewServer } from '../src/preview-server'
+
+describe('bgCorsHeaders(app://bg/ 回應;效能修正第 10 步)', () => {
+  const allowed = ['app://app', 'http://localhost:5173/']
+  it('Origin 是 app 自己的頁面 → 回該 origin + Vary: Origin(不是 *)', () => {
+    expect(bgCorsHeaders('app://app', allowed)).toEqual({ 'Access-Control-Allow-Origin': 'app://app', Vary: 'Origin' })
+    expect(bgCorsHeaders('http://localhost:5173', allowed)).toEqual({ 'Access-Control-Allow-Origin': 'http://localhost:5173', Vary: 'Origin' })
+  })
+  it('其他 origin / 沒有 Origin / 格式不對 → 不加任何標頭', () => {
+    for (const o of [null, undefined, '', 'null', 'https://www.pathofexile.com', 'app://bg', 'app://app.evil', 'http://localhost:5174',
+      'http://127.0.0.1:5173', 'app://app/x', '*']) expect(bgCorsHeaders(o, allowed)).toEqual({})
+    expect(bgCorsHeaders('app://app', [])).toEqual({})
+  })
+  it('main.ts 只在 app://bg/ 回應套用(其他路由沒有)', () => {
+    const main = fs.readFileSync(path.join(__dirname, '../src/main.ts'), 'utf8')
+    expect(main.match(/bgCorsHeaders\(/g)).toHaveLength(1)
+    expect(main).toMatch(/if \(url\.host === 'bg'\) \{[\s\S]{0,600}?bgCorsHeaders\(request\.headers\.get\('origin'\), APP_ORIGINS\)[\s\S]{0,200}?\n {4}\}/)
+    expect(main).not.toMatch(/Access-Control-Allow-Origin['"]?\s*:\s*['"]\*/)
+  })
+})
 
 describe('normBgFile:只准 png / jpg / jpeg / webp、只有檔名', () => {
   it('合法', () => {

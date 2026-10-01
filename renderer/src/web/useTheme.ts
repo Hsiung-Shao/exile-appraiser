@@ -5,7 +5,8 @@
  *
  * 本檔不 import Config(Config 反過來用這裡的常數與正規化函式),避免循環相依。
  */
-import { watch } from 'vue'
+import { shallowRef, watch } from 'vue'
+import type { BgBakeSpec } from './bg-bake'
 
 export const THEMES = ['slate', 'light', 'contrast', 'parchment'] as const
 export type Theme = (typeof THEMES)[number]
@@ -139,13 +140,32 @@ export function bgVars (bg: BgSettings, url: string | null): Record<string, stri
   return {
     '--bg-image': `url("${url.replace(/["\\]/g, '\\$&')}")`,
     '--bg-bright': String(bg.bright / 100),
-    '--bg-blur': `${Math.round((bg.blur / 100) * 24)}px`,
+    '--bg-blur': `${bgBlurPx(bg.blur)}px`,
     '--bg-panel-pct': `${bg.panelOpacity}%`,
     '--bg-read-pct': `${r.readPct}%`,
     '--bg-lift': `${r.liftPct}%`,
     '--bg-halo': String(r.halo)
   }
 }
+/** CSS `--bg-blur` 的像素值(霧面 0–100 → 0–24 px,取整數) */
+export function bgBlurPx (blur: number): number {
+  return Math.round((blur / 100) * 24)
+}
+
+/**
+ * 預先模糊(bg-bake.ts,效能修正第 10 步)要的設定;霧面 0 / 沒有圖 / 關閉 / 拿不到網址 → null(維持原本的 CSS 呈現)。
+ * 值與 bgVars 的 `--bg-image` / `--bg-bright` / `--bg-blur` 一一對應,BgLayer.vue 照它畫出與 CSS filter 同樣的圖。
+ */
+export function bgBakeSpec (bg: BgSettings, url: string | null): BgBakeSpec | null {
+  if (!bg.enabled || !bg.file || !url) return null
+  const blurPx = bgBlurPx(bg.blur)
+  if (blurPx <= 0) return null
+  return { url, bright: bg.bright / 100, blurPx }
+}
+
+/** 目前的預先模糊設定(useBackground 寫、每個 BgLayer.vue 讀) */
+export const bgBake = shallowRef<BgBakeSpec | null>(null)
+
 const BG_VARS = ['--bg-image', '--bg-bright', '--bg-blur', '--bg-panel-pct', '--bg-read-pct', '--bg-lift', '--bg-halo']
 
 /** 寫到 <html>:有背景 → `data-bg` + 變數;沒有 → 清掉(pobtools.css 只在 `.bg-host` 內用它們,overlay 其他區域不受影響) */
@@ -165,8 +185,14 @@ export function applyBackground (vars: Record<string, string> | null): void {
 export function useBackground (settings: () => BgSettings, url: (file: string) => string | null): void {
   watch(() => {
     const s = settings()
-    return bgVars(normBg(s), url(s.file))
-  }, applyBackground, { immediate: true, deep: true })
+    const b = normBg(s)
+    const u = url(s.file)
+    return { vars: bgVars(b, u), bake: bgBakeSpec(b, u) }
+  }, ({ vars, bake }) => {
+    applyBackground(vars)
+    const cur = bgBake.value
+    if (cur?.url !== bake?.url || cur?.bright !== bake?.bright || cur?.blurPx !== bake?.blurPx) bgBake.value = bake
+  }, { immediate: true, deep: true })
 }
 
 /** 立即套用一次,之後設定一變就重套(main.ts 啟動時呼叫)。 */
