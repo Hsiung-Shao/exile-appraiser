@@ -17,6 +17,7 @@ import { REALMS, useEnglishNames, type Game, type Language, type Realm } from '@
 import type { PriceCheckWidget } from './overlay/interfaces'
 import type { ChatCommand, HostConfigForMain, HotkeyRegistration, OcrRegion, StashSearchEntry } from '@ipc/types'
 import { Host } from './background/IPC'
+import { createHostConfigSync } from './host-config-sync'
 import { BG_DEFAULT, clampFsBase, normAccent, normBg, normTheme, DEFAULT_FS_BASE, type BgSettings, type Theme } from './useTheme'
 
 /** 介面字串語言(與客戶端語言 `language` 分開)。 */
@@ -423,8 +424,15 @@ async function sendHostConfig (cfg: HostConfigForMain): Promise<void> {
     hotkeyRegistration.value = await Host.updateHostConfig(cfg)
   } catch (e) {
     console.error('[app] host-config 失敗', e)
+    throw e // 交給 host-config-sync:失敗就不記為「已送出」
   }
 }
+
+/** 設定頁每改一個欄位 watch 都會觸發:相同內容不送、一般欄位 300 ms trailing debounce;第一次與 game / overlayMode(main 會據此重新啟動)立刻送 */
+const hostConfigSync = createHostConfigSync<HostConfigForMain>({
+  send: sendHostConfig,
+  immediateKeys: ['game', 'overlayMode']
+})
 
 export async function initConfig (): Promise<void> {
   const raw = await Host.loadConfig()
@@ -483,6 +491,8 @@ export async function initConfig (): Promise<void> {
     commands: config.commands.map(c => ({ ...c })),
     stashSearch: config.stashSearch.map(s => ({ ...s }))
   }), (cfg) => {
-    void sendHostConfig(cfg)
+    hostConfigSync.update(cfg)
   }, { immediate: true })
+  // 視窗關閉 / 重新載入前,把等待中(debounce 內)的設定送出
+  if (typeof window !== 'undefined') window.addEventListener('pagehide', () => { hostConfigSync.flush() })
 }

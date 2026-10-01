@@ -26,7 +26,7 @@ import { uIOhook, UiohookKey } from 'uiohook-napi'
 import { isModKey, KeyToElectron, mergeTwoHotkeys } from '@ipc/KeyToCode'
 import type { GameId, HostConfigForMain, HotkeyRegistration, ItemTextEvent, OcrRegionPickTarget } from '@ipc/types'
 import { HostClipboard } from './HostClipboard'
-import { buildShortcutActions, normalizeHotkey, reservedShortcuts, type ShortcutAction } from './shortcut-actions'
+import { buildShortcutActions, normalizeHotkey, reservedShortcuts, sameShortcutActions, type ShortcutAction } from './shortcut-actions'
 import { stashSearch, typeInChat, type TextBoxDeps } from './text-box'
 import type { OverlayWindow } from './windowing/OverlayWindow'
 import type { GameWindow } from './windowing/GameWindow'
@@ -46,6 +46,8 @@ export class Shortcuts {
   /** 目前遊戲:決定送給遊戲的複製組合鍵(PoE1 Ctrl+C / PoE2 Ctrl+Alt+C) */
   private game: GameId = 'poe1'
   private isRegistered = false
+  /** 上一次 updateActions 的回傳(動作清單沒變時直接沿用,熱鍵註冊結果不變) */
+  private lastResult: HotkeyRegistration | null = null
   readonly clipboard = new HostClipboard()
 
   constructor (
@@ -69,9 +71,10 @@ export class Shortcuts {
         process.nextTick(() => {
           if (isActive === poeWindow.isActive) {
             if (isActive) {
-              this.register()
+              this.lastResult = this.register()
             } else {
               this.unregister()
+              this.lastResult = { ok: true }
             }
           }
         })
@@ -95,15 +98,20 @@ export class Shortcuts {
     this.clipboard.updateOptions(cfg.restoreClipboard)
     this.game = cfg.game
     // WP-S / WP-S2:OCR 兩個熱鍵只在 overlay + PoE2 註冊;空字串 / 重複的熱鍵不註冊(shortcut-actions.ts)
-    this.actions = buildShortcutActions(cfg, this.opts.mode)
+    const nextActions = buildShortcutActions(cfg, this.opts.mode)
+    // 動作清單(熱鍵 + 動作內容)與目前完全相同,且註冊狀態與「該不該註冊」一致 → 不 unregisterAll / 重註冊(中間空窗熱鍵會失效)
+    if (this.lastResult && this.isRegistered === this.shouldBeRegistered && sameShortcutActions(this.actions, nextActions)) {
+      return this.lastResult
+    }
+    this.actions = nextActions
     const reserved = reservedShortcuts(cfg)
     if (reserved.length) console.warn(`[shortcuts] 遊戲保留的熱鍵不註冊:${reserved.join(', ')}`)
     console.log(`[shortcuts] 複製鍵(${this.game}):${copyItemHotkey(this.game)}`)
     console.log(`[shortcuts] 動作:${this.actions.map(a => `${a.shortcut}=${a.action.type}${a.action.type === 'copy-item' && a.action.focusOverlay ? '(locked)' : ''}`).join(', ')}`)
 
     if (this.isRegistered) this.unregister()
-    if (this.shouldBeRegistered) return this.register()
-    return { ok: true }
+    this.lastResult = this.shouldBeRegistered ? this.register() : { ok: true }
+    return this.lastResult
   }
 
   private register (): HotkeyRegistration {

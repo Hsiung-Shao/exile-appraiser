@@ -9,6 +9,7 @@ import { format } from 'node:util'
 import type { ConfigChangedEvent, GameId, HostConfigForMain, HostFetchInit, HotkeyRegistration, ItemTextEvent, RuneshapeUiState, SettingsTabId, TrackAreaOpts, WindowMode } from '@ipc/types'
 import { hostFetch, installCookiePatch } from './http'
 import { Shortcuts, normalizeHotkey } from './Shortcuts'
+import { scanConfigKey } from './scan-config'
 import { GameWindow } from './windowing/GameWindow'
 import { GameDetector } from './windowing/GameDetector'
 import { OverlayWindow, type SendToRenderer } from './windowing/OverlayWindow'
@@ -772,12 +773,18 @@ if (!skipStartup) app.whenReady().then(() => {
     else detector.stop()
   }
 
+  let lastScanKey: string | null = null
   const onHostConfig = (ctx: HandlerCtx, cfg: HostConfigForMain): HotkeyRegistration => {
     const result = shortcuts.updateActions(cfg)
     hostCfg = cfg
     // 開關 / 區域 / 間隔改了 → 立刻重新判斷(停用時即時清徽章;區域改了差分基準的鍵就不同,自然重看)
-    revealScan.poke()
-    runeshapeScan.poke()
+    // 只在影響掃描的欄位(開關 / 遊戲 / 區域 / 間隔)變了或第一次才 poke;設定頁每打一個字都會來,poke 會清計時器立刻 tick
+    const scanKey = scanConfigKey(cfg)
+    if (scanKey !== lastScanKey) {
+      lastScanKey = scanKey
+      revealScan.poke()
+      runeshapeScan.poke()
+    }
     if (cfg.uiLanguage === 'en' || cfg.uiLanguage === 'cmn-Hant') rebuildTrayMenu(cfg.uiLanguage)
     // 先套用 autoUpdate 再做第一次檢查(舊 renderer / 缺欄位 → 預設開)
     updater.setAutoUpdate(cfg.autoUpdate !== false)

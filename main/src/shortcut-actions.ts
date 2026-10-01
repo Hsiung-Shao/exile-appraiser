@@ -102,3 +102,8 @@ export function reservedShortcuts (cfg: ActionCfg): string[] {
   ]
   return [...new Set(all.filter(Boolean).map(k => normalizeHotkey(k)).filter(isGameReservedHotkey))]
 }
+
+/** 兩份動作清單(熱鍵字串 + 動作內容 + keepModKeys)完全相同 → true。設定頁每打一個字都會送 host-config,相同就不必重註冊全域熱鍵。 */
+export function sameShortcutActions (a: ShortcutAction[], b: ShortcutAction[]): boolean {
+  return JSON.stringify(a) === JSON.stringify(b)
+}
