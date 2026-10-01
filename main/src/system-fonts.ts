@@ -34,6 +34,7 @@ export function parseFontList (stdout: string): string[] {
   const out: string[] = []
   for (const raw of text.split(/\r?\n/)) {
     const name = raw.trim()
+    // 刻意比對控制字元:字體名含控制字元 / 引號 / 反斜線就丟掉(會破壞 CSS font-family)
     // eslint-disable-next-line no-control-regex
     if (!name || name.length > MAX_NAME_LEN || /[\u0000-\u001f\u007f"\\�]/.test(name)) continue
     const k = name.toLowerCase()

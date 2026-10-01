@@ -106,7 +106,7 @@ img.onload = async () => {
   const truthP = new Promise<{ w: number, h: number, data: Uint8Array }>(resolve => { win.webContents.ipc.once('fx-truth', (_e, v) => { resolve(v) }) })
   await win.loadFile(page)
   const t = await truthP
-  try { fs.unlinkSync(page) } catch {}
+  try { fs.unlinkSync(page) } catch {} // 量測暫存頁刪不掉不影響結果,刻意忽略
   const truth = nativeImage.createFromBitmap(Buffer.from(t.data.buffer, t.data.byteOffset, t.data.byteLength), { width: t.w, height: t.h })
   // 視窗只開到螢幕邊(副螢幕直立 1440 寬,較寬的圖右邊裁掉,不跨到主螢幕);比對範圍 = 看得到的那塊
   const dp = displayPhysRect(display)

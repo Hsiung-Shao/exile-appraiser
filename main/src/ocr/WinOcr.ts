@@ -124,7 +124,7 @@ export async function cleanStaleOcrFiles (dir: string, opts: { now?: number, max
     try {
       await fsp.unlink(file)
       removed++
-    } catch {}
+    } catch {} // 殘留檔被其他行程佔用或已被刪,下次清理再試,刻意忽略
   }
   return removed
 }

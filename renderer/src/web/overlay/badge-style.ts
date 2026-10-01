@@ -42,6 +42,7 @@ export function normHexColor (v: unknown): string | null {
 export function normFontFamily (v: unknown): string {
   if (typeof v !== 'string') return ''
   const s = v.trim()
+  // 刻意比對控制字元:含控制字元或 CSS 特殊字元的字體名一律回到「跟隨介面」,避免注入 CSS
   // eslint-disable-next-line no-control-regex
   if (!s || s.length > MAX_FONT_NAME || /[\u0000-\u001f\u007f"\\;{}]/.test(s)) return ''
   return s

@@ -33,7 +33,7 @@ export async function fetchViaHost (host: Pick<HostApi, 'fetch' | 'fetchAbort'>,
   const aborted = new Promise<never>((_resolve, reject) => {
     onAbort = () => {
       reject(abortReason(signal))
-      try { void host.fetchAbort?.(requestId)?.catch(() => {}) } catch {}
+      try { void host.fetchAbort?.(requestId)?.catch(() => {}) } catch {} // 通知 main 中止是盡力而為:舊 host 沒有 fetchAbort 或 IPC 已斷時刻意忽略
     }
     signal.addEventListener('abort', onAbort, { once: true })
   })
