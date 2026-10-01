@@ -565,6 +565,12 @@ export class PanelScan {
     return this.userPaused
   }
 
+  /** 第 16 步(合併熱鍵):設成指定的暫停狀態;已經是這個狀態就不動(不重送事件)。回傳設定後的狀態。 */
+  setUserPause (paused: boolean): boolean {
+    if (this.userPaused !== paused) this.toggleUserPause()
+    return this.userPaused
+  }
+
   /** 設定頁的統計 */
   snapshot (): RuneshapeStats {
     const avg = (a: number[]) => a.length ? Math.round(a.reduce((s, x) => s + x, 0) / a.length) : undefined

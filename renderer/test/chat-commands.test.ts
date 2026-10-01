@@ -83,6 +83,35 @@ describe('熱鍵衝突表(與 main 註冊規則相同)', () => {
     expect(hotkeyIssues(hotkeySlots({ ...c, revealAutoEnabled: false })).has('stash:0')).toBe(false)
     expect(hotkeyIssues(hotkeySlots({ ...c, game: 'poe1' })).has('stash:0')).toBe(false)
   })
+  // 第 16 步:褻瀆暫停與符文暫停相同 → 合併(main scan-toggle-both),不標重複
+  describe('褻瀆 / 符文暫停鍵共用', () => {
+    const both: HotkeyConfigLike = { ...cfg, runeshapeEnabled: true, hotkeyRuneshapeToggle: 'ctrl+shift+r' }
+    it('相同 → 兩欄都標 shared(互指),不是 duplicate', () => {
+      const m = hotkeyIssues(hotkeySlots(both))
+      expect(m.get('ocr')).toEqual({ kind: 'shared', key: 'Ctrl + Shift + R', with: 'runeshape' })
+      expect(m.get('runeshape')).toEqual({ kind: 'shared', key: 'Ctrl + Shift + R', with: 'ocr' })
+      expect([...m.values()].some(x => x.kind === 'duplicate')).toBe(false)
+    })
+    it('不同 → 都沒有標記', () => {
+      const m = hotkeyIssues(hotkeySlots({ ...both, hotkeyRuneshapeToggle: 'Ctrl + Shift + P' }))
+      expect(m.has('ocr')).toBe(false)
+      expect(m.has('runeshape')).toBe(false)
+    })
+    it('其中一個功能關閉 → 不在表內,也就沒有共用 / 重複', () => {
+      expect([...hotkeyIssues(hotkeySlots({ ...both, runeshapeEnabled: false }))]).toEqual([])
+      expect([...hotkeyIssues(hotkeySlots({ ...both, revealAutoEnabled: false }))]).toEqual([])
+    })
+    it('其他熱鍵規則不變:框選鍵 / 倉庫搜尋撞到共用鍵 → duplicate(with ocr);共用鍵撞到查價 → 兩欄都 duplicate', () => {
+      const m = hotkeyIssues(hotkeySlots({ ...both, hotkeyOcrRegion: 'Ctrl + Shift + R', stashSearch: [{ text: 'y', hotkey: 'Ctrl + Shift + R' }] }))
+      expect(m.get('ocr')?.kind).toBe('shared')
+      expect(m.get('runeshape')?.kind).toBe('shared')
+      expect(m.get('region')).toEqual({ kind: 'duplicate', key: 'Ctrl + Shift + R', with: 'ocr' })
+      expect(m.get('stash:0')).toEqual({ kind: 'duplicate', key: 'Ctrl + Shift + R', with: 'ocr' })
+      const q = hotkeyIssues(hotkeySlots({ ...both, hotkeyOcrReveal: 'Ctrl + D', hotkeyRuneshapeToggle: 'Ctrl + D' }))
+      expect(q.get('ocr')).toEqual({ kind: 'duplicate', key: 'Ctrl + D', with: 'quick' })
+      expect(q.get('runeshape')).toEqual({ kind: 'duplicate', key: 'Ctrl + D', with: 'quick' })
+    })
+  })
 })
 
 describe('Poe Regex「加到倉庫搜尋」', () => {

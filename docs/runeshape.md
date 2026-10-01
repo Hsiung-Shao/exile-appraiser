@@ -162,6 +162,13 @@ poe.ninja 沒有價格的列(技能 / 輔助寶石、ninja 沒收錄的等級、
   每「欄」字變成一行、行高數百像素)。`looksVertical` 判到 → 同一塊 ×1 找面板列 → 只裁面板列 ×3 重辨識;成功後記住那塊(鍵 = 區域鍵),
   之後同一區域直接 OCR 那塊,那塊找不到面板列 / 又變直書才回到整個區域。
 
+## 暫停 / 繼續熱鍵(`hotkeyRuneshapeToggle`)
+
+- 動作 `runeshape-toggle`(overlay + PoE2 + `runeshapeEnabled`,預設空 = 不註冊);只切換掃描狀態,不送任何按鍵。
+- 第 16 步:按下後右下角提示「符文辨識:已啟動 / 已暫停」(英文 `Rune detection: on / paused`;切換後的實際狀態,沿用啟動提示視窗,連按更新同一個)。
+- 第 16 步:與褻瀆的 `hotkeyOcrReveal` 設成同一個鍵(兩者都符合註冊條件)→ 合併成 `scan-toggle-both`:任一個在執行 → 全部暫停,全部暫停 → 全部繼續,
+  提示兩行;設定頁兩欄顯示「與褻瀆辨識 / 符文辨識共用,一次切換兩者」,不標重複。只有一個符合條件(例如符文沒啟用)→ 等同單一切換。細節見 `docs/reveal-ocr.md`。
+
 ## 耗時(`--runeshape-selftest`,本機,PNG 當 client)
 
 | 路徑 | skills-01(611×727) | rewards-02(591×445) |

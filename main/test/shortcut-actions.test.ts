@@ -1,7 +1,7 @@
 // exile-appraiser(WP-S2):熱鍵動作表(`src/shortcut-actions.ts`)的註冊條件。不啟動 Electron、不送任何按鍵。
 import { describe, expect, it } from 'vitest'
 import { GAME_RESERVED_HOTKEYS } from '@ipc/reserved-hotkeys'
-import { buildShortcutActions, normalizeHotkey, reservedShortcuts } from '../src/shortcut-actions'
+import { buildShortcutActions, nextScanPaused, normalizeHotkey, reservedShortcuts, sameShortcutActions } from '../src/shortcut-actions'
 
 const base = {
   hotkey: 'D',
@@ -72,9 +72,61 @@ describe('buildShortcutActions', () => {
     expect(buildShortcutActions(r, 'overlay').some(x => x.action.type === 'runeshape-region')).toBe(false)
     expect(reservedShortcuts(r)).toContain('Ctrl + V')
   })
-  it('暫停熱鍵與 OCR 熱鍵重複 → 先到先得', () => {
-    const a = buildShortcutActions({ ...base, runeshapeEnabled: true, hotkeyRuneshapeToggle: 'Ctrl + Shift + R' }, 'overlay')
-    expect(a.filter(x => x.shortcut === 'Ctrl + Shift + R').map(x => x.action.type)).toEqual(['ocr-reveal'])
+  // 第 16 步:褻瀆暫停與符文暫停熱鍵相同 → 合併成一個 scan-toggle-both(不算重複)
+  describe('合併辨識暫停熱鍵(scan-toggle-both)', () => {
+    it('相同(正規化後)→ 一個 scan-toggle-both,放在褻瀆暫停的位置', () => {
+      const a = buildShortcutActions({ ...base, runeshapeEnabled: true, hotkeyRuneshapeToggle: 'ctrl+shift+r' }, 'overlay')
+      expect(a.filter(x => x.shortcut === 'Ctrl + Shift + R').map(x => x.action.type)).toEqual(['scan-toggle-both'])
+      expect(a.some(x => x.action.type === 'ocr-reveal' || x.action.type === 'runeshape-toggle')).toBe(false)
+      expect(types(a).indexOf('Ctrl + Shift + R=scan-toggle-both')).toBe(3)
+      expect(a.find(x => x.action.type === 'scan-toggle-both')?.keepModKeys).toBe(false)
+    })
+    it('不同 → 各自註冊', () => {
+      const a = buildShortcutActions({ ...base, runeshapeEnabled: true, hotkeyRuneshapeToggle: 'Ctrl + Shift + P' }, 'overlay')
+      expect(types(a)).toEqual(expect.arrayContaining(['Ctrl + Shift + R=ocr-reveal', 'Ctrl + Shift + P=runeshape-toggle']))
+      expect(a.some(x => x.action.type === 'scan-toggle-both')).toBe(false)
+    })
+    it('其中一個功能關閉 → 等同單一切換', () => {
+      const runeOff = buildShortcutActions({ ...base, runeshapeEnabled: false, hotkeyRuneshapeToggle: 'Ctrl + Shift + R' }, 'overlay')
+      expect(runeOff.filter(x => x.shortcut === 'Ctrl + Shift + R').map(x => x.action.type)).toEqual(['ocr-reveal'])
+      const revealOff = buildShortcutActions({ ...base, revealAutoEnabled: false, runeshapeEnabled: true, hotkeyRuneshapeToggle: 'Ctrl + Shift + R' }, 'overlay')
+      expect(revealOff.filter(x => x.shortcut === 'Ctrl + Shift + R').map(x => x.action.type)).toEqual(['runeshape-toggle'])
+    })
+    it('PoE1 / window 模式 → 都不註冊', () => {
+      for (const a of [
+        buildShortcutActions({ ...base, game: 'poe1', runeshapeEnabled: true, hotkeyRuneshapeToggle: 'Ctrl + Shift + R' }, 'overlay'),
+        buildShortcutActions({ ...base, runeshapeEnabled: true, hotkeyRuneshapeToggle: 'Ctrl + Shift + R' }, 'window')
+      ]) {
+        expect(a.some(x => ['scan-toggle-both', 'ocr-reveal', 'runeshape-toggle'].includes(x.action.type))).toBe(false)
+      }
+    })
+    it('與其他熱鍵重複的規則不變:撞到查價 → 合併動作也不註冊;框選鍵撞到合併鍵 → 框選不註冊', () => {
+      const a = buildShortcutActions({ ...base, hotkeyOcrReveal: 'Ctrl + D', runeshapeEnabled: true, hotkeyRuneshapeToggle: 'Ctrl + D' }, 'overlay')
+      expect(a.filter(x => x.shortcut === 'Ctrl + D').map(x => x.action.type)).toEqual(['copy-item'])
+      const b = buildShortcutActions({ ...base, hotkeyOcrRegion: 'Ctrl + Shift + R', runeshapeEnabled: true, hotkeyRuneshapeToggle: 'Ctrl + Shift + R' }, 'overlay')
+      expect(b.filter(x => x.shortcut === 'Ctrl + Shift + R').map(x => x.action.type)).toEqual(['scan-toggle-both'])
+    })
+    it('sameShortcutActions 區分合併 / 分開(改成相同熱鍵要重新註冊)', () => {
+      const merged = buildShortcutActions({ ...base, runeshapeEnabled: true, hotkeyRuneshapeToggle: 'Ctrl + Shift + R' }, 'overlay')
+      const split = buildShortcutActions({ ...base, runeshapeEnabled: true, hotkeyRuneshapeToggle: 'Ctrl + Shift + P' }, 'overlay')
+      const revealOnly = buildShortcutActions({ ...base, runeshapeEnabled: false, hotkeyRuneshapeToggle: 'Ctrl + Shift + R' }, 'overlay')
+      expect(sameShortcutActions(merged, split)).toBe(false)
+      expect(sameShortcutActions(merged, revealOnly)).toBe(false)
+      expect(sameShortcutActions(merged, buildShortcutActions({ ...base, runeshapeEnabled: true, hotkeyRuneshapeToggle: 'ctrl+shift+r' }, 'overlay'))).toBe(true)
+    })
+  })
+  describe('nextScanPaused(合併切換規則)', () => {
+    it('任一個在執行 → 全部暫停;全部暫停 → 全部繼續', () => {
+      expect(nextScanPaused([false, false])).toBe(true)
+      expect(nextScanPaused([false, true])).toBe(true)
+      expect(nextScanPaused([true, false])).toBe(true)
+      expect(nextScanPaused([true, true])).toBe(false)
+    })
+    it('單一功能 = 一般切換;空 → 不動作', () => {
+      expect(nextScanPaused([false])).toBe(true)
+      expect(nextScanPaused([true])).toBe(false)
+      expect(nextScanPaused([])).toBeNull()
+    })
   })
   // 2026-10-01:ocr-reveal = 暫停 / 繼續褻瀆自動辨識;自動辨識關掉就不註冊(省略 = 開,舊設定檔照舊註冊)
   it('褻瀆自動辨識關閉 → 不註冊 ocr-reveal;省略 / 開 → 註冊', () => {

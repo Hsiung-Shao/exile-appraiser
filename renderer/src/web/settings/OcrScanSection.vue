@@ -52,6 +52,7 @@
         <hotkey-input v-model="pauseHotkey" :data-setting="spec.ds.pauseHotkey" />
       </div>
       <span v-if="issueText(spec.slot.pause, pauseHotkey)" class="err" :data-issue="spec.slot.pause">{{ issueText(spec.slot.pause, pauseHotkey) }}</span>
+      <span v-else-if="sharedText(spec.slot.pause)" class="note" :data-shared="spec.slot.pause">{{ sharedText(spec.slot.pause) }}</span>
     </div>
     <div class="srow">
       <span class="k">{{ t('ppz.scan.hotkey_region') }}</span>
@@ -177,7 +178,7 @@ export default defineComponent({
     const { t } = useI18n()
     const config = AppConfig()
     const spec = computed(() => SPECS[props.kind])
-    const { issueText } = useHotkeyIssues()
+    const { issueText, sharedText } = useHotkeyIssues()
 
     const enabled = computed({
       get: () => config[spec.value.enabled],
@@ -292,7 +293,8 @@ export default defineComponent({
       refreshStats,
       status,
       timingText,
-      issueText
+      issueText,
+      sharedText
     }
   }
 })

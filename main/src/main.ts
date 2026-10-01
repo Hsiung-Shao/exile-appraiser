@@ -11,6 +11,7 @@ import { format } from 'node:util'
 import type { ConfigChangedEvent, GameId, HostConfigForMain, HostFetchInit, HotkeyRegistration, ItemTextEvent, RuneshapeUiState, SettingsTabId, TrackAreaOpts, WindowMode } from '@ipc/types'
 import { abortHostFetch, abortKeyOf, hostFetch, installCookiePatch } from './http'
 import { Shortcuts, normalizeHotkey } from './Shortcuts'
+import { nextScanPaused } from './shortcut-actions'
 import { scanConfigKey } from './scan-config'
 import { GameWindow } from './windowing/GameWindow'
 import { GameDetector } from './windowing/GameDetector'
@@ -31,8 +32,8 @@ import { SharedCapture, SharedLocateOcr } from './ocr/panel-scan'
 import { isAppNavigation, isExternalWebUrl } from './external-links'
 import { BG_DIR_NAME, bgContentType, bgCorsHeaders, bgFileFromPath, normBgFile, resolveBgPath, storedBgName } from './backgrounds'
 import {
-  TOAST_FADE_MS, TOAST_VISIBLE_MS, isFirstRunAfterUpdate, parseLastRun, priceCheckHotkeyLabel, serializeLastRun,
-  shouldShowStartupToast, toastBounds, toastHtml, toastLang, toastMessage, type ToastMessage
+  TOAST_FADE_MS, TOAST_VISIBLE_MS, isFirstRunAfterUpdate, parseLastRun, priceCheckHotkeyLabel, scanToastMessage, serializeLastRun,
+  shouldShowGameAttachToast, shouldShowStartupToast, toastBounds, toastHtml, toastLang, toastMessage, type ScanToastKind, type ToastMessage
 } from './startup-toast'
 
 // WP-S:`--ocr-selftest <png>`:無視窗跑 OCR(capture 以外的整條)後結束;不拿單一實例鎖、不建視窗/托盤/熱鍵。
@@ -43,7 +44,8 @@ const argAfter = (flag: string) => {
 }
 const RUNESHAPE_SELFTEST = argAfter('--runeshape-selftest')
 const OCR_SELFTEST = RUNESHAPE_SELFTEST ?? argAfter('--ocr-selftest')
-// `--toast-selftest <out.png> [--toast-lang=en] [--toast-updated] [--toast-hotkey=Ctrl + D]`:開出啟動提示視窗、
+// `--toast-selftest <out.png> [--toast-lang=en] [--toast-updated] [--toast-hotkey=Ctrl + D] [--toast-scan=reveal:on,rune:paused]`:開出啟動提示視窗
+// (`--toast-scan` = 第 16 步的辨識開關通知)、
 // `capturePage()` 存 PNG 後結束(不送任何輸入、不拿單一實例鎖、不建主視窗/托盤/熱鍵)。
 const TOAST_SELFTEST = argAfter('--toast-selftest')
 
@@ -408,16 +410,53 @@ function showStartupToast (msg: ToastMessage, opts: { animate?: boolean, autoClo
       setTimeout(() => { if (!t.isDestroyed()) t.destroy() }, TOAST_VISIBLE_MS + TOAST_FADE_MS + 150)
     }
   })
-  void t.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(toastHtml(msg, iconDataUrl(), { animate: opts.animate }))}`)
-  console.log(`[toast] 顯示啟動提示 ${JSON.stringify(bounds)}:${msg.title} / ${msg.hint}`)
+  void t.loadURL(toastDataUrl(msg, opts.animate))
+  console.log(`[toast] 顯示提示 ${JSON.stringify(bounds)}:${msg.title} / ${msg.hint}`)
   return t
+}
+
+function toastDataUrl (msg: ToastMessage, animate?: boolean): string {
+  return `data:text/html;charset=utf-8,${encodeURIComponent(toastHtml(msg, iconDataUrl(), { animate }))}`
+}
+
+/** 目前在畫面上的提示視窗(啟動提示、遊戲啟動提示、辨識開關通知共用一個,不疊多個) */
+let activeToast: BrowserWindow | null = null
+let activeToastTimer: NodeJS.Timeout | null = null
+
+/**
+ * 顯示提示:已有提示視窗在畫面上 → 換內容(重新 loadURL,淡入 / 淡出動畫從頭開始)並重新計時;沒有 → 開一個。
+ * 計時從頁面載入完成開始,`TOAST_VISIBLE_MS + TOAST_FADE_MS` 後銷毀(與 CSS 淡出同步)。
+ */
+function presentToast (msg: ToastMessage): void {
+  if (activeToastTimer) { clearTimeout(activeToastTimer); activeToastTimer = null }
+  const reuse = activeToast && !activeToast.isDestroyed() ? activeToast : null
+  const t = reuse ?? showStartupToast(msg, { autoClose: false })
+  t.webContents.once('did-finish-load', () => {
+    if (activeToastTimer) clearTimeout(activeToastTimer)
+    activeToastTimer = setTimeout(() => {
+      activeToastTimer = null
+      if (!t.isDestroyed()) t.destroy()
+    }, TOAST_VISIBLE_MS + TOAST_FADE_MS + 150)
+  })
+  if (reuse) {
+    void reuse.loadURL(toastDataUrl(msg))
+    console.log(`[toast] 更新提示:${msg.title} / ${msg.hint}`)
+    return
+  }
+  activeToast = t
+  t.once('closed', () => { if (activeToast === t) activeToast = null })
 }
 
 /** `--toast-selftest <out.png>`:開提示視窗(不動畫、不自動關)、截圖存檔後結束。只截自己的 webContents,不送任何輸入。 */
 async function runToastSelftest (out: string): Promise<number> {
-  if (!out) { console.error('[toast-selftest] 用法:--toast-selftest <out.png> [--toast-lang=en] [--toast-updated] [--toast-hotkey=Ctrl + D]'); return 2 }
+  if (!out) { console.error('[toast-selftest] 用法:--toast-selftest <out.png> [--toast-lang=en] [--toast-updated] [--toast-hotkey=Ctrl + D] [--toast-scan=reveal:on,rune:paused]'); return 2 }
   const argValue = (prefix: string) => process.argv.find(a => a.startsWith(prefix))?.slice(prefix.length)
-  const msg = toastMessage({
+  // 第 16 步:`--toast-scan=reveal:on,rune:paused` → 辨識開關通知(一項 = 一行)
+  const scanArg = argValue('--toast-scan=')
+  const scanItems = (scanArg ?? '').split(',').map(x => x.trim().split(':'))
+    .filter(([k]) => k === 'reveal' || k === 'rune')
+    .map(([k, v]) => ({ kind: k as ScanToastKind, paused: v === 'paused' }))
+  const msg = scanArg != null ? scanToastMessage(toastLang(argValue('--toast-lang=')), scanItems) : toastMessage({
     lang: toastLang(argValue('--toast-lang=')),
     version: app.getVersion(),
     // 預設 = 設定預設值(按住 Ctrl + D)
@@ -614,12 +653,22 @@ if (!skipStartup) app.whenReady().then(() => {
       if (windowMode === 'window') showNear(e.position)
     },
     // 2026-10-01:原本「按一次辨識一次」→ 暫停 / 繼續褻瀆自動辨識
-    onOcrReveal: () => { revealScan.toggleUserPause() },
+    // 第 16 步:切換後在右下角提示目前狀態(同一個提示視窗,連按更新內容)
+    onOcrReveal: () => { notifyScan([{ kind: 'reveal', paused: revealScan.toggleUserPause() }]) },
     // WP-S2:框選 OCR 區域熱鍵 → renderer 開框選層(它自己呼叫 overlay-activate 取得焦點);
     // 2026-10-01:符文塑形的框選熱鍵帶 { target: 'runeshape' }(揭露面板不帶,形狀不變)
     onOcrRegionPick: (target) => { if (target === 'runeshape') send('ocr-region-pick', { target }); else send('ocr-region-pick') },
     // WP-R2:符文塑形自動查價暫停 / 繼續
-    onRuneshapeToggle: () => { runeshapeScan.toggleUserPause() }
+    onRuneshapeToggle: () => { notifyScan([{ kind: 'rune', paused: runeshapeScan.toggleUserPause() }]) },
+    // 第 16 步:兩個暫停熱鍵相同 → 合併動作(只在兩者都符合註冊條件時才有;任一個在執行 → 全部暫停,全部暫停 → 全部繼續)
+    onScanToggleBoth: () => {
+      const target = nextScanPaused([revealScan.paused, runeshapeScan.paused])
+      if (target == null) return
+      notifyScan([
+        { kind: 'reveal', paused: revealScan.setUserPause(target) },
+        { kind: 'rune', paused: runeshapeScan.setUserPause(target) }
+      ])
+    }
   })
   // uiohook 掛鉤不在啟動時開:只在 WidgetAreaTracker 追蹤查價面板期間開(uiohook-gate.ts;送鍵不需要掛鉤)。
   // 例外(第 15 步):倉庫頁籤捲動開著時,遊戲在前景期間也持有一份(要收 wheel 事件);關著時維持上述行為。
@@ -797,6 +846,46 @@ if (!skipStartup) app.whenReady().then(() => {
     else detector.stop()
   }
 
+  /** 第 16 步:辨識暫停 / 繼續的通知(語言跟 `uiLanguage`;熱鍵只在收到 host-config 後才註冊,hostCfg 一定有值) */
+  function notifyScan (items: Array<{ kind: ScanToastKind, paused: boolean }>): void {
+    presentToast(scanToastMessage(toastLang(hostCfg?.uiLanguage), items))
+  }
+
+  // 第 16 步:遊戲視窗從「不在」變成「附著到」→ 再顯示一次「已在背景執行」(startup-toast.ts `shouldShowGameAttachToast`)
+  let gameAttached = false
+  let attachCount = 0
+  let trackingSince: number | null = null
+  if (poeWindow) {
+    poeWindow.onAttach(() => {
+      const wasAttached = gameAttached
+      gameAttached = true
+      attachCount++
+      const cfg = hostCfg
+      if (!cfg) return
+      const show = shouldShowGameAttachToast({
+        enabled: cfg.startupToast,
+        mode: windowMode,
+        preview: PREVIEW_ON_START,
+        selftest: false, // selftest 不會走到這裡
+        controlRequest: false,
+        relaunching,
+        wasAttached,
+        firstAttach: attachCount === 1,
+        msSinceTracking: trackingSince == null ? 0 : Date.now() - trackingSince
+      })
+      console.log(`[toast] 遊戲附著 #${attachCount} wasAttached=${String(wasAttached)} → ${show ? '顯示' : '不顯示'}提示`)
+      if (show) {
+        presentToast(toastMessage({
+          lang: toastLang(cfg.uiLanguage),
+          version: app.getVersion(),
+          hotkey: priceCheckHotkeyLabel(cfg.hotkeyHold, cfg.hotkey),
+          updated: false
+        }))
+      }
+    })
+    poeWindow.onDetach(() => { gameAttached = false })
+  }
+
   let lastScanKey: string | null = null
   const onHostConfig = (ctx: HandlerCtx, cfg: HostConfigForMain): HotkeyRegistration => {
     const result = shortcuts.updateActions(cfg)
@@ -825,7 +914,7 @@ if (!skipStartup) app.whenReady().then(() => {
       alreadyShown: startupToastShown || relaunching
     })) {
       startupToastShown = true
-      showStartupToast(toastMessage({
+      presentToast(toastMessage({
         lang: toastLang(cfg.uiLanguage),
         version: app.getVersion(),
         hotkey: priceCheckHotkeyLabel(cfg.hotkeyHold, cfg.hotkey),
@@ -865,6 +954,7 @@ if (!skipStartup) app.whenReady().then(() => {
       const title = windowTitleFor(cfg, cfg.game)
       if (!bound) {
         bound = { game: cfg.game, title }
+        trackingSince = Date.now()
         overlay.updateOpts(normalizeHotkey(cfg.overlayKey), title, cfg.game)
       } else {
         overlay.setOverlayKey(normalizeHotkey(cfg.overlayKey))

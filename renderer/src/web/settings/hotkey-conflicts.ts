@@ -2,6 +2,8 @@
  * 設定頁的熱鍵衝突表(純函式;`renderer/test/chat-commands.test.ts` 測)。
  * 與 main `shortcut-actions.ts` 同一套規則:依註冊順序先到先得(查價 → 鎖定 → overlay → 褻瀆暫停 / 褻瀆框選 / 符文暫停 / 符文框選 → 聊天指令 → 倉庫搜尋),
  * 重複的後者不註冊;遊戲保留鍵(`ipc/reserved-hotkeys.ts`)一律不註冊。熱鍵與視窗分頁、聊天指令分頁共用。
+ * 例外(第 16 步):褻瀆暫停(`ocr`)與符文暫停(`runeshape`)相同 → main 合併成一個 `scan-toggle-both`,
+ * 兩欄都標 `shared`(不是重複,設定頁顯示「與…共用,一次切換兩者」);只有兩欄都會註冊時才成立(條件同 `hotkeySlots`)。
  * 相對路徑匯入(renderer vitest 不載別名)。
  */
 import { hotkeyToString, mergeTwoHotkeys } from '../../../../ipc/KeyToCode'
@@ -63,7 +65,12 @@ export function hotkeySlots (c: HotkeyConfigLike): HotkeySlot[] {
   return slots.map(s => ({ id: s.id, hotkey: s.hotkey ? normalizeHotkey(s.hotkey) : '' }))
 }
 
-export type HotkeyIssue = { kind: 'reserved', key: string } | { kind: 'duplicate', key: string, with: string }
+export type HotkeyIssue = { kind: 'reserved', key: string } | { kind: 'duplicate', key: string, with: string } |
+  /** 第 16 步:褻瀆 / 符文暫停鍵相同 → 合併(不是問題,只是提示) */
+  { kind: 'shared', key: string, with: string }
+
+/** 可以共用同一個熱鍵、合併成一個動作的一對欄位(main `scan-toggle-both`) */
+const SHARED_PAIR: Readonly<Record<string, string>> = { ocr: 'runeshape', runeshape: 'ocr' }
 
 /** 每個欄位的問題(沒有問題不在表裡) */
 export function hotkeyIssues (slots: HotkeySlot[]): Map<string, HotkeyIssue> {
@@ -73,7 +80,10 @@ export function hotkeyIssues (slots: HotkeySlot[]): Map<string, HotkeyIssue> {
     if (!s.hotkey) continue
     if (isGameReservedHotkey(s.hotkey)) { out.set(s.id, { kind: 'reserved', key: s.hotkey }); continue }
     const first = owner.get(s.hotkey)
-    if (first) out.set(s.id, { kind: 'duplicate', key: s.hotkey, with: first })
+    if (first && SHARED_PAIR[first] === s.id) {
+      out.set(first, { kind: 'shared', key: s.hotkey, with: s.id })
+      out.set(s.id, { kind: 'shared', key: s.hotkey, with: first })
+    } else if (first) out.set(s.id, { kind: 'duplicate', key: s.hotkey, with: first })
     else owner.set(s.hotkey, s.id)
   }
   return out

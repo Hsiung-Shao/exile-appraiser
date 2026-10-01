@@ -16,6 +16,7 @@
  * - WP-S2:`ocr-region`(`hotkeyOcrRegion`,預設空 = 不註冊)註冊條件同 `ocr-reveal`;觸發時只呼叫 `onOcrRegionPick`
  *   (renderer 開框選層),同樣不送也不放開任何按鍵。動作表抽到 `shortcut-actions.ts`(純函式,有測試)。
  * - WP-R2:`runeshape-toggle`(`hotkeyRuneshapeToggle`,預設空)= 符文塑形自動查價暫停 / 繼續;只呼叫 `onRuneshapeToggle`。
+ *   第 16 步:兩個暫停熱鍵相同 → `scan-toggle-both`,呼叫 `onScanToggleBoth`(一次切換兩者;同樣不送按鍵)。
  *   2026-10-01:`runeshape-region`(`hotkeyRuneshapeRegion`,預設空)= 框選符文塑形面板,呼叫 `onOcrRegionPick('runeshape')`。
  * - 2026-10-01(移植 APT `Shortcuts.ts` 的 paste-in-chat / stash-search 分支):聊天指令與倉庫搜尋。照 APT 先放開熱鍵本身的按鍵,
  *   再交給 `text-box.ts`(寫剪貼簿 + 送按鍵序列,包在 `HostClipboard.restoreShortly`);兩個遊戲都可用,只在 overlay 模式註冊。
@@ -63,6 +64,8 @@ export class Shortcuts {
       onOcrRegionPick?: (target: OcrRegionPickTarget) => void
       /** WP-R2:符文塑形自動查價暫停 / 繼續(不送任何按鍵) */
       onRuneshapeToggle?: () => void
+      /** 第 16 步:褻瀆 / 符文暫停熱鍵相同時的合併動作(不送任何按鍵) */
+      onScanToggleBoth?: () => void
     }
   ) {
     const { poeWindow } = opts
@@ -155,6 +158,11 @@ export class Shortcuts {
     if (entry.action.type === 'runeshape-toggle') {
       // WP-R2:只切換掃描狀態,不動鍵盤
       this.opts.onRuneshapeToggle?.()
+      return
+    }
+    if (entry.action.type === 'scan-toggle-both') {
+      // 第 16 步:只切換兩個掃描的狀態,不動鍵盤
+      this.opts.onScanToggleBoth?.()
       return
     }
     if (entry.keepModKeys) {

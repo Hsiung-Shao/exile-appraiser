@@ -68,7 +68,9 @@
       "slot_reveal_pause": "Desecration: pause / resume",
       "slot_reveal_region": "Desecration: select area",
       "slot_rune_pause": "Runeshape: pause / resume",
-      "slot_rune_region": "Runeshape: select area"
+      "slot_rune_region": "Runeshape: select area",
+      "shared_with_rune": "Shared with rune detection: toggles both at once",
+      "shared_with_reveal": "Shared with desecration detection: toggles both at once"
     },
     "ocr": {
       "section": "Well of Souls desecration auto-recognition (PoE2)",

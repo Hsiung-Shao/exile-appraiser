@@ -3,6 +3,7 @@
  * 三種來源,依序:遊戲保留鍵 / 與前面的熱鍵重複(`hotkey-conflicts.ts`,與 main 註冊規則相同,涵蓋**全部**熱鍵欄位)
  * → main 回報被其他程式佔用(`hotkeyRegistration` 錯誤字串裡引號內的鍵)。
  * 對不回任何欄位的 main 錯誤由 `otherError` 給熱鍵卡片底部顯示。
+ * 第 16 步:褻瀆 / 符文暫停鍵相同不算問題(`issueText` 回空),改由 `sharedText` 給提示「與…共用,一次切換兩者」。
  */
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -49,6 +50,12 @@ export function useHotkeyIssues () {
     if (hotkey && takenKeys.value.includes(normalizeHotkey(hotkey))) return t('ppz.hotkey_conflict', { key: normalizeHotkey(hotkey) })
     return ''
   }
+  /** 第 16 步:欄位與另一個辨識的暫停鍵共用(合併成一個動作)→ 提示文字;沒有 → '' */
+  function sharedText (id: string): string {
+    const is = issues.value.get(id)
+    if (is?.kind !== 'shared') return ''
+    return t(is.with === 'runeshape' ? 'ppz.scan.shared_with_rune' : 'ppz.scan.shared_with_reveal')
+  }
   /** main 的註冊錯誤裡沒有任何一個鍵對得回目前的欄位 → 整句顯示在熱鍵卡片底部 */
   const otherError = computed(() => {
     const reg = hotkeyRegistration.value
@@ -56,5 +63,5 @@ export function useHotkeyIssues () {
     const mine = new Set(slots.value.map(s => s.hotkey).filter(Boolean))
     return takenKeys.value.some(k => mine.has(k)) ? '' : reg.error
   })
-  return { issueText, otherError, slotName }
+  return { issueText, sharedText, otherError, slotName }
 }

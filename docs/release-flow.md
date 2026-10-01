@@ -55,8 +55,17 @@
   `userData/last_run.json` 的 `lastRunVersion` 比目前版本舊 = 更新後第一次啟動 → 第一行改「已更新至 v<版本>,在背景執行中」。
 - 不顯示:設定 › 一般「啟動時顯示背景執行提示」關(`startupToast`,預設開)、`--quit` / `--install-update`、`--preview` 啟動、
   預覽分頁送來的設定、第二實例、各種 `--*-selftest`。
-- 自我測試(不送任何輸入):`npx electron main/dist/main.js --toast-selftest <out.png> [--toast-lang=en] [--toast-updated] [--toast-hotkey=Ctrl + D]`
-  → 開出提示視窗(不動畫、不自動關)、`webContents.capturePage()` 存 PNG、印 bounds / focusable 後結束。
+- **遊戲啟動時再顯示一次**(第 16 步,`shouldShowGameAttachToast`):overlay 模式下遊戲視窗從「不在」變成「附著到」(`GameWindow.onAttach`,
+  `onDetach` 把狀態清掉)時用同樣文字再顯示(「已更新至 vX」那行只在程式啟動那次,這裡一律用一般文字)。
+  程式啟動時遊戲已在 = 本行程第一次 attach 且距開始追蹤(第一次 host-config 的 attachByTitle)不到 `STARTUP_ATTACH_GRACE_MS`(5 秒)→ 不重複;
+  啟動後才開遊戲、遊戲關掉再開 → 顯示;沒經過 detach 的重複 attach 不顯示。同樣遵守 `startupToast`,window 模式 / `--preview` / selftest / 重新啟動中不顯示。
+- **辨識開關通知**(第 16 步,`scanToastMessage`):按褻瀆辨識 / 符文辨識的暫停 / 繼續熱鍵後顯示切換後的實際狀態
+  (「褻瀆辨識:已啟動 / 已暫停」「符文辨識:已啟動 / 已暫停」,英文 `Desecration detection: on / paused`、`Rune detection: on / paused`,跟 `uiLanguage`);
+  兩個暫停鍵相同(合併動作 `scan-toggle-both`)時一個提示兩行。不受 `startupToast` 影響(是按鍵回饋)。
+- **只有一個提示視窗**(`main.ts` `presentToast`):啟動提示、遊戲啟動提示、辨識通知共用;畫面上已有提示 → 重新 `loadURL` 換內容並重新計時
+  (計時從 `did-finish-load` 起算 `TOAST_VISIBLE_MS + TOAST_FADE_MS`),連按不會疊多個視窗。
+- 自我測試(不送任何輸入):`npx electron main/dist/main.js --toast-selftest <out.png> [--toast-lang=en] [--toast-updated] [--toast-hotkey=Ctrl + D] [--toast-scan=reveal:on,rune:paused]`
+  → 開出提示視窗(不動畫、不自動關)、`webContents.capturePage()` 存 PNG、印 bounds / focusable 後結束。`--toast-scan` = 辨識開關通知(一項一行)。
 
 ## 離線驗證(不需 GitHub)
 ```bash

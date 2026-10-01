@@ -1,8 +1,9 @@
 // 啟動時「已在背景執行」提示的純邏輯(main/src/startup-toast.ts):是否顯示、更新後首次、訊息組字、HTML、位置。
 import { describe, expect, it } from 'vitest'
 import {
-  TOAST_MARGIN, TOAST_SIZE, compareVersions, escapeHtml, isFirstRunAfterUpdate, parseLastRun, priceCheckHotkeyLabel,
-  serializeLastRun, shouldShowStartupToast, toastBounds, toastHtml, toastLang, toastMessage, type ToastStartupEnv
+  STARTUP_ATTACH_GRACE_MS, TOAST_MARGIN, TOAST_SIZE, compareVersions, escapeHtml, isFirstRunAfterUpdate, parseLastRun, priceCheckHotkeyLabel,
+  scanToastMessage, serializeLastRun, shouldShowGameAttachToast, shouldShowStartupToast, toastBounds, toastHtml, toastLang, toastMessage,
+  type GameAttachToastEnv, type ToastStartupEnv
 } from '../src/startup-toast'
 
 const base: ToastStartupEnv = { enabled: true, controlRequest: false, selftest: false, preview: false, secondInstance: false, alreadyShown: false }
@@ -104,5 +105,65 @@ describe('toastBounds', () => {
     const off = toastBounds({ x: -1920, y: 40, width: 1920, height: 1000 })
     expect(off.x).toBe(-TOAST_SIZE.width - TOAST_MARGIN)
     expect(off.y).toBe(40 + 1000 - TOAST_SIZE.height - TOAST_MARGIN)
+  })
+})
+
+// 第 16 步:遊戲啟動時再顯示一次
+describe('shouldShowGameAttachToast', () => {
+  const att: GameAttachToastEnv = {
+    enabled: true, mode: 'overlay', preview: false, selftest: false, controlRequest: false, relaunching: false,
+    wasAttached: false, firstAttach: true, msSinceTracking: 0
+  }
+  it('程式啟動時遊戲已在(第一次 attach、寬限內)→ 不顯示(啟動那次已顯示)', () => {
+    expect(shouldShowGameAttachToast({ ...att, msSinceTracking: 40 })).toBe(false)
+    expect(shouldShowGameAttachToast({ ...att, msSinceTracking: STARTUP_ATTACH_GRACE_MS - 1 })).toBe(false)
+  })
+  it('程式啟動後才開遊戲(第一次 attach、超過寬限)→ 顯示', () => {
+    expect(shouldShowGameAttachToast({ ...att, msSinceTracking: STARTUP_ATTACH_GRACE_MS })).toBe(true)
+    expect(shouldShowGameAttachToast({ ...att, msSinceTracking: 10 * 60_000 })).toBe(true)
+  })
+  it('遊戲關掉再開(detach 後的 attach)→ 顯示,不論離啟動多久', () => {
+    expect(shouldShowGameAttachToast({ ...att, firstAttach: false, msSinceTracking: 100 })).toBe(true)
+    expect(shouldShowGameAttachToast({ ...att, firstAttach: false, msSinceTracking: 60_000 })).toBe(true)
+  })
+  it('沒經過 detach 的重複 attach → 不顯示', () => {
+    expect(shouldShowGameAttachToast({ ...att, firstAttach: false, wasAttached: true, msSinceTracking: 60_000 })).toBe(false)
+  })
+  it('設定關 / window 模式 / 預覽 / 自我測試 / 控制參數 / 重新啟動中 → 不顯示;舊設定檔沒有這欄 → 顯示', () => {
+    const later = { ...att, firstAttach: false, msSinceTracking: 60_000 }
+    expect(shouldShowGameAttachToast({ ...later, enabled: false })).toBe(false)
+    expect(shouldShowGameAttachToast({ ...later, mode: 'window' })).toBe(false)
+    expect(shouldShowGameAttachToast({ ...later, preview: true })).toBe(false)
+    expect(shouldShowGameAttachToast({ ...later, selftest: true })).toBe(false)
+    expect(shouldShowGameAttachToast({ ...later, controlRequest: true })).toBe(false)
+    expect(shouldShowGameAttachToast({ ...later, relaunching: true })).toBe(false)
+    expect(shouldShowGameAttachToast({ ...later, enabled: undefined })).toBe(true)
+  })
+})
+
+// 第 16 步:辨識開關通知
+describe('scanToastMessage', () => {
+  it('單行(繁中 / 英文)', () => {
+    expect(scanToastMessage('cmn-Hant', [{ kind: 'reveal', paused: false }])).toEqual({ lang: 'cmn-Hant', kind: 'scan', title: '褻瀆辨識:已啟動', hint: '' })
+    expect(scanToastMessage('cmn-Hant', [{ kind: 'rune', paused: true }]).title).toBe('符文辨識:已暫停')
+    expect(scanToastMessage('en', [{ kind: 'reveal', paused: true }]).title).toBe('Desecration detection: paused')
+    expect(scanToastMessage('en', [{ kind: 'rune', paused: false }]).title).toBe('Rune detection: on')
+  })
+  it('兩行:褻瀆在上(不論傳入順序)', () => {
+    const m = scanToastMessage('cmn-Hant', [{ kind: 'rune', paused: true }, { kind: 'reveal', paused: true }])
+    expect([m.title, m.hint]).toEqual(['褻瀆辨識:已暫停', '符文辨識:已暫停'])
+    const e = scanToastMessage('en', [{ kind: 'reveal', paused: false }, { kind: 'rune', paused: false }])
+    expect([e.title, e.hint]).toEqual(['Desecration detection: on', 'Rune detection: on'])
+  })
+  it('HTML:scan 樣式、單行不輸出第二行、兩行都跳脫', () => {
+    const one = toastHtml(scanToastMessage('cmn-Hant', [{ kind: 'reveal', paused: false }]), null)
+    expect(one).toContain('data-toast="scan"')
+    expect(one).toContain('褻瀆辨識:已啟動')
+    expect(one).not.toContain('data-toast="hint"')
+    const two = toastHtml(scanToastMessage('en', [{ kind: 'reveal', paused: true }, { kind: 'rune', paused: false }]), null)
+    expect(two).toContain('<div class="hint" data-toast="hint">Rune detection: on</div>')
+    expect(two).toContain('lang="en"')
+    // 啟動提示照舊是 startup 樣式
+    expect(toastHtml(toastMessage({ lang: 'en', version: '1.0.0', hotkey: null, updated: false }), null)).toContain('data-toast="startup"')
   })
 })

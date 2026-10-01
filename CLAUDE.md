@@ -80,6 +80,10 @@ Path of Exile 查價工具(Electron + TypeScript)。把 `apt-patched`(Awakened P
     **啟動提示**(`main/src/startup-toast.ts` 純邏輯有測試 + `main.ts` `showStartupToast`):第一次收到 Electron 視窗的 host-config 時在主螢幕工作區右下角顯示約 3 秒
     (不搶焦點 `showInactive`、點擊穿透、data URL 無腳本);`userData/last_run.json` 的 `lastRunVersion` 較舊 = 更新後第一次啟動 → 顯示「已更新至 vX」。
     設定 `startupToast`(一般分頁,預設開);控制參數 / `--preview` / 預覽端 / 第二實例 / selftest 不顯示;`--toast-selftest <png>` 只截自己的 webContents(docs/release-flow.md「啟動提示」)。
+    第 16 步:overlay 模式遊戲視窗「不在 → 附著」時再顯示一次(`shouldShowGameAttachToast`;啟動時遊戲已在 = 第一次 attach 且 5 秒內 → 不重複);
+    褻瀆 / 符文暫停熱鍵按下顯示「褻瀆辨識:已啟動 / 已暫停」等通知(`scanToastMessage`,`--toast-selftest --toast-scan=reveal:on,rune:paused`);
+    所有提示共用一個視窗(`presentToast`,畫面上已有就換內容重新計時)。兩個暫停熱鍵相同 → `shortcut-actions.ts` 合併成 `scan-toggle-both`
+    (`nextScanPaused`:任一在執行 → 全停,全停 → 全開),設定頁 `hotkey-conflicts.ts` 標 `shared` 不標重複(docs/reveal-ocr.md)。
 13. **一鍵回報不含 accountName**(`feedback.ts` 也會遞迴剝掉 account/token/cookie 類鍵);只開預填網址,不自動上傳。
 14. **派工/驗證禁止合成鍵盤/滑鼠輸入**(SendInput、uiohook 模擬、PowerShell SendKeys 等):GUI 行為由使用者實測,自動驗證只用 log、DOM 錨點、`--window` 無輸入啟動。
     聊天指令 / 倉庫搜尋(`text-box.ts`)在執行期會對遊戲送鍵,**驗證只准注入假 keyTap / 假剪貼簿的單元測試**,不得為了驗證真的觸發。
@@ -150,8 +154,8 @@ UPDATE_FIXTURES=1 npm test       # 改寫 parser / golden-query 快照;產出必
 - `poe2/test/desecration/`:資料表統計與 poenavi 抽樣逐欄比對(`build.test.ts`)、推定(`infer.test.ts`,含三件真實物品的進階 vs 一般複製)、
   揭露面板 OCR 比對(`ocr-match.test.ts`:真實截圖快照、394 模板 round-trip、模糊、分組;`ocr-fuzzy-equivalence.test.ts`:效能修正第 8 步的模糊比對與改前實作逐位元相同)。`renderer/test/ocr-reveal.test.ts` 測徽章座標與文字;`renderer/test/region-geom.test.ts` 測框選幾何(WP-S2)。
 - `main/test/updater-core.test.ts`:自動更新狀態轉移(假 updater 模仿 electron-updater 下載完成才註冊 quit handler)、`autoUpdate` 開關、portable / `--no-updates` / 開發模式、錯誤分類。
-- `main/test/startup-toast.test.ts`:啟動提示是否顯示、更新後首次(版本比較 / `last_run.json`)、訊息組字(熱鍵、兩語)、HTML 跳脫與 CSP、位置;`renderer/test/startup-toast-config.test.ts`:`startupToast` 設定往返。
-- `main/test/ocr-strategy.test.ts`:兩段式路徑、WP-S2 區域換算(client / 擷取偏移)、快取清除(「優先區域、失敗退回整張」`recognizeRegionFirst` 第 13 步已移除);`main/test/shortcut-actions.test.ts`:熱鍵註冊條件。
+- `main/test/startup-toast.test.ts`:啟動提示是否顯示、更新後首次(版本比較 / `last_run.json`)、訊息組字(熱鍵、兩語)、HTML 跳脫與 CSP、位置、第 16 步遊戲啟動提示判斷(`shouldShowGameAttachToast`)與辨識開關通知(`scanToastMessage`);`renderer/test/startup-toast-config.test.ts`:`startupToast` 設定往返。
+- `main/test/ocr-strategy.test.ts`:兩段式路徑、WP-S2 區域換算(client / 擷取偏移)、快取清除(「優先區域、失敗退回整張」`recognizeRegionFirst` 第 13 步已移除);`main/test/shortcut-actions.test.ts`:熱鍵註冊條件(含第 16 步合併熱鍵 `scan-toggle-both` 與 `nextScanPaused`)。
 - `poe2/test/runeshape/trade-lookup.test.ts`:符文塑形自動查市集的查詢組法(intl / tw 名稱、篩選清單)、錄製回應回放(search / fetch / exchange)、中位數規則、429 偵測、佇列(假時鐘 + 假 http:同時一筆、快取命中不重送、重複不重排、限流需等待延後、fetch 前延後、429 整個暫停、面板消失清佇列、查價面板開著暫停、失敗 5 分鐘不重排);`renderer/test/runeshape-trade.test.ts`:哪些列查市集、「未發現」不畫、市價換算與顯示、徽章文字(含篩選短字)。
 - GUI(熱鍵、Cloudflare、真實掛單)由使用者實測;不得宣稱已驗。
 

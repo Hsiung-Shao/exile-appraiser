@@ -5,6 +5,9 @@
  *
  * - 是否顯示:`shouldShowStartupToast`(設定 `startupToast` 預設開;控制參數 / 自我測試 / 預覽 / 第二實例不顯示)。
  * - 更新後第一次啟動:`userData/last_run.json` 的 `lastRunVersion` 比目前版本舊 → 第一行改「已更新至 vX」。
+ * - 第 16 步:overlay 模式下遊戲視窗從「不在」變成「附著到」時再顯示一次(`shouldShowGameAttachToast`;
+ *   程式啟動時遊戲已在 → 啟動那次已顯示,不重複)。
+ * - 第 16 步:辨識暫停 / 繼續熱鍵按下時用同一個提示視窗顯示「褻瀆辨識:已啟動 / 已暫停」等(`scanToastMessage`;連按更新同一個視窗)。
  * - 頁面:`toastHtml` 產生自足的 HTML(內嵌 CSS、無腳本、CSP `default-src 'none'`),以 data URL 載入。
  */
 import { mergeTwoHotkeys } from '@ipc/KeyToCode'
@@ -37,6 +40,47 @@ export interface ToastStartupEnv {
 export function shouldShowStartupToast (env: ToastStartupEnv): boolean {
   if (env.controlRequest || env.selftest || env.preview || env.secondInstance || env.alreadyShown) return false
   return env.enabled !== false
+}
+
+/**
+ * 遊戲附著後多久內的「第一次 attach」視為「程式啟動時遊戲已在」(ms)。attach 由第一次 host-config 開始追蹤,
+ * 遊戲早就開著時原生端幾乎立刻送 attach;這段時間也大於提示本身的顯示時間(啟動提示還在畫面上,不必再顯示一次)。
+ */
+export const STARTUP_ATTACH_GRACE_MS = 5000
+
+export interface GameAttachToastEnv {
+  /** 設定 `startupToast`(undefined = 開)。 */
+  enabled: boolean | undefined
+  /** 只有 overlay 模式會附著遊戲視窗;window 模式一律不顯示。 */
+  mode: 'overlay' | 'window'
+  /** `--preview` 啟動。 */
+  preview: boolean
+  /** 各種 `--*-selftest`。 */
+  selftest: boolean
+  /** 帶了控制參數。 */
+  controlRequest: boolean
+  /** 正在重新啟動(換遊戲 / 標題 / 模式)。 */
+  relaunching: boolean
+  /** 這個事件之前遊戲是否已經附著著(沒經過 detach 的重複 attach 不算「從不在變成在」)。 */
+  wasAttached: boolean
+  /** 這是本行程第一次 attach。 */
+  firstAttach: boolean
+  /** 從開始追蹤遊戲視窗(attachByTitle)到這次 attach 的毫秒數。 */
+  msSinceTracking: number
+}
+
+/**
+ * 遊戲視窗附著時要不要再顯示一次「已在背景執行」。
+ * - 程式啟動時遊戲已在:第一次 attach 且在 `STARTUP_ATTACH_GRACE_MS` 內 → 不顯示(啟動那次已顯示)。
+ * - 程式啟動後才開遊戲(第一次 attach 但超過寬限)、遊戲關掉再開(detach 後的 attach)→ 顯示。
+ * - 設定關、window 模式、預覽、自我測試、控制參數、重新啟動中 → 不顯示。
+ */
+export function shouldShowGameAttachToast (env: GameAttachToastEnv): boolean {
+  if (env.enabled === false || env.mode !== 'overlay') return false
+  if (env.preview || env.selftest || env.controlRequest || env.relaunching) return false
+  if (env.wasAttached) return false
+  if (env.firstAttach && env.msSinceTracking < STARTUP_ATTACH_GRACE_MS) return false
+  return true
 }
 
 /** 取 `x.y.z`(可帶 `v` 前綴;後綴忽略);無法解析 → null。 */
@@ -91,7 +135,28 @@ export function priceCheckHotkeyLabel (hotkeyHold: string | undefined, hotkey: s
 export interface ToastMessage {
   lang: ToastLang
   title: string
+  /** 第二行;空字串 = 只有一行 */
   hint: string
+  /** `startup`(預設)= 標題 + 灰色說明;`scan` = 辨識開關通知,每行同樣字級 */
+  kind?: 'startup' | 'scan'
+}
+
+export type ScanToastKind = 'reveal' | 'rune'
+
+const SCAN_TOAST_STRINGS: Readonly<Record<ToastLang, { reveal: string, rune: string, on: string, paused: string, sep: string }>> = {
+  'cmn-Hant': { reveal: '褻瀆辨識', rune: '符文辨識', on: '已啟動', paused: '已暫停', sep: ':' },
+  en: { reveal: 'Desecration detection', rune: 'Rune detection', on: 'on', paused: 'paused', sep: ': ' }
+}
+
+/**
+ * 第 16 步:辨識暫停 / 繼續熱鍵的通知(切換**後**的實際狀態)。一項 = 一行;合併熱鍵兩項 = 兩行(褻瀆在上)。
+ */
+export function scanToastMessage (lang: ToastLang, items: Array<{ kind: ScanToastKind, paused: boolean }>): ToastMessage {
+  const S = SCAN_TOAST_STRINGS[lang]
+  const order: ScanToastKind[] = ['reveal', 'rune']
+  const lines = [...items].sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind))
+    .map(it => `${S[it.kind]}${S.sep}${it.paused ? S.paused : S.on}`)
+  return { lang, kind: 'scan', title: lines[0] ?? '', hint: lines.slice(1).join(' / ') }
 }
 
 export function toastLang (uiLanguage: string | undefined): ToastLang {
@@ -153,12 +218,13 @@ export function toastHtml (msg: ToastMessage, iconDataUrl: string | null, opts: 
   .text { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
   .title { font-size: 14px; font-weight: 600; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .hint { font-size: 12px; line-height: 1.3; color: #c3bfb4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .toast[data-toast="scan"] .hint { font-size: 14px; font-weight: 600; color: #ece6d8; }
   @keyframes toast-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
   @keyframes toast-out { from { opacity: 1; } to { opacity: 0; } }
 </style>
 </head>
 <body>
-<div class="toast" data-toast="startup">${icon}<div class="text"><div class="title" data-toast="title">${escapeHtml(msg.title)}</div><div class="hint" data-toast="hint">${escapeHtml(msg.hint)}</div></div></div>
+<div class="toast" data-toast="${msg.kind === 'scan' ? 'scan' : 'startup'}">${icon}<div class="text"><div class="title" data-toast="title">${escapeHtml(msg.title)}</div>${msg.hint ? `<div class="hint" data-toast="hint">${escapeHtml(msg.hint)}</div>` : ''}</div></div>
 </body>
 </html>`
 }

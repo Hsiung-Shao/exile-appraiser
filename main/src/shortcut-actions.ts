@@ -15,6 +15,8 @@ export interface ShortcutAction {
   | { type: 'runeshape-region' }
   /** 2026-10-01(移植 APT):聊天指令 / 倉庫搜尋 —— 會對遊戲送出按鍵(main/src/text-box.ts) */
   | { type: 'paste-in-chat', text: string, send: boolean } | { type: 'stash-search', text: string }
+  /** 第 16 步:`hotkeyOcrReveal` 與 `hotkeyRuneshapeToggle` 相同且兩者都會註冊 → 合併成一個動作,一次切換兩個辨識(`nextScanPaused`) */
+  | { type: 'scan-toggle-both' }
 }
 
 /** 聊天指令 / 倉庫搜尋最多各幾條(設定檔被手改成超大陣列時不註冊一大堆熱鍵) */
@@ -48,6 +50,8 @@ type ActionCfg = Pick<HostConfigForMain, 'hotkey' | 'hotkeyHold' | 'hotkeyLocked
  * - WP-R2:`runeshape-toggle`(符文塑形自動查價暫停 / 繼續)另外要 `runeshapeEnabled`。
  *   2026-10-01:`runeshape-region`(框選符文塑形面板,`hotkeyRuneshapeRegion` 預設空)註冊條件同 `ocr-region`(不看是否啟用,
  *   關著時也能先框好區域)。
+ * - 第 16 步:`ocr-reveal` 與 `runeshape-toggle` 兩者都成立且熱鍵正規化後相同 → 合併成一個 `scan-toggle-both`(放在 `ocr-reveal` 的位置,
+ *   不算重複);只有一個成立時照舊是單一動作。與其他熱鍵重複的規則不變(先到先得)。
  *   「遊戲在前景才註冊」由 `Shortcuts` 的 active-change 處理(對所有動作一樣)。
  */
 export function buildShortcutActions (cfg: ActionCfg, mode: WindowMode): ShortcutAction[] {
@@ -61,15 +65,18 @@ export function buildShortcutActions (cfg: ActionCfg, mode: WindowMode): Shortcu
   if (mode === 'overlay') {
     actions.push({ shortcut: overlayKey, keepModKeys: false, action: { type: 'toggle-overlay' } })
     if (cfg.game === 'poe2') {
-      if (cfg.hotkeyOcrReveal && cfg.revealAutoEnabled !== false) {
-        actions.push({ shortcut: normalizeHotkey(cfg.hotkeyOcrReveal), keepModKeys: false, action: { type: 'ocr-reveal' } })
+      const revealOn = Boolean(cfg.hotkeyOcrReveal) && cfg.revealAutoEnabled !== false
+      const runeOn = Boolean(cfg.runeshapeEnabled && cfg.hotkeyRuneshapeToggle)
+      const merged = revealOn && runeOn && normalizeHotkey(cfg.hotkeyOcrReveal) === normalizeHotkey(cfg.hotkeyRuneshapeToggle ?? '')
+      if (revealOn) {
+        actions.push({ shortcut: normalizeHotkey(cfg.hotkeyOcrReveal), keepModKeys: false, action: { type: merged ? 'scan-toggle-both' : 'ocr-reveal' } })
       }
       if (cfg.hotkeyOcrRegion) {
         actions.push({ shortcut: normalizeHotkey(cfg.hotkeyOcrRegion), keepModKeys: false, action: { type: 'ocr-region' } })
       }
       // WP-R2:符文塑形自動查價「暫停 / 繼續」只在功能開著時註冊(預設空 = 不註冊)
-      if (cfg.runeshapeEnabled && cfg.hotkeyRuneshapeToggle) {
-        actions.push({ shortcut: normalizeHotkey(cfg.hotkeyRuneshapeToggle), keepModKeys: false, action: { type: 'runeshape-toggle' } })
+      if (runeOn && !merged) {
+        actions.push({ shortcut: normalizeHotkey(cfg.hotkeyRuneshapeToggle ?? ''), keepModKeys: false, action: { type: 'runeshape-toggle' } })
       }
       if (cfg.hotkeyRuneshapeRegion) {
         actions.push({ shortcut: normalizeHotkey(cfg.hotkeyRuneshapeRegion), keepModKeys: false, action: { type: 'runeshape-region' } })
@@ -106,4 +113,14 @@ export function reservedShortcuts (cfg: ActionCfg): string[] {
 /** 兩份動作清單(熱鍵字串 + 動作內容 + keepModKeys)完全相同 → true。設定頁每打一個字都會送 host-config,相同就不必重註冊全域熱鍵。 */
 export function sameShortcutActions (a: ShortcutAction[], b: ShortcutAction[]): boolean {
   return JSON.stringify(a) === JSON.stringify(b)
+}
+
+/**
+ * 第 16 步:合併熱鍵(`scan-toggle-both`)按下後,參與的辨識要變成的暫停狀態。
+ * `paused` = 參與的各功能目前是否被使用者暫停;任一個在執行 → 全部暫停(true);全部暫停 → 全部繼續(false)。
+ * 空陣列 → 不動作(null)。
+ */
+export function nextScanPaused (paused: boolean[]): boolean | null {
+  if (paused.length === 0) return null
+  return !paused.every(Boolean)
 }

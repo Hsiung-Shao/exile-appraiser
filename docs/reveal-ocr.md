@@ -189,6 +189,12 @@ renderer `ocr-match.ts` `selectPanel` 對**每一段候選面板**套用(全被�
 
 - **掃描間隔 100–3000 ms**(main `clampScanInterval` / renderer `clampRuneshapeInterval` 同值 `SCAN_INTERVAL_MIN_MS` / `MAX`;原本 500–3000);低於 500 ms(`SCAN_INTERVAL_CPU_WARN_MS`)設定頁顯示 CPU 負擔提示。
   `PanelScan` 在上一次 tick 做完才排下一次,間隔再短也不會重疊;兩個掃描共用 WinOcr,對方忙碌就丟 tick。
+- **兩個暫停鍵可以設成同一個**(第 16 步):`hotkeyOcrReveal` 與 `hotkeyRuneshapeToggle` 正規化後相同、且兩者都符合註冊條件
+  (褻瀆:overlay + PoE2 + `revealAutoEnabled`;符文:overlay + PoE2 + `runeshapeEnabled`)→ `shortcut-actions.ts` 合併成一個 `scan-toggle-both`
+  (放在 `ocr-reveal` 的位置),`Shortcuts.ts` `onScanToggleBoth`;切換規則 `nextScanPaused`:任一個在執行 → 全部暫停,全部暫停 → 全部繼續
+  (`PanelScan.setUserPause`,已是目標狀態的不重送事件)。只有一個符合條件時照舊是單一切換。設定頁(`hotkey-conflicts.ts` `shared`)兩欄不標重複,
+  改顯示「與符文辨識 / 褻瀆辨識共用,一次切換兩者」;與其他熱鍵(查價、框選、聊天指令…)重複的規則不變。
+- **切換通知**(第 16 步):按暫停 / 繼續熱鍵後右下角提示「褻瀆辨識:已啟動 / 已暫停」(合併時兩行),沿用啟動提示的視窗(docs/release-flow.md「啟動提示」)。
 - **熱鍵移進各自卡片**:通用「熱鍵」卡片只剩查價 / 鎖定 / overlay;四個辨識熱鍵在卡片內。衝突檢查(`hotkey-conflicts.ts` + `useHotkeyIssues.ts`)仍涵蓋全部熱鍵(含聊天指令),依 main 註冊順序先到先得,
   保留鍵 / 重複 / 被其他程式佔用都顯示在該欄位下方;對不回任何欄位的 main 錯誤顯示在熱鍵卡片底部。
 - **符文框選熱鍵** `hotkeyRuneshapeRegion`(預設空):`shortcut-actions.ts` 動作 `runeshape-region`(overlay + PoE2,不看是否啟用)→ `Shortcuts.ts` `onOcrRegionPick('runeshape')`

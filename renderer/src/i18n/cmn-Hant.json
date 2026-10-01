@@ -68,7 +68,9 @@
       "slot_reveal_pause": "褻瀆辨識:暫停 / 繼續",
       "slot_reveal_region": "褻瀆辨識:框選區域",
       "slot_rune_pause": "符文塑形:暫停 / 繼續",
-      "slot_rune_region": "符文塑形:框選區域"
+      "slot_rune_region": "符文塑形:框選區域",
+      "shared_with_rune": "與符文辨識共用,一次切換兩者",
+      "shared_with_reveal": "與褻瀆辨識共用,一次切換兩者"
     },
     "ocr": {
       "section": "靈魂之井褻瀆自動辨識(PoE2)",
