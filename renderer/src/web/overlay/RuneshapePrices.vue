@@ -15,7 +15,7 @@
   - 效能修正第 6 步:事件的列(+ client、遊戲、資料集世代)與目前畫著的相同 → 不重新比對 / 排版 / 印 log(`scan-dedupe.ts`;
     耗時紀錄與「有人在查價」照舊);每列的市集查詢計畫每次結果只算一次(`plans` computed)。
   - 第 11 步:徽章外觀(`config.ocrBadgeStyle`,與褻瀆徽章共用;`badge-style.ts`):根元素設 CSS 變數(字體 / 字級 / 粗體 /
-    三段價格色 / 外框陰影),樣式寫 `var(--badge-x, 原值)`,預設不輸出變數 = 外觀不變。市集徽章(冷色左框)不吃三段色。
+    三段價格色 / 外框陰影),樣式寫 `var(--badge-x, 原值)`,預設不輸出變數 = 外觀不變。市集徽章(冷色左框)原本不吃三段色;第 20 步起已換算成崇高石的「有價格」市集徽章也依 主價 × 數量 分段(`mt-*`,見 runeshape-view.ts `runeTradeTier`)。
   - 第 18 步:main 的擷取會截到這一層(徽章 / 提示可能落在符文掃描區:手動框或自動定位外擴框)。DOM 更新後、paint 前把可見元素外框送 main 遮掉
     (`scan-mask.ts`);每個掃描事件處理完都帶它的 seq(ack)。
 -->
@@ -23,10 +23,10 @@
   <div v-if="active" ref="layer" class="rs-layer pob-dark" data-runeshape-layer :data-runeshape-state="state" :style="styleVars">
     <template v-if="state === 'rows'">
       <div v-for="b in badges" :key="b.key" class="rs-badge"
-        :class="[`tier-${b.tier}`, `kind-${b.kind}`, b.noPrice ? `no-price-${b.noPrice}` : '', { market: !!b.tradeKey, [`trade-${marketOf(b)?.status}`]: !!b.tradeKey }]"
+        :class="[`tier-${b.tier}`, `kind-${b.kind}`, b.noPrice ? `no-price-${b.noPrice}` : '', { market: !!b.tradeKey, [`trade-${marketOf(b)?.status}`]: !!b.tradeKey, [`mt-${marketOf(b)?.tier}`]: !!marketOf(b)?.tier }]"
         data-runeshape="badge" :data-kind="b.kind" :data-tier="b.tier" :data-ref="b.refName" :data-no-price="b.noPrice"
         :data-approx="b.approx ? '1' : undefined" :data-trade="b.tradeKey ? (marketOf(b)?.status ?? 'queued') : undefined"
-        :data-trade-text="b.tradeKey ? marketOf(b)?.text : undefined"
+        :data-trade-text="b.tradeKey ? marketOf(b)?.text : undefined" :data-market-tier="marketOf(b)?.tier"
         :style="{ left: `${b.left}px`, top: `${b.top}px` }"
         :title="badgeTitle(b)">
         <template v-if="b.tradeKey && marketOf(b)">
@@ -65,7 +65,7 @@ import { usePoeninja } from '../background/Prices'
 import { useLeagues } from '../background/Leagues'
 import { loadedGame } from '../games/active'
 import {
-  formatRuneTrade, layoutRunePrices, recordScanTimings, runeTradeBadge, runeTradeToExalted, runeshapeTradeHold,
+  formatRuneTrade, layoutRunePrices, recordScanTimings, runeTradeBadge, runeTradeTier, runeTradeToExalted, runeshapeTradeHold,
   type MatchedRow, type PriceUnit, type RuneBadgeView, type RuneTradeBadge, type RuneTradeBadgeStatus
 } from './runeshape-view'
 import { createScanResultGate, dataGeneration, scanResultKey } from './scan-dedupe'
@@ -212,7 +212,10 @@ export default defineComponent({
         const display = e?.state === 'done'
           ? formatRuneTrade(Poe2.summarizeRuneTrade(e.raw.listings, config.realm === 'intl' ? runeTradeToExalted(rates.value) : undefined), rates.value)
           : undefined
-        out[b.key] = runeTradeBadge(e, display, plan?.filters ?? [], t)
+        const badge = runeTradeBadge(e, display, plan?.filters ?? [], t)
+        // 第 20 步:市集價依崇高石等值 × 數量套三段色(原幣 / 非價格狀態 = 不分段)
+        if (badge.status === 'price') badge.tier = runeTradeTier(display, b.quantity, config.runeshapeThresholds)
+        out[b.key] = badge
       }
       return out
     })
@@ -329,6 +332,11 @@ export default defineComponent({
 }
 /* 排隊中 / 查詢中 / 沒有掛單 / 失敗:淡一點 */
 .rs-badge.market.trade-queued, .rs-badge.market.trade-loading, .rs-badge.market.trade-empty, .rs-badge.market.trade-failed { color: var(--ink-2); font-size: var(--badge-fs-xs, var(--fs-xs)); }
+/* 第 20 步:市集價已換算成崇高石 → 依 主價 × 數量 套同一組三段色(含 `--badge-low/mid/high`);左條 / 字色隨段,「市」小標仍是冷色 */
+.rs-badge.market.mt-low { color: var(--badge-low, var(--ink-2)); border-left-color: var(--badge-low, var(--ink-4)); }
+.rs-badge.market.mt-mid { color: var(--badge-mid, var(--ink-0)); border-left-color: var(--badge-mid, var(--accent)); }
+.rs-badge.market.mt-high { color: var(--badge-high, var(--gold)); border-left-color: var(--badge-high, var(--gold)); box-shadow: var(--shadow-float), 0 0 0 1px color-mix(in srgb, var(--badge-high, var(--gold)) 45%, transparent); }
+.rs-badge.market.mt-high .rs-unit { color: var(--badge-high, var(--gold)); }
 .rs-badge.market.trade-loading .rs-mkt-state { animation: rs-pulse 1.2s ease-in-out infinite; }
 @keyframes rs-pulse { 50% { opacity: 0.45; } }
 .rs-badge .rs-mkt {

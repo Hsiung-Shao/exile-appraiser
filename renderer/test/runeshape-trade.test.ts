@@ -1,7 +1,7 @@
 // 符文塑形自動查市集(renderer 純邏輯):哪些列查市集、「未發現」不畫、市價換算與顯示、徽章文字(含篩選短字)
 import { describe, expect, it } from 'vitest'
 import {
-  formatRuneTrade, layoutRunePrices, runeTradeBadge, runeTradeShortFilter, runeTradeToExalted, tradeCurrencyUnit, type MatchedRow
+  formatRuneTrade, layoutRunePrices, runeTradeBadge, runeTradeShortFilter, runeTradeTier, runeTradeToExalted, tradeCurrencyUnit, type MatchedRow
 } from '../src/web/overlay/runeshape-view'
 import type { PriceOfResult } from '../src/web/background/price-of'
 import type { Poe2RuneTradeFilter } from '@poe2-entry'
@@ -71,9 +71,9 @@ describe('市價換算與顯示', () => {
     const ex = (value: string) => ({ value, unit: 'ex', known: true })
     const div = (value: string) => ({ value, unit: 'div', known: true })
     expect(formatRuneTrade({ unit: 'exalted', converted: true, count: 10, median: 80, min: 30, max: 199, few: false, skipped: 0 }, RATES))
-      .toEqual({ unit: 'ex', known: true, headline: '80', isMedian: true, min: ex('30'), max: ex('199') })
+      .toEqual({ unit: 'ex', known: true, headline: '80', headlineEx: 80, isMedian: true, min: ex('30'), max: ex('199') })
     expect(formatRuneTrade({ unit: 'exalted', converted: true, count: 8, median: 600, min: 1, max: 30000, few: false, skipped: 0 }, RATES))
-      .toEqual({ unit: 'div', known: true, headline: '1', isMedian: true, min: ex('1'), max: div('50') })
+      .toEqual({ unit: 'div', known: true, headline: '1', headlineEx: 600, isMedian: true, min: ex('1'), max: div('50') })
   })
 
   it('筆數少 → 主價 = 最低價、isMedian false;沒有結果 → 沒有主價', () => {
@@ -146,5 +146,48 @@ describe('徽章文字(runeTradeBadge / runeTradeShortFilter)', () => {
     const empty = disp({ unit: 'exalted', converted: false, count: 0, few: true, skipped: 0 })
     expect(runeTradeBadge({ state: 'done' }, empty, GEM_L20, tZh)).toMatchObject({ status: 'empty', text: '市 無掛單 · L20' })
     expect(runeTradeBadge({ state: 'failed' }, undefined, SKILL_ANY, tZh)).toMatchObject({ status: 'failed', text: '市 查詢失敗 · 等級不限' })
+  })
+})
+
+describe('市集徽章價格分段(runeTradeTier,第 20 步)', () => {
+  const sum = (over: Partial<Parameters<typeof formatRuneTrade>[0]>) =>
+    formatRuneTrade({ unit: 'exalted', converted: true, count: 5, median: 1, min: 1, max: 9, few: false, skipped: 0, ...over }, RATES)
+  const toEx = runeTradeToExalted(RATES)
+
+  it('1 神聖石(= 600 崇高石 ≫ 高門檻)→ high;主價換算後帶 headlineEx', () => {
+    const d = sum({ median: toEx(1, 'divine')! })
+    expect(d.headlineEx).toBeCloseTo(600, 9)
+    expect(runeTradeTier(d, 1, th)).toBe('high')
+  })
+
+  it('門檻邊界:剛好 low → mid、略低 → low;剛好 high → high、略低 → mid(與 priceTier 同口徑)', () => {
+    expect(runeTradeTier(sum({ median: 0.5 }), 1, th)).toBe('mid')
+    expect(runeTradeTier(sum({ median: 0.49 }), 1, th)).toBe('low')
+    expect(runeTradeTier(sum({ median: 5 }), 1, th)).toBe('high')
+    expect(runeTradeTier(sum({ median: 4.99 }), 1, th)).toBe('mid')
+  })
+
+  it('主價取中位數,< 3 筆(無中位數)取最低價', () => {
+    expect(runeTradeTier(sum({ median: 10, min: 0.1 }), 1, th)).toBe('high')
+    expect(runeTradeTier(sum({ median: undefined, min: 0.1, count: 2, few: true }), 1, th)).toBe('low')
+  })
+
+  it('數量 > 1:單價 × 數量當總價分段(與 ninja 徽章同口徑)', () => {
+    expect(runeTradeTier(sum({ median: 2 }), 1, th)).toBe('mid')
+    expect(runeTradeTier(sum({ median: 2 }), 3, th)).toBe('high')
+    expect(runeTradeTier(sum({ median: 0.1 }), 4, th)).toBe('low')
+    expect(runeTradeTier(sum({ median: 0.1 }), 5, th)).toBe('mid')
+    expect(runeTradeTier(sum({ median: 2 }), 0, th)).toBe('mid') // 數量不足 1 當 1
+  })
+
+  it('不能換算(台服原幣 / 無匯率 / 未知幣別)或沒有價格 → 不分段', () => {
+    const raw = formatRuneTrade({ unit: 'divine', converted: false, count: 5, median: 1, min: 1, max: 50, few: false, skipped: 0 }, {})
+    expect(raw.headlineEx).toBeUndefined()
+    expect(runeTradeTier(raw, 1, th)).toBeUndefined()
+    const annul = formatRuneTrade({ unit: 'annul', converted: false, count: 3, median: 2, min: 1, max: 3, few: false, skipped: 0 }, RATES)
+    expect(runeTradeTier(annul, 1, th)).toBeUndefined()
+    const empty = formatRuneTrade({ unit: 'exalted', converted: true, count: 0, few: true, skipped: 0 }, RATES)
+    expect(runeTradeTier(empty, 1, th)).toBeUndefined()
+    expect(runeTradeTier(undefined, 1, th)).toBeUndefined() // 查詢中 / 失敗沒有 display
   })
 })

@@ -214,6 +214,8 @@ export interface RuneTradeDisplay {
   known: boolean
   /** 主價:中位數(≥ 3 筆)或最低價 */
   headline?: string
+  /** 主價的崇高石等值(只有 summary 已換算成崇高石時有;原幣 / 無匯率 = undefined → 不分段) */
+  headlineEx?: number
   isMedian: boolean
   /** 最低 / 最高各自挑單位(崇高石;≥ 1 神聖石改神聖石) */
   min?: { value: string, unit: string, known: boolean }
@@ -236,6 +238,7 @@ export function formatRuneTrade (s: Poe2RuneTradeSummary, rates: ChaosRates): Ru
   if (head == null) return { unit: rawUnit, known, isMedian: false }
   const h = fmt(head)
   const out: RuneTradeDisplay = { unit: h.unit, known, headline: h.value, isMedian: s.median != null }
+  if (s.converted && Number.isFinite(head)) out.headlineEx = head
   if (s.min != null) out.min = fmt(s.min)
   if (s.max != null) out.max = fmt(s.max)
   return out
@@ -256,6 +259,15 @@ export function runeTradeShortFilter (filters: readonly Poe2RuneTradeFilter[], t
   return undefined
 }
 
+/**
+ * 市集徽章的價格分段:只有「有價格」且已換算成崇高石時才分段;主價是**單件**價,乘上列的數量得總價(與 ninja 徽章同口徑:
+ * `priceTier(p.exalted * qty)`),再用同一組門檻。原幣(台服 / 無匯率 / 未知幣別)、查詢中 / 失敗 / 無掛單 = undefined(維持市集原樣)。
+ */
+export function runeTradeTier (display: Pick<RuneTradeDisplay, 'headlineEx'> | undefined, quantity: number, th: RuneThresholds): PriceTier | undefined {
+  if (display?.headlineEx == null) return undefined
+  return priceTier(display.headlineEx * Math.max(1, quantity), th)
+}
+
 export type RuneTradeBadgeStatus = 'queued' | 'loading' | 'price' | 'empty' | 'failed'
 
 export interface RuneTradeBadge {
@@ -266,6 +278,8 @@ export interface RuneTradeBadge {
   unit?: string
   /** 筆數 < 3(主價是最低價)→ 標「少」 */
   few: boolean
+  /** status = price 且已換算崇高石:依 主價 × 數量 的三段(`runeTradeTier`,呼叫端填);其他 = undefined */
+  tier?: PriceTier
   /** 關鍵篩選短字(`runeTradeShortFilter`) */
   short?: string
   /** 整枚徽章的文字(log / 測試 / data 屬性用):`市 80 崇高 · L20`、`市 … · 等級不限` */
