@@ -15,6 +15,8 @@ export interface HttpRequestInit {
   method?: 'GET' | 'POST'
   headers?: Record<string, string>
   body?: string
+  /** 中止(renderer 經 main 代理時會轉成 `http-abort`);中止後 reject `signal.reason`。 */
+  signal?: AbortSignal
 }
 
 /** `Response` 的子集,夠交易層用即可;真的 `Response` 物件直接滿足這個介面。 */

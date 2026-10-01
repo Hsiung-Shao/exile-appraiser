@@ -9,7 +9,7 @@ import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { format } from 'node:util'
 import type { ConfigChangedEvent, GameId, HostConfigForMain, HostFetchInit, HotkeyRegistration, ItemTextEvent, RuneshapeUiState, SettingsTabId, TrackAreaOpts, WindowMode } from '@ipc/types'
-import { hostFetch, installCookiePatch } from './http'
+import { abortHostFetch, abortKeyOf, hostFetch, installCookiePatch } from './http'
 import { Shortcuts, normalizeHotkey } from './Shortcuts'
 import { scanConfigKey } from './scan-config'
 import { GameWindow } from './windowing/GameWindow'
@@ -880,7 +880,9 @@ if (!skipStartup) app.whenReady().then(() => {
     'focus-game': { kind: 'send', fn: () => { overlay?.assertGameActive() } },
     'used-recently': { kind: 'send', fn: (_ctx, isOverlay: boolean) => { if (overlay) overlay.wasUsedRecently = isOverlay } },
     'track-area': { kind: 'send', fn: (_ctx, opts: TrackAreaOpts) => { areaTracker?.track(opts) } },
-    'http-fetch': { kind: 'invoke', fn: (_ctx, url: string, init?: HostFetchInit) => hostFetch(url, init) },
+    // 預設 30 秒逾時;帶 requestId 的可由 `http-abort` 中止(鍵含來源 / 預覽 cid,各端只能中止自己的)
+    'http-fetch': { kind: 'invoke', fn: (ctx, url: string, init?: HostFetchInit) => hostFetch(url, init, abortKeyOf(ctx, init?.requestId)) },
+    'http-abort': { kind: 'invoke', fn: (ctx, requestId: unknown) => abortHostFetch(abortKeyOf(ctx, requestId)) },
     'config-load': {
       kind: 'invoke',
       fn: async () => {

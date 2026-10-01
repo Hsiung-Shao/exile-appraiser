@@ -15,6 +15,12 @@
  * - `POST ~rpc` `{id, cid, method, args}` → 202;結果之後從 SSE 回 `{id, result}` 或 `{id, error:{message}}`(只送給該 cid)。
  * - `GET ~events?cid=<cid>`:SSE。每則 `id: <seq>`;事件 `{event, data}` 送給所有連線。
  *   重連帶 `Last-Event-ID` → 從下一則續傳;新連線只收「給自己的舊回覆」+ 連上之後的廣播。15 秒送一次 keep-alive 註解。
+ * - 佇列保留(2026-10-01 效能修正第 9 步):給 cid 的回覆送達後只再留 `replyGraceMs`(5 秒,斷線重連補送用);
+ *   該 cid 的連線全部斷掉超過 5 秒 → 丟掉它未送達的回覆;從沒連上過的 cid 留 `unclaimedReplyMs`(30 秒)。
+ *   廣播照舊只受總量上限限制。總量上限以 UTF-8 位元組計(512 則 / 32 MB);≥ 256 KB 的大項目另有 4 MB 合計上限
+ *   (超過先丟已送達的)。
+ * - 靜態檔快取:`assets/` 下 Vite 帶 hash 的檔 `public, max-age=31536000, immutable`;其他檔(含背景圖)`no-cache` +
+ *   `ETag`(大小 + mtime),`If-None-Match` 相符回 304;`index.html`(boot script 內含 token)維持 `no-store`。
  * - 自動關閉:曾有連線後 20 秒沒有任何 SSE 連線,或啟動後 180 秒都沒人連 → 關閉(`onClose(reason)`)。
  */
 import http from 'node:http'
@@ -30,6 +36,7 @@ export type PreviewHandler = (ctx: PreviewCtx, ...args: any[]) => unknown
 /** `HostApi` 方法名 → main 的 IPC channel(與 preload.ts 一一對應;只列預覽端經 RPC 的)。 */
 export const HOST_METHOD_CHANNELS: Readonly<Record<string, string>> = {
   fetch: 'http-fetch',
+  fetchAbort: 'http-abort',
   loadConfig: 'config-load',
   saveConfig: 'config-save',
   regexStateLoad: 'regex-state-load',
@@ -93,6 +100,10 @@ export interface PreviewServerOptions {
   goneMs?: number
   firstConnectMs?: number
   keepAliveMs?: number
+  /** 給 cid 的回覆送達後(或該 cid 連線全斷後)再保留多久供重連補送;預設 5000。 */
+  replyGraceMs?: number
+  /** 從沒連上過的 cid 的回覆保留多久(RPC 比 SSE 先到);預設 30000。 */
+  unclaimedReplyMs?: number
 }
 
 export interface PreviewServer {
@@ -103,6 +114,8 @@ export interface PreviewServer {
   readonly token: string
   readonly closed: boolean
   readonly streamCount: number
+  /** 事件佇列目前的則數 / UTF-8 位元組(測試與診斷用)。 */
+  readonly queueStats: { count: number, bytes: number }
   /** 廣播事件給所有預覽 client。 */
   push: (event: string, data: unknown) => void
   /** 依 now() 判斷是否該自動關閉(true = 已關或正在關)。 */
@@ -110,13 +123,52 @@ export interface PreviewServer {
   close: (reason?: string) => Promise<void>
 }
 
-interface Queued { seq: number, to?: string, line: string }
+interface Queued {
+  seq: number
+  to?: string
+  line: string
+  /** `line` 的 UTF-8 位元組數 */
+  bytes: number
+  /** 入佇列時間(now()) */
+  at: number
+  /** 給 cid 的回覆最近一次寫到該 cid 連線的時間 */
+  deliveredAt?: number
+}
 interface Stream { res: http.ServerResponse, cid: string, next: number, minBroadcastSeq: number }
 
 const CID_RE = /^[A-Za-z0-9_-]{1,64}$/
 const MAX_QUEUE = 512
-const MAX_QUEUE_BYTES = 32 * 1024 * 1024
+/** 佇列總量上限(UTF-8 位元組;以前是 UTF-16 長度,中文約為兩倍以上) */
+export const MAX_QUEUE_BYTES = 32 * 1024 * 1024
+/** 單則 ≥ 這個大小算大項目(`http-fetch` 回應、`ninja-cache-load` 快照) */
+export const LARGE_ENTRY_BYTES = 256 * 1024
+/** 大項目合計保留上限;超過先丟已送達的大回覆 */
+export const MAX_LARGE_BYTES = 4 * 1024 * 1024
 const MAX_BODY = 64 * 1024 * 1024
+/** `assets/` 下 Vite 的輸出檔名 `<name>-<8 碼 hash>.<ext>`(整個 assets/ 都是 Vite 產物,public/ 的檔在根目錄) */
+const HASHED_ASSET_RE = /-[A-Za-z0-9_-]{8}\.[A-Za-z0-9]+$/
+
+/** 弱 ETag:大小 + mtime(檔案換了大小或時間就變)。 */
+export function fileEtag (st: { size: number, mtimeMs: number }): string {
+  return `W/"${st.size.toString(16)}-${Math.floor(st.mtimeMs).toString(16)}"`
+}
+
+/** `If-None-Match` 是否與 etag 相符(弱比對;`*` 一律相符)。 */
+export function etagMatches (ifNoneMatch: string | string[] | undefined, etag: string): boolean {
+  if (ifNoneMatch === undefined) return false
+  const raw = Array.isArray(ifNoneMatch) ? ifNoneMatch.join(',') : ifNoneMatch
+  const want = etag.replace(/^W\//, '')
+  return raw.split(',').some((t) => {
+    const v = t.trim()
+    return v === '*' || v.replace(/^W\//, '') === want
+  })
+}
+
+/** 相對於靜態根目錄的路徑是 `assets/<Vite 帶 hash 檔名>` → 可永久快取。 */
+export function isHashedAsset (root: string, file: string): boolean {
+  const rel = path.relative(path.resolve(root), file).split(path.sep)
+  return rel.length === 2 && rel[0] === 'assets' && HASHED_ASSET_RE.test(rel[1])
+}
 
 const CONTENT_TYPES: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -220,12 +272,17 @@ export async function startPreviewServer (opts: PreviewServerOptions): Promise<P
   const goneMs = opts.goneMs ?? 20_000
   const firstConnectMs = opts.firstConnectMs ?? 180_000
   const keepAliveMs = opts.keepAliveMs ?? 15_000
+  const replyGraceMs = opts.replyGraceMs ?? 5_000
+  const unclaimedReplyMs = opts.unclaimedReplyMs ?? 30_000
   const startedAt = now()
 
   const queue: Queued[] = []
   let queueBytes = 0
+  let largeBytes = 0
   let nextSeq = 1
   const streams = new Set<Stream>()
+  /** cid → 該 cid 最後一條連線斷掉的時間(有連線時不在表內;從沒連過也不在表內) */
+  const cidGoneAt = new Map<string, number>()
   let everConnected = false
   let lastStreamSeen = startedAt
   let closed = false
@@ -235,24 +292,69 @@ export async function startPreviewServer (opts: PreviewServerOptions): Promise<P
 
   const writeTo = (s: Stream) => {
     let out = ''
+    const t = now()
     for (const q of queue) {
       if (q.seq < s.next) continue
       if (q.to !== undefined ? q.to === s.cid : q.seq >= s.minBroadcastSeq) {
         out += `id: ${q.seq}\ndata: ${q.line}\n\n`
+        if (q.to !== undefined) q.deliveredAt = t
       }
     }
     s.next = nextSeq
     if (out) s.res.write(out)
   }
 
+  const cidLive = (cid: string): boolean => {
+    for (const s of streams) if (s.cid === cid) return true
+    return false
+  }
+
+  const removeAt = (i: number) => {
+    const [q] = queue.splice(i, 1)
+    queueBytes -= q.bytes
+    if (q.bytes >= LARGE_ENTRY_BYTES) largeBytes -= q.bytes
+  }
+
+  /** 給 cid 的回覆是否已過保留期(廣播一律 false,只受總量上限)。 */
+  const replyExpired = (q: Queued, t: number): boolean => {
+    if (q.to === undefined) return false
+    if (q.deliveredAt !== undefined) return t - q.deliveredAt >= replyGraceMs
+    if (cidLive(q.to)) return false
+    const gone = cidGoneAt.get(q.to)
+    if (gone !== undefined) return t - Math.max(gone, q.at) >= replyGraceMs
+    return t - q.at >= unclaimedReplyMs
+  }
+
+  /** 丟掉過期的回覆、清掉不再需要的 cid 斷線紀錄。 */
+  const prune = () => {
+    const t = now()
+    for (let i = queue.length - 1; i >= 0; i--) {
+      if (replyExpired(queue[i], t)) removeAt(i)
+    }
+    if (cidGoneAt.size) {
+      const waiting = new Set<string>()
+      for (const q of queue) if (q.to !== undefined && q.deliveredAt === undefined) waiting.add(q.to)
+      for (const [cid, gone] of cidGoneAt) {
+        if (!waiting.has(cid) && t - gone >= replyGraceMs) cidGoneAt.delete(cid)
+      }
+    }
+  }
+
   const enqueue = (line: string, to?: string) => {
     if (closed) return
-    queue.push({ seq: nextSeq++, to, line })
-    queueBytes += line.length
-    while (queue.length > MAX_QUEUE || (queueBytes > MAX_QUEUE_BYTES && queue.length > 1)) {
-      queueBytes -= queue.shift()!.line.length
-    }
+    const bytes = Buffer.byteLength(line, 'utf8')
+    queue.push({ seq: nextSeq++, to, line, bytes, at: now() })
+    queueBytes += bytes
+    if (bytes >= LARGE_ENTRY_BYTES) largeBytes += bytes
+    prune()
+    while (queue.length > MAX_QUEUE || (queueBytes > MAX_QUEUE_BYTES && queue.length > 1)) removeAt(0)
     for (const s of streams) writeTo(s)
+    // 大項目合計超過上限:先丟最舊的已送達大回覆(未送達的留給總量上限處理)
+    while (largeBytes > MAX_LARGE_BYTES) {
+      const i = queue.findIndex(q => q.bytes >= LARGE_ENTRY_BYTES && q.deliveredAt !== undefined)
+      if (i < 0) break
+      removeAt(i)
+    }
   }
 
   const push = (event: string, data: unknown) => {
@@ -318,6 +420,7 @@ export async function startPreviewServer (opts: PreviewServerOptions): Promise<P
       ? { res, cid, next: last + 1, minBroadcastSeq: 0 }
       : { res, cid, next: 0, minBroadcastSeq: nextSeq }
     streams.add(s)
+    cidGoneAt.delete(cid)
     if (!everConnected) log(`[preview] 第一個瀏覽器連上 (cid=${cid})`)
     everConnected = true
     lastStreamSeen = now()
@@ -327,6 +430,7 @@ export async function startPreviewServer (opts: PreviewServerOptions): Promise<P
       clearInterval(ka)
       if (streams.delete(s)) {
         lastStreamSeen = now()
+        if (!cidLive(cid)) cidGoneAt.set(cid, lastStreamSeen)
         if (streams.size === 0) log(`[preview] 已無瀏覽器連線;${Math.round(goneMs / 1000)} 秒內沒人重連就關閉`)
       }
     }
@@ -334,55 +438,78 @@ export async function startPreviewServer (opts: PreviewServerOptions): Promise<P
     res.on('close', done)
   }
 
-  const serveStatic = async (res: http.ServerResponse, rel: string, headOnly: boolean) => {
+  /**
+   * 帶 validator 的檔案回應:`If-None-Match` 相符 → 304(不讀檔);否則 200 + 檔案內容(HEAD 不讀檔)。
+   * 讀檔失敗 → 404。
+   */
+  const sendFile = async (req: http.IncomingMessage, res: http.ServerResponse, file: string, st: { size: number, mtimeMs: number },
+    type: string, cacheControl: string, headOnly: boolean) => {
+    const etag = fileEtag(st)
+    const headers: http.OutgoingHttpHeaders = {
+      'Content-Type': type,
+      'Cache-Control': cacheControl,
+      ETag: etag,
+      'X-Content-Type-Options': 'nosniff'
+    }
+    if (etagMatches(req.headers['if-none-match'], etag)) {
+      delete headers['Content-Type']
+      res.writeHead(304, headers)
+      return res.end()
+    }
+    let data: Buffer | undefined
+    if (!headOnly) {
+      try { data = await fs.readFile(file) } catch { return respond(res, 404, 'not found') }
+    }
+    headers['Content-Length'] = data ? data.length : st.size
+    res.writeHead(200, headers)
+    res.end(data)
+  }
+
+  const serveStatic = async (req: http.IncomingMessage, res: http.ServerResponse, rel: string, headOnly: boolean) => {
     const file = resolveStatic(opts.staticRoot, rel)
     if (!file) return respond(res, 403, 'forbidden')
-    let data: Buffer
+    let st: Awaited<ReturnType<typeof fs.stat>>
     try {
-      const st = await fs.stat(file)
+      st = await fs.stat(file)
       if (!st.isFile()) return respond(res, 404, 'not found')
-      data = await fs.readFile(file)
     } catch {
       return respond(res, 404, 'not found')
     }
     const ext = path.extname(file).toLowerCase()
-    const headers: http.OutgoingHttpHeaders = {
-      'Content-Type': CONTENT_TYPES[ext] ?? 'application/octet-stream',
-      'X-Content-Type-Options': 'nosniff'
+    const type = CONTENT_TYPES[ext] ?? 'application/octet-stream'
+    if (path.basename(file).toLowerCase() !== 'index.html') {
+      // Vite 帶 hash 的檔內容不會變 → 永久快取;其他檔每次驗證(ETag → 304)
+      const cc = isHashedAsset(opts.staticRoot, file) ? 'public, max-age=31536000, immutable' : 'no-cache'
+      return await sendFile(req, res, file, st, type, cc, headOnly)
     }
-    let body: Buffer | string = data
-    if (path.basename(file).toLowerCase() === 'index.html') {
-      body = injectBootScript(data.toString('utf8'), bootScript({ prefix, version: opts.version, methodChannels }))
-      headers['Cache-Control'] = 'no-store'
-      headers['Referrer-Policy'] = 'no-referrer'
-    } else {
-      headers['Cache-Control'] = 'no-cache'
-    }
-    headers['Content-Length'] = Buffer.byteLength(body)
-    res.writeHead(200, headers)
+    // index.html:boot script 內含 token 前綴 → 不快取、不給 validator(與以前相同)
+    let data: Buffer
+    try { data = await fs.readFile(file) } catch { return respond(res, 404, 'not found') }
+    const body = injectBootScript(data.toString('utf8'), bootScript({ prefix, version: opts.version, methodChannels }))
+    res.writeHead(200, {
+      'Content-Type': type,
+      'X-Content-Type-Options': 'nosniff',
+      'Cache-Control': 'no-store',
+      'Referrer-Policy': 'no-referrer',
+      'Content-Length': Buffer.byteLength(body)
+    })
     res.end(headOnly ? undefined : body)
   }
 
   /** 自訂背景圖(token 之後的 `bg/<檔名>`;檔名不合法 / 跳出資料夾 / 不存在一律 404) */
-  const serveBg = async (res: http.ServerResponse, rest: string, headOnly: boolean) => {
+  const serveBg = async (req: http.IncomingMessage, res: http.ServerResponse, rest: string, headOnly: boolean) => {
     const name = opts.bgDir ? bgFileFromPath(rest.slice('bg/'.length)) : null
     const file = name == null || !opts.bgDir ? null : resolveBgPath(opts.bgDir, name)
     if (!file) return respond(res, 404, 'not found')
-    let data: Buffer
+    let st: Awaited<ReturnType<typeof fs.stat>>
     try {
-      const st = await fs.stat(file)
+      st = await fs.stat(file)
       if (!st.isFile()) return respond(res, 404, 'not found')
-      data = await fs.readFile(file)
     } catch {
       return respond(res, 404, 'not found')
     }
-    res.writeHead(200, {
-      'Content-Type': bgContentType(file),
-      'Content-Length': data.length,
-      'Cache-Control': 'no-cache',
-      'X-Content-Type-Options': 'nosniff'
-    })
-    res.end(headOnly ? undefined : data)
+    // 網址在 token 之後(換 token = 換網址,不會拿到別的伺服器的快取);同名檔被換掉時 ETag 跟著變
+    await sendFile(req, res, file, st, bgContentType(file), 'no-cache', headOnly)
   }
 
   const server = http.createServer((req, res) => {
@@ -411,8 +538,8 @@ export async function startPreviewServer (opts: PreviewServerOptions): Promise<P
       return handleEvents(req, res, cid)
     }
     if (req.method !== 'GET' && req.method !== 'HEAD') return respond(res, 405, 'method not allowed')
-    if (rest.startsWith('bg/')) return void serveBg(res, rest, req.method === 'HEAD')
-    void serveStatic(res, '/' + rest, req.method === 'HEAD')
+    if (rest.startsWith('bg/')) return void serveBg(req, res, rest, req.method === 'HEAD')
+    void serveStatic(req, res, '/' + rest, req.method === 'HEAD')
   })
   server.on('connection', (sock) => {
     sockets.add(sock)
@@ -443,6 +570,7 @@ export async function startPreviewServer (opts: PreviewServerOptions): Promise<P
 
   const checkIdle = (): boolean => {
     if (closed) return true
+    prune()
     if (streams.size > 0) return false
     const t = now()
     if (everConnected && t - lastStreamSeen >= goneMs) {
@@ -472,6 +600,7 @@ export async function startPreviewServer (opts: PreviewServerOptions): Promise<P
     token,
     get closed () { return closed },
     get streamCount () { return streams.size },
+    get queueStats () { return { count: queue.length, bytes: queueBytes } },
     push,
     checkIdle,
     close

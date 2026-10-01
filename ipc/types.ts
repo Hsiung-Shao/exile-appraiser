@@ -9,6 +9,10 @@ export interface HostFetchInit {
   method?: 'GET' | 'POST'
   headers?: Record<string, string>
   body?: string
+  /** main 端逾時(ms,預設 30 秒,夾在 1 秒 ~ 5 分鐘;涵蓋讀完 body)。逾時 reject 一般 Error,與網路錯誤同形狀。 */
+  timeoutMs?: number
+  /** 可中止的請求 id(renderer 的 AbortSignal 觸發時以 `fetchAbort(requestId)` / IPC `http-abort` 中止)。 */
+  requestId?: string
 }
 
 /** main 端用 session fetch(帶 Cloudflare cookie)後回傳的可序列化結果。 */
@@ -271,6 +275,8 @@ export interface HostApi {
   /** 瀏覽器預覽頁(boot script 的 shim)為 true;Electron preload 沒有這個欄位。 */
   readonly isPreview?: boolean
   fetch: (url: string, init?: HostFetchInit) => Promise<HostFetchResult>
+  /** 中止 `fetch(url, { requestId })` 進行中的請求(IPC `http-abort`;預覽端經 RPC)。找不到 = false。 */
+  fetchAbort?: (requestId: string) => Promise<boolean>
   loadConfig: () => Promise<string | null>
   saveConfig: (contents: string) => Promise<void>
   /** Poe Regex 面板狀態(勾選 + 書籤;`regex/src/state.ts` 的 JSON)。`userData/regex_state.json`,沒有檔案回 null。 */

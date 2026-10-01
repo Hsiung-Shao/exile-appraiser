@@ -7,7 +7,8 @@ import os from 'node:os'
 import path from 'node:path'
 import {
   startPreviewServer, bootScript, injectBootScript, resolveStatic,
-  HOST_METHOD_CHANNELS, HOST_EVENT_METHODS,
+  HOST_METHOD_CHANNELS, HOST_EVENT_METHODS, MAX_LARGE_BYTES, LARGE_ENTRY_BYTES,
+  etagMatches, fileEtag, isHashedAsset,
   type PreviewServer, type PreviewServerOptions
 } from '../src/preview-server'
 
@@ -20,6 +21,9 @@ beforeAll(() => {
     '<!DOCTYPE html><html><head><title>x</title></head><body><div id="app"></div><script>var boot=1</script><script type="module" src="./assets/app.js"></script></body></html>')
   fs.mkdirSync(path.join(root, 'assets'))
   fs.writeFileSync(path.join(root, 'assets', 'app.js'), 'console.log("app")')
+  fs.writeFileSync(path.join(root, 'assets', 'index-AbC_d12-.js'), 'console.log("hashed")')
+  fs.mkdirSync(path.join(root, 'data'))
+  fs.writeFileSync(path.join(root, 'data', 'x-AbCd1234.json'), '{"a":1}')
   // 根目錄外的檔(防穿越測試)
   fs.writeFileSync(path.join(path.dirname(root), path.basename(root) + '-secret.txt'), 'secret')
 })
@@ -53,9 +57,9 @@ async function start (extra: Partial<PreviewServerOptions> = {}): Promise<Previe
 
 interface Resp { status: number, headers: http.IncomingHttpHeaders, body: string }
 
-function request (srv: PreviewServer, opts: { path: string, method?: string, host?: string, origin?: string, body?: string }): Promise<Resp> {
+function request (srv: PreviewServer, opts: { path: string, method?: string, host?: string, origin?: string, body?: string, headers?: http.OutgoingHttpHeaders }): Promise<Resp> {
   return new Promise((resolve, reject) => {
-    const headers: http.OutgoingHttpHeaders = { Host: opts.host ?? `127.0.0.1:${srv.port}` }
+    const headers: http.OutgoingHttpHeaders = { ...(opts.headers ?? {}), Host: opts.host ?? `127.0.0.1:${srv.port}` }
     if (opts.origin) headers.Origin = opts.origin
     if (opts.body !== undefined) headers['Content-Type'] = 'application/json'
     const req = http.request({ host: '127.0.0.1', port: srv.port, path: opts.path, method: opts.method ?? 'GET', headers }, (res) => {
@@ -407,5 +411,240 @@ describe('boot script', () => {
   it('injectBootScript:沒有 <script 時插在 </head> 前', () => {
     expect(injectBootScript('<html><head></head><body></body></html>', 'X')).toBe('<html><head><script>X</script></head><body></body></html>')
     expect(injectBootScript('<p>no head</p>', 'X')).toBe('<script>X</script><p>no head</p>')
+  })
+
+  it('方法表含 fetchAbort → http-abort(預覽端也能中止請求)', () => {
+    expect(HOST_METHOD_CHANNELS.fetchAbort).toBe('http-abort')
+  })
+})
+
+// ---- 效能修正第 9 步:佇列保留策略(假時鐘) ----
+describe('preview-server 回覆佇列保留', () => {
+  it('給 cid 的回覆送達後只留 5 秒(之後移出佇列)', async () => {
+    let t = 1_000
+    const srv = await start({ now: () => t })
+    const ev = openEvents(srv, 'del')
+    await ev.opened
+    await waitUntil(() => srv.streamCount === 1)
+    await rpc(srv, { id: 'd1', cid: 'del', method: 'loadConfig', args: [] })
+    await ev.waitFor(x => x.data.id === 'd1')
+    expect(srv.queueStats.count).toBe(1)
+    t += 4_999
+    srv.checkIdle()
+    expect(srv.queueStats.count).toBe(1)
+    t += 1
+    srv.checkIdle()
+    expect(srv.queueStats).toEqual({ count: 0, bytes: 0 })
+    ev.close()
+  })
+
+  it('廣播不受 5 秒限制(維持現行保留,只受總量上限)', async () => {
+    let t = 0
+    const srv = await start({ now: () => t })
+    srv.push('updater-state', { state: 'x' })
+    t += 60_000
+    srv.checkIdle()
+    expect(srv.queueStats.count).toBe(1)
+  })
+
+  it('重連窗口內(Last-Event-ID)補送已寫出但沒收到的回覆', async () => {
+    let t = 0
+    const srv = await start({ now: () => t })
+    const a = openEvents(srv, 're')
+    await a.opened
+    await waitUntil(() => srv.streamCount === 1)
+    srv.push('updater-state', { state: 'mark' })
+    const mark = await a.waitFor(x => x.data.event === 'updater-state')
+    await rpc(srv, { id: 'r1', cid: 're', method: 'loadConfig', args: [] })
+    await a.waitFor(x => x.data.id === 'r1')
+    a.close()
+    await waitUntil(() => srv.streamCount === 0)
+    t += 3_000
+    srv.checkIdle()
+    // 假設 r1 在途中遺失:client 只確認到 mark → 重連補送 r1
+    const b = openEvents(srv, 're', mark.id)
+    await b.opened
+    const m = await b.waitFor(x => x.data.id === 'r1')
+    expect(m.data.result).toBe('{"theme":"slate"}')
+    b.close()
+  })
+
+  it('斷線期間產生的回覆:5 秒內重連可補送', async () => {
+    let t = 0
+    const srv = await start({ now: () => t })
+    const a = openEvents(srv, 'gap')
+    await a.opened
+    srv.push('updater-state', { state: 'mark' })
+    const mark = await a.waitFor(x => x.data.event === 'updater-state')
+    a.close()
+    await waitUntil(() => srv.streamCount === 0)
+    await rpc(srv, { id: 'g1', cid: 'gap', method: 'loadConfig', args: [] })
+    await waitUntil(() => srv.queueStats.count === 2)
+    t += 4_000
+    srv.checkIdle()
+    const b = openEvents(srv, 'gap', mark.id)
+    await b.opened
+    await b.waitFor(x => x.data.id === 'g1')
+    b.close()
+  })
+
+  it('cid 連線全斷超過 5 秒 → 丟掉它未送達的回覆;重連不會再收到', async () => {
+    let t = 0
+    const srv = await start({ now: () => t })
+    const a = openEvents(srv, 'lost')
+    await a.opened
+    srv.push('updater-state', { state: 'mark' })
+    const mark = await a.waitFor(x => x.data.event === 'updater-state')
+    a.close()
+    await waitUntil(() => srv.streamCount === 0)
+    await rpc(srv, { id: 'l1', cid: 'lost', method: 'loadConfig', args: [] })
+    await waitUntil(() => srv.queueStats.count === 2)
+    t += 5_000
+    srv.checkIdle()
+    expect(srv.queueStats.count).toBe(1) // 只剩廣播
+    const b = openEvents(srv, 'lost', mark.id)
+    await b.opened
+    srv.push('updater-state', { state: 'after' })
+    await b.waitFor(x => x.data.data?.state === 'after')
+    expect(b.messages.some(x => x.data.id === 'l1')).toBe(false)
+    b.close()
+  })
+
+  it('從沒連上的 cid(RPC 比 SSE 先到)回覆留 30 秒', async () => {
+    let t = 0
+    const srv = await start({ now: () => t })
+    await rpc(srv, { id: 'n1', cid: 'never', method: 'loadConfig', args: [] })
+    await waitUntil(() => srv.queueStats.count === 1)
+    t += 29_999
+    srv.checkIdle()
+    expect(srv.queueStats.count).toBe(1)
+    t += 1
+    srv.checkIdle()
+    expect(srv.queueStats.count).toBe(0)
+  })
+
+  it('總量上限以 UTF-8 位元組計(中文一字 3 bytes)', async () => {
+    const srv = await start()
+    const big = '中'.repeat(4 * 1024 * 1024) // 4M 字元 = 12 MB(舊的 UTF-16 計法只算 4M)
+    srv.push('config-changed', { contents: big, source: 'electron' })
+    srv.push('config-changed', { contents: big, source: 'electron' })
+    expect(srv.queueStats.count).toBe(2)
+    expect(srv.queueStats.bytes).toBeGreaterThan(24 * 1024 * 1024)
+    srv.push('config-changed', { contents: big, source: 'electron' }) // 36 MB > 32 MB → 擠掉最舊
+    expect(srv.queueStats.count).toBe(2)
+    expect(srv.queueStats.bytes).toBeLessThanOrEqual(32 * 1024 * 1024)
+  })
+
+  it('大回覆(≥ 256 KB)合計超過 4 MB → 丟最舊的已送達大回覆;每則仍送達', async () => {
+    const payload = 'x'.repeat(LARGE_ENTRY_BYTES + 1024)
+    const srv = await start({ handlers: { 'ninja-cache-load': () => payload } })
+    const ev = openEvents(srv, 'big')
+    await ev.opened
+    await waitUntil(() => srv.streamCount === 1)
+    const n = Math.ceil(MAX_LARGE_BYTES / LARGE_ENTRY_BYTES) + 3
+    for (let i = 0; i < n; i++) await rpc(srv, { id: `b${i}`, cid: 'big', method: 'ninjaCacheLoad', args: ['poe1', 'L'] })
+    for (let i = 0; i < n; i++) expect((await ev.waitFor(x => x.data.id === `b${i}`, 5000)).data.result).toBe(payload)
+    expect(srv.queueStats.bytes).toBeLessThanOrEqual(MAX_LARGE_BYTES)
+    expect(srv.queueStats.count).toBeLessThan(n)
+    ev.close()
+  })
+})
+
+describe('preview-server 靜態檔快取(ETag / 304 / immutable)', () => {
+  it('assets/ 帶 hash 的檔 → public, max-age=31536000, immutable', async () => {
+    const srv = await start()
+    const r = await request(srv, { path: `${srv.prefix}assets/index-AbC_d12-.js` })
+    expect(r.status).toBe(200)
+    expect(r.headers['cache-control']).toBe('public, max-age=31536000, immutable')
+    expect(r.body).toBe('console.log("hashed")')
+    expect(isHashedAsset(root, path.join(root, 'assets', 'index-AbC_d12-.js'))).toBe(true)
+    // assets/ 以外、沒 hash 的都不是
+    expect(isHashedAsset(root, path.join(root, 'data', 'x-AbCd1234.json'))).toBe(false)
+    expect(isHashedAsset(root, path.join(root, 'assets', 'app.js'))).toBe(false)
+    expect(isHashedAsset(root, path.join(root, 'index.html'))).toBe(false)
+  })
+
+  it('其他檔:no-cache + ETag;If-None-Match 相符 → 304 無 body;不符 → 200', async () => {
+    const srv = await start()
+    const first = await request(srv, { path: `${srv.prefix}assets/app.js` })
+    expect(first.status).toBe(200)
+    expect(first.headers['cache-control']).toBe('no-cache')
+    const etag = first.headers.etag as string
+    expect(etag).toMatch(/^W\/"[0-9a-f]+-[0-9a-f]+"$/)
+    expect(etag).toBe(fileEtag(fs.statSync(path.join(root, 'assets', 'app.js'))))
+    const again = await request(srv, { path: `${srv.prefix}assets/app.js`, headers: { 'If-None-Match': etag } })
+    expect(again.status).toBe(304)
+    expect(again.body).toBe('')
+    expect(again.headers.etag).toBe(etag)
+    const other = await request(srv, { path: `${srv.prefix}assets/app.js`, headers: { 'If-None-Match': 'W/"0-0"' } })
+    expect(other.status).toBe(200)
+    expect(other.body).toBe('console.log("app")')
+    const head = await request(srv, { path: `${srv.prefix}assets/app.js`, method: 'HEAD' })
+    expect(head.status).toBe(200)
+    expect(head.headers['content-length']).toBe(String('console.log("app")'.length))
+    expect(head.body).toBe('')
+  })
+
+  it('檔案變了 → ETag 變、舊 ETag 拿到 200', async () => {
+    const srv = await start()
+    const f = path.join(root, 'data', 'x-AbCd1234.json')
+    const r1 = await request(srv, { path: `${srv.prefix}data/x-AbCd1234.json` })
+    fs.writeFileSync(f, '{"a":22}')
+    fs.utimesSync(f, new Date(), new Date(Date.now() + 5_000))
+    const r2 = await request(srv, { path: `${srv.prefix}data/x-AbCd1234.json`, headers: { 'If-None-Match': r1.headers.etag as string } })
+    expect(r2.status).toBe(200)
+    expect(r2.body).toBe('{"a":22}')
+    expect(r2.headers.etag).not.toBe(r1.headers.etag)
+  })
+
+  it('index.html(boot script 內含 token)永遠 no-store、沒有 ETag;If-None-Match 也回 200 完整內容', async () => {
+    const srv = await start()
+    for (const p of [srv.prefix, `${srv.prefix}index.html`]) {
+      const r = await request(srv, { path: p, headers: { 'If-None-Match': '*' } })
+      expect(r.status).toBe(200)
+      expect(r.headers['cache-control']).toBe('no-store')
+      expect(r.headers.etag).toBeUndefined()
+      expect(r.body).toContain(`"P":"${srv.prefix}"`)
+    }
+    // 不同 token 的伺服器 → 不同網址、內容各自帶自己的前綴
+    const srv2 = await start()
+    const r2 = await request(srv2, { path: srv2.prefix })
+    expect(r2.body).toContain(`"P":"${srv2.prefix}"`)
+    expect(r2.body).not.toContain(srv.token)
+  })
+
+  it('etagMatches:弱比對、清單、*', () => {
+    expect(etagMatches(undefined, 'W/"1-2"')).toBe(false)
+    expect(etagMatches('W/"1-2"', 'W/"1-2"')).toBe(true)
+    expect(etagMatches('"1-2"', 'W/"1-2"')).toBe(true)
+    expect(etagMatches('W/"9-9", W/"1-2"', 'W/"1-2"')).toBe(true)
+    expect(etagMatches('*', 'W/"1-2"')).toBe(true)
+    expect(etagMatches('W/"1-3"', 'W/"1-2"')).toBe(false)
+  })
+})
+
+describe('preview-server 背景圖快取(token 保護不變)', () => {
+  let bgDir: string
+  const PNG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 9, 9])
+  beforeAll(() => {
+    bgDir = fs.mkdtempSync(path.join(os.tmpdir(), 'preview-bg-'))
+    fs.writeFileSync(path.join(bgDir, 'sky-0a1b2c3d.png'), PNG)
+  })
+  afterAll(() => { fs.rmSync(bgDir, { recursive: true, force: true }) })
+
+  it('ETag + no-cache;If-None-Match → 304;沒有 / 錯的 token 仍 404(帶 If-None-Match 也一樣)', async () => {
+    const srv = await start({ bgDir })
+    const ok = await request(srv, { path: `${srv.prefix}bg/sky-0a1b2c3d.png` })
+    expect(ok.status).toBe(200)
+    expect(ok.headers['content-type']).toBe('image/png')
+    expect(ok.headers['cache-control']).toBe('no-cache')
+    const etag = ok.headers.etag as string
+    expect(etag).toBeTruthy()
+    expect((await request(srv, { path: `${srv.prefix}bg/sky-0a1b2c3d.png`, headers: { 'If-None-Match': etag } })).status).toBe(304)
+    const wrong = srv.prefix.replace(srv.token, srv.token === 'f'.repeat(32) ? 'e'.repeat(32) : 'f'.repeat(32))
+    for (const p of ['/bg/sky-0a1b2c3d.png', `${wrong}bg/sky-0a1b2c3d.png`]) {
+      expect((await request(srv, { path: p, headers: { 'If-None-Match': etag } })).status, p).toBe(404)
+    }
+    expect((await request(srv, { path: `${srv.prefix}bg/none.png`, headers: { 'If-None-Match': '*' } })).status).toBe(404)
   })
 })

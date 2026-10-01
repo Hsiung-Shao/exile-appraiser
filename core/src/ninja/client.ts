@@ -278,18 +278,18 @@ export function createNinjaClient (opts: NinjaClientOptions) {
   const intervalMs = opts.intervalMs ?? NINJA_REQUEST_INTERVAL_MS
   const now = opts.now ?? Date.now
 
-  async function getJson (url: string): Promise<unknown> {
-    const res = await http(url, { headers: { Accept: 'application/json' } })
+  async function getJson (url: string, signal?: AbortSignal): Promise<unknown> {
+    const res = await http(url, signal ? { headers: { Accept: 'application/json' }, signal } : { headers: { Accept: 'application/json' } })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     return JSON.parse(await res.text())
   }
 
-  async function fetchItemOverview (type: string): Promise<ParsedOverview> {
-    return parseItemOverview(await getJson(ninjaItemOverviewUrl(game, league, type)), type)
+  async function fetchItemOverview (type: string, signal?: AbortSignal): Promise<ParsedOverview> {
+    return parseItemOverview(await getJson(ninjaItemOverviewUrl(game, league, type), signal), type)
   }
 
-  async function fetchExchange (type: string): Promise<ParsedOverview> {
-    return parseExchangeOverview(await getJson(ninjaExchangeUrl(game, league, type)), type)
+  async function fetchExchange (type: string, signal?: AbortSignal): Promise<ParsedOverview> {
+    return parseExchangeOverview(await getJson(ninjaExchangeUrl(game, league, type), signal), type)
   }
 
   /**
@@ -316,7 +316,8 @@ export function createNinjaClient (opts: NinjaClientOptions) {
       }
       const { kind, type } = plan[i]
       try {
-        const parsed = kind === 'exchange' ? await fetchExchange(type) : await fetchItemOverview(type)
+        // signal 一併交給 http:中止時進行中的請求也會被取消(經 main 代理 → `http-abort`)
+        const parsed = kind === 'exchange' ? await fetchExchange(type, signal) : await fetchItemOverview(type, signal)
         if (signal?.aborted) throw abortError(signal)
         if (kind === 'exchange') {
           for (const line of parsed.lines) prices.set(line.key, line)

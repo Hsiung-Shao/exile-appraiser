@@ -40,7 +40,8 @@ npm run dev:main -- --window --preview --no-updates    # log 印預覽網址
 
 ## 能做 / 不能做
 
-- 經 RPC(與 Electron 內行為相同):設定讀寫、`http-fetch`(Electron session,帶 Cloudflare cookie、同一套主機白名單)、
+- 經 RPC(與 Electron 內行為相同):設定讀寫、`http-fetch`(Electron session,帶 Cloudflare cookie、同一套主機白名單、預設 30 秒逾時)、
+  `http-abort`(`fetchAbort(requestId)`:中止自己這個分頁帶 `requestId` 送出的請求;鍵含預覽 cid,中止不到別的分頁 / Electron 視窗的請求)、
   Regex / 拆粉 / ninja 快取、更新器四個動作、`openExternal`、`openCaptcha`(**開在 Electron 視窗**,cookie 才進得了 session)。
 - 瀏覽器端 no-op:`hideWindow`、`resizeWindow`、`trackArea`、`focusGame`、`usedRecently`(沒有視窗可控)。
 - 預覽分頁收得到的事件只有 `config-changed`、`updater-state`、`switch-game`。**`item-text` 不送**:否則按一次查價熱鍵,
@@ -66,7 +67,17 @@ RPC 能做的事與 Electron renderer 相同(沒有更多權限):`http-fetch` �
 - `POST ~rpc` `{id, cid, method, args}` → 立即 202;結果從 SSE 回 `{id, result}` / `{id, error: {message}}`,只送給該 `cid`。
   JSON 會把 `undefined` 參數變 `null`,伺服器端轉回 `undefined`。方法名 → channel 對照 `HOST_METHOD_CHANNELS`。
 - `GET ~events?cid=<cid>`:SSE,每則 `id: <seq>`;事件 `{event, data}` 廣播。重連帶 `Last-Event-ID` 從下一則續傳;
-  新連線補上給自己的舊回覆(RPC 可能比 SSE 先送出),但不重播連線前的廣播。15 秒一次 `: keep-alive`。佇列上限 512 則 / 32 MB。
+  新連線補上給自己的舊回覆(RPC 可能比 SSE 先送出),但不重播連線前的廣播。15 秒一次 `: keep-alive`。
+- 佇列保留(2026-10-01 效能修正第 9 步,`replyGraceMs` / `unclaimedReplyMs` 可注入):
+  - 給 cid 的回覆**送達該 cid 的連線後只再留 5 秒**(這段時間內帶 `Last-Event-ID` 重連會補送在途中遺失的回覆),之後移出佇列;
+  - 該 cid 的連線全部斷掉超過 5 秒 → 丟掉它未送達的回覆(shim 斷線 4 秒就把等待中的呼叫 reject `host.disconnected`,不會再用到);
+    從沒連上過的 cid(RPC 比 SSE 先到)留 30 秒;
+  - 廣播事件維持原本策略(不過期,只受總量上限);
+  - 總量上限 512 則 / 32 MB,以 **UTF-8 位元組**計(以前是 UTF-16 長度,中文實際約 3 倍);單則 ≥ 256 KB 的大項目
+    (`http-fetch` 回應、`ninja-cache-load` 快照)合計另限 4 MB,超過先丟最舊的已送達大回覆。
+- 快取標頭:`assets/` 下 Vite 帶 hash 的檔 `Cache-Control: public, max-age=31536000, immutable`;其他靜態檔與背景圖
+  `no-cache` + 弱 `ETag`(大小 + mtime),`If-None-Match` 相符回 304(不讀檔);`index.html` 的 boot script 內含 token 前綴,
+  維持 `no-store`、不給 ETag(換 token = 換網址,也不會被別的伺服器的快取錯用)。token / Host / Origin 檢查都在快取判斷之前。
 - main 端的 handler 全在 `main/src/host-handlers.ts` 的登錄表(`kind: invoke|send|sync`、`preview: false` 不開放),
   `registerIpc(table)` 給 ipcMain、`previewHandlers(table)` 給預覽伺服器;事件走 `Broadcaster.broadcast`(webContents + 放行清單內的預覽事件)。
 
@@ -74,7 +85,8 @@ RPC 能做的事與 Electron renderer 相同(沒有更多權限):`http-fetch` �
 
 `main/test/preview-server.test.ts`(vitest,純 Node,不需要 Electron;root `npm test` 最後一步):token 錯 404、Host 錯 421、
 Origin 錯 403、防穿越、boot script 注入位置與 shim 行為、RPC 往返 / 錯誤、回覆只給發起端、SSE 廣播、`Last-Event-ID` 續傳、
-20 秒 / 180 秒自動關閉(注入假時鐘)。
+20 秒 / 180 秒自動關閉(注入假時鐘)、回覆送達後 5 秒移出 / 重連窗口補送 / 窗口外丟棄 / 位元組上限 / 大項目上限、
+ETag / 304 / immutable / index.html 不快取 / 背景圖 token 保護。`main/test/http.test.ts`:`http-fetch` 逾時與 `http-abort`(mock electron)。
 
 ## 相關文件
 

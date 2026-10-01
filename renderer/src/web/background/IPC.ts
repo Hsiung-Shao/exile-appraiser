@@ -8,12 +8,13 @@
  * - 瀏覽器預覽(main 的 preview-server,docs/browser-preview.md):boot script 造的 `window.host` shim(`isPreview: true`),
  *   方法經 RPC 到 main,與 Electron 內行為相同(設定寫同一份 config.json);視窗控制類是 no-op。
  */
-import type { HostApi, HostFetchInit, HostFetchResult, ItemTextEvent, HostConfigForMain, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId } from '@ipc/types'
+import type { HostApi, HostFetchResult, ItemTextEvent, HostConfigForMain, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId } from '@ipc/types'
 import type { ConfigChangedEvent, HotkeyRegistration, OcrAvailability, OcrRegionPickTarget, RevealScanEvent, SettingsTabId, UpdaterInfo } from '@ipc/types'
 import type { RuneshapeScanEvent, RuneshapeStats, RuneshapeUiState } from '@ipc/types'
 import { shallowRef } from 'vue'
 import type { HttpFetch } from '@exile-appraiser/core/http'
 import { withRetryAfter } from '@exile-appraiser/core/http'
+import { fetchViaHost, type ProxyInit } from './host-fetch'
 
 const LS_KEY = 'exile-appraiser.config'
 const LS_REGEX_KEY = 'exile-appraiser.regex_state'
@@ -38,12 +39,15 @@ class HostTransport {
    */
   readonly lastTradeQuery = shallowRef<{ url: string, body: unknown, at: number } | null>(null)
 
-  /** 與 `fetch` 同形狀;交易層透過 `httpFetch` 拿到裝了 429 重試的版本。 */
-  proxy = async (url: string, init?: HostFetchInit): Promise<Response> => {
+  /**
+   * 與 `fetch` 同形狀;交易層透過 `httpFetch` 拿到裝了 429 重試的版本。
+   * `init.signal`:經 main 代理時轉成 `requestId` + `http-abort`(`host-fetch.ts`);main 端另有 30 秒預設逾時。
+   */
+  proxy = async (url: string, init?: ProxyInit): Promise<Response> => {
     if (init?.method === 'POST' && init.body && /\/api\/trade2?\/(search|exchange)\//.test(url)) {
       try { this.lastTradeQuery.value = { url, body: JSON.parse(init.body), at: Date.now() } } catch {}
     }
-    if (window.host) return toResponse(await window.host.fetch(url, init))
+    if (window.host) return toResponse(await fetchViaHost(window.host, url, init))
     return fetch(url, init)
   }
 

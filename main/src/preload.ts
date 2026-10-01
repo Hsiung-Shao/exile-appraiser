@@ -12,6 +12,7 @@ const api: HostApi = {
   version: process.env.npm_package_version ?? ipcRenderer.sendSync('app-version') as string,
   windowMode: ipcRenderer.sendSync('window-mode') as WindowMode,
   fetch: (url: string, init?: HostFetchInit) => ipcRenderer.invoke('http-fetch', url, init),
+  fetchAbort: (requestId: string) => ipcRenderer.invoke('http-abort', requestId),
   loadConfig: () => ipcRenderer.invoke('config-load'),
   saveConfig: (contents: string) => ipcRenderer.invoke('config-save', contents),
   regexStateLoad: () => ipcRenderer.invoke('regex-state-load'),
