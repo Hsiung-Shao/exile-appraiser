@@ -318,6 +318,10 @@ interface Candidate {
   cost: number
 }
 
+function cloneResult (r: Result): Result {
+  return { ...r, usedTokens: [...r.usedTokens], unresolved: [...r.unresolved] }
+}
+
 function binarySearch (arr: readonly number[], x: number): boolean {
   let lo = 0
   let hi = arr.length
@@ -349,6 +353,8 @@ export class Corpus {
   private rightHeads = new Set<string>()
   private leftFull = new Set<string>()
   private rightFull = new Set<string>()
+  /** build() 的小型 memo(同一組 picks + mode 的結果只算一次;只留最近幾筆,reset 時清空) */
+  private buildMemo = new Map<string, Result>()
 
   constructor (entries?: Entry[], ambient?: Ambient, opt?: Options) {
     if (entries) this.reset(entries, ambient, opt)
@@ -407,6 +413,7 @@ export class Corpus {
       maxTokenChars: Math.max(1, opt.maxTokenChars ?? 12),
       anchors: opt.anchors ?? true
     }
+    this.buildMemo = new Map()
     this.prepped = []
     this.hidden = []
     this.index = new Map()
@@ -434,11 +441,15 @@ export class Corpus {
         if (v) v.push(i)
         else this.index.set(k, [i])
       })
+    }
+    // 隱藏文字索引:只收「也出現在可見 index」的鍵。safe() 與 build() 只拿候選 token(一定來自可見文字、必在 index 內)查它,
+    // 不在 index 的鍵永遠不會被讀到;PoE1 gem_names 頁因此從約 30 萬鍵縮到約 1,400 鍵。必須在可見 index 全部建完後才建。
+    for (let i = 0; i < this.hidden.length; i++) {
       if (this.hidden[i].hasNumber) this.numberedHidden.push(i)
       const seenHidden = new Set<string>()
       forEachToken(this.hidden[i], maxTokenChars, anchors, t => {
         const k = tokenKey(t)
-        if (seenHidden.has(k)) return
+        if (!this.index.has(k) || seenHidden.has(k)) return
         seenHidden.add(k)
         const v = this.hiddenIndex.get(k)
         if (v) v.push(i)
@@ -484,6 +495,18 @@ export class Corpus {
     picks.sort((a, b) => a - b)
     if (picks.length === 0) return r
 
+    const memoKey = `${mode}|${picks.join(',')}`
+    const memo = this.buildMemo.get(memoKey)
+    if (memo) return cloneResult(memo)
+    const out = this.buildUncached(picks, isSelected, mode)
+    this.buildMemo.set(memoKey, out)
+    if (this.buildMemo.size > 8) this.buildMemo.delete(this.buildMemo.keys().next().value as string)
+    return cloneResult(out)
+  }
+
+  private buildUncached (picks: readonly number[], isSelected: readonly boolean[], mode: Mode): Result {
+    const r: Result = { query: '', length: 0, usedTokens: [], unresolved: [], exact: true }
+    const n = this.entries.length
     const { maxTokenChars, anchors } = this.opt
     const proposed = new Set<string>()
     const cands: Candidate[] = []

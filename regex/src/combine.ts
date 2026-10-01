@@ -155,6 +155,7 @@ export function combine (input: CombineInput): CombineResult {
   const perPage: PageContribution[] = []
   const conflicts: Conflict[] = []
   const corpusSels: CombineSel[] = []
+  const corpusUnresolved: number[][] = []
   const algoFrags: Array<{ page: string, entry: string, frag: string }> = []
   let limit = 250
 
@@ -187,6 +188,7 @@ export function combine (input: CombineInput): CombineResult {
     if (!isCorpusPage(sel.page)) continue
     const r = buildCorpus(sel.page, lang).build(picks, mode)
     corpusSels.push({ page: sel.page, picks })
+    corpusUnresolved.push(r.unresolved)
     modTokens.push(...r.usedTokens)
     if (mode === 'any') anyTokens.push(...r.usedTokens)
     else if (mode === 'none') noneTokens.push(...r.usedTokens)
@@ -218,8 +220,7 @@ export function combine (input: CombineInput): CombineResult {
     check = u.corpus.verify(selected, verifyQuery)
     const unresolvedSet = new Set<number>()
     corpusSels.forEach((s, k) => {
-      const r = buildCorpus(s.page, lang).build(s.picks, mode)
-      for (const i of r.unresolved) unresolvedSet.add(u.offsets[k] + i)
+      for (const i of corpusUnresolved[k]) unresolvedSet.add(u.offsets[k] + i)
     })
     for (const i of check.extra) {
       const [page, entry] = u.owner[i]
@@ -233,15 +234,21 @@ export function combine (input: CombineInput): CombineResult {
     for (const a of check.ambient) conflicts.push({ kind: 'ambient', text: a })
 
     // 演算法片段 / 排除詞 對聯集詞綴行
-    const lines: Array<{ idx: number, text: string }> = []
-    for (let i = 0; i < u.corpus.size(); i++) {
-      const e = u.corpus.at(i)
-      for (const l of [...e.texts, ...(e.hidden ?? [])]) for (const t of instantiate(l)) lines.push({ idx: i, text: t })
+    // 只有真的要比對(有演算法片段,或非 none 模式有排除詞)才展開 lines
+    let linesMemo: Array<{ idx: number, text: string }> | null = null
+    const getLines = (): Array<{ idx: number, text: string }> => {
+      if (linesMemo) return linesMemo
+      const out: Array<{ idx: number, text: string }> = []
+      for (let i = 0; i < u.corpus.size(); i++) {
+        const e = u.corpus.at(i)
+        for (const l of [...e.texts, ...(e.hidden ?? [])]) for (const t of instantiate(l)) out.push({ idx: i, text: t })
+      }
+      return (linesMemo = out)
     }
     for (const f of algoFrags) {
       const re = safeRegExp(f.frag)
       if (!re) continue
-      const hit = lines.find(l => re.test(l.text))
+      const hit = getLines().find(l => re.test(l.text))
       if (hit) conflicts.push({ kind: 'fragment', page: f.page, entry: f.entry, text: `${f.frag} ⇐ ${hit.text}` })
     }
     if (mode !== 'none') {
@@ -249,7 +256,7 @@ export function combine (input: CombineInput): CombineResult {
       for (const x of excludes) {
         const re = safeRegExp(x.token)
         if (!re) continue
-        const hit = lines.find(l => picked.has(l.idx) && re.test(l.text))
+        const hit = getLines().find(l => picked.has(l.idx) && re.test(l.text))
         if (hit) {
           const [page, entry] = u.owner[hit.idx]
           conflicts.push({ kind: 'exclude', page, entry, text: `${x.text} ⇐ ${hit.text}` })

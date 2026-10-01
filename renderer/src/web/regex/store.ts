@@ -13,7 +13,7 @@
  * - 行為移植自 PobTools `host/regex_tool_ui.cpp`(`restoreState` :308、`switchGame` :1006、`loadBookmark` :832、
  *   `updateBookmark` :868、`commitName` :944)。
  */
-import { computed, reactive, shallowRef } from 'vue'
+import { computed, markRaw, reactive, shallowRef } from 'vue'
 import {
   algoPages, applyPageKeys, mergeLabels, buildCorpus, combine, decodeShare, defaultRegexState, encodeShare, isAlgoPage, pageKeysOf,
   parseLabels, parseRegexCatalogue, parseRegexState, parseTemplates, picksFor, resolveState, serializeRegexState, visibleRows,
@@ -87,7 +87,8 @@ async function fetchCatalogue (game: RegexGame): Promise<void> {
     const labels = mergeLabels(cat.labels, fallback)
     slot.labelsFrom = cat.labels ? 'data' : fallback ? 'fallback' : ''
     cat.pages.push(...algoPages(game, labels))
-    slot.cat = cat
+    // 清單 ~3 MB 且載入後唯讀(沒有任何地方就地修改):markRaw 避免整份被包成深層 reactive proxy
+    slot.cat = markRaw(cat)
     slot.phase = 'ready'
     onCatalogueReady(cat)
   } catch (e) {
