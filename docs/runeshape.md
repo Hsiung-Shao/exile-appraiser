@@ -49,6 +49,7 @@ PoE2 **符文塑形面板**(Runes of Aldur 機制)開著時,自動辨識每一�
    (`奇術熔劑(等級18)` = items.ndjson `奇術熔劑（等級18）` 正規化後)。
 3. 精確(正規化後相同)→ 模糊:Levenshtein 相似度 ≥ `FUZZY_MIN_SIM`(0.85)且長度差 ≤ `FUZZY_MAX_LEN_DIFF`(2),與揭露面板同門檻;
    **數字必須完全相同**(`(等級18)` 不會模糊到 `(等級19)`)。短名稱錯一字(6 字錯 1 = 0.83)不猜。UI 在價格前標「≈」。
+   (效能修正第 8 步:`lookupRuneName` 依長度剪枝、分桶保原順序、預算 `digitsOf`、結果 LRU,結果與全掃逐位元相同;見 `docs/reveal-ocr.md`「模糊比對」)
 4. 重名:ITEM 依類別優先序取最高那層(`ITEM_CATEGORY_PRIORITY`:Currency > SoulCore(符文 / 靈魂核心)> UncutSkillGem > Omen > MapFragment > …;
    不在表上的類別排表後、QuestItem 最後)。最高那層仍有 2 個以上不同 refName(或模糊同分)→ `ambiguous`(候選清單),**不給 refName、不查價**。
    例:`破碎三曲` 通貨 vs 任務物品 → 通貨;`絕望` 靠前綴分技能 `Despair` / 輔助 `Desperation`。

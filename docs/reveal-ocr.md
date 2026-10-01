@@ -148,6 +148,29 @@ renderer `ocr-match.ts` `selectPanel` 對**每一段候選面板**套用(全被�
 
 「行程內」耗時也下降(不再對大字串跑 regex / base64 解碼、少組 words 字串)。main 執行緒上原本的 base64 + JSON 只有 1.4 ms(595 KB)~ 3.3 ms(3 MB),省下的主要是 PowerShell 端。
 
+### 模糊比對(效能修正第 8 步,2026-10-01;定位 / 揭露比對 / 符文名稱共用 `ocr-text.ts`)
+
+比對結果與改前**逐位元相同**(門檻、分數、同分順序都沒變),只少算:
+- **長度剪枝**(`fuzzyLengthPossible`):Levenshtein ≥ 長度差 d,故相似度 ≤ `1 − d / max(L, m, 1)`;用與比對處同一個浮點式判定,
+  換算為 d = 0 恆比、d = 1 要較長者 ≥ 7 字、d = 2 要 ≥ 14 字(L ≤ 5 只比同長;6 → 6–7;7–11 → ±1;12–13 → −1…+2;≥ 14 → ±2)。
+  被剪掉的候選原本也是「低於門檻 → 跳過」,不影響最高分與命中清單。
+- **分桶 + 原順序**(`FuzzyCandidates`):模板 skeleton / 名稱 key 依碼點長度分桶、碼點陣列預先切好;候選取出後依原始索引排序,
+  「取最高分、同分依出現順序」與全掃相同。符文名稱的 `digitsOf(key)` 預算。
+- **Levenshtein** 改吃碼點陣列、兩列 `Int32Array` 緩衝重用(不遞迴、不呼叫外部程式碼 → 不重入)。
+- **結果 LRU**(上限 2,000):`lineLooksLikeMod` / `matchLine`(鍵 = 正規化後的 skeleton)、`lookupRuneName`(鍵 = 名稱);
+  掛在索引物件上(WeakMap / `OcrIndex` 欄位),換資料自然失效;回傳的物件每次新建,不與快取共用。
+- 等價測試 `poe2/test/desecration/ocr-fuzzy-equivalence.test.ts`(oracle = 改前實作,只放在測試檔):全部 OCR 快照的行(含相鄰兩行接起來)、
+  所有 skeleton / key 本身、固定種子擾動各 6,000 筆,第二次呼叫(走快取)也要相同。
+
+耗時(vitest 內、快照行,中位數;冷 = 新索引第一次、熱 = 同一份畫面再算):
+
+| 呼叫 | 改前 冷 / 熱 | 改後 冷 / 熱 |
+|---|---|---|
+| `findPanelHits` fullscreen-02(13 行) | 0.6–0.8 / 0.43 ms | 0.16–0.88 / 0.02 ms |
+| `findPanelHits` tooltip-gloves-advanced-01(88 行) | 13.8–17.4 / 13.9–15.7 ms | 3.1–4.3 / 0.15 ms |
+| `matchReveal` tooltip-gloves-advanced-01 | 14.2–14.6 / 12.7–13.4 ms | 2.2–4.1 / 0.13–0.21 ms |
+| `matchRunesRowsWith` skills-01(12 列) | 8.6–13.5 / 9.9–11.4 ms | 1.7–2.2 / 0.02 ms |
+
 ### 設定頁(與符文塑形對等,2026-10-01)
 
 使用者要求「褻瀆詞綴辨識與符文的辨識開關一樣可以做設定;設定褻瀆的快捷設定位置移到褻瀆框中;移除褻瀆手動輸入比例;

@@ -15,11 +15,14 @@ import {
   CJK,
   FUZZY_MIN_SIM,
   EPS,
+  FuzzyCandidates,
   GROUP_GAP_RATIO,
+  Lru,
   PANEL_GAP_RATIO,
+  codePoints,
+  levenshteinCp,
   normalizeOcrText,
   ocrSkeleton,
-  skeletonSimilarity,
   templateSkeleton,
   type OcrTextLine,
 } from "./ocr-text";
@@ -64,10 +67,43 @@ export function lineLooksLikeMod(text: string, idx: LocateIndex): boolean {
   if (!CJK.test(norm)) return false;
   const { skeleton } = ocrSkeleton(norm);
   if (idx.set.has(skeleton)) return true;
-  for (const t of idx.list) {
-    if (skeletonSimilarity(skeleton, t) >= FUZZY_MIN_SIM - EPS) return true;
+  const c = fuzzyCache(idx);
+  const cached = c.results.get(skeleton);
+  if (cached !== undefined) return cached;
+  // 同 `skeletonSimilarity(skeleton, t) >= FUZZY_MIN_SIM - EPS` 全掃 idx.list(結果只是「有沒有」,順序不影響),
+  // 只算長度上可能達門檻的候選(`fuzzyLengthPossible`)
+  const S = codePoints(skeleton);
+  let found = false;
+  for (const i of c.cands.candidates(S.length)) {
+    const T = c.cands.cps[i];
+    if (1 - levenshteinCp(S, T) / Math.max(S.length, T.length, 1) >= FUZZY_MIN_SIM - EPS) {
+      found = true;
+      break;
+    }
   }
-  return false;
+  c.results.set(skeleton, found);
+  return found;
+}
+
+/**
+ * 效能修正第 8 步:每個索引一份「依長度分桶的候選 + 模糊結果 LRU(鍵 = 正規化後的 skeleton)」。
+ * 掛在索引物件上(WeakMap),換索引自然失效;`list` 被換掉或長度變了也重建(索引照理建好就不改)。
+ */
+interface LocateFuzzyCache {
+  list: string[];
+  n: number;
+  cands: FuzzyCandidates<string>;
+  results: Lru<string, boolean>;
+}
+const locateFuzzy = new WeakMap<LocateIndex, LocateFuzzyCache>();
+
+function fuzzyCache(idx: LocateIndex): LocateFuzzyCache {
+  let c = locateFuzzy.get(idx);
+  if (!c || c.list !== idx.list || c.n !== idx.list.length) {
+    c = { list: idx.list, n: idx.list.length, cands: new FuzzyCandidates(idx.list, (t) => t), results: new Lru() };
+    locateFuzzy.set(idx, c);
+  }
+  return c;
 }
 
 const cy = (l: Rect) => l.y + l.h / 2;

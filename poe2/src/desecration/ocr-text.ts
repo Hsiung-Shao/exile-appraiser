@@ -65,24 +65,126 @@ export function templateSkeleton(template: string): { skeleton: string; slots: A
   return { skeleton, slots };
 }
 
-export function levenshtein(a: string, b: string): number {
-  const A = [...a];
-  const B = [...b];
-  let prev = Array.from({ length: B.length + 1 }, (_, j) => j);
-  for (let i = 1; i <= A.length; i++) {
-    const cur = [i];
-    for (let j = 1; j <= B.length; j++) {
-      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (A[i - 1] === B[j - 1] ? 0 : 1));
-    }
-    prev = cur;
+/** 依碼點切開(與 `[...s]` 同一種切法:代理對算一個字) */
+export function codePoints(s: string): string[] {
+  return [...s];
+}
+
+// 效能修正第 8 步:Levenshtein 的兩列緩衝重複使用(不每列新建陣列)。函式不遞迴、不呼叫外部程式碼 → 單執行緒下不會重入;
+// 迴圈內只用區域變數 prev / cur 指向的那兩塊,擴容只影響之後的呼叫。
+let levRowA = new Int32Array(64);
+let levRowB = new Int32Array(64);
+
+/** 已切成碼點的 Levenshtein(結果與 `levenshtein(a, b)` 相同) */
+export function levenshteinCp(A: readonly string[], B: readonly string[]): number {
+  const n = B.length;
+  if (levRowA.length < n + 1) {
+    levRowA = new Int32Array(n + 1);
+    levRowB = new Int32Array(n + 1);
   }
-  return prev[B.length];
+  let prev = levRowA;
+  let cur = levRowB;
+  for (let j = 0; j <= n; j++) prev[j] = j;
+  for (let i = 1; i <= A.length; i++) {
+    cur[0] = i;
+    const ai = A[i - 1];
+    for (let j = 1; j <= n; j++) {
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (ai === B[j - 1] ? 0 : 1));
+    }
+    const t = prev;
+    prev = cur;
+    cur = t;
+  }
+  return prev[n];
+}
+
+export function levenshtein(a: string, b: string): number {
+  return levenshteinCp(codePoints(a), codePoints(b));
 }
 
 /** skeleton 模糊相似度(1 = 相同);長度差 > FUZZY_MAX_LEN_DIFF 回 0(不值得算) */
 export function skeletonSimilarity(a: string, b: string): number {
-  const la = [...a].length;
-  const lb = [...b].length;
-  if (Math.abs(la - lb) > FUZZY_MAX_LEN_DIFF) return 0;
-  return 1 - levenshtein(a, b) / Math.max(la, lb, 1);
+  const A = codePoints(a);
+  const B = codePoints(b);
+  if (Math.abs(A.length - B.length) > FUZZY_MAX_LEN_DIFF) return 0;
+  return 1 - levenshteinCp(A, B) / Math.max(A.length, B.length, 1);
+}
+
+/**
+ * 效能修正第 8 步:長度剪枝。查詢長度 L、候選長度 m 時相似度的上界:
+ * Levenshtein ≥ d = |L − m|,且 `1 − x / M` 對 x 單調遞減(同一個 M 下浮點除法也單調)→ `sim ≤ 1 − d / M`,M = max(L, m, 1)。
+ * 上界都達不到門檻(或 d > FUZZY_MAX_LEN_DIFF)的長度,原本的比對一定以「低於門檻」跳過 → 不必算,結果不變。
+ * 用與比對處**同一個浮點運算式**判定(不手寫常數);換算:d = 0 恆可、d = 1 要 M ≥ 7、d = 2 要 M ≥ 14。
+ * (`matchLine` 的分母寫成 max(L, m):呼叫時 L ≥ 1(skeleton 含 CJK 字),與 max(L, m, 1) 相同。)
+ */
+export function fuzzyLengthPossible(L: number, m: number): boolean {
+  const d = Math.abs(L - m);
+  if (d > FUZZY_MAX_LEN_DIFF) return false;
+  return 1 - d / Math.max(L, m, 1) >= FUZZY_MIN_SIM - EPS;
+}
+
+/**
+ * 模糊比對的候選表:依碼點長度分桶,`candidates(L)` 回傳可能達門檻的候選**索引,遞增排序 = 原本的遍歷順序**
+ * (「取最高分、同分依出現順序」的語意因此與全掃相同)。碼點陣列預先切好(`cps[i]`)。資料建好後不可再改。
+ */
+export class FuzzyCandidates<T> {
+  readonly items: readonly T[];
+  readonly cps: string[][];
+  private readonly byLen = new Map<number, number[]>();
+  private readonly memo = new Map<number, number[]>();
+
+  constructor(items: readonly T[], keyOf: (t: T) => string) {
+    this.items = items;
+    this.cps = items.map((t) => codePoints(keyOf(t)));
+    this.cps.forEach((cp, i) => {
+      const b = this.byLen.get(cp.length);
+      if (b) b.push(i);
+      else this.byLen.set(cp.length, [i]);
+    });
+  }
+
+  candidates(L: number): number[] {
+    let out = this.memo.get(L);
+    if (out) return out;
+    out = [];
+    for (let m = Math.max(0, L - FUZZY_MAX_LEN_DIFF); m <= L + FUZZY_MAX_LEN_DIFF; m++) {
+      if (!fuzzyLengthPossible(L, m)) continue;
+      const b = this.byLen.get(m);
+      if (b) out.push(...b);
+    }
+    out.sort((a, b) => a - b);
+    this.memo.set(L, out);
+    return out;
+  }
+}
+
+/** 模糊比對結果快取上限(每個索引各一份) */
+export const FUZZY_CACHE_MAX = 2000;
+
+/** 有上限的 LRU(Map 插入順序 = 新舊;讀到就移到最新)。值可以是 null / false,用 `has` 判斷有沒有 */
+export class Lru<K, V> {
+  private readonly map = new Map<K, V>();
+  constructor(readonly max: number = FUZZY_CACHE_MAX) {}
+
+  has(k: K): boolean {
+    return this.map.has(k);
+  }
+
+  get(k: K): V | undefined {
+    if (!this.map.has(k)) return undefined;
+    const v = this.map.get(k) as V;
+    this.map.delete(k);
+    this.map.set(k, v);
+    return v;
+  }
+
+  set(k: K, v: V): void {
+    if (this.map.has(k)) this.map.delete(k);
+    else if (this.map.size >= this.max) this.map.delete(this.map.keys().next().value as K);
+    this.map.set(k, v);
+  }
+
+  get size(): number {
+    return this.map.size;
+  }
 }

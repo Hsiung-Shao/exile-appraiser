@@ -20,7 +20,16 @@
  * 本檔**零依賴**(相對路徑 import `ocr-text` / `row-format`,不碰 `@/assets/data`):renderer 由 `match.ts` 包上目前語系的索引;
  * main 的 `--runeshape-selftest` 自己讀 items.ndjson + recipes.json 建索引後直接呼叫 `matchRunesRowsWith`。
  */
-import { EPS, FUZZY_MAX_LEN_DIFF, FUZZY_MIN_SIM, levenshtein, normalizeOcrText } from "../desecration/ocr-text";
+import {
+  EPS,
+  FUZZY_MAX_LEN_DIFF,
+  FUZZY_MIN_SIM,
+  FuzzyCandidates,
+  Lru,
+  codePoints,
+  levenshteinCp,
+  normalizeOcrText,
+} from "../desecration/ocr-text";
 import { RIGHT_ALIGN_LINES, UNDISCOVERED_ROW_NAMES, parseRuneRow, type ParsedRuneRow, type RuneRowKind } from "./row-format";
 
 /** 與 `@ipc/types` 的 `RuneshapeScanRow` 同形(client 實體像素) */
@@ -197,21 +206,63 @@ interface Lookup {
 
 const digitsOf = (s: string) => (s.match(/\d+/g) ?? []).join(",");
 
-function lookup(map: Map<string, Entry[]>, name: string): Lookup | null {
+/**
+ * 效能修正第 8 步:每個 namespace map 一份「依碼點長度分桶的 key(順序 = Map 插入順序)+ 預算 digitsOf + 模糊結果 LRU」。
+ * 掛在 map 物件上(WeakMap):換語系 / 重載資料時 `buildRuneshapeIndex` 建新 map,快取自然失效;map 大小變了也重建
+ * (索引照理建好就不改)。
+ */
+interface LookupCache {
+  size: number;
+  cands: FuzzyCandidates<[string, Entry[]]>;
+  digits: string[];
+  results: Lru<string, Lookup | null>;
+}
+const lookupCaches = new WeakMap<Map<string, Entry[]>, LookupCache>();
+
+function lookupCache(map: Map<string, Entry[]>): LookupCache {
+  let c = lookupCaches.get(map);
+  if (!c || c.size !== map.size) {
+    const cands = new FuzzyCandidates([...map], ([key]) => key);
+    c = { size: map.size, cands, digits: cands.items.map(([key]) => digitsOf(key)), results: new Lru() };
+    lookupCaches.set(map, c);
+  }
+  return c;
+}
+
+/** 名稱 → 條目(精確 → 模糊;規則見檔頭)。匯出給等價測試 */
+export function lookupRuneName(map: Map<string, Entry[]>, name: string): Lookup | null {
   if (!name) return null;
   const exact = map.get(name);
   if (exact?.length) return { match: "exact", entries: topEntries(exact) };
-  const len = [...name].length;
+  const c = lookupCache(map);
+  let r = c.results.get(name);
+  if (r === undefined) {
+    r = fuzzyLookup(c, name);
+    c.results.set(name, r);
+  }
+  // 每次回傳新物件(快取內容不外流)
+  return r ? { match: r.match, entries: [...r.entries], similarity: r.similarity } : null;
+}
+
+/**
+ * 模糊:與依 Map 插入順序全掃相同(同分依順序收、`topEntries` 先到先收),
+ * 只跳過長度上不可能達門檻的 key(`fuzzyLengthPossible`;全掃時它們也是「低於門檻 → continue」)。
+ */
+function fuzzyLookup(c: LookupCache, name: string): Lookup | null {
+  const N = codePoints(name);
+  const len = N.length;
   // 數字(等級)必須完全相同:`奇術熔劑(等級18)` 與 `(等級19)` 只差一個字,相似度 0.9,但是不同物品
   const digits = digitsOf(name);
   let best = 0;
   let hits: Entry[] = [];
-  for (const [key, list] of map) {
-    const kl = [...key].length;
+  for (const i of c.cands.candidates(len)) {
+    const K = c.cands.cps[i];
+    const kl = K.length;
     if (Math.abs(kl - len) > FUZZY_MAX_LEN_DIFF) continue;
-    if (digitsOf(key) !== digits) continue;
-    const sim = 1 - levenshtein(name, key) / Math.max(kl, len, 1);
+    if (c.digits[i] !== digits) continue;
+    const sim = 1 - levenshteinCp(N, K) / Math.max(kl, len, 1);
     if (sim < FUZZY_MIN_SIM - EPS) continue;
+    const list = c.cands.items[i][1];
     if (sim > best + EPS) {
       best = sim;
       hits = [...list];
@@ -245,7 +296,7 @@ function lookupRecipe(index: RuneshapeIndex, p: ParsedRuneRow): RecipeLookup | n
   cands.push({ key: p.fullName, intrinsicQty: false });
   let best: RecipeLookup | null = null;
   for (const c of cands) {
-    const found = lookup(index.recipe, c.key);
+    const found = lookupRuneName(index.recipe, c.key);
     if (found && better(found, best)) best = { ...found, intrinsicQty: c.intrinsicQty, norm: c.key };
   }
   return best;
@@ -292,7 +343,7 @@ export function matchRunesRowsWith(lines: RuneshapeOcrRow[], index: RuneshapeInd
     if (panelRight != null && !p.prefixed && Math.abs(l.x + l.w - panelRight) > RIGHT_ALIGN_LINES * lineH) row.offPanel = true;
     const map = p.kind === "item" ? index.item : p.kind === "support" ? index.support : index.skill;
     // 帶等級後綴的物品(奇術熔劑(等級18)、未切割寶石)以含等級的全名比對:等級不同就是不同物品
-    let found = lookup(map, p.fullName);
+    let found = lookupRuneName(map, p.fullName);
     if (p.kind === "item") {
       const recipe = lookupRecipe(index, p);
       if (pickItemOrRecipe(found, recipe) === "recipe") {

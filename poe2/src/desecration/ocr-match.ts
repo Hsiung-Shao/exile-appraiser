@@ -30,9 +30,13 @@ import {
   EPS,
   FUZZY_MAX_LEN_DIFF,
   FUZZY_MIN_SIM,
+  FuzzyCandidates,
   GROUP_GAP_RATIO,
+  Lru,
   PANEL_GAP_RATIO,
+  codePoints,
   levenshtein,
+  levenshteinCp,
   normalizeOcrText,
   ocrSkeleton,
   templateSkeleton,
@@ -140,6 +144,10 @@ interface OcrIndex {
   bySkeleton: Map<string, TemplateInfo>;
   list: TemplateInfo[];
   allProfiles: string[];
+  /** 效能修正第 8 步:`list` 依碼點長度分桶(候選順序 = list 順序) */
+  fuzzy: FuzzyCandidates<TemplateInfo>;
+  /** 模糊命中結果 LRU(鍵 = skeleton;值 = hits,null = 沒命中);索引跟著 data 換,快取一起換 */
+  fuzzyHits: Lru<string, TemplateHit[] | null>;
 }
 
 const indexCache = new WeakMap<DesecrationData, OcrIndex>();
@@ -170,11 +178,14 @@ export function ocrIndex(data: DesecrationData): OcrIndex {
       }
     });
   }
+  const list = [...bySkeleton.values()];
   idx = {
     data,
     bySkeleton,
-    list: [...bySkeleton.values()],
+    list,
     allProfiles: data.tiers.profiles.map((p) => p.id),
+    fuzzy: new FuzzyCandidates(list, (info) => info.skeleton),
+    fuzzyHits: new Lru(),
   };
   indexCache.set(data, idx);
   return idx;
@@ -187,13 +198,30 @@ export function matchLine(text: string, data: DesecrationData): LineMatch | null
   const { skeleton, values } = ocrSkeleton(norm);
   const exact = idx.bySkeleton.get(skeleton);
   if (exact) return { norm, skeleton, values, hits: [{ info: exact, score: 1, fuzzy: false }] };
-  const len = [...skeleton].length;
+  let fuzzyHits = idx.fuzzyHits.get(skeleton);
+  if (fuzzyHits === undefined) {
+    fuzzyHits = fuzzyMatch(idx, skeleton);
+    idx.fuzzyHits.set(skeleton, fuzzyHits);
+  }
+  // 每次回傳新物件(快取裡的 hits 不外流,呼叫端改了也不影響下一次)
+  return fuzzyHits ? { norm, skeleton, values, hits: fuzzyHits.map((h) => ({ ...h })) } : null;
+}
+
+/**
+ * 模糊命中(只留最高分;差 ≤ EPS 視為同分,依 list 順序收)。與全掃 list 相同,只是跳過長度上不可能達門檻的候選
+ * (`fuzzyLengthPossible`;被跳過的在全掃時也是「低於門檻 → continue」,不動 best / hits)。
+ */
+function fuzzyMatch(idx: OcrIndex, skeleton: string): TemplateHit[] | null {
+  const S = codePoints(skeleton);
+  const len = S.length;
   let best = 0;
   let hits: TemplateHit[] = [];
-  for (const info of idx.list) {
-    const l2 = [...info.skeleton].length;
+  for (const i of idx.fuzzy.candidates(len)) {
+    const info = idx.list[i];
+    const T = idx.fuzzy.cps[i];
+    const l2 = T.length;
     if (Math.abs(l2 - len) > FUZZY_MAX_LEN_DIFF) continue;
-    const sim = 1 - levenshtein(skeleton, info.skeleton) / Math.max(len, l2);
+    const sim = 1 - levenshteinCp(S, T) / Math.max(len, l2);
     if (sim < FUZZY_MIN_SIM - EPS || sim < best - EPS) continue;
     if (sim > best + EPS) {
       best = sim;
@@ -201,7 +229,7 @@ export function matchLine(text: string, data: DesecrationData): LineMatch | null
     }
     hits.push({ info, score: sim, fuzzy: true });
   }
-  return hits.length ? { norm, skeleton, values, hits } : null;
+  return hits.length ? hits : null;
 }
 
 /** 動態槽的數值(OCR 數值個數與模板槽數不同 → null = 只靠文字) */
