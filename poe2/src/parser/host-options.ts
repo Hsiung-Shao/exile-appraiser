@@ -19,10 +19,15 @@ export interface HostOptions {
   savedAugments: { [key: string]: Array<string | null> };
   /** 上游 PriceCheckWidget.searchStatRange(詞綴數值容差 %)。 */
   searchStatRange: number;
+  /**
+   * 介面語言(`cmn-Hant` / `en`,renderer `AppConfig().uiLanguage`)。第 19 步:查價結果懸停浮窗的
+   * 詞綴 / 物品名在這裡是 `cmn-Hant` 時換成繁中(`trade/display-zh.ts`);浮窗的 `item.*` 標籤本來就跟介面語言。
+   */
+  uiLanguage: string;
 }
 
 export function defaultHostOptions(): HostOptions {
-  return { language: "en", savedAugments: {}, searchStatRange: 10 };
+  return { language: "en", savedAugments: {}, searchStatRange: 10, uiLanguage: "en" };
 }
 
 let overrides: Partial<HostOptions> = {};

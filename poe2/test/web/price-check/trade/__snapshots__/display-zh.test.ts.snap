@@ -1,0 +1,162 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`懸停浮窗繁中(display-zh) > 錄製回應逐行結果(快照)與覆蓋率 1`] = `
+"## 65c7c4e8 ["Collector's Corsair Cap of Curvation"] → ["Collector's Corsair Cap of Curvation"]
+  [ambiguous] explicit explicit.stat_3917489142 "14% increased Rarity of Items found" → null
+  [ok] explicit explicit.stat_3033371881 "Gain Deflection Rating equal to 17% of Evasion Rating" → "獲得等同17%閃避值的偏斜值"
+## 00d17082 ["Phoenix Brand","Crumbling Maul"] → ["Phoenix Brand","崩毀重錘"]
+  [ok] implicit implicit.stat_1541903247 "Causes Enemies to Explode on Critical kill, for 10% of their Life as Physical Damage" → "透過暴擊擊殺敵人時使其爆炸，造成等同於其10%生命的物理傷害"
+  [ok] explicit explicit.stat_1037193709 "Adds 30 to 45 Cold Damage" → "附加30至45冰冷傷害"
+  [ok] explicit explicit.stat_4080418644 "+16 to Strength" → "+16點力量"
+  [ok] explicit explicit.stat_669069897 "Leeches 5.01% of Physical Damage as Mana" → "以5.01%物理傷害偷取魔力"
+  [ok] explicit explicit.stat_748522257 "16% increased Stun Duration" → "增加16%暈眩持續時間"
+## 288371eb ["Fate Core","Twin Crossbow"] → ["Fate Core","成雙十字弓"]
+  [ok] implicit implicit.stat_1967051901 "Loads an additional bolt" → "裝填額外1發弩箭"
+  [ok] explicit explicit.stat_1940865751 "Adds 8 to 20 Physical Damage" → "附加8至20物理傷害"
+  [ok] explicit explicit.stat_1037193709 "Adds 41 to 63 Cold Damage" → "附加41至63冰冷傷害"
+  [ok] explicit explicit.stat_210067635 "16% increased Attack Speed" → "增加16%攻擊速度"
+  [ok] explicit explicit.stat_4080418644 "+8 to Strength" → "+8點力量"
+## b8505bb6 ["Stout Plate Belt"] → ["Stout Plate Belt"]
+  [ok] implicit implicit.stat_809229260 "+101 to Armour" → "+101護甲值"
+  [ok] implicit implicit.stat_1416292992 "Has 1 Charm Slot" → "有1個護符欄位"
+  [ok] explicit explicit.stat_3299347043 "+61 to maximum Life" → "+61最大生命"
+## 8882d287 ["Hate Core","Cannonade Crossbow"] → ["Hate Core","砲擊十字弓"]
+  [ok] implicit implicit.stat_1980802737 "Grenade Skills Fire an additional Projectile" → "擲彈技能發射額外一個投射物"
+  [ok] explicit explicit.stat_709508406 "Adds 12 to 20 Fire Damage" → "附加12至20火焰傷害"
+  [ok] explicit explicit.stat_1037193709 "Adds 2 to 5 Cold Damage" → "附加2至5冰冷傷害"
+  [ok] explicit explicit.stat_691932474 "+42 to Accuracy Rating" → "+42命中值"
+  [ok] explicit explicit.stat_669069897 "Leeches 6.04% of Physical Damage as Mana" → "以6.04%物理傷害偷取魔力"
+## ed1e4577 ["Horror Ram","Heavy Greathammer"] → ["Horror Ram","重型巨錘"]
+  [ok] explicit explicit.stat_1940865751 "Adds 21 to 33 Physical Damage" → "附加21至33物理傷害"
+  [ok] explicit explicit.stat_2694482655 "+13% to Critical Damage Bonus" → "+13%的暴擊傷害加成"
+  [ok] explicit explicit.stat_210067635 "5% increased Attack Speed" → "增加5%攻擊速度"
+  [ok] explicit explicit.stat_4080418644 "+20 to Strength" → "+20點力量"
+## ece06af2 ["Phoenix Song","Smooth Quarterstaff"] → ["Phoenix Song","平滑細杖"]
+  [ok] explicit explicit.stat_1509134228 "22% increased Physical Damage" → "增加22%物理傷害"
+  [ok] explicit explicit.stat_691932474 "+36 to Accuracy Rating" → "+36命中值"
+  [ok] explicit explicit.stat_387439868 "51% increased Elemental Damage with Attacks" → "增加51%攻擊元素傷害"
+  [ok] explicit explicit.stat_2694482655 "+12% to Critical Damage Bonus" → "+12%的暴擊傷害加成"
+  [ok] explicit explicit.stat_748522257 "13% increased Stun Duration" → "增加13%暈眩持續時間"
+## 03d11f82 ["Eagle Breaker","Pointed Maul"] → ["Eagle Breaker","尖銳重錘"]
+  [ok] explicit explicit.stat_1509134228 "20% increased Physical Damage" → "增加20%物理傷害"
+  [ok] explicit explicit.stat_691932474 "+36 to Accuracy Rating" → "+36命中值"
+  [ok] explicit explicit.stat_210067635 "13% increased Attack Speed" → "增加13%攻擊速度"
+  [no-en-match] explicit explicit.stat_791928121 "Causes 23% increased Stun Buildup" → null
+  [ok] explicit explicit.stat_748522257 "11% increased Stun Duration" → "增加11%暈眩持續時間"
+## 8cf987de ["Crackling Gold Gloves of the Lynx"] → ["Crackling Gold Gloves of the Lynx"]
+  [ok] explicit explicit.stat_1754445556 "Adds 1 to 26 Lightning damage to Attacks" → "攻擊附加1至26閃電傷害"
+  [ok] explicit explicit.stat_3261801346 "+11 to Dexterity" → "+11點敏捷"
+## 79aebac8 ["Vortex Tether","Wide Belt"] → ["Vortex Tether","寬大腰帶"]
+  [ok] implicit implicit.stat_1416292992 "Has 1 Charm Slot" → "有1個護符欄位"
+  [ok] implicit implicit.stat_1836676211 "20% increased Flask Charges gained" → "增加20%藥劑充能獲取"
+  [ok] explicit explicit.stat_51994685 "8% increased Flask Life Recovery rate" → "增加8%藥劑生命恢復率"
+  [ok] explicit explicit.stat_4080418644 "+19 to Strength" → "+19點力量"
+  [ok] explicit explicit.stat_3325883026 "2.3 Life Regeneration per second" → "2.3每秒生命回復"
+  [ok] explicit explicit.stat_1836676211 "24% increased Flask Charges gained" → "增加24%藥劑充能獲取"
+## 4ac2e3cc ["Revered Resin","Amber Amulet"] → ["崇敬樹脂","琥珀護身符"]
+  [ok] implicit implicit.stat_4080418644 "+15 to Strength" → "+15點力量"
+  [ok] explicit explicit.stat_3299347043 "+53 to maximum Life" → "+53最大生命"
+  [ok] explicit explicit.stat_51994685 "26% increased Flask Life Recovery rate" → "增加26%藥劑生命恢復率"
+  [ok] explicit explicit.stat_1102738251 "Life Flasks gain 0.23 charges per Second" → "生命藥劑每秒獲得0.23充能"
+## 4ec60fea ["Loath Ram","Wrath Sceptre"] → ["Loath Ram","暴怒權杖"]
+  [ok] explicit explicit.stat_1050105434 "+120 to maximum Mana" → "+120最大魔力"
+  [ok] explicit explicit.stat_1798257884 "Allies in your Presence deal 59% increased Damage" → "增加59%處於你存在範圍中的友方所造成的傷害"
+  [ok] explicit explicit.stat_2854751904 "Allies in your Presence deal 2 to 41 added Attack Lightning Damage" → "處於你存在範圍中的友方造成2至41額外攻擊閃電傷害"
+  [ok] explicit explicit.stat_1998951374 "Allies in your Presence have 13% increased Attack Speed" → "處於你存在範圍中的友方增加13%攻擊速度"
+## 42a9dd42 ["Fortified Vase Relic of Dignity"] → ["Fortified Vase Relic of Dignity"]
+  [no-id] explicit - "Monsters deal 7% reduced Damage" → null
+  [no-id] explicit - "7% chance to Avoid gaining an Affliction" → null
+## 03d44656 ["Phoenix Edict","Precursor Tablet"] → ["Phoenix Edict","Precursor Tablet"]
+  [ok] implicit implicit.stat_4041853756 "Adds Irradiated to a Map \\n10 uses remaining" → "在地圖內加入照耀區域\\n剩餘10次使用"
+  [ambiguous] explicit explicit.stat_2065500219 "Monsters have 10% increased Effectiveness" → null
+  [ambiguous] explicit explicit.stat_2777224821 "39% increased Quantity of Waystones found in Map" → null
+  [ambiguous] explicit explicit.stat_1825943485 "Map has 85% increased chance to contain Essences" → null
+  [ambiguous] explicit explicit.stat_1276056105 "34% increased Gold found in Map" → null
+## 91c9f13d ["Vaal Inscribed Ultimatum of Hexing"] → ["Vaal Inscribed Ultimatum of Hexing"]
+  [unknown-id] explicit explicit.stat_3076483222|64921 "Sacrifice up to 10 Vaal Orbs to receive double on Trial completion" → null
+  [ok] explicit explicit.stat_4103440490 "Players are Cursed with Enfeeble" → "玩家被衰弱詛咒"
+  [ok] explicit explicit.stat_2326202293 "Players are Cursed with Temporal Chains" → "玩家被時空鎖鏈詛咒"
+  [ok] explicit explicit.stat_558910024 "Players are Cursed with Elemental Weakness" → "玩家被元素要害詛咒"
+## 11de0eee ["Djinn Barya"] → ["巨靈之幣"]
+## ae5ce789 ["Expedition Logbook"] → ["探險日誌"]
+## 0c8eb03c ["Desecrated Navigation","Waystone (Tier 16)"] → ["Desecrated Navigation","換界石（階級 16）"]
+  [ok] explicit explicit.stat_4130878258 "Area contains 12 additional packs of Faridun Monsters" → "區域含有額外12群法里登怪物"
+  [no-en-match] explicit explicit.stat_3793155082 "22% increased number of Rare Monsters" → null
+  [ok] explicit explicit.stat_3909654181 "Monsters have 11% increased Attack, Cast and Movement Speed" → "怪物增加11%攻擊、施放、移動速度"
+  [ok] explicit explicit.stat_1588049749 "Monsters have 40% increased Accuracy Rating" → "怪物增加40%命中值"
+  [ok] explicit explicit.stat_2539290279 "Monsters are Armoured" → "怪物為裝甲的"
+  [ok] explicit explicit.stat_3998863698 "Monsters have 125% increased Freeze Buildup" → "增加125%怪物的冰凍累積"
+  [ok] explicit explicit.stat_2508044078 "Monsters inflict 125% increased Flammability Magnitude" → "增加125%怪物造成的易燃幅度"
+  [ok] explicit explicit.stat_1898978455 "Monster Damage Penetrates 14% Elemental Resistances" → "怪物傷害穿透14%元素抗性"
+  [ok] explicit explicit.stat_1984618452 "Monsters have 125% increased Shock Chance" → "增加125%怪物的感電機率"
+## 65665041 ["Vibrant Sapphire Charm of the Continuous"] → ["Vibrant Sapphire Charm of the Continuous"]
+  [ok] implicit implicit.stat_2994271459 "Used when you take Cold damage from a Hit" → "當你被冰冷傷害擊中時使用"
+  [ok] explicit explicit.stat_2676834156 "Also grants 240 Guard" → "同時賦予240層守護"
+  [ok] explicit explicit.stat_3196823591 "31% increased Charges gained" → "增加31%獲得的充能"
+## 4e84249d ["Novice's Transcendent Life Flask"] → ["Novice's Transcendent Life Flask"]
+  [ok] explicit explicit.stat_2416869319 "Grants 54% of Life Recovery to Minions" → "得到54%召喚物生命恢復"
+## 2fa2f1ee ["Brood Pillar","Dreaming Quarterstaff"] → ["Brood Pillar","夢境細杖"]
+  [ok] rune rune.stat_1509134228 "36% increased Physical Damage" → "增加36%物理傷害"
+  [ok] rune rune.stat_1039491398 "Bonded: 40% increased effect of Fully Broken Armour" → "命定: 增加40%完全破甲的效果"
+  [ok] explicit explicit.stat_1509134228 "199% increased Physical Damage" → "增加199%物理傷害"
+  [ok] explicit explicit.stat_1940865751 "Adds 14 to 26 Physical Damage" → "附加14至26物理傷害"
+  [ok] explicit explicit.stat_691932474 "+77 to Accuracy Rating" → "+77命中值"
+  [ok] explicit explicit.stat_3695891184 "Gain 35 Life per enemy killed" → "每個被擊殺的敵人，獲得35生命"
+  [no-en-match] explicit explicit.stat_791928121 "Causes 43% increased Stun Buildup" → null
+  [ok] explicit explicit.stat_748522257 "18% increased Stun Duration" → "增加18%暈眩持續時間"
+## fba00b0c ["Vengeance Core","Trarthan Cannon"] → ["Vengeance Core","特拉特斯巨砲"]
+  [ok] enchant enchant.stat_2694482655 "+6% to Critical Damage Bonus" → "+6%的暴擊傷害加成"
+  [ok] rune rune.stat_1509134228 "36% increased Physical Damage" → "增加36%物理傷害"
+  [ok] rune rune.stat_1039491398 "Bonded: 40% increased effect of Fully Broken Armour" → "命定: 增加40%完全破甲的效果"
+  [ok] implicit implicit.stat_3663551379 "Cannot load or fire Ammunition" → "無法裝填或發射彈藥"
+  [ok] explicit stat.fractured.stat_709508406 "Adds 111 to 169 Fire Damage" → "附加111至169火焰傷害"
+  [ok] explicit stat.explicit.stat_1037193709 "Adds 56 to 88 Cold Damage" → "附加56至88冰冷傷害"
+  [ok] explicit stat.explicit.stat_691932474 "+47 to Accuracy Rating" → "+47命中值"
+  [ok] explicit stat.explicit.stat_3639275092 "35% reduced Attribute Requirements" → "減少35%能力值需求"
+  [ambiguous] explicit stat.explicit.stat_1263695895 "15% increased Light Radius" → null
+  [ok] explicit stat.desecrated.stat_2250681686 "Grenade Skills have +1 Cooldown Use" → "擲彈技能有+1次冷卻使用次數"
+  [ok] explicit stat.crafted.stat_3035140377 "+3 to Level of all Attack Skills" → "全部攻擊技能等級+3"
+  [ok] pseudo pseudo.pseudo_number_of_crafted_mods "1 Crafted Modifiers" → "1 工藝詞綴"
+  [ok] pseudo pseudo.pseudo_number_of_enchant_mods "1 Enchant Modifiers" → "1 附魔詞綴"
+  [ok] pseudo pseudo.pseudo_number_of_desecrated_mods "1 Desecrated Modifiers" → "1褻瀆詞綴"
+  [ok] pseudo pseudo.pseudo_number_of_implicit_mods "1 Implicit Modifiers" → "1 固定詞綴"
+  [ok] pseudo pseudo.pseudo_number_of_fractured_mods "1 Fractured Modifiers" → "1 破裂詞綴"
+## 95bcbe83 ["Viper Skin","Swiftstalker Coat"] → ["Viper Skin","迅疾潛獵者外套"]
+  [ok] implicit implicit.stat_924253255 "22% reduced Slowing Potency of Debuffs on You" → "減少22%你身上的減益效果緩速程度"
+  [ok] explicit stat.explicit.stat_53045048 "+186 to Evasion Rating" → "+186閃避值"
+  [ok] explicit stat.explicit.stat_3325883026 "19.5 Life Regeneration per second" → "19.5每秒生命回復"
+  [ok] explicit stat.explicit.stat_915769802 "+282 to Stun Threshold" → "暈眩門檻+282"
+  [ok] explicit stat.explicit.stat_1692879867 "54% reduced Duration of Bleeding on You" → "減少54%你身上的流血持續時間"
+  [ok] pseudo pseudo.pseudo_number_of_unrevealed_mods "1 Unrevealed Modifiers" → "1未揭露詞綴"
+## eed7affd ["Powered by Verisium"] → ["維里西姆強化"]
+## 3a8b2e9c ["Powered by Verisium"] → ["維里西姆強化"]
+## e4f95bbc ["Powered by Verisium"] → ["維里西姆強化"]
+## d733e91b ["Powered by Verisium"] → ["維里西姆強化"]
+## 9ee15f16 ["Powered by Verisium"] → ["維里西姆強化"]
+## c30cefe0 ["Powered by Verisium"] → ["維里西姆強化"]
+## b959ae3e ["Powered by Verisium"] → ["維里西姆強化"]
+## 3ac53c38 ["Powered by Verisium"] → ["維里西姆強化"]
+## 9b678cb4 ["Powered by Verisium"] → ["維里西姆強化"]
+## 9ac256a1 ["Powered by Verisium"] → ["維里西姆強化"]"
+`;
+
+exports[`懸停浮窗繁中(display-zh) > 錄製回應逐行結果(快照)與覆蓋率 2`] = `
+{
+  "kept": [
+    "ambiguous explicit.stat_3917489142 14% increased Rarity of Items found",
+    "no-en-match explicit.stat_791928121 Causes 23% increased Stun Buildup",
+    "no-id - Monsters deal 7% reduced Damage",
+    "no-id - 7% chance to Avoid gaining an Affliction",
+    "ambiguous explicit.stat_2065500219 Monsters have 10% increased Effectiveness",
+    "ambiguous explicit.stat_2777224821 39% increased Quantity of Waystones found in Map",
+    "ambiguous explicit.stat_1825943485 Map has 85% increased chance to contain Essences",
+    "ambiguous explicit.stat_1276056105 34% increased Gold found in Map",
+    "unknown-id explicit.stat_3076483222|64921 Sacrifice up to 10 Vaal Orbs to receive double on Trial completion",
+    "no-en-match explicit.stat_3793155082 22% increased number of Rare Monsters",
+    "no-en-match explicit.stat_791928121 Causes 43% increased Stun Buildup",
+    "ambiguous stat.explicit.stat_1263695895 15% increased Light Radius",
+  ],
+  "ok": 92,
+  "total": 104,
+}
+`;

@@ -66,6 +66,7 @@ Path of Exile 查價工具(Electron + TypeScript)。把 `apt-patched`(Awakened P
    - `poe1/src/web/background/Leagues.ts`、`trade/{RateLimiter,Cache}.ts`:轉接殼
    - `.vue` 元件的改動見各檔頭 `exile-appraiser:` 註解
    - `poe2/…/trade/TradeItem.vue`(物品浮窗):tippy `appendTo: () => document.body` + flip 後備(第 14 項耦合點,原因見 `docs/poe2-port-notes.md`);設定 › 查價「滑鼠懸停顯示物品」只在 PoE2 顯示
+   - `poe2/…/trade/pathofexile-trade.ts` `requestResults`(第 19 步,耦合點 15):國際服 + 介面語言繁中時,浮窗詞綴 / 物品名經自寫的 `trade/display-zh.ts` 換成 `data/poe2/cmn-Hant` 繁中(trade stat id → `ref` 配對、英文行須完整匹配英文 matcher、`negate`/`value` 挑變體,不唯一就保留英文;tier 不動),細節見 `docs/poe2-port-notes.md`「物品浮窗繁中」
    - PoE2(`poe2/`)的完整清單見 `docs/poe2-port-notes.md`;`poe2/test/src-coupling.test.ts` 擋 src 再 import `@/web/Config` / IPC / `import.meta.env`
 7. **未解析詞綴不丟棄**:`unknownModifiers` 一律顯示(UI 的 UnknownModifier、CLI 的 ⚠ 清單)。
 8. Windows 環境:寫含中文的檔案用 Write/Edit,不用 PowerShell 讀改寫;spawn Electron 前移除 `ELECTRON_RUN_AS_NODE`(build/script.mjs 已做)。

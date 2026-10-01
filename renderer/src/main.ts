@@ -76,7 +76,8 @@ async function boot () {
   Poe2.setHostOptionsProvider(() => ({
     language: AppConfig().language,
     savedAugments: AppConfig().priceCheck.savedAugments,
-    searchStatRange: AppConfig().priceCheck.searchStatRange
+    searchStatRange: AppConfig().priceCheck.searchStatRange,
+    uiLanguage: AppConfig().uiLanguage
   }))
 
   // 切遊戲 / 客戶端語言:重載該遊戲的資料集(不必重啟);切遊戲或介面語言:重載 app_i18n。

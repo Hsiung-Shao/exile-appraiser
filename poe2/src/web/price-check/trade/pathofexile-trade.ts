@@ -24,6 +24,7 @@ import { RateLimiter } from "./RateLimiter";
 import { ModifierType } from "@/parser/modifiers";
 import { Cache } from "./Cache";
 import { parseAffixStrings } from "@/parser/Parser";
+import { displayZhFor } from "./display-zh"; // exile-appraiser(第 19 步):懸停浮窗繁中
 import {
   CoreCurrency,
   displayRounding,
@@ -1370,10 +1371,14 @@ export async function requestResults(
     );
   }
 
+  // exile-appraiser(第 19 步):國際服 + 介面語言繁中 → 浮窗詞綴 / 物品名換繁中(display-zh.ts;只換 text,tier 不動)
+  const toZh = await displayZhFor(ctx.realm);
+
   return data.map<PricingResult>((result) => {
     let displayItem: DisplayItem | undefined;
     try {
       displayItem = parseFetchResult(result);
+      if (displayItem && toZh) displayItem = toZh(displayItem, result.item); // exile-appraiser(第 19 步)
     } catch (e) {
       console.error(e);
     }

@@ -57,6 +57,8 @@ export interface Poe2HostOptions {
   language: string
   savedAugments: { [key: string]: Array<string | null> }
   searchStatRange: number
+  /** 介面語言;查價結果懸停浮窗是否換成繁中(第 19 步) */
+  uiLanguage: string
 }
 
 /** 一鍵回報只需要 id 與 filters/stats 能原樣交回 createTradeRequest。 */
