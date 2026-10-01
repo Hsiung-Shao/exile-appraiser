@@ -405,3 +405,55 @@ describe('PoE2 exchange 錄製檔', () => {
     expect(poe1.exaltedRate).toBeUndefined()
   })
 })
+
+describe('lookupPrice:同名傳奇第一筆索引與原線性掃描逐鍵相同', () => {
+  /** 原實作(線性掃描 + find,判斷式照搬),當 oracle */
+  function legacyFirst (prices: Record<string, unknown>, name: string, links: number): string | undefined {
+    const prefix = `unique|${name}|`
+    return Object.keys(prices).find(k => k.startsWith(prefix) && (k.endsWith('|6L') === (links >= 6)))
+  }
+
+  it('錄製快照:每個傳奇名 × 連結數 0/5/6,結果與原線性掃描相同', async () => {
+    const { http } = recordingHttp()
+    const { sleep } = noSleep()
+    const result = await createNinjaClient({ http, game: 'poe1', league: LEAGUE, sleep, now: () => 1_000_000 }).fetchAll()
+    const snap = toSnapshot(result)
+    const names = new Set<string>(['', 'No Such Unique', 'Sundance|Clasped'])
+    for (const k of Object.keys(snap.prices)) if (k.startsWith('unique|')) names.add(k.split('|')[1])
+    expect(names.size).toBeGreaterThan(20)
+    for (const name of names) {
+      for (const links of [0, 5, 6]) {
+        const want = legacyFirst(snap.prices, name, links)
+        const got = lookupPrice(snap, { ns: 'UNIQUE', name, links })
+        // 無 baseType 且 variant 空:candidateKeys 只剩「同名第一筆」一個候選
+        expect(got?.key).toBe(want && snap.prices[want] ? want : undefined)
+      }
+    }
+  })
+
+  it('合成快照:名稱含 | / 6L 排在前面 / 同名多基底,第一筆照 Object.keys 順序', () => {
+    const e = { c: 1, n: 10, lc: false, t: 'UniqueArmour' }
+    const prices: Record<string, typeof e> = {}
+    for (const k of [
+      'currency|Divine Orb',
+      'unique|Foo|Zeta Base|6L', // 6L 先出現
+      'unique|Foo|Zeta Base',
+      'unique|Foo|Alpha Base',
+      'unique|Foo|Alpha Base|6L',
+      'unique|Foo|Bar|Baz', // 名稱 `Foo|Bar` 的基底 Baz;同時是名稱 `Foo` 的另一筆基底「Bar|Baz」
+      'unique|Foo|Bar|Baz|6L',
+      'unique|Foo2|Base',
+      'unique|Foo|',
+      'unique||Empty'
+    ]) prices[k] = e
+    const snap = { prices }
+    for (const name of ['Foo', 'Foo|Bar', 'Foo2', 'Fo', 'Foo|', '', 'Zeta Base']) {
+      for (const links of [0, 6]) {
+        const want = legacyFirst(prices, name, links)
+        expect(lookupPrice(snap, { ns: 'UNIQUE', name, links })?.key).toBe(want)
+      }
+    }
+    expect(lookupPrice(snap, { ns: 'UNIQUE', name: 'Foo', links: 6 })?.key).toBe('unique|Foo|Zeta Base|6L')
+    expect(lookupPrice(snap, { ns: 'UNIQUE', name: 'Foo', links: 0 })?.key).toBe('unique|Foo|Zeta Base')
+  })
+})

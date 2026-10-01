@@ -34,6 +34,39 @@ function linksOf (query: NinjaQuery): number {
   return m ? Number(m[1]) : 0
 }
 
+/**
+ * 「同名傳奇的第一筆鍵」索引:每份 prices 物件建一次(WeakMap),取代每次查詢線性掃全部鍵。
+ * 鍵 = `unique|<name>|` 前綴 + 是否 6L;值 = `Object.keys(prices)` 迭代順序下第一個符合者
+ * (與原本 `keys.find(k => k.startsWith(prefix) && (k.endsWith('|6L') === want6L))` 完全相同)。
+ * 快照的 prices 在建好後不會被改寫(每次載入 / 更新都是新物件)。
+ */
+const uniqueFirstIndex = new WeakMap<object, Map<string, { plain?: string, six?: string }>>()
+
+function uniqueFirstKey (prices: Record<string, unknown>, name: string, want6L: boolean): string | undefined {
+  let idx = uniqueFirstIndex.get(prices)
+  if (!idx) {
+    idx = new Map()
+    for (const k of Object.keys(prices)) {
+      if (!k.startsWith('unique|')) continue
+      const slot: 'six' | 'plain' = k.endsWith('|6L') ? 'six' : 'plain'
+      // 名稱可含 `|`,所以 `unique|` 之後每個 `|` 的切點都登記為一個前綴(只記第一筆 = Object.keys 順序下的 find 結果)
+      let from = 'unique|'.length
+      for (;;) {
+        const bar = k.indexOf('|', from)
+        if (bar < 0) break
+        const prefix = k.slice(0, bar + 1)
+        let e = idx.get(prefix)
+        if (!e) idx.set(prefix, e = {})
+        if (e[slot] === undefined) e[slot] = k
+        from = bar + 1
+      }
+    }
+    uniqueFirstIndex.set(prices, idx)
+  }
+  const e = idx.get(`unique|${name}|`)
+  return e ? e[want6L ? 'six' : 'plain'] : undefined
+}
+
 /** 查詢 → 快照鍵的候選(依序嘗試)。不支援的 ns 回空陣列。 */
 export function candidateKeys (query: NinjaQuery, prices: Record<string, unknown>): string[] {
   const { ns, name } = query
@@ -58,8 +91,7 @@ export function candidateKeys (query: NinjaQuery, prices: Record<string, unknown
       const keys = bases.map(b => uniqueKey(name, b, links))
       if (!query.baseType) {
         // 沒有基底:取同名第一筆(6L 只在查詢本身是 6L 時才算)
-        const prefix = `unique|${name}|`
-        const first = Object.keys(prices).find(k => k.startsWith(prefix) && (k.endsWith('|6L') === (links >= 6)))
+        const first = uniqueFirstKey(prices, name, links >= 6)
         if (first) keys.push(first)
       }
       return keys

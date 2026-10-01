@@ -73,6 +73,7 @@ import { computed, defineComponent, onBeforeUnmount, ref, shallowRef, watch } fr
 import { useI18n } from 'vue-i18n'
 import { extraLines, hiddenPreview, lineIn, otherLine, pageHasT17, type RegexEntry, type T17Filter } from '@exile-appraiser/regex'
 import { AppConfig } from '@/web/Config'
+import { rafThrottle, windowEndIdx, windowStartIdx } from '../virtual-window'
 import { clearPicks, selectVisible, togglePick, useRegexStore } from './store'
 
 const OVERSCAN = 6
@@ -104,15 +105,15 @@ export default defineComponent({
       return p.groups.map((g, i) => (uiEn.value ? p.groupsEn[i] : '') || g)
     })
 
+    // 可視區間用整數索引:windowRows 只依賴 startIdx / endIdx,不直接依賴每像素都變的 scrollTop
+    const startIdx = computed(() => windowStartIdx(scrollTop.value, rowH.value, OVERSCAN))
+    const endIdx = computed(() => windowEndIdx(scrollTop.value, viewH.value, rowH.value, OVERSCAN, store.visible.value.length))
     const windowRows = computed(() => {
       const list = store.visible.value
       const p = store.page.value
       if (!p) return []
-      const h = rowH.value
-      const start = Math.max(0, Math.floor(scrollTop.value / h) - OVERSCAN)
-      const end = Math.min(list.length, Math.ceil((scrollTop.value + viewH.value) / h) + OVERSCAN)
       const out: Array<{ pos: number, idx: number, e: RegexEntry }> = []
-      for (let pos = start; pos < end; pos++) out.push({ pos, idx: list[pos], e: p.entries[list[pos]] })
+      for (let pos = startIdx.value, end = endIdx.value; pos < end; pos++) out.push({ pos, idx: list[pos], e: p.entries[list[pos]] })
       return out
     })
 
@@ -122,8 +123,10 @@ export default defineComponent({
       viewH.value = el.clientHeight || 320
       scrollTop.value = el.scrollTop
     }
+    // scroll 事件每幀最多量測一次(最後位置照樣處理到);提示框照舊在事件當下立刻收起
+    const measureOnFrame = rafThrottle(measure)
     function onScroll () {
-      measure()
+      measureOnFrame()
       tip.value = null
     }
     let ro: ResizeObserver | null = null
@@ -139,7 +142,7 @@ export default defineComponent({
       if (scroller.value) scroller.value.scrollTop = 0
       scrollTop.value = 0
     })
-    onBeforeUnmount(() => { ro?.disconnect(); clearTimeout(tipTimer) })
+    onBeforeUnmount(() => { ro?.disconnect(); measureOnFrame.cancel(); clearTimeout(tipTimer) })
 
     // ---- 提示框 ----
     interface Tip { e: RegexEntry, hidden: { lines: string[], more: number }, style: Record<string, string> }

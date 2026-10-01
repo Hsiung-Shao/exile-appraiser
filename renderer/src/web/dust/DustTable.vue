@@ -22,7 +22,7 @@
       <span class="dt-act-h">{{ t('ppz.dust.col_actions') }}</span>
     </div>
 
-    <div ref="scroller" class="dt-rows" data-dust="rows" :data-count="rows.length" :data-last-trade-url="lastTradeUrl" @scroll="measure">
+    <div ref="scroller" class="dt-rows" data-dust="rows" :data-count="rows.length" :data-last-trade-url="lastTradeUrl" @scroll="onScroll">
       <div v-if="!rows.length" class="dt-empty">{{ t('ppz.dust.empty') }}</div>
       <div class="dt-spacer" :style="{ height: `${rows.length * rowH}px` }">
         <div v-for="w in windowRows" :key="w.r.key" class="dt-row" role="row"
@@ -58,7 +58,7 @@
           <span class="dt-num num dt-eff" data-field="eff">{{ w.r.metricValue !== undefined ? fmtEff(w.r.metricValue) : '—' }}</span>
           <span class="dt-act">
             <button class="btn ghost sm" data-action="trade" :title="t('ppz.dust.trade_tip')" @click="openTrade(w.r)">{{ t('ppz.dust.trade') }} ↗</button>
-            <button class="btn ghost sm" data-action="ninja" :disabled="!ninjaUrl(w.r)" :title="t('ppz.dust.ninja_tip')"
+            <button class="btn ghost sm" data-action="ninja" :disabled="!hasNinja(w.r)" :title="t('ppz.dust.ninja_tip')"
               @click="openNinja(w.r)">ninja ↗</button>
             <button class="btn ghost sm" data-action="hide" :title="hiddenSet.has(w.r.key) ? t('ppz.dust.unhide') : t('ppz.dust.hide')"
               @click="toggleMark(w.r, 'hidden')">{{ hiddenSet.has(w.r.key) ? '◉' : '⊘' }}</button>
@@ -77,6 +77,7 @@ import { AppConfig } from '@/web/Config'
 import { Host } from '@/web/background/IPC'
 import { displayRounding, usePoeninja } from '@/web/background/Prices'
 import { openTradeSite } from '@/web/trade-site'
+import { rafThrottle, windowEndIdx, windowStartIdx } from '../virtual-window'
 import { useDustStore, type SortKey } from './store'
 
 const OVERSCAN = 6
@@ -103,13 +104,13 @@ export default defineComponent({
       return Math.ceil(fs * 1.45) + Math.ceil((fs - 2) * 1.45) + 10
     })
 
+    // 可視區間用整數索引:windowRows 只依賴 startIdx / endIdx,不直接依賴每像素都變的 scrollTop
+    const startIdx = computed(() => windowStartIdx(scrollTop.value, rowH.value, OVERSCAN))
+    const endIdx = computed(() => windowEndIdx(scrollTop.value, viewH.value, rowH.value, OVERSCAN, props.rows.length))
     const windowRows = computed(() => {
       const list = props.rows
-      const h = rowH.value
-      const start = Math.max(0, Math.floor(scrollTop.value / h) - OVERSCAN)
-      const end = Math.min(list.length, Math.ceil((scrollTop.value + viewH.value) / h) + OVERSCAN)
       const out: Array<{ pos: number, r: RankedDust }> = []
-      for (let pos = start; pos < end; pos++) out.push({ pos, r: list[pos] })
+      for (let pos = startIdx.value, end = endIdx.value; pos < end; pos++) out.push({ pos, r: list[pos] })
       return out
     })
 
@@ -119,6 +120,8 @@ export default defineComponent({
       viewH.value = el.clientHeight || 360
       scrollTop.value = el.scrollTop
     }
+    // scroll 事件每幀最多處理一次(最後位置照樣處理到)
+    const onScroll = rafThrottle(measure)
     let ro: ResizeObserver | null = null
     watch(scroller, (el) => {
       ro?.disconnect()
@@ -132,18 +135,26 @@ export default defineComponent({
       if (scroller.value) scroller.value.scrollTop = 0
       scrollTop.value = 0
     })
-    onBeforeUnmount(() => { ro?.disconnect() })
+    onBeforeUnmount(() => { ro?.disconnect(); onScroll.cancel() })
 
+    // 依 locale 快取的 Intl.NumberFormat(輸出與 Number.prototype.toLocaleString(locale, options) 相同)
+    const nfCache = new Map<string, Intl.NumberFormat>()
+    function nf (loc: string, options?: Intl.NumberFormatOptions): Intl.NumberFormat {
+      const key = `${loc}|${options ? JSON.stringify(options) : ''}`
+      let f = nfCache.get(key)
+      if (!f) nfCache.set(key, f = new Intl.NumberFormat(loc, options))
+      return f
+    }
     function fmtInt (n: number): string {
-      return Math.round(n).toLocaleString(locale.value)
+      return nf(locale.value).format(Math.round(n))
     }
     function fmtNum (n: number): string {
       return displayRounding(n)
     }
     function fmtEff (n: number): string {
-      if (n >= 100) return Math.round(n).toLocaleString(locale.value)
-      if (n >= 1) return n.toLocaleString(locale.value, { maximumFractionDigits: 1 })
-      return n.toLocaleString(locale.value, { maximumSignificantDigits: 2 })
+      if (n >= 100) return nf(locale.value).format(Math.round(n))
+      if (n >= 1) return nf(locale.value, { maximumFractionDigits: 1 }).format(n)
+      return nf(locale.value, { maximumSignificantDigits: 2 }).format(n)
     }
     function priceText (chaos: number): string {
       const v = ninja.autoCurrency(chaos)
@@ -180,7 +191,7 @@ export default defineComponent({
       scroller,
       rowH,
       windowRows,
-      measure,
+      onScroll,
       markedSet: store.markedSet,
       hiddenSet: store.hiddenSet,
       lastTradeUrl: store.lastTradeUrl,
@@ -188,7 +199,7 @@ export default defineComponent({
       setSort: store.setSort,
       sortClass,
       toggleMark: store.toggleMark,
-      ninjaUrl: store.ninjaUrl,
+      hasNinja: store.hasNinja,
       fmtInt,
       fmtNum,
       fmtEff,

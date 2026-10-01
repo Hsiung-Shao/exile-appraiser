@@ -217,6 +217,11 @@ export function useDustStore () {
     return ninjaDetailsUrl('poe1', snap.league, { key: uniqueKey(row.item.name, row.item.baseType, 0), entry: row.price }, { name: row.item.name })
   }
 
+  /** 只問「有沒有 ninja 連結」(按鈕可用狀態):與 `ninjaUrl(row) !== undefined` 同條件,不組字串 */
+  function hasNinja (row: RankedDust): boolean {
+    return !!snapshot.value && !!row.price
+  }
+
   return {
     phase,
     loadError,
@@ -237,6 +242,7 @@ export function useDustStore () {
     toggleMark,
     tradeUrl,
     ninjaUrl,
+    hasNinja,
     load: loadDust
   }
 }

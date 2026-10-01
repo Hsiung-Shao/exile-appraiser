@@ -18,6 +18,7 @@ import {
   RUNE_TRADE_CACHE_MS,
   RUNE_TRADE_DEFER_MARGIN_MS,
   RUNE_TRADE_FAIL_RETRY_MS,
+  RUNE_TRADE_MAX_ENTRIES,
   RuneTradeRateLimitedError,
   createRuneTradeQueue,
   executeRuneTradePlan,
@@ -471,5 +472,57 @@ describe("自動查詢佇列(createRuneTradeQueue)", () => {
     expect(q.enqueue(a)).toBe(false);
     await clock.advance(RUNE_TRADE_FAIL_RETRY_MS);
     expect(q.enqueue(a)).toBe(true);
+  });
+
+  it("過期清除:done 超過 30 分鐘、failed 超過 5 分鐘,下次排入時順手清掉(通知 undefined),TTL 語意不變", async () => {
+    const { clock, q, calls, changes } = setup();
+    const a = plan(gemRow);
+    const b = plan(skillRow);
+    q.enqueue(a);
+    calls[0].resolve();
+    await clock.flush();
+    q.enqueue(b);
+    calls[1].reject(new Error("boom"));
+    await clock.flush();
+    await clock.advance(RUNE_TRADE_FAIL_RETRY_MS);
+    const c = plan(supportRow);
+    q.enqueue(c);
+    expect(q.entry(b.key)).toBeUndefined(); // failed 已過重試間隔
+    expect(q.entry(a.key)?.state).toBe("done"); // done 還在 TTL 內
+    await clock.advance(RUNE_TRADE_CACHE_MS - RUNE_TRADE_FAIL_RETRY_MS);
+    q.enqueue(plan({ kind: "skill", refName: "Other", name: "其他" }));
+    expect(q.entry(a.key)).toBeUndefined();
+    expect(changes.filter(([k, s2]) => k === a.key && s2 === undefined)).toHaveLength(1);
+  });
+
+  it("筆數上限:超過時淘汰最舊的已完成項目,排隊中 / 查詢中的不被淘汰", async () => {
+    const { clock, q, calls } = setup();
+    const mk = (i: number): RuneTradePlan => ({ ...plan(gemRow), key: `k${i}` });
+    const N = RUNE_TRADE_MAX_ENTRIES;
+    // 先做完 N 筆(每筆時間戳遞增)
+    for (let i = 0; i < N; i++) {
+      q.enqueue(mk(i));
+      calls[calls.length - 1].resolve();
+      await clock.advance(1);
+    }
+    // 再排入一筆(查詢中)與一筆(排隊中),總數超過上限
+    q.enqueue(mk(N));
+    q.enqueue(mk(N + 1));
+    q.enqueue(mk(N + 2));
+    expect(q.entry(`k${N}`)?.state).toBe("loading");
+    expect(q.entry(`k${N + 1}`)?.state).toBe("queued");
+    expect(q.entry(`k${N + 2}`)?.state).toBe("queued");
+    // 最舊的已完成項目被淘汰,較新的還在
+    expect(q.entry("k0")).toBeUndefined();
+    expect(q.entry("k1")).toBeUndefined();
+    expect(q.entry("k2")?.state).toBe("done"); // 每次排入前才清,各清到剛好回到上限
+    expect(q.entry(`k${N - 1}`)?.state).toBe("done");
+  });
+
+  it("全部都在排隊 / 查詢中時超過上限也不淘汰任何一筆", () => {
+    const { q } = setup();
+    const N = RUNE_TRADE_MAX_ENTRIES + 20;
+    for (let i = 0; i < N; i++) q.enqueue({ ...plan(gemRow), key: `p${i}` });
+    for (let i = 0; i < N; i++) expect(q.entry(`p${i}`)).toBeDefined();
   });
 });

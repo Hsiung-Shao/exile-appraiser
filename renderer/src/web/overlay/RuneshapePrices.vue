@@ -49,7 +49,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onMounted, onUnmounted, shallowRef, watch } from 'vue'
+import { computed, defineComponent, onMounted, onUnmounted, shallowRef, triggerRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { RuneshapeScanEvent } from '@ipc/types'
 import * as Poe2 from '@poe2-entry'
@@ -94,10 +94,10 @@ export default defineComponent({
       }),
       held: () => runeshapeTradeHold.value,
       onChange: (key, e) => {
-        const next = { ...trades.value }
-        if (e) next[key] = e
-        else delete next[key]
-        trades.value = next
+        // 只更新變動的鍵,再 triggerRef 通知(讀取端只有 computed 讀 trades.value[key],與換新物件等價)
+        if (e) trades.value[key] = e
+        else delete trades.value[key]
+        triggerRef(trades)
       }
     })
 

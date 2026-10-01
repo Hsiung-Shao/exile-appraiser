@@ -37,6 +37,8 @@ export const RUNE_TRADE_TAKE = 10;
 export const RUNE_TRADE_MIN_FOR_MEDIAN = 3;
 /** 本地結果快取:同一組篩選 30 分鐘內不重查 */
 export const RUNE_TRADE_CACHE_MS = 30 * 60 * 1000;
+/** 快取 / 條目筆數上限(只淘汰已完成或已失敗的項目,排隊中 / 查詢中不動) */
+export const RUNE_TRADE_MAX_ENTRIES = 200;
 /** bulk exchange 用哪些通貨買 */
 export const RUNE_TRADE_BULK_HAVE = ["exalted", "divine"] as const;
 
@@ -446,6 +448,44 @@ export function createRuneTradeQueue(deps: RuneTradeQueueDeps = {}): RuneTradeQu
     return hit;
   }
 
+  /** 條目的時間戳(done = 結果時間、failed = 失敗時間;排隊中 / 查詢中 = null,永不淘汰) */
+  const settledAt = (e: RuneTradeEntry): number | null =>
+    e.state === "done" ? e.raw.at : e.state === "failed" ? e.at : null;
+
+  /** 清過期的快取(30 分鐘 TTL,與 cached() 同一條件) */
+  function sweepCache() {
+    const t = now();
+    for (const [k, v] of cache) if (t - v.at >= RUNE_TRADE_CACHE_MS) cache.delete(k);
+  }
+
+  /** 清過期條目(done 超過 TTL、failed 超過重試間隔,兩者 enqueue 本來就視同可重排)+ 超過筆數上限時淘汰最舊的已完成 / 已失敗項目 */
+  function sweepEntries() {
+    const t = now();
+    for (const [k, e] of [...entries]) {
+      const at = settledAt(e);
+      if (at == null) continue;
+      const ttl = e.state === "done" ? RUNE_TRADE_CACHE_MS : RUNE_TRADE_FAIL_RETRY_MS;
+      if (t - at >= ttl) set(k, undefined);
+    }
+    if (entries.size > RUNE_TRADE_MAX_ENTRIES) {
+      const old = [...entries].filter(([, e]) => settledAt(e) != null)
+        .sort((a, b) => settledAt(a[1])! - settledAt(b[1])!);
+      for (const [k] of old) {
+        if (entries.size <= RUNE_TRADE_MAX_ENTRIES) break;
+        set(k, undefined);
+      }
+    }
+    if (cache.size > RUNE_TRADE_MAX_ENTRIES) {
+      const old = [...cache].sort((a, b) => a[1].at - b[1].at);
+      for (const [k] of old) {
+        if (cache.size <= RUNE_TRADE_MAX_ENTRIES) break;
+        const e = entries.get(k);
+        if (e?.state === "queued" || e?.state === "loading") continue;
+        cache.delete(k);
+      }
+    }
+  }
+
   function schedule(ms: number) {
     if (disposed) return;
     if (timer != null) clearTimer(timer);
@@ -457,6 +497,7 @@ export function createRuneTradeQueue(deps: RuneTradeQueueDeps = {}): RuneTradeQu
 
   function pump() {
     if (disposed || inFlight) return;
+    sweepCache();
     // 排隊期間別處已有結果(同一組篩選)→ 直接完成
     while (pending.length) {
       const hit = cached(pending[0].key);
@@ -533,6 +574,8 @@ export function createRuneTradeQueue(deps: RuneTradeQueueDeps = {}): RuneTradeQu
   return {
     enqueue(plan) {
       if (disposed) return false;
+      sweepCache();
+      sweepEntries();
       const e = entries.get(plan.key);
       if (e?.state === "queued" || e?.state === "loading") return false;
       if (e?.state === "failed" && now() - e.at < RUNE_TRADE_FAIL_RETRY_MS) return false;
