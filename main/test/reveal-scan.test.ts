@@ -6,8 +6,9 @@ import * as path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import type { RevealScanEvent } from '@ipc/types'
 import { buildLocateIndex, type LocateIndex, type LocateTiersLike } from '../../poe2/src/desecration/ocr-locate'
-import { LOCATE_INTERVAL_MS, scanBlock, type Fingerprint, type ScanCapture, type ScanClock, type ScanConfig, type ScanEnv } from '../src/ocr/panel-scan'
+import { FALLBACK_RECHECK_MS, LOCATE_INTERVAL_MS, SharedLocateOcr, scanBlock, type Fingerprint, type ScanCapture, type ScanClock, type ScanConfig, type ScanEnv } from '../src/ocr/panel-scan'
 import { REVEAL_MIN_HITS, RevealScan, createRevealDetector, modGroupCount } from '../src/ocr/reveal-scan'
+import { RuneshapeScan } from '../src/ocr/runeshape-scan'
 
 const ROOT = path.resolve(__dirname, '../..')
 const index: LocateIndex = buildLocateIndex(JSON.parse(fs.readFileSync(path.join(ROOT, 'data/poe2/desecration/tiers.json'), 'utf8')) as LocateTiersLike)
@@ -56,12 +57,12 @@ function fakeClock () {
   return { clock, advance, set: (v: number) => { t = v } }
 }
 
-/** 畫面 = 某張快照;`version` 改了 = 那一塊的縮圖變了 */
-function harness (screen: { w: number, h: number, lines: Line[] }, over: Partial<ScanConfig> = {}, idx: LocateIndex | null = index) {
+/** 畫面 = 某張快照;`version` 改了 = 那一塊的縮圖變了(每版差 40 = 大幅變化);`noise` = 小幅變化(遊戲畫面在動,平均差 < 6) */
+function harness (screen: { w: number, h: number, lines: Line[] }, over: Partial<ScanConfig> = {}, idx: LocateIndex | null = index, load?: () => Promise<LocateIndex | null>) {
   const clk = fakeClock()
   const cfg: ScanConfig = { enabled: true, game: 'poe2', region: null, intervalMs: 1000, ...over }
   const env: ScanEnv = { overlay: true, gameActive: true, bounds: { x: 0, y: 0, width: screen.w, height: screen.h } }
-  const state = { screen, version: 0, busy: false, ocrs: [] as Array<{ rect: { x: number, y: number, width: number, height: number }, scale: number }> }
+  const state = { screen, version: 0, noise: 0, busy: false, ocrs: [] as Array<{ rect: { x: number, y: number, width: number, height: number }, scale: number }> }
   const events: RevealScanEvent[] = []
   const logs: string[] = []
   const scan = new RevealScan({
@@ -69,12 +70,12 @@ function harness (screen: { w: number, h: number, lines: Line[] }, over: Partial
     config: () => cfg,
     env: () => env,
     ocrBusy: () => state.busy,
-    locateIndex: async () => idx,
+    locateIndex: load ?? (async () => idx),
     capture: async (): Promise<ScanCapture> => ({
       size: { w: state.screen.w, h: state.screen.h },
       offset: { x: 0, y: 0 },
       client: { w: state.screen.w, h: state.screen.h },
-      fingerprint: (): Fingerprint => ({ w: 64, h: 40, data: new Uint8Array(64 * 40).fill(state.version * 40) }),
+      fingerprint: (): Fingerprint => ({ w: 64, h: 40, data: new Uint8Array(64 * 40).fill(state.version * 40 + state.noise) }),
       recognize: async (rect, scale) => {
         state.ocrs.push({ rect, scale })
         return { lines: state.screen.lines.filter(l => inside(l, rect)).map(l => ({ ...l })), ms: 30 }
@@ -275,5 +276,106 @@ describe('RevealScan 自動持續辨識(假時鐘 + 快照畫面)', () => {
     h.cfg.enabled = false
     expect(await h.scan.tick()).toEqual({ kind: 'blocked', block: 'disabled' })
     expect(h.events.map(e => e.reason)).toEqual(['rows', 'inactive'])
+  })
+})
+
+describe('排程(效能修正第 6 步)', () => {
+  const REGION = { x: 0.8, y: 0.8, w: 0.2, h: 0.2 }
+
+  it('退回自動定位中:區域畫面只是小幅在動 → 不回區域,自動定位跑得到(原本一動就回區域、永遠輪不到定位)', async () => {
+    const h = harness(FULL02, { region: REGION })
+    await h.scan.tick()
+    await h.scan.tick()
+    expect(h.scan.fallingBack).toBe(true)
+    h.state.noise = 3
+    expect(await h.scan.tick()).toMatchObject({ kind: 'ocr', mode: 'auto', sent: 'rows' })
+    expect(h.events[h.events.length - 1].fallback).toBe(true)
+    expect(h.scan.fallingBack).toBe(true)
+    // 已找到面板:區域小幅變化仍不回(結果相同 → 不重送)
+    h.state.noise = 5
+    expect(await h.scan.tick()).toMatchObject({ kind: 'ocr', mode: 'auto', deduped: true })
+    expect(h.scan.fallingBack).toBe(true)
+    // 大幅變化 → 立刻回到區域
+    h.state.version = 3
+    expect(await h.scan.tick()).toMatchObject({ kind: 'ocr', mode: 'manual' })
+    expect(h.scan.fallingBack).toBe(false)
+  })
+
+  it(`退回中一直沒找到面板 → 距上次區域 OCR ≥ ${FALLBACK_RECHECK_MS / 1000} 秒,下一次擷取時回區域再看`, async () => {
+    const h = harness({ ...FULL02, lines: [{ text: '深 井', x: 1700, y: 1000, w: 20, h: 10 }] }, { region: REGION })
+    await h.scan.tick()
+    await h.scan.tick() // t = 0
+    expect(h.scan.fallingBack).toBe(true)
+    h.state.noise = 3
+    await h.clk.advance(1000)
+    expect(await h.scan.tick()).toMatchObject({ kind: 'locate-miss' }) // 區域小變化不回;整張定位沒找到
+    await h.clk.advance(1000)
+    expect(await h.scan.tick()).toEqual({ kind: 'locate-wait' }) // 沒快取:距上次定位 < 3 秒不擷取(與原本相同)
+    await h.clk.advance(2000)
+    expect(await h.scan.tick()).toMatchObject({ kind: 'ocr', mode: 'manual' })
+    expect(h.scan.fallingBack).toBe(false)
+  })
+
+  it('褻瀆與符文同時沒框區域:整個 client ×1 定位 OCR 共用一次;符文用共用結果與自己 OCR 的結果相同', async () => {
+    const clk = fakeClock()
+    const shared = new SharedLocateOcr()
+    const ocrs: Array<{ full: boolean, scale: number }> = []
+    let v = 0
+    const cfg: ScanConfig = { enabled: true, game: 'poe2', region: null, intervalMs: 1000 }
+    const env: ScanEnv = { overlay: true, gameActive: true, bounds: { x: 0, y: 0, width: FULL02.w, height: FULL02.h } }
+    const capture = async (): Promise<ScanCapture> => ({
+      size: { w: FULL02.w, h: FULL02.h },
+      offset: { x: 0, y: 0 },
+      client: { w: FULL02.w, h: FULL02.h },
+      fingerprint: (): Fingerprint => ({ w: 64, h: 40, data: new Uint8Array(64 * 40).fill(v) }),
+      recognize: async (rect, scale) => {
+        ocrs.push({ full: rect.width === FULL02.w && rect.height === FULL02.h, scale })
+        return { lines: FULL02.lines.filter(l => inside(l, rect)).map(l => ({ ...l })), ms: 30 }
+      }
+    })
+    const common = { clock: clk.clock, config: () => cfg, env: () => env, ocrBusy: () => false, capture, log: () => {} }
+    const reveal = new RevealScan({ ...common, locateOcr: shared, locateIndex: async () => index, send: () => {} })
+    const rune = new RuneshapeScan({ ...common, locateOcr: shared, send: () => {} })
+    const solo = new RuneshapeScan({ ...common, send: () => {} })
+    const fullOcrs = () => ocrs.filter(o => o.full && o.scale === 1).length
+    expect(await reveal.tick()).toMatchObject({ kind: 'ocr', mode: 'auto', sent: 'rows' })
+    clk.set(500) // 符文錯開半個間隔
+    const r = await rune.tick()
+    expect(fullOcrs()).toBe(1)
+    expect([shared.runs, shared.reuses]).toEqual([1, 1])
+    expect(rune.sched.locateShared).toBe(1)
+    // 對照:不共用、自己 OCR 的符文掃描 → 結果完全相同
+    const s = await solo.tick()
+    expect(fullOcrs()).toBe(2)
+    expect(r).toEqual(s)
+    const pick = (x: ReturnType<RuneshapeScan['snapshot']>) => ({ locates: x.locates, locateMisses: x.locateMisses, panel: x.panel, autoRegion: x.autoRegion })
+    expect(pick(rune.snapshot())).toEqual(pick(solo.snapshot()))
+    // 超過 1 秒 → 各自重新 OCR
+    clk.set(4000)
+    v = 3
+    expect((await rune.tick()).kind).toBe(r.kind)
+    expect(fullOcrs()).toBe(3)
+    expect(shared.runs).toBe(2)
+  })
+
+  it('tick 不重入:第一次讀 tiers.json 期間 poke() / 直接呼叫都不會再開一個 tick', async () => {
+    let release!: () => void
+    const gate = new Promise<void>(resolve => { release = resolve })
+    let loads = 0
+    const h = harness(FULL02, {}, index, async () => { loads++; await gate; return index })
+    h.scan.start()
+    await h.clk.advance(0)
+    expect(h.scan.tickInProgress).toBe(true)
+    expect(h.scan.busy).toBe(false) // 還沒擷取:不擋另一個掃描用 WinOcr
+    h.scan.poke()
+    await h.clk.advance(0)
+    expect(await h.scan.tick()).toEqual({ kind: 'overlap' })
+    expect(loads).toBe(1)
+    release()
+    for (let i = 0; i < 50; i++) await Promise.resolve()
+    expect(h.scan.tickInProgress).toBe(false)
+    expect(h.state.ocrs.map(o => o.scale)).toEqual([1, 3])
+    expect(h.events).toHaveLength(1)
+    h.scan.stop()
   })
 })

@@ -5,6 +5,9 @@ import {
   AUTO_MISS_LIMIT, AUTO_REFRESH_MS, CLEARING_BLOCKS, LOCATE_INTERVAL_MS, RuneshapeScan, bgraToGray, clampScanInterval, frameDiff, isChanged, isRowText, scanBlock,
   type Fingerprint, type ScanCapture, type ScanClock, type ScanConfig, type ScanEnv
 } from '../src/ocr/runeshape-scan'
+import {
+  IDLE_BACKOFF_MAX_MS, LARGE_DIFF_THRESHOLDS, LOCATE_BACKOFF_MAX_MS, REPEAT_ROWS_MS, SharedLocateOcr, idleGapMs, isLargeChange, locateGapMs, rowsSignature, tileMaxDiff
+} from '../src/ocr/panel-scan'
 
 /** 手動推進的假時鐘:`advance(ms)` 依序觸發到期的計時器 */
 function fakeClock () {
@@ -454,6 +457,8 @@ describe('自動定位(沒框 runeshapeRegion)', () => {
     await h.clk.advance(1000)
     await h.clk.advance(1000)
     expect(h.state.captures).toBe(1)
+    // 2026-10-01 第 6 步:整個 client 與上次定位時一樣就不定位 → 這裡讓畫面有變化(遊戲畫面在動),定位照 3 秒節奏
+    h.state.frame = fp(14)
     await h.clk.advance(1000) // t = 3000
     expect(h.state.captures).toBe(2)
     expect(h.scan.snapshot().locates).toBe(2)
@@ -482,9 +487,10 @@ describe('自動定位(沒框 runeshapeRegion)', () => {
     expect(h.state.captures).toBe(caps)
     await h.clk.advance(LOCATE_INTERVAL_MS)
     expect((await h.scan.tick()).kind).toBe('locate-miss')
-    // 面板又開了 → 下一次定位找到
+    // 面板又開了(畫面跟著大幅變化)→ 下一次定位找到
     h.state.lines = PANEL_LINES
     h.state.locateLines = PANEL_LINES
+    h.state.frame = fp(150)
     await h.clk.advance(LOCATE_INTERVAL_MS)
     expect(await h.scan.tick()).toMatchObject({ kind: 'ocr', rows: 4, sent: 'rows' })
     expect(h.scan.snapshot().locates).toBe(3)
@@ -538,5 +544,231 @@ describe('自動定位(沒框 runeshapeRegion)', () => {
     expect(h.scan.snapshot()).toMatchObject({ mode: 'auto', panel: 'unknown' })
     await h.scan.tick()
     expect(h.scan.snapshot()).toMatchObject({ mode: 'auto', panel: 'found', locates: 1 })
+  })
+})
+
+// ---------------- 效能修正第 6 步:排程 / 退避 / 共用定位 / 重入 / 不重送 ----------------
+
+/** 「有變化但不大」的畫面:底色 `base`,第 i 張在不同位置點亮 16 個像素(整張變動 0.6% ≥ 0.4%,任一小塊 ≤ 2/64) */
+function noisy (i: number, base = 10): Fingerprint {
+  const f = fp(base)
+  for (let j = 0; j < 16; j++) f.data[(i * 7 + j * 160) % f.data.length] = base + 50
+  return f
+}
+
+describe('大幅變化門檻(純函式)', () => {
+  it('tileMaxDiff / isLargeChange:看最大的一塊;整張小幅變動不算、一小塊整片變了算', () => {
+    const a = fp(100)
+    expect(isLargeChange(a, fp(104))).toBe(false) // 整體亮度 +4(待機小動畫等級)
+    expect(isLargeChange(a, fp(106))).toBe(true) // 平均差 6
+    const local = fp(100)
+    for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) local.data[y * 64 + x] = 180 // 左上一塊整片變了(面板出現)
+    expect(isChanged(frameDiff(a, local))).toBe(true)
+    expect(frameDiff(a, local)!.mean).toBeLessThan(LARGE_DIFF_THRESHOLDS.mean) // 整張平均會被稀釋
+    expect(isLargeChange(a, local)).toBe(true)
+    const tenPx = fp(100)
+    for (let i = 0; i < 10; i++) tenPx.data[(i % 2) * 64 + (i >> 1)] = 180 // 同一塊(左上)10 / 64 = 0.156 變動
+    expect(tileMaxDiff(a, tenPx)!.changedRatio).toBeCloseTo(10 / 64, 6)
+    expect(isLargeChange(a, tenPx)).toBe(true)
+    expect(isChanged(frameDiff(a, noisy(1, 100)))).toBe(true)
+    expect(isLargeChange(a, noisy(1, 100))).toBe(false)
+    expect(isLargeChange(null, a)).toBe(true)
+    expect(tileMaxDiff(a, { w: 32, h: 20, data: new Uint8Array(640) })).toBeNull()
+    // 縮圖小到湊不滿半塊 → 退回整張
+    expect(tileMaxDiff({ w: 3, h: 1, data: new Uint8Array([0, 0, 0]) }, { w: 3, h: 1, data: new Uint8Array([30, 0, 0]) })).toEqual({ mean: 10, changedRatio: 1 / 3 })
+  })
+  it('退避間隔:手動區域 ×2 遞增上限 2.5 秒;自動定位 3 → 6 → 12 → 15 秒', () => {
+    expect(idleGapMs(0, 1000)).toBe(0)
+    expect(idleGapMs(1, 1000)).toBe(0)
+    expect(idleGapMs(2, 1000)).toBe(2000)
+    expect(idleGapMs(3, 1000)).toBe(IDLE_BACKOFF_MAX_MS)
+    expect([2, 3, 4, 5, 6, 7].map(n => idleGapMs(n, 100))).toEqual([200, 400, 800, 1600, 2500, 2500])
+    expect(idleGapMs(5, 3000)).toBe(2500) // 間隔本來就 ≥ 2.5 秒 → 等於不退避
+    expect([0, 1, 2, 3, 4, 9].map(locateGapMs)).toEqual([3000, 3000, 6000, 12000, 15000, LOCATE_BACKOFF_MAX_MS])
+  })
+  it('rowsSignature:列文字 + 四捨五入座標 + client + fallback', () => {
+    const rows = [{ text: '1x 崇高石', x: 10.2, y: 20.4, w: 30, h: 12 }]
+    const s = rowsSignature(rows, { w: 100, h: 50 }, false)
+    expect(rowsSignature([{ ...rows[0], x: 10.4 }], { w: 100, h: 50 }, false)).toBe(s)
+    expect(rowsSignature([{ ...rows[0], x: 11 }], { w: 100, h: 50 }, false)).not.toBe(s)
+    expect(rowsSignature(rows, { w: 100, h: 50 }, true)).not.toBe(s)
+    expect(rowsSignature(rows, { w: 200, h: 50 }, false)).not.toBe(s)
+  })
+})
+
+describe('手動區域沒有面板的退避', () => {
+  /** 區域沒有面板:前兩次 OCR(第 2 次送 empty)照舊 */
+  async function idle () {
+    const h = harness()
+    h.state.lines = []
+    expect(await h.scan.tick()).toMatchObject({ kind: 'ocr', sent: null })
+    expect(await h.scan.tick()).toMatchObject({ kind: 'ocr', sent: 'empty' })
+    return h
+  }
+
+  it('送出空結果後,小變化的 OCR 間隔 × 2 遞增、上限 2.5 秒;畫面沒變照舊 unchanged', async () => {
+    const h = await idle()
+    const kinds: string[] = []
+    for (let i = 1; i <= 8; i++) {
+      await h.clk.advance(1000)
+      h.state.frame = noisy(i) // 遊戲畫面一直小幅在動
+      kinds.push((await h.scan.tick()).kind)
+    }
+    // 間隔 1000:2 秒後 OCR,之後每 2.5 秒(tick 在整秒 → 每 3 個 tick)一次;原本 8 個 tick 都 OCR
+    expect(kinds).toEqual(['backoff', 'ocr', 'backoff', 'backoff', 'ocr', 'backoff', 'backoff', 'ocr'])
+    expect(h.state.ocrs).toBe(2 + 3)
+    expect(h.scan.sched.idleBackoffSkips).toBe(5)
+    expect(h.events.map(e => e.reason)).toEqual(['empty'])
+    await h.clk.advance(1000)
+    expect((await h.scan.tick()).kind).toBe('unchanged') // 與上次 OCR 的畫面相同
+  })
+
+  it('退避中出現大幅變化(面板淡入 / 換頁)→ 立刻 OCR 並重置退避', async () => {
+    const h = await idle()
+    for (let i = 1; i <= 3; i++) { await h.clk.advance(1000); h.state.frame = noisy(i); await h.scan.tick() } // t=2000 OCR
+    await h.clk.advance(1000) // t=4000:距上次 OCR 2 秒 < 2.5 秒
+    h.state.frame = fp(120)
+    expect(await h.scan.tick()).toMatchObject({ kind: 'ocr', rows: 0 })
+    // 重置:接下來的小變化先照原本節奏 OCR(連續第 1、2 次無列),之後才再退避
+    await h.clk.advance(1000); h.state.frame = noisy(20, 120)
+    expect((await h.scan.tick()).kind).toBe('ocr')
+    await h.clk.advance(1000); h.state.frame = noisy(21, 120)
+    expect((await h.scan.tick()).kind).toBe('backoff')
+  })
+
+  it('面板出現(大幅變化)→ 同一個 tick 就 OCR 送出;找到面板後小變化照舊每次 OCR(不退避)', async () => {
+    const h = await idle()
+    for (let i = 1; i <= 3; i++) { await h.clk.advance(1000); h.state.frame = noisy(i); await h.scan.tick() }
+    await h.clk.advance(1000) // 退避中
+    h.state.lines = PANEL_LINES
+    h.state.frame = fp(200)
+    expect(await h.scan.tick()).toMatchObject({ kind: 'ocr', sent: 'rows' })
+    const kinds: string[] = []
+    for (let i = 1; i <= 4; i++) {
+      await h.clk.advance(1000)
+      h.state.frame = noisy(i, 200)
+      kinds.push((await h.scan.tick()).kind)
+    }
+    expect(kinds).toEqual(['ocr', 'ocr', 'ocr', 'ocr'])
+  })
+})
+
+describe('自動定位的退避(沒框區域、畫面上沒有面板)', () => {
+  function noPanel () {
+    const h = harness({ region: null })
+    h.state.lines = []
+    h.state.locateLines = []
+    return h
+  }
+
+  it('連續沒找到:定位間隔 3 → 6 → 12 → 15 秒(畫面一直小幅在動)', async () => {
+    const h = noPanel()
+    const kinds: string[] = []
+    for (let i = 0; i <= 12; i++) {
+      if (i) await h.clk.advance(3000)
+      h.state.frame = noisy(i)
+      kinds.push((await h.scan.tick()).kind)
+    }
+    const M = 'locate-miss'
+    const S = 'locate-skip'
+    // t = 0, 3, 6 … 36 秒
+    expect(kinds).toEqual([M, M, S, M, S, S, S, M, S, S, S, S, M])
+    expect(h.scan.snapshot().locates).toBe(5) // 原本 13 次
+  })
+
+  it('照計時器跑(每秒一個 tick):擷取仍最多每 3 秒一次(不比原本多),定位次數減少', async () => {
+    const h = noPanel()
+    let i = 0
+    const capture = (h.scan as unknown as { deps: { capture: () => Promise<ScanCapture> } }).deps.capture
+    ;(h.scan as unknown as { deps: { capture: () => Promise<ScanCapture> } }).deps.capture = async () => { h.state.frame = noisy(++i); return await capture() }
+    h.scan.start()
+    await h.clk.advance(0)
+    for (let s = 1; s <= 36; s++) await h.clk.advance(1000)
+    expect(h.state.captures).toBe(13) // t = 0, 3, … 36
+    expect(h.scan.snapshot().locates).toBe(5)
+    h.scan.stop()
+  })
+
+  it('畫面與上次定位時一樣 → 不定位,但滿 15 秒必跑一次', async () => {
+    const h = noPanel()
+    expect((await h.scan.tick()).kind).toBe('locate-miss')
+    const kinds: string[] = []
+    for (let i = 1; i <= 5; i++) {
+      await h.clk.advance(3000)
+      kinds.push((await h.scan.tick()).kind)
+    }
+    expect(kinds).toEqual(['locate-skip', 'locate-skip', 'locate-skip', 'locate-skip', 'locate-miss']) // t = 15 秒
+    expect(h.scan.snapshot().locates).toBe(2)
+  })
+
+  it('退避中畫面大幅變化 → 下一次擷取立刻定位並重置;面板出現時照舊在 3 秒節奏內找到', async () => {
+    const h = noPanel()
+    for (let i = 0; i < 4; i++) { if (i) await h.clk.advance(3000); h.state.frame = noisy(i); await h.scan.tick() } // t=9 秒:第 3 次沒找到
+    expect(h.scan.snapshot().locates).toBe(3)
+    await h.clk.advance(3000) // t=12 秒:退避 12 秒中
+    h.state.frame = fp(150)
+    expect((await h.scan.tick()).kind).toBe('locate-miss') // 大幅變化 → 立刻定位
+    await h.clk.advance(3000)
+    h.state.frame = noisy(30, 150)
+    expect((await h.scan.tick()).kind).toBe('locate-miss') // 已重置:3 秒後照常定位
+    await h.clk.advance(3000)
+    h.state.frame = noisy(31, 150)
+    expect((await h.scan.tick()).kind).toBe('locate-skip') // 又開始退避
+    // 面板打開(畫面大幅變化)→ 下一次擷取就定位到
+    await h.clk.advance(3000)
+    h.state.lines = PANEL_LINES
+    h.state.locateLines = PANEL_LINES
+    h.state.frame = fp(60)
+    expect(await h.scan.tick()).toMatchObject({ kind: 'ocr', mode: 'auto', sent: 'rows' })
+  })
+})
+
+describe('共用定位 OCR / tick 不重入 / 相同結果不重送', () => {
+  it('SharedLocateOcr:同一 client 1 秒內只 OCR 一次,過了重跑;client 不同不共用', async () => {
+    const shared = new SharedLocateOcr()
+    let calls = 0
+    const cap = (w: number): ScanCapture => ({
+      size: { w, h: 1000 },
+      offset: { x: 0, y: 0 },
+      client: { w, h: 1000 },
+      fingerprint: () => fp(1),
+      recognize: async () => { calls++; return { lines: [{ text: 'a', x: 1, y: 2, w: 3, h: 4 }], ms: 5 } }
+    })
+    expect(await shared.recognize(cap(2000), 0)).toMatchObject({ shared: false, ms: 5 })
+    const r = await shared.recognize(cap(2000), 1000)
+    expect(r).toMatchObject({ shared: true })
+    r.lines[0].x = 999 // 拿到的是複本
+    expect((await shared.recognize(cap(2000), 500)).lines[0].x).toBe(1)
+    expect(calls).toBe(1)
+    expect((await shared.recognize(cap(2000), 1001)).shared).toBe(false)
+    expect((await shared.recognize(cap(2560), 1001)).shared).toBe(false)
+    expect(calls).toBe(3)
+    expect([shared.runs, shared.reuses]).toEqual([3, 2])
+  })
+
+  it('相同的列不重送(10 秒內);面板關了 / 再開 / 暫停恢復等狀態轉換照送', async () => {
+    const h = harness()
+    expect(await h.scan.tick()).toMatchObject({ sent: 'rows' })
+    h.state.frame = fp(90) // 畫面變了但 OCR 結果一樣
+    expect(await h.scan.tick()).toMatchObject({ kind: 'ocr', rows: 1, sent: null, deduped: true })
+    expect(h.events).toHaveLength(1)
+    expect(h.scan.sched.dedupedRows).toBe(1)
+    await h.clk.advance(REPEAT_ROWS_MS)
+    h.state.frame = fp(150)
+    expect(await h.scan.tick()).toMatchObject({ sent: 'rows' }) // 滿 10 秒照送一次
+    h.state.lines = []
+    h.state.frame = fp(30)
+    await h.scan.tick()
+    expect(await h.scan.tick()).toMatchObject({ sent: 'empty' })
+    h.state.lines = [{ text: '1x 崇高 石', x: 1010, y: 300, w: 80, h: 20 }]
+    h.state.frame = fp(200)
+    expect(await h.scan.tick()).toMatchObject({ sent: 'rows' }) // 與 empty 之前同一份列,照送
+    h.env.gameActive = false
+    expect(await h.scan.tick()).toMatchObject({ kind: 'blocked' })
+    h.env.gameActive = true
+    expect(await h.scan.tick()).toMatchObject({ sent: 'rows' }) // 暫停恢復後照送
+    expect(h.events.map(e => e.reason)).toEqual(['rows', 'rows', 'empty', 'rows', 'rows'])
+    // 設定頁統計照常累計(OCR 次數含沒送的那次)
+    expect(h.scan.snapshot().ocrRuns).toBe(7)
   })
 })

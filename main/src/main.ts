@@ -25,6 +25,7 @@ import { runOcrSelftest, runRuneshapeSelftest } from './ocr/selftest'
 import { loadLocateIndex } from './ocr/locate-data'
 import { captureGameClient, toScanCapture } from './ocr/capture'
 import { DEFAULT_SCAN_INTERVAL_MS, RuneshapeScan } from './ocr/runeshape-scan'
+import { SharedLocateOcr } from './ocr/panel-scan'
 import { isAppNavigation, isExternalWebUrl } from './external-links'
 import { BG_DIR_NAME, bgContentType, bgFileFromPath, normBgFile, resolveBgPath, storedBgName } from './backgrounds'
 import {
@@ -553,6 +554,8 @@ if (!skipStartup) app.whenReady().then(() => {
   }
   const scanEnv = () => ({ overlay: windowMode === 'overlay', gameActive: Boolean(poeWindow?.isActive), bounds: gameBounds() })
   const scanCapture = async (b: { x: number, y: number, width: number, height: number }) => toScanCapture(await captureGameClient(b), () => winOcr)
+  // 效能修正第 6 步:兩個掃描的自動定位(整個 client ×1、同一個 WinOcr / 語言)1 秒內共用同一次 OCR
+  const sharedLocateOcr = new SharedLocateOcr()
 
   // 2026-10-01:褻瀆(靈魂之井揭露面板)自動持續辨識(取代按熱鍵辨識一次;預設開)。
   // 查價面板開著不暫停;與符文塑形共用 WinOcr,對方忙碌就丟 tick。hostCfg 在下方宣告,計時器觸發時已初始化。
@@ -568,6 +571,7 @@ if (!skipStartup) app.whenReady().then(() => {
     env: scanEnv,
     ocrBusy: () => runeshapeScan.busy,
     capture: scanCapture,
+    locateOcr: sharedLocateOcr,
     // 面板定位 / 判定用 tiers.json 的模板 skeleton(第一次掃描才讀)
     locateIndex: () => loadLocateIndex(),
     send: (ev) => { send('reveal-scan-result', ev) }
@@ -584,6 +588,7 @@ if (!skipStartup) app.whenReady().then(() => {
     env: scanEnv,
     ocrBusy: () => revealScan.busy,
     capture: scanCapture,
+    locateOcr: sharedLocateOcr,
     send: (ev) => { send('runeshape-scan-result', ev) }
   })
   if (windowMode === 'overlay') {

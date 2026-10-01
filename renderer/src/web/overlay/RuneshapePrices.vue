@@ -12,6 +12,8 @@
     徽章:`市 …`(排隊中)→ `市 查詢中` → `市 80 崇高`(筆數 < 3 加「少」),後接關鍵篩選短字(`· L20` / `· 等級不限`);完整篩選寫進 log。
   - 台服:poe.ninja 沒有台服價格 → 全部走市集查詢(原幣顯示)+ 一次提示。
   - 整層 `pointer-events: none`(徽章不可點)。不送任何輸入。
+  - 效能修正第 6 步:事件的列(+ client、遊戲、資料集世代)與目前畫著的相同 → 不重新比對 / 排版 / 印 log(`scan-dedupe.ts`;
+    耗時紀錄與「有人在查價」照舊);每列的市集查詢計畫每次結果只算一次(`plans` computed)。
 -->
 <template>
   <div v-if="active" class="rs-layer pob-dark" data-runeshape-layer :data-runeshape-state="state">
@@ -62,6 +64,7 @@ import {
   formatRuneTrade, layoutRunePrices, recordScanTimings, runeTradeBadge, runeTradeToExalted, runeshapeTradeHold,
   type MatchedRow, type PriceUnit, type RuneBadgeView, type RuneTradeBadge, type RuneTradeBadgeStatus
 } from './runeshape-view'
+import { createScanResultGate, dataGeneration, scanResultKey } from './scan-dedupe'
 
 const TOAST_MS = 2_500
 
@@ -83,6 +86,8 @@ export default defineComponent({
     let toastTimer: ReturnType<typeof setTimeout> | null = null
     /** 台服提示只在第一次有列時顯示一次(之後每秒一次的掃描不重複跳) */
     let twNoticeShown = false
+    /** 與目前畫著的列相同的事件不重新比對 */
+    const gate = createScanResultGate()
 
     // 佇列自己打的請求用原始 http(不含 withRetryAfter 的等待重試):收到 429 → 整個佇列暫停,不在背景睡著等
     const queue = Poe2.createRuneTradeQueue({
@@ -110,6 +115,7 @@ export default defineComponent({
     function clear (reason: string) {
       // 面板消失:尚未送出的市集查詢不再需要(快取保留)
       queue.clearPending()
+      gate.reset()
       if (state.value === 'idle') return
       state.value = 'idle'
       rows.value = []
@@ -122,6 +128,13 @@ export default defineComponent({
       if (e.reason === 'user-resumed') { showToast('resumed', t('ppz.runeshape.resumed')); return }
       if (!e.rows.length) { clear(e.reason); return }
       if (loadedGame.value !== 'poe2') return
+      const key = scanResultKey(e.rows, e.client, `${loadedGame.value}|${dataGeneration.value}`)
+      if (gate.repeat(key, state.value === 'rows')) {
+        // 同一份列:徽章不變,只維持「有人在查價」(與原本每個事件都呼叫相同)
+        if (config.realm !== 'tw') ninja.queuePricesFetch()
+        return
+      }
+      gate.remember(key)
       rows.value = Poe2.matchRunesRows(e.rows)
       client.value = e.client
       viewport.value = { w: window.innerWidth, h: window.innerHeight }
@@ -149,11 +162,18 @@ export default defineComponent({
       const p = Poe2.planRuneTradeQuery({ ...r, kind: r.kind }, opts)
       return p.ok ? p.plan : null
     }
+    /** 每列的查詢計畫(依賴:列、聯盟 / 區服 / 語言);排版、排隊、市集徽章共用,每次結果每列只算一次 */
+    const plans = computed(() => {
+      const m = new Map<MatchedRow, ReturnType<typeof planOf>>()
+      for (const r of rows.value) m.set(r, planOf(r))
+      return m
+    })
+    const planFor = (r: MatchedRow | undefined) => (r ? plans.value.get(r) ?? null : null)
 
     const badges = computed(() => {
       // 依賴:價格表(snapshot)、門檻、列、視窗大小、聯盟 / 區服(查詢計畫)
       void ninja.snapshot.value
-      return layoutRunePrices(rows.value, ninja.priceOf, client.value, viewport.value, config.runeshapeThresholds, (r) => planOf(r)?.key)
+      return layoutRunePrices(rows.value, ninja.priceOf, client.value, viewport.value, config.runeshapeThresholds, (r) => planFor(r)?.key)
     })
 
     // 無 ninja 價的可查列 → 由上而下排進佇列(同一組篩選已排 / 查過不重排)
@@ -161,7 +181,7 @@ export default defineComponent({
       for (const b of bs) {
         if (!b.tradeKey) continue
         const row = rows.value[b.rowIndex]
-        const plan = row ? planOf(row) : null
+        const plan = planFor(row)
         if (plan && queue.enqueue(plan)) console.log(`[runeshape] 市集排入 ${row.refName}(${row.name ?? ''})`)
       }
     })
@@ -173,7 +193,7 @@ export default defineComponent({
       for (const b of badges.value) {
         if (!b.tradeKey) continue
         const e = trades.value[b.tradeKey]
-        const plan = e?.plan ?? planOf(rows.value[b.rowIndex])
+        const plan = e?.plan ?? planFor(rows.value[b.rowIndex])
         // 國際服:能換算就換成崇高石;台服沒有 poe.ninja 匯率 → 原幣
         const display = e?.state === 'done'
           ? formatRuneTrade(Poe2.summarizeRuneTrade(e.raw.listings, config.realm === 'intl' ? runeTradeToExalted(rates.value) : undefined), rates.value)

@@ -12,6 +12,7 @@ import type { TradeContext } from '@exile-appraiser/core/games/adapter'
 import { loadedGame } from './web/games/active'
 import { bgImageUrl, useBackground, useTheme } from './web/useTheme'
 import { runReload } from './web/loadState'
+import { bumpDataGeneration } from './web/overlay/scan-dedupe'
 
 /** 載入某個遊戲的資料集(每個 adapter 各自持有模組層級資料;切回來時語言沒變就是 no-op)。 */
 async function loadGameData (game: Game, lang: Language): Promise<void> {
@@ -22,6 +23,8 @@ async function loadGameData (game: Game, lang: Language): Promise<void> {
     await poe1Adapter.loadData(browserDataSource('./data/poe1'), lang)
   }
   console.log(`[app] 資料載入完成 game=${game} lang=${lang}(${Math.round(performance.now() - started)} ms)`)
+  // OCR 徽章「同一份列不重算」的鍵含資料集世代:換資料後同一份列要重新比對
+  bumpDataGeneration()
 }
 
 /** 啟動失敗時直接把錯誤畫在 #app(純 DOM,不依賴 Vue),避免視窗全空白沒有線索。 */

@@ -5,7 +5,7 @@
  *   `locate-data.ts` 第一次用到才讀)——`locatePanel` 找「像詞綴」的行並外擴、`findPanelHits` ≥ 2 行像詞綴且分成 ≥ 2 組
  *   (選項之間有空隙;物品浮窗的連續詞綴不算)才算有面板。
  * - 送出的行 = 該區域 OCR 的**全部行**(renderer 的 `matchRevealLines` 需要對不上的行來補「中間選項沒認出」的組)。
- * - 有 `ocrRegion` 時優先看區域;區域內連續 2 次沒找到面板 → 退回自動定位,區域畫面有變化才回到區域(事件帶 `fallback: true`)。
+ * - 有 `ocrRegion` 時優先看區域;區域內連續 2 次沒找到面板 → 退回自動定位,區域畫面大幅變化(或還沒找到面板且 2 秒沒看區域)才回到區域(事件帶 `fallback: true`;規則在 `panel-scan.ts`)。
  * - **查價面板開著不暫停**(看褻瀆時常同時開著查價);設定 / 框選層開著、遊戲失焦時暫停。
  * 與符文塑形共用同一個 WinOcr(對方忙碌就丟掉這個 tick;兩者同時開著時 main 把第一個 tick 錯開半個間隔)。
  * 事件 `reveal-scan-result`(不進 `PREVIEW_EVENTS`);不送任何鍵盤 / 滑鼠輸入、不上傳。

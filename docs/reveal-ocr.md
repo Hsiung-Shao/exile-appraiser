@@ -15,10 +15,10 @@ PoE2 靈魂之井的「三選一」揭露面板無法複製文字。擷取遊戲
 |---|---|---|
 | 設定 | `revealAutoEnabled`(預設**開**)、`revealIntervalMs`(100–3000,預設 1000)、區域沿用 `ocrRegion` | `runeshapeEnabled`(預設關)、`runeshapeIntervalMs`(同夾限)、`runeshapeRegion` |
 | 資料 | `ready()` 第一次讀 `tiers.json` 建模板索引(`locate-data.ts`);讀不到 → 停止(`no-data`,清徽章) | 不需要 |
-| 自動定位(沒快取時每 3 秒最多一次整個 client ×1) | `locatePanel`(像詞綴的行成簇 → 外擴) | `locateRunePanel` |
+| 自動定位(沒快取時每 3 秒最多擷取一次;連續沒找到退避 3 → 6 → 12 → 15 秒、兩個掃描共用同一次整個 client ×1,見「排程與退避」) | `locatePanel`(像詞綴的行成簇 → 外擴) | `locateRunePanel` |
 | 有沒有面板 | `findPanelHits` ≥ 2 行像詞綴(`REVEAL_MIN_HITS`,同 `checkRegion`),**且依 y 分成 ≥ 2 組**(`modGroupCount`:相鄰中心距 > 1.9 × 行高 = 下一組,同 renderer 分組門檻)——選項之間有空隙,物品浮窗的連續詞綴行不算(無頭驗證發現只看行數會把浮窗當面板) | ≥ 1 列 `isPanelRow` |
 | 送出的行 | 區域 OCR 的**全部行**(renderer `matchRevealLines` 要用對不上的行補中間沒認出的組) | 含 CJK 的行 |
-| 有框區域 | 優先區域;區域內連續 2 次沒面板 → **退回自動定位**(事件帶 `fallback: true`,設定頁顯示「區域內沒找到,改找整個畫面」),區域的縮圖有變化才回到區域 | 只看區域,不退回 |
+| 有框區域 | 優先區域;區域內連續 2 次沒面板 → **退回自動定位**(事件帶 `fallback: true`,設定頁顯示「區域內沒找到,改找整個畫面」),區域的縮圖**大幅**變化(或退回中還沒找到面板且 ≥ 2 秒沒看區域)才回到區域 | 只看區域,不退回 |
 | 暫停 | 遊戲失焦、設定 / 框選層開著;**查價面板開著不暫停**(看褻瀆時常同時開查價) | 另加查價面板開著 |
 | 事件 | `reveal-scan-result`(`RevealScanEvent` = `PanelScanEvent`,不進 `PREVIEW_EVENTS`) | `runeshape-scan-result` |
 | 熱鍵 | `hotkeyOcrReveal` = 暫停 / 繼續(`revealAutoEnabled` 關時不註冊);`hotkeyOcrRegion` = 框選區域 | `hotkeyRuneshapeToggle`(要啟用才註冊);`hotkeyRuneshapeRegion` = 框選區域(2026-10-01 新增) |
@@ -26,8 +26,31 @@ PoE2 靈魂之井的「三選一」揭露面板無法複製文字。擷取遊戲
 - **共用 WinOcr**:兩個掃描的 `ocrBusy` 互看對方的 `busy`,忙碌就丟掉這個 tick(不排隊);main 啟動時褻瀆第一個 tick 立刻跑、符文延後半個間隔,兩者同時開著時交錯。
 - **徽章**(`OcrBadges.vue` + `ocr-reveal.ts` `revealScanAction`):`rows` → 重新比對並重畫;比對不成面板(背包物品浮窗等,main 端只看得出「≥ 2 行像詞綴」)→ 靜靜清掉、不跳錯誤;
   `empty` / `inactive` / `user-paused` → 清除。**沒有 15 秒自動消失、沒有「再按一次清除」**;Esc 暫時清掉;overlay 改大小以最後結果重排;退回整個畫面的提示只在剛切過去時顯示 5 秒(`fallbackNoteShows`)。
-- 框選確認後 `ocr-reveal-now` → `revealScan.rescan()`(丟掉差分基準與退回狀態,下一個 tick 一定重看)。
+- 框選確認後 `ocr-reveal-now` → `revealScan.rescan()`(丟掉差分基準、退回狀態與退避,下一個 tick 一定重看)。
 - 設定頁(熱鍵與視窗 › 褻瀆自動辨識卡片):開關、狀態列(`reveal-stats`:找到 / 尋找中 / 退回 / 暫停,`revealScanStatus`)、掃描間隔等,見下節「設定頁(與符文塑形對等)」。
+
+### 排程與退避(效能修正第 6 步,2026-10-01;褻瀆與符文共用 `panel-scan.ts`)
+
+只改「什麼時候 OCR / 送事件」,擷取、JPEG、WinOcr、比對演算法都沒動;辨識結果不變(`--ocr-selftest` / `--runeshape-selftest` 改前改後逐行對照,只差下面第 5 點的「不重送」)。
+
+1. **大幅變化**(`isLargeChange` / `tileMaxDiff`):寬 64 的灰階縮圖切成 8×8 小塊,任一塊平均差 ≥ 6 或變動比例(單像素差 ≥ 16)≥ 0.15。
+   門檻以 `well-of-souls-fullscreen-02` 推導(「沒有面板」用同張截圖的場景塊合成):面板出現時最大一塊 18–89 / 0.63–1.0,**淡入一半**(最難)8.3 / 0.20;
+   鏡頭平移 4 px 3.0–3.5 / ≤ 0.08、8 px 6.2–7.3 / 0.11–0.20。看最大一塊是因為整張平均會被面積稀釋(只有詞綴框出現時整個 client 平均差只有 0.6–2.7)。
+2. **手動區域沒有面板的退避**:空結果送出之後(連續第 2 次無列起,空結果的時機不變),區域「有變化但不大」的 OCR 間隔變成掃描間隔 × 2、× 4…,上限 `IDLE_BACKOFF_MAX_MS` 2.5 秒;
+   退避中差分基準不動(下次仍與上次 OCR 的畫面比,累積的變化會變大幅);**大幅變化立即 OCR 並把退避歸零**;找到面板 → 完全回到原行為(每次有變化就 OCR)。
+3. **褻瀆退回自動定位**:原本「區域縮圖有變化就回區域」,遊戲畫面一動就回去、自動定位永遠輪不到;改為區域**大幅**變化,或退回中還沒找到面板且距上次區域 OCR ≥ `FALLBACK_RECHECK_MS`(2 秒;
+   沒快取時最多每 3 秒擷取一次,實際在下一次擷取時)才回區域。退回中已找到面板時只有大幅變化才回。
+4. **自動定位**(沒框區域 / 退回中、沒有快取):擷取節流照舊每 3 秒最多一次;擷取後以整個 client 的縮圖與上次定位時比 ——
+   大幅變化 → 立刻定位並把退避歸零;距上次定位 ≥ 15 秒 → 必定位;幾乎沒變(`isChanged` 為否)→ 跳過;連續沒找到 n 次 → 間隔 `locateGapMs`:3 → 6 → 12 → 15 秒。
+   兩個掃描共用 `SharedLocateOcr`(main 建一個):同一 client 大小 / 擷取偏移 / 影像大小 1 秒內的整個 client ×1 只 OCR 一次(兩邊都是 ×1、同一個 WinOcr、同一語言;各自跑自己的 `detector.locate`,只決定裁切框)。
+5. **不重送相同結果**:`rows` 的簽章(列文字 + 四捨五入座標 + client + fallback,`rowsSignature`)與上次送出的相同且未滿 10 秒(`REPEAT_ROWS_MS`)→ 不送(統計 / 基準照常);
+   `empty` / `inactive` / `user-paused` / `user-resumed` 一律送,送過就清掉簽章;暫停、框選確認、換模式也清掉(恢復後同一份列照送,Esc 清掉的徽章因此會回來)。
+   main 的 OCR log 同一結果不重複印,下一行不同時附「其間 N 次相同」。renderer(`scan-dedupe.ts`):鍵 = 列 + client + 會影響比對的輸入(褻瀆:fallback、profile 提示;兩者:遊戲、資料集世代 `dataGeneration`),
+   與**目前畫著的**相同就不重比 / 重排 / 印 log;符文每列的市集查詢計畫一次結果只算一次(`plans` computed)。
+6. **tick 不重入**:一進 tick 就設 `ticking`(原本 `inFlight` 在 `await det.ready()` 之後才設,第一次讀 tiers.json 時 `poke()` 會再開一個 tick);`busy`(給另一個掃描丟 tick 用)仍只在擷取 / OCR 期間為真。
+
+「面板出現 → 徽章」的延遲:面板出現屬大幅變化 → 與原本同一個 tick OCR(手動區域);自動定位仍在原本的 3 秒擷取節奏內定位到。
+殘留風險:面板出現時最大一塊的變化 < 門檻(例如暗色面板疊在幾乎一樣暗的背景、而且框的區域遠大於面板)→ 最多晚 2.5 秒(手動)/ 15 秒(自動定位退避上限)。待使用者實機確認。
 
 ### 設定頁(與符文塑形對等,2026-10-01)
 
@@ -53,8 +76,9 @@ PoE2 靈魂之井的「三選一」揭露面板無法複製文字。擷取遊戲
   → main 送 `ocr-region-pick` 帶 `{ target: 'runeshape' }`(揭露面板照舊不帶內容)→ `OcrRegionPicker.vue` `openRegionPicker('hotkey', 'runeshape')`。
 - **手動比例欄位已移除**(原「進階:手動輸入比例」四個數字欄位);`Config.ts` 仍讀寫舊檔的 `ocrRegion`(`normOcrRegion`)。
 - 舊的按熱鍵辨識一次(`RevealOcr`、`ocr-reveal-result`)已移除;兩段式 `strategy.ts`(`smartRecognize` / `recognizeRegionFirst`)仍給 `--ocr-selftest` 用,下文「兩段式辨識」「框選辨識區域」的**單次**流程描述保留作歷史紀錄。
-- 測試:`main/test/reveal-scan.test.ts`(三張真實截圖快照當畫面:偵測器定位 / 判定、自動定位 → ×3、畫面沒變不 OCR、面板關了 empty、查價面板開著照常、設定開著暫停、no-data、共用 WinOcr 忙碌、暫停熱鍵、區域 / 退回 / 回到區域、rescan、停用清徽章)、
-  `renderer/test/reveal-scan.test.ts`(事件 → 徽章動作、狀態列、設定往返)、`main/test/runeshape-scan.test.ts`(泛化後符文行為不變)。
+- 測試:`main/test/reveal-scan.test.ts`(三張真實截圖快照當畫面:偵測器定位 / 判定、自動定位 → ×3、畫面沒變不 OCR、面板關了 empty、查價面板開著照常、設定開著暫停、no-data、共用 WinOcr 忙碌、暫停熱鍵、區域 / 退回 / 回到區域、rescan、停用清徽章;
+  第 6 步:退回中小變化不回區域而讓定位跑、2 秒重看區域、兩個掃描共用定位 OCR 且結果與自己 OCR 相同、tick 不重入)、
+  `renderer/test/reveal-scan.test.ts`(事件 → 徽章動作、狀態列、設定往返)、`renderer/test/scan-dedupe.test.ts`(同一份列不重算)、`main/test/runeshape-scan.test.ts`(泛化後符文行為不變;第 6 步的退避 / 大幅門檻 / 定位退避 / 不重送)。
 
 ## 管線(2026-09-30 單次辨識時的設計;擷取 / OCR / 比對 / 座標系沿用)
 
@@ -228,7 +252,8 @@ OCR 使用 Windows 內建辨識,在本機執行;截圖只在記憶體裡傳給�
 ## 待使用者親測
 
 0. **2026-10-01 自動持續辨識**:PoE2 開井 → 不按任何鍵,約 1–3 秒內出現三枚徽章;關掉面板徽章消失;開著查價面板時仍會出現;
-   `Ctrl + Shift + R` 暫停(徽章消失)/ 繼續;與符文塑形同時開著時兩邊都會更新;平常遊玩時的 CPU(沒面板時約每 3 秒整張 ×1 一次);
+   `Ctrl + Shift + R` 暫停(徽章消失)/ 繼續;與符文塑形同時開著時兩邊都會更新;平常遊玩時的 CPU(沒面板時整張 ×1 定位連續沒找到會退避到最多每 15 秒一次、兩個掃描共用;
+   框了區域但沒面板時小變化最多每 2.5 秒 OCR 一次);**第 6 步待確認**:暗色背景 / 大框區域時面板出現仍立即出徽章(大幅變化門檻)、退回中能自動定位到區域外的面板;
    背包物品浮窗不會誤出徽章;框了區域但面板不在區域內時,設定頁顯示「改找整個畫面」且仍出徽章。
 1. PoE2 開井 → 三枚徽章位置與內容;視窗化 / 無邊框 / 全螢幕三種模式各一次。
 2. 先查價那件物品(10 分鐘內)再按,徽章沒有「?」。

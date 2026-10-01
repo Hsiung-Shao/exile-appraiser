@@ -9,6 +9,8 @@
   - `pointer-events: none`:不擋遊戲操作。
   - WP-S2:比對成功時記下面板外框(`lastDetectedRegion`,框選層的「上次偵測」參考框);事件帶 `fallback`(框選區域內沒找到、改找整個畫面)
     剛切過去時提示 5 秒;框選層開啟時清掉徽章。
+  - 效能修正第 6 步:事件的列(+ client、fallback、profile 提示、遊戲、資料集世代)與目前畫著的結果相同 → 不重新比對 / 排版 / 印 log
+    (`scan-dedupe.ts`);同一份「不是揭露面板」的列也不重比。畫面被清掉後同一份列照常重畫。
 -->
 <template>
   <div v-if="state !== 'idle'" class="ocr-layer pob-dark" :data-ocr-state="state">
@@ -36,6 +38,7 @@ import {
   fallbackNoteShows, lastDetectedRegion, lastPoe2Item, layoutBadges, profileHint, regionPickerOpen, revealScanAction, tierText, type BadgeView
 } from './ocr-reveal'
 import { detectedRegion } from './region-geom'
+import { createScanResultGate, dataGeneration, scanResultKey } from './scan-dedupe'
 
 /** WP-S2:「區域內沒找到,已改找整個畫面」提示顯示多久 */
 const FALLBACK_NOTE_MS = 5_000
@@ -57,6 +60,9 @@ export default defineComponent({
     let last: { r: OkResult, client: { w: number, h: number } } | null = null
     /** 同一種「比對不成面板」只記一次 log(持續掃描時每秒一行太吵) */
     let lastMissLog = ''
+    /** 與目前畫著的結果相同的事件不重算;`lastNoPanelKey` = 上一份判定「不是揭露面板」的列(同一份不重比) */
+    const gate = createScanResultGate()
+    let lastNoPanelKey = ''
 
     function setFallback (on: boolean) {
       if (fallbackTimer) { clearTimeout(fallbackTimer); fallbackTimer = null }
@@ -65,6 +71,7 @@ export default defineComponent({
     }
     function clear (reason: string) {
       last = null
+      gate.reset()
       if (state.value === 'idle') return
       setFallback(false)
       state.value = 'idle'
@@ -86,10 +93,15 @@ export default defineComponent({
       if (act.kind === 'ignore') return
       if (act.kind === 'clear') {
         prevFallback = false
+        lastNoPanelKey = ''
         clear(act.reason)
         return
       }
       const hint = profileHint(lastPoe2Item.value)
+      // 比對的全部輸入:列、client、profile 提示、遊戲、資料集世代;fallback 影響提示
+      const key = scanResultKey(e.rows, e.client, `${e.fallback ? 1 : 0}|${hint.refName ?? ''}|${hint.category ?? ''}|${loadedGame.value}|${dataGeneration.value}`)
+      if (gate.repeat(key, state.value === 'result' && last != null)) return
+      if (state.value === 'idle' && key === lastNoPanelKey) return
       const r = Poe2.matchRevealLines(e.rows, hint)
       if (!r || !r.ok) {
         // 畫面上有 ≥ 2 行像詞綴、但湊不成 2–3 組的面板(背包物品浮窗等)→ 不是揭露面板,靜靜清掉
@@ -97,9 +109,13 @@ export default defineComponent({
         if (why !== lastMissLog) console.log(`[ocr] 不是揭露面板(${why});OCR ${e.rows.length} 行:${e.rows.map(l => l.text.replace(/\s+/g, '')).join(' | ').slice(0, 200)}`)
         lastMissLog = why
         clear(why)
+        // 資料還沒載好(no-data)不記:載好後同一份列要重比
+        lastNoPanelKey = why === 'no-panel' ? key : ''
         return
       }
       lastMissLog = ''
+      lastNoPanelKey = ''
+      gate.remember(key)
       last = { r, client: e.client }
       layout()
       guess.value = !r.profileExact
