@@ -18,13 +18,39 @@ import type { GameId } from '@ipc/types'
 export const GAMES: readonly GameId[] = ['poe1', 'poe2']
 const INTERVAL_MS = 2000
 const REQUIRED_HITS = 2
-const VETO_MS = 10_000
+/** 否決(視窗只是最小化)結果在「視窗清單不變」時沿用的時間;清單一變立即失效重查。 */
+const VETO_MS = 60_000
+/** 目前遊戲在前景而跳過列舉時,連續跳過這麼多次就強制完整列舉一次(防 focus 狀態殘留)。 */
+const MAX_FOREGROUND_SKIPS = 15
 
 export interface GameDetectorOpts {
   /** 目前綁定(overlay)或使用中(window)的遊戲。 */
   currentGame: () => GameId
   windowTitleBy: () => Record<GameId, string>
   onSwitch: (game: GameId) => void
+  /**
+   * overlay 模式下「目前綁定的遊戲視窗正在前景」。為 true 時視窗必定存在(且未最小化)→ 判定必為「不切換」,
+   * 該 tick 跳過視窗列舉與 PowerShell。沒提供 / window 模式回 false。
+   */
+  isCurrentGameForeground?: () => boolean
+  /** 測試注入:頂層視窗名稱 / 行程視窗標題 / 時鐘。 */
+  listWindowNames?: () => Promise<string[]>
+  processTitles?: () => Promise<string[] | null>
+  now?: () => number
+}
+
+async function listWindowNamesDefault (): Promise<string[]> {
+  const sources = await desktopCapturer.getSources({
+    types: ['window'],
+    thumbnailSize: { width: 0, height: 0 },
+    fetchWindowIcons: false
+  })
+  return sources.map(s => s.name)
+}
+
+/** 視窗清單(標題集合)的簽章,順序與重複無關。 */
+export function namesSignature (names: readonly string[]): string {
+  return [...new Set(names)].sort().join('\0')
 }
 
 /** 純函式:給定視窗名稱清單,回傳「應切換到哪款遊戲」(不切換 → null)。 */
@@ -56,7 +82,9 @@ export class GameDetector {
   private candidate: GameId | null = null
   private hits = 0
   private fired = false
-  private vetoUntil = 0
+  /** 最近一次「最小化否決」:當時的視窗清單簽章與時間。 */
+  private veto: { sig: string, at: number } | null = null
+  private fgSkips = 0
 
   constructor (private opts: GameDetectorOpts) {}
 
@@ -75,6 +103,7 @@ export class GameDetector {
     this.timer = null
     this.candidate = null
     this.hits = 0
+    this.fgSkips = 0
     console.log('[detect] 停止遊戲視窗偵測')
   }
 
@@ -85,32 +114,40 @@ export class GameDetector {
     this.hits = 0
   }
 
-  private async tick () {
+  /** 單次偵測(timer 呼叫;測試直接呼叫)。 */
+  async tick () {
     if (this.busy || this.fired) return
     this.busy = true
     try {
-      const sources = await desktopCapturer.getSources({
-        types: ['window'],
-        thumbnailSize: { width: 0, height: 0 },
-        fetchWindowIcons: false
-      })
-      const names = sources.map(s => s.name)
+      // 目前遊戲在前景 → 視窗必在 → 原判斷必為 null(並重置連續計數)。直接跳過列舉,計數照原行為重置。
+      if (this.opts.isCurrentGameForeground?.() && this.fgSkips < MAX_FOREGROUND_SKIPS) {
+        this.fgSkips++
+        if (this.candidate) console.log(`[detect] 條件不再成立,取消切換到 ${this.candidate}`)
+        this.candidate = null
+        this.hits = 0
+        return
+      }
+      this.fgSkips = 0
+      const now = this.opts.now ?? Date.now
+      const names = await (this.opts.listWindowNames ?? listWindowNamesDefault)()
       const current = this.opts.currentGame()
       const titles = this.opts.windowTitleBy()
       let target = decideSwitch(names, current, titles)
       if (target != null) {
         // desktopCapturer 不列**最小化**的視窗(實測);全螢幕 PoE 切出去會最小化 → 誤判「目前遊戲不在」。
         // 候選成立時再用行程主視窗標題(含最小化)確認一次;只在候選時跑,平常不 spawn。
-        // 確認後否決的,10 秒內不再確認(視窗一直最小化時不必每 2 秒 spawn PowerShell)。
-        if (Date.now() < this.vetoUntil) {
+        // 確認後否決的,在「視窗清單(標題集合)不變」時沿用 60 秒(視窗一直最小化時不必反覆 spawn PowerShell);清單一變立即重查。
+        const sig = namesSignature(names)
+        if (this.veto && this.veto.sig === sig && now() - this.veto.at < VETO_MS) {
           target = null
         } else {
-          const extra = await processWindowTitles()
+          this.veto = null
+          const extra = await (this.opts.processTitles ?? processWindowTitles)()
           if (extra) {
             target = decideSwitch([...names, ...extra], current, titles)
             if (target == null) {
               console.log(`[detect] ${current} 視窗「${titles[current]}」只是最小化(行程視窗標題仍在),不切換`)
-              this.vetoUntil = Date.now() + VETO_MS
+              this.veto = { sig, at: now() }
             }
           }
         }

@@ -740,6 +740,7 @@ if (!skipStartup) app.whenReady().then(() => {
       poe1: hostCfg ? windowTitleFor(hostCfg, 'poe1') : DEFAULT_WINDOW_TITLE.poe1,
       poe2: hostCfg ? windowTitleFor(hostCfg, 'poe2') : DEFAULT_WINDOW_TITLE.poe2
     }),
+    isCurrentGameForeground: () => overlay != null && Boolean(poeWindow?.isActive),
     onSwitch: (game) => {
       if (overlay) {
         scheduleRelaunch(`自動偵測:${bound?.game}→${game}`, game)

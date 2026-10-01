@@ -19,7 +19,8 @@
   (實測約 160 ms/次、Windows 不跳權限提示)。某遊戲「在」= 有名稱**完全等於**該遊戲標題(與原生 strcmp 同語意)。
   目前遊戲不在、另一款在,連續 2 次(約 4 秒)→ 切換;兩款都在或都不在 → 不動。`autoSwitchGame=false` → 不跑。
   ⚠ 實測 desktopCapturer **不列最小化的視窗**(全螢幕 PoE 切出去會最小化),只靠它會在「PoE1 最小化、PoE2 開著」時誤切。
-  所以候選成立時再跑一次 PowerShell `Get-Process | ? MainWindowTitle`(含最小化)確認;否決後 10 秒內不再確認。
+  所以候選成立時再跑一次 PowerShell `Get-Process | ? MainWindowTitle`(含最小化)確認;否決結果在「視窗清單(標題集合)不變」時沿用 60 秒,清單一變立即重查。
+  overlay 模式下目前綁定的遊戲視窗在前景(`poeWindow.isActive`)時視窗必在、判定必為不切換 → 該 tick 直接跳過列舉(連續計數照原行為重置;連續跳過 15 次會強制完整列舉一次,防 focus 狀態殘留)。
 - `main/src/main.ts` 的 `host-config`:
   - overlay:第一次決定綁定(log `[overlay] attachByTitle "<title>" (game=<game>)`);之後 `game`、目前遊戲的標題、
     `overlayMode` 變了 → 等 500 ms(讓 renderer 300 ms debounce 的存檔落地)→ 寫 game → 重新啟動。
