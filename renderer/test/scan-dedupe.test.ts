@@ -61,7 +61,7 @@ describe('createScanResultGate(元件的處理流程)', () => {
     c.onRows(ROWS)
     expect(c.matches).toBe(2)
   })
-  it('會影響比對的輸入(profile 提示 / fallback / 遊戲)不同 → 重比', () => {
+  it('會影響比對的輸入(profile 提示 / 遊戲 / 資料集世代)不同 → 重比', () => {
     const c = component()
     c.onRows(ROWS, '0|Body Armour|poe2|0')
     c.onRows(ROWS, '1|Body Armour|poe2|0')

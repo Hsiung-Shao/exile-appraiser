@@ -1,8 +1,8 @@
 // WP-S:揭露面板 OCR 徽章的純邏輯(renderer/src/web/overlay/ocr-reveal.ts)
 import { describe, expect, it } from 'vitest'
 import {
-  BADGE_GAP_PX, LAST_ITEM_TTL_MS, closeRegionPicker, layoutBadges, openRegionPicker, profileHint, regionPickerClosed,
-  regionPickerOpen, returnsToSettings, tierText, type BadgeFormat
+  BADGE_GAP_PX, BADGE_STACK_GAP_PX, LAST_ITEM_TTL_MS, badgeMetrics, closeRegionPicker, estimateBadgeHeight, guessNoteKey, layoutBadges,
+  openRegionPicker, profileHint, regionPickerClosed, regionPickerOpen, returnsToSettings, stackBadges, tierText, type BadgeFormat, type BadgeView
 } from '../src/web/overlay/ocr-reveal'
 
 describe('OCR 框選結束後回到設定(設定視窗)', () => {
@@ -80,11 +80,14 @@ describe('layoutBadges', () => {
     ]
   }
 
-  it('client 實體像素 → CSS px(overlay 150% 縮放:client 1920 寬 = CSS 1280)', () => {
+  it('client 實體像素 → CSS px(overlay 150% 縮放:client 1920 寬 = CSS 1280);左緣對齊所有組右緣的最大值 + 14、上緣 = 組中心 − 半高', () => {
     const v = layoutBadges(result, { w: 1920, h: 1080 }, { w: 1280, h: 720 }, fmt)
     expect(v).toHaveLength(3)
-    expect(v[0].left).toBe(Math.round((408 + 116) * (1280 / 1920) + BADGE_GAP_PX))
-    expect(v[0].top).toBe(Math.round((529 + 30) * (720 / 1080)))
+    const left = Math.round((341 + 249) * (1280 / 1920) + BADGE_GAP_PX) // 第 2 組右緣最大
+    expect(v.map(b => b.left)).toEqual([left, left, left])
+    expect(v[0].anchorY).toBeCloseTo((529 + 30) * (720 / 1080))
+    const h0 = estimateBadgeHeight(v[0])
+    expect(v[0].top).toBe(Math.round(v[0].anchorY - h0 / 2))
   })
 
   it('徽章文字:Tier(profile 不精確加 ?)· 詞綴池 · 範圍;模糊命中加 ≈;對不上的行列原文;沒候選標 empty', () => {
@@ -100,5 +103,76 @@ describe('layoutBadges', () => {
   it('profile 精確時不加 ?', () => {
     const v = layoutBadges({ ...result, profileExact: true }, { w: 1920, h: 1080 }, { w: 1920, h: 1080 }, fmt)
     expect(v[0].rows[0].text).toBe('T4 · 一般 · 86–102 / 79–94')
+  })
+})
+
+describe('第 13 步:徽章防碰撞與多候選收合', () => {
+  const cand = (tier: number, lo: number, fuzzy = false) =>
+    ({ tier, tierRange: [tier, tier] as [number, number], pool: 'normal' as const, ranges: [[lo, lo + 5]] as Array<[number, number]>, fuzzy, entryIds: [`e${tier}`] })
+  /** 使用者回報的樣子:5 組各一行、行距只有 29 px(物品浮窗被當成面板時),一組 3 個候選 */
+  const crowded = {
+    ok: true as const,
+    profileExact: false,
+    profileSource: 'all' as const,
+    groups: [434, 464, 493, 522, 547].map((y, i) => ({
+      lines: [line(`詞 綴 ${i}`, y)],
+      rect: { x: 1200 + i * 40, y, w: 250 - i * 30, h: 20 },
+      partial: false,
+      candidates: i === 2 ? [cand(2, 2, true), cand(3, 2), cand(4, 2)] : [cand(2, 30 + i)]
+    }))
+  }
+  const noOverlap = (v: BadgeView[], heights: number[]) => {
+    const order = v.map((_, i) => i).sort((a, b) => v[a].top - v[b].top)
+    for (let k = 1; k < order.length; k++) {
+      const a = order[k - 1]
+      const b = order[k]
+      expect(v[b].top - (v[a].top + heights[a])).toBeGreaterThanOrEqual(2)
+    }
+  }
+
+  it('依組中心由上而下推開:相鄰兩枚至少隔 2 px(預設 4 px),左緣全部對齊', () => {
+    const v = layoutBadges(crowded, { w: 1920, h: 1080 }, { w: 1920, h: 1080 }, fmt)
+    expect(new Set(v.map(b => b.left)).size).toBe(1)
+    expect(v[0].left).toBe(Math.round(Math.max(...crowded.groups.map(g => g.rect.x + g.rect.w)) + BADGE_GAP_PX))
+    noOverlap(v, v.map(b => estimateBadgeHeight(b)))
+    // 順序與組的上下順序相同
+    expect(v.map(b => b.top)).toEqual([...v.map(b => b.top)].sort((a, b) => a - b))
+    expect(BADGE_STACK_GAP_PX).toBeGreaterThanOrEqual(2)
+  })
+
+  it('預設一組只列最可能的一個(第一個非模糊)+「+N」;顯示全部候選時全列,仍不重疊', () => {
+    const v = layoutBadges(crowded, { w: 1920, h: 1080 }, { w: 1920, h: 1080 }, fmt)
+    expect(v[2].rows.map(r => r.text)).toEqual(['T3? · 一般 · 2–7'])
+    expect(v[2].more).toBe(2)
+    expect(v.filter((_, i) => i !== 2).every(b => b.more === 0 && b.rows.length === 1)).toBe(true)
+    const all = layoutBadges(crowded, { w: 1920, h: 1080 }, { w: 1920, h: 1080 }, fmt, { showAll: true })
+    expect(all[2].rows.map(r => r.text)).toEqual(['≈ T2? · 一般 · 2–7', 'T3? · 一般 · 2–7', 'T4? · 一般 · 2–7'])
+    expect(all[2].more).toBe(0)
+    noOverlap(all, all.map(b => estimateBadgeHeight(b)))
+  })
+
+  it('超出視窗下緣 → 整體上移(間距不變);擠不下時第一枚貼齊上緣、不壓縮間距', () => {
+    const v0 = layoutBadges(crowded, { w: 1920, h: 1080 }, { w: 1920, h: 1080 }, fmt)
+    const hs = v0.map(() => 40)
+    const near = v0.map((b, i) => ({ ...b, anchorY: 1040 + i * 5 }))
+    const s = stackBadges(near, hs, 1080)
+    noOverlap(s, hs)
+    expect(Math.max(...s.map((b, i) => b.top + hs[i]))).toBeLessThanOrEqual(1080)
+    const tiny = stackBadges(near, hs, 150)
+    expect(Math.min(...tiny.map(b => b.top))).toBe(0)
+    noOverlap(tiny, hs)
+  })
+
+  it('量到的實際高度不同時重排(OcrBadges 畫出來後):仍不重疊', () => {
+    const v = layoutBadges(crowded, { w: 1920, h: 1080 }, { w: 1920, h: 1080 }, fmt, { metrics: badgeMetrics(18) })
+    const measured = v.map((_, i) => 30 + i * 7)
+    noOverlap(stackBadges(v, measured, 1080), measured)
+  })
+
+  it('「?」說明:profile 來源 all(交集為空)用「依全部可能底材推算」;交集 / 類別維持原文案;精確不顯示', () => {
+    expect(guessNoteKey({ profileExact: false, profileSource: 'all' })).toBe('ppz.ocr.guess_title_all')
+    expect(guessNoteKey({ profileExact: false, profileSource: 'intersection' })).toBe('ppz.ocr.guess_title')
+    expect(guessNoteKey({ profileExact: false, profileSource: 'category' })).toBe('ppz.ocr.guess_title')
+    expect(guessNoteKey({ profileExact: true, profileSource: 'refName' })).toBeNull()
   })
 })

@@ -8,8 +8,8 @@
  *   full 的結果若定位得到面板,也把外擴區記進快取(下一次就快)。
  * 倍率只用 ×1 與 ×3:實測 ×1.5 / ×2 會錯字(「閃避」→「因」、「增」→日文「増」),×1 在 2000×1125 全對。
  *
- * WP-S2(`recognizeRegionFirst`):有使用者框選的 `ocrRegion` 時,先以區域為搜尋範圍跑上面三條路;
- * 區域內像詞綴的行 < 2(`checkRegion` 判準)→ 再以整個畫面跑一次(`region-fallback`)。
+ * WP-S2 的「優先區域、失敗退回整個畫面」(`recognizeRegionFirst`)已於 2026-10-01 第 13 步移除:執行期由 `panel-scan.ts` 持續掃描,
+ * 有框區域只看區域(褻瀆與符文相同);這裡只剩 `--ocr-selftest` 用的兩段式與區域換算。
  */
 import { checkRegion, locatePanel, type LocateIndex, type Rect } from '../../../poe2/src/desecration/ocr-locate'
 import type { OcrTextLine } from '../../../poe2/src/desecration/ocr-text'
@@ -82,8 +82,6 @@ export interface StageTiming {
   hits?: number
   /** 這段沒被採用的原因 */
   rejected?: string
-  /** WP-S2:這段屬於哪一輪搜尋(`region` = 使用者框的區域;`screen` = 整個畫面)。沒設定區域時省略。 */
-  scope?: 'region' | 'screen'
 }
 
 export interface SmartOcrResult {
@@ -182,61 +180,6 @@ export async function smartRecognize (o: SmartOcrOptions): Promise<SmartOcrResul
   }
   second.st.rejected = chk.reason
   return await full()
-}
-
-// ---- WP-S2:優先用使用者框的區域,失敗退回整個畫面 ----
-
-/** 事件的 `stage`:沒設定區域時 = 內層路徑;有區域時 `region`(區域內找到)或 `region-fallback`(區域內沒找到,改找整個畫面) */
-export type RegionStage = OcrStage | 'region' | 'region-fallback'
-
-export interface RegionFirstResult extends Omit<SmartOcrResult, 'stage'> {
-  stage: RegionStage
-  /** 被採用那一輪實際走的路(cached / two-pass / full) */
-  inner: OcrStage
-}
-
-export interface RegionFirstOptions extends Omit<SmartOcrOptions, 'search' | 'key'> {
-  /** 整個擷取影像(影像像素) */
-  screen: PhysRect
-  /** 使用者框的區域(影像像素;`regionSearchRect`);null = 沒設定 */
-  region: PhysRect | null
-  /** 搜尋範圍 → 快取鍵(`cacheKey` 帶 client 大小與擷取偏移) */
-  keyFor: (search: PhysRect) => string
-}
-
-/** 區域這一輪算不算「找到面板」:與 `checkRegion` 同判準(≥ 2 行像詞綴);讀不到模板索引時無從判斷 → 算找到 */
-export function regionFound (r: SmartOcrResult, index: LocateIndex | null, region: PhysRect): { ok: boolean, hits: number } {
-  if (!index) return { ok: true, hits: 0 }
-  if (r.stage !== 'full') return { ok: true, hits: r.stages[r.stages.length - 1]?.hits ?? 0 }
-  // full 一定跑過整個區域:範圍本身就是邊界,「貼邊」不算,只剩「≥ 2 行」
-  const bounds = toRect(region)
-  const chk = checkRegion(r.lines, index, bounds, bounds)
-  return { ok: chk.ok, hits: chk.hits }
-}
-
-export async function recognizeRegionFirst (o: RegionFirstOptions): Promise<RegionFirstResult> {
-  const base = { recognize: o.recognize, index: o.index, cache: o.cache, forceFull: o.forceFull }
-  if (!o.region) {
-    const r = await smartRecognize({ ...base, search: o.screen, key: o.keyFor(o.screen) })
-    return { ...r, inner: r.stage }
-  }
-  const a = await smartRecognize({ ...base, search: o.region, key: o.keyFor(o.region) })
-  a.stages.forEach(s => { s.scope = 'region' })
-  const found = regionFound(a, o.index, o.region)
-  if (found.ok) return { ...a, stage: 'region', inner: a.stage }
-  const last = a.stages[a.stages.length - 1]
-  if (last) last.rejected = last.rejected ?? `region-too-few-hits(${found.hits})`
-  const b = await smartRecognize({ ...base, search: o.screen, key: o.keyFor(o.screen) })
-  b.stages.forEach(s => { s.scope = 'screen' })
-  const stages = [...a.stages, ...b.stages]
-  return {
-    stage: 'region-fallback',
-    inner: b.stage,
-    lines: b.lines,
-    scale: b.scale,
-    stages,
-    ocrMs: stages.reduce((s, x) => s + x.ocrMs, 0)
-  }
 }
 
 /** `ocrRegion` 變了就清掉面板區快取(舊區域算出來的面板位置不再可信);回傳是否清了 */

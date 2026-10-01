@@ -140,7 +140,7 @@ export interface RuneshapeTimings {
  * - `rows`:面板區 OCR 到的行(detector 判定有面板才有;空陣列 = 清除徽章)。
  * - `reason`:`rows` 有內容;`empty` = 連續 2 次 OCR 沒有面板(面板關了);`inactive` = 停用 / 不是 PoE2 overlay / 沒有遊戲視窗 / 資料讀不到;
  *   `user-paused` / `user-resumed` = 暫停熱鍵。
- * - `fallback`:手動區域內沒找到面板、這次結果來自自動定位(只有褻瀆會發生)。
+ * (2026-10-01 第 13 步移除 `fallback`:褻瀆有框區域時也只看區域,不再退回自動定位。)
  */
 export interface PanelScanEvent {
   seq: number
@@ -149,7 +149,6 @@ export interface PanelScanEvent {
   rows: PanelScanRow[]
   client: { w: number, h: number }
   timings?: RuneshapeTimings
-  fallback?: boolean
 }
 /**
  * WP-R2:`runeshape-scan-result`。`rows` = 含 CJK 的行(至少要有 1 列面板格式的列 `isPanelRow`,否則視為沒有列)。
@@ -175,8 +174,6 @@ export interface RuneshapeStats {
   active: boolean
   /** 沒在掃描的原因(`disabled` / `not-poe2` / `not-overlay` / `no-window` / `game-inactive` / `ui-open` / `user-paused` / `no-data` / `stopped`) */
   reason?: string
-  /** 褻瀆:手動區域內沒找到面板,目前退回自動定位中 */
-  fallback?: boolean
   ticks: number
   ocrRuns: number
   skippedUnchanged: number

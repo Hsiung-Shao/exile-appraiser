@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 import { buildLocateIndex, type LocateTiersLike } from '../../poe2/src/desecration/ocr-locate'
 import type { OcrTextLine } from '../../poe2/src/desecration/ocr-text'
 import {
-  PanelRegionCache, RegionCacheGuard, cacheKey, ocrScale, recognizeRegionFirst, regionRect, regionSearchRect, smartRecognize,
+  PanelRegionCache, RegionCacheGuard, cacheKey, ocrScale, regionRect, regionSearchRect, smartRecognize,
   type PhysRect, type RecognizeRect
 } from '../src/ocr/strategy'
 import { loadLocateIndex, tiersCandidates } from '../src/ocr/locate-data'
@@ -177,68 +177,6 @@ describe('regionSearchRect(client 比例 → 影像像素)', () => {
     expect(regionRect(img, { x: 0.1, y: 0, w: 0.2, h: 0.1 }, frame)).toEqual({ x: 0, y: 0, width: 2000, height: 925 })
     expect(regionSearchRect(img, null, frame)).toBeNull()
     expect(regionSearchRect(img, { x: 0.5, y: 0.5, w: 0, h: 0.1 }, frame)).toBeNull()
-  })
-})
-
-describe('recognizeRegionFirst(優先區域、失敗退回整張)', () => {
-  const keyFor = (s: PhysRect) => cacheKey({ w: snap.srcW, h: snap.srcH }, { x: 0, y: 0 }, s)
-  const PANEL = regionSearchRect({ w: snap.srcW, h: snap.srcH }, { x: 0.19, y: 0.4444, w: 0.275, h: 0.2489 })!
-  const WRONG = regionSearchRect({ w: snap.srcW, h: snap.srcH }, { x: 0, y: 0, w: 0.2, h: 0.2 })!
-
-  it('區域框住面板 → stage region,所有 OCR 都在區域內;再按走區域的 cached', async () => {
-    const cache = new PanelRegionCache()
-    const f = fake(SCREEN)
-    const r = await recognizeRegionFirst({ recognize: f.recognize, index, cache, screen: SEARCH, region: PANEL, keyFor })
-    expect(r.stage).toBe('region')
-    expect(r.inner).toBe('two-pass')
-    expect(r.stages.every(s => s.scope === 'region')).toBe(true)
-    for (const c of f.calls) {
-      expect(c.rect.x).toBeGreaterThanOrEqual(PANEL.x)
-      expect(c.rect.x + c.rect.width).toBeLessThanOrEqual(PANEL.x + PANEL.width)
-    }
-    expect(r.lines.map(l => l.text).filter(t => MODS.includes(t))).toHaveLength(4)
-    const again = await recognizeRegionFirst({ recognize: f.recognize, index, cache, screen: SEARCH, region: PANEL, keyFor })
-    expect(again.stage).toBe('region')
-    expect(again.inner).toBe('cached')
-    expect(cache.get(keyFor(SEARCH))).toBeUndefined() // 整個畫面的快取沒被動到
-  })
-
-  it('區域裡沒有面板(命中 < 2)→ region-fallback:再以整個畫面跑兩段式,找得到 4 行詞綴', async () => {
-    const cache = new PanelRegionCache()
-    const f = fake(SCREEN)
-    const r = await recognizeRegionFirst({ recognize: f.recognize, index, cache, screen: SEARCH, region: WRONG, keyFor })
-    expect(r.stage).toBe('region-fallback')
-    expect(r.inner).toBe('two-pass')
-    expect(names(r)).toEqual(['locate', 'full', 'locate', 'detail'])
-    expect(r.stages.map(s => s.scope)).toEqual(['region', 'region', 'screen', 'screen'])
-    expect(r.stages[1].rejected).toMatch(/^region-too-few-hits/)
-    expect(f.calls[2]).toEqual({ rect: SEARCH, scale: 1 })
-    expect(r.lines.map(l => l.text).filter(t => MODS.includes(t))).toHaveLength(4)
-    expect(r.ocrMs).toBe(r.stages.reduce((s, x) => s + x.ocrMs, 0))
-    expect(cache.get(keyFor(SEARCH))).toBeDefined()
-  })
-
-  it('區域只框到 1 行詞綴 → 退回整張', async () => {
-    const one = regionSearchRect({ w: snap.srcW, h: snap.srcH }, { x: 0.28, y: 0.62, w: 0.1, h: 0.05 })!
-    const f = fake(SCREEN)
-    const r = await recognizeRegionFirst({ recognize: f.recognize, index, cache: new PanelRegionCache(), screen: SEARCH, region: one, keyFor })
-    expect(r.stage).toBe('region-fallback')
-  })
-
-  it('沒有設定區域 → 與 smartRecognize 相同(stage = 內層路徑,不標 scope)', async () => {
-    const f = fake(SCREEN)
-    const r = await recognizeRegionFirst({ recognize: f.recognize, index, cache: new PanelRegionCache(), screen: SEARCH, region: null, keyFor })
-    expect(r.stage).toBe('two-pass')
-    expect(r.inner).toBe('two-pass')
-    expect(r.stages.every(s => s.scope === undefined)).toBe(true)
-  })
-
-  it('讀不到模板索引 → 無從判斷,用區域的結果(不退回)', async () => {
-    const f = fake(SCREEN)
-    const r = await recognizeRegionFirst({ recognize: f.recognize, index: null, cache: new PanelRegionCache(), screen: SEARCH, region: WRONG, keyFor })
-    expect(r.stage).toBe('region')
-    expect(r.inner).toBe('full')
-    expect(f.calls).toHaveLength(1)
   })
 })
 

@@ -16,18 +16,80 @@ PoE2 靈魂之井的「三選一」揭露面板無法複製文字。擷取遊戲
 | 設定 | `revealAutoEnabled`(預設**開**)、`revealIntervalMs`(100–3000,預設 1000)、區域沿用 `ocrRegion` | `runeshapeEnabled`(預設關)、`runeshapeIntervalMs`(同夾限)、`runeshapeRegion` |
 | 資料 | `ready()` 第一次讀 `tiers.json` 建模板索引(`locate-data.ts`);讀不到 → 停止(`no-data`,清徽章) | 不需要 |
 | 自動定位(沒快取時每 3 秒最多擷取一次;連續沒找到退避 3 → 6 → 12 → 15 秒、兩個掃描共用同一次整個 client ×1,見「排程與退避」) | `locatePanel`(像詞綴的行成簇 → 外擴) | `locateRunePanel` |
-| 有沒有面板 | `findPanelHits` ≥ 2 行像詞綴(`REVEAL_MIN_HITS`,同 `checkRegion`),**且依 y 分成 ≥ 2 組**(`modGroupCount`:相鄰中心距 > 1.9 × 行高 = 下一組,同 renderer 分組門檻)——選項之間有空隙,物品浮窗的連續詞綴行不算(無頭驗證發現只看行數會把浮窗當面板) | ≥ 1 列 `isPanelRow` |
+| 有沒有面板 | `findPanelHits` ≥ 2 行像詞綴(`REVEAL_MIN_HITS`,同 `checkRegion`),**且依 y 分成 ≥ 2 組**(`modGroupCount`:相鄰中心距 > 1.9 × 行高 = 下一組,同 renderer 分組門檻)——選項之間有空隙,物品浮窗的連續詞綴行不算(無頭驗證發現只看行數會把浮窗當面板);**第 13 步起每一簇再過否決規則**(見「面板判定:否決規則」) | ≥ 1 列 `isPanelRow` |
 | 送出的行 | 區域 OCR 的**全部行**(renderer `matchRevealLines` 要用對不上的行補中間沒認出的組) | 含 CJK 的行 |
-| 有框區域 | 優先區域;區域內連續 2 次沒面板 → **退回自動定位**(事件帶 `fallback: true`,設定頁顯示「區域內沒找到,改找整個畫面」),區域的縮圖**大幅**變化(或退回中還沒找到面板且 ≥ 2 秒沒看區域)才回到區域 | 只看區域,不退回 |
+| 有框區域 | **只看區域**(第 13 步起與符文相同):區域內連續 2 次沒面板 → 送 `empty`、設定頁顯示「區域內沒找到面板」,**不改找整個畫面**;區域整塊在擷取影像外 → `region-outside` | 只看區域,不退回 |
 | 暫停 | 遊戲失焦、設定 / 框選層開著;**查價面板開著不暫停**(看褻瀆時常同時開查價) | 另加查價面板開著 |
 | 事件 | `reveal-scan-result`(`RevealScanEvent` = `PanelScanEvent`,不進 `PREVIEW_EVENTS`) | `runeshape-scan-result` |
 | 熱鍵 | `hotkeyOcrReveal` = 暫停 / 繼續(`revealAutoEnabled` 關時不註冊);`hotkeyOcrRegion` = 框選區域 | `hotkeyRuneshapeToggle`(要啟用才註冊);`hotkeyRuneshapeRegion` = 框選區域(2026-10-01 新增) |
 
 - **共用 WinOcr**:兩個掃描的 `ocrBusy` 互看對方的 `busy`,忙碌就丟掉這個 tick(不排隊);main 啟動時褻瀆第一個 tick 立刻跑、符文延後半個間隔,兩者同時開著時交錯。
-- **徽章**(`OcrBadges.vue` + `ocr-reveal.ts` `revealScanAction`):`rows` → 重新比對並重畫;比對不成面板(背包物品浮窗等,main 端只看得出「≥ 2 行像詞綴」)→ 靜靜清掉、不跳錯誤;
-  `empty` / `inactive` / `user-paused` → 清除。**沒有 15 秒自動消失、沒有「再按一次清除」**;Esc 暫時清掉;overlay 改大小以最後結果重排;退回整個畫面的提示只在剛切過去時顯示 5 秒(`fallbackNoteShows`)。
-- 框選確認後 `ocr-reveal-now` → `revealScan.rescan()`(丟掉差分基準、退回狀態與退避,下一個 tick 一定重看)。
-- 設定頁(熱鍵與視窗 › 褻瀆自動辨識卡片):開關、狀態列(`reveal-stats`:找到 / 尋找中 / 退回 / 暫停,`revealScanStatus`)、掃描間隔等,見下節「設定頁(與符文塑形對等)」。
+- **徽章**(`OcrBadges.vue` + `ocr-reveal.ts` `revealScanAction`):`rows` → 重新比對並重畫;比對不成面板(背包物品浮窗等;被否決時 log 印 `no-panel:<規則>`)→ 靜靜清掉、不跳錯誤;
+  `empty` / `inactive` / `user-paused` → 清除。**沒有 15 秒自動消失、沒有「再按一次清除」**;Esc 暫時清掉;overlay 改大小以最後結果重排。
+  (第 13 步移除「已改找整個畫面」提示與 `fallbackNoteShows`;徽章排版見「徽章排版與「?」文案」。)
+- 框選確認後 `ocr-reveal-now` → `revealScan.rescan()`(丟掉差分基準與退避,下一個 tick 一定重看)。
+- 設定頁(熱鍵與視窗 › 褻瀆自動辨識卡片):開關、狀態列(`reveal-stats`:找到 / 尋找中 / 框選的區域內有 / 沒有找到面板 / 暫停,`revealScanStatus`)、掃描間隔等,見下節「設定頁(與符文塑形對等)」。
+
+### 面板判定:否決規則(2026-10-01 第 13 步)
+
+**使用者回報**:框了區域(左 19%、上 44%、寬 28%、高 25%),面板沒開時程式「區域內沒找到面板 → 改找整個畫面」,把背包裡一件手套的一般物品浮窗
+(進階詞綴說明開著)當成揭露面板,疊出好幾個重疊、左右錯開的徽章,並顯示「?:…依三個選項共同的可能底材推算」(實際是交集為空)。
+
+**根因**(三處疊加):
+1. 判定太鬆:main `found = ≥ 2 行像詞綴 && 分成 ≥ 2 組`;tiers.json 模板含一般池 1,483 條,浮窗的詞綴本來就「像詞綴」,進階說明的標頭行把詞綴撐開成每行一組 → 組數 ≥ 2 過關;
+   renderer `selectPanel` 也只看「連續、x 對齊、相距 ≤ 6 × 行高」,一段 5 組時挑分數最高的 3 組照畫。
+2. 有框區域時 `regionFallback: true` → 區域內沒面板就改找整個畫面(`panel-scan.ts` 退回機制)。
+3. 徽章 `left` = 各組右緣 + 14、`top` = 各組中心,沒有防碰撞;一組多候選各一列 → 行距 29 px 的浮窗詞綴疊成一團。
+4. 「?」文案只看 `profileExact`,交集為空(`profileSource === 'all'`)時仍寫「三個選項共同的可能底材」。
+
+**修正**:A. 褻瀆 `regionFallback` 移除(連同 `panel-scan.ts` 整套退回機制、`fallback` 事件欄位 / 統計欄位、`FALLBACK_RECHECK_MS`、`REGION_FALLBACK_AFTER`、
+`strategy.ts` `recognizeRegionFirst`、「已改找整個畫面」提示與 i18n);B. 否決規則(下表);C. 負樣本;D. 徽章防碰撞;E. 「?」文案。
+
+否決規則在 `poe2/src/desecration/panel-veto.ts`(零依賴、只 import `ocr-text.ts`;main 經 esbuild 打包、只准相對路徑),
+main `ocr-locate.ts` `findPanelHits`(→ `classify` / `locatePanel` / `checkRegion`)對**每一簇**命中行套用(被否決的簇不採用,全被否決 = 沒有面板),
+renderer `ocr-match.ts` `selectPanel` 對**每一段候選面板**套用(全被否決 → `no-panel` 帶 `veto`):
+
+| 規則 | 條件 | 為什麼面板不會觸發 |
+|---|---|---|
+| `group-too-tall` / `too-many-groups` | 組數 > 3 或任一組 > 3 行。組 = 依 y 間距(> 1.9 × 行高)切的幾何組,折行合併算一行;相鄰兩組中間夾一行「像詞綴數值(`%` / `+數字`)、只是沒認出」且緊貼兩邊的行 → 視為同一個選項(`glueGroups`,那行算進行數)。renderer 另給 `splitCount`:> 3 行的幾何組改算語意切段數(保留「門檻失準時 4 行幾何組再由語意切開」的容錯;浮窗連續 6 行仍切成 6 段) | 面板最多 3 個選項;tiers.json 每條褻瀆詞綴 parts ≤ 3 |
+| `keyword-line` | 命中框上下各 6 × 行高、左右各 2 × 行高內,有對不上模板的行含「前綴 / 後綴 / 詞綴 / 階級 / 物品等級」或冒號(`:` `:` `∶` `﹕`,屬性格式如 `護甲值: 103`);「需求 / 品質」只在沒有 `%` 時算(模板有 `減少#%能力值需求`、`#%至全部技能的品質`) | 面板上沒有這些字;tiers.json 710 個寫法都不含前 5 個詞與冒號 |
+| `tooltip-header` | 相鄰兩條命中行之間夾著 x 對齊(中心 / 左緣 / 右緣差 ≤ 4 × 行高)、離其中一條 ≤ 1.9 × 行高、對不上模板的 CJK 行(浮窗的詞綴標頭);像詞綴數值的行(`%` / `+數字`)不算(= 某行 OCR 認錯,真面板也會有) | 面板選項之間的空隙 > 1.9 × 行高,那種行由 `bridgeUnmatched` 補成「中間沒認出的選項」 |
+| (加分)| 命中框正下方 ≤ 6 × 行高、x 對齊的「確認」+1、上方 ≤ 20 × 行高的「靈魂之井」(OCR 常掉首字,比對 `魂之井`)+1;renderer 挑面板時每分 +5 | **只加分,不是必要條件**(裁切圖 / 部分框選看不到) |
+
+**正樣本量測**(三張真實快照,`poe2/test/desecration/panel-veto.test.ts` 斷言):
+
+| 快照 | 行高 | 組 × 行 | 組內行距 | 組間行距 | 附近非詞綴行 | 固定元素分 |
+|---|---|---|---|---|---|---|
+| body-armour-01(裁切圖) | 23.3 | 2 / 2 / 3 | 1.54 | 3.09、2.31 | 無 | 0 |
+| fullscreen-02 | 18.7 | 1 / 2 / 1 | 1.50 | 3.78、3.76 | 「確認」(下方 3.3 × 行高) | 1 |
+| fullscreen-03 | 18.3 | 1 / 1 / 1 | — | 4.64、4.63 | 「確認」(下方 3.4 ×) | 2 |
+
+三張整個畫面都沒有冒號 / 關鍵字行、詞綴行之間沒有夾任何未命中行;**body-armour-01 的第 3 組剛好 3 行 = 上限**(一條 3 parts 的詞綴)。
+改前 / 改後對三張快照跑 `matchReveal`(無 profile / `Rogue Armour` / 不取交集)、`modLines`、`findPanelHits`、`locatePanel`、`checkRegion` 的 JSON 輸出**逐位元組相同**。
+
+**負樣本**:
+- 真實:`fixtures/ocr/tooltip-gloves-advanced-01.png`(使用者的全螢幕截圖 1920×1080,`images/4.webp` 以 sharp 無損轉 PNG;畫面上還疊著舊版誤出的徽章與提示),
+  `node scripts/ocr-fixture.mjs --with-locate tooltip` 產生 ×3 + 整張 ×1(`locate`)快照。整張 ×3 的浮窗簇 = 4 行連在一起 → main `group-too-tall`、renderer `too-many-groups`;
+  ×1 只認出 2 行 → 附近「可以有1個額外工藝詞綴」→ `keyword-line`。`--ocr-selftest` 改前走 two-pass 框到浮窗 (1032,406 566×280),改後 `locate` 沒有候選 → full、像詞綴 0。
+- 合成(依真實快照的行):A 同一個浮窗沒開進階說明 + 分隔線(前綴 2 行 / 後綴 3 行,舊判定會過)→ `keyword-line`;B 每條詞綴上方一行「前綴 / 後綴詞綴 …(階級: n)」標頭 → 否決
+  (只留 2 條詞綴 + 標頭也否決);B' 標頭沒有關鍵字 → `tooltip-header`;C 稀有裝備 5 條詞綴有空隙 → `too-many-groups`;C' 6 條連在一起 → main `group-too-tall` / renderer `too-many-groups`;
+  浮窗與面板同框(fullscreen-02 + 合成 5 組浮窗)→ 面板照常、裁切框不含浮窗。
+- 斷言三層:`findPanelHits` / `locatePanel` null、`matchReveal` `no-panel`、`PanelScan`(假時鐘 60 秒,沒框區域)不送任何事件;使用者的區域 + 浮窗截圖 → 只 OCR 區域、不送列。
+
+**殘留風險 / 需要更多真實截圖**:沒有屬性行、只有 2 組(例:1 行固有 + 分隔線 + 3 行詞綴)且組內 ≤ 3 行的浮窗,三條規則都不觸發(main 仍會送列,renderer 照舊挑面板);
+沒框區域時才會遇到(有框區域只看區域)。一個選項裡某行沒認出且不像數值(沒有 `%` / `+數字`)、又夾在同選項兩行之間 → 會被當成標頭否決。
+真實面板的詞綴折行但折行合併失敗(4 行)→ main `group-too-tall`。
+
+### 徽章排版與「?」文案(2026-10-01 第 13 步)
+
+- **防碰撞**(`ocr-reveal.ts` `layoutBadges` → `stackBadges`):左緣統一 = 所有組右緣的最大值 + 14(對齊同一個 x);依組中心由上而下,上緣 = max(組中心 − 半高, 上一枚下緣 + 4 px);
+  最後一枚超出視窗下緣 → 整體上移(最多移到第一枚貼齊上緣,再多就讓下緣超出,不壓縮間距)。`top` 改為徽章**上緣**(CSS 拿掉 `translateY(-50%)`)。
+  第一次用估計高度(`--fs-base` × 1.45 × 行數 + padding)排,畫出來後 `OcrBadges.vue` 量 `offsetHeight` 再排一次(字型 / 縮放讓估計不準也不重疊)。
+- **多候選收合**:預設每組只列最可能的一個(候選順序同 `matchReveal`:Tier 下限 → 詞綴池;取第一個非模糊命中,沒有就第一個)+ 小字「+N」;
+  設定 › 熱鍵與視窗 › 褻瀆卡片「一個選項有多個可能詞綴時全部列出」(`revealShowAllCandidates`,預設關,只影響 overlay、不送 main)開 = 全列。
+  overlay 整層點擊穿透,`title` / hover 展開看不到,所以選設定開關(不失去資訊;renderer log 一律列全部候選)。
+- **「?」文案**(`guessNoteKey`):`profileSource === 'all'`(三組候選的可能底材交集為空)→ `ppz.ocr.guess_title_all`「不知道底材…三個選項也找不到共同的可能底材,階層依全部可能底材推算」;
+  交集 / 類別維持原文案;精確不顯示。繁中 / 英文都有。
 
 ### 排程與退避(效能修正第 6 步,2026-10-01;褻瀆與符文共用 `panel-scan.ts`)
 
@@ -38,14 +100,13 @@ PoE2 靈魂之井的「三選一」揭露面板無法複製文字。擷取遊戲
    鏡頭平移 4 px 3.0–3.5 / ≤ 0.08、8 px 6.2–7.3 / 0.11–0.20。看最大一塊是因為整張平均會被面積稀釋(只有詞綴框出現時整個 client 平均差只有 0.6–2.7)。
 2. **手動區域沒有面板的退避**:空結果送出之後(連續第 2 次無列起,空結果的時機不變),區域「有變化但不大」的 OCR 間隔變成掃描間隔 × 2、× 4…,上限 `IDLE_BACKOFF_MAX_MS` 2.5 秒;
    退避中差分基準不動(下次仍與上次 OCR 的畫面比,累積的變化會變大幅);**大幅變化立即 OCR 並把退避歸零**;找到面板 → 完全回到原行為(每次有變化就 OCR)。
-3. **褻瀆退回自動定位**:原本「區域縮圖有變化就回區域」,遊戲畫面一動就回去、自動定位永遠輪不到;改為區域**大幅**變化,或退回中還沒找到面板且距上次區域 OCR ≥ `FALLBACK_RECHECK_MS`(2 秒;
-   沒快取時最多每 3 秒擷取一次,實際在下一次擷取時)才回區域。退回中已找到面板時只有大幅變化才回。
+3. ~~**褻瀆退回自動定位**~~:第 13 步已移除整個退回機制(有框區域只看區域),這一條不再適用。
 4. **自動定位**(沒框區域 / 退回中、沒有快取):擷取節流照舊每 3 秒最多一次;擷取後以整個 client 的縮圖與上次定位時比 ——
    大幅變化 → 立刻定位並把退避歸零;距上次定位 ≥ 15 秒 → 必定位;幾乎沒變(`isChanged` 為否)→ 跳過;連續沒找到 n 次 → 間隔 `locateGapMs`:3 → 6 → 12 → 15 秒。
    兩個掃描共用 `SharedLocateOcr`(main 建一個):同一 client 大小 / 擷取偏移 / 影像大小 1 秒內的整個 client ×1 只 OCR 一次(兩邊都是 ×1、同一個 WinOcr、同一語言;各自跑自己的 `detector.locate`,只決定裁切框)。
-5. **不重送相同結果**:`rows` 的簽章(列文字 + 四捨五入座標 + client + fallback,`rowsSignature`)與上次送出的相同且未滿 10 秒(`REPEAT_ROWS_MS`)→ 不送(統計 / 基準照常);
+5. **不重送相同結果**:`rows` 的簽章(列文字 + 四捨五入座標 + client,`rowsSignature`;第 13 步拿掉 fallback)與上次送出的相同且未滿 10 秒(`REPEAT_ROWS_MS`)→ 不送(統計 / 基準照常);
    `empty` / `inactive` / `user-paused` / `user-resumed` 一律送,送過就清掉簽章;暫停、框選確認、換模式也清掉(恢復後同一份列照送,Esc 清掉的徽章因此會回來)。
-   main 的 OCR log 同一結果不重複印,下一行不同時附「其間 N 次相同」。renderer(`scan-dedupe.ts`):鍵 = 列 + client + 會影響比對的輸入(褻瀆:fallback、profile 提示;兩者:遊戲、資料集世代 `dataGeneration`),
+   main 的 OCR log 同一結果不重複印,下一行不同時附「其間 N 次相同」。renderer(`scan-dedupe.ts`):鍵 = 列 + client + 會影響比對的輸入(褻瀆:profile 提示;兩者:遊戲、資料集世代 `dataGeneration`),
    與**目前畫著的**相同就不重比 / 重排 / 印 log;符文每列的市集查詢計畫一次結果只算一次(`plans` computed)。
 6. **tick 不重入**:一進 tick 就設 `ticking`(原本 `inFlight` 在 `await det.ready()` 之後才設,第一次讀 tiers.json 時 `poke()` 會再開一個 tick);`busy`(給另一個掃描丟 tick 用)仍只在擷取 / OCR 期間為真。
 
@@ -95,13 +156,13 @@ PoE2 靈魂之井的「三選一」揭露面板無法複製文字。擷取遊戲
 | 列(兩者相同順序) | 褻瀆 | 符文塑形 |
 |---|---|---|
 | 啟用 | `revealAutoEnabled` | `runeshapeEnabled` |
-| 目前狀態(+「更新」讀 main 統計) | `revealScanStatus`:找到 / 尋找中 / 區域內沒找到改找整個畫面 / 已暫停 | 自動定位:已找到 / 尋找中、框選區域內有 / 沒有找到、已暫停 |
+| 目前狀態(+「更新」讀 main 統計) | `revealScanStatus`:找到 / 尋找中、框選區域內有 / 沒有找到(第 13 步起與符文同文案)、已暫停 | 自動定位:已找到 / 尋找中、框選區域內有 / 沒有找到、已暫停 |
 | 掃描間隔 | `revealIntervalMs` | `runeshapeIntervalMs` |
 | 區域 + 「在遊戲上框選」「清除」 | `ocrRegion` | `runeshapeRegion` |
 | 暫停 / 繼續熱鍵 | `hotkeyOcrReveal` | `hotkeyRuneshapeToggle` |
 | 框選區域熱鍵 | `hotkeyOcrRegion` | `hotkeyRuneshapeRegion` |
 | 最近耗時 | `reveal-stats` 的 `last` / 平均 | renderer 最近一次事件 + `runeshape-stats` 平均 |
-| 專屬 | OCR 語言包狀態 +「重新檢查」 | 台服提示、顏色門檻 |
+| 專屬 | OCR 語言包狀態 +「重新檢查」、「一個選項有多個可能詞綴時全部列出」(第 13 步) | 台服提示、顏色門檻 |
 
 - **掃描間隔 100–3000 ms**(main `clampScanInterval` / renderer `clampRuneshapeInterval` 同值 `SCAN_INTERVAL_MIN_MS` / `MAX`;原本 500–3000);低於 500 ms(`SCAN_INTERVAL_CPU_WARN_MS`)設定頁顯示 CPU 負擔提示。
   `PanelScan` 在上一次 tick 做完才排下一次,間隔再短也不會重疊;兩個掃描共用 WinOcr,對方忙碌就丟 tick。
@@ -111,8 +172,8 @@ PoE2 靈魂之井的「三選一」揭露面板無法複製文字。擷取遊戲
   → main 送 `ocr-region-pick` 帶 `{ target: 'runeshape' }`(揭露面板照舊不帶內容)→ `OcrRegionPicker.vue` `openRegionPicker('hotkey', 'runeshape')`。
 - **手動比例欄位已移除**(原「進階:手動輸入比例」四個數字欄位);`Config.ts` 仍讀寫舊檔的 `ocrRegion`(`normOcrRegion`)。
 - 舊的按熱鍵辨識一次(`RevealOcr`、`ocr-reveal-result`)已移除;兩段式 `strategy.ts`(`smartRecognize` / `recognizeRegionFirst`)仍給 `--ocr-selftest` 用,下文「兩段式辨識」「框選辨識區域」的**單次**流程描述保留作歷史紀錄。
-- 測試:`main/test/reveal-scan.test.ts`(三張真實截圖快照當畫面:偵測器定位 / 判定、自動定位 → ×3、畫面沒變不 OCR、面板關了 empty、查價面板開著照常、設定開著暫停、no-data、共用 WinOcr 忙碌、暫停熱鍵、區域 / 退回 / 回到區域、rescan、停用清徽章;
-  第 6 步:退回中小變化不回區域而讓定位跑、2 秒重看區域、兩個掃描共用定位 OCR 且結果與自己 OCR 相同、tick 不重入)、
+- 測試:`main/test/reveal-scan.test.ts`(三張真實截圖快照當畫面:偵測器定位 / 判定、自動定位 → ×3、畫面沒變不 OCR、面板關了 empty、查價面板開著照常、設定開著暫停、no-data、共用 WinOcr 忙碌、暫停熱鍵、區域內有面板 / 沒面板只送 empty 不改找整個畫面、rescan、停用清徽章;
+  第 6 步:區域沒面板時小變化退避且從不整張定位、兩個掃描共用定位 OCR 且結果與自己 OCR 相同、tick 不重入;第 13 步:負樣本 classify / locate / PanelScan 不送列、使用者的區域 + 浮窗截圖只看區域、浮窗與面板同框)、
   `renderer/test/reveal-scan.test.ts`(事件 → 徽章動作、狀態列、設定往返)、`renderer/test/scan-dedupe.test.ts`(同一份列不重算)、`main/test/runeshape-scan.test.ts`(泛化後符文行為不變;第 6 步的退避 / 大幅門檻 / 定位退避 / 不重送)。
 
 ## 管線(2026-09-30 單次辨識時的設計;擷取 / OCR / 比對 / 座標系沿用)
@@ -126,13 +187,13 @@ PoE2 靈魂之井的「三選一」揭露面板無法複製文字。擷取遊戲
 | OCR | `main/src/ocr/win-ocr.ps1` + `WinOcr.ts` | 常駐 PowerShell 5.1 + WinRT `Windows.Media.Ocr`(`zh-Hant-TW`);`-EncodedCommand` 傳腳本(stdin 留給資料);協定見 ps1 檔頭(2026-10-01 第 7 步起影像寫暫存檔送路徑、runtime 不要 words,見「擷取與 OCR 傳輸」);單張逾時 8 秒 / 崩潰 → 下一次自動重啟;閒置 10 分鐘結束;缺語言包的結果記 30 秒 |
 | 廣播 | `main/src/ocr/reveal.ts` | `ocr-reveal-result`:先 `{phase:'pending'}`,再 `{phase:'result', ok, lines(client 實體像素), client, scale, tookMs, ocrMs, stage, stages}` 或 `{ok:false, error}`;`stage` = `cached \| two-pass \| full`(有框選區域時 `region \| region-fallback`,`inner` = 採用那一輪的內層路徑)、`stages` = 各段範圍 / 倍率 / 耗時 / 命中數 / 未採用原因 / `scope`(`region` / `screen`)(診斷用;renderer 只讀 `stage === 'region-fallback'` 顯示提示);**不在** `PREVIEW_EVENTS`(預覽端收不到) |
 | 比對 | `poe2/src/desecration/ocr-match.ts`(renderer 經 `@poe2-entry` 的 `matchRevealLines`) | 正規化 → skeleton → 精確 / 模糊命中 → 折行合併 → 分組 → entry 一一對應 → profile → Tier(見下) |
-| 顯示 | `renderer/src/web/overlay/OcrBadges.vue` + `ocr-reveal.ts` | 每組右側一枚徽章;清除:再按一次熱鍵、Esc(overlay 有焦點時)、15 秒、overlay 視窗移動或改大小(2026-10-01 起按住 Alt 不再隱藏) |
+| 顯示 | `renderer/src/web/overlay/OcrBadges.vue` + `ocr-reveal.ts` | 每組右側一枚徽章(第 13 步起左緣對齊、上下不重疊);清除:再按一次熱鍵、Esc(overlay 有焦點時)、15 秒、overlay 視窗移動或改大小(2026-10-01 起按住 Alt 不再隱藏) |
 
 ## 座標系
 
 - main 送的行座標 = **遊戲 client 區的實體像素**(OCR 座標 ÷ 放大倍率 + 範圍偏移 + 擷取偏移),另附 `client {w, h}`。
 - overlay 視窗與 client 區對齊(CSS 原點 = client 左上),renderer 以 `innerWidth / client.w`、`innerHeight / client.h` 換算,與螢幕 DPI 無關。
-- 徽章 `left` = 組右緣 + 14 px、`top` = 組垂直中心(`translateY(-50%)`)。
+- 徽章 `left` = **所有組**右緣的最大值 + 14 px(第 13 步起對齊同一個 x)、`top` = 徽章上緣(以組垂直中心置中,被上一枚推開時往下;見「徽章排版與「?」文案」)。
 
 ## 兩段式辨識(2026-09-30)
 
@@ -156,7 +217,8 @@ PoE2 靈魂之井的「三選一」揭露面板無法複製文字。擷取遊戲
 
 ## 框選辨識區域(WP-S2,2026-09-30)
 
-使用者回報原本「四個 0–1 數字欄位」不直觀。改成**在遊戲畫面上直接拖曳框選**;辨識時**優先用區域、失敗再自動找整個畫面**。
+使用者回報原本「四個 0–1 數字欄位」不直觀。改成**在遊戲畫面上直接拖曳框選**;辨識時**優先用區域、失敗再自動找整個畫面**
+(**2026-10-01 第 13 步起改為只看區域、不退回整個畫面**,見「面板判定:否決規則」;下面「優先區域、失敗退回整張」一節保留作歷史紀錄)。
 
 ### 流程
 
@@ -182,7 +244,7 @@ PoE2 靈魂之井的「三選一」揭露面板無法複製文字。擷取遊戲
   遊戲視窗部分跑出螢幕時,擷取影像只有螢幕內那塊(`offset` = 影像左上在 client 內的位置),舊版「比例 × 影像大小」會偏移;
   視窗完全在螢幕內時(client = 影像、offset 0)兩者結果相同(`main/test/ocr-strategy.test.ts` 抽 400 組對照)。區域整塊落在螢幕外 → 當成沒有區域。
 
-### 優先區域、失敗退回整張(`recognizeRegionFirst`)
+### 優先區域、失敗退回整張(`recognizeRegionFirst`;**2026-10-01 第 13 步已移除**,以下為歷史紀錄)
 
 1. 沒有區域 → 與原本相同(整張跑兩段式,`stage` = 內層路徑)。
 2. 有區域 → 以區域為搜尋範圍跑兩段式(快取鍵含範圍,與整張的快取分開)。`cached` / `two-pass` 本來就過了 `checkRegion`;走到 `full` 時以區域本身為邊界再跑 `checkRegion`(貼邊不算,只剩「≥ 2 行像詞綴」)。
@@ -210,6 +272,7 @@ PoE2 靈魂之井的「三選一」揭露面板無法複製文字。擷取遊戲
 6. **分組**:y 中心距 > 1.9 × 中位行高就切組(樣本:組內 1.54×、組間 ≥ 2.31×),x 中心要對齊(面板文字置中)。
    每組內命中的行必須與某個 entry 的 parts 一一對應;對不上時切成最少的連續段(等距單行詞綴幾何切不開也能拆)。
 7. **面板**:連續、x 對齊、相距 ≤ 6 × 行高的 2–3 組,取有 entry 對上最多的一段;不足 2 組 → `no-panel`。對不上的 CJK 行貼到最近的組,灰色顯示原文。
+   **第 13 步**:每一段先過否決規則(`panel-veto.ts`,見「面板判定:否決規則」),被否決的段不用;全被否決 → `no-panel` 帶 `veto`;「確認」/「靈魂之井」只加分。
    **中間那個選項沒認出(`bridgeUnmatched`,2026-09-30)**:三組等距時(fullscreen-03 組距約 4.6 行高),中間沒命中會讓第 1、3 組相距約 8 行高 > 6 → 拆成兩個各 1 組的「面板」→ `no-panel`。
    現在把**夾在相鄰兩組之間**、x 中心與兩組都對齊(≤ 4 × 行高)、行高與命中行相近(比值 ≤ 1.3)、離兩組每一行中心距都 > 1.9 × 行高的未命中行
    自成一組 `partial`(顯示原文、沒有候選),面板以包含它後的組數判定(兩側間距仍要 ≤ 6 × 行高)。
@@ -236,7 +299,8 @@ PoE2 靈魂之井的「三選一」揭露面板無法複製文字。擷取遊戲
   ② 394 個模板 round-trip + 317 個寫法變體 round-trip(反向寫法驗數值語意)+ `減少#%攻擊速度` vs `增加15%攻擊速度`;③ 模糊 200 次 + 200 對不誤命中;
   ④ 分組邊界、2 組、1 組 no-panel、折行、等距單行、未辨識行、中間選項沒認出(partial 組)、x 不對齊 / 行高不同 / 標題 / 確認鈕不被併入、3 組都認得出時雜字不擠掉選項。
 - `poe2/test/desecration/ocr-locate.test.ts` 另有:變體寫法算「像詞綴」(沒有變體的索引 394 個 skeleton 認不出 `技能增加…`)、fullscreen-03 三行全命中。
-- `renderer/test/ocr-reveal.test.ts`:徽章座標換算、文字、profile 有效期。
+- `renderer/test/ocr-reveal.test.ts`:徽章座標換算、文字、profile 有效期;第 13 步:左緣對齊、相鄰徽章間距 ≥ 2 px(估計高度 / 量到的高度都不重疊)、超出下緣整體上移、多候選收合「+N」/ 全列、「?」文案分支(`guessNoteKey`)。
+- `poe2/test/desecration/panel-veto.test.ts`(第 13 步):正樣本量測與不觸發、`vetoLineReason`、固定元素加分、真實負樣本三層(main 定位 ×3 / ×1、renderer)、合成負樣本 A / B / B' / C / C'、不誤殺(認錯的數值行、確認 / 標題 / 遠處聊天)。
 - WP-S2:`renderer/test/region-geom.test.ts`(新框、最小尺寸、移動、8 把手、夾限、方向鍵 / Shift / Ctrl、比例換算、上次偵測外擴)、
   `main/test/ocr-strategy.test.ts`(`regionSearchRect` 400 組對照舊版 / 出界偏移、`recognizeRegionFirst` 區域找到 / 退回整張 / 只框到 1 行 / 沒區域 / 沒索引、`RegionCacheGuard`)、
   `main/test/shortcut-actions.test.ts`(`ocr-region` 註冊條件:預設空不註冊、PoE1 / window 不註冊、撞鍵先到先得)。
@@ -277,7 +341,8 @@ PowerShell 行程第一次啟動約 0.3–1.8 秒(之後常駐)。
 - 英文客戶端不支援(OCR 固定 `zh-Hant-TW`、比對用繁中模板)。
 - profile 不明時只能給範圍(標「?」);查價過同一件物品(10 分鐘內)才是精確底材。
 - Esc 只在 overlay 有焦點時收得到(遊戲在前景時 Esc 屬於遊戲);其餘靠再按熱鍵 / 15 秒。
-- 框選(WP-S2)只在 overlay 模式;window 模式與瀏覽器預覽不能框選(2026-10-01 起設定頁沒有數字欄位,只能沿用既有 `ocrRegion` 或清除)。區域以 client 比例存,遊戲換解析度 / UI 縮放後面板位置可能不同 → 區域內找不到時會退回整張並提示,重新框選即可。
+- 框選(WP-S2)只在 overlay 模式;window 模式與瀏覽器預覽不能框選(2026-10-01 起設定頁沒有數字欄位,只能沿用既有 `ocrRegion` 或清除)。區域以 client 比例存,遊戲換解析度 / UI 縮放後面板位置可能不同 → 區域內找不到時設定頁顯示「區域內沒找到面板」(第 13 步起不再退回整張),重新框選或清除區域即可。
+- 否決規則只在三張正樣本 + 一張真實浮窗截圖上量過;殘留風險見「面板判定:否決規則」。
 - 框選熱鍵與 OCR 熱鍵一樣只在遊戲前景時註冊;overlay 取得焦點後熱鍵暫停(要用設定頁按鈕或先回遊戲)。
 
 ## 隱私
@@ -289,10 +354,12 @@ OCR 使用 Windows 內建辨識,在本機執行;截圖只在記憶體裡傳給�
 0. **2026-10-01 自動持續辨識**:PoE2 開井 → 不按任何鍵,約 1–3 秒內出現三枚徽章;關掉面板徽章消失;開著查價面板時仍會出現;
    `Ctrl + Shift + R` 暫停(徽章消失)/ 繼續;與符文塑形同時開著時兩邊都會更新;平常遊玩時的 CPU(沒面板時整張 ×1 定位連續沒找到會退避到最多每 15 秒一次、兩個掃描共用;
    框了區域但沒面板時小變化最多每 2.5 秒 OCR 一次);**第 6 步待確認**:暗色背景 / 大框區域時面板出現仍立即出徽章(大幅變化門檻)、退回中能自動定位到區域外的面板;
-   背包物品浮窗不會誤出徽章;框了區域但面板不在區域內時,設定頁顯示「改找整個畫面」且仍出徽章。
+   背包物品浮窗不會誤出徽章;~~框了區域但面板不在區域內時,設定頁顯示「改找整個畫面」且仍出徽章~~(第 13 步起:框了區域只看區域,面板不在區域內 → 不出徽章、設定頁顯示「區域內沒找到面板」)。
+   **第 13 步待確認**:框了區域、面板沒開、游標指著背包物品(進階說明開 / 關)→ 不出徽章;沒框區域時同樣情況也不出徽章;真的開井 → 三枚徽章左緣對齊、不重疊;
+   一個選項多候選時只列一個 + 「+N」,設定開「全部列出」後全列;沒查價時「?」的說明文字與實際來源相符。
 1. PoE2 開井 → 三枚徽章位置與內容;視窗化 / 無邊框 / 全螢幕三種模式各一次。
 2. 先查價那件物品(10 分鐘內)再按,徽章沒有「?」。
 3. PoE1 下熱鍵無反應;再按一次熱鍵清除;移動遊戲視窗清除。
 4. WP-S2:設定 › 熱鍵與視窗 ›「在遊戲上框選」→ 設定視窗隱藏、框選層出現且可拖曳(overlay 真的取得焦點)→ 框住揭露面板按「確認」→ 設定視窗回來停在熱鍵分頁、顯示「已設定」;
    用框選熱鍵(`hotkeyOcrRegion`)開的框選按 Enter → 焦點回遊戲、約 0.15 秒後自動出徽章;關掉設定後按 `Ctrl + Shift + R` 走區域路徑(log `region:` + `[region]cached`,應約 0.1 秒)。Esc / 點回遊戲取消且設定不變。
-5. WP-S2:把區域框在面板以外的地方 → 仍出徽章並提示「框選的區域內沒找到面板,已改找整個畫面」;視窗化且遊戲視窗部分拖出螢幕時,區域仍對得上。
+5. WP-S2:~~把區域框在面板以外的地方 → 仍出徽章並提示「已改找整個畫面」~~(第 13 步起不出徽章,設定頁顯示「區域內沒找到面板」);視窗化且遊戲視窗部分拖出螢幕時,區域仍對得上。

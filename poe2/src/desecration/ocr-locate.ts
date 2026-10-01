@@ -7,6 +7,8 @@
  * - 命中規則與 renderer 的 `matchLine` 同一套 skeleton(精確 / Levenshtein ≥ 0.85 且長度差 ≤ 2),但**只回答「像不像詞綴」**:
  *   不看數值範圍、不分 entry、不推 Tier(那些仍在 renderer 的 `matchReveal`)。
  * - 座標單位由呼叫端決定(main 用擷取影像的實體像素)。
+ * - 2026-10-01:每一簇命中行再過 `panel-veto.ts` 的否決規則(物品浮窗的詞綴標頭 / 屬性行 / 組數或行數太多),被否決的簇不採用
+ *   (使用者回報背包物品的進階詞綴說明被當成揭露面板)。
  */
 import {
   ALIGN_RATIO,
@@ -21,6 +23,7 @@ import {
   templateSkeleton,
   type OcrTextLine,
 } from "./ocr-text";
+import { panelVeto, type PanelVeto, type ShapeLine } from "./panel-veto";
 
 export interface Rect {
   x: number;
@@ -84,11 +87,12 @@ export function unionRect(rs: Rect[]): Rect {
   return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
 }
 
-/** 命中的行(折行:一行自己不像、接下一行才像 → 兩行一起算命中) */
-export function modLines(lines: OcrTextLine[], idx: LocateIndex): OcrTextLine[] {
+/** 命中的行 + 折行配對(`pairs`:前半 → 後半) */
+function modHits(lines: OcrTextLine[], idx: LocateIndex): { hits: OcrTextLine[]; pairs: Map<OcrTextLine, OcrTextLine> } {
   const sorted = lines.filter((l) => CJK.test(l.text)).sort((a, b) => cy(a) - cy(b) || a.x - b.x);
   const hMed = median(sorted.map((l) => l.h)) || 1;
   const out: OcrTextLine[] = [];
+  const pairs = new Map<OcrTextLine, OcrTextLine>();
   for (let i = 0; i < sorted.length; i++) {
     const a = sorted[i];
     if (lineLooksLikeMod(a.text, idx)) {
@@ -104,8 +108,27 @@ export function modLines(lines: OcrTextLine[], idx: LocateIndex): OcrTextLine[] 
       lineLooksLikeMod(a.text + b.text, idx)
     ) {
       out.push(a, b);
+      pairs.set(a, b);
       i++;
     }
+  }
+  return { hits: out, pairs };
+}
+
+/** 命中的行(折行:一行自己不像、接下一行才像 → 兩行一起算命中) */
+export function modLines(lines: OcrTextLine[], idx: LocateIndex): OcrTextLine[] {
+  return modHits(lines, idx).hits;
+}
+
+/** 簇內的命中行 → 否決規則用的形狀行(折行兩半都在簇內 → 合併成一行,`merged`) */
+function shapeOf(cluster: OcrTextLine[], pairs: Map<OcrTextLine, OcrTextLine>): ShapeLine[] {
+  const inCluster = new Set(cluster);
+  const tails = new Set([...pairs.entries()].filter(([a, b]) => inCluster.has(a) && inCluster.has(b)).map(([, b]) => b));
+  const out: ShapeLine[] = [];
+  for (const l of cluster) {
+    if (tails.has(l)) continue;
+    const b = pairs.get(l);
+    out.push(b && tails.has(b) ? { ...unionRect([l, b]), text: `${l.text} ${b.text}`, merged: true } : l);
   }
   return out;
 }
@@ -121,13 +144,19 @@ export interface PanelHits {
   clusters: number[];
 }
 
+/** `findPanelHits` 的診斷輸出:被否決的簇(log 用) */
+export interface PanelHitsDiag {
+  vetoes: Array<PanelVeto & { lines: number }>;
+}
+
 /**
  * 找面板上的詞綴行:命中行依 y 排序成簇(相鄰中心距 ≤ PANEL_GAP_RATIO × 行高、x 中心與簇對齊);
- * 採用所有 ≥ 2 行的簇(面板至少 2 個選項;畫面上若還有別的詞綴簇,例如背包物品浮窗,一起框進來 —— 寧可框大也不框錯,
- * 真正挑面板是 renderer `matchReveal` 的事);沒有 ≥ 2 行的簇就採用全部命中行。沒有命中回 null。
+ * 每一簇過 `panelVeto`(物品浮窗的標頭 / 屬性行 / 組數或行數太多 → 不採用,記進 `diag.vetoes`);
+ * 採用所有沒被否決、≥ 2 行的簇(面板至少 2 個選項;畫面上若還有別的詞綴簇一起框進來 —— 寧可框大也不框錯,
+ * 真正挑面板是 renderer `matchReveal` 的事);沒有 ≥ 2 行的簇就採用沒被否決的全部命中行。沒有命中(或全被否決)回 null。
  */
-export function findPanelHits(lines: OcrTextLine[], idx: LocateIndex): PanelHits | null {
-  const hits = modLines(lines, idx);
+export function findPanelHits(lines: OcrTextLine[], idx: LocateIndex, diag?: PanelHitsDiag): PanelHits | null {
+  const { hits, pairs } = modHits(lines, idx);
   if (!hits.length) return null;
   const lineH = median(hits.map((l) => l.h)) || 1;
   const clusters: OcrTextLine[][] = [];
@@ -139,8 +168,16 @@ export function findPanelHits(lines: OcrTextLine[], idx: LocateIndex): PanelHits
     if (c) c.push(l);
     else clusters.push([l]);
   }
-  const multi = clusters.filter((g) => g.length >= 2);
-  const used = multi.length ? multi.flat() : hits;
+  const hitSet = new Set(hits);
+  const others = lines.filter((l) => !hitSet.has(l));
+  const kept = clusters.filter((g) => {
+    const v = panelVeto(shapeOf(g, pairs), others);
+    if (v) diag?.vetoes.push({ ...v, lines: g.length });
+    return !v;
+  });
+  if (!kept.length) return null;
+  const multi = kept.filter((g) => g.length >= 2);
+  const used = multi.length ? multi.flat() : kept.flat();
   return { hits: used, box: unionRect(used), lineH, clusters: clusters.map((g) => g.length) };
 }
 

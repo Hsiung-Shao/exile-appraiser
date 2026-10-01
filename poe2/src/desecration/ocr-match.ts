@@ -16,6 +16,8 @@
  * 7. 面板 = 連續、x 對齊、彼此相距不遠的 2–3 組(取有 entry 對上最多者);不足 2 組 → `no-panel`。
  *    夾在兩組命中之間、x 對齊、行高相近的未命中行自成一組 `partial`(`bridgeUnmatched`),面板不因中間那個選項沒認出而斷開。
  *    之後把對不上的 CJK 行貼到最近的組(灰色顯示原文,`partial`)。
+ *    2026-10-01:每一段候選面板再過 `panel-veto.ts` 的否決規則(物品浮窗的詞綴標頭 / 屬性行、幾何組數 > 3)→ 否決的段不採用;
+ *    全部被否決時 `no-panel` 帶 `veto`(log 用)。「確認」按鈕 / 「靈魂之井」標題只在挑段時加分。
  * 8. profile:呼叫端給最近查價的 PoE2 物品 refName → `resolveProfiles`(base_profiles 精確 / 類別後援);
  *    沒有時取「每組都有候選的 profile」交集(三個選項屬於同一件物品),再沒有就全部 profile;Tier 取聯集 → `T3–T4`,`profileExact: false`(UI 加「?」)。
  */
@@ -36,6 +38,7 @@ import {
   templateSkeleton,
   type OcrTextLine,
 } from "./ocr-text";
+import { panelAnchorScore, panelVeto, type PanelVeto } from "./panel-veto";
 
 export {
   ALIGN_RATIO,
@@ -114,7 +117,13 @@ export type RevealMatchResult =
       profileExact: boolean;
       profileSource: "refName" | "category" | "intersection" | "all";
     }
-  | { ok: false; error: "no-panel"; lines: RevealLine[] };
+  | {
+      ok: false;
+      error: "no-panel";
+      lines: RevealLine[];
+      /** 有候選段、但被否決規則擋掉(物品浮窗等;`panel-veto.ts`)時的第一個原因 */
+      veto?: PanelVeto;
+    };
 
 export interface RevealMatchOptions {
   /** 最近查價的 PoE2 物品(英文 refName / ItemCategory);沒有就推 profile */
@@ -366,9 +375,14 @@ function bridgeUnmatched(segs: Seg[], lines: RevealLine[]): Seg[] {
 /**
  * 從候選組挑出面板:連續、x 對齊、相距 ≤ PANEL_GAP 的組;取分數(有 entry 對上的組、精確命中行)最高的一段,最多 3 組。
  * 一段超過 3 組時先拿掉 `bridge` 組(它只負責把兩側接起來;3 個選項都認得出時,中間的未命中行只是雜字)。
+ * 2026-10-01:每一段先過 `panelVeto`(`free` = 對不上模板的行;> 3 行的幾何組改算語意段數 `splitCount`)→ 否決的段整段不用;
+ * 分數另加面板固定元素(「確認」/「靈魂之井」,`panelAnchorScore`;只加分,不是必要條件)。
  */
-function selectPanel<T extends { lines: RevealLine[]; covers: unknown[]; bridge?: boolean }>(groups: T[]): T[] | null {
-  if (groups.length < 2) return null;
+function selectPanel<T extends { lines: RevealLine[]; covers: unknown[]; bridge?: boolean }>(
+  groups: T[],
+  free: RevealLine[],
+): { panel: T[] | null; veto?: PanelVeto } {
+  if (groups.length < 2) return { panel: null };
   // 行高只看命中的行(bridge 組是未命中行,不改變原本的門檻)
   const hMed =
     median(groups.filter((g) => !g.bridge).flatMap((g) => g.lines).map((l) => (l.merged ? l.h / 2 : l.h))) || 1;
@@ -391,10 +405,24 @@ function selectPanel<T extends { lines: RevealLine[]; covers: unknown[]; bridge?
     gs.reduce(
       (s, g) => s + (g.covers.length ? 10 : 0) + g.lines.reduce((t, l) => t + (l.match && !l.match.hits[0].fuzzy ? 2 : 1), 0),
       0,
-    );
+    ) +
+    5 * panelAnchorScore(gs.filter((g) => !g.bridge).flatMap((g) => g.lines), free);
   let best: T[] | null = null;
+  let veto: PanelVeto | undefined;
   for (const run0 of runs) {
     const real = run0.filter((g) => !g.bridge);
+    if (real.length >= 2) {
+      // > 3 行的幾何組(門檻失準把相鄰選項併在一起)改算語意切了幾段
+      const segOf = new Map<RevealLine, number>();
+      real.forEach((g, i) => g.lines.forEach((l) => segOf.set(l, i)));
+      const v = panelVeto(real.flatMap((g) => g.lines), free, {
+        splitCount: (hs) => new Set(hs.map((l) => segOf.get(l as RevealLine))).size,
+      });
+      if (v) {
+        veto ??= v;
+        continue;
+      }
+    }
     const r = run0.length > 3 && real.length >= 2 ? real : run0;
     if (r.length < 2) continue;
     // 超過 3 組:取分數最高的連續 3 組
@@ -405,7 +433,7 @@ function selectPanel<T extends { lines: RevealLine[]; covers: unknown[]; bridge?
       if (!best || w.length > best.length || (w.length === best.length && score(w) > score(best))) best = w;
     }
   }
-  return best;
+  return best ? { panel: best } : { panel: null, veto };
 }
 
 // ---------------------------------------------------------------- entry 對應
@@ -525,9 +553,10 @@ export function matchReveal(
       segs.push({ lines: [...g], covers: parts?.[0]?.covers ?? [], partial: !parts });
     }
   }
-  // 夾在兩組之間的未命中行自成一組 partial(中間那個選項沒認出也不拆散面板)
-  const panel = selectPanel(bridgeUnmatched(segs, lines));
-  if (!panel) return { ok: false, error: "no-panel", lines };
+  // 夾在兩組之間的未命中行自成一組 partial(中間那個選項沒認出也不拆散面板);物品浮窗等由否決規則擋掉
+  const sel = selectPanel(bridgeUnmatched(segs, lines), lines.filter((l) => !l.match));
+  const panel = sel.panel;
+  if (!panel) return sel.veto ? { ok: false, error: "no-panel", lines, veto: sel.veto } : { ok: false, error: "no-panel", lines };
 
   // 對不上的 CJK 行:貼近某組(中心距 ≤ 分組門檻、x 對齊)就放進該組顯示原文
   const hMed =

@@ -33,7 +33,7 @@ export const RUNESHAPE_DETECTOR: PanelDetector = {
     return { found: hits > 0, hits, rows: hits > 0 ? cjk : [] }
   },
   verticalRetry: looksVertical,
-  regionFallback: false,
+  activity: '查價',
   pauseOnPricePanel: true
 }
 

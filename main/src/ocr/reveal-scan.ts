@@ -3,15 +3,17 @@
  * 排程 / 暫停 / 變化偵測 / 自動定位快取沿用 `panel-scan.ts`(與符文塑形同一套骨架),這裡只注入褻瀆的偵測器:
  * - 定位 / 判定:`poe2/src/desecration/ocr-locate.ts` 的模板索引(`LocateIndex`,由 `data/poe2/desecration/tiers.json` 建;
  *   `locate-data.ts` 第一次用到才讀)——`locatePanel` 找「像詞綴」的行並外擴、`findPanelHits` ≥ 2 行像詞綴且分成 ≥ 2 組
- *   (選項之間有空隙;物品浮窗的連續詞綴不算)才算有面板。
+ *   (選項之間有空隙;物品浮窗的連續詞綴不算)才算有面板。2026-10-01 第 13 步:每一簇再過 `panel-veto.ts` 的否決規則
+ *   (浮窗的詞綴標頭 / 屬性行 / 組數 > 3 / 一組 > 3 行),被否決的簇不算(使用者回報背包物品的進階詞綴說明被當成面板)。
  * - 送出的行 = 該區域 OCR 的**全部行**(renderer 的 `matchRevealLines` 需要對不上的行來補「中間選項沒認出」的組)。
- * - 有 `ocrRegion` 時優先看區域;區域內連續 2 次沒找到面板 → 退回自動定位,區域畫面大幅變化(或還沒找到面板且 2 秒沒看區域)才回到區域(事件帶 `fallback: true`;規則在 `panel-scan.ts`)。
+ * - 有 `ocrRegion` 時**只看區域**(與符文塑形相同):區域內沒找到面板 → 送空結果、設定頁顯示「區域內沒找到面板」,不改找整個畫面
+ *   (第 13 步移除「退回自動定位」:面板沒開時改找整個畫面會把背包物品浮窗當成面板);沒框區域才自動定位整個畫面。
  * - **查價面板開著不暫停**(看褻瀆時常同時開著查價);設定 / 框選層開著、遊戲失焦時暫停。
  * 與符文塑形共用同一個 WinOcr(對方忙碌就丟掉這個 tick;兩者同時開著時 main 把第一個 tick 錯開半個間隔)。
  * 事件 `reveal-scan-result`(不進 `PREVIEW_EVENTS`);不送任何鍵盤 / 滑鼠輸入、不上傳。
  */
 import type { RevealScanEvent } from '@ipc/types'
-import { findPanelHits, locatePanel, type LocateIndex } from '../../../poe2/src/desecration/ocr-locate'
+import { findPanelHits, locatePanel, type LocateIndex, type PanelHitsDiag } from '../../../poe2/src/desecration/ocr-locate'
 import { GROUP_GAP_RATIO, type OcrTextLine } from '../../../poe2/src/desecration/ocr-text'
 import { PanelScan, type PanelDetector, type PanelScanDeps } from './panel-scan'
 
@@ -50,12 +52,16 @@ export function createRevealDetector (load: () => Promise<LocateIndex | null>): 
       return loc ? { crop: loc.crop, count: loc.hits.length } : null
     },
     classify: (lines) => {
-      const panel = index ? findPanelHits(lines, index) : null
+      const diag: PanelHitsDiag = { vetoes: [] }
+      const panel = index ? findPanelHits(lines, index, diag) : null
       const hits = panel?.hits.length ?? 0
       const found = hits >= REVEAL_MIN_HITS && modGroupCount(panel!.hits) >= REVEAL_MIN_GROUPS
-      return { found, hits, rows: found ? lines : [] }
+      const out: { found: boolean, hits: number, rows: typeof lines, veto?: string } = { found, hits, rows: found ? lines : [] }
+      const v = diag.vetoes[0]
+      if (!found && v) out.veto = `${v.kind}(${v.detail.replace(/\s+/g, '')})`
+      return out
     },
-    regionFallback: true,
+    activity: '辨識',
     pauseOnPricePanel: false
   }
 }

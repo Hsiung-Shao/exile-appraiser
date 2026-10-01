@@ -1,7 +1,7 @@
 // 2026-10-01:褻瀆自動辨識的 renderer 端(徽章層事件處理、設定頁狀態列、設定欄位往返)
 import { describe, expect, it } from 'vitest'
 import { _roundTripForTest } from '../src/web/Config'
-import { fallbackNoteShows, revealScanAction, revealScanStatus } from '../src/web/overlay/ocr-reveal'
+import { revealScanAction, revealScanStatus } from '../src/web/overlay/ocr-reveal'
 
 const row = { text: '+16 最大生命', x: 1, y: 2, w: 3, h: 4 }
 
@@ -22,21 +22,23 @@ describe('revealScanAction:徽章跟著自動辨識事件更新', () => {
     expect('BADGE_TTL_MS' in mod).toBe(false)
     expect('ERROR_TTL_MS' in mod).toBe(false)
   })
-  it('退回整個畫面的提示只在剛切過去時顯示一次', () => {
-    expect(fallbackNoteShows(true, false)).toBe(true)
-    expect(fallbackNoteShows(true, true)).toBe(false)
-    expect(fallbackNoteShows(false, true)).toBe(false)
-    expect(fallbackNoteShows(undefined, false)).toBe(false)
+  it('第 13 步:「已改找整個畫面」提示與它的判斷函式已移除(有框區域只看區域)', async () => {
+    const mod = await import('../src/web/overlay/ocr-reveal')
+    expect('fallbackNoteShows' in mod).toBe(false)
   })
 })
 
 describe('revealScanStatus:設定頁狀態列', () => {
   const t = (k: string, a?: Record<string, unknown>) => a ? `${k}:${JSON.stringify(a)}` : k
-  it('暫停 > 退回 > 找到 > 尋找中', () => {
+  it('暫停 > 框選區域內有 / 沒有找到(同符文塑形的狀態)> 找到 > 尋找中', () => {
     expect(revealScanStatus(undefined, t, 'Ctrl + Shift + R')).toBeNull()
     expect(revealScanStatus({ reason: 'user-paused', panel: 'found', mode: 'auto' }, t, 'Ctrl + Shift + R'))
       .toEqual({ code: 'paused', warn: true, text: 'ppz.ocr.scan_status_paused:{"hotkey":"Ctrl + Shift + R"}' })
-    expect(revealScanStatus({ panel: 'found', mode: 'manual', fallback: true }, t, '')?.code).toBe('fallback')
+    expect(revealScanStatus({ panel: 'found', mode: 'manual' }, t, ''))
+      .toEqual({ code: 'manual-found', warn: false, text: 'ppz.runeshape.status_manual_found' })
+    expect(revealScanStatus({ panel: 'not-found', mode: 'manual' }, t, ''))
+      .toEqual({ code: 'manual-not-found', warn: true, text: 'ppz.runeshape.status_manual_not_found' })
+    expect(revealScanStatus({ panel: 'unknown', mode: 'manual' }, t, '')?.code).toBe('searching')
     expect(revealScanStatus({ panel: 'found', mode: 'auto' }, t, '')).toEqual({ code: 'found', warn: false, text: 'ppz.ocr.scan_status_found' })
     expect(revealScanStatus({ panel: 'not-found', mode: 'auto' }, t, '')?.code).toBe('searching')
     expect(revealScanStatus({ panel: 'unknown', mode: 'auto' }, t, '')?.code).toBe('searching')
@@ -62,5 +64,12 @@ describe('設定欄位 revealAutoEnabled / revealIntervalMs', () => {
     expect(JSON.parse(r.serialized).ocrRegion).toEqual(region)
     expect(_roundTripForTest(JSON.stringify({ revealIntervalMs: 1800 })).config.revealIntervalMs).toBe(1800)
     expect(_roundTripForTest(JSON.stringify({ revealIntervalMs: 'x' })).config.revealIntervalMs).toBe(1000)
+  })
+  it('第 13 步 revealShowAllCandidates:舊設定檔沒有 → 關;只有明確 true 才開;往返保留', () => {
+    expect(_roundTripForTest(JSON.stringify({})).config.revealShowAllCandidates).toBe(false)
+    expect(_roundTripForTest(JSON.stringify({ revealShowAllCandidates: 'yes' })).config.revealShowAllCandidates).toBe(false)
+    const r = _roundTripForTest(JSON.stringify({ revealShowAllCandidates: true }))
+    expect(r.config.revealShowAllCandidates).toBe(true)
+    expect(JSON.parse(r.serialized).revealShowAllCandidates).toBe(true)
   })
 })

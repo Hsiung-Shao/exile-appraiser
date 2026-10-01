@@ -54,6 +54,10 @@
         </div>
       </div>
       <p v-if="ocrStatus.kind === 'bad' && ocrAvail && !ocrAvail.ok && ocrAvail.error === 'lang-missing'" class="err-line">{{ t('ppz.ocr.err_lang_missing') }}</p>
+      <div class="chk-row">
+        <label class="chk"><input v-model="config.revealShowAllCandidates" type="checkbox" data-setting="reveal-show-all"><span>{{ t('ppz.ocr.show_all_candidates') }}</span></label>
+      </div>
+      <p class="foot">{{ t('ppz.ocr.show_all_candidates_hint') }}</p>
     </template>
     <template #foot>
       <p class="foot">{{ t('ppz.ocr.cpu_hint') }}</p>

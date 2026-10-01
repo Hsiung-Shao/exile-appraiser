@@ -5,9 +5,9 @@
  *
  * 每 `intervalMs`(100–3000,預設 1000;上一次 tick 做完才排下一次)一次:
  *   啟用條件(`scanBlock`)→ 擷取遊戲 client(`captureGameClient`)→ 決定要看哪一塊:
- *     - **manual**:使用者框的區域(優先)。detector `regionFallback` = false(符文)時區域內沒找到面板也**不**改掃全畫面;
- *       = true(褻瀆)時連續 2 次區域內沒有面板 → 進入「退回自動定位」,直到區域的畫面**大幅**變化(或還沒找到面板且 2 秒沒看區域)才回到區域(2026-10-01 第 6 步前是「有變化」)。
- *     - **auto**(沒框區域 / 退回中):記憶體快取的面板區(鍵 = client 大小 + 擷取偏移)。沒有快取時每 `LOCATE_INTERVAL_MS`(3 秒)
+ *     - **manual**:使用者框的區域。區域內沒找到面板就送空結果,**不**改掃全畫面(符文與褻瀆相同;2026-10-01 第 13 步起褻瀆也不再
+ *       「退回自動定位」—— 使用者框了面板位置,面板沒開時改找整個畫面會把背包物品浮窗當成面板)。區域整塊在擷取影像外 → `region-outside`。
+ *     - **auto**(沒框區域):記憶體快取的面板區(鍵 = client 大小 + 擷取偏移)。沒有快取時每 `LOCATE_INTERVAL_MS`(3 秒)
  *       最多一次整個 client ×1 OCR → `detector.locate` → 外擴框存進快取;
  *       連續 `AUTO_MISS_LIMIT`(5)次在快取區找不到面板 → 清快取回到低頻定位;快取區有變化且距上次定位 ≥ 30 秒時順便重新定位。
  *   → **變化偵測**(區域縮成寬 64 的灰階縮圖,與上次 OCR 時的縮圖差分;沒變就不 OCR)
@@ -21,15 +21,14 @@
  *     = 面板出現 / 淡入過半 / 換頁 / 鏡頭大幅移動。下面的退避遇到大幅變化一律立即 OCR / 定位並重置。
  *   - **手動區域沒有面板的退避**:送出空結果之後(連續第 2 次無列起),區域「有變化但不大」的 OCR 間隔指數拉長
  *     (掃描間隔 × 2、× 4…,上限 `IDLE_BACKOFF_MAX_MS` 2.5 秒);找到面板立刻回到原行為。
- *   - **褻瀆退回自動定位**:區域畫面**大幅**變化、或(退回中還沒找到面板且)距上次區域 OCR ≥ `FALLBACK_RECHECK_MS`(2 秒)才回到區域
- *     (原本「有變化就回來」,遊戲畫面一動就回去,自動定位永遠輪不到)。
+ *   - (第 6 步的「褻瀆退回自動定位何時回到區域」已隨第 13 步移除退回機制一起拿掉。)
  *   - **自動定位的退避**:沒快取時仍最多每 3 秒擷取一次;連續沒找到 → 定位間隔 3 → 6 → 12 → 15 秒(`locateGapMs`);整個 client 縮圖與
  *     上次定位時幾乎一樣(`isChanged` 為否)也跳過;距上次定位 ≥ `LOCATE_BACKOFF_MAX_MS`(15 秒)必跑;大幅變化立刻定位並重置。
  *   - **共用定位 OCR**(`SharedLocateOcr`,main 建一個給兩個掃描):同一 client 大小 / 擷取偏移 1 秒內的整個 client ×1 只跑一次。
  *   - 第 7 步:**共用擷取**(`SharedCapture`,main 建一個給兩個掃描):同一 client bounds 進行中的擷取一起等、完成後 100 ms 內直接用同一張
  *     (`desktopCapturer.getSources` 每次在 main 執行緒卡 300–480 ms,與縮圖大小無關,見 docs/reveal-ocr.md「擷取與 OCR 傳輸」)。
  *   - tick 一進來就設旗標(`ticking`):讀 tiers.json 的 await 期間 `poke()` 不會再開第二個 tick。
- *   - 與上次送出內容相同的 `rows`(列文字 + 四捨五入座標 + client + fallback)`REPEAT_ROWS_MS`(10 秒)內不重送;狀態轉換一律照送。
+ *   - 與上次送出內容相同的 `rows`(列文字 + 四捨五入座標 + client)`REPEAT_ROWS_MS`(10 秒)內不重送;狀態轉換一律照送。
  *
  * 暫停(不送事件、保留徽章、清掉差分基準):遊戲不在前景、renderer 回報設定 / 框選層開著(detector `pauseOnPricePanel` 時查價面板開著也算)。
  * 停止(送一次空結果清徽章):停用、不是 PoE2、不是 overlay、沒有遊戲視窗、detector 資料讀不到、使用者按暫停熱鍵。
@@ -209,8 +208,6 @@ export const LOCATE_INTERVAL_MS = 3000
 export const AUTO_MISS_LIMIT = 5
 /** 快取區有變化且距上次定位 ≥ 30 秒 → 順便重新定位(面板列數 / 位置變了) */
 export const AUTO_REFRESH_MS = 30_000
-/** 區域連續這麼多次 OCR 沒有面板(= 送出空結果那一次)→ detector 允許時退回自動定位 */
-export const REGION_FALLBACK_AFTER = 2
 
 /** 自動定位連續沒找到時的間隔上限;距上次定位超過這麼久必跑一次(畫面沒變也跑) */
 export const LOCATE_BACKOFF_MAX_MS = 15_000
@@ -230,15 +227,12 @@ export function idleGapMs (idleOcrs: number, intervalMs: number): number {
   return Math.min(IDLE_BACKOFF_MAX_MS, intervalMs * 2 ** (idleOcrs - IDLE_BACKOFF_AFTER + 1))
 }
 
-/** 褻瀆退回自動定位中、還沒找到面板:距上次區域 OCR 這麼久就回區域再看一次(區域畫面大幅變化則立即回) */
-export const FALLBACK_RECHECK_MS = 2000
-
 /** 與上次送出內容完全相同的 `rows`:這段時間內不重送(過了照送一次,renderer 的查價興趣 / 耗時顯示不會停住) */
 export const REPEAT_ROWS_MS = 10_000
 
-/** 送出內容的簽章:列文字 + 四捨五入座標 + client 大小 + fallback(與上次相同 = 不重送) */
-export function rowsSignature (rows: PanelScanRow[], client: { w: number, h: number }, fallback: boolean): string {
-  let s = `${client.w}x${client.h}|${fallback ? 1 : 0}`
+/** 送出內容的簽章:列文字 + 四捨五入座標 + client 大小(與上次相同 = 不重送) */
+export function rowsSignature (rows: PanelScanRow[], client: { w: number, h: number }): string {
+  let s = `${client.w}x${client.h}`
   for (const r of rows) s += `\n${r.text}\t${Math.round(r.x)},${Math.round(r.y)},${Math.round(r.w)},${Math.round(r.h)}`
   return s
 }
@@ -354,16 +348,19 @@ export interface Rect { x: number, y: number, w: number, h: number }
 export interface PanelDetector {
   /** log 前綴(`[runeshape]` / `[reveal-scan]`) */
   tag: string
+  /** log 用:暫停熱鍵切換的是「自動查價」還是「自動辨識」 */
+  activity: string
   /** 資料就緒(褻瀆要 tiers.json 的模板索引);回 false → 停止(`no-data`)。省略 = 不需要資料 */
   ready?: () => Promise<boolean>
   /** 整個 client ×1 的 OCR 行裡找面板 → 外擴後的裁切框;找不到回 null */
   locate: (lines: OcrTextLine[], bounds: Rect) => { crop: Rect, count: number } | null
-  /** 區域 OCR 的結果:有沒有面板、面板命中數、要送給 renderer 的行(沒有面板 → []) */
-  classify: (lines: OcrTextLine[]) => { found: boolean, hits: number, rows: OcrTextLine[] }
+  /**
+   * 區域 OCR 的結果:有沒有面板、面板命中數、要送給 renderer 的行(沒有面板 → []);
+   * `veto` = 有像面板的行、但被偵測器的否決規則擋掉的原因(log 用;褻瀆的物品浮窗)
+   */
+  classify: (lines: OcrTextLine[]) => { found: boolean, hits: number, rows: OcrTextLine[], veto?: string }
   /** WinRT 直書重試(符文塑形面板實測會被當成直書) */
   verticalRetry?: (lines: OcrTextLine[]) => boolean
-  /** 手動區域內沒找到面板 → 退回自動定位 */
-  regionFallback: boolean
   /** 查價面板開著要不要暫停 */
   pauseOnPricePanel: boolean
 }
@@ -473,11 +470,9 @@ export class PanelScan {
   private lastMode: 'manual' | 'auto' | null = null
   /** 直書重試裁出來的面板塊(鍵 = 區域鍵);只在記憶體 */
   private tight: { key: string, rect: PhysRect } | null = null
-  /** regionFallback:手動區域沒找到面板 → 退回自動定位中;記住當時區域的縮圖,區域畫面大幅變了(或久沒看)就回到區域 */
-  private fallback: { key: string, fp: Fingerprint } | null = null
   /** manual:連續幾次區域 OCR 沒有列(退避用;找到面板 / 大幅變化 / 暫停歸零) */
   private idleOcrs = 0
-  /** 上次對手動區域 OCR 的時間(退避與褻瀆退回的「久沒看區域」) */
+  /** 上次對手動區域 OCR 的時間(退避用) */
   private lastRegionOcrAt = Number.NEGATIVE_INFINITY
   /** auto:連續幾次自動定位沒找到(定位退避用) */
   private locateMissStreak = 0
@@ -491,7 +486,7 @@ export class PanelScan {
   private logRepeats = 0
   /** 排程層的計數(不進設定頁統計;測試 / 診斷用) */
   readonly sched = { idleBackoffSkips: 0, locateSkips: 0, locateShared: 0, dedupedRows: 0 }
-  readonly stats: Omit<RuneshapeStats, 'active' | 'reason' | 'avgCaptureMs' | 'avgOcrMs' | 'mode' | 'panel' | 'autoRegion' | 'fallback'> & { lastError?: string } = {
+  readonly stats: Omit<RuneshapeStats, 'active' | 'reason' | 'avgCaptureMs' | 'avgOcrMs' | 'mode' | 'panel' | 'autoRegion'> & { lastError?: string } = {
     ticks: 0, ocrRuns: 0, skippedUnchanged: 0, skippedBusy: 0, locates: 0, locateMisses: 0
   }
 
@@ -515,9 +510,6 @@ export class PanelScan {
   /** 測試 / selftest:目前的自動定位快取(影像像素) */
   get autoRegion (): PhysRect | null { return this.auto?.rect ?? null }
 
-  /** 測試:手動區域目前退回自動定位中 */
-  get fallingBack (): boolean { return this.fallback != null }
-
   /** `firstDelayMs`:第一個 tick 延後(兩個掃描同時開著時錯開半個間隔,輪流用 WinOcr) */
   start (firstDelayMs = 0): void {
     if (this.running) return
@@ -538,10 +530,9 @@ export class PanelScan {
     this.schedule(0)
   }
 
-  /** 丟掉差分基準與「退回自動定位」狀態,下一個 tick 一定重新 OCR(框選確認後) */
+  /** 丟掉差分基準,下一個 tick 一定重新 OCR(框選確認後) */
   rescan (): void {
     this.baseline = null
-    this.fallback = null
     this.emptyStreak = 0
     this.resetBackoff()
     this.poke()
@@ -567,7 +558,7 @@ export class PanelScan {
     this.userPaused = !this.userPaused
     this.baseline = null
     this.emptyStreak = 0
-    this.log(`${this.tag} 使用者${this.userPaused ? '暫停' : '繼續'}自動${this.detector.regionFallback ? '辨識' : '查價'}`)
+    this.log(`${this.tag} 使用者${this.userPaused ? '暫停' : '繼續'}自動${this.detector.activity}`)
     this.emit(this.userPaused ? 'user-paused' : 'user-resumed', [], { w: 0, h: 0 })
     this.shown = false
     this.poke()
@@ -590,9 +581,8 @@ export class PanelScan {
       // 換了模式(框選 / 清除區域)之後還沒掃過 → unknown
       panel: this.lastMode === mode ? this.panel : 'unknown'
     }
-    if (this.fallback) out.fallback = true
     const a = this.auto
-    if ((mode === 'auto' || this.fallback) && a && a.client.w > 0 && a.client.h > 0) {
+    if (mode === 'auto' && a && a.client.w > 0 && a.client.h > 0) {
       const r4 = (v: number) => Math.round(v * 10000) / 10000
       out.autoRegion = {
         x: r4((a.rect.x + a.offset.x) / a.client.w),
@@ -614,10 +604,10 @@ export class PanelScan {
   }
 
   /** 送事件;`rows` 與上次送出的完全相同且未滿 `REPEAT_ROWS_MS` → 不送,回 false。其他 reason(狀態轉換)一律送 */
-  private emit (reason: PanelScanEvent['reason'], rows: PanelScanRow[], client: { w: number, h: number }, timings?: RuneshapeTimings, fallback = false): boolean {
+  private emit (reason: PanelScanEvent['reason'], rows: PanelScanRow[], client: { w: number, h: number }, timings?: RuneshapeTimings): boolean {
     const t = this.clock.now()
     if (reason === 'rows') {
-      const sig = rowsSignature(rows, client, fallback)
+      const sig = rowsSignature(rows, client)
       if (sig === this.rowsSig && t - this.rowsSigAt < REPEAT_ROWS_MS) {
         this.sched.dedupedRows++
         return false
@@ -629,7 +619,6 @@ export class PanelScan {
     }
     const ev: PanelScanEvent = { seq: ++this.seq, ts: t, reason, rows, client }
     if (timings) ev.timings = timings
-    if (fallback) ev.fallback = true
     this.deps.send(ev)
     return true
   }
@@ -783,7 +772,6 @@ export class PanelScan {
       this.lastMode = mode
       this.panel = 'unknown'
       this.lastHadPanel = false
-      this.fallback = null
       this.resetBackoff()
       if (mode === 'manual') this.auto = null
     }
@@ -792,8 +780,8 @@ export class PanelScan {
       return { kind: 'busy' }
     }
     const now = this.clock.now
-    // 這個 tick 實際看哪一種區域:手動區域退回自動定位中 = auto
-    let eff: 'manual' | 'auto' = mode === 'manual' && this.fallback ? 'auto' : mode
+    // 有框區域只看區域(沒找到面板不改掃全畫面);沒框才自動定位
+    const eff: 'manual' | 'auto' = mode
     // auto 且沒有快取:低頻定位,沒到時間連擷取都不做
     if (eff === 'auto' && !this.auto && now() - Math.max(this.lastLocateAt, this.lastLocateCheckAt) < LOCATE_INTERVAL_MS) return { kind: 'locate-wait' }
     this.inFlight = true
@@ -802,41 +790,18 @@ export class PanelScan {
       const cap = await this.deps.capture(env.bounds!)
       const captureMs = now() - t0
       this.pushHist(this.capHist, captureMs)
-      let rect: PhysRect | null = null
-      let regionRect: PhysRect | null = null
-      if (mode === 'manual') {
-        regionRect = regionSearchRect(cap.size, cfg.region, cap)
-        if (!regionRect) {
-          if (!det.regionFallback) return this.block('region-outside')
-          eff = 'auto'
-        } else if (this.fallback) {
-          // 退回自動定位中:區域的畫面**大幅**變了(面板可能出現在區域裡了)→ 立刻回到區域;
-          // 還沒找到面板且久沒看區域 → 回去再看一次。小變化(遊戲畫面在動)不回,讓自動定位有機會跑
-          const fpR = cap.fingerprint(regionRect)
-          const k = rectKey(cap, regionRect)
-          const large = this.fallback.key !== k || isLargeChange(this.fallback.fp, fpR)
-          const recheck = !this.lastHadPanel && now() - this.lastRegionOcrAt >= FALLBACK_RECHECK_MS
-          if (large || recheck) {
-            this.log(`${this.tag} ${large ? '區域的畫面大幅變化' : `退回自動定位 ${FALLBACK_RECHECK_MS / 1000} 秒仍沒找到面板`},回到手動區域`)
-            this.fallback = null
-            this.baseline = null
-            this.emptyStreak = 0
-            if (large) this.idleOcrs = 0
-            eff = 'manual'
-          }
-        } else {
-          eff = 'manual'
-        }
-      }
+      let rect: PhysRect
       const timings: RuneshapeTimings = { captureMs, diffMs: 0, totalMs: 0, mode: eff }
       if (eff === 'manual') {
-        rect = regionRect!
+        const regionRect = regionSearchRect(cap.size, cfg.region, cap)
+        if (!regionRect) return this.block('region-outside')
+        rect = regionRect
       } else {
         if (this.auto && this.auto.key !== autoKey(cap)) this.dropAuto(`遊戲畫面大小 / 位置變了(${autoKey(cap)})`)
         if (this.auto) {
           rect = this.auto.rect
         } else {
-          // 手動區域剛退回、還沒到低頻定位的時間(純 auto 已在擷取前擋掉)
+          // 快取剛因畫面大小 / 位置改變被清掉、還沒到低頻定位的時間(沒快取的情況已在擷取前擋掉)
           if (now() - Math.max(this.lastLocateAt, this.lastLocateCheckAt) < LOCATE_INTERVAL_MS) return { kind: 'locate-wait' }
           // 定位退避:整個 client 幾乎沒變 / 連續沒找到 → 這次不定位(大幅變化、滿 15 秒照跑)
           const ak = autoKey(cap)
@@ -942,14 +907,13 @@ export class PanelScan {
       } else {
         this.idleOcrs = rows.length ? 0 : this.idleOcrs + 1
       }
-      const viaFallback = mode === 'manual' && eff === 'auto'
       // log:結果與上一行相同(同樣的列 / 同樣沒有列)不重複印,下次不同時附上略過次數
-      const logKey = `${eff}|${viaFallback ? 1 : 0}|${panelRows}|${rows.length ? rowsSignature(rows, cap.client, viaFallback) : `0/${res.lines.length}`}`
+      const logKey = `${eff}|${panelRows}|${cls.veto ?? ''}|${rows.length ? rowsSignature(rows, cap.client) : `0/${res.lines.length}`}`
       if (logKey !== this.lastLogKey) {
         const d = timings.diff ? `差分 ${timings.diff.mean}/${(timings.diff.changedRatio * 100).toFixed(2)}%` : '無基準'
-        this.log(`${this.tag} #${this.seq + 1} ${eff}${viaFallback ? '(區域退回)' : ''} 區域 ${rect.width}x${rect.height} ×${ocrScale(rect.width, rect.height)}:擷取 ${captureMs} ms、` +
+        this.log(`${this.tag} #${this.seq + 1} ${eff} 區域 ${rect.width}x${rect.height} ×${ocrScale(rect.width, rect.height)}:擷取 ${captureMs} ms、` +
           `${timings.locateMs != null ? `定位 ${timings.locateMs} ms、` : ''}${d}(${timings.diffMs} ms)、OCR ${timings.ocrWallMs} ms(行程內 ${res.ms}${timings.retry ? ',直書重試' : ''})、` +
-          `總計 ${timings.totalMs} ms;${res.lines.length} 行 → ${rows.length} 列(面板命中 ${panelRows})` +
+          `總計 ${timings.totalMs} ms;${res.lines.length} 行 → ${rows.length} 列(面板命中 ${panelRows}${cls.veto ? `;不是面板:${cls.veto}` : ''})` +
           `${this.logRepeats ? `;其間 ${this.logRepeats} 次結果與前一行相同未記` : ''}`)
         this.lastLogKey = logKey
         this.logRepeats = 0
@@ -960,7 +924,7 @@ export class PanelScan {
         this.baseline = { key: newKey, fp }
         this.emptyStreak = 0
         this.shown = true
-        const sent = this.emit('rows', rows, cap.client, timings, viaFallback)
+        const sent = this.emit('rows', rows, cap.client, timings)
         return sent
           ? { kind: 'ocr', mode: eff, rect, rows: rows.length, panelRows, sent: 'rows', timings }
           : { kind: 'ocr', mode: eff, rect, rows: rows.length, panelRows, sent: null, deduped: true, timings }
@@ -971,15 +935,8 @@ export class PanelScan {
         // auto 快取剛被清掉 → 基準也不留(下一次換新區域)
         this.baseline = eff === 'auto' && !this.auto ? null : { key: newKey, fp }
         if (this.emptyStreak === 2) {
-          this.emit('empty', [], cap.client, timings, viaFallback)
+          this.emit('empty', [], cap.client, timings)
           this.shown = false
-          // 手動區域確定沒有面板 → detector 允許時退回自動定位(記住區域畫面,變了就回來)
-          if (eff === 'manual' && det.regionFallback && this.emptyStreak >= REGION_FALLBACK_AFTER) {
-            this.fallback = { key: newKey, fp }
-            this.baseline = null
-            this.emptyStreak = 0
-            this.log(`${this.tag} 區域內沒找到面板,改用自動定位(區域畫面有變化時回到區域)`)
-          }
           return { kind: 'ocr', mode: eff, rect, rows: 0, panelRows, sent: 'empty', timings }
         }
       } else {

@@ -49,7 +49,8 @@ export interface Poe2RevealGroup {
 }
 export type Poe2RevealResult =
   | { ok: true, groups: Poe2RevealGroup[], profileExact: boolean, profileSource: 'refName' | 'category' | 'intersection' | 'all' }
-  | { ok: false, error: 'no-panel', lines: Poe2RevealLine[] }
+  /** `veto`:有候選段但被否決規則擋掉(物品浮窗等,poe2 `panel-veto.ts`) */
+  | { ok: false, error: 'no-panel', lines: Poe2RevealLine[], veto?: { kind: 'tooltip-header' | 'keyword-line' | 'too-many-groups' | 'group-too-tall', detail: string } }
 export type Poe2Translate = (key: string, args?: unknown) => string
 
 export interface Poe2HostOptions {

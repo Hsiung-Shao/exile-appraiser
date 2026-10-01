@@ -586,13 +586,12 @@ describe('大幅變化門檻(純函式)', () => {
     expect(idleGapMs(5, 3000)).toBe(2500) // 間隔本來就 ≥ 2.5 秒 → 等於不退避
     expect([0, 1, 2, 3, 4, 9].map(locateGapMs)).toEqual([3000, 3000, 6000, 12000, 15000, LOCATE_BACKOFF_MAX_MS])
   })
-  it('rowsSignature:列文字 + 四捨五入座標 + client + fallback', () => {
+  it('rowsSignature:列文字 + 四捨五入座標 + client(第 13 步移除 fallback)', () => {
     const rows = [{ text: '1x 崇高石', x: 10.2, y: 20.4, w: 30, h: 12 }]
-    const s = rowsSignature(rows, { w: 100, h: 50 }, false)
-    expect(rowsSignature([{ ...rows[0], x: 10.4 }], { w: 100, h: 50 }, false)).toBe(s)
-    expect(rowsSignature([{ ...rows[0], x: 11 }], { w: 100, h: 50 }, false)).not.toBe(s)
-    expect(rowsSignature(rows, { w: 100, h: 50 }, true)).not.toBe(s)
-    expect(rowsSignature(rows, { w: 200, h: 50 }, false)).not.toBe(s)
+    const s = rowsSignature(rows, { w: 100, h: 50 })
+    expect(rowsSignature([{ ...rows[0], x: 10.4 }], { w: 100, h: 50 })).toBe(s)
+    expect(rowsSignature([{ ...rows[0], x: 11 }], { w: 100, h: 50 })).not.toBe(s)
+    expect(rowsSignature(rows, { w: 200, h: 50 })).not.toBe(s)
   })
 })
 

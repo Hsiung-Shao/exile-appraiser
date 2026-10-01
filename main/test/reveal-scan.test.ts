@@ -6,7 +6,7 @@ import * as path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import type { RevealScanEvent } from '@ipc/types'
 import { buildLocateIndex, type LocateIndex, type LocateTiersLike } from '../../poe2/src/desecration/ocr-locate'
-import { FALLBACK_RECHECK_MS, LOCATE_INTERVAL_MS, SharedLocateOcr, scanBlock, type Fingerprint, type ScanCapture, type ScanClock, type ScanConfig, type ScanEnv } from '../src/ocr/panel-scan'
+import { LOCATE_INTERVAL_MS, SharedLocateOcr, scanBlock, type Fingerprint, type ScanCapture, type ScanClock, type ScanConfig, type ScanEnv } from '../src/ocr/panel-scan'
 import { REVEAL_MIN_HITS, RevealScan, createRevealDetector, modGroupCount } from '../src/ocr/reveal-scan'
 import { RuneshapeScan } from '../src/ocr/runeshape-scan'
 
@@ -14,18 +14,21 @@ const ROOT = path.resolve(__dirname, '../..')
 const index: LocateIndex = buildLocateIndex(JSON.parse(fs.readFileSync(path.join(ROOT, 'data/poe2/desecration/tiers.json'), 'utf8')) as LocateTiersLike)
 
 type Line = { text: string, x: number, y: number, w: number, h: number }
+/** 一張「遊戲畫面」:`lines` = ×3 的行;`lines1` = 有的話 ×1(自動定位)改回傳它(負樣本快照有整張 ×1) */
+type Screen = { w: number, h: number, lines: Line[], lines1?: Line[] }
 /** 快照(×3 座標)→ client 座標 */
-function snapshot (name: string): { w: number, h: number, lines: Line[] } {
+function snapshot (name: string): Screen {
   const s = JSON.parse(fs.readFileSync(path.join(ROOT, 'poe2/test/desecration/fixtures/ocr', `${name}.ocr.json`), 'utf8')) as {
-    srcW: number, srcH: number, scale: number, lines: Line[]
+    srcW: number, srcH: number, scale: number, lines: Line[], locate?: { scale: number, lines: Line[] }
   }
-  return {
-    w: s.srcW,
-    h: s.srcH,
-    lines: s.lines.map(l => ({ text: l.text, x: l.x / s.scale, y: l.y / s.scale, w: l.w / s.scale, h: l.h / s.scale }))
-  }
+  const conv = (ls: Line[], k: number) => ls.map(l => ({ text: l.text, x: l.x / k, y: l.y / k, w: l.w / k, h: l.h / k }))
+  const out: Screen = { w: s.srcW, h: s.srcH, lines: conv(s.lines, s.scale) }
+  if (s.locate) out.lines1 = conv(s.locate.lines, s.locate.scale)
+  return out
 }
 const FULL02 = snapshot('well-of-souls-fullscreen-02')
+/** 負樣本:使用者回報的全螢幕截圖(沒開揭露面板、背包手套的進階詞綴說明開著;快照有整張 ×3 與 ×1) */
+const TOOLTIP = snapshot('tooltip-gloves-advanced-01')
 const FULL03 = snapshot('well-of-souls-fullscreen-03')
 const CROP01 = snapshot('well-of-souls-body-armour-01')
 const MODS02 = ['增加71%護甲值和閃避', '+60護甲值', '+59閃避值', '+16最大生命']
@@ -58,7 +61,7 @@ function fakeClock () {
 }
 
 /** 畫面 = 某張快照;`version` 改了 = 那一塊的縮圖變了(每版差 40 = 大幅變化);`noise` = 小幅變化(遊戲畫面在動,平均差 < 6) */
-function harness (screen: { w: number, h: number, lines: Line[] }, over: Partial<ScanConfig> = {}, idx: LocateIndex | null = index, load?: () => Promise<LocateIndex | null>) {
+function harness (screen: Screen, over: Partial<ScanConfig> = {}, idx: LocateIndex | null = index, load?: () => Promise<LocateIndex | null>) {
   const clk = fakeClock()
   const cfg: ScanConfig = { enabled: true, game: 'poe2', region: null, intervalMs: 1000, ...over }
   const env: ScanEnv = { overlay: true, gameActive: true, bounds: { x: 0, y: 0, width: screen.w, height: screen.h } }
@@ -78,7 +81,8 @@ function harness (screen: { w: number, h: number, lines: Line[] }, over: Partial
       fingerprint: (): Fingerprint => ({ w: 64, h: 40, data: new Uint8Array(64 * 40).fill(state.version * 40 + state.noise) }),
       recognize: async (rect, scale) => {
         state.ocrs.push({ rect, scale })
-        return { lines: state.screen.lines.filter(l => inside(l, rect)).map(l => ({ ...l })), ms: 30 }
+        const src = scale === 1 && state.screen.lines1 ? state.screen.lines1 : state.screen.lines
+        return { lines: src.filter(l => inside(l, rect)).map(l => ({ ...l })), ms: 30 }
       }
     }),
     send: (e) => { events.push(e) },
@@ -130,7 +134,9 @@ describe('褻瀆偵測器(真實截圖快照)', () => {
   })
   it('設定:查價面板開著不暫停(褻瀆常與查價同時看);設定 / 框選層開著暫停', () => {
     expect(det.pauseOnPricePanel).toBe(false)
-    expect(det.regionFallback).toBe(true)
+    // 第 13 步起沒有「區域內沒找到 → 退回整個畫面」的選項(褻瀆與符文都只看區域)
+    expect('regionFallback' in det).toBe(false)
+    expect(det.activity).toBe('辨識')
     const cfg: ScanConfig = { enabled: true, game: 'poe2', region: null, intervalMs: 1000 }
     const env: ScanEnv = { overlay: true, gameActive: true, bounds: { x: 0, y: 0, width: 10, height: 10 } }
     const ui = { panel: false, settings: false, picker: false }
@@ -152,7 +158,7 @@ describe('RevealScan 自動持續辨識(假時鐘 + 快照畫面)', () => {
     expect(h.events).toHaveLength(1)
     const ev = h.events[0]
     expect(ev.reason).toBe('rows')
-    expect(ev.fallback).toBeUndefined()
+    expect('fallback' in ev).toBe(false)
     expect(ev.client).toEqual({ w: FULL02.w, h: FULL02.h })
     const texts = ev.rows.map(r => norm(r.text))
     for (const m of MODS02) expect(texts).toContain(m)
@@ -235,31 +241,39 @@ describe('RevealScan 自動持續辨識(假時鐘 + 快照畫面)', () => {
     expect(r.kind).toBe('ocr')
     expect(h.state.ocrs.map(o => o.scale)).toEqual([3])
     expect(h.events[0].reason).toBe('rows')
-    expect(h.events[0].fallback).toBeUndefined()
+    expect(h.scan.snapshot()).toMatchObject({ mode: 'manual', panel: 'found' })
   })
 
-  it('區域內沒找到面板 → 連續 2 次後退回自動定位(事件帶 fallback);區域畫面變了才回到區域', async () => {
+  it('第 13 步:區域內沒找到面板 → 連續 2 次後送 empty,之後**不**改找整個畫面(與符文塑形相同;面板在區域外也不出徽章)', async () => {
     const h = harness(FULL02, { region: { x: 0.8, y: 0.8, w: 0.2, h: 0.2 } })
     const r1 = await h.scan.tick()
     expect(r1).toMatchObject({ kind: 'ocr', mode: 'manual', rows: 0, sent: null })
     const r2 = await h.scan.tick()
     expect(r2).toMatchObject({ kind: 'ocr', mode: 'manual', rows: 0, sent: 'empty' })
-    expect(h.scan.fallingBack).toBe(true)
-    expect(h.scan.snapshot()).toMatchObject({ mode: 'manual', fallback: true })
-    // 退回:整張 ×1 定位 → 定位框 ×3 → 送出列,帶 fallback
-    const r3 = await h.scan.tick()
-    expect(r3).toMatchObject({ kind: 'ocr', mode: 'auto', sent: 'rows' })
-    const ev = h.events[h.events.length - 1]
-    expect(ev.reason).toBe('rows')
-    expect(ev.fallback).toBe(true)
-    // 區域畫面沒變 → 維持退回;畫面沒變 → 不 OCR
-    const n = h.state.ocrs.length
-    expect(await h.scan.tick()).toMatchObject({ kind: 'unchanged', mode: 'auto' })
-    expect(h.state.ocrs).toHaveLength(n)
-    // 區域畫面變了 → 回到手動區域
+    expect(h.scan.snapshot()).toMatchObject({ mode: 'manual', panel: 'not-found' })
+    expect('fallback' in h.scan.snapshot()).toBe(false)
+    // 之後一直只看區域:沒有整張 ×1 定位、沒有送列;區域畫面大幅變化也只是再 OCR 區域
     h.state.version = 3
-    expect(await h.scan.tick()).toMatchObject({ kind: 'ocr', mode: 'manual' })
-    expect(h.scan.fallingBack).toBe(false)
+    for (let i = 0; i < 6; i++) {
+      h.clk.set(h.clk.clock.now() + LOCATE_INTERVAL_MS)
+      const r = await h.scan.tick()
+      expect(r.kind === 'ocr' || r.kind === 'unchanged' || r.kind === 'backoff').toBe(true)
+      if ('mode' in r) expect(r.mode).toBe('manual')
+    }
+    expect(h.state.ocrs.every(o => o.scale === 3 && o.rect.width < FULL02.w)).toBe(true)
+    expect(h.events.map(e => e.reason)).toEqual(['empty'])
+    expect(h.scan.snapshot().autoRegion).toBeUndefined()
+  })
+
+  it('使用者回報的情境:框了區域(左 19%、上 44%、寬 28%、高 25%)、面板沒開、背包手套的進階說明開著 → 只看區域,不出徽章', async () => {
+    const h = harness(TOOLTIP, { region: { x: 0.19, y: 0.44, w: 0.28, h: 0.25 } })
+    for (let i = 0; i < 6; i++) {
+      h.clk.set(h.clk.clock.now() + LOCATE_INTERVAL_MS)
+      h.state.version = i // 每次都大幅變化 → 每次都 OCR 區域
+      await h.scan.tick()
+    }
+    expect(h.state.ocrs.every(o => o.scale === 3 && o.rect.x >= Math.floor(0.19 * TOOLTIP.w) - 1)).toBe(true)
+    expect(h.events.filter(e => e.reason === 'rows')).toEqual([])
   })
 
   it('rescan():丟掉差分基準,下一個 tick 一定重新 OCR(框選確認後)', async () => {
@@ -282,38 +296,20 @@ describe('RevealScan 自動持續辨識(假時鐘 + 快照畫面)', () => {
 describe('排程(效能修正第 6 步)', () => {
   const REGION = { x: 0.8, y: 0.8, w: 0.2, h: 0.2 }
 
-  it('退回自動定位中:區域畫面只是小幅在動 → 不回區域,自動定位跑得到(原本一動就回區域、永遠輪不到定位)', async () => {
-    const h = harness(FULL02, { region: REGION })
-    await h.scan.tick()
-    await h.scan.tick()
-    expect(h.scan.fallingBack).toBe(true)
-    h.state.noise = 3
-    expect(await h.scan.tick()).toMatchObject({ kind: 'ocr', mode: 'auto', sent: 'rows' })
-    expect(h.events[h.events.length - 1].fallback).toBe(true)
-    expect(h.scan.fallingBack).toBe(true)
-    // 已找到面板:區域小幅變化仍不回(結果相同 → 不重送)
-    h.state.noise = 5
-    expect(await h.scan.tick()).toMatchObject({ kind: 'ocr', mode: 'auto', deduped: true })
-    expect(h.scan.fallingBack).toBe(true)
-    // 大幅變化 → 立刻回到區域
-    h.state.version = 3
-    expect(await h.scan.tick()).toMatchObject({ kind: 'ocr', mode: 'manual' })
-    expect(h.scan.fallingBack).toBe(false)
-  })
-
-  it(`退回中一直沒找到面板 → 距上次區域 OCR ≥ ${FALLBACK_RECHECK_MS / 1000} 秒,下一次擷取時回區域再看`, async () => {
-    const h = harness({ ...FULL02, lines: [{ text: '深 井', x: 1700, y: 1000, w: 20, h: 10 }] }, { region: REGION })
-    await h.scan.tick()
-    await h.scan.tick() // t = 0
-    expect(h.scan.fallingBack).toBe(true)
-    h.state.noise = 3
-    await h.clk.advance(1000)
-    expect(await h.scan.tick()).toMatchObject({ kind: 'locate-miss' }) // 區域小變化不回;整張定位沒找到
-    await h.clk.advance(1000)
-    expect(await h.scan.tick()).toEqual({ kind: 'locate-wait' }) // 沒快取:距上次定位 < 3 秒不擷取(與原本相同)
-    await h.clk.advance(2000)
-    expect(await h.scan.tick()).toMatchObject({ kind: 'ocr', mode: 'manual' })
-    expect(h.scan.fallingBack).toBe(false)
+  it('區域內沒有面板、畫面小幅在動:手動區域照符文的退避(× 2 遞增),從不整張定位', async () => {
+    const h = harness(FULL02, { region: REGION, intervalMs: 500 })
+    h.scan.start()
+    await h.clk.advance(0)
+    for (let i = 1; i <= 40; i++) {
+      h.state.noise = i % 2 ? 3 : 0 // 小幅變化(平均差 < 6)
+      await h.clk.advance(500)
+    }
+    h.scan.stop()
+    expect(h.state.ocrs.some(o => o.scale === 1)).toBe(false)
+    expect(h.events.map(e => e.reason)).toEqual(['empty'])
+    // 20 秒內最多每 2.5 秒一次(加前兩次),遠少於 40 次
+    expect(h.state.ocrs.length).toBeLessThanOrEqual(2 + Math.ceil(20_000 / 2500) + 1)
+    expect(h.scan.sched.idleBackoffSkips).toBeGreaterThan(0)
   })
 
   it('褻瀆與符文同時沒框區域:整個 client ×1 定位 OCR 共用一次;符文用共用結果與自己 OCR 的結果相同', async () => {
@@ -377,5 +373,60 @@ describe('排程(效能修正第 6 步)', () => {
     expect(h.state.ocrs.map(o => o.scale)).toEqual([1, 3])
     expect(h.events).toHaveLength(1)
     h.scan.stop()
+  })
+})
+
+describe('第 13 步:物品浮窗不是揭露面板(負樣本)', () => {
+  const det = createRevealDetector(async () => index)
+  /** 合成:稀有裝備 5 條詞綴、彼此有空隙(進階說明拿掉標頭後的樣子)—— 舊判定「≥ 2 行像詞綴且 ≥ 2 組」會過 */
+  const H = 20
+  const RARE5 = ['增 加 40 % 投 射 物 速 度', '攻 擊 附 加 15 至 20 物 理 傷 害', '全 部 投 射 物 技 能 等 級 + 2', '+ 38 % 火 焰 抗 性', '增 加 26 % 暴 擊 傷 害 加 成']
+    .map((text, i) => ({ text, x: 1325 - text.length * 5, y: 460 + i * 2.4 * H, w: text.length * 10, h: H }))
+  const RARE_SCREEN: Screen = { w: 1920, h: 1080, lines: RARE5 }
+
+  it('classify:真實浮窗(×3 與 ×1)與合成的 5 組稀有裝備都不是面板、不送列,並帶否決原因(log 用)', async () => {
+    await det.ready!()
+    for (const lines of [TOOLTIP.lines, TOOLTIP.lines1!, RARE5]) {
+      const c = det.classify(lines)
+      expect(c.found).toBe(false)
+      expect(c.rows).toEqual([])
+      expect(c.veto).toMatch(/^(group-too-tall|keyword-line|too-many-groups)\(/)
+    }
+    expect(modGroupCount(RARE5)).toBe(5) // 舊判定只看「≥ 2 組」會當成面板
+  })
+
+  it('locate:整張 ×1 / ×3 都不回傳浮窗的裁切框', async () => {
+    await det.ready!()
+    const bounds = { x: 0, y: 0, w: TOOLTIP.w, h: TOOLTIP.h }
+    expect(det.locate(TOOLTIP.lines1!, bounds)).toBeNull()
+    expect(det.locate(TOOLTIP.lines, bounds)).toBeNull()
+    expect(det.locate(RARE5, bounds)).toBeNull()
+  })
+
+  it('PanelScan 沒框區域(假時鐘 60 秒):整張定位一直沒找到 → 不送任何列,定位退避照常', async () => {
+    for (const screen of [TOOLTIP, RARE_SCREEN]) {
+      const h = harness(screen)
+      h.scan.start()
+      await h.clk.advance(0)
+      for (let i = 0; i < 60; i++) {
+        h.state.version = Math.floor(i / 10) // 每 10 秒畫面大幅變一次(滑鼠移過不同物品)
+        await h.clk.advance(1000)
+      }
+      h.scan.stop()
+      expect(h.events).toEqual([])
+      expect(h.state.ocrs.every(o => o.scale === 1)).toBe(true) // 只有定位,從沒找到可以 ×3 的面板區
+      expect(h.scan.snapshot()).toMatchObject({ mode: 'auto', panel: 'not-found' })
+      expect(h.scan.snapshot().locateMisses).toBeGreaterThan(0)
+    }
+  })
+
+  it('浮窗與揭露面板同框(合成:fullscreen-02 的面板 + 右側的 5 組稀有裝備浮窗)→ 面板照常找到,送出的列含面板詞綴', async () => {
+    await det.ready!()
+    const both = [...FULL02.lines, ...RARE5.map(l => ({ ...l, x: l.x + 300 }))]
+    const c = det.classify(both)
+    expect(c.found).toBe(true)
+    const loc = det.locate(both, { x: 0, y: 0, w: FULL02.w, h: FULL02.h })!
+    expect(loc).not.toBeNull()
+    expect(loc.crop.x + loc.crop.w).toBeLessThan(1300) // 只框面板,不含浮窗
   })
 })

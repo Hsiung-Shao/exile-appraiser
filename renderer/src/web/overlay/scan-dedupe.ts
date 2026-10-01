@@ -3,7 +3,7 @@
  * `renderer/test/scan-dedupe.test.ts` 測)。
  * main 已不重送相同的 `rows`(`panel-scan.ts` `rowsSignature`,10 秒內),但暫停後恢復、10 秒一次的重送仍會帶同一份列;
  * renderer 以「列文字 + 四捨五入座標 + client + 其他會影響比對的輸入」當鍵,與**目前畫著的**結果相同就不重新比對 / 排版 / 印 log。
- * 鍵必須包含所有會改變比對結果的輸入(資料集世代 `dataGeneration`、遊戲、褻瀆的 profile 提示、fallback),否則會留著舊結果。
+ * 鍵必須包含所有會改變比對結果的輸入(資料集世代 `dataGeneration`、遊戲、褻瀆的 profile 提示),否則會留著舊結果。
  */
 import { shallowRef } from 'vue'
 import type { PanelScanRow } from '@ipc/types'

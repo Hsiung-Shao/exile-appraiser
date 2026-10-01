@@ -71,6 +71,8 @@ export interface Config {
   revealAutoEnabled: boolean
   /** 2026-10-01:褻瀆自動辨識掃描間隔 ms(100–3000,預設 1000)。 */
   revealIntervalMs: number
+  /** 2026-10-01 第 13 步:褻瀆徽章一組多候選時全部列出(預設關 = 只列最可能的一個 + 「+N」;只影響 overlay 顯示,不送 main)。 */
+  revealShowAllCandidates: boolean
   /** WP-S:OCR 搜尋範圍(client 比例 0–1);null = 整個遊戲畫面自動找面板。 */
   ocrRegion: OcrRegion | null
   /** WP-S2:在遊戲畫面上框選 OCR 區域的熱鍵(預設空 = 不註冊;overlay 模式 + PoE2 才註冊)。 */
@@ -246,6 +248,7 @@ function createConfig (): Config {
     hotkeyOcrReveal: DEFAULT_HOTKEY_OCR_REVEAL,
     revealAutoEnabled: true,
     revealIntervalMs: DEFAULT_RUNESHAPE_INTERVAL_MS,
+    revealShowAllCandidates: false,
     ocrRegion: null as OcrRegion | null,
     hotkeyOcrRegion: '',
     runeshapeEnabled: false,
@@ -301,6 +304,7 @@ function serialize (): string {
     hotkeyOcrReveal: config.hotkeyOcrReveal, ocrRegion: config.ocrRegion, hotkeyOcrRegion: config.hotkeyOcrRegion,
     revealAutoEnabled: config.revealAutoEnabled,
     revealIntervalMs: config.revealIntervalMs,
+    revealShowAllCandidates: config.revealShowAllCandidates,
     runeshapeEnabled: config.runeshapeEnabled,
     runeshapeRegion: config.runeshapeRegion,
     runeshapeIntervalMs: config.runeshapeIntervalMs,
@@ -380,6 +384,8 @@ function applyLoaded (raw: string) {
   // 2026-10-01:褻瀆自動辨識(舊設定檔沒有 → 開;只有明確 false 才關)、掃描間隔同符文塑形的夾限
   config.revealAutoEnabled = loaded.revealAutoEnabled !== false
   config.revealIntervalMs = clampRuneshapeInterval(loaded.revealIntervalMs)
+  // 第 13 步:徽章全部候選(舊設定檔沒有 → 關;只有明確 true 才開)
+  config.revealShowAllCandidates = loaded.revealShowAllCandidates === true
   // WP-S2:框選熱鍵預設空字串(不註冊)
   config.hotkeyOcrRegion = typeof loaded.hotkeyOcrRegion === 'string' ? loaded.hotkeyOcrRegion : fresh.hotkeyOcrRegion
   // WP-R2:符文塑形自動查價(舊設定檔沒有 → 預設關、未框選、1000 ms)
