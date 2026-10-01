@@ -97,6 +97,8 @@ export interface Config {
   commands: ChatCommand[]
   /** 2026-10-01:倉庫搜尋一鍵輸入熱鍵(預設空)。 */
   stashSearch: StashSearchEntry[]
+  /** 2026-10-01(第 15 步,移植 APT):倉庫頁籤捲動 Ctrl + 滾輪(預設開;只在 overlay 模式、遊戲前景時有效)。 */
+  stashScroll: boolean
   // ---- 相容上游元件的推導屬性 ----
   readonly useIntlSite: boolean
   /** 上游元件讀的字級;= `fsBase`(不進檔)。 */
@@ -260,7 +262,8 @@ function createConfig (): Config {
     autoUpdate: true,
     startupToast: true,
     commands: defaultCommands(),
-    stashSearch: [] as StashSearchEntry[]
+    stashSearch: [] as StashSearchEntry[],
+    stashScroll: true
   }
   return {
     ...base,
@@ -314,7 +317,8 @@ function serialize (): string {
     autoUpdate: config.autoUpdate,
     startupToast: config.startupToast,
     commands: config.commands,
-    stashSearch: config.stashSearch
+    stashSearch: config.stashSearch,
+    stashScroll: config.stashScroll
   }, null, 2)
 }
 
@@ -403,6 +407,8 @@ function applyLoaded (raw: string) {
   // 聊天指令:舊設定檔沒有 → APT 預設六條;倉庫搜尋 → 空
   config.commands = normCommands(loaded.commands)
   config.stashSearch = normStashSearch(loaded.stashSearch)
+  // 倉庫頁籤捲動:舊設定檔沒有 → 預設開;只有明確 false 才關(同 APT 預設)
+  config.stashScroll = loaded.stashScroll !== false
 }
 
 /** 測試用:套用一份設定檔內容後回傳序列化結果(`renderer/test/runeshape-config.test.ts`) */
@@ -425,6 +431,41 @@ export type { HotkeyRegistration }
 export const hotkeyRegistration = shallowRef<HotkeyRegistration | null>(null)
 
 /** 把設定送給 main,並收下熱鍵註冊結果(純瀏覽器沒有 main → null)。 */
+/**
+ * 送給 main 的 host-config(Config.ts watch 用;每個欄位都要列在這裡,main 才收得到 —— renderer/test/stash-scroll-config.test.ts 守門)。
+ * 物件 / 陣列複製一份,watch 才會追蹤到內層欄位。
+ */
+export function hostConfigOf (c: Config): HostConfigForMain {
+  return {
+    hotkey: c.hotkey,
+    hotkeyHold: c.hotkeyHold,
+    hotkeyLocked: c.hotkeyLocked,
+    overlayKey: c.overlayKey,
+    game: c.game,
+    windowTitleBy: { ...c.windowTitleBy },
+    autoSwitchGame: c.autoSwitchGame,
+    overlayMode: c.overlayMode,
+    restoreClipboard: c.restoreClipboard,
+    language: c.language,
+    uiLanguage: c.uiLanguage,
+    hotkeyOcrReveal: c.hotkeyOcrReveal,
+    revealAutoEnabled: c.revealAutoEnabled,
+    revealIntervalMs: c.revealIntervalMs,
+    ocrRegion: c.ocrRegion ? { ...c.ocrRegion } : null,
+    hotkeyOcrRegion: c.hotkeyOcrRegion,
+    runeshapeEnabled: c.runeshapeEnabled,
+    runeshapeRegion: c.runeshapeRegion ? { ...c.runeshapeRegion } : null,
+    runeshapeIntervalMs: c.runeshapeIntervalMs,
+    hotkeyRuneshapeToggle: c.hotkeyRuneshapeToggle,
+    hotkeyRuneshapeRegion: c.hotkeyRuneshapeRegion,
+    autoUpdate: c.autoUpdate,
+    startupToast: c.startupToast,
+    commands: c.commands.map(x => ({ ...x })),
+    stashSearch: c.stashSearch.map(s => ({ ...s })),
+    stashScroll: c.stashScroll
+  }
+}
+
 async function sendHostConfig (cfg: HostConfigForMain): Promise<void> {
   try {
     hotkeyRegistration.value = await Host.updateHostConfig(cfg)
@@ -470,33 +511,7 @@ export async function initConfig (): Promise<void> {
       config.game = game
     }
   })
-  watch(() => ({
-    hotkey: config.hotkey,
-    hotkeyHold: config.hotkeyHold,
-    hotkeyLocked: config.hotkeyLocked,
-    overlayKey: config.overlayKey,
-    game: config.game,
-    windowTitleBy: { ...config.windowTitleBy },
-    autoSwitchGame: config.autoSwitchGame,
-    overlayMode: config.overlayMode,
-    restoreClipboard: config.restoreClipboard,
-    language: config.language,
-    uiLanguage: config.uiLanguage,
-    hotkeyOcrReveal: config.hotkeyOcrReveal,
-    revealAutoEnabled: config.revealAutoEnabled,
-    revealIntervalMs: config.revealIntervalMs,
-    ocrRegion: config.ocrRegion ? { ...config.ocrRegion } : null,
-    hotkeyOcrRegion: config.hotkeyOcrRegion,
-    runeshapeEnabled: config.runeshapeEnabled,
-    runeshapeRegion: config.runeshapeRegion ? { ...config.runeshapeRegion } : null,
-    runeshapeIntervalMs: config.runeshapeIntervalMs,
-    hotkeyRuneshapeToggle: config.hotkeyRuneshapeToggle,
-    hotkeyRuneshapeRegion: config.hotkeyRuneshapeRegion,
-    autoUpdate: config.autoUpdate,
-    startupToast: config.startupToast,
-    commands: config.commands.map(c => ({ ...c })),
-    stashSearch: config.stashSearch.map(s => ({ ...s }))
-  }), (cfg) => {
+  watch(() => hostConfigOf(config), (cfg) => {
     hostConfigSync.update(cfg)
   }, { immediate: true })
   // 視窗關閉 / 重新載入前,把等待中(debounce 內)的設定送出

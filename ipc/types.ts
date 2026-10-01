@@ -101,6 +101,11 @@ export interface HostConfigForMain {
   commands?: ChatCommand[]
   /** 2026-10-01:倉庫搜尋一鍵輸入熱鍵(同上)。 */
   stashSearch?: StashSearchEntry[]
+  /**
+   * 2026-10-01(第 15 步,移植 APT):倉庫頁籤捲動 —— 遊戲在前景時 Ctrl + 滾輪送 ← / →(預設開;舊設定檔 / 舊 renderer 沒有這欄 = 開)。
+   * 只在 overlay 模式生效;開著時遊戲在前景期間會持有 uiohook 掛鉤(main/src/stash-scroll.ts)。
+   */
+  stashScroll?: boolean
 }
 
 /** 面板掃描(符文塑形 / 褻瀆)的一行 OCR 文字(座標 = 遊戲 client 區實體像素)。比對在 renderer。 */

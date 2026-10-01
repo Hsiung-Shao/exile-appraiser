@@ -5,7 +5,7 @@
 
 | 元件 | 用途 | 授權 | 來源 |
 |---|---|---|---|
-| Awakened PoE Trade(SnosMe)與其繁中 fork awakened-poe-trade-zh-TW(Hsiung-Shao) | PoE1 剪貼簿 parser、篩選器、交易查詢組裝、`data/poe1/*` 資料檔、Vue 篩選器元件、聊天指令 / 倉庫搜尋熱鍵(`main/src/text-box.ts`、`renderer/src/web/settings/tabs/Chat.vue`、`ipc/reserved-hotkeys.ts`) | MIT | https://github.com/SnosMe/awakened-poe-trade 、https://github.com/Hsiung-Shao/awakened-poe-trade-zh-TW |
+| Awakened PoE Trade(SnosMe)與其繁中 fork awakened-poe-trade-zh-TW(Hsiung-Shao) | PoE1 剪貼簿 parser、篩選器、交易查詢組裝、`data/poe1/*` 資料檔、Vue 篩選器元件、聊天指令 / 倉庫搜尋熱鍵(`main/src/text-box.ts`、`renderer/src/web/settings/tabs/Chat.vue`、`ipc/reserved-hotkeys.ts`)、倉庫頁籤捲動 Ctrl + 滾輪(`main/src/stash-scroll.ts`) | MIT | https://github.com/SnosMe/awakened-poe-trade 、https://github.com/Hsiung-Shao/awakened-poe-trade-zh-TW |
 | Exiled Exchange 2(Kvan7)與其繁中 fork Exiled-Exchange-2-zh-TW(Hsiung-Shao) | PoE2 剪貼簿 parser、篩選器、交易查詢組裝、`data/poe2/*` 資料檔(`trade/` 快照除外)、Vue 查價元件與 `renderer/public/images` 的 PoE2 圖示 | MIT | https://github.com/Kvan7/Exiled-Exchange-2 、https://github.com/Hsiung-Shao/Exiled-Exchange-2-zh-TW |
 | PoENavi(Buri) | 設計參考:PoE1/PoE2 一體化查價流程、容差選單、限流與未解析詞綴呈現方式;另 `scripts/build-desecration-tiers.mjs` 逐段移植其 `scripts/build_poetore_poe2_desecration_tiers.py`(PoE2 褻瀆 Tier 資料表產生規則) | MIT | https://github.com/buri34/poenavi |
 | Path of Building Community(PoE2 版) | `data/poe2/desecration/*` 由其 `Data/{ModItem,ModJewel,ModVeiled}.lua`、`Data/Bases/*.lua` 的詞綴 / 底材資料衍生 | MIT | https://github.com/PathOfBuildingCommunity/PathOfBuilding-PoE2 |

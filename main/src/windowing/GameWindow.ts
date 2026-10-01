@@ -1,5 +1,5 @@
 // 移植自 Awakened PoE Trade `main/src/windowing/GameWindow.ts`(MIT)。
-// exile-appraiser: 去掉 screenshot(沒有 OCR);attach 事件多印 log(含 game)。
+// exile-appraiser: 去掉 screenshot(沒有 OCR);attach 事件多印 log(含 game);多 onDetach(倉庫頁籤捲動放掉掛鉤)。
 import type { BrowserWindow } from 'electron'
 import { EventEmitter } from 'events'
 import { OverlayController, type AttachEvent } from 'electron-overlay-window'
@@ -42,6 +42,11 @@ export class GameWindow extends EventEmitter {
       // 原生碼只允許 attach 一次(windows.c 以 strcmp 比對單一標題);換標題/換遊戲由 main.ts 重新啟動處理
       console.log(`[overlay] 已在追蹤視窗;"${title}" 需重新啟動才生效`)
     }
+  }
+
+  /** 遊戲視窗關閉(electron-overlay-window detach;不一定伴隨 blur)。倉庫頁籤捲動用來放掉 uiohook 掛鉤 */
+  onDetach (cb: () => void) {
+    OverlayController.events.on('detach', () => { cb() })
   }
 
   onAttach (cb: (hasAccess: boolean | undefined) => void) {

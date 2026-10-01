@@ -32,7 +32,31 @@ macOS 的 Ctrl 改 Meta(倉庫搜尋的 Ctrl+F 維持 Ctrl)。
 - `renderer/test/chat-commands.test.ts`:預設 / 往返 / 正規化、衝突表、「加到倉庫搜尋」。
 - 無頭 Chrome + 假 host:分頁內容、重複 / 保留提示、host-config 帶出 commands / stashSearch(截圖在 scratchpad `batch4\`)。
 
+## 倉庫頁籤捲動(Ctrl + 滾輪,2026-10-01 第 15 步)
+
+移植 APT `main/src/shortcuts/Shortcuts.ts` 的 `uIOhook.on('wheel', …)` + `isStashArea`(與 `GameWindow.uiSidebarWidth`);EE2 上游兩者逐字相同,PoE2 沿用同一組比例。
+
+| 項目 | 位置 | 說明 |
+|---|---|---|
+| 設定 | `renderer/src/web/Config.ts` | `stashScroll: boolean`,預設 `true`(同 APT);舊設定檔沒有這欄 / 非布林值 = 開,只有明確 `false` 才關;經 `hostConfigOf` 送進 host-config |
+| UI | `renderer/src/web/settings/tabs/Hotkeys.vue` | 熱鍵卡片「倉庫頁籤捲動」:Ctrl + 滾輪 / 停用,說明註明只在 overlay 模式、遊戲在前景時有效 |
+| 判斷 | `main/src/stash-scroll.ts` `stashScrollKey` | Ctrl 按著 + 遊戲 `isActive` + 開關開 → 游標在倉庫格子區(client 左側寬 = 高 × 370/600,且 y 在高 × 154/1600 ~ 1192/1600)不送(交給遊戲);其他位置 rotation > 0 → `ArrowRight`、< 0 → `ArrowLeft` |
+| 接線 | `main/src/main.ts` | **只在 overlay 模式**建立 `StashScroll`;`uIOhook.on('wheel')`、`keyTap`;`onHostConfig` 設 `cfg.stashScroll !== false` |
+
+**uiohook 掛鉤折衷**(`main/src/uiohook-gate.ts`):要收 wheel 事件掛鉤就得開著。功能開著時,遊戲在前景(且遊戲視窗沒 detach)期間 `acquire` 一份;
+失焦、遊戲視窗 detach(`GameWindow.onDetach`,detach 不一定有 blur)、功能關閉、結束(`dispose`)→ `release`。功能關閉時完全維持效能修正第 5 步的行為
+(只有查價面板追蹤期間才開掛鉤)。gate 歸零後延遲 5 秒才 stop,前景切換抖動不會頻繁 start / stop;重新啟動 / 結束仍由 `shutdown()` 強制停。
+開關在第一次 host-config 才設(之前不持有);啟動時遊戲已在前景 → 收到設定立刻持有。
+
+**與查價面板的互動**:overlay 取得焦點(鎖定查價、設定、點進面板)時 `GameWindow.isActive` = false → 不送鍵,面板內 Ctrl + 滾輪不受影響。
+快速查價(面板不取焦點、遊戲仍在前景)時照 APT 會送;熱鍵按住鍵是 Ctrl 時,按著 Ctrl 滾滾輪也會切頁籤(同 APT)。
+
+測試:`main/test/stash-scroll.test.ts`(比例邊界、方向、無 Ctrl / 非前景 / 關閉、PoE1/PoE2、gate 計數 × 前景抖動 × 面板交錯、啟動時已前景、detach、dispose / shutdown;假 tap)、
+`renderer/test/stash-scroll-config.test.ts`(預設 / 舊檔 / 往返、host-config 帶出與去抖比對)。
+
 ## 待使用者在遊戲裡實測
 
 真實送鍵只能在遊戲裡驗:F5 回藏身處、F9 `/exit`、`@last ty` 回覆、`/invite @last` 名字接在後面、沒勾「直接送出」時停在聊天框;
 倉庫搜尋在倉庫開著時輸入並套用;PoE2 同上;連按不觸發「Too many actions」;`restoreClipboard` 開著時剪貼簿被還原。
+倉庫頁籤捲動:倉庫開著、游標在倉庫外 Ctrl + 滾輪往下 / 往上切到下一 / 上一頁;游標在倉庫格子上不動作(交給遊戲);PoE2 倉庫版面是否同樣適用;
+鎖定查價面板開著時 Ctrl + 滾輪不切頁籤;設定改「停用」後不再切換。

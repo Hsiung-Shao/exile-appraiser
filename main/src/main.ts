@@ -1,5 +1,7 @@
 import { app, BrowserWindow, dialog, Menu, nativeImage, net, protocol, screen, shell, Tray, type BrowserWindowConstructorOptions, type WebContents } from 'electron'
 import { uiohookGate } from './uiohook-gate'
+import { uIOhook, UiohookKey } from 'uiohook-napi'
+import { StashScroll } from './stash-scroll'
 import { OVERLAY_WINDOW_OPTS } from 'electron-overlay-window'
 import fs from 'node:fs/promises'
 import fsSync from 'node:fs'
@@ -618,7 +620,20 @@ if (!skipStartup) app.whenReady().then(() => {
     // WP-R2:符文塑形自動查價暫停 / 繼續
     onRuneshapeToggle: () => { runeshapeScan.toggleUserPause() }
   })
-  // uiohook 掛鉤不在啟動時開:只在 WidgetAreaTracker 追蹤查價面板期間開(uiohook-gate.ts;送鍵不需要掛鉤)
+  // uiohook 掛鉤不在啟動時開:只在 WidgetAreaTracker 追蹤查價面板期間開(uiohook-gate.ts;送鍵不需要掛鉤)。
+  // 例外(第 15 步):倉庫頁籤捲動開著時,遊戲在前景期間也持有一份(要收 wheel 事件);關著時維持上述行為。
+  // 開關在第一次 host-config 才設(之前 enabled = false,不持有)。
+  const stashScroll = windowMode === 'overlay' && poeWindow
+    ? new StashScroll({
+      game: poeWindow,
+      gate: uiohookGate,
+      onWheel: (fn) => { uIOhook.on('wheel', fn) },
+      onAttach: (fn) => { poeWindow!.onAttach(() => { fn() }) },
+      onDetach: (fn) => { poeWindow!.onDetach(fn) },
+      tap: (key) => { uIOhook.keyTap(UiohookKey[key]) }
+    })
+    : undefined
+  app.on('will-quit', () => { stashScroll?.dispose() })
 
   const showApp = () => {
     if (overlay) {
@@ -785,6 +800,8 @@ if (!skipStartup) app.whenReady().then(() => {
   const onHostConfig = (ctx: HandlerCtx, cfg: HostConfigForMain): HotkeyRegistration => {
     const result = shortcuts.updateActions(cfg)
     hostCfg = cfg
+    // 第 15 步:倉庫頁籤捲動(舊 renderer / 缺欄位 → 開;只在 overlay 模式有物件)
+    stashScroll?.setEnabled(cfg.stashScroll !== false)
     // 開關 / 區域 / 間隔改了 → 立刻重新判斷(停用時即時清徽章;區域改了差分基準的鍵就不同,自然重看)
     // 只在影響掃描的欄位(開關 / 遊戲 / 區域 / 間隔)變了或第一次才 poke;設定頁每打一個字都會來,poke 會清計時器立刻 tick
     const scanKey = scanConfigKey(cfg)

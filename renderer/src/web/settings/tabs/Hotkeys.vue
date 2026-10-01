@@ -4,6 +4,7 @@
   error 形如 `hotkey "Ctrl + D", "Shift + Space" is already registered by another application`,
   依引號裡的熱鍵對回欄位,在該欄位下方以 --bad 顯示;對不回任何欄位的錯誤顯示在熱鍵卡片底部。
   遊戲保留鍵 / 與其他熱鍵重複也顯示在欄位下方(useHotkeyIssues,涵蓋全部熱鍵,含 PoE2 兩個區塊與聊天指令)。
+  倉庫頁籤捲動(第 15 步,移植 APT hotkeys.vue 的 stashScroll):Ctrl + 滾輪 / 停用;只在 overlay 模式、遊戲在前景時有效(main/src/stash-scroll.ts)。
   PoE2 的兩張辨識卡片(褻瀆自動辨識、符文塑形自動查價)共用 OcrScanSection.vue(2026-10-01 使用者要求設定對等):
   啟用、狀態、掃描間隔(100–3000 ms)、區域 + 在遊戲上框選 / 清除、暫停 / 繼續熱鍵、框選區域熱鍵、最近耗時;
   各自保留專屬設定(褻瀆:OCR 語言包狀態;符文:台服提示、顏色門檻)。兩者的熱鍵已從上方通用熱鍵卡片移入各自區塊;
@@ -38,6 +39,16 @@
       </div>
       <span v-if="issueText('overlay', config.overlayKey)" class="err" data-issue="overlay">{{ issueText('overlay', config.overlayKey) }}</span>
     </div>
+    <div class="srow">
+      <span class="k">{{ t('ppz.stash_scroll') }}</span>
+      <div class="ctl">
+        <select v-model="config.stashScroll" class="select sm" data-setting="stash-scroll">
+          <option :value="true">{{ t('ppz.stash_scroll_ctrl_wheel') }}</option>
+          <option :value="false">{{ t('ppz.stash_scroll_off') }}</option>
+        </select>
+      </div>
+    </div>
+    <p class="foot" data-setting="stash-scroll-hint">{{ t('ppz.stash_scroll_hint') }}</p>
     <p v-if="config.game === 'poe2'" class="foot" data-setting="scan-hotkeys-moved">{{ t('ppz.scan.hotkeys_moved') }}</p>
     <p v-if="otherError" class="err-line">{{ t('ppz.hotkey_error', { error: otherError }) }}</p>
     <p class="foot">{{ t('ppz.hotkey_capture_hint') }}</p>
