@@ -30,6 +30,7 @@
 | 11 | `trade/RateLimiter.ts` / `Cache.ts` | Vue 版 | 轉接 core(core `Cache` 併入 E 的 `purgeIfDifferentCurrency`)|
 | 12 | `web/background/Prices.ts`(整檔取代) | poe.ninja | 「沒有價格」同介面實作(型別、`DivCurrency`、`displayRounding` 照抄;換算價不顯示)|
 | 13 | `.vue` | 見各檔頭 | `CheckedItem.vue`:移除 PriceTrend / PricePrediction / StackValue / Tip / 贊助區塊,`useEn` 改 `AppConfig().useIntlSite`,網址 encode;`TradeListing/TradeBulk.vue`:網址 encode、外開走 `Host.openExternal`;`TradeLinks.vue`:`Host.openExternal`;`UnknownModifier.vue`:移除「重載交易站資料」鈕(離線快照重載無意義、`Host.selfDispatch` 不存在);`RateLimiterState.vue` 沿用 poe1 的改寫版 |
+| 14 | `trade/TradeItem.vue`(2026-10-01,檔案是 CRLF,保持) | 結果列物品浮窗:`tippy(row, { interactive: true, placement: "left", … })` 沒設 `appendTo`,interactive 預設掛在 reference 的 parentNode(結果表格內);祖先 `.price-main` `overflow-y:auto`、`.price-panel.is-overlay` / `.bg-host` `overflow:hidden` 把面板左側的 popup 裁掉 | 加 `appendTo: () => document.body`(脫離所有 overflow 祖先);`.pob-dark`(Popover.vue `setDefaultProps`)與 `item-tooltip` 樣式是全域規則、色票在 `:root`,掛點改變不影響。另加 `popperOptions` flip 後備 `right → bottom → top`:window 模式面板佔滿視窗寬、左右都放不下時預設 flip 失敗(實測 popup left = -445px),後備讓它落在列的上下並由 preventOverflow 夾回視窗內。overlay 模式照 EE2 放面板左側 |
 
 ## 行為修正(非耦合點,ee2-patched 同樣有這些問題、尚未回補)
 | 檔案 | 問題 | 修正 | 回歸 |
@@ -79,6 +80,12 @@
 - `stats.ndjson`(2,524 筆,無群組列):多 `id`(GGPK stat id)、`trade.count`。
 - 索引演算法與 poe1 不同(stats 的 `string` 與 `advanced` 都進索引;items 名稱索引沿用上游 `namespace::refName` 去重),見 `scripts/make-index-files.mjs`。
 - 上游缺交易 id 還缺 42 條,清單在 `ee2-patched/ee2-交易id缺口清單.md` 與 `poe2/test/zhTW/dataset-invariants.test.ts` 的 `KNOWN_STAT_GAPS`。
+
+## 物品浮窗(結果列滑鼠懸停,2026-10-01 第 14 步)
+- 元件(`TradeItem.vue` / `TooltipItem.vue` / `UiDetailedItemImg.vue`、`pathofexile-trade.ts` `parseFetchResult` / `getTier`)原本就已移植;補的是設定頁選項(設定 › 查價,**只在 PoE2 顯示**,`renderer/src/web/settings/tabs/PriceCheck.vue` + `price-check-options.ts`;三選一 關閉 / SHIFT + 懸停 / 始終懸停顯示,預設 keybind,綁 `priceCheck.itemHoverTooltip`,字串 `ppz.item_hover*`)與上表第 14 項的掛點修正。
+- 切換選項要重新查價(新結果列)才生效:tippy 在列 mounted 時依當時設定建立(與 EE2 相同)。
+- 資源:`/images/item-display/*.png` 24 張、`/images/augments/*` 皆在 `renderer/public/images/`;`item.*` 字串在 `data/poe2/<lang>/app_i18n.json`。上游缺 `item.duplicates`(繁中,會退回英文)與 `item.map_item_quantity`(程式裡已註解掉),資料單向同步不手補。物品圖示是 `web.poecdn.com` 外部圖。
+- 驗證:node 單元測試 `renderer/test/price-check-options.test.ts`;畫面以無頭 Chrome + 假 `window.host`(錄製的 `poe2/test/docs/fetchResponses*.json` 當 search / fetch 回應)驗過 overlay / window 模式、背景開關、淺色主題、三種選項。
 
 ## 未做 / 待辦
 - poe.ninja 參考價(兩個遊戲都還是「沒有價格」實作)、預測價、PriceTrend、StackValue、ExtractionValue 的換算。

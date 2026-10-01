@@ -203,6 +203,16 @@ export default defineComponent({
         delay: [0, 0],
         animation: false,
         maxWidth: "none",
+        // exile-appraiser: interactive 的 tippy 沒設 appendTo 會掛在 reference 的 parentNode(結果表格裡),
+        // 祖先有 .price-main overflow-y:auto、.price-panel.is-overlay / .bg-host overflow:hidden,
+        // placement:"left" 的提示框會被面板邊界裁掉、畫不到面板左側。改掛 document.body 脫離所有 overflow 祖先;
+        // .pob-dark(Popover.vue setDefaultProps)與 item-tooltip 樣式都是全域規則、色票在 :root,掛點改變不影響。
+        appendTo: () => document.body,
+        // exile-appraiser: window 模式(視窗只有面板寬)左右都沒有空間 → 預設 flip 找不到位置、popup 掉到視窗外(實測 left=-445px)。
+        // 左邊放不下依序改右、下、上;上下放置時 preventOverflow 會把 popup 水平限制在視窗內。overlay 模式(面板左側有遊戲畫面)照常放左邊。
+        popperOptions: {
+          modifiers: [{ name: "flip", options: { fallbackPlacements: ["right", "bottom", "top"] } }],
+        },
       });
       if (tooltipOption.value === "keybind") {
         instance.disable();

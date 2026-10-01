@@ -64,6 +64,7 @@ Path of Exile 查價工具(Electron + TypeScript)。把 `apt-patched`(Awakened P
    - `core/src/http/RateLimiter.ts`:去 Vue,`queue = { value }`,`subscribe()`
    - `poe1/src/web/background/Leagues.ts`、`trade/{RateLimiter,Cache}.ts`:轉接殼
    - `.vue` 元件的改動見各檔頭 `exile-appraiser:` 註解
+   - `poe2/…/trade/TradeItem.vue`(物品浮窗):tippy `appendTo: () => document.body` + flip 後備(第 14 項耦合點,原因見 `docs/poe2-port-notes.md`);設定 › 查價「滑鼠懸停顯示物品」只在 PoE2 顯示
    - PoE2(`poe2/`)的完整清單見 `docs/poe2-port-notes.md`;`poe2/test/src-coupling.test.ts` 擋 src 再 import `@/web/Config` / IPC / `import.meta.env`
 7. **未解析詞綴不丟棄**:`unknownModifiers` 一律顯示(UI 的 UnknownModifier、CLI 的 ⚠ 清單)。
 8. Windows 環境:寫含中文的檔案用 Write/Edit,不用 PowerShell 讀改寫;spawn Electron 前移除 `ELECTRON_RUN_AS_NODE`(build/script.mjs 已做)。
@@ -141,6 +142,7 @@ UPDATE_FIXTURES=1 npm test       # 改寫 parser / golden-query 快照;產出必
 - `regex/test/`:合成 T1–T16 + 資料性質測試(兩遊戲 × 兩語言 × 各頁),基準抽自 PobTools `dist/regex_selftest.txt`(`test/golden/selftest-report.json`)。
 - `core/test/`:`ninja.test.ts`(錄製的 poe.ninja 回應 `recordings/ninja/`;PoE2 exchange 在 `recordings/ninja/poe2/`)、`dust.test.ts`(公式金標、交叉比對統計、排行含固有勢力)。
 - `regex/test/` 另有 `numeric`(0–999 逐值)、`pages`、`combine`、`share`(含範本鍵可還原)、`state` 測試。
+- `renderer/test/price-check-options.test.ts`:物品浮窗設定選項(三選一、僅 PoE2、字串兩語、TradeItem `appendTo` 掛點守門)。
 - `renderer/test/`:`feedback.test.ts`(回報網址/剪貼簿路徑/剝帳號鍵)、`trade-site.test.ts`(交易站開啟方式、舊 `dustDockRatio` 相容)等純函式測試。
 - `main/test/external-links.test.ts`:`open-external` 只收 http(s)、主視窗導覽放行 / 攔截規則。
 - `main/test/preview-server.test.ts`:預覽伺服器(token 404 / Host 421 / Origin 403、防穿越、boot script、RPC 往返、SSE 續傳、自動關閉),純 Node。

@@ -46,6 +46,17 @@
         <input v-model.lazy.trim="config.accountName" class="input sm" data-setting="account-name">
       </div>
     </div>
+    <!-- PoE2 才有(poe1 沒有物品浮窗元件);照 Exiled Exchange 2 settings-price-check.vue 的三選一 -->
+    <div v-if="showItemHover" class="srow">
+      <span class="k">{{ t('ppz.item_hover') }}</span>
+      <div class="ctl">
+        <div class="seg" data-setting="item-hover-tooltip">
+          <button v-for="o in hoverOptions" :key="o.value" :class="{ on: pc.itemHoverTooltip === o.value }"
+            :data-value="o.value" @click="pc.itemHoverTooltip = o.value">{{ t(o.key) }}</button>
+        </div>
+      </div>
+      <span class="note">{{ t('ppz.item_hover_hint') }}</span>
+    </div>
     <div class="chk-row">
       <label class="chk">
         <input v-model="config.restoreClipboard" type="checkbox" data-setting="restore-clipboard">
@@ -56,9 +67,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { computed, defineComponent } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { AppConfig } from '@/web/Config'
+import { HOVER_OPTIONS, hasItemHover } from './price-check-options'
 
 export default defineComponent({
   setup () {
@@ -78,7 +90,9 @@ export default defineComponent({
         { value: false, key: 'ppz.show_seller_no' },
         { value: 'account', key: 'ppz.show_seller_account' },
         { value: 'ign', key: 'ppz.show_seller_ign' }
-      ] as Array<{ value: false | 'account' | 'ign', key: string }>
+      ] as Array<{ value: false | 'account' | 'ign', key: string }>,
+      hoverOptions: HOVER_OPTIONS,
+      showItemHover: computed(() => hasItemHover(config.game))
     }
   }
 })
