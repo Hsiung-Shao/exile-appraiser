@@ -1,16 +1,21 @@
 /**
  * exile-appraiser(WP-S):擷取遊戲 client 區 + OCR 前處理(裁切 / 放大)。
  *
- * - 擷取用 `desktopCapturer` 的**整個螢幕**縮圖(`types: ['screen']`,thumbnailSize = 該螢幕實體像素),
+ * - 擷取(第 17 步起)先用 electron-overlay-window 的 `OverlayController.screenshot()`(原生 BitBlt 遊戲 client 區,同步、2560×1369 約 17–49 ms),
+ *   不行(throw / 尺寸不符 / 全黑 / 視窗模式)才退回 `desktopCapturer` 的**整個螢幕**縮圖(`captureGameClientViaSources`,
+ *   每次卡 main 300–600 ms)。兩條路裁切規則相同(`clientCropOnDisplay`),送進 OCR 的像素逐位元相同(docs/reveal-ocr.md「擷取與 OCR 傳輸」)。
+ * - getSources 路徑:`types: ['screen']`,thumbnailSize = 該螢幕實體像素,
  *   再用 `GameWindow.bounds`(electron-overlay-window 的 targetBounds = client 區的螢幕實體像素)減掉螢幕原點裁出 client 區。
  *   不用 window 縮圖:含邊框、位移不定。全螢幕獨占模式可能拿到黑畫面(docs/reveal-ocr.md,建議無邊框視窗)。
  * - 影像處理只用 Electron `nativeImage`(runtime 沒有 sharp)。
  */
-import { desktopCapturer, screen, type Display, type NativeImage } from 'electron'
+import { desktopCapturer, nativeImage, screen, type Display, type NativeImage } from 'electron'
 import type { OcrRegion } from '@ipc/types'
 // 兩段式:幾何 / 倍率的純函式搬到 strategy.ts(不 import electron,main vitest 可測)
 import { ocrScale, regionRect, type PhysRect, type RecognizeRect } from './strategy'
 import type { WinOcr } from './WinOcr'
+// 第 17 步:overlay 原生擷取(決策是純函式,main vitest 可測)
+import { clientCropOnDisplay, createGameClientCapture, type ClientCapture, type GameClientCapture } from './overlay-shot'
 // WP-R2:面板掃描(符文塑形 / 褻瀆)的縮圖差分
 import { FINGERPRINT_WIDTH, bgraToGray, type Fingerprint, type ScanCapture } from './panel-scan'
 
@@ -29,7 +34,7 @@ export function displayPhysRect (d: Display): PhysRect {
 }
 
 /** 含 client 中心點的螢幕;都不含時取重疊面積最大的 */
-function pickDisplay (bounds: PhysRect): { display: Display, rect: PhysRect } | null {
+export function pickDisplay (bounds: PhysRect): { display: Display, rect: PhysRect } | null {
   const cx = bounds.x + bounds.width / 2
   const cy = bounds.y + bounds.height / 2
   let best: { display: Display, rect: PhysRect, area: number } | null = null
@@ -43,8 +48,11 @@ function pickDisplay (bounds: PhysRect): { display: Display, rect: PhysRect } | 
   return best && best.area > 0 ? { display: best.display, rect: best.rect } : null
 }
 
-/** 擷取遊戲 client 區(回傳 client 實體像素大小的影像;跨出螢幕的部分裁掉,`offset` = 影像左上在 client 內的位置) */
-export async function captureGameClient (bounds: PhysRect): Promise<{ image: NativeImage, offset: { x: number, y: number }, client: { w: number, h: number } }> {
+/**
+ * 擷取遊戲 client 區(desktopCapturer 整個螢幕縮圖;回傳 client 實體像素大小的影像;跨出螢幕的部分裁掉,`offset` = 影像左上在 client 內的位置)。
+ * 第 17 步起是 overlay `screenshot()` 的後援(`createGameClientCapture`)。
+ */
+export async function captureGameClientViaSources (bounds: PhysRect): Promise<ClientCapture<NativeImage>> {
   if (!(bounds.width > 0 && bounds.height > 0)) throw new Error('no-game-window')
   const picked = pickDisplay(bounds)
   if (!picked) throw new Error('no-game-window')
@@ -61,10 +69,9 @@ export async function captureGameClient (bounds: PhysRect): Promise<{ image: Nat
   // 縮圖應等於實體大小;不等時(驅動 / 縮放怪況)按比例換算
   const sx = size.width / rect.width
   const sy = size.height / rect.height
-  const x0 = Math.max(bounds.x, rect.x)
-  const y0 = Math.max(bounds.y, rect.y)
-  const x1 = Math.min(bounds.x + bounds.width, rect.x + rect.width)
-  const y1 = Math.min(bounds.y + bounds.height, rect.y + rect.height)
+  const c = clientCropOnDisplay(bounds, rect)
+  if (!c) throw new Error('capture-failed')
+  const { x0, y0, x1, y1 } = c
   const crop = {
     x: Math.round((x0 - rect.x) * sx),
     y: Math.round((y0 - rect.y) * sy),
@@ -75,6 +82,26 @@ export async function captureGameClient (bounds: PhysRect): Promise<{ image: Nat
   let image = thumb.crop(crop)
   if (sx !== 1 || sy !== 1) image = image.resize({ width: x1 - x0, height: y1 - y0, quality: 'best' })
   return { image, offset: { x: x0 - bounds.x, y: y0 - bounds.y }, client: { w: bounds.width, h: bounds.height } }
+}
+
+/**
+ * 第 17 步:OCR 掃描用的擷取(main 建一個給 `SharedCapture`)。`screenshot` = `OverlayController.screenshot()`
+ * (overlay 模式才有;視窗模式不傳 → 一律 getSources,反正掃描在視窗模式不跑),`shotBounds` = `OverlayController.targetBounds`。
+ * 原生 BGRA 直接 `nativeImage.createFromBitmap`(實測 BitBlt 的 alpha 全是 255;fixture 比對送進 OCR 的 JPEG 與 getSources 路徑逐位元組相同,docs/reveal-ocr.md「擷取與 OCR 傳輸」)。
+ */
+export function createOverlayClientCapture (opts: {
+  screenshot?: () => Buffer
+  shotBounds: () => PhysRect
+  log?: (msg: string) => void
+}): GameClientCapture<NativeImage> {
+  return createGameClientCapture<NativeImage>({
+    screenshot: opts.screenshot,
+    shotBounds: opts.shotBounds,
+    display: b => pickDisplay(b)?.rect ?? null,
+    fromBitmap: (buf, width, height) => nativeImage.createFromBitmap(buf, { width, height }),
+    fallback: captureGameClientViaSources,
+    log: opts.log
+  })
 }
 
 /**

@@ -26,7 +26,8 @@
  *     上次定位時幾乎一樣(`isChanged` 為否)也跳過;距上次定位 ≥ `LOCATE_BACKOFF_MAX_MS`(15 秒)必跑;大幅變化立刻定位並重置。
  *   - **共用定位 OCR**(`SharedLocateOcr`,main 建一個給兩個掃描):同一 client 大小 / 擷取偏移 1 秒內的整個 client ×1 只跑一次。
  *   - 第 7 步:**共用擷取**(`SharedCapture`,main 建一個給兩個掃描):同一 client bounds 進行中的擷取一起等、完成後 100 ms 內直接用同一張
- *     (`desktopCapturer.getSources` 每次在 main 執行緒卡 300–480 ms,與縮圖大小無關,見 docs/reveal-ocr.md「擷取與 OCR 傳輸」)。
+ *     (`desktopCapturer.getSources` 每次在 main 執行緒卡 300–480 ms,與縮圖大小無關,見 docs/reveal-ocr.md「擷取與 OCR 傳輸」;
+ *     第 17 步起擷取先用 overlay 原生 `screenshot()`(約 20 ms),共用仍保留)。
  *   - tick 一進來就設旗標(`ticking`):讀 tiers.json 的 await 期間 `poke()` 不會再開第二個 tick。
  *   - 與上次送出內容相同的 `rows`(列文字 + 四捨五入座標 + client)`REPEAT_ROWS_MS`(10 秒)內不重送;狀態轉換一律照送。
  *

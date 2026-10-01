@@ -26,7 +26,8 @@ import { WIN_OCR_SCRIPT } from './ocr/script'
 import { RevealScan } from './ocr/reveal-scan'
 import { runOcrSelftest, runRuneshapeSelftest } from './ocr/selftest'
 import { loadLocateIndex } from './ocr/locate-data'
-import { captureGameClient, toScanCapture } from './ocr/capture'
+import { createOverlayClientCapture, toScanCapture } from './ocr/capture'
+import { runCaptureBench } from './ocr/capture-bench'
 import { DEFAULT_SCAN_INTERVAL_MS, RuneshapeScan } from './ocr/runeshape-scan'
 import { SharedCapture, SharedLocateOcr } from './ocr/panel-scan'
 import { isAppNavigation, isExternalWebUrl } from './external-links'
@@ -49,6 +50,9 @@ const OCR_SELFTEST = RUNESHAPE_SELFTEST ?? argAfter('--ocr-selftest')
 // (`--toast-scan` = 第 16 步的辨識開關通知)、
 // `capturePage()` 存 PNG 後結束(不送任何輸入、不拿單一實例鎖、不建主視窗/托盤/熱鍵)。
 const TOAST_SELFTEST = argAfter('--toast-selftest')
+// 效能修正第 17 步:`--capture-bench [--bench-*]`:量 overlay screenshot() 與 desktopCapturer 的耗時、像素 / OCR 一致性(ocr/capture-bench.ts);
+// 不拿單一實例鎖、不送輸入、不搶焦點、不寫影格檔。
+const CAPTURE_BENCH = process.argv.includes('--capture-bench')
 
 // `--ppz-log-file=<path>`:main 的 console 另外附加寫到檔案(驗證自我重新啟動用;relaunch 會沿用同一組參數,
 // 新行程的 stdout 不一定接得回原終端機)。不用 `--log-file`,那是 Chromium 自己的開關。
@@ -70,12 +74,16 @@ if (LOG_FILE) {
  * 無輸入的控制方式(自動驗證 / 腳本用),見 docs/release-flow.md「本機實測」。
  */
 const CONTROL_REQUEST = ['--quit', '--install-update'].find(f => process.argv.includes(f))
-let skipStartup = OCR_SELFTEST != null || TOAST_SELFTEST != null
+let skipStartup = OCR_SELFTEST != null || TOAST_SELFTEST != null || CAPTURE_BENCH
 
 if (OCR_SELFTEST != null) {
   (RUNESHAPE_SELFTEST != null ? runRuneshapeSelftest(RUNESHAPE_SELFTEST, process.argv) : runOcrSelftest(OCR_SELFTEST, process.argv))
     .then((code) => { app.exit(code) })
     .catch((e) => { console.error('[ocr-selftest]', e); app.exit(1) })
+} else if (CAPTURE_BENCH) {
+  runCaptureBench(process.argv)
+    .then((code) => { app.exit(code) })
+    .catch((e) => { console.error('[capture-bench]', e); app.exit(1) })
 } else if (TOAST_SELFTEST != null) {
   app.whenReady()
     .then(() => runToastSelftest(TOAST_SELFTEST))
@@ -598,8 +606,15 @@ if (!skipStartup) app.whenReady().then(() => {
     return b && b.width > 0 && b.height > 0 ? { x: b.x, y: b.y, width: b.width, height: b.height } : null
   }
   const scanEnv = () => ({ overlay: windowMode === 'overlay', gameActive: Boolean(poeWindow?.isActive), bounds: gameBounds() })
+  // 效能修正第 17 步:擷取先用 overlay 原生 screenshot()(只抓 attach 的遊戲 client、同步數十 ms),throw / 尺寸不符 / 全黑才退回 desktopCapturer;
+  // 視窗模式沒有 attach 的遊戲視窗(掃描本來就不跑,scanBlock = not-overlay),不傳 screenshot = 一律 desktopCapturer
+  const clientCapture = createOverlayClientCapture({
+    screenshot: poeWindow ? () => poeWindow!.screenshot() : undefined,
+    shotBounds: () => poeWindow?.bounds ?? { x: 0, y: 0, width: 0, height: 0 },
+    log: (msg) => { console.log(msg) }
+  })
   // 效能修正第 7 步:兩個掃描同一 client bounds 的擷取共用(進行中一起等、完成後 100 ms 內用同一張)
-  const sharedCapture = new SharedCapture(async (b) => toScanCapture(await captureGameClient(b), () => winOcr))
+  const sharedCapture = new SharedCapture(async (b) => toScanCapture(await clientCapture.capture(b), () => winOcr))
   const scanCapture = sharedCapture.capture
   // 效能修正第 6 步:兩個掃描的自動定位(整個 client ×1、同一個 WinOcr / 語言)1 秒內共用同一次 OCR
   const sharedLocateOcr = new SharedLocateOcr()

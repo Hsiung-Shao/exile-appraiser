@@ -137,7 +137,7 @@ renderer `ocr-match.ts` `selectPanel` 對**每一段候選面板**套用(全被�
 5. **評估後不做**(實測會改結果,或量到沒有效益):
    - **差分 tick 用小縮圖、要 OCR 才抓全解析度**:本機(2560×1440 + 1440×2560 兩個螢幕)量 `desktopCapturer.getSources`,每次在 main 執行緒卡 **300–480 ms**,
      縮圖 2560×1440 / 1280×720 / 1024×576 / 512×288 都一樣(時間花在擷取本身,不在縮圖大小);兩階段反而讓要 OCR 的 tick 多一次 `getSources`。
-     真正的解法是常駐的擷取串流(例如隱藏 renderer 的 `getDisplayMedia`),屬架構變更,未做。
+     真正的解法是常駐的擷取串流(例如隱藏 renderer 的 `getDisplayMedia`),屬架構變更,未做(第 12 步原型因 I420 幀改變 OCR 結果放棄;**第 17 步改用 overlay 原生 `screenshot()`,見下**)。
    - **放大 / JPEG 移出 main 執行緒**:(a) 送 ×1 給 PowerShell 用 `BitmapTransform` 放大 —— Cubic / Fant / Linear / NearestNeighbor 對 5 張樣本(整張 + 面板區)
      都有文字改變(例:`1 × 崇 敬 狩 獵 符 文` → `lx 崇 敬 狩 獵 符 文`、整張 ×3 行數 15 → 7~13);連「同一張 'best' 放大圖改送無損 BMP」都會改文字。
      (b) `utilityProcess` / worker 沒有 `nativeImage`,換別的縮放 / 編碼器位元組必不同。→ 維持原做法(本機 1440p 以下:面板區 ×3 約 11 ms、整張 ×1 約 15 ms、整張 ×3 約 165 ms)。
@@ -154,6 +154,54 @@ renderer `ocr-match.ts` `selectPanel` 對**每一段候選面板**套用(全被�
 | `--runeshape-selftest` 整張 ×1 定位(skills-01 / rewards-02) | 400–416 / 250–271 ms | 265–296 / 199–212 ms |
 
 「行程內」耗時也下降(不再對大字串跑 regex / base64 解碼、少組 words 字串)。main 執行緒上原本的 base64 + JSON 只有 1.4 ms(595 KB)~ 3.3 ms(3 MB),省下的主要是 PowerShell 端。
+
+#### 擷取改用 overlay 原生 `screenshot()`(效能修正第 17 步,2026-10-02)
+
+第 7、12 步量到 `desktopCapturer.getSources` 每次卡 main 300–600 ms;第 12 步的常駐串流原型(分支 `proto/capture-stream`)因幀是 I420(YUV 轉換)改變 OCR 結果而放棄。
+改用 APT / EE2 同款的 `OverlayController.screenshot()`(electron-overlay-window 4.1.0,根 `node_modules` 那份;原生 `windows.c` `ow_screenshot`):
+`GetDC(GetDesktopWindow())` → 32 bpp top-down `CreateDIBSection` → `BitBlt SRCCOPY`,同步、在呼叫執行緒、只擷取**目前 attach 的視窗的 client 區**
+(位置 = `ClientToScreen(hwnd)`、寬高 = 原生最後收到的 attach / moveresize bounds),回傳 BGRA Buffer;非 win32 throw。
+
+| 檔案 | 做什麼 |
+|---|---|
+| `main/src/ocr/overlay-shot.ts` | 純函式(不 import electron):`clientCropOnDisplay`(兩條路共用的裁切)、`planOverlayShot`(尺寸 / bounds / 螢幕檢查 → 裁切框與 `offset`)、`looksBlack`(32×18 點抽樣,B/G/R 全 0 = 黑)、`createGameClientCapture`(先 overlay、不行退回 getSources,每種原因只記一次 log) |
+| `main/src/ocr/capture.ts` | `captureGameClientViaSources`(原 `captureGameClient`,改用 `clientCropOnDisplay`,行為不變)、`createOverlayClientCapture`(接 `pickDisplay` / `nativeImage.createFromBitmap` / getSources 後援) |
+| `main/src/windowing/GameWindow.ts` | 加回 `screenshot()`(APT 原本就有,移植時因沒有 OCR 拿掉) |
+| `main/src/main.ts` | `SharedCapture` 改用 `createOverlayClientCapture`;overlay 模式才傳 `screenshot`(視窗模式 `scanBlock` = `not-overlay`,掃描本來就不跑,傳了也用不到) |
+
+- **擷取對象**:掃描用的 `bounds` = `GameWindow.bounds` = `OverlayController.targetBounds`,就是 overlay attach 的遊戲 client(與原生 `last_reported_bounds` 由同一個事件更新);
+  仍逐次比對,不同就退回。
+- **裁切與 `offset`**:與 getSources 路徑共用 `clientCropOnDisplay` —— 只留含 client 中心點的那個螢幕內的部分(跨螢幕 / 部分在螢幕外時兩條路裁出同一塊、同一個 `offset`;BitBlt 對螢幕外的部分是 0,一併裁掉)。
+  DPI:Electron 是 per-monitor DPI aware,原生 `GetClientRect` / `ClientToScreen` / BitBlt 都是實體像素,與 getSources 縮圖(= 實體大小)同座標系。
+- **後援(退回 `captureGameClientViaSources`)**:`screenshot()` throw(非 win32 等)、Buffer 長度 ≠ 寬 × 高 × 4、遊戲 bounds 與原生記得的不同、
+  裁切後的區域全黑(全螢幕獨占 / 硬體 overlay 時 BitBlt 可能拿到黑畫面;抽 576 點全 0 才算,很暗的畫面不會誤判,真的全黑的讀取畫面退回也只是多一次擷取)、
+  client 不在任何螢幕上(交給 getSources,它照舊 throw `no-game-window`)。每種原因第一次記 `[capture] overlay screenshot 不可用(原因)` log。
+- **alpha**:BitBlt 回來的 alpha 實測全是 255(抽樣 36,131 / 38,005 點),`createFromBitmap` 直接用。
+
+量測(`npx electron main/dist/main.js --capture-bench --bench-title=<前景視窗標題> --bench-blt=scripts/capture-bench-bitblt.ps1 --bench-fixture=<6 張>`,
+不拿單一實例鎖、不送輸入、不搶焦點、不存影格;本機 2560×1440 主螢幕 + 1440×2560 直立副螢幕,Electron 40.10.6):
+
+| 項目 | getSources(現行) | overlay `screenshot()` |
+|---|---|---|
+| main 執行緒最長卡頓(事件迴圈探針,每次;7 輪 × 10 次) | 253–497 ms(各輪中位數 298–354) | 13–48 ms(各輪中位數 20–34) |
+| 單次耗時 | wall 311–629 ms(各輪中位數 362–501) | 同步呼叫 16.5–49 ms(各輪中位數 21.5–22.4);含 `createFromBitmap` 的整條路徑 17–29 ms(中位數 21–24) |
+| 擷取範圍 | 整個螢幕 2560×1440 再裁 | 只有 attach 的 client(實測 2560×1369) |
+
+GDI 序列在另一個行程(`scripts/capture-bench-bitblt.ps1`,與 `ow_screenshot` 相同呼叫;檔案帶 UTF-8 BOM,PowerShell 5.1 才不會把中文註解讀壞)擷取 2560×1440:19–29 ms,與原生同量級。
+
+一致性(門檻:三條 OCR 路徑的輸出全部與 getSources 相同):
+
+| 比對 | 結果 |
+|---|---|
+| 副螢幕(使用者要求量測視窗只開在副螢幕;GDI 序列像素 → 同一條 `createGameClientCapture` 路徑),6 張 fixture 1:1 顯示 | overlay vs getSources **逐像素相同(差異 0 個像素)**、`toJPEG(95)` **逐位元組相同**;getSources 自身前後兩次差 0 |
+| 同上,OCR(`smartRecognize` / 整張 ×3 / 整張 ×1 定位)× 6 張 | **18 / 18 相同**(行文字、座標、走哪條路都一樣) |
+| 主螢幕(原生 `screenshot()`,attach 當時的前景視窗,fixture 放在它的 client 左上;使用者要求改副螢幕之前量的)× 6 張 | OCR **18 / 18 相同**;像素差 3–477 個(兩種擷取各自與原圖不同的像素數相同,例 6317 / 6317;這一輪沒有逐像素歸因) |
+| 主螢幕(GDI 序列)× 6 張 | OCR 18 / 18 相同;像素差 64–1030 個,**全部**落在「兩種擷取都與原圖不同」的像素上(只有一邊錯 = 0):那幾個像素在主螢幕上前後幀不穩定,不是擷取方法造成(副螢幕上同樣的比對差 0) |
+| 透明、不可點擊的置頂 Electron 視窗(模擬 overlay 徽章)蓋在 fixture 上 | 兩種擷取**都**包含它(紅塊 100% / 100%)—— 與現行行為相同 |
+| 寬 2000 的 fixture 在 1440 寬的副螢幕上(client 跨出螢幕) | 兩條路都裁成 1440 寬、`offset` 相同 |
+
+與原圖(同頁 canvas 解碼)比,兩種擷取都有約 0.3–0.5% 的像素不同(瀏覽器顯示與 canvas 解碼的差異,兩邊完全一樣),所以部分 fixture 的 OCR「擷取 vs 原圖」不同,但「overlay vs getSources」全部相同。
+**未實測**:遊戲全螢幕獨占模式(預期 BitBlt 全黑 → 退回 getSources;getSources 在該模式本來也可能黑,建議無邊框視窗)、Wine(win32 API 由 Wine 實作,throw / 全黑都會退回)、遊戲 client 在副螢幕時的原生路徑(原生只能 attach 前景視窗,量測時副螢幕上沒有前景視窗;副螢幕改用相同 GDI 序列驗證)。
 
 ### 模糊比對(效能修正第 8 步,2026-10-01;定位 / 揭露比對 / 符文名稱共用 `ocr-text.ts`)
 
@@ -217,7 +265,7 @@ renderer `ocr-match.ts` `selectPanel` 對**每一段候選面板**套用(全被�
 | 段 | 檔案 | 做什麼 |
 |---|---|---|
 | 熱鍵 | `main/src/Shortcuts.ts` | 動作 `ocr-reveal`(`hotkeyOcrReveal`);`trigger` 最前面分支,只呼叫 `onOcrReveal` |
-| 擷取 | `main/src/ocr/capture.ts` | `desktopCapturer.getSources({ types: ['screen'], thumbnailSize: 該螢幕實體像素 })` → 用 `GameWindow.bounds`(client 區螢幕實體像素)減螢幕原點(`display.nativeOrigin`,沒有就 DIP × scaleFactor)裁出 client 區 |
+| 擷取 | `main/src/ocr/capture.ts` + `overlay-shot.ts` | **第 17 步起先用 overlay 原生 `OverlayController.screenshot()`**(只抓 attach 的遊戲 client,同步約 20 ms;throw / 尺寸不符 / 全黑才退回下面這條,見「擷取改用 overlay 原生 `screenshot()`」);後援:`desktopCapturer.getSources({ types: ['screen'], thumbnailSize: 該螢幕實體像素 })` → 用 `GameWindow.bounds`(client 區螢幕實體像素)減螢幕原點(`display.nativeOrigin`,沒有就 DIP × scaleFactor)裁出 client 區 |
 | 前處理 | `capture.ts` `prepareRect()` / `rectRecognizer()` | 可選 `ocrRegion`(client 比例,`strategy.ts` `regionSearchRect` 以 client 尺寸換算再減擷取偏移)= 優先搜尋範圍 → 依下一列選的矩形裁切 → 放大(`×1` 或 `s = min(3, floor(9000 / max(w, h)))`:1080p / 1440p 3×、4K 2×;WinRT `MaxImageDimension` = 10000)→ `nativeImage.resize({ quality: 'best' })` → **JPEG q95**(`toPNG` 對 5760×3240 要 1.3–1.6 秒,JPEG 約 0.1 秒;逐字結果相同) |
 | 選範圍 | `main/src/ocr/strategy.ts` `recognizeRegionFirst` / `smartRecognize` + `poe2/src/desecration/ocr-locate.ts` | 有框選區域 → 先只在區域內跑、找不到再整張(WP-S2,見「框選辨識區域」);每一輪都是**兩段式**:快取區 ×3 → 整張 ×1 定位 + 面板區 ×3 → 整張 ×3(見下節) |
 | OCR | `main/src/ocr/win-ocr.ps1` + `WinOcr.ts` | 常駐 PowerShell 5.1 + WinRT `Windows.Media.Ocr`(`zh-Hant-TW`);`-EncodedCommand` 傳腳本(stdin 留給資料);協定見 ps1 檔頭(2026-10-01 第 7 步起影像寫暫存檔送路徑、runtime 不要 words,見「擷取與 OCR 傳輸」);單張逾時 8 秒 / 崩潰 → 下一次自動重啟;閒置 10 分鐘結束;缺語言包的結果記 30 秒 |
@@ -369,7 +417,7 @@ PowerShell 行程第一次啟動約 0.3–1.8 秒(之後常駐)。
 
 ## 限制
 
-- **全螢幕(獨占)模式**:`desktopCapturer` 可能拿到黑畫面 → 請用無邊框視窗;若普遍,備案是原生 `PrintWindow`(未做)。
+- **全螢幕(獨占)模式**:overlay `screenshot()`(BitBlt)與 `desktopCapturer` 都可能拿到黑畫面(前者全黑會自動退回後者,第 17 步)→ 請用無邊框視窗;若普遍,備案是原生 `PrintWindow`(未做)。
 - **只驗過三張截圖**(繁中客戶端;面板裁切圖 987×1005 胸甲、全螢幕 2000×1125 與 2000×1121;都無折行);
   寫法變體只收 stats.ndjson 有的 matcher,遊戲若還有別的寫法仍會對不上(面板不會因此拆開,該組顯示原文);兩段式的快取鍵只含 client 大小與範圍,遊戲 UI 縮放改了但 client 大小不變時,第一次按會走 cached → 不通過 → two-pass(多花一次快取區 OCR 約 0.1 秒);其他解析度 / UI 縮放 / 字型、真的折行、`減少…`、`附加#至#` 模板都只有合成測試。
 - 假 client 測試的字高與樣本相同;真實 1080p 的字可能更小,3× 放大後是否仍逐字正確待使用者親測。
