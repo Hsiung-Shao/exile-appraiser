@@ -1,5 +1,5 @@
 import { app, BrowserWindow, dialog, Menu, nativeImage, net, protocol, screen, shell, Tray, type BrowserWindowConstructorOptions, type WebContents } from 'electron'
-import { uIOhook } from 'uiohook-napi'
+import { uiohookGate } from './uiohook-gate'
 import { OVERLAY_WINDOW_OPTS } from 'electron-overlay-window'
 import fs from 'node:fs/promises'
 import fsSync from 'node:fs'
@@ -225,7 +225,7 @@ function writeGameToConfig (game: GameId) {
 function relaunchSelf (reason: string) {
   console.log(`[main] 重新啟動(${reason}),relaunch args=${JSON.stringify(process.argv.slice(1))}`)
   quitting = true
-  try { uIOhook.stop() } catch {}
+  uiohookGate.shutdown()
   app.releaseSingleInstanceLock()
   app.relaunch({ args: process.argv.slice(1) })
   app.exit(0)
@@ -514,7 +514,7 @@ function previewStaticRoot (): string {
 
 app.on('before-quit', () => { quitting = true })
 app.on('will-quit', () => {
-  try { uIOhook.stop() } catch {}
+  uiohookGate.shutdown()
   if (preview && !preview.closed) void preview.close('app quit')
 })
 
@@ -611,7 +611,7 @@ if (!skipStartup) app.whenReady().then(() => {
     // WP-R2:符文塑形自動查價暫停 / 繼續
     onRuneshapeToggle: () => { runeshapeScan.toggleUserPause() }
   })
-  try { uIOhook.start() } catch (e) { console.error('[uiohook] start failed', e) }
+  // uiohook 掛鉤不在啟動時開:只在 WidgetAreaTracker 追蹤查價面板期間開(uiohook-gate.ts;送鍵不需要掛鉤)
 
   const showApp = () => {
     if (overlay) {
