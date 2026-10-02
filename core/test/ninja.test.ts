@@ -143,11 +143,12 @@ describe('fetchAll(PoE1 錄製檔)', () => {
 
   it('快照:toSnapshot → JSON → parseSnapshot 往返', () => {
     const snap = toSnapshot(result)
-    expect(snap.schema).toBe(2)
+    expect(snap.schema).toBe(3)
     // WP-R2:PoE1 沒有 exalted 匯率
     expect(result.exaltedRate).toBeUndefined()
     expect(snap.exaltedRate).toBeNull()
-    expect(snap.prices['unique|Sundance|Clasped Boots']).toEqual({ c: 1, n: 97, lc: false, id: 'sundance-clasped-boots', t: 'UniqueArmour' })
+    // 第 24 步(schema 3):item overview 也存走勢(sparkLine);沒有成交量
+    expect(snap.prices['unique|Sundance|Clasped Boots']).toEqual({ c: 1, n: 97, lc: false, id: 'sundance-clasped-boots', t: 'UniqueArmour', s: [0, -27, -26, -35, 0, 0, 0], sc: 0 })
     const back = parseSnapshot(JSON.stringify(snap), 'poe1', LEAGUE)
     expect(back).toEqual(snap)
   })
@@ -160,7 +161,7 @@ describe('fetchAll(PoE1 錄製檔)', () => {
       .toBe('https://poe.ninja/poe1/economy/allflame/unique-armours/sundance-clasped-boots')
     expect(lookupPrice(snap, { ns: 'UNIQUE', name: 'Sundance' })?.key).toBe('unique|Sundance|Clasped Boots')
     // 無頭驗證用的 fixture(poe1/test/fixtures/cmn-Hant/boots-unique-vestigial-02 = Sin Trek / Stealth Boots,dust 15175)
-    expect(lookupPrice(snap, { ns: 'UNIQUE', name: 'Sin Trek', baseType: 'Stealth Boots' })?.entry).toEqual({ c: 1, n: 217, lc: false, id: 'sin-trek-stealth-boots', t: 'UniqueArmour' })
+    expect(lookupPrice(snap, { ns: 'UNIQUE', name: 'Sin Trek', baseType: 'Stealth Boots' })?.entry).toMatchObject({ c: 1, n: 217, lc: false, id: 'sin-trek-stealth-boots', t: 'UniqueArmour' })
     expect(lookupPrice(snap, { ns: 'UNIQUE', name: 'Sundance', variant: 'Clasped Boots' })?.key).toBe('unique|Sundance|Clasped Boots')
     expect(lookupPrice(snap, { ns: 'UNIQUE', name: 'Tabula Rasa', variant: 'Simple Robe, 6L' })?.entry.c).toBe(4)
     expect(lookupPrice(snap, { ns: 'UNIQUE', name: "Shavronne's Wrappings", links: 6 })?.entry.c).toBe(272.5)
@@ -247,7 +248,7 @@ describe('解析規則(合成回應)', () => {
 })
 
 describe('快取與 TTL', () => {
-  const snap: NinjaSnapshot = { schema: 2, game: 'poe1', league: 'Hardcore Allflame', fetchedAt: 1_000_000, divineRate: 300, exaltedRate: null, prices: { 'currency|Divine Orb': { c: 300, n: 0, lc: false, t: 'Currency' } } }
+  const snap: NinjaSnapshot = { schema: 3, game: 'poe1', league: 'Hardcore Allflame', fetchedAt: 1_000_000, divineRate: 300, exaltedRate: null, prices: { 'currency|Divine Orb': { c: 300, n: 0, lc: false, t: 'Currency' } } }
 
   it('isFresh:15 分鐘內為新鮮', () => {
     expect(NINJA_CACHE_TTL_MS).toBe(15 * 60 * 1000)
@@ -264,9 +265,10 @@ describe('快取與 TTL', () => {
     expect(await cache.load('poe1', 'Hardcore Allflame')).toEqual(snap)
     expect(await cache.load('poe2', 'Hardcore Allflame')).toBeNull()
     expect(await cache.load('poe1', 'Allflame')).toBeNull()
-    // WP-R2:schema 1(沒有 exaltedRate 的舊快取)與未來的 schema 3 一律丟棄
+    // WP-R2:schema 1(沒有 exaltedRate 的舊快取)、第 24 步之前的 schema 2(沒有走勢 / 成交量)與未來的 schema 4 一律丟棄
     expect(parseSnapshot(JSON.stringify({ ...snap, schema: 1 }), 'poe1', 'Hardcore Allflame')).toBeNull()
-    expect(parseSnapshot(JSON.stringify({ ...snap, schema: 3 }), 'poe1', 'Hardcore Allflame')).toBeNull()
+    expect(parseSnapshot(JSON.stringify({ ...snap, schema: 2 }), 'poe1', 'Hardcore Allflame')).toBeNull()
+    expect(parseSnapshot(JSON.stringify({ ...snap, schema: 4 }), 'poe1', 'Hardcore Allflame')).toBeNull()
     // 使用者 userData 裡 WP-R2 之前寫的真實舊快取格式(schema 1、沒有 exaltedRate)
     const legacy = '{"schema":1,"game":"poe2","league":"Forbidden Rites","fetchedAt":1790668051310,"divineRate":8.18,"prices":{"currency|Exalted Orb":{"c":0.01590192,"n":0,"lc":false,"t":"Currency","id":"exalted-orb"}}}'
     expect(parseSnapshot(legacy, 'poe2', 'Forbidden Rites')).toBeNull()
@@ -375,7 +377,7 @@ describe('PoE2 exchange 錄製檔', () => {
     expect(gems.lines.find(l => l.key === 'currency|Uncut Skill Gem (Level 20)')).toMatchObject({ chaos: 6.27 * RATE_CHAOS, detailsId: 'uncut-skill-gem-level-20' })
   })
 
-  it('fetchAll:divineRate / exaltedRate 取 core;Exalted Orb 列與匯率一致;快照 schema 2 往返', async () => {
+  it('fetchAll:divineRate / exaltedRate 取 core;Exalted Orb 列與匯率一致;快照 schema 3 往返', async () => {
     const client = createNinjaClient({ http: http2, game: 'poe2', league: LEAGUE2, sleep: async () => {}, now: () => 5 })
     const r = await client.fetchAll({ exchange: TYPES2, item: [] })
     expect(r.fetchedTypes).toEqual(TYPES2)
@@ -385,7 +387,7 @@ describe('PoE2 exchange 錄製檔', () => {
     expect(r.prices.get('currency|Exalted Orb')!.chaos / r.exaltedRate!).toBeCloseTo(1, 3)
     expect(r.prices.get('currency|Chaos Orb')).toMatchObject({ chaos: 1 })
     const snap = toSnapshot(r)
-    expect(snap).toMatchObject({ schema: 2, game: 'poe2', league: LEAGUE2, divineRate: RATE_CHAOS })
+    expect(snap).toMatchObject({ schema: 3, game: 'poe2', league: LEAGUE2, divineRate: RATE_CHAOS })
     expect(snap.exaltedRate).toBeCloseTo(RATE_CHAOS / RATE_EXALTED, 12)
     expect(parseSnapshot(JSON.stringify(snap), 'poe2', LEAGUE2)).toEqual(snap)
     expect(lookupPrice(snap, { ns: 'ITEM', name: "Aldur's Legacy" })?.entry.c).toBeCloseTo(385.3 * RATE_CHAOS, 10)
@@ -403,6 +405,89 @@ describe('PoE2 exchange 錄製檔', () => {
     expect(poe2.exaltedRate).toBeCloseTo(0.02, 12)
     const poe1 = await createNinjaClient({ http, game: 'poe1', league: 'X', sleep: async () => {} }).fetchAll(cats)
     expect(poe1.exaltedRate).toBeUndefined()
+  })
+})
+
+// ---- 第 24 步:查價面板「通貨價格區」—— 走勢、每小時成交量、成交量最大的對手通貨(快照 schema 3) ----
+describe('走勢與成交量(第 24 步)', () => {
+  const RATE_CHAOS2 = 9.61
+  const read2 = (file: string) => fs.readFileSync(path.join(DIR, 'poe2', file), 'utf8')
+
+  it('PoE1 exchange:volumePrimaryValue(primary = chaos)原值即 chaos、maxVolume*、走勢與 totalChange', () => {
+    const cards = parseExchangeOverview(JSON.parse(read('exchange_DivinationCard.json')), 'DivinationCard')
+    expect(cards.lines.find(l => l.key === 'card|Arrogance of the Vaal')).toMatchObject({
+      chaos: 1.31, volumeChaos: 2.83, maxVolumeCurrency: 'chaos', maxVolumeRate: 0.7647,
+      sparkline: [-9.95, 7.51, -71.47, -78.85, -61.91, -1.24, -81.69], sparklineChange: -81.69
+    })
+    const cur = parseExchangeOverview(JSON.parse(read('exchange_Currency.json')), 'Currency')
+    expect(cur.lines.find(l => l.key === 'currency|Divine Orb')).toMatchObject({
+      chaos: 371.7, volumeChaos: 1450816, maxVolumeCurrency: 'chaos', sparklineChange: 1.02
+    })
+    // 錄製檔每一列都有成交量與走勢
+    expect(cur.lines.every(l => l.volumeChaos !== undefined && l.sparkline?.length === 7 && l.maxVolumeCurrency)).toBe(true)
+  })
+
+  it('PoE2 exchange:volumePrimaryValue(primary = divine)× rates.chaos', () => {
+    const runes = parseExchangeOverview(JSON.parse(read2('exchange_Runes.json')), 'Runes')
+    const aldur = runes.lines.find(l => l.key === "currency|Aldur's Legacy")!
+    expect(aldur.volumeChaos).toBeCloseTo(13228 * RATE_CHAOS2, 8)
+    expect(aldur).toMatchObject({ maxVolumeCurrency: 'divine', maxVolumeRate: 0.002596, sparklineChange: 15.12 })
+    expect(aldur.sparkline).toEqual([17.25, 19.04, 19, 18.89, 17.68, 14.87, 15.12])
+  })
+
+  it('item overview:sparkLine 與 totalChange 保留、沒有成交量欄位', () => {
+    const armour = parseItemOverview(JSON.parse(read('item_UniqueArmour.json')), 'UniqueArmour')
+    const sundance = armour.lines.find(l => l.key === 'unique|Sundance|Clasped Boots')!
+    expect(sundance).toMatchObject({ sparkline: [0, -27, -26, -35, 0, 0, 0], sparklineChange: 0 })
+    expect(sundance.volumeChaos).toBeUndefined()
+    expect(sundance.maxVolumeCurrency).toBeUndefined()
+  })
+
+  it('容忍缺欄位 / 非數值:沒有就不帶,null 點保留為 null', () => {
+    const parsed = parseExchangeOverview({
+      core: { primary: 'chaos', rates: { divine: 0.005 } },
+      items: [{ id: 'a', name: 'A' }, { id: 'b', name: 'B' }],
+      lines: [
+        { id: 'a', primaryValue: 2, sparkline: { totalChange: 'x', data: [1, null, 'y', 3] }, volumePrimaryValue: null, maxVolumeCurrency: 5 },
+        { id: 'b', primaryValue: 3, volumePrimaryValue: 0 }
+      ]
+    }, 'Currency')
+    const a = parsed.lines.find(l => l.key === 'currency|A')!
+    expect(a.sparkline).toEqual([1, null, null, 3])
+    expect(a.sparklineChange).toBeUndefined()
+    expect(a.volumeChaos).toBeUndefined()
+    expect(a.maxVolumeCurrency).toBeUndefined()
+    const b = parsed.lines.find(l => l.key === 'currency|B')!
+    expect(b).toMatchObject({ volumeChaos: 0 })
+    // 快照:全 null 的走勢不存;volume 0 照存
+    const snap = toSnapshot({
+      game: 'poe1', league: 'X', fetchedAt: 1, divineRate: 200,
+      prices: new Map([['currency|A', { ...a, sparkline: [null, null] }], ['currency|B', b]]),
+      fetchedTypes: ['Currency'], failedTypes: []
+    })
+    expect(snap.prices['currency|A']).toEqual({ c: 2, n: 0, lc: false, t: 'Currency' })
+    expect(snap.prices['currency|B']).toEqual({ c: 3, n: 0, lc: false, t: 'Currency', v: 0 })
+  })
+
+  it('PoE2 fetchAll → toSnapshot → JSON → parseSnapshot:s / sc / v / mv 往返,v 只留 3 位小數', async () => {
+    const http: HttpFetch = async (url) => {
+      const file = 'exchange_' + new URL(url).searchParams.get('type') + '.json'
+      if (!fs.existsSync(path.join(DIR, 'poe2', file))) return response(404, 'not found')
+      return response(200, read2(file))
+    }
+    const r = await createNinjaClient({ http, game: 'poe2', league: 'Forbidden Rites', sleep: async () => {}, now: () => 7 })
+      .fetchAll({ exchange: ['Runes', 'Currency'], item: [] })
+    const snap = toSnapshot(r)
+    expect(snap.schema).toBe(3)
+    expect(snap.prices["currency|Aldur's Legacy"]).toEqual({
+      c: 385.3 * RATE_CHAOS2, n: 0, lc: false, id: 'aldurs-legacy', t: 'Runes',
+      s: [17.25, 19.04, 19, 18.89, 17.68, 14.87, 15.12], sc: 15.12, v: Math.round(13228 * RATE_CHAOS2 * 1000) / 1000, mv: 'divine'
+    })
+    // 合成的 Chaos Orb 列沒有走勢 / 成交量
+    expect(snap.prices['currency|Chaos Orb']).toEqual({ c: 1, n: 999, lc: false, t: 'Currency', id: 'chaos-orb' })
+    const back = parseSnapshot(JSON.stringify(snap), 'poe2', 'Forbidden Rites')
+    expect(back).toEqual(snap)
+    expect(lookupPrice(back, { ns: 'ITEM', name: 'Divine Orb' })?.entry).toMatchObject({ c: RATE_CHAOS2, mv: 'chaos', sc: 23.46 })
   })
 })
 

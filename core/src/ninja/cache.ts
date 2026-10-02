@@ -1,7 +1,8 @@
 /**
  * poe.ninja 價格表快照與快取介面。
  *
- * 快照只存查價要用的欄位(chaos、數量、低信心、detailsId、類別),不存圖示/走勢(體積)。
+ * 快照只存查價要用的欄位(chaos、數量、低信心、detailsId、類別;第 24 步起加 7 天走勢、每小時成交量、成交量最大的對手通貨),
+ * 不存圖示(體積)。
  * 儲存位置由呼叫端決定:
  * - Electron:main 的 IPC `ninja-cache-load/save` → `userData/cache/ninja/<game>_<league>.json`(tmp + rename;
  *   啟動時清掉 30 天以上沒動過的檔,同 PobTools `PruneNinjaCache`);
@@ -13,10 +14,11 @@
 import type { NinjaFetchResult, NinjaGame } from './client'
 
 /**
- * 1 = 初版;2 = WP-R2 多存 `exaltedRate`(PoE2 以崇高石計價)。
- * 舊的 schema 1 快照沒有 exalted 匯率 → 一律丟棄重抓(`parseSnapshot` 回 null)。
+ * 1 = 初版;2 = WP-R2 多存 `exaltedRate`(PoE2 以崇高石計價);
+ * 3 = 第 24 步每列多存走勢 `s` / `sc`、成交量 `v`、`mv`(查價面板「通貨價格區」)。
+ * 舊 schema 的快照一律丟棄重抓(`parseSnapshot` 回 null)。
  */
-export const NINJA_SNAPSHOT_SCHEMA = 2
+export const NINJA_SNAPSHOT_SCHEMA = 3
 export const NINJA_CACHE_TTL_MS = 15 * 60 * 1000
 export const NINJA_CACHE_PRUNE_DAYS = 30
 
@@ -31,6 +33,19 @@ export interface NinjaSnapshotEntry {
   id?: string
   /** 來源類別(ninja 請求參數,如 `UniqueArmour`) */
   t: string
+  /** 第 24 步(schema 3):7 天走勢(每天相對 7 天前的漲跌 %,poe.ninja 原值;全是 null 時省略) */
+  s?: ReadonlyArray<number | null>
+  /** 第 24 步:走勢 totalChange(%) */
+  sc?: number
+  /** 第 24 步:每小時成交量(chaos 單位;只有 exchange 類) */
+  v?: number
+  /** 第 24 步:成交量最大的對手通貨 id(`divine` / `chaos` / `exalted`…;只有 exchange 類) */
+  mv?: string
+}
+
+/** 成交量換成 chaos 後的小數雜訊:留 3 位小數就夠(顯示最多 1 位) */
+function round3 (n: number): number {
+  return Math.round(n * 1000) / 1000
 }
 
 export interface NinjaSnapshot {
@@ -56,6 +71,10 @@ export function toSnapshot (result: NinjaFetchResult): NinjaSnapshot {
   for (const [key, line] of result.prices) {
     const e: NinjaSnapshotEntry = { c: line.chaos, n: line.count, lc: line.lowConfidence, t: line.type }
     if (line.detailsId) e.id = line.detailsId
+    if (line.sparkline?.some(v => v != null)) e.s = line.sparkline
+    if (line.sparklineChange !== undefined) e.sc = line.sparklineChange
+    if (line.volumeChaos !== undefined) e.v = round3(line.volumeChaos)
+    if (line.maxVolumeCurrency) e.mv = line.maxVolumeCurrency
     prices[key] = e
   }
   return {

@@ -66,7 +66,16 @@ export interface NinjaLine {
   type: string
   detailsId?: string
   icon?: string
+  /** 7 天走勢(每天相對 7 天前的漲跌 %,poe.ninja 原值;exchange 為 `sparkline`、item overview 為 `sparkLine`) */
   sparkline?: Array<number | null>
+  /** 第 24 步:走勢的 `totalChange`(%);沒有就省略 */
+  sparklineChange?: number
+  /** 第 24 步:exchange 的 `volumePrimaryValue` × factor = 每小時成交量(chaos 單位);item overview 沒有 */
+  volumeChaos?: number
+  /** 第 24 步:exchange 的 `maxVolumeCurrency`(成交量最大的對手通貨 id,如 `divine` / `chaos` / `exalted`) */
+  maxVolumeCurrency?: string
+  /** 第 24 步:exchange 的 `maxVolumeRate`(1 單位物品換多少 maxVolumeCurrency,poe.ninja 原值) */
+  maxVolumeRate?: number
 }
 
 export interface ParsedOverview {
@@ -96,7 +105,18 @@ function bool (o: Json, k: string): boolean {
 function sparklineOf (o: Json, k: string): Array<number | null> | undefined {
   const s = o[k]
   if (!isObj(s) || !Array.isArray(s.data)) return undefined
-  return s.data.map(v => (typeof v === 'number' ? v : null))
+  return s.data.map(v => (typeof v === 'number' && Number.isFinite(v) ? v : null))
+}
+/** 第 24 步:走勢的 `totalChange`;不是有限數 → undefined */
+function sparklineChangeOf (o: Json, k: string): number | undefined {
+  const s = o[k]
+  if (!isObj(s)) return undefined
+  const v = s.totalChange
+  return typeof v === 'number' && Number.isFinite(v) ? v : undefined
+}
+/** item overview 的走勢鍵是 `sparkLine`(PoE1 錄製檔);容忍 `sparkline` */
+function itemSparkKey (o: Json): string {
+  return isObj(o.sparkLine) ? 'sparkLine' : 'sparkline'
 }
 function rateOf (rates: Json, unit: string): number {
   const v = rates[unit]
@@ -172,7 +192,7 @@ export function parseExchangeOverview (doc: unknown, type: string): ParsedOvervi
     const item = byId.get(id)
     if (!id || !item || !(v > 0)) continue
     const image = str(item, 'image')
-    lines.push({
+    const line: NinjaLine = {
       key: toKey(str(item, 'name')),
       chaos: v * factor,
       count: 0,
@@ -181,7 +201,17 @@ export function parseExchangeOverview (doc: unknown, type: string): ParsedOvervi
       detailsId: str(item, 'detailsId') || undefined,
       icon: image ? (image.startsWith('/') ? IMAGE_ORIGIN + image : image) : undefined,
       sparkline: sparklineOf(l, 'sparkline')
-    })
+    }
+    // 第 24 步:走勢總變化、每小時成交量(換成 chaos)、成交量最大的對手通貨(查價面板「通貨價格區」用)
+    const change = sparklineChangeOf(l, 'sparkline')
+    if (change !== undefined) line.sparklineChange = change
+    const vol = num(l, 'volumePrimaryValue', -1)
+    if (vol >= 0) line.volumeChaos = vol * factor
+    const mvc = str(l, 'maxVolumeCurrency')
+    if (mvc) line.maxVolumeCurrency = mvc
+    const mvr = num(l, 'maxVolumeRate', 0)
+    if (mvr > 0) line.maxVolumeRate = mvr
+    lines.push(line)
   }
   return { lines, chaosPerDivine, chaosPerExalted }
 }
@@ -215,7 +245,8 @@ export function parseItemOverview (doc: unknown, type: string): ParsedOverview {
       // PoE1 UniqueWeapon/…、PoE2 UniqueWeapons/…
       key = uniqueKey(name, str(l, 'baseType'), Math.trunc(num(l, 'links', 0)))
     }
-    lines.push({
+    const spark = itemSparkKey(l)
+    const line: NinjaLine = {
       key,
       chaos,
       count,
@@ -223,8 +254,11 @@ export function parseItemOverview (doc: unknown, type: string): ParsedOverview {
       type,
       detailsId: str(l, 'detailsId') || undefined,
       icon: str(l, 'icon') || undefined,
-      sparkline: sparklineOf(l, 'sparkLine')
-    })
+      sparkline: sparklineOf(l, spark)
+    }
+    const change = sparklineChangeOf(l, spark)
+    if (change !== undefined) line.sparklineChange = change
+    lines.push(line)
   }
   return { lines, chaosPerDivine, chaosPerExalted }
 }
