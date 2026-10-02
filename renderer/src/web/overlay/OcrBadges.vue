@@ -14,6 +14,7 @@
   - 第 13 步:徽章左緣對齊、上下不重疊(`layoutBadges` 先用估計高度排,畫出來後量實際高度再排一次 `stackBadges`);
     一組多候選預設只列最可能的一個 + 「+N」(設定 `revealShowAllCandidates` 開 = 全列;overlay 點擊穿透,不做滑鼠展開);
     「?」說明依 profile 來源換文案(`guessNoteKey`:交集為空 = 依全部可能底材推算)。
+  - 2026-10-03:最近查價的物品與面板不符(`profileSource: 'hint-rejected'`)→「?」說明註明那件物品、改依可能底材推算;log 記否決原因。
   - 第 11 步:徽章外觀(`config.ocrBadgeStyle`,與符文徽章共用;`badge-style.ts`):根元素設 CSS 變數,樣式寫 `var(--badge-x, 原值)`,
     預設不輸出變數 = 外觀不變。字體 / 字級 / 粗體 / 外框;語意色(模糊命中警告色、dim)保留,不吃價格三段色。
     改外觀 → 以最後結果重排(估計高度用設定的字級),字型載入完成後再量一次實際高度。
@@ -28,12 +29,12 @@
     <div v-for="b in badges" :key="b.key" class="ocr-badge" data-ocr="badge" :data-key="b.key"
       :style="{ left: `${b.left}px`, top: `${b.top}px` }">
       <div v-for="(r, i) in b.rows" :key="i" class="ocr-row" :class="{ fuzzy: r.fuzzy }"
-        :title="r.fuzzy ? t('ppz.ocr.fuzzy_title') : b.guess && guessKey ? t(guessKey) : undefined">{{ r.text }}<span
+        :title="r.fuzzy ? t('ppz.ocr.fuzzy_title') : b.guess && guessKey ? t(guessKey.key, guessKey.args ?? {}) : undefined">{{ r.text }}<span
           v-if="i === 0 && b.more" class="ocr-more" data-ocr="more">+{{ b.more }}</span></div>
       <div v-if="b.empty" class="ocr-row dim">{{ t('ppz.ocr.no_candidate') }}</div>
       <div v-for="(u, i) in b.unmatched" :key="`u${i}`" class="ocr-row raw">{{ t('ppz.ocr.unmatched', { text: u }) }}</div>
     </div>
-    <div v-if="guessKey" class="ocr-note" data-ocr="guess-note">{{ t(guessKey) }}</div>
+    <div v-if="guessKey" class="ocr-note" data-ocr="guess-note">{{ t(guessKey.key, guessKey.args ?? {}) }}</div>
   </div>
 </template>
 
@@ -47,7 +48,7 @@ import { AppConfig } from '../Config'
 import { effectiveOcrLang, ocrTextLangOf } from '../ocr-lang'
 import { loadedGame } from '../games/active'
 import {
-  badgeMetrics, guessNoteKey, lastDetectedRegion, lastPoe2Item, layoutBadges, profileHint, regionPickerOpen, revealScanAction, stackBadges, tierText,
+  badgeMetrics, guessNote, lastDetectedRegion, lastPoe2Item, layoutBadges, profileHint, regionPickerOpen, rejectedHintLog, revealScanAction, stackBadges, tierText,
   type BadgeView
 } from './ocr-reveal'
 import { badgeStyleVars, revealBadgeFontPx } from './badge-style'
@@ -64,8 +65,8 @@ export default defineComponent({
     const config = AppConfig()
     const state = shallowRef<State>('idle')
     const badges = shallowRef<BadgeView[]>([])
-    /** 「?」說明的 i18n 鍵(profile 精確 = null) */
-    const guessKey = shallowRef<string | null>(null)
+    /** 「?」說明的 i18n 鍵與插值參數(profile 精確 = null) */
+    const guessKey = shallowRef<{ key: string, args?: Record<string, string> } | null>(null)
     /** 最後一次比對成功的結果(overlay 改大小時重新排位置) */
     let last: { r: OkResult, client: { w: number, h: number } } | null = null
     /** 同一種「比對不成面板」只記一次 log(持續掃描時每秒一行太吵) */
@@ -184,13 +185,16 @@ export default defineComponent({
       last = { r, client: e.client }
       state.value = 'result'
       layout()
-      guessKey.value = guessNoteKey(r)
+      guessKey.value = guessNote(r)
       // WP-S2:框選層的「上次偵測」參考框
       lastDetectedRegion.value = detectedRegion(r.groups, e.client)
       // log 列全部候選(徽章預設收起時,完整內容仍在 log)
       console.log(`[ocr] #${e.seq} ${r.groups.length} 組(profile ${r.profileSource}${hint.refName ? ` ${hint.refName}` : ''}` +
         `${e.timings?.ocrWallMs != null ? `;OCR ${e.timings.ocrWallMs} ms` : ''}):` +
         r.groups.map(g => g.candidates.map(c => `${tierText(c)} ${c.pool} ${Poe2.revealRangeLabel(c.ranges)}`).join(' / ') || '—').join(' | '))
+      // 2026-10-03:提示(最近查價的物品)被否決的原因
+      const rejected = rejectedHintLog(r)
+      if (rejected) console.log(`[ocr] #${e.seq} ${rejected}`)
     }
 
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') clear('Esc') }

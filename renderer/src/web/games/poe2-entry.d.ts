@@ -47,8 +47,18 @@ export interface Poe2RevealGroup {
   candidates: Poe2RevealCandidate[]
   partial: boolean
 }
+/** 2026-10-03:profile 提示(最近查價的物品)與面板不符而被否決的原因(poe2 `ocr-match.ts` `RevealRejectedHint`) */
+export interface Poe2RevealRejectedHint {
+  refName?: string
+  category?: string
+  hintSource: 'refName' | 'category'
+  hintNoMatch: number
+  fallback: 'intersection' | 'all'
+  fallbackNoMatch: number
+  groups: number
+}
 export type Poe2RevealResult =
-  | { ok: true, groups: Poe2RevealGroup[], profileExact: boolean, profileSource: 'refName' | 'category' | 'intersection' | 'all' }
+  | { ok: true, groups: Poe2RevealGroup[], profileExact: boolean, profileSource: 'refName' | 'category' | 'intersection' | 'all' | 'hint-rejected', rejectedHint?: Poe2RevealRejectedHint }
   /** `veto`:有候選段但被否決規則擋掉(物品浮窗等,poe2 `panel-veto.ts`) */
   | { ok: false, error: 'no-panel', lines: Poe2RevealLine[], veto?: { kind: 'tooltip-header' | 'keyword-line' | 'too-many-groups' | 'group-too-tall', detail: string } }
 export type Poe2Translate = (key: string, args?: unknown) => string

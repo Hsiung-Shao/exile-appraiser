@@ -98,6 +98,8 @@
       "fuzzy_title": "OCR text does not exactly match the template (fuzzy match); check against the screen",
       "guess_title": "\"?\": no price check of this item in the last 10 minutes (base unknown), so tiers are computed from the bases all three options have in common",
       "guess_title_all": "\"?\": base unknown (no price check of this item in the last 10 minutes) and the three options share no possible base, so tiers are computed from every possible base",
+      "guess_title_hint": "\"?\": the last price-checked item ({item}) doesn't match this panel, so tiers are computed from the possible bases (the bases all three options have in common)",
+      "guess_title_hint_all": "\"?\": the last price-checked item ({item}) doesn't match this panel, so tiers are computed from the possible bases (the three options share none, so every possible base)",
       "show_all_candidates": "List every possible modifier when an option has several",
       "show_all_candidates_hint": "When off, only the most likely one is listed, followed by \"+N\" for the rest (badges are click-through, so there is no hover expand).",
       "no_candidate": "No matching modifier this base can roll",

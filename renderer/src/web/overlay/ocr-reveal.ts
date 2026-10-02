@@ -90,10 +90,32 @@ export function revealScanStatus (
 /**
  * 「?」的說明:`all` = 三組候選的可能底材沒有交集(或不取交集),階層是依**全部**可能底材推算;
  * 其餘(交集 / 類別)維持原文案。profile 精確時不顯示(回 null)。
+ * 2026-10-03:`hint-rejected` = 最近查價的物品與面板不符(提示下有組對不上),改依可能底材推算
+ * (`rejectedHint.fallback`:交集 → `guess_title_hint`、全部 → `guess_title_hint_all`)。
  */
-export function guessNoteKey (r: Pick<Extract<Poe2RevealResult, { ok: true }>, 'profileExact' | 'profileSource'>): string | null {
+export function guessNoteKey (r: Pick<Extract<Poe2RevealResult, { ok: true }>, 'profileExact' | 'profileSource' | 'rejectedHint'>): string | null {
   if (r.profileExact) return null
+  if (r.profileSource === 'hint-rejected') {
+    return r.rejectedHint?.fallback === 'all' ? 'ppz.ocr.guess_title_hint_all' : 'ppz.ocr.guess_title_hint'
+  }
   return r.profileSource === 'all' ? 'ppz.ocr.guess_title_all' : 'ppz.ocr.guess_title'
+}
+
+/** 「?」說明(鍵 + 插值參數;`hint-rejected` 帶被否決的物品 `item` = 英文 refName,沒有就類別) */
+export function guessNote (r: Pick<Extract<Poe2RevealResult, { ok: true }>, 'profileExact' | 'profileSource' | 'rejectedHint'>): { key: string, args?: Record<string, string> } | null {
+  const key = guessNoteKey(r)
+  if (!key) return null
+  if (r.profileSource !== 'hint-rejected') return { key }
+  return { key, args: { item: r.rejectedHint?.refName || r.rejectedHint?.category || '?' } }
+}
+
+/** log 用:提示被否決的原因(沒有被否決 = '') */
+export function rejectedHintLog (r: Pick<Extract<Poe2RevealResult, { ok: true }>, 'rejectedHint'>): string {
+  const h = r.rejectedHint
+  if (!h) return ''
+  const what = h.refName ? h.refName : `類別 ${h.category ?? '?'}`
+  return `最近查價的物品(${what},${h.hintSource === 'refName' ? '精確底材' : '類別後援'})與面板不符:` +
+    `${h.groups} 組中 ${h.hintNoMatch} 組此底材擲不出 → 改依${h.fallback === 'all' ? '全部' : '共同的'}可能底材推算(仍對不上 ${h.fallbackNoMatch} 組)`
 }
 
 export interface LastPoe2Item { refName: string, category?: string, at: number }

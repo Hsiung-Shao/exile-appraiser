@@ -164,6 +164,9 @@ fullscreen-02 ×1 改前改後都找得到;fullscreen-03 ×1 只認出 1 行亂�
   overlay 整層點擊穿透,`title` / hover 展開看不到,所以選設定開關(不失去資訊;renderer log 一律列全部候選)。
 - **「?」文案**(`guessNoteKey`):`profileSource === 'all'`(三組候選的可能底材交集為空)→ `ppz.ocr.guess_title_all`「不知道底材…三個選項也找不到共同的可能底材,階層依全部可能底材推算」;
   交集 / 類別維持原文案;精確不顯示。繁中 / 英文都有。
+  2026-10-03:`profileSource === 'hint-rejected'`(最近查價的物品與面板不符,見「比對規則」第 8 步)→ `ppz.ocr.guess_title_hint`
+  「最近查價的物品({item})與面板不符,改依可能底材推算(三個選項共同的可能底材)」;推算也落到全部 profile 時 `guess_title_hint_all`。
+  `{item}` = 被否決的英文 refName(只有類別提示時 = 類別);`guessNote(r)` 回 `{ key, args }`,`OcrBadges.vue` 的說明列與徽章 `title` 都用它。
 
 ### 徽章外觀(第 11 步,2026-10-02;與符文共用)
 
@@ -541,6 +544,13 @@ log:擷取有遮到東西時,掃描結果那行多「遮掉自己的徽章 N 塊
    每個面板至少要有 2 組是真的對上詞綴。
 8. **profile**:最近 10 分鐘內查價的 PoE2 物品 `refName`(`App.vue` 解析成功時記下)→ `resolveProfiles`(base_profiles 精確,否則類別)。
    沒有 → 三組候選 entry 可擲出的 profile **取交集**(三個選項屬於同一件物品),交集空才用全部 profile;Tier 取聯集(`T3–T5`),徽章加「?」。
+   **提示否決(2026-10-03,使用者實機 log)**:提示是「最近 10 分鐘查過價的物品」,不一定是正在褻瀆的那件(先查價 `Militant Bow`、再開另一把武器的井 →
+   提示下第 1 組 T1、第 2 / 3 組「此底材擲不出對應的詞綴」)。規則:數「有命中行、但這組 profile 擲不出任何一條」的組數;
+   提示下 > 0,且改用上面的推算(交集;交集空或 `intersectProfiles: false` = 全部)後**更少** → 改用推算,`profileSource: 'hint-rejected'`、
+   `profileExact: false`(徽章「?」)、`rejectedHint = { refName, category, hintSource, hintNoMatch, fallback, fallbackNoMatch, groups }`;
+   提示下全部組都對得上 → **維持提示(精確 Tier),行為完全不變**;推算也不會更好 → 維持提示。沒有提示時結果不帶 `rejectedHint`(逐位元不變)。
+   只看「對不上的組數」,不看 Tier 是否合理(同一組詞綴兩件底材都擲得出時無法分辨,仍信提示)。與語言無關(繁中 / 英文同一段程式)。
+   renderer log:`[ocr] #N 3 組(profile hint-rejected Militant Bow):…` 下一行 `[ocr] #N 最近查價的物品(Militant Bow,精確底材)與面板不符:3 組中 2 組此底材擲不出 → 改依共同的可能底材推算(仍對不上 0 組)`(`rejectedHintLog`)。
 
 ## 驗證
 
@@ -561,7 +571,11 @@ log:擷取有遮到東西時,掃描結果那行多「遮掉自己的徽章 N 塊
   ② 394 個模板 round-trip + 317 個寫法變體 round-trip(反向寫法驗數值語意)+ `減少#%攻擊速度` vs `增加15%攻擊速度`;③ 模糊 200 次 + 200 對不誤命中;
   ④ 分組邊界、2 組、1 組 no-panel、折行、等距單行、未辨識行、中間選項沒認出(partial 組)、x 不對齊 / 行高不同 / 標題 / 確認鈕不被併入、3 組都認得出時雜字不擠掉選項。
 - `poe2/test/desecration/ocr-locate.test.ts` 另有:變體寫法算「像詞綴」(沒有變體的索引 394 個 skeleton 認不出 `技能增加…`)、fullscreen-03 三行全命中。
-- `renderer/test/ocr-reveal.test.ts`:徽章座標換算、文字、profile 有效期;第 13 步:左緣對齊、相鄰徽章間距 ≥ 2 px(估計高度 / 量到的高度都不重疊)、超出下緣整體上移、多候選收合「+N」/ 全列、「?」文案分支(`guessNoteKey`)。
+- `renderer/test/ocr-reveal.test.ts`:徽章座標換算、文字、profile 有效期;第 13 步:左緣對齊、相鄰徽章間距 ≥ 2 px(估計高度 / 量到的高度都不重疊)、超出下緣整體上移、多候選收合「+N」/ 全列、「?」文案分支(`guessNoteKey`;2026-10-03 加 `hint-rejected` 的 `guessNote` 參數與 `rejectedHintLog`)。
+- `poe2/test/desecration/ocr-match-hint.test.ts`(2026-10-03 提示否決):英文 `well-of-souls-weapon-en-04` 與繁中 `well-of-souls-body-armour-01` 各五情境 ——
+  提示 `Militant Bow` → 三組都有結果、`hint-rejected`、groups 與無提示逐值相同(英文 `hintNoMatch` = 2,即使用者實機的症狀);
+  提示 = 交集中的底材(英文 `Aberrant Sledge`、繁中 `Ancestral Mail`,base_profiles 字母序第一個)→ 維持 `refName`、精確 Tier;只有類別提示 `Bow` → `hintSource: category`;
+  不取交集 → `fallback: all`;無提示結果不帶 `rejectedHint`。
 - `poe2/test/desecration/panel-veto.test.ts`(第 13 步):正樣本量測與不觸發、`vetoLineReason`、固定元素加分、真實負樣本三層(main 定位 ×3 / ×1、renderer)、合成負樣本 A / B / B' / C / C'、不誤殺(認錯的數值行、確認 / 標題 / 遠處聊天)。
 - WP-S2:`renderer/test/region-geom.test.ts`(新框、最小尺寸、移動、8 把手、夾限、方向鍵 / Shift / Ctrl、比例換算、上次偵測外擴)、
   `main/test/ocr-strategy.test.ts`(`regionSearchRect` 400 組對照舊版 / 出界偏移、`recognizeRegionFirst` 區域找到 / 退回整張 / 只框到 1 行 / 沒區域 / 沒索引、`RegionCacheGuard`)、
@@ -605,6 +619,7 @@ PowerShell 行程第一次啟動約 0.3–1.8 秒(之後常駐)。
 - 英文客戶端(第 22 步)只驗過一張使用者截圖(900×860 局部、武器、三個選項含一個折行);其他解析度 / UI 縮放、全螢幕截圖、英文物品浮窗的真實負樣本都沒有(負樣本是合成的)。
   客戶端語言設定要與遊戲一致:設成繁中但遊戲是英文(或反過來)時 OCR 語言包不對,認不出面板(不會誤出徽章)。
 - profile 不明時只能給範圍(標「?」);查價過同一件物品(10 分鐘內)才是精確底材。
+  最近查價的是別件物品時:有組對不上才會發現並改推算(「?」說明註明那件物品);兩件底材都擲得出面板上全部詞綴時仍沿用提示的 Tier(可能是那件底材的 Tier)。
 - Esc 只在 overlay 有焦點時收得到(遊戲在前景時 Esc 屬於遊戲);其餘靠再按熱鍵 / 15 秒。
 - 框選(WP-S2)只在 overlay 模式;window 模式與瀏覽器預覽不能框選(2026-10-01 起設定頁沒有數字欄位,只能沿用既有 `ocrRegion` 或清除)。區域以 client 比例存,遊戲換解析度 / UI 縮放後面板位置可能不同 → 區域內找不到時設定頁顯示「區域內沒找到面板」(第 13 步起不再退回整張),重新框選或清除區域即可。
 - 否決規則只在三張正樣本 + 一張真實浮窗截圖上量過;殘留風險見「面板判定:否決規則」。

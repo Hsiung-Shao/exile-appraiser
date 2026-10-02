@@ -22,6 +22,9 @@
  *    **只對挑中的 3 組**套 `panelVeto`(真面板旁多一條像詞綴的雜行時不再整段否決)。
  * 8. profile:呼叫端給最近查價的 PoE2 物品 refName → `resolveProfiles`(base_profiles 精確 / 類別後援);
  *    沒有時取「每組都有候選的 profile」交集(三個選項屬於同一件物品),再沒有就全部 profile;Tier 取聯集 → `T3–T4`,`profileExact: false`(UI 加「?」)。
+ *    2026-10-03:提示 = 最近 10 分鐘查過價的物品,不一定是正在褻瀆的那件 → 提示下有任一組「有命中行卻擲不出」、
+ *    而改用上面的推算(交集 / 全部)對不上的組更少 → 否決提示:`profileSource: "hint-rejected"`、`profileExact: false`、`rejectedHint` 記原因;
+ *    提示下全部對得上(或推算也不會更好)→ 行為完全不變。沒有提示時結果逐位元不變(不帶 `rejectedHint`)。
  * 9. 2026-10-02 第 22 步:英文客戶端(`opts.lang: "en"`)—— 模板改用 `text.en` + `text.enVariants`(schema 2),
  *    正規化 `normalizeOcrTextEn`(轉小寫、刪空白、small caps 常見誤讀)、文字行 = 含兩個連續拉丁字母、模糊門檻 `EN_FUZZY`(相似度 0.85、長度差由門檻推得),
  *    否決關鍵字換英文(`panel-veto.ts`)。分組 / 面板 / entry 對應 / 數值 / profile 的規則與繁中完全相同。省略 `lang` = 繁中(逐位元不變)。
@@ -125,13 +128,37 @@ export interface RevealGroup {
   partial: boolean;
 }
 
+/**
+ * profile 從哪來:`refName` / `category` = 呼叫端的提示(最近查價的物品);`intersection` / `all` = 沒有提示時推算;
+ * `hint-rejected`(2026-10-03)= 有提示,但提示下有組對不上、改用推算的可能底材(`rejectedHint.fallback`)對上的組更多。
+ */
+export type RevealProfileSource = "refName" | "category" | "intersection" | "all" | "hint-rejected";
+
+/** 提示被否決的原因(log / 「?」說明用) */
+export interface RevealRejectedHint {
+  refName?: string;
+  category?: string;
+  /** 提示解析成精確底材(`refName`)或類別後援(`category`) */
+  hintSource: "refName" | "category";
+  /** 提示下「有命中的行但擲不出任何一條」的組數(> 0) */
+  hintNoMatch: number;
+  /** 改用的推算方式 */
+  fallback: "intersection" | "all";
+  /** 推算下仍對不上的組數(< hintNoMatch) */
+  fallbackNoMatch: number;
+  /** 有命中行的組數 */
+  groups: number;
+}
+
 export type RevealMatchResult =
   | {
       ok: true;
       groups: RevealGroup[];
-      /** profile 來自呼叫端給的 refName 且精確命中 base_profiles */
+      /** profile 來自呼叫端給的 refName 且精確命中 base_profiles(提示被否決時為 false) */
       profileExact: boolean;
-      profileSource: "refName" | "category" | "intersection" | "all";
+      profileSource: RevealProfileSource;
+      /** 只在 `profileSource === "hint-rejected"` 時有 */
+      rejectedHint?: RevealRejectedHint;
     }
   | {
       ok: false;
@@ -700,9 +727,25 @@ export function matchReveal(
   }
 
   // profile
+  // 沒有提示時的推算:三個選項屬於同一件物品 → 每組候選 entry 可擲出的 profile 取交集;交集為空(或不取交集)→ 全部 profile
+  const inferProfiles = (): { profiles: string[]; source: "intersection" | "all" } => {
+    if (opts.intersectProfiles === false) return { profiles: idx.allProfiles, source: "all" };
+    const perGroup = panel
+      .filter((s) => s.covers.length)
+      .map((s) => new Set(s.covers.flatMap((c) => Object.keys(c.entry.profile_tiers))));
+    const inter = perGroup.length
+      ? [...perGroup[0]].filter((p) => perGroup.every((set) => set.has(p)))
+      : [];
+    return inter.length ? { profiles: inter, source: "intersection" } : { profiles: idx.allProfiles, source: "all" };
+  };
+  // 有命中的行、但這些 profile 擲不出任何一條的組數(徽章「此底材擲不出對應的詞綴」)
+  const noMatchCount = (ps: string[]) =>
+    panel.filter((s) => s.covers.length && !toCandidates(s.covers, ps).length).length;
+
   let profiles: string[] | null = null;
   let profileExact = false;
-  let profileSource: "refName" | "category" | "intersection" | "all" = "all";
+  let profileSource: RevealProfileSource = "all";
+  let rejectedHint: RevealRejectedHint | undefined;
   if (opts.refName || opts.category) {
     // resolveProfiles 只讀 info.refName 與 category
     const item = { info: { refName: opts.refName ?? "" }, category: opts.category };
@@ -711,23 +754,33 @@ export function matchReveal(
       profiles = r.profiles;
       profileExact = r.exact;
       profileSource = r.exact ? "refName" : "category";
+      // 2026-10-03:提示 = 「最近 10 分鐘查過價的物品」,不一定是正在褻瀆的那件。
+      // 提示下有任一組對不上、而改用推算的可能底材能讓對不上的組變少 → 否決提示(全部對得上 = 行為不變)。
+      const hintMiss = noMatchCount(r.profiles);
+      if (hintMiss > 0) {
+        const alt = inferProfiles();
+        const altMiss = noMatchCount(alt.profiles);
+        if (altMiss < hintMiss) {
+          profiles = alt.profiles;
+          profileExact = false;
+          profileSource = "hint-rejected";
+          rejectedHint = {
+            refName: opts.refName,
+            category: opts.category,
+            hintSource: r.exact ? "refName" : "category",
+            hintNoMatch: hintMiss,
+            fallback: alt.source,
+            fallbackNoMatch: altMiss,
+            groups: panel.filter((s) => s.covers.length).length,
+          };
+        }
+      }
     }
   }
-  if (!profiles && opts.intersectProfiles === false) profiles = idx.allProfiles;
   if (!profiles) {
-    // 三個選項屬於同一件物品:每組候選 entry 可擲出的 profile 取交集
-    const perGroup = panel
-      .filter((s) => s.covers.length)
-      .map((s) => new Set(s.covers.flatMap((c) => Object.keys(c.entry.profile_tiers))));
-    const inter = perGroup.length
-      ? [...perGroup[0]].filter((p) => perGroup.every((set) => set.has(p)))
-      : [];
-    if (inter.length) {
-      profiles = inter;
-      profileSource = "intersection";
-    } else {
-      profiles = idx.allProfiles;
-    }
+    const alt = inferProfiles();
+    profiles = alt.profiles;
+    profileSource = alt.source;
   }
 
   const groups: RevealGroup[] = panel.map((s) => {
@@ -739,5 +792,7 @@ export function matchReveal(
       partial: s.partial,
     };
   });
-  return { ok: true, groups, profileExact, profileSource };
+  return rejectedHint
+    ? { ok: true, groups, profileExact, profileSource, rejectedHint }
+    : { ok: true, groups, profileExact, profileSource };
 }

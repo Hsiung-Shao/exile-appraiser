@@ -1,9 +1,11 @@
 // WP-S:揭露面板 OCR 徽章的純邏輯(renderer/src/web/overlay/ocr-reveal.ts)
 import { describe, expect, it } from 'vitest'
 import {
-  BADGE_GAP_PX, BADGE_STACK_GAP_PX, LAST_ITEM_TTL_MS, badgeMetrics, closeRegionPicker, estimateBadgeHeight, guessNoteKey, layoutBadges,
-  openRegionPicker, profileHint, regionPickerClosed, regionPickerOpen, returnsToSettings, stackBadges, tierText, type BadgeFormat, type BadgeView
+  BADGE_GAP_PX, BADGE_STACK_GAP_PX, LAST_ITEM_TTL_MS, badgeMetrics, closeRegionPicker, estimateBadgeHeight, guessNote, guessNoteKey, layoutBadges,
+  openRegionPicker, profileHint, regionPickerClosed, regionPickerOpen, rejectedHintLog, returnsToSettings, stackBadges, tierText, type BadgeFormat, type BadgeView
 } from '../src/web/overlay/ocr-reveal'
+import zhHant from '../src/i18n/cmn-Hant.json'
+import en from '../src/i18n/en.json'
 
 describe('OCR 框選結束後回到設定(設定視窗)', () => {
   it('只有由設定開啟、且使用者自己結束(確認 / 取消 / 清除)才回設定', () => {
@@ -174,5 +176,23 @@ describe('第 13 步:徽章防碰撞與多候選收合', () => {
     expect(guessNoteKey({ profileExact: false, profileSource: 'intersection' })).toBe('ppz.ocr.guess_title')
     expect(guessNoteKey({ profileExact: false, profileSource: 'category' })).toBe('ppz.ocr.guess_title')
     expect(guessNoteKey({ profileExact: true, profileSource: 'refName' })).toBeNull()
+  })
+
+  it('「?」說明:最近查價的物品與面板不符(hint-rejected)→ 註明那件物品;log 記否決原因;未否決時說明與 log 不變', () => {
+    const hint = { refName: 'Militant Bow', hintSource: 'refName' as const, hintNoMatch: 2, fallback: 'intersection' as const, fallbackNoMatch: 0, groups: 3 }
+    const r = { profileExact: false, profileSource: 'hint-rejected' as const, rejectedHint: hint }
+    expect(guessNoteKey(r)).toBe('ppz.ocr.guess_title_hint')
+    expect(guessNote(r)).toEqual({ key: 'ppz.ocr.guess_title_hint', args: { item: 'Militant Bow' } })
+    expect(guessNoteKey({ ...r, rejectedHint: { ...hint, fallback: 'all' } })).toBe('ppz.ocr.guess_title_hint_all')
+    expect(guessNote({ ...r, rejectedHint: { ...hint, refName: undefined, category: 'Bow', hintSource: 'category' } })!.args).toEqual({ item: 'Bow' })
+    expect(rejectedHintLog(r)).toBe('最近查價的物品(Militant Bow,精確底材)與面板不符:3 組中 2 組此底材擲不出 → 改依共同的可能底材推算(仍對不上 0 組)')
+    expect(guessNote({ profileExact: false, profileSource: 'intersection' })).toEqual({ key: 'ppz.ocr.guess_title' })
+    expect(guessNote({ profileExact: true, profileSource: 'refName' })).toBeNull()
+    expect(rejectedHintLog({})).toBe('')
+    // 兩種語言都有這兩個鍵,且都帶 {item}
+    for (const lang of [zhHant, en]) {
+      expect(lang.ppz.ocr.guess_title_hint).toContain('{item}')
+      expect(lang.ppz.ocr.guess_title_hint_all).toContain('{item}')
+    }
   })
 })
