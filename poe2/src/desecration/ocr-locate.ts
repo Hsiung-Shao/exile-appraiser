@@ -9,6 +9,8 @@
  * - 座標單位由呼叫端決定(main 用擷取影像的實體像素)。
  * - 2026-10-01:每一簇命中行再過 `panel-veto.ts` 的否決規則(物品浮窗的詞綴標頭 / 屬性行 / 組數或行數太多),被否決的簇不採用
  *   (使用者回報背包物品的進階詞綴說明被當成揭露面板)。
+ * - 2026-10-02 code review 第 A 批:與 renderer `selectPanel` 一致化 —— 簇先過 `rawRunVeto`(明顯是浮窗才整簇否決),
+ *   4 組的簇再對每個連續 3 組的視窗各自套否決(`panelWindows`),真面板旁多一條像詞綴的雜行時不整簇丟掉。
  */
 import {
   ALIGN_RATIO,
@@ -26,7 +28,7 @@ import {
   templateSkeleton,
   type OcrTextLine,
 } from "./ocr-text";
-import { panelVeto, type PanelVeto, type ShapeLine } from "./panel-veto";
+import { panelWindows, type PanelVeto, type ShapeLine } from "./panel-veto";
 
 export interface Rect {
   x: number;
@@ -156,17 +158,31 @@ export function modLines(lines: OcrTextLine[], idx: LocateIndex): OcrTextLine[] 
   return modHits(lines, idx).hits;
 }
 
-/** 簇內的命中行 → 否決規則用的形狀行(折行兩半都在簇內 → 合併成一行,`merged`) */
-function shapeOf(cluster: OcrTextLine[], pairs: Map<OcrTextLine, OcrTextLine>): ShapeLine[] {
+/**
+ * 簇內的命中行 → 否決規則用的形狀行(折行兩半都在簇內 → 合併成一行,`merged`);
+ * `origin` = 形狀行 → 原本的行(合併行對到兩行),視窗挑完後換回原本的行
+ */
+function shapeOf(
+  cluster: OcrTextLine[],
+  pairs: Map<OcrTextLine, OcrTextLine>,
+): { shape: ShapeLine[]; origin: Map<ShapeLine, OcrTextLine[]> } {
   const inCluster = new Set(cluster);
   const tails = new Set([...pairs.entries()].filter(([a, b]) => inCluster.has(a) && inCluster.has(b)).map(([, b]) => b));
-  const out: ShapeLine[] = [];
+  const shape: ShapeLine[] = [];
+  const origin = new Map<ShapeLine, OcrTextLine[]>();
   for (const l of cluster) {
     if (tails.has(l)) continue;
     const b = pairs.get(l);
-    out.push(b && tails.has(b) ? { ...unionRect([l, b]), text: `${l.text} ${b.text}`, merged: true } : l);
+    if (b && tails.has(b)) {
+      const m: ShapeLine = { ...unionRect([l, b]), text: `${l.text} ${b.text}`, merged: true };
+      shape.push(m);
+      origin.set(m, [l, b]);
+    } else {
+      shape.push(l);
+      origin.set(l, [l]);
+    }
   }
-  return out;
+  return { shape, origin };
 }
 
 export interface PanelHits {
@@ -187,7 +203,7 @@ export interface PanelHitsDiag {
 
 /**
  * 找面板上的詞綴行:命中行依 y 排序成簇(相鄰中心距 ≤ PANEL_GAP_RATIO × 行高、x 中心與簇對齊);
- * 每一簇過 `panelVeto`(物品浮窗的標頭 / 屬性行 / 組數或行數太多 → 不採用,記進 `diag.vetoes`);
+ * 每一簇過 `panelWindows`(明顯是浮窗 → 整簇不採用;4 組的簇只採用沒被否決的連續 3 組視窗;否決原因記進 `diag.vetoes`);
  * 採用所有沒被否決、≥ 2 行的簇(面板至少 2 個選項;畫面上若還有別的詞綴簇一起框進來 —— 寧可框大也不框錯,
  * 真正挑面板是 renderer `matchReveal` 的事);沒有 ≥ 2 行的簇就採用沒被否決的全部命中行。沒有命中(或全被否決)回 null。
  */
@@ -206,11 +222,17 @@ export function findPanelHits(lines: OcrTextLine[], idx: LocateIndex, diag?: Pan
   }
   const hitSet = new Set(hits);
   const others = lines.filter((l) => !hitSet.has(l));
-  const kept = clusters.filter((g) => {
-    const v = panelVeto(shapeOf(g, pairs), others);
-    if (v) diag?.vetoes.push({ ...v, lines: g.length });
-    return !v;
-  });
+  const kept: OcrTextLine[][] = [];
+  for (const g of clusters) {
+    const { shape, origin } = shapeOf(g, pairs);
+    const r = panelWindows(shape, others);
+    if ("veto" in r) {
+      diag?.vetoes.push({ ...r.veto, lines: g.length });
+      continue;
+    }
+    const use = new Set(r.hits.flatMap((l) => origin.get(l) ?? [l]));
+    kept.push(g.filter((l) => use.has(l)));
+  }
   if (!kept.length) return null;
   const multi = kept.filter((g) => g.length >= 2);
   const used = multi.length ? multi.flat() : kept.flat();

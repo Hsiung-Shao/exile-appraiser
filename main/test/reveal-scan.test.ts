@@ -182,7 +182,9 @@ describe('RevealScan 自動持續辨識(假時鐘 + 快照畫面)', () => {
     const h = harness(FULL02)
     await h.scan.tick()
     expect(h.events).toHaveLength(1)
-    h.state.screen = FULL03
+    // fullscreen-03 的真實 ×1 快照(code review 第 A 批補)只認出 1 行亂碼 → 整張 ×1 定位本來就找不到它(另見 panel-veto.test.ts);
+    // 這條測的是「徽章跟著新結果更新」,×1 改回用 ×3 的行(= 補 ×1 快照之前的行為)
+    h.state.screen = { ...FULL03, lines1: undefined }
     h.state.version = 2
     await h.scan.tick()
     // 同一個快取區看到新面板(03 的面板位置不同時,快取區可能對不上 → 會回到整張定位)

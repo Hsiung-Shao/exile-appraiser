@@ -474,7 +474,7 @@ describe("自動查詢佇列(createRuneTradeQueue)", () => {
     expect(q.enqueue(a)).toBe(true);
   });
 
-  it("過期清除:done 超過 30 分鐘、failed 超過 5 分鐘,下次排入時順手清掉(通知 undefined),TTL 語意不變", async () => {
+  it("過期只清快取、不刪條目:done 超過 30 分鐘、failed 超過 5 分鐘仍顯示原狀態(不通知 undefined),再排入時照 TTL 重查", async () => {
     const { clock, q, calls, changes } = setup();
     const a = plan(gemRow);
     const b = plan(skillRow);
@@ -487,12 +487,16 @@ describe("自動查詢佇列(createRuneTradeQueue)", () => {
     await clock.advance(RUNE_TRADE_FAIL_RETRY_MS);
     const c = plan(supportRow);
     q.enqueue(c);
-    expect(q.entry(b.key)).toBeUndefined(); // failed 已過重試間隔
+    expect(q.entry(b.key)?.state).toBe("failed"); // failed 已過重試間隔:條目留著(列仍顯示失敗),只是可重排
     expect(q.entry(a.key)?.state).toBe("done"); // done 還在 TTL 內
     await clock.advance(RUNE_TRADE_CACHE_MS - RUNE_TRADE_FAIL_RETRY_MS);
     q.enqueue(plan({ kind: "skill", refName: "Other", name: "其他" }));
-    expect(q.entry(a.key)).toBeUndefined();
-    expect(changes.filter(([k, s2]) => k === a.key && s2 === undefined)).toHaveLength(1);
+    expect(q.entry(a.key)?.state).toBe("done"); // 快取過期,但仍顯示中的列不被清掉
+    expect(changes.filter(([, s2]) => s2 === undefined)).toHaveLength(0);
+    // TTL 語意不變:過期的 done / failed 再排入都會重查
+    expect(q.enqueue(a)).toBe(true);
+    expect(q.entry(a.key)?.state).toBe("queued");
+    expect(q.enqueue(b)).toBe(true);
   });
 
   it("筆數上限:超過時淘汰最舊的已完成項目,排隊中 / 查詢中的不被淘汰", async () => {

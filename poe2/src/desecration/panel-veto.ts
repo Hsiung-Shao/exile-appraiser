@@ -4,12 +4,20 @@
  * 使用者回報:沒開揭露面板時,背包物品的進階詞綴說明(每條詞綴上方有「前綴 / 後綴詞綴」標頭)被當成面板,疊出好幾枚徽章。
  * 只看「≥ 2 行像詞綴且分成 ≥ 2 組」擋不住:tiers.json 的模板含一般池 1,483 條,物品浮窗的詞綴本來就像詞綴;標頭行把詞綴撐開成每行一組。
  * 這裡收集面板**不會有**、物品浮窗**會有**的特徵,任一條成立就否決:
- *   1. `tooltip-header`:命中的詞綴行之間夾著 x 對齊、離相鄰命中行 ≤ 分組門檻(1.9 × 行高)、對不上模板的 CJK 行(浮窗的詞綴標頭)。
- *      面板選項之間的空隙 > 1.9 × 行高(那種行由 `ocr-match.ts` `bridgeUnmatched` 補成「中間沒認出的選項」,不在這條);
- *      看起來像詞綴數值的行(帶 `%` 或 `+數字`,= OCR 認錯一兩個字的詞綴)不算標頭(真面板裡某一行沒認出時不要誤殺)。
+ *   1. `tooltip-header`:**至少 2 行**「浮窗詞綴標頭」形狀的未命中行(`MIN_TOOLTIP_HEADERS`)。標頭 = x 對齊、對不上模板的 CJK 行,
+ *      緊貼在**下一條**命中行上方(≤ 分組門檻 1.9 × 行高),且**上一條**命中行也在分組門檻內、或上方根本沒有命中行
+ *      (浮窗的詞綴一條接一條、每條上方一行標頭:上一條詞綴 → 標頭 ≈ 1.4 ×、標頭 → 詞綴 ≈ 1.25 ×)。
+ *      2026-10-02 code review 第 A 批改:舊版「離任一相鄰命中行 ≤ 1.9 ×、一行就否決」會誤殺真面板裡認錯的一行 ——
+ *      某選項第 2 行認錯(離上一行 ~1.5 ×、離下一個選項 ≥ 2.31 ×)、某選項第 1 行認錯(真實 body-armour-01 ×1:
+ *      `增加25。/。護甲值和因` 離上一個選項 2.55 ×、離同選項下一行 1.17 ×)。前者不貼下一條、後者離上一條超過分組門檻 → 都不是標頭形狀;
+ *      3 行選項的中間行 / 第 1 個選項的第 1 行認錯仍是標頭形狀,所以要 ≥ 2 行才否決(一個面板同時認錯兩行這種位置才會誤殺)。
+ *      看起來像詞綴數值的行(帶 `%` 或 `+數字`,= OCR 認錯一兩個字的詞綴)不算標頭。
  *   2. `keyword-line`:命中框附近(上下各 6 × 行高、左右各 2 × 行高)有對不上模板的行含「前綴 / 後綴 / 詞綴 / 階級 / 物品等級」、
  *      或屬性格式的冒號(`護甲值: 103`、`需求: 等級 80`);「需求 / 品質」只在沒有 `%` 時算(模板有 `減少#%能力值需求`、`#%至全部技能的品質`)。
  *   3. `too-many-groups` / `group-too-tall`:組數 > 3 或任一組 > 3 行(面板最多 3 個選項;一個褻瀆詞綴最多 3 行,tiers.json parts ≤ 3)。
+ *      2026-10-02 code review 第 A 批:分兩層 —— 挑窗前的原始段 / 簇先過 `rawRunVeto`(> 4 組、或一塊連續 > 3 行且語意切成 > 3 段
+ *      = 明顯是浮窗);> 3 組的段再挑連續 3 組(`panelWindows` / renderer 依分數),**只對挑中的 3 組**套 `panelVeto`
+ *      (真面板旁 6 × 行高內多一條像詞綴的雜行時,不再整段否決)。
  *      組 = 依 y 間距切的幾何組(`shapeGroups`,折行合併算一行);中間夾著一行「像詞綴數值、只是沒認出」的行而緊貼兩邊的相鄰組
  *      視為同一個選項(`glueGroups`,那行算進行數)。renderer(`ocr-match.ts`)另給 `splitCount`:> 3 行的組改算語意切段數
  *      (保留「門檻失準時幾何組 4 行再由語意切開」的容錯;物品浮窗連續 6 行仍會被切成 6 段 → 否決)。
@@ -39,6 +47,13 @@ export interface PanelVeto {
 export const MAX_PANEL_GROUPS = 3;
 /** 一個選項(褻瀆詞綴)最多幾行 */
 export const MAX_GROUP_LINES = 3;
+/**
+ * 挑窗前的原始段 / 簇最多幾組(超過 = 明顯是浮窗,整段否決):面板 3 組 + 旁邊多一條像詞綴的雜行。
+ * 負樣本:合成 C(稀有裝備 5 條有空隙)5 組、B(進階說明標頭)5 組;真實 tooltip-gloves ×3 是一塊連續 4 行(另由「連續 > 3 段」擋)。
+ */
+export const MAX_RAW_GROUPS = MAX_PANEL_GROUPS + 1;
+/** `tooltip-header` 至少要幾行標頭形狀的未命中行才否決(一行可能是真面板某選項第 1 行 / 中間行認錯) */
+export const MIN_TOOLTIP_HEADERS = 2;
 /** 關鍵字否決行的範圍:命中框上下各這麼多行高(= 面板組距上限) */
 export const VETO_NEAR_Y_RATIO = PANEL_GAP_RATIO;
 /** 關鍵字否決行的範圍:命中框左右各這麼多行高(聊天訊息 / 背包字離面板更遠) */
@@ -152,6 +167,16 @@ export function glueGroups(
   return out;
 }
 
+/** 一簇命中行的「幾何組 + 黏合」(`panelVeto` / `rawRunVeto` / `panelWindows` 共用;`free` = 含 CJK 的未命中行) */
+export function panelGroups(
+  hits: ShapeLine[],
+  others: OcrTextLine[],
+): { lineH: number; free: OcrTextLine[]; groups: Array<{ hits: ShapeLine[]; glue: OcrTextLine[] }> } {
+  const lineH = shapeLineH(hits);
+  const free = others.filter((u) => CJK.test(u.text));
+  return { lineH, free, groups: glueGroups(shapeGroups(hits, lineH), free, lineH) };
+}
+
 export interface PanelVetoOptions {
   /**
    * renderer:超過 3 行的組改算「這些命中行被語意切成幾段」(門檻失準把相鄰選項併成一個幾何組時的容錯);
@@ -166,12 +191,11 @@ export interface PanelVetoOptions {
  */
 export function panelVeto(hits: ShapeLine[], others: OcrTextLine[], opts: PanelVetoOptions = {}): PanelVeto | null {
   if (!hits.length) return null;
-  const lineH = shapeLineH(hits);
-  const free = others.filter((u) => CJK.test(u.text));
+  const { lineH, free, groups: glued } = panelGroups(hits, others);
   // 3. 組數 / 每組行數
   let groups = 0;
   let maxLines = 0;
-  for (const g of glueGroups(shapeGroups(hits, lineH), free, lineH)) {
+  for (const g of glued) {
     const n = g.hits.length + g.glue.length;
     if (n > MAX_GROUP_LINES && opts.splitCount) {
       groups += opts.splitCount(g.hits);
@@ -193,24 +217,92 @@ export function panelVeto(hits: ShapeLine[], others: OcrTextLine[], opts: PanelV
     if (u.x + u.w < box.x - nearX || u.x > box.x + box.w + nearX) continue;
     if (vetoLineReason(u.text)) return { kind: "keyword-line", detail: u.text };
   }
-  // 1. 夾在相鄰兩條命中行之間、緊貼著(≤ 分組門檻)、x 對齊的未命中行 = 浮窗的詞綴標頭
+  // 1. 浮窗的詞綴標頭:緊貼下一條命中行上方、上一條命中行也緊貼(或上方沒有命中行)、x 對齊的未命中行 ≥ 2 行
+  const headers = tooltipHeaders(hits, free, lineH);
+  if (headers.length >= MIN_TOOLTIP_HEADERS) return { kind: "tooltip-header", detail: headers[0].text };
+  return null;
+}
+
+/**
+ * 「浮窗詞綴標頭」形狀的未命中行(依 y 排序):緊貼**下一條**命中行上方(中心距 ≤ 分組門檻 1.9 × 行高),
+ * 且**上一條**命中行也在分組門檻內、或它上方沒有命中行;x 與下一條(或上一條)對齊;不像詞綴數值。
+ * 門檻依據(三張正樣本 ×3):組內行距 1.50–1.54 ×、組間 2.31–4.64 ×,1.9 介於兩者之間 ——
+ * 上一條命中行超過 1.9 × = 它是上一個選項 → 這行是某選項認錯的第 1 行,不是標頭(真實 body-armour-01 ×1 的 2.55 ×)。
+ * 合併過的行(折行)以靠近對方的那一半為中心(同 `shapeGroups`)。
+ */
+export function tooltipHeaders(hits: ShapeLine[], free: OcrTextLine[], lineH = shapeLineH(hits)): OcrTextLine[] {
   const sorted = [...hits].sort((a, b) => cy(a) - cy(b));
   const gap = GROUP_GAP_RATIO * lineH;
-  for (let i = 0; i + 1 < sorted.length; i++) {
-    const a = sorted[i];
-    const b = sorted[i + 1];
-    const aCy = a.merged ? a.y + a.h - lineH / 2 : cy(a);
-    const bCy = b.merged ? b.y + lineH / 2 : cy(b);
-    for (const u of free) {
-      const c = cy(u);
-      if (c <= aCy || c >= bCy) continue;
-      if (Math.min(c - aCy, bCy - c) > gap) continue;
-      if (!xAligned(u, a, lineH) && !xAligned(u, b, lineH)) continue;
-      if (modValueLike(u)) continue;
-      return { kind: "tooltip-header", detail: u.text };
+  const top = (l: ShapeLine) => (l.merged ? l.y + lineH / 2 : cy(l));
+  const bottom = (l: ShapeLine) => (l.merged ? l.y + l.h - lineH / 2 : cy(l));
+  const out: OcrTextLine[] = [];
+  for (const u of free) {
+    const c = cy(u);
+    const i = sorted.findIndex((l) => top(l) > c);
+    if (i < 0) continue; // 下方沒有命中行
+    const b = sorted[i];
+    if (top(b) - c > gap) continue;
+    const a = i > 0 ? sorted[i - 1] : null;
+    if (a) {
+      const d = c - bottom(a);
+      if (d <= 0 || d > gap) continue;
     }
+    if (!xAligned(u, b, lineH) && !(a && xAligned(u, a, lineH))) continue;
+    if (modValueLike(u)) continue;
+    out.push(u);
   }
+  return out.sort((p, q) => cy(p) - cy(q));
+}
+
+/**
+ * 挑窗**之前**的否決(code review 第 A 批):原始段 / 簇明顯是浮窗 → 整段否決,不再挑 3 組。
+ * - 任一組(幾何組 + 黏合)> 3 行:有 `splitCount`(renderer)時改算語意段數,> 3 段(一塊連續 4+ 行各自是一條詞綴,
+ *   真實 tooltip-gloves ×3 的 4 行、合成 C' 的 6 行)→ `too-many-groups`;沒有(main)→ `group-too-tall`(與 `panelVeto` 相同)。
+ * - 總組數 > `MAX_RAW_GROUPS`(4)→ `too-many-groups`(合成 B / C 都是 5 組;面板 3 組 + 1 條雜行 = 4 組不擋,交給挑窗)。
+ * 關鍵字 / 標頭規則**不在這裡**:只對挑中的 3 組套(`panelVeto`),段裡遠處的雜行不連累面板。
+ */
+export function rawRunVeto(hits: ShapeLine[], others: OcrTextLine[], opts: PanelVetoOptions = {}): PanelVeto | null {
+  if (!hits.length) return null;
+  const { groups: glued } = panelGroups(hits, others);
+  let groups = 0;
+  for (const g of glued) {
+    const n = g.hits.length + g.glue.length;
+    if (n <= MAX_GROUP_LINES) {
+      groups++;
+      continue;
+    }
+    if (!opts.splitCount) return { kind: "group-too-tall", detail: `${n} 行` };
+    const k = opts.splitCount(g.hits);
+    if (k > MAX_PANEL_GROUPS) return { kind: "too-many-groups", detail: `連續 ${n} 行切成 ${k} 段` };
+    groups += k;
+  }
+  if (groups > MAX_RAW_GROUPS) return { kind: "too-many-groups", detail: `${groups} 組` };
   return null;
+}
+
+/**
+ * main(`ocr-locate.ts` `findPanelHits`)用:一簇命中行 → 可採用的命中行;否決回 `{ veto }`。
+ * 先 `rawRunVeto`;≤ 3 組 → 整簇 `panelVeto`(與改版前相同);4 組 → 每個連續 3 組的視窗各自 `panelVeto`,
+ * 採用**所有沒被否決的視窗**的聯集(main 只負責框裁切範圍,寧可框大;挑面板是 renderer 的事),全被否決回第一個原因。
+ */
+export function panelWindows(hits: ShapeLine[], others: OcrTextLine[]): { hits: ShapeLine[] } | { veto: PanelVeto } {
+  const raw = rawRunVeto(hits, others);
+  if (raw) return { veto: raw };
+  const { groups } = panelGroups(hits, others);
+  if (groups.length <= MAX_PANEL_GROUPS) {
+    const v = panelVeto(hits, others);
+    return v ? { veto: v } : { hits };
+  }
+  const kept = new Set<ShapeLine>();
+  let first: PanelVeto | null = null;
+  for (let i = 0; i + MAX_PANEL_GROUPS <= groups.length; i++) {
+    const win = groups.slice(i, i + MAX_PANEL_GROUPS).flatMap((g) => g.hits);
+    const v = panelVeto(win, others);
+    if (v) first ??= v;
+    else for (const l of win) kept.add(l);
+  }
+  if (!kept.size) return { veto: first! };
+  return { hits: hits.filter((l) => kept.has(l)) };
 }
 
 /**

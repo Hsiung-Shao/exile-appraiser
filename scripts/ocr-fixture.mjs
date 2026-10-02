@@ -1,7 +1,9 @@
 // exile-appraiser(WP-S):對 fixture 截圖跑 Windows OCR,產生 `*.ocr.json` 快照。
-//   node scripts/ocr-fixture.mjs [--set desecration|runeshape|all] [--with-locate] [檔名過濾字串]
+//   node scripts/ocr-fixture.mjs [--set desecration|runeshape|all] [--with-locate [--locate-only]] [檔名過濾字串]
 //   - desecration(預設):poe2/test/desecration/fixtures/ocr/*.{webp,png}(WP-S 揭露面板;`tooltip-*` 是負樣本 = 不是揭露面板的畫面)
-//   - `--with-locate`:desecration 也另存 `locate`(整張 ×1 = 自動定位那一段的輸入);既有正樣本快照沒有這欄,重產時別加
+//   - `--with-locate`:desecration 也另存 `locate`(整張 ×1 = 自動定位那一段的輸入;正樣本 well-of-souls-* 與負樣本 tooltip-* 都有,重產時要加)
+//   - `--locate-only`(搭配 `--with-locate`):只補 / 重產 `locate`,既有快照的其他欄位(×3 的 `lines` 等)原樣保留、不重跑 ×3
+//     (2026-10-02 code review 第 A 批替三張正樣本補 ×1 快照時用:×3 行是既有斷言的輸入,別讓重跑 OCR 動到它)
 //   - runeshape:poe2/test/runeshape/fixtures/ocr/*.{webp,png}(WP-R2 符文塑形面板)
 // 需要 Windows + OCR 語言包 zh-Hant-TW。腳本與 runtime 同一支:main/src/ocr/win-ocr.ps1(WinOcr.ts 以 esbuild text loader 內嵌)。
 // 前處理照 runtime 的 `prepare()`(main/src/ocr/capture.ts):整張圖當 client 區,放大倍率 s = min(3, floor(9000 / max(w, h))),
@@ -25,11 +27,13 @@ const argv = process.argv.slice(2)
 let setArg = 'desecration'
 let filter = ''
 let withLocate = false
+let locateOnly = false
 for (let i = 0; i < argv.length; i++) {
   const a = argv[i]
   if (a === '--set') setArg = argv[++i] ?? ''
   else if (a.startsWith('--set=')) setArg = a.slice('--set='.length)
   else if (a === '--with-locate') withLocate = true
+  else if (a === '--locate-only') locateOnly = true
   else if (!a.startsWith('--')) filter = a
 }
 const setNames = setArg === 'all' ? Object.keys(SETS) : [setArg]
@@ -87,6 +91,18 @@ try {
       .resize(meta.width * scale, meta.height * scale, { kernel: 'lanczos3' })
       .jpeg({ quality: 95 })
       .toBuffer()
+    const outFile = path.join(dir, file.replace(/\.(webp|png)$/i, '.ocr.json'))
+    if (locateOnly && withLocate && set === 'desecration') {
+      const kept = JSON.parse(readFileSync(outFile, 'utf8'))
+      const one = await sharp(src).jpeg({ quality: 95 }).toBuffer()
+      const r1 = await ocr.recognize(one)
+      kept.locate = { scale: 1, w: r1.w, h: r1.h, lines: r1.lines }
+      console.log(`[ocr] ${set}/${file} 只補定位段 ×1 → ${r1.lines.length} 行(OCR ${r1.ms} ms;其他欄位原樣保留)`)
+      printLines(r1.lines)
+      writeFileSync(outFile, JSON.stringify(kept, null, 2) + '\n')
+      console.log(`  → ${path.relative(root, outFile)}`)
+      continue
+    }
     const t0 = Date.now()
     const res = await ocr.recognize(image)
     const wall = Date.now() - t0
@@ -128,7 +144,6 @@ try {
         console.log(`[ocr] ${set}/${file} 定位段沒找到面板`)
       }
     }
-    const outFile = path.join(dir, file.replace(/\.(webp|png)$/i, '.ocr.json'))
     writeFileSync(outFile, JSON.stringify(out, null, 2) + '\n')
     console.log(`  → ${path.relative(root, outFile)}`)
   }

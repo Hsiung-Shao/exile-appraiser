@@ -458,15 +458,12 @@ export function createRuneTradeQueue(deps: RuneTradeQueueDeps = {}): RuneTradeQu
     for (const [k, v] of cache) if (t - v.at >= RUNE_TRADE_CACHE_MS) cache.delete(k);
   }
 
-  /** 清過期條目(done 超過 TTL、failed 超過重試間隔,兩者 enqueue 本來就視同可重排)+ 超過筆數上限時淘汰最舊的已完成 / 已失敗項目 */
+  /**
+   * 超過筆數上限時淘汰最舊的已完成 / 已失敗條目(排隊中 / 查詢中永不淘汰)+ 快取超過上限時淘汰最舊的快取。
+   * code review 第 A 批:**過期不刪條目**——條目是畫面上那一列的顯示狀態,過期只代表下次 enqueue 要重查(TTL 由 `cached()` /
+   * `sweepCache()` 判斷、只刪 `cache`);刪掉條目並通知 undefined 會讓仍顯示中的列價格消失。
+   */
   function sweepEntries() {
-    const t = now();
-    for (const [k, e] of [...entries]) {
-      const at = settledAt(e);
-      if (at == null) continue;
-      const ttl = e.state === "done" ? RUNE_TRADE_CACHE_MS : RUNE_TRADE_FAIL_RETRY_MS;
-      if (t - at >= ttl) set(k, undefined);
-    }
     if (entries.size > RUNE_TRADE_MAX_ENTRIES) {
       const old = [...entries].filter(([, e]) => settledAt(e) != null)
         .sort((a, b) => settledAt(a[1])! - settledAt(b[1])!);

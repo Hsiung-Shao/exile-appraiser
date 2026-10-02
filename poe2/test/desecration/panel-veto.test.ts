@@ -3,6 +3,8 @@
  * main 定位(`ocr-locate.ts` `findPanelHits` / `locatePanel`)、renderer 比對(`ocr-match.ts` `matchReveal`)兩層的效果。
  *
  * - 正樣本:三張真實揭露面板快照(`fixtures/ocr/well-of-souls-*.ocr.json`)一條規則都不觸發(量測值寫在斷言裡)。
+ *   2026-10-02 code review 第 A 批起另有整張 ×1 快照(`locate`,`node scripts/ocr-fixture.mjs --with-locate --locate-only well-of-souls`;
+ *   ×3 的 `lines` 原樣保留):×1 的自動定位不能被否決(body-armour-01 ×1 正是舊 `tooltip-header` 誤殺的真實案例)。
  * - 負樣本(真實):`tooltip-gloves-advanced-01`(使用者回報的全螢幕截圖:沒開揭露面板、背包手套的進階詞綴說明開著;
  *   畫面上還疊著舊版 overlay 誤出的徽章與提示)→ 三層都不是面板。快照由 `node scripts/ocr-fixture.mjs --with-locate tooltip` 產生(×3 + 整張 ×1)。
  * - 負樣本(合成,依真實快照的行資料):同一個浮窗去掉進階說明 + 分隔線、進階說明的「前綴 / 後綴詞綴」標頭(有 / 沒有關鍵字)、
@@ -26,8 +28,10 @@ import {
   MAX_PANEL_GROUPS,
   panelAnchorScore,
   panelVeto,
+  rawRunVeto,
   shapeGroups,
   shapeLineH,
+  tooltipHeaders,
   vetoLineReason,
 } from "@/desecration/panel-veto";
 import type { DesecrationData } from "@/desecration/infer";
@@ -93,6 +97,52 @@ describe("正樣本:三張真實揭露面板,否決規則一條都不觸發", ()
       return panelAnchorScore(hits, lines.filter((l) => !hits.includes(l)));
     };
     expect(POSITIVES.map(score)).toEqual([0, 1, 2]);
+  });
+});
+
+describe("正樣本 ×1(整張 ×1 = main 自動定位那一段;code review 第 A 批補的快照)", () => {
+  const one = (name: string) => {
+    const s = readSnap(name);
+    expect(s.locate?.scale).toBe(1);
+    return toClient(s.locate!.lines, s.locate!.scale);
+  };
+  const bounds = (name: string) => {
+    const s = readSnap(name);
+    return { x: 0, y: 0, w: s.srcW, h: s.srcH };
+  };
+  for (const name of ["well-of-souls-body-armour-01", "well-of-souls-fullscreen-02"]) {
+    it(`${name}:locatePanel 找得到、沒有任何否決`, () => {
+      const lines = one(name);
+      const diag: PanelHitsDiag = { vetoes: [] };
+      expect(findPanelHits(lines, idx, diag)).not.toBeNull();
+      expect(diag.vetoes).toEqual([]);
+      expect(locatePanel(lines, idx, bounds(name))).not.toBeNull();
+    });
+  }
+  it("body-armour-01 ×1:第 2 個選項的第 1 行認錯(% → 。/。、沒有 +數字)—— 離上一個選項 2.55 ×、離同選項下一行 1.17 × → 不是標頭形狀", () => {
+    const lines = one("well-of-souls-body-armour-01");
+    const hits = modLines(lines, idx);
+    const others = lines.filter((l) => !hits.includes(l));
+    const H = shapeLineH(hits);
+    expect(H).toBe(29);
+    const bad = others.find((u) => norm(u.text) === "增加25。/。護甲值和因")!;
+    expect(bad).toBeDefined();
+    const above = hits.filter((l) => cy(l) < cy(bad)).map(cy);
+    const below = hits.filter((l) => cy(l) > cy(bad)).map(cy);
+    expect((cy(bad) - Math.max(...above)) / H).toBeCloseTo(2.55, 2);
+    expect((Math.min(...below) - cy(bad)) / H).toBeCloseTo(1.17, 2);
+    // 舊規則(離任一相鄰命中行 ≤ 1.9 × 就否決)會在這裡誤殺;新規則:上一條命中行超過分組門檻 → 不算標頭
+    expect(tooltipHeaders(hits, others)).toEqual([]);
+    expect(panelVeto(hits, others)).toBeNull();
+  });
+  it("fullscreen-03 ×1:整張 ×1 只認出 1 行亂碼、沒有像詞綴的行 → locatePanel null 但沒有任何否決(runtime 退回整張 ×3,×3 照常是面板)", () => {
+    const lines = one("well-of-souls-fullscreen-03");
+    expect(lines.length).toBe(1);
+    expect(modLines(lines, idx)).toEqual([]);
+    const diag: PanelHitsDiag = { vetoes: [] };
+    expect(locatePanel(lines, idx, bounds("well-of-souls-fullscreen-03"))).toBeNull();
+    expect(findPanelHits(lines, idx, diag)).toBeNull();
+    expect(diag.vetoes).toEqual([]);
   });
 });
 
@@ -214,6 +264,20 @@ describe("合成負樣本", () => {
     expectNotPanel(lines, ["tooltip-header"]);
   });
 
+  it("B''. 標頭只出現在詞綴之間(最上面那條的標頭沒認出):2 行標頭形狀(上下兩條詞綴都緊貼)→ tooltip-header", () => {
+    const Y = TIP_MOD_Y;
+    const lines = [
+      mk(PREFIX[0], Y),
+      mk("「 屠 夫 之 」", Y + 1.4 * TIP_H, TIP_H * 0.8),
+      mk(PREFIX[1], Y + 2.65 * TIP_H),
+      mk("「 冰 霜 之 」", Y + 4.05 * TIP_H, TIP_H * 0.8),
+      mk(SUFFIX[1], Y + 5.3 * TIP_H),
+    ];
+    // 3 組、每組 1 行(組數規則不觸發),只靠標頭
+    expect(shapeGroups(modLines(lines, idx)).map((g) => g.length)).toEqual([1, 1, 1]);
+    expectNotPanel(lines, ["tooltip-header"]);
+  });
+
   it("C. 稀有裝備 5 條詞綴、彼此有空隙(5 組)→ too-many-groups", () => {
     const mods = column([...PREFIX, ...SUFFIX], 2.4);
     expect(shapeGroups(modLines(mods, idx)).length).toBe(5);
@@ -249,6 +313,69 @@ describe("否決規則不誤殺", () => {
     const hits = modLines(lines, idx);
     expect(panelVeto(hits, lines.filter((l) => !hits.includes(l)))).toBeNull();
   });
+  it("兩行選項的第 2 行 OCR 認錯、不含 % / +數字:離上一行 1.54 ×、離下一個選項 3.06 ×(不貼下一條)→ 不否決,面板照常", () => {
+    const lines = [
+      at("+86 護 甲 值", 300),
+      at("看 不 懂 的 字", 300 + 1.54 * H), // 認錯的第 2 行
+      at("+21 最 大 生 命", 300 + 4.6 * H),
+      at("增 加 25 % 護 甲 值 和 閃 避", 300 + 9.2 * H),
+    ];
+    const hits = modLines(lines, idx);
+    const others = lines.filter((l) => !hits.includes(l));
+    expect(hits.length).toBe(3);
+    expect(tooltipHeaders(hits, others)).toEqual([]);
+    expect(panelVeto(hits, others)).toBeNull();
+    expect(findPanelHits(lines, idx)).not.toBeNull();
+    expect(matchReveal(lines, data, { refName: "Rogue Armour" }).ok).toBe(true);
+  });
+  it("3 行選項的中間行認錯、不含數字(上下都緊貼 = 標頭形狀)只有 1 行 → 不否決(要 ≥ 2 行才否決)", () => {
+    const lines = [
+      at("+21 最 大 生 命", 300),
+      at("+86 護 甲 值", 300 + 4.6 * H),
+      at("看 不 懂 的 字", 300 + 6.14 * H), // 認錯的中間行
+      at("+79 閃 避 值", 300 + 7.68 * H),
+    ];
+    const hits = modLines(lines, idx);
+    const others = lines.filter((l) => !hits.includes(l));
+    expect(tooltipHeaders(hits, others).map((u) => u.text)).toEqual(["看 不 懂 的 字"]);
+    expect(panelVeto(hits, others)).toBeNull();
+    expect(findPanelHits(lines, idx)).not.toBeNull();
+    expect(matchReveal(lines, data, { refName: "Rogue Armour" }).ok).toBe(true);
+  });
+  it("真面板 3 組 + 下方 6 × 行高內多一條像詞綴的行(同段 4 組):先挑分數最高的 3 組、只對它們否決 → 面板照常(改版前整段 too-many-groups)", () => {
+    const panel = [at("+21 最 大 生 命", 300), at("增 加 25 % 護 甲 值 和 閃 避", 300 + 4.6 * H), at("+86 護 甲 值", 300 + 9.2 * H)];
+    const stray = at("+ 38 % 火 焰 抗 性", 300 + 13.4 * H);
+    const lines = [...panel, stray];
+    expect(lineLooksLikeMod(stray.text, idx)).toBe(true);
+    const hits = modLines(lines, idx);
+    expect(shapeGroups(hits).length).toBe(4);
+    // 整段直接套 panelVeto(改版前的做法)會否決;挑窗前的 rawRunVeto 不否決(4 組 ≤ MAX_RAW_GROUPS)
+    expect(panelVeto(hits, [])?.kind).toBe("too-many-groups");
+    expect(rawRunVeto(hits, [])).toBeNull();
+    const r = matchReveal(lines, data, { refName: "Rogue Armour" });
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.groups.length).toBe(3);
+      expect(r.groups.flatMap((g) => g.lines.map((l) => l.text))).toEqual(panel.map((l) => l.text));
+    }
+    // main:4 組的簇對每個連續 3 組的視窗各自否決,沒被否決的視窗聯集(寧可框大)
+    const diag: PanelHitsDiag = { vetoes: [] };
+    const found = findPanelHits(lines, idx, diag);
+    expect(diag.vetoes).toEqual([]);
+    expect(found?.hits.map((l) => l.text)).toEqual(expect.arrayContaining(panel.map((l) => l.text)));
+  });
+  it("同上但多出來的那條旁邊有浮窗屬性行(只在第 2–4 組的視窗附近):main 只採用沒被否決的視窗(前 3 組)", () => {
+    const panel = [at("+21 最 大 生 命", 300), at("增 加 25 % 護 甲 值 和 閃 避", 300 + 4.6 * H), at("+86 護 甲 值", 300 + 9.2 * H)];
+    const stray = at("+ 38 % 火 焰 抗 性", 300 + 13.4 * H);
+    // 離面板第 1 組 > 6 × 行高(不在前 3 組的關鍵字範圍內)、離第 2–4 組的框 ≤ 6 ×
+    const prop = at("物 品 等 級 : 80", 300 + 17.5 * H);
+    const lines = [...panel, stray, prop];
+    const found = findPanelHits(lines, idx);
+    expect(found?.hits.map((l) => l.text)).toEqual(panel.map((l) => l.text));
+    const r = matchReveal(lines, data, { refName: "Rogue Armour" });
+    expect(r.ok).toBe(true);
+  });
+
   it("面板下方的「確認」、上方遠處的標題、旁邊遠處的聊天訊息(含冒號)都不否決", () => {
     const mods = [at("+21 最 大 生 命", 300), at("增 加 25 % 護 甲 值 和 閃 避", 300 + 4.6 * H), at("+86 護 甲 值", 300 + 9.2 * H)];
     const chat = { text: "[20:51] 某 人 : 你 好", x: 0, y: 300, w: 200, h: H }; // 左緣 0–200,離詞綴框 > 2 個行高

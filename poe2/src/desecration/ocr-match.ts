@@ -18,6 +18,8 @@
  *    之後把對不上的 CJK 行貼到最近的組(灰色顯示原文,`partial`)。
  *    2026-10-01:每一段候選面板再過 `panel-veto.ts` 的否決規則(物品浮窗的詞綴標頭 / 屬性行、幾何組數 > 3)→ 否決的段不採用;
  *    全部被否決時 `no-panel` 帶 `veto`(log 用)。「確認」按鈕 / 「靈魂之井」標題只在挑段時加分。
+ *    2026-10-02 code review 第 A 批:先 `rawRunVeto`(原始段明顯是浮窗:> 4 組、或連續 4+ 行各自一條詞綴),再挑分數最高的連續 3 組,
+ *    **只對挑中的 3 組**套 `panelVeto`(真面板旁多一條像詞綴的雜行時不再整段否決)。
  * 8. profile:呼叫端給最近查價的 PoE2 物品 refName → `resolveProfiles`(base_profiles 精確 / 類別後援);
  *    沒有時取「每組都有候選的 profile」交集(三個選項屬於同一件物品),再沒有就全部 profile;Tier 取聯集 → `T3–T4`,`profileExact: false`(UI 加「?」)。
  */
@@ -42,7 +44,7 @@ import {
   templateSkeleton,
   type OcrTextLine,
 } from "./ocr-text";
-import { panelAnchorScore, panelVeto, type PanelVeto } from "./panel-veto";
+import { panelAnchorScore, panelVeto, rawRunVeto, type PanelVeto, type ShapeLine } from "./panel-veto";
 
 export {
   ALIGN_RATIO,
@@ -403,7 +405,10 @@ function bridgeUnmatched(segs: Seg[], lines: RevealLine[]): Seg[] {
 /**
  * 從候選組挑出面板:連續、x 對齊、相距 ≤ PANEL_GAP 的組;取分數(有 entry 對上的組、精確命中行)最高的一段,最多 3 組。
  * 一段超過 3 組時先拿掉 `bridge` 組(它只負責把兩側接起來;3 個選項都認得出時,中間的未命中行只是雜字)。
- * 2026-10-01:每一段先過 `panelVeto`(`free` = 對不上模板的行;> 3 行的幾何組改算語意段數 `splitCount`)→ 否決的段整段不用;
+ * 否決(`panel-veto.ts`;`free` = 對不上模板的行;> 3 行的幾何組改算語意段數 `splitCount`)分兩層(2026-10-02 code review 第 A 批):
+ *   1. 挑窗前:整段過 `rawRunVeto`(> 4 組、或一塊連續 4+ 行切成 > 3 段 = 明顯是浮窗)→ 整段不用;
+ *   2. 挑窗後:只對挑中的連續 3 組(其中的真組;未命中行照常由 `free` 提供)套 `panelVeto` → 否決就整段不用。
+ *   改版前是整段先套 `panelVeto` 再挑窗:真面板旁 6 × 行高內多一條像詞綴的行被串進同段(4 組)就整段否決。
  * 分數另加面板固定元素(「確認」/「靈魂之井」,`panelAnchorScore`;只加分,不是必要條件)。
  */
 function selectPanel<T extends { lines: RevealLine[]; covers: unknown[]; bridge?: boolean }>(
@@ -435,17 +440,23 @@ function selectPanel<T extends { lines: RevealLine[]; covers: unknown[]; bridge?
       0,
     ) +
     5 * panelAnchorScore(gs.filter((g) => !g.bridge).flatMap((g) => g.lines), free);
+  // > 3 行的幾何組(門檻失準把相鄰選項併在一起)改算語意切了幾段
+  const vetoOf = (gs: T[], check: typeof panelVeto) => {
+    const segOf = new Map<RevealLine, number>();
+    gs.forEach((g, i) => g.lines.forEach((l) => segOf.set(l, i)));
+    return check(gs.flatMap((g) => g.lines), free, {
+      splitCount: (hs: ShapeLine[]) => new Set(hs.map((l) => segOf.get(l as RevealLine))).size,
+    });
+  };
+  const better = (w: T[], than: T[] | null) =>
+    !than || w.length > than.length || (w.length === than.length && score(w) > score(than));
   let best: T[] | null = null;
   let veto: PanelVeto | undefined;
   for (const run0 of runs) {
     const real = run0.filter((g) => !g.bridge);
+    // 1. 挑窗前:原始段明顯是浮窗 → 整段不用
     if (real.length >= 2) {
-      // > 3 行的幾何組(門檻失準把相鄰選項併在一起)改算語意切了幾段
-      const segOf = new Map<RevealLine, number>();
-      real.forEach((g, i) => g.lines.forEach((l) => segOf.set(l, i)));
-      const v = panelVeto(real.flatMap((g) => g.lines), free, {
-        splitCount: (hs) => new Set(hs.map((l) => segOf.get(l as RevealLine))).size,
-      });
+      const v = vetoOf(real, rawRunVeto);
       if (v) {
         veto ??= v;
         continue;
@@ -455,11 +466,20 @@ function selectPanel<T extends { lines: RevealLine[]; covers: unknown[]; bridge?
     if (r.length < 2) continue;
     // 超過 3 組:取分數最高的連續 3 組
     const n = Math.min(3, r.length);
+    let runBest: T[] | null = null;
     for (let i = 0; i + n <= r.length; i++) {
       const w = r.slice(i, i + n);
       if (w.filter((g) => !g.bridge).length < 2) continue; // 至少 2 組是真的對上詞綴
-      if (!best || w.length > best.length || (w.length === best.length && score(w) > score(best))) best = w;
+      if (better(w, runBest)) runBest = w;
     }
+    if (!runBest) continue;
+    // 2. 挑窗後:只對挑中的組套否決
+    const v = vetoOf(runBest.filter((g) => !g.bridge), panelVeto);
+    if (v) {
+      veto ??= v;
+      continue;
+    }
+    if (better(runBest, best)) best = runBest;
   }
   return best ? { panel: best } : { panel: null, veto };
 }
