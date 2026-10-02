@@ -45,7 +45,7 @@
     </div>
 
     <Teleport to="body">
-      <div v-if="tip" class="pob-dark rx-tip" :style="[fsStyle, tip.style]" role="tooltip" data-regex="tooltip">
+      <div v-if="tip" class="pob-dark rx-tip" :class="fsClass" :style="[fsStyle, tip.style]" role="tooltip" data-regex="tooltip">
         <div v-for="(l, i) in tip.e.zh" :key="'z' + i">{{ l }}</div>
         <template v-if="tip.e.en.length">
           <hr>
@@ -172,6 +172,7 @@ export default defineComponent({
 
     return {
       fsStyle: settingsFs.style,
+      fsClass: settingsFs.cls,
       t,
       scroller,
       view: store.view,

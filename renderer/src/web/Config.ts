@@ -12,7 +12,7 @@
  * - `language` = 遊戲客戶端語言(決定資料集與剪貼簿解析);`uiLanguage` = 介面字串語言,兩者分開
  * - `theme` / `accent` / `fsBase` = 外觀(src/web/useTheme.ts 寫到 <html>)
  */
-import { reactive, shallowRef, watch } from 'vue'
+import { nextTick, reactive, shallowRef, watch } from 'vue'
 import { REALMS, useEnglishNames, type Game, type Language, type Realm } from '@exile-appraiser/core/realm'
 import type { PriceCheckWidget } from './overlay/interfaces'
 import type { ChatCommand, HostConfigForMain, HotkeyRegistration, OcrRegion, StashSearchEntry } from '@ipc/types'
@@ -500,11 +500,30 @@ async function sendHostConfig (cfg: HostConfigForMain): Promise<void> {
   }
 }
 
-/** 設定頁每改一個欄位 watch 都會觸發:相同內容不送、一般欄位 300 ms trailing debounce;第一次與 game / overlayMode(main 會據此重新啟動)立刻送 */
+/**
+ * 不經 300 ms 去抖、一改就送的欄位:game / overlayMode(main 會據此重新啟動),以及掃描開關 / 區域 / 間隔
+ * (= main `scanConfigKey` 的欄位;改了 main 立刻 poke 掃描器,設定頁狀態列接著讀新狀態 —— code review 第 C 批)。
+ */
+export const HOST_CONFIG_IMMEDIATE_KEYS: ReadonlyArray<keyof HostConfigForMain> = [
+  'game', 'overlayMode',
+  'revealAutoEnabled', 'revealIntervalMs', 'ocrRegion',
+  'runeshapeEnabled', 'runeshapeRegion', 'runeshapeIntervalMs'
+]
+
+/** 設定頁每改一個欄位 watch 都會觸發:相同內容不送、一般欄位 300 ms trailing debounce;第一次與 `HOST_CONFIG_IMMEDIATE_KEYS` 立刻送 */
 const hostConfigSync = createHostConfigSync<HostConfigForMain>({
   send: sendHostConfig,
-  immediateKeys: ['game', 'overlayMode']
+  immediateKeys: [...HOST_CONFIG_IMMEDIATE_KEYS]
 })
+
+/**
+ * 等到目前的設定都送到 main(且 main 已回覆)。設定頁狀態列讀掃描統計前呼叫(`OcrScanSection.vue`):
+ * 先 `nextTick` 讓 Config 的 watch 把這次的改動交給 sync,再等它送完 —— 統計一定在新設定之後讀。
+ */
+export async function hostConfigSettled (): Promise<void> {
+  await nextTick()
+  await hostConfigSync.settled()
+}
 
 export async function initConfig (): Promise<void> {
   const raw = await Host.loadConfig()

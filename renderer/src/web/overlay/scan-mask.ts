@@ -97,20 +97,31 @@ export interface FontFaceSetLike { status: string, ready: Promise<unknown> }
 
 /**
  * 處理完一個掃描事件後(DOM 已更新)回報並 ack。量外框會強制排版 → 第一次用到的字型這時才開始載入(`fonts.status` 變 `loading`),
- * 載入完寬高會變(離屏實測徽章寬約 +21 px)。所以:先送外框(不 ack)→ 有字型在載入 → 等載完、`beforeAck`(褻瀆重排)後再量一次才 ack;
- * main 在 ack 之前不擷取(最多等 1 秒),就不會截到「字型換了、遮罩還是舊寬度」的那一幀。
+ * 載入完寬高會變(離屏實測徽章寬約 +21 px)。所以:先送外框(不 ack)→ 有字型在載入就等載完 → `beforeAck(fontsWaited)`
+ * (褻瀆層:等畫出來後的重排;回傳 true = DOM 又改了 → 再等一次 `tick`)→ 再量一次才 ack;
+ * main 在 ack 之前不擷取(最多等 1 秒),就不會截到「字型換了 / 重排了、遮罩還是舊外框」的那一幀。
+ * code review 第 C 批:`beforeAck` 一律呼叫(不只字型載入時);等待途中丟例外照樣 ack(`finally`)。
  */
 export async function reportWithAck (
   reporter: ScanMaskReporter,
   layer: () => { children: Iterable<MeasurableElement> } | null | undefined,
   seq: number,
   fonts?: FontFaceSetLike | null,
-  beforeAck?: () => Promise<void> | void
+  beforeAck?: (fontsWaited: boolean) => boolean | void | Promise<boolean | void>,
+  tick?: () => Promise<void>
 ): Promise<void> {
-  reporter.report(layer())
-  if (fonts && fonts.status === 'loading') {
-    await fonts.ready
-    await beforeAck?.()
+  try {
+    reporter.report(layer())
+    let waited = false
+    if (fonts && fonts.status === 'loading') {
+      await fonts.ready
+      waited = true
+    }
+    const changed = await beforeAck?.(waited)
+    if (changed === true && tick) await tick()
+  } catch (err) {
+    console.warn('[scan-mask] ack 前的等待失敗,照樣 ack', err)
+  } finally {
+    reporter.report(layer(), seq)
   }
-  reporter.report(layer(), seq)
 }

@@ -5,7 +5,7 @@ import { _roundTripForTest } from '../src/web/Config'
 import {
   SETTINGS_FS_MAX, SETTINGS_FS_MIN, SETTINGS_MIN_H, SETTINGS_MIN_W,
   clampSettingsRect, createBackdropGuard, createRectDrag, dragRect, edgeCursor, effectiveSettingsFs, isInteractiveTarget,
-  normSettingsFontSize, normSettingsWindow, settingsFsShortcut, settingsFsVars, settingsFsWheel, stepSettingsFs,
+  normSettingsFontSize, normSettingsWindow, settingsFsClass, settingsFsShortcut, settingsFsVars, settingsFsWheel, stepSettingsFs,
   type SettingsWindowRect
 } from '../src/web/settings/settings-window-geom'
 
@@ -248,5 +248,34 @@ describe('獨立字級', () => {
     expect(w(100)).toBe('dec')
     expect(w(0)).toBeNull()
     expect(w(-100, false)).toBeNull()
+  })
+})
+
+describe('code review 第 C 批:Teleport 到 body 的 Regex 對話框 / 提示框也套 fs-own 補高規則', () => {
+  const read = (p: string) => fs.readFileSync(new URL(p, import.meta.url), 'utf8')
+  it('settingsFsClass:有獨立字級變數 → fs-own;跟隨全域(null)→ 不加 class(= 與改版前相同)', () => {
+        expect(settingsFsClass({ '--fs-base': '20px' })).toBe('fs-own')
+    expect(settingsFsClass(null)).toBeUndefined()
+    expect(settingsFsClass(undefined)).toBeUndefined()
+  })
+  it('SettingsWindow.vue 的控制項補高規則以 :is(.settings-window, .rx-modal, .rx-tip).fs-own 為範圍,且不留只限 .settings-window 的舊規則', () => {
+    const src = read('../src/web/settings/SettingsWindow.vue')
+    const scope = ':is(.settings-window, .rx-modal, .rx-tip).fs-own'
+    expect(src).toContain(`${scope} :is(.btn, .input:not(textarea), .select) { height: max(26px, calc(var(--fs-base) + 13px)); }`)
+    expect(src).toContain(`${scope} .btn.sm { height: max(22px, calc(var(--fs-base) + 9px)); }`)
+    expect(src).toContain(`${scope} :is(.input.sm:not(textarea), .select.sm), ${scope} .seg button { height: max(24px, calc(var(--fs-base) + 11px)); }`)
+    expect(src).not.toMatch(/^\.settings-window\.fs-own :is\(\.btn/m)
+    expect(src).toMatch(/cls: computed\(\(\) => settingsFsClass\(fsVars\.value\)\)/)
+  })
+  it('Regex 的每個 Teleport 對話框 / 提示框都綁 fs-own class(與字級變數同一處)', () => {
+    let n = 0
+    for (const f of ['RegexPanel.vue', 'RegexBookmarks.vue', 'RegexList.vue']) {
+      const src = read(`../src/web/regex/${f}`)
+      const tags = src.split('\n').filter(l => /<div .*class="[^"]*\b(rx-modal|rx-tip)\b/.test(l))
+      expect(tags.length, f).toBeGreaterThan(0)
+      for (const t of tags) { expect(t).toContain(':class="fsClass"'); expect(t).toContain('fsStyle'); n++ }
+      expect(src).toMatch(/fsClass: settingsFs\.cls/)
+    }
+    expect(n).toBe(5)
   })
 })

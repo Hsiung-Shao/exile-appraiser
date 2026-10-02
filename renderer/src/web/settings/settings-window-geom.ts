@@ -202,6 +202,14 @@ export function settingsFsVars (own: number | null, globalFs: number): Record<st
   }
 }
 
+/**
+ * 有獨立字級(`settingsFsVars` 不是 null)→ 'fs-own'(code review 第 C 批):設定視窗根元素與 Teleport 到 body 的
+ * Regex 對話框 / 提示框都加,共用控制項的補高規則(SettingsWindow.vue `:is(.settings-window, .rx-modal, .rx-tip).fs-own`)才套得到。
+ */
+export function settingsFsClass (vars: Record<string, string> | null | undefined): 'fs-own' | undefined {
+  return vars != null ? 'fs-own' : undefined
+}
+
 /** 快速調整:+1 / −1(從目前有效字級起算,夾在 11–24);reset → null(跟隨) */
 export function stepSettingsFs (own: number | null, globalFs: number, action: 'inc' | 'dec' | 'reset'): number | null {
   if (action === 'reset') return null

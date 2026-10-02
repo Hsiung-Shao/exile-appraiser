@@ -21,7 +21,8 @@
     + class `fs-own`(font-size: var(--fs-md))。設定視窗內的尺寸幾乎都以 `--fs-*` / em 計(沒有 rem),所以只要在根元素
     重定義變數;查價面板在根元素外,完全不受影響。浮動預設大小改用 `--app-fs-base`(全域字級)= 字級改變不改視窗大小。
     視窗內有焦點時 Ctrl + 滾輪 / Ctrl + = / Ctrl + - / Ctrl + 0(跟隨)快速調整(preventDefault,不觸發 Electron 整頁縮放)。
-    `provide(SETTINGS_FS_KEY)` 給虛擬捲動列高與 Teleport 出去的提示框 / 對話框(settings-fs.ts)。
+    `provide(SETTINGS_FS_KEY)` 給虛擬捲動列高與 Teleport 出去的提示框 / 對話框(settings-fs.ts;變數 + `fs-own` class,
+    共用控制項補高規則以 `:is(.settings-window, .rx-modal, .rx-tip).fs-own` 一併套到 Teleport 出去的對話框,code review 第 C 批)。
 -->
 <template>
   <div ref="rootEl" class="settings-panel settings-window bg-host"
@@ -77,7 +78,7 @@ import BgLayer from '../ui/BgLayer.vue'
 import { AppConfig } from '@/web/Config'
 import {
   RESIZE_EDGES, clampSettingsRect, createRectDrag, edgeCursor, effectiveSettingsFs, isInteractiveTarget,
-  settingsFsShortcut, settingsFsVars, settingsFsWheel, stepSettingsFs,
+  settingsFsClass, settingsFsShortcut, settingsFsVars, settingsFsWheel, stepSettingsFs,
   type DragEdge, type SettingsWindowRect, type Size
 } from './settings-window-geom'
 import { SETTINGS_FS_KEY } from './settings-fs'
@@ -122,7 +123,8 @@ export default defineComponent({
     const fsVars = computed(() => settingsFsVars(config.settingsFontSize, config.fsBase))
     provide(SETTINGS_FS_KEY, {
       fs: computed(() => effectiveSettingsFs(config.settingsFontSize, config.fsBase) || 13),
-      style: fsVars
+      style: fsVars,
+      cls: computed(() => settingsFsClass(fsVars.value))
     })
     function applyFs (action: 'inc' | 'dec' | 'reset') {
       const next = stepSettingsFs(config.settingsFontSize, config.fsBase, action)
@@ -311,10 +313,11 @@ export default defineComponent({
   --fs-xl: calc(var(--app-fs-base) + 7px);
   font-size: var(--fs-md);
 }
-/* 共用控制項(pobtools.css)的高度是固定 px:獨立字級放大時跟著長高,文字不被切掉;字級 ≤ 13 時維持原高度 */
-.settings-window.fs-own :is(.btn, .input:not(textarea), .select) { height: max(26px, calc(var(--fs-base) + 13px)); }
-.settings-window.fs-own .btn.sm { height: max(22px, calc(var(--fs-base) + 9px)); }
-.settings-window.fs-own :is(.input.sm:not(textarea), .select.sm), .settings-window.fs-own .seg button { height: max(24px, calc(var(--fs-base) + 11px)); }
+/* 共用控制項(pobtools.css)的高度是固定 px:獨立字級放大時跟著長高,文字不被切掉;字級 ≤ 13 時維持原高度。
+   Teleport 到 body 的 Regex 對話框 / 提示框(.rx-modal / .rx-tip,useSettingsFs().cls 給 fs-own)一併套用(code review 第 C 批) */
+:is(.settings-window, .rx-modal, .rx-tip).fs-own :is(.btn, .input:not(textarea), .select) { height: max(26px, calc(var(--fs-base) + 13px)); }
+:is(.settings-window, .rx-modal, .rx-tip).fs-own .btn.sm { height: max(22px, calc(var(--fs-base) + 9px)); }
+:is(.settings-window, .rx-modal, .rx-tip).fs-own :is(.input.sm:not(textarea), .select.sm), :is(.settings-window, .rx-modal, .rx-tip).fs-own .seg button { height: max(24px, calc(var(--fs-base) + 11px)); }
 .settings-window.dragging,
 .settings-window.dragging * {
   user-select: none;

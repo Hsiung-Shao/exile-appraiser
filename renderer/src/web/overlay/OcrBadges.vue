@@ -19,6 +19,9 @@
     改外觀 → 以最後結果重排(估計高度用設定的字級),字型載入完成後再量一次實際高度。
   - 第 18 步:main 的擷取會截到這一層(徽章文字被 OCR 併進詞綴行 → 3 組 → 2 組 → 清除的循環)。DOM 更新後、paint 前把徽章與「?」說明的外框
     送 main 遮掉(`scan-mask.ts`);每個掃描事件處理完都帶它的 seq(ack,main 等到才擷取下一張)。
+  - code review 第 C 批:掃描層接線改用共用的 `useScanLayer.ts`(與符文層同一份):處理丟例外也 ack、ack 前等重排完成
+    (`restackMeasured` 回傳有沒有改)、遮罩追外觀 / 全域字級 / 介面語言 + ResizeObserver;全域字級(`config.fsBase`,反應式)
+    與介面語言改變 → 以最後結果重排(去重鍵也含介面語言);量高度走 `layer.children`,只在 `loadingdone` 與 ack 前量(不再另掛 `fonts.ready`)。
 -->
 <template>
   <div v-if="state !== 'idle'" ref="layer" class="ocr-layer pob-dark" :data-ocr-state="state" :style="styleVars">
@@ -48,32 +51,45 @@ import {
 } from './ocr-reveal'
 import { badgeStyleVars, revealBadgeFontPx } from './badge-style'
 import { detectedRegion } from './region-geom'
-import { createScanResultGate, dataGeneration, scanResultKey } from './scan-dedupe'
-import { createResendTracker, createScanMaskReporter, reportWithAck } from './scan-mask'
+import { dataGeneration, scanResultKey } from './scan-dedupe'
+import { useScanLayer } from './useScanLayer'
 
 type State = 'idle' | 'result'
 type OkResult = Extract<ReturnType<typeof Poe2.matchRevealLines>, { ok: true }>
 
 export default defineComponent({
   setup () {
-    const { t } = useI18n()
+    const { t, locale } = useI18n()
     const config = AppConfig()
     const state = shallowRef<State>('idle')
     const badges = shallowRef<BadgeView[]>([])
     /** 「?」說明的 i18n 鍵(profile 精確 = null) */
     const guessKey = shallowRef<string | null>(null)
-    const layer = shallowRef<HTMLElement | null>(null)
     /** 最後一次比對成功的結果(overlay 改大小時重新排位置) */
     let last: { r: OkResult, client: { w: number, h: number } } | null = null
     /** 同一種「比對不成面板」只記一次 log(持續掃描時每秒一行太吵) */
     let lastMissLog = ''
-    /** 與目前畫著的結果相同的事件不重算;`lastNoPanelKey` = 上一份判定「不是揭露面板」的列(同一份不重比) */
-    const gate = createScanResultGate()
+    /** `lastNoPanelKey` = 上一份判定「不是揭露面板」的列(同一份不重比) */
     let lastNoPanelKey = ''
-    /** 第 18 步:畫在遊戲上的東西回報給 main 遮掉 */
-    const mask = createScanMaskReporter('reveal', r => { Host.scanMask(r) }, () => ({ w: window.innerWidth, h: window.innerHeight }))
-    /** code review 第 B 批:收到 rows 時資料沒載好 → 資料載好時請 main 重送(main 對相同 rows 10 秒內不重送) */
-    const resend = createResendTracker()
+    const styleVars = computed(() => badgeStyleVars(config.ocrBadgeStyle, 'reveal'))
+    /**
+     * 掃描層共用接線(code review 第 C 批,useScanLayer.ts):遮罩回報 + ack(第 18 步)、與目前畫著的結果相同的事件不重算(gate)、
+     * 收到 rows 時資料沒載好 → 資料載好時請 main 重送(第 B 批,resend)。
+     * 遮罩在畫面變了(狀態 / 徽章 / 說明 / 外觀 / 全域字級 / 介面語言)或任何子元素尺寸變了時,於 paint 前重報。
+     */
+    const scan = useScanLayer<RevealScanEvent>({
+      source: 'reveal',
+      subscribe: cb => Host.onRevealScanResult(cb),
+      handleEvent,
+      drawn: [state, badges, guessKey, styleVars],
+      showing: () => state.value !== 'idle',
+      // ack 前等畫出來後的重排(有改 → 再等一次 DOM 更新才量);剛等完字型載入 → 重量一次
+      beforeAck: (fontsWaited) => fontsWaited ? requestRestack() : (restackP ?? false),
+      // 字型實際載入完成(`fonts.ready` 可能在字型開始載入前就已 resolve)→ 寬高變了,重排並重量外框
+      // (第 18 步離屏實測:不聽這個時遮罩比徽章窄約 21 px)
+      onFontsLoaded: () => { void requestRestack() }
+    })
+    const { layer, gate, resend, mask } = scan
 
     function clear (reason: string) {
       last = null
@@ -84,20 +100,41 @@ export default defineComponent({
       guessKey.value = null
       console.log(`[ocr] 清除徽章(${reason})`)
     }
+    /** 全域字級(px;`useTheme` 寫進 `--fs-base` 的同一個值,反應式) */
     function fsBasePx (): number {
-      return parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--fs-base')) || 13
+      return config.fsBase || 13
     }
-    /** 畫出來之後量實際高度,與估計不同就再排一次(字型 / 縮放讓估計不準時也不重疊) */
-    async function restackMeasured () {
+    /**
+     * 畫出來之後量實際高度,與估計不同就再排一次(字型 / 縮放讓估計不準時也不重疊);回傳有沒有改位置。
+     * 徽章是層的前幾個直接子元素(v-for 順序 = `badges` 順序,後面才是「?」說明),直接走 `layer.children`。
+     */
+    async function restackMeasured (): Promise<boolean> {
       await nextTick()
       const el = layer.value
-      if (!el || !badges.value.length) return
-      const heights = badges.value.map(b => (el.querySelector(`[data-key="${b.key}"]`) as HTMLElement | null)?.offsetHeight ?? 0)
-      if (heights.some(h => h <= 0)) return
-      const next = stackBadges(badges.value, heights, window.innerHeight)
-      if (next.some((b, i) => b.top !== badges.value[i].top)) badges.value = next
+      const cur = badges.value
+      if (!el || !cur.length) return false
+      const kids = el.children
+      const heights: number[] = []
+      for (let i = 0; i < cur.length; i++) {
+        const k = kids[i] as HTMLElement | undefined
+        if (!k || k.dataset.key !== cur[i].key) return false // DOM 還不是這份徽章(下一次 layout 會再量)
+        heights.push(k.offsetHeight)
+      }
+      if (heights.some(h => h <= 0)) return false
+      const next = stackBadges(cur, heights, window.innerHeight)
+      if (next.some((b, i) => b.top !== cur[i].top)) { badges.value = next; return true }
       // 位置沒變但大小可能變了(字型載入完成):重量一次(相同就不送)
-      else mask.report(layer.value)
+      mask.report(layer.value)
+      return false
+    }
+    /** 進行中的重排(layout 排了、ack 前等同一份,不重複量) */
+    let restackP: Promise<boolean> | null = null
+    function requestRestack (): Promise<boolean> {
+      if (!restackP) {
+        const p: Promise<boolean> = restackMeasured().finally(() => { if (restackP === p) restackP = null })
+        restackP = p
+      }
+      return restackP
     }
     function layout () {
       if (!last) return
@@ -107,17 +144,10 @@ export default defineComponent({
         pool: c => Poe2.revealPoolLabel(c, tr),
         range: c => Poe2.revealRangeLabel(c.ranges)
       }, { showAll: config.revealShowAllCandidates, metrics: badgeMetrics(revealBadgeFontPx(config.ocrBadgeStyle, fsBasePx())) })
-      void restackMeasured()
-      // 換了字體:字型檔載入完成後字寬 / 行高才定,再量一次
-      void document.fonts?.ready.then(() => restackMeasured())
+      // 畫出來之後量實際高度再排一次(換了字體:字型檔載入完成後字寬 / 行高才定 → `loadingdone` 再量)
+      void requestRestack()
     }
-    const styleVars = computed(() => badgeStyleVars(config.ocrBadgeStyle, 'reveal'))
 
-    /** 每個事件處理完(不論畫 / 清 / 略過)都在 DOM 更新後回報一次並帶 seq(ack) */
-    function onEvent (e: RevealScanEvent) {
-      handleEvent(e)
-      void nextTick(() => reportWithAck(mask, () => layer.value, e.seq, document.fonts, restackMeasured))
-    }
     function handleEvent (e: RevealScanEvent) {
       const act = revealScanAction(e, loadedGame.value === 'poe2' ? 'poe2' : 'poe1')
       // PoE2 資料還沒載好(loadedGame 還是舊的)收到的 rows:載好後要請 main 重送
@@ -129,8 +159,8 @@ export default defineComponent({
         return
       }
       const hint = profileHint(lastPoe2Item.value)
-      // 比對的全部輸入:列、client、profile 提示、遊戲、資料集世代
-      const key = scanResultKey(e.rows, e.client, `${hint.refName ?? ''}|${hint.category ?? ''}|${loadedGame.value}|${dataGeneration.value}`)
+      // 比對的全部輸入:列、client、profile 提示、遊戲、資料集世代、介面語言(徽章文字是排版時算好的字串;code review 第 C 批)
+      const key = scanResultKey(e.rows, e.client, `${hint.refName ?? ''}|${hint.category ?? ''}|${loadedGame.value}|${dataGeneration.value}|${locale.value}`)
       if (gate.repeat(key, state.value === 'result' && last != null)) return
       if (state.value === 'idle' && key === lastNoPanelKey) return
       const r = Poe2.matchRevealLines(e.rows, hint)
@@ -162,20 +192,11 @@ export default defineComponent({
 
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') clear('Esc') }
     const onResize = () => { layout() }
-    // 第 18 步:字型實際載入完成(`fonts.ready` 可能在字型開始載入前就已 resolve)→ 寬高變了,重排並重量外框
-    // (離屏實測:不聽這個時遮罩比徽章窄約 21 px)
-    const onFontsLoaded = () => { void restackMeasured() }
-    const unsub: Array<() => void> = []
     onMounted(() => {
-      unsub.push(Host.onRevealScanResult(onEvent))
       window.addEventListener('keydown', onKey)
       window.addEventListener('resize', onResize)
-      document.fonts?.addEventListener?.('loadingdone', onFontsLoaded)
     })
     onUnmounted(() => {
-      unsub.forEach(fn => fn())
-      document.fonts?.removeEventListener?.('loadingdone', onFontsLoaded)
-      mask.report(null)
       window.removeEventListener('keydown', onKey)
       window.removeEventListener('resize', onResize)
     })
@@ -185,12 +206,9 @@ export default defineComponent({
     watch(() => config.revealShowAllCandidates, () => { layout() })
     // 第 11 步:徽章外觀改了 → 以最後結果重排(字級 / 字體影響高度)
     watch(styleVars, () => { layout() })
-    // 第 18 步:畫面上的東西變了(DOM 已更新、還沒 paint)→ 回報外框給 main 遮掉
-    watch([state, badges, guessKey], () => { mask.report(layer.value) }, { flush: 'post' })
-    // code review 第 B 批:資料集世代 / 已載入遊戲改變 → 之前沒畫出的 rows、或畫面上用舊資料算的徽章,請 main 重送一次
-    watch([dataGeneration, loadedGame], () => {
-      if (resend.dataChanged(state.value !== 'idle')) void nextTick(() => { mask.report(layer.value, undefined, true) })
-    })
+    // code review 第 C 批:全域字級(徽章跟隨全域時的字級、估計高度)/ 介面語言(徽章文字;看 i18n 實際的 locale,`uiLanguage` 改了要等字串檔載完才換)改了 → 以最後結果重排
+    watch([() => config.fsBase, locale], () => { layout() })
+    // 遮罩回報(第 18 步)與資料改變請 main 重送(第 B 批)在 useScanLayer 裡
 
     return { t, state, badges, guessKey, layer, styleVars }
   }

@@ -128,7 +128,7 @@
     </template>
 
     <Teleport to="body">
-      <div v-if="tplConfirm" class="modal rx-modal" :style="fsStyle" @mousedown.self="tplConfirm = null">
+      <div v-if="tplConfirm" class="modal rx-modal" :class="fsClass" :style="fsStyle" @mousedown.self="tplConfirm = null">
         <div class="rx-dialog" role="dialog" aria-modal="true" data-regex="template-dialog">
           <div class="rx-dialog-title">{{ t('ppz.regex.template_apply_title', { name: uiEn ? tplConfirm.name.en : tplConfirm.name.zh }) }}</div>
           <p>{{ uiEn ? tplConfirm.desc.en : tplConfirm.desc.zh }}</p>
@@ -139,7 +139,7 @@
           </div>
         </div>
       </div>
-      <div v-if="paste" class="modal rx-modal" :style="fsStyle" @mousedown.self="paste = null">
+      <div v-if="paste" class="modal rx-modal" :class="fsClass" :style="fsStyle" @mousedown.self="paste = null">
         <div class="rx-dialog" role="dialog" aria-modal="true" data-regex="share-dialog">
           <div class="rx-dialog-title">{{ t('ppz.regex.share_paste') }}</div>
           <p class="dim">{{ t('ppz.regex.share_paste_warn') }}</p>
@@ -219,9 +219,11 @@ export default defineComponent({
     const tplConfirm = shallowRef<RegexTemplate | null>(null)
     const paste = shallowRef<{ code: string, error: string, busy: boolean } | null>(null)
 
+    const settingsFs = useSettingsFs()
     return {
-      /** 對話框 Teleport 到 body,綁設定視窗獨立字級變數(第 21 步) */
-      fsStyle: useSettingsFs().style,
+      /** 對話框 Teleport 到 body,綁設定視窗獨立字級變數(第 21 步)+ `fs-own`(控制項補高,code review 第 C 批) */
+      fsStyle: settingsFs.style,
+      fsClass: settingsFs.cls,
       t,
       uiEn,
       games: GAMES,

@@ -256,7 +256,7 @@ GDI 序列在另一個行程(`scripts/capture-bench-bitblt.ps1`,與 `ow_screensh
 | 列(兩者相同順序) | 褻瀆 | 符文塑形 |
 |---|---|---|
 | 啟用 | `revealAutoEnabled` | `runeshapeEnabled` |
-| 目前狀態(+「更新」讀 main 統計) | `revealScanStatus`:找到 / 尋找中、框選區域內有 / 沒有找到(第 13 步起與符文同文案)、已暫停 | 自動定位:已找到 / 尋找中、框選區域內有 / 沒有找到、已暫停 |
+| 目前狀態(+「更新」讀 main 統計;框選 / 清除區域、開關後自動重讀:等設定送到 main 再 300 ms,見下) | `revealScanStatus`:找到 / 尋找中、框選區域內有 / 沒有找到(第 13 步起與符文同文案)、已暫停 | 自動定位:已找到 / 尋找中、框選區域內有 / 沒有找到、已暫停 |
 | 掃描間隔 | `revealIntervalMs` | `runeshapeIntervalMs` |
 | 區域 + 「在遊戲上框選」「清除」 | `ocrRegion` | `runeshapeRegion` |
 | 暫停 / 繼續熱鍵 | `hotkeyOcrReveal` | `hotkeyRuneshapeToggle` |
@@ -277,6 +277,11 @@ GDI 序列在另一個行程(`scripts/capture-bench-bitblt.ps1`,與 `ow_screensh
 - **符文框選熱鍵** `hotkeyRuneshapeRegion`(預設空):`shortcut-actions.ts` 動作 `runeshape-region`(overlay + PoE2,不看是否啟用)→ `Shortcuts.ts` `onOcrRegionPick('runeshape')`
   → main 送 `ocr-region-pick` 帶 `{ target: 'runeshape' }`(揭露面板照舊不帶內容)→ `OcrRegionPicker.vue` `openRegionPicker('hotkey', 'runeshape')`。
 - **手動比例欄位已移除**(原「進階:手動輸入比例」四個數字欄位);`Config.ts` 仍讀寫舊檔的 `ocrRegion`(`normOcrRegion`)。
+- **狀態列讀統計的時機**(code review 第 C 批):原本改區域 / 開關後固定 300 ms 讀 `reveal-stats` / `runeshape-stats`,剛好等於 host-config 的 300 ms 去抖;
+  300 ms 內又改別的欄位(去抖重新計時)就會在新設定送到 main 之前讀到舊狀態。改為:掃描開關 / 區域 / 間隔(= main `scanConfigKey` 的欄位)列入
+  `Config.ts` `HOST_CONFIG_IMMEDIATE_KEYS`(與 game / overlayMode 一樣不去抖),且狀態列先 `hostConfigSettled()`(`nextTick` + `host-config-sync` `settled()`:
+  沒有等待中 / 送出中的設定、main 已回覆)再 `STATS_AFTER_HOST_CONFIG_MS` 300 ms(給掃描器 poke 後的一輪)才讀(`afterHostConfigApplied`)。
+  測試 `renderer/test/host-config-sync.test.ts`(假計時器:改區域後 200 ms 改別的欄位 → 改前讀到舊區域、改後讀到新區域)。
 - 舊的按熱鍵辨識一次(`RevealOcr`、`ocr-reveal-result`)已移除;兩段式 `strategy.ts`(`smartRecognize` / `recognizeRegionFirst`)仍給 `--ocr-selftest` 用,下文「兩段式辨識」「框選辨識區域」的**單次**流程描述保留作歷史紀錄。
 - 測試:`main/test/reveal-scan.test.ts`(三張真實截圖快照當畫面:偵測器定位 / 判定、自動定位 → ×3、畫面沒變不 OCR、面板關了 empty、查價面板開著照常、設定開著暫停、no-data、共用 WinOcr 忙碌、暫停熱鍵、區域內有面板 / 沒面板只送 empty 不改找整個畫面、rescan、停用清徽章;
   第 6 步:區域沒面板時小變化退避且從不整張定位、兩個掃描共用定位 OCR 且結果與自己 OCR 相同、tick 不重入;第 13 步:負樣本 classify / locate / PanelScan 不送列、使用者的區域 + 浮窗截圖只看區域、浮窗與面板同框)、
@@ -294,7 +299,7 @@ GDI 序列在另一個行程(`scripts/capture-bench-bitblt.ps1`,與 `ow_screensh
 
 | 段 | 檔案 | 做什麼 |
 |---|---|---|
-| 回報 | `renderer/src/web/overlay/scan-mask.ts` + `OcrBadges.vue` / `RuneshapePrices.vue` | 每層在 DOM 更新後、paint 前(`watch(..., { flush: 'post' })`、`nextTick`)量自己的**直接子元素**(褻瀆:徽章 + 「?」說明;符文:徽章 + 提示)的 `getBoundingClientRect`,送 IPC `scan-mask`(`{ source, seq?, viewport: innerWidth/innerHeight, rects }`,CSS px);**每個掃描事件處理完都帶它的 `seq`(ack)**,不論畫 / 清 / 被 dedupe 略過;內容相同且沒有新 seq 不重送;清除 = 空陣列。**字型**:量外框會強制排版,第一次用到的字型這時才開始載入、載完寬度會變(離屏實測徽章 139 → 161 px)→ `reportWithAck` 先送外框不 ack,`document.fonts` 載完(褻瀆再 `restackMeasured`)重量才 ack;另聽 `loadingdone` 重量 |
+| 回報 | `renderer/src/web/overlay/scan-mask.ts` + `scan-layer.ts` / `useScanLayer.ts`(兩層共用接線,code review 第 C 批)+ `OcrBadges.vue` / `RuneshapePrices.vue` | 每層在 DOM 更新後、paint 前(`watch(..., { flush: 'post' })`、`nextTick`)量自己的**直接子元素**(褻瀆:徽章 + 「?」說明;符文:徽章 + 提示)的 `getBoundingClientRect`,送 IPC `scan-mask`(`{ source, seq?, viewport: innerWidth/innerHeight, rects }`,CSS px);**每個掃描事件處理完都帶它的 `seq`(ack)**,不論畫 / 清 / 被 dedupe 略過;內容相同且沒有新 seq 不重送;清除 = 空陣列。**字型**:量外框會強制排版,第一次用到的字型這時才開始載入、載完寬度會變(離屏實測徽章 139 → 161 px)→ `reportWithAck` 先送外框不 ack,`document.fonts` 載完(褻瀆再 `restackMeasured`)重量才 ack;另聽 `loadingdone` 重量。**code review 第 C 批**:接線收成 `createScanLayer`(見下方「掃描層共用接線」) |
 | 保存 / 換算 | `main/src/ocr/scan-mask.ts` `ScanMaskStore` + `main.ts` | 每個來源一份(新的取代舊的;被取代的那份再遮 `MASK_LINGER_MS` 300 ms = DOM 已移除、畫面上可能還有一兩幀;過期的保留項在擷取與 `report()` 時都清,掃描暫停時一直回報也不累積)。擷取當下依**這次擷取的 client 大小**換算:client px = CSS × client.w / innerWidth(renderer 收結果時 `innerWidth / client.w` 的反向)、外擴 `MASK_PAD_CSS_PX` 3 CSS px、外取整,再減擷取偏移成影像像素、夾在影像內(`imageRects`)。不讓 renderer 自己換成 client px:提示可能比第一個掃描結果先出現(還不知道 client 大小),而 main 擷取時一定知道 |
 | OCR 前填掉 | `capture.ts` `toScanCapture(cap, ocr, mask)` → `prepareRect` | 與裁切塊有交集才處理:裁切後 `toBitmap` → `fillMaskRects` → `createFromBitmap` → 照舊 `resize('best')` + JPEG q95;沒有交集時影像位元組與之前完全相同。1258×907 區域遮 3 塊:填色約 1 ms + 點陣往返約 1.3 ms(`prepareRect` ×3 中位數 70.8 → 76.1 ms) |
 | 差分不比 | `panel-scan.ts` `Fingerprint.ignore`、`frameDiff` / `tileMaxDiff`;`capture.ts` `grayFingerprint` | 遮罩蓋到的縮圖格子(再外擴 1 格,縮放濾鏡會混邊)標成不比;前後兩張**任一張**標了就跳過 → 徽章出現 / 消失本身不算畫面變化(否則徽章一畫上就是「大幅變化」立即 OCR)。小塊剩不到半塊可比的略過;全被蓋住 = 沒變化。沒有遮罩時與之前逐值相同 |
@@ -304,6 +309,38 @@ GDI 序列在另一個行程(`scripts/capture-bench-bitblt.ps1`,與 `ow_screensh
   全部先取樣再填,相鄰 / 重疊的徽章(褻瀆徽章間距 4 px < 兩邊各外擴 3 px)不會吃到彼此的填色。
 - **外擴只取 3 CSS px**:涵蓋 `box-shadow` 的 1 px 外框環與量測取整(第 11 步外框是 8 方向 1 px `text-shadow`,在徽章框內);柔和陰影(blur 32 px)不遮 ——
   徽章左緣距該組最右的字只有 14 px,遮大了會蓋到面板自己的字;陰影只讓背景變暗,下表實驗 OCR 不受影響。
+
+##### 掃描層共用接線(code review 第 C 批,2026-10-02)
+
+褻瀆與符文兩層原本各自實作同一套接線;收成 `renderer/src/web/overlay/scan-layer.ts` `createScanLayer`(純接線,不 import Host / AppConfig,
+`renderer/test/scan-layer.test.ts` 以假 DOM / ResizeObserver / 字型測)+ `useScanLayer.ts`(接 Host IPC、`document.fonts`、ResizeObserver、生命週期,
+並加上共有來源:全域字級 `config.fsBase`、i18n 實際 `locale`、資料集世代 / 已載入遊戲)。介面:
+
+```ts
+const { layer, mask, gate, resend, report } = useScanLayer<RevealScanEvent>({
+  source: 'reveal',                       // 'reveal' | 'rune'
+  subscribe: cb => Host.onRevealScanResult(cb),
+  handleEvent,                            // 畫 / 清 / 略過;丟例外照樣 ack
+  drawn: [state, badges, guessKey, styleVars], // 會改變畫面內容 / 大小的來源(+ fsBase、locale 自動加)
+  showing: () => state.value !== 'idle',  // resend.dataChanged 用
+  beforeAck: (fontsWaited) => ...,        // 選用:等重排完成,回傳 true = DOM 又改了(再等一次 nextTick 才量)
+  onFontsLoaded: () => ...                // 選用:loadingdone;預設 = 重報
+})
+```
+
+一次修好的五件事:
+1. **事件處理丟例外也 ack**:`try { handleEvent(e) } finally { nextTick(ack) }`;`reportWithAck` 等待途中丟例外也 `finally` 送 ack(否則 main 要等 1 秒逾時)。
+2. **ack 帶重排後的外框**:`beforeAck` 一律呼叫(不只字型載入時)。褻瀆 `restackMeasured` 回傳有沒有改位置;layout 排的那次重排與 ack 等的是同一個 promise
+   (`requestRestack`,不重複量),有改 → 再等一次 DOM 更新才量、才 ack(原本 ack 那份可能是重排前的外框)。
+3. **遮罩跟著尺寸變**:遮罩 watch(`flush: 'post'`)追 `drawn` + 全域字級 + 介面語言;另對層的每個**直接子元素**掛 ResizeObserver(子元素換了跟著換、卸載拆掉):
+   字型載入、文字換語言、字級變了等任何尺寸變化都在 paint 前重報(內容相同不送)。無頭實測:只改 `--fs-base` CSS 變數(不經任何反應式來源)時,
+   改前遮罩停在舊寬度(褻瀆 160.91 × 26.84 vs 實際 237.31 × 37),改後逐值相同。
+4. **褻瀆層重排**:`fsBasePx()` 改讀 `config.fsBase`(反應式,原本 `getComputedStyle`);`watch([() => config.fsBase, locale], layout)`;
+   去重鍵加 i18n `locale`(徽章文字是排版時算好的字串,換語言要重排);量高度走 `layer.children`(v-for 順序 = `badges`,`data-key` 對不上就不排),
+   只在 `loadingdone` 與 ack 前量,拿掉 layout 裡另掛的 `document.fonts.ready.then`。
+5. **第 B 批的補送(resend)保留**:`watch(data)` → `resend.dataChanged(showing())` → `mask.report(layer, undefined, true)`,行為不變。
+
+預設設定下兩層的畫面、遮罩外框、送出次數與改前逐像素 / 逐值相同(無頭 Chrome 比對)。
 
 **填色的選擇**(`node scripts/ocr-mask-check.mjs --fill feather,ring-median,dark --control`;褻瀆 3 張 + 符文 2 張正樣本 × dpr 1 / 1.5 × 自動定位框 / 「定位框 ∪ 徽章外擴 40 px」手動框 = 20 個情境,真 WinOcr;
 徽章依 runtime 排版(褻瀆 `layoutBadges` → 以畫出的實際高度 `stackBadges`;符文 = 列右緣 + 14、垂直置中)用 sharp 畫:暗底 #131820、金色左條 3 px、`--ink-0` 字、13 / 12 CSS px × dpr、1 px 黑環):
@@ -470,7 +507,7 @@ log:擷取有遮到東西時,掃描結果那行多「遮掉自己的徽章 N 塊
   無頭 Chrome + 假 host 用 CDP `Input.dispatchMouseEvent` / `dispatchKeyEvent`(只作用於無頭頁面,不是作業系統層輸入)拖曳、調把手、方向鍵、Enter / Esc,驗證寫入值與呼叫序列(見 `docs/phase5-summary.md` S6)。
 - 無頭 Chrome + 假 `window.host`:注入快照事件,徽章位置 = 各組右緣 + 14 px / 垂直中心(誤差 0 px)、再按清除、Esc、錯誤提示(Alt 隱藏已於 2026-10-01 移除)。
 - 第 18 步(遮掉自己畫的東西):`node scripts/ocr-mask-check.mjs [--fill feather,ring-median,dark] [--dpr 1,1.5] [--control] [--keep <資料夾>]`(需 Windows + 語言包;不開視窗、不送輸入)——
-  正樣本畫上徽章 → 不遮(必須重現掉組,否則結束碼 1)/ 遮罩後(比對結果必須與原圖相同)走真 WinOcr;`main/test/scan-mask.test.ts`(純函式 + 假時鐘循環 / 競態)、`renderer/test/scan-mask.test.ts`(回報與 ack)。
+  正樣本畫上徽章 → 不遮(必須重現掉組,否則結束碼 1)/ 遮罩後(比對結果必須與原圖相同)走真 WinOcr;`main/test/scan-mask.test.ts`(純函式 + 假時鐘循環 / 競態)、`renderer/test/scan-mask.test.ts`(回報與 ack)、`renderer/test/scan-layer.test.ts`(code review 第 C 批:共用接線的例外 ack、重排後 ack、外觀 / 字級 / 語言重報、ResizeObserver、resend)。
 
 ### 本機實測(2026-09-29,`--ocr-selftest`)
 

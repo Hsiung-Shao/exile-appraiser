@@ -77,7 +77,8 @@
 import { computed, defineComponent, onMounted, shallowRef, watch, type PropType } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { OcrRegion, RuneshapeStats } from '@ipc/types'
-import { AppConfig, SCAN_INTERVAL_CPU_WARN_MS, SCAN_INTERVAL_MAX_MS, SCAN_INTERVAL_MIN_MS, clampRuneshapeInterval } from '@/web/Config'
+import { AppConfig, SCAN_INTERVAL_CPU_WARN_MS, SCAN_INTERVAL_MAX_MS, SCAN_INTERVAL_MIN_MS, clampRuneshapeInterval, hostConfigSettled } from '@/web/Config'
+import { afterHostConfigApplied } from '@/web/host-config-sync'
 import { Host } from '@/web/background/IPC'
 import { openRegionPicker, revealScanStatus } from '@/web/overlay/ocr-reveal'
 import { regionPercent } from '@/web/overlay/region-geom'
@@ -230,9 +231,10 @@ export default defineComponent({
       } catch (e) { console.warn(`[${props.kind}] 讀統計失敗`, e) }
     }
     onMounted(() => { if (config.game === 'poe2') void refreshStats() })
-    // 框選 / 清除區域、開關後 main 要先收到新設定才會換模式 → 稍等再讀一次
+    // 框選 / 清除區域、開關後 main 要先收到新設定才會換模式:等設定送到 main(這些欄位不去抖,見 Config.ts `HOST_CONFIG_IMMEDIATE_KEYS`)
+    // 再給掃描器一輪(poke 後立刻 tick)300 ms 才讀(code review 第 C 批:原本固定 300 ms,與設定去抖同時,可能讀到舊狀態)
     watch(() => [region.value, enabled.value], () => {
-      if (config.game === 'poe2' && canCheck) setTimeout(() => { void refreshStats() }, 300)
+      if (config.game === 'poe2' && canCheck) void afterHostConfigApplied(hostConfigSettled, () => { void refreshStats() })
     })
     const tr = (k: string, a?: Record<string, unknown>) => t(k, a ?? {})
     const status = computed<{ code: string, tone: string, text: string }>(() => {
