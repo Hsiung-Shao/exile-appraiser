@@ -21,7 +21,69 @@
  *
  * 純邏輯(何時重算、revoke、霧面 0 不模糊、過期的結果不套用、連續變更只畫最新的)在 `BgBaker`,
  * DOM 細節由呼叫端注入(BgLayer.vue),測試 `renderer/test/background.test.ts`。
+ *
+ * 第 26 步(2026-10-03):顯示位置與填滿方式(`BgLayout`,查價面板 / 設定視窗各一組)。落點由 `bgLayoutRect` 算,
+ * 與 CSS `background-position: x% y%` + `background-size: cover | contain | <cover × 倍率>` 同一條公式;預設(50 / 50 / cover)
+ * 與原本的 cover 置中逐像素相同。
  */
+
+/** 填滿方式:cover = 填滿(裁切)、contain = 完整顯示(留邊,空白處主題底色)、zoom = 在 cover 的基礎上再放大 `zoom`% */
+export type BgFit = 'cover' | 'contain' | 'zoom'
+export const BG_FITS: readonly BgFit[] = ['cover', 'contain', 'zoom']
+export const BG_ZOOM_MIN = 100
+export const BG_ZOOM_MAX = 300
+
+/** 一個容器(查價面板 / 設定視窗)的顯示位置與填滿方式 */
+export interface BgLayout {
+  /** 焦點(圖上要保持可見的位置)水平 / 垂直 0–100(%):圖上 x% 的點落在框的 x% 處(= CSS background-position 百分比) */
+  x: number
+  y: number
+  fit: BgFit
+  /** 100–300(%),只在 fit = 'zoom' 時有作用 */
+  zoom: number
+}
+export const BG_LAYOUT_DEFAULT: Readonly<BgLayout> = Object.freeze({ x: 50, y: 50, fit: 'cover', zoom: 100 })
+
+/** 實際生效的倍率(非 zoom 模式 = 100) */
+export function bgEffectiveZoom (l: BgLayout): number {
+  return l.fit === 'zoom' ? l.zoom : 100
+}
+
+/** 是否就是預設呈現(cover、置中;CSS 路徑此時不寫任何 inline 變數 = 與改版前相同) */
+export function bgLayoutIsDefault (l: BgLayout): boolean {
+  return l.x === 50 && l.y === 50 && bgEffectiveZoom(l) === 100 && l.fit !== 'contain'
+}
+
+/**
+ * 圖在框裡的落點(單位與 box 相同):
+ * - cover:s = max(框寬 / 圖寬, 框高 / 圖高);zoom:同 cover 再 × 倍率;contain:s = min(…);
+ * - 位置:x = (框寬 − 圖寬 × s) × 焦點x%,y 同理(= CSS background-position 百分比;cover / zoom 時差值 ≤ 0 → 往外推,
+ *   contain 時差值 ≥ 0 → 留邊在焦點的反方向)。圖上 (焦點x%, 焦點y%) 那一點永遠落在框的 (焦點x%, 焦點y%)。
+ */
+export function bgLayoutRect (imgW: number, imgH: number, boxW: number, boxH: number, l: BgLayout = BG_LAYOUT_DEFAULT): { x: number, y: number, w: number, h: number } {
+  const s = l.fit === 'contain'
+    ? Math.min(boxW / imgW, boxH / imgH)
+    : Math.max(boxW / imgW, boxH / imgH) * (bgEffectiveZoom(l) / 100)
+  const w = imgW * s
+  const h = imgH * s
+  // + 0:焦點 0 時 (負數) × 0 = −0,換成 +0(其他值不變)
+  return { x: (boxW - w) * (l.x / 100) + 0, y: (boxH - h) * (l.y / 100) + 0, w, h }
+}
+
+/**
+ * CSS 路徑(霧面 0 / 預先模糊還沒好或失敗)用的 `background-position` / `background-size`;預設 → null(不寫 inline,沿用樣式表的 center / cover)。
+ * zoom 要圖的原始大小與框大小(比例即可)才能換成百分比;還不知道 → 先用 cover(倍率 100 的樣子),知道後再補。
+ */
+export function bgCssLayout (l: BgLayout, img: { w: number, h: number } | null, box: { w: number, h: number }): { pos: string, size: string } | null {
+  if (bgLayoutIsDefault(l)) return null
+  const pos = `${l.x}% ${l.y}%`
+  if (l.fit === 'contain') return { pos, size: 'contain' }
+  const z = bgEffectiveZoom(l)
+  if (z === 100 || !img || !(img.w > 0 && img.h > 0) || !(box.w > 0 && box.h > 0)) return { pos, size: 'cover' }
+  const r = bgLayoutRect(img.w, img.h, box.w, box.h, l)
+  const p = (v: number) => `${Math.round(v * 10000) / 10000}%`
+  return { pos, size: `${p((r.w / box.w) * 100)} ${p((r.h / box.h) * 100)}` }
+}
 
 /** 預先模糊需要的設定(useTheme.ts `bgBakeSpec` 產生);null = 不預先模糊(沒有圖 / 關閉 / 霧面 0) */
 export interface BgBakeSpec {
@@ -40,6 +102,8 @@ export interface BgBakeInput extends BgBakeSpec {
   dpr: number
   /** `--surface-0-c` 的計算值(CSS 的 `.bgimg` 背景色) */
   color: string
+  /** 第 26 步:這個容器的顯示位置與填滿方式;省略 = 預設(cover、置中) */
+  layout?: BgLayout
 }
 
 /** 與 pobtools.css `.bgimg { transform: scale(1.04) }` 同值(樣式守門測試核對) */
@@ -47,15 +111,13 @@ export const BG_SCALE = 1.04
 
 /** 繪製結果是否相同的鍵:任何一項變了才重畫 */
 export function bgBakeKey (i: BgBakeInput): string {
-  return [i.url, i.bright, i.blurPx, i.width, i.height, i.dpr, i.color].join('|')
+  const l = i.layout ?? BG_LAYOUT_DEFAULT
+  return [i.url, i.bright, i.blurPx, i.width, i.height, i.dpr, i.color, l.fit === 'contain' ? 'contain' : 'cover', bgEffectiveZoom(l), l.x, l.y].join('|')
 }
 
-/** `background-size: cover; background-position: center` 的落點(以畫布像素計) */
+/** `background-size: cover; background-position: center` 的落點(以畫布像素計;= 預設的 `bgLayoutRect`) */
 export function bgCoverRect (imgW: number, imgH: number, boxW: number, boxH: number): { x: number, y: number, w: number, h: number } {
-  const s = Math.max(boxW / imgW, boxH / imgH)
-  const w = imgW * s
-  const h = imgH * s
-  return { x: (boxW - w) / 2, y: (boxH - h) / 2, w, h }
+  return bgLayoutRect(imgW, imgH, boxW, boxH, BG_LAYOUT_DEFAULT)
 }
 
 /** 與 CSS `.bgimg` 同一串 filter;scale = 畫布像素 / CSS px(dpr × BG_SCALE) */
@@ -63,11 +125,11 @@ export function bgBakeFilter (bright: number, blurPx: number, scale: number): st
   return `brightness(${bright}) blur(${Math.round(blurPx * scale * 1000) / 1000}px)`
 }
 
-/** 一次繪製的計畫:畫布大小、圖的落點(cover、置中)、filter */
+/** 一次繪製的計畫:畫布大小、圖的落點(依 layout;預設 cover、置中)、filter */
 export function bgBakePlan (i: BgBakeInput, imgW: number, imgH: number): { width: number, height: number, rect: { x: number, y: number, w: number, h: number }, filter: string } {
   const width = Math.max(1, Math.round(i.width * BG_SCALE))
   const height = Math.max(1, Math.round(i.height * BG_SCALE))
-  return { width, height, rect: bgCoverRect(imgW, imgH, width, height), filter: bgBakeFilter(i.bright, i.blurPx, i.dpr * BG_SCALE) }
+  return { width, height, rect: bgLayoutRect(imgW, imgH, width, height, i.layout ?? BG_LAYOUT_DEFAULT), filter: bgBakeFilter(i.bright, i.blurPx, i.dpr * BG_SCALE) }
 }
 
 /** code review 第 B 批:框大小停止變動多久後才重畫(拖曳設定視窗改大小時不每幀重畫 PNG) */

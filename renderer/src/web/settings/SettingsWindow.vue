@@ -30,7 +30,7 @@
     role="dialog" aria-modal="true" tabindex="-1"
     aria-labelledby="settings-window-title" data-settings="window" @keydown="onFsKey" @wheel="onFsWheel">
     <!-- 自訂背景圖(設定 › 一般 › 背景;與查價面板同一張) -->
-    <bg-layer />
+    <bg-layer host="settings" />
     <header class="sw-titlebar" :class="{ movable: floating }" :style="dragRegion ? '-webkit-app-region: drag;' : undefined"
       @pointerdown="onTitlePointerDown">
       <span id="settings-window-title" class="sw-title"><i class="mark" />{{ t('ppz.settings') }}</span>

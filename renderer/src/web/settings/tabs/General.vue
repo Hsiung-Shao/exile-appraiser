@@ -107,6 +107,15 @@
         <span class="num fs-val">{{ config.bg.blur }}%</span>
       </div>
     </div>
+    <!-- 第 26 步(2026-10-03):顯示位置與填滿方式,查價面板 / 設定視窗各一組(有圖才顯示;BgLayoutEditor.vue) -->
+    <template v-if="bgUrl">
+      <span class="sublabel">{{ t('ppz.bg.layout.section') }}</span>
+      <div class="bg-layouts" data-setting="bg-layouts">
+        <bg-layout-editor host="panel" :url="bgUrl" :bright="config.bg.bright" />
+        <bg-layout-editor host="settings" :url="bgUrl" :bright="config.bg.bright" />
+      </div>
+      <p class="preview-note" data-setting="bg-layout-hint">{{ t('ppz.bg.layout.hint') }}</p>
+    </template>
     <p class="preview-note">{{ t('ppz.bg.hint') }}</p>
     <p v-if="bgError" class="err" data-setting="bg-error">{{ bgError }}</p>
   </section>
@@ -192,6 +201,7 @@ import { useLeagues } from '@/web/background/Leagues'
 import { REALMS, REALM_IDS, TRADE_PATHS, type Language } from '@exile-appraiser/core/realm'
 import { ACCENTS, THEMES, FS_BASE_MIN, FS_BASE_MAX, DEFAULT_FS_BASE, bgImageUrl, normAccent, normBgFile, type Theme } from '@/web/useTheme'
 import { SETTINGS_FS_MAX, SETTINGS_FS_MIN, normSettingsFontSize } from '../settings-window-geom'
+import BgLayoutEditor from '../BgLayoutEditor.vue'
 
 /** 主題縮圖:[底, 面板, 字, 強調](同 pob-zh-engine/ui/src/views/SettingsView.svelte 的 SWATCH)。 */
 const SWATCH: Record<Theme, [string, string, string, string]> = {
@@ -202,6 +212,7 @@ const SWATCH: Record<Theme, [string, string, string, string]> = {
 }
 
 export default defineComponent({
+  components: { BgLayoutEditor },
   setup () {
     const { t } = useI18n()
     const leagues = useLeagues()
@@ -220,8 +231,9 @@ export default defineComponent({
     // ---- 自訂背景圖 ----
     const bgBusy = shallowRef(false)
     const bgError = shallowRef<string | null>(null)
+    const bgUrl = computed(() => bgImageUrl(config.bg.file, { electron: Host.isElectron, preview: Host.isPreview, baseURI: document.baseURI }))
     const bgThumb = computed(() => {
-      const u = bgImageUrl(config.bg.file, { electron: Host.isElectron, preview: Host.isPreview, baseURI: document.baseURI })
+      const u = bgUrl.value
       return u ? `url("${u.replace(/["\\]/g, '\\$&')}")` : null
     })
     async function pickBg () {
@@ -244,6 +256,7 @@ export default defineComponent({
       bgBusy,
       bgError,
       bgThumb,
+      bgUrl,
       pickBg,
       t,
       leagues,
@@ -469,6 +482,13 @@ export default defineComponent({
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.settings-panel .sublabel {
+  display: block;
+  margin-top: 0.6em;
+  font-size: var(--fs-xs);
+  color: var(--ink-1);
+  font-weight: 600;
 }
 .settings-panel .fs-val {
   min-width: 38px;

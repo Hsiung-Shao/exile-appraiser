@@ -37,7 +37,7 @@
         :class="isOverlay ? 'is-overlay shrink-0 pointer-events-auto' : 'is-window grow'"
         :style="isOverlay ? { width: `${panelWidth}px` } : undefined">
         <!-- 自訂背景圖(設定 › 一般 › 背景;只畫在面板裡,overlay 其他區域維持透明) -->
-        <bg-layer />
+        <bg-layer host="panel" />
         <header class="titlebar" :style="isOverlay ? undefined : '-webkit-app-region: drag;'">
           <span class="brand"><i class="mark" />{{ t('ppz.title') }}</span>
           <span class="chip" data-badge="game">{{ gameBadge }}</span>

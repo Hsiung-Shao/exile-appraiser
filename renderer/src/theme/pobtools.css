@@ -293,7 +293,8 @@
   pointer-events: none;
 }
 .bgimg {
-  background: var(--bg-image, none) center / cover no-repeat var(--surface-0-c);
+  /* 第 26 步:顯示位置與填滿方式(BgLayer.vue 依容器寫 --bg-pos / --bg-size;預設不寫 = center / cover) */
+  background: var(--bg-image, none) var(--bg-pos, center) / var(--bg-size, cover) no-repeat var(--surface-0-c);
   filter: brightness(var(--bg-bright, 1)) blur(var(--bg-blur, 0px));
   /* 模糊會把邊緣往內吃,放大一點點把它推到框外 */
   transform: scale(1.04);

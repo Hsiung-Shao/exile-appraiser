@@ -6,7 +6,7 @@
  * 本檔不 import Config(Config 反過來用這裡的常數與正規化函式),避免循環相依。
  */
 import { shallowRef, watch } from 'vue'
-import type { BgBakeSpec } from './bg-bake'
+import { BG_FITS, BG_LAYOUT_DEFAULT, BG_ZOOM_MAX, BG_ZOOM_MIN, type BgBakeSpec, type BgFit, type BgLayout } from './bg-bake'
 
 export const THEMES = ['slate', 'light', 'contrast', 'parchment'] as const
 export type Theme = (typeof THEMES)[number]
@@ -74,9 +74,23 @@ export interface BgSettings {
   panelOpacity: number
   /** 霧面 0–100 → 模糊 0–24 px */
   blur: number
+  /** 第 26 步(2026-10-03):顯示位置與填滿方式,查價面板 / 設定視窗各一組(舊設定檔沒有 = 預設 = cover、置中,與改版前相同) */
+  layout: BgLayouts
 }
 
-export const BG_DEFAULT: Readonly<BgSettings> = { enabled: true, file: '', bright: 60, panelOpacity: 75, blur: 0 }
+/** 背景要畫在哪個容器:查價面板(#price-window)/ 設定視窗 */
+export type BgHost = 'panel' | 'settings'
+export const BG_HOSTS: readonly BgHost[] = ['panel', 'settings']
+export type BgLayouts = Record<BgHost, BgLayout>
+
+export const BG_DEFAULT: Readonly<BgSettings> = Object.freeze({
+  enabled: true,
+  file: '',
+  bright: 60,
+  panelOpacity: 75,
+  blur: 0,
+  layout: Object.freeze({ panel: BG_LAYOUT_DEFAULT, settings: BG_LAYOUT_DEFAULT }) as BgLayouts
+})
 
 /** 與 main `backgrounds.ts` 同一條規則:只准 png / jpg / jpeg / webp、不含路徑字元、不以點開頭 */
 export function normBgFile (v: unknown): string {
@@ -85,14 +99,29 @@ export function normBgFile (v: unknown): string {
 
 const pct = (v: unknown, def: number) => (typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 100 ? Math.round(v) : def)
 
+/** 一組顯示位置與填滿方式;壞值 / 超出範圍 → 該欄預設(每次回傳新物件,可直接當設定改) */
+export function normBgLayout (v: unknown): BgLayout {
+  const o = (v && typeof v === 'object' ? v : {}) as Partial<Record<keyof BgLayout, unknown>>
+  const d = BG_LAYOUT_DEFAULT
+  const zoom = typeof o.zoom === 'number' && Number.isFinite(o.zoom) && o.zoom >= BG_ZOOM_MIN && o.zoom <= BG_ZOOM_MAX ? Math.round(o.zoom) : d.zoom
+  return {
+    x: pct(o.x, d.x),
+    y: pct(o.y, d.y),
+    fit: BG_FITS.includes(o.fit as BgFit) ? (o.fit as BgFit) : d.fit,
+    zoom
+  }
+}
+
 export function normBg (v: unknown): BgSettings {
   const o = (v && typeof v === 'object' ? v : {}) as Partial<Record<keyof BgSettings, unknown>>
+  const l = (o.layout && typeof o.layout === 'object' ? o.layout : {}) as Partial<Record<BgHost, unknown>>
   return {
     enabled: o.enabled !== false,
     file: normBgFile(o.file),
     bright: pct(o.bright, BG_DEFAULT.bright),
     panelOpacity: pct(o.panelOpacity, BG_DEFAULT.panelOpacity),
-    blur: pct(o.blur, BG_DEFAULT.blur)
+    blur: pct(o.blur, BG_DEFAULT.blur),
+    layout: { panel: normBgLayout(l.panel), settings: normBgLayout(l.settings) }
   }
 }
 
@@ -165,6 +194,14 @@ export function bgBakeSpec (bg: BgSettings, url: string | null): BgBakeSpec | nu
 
 /** 目前的預先模糊設定(useBackground 寫、每個 BgLayer.vue 讀) */
 export const bgBake = shallowRef<BgBakeSpec | null>(null)
+/** 第 26 步:目前顯示中的背景圖網址(沒有背景 = null;BgLayer 的 CSS 路徑在「縮放」模式要讀圖的原始大小) */
+export const bgShownUrl = shallowRef<string | null>(null)
+/** 第 26 步:兩個容器各自的顯示位置與填滿方式(useBackground 寫、BgLayer.vue 依自己的 host 讀) */
+export const bgLayouts = shallowRef<BgLayouts>(normBg(undefined).layout)
+/** 第 26 步:兩個容器最後一次量到的大小(CSS px;BgLayer 寫、設定頁預覽框的長寬比讀;沒量過 = null) */
+export const bgHostSize = shallowRef<Record<BgHost, { w: number, h: number } | null>>({ panel: null, settings: null })
+
+const sameLayout = (a: BgLayout, b: BgLayout) => a.x === b.x && a.y === b.y && a.fit === b.fit && a.zoom === b.zoom
 
 const BG_VARS = ['--bg-image', '--bg-bright', '--bg-blur', '--bg-panel-pct', '--bg-read-pct', '--bg-lift', '--bg-halo']
 
@@ -187,9 +224,12 @@ export function useBackground (settings: () => BgSettings, url: (file: string) =
     const s = settings()
     const b = normBg(s)
     const u = url(s.file)
-    return { vars: bgVars(b, u), bake: bgBakeSpec(b, u) }
-  }, ({ vars, bake }) => {
+    return { vars: bgVars(b, u), bake: bgBakeSpec(b, u), layout: b.layout, shown: bgVars(b, u) ? u : null }
+  }, ({ vars, bake, layout, shown }) => {
     applyBackground(vars)
+    if (bgShownUrl.value !== shown) bgShownUrl.value = shown
+    const cl = bgLayouts.value
+    if (!BG_HOSTS.every(h => sameLayout(cl[h], layout[h]))) bgLayouts.value = layout
     const cur = bgBake.value
     if (cur?.url !== bake?.url || cur?.bright !== bake?.bright || cur?.blurPx !== bake?.blurPx) bgBake.value = bake
   }, { immediate: true, deep: true })

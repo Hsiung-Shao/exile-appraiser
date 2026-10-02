@@ -18,7 +18,7 @@ import type { PriceCheckWidget } from './overlay/interfaces'
 import type { ChatCommand, HostConfigForMain, HotkeyRegistration, OcrLangSetting, OcrRegion, StashSearchEntry } from '@ipc/types'
 import { Host } from './background/IPC'
 import { createHostConfigSync } from './host-config-sync'
-import { BG_DEFAULT, clampFsBase, normAccent, normBg, normTheme, DEFAULT_FS_BASE, type BgSettings, type Theme } from './useTheme'
+import { clampFsBase, normAccent, normBg, normTheme, DEFAULT_FS_BASE, type BgSettings, type Theme } from './useTheme'
 import { defaultOcrBadgeStyle, normOcrBadgeStyle, type OcrBadgeStyle } from './overlay/badge-style'
 import { normSettingsFontSize, normSettingsWindow, type SettingsWindowRect } from './settings/settings-window-geom'
 
@@ -255,7 +255,7 @@ function createConfig (): Config {
     theme: 'slate' as Theme,
     accent: '',
     fsBase: DEFAULT_FS_BASE,
-    bg: { ...BG_DEFAULT } as BgSettings,
+    bg: normBg(undefined), // 第 26 步:layout 是巢狀物件,不能淺拷貝 BG_DEFAULT(會共用、改到常數)
     leagueBy: { poe1: {}, poe2: {} } as Record<Game, Partial<Record<Realm, string>>>,
     accountName: '',
     restoreClipboard: false,

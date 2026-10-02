@@ -8,6 +8,10 @@
   改用這張圖;scale(1.04) 照舊)。霧面 0、圖還沒好、載入或繪製失敗時就是原本的 CSS 呈現。
   code review 第 B 批:框大小變動(拖曳設定視窗)停止約 200 ms 後才重畫(`createResizeSettle`),期間沿用舊圖(拉伸);
   顯示 / 隱藏、第一張圖、主題 / 霧面 / 圖片變更維持立即。
+  第 26 步(2026-10-03):`host`(panel = 查價面板、settings = 設定視窗)決定讀哪一組顯示位置與填滿方式(`bgLayouts`)。
+  預先模糊路徑:落點交給 bgBakePlan(鍵含 fit / 倍率 / 焦點);CSS 路徑:在 .bgimg 寫 `--bg-pos` / `--bg-size`
+  (pobtools.css 的 .bgimg 以它們取代 center / cover;「縮放」要圖的原始大小換成百分比,另外載入一次量大小)。
+  預設(cover、置中)不寫任何變數 = 與改版前相同。另把量到的框大小(CSS px)寫進 `bgHostSize` 給設定頁預覽框當長寬比。
 -->
 <template>
   <div ref="imgEl" class="bgimg" aria-hidden="true" data-bg-layer="image" />
@@ -15,9 +19,9 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { BgBaker, bgBakePlan, createResizeSettle, type BgBakeInput } from '../bg-bake'
-import { bgBake } from '../useTheme'
+import { computed, defineComponent, onBeforeUnmount, onMounted, ref, watch, type PropType } from 'vue'
+import { BgBaker, bgBakePlan, bgCssLayout, createResizeSettle, type BgBakeInput } from '../bg-bake'
+import { bgBake, bgHostSize, bgLayouts, bgShownUrl, type BgHost } from '../useTheme'
 
 /** 畫好的圖:blob URL + 已解碼的 Image(留著參照,換上時不必再解碼、不閃爍) */
 interface Baked { url: string, img: HTMLImageElement }
@@ -33,8 +37,16 @@ async function decoded (src: string, cors: boolean): Promise<HTMLImageElement> {
 }
 
 export default defineComponent({
-  setup () {
+  props: {
+    /** 這一層畫在哪個容器:查價面板(#price-window)/ 設定視窗 */
+    host: { type: String as PropType<BgHost>, default: 'panel' }
+  },
+  setup (props) {
     const imgEl = ref<HTMLElement | null>(null)
+    const layout = computed(() => bgLayouts.value[props.host])
+    // 「縮放」模式的 CSS 路徑要圖的原始大小(載入一次;換圖才重量)
+    let natural: { url: string, w: number, h: number } | null = null
+    let naturalLoading: string | null = null
     // .bgimg 的框(裝置像素,transform 之前);0 = 隱藏中
     let width = 0
     let height = 0
@@ -101,7 +113,41 @@ export default defineComponent({
       if (!spec || !el) return null
       // 底色 = CSS .bgimg 的 background-color(--surface-0-c 的計算值;主題切換後自動是新值)
       const color = getComputedStyle(el).getPropertyValue('--surface-0-c').trim() || '#000'
-      return { ...spec, width, height, dpr: window.devicePixelRatio || 1, color }
+      return { ...spec, width, height, dpr: window.devicePixelRatio || 1, color, layout: layout.value }
+    }
+    /** CSS 路徑的位置 / 大小(預先模糊時被 .bgimg[data-baked] 的規則蓋過,寫著也無妨);預設 → 移除 = 樣式表的 center / cover */
+    function applyCss (): void {
+      const el = imgEl.value
+      if (!el) return
+      const l = layout.value
+      const url = bgShownUrl.value
+      if (l.fit === 'zoom' && l.zoom !== 100 && url && natural?.url !== url && naturalLoading !== url) {
+        naturalLoading = url
+        void decoded(url, false).then((img) => {
+          if (naturalLoading === url) natural = { url, w: img.naturalWidth, h: img.naturalHeight }
+          img.removeAttribute('src')
+        }).catch(() => {
+          if (naturalLoading === url) natural = { url, w: 0, h: 0 } // 量不到:當 cover(倍率 100),不重試
+        }).finally(() => {
+          if (naturalLoading === url) naturalLoading = null
+          applyCss()
+        })
+      }
+      const css = bgCssLayout(l, natural && natural.url === url ? natural : null, { w: width, h: height })
+      if (css) {
+        el.style.setProperty('--bg-pos', css.pos)
+        el.style.setProperty('--bg-size', css.size)
+      } else {
+        el.style.removeProperty('--bg-pos')
+        el.style.removeProperty('--bg-size')
+      }
+    }
+    function recordSize (): void {
+      if (!(width > 0 && height > 0)) return
+      const dpr = window.devicePixelRatio || 1
+      const next = { w: Math.round(width / dpr), h: Math.round(height / dpr) }
+      const cur = bgHostSize.value[props.host]
+      if (cur?.w !== next.w || cur?.h !== next.h) bgHostSize.value = { ...bgHostSize.value, [props.host]: next }
     }
     function flush (): void {
       if (raf) { cancelAnimationFrame(raf); raf = 0 }
@@ -114,6 +160,7 @@ export default defineComponent({
     const settle = createResizeSettle(flush)
 
     watch(bgBake, schedule)
+    watch([layout, bgShownUrl], () => { applyCss(); schedule() })
     onMounted(() => {
       const el = imgEl.value
       if (!el) return
@@ -125,11 +172,14 @@ export default defineComponent({
         width = dp ? dp.inlineSize : Math.round(e.contentRect.width * dpr)
         height = dp ? dp.blockSize : Math.round(e.contentRect.height * dpr)
         settle.resized(prev, { w: width, h: height }, baker.key != null)
+        recordSize()
+        if (layout.value.fit === 'zoom') applyCss() // 只有縮放的百分比跟框的長寬比有關
       })
       try { ro.observe(el, { box: 'device-pixel-content-box' }) } catch { ro.observe(el) }
       // 主題 / 強調色寫在 <html>(data-theme、style):底色可能變 → 下一幀重算(鍵沒變就不重畫)
       mo = new MutationObserver(schedule)
       mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'style', 'class'] })
+      applyCss()
       schedule()
     })
     onBeforeUnmount(() => {
@@ -138,6 +188,7 @@ export default defineComponent({
       mo?.disconnect()
       if (raf) cancelAnimationFrame(raf)
       raf = 0
+      naturalLoading = null
       baker.dispose()
     })
     return { imgEl }

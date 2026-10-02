@@ -51,7 +51,21 @@
       "panel_opacity": "Panel opacity",
       "readability_hint": "With a see-through panel, text automatically gets a soft outline and extra contrast, and tables, filters and inputs keep a minimum backing. If text is still hard to read, raise the panel opacity or turn on Frosted.",
       "blur": "Frosted",
-      "hint": "The image is only shown inside the price panel and the settings window (the rest of the game screen stays clear). PNG, JPG and WebP are supported; the chosen image is copied into the settings folder."
+      "hint": "The image is only shown inside the price panel and the settings window (the rest of the game screen stays clear). PNG, JPG and WebP are supported; the chosen image is copied into the settings folder.",
+      "layout": {
+        "section": "Position and fit",
+        "host_panel": "Price panel",
+        "host_settings": "Settings window",
+        "preview_aria": "{host} background position preview (drag or use arrow keys to move the focus)",
+        "pos_x": "Horizontal",
+        "pos_y": "Vertical",
+        "fit_cover": "Fill",
+        "fit_contain": "Fit",
+        "fit_zoom": "Zoom",
+        "zoom": "Zoom",
+        "reset": "Reset",
+        "hint": "Drag the crosshair on the preview to pick the part of the image that should stay visible (the focus); the sliders fine-tune it. Fill crops whatever does not fit, Fit shows the whole image (empty space uses the theme background), and Zoom enlarges beyond Fill. The price panel and the settings window are set separately."
+      }
     },
     "scan": {
       "status": "Current status",
