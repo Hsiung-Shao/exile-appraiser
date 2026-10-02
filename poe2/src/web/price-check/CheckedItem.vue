@@ -1,6 +1,7 @@
 <template>
   <div v-if="noUniqueSelection" class="p-4 layout-column min-h-0">
     <filter-name :filters="itemFilters" :item="item" />
+    <price-trend :item="item" :filters="itemFilters" />
     <filters-block
       ref="filtersComponent"
       :filters="itemFilters"
@@ -33,6 +34,7 @@
         <trade-links v-if="tradeAPI === 'trade'" :get-link="makeTradeLink" />
       </div>
     </div>
+    <stack-value :filters="itemFilters" :item="item" />
   </div>
 </template>
 
@@ -55,6 +57,8 @@ import { apiToSatisfySearch, getTradeEndpoint } from "./trade/common";
 import FiltersBlock from "./filters/FiltersBlock.vue";
 import { createPresets } from "./filters/create-presets";
 import FilterName from "./filters/FilterName.vue";
+import PriceTrend from "./trends/PriceTrend.vue";
+import StackValue from "./stack-value/StackValue.vue";
 import {
   CATEGORY_TO_TRADE_ID,
   createTradeRequest,
@@ -63,7 +67,9 @@ import { AppConfig } from "@/web/Config";
 import { FilterPreset } from "./filters/interfaces";
 import { PriceCheckWidget } from "@/web/overlay/interfaces";
 import { useLeagues } from "@/web/background/Leagues";
-// exile-appraiser: 移除 PriceTrend / PricePrediction / StackValue(poe.ninja、預測價)、Tip 與贊助區塊;
+// exile-appraiser(第 24 步):PriceTrend(通貨價格區)/ StackValue 加回(價格源 = renderer 的 poe.ninja 價格表,web/background/Prices.ts 轉接;
+// 只對 exchange 類顯示,台服 / 沒有 ninja 價整塊不顯示)
+// exile-appraiser: 移除 PricePrediction(預測價)、Tip 與贊助區塊;
 // useEn 改由 realm 模型推導(AppConfig().useIntlSite);overlay 型別改 @/web alias;交易站網址的聯盟與 ?q= 改 encodeURIComponent
 
 export default defineComponent({
@@ -75,6 +81,8 @@ export default defineComponent({
     TradeLinks,
     FiltersBlock,
     FilterName,
+    PriceTrend,
+    StackValue,
   },
   props: {
     item: {

@@ -3,6 +3,9 @@
     <filter-name
       :filters="itemFilters"
       :item="item" />
+    <price-trend
+      :item="item"
+      :filters="itemFilters" />
     <filters-block
       ref="filtersComponent"
       :filters="itemFilters"
@@ -35,12 +38,15 @@
       <i class="fas fa-info-circle" />
       {{ t('item.complexity_hint') }}
     </p>
+    <stack-value :filters="itemFilters" :item="item"/>
     <dust-value v-if="item.dustEquivalent" :item="item"/>
   </div>
 </template>
 
 <script lang="ts">
-// exile-appraiser: 移除 PriceTrend / PricePrediction / StackValue 與贊助區塊(showPredictedPrice / showSupportLinks);DustValue 已加回(拆粉量 + poe.ninja dust/chaos);overlay 型別改 @/web alias;交易站網址 ?q= 改 encodeURIComponent
+// exile-appraiser: 移除 PricePrediction 與贊助區塊(showPredictedPrice / showSupportLinks);DustValue 已加回(拆粉量 + poe.ninja dust/chaos);overlay 型別改 @/web alias;交易站網址 ?q= 改 encodeURIComponent
+// exile-appraiser(第 24 步):PriceTrend(通貨價格區:兌換價、7 天走勢、每小時成交量)/ StackValue 加回,只對 poe.ninja exchange 類顯示;
+// 台服與沒有 ninja 價的物品整塊不顯示(元件內判斷)。PricePrediction 仍不做 → 不再用 v-else 掛在它後面
 import { defineComponent, PropType, watch, ref, nextTick, computed, ComponentPublicInstance } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ItemRarity, ItemCategory, ParsedItem } from '@/parser'
@@ -52,6 +58,8 @@ import FiltersBlock from './filters/FiltersBlock.vue'
 import { createPresets } from './filters/create-presets'
 import FilterName from './filters/FilterName.vue'
 import DustValue from './expected-value/DustValue.vue'
+import PriceTrend from './trends/PriceTrend.vue'
+import StackValue from './expected-value/StackValue.vue'
 import { CATEGORY_TO_TRADE_ID, createTradeRequest } from './trade/pathofexile-trade'
 import { AppConfig } from '@/web/Config'
 import { FilterPreset } from './filters/interfaces'
@@ -66,7 +74,9 @@ export default defineComponent({
     TradeLinks,
     FiltersBlock,
     FilterName,
-    DustValue
+    DustValue,
+    PriceTrend,
+    StackValue
   },
   props: {
     item: {

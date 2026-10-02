@@ -16,6 +16,7 @@
     </div>
     <div class="w-8 h-8 flex items-center justify-center shrink-0" v-if="!currencyText">
       <img v-if="isValuable" src="/images/divine.png" class="max-w-full max-h-full">
+      <img v-else-if="price?.currency === 'exalted'" src="/images/exa.png" class="max-w-full max-h-full">
       <img v-else src="/images/chaos.png" class="max-w-full max-h-full">
     </div>
   </div>
@@ -29,7 +30,8 @@ import { BaseType } from '@/assets/data'
 export default defineComponent({
   props: {
     price: {
-      type: Object as PropType<{ min: number, max: number, currency: 'div' | 'chaos' }>,
+      // exile-appraiser(第 24 步):Prices.autoCurrency 的單位多了 exalted(PoE2 用;PoE1 不會出現)
+      type: Object as PropType<{ min: number, max: number, currency: 'div' | 'chaos' | 'exalted' }>,
       default: undefined
     },
     approx: {

@@ -8,6 +8,8 @@
  * 宣告與實作是否一致,由 `renderer-entry.check.ts`(poe2 的 vue-tsc 專案)把關。
  */
 export { poe2Adapter, browserDataSource, setTradeContextProvider, setHostOptionsProvider } from './index'
+// exile-appraiser(第 24 步):查價面板「通貨價格區」—— renderer 注入 poe.ninja 價格源(web/background/Prices.ts)
+export { setPriceSource } from '@/web/background/Prices'
 // exile-appraiser: 一鍵回報(renderer/src/web/report.ts)用預設篩選重算查詢 JSON
 export { createPresets, createTradeRequest } from './index'
 export { parseClipboard } from '@/parser'

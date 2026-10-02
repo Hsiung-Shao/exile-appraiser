@@ -12,17 +12,23 @@
  * - WP-R2:PoE2 也抓(目標本來就依 `game`;PoE2 的觸發者是符文塑形自動查價 `RuneshapePrices.vue` 收到掃描結果時的
  *   `queuePricesFetch`),`priceOf(refName, level?)` 給 PoE2 通貨類(符文 / 靈魂核心 / 未切割寶石…)查價,
  *   `exaltedRate`(1 ex = 幾 c,快照 schema 2)給崇高石計價。台服回 `{ status: 'no-source' }`。
+ * - 第 24 步(查價面板「通貨價格區」):`findPriceByQuery` 另回 7 天走勢(`graph` = APT 欄位名)、每小時成交量
+ *   (`volumeChaos`)、成交量最大的對手通貨(`maxVolumeCurrency`)與 `exchange`(來自 exchange 類 = 通貨區只顯示這種);
+ *   `autoCurrency` 依遊戲換單位(PoE1 照 APT chaos / div;PoE2 崇高石 / 神聖石,規則在 core `ninja/units.ts`);
+ *   PoE2 剪貼簿查價也算「有人在查價」(`queuePricesFetch`,節流與 20 分鐘閘門不變);
+ *   PoE2 查價元件經 `poe2-price-source.ts` 轉接這裡(`poe2/src/web/background/Prices.ts`)。
  */
 import { computed, readonly, shallowRef, watch } from 'vue'
 import { createGlobalState } from '@vueuse/core'
 import {
-  createNinjaClient, denseInfoToDetailsId, isFresh, lookupPrice, ninjaDetailsUrl, parseSnapshot, toSnapshot,
+  autoCurrencyFor, createNinjaClient, denseInfoToDetailsId, isFresh, lookupPrice, ninjaDetailsUrl, parseSnapshot, toSnapshot,
   NINJA_CACHE_TTL_MS, type NinjaGame, type NinjaQuery, type NinjaSnapshot
 } from '@exile-appraiser/core/ninja'
 import { AppConfig } from '@/web/Config'
 import { Host } from './IPC'
 import { useLeagues } from './Leagues'
 import { priceFromSnapshot, type PriceOfResult } from './price-of'
+import { priceHitFields, type PriceTrendFields } from './price-trend'
 
 export type { PriceOfResult, PriceOfHit } from './price-of'
 
@@ -35,10 +41,11 @@ export type DbQuery = NinjaQuery
 export interface CurrencyValue {
   min: number
   max: number
-  currency: 'chaos' | 'div'
+  /** PoE1:chaos / div(APT);第 24 步 PoE2:exalted / div(沒有 exalted 匯率才 chaos) */
+  currency: 'chaos' | 'div' | 'exalted'
 }
 
-export interface NinjaPriceHit {
+export interface NinjaPriceHit extends PriceTrendFields {
   chaos: number
   /** poe.ninja 詳細頁 */
   url: string
@@ -47,6 +54,7 @@ export interface NinjaPriceHit {
   /** 0 < count < 5 */
   lowConfidence: boolean
   detailsId: string
+  // 第 24 步:graph / graphChange / exchange / volumeChaos / maxVolumeCurrency 見 price-trend.ts `PriceTrendFields`
 }
 
 export const usePoeninja = createGlobalState(() => {
@@ -65,6 +73,12 @@ export const usePoeninja = createGlobalState(() => {
   let lastSessionFetch = 0
   let downloadController: AbortController | undefined
   let cacheLoadedFor: string | undefined
+  /**
+   * 第 24 步:讀快取進行中的 promise。快取還沒讀完時又有人 `queuePricesFetch`(第一次查價就建立價格表 → watch 的讀快取
+   * 與查價事件同時發生,PoE1 拆粉 `DustValue` 的 onMounted 也是),原本會因 snapshot 還是 null 而判定「不新鮮」直接上網抓,
+   * 15 分鐘快取等於沒用(無頭驗證時發現)。現在先等快取讀完再判斷。
+   */
+  let cacheLoading: Promise<void> | undefined
 
   /** 目前要用哪個 ninja 價格表;null = 不抓(台服、沒選聯盟、私人聯盟)。 */
   const target = computed<{ game: NinjaGame, league: string } | null>(() => {
@@ -93,6 +107,7 @@ export const usePoeninja = createGlobalState(() => {
     lastError.value = null
     lastSessionFetch = 0
     cacheLoadedFor = undefined
+    cacheLoading = undefined
   }
 
   async function load (force: boolean = false) {
@@ -102,11 +117,17 @@ export const usePoeninja = createGlobalState(() => {
 
     if (cacheLoadedFor !== key) {
       cacheLoadedFor = key
-      let text: string | null = null
-      try { text = await Host.ninjaCacheLoad(t.game, t.league) } catch (e) { console.warn('[ninja] 讀快取失敗', e) }
+      cacheLoading = (async () => {
+        let text: string | null = null
+        try { text = await Host.ninjaCacheLoad(t.game, t.league) } catch (e) { console.warn('[ninja] 讀快取失敗', e) }
+        if (targetKey.value !== key) return
+        const cached = parseSnapshot(text, t.game, t.league)
+        if (cached && (!snapshot.value || cached.fetchedAt > snapshot.value.fetchedAt)) apply(cached)
+      })()
+    }
+    if (cacheLoading) {
+      await cacheLoading
       if (targetKey.value !== key) return
-      const cached = parseSnapshot(text, t.game, t.league)
-      if (cached && (!snapshot.value || cached.fetchedAt > snapshot.value.fetchedAt)) apply(cached)
     }
 
     if (!force) {
@@ -169,7 +190,8 @@ export const usePoeninja = createGlobalState(() => {
       url: ninjaDetailsUrl(t.game, t.league, hit, query),
       count: hit.entry.n,
       lowConfidence: hit.entry.lc,
-      detailsId: hit.entry.id ?? denseInfoToDetailsId(query)
+      detailsId: hit.entry.id ?? denseInfoToDetailsId(query),
+      ...priceHitFields(hit.key, hit.entry)
     }
   }
 
@@ -186,33 +208,22 @@ export const usePoeninja = createGlobalState(() => {
     return priceFromSnapshot(snap, refName, level) ?? { status: 'no-price' }
   }
 
-  function autoCurrency (value: number | [number, number]): CurrencyValue {
-    if (Array.isArray(value)) {
-      if (value[1] > (xchgRate.value || 9999)) {
-        return { min: chaosToStable(value[0]), max: chaosToStable(value[1]), currency: 'div' }
-      }
-      return { min: value[0], max: value[1], currency: 'chaos' }
-    }
-    if (value > ((xchgRate.value || 9999) * 0.94)) {
-      if (value < ((xchgRate.value || 9999) * 1.06)) {
-        return { min: 1, max: 1, currency: 'div' }
-      } else {
-        return { min: chaosToStable(value), max: chaosToStable(value), currency: 'div' }
-      }
-    }
-    return { min: value, max: value, currency: 'chaos' }
-  }
-
-  function chaosToStable (count: number) {
-    return count / (xchgRate.value || 9999)
+  /**
+   * chaos → 顯示單位。PoE1 與 APT 逐條相同(chaos / div);第 24 步 PoE2 改崇高石 / 神聖石(≥ 1 div 換神聖石,
+   * 與符文塑形徽章同規則;`coreOnly` = 不換神聖石)。規則在 core `ninja/units.ts`。
+   */
+  function autoCurrency (value: number | [number, number], opts: { coreOnly?: boolean } = {}): CurrencyValue {
+    const game = target.value?.game ?? AppConfig().game
+    return autoCurrencyFor(game, value, { divineRate: xchgRate.value, exaltedRate: exaltedRate.value }, opts)
   }
 
   setInterval(() => { void load() }, RETRY_INTERVAL_MS)
 
-  // 剪貼簿查價 = 有人在查價(上游由 PriceCheckWindow 呼叫 queuePricesFetch)。只算 PoE1:
-  // PoE2 的查價元件用 poe2/src 自己的 Prices;PoE2 這裡的價格表只給符文塑形自動查價(它自己呼叫 queuePricesFetch)。
+  // 剪貼簿查價 = 有人在查價(上游由 PriceCheckWindow 呼叫 queuePricesFetch)。
+  // 第 24 步起 PoE2 也算(查價面板「通貨價格區」經 poe2-price-source.ts 讀這份價格表);台服 / 私人聯盟 target 為 null,load 直接 return。
+  // 節流不變:只有快取時 15 分鐘 TTL、這次執行抓過後 31 分鐘、抓價中不重複。
   Host.onItemText(() => {
-    if (AppConfig().game === 'poe1') queuePricesFetch()
+    queuePricesFetch()
   })
 
   // 換區 / 換遊戲 / 換聯盟 → 清空,讀新目標的快取(有人在查價才上網)

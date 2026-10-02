@@ -8,6 +8,8 @@ export const conforms: {
   browserDataSource: typeof decl.browserDataSource
   setTradeContextProvider: typeof decl.setTradeContextProvider
   setHostOptionsProvider: typeof decl.setHostOptionsProvider
+  // 第 24 步
+  setPriceSource: typeof decl.setPriceSource
   parseClipboard: typeof decl.parseClipboard
   createPresets: typeof decl.createPresets
   createTradeRequest: typeof decl.createTradeRequest

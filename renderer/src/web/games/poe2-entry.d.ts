@@ -75,10 +75,33 @@ export interface Poe2ReportFns {
   createTradeRequest (preset: Poe2FilterPreset, item: Poe2ParsedItem): unknown
 }
 
+// ---- 第 24 步:查價面板「通貨價格區」的價格源(poe2/src/web/background/Prices.ts `PriceSource`;實作 renderer/src/web/background/poe2-price-source.ts) ----
+export interface Poe2PriceSourceEntry {
+  /** 價格(divine) */
+  primaryValue: number
+  /** 每小時成交量(divine);只有 exchange 類 */
+  volumePrimaryValue?: number
+  maxVolumeCurrency?: string
+  sparkline: { totalChange: number, data: Array<number | null> }
+  detailsId: string
+  url: string
+  /** 來自 poe.ninja exchange 類 */
+  cx: boolean
+}
+export interface Poe2PriceSource {
+  revision (): string | undefined
+  /** 1 divine / 1 exalted = 幾 chaos */
+  rates (): { divineRate?: number | null, exaltedRate?: number | null }
+  find (query: { ns: string, name: string, variant?: string }): Poe2PriceSourceEntry | null
+  queuePricesFetch (): void
+  initialLoading (): boolean
+}
+
 export declare const poe2Adapter: Pick<GameAdapter, 'id' | 'loadData'>
 export declare function browserDataSource (baseUrl: string): DataSource
 export declare function setTradeContextProvider (provider: () => TradeContext): void
 export declare function setHostOptionsProvider (next: (() => Partial<Poe2HostOptions>) | undefined): void
+export declare function setPriceSource (next: Poe2PriceSource | undefined): void
 export declare function parseClipboard (clipboard: string): Result<Poe2ParsedItem, string>
 export declare const CheckedItem: DefineComponent<{}, {}, any>
 export declare const RateLimiterState: DefineComponent<{}, {}, any>

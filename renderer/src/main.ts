@@ -13,6 +13,8 @@ import { loadedGame } from './web/games/active'
 import { bgImageUrl, useBackground, useTheme } from './web/useTheme'
 import { runReload } from './web/loadState'
 import { bumpDataGeneration } from './web/overlay/scan-dedupe'
+import { usePoeninja } from './web/background/Prices'
+import { createPoe2PriceSource } from './web/background/poe2-price-source'
 
 /** 載入某個遊戲的資料集(每個 adapter 各自持有模組層級資料;切回來時語言沒變就是 no-op)。 */
 async function loadGameData (game: Game, lang: Language): Promise<void> {
@@ -81,6 +83,9 @@ async function boot () {
     // code review 第 B 批:懸停浮窗關閉時查價結果不載 / 不翻繁中資料(display-zh.ts)
     itemHoverTooltip: AppConfig().priceCheck.itemHoverTooltip
   }))
+  // 第 24 步:PoE2 查價元件(通貨價格區、結果列換算價、ExtractionValue…)讀 renderer 的 poe.ninja 價格表
+  // (getter:第一次用到才建立 usePoeninja,不改變它的建立時機)
+  Poe2.setPriceSource(createPoe2PriceSource(() => usePoeninja()))
 
   // 切遊戲 / 客戶端語言:重載該遊戲的資料集(不必重啟);切遊戲或介面語言:重載 app_i18n。
   // 只切介面語言不碰資料集。資料載完才切 loadedGame。

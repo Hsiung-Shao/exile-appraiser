@@ -46,6 +46,17 @@
         <input v-model.lazy.trim="config.accountName" class="input sm" data-setting="account-name">
       </div>
     </div>
+    <!-- 第 24 步:查價面板通貨價格區的每小時成交量(兩代都有);照 Exiled Exchange 2 settings-price-check.vue 的四選一 -->
+    <div class="srow">
+      <span class="k">{{ t('ppz.currency_volume') }}</span>
+      <div class="ctl">
+        <div class="seg" data-setting="currency-volume">
+          <button v-for="o in volumeOptions" :key="o.value" :class="{ on: pc.currencyVolume === o.value }"
+            :data-value="o.value" @click="pc.currencyVolume = o.value">{{ t(o.key) }}</button>
+        </div>
+      </div>
+      <span class="note">{{ t('ppz.currency_volume_hint') }}</span>
+    </div>
     <!-- PoE2 才有(poe1 沒有物品浮窗元件);照 Exiled Exchange 2 settings-price-check.vue 的三選一 -->
     <div v-if="showItemHover" class="srow">
       <span class="k">{{ t('ppz.item_hover') }}</span>
@@ -70,7 +81,7 @@
 import { computed, defineComponent } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { AppConfig } from '@/web/Config'
-import { HOVER_OPTIONS, hasItemHover } from './price-check-options'
+import { CURRENCY_VOLUME_OPTIONS, HOVER_OPTIONS, hasItemHover } from './price-check-options'
 
 export default defineComponent({
   setup () {
@@ -92,6 +103,7 @@ export default defineComponent({
         { value: 'ign', key: 'ppz.show_seller_ign' }
       ] as Array<{ value: false | 'account' | 'ign', key: string }>,
       hoverOptions: HOVER_OPTIONS,
+      volumeOptions: CURRENCY_VOLUME_OPTIONS,
       showItemHover: computed(() => hasItemHover(config.game))
     }
   }
