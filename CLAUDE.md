@@ -161,6 +161,9 @@ UPDATE_FIXTURES=1 npm test       # 改寫 parser / golden-query 快照;產出必
 - 第 22 步(英文客戶端):`poe2/test/desecration/ocr-match-en.test.ts`(英文截圖 `well-of-souls-weapon-en-04` 三組 + 英文模板 round-trip + 正規化 / 模糊 + 定位 / 否決 + 合成英文浮窗負樣本)、
   `poe2/test/runeshape/match-en.test.ts`(四張英文截圖每列 refName、Undiscovered、泛稱、列格式)、`main/test/ocr-lang-en.test.ts`(語言包選擇、英文偵測器、換語言重置)、
   `main/test/ocr-ipc.test.ts`(`WinOcr.setLang`)、`renderer/test/ocr-lang.test.ts`;繁中既有測試全部不改。
+- 第 23 步(英文客戶端查價回歸):`poe1/test/en-client.test.ts`(`fixtures/en/` 10 件:傳奇靴 ×2、稀有戒指含 implicit/fractured/crafted、通貨、寶石、珠寶、地圖 ×2、傭兵契約書、最後通牒、血染容器)、
+  `poe2/test/en-client.test.ts`(`zhTW/fixtures/en/` 12 件:進階複製稀有靴/頭/杖/矛含褻瀆 Tier、傳奇項鍊/戒指/珠寶、碑牌、Waystone、通貨、技能寶石、稀有珠寶)。
+  同名的中英 fixture 必須產生相同 trade query(語言無關鍵對接);已知例外:PoE1 `map-rare-01` 繁中「怪物擊中時獲得耐力球」兩條英文詞綴同字串 → 繁中是 count 群組、PoE2 碑牌 en 資料把 `in Map` 併在泛稱經驗詞綴 → 英文多一個泛稱 id(兩者測試內有註解)。
 - `poe2/test/desecration/`:資料表統計與 poenavi 抽樣逐欄比對(`build.test.ts`)、推定(`infer.test.ts`,含三件真實物品的進階 vs 一般複製)、
   揭露面板 OCR 比對(`ocr-match.test.ts`:真實截圖快照、394 模板 round-trip、模糊、分組;`ocr-fuzzy-equivalence.test.ts`:效能修正第 8 步的模糊比對與改前實作逐位元相同)。`renderer/test/ocr-reveal.test.ts` 測徽章座標與文字;`renderer/test/region-geom.test.ts` 測框選幾何(WP-S2)。
 - `main/test/updater-core.test.ts`:自動更新狀態轉移(假 updater 模仿 electron-updater 下載完成才註冊 quit handler)、`autoUpdate` 開關、portable / `--no-updates` / 開發模式、錯誤分類。

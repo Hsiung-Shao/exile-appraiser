@@ -1,0 +1,1045 @@
+{
+  "areaItemQuantity": 58,
+  "areaItemRarity": 33,
+  "areaPackSize": 22,
+  "baseType": "Blighted Map",
+  "category": "Map",
+  "influences": [],
+  "info": {
+    "area": {
+      "blighted": true
+    },
+    "craftable": {
+      "category": "Map"
+    },
+    "icon": "/images/maps/blight1.png",
+    "name": "Blighted Map",
+    "namespace": "ITEM",
+    "refName": "Blighted Map",
+    "tradeDisc": "blighted"
+  },
+  "infoVariants": [
+    {
+      "area": {
+        "blighted": true
+      },
+      "craftable": {
+        "category": "Map"
+      },
+      "icon": "/images/maps/blight1.png",
+      "name": "Blighted Map",
+      "namespace": "ITEM",
+      "refName": "Blighted Map",
+      "tradeDisc": "blighted"
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": false,
+  "itemLevel": 83,
+  "mapArea": {
+    "icon": "",
+    "name": "Forbidden Woods",
+    "namespace": "AREA",
+    "refName": "Forbidden Woods",
+    "tradeDisc": "26156"
+  },
+  "mapTier": 14,
+  "name": "Foul Bearing",
+  "newMods": [
+    {
+      "info": {
+        "tags": [],
+        "type": "implicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 1,
+            "min": 1,
+            "unscalable": true,
+            "value": 1
+          },
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "yes",
+            "matchers": [
+              {
+                "string": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 50% value\nCan be Anointed up to # times"
+              },
+              {
+                "string": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 25% value\nCan be Anointed up to 3 times",
+                "value": 1
+              }
+            ],
+            "ref": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 25% value\nCan be Anointed up to 3 times",
+            "trade": {
+              "ids": {
+                "implicit": [
+                  "implicit.stat_299373046"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 25% value\nCan be Anointed up to 3 times",
+            "value": 1
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "prefix",
+        "name": "Unyielding",
+        "tags": [
+          "Physical",
+          "Chaos",
+          "Attack",
+          "Ailment"
+        ],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 50,
+            "min": 50,
+            "unscalable": false,
+            "value": 50
+          },
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "yes",
+            "matchers": [
+              {
+                "string": "Monsters have a #% chance to avoid Poison, Impale, and Bleeding"
+              }
+            ],
+            "ref": "Monsters have a #% chance to avoid Poison, Impale, and Bleeding",
+            "trade": {
+              "ids": {
+                "explicit": [
+                  "explicit.stat_144665660"
+                ],
+                "fractured": [
+                  "fractured.stat_144665660"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "Monsters have a #% chance to avoid Poison, Impale, and Bleeding"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "prefix",
+        "name": "Burning",
+        "tags": [
+          "Damage",
+          "Physical",
+          "Elemental",
+          "Fire"
+        ],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 110,
+            "min": 90,
+            "unscalable": false,
+            "value": 100
+          },
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "yes",
+            "matchers": [
+              {
+                "string": "Monsters deal #% extra Physical Damage as Fire"
+              }
+            ],
+            "ref": "Monsters deal #% extra Physical Damage as Fire",
+            "trade": {
+              "ids": {
+                "explicit": [
+                  "explicit.stat_1497673356"
+                ],
+                "fractured": [
+                  "fractured.stat_1497673356"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "Monsters deal #% extra Physical Damage as Fire"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "prefix",
+        "name": "Overlord's",
+        "tags": [
+          "Attack",
+          "Caster",
+          "Speed"
+        ],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 25,
+            "min": 25,
+            "unscalable": false,
+            "value": 25
+          },
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "yes",
+            "matchers": [
+              {
+                "string": "Unique Boss deals #% increased Damage"
+              }
+            ],
+            "ref": "Unique Boss deals #% increased Damage",
+            "trade": {
+              "ids": {
+                "enchant": [
+                  "enchant.stat_124877078"
+                ],
+                "explicit": [
+                  "explicit.stat_124877078"
+                ],
+                "fractured": [
+                  "fractured.stat_124877078"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "Unique Boss deals #% increased Damage"
+          }
+        },
+        {
+          "roll": {
+            "dp": false,
+            "max": 30,
+            "min": 30,
+            "unscalable": false,
+            "value": 30
+          },
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "yes",
+            "matchers": [
+              {
+                "string": "Unique Boss has #% increased Attack and Cast Speed"
+              }
+            ],
+            "ref": "Unique Boss has #% increased Attack and Cast Speed",
+            "trade": {
+              "ids": {
+                "explicit": [
+                  "explicit.stat_2109106920"
+                ],
+                "fractured": [
+                  "fractured.stat_2109106920"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "Unique Boss has #% increased Attack and Cast Speed"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "suffix",
+        "name": "of Bleeding",
+        "tags": [
+          "Life",
+          "Mana",
+          "Defences",
+          "Energy Shield"
+        ],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "yes",
+            "matchers": [
+              {
+                "string": "Players cannot Regenerate Life, Mana or Energy Shield"
+              }
+            ],
+            "ref": "Players cannot Regenerate Life, Mana or Energy Shield",
+            "trade": {
+              "ids": {
+                "explicit": [
+                  "explicit.stat_1910157106"
+                ],
+                "fractured": [
+                  "fractured.stat_1910157106"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "Players cannot Regenerate Life, Mana or Energy Shield"
+          }
+        }
+      ]
+    }
+  ],
+  "rarity": "Rare",
+  "rawText": "Item Class: Maps\nRarity: Rare\nFoul Bearing\nBlighted Map (Tier 14)\n--------\nMap Area: Forbidden Woods\nItem Quantity: +58% (augmented)\nItem Rarity: +33% (augmented)\nMonster Pack Size: +22% (augmented)\n--------\nItem Level: 83\n--------\nMonster Level: 81\n--------\n{ Implicit Modifier }\nArea is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 25% value\nCan be Anointed up to 3 times — Unscalable Value\nNatives of the Area are Removed — Unscalable Value\n--------\n{ Prefix Modifier \"Unyielding\" (Tier: 1) — Physical, Chaos, Attack, Ailment }\nMonsters have a 50% chance to avoid Poison, Impale, and Bleeding\n{ Prefix Modifier \"Burning\" (Tier: 1) — Damage, Physical, Elemental, Fire }\nMonsters deal 100(90-110)% extra Physical Damage as Fire\n{ Prefix Modifier \"Overlord's\" (Tier: 1) — Attack, Caster, Speed }\nUnique Boss deals 25% increased Damage\nUnique Boss has 30% increased Attack and Cast Speed\n{ Suffix Modifier \"of Bleeding\" (Tier: 1) — Life, Mana, Defences, Energy Shield }\nPlayers cannot Regenerate Life, Mana or Energy Shield — Unscalable Value\n--------\nTravel to this Map by using it in a personal Map Device. Maps can only be used once.\n",
+  "statsByType": [
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 1,
+            "min": 1,
+            "value": 1
+          },
+          "modifier": {
+            "info": {
+              "tags": [],
+              "type": "implicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 1,
+                  "min": 1,
+                  "unscalable": true,
+                  "value": 1
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 50% value\nCan be Anointed up to # times"
+                    },
+                    {
+                      "string": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 25% value\nCan be Anointed up to 3 times",
+                      "value": 1
+                    }
+                  ],
+                  "ref": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 25% value\nCan be Anointed up to 3 times",
+                  "trade": {
+                    "ids": {
+                      "implicit": [
+                        "implicit.stat_299373046"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 25% value\nCan be Anointed up to 3 times",
+                  "value": 1
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 1,
+              "min": 1,
+              "unscalable": true,
+              "value": 1
+            },
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "yes",
+              "matchers": [
+                {
+                  "string": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 50% value\nCan be Anointed up to # times"
+                },
+                {
+                  "string": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 25% value\nCan be Anointed up to 3 times",
+                  "value": 1
+                }
+              ],
+              "ref": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 25% value\nCan be Anointed up to 3 times",
+              "trade": {
+                "ids": {
+                  "implicit": [
+                    "implicit.stat_299373046"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 25% value\nCan be Anointed up to 3 times",
+              "value": 1
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "fromAreaMods": "yes",
+        "matchers": [
+          {
+            "string": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 50% value\nCan be Anointed up to # times"
+          },
+          {
+            "string": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 25% value\nCan be Anointed up to 3 times",
+            "value": 1
+          }
+        ],
+        "ref": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 25% value\nCan be Anointed up to 3 times",
+        "trade": {
+          "ids": {
+            "implicit": [
+              "implicit.stat_299373046"
+            ]
+          }
+        }
+      },
+      "type": "implicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 50,
+            "min": 50,
+            "value": 50
+          },
+          "modifier": {
+            "info": {
+              "generation": "prefix",
+              "name": "Unyielding",
+              "tags": [
+                "Physical",
+                "Chaos",
+                "Attack",
+                "Ailment"
+              ],
+              "tier": 1,
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 50,
+                  "min": 50,
+                  "unscalable": false,
+                  "value": 50
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "Monsters have a #% chance to avoid Poison, Impale, and Bleeding"
+                    }
+                  ],
+                  "ref": "Monsters have a #% chance to avoid Poison, Impale, and Bleeding",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_144665660"
+                      ],
+                      "fractured": [
+                        "fractured.stat_144665660"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "Monsters have a #% chance to avoid Poison, Impale, and Bleeding"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 50,
+              "min": 50,
+              "unscalable": false,
+              "value": 50
+            },
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "yes",
+              "matchers": [
+                {
+                  "string": "Monsters have a #% chance to avoid Poison, Impale, and Bleeding"
+                }
+              ],
+              "ref": "Monsters have a #% chance to avoid Poison, Impale, and Bleeding",
+              "trade": {
+                "ids": {
+                  "explicit": [
+                    "explicit.stat_144665660"
+                  ],
+                  "fractured": [
+                    "fractured.stat_144665660"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "Monsters have a #% chance to avoid Poison, Impale, and Bleeding"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "fromAreaMods": "yes",
+        "matchers": [
+          {
+            "string": "Monsters have a #% chance to avoid Poison, Impale, and Bleeding"
+          }
+        ],
+        "ref": "Monsters have a #% chance to avoid Poison, Impale, and Bleeding",
+        "trade": {
+          "ids": {
+            "explicit": [
+              "explicit.stat_144665660"
+            ],
+            "fractured": [
+              "fractured.stat_144665660"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 110,
+            "min": 90,
+            "value": 100
+          },
+          "modifier": {
+            "info": {
+              "generation": "prefix",
+              "name": "Burning",
+              "tags": [
+                "Damage",
+                "Physical",
+                "Elemental",
+                "Fire"
+              ],
+              "tier": 1,
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 110,
+                  "min": 90,
+                  "unscalable": false,
+                  "value": 100
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "Monsters deal #% extra Physical Damage as Fire"
+                    }
+                  ],
+                  "ref": "Monsters deal #% extra Physical Damage as Fire",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_1497673356"
+                      ],
+                      "fractured": [
+                        "fractured.stat_1497673356"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "Monsters deal #% extra Physical Damage as Fire"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 110,
+              "min": 90,
+              "unscalable": false,
+              "value": 100
+            },
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "yes",
+              "matchers": [
+                {
+                  "string": "Monsters deal #% extra Physical Damage as Fire"
+                }
+              ],
+              "ref": "Monsters deal #% extra Physical Damage as Fire",
+              "trade": {
+                "ids": {
+                  "explicit": [
+                    "explicit.stat_1497673356"
+                  ],
+                  "fractured": [
+                    "fractured.stat_1497673356"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "Monsters deal #% extra Physical Damage as Fire"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "fromAreaMods": "yes",
+        "matchers": [
+          {
+            "string": "Monsters deal #% extra Physical Damage as Fire"
+          }
+        ],
+        "ref": "Monsters deal #% extra Physical Damage as Fire",
+        "trade": {
+          "ids": {
+            "explicit": [
+              "explicit.stat_1497673356"
+            ],
+            "fractured": [
+              "fractured.stat_1497673356"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 25,
+            "min": 25,
+            "value": 25
+          },
+          "modifier": {
+            "info": {
+              "generation": "prefix",
+              "name": "Overlord's",
+              "tags": [
+                "Attack",
+                "Caster",
+                "Speed"
+              ],
+              "tier": 1,
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 25,
+                  "min": 25,
+                  "unscalable": false,
+                  "value": 25
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "Unique Boss deals #% increased Damage"
+                    }
+                  ],
+                  "ref": "Unique Boss deals #% increased Damage",
+                  "trade": {
+                    "ids": {
+                      "enchant": [
+                        "enchant.stat_124877078"
+                      ],
+                      "explicit": [
+                        "explicit.stat_124877078"
+                      ],
+                      "fractured": [
+                        "fractured.stat_124877078"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "Unique Boss deals #% increased Damage"
+                }
+              },
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 30,
+                  "min": 30,
+                  "unscalable": false,
+                  "value": 30
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "Unique Boss has #% increased Attack and Cast Speed"
+                    }
+                  ],
+                  "ref": "Unique Boss has #% increased Attack and Cast Speed",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_2109106920"
+                      ],
+                      "fractured": [
+                        "fractured.stat_2109106920"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "Unique Boss has #% increased Attack and Cast Speed"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 25,
+              "min": 25,
+              "unscalable": false,
+              "value": 25
+            },
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "yes",
+              "matchers": [
+                {
+                  "string": "Unique Boss deals #% increased Damage"
+                }
+              ],
+              "ref": "Unique Boss deals #% increased Damage",
+              "trade": {
+                "ids": {
+                  "enchant": [
+                    "enchant.stat_124877078"
+                  ],
+                  "explicit": [
+                    "explicit.stat_124877078"
+                  ],
+                  "fractured": [
+                    "fractured.stat_124877078"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "Unique Boss deals #% increased Damage"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "fromAreaMods": "yes",
+        "matchers": [
+          {
+            "string": "Unique Boss deals #% increased Damage"
+          }
+        ],
+        "ref": "Unique Boss deals #% increased Damage",
+        "trade": {
+          "ids": {
+            "enchant": [
+              "enchant.stat_124877078"
+            ],
+            "explicit": [
+              "explicit.stat_124877078"
+            ],
+            "fractured": [
+              "fractured.stat_124877078"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 30,
+            "min": 30,
+            "value": 30
+          },
+          "modifier": {
+            "info": {
+              "generation": "prefix",
+              "name": "Overlord's",
+              "tags": [
+                "Attack",
+                "Caster",
+                "Speed"
+              ],
+              "tier": 1,
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 25,
+                  "min": 25,
+                  "unscalable": false,
+                  "value": 25
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "Unique Boss deals #% increased Damage"
+                    }
+                  ],
+                  "ref": "Unique Boss deals #% increased Damage",
+                  "trade": {
+                    "ids": {
+                      "enchant": [
+                        "enchant.stat_124877078"
+                      ],
+                      "explicit": [
+                        "explicit.stat_124877078"
+                      ],
+                      "fractured": [
+                        "fractured.stat_124877078"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "Unique Boss deals #% increased Damage"
+                }
+              },
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 30,
+                  "min": 30,
+                  "unscalable": false,
+                  "value": 30
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "Unique Boss has #% increased Attack and Cast Speed"
+                    }
+                  ],
+                  "ref": "Unique Boss has #% increased Attack and Cast Speed",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_2109106920"
+                      ],
+                      "fractured": [
+                        "fractured.stat_2109106920"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "Unique Boss has #% increased Attack and Cast Speed"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 30,
+              "min": 30,
+              "unscalable": false,
+              "value": 30
+            },
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "yes",
+              "matchers": [
+                {
+                  "string": "Unique Boss has #% increased Attack and Cast Speed"
+                }
+              ],
+              "ref": "Unique Boss has #% increased Attack and Cast Speed",
+              "trade": {
+                "ids": {
+                  "explicit": [
+                    "explicit.stat_2109106920"
+                  ],
+                  "fractured": [
+                    "fractured.stat_2109106920"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "Unique Boss has #% increased Attack and Cast Speed"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "fromAreaMods": "yes",
+        "matchers": [
+          {
+            "string": "Unique Boss has #% increased Attack and Cast Speed"
+          }
+        ],
+        "ref": "Unique Boss has #% increased Attack and Cast Speed",
+        "trade": {
+          "ids": {
+            "explicit": [
+              "explicit.stat_2109106920"
+            ],
+            "fractured": [
+              "fractured.stat_2109106920"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "modifier": {
+            "info": {
+              "generation": "suffix",
+              "name": "of Bleeding",
+              "tags": [
+                "Life",
+                "Mana",
+                "Defences",
+                "Energy Shield"
+              ],
+              "tier": 1,
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "Players cannot Regenerate Life, Mana or Energy Shield"
+                    }
+                  ],
+                  "ref": "Players cannot Regenerate Life, Mana or Energy Shield",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_1910157106"
+                      ],
+                      "fractured": [
+                        "fractured.stat_1910157106"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "Players cannot Regenerate Life, Mana or Energy Shield"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "yes",
+              "matchers": [
+                {
+                  "string": "Players cannot Regenerate Life, Mana or Energy Shield"
+                }
+              ],
+              "ref": "Players cannot Regenerate Life, Mana or Energy Shield",
+              "trade": {
+                "ids": {
+                  "explicit": [
+                    "explicit.stat_1910157106"
+                  ],
+                  "fractured": [
+                    "fractured.stat_1910157106"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "Players cannot Regenerate Life, Mana or Energy Shield"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "fromAreaMods": "yes",
+        "matchers": [
+          {
+            "string": "Players cannot Regenerate Life, Mana or Energy Shield"
+          }
+        ],
+        "ref": "Players cannot Regenerate Life, Mana or Energy Shield",
+        "trade": {
+          "ids": {
+            "explicit": [
+              "explicit.stat_1910157106"
+            ],
+            "fractured": [
+              "fractured.stat_1910157106"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    }
+  ],
+  "unknownModifiers": [
+    {
+      "text": "Natives of the Area are Removed — Unscalable Value",
+      "type": "implicit"
+    }
+  ]
+}

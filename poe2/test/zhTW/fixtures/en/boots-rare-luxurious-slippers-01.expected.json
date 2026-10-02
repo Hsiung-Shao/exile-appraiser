@@ -1,0 +1,374 @@
+{
+  "armourES": 173,
+  "augmentSockets": {
+    "augments": [
+      {
+        "displayString": "18% increased Mana Regeneration Rate",
+        "existing": true,
+        "name": "Greater Inspiration Rune",
+        "refName": "Greater Inspiration Rune"
+      }
+    ],
+    "current": 1,
+    "empty": 0,
+    "normal": 1
+  },
+  "basePercentile": 0,
+  "baseType": "Luxurious Slippers",
+  "category": "Boots",
+  "influences": [],
+  "info": {
+    "name": "Luxurious Slippers",
+    "namespace": "ITEM",
+    "refName": "Luxurious Slippers"
+  },
+  "infoVariants": [
+    {
+      "name": "Luxurious Slippers",
+      "namespace": "ITEM",
+      "refName": "Luxurious Slippers"
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": false,
+  "itemLevel": 80,
+  "name": "Grim Trek",
+  "newMods": [
+    {
+      "info": {
+        "tags": [],
+        "type": "rune"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Mana Regeneration Rate",
+          "roll": {
+            "dp": false,
+            "max": 18,
+            "min": 18,
+            "unscalable": false,
+            "value": 18
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_789117908"
+            ],
+            "desecrated": [
+              "desecrated.stat_789117908"
+            ],
+            "enchant": [
+              "enchant.stat_789117908"
+            ],
+            "explicit": [
+              "explicit.stat_789117908"
+            ],
+            "fractured": [
+              "fractured.stat_789117908"
+            ],
+            "implicit": [
+              "implicit.stat_789117908"
+            ],
+            "rune": [
+              "rune.stat_789117908"
+            ]
+          },
+          "translation": "#% increased Mana Regeneration Rate"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "prefix",
+        "name": "Cheetah's",
+        "tags": [
+          "Speed"
+        ],
+        "tier": 2,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Movement Speed",
+          "roll": {
+            "dp": false,
+            "max": 30,
+            "min": 30,
+            "unscalable": false,
+            "value": 30
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_2250533757"
+            ],
+            "desecrated": [
+              "desecrated.stat_2250533757"
+            ],
+            "enchant": [
+              "enchant.stat_2250533757"
+            ],
+            "explicit": [
+              "explicit.stat_2250533757"
+            ],
+            "fractured": [
+              "fractured.stat_2250533757"
+            ],
+            "implicit": [
+              "implicit.stat_2250533757"
+            ],
+            "pseudo": [
+              "pseudo.pseudo_increased_movement_speed"
+            ],
+            "rune": [
+              "rune.stat_2250533757"
+            ],
+            "sanctum": [
+              "sanctum.stat_1416455556"
+            ]
+          },
+          "translation": "#% increased Movement Speed"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "prefix",
+        "name": "Naga's",
+        "tags": [],
+        "tier": 3,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Energy Shield",
+          "roll": {
+            "dp": false,
+            "max": 32,
+            "min": 27,
+            "unscalable": false,
+            "value": 30
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_4015621042"
+            ],
+            "desecrated": [
+              "desecrated.stat_4015621042"
+            ],
+            "enchant": [
+              "enchant.stat_4015621042"
+            ],
+            "explicit": [
+              "explicit.stat_4015621042"
+            ],
+            "fractured": [
+              "fractured.stat_4015621042"
+            ]
+          },
+          "translation": "#% increased Energy Shield"
+        },
+        {
+          "ref": "# to Stun Threshold",
+          "roll": {
+            "dp": false,
+            "max": 63,
+            "min": 41,
+            "unscalable": false,
+            "value": 62
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_915769802"
+            ],
+            "desecrated": [
+              "desecrated.stat_915769802"
+            ],
+            "explicit": [
+              "explicit.stat_915769802"
+            ],
+            "fractured": [
+              "fractured.stat_915769802"
+            ],
+            "rune": [
+              "rune.stat_915769802"
+            ]
+          },
+          "translation": "# to Stun Threshold"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "prefix",
+        "name": "Fearless",
+        "tags": [
+          "Defences",
+          "Energy Shield"
+        ],
+        "tier": 3,
+        "type": "crafted"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Energy Shield",
+          "roll": {
+            "dp": false,
+            "max": 79,
+            "min": 68,
+            "unscalable": false,
+            "value": 68
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_4015621042"
+            ],
+            "desecrated": [
+              "desecrated.stat_4015621042"
+            ],
+            "enchant": [
+              "enchant.stat_4015621042"
+            ],
+            "explicit": [
+              "explicit.stat_4015621042"
+            ],
+            "fractured": [
+              "fractured.stat_4015621042"
+            ]
+          },
+          "translation": "#% increased Energy Shield"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "suffix",
+        "name": "of Familiarity",
+        "tags": [],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Attribute Requirements",
+          "roll": {
+            "dp": false,
+            "max": -35,
+            "min": -35,
+            "unscalable": false,
+            "value": -35
+          },
+          "tradeIds": {
+            "desecrated": [
+              "desecrated.stat_3639275092"
+            ],
+            "enchant": [
+              "enchant.stat_3639275092"
+            ],
+            "explicit": [
+              "explicit.stat_3639275092"
+            ],
+            "fractured": [
+              "fractured.stat_3639275092"
+            ]
+          },
+          "translation": "#% reduced Attribute Requirements"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "suffix",
+        "name": "of the Typhoon",
+        "tags": [
+          "Elemental",
+          "Lightning",
+          "Resistance"
+        ],
+        "tier": 3,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "#% to Lightning Resistance",
+          "roll": {
+            "dp": false,
+            "max": 35,
+            "min": 31,
+            "unscalable": false,
+            "value": 35
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_1671376347"
+            ],
+            "desecrated": [
+              "desecrated.stat_1671376347"
+            ],
+            "enchant": [
+              "enchant.stat_1671376347"
+            ],
+            "explicit": [
+              "explicit.stat_1671376347"
+            ],
+            "fractured": [
+              "fractured.stat_1671376347"
+            ],
+            "implicit": [
+              "implicit.stat_1671376347"
+            ],
+            "rune": [
+              "rune.stat_1671376347"
+            ]
+          },
+          "translation": "#% to Lightning Resistance"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "suffix",
+        "name": "of Ulaman",
+        "tags": [
+          "Elemental",
+          "Lightning",
+          "Chaos",
+          "Resistance"
+        ],
+        "tier": 1,
+        "type": "desecrated"
+      },
+      "stats": [
+        {
+          "ref": "#% to Lightning and Chaos Resistances",
+          "roll": {
+            "dp": false,
+            "max": 17,
+            "min": 13,
+            "unscalable": false,
+            "value": 16
+          },
+          "tradeIds": {
+            "desecrated": [
+              "desecrated.stat_3465022881"
+            ],
+            "explicit": [
+              "explicit.stat_3465022881"
+            ],
+            "fractured": [
+              "fractured.stat_3465022881"
+            ]
+          },
+          "translation": "#% to Lightning and Chaos Resistances"
+        }
+      ]
+    }
+  ],
+  "quality": 20,
+  "rarity": "Rare",
+  "requires": {
+    "dex": 0,
+    "int": 58,
+    "level": 70,
+    "str": 0
+  },
+  "unknownModifiers": []
+}

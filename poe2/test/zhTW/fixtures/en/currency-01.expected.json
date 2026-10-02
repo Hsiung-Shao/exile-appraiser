@@ -1,0 +1,25 @@
+{
+  "category": "Currency",
+  "influences": [],
+  "info": {
+    "name": "Exalted Orb",
+    "namespace": "ITEM",
+    "refName": "Exalted Orb"
+  },
+  "infoVariants": [
+    {
+      "name": "Exalted Orb",
+      "namespace": "ITEM",
+      "refName": "Exalted Orb"
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": false,
+  "name": "Exalted Orb",
+  "newMods": [],
+  "stackSize": {
+    "max": 20,
+    "value": 3
+  },
+  "unknownModifiers": []
+}

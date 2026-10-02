@@ -1,0 +1,118 @@
+{
+  "baseType": "Diamond",
+  "category": "Jewel",
+  "influences": [],
+  "info": {
+    "name": "Controlled Metamorphosis",
+    "namespace": "UNIQUE",
+    "refName": "Controlled Metamorphosis",
+    "unique": {
+      "base": "Diamond"
+    }
+  },
+  "infoVariants": [
+    {
+      "name": "Controlled Metamorphosis",
+      "namespace": "UNIQUE",
+      "refName": "Controlled Metamorphosis",
+      "unique": {
+        "base": "Diamond"
+      }
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": false,
+  "itemLevel": 84,
+  "name": "Controlled Metamorphosis",
+  "newMods": [
+    {
+      "info": {
+        "tags": [],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "Only affects Passives in # Ring",
+          "roll": {
+            "dp": false,
+            "max": 5,
+            "min": 5,
+            "option": 5,
+            "unscalable": true,
+            "value": 5
+          },
+          "tradeIds": {
+            "explicit": [
+              "explicit.stat_3642528642"
+            ]
+          },
+          "translation": "Only affects Passives in Medium-Large Ring"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "Passives in Radius can be Allocated without being connected to your tree",
+          "tradeIds": {
+            "explicit": [
+              "explicit.stat_4077035099"
+            ]
+          },
+          "translation": "Passives in Radius can be Allocated without being connected to your tree"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "Elemental",
+          "Fire",
+          "Cold",
+          "Lightning",
+          "Resistance"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "#% to all Elemental Resistances",
+          "roll": {
+            "dp": false,
+            "max": -5,
+            "min": -20,
+            "unscalable": false,
+            "value": -5
+          },
+          "tradeIds": {
+            "desecrated": [
+              "desecrated.stat_2901986750"
+            ],
+            "enchant": [
+              "enchant.stat_2901986750"
+            ],
+            "explicit": [
+              "explicit.stat_2901986750"
+            ],
+            "fractured": [
+              "fractured.stat_2901986750"
+            ],
+            "implicit": [
+              "implicit.stat_2901986750"
+            ],
+            "rune": [
+              "rune.stat_2901986750"
+            ]
+          },
+          "translation": "#% to all Elemental Resistances"
+        }
+      ]
+    }
+  ],
+  "rarity": "Unique",
+  "unknownModifiers": []
+}

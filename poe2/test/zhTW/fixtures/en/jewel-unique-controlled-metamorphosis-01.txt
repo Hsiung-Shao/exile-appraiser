@@ -1,0 +1,18 @@
+Item Class: Jewels
+Rarity: Unique
+Controlled Metamorphosis
+Diamond
+--------
+Limited to: 1
+Radius: Variable (augmented)
+--------
+Item Level: 84
+--------
+{ Unique Modifier }
+Only affects Passives in Medium-Large Ring — Unscalable Value
+{ Unique Modifier }
+Passives in Radius can be Allocated without being connected to your tree — Unscalable Value
+{ Unique Modifier — Elemental, Fire, Cold, Lightning, Resistance }
+-5(-20--5)% to all Elemental Resistances
+--------
+Place into an allocated Jewel Socket on the Passive Skill Tree. Right click to remove from the Socket.

@@ -1,0 +1,40 @@
+Item Class: Helmets
+Rarity: Rare
+Vengeance Ward
+Runeforged Kamasan Tiara
+--------
+Quality: +30% (augmented)
+Energy Shield: 528 (augmented)
+Ward: 55 (augmented)
+--------
+Requires: Level 75, 107 Int
+--------
+Sockets: S S S 
+--------
+Item Level: 81
+--------
+{ Enhancement }
+Allocates Dominion — Unscalable Value
+{ Corruption Enhancement — Energy Shield }
+23(15-25)% increased Energy Shield
+--------
+20% increased Armour, Evasion and Energy Shield (rune)
++1 to maximum Mana per 3 Item Armour on Equipped Helmet (rune)
+Raven-Touched (rune)
+--------
+{ Prefix Modifier "Dazzling" (Tier: 1) — Energy Shield }
++73(61-73) to maximum Energy Shield
+{ Prefix Modifier "Cobalt" (Tier: 1) — Mana }
++148(125-149) to maximum Mana
+{ Desecrated Prefix Modifier "Impregnable" (Tier: 1) — Energy Shield }
+96(92-100)% increased Energy Shield
+{ Fractured Crafted Suffix Modifier "of Archaeology" (Tier: 1) — Drop }
+16(15-18)% increased Rarity of Items found
+{ Suffix Modifier "of Bameth" (Tier: 1) — Chaos, Resistance }
++25(24-27)% to Chaos Resistance
+{ Suffix Modifier "of Genius" (Tier: 1) — Attribute }
++34(34-36) to Intelligence
+--------
+Twice Corrupted
+--------
+Fractured Item

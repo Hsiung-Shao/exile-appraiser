@@ -1,0 +1,78 @@
+{
+  "api": "trade",
+  "request": {
+    "query": {
+      "status": {
+        "option": "securable"
+      },
+      "stats": [
+        {
+          "type": "and",
+          "filters": [
+            {
+              "id": "pseudo.pseudo_total_elemental_resistance",
+              "value": {
+                "min": 21
+              },
+              "disabled": false
+            },
+            {
+              "id": "pseudo.pseudo_total_fire_resistance",
+              "value": {
+                "min": 21
+              },
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_789117908",
+              "value": {
+                "min": 30
+              },
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_3325883026",
+              "value": {
+                "min": 5.2
+              },
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_3962278098",
+              "value": {
+                "min": 21
+              },
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_3314057862",
+              "value": {},
+              "disabled": true
+            }
+          ]
+        }
+      ],
+      "filters": {
+        "trade_filters": {
+          "filters": {
+            "collapse": {
+              "option": "true"
+            }
+          }
+        },
+        "misc_filters": {
+          "filters": {
+            "corrupted": {
+              "option": "false"
+            }
+          }
+        }
+      },
+      "name": "Cracklecreep",
+      "type": "Ruby Ring"
+    },
+    "sort": {
+      "price": "asc"
+    }
+  }
+}

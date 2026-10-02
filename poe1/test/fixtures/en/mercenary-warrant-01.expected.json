@@ -1,0 +1,1401 @@
+{
+  "influences": [],
+  "info": {
+    "disc": {
+      "sectionText": "Stormhand"
+    },
+    "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+    "name": "Mercenary Warrant",
+    "namespace": "ITEM",
+    "refName": "Mercenary Warrant",
+    "tradeDisc": "mercenary_warrant",
+    "tradeType": "ElementalWitchLightning"
+  },
+  "infoVariants": [
+    {
+      "disc": {
+        "sectionText": "Infamous Warpriest of the Ruckus"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "AurasMinionsTemplarSmiteRuckusNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "Infamous Mysterious Diver"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "DivingDuelistNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "Infamous Fallen Reverend"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "AurasMinionsTemplarSpectresNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "Infamous Storming Zealot"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "PhysConvertTemplarLightningNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "Infamous Blade Ambusher"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "TrapsMinesShadowAttackNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "Infamous Cruel Mistress"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "ChaosMinionWitchChaosHitNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "Infamous Shock Ambusher"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "TrapsMinesShadowLightningNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "Infamous Sanguimancer"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "MiscScionPhysDotNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "Infamous Toxicologist"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "NonEleBowRangerChaosNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "Infamous Bladebitter"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "Crit1HShadowPoisonNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "Infamous Bladecaster"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "Crit1HShadowPhysSpellNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "Infamous Bloodletter"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "PhysicalDuelistBleedNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "Infamous Earthshaker"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "MeleeAOEMarauderPhysSlamNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "Infamous Flamequiver"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "EleBowRangerFireNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "Infamous Withertouch"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "ChaosMinionWitchDotNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "Infamous Kineticist"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "MiscScionWandAttacksNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "Infamous Reanimator"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "ChaosMinionWitchInstabilityNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "Infamous Swiftblade"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "MeleeAOEStrikeDuelistCycloneNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "Infamous Combatant"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "MeleeAOEStrikeDuelistRangeStrikesNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "Infamous Frosthand"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "ElementalWitchColdNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "Infamous Stormhand"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "ElementalWitchLightningNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "Infamous Warpriest"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "AurasMinionsTemplarSmiteNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "Flaming Charlatan"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "PhysConvertTemplarFire"
+    },
+    {
+      "disc": {
+        "sectionText": "Infamous Cardinal"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "AurasMinionsTemplarStaffNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "Infamous Manyshot"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "EleBowRangerClonesNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "Infamous Bastion"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "PhysicalDuelistShieldsNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "Infamous Eruptor"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "MeleeAOEMarauderFireSlamNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "Infamous Striker"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "MeleeStrikesMaraduerPhysNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "Mysterious Diver"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "DivingDuelist"
+    },
+    {
+      "disc": {
+        "sectionText": "Fallen Reverend"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "AurasMinionsTemplarSpectres"
+    },
+    {
+      "disc": {
+        "sectionText": "Infamous Ripper"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "MeleeAOEMarauderNonSlamNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "Infamous Sniper"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "NonEleBowRangerPhysNoble"
+    },
+    {
+      "disc": {
+        "sectionText": "Storming Zealot"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "PhysConvertTemplarLightning"
+    },
+    {
+      "disc": {
+        "sectionText": "Blade Ambusher"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "TrapsMinesShadowAttack"
+    },
+    {
+      "disc": {
+        "sectionText": "Cruel Mistress"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "ChaosMinionWitchChaosHit"
+    },
+    {
+      "disc": {
+        "sectionText": "Frost Ambusher"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "TrapsMinesShadowCold"
+    },
+    {
+      "disc": {
+        "sectionText": "Shock Ambusher"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "TrapsMinesShadowLightning"
+    },
+    {
+      "disc": {
+        "sectionText": "Smoulderstrike"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "MeleeStrikesMarauderFire"
+    },
+    {
+      "disc": {
+        "sectionText": "Thunderquiver"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "EleBowRangerLightning"
+    },
+    {
+      "disc": {
+        "sectionText": "Winter Deacon"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "PhysConvertTemplarCold"
+    },
+    {
+      "disc": {
+        "sectionText": "Sanguimancer"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "MiscScionPhysDot"
+    },
+    {
+      "disc": {
+        "sectionText": "Shattersword"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "PhysicalDuelistSteel"
+    },
+    {
+      "disc": {
+        "sectionText": "Toxicologist"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "NonEleBowRangerChaos"
+    },
+    {
+      "disc": {
+        "sectionText": "Bladebitter"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "Crit1HShadowPoison"
+    },
+    {
+      "disc": {
+        "sectionText": "Bladecaster"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "Crit1HShadowPhysSpell"
+    },
+    {
+      "disc": {
+        "sectionText": "Bloodletter"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "PhysicalDuelistBleed"
+    },
+    {
+      "disc": {
+        "sectionText": "Earthshaker"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "MeleeAOEMarauderPhysSlam"
+    },
+    {
+      "disc": {
+        "sectionText": "Flamequiver"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "EleBowRangerFire"
+    },
+    {
+      "disc": {
+        "sectionText": "Withertouch"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "ChaosMinionWitchDot"
+    },
+    {
+      "disc": {
+        "sectionText": "Kineticist"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "MiscScionWandAttacks"
+    },
+    {
+      "disc": {
+        "sectionText": "Reanimator"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "ChaosMinionWitchInstability"
+    },
+    {
+      "disc": {
+        "sectionText": "Swiftblade"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "MeleeAOEStrikeDuelistCyclone"
+    },
+    {
+      "disc": {
+        "sectionText": "Combatant"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "MeleeAOEStrikeDuelistRangeStrikes"
+    },
+    {
+      "disc": {
+        "sectionText": "Flamehand"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "ElementalWitchFire"
+    },
+    {
+      "disc": {
+        "sectionText": "Frosthand"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "ElementalWitchCold"
+    },
+    {
+      "disc": {
+        "sectionText": "Stormhand"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "ElementalWitchLightning"
+    },
+    {
+      "disc": {
+        "sectionText": "Warpriest"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "AurasMinionsTemplarSmite"
+    },
+    {
+      "disc": {
+        "sectionText": "Cardinal"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "AurasMinionsTemplarStaff"
+    },
+    {
+      "disc": {
+        "sectionText": "Manyshot"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "EleBowRangerClones"
+    },
+    {
+      "disc": {
+        "sectionText": "Bastion"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "PhysicalDuelistShields"
+    },
+    {
+      "disc": {
+        "sectionText": "Eruptor"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "MeleeAOEMarauderFireSlam"
+    },
+    {
+      "disc": {
+        "sectionText": "Striker"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "MeleeStrikesMaraduerPhys"
+    },
+    {
+      "disc": {
+        "sectionText": "Ripper"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "MeleeAOEMarauderNonSlam"
+    },
+    {
+      "disc": {
+        "sectionText": "Sniper"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "NonEleBowRangerPhys"
+    },
+    {
+      "disc": {},
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant"
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": false,
+  "itemLevel": 83,
+  "mercenaryBuild": {
+    "icon": "",
+    "mercenaryBuild": {
+      "skills": [
+        {
+          "name": "Conductivity",
+          "type": "primary"
+        },
+        {
+          "name": "Sigil of Power",
+          "type": "primary"
+        },
+        {
+          "name": "Spark",
+          "type": "secondary"
+        },
+        {
+          "name": "Arc",
+          "type": "secondary"
+        },
+        {
+          "name": "Ball Lightning of Static",
+          "type": "secondary"
+        },
+        {
+          "name": "Greater Stormcall",
+          "type": "secondary"
+        },
+        {
+          "name": "Greater Shock Nova",
+          "type": "secondary"
+        },
+        {
+          "name": "Orb of Storms",
+          "type": "secondary"
+        },
+        {
+          "name": "Stormcall",
+          "type": "secondary"
+        },
+        {
+          "name": "Lightning Warp",
+          "type": "utility"
+        },
+        {
+          "name": "Frostblink",
+          "type": "utility"
+        },
+        {
+          "name": "Flame Dash",
+          "type": "utility"
+        },
+        {
+          "name": "Wrath",
+          "type": "utility"
+        },
+        {
+          "name": "Purity of Lightning",
+          "type": "utility"
+        },
+        {
+          "name": "Proximity Shield",
+          "type": "utility"
+        }
+      ]
+    },
+    "name": "Stormhand",
+    "namespace": "MERCENARY_BUILD",
+    "refName": "Stormhand"
+  },
+  "mercenarySkills": [
+    [
+      {
+        "stat": {
+          "better": 0,
+          "matchers": [
+            {
+              "string": "Conductivity"
+            }
+          ],
+          "mercenary": {
+            "icon": "https://web.poecdn.com/gen/image/WzIxLDE0LHsiayI6IjJEQXJ0L1NraWxsSWNvbnMvQ29uZHVjdGl2aXR5In1d/98031379d0/Conductivity.png"
+          },
+          "ref": "Conductivity",
+          "trade": {
+            "ids": {
+              "pseudo": [
+                "mercenary.skill_41484"
+              ]
+            }
+          }
+        },
+        "translation": {
+          "string": "Conductivity"
+        }
+      },
+      {
+        "stat": {
+          "better": 1,
+          "matchers": [
+            {
+              "advanced": "Increased Area of Effect (Tier: 2)",
+              "string": "Increased Area of Effect"
+            }
+          ],
+          "mercenary": {
+            "canonical": "Increased Area of Effect",
+            "tier": 2
+          },
+          "modFamily": [
+            "Lesser Increased Area of Effect",
+            "Increased Area of Effect",
+            "Greater Area of Effect"
+          ],
+          "ref": "Increased Area of Effect",
+          "trade": {
+            "ids": {
+              "pseudo": [
+                "mercenary.support_53342"
+              ]
+            }
+          }
+        },
+        "translation": {
+          "advanced": "Increased Area of Effect (Tier: 2)",
+          "string": "Increased Area of Effect"
+        }
+      },
+      {
+        "stat": {
+          "better": 1,
+          "matchers": [
+            {
+              "advanced": "Greater More Duration (Tier: 3)",
+              "string": "Greater More Duration"
+            }
+          ],
+          "mercenary": {
+            "canonical": "More Duration",
+            "tier": 3
+          },
+          "modFamily": [
+            "Lesser More Duration",
+            "More Duration",
+            "Greater More Duration"
+          ],
+          "ref": "Greater More Duration",
+          "trade": {
+            "ids": {
+              "pseudo": [
+                "mercenary.support_26568"
+              ]
+            }
+          }
+        },
+        "translation": {
+          "advanced": "Greater More Duration (Tier: 3)",
+          "string": "Greater More Duration"
+        }
+      }
+    ],
+    [
+      {
+        "stat": {
+          "better": 0,
+          "matchers": [
+            {
+              "string": "Sigil of Power"
+            }
+          ],
+          "mercenary": {
+            "icon": "https://web.poecdn.com/gen/image/WzIxLDE0LHsiayI6IjJEQXJ0L1NraWxsSWNvbnMvQ2lyY2xlb2ZQb3dlciJ9XQ/4a1ea647b9/CircleofPower.png"
+          },
+          "ref": "Sigil of Power",
+          "trade": {
+            "ids": {
+              "pseudo": [
+                "mercenary.skill_33661"
+              ]
+            }
+          }
+        },
+        "translation": {
+          "string": "Sigil of Power"
+        }
+      },
+      {
+        "stat": {
+          "better": 1,
+          "matchers": [
+            {
+              "advanced": "Increased Area of Effect (Tier: 2)",
+              "string": "Increased Area of Effect"
+            }
+          ],
+          "mercenary": {
+            "canonical": "Increased Area of Effect",
+            "tier": 2
+          },
+          "modFamily": [
+            "Lesser Increased Area of Effect",
+            "Increased Area of Effect",
+            "Greater Area of Effect"
+          ],
+          "ref": "Increased Area of Effect",
+          "trade": {
+            "ids": {
+              "pseudo": [
+                "mercenary.support_53342"
+              ]
+            }
+          }
+        },
+        "translation": {
+          "advanced": "Increased Area of Effect (Tier: 2)",
+          "string": "Increased Area of Effect"
+        }
+      },
+      {
+        "stat": {
+          "better": 1,
+          "matchers": [
+            {
+              "advanced": "Greater More Duration (Tier: 3)",
+              "string": "Greater More Duration"
+            }
+          ],
+          "mercenary": {
+            "canonical": "More Duration",
+            "tier": 3
+          },
+          "modFamily": [
+            "Lesser More Duration",
+            "More Duration",
+            "Greater More Duration"
+          ],
+          "ref": "Greater More Duration",
+          "trade": {
+            "ids": {
+              "pseudo": [
+                "mercenary.support_26568"
+              ]
+            }
+          }
+        },
+        "translation": {
+          "advanced": "Greater More Duration (Tier: 3)",
+          "string": "Greater More Duration"
+        }
+      }
+    ],
+    [
+      {
+        "stat": {
+          "better": 0,
+          "matchers": [
+            {
+              "string": "Spark"
+            }
+          ],
+          "mercenary": {
+            "icon": "https://web.poecdn.com/gen/image/WzIxLDE0LHsiayI6IjJEQXJ0L1NraWxsSWNvbnMvc3BhcmsifV0/54ff50a3dd/spark.png",
+            "supports": [
+              "Multiple Projectiles",
+              "Greater Lucky Lightning Damage",
+              "Faster Casting",
+              "Lightning Penetration",
+              "Shock Chance",
+              "Return",
+              "Faster Projectiles",
+              "Elemental Focus",
+              "Pierce",
+              "Gilded Nova"
+            ]
+          },
+          "ref": "Spark",
+          "trade": {
+            "ids": {
+              "pseudo": [
+                "mercenary.skill_5893"
+              ]
+            }
+          }
+        },
+        "translation": {
+          "string": "Spark"
+        }
+      },
+      {
+        "stat": {
+          "better": 1,
+          "matchers": [
+            {
+              "advanced": "Greater Multiple Projectiles (Tier: 3)",
+              "string": "Greater Multiple Projectiles"
+            }
+          ],
+          "mercenary": {
+            "canonical": "Multiple Projectiles",
+            "tier": 3
+          },
+          "modFamily": [
+            "Multiple Projectiles",
+            "Greater Multiple Projectiles"
+          ],
+          "ref": "Greater Multiple Projectiles",
+          "trade": {
+            "ids": {
+              "pseudo": [
+                "mercenary.support_49419"
+              ]
+            }
+          }
+        },
+        "translation": {
+          "advanced": "Greater Multiple Projectiles (Tier: 3)",
+          "string": "Greater Multiple Projectiles"
+        }
+      },
+      {
+        "stat": {
+          "better": 1,
+          "matchers": [
+            {
+              "advanced": "Elemental Focus (Tier: 2)",
+              "string": "Elemental Focus"
+            }
+          ],
+          "mercenary": {
+            "canonical": "Elemental Focus",
+            "tier": 2
+          },
+          "modFamily": [
+            "Lesser Elemental Focus",
+            "Elemental Focus",
+            "Greater Elemental Focus"
+          ],
+          "ref": "Elemental Focus",
+          "trade": {
+            "ids": {
+              "pseudo": [
+                "mercenary.support_37388"
+              ]
+            }
+          }
+        },
+        "translation": {
+          "advanced": "Elemental Focus (Tier: 2)",
+          "string": "Elemental Focus"
+        }
+      },
+      {
+        "stat": {
+          "better": 1,
+          "matchers": [
+            {
+              "advanced": "Lightning Penetration (Tier: 2)",
+              "string": "Lightning Penetration"
+            }
+          ],
+          "mercenary": {
+            "canonical": "Lightning Penetration",
+            "tier": 2
+          },
+          "modFamily": [
+            "Lesser Lightning Penetration",
+            "Lightning Penetration",
+            "Greater Lightning Penetration"
+          ],
+          "ref": "Lightning Penetration",
+          "trade": {
+            "ids": {
+              "pseudo": [
+                "mercenary.support_41256"
+              ]
+            }
+          }
+        },
+        "translation": {
+          "advanced": "Lightning Penetration (Tier: 2)",
+          "string": "Lightning Penetration"
+        }
+      },
+      {
+        "stat": {
+          "better": 1,
+          "matchers": [
+            {
+              "advanced": "Greater Faster Projectiles (Tier: 3)",
+              "string": "Greater Faster Projectiles"
+            }
+          ],
+          "mercenary": {
+            "canonical": "Faster Projectiles",
+            "tier": 3
+          },
+          "modFamily": [
+            "Lesser Faster Projectiles",
+            "Faster Projectiles",
+            "Greater Faster Projectiles"
+          ],
+          "ref": "Greater Faster Projectiles",
+          "trade": {
+            "ids": {
+              "pseudo": [
+                "mercenary.support_14517"
+              ]
+            }
+          }
+        },
+        "translation": {
+          "advanced": "Greater Faster Projectiles (Tier: 3)",
+          "string": "Greater Faster Projectiles"
+        }
+      }
+    ],
+    [
+      {
+        "stat": {
+          "better": 0,
+          "matchers": [
+            {
+              "string": "Greater Stormcall"
+            }
+          ],
+          "mercenary": {
+            "icon": "https://web.poecdn.com/gen/image/WzIxLDE0LHsiayI6IjJEQXJ0L1NraWxsSWNvbnMvc3Rvcm1jYWxsIn1d/181146c69d/stormcall.png",
+            "supports": [
+              "Greater Lucky Lightning Damage",
+              "Lightning Penetration",
+              "Increased Area of Effect",
+              "Less Duration",
+              "Spell Cascade",
+              "Shock Chance",
+              "Cooldown Recovery",
+              "Elemental Focus"
+            ]
+          },
+          "ref": "Greater Stormcall",
+          "trade": {
+            "ids": {
+              "pseudo": [
+                "mercenary.skill_3148"
+              ]
+            }
+          }
+        },
+        "translation": {
+          "string": "Greater Stormcall"
+        }
+      },
+      {
+        "stat": {
+          "better": 1,
+          "matchers": [
+            {
+              "advanced": "Elemental Focus (Tier: 2)",
+              "string": "Elemental Focus"
+            }
+          ],
+          "mercenary": {
+            "canonical": "Elemental Focus",
+            "tier": 2
+          },
+          "modFamily": [
+            "Lesser Elemental Focus",
+            "Elemental Focus",
+            "Greater Elemental Focus"
+          ],
+          "ref": "Elemental Focus",
+          "trade": {
+            "ids": {
+              "pseudo": [
+                "mercenary.support_37388"
+              ]
+            }
+          }
+        },
+        "translation": {
+          "advanced": "Elemental Focus (Tier: 2)",
+          "string": "Elemental Focus"
+        }
+      },
+      {
+        "stat": {
+          "better": 1,
+          "matchers": [
+            {
+              "advanced": "Greater Cooldown Recovery (Tier: 3)",
+              "string": "Greater Cooldown Recovery"
+            }
+          ],
+          "mercenary": {
+            "canonical": "Cooldown Recovery",
+            "tier": 3
+          },
+          "modFamily": [
+            "Lesser Cooldown Recovery",
+            "Cooldown Recovery",
+            "Greater Cooldown Recovery"
+          ],
+          "ref": "Greater Cooldown Recovery",
+          "trade": {
+            "ids": {
+              "pseudo": [
+                "mercenary.support_10608"
+              ]
+            }
+          }
+        },
+        "translation": {
+          "advanced": "Greater Cooldown Recovery (Tier: 3)",
+          "string": "Greater Cooldown Recovery"
+        }
+      },
+      {
+        "stat": {
+          "better": 1,
+          "matchers": [
+            {
+              "advanced": "Lesser Spell Cascade (Tier: 1)",
+              "string": "Lesser Spell Cascade"
+            }
+          ],
+          "mercenary": {
+            "canonical": "Spell Cascade",
+            "tier": 1
+          },
+          "modFamily": [
+            "Lesser Spell Cascade",
+            "Spell Cascade"
+          ],
+          "ref": "Lesser Spell Cascade",
+          "trade": {
+            "ids": {
+              "pseudo": [
+                "mercenary.support_65120"
+              ]
+            }
+          }
+        },
+        "translation": {
+          "advanced": "Lesser Spell Cascade (Tier: 1)",
+          "string": "Lesser Spell Cascade"
+        }
+      },
+      {
+        "stat": {
+          "better": 1,
+          "matchers": [
+            {
+              "advanced": "Shock Chance (Tier: 2)",
+              "string": "Shock Chance"
+            }
+          ],
+          "mercenary": {
+            "canonical": "Shock Chance",
+            "tier": 2
+          },
+          "modFamily": [
+            "Lesser Shock Chance",
+            "Shock Chance",
+            "Greater Shock Chance"
+          ],
+          "ref": "Shock Chance",
+          "trade": {
+            "ids": {
+              "pseudo": [
+                "mercenary.support_64846"
+              ]
+            }
+          }
+        },
+        "translation": {
+          "advanced": "Shock Chance (Tier: 2)",
+          "string": "Shock Chance"
+        }
+      },
+      {
+        "stat": {
+          "better": 1,
+          "matchers": [
+            {
+              "advanced": "Greater Lightning Penetration (Tier: 3)",
+              "string": "Greater Lightning Penetration"
+            }
+          ],
+          "mercenary": {
+            "canonical": "Lightning Penetration",
+            "tier": 3
+          },
+          "modFamily": [
+            "Lesser Lightning Penetration",
+            "Lightning Penetration",
+            "Greater Lightning Penetration"
+          ],
+          "ref": "Greater Lightning Penetration",
+          "trade": {
+            "ids": {
+              "pseudo": [
+                "mercenary.support_26815"
+              ]
+            }
+          }
+        },
+        "translation": {
+          "advanced": "Greater Lightning Penetration (Tier: 3)",
+          "string": "Greater Lightning Penetration"
+        }
+      }
+    ],
+    [
+      {
+        "stat": {
+          "better": 0,
+          "matchers": [
+            {
+              "string": "Purity of Lightning"
+            }
+          ],
+          "mercenary": {
+            "icon": "https://web.poecdn.com/gen/image/WzIxLDE0LHsiayI6IjJEQXJ0L1NraWxsSWNvbnMvYXVyYWxpZ2h0bmluZ3Jlc2lzdCJ9XQ/ffa182802b/auralightningresist.png"
+          },
+          "ref": "Purity of Lightning",
+          "trade": {
+            "ids": {
+              "pseudo": [
+                "mercenary.skill_63233"
+              ]
+            }
+          }
+        },
+        "translation": {
+          "string": "Purity of Lightning"
+        }
+      }
+    ],
+    [
+      {
+        "stat": {
+          "better": 0,
+          "matchers": [
+            {
+              "string": "Wrath"
+            }
+          ],
+          "mercenary": {
+            "icon": "https://web.poecdn.com/gen/image/WzIxLDE0LHsiayI6IjJEQXJ0L1NraWxsSWNvbnMvYXVyYWxpZ2h0bmluZyJ9XQ/bf24ac8da8/auralightning.png"
+          },
+          "ref": "Wrath",
+          "trade": {
+            "ids": {
+              "pseudo": [
+                "mercenary.skill_38326"
+              ]
+            }
+          }
+        },
+        "translation": {
+          "string": "Wrath"
+        }
+      }
+    ]
+  ],
+  "name": "Mercenary Warrant",
+  "newMods": [],
+  "rarity": "Normal",
+  "rawText": "Item Class: Map Fragments\nRarity: Normal\nMercenary Warrant\n--------\nVorana, the Doubter\n--------\nBuild: Stormhand\nMercenary Level: 83\n--------\nConductivity\nIncreased Area of Effect (Tier: 2)\nGreater More Duration (Tier: 3)\n--------\nSigil of Power\nIncreased Area of Effect (Tier: 2)\nGreater More Duration (Tier: 3)\n--------\nSpark\nGreater Multiple Projectiles (Tier: 3)\nElemental Focus (Tier: 2)\nLightning Penetration (Tier: 2)\nGreater Faster Projectiles (Tier: 3)\n--------\nGreater Stormcall\nElemental Focus (Tier: 2)\nGreater Cooldown Recovery (Tier: 3)\nLesser Spell Cascade (Tier: 1)\nShock Chance (Tier: 2)\nGreater Lightning Penetration (Tier: 3)\n--------\nPurity of Lightning\n--------\nWrath\n--------\nRight click this item to view the Mercenary's details.\nCan be used in a personal Map Device alongside a Map to have this previously defeated Mercenary appear in the area to be fought again.\n",
+  "statsByType": [],
+  "unknownModifiers": []
+}

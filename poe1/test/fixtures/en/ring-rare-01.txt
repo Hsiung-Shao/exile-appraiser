@@ -1,0 +1,27 @@
+Item Class: Rings
+Rarity: Rare
+Doom Loop
+Opal Ring
+--------
+Requirements:
+Level: 80
+--------
+Item Level: 84
+--------
+{ Implicit Modifier — Elemental, Damage }
+17(10-15)% increased Elemental Damage
+--------
+{ Fractured Prefix Modifier "Rapturous" (Tier: 3) — Life }
++68(60-69) to maximum Life
+{ Prefix Modifier "Prodigal" (Tier: 2) — Mana }
++58(55-68) to maximum Mana
+{ Suffix Modifier "of the Salamander" (Tier: 2) — Elemental, Fire, Resistance }
++42(36-41)% to Fire Resistance
+{ Suffix Modifier "of the Prodigy" (Tier: 3) — Attribute }
++31(28-33) to Intelligence
+{ Master Crafted Suffix Modifier "of Craft" (Rank: 2) — Elemental, Cold, Resistance }
++29(26-30)% to Cold Resistance
+--------
+Fractured Item
+--------
+Note: ~price 2 divine

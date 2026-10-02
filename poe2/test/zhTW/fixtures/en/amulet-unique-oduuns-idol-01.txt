@@ -1,0 +1,25 @@
+Item Class: Amulets
+Rarity: Unique
+Idol of Uldurn
+Crimson Amulet
+--------
+Requires: Level 24
+--------
+Item Level: 81
+--------
+{ Implicit Modifier — Life }
+4(2-4) Life Regeneration per second
+--------
+{ Unique Modifier — Life }
++77(60-80) to maximum Life
+{ Unique Modifier — Attribute }
++16(10-20) to Dexterity
+{ Unique Modifier — Aura }
+24(40-20)% reduced Presence Area of Effect
+{ Unique Modifier }
+15(10-15)% increased Spirit
+{ Unique Modifier }
+Skills have +1 to Limit
+--------
+Household gods are tolerated in Ouria,
+so long as they are worshipped in private.

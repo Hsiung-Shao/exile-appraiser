@@ -1,0 +1,1205 @@
+{
+  "armourES": 108,
+  "armourEV": 441,
+  "basePercentile": 19,
+  "baseType": "Stealth Boots",
+  "category": "Boots",
+  "dustEquivalent": 15175,
+  "influences": [],
+  "info": {
+    "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQXJtb3Vycy9Cb290cy9TaW5UcmVrIiwidyI6MiwiaCI6Miwic2NhbGUiOjF9XQ/84281e0f84/SinTrek.png",
+    "name": "Sin Trek",
+    "namespace": "UNIQUE",
+    "refName": "Sin Trek",
+    "unique": {
+      "base": "Stealth Boots",
+      "disenchantValue": 6.07
+    }
+  },
+  "infoVariants": [
+    {
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQXJtb3Vycy9Cb290cy9TaW5UcmVrIiwidyI6MiwiaCI6Miwic2NhbGUiOjF9XQ/84281e0f84/SinTrek.png",
+      "name": "Sin Trek",
+      "namespace": "UNIQUE",
+      "refName": "Sin Trek",
+      "unique": {
+        "base": "Stealth Boots",
+        "disenchantValue": 6.07
+      }
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": false,
+  "isVestigial": true,
+  "itemLevel": 85,
+  "name": "Sin Trek",
+  "newMods": [
+    {
+      "info": {
+        "generation": "vestigial",
+        "tags": [
+          "Elemental",
+          "Fire",
+          "Cold",
+          "Lightning",
+          "Ailment"
+        ],
+        "type": "implicit"
+      },
+      "stats": [
+        {
+          "stat": {
+            "better": 1,
+            "matchers": [
+              {
+                "string": "Immune to Elemental Ailments while affected by Glorious Madness"
+              }
+            ],
+            "ref": "Immune to Elemental Ailments while affected by Glorious Madness",
+            "trade": {
+              "ids": {
+                "explicit": [
+                  "explicit.stat_1065479853"
+                ],
+                "implicit": [
+                  "implicit.stat_1065479853"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "Immune to Elemental Ailments while affected by Glorious Madness"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "Defences",
+          "Evasion"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 100,
+            "min": 80,
+            "unscalable": false,
+            "value": 95
+          },
+          "stat": {
+            "better": 1,
+            "matchers": [
+              {
+                "string": "#% increased Evasion Rating"
+              },
+              {
+                "negate": true,
+                "string": "#% reduced Evasion Rating"
+              }
+            ],
+            "ref": "#% increased Evasion Rating",
+            "trade": {
+              "ids": {
+                "crafted": [
+                  "crafted.stat_124859000"
+                ],
+                "explicit": [
+                  "explicit.stat_124859000"
+                ],
+                "fractured": [
+                  "fractured.stat_124859000"
+                ],
+                "implicit": [
+                  "implicit.stat_124859000"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "#% increased Evasion Rating"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "Defences",
+          "Energy Shield"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 150,
+            "min": 100,
+            "unscalable": false,
+            "value": 108
+          },
+          "stat": {
+            "better": 1,
+            "matchers": [
+              {
+                "string": "# to maximum Energy Shield"
+              }
+            ],
+            "ref": "+# to maximum Energy Shield",
+            "trade": {
+              "ids": {
+                "crafted": [
+                  "crafted.stat_4052037485"
+                ],
+                "explicit": [
+                  "explicit.stat_4052037485"
+                ],
+                "fractured": [
+                  "fractured.stat_4052037485"
+                ],
+                "implicit": [
+                  "implicit.stat_4052037485"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "# to maximum Energy Shield"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "Attribute"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 30,
+            "min": 20,
+            "unscalable": false,
+            "value": 26
+          },
+          "stat": {
+            "better": 1,
+            "matchers": [
+              {
+                "string": "# to Dexterity"
+              }
+            ],
+            "ref": "+# to Dexterity",
+            "trade": {
+              "ids": {
+                "crafted": [
+                  "crafted.stat_3261801346"
+                ],
+                "explicit": [
+                  "explicit.stat_3261801346"
+                ],
+                "fractured": [
+                  "fractured.stat_3261801346"
+                ],
+                "implicit": [
+                  "implicit.stat_3261801346"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "# to Dexterity"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "Attribute"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 30,
+            "min": 20,
+            "unscalable": false,
+            "value": 23
+          },
+          "stat": {
+            "better": 1,
+            "matchers": [
+              {
+                "string": "# to Intelligence"
+              }
+            ],
+            "ref": "+# to Intelligence",
+            "trade": {
+              "ids": {
+                "crafted": [
+                  "crafted.stat_328541901"
+                ],
+                "explicit": [
+                  "explicit.stat_328541901"
+                ],
+                "fractured": [
+                  "fractured.stat_328541901"
+                ],
+                "implicit": [
+                  "implicit.stat_328541901"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "# to Intelligence"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "stat": {
+            "better": 1,
+            "matchers": [
+              {
+                "string": "Enemies Cannot Leech Life From you"
+              }
+            ],
+            "ref": "Enemies Cannot Leech Life From you",
+            "trade": {
+              "ids": {
+                "explicit": [
+                  "explicit.stat_4293455942"
+                ],
+                "implicit": [
+                  "implicit.stat_4293455942"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "Enemies Cannot Leech Life From you"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "Speed"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 30,
+            "min": 30,
+            "unscalable": false,
+            "value": 30
+          },
+          "stat": {
+            "better": 1,
+            "matchers": [
+              {
+                "string": "#% increased Movement Speed"
+              },
+              {
+                "negate": true,
+                "string": "#% reduced Movement Speed"
+              }
+            ],
+            "ref": "#% increased Movement Speed",
+            "trade": {
+              "ids": {
+                "crafted": [
+                  "crafted.stat_2250533757"
+                ],
+                "enchant": [
+                  "enchant.stat_2250533757"
+                ],
+                "explicit": [
+                  "explicit.stat_2250533757"
+                ],
+                "fractured": [
+                  "fractured.stat_2250533757"
+                ],
+                "implicit": [
+                  "implicit.stat_2250533757"
+                ],
+                "pseudo": [
+                  "pseudo.pseudo_increased_movement_speed"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "#% increased Movement Speed"
+          }
+        }
+      ]
+    }
+  ],
+  "rarity": "Unique",
+  "rawText": "Item Class: Boots\nRarity: Unique\nSin Trek\nVestigial Stealth Boots\n--------\nEvasion Rating: 441 (augmented)\nEnergy Shield: 108 (augmented)\n--------\nRequirements:\nLevel: 62\nDex: 117\n--------\nSockets: W-W-W\n--------\nItem Level: 85\n--------\n{ Vestigial Implicit Modifier — Elemental, Fire, Cold, Lightning, Ailment }\nImmune to Elemental Ailments while affected by Glorious Madness — Unscalable Value\n--------\n{ Unique Modifier — Defences, Evasion }\n95(80-100)% increased Evasion Rating\n{ Unique Modifier — Defences, Energy Shield }\n+108(100-150) to maximum Energy Shield\n{ Unique Modifier — Attribute }\n+26(20-30) to Dexterity\n{ Unique Modifier — Attribute }\n+23(20-30) to Intelligence\n{ Unique Modifier }\nEnemies Cannot Leech Life From you — Unscalable Value\n{ Unique Modifier — Speed }\n30% increased Movement Speed\n",
+  "sockets": {
+    "white": 3
+  },
+  "statsByType": [
+    {
+      "sources": [
+        {
+          "modifier": {
+            "info": {
+              "generation": "vestigial",
+              "tags": [
+                "Elemental",
+                "Fire",
+                "Cold",
+                "Lightning",
+                "Ailment"
+              ],
+              "type": "implicit"
+            },
+            "stats": [
+              {
+                "stat": {
+                  "better": 1,
+                  "matchers": [
+                    {
+                      "string": "Immune to Elemental Ailments while affected by Glorious Madness"
+                    }
+                  ],
+                  "ref": "Immune to Elemental Ailments while affected by Glorious Madness",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_1065479853"
+                      ],
+                      "implicit": [
+                        "implicit.stat_1065479853"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "Immune to Elemental Ailments while affected by Glorious Madness"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "stat": {
+              "better": 1,
+              "matchers": [
+                {
+                  "string": "Immune to Elemental Ailments while affected by Glorious Madness"
+                }
+              ],
+              "ref": "Immune to Elemental Ailments while affected by Glorious Madness",
+              "trade": {
+                "ids": {
+                  "explicit": [
+                    "explicit.stat_1065479853"
+                  ],
+                  "implicit": [
+                    "implicit.stat_1065479853"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "Immune to Elemental Ailments while affected by Glorious Madness"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "matchers": [
+          {
+            "string": "Immune to Elemental Ailments while affected by Glorious Madness"
+          }
+        ],
+        "ref": "Immune to Elemental Ailments while affected by Glorious Madness",
+        "trade": {
+          "ids": {
+            "explicit": [
+              "explicit.stat_1065479853"
+            ],
+            "implicit": [
+              "implicit.stat_1065479853"
+            ]
+          }
+        }
+      },
+      "type": "implicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 100,
+            "min": 80,
+            "value": 95
+          },
+          "modifier": {
+            "info": {
+              "tags": [
+                "Defences",
+                "Evasion"
+              ],
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 100,
+                  "min": 80,
+                  "unscalable": false,
+                  "value": 95
+                },
+                "stat": {
+                  "better": 1,
+                  "matchers": [
+                    {
+                      "string": "#% increased Evasion Rating"
+                    },
+                    {
+                      "negate": true,
+                      "string": "#% reduced Evasion Rating"
+                    }
+                  ],
+                  "ref": "#% increased Evasion Rating",
+                  "trade": {
+                    "ids": {
+                      "crafted": [
+                        "crafted.stat_124859000"
+                      ],
+                      "explicit": [
+                        "explicit.stat_124859000"
+                      ],
+                      "fractured": [
+                        "fractured.stat_124859000"
+                      ],
+                      "implicit": [
+                        "implicit.stat_124859000"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "#% increased Evasion Rating"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 100,
+              "min": 80,
+              "unscalable": false,
+              "value": 95
+            },
+            "stat": {
+              "better": 1,
+              "matchers": [
+                {
+                  "string": "#% increased Evasion Rating"
+                },
+                {
+                  "negate": true,
+                  "string": "#% reduced Evasion Rating"
+                }
+              ],
+              "ref": "#% increased Evasion Rating",
+              "trade": {
+                "ids": {
+                  "crafted": [
+                    "crafted.stat_124859000"
+                  ],
+                  "explicit": [
+                    "explicit.stat_124859000"
+                  ],
+                  "fractured": [
+                    "fractured.stat_124859000"
+                  ],
+                  "implicit": [
+                    "implicit.stat_124859000"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "#% increased Evasion Rating"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "matchers": [
+          {
+            "string": "#% increased Evasion Rating"
+          },
+          {
+            "negate": true,
+            "string": "#% reduced Evasion Rating"
+          }
+        ],
+        "ref": "#% increased Evasion Rating",
+        "trade": {
+          "ids": {
+            "crafted": [
+              "crafted.stat_124859000"
+            ],
+            "explicit": [
+              "explicit.stat_124859000"
+            ],
+            "fractured": [
+              "fractured.stat_124859000"
+            ],
+            "implicit": [
+              "implicit.stat_124859000"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 150,
+            "min": 100,
+            "value": 108
+          },
+          "modifier": {
+            "info": {
+              "tags": [
+                "Defences",
+                "Energy Shield"
+              ],
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 150,
+                  "min": 100,
+                  "unscalable": false,
+                  "value": 108
+                },
+                "stat": {
+                  "better": 1,
+                  "matchers": [
+                    {
+                      "string": "# to maximum Energy Shield"
+                    }
+                  ],
+                  "ref": "+# to maximum Energy Shield",
+                  "trade": {
+                    "ids": {
+                      "crafted": [
+                        "crafted.stat_4052037485"
+                      ],
+                      "explicit": [
+                        "explicit.stat_4052037485"
+                      ],
+                      "fractured": [
+                        "fractured.stat_4052037485"
+                      ],
+                      "implicit": [
+                        "implicit.stat_4052037485"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "# to maximum Energy Shield"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 150,
+              "min": 100,
+              "unscalable": false,
+              "value": 108
+            },
+            "stat": {
+              "better": 1,
+              "matchers": [
+                {
+                  "string": "# to maximum Energy Shield"
+                }
+              ],
+              "ref": "+# to maximum Energy Shield",
+              "trade": {
+                "ids": {
+                  "crafted": [
+                    "crafted.stat_4052037485"
+                  ],
+                  "explicit": [
+                    "explicit.stat_4052037485"
+                  ],
+                  "fractured": [
+                    "fractured.stat_4052037485"
+                  ],
+                  "implicit": [
+                    "implicit.stat_4052037485"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "# to maximum Energy Shield"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "matchers": [
+          {
+            "string": "# to maximum Energy Shield"
+          }
+        ],
+        "ref": "+# to maximum Energy Shield",
+        "trade": {
+          "ids": {
+            "crafted": [
+              "crafted.stat_4052037485"
+            ],
+            "explicit": [
+              "explicit.stat_4052037485"
+            ],
+            "fractured": [
+              "fractured.stat_4052037485"
+            ],
+            "implicit": [
+              "implicit.stat_4052037485"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 30,
+            "min": 20,
+            "value": 26
+          },
+          "modifier": {
+            "info": {
+              "tags": [
+                "Attribute"
+              ],
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 30,
+                  "min": 20,
+                  "unscalable": false,
+                  "value": 26
+                },
+                "stat": {
+                  "better": 1,
+                  "matchers": [
+                    {
+                      "string": "# to Dexterity"
+                    }
+                  ],
+                  "ref": "+# to Dexterity",
+                  "trade": {
+                    "ids": {
+                      "crafted": [
+                        "crafted.stat_3261801346"
+                      ],
+                      "explicit": [
+                        "explicit.stat_3261801346"
+                      ],
+                      "fractured": [
+                        "fractured.stat_3261801346"
+                      ],
+                      "implicit": [
+                        "implicit.stat_3261801346"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "# to Dexterity"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 30,
+              "min": 20,
+              "unscalable": false,
+              "value": 26
+            },
+            "stat": {
+              "better": 1,
+              "matchers": [
+                {
+                  "string": "# to Dexterity"
+                }
+              ],
+              "ref": "+# to Dexterity",
+              "trade": {
+                "ids": {
+                  "crafted": [
+                    "crafted.stat_3261801346"
+                  ],
+                  "explicit": [
+                    "explicit.stat_3261801346"
+                  ],
+                  "fractured": [
+                    "fractured.stat_3261801346"
+                  ],
+                  "implicit": [
+                    "implicit.stat_3261801346"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "# to Dexterity"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "matchers": [
+          {
+            "string": "# to Dexterity"
+          }
+        ],
+        "ref": "+# to Dexterity",
+        "trade": {
+          "ids": {
+            "crafted": [
+              "crafted.stat_3261801346"
+            ],
+            "explicit": [
+              "explicit.stat_3261801346"
+            ],
+            "fractured": [
+              "fractured.stat_3261801346"
+            ],
+            "implicit": [
+              "implicit.stat_3261801346"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 30,
+            "min": 20,
+            "value": 23
+          },
+          "modifier": {
+            "info": {
+              "tags": [
+                "Attribute"
+              ],
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 30,
+                  "min": 20,
+                  "unscalable": false,
+                  "value": 23
+                },
+                "stat": {
+                  "better": 1,
+                  "matchers": [
+                    {
+                      "string": "# to Intelligence"
+                    }
+                  ],
+                  "ref": "+# to Intelligence",
+                  "trade": {
+                    "ids": {
+                      "crafted": [
+                        "crafted.stat_328541901"
+                      ],
+                      "explicit": [
+                        "explicit.stat_328541901"
+                      ],
+                      "fractured": [
+                        "fractured.stat_328541901"
+                      ],
+                      "implicit": [
+                        "implicit.stat_328541901"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "# to Intelligence"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 30,
+              "min": 20,
+              "unscalable": false,
+              "value": 23
+            },
+            "stat": {
+              "better": 1,
+              "matchers": [
+                {
+                  "string": "# to Intelligence"
+                }
+              ],
+              "ref": "+# to Intelligence",
+              "trade": {
+                "ids": {
+                  "crafted": [
+                    "crafted.stat_328541901"
+                  ],
+                  "explicit": [
+                    "explicit.stat_328541901"
+                  ],
+                  "fractured": [
+                    "fractured.stat_328541901"
+                  ],
+                  "implicit": [
+                    "implicit.stat_328541901"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "# to Intelligence"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "matchers": [
+          {
+            "string": "# to Intelligence"
+          }
+        ],
+        "ref": "+# to Intelligence",
+        "trade": {
+          "ids": {
+            "crafted": [
+              "crafted.stat_328541901"
+            ],
+            "explicit": [
+              "explicit.stat_328541901"
+            ],
+            "fractured": [
+              "fractured.stat_328541901"
+            ],
+            "implicit": [
+              "implicit.stat_328541901"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "modifier": {
+            "info": {
+              "tags": [],
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "stat": {
+                  "better": 1,
+                  "matchers": [
+                    {
+                      "string": "Enemies Cannot Leech Life From you"
+                    }
+                  ],
+                  "ref": "Enemies Cannot Leech Life From you",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_4293455942"
+                      ],
+                      "implicit": [
+                        "implicit.stat_4293455942"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "Enemies Cannot Leech Life From you"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "stat": {
+              "better": 1,
+              "matchers": [
+                {
+                  "string": "Enemies Cannot Leech Life From you"
+                }
+              ],
+              "ref": "Enemies Cannot Leech Life From you",
+              "trade": {
+                "ids": {
+                  "explicit": [
+                    "explicit.stat_4293455942"
+                  ],
+                  "implicit": [
+                    "implicit.stat_4293455942"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "Enemies Cannot Leech Life From you"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "matchers": [
+          {
+            "string": "Enemies Cannot Leech Life From you"
+          }
+        ],
+        "ref": "Enemies Cannot Leech Life From you",
+        "trade": {
+          "ids": {
+            "explicit": [
+              "explicit.stat_4293455942"
+            ],
+            "implicit": [
+              "implicit.stat_4293455942"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 30,
+            "min": 30,
+            "value": 30
+          },
+          "modifier": {
+            "info": {
+              "tags": [
+                "Speed"
+              ],
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 30,
+                  "min": 30,
+                  "unscalable": false,
+                  "value": 30
+                },
+                "stat": {
+                  "better": 1,
+                  "matchers": [
+                    {
+                      "string": "#% increased Movement Speed"
+                    },
+                    {
+                      "negate": true,
+                      "string": "#% reduced Movement Speed"
+                    }
+                  ],
+                  "ref": "#% increased Movement Speed",
+                  "trade": {
+                    "ids": {
+                      "crafted": [
+                        "crafted.stat_2250533757"
+                      ],
+                      "enchant": [
+                        "enchant.stat_2250533757"
+                      ],
+                      "explicit": [
+                        "explicit.stat_2250533757"
+                      ],
+                      "fractured": [
+                        "fractured.stat_2250533757"
+                      ],
+                      "implicit": [
+                        "implicit.stat_2250533757"
+                      ],
+                      "pseudo": [
+                        "pseudo.pseudo_increased_movement_speed"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "#% increased Movement Speed"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 30,
+              "min": 30,
+              "unscalable": false,
+              "value": 30
+            },
+            "stat": {
+              "better": 1,
+              "matchers": [
+                {
+                  "string": "#% increased Movement Speed"
+                },
+                {
+                  "negate": true,
+                  "string": "#% reduced Movement Speed"
+                }
+              ],
+              "ref": "#% increased Movement Speed",
+              "trade": {
+                "ids": {
+                  "crafted": [
+                    "crafted.stat_2250533757"
+                  ],
+                  "enchant": [
+                    "enchant.stat_2250533757"
+                  ],
+                  "explicit": [
+                    "explicit.stat_2250533757"
+                  ],
+                  "fractured": [
+                    "fractured.stat_2250533757"
+                  ],
+                  "implicit": [
+                    "implicit.stat_2250533757"
+                  ],
+                  "pseudo": [
+                    "pseudo.pseudo_increased_movement_speed"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "#% increased Movement Speed"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "matchers": [
+          {
+            "string": "#% increased Movement Speed"
+          },
+          {
+            "negate": true,
+            "string": "#% reduced Movement Speed"
+          }
+        ],
+        "ref": "#% increased Movement Speed",
+        "trade": {
+          "ids": {
+            "crafted": [
+              "crafted.stat_2250533757"
+            ],
+            "enchant": [
+              "enchant.stat_2250533757"
+            ],
+            "explicit": [
+              "explicit.stat_2250533757"
+            ],
+            "fractured": [
+              "fractured.stat_2250533757"
+            ],
+            "implicit": [
+              "implicit.stat_2250533757"
+            ],
+            "pseudo": [
+              "pseudo.pseudo_increased_movement_speed"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    }
+  ],
+  "uniqueBase": {
+    "armour": {
+      "ev": [
+        220,
+        253
+      ]
+    },
+    "craftable": {
+      "category": "Boots"
+    },
+    "h": 2,
+    "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQXJtb3Vycy9Cb290cy9Cb290c0RleDMiLCJ3IjoyLCJoIjoyLCJzY2FsZSI6MX1d/f2e9a30d4a/BootsDex3.png",
+    "name": "Stealth Boots",
+    "namespace": "ITEM",
+    "refName": "Stealth Boots",
+    "w": 2
+  },
+  "unknownModifiers": []
+}

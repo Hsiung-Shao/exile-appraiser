@@ -1,0 +1,18 @@
+Item Class: Jewels
+Rarity: Rare
+Chimera Eye
+Cobalt Jewel
+--------
+Limited to: 1 Cobalt Jewel
+--------
+Requirements:
+Level: 1
+--------
+Item Level: 84
+--------
+{ Prefix Modifier "Apprentice's" (Tier: 1) — Caster, Damage }
+13(12-14)% increased Spell Damage
+{ Suffix Modifier "of Skill" (Tier: 1) — Attack, Speed }
+4(3-5)% increased Attack Speed
+--------
+Place into an allocated Jewel Socket on the Passive Skill Tree. Right click to remove from the Socket.

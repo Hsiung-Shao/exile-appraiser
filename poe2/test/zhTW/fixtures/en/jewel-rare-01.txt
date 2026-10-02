@@ -1,0 +1,13 @@
+Item Class: Jewels
+Rarity: Rare
+Brood Gaze
+Ruby
+--------
+Item Level: 82
+--------
+{ Prefix Modifier "Burning" (Tier: 1) — Damage, Elemental, Fire }
+13(12-15)% increased Fire Damage
+{ Suffix Modifier "of Skill" (Tier: 1) — Attack, Speed }
+4(3-5)% increased Attack Speed
+--------
+Place into an allocated Jewel Socket on the Passive Skill Tree. Right click to remove from the Socket.

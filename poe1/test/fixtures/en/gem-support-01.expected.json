@@ -1,0 +1,32 @@
+{
+  "category": "Gem",
+  "gemLevel": 1,
+  "influences": [],
+  "info": {
+    "gem": {
+      "maxLevel": 3
+    },
+    "icon": "https://web.poecdn.com/gen/image/WzMwLDE0LHsiZiI6IjJESXRlbXMvR2Vtcy9TdXBwb3J0L0RlZXB3YXRlckJvc3MiLCJ3IjoxLCJoIjoxLCJzY2FsZSI6MSwiZ2UiOnRydWV9XQ/e0a8d3c626/DeepwaterBoss.png",
+    "name": "Coursing Current Support",
+    "namespace": "GEM",
+    "refName": "Coursing Current Support"
+  },
+  "infoVariants": [
+    {
+      "gem": {
+        "maxLevel": 3
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzMwLDE0LHsiZiI6IjJESXRlbXMvR2Vtcy9TdXBwb3J0L0RlZXB3YXRlckJvc3MiLCJ3IjoxLCJoIjoxLCJzY2FsZSI6MSwiZ2UiOnRydWV9XQ/e0a8d3c626/DeepwaterBoss.png",
+      "name": "Coursing Current Support",
+      "namespace": "GEM",
+      "refName": "Coursing Current Support"
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": false,
+  "name": "Coursing Current Support",
+  "newMods": [],
+  "rawText": "Item Class: Support Gems\nRarity: Gem\nCoursing Current Support\n--------\nExceptional, Cold, Lightning, Support\nLevel: 1\nCost & Reservation Multiplier: 130%\n--------\nRequirements:\nLevel: 72\nInt: 114\n--------\nSupports any skill that Hits enemies.\n--------\n20% increased Chill Duration on Enemies\n20% increased Shock Effect\n--------\nExperience: 1 / 226,854,909\n--------\nNote: ~b/o 5 chaos\n",
+  "statsByType": [],
+  "unknownModifiers": []
+}

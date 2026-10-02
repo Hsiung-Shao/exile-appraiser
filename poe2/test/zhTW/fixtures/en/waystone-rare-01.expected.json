@@ -1,0 +1,177 @@
+{
+  "baseType": "Waystone (Tier 14)",
+  "category": "Map",
+  "influences": [],
+  "info": {
+    "name": "Waystone (Tier 14)",
+    "namespace": "ITEM",
+    "refName": "Waystone (Tier 14)"
+  },
+  "infoVariants": [
+    {
+      "name": "Waystone (Tier 14)",
+      "namespace": "ITEM",
+      "refName": "Waystone (Tier 14)"
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": false,
+  "itemLevel": 80,
+  "mapDropChance": 75,
+  "mapPackSize": 34,
+  "mapRareMonsters": 28,
+  "mapRevives": 2,
+  "mapTier": 14,
+  "name": "Desolate Route",
+  "newMods": [
+    {
+      "info": {
+        "generation": "prefix",
+        "name": "Shocking",
+        "tags": [],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "Area has patches of Shocked Ground",
+          "tradeIds": {
+            "desecrated": [
+              "desecrated.stat_3477720557"
+            ],
+            "explicit": [
+              "explicit.stat_3477720557"
+            ],
+            "fractured": [
+              "fractured.stat_3477720557"
+            ]
+          },
+          "translation": "Area has patches of Shocked Ground"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "prefix",
+        "name": "Painful",
+        "tags": [],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Monster Damage",
+          "roll": {
+            "dp": false,
+            "max": 30,
+            "min": 26,
+            "unscalable": false,
+            "value": 28
+          },
+          "tradeIds": {
+            "desecrated": [
+              "desecrated.stat_1890519597"
+            ],
+            "explicit": [
+              "explicit.stat_1890519597"
+            ],
+            "fractured": [
+              "fractured.stat_1890519597"
+            ],
+            "sanctum": [
+              "sanctum.stat_1890519597"
+            ]
+          },
+          "translation": "#% increased Monster Damage"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "suffix",
+        "name": "of Splitting",
+        "tags": [],
+        "tier": 2,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "Monsters fire # additional Projectiles",
+          "roll": {
+            "dp": false,
+            "max": 2,
+            "min": 2,
+            "unscalable": false,
+            "value": 2
+          },
+          "tradeIds": {
+            "desecrated": [
+              "desecrated.stat_1309819744"
+            ],
+            "explicit": [
+              "explicit.stat_1309819744"
+            ]
+          },
+          "translation": "Monsters fire # additional Projectiles"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "suffix",
+        "name": "of Destruction",
+        "tags": [],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "Monsters have #% increased Critical Hit Chance",
+          "roll": {
+            "dp": false,
+            "max": 300,
+            "min": 260,
+            "unscalable": false,
+            "value": 293
+          },
+          "tradeIds": {
+            "desecrated": [
+              "desecrated.stat_2753083623"
+            ],
+            "explicit": [
+              "explicit.stat_2753083623"
+            ],
+            "fractured": [
+              "fractured.stat_2753083623"
+            ]
+          },
+          "translation": "Monsters have #% increased Critical Hit Chance"
+        },
+        {
+          "ref": "Monsters have #% Critical Damage Bonus",
+          "roll": {
+            "dp": false,
+            "max": 30,
+            "min": 26,
+            "unscalable": false,
+            "value": 26
+          },
+          "tradeIds": {
+            "desecrated": [
+              "desecrated.stat_57326096"
+            ],
+            "explicit": [
+              "explicit.stat_57326096"
+            ],
+            "fractured": [
+              "fractured.stat_57326096"
+            ]
+          },
+          "translation": "Monsters have #% Critical Damage Bonus"
+        }
+      ]
+    }
+  ],
+  "rarity": "Rare",
+  "unknownModifiers": []
+}

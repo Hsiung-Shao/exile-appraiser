@@ -1,0 +1,31 @@
+Item Class: Maps
+Rarity: Rare
+Foul Bearing
+Blighted Map (Tier 14)
+--------
+Map Area: Forbidden Woods
+Item Quantity: +58% (augmented)
+Item Rarity: +33% (augmented)
+Monster Pack Size: +22% (augmented)
+--------
+Item Level: 83
+--------
+Monster Level: 81
+--------
+{ Implicit Modifier }
+Area is infested with Fungal Growths
+Map's Item Quantity Modifiers also affect Blight Chest count at 25% value
+Can be Anointed up to 3 times — Unscalable Value
+Natives of the Area are Removed — Unscalable Value
+--------
+{ Prefix Modifier "Unyielding" (Tier: 1) — Physical, Chaos, Attack, Ailment }
+Monsters have a 50% chance to avoid Poison, Impale, and Bleeding
+{ Prefix Modifier "Burning" (Tier: 1) — Damage, Physical, Elemental, Fire }
+Monsters deal 100(90-110)% extra Physical Damage as Fire
+{ Prefix Modifier "Overlord's" (Tier: 1) — Attack, Caster, Speed }
+Unique Boss deals 25% increased Damage
+Unique Boss has 30% increased Attack and Cast Speed
+{ Suffix Modifier "of Bleeding" (Tier: 1) — Life, Mana, Defences, Energy Shield }
+Players cannot Regenerate Life, Mana or Energy Shield — Unscalable Value
+--------
+Travel to this Map by using it in a personal Map Device. Maps can only be used once.

@@ -1,0 +1,112 @@
+{
+  "category": "TowerAugment",
+  "influences": [],
+  "info": {
+    "name": "Delirium Tablet",
+    "namespace": "ITEM",
+    "refName": "Delirium Tablet"
+  },
+  "infoVariants": [
+    {
+      "name": "Delirium Tablet",
+      "namespace": "ITEM",
+      "refName": "Delirium Tablet"
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": false,
+  "itemLevel": 80,
+  "name": "Delirium Tablet",
+  "newMods": [
+    {
+      "info": {
+        "tags": [],
+        "type": "implicit"
+      },
+      "stats": [
+        {
+          "ref": "Adds a Mirror of Delirium to a Map \n# use remaining",
+          "roll": {
+            "dp": false,
+            "max": 10,
+            "min": 10,
+            "unscalable": false,
+            "value": 10
+          },
+          "tradeIds": {
+            "implicit": [
+              "implicit.stat_3879011313"
+            ]
+          },
+          "translation": "Adds a Mirror of Delirium to a Map\n# uses remaining"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "prefix",
+        "name": "Elevated",
+        "tags": [],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Experience gain",
+          "roll": {
+            "dp": false,
+            "max": 18,
+            "min": 12,
+            "unscalable": false,
+            "value": 18
+          },
+          "tradeIds": {
+            "explicit": [
+              "explicit.stat_3666934677",
+              "explicit.stat_57434274"
+            ],
+            "fractured": [
+              "fractured.stat_57434274"
+            ],
+            "rune": [
+              "rune.stat_3666934677"
+            ]
+          },
+          "translation": "#% increased Experience gain in Map"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "suffix",
+        "name": "of the Simulacrum",
+        "tags": [],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Stack size of Simulacrum Splinters found in Map",
+          "roll": {
+            "dp": false,
+            "max": 30,
+            "min": 15,
+            "unscalable": false,
+            "value": 26
+          },
+          "tradeIds": {
+            "enchant": [
+              "enchant.stat_3836551197"
+            ],
+            "explicit": [
+              "explicit.stat_3836551197"
+            ]
+          },
+          "translation": "#% increased Stack size of Simulacrum Splinters found in Map"
+        }
+      ]
+    }
+  ],
+  "rarity": "Magic",
+  "unknownModifiers": []
+}

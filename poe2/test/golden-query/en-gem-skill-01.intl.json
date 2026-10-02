@@ -1,0 +1,29 @@
+{
+  "api": "trade",
+  "request": {
+    "query": {
+      "status": {
+        "option": "securable"
+      },
+      "stats": [
+        {
+          "type": "and",
+          "filters": []
+        }
+      ],
+      "filters": {
+        "trade_filters": {
+          "filters": {
+            "collapse": {
+              "option": "true"
+            }
+          }
+        }
+      },
+      "type": "Fireball"
+    },
+    "sort": {
+      "price": "asc"
+    }
+  }
+}

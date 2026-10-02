@@ -1,0 +1,38 @@
+Item Class: Maps
+Rarity: Rare
+Dread Chapel
+Map (Tier 16)
+--------
+Item Quantity: +84% (augmented)
+Item Rarity: +102% (augmented)
+Monster Pack Size: +62% (augmented)
+More Maps: +35% (augmented)
+More Scarabs: +53% (augmented)
+More Currency: +47% (augmented)
+--------
+Item Level: 83
+--------
+Monster Level: 83
+--------
+{ Implicit Modifier }
+Area is Influenced by the Originator's Memories
+{ Implicit Modifier }
+Area is Influenced by the Originator's Memories
+--------
+{ Prefix Modifier "Volatile" (Tier: 1) }
+Rare Monsters have Volatile Cores
+{ Prefix Modifier "Retributive" (Tier: 1) }
+Rare Monsters have Physical Thorns reflecting 1500 Physical Damage
+Rare Monsters have Elemental Thorns reflecting 2500 Elemental Damage
+{ Prefix Modifier "Magnified" (Tier: 1) }
+Monsters have 100% increased Area of Effect
+Monsters fire 2 additional Projectiles
+{ Suffix Modifier "of Treasured" (Tier: 1) }
+The Maven interferes with Players
+{ Suffix Modifier "of Endurance" (Tier: 1) }
+Monsters have +1 to Maximum Endurance Charges
+Monsters gain an Endurance Charge on Hit
+{ Suffix Modifier "of Decay" (Tier: 1) }
+Area contains Unstable Tentacle Fiends
+--------
+Travel to this Map by using it in a personal Map Device. Maps can only be used once.

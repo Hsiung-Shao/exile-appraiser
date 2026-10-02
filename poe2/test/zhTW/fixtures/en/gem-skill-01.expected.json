@@ -1,0 +1,22 @@
+{
+  "category": "Gem",
+  "gemLevel": 14,
+  "influences": [],
+  "info": {
+    "name": "Fireball",
+    "namespace": "GEM",
+    "refName": "Fireball"
+  },
+  "infoVariants": [
+    {
+      "name": "Fireball",
+      "namespace": "GEM",
+      "refName": "Fireball"
+    }
+  ],
+  "isCorrupted": true,
+  "isUnidentified": false,
+  "name": "Fireball",
+  "newMods": [],
+  "unknownModifiers": []
+}

@@ -1,0 +1,99 @@
+{
+  "api": "trade",
+  "request": {
+    "query": {
+      "status": {
+        "option": "securable"
+      },
+      "stats": [
+        {
+          "type": "and",
+          "filters": [
+            {
+              "id": "explicit.stat_3962278098",
+              "value": {
+                "min": 12
+              },
+              "disabled": true
+            }
+          ]
+        },
+        {
+          "type": "count",
+          "value": {
+            "min": 1,
+            "max": 1
+          },
+          "disabled": true,
+          "filters": [
+            {
+              "id": "pseudo.pseudo_number_of_empty_affix_mods",
+              "value": {
+                "min": 2
+              },
+              "disabled": true
+            }
+          ]
+        },
+        {
+          "type": "count",
+          "value": {
+            "min": 1
+          },
+          "disabled": true,
+          "filters": [
+            {
+              "id": "explicit.stat_210067635",
+              "value": {
+                "min": 3
+              },
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_681332047",
+              "value": {
+                "min": 3
+              },
+              "disabled": true
+            }
+          ]
+        }
+      ],
+      "filters": {
+        "trade_filters": {
+          "filters": {
+            "collapse": {
+              "option": "true"
+            }
+          }
+        },
+        "type_filters": {
+          "filters": {
+            "category": {
+              "option": "jewel"
+            },
+            "rarity": {
+              "option": "nonunique"
+            }
+          }
+        },
+        "misc_filters": {
+          "filters": {
+            "corrupted": {
+              "option": "false"
+            },
+            "mirrored": {
+              "option": "false"
+            },
+            "sanctified": {
+              "option": "false"
+            }
+          }
+        }
+      }
+    },
+    "sort": {
+      "price": "asc"
+    }
+  }
+}

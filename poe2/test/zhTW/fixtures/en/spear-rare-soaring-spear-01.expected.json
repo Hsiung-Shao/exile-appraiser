@@ -1,0 +1,336 @@
+{
+  "augmentSockets": {
+    "augments": [
+      null
+    ],
+    "current": 0,
+    "empty": 1,
+    "normal": 1
+  },
+  "baseType": "Flying Spear",
+  "category": "Spear",
+  "influences": [],
+  "info": {
+    "name": "Flying Spear",
+    "namespace": "ITEM",
+    "refName": "Flying Spear"
+  },
+  "infoVariants": [
+    {
+      "name": "Flying Spear",
+      "namespace": "ITEM",
+      "refName": "Flying Spear"
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": false,
+  "itemLevel": 82,
+  "name": "Carrion Blade",
+  "newMods": [
+    {
+      "info": {
+        "tags": [],
+        "type": "implicit"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Projectile Speed with this Weapon",
+          "roll": {
+            "dp": false,
+            "max": 35,
+            "min": 25,
+            "unscalable": false,
+            "value": 29
+          },
+          "tradeIds": {
+            "explicit": [
+              "explicit.stat_535217483"
+            ],
+            "implicit": [
+              "implicit.stat_535217483"
+            ]
+          },
+          "translation": "#% increased Projectile Speed with this Weapon"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [],
+        "type": "skill"
+      },
+      "stats": []
+    },
+    {
+      "info": {
+        "generation": "prefix",
+        "name": "Merciless",
+        "tags": [
+          "Damage",
+          "Physical",
+          "Attack"
+        ],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Physical Damage",
+          "roll": {
+            "dp": false,
+            "max": 179,
+            "min": 170,
+            "unscalable": false,
+            "value": 176
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_1509134228"
+            ],
+            "desecrated": [
+              "desecrated.stat_1509134228"
+            ],
+            "enchant": [
+              "enchant.stat_1509134228"
+            ],
+            "explicit": [
+              "explicit.stat_1509134228"
+            ],
+            "fractured": [
+              "fractured.stat_1509134228"
+            ],
+            "rune": [
+              "rune.stat_1509134228"
+            ]
+          },
+          "translation": "#% increased Physical Damage"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "prefix",
+        "name": "Heated",
+        "tags": [
+          "Damage",
+          "Elemental",
+          "Fire",
+          "Attack"
+        ],
+        "tier": 5,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "Adds # to # Fire Damage",
+          "roll": {
+            "dp": false,
+            "max": 43.5,
+            "min": 31.5,
+            "unscalable": false,
+            "value": 41
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_709508406"
+            ],
+            "desecrated": [
+              "desecrated.stat_709508406"
+            ],
+            "enchant": [
+              "enchant.stat_709508406"
+            ],
+            "explicit": [
+              "explicit.stat_709508406"
+            ],
+            "fractured": [
+              "fractured.stat_709508406"
+            ],
+            "rune": [
+              "rune.stat_709508406"
+            ]
+          },
+          "translation": "Adds # to # Fire Damage"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "prefix",
+        "name": "Glaciated",
+        "tags": [
+          "Damage",
+          "Elemental",
+          "Cold",
+          "Attack"
+        ],
+        "tier": 8,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "Adds # to # Cold Damage",
+          "roll": {
+            "dp": false,
+            "max": 12.5,
+            "min": 8,
+            "unscalable": false,
+            "value": 9.5
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_1037193709"
+            ],
+            "desecrated": [
+              "desecrated.stat_1037193709"
+            ],
+            "enchant": [
+              "enchant.stat_1037193709"
+            ],
+            "explicit": [
+              "explicit.stat_1037193709"
+            ],
+            "fractured": [
+              "fractured.stat_1037193709"
+            ],
+            "rune": [
+              "rune.stat_1037193709"
+            ]
+          },
+          "translation": "Adds # to # Cold Damage"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "suffix",
+        "name": "of Absorption",
+        "tags": [
+          "Mana"
+        ],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "Gain # Mana per enemy killed",
+          "roll": {
+            "dp": false,
+            "max": 45,
+            "min": 36,
+            "unscalable": false,
+            "value": 44
+          },
+          "tradeIds": {
+            "desecrated": [
+              "desecrated.stat_1368271171"
+            ],
+            "enchant": [
+              "enchant.stat_1368271171"
+            ],
+            "explicit": [
+              "explicit.stat_1368271171"
+            ],
+            "fractured": [
+              "fractured.stat_1368271171"
+            ],
+            "implicit": [
+              "implicit.stat_1368271171"
+            ],
+            "rune": [
+              "rune.stat_1368271171"
+            ]
+          },
+          "translation": "Gain # Mana per enemy killed"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "suffix",
+        "name": "of the Vampire",
+        "tags": [
+          "Life",
+          "Physical",
+          "Attack"
+        ],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "Leeches #% of Physical Damage as Life",
+          "roll": {
+            "dp": true,
+            "max": 9.9,
+            "min": 9,
+            "unscalable": false,
+            "value": 9.02
+          },
+          "tradeIds": {
+            "desecrated": [
+              "desecrated.stat_55876295"
+            ],
+            "explicit": [
+              "explicit.stat_55876295"
+            ],
+            "fractured": [
+              "fractured.stat_55876295"
+            ],
+            "rune": [
+              "rune.stat_55876295"
+            ]
+          },
+          "translation": "Leeches #% of Physical Damage as Life"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "suffix",
+        "name": "of Impact",
+        "tags": [],
+        "tier": 3,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Stun Duration",
+          "roll": {
+            "dp": false,
+            "max": 22,
+            "min": 20,
+            "unscalable": false,
+            "value": 21
+          },
+          "tradeIds": {
+            "desecrated": [
+              "desecrated.stat_748522257"
+            ],
+            "explicit": [
+              "explicit.stat_748522257"
+            ],
+            "fractured": [
+              "fractured.stat_748522257"
+            ]
+          },
+          "translation": "#% increased Stun Duration"
+        }
+      ]
+    }
+  ],
+  "rarity": "Rare",
+  "requires": {
+    "dex": 122,
+    "int": 0,
+    "level": 78,
+    "str": 48
+  },
+  "unknownModifiers": [],
+  "weaponAS": 1.6,
+  "weaponCOLD": 9.5,
+  "weaponCRIT": 5,
+  "weaponELEMENTAL": 50.5,
+  "weaponFIRE": 41,
+  "weaponPHYSICAL": 170
+}

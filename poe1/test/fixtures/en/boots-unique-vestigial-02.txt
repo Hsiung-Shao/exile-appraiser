@@ -1,0 +1,31 @@
+Item Class: Boots
+Rarity: Unique
+Sin Trek
+Vestigial Stealth Boots
+--------
+Evasion Rating: 441 (augmented)
+Energy Shield: 108 (augmented)
+--------
+Requirements:
+Level: 62
+Dex: 117
+--------
+Sockets: W-W-W
+--------
+Item Level: 85
+--------
+{ Vestigial Implicit Modifier — Elemental, Fire, Cold, Lightning, Ailment }
+Immune to Elemental Ailments while affected by Glorious Madness — Unscalable Value
+--------
+{ Unique Modifier — Defences, Evasion }
+95(80-100)% increased Evasion Rating
+{ Unique Modifier — Defences, Energy Shield }
++108(100-150) to maximum Energy Shield
+{ Unique Modifier — Attribute }
++26(20-30) to Dexterity
+{ Unique Modifier — Attribute }
++23(20-30) to Intelligence
+{ Unique Modifier }
+Enemies Cannot Leech Life From you — Unscalable Value
+{ Unique Modifier — Speed }
+30% increased Movement Speed

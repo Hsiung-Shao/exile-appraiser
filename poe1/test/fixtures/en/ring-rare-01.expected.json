@@ -1,0 +1,1111 @@
+{
+  "baseType": "Opal Ring",
+  "category": "Ring",
+  "influences": [],
+  "info": {
+    "craftable": {
+      "category": "Ring"
+    },
+    "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvUmluZ3MvT3BhbFJpbmciLCJ3IjoxLCJoIjoxLCJzY2FsZSI6MX1d/8c87f65b28/OpalRing.png",
+    "name": "Opal Ring",
+    "namespace": "ITEM",
+    "refName": "Opal Ring"
+  },
+  "infoVariants": [
+    {
+      "craftable": {
+        "category": "Ring"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvUmluZ3MvT3BhbFJpbmciLCJ3IjoxLCJoIjoxLCJzY2FsZSI6MX1d/8c87f65b28/OpalRing.png",
+      "name": "Opal Ring",
+      "namespace": "ITEM",
+      "refName": "Opal Ring"
+    }
+  ],
+  "isCorrupted": false,
+  "isFractured": true,
+  "isUnidentified": false,
+  "itemLevel": 84,
+  "name": "Doom Loop",
+  "newMods": [
+    {
+      "info": {
+        "tags": [
+          "Elemental",
+          "Damage"
+        ],
+        "type": "implicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "legacy": true,
+            "max": 17,
+            "min": 10,
+            "unscalable": false,
+            "value": 17
+          },
+          "stat": {
+            "better": 1,
+            "matchers": [
+              {
+                "string": "#% increased Elemental Damage"
+              },
+              {
+                "negate": true,
+                "string": "#% reduced Elemental Damage"
+              }
+            ],
+            "ref": "#% increased Elemental Damage",
+            "trade": {
+              "ids": {
+                "explicit": [
+                  "explicit.stat_3141070085"
+                ],
+                "fractured": [
+                  "fractured.stat_3141070085"
+                ],
+                "implicit": [
+                  "implicit.stat_3141070085"
+                ],
+                "pseudo": [
+                  "pseudo.pseudo_increased_elemental_damage"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "#% increased Elemental Damage"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "prefix",
+        "name": "Rapturous",
+        "tags": [
+          "Life"
+        ],
+        "tier": 3,
+        "type": "fractured"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 69,
+            "min": 60,
+            "unscalable": false,
+            "value": 68
+          },
+          "stat": {
+            "better": 1,
+            "matchers": [
+              {
+                "string": "# to maximum Life"
+              }
+            ],
+            "ref": "+# to maximum Life",
+            "trade": {
+              "ids": {
+                "crafted": [
+                  "crafted.stat_3299347043"
+                ],
+                "explicit": [
+                  "explicit.stat_3299347043"
+                ],
+                "fractured": [
+                  "fractured.stat_3299347043"
+                ],
+                "implicit": [
+                  "implicit.stat_3299347043"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "# to maximum Life"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "prefix",
+        "name": "Prodigal",
+        "tags": [
+          "Mana"
+        ],
+        "tier": 2,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 68,
+            "min": 55,
+            "unscalable": false,
+            "value": 58
+          },
+          "stat": {
+            "better": 1,
+            "matchers": [
+              {
+                "string": "# to maximum Mana"
+              }
+            ],
+            "ref": "+# to maximum Mana",
+            "trade": {
+              "ids": {
+                "crafted": [
+                  "crafted.stat_1050105434"
+                ],
+                "explicit": [
+                  "explicit.stat_1050105434"
+                ],
+                "fractured": [
+                  "fractured.stat_1050105434"
+                ],
+                "implicit": [
+                  "implicit.stat_1050105434"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "# to maximum Mana"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "suffix",
+        "name": "of the Salamander",
+        "tags": [
+          "Elemental",
+          "Fire",
+          "Resistance"
+        ],
+        "tier": 2,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "legacy": true,
+            "max": 42,
+            "min": 36,
+            "unscalable": false,
+            "value": 42
+          },
+          "stat": {
+            "better": 1,
+            "matchers": [
+              {
+                "string": "#% to Fire Resistance"
+              }
+            ],
+            "ref": "+#% to Fire Resistance",
+            "trade": {
+              "ids": {
+                "crafted": [
+                  "crafted.stat_3372524247"
+                ],
+                "explicit": [
+                  "explicit.stat_3372524247"
+                ],
+                "fractured": [
+                  "fractured.stat_3372524247"
+                ],
+                "implicit": [
+                  "implicit.stat_3372524247"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "#% to Fire Resistance"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "suffix",
+        "name": "of the Prodigy",
+        "tags": [
+          "Attribute"
+        ],
+        "tier": 3,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 33,
+            "min": 28,
+            "unscalable": false,
+            "value": 31
+          },
+          "stat": {
+            "better": 1,
+            "matchers": [
+              {
+                "string": "# to Intelligence"
+              }
+            ],
+            "ref": "+# to Intelligence",
+            "trade": {
+              "ids": {
+                "crafted": [
+                  "crafted.stat_328541901"
+                ],
+                "explicit": [
+                  "explicit.stat_328541901"
+                ],
+                "fractured": [
+                  "fractured.stat_328541901"
+                ],
+                "implicit": [
+                  "implicit.stat_328541901"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "# to Intelligence"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "suffix",
+        "name": "of Craft",
+        "rank": 2,
+        "tags": [
+          "Elemental",
+          "Cold",
+          "Resistance"
+        ],
+        "type": "crafted"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 30,
+            "min": 26,
+            "unscalable": false,
+            "value": 29
+          },
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "yes",
+            "matchers": [
+              {
+                "string": "#% to Cold Resistance"
+              }
+            ],
+            "ref": "+#% to Cold Resistance",
+            "trade": {
+              "ids": {
+                "crafted": [
+                  "crafted.stat_4220027924"
+                ],
+                "explicit": [
+                  "explicit.stat_4220027924"
+                ],
+                "fractured": [
+                  "fractured.stat_4220027924"
+                ],
+                "implicit": [
+                  "implicit.stat_4220027924"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "#% to Cold Resistance"
+          }
+        }
+      ]
+    }
+  ],
+  "rarity": "Rare",
+  "rawText": "Item Class: Rings\nRarity: Rare\nDoom Loop\nOpal Ring\n--------\nRequirements:\nLevel: 80\n--------\nItem Level: 84\n--------\n{ Implicit Modifier — Elemental, Damage }\n17(10-15)% increased Elemental Damage\n--------\n{ Fractured Prefix Modifier \"Rapturous\" (Tier: 3) — Life }\n+68(60-69) to maximum Life\n{ Prefix Modifier \"Prodigal\" (Tier: 2) — Mana }\n+58(55-68) to maximum Mana\n{ Suffix Modifier \"of the Salamander\" (Tier: 2) — Elemental, Fire, Resistance }\n+42(36-41)% to Fire Resistance\n{ Suffix Modifier \"of the Prodigy\" (Tier: 3) — Attribute }\n+31(28-33) to Intelligence\n{ Master Crafted Suffix Modifier \"of Craft\" (Rank: 2) — Elemental, Cold, Resistance }\n+29(26-30)% to Cold Resistance\n--------\nFractured Item\n--------\nNote: ~price 2 divine\n",
+  "statsByType": [
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 17,
+            "min": 10,
+            "value": 17
+          },
+          "modifier": {
+            "info": {
+              "tags": [
+                "Elemental",
+                "Damage"
+              ],
+              "type": "implicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "legacy": true,
+                  "max": 17,
+                  "min": 10,
+                  "unscalable": false,
+                  "value": 17
+                },
+                "stat": {
+                  "better": 1,
+                  "matchers": [
+                    {
+                      "string": "#% increased Elemental Damage"
+                    },
+                    {
+                      "negate": true,
+                      "string": "#% reduced Elemental Damage"
+                    }
+                  ],
+                  "ref": "#% increased Elemental Damage",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_3141070085"
+                      ],
+                      "fractured": [
+                        "fractured.stat_3141070085"
+                      ],
+                      "implicit": [
+                        "implicit.stat_3141070085"
+                      ],
+                      "pseudo": [
+                        "pseudo.pseudo_increased_elemental_damage"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "#% increased Elemental Damage"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "legacy": true,
+              "max": 17,
+              "min": 10,
+              "unscalable": false,
+              "value": 17
+            },
+            "stat": {
+              "better": 1,
+              "matchers": [
+                {
+                  "string": "#% increased Elemental Damage"
+                },
+                {
+                  "negate": true,
+                  "string": "#% reduced Elemental Damage"
+                }
+              ],
+              "ref": "#% increased Elemental Damage",
+              "trade": {
+                "ids": {
+                  "explicit": [
+                    "explicit.stat_3141070085"
+                  ],
+                  "fractured": [
+                    "fractured.stat_3141070085"
+                  ],
+                  "implicit": [
+                    "implicit.stat_3141070085"
+                  ],
+                  "pseudo": [
+                    "pseudo.pseudo_increased_elemental_damage"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "#% increased Elemental Damage"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "matchers": [
+          {
+            "string": "#% increased Elemental Damage"
+          },
+          {
+            "negate": true,
+            "string": "#% reduced Elemental Damage"
+          }
+        ],
+        "ref": "#% increased Elemental Damage",
+        "trade": {
+          "ids": {
+            "explicit": [
+              "explicit.stat_3141070085"
+            ],
+            "fractured": [
+              "fractured.stat_3141070085"
+            ],
+            "implicit": [
+              "implicit.stat_3141070085"
+            ],
+            "pseudo": [
+              "pseudo.pseudo_increased_elemental_damage"
+            ]
+          }
+        }
+      },
+      "type": "implicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 69,
+            "min": 60,
+            "value": 68
+          },
+          "modifier": {
+            "info": {
+              "generation": "prefix",
+              "name": "Rapturous",
+              "tags": [
+                "Life"
+              ],
+              "tier": 3,
+              "type": "fractured"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 69,
+                  "min": 60,
+                  "unscalable": false,
+                  "value": 68
+                },
+                "stat": {
+                  "better": 1,
+                  "matchers": [
+                    {
+                      "string": "# to maximum Life"
+                    }
+                  ],
+                  "ref": "+# to maximum Life",
+                  "trade": {
+                    "ids": {
+                      "crafted": [
+                        "crafted.stat_3299347043"
+                      ],
+                      "explicit": [
+                        "explicit.stat_3299347043"
+                      ],
+                      "fractured": [
+                        "fractured.stat_3299347043"
+                      ],
+                      "implicit": [
+                        "implicit.stat_3299347043"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "# to maximum Life"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 69,
+              "min": 60,
+              "unscalable": false,
+              "value": 68
+            },
+            "stat": {
+              "better": 1,
+              "matchers": [
+                {
+                  "string": "# to maximum Life"
+                }
+              ],
+              "ref": "+# to maximum Life",
+              "trade": {
+                "ids": {
+                  "crafted": [
+                    "crafted.stat_3299347043"
+                  ],
+                  "explicit": [
+                    "explicit.stat_3299347043"
+                  ],
+                  "fractured": [
+                    "fractured.stat_3299347043"
+                  ],
+                  "implicit": [
+                    "implicit.stat_3299347043"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "# to maximum Life"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "matchers": [
+          {
+            "string": "# to maximum Life"
+          }
+        ],
+        "ref": "+# to maximum Life",
+        "trade": {
+          "ids": {
+            "crafted": [
+              "crafted.stat_3299347043"
+            ],
+            "explicit": [
+              "explicit.stat_3299347043"
+            ],
+            "fractured": [
+              "fractured.stat_3299347043"
+            ],
+            "implicit": [
+              "implicit.stat_3299347043"
+            ]
+          }
+        }
+      },
+      "type": "fractured"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 68,
+            "min": 55,
+            "value": 58
+          },
+          "modifier": {
+            "info": {
+              "generation": "prefix",
+              "name": "Prodigal",
+              "tags": [
+                "Mana"
+              ],
+              "tier": 2,
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 68,
+                  "min": 55,
+                  "unscalable": false,
+                  "value": 58
+                },
+                "stat": {
+                  "better": 1,
+                  "matchers": [
+                    {
+                      "string": "# to maximum Mana"
+                    }
+                  ],
+                  "ref": "+# to maximum Mana",
+                  "trade": {
+                    "ids": {
+                      "crafted": [
+                        "crafted.stat_1050105434"
+                      ],
+                      "explicit": [
+                        "explicit.stat_1050105434"
+                      ],
+                      "fractured": [
+                        "fractured.stat_1050105434"
+                      ],
+                      "implicit": [
+                        "implicit.stat_1050105434"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "# to maximum Mana"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 68,
+              "min": 55,
+              "unscalable": false,
+              "value": 58
+            },
+            "stat": {
+              "better": 1,
+              "matchers": [
+                {
+                  "string": "# to maximum Mana"
+                }
+              ],
+              "ref": "+# to maximum Mana",
+              "trade": {
+                "ids": {
+                  "crafted": [
+                    "crafted.stat_1050105434"
+                  ],
+                  "explicit": [
+                    "explicit.stat_1050105434"
+                  ],
+                  "fractured": [
+                    "fractured.stat_1050105434"
+                  ],
+                  "implicit": [
+                    "implicit.stat_1050105434"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "# to maximum Mana"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "matchers": [
+          {
+            "string": "# to maximum Mana"
+          }
+        ],
+        "ref": "+# to maximum Mana",
+        "trade": {
+          "ids": {
+            "crafted": [
+              "crafted.stat_1050105434"
+            ],
+            "explicit": [
+              "explicit.stat_1050105434"
+            ],
+            "fractured": [
+              "fractured.stat_1050105434"
+            ],
+            "implicit": [
+              "implicit.stat_1050105434"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 42,
+            "min": 36,
+            "value": 42
+          },
+          "modifier": {
+            "info": {
+              "generation": "suffix",
+              "name": "of the Salamander",
+              "tags": [
+                "Elemental",
+                "Fire",
+                "Resistance"
+              ],
+              "tier": 2,
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "legacy": true,
+                  "max": 42,
+                  "min": 36,
+                  "unscalable": false,
+                  "value": 42
+                },
+                "stat": {
+                  "better": 1,
+                  "matchers": [
+                    {
+                      "string": "#% to Fire Resistance"
+                    }
+                  ],
+                  "ref": "+#% to Fire Resistance",
+                  "trade": {
+                    "ids": {
+                      "crafted": [
+                        "crafted.stat_3372524247"
+                      ],
+                      "explicit": [
+                        "explicit.stat_3372524247"
+                      ],
+                      "fractured": [
+                        "fractured.stat_3372524247"
+                      ],
+                      "implicit": [
+                        "implicit.stat_3372524247"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "#% to Fire Resistance"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "legacy": true,
+              "max": 42,
+              "min": 36,
+              "unscalable": false,
+              "value": 42
+            },
+            "stat": {
+              "better": 1,
+              "matchers": [
+                {
+                  "string": "#% to Fire Resistance"
+                }
+              ],
+              "ref": "+#% to Fire Resistance",
+              "trade": {
+                "ids": {
+                  "crafted": [
+                    "crafted.stat_3372524247"
+                  ],
+                  "explicit": [
+                    "explicit.stat_3372524247"
+                  ],
+                  "fractured": [
+                    "fractured.stat_3372524247"
+                  ],
+                  "implicit": [
+                    "implicit.stat_3372524247"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "#% to Fire Resistance"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "matchers": [
+          {
+            "string": "#% to Fire Resistance"
+          }
+        ],
+        "ref": "+#% to Fire Resistance",
+        "trade": {
+          "ids": {
+            "crafted": [
+              "crafted.stat_3372524247"
+            ],
+            "explicit": [
+              "explicit.stat_3372524247"
+            ],
+            "fractured": [
+              "fractured.stat_3372524247"
+            ],
+            "implicit": [
+              "implicit.stat_3372524247"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 33,
+            "min": 28,
+            "value": 31
+          },
+          "modifier": {
+            "info": {
+              "generation": "suffix",
+              "name": "of the Prodigy",
+              "tags": [
+                "Attribute"
+              ],
+              "tier": 3,
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 33,
+                  "min": 28,
+                  "unscalable": false,
+                  "value": 31
+                },
+                "stat": {
+                  "better": 1,
+                  "matchers": [
+                    {
+                      "string": "# to Intelligence"
+                    }
+                  ],
+                  "ref": "+# to Intelligence",
+                  "trade": {
+                    "ids": {
+                      "crafted": [
+                        "crafted.stat_328541901"
+                      ],
+                      "explicit": [
+                        "explicit.stat_328541901"
+                      ],
+                      "fractured": [
+                        "fractured.stat_328541901"
+                      ],
+                      "implicit": [
+                        "implicit.stat_328541901"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "# to Intelligence"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 33,
+              "min": 28,
+              "unscalable": false,
+              "value": 31
+            },
+            "stat": {
+              "better": 1,
+              "matchers": [
+                {
+                  "string": "# to Intelligence"
+                }
+              ],
+              "ref": "+# to Intelligence",
+              "trade": {
+                "ids": {
+                  "crafted": [
+                    "crafted.stat_328541901"
+                  ],
+                  "explicit": [
+                    "explicit.stat_328541901"
+                  ],
+                  "fractured": [
+                    "fractured.stat_328541901"
+                  ],
+                  "implicit": [
+                    "implicit.stat_328541901"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "# to Intelligence"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "matchers": [
+          {
+            "string": "# to Intelligence"
+          }
+        ],
+        "ref": "+# to Intelligence",
+        "trade": {
+          "ids": {
+            "crafted": [
+              "crafted.stat_328541901"
+            ],
+            "explicit": [
+              "explicit.stat_328541901"
+            ],
+            "fractured": [
+              "fractured.stat_328541901"
+            ],
+            "implicit": [
+              "implicit.stat_328541901"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 30,
+            "min": 26,
+            "value": 29
+          },
+          "modifier": {
+            "info": {
+              "generation": "suffix",
+              "name": "of Craft",
+              "rank": 2,
+              "tags": [
+                "Elemental",
+                "Cold",
+                "Resistance"
+              ],
+              "type": "crafted"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 30,
+                  "min": 26,
+                  "unscalable": false,
+                  "value": 29
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "#% to Cold Resistance"
+                    }
+                  ],
+                  "ref": "+#% to Cold Resistance",
+                  "trade": {
+                    "ids": {
+                      "crafted": [
+                        "crafted.stat_4220027924"
+                      ],
+                      "explicit": [
+                        "explicit.stat_4220027924"
+                      ],
+                      "fractured": [
+                        "fractured.stat_4220027924"
+                      ],
+                      "implicit": [
+                        "implicit.stat_4220027924"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "#% to Cold Resistance"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 30,
+              "min": 26,
+              "unscalable": false,
+              "value": 29
+            },
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "yes",
+              "matchers": [
+                {
+                  "string": "#% to Cold Resistance"
+                }
+              ],
+              "ref": "+#% to Cold Resistance",
+              "trade": {
+                "ids": {
+                  "crafted": [
+                    "crafted.stat_4220027924"
+                  ],
+                  "explicit": [
+                    "explicit.stat_4220027924"
+                  ],
+                  "fractured": [
+                    "fractured.stat_4220027924"
+                  ],
+                  "implicit": [
+                    "implicit.stat_4220027924"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "#% to Cold Resistance"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "fromAreaMods": "yes",
+        "matchers": [
+          {
+            "string": "#% to Cold Resistance"
+          }
+        ],
+        "ref": "+#% to Cold Resistance",
+        "trade": {
+          "ids": {
+            "crafted": [
+              "crafted.stat_4220027924"
+            ],
+            "explicit": [
+              "explicit.stat_4220027924"
+            ],
+            "fractured": [
+              "fractured.stat_4220027924"
+            ],
+            "implicit": [
+              "implicit.stat_4220027924"
+            ]
+          }
+        }
+      },
+      "type": "crafted"
+    }
+  ],
+  "unknownModifiers": []
+}

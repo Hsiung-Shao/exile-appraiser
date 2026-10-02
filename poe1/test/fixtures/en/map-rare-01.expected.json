@@ -1,0 +1,1755 @@
+{
+  "areaItemQuantity": 84,
+  "areaItemRarity": 102,
+  "areaPackSize": 62,
+  "baseType": "Map",
+  "category": "Map",
+  "influences": [],
+  "info": {
+    "area": {},
+    "craftable": {
+      "category": "Map"
+    },
+    "icon": "/images/maps/normal.png",
+    "name": "Map",
+    "namespace": "ITEM",
+    "refName": "Map"
+  },
+  "infoVariants": [
+    {
+      "area": {},
+      "craftable": {
+        "category": "Map"
+      },
+      "icon": "/images/maps/normal.png",
+      "name": "Map",
+      "namespace": "ITEM",
+      "refName": "Map"
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": false,
+  "itemLevel": 83,
+  "mapMoreCurrency": 47,
+  "mapMoreMaps": 35,
+  "mapMoreScarabs": 53,
+  "mapTier": 16,
+  "name": "Dread Chapel",
+  "newMods": [
+    {
+      "info": {
+        "tags": [],
+        "type": "implicit"
+      },
+      "stats": [
+        {
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "yes",
+            "matchers": [
+              {
+                "string": "Area is Influenced by the Originator's Memories"
+              }
+            ],
+            "ref": "Area is Influenced by the Originator's Memories",
+            "trade": {
+              "ids": {
+                "implicit": [
+                  "implicit.stat_2696470877"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "Area is Influenced by the Originator's Memories"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [],
+        "type": "implicit"
+      },
+      "stats": [
+        {
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "yes",
+            "matchers": [
+              {
+                "string": "Area is Influenced by the Originator's Memories"
+              }
+            ],
+            "ref": "Area is Influenced by the Originator's Memories",
+            "trade": {
+              "ids": {
+                "implicit": [
+                  "implicit.stat_2696470877"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "Area is Influenced by the Originator's Memories"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "prefix",
+        "name": "Volatile",
+        "tags": [],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 100,
+            "min": 100,
+            "unscalable": false,
+            "value": 100
+          },
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "ubermap_exclusive",
+            "matchers": [
+              {
+                "string": "Rare Monsters have #% chance to have a Volatile Core"
+              },
+              {
+                "string": "Rare Monsters have Volatile Cores",
+                "value": 100
+              }
+            ],
+            "ref": "Rare Monsters have #% chance to have a Volatile Core",
+            "trade": {
+              "ids": {
+                "explicit": [
+                  "explicit.stat_1706239920"
+                ],
+                "fractured": [
+                  "fractured.stat_1706239920"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "Rare Monsters have Volatile Cores",
+            "value": 100
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "prefix",
+        "name": "Retributive",
+        "tags": [],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 1500,
+            "min": 1500,
+            "unscalable": false,
+            "value": 1500
+          },
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "yes",
+            "matchers": [
+              {
+                "string": "Rare Monsters have Physical Thorns reflecting # Physical Damage"
+              }
+            ],
+            "ref": "Rare Monsters have Physical Thorns reflecting # Physical Damage",
+            "trade": {
+              "ids": {
+                "explicit": [
+                  "explicit.stat_3278889477"
+                ],
+                "fractured": [
+                  "fractured.stat_3278889477"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "Rare Monsters have Physical Thorns reflecting # Physical Damage"
+          }
+        },
+        {
+          "roll": {
+            "dp": false,
+            "max": 2500,
+            "min": 2500,
+            "unscalable": false,
+            "value": 2500
+          },
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "yes",
+            "matchers": [
+              {
+                "string": "Rare Monsters have Elemental Thorns reflecting # Elemental Damage"
+              }
+            ],
+            "ref": "Rare Monsters have Elemental Thorns reflecting # Elemental Damage",
+            "trade": {
+              "ids": {
+                "explicit": [
+                  "explicit.stat_3938822425"
+                ],
+                "fractured": [
+                  "fractured.stat_3938822425"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "Rare Monsters have Elemental Thorns reflecting # Elemental Damage"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "prefix",
+        "name": "Magnified",
+        "tags": [],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 100,
+            "min": 100,
+            "unscalable": false,
+            "value": 100
+          },
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "yes",
+            "matchers": [
+              {
+                "string": "Monsters have #% increased Area of Effect"
+              },
+              {
+                "negate": true,
+                "string": "Monsters have #% reduced Area of Effect"
+              }
+            ],
+            "ref": "Monsters have #% increased Area of Effect",
+            "trade": {
+              "ids": {
+                "explicit": [
+                  "explicit.stat_1708461270"
+                ],
+                "fractured": [
+                  "fractured.stat_1708461270"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "Monsters have #% increased Area of Effect"
+          }
+        },
+        {
+          "roll": {
+            "dp": false,
+            "max": 2,
+            "min": 2,
+            "unscalable": false,
+            "value": 2
+          },
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "yes",
+            "matchers": [
+              {
+                "string": "Monsters fire # additional Projectiles"
+              }
+            ],
+            "ref": "Monsters fire # additional Projectiles",
+            "trade": {
+              "ids": {
+                "explicit": [
+                  "explicit.stat_1309819744"
+                ],
+                "fractured": [
+                  "fractured.stat_1309819744"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "Monsters fire # additional Projectiles"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "suffix",
+        "name": "of Treasured",
+        "tags": [],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "ubermap_exclusive",
+            "matchers": [
+              {
+                "string": "The Maven interferes with Players"
+              }
+            ],
+            "ref": "The Maven interferes with Players",
+            "trade": {
+              "ids": {
+                "explicit": [
+                  "explicit.stat_1594156261"
+                ],
+                "fractured": [
+                  "fractured.stat_1594156261"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "The Maven interferes with Players"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "suffix",
+        "name": "of Endurance",
+        "tags": [],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 1,
+            "min": 1,
+            "unscalable": false,
+            "value": 1
+          },
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "ubermap_exclusive",
+            "matchers": [
+              {
+                "string": "Monsters have # to Maximum Endurance Charges"
+              }
+            ],
+            "ref": "Monsters have +# to Maximum Endurance Charges",
+            "trade": {
+              "ids": {
+                "explicit": [
+                  "explicit.stat_4067268731"
+                ],
+                "fractured": [
+                  "fractured.stat_4067268731"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "Monsters have # to Maximum Endurance Charges"
+          }
+        },
+        {
+          "roll": {
+            "dp": false,
+            "max": 100,
+            "min": 100,
+            "unscalable": false,
+            "value": 100
+          },
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "yes",
+            "matchers": [
+              {
+                "string": "Monsters have #% chance to gain an Endurance Charge on Hit"
+              },
+              {
+                "string": "Monsters gain an Endurance Charge on Hit",
+                "value": 100
+              }
+            ],
+            "ref": "Monsters have #% chance to gain an Endurance Charge on Hit",
+            "trade": {
+              "ids": {
+                "explicit": [
+                  "explicit.stat_687813731"
+                ],
+                "fractured": [
+                  "fractured.stat_687813731"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "Monsters gain an Endurance Charge on Hit",
+            "value": 100
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "suffix",
+        "name": "of Decay",
+        "tags": [],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "stat": {
+            "better": 1,
+            "fromAreaMods": "ubermap_exclusive",
+            "matchers": [
+              {
+                "string": "Area contains Unstable Tentacle Fiends"
+              }
+            ],
+            "ref": "Area contains Unstable Tentacle Fiends",
+            "trade": {
+              "ids": {
+                "explicit": [
+                  "explicit.stat_1943574423"
+                ],
+                "fractured": [
+                  "fractured.stat_1943574423"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "Area contains Unstable Tentacle Fiends"
+          }
+        }
+      ]
+    }
+  ],
+  "rarity": "Rare",
+  "rawText": "Item Class: Maps\nRarity: Rare\nDread Chapel\nMap (Tier 16)\n--------\nItem Quantity: +84% (augmented)\nItem Rarity: +102% (augmented)\nMonster Pack Size: +62% (augmented)\nMore Maps: +35% (augmented)\nMore Scarabs: +53% (augmented)\nMore Currency: +47% (augmented)\n--------\nItem Level: 83\n--------\nMonster Level: 83\n--------\n{ Implicit Modifier }\nArea is Influenced by the Originator's Memories\n{ Implicit Modifier }\nArea is Influenced by the Originator's Memories\n--------\n{ Prefix Modifier \"Volatile\" (Tier: 1) }\nRare Monsters have Volatile Cores\n{ Prefix Modifier \"Retributive\" (Tier: 1) }\nRare Monsters have Physical Thorns reflecting 1500 Physical Damage\nRare Monsters have Elemental Thorns reflecting 2500 Elemental Damage\n{ Prefix Modifier \"Magnified\" (Tier: 1) }\nMonsters have 100% increased Area of Effect\nMonsters fire 2 additional Projectiles\n{ Suffix Modifier \"of Treasured\" (Tier: 1) }\nThe Maven interferes with Players\n{ Suffix Modifier \"of Endurance\" (Tier: 1) }\nMonsters have +1 to Maximum Endurance Charges\nMonsters gain an Endurance Charge on Hit\n{ Suffix Modifier \"of Decay\" (Tier: 1) }\nArea contains Unstable Tentacle Fiends\n--------\nTravel to this Map by using it in a personal Map Device. Maps can only be used once.\n",
+  "statsByType": [
+    {
+      "sources": [
+        {
+          "modifier": {
+            "info": {
+              "tags": [],
+              "type": "implicit"
+            },
+            "stats": [
+              {
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "Area is Influenced by the Originator's Memories"
+                    }
+                  ],
+                  "ref": "Area is Influenced by the Originator's Memories",
+                  "trade": {
+                    "ids": {
+                      "implicit": [
+                        "implicit.stat_2696470877"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "Area is Influenced by the Originator's Memories"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "yes",
+              "matchers": [
+                {
+                  "string": "Area is Influenced by the Originator's Memories"
+                }
+              ],
+              "ref": "Area is Influenced by the Originator's Memories",
+              "trade": {
+                "ids": {
+                  "implicit": [
+                    "implicit.stat_2696470877"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "Area is Influenced by the Originator's Memories"
+            }
+          }
+        },
+        {
+          "modifier": {
+            "info": {
+              "tags": [],
+              "type": "implicit"
+            },
+            "stats": [
+              {
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "Area is Influenced by the Originator's Memories"
+                    }
+                  ],
+                  "ref": "Area is Influenced by the Originator's Memories",
+                  "trade": {
+                    "ids": {
+                      "implicit": [
+                        "implicit.stat_2696470877"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "Area is Influenced by the Originator's Memories"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "yes",
+              "matchers": [
+                {
+                  "string": "Area is Influenced by the Originator's Memories"
+                }
+              ],
+              "ref": "Area is Influenced by the Originator's Memories",
+              "trade": {
+                "ids": {
+                  "implicit": [
+                    "implicit.stat_2696470877"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "Area is Influenced by the Originator's Memories"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "fromAreaMods": "yes",
+        "matchers": [
+          {
+            "string": "Area is Influenced by the Originator's Memories"
+          }
+        ],
+        "ref": "Area is Influenced by the Originator's Memories",
+        "trade": {
+          "ids": {
+            "implicit": [
+              "implicit.stat_2696470877"
+            ]
+          }
+        }
+      },
+      "type": "implicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 100,
+            "min": 100,
+            "value": 100
+          },
+          "modifier": {
+            "info": {
+              "generation": "prefix",
+              "name": "Volatile",
+              "tags": [],
+              "tier": 1,
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 100,
+                  "min": 100,
+                  "unscalable": false,
+                  "value": 100
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "ubermap_exclusive",
+                  "matchers": [
+                    {
+                      "string": "Rare Monsters have #% chance to have a Volatile Core"
+                    },
+                    {
+                      "string": "Rare Monsters have Volatile Cores",
+                      "value": 100
+                    }
+                  ],
+                  "ref": "Rare Monsters have #% chance to have a Volatile Core",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_1706239920"
+                      ],
+                      "fractured": [
+                        "fractured.stat_1706239920"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "Rare Monsters have Volatile Cores",
+                  "value": 100
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 100,
+              "min": 100,
+              "unscalable": false,
+              "value": 100
+            },
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "ubermap_exclusive",
+              "matchers": [
+                {
+                  "string": "Rare Monsters have #% chance to have a Volatile Core"
+                },
+                {
+                  "string": "Rare Monsters have Volatile Cores",
+                  "value": 100
+                }
+              ],
+              "ref": "Rare Monsters have #% chance to have a Volatile Core",
+              "trade": {
+                "ids": {
+                  "explicit": [
+                    "explicit.stat_1706239920"
+                  ],
+                  "fractured": [
+                    "fractured.stat_1706239920"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "Rare Monsters have Volatile Cores",
+              "value": 100
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "fromAreaMods": "ubermap_exclusive",
+        "matchers": [
+          {
+            "string": "Rare Monsters have #% chance to have a Volatile Core"
+          },
+          {
+            "string": "Rare Monsters have Volatile Cores",
+            "value": 100
+          }
+        ],
+        "ref": "Rare Monsters have #% chance to have a Volatile Core",
+        "trade": {
+          "ids": {
+            "explicit": [
+              "explicit.stat_1706239920"
+            ],
+            "fractured": [
+              "fractured.stat_1706239920"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 1500,
+            "min": 1500,
+            "value": 1500
+          },
+          "modifier": {
+            "info": {
+              "generation": "prefix",
+              "name": "Retributive",
+              "tags": [],
+              "tier": 1,
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 1500,
+                  "min": 1500,
+                  "unscalable": false,
+                  "value": 1500
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "Rare Monsters have Physical Thorns reflecting # Physical Damage"
+                    }
+                  ],
+                  "ref": "Rare Monsters have Physical Thorns reflecting # Physical Damage",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_3278889477"
+                      ],
+                      "fractured": [
+                        "fractured.stat_3278889477"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "Rare Monsters have Physical Thorns reflecting # Physical Damage"
+                }
+              },
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 2500,
+                  "min": 2500,
+                  "unscalable": false,
+                  "value": 2500
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "Rare Monsters have Elemental Thorns reflecting # Elemental Damage"
+                    }
+                  ],
+                  "ref": "Rare Monsters have Elemental Thorns reflecting # Elemental Damage",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_3938822425"
+                      ],
+                      "fractured": [
+                        "fractured.stat_3938822425"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "Rare Monsters have Elemental Thorns reflecting # Elemental Damage"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 1500,
+              "min": 1500,
+              "unscalable": false,
+              "value": 1500
+            },
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "yes",
+              "matchers": [
+                {
+                  "string": "Rare Monsters have Physical Thorns reflecting # Physical Damage"
+                }
+              ],
+              "ref": "Rare Monsters have Physical Thorns reflecting # Physical Damage",
+              "trade": {
+                "ids": {
+                  "explicit": [
+                    "explicit.stat_3278889477"
+                  ],
+                  "fractured": [
+                    "fractured.stat_3278889477"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "Rare Monsters have Physical Thorns reflecting # Physical Damage"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "fromAreaMods": "yes",
+        "matchers": [
+          {
+            "string": "Rare Monsters have Physical Thorns reflecting # Physical Damage"
+          }
+        ],
+        "ref": "Rare Monsters have Physical Thorns reflecting # Physical Damage",
+        "trade": {
+          "ids": {
+            "explicit": [
+              "explicit.stat_3278889477"
+            ],
+            "fractured": [
+              "fractured.stat_3278889477"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 2500,
+            "min": 2500,
+            "value": 2500
+          },
+          "modifier": {
+            "info": {
+              "generation": "prefix",
+              "name": "Retributive",
+              "tags": [],
+              "tier": 1,
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 1500,
+                  "min": 1500,
+                  "unscalable": false,
+                  "value": 1500
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "Rare Monsters have Physical Thorns reflecting # Physical Damage"
+                    }
+                  ],
+                  "ref": "Rare Monsters have Physical Thorns reflecting # Physical Damage",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_3278889477"
+                      ],
+                      "fractured": [
+                        "fractured.stat_3278889477"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "Rare Monsters have Physical Thorns reflecting # Physical Damage"
+                }
+              },
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 2500,
+                  "min": 2500,
+                  "unscalable": false,
+                  "value": 2500
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "Rare Monsters have Elemental Thorns reflecting # Elemental Damage"
+                    }
+                  ],
+                  "ref": "Rare Monsters have Elemental Thorns reflecting # Elemental Damage",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_3938822425"
+                      ],
+                      "fractured": [
+                        "fractured.stat_3938822425"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "Rare Monsters have Elemental Thorns reflecting # Elemental Damage"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 2500,
+              "min": 2500,
+              "unscalable": false,
+              "value": 2500
+            },
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "yes",
+              "matchers": [
+                {
+                  "string": "Rare Monsters have Elemental Thorns reflecting # Elemental Damage"
+                }
+              ],
+              "ref": "Rare Monsters have Elemental Thorns reflecting # Elemental Damage",
+              "trade": {
+                "ids": {
+                  "explicit": [
+                    "explicit.stat_3938822425"
+                  ],
+                  "fractured": [
+                    "fractured.stat_3938822425"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "Rare Monsters have Elemental Thorns reflecting # Elemental Damage"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "fromAreaMods": "yes",
+        "matchers": [
+          {
+            "string": "Rare Monsters have Elemental Thorns reflecting # Elemental Damage"
+          }
+        ],
+        "ref": "Rare Monsters have Elemental Thorns reflecting # Elemental Damage",
+        "trade": {
+          "ids": {
+            "explicit": [
+              "explicit.stat_3938822425"
+            ],
+            "fractured": [
+              "fractured.stat_3938822425"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 100,
+            "min": 100,
+            "value": 100
+          },
+          "modifier": {
+            "info": {
+              "generation": "prefix",
+              "name": "Magnified",
+              "tags": [],
+              "tier": 1,
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 100,
+                  "min": 100,
+                  "unscalable": false,
+                  "value": 100
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "Monsters have #% increased Area of Effect"
+                    },
+                    {
+                      "negate": true,
+                      "string": "Monsters have #% reduced Area of Effect"
+                    }
+                  ],
+                  "ref": "Monsters have #% increased Area of Effect",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_1708461270"
+                      ],
+                      "fractured": [
+                        "fractured.stat_1708461270"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "Monsters have #% increased Area of Effect"
+                }
+              },
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 2,
+                  "min": 2,
+                  "unscalable": false,
+                  "value": 2
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "Monsters fire # additional Projectiles"
+                    }
+                  ],
+                  "ref": "Monsters fire # additional Projectiles",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_1309819744"
+                      ],
+                      "fractured": [
+                        "fractured.stat_1309819744"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "Monsters fire # additional Projectiles"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 100,
+              "min": 100,
+              "unscalable": false,
+              "value": 100
+            },
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "yes",
+              "matchers": [
+                {
+                  "string": "Monsters have #% increased Area of Effect"
+                },
+                {
+                  "negate": true,
+                  "string": "Monsters have #% reduced Area of Effect"
+                }
+              ],
+              "ref": "Monsters have #% increased Area of Effect",
+              "trade": {
+                "ids": {
+                  "explicit": [
+                    "explicit.stat_1708461270"
+                  ],
+                  "fractured": [
+                    "fractured.stat_1708461270"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "Monsters have #% increased Area of Effect"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "fromAreaMods": "yes",
+        "matchers": [
+          {
+            "string": "Monsters have #% increased Area of Effect"
+          },
+          {
+            "negate": true,
+            "string": "Monsters have #% reduced Area of Effect"
+          }
+        ],
+        "ref": "Monsters have #% increased Area of Effect",
+        "trade": {
+          "ids": {
+            "explicit": [
+              "explicit.stat_1708461270"
+            ],
+            "fractured": [
+              "fractured.stat_1708461270"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 2,
+            "min": 2,
+            "value": 2
+          },
+          "modifier": {
+            "info": {
+              "generation": "prefix",
+              "name": "Magnified",
+              "tags": [],
+              "tier": 1,
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 100,
+                  "min": 100,
+                  "unscalable": false,
+                  "value": 100
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "Monsters have #% increased Area of Effect"
+                    },
+                    {
+                      "negate": true,
+                      "string": "Monsters have #% reduced Area of Effect"
+                    }
+                  ],
+                  "ref": "Monsters have #% increased Area of Effect",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_1708461270"
+                      ],
+                      "fractured": [
+                        "fractured.stat_1708461270"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "Monsters have #% increased Area of Effect"
+                }
+              },
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 2,
+                  "min": 2,
+                  "unscalable": false,
+                  "value": 2
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "Monsters fire # additional Projectiles"
+                    }
+                  ],
+                  "ref": "Monsters fire # additional Projectiles",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_1309819744"
+                      ],
+                      "fractured": [
+                        "fractured.stat_1309819744"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "Monsters fire # additional Projectiles"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 2,
+              "min": 2,
+              "unscalable": false,
+              "value": 2
+            },
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "yes",
+              "matchers": [
+                {
+                  "string": "Monsters fire # additional Projectiles"
+                }
+              ],
+              "ref": "Monsters fire # additional Projectiles",
+              "trade": {
+                "ids": {
+                  "explicit": [
+                    "explicit.stat_1309819744"
+                  ],
+                  "fractured": [
+                    "fractured.stat_1309819744"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "Monsters fire # additional Projectiles"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "fromAreaMods": "yes",
+        "matchers": [
+          {
+            "string": "Monsters fire # additional Projectiles"
+          }
+        ],
+        "ref": "Monsters fire # additional Projectiles",
+        "trade": {
+          "ids": {
+            "explicit": [
+              "explicit.stat_1309819744"
+            ],
+            "fractured": [
+              "fractured.stat_1309819744"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "modifier": {
+            "info": {
+              "generation": "suffix",
+              "name": "of Treasured",
+              "tags": [],
+              "tier": 1,
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "ubermap_exclusive",
+                  "matchers": [
+                    {
+                      "string": "The Maven interferes with Players"
+                    }
+                  ],
+                  "ref": "The Maven interferes with Players",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_1594156261"
+                      ],
+                      "fractured": [
+                        "fractured.stat_1594156261"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "The Maven interferes with Players"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "ubermap_exclusive",
+              "matchers": [
+                {
+                  "string": "The Maven interferes with Players"
+                }
+              ],
+              "ref": "The Maven interferes with Players",
+              "trade": {
+                "ids": {
+                  "explicit": [
+                    "explicit.stat_1594156261"
+                  ],
+                  "fractured": [
+                    "fractured.stat_1594156261"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "The Maven interferes with Players"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "fromAreaMods": "ubermap_exclusive",
+        "matchers": [
+          {
+            "string": "The Maven interferes with Players"
+          }
+        ],
+        "ref": "The Maven interferes with Players",
+        "trade": {
+          "ids": {
+            "explicit": [
+              "explicit.stat_1594156261"
+            ],
+            "fractured": [
+              "fractured.stat_1594156261"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 1,
+            "min": 1,
+            "value": 1
+          },
+          "modifier": {
+            "info": {
+              "generation": "suffix",
+              "name": "of Endurance",
+              "tags": [],
+              "tier": 1,
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 1,
+                  "min": 1,
+                  "unscalable": false,
+                  "value": 1
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "ubermap_exclusive",
+                  "matchers": [
+                    {
+                      "string": "Monsters have # to Maximum Endurance Charges"
+                    }
+                  ],
+                  "ref": "Monsters have +# to Maximum Endurance Charges",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_4067268731"
+                      ],
+                      "fractured": [
+                        "fractured.stat_4067268731"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "Monsters have # to Maximum Endurance Charges"
+                }
+              },
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 100,
+                  "min": 100,
+                  "unscalable": false,
+                  "value": 100
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "Monsters have #% chance to gain an Endurance Charge on Hit"
+                    },
+                    {
+                      "string": "Monsters gain an Endurance Charge on Hit",
+                      "value": 100
+                    }
+                  ],
+                  "ref": "Monsters have #% chance to gain an Endurance Charge on Hit",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_687813731"
+                      ],
+                      "fractured": [
+                        "fractured.stat_687813731"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "Monsters gain an Endurance Charge on Hit",
+                  "value": 100
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 1,
+              "min": 1,
+              "unscalable": false,
+              "value": 1
+            },
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "ubermap_exclusive",
+              "matchers": [
+                {
+                  "string": "Monsters have # to Maximum Endurance Charges"
+                }
+              ],
+              "ref": "Monsters have +# to Maximum Endurance Charges",
+              "trade": {
+                "ids": {
+                  "explicit": [
+                    "explicit.stat_4067268731"
+                  ],
+                  "fractured": [
+                    "fractured.stat_4067268731"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "Monsters have # to Maximum Endurance Charges"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "fromAreaMods": "ubermap_exclusive",
+        "matchers": [
+          {
+            "string": "Monsters have # to Maximum Endurance Charges"
+          }
+        ],
+        "ref": "Monsters have +# to Maximum Endurance Charges",
+        "trade": {
+          "ids": {
+            "explicit": [
+              "explicit.stat_4067268731"
+            ],
+            "fractured": [
+              "fractured.stat_4067268731"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 100,
+            "min": 100,
+            "value": 100
+          },
+          "modifier": {
+            "info": {
+              "generation": "suffix",
+              "name": "of Endurance",
+              "tags": [],
+              "tier": 1,
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 1,
+                  "min": 1,
+                  "unscalable": false,
+                  "value": 1
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "ubermap_exclusive",
+                  "matchers": [
+                    {
+                      "string": "Monsters have # to Maximum Endurance Charges"
+                    }
+                  ],
+                  "ref": "Monsters have +# to Maximum Endurance Charges",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_4067268731"
+                      ],
+                      "fractured": [
+                        "fractured.stat_4067268731"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "Monsters have # to Maximum Endurance Charges"
+                }
+              },
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 100,
+                  "min": 100,
+                  "unscalable": false,
+                  "value": 100
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "Monsters have #% chance to gain an Endurance Charge on Hit"
+                    },
+                    {
+                      "string": "Monsters gain an Endurance Charge on Hit",
+                      "value": 100
+                    }
+                  ],
+                  "ref": "Monsters have #% chance to gain an Endurance Charge on Hit",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_687813731"
+                      ],
+                      "fractured": [
+                        "fractured.stat_687813731"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "Monsters gain an Endurance Charge on Hit",
+                  "value": 100
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 100,
+              "min": 100,
+              "unscalable": false,
+              "value": 100
+            },
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "yes",
+              "matchers": [
+                {
+                  "string": "Monsters have #% chance to gain an Endurance Charge on Hit"
+                },
+                {
+                  "string": "Monsters gain an Endurance Charge on Hit",
+                  "value": 100
+                }
+              ],
+              "ref": "Monsters have #% chance to gain an Endurance Charge on Hit",
+              "trade": {
+                "ids": {
+                  "explicit": [
+                    "explicit.stat_687813731"
+                  ],
+                  "fractured": [
+                    "fractured.stat_687813731"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "Monsters gain an Endurance Charge on Hit",
+              "value": 100
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "fromAreaMods": "yes",
+        "matchers": [
+          {
+            "string": "Monsters have #% chance to gain an Endurance Charge on Hit"
+          },
+          {
+            "string": "Monsters gain an Endurance Charge on Hit",
+            "value": 100
+          }
+        ],
+        "ref": "Monsters have #% chance to gain an Endurance Charge on Hit",
+        "trade": {
+          "ids": {
+            "explicit": [
+              "explicit.stat_687813731"
+            ],
+            "fractured": [
+              "fractured.stat_687813731"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "modifier": {
+            "info": {
+              "generation": "suffix",
+              "name": "of Decay",
+              "tags": [],
+              "tier": 1,
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "ubermap_exclusive",
+                  "matchers": [
+                    {
+                      "string": "Area contains Unstable Tentacle Fiends"
+                    }
+                  ],
+                  "ref": "Area contains Unstable Tentacle Fiends",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_1943574423"
+                      ],
+                      "fractured": [
+                        "fractured.stat_1943574423"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "Area contains Unstable Tentacle Fiends"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "stat": {
+              "better": 1,
+              "fromAreaMods": "ubermap_exclusive",
+              "matchers": [
+                {
+                  "string": "Area contains Unstable Tentacle Fiends"
+                }
+              ],
+              "ref": "Area contains Unstable Tentacle Fiends",
+              "trade": {
+                "ids": {
+                  "explicit": [
+                    "explicit.stat_1943574423"
+                  ],
+                  "fractured": [
+                    "fractured.stat_1943574423"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "Area contains Unstable Tentacle Fiends"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "fromAreaMods": "ubermap_exclusive",
+        "matchers": [
+          {
+            "string": "Area contains Unstable Tentacle Fiends"
+          }
+        ],
+        "ref": "Area contains Unstable Tentacle Fiends",
+        "trade": {
+          "ids": {
+            "explicit": [
+              "explicit.stat_1943574423"
+            ],
+            "fractured": [
+              "fractured.stat_1943574423"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    }
+  ],
+  "unknownModifiers": []
+}

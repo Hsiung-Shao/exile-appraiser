@@ -1,0 +1,32 @@
+Item Class: Boots
+Rarity: Unique
+Sundance
+Vestigial Clasped Boots
+--------
+Evasion Rating: 102 (augmented)
+Energy Shield: 12
+--------
+Requirements:
+Level: 54
+Dex: 27
+Int: 27
+--------
+Sockets: W-W W
+--------
+Item Level: 85
+--------
+{ Vestigial Implicit Modifier — Speed }
+Action Speed cannot be modified to below Base Value
+--------
+{ Unique Modifier — Defences, Evasion }
+88(80-120)% increased Evasion Rating
+{ Unique Modifier — Elemental, Fire, Resistance }
++36(30-40)% to Fire Resistance
+{ Unique Modifier — Drop }
+22(20-30)% increased Rarity of Items found
+{ Unique Modifier — Attack, Speed }
+10% increased Attack Speed
+{ Unique Modifier — Speed }
+20% increased Movement Speed
+--------
+Note: ~b/o 10 chaos

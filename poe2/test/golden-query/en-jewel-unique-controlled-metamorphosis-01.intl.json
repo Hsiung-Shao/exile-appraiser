@@ -1,0 +1,98 @@
+{
+  "api": "trade",
+  "request": {
+    "query": {
+      "status": {
+        "option": "securable"
+      },
+      "stats": [
+        {
+          "type": "and",
+          "filters": [
+            {
+              "id": "pseudo.pseudo_total_all_elemental_resistances",
+              "value": {
+                "min": -6
+              },
+              "disabled": true
+            },
+            {
+              "id": "pseudo.pseudo_total_elemental_resistance",
+              "value": {
+                "min": -15
+              },
+              "disabled": false
+            },
+            {
+              "id": "explicit.stat_4077035099",
+              "value": {},
+              "disabled": true
+            }
+          ]
+        },
+        {
+          "type": "count",
+          "value": {
+            "min": 1
+          },
+          "disabled": false,
+          "filters": [
+            {
+              "id": "explicit.stat_3642528642|1",
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_3642528642|2",
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_3642528642|3",
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_3642528642|4",
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_3642528642|5",
+              "disabled": false
+            },
+            {
+              "id": "explicit.stat_3642528642|6",
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_3642528642|7",
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_3642528642|8",
+              "disabled": true
+            }
+          ]
+        }
+      ],
+      "filters": {
+        "trade_filters": {
+          "filters": {
+            "collapse": {
+              "option": "true"
+            }
+          }
+        },
+        "misc_filters": {
+          "filters": {
+            "corrupted": {
+              "option": "false"
+            }
+          }
+        }
+      },
+      "name": "Controlled Metamorphosis",
+      "type": "Diamond"
+    },
+    "sort": {
+      "price": "asc"
+    }
+  }
+}

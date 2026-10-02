@@ -1,0 +1,268 @@
+{
+  "baseType": "Crimson Amulet",
+  "category": "Amulet",
+  "influences": [],
+  "info": {
+    "name": "Idol of Uldurn",
+    "namespace": "UNIQUE",
+    "refName": "Idol of Uldurn",
+    "unique": {
+      "base": "Crimson Amulet"
+    }
+  },
+  "infoVariants": [
+    {
+      "name": "Idol of Uldurn",
+      "namespace": "UNIQUE",
+      "refName": "Idol of Uldurn",
+      "unique": {
+        "base": "Crimson Amulet"
+      }
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": false,
+  "itemLevel": 81,
+  "name": "Idol of Uldurn",
+  "newMods": [
+    {
+      "info": {
+        "tags": [
+          "Life"
+        ],
+        "type": "implicit"
+      },
+      "stats": [
+        {
+          "ref": "# Life Regeneration per second",
+          "roll": {
+            "dp": true,
+            "max": 4,
+            "min": 2,
+            "unscalable": false,
+            "value": 4
+          },
+          "tradeIds": {
+            "desecrated": [
+              "desecrated.stat_3325883026"
+            ],
+            "explicit": [
+              "explicit.stat_3325883026"
+            ],
+            "fractured": [
+              "fractured.stat_3325883026"
+            ],
+            "implicit": [
+              "implicit.stat_3325883026"
+            ],
+            "rune": [
+              "rune.stat_3325883026"
+            ]
+          },
+          "translation": "# Life Regeneration per second"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "Life"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "# to maximum Life",
+          "roll": {
+            "dp": false,
+            "max": 80,
+            "min": 60,
+            "unscalable": false,
+            "value": 77
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_3299347043"
+            ],
+            "desecrated": [
+              "desecrated.stat_3299347043"
+            ],
+            "enchant": [
+              "enchant.stat_3299347043"
+            ],
+            "explicit": [
+              "explicit.stat_3299347043"
+            ],
+            "fractured": [
+              "fractured.stat_3299347043"
+            ],
+            "implicit": [
+              "implicit.stat_3299347043"
+            ],
+            "rune": [
+              "rune.stat_3299347043"
+            ]
+          },
+          "translation": "# to maximum Life"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "Attribute"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "# to Dexterity",
+          "roll": {
+            "dp": false,
+            "max": 20,
+            "min": 10,
+            "unscalable": false,
+            "value": 16
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_3261801346"
+            ],
+            "desecrated": [
+              "desecrated.stat_3261801346"
+            ],
+            "enchant": [
+              "enchant.stat_3261801346"
+            ],
+            "explicit": [
+              "explicit.stat_3261801346"
+            ],
+            "fractured": [
+              "fractured.stat_3261801346"
+            ],
+            "implicit": [
+              "implicit.stat_3261801346"
+            ],
+            "rune": [
+              "rune.stat_3261801346"
+            ]
+          },
+          "translation": "# to Dexterity"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "Aura"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Presence Area of Effect",
+          "roll": {
+            "dp": false,
+            "max": -20,
+            "min": -40,
+            "unscalable": false,
+            "value": -24
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_101878827"
+            ],
+            "desecrated": [
+              "desecrated.stat_101878827"
+            ],
+            "enchant": [
+              "enchant.stat_101878827"
+            ],
+            "explicit": [
+              "explicit.stat_101878827"
+            ],
+            "fractured": [
+              "fractured.stat_101878827"
+            ],
+            "rune": [
+              "rune.stat_101878827"
+            ]
+          },
+          "translation": "#% reduced Presence Area of Effect"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Spirit",
+          "roll": {
+            "dp": false,
+            "max": 15,
+            "min": 10,
+            "unscalable": false,
+            "value": 15
+          },
+          "tradeIds": {
+            "desecrated": [
+              "desecrated.stat_1416406066",
+              "desecrated.stat_3984865854"
+            ],
+            "enchant": [
+              "enchant.stat_3984865854"
+            ],
+            "explicit": [
+              "explicit.stat_1416406066",
+              "explicit.stat_3984865854"
+            ],
+            "fractured": [
+              "fractured.stat_1416406066",
+              "fractured.stat_3984865854"
+            ],
+            "rune": [
+              "rune.stat_1416406066",
+              "rune.stat_3984865854"
+            ]
+          },
+          "translation": "#% increased Spirit"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "Skills have +# to Limit",
+          "roll": {
+            "dp": false,
+            "max": 1,
+            "min": 1,
+            "unscalable": false,
+            "value": 1
+          },
+          "tradeIds": {
+            "explicit": [
+              "explicit.stat_2942704390"
+            ]
+          },
+          "translation": "Skills have +# to Limit"
+        }
+      ]
+    }
+  ],
+  "rarity": "Unique",
+  "requires": {
+    "dex": 0,
+    "int": 0,
+    "level": 24,
+    "str": 0
+  },
+  "unknownModifiers": []
+}

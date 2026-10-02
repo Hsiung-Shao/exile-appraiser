@@ -1,0 +1,129 @@
+{
+  "api": "trade",
+  "request": {
+    "query": {
+      "status": {
+        "option": "securable"
+      },
+      "stats": [
+        {
+          "type": "and",
+          "filters": [
+            {
+              "id": "pseudo.pseudo_total_mana",
+              "value": {
+                "min": 164
+              },
+              "disabled": true
+            },
+            {
+              "id": "rune.stat_124131830",
+              "value": {
+                "min": 1
+              },
+              "disabled": true
+            },
+            {
+              "id": "skill.spellslinger_invocation",
+              "value": {
+                "min": 19
+              },
+              "disabled": false
+            },
+            {
+              "id": "explicit.stat_2505884597",
+              "value": {
+                "min": 28
+              },
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_3278136794",
+              "value": {
+                "min": 25
+              },
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_124131830",
+              "value": {
+                "min": 4
+              },
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_737908626",
+              "value": {
+                "min": 34
+              },
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_1368271171",
+              "value": {
+                "min": 36
+              },
+              "disabled": true
+            },
+            {
+              "id": "crafted.stat_1050105434",
+              "value": {
+                "min": 164
+              },
+              "disabled": true
+            },
+            {
+              "id": "crafted.stat_124131830",
+              "value": {
+                "min": 4
+              },
+              "disabled": true
+            },
+            {
+              "id": "desecrated.stat_737908626",
+              "value": {
+                "min": 34
+              },
+              "disabled": true
+            }
+          ]
+        }
+      ],
+      "filters": {
+        "trade_filters": {
+          "filters": {
+            "collapse": {
+              "option": "true"
+            }
+          }
+        },
+        "type_filters": {
+          "filters": {
+            "category": {
+              "option": "weapon.wand"
+            },
+            "rarity": {
+              "option": "nonunique"
+            }
+          }
+        },
+        "misc_filters": {
+          "filters": {
+            "corrupted": {
+              "option": "false"
+            },
+            "mirrored": {
+              "option": "false"
+            },
+            "sanctified": {
+              "option": "false"
+            }
+          }
+        }
+      }
+    },
+    "sort": {
+      "price": "asc"
+    }
+  }
+}

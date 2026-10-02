@@ -1,0 +1,1135 @@
+{
+  "armourES": 12,
+  "armourEV": 102,
+  "basePercentile": 61,
+  "baseType": "Clasped Boots",
+  "category": "Boots",
+  "dustEquivalent": 5400,
+  "influences": [],
+  "info": {
+    "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQXJtb3Vycy9Cb290cy9TdW5kYW5jZSIsInciOjIsImgiOjIsInNjYWxlIjoxfV0/b3a611197c/Sundance.png",
+    "name": "Sundance",
+    "namespace": "UNIQUE",
+    "refName": "Sundance",
+    "unique": {
+      "base": "Clasped Boots",
+      "disenchantValue": 2.16
+    }
+  },
+  "infoVariants": [
+    {
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQXJtb3Vycy9Cb290cy9TdW5kYW5jZSIsInciOjIsImgiOjIsInNjYWxlIjoxfV0/b3a611197c/Sundance.png",
+      "name": "Sundance",
+      "namespace": "UNIQUE",
+      "refName": "Sundance",
+      "unique": {
+        "base": "Clasped Boots",
+        "disenchantValue": 2.16
+      }
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": false,
+  "isVestigial": true,
+  "itemLevel": 85,
+  "name": "Sundance",
+  "newMods": [
+    {
+      "info": {
+        "generation": "vestigial",
+        "tags": [
+          "Speed"
+        ],
+        "type": "implicit"
+      },
+      "stats": [
+        {
+          "stat": {
+            "better": 1,
+            "matchers": [
+              {
+                "string": "Action Speed cannot be modified to below Base Value"
+              }
+            ],
+            "ref": "Action Speed cannot be modified to below Base Value",
+            "trade": {
+              "ids": {
+                "explicit": [
+                  "explicit.stat_628716294"
+                ],
+                "implicit": [
+                  "implicit.stat_628716294"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "Action Speed cannot be modified to below Base Value"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "Defences",
+          "Evasion"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 120,
+            "min": 80,
+            "unscalable": false,
+            "value": 88
+          },
+          "stat": {
+            "better": 1,
+            "matchers": [
+              {
+                "string": "#% increased Evasion Rating"
+              },
+              {
+                "negate": true,
+                "string": "#% reduced Evasion Rating"
+              }
+            ],
+            "ref": "#% increased Evasion Rating",
+            "trade": {
+              "ids": {
+                "crafted": [
+                  "crafted.stat_124859000"
+                ],
+                "explicit": [
+                  "explicit.stat_124859000"
+                ],
+                "fractured": [
+                  "fractured.stat_124859000"
+                ],
+                "implicit": [
+                  "implicit.stat_124859000"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "#% increased Evasion Rating"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "Elemental",
+          "Fire",
+          "Resistance"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 40,
+            "min": 30,
+            "unscalable": false,
+            "value": 36
+          },
+          "stat": {
+            "better": 1,
+            "matchers": [
+              {
+                "string": "#% to Fire Resistance"
+              }
+            ],
+            "ref": "+#% to Fire Resistance",
+            "trade": {
+              "ids": {
+                "crafted": [
+                  "crafted.stat_3372524247"
+                ],
+                "explicit": [
+                  "explicit.stat_3372524247"
+                ],
+                "fractured": [
+                  "fractured.stat_3372524247"
+                ],
+                "implicit": [
+                  "implicit.stat_3372524247"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "#% to Fire Resistance"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "Drop"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 30,
+            "min": 20,
+            "unscalable": false,
+            "value": 22
+          },
+          "stat": {
+            "better": 1,
+            "matchers": [
+              {
+                "string": "#% increased Rarity of Items found"
+              },
+              {
+                "negate": true,
+                "string": "#% reduced Rarity of Items found"
+              }
+            ],
+            "ref": "#% increased Rarity of Items found",
+            "trade": {
+              "ids": {
+                "crafted": [
+                  "crafted.stat_3917489142"
+                ],
+                "explicit": [
+                  "explicit.stat_3917489142"
+                ],
+                "fractured": [
+                  "fractured.stat_3917489142"
+                ],
+                "implicit": [
+                  "implicit.stat_3917489142"
+                ],
+                "pseudo": [
+                  "pseudo.pseudo_increased_rarity"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "#% increased Rarity of Items found"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "Attack",
+          "Speed"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 10,
+            "min": 10,
+            "unscalable": false,
+            "value": 10
+          },
+          "stat": {
+            "better": 1,
+            "matchers": [
+              {
+                "string": "#% increased Attack Speed"
+              },
+              {
+                "negate": true,
+                "string": "#% reduced Attack Speed"
+              }
+            ],
+            "ref": "#% increased Attack Speed",
+            "trade": {
+              "ids": {
+                "crafted": [
+                  "crafted.stat_681332047"
+                ],
+                "explicit": [
+                  "explicit.stat_681332047"
+                ],
+                "fractured": [
+                  "fractured.stat_681332047"
+                ],
+                "implicit": [
+                  "implicit.stat_681332047"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "#% increased Attack Speed"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "Speed"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 20,
+            "min": 20,
+            "unscalable": false,
+            "value": 20
+          },
+          "stat": {
+            "better": 1,
+            "matchers": [
+              {
+                "string": "#% increased Movement Speed"
+              },
+              {
+                "negate": true,
+                "string": "#% reduced Movement Speed"
+              }
+            ],
+            "ref": "#% increased Movement Speed",
+            "trade": {
+              "ids": {
+                "crafted": [
+                  "crafted.stat_2250533757"
+                ],
+                "enchant": [
+                  "enchant.stat_2250533757"
+                ],
+                "explicit": [
+                  "explicit.stat_2250533757"
+                ],
+                "fractured": [
+                  "fractured.stat_2250533757"
+                ],
+                "implicit": [
+                  "implicit.stat_2250533757"
+                ],
+                "pseudo": [
+                  "pseudo.pseudo_increased_movement_speed"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "#% increased Movement Speed"
+          }
+        }
+      ]
+    }
+  ],
+  "rarity": "Unique",
+  "rawText": "Item Class: Boots\nRarity: Unique\nSundance\nVestigial Clasped Boots\n--------\nEvasion Rating: 102 (augmented)\nEnergy Shield: 12\n--------\nRequirements:\nLevel: 54\nDex: 27\nInt: 27\n--------\nSockets: W-W W\n--------\nItem Level: 85\n--------\n{ Vestigial Implicit Modifier — Speed }\nAction Speed cannot be modified to below Base Value\n--------\n{ Unique Modifier — Defences, Evasion }\n88(80-120)% increased Evasion Rating\n{ Unique Modifier — Elemental, Fire, Resistance }\n+36(30-40)% to Fire Resistance\n{ Unique Modifier — Drop }\n22(20-30)% increased Rarity of Items found\n{ Unique Modifier — Attack, Speed }\n10% increased Attack Speed\n{ Unique Modifier — Speed }\n20% increased Movement Speed\n--------\nNote: ~b/o 10 chaos\n",
+  "sockets": {
+    "white": 3
+  },
+  "statsByType": [
+    {
+      "sources": [
+        {
+          "modifier": {
+            "info": {
+              "generation": "vestigial",
+              "tags": [
+                "Speed"
+              ],
+              "type": "implicit"
+            },
+            "stats": [
+              {
+                "stat": {
+                  "better": 1,
+                  "matchers": [
+                    {
+                      "string": "Action Speed cannot be modified to below Base Value"
+                    }
+                  ],
+                  "ref": "Action Speed cannot be modified to below Base Value",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_628716294"
+                      ],
+                      "implicit": [
+                        "implicit.stat_628716294"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "Action Speed cannot be modified to below Base Value"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "stat": {
+              "better": 1,
+              "matchers": [
+                {
+                  "string": "Action Speed cannot be modified to below Base Value"
+                }
+              ],
+              "ref": "Action Speed cannot be modified to below Base Value",
+              "trade": {
+                "ids": {
+                  "explicit": [
+                    "explicit.stat_628716294"
+                  ],
+                  "implicit": [
+                    "implicit.stat_628716294"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "Action Speed cannot be modified to below Base Value"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "matchers": [
+          {
+            "string": "Action Speed cannot be modified to below Base Value"
+          }
+        ],
+        "ref": "Action Speed cannot be modified to below Base Value",
+        "trade": {
+          "ids": {
+            "explicit": [
+              "explicit.stat_628716294"
+            ],
+            "implicit": [
+              "implicit.stat_628716294"
+            ]
+          }
+        }
+      },
+      "type": "implicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 120,
+            "min": 80,
+            "value": 88
+          },
+          "modifier": {
+            "info": {
+              "tags": [
+                "Defences",
+                "Evasion"
+              ],
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 120,
+                  "min": 80,
+                  "unscalable": false,
+                  "value": 88
+                },
+                "stat": {
+                  "better": 1,
+                  "matchers": [
+                    {
+                      "string": "#% increased Evasion Rating"
+                    },
+                    {
+                      "negate": true,
+                      "string": "#% reduced Evasion Rating"
+                    }
+                  ],
+                  "ref": "#% increased Evasion Rating",
+                  "trade": {
+                    "ids": {
+                      "crafted": [
+                        "crafted.stat_124859000"
+                      ],
+                      "explicit": [
+                        "explicit.stat_124859000"
+                      ],
+                      "fractured": [
+                        "fractured.stat_124859000"
+                      ],
+                      "implicit": [
+                        "implicit.stat_124859000"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "#% increased Evasion Rating"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 120,
+              "min": 80,
+              "unscalable": false,
+              "value": 88
+            },
+            "stat": {
+              "better": 1,
+              "matchers": [
+                {
+                  "string": "#% increased Evasion Rating"
+                },
+                {
+                  "negate": true,
+                  "string": "#% reduced Evasion Rating"
+                }
+              ],
+              "ref": "#% increased Evasion Rating",
+              "trade": {
+                "ids": {
+                  "crafted": [
+                    "crafted.stat_124859000"
+                  ],
+                  "explicit": [
+                    "explicit.stat_124859000"
+                  ],
+                  "fractured": [
+                    "fractured.stat_124859000"
+                  ],
+                  "implicit": [
+                    "implicit.stat_124859000"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "#% increased Evasion Rating"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "matchers": [
+          {
+            "string": "#% increased Evasion Rating"
+          },
+          {
+            "negate": true,
+            "string": "#% reduced Evasion Rating"
+          }
+        ],
+        "ref": "#% increased Evasion Rating",
+        "trade": {
+          "ids": {
+            "crafted": [
+              "crafted.stat_124859000"
+            ],
+            "explicit": [
+              "explicit.stat_124859000"
+            ],
+            "fractured": [
+              "fractured.stat_124859000"
+            ],
+            "implicit": [
+              "implicit.stat_124859000"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 40,
+            "min": 30,
+            "value": 36
+          },
+          "modifier": {
+            "info": {
+              "tags": [
+                "Elemental",
+                "Fire",
+                "Resistance"
+              ],
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 40,
+                  "min": 30,
+                  "unscalable": false,
+                  "value": 36
+                },
+                "stat": {
+                  "better": 1,
+                  "matchers": [
+                    {
+                      "string": "#% to Fire Resistance"
+                    }
+                  ],
+                  "ref": "+#% to Fire Resistance",
+                  "trade": {
+                    "ids": {
+                      "crafted": [
+                        "crafted.stat_3372524247"
+                      ],
+                      "explicit": [
+                        "explicit.stat_3372524247"
+                      ],
+                      "fractured": [
+                        "fractured.stat_3372524247"
+                      ],
+                      "implicit": [
+                        "implicit.stat_3372524247"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "#% to Fire Resistance"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 40,
+              "min": 30,
+              "unscalable": false,
+              "value": 36
+            },
+            "stat": {
+              "better": 1,
+              "matchers": [
+                {
+                  "string": "#% to Fire Resistance"
+                }
+              ],
+              "ref": "+#% to Fire Resistance",
+              "trade": {
+                "ids": {
+                  "crafted": [
+                    "crafted.stat_3372524247"
+                  ],
+                  "explicit": [
+                    "explicit.stat_3372524247"
+                  ],
+                  "fractured": [
+                    "fractured.stat_3372524247"
+                  ],
+                  "implicit": [
+                    "implicit.stat_3372524247"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "#% to Fire Resistance"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "matchers": [
+          {
+            "string": "#% to Fire Resistance"
+          }
+        ],
+        "ref": "+#% to Fire Resistance",
+        "trade": {
+          "ids": {
+            "crafted": [
+              "crafted.stat_3372524247"
+            ],
+            "explicit": [
+              "explicit.stat_3372524247"
+            ],
+            "fractured": [
+              "fractured.stat_3372524247"
+            ],
+            "implicit": [
+              "implicit.stat_3372524247"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 30,
+            "min": 20,
+            "value": 22
+          },
+          "modifier": {
+            "info": {
+              "tags": [
+                "Drop"
+              ],
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 30,
+                  "min": 20,
+                  "unscalable": false,
+                  "value": 22
+                },
+                "stat": {
+                  "better": 1,
+                  "matchers": [
+                    {
+                      "string": "#% increased Rarity of Items found"
+                    },
+                    {
+                      "negate": true,
+                      "string": "#% reduced Rarity of Items found"
+                    }
+                  ],
+                  "ref": "#% increased Rarity of Items found",
+                  "trade": {
+                    "ids": {
+                      "crafted": [
+                        "crafted.stat_3917489142"
+                      ],
+                      "explicit": [
+                        "explicit.stat_3917489142"
+                      ],
+                      "fractured": [
+                        "fractured.stat_3917489142"
+                      ],
+                      "implicit": [
+                        "implicit.stat_3917489142"
+                      ],
+                      "pseudo": [
+                        "pseudo.pseudo_increased_rarity"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "#% increased Rarity of Items found"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 30,
+              "min": 20,
+              "unscalable": false,
+              "value": 22
+            },
+            "stat": {
+              "better": 1,
+              "matchers": [
+                {
+                  "string": "#% increased Rarity of Items found"
+                },
+                {
+                  "negate": true,
+                  "string": "#% reduced Rarity of Items found"
+                }
+              ],
+              "ref": "#% increased Rarity of Items found",
+              "trade": {
+                "ids": {
+                  "crafted": [
+                    "crafted.stat_3917489142"
+                  ],
+                  "explicit": [
+                    "explicit.stat_3917489142"
+                  ],
+                  "fractured": [
+                    "fractured.stat_3917489142"
+                  ],
+                  "implicit": [
+                    "implicit.stat_3917489142"
+                  ],
+                  "pseudo": [
+                    "pseudo.pseudo_increased_rarity"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "#% increased Rarity of Items found"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "matchers": [
+          {
+            "string": "#% increased Rarity of Items found"
+          },
+          {
+            "negate": true,
+            "string": "#% reduced Rarity of Items found"
+          }
+        ],
+        "ref": "#% increased Rarity of Items found",
+        "trade": {
+          "ids": {
+            "crafted": [
+              "crafted.stat_3917489142"
+            ],
+            "explicit": [
+              "explicit.stat_3917489142"
+            ],
+            "fractured": [
+              "fractured.stat_3917489142"
+            ],
+            "implicit": [
+              "implicit.stat_3917489142"
+            ],
+            "pseudo": [
+              "pseudo.pseudo_increased_rarity"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 10,
+            "min": 10,
+            "value": 10
+          },
+          "modifier": {
+            "info": {
+              "tags": [
+                "Attack",
+                "Speed"
+              ],
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 10,
+                  "min": 10,
+                  "unscalable": false,
+                  "value": 10
+                },
+                "stat": {
+                  "better": 1,
+                  "matchers": [
+                    {
+                      "string": "#% increased Attack Speed"
+                    },
+                    {
+                      "negate": true,
+                      "string": "#% reduced Attack Speed"
+                    }
+                  ],
+                  "ref": "#% increased Attack Speed",
+                  "trade": {
+                    "ids": {
+                      "crafted": [
+                        "crafted.stat_681332047"
+                      ],
+                      "explicit": [
+                        "explicit.stat_681332047"
+                      ],
+                      "fractured": [
+                        "fractured.stat_681332047"
+                      ],
+                      "implicit": [
+                        "implicit.stat_681332047"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "#% increased Attack Speed"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 10,
+              "min": 10,
+              "unscalable": false,
+              "value": 10
+            },
+            "stat": {
+              "better": 1,
+              "matchers": [
+                {
+                  "string": "#% increased Attack Speed"
+                },
+                {
+                  "negate": true,
+                  "string": "#% reduced Attack Speed"
+                }
+              ],
+              "ref": "#% increased Attack Speed",
+              "trade": {
+                "ids": {
+                  "crafted": [
+                    "crafted.stat_681332047"
+                  ],
+                  "explicit": [
+                    "explicit.stat_681332047"
+                  ],
+                  "fractured": [
+                    "fractured.stat_681332047"
+                  ],
+                  "implicit": [
+                    "implicit.stat_681332047"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "#% increased Attack Speed"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "matchers": [
+          {
+            "string": "#% increased Attack Speed"
+          },
+          {
+            "negate": true,
+            "string": "#% reduced Attack Speed"
+          }
+        ],
+        "ref": "#% increased Attack Speed",
+        "trade": {
+          "ids": {
+            "crafted": [
+              "crafted.stat_681332047"
+            ],
+            "explicit": [
+              "explicit.stat_681332047"
+            ],
+            "fractured": [
+              "fractured.stat_681332047"
+            ],
+            "implicit": [
+              "implicit.stat_681332047"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 20,
+            "min": 20,
+            "value": 20
+          },
+          "modifier": {
+            "info": {
+              "tags": [
+                "Speed"
+              ],
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 20,
+                  "min": 20,
+                  "unscalable": false,
+                  "value": 20
+                },
+                "stat": {
+                  "better": 1,
+                  "matchers": [
+                    {
+                      "string": "#% increased Movement Speed"
+                    },
+                    {
+                      "negate": true,
+                      "string": "#% reduced Movement Speed"
+                    }
+                  ],
+                  "ref": "#% increased Movement Speed",
+                  "trade": {
+                    "ids": {
+                      "crafted": [
+                        "crafted.stat_2250533757"
+                      ],
+                      "enchant": [
+                        "enchant.stat_2250533757"
+                      ],
+                      "explicit": [
+                        "explicit.stat_2250533757"
+                      ],
+                      "fractured": [
+                        "fractured.stat_2250533757"
+                      ],
+                      "implicit": [
+                        "implicit.stat_2250533757"
+                      ],
+                      "pseudo": [
+                        "pseudo.pseudo_increased_movement_speed"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "#% increased Movement Speed"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 20,
+              "min": 20,
+              "unscalable": false,
+              "value": 20
+            },
+            "stat": {
+              "better": 1,
+              "matchers": [
+                {
+                  "string": "#% increased Movement Speed"
+                },
+                {
+                  "negate": true,
+                  "string": "#% reduced Movement Speed"
+                }
+              ],
+              "ref": "#% increased Movement Speed",
+              "trade": {
+                "ids": {
+                  "crafted": [
+                    "crafted.stat_2250533757"
+                  ],
+                  "enchant": [
+                    "enchant.stat_2250533757"
+                  ],
+                  "explicit": [
+                    "explicit.stat_2250533757"
+                  ],
+                  "fractured": [
+                    "fractured.stat_2250533757"
+                  ],
+                  "implicit": [
+                    "implicit.stat_2250533757"
+                  ],
+                  "pseudo": [
+                    "pseudo.pseudo_increased_movement_speed"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "#% increased Movement Speed"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "matchers": [
+          {
+            "string": "#% increased Movement Speed"
+          },
+          {
+            "negate": true,
+            "string": "#% reduced Movement Speed"
+          }
+        ],
+        "ref": "#% increased Movement Speed",
+        "trade": {
+          "ids": {
+            "crafted": [
+              "crafted.stat_2250533757"
+            ],
+            "enchant": [
+              "enchant.stat_2250533757"
+            ],
+            "explicit": [
+              "explicit.stat_2250533757"
+            ],
+            "fractured": [
+              "fractured.stat_2250533757"
+            ],
+            "implicit": [
+              "implicit.stat_2250533757"
+            ],
+            "pseudo": [
+              "pseudo.pseudo_increased_movement_speed"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    }
+  ],
+  "uniqueBase": {
+    "armour": {
+      "es": [
+        11,
+        12
+      ],
+      "ev": [
+        50,
+        57
+      ]
+    },
+    "craftable": {
+      "category": "Boots"
+    },
+    "h": 2,
+    "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQXJtb3Vycy9Cb290cy9Cb290c0RleEludDMiLCJ3IjoyLCJoIjoyLCJzY2FsZSI6MX1d/0c80b843d0/BootsDexInt3.png",
+    "name": "Clasped Boots",
+    "namespace": "ITEM",
+    "refName": "Clasped Boots",
+    "w": 2
+  },
+  "unknownModifiers": []
+}

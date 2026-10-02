@@ -1,0 +1,98 @@
+{
+  "api": "trade",
+  "request": {
+    "query": {
+      "status": {
+        "option": "available"
+      },
+      "stats": [
+        {
+          "type": "and",
+          "filters": [
+            {
+              "id": "pseudo.pseudo_total_elemental_resistance",
+              "value": {
+                "min": 63
+              },
+              "disabled": false
+            },
+            {
+              "id": "pseudo.pseudo_total_fire_resistance",
+              "value": {
+                "min": 37
+              },
+              "disabled": true
+            },
+            {
+              "id": "pseudo.pseudo_total_intelligence",
+              "value": {
+                "min": 28
+              },
+              "disabled": true
+            },
+            {
+              "id": "pseudo.pseudo_total_life",
+              "value": {
+                "min": 61
+              },
+              "disabled": false
+            },
+            {
+              "id": "pseudo.pseudo_total_mana",
+              "value": {
+                "min": 69
+              },
+              "disabled": true
+            },
+            {
+              "id": "pseudo.pseudo_increased_elemental_damage",
+              "value": {
+                "min": 15
+              },
+              "disabled": true
+            },
+            {
+              "id": "fractured.stat_3299347043",
+              "value": {
+                "min": 61
+              },
+              "disabled": true
+            }
+          ]
+        }
+      ],
+      "filters": {
+        "trade_filters": {
+          "filters": {
+            "collapse": {
+              "option": "true"
+            }
+          }
+        },
+        "type_filters": {
+          "filters": {
+            "rarity": {
+              "option": "nonunique"
+            },
+            "category": {
+              "option": "accessory.ring"
+            }
+          }
+        },
+        "misc_filters": {
+          "filters": {
+            "corrupted": {
+              "option": "false"
+            },
+            "mirrored": {
+              "option": "false"
+            }
+          }
+        }
+      }
+    },
+    "sort": {
+      "price": "asc"
+    }
+  }
+}

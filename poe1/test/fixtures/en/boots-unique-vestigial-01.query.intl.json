@@ -1,0 +1,73 @@
+{
+  "api": "trade",
+  "request": {
+    "query": {
+      "status": {
+        "option": "available"
+      },
+      "stats": [
+        {
+          "type": "and",
+          "filters": [
+            {
+              "id": "implicit.stat_628716294",
+              "value": {},
+              "disabled": false
+            },
+            {
+              "id": "explicit.stat_3372524247",
+              "value": {
+                "min": 35
+              },
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_3917489142",
+              "value": {
+                "min": 21
+              },
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_681332047",
+              "value": {},
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_2250533757",
+              "value": {},
+              "disabled": true
+            }
+          ]
+        }
+      ],
+      "filters": {
+        "trade_filters": {
+          "filters": {
+            "collapse": {
+              "option": "true"
+            }
+          }
+        },
+        "misc_filters": {
+          "filters": {
+            "corrupted": {
+              "option": "false"
+            },
+            "foulborn_item": {
+              "option": "false"
+            },
+            "vestigial": {
+              "option": "true"
+            }
+          }
+        }
+      },
+      "name": "Sundance",
+      "type": "Clasped Boots"
+    },
+    "sort": {
+      "price": "asc"
+    }
+  }
+}

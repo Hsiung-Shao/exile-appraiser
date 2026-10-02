@@ -1,0 +1,66 @@
+{
+  "api": "trade",
+  "request": {
+    "query": {
+      "status": {
+        "option": "available"
+      },
+      "stats": [
+        {
+          "type": "and",
+          "filters": [
+            {
+              "id": "pseudo.pseudo_total_attack_speed",
+              "value": {
+                "min": 3
+              },
+              "disabled": true
+            },
+            {
+              "id": "pseudo.pseudo_increased_spell_damage",
+              "value": {
+                "min": 12
+              },
+              "disabled": true
+            }
+          ]
+        }
+      ],
+      "filters": {
+        "trade_filters": {
+          "filters": {
+            "collapse": {
+              "option": "true"
+            }
+          }
+        },
+        "type_filters": {
+          "filters": {
+            "rarity": {
+              "option": "nonunique"
+            },
+            "category": {
+              "option": "jewel"
+            }
+          }
+        },
+        "misc_filters": {
+          "filters": {
+            "corrupted": {
+              "option": "false"
+            },
+            "fractured_item": {
+              "option": "false"
+            },
+            "mirrored": {
+              "option": "false"
+            }
+          }
+        }
+      }
+    },
+    "sort": {
+      "price": "asc"
+    }
+  }
+}

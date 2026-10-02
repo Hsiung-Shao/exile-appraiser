@@ -1,0 +1,94 @@
+{
+  "api": "trade",
+  "request": {
+    "query": {
+      "status": {
+        "option": "securable"
+      },
+      "stats": [
+        {
+          "type": "and",
+          "filters": [
+            {
+              "id": "pseudo.pseudo_total_dexterity",
+              "value": {
+                "min": 15
+              },
+              "disabled": true
+            },
+            {
+              "id": "pseudo.pseudo_total_life",
+              "value": {
+                "min": 75
+              },
+              "disabled": false
+            },
+            {
+              "id": "implicit.stat_3325883026",
+              "value": {
+                "min": 4
+              },
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_101878827",
+              "value": {
+                "min": -26
+              },
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_2942704390",
+              "value": {},
+              "disabled": true
+            }
+          ]
+        },
+        {
+          "type": "count",
+          "value": {
+            "min": 1
+          },
+          "disabled": true,
+          "filters": [
+            {
+              "id": "explicit.stat_1416406066",
+              "value": {
+                "min": 15
+              },
+              "disabled": true
+            },
+            {
+              "id": "explicit.stat_3984865854",
+              "value": {
+                "min": 15
+              },
+              "disabled": true
+            }
+          ]
+        }
+      ],
+      "filters": {
+        "trade_filters": {
+          "filters": {
+            "collapse": {
+              "option": "true"
+            }
+          }
+        },
+        "misc_filters": {
+          "filters": {
+            "corrupted": {
+              "option": "false"
+            }
+          }
+        }
+      },
+      "name": "Idol of Uldurn",
+      "type": "Crimson Amulet"
+    },
+    "sort": {
+      "price": "asc"
+    }
+  }
+}

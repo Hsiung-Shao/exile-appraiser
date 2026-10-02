@@ -1,0 +1,11 @@
+Item Class: Stackable Currency
+Rarity: Currency
+Inscribed Ultimatum
+--------
+Challenge: Survive
+Area Level: 83
+Requires Sacrifice: Mirrored Rare Item
+Reward: Item and Mirrored Copy
+--------
+Freezing Pustules III
+(Frozen pustules constantly spawn, chilling you and exploding quickly when you approach)

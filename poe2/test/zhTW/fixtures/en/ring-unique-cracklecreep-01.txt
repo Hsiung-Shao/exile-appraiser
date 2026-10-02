@@ -1,0 +1,22 @@
+Item Class: Rings
+Rarity: Unique
+Cracklecreep
+Ruby Ring
+--------
+Requires: Level 8
+--------
+Item Level: 75
+--------
+{ Implicit Modifier — Elemental, Fire, Resistance }
++22(20-30)% to Fire Resistance
+--------
+{ Unique Modifier — Mana }
+30(20-30)% increased Mana Regeneration Rate
+{ Unique Modifier — Life }
+5.5(3.1-6) Life Regeneration per second
+{ Unique Modifier — Damage, Elemental, Fire }
+22(20-30)% increased Fire Damage
+{ Unique Modifier }
+Ignites you inflict spread to other Enemies that stay within 1.5 metres for 1 second — Unscalable Value
+--------
+Fear the fire that spreads like plague.

@@ -1,0 +1,33 @@
+{
+  "category": "Currency",
+  "influences": [],
+  "info": {
+    "exchangeable": true,
+    "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQ3VycmVuY3lNb2RWYWx1ZXMiLCJzY2FsZSI6MX1d/ec48896769/CurrencyModValues.png",
+    "name": "Divine Orb",
+    "namespace": "ITEM",
+    "refName": "Divine Orb",
+    "tradeTag": "divine"
+  },
+  "infoVariants": [
+    {
+      "exchangeable": true,
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQ3VycmVuY3lNb2RWYWx1ZXMiLCJzY2FsZSI6MX1d/ec48896769/CurrencyModValues.png",
+      "name": "Divine Orb",
+      "namespace": "ITEM",
+      "refName": "Divine Orb",
+      "tradeTag": "divine"
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": false,
+  "name": "Divine Orb",
+  "newMods": [],
+  "rawText": "Item Class: Stackable Currency\nRarity: Currency\nDivine Orb\n--------\nStack Size: 12/10\n--------\nRandomises the numeric values of the random modifiers on an item\n--------\nRight click this item then left click a magic, rare or unique item to apply it. Shift click to unstack.\n",
+  "stackSize": {
+    "max": 10,
+    "value": 12
+  },
+  "statsByType": [],
+  "unknownModifiers": []
+}

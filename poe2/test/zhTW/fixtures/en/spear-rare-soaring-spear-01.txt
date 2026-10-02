@@ -1,0 +1,31 @@
+Item Class: Spears
+Rarity: Rare
+Carrion Blade
+Flying Spear
+--------
+Physical Damage: 127-213 (augmented)
+Elemental Damage: 30-52 (fire), 7-12 (cold)
+Critical Hit Chance: 5.00%
+Attacks per Second: 1.60
+--------
+Requires: Level 78, 48 (augmented) Str, 122 (augmented) Dex
+--------
+Item Level: 82
+--------
+{ Implicit Modifier }
+29(25-35)% increased Projectile Speed with this Weapon
+--------
+Grants Skill: Spear Throw
+--------
+{ Prefix Modifier "Merciless" (Tier: 1) — Damage, Physical, Attack }
+176(170-179)% increased Physical Damage
+{ Prefix Modifier "Heated" (Tier: 5) — Damage, Elemental, Fire, Attack }
+Adds 30(25-33) to 52(38-54) Fire Damage
+{ Prefix Modifier "Glaciated" (Tier: 8) — Damage, Elemental, Cold, Attack }
+Adds 7(6-9) to 12(10-16) Cold Damage
+{ Suffix Modifier "of Absorption" (Tier: 1) — Mana }
+Gain 44(36-45) Mana per enemy killed
+{ Suffix Modifier "of the Vampire" (Tier: 1) — Life, Physical, Attack }
+Leeches 9.02(9-9.9)% of Physical Damage as Life
+{ Suffix Modifier "of Impact" (Tier: 3) }
+21(20-22)% increased Stun Duration

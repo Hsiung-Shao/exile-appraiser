@@ -1,0 +1,121 @@
+{
+  "baseType": "Ruby",
+  "category": "Jewel",
+  "influences": [],
+  "info": {
+    "name": "Ruby",
+    "namespace": "ITEM",
+    "refName": "Ruby"
+  },
+  "infoVariants": [
+    {
+      "name": "Ruby",
+      "namespace": "ITEM",
+      "refName": "Ruby"
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": false,
+  "itemLevel": 82,
+  "name": "Brood Gaze",
+  "newMods": [
+    {
+      "info": {
+        "generation": "prefix",
+        "name": "Burning",
+        "tags": [
+          "Damage",
+          "Elemental",
+          "Fire"
+        ],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Fire Damage",
+          "roll": {
+            "dp": false,
+            "max": 15,
+            "min": 12,
+            "unscalable": false,
+            "value": 13
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_3962278098"
+            ],
+            "desecrated": [
+              "desecrated.stat_3962278098"
+            ],
+            "explicit": [
+              "explicit.stat_3962278098"
+            ],
+            "fractured": [
+              "fractured.stat_3962278098"
+            ],
+            "rune": [
+              "rune.stat_3962278098"
+            ]
+          },
+          "translation": "#% increased Fire Damage"
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "suffix",
+        "name": "of Skill",
+        "tags": [
+          "Attack",
+          "Speed"
+        ],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Attack Speed",
+          "roll": {
+            "dp": false,
+            "max": 5,
+            "min": 3,
+            "unscalable": false,
+            "value": 4
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_210067635",
+              "crafted.stat_681332047"
+            ],
+            "desecrated": [
+              "desecrated.stat_210067635",
+              "desecrated.stat_681332047"
+            ],
+            "enchant": [
+              "enchant.stat_210067635"
+            ],
+            "explicit": [
+              "explicit.stat_210067635",
+              "explicit.stat_681332047"
+            ],
+            "fractured": [
+              "fractured.stat_210067635",
+              "fractured.stat_681332047"
+            ],
+            "implicit": [
+              "implicit.stat_681332047"
+            ],
+            "rune": [
+              "rune.stat_210067635",
+              "rune.stat_681332047"
+            ]
+          },
+          "translation": "#% increased Attack Speed"
+        }
+      ]
+    }
+  ],
+  "rarity": "Rare",
+  "unknownModifiers": []
+}

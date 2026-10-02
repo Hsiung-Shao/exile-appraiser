@@ -1,0 +1,90 @@
+{
+  "api": "trade",
+  "request": {
+    "query": {
+      "status": {
+        "option": "securable"
+      },
+      "stats": [
+        {
+          "type": "and",
+          "filters": [
+            {
+              "id": "pseudo.pseudo_number_of_uses_remaining",
+              "value": {
+                "min": 10
+              },
+              "disabled": false
+            },
+            {
+              "id": "explicit.stat_3836551197",
+              "value": {
+                "min": 26
+              },
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "type": "count",
+          "value": {
+            "min": 1
+          },
+          "disabled": false,
+          "filters": [
+            {
+              "id": "explicit.stat_3666934677",
+              "value": {
+                "min": 18
+              },
+              "disabled": false
+            },
+            {
+              "id": "explicit.stat_57434274",
+              "value": {
+                "min": 18
+              },
+              "disabled": false
+            }
+          ]
+        }
+      ],
+      "filters": {
+        "trade_filters": {
+          "filters": {
+            "collapse": {
+              "option": "true"
+            }
+          }
+        },
+        "type_filters": {
+          "filters": {
+            "rarity": {
+              "option": "nonunique"
+            }
+          }
+        },
+        "misc_filters": {
+          "filters": {
+            "corrupted": {
+              "option": "false"
+            },
+            "fractured_item": {
+              "option": "false"
+            },
+            "mirrored": {
+              "option": "false"
+            },
+            "sanctified": {
+              "option": "false"
+            }
+          }
+        }
+      },
+      "type": "Delirium Tablet"
+    },
+    "sort": {
+      "price": "asc"
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "api": "bulk",
+  "request": {
+    "query": {
+      "status": {
+        "option": "available"
+      },
+      "stats": [
+        {
+          "type": "and",
+          "filters": []
+        }
+      ],
+      "filters": {
+        "trade_filters": {
+          "filters": {
+            "price": {
+              "option": "chaos_divine"
+            },
+            "collapse": {
+              "option": "true"
+            }
+          }
+        }
+      },
+      "type": "Divine Orb"
+    },
+    "sort": {
+      "price": "asc"
+    }
+  }
+}

@@ -1,0 +1,20 @@
+Item Class: Support Gems
+Rarity: Gem
+Coursing Current Support
+--------
+Exceptional, Cold, Lightning, Support
+Level: 1
+Cost & Reservation Multiplier: 130%
+--------
+Requirements:
+Level: 72
+Int: 114
+--------
+Supports any skill that Hits enemies.
+--------
+20% increased Chill Duration on Enemies
+20% increased Shock Effect
+--------
+Experience: 1 / 226,854,909
+--------
+Note: ~b/o 5 chaos

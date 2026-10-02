@@ -1,0 +1,222 @@
+{
+  "baseType": "Ruby Ring",
+  "category": "Ring",
+  "influences": [],
+  "info": {
+    "name": "Cracklecreep",
+    "namespace": "UNIQUE",
+    "refName": "Cracklecreep",
+    "unique": {
+      "base": "Ruby Ring"
+    }
+  },
+  "infoVariants": [
+    {
+      "name": "Cracklecreep",
+      "namespace": "UNIQUE",
+      "refName": "Cracklecreep",
+      "unique": {
+        "base": "Ruby Ring"
+      }
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": false,
+  "itemLevel": 75,
+  "name": "Cracklecreep",
+  "newMods": [
+    {
+      "info": {
+        "tags": [
+          "Elemental",
+          "Fire",
+          "Resistance"
+        ],
+        "type": "implicit"
+      },
+      "stats": [
+        {
+          "ref": "#% to Fire Resistance",
+          "roll": {
+            "dp": false,
+            "max": 30,
+            "min": 20,
+            "unscalable": false,
+            "value": 22
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_3372524247"
+            ],
+            "desecrated": [
+              "desecrated.stat_3372524247"
+            ],
+            "enchant": [
+              "enchant.stat_3372524247"
+            ],
+            "explicit": [
+              "explicit.stat_3372524247"
+            ],
+            "fractured": [
+              "fractured.stat_3372524247"
+            ],
+            "implicit": [
+              "implicit.stat_3372524247"
+            ],
+            "rune": [
+              "rune.stat_3372524247"
+            ]
+          },
+          "translation": "#% to Fire Resistance"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "Mana"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Mana Regeneration Rate",
+          "roll": {
+            "dp": false,
+            "max": 30,
+            "min": 20,
+            "unscalable": false,
+            "value": 30
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_789117908"
+            ],
+            "desecrated": [
+              "desecrated.stat_789117908"
+            ],
+            "enchant": [
+              "enchant.stat_789117908"
+            ],
+            "explicit": [
+              "explicit.stat_789117908"
+            ],
+            "fractured": [
+              "fractured.stat_789117908"
+            ],
+            "implicit": [
+              "implicit.stat_789117908"
+            ],
+            "rune": [
+              "rune.stat_789117908"
+            ]
+          },
+          "translation": "#% increased Mana Regeneration Rate"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "Life"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "# Life Regeneration per second",
+          "roll": {
+            "dp": true,
+            "max": 6,
+            "min": 3.1,
+            "unscalable": false,
+            "value": 5.5
+          },
+          "tradeIds": {
+            "desecrated": [
+              "desecrated.stat_3325883026"
+            ],
+            "explicit": [
+              "explicit.stat_3325883026"
+            ],
+            "fractured": [
+              "fractured.stat_3325883026"
+            ],
+            "implicit": [
+              "implicit.stat_3325883026"
+            ],
+            "rune": [
+              "rune.stat_3325883026"
+            ]
+          },
+          "translation": "# Life Regeneration per second"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [
+          "Damage",
+          "Elemental",
+          "Fire"
+        ],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Fire Damage",
+          "roll": {
+            "dp": false,
+            "max": 30,
+            "min": 20,
+            "unscalable": false,
+            "value": 22
+          },
+          "tradeIds": {
+            "crafted": [
+              "crafted.stat_3962278098"
+            ],
+            "desecrated": [
+              "desecrated.stat_3962278098"
+            ],
+            "explicit": [
+              "explicit.stat_3962278098"
+            ],
+            "fractured": [
+              "fractured.stat_3962278098"
+            ],
+            "rune": [
+              "rune.stat_3962278098"
+            ]
+          },
+          "translation": "#% increased Fire Damage"
+        }
+      ]
+    },
+    {
+      "info": {
+        "tags": [],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "Ignites you inflict spread to other Enemies that stay within 1.5 metres for 1 second",
+          "tradeIds": {
+            "explicit": [
+              "explicit.stat_3314057862"
+            ]
+          },
+          "translation": "Ignites you inflict spread to other Enemies that stay within 1.5 metres for 1 second"
+        }
+      ]
+    }
+  ],
+  "rarity": "Unique",
+  "requires": {
+    "dex": 0,
+    "int": 0,
+    "level": 8,
+    "str": 0
+  },
+  "unknownModifiers": []
+}

@@ -1,0 +1,31 @@
+{
+  "areaLevel": 83,
+  "category": "Currency",
+  "influences": [],
+  "info": {
+    "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvTWFwcy9VbHRpbWF0dW1UcmlhbEJhc2UiLCJ3IjoxLCJoIjoxLCJzY2FsZSI6MX1d/b65f1edffb/UltimatumTrialBase.png",
+    "name": "Inscribed Ultimatum",
+    "namespace": "ITEM",
+    "refName": "Inscribed Ultimatum"
+  },
+  "infoVariants": [
+    {
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvTWFwcy9VbHRpbWF0dW1UcmlhbEJhc2UiLCJ3IjoxLCJoIjoxLCJzY2FsZSI6MX1d/b65f1edffb/UltimatumTrialBase.png",
+      "name": "Inscribed Ultimatum",
+      "namespace": "ITEM",
+      "refName": "Inscribed Ultimatum"
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": false,
+  "name": "Inscribed Ultimatum",
+  "newMods": [],
+  "rawText": "Item Class: Stackable Currency\nRarity: Currency\nInscribed Ultimatum\n--------\nChallenge: Survive\nArea Level: 83\nRequires Sacrifice: Mirrored Rare Item\nReward: Item and Mirrored Copy\n--------\nFreezing Pustules III\n(Frozen pustules constantly spawn, chilling you and exploding quickly when you approach)\n",
+  "statsByType": [],
+  "ultimatum": {
+    "challenge": "Survival",
+    "reward": "MirrorRare",
+    "sacrifice": "Mirrored Rare Item"
+  },
+  "unknownModifiers": []
+}

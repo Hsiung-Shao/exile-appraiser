@@ -1,0 +1,29 @@
+{
+  "api": "bulk",
+  "request": {
+    "query": {
+      "status": {
+        "option": "securable"
+      },
+      "stats": [
+        {
+          "type": "and",
+          "filters": []
+        }
+      ],
+      "filters": {
+        "trade_filters": {
+          "filters": {
+            "collapse": {
+              "option": "true"
+            }
+          }
+        }
+      },
+      "type": "Exalted Orb"
+    },
+    "sort": {
+      "price": "asc"
+    }
+  }
+}

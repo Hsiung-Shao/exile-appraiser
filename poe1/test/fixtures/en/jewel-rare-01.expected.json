@@ -1,0 +1,444 @@
+{
+  "baseType": "Cobalt Jewel",
+  "category": "Jewel",
+  "influences": [],
+  "info": {
+    "craftable": {
+      "category": "Jewel"
+    },
+    "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvSmV3ZWxzL2Jhc2ljaW50IiwidyI6MSwiaCI6MSwic2NhbGUiOjF9XQ/510013aec2/basicint.png",
+    "name": "Cobalt Jewel",
+    "namespace": "ITEM",
+    "refName": "Cobalt Jewel"
+  },
+  "infoVariants": [
+    {
+      "craftable": {
+        "category": "Jewel"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvSmV3ZWxzL2Jhc2ljaW50IiwidyI6MSwiaCI6MSwic2NhbGUiOjF9XQ/510013aec2/basicint.png",
+      "name": "Cobalt Jewel",
+      "namespace": "ITEM",
+      "refName": "Cobalt Jewel"
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": false,
+  "itemLevel": 84,
+  "name": "Chimera Eye",
+  "newMods": [
+    {
+      "info": {
+        "generation": "prefix",
+        "name": "Apprentice's",
+        "tags": [
+          "Caster",
+          "Damage"
+        ],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 14,
+            "min": 12,
+            "unscalable": false,
+            "value": 13
+          },
+          "stat": {
+            "better": 1,
+            "matchers": [
+              {
+                "string": "#% increased Spell Damage"
+              },
+              {
+                "negate": true,
+                "string": "#% reduced Spell Damage"
+              }
+            ],
+            "ref": "#% increased Spell Damage",
+            "trade": {
+              "ids": {
+                "crafted": [
+                  "crafted.stat_2974417149"
+                ],
+                "enchant": [
+                  "enchant.stat_2974417149"
+                ],
+                "explicit": [
+                  "explicit.stat_2974417149"
+                ],
+                "fractured": [
+                  "fractured.stat_2974417149"
+                ],
+                "implicit": [
+                  "implicit.stat_2974417149"
+                ],
+                "pseudo": [
+                  "pseudo.pseudo_increased_spell_damage"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "#% increased Spell Damage"
+          }
+        }
+      ]
+    },
+    {
+      "info": {
+        "generation": "suffix",
+        "name": "of Skill",
+        "tags": [
+          "Attack",
+          "Speed"
+        ],
+        "tier": 1,
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 5,
+            "min": 3,
+            "unscalable": false,
+            "value": 4
+          },
+          "stat": {
+            "better": 1,
+            "matchers": [
+              {
+                "string": "#% increased Attack Speed"
+              },
+              {
+                "negate": true,
+                "string": "#% reduced Attack Speed"
+              }
+            ],
+            "ref": "#% increased Attack Speed",
+            "trade": {
+              "ids": {
+                "crafted": [
+                  "crafted.stat_681332047"
+                ],
+                "explicit": [
+                  "explicit.stat_681332047"
+                ],
+                "fractured": [
+                  "fractured.stat_681332047"
+                ],
+                "implicit": [
+                  "implicit.stat_681332047"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "#% increased Attack Speed"
+          }
+        }
+      ]
+    }
+  ],
+  "rarity": "Rare",
+  "rawText": "Item Class: Jewels\nRarity: Rare\nChimera Eye\nCobalt Jewel\n--------\nLimited to: 1 Cobalt Jewel\n--------\nRequirements:\nLevel: 1\n--------\nItem Level: 84\n--------\n{ Prefix Modifier \"Apprentice's\" (Tier: 1) — Caster, Damage }\n13(12-14)% increased Spell Damage\n{ Suffix Modifier \"of Skill\" (Tier: 1) — Attack, Speed }\n4(3-5)% increased Attack Speed\n--------\nPlace into an allocated Jewel Socket on the Passive Skill Tree. Right click to remove from the Socket.\n",
+  "statsByType": [
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 14,
+            "min": 12,
+            "value": 13
+          },
+          "modifier": {
+            "info": {
+              "generation": "prefix",
+              "name": "Apprentice's",
+              "tags": [
+                "Caster",
+                "Damage"
+              ],
+              "tier": 1,
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 14,
+                  "min": 12,
+                  "unscalable": false,
+                  "value": 13
+                },
+                "stat": {
+                  "better": 1,
+                  "matchers": [
+                    {
+                      "string": "#% increased Spell Damage"
+                    },
+                    {
+                      "negate": true,
+                      "string": "#% reduced Spell Damage"
+                    }
+                  ],
+                  "ref": "#% increased Spell Damage",
+                  "trade": {
+                    "ids": {
+                      "crafted": [
+                        "crafted.stat_2974417149"
+                      ],
+                      "enchant": [
+                        "enchant.stat_2974417149"
+                      ],
+                      "explicit": [
+                        "explicit.stat_2974417149"
+                      ],
+                      "fractured": [
+                        "fractured.stat_2974417149"
+                      ],
+                      "implicit": [
+                        "implicit.stat_2974417149"
+                      ],
+                      "pseudo": [
+                        "pseudo.pseudo_increased_spell_damage"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "#% increased Spell Damage"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 14,
+              "min": 12,
+              "unscalable": false,
+              "value": 13
+            },
+            "stat": {
+              "better": 1,
+              "matchers": [
+                {
+                  "string": "#% increased Spell Damage"
+                },
+                {
+                  "negate": true,
+                  "string": "#% reduced Spell Damage"
+                }
+              ],
+              "ref": "#% increased Spell Damage",
+              "trade": {
+                "ids": {
+                  "crafted": [
+                    "crafted.stat_2974417149"
+                  ],
+                  "enchant": [
+                    "enchant.stat_2974417149"
+                  ],
+                  "explicit": [
+                    "explicit.stat_2974417149"
+                  ],
+                  "fractured": [
+                    "fractured.stat_2974417149"
+                  ],
+                  "implicit": [
+                    "implicit.stat_2974417149"
+                  ],
+                  "pseudo": [
+                    "pseudo.pseudo_increased_spell_damage"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "#% increased Spell Damage"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "matchers": [
+          {
+            "string": "#% increased Spell Damage"
+          },
+          {
+            "negate": true,
+            "string": "#% reduced Spell Damage"
+          }
+        ],
+        "ref": "#% increased Spell Damage",
+        "trade": {
+          "ids": {
+            "crafted": [
+              "crafted.stat_2974417149"
+            ],
+            "enchant": [
+              "enchant.stat_2974417149"
+            ],
+            "explicit": [
+              "explicit.stat_2974417149"
+            ],
+            "fractured": [
+              "fractured.stat_2974417149"
+            ],
+            "implicit": [
+              "implicit.stat_2974417149"
+            ],
+            "pseudo": [
+              "pseudo.pseudo_increased_spell_damage"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    },
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 5,
+            "min": 3,
+            "value": 4
+          },
+          "modifier": {
+            "info": {
+              "generation": "suffix",
+              "name": "of Skill",
+              "tags": [
+                "Attack",
+                "Speed"
+              ],
+              "tier": 1,
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 5,
+                  "min": 3,
+                  "unscalable": false,
+                  "value": 4
+                },
+                "stat": {
+                  "better": 1,
+                  "matchers": [
+                    {
+                      "string": "#% increased Attack Speed"
+                    },
+                    {
+                      "negate": true,
+                      "string": "#% reduced Attack Speed"
+                    }
+                  ],
+                  "ref": "#% increased Attack Speed",
+                  "trade": {
+                    "ids": {
+                      "crafted": [
+                        "crafted.stat_681332047"
+                      ],
+                      "explicit": [
+                        "explicit.stat_681332047"
+                      ],
+                      "fractured": [
+                        "fractured.stat_681332047"
+                      ],
+                      "implicit": [
+                        "implicit.stat_681332047"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "#% increased Attack Speed"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 5,
+              "min": 3,
+              "unscalable": false,
+              "value": 4
+            },
+            "stat": {
+              "better": 1,
+              "matchers": [
+                {
+                  "string": "#% increased Attack Speed"
+                },
+                {
+                  "negate": true,
+                  "string": "#% reduced Attack Speed"
+                }
+              ],
+              "ref": "#% increased Attack Speed",
+              "trade": {
+                "ids": {
+                  "crafted": [
+                    "crafted.stat_681332047"
+                  ],
+                  "explicit": [
+                    "explicit.stat_681332047"
+                  ],
+                  "fractured": [
+                    "fractured.stat_681332047"
+                  ],
+                  "implicit": [
+                    "implicit.stat_681332047"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "#% increased Attack Speed"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "matchers": [
+          {
+            "string": "#% increased Attack Speed"
+          },
+          {
+            "negate": true,
+            "string": "#% reduced Attack Speed"
+          }
+        ],
+        "ref": "#% increased Attack Speed",
+        "trade": {
+          "ids": {
+            "crafted": [
+              "crafted.stat_681332047"
+            ],
+            "explicit": [
+              "explicit.stat_681332047"
+            ],
+            "fractured": [
+              "fractured.stat_681332047"
+            ],
+            "implicit": [
+              "implicit.stat_681332047"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    }
+  ],
+  "unknownModifiers": []
+}

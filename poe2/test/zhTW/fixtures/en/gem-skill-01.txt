@@ -1,0 +1,14 @@
+Item Class: Skill Gems
+Rarity: Gem
+Fireball
+--------
+Spell, AoE, Fire, Projectile
+Level: 14
+Cost: 22 Mana
+Cast Time: 0.75 sec
+--------
+Requires: Level 33, 65 Int
+--------
+Launches a ball of fire that explodes on impact
+--------
+Corrupted

@@ -1,0 +1,30 @@
+Item Class: Wands
+Rarity: Rare
+Grim Hymn
+Dueling Wand
+--------
+Quality: +20% (augmented)
+--------
+Requires: Level 65, 109 (augmented) Int
+--------
+Sockets: S
+--------
+Item Level: 82
+--------
++1 to Level of all Spell Skills (rune)
+--------
+Grants Skill: Level 19 Spellslinger
+--------
+{ Prefix Modifier "Frosted" (Tier: 1) — Damage, Elemental, Cold }
+Gain 28(28-30)% of Damage as Extra Cold Damage
+{ Prefix Modifier "Charged" (Tier: 2) — Damage, Elemental, Lightning }
+Gain 27(25-27)% of Damage as Extra Lightning Damage
+{ Crafted Prefix Modifier "Verisium" — Mana }
++183(142-188) to maximum Mana
++1 to Level of all Spell Skills
+{ Desecrated Suffix Modifier "of Havoc" (Tier: 5) — Caster, Critical }
+38(34-39)% increased Critical Hit Chance for Spells
+{ Suffix Modifier "of Absorption" (Tier: 1) — Mana }
+Gain 40(36-45) Mana per enemy killed
+{ Crafted Suffix Modifier "of Essence" — Caster, Gem }
++3 to Level of all Spell Skills

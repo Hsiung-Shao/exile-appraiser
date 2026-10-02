@@ -1,0 +1,29 @@
+Item Class: Boots
+Rarity: Rare
+Grim Trek
+Luxurious Slippers
+--------
+Quality: +20% (augmented)
+Energy Shield: 173 (augmented)
+--------
+Requires: Level 70, 58 (augmented) Int
+--------
+Sockets: S
+--------
+Item Level: 80
+--------
+18% increased Mana Regeneration Rate (rune)
+--------
+{ Prefix Modifier "Cheetah's" (Tier: 2) — Speed }
+30% increased Movement Speed
+{ Prefix Modifier "Naga's" (Tier: 3) }
+30(27-32)% increased Energy Shield
++62(41-63) to Stun Threshold
+{ Crafted Prefix Modifier "Fearless" (Tier: 3) — Defences, Energy Shield }
+68(68-79)% increased Energy Shield
+{ Suffix Modifier "of Familiarity" (Tier: 1) }
+35% reduced Attribute Requirements
+{ Suffix Modifier "of the Typhoon" (Tier: 3) — Elemental, Lightning, Resistance }
++35(31-35)% to Lightning Resistance
+{ Desecrated Suffix Modifier "of Ulaman" (Tier: 1) — Elemental, Lightning, Chaos, Resistance }
++16(13-17)% to Lightning and Chaos Resistances

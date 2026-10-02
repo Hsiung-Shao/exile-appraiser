@@ -1,0 +1,36 @@
+Item Class: Map Fragments
+Rarity: Normal
+Mercenary Warrant
+--------
+Vorana, the Doubter
+--------
+Build: Stormhand
+Mercenary Level: 83
+--------
+Conductivity
+Increased Area of Effect (Tier: 2)
+Greater More Duration (Tier: 3)
+--------
+Sigil of Power
+Increased Area of Effect (Tier: 2)
+Greater More Duration (Tier: 3)
+--------
+Spark
+Greater Multiple Projectiles (Tier: 3)
+Elemental Focus (Tier: 2)
+Lightning Penetration (Tier: 2)
+Greater Faster Projectiles (Tier: 3)
+--------
+Greater Stormcall
+Elemental Focus (Tier: 2)
+Greater Cooldown Recovery (Tier: 3)
+Lesser Spell Cascade (Tier: 1)
+Shock Chance (Tier: 2)
+Greater Lightning Penetration (Tier: 3)
+--------
+Purity of Lightning
+--------
+Wrath
+--------
+Right click this item to view the Mercenary's details.
+Can be used in a personal Map Device alongside a Map to have this previously defeated Mercenary appear in the area to be fought again.
