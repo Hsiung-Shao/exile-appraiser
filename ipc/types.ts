@@ -52,6 +52,9 @@ export type WindowMode = 'overlay' | 'window'
 /** 與 `@exile-appraiser/core/realm` 的 `Game` 相同(ipc 不依賴 core)。 */
 export type GameId = 'poe1' | 'poe2'
 
+/** 第 25 步:OCR 辨識語言設定(`follow` = 跟隨客戶端語言) */
+export type OcrLangSetting = 'follow' | 'cmn-Hant' | 'en'
+
 export interface HostConfigForMain {
   /** 快速查價主鍵(APT 語意:不含修飾鍵,如 `D`)。 */
   hotkey: string
@@ -72,6 +75,11 @@ export interface HostConfigForMain {
   restoreClipboard: boolean
   /** 客戶端語言:剪貼簿第一行 `物品種類: ` / `Item Class: ` 的偵測依它。 */
   language: 'cmn-Hant' | 'en'
+  /**
+   * 第 25 步:OCR 辨識語言(褻瀆 / 符文塑形共用):`follow` = 跟隨客戶端語言(預設;舊設定檔 / 舊 renderer 沒有這欄 = follow)、
+   * `cmn-Hant` = 固定繁中語言包、`en` = 固定英文語言包。與介面語言、客戶端語言(查價解析)三者獨立。`main/src/ocr/ocr-lang.ts`。
+   */
+  ocrLang?: OcrLangSetting
   /** 介面語言:main 的托盤選單依它重建(main/src/tray-strings.ts)。 */
   uiLanguage: 'cmn-Hant' | 'en'
   /**

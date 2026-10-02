@@ -66,7 +66,7 @@ A price checker for Path of Exile 1 and 2: hover an item in game, press a hotkey
 - The app icon lives in the **system tray** (bottom right of the taskbar). Its right-click menu has: Show, Settings, Open settings in browser, Check for updates, Open config folder, About, Quit.
 - Ways to open Settings:
   - right-click the tray icon → "Settings";
-  - in game, with no price panel open, press **`Shift + Space`** (toggle overlay focus);
+  - in game, with no price panel open, press **`Shift + Space`** (Settings menu);
   - the gear ⚙ in the price panel's title bar.
 
 ### 2. Basic settings (Settings › General)
@@ -91,7 +91,7 @@ Default hotkeys (all changeable in **Settings › Hotkeys & window**: click a fi
 |---|---|---|
 | Quick check | `Ctrl + D` | Hold `Ctrl` and press `D`; the panel appears next to your cursor. **Keep holding `Ctrl`** and move the mouse into the panel to use it; after releasing `Ctrl`, moving the mouse away closes the panel. |
 | Locked check | `Ctrl + Alt + D` | The panel is clickable right away and does not close when you move the mouse — good for adjusting filters. |
-| Toggle overlay focus | `Shift + Space` | Moves focus between the game and the overlay; opens Settings when no price panel is showing. |
+| Settings menu | `Shift + Space` | Moves focus between the game and the overlay; opens Settings when no price panel is showing. |
 
 Steps:
 
@@ -115,7 +115,7 @@ More options in **Settings › Price check**: stat value tolerance, default pric
 
 The Well of Souls three-option reveal panel cannot be copied as text, so the app reads the screen with Windows' built-in text recognition (OCR).
 
-**Requirements**: PoE2, overlay mode, a **Traditional Chinese or English game client** (as set in Settings › General › Client language), and the matching Windows OCR language pack: **Chinese (Traditional, Taiwan) / zh-Hant-TW** for the Traditional Chinese client, **English (United States) / en-US** for the English client.
+**Requirements**: PoE2, overlay mode, a **Traditional Chinese or English game client** (as set in Settings › General › Client language), and the matching Windows OCR language pack: **Chinese (Traditional, Taiwan) / zh-Hant-TW** for the Traditional Chinese client, **English (United States) / en-US** for the English client. The recognition language follows the client language by default; with a Chinese UI and an English game you can set "Recognition language" to English under Settings › Hotkeys & window (independent of the UI and client languages; shared by Desecration and Rune Shaping).
 
 **Install the OCR language pack** (once; English Windows usually has the English pack built in):
 
@@ -231,7 +231,7 @@ The trade site is protected by Cloudflare. In Settings › General, click **"Ope
 - Check that "OCR status" in Settings › Hotkeys & window says "Available"; if the language pack is missing, install it as described [above](#well-of-souls-reveal-ocr-poe2).
 - A very dark game UI (low UI brightness) hurts recognition.
 - Selecting an area around the panel is usually faster and more accurate; select again if the panel moves (resolution or UI scale changes).
-- Traditional Chinese and English game clients are supported; Settings › General › Client language must match the game (it picks the OCR language pack and the data to match against).
+- Traditional Chinese and English game clients are supported; Settings › General › Client language must match the game; the OCR language pack is chosen by "Recognition language" under Settings › Hotkeys & window (follows the client language by default, or set Traditional Chinese / English manually to match what the game screen actually shows).
 - The runeshape "Uniques" tab lists only generic rewards (no `1x`-style prefix) and currently gets no badges (same for both languages).
 </details>
 

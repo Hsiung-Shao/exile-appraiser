@@ -12,6 +12,7 @@ vi.mock('node:child_process', () => ({ spawn: spawnMock }))
 
 import { SHARED_CAPTURE_TTL_MS, SharedCapture, type ScanCapture, type ScanClock } from '../src/ocr/panel-scan'
 import { OCR_TMP_MAX_AGE_MS, OcrError, WinOcr, cleanStaleOcrFiles } from '../src/ocr/WinOcr'
+import { ocrLangFor } from '../src/ocr/ocr-lang'
 
 // ---------------- SharedCapture ----------------
 
@@ -260,6 +261,23 @@ describe('WinOcr.setLang(第 22 步:語言包跟著客戶端語言)', () => {
     await ocr.recognize(IMG, { words: false })
     expect(spawnMock).toHaveBeenCalledTimes(2)
     expect(spawnMock.mock.calls[1][2].env.EXILE_OCR_LANG).toBe('en-US')
+    ocr.close()
+  })
+
+  it('第 25 步:main 依設定換語言包(onHostConfig 的 `setLang(ocrLangFor(cfg))`):只有「有效辨識語言」變了才重啟行程', async () => {
+    const ocr = new WinOcr('# script', { tmpDir, log: () => {} })
+    const apply = (cfg: { language: 'cmn-Hant' | 'en', ocrLang?: 'follow' | 'cmn-Hant' | 'en' }) => ocr.setLang(ocrLangFor(cfg))
+    reply(proc)
+    await ocr.recognize(IMG, { words: false })
+    expect(apply({ language: 'cmn-Hant' })).toBe(false) // 舊設定 = follow + 繁中 = 沒變
+    expect(apply({ language: 'cmn-Hant', ocrLang: 'follow' })).toBe(false)
+    expect(apply({ language: 'cmn-Hant', ocrLang: 'en' })).toBe(true) // 介面繁中 + 客戶端繁中 + 辨識 English → 重啟換 en-US
+    expect(ocr.lang).toBe('en-US')
+    expect(ocr.running).toBe(false)
+    expect(apply({ language: 'en', ocrLang: 'en' })).toBe(false) // 客戶端語言改了、辨識語言仍是 English → 不重啟
+    expect(apply({ language: 'cmn-Hant', ocrLang: 'en' })).toBe(false)
+    expect(apply({ language: 'cmn-Hant', ocrLang: 'follow' })).toBe(true) // 改回跟隨 → 回繁中
+    expect(ocr.lang).toBe('zh-Hant-TW')
     ocr.close()
   })
 

@@ -136,7 +136,7 @@ describe('HOST_CONFIG_IMMEDIATE_KEYS:掃描開關 / 區域 / 間隔不去抖(狀
 
   it('涵蓋 main scanConfigKey 的全部欄位 + game / overlayMode', () => {
     expect([...HOST_CONFIG_IMMEDIATE_KEYS].sort()).toEqual([
-      'game', 'ocrRegion', 'overlayMode', 'revealAutoEnabled', 'revealIntervalMs', 'runeshapeEnabled', 'runeshapeIntervalMs', 'runeshapeRegion'
+      'game', 'ocrLang', 'ocrRegion', 'overlayMode', 'revealAutoEnabled', 'revealIntervalMs', 'runeshapeEnabled', 'runeshapeIntervalMs', 'runeshapeRegion'
     ])
     const main = fs.readFileSync(new URL('../../main/src/scan-config.ts', import.meta.url), 'utf8')
     const body = main.slice(main.indexOf('function scanConfigKey'))

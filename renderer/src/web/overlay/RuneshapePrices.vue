@@ -70,7 +70,8 @@ import {
   formatRuneTrade, layoutRunePrices, recordScanTimings, runeTradeBadge, runeTradeTier, runeTradeToExalted, runeshapeTradeHold,
   type MatchedRow, type PriceUnit, type RuneBadgeView, type RuneTradeBadge, type RuneTradeBadgeStatus
 } from './runeshape-view'
-import { dataGeneration, scanResultKey } from './scan-dedupe'
+import { bumpDataGeneration, dataGeneration, scanResultKey } from './scan-dedupe'
+import { effectiveOcrLang, ocrTextLangOf } from '../ocr-lang'
 import { badgeStyleVars } from './badge-style'
 import { useScanLayer } from './useScanLayer'
 
@@ -134,14 +135,18 @@ export default defineComponent({
       if (e.reason === 'user-resumed') { showToast('resumed', t('ppz.runeshape.resumed')); return }
       if (!e.rows.length) { clear(e.reason); return }
       if (loadedGame.value !== 'poe2') { resend.missed(); return }
-      const key = scanResultKey(e.rows, e.client, `${loadedGame.value}|${dataGeneration.value}`)
+      const lang = ocrLang.value
+      const key = scanResultKey(e.rows, e.client, `${loadedGame.value}|${dataGeneration.value}|${lang}`)
       if (gate.repeat(key, state.value === 'rows')) {
         // 同一份列:徽章不變,只維持「有人在查價」(與原本每個事件都呼叫相同)
         if (config.realm !== 'tw') ninja.queuePricesFetch()
         return
       }
+      // 第 25 步:索引語言 = 有效辨識語言;與客戶端語言不同時另一語言的物品名稱要先讀好(沒好 → 請 main 重送;讀檔失敗 → 退回客戶端語言索引)
+      const matched = Poe2.matchRunesRowsFor(e.rows, lang) ?? (altFailed === lang ? Poe2.matchRunesRows(e.rows) : undefined)
+      if (!matched) { resend.missed(); return }
       gate.remember(key)
-      rows.value = Poe2.matchRunesRows(e.rows)
+      rows.value = matched
       client.value = e.client
       viewport.value = { w: window.innerWidth, h: window.innerHeight }
       state.value = 'rows'
@@ -154,8 +159,8 @@ export default defineComponent({
       } else {
         ninja.queuePricesFetch()
       }
-      const matched = rows.value.filter(r => r.refName).length
-      console.log(`[runeshape] ${e.rows.length} 列(對上 ${matched}):` + rows.value.map(r => r.undiscovered ? '(未發現)' : (r.refName ?? `?${r.text.replace(/\s+/g, '')}`)).join(' | ').slice(0, 300))
+      const hit = rows.value.filter(r => r.refName).length
+      console.log(`[runeshape] ${e.rows.length} 列(對上 ${hit}):` + rows.value.map(r => r.undiscovered ? '(未發現)' : (r.refName ?? `?${r.text.replace(/\s+/g, '')}`)).join(' | ').slice(0, 300))
     }
 
     const tradeOpts = () => {
@@ -221,6 +226,9 @@ export default defineComponent({
       s === 'empty' ? t('ppz.runeshape.trade.empty_short') : s === 'failed' ? t('ppz.runeshape.trade.failed_short') : s === 'loading' ? t('ppz.runeshape.trade.loading') : '…'
 
     const styleVars = computed(() => badgeStyleVars(config.ocrBadgeStyle, 'rune'))
+    // 第 25 步:有效辨識語言(設定 `ocrLang`,`follow` 才跟客戶端語言)→ 比對索引的語言
+    const ocrLang = computed(() => ocrTextLangOf(effectiveOcrLang(config.ocrLang, config.language)))
+    let altFailed: 'zh' | 'en' | null = null
     /**
      * 掃描層共用接線(code review 第 C 批,useScanLayer.ts):遮罩回報 + ack(第 18 步)、與目前畫著的列相同的事件不重新比對(gate)、
      * 收到 rows 時資料沒載好 → 資料載好時請 main 重送(第 B 批,resend)。
@@ -234,6 +242,19 @@ export default defineComponent({
       showing: () => state.value !== 'idle'
     })
 
+    // 辨識語言 / 資料集變了 → 準備那個語言的符文索引(與客戶端語言相同 = 立即;不同 = 另讀一次 items.ndjson);好了 → 資料世代 +1,請 main 重送
+    // (讀檔失敗只在辨識語言改變時才重試,否則「失敗 → 世代 +1 → 再讀」會無限循環)
+    watch(ocrLang, () => { altFailed = null })
+    watch([ocrLang, dataGeneration, loadedGame], () => {
+      if (loadedGame.value !== 'poe2') return
+      const lang = ocrLang.value
+      if (altFailed === lang || Poe2.matchRunesRowsFor([], lang)) return // 失敗過 / 已備妥
+      void Poe2.ensureRuneshapeIndex(lang).then(ok => {
+        if (lang !== ocrLang.value) return
+        if (!ok) altFailed = lang
+        bumpDataGeneration() // 之前收到卻沒畫出的 rows → 請 main 重送(useScanLayer 監看 dataGeneration)
+      })
+    }, { immediate: true })
     // 查價面板 / 設定關掉 → 佇列立刻再試
     watch(runeshapeTradeHold, (h) => { if (!h) queue.kick() })
     // 一般查價收到 429(Retry-After 等待)→ 整個佇列暫停到期滿

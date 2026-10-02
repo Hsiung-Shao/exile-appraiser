@@ -104,7 +104,8 @@ Path of Exile 查價工具(Electron + TypeScript)。把 `apt-patched`(Awakened P
 20. **PoB2 資料版本鎖 = portable `manifest.xml` 的逐檔 sha1**:`build-desecration-tiers.mjs` 驗證磁碟檔與 manifest 相符才產生(`--allow-mismatch` 只給本機實驗);
     輸出不含時間戳、可逐位元組重現;profile id(`p000…`)隨 PoB2 版本漂移,不得存到資料檔以外的地方。
 21. **揭露面板 OCR 不送任何輸入、不上傳**:自動辨識只截圖 + 本機 Windows OCR;`reveal-scan-result` 不進 `PREVIEW_EVENTS`;
-    **OCR 語言包跟著客戶端語言**(第 22 步,`main/src/ocr/ocr-lang.ts`:PoE2 `language === 'en'` → `en-US`,其他 → `zh-Hant-TW`;換語言 `WinOcr.setLang` 重啟行程、兩個掃描 `ocrLangChanged()`);
+    **OCR 語言包預設跟著客戶端語言**(第 22 步,`main/src/ocr/ocr-lang.ts`:PoE2 `language === 'en'` → `en-US`,其他 → `zh-Hant-TW`;換語言 `WinOcr.setLang` 重啟行程、兩個掃描 `ocrLangChanged()`);
+    **第 25 步起辨識語言獨立**:`ocrLang`(`follow` / `cmn-Hant` / `en`,預設 follow)與介面語言、客戶端語言三者獨立,**有效辨識語言**(`effectiveOcrLang`,main / renderer 各一份純函式、測試對照)決定 OCR 語言包與比對索引;`ocrLang` 在 `HOST_CONFIG_IMMEDIATE_KEYS`;符文塑形辨識語言 ≠ 客戶端語言時 `ensureRuneshapeIndex` 另讀那個語言的 `items.ndjson`(輸出 `name` 仍是客戶端語言;`docs/runeshape.md`「辨識語言獨立設定」),褻瀆 `matchRevealLines(rows,{lang})`;UI 只放一處(設定 › 熱鍵與視窗 › 褻瀆卡片,兩者共用);
     英文比對另走 `normalizeOcrTextEn` / `EN_FUZZY` / 英文否決關鍵字,**繁中函式省略 `lang` = 改版前行為,不得改動繁中路徑**(docs/reveal-ocr.md「英文客戶端」、docs/runeshape.md「英文客戶端」);
     OCR 腳本只有 `main/src/ocr/win-ocr.ps1` 一份(runtime 內嵌、fixture 工具讀同檔);比對結果一律標出 profile 不精確(「?」)與模糊命中(「≈」),對不上的行顯示原文。
     **框選區域(WP-S2)只在 overlay 的無頭頁面 / 假 host 驗證**(CDP `Input.dispatch*` 只作用於無頭頁面);`ocrRegion` 一律存 client 比例,main 以 client 尺寸換算再減擷取偏移;
@@ -193,6 +194,7 @@ Phase 2 / 3 / 4 各工作包的摘要與已知限制見 `docs/phase2-summary.md`
   英文客戶端第 22 步已支援(前綴字串取自 GGPK clientstrings2;四張英文截圖,`Skill Level N:` / `Support:` 英文列沒有截圖);整頁都是泛稱的分頁(英文 Uniques)沒有前綴列 → 不送列(繁中同);`維里西姆堆` 不在 items.ndjson(對不上);技能 / 輔助寶石 poe.ninja 沒有價格(自動查市集)。
   **自動查市集待使用者親測**:真實遊戲中徽章自動變「市 …」→「市 X」、與一般查價同時使用時是否受影響、Shift+Space 開設定
   (自動驗證只在無頭頁面 + 錄製回應 + 假時鐘);「未發現」繁中精確、英文 `Undiscovered` 容錯(手寫字體)。
+- **辨識語言獨立(第 25 步)待使用者實機確認**:介面繁中 + 客戶端繁中 + 遊戲英文 + 辨識 English 時開井 / 符文面板能辨識,切換「辨識語言」後 OCR 狀態列語言包跟著變。
 - **英文客戶端 OCR(第 22 步)待使用者實機確認**:英文客戶端開井 / 符文塑形面板(真實擷取、其他解析度 / UI 縮放)、設定頁切換客戶端語言後 OCR 狀態變成 en-US、缺英文語言包時的提示。
 - Regex 逐字 golden:需在 PobTools 端(`pob-zh.exe --regex-selftest`)加匯出固定勾選集 `Build().query` 的旗標(另開 PobTools 任務)。
 - 台服 + 英文客戶端組合驗證後解禁(`isSupportedCombination`)。

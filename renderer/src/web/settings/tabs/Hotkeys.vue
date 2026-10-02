@@ -59,6 +59,17 @@
   <ocr-scan-section v-if="config.game === 'poe2'" kind="reveal">
     <template #extra>
       <div class="srow">
+        <span class="k">{{ t('ppz.ocr.lang') }}</span>
+        <div class="ctl">
+          <select v-model="config.ocrLang" class="select sm" data-setting="ocr-lang">
+            <option value="follow">{{ t('ppz.ocr.lang_follow') }}</option>
+            <option value="cmn-Hant">{{ t('ppz.ocr.lang_zh') }}</option>
+            <option value="en">{{ t('ppz.ocr.lang_en') }}</option>
+          </select>
+        </div>
+      </div>
+      <p class="foot" data-setting="ocr-lang-hint">{{ t('ppz.ocr.lang_hint') }}</p>
+      <div class="srow">
         <span class="k">{{ t('ppz.ocr.status') }}</span>
         <div class="ctl">
           <span class="ocr-status" :class="ocrStatus.kind" data-setting="ocr-status">{{ ocrStatus.text }}</span>
@@ -169,12 +180,12 @@ export default defineComponent({
       }
     }
     onMounted(() => { if (config.game === 'poe2') void checkOcr() })
-    // 第 22 步:OCR 語言包跟著客戶端語言(main 收到設定後換語言包)→ 設定送到 main 之後重新檢查
-    watch(() => config.language, () => {
+    // 第 22 步:OCR 語言包跟著客戶端語言;第 25 步起可用 `ocrLang` 獨立指定(main 收到設定後換語言包)→ 設定送到 main 之後重新檢查
+    watch(() => [config.language, config.ocrLang], () => {
       if (config.game === 'poe2' && canCheck) void afterHostConfigApplied(hostConfigSettled, () => { void checkOcr() }, 0)
     })
     /** 缺的是英文語言包(main 回報想用的語言包;舊 main 沒回報 → 依目前的客戶端語言) */
-    const ocrWantsEn = computed(() => ocrWantsEnglish(ocrAvail.value, config.language))
+    const ocrWantsEn = computed(() => ocrWantsEnglish(ocrAvail.value, config.language, config.ocrLang))
     const ocrStatus = computed(() => {
       if (!canCheck) return { kind: 'dim', text: t('ppz.ocr.status_preview') }
       const a = ocrAvail.value

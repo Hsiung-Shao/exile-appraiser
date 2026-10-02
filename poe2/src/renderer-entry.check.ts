@@ -19,6 +19,8 @@ export const conforms: {
   revealRangeLabel: typeof decl.revealRangeLabel
   // WP-R2
   matchRunesRows: typeof decl.matchRunesRows
+  matchRunesRowsFor: typeof decl.matchRunesRowsFor
+  ensureRuneshapeIndex: typeof decl.ensureRuneshapeIndex
   // 符文塑形自動查市集
   planRuneTradeQuery: typeof decl.planRuneTradeQuery
   runeTradeUnavailable: typeof decl.runeTradeUnavailable

@@ -16,7 +16,7 @@ export { parseClipboard } from '@/parser'
 // exile-appraiser(WP-S):靈魂之井揭露面板 OCR 的比對與顯示字串(renderer/src/web/overlay/OcrBadges.vue)
 export { matchRevealLines, poolLabel as revealPoolLabel, rangeLabel as revealRangeLabel } from './desecration/reveal-entry'
 // exile-appraiser(WP-R2):符文塑形面板 OCR 列 → refName / poe.ninja 鍵(renderer/src/web/overlay/RuneshapePrices.vue;docs/runeshape.md)
-export { matchRunesRows } from './runeshape/match'
+export { matchRunesRows, matchRunesRowsFor, ensureRuneshapeIndex } from './runeshape/match'
 // exile-appraiser:符文塑形無 ninja 價的列 → 自動查交易站(帶與產物相符的篩選;docs/runeshape.md「自動查市集」)
 export { planRuneTradeQuery, runeTradeUnavailable, summarizeRuneTrade, createRuneTradeQueue, withRuneTrade429 } from './runeshape/trade-lookup'
 export { default as CheckedItem } from '@/web/price-check/CheckedItem.vue'

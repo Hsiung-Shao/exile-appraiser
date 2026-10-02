@@ -4,7 +4,17 @@ PoE2 靈魂之井的「三選一」揭露面板無法複製文字。擷取遊戲
 → 對 `data/poe2/desecration/tiers.json` 比對 → overlay 在每個選項右側顯示 `T4 · 一般 · 21–26 / 20–25`。
 **2026-10-01 起改為自動持續辨識**(設定 `revealAutoEnabled`,預設開;見下節),原本的熱鍵(預設 **`Ctrl + Shift + R`**)改為「暫停 / 繼續」。
 只在 **overlay 模式 + PoE2** 運作;PoE1 不掃描、不註冊熱鍵。**不送任何鍵盤 / 滑鼠輸入**(觸發時也不放開修飾鍵)。
-**2026-10-02 第 22 步起支援英文客戶端**(OCR 語言包跟著「客戶端語言」,見下節「英文客戶端」);繁中的規則、門檻與輸出逐位元不變。
+**2026-10-02 第 22 步起支援英文客戶端**(OCR 語言包預設跟著「客戶端語言」(第 25 步起可用 `ocrLang` 獨立指定,見下節「辨識語言獨立設定」),見下節「英文客戶端」);繁中的規則、門檻與輸出逐位元不變。
+
+## 辨識語言獨立設定(第 25 步,2026-10-02)
+
+新設定 `ocrLang`(`follow` / `cmn-Hant` / `en`,預設 `follow` = 跟隨客戶端語言;舊設定檔沒有 / 壞值 = `follow`),與介面語言、客戶端語言三者獨立;褻瀆與符文塑形**共用**,UI 只放在設定 › 熱鍵與視窗 › 褻瀆卡片(「辨識語言」+ OCR 狀態列;缺語言包時依 main 回報的 `lang` 顯示繁中 / 英文安裝說明)。
+
+- **有效辨識語言**:`effectiveOcrLang`(main `main/src/ocr/ocr-lang.ts`、renderer `renderer/src/web/ocr-lang.ts`,兩份純函式、測試逐格對照):手動指定優先;`follow` → 客戶端語言(`en` → `en`,其他 → `cmn-Hant`)。main 用它選 Windows OCR 語言包(`ocrLangFor`),renderer 用它選比對語言。
+- **host-config**:`ocrLang` 在 `HOST_CONFIG_IMMEDIATE_KEYS`(立即送);main `onHostConfig` 的 `WinOcr.setLang(ocrLangFor(cfg))` 只在有效語言變了才重啟行程 + `ocrLangChanged()`(客戶端語言改了但手動辨識語言沒變 → 不重啟)。
+- **褻瀆**:`tiers.json` 本來就同時有繁中與英文,`matchRevealLines(rows, { lang })`(`OcrBadges.vue` 傳有效辨識語言;省略 `lang` = 依載入的客戶端語言,改版前行為);掃描結果去重鍵含語言。測試:`poe2/test/desecration/reveal-entry-lang.test.ts`(繁中客戶端 + 辨識 English 對英文截圖三組全對上、結果與英文客戶端逐位元相同)。
+- **符文塑形**:見 `docs/runeshape.md`「辨識語言獨立設定」。
+- 台服不受影響(只有繁中客戶端、預設 follow = 繁中);使用者手動選 English 辨識也照做。
 
 ## 英文客戶端(第 22 步,2026-10-02)
 

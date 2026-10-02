@@ -85,10 +85,21 @@ PoE2 **符文塑形面板**(Runes of Aldur 機制)開著時,自動辨識每一�
   tooltip = 英文名 + 「泛稱獎勵,沒有單一市價」(`recipe_title`)。
 - 缺檔(舊安裝)不擋啟動:`[runeshape] 配方結果資料載入失敗` 記在 console,泛稱列回到「?」。
 
+## 辨識語言獨立設定(第 25 步,2026-10-02)
+
+三個語言各自獨立:**介面語言**(`uiLanguage`)、**客戶端語言**(`language`,查價解析 / 台服交易站名稱)、**OCR 辨識語言**(`ocrLang`:`follow` / `cmn-Hant` / `en`,預設 `follow`)。
+使用者介面繁中、遊戲英文時,把辨識語言設成 English,OCR 與符文比對就用英文,其餘照舊(不必把客戶端語言改成英文)。
+
+- **符文索引**:`poe2/src/runeshape/match.ts`。辨識語言 = 目前載入的客戶端語言 → 用記憶體裡的 items(同改版前);不同(繁中客戶端 + 英文辨識、或反過來)→ `ensureRuneshapeIndex(lang)` **只另讀**那個語言的 `{en|cmn-Hant}/items.ndjson`(只取 ITEM / GEM 的名稱 / refName / 類別 / tradeTag,配方結果語言無關照用),建好的索引快取(`ITEMS_ITERATOR` / 配方資料換新才重建;同時多次呼叫共用同一個讀取;讀檔失敗 → renderer 退回客戶端語言索引並記 console)。
+- **輸出的 `name`**(台服交易站查詢用)一律是**客戶端語言**的名稱(以 `refName + namespace + 類別` 對回記憶體裡的 items;`NameEntry.displayName`),`refName`(英文)與 poe.ninja 鍵不受影響。
+- **renderer**:`RuneshapePrices.vue` 以 `effectiveOcrLang(config.ocrLang, config.language)` 選語言;alt 索引沒備妥 → `resend.missed()`,備妥後 `bumpDataGeneration()` 請 main 重送(失敗只在辨識語言改變時重試,避免無限循環)。`@poe2-entry`:`matchRunesRowsFor(lines, lang)`(未備妥 → `undefined`)、`ensureRuneshapeIndex(lang)`。
+- **main**:`ocrLangFor(cfg)` = 有效辨識語言 → `en-US` / `zh-Hant-TW`;`ocrLang` 在 renderer 的 `HOST_CONFIG_IMMEDIATE_KEYS`(不去抖,改了立刻重啟 OCR 行程),偵測器語言 = `WinOcr.lang`。測試:`poe2/test/runeshape/match-ocr-lang.test.ts`。
+
 ## 英文客戶端(第 22 步,2026-10-02)
 
 OCR 語言包跟著「客戶端語言」(PoE2 英文 → `en-US`,`main/src/ocr/ocr-lang.ts`;換語言的流程與比對方式見 `docs/reveal-ocr.md`「英文客戶端」)。
-renderer 目前語系是英文(`LOADED_DATA.lang === 'en'`)→ `buildRuneshapeIndex(items, recipes, 'en')`:items = 英文 `items.ndjson`(`name` → `refName`,英文名本來就等於 refName)、
+**第 25 步起辨識語言獨立**:索引語言 = **有效辨識語言**(設定 `ocrLang`,`follow` 才跟客戶端語言;見下「辨識語言獨立設定」),不再直接看載入的客戶端資料。以下以辨識語言 = 英文為例:
+renderer 辨識語言是英文 → `buildRuneshapeIndex(items, recipes, 'en')`:items = 英文 `items.ndjson`(`name` → `refName`,英文名本來就等於 refName)、
 配方收 `enPlain`;索引帶 `lang: 'en'`,`matchRunesRowsWith` 依它解析列。main 的偵測器 `createRuneshapeDetector(textLang)`(英文:面板列 / 定位 / 直書 / 送出的列都用英文規則)。
 
 **列格式**(四張使用者英文截圖確認;前綴字串取自 GGPK `clientstrings2`,與繁中同一組鍵):

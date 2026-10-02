@@ -44,6 +44,7 @@ import type { RevealScanEvent } from '@ipc/types'
 import * as Poe2 from '@poe2-entry'
 import { Host } from '../background/IPC'
 import { AppConfig } from '../Config'
+import { effectiveOcrLang, ocrTextLangOf } from '../ocr-lang'
 import { loadedGame } from '../games/active'
 import {
   badgeMetrics, guessNoteKey, lastDetectedRegion, lastPoe2Item, layoutBadges, profileHint, regionPickerOpen, revealScanAction, stackBadges, tierText,
@@ -159,11 +160,13 @@ export default defineComponent({
         return
       }
       const hint = profileHint(lastPoe2Item.value)
+      // 第 25 步:比對用的文字語言 = 有效辨識語言(設定 `ocrLang`,與客戶端語言獨立;main 同規則選 OCR 語言包)
+      const lang = ocrTextLangOf(effectiveOcrLang(config.ocrLang, config.language))
       // 比對的全部輸入:列、client、profile 提示、遊戲、資料集世代、介面語言(徽章文字是排版時算好的字串;code review 第 C 批)
-      const key = scanResultKey(e.rows, e.client, `${hint.refName ?? ''}|${hint.category ?? ''}|${loadedGame.value}|${dataGeneration.value}|${locale.value}`)
+      const key = scanResultKey(e.rows, e.client, `${hint.refName ?? ''}|${hint.category ?? ''}|${loadedGame.value}|${dataGeneration.value}|${locale.value}|${lang}`)
       if (gate.repeat(key, state.value === 'result' && last != null)) return
       if (state.value === 'idle' && key === lastNoPanelKey) return
-      const r = Poe2.matchRevealLines(e.rows, hint)
+      const r = Poe2.matchRevealLines(e.rows, { ...hint, lang })
       if (!r || !r.ok) {
         // 畫面上有 ≥ 2 行像詞綴、但湊不成 2–3 組的面板(背包物品浮窗等,或被否決規則擋掉)→ 不是揭露面板,靜靜清掉
         const why = r ? `no-panel${r.veto ? `:${r.veto.kind}` : ''}` : 'no-data'

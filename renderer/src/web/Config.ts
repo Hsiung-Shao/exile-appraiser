@@ -15,7 +15,7 @@
 import { nextTick, reactive, shallowRef, watch } from 'vue'
 import { REALMS, useEnglishNames, type Game, type Language, type Realm } from '@exile-appraiser/core/realm'
 import type { PriceCheckWidget } from './overlay/interfaces'
-import type { ChatCommand, HostConfigForMain, HotkeyRegistration, OcrRegion, StashSearchEntry } from '@ipc/types'
+import type { ChatCommand, HostConfigForMain, HotkeyRegistration, OcrLangSetting, OcrRegion, StashSearchEntry } from '@ipc/types'
 import { Host } from './background/IPC'
 import { createHostConfigSync } from './host-config-sync'
 import { BG_DEFAULT, clampFsBase, normAccent, normBg, normTheme, DEFAULT_FS_BASE, type BgSettings, type Theme } from './useTheme'
@@ -68,6 +68,8 @@ export interface Config {
   overlayBackgroundClose: boolean
   priceCheck: PriceCheckWidget
   /** WP-S:PoE2 靈魂之井揭露面板熱鍵(overlay 模式 + PoE2 + 自動辨識開著才註冊;空字串 = 不註冊)。2026-10-01 起 = 暫停 / 繼續褻瀆自動辨識。 */
+  /** 第 25 步:OCR 辨識語言(褻瀆 / 符文塑形共用):`follow` = 跟隨客戶端語言(預設)、`cmn-Hant` / `en` = 固定該語言包。舊設定檔沒有 = follow */
+  ocrLang: OcrLangSetting
   hotkeyOcrReveal: string
   /** 2026-10-01:褻瀆(揭露面板)自動持續辨識(預設開;舊設定檔沒有 = 開)。 */
   revealAutoEnabled: boolean
@@ -152,6 +154,11 @@ export const DEFAULT_WINDOW_TITLE: Readonly<Record<Game, string>> = { poe1: 'Pat
 
 /** WP-S:靈魂之井揭露面板 OCR 預設熱鍵(當初為了避開已移除的「按住 Alt 藏 overlay」選了不含 Alt 的組合,沿用不改)。 */
 export const DEFAULT_HOTKEY_OCR_REVEAL = 'Ctrl + Shift + R'
+
+/** 第 25 步:OCR 辨識語言設定正規化(只認 `cmn-Hant` / `en`,其餘 / 缺欄位 → `follow` = 跟隨客戶端語言) */
+export function normOcrLang (v: unknown): OcrLangSetting {
+  return v === 'cmn-Hant' || v === 'en' ? v : 'follow'
+}
 
 /** OCR 範圍:四個 0–1 的有限數且寬高 > 0 才算數,其餘 → null(整個畫面)。 */
 export function normOcrRegion (v: unknown): OcrRegion | null {
@@ -261,6 +268,7 @@ function createConfig (): Config {
     overlayMode: true,
     overlayBackgroundClose: true,
     priceCheck: defaultPriceCheck(),
+    ocrLang: 'follow' as OcrLangSetting,
     hotkeyOcrReveal: DEFAULT_HOTKEY_OCR_REVEAL,
     revealAutoEnabled: true,
     revealIntervalMs: DEFAULT_RUNESHAPE_INTERVAL_MS,
@@ -321,6 +329,7 @@ function serialize (): string {
     configVersion, game, realm, language, uiLanguage, theme, accent, fsBase, bg: config.bg, leagueBy, accountName, restoreClipboard,
     hotkey, hotkeyHold, hotkeyLocked, overlayKey, windowTitleBy, autoSwitchGame, overlayMode, overlayBackgroundClose,
     priceCheck,
+    ocrLang: config.ocrLang,
     hotkeyOcrReveal: config.hotkeyOcrReveal, ocrRegion: config.ocrRegion, hotkeyOcrRegion: config.hotkeyOcrRegion,
     revealAutoEnabled: config.revealAutoEnabled,
     revealIntervalMs: config.revealIntervalMs,
@@ -403,6 +412,8 @@ function applyLoaded (raw: string) {
   // 舊設定檔的 `dustDockRatio`(WP-Q 拆粉停靠比例;2026-09-30 拆粉排行移進設定視窗後不再使用):
   // 這裡只挑已知欄位,舊鍵直接略過,下次存檔就不會再寫出
   // WP-S:舊設定檔沒有 → 預設熱鍵;使用者清成空字串 = 停用(保留空字串)
+  // 第 25 步:OCR 辨識語言(舊設定檔沒有 / 壞值 → follow)
+  config.ocrLang = normOcrLang(loaded.ocrLang)
   config.hotkeyOcrReveal = typeof loaded.hotkeyOcrReveal === 'string' ? loaded.hotkeyOcrReveal : fresh.hotkeyOcrReveal
   config.ocrRegion = normOcrRegion(loaded.ocrRegion)
   // 2026-10-01:褻瀆自動辨識(舊設定檔沒有 → 開;只有明確 false 才關)、掃描間隔同符文塑形的夾限
@@ -473,6 +484,7 @@ export function hostConfigOf (c: Config): HostConfigForMain {
     restoreClipboard: c.restoreClipboard,
     language: c.language,
     uiLanguage: c.uiLanguage,
+    ocrLang: c.ocrLang,
     hotkeyOcrReveal: c.hotkeyOcrReveal,
     revealAutoEnabled: c.revealAutoEnabled,
     revealIntervalMs: c.revealIntervalMs,
@@ -505,7 +517,7 @@ async function sendHostConfig (cfg: HostConfigForMain): Promise<void> {
  * (= main `scanConfigKey` 的欄位;改了 main 立刻 poke 掃描器,設定頁狀態列接著讀新狀態 —— code review 第 C 批)。
  */
 export const HOST_CONFIG_IMMEDIATE_KEYS: ReadonlyArray<keyof HostConfigForMain> = [
-  'game', 'overlayMode',
+  'game', 'overlayMode', 'ocrLang',
   'revealAutoEnabled', 'revealIntervalMs', 'ocrRegion',
   'runeshapeEnabled', 'runeshapeRegion', 'runeshapeIntervalMs'
 ]

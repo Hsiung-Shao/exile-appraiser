@@ -108,7 +108,7 @@ export declare const RateLimiterState: DefineComponent<{}, {}, any>
 export declare const createPresets: Poe2ReportFns['createPresets']
 export declare const createTradeRequest: Poe2ReportFns['createTradeRequest']
 /** 資料沒載入(不是 PoE2 / 舊安裝缺檔)→ undefined */
-export declare function matchRevealLines (lines: Poe2OcrLine[], opts?: { refName?: string, category?: string }): Poe2RevealResult | undefined
+export declare function matchRevealLines (lines: Poe2OcrLine[], opts?: { refName?: string, category?: string, lang?: 'zh' | 'en' }): Poe2RevealResult | undefined
 export declare function revealPoolLabel (c: { pool: Poe2DesecrationPool, gods?: string[] }, t: Poe2Translate): string
 export declare function revealRangeLabel (ranges: Array<[number, number] | null>): string
 
@@ -135,6 +135,10 @@ export interface Poe2RuneshapeMatchRow extends Poe2OcrLine {
   tradeTag?: string
 }
 export declare function matchRunesRows (lines: Poe2OcrLine[]): Poe2RuneshapeMatchRow[]
+/** 第 25 步:依有效辨識語言比對;另一語言的物品名稱還沒讀好 → undefined(先 `ensureRuneshapeIndex`) */
+export declare function matchRunesRowsFor (lines: Poe2OcrLine[], lang: 'zh' | 'en'): Poe2RuneshapeMatchRow[] | undefined
+/** 第 25 步:準備某辨識語言的符文索引(與客戶端語言不同時另讀一次該語言 items.ndjson,快取);false = 讀檔失敗 */
+export declare function ensureRuneshapeIndex (lang: 'zh' | 'en'): Promise<boolean>
 
 // ---- 符文塑形自動查市集(poe2/src/runeshape/trade-lookup.ts;docs/runeshape.md「自動查市集」) ----
 export type Poe2RuneTradeRowInput = Pick<Poe2RuneshapeMatchRow, 'kind' | 'refName' | 'name' | 'level' | 'tradeTag' | 'ambiguous' | 'offPanel'>

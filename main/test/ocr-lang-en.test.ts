@@ -7,7 +7,7 @@ import type { RevealScanEvent, RuneshapeScanEvent } from '@ipc/types'
 import { buildLocateIndex, type LocateIndex, type LocateTiersLike } from '../../poe2/src/desecration/ocr-locate'
 import type { OcrTextLang } from '../../poe2/src/desecration/ocr-text'
 import { loadLocateIndex } from '../src/ocr/locate-data'
-import { DEFAULT_OCR_LANG, ocrLangFor, selftestOcrLang, textLangFor } from '../src/ocr/ocr-lang'
+import { DEFAULT_OCR_LANG, effectiveOcrLang, ocrLangFor, selftestOcrLang, textLangFor } from '../src/ocr/ocr-lang'
 import { SharedLocateOcr, isRowText, type Fingerprint, type ScanCapture, type ScanClock } from '../src/ocr/panel-scan'
 import { RevealScan, createRevealDetector } from '../src/ocr/reveal-scan'
 import { RUNESHAPE_DETECTOR, RuneshapeScan, createRuneshapeDetector } from '../src/ocr/runeshape-scan'
@@ -79,6 +79,21 @@ describe('語言包選擇(ocr-lang.ts)', () => {
     expect(DEFAULT_OCR_LANG).toBe('zh-Hant-TW')
     expect(textLangFor('en-US')).toBe('en')
     expect(textLangFor('zh-Hant-TW')).toBe('zh')
+  })
+  it('第 25 步:ocrLang 手動指定優先於客戶端語言;follow / 缺欄位 / 壞值 = 跟隨客戶端語言', () => {
+    // 介面語言與此無關(不在輸入裡):介面繁中、客戶端繁中、辨識 English → en-US
+    expect(ocrLangFor({ language: 'cmn-Hant', ocrLang: 'en' })).toBe('en-US')
+    expect(ocrLangFor({ language: 'en', ocrLang: 'cmn-Hant' })).toBe('zh-Hant-TW')
+    expect(ocrLangFor({ language: 'en', ocrLang: 'en' })).toBe('en-US')
+    expect(ocrLangFor({ language: 'cmn-Hant', ocrLang: 'cmn-Hant' })).toBe('zh-Hant-TW')
+    expect(ocrLangFor({ language: 'en', ocrLang: 'follow' })).toBe('en-US')
+    expect(ocrLangFor({ language: 'cmn-Hant', ocrLang: 'follow' })).toBe('zh-Hant-TW')
+    expect(ocrLangFor({ language: 'en' })).toBe('en-US') // 舊 renderer 沒有這欄
+    expect(ocrLangFor({ language: 'en', ocrLang: 'klingon' as never })).toBe('en-US')
+    expect(effectiveOcrLang({ language: 'cmn-Hant', ocrLang: 'en' })).toBe('en')
+    expect(effectiveOcrLang({ language: 'en', ocrLang: 'follow' })).toBe('en')
+    expect(effectiveOcrLang(null)).toBe('cmn-Hant')
+    expect(textLangFor(ocrLangFor({ language: 'cmn-Hant', ocrLang: 'en' }))).toBe('en')
   })
   it('selftest:`--ocr-lang=` 優先,否則依檔名(`-en-` / `-en.`)', () => {
     expect(selftestOcrLang('C:/x/well-of-souls-weapon-en-04.png', [])).toBe('en-US')

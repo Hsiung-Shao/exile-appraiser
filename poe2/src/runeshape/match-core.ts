@@ -151,6 +151,8 @@ export interface NameEntry {
   namespace: string;
   craftable?: { category?: string };
   tradeTag?: string;
+  /** 第 25 步:索引鍵用 `name`(辨識語言),但輸出的 `name`(台服交易站查詢用)要是**客戶端語言**的名稱時給這欄;省略 = `name` */
+  displayName?: string;
 }
 
 /** `data/poe2/runeshape/recipes.json` 一筆(`scripts/sync-runeshape-data.mjs` 產生) */
@@ -188,7 +190,8 @@ export function buildRuneshapeIndex(
     if (!it.name || !it.refName) continue;
     const key = en ? normalizeOcrTextEn(it.name) : normalizeOcrText(it.name);
     const category = it.craftable?.category ?? "";
-    const extra = it.tradeTag ? { name: it.name, tradeTag: it.tradeTag } : { name: it.name };
+    const shown = it.displayName ?? it.name;
+    const extra = it.tradeTag ? { name: shown, tradeTag: it.tradeTag } : { name: shown };
     if (it.namespace === "ITEM") {
       add(idx.item, key, { refName: it.refName, category, rank: itemRank(category), ...extra });
     } else if (it.namespace === "GEM") {
