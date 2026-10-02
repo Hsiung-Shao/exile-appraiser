@@ -148,10 +148,10 @@ describe('PoE1 英文客戶端(en 剪貼簿 → intl 查詢)', () => {
       const en = enBuilt.get('map-rare-01')!.request
       const zh = zhBuilt.get('map-rare-01')!.request
       const zhCount = zh.query.stats.find((g: any) => g.type === 'count')
-      expect(zhCount.filters.map((f: any) => f.id)).toContain('explicit.stat_687813731')
+      expect(zhCount!.filters.map((f: any) => f.id)).toContain('explicit.stat_687813731')
       const enFlat = new Set(en.query.stats.flatMap((g: any) => g.filters.map((f: any) => f.id)))
       expect(enFlat.has('explicit.stat_687813731')).toBe(true)
-      const zhAnd = zh.query.stats.find((g: any) => g.type === 'and').filters.map((f: any) => f.id)
+      const zhAnd = zh.query.stats.find((g: any) => g.type === 'and')!.filters.map((f: any) => f.id)
       expect(zhAnd.every((id: string) => enFlat.has(id))).toBe(true)
       expect(zhAnd.length).toBe(enFlat.size - 1)
       expect(en.query.type).toEqual(zh.query.type)

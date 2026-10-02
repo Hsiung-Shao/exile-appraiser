@@ -166,7 +166,7 @@ describe('PoE2 英文客戶端(en 剪貼簿 → intl 查詢)', () => {
   describe('中英成對:同一件物品兩種語言的複製文字 → 同一份 trade query', () => {
     const modSig = (item: ParsedItem) => item.newMods.map(m => ({
       type: m.info.type, generation: m.info.generation, tier: m.info.tier,
-      stats: m.stats.map(s => `${s.ref}=${s.roll?.value}[${s.roll?.min},${s.roll?.max}]`)
+      stats: m.stats.map(s => `${s.stat.ref}=${s.roll?.value}[${s.roll?.min},${s.roll?.max}]`)
     }))
 
     it.each(PAIRS)('%s', (name) => {
