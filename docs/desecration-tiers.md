@@ -8,7 +8,7 @@ UI 一律標「推定」。階段 2(三選一揭露面板 OCR)沿用同一份資
 
 | 檔案 | 內容 |
 |---|---|
-| `data/poe2/desecration/tiers.json` | schema 1:`source`(版本鎖)、`profiles`(底材類別 + tags)、`entries`(每條詞綴的 pool / type / group / 需求等級 / 各 profile 的 Tier / parts)、`diagnostics` |
+| `data/poe2/desecration/tiers.json` | schema 2(2026-10-02 第 22 步;1 → 2 只多了 parts 的 `text.enVariants`,其餘欄位與 schema 1 逐位元組相同、舊讀取端照讀):`source`(版本鎖)、`profiles`(底材類別 + tags)、`entries`(每條詞綴的 pool / type / group / 需求等級 / 各 profile 的 Tier / parts)、`diagnostics` |
 | `data/poe2/desecration/base_profiles.json` | 英文 refName → profile id(ITEM 底材名;UNIQUE 只收所有底材同一 profile 者) |
 
 MANIFEST 前綴 `data/poe2/desecration`,`commit` 欄 = PoB2 `manifest.xml` 裡 `Data/ModVeiled.lua` 的 sha1。
@@ -45,6 +45,12 @@ MANIFEST 前綴 `data/poe2/desecration`,`commit` 欄 = PoB2 `manifest.xml` 裡 `
    increased/reduced 翻轉,兩者再 XOR)。例:`減少#%攻擊速度`(direction decrease)的變體是 `{ text: "增加#%攻擊速度", negate: true }`。
    不含 `#` 的寫法(`無物理傷害`、`擊中時必定造成流血`)也收。數值語意與用法見 [reveal-ocr.md](reveal-ocr.md)「比對規則」。
    加這個欄位時驗證過:去掉 `zhVariants` 後的 tiers.json 與加之前**逐位元組相同**(entries / profiles / ranges / diagnostics 全不變)。
+9. **`text.enVariants`(本專案追加,2026-10-02 第 22 步,schema 2,英文客戶端的揭露面板 OCR 用)**:同一 stat 列(en stats.ndjson,經 trade hash 找到的那一列 = 語言無關鍵)
+   的**其他**英文 matcher(去重、不含等於 `text.en` 的那個與空字串;沒有就不輸出這個鍵)。每筆 `{ text, negate?: true }`,`negate` 是**相對 `text.en`** 的極性:
+   `text.en` = `ref`(極性 = ref 本身)或 increased / reduced 翻轉後的寫法(第 7 步),所以 `negate` = matcher 的 `negate` XOR 有沒有翻轉。
+   例:`#% reduced Attack Speed`(翻轉過)的變體是 `{ text: "#% increased Attack Speed", negate: true }`;`#% increased Physical Damage` 的變體是
+   `#% reduced Physical Damage`(negate)與 `No Physical Damage`。與第 8 步共用同一個函式(`textVariants`)。
+   加這個欄位時驗證過:去掉 `enVariants`、schema 改回 1 後與加之前的 tiers.json **逐位元組相同**(base_profiles.json 不變);MANIFEST `data/poe2/desecration` 依規則重寫。
 
 ### 目前統計(PoB2 0.23.1)
 
@@ -52,6 +58,7 @@ MANIFEST 前綴 `data/poe2/desecration`,`commit` 欄 = PoB2 `manifest.xml` 裡 `
 - 全部 1,713 條可比對(unparsed 0);極性翻轉 23 條;base_profiles 1,673(含 unique 168);未對上的裝備 refName 8 個(6 個 Runeforged 長棍/弓、2 個 Runemastered 長棍)
 - `zhVariants`:395 個繁中模板中 269 個有其他寫法,共 317 個(相對 `text.zh` 反向 270、不含 `#` 18);1,054 個 part 帶這個欄位。
   OCR 索引 skeleton 394(只有 `text.zh`)→ 706(加上變體)
+- `enVariants`(schema 2):271 個英文模板有其他寫法,共 277 個(相對 `text.en` 反向 248、不含 `#` 12);1,058 個 part 帶這個欄位。英文 OCR 索引 670 個寫法 → 669 個 skeleton
 - 與 poenavi 產物(PoB2 revision `ce566eac…`,1,713 條 / 426 profiles)對照:mod_id 集合相同、三 pool 數量相同;
   1,698 條 pool/type/group/level/共有 profile 的 Tier/ranges 完全一致;15 條差在 poenavi 解析不到範圍(ranges null)而這裡解得出來
   (模板來源不同:poenavi 用 GGG trade2 文字,如 `Recover #% of maximum Mana on Kill (Jewel)` 多了尾綴)。
@@ -120,7 +127,7 @@ EE2(`main/src/shortcuts/Shortcuts.ts` 的 `pressKeysToCopyItemText`)送的是 `m
 # PobTools 更新 PoB2 portable 後,或 data/poe2/{en,cmn-Hant}/stats.ndjson 同步後(sync-data --game poe2)都要重跑:
 node scripts/build-desecration-tiers.mjs --from ../pob-zh-engine/dist/PathOfBuildingCommunity-PoE2-Portable/Data
 # → 重寫 data/poe2/desecration/{tiers,base_profiles}.json 與 MANIFEST 的 data/poe2/desecration 前綴
-cd poe2 && npx vitest run test/desecration   # 統計斷言(1713 / 198 / 32 / 1483 / 422)會紅 → 逐項確認後更新
+cd poe2 && npx vitest run test/desecration   # 統計斷言(1713 / 198 / 32 / 1483 / 422;enVariants 271 / 277 / 248 / 1058)會紅 → 逐項確認後更新
 ```
 
 ## 階段 2(OCR 三選一揭露面板)——已實作(WP-S)

@@ -115,14 +115,14 @@ More options in **Settings › Price check**: stat value tolerance, default pric
 
 The Well of Souls three-option reveal panel cannot be copied as text, so the app reads the screen with Windows' built-in text recognition (OCR).
 
-**Requirements**: PoE2, overlay mode, **Traditional Chinese game client**, and the Windows Traditional Chinese OCR language pack.
+**Requirements**: PoE2, overlay mode, a **Traditional Chinese or English game client** (as set in Settings › General › Client language), and the matching Windows OCR language pack: **Chinese (Traditional, Taiwan) / zh-Hant-TW** for the Traditional Chinese client, **English (United States) / en-US** for the English client.
 
-**Install the Traditional Chinese OCR language pack** (once):
+**Install the OCR language pack** (once; English Windows usually has the English pack built in):
 
 1. Windows Settings → **Time & language** → **Language & region**.
-2. Next to "Chinese (Traditional, Taiwan)" click **⋯ → Language options** (add the language first with "Add a language" if it is not listed).
+2. Next to "Chinese (Traditional, Taiwan)" (English client: "English (United States)") click **⋯ → Language options** (add the language first with "Add a language" if it is not listed).
 3. Under "Optical character recognition" click **Download**.
-4. Back in the app, **Settings › Hotkeys & window** should show "OCR status: Available (zh-Hant-TW)" (click "Check again" if needed).
+4. Back in the app, **Settings › Hotkeys & window** should show "OCR status: Available (zh-Hant-TW)" or "Available (en-US)" (click "Check again" if needed; changing the client language switches the pack and checks again automatically).
 
 **Usage**:
 
@@ -140,7 +140,7 @@ The Well of Souls three-option reveal panel cannot be copied as text, so the app
 
 While the runeshape panel is open, the app periodically reads the panel and shows a poe.ninja reference price to the right of each row. It only takes screenshots and runs OCR locally; no keys are sent.
 
-**Requirements**: PoE2, overlay mode, Traditional Chinese game client, and the Traditional Chinese OCR language pack (see above). poe.ninja reference prices are **international realm only**; on the Taiwan realm rows are looked up on the Taiwan trade site instead (see "Automatic trade site lookup" below).
+**Requirements**: PoE2, overlay mode, a Traditional Chinese or English game client, and the matching OCR language pack (see above). poe.ninja reference prices are **international realm only**; on the Taiwan realm rows are looked up on the Taiwan trade site instead (see "Automatic trade site lookup" below).
 
 **Enable**: Settings › Hotkeys & window → tick "Enable runeshape auto price check (PoE2, overlay mode)" (off by default).
 
@@ -231,7 +231,8 @@ The trade site is protected by Cloudflare. In Settings › General, click **"Ope
 - Check that "OCR status" in Settings › Hotkeys & window says "Available"; if the language pack is missing, install it as described [above](#well-of-souls-reveal-ocr-poe2).
 - A very dark game UI (low UI brightness) hurts recognition.
 - Selecting an area around the panel is usually faster and more accurate; select again if the panel moves (resolution or UI scale changes).
-- Only the Traditional Chinese game client is supported for now.
+- Traditional Chinese and English game clients are supported; Settings › General › Client language must match the game (it picks the OCR language pack and the data to match against).
+- The runeshape "Uniques" tab lists only generic rewards (no `1x`-style prefix) and currently gets no badges (same for both languages).
 </details>
 
 <details>

@@ -55,7 +55,7 @@ PoE2 **符文塑形面板**(Runes of Aldur 機制)開著時,自動辨識每一�
    例:`破碎三曲` 通貨 vs 任務物品 → 通貨;`絕望` 靠前綴分技能 `Despair` / 輔助 `Desperation`。
 5. 面板外的列:沒前綴且右緣與面板列中位右緣差 > 2.5 行高 → `offPanel`(面板標題「符形組合」、英文紅框殘留),不畫徽章。
    「未發現」列(面板上尚未解鎖的配方,整列只寫「未發現」;2026-10-01 使用者截圖「寶石」分頁)→ `undiscovered`,不比對、不畫徽章
-   (以前顯示「?」)。判準 `row-format.ts` `isUndiscoveredRow` / `UNDISCOVERED_ROW_NAMES`(剝掉頭尾 OCR 雜訊後名稱 = `未發現`);英文客戶端字串未確認,暫不收。
+   (以前顯示「?」)。判準 `row-format.ts` `isUndiscoveredRow` / `UNDISCOVERED_ROW_NAMES`(剝掉頭尾 OCR 雜訊後名稱 = `未發現`);英文客戶端見「英文客戶端」(`Undiscovered`,容錯比對)。
 6. **配方結果**(只對 `Nx` / 沒有前綴的列):見下節。
 
 ## 配方結果(泛稱列)
@@ -73,7 +73,7 @@ PoE2 **符文塑形面板**(Runes of Aldur 機制)開著時,自動辨識每一�
   守門:table / column 正確、id 不重複、標記只允許 `[Rarity|…]` 且中英數量相同、`zhPlain` / `enPlain` 不重複;輸出不含時間戳(同來源重跑逐位元組相同)。
   MANIFEST 前綴 `data/poe2/runeshape`:來源在 gitignored `tools/` 沒有 commit → 記 `fetchedAt` = meta.json 抽取時間、`repo` 欄帶 game_version 與來源檔 sha256。
   新賽季重抽 GGPK 後重跑。
-- **比對**(`match-core.ts`):索引收 `zhPlain` 正規化後的名稱(英文客戶端列格式未確認,暫不收英文)。
+- **比對**(`match-core.ts`):繁中索引收 `zhPlain` 正規化後的名稱;英文索引(第 22 步)收 `enPlain`(`Random Currency`、`Rare Unique Item`、`Unique Ring`…)。
   - `Nx` 前綴的列先試 `Nx名稱` 整串(`5x 隨機通貨` 的 5x 是配方文字的一部分)→ 命中時 `quantity` = 1,不當成外加 5 個;
     `2x 維里西姆堆` 這種原文沒有數量的配方照常是外加數量 2;`3x 隨機通貨` 數字不同不模糊到 5x → 對不上。
   - 再試名稱本身;精確 → 模糊(同門檻、數字必須相同)。
@@ -84,6 +84,43 @@ PoE2 **符文塑形面板**(Runes of Aldur 機制)開著時,自動辨識每一�
 - **顯示**:徽章「無固定價格」(`ppz.runeshape.no_fixed_price`),比「無價格」(有具體物品但價格表沒有 / 技能寶石)更淡、左框虛線、斜體;
   tooltip = 英文名 + 「泛稱獎勵,沒有單一市價」(`recipe_title`)。
 - 缺檔(舊安裝)不擋啟動:`[runeshape] 配方結果資料載入失敗` 記在 console,泛稱列回到「?」。
+
+## 英文客戶端(第 22 步,2026-10-02)
+
+OCR 語言包跟著「客戶端語言」(PoE2 英文 → `en-US`,`main/src/ocr/ocr-lang.ts`;換語言的流程與比對方式見 `docs/reveal-ocr.md`「英文客戶端」)。
+renderer 目前語系是英文(`LOADED_DATA.lang === 'en'`)→ `buildRuneshapeIndex(items, recipes, 'en')`:items = 英文 `items.ndjson`(`name` → `refName`,英文名本來就等於 refName)、
+配方收 `enPlain`;索引帶 `lang: 'en'`,`matchRunesRowsWith` 依它解析列。main 的偵測器 `createRuneshapeDetector(textLang)`(英文:面板列 / 定位 / 直書 / 送出的列都用英文規則)。
+
+**列格式**(四張使用者英文截圖確認;前綴字串取自 GGPK `clientstrings2`,與繁中同一組鍵):
+
+| 寫法 | GGPK 鍵 | 類型 | 例 |
+|---|---|---|---|
+| `Skill Level N: Name` | `RemnantRecipeLevelXSkillGemAutoDescription`(繁中「技能等級 {0}:{1}」) | `gem` | (截圖沒有;依 GGPK 字串) |
+| `Skill: Name` | `RemnantRecipeSkillGemAutoDescription` | `skill` | `Skill: Rain of Blades` |
+| `Support: Name` | `RemnantRecipeSupportGemAutoDescription` | `support` | (截圖沒有;依 GGPK 字串) |
+| `Nx Name` | — | `item` + 數量 | `1x Thrud's Might`、`3x Exalted Orb` |
+| `Name (Level N)` | — | `item` + 等級 | `1x Thaumaturgic Flux (Level 18)`、`1x Uncut Spirit Gem (Level 19)` |
+| 沒有前綴 | — | `item` / 配方泛稱 | `Rare Unique Item`、`Unique Ring` |
+| `Undiscovered` | `clientstrings` `RemnantRecipeUndiscovered`(繁中「未發現」) | 不畫 | `Undiscovered` |
+
+**OCR 誤讀與對策**(`row-format.ts` 英文段):
+- `1x` 讀成 `IX` / `lx`、`3x` 讀成 `3*`:`Nx` 的 N 收 `l` / `I` / `|` / `!`,x 收 `X` / `×` / `*`;**後面要有空白再接字母**(英文 OCR 保留字間空白;避免 `Ixchel's Torment` 被拆成數量)。
+- `Skill` 讀成 `Sklll`:前綴比對容許 i / l / 1 / | / I 互換;冒號讀成分號也算。
+- `Skill: Powered by Verisium` 被切成兩行(`Skill:` / `Sklll` + `Powered by Verisium` / `• : Powered by Verisium`;×1 整張與定位框 ×3 都遇過)→
+  `joinSplitRowsEn`:左行只有前綴、右行在同一列(中心 y 差 ≤ 半個行高、起點在左行中點右邊、間距 ≤ 3 個行高)→ 接成一列(定位與比對都先接)。
+- `Undiscovered` 是手寫字體,WinRT 讀成 `UUiscovered` / `UUiscovereÅ` → `isUndiscoveredName`:只留字母後與 `undiscovered` 相似度 ≥ 0.7(12 字錯 3 字)且 ≥ 6 個字母。
+- 自動定位時 ×1 漏掉某幾列的 `1x`(Runes 分頁連續兩列沒前綴,第一列被切成另一簇,裁切框少了最上面三列)→ 英文定位在採用的簇上下**延伸**:
+  右緣對齊(同 2.5 行高)、行高 ≤ 1.6 倍、離簇邊緣列 ≤ 1.5 個列距、有英文字的列也框進來(不要求前綴;只決定裁切框)。繁中定位不走這段。
+- 名稱正規化 `normalizeOcrTextEn`(小寫、刪空白與 `'`,`Thrud's Might` → `thrudsmight`);模糊門檻 `EN_FUZZY`(相似度 0.85,長度差由門檻推得),**數字必須相同**照舊。
+
+**英文截圖比對結果**(`node scripts/ocr-fixture.mjs --set runeshape -en-` 產生快照;錄製檔價格 2026-09-30 Forbidden Rites;`poe2/test/runeshape/match-en.test.ts`;整張 ×3 與定位框 ×3 結果相同):
+
+| 截圖 | 列 → refName(類型、數量、價格) |
+|---|---|
+| `runeshape-runes-en-03`(Runes,11 列) | Thrud's Might 173 ex、Perfect Orb of Transmutation 17 ex、Perfect Orb of Augmentation 168 ex、Masterwork Rune 608 ex、Rune of Confrontation 305 ex、Rune of Reach 37 ex、Rune of Consistency 18 ex、Rune of the Blossom 56 ex、Rune of the Prism 26 ex、Rune of Foundations 145 ex、Rune of Accumulation 19 ex(全部 item ×1、精確) |
+| `runeshape-currency-en-05`(Currency,10 列) | Perfect Orb of Augmentation ×3、Orb of Chance ×2、Divine Orb ×2、Orb of Chance ×1、**5x Random Currency(配方泛稱 `5SlotAstackofrandomcurrency1`,不查價)**、Divine Orb ×1、Chaos Orb ×2、Orb of Alchemy ×3、Exalted Orb ×3、Thaumaturgic Flux (Level 18) Lv18;標題 `Cuneuvj` 與搜尋框在面板外 |
+| `runeshape-gems-en-06`(Gems) | Uncut Spirit Gem (Level 19) Lv19 134 ex;`Skill:` Rain of Blades / Hollow Shell / Powered by Verisium / Remnants of Kalguur(skill,無 ninja 價 → 自動查市集);`Undiscovered` ×3 不畫 |
+| `runeshape-uniques-en-04`(Uniques,11 列) | 全是配方泛稱:Rare Unique Item、Unique Ring / Belt / Amulet / Wand / Two Hand Mace / Talisman / Staff / Spear / Shield / Sceptre → recipe、不查價。**但整頁沒有任何帶前綴的列 → main 不算面板列、不送列**(與繁中相同的既有限制,見「已知限制」) |
 
 ## 價格對應
 
@@ -232,11 +269,12 @@ main 擷取後填掉、差分不比那幾格,送出 rows 後等 ack 才擷取下
 
 ## 已知限制
 
-- 英文客戶端的前綴寫法未確認(`Nx` 以外只認繁中 `技能等級` / `技能` / `輔助`);沒有任何前綴列的面板自動定位找不到(請手動框選)。
+- 英文客戶端(第 22 步)只驗過四張使用者截圖(1 倍縮放的局部截圖);`Skill Level N:` / `Support:` 英文列只依 GGPK 字串、沒有截圖。
+- 整頁沒有任何前綴列的分頁(英文 Uniques 分頁:全是 `Unique Ring` 這類泛稱)main 判定沒有面板列 → 不送列、不出徽章(手動框選也一樣;繁中同一個限制)。泛稱本來就不查價,影響只是不顯示「無固定價格」。
 - 配方泛稱(`維里西姆堆`、傳奇某部位、隨機通貨)只標「無固定價格」,不估價、不查市集;poe.ninja 沒有的等級 / 新物品自動查市集。
 - 自動查市集:真實遊戲中的交易站實際價格、與一般查價同時進行時的限流表現待使用者親測(自動驗證只在無頭頁面 + 錄製回應 + 假時鐘);
   `skill` / `support` 列面板沒寫等級,只能等級不限查詢;bulk 的神聖石 / 崇高石混合掛單在少量掛單時中位數波動大;
   面板列很多時,交易站 1 次 / 5 秒的限流下全部查完要一段時間(每筆約 5 秒)。
-- 「未發現」列只認繁中字串;英文客戶端的對應字串未確認,暫不收(會顯示「?」)。
+- 「未發現」列:繁中精確比對「未發現」;英文 `Undiscovered`(GGPK `RemnantRecipeUndiscovered`)因手寫字體改容錯比對(相似度 ≥ 0.7),長得很像的名稱會被當成未發現(不畫)。
 - 配方表只收 GGPK `expedition2recipes` 的 Description;面板若出現不在表裡的泛稱寫法仍會對不上(「?」),新賽季要重抽 GGPK + 重跑同步。
 - 只有兩張 1 倍縮放的截圖;4K / 其他 UI 縮放、面板捲動、列數很多時的定位與 OCR 準確度待使用者親測。

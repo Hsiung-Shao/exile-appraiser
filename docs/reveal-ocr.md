@@ -4,6 +4,57 @@ PoE2 靈魂之井的「三選一」揭露面板無法複製文字。擷取遊戲
 → 對 `data/poe2/desecration/tiers.json` 比對 → overlay 在每個選項右側顯示 `T4 · 一般 · 21–26 / 20–25`。
 **2026-10-01 起改為自動持續辨識**(設定 `revealAutoEnabled`,預設開;見下節),原本的熱鍵(預設 **`Ctrl + Shift + R`**)改為「暫停 / 繼續」。
 只在 **overlay 模式 + PoE2** 運作;PoE1 不掃描、不註冊熱鍵。**不送任何鍵盤 / 滑鼠輸入**(觸發時也不放開修飾鍵)。
+**2026-10-02 第 22 步起支援英文客戶端**(OCR 語言包跟著「客戶端語言」,見下節「英文客戶端」);繁中的規則、門檻與輸出逐位元不變。
+
+## 英文客戶端(第 22 步,2026-10-02)
+
+使用者裁定:辨識只做 PoE2,要支援英文客戶端;本機 Windows OCR 已有 `en-US` 與 `zh-Hant-TW`。褻瀆(本文件)與符文塑形(`docs/runeshape.md`「英文客戶端」)共用同一套語言切換。
+
+| 段 | 檔案 | 做什麼 |
+|---|---|---|
+| 選語言包 | `main/src/ocr/ocr-lang.ts` | `ocrLangFor(cfg)`:客戶端語言 `language === 'en'` → `en-US`,其他 → `zh-Hant-TW`(台服只有繁中客戶端,`isSupportedCombination` 擋掉台服 + 英文,所以台服不受影響)。`textLangFor(tag)` → 比對用的文字語言 `en` / `zh` |
+| 換語言 | `main.ts` `onHostConfig` → `WinOcr.setLang` | 語言包變了 → 結束 PowerShell 行程(下一次以新語言啟動,缺語言包的 30 秒記憶清掉)、`SharedLocateOcr.clear()`、兩個掃描 `ocrLangChanged()`(丟掉自動定位快取 / 直書裁切 / 差分基準 / 簽章,立刻重看)。偵測器的語言 = `WinOcr.lang`(兩者一起換)。`WinOcr` 的 exit / error 事件只處理「目前這個」行程(換語言後舊行程的 exit 晚到,不可清掉新行程) |
+| 模板索引 | `locate-data.ts` `loadLocateIndex(…, lang)`、`ocr-locate.ts` `buildLocateIndex(tiers, 'en')`、`ocr-match.ts` `ocrIndex(data, 'en')` | 英文模板 = `text.en`(stats `ref`,或 increased / reduced 翻轉後的寫法;ranges 以它為準)+ `text.enVariants`(同一 stat 列的其他英文 matcher,`negate` 相對 `text.en`;tiers.json schema 2,見 `docs/desecration-tiers.md` 產生規則 9)。英文 670 個寫法 → **669 個 skeleton**(繁中 706)。檔案只讀一次,兩種語言各一份索引;英文索引帶 `lang: 'en'`,繁中索引沒有這個欄位 |
+| 文字 / 正規化 | `ocr-text.ts` `normalizeOcrTextEn`、`hasLangText`、`templateSkeleton(t, 'en')` | 見下「英文比對方式」 |
+| 否決 / 加分 | `panel-veto.ts`(`lang` 參數 / `PanelVetoOptions.lang`) | 規則與繁中相同,只換關鍵字:`prefix` / `suffix` / `modifier` / `tier` / `item level`(正規化後 `itemlevel`);軟關鍵字 `requires` / `quality`(沒有 `%` 才算;模板有 `#% to Quality of all Skills`);冒號同繁中(英文物品浮窗 `Requires: Level 70`、`Quality: +20%`)。tiers.json 英文 670 個寫法都不含前 5 個關鍵字與冒號(測試守著)。加分:`Confirm`(GGPK clientstrings `UnveilingWindowConfirmButton`)、`The Well of Souls`(`UnveilingUITitle`;比對 `wellofsoul`,OCR 把結尾讀成 `SOULR` 也算),標題範圍英文 24 個行高(實測英文截圖標題在 20.2 個行高外;繁中維持 20) |
+| renderer | `reveal-entry.ts` `loadedOcrTextLang()` | 目前載入的資料語系 `LOADED_DATA.lang === 'en'` → 英文比對(main 也依同一個設定選語言包)。徽章文案照介面語言(既有);對不上的原文以 `displayOcrText` 顯示(繁中照舊刪字間空白,英文只把空白縮成一個) |
+| 設定頁 | `settings/tabs/Hotkeys.vue`、`web/ocr-lang.ts` `ocrWantsEnglish` | 缺語言包時依 main 回報的想用語言包(`OcrAvailability.lang`;舊 main 沒有 → 依客戶端語言)顯示 `status_missing_en` / `err_lang_missing_en`(英文(美國)→ 語言選項 → 光學字元辨識);改了客戶端語言 → 設定送到 main 後自動重新檢查 |
+
+### 英文比對方式與門檻
+
+- **以字元為單位(不走 token)**:英文同樣把整行正規化成「刪空白 + 轉小寫」後做 Levenshtein。理由:揭露面板是 small caps 字體,WinRT 常把一個字切開或把兩個字黏在一起(`Dam age`、`toFire`),以單字為單位的比對對這種錯誤反而脆弱;
+  刪掉空白後這兩種錯誤都不影響。
+- **正規化 `normalizeOcrTextEn`**(繁中的 `normalizeOcrText` 一字不改):全形 → 半形、彎引號 / 破折號統一;數字旁的 `O/o` → `0`、`l/I/|` → `1` **只在另一邊不是字母時**
+  (繁中規則會把 `ADDS 28 TO 45` 的 `TO45` 變成 `T045`,所以英文另寫);夾在兩個字母之間的 `0` → `o`、`1` / `|` → `l`;刪空白與 `'`;轉小寫。模板走同一個函式。
+- **相似度門檻 0.85(同繁中),長度差不另設上限**(`EN_FUZZY`):繁中的「長度差 ≤ 2」是給 5–15 字的 CJK 模板用的,英文 skeleton 9–89 字(中位數 31),
+  漏 / 多一個字母、兩字黏在一起就超過;長度差本身已受 `1 − d / max(L, m) ≥ 0.85` 約束(≈ 長度的 15%)。長度剪枝(`FuzzyCandidates` / `fuzzyLengthPossible`)改依規則算:
+  英文的掃描範圍 = 由門檻推得的上界(`m ≤ L / 0.85`),逐一用同一個浮點式判定。
+- **為什麼 0.85 對英文合理**(量測,`data/poe2/desecration` 兩種語言的 skeleton 兩兩比較,只看每個 skeleton 最接近的另一個):
+
+  | | skeleton 數 | 最近鄰 ≥ 0.80 | ≥ 0.85 | ≥ 0.90 |
+  |---|---|---|---|---|
+  | 繁中(長度差 ≤ 2) | 706 | 473 | 265 | 112 |
+  | 英文(不限長度差) | 669 | 466 | 260 | 46 |
+
+  兩者在 0.85 的「容易混淆」比例相近(37% / 39%),英文在 0.90 以上的更少;這些近鄰幾乎都是 `increased` ↔ `reduced` 的反向寫法(繁中是 `增加` ↔ `減少`),
+  由數值範圍 / `negate` 分開(與繁中同一套)。另外:精確命中優先、模糊只留最高分、數值要落在範圍內。測試:200 個 ≥ 20 字的英文寫法各換 1 個字母仍命中自己(固定種子)。
+- **「像詞綴」判定**(main 定位):同一套 skeleton + 門檻;英文行 = 含兩個連續拉丁字母(`hasLangText`);面板上的 `THE WELL OF SOULS`、`CONFIRM`、`Search here` 不像詞綴(測試守著)。
+- **長詞綴換行合併**:與繁中同一條規則(自己對不上、接下一行後精確命中),英文接的時候中間補一個空白(數字旁 O / l 的規則看得到字界)。
+  英文截圖第一個選項 `ATTACKS WITH THIS WEAPON PENETRATE 25% FIRE` / `RESISTANCE` → 合併成一行、精確命中。
+
+### 英文截圖比對結果(`well-of-souls-weapon-en-04`,使用者提供 900×860 局部截圖)
+
+快照:`node scripts/ocr-fixture.mjs --with-locate -en-`(依檔名自動用 `en-US`;×3 6 行、×1 6 行)。×3 與 ×1 結果相同,三組全對上(`poe2/test/desecration/ocr-match-en.test.ts`):
+
+| 選項(OCR) | Tier | 詞綴池 | mod |
+|---|---|---|---|
+| `ATTACKS WITH THIS WEAPON PENETRATE 25% FIRE` + `RESISTANCE`(折行合併) | T1 | 阿姆那姆專屬 | AbyssModGenWeaponAmanamuPrefixFirePenetration(15–25) |
+| `ADDS 28 TO 45 COLD DAMAGE` | T6 | 一般 | LocalAddedColdDamageTwoHand5 |
+| `ADDS 23 TO 54 PHYSICAL DAMAGE` | T3 | 一般 | LocalAddedPhysicalDamageTwoHand7 |
+
+profile 來源 = 三個選項共同可能的底材(交集),徽章帶「?」。`--ocr-selftest`(依檔名用 en-US):two-pass ×1 定位 6 行 / 像詞綴 4 → 面板區 ×3 4 行、cached 與 full 逐字相同。
+負樣本(合成,依浮窗行距):進階說明開著的英文物品浮窗(`{ Prefix Modifier … (Tier: 3) }` 標頭 + `Requires:` / `Quality:` 屬性行)→ `keyword-line`;一般複製的 5 條連續詞綴 → `too-many-groups`;
+浮窗與面板同框 → 面板照常。
 
 ## 自動持續辨識(2026-10-01)
 
@@ -384,7 +435,7 @@ log:擷取有遮到東西時,掃描結果那行多「遮掉自己的徽章 N 塊
 | 擷取 | `main/src/ocr/capture.ts` + `overlay-shot.ts`(+ 第 18 步 `scan-mask.ts`:擷取後遮掉我們自己的徽章 / 提示再 OCR / 差分,見「遮掉自己畫的東西」) | **第 17 步起先用 overlay 原生 `OverlayController.screenshot()`**(只抓 attach 的遊戲 client,同步約 20 ms;throw / 尺寸不符 / 全黑才退回下面這條,見「擷取改用 overlay 原生 `screenshot()`」);後援:`desktopCapturer.getSources({ types: ['screen'], thumbnailSize: 該螢幕實體像素 })` → 用 `GameWindow.bounds`(client 區螢幕實體像素)減螢幕原點(`display.nativeOrigin`,沒有就 DIP × scaleFactor)裁出 client 區 |
 | 前處理 | `capture.ts` `prepareRect()` / `rectRecognizer()` | 可選 `ocrRegion`(client 比例,`strategy.ts` `regionSearchRect` 以 client 尺寸換算再減擷取偏移)= 優先搜尋範圍 → 依下一列選的矩形裁切 → 放大(`×1` 或 `s = min(3, floor(9000 / max(w, h)))`:1080p / 1440p 3×、4K 2×;WinRT `MaxImageDimension` = 10000)→ `nativeImage.resize({ quality: 'best' })` → **JPEG q95**(`toPNG` 對 5760×3240 要 1.3–1.6 秒,JPEG 約 0.1 秒;逐字結果相同) |
 | 選範圍 | `main/src/ocr/strategy.ts` `recognizeRegionFirst` / `smartRecognize` + `poe2/src/desecration/ocr-locate.ts` | 有框選區域 → 先只在區域內跑、找不到再整張(WP-S2,見「框選辨識區域」);每一輪都是**兩段式**:快取區 ×3 → 整張 ×1 定位 + 面板區 ×3 → 整張 ×3(見下節) |
-| OCR | `main/src/ocr/win-ocr.ps1` + `WinOcr.ts` | 常駐 PowerShell 5.1 + WinRT `Windows.Media.Ocr`(`zh-Hant-TW`);`-EncodedCommand` 傳腳本(stdin 留給資料);協定見 ps1 檔頭(2026-10-01 第 7 步起影像寫暫存檔送路徑、runtime 不要 words,見「擷取與 OCR 傳輸」);單張逾時 8 秒 / 崩潰 → 下一次自動重啟;閒置 10 分鐘結束;缺語言包的結果記 30 秒 |
+| OCR | `main/src/ocr/win-ocr.ps1` + `WinOcr.ts` | 常駐 PowerShell 5.1 + WinRT `Windows.Media.Ocr`(`zh-Hant-TW`;第 22 步起依客戶端語言,英文 → `en-US`,`WinOcr.setLang`);`-EncodedCommand` 傳腳本(stdin 留給資料);協定見 ps1 檔頭(2026-10-01 第 7 步起影像寫暫存檔送路徑、runtime 不要 words,見「擷取與 OCR 傳輸」);單張逾時 8 秒 / 崩潰 → 下一次自動重啟;閒置 10 分鐘結束;缺語言包的結果記 30 秒 |
 | 廣播 | `main/src/ocr/reveal.ts` | `ocr-reveal-result`:先 `{phase:'pending'}`,再 `{phase:'result', ok, lines(client 實體像素), client, scale, tookMs, ocrMs, stage, stages}` 或 `{ok:false, error}`;`stage` = `cached \| two-pass \| full`(有框選區域時 `region \| region-fallback`,`inner` = 採用那一輪的內層路徑)、`stages` = 各段範圍 / 倍率 / 耗時 / 命中數 / 未採用原因 / `scope`(`region` / `screen`)(診斷用;renderer 只讀 `stage === 'region-fallback'` 顯示提示);**不在** `PREVIEW_EVENTS`(預覽端收不到) |
 | 比對 | `poe2/src/desecration/ocr-match.ts`(renderer 經 `@poe2-entry` 的 `matchRevealLines`) | 正規化 → skeleton → 精確 / 模糊命中 → 折行合併 → 分組 → entry 一一對應 → profile → Tier(見下) |
 | 顯示 | `renderer/src/web/overlay/OcrBadges.vue` + `ocr-reveal.ts` | 每組右側一枚徽章(第 13 步起左緣對齊、上下不重疊);清除:再按一次熱鍵、Esc(overlay 有焦點時)、15 秒、overlay 視窗移動或改大小(2026-10-01 起按住 Alt 不再隱藏) |
@@ -484,9 +535,10 @@ log:擷取有遮到東西時,掃描結果那行多「遮掉自己的徽章 N 塊
 ## 驗證
 
 - `node scripts/ocr-fixture.mjs`:對 `poe2/test/desecration/fixtures/ocr/*.{webp,png}` 跑**同一支** `win-ocr.ps1`(經 Node 24 型別剝除直接 import `WinOcr.ts`)
-  → `*.ocr.json` 快照(進 repo)。前處理用 sharp(lanczos3 + JPEG q95)模擬 runtime。需要 Windows + `zh-Hant-TW` 語言包。
+  → `*.ocr.json` 快照(進 repo)。前處理用 sharp(lanczos3 + JPEG q95)模擬 runtime。需要 Windows + `zh-Hant-TW` 語言包(英文截圖另需 `en-US`)。
+  第 22 步:`--lang en-US|zh-Hant-TW`;省略 = 依檔名(含 `-en-` / `-en.` → `en-US`),每個語言包一個 OCR 行程。英文截圖檔名一律帶 `-en`。
   Node 會警告 `MODULE_TYPELESS_PACKAGE_JSON`(main 不是 ESM package),無害。
-- `electron main/dist/main.js --ocr-selftest <png> [--ocr-selftest-region=x,y,w,h]`:不開視窗、不拿單一實例鎖,走 runtime 的 `smartRecognize` + `WinOcr`,
+- `electron main/dist/main.js --ocr-selftest <png> [--ocr-selftest-region=x,y,w,h] [--ocr-lang=en-US]`(第 22 步:省略 `--ocr-lang` = 依檔名,同上;英文用英文模板索引):不開視窗、不拿單一實例鎖,走 runtime 的 `smartRecognize` + `WinOcr`,
   依序跑 ① 快取空(two-pass)② 同一張(cached)③ 強制整張 ×3 對照 ④ 清快取再跑(熱的 two-pass),印每段範圍 / 倍率 / 耗時 / 命中數與採用那段的行(client 座標)
   (先 `npm run build --workspace main`、清 `ELECTRON_RUN_AS_NODE`;nativeImage 不吃 webp,先用 sharp 轉 png)。擷取不在這裡測。
 - `poe2/test/desecration/ocr-locate.test.ts`:定位(fullscreen-02 快照 ÷ 3 當 ×1 輸入):裁切框包住 4 行詞綴、不含背包(x > 1300)、外擴下限;框內的行跑 `matchReveal` 與整張結果相同;`checkRegion` ok / 貼邊 / 太少;只認出 1 行仍蓋得住面板。
@@ -539,8 +591,9 @@ PowerShell 行程第一次啟動約 0.3–1.8 秒(之後常駐)。
 - **只驗過三張截圖**(繁中客戶端;面板裁切圖 987×1005 胸甲、全螢幕 2000×1125 與 2000×1121;都無折行);
   寫法變體只收 stats.ndjson 有的 matcher,遊戲若還有別的寫法仍會對不上(面板不會因此拆開,該組顯示原文);兩段式的快取鍵只含 client 大小與範圍,遊戲 UI 縮放改了但 client 大小不變時,第一次按會走 cached → 不通過 → two-pass(多花一次快取區 OCR 約 0.1 秒);其他解析度 / UI 縮放 / 字型、真的折行、`減少…`、`附加#至#` 模板都只有合成測試。
 - 假 client 測試的字高與樣本相同;真實 1080p 的字可能更小,3× 放大後是否仍逐字正確待使用者親測。
-- 語言包:設定 → 時間與語言 → 語言與地區 → 中文(台灣)→ 語言選項 → 光學字元辨識。缺少時提示並在設定 › 熱鍵與視窗顯示狀態。
-- 英文客戶端不支援(OCR 固定 `zh-Hant-TW`、比對用繁中模板)。
+- 語言包:設定 → 時間與語言 → 語言與地區 → 中文(台灣)(英文客戶端:英文(美國))→ 語言選項 → 光學字元辨識。缺少時提示並在設定 › 熱鍵與視窗顯示狀態(依語言顯示繁中 / 英文的安裝說明)。
+- 英文客戶端(第 22 步)只驗過一張使用者截圖(900×860 局部、武器、三個選項含一個折行);其他解析度 / UI 縮放、全螢幕截圖、英文物品浮窗的真實負樣本都沒有(負樣本是合成的)。
+  客戶端語言設定要與遊戲一致:設成繁中但遊戲是英文(或反過來)時 OCR 語言包不對,認不出面板(不會誤出徽章)。
 - profile 不明時只能給範圍(標「?」);查價過同一件物品(10 分鐘內)才是精確底材。
 - Esc 只在 overlay 有焦點時收得到(遊戲在前景時 Esc 屬於遊戲);其餘靠再按熱鍵 / 15 秒。
 - 框選(WP-S2)只在 overlay 模式;window 模式與瀏覽器預覽不能框選(2026-10-01 起設定頁沒有數字欄位,只能沿用既有 `ocrRegion` 或清除)。區域以 client 比例存,遊戲換解析度 / UI 縮放後面板位置可能不同 → 區域內找不到時設定頁顯示「區域內沒找到面板」(第 13 步起不再退回整張),重新框選或清除區域即可。
