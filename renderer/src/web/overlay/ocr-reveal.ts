@@ -11,6 +11,7 @@
 import { shallowRef } from 'vue'
 import type { Poe2RevealCandidate, Poe2RevealResult } from '@poe2-entry'
 import type { OcrRegion, RevealScanEvent, RuneshapeStats } from '@ipc/types'
+import { displayOcrText } from '../ocr-lang'
 import { regionPercent } from './region-geom'
 
 /** 最近查價物品當 profile 的有效期 */
@@ -215,7 +216,7 @@ export function layoutBadges (
         fuzzy: c.fuzzy
       })),
       more: g.candidates.length - shown.length,
-      unmatched: g.lines.filter(l => !l.match).map(l => l.text.replace(/\s+/g, '')),
+      unmatched: g.lines.filter(l => !l.match).map(l => displayOcrText(l.text)),
       empty: g.candidates.length === 0 && g.lines.some(l => l.match),
       guess
     }

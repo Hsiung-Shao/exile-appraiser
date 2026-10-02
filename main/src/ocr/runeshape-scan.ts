@@ -8,8 +8,11 @@
  * - 手動區域(`runeshapeRegion`)內沒找到面板**不**改掃全畫面(設定頁顯示「區域內沒找到面板」)。
  * - 查價面板 / 設定 / 框選層開著 → 暫停(限流額度讓給一般查價)。
  * 事件 `runeshape-scan-result`;不送任何鍵盤 / 滑鼠輸入。行為與泛化前相同(`main/test/runeshape-scan.test.ts`)。
+ * 第 22 步:英文客戶端 —— `createRuneshapeDetector(textLang)`:列格式 / 面板定位 / 直書判定 / 送出的列都依目前的 OCR 文字語言
+ * (英文 = 含兩個連續拉丁字母的行);`RUNESHAPE_DETECTOR` = 繁中(改版前的偵測器)。
  */
 import type { RuneshapeScanEvent } from '@ipc/types'
+import type { OcrTextLang } from '../../../poe2/src/desecration/ocr-text'
 import { isPanelRow, locateRunePanel, looksVertical } from '../../../poe2/src/runeshape/row-format'
 import { PanelScan, isRowText, type PanelDetector, type PanelScanDeps } from './panel-scan'
 
@@ -19,7 +22,7 @@ export {
 } from './panel-scan'
 export type { DiffThresholds, Fingerprint, ScanBlock, ScanCapture, ScanClock, ScanConfig, ScanEnv, TickResult } from './panel-scan'
 
-/** 符文塑形面板的偵測器 */
+/** 符文塑形面板的偵測器(繁中;改版前的 `RUNESHAPE_DETECTOR`) */
 export const RUNESHAPE_DETECTOR: PanelDetector = {
   tag: '[runeshape]',
   locate: (lines, bounds) => {
@@ -37,12 +40,40 @@ export const RUNESHAPE_DETECTOR: PanelDetector = {
   pauseOnPricePanel: true
 }
 
+/** 英文版偵測器(第 22 步):同一套規則,列格式 / 文字判定換英文 */
+const RUNESHAPE_DETECTOR_EN: PanelDetector = {
+  ...RUNESHAPE_DETECTOR,
+  locate: (lines, bounds) => {
+    const loc = locateRunePanel(lines, bounds, 'en')
+    return loc ? { crop: loc.crop, count: loc.rows.length } : null
+  },
+  classify: (lines) => {
+    const text = lines.filter(l => isRowText(l.text, 'en'))
+    const hits = text.filter(l => isPanelRow(l.text, 'en')).length
+    return { found: hits > 0, hits, rows: hits > 0 ? text : [] }
+  },
+  verticalRetry: (lines) => looksVertical(lines, 'en')
+}
+
+/** 依目前 OCR 文字語言切換的偵測器(每次呼叫看 `textLang()`) */
+export function createRuneshapeDetector (textLang: () => OcrTextLang = () => 'zh'): PanelDetector {
+  const pick = () => (textLang() === 'en' ? RUNESHAPE_DETECTOR_EN : RUNESHAPE_DETECTOR)
+  return {
+    ...RUNESHAPE_DETECTOR,
+    locate: (lines, bounds) => pick().locate(lines, bounds),
+    classify: (lines) => pick().classify(lines),
+    verticalRetry: (lines) => pick().verticalRetry!(lines)
+  }
+}
+
 export interface RuneshapeScanDeps extends Omit<PanelScanDeps, 'send'> {
   send: (ev: RuneshapeScanEvent) => void
+  /** 第 22 步:目前的 OCR 文字語言(客戶端語言);省略 = 繁中 */
+  textLang?: () => OcrTextLang
 }
 
 export class RuneshapeScan extends PanelScan {
   constructor (deps: RuneshapeScanDeps) {
-    super(deps, RUNESHAPE_DETECTOR)
+    super(deps, deps.textLang ? createRuneshapeDetector(deps.textLang) : RUNESHAPE_DETECTOR)
   }
 }

@@ -239,6 +239,54 @@ describe('WinOcr:影像走暫存檔、可不要 words', () => {
   })
 })
 
+describe('WinOcr.setLang(第 22 步:語言包跟著客戶端語言)', () => {
+  const reply = (p: FakeProc) => { p.onLine = (s) => { const req = JSON.parse(s); p.reply({ id: req.id, ms: 1, w: 1, h: 1, lines: [] }) } }
+
+  it('換語言包:結束行程、下一次以新語言啟動(EXILE_OCR_LANG);相同語言什麼都不做', async () => {
+    const ocr = new WinOcr('# script', { tmpDir, log: () => {} })
+    expect(ocr.lang).toBe('zh-Hant-TW')
+    reply(proc)
+    await ocr.recognize(IMG, { words: false })
+    expect(spawnMock.mock.calls[0][2].env.EXILE_OCR_LANG).toBe('zh-Hant-TW')
+    expect(ocr.setLang('zh-Hant-TW')).toBe(false)
+    expect(ocr.running).toBe(true)
+    const first = proc
+    expect(ocr.setLang('en-US')).toBe(true)
+    expect(ocr.lang).toBe('en-US')
+    expect(ocr.running).toBe(false)
+    expect(first.kill).toHaveBeenCalled()
+    proc = new FakeProc()
+    reply(proc)
+    await ocr.recognize(IMG, { words: false })
+    expect(spawnMock).toHaveBeenCalledTimes(2)
+    expect(spawnMock.mock.calls[1][2].env.EXILE_OCR_LANG).toBe('en-US')
+    ocr.close()
+  })
+
+  it('缺語言包:available() 回報想用的語言包(設定頁據此顯示英文 / 繁中的安裝提示);換語言不沿用 30 秒的缺包記憶', async () => {
+    spawnMock.mockImplementation(() => {
+      const p = proc
+      setImmediate(() => p.reply({ error: 'lang-missing', lang: 'en-US', langs: ['zh-Hant-TW'] }))
+      return p
+    })
+    const ocr = new WinOcr('# script', { tmpDir, lang: 'en-US', log: () => {} })
+    expect(await ocr.available()).toMatchObject({ ok: false, error: 'lang-missing', lang: 'en-US', langs: ['zh-Hant-TW'] })
+    // 30 秒內同語言不再 spawn
+    expect(await ocr.available()).toMatchObject({ ok: false, error: 'lang-missing' })
+    expect(spawnMock).toHaveBeenCalledTimes(1)
+    spawnMock.mockImplementation(() => {
+      proc = new FakeProc()
+      const p = proc
+      setImmediate(() => p.reply({ ready: true, lang: 'zh-Hant-TW', langs: ['zh-Hant-TW'], maxDim: 10000 }))
+      return p
+    })
+    expect(ocr.setLang('zh-Hant-TW')).toBe(true)
+    expect(await ocr.available()).toEqual({ ok: true, lang: 'zh-Hant-TW', langs: ['zh-Hant-TW'] })
+    expect(spawnMock).toHaveBeenCalledTimes(2)
+    ocr.close()
+  })
+})
+
 describe('cleanStaleOcrFiles', () => {
   it('pid 不在 → 刪;pid 在但超過 1 小時 → 刪;新的 / 本行程 / 不認得的檔名 → 留', async () => {
     const dir = path.join(root, 'stale')

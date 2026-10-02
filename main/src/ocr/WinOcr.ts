@@ -12,6 +12,8 @@
  * - `recognize(img, { words: false })`:腳本不輸出每個 word(runtime 掃描只用行;fixture 快照照舊帶 words)。
  * - 請求一次一個(行程本來就循序處理);逾時(預設 8 秒)→ 殺掉行程,下一次呼叫自動重啟;行程崩潰同樣。
  * - 缺語言包(`lang-missing`)記住結果 30 秒,避免每按一次熱鍵就 spawn 一次 PowerShell。
+ * - `setLang(tag)`(2026-10-02 第 22 步):換 OCR 語言包(客戶端語言改成英文 / 繁中)→ 結束目前的行程(進行中的請求以 `crashed` 失敗,
+ *   掃描丟掉那個 tick),下一次呼叫以新語言啟動;缺語言包的記憶一併清掉(換語言要重新檢查)。
  *
  * ⚠ 本檔只能用「可抹除」的 TS 語法(不用 enum、參數屬性):`scripts/ocr-fixture.mjs` 以 Node 24 原生型別剝除直接 import 它。
  */
@@ -178,6 +180,19 @@ export class WinOcr {
 
   get running (): boolean { return this.proc != null }
 
+  /** 目前(下一次啟動會用)的 OCR 語言包 */
+  get lang (): string { return this.opts.lang }
+
+  /** 換語言包;與目前相同回 false(什麼都不做),不同 → 結束行程、清掉缺語言包的記憶,回 true */
+  setLang (lang: string): boolean {
+    if (!lang || lang === this.opts.lang) return false
+    this.opts.log(`[ocr] 語言 ${this.opts.lang} → ${lang}`)
+    this.opts.lang = lang
+    this.langMissing = null
+    this.close('lang change')
+    return true
+  }
+
   /** 啟動(或沿用)行程;resolve = 語言包可用。 */
   start (): Promise<OcrReady> {
     if (this.readyPromise) return this.readyPromise
@@ -252,7 +267,8 @@ export class WinOcr {
           clearTimeout(startTimer)
           reject(new OcrError('spawn-failed', e.message))
         }
-        this.onExit(`error ${e.message}`)
+        // 第 22 步:只處理「目前這個」行程的結束 —— 換語言包(`setLang`)後舊行程的 exit 事件晚到,不可清掉剛啟動的新行程
+        if (this.proc === proc) this.onExit(`error ${e.message}`)
       })
       proc.on('exit', (code) => {
         if (!settled) {
@@ -260,7 +276,7 @@ export class WinOcr {
           clearTimeout(startTimer)
           reject(new OcrError('crashed', `OCR 行程在就緒前結束(exit ${code})`))
         }
-        this.onExit(`exit ${code}`)
+        if (this.proc === proc) this.onExit(`exit ${code}`)
       })
     })
     this.readyPromise = p
@@ -298,14 +314,16 @@ export class WinOcr {
   }
 
   /** 語言包是否可用(會視需要啟動行程)。 */
-  async available (): Promise<{ ok: true, lang: string, langs: string[] } | { ok: false, error: OcrErrorKind, langs?: string[], message: string }> {
+  async available (): Promise<{ ok: true, lang: string, langs: string[] } | { ok: false, error: OcrErrorKind, lang: string, langs?: string[], message: string }> {
+    const lang = this.opts.lang
     try {
       const r = await this.start()
       this.armIdle()
       return { ok: true, lang: r.lang, langs: r.langs }
     } catch (e) {
       const err = e instanceof OcrError ? e : new OcrError('spawn-failed', String(e))
-      return { ok: false, error: err.kind, langs: err.langs, message: err.message }
+      // 第 22 步:`lang` = 想用的語言包(設定頁依它顯示繁中 / 英文的安裝提示)
+      return { ok: false, error: err.kind, lang, langs: err.langs, message: err.message }
     }
   }
 

@@ -1,5 +1,7 @@
 /**
- * exile-appraiser(WP-R2):`electron main/dist/main.js --runeshape-selftest <png> [--runeshape-selftest-region=x,y,w,h]`
+ * exile-appraiser(WP-R2):`electron main/dist/main.js --runeshape-selftest <png> [--runeshape-selftest-region=x,y,w,h] [--ocr-lang=en-US|zh-Hant-TW]`
+ * (第 22 步:`--ocr-lang` 省略 = 依檔名,`-en-` / `-en.` → 英文客戶端:`en-US` 語言包、`data/poe2/en/items.ndjson` + 配方英文泛稱、英文列格式;
+ * 其他 → 繁中,輸出與改版前相同)
  * 不開任何視窗、不註冊熱鍵:把 PNG 當成遊戲 client 區,用 runtime 同一個 `RuneshapeScan`(直接呼叫 `tick()`)跑兩條路:
  *   A. 自動定位(沒框區域):① 第一次 → 整張 ×1 定位 + 定位框 ×3 ② 同一張 → 畫面沒變跳過 ③ 定位框中央塗白 → 快取區 ×3
  *   B. 手動區域(`--runeshape-selftest-region`,沒給 = 整張 0,0,1,1):① 第一次 ×3(直書時自動改走 ×1 找列 + 裁切重辨識)② 同一張
@@ -16,7 +18,9 @@ import {
   buildRuneshapeIndex, matchRunesRowsWith, type NameEntry, type RecipeEntry, type RuneshapeIndex, type RuneshapeRecipesFile
 } from '../../../poe2/src/runeshape/match-core'
 import { parseExchangeOverview } from '../../../core/src/ninja/client'
+import type { OcrTextLang } from '../../../poe2/src/desecration/ocr-text'
 import { toScanCapture } from './capture'
+import { selftestOcrLang, textLangFor } from './ocr-lang'
 import { RuneshapeScan, type TickResult } from './runeshape-scan'
 import { WIN_OCR_SCRIPT } from './script'
 import type { PhysRect } from './strategy'
@@ -29,8 +33,8 @@ function repoRoot (): string {
   return path.resolve(__dirname, '../..')
 }
 
-async function loadIndex (out: Out): Promise<RuneshapeIndex | null> {
-  const file = path.join(repoRoot(), 'data/poe2/cmn-Hant/items.ndjson')
+async function loadIndex (out: Out, lang: OcrTextLang): Promise<RuneshapeIndex | null> {
+  const file = path.join(repoRoot(), lang === 'en' ? 'data/poe2/en/items.ndjson' : 'data/poe2/cmn-Hant/items.ndjson')
   try {
     const t = Date.now()
     const entries: NameEntry[] = (await fs.readFile(file, 'utf8')).split('\n').filter(Boolean).map(l => JSON.parse(l) as NameEntry)
@@ -42,7 +46,7 @@ async function loadIndex (out: Out): Promise<RuneshapeIndex | null> {
     } catch (e) {
       out(`[runeshape-selftest] 讀不到 ${recipesFile}(${e instanceof Error ? e.message : String(e)});配方泛稱列會對不上`)
     }
-    const idx = buildRuneshapeIndex(entries, recipes)
+    const idx = lang === 'en' ? buildRuneshapeIndex(entries, recipes, 'en') : buildRuneshapeIndex(entries, recipes)
     out(`[runeshape-selftest] 名稱索引 ${entries.length} 筆 + 配方 ${recipes.length} 筆(${file},${Date.now() - t} ms)`)
     return idx
   } catch (e) {
@@ -82,6 +86,8 @@ function priceText (chaos: number, qty: number, p: Prices): string {
 }
 
 function printRows (ev: RuneshapeScanEvent, index: RuneshapeIndex | null, prices: Prices | null, out: Out) {
+  // 繁中:刪掉 WinRT 插在字間的空白(改版前的輸出);英文:空白縮成一個
+  const shown = (t: string) => index?.lang === 'en' ? t.replace(/\s+/g, ' ').trim() : t.replace(/\s+/g, '')
   if (!index) {
     for (const r of ev.rows) out(`    (${r.x.toFixed(0)},${r.y.toFixed(0)} ${r.w.toFixed(0)}x${r.h.toFixed(0)})  ${r.text}`)
     return
@@ -93,13 +99,14 @@ function printRows (ev: RuneshapeScanEvent, index: RuneshapeIndex | null, prices
       : m.ambiguous ? `${m.kind} 重名 ${m.ambiguous.join(' / ')}` : `${m.kind} 對不上`
     let price = ''
     if (m.offPanel) price = '面板外,不畫'
+    else if (m.undiscovered) price = '未發現,不畫'
     else if (m.unpriced === 'gem') price = '無價格(poe.ninja 沒有技能寶石)'
     else if (m.unpriced === 'recipe') price = `無固定價格(配方泛稱 ${m.recipeId ?? ''})`
     else if (m.ninjaKey && prices) {
       const c = prices.map.get(m.ninjaKey)
       price = c && c > 0 ? priceText(c, m.quantity, prices) : `無價格(錄製檔沒有 ${m.ninjaKey})`
     }
-    out(`    ${pos} ${m.text.replace(/\s+/g, '').padEnd(16)} → ${name}${m.quantity > 1 ? ` ×${m.quantity}` : ''}${m.level != null ? ` Lv${m.level}` : ''}  ${price}`)
+    out(`    ${pos} ${shown(m.text).padEnd(16)} → ${name}${m.quantity > 1 ? ` ×${m.quantity}` : ''}${m.level != null ? ` Lv${m.level}` : ''}  ${price}`)
   }
 }
 
@@ -132,9 +139,11 @@ export async function runRuneshapeSelftest (file: string, argv: string[]): Promi
     ? { x: nums[0], y: nums[1], w: nums[2], h: nums[3] }
     : { x: 0, y: 0, w: 1, h: 1 }
   out(`[runeshape-selftest] ${file} ${size.width}x${size.height}`)
-  const [index, prices] = await Promise.all([loadIndex(out), loadPrices(out)])
+  const lang = selftestOcrLang(file, argv)
+  const textLang = textLangFor(lang)
+  const [index, prices] = await Promise.all([loadIndex(out, textLang), loadPrices(out)])
 
-  const ocr = new WinOcr(WIN_OCR_SCRIPT, { timeoutMs: 60_000, log: out })
+  const ocr = new WinOcr(WIN_OCR_SCRIPT, { timeoutMs: 60_000, log: out, lang })
   let current = img
   let region: OcrRegion | null = null
   const events: RuneshapeScanEvent[] = []
@@ -146,7 +155,8 @@ export async function runRuneshapeSelftest (file: string, argv: string[]): Promi
     ocrBusy: () => false,
     capture: async () => toScanCapture({ image: current, offset: { x: 0, y: 0 }, client: { w: size.width, h: size.height } }, () => ocr),
     send: (ev) => { events.push(ev) },
-    log: out
+    log: out,
+    textLang: () => textLang
   })
   const step = async (scan: RuneshapeScan, label: string) => {
     const n = events.length

@@ -65,7 +65,7 @@
           <button v-if="canCheck" class="btn ghost sm" data-action="ocr-check" :disabled="checking" @click="checkOcr">{{ t('ppz.ocr.check') }}</button>
         </div>
       </div>
-      <p v-if="ocrStatus.kind === 'bad' && ocrAvail && !ocrAvail.ok && ocrAvail.error === 'lang-missing'" class="err-line">{{ t('ppz.ocr.err_lang_missing') }}</p>
+      <p v-if="ocrStatus.kind === 'bad' && ocrAvail && !ocrAvail.ok && ocrAvail.error === 'lang-missing'" class="err-line" data-setting="ocr-lang-missing">{{ t(ocrWantsEn ? 'ppz.ocr.err_lang_missing_en' : 'ppz.ocr.err_lang_missing') }}</p>
       <div class="chk-row">
         <label class="chk"><input v-model="config.revealShowAllCandidates" type="checkbox" data-setting="reveal-show-all"><span>{{ t('ppz.ocr.show_all_candidates') }}</span></label>
       </div>
@@ -133,7 +133,9 @@
 import { computed, defineComponent, onMounted, reactive, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { OcrAvailability } from '@ipc/types'
-import { AppConfig, normRuneshapeThresholds } from '@/web/Config'
+import { AppConfig, hostConfigSettled, normRuneshapeThresholds } from '@/web/Config'
+import { afterHostConfigApplied } from '@/web/host-config-sync'
+import { ocrWantsEnglish } from '@/web/ocr-lang'
 import { Host } from '@/web/background/IPC'
 import { mergeTwoHotkeys } from '@ipc/KeyToCode'
 import HotkeyInput from '../HotkeyInput.vue'
@@ -167,13 +169,19 @@ export default defineComponent({
       }
     }
     onMounted(() => { if (config.game === 'poe2') void checkOcr() })
+    // 第 22 步:OCR 語言包跟著客戶端語言(main 收到設定後換語言包)→ 設定送到 main 之後重新檢查
+    watch(() => config.language, () => {
+      if (config.game === 'poe2' && canCheck) void afterHostConfigApplied(hostConfigSettled, () => { void checkOcr() }, 0)
+    })
+    /** 缺的是英文語言包(main 回報想用的語言包;舊 main 沒回報 → 依目前的客戶端語言) */
+    const ocrWantsEn = computed(() => ocrWantsEnglish(ocrAvail.value, config.language))
     const ocrStatus = computed(() => {
       if (!canCheck) return { kind: 'dim', text: t('ppz.ocr.status_preview') }
       const a = ocrAvail.value
       if (checking.value || a === null) return { kind: 'dim', text: t('ppz.ocr.status_checking') }
       if (a === undefined) return { kind: 'dim', text: t('ppz.ocr.status_preview') }
       if (a.ok) return { kind: 'good', text: t('ppz.ocr.status_ok', { lang: a.lang }) }
-      if (a.error === 'lang-missing') return { kind: 'bad', text: t('ppz.ocr.status_missing', { langs: a.langs?.join(', ') || '—' }) }
+      if (a.error === 'lang-missing') return { kind: 'bad', text: t(ocrWantsEn.value ? 'ppz.ocr.status_missing_en' : 'ppz.ocr.status_missing', { langs: a.langs?.join(', ') || '—' }) }
       return { kind: 'bad', text: t('ppz.ocr.status_error', { error: a.message ?? a.error }) }
     })
 
@@ -188,7 +196,7 @@ export default defineComponent({
 
     return {
       t, config, issueText, otherError, quickHotkey,
-      ocrAvail, ocrStatus, checking, canCheck, checkOcr,
+      ocrAvail, ocrStatus, ocrWantsEn, checking, canCheck, checkOcr,
       thresholdDraft, applyThresholds
     }
   }

@@ -1,5 +1,6 @@
 /**
- * exile-appraiser(WP-S):`electron main/dist/main.js --ocr-selftest <png> [--ocr-selftest-region=x,y,w,h]`
+ * exile-appraiser(WP-S):`electron main/dist/main.js --ocr-selftest <png> [--ocr-selftest-region=x,y,w,h] [--ocr-lang=en-US|zh-Hant-TW]`
+ * (第 22 步:`--ocr-lang` 省略 = 依檔名,`-en-` / `-en.` → 英文客戶端 `en-US` + 英文模板索引;其他 → 繁中,輸出與改版前相同)
  * 不開任何視窗、不註冊熱鍵、不拿單一實例鎖:把 PNG 當成遊戲 client 區,走 runtime 同一條 `smartRecognize`
  * (`prepareRect` 裁切 + 放大 → `WinOcr` 內嵌的 win-ocr.ps1;模板索引同 runtime 的 `loadLocateIndex`),
  * 依序跑三次並印出每段耗時與走了哪條路:
@@ -15,6 +16,7 @@ import { app, nativeImage } from 'electron'
 import type { OcrRegion } from '@ipc/types'
 import { rectRecognizer, regionRect } from './capture'
 import { loadLocateIndex } from './locate-data'
+import { selftestOcrLang, textLangFor } from './ocr-lang'
 import { WIN_OCR_SCRIPT } from './script'
 import { PanelRegionCache, cacheKey, smartRecognize, type SmartOcrResult } from './strategy'
 import { WinOcr } from './WinOcr'
@@ -40,8 +42,9 @@ export async function runOcrSelftest (file: string, argv: string[]): Promise<num
   const region = parseRegion(argv)
   const search = regionRect({ w: size.width, h: size.height }, region)
   out(`[ocr-selftest] ${file} ${size.width}x${size.height} region=${region ? JSON.stringify(region) : '整張'} → 搜尋範圍 ${search.x},${search.y} ${search.width}x${search.height}`)
-  const index = await loadLocateIndex(__dirname, out)
-  const ocr = new WinOcr(WIN_OCR_SCRIPT, { timeoutMs: 60_000, log: out })
+  const lang = selftestOcrLang(file, argv)
+  const index = await loadLocateIndex(__dirname, out, textLangFor(lang))
+  const ocr = new WinOcr(WIN_OCR_SCRIPT, { timeoutMs: 60_000, log: out, lang })
   const cache = new PanelRegionCache()
   const key = cacheKey({ w: size.width, h: size.height }, { x: 0, y: 0 }, search)
   const print = (label: string, wall: number, res: SmartOcrResult) => {

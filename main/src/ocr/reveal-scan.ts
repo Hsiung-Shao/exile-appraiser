@@ -11,10 +11,12 @@
  * - **查價面板開著不暫停**(看褻瀆時常同時開著查價);設定 / 框選層開著、遊戲失焦時暫停。
  * 與符文塑形共用同一個 WinOcr(對方忙碌就丟掉這個 tick;兩者同時開著時 main 把第一個 tick 錯開半個間隔)。
  * 事件 `reveal-scan-result`(不進 `PREVIEW_EVENTS`);不送任何鍵盤 / 滑鼠輸入、不上傳。
+ * 第 22 步:英文客戶端 —— `textLang()`(main 依設定的客戶端語言,`ocr-lang.ts`)= `en` 時用英文模板索引(`loadLocateIndex(…, 'en')`),
+ * 兩種語言的索引各讀一次、各自快取;省略 = 繁中(改版前的行為)。
  */
 import type { RevealScanEvent } from '@ipc/types'
 import { findPanelHits, locatePanel, type LocateIndex, type PanelHitsDiag } from '../../../poe2/src/desecration/ocr-locate'
-import { GROUP_GAP_RATIO, type OcrTextLine } from '../../../poe2/src/desecration/ocr-text'
+import { GROUP_GAP_RATIO, type OcrTextLang, type OcrTextLine } from '../../../poe2/src/desecration/ocr-text'
 import { PanelScan, type PanelDetector, type PanelScanDeps } from './panel-scan'
 
 /** 至少這麼多行「像詞綴」才算有面板(與兩段式辨識的 `checkRegion` 同判準) */
@@ -37,21 +39,34 @@ export function modGroupCount (hits: OcrTextLine[]): number {
   return groups
 }
 
-/** `index()` 回傳目前的模板索引(還沒讀 / 讀不到 = null);`load()` 觸發讀取(只讀一次) */
-export function createRevealDetector (load: () => Promise<LocateIndex | null>): PanelDetector {
-  let index: LocateIndex | null = null
+/**
+ * `load(lang)` 觸發讀取該語言的模板索引(每種語言只讀一次);`textLang()` = 目前的 OCR 文字語言(省略 = 繁中)。
+ * `ready()` 讀好目前語言的索引;`locate` / `classify` 用目前語言的索引(還沒讀 / 讀不到 = 沒有面板)。
+ */
+export function createRevealDetector (
+  load: (lang: OcrTextLang) => Promise<LocateIndex | null>,
+  textLang: () => OcrTextLang = () => 'zh'
+): PanelDetector {
+  const indexes = new Map<OcrTextLang, LocateIndex>()
+  const current = (): LocateIndex | null => indexes.get(textLang()) ?? null
   return {
     tag: '[reveal-scan]',
     ready: async () => {
-      if (!index) index = await load().catch(() => null)
-      return index != null
+      const lang = textLang()
+      if (!indexes.has(lang)) {
+        const idx = await load(lang).catch(() => null)
+        if (idx) indexes.set(lang, idx)
+      }
+      return indexes.has(lang)
     },
     locate: (lines, bounds) => {
+      const index = current()
       if (!index) return null
       const loc = locatePanel(lines, index, bounds)
       return loc ? { crop: loc.crop, count: loc.hits.length } : null
     },
     classify: (lines) => {
+      const index = current()
       const diag: PanelHitsDiag = { vetoes: [] }
       const panel = index ? findPanelHits(lines, index, diag) : null
       const hits = panel?.hits.length ?? 0
@@ -68,12 +83,14 @@ export function createRevealDetector (load: () => Promise<LocateIndex | null>): 
 
 export interface RevealScanDeps extends Omit<PanelScanDeps, 'send'> {
   send: (ev: RevealScanEvent) => void
-  /** 模板索引(`locate-data.ts` 的 `loadLocateIndex`) */
-  locateIndex: () => Promise<LocateIndex | null>
+  /** 模板索引(`locate-data.ts` 的 `loadLocateIndex`);參數 = 要哪種語言的索引(第 22 步) */
+  locateIndex: (lang: OcrTextLang) => Promise<LocateIndex | null>
+  /** 第 22 步:目前的 OCR 文字語言(客戶端語言);省略 = 繁中 */
+  textLang?: () => OcrTextLang
 }
 
 export class RevealScan extends PanelScan {
   constructor (deps: RevealScanDeps) {
-    super(deps, createRevealDetector(deps.locateIndex))
+    super(deps, createRevealDetector(deps.locateIndex, deps.textLang))
   }
 }

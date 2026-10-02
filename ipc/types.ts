@@ -248,7 +248,8 @@ export interface OcrRevealLine {
 /** `ocrRevealAvailable()` 的結果(設定頁顯示)。 */
 export type OcrAvailability =
   | { ok: true, lang: string, langs: string[] }
-  | { ok: false, error: string, langs?: string[], message?: string }
+  /** `lang`(第 22 步)= 想用的語言包(`zh-Hant-TW` / `en-US`,跟著客戶端語言);舊 main 沒有 */
+  | { ok: false, error: string, lang?: string, langs?: string[], message?: string }
 
 /** `host-config` 的回傳 = main `Shortcuts.updateActions` 的熱鍵註冊結果(設定頁「熱鍵與視窗」顯示)。 */
 export interface HotkeyRegistration {

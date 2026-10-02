@@ -12,6 +12,7 @@ import { shallowRef } from 'vue'
 import type { RuneshapeScanEvent, RuneshapeTimings } from '@ipc/types'
 import type { Poe2RuneTradeEntry, Poe2RuneTradeFilter, Poe2RuneTradeSummary } from '@poe2-entry'
 import type { PriceOfResult } from '../background/price-of'
+import { displayOcrText } from '../ocr-lang'
 import { BADGE_GAP_PX } from './ocr-reveal'
 
 /** 最近一次掃描事件的耗時(設定頁「最近耗時」顯示;main 另有 `runeshape-stats` 平均) */
@@ -144,7 +145,7 @@ export function layoutRunePrices (
       refName: r.refName
     }
     if (!r.refName) {
-      const v: RuneBadgeView = { ...base, kind: 'unmatched', tier: 'low', raw: r.text.replace(/\s+/g, '') }
+      const v: RuneBadgeView = { ...base, kind: 'unmatched', tier: 'low', raw: displayOcrText(r.text) }
       if (r.ambiguous?.length) v.candidates = r.ambiguous
       return v
     }

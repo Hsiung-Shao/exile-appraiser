@@ -39,7 +39,7 @@
  * 不送任何鍵盤 / 滑鼠輸入。
  */
 import type { OcrRegion, PanelScanEvent, PanelScanRow, RuneshapeStats, RuneshapeTimings, RuneshapeUiState } from '@ipc/types'
-import type { OcrTextLine } from '../../../poe2/src/desecration/ocr-text'
+import { hasLangText, type OcrTextLang, type OcrTextLine } from '../../../poe2/src/desecration/ocr-text'
 import { ocrScale, regionSearchRect, toPhys, toRect, type PhysRect } from './strategy'
 
 // ---------------- 變化偵測(純函式) ----------------
@@ -221,10 +221,10 @@ export function clampScanInterval (v: unknown): number {
   return Math.min(SCAN_INTERVAL_MAX_MS, Math.max(SCAN_INTERVAL_MIN_MS, Math.round(v)))
 }
 
-/** 含 CJK 字的 OCR 行(數字 / 符號雜訊不算) */
+/** 含 CJK 字的 OCR 行(數字 / 符號雜訊不算);英文客戶端(第 22 步)= 含兩個連續拉丁字母 */
 const CJK_RE = /[㐀-鿿豈-﫿]/
-export function isRowText (text: string): boolean {
-  return CJK_RE.test(text)
+export function isRowText (text: string, lang: OcrTextLang = 'zh'): boolean {
+  return lang === 'en' ? hasLangText(text, 'en') : CJK_RE.test(text)
 }
 
 // ---------------- 自動定位參數 ----------------
@@ -290,6 +290,11 @@ export class SharedLocateOcr {
     this.runs++
     this.last = { key, at: now, lines: r.lines, ms: r.ms }
     return { lines: copy(r.lines), ms: r.ms, shared: false }
+  }
+
+  /** 第 22 步:OCR 語言改了 → 上一份(舊語言的)行資料不再共用 */
+  clear (): void {
+    this.last = null
   }
 }
 
@@ -562,6 +567,16 @@ export class PanelScan {
     this.rowsSig = ''
     this.baseline = null
     this.poke()
+  }
+
+  /**
+   * 第 22 步:OCR 語言(客戶端語言)改了 → 舊語言的自動定位快取、直書裁切記憶、差分基準、退避與重送簽章都作廢,下一個 tick 重新看
+   * (WinOcr 已換語言包重啟;偵測器的語言由 deps 的 getter 決定)
+   */
+  ocrLangChanged (): void {
+    this.dropAuto('OCR 語言改變')
+    this.tight = null
+    this.rescan()
   }
 
   /** 丟掉差分基準,下一個 tick 一定重新 OCR(框選確認後) */

@@ -26,6 +26,7 @@ import { WIN_OCR_SCRIPT } from './ocr/script'
 import { RevealScan } from './ocr/reveal-scan'
 import { runOcrSelftest, runRuneshapeSelftest } from './ocr/selftest'
 import { loadLocateIndex } from './ocr/locate-data'
+import { ocrLangFor, textLangFor } from './ocr/ocr-lang'
 import { createOverlayClientCapture, displayPhysRect, toScanCapture } from './ocr/capture'
 import { captureBenchMode } from './cli-flags'
 import { DEFAULT_SCAN_INTERVAL_MS, RuneshapeScan } from './ocr/runeshape-scan'
@@ -611,7 +612,10 @@ if (!skipStartup) app.whenReady().then(() => {
   }
 
   // WP-S:OCR 常駐 PowerShell 行程(第一次辨識才啟動,閒置 10 分鐘自動結束);褻瀆與符文塑形兩個掃描共用
+  // 第 22 步:語言包跟著設定的客戶端語言(`ocr-lang.ts`;PoE2 英文 → en-US、其他 → zh-Hant-TW);host-config 到了才知道,之前掃描本來就不跑
   const winOcr = new WinOcr(WIN_OCR_SCRIPT, { idleMs: 10 * 60_000 })
+  /** 兩個掃描的偵測器語言 = WinOcr 目前的語言包(換語言時兩者一起換) */
+  const ocrTextLang = () => textLangFor(winOcr.lang)
   /** 第 11 步:設定頁「徽章外觀」的系統字體清單(一次性 PowerShell,成功後快取) */
   const fontLister = createFontLister()
   app.on('will-quit', () => { winOcr.close('app quit') })
@@ -661,8 +665,9 @@ if (!skipStartup) app.whenReady().then(() => {
     ocrBusy: () => runeshapeScan.busy,
     capture: scanCapture,
     locateOcr: sharedLocateOcr,
-    // 面板定位 / 判定用 tiers.json 的模板 skeleton(第一次掃描才讀)
-    locateIndex: () => loadLocateIndex(),
+    // 面板定位 / 判定用 tiers.json 的模板 skeleton(第一次掃描才讀;第 22 步:每種語言各一份)
+    locateIndex: (lang) => loadLocateIndex(undefined, undefined, lang),
+    textLang: ocrTextLang,
     drawPending: () => scanMask.pending(Date.now()),
     send: (ev) => {
       if (ev.reason === 'rows') scanMask.noteSent('reveal', ev.seq, Date.now())
@@ -679,6 +684,7 @@ if (!skipStartup) app.whenReady().then(() => {
       intervalMs: hostCfg?.runeshapeIntervalMs ?? DEFAULT_SCAN_INTERVAL_MS
     }),
     env: scanEnv,
+    textLang: ocrTextLang,
     ocrBusy: () => revealScan.busy,
     capture: scanCapture,
     locateOcr: sharedLocateOcr,
@@ -951,6 +957,12 @@ if (!skipStartup) app.whenReady().then(() => {
     hostCfg = cfg
     // 第 15 步:倉庫頁籤捲動(舊 renderer / 缺欄位 → 開;只在 overlay 模式有物件)
     stashScroll?.setEnabled(cfg.stashScroll !== false)
+    // 第 22 步:客戶端語言改了 → OCR 語言包跟著換(WinOcr 重啟),兩個掃描丟掉舊語言的定位快取 / 基準,立刻重看
+    if (winOcr.setLang(ocrLangFor(cfg))) {
+      sharedLocateOcr.clear()
+      revealScan.ocrLangChanged()
+      runeshapeScan.ocrLangChanged()
+    }
     // 開關 / 區域 / 間隔改了 → 立刻重新判斷(停用時即時清徽章;區域改了差分基準的鍵就不同,自然重看)
     // 只在影響掃描的欄位(開關 / 遊戲 / 區域 / 間隔)變了或第一次才 poke;設定頁每打一個字都會來,poke 會清計時器立刻 tick
     const scanKey = scanConfigKey(cfg)
