@@ -11,6 +11,8 @@
  *   (使用者回報背包物品的進階詞綴說明被當成揭露面板)。
  * - 2026-10-02 code review 第 A 批:與 renderer `selectPanel` 一致化 —— 簇先過 `rawRunVeto`(明顯是浮窗才整簇否決),
  *   4 組的簇再對每個連續 3 組的視窗各自套否決(`panelWindows`),真面板旁多一條像詞綴的雜行時不整簇丟掉。
+ * - 2026-10-02 第 22 步:英文客戶端 —— `buildLocateIndex(tiers, "en")` 改收 `text.en` + `text.enVariants`,索引帶 `lang: "en"`,
+ *   之後所有函式依索引的語言走英文的正規化 / 文字判定 / 模糊門檻(`ocr-text.ts` `EN_FUZZY`)/ 否決關鍵字;繁中索引沒有 `lang`(行為逐位元不變)。
  */
 import {
   ALIGN_RATIO,
@@ -19,13 +21,18 @@ import {
   EPS,
   FuzzyCandidates,
   GROUP_GAP_RATIO,
+  LATIN_WORD,
   Lru,
   PANEL_GAP_RATIO,
   codePoints,
+  fuzzyRules,
+  hasLangText,
   levenshteinCp,
   normalizeOcrText,
+  normalizeOcrTextEn,
   ocrSkeleton,
   templateSkeleton,
+  type OcrTextLang,
   type OcrTextLine,
 } from "./ocr-text";
 import { panelWindows, type PanelVeto, type ShapeLine } from "./panel-veto";
@@ -40,18 +47,27 @@ export interface Rect {
 export interface LocateIndex {
   set: Set<string>;
   list: string[];
+  /** 第 22 步:英文索引才有(`"en"`);沒有 = 繁中 */
+  lang?: "en";
 }
 
-/** tiers.json 最小形狀(main 端只 JSON.parse,不引入完整型別) */
+/** tiers.json 最小形狀(main 端只 JSON.parse,不引入完整型別);`en` / `enVariants` 是英文客戶端用的(schema 2 才有 enVariants) */
 export interface LocateTiersLike {
-  entries: Array<{ parts: Array<{ text: { zh: string; zhVariants?: Array<{ text: string }> } }> }>;
+  entries: Array<{
+    parts: Array<{
+      text: { zh: string; zhVariants?: Array<{ text: string }>; en?: string; enVariants?: Array<{ text: string }> };
+    }>;
+  }>;
 }
+
+const idxLang = (idx: LocateIndex): OcrTextLang => idx.lang ?? "zh";
 
 /**
  * 從 tiers.json 取模板 skeleton(排除規則與 `ocr-match.ts` `ocrIndex` 相同:有空字串模板的 entry 整條不收;
  * `text.zh` 與 `text.zhVariants` 的其他寫法都收 —— 定位只問「像不像詞綴」,反向寫法也算)
  */
-export function buildLocateIndex(tiers: LocateTiersLike): LocateIndex {
+export function buildLocateIndex(tiers: LocateTiersLike, lang: OcrTextLang = "zh"): LocateIndex {
+  if (lang === "en") return buildLocateIndexEn(tiers);
   const set = new Set<string>();
   for (const entry of tiers.entries) {
     if (entry.parts.some((p) => !p.text.zh.trim())) continue;
@@ -63,10 +79,24 @@ export function buildLocateIndex(tiers: LocateTiersLike): LocateIndex {
   return { set, list: [...set] };
 }
 
-/** 這行文字像不像某個詞綴模板(精確或模糊) */
+/** 英文索引(第 22 步):`text.en` + `text.enVariants`;排除規則同繁中(有空字串英文模板的 entry 整條不收) */
+function buildLocateIndexEn(tiers: LocateTiersLike): LocateIndex {
+  const set = new Set<string>();
+  for (const entry of tiers.entries) {
+    if (entry.parts.some((p) => !(p.text.en ?? "").trim())) continue;
+    for (const part of entry.parts) {
+      set.add(templateSkeleton(part.text.en ?? "", "en").skeleton);
+      for (const v of part.text.enVariants ?? []) if (v.text.trim()) set.add(templateSkeleton(v.text, "en").skeleton);
+    }
+  }
+  return { set, list: [...set], lang: "en" };
+}
+
+/** 這行文字像不像某個詞綴模板(精確或模糊);語言跟著索引 */
 export function lineLooksLikeMod(text: string, idx: LocateIndex): boolean {
-  const norm = normalizeOcrText(text);
-  if (!CJK.test(norm)) return false;
+  const en = idx.lang === "en";
+  const norm = en ? normalizeOcrTextEn(text) : normalizeOcrText(text);
+  if (en ? !LATIN_WORD.test(norm) : !CJK.test(norm)) return false;
   const { skeleton } = ocrSkeleton(norm);
   if (idx.set.has(skeleton)) return true;
   const c = fuzzyCache(idx);
@@ -75,10 +105,11 @@ export function lineLooksLikeMod(text: string, idx: LocateIndex): boolean {
   // 同 `skeletonSimilarity(skeleton, t) >= FUZZY_MIN_SIM - EPS` 全掃 idx.list(結果只是「有沒有」,順序不影響),
   // 只算長度上可能達門檻的候選(`fuzzyLengthPossible`)
   const S = codePoints(skeleton);
+  const minSim = en ? c.cands.rules.minSim : FUZZY_MIN_SIM;
   let found = false;
   for (const i of c.cands.candidates(S.length)) {
     const T = c.cands.cps[i];
-    if (1 - levenshteinCp(S, T) / Math.max(S.length, T.length, 1) >= FUZZY_MIN_SIM - EPS) {
+    if (1 - levenshteinCp(S, T) / Math.max(S.length, T.length, 1) >= minSim - EPS) {
       found = true;
       break;
     }
@@ -101,7 +132,7 @@ const locateFuzzy = new WeakMap<LocateIndex, LocateFuzzyCache>();
 function fuzzyCache(idx: LocateIndex): LocateFuzzyCache {
   let c = locateFuzzy.get(idx);
   if (!c) {
-    c = { cands: new FuzzyCandidates(idx.list, (t) => t), results: new Lru() };
+    c = { cands: new FuzzyCandidates(idx.list, (t) => t, fuzzyRules(idxLang(idx))), results: new Lru() };
     locateFuzzy.set(idx, c);
   }
   return c;
@@ -126,7 +157,10 @@ export function unionRect(rs: Rect[]): Rect {
 
 /** 命中的行 + 折行配對(`pairs`:前半 → 後半) */
 function modHits(lines: OcrTextLine[], idx: LocateIndex): { hits: OcrTextLine[]; pairs: Map<OcrTextLine, OcrTextLine> } {
-  const sorted = lines.filter((l) => CJK.test(l.text)).sort((a, b) => cy(a) - cy(b) || a.x - b.x);
+  const en = idx.lang === "en";
+  const sorted = (en ? lines.filter((l) => hasLangText(l.text, "en")) : lines.filter((l) => CJK.test(l.text))).sort(
+    (a, b) => cy(a) - cy(b) || a.x - b.x,
+  );
   const hMed = median(sorted.map((l) => l.h)) || 1;
   const out: OcrTextLine[] = [];
   const pairs = new Map<OcrTextLine, OcrTextLine>();
@@ -142,7 +176,8 @@ function modHits(lines: OcrTextLine[], idx: LocateIndex): { hits: OcrTextLine[];
       cy(b) - cy(a) <= GROUP_GAP_RATIO * hMed &&
       Math.abs(cx(b) - cx(a)) <= ALIGN_RATIO * hMed &&
       !lineLooksLikeMod(b.text, idx) &&
-      lineLooksLikeMod(a.text + b.text, idx)
+      // 英文:兩行之間補一個空白(數字旁 O/l 的規則看得到字界;正規化後空白本來就會刪掉)
+      lineLooksLikeMod(en ? `${a.text} ${b.text}` : a.text + b.text, idx)
     ) {
       out.push(a, b);
       pairs.set(a, b);
@@ -224,7 +259,7 @@ export function findPanelHits(lines: OcrTextLine[], idx: LocateIndex, diag?: Pan
   const kept: OcrTextLine[][] = [];
   for (const g of clusters) {
     const { shape, origin } = shapeOf(g, pairs);
-    const r = panelWindows(shape, others);
+    const r = panelWindows(shape, others, idxLang(idx));
     if ("veto" in r) {
       diag?.vetoes.push({ ...r.veto, lines: g.length });
       continue;

@@ -1,11 +1,12 @@
 // exile-appraiser(WP-S):對 fixture 截圖跑 Windows OCR,產生 `*.ocr.json` 快照。
-//   node scripts/ocr-fixture.mjs [--set desecration|runeshape|all] [--with-locate [--locate-only]] [檔名過濾字串]
+//   node scripts/ocr-fixture.mjs [--set desecration|runeshape|all] [--lang en-US|zh-Hant-TW] [--with-locate [--locate-only]] [檔名過濾字串]
+//   - `--lang`(第 22 步):OCR 語言包;省略 = 依檔名(含 `-en-` / `-en.` → `en-US`,其他 → `zh-Hant-TW`)。英文客戶端截圖檔名一律帶 `-en`
 //   - desecration(預設):poe2/test/desecration/fixtures/ocr/*.{webp,png}(WP-S 揭露面板;`tooltip-*` 是負樣本 = 不是揭露面板的畫面)
 //   - `--with-locate`:desecration 也另存 `locate`(整張 ×1 = 自動定位那一段的輸入;正樣本 well-of-souls-* 與負樣本 tooltip-* 都有,重產時要加)
 //   - `--locate-only`(搭配 `--with-locate`):只補 / 重產 `locate`,既有快照的其他欄位(×3 的 `lines` 等)原樣保留、不重跑 ×3
 //     (2026-10-02 code review 第 A 批替三張正樣本補 ×1 快照時用:×3 行是既有斷言的輸入,別讓重跑 OCR 動到它)
 //   - runeshape:poe2/test/runeshape/fixtures/ocr/*.{webp,png}(WP-R2 符文塑形面板)
-// 需要 Windows + OCR 語言包 zh-Hant-TW。腳本與 runtime 同一支:main/src/ocr/win-ocr.ps1(WinOcr.ts 以 esbuild text loader 內嵌)。
+// 需要 Windows + OCR 語言包 zh-Hant-TW(英文截圖另需 en-US)。腳本與 runtime 同一支:main/src/ocr/win-ocr.ps1(WinOcr.ts 以 esbuild text loader 內嵌)。
 // 前處理照 runtime 的 `prepare()`(main/src/ocr/capture.ts):整張圖當 client 區,放大倍率 s = min(3, floor(9000 / max(w, h))),
 // 這裡用 sharp(lanczos3)縮放再轉 JPEG q95 —— runtime 是 Electron nativeImage.resize({ quality: 'best' }) + toJPEG(95),兩者像素不會逐位元相同,
 // 快照只當比對引擎(poe2/src/desecration/ocr-match.ts、poe2/src/runeshape/match.ts)的輸入,vitest 不依賴 WinRT。
@@ -28,10 +29,13 @@ let setArg = 'desecration'
 let filter = ''
 let withLocate = false
 let locateOnly = false
+let langArg = ''
 for (let i = 0; i < argv.length; i++) {
   const a = argv[i]
   if (a === '--set') setArg = argv[++i] ?? ''
   else if (a.startsWith('--set=')) setArg = a.slice('--set='.length)
+  else if (a === '--lang') langArg = argv[++i] ?? ''
+  else if (a.startsWith('--lang=')) langArg = a.slice('--lang='.length)
   else if (a === '--with-locate') withLocate = true
   else if (a === '--locate-only') locateOnly = true
   else if (!a.startsWith('--')) filter = a
@@ -41,6 +45,13 @@ if (setNames.some(s => !(s in SETS))) {
   console.error(`未知的 --set:${setArg}(可用:${Object.keys(SETS).join(' / ')} / all)`)
   process.exit(1)
 }
+
+/** 這張圖用哪個 OCR 語言包:`--lang` 優先,否則依檔名(`-en-` / `-en.` = 英文客戶端截圖) */
+function langFor (file) {
+  return langArg || (/-en[-.]/i.test(file) ? 'en-US' : 'zh-Hant-TW')
+}
+/** OCR 語言包 → row-format / ocr-text 的文字語言 */
+const textLangOf = (tag) => /^en(?:-|$)/i.test(tag) ? 'en' : 'zh'
 
 function scaleFor (w, h) {
   return Math.max(1, Math.min(3, Math.floor(9000 / Math.max(w, h))))
@@ -79,11 +90,23 @@ const printLines = (lines) => {
   }
 }
 
-const ocr = new WinOcr(readFileSync(path.join(root, 'main/src/ocr/win-ocr.ps1'), 'utf8'), { timeoutMs: 60_000 })
-const ready = await ocr.start()
+const script = readFileSync(path.join(root, 'main/src/ocr/win-ocr.ps1'), 'utf8')
+/** 每個語言包一個 OCR 行程(第一次用到才啟動) */
+const ocrs = new Map()
+async function ocrFor (lang) {
+  let o = ocrs.get(lang)
+  if (!o) {
+    const ocr = new WinOcr(script, { timeoutMs: 60_000, lang })
+    o = { ocr, ready: await ocr.start() }
+    ocrs.set(lang, o)
+  }
+  return o
+}
 try {
   for (const { set, dir, file } of jobs) {
     const src = path.join(dir, file)
+    const lang = langFor(file)
+    const { ocr, ready } = await ocrFor(lang)
     const meta = await sharp(src).metadata()
     const scale = scaleFor(meta.width, meta.height)
     // runtime 送 JPEG q95(capture.ts OCR_JPEG_QUALITY);這裡同格式同品質
@@ -130,7 +153,7 @@ try {
     if (set === 'runeshape') {
       // 定位到的面板區再 ×3(= 掃描迴圈自動定位後每次掃的那塊);定位規則用 runtime 同一份 row-format.ts
       const { locateRunePanel } = await loadRowFormat()
-      const loc = locateRunePanel(out.locate.lines, { x: 0, y: 0, w: meta.width, h: meta.height })
+      const loc = locateRunePanel(out.locate.lines, { x: 0, y: 0, w: meta.width, h: meta.height }, textLangOf(ready.lang))
       if (loc) {
         const c = loc.crop
         const ds = scaleFor(c.w, c.h)
@@ -148,5 +171,5 @@ try {
     console.log(`  → ${path.relative(root, outFile)}`)
   }
 } finally {
-  ocr.close()
+  for (const { ocr } of ocrs.values()) ocr.close()
 }

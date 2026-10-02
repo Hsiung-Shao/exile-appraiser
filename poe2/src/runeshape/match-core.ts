@@ -16,6 +16,10 @@
  * 5. 面板外的列:右緣與面板列(有前綴的列)中位右緣差 > 2.5 行高 → `offPanel`(面板標題、別的 UI),UI 不畫徽章。
  * 6. 「未發現」列(面板上尚未解鎖的配方,`row-format.ts` `UNDISCOVERED_ROW_NAMES`)→ `undiscovered`,不比對,UI 不畫徽章。
  * 對不上的列保留原文(`refName` 留空)。
+ * 7. 2026-10-02 第 22 步:英文客戶端 —— `buildRuneshapeIndex(items, recipes, "en")`(items = 英文 items.ndjson、配方收 `enPlain`)
+ *    建出帶 `lang: "en"` 的索引,`matchRunesRowsWith` 依索引語言解析列(`parseRuneRow(text, "en")`)、正規化名稱(`normalizeOcrTextEn`)、
+ *    模糊門檻(`EN_FUZZY`:相似度 0.85,長度差由門檻推得;**數字必須相同**照舊)、「未發現」容錯(`isUndiscoveredName`)。
+ *    其餘規則(namespace、類別優先序、重名不查價、配方取捨、面板外)與繁中相同。繁中索引沒有 `lang`(行為逐位元不變)。
  *
  * 本檔**零依賴**(相對路徑 import `ocr-text` / `row-format`,不碰 `@/assets/data`):renderer 由 `match.ts` 包上目前語系的索引;
  * main 的 `--runeshape-selftest` 自己讀 items.ndjson + recipes.json 建索引後直接呼叫 `matchRunesRowsWith`。
@@ -27,10 +31,13 @@ import {
   FuzzyCandidates,
   Lru,
   codePoints,
+  fuzzyRules,
   levenshteinCp,
   normalizeOcrText,
+  normalizeOcrTextEn,
+  type OcrTextLang,
 } from "../desecration/ocr-text";
-import { RIGHT_ALIGN_LINES, UNDISCOVERED_ROW_NAMES, parseRuneRow, type ParsedRuneRow, type RuneRowKind } from "./row-format";
+import { RIGHT_ALIGN_LINES, isUndiscoveredName, joinSplitRowsEn, parseRuneRow, type ParsedRuneRow, type RuneRowKind } from "./row-format";
 
 /** 與 `@ipc/types` 的 `RuneshapeScanRow` 同形(client 實體像素) */
 export interface RuneshapeOcrRow {
@@ -100,8 +107,10 @@ export interface RuneshapeIndex {
   skill: Map<string, Entry[]>;
   /** GEM 輔助 */
   support: Map<string, Entry[]>;
-  /** 配方結果(繁中泛稱正規化名稱 → 條目) */
+  /** 配方結果(繁中泛稱正規化名稱 → 條目;英文索引 = 英文泛稱) */
   recipe: Map<string, Entry[]>;
+  /** 第 22 步:英文索引才有(`"en"`);沒有 = 繁中 */
+  lang?: "en";
 }
 
 /**
@@ -167,11 +176,17 @@ function add(map: Map<string, Entry[]>, key: string, e: Entry) {
   else if (!list.some((x) => x.refName === e.refName && x.category === e.category)) list.push(e);
 }
 
-export function buildRuneshapeIndex(items: Iterable<NameEntry>, recipes: Iterable<RecipeEntry> = []): RuneshapeIndex {
+export function buildRuneshapeIndex(
+  items: Iterable<NameEntry>,
+  recipes: Iterable<RecipeEntry> = [],
+  lang: OcrTextLang = "zh",
+): RuneshapeIndex {
+  const en = lang === "en";
   const idx: RuneshapeIndex = { item: new Map(), skill: new Map(), support: new Map(), recipe: new Map() };
+  if (en) idx.lang = "en";
   for (const it of items) {
     if (!it.name || !it.refName) continue;
-    const key = normalizeOcrText(it.name);
+    const key = en ? normalizeOcrTextEn(it.name) : normalizeOcrText(it.name);
     const category = it.craftable?.category ?? "";
     const extra = it.tradeTag ? { name: it.name, tradeTag: it.tradeTag } : { name: it.name };
     if (it.namespace === "ITEM") {
@@ -184,8 +199,8 @@ export function buildRuneshapeIndex(items: Iterable<NameEntry>, recipes: Iterabl
   for (const r of recipes) {
     if (!r.enPlain || !r.zhPlain) continue;
     const e: Entry = { refName: r.enPlain, category: RECIPE_CATEGORY, rank: 0, recipeId: r.id };
-    // 只收繁中:列格式解析(`row-format.ts`)目前只認繁中面板(英文客戶端的列格式未確認,見 docs/runeshape.md 已知限制)
-    add(idx.recipe, normalizeOcrText(r.zhPlain), e);
+    // 繁中索引收 `zhPlain`;英文索引(第 22 步)收 `enPlain`(GGPK 同一列的英文 Description,`Random Currency`、`Unique Ring`…)
+    add(idx.recipe, en ? normalizeOcrTextEn(r.enPlain) : normalizeOcrText(r.zhPlain), e);
   }
   return idx;
 }
@@ -215,25 +230,27 @@ interface LookupCache {
   cands: FuzzyCandidates<[string, Entry[]]>;
   digits: string[];
   results: Lru<string, Lookup | null>;
+  /** 第 22 步:這個 map 所屬索引的語言 */
+  lang: OcrTextLang;
 }
 const lookupCaches = new WeakMap<Map<string, Entry[]>, LookupCache>();
 
-function lookupCache(map: Map<string, Entry[]>): LookupCache {
+function lookupCache(map: Map<string, Entry[]>, lang: OcrTextLang): LookupCache {
   let c = lookupCaches.get(map);
   if (!c) {
-    const cands = new FuzzyCandidates([...map], ([key]) => key);
-    c = { cands, digits: cands.items.map(([key]) => digitsOf(key)), results: new Lru() };
+    const cands = new FuzzyCandidates([...map], ([key]) => key, fuzzyRules(lang));
+    c = { cands, digits: cands.items.map(([key]) => digitsOf(key)), results: new Lru(), lang };
     lookupCaches.set(map, c);
   }
   return c;
 }
 
-/** 名稱 → 條目(精確 → 模糊;規則見檔頭)。匯出給等價測試 */
-export function lookupRuneName(map: Map<string, Entry[]>, name: string): Lookup | null {
+/** 名稱 → 條目(精確 → 模糊;規則見檔頭)。匯出給等價測試。`lang` = 這個 map 所屬索引的語言(決定模糊門檻) */
+export function lookupRuneName(map: Map<string, Entry[]>, name: string, lang: OcrTextLang = "zh"): Lookup | null {
   if (!name) return null;
   const exact = map.get(name);
   if (exact?.length) return { match: "exact", entries: topEntries(exact) };
-  const c = lookupCache(map);
+  const c = lookupCache(map, lang);
   let r = c.results.get(name);
   if (r === undefined) {
     r = fuzzyLookup(c, name);
@@ -252,15 +269,19 @@ function fuzzyLookup(c: LookupCache, name: string): Lookup | null {
   const len = N.length;
   // 數字(等級)必須完全相同:`奇術熔劑(等級18)` 與 `(等級19)` 只差一個字,相似度 0.9,但是不同物品
   const digits = digitsOf(name);
+  // 繁中 = FUZZY_MAX_LEN_DIFF / FUZZY_MIN_SIM(改版前的常數,ZH_FUZZY 同值);英文 = EN_FUZZY
+  const en = c.lang === "en";
+  const maxLenDiff = en ? c.cands.rules.maxLenDiff : FUZZY_MAX_LEN_DIFF;
+  const minSim = en ? c.cands.rules.minSim : FUZZY_MIN_SIM;
   let best = 0;
   let hits: Entry[] = [];
   for (const i of c.cands.candidates(len)) {
     const K = c.cands.cps[i];
     const kl = K.length;
-    if (Math.abs(kl - len) > FUZZY_MAX_LEN_DIFF) continue;
+    if (Math.abs(kl - len) > maxLenDiff) continue;
     if (c.digits[i] !== digits) continue;
     const sim = 1 - levenshteinCp(N, K) / Math.max(kl, len, 1);
-    if (sim < FUZZY_MIN_SIM - EPS) continue;
+    if (sim < minSim - EPS) continue;
     const list = c.cands.items[i][1];
     if (sim > best + EPS) {
       best = sim;
@@ -290,12 +311,13 @@ interface RecipeLookup extends Lookup {
 /** 配方比對:有 `Nx` 前綴時先試 `Nx名稱` 整串(`5x 隨機通貨`),再試名稱本身;取較好的一個 */
 function lookupRecipe(index: RuneshapeIndex, p: ParsedRuneRow): RecipeLookup | null {
   if (!index.recipe.size) return null;
+  const lang: OcrTextLang = index.lang ?? "zh";
   const cands: Array<{ key: string; intrinsicQty: boolean }> = [];
   if (p.prefixed) cands.push({ key: `${p.quantity}x${p.fullName}`, intrinsicQty: true });
   cands.push({ key: p.fullName, intrinsicQty: false });
   let best: RecipeLookup | null = null;
   for (const c of cands) {
-    const found = lookupRuneName(index.recipe, c.key);
+    const found = lookupRuneName(index.recipe, c.key, lang);
     if (found && better(found, best)) best = { ...found, intrinsicQty: c.intrinsicQty, norm: c.key };
   }
   return best;
@@ -325,7 +347,10 @@ function median(xs: number[]): number {
 }
 
 export function matchRunesRowsWith(lines: RuneshapeOcrRow[], index: RuneshapeIndex): RuneshapeMatchRow[] {
-  const parsed = lines.map((l) => ({ l, p: parseRuneRow(l.text) }));
+  const lang: OcrTextLang = index.lang ?? "zh";
+  // 英文:被 OCR 切開的 `Skill:` + 名稱接回一列(`joinSplitRowsEn`)
+  if (lang === "en") lines = joinSplitRowsEn(lines);
+  const parsed = lines.map((l) => ({ l, p: parseRuneRow(l.text, lang) }));
   // 面板右緣:有前綴的列的中位右緣(沒有前綴列 → 不判斷面板外)
   const anchors = parsed.filter((x) => x.p.prefixed).map((x) => x.l);
   const panelRight = anchors.length ? median(anchors.map((l) => l.x + l.w)) : null;
@@ -335,14 +360,14 @@ export function matchRunesRowsWith(lines: RuneshapeOcrRow[], index: RuneshapeInd
     const level = p.kind === "gem" ? p.gemLevel : p.level;
     if (level != null) row.level = level;
     // 尚未解鎖的配方(「未發現」):不比對(免得模糊到別的東西)、UI 不畫徽章
-    if (UNDISCOVERED_ROW_NAMES.includes(p.name)) {
+    if (isUndiscoveredName(p.name, lang)) {
       row.undiscovered = true;
       return row;
     }
     if (panelRight != null && !p.prefixed && Math.abs(l.x + l.w - panelRight) > RIGHT_ALIGN_LINES * lineH) row.offPanel = true;
     const map = p.kind === "item" ? index.item : p.kind === "support" ? index.support : index.skill;
     // 帶等級後綴的物品(奇術熔劑(等級18)、未切割寶石)以含等級的全名比對:等級不同就是不同物品
-    let found = lookupRuneName(map, p.fullName);
+    let found = lookupRuneName(map, p.fullName, lang);
     if (p.kind === "item") {
       const recipe = lookupRecipe(index, p);
       if (pickItemOrRecipe(found, recipe) === "recipe") {

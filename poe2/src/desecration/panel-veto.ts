@@ -27,8 +27,26 @@
  * 命中框附近沒有任何冒號 / 關鍵字行(最近的非詞綴行是「確認」,在最後一行下方 3.9 × 行高);詞綴行之間沒有夾任何未命中行 → 三條規則都不觸發。
  *
  * 零依賴(只 import `ocr-text.ts`):main 經 esbuild 打包使用,只准相對路徑。座標單位由呼叫端決定(同一套即可)。
+ *
+ * 2026-10-02 第 22 步:英文客戶端(`lang: "en"`)。規則相同,只換「這行算不算文字」(兩個連續拉丁字母)、正規化(`normalizeOcrTextEn`)
+ * 與關鍵字:`prefix` / `suffix` / `modifier` / `tier` / `item level`(正規化後 `itemlevel`)、軟關鍵字 `requires` / `quality`(沒有 `%` 才算;
+ * 模板有 `#% to Quality of all Skills`);冒號同繁中(`Requires: Level 70`、`Quality: +20%`)。tiers.json 英文 670 個寫法(`text.en` + `enVariants`)
+ * 都不含前 5 個關鍵字與冒號。加分:`Confirm`、`The Well of Souls`(比對 `wellofsoul`,OCR 偶爾把結尾讀成 `SOULR`)。
+ * 省略 `lang` = 繁中(改版前的行為,逐位元不變)。
  */
-import { ALIGN_RATIO, CJK, GROUP_GAP_RATIO, PANEL_GAP_RATIO, normalizeOcrText, type OcrTextLine } from "./ocr-text";
+import {
+  ALIGN_RATIO,
+  CJK,
+  GROUP_GAP_RATIO,
+  LATIN_WORD,
+  PANEL_GAP_RATIO,
+  hasLangText,
+  normalizeOcrText,
+  normalizeOcrTextEn,
+  normalizeOcrTextFor,
+  type OcrTextLang,
+  type OcrTextLine,
+} from "./ocr-text";
 
 /** 命中行;`merged` = 由兩行折行合併(實際佔兩行高) */
 export interface ShapeLine extends OcrTextLine {
@@ -63,6 +81,9 @@ export const VETO_NEAR_X_RATIO = 2;
 export const VETO_KEYWORDS = ["前綴", "後綴", "詞綴", "階級", "物品等級"] as const;
 /** 浮窗屬性行常見、但詞綴模板也有的字:只在不像詞綴數值(沒有 `%`)時算 */
 export const VETO_SOFT_KEYWORDS = ["需求", "品質"] as const;
+/** 英文版(第 22 步;比對 `normalizeOcrTextEn` 之後的字串 = 小寫、沒有空白) */
+export const VETO_KEYWORDS_EN = ["prefix", "suffix", "modifier", "tier", "itemlevel"] as const;
+export const VETO_SOFT_KEYWORDS_EN = ["requires", "quality"] as const;
 const COLON_RE = /[:：∶﹕]/;
 /** 像詞綴的數值(`%`、`+數字`):這種未命中行是認錯字的詞綴,不當浮窗標頭 */
 const MOD_VALUE_RE = /%|\+\d/;
@@ -82,7 +103,15 @@ export function shapeLineH(hits: ShapeLine[]): number {
 }
 
 /** 這行文字是不是浮窗才有的屬性 / 標頭行(冒號、關鍵字);不是回 null */
-export function vetoLineReason(text: string): "colon" | "keyword" | null {
+export function vetoLineReason(text: string, lang: OcrTextLang = "zh"): "colon" | "keyword" | null {
+  if (lang === "en") {
+    const e = normalizeOcrTextEn(text);
+    if (!LATIN_WORD.test(e)) return null;
+    if (COLON_RE.test(e)) return "colon";
+    if (VETO_KEYWORDS_EN.some((k) => e.includes(k))) return "keyword";
+    if (!e.includes("%") && VETO_SOFT_KEYWORDS_EN.some((k) => e.includes(k))) return "keyword";
+    return null;
+  }
   const t = normalizeOcrText(text);
   if (!CJK.test(t)) return null;
   if (COLON_RE.test(t)) return "colon";
@@ -125,8 +154,8 @@ function xAligned(u: OcrTextLine, a: OcrTextLine, lineH: number): boolean {
 }
 
 /** 像詞綴數值的未命中行(OCR 認錯字的詞綴):不當浮窗標頭;夾在兩組之間且緊貼兩邊時當成同一個選項的一行 */
-function modValueLike(u: OcrTextLine): boolean {
-  return MOD_VALUE_RE.test(normalizeOcrText(u.text)) && !vetoLineReason(u.text);
+function modValueLike(u: OcrTextLine, lang: OcrTextLang = "zh"): boolean {
+  return MOD_VALUE_RE.test(normalizeOcrTextFor(u.text, lang)) && !vetoLineReason(u.text, lang);
 }
 
 /**
@@ -137,6 +166,7 @@ export function glueGroups(
   groups: ShapeLine[][],
   free: OcrTextLine[],
   lineH: number,
+  lang: OcrTextLang = "zh",
 ): Array<{ hits: ShapeLine[]; glue: OcrTextLine[] }> {
   const gap = GROUP_GAP_RATIO * lineH;
   const out: Array<{ hits: ShapeLine[]; glue: OcrTextLine[] }> = [];
@@ -154,7 +184,7 @@ export function glueGroups(
           cy(u) - aCy <= gap &&
           bCy - cy(u) <= gap &&
           (xAligned(u, a, lineH) || xAligned(u, b, lineH)) &&
-          modValueLike(u),
+          modValueLike(u, lang),
       );
       if (glue.length) {
         prev.hits.push(...g);
@@ -171,10 +201,11 @@ export function glueGroups(
 export function panelGroups(
   hits: ShapeLine[],
   others: OcrTextLine[],
+  lang: OcrTextLang = "zh",
 ): { lineH: number; free: OcrTextLine[]; groups: Array<{ hits: ShapeLine[]; glue: OcrTextLine[] }> } {
   const lineH = shapeLineH(hits);
-  const free = others.filter((u) => CJK.test(u.text));
-  return { lineH, free, groups: glueGroups(shapeGroups(hits, lineH), free, lineH) };
+  const free = lang === "en" ? others.filter((u) => hasLangText(u.text, lang)) : others.filter((u) => CJK.test(u.text));
+  return { lineH, free, groups: glueGroups(shapeGroups(hits, lineH), free, lineH, lang) };
 }
 
 export interface PanelVetoOptions {
@@ -183,6 +214,8 @@ export interface PanelVetoOptions {
    * 省略(main)= 該組 > 3 行就 `group-too-tall`。
    */
   splitCount?: (hits: ShapeLine[]) => number;
+  /** 第 22 步:OCR 文字語言(省略 = 繁中) */
+  lang?: OcrTextLang;
 }
 
 /**
@@ -191,7 +224,8 @@ export interface PanelVetoOptions {
  */
 export function panelVeto(hits: ShapeLine[], others: OcrTextLine[], opts: PanelVetoOptions = {}): PanelVeto | null {
   if (!hits.length) return null;
-  const { lineH, free, groups: glued } = panelGroups(hits, others);
+  const lang = opts.lang ?? "zh";
+  const { lineH, free, groups: glued } = panelGroups(hits, others, lang);
   // 3. 組數 / 每組行數
   let groups = 0;
   let maxLines = 0;
@@ -215,10 +249,10 @@ export function panelVeto(hits: ShapeLine[], others: OcrTextLine[], opts: PanelV
     const c = cy(u);
     if (c < box.y - nearY || c > box.y + box.h + nearY) continue;
     if (u.x + u.w < box.x - nearX || u.x > box.x + box.w + nearX) continue;
-    if (vetoLineReason(u.text)) return { kind: "keyword-line", detail: u.text };
+    if (vetoLineReason(u.text, lang)) return { kind: "keyword-line", detail: u.text };
   }
   // 1. 浮窗的詞綴標頭:緊貼下一條命中行上方、上一條命中行也緊貼(或上方沒有命中行)、x 對齊的未命中行 ≥ 2 行
-  const headers = tooltipHeaders(hits, free, lineH);
+  const headers = tooltipHeaders(hits, free, lineH, lang);
   if (headers.length >= MIN_TOOLTIP_HEADERS) return { kind: "tooltip-header", detail: headers[0].text };
   return null;
 }
@@ -230,7 +264,12 @@ export function panelVeto(hits: ShapeLine[], others: OcrTextLine[], opts: PanelV
  * 上一條命中行超過 1.9 × = 它是上一個選項 → 這行是某選項認錯的第 1 行,不是標頭(真實 body-armour-01 ×1 的 2.55 ×)。
  * 合併過的行(折行)以靠近對方的那一半為中心(同 `shapeGroups`)。
  */
-export function tooltipHeaders(hits: ShapeLine[], free: OcrTextLine[], lineH = shapeLineH(hits)): OcrTextLine[] {
+export function tooltipHeaders(
+  hits: ShapeLine[],
+  free: OcrTextLine[],
+  lineH = shapeLineH(hits),
+  lang: OcrTextLang = "zh",
+): OcrTextLine[] {
   const sorted = [...hits].sort((a, b) => cy(a) - cy(b));
   const gap = GROUP_GAP_RATIO * lineH;
   const top = (l: ShapeLine) => (l.merged ? l.y + lineH / 2 : cy(l));
@@ -248,7 +287,7 @@ export function tooltipHeaders(hits: ShapeLine[], free: OcrTextLine[], lineH = s
       if (d <= 0 || d > gap) continue;
     }
     if (!xAligned(u, b, lineH) && !(a && xAligned(u, a, lineH))) continue;
-    if (modValueLike(u)) continue;
+    if (modValueLike(u, lang)) continue;
     out.push(u);
   }
   return out.sort((p, q) => cy(p) - cy(q));
@@ -263,7 +302,7 @@ export function tooltipHeaders(hits: ShapeLine[], free: OcrTextLine[], lineH = s
  */
 export function rawRunVeto(hits: ShapeLine[], others: OcrTextLine[], opts: PanelVetoOptions = {}): PanelVeto | null {
   if (!hits.length) return null;
-  const { groups: glued } = panelGroups(hits, others);
+  const { groups: glued } = panelGroups(hits, others, opts.lang ?? "zh");
   let groups = 0;
   for (const g of glued) {
     const n = g.hits.length + g.glue.length;
@@ -285,19 +324,24 @@ export function rawRunVeto(hits: ShapeLine[], others: OcrTextLine[], opts: Panel
  * 先 `rawRunVeto`;≤ 3 組 → 整簇 `panelVeto`(與改版前相同);4 組 → 每個連續 3 組的視窗各自 `panelVeto`,
  * 採用**所有沒被否決的視窗**的聯集(main 只負責框裁切範圍,寧可框大;挑面板是 renderer 的事),全被否決回第一個原因。
  */
-export function panelWindows(hits: ShapeLine[], others: OcrTextLine[]): { hits: ShapeLine[] } | { veto: PanelVeto } {
-  const raw = rawRunVeto(hits, others);
+export function panelWindows(
+  hits: ShapeLine[],
+  others: OcrTextLine[],
+  lang: OcrTextLang = "zh",
+): { hits: ShapeLine[] } | { veto: PanelVeto } {
+  const opts: PanelVetoOptions = { lang };
+  const raw = rawRunVeto(hits, others, opts);
   if (raw) return { veto: raw };
-  const { groups } = panelGroups(hits, others);
+  const { groups } = panelGroups(hits, others, lang);
   if (groups.length <= MAX_PANEL_GROUPS) {
-    const v = panelVeto(hits, others);
+    const v = panelVeto(hits, others, opts);
     return v ? { veto: v } : { hits };
   }
   const kept = new Set<ShapeLine>();
   let first: PanelVeto | null = null;
   for (let i = 0; i + MAX_PANEL_GROUPS <= groups.length; i++) {
     const win = groups.slice(i, i + MAX_PANEL_GROUPS).flatMap((g) => g.hits);
-    const v = panelVeto(win, others);
+    const v = panelVeto(win, others, opts);
     if (v) first ??= v;
     else for (const l of win) kept.add(l);
   }
@@ -308,9 +352,15 @@ export function panelWindows(hits: ShapeLine[], others: OcrTextLine[]): { hits: 
 /**
  * 面板固定元素加分(不是必要條件):命中框正下方(≤ 面板組距上限)x 對齊的「確認」按鈕 +1、
  * 上方 20 個行高內 x 對齊的「靈魂之井」標題(OCR 常掉第一個字:`魂之井`)+1。
+ * 英文(第 22 步):`Confirm`、`The Well of Souls`(GGPK clientstrings `UnveilingWindowConfirmButton` / `UnveilingUITitle`;比對 `wellofsoul`;上方 24 個行高內)。
  */
-export function panelAnchorScore(hits: ShapeLine[], others: OcrTextLine[]): number {
+export function panelAnchorScore(hits: ShapeLine[], others: OcrTextLine[], lang: OcrTextLang = "zh"): number {
   if (!hits.length) return 0;
+  const confirm = lang === "en" ? "confirm" : "確認";
+  const title = lang === "en" ? "wellofsoul" : "魂之井";
+  // 標題在命中框上方幾個行高內:繁中 20(改版前);英文 24 —— 英文截圖 well-of-souls-weapon-en-04 實測標題在 20.2 個行高外
+  // (英文詞綴字比繁中小、中間隔著物品圖)
+  const titleLines = lang === "en" ? 24 : 20;
   const lineH = shapeLineH(hits);
   const box = unionBox(hits);
   const bcx = box.x + box.w / 2;
@@ -319,7 +369,7 @@ export function panelAnchorScore(hits: ShapeLine[], others: OcrTextLine[]): numb
   if (
     others.some((u) => {
       const d = cy(u) - (box.y + box.h);
-      return normalizeOcrText(u.text) === "確認" && d > 0 && d <= PANEL_GAP_RATIO * lineH && aligned(u);
+      return normalizeOcrTextFor(u.text, lang) === confirm && d > 0 && d <= PANEL_GAP_RATIO * lineH && aligned(u);
     })
   ) {
     score++;
@@ -327,7 +377,7 @@ export function panelAnchorScore(hits: ShapeLine[], others: OcrTextLine[]): numb
   if (
     others.some((u) => {
       const d = box.y - cy(u);
-      return normalizeOcrText(u.text).includes("魂之井") && d > 0 && d <= 20 * lineH && aligned(u);
+      return normalizeOcrTextFor(u.text, lang).includes(title) && d > 0 && d <= titleLines * lineH && aligned(u);
     })
   ) {
     score++;

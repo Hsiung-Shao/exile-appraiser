@@ -22,6 +22,9 @@
  *    **只對挑中的 3 組**套 `panelVeto`(真面板旁多一條像詞綴的雜行時不再整段否決)。
  * 8. profile:呼叫端給最近查價的 PoE2 物品 refName → `resolveProfiles`(base_profiles 精確 / 類別後援);
  *    沒有時取「每組都有候選的 profile」交集(三個選項屬於同一件物品),再沒有就全部 profile;Tier 取聯集 → `T3–T4`,`profileExact: false`(UI 加「?」)。
+ * 9. 2026-10-02 第 22 步:英文客戶端(`opts.lang: "en"`)—— 模板改用 `text.en` + `text.enVariants`(schema 2),
+ *    正規化 `normalizeOcrTextEn`(轉小寫、刪空白、small caps 常見誤讀)、文字行 = 含兩個連續拉丁字母、模糊門檻 `EN_FUZZY`(相似度 0.85、長度差由門檻推得),
+ *    否決關鍵字換英文(`panel-veto.ts`)。分組 / 面板 / entry 對應 / 數值 / profile 的規則與繁中完全相同。省略 `lang` = 繁中(逐位元不變)。
  */
 import { partRange, resolveProfiles, type DesecrationData } from "./infer";
 import type { DesecrationEntry, DesecrationPart, DesecrationPool } from "./types";
@@ -34,14 +37,19 @@ import {
   FUZZY_MIN_SIM,
   FuzzyCandidates,
   GROUP_GAP_RATIO,
+  LATIN_WORD,
   Lru,
   PANEL_GAP_RATIO,
   codePoints,
+  fuzzyRules,
+  hasLangText,
   levenshtein,
   levenshteinCp,
   normalizeOcrText,
+  normalizeOcrTextEn,
   ocrSkeleton,
   templateSkeleton,
+  type OcrTextLang,
   type OcrTextLine,
 } from "./ocr-text";
 import { panelAnchorScore, panelVeto, rawRunVeto, type PanelVeto, type ShapeLine } from "./panel-veto";
@@ -54,8 +62,10 @@ export {
   PANEL_GAP_RATIO,
   levenshtein,
   normalizeOcrText,
+  normalizeOcrTextEn,
   ocrSkeleton,
   templateSkeleton,
+  type OcrTextLang,
   type OcrTextLine,
 };
 
@@ -66,7 +76,7 @@ export interface TemplateRef {
   slots: Array<"dyn" | number>;
   /** 這個寫法顯示的極性與 part 的 `text.zh` 相反(`zhVariants[].negate`) */
   negate: boolean;
-  /** 命中的是 `text.zhVariants` 的哪個寫法;undefined = `text.zh` 本身 */
+  /** 命中的是 `text.zhVariants`(英文:`text.enVariants`)的哪個寫法;undefined = `text.zh`(英文:`text.en`)本身 */
   variant?: string;
 }
 
@@ -137,6 +147,8 @@ export interface RevealMatchOptions {
   category?: string;
   /** 沒有 refName 時先取「每組都有候選的 profile」交集(預設 true);false = 直接用全部 profile 的聯集 */
   intersectProfiles?: boolean;
+  /** 第 22 步:OCR 文字語言(英文客戶端 = `en`);省略 = 繁中 */
+  lang?: OcrTextLang;
 }
 
 // ---------------------------------------------------------------- 索引
@@ -150,11 +162,16 @@ interface OcrIndex {
   fuzzy: FuzzyCandidates<TemplateInfo>;
   /** 模糊命中結果 LRU(鍵 = skeleton;值 = hits,null = 沒命中);索引跟著 data 換,快取一起換 */
   fuzzyHits: Lru<string, TemplateHit[] | null>;
+  /** 第 22 步:模板語言 */
+  lang: OcrTextLang;
 }
 
 const indexCache = new WeakMap<DesecrationData, OcrIndex>();
+/** 第 22 步:英文索引(同一份 data,另一份快取) */
+const indexCacheEn = new WeakMap<DesecrationData, OcrIndex>();
 
-export function ocrIndex(data: DesecrationData): OcrIndex {
+export function ocrIndex(data: DesecrationData, lang: OcrTextLang = "zh"): OcrIndex {
+  if (lang === "en") return ocrIndexEn(data);
   let idx = indexCache.get(data);
   if (idx) return idx;
   const bySkeleton = new Map<string, TemplateInfo>();
@@ -188,15 +205,60 @@ export function ocrIndex(data: DesecrationData): OcrIndex {
     allProfiles: data.tiers.profiles.map((p) => p.id),
     fuzzy: new FuzzyCandidates(list, (info) => info.skeleton),
     fuzzyHits: new Lru(),
+    lang: "zh",
   };
   indexCache.set(data, idx);
   return idx;
 }
 
-export function matchLine(text: string, data: DesecrationData): LineMatch | null {
-  const norm = normalizeOcrText(text);
-  if (!CJK.test(norm)) return null;
-  const idx = ocrIndex(data);
+/**
+ * 英文索引(第 22 步):與繁中相同的結構,模板改用 `text.en`(= stats ref,或 increased/reduced 翻轉後的寫法;ranges 以它為準)
+ * 與 `text.enVariants`(同一 stat 的其他英文 matcher,`negate` 相對 `text.en`)。有空字串英文模板的 entry 整條排除。
+ */
+function ocrIndexEn(data: DesecrationData): OcrIndex {
+  let idx = indexCacheEn.get(data);
+  if (idx) return idx;
+  const bySkeleton = new Map<string, TemplateInfo>();
+  for (const entry of data.tiers.entries) {
+    if (entry.parts.some((p) => !p.text.en.trim())) continue;
+    entry.parts.forEach((part, partIdx) => {
+      const forms: Array<{ text: string; negate: boolean; variant?: string }> = [
+        { text: part.text.en, negate: false },
+        ...(part.text.enVariants ?? [])
+          .filter((v) => v.text.trim())
+          .map((v) => ({ text: v.text, negate: v.negate === true, variant: v.text })),
+      ];
+      for (const form of forms) {
+        const { skeleton, slots } = templateSkeleton(form.text, "en");
+        let info = bySkeleton.get(skeleton);
+        if (!info) bySkeleton.set(skeleton, (info = { skeleton, refs: [] }));
+        const dup = info.refs.some(
+          (r) =>
+            r.entry === entry && r.partIdx === partIdx && r.negate === form.negate && r.slots.join() === slots.join(),
+        );
+        if (!dup) info.refs.push({ entry, partIdx, slots, negate: form.negate, variant: form.variant });
+      }
+    });
+  }
+  const list = [...bySkeleton.values()];
+  idx = {
+    data,
+    bySkeleton,
+    list,
+    allProfiles: data.tiers.profiles.map((p) => p.id),
+    fuzzy: new FuzzyCandidates(list, (info) => info.skeleton, fuzzyRules("en")),
+    fuzzyHits: new Lru(),
+    lang: "en",
+  };
+  indexCacheEn.set(data, idx);
+  return idx;
+}
+
+export function matchLine(text: string, data: DesecrationData, lang: OcrTextLang = "zh"): LineMatch | null {
+  const en = lang === "en";
+  const norm = en ? normalizeOcrTextEn(text) : normalizeOcrText(text);
+  if (en ? !LATIN_WORD.test(norm) : !CJK.test(norm)) return null;
+  const idx = ocrIndex(data, lang);
   const { skeleton, values } = ocrSkeleton(norm);
   const exact = idx.bySkeleton.get(skeleton);
   if (exact) return { norm, skeleton, values, hits: [{ info: exact, score: 1, fuzzy: false }] };
@@ -216,15 +278,18 @@ export function matchLine(text: string, data: DesecrationData): LineMatch | null
 function fuzzyMatch(idx: OcrIndex, skeleton: string): TemplateHit[] | null {
   const S = codePoints(skeleton);
   const len = S.length;
+  // 繁中 = FUZZY_MAX_LEN_DIFF / FUZZY_MIN_SIM(改版前的常數);英文 = EN_FUZZY
+  const maxLenDiff = idx.lang === "en" ? idx.fuzzy.rules.maxLenDiff : FUZZY_MAX_LEN_DIFF;
+  const minSim = idx.lang === "en" ? idx.fuzzy.rules.minSim : FUZZY_MIN_SIM;
   let best = 0;
   let hits: TemplateHit[] = [];
   for (const i of idx.fuzzy.candidates(len)) {
     const info = idx.list[i];
     const T = idx.fuzzy.cps[i];
     const l2 = T.length;
-    if (Math.abs(l2 - len) > FUZZY_MAX_LEN_DIFF) continue;
+    if (Math.abs(l2 - len) > maxLenDiff) continue;
     const sim = 1 - levenshteinCp(S, T) / Math.max(len, l2);
-    if (sim < FUZZY_MIN_SIM - EPS || sim < best - EPS) continue;
+    if (sim < minSim - EPS || sim < best - EPS) continue;
     if (sim > best + EPS) {
       best = sim;
       hits = [];
@@ -291,11 +356,11 @@ function union(lines: OcrTextLine[]): { x: number; y: number; w: number; h: numb
 }
 
 /** 逐行比對 + 折行合併;回傳依 y 排序、含 CJK 的行(未命中的 match = null) */
-export function prepareLines(lines: OcrTextLine[], data: DesecrationData): RevealLine[] {
-  const sorted = lines
-    .filter((l) => CJK.test(l.text))
+export function prepareLines(lines: OcrTextLine[], data: DesecrationData, lang: OcrTextLang = "zh"): RevealLine[] {
+  const en = lang === "en";
+  const sorted = (en ? lines.filter((l) => hasLangText(l.text, "en")) : lines.filter((l) => CJK.test(l.text)))
     .sort((a, b) => cy(a) - cy(b) || a.x - b.x)
-    .map((l) => ({ ...l, match: matchLine(l.text, data) }) as RevealLine);
+    .map((l) => ({ ...l, match: matchLine(l.text, data, lang) }) as RevealLine);
   const hMed = median(sorted.map((l) => l.h)) || 1;
   const out: RevealLine[] = [];
   for (let i = 0; i < sorted.length; i++) {
@@ -306,7 +371,8 @@ export function prepareLines(lines: OcrTextLine[], data: DesecrationData): Revea
     // 下一行自己精確命中就不合併;這一行精確命中時,只在下一行完全對不上時才試(`增加#%護甲值` + `和閃避` 這種前半也是合法模板的折行)
     const tryMerge = b != null && !bExact && !(aExact && b.match != null);
     if (tryMerge && cy(b) - cy(a) <= GROUP_GAP_RATIO * hMed && Math.abs(cx(b) - cx(a)) <= ALIGN_RATIO * hMed) {
-      const merged = matchLine(a.text + b.text, data);
+      // 英文:兩行之間補一個空白(數字旁 O/l 的規則看得到字界;正規化後空白本來就會刪掉)
+      const merged = en ? matchLine(`${a.text} ${b.text}`, data, lang) : matchLine(a.text + b.text, data);
       if (merged && !merged.hits[0].fuzzy) {
         out.push({ ...union([a, b]), text: `${a.text} ${b.text}`, match: merged, merged: true });
         i++;
@@ -414,6 +480,7 @@ function bridgeUnmatched(segs: Seg[], lines: RevealLine[]): Seg[] {
 function selectPanel<T extends { lines: RevealLine[]; covers: unknown[]; bridge?: boolean }>(
   groups: T[],
   free: RevealLine[],
+  lang: OcrTextLang = "zh",
 ): { panel: T[] | null; veto?: PanelVeto } {
   if (groups.length < 2) return { panel: null };
   // 行高只看命中的行(bridge 組是未命中行,不改變原本的門檻)
@@ -439,13 +506,14 @@ function selectPanel<T extends { lines: RevealLine[]; covers: unknown[]; bridge?
       (s, g) => s + (g.covers.length ? 10 : 0) + g.lines.reduce((t, l) => t + (l.match && !l.match.hits[0].fuzzy ? 2 : 1), 0),
       0,
     ) +
-    5 * panelAnchorScore(gs.filter((g) => !g.bridge).flatMap((g) => g.lines), free);
+    5 * panelAnchorScore(gs.filter((g) => !g.bridge).flatMap((g) => g.lines), free, lang);
   // > 3 行的幾何組(門檻失準把相鄰選項併在一起)改算語意切了幾段
   const vetoOf = (gs: T[], check: typeof panelVeto) => {
     const segOf = new Map<RevealLine, number>();
     gs.forEach((g, i) => g.lines.forEach((l) => segOf.set(l, i)));
     return check(gs.flatMap((g) => g.lines), free, {
       splitCount: (hs: ShapeLine[]) => new Set(hs.map((l) => segOf.get(l as RevealLine))).size,
+      lang,
     });
   };
   const better = (w: T[], than: T[] | null) =>
@@ -588,8 +656,9 @@ export function matchReveal(
   data: DesecrationData,
   opts: RevealMatchOptions = {},
 ): RevealMatchResult {
-  const idx = ocrIndex(data);
-  const lines = prepareLines(ocrLines, data);
+  const lang = opts.lang ?? "zh";
+  const idx = ocrIndex(data, lang);
+  const lines = prepareLines(ocrLines, data, lang);
 
   // 幾何分組 → 每組再依語意切段(整組對得上就是一段;幾何切不開的等距單行詞綴在這裡拆開)
   const segs: Seg[] = [];
@@ -602,7 +671,7 @@ export function matchReveal(
     }
   }
   // 夾在兩組之間的未命中行自成一組 partial(中間那個選項沒認出也不拆散面板);物品浮窗等由否決規則擋掉
-  const sel = selectPanel(bridgeUnmatched(segs, lines), lines.filter((l) => !l.match));
+  const sel = selectPanel(bridgeUnmatched(segs, lines), lines.filter((l) => !l.match), lang);
   const panel = sel.panel;
   if (!panel) return sel.veto ? { ok: false, error: "no-panel", lines, veto: sel.veto } : { ok: false, error: "no-panel", lines };
 
