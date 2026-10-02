@@ -70,6 +70,42 @@ export function bgBakePlan (i: BgBakeInput, imgW: number, imgH: number): { width
   return { width, height, rect: bgCoverRect(imgW, imgH, width, height), filter: bgBakeFilter(i.bright, i.blurPx, i.dpr * BG_SCALE) }
 }
 
+/** code review 第 B 批:框大小停止變動多久後才重畫(拖曳設定視窗改大小時不每幀重畫 PNG) */
+export const BG_RESIZE_SETTLE_MS = 200
+
+/**
+ * 框大小變動的去抖(`BgLayer.vue` 的 ResizeObserver 用;測試注入假計時器):
+ * - 從 0(隱藏)變成有大小、變成 0、或畫面上還沒有預先模糊的圖(`hasBaked` false)→ 立刻 `fire`(顯示 / 隱藏 / 第一張不延遲);
+ * - 其他(拖曳中連續變動)→ 停止變動 `BG_RESIZE_SETTLE_MS` 後才 `fire` 一次;期間 `.bgimg[data-baked]` 沿用舊圖
+ *   (`100% 100%` 拉伸,仍是模糊過的圖;比暫時切回 CSS `filter: blur()` 每幀在 CPU 重算便宜,外觀也連續)。
+ * 主題 / 霧面 / 圖片變更不經過這裡(維持立即)。
+ */
+export function createResizeSettle (fire: () => void, opts: {
+  ms?: number
+  setTimeout?: (fn: () => void, ms: number) => unknown
+  clearTimeout?: (h: unknown) => void
+} = {}) {
+  const ms = opts.ms ?? BG_RESIZE_SETTLE_MS
+  const set = opts.setTimeout ?? ((fn: () => void, t: number) => setTimeout(fn, t))
+  const clear = opts.clearTimeout ?? ((h: unknown) => { clearTimeout(h as ReturnType<typeof setTimeout>) })
+  let timer: unknown = null
+  const cancel = () => { if (timer != null) { clear(timer); timer = null } }
+  return {
+    resized (prev: { w: number, h: number }, next: { w: number, h: number }, hasBaked: boolean): void {
+      const visibility = !(prev.w > 0 && prev.h > 0) || !(next.w > 0 && next.h > 0)
+      if (visibility || !hasBaked) {
+        cancel()
+        fire()
+        return
+      }
+      cancel()
+      timer = set(() => { timer = null; fire() }, ms)
+    },
+    cancel,
+    get pending (): boolean { return timer != null }
+  }
+}
+
 /** 呼叫端注入的 DOM 動作(測試用假的) */
 export interface BgBakerDeps<Img, Out> {
   /** 載入並解碼來源圖;失敗 reject(→ 原本的 CSS 呈現) */

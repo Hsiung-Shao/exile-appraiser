@@ -18,8 +18,14 @@ import type { GameId } from '@ipc/types'
 export const GAMES: readonly GameId[] = ['poe1', 'poe2']
 const INTERVAL_MS = 2000
 const REQUIRED_HITS = 2
-/** 否決(視窗只是最小化)結果在「視窗清單不變」時沿用的時間;清單一變立即失效重查。 */
-const VETO_MS = 60_000
+/**
+ * 否決(視窗只是最小化)結果的沿用時間(code review 第 B 批):
+ * - `VETO_MIN_MS` 內一律沿用,不看視窗清單(無關視窗標題常常在變 —— 瀏覽器分頁、播放器 —— 只看簽章最壞每 2 秒 spawn 一次 PowerShell);
+ * - 之後到 `VETO_MS` 為止,視窗清單(標題集合)與否決當時相同才沿用,清單變了就重查;
+ * - 目前遊戲的視窗 detach(`invalidateVeto`,遊戲被關掉)→ 立即失效,不必等滿 10 秒才切換。
+ */
+export const VETO_MIN_MS = 10_000
+export const VETO_MS = 60_000
 /** 目前遊戲在前景而跳過列舉時,連續跳過這麼多次就強制完整列舉一次(防 focus 狀態殘留)。 */
 const MAX_FOREGROUND_SKIPS = 15
 
@@ -107,6 +113,15 @@ export class GameDetector {
     console.log('[detect] 停止遊戲視窗偵測')
   }
 
+  /**
+   * 目前綁定的遊戲視窗 detach(視窗關閉)→ 「只是最小化」的否決立即失效,下一個 tick 重新確認
+   * (最小化之後被關掉的情況,不必等 10 秒下限 / 60 秒沿用期滿)。
+   */
+  invalidateVeto () {
+    if (this.veto) console.log('[detect] 遊戲視窗 detach,最小化否決作廢')
+    this.veto = null
+  }
+
   /** window 模式切完遊戲後繼續偵測(overlay 模式觸發後就重啟了)。 */
   rearm () {
     this.fired = false
@@ -136,9 +151,11 @@ export class GameDetector {
       if (target != null) {
         // desktopCapturer 不列**最小化**的視窗(實測);全螢幕 PoE 切出去會最小化 → 誤判「目前遊戲不在」。
         // 候選成立時再用行程主視窗標題(含最小化)確認一次;只在候選時跑,平常不 spawn。
-        // 確認後否決的,在「視窗清單(標題集合)不變」時沿用 60 秒(視窗一直最小化時不必反覆 spawn PowerShell);清單一變立即重查。
+        // 確認後否決的:10 秒內一律沿用;之後「視窗清單(標題集合)不變」才沿用到 60 秒(視窗一直最小化時不必反覆 spawn PowerShell);
+        // 遊戲視窗 detach 時 invalidateVeto() 立即作廢。
         const sig = namesSignature(names)
-        if (this.veto && this.veto.sig === sig && now() - this.veto.at < VETO_MS) {
+        const age = this.veto ? now() - this.veto.at : Infinity
+        if (this.veto && age >= 0 && (age < VETO_MIN_MS || (this.veto.sig === sig && age < VETO_MS))) {
           target = null
         } else {
           this.veto = null

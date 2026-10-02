@@ -25,6 +25,11 @@ export const NINJA_ORIGIN = 'https://poe.ninja'
 const IMAGE_ORIGIN = 'https://web.poecdn.com'
 
 export const NINJA_REQUEST_INTERVAL_MS = 300
+/**
+ * code review 第 B 批:每個 poe.ninja 請求的逾時(含讀完 body)。overview 回應可達數 MB,慢線路上 main 預設 30 秒會在讀 body 時逾時;
+ * 交易站 API 維持預設 30 秒。
+ */
+export const NINJA_TIMEOUT_MS = 120_000
 /** `count` 小於這個數(且 > 0)= 低信心。 */
 export const LOW_CONFIDENCE_MIN_COUNT = 5
 
@@ -279,7 +284,8 @@ export function createNinjaClient (opts: NinjaClientOptions) {
   const now = opts.now ?? Date.now
 
   async function getJson (url: string, signal?: AbortSignal): Promise<unknown> {
-    const res = await http(url, signal ? { headers: { Accept: 'application/json' }, signal } : { headers: { Accept: 'application/json' } })
+    const init = { headers: { Accept: 'application/json' }, timeoutMs: NINJA_TIMEOUT_MS }
+    const res = await http(url, signal ? { ...init, signal } : init)
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     return JSON.parse(await res.text())
   }

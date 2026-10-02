@@ -36,14 +36,16 @@ function fakeSources () {
   })
 }
 
-function setup (opts: { shot?: () => Buffer, shotBounds?: PhysRect, displays?: PhysRect[] } = {}) {
+function setup (opts: { shot?: () => Buffer, shotBounds?: PhysRect | (() => PhysRect), displays?: PhysRect[], now?: () => number } = {}) {
   const fallback = fakeSources()
   const log = vi.fn()
+  const sbOpt = opts.shotBounds
   const fromBitmap = vi.fn((buf: Buffer, w: number, h: number) => new FakeImg(buf, w, h))
   const displays = opts.displays ?? [PRIMARY]
   const cap = createGameClientCapture<FakeImg>({
     screenshot: opts.shot,
-    shotBounds: () => opts.shotBounds ?? { x: 0, y: 0, width: 0, height: 0 },
+    shotBounds: () => (typeof sbOpt === 'function' ? sbOpt() : sbOpt) ?? { x: 0, y: 0, width: 0, height: 0 },
+    now: opts.now,
     // 與 capture.ts pickDisplay 相同:含中心點的螢幕,否則重疊最大的
     display: (b) => {
       const cx = b.x + b.width / 2; const cy = b.y + b.height / 2
@@ -126,7 +128,7 @@ describe('createGameClientCapture', () => {
     expect(r.client).toEqual({ w: 200, h: 100 })
     expect(fallback).not.toHaveBeenCalled()
     expect(log).not.toHaveBeenCalled()
-    expect(cap.stats).toEqual({ overlay: 1, fallback: {} })
+    expect(cap.stats).toEqual({ overlay: 1, fallback: {}, latched: 0 })
   })
 
   it('部分在螢幕外:裁切與 offset 與 getSources 路徑一致(螢幕外的黑邊不觸發全黑退回)', async () => {
@@ -173,11 +175,27 @@ describe('createGameClientCapture', () => {
     expect(String(log.mock.calls[0][0])).toContain('size-mismatch')
   })
 
-  it('遊戲 bounds 與原生記得的不同(剛移動)→ 退回', async () => {
+  it('傳入的 bounds 已過時(tick 開始後視窗移動)→ 擷取前重讀原生 bounds,照現在的位置擷取,不退回 getSources', async () => {
+    const stale = { x: 0, y: 0, width: 200, height: 100 }
+    const moved = { x: -100, y: 5, width: 300, height: 100 } // 移到左邊部分出螢幕、大小也變了
+    const buf = bgra(300, 100, { x: 0, y: 0, width: 100, height: 100 })
+    const { cap, fallback, fromBitmap } = setup({ shot: () => buf, shotBounds: moved })
+    const r = await cap.capture(stale)
+    expect(fallback).not.toHaveBeenCalled()
+    expect(fromBitmap).toHaveBeenCalledWith(buf, 300, 100)
+    // 結果照現在的 bounds 算(與 getSources 對 moved 擷取的結果同形)
+    const ref = await fallback(moved)
+    expect(r.client).toEqual(ref.client)
+    expect(r.offset).toEqual(ref.offset)
+    expect(r.image.crops).toEqual([{ x: 100, y: 0, width: 200, height: 100 }])
+    expect(cap.stats.fallback).toEqual({})
+  })
+
+  it('原生 bounds 無效(已 detach)→ 沿用傳入值,判 bounds-mismatch 退回', async () => {
     const b = { x: 0, y: 0, width: 200, height: 100 }
-    const { cap, fallback } = setup({ shot: () => bgra(200, 100), shotBounds: { ...b, x: 5 } })
+    const { cap, fallback } = setup({ shot: () => bgra(200, 100), shotBounds: { x: 0, y: 0, width: 0, height: 0 } })
     await cap.capture(b)
-    expect(fallback).toHaveBeenCalledTimes(1)
+    expect(fallback).toHaveBeenCalledWith(b)
     expect(cap.stats.fallback).toEqual({ 'bounds-mismatch': 1 })
   })
 
@@ -193,7 +211,7 @@ describe('createGameClientCapture', () => {
     expect(log).toHaveBeenCalledTimes(1)
     expect(String(log.mock.calls[0][0])).toContain('black')
     expect(ok.image.buf.toString()).not.toBe('sources')
-    expect(cap.stats).toEqual({ overlay: 1, fallback: { black: 2 } })
+    expect(cap.stats).toEqual({ overlay: 1, fallback: { black: 2 }, latched: 0 })
   })
 
   it('沒有 screenshot(視窗模式)→ 一律 getSources,不記 log', async () => {
@@ -210,6 +228,89 @@ describe('createGameClientCapture', () => {
     const { cap } = setup({ shot, shotBounds: b })
     await expect(cap.capture(b)).rejects.toThrow('no-game-window')
     expect(shot).not.toHaveBeenCalled()
+  })
+
+  describe('鎖存(同原因連續 3 次停用 overlay 路徑)', () => {
+    const b = { x: 0, y: 0, width: 200, height: 100 }
+    function latchSetup (shotImpl: () => Buffer, bounds: () => PhysRect = () => b) {
+      const clock = { t: 1_000_000 }
+      const shot = vi.fn(shotImpl)
+      const s = setup({ shot, shotBounds: bounds, now: () => clock.t })
+      return { ...s, shot, clock }
+    }
+
+    it('全黑連續 3 次 → 之後不再呼叫原生 screenshot(直接 getSources);30 秒後再試一次,再失敗立刻再鎖', async () => {
+      const { cap, shot, fallback, clock, log } = latchSetup(() => Buffer.alloc(200 * 100 * 4))
+      for (let i = 0; i < 3; i++) await cap.capture(b)
+      expect(shot).toHaveBeenCalledTimes(3)
+      expect(cap.isLatched).toBe(true)
+      expect(log.mock.calls.some(c => String(c[0]).includes('停用'))).toBe(true)
+      for (let i = 0; i < 10; i++) { clock.t += 1000; await cap.capture(b) }
+      expect(shot).toHaveBeenCalledTimes(3)
+      expect(fallback).toHaveBeenCalledTimes(13)
+      expect(cap.stats.latched).toBe(10)
+      clock.t += 20_000 // 鎖存後 30 秒
+      await cap.capture(b)
+      expect(shot).toHaveBeenCalledTimes(4) // 再試一次
+      expect(cap.isLatched).toBe(true) // 還是黑 → 立刻再鎖
+      clock.t += 1000
+      await cap.capture(b)
+      expect(shot).toHaveBeenCalledTimes(4)
+    })
+
+    it('30 秒後再試成功 → 恢復 overlay 路徑', async () => {
+      let black = true
+      const { cap, shot, clock } = latchSetup(() => black ? Buffer.alloc(200 * 100 * 4) : bgra(200, 100))
+      for (let i = 0; i < 3; i++) await cap.capture(b)
+      black = false
+      clock.t += 30_000
+      const r = await cap.capture(b)
+      expect(r.image.buf.toString()).not.toBe('sources')
+      expect(cap.isLatched).toBe(false)
+      await cap.capture(b)
+      expect(shot).toHaveBeenCalledTimes(5)
+    })
+
+    it('throw 連續 3 次同樣鎖存', async () => {
+      const { cap, shot } = latchSetup(() => { throw new Error('boom') })
+      for (let i = 0; i < 5; i++) await cap.capture(b)
+      expect(shot).toHaveBeenCalledTimes(3)
+      expect(cap.stats.fallback).toEqual({ throw: 3 })
+      expect(cap.stats.latched).toBe(2)
+    })
+
+    it('原因交錯(不是同一原因連續)不鎖存;中間成功一次就重算', async () => {
+      const seq = ['black', 'black', 'ok', 'black', 'black', 'throw', 'black', 'black']
+      let i = 0
+      const { cap, shot } = latchSetup(() => {
+        const k = seq[i++]
+        if (k === 'throw') throw new Error('x')
+        return k === 'black' ? Buffer.alloc(200 * 100 * 4) : bgra(200, 100)
+      })
+      for (let j = 0; j < seq.length; j++) await cap.capture(b)
+      expect(shot).toHaveBeenCalledTimes(seq.length)
+      expect(cap.isLatched).toBe(false)
+    })
+
+    it('bounds 改變 → 立刻再試;reset()(遊戲 attach)→ 立刻再試', async () => {
+      let cur = b
+      const { cap, shot } = latchSetup(() => Buffer.alloc(cur.width * cur.height * 4), () => cur)
+      for (let i = 0; i < 3; i++) await cap.capture(cur)
+      await cap.capture(cur)
+      expect(shot).toHaveBeenCalledTimes(3)
+      cur = { ...b, x: 10 }
+      await cap.capture(cur)
+      expect(shot).toHaveBeenCalledTimes(4)
+      expect(cap.isLatched).toBe(false)
+      for (let i = 0; i < 2; i++) await cap.capture(cur)
+      expect(cap.isLatched).toBe(true)
+      await cap.capture(cur)
+      expect(shot).toHaveBeenCalledTimes(6)
+      cap.reset()
+      expect(cap.isLatched).toBe(false)
+      await cap.capture(cur)
+      expect(shot).toHaveBeenCalledTimes(7)
+    })
   })
 
   it('bounds 無效 → no-game-window', async () => {

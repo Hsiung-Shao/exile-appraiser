@@ -34,8 +34,9 @@ export interface ScanMaskReporter {
   /**
    * 量 `layer` 的直接子元素並回報(`layer` 為 null = 這層沒畫東西 → 空陣列)。`seq` = 這次處理完的掃描事件(ack)。
    * 與上次送出的內容相同且沒有新的 seq → 不送;回傳有沒有送。
+   * `resend`(code review 第 B 批)= 請 main 重送最近的 rows(畫面沒反映它們);一定送。
    */
-  report: (layer: { children: Iterable<MeasurableElement> } | null | undefined, seq?: number) => boolean
+  report: (layer: { children: Iterable<MeasurableElement> } | null | undefined, seq?: number, resend?: boolean) => boolean
   /** 重置(下一次一定送;元件卸載時先送空陣列再呼叫) */
   reset: () => void
 }
@@ -48,16 +49,17 @@ export function createScanMaskReporter (
   let lastKey: string | null = null
   let lastSeq: number | undefined
   return {
-    report (layer, seq) {
+    report (layer, seq, resend) {
       const rects = layer ? elementBoxes(layer.children) : []
       const vp = viewport()
       if (!(vp.w > 0 && vp.h > 0)) return false
       const key = `${vp.w}x${vp.h}|${rects.map(r => `${r.x},${r.y},${r.w},${r.h}`).join(';')}`
       const newAck = seq != null && seq !== lastSeq
-      if (key === lastKey && !newAck) return false
+      if (key === lastKey && !newAck && !resend) return false
       lastKey = key
       const r: ScanMaskReport = { source, viewport: { w: vp.w, h: vp.h }, rects }
       if (seq != null) { r.seq = seq; lastSeq = seq }
+      if (resend) r.resend = true
       send(r)
       return true
     },
@@ -65,6 +67,28 @@ export function createScanMaskReporter (
       lastKey = null
       lastSeq = undefined
     }
+  }
+}
+
+/**
+ * code review 第 B 批:「請 main 重送 rows」的時機(`OcrBadges.vue` / `RuneshapePrices.vue` 用)。
+ * main 對相同的 rows 10 秒內不重送(畫面沒變甚至不重新 OCR),所以收到 rows 時資料還沒載好(沒畫徽章)、
+ * 或徽章是舊資料集算的,資料載好時要主動請 main 重送一次:
+ * - `missed()`:收到 rows 但沒處理(資料未載好 / 遊戲資料不對);
+ * - `dataChanged(showing)`:資料集世代 / 已載入遊戲改變時呼叫;之前 missed 過或畫面上有用舊資料算的徽章 → true(要送 resend),並清旗標。
+ * 只在資料載好那一刻送一次,不會因為資料一直載不好而每個 tick 重送。
+ */
+export function createResendTracker () {
+  let missed = false
+  return {
+    missed (): void { missed = true },
+    dataChanged (showing: boolean): boolean {
+      const r = missed || showing
+      missed = false
+      return r
+    },
+    /** 測試 / log */
+    get pending (): boolean { return missed }
   }
 }
 

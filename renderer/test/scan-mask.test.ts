@@ -2,7 +2,7 @@
 // 量直接子元素的外框(CSS px)+ 視窗大小;同一份不重送,但每個掃描事件的 ack(seq)一定送。
 import { describe, expect, it } from 'vitest'
 import type { ScanMaskReport } from '@ipc/types'
-import { createScanMaskReporter, elementBoxes, reportWithAck, type MeasurableElement } from '../src/web/overlay/scan-mask'
+import { createResendTracker, createScanMaskReporter, elementBoxes, reportWithAck, type MeasurableElement } from '../src/web/overlay/scan-mask'
 
 const el = (left: number, top: number, width: number, height: number): MeasurableElement => ({ getBoundingClientRect: () => ({ left, top, width, height }) })
 const layer = (...children: MeasurableElement[]) => ({ children })
@@ -10,6 +10,22 @@ const layer = (...children: MeasurableElement[]) => ({ children })
 describe('elementBoxes', () => {
   it('外框取兩位小數;沒畫出來(寬或高 0)的略過', () => {
     expect(elementBoxes([el(10.123, 20.456, 100.5, 18), el(0, 0, 0, 10), el(5, 5, 10, 0)])).toEqual([{ x: 10.12, y: 20.46, w: 100.5, h: 18 }])
+  })
+})
+
+describe('createResendTracker(code review 第 B 批)', () => {
+  it('沒處理的 rows(資料未載好)→ 資料載好時要 resend 一次;之後不再送', () => {
+    const t = createResendTracker()
+    expect(t.dataChanged(false)).toBe(false)
+    t.missed()
+    t.missed()
+    expect(t.pending).toBe(true)
+    expect(t.dataChanged(false)).toBe(true)
+    expect(t.dataChanged(false)).toBe(false)
+  })
+  it('畫面上有徽章(舊資料算的)時資料世代改變 → resend', () => {
+    const t = createResendTracker()
+    expect(t.dataChanged(true)).toBe(true)
   })
 })
 
@@ -50,6 +66,16 @@ describe('createScanMaskReporter', () => {
     expect(r.report(layer(el(1, 1, 5, 5)))).toBe(true)
     r.reset()
     expect(r.report(layer(el(1, 1, 5, 5)))).toBe(true)
+  })
+
+  it('code review 第 B 批:resend 一定送(內容 / seq 都沒變也送)並帶 resend: true;一般回報不帶', () => {
+    const { sent, r } = setup()
+    r.report(layer(el(1, 1, 5, 5)), 3)
+    expect(sent[0].resend).toBeUndefined()
+    expect(r.report(layer(el(1, 1, 5, 5)), 3)).toBe(false)
+    expect(r.report(layer(el(1, 1, 5, 5)), undefined, true)).toBe(true)
+    expect(sent[1]).toEqual({ source: 'reveal', viewport: { w: 1600, h: 900 }, rects: [{ x: 1, y: 1, w: 5, h: 5 }], resend: true })
+    expect(r.report(layer(el(1, 1, 5, 5)))).toBe(false)
   })
 
   it('視窗大小不合法(0)不送', () => {

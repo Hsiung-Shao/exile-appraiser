@@ -770,4 +770,25 @@ describe('共用定位 OCR / tick 不重入 / 相同結果不重送', () => {
     // 設定頁統計照常累計(OCR 次數含沒送的那次)
     expect(h.scan.snapshot().ocrRuns).toBe(7)
   })
+
+  it('code review 第 B 批:renderer 回報 resend(資料剛載好 / 世代改了)→ 畫面沒變、10 秒內也重新 OCR 並照送同一份 rows', async () => {
+    const h = harness()
+    expect(await h.scan.tick()).toMatchObject({ sent: 'rows' })
+    // 畫面沒變 → 不 OCR、不送
+    expect(await h.scan.tick()).toMatchObject({ kind: 'unchanged' })
+    h.state.frame = fp(90) // 畫面變了但 OCR 結果一樣 → 去重
+    expect(await h.scan.tick()).toMatchObject({ sent: null, deduped: true })
+    expect(h.events).toHaveLength(1)
+    h.scan.resendRows()
+    await h.clk.advance(0)
+    // 畫面沒變、未滿 10 秒,仍重新 OCR 並送出
+    const ocr = h.scan.snapshot().ocrRuns
+    expect(await h.scan.tick()).toMatchObject({ kind: 'ocr', sent: 'rows' })
+    expect(h.scan.snapshot().ocrRuns).toBe(ocr + 1)
+    expect(h.events.filter(e => e.reason === 'rows')).toHaveLength(2)
+    expect(h.events[1].rows).toEqual(h.events[0].rows)
+    // 之後恢復去重
+    h.state.frame = fp(120)
+    expect(await h.scan.tick()).toMatchObject({ sent: null, deduped: true })
+  })
 })

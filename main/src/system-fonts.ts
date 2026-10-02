@@ -71,32 +71,43 @@ export interface FontLister {
   list: () => Promise<string[]>
 }
 
+/** code review 第 B 批:列字體失敗 / 空結果後多久內不再 spawn PowerShell(直接回 [];設定頁一直重開不會每次都跑 15 秒逾時的行程) */
+export const FONT_NEGATIVE_CACHE_MS = 5 * 60_000
+
 export function createFontLister (opts: {
   run?: RunScript
   platform?: NodeJS.Platform
   timeoutMs?: number
   log?: (msg: string) => void
+  now?: () => number
 } = {}): FontLister {
   const run = opts.run ?? runPowerShell
   const platform = opts.platform ?? process.platform
   const timeoutMs = opts.timeoutMs ?? 15_000
   const log = opts.log ?? ((m: string) => { console.log(m) })
+  const now = opts.now ?? Date.now
   let cached: string[] | null = null
   let pending: Promise<string[]> | null = null
+  /** 上次失敗 / 空結果的時間(負快取) */
+  let failedAt = Number.NEGATIVE_INFINITY
   return {
     async list () {
       if (cached) return cached
       if (platform !== 'win32') return []
       if (pending) return await pending
+      const sinceFail = now() - failedAt
+      if (sinceFail >= 0 && sinceFail < FONT_NEGATIVE_CACHE_MS) return []
       pending = (async () => {
         const t0 = Date.now()
         try {
           const fonts = parseFontList(await run(LIST_FONTS_SCRIPT, timeoutMs))
           if (fonts.length) cached = fonts
+          else failedAt = now()
           log(`[fonts] 系統字體 ${fonts.length} 項(${Date.now() - t0} ms)`)
           return fonts
         } catch (e) {
-          log(`[fonts] 列字體失敗:${(e as Error).message}`)
+          failedAt = now()
+          log(`[fonts] 列字體失敗:${(e as Error).message}(${FONT_NEGATIVE_CACHE_MS / 60_000} 分鐘內不再重試)`)
           return []
         } finally {
           pending = null

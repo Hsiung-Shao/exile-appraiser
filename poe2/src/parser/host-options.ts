@@ -24,10 +24,15 @@ export interface HostOptions {
    * 詞綴 / 物品名在這裡是 `cmn-Hant` 時換成繁中(`trade/display-zh.ts`);浮窗的 `item.*` 標籤本來就跟介面語言。
    */
   uiLanguage: string;
+  /**
+   * code review 第 B 批:上游 PriceCheckWidget.itemHoverTooltip(查價結果懸停浮窗 `off` / `keybind` / `always`)。
+   * `off` 時浮窗不會顯示 → `display-zh.ts` 不載資料也不翻。
+   */
+  itemHoverTooltip: "off" | "keybind" | "always";
 }
 
 export function defaultHostOptions(): HostOptions {
-  return { language: "en", savedAugments: {}, searchStatRange: 10, uiLanguage: "en" };
+  return { language: "en", savedAugments: {}, searchStatRange: 10, uiLanguage: "en", itemHoverTooltip: "keybind" };
 }
 
 let overrides: Partial<HostOptions> = {};

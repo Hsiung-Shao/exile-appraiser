@@ -6,6 +6,8 @@
   效能修正第 10 步(2026-10-01):霧面 > 0 時不再用 CSS filter 即時模糊,改由 ../bg-bake.ts 在設定 / 大小 / dpr / 主題底色變了時
   用 canvas 照同一串 filter 畫一次、輸出 PNG blob URL,寫進 .bgimg 的 `--bg-baked` + `data-baked`(pobtools.css 拿掉即時的背景與 filter,
   改用這張圖;scale(1.04) 照舊)。霧面 0、圖還沒好、載入或繪製失敗時就是原本的 CSS 呈現。
+  code review 第 B 批:框大小變動(拖曳設定視窗)停止約 200 ms 後才重畫(`createResizeSettle`),期間沿用舊圖(拉伸);
+  顯示 / 隱藏、第一張圖、主題 / 霧面 / 圖片變更維持立即。
 -->
 <template>
   <div ref="imgEl" class="bgimg" aria-hidden="true" data-bg-layer="image" />
@@ -14,7 +16,7 @@
 
 <script lang="ts">
 import { defineComponent, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { BgBaker, bgBakePlan, type BgBakeInput } from '../bg-bake'
+import { BgBaker, bgBakePlan, createResizeSettle, type BgBakeInput } from '../bg-bake'
 import { bgBake } from '../useTheme'
 
 /** 畫好的圖:blob URL + 已解碼的 Image(留著參照,換上時不必再解碼、不閃爍) */
@@ -108,6 +110,8 @@ export default defineComponent({
     function schedule (): void {
       if (!raf) raf = requestAnimationFrame(() => { raf = 0; baker.update(input()) })
     }
+    // 框大小變動去抖:拖曳中不每幀重畫 PNG(停 200 ms 才畫;顯示 / 隱藏 / 還沒有圖時立即)
+    const settle = createResizeSettle(flush)
 
     watch(bgBake, schedule)
     onMounted(() => {
@@ -117,9 +121,10 @@ export default defineComponent({
         const e = entries[entries.length - 1]
         const dp = e.devicePixelContentBoxSize?.[0]
         const dpr = window.devicePixelRatio || 1
+        const prev = { w: width, h: height }
         width = dp ? dp.inlineSize : Math.round(e.contentRect.width * dpr)
         height = dp ? dp.blockSize : Math.round(e.contentRect.height * dpr)
-        flush()
+        settle.resized(prev, { w: width, h: height }, baker.key != null)
       })
       try { ro.observe(el, { box: 'device-pixel-content-box' }) } catch { ro.observe(el) }
       // 主題 / 強調色寫在 <html>(data-theme、style):底色可能變 → 下一幀重算(鍵沒變就不重畫)
@@ -128,6 +133,7 @@ export default defineComponent({
       schedule()
     })
     onBeforeUnmount(() => {
+      settle.cancel()
       ro?.disconnect()
       mo?.disconnect()
       if (raf) cancelAnimationFrame(raf)

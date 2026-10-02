@@ -1,7 +1,8 @@
-import { beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 import fs from "fs";
 import path from "path";
-import { init } from "@/assets/data";
+import { init, loadForLang, LOADED_DATA } from "@/assets/data";
+import { source } from "@/assets/data/source";
 import { setHostOptions } from "@/parser/host-options";
 import { resetTradeSessions } from "@/web/price-check/trade/common";
 import {
@@ -11,6 +12,8 @@ import {
   type DisplayItemLine,
 } from "@/web/price-check/trade/pathofexile-trade";
 import {
+  __displayZhTest,
+  buildDisplayZhData,
   displayZhFor,
   loadDisplayZhData,
   translateDisplayItem,
@@ -176,13 +179,97 @@ describe("何時翻(displayZhFor / requestResults)", () => {
     return { result: [r] };
   };
 
-  it("英文介面 / 台服 → 不翻;國際服 + 繁中介面 → 翻", async () => {
+  it("英文介面 / 台服 / 懸停浮窗關閉 → 不翻;國際服 + 繁中介面 → 翻", async () => {
     setHostOptions({ uiLanguage: "en" });
-    expect(await displayZhFor("intl")).toBeUndefined();
+    expect(displayZhFor("intl")).toBeUndefined();
     setHostOptions({ uiLanguage: "cmn-Hant" });
-    expect(await displayZhFor("tw")).toBeUndefined();
-    expect(await displayZhFor("intl")).toBeTypeOf("function");
-    setHostOptions({ uiLanguage: "en" });
+    expect(displayZhFor("tw")).toBeUndefined();
+    expect(displayZhFor("intl")).toBeTypeOf("function");
+    setHostOptions({ itemHoverTooltip: "off" });
+    expect(displayZhFor("intl")).toBeUndefined();
+    setHostOptions({ itemHoverTooltip: "always" });
+    expect(displayZhFor("intl")).toBeTypeOf("function");
+    setHostOptions({ uiLanguage: "en", itemHoverTooltip: "keybind" });
+  });
+
+  const ctxOf = (http: ReturnType<typeof fakeHttp>) => ({
+    http,
+    realm: "intl" as const,
+    latencySeconds: 0,
+    accountName: "",
+  });
+
+  it("code review 第 B 批:懸停浮窗關閉 → 不載資料(不讀任何資料檔)也不翻", async () => {
+    __displayZhTest.reset();
+    const spy = vi.spyOn(source(), "text");
+    try {
+      setHostOptions({ uiLanguage: "cmn-Hant", itemHoverTooltip: "off" });
+      expect(displayZhFor("intl")).toBeUndefined();
+      resetTradeSessions();
+      const id = rec().result[0].id;
+      const [r] = await requestResults(ctxOf(fakeHttp(rec())), "q", [id]);
+      expect(r.displayItem).toEqual(__testExports.parseFetchResult(rec().result[0]));
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      expect(spy).not.toHaveBeenCalled();
+    } finally {
+      spy.mockRestore();
+      setHostOptions({ uiLanguage: "en", itemHoverTooltip: "keybind" });
+      await loadDisplayZhData();
+    }
+  });
+
+  it("code review 第 B 批:第一次查價不等資料(回英文、背景載入);載好後下一次查價(含快取結果)是繁中", async () => {
+    __displayZhTest.reset();
+    setHostOptions({ uiLanguage: "cmn-Hant" });
+    try {
+      const id = rec().result[0].id;
+      resetTradeSessions();
+      const [first] = await requestResults(ctxOf(fakeHttp(rec())), "q", [id]);
+      // 不阻塞:這次是英文
+      expect(first.displayItem).toEqual(__testExports.parseFetchResult(rec().result[0]));
+      // 背景載入完成(同一個 promise)
+      await loadDisplayZhData();
+      const [second] = await requestResults(ctxOf(fakeHttp(rec())), "q", [id]);
+      expect(second.displayItem!.explicitMods!.map((l) => l.text)).toEqual([
+        "附加30至45冰冷傷害",
+        "+16點力量",
+        "以5.01%物理傷害偷取魔力",
+        "增加16%暈眩持續時間",
+      ]);
+    } finally {
+      setHostOptions({ uiLanguage: "en" });
+    }
+  });
+
+  it("code review 第 B 批:重用 @/assets/data 已載入的語系,只讀缺的檔;結果與三個檔直接讀相同(en / cmn-Hant 兩種客戶端)", async () => {
+    const DATA = path.resolve(__dirname, "../../../../../data/poe2");
+    const read = (rel: string) => fs.readFileSync(path.join(DATA, rel), "utf8");
+    const expected = buildDisplayZhData(read("en/stats.ndjson"), read("cmn-Hant/stats.ndjson"), read("cmn-Hant/items.ndjson"));
+    const reqs = async () => {
+      __displayZhTest.reset();
+      const spy = vi.spyOn(source(), "text");
+      try {
+        const d = await loadDisplayZhData();
+        return { d, files: spy.mock.calls.map((c) => c[0]).sort() };
+      } finally {
+        spy.mockRestore();
+      }
+    };
+    expect(LOADED_DATA?.lang).toBe("en");
+    const en = await reqs();
+    expect(en.files).toEqual(["cmn-Hant/items.ndjson", "cmn-Hant/stats.ndjson"]);
+    expect(en.d).toEqual(expected);
+    try {
+      await loadForLang("cmn-Hant");
+      expect(LOADED_DATA?.lang).toBe("cmn-Hant");
+      const zh = await reqs();
+      expect(zh.files).toEqual(["en/stats.ndjson"]);
+      expect(zh.d).toEqual(expected);
+    } finally {
+      await loadForLang("en");
+      __displayZhTest.reset();
+      await loadDisplayZhData();
+    }
   });
 
   it("requestResults 端到端:英文介面浮窗與原本逐位元相同;繁中介面只有 text 換掉", async () => {

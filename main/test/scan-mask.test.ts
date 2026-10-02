@@ -27,6 +27,9 @@ describe('sanitizeMaskReport:IPC 進來的資料', () => {
     expect(sanitizeMaskReport({ source: 'reveal', seq: 3, viewport: { w: 1600, h: 900 }, rects: [{ x: 1, y: 2, w: 3, h: 4 }, { x: 0, y: 0, w: 0, h: 5 }, { x: 'a' }, null] }))
       .toEqual({ source: 'reveal', seq: 3, viewport: { w: 1600, h: 900 }, rects: [{ x: 1, y: 2, w: 3, h: 4 }] })
     expect(sanitizeMaskReport({ source: 'rune', viewport: { w: 10, h: 10 } })).toEqual({ source: 'rune', viewport: { w: 10, h: 10 }, rects: [] })
+    // code review 第 B 批:resend 只收 true
+    expect(sanitizeMaskReport({ source: 'rune', seq: 2, viewport: { w: 10, h: 10 }, resend: true })).toEqual({ source: 'rune', seq: 2, viewport: { w: 10, h: 10 }, rects: [], resend: true })
+    expect(sanitizeMaskReport({ source: 'rune', viewport: { w: 10, h: 10 }, resend: 'yes' })).toEqual({ source: 'rune', viewport: { w: 10, h: 10 }, rects: [] })
     expect(sanitizeMaskReport({ source: 'x', viewport: { w: 10, h: 10 }, rects: [] })).toBeNull()
     expect(sanitizeMaskReport({ source: 'reveal', viewport: { w: 0, h: 10 }, rects: [] })).toBeNull()
     expect(sanitizeMaskReport(null)).toBeNull()
@@ -59,6 +62,20 @@ describe('ScanMaskStore:座標換算、保留期、ack', () => {
     // 同一份重送不進保留期(不會累積)
     st.report({ source: 'rune', viewport: vp, rects: [{ x: 50, y: 50, w: 10, h: 10 }] }, 2000)
     expect(st.clientRects({ w: 100, h: 100 }, 2000)).toHaveLength(1)
+  })
+
+  it('code review 第 B 批:沒有擷取(掃描暫停)時一直回報,過期的保留項在 report() 也會清掉,不無限累積', () => {
+    const st = new ScanMaskStore()
+    const vp = { w: 100, h: 100 }
+    for (let i = 0; i < 200; i++) {
+      // 每 100 ms 換一次位置 → 每次都把上一份推進保留期
+      st.report({ source: 'reveal', viewport: vp, rects: [{ x: i % 50, y: 10, w: 10, h: 10 }] }, i * 100)
+    }
+    // 保留期 300 ms → 最多只剩 ~3 份(不是 199 份)
+    expect(st.lingeringCount).toBeLessThanOrEqual(Math.ceil(MASK_LINGER_MS / 100))
+    expect(st.lingeringCount).toBeGreaterThan(0)
+    st.report({ source: 'reveal', viewport: vp, rects: [] }, 200 * 100 + MASK_LINGER_MS + 1)
+    expect(st.lingeringCount).toBe(1) // 只剩剛被取代的那一份
   })
 
   it('送出 rows 後 pending,直到 renderer ack 同一個 seq(或更新的);逾時自動放行;另一個來源的 ack 不算', () => {

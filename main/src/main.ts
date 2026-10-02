@@ -26,8 +26,8 @@ import { WIN_OCR_SCRIPT } from './ocr/script'
 import { RevealScan } from './ocr/reveal-scan'
 import { runOcrSelftest, runRuneshapeSelftest } from './ocr/selftest'
 import { loadLocateIndex } from './ocr/locate-data'
-import { createOverlayClientCapture, toScanCapture } from './ocr/capture'
-import { runCaptureBench } from './ocr/capture-bench'
+import { createOverlayClientCapture, displayPhysRect, toScanCapture } from './ocr/capture'
+import { captureBenchMode } from './cli-flags'
 import { DEFAULT_SCAN_INTERVAL_MS, RuneshapeScan } from './ocr/runeshape-scan'
 import { SharedCapture, SharedLocateOcr } from './ocr/panel-scan'
 import { ScanMaskStore, sanitizeMaskReport } from './ocr/scan-mask'
@@ -36,7 +36,7 @@ import { BG_DIR_NAME, bgContentType, bgCorsHeaders, bgFileFromPath, normBgFile, 
 import { createFontLister } from './system-fonts'
 import {
   TOAST_FADE_MS, TOAST_VISIBLE_MS, isFirstRunAfterUpdate, parseLastRun, priceCheckHotkeyLabel, scanToastMessage, serializeLastRun,
-  shouldShowGameAttachToast, shouldShowStartupToast, toastBounds, toastHtml, toastLang, toastMessage, type ScanToastKind, type ToastMessage
+  shouldShowGameAttachToast, shouldShowStartupToast, toastBounds, toastHtml, toastLang, toastMessage, toastWorkArea, type ScanToastKind, type ToastMessage
 } from './startup-toast'
 
 // WP-S:`--ocr-selftest <png>`:無視窗跑 OCR(capture 以外的整條)後結束;不拿單一實例鎖、不建視窗/托盤/熱鍵。
@@ -53,7 +53,10 @@ const OCR_SELFTEST = RUNESHAPE_SELFTEST ?? argAfter('--ocr-selftest')
 const TOAST_SELFTEST = argAfter('--toast-selftest')
 // 效能修正第 17 步:`--capture-bench [--bench-*]`:量 overlay screenshot() 與 desktopCapturer 的耗時、像素 / OCR 一致性(ocr/capture-bench.ts);
 // 不拿單一實例鎖、不送輸入、不搶焦點、不寫影格檔。
-const CAPTURE_BENCH = process.argv.includes('--capture-bench')
+// code review 第 B 批:只在非 packaged 時接受(正式版忽略並正常啟動);量測程式碼動態 import(不在啟動路徑上執行)
+const CAPTURE_BENCH_MODE = captureBenchMode(process.argv, app.isPackaged)
+const CAPTURE_BENCH = CAPTURE_BENCH_MODE === 'run'
+if (CAPTURE_BENCH_MODE === 'ignored') console.warn('[main] 正式版不支援 --capture-bench(只給開發版量測用),忽略並正常啟動')
 
 // `--ppz-log-file=<path>`:main 的 console 另外附加寫到檔案(驗證自我重新啟動用;relaunch 會沿用同一組參數,
 // 新行程的 stdout 不一定接得回原終端機)。不用 `--log-file`,那是 Chromium 自己的開關。
@@ -82,7 +85,8 @@ if (OCR_SELFTEST != null) {
     .then((code) => { app.exit(code) })
     .catch((e) => { console.error('[ocr-selftest]', e); app.exit(1) })
 } else if (CAPTURE_BENCH) {
-  runCaptureBench(process.argv)
+  import('./ocr/capture-bench')
+    .then(async ({ runCaptureBench }) => await runCaptureBench(process.argv))
     .then((code) => { app.exit(code) })
     .catch((e) => { console.error('[capture-bench]', e); app.exit(1) })
 } else if (TOAST_SELFTEST != null) {
@@ -376,20 +380,27 @@ function recordLastRun (): boolean {
   return updated
 }
 
+/** 提示視窗的圖示 data URL(讀一次就快取;讀不到也快取 null,不每次重讀) */
+let iconDataUrlCache: string | null | undefined
 function iconDataUrl (): string | null {
+  if (iconDataUrlCache !== undefined) return iconDataUrlCache
   try {
-    return `data:image/png;base64,${fsSync.readFileSync(iconPath('icon.png')).toString('base64')}`
+    iconDataUrlCache = `data:image/png;base64,${fsSync.readFileSync(iconPath('icon.png')).toString('base64')}`
   } catch {
-    return null
+    iconDataUrlCache = null
   }
+  return iconDataUrlCache
 }
 
+type WorkArea = { x: number, y: number, width: number, height: number }
+
 /**
- * 主螢幕工作區右下角(托盤上方)的提示小視窗:無框、透明、置頂、不進工作列、不可取得焦點(`showInactive`)、點擊穿透。
+ * 工作區右下角(托盤上方)的提示小視窗:無框、透明、置頂、不進工作列、不可取得焦點(`showInactive`)、點擊穿透。
+ * `workArea` 省略 = 主螢幕(code review 第 B 批起呼叫端傳遊戲所在螢幕,`toastWorkArea`)。
  * 內容是 data URL(`toastHtml`:內嵌 CSS、無腳本、CSP default-src 'none');`autoClose` = 淡出後銷毀。
  */
-function showStartupToast (msg: ToastMessage, opts: { animate?: boolean, autoClose?: boolean } = {}): BrowserWindow {
-  const bounds = toastBounds(screen.getPrimaryDisplay().workArea)
+function showStartupToast (msg: ToastMessage, opts: { animate?: boolean, autoClose?: boolean, workArea?: WorkArea } = {}): BrowserWindow {
+  const bounds = toastBounds(opts.workArea ?? screen.getPrimaryDisplay().workArea)
   const t = new BrowserWindow({
     ...bounds,
     show: false,
@@ -437,10 +448,12 @@ let activeToastTimer: NodeJS.Timeout | null = null
  * 顯示提示:已有提示視窗在畫面上 → 換內容(重新 loadURL,淡入 / 淡出動畫從頭開始)並重新計時;沒有 → 開一個。
  * 計時從頁面載入完成開始,`TOAST_VISIBLE_MS + TOAST_FADE_MS` 後銷毀(與 CSS 淡出同步)。
  */
-function presentToast (msg: ToastMessage): void {
+function presentToast (msg: ToastMessage, workArea?: WorkArea): void {
   if (activeToastTimer) { clearTimeout(activeToastTimer); activeToastTimer = null }
   const reuse = activeToast && !activeToast.isDestroyed() ? activeToast : null
-  const t = reuse ?? showStartupToast(msg, { autoClose: false })
+  // 換內容時也跟著移到這次的螢幕(遊戲換了螢幕)
+  if (reuse) reuse.setBounds(toastBounds(workArea ?? screen.getPrimaryDisplay().workArea))
+  const t = reuse ?? showStartupToast(msg, { autoClose: false, workArea })
   t.webContents.once('did-finish-load', () => {
     if (activeToastTimer) clearTimeout(activeToastTimer)
     activeToastTimer = setTimeout(() => {
@@ -607,6 +620,12 @@ if (!skipStartup) app.whenReady().then(() => {
     return b && b.width > 0 && b.height > 0 ? { x: b.x, y: b.y, width: b.width, height: b.height } : null
   }
   const scanEnv = () => ({ overlay: windowMode === 'overlay', gameActive: Boolean(poeWindow?.isActive), bounds: gameBounds() })
+  /** code review 第 B 批:提示畫在遊戲所在螢幕的工作區;沒有遊戲視窗(視窗模式 / 還沒 attach)→ 主螢幕 */
+  const gameToastArea = (): WorkArea => toastWorkArea(
+    gameBounds(),
+    screen.getAllDisplays().map(d => ({ rect: displayPhysRect(d), workArea: d.workArea })),
+    screen.getPrimaryDisplay().workArea
+  )
   // 效能修正第 17 步:擷取先用 overlay 原生 screenshot()(只抓 attach 的遊戲 client、同步數十 ms),throw / 尺寸不符 / 全黑才退回 desktopCapturer;
   // 視窗模式沒有 attach 的遊戲視窗(掃描本來就不跑,scanBlock = not-overlay),不傳 screenshot = 一律 desktopCapturer
   const clientCapture = createOverlayClientCapture({
@@ -882,7 +901,7 @@ if (!skipStartup) app.whenReady().then(() => {
 
   /** 第 16 步:辨識暫停 / 繼續的通知(語言跟 `uiLanguage`;熱鍵只在收到 host-config 後才註冊,hostCfg 一定有值) */
   function notifyScan (items: Array<{ kind: ScanToastKind, paused: boolean }>): void {
-    presentToast(scanToastMessage(toastLang(hostCfg?.uiLanguage), items))
+    presentToast(scanToastMessage(toastLang(hostCfg?.uiLanguage), items), gameToastArea())
   }
 
   // 第 16 步:遊戲視窗從「不在」變成「附著到」→ 再顯示一次「已在背景執行」(startup-toast.ts `shouldShowGameAttachToast`)
@@ -891,6 +910,8 @@ if (!skipStartup) app.whenReady().then(() => {
   let trackingSince: number | null = null
   if (poeWindow) {
     poeWindow.onAttach(() => {
+      // code review 第 B 批:重新 attach → overlay screenshot 的鎖存作廢,下一次擷取重新試原生路徑
+      clientCapture.reset()
       const wasAttached = gameAttached
       gameAttached = true
       attachCount++
@@ -914,10 +935,14 @@ if (!skipStartup) app.whenReady().then(() => {
           version: app.getVersion(),
           hotkey: priceCheckHotkeyLabel(cfg.hotkeyHold, cfg.hotkey),
           updated: false
-        }))
+        }), gameToastArea())
       }
     })
-    poeWindow.onDetach(() => { gameAttached = false })
+    poeWindow.onDetach(() => {
+      gameAttached = false
+      // code review 第 B 批:遊戲視窗被關掉 → 「只是最小化」的否決立即作廢(最小化後被關掉時更快切到另一款)
+      detector.invalidateVeto()
+    })
   }
 
   let lastScanKey: string | null = null
@@ -953,7 +978,7 @@ if (!skipStartup) app.whenReady().then(() => {
         version: app.getVersion(),
         hotkey: priceCheckHotkeyLabel(cfg.hotkeyHold, cfg.hotkey),
         updated: startupUpdated
-      }))
+      }), gameToastArea()) // 啟動時遊戲已 attach → 遊戲所在螢幕;沒有遊戲 → 主螢幕
     } else if (ctx.source !== 'preview') {
       startupToastShown = true // 第一次設定就關著 → 之後打開也不補顯示(只在啟動時)
     }
@@ -1212,6 +1237,8 @@ if (!skipStartup) app.whenReady().then(() => {
         scanMask.report(rep, Date.now())
         revealScan.drawSettled()
         runeshapeScan.drawSettled()
+        // code review 第 B 批:renderer 沒畫出最近的 rows(資料當時沒載好 / 世代改了)→ 該掃描下一 tick 重新 OCR 並照送
+        if (rep.resend) (rep.source === 'reveal' ? revealScan : runeshapeScan).resendRows()
       }
     },
     // 設定頁顯示褻瀆自動辨識統計;預覽端不開放

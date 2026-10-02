@@ -12,6 +12,7 @@
  */
 import { mergeTwoHotkeys } from '@ipc/KeyToCode'
 import { normalizeHotkey } from './shortcut-actions'
+import { pickDisplayIndex, type PhysRect } from './ocr/overlay-shot'
 
 export type ToastLang = 'cmn-Hant' | 'en'
 
@@ -230,6 +231,20 @@ export function toastHtml (msg: ToastMessage, iconDataUrl: string | null, opts: 
 }
 
 /** 右下角位置(`workArea` = 主螢幕工作區,已扣掉工作列,所以在托盤上方)。 */
+/**
+ * code review 第 B 批:提示要畫在哪個螢幕的工作區(DIP)。遊戲視窗(實體像素 client bounds)所在的螢幕
+ * (與 OCR 擷取同一個判斷 `pickDisplayIndex`:含中心點 → 重疊最大);沒有遊戲視窗 / 不在任何螢幕上 → 主螢幕。
+ */
+export function toastWorkArea (
+  game: PhysRect | null,
+  displays: ReadonlyArray<{ rect: PhysRect, workArea: { x: number, y: number, width: number, height: number } }>,
+  primaryWorkArea: { x: number, y: number, width: number, height: number }
+): { x: number, y: number, width: number, height: number } {
+  if (!game || !(game.width > 0 && game.height > 0)) return primaryWorkArea
+  const i = pickDisplayIndex(game, displays.map(d => d.rect))
+  return i >= 0 ? displays[i].workArea : primaryWorkArea
+}
+
 export function toastBounds (workArea: { x: number, y: number, width: number, height: number }): { x: number, y: number, width: number, height: number } {
   const { width, height } = TOAST_SIZE
   return {

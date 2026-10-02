@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   STARTUP_ATTACH_GRACE_MS, TOAST_MARGIN, TOAST_SIZE, compareVersions, escapeHtml, isFirstRunAfterUpdate, parseLastRun, priceCheckHotkeyLabel,
   scanToastMessage, serializeLastRun, shouldShowGameAttachToast, shouldShowStartupToast, toastBounds, toastHtml, toastLang, toastMessage,
-  type GameAttachToastEnv, type ToastStartupEnv
+  toastWorkArea, type GameAttachToastEnv, type ToastStartupEnv
 } from '../src/startup-toast'
 
 const base: ToastStartupEnv = { enabled: true, controlRequest: false, selftest: false, preview: false, secondInstance: false, alreadyShown: false }
@@ -105,6 +105,31 @@ describe('toastBounds', () => {
     const off = toastBounds({ x: -1920, y: 40, width: 1920, height: 1000 })
     expect(off.x).toBe(-TOAST_SIZE.width - TOAST_MARGIN)
     expect(off.y).toBe(40 + 1000 - TOAST_SIZE.height - TOAST_MARGIN)
+  })
+})
+
+// code review 第 B 批:提示畫在遊戲所在的螢幕
+describe('toastWorkArea', () => {
+  // 主螢幕 2560×1440 @150%(DIP 1707×960);副螢幕在左、直立 1440×2560 @100%
+  const primary = { rect: { x: 0, y: 0, width: 2560, height: 1440 }, workArea: { x: 0, y: 0, width: 1707, height: 912 } }
+  const secondary = { rect: { x: -1440, y: -1114, width: 1440, height: 2560 }, workArea: { x: -1440, y: -1114, width: 1440, height: 2520 } }
+  const displays = [primary, secondary]
+  it('沒有遊戲視窗 → 主螢幕', () => {
+    expect(toastWorkArea(null, displays, primary.workArea)).toBe(primary.workArea)
+    expect(toastWorkArea({ x: 0, y: 0, width: 0, height: 0 }, displays, primary.workArea)).toBe(primary.workArea)
+  })
+  it('遊戲在副螢幕 → 副螢幕的工作區', () => {
+    expect(toastWorkArea({ x: -1440, y: -500, width: 1440, height: 810 }, displays, primary.workArea)).toBe(secondary.workArea)
+  })
+  it('遊戲在主螢幕 → 主螢幕', () => {
+    expect(toastWorkArea({ x: 0, y: 23, width: 2560, height: 1369 }, displays, primary.workArea)).toBe(primary.workArea)
+  })
+  it('跨兩個螢幕 → 含中心點的那個;中心點在螢幕外 → 重疊最大的', () => {
+    expect(toastWorkArea({ x: -1200, y: 0, width: 1600, height: 900 }, displays, primary.workArea)).toBe(secondary.workArea)
+    expect(toastWorkArea({ x: 2000, y: -2000, width: 1000, height: 2200 }, displays, primary.workArea)).toBe(primary.workArea)
+  })
+  it('不在任何螢幕上(最小化 -32000)→ 主螢幕', () => {
+    expect(toastWorkArea({ x: -32000, y: -32000, width: 160, height: 28 }, displays, primary.workArea)).toBe(primary.workArea)
   })
 })
 

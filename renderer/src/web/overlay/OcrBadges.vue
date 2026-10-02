@@ -49,7 +49,7 @@ import {
 import { badgeStyleVars, revealBadgeFontPx } from './badge-style'
 import { detectedRegion } from './region-geom'
 import { createScanResultGate, dataGeneration, scanResultKey } from './scan-dedupe'
-import { createScanMaskReporter, reportWithAck } from './scan-mask'
+import { createResendTracker, createScanMaskReporter, reportWithAck } from './scan-mask'
 
 type State = 'idle' | 'result'
 type OkResult = Extract<ReturnType<typeof Poe2.matchRevealLines>, { ok: true }>
@@ -72,6 +72,8 @@ export default defineComponent({
     let lastNoPanelKey = ''
     /** 第 18 步:畫在遊戲上的東西回報給 main 遮掉 */
     const mask = createScanMaskReporter('reveal', r => { Host.scanMask(r) }, () => ({ w: window.innerWidth, h: window.innerHeight }))
+    /** code review 第 B 批:收到 rows 時資料沒載好 → 資料載好時請 main 重送(main 對相同 rows 10 秒內不重送) */
+    const resend = createResendTracker()
 
     function clear (reason: string) {
       last = null
@@ -118,6 +120,8 @@ export default defineComponent({
     }
     function handleEvent (e: RevealScanEvent) {
       const act = revealScanAction(e, loadedGame.value === 'poe2' ? 'poe2' : 'poe1')
+      // PoE2 資料還沒載好(loadedGame 還是舊的)收到的 rows:載好後要請 main 重送
+      if (e.reason === 'rows' && e.rows.length && loadedGame.value !== 'poe2') resend.missed()
       if (act.kind === 'ignore') return
       if (act.kind === 'clear') {
         lastNoPanelKey = ''
@@ -136,8 +140,9 @@ export default defineComponent({
         if (why !== lastMissLog) console.log(`[ocr] 不是揭露面板(${why}${r?.veto ? ` ${r.veto.detail.replace(/\s+/g, '')}` : ''});OCR ${e.rows.length} 行:${e.rows.map(l => l.text.replace(/\s+/g, '')).join(' | ').slice(0, 200)}`)
         lastMissLog = why
         clear(why)
-        // 資料還沒載好(no-data)不記:載好後同一份列要重比
+        // 資料還沒載好(no-data)不記:載好後同一份列要重比(並請 main 重送,見下方 watch)
         lastNoPanelKey = r ? key : ''
+        if (!r) resend.missed()
         return
       }
       lastMissLog = ''
@@ -182,6 +187,10 @@ export default defineComponent({
     watch(styleVars, () => { layout() })
     // 第 18 步:畫面上的東西變了(DOM 已更新、還沒 paint)→ 回報外框給 main 遮掉
     watch([state, badges, guessKey], () => { mask.report(layer.value) }, { flush: 'post' })
+    // code review 第 B 批:資料集世代 / 已載入遊戲改變 → 之前沒畫出的 rows、或畫面上用舊資料算的徽章,請 main 重送一次
+    watch([dataGeneration, loadedGame], () => {
+      if (resend.dataChanged(state.value !== 'idle')) void nextTick(() => { mask.report(layer.value, undefined, true) })
+    })
 
     return { t, state, badges, guessKey, layer, styleVars }
   }

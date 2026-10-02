@@ -3,7 +3,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { fetchViaHost, newRequestId } from '../src/web/background/host-fetch'
 import { withRetryAfter, type HttpFetch } from '@exile-appraiser/core/http'
-import { createNinjaClient } from '@exile-appraiser/core/ninja'
+import { NINJA_TIMEOUT_MS, createNinjaClient } from '@exile-appraiser/core/ninja'
 
 function fakeHost () {
   const calls: Array<{ url: string, init: any }> = []
@@ -129,7 +129,7 @@ describe('ninja client 把 signal 交給 http(換聯盟中止會傳到 main)', (
     })
     await expect(client.fetchAll(undefined, { signal: ctrl.signal })).rejects.toBe(ctrl.signal.reason)
     expect(inits).toHaveLength(1)
-    expect(inits[0]).toEqual({ headers: { Accept: 'application/json' }, signal: ctrl.signal })
+    expect(inits[0]).toEqual({ headers: { Accept: 'application/json' }, timeoutMs: NINJA_TIMEOUT_MS, signal: ctrl.signal })
   })
 
   it('沒有 signal:init 與以前相同', async () => {
@@ -142,6 +142,32 @@ describe('ninja client 把 signal 交給 http(換聯盟中止會傳到 main)', (
       http: async (_url, init) => { inits.push(init); throw new Error('offline') }
     })
     await expect(client.fetchAll()).rejects.toThrow(/poe\.ninja/)
-    expect(inits[0]).toEqual({ headers: { Accept: 'application/json' } })
+    expect(inits[0]).toEqual({ headers: { Accept: 'application/json' }, timeoutMs: NINJA_TIMEOUT_MS })
+  })
+
+  it('code review 第 B 批:ninja 的 timeoutMs(120 秒)經 fetchViaHost 原樣送到 main(有 / 沒有 signal 都是)', async () => {
+    expect(NINJA_TIMEOUT_MS).toBe(120_000)
+    const { host, calls, pending } = fakeHost()
+    const ctrl = new AbortController()
+    const client = createNinjaClient({
+      game: 'poe1',
+      league: 'Standard',
+      intervalMs: 0,
+      sleep: async () => {},
+      http: async (url, init) => {
+        const p = fetchViaHost(host, url, init)
+        const sent = calls[calls.length - 1].init
+        pending.get(sent?.requestId ?? url)!.resolve({ status: 500, statusText: 'x', headers: [], body: '' })
+        return await p.then(r => ({ ok: false, status: r.status, headers: new Headers(), json: async () => null, text: async () => '' }))
+      }
+    })
+    await expect(client.fetchAll({ exchange: ['Currency'], item: [] }, { signal: ctrl.signal })).rejects.toThrow()
+    expect(calls[0].init.timeoutMs).toBe(120_000)
+    expect(calls[0].init.signal).toBeUndefined()
+    const { host: host2, calls: calls2, pending: pending2 } = fakeHost()
+    const p = fetchViaHost(host2, 'https://poe.ninja/x', { headers: {}, timeoutMs: NINJA_TIMEOUT_MS })
+    pending2.get('https://poe.ninja/x')!.resolve(RESULT)
+    await p
+    expect(calls2[0].init.timeoutMs).toBe(120_000)
   })
 })

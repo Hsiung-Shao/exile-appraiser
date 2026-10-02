@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { createFontLister, LIST_FONTS_SCRIPT, parseFontList } from '../src/system-fonts'
+import { createFontLister, FONT_NEGATIVE_CACHE_MS, LIST_FONTS_SCRIPT, parseFontList } from '../src/system-fonts'
 
 const enc = (names: string[]) => Buffer.from(names.join('\n'), 'utf8').toString('base64')
 
@@ -36,21 +36,34 @@ describe('createFontLister', () => {
     expect(await l.list()).toEqual(['A', 'B'])
     expect(run).toHaveBeenCalledTimes(1)
   })
-  it('失敗 → 空陣列、不快取(下次再試)', async () => {
+  it('失敗 → 空陣列、5 分鐘負快取(期間不跑行程),期滿再試', async () => {
     const run = vi.fn()
       .mockRejectedValueOnce(new Error('spawn ENOENT'))
       .mockResolvedValueOnce(enc(['Arial']))
     const logs: string[] = []
-    const l = createFontLister({ run, platform: 'win32', log: m => logs.push(m) })
+    const clock = { t: 1_000_000 }
+    const l = createFontLister({ run, platform: 'win32', log: m => logs.push(m), now: () => clock.t })
     expect(await l.list()).toEqual([])
     expect(logs[0]).toContain('列字體失敗')
+    clock.t += FONT_NEGATIVE_CACHE_MS - 1
+    expect(await l.list()).toEqual([])
+    expect(run).toHaveBeenCalledTimes(1)
+    clock.t += 1
+    expect(await l.list()).toEqual(['Arial'])
+    expect(run).toHaveBeenCalledTimes(2)
+    // 成功後正快取
+    clock.t += FONT_NEGATIVE_CACHE_MS * 10
     expect(await l.list()).toEqual(['Arial'])
     expect(run).toHaveBeenCalledTimes(2)
   })
-  it('空輸出 → 空陣列、不快取', async () => {
+  it('空輸出 → 空陣列、同樣負快取 5 分鐘', async () => {
     const run = vi.fn(async () => '')
-    const l = createFontLister({ run, platform: 'win32', log: () => {} })
+    const clock = { t: 0 }
+    const l = createFontLister({ run, platform: 'win32', log: () => {}, now: () => clock.t })
     expect(await l.list()).toEqual([])
+    expect(await l.list()).toEqual([])
+    expect(run).toHaveBeenCalledTimes(1)
+    clock.t += FONT_NEGATIVE_CACHE_MS
     expect(await l.list()).toEqual([])
     expect(run).toHaveBeenCalledTimes(2)
   })

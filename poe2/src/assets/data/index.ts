@@ -16,6 +16,7 @@ import { GEM, ItemCategory } from "@/parser/meta";
 import { ItemRarity } from "@/parser/ParsedItem";
 // exile-appraiser: 資料不再靠 `fetch(import.meta.env.BASE_URL + 'data/…')`,改由呼叫端注入 DataSource
 import { source } from "./source";
+import type { DataSource } from "@exile-appraiser/core/games/adapter"; // exile-appraiser(code review 第 B 批)
 import type { BaseProfiles, DesecrationTiers } from "@/desecration/types"; // exile-appraiser(WP-R)
 import type { RuneshapeRecipesFile } from "@/runeshape/match-core"; // exile-appraiser(WP-R2)
 export { configureDataSource } from "./source";
@@ -81,6 +82,11 @@ export let RUNESHAPE_RECIPES: RuneshapeRecipesFile | undefined;
 export let STAT_BY_MATCH_STR: (
   name: string,
 ) => { matcher: StatMatcher; stat: Stat } | undefined = () => undefined;
+/**
+ * exile-appraiser(code review 第 B 批):目前記憶體裡 items / stats 的語系與來源(`loadForLang` 全部載完才設;
+ * 載入中為 undefined)。查價浮窗繁中(`display-zh.ts`)據此重用已載入的那一個語系,只另讀缺的檔。
+ */
+export let LOADED_DATA: { lang: string; source: DataSource } | undefined;
 export let STAT_BY_REF: (name: string) => Stat | undefined = () => undefined;
 export let STATS_ITERATOR: (
   includes: string,
@@ -339,9 +345,12 @@ async function loadRuneshapeRecipes() {
 }
 
 export async function loadForLang(lang: string) {
+  LOADED_DATA = undefined; // exile-appraiser(code review 第 B 批):載入中不讓別人重用半套資料
+  const ds = source();
   CLIENT_STRINGS = await loadClientStrings(lang);
   await loadItems(lang);
   await loadStats(lang);
+  LOADED_DATA = { lang, source: ds };
   loadUltraLateItems();
   await loadTradeData();
 }

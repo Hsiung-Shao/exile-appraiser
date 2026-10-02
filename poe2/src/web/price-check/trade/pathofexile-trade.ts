@@ -1372,7 +1372,8 @@ export async function requestResults(
   }
 
   // exile-appraiser(第 19 步):國際服 + 介面語言繁中 → 浮窗詞綴 / 物品名換繁中(display-zh.ts;只換 text,tier 不動)
-  const toZh = await displayZhFor(ctx.realm);
+  // code review 第 B 批:不 await 資料(已載好才翻;第一次背景載入、這次英文)
+  const toZh = displayZhFor(ctx.realm);
 
   return data.map<PricingResult>((result) => {
     let displayItem: DisplayItem | undefined;

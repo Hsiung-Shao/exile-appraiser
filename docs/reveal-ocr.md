@@ -126,6 +126,9 @@ fullscreen-02 ×1 改前改後都找得到;fullscreen-03 ×1 只認出 1 行亂�
    兩個掃描共用 `SharedLocateOcr`(main 建一個):同一 client 大小 / 擷取偏移 / 影像大小 1 秒內的整個 client ×1 只 OCR 一次(兩邊都是 ×1、同一個 WinOcr、同一語言;各自跑自己的 `detector.locate`,只決定裁切框)。
 5. **不重送相同結果**:`rows` 的簽章(列文字 + 四捨五入座標 + client,`rowsSignature`;第 13 步拿掉 fallback)與上次送出的相同且未滿 10 秒(`REPEAT_ROWS_MS`)→ 不送(統計 / 基準照常);
    `empty` / `inactive` / `user-paused` / `user-resumed` 一律送,送過就清掉簽章;暫停、框選確認、換模式也清掉(恢復後同一份列照送,Esc 清掉的徽章因此會回來)。
+   **補送**(2026-10-02 code review 第 B 批):renderer 收到 rows 時資料還沒載好(褻瀆 `no-data` / `loadedGame` 還不是 PoE2;符文 `loadedGame` 不是 PoE2)沒畫徽章,
+   或畫著的徽章是舊資料集算的 → 資料集世代 / 已載入遊戲改變時(`watch([dataGeneration, loadedGame])`,`createResendTracker` 決定要不要)送一次 `scan-mask` 帶 `resend: true`
+   → main `PanelScan.resendRows()` 清掉簽章與差分基準並立刻補 tick:重新 OCR、同一份 rows 照送(原本畫面沒變就永遠不重 OCR、畫面有變也要等滿 10 秒)。只在資料載好那一刻送一次,不會每 tick 重送。
    main 的 OCR log 同一結果不重複印,下一行不同時附「其間 N 次相同」。renderer(`scan-dedupe.ts`):鍵 = 列 + client + 會影響比對的輸入(褻瀆:profile 提示;兩者:遊戲、資料集世代 `dataGeneration`),
    與**目前畫著的**相同就不重比 / 重排 / 印 log;符文每列的市集查詢計畫一次結果只算一次(`plans` computed)。
 6. **tick 不重入**:一進 tick 就設 `ticking`(原本 `inFlight` 在 `await det.ready()` 之後才設,第一次讀 tiers.json 時 `poke()` 會再開一個 tick);`busy`(給另一個掃描丟 tick 用)仍只在擷取 / OCR 期間為真。
@@ -177,22 +180,28 @@ fullscreen-02 ×1 改前改後都找得到;fullscreen-03 ×1 只認出 1 行亂�
 
 | 檔案 | 做什麼 |
 |---|---|
-| `main/src/ocr/overlay-shot.ts` | 純函式(不 import electron):`clientCropOnDisplay`(兩條路共用的裁切)、`planOverlayShot`(尺寸 / bounds / 螢幕檢查 → 裁切框與 `offset`)、`looksBlack`(32×18 點抽樣,B/G/R 全 0 = 黑)、`createGameClientCapture`(先 overlay、不行退回 getSources,每種原因只記一次 log) |
+| `main/src/ocr/overlay-shot.ts` | 純函式(不 import electron):`clientCropOnDisplay`(兩條路共用的裁切)、`pickDisplayIndex`(含中心點 → 重疊最大的螢幕;`capture.ts` `pickDisplay` 與提示視窗選螢幕共用)、`planOverlayShot`(尺寸 / bounds / 螢幕檢查 → 裁切框與 `offset`)、`looksBlack`(32×18 點抽樣,B/G/R 全 0 = 黑)、`createGameClientCapture`(擷取前重讀 bounds、先 overlay、不行退回 getSources,每種原因只記一次 log;同原因連續 3 次鎖存 30 秒,`reset()` / bounds 改變解除) |
 | `main/src/ocr/capture.ts` | `captureGameClientViaSources`(原 `captureGameClient`,改用 `clientCropOnDisplay`,行為不變)、`createOverlayClientCapture`(接 `pickDisplay` / `nativeImage.createFromBitmap` / getSources 後援) |
 | `main/src/windowing/GameWindow.ts` | 加回 `screenshot()`(APT 原本就有,移植時因沒有 OCR 拿掉) |
 | `main/src/main.ts` | `SharedCapture` 改用 `createOverlayClientCapture`;overlay 模式才傳 `screenshot`(視窗模式 `scanBlock` = `not-overlay`,掃描本來就不跑,傳了也用不到) |
 
-- **擷取對象**:掃描用的 `bounds` = `GameWindow.bounds` = `OverlayController.targetBounds`,就是 overlay attach 的遊戲 client(與原生 `last_reported_bounds` 由同一個事件更新);
-  仍逐次比對,不同就退回。
+- **擷取對象**:掃描用的 `bounds` = `GameWindow.bounds` = `OverlayController.targetBounds`,就是 overlay attach 的遊戲 client(與原生 `last_reported_bounds` 由同一個事件更新)。
+  2026-10-02 code review 第 B 批:擷取前**重讀** `targetBounds` 當這次擷取的 bounds(tick 開始到擷取之間視窗移動 / 改大小 → 照現在的位置擷取,結果的 `client` / `offset` 也照它算;
+  掃描端一律看結果的 `client` / `offset`),不再因 bounds 不符退回最慢的 getSources;重讀到的無效(0×0,已 detach)才沿用傳入值並照舊判 `bounds-mismatch` 退回。
 - **裁切與 `offset`**:與 getSources 路徑共用 `clientCropOnDisplay` —— 只留含 client 中心點的那個螢幕內的部分(跨螢幕 / 部分在螢幕外時兩條路裁出同一塊、同一個 `offset`;BitBlt 對螢幕外的部分是 0,一併裁掉)。
   DPI:Electron 是 per-monitor DPI aware,原生 `GetClientRect` / `ClientToScreen` / BitBlt 都是實體像素,與 getSources 縮圖(= 實體大小)同座標系。
 - **後援(退回 `captureGameClientViaSources`)**:`screenshot()` throw(非 win32 等)、Buffer 長度 ≠ 寬 × 高 × 4、遊戲 bounds 與原生記得的不同、
   裁切後的區域全黑(全螢幕獨占 / 硬體 overlay 時 BitBlt 可能拿到黑畫面;抽 576 點全 0 才算,很暗的畫面不會誤判,真的全黑的讀取畫面退回也只是多一次擷取)、
   client 不在任何螢幕上(交給 getSources,它照舊 throw `no-game-window`)。每種原因第一次記 `[capture] overlay screenshot 不可用(原因)` log。
+- **鎖存**(2026-10-02 code review 第 B 批):同一原因(`throw` / `size-mismatch` / `black`)**連續 3 次**(`LATCH_AFTER`)→ 停用 overlay 路徑、直接 getSources
+  (原本全螢幕獨占時每 tick 都先付一次同步 BitBlt 17–49 ms + 14.7 MB Buffer 才退回);遊戲重新 attach(`main.ts` `onAttach` → `clientCapture.reset()`)、
+  遊戲 bounds 改變、或 30 秒後(`LATCH_RETRY_MS`)再試一次(再失敗立刻再鎖 30 秒);中間成功一次、或換了原因都從頭算。`stats.latched` = 鎖存期間直接走 getSources 的次數。
 - **alpha**:BitBlt 回來的 alpha 實測全是 255(抽樣 36,131 / 38,005 點),`createFromBitmap` 直接用。
 
 量測(`npx electron main/dist/main.js --capture-bench --bench-title=<前景視窗標題> --bench-blt=scripts/capture-bench-bitblt.ps1 --bench-fixture=<6 張>`,
-不拿單一實例鎖、不送輸入、不搶焦點、不存影格;本機 2560×1440 主螢幕 + 1440×2560 直立副螢幕,Electron 40.10.6):
+不拿單一實例鎖、不送輸入、不搶焦點、不存影格;本機 2560×1440 主螢幕 + 1440×2560 直立副螢幕,Electron 40.10.6)。
+2026-10-02 code review 第 B 批:`--capture-bench` **只在非 packaged 時接受**(`main/src/cli-flags.ts` `captureBenchMode`;正式版收到忽略並正常啟動),
+量測程式碼由 `main.ts` 動態 `import('./ocr/capture-bench')` 載入(esbuild 仍打進同一個 bundle,但包在延遲初始化裡,不在啟動路徑上執行):
 
 | 項目 | getSources(現行) | overlay `screenshot()` |
 |---|---|---|
@@ -286,7 +295,7 @@ GDI 序列在另一個行程(`scripts/capture-bench-bitblt.ps1`,與 `ow_screensh
 | 段 | 檔案 | 做什麼 |
 |---|---|---|
 | 回報 | `renderer/src/web/overlay/scan-mask.ts` + `OcrBadges.vue` / `RuneshapePrices.vue` | 每層在 DOM 更新後、paint 前(`watch(..., { flush: 'post' })`、`nextTick`)量自己的**直接子元素**(褻瀆:徽章 + 「?」說明;符文:徽章 + 提示)的 `getBoundingClientRect`,送 IPC `scan-mask`(`{ source, seq?, viewport: innerWidth/innerHeight, rects }`,CSS px);**每個掃描事件處理完都帶它的 `seq`(ack)**,不論畫 / 清 / 被 dedupe 略過;內容相同且沒有新 seq 不重送;清除 = 空陣列。**字型**:量外框會強制排版,第一次用到的字型這時才開始載入、載完寬度會變(離屏實測徽章 139 → 161 px)→ `reportWithAck` 先送外框不 ack,`document.fonts` 載完(褻瀆再 `restackMeasured`)重量才 ack;另聽 `loadingdone` 重量 |
-| 保存 / 換算 | `main/src/ocr/scan-mask.ts` `ScanMaskStore` + `main.ts` | 每個來源一份(新的取代舊的;被取代的那份再遮 `MASK_LINGER_MS` 300 ms = DOM 已移除、畫面上可能還有一兩幀)。擷取當下依**這次擷取的 client 大小**換算:client px = CSS × client.w / innerWidth(renderer 收結果時 `innerWidth / client.w` 的反向)、外擴 `MASK_PAD_CSS_PX` 3 CSS px、外取整,再減擷取偏移成影像像素、夾在影像內(`imageRects`)。不讓 renderer 自己換成 client px:提示可能比第一個掃描結果先出現(還不知道 client 大小),而 main 擷取時一定知道 |
+| 保存 / 換算 | `main/src/ocr/scan-mask.ts` `ScanMaskStore` + `main.ts` | 每個來源一份(新的取代舊的;被取代的那份再遮 `MASK_LINGER_MS` 300 ms = DOM 已移除、畫面上可能還有一兩幀;過期的保留項在擷取與 `report()` 時都清,掃描暫停時一直回報也不累積)。擷取當下依**這次擷取的 client 大小**換算:client px = CSS × client.w / innerWidth(renderer 收結果時 `innerWidth / client.w` 的反向)、外擴 `MASK_PAD_CSS_PX` 3 CSS px、外取整,再減擷取偏移成影像像素、夾在影像內(`imageRects`)。不讓 renderer 自己換成 client px:提示可能比第一個掃描結果先出現(還不知道 client 大小),而 main 擷取時一定知道 |
 | OCR 前填掉 | `capture.ts` `toScanCapture(cap, ocr, mask)` → `prepareRect` | 與裁切塊有交集才處理:裁切後 `toBitmap` → `fillMaskRects` → `createFromBitmap` → 照舊 `resize('best')` + JPEG q95;沒有交集時影像位元組與之前完全相同。1258×907 區域遮 3 塊:填色約 1 ms + 點陣往返約 1.3 ms(`prepareRect` ×3 中位數 70.8 → 76.1 ms) |
 | 差分不比 | `panel-scan.ts` `Fingerprint.ignore`、`frameDiff` / `tileMaxDiff`;`capture.ts` `grayFingerprint` | 遮罩蓋到的縮圖格子(再外擴 1 格,縮放濾鏡會混邊)標成不比;前後兩張**任一張**標了就跳過 → 徽章出現 / 消失本身不算畫面變化(否則徽章一畫上就是「大幅變化」立即 OCR)。小塊剩不到半塊可比的略過;全被蓋住 = 沒變化。沒有遮罩時與之前逐值相同 |
 | 競態 | `panel-scan.ts` `drawPending` / `drawSettled`、`ScanMaskStore.pending` | 見下 |

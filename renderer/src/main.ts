@@ -77,7 +77,9 @@ async function boot () {
     language: AppConfig().language,
     savedAugments: AppConfig().priceCheck.savedAugments,
     searchStatRange: AppConfig().priceCheck.searchStatRange,
-    uiLanguage: AppConfig().uiLanguage
+    uiLanguage: AppConfig().uiLanguage,
+    // code review 第 B 批:懸停浮窗關閉時查價結果不載 / 不翻繁中資料(display-zh.ts)
+    itemHoverTooltip: AppConfig().priceCheck.itemHoverTooltip
   }))
 
   // 切遊戲 / 客戶端語言:重載該遊戲的資料集(不必重啟);切遊戲或介面語言:重載 app_i18n。

@@ -1,4 +1,4 @@
-// GameDetector:前景跳過列舉、否決沿用(視窗清單不變 60 秒)、清單變化重查、連續 2 次才切換。
+// GameDetector:前景跳過列舉、否決沿用(10 秒下限一律沿用;之後視窗清單不變沿用到 60 秒)、清單變化重查、detach 失效、連續 2 次才切換。
 import { describe, expect, it, vi } from 'vitest'
 
 vi.mock('electron', () => ({ desktopCapturer: { getSources: vi.fn() } }))
@@ -114,16 +114,46 @@ describe('否決沿用', () => {
     expect(namesSignature(names)).toBe(namesSignature([...names].reverse()))
   })
 
-  it('清單變化立即失效重查;若這次 PoE1 真的消失則照常切換', async () => {
+  it('10 秒下限:期間清單一直變也沿用(不 spawn);滿 10 秒且清單變了才重查,PoE1 真的消失則照常切換', async () => {
     const { d, st, processTitles, onSwitch } = setup({ names, extra: minimized })
     await d.tick()
-    st.names = ['Path of Exile 2', 'Chrome', 'Notepad']
+    for (let i = 1; i <= 4; i++) {
+      st.names = ['Path of Exile 2', 'Chrome', `Notepad ${i}`] // 無關視窗標題每 2 秒在變
+      st.t += 2_000
+      await d.tick()
+    }
+    expect(processTitles).toHaveBeenCalledTimes(1) // 8 秒內一律沿用
     st.extra = []
-    st.t += 2_000
+    st.names = ['Path of Exile 2', 'Chrome', 'Notepad 5']
+    st.t += 2_000 // 10 秒,清單與否決當時不同
     await d.tick() // 重查 → 1/2
     expect(processTitles).toHaveBeenCalledTimes(2)
     st.t += 2_000
-    await d.tick() // 清單相同、否決已清 → 查 → 2/2
+    await d.tick() // 否決已清 → 查 → 2/2
+    expect(onSwitch).toHaveBeenCalledWith('poe2')
+  })
+
+  it('滿 10 秒後清單仍與否決當時相同 → 沿用到 60 秒', async () => {
+    const { d, st, processTitles } = setup({ names, extra: minimized })
+    await d.tick()
+    st.t += 12_000
+    await d.tick()
+    st.t += 40_000 // 52 秒
+    await d.tick()
+    expect(processTitles).toHaveBeenCalledTimes(1)
+  })
+
+  it('遊戲 detach(invalidateVeto)→ 否決立即失效,下一 tick 重查,視窗已關則照常切換', async () => {
+    const { d, st, processTitles, onSwitch } = setup({ names, extra: minimized })
+    await d.tick()
+    expect(processTitles).toHaveBeenCalledTimes(1)
+    st.extra = [] // 最小化的 PoE1 被關掉
+    d.invalidateVeto()
+    st.t += 2_000 // 仍在 10 秒下限內
+    await d.tick()
+    expect(processTitles).toHaveBeenCalledTimes(2)
+    st.t += 2_000
+    await d.tick()
     expect(onSwitch).toHaveBeenCalledWith('poe2')
   })
 

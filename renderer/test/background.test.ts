@@ -7,7 +7,7 @@ import {
   BG_DEFAULT, BG_READ_FLOOR, BG_READ_FLOOR_BLURRED, BG_READ_FLOOR_BLUR_AT, bgBakeSpec, bgBlurPx, bgImageUrl, bgReadability, bgReadFloor, bgVars, normBg, normBgFile,
   type BgSettings
 } from '../src/web/useTheme'
-import { BG_SCALE, BgBaker, bgBakeKey, bgBakePlan, bgCoverRect, type BgBakeInput } from '../src/web/bg-bake'
+import { BG_RESIZE_SETTLE_MS, BG_SCALE, BgBaker, bgBakeKey, bgBakePlan, bgCoverRect, createResizeSettle, type BgBakeInput } from '../src/web/bg-bake'
 
 const read = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8')
 
@@ -160,6 +160,65 @@ describe('bgBakePlan(與 CSS .bgimg 等價的繪製參數)', () => {
     for (const ch of [{ url: 'v' }, { bright: 0.5 }, { blurPx: 13 }, { width: 901 }, { height: 701 }, { dpr: 1 }, { color: '#fff' }]) {
       expect(bgBakeKey({ ...input, ...ch })).not.toBe(k)
     }
+  })
+})
+
+describe('createResizeSettle(code review 第 B 批:拖曳改大小時去抖)', () => {
+  function harness () {
+    const t = { now: 0, timers: [] as Array<{ at: number, fn: () => void, id: number }>, id: 0 }
+    let fires = 0
+    const s = createResizeSettle(() => { fires++ }, {
+      setTimeout: (fn, ms) => { const id = ++t.id; t.timers.push({ at: t.now + ms, fn, id }); return id },
+      clearTimeout: (h) => { t.timers = t.timers.filter(x => x.id !== h) }
+    })
+    const advance = (ms: number) => {
+      t.now += ms
+      for (const x of t.timers.filter(x => x.at <= t.now)) { t.timers = t.timers.filter(y => y !== x); x.fn() }
+    }
+    return { s, advance, fires: () => fires }
+  }
+  const sz = (w: number, h: number) => ({ w, h })
+
+  it('拖曳中每幀變動:不重畫;停止 200 ms 後只畫一次', () => {
+    const h = harness()
+    let prev = sz(800, 600)
+    for (let i = 1; i <= 30; i++) { // 30 幀、每幀 16 ms
+      const next = sz(800 + i * 3, 600 + i * 2)
+      h.s.resized(prev, next, true)
+      prev = next
+      h.advance(16)
+    }
+    expect(h.fires()).toBe(0)
+    expect(h.s.pending).toBe(true)
+    h.advance(BG_RESIZE_SETTLE_MS - 17)
+    expect(h.fires()).toBe(0)
+    h.advance(1)
+    expect(h.fires()).toBe(1)
+    expect(h.s.pending).toBe(false)
+  })
+
+  it('顯示(0 → 有大小)/ 隱藏(→ 0)/ 還沒有預先模糊的圖 → 立即', () => {
+    const h = harness()
+    h.s.resized(sz(0, 0), sz(800, 600), true)
+    expect(h.fires()).toBe(1)
+    h.s.resized(sz(800, 600), sz(0, 0), true)
+    expect(h.fires()).toBe(2)
+    h.s.resized(sz(800, 600), sz(900, 600), false)
+    expect(h.fires()).toBe(3)
+    expect(h.s.pending).toBe(false)
+  })
+
+  it('去抖中變成隱藏 → 取消計時、立即;cancel() 之後不再觸發', () => {
+    const h = harness()
+    h.s.resized(sz(800, 600), sz(810, 600), true)
+    h.s.resized(sz(810, 600), sz(0, 0), true)
+    expect(h.fires()).toBe(1)
+    h.advance(1000)
+    expect(h.fires()).toBe(1)
+    h.s.resized(sz(800, 600), sz(820, 600), true)
+    h.s.cancel()
+    h.advance(1000)
+    expect(h.fires()).toBe(1)
   })
 })
 

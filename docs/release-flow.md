@@ -47,7 +47,9 @@
   更新說明 `docs/release-notes/v0.1.1.md`。⚠ 裝過已撤下測試版 0.1.1 的機器不會收到這一版(版號相同),需手動重裝。
 
 ## 啟動提示(已在背景執行)
-程式啟動後沒有可見視窗,所以第一次收到 Electron 視窗的 host-config 時,在主螢幕工作區右下角(托盤上方,邊距 16px)
+程式啟動後沒有可見視窗,所以第一次收到 Electron 視窗的 host-config 時,在工作區右下角(托盤上方,邊距 16px;
+2026-10-02 code review 第 B 批起所有提示都畫在**遊戲所在螢幕**:`startup-toast.ts` `toastWorkArea`,與 OCR 擷取同一個判斷(含遊戲 client 中心點 → 重疊最大);
+沒有遊戲視窗(視窗模式 / 還沒 attach / 最小化在螢幕外)→ 主螢幕;同一個提示視窗換內容時也跟著移過去;提示圖示的 data URL 讀一次就快取)
 顯示約 3 秒的提示後淡出銷毀(`main/src/startup-toast.ts` 純邏輯 + `main.ts` `showStartupToast`):
 - 視窗:無框、透明、置頂、不進工作列、`focusable: false` + `showInactive()`(不搶遊戲焦點)、`setIgnoreMouseEvents(true)`(點擊穿透);
   內容是 data URL(內嵌 CSS、無腳本、CSP `default-src 'none'`),深色島配色不隨淺色主題變。

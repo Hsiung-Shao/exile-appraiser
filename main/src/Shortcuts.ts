@@ -102,8 +102,9 @@ export class Shortcuts {
     this.game = cfg.game
     // WP-S / WP-S2:OCR 兩個熱鍵只在 overlay + PoE2 註冊;空字串 / 重複的熱鍵不註冊(shortcut-actions.ts)
     const nextActions = buildShortcutActions(cfg, this.opts.mode)
-    // 動作清單(熱鍵 + 動作內容)與目前完全相同,且註冊狀態與「該不該註冊」一致 → 不 unregisterAll / 重註冊(中間空窗熱鍵會失效)
-    if (this.lastResult && this.isRegistered === this.shouldBeRegistered && sameShortcutActions(this.actions, nextActions)) {
+    // 動作清單(熱鍵 + 動作內容)與目前完全相同,且註冊狀態與「該不該註冊」一致 → 不 unregisterAll / 重註冊(中間空窗熱鍵會失效)。
+    // code review 第 B 批:上次註冊失敗(被別的程式佔用)不去重,照常 unregister → register 重試(對方可能已放開)
+    if (this.lastResult?.ok === true && this.isRegistered === this.shouldBeRegistered && sameShortcutActions(this.actions, nextActions)) {
       return this.lastResult
     }
     this.actions = nextActions

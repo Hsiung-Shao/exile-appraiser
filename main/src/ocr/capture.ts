@@ -15,7 +15,7 @@ import type { OcrRegion } from '@ipc/types'
 import { ocrScale, regionRect, type PhysRect, type RecognizeRect } from './strategy'
 import type { WinOcr } from './WinOcr'
 // 第 17 步:overlay 原生擷取(決策是純函式,main vitest 可測)
-import { clientCropOnDisplay, createGameClientCapture, type ClientCapture, type GameClientCapture } from './overlay-shot'
+import { clientCropOnDisplay, createGameClientCapture, pickDisplayIndex, type ClientCapture, type GameClientCapture } from './overlay-shot'
 // WP-R2:面板掃描(符文塑形 / 褻瀆)的縮圖差分
 import { FINGERPRINT_WIDTH, bgraToGray, type Fingerprint, type ScanCapture } from './panel-scan'
 // 第 18 步:遮掉我們自己畫在遊戲上的徽章 / 提示(擷取後、OCR / 差分前)
@@ -35,19 +35,12 @@ export function displayPhysRect (d: Display): PhysRect {
   }
 }
 
-/** 含 client 中心點的螢幕;都不含時取重疊面積最大的 */
+/** 含 client 中心點的螢幕;都不含時取重疊面積最大的(判斷本體 = 純函式 `pickDisplayIndex`) */
 export function pickDisplay (bounds: PhysRect): { display: Display, rect: PhysRect } | null {
-  const cx = bounds.x + bounds.width / 2
-  const cy = bounds.y + bounds.height / 2
-  let best: { display: Display, rect: PhysRect, area: number } | null = null
-  for (const display of screen.getAllDisplays()) {
-    const rect = displayPhysRect(display)
-    if (cx >= rect.x && cx < rect.x + rect.width && cy >= rect.y && cy < rect.y + rect.height) return { display, rect }
-    const ix = Math.max(0, Math.min(rect.x + rect.width, bounds.x + bounds.width) - Math.max(rect.x, bounds.x))
-    const iy = Math.max(0, Math.min(rect.y + rect.height, bounds.y + bounds.height) - Math.max(rect.y, bounds.y))
-    if (!best || ix * iy > best.area) best = { display, rect, area: ix * iy }
-  }
-  return best && best.area > 0 ? { display: best.display, rect: best.rect } : null
+  const displays = screen.getAllDisplays()
+  const rects = displays.map(displayPhysRect)
+  const i = pickDisplayIndex(bounds, rects)
+  return i >= 0 ? { display: displays[i], rect: rects[i] } : null
 }
 
 /**

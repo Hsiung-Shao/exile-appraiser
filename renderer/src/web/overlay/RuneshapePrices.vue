@@ -70,7 +70,7 @@ import {
 } from './runeshape-view'
 import { createScanResultGate, dataGeneration, scanResultKey } from './scan-dedupe'
 import { badgeStyleVars } from './badge-style'
-import { createScanMaskReporter, reportWithAck } from './scan-mask'
+import { createResendTracker, createScanMaskReporter, reportWithAck } from './scan-mask'
 
 const TOAST_MS = 2_500
 
@@ -97,6 +97,8 @@ export default defineComponent({
     const layer = shallowRef<HTMLElement | null>(null)
     /** 第 18 步:畫在遊戲上的東西回報給 main 遮掉 */
     const mask = createScanMaskReporter('rune', r => { Host.scanMask(r) }, () => ({ w: window.innerWidth, h: window.innerHeight }))
+    /** code review 第 B 批:收到 rows 時資料沒載好 → 資料載好時請 main 重送(main 對相同 rows 10 秒內不重送) */
+    const resend = createResendTracker()
 
     // 佇列自己打的請求用原始 http(不含 withRetryAfter 的等待重試):收到 429 → 整個佇列暫停,不在背景睡著等
     const queue = Poe2.createRuneTradeQueue({
@@ -141,7 +143,7 @@ export default defineComponent({
       if (e.reason === 'user-paused') { clear('暫停'); showToast('paused', t('ppz.runeshape.paused')); return }
       if (e.reason === 'user-resumed') { showToast('resumed', t('ppz.runeshape.resumed')); return }
       if (!e.rows.length) { clear(e.reason); return }
-      if (loadedGame.value !== 'poe2') return
+      if (loadedGame.value !== 'poe2') { resend.missed(); return }
       const key = scanResultKey(e.rows, e.client, `${loadedGame.value}|${dataGeneration.value}`)
       if (gate.repeat(key, state.value === 'rows')) {
         // 同一份列:徽章不變,只維持「有人在查價」(與原本每個事件都呼叫相同)
@@ -225,6 +227,10 @@ export default defineComponent({
 
     // 第 18 步:畫面上的東西變了(DOM 已更新、還沒 paint)→ 回報外框給 main 遮掉(市集徽章文字變了寬度也會變)
     watch([state, badges, markets, toast], () => { mask.report(layer.value) }, { flush: 'post' })
+    // code review 第 B 批:資料集世代 / 已載入遊戲改變 → 之前沒畫出的 rows、或畫面上用舊資料算的徽章,請 main 重送一次
+    watch([dataGeneration, loadedGame], () => {
+      if (resend.dataChanged(state.value !== 'idle')) void nextTick(() => { mask.report(layer.value, undefined, true) })
+    })
 
     // 查價面板 / 設定關掉 → 佇列立刻再試
     watch(runeshapeTradeHold, (h) => { if (!h) queue.kick() })

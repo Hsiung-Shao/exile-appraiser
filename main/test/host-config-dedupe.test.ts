@@ -65,12 +65,33 @@ describe('Shortcuts.updateActions 去重', () => {
     expect(reg.unregisterAll).toHaveBeenCalledTimes(1)
     expect(reg.register.mock.calls.length).toBeGreaterThan(n)
   })
-  it('註冊失敗的結果在去重時照樣回傳', () => {
+  it('註冊失敗不去重:動作清單沒變也照常 unregister → register 重試;重試成功後恢復去重', () => {
     reg.register.mockReturnValueOnce(false)
     const s = make()
     const r1 = s.updateActions(cfg)
     expect(r1.ok).toBe(false)
-    expect(s.updateActions({ ...cfg })).toEqual(r1)
+    const n = reg.register.mock.calls.length
+    const unreg = reg.unregisterAll.mock.calls.length
+    // 對方已放開熱鍵 → 這次全部成功
+    const r2 = s.updateActions({ ...cfg })
+    expect(r2).toEqual({ ok: true })
+    expect(reg.unregisterAll.mock.calls.length).toBe(unreg + 1)
+    expect(reg.register.mock.calls.length).toBe(n + n)
+    // 成功之後相同清單 → 去重(不再註冊)
+    s.updateActions({ ...cfg })
+    expect(reg.register.mock.calls.length).toBe(n + n)
+  })
+  it('註冊持續失敗 → 每次都重試並回傳失敗結果', () => {
+    reg.register.mockReturnValue(false)
+    try {
+      const s = make()
+      expect(s.updateActions(cfg).ok).toBe(false)
+      const n = reg.register.mock.calls.length
+      expect(s.updateActions({ ...cfg }).ok).toBe(false)
+      expect(reg.register.mock.calls.length).toBe(n + n)
+    } finally {
+      reg.register.mockReturnValue(true)
+    }
   })
 })
 

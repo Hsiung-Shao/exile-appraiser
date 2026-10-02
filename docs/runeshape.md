@@ -214,7 +214,8 @@ npx electron main/dist/main.js --runeshape-selftest <png> [--runeshape-selftest-
 - 套用:徽章層根元素 `:style` = `badgeStyleVars(style, 'rune' | 'reveal')`(`--badge-font` / `--badge-fs` / `--badge-fs-xs` / `--badge-weight(-strong)` / `--badge-low|mid|high` / `--badge-halo`),
   樣式寫 `var(--badge-x, 原值)`;**全部預設時不輸出任何變數**。`font-weight` / `text-shadow` 沒有後援:變數不存在時 `var()` 無效 → 照舊繼承(與改版前相同)。
   三段色寫在 `.rs-badge.kind-price.tier-*`(ninja 價)與 `.rs-badge.market.mt-*`(市集價,第 20 步:只有已換算崇高石的「有價格」狀態,見「自動查市集」價格分段);對不上「?」/ 無價格 / 載入中 / 市集的原幣與非價格狀態也帶 `tier-*` class,但不是價格分段,維持原樣。toast / 「?」說明不吃字級。
-- 系統字體(`main/src/system-fonts.ts`):一次性 PowerShell 5.1 `InstalledFontCollection`,名稱以 UTF-8 → base64 輸出(避開 5.1 的 ANSI 碼頁),去重排序、記憶體快取(成功才快取);
+- 系統字體(`main/src/system-fonts.ts`):一次性 PowerShell 5.1 `InstalledFontCollection`,名稱以 UTF-8 → base64 輸出(避開 5.1 的 ANSI 碼頁),去重排序、記憶體快取(成功才快取;
+  失敗 / 空結果 5 分鐘負快取 `FONT_NEGATIVE_CACHE_MS`,期間直接回 `[]` 不再 spawn —— 2026-10-02 code review 第 B 批);
   失敗 / 非 Windows → `[]`,下拉只剩「跟隨介面」與內建 Noto Sans TC。本機實測 314 項、約 0.35–1.4 秒。名稱是目前 UI 語系的(繁中 Windows =「微軟正黑體」),Chromium 認得。
 - 驗證:預設設定下改前 / 改後 overlay 截圖逐位元組相同、徽章所有元素計算樣式相同(無頭頁面 + 假 `window.host` + 真實 OCR 快照事件);`renderer/test/badge-style.test.ts`、`main/test/system-fonts.test.ts`。
 - 限制:符文徽章沒有防碰撞(每列置中於該列),字級很大(約 > 列高)時相鄰兩列的徽章可能上下重疊。

@@ -180,6 +180,11 @@ export interface ScanMaskReport {
   viewport: { w: number, h: number }
   /** 目前可見元素的外框(CSS px,`getBoundingClientRect`);清除 = [] */
   rects: Array<{ x: number, y: number, w: number, h: number }>
+  /**
+   * code review 第 B 批:renderer 畫面沒反映最近收到的 `rows`(收到時資料還沒載好 = 沒畫徽章 / 資料世代改了 = 徽章是舊資料算的)
+   * → main 清掉該來源掃描的「相同 rows 不重送」簽章與差分基準,下一個 tick 重新 OCR 並照送。只在資料載好 / 世代改變時送一次。
+   */
+  resend?: boolean
 }
 
 /** WP-R2:renderer 回報的 UI 狀態(任一為 true → 暫停掃描)。 */

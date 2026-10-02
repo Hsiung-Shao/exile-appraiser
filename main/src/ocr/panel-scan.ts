@@ -575,6 +575,17 @@ export class PanelScan {
     this.poke()
   }
 
+  /**
+   * code review 第 B 批:renderer 回報(`scan-mask` 的 `resend`)它沒畫出最近的 rows(資料當時還沒載好)或資料世代改了
+   * → 清掉「相同 rows 不重送」的簽章與差分基準,立刻補一個 tick:重新 OCR,同一份 rows 也照送(不必等 10 秒 / 畫面變化)。
+   * 退避狀態不動(只有送過 rows 才會收到這個,面板在畫面上)。
+   */
+  resendRows (): void {
+    this.rowsSig = ''
+    this.baseline = null
+    this.poke()
+  }
+
   /** 丟掉差分基準,下一個 tick 一定重新 OCR(框選確認後) */
   rescan (): void {
     this.baseline = null

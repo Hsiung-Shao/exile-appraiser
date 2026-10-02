@@ -56,6 +56,7 @@ export function sanitizeMaskReport (r: unknown): ScanMaskReport | null {
   }
   const out: ScanMaskReport = { source: o.source, viewport: { w: vp.w, h: vp.h }, rects }
   if (finite(o.seq)) out.seq = o.seq
+  if (o.resend === true) out.resend = true
   return out
 }
 
@@ -88,6 +89,8 @@ export class ScanMaskStore {
   /** renderer 回報(`scan-mask`)。被取代的那份若不同 → 進保留期 */
   report (r: ScanMaskReport, now: number): void {
     this.reports++
+    // code review 第 B 批:過期的保留項在這裡也清(否則掃描暫停 / 不擷取時,一直回報會讓 `lingering` 無限累積)
+    this.lingering = this.lingering.filter(l => l.until > now)
     const prev = this.current.get(r.source)
     const next: CssSet = { viewport: { w: r.viewport.w, h: r.viewport.h }, rects: r.rects.map(x => ({ x: x.x, y: x.y, w: x.w, h: x.h })) }
     const same = prev != null && sameRects(prev.rects, next.rects) && prev.viewport.w === next.viewport.w && prev.viewport.h === next.viewport.h
@@ -100,6 +103,9 @@ export class ScanMaskStore {
   noteSent (source: ScanMaskSource, seq: number, now: number): void {
     this.sent.set(source, { seq, at: now })
   }
+
+  /** 測試:保留期中的份數 */
+  get lingeringCount (): number { return this.lingering.length }
 
   /** 有送出的 `rows` 還沒被 renderer ack、且未逾時 → 先別擷取(畫面上可能已有還沒遮到的新徽章) */
   pending (now: number): boolean {

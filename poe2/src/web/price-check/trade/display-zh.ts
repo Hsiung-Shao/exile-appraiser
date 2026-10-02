@@ -15,7 +15,14 @@
  *   魔法物品的 typeLine 帶詞綴名,對不上 → 保留英文;稀有物品的隨機名不翻)。
  *
  * veiled(未揭露)行與 P/S tier、排序完全不動;只換 `text`。
+ *
+ * code review 第 B 批(載入不擋查價):
+ * - 懸停浮窗設成「關閉」(`hostOptions().itemHoverTooltip === "off"`)→ 不載資料、不翻。
+ * - `requestResults` 不 await 資料:已在記憶體就同步翻;還沒載 → 這次回英文、背景開始載,載好後下一次查價(含快取結果)就是繁中。
+ * - 重用 `@/assets/data` 已載入的那一個語系(`LOADED_DATA`;客戶端繁中 → 繁中 stats / items 用記憶體裡的,只另讀 en/stats;
+ *   客戶端英文 → en stats 用記憶體裡的,另讀繁中 stats / items)。逐行解析結果與直接讀檔相同(測試守著)。
  */
+import { LOADED_DATA, ITEMS_ITERATOR, STATS_ITERATOR } from "@/assets/data";
 import { source } from "@/assets/data/source";
 import type { DataSource } from "@exile-appraiser/core/games/adapter";
 import type { Stat, StatMatcher } from "@/assets/data/interfaces";
@@ -86,6 +93,8 @@ export interface ZhLineReport {
 // 資料載入(與目前載入的客戶端語言無關:兩個語系的 stats 都要)
 
 const loaded = new WeakMap<DataSource, Promise<DisplayZhData>>();
+/** 已載好的資料(`displayZhFor` 同步取用;沒有 = 還沒載好) */
+const ready = new WeakMap<DataSource, DisplayZhData>();
 
 function parseNdjson<T>(text: string): T[] {
   const out: T[] = [];
@@ -96,13 +105,28 @@ function parseNdjson<T>(text: string): T[] {
   return out;
 }
 
+type ZhItemRecord = { namespace: string; refName: string; name: string };
+
 export function buildDisplayZhData(
   enStatsNdjson: string,
   zhStatsNdjson: string,
   zhItemsNdjson: string,
 ): DisplayZhData {
+  return buildDisplayZhDataFrom(
+    parseNdjson<Stat>(enStatsNdjson),
+    parseNdjson<Stat>(zhStatsNdjson),
+    parseNdjson<ZhItemRecord>(zhItemsNdjson),
+  );
+}
+
+/** 同 `buildDisplayZhData`,輸入是已解析的記錄(`@/assets/data` 記憶體裡的迭代器或 `parseNdjson`)。 */
+export function buildDisplayZhDataFrom(
+  enStats: Iterable<Stat>,
+  zhStats: Iterable<Stat>,
+  zhItems: Iterable<ZhItemRecord>,
+): DisplayZhData {
   const enByRef = new Map<string, Stat>();
-  for (const s of parseNdjson<Stat>(enStatsNdjson)) {
+  for (const s of enStats) {
     if (!enByRef.has(s.ref)) enByRef.set(s.ref, s);
   }
   const statsByTradeId = new Map<string, StatPair[]>();
@@ -112,7 +136,7 @@ export function buildDisplayZhData(
     if (!list) map.set(key, [pair]);
     else if (!list.includes(pair)) list.push(pair);
   };
-  for (const zh of parseNdjson<Stat>(zhStatsNdjson)) {
+  for (const zh of zhStats) {
     const en = enByRef.get(zh.ref);
     if (!en) continue;
     const pair = { en, zh };
@@ -126,7 +150,7 @@ export function buildDisplayZhData(
   }
 
   const itemNames = new Map<string, Set<string>>();
-  for (const r of parseNdjson<{ namespace: string; refName: string; name: string }>(zhItemsNdjson)) {
+  for (const r of zhItems) {
     const key = `${r.namespace}::${r.refName}`;
     let set = itemNames.get(key);
     if (!set) itemNames.set(key, (set = new Set()));
@@ -135,20 +159,60 @@ export function buildDisplayZhData(
   return { statsByTradeId, statsByHash, itemNames };
 }
 
-/** 讀 `en/stats.ndjson`、`cmn-Hant/{stats,items}.ndjson`(同一個 DataSource 只讀一次;失敗下次重試)。 */
+/** stats / items ndjson 每一行都含的鍵(`ndjsonFindLines` 的搜尋字串;`"refName"` 不含 `"ref":`) */
+const STAT_LINE_KEY = '"ref":';
+const ITEM_LINE_KEY = '"namespace":';
+
+/**
+ * 讀 `en/stats.ndjson`、`cmn-Hant/{stats,items}.ndjson`(同一個 DataSource 只讀一次;失敗下次重試)。
+ * `@/assets/data` 已從同一個 DataSource 載好其中一個語系時,那個語系直接用記憶體裡的(不重讀檔)。
+ */
 export function loadDisplayZhData(ds: DataSource = source()): Promise<DisplayZhData> {
+  const have = ready.get(ds);
+  if (have) return Promise.resolve(have);
   let p = loaded.get(ds);
   if (!p) {
-    p = Promise.all([
-      ds.text("en/stats.ndjson"),
-      ds.text("cmn-Hant/stats.ndjson"),
-      ds.text("cmn-Hant/items.ndjson"),
-    ]).then(([en, zh, items]) => buildDisplayZhData(en, zh, items));
+    // 記憶體裡的資料:呼叫當下取(之後換語系會換掉迭代器,這裡拿到的仍是同一份)
+    const mem = LOADED_DATA?.source === ds ? LOADED_DATA.lang : undefined;
+    const statsIt = STATS_ITERATOR;
+    const itemsIt = ITEMS_ITERATOR;
+    const text = (rel: string) => ds.text(rel);
+    const parsed = <T>(rel: string) => text(rel).then((t) => parseNdjson<T>(t));
+    p = (async () => {
+      if (mem === "cmn-Hant") {
+        const en = await parsed<Stat>("en/stats.ndjson");
+        return buildDisplayZhDataFrom(en, statsIt(STAT_LINE_KEY), itemsIt(ITEM_LINE_KEY) as Iterable<ZhItemRecord>);
+      }
+      if (mem === "en") {
+        const [zh, items] = await Promise.all([
+          parsed<Stat>("cmn-Hant/stats.ndjson"),
+          parsed<ZhItemRecord>("cmn-Hant/items.ndjson"),
+        ]);
+        return buildDisplayZhDataFrom(statsIt(STAT_LINE_KEY), zh, items);
+      }
+      const [en, zh, items] = await Promise.all([
+        text("en/stats.ndjson"),
+        text("cmn-Hant/stats.ndjson"),
+        text("cmn-Hant/items.ndjson"),
+      ]);
+      return buildDisplayZhData(en, zh, items);
+    })().then((d) => {
+      ready.set(ds, d);
+      return d;
+    });
     p.catch(() => loaded.delete(ds));
     loaded.set(ds, p);
   }
   return p;
 }
+
+/** 測試用:清掉某個 DataSource 的快取(模擬第一次查價) */
+export const __displayZhTest = {
+  reset(ds: DataSource = source()): void {
+    loaded.delete(ds);
+    ready.delete(ds);
+  },
+};
 
 // ---------------------------------------------------------------------------
 // 單行詞綴
@@ -365,18 +429,28 @@ export function translateDisplayItem(
 }
 
 /**
- * `requestResults` 用:國際服(回應是英文)且介面語言是繁中才回傳轉換函式,否則 undefined(英文介面完全不變;
- * 台服回應本身就是繁中,不處理)。資料載入失敗只記錄、不擋查價(浮窗維持英文)。
+ * `requestResults` 用:國際服(回應是英文)且介面語言是繁中、且懸停浮窗不是「關閉」才回傳轉換函式,否則 undefined
+ * (英文介面完全不變;台服回應本身就是繁中,不處理)。
+ * code review 第 B 批:**同步**、不擋查價 —— 資料已載好就回轉換函式;還沒載 → 回 undefined(這次英文)並在背景載入,
+ * 載好後下一次查價生效。載入失敗只記錄(下次查價再試),浮窗維持英文。
  */
-export async function displayZhFor(
+export function displayZhFor(
   realm: string,
-): Promise<((display: DisplayItem, item: ZhFetchItem) => DisplayItem) | undefined> {
-  if (realm !== "intl" || hostOptions().uiLanguage !== "cmn-Hant") return undefined;
+): ((display: DisplayItem, item: ZhFetchItem) => DisplayItem) | undefined {
+  const opts = hostOptions();
+  if (realm !== "intl" || opts.uiLanguage !== "cmn-Hant" || opts.itemHoverTooltip === "off") return undefined;
+  let ds: DataSource;
   try {
-    const data = await loadDisplayZhData();
-    return (display, item) => translateDisplayItem(display, item, data).display;
-  } catch (e) {
-    console.error("[trade] 懸停浮窗繁中資料載入失敗,維持英文:", e);
+    ds = source();
+  } catch {
     return undefined;
   }
+  const data = ready.get(ds);
+  if (!data) {
+    loadDisplayZhData(ds).catch((e) => {
+      console.error("[trade] 懸停浮窗繁中資料載入失敗,維持英文(下次查價再試):", e);
+    });
+    return undefined;
+  }
+  return (display, item) => translateDisplayItem(display, item, data).display;
 }

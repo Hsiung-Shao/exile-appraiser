@@ -17,6 +17,11 @@ export interface HttpRequestInit {
   body?: string
   /** 中止(renderer 經 main 代理時會轉成 `http-abort`);中止後 reject `signal.reason`。 */
   signal?: AbortSignal
+  /**
+   * 逾時(ms,含讀完 body)。經 main 代理時轉成 `HostFetchInit.timeoutMs`(main 夾在 1 秒 ~ 5 分鐘;省略 = main 預設 30 秒)。
+   * code review 第 B 批:poe.ninja 這類大回應由呼叫端傳較長的值;交易站 API 不傳(維持 30 秒)。全域 `fetch`(CLI)不認這個欄位。
+   */
+  timeoutMs?: number
 }
 
 /** `Response` 的子集,夠交易層用即可;真的 `Response` 物件直接滿足這個介面。 */
