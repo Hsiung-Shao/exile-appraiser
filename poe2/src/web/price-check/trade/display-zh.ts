@@ -233,6 +233,8 @@ interface Template {
   parts: string[];
   /** 第 k 個 `#` 前面緊貼的字面正負號(`+#`、`-#`) */
   signs: Array<"+" | "-" | undefined>;
+  /** 匹配用的 RegExp(第一次匹配才建;無 g flag,exec 無狀態可重用) */
+  re?: RegExp;
 }
 
 function parseTemplate(tpl: string): Template {
@@ -244,13 +246,27 @@ function parseTemplate(tpl: string): Template {
   return { parts, signs };
 }
 
+/** matcher 物件 → 解析好的模板(資料載入後 matcher 不變;每行每 matcher 不用重解析 / 重編 RegExp) */
+const templateCache = new WeakMap<StatMatcher, Template>();
+function templateOf(m: StatMatcher): Template {
+  let t = templateCache.get(m);
+  if (!t) {
+    t = parseTemplate(m.string);
+    templateCache.set(m, t);
+  }
+  return t;
+}
+
 /** 英文行完整匹配模板 → 每個 `#` 的值(帶上模板字面正負號);不匹配 → undefined。 */
 function matchTemplate(line: string, tpl: Template): string[] | undefined {
-  let re = "^" + escapeRe(tpl.parts[0]);
-  for (let k = 1; k < tpl.parts.length; k += 1) {
-    re += (tpl.signs[k - 1] ? NUM : SIGNED_NUM) + escapeRe(tpl.parts[k]);
+  if (!tpl.re) {
+    let re = "^" + escapeRe(tpl.parts[0]);
+    for (let k = 1; k < tpl.parts.length; k += 1) {
+      re += (tpl.signs[k - 1] ? NUM : SIGNED_NUM) + escapeRe(tpl.parts[k]);
+    }
+    tpl.re = new RegExp(re + "$");
   }
-  const m = new RegExp(re + "$").exec(line);
+  const m = tpl.re.exec(line);
   if (!m) return undefined;
   return m.slice(1).map((v, k) => (tpl.signs[k] ? tpl.signs[k] + v : v));
 }
@@ -274,18 +290,20 @@ function fillTemplate(tpl: Template, values: string[]): string | undefined {
 }
 
 /**
- * 一個英 / 繁條目配對對這一行可能產生的繁中結果(0 或多個)。
+ * 一個英 / 繁條目配對對這一行可能產生的繁中結果(0 或多個),並回報英文 matcher 有沒有完整匹配這一行(`enMatched`,不論 value 是否通過)。
  * 英文 matcher 完整匹配後,依語言無關的 `negate` / `value` 挑繁中 matcher:
  * 1. 同 negate 且同 value 的繁中 matcher;
  * 2. 英文 matcher 有 value 但繁中沒有對應變體(英文的單複數寫法,例:`Has # Charm Slot` value 1)→
  *    同 negate、無 value、恰好一個 `#` 的繁中 matcher,代入行內數值(行內沒有數值就代 value 本身);
  *    選項型詞綴(`trade.option`,value 是選項 id 不是數值)不走這條。
  */
-function candidatesForPair(line: string, pair: StatPair): Set<string> {
+function candidatesForPair(line: string, pair: StatPair): { out: Set<string>; enMatched: boolean } {
   const out = new Set<string>();
+  let enMatched = false;
   for (const enM of pair.en.matchers) {
-    const values = matchTemplate(line, parseTemplate(enM.string));
+    const values = matchTemplate(line, templateOf(enM));
     if (!values) continue;
+    enMatched = true;
     const enHasValue = enM.value != null;
     // 有 value 又有 `#` 的英文變體(單數形):行內數值必須等於 value
     if (enHasValue && values.length === 1 && Number(values[0]) !== enM.value) continue;
@@ -298,16 +316,16 @@ function candidatesForPair(line: string, pair: StatPair): Set<string> {
         (m) =>
           !!m.negate === !!enM.negate &&
           m.value == null &&
-          parseTemplate(m.string).parts.length === 2,
+          templateOf(m).parts.length === 2,
       );
       zhValues = values.length ? values : [String(enM.value)];
     }
     for (const zhM of zhMatchers) {
-      const filled = fillTemplate(parseTemplate(zhM.string), zhValues);
+      const filled = fillTemplate(templateOf(zhM), zhValues);
       if (filled != null) out.add(filled);
     }
   }
-  return out;
+  return { out, enMatched };
 }
 
 /** `stat.explicit.stat_1`(新格式)/ `explicit.stat_1|64921`(選項)→ 查表用的 id(依優先序)。 */
@@ -347,10 +365,9 @@ export function translateModLine(
   let enMatched = false;
   const results = new Set<string>();
   for (const pair of pairs) {
-    if (pair.en.matchers.some((m) => matchTemplate(line, parseTemplate(m.string)))) {
-      enMatched = true;
-    }
-    for (const c of candidatesForPair(line, pair)) results.add(c);
+    const cand = candidatesForPair(line, pair);
+    if (cand.enMatched) enMatched = true;
+    for (const c of cand.out) results.add(c);
   }
   if (!enMatched) return { zh: undefined, reason: "no-en-match" };
   if (results.size === 0) return { zh: undefined, reason: "no-zh-variant" };

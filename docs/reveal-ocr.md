@@ -148,7 +148,7 @@ fullscreen-02 ×1 改前改後都找得到;fullscreen-03 ×1 只認出 1 行亂�
 2. **不輸出 words**:runtime(`rectRecognizer`)帶 `words:false`,腳本不組每個 word 的 JSON(行的外框仍由 word 算,與原本相同);不帶時照舊輸出(fixture 快照沿用)。全 repo 沒有讀 `.words` 的地方。
 3. **腳本小修**(`win-ocr.ps1`):三個 `AsTask<T>` 啟動時建好(原本每次反射 `MakeGenericMethod`);`Esc` 改 .NET `Regex.Replace` + `MatchEvaluator`
    (只有要跳脫的字元進 PowerShell;0–0xFFFF 全部字元與舊版逐位元組比對相同,一行約 0.19 → 0.11 ms);有 `path` 時先讀路徑。
-4. **兩個掃描共用擷取**(`panel-scan.ts` `SharedCapture`,main 建一個):同一 client bounds 進行中的擷取一起等、完成後 100 ms 內直接用同一張。
+4. **兩個掃描共用擷取**(`panel-scan.ts` `SharedCapture`,main 建一個):同一 client bounds 完成後 100 ms 內直接用同一張(不做進行中一起等:兩掃描以對方 busy 互斥,走不到)。
    兩個掃描本來就錯開半個間隔且對方擷取 / OCR 中會丟 tick,所以只在「對方剛擷取完、沒 OCR」時命中;命中時省一次 `getSources`(見下)。
 5. **評估後不做**(實測會改結果,或量到沒有效益):
    - **差分 tick 用小縮圖、要 OCR 才抓全解析度**:本機(2560×1440 + 1440×2560 兩個螢幕)量 `desktopCapturer.getSources`,每次在 main 執行緒卡 **300–480 ms**,

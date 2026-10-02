@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 import { buildLocateIndex, type LocateTiersLike } from '../../poe2/src/desecration/ocr-locate'
 import type { OcrTextLine } from '../../poe2/src/desecration/ocr-text'
 import {
-  PanelRegionCache, RegionCacheGuard, cacheKey, ocrScale, regionRect, regionSearchRect, smartRecognize,
+  PanelRegionCache, cacheKey, ocrScale, regionRect, regionSearchRect, smartRecognize,
   type PhysRect, type RecognizeRect
 } from '../src/ocr/strategy'
 import { loadLocateIndex, tiersCandidates } from '../src/ocr/locate-data'
@@ -177,27 +177,6 @@ describe('regionSearchRect(client 比例 → 影像像素)', () => {
     expect(regionRect(img, { x: 0.1, y: 0, w: 0.2, h: 0.1 }, frame)).toEqual({ x: 0, y: 0, width: 2000, height: 925 })
     expect(regionSearchRect(img, null, frame)).toBeNull()
     expect(regionSearchRect(img, { x: 0.5, y: 0.5, w: 0, h: 0.1 }, frame)).toBeNull()
-  })
-})
-
-describe('RegionCacheGuard(ocrRegion 變更清快取)', () => {
-  it('第一次不清;同一區域不清;改區域 / 清除區域才清', () => {
-    const cache = new PanelRegionCache()
-    const guard = new RegionCacheGuard(cache)
-    const r = { x: 0.19, y: 0.4444, w: 0.275, h: 0.2489 }
-    cache.set('a', SEARCH)
-    expect(guard.update(r)).toBe(false)
-    expect(cache.get('a')).toBeDefined()
-    expect(guard.update({ ...r })).toBe(false)
-    expect(cache.get('a')).toBeDefined()
-    expect(guard.update({ ...r, w: 0.3 })).toBe(true)
-    expect(cache.get('a')).toBeUndefined()
-    cache.set('a', SEARCH)
-    expect(guard.update(null)).toBe(true)
-    expect(cache.get('a')).toBeUndefined()
-    cache.set('a', SEARCH)
-    expect(guard.update(undefined)).toBe(false)
-    expect(cache.get('a')).toBeDefined()
   })
 })
 

@@ -1,7 +1,7 @@
 /**
  * exile-appraiser 效能修正第 8 步:OCR 模糊比對(長度剪枝 + 碼點快取 + 結果 LRU)與改前**逐位元相同**。
  *
- * oracle = 改前(commit 3088f8a)`ocr-text.ts` `levenshtein` / `skeletonSimilarity`、`ocr-locate.ts` `lineLooksLikeMod`、
+ * oracle = 改前(commit 19d619e)`ocr-text.ts` `levenshtein` / `skeletonSimilarity`、`ocr-locate.ts` `lineLooksLikeMod`、
  * `ocr-match.ts` `matchLine`、`runeshape/match-core.ts` `lookup` 的逐字複製(只留在本測試檔,src 不保留舊實作)。
  * 樣本:全部 OCR 快照的每一行(含相鄰兩行接起來 = 折行合併的查詢)、資料檔所有 skeleton / 名稱 key 本身、
  * 固定種子的隨機擾動(刪字、換字、插字、加數字、繁中 / 英文混雜)。每個查詢跑兩次(第二次走快取)都要與 oracle 相同,
@@ -51,7 +51,7 @@ const runeIdxZh = buildRuneshapeIndex(readNdjson(path.join(ROOT, "data/poe2/cmn-
 const runeIdxEn = buildRuneshapeIndex(readNdjson(path.join(ROOT, "data/poe2/en/items.ndjson")), recipes);
 const runeMaps = [runeIdxZh.item, runeIdxZh.skill, runeIdxZh.support, runeIdxZh.recipe, runeIdxEn.item, runeIdxEn.skill, runeIdxEn.support];
 
-// ---------------------------------------------------------------- oracle(3088f8a 逐字)
+// ---------------------------------------------------------------- oracle(19d619e 逐字)
 
 function oldLevenshtein(a: string, b: string): number {
   const A = [...a];

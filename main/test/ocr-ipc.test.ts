@@ -42,20 +42,6 @@ const fakeCap = (n: number): ScanCapture => ({
 describe('SharedCapture:兩個掃描共用擷取', () => {
   const B = { x: 0, y: 0, width: 2560, height: 1440 }
 
-  it('進行中的擷取一起等(只擷取一次,拿到同一張)', async () => {
-    const { clock } = fakeClock()
-    let release!: (c: ScanCapture) => void
-    const fn = vi.fn(() => new Promise<ScanCapture>(r => { release = r }))
-    const sc = new SharedCapture(fn, { clock })
-    const a = sc.capture(B)
-    const b = sc.capture(B)
-    release(fakeCap(1))
-    const [ca, cb] = await Promise.all([a, b])
-    expect(ca).toBe(cb)
-    expect(fn).toHaveBeenCalledTimes(1)
-    expect([sc.runs, sc.reuses]).toEqual([1, 1])
-  })
-
   it(`完成後 ${SHARED_CAPTURE_TTL_MS} ms 內同一 bounds 用同一張;過了、或 bounds 不同就重新擷取`, async () => {
     const { clock, advance } = fakeClock()
     let n = 0
@@ -87,15 +73,12 @@ describe('SharedCapture:兩個掃描共用擷取', () => {
     expect(fn).toHaveBeenCalledTimes(2)
   })
 
-  it('擷取失敗不快取:一起等的拿到同一個錯誤,下一次重新擷取', async () => {
+  it('擷取失敗不快取:下一次重新擷取', async () => {
     const { clock } = fakeClock()
     let fail = true
     const fn = vi.fn(async () => { if (fail) throw new Error('capture-failed'); return fakeCap(1) })
     const sc = new SharedCapture(fn, { clock })
-    const a = sc.capture(B)
-    const b = sc.capture(B)
-    await expect(a).rejects.toThrow('capture-failed')
-    await expect(b).rejects.toThrow('capture-failed')
+    await expect(sc.capture(B)).rejects.toThrow('capture-failed')
     fail = false
     await expect(sc.capture(B)).resolves.toBeTruthy()
     expect(fn).toHaveBeenCalledTimes(2)

@@ -208,11 +208,10 @@ const digitsOf = (s: string) => (s.match(/\d+/g) ?? []).join(",");
 
 /**
  * 效能修正第 8 步:每個 namespace map 一份「依碼點長度分桶的 key(順序 = Map 插入順序)+ 預算 digitsOf + 模糊結果 LRU」。
- * 掛在 map 物件上(WeakMap):換語系 / 重載資料時 `buildRuneshapeIndex` 建新 map,快取自然失效;map 大小變了也重建
- * (索引照理建好就不改)。
+ * 掛在 map 物件上(WeakMap,以物件身分判斷失效):換語系 / 重載資料時 `buildRuneshapeIndex` 建新 map,快取自然失效。
+ * 前提:索引建好之後 map 不可變(不得在建好後增刪條目;要改就建新 map)。
  */
 interface LookupCache {
-  size: number;
   cands: FuzzyCandidates<[string, Entry[]]>;
   digits: string[];
   results: Lru<string, Lookup | null>;
@@ -221,9 +220,9 @@ const lookupCaches = new WeakMap<Map<string, Entry[]>, LookupCache>();
 
 function lookupCache(map: Map<string, Entry[]>): LookupCache {
   let c = lookupCaches.get(map);
-  if (!c || c.size !== map.size) {
+  if (!c) {
     const cands = new FuzzyCandidates([...map], ([key]) => key);
-    c = { size: map.size, cands, digits: cands.items.map(([key]) => digitsOf(key)), results: new Lru() };
+    c = { cands, digits: cands.items.map(([key]) => digitsOf(key)), results: new Lru() };
     lookupCaches.set(map, c);
   }
   return c;

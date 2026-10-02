@@ -80,7 +80,7 @@ import type { OcrRegion, RuneshapeStats } from '@ipc/types'
 import { AppConfig, SCAN_INTERVAL_CPU_WARN_MS, SCAN_INTERVAL_MAX_MS, SCAN_INTERVAL_MIN_MS, clampRuneshapeInterval, hostConfigSettled } from '@/web/Config'
 import { afterHostConfigApplied } from '@/web/host-config-sync'
 import { Host } from '@/web/background/IPC'
-import { openRegionPicker, revealScanStatus } from '@/web/overlay/ocr-reveal'
+import { openRegionPicker, scanStatus } from '@/web/overlay/ocr-reveal'
 import { regionPercent } from '@/web/overlay/region-geom'
 import { runeshapeLastTimings } from '@/web/overlay/runeshape-view'
 import HotkeyInput from './HotkeyInput.vue'
@@ -241,22 +241,8 @@ export default defineComponent({
       if (!enabled.value) return { code: 'off', tone: 'dim', text: t('ppz.scan.status_off') }
       if (!canCheck) return { code: 'preview', tone: 'dim', text: t('ppz.scan.status_preview') }
       const s = stats.value
-      if (props.kind === 'reveal') {
-        const r = revealScanStatus(s, tr, pauseHotkey.value)
-        if (r) return { code: r.code, tone: r.warn ? 'warn' : 'ok', text: r.text }
-      } else if (s) {
-        if (s.reason === 'user-paused') return { code: 'paused', tone: 'warn', text: t('ppz.ocr.scan_status_paused', { hotkey: pauseHotkey.value || '—' }) }
-        if (region.value && s.mode === 'manual' && s.panel !== 'unknown') {
-          return s.panel === 'found'
-            ? { code: 'manual-found', tone: 'ok', text: t('ppz.runeshape.status_manual_found') }
-            : { code: 'manual-not-found', tone: 'warn', text: t('ppz.runeshape.status_manual_not_found') }
-        }
-        if (!region.value && s.mode === 'auto') {
-          return s.autoRegion
-            ? { code: 'auto-found', tone: 'ok', text: t('ppz.runeshape.status_auto_found', regionPercent(s.autoRegion)) }
-            : { code: 'auto-searching', tone: 'ok', text: t('ppz.runeshape.status_auto_searching') }
-        }
-      }
+      const r = scanStatus(props.kind, s, tr, pauseHotkey.value, props.kind === 'reveal' || !!region.value)
+      if (r) return { code: r.code, tone: r.warn ? 'warn' : 'ok', text: r.text }
       return { code: 'none', tone: 'dim', text: t('ppz.scan.status_none') }
     })
 

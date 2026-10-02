@@ -181,17 +181,3 @@ export async function smartRecognize (o: SmartOcrOptions): Promise<SmartOcrResul
   second.st.rejected = chk.reason
   return await full()
 }
-
-/** `ocrRegion` 變了就清掉面板區快取(舊區域算出來的面板位置不再可信);回傳是否清了 */
-export class RegionCacheGuard {
-  private last: string | undefined
-  constructor (private readonly cache: PanelRegionCache) {}
-  update (region: OcrRegion | null | undefined): boolean {
-    const key = region ? `${region.x},${region.y},${region.w},${region.h}` : 'none'
-    const first = this.last === undefined
-    const changed = !first && key !== this.last
-    this.last = key
-    if (changed) this.cache.clear()
-    return changed
-  }
-}

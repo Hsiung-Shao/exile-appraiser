@@ -89,11 +89,10 @@ export function lineLooksLikeMod(text: string, idx: LocateIndex): boolean {
 
 /**
  * 效能修正第 8 步:每個索引一份「依長度分桶的候選 + 模糊結果 LRU(鍵 = 正規化後的 skeleton)」。
- * 掛在索引物件上(WeakMap),換索引自然失效;`list` 被換掉或長度變了也重建(索引照理建好就不改)。
+ * 掛在索引物件上(WeakMap,以物件身分判斷失效),換索引自然失效。
+ * 前提:索引建好之後不可變(`list` 不得替換 / 增刪;要改就建新索引物件)。
  */
 interface LocateFuzzyCache {
-  list: string[];
-  n: number;
   cands: FuzzyCandidates<string>;
   results: Lru<string, boolean>;
 }
@@ -101,8 +100,8 @@ const locateFuzzy = new WeakMap<LocateIndex, LocateFuzzyCache>();
 
 function fuzzyCache(idx: LocateIndex): LocateFuzzyCache {
   let c = locateFuzzy.get(idx);
-  if (!c || c.list !== idx.list || c.n !== idx.list.length) {
-    c = { list: idx.list, n: idx.list.length, cands: new FuzzyCandidates(idx.list, (t) => t), results: new Lru() };
+  if (!c) {
+    c = { cands: new FuzzyCandidates(idx.list, (t) => t), results: new Lru() };
     locateFuzzy.set(idx, c);
   }
   return c;

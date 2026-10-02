@@ -15,7 +15,7 @@
   - 效能修正第 6 步:事件的列(+ client、遊戲、資料集世代)與目前畫著的相同 → 不重新比對 / 排版 / 印 log(`scan-dedupe.ts`;
     耗時紀錄與「有人在查價」照舊);每列的市集查詢計畫每次結果只算一次(`plans` computed)。
   - 第 11 步:徽章外觀(`config.ocrBadgeStyle`,與褻瀆徽章共用;`badge-style.ts`):根元素設 CSS 變數(字體 / 字級 / 粗體 /
-    三段價格色 / 外框陰影),樣式寫 `var(--badge-x, 原值)`,預設不輸出變數 = 外觀不變。市集徽章(冷色左框)原本不吃三段色;第 20 步起已換算成崇高石的「有價格」市集徽章也依 主價 × 數量 分段(`mt-*`,見 runeshape-view.ts `runeTradeTier`)。
+    三段價格色 / 外框陰影),樣式寫 `var(--badge-x, 原值)`,預設不輸出變數 = 外觀不變。市集徽章(冷色左框)原本不吃三段色;第 20 步起已換算成崇高石的「有價格」市集徽章也依 主價 × 數量 分段(`ptier-*`,見 runeshape-view.ts `runeTradeTier`)。
   - 第 18 步:main 的擷取會截到這一層(徽章 / 提示可能落在符文掃描區:手動框或自動定位外擴框)。DOM 更新後、paint 前把可見元素外框送 main 遮掉
     (`scan-mask.ts`);每個掃描事件處理完都帶它的 seq(ack)。
   - code review 第 C 批:掃描層接線改用共用的 `useScanLayer.ts`(與褻瀆層同一份):處理丟例外也 ack、遮罩追外觀 / 全域字級 /
@@ -25,7 +25,7 @@
   <div v-if="active" ref="layer" class="rs-layer pob-dark" data-runeshape-layer :data-runeshape-state="state" :style="styleVars">
     <template v-if="state === 'rows'">
       <div v-for="b in badges" :key="b.key" class="rs-badge"
-        :class="[`tier-${b.tier}`, `kind-${b.kind}`, b.noPrice ? `no-price-${b.noPrice}` : '', { market: !!b.tradeKey, [`trade-${marketOf(b)?.status}`]: !!b.tradeKey, [`mt-${marketOf(b)?.tier}`]: !!marketOf(b)?.tier }]"
+        :class="[`tier-${b.tier}`, `kind-${b.kind}`, b.noPrice ? `no-price-${b.noPrice}` : '', { market: !!b.tradeKey, [`trade-${marketOf(b)?.status}`]: !!b.tradeKey }, priceTierClass(b)]"
         data-runeshape="badge" :data-kind="b.kind" :data-tier="b.tier" :data-ref="b.refName" :data-no-price="b.noPrice"
         :data-approx="b.approx ? '1' : undefined" :data-trade="b.tradeKey ? (marketOf(b)?.status ?? 'queued') : undefined"
         :data-trade-text="b.tradeKey ? marketOf(b)?.text : undefined" :data-market-tier="marketOf(b)?.tier"
@@ -212,6 +212,11 @@ export default defineComponent({
       return out
     })
     const marketOf = (b: RuneBadgeView): RuneTradeBadge | undefined => markets.value[b.key]
+    /** 價格三段色共用 class:ninja 價徽章(kind-price)用自己的段,有價格的市集徽章用市價換算後的段;其餘不帶 */
+    const priceTierClass = (b: RuneBadgeView): string => {
+      const t = marketOf(b)?.tier ?? (b.kind === 'price' ? b.tier : undefined)
+      return t ? `ptier-${t}` : ''
+    }
     const marketWord = (s: RuneTradeBadgeStatus) =>
       s === 'empty' ? t('ppz.runeshape.trade.empty_short') : s === 'failed' ? t('ppz.runeshape.trade.failed_short') : s === 'loading' ? t('ppz.runeshape.trade.loading') : '…'
 
@@ -261,6 +266,7 @@ export default defineComponent({
       unitLabel,
       badgeTitle,
       marketOf,
+      priceTierClass,
       marketWord,
       styleVars,
       active: computed(() => state.value !== 'idle' || toast.value != null)
@@ -309,11 +315,13 @@ export default defineComponent({
 .rs-badge.tier-high { color: var(--gold); border-left-color: var(--gold); box-shadow: var(--shadow-float), 0 0 0 1px color-mix(in srgb, var(--gold) 45%, transparent); }
 .rs-badge.tier-high .rs-unit { color: var(--gold); }
 /* 第 11 步:有價格的徽章三段色各自可設(`--badge-low/mid/high`,字色 + 左條);沒設 = 上面的原值。
-   只套 kind-price:對不上「?」/ 無價格 / 載入中 / 市集徽章也帶 tier class,但不是價格分段,維持原樣 */
-.rs-badge.kind-price.tier-low { color: var(--badge-low, var(--ink-2)); border-left-color: var(--badge-low, var(--ink-4)); }
-.rs-badge.kind-price.tier-mid { color: var(--badge-mid, var(--ink-0)); border-left-color: var(--badge-mid, var(--accent)); }
-.rs-badge.kind-price.tier-high { color: var(--badge-high, var(--gold)); border-left-color: var(--badge-high, var(--gold)); box-shadow: var(--shadow-float), 0 0 0 1px color-mix(in srgb, var(--badge-high, var(--gold)) 45%, transparent); }
-.rs-badge.kind-price.tier-high .rs-unit { color: var(--badge-high, var(--gold)); }
+   第 20 步:有價格的市集徽章(已換算成崇高石,依 主價 × 數量 分段)共用同一組 `ptier-*`(左條 / 字色隨段,「市」小標仍是冷色)。
+   只套 ptier-*:對不上「?」/ 無價格 / 載入中 / 沒價的市集徽章不帶它,維持原樣。
+   前綴 .rs-layer 讓權重(3 class)高於 .rs-badge.market 與 .rs-badge.tier-* */
+.rs-layer .rs-badge.ptier-low { color: var(--badge-low, var(--ink-2)); border-left-color: var(--badge-low, var(--ink-4)); }
+.rs-layer .rs-badge.ptier-mid { color: var(--badge-mid, var(--ink-0)); border-left-color: var(--badge-mid, var(--accent)); }
+.rs-layer .rs-badge.ptier-high { color: var(--badge-high, var(--gold)); border-left-color: var(--badge-high, var(--gold)); box-shadow: var(--shadow-float), 0 0 0 1px color-mix(in srgb, var(--badge-high, var(--gold)) 45%, transparent); }
+.rs-layer .rs-badge.ptier-high .rs-unit { color: var(--badge-high, var(--gold)); }
 .rs-badge.kind-unmatched, .rs-badge.kind-no-price, .rs-badge.kind-loading { font-size: var(--badge-fs-xs, var(--fs-xs)); color: var(--ink-2); }
 /* 「無固定價格」(配方泛稱,本來就沒有單一價格)比「無價格」(有具體物品但價格表沒有)更淡、左框虛線,一眼分得出 */
 .rs-badge.no-price-recipe { color: var(--ink-3); border-left-style: dashed; border-left-color: var(--ink-3); font-style: italic; }
@@ -326,11 +334,6 @@ export default defineComponent({
 }
 /* 排隊中 / 查詢中 / 沒有掛單 / 失敗:淡一點 */
 .rs-badge.market.trade-queued, .rs-badge.market.trade-loading, .rs-badge.market.trade-empty, .rs-badge.market.trade-failed { color: var(--ink-2); font-size: var(--badge-fs-xs, var(--fs-xs)); }
-/* 第 20 步:市集價已換算成崇高石 → 依 主價 × 數量 套同一組三段色(含 `--badge-low/mid/high`);左條 / 字色隨段,「市」小標仍是冷色 */
-.rs-badge.market.mt-low { color: var(--badge-low, var(--ink-2)); border-left-color: var(--badge-low, var(--ink-4)); }
-.rs-badge.market.mt-mid { color: var(--badge-mid, var(--ink-0)); border-left-color: var(--badge-mid, var(--accent)); }
-.rs-badge.market.mt-high { color: var(--badge-high, var(--gold)); border-left-color: var(--badge-high, var(--gold)); box-shadow: var(--shadow-float), 0 0 0 1px color-mix(in srgb, var(--badge-high, var(--gold)) 45%, transparent); }
-.rs-badge.market.mt-high .rs-unit { color: var(--badge-high, var(--gold)); }
 .rs-badge.market.trade-loading .rs-mkt-state { animation: rs-pulse 1.2s ease-in-out infinite; }
 @keyframes rs-pulse { 50% { opacity: 0.45; } }
 .rs-badge .rs-mkt {

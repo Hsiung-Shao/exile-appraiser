@@ -24,7 +24,7 @@ const MAX_FONTS = 5000
 
 /**
  * 解析腳本輸出:base64 → UTF-8 → 逐行;去空白、去重(不分大小寫)、排序(`localeCompare`)。
- * 去掉含控制字元或引號 / 反斜線的名稱(CSS 字串不好跳脫,也不會是正常字體名)。壞輸出 → 空陣列。
+ * 去掉含控制字元、引號、反斜線、`;{}` 的名稱(與 renderer `normFontFamily` 同一套規則)(CSS 字串不好跳脫,也不會是正常字體名)。壞輸出 → 空陣列。
  */
 export function parseFontList (stdout: string): string[] {
   const b64 = stdout.replace(/\s+/g, '')
@@ -34,9 +34,9 @@ export function parseFontList (stdout: string): string[] {
   const out: string[] = []
   for (const raw of text.split(/\r?\n/)) {
     const name = raw.trim()
-    // 刻意比對控制字元:字體名含控制字元 / 引號 / 反斜線就丟掉(會破壞 CSS font-family)
+    // 刻意比對控制字元:字體名含控制字元 / 引號 / 反斜線 / `;{}` 就丟掉(會破壞 CSS font-family)
     // eslint-disable-next-line no-control-regex
-    if (!name || name.length > MAX_NAME_LEN || /[\u0000-\u001f\u007f"\\�]/.test(name)) continue
+    if (!name || name.length > MAX_NAME_LEN || /[\u0000-\u001f\u007f"\\;{}�]/.test(name)) continue
     const k = name.toLowerCase()
     if (seen.has(k)) continue
     seen.add(k)

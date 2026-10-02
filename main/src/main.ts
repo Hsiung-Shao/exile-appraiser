@@ -636,7 +636,7 @@ if (!skipStartup) app.whenReady().then(() => {
   // 效能修正第 18 步:擷取會截到我們自己的 overlay(徽章 / 提示)→ renderer 回報位置(`scan-mask`),擷取當下換算成影像像素,
   // OCR 前填掉、差分不比那幾格;送出 rows 後等 renderer ack 才擷取下一張(docs/reveal-ocr.md「遮掉自己畫的東西」)
   const scanMask = new ScanMaskStore()
-  // 效能修正第 7 步:兩個掃描同一 client bounds 的擷取共用(進行中一起等、完成後 100 ms 內用同一張)
+  // 效能修正第 7 步:兩個掃描同一 client bounds 的擷取共用(完成後 100 ms 內用同一張)
   const sharedCapture = new SharedCapture(async (b) => {
     const c = await clientCapture.capture(b)
     const sz = c.image.getSize()

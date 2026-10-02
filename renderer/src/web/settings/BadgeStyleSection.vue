@@ -5,7 +5,7 @@
   - 大小:10–32 px 滑桿 +「跟隨」(null = 褻瀆跟 `--fs-base`、符文跟 `--fs-sm`);粗體;
   - 符文三段價格色(`<input type=color>` +「還原預設」;褻瀆的語意色不受影響);
   - 外框 / 陰影三選一。
-  即時套用(沒有儲存 / 取消,照專案慣例)。下方預覽區用與 overlay 相同的 class(`.rs-badge` / `.ocr-badge`)與同一組 CSS 變數,
+  即時套用(沒有儲存 / 取消,照專案慣例);拖曳字級滑桿 / 色票選色中預覽用本地草稿即時更新,放開(change)才寫設定。下方預覽區用與 overlay 相同的 class(`.rs-badge` / `.ocr-badge`)與同一組 CSS 變數,
   底圖左暗右亮(模擬遊戲亮 / 暗背景),是深色島(`.pob-dark`,淺色主題 / 自訂背景模式下也照 overlay 實際外觀)。
 -->
 <template>
@@ -26,8 +26,9 @@
     <div class="srow">
       <span class="k">{{ t('ppz.badge_style.size') }}</span>
       <div class="ctl" data-setting="badge-size">
-        <input v-model.number="sizeSlider" class="slider" type="range" :min="sizeMin" :max="sizeMax" step="1" :class="{ follow: style.fontSize == null }">
-        <span class="num bs-size-val">{{ style.fontSize == null ? t('ppz.badge_style.size_follow') : `${style.fontSize}px` }}</span>
+        <input :value="sizeSlider" class="slider" type="range" :min="sizeMin" :max="sizeMax" step="1" :class="{ follow: shownSize == null }"
+          @input="onSizeInput" @change="onSizeChange">
+        <span class="num bs-size-val">{{ shownSize == null ? t('ppz.badge_style.size_follow') : `${shownSize}px` }}</span>
         <button class="btn ghost sm" data-action="badge-size-follow" :disabled="style.fontSize == null" @click="style.fontSize = null">{{ t('ppz.badge_style.follow') }}</button>
       </div>
     </div>
@@ -47,9 +48,9 @@
     <div v-for="k in tiers" :key="k" class="srow">
       <span class="k">{{ t(`ppz.badge_style.tier_${k}`) }}</span>
       <div class="ctl">
-        <input class="bs-color" type="color" :value="style.tierColors[k] ?? defaults[k]" :data-setting="`badge-color-${k}`"
-          :aria-label="t(`ppz.badge_style.tier_${k}`)" @input="setColor(k, $event)">
-        <span class="dim bs-color-val">{{ style.tierColors[k] ?? t('ppz.badge_style.color_default') }}</span>
+        <input class="bs-color" type="color" :value="draftColors[k] ?? style.tierColors[k] ?? defaults[k]" :data-setting="`badge-color-${k}`"
+          :aria-label="t(`ppz.badge_style.tier_${k}`)" @input="previewColor(k, $event)" @change="commitColor(k, $event)">
+        <span class="dim bs-color-val">{{ draftColors[k] ?? style.tierColors[k] ?? t('ppz.badge_style.color_default') }}</span>
         <button class="btn ghost sm" :data-action="`badge-color-reset-${k}`" :disabled="!style.tierColors[k]" @click="style.tierColors[k] = null">{{ t('ppz.badge_style.color_reset') }}</button>
       </div>
     </div>
@@ -121,10 +122,17 @@ export default defineComponent({
     const fontsStateText = computed(() => fontsState.value === 'loading' ? t('ppz.badge_style.font_loading') : t('ppz.badge_style.font_none'))
 
     // ---- 大小(null = 跟隨;滑桿停在目前實際字級附近) ----
-    const sizeSlider = computed({
-      get: () => style.value.fontSize ?? Math.min(BADGE_FONT_SIZE_MAX, Math.max(BADGE_FONT_SIZE_MIN, config.fsBase)),
-      set: (v: number) => { config.ocrBadgeStyle.fontSize = Math.min(BADGE_FONT_SIZE_MAX, Math.max(BADGE_FONT_SIZE_MIN, Math.round(Number(v)))) }
-    })
+    // 拖曳中只改本地草稿(預覽即時),放開(change)才寫設定(code review 第 D 批:原本每個 input 事件都寫設定 + 送 main)
+    const clampSize = (v: number) => Math.min(BADGE_FONT_SIZE_MAX, Math.max(BADGE_FONT_SIZE_MIN, Math.round(Number(v))))
+    const draftSize = shallowRef<number | null>(null)
+    /** 目前顯示的字級(草稿優先;null = 跟隨) */
+    const shownSize = computed(() => draftSize.value ?? style.value.fontSize)
+    const sizeSlider = computed(() => shownSize.value ?? Math.min(BADGE_FONT_SIZE_MAX, Math.max(BADGE_FONT_SIZE_MIN, config.fsBase)))
+    function onSizeInput (e: Event) { draftSize.value = clampSize(Number((e.target as HTMLInputElement).value)) }
+    function onSizeChange (e: Event) {
+      config.ocrBadgeStyle.fontSize = clampSize(Number((e.target as HTMLInputElement).value))
+      draftSize.value = null
+    }
 
     // ---- 三段顏色(色票顯示目前主題的預設色;從預覽區的計算樣式讀) ----
     const preview = shallowRef<HTMLElement | null>(null)
@@ -136,10 +144,24 @@ export default defineComponent({
       const v = (name: string, fb: string) => toHex(cs.getPropertyValue(name).trim(), fb)
       defaults.value = { low: v('--ink-2', '#8a8f99'), mid: v('--accent', '#d8aa4b'), high: v('--gold', '#d8aa4b') }
     })
-    function setColor (k: BadgeTier, e: Event) {
+    // 色票同樣:拖曳選色中只更新預覽草稿,確定(change)才寫設定
+    const draftColors = shallowRef<Partial<Record<BadgeTier, string>>>({})
+    function previewColor (k: BadgeTier, e: Event) {
+      const c = normHexColor((e.target as HTMLInputElement).value)
+      if (c) draftColors.value = { ...draftColors.value, [k]: c }
+    }
+    function commitColor (k: BadgeTier, e: Event) {
       const c = normHexColor((e.target as HTMLInputElement).value)
       if (c) config.ocrBadgeStyle.tierColors[k] = c
+      const { [k]: _drop, ...rest } = draftColors.value
+      draftColors.value = rest
     }
+    /** 預覽用外觀:設定 + 還沒寫回的草稿 */
+    const previewStyle = computed(() => {
+      const s = style.value
+      if (draftSize.value == null && !Object.keys(draftColors.value).length) return s
+      return { ...s, fontSize: draftSize.value ?? s.fontSize, tierColors: { ...s.tierColors, ...draftColors.value } }
+    })
 
     function resetAll () { config.ocrBadgeStyle = defaultOcrBadgeStyle() }
 
@@ -153,14 +175,19 @@ export default defineComponent({
       fontsState,
       fontsStateText,
       sizeSlider,
+      shownSize,
+      onSizeInput,
+      onSizeChange,
       sizeMin: BADGE_FONT_SIZE_MIN,
       sizeMax: BADGE_FONT_SIZE_MAX,
       tiers: ['low', 'mid', 'high'] as BadgeTier[],
       defaults,
-      setColor,
+      draftColors,
+      previewColor,
+      commitColor,
       preview,
-      runeVars: computed(() => badgeStyleVars(style.value, 'rune')),
-      revealVars: computed(() => badgeStyleVars(style.value, 'reveal')),
+      runeVars: computed(() => badgeStyleVars(previewStyle.value, 'rune')),
+      revealVars: computed(() => badgeStyleVars(previewStyle.value, 'reveal')),
       isDefault: computed(() => isDefaultBadgeStyle(style.value)),
       resetAll
     }

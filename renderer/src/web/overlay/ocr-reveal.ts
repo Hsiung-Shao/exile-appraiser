@@ -11,6 +11,7 @@
 import { shallowRef } from 'vue'
 import type { Poe2RevealCandidate, Poe2RevealResult } from '@poe2-entry'
 import type { OcrRegion, RevealScanEvent, RuneshapeStats } from '@ipc/types'
+import { regionPercent } from './region-geom'
 
 /** 最近查價物品當 profile 的有效期 */
 export const LAST_ITEM_TTL_MS = 10 * 60_000
@@ -38,6 +39,41 @@ export function revealScanAction (ev: Pick<RevealScanEvent, 'reason' | 'rows'>, 
   return { kind: 'clear', reason: why[ev.reason] ?? ev.reason }
 }
 
+export interface ScanStatusLine { code: string, warn: boolean, text: string }
+
+/**
+ * 設定頁掃描狀態列的共用判定(褻瀆 `reveal` / 符文塑形 `runeshape`):
+ * 暫停 →「暫停」;有框區域且 main 已在手動模式 →「框選的區域內有 / 沒有找到面板」;
+ * 其餘只有 auto 文案兩種不同:褻瀆(`found`/`searching`,看 panel)與符文(`auto-found`/`auto-searching`,看 autoRegion)。
+ * 沒有統計 → null;auto 不適用(符文有框區域、模式不是 auto)→ null,呼叫端落到「沒有狀態」。
+ * `hasRegion`:設定頁有沒有框區域(褻瀆 2026-10-01 第 13 步起框區域只看區域,傳 true 即可 — 以 main 的 mode 為準)。
+ */
+export function scanStatus (
+  kind: 'reveal' | 'runeshape',
+  s: Pick<RuneshapeStats, 'reason' | 'panel' | 'mode'> & Partial<Pick<RuneshapeStats, 'autoRegion'>> | undefined,
+  t: (key: string, args?: Record<string, unknown>) => string,
+  hotkey: string,
+  hasRegion: boolean
+): ScanStatusLine | null {
+  if (!s) return null
+  if (s.reason === 'user-paused') return { code: 'paused', warn: true, text: t('ppz.ocr.scan_status_paused', { hotkey: hotkey || '—' }) }
+  if (hasRegion && s.mode === 'manual' && s.panel !== 'unknown') {
+    return s.panel === 'found'
+      ? { code: 'manual-found', warn: false, text: t('ppz.runeshape.status_manual_found') }
+      : { code: 'manual-not-found', warn: true, text: t('ppz.runeshape.status_manual_not_found') }
+  }
+  if (kind === 'reveal') {
+    if (s.panel === 'found') return { code: 'found', warn: false, text: t('ppz.ocr.scan_status_found') }
+    return { code: 'searching', warn: false, text: t('ppz.ocr.scan_status_searching') }
+  }
+  if (!hasRegion && s.mode === 'auto') {
+    return s.autoRegion
+      ? { code: 'auto-found', warn: false, text: t('ppz.runeshape.status_auto_found', regionPercent(s.autoRegion)) }
+      : { code: 'auto-searching', warn: false, text: t('ppz.runeshape.status_auto_searching') }
+  }
+  return null
+}
+
 /**
  * 設定頁的褻瀆自動辨識狀態列(main `reveal-stats`);沒有統計 / 不在掃描(非暫停)→ null。
  * 2026-10-01 第 13 步:有框區域時只看區域(不再退回整個畫面),狀態與符文塑形相同:框選的區域內有 / 沒有找到面板。
@@ -46,16 +82,8 @@ export function revealScanStatus (
   s: Pick<RuneshapeStats, 'reason' | 'panel' | 'mode'> | undefined,
   t: (key: string, args?: Record<string, unknown>) => string,
   hotkey: string
-): { code: string, warn: boolean, text: string } | null {
-  if (!s) return null
-  if (s.reason === 'user-paused') return { code: 'paused', warn: true, text: t('ppz.ocr.scan_status_paused', { hotkey: hotkey || '—' }) }
-  if (s.mode === 'manual' && s.panel !== 'unknown') {
-    return s.panel === 'found'
-      ? { code: 'manual-found', warn: false, text: t('ppz.runeshape.status_manual_found') }
-      : { code: 'manual-not-found', warn: true, text: t('ppz.runeshape.status_manual_not_found') }
-  }
-  if (s.panel === 'found') return { code: 'found', warn: false, text: t('ppz.ocr.scan_status_found') }
-  return { code: 'searching', warn: false, text: t('ppz.ocr.scan_status_searching') }
+): ScanStatusLine | null {
+  return scanStatus('reveal', s, t, hotkey, true)
 }
 
 /**

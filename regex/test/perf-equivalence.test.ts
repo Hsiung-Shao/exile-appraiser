@@ -1,5 +1,6 @@
 // 效能修正(hiddenIndex 只收可見鍵 / build memo / combine 重用)的行為等價守門。
 // golden(`golden/perf-equivalence.json`)由修改「之前」的實作產生:每個情境的 build / combine 輸出的 sha256。
+// 產生來源:commit 36d0ac2 的父 commit bb686d0(修改前實作)+ 本檔(36d0ac2 版)以 PERF_EQ_WRITE=1 重產,與 repo 內 golden 逐位元組相同(2026-10-02 code review 第 D 批複驗)。
 // 重生(僅在演算法有意改動時):`PERF_EQ_WRITE=1 npx vitest run test/perf-equivalence.test.ts`
 import { createHash } from 'node:crypto'
 import fs from 'node:fs'

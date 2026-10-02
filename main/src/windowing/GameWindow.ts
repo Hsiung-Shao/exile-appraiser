@@ -23,12 +23,6 @@ export class GameWindow extends EventEmitter {
     }
   }
 
-  get uiSidebarWidth () {
-    // sidebar is 370px at 800x600
-    const ratio = 370 / 600
-    return Math.round(this.bounds.height * ratio)
-  }
-
   get isTracking () { return this._isTracking }
 
   attach (window: BrowserWindow | undefined, title: string, game?: string) {
@@ -36,6 +30,10 @@ export class GameWindow extends EventEmitter {
       OverlayController.events.on('focus', () => { console.log('[overlay] 遊戲視窗 focus'); this.isActive = true })
       OverlayController.events.on('blur', () => { console.log('[overlay] 遊戲視窗 blur'); this.isActive = false })
       OverlayController.events.on('detach', () => { console.log('[overlay] detach(遊戲視窗關閉)') })
+      // attach log 只在這裡註冊一次(onAttach 有多處呼叫,放在它裡面會每次 attach 印多行)
+      OverlayController.events.on('attach', (e: AttachEvent) => {
+        console.log(`[overlay] attach hasAccess=${e.hasAccess} fullscreen=${e.isFullscreen} bounds=${e.x},${e.y} ${e.width}x${e.height}`)
+      })
       console.log(`[overlay] attachByTitle "${title}"${game ? ` (game=${game})` : ''}`)
       OverlayController.attachByTitle(window, title, { hasTitleBarOnMac: true })
       this._isTracking = true
@@ -59,9 +57,6 @@ export class GameWindow extends EventEmitter {
   }
 
   onAttach (cb: (hasAccess: boolean | undefined) => void) {
-    OverlayController.events.on('attach', (e: AttachEvent) => {
-      console.log(`[overlay] attach hasAccess=${e.hasAccess} fullscreen=${e.isFullscreen} bounds=${e.x},${e.y} ${e.width}x${e.height}`)
-      cb(e.hasAccess)
-    })
+    OverlayController.events.on('attach', (e: AttachEvent) => { cb(e.hasAccess) })
   }
 }

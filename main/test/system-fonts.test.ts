@@ -16,8 +16,8 @@ describe('parseFontList(list-fonts 輸出解析)', () => {
     expect(parseFontList('   \r\n')).toEqual([])
     expect(parseFontList('Add-Type : 無法載入')).toEqual([])
   })
-  it('含引號 / 反斜線 / 控制字元 / 亂碼的名稱略過', () => {
-    expect(parseFontList(enc(['Ok', 'Bad"Name', 'Bad\\Name', 'Bad\tName', 'Bad�Name']))).toEqual(['Ok'])
+  it('含引號 / 反斜線 / `;{}` / 控制字元 / 亂碼的名稱略過(與 renderer normFontFamily 同一套規則)', () => {
+    expect(parseFontList(enc(['Ok', 'Bad"Name', 'Bad\\Name', 'Bad\tName', 'Bad�Name', 'Bad;Name', 'Bad{Name', 'Bad}Name']))).toEqual(['Ok'])
   })
   it('腳本把輸出轉成 base64(避免 PowerShell 5.1 碼頁把中文變問號)', () => {
     expect(LIST_FONTS_SCRIPT).toContain('InstalledFontCollection')
