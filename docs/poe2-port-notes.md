@@ -28,8 +28,8 @@
 | 9 | `trade/pathofexile-trade.ts` / `pathofexile-bulk.ts` | `Host.proxy`、`opts.accountName` | `ctx.http`、`ctx.accountName`;函式第一參數 `TradeContext`;URL 用 core `tradeApiBase(realm, 'poe2')`(`/api/trade2/*`,聯盟 encode);快取鍵含 realm;`pathofexile-trade.ts` 的 `TradeRequest` 型別改 export(符文塑形點選查交易站 `runeshape/trade-lookup.ts` 直接組 body) |
 | 10 | `trade/trade-api.ts` / `bulk-api.ts`(Vue composable) | `AppConfig().accountName` | `activeTradeContext()` |
 | 11 | `trade/RateLimiter.ts` / `Cache.ts` | Vue 版 | 轉接 core(core `Cache` 併入 E 的 `purgeIfDifferentCurrency`)|
-| 12 | `web/background/Prices.ts`(整檔取代) | poe.ninja | 「沒有價格」同介面實作(型別、`DivCurrency`、`displayRounding` 照抄;換算價不顯示)|
-| 13 | `.vue` | 見各檔頭 | `CheckedItem.vue`:移除 PriceTrend / PricePrediction / StackValue / Tip / 贊助區塊,`useEn` 改 `AppConfig().useIntlSite`,網址 encode;`TradeListing/TradeBulk.vue`:網址 encode、外開走 `Host.openExternal`;`TradeLinks.vue`:`Host.openExternal`;`UnknownModifier.vue`:移除「重載交易站資料」鈕(離線快照重載無意義、`Host.selfDispatch` 不存在);`RateLimiterState.vue` 沿用 poe1 的改寫版 |
+| 12 | `web/background/Prices.ts`(整檔取代) | poe.ninja(EE2 自家代理 `api.exiledexchange2.dev`) | 第 24 步起是**轉接殼**:renderer 以 `setPriceSource()` 注入 poe.ninja 價格源(`renderer/src/web/background/poe2-price-source.ts`),本檔包成上游 `usePoeninja()` 介面(`findPriceByQuery` 回 divine 計價的 `primaryValue` / `volumePrimaryValue` / `maxVolumeCurrency` / `sparkline` / `url` / `cx`,`autoCurrency`、`cachedCurrencyByQuery`、`xchgRate` = 1 div 換幾 ex、區間運算);沒注入或沒有價格表 = 原本的「沒有價格」行為。型別、`DivCurrency`、`displayRounding` 照抄。不 import Vue(getter 讀 renderer 的 shallowRef)|
+| 13 | `.vue` | 見各檔頭 | `CheckedItem.vue`:移除 PricePrediction / Tip / 贊助區塊(PriceTrend / StackValue 第 24 步加回,見「通貨價格區」),`useEn` 改 `AppConfig().useIntlSite`,網址 encode;`TradeListing/TradeBulk.vue`:網址 encode、外開走 `Host.openExternal`;`TradeLinks.vue`:`Host.openExternal`;`UnknownModifier.vue`:移除「重載交易站資料」鈕(離線快照重載無意義、`Host.selfDispatch` 不存在);`RateLimiterState.vue` 沿用 poe1 的改寫版 |
 | 14 | `trade/TradeItem.vue`(2026-10-01,檔案是 CRLF,保持) | 結果列物品浮窗:`tippy(row, { interactive: true, placement: "left", … })` 沒設 `appendTo`,interactive 預設掛在 reference 的 parentNode(結果表格內);祖先 `.price-main` `overflow-y:auto`、`.price-panel.is-overlay` / `.bg-host` `overflow:hidden` 把面板左側的 popup 裁掉 | 加 `appendTo: () => document.body`(脫離所有 overflow 祖先);`.pob-dark`(Popover.vue `setDefaultProps`)與 `item-tooltip` 樣式是全域規則、色票在 `:root`,掛點改變不影響。另加 `popperOptions` flip 後備 `right → bottom → top`:window 模式面板佔滿視窗寬、左右都放不下時預設 flip 失敗(實測 popup left = -445px),後備讓它落在列的上下並由 preventOverflow 夾回視窗內。overlay 模式照 EE2 放面板左側 |
 | 15 | `trade/pathofexile-trade.ts` `requestResults`(2026-10-02 第 19 步) | 浮窗詞綴 / 物品名照 fetch 回應顯示(國際服 = 英文) | `displayZhFor(ctx.realm)` 一行(code review 第 B 批起同步、不 await)+ `parseFetchResult` 之後套 `toZh(displayItem, result.item)` 一行;邏輯全在自寫的 `trade/display-zh.ts`(下方「物品浮窗繁中」)|
 
@@ -62,7 +62,7 @@
 |---|---|
 | Parser/*、data/dataLoader、web/price-check/**、web/useTradeApi、zhTW/*(dataset-invariants 的 `KNOWN_STAT_GAPS` 棘輪、14 組 fixture) | 全搬,517 項全綠 |
 | `web/client-log.test.ts`(30)、`web/item-check.test.ts`(4)、`web/library/libraryChaos.test.ts`(5) | 不適用:客戶端 log、物品檢查 widget、library 不在查價範圍,未搬 |
-| `web/prices.test.ts`(2) | 不適用:poe.ninja 刻意不做 |
+| `web/prices.test.ts`(2) | 不適用:測的是 EE2 自家代理的 blob 切割;價格源改由 renderer 注入,轉接殼另測 `test/web/background/prices-adapter.test.ts`(第 24 步) |
 | `Parser/parsers.test.ts` 的 ja / ko / ru 三列 | 移除:本 app 只出貨 en / cmn-Hant 資料 |
 | `zhTW/stat-coverage.test.ts`「其他語系只准變少」 | 移除(同上);cmn-Hant / en 兩個零缺陷斷言保留 |
 | 新增 `golden-query`(16)、`trade-client`(8)、`src-coupling`(5) | |
@@ -102,8 +102,17 @@
 - 覆蓋率(錄製回應 `poe2/test/docs/fetchResponses*.json` + 符文塑形 fetch 錄製):92 / 104 行。保留英文 12 行:同旗標多種繁中寫法 6(`explicit.stat_3917489142` 物品稀有度、`2065500219` 怪物效用、`2777224821` 換界石數量、`1825943485` 精髓、`1276056105` 金幣、`1263695895` 照亮範圍);英文模板對不上 3(`791928121` ×2「Causes …Stun Buildup」:繁中條目 ref 是不帶 Causes 的另一條;`3793155082` 交易站文字少了「Map has」);資料沒有的 id 1(`explicit.stat_3076483222|64921` 最後通牒獻祭);回應沒有 hashes 2(Vase Relic)。清單與逐行結果在 `poe2/test/web/price-check/trade/__snapshots__/display-zh.test.ts.snap`。
 - 測試 `poe2/test/web/price-check/trade/display-zh.test.ts`(逐行快照、覆蓋率、tier 不變、刻意破壞、錯置 hashes、英文介面 / 台服不翻、`requestResults` 端到端);畫面以第 14 步同法(無頭 Chrome + 假 `window.host`)截圖比對繁中 / 英文介面。
 
+## 通貨價格區(2026-10-02 第 24 步,使用者要求 PoE1 / PoE2 都要有)
+- 元件:PoE2 `web/price-check/trends/PriceTrend.vue`、`stack-value/StackValue.vue`、`web/ui/CoreCurrencyImg.vue`(EE2 移植,檔頭 MIT 出處);PoE1 同名兩檔在 `poe1/src/web/price-check/{trends,expected-value}/`(APT 移植 + EE2 的成交量區塊)。兩代 `CheckedItem.vue` 把它們掛回原位(filter-name 之後 / 搜尋鈕與結果之後)。
+- 改動(`exile-appraiser:` 註解):走勢圖 `vue3-apexcharts` → 手繪 SVG `renderer/src/web/ui/PriceSparkline.vue`(y 軸 drawMin / drawMax、面積填到底,漲 `--ok` 跌 `--bad` 持平 `--ink-3`;不加依賴);**只對 poe.ninja exchange 類顯示**(`cx` / `exchange`;傳奇等 item overview 不顯示);沒有價格整塊不顯示(上游的「? ×」後援刪掉);`trade_result.highest_volume` 只有 en → `ppz.highest_volume`、`/hr` → `ppz.per_hour`;外開 `window.open` → `Host.openExternal`;成交量顯示依設定 `priceCheck.currencyVolume`(`price-trend.ts` `volumeParts`)。
+- 「漲跌 %」照上游:7 點走勢的標準差 × 2(不是 totalChange),箭頭依 7 點中正負個數 / 最後三點判斷。
+- 價格源 / 單位見上表第 12 項與 `docs/ninja-poe2.md`「查價面板『通貨價格區』」。PoE2 剪貼簿查價也呼叫 `queuePricesFetch`(節流不變);台服 / 私人聯盟沒有價格表 → 整塊與 StackValue 都不顯示、不發 poe.ninja 請求。
+- 設定 › 查價「通貨每小時成交量」四選一(不顯示 / 通貨 / 物品 / 兩者,預設兩者;兩代都顯示)。
+- **連帶影響(價格源接上後 PoE2 開始有值,行為 = EE2)**:結果列「(X ex)」換算價(`pathofexile-trade.ts` `requestResults` 的 `normalizedPrice`;掛單幣別不是 ex / div 才顯示)、`ExtractionValue`(第一筆掛單低於「符文合計 − 萃取石」時紅框)、`ItemSumPrice`(物品編輯器 / 結果列的符文合計)、`FilterModifierAnointment`、`QualityEditor` 的觸媒總價。符文塑形 `priceOf` 不經這條路,行為不變。上游已知小毛病照舊:`normalizedPrice` 是 `displayRounding` 字串(小數點兩側有 hair space),`ExtractionValue` 以 `parseFloat` 讀回時小數會被截掉。
+- 驗證:`core/test/ninja.test.ts`「走勢與成交量」、`core/test/units.test.ts`、`renderer/test/price-trend.test.ts`、`poe2/test/web/background/prices-adapter.test.ts`;畫面以無頭 Chrome + 假 `window.host`(錄製的 ninja 快照 + 錄製的 trade2 exchange 回應)截圖:PoE1 神聖石、PoE2 破裂石(錄製檔沒有 Delirium / 液態情緒類別)× 成交量「兩者」/「不顯示」、台服、PoE1 傳奇(不顯示)。
+
 ## 未做 / 待辦
-- poe.ninja 參考價(兩個遊戲都還是「沒有價格」實作)、預測價、PriceTrend、StackValue、ExtractionValue 的換算。
+- 預測價(PricePrediction)。
 - GUI 實機(熱鍵 → overlay 附著 PoE2 視窗 → 台服真實掛單)由使用者實測。
 - 交易站 data 快照是手動更新(`node scripts/fetch-poe2-trade-data.mjs`);新賽季要重跑。
 

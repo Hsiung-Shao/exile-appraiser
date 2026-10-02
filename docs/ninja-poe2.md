@@ -53,7 +53,7 @@ GET https://poe.ninja/poe2/api/economy/exchange/current/overview?league=<聯盟 
 | `items[].name` | **英文名 = items.ndjson 的 `refName`**(`Aldur's Legacy`、`Ancient Rune of Control`、`Exalted Orb`)→ 鍵 `currency|<name>` |
 | `items[].category` | `Runes`、`Vaal`(靈魂核心類是 `Vaal`)、`UncutGems`、`Currency`… 與請求的 `type` 不一定相同 |
 | `items[].detailsId` | ninja 詳細頁網址最後一段 |
-| `volumePrimaryValue` / `maxVolume*` / `sparkline` | 交易量與走勢;快照不存 |
+| `volumePrimaryValue` / `maxVolume*` / `sparkline` | 每小時成交量(primary 單位)、成交量最大的對手通貨與其匯率、7 天走勢(每天相對 7 天前的漲跌 %,`totalChange` = 最後一天);第 24 步起快照存走勢 / 成交量(換成 chaos)/ `maxVolumeCurrency`,見下方「快照 schema」 |
 | 沒有 `count` / `listingCount` | exchange 類沒有掛單數 → `count: 0`、不判低信心 |
 
 ### 未切割寶石
@@ -74,8 +74,24 @@ items.ndjson 的 refName 同樣是 `Uncut Skill Gem (Level 20)`(繁中 `未切�
 
 ## 快照 schema
 
-`core/src/ninja/cache.ts` 的 `NINJA_SNAPSHOT_SCHEMA` = **2**(多存 `exaltedRate: number | null`)。
-schema 1 的舊快取(`userData/cache/ninja/<game>_<league>.json`)一律丟棄重抓(測試含使用者機器上 WP-R2 之前的真實舊檔格式)。
+`core/src/ninja/cache.ts` 的 `NINJA_SNAPSHOT_SCHEMA` = **3**:
+
+- schema 2(WP-R2):多存 `exaltedRate: number | null`;
+- schema 3(2026-10-02 第 24 步,查價面板「通貨價格區」):每列多存 `s`(7 天走勢陣列,全是 null 時省略)、`sc`(`totalChange`)、
+  `v`(`volumePrimaryValue` × factor = 每小時成交量,**chaos 單位**,留 3 位小數;只有 exchange 類)、`mv`(`maxVolumeCurrency`;只有 exchange 類)。
+  item overview(傳奇等)的 `sparkLine` 也存進 `s` / `sc`,沒有成交量。`maxVolumeRate` 只在解析結果(`NinjaLine.maxVolumeRate`),不進快照。
+
+舊 schema 的快取(`userData/cache/ninja/<game>_<league>.json`)一律丟棄重抓(測試含使用者機器上 WP-R2 之前的真實舊檔格式);
+第 24 步之後第一次查價會重抓一次(15 分鐘 TTL、20 分鐘有人查價閘門照舊)。
+
+## 查價面板「通貨價格區」怎麼用這些欄位(第 24 步)
+
+- renderer `Prices.ts` `findPriceByQuery` 多回 `graph`(= `s`,APT 欄位名)、`graphChange`、`volumeChaos`、`maxVolumeCurrency`、`exchange`(鍵 `currency|` / `card|`)。
+  通貨價格區(`PriceTrend.vue`)與 `StackValue.vue` **只對 `exchange` 為 true 的命中顯示**(傳奇 / 寶石等 item overview 不顯示)。
+- PoE2 查價元件(EE2 移植)以 divine 計價:`renderer/src/web/background/poe2-price-source.ts` 把 chaos 換回 divine(`primaryValue = c / divineRate`、
+  `volumePrimaryValue = v / divineRate`),經 `poe2/src/web/background/Prices.ts` `setPriceSource` 注入。
+- 單位(core `ninja/units.ts`):PoE1 照 APT(chaos;> 0.94 div 換 div、0.94–1.06 顯示 1 div);PoE2 ≥ 1 div 神聖石,否則崇高石(與符文塑形徽章相同)。
+- 錄製檔驗算:破裂石 `primaryValue` 8.25 div、`volumePrimaryValue` 9554 div/hr → 物品 9554 / 8.25 ≈ 1158 個/hr;PoE1 Divine Orb 371.7c、1450816 c/hr → 3904 div/hr、3903 個/hr。
 
 ## 錄製方式
 

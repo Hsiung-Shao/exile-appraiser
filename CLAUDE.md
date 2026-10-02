@@ -11,7 +11,7 @@ Path of Exile 查價工具(Electron + TypeScript)。把 `apt-patched`(Awakened P
 | 目錄 | 內容 | 規則 |
 |---|---|---|
 | `core/` | 純 TS 共用層:`http/`(HttpFetch 介面、RateLimiter 去 Vue 版、Cache、429 Retry-After)、`realm/`(intl/tw 模型、聯盟純函式)、`realm/config.ts` 的 `TRADE_PATHS` / `tradeApiBase(realm, game)`(PoE1 `/api/trade`、PoE2 `/api/trade2`)、`games/adapter.ts`(GameAdapter 介面) | 不得 import Vue / Electron / DOM API |
-| `core/src/ninja/` | poe.ninja 價格源(WP-A):`client.ts`(item overview + exchange 端點、300ms 間隔、AbortController)、`keys.ts`(`unique\|name\|baseType[\|6L]`、`currency\|name`…)、`cache.ts`(快照 schema、15 分鐘 TTL、30 天清除)、`lookup.ts` | 只 intl;renderer 殼 `web/background/Prices.ts` 呼叫(WP-R2 起 PoE2 也抓,`priceOf(refName, level?)` 給符文塑形自動查價;快照 schema 2 多存 `exaltedRate`,格式見 `docs/ninja-poe2.md`);poe2 查價元件自己的 `poe2/src/web/background/Prices.ts` 仍是「沒有價格」 |
+| `core/src/ninja/` | poe.ninja 價格源(WP-A):`client.ts`(item overview + exchange 端點、300ms 間隔、AbortController)、`keys.ts`(`unique\|name\|baseType[\|6L]`、`currency\|name`…)、`cache.ts`(快照 schema、15 分鐘 TTL、30 天清除)、`lookup.ts` | 只 intl;renderer 殼 `web/background/Prices.ts` 呼叫(WP-R2 起 PoE2 也抓,`priceOf(refName, level?)` 給符文塑形自動查價;快照 schema 2 多存 `exaltedRate`,格式見 `docs/ninja-poe2.md`);第 24 步起快照 schema 3 多存走勢 / 每小時成交量(chaos)/ 成交量最大通貨,查價面板「通貨價格區」兩代都用;PoE2 查價元件的 `poe2/src/web/background/Prices.ts` 是轉接殼,由 renderer `poe2-price-source.ts` 注入(`docs/poe2-port-notes.md`「通貨價格區」);單位規則在 `units.ts` |
 | `core/src/dust/` | 拆粉純函式(WP-A/B):`formula.ts`(`dustAt` = APT `calcDisenchantDust` 逐字)、`data.ts`(poe-dust / items.ndjson 解析、`inherentInfluencesFromPoeDust`)、`crosscheck.ts`、`rank.ts`(`rankUniques` 四種效率、催化劑、固有勢力)、`trade.ts`、`ui-state.ts` | 對接一律英文 `name + baseType`;說明見 `docs/dust-tool.md` |
 | `poe1/` | PoE1 adapter。`src/{parser,assets/data,web/price-check/{filters,trade}}` **與 apt-patched `renderer/src` 同路徑、同 `@/…` 匯入**;`src/index.ts` 是對外入口;`src/cli.ts` 無頭驗證;`test/` 回歸網 | 移植檔逐字不改,只切耦合點(見下) |
 | `poe2/` | PoE2 adapter。`src/{parser,assets,web/price-check/{filters,trade,item-editor},web/{background,ui}}` 與 ee2-patched `renderer/src` 同路徑、同 `@/…` 匯入(含 .vue);`src/index.ts` 對外入口、`src/renderer-entry.ts` 給 renderer(`@poe2-entry`)、`src/cli.ts`;`test/` = E 的 `renderer/specs` + golden-query / trade-client / src-coupling | 同 poe1;耦合點清單在 `docs/poe2-port-notes.md`。型別檢查兩段:`tsconfig.json`(.ts)+ `tsconfig.vue.json`(.vue,`@/*` → poe2/src 再退回 renderer/src)|
@@ -154,6 +154,7 @@ UPDATE_FIXTURES=1 npm test       # 改寫 parser / golden-query 快照;產出必
 - `core/test/`:`ninja.test.ts`(錄製的 poe.ninja 回應 `recordings/ninja/`;PoE2 exchange 在 `recordings/ninja/poe2/`)、`dust.test.ts`(公式金標、交叉比對統計、排行含固有勢力)。
 - `regex/test/` 另有 `numeric`(0–999 逐值)、`pages`、`combine`、`share`(含範本鍵可還原)、`state` 測試。
 - `renderer/test/price-check-options.test.ts`:物品浮窗設定選項(三選一、僅 PoE2、字串兩語、TradeItem `appendTo` 掛點守門)。
+- 第 24 步(通貨價格區):`core/test/ninja.test.ts`「走勢與成交量」(錄製回應 → schema 3 往返)、`core/test/units.test.ts`(PoE1 APT / PoE2 崇高石神聖石單位)、`renderer/test/price-trend.test.ts`(命中欄位、PoE2 價格源轉接 / 台服沒有價格、成交量四選一與字串、走勢圖幾何、兩代接線與「只對 exchange 類顯示」守門、快取讀取中不重抓)、`poe2/test/web/background/prices-adapter.test.ts`(沒注入 = 原本行為、divine 計價、換算快取依版本失效、區間運算、`requestResults` 換算價)。
 - `renderer/test/`:`feedback.test.ts`(回報網址/剪貼簿路徑/剝帳號鍵)、`trade-site.test.ts`(交易站開啟方式、舊 `dustDockRatio` 相容)等純函式測試。
 - `main/test/external-links.test.ts`:`open-external` 只收 http(s)、主視窗導覽放行 / 攔截規則。
 - `main/test/preview-server.test.ts`:預覽伺服器(token 404 / Host 421 / Origin 403、防穿越、boot script、RPC 往返、SSE 續傳、自動關閉、回覆保留窗口 / 位元組上限、ETag / 304 / immutable),純 Node。
@@ -186,7 +187,7 @@ Phase 2 / 3 / 4 各工作包的摘要與已知限制見 `docs/phase2-summary.md`
 - **待使用者親測(Phase 4)**:PoE2 `Ctrl + Alt + C` 是否讓 Alt 卡住;overlay 下預覽改遊戲不重啟(見 `docs/phase4-summary.md`)。拆粉排行 2026-09-30 移進設定視窗(停靠已移除),待使用者親測設定視窗內的觀感與「交易 ↗」開到已登入的系統瀏覽器。
 - **待使用者實測**:Regex 商店頁插槽 `R-G-B` 在繁中客戶端的寫法、寶石等級行首錨定 `^等級`、各屬性行分隔字元(`：` / `: ` / 空白)與「+」;拆粉排行與單件拆粉在真實聯盟的觀感。
 - **PobTools 端**:`host/data/regex_poe{1,2}.json`(schema 2 + 新頁)**尚未 commit**,本 repo 以 `--allow-dirty` 同步(MANIFEST `data/regex` 帶 `dirty: true`);PoE1 既有兩頁 `max_stats` 維持 6(改 8 會替 3 行補上隱藏文字)——commit 與 6→8 都等使用者決定,commit 後不帶旗標重跑同步。
-- PoE2 的 poe.ninja 參考價(`poe2/src/web/background/Prices.ts` 仍是「沒有價格」;renderer 殼的 `priceOf` 已可用,目前只接符文塑形自動查價)。
+- **通貨價格區(第 24 步)待使用者實機確認**:真實聯盟的 PoE1 / PoE2 通貨查價(兌換價、7 天走勢、每小時成交量、成交量最大通貨、堆疊價值)、設定切換成交量顯示、台服整塊不出現;PoE2 結果列「(X ex)」換算價 / ExtractionValue / 符文合計開始有值(行為照 EE2)。錄製檔沒有 Delirium(液態情緒)類別,畫面以破裂石驗。
 - **符文塑形自動查價(WP-R2)**:§1–§5 與區域自動定位已實作(`docs/runeshape.md`;§2 以兩張真實繁中截圖定案)。**待使用者親測**:真實擷取、CPU、
   自動定位在真實 client(2560×1440 / 4K、其他 UI 縮放)的準確度與耗時、面板捲動 / 列數變化時的重新定位。只有兩張截圖(1 倍縮放);
   英文客戶端第 22 步已支援(前綴字串取自 GGPK clientstrings2;四張英文截圖,`Skill Level N:` / `Support:` 英文列沒有截圖);整頁都是泛稱的分頁(英文 Uniques)沒有前綴列 → 不送列(繁中同);`維里西姆堆` 不在 items.ndjson(對不上);技能 / 輔助寶石 poe.ninja 沒有價格(自動查市集)。
