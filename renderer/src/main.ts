@@ -9,7 +9,7 @@ import { setTradeContextProvider } from '@/web/price-check/trade/common'
 import * as Poe2 from '@poe2-entry'
 import type { Game, Language } from '@exile-appraiser/core/realm'
 import type { TradeContext } from '@exile-appraiser/core/games/adapter'
-import { loadedGame } from './web/games/active'
+import { dataLanguage, loadedGame } from './web/games/active'
 import { bgImageUrl, useBackground, useTheme } from './web/useTheme'
 import { runReload } from './web/loadState'
 import { bumpDataGeneration } from './web/overlay/scan-dedupe'
@@ -24,6 +24,7 @@ async function loadGameData (game: Game, lang: Language): Promise<void> {
   } else {
     await poe1Adapter.loadData(browserDataSource('./data/poe1'), lang)
   }
+  dataLanguage.value = lang // 第 27 步:回到客戶端語言那一套
   console.log(`[app] 資料載入完成 game=${game} lang=${lang}(${Math.round(performance.now() - started)} ms)`)
   // OCR 徽章「同一份列不重算」的鍵含資料集世代:換資料後同一份列要重新比對
   bumpDataGeneration()
@@ -75,8 +76,8 @@ async function boot () {
   setTradeContextProvider(tradeContext)
   Poe2.setTradeContextProvider(tradeContext)
   // PoE2 parser / filters 讀的設定(E 原本直接讀 AppConfig)
+  // 第 27 步:`language` 不從設定給 —— adapter 依目前資料集的語系自己設(國際服會依複製文字自動判斷語言)
   Poe2.setHostOptionsProvider(() => ({
-    language: AppConfig().language,
     savedAugments: AppConfig().priceCheck.savedAugments,
     searchStatRange: AppConfig().priceCheck.searchStatRange,
     uiLanguage: AppConfig().uiLanguage,

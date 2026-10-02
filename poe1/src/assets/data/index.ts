@@ -264,7 +264,107 @@ export async function init (lang: string) {
 }
 
 export async function loadForLang (lang: string) {
-  CLIENT_STRINGS = await source().module(`${lang}/client_strings.js`) as TranslationDict
-  await loadItems(lang)
-  await loadStats(lang)
+  // exile-appraiser(第 27 步):loadForLang = 載入「客戶端語言」那一套(PRIMARY_LANG);
+  // 查價時另一語言的文字由 activateLangData() 換到另一套,之後回到客戶端語言的文字再換回(兩套都快取)。
+  PRIMARY_LANG = undefined
+  await activateLangData(lang)
+  PRIMARY_LANG = lang
+}
+
+// ---- exile-appraiser(第 27 步):查價依物品文字自動判斷語言 —— 每個語系一套資料繫結 ----
+//
+// 上游一個 process 只放一個語系(上面這些 `export let` 是 parser / filters 透過 ESM live binding 讀的全域)。
+// 國際服查價時,剪貼簿文字的語言可能與客戶端語言設定不同(例:設定繁中、遊戲改英文):
+// 改成每個語系的繫結各存一套(`LangDataSet`),要用哪一套就整套賦值回去;語系只有 `en` / `cmn-Hant`,
+// 所以最多兩套。快取綁定載入它的 DataSource(換 DataSource = 重新載入時丟掉舊的)。
+// 語言無關的(ITEM_DROP、CLIENT_STRINGS_REF)不在套內。
+
+interface LangDataSet {
+  lang: string
+  source: DataSource
+  CLIENT_STRINGS: TranslationDict
+  ITEM_BY_TRANSLATED: typeof ITEM_BY_TRANSLATED
+  ITEM_BY_REF: typeof ITEM_BY_REF
+  ITEMS_ITERATOR: typeof ITEMS_ITERATOR
+  ALTQ_GEM_NAMES: typeof ALTQ_GEM_NAMES
+  REPLICA_UNIQUE_NAMES: typeof REPLICA_UNIQUE_NAMES
+  STAT_BY_MATCH_STR: typeof STAT_BY_MATCH_STR
+  STAT_BY_MATCH_STR_V2: typeof STAT_BY_MATCH_STR_V2
+  STAT_BY_REF_V2: typeof STAT_BY_REF_V2
+  STATS_ITERATOR: typeof STATS_ITERATOR
+}
+
+const LANG_SETS = new Map<string, LangDataSet>()
+/** 目前繫結是哪個語系(載入中 / 還沒載 = undefined)。 */
+export let ACTIVE_LANG: string | undefined
+/** 客戶端語言(`loadForLang` 載入的那一套)。 */
+export let PRIMARY_LANG: string | undefined
+
+function captureLangSet (lang: string, ds: DataSource): LangDataSet {
+  return {
+    lang,
+    source: ds,
+    CLIENT_STRINGS,
+    ITEM_BY_TRANSLATED,
+    ITEM_BY_REF,
+    ITEMS_ITERATOR,
+    ALTQ_GEM_NAMES,
+    REPLICA_UNIQUE_NAMES,
+    STAT_BY_MATCH_STR,
+    STAT_BY_MATCH_STR_V2,
+    STAT_BY_REF_V2,
+    STATS_ITERATOR
+  }
+}
+
+function applyLangSet (set: LangDataSet): void {
+  CLIENT_STRINGS = set.CLIENT_STRINGS
+  ITEM_BY_TRANSLATED = set.ITEM_BY_TRANSLATED
+  ITEM_BY_REF = set.ITEM_BY_REF
+  ITEMS_ITERATOR = set.ITEMS_ITERATOR
+  ALTQ_GEM_NAMES = set.ALTQ_GEM_NAMES
+  REPLICA_UNIQUE_NAMES = set.REPLICA_UNIQUE_NAMES
+  STAT_BY_MATCH_STR = set.STAT_BY_MATCH_STR
+  STAT_BY_MATCH_STR_V2 = set.STAT_BY_MATCH_STR_V2
+  STAT_BY_REF_V2 = set.STAT_BY_REF_V2
+  STATS_ITERATOR = set.STATS_ITERATOR
+  ACTIVE_LANG = set.lang
+}
+
+/**
+ * 讓 parser / filters 讀到 `lang` 這一套資料:已快取(同一個 DataSource)→ 整套換回,不讀檔;
+ * 否則照上游流程載入並存起來。載入失敗 → 換回原本那一套再拋錯(不留半套)。
+ * 呼叫端負責序列化(同時只能有一個載入在跑;adapter 的佇列)。
+ */
+export async function activateLangData (lang: string): Promise<void> {
+  const ds = source()
+  for (const [key, set] of LANG_SETS) if (set.source !== ds) LANG_SETS.delete(key)
+  if (ACTIVE_LANG === lang && LANG_SETS.get(lang)?.source === ds) return
+  const cached = LANG_SETS.get(lang)
+  if (cached) {
+    applyLangSet(cached)
+    return
+  }
+  const prev = ACTIVE_LANG !== undefined ? LANG_SETS.get(ACTIVE_LANG) : undefined
+  ACTIVE_LANG = undefined
+  try {
+    // ↓ 上游 loadForLang 的本體
+    CLIENT_STRINGS = await source().module(`${lang}/client_strings.js`) as TranslationDict
+    await loadItems(lang)
+    await loadStats(lang)
+  } catch (e) {
+    if (prev) applyLangSet(prev)
+    throw e
+  }
+  const set = captureLangSet(lang, ds)
+  LANG_SETS.set(lang, set)
+  ACTIVE_LANG = lang
+}
+
+/** 某語系的 `client_strings`(語言判斷用;已載入的那幾套直接用記憶體裡的)。 */
+export async function clientStringsFor (lang: string): Promise<TranslationDict> {
+  const ds = source()
+  const set = LANG_SETS.get(lang)
+  if (set && set.source === ds) return set.CLIENT_STRINGS
+  return await ds.module(`${lang}/client_strings.js`) as TranslationDict
 }

@@ -76,7 +76,7 @@ The interface language can be switched to English here; the screenshots in this 
 1. **Interface language**: the language of the app itself (繁體中文 / English).
 2. **Game**: PoE1 / PoE2. By default the app switches automatically based on the game window in front ("Auto-switch PoE1 / PoE2" in Settings › Hotkeys & window).
 3. **Realm**: international (`pathofexile.com`) or Taiwan (`pathofexile.tw`). The Taiwan realm currently supports the Traditional Chinese client only.
-4. **Client language**: whether your **game** runs in Traditional Chinese or English. This decides how copied item text is read; the wrong choice makes parsing fail.
+4. **Client language**: whether your **game** runs in Traditional Chinese or English. On **International**, price checks detect the language from the copied text automatically (switching the game to the other language just works, with the same results), so this setting is only the default; **Taiwan** always uses this setting (Taiwan supports Traditional Chinese only, and the wrong choice makes parsing fail). The OCR language pack (Desecration / Rune Shaping) also follows it by default.
 5. **League**: the league to price check in. If the list does not load, click "Open trade site (solve challenge)" and complete the Cloudflare check once in the window that opens.
 
 Changes are saved automatically.

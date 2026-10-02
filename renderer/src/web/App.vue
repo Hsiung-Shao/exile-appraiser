@@ -169,7 +169,9 @@ import { parseClipboard, type ParsedItem } from '@/parser'
 import CheckedItem from '@poe1/CheckedItem.vue'
 import RateLimiterState from '@poe1/trade/RateLimiterState.vue'
 import * as Poe2 from '@poe2-entry'
-import { loadedGame } from './games/active'
+import { dataLanguage, loadedGame } from './games/active'
+import { poe1Adapter } from '@exile-appraiser/poe1'
+import type { ItemTextLanguage } from '@exile-appraiser/core/games/adapter'
 import { TRADE_PATHS } from '@exile-appraiser/core/realm'
 import UiErrorBox from '@/web/ui/UiErrorBox.vue'
 import BgLayer from './ui/BgLayer.vue'
@@ -229,14 +231,33 @@ export default defineComponent({
     // 以前這裡直接開 Host.openCaptcha(沒有登入狀態的 Electron 視窗)。Cloudflare 驗證另有「開啟驗證視窗」鈕。
     provide('builtin-browser', openTradeSite)
 
-    function load (text: string) {
+    /** 第 27 步:每次 load 遞增;換語系資料要等時,較舊的那次等完就不再覆蓋較新的物品。 */
+    let loadSeq = 0
+
+    async function load (text: string) {
+      const seq = ++loadSeq
       rawText.value = text
       loadedAt = Date.now()
       reportNotice.value = null
+      // 第 27 步:國際服依複製文字的語言換資料集(與客戶端語言不同時;第一次另讀檔,之後快取);台服維持客戶端語言
+      const game = loadedGame.value
+      const adapter = game === 'poe2' ? Poe2.poe2Adapter : poe1Adapter
+      let langInfo: ItemTextLanguage | undefined
+      try {
+        langInfo = await adapter.prepareItemText(text, AppConfig().realm)
+      } catch (e) {
+        console.error('[app] 換語系資料失敗,改用目前的資料集解析', e)
+      }
+      if (seq !== loadSeq) return // 等資料期間又來了一件 → 交給較新的那次
+      if (game !== loadedGame.value) { void load(text); return } // 等資料期間換了遊戲 → 用新遊戲重來
+      dataLanguage.value = adapter.dataLanguage() ?? AppConfig().language
       parsed.value = loadedGame.value === 'poe2' ? Poe2.parseClipboard(text) : parseClipboard(text)
       itemKey.value += 1
       const p = parsed.value
-      console.log(`[app] 解析(${loadedGame.value}) ${p.isOk() ? `OK: ${p.value.info.name ?? ''} / ${p.value.info.refName ?? ''}` : `失敗: ${p.error}`}`)
+      const langNote = langInfo && langInfo.clientLanguage && langInfo.lang !== langInfo.clientLanguage
+        ? ` [依文字改用 ${langInfo.lang} 解析(客戶端 ${langInfo.clientLanguage})]`
+        : ''
+      console.log(`[app] 解析(${loadedGame.value})${langNote} ${p.isOk() ? `OK: ${p.value.info.name ?? ''} / ${p.value.info.refName ?? ''}` : `失敗: ${p.error}`}`)
       // WP-S:揭露面板 OCR 的 profile 來源 = 最近 10 分鐘內查價的 PoE2 物品
       if (loadedGame.value === 'poe2' && p.isOk()) recordPoe2Item(p.value as Poe2.Poe2ParsedItem)
     }
@@ -271,7 +292,7 @@ export default defineComponent({
       advancedCheck.value = e.focusOverlay
       showSettings.value = false
       panelShown.value = true
-      load(e.clipboard)
+      void load(e.clipboard)
       if (isOverlay) {
         console.log(`[app] 面板顯示 side=${clickPosition.value} locked=${e.focusOverlay} overlay=${window.screenX},${window.screenY} ${window.innerWidth}x${window.innerHeight} gamePanel=${gamePanel.value}`)
       }
@@ -534,7 +555,7 @@ export default defineComponent({
       parsePasted () {
         if (pasteText.value.trim()) {
           advancedCheck.value = false
-          load(pasteText.value.replace(/\r\n/g, '\n').trimEnd() + '\n')
+          void load(pasteText.value.replace(/\r\n/g, '\n').trimEnd() + '\n')
         }
       },
       reset () {

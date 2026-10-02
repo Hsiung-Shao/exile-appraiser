@@ -248,6 +248,7 @@
     "realm_intl": "國際服",
     "realm_tw": "台服",
     "language": "客戶端語言",
+    "language_auto_hint": "國際服查價會自動依複製文字判斷語言(繁中 / 英文都能查);這個設定是預設值,台服一律用它(台服只支援繁中)。",
     "league": "聯盟",
     "league_loading": "載入聯盟中…",
     "league_failed": "聯盟清單載入失敗:{error}",

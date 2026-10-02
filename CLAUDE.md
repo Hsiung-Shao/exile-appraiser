@@ -40,7 +40,7 @@ Path of Exile 查價工具(Electron + TypeScript)。把 `apt-patched`(Awakened P
 | `data/regex/` | `regex_poe{1,2}.json`(PobTools 單向同步)、`labels.poe{1,2}.json`(clientstrings 暫代標籤,`regex/scripts/gen-labels.mjs`,只補資料檔缺鍵)、`templates.json`(內建範本,手寫) | 三者在 MANIFEST 各自一個前綴 |
 | `data/poe1/`、`data/poe2/` | 資料檔,**逐位元組來自 apt-patched / ee2-patched**(poe2 的 `*.index.bin` 由 `make-index-files --game poe2` 產生);`data/poe2/trade/` 是 GGG `/api/trade2/data/{stats,items}` 兩區快照(parser 後援用 intl);`data/MANIFEST.json` 每個前綴一個來源(commit 或 fetchedAt)+ sha256 | 不在這裡改資料 |
 | `scripts/` | `sync-data-from-apt.mjs`(`--game poe1|poe2`)、`sync-regex-data.mjs`、`sync-runeshape-data.mjs`、`sync-dust-data.mjs`、`dust-crosscheck.mjs`(→ `docs/dust-crosscheck.md`)、`fetch-poe2-trade-data.mjs`、`check.mjs`(CLI 依 `--game` 轉 workspace)、`verify-data-manifest.mjs`、`make-index-files.mjs`、`verify-datasets.mjs`、`check-user-agent.mjs`、`build-icons.mjs`、`make-fake-update-feed.mjs`(更新器離線驗證)、`make-local-update-test.mjs`(兩個真安裝檔 + 本機 feed 的端到端更新實測,產物在 gitignored `.local-update-test/`) | |
-| `docs/` | `poe2-port-notes.md`(PoE2 移植紀錄)、`game-auto-switch.md`(PoE1/PoE2 自動切換)、`regex-port.md`(Poe Regex 移植、資料同步、WP-C 演算法頁/合併/分享碼/範本)、`dust-tool.md`(拆粉公式/資料/排行)、`dust-crosscheck.md`(產生的交叉比對報告,勿手改)、`release-flow.md`(發版 + 自動更新)、`browser-preview.md`(瀏覽器預覽:用法、同步、安全模型、協定)、`desecration-tiers.md`(褻瀆 Tier 資料表與推定、PoE2 複製鍵)、`reveal-ocr.md`(靈魂之井揭露面板 OCR;2026-10-01 起自動持續辨識)、`chat-commands.md`(聊天指令與倉庫搜尋熱鍵:按鍵序列、保留鍵、註冊條件;倉庫頁籤捲動 Ctrl + 滾輪與 uiohook 掛鉤折衷)、`ninja-poe2.md`(poe.ninja PoE2 exchange 回應格式、exalted 匯率、快照 schema 2)、`runeshape.md`(符文塑形面板:列格式、名稱比對、價格對應、手動 / 自動定位與快取、耗時)、`phase5-summary.md`、`phase2-summary.md`、`phase3-summary.md`、`phase4-summary.md`(各工作包摘要與已知限制) | |
+| `docs/` | `poe2-port-notes.md`(PoE2 移植紀錄)、`game-auto-switch.md`(PoE1/PoE2 自動切換)、`regex-port.md`(Poe Regex 移植、資料同步、WP-C 演算法頁/合併/分享碼/範本)、`dust-tool.md`(拆粉公式/資料/排行)、`dust-crosscheck.md`(產生的交叉比對報告,勿手改)、`release-flow.md`(發版 + 自動更新)、`browser-preview.md`(瀏覽器預覽:用法、同步、安全模型、協定)、`desecration-tiers.md`(褻瀆 Tier 資料表與推定、PoE2 複製鍵)、`reveal-ocr.md`(靈魂之井揭露面板 OCR;2026-10-01 起自動持續辨識)、`chat-commands.md`(聊天指令與倉庫搜尋熱鍵:按鍵序列、保留鍵、註冊條件;倉庫頁籤捲動 Ctrl + 滾輪與 uiohook 掛鉤折衷)、`ninja-poe2.md`(poe.ninja PoE2 exchange 回應格式、exalted 匯率、快照 schema 2)、`runeshape.md`(符文塑形面板:列格式、名稱比對、價格對應、手動 / 自動定位與快取、耗時)、`item-language.md`(第 27 步查價依物品文字自動判斷語言:判斷規則、每語系一套資料繫結與快取、連帶流程)、`phase5-summary.md`、`phase2-summary.md`、`phase3-summary.md`、`phase4-summary.md`(各工作包摘要與已知限制) | |
 
 **PoE1 / PoE2 切換 = 寫 config.json 的 `game` + 自我重新啟動,不是換綁**:`electron-overlay-window` 原生碼 `windows.c:176`
 用 `strcmp` 精確比對單一視窗標題,`attachByTitle` 每行程只能呼叫一次。`GameDetector` 每 2 秒看視窗清單,
@@ -71,6 +71,11 @@ Path of Exile 查價工具(Electron + TypeScript)。把 `apt-patched`(Awakened P
 7. **未解析詞綴不丟棄**:`unknownModifiers` 一律顯示(UI 的 UnknownModifier、CLI 的 ⚠ 清單)。
 8. Windows 環境:寫含中文的檔案用 Write/Edit,不用 PowerShell 讀改寫;spawn Electron 前移除 `ELECTRON_RUN_AS_NODE`(build/script.mjs 已做)。
 9. **介面語言 `uiLanguage` ≠ 客戶端語言 `language`**:`language` 決定資料集與剪貼簿解析(切換要重載資料);`uiLanguage`(`cmn-Hant|en`)只換 UI 字串與托盤選單,不重載資料。新增 UI 字串兩語系都要補(`renderer/src/i18n/{cmn-Hant,en}.json` 的 `ppz.*`;托盤在 `main/src/tray-strings.ts`)。
+   **第 27 步(查價依物品文字自動判斷語言,`docs/item-language.md`)**:國際服的剪貼簿文字語言 ≠ `language` 時改用文字的語言解析(查詢只用語言無關鍵 → 與客戶端語言設對時逐字相同);
+   台服一律 `language`(英文文字照舊 `item.wrong_language`)。判斷 = `core/src/realm/item-language.ts`(名牌區 `ITEM_CLASS` / `RARITY` 標頭,**字串取自各語系 client_strings**);
+   兩代 `assets/data/index.ts` 每個語系一套繫結(`activateLangData`,最多兩套、綁 DataSource、失敗回復),`loadForLang` = 客戶端語言那一套(PoE2 `PRIMARY_DATA` / PoE1 `PRIMARY_LANG`);
+   adapter `prepareItemText(text, realm)` / `dataLanguage()`,與 `loadData` 共用佇列。renderer `App.vue` `load()` 先 `prepareItemText` 再解析;`dataLanguage`(`web/games/active.ts`)決定 `useIntlSite` 與一鍵回報重算;
+   ⚠ **背景功能(揭露面板 OCR、符文塑形)的「客戶端語言」一律取 primary,不得改回讀 `LOADED_DATA`**(查價時目前那一套可能是另一語言);PoE2 host 選項 `language` 由 adapter 設,renderer provider 不給。
 10. **主題 token 來自 PobTools `app.css`**(`renderer/src/theme/pobtools.css`);Tailwind 的 gray 色階等是指向 token 的別名,**移植的 poe1/poe2 `.vue` 不改 class**;要改色改 token。淺色主題下 tooltip 維持深色島。
 11. **Regex 資料只單向同步**:`node scripts/sync-regex-data.mjs --from ../pob-zh-engine`(來源 `dist/Data/regex_poe*.json`,必須與 `host/data` 已提交版本逐位元組相同;PobTools 未 commit 時只能 `--allow-dirty`,MANIFEST 會記 `dirty: true`)→ 重寫 MANIFEST `data/regex`。不在本 repo 改 regex 資料;演算法改動要與 C++ 版同步並對 `regex/test/golden/` 比對。
 12. **更新器**(2026-09-30 使用者裁定改為自動):設定 `autoUpdate`(預設開)+ 安裝版 = 背景自動下載、**正常結束程式時靜默套用**(`autoInstallOnAppQuit`),
@@ -167,6 +172,9 @@ UPDATE_FIXTURES=1 npm test       # 改寫 parser / golden-query 快照;產出必
 - 第 23 步(英文客戶端查價回歸):`poe1/test/en-client.test.ts`(`fixtures/en/` 10 件:傳奇靴 ×2、稀有戒指含 implicit/fractured/crafted、通貨、寶石、珠寶、地圖 ×2、傭兵契約書、最後通牒、血染容器)、
   `poe2/test/en-client.test.ts`(`zhTW/fixtures/en/` 12 件:進階複製稀有靴/頭/杖/矛含褻瀆 Tier、傳奇項鍊/戒指/珠寶、碑牌、Waystone、通貨、技能寶石、稀有珠寶)。
   同名的中英 fixture 必須產生相同 trade query(語言無關鍵對接);已知例外:PoE1 `map-rare-01` 繁中「怪物擊中時獲得耐力球」兩條英文詞綴同字串 → 繁中是 count 群組、PoE2 碑牌 en 資料把 `in Map` 併在泛稱經驗詞綴 → 英文多一個泛稱 id(兩者測試內有註解)。
+- 第 27 步(查價依物品文字自動判斷語言):`core/test/item-language.test.ts`(判斷規則)、`poe{1,2}/test/auto-language.test.ts`(客戶端繁中收英文 / 客戶端英文收繁中,
+  全部第 23 步 fixture + PoE2 使用者回報的 `Parser/fixtures/gloom-hide-rare-advanced.en.txt`,query 與客戶端語言設對時逐字相同;快取零讀檔;台服仍報錯;載入失敗回復;OCR 語言不跟著換)、
+  `renderer/test/auto-language.test.ts`(`useIntlSite` 依 `dataLanguage`、接線守門、設定頁字串)。
 - `poe2/test/desecration/`:資料表統計與 poenavi 抽樣逐欄比對(`build.test.ts`)、推定(`infer.test.ts`,含三件真實物品的進階 vs 一般複製)、
   揭露面板 OCR 比對(`ocr-match.test.ts`:真實截圖快照、394 模板 round-trip、模糊、分組;`ocr-fuzzy-equivalence.test.ts`:效能修正第 8 步的模糊比對與改前實作逐位元相同)。`renderer/test/ocr-reveal.test.ts` 測徽章座標與文字;`renderer/test/region-geom.test.ts` 測框選幾何(WP-S2)。
 - `main/test/updater-core.test.ts`:自動更新狀態轉移(假 updater 模仿 electron-updater 下載完成才註冊 quit handler)、`autoUpdate` 開關、portable / `--no-updates` / 開發模式、錯誤分類。
@@ -195,6 +203,8 @@ Phase 2 / 3 / 4 各工作包的摘要與已知限制見 `docs/phase2-summary.md`
   英文客戶端第 22 步已支援(前綴字串取自 GGPK clientstrings2;四張英文截圖,`Skill Level N:` / `Support:` 英文列沒有截圖);整頁都是泛稱的分頁(英文 Uniques)沒有前綴列 → 不送列(繁中同);`維里西姆堆` 不在 items.ndjson(對不上);技能 / 輔助寶石 poe.ninja 沒有價格(自動查市集)。
   **自動查市集待使用者親測**:真實遊戲中徽章自動變「市 …」→「市 X」、與一般查價同時使用時是否受影響、Shift+Space 開設定
   (自動驗證只在無頭頁面 + 錄製回應 + 假時鐘);「未發現」繁中精確、英文 `Undiscovered` 容錯(手寫字體)。
+- **查價依物品文字自動判斷語言(第 27 步)待使用者實機確認**:客戶端繁中 + 國際服 + 遊戲英文時 PoE1 / PoE2 英文物品查價成功(第一次稍慢:另載英文資料),
+  log 有 `[依文字改用 en 解析(客戶端 cmn-Hant)]`;切回繁中遊戲照常;台服 + 英文仍提示語言不符。
 - **辨識語言獨立(第 25 步)待使用者實機確認**:介面繁中 + 客戶端繁中 + 遊戲英文 + 辨識 English 時開井 / 符文面板能辨識,切換「辨識語言」後 OCR 狀態列語言包跟著變。
 - **英文客戶端 OCR(第 22 步)待使用者實機確認**:英文客戶端開井 / 符文塑形面板(真實擷取、其他解析度 / UI 縮放)、設定頁切換客戶端語言後 OCR 狀態變成 en-US、缺英文語言包時的提示。
 - Regex 逐字 golden:需在 PobTools 端(`pob-zh.exe --regex-selftest`)加匯出固定勾選集 `Build().query` 的旗標(另開 PobTools 任務)。

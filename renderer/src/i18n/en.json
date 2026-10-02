@@ -248,6 +248,7 @@
     "realm_intl": "International",
     "realm_tw": "Taiwan (Garena)",
     "language": "Client language",
+    "language_auto_hint": "On International, price checks detect the language from the copied text (Traditional Chinese or English both work); this setting is the default and is always used for Taiwan (Taiwan supports Traditional Chinese only).",
     "league": "League",
     "league_loading": "Loading leagues…",
     "league_failed": "Failed to load leagues: {error}",

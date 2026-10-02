@@ -97,7 +97,7 @@ export interface Poe2PriceSource {
   initialLoading (): boolean
 }
 
-export declare const poe2Adapter: Pick<GameAdapter, 'id' | 'loadData'>
+export declare const poe2Adapter: Pick<GameAdapter, 'id' | 'loadData' | 'prepareItemText' | 'dataLanguage'>
 export declare function browserDataSource (baseUrl: string): DataSource
 export declare function setTradeContextProvider (provider: () => TradeContext): void
 export declare function setHostOptionsProvider (next: (() => Partial<Poe2HostOptions>) | undefined): void

@@ -10,7 +10,9 @@
  * | `augment-builder.ts` `AppConfig("price-check").savedAugments`  | `hostOptions().savedAugments`  |
  * | `fill-augments.ts` `AppConfig("price-check").searchStatRange`  | `hostOptions().searchStatRange`|
  *
- * `language` 由 `poe2Adapter.loadData(source, lang)` 自動設成載入的資料語系(兩者本來就必須一致)。
+ * `language` 由 `poe2Adapter.loadData(source, lang)` 自動設成載入的資料語系(兩者本來就必須一致);
+ * 第 27 步起 `poe2Adapter.prepareItemText` 依物品文字換資料集時也跟著換(國際服可能 ≠ 客戶端語言設定),
+ * 所以 renderer 的 provider 不給 `language`。
  */
 export interface HostOptions {
   /** 客戶端語言 = 載入的資料集語言(`en` / `cmn-Hant`)。 */

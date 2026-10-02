@@ -36,10 +36,33 @@ export interface ParseResult<TItem> {
 }
 export interface ParseFailure { ok: false, error: string }
 
+/**
+ * 第 27 步:查價前依物品文字決定解析語系(`prepareItemText` 的結果)。
+ * 國際服:文字的語言 ≠ 客戶端語言時改用文字的語言(查詢用語言無關鍵,結果相同);台服一律客戶端語言。
+ */
+export interface ItemTextLanguage {
+  /** 從名牌區標頭判斷出的語言;判斷不出 = undefined(照客戶端語言解析,該報錯就照舊報錯)。 */
+  detected?: Language
+  /** 實際用來解析的語系(資料集已換好)。 */
+  lang: Language
+  /** 客戶端語言(`loadData` 載入的那一套);資料還沒載 = undefined。 */
+  clientLanguage?: Language
+}
+
 export interface GameAdapter<TItem = unknown, TPreset = unknown, TRequest = unknown> {
   readonly id: GameId
-  /** 一個 process 同一時間只能載一個語系(資料在模組層級全域),切語系要重載。 */
+  /**
+   * 載入客戶端語言的資料集(資料在模組層級全域,切語系要重載)。
+   * 第 27 步起每個語系的資料各存一套:查價時 `prepareItemText` 可換到另一語系(第一次另讀檔,之後快取)。
+   */
   loadData: (source: DataSource, lang: Language) => Promise<void>
+  /**
+   * 第 27 步:解析前呼叫。依 realm + 文字語言選語系並把資料集換好(與 `loadData` 同一個佇列,不會交錯)。
+   * 換語系載入失敗會拋錯(資料集維持原本那一套)。
+   */
+  prepareItemText: (text: string, realm: Realm) => Promise<ItemTextLanguage>
+  /** 目前資料集(parser / filters 讀的那一套)的語系;載入中 = undefined。 */
+  dataLanguage: () => Language | undefined
   parseClipboard: (text: string) => ParseResult<TItem> | ParseFailure
   createPresets: (item: TItem, opts: PresetOptions) => TPreset[]
   /** PoE2 上游組查詢還要 item(符文 / 物品類別);PoE1 忽略第二個參數。 */

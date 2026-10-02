@@ -27,7 +27,7 @@ PoE2 靈魂之井的「三選一」揭露面板無法複製文字。擷取遊戲
 | 模板索引 | `locate-data.ts` `loadLocateIndex(…, lang)`、`ocr-locate.ts` `buildLocateIndex(tiers, 'en')`、`ocr-match.ts` `ocrIndex(data, 'en')` | 英文模板 = `text.en`(stats `ref`,或 increased / reduced 翻轉後的寫法;ranges 以它為準)+ `text.enVariants`(同一 stat 列的其他英文 matcher,`negate` 相對 `text.en`;tiers.json schema 2,見 `docs/desecration-tiers.md` 產生規則 9)。英文 670 個寫法 → **669 個 skeleton**(繁中 706)。檔案只讀一次,兩種語言各一份索引;英文索引帶 `lang: 'en'`,繁中索引沒有這個欄位 |
 | 文字 / 正規化 | `ocr-text.ts` `normalizeOcrTextEn`、`hasLangText`、`templateSkeleton(t, 'en')` | 見下「英文比對方式」 |
 | 否決 / 加分 | `panel-veto.ts`(`lang` 參數 / `PanelVetoOptions.lang`) | 規則與繁中相同,只換關鍵字:`prefix` / `suffix` / `modifier` / `tier` / `item level`(正規化後 `itemlevel`);軟關鍵字 `requires` / `quality`(沒有 `%` 才算;模板有 `#% to Quality of all Skills`);冒號同繁中(英文物品浮窗 `Requires: Level 70`、`Quality: +20%`)。tiers.json 英文 670 個寫法都不含前 5 個關鍵字與冒號(測試守著)。加分:`Confirm`(GGPK clientstrings `UnveilingWindowConfirmButton`)、`The Well of Souls`(`UnveilingUITitle`;比對 `wellofsoul`,OCR 把結尾讀成 `SOULR` 也算),標題範圍英文 24 個行高(實測英文截圖標題在 20.2 個行高外;繁中維持 20) |
-| renderer | `reveal-entry.ts` `loadedOcrTextLang()` | 目前載入的資料語系 `LOADED_DATA.lang === 'en'` → 英文比對(main 也依同一個設定選語言包)。徽章文案照介面語言(既有);對不上的原文以 `displayOcrText` 顯示(繁中照舊刪字間空白,英文只把空白縮成一個) |
+| renderer | `reveal-entry.ts` `loadedOcrTextLang()` | 客戶端語言那一套資料的語系(第 27 步起取 `PRIMARY_DATA`,查價依物品文字換資料集時不跟著換;見 docs/item-language.md)為 `en` → 英文比對(main 也依同一個設定選語言包)。徽章文案照介面語言(既有);對不上的原文以 `displayOcrText` 顯示(繁中照舊刪字間空白,英文只把空白縮成一個) |
 | 設定頁 | `settings/tabs/Hotkeys.vue`、`web/ocr-lang.ts` `ocrWantsEnglish` | 缺語言包時依 main 回報的想用語言包(`OcrAvailability.lang`;舊 main 沒有 → 依客戶端語言)顯示 `status_missing_en` / `err_lang_missing_en`(英文(美國)→ 語言選項 → 光學字元辨識);改了客戶端語言 → 設定送到 main 後自動重新檢查 |
 
 ### 英文比對方式與門檻

@@ -51,6 +51,10 @@ async function main () {
   await poe1Adapter.loadData(nodeDataSource(DATA_DIR), lang)
 
   const text = fs.readFileSync(file, 'utf8')
+  // 第 27 步:同 renderer —— 國際服依文字的語言換資料集(`--lang` 是客戶端語言);`--realm both` 以第一個 realm 決定
+  const langInfo = await poe1Adapter.prepareItemText(text, realms[0])
+  const parseLang = langInfo.lang
+  if (parseLang !== lang) console.error(`[語言] 文字是 ${parseLang},改用 ${parseLang} 資料集解析(客戶端 ${lang})`)
   const parsed = poe1Adapter.parseClipboard(text)
   if (!parsed.ok) {
     console.error(`解析失敗:${parsed.error}`)
@@ -69,6 +73,7 @@ async function main () {
   const out: Record<string, unknown> = {
     file,
     language: lang,
+    parseLanguage: parseLang,
     item: {
       name: item.info.name,
       refName: item.info.refName,
@@ -84,8 +89,8 @@ async function main () {
   }
 
   for (const realm of realms) {
-    if (!isSupportedCombination(realm, lang)) {
-      (out.realms as Record<string, unknown>)[realm] = { skipped: `不支援的組合:${realm} + ${lang}` }
+    if (!isSupportedCombination(realm, parseLang)) {
+      (out.realms as Record<string, unknown>)[realm] = { skipped: `不支援的組合:${realm} + ${parseLang}` }
       continue
     }
     let league = arg('--league')
@@ -97,7 +102,7 @@ async function main () {
     league ??= 'Standard'
 
     const { presets, active } = createPresets(item, {
-      league, realm, clientLanguage: lang, searchStatRange: range,
+      league, realm, clientLanguage: parseLang, searchStatRange: range,
       currency: null, collapseListings: 'api', activateStockFilter: false, merchantOnly: false
     })
     const ctx = { http, realm, latencySeconds: 0, accountName: '' }

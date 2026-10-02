@@ -17,6 +17,7 @@ import { REALMS, useEnglishNames, type Game, type Language, type Realm } from '@
 import type { PriceCheckWidget } from './overlay/interfaces'
 import type { ChatCommand, HostConfigForMain, HotkeyRegistration, OcrLangSetting, OcrRegion, StashSearchEntry } from '@ipc/types'
 import { Host } from './background/IPC'
+import { dataLanguage } from './games/active'
 import { createHostConfigSync } from './host-config-sync'
 import { clampFsBase, normAccent, normBg, normTheme, DEFAULT_FS_BASE, type BgSettings, type Theme } from './useTheme'
 import { defaultOcrBadgeStyle, normOcrBadgeStyle, type OcrBadgeStyle } from './overlay/badge-style'
@@ -293,7 +294,8 @@ function createConfig (): Config {
   return {
     ...base,
     get useIntlSite (): boolean {
-      return useEnglishNames(this.realm, this.language)
+      // 第 27 步:依目前查價資料集的語系(國際服會依複製文字自動判斷語言,可能 ≠ 客戶端語言設定)
+      return useEnglishNames(this.realm, dataLanguage.value ?? this.language)
     },
     get fontSize (): number {
       return this.fsBase

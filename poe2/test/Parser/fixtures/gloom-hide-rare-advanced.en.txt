@@ -1,0 +1,24 @@
+Item Class: Body Armours
+Rarity: Rare
+Gloom Hide
+Trailblazer Armour
+--------
+Armour: 434 (augmented)
+Evasion Rating: 401 (augmented)
+--------
+Requires: Level 59, 52 Str, 52 Dex
+--------
+Item Level: 59
+--------
+{ Prefix Modifier "Viscountess'" (Tier: 6) }
++38(38-42) to Spirit
+{ Prefix Modifier "Brawler's" (Tier: 7) — Armour, Evasion }
+40(27-42)% increased Armour and Evasion
+{ Desecrated Prefix Modifier "Veteran's" (Tier: 4) — Armour, Evasion }
++17(17-23) to Armour
++20(15-21) to Evasion Rating
+23(21-26)% increased Armour and Evasion
+{ Suffix Modifier "of the Yeti" (Tier: 5) — Elemental, Cold, Resistance }
++21(21-25)% to Cold Resistance
+{ Suffix Modifier "of the Salamander" (Tier: 7) — Elemental, Fire, Resistance }
++14(11-15)% to Fire Resistance

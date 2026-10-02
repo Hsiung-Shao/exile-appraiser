@@ -345,14 +345,131 @@ async function loadRuneshapeRecipes() {
 }
 
 export async function loadForLang(lang: string) {
-  LOADED_DATA = undefined; // exile-appraiser(code review 第 B 批):載入中不讓別人重用半套資料
+  // exile-appraiser(第 27 步):loadForLang = 載入「客戶端語言」那一套(PRIMARY_DATA);
+  // 查價時另一語言的文字由 activateLangData() 換到另一套,之後回到客戶端語言的文字再換回(兩套都快取)。
+  PRIMARY_DATA = undefined;
+  const fresh = await activateLangData(lang);
+  PRIMARY_DATA = LANG_SETS.get(lang);
+  if (fresh) await loadTradeData(); // 交易站資料與語系無關:套用快取時不重載
+}
+
+// ---- exile-appraiser(第 27 步):查價依物品文字自動判斷語言 —— 每個語系一套資料繫結 ----
+//
+// 上游一個 process 只放一個語系(上面這些 `export let` 是 parser / filters 透過 ESM live binding 讀的全域)。
+// 國際服查價時,剪貼簿文字的語言可能與客戶端語言設定不同(例:設定繁中、遊戲改英文):
+// 改成每個語系的繫結各存一套(`LangDataSet`),要用哪一套就整套賦值回去;語系只有 `en` / `cmn-Hant`,
+// 所以最多兩套。快取綁定載入它的 DataSource(換 DataSource = 重新載入時丟掉舊的)。
+// 語言無關的(ITEM_DROP、CLIENT_STRINGS_REF、褻瀆 / 符文塑形資料、TRADE_* 交易站資料)不在套內。
+// `LOADED_DATA` = 目前繫結的那一套;`PRIMARY_DATA` = 客戶端語言那一套(OCR / 符文塑形等背景功能用它,
+// 不跟著查價的物品語言換)。
+
+export interface LangDataSet {
+  lang: string;
+  source: DataSource;
+  CLIENT_STRINGS: TranslationDict;
+  ITEM_BY_TRANSLATED: typeof ITEM_BY_TRANSLATED;
+  ITEM_BY_REF: typeof ITEM_BY_REF;
+  ITEMS_ITERATOR: typeof ITEMS_ITERATOR;
+  GEM_NS_NAMES: typeof GEM_NS_NAMES;
+  UNIQUE_NS_NAMES: typeof UNIQUE_NS_NAMES;
+  ITEM_NS_NAMES: typeof ITEM_NS_NAMES;
+  TRADE_TAG_TO_REF: typeof TRADE_TAG_TO_REF;
+  STAT_BY_MATCH_STR: typeof STAT_BY_MATCH_STR;
+  STAT_BY_REF: typeof STAT_BY_REF;
+  STATS_ITERATOR: typeof STATS_ITERATOR;
+  AUGMENT_DATA_BY_AUGMENT: AugmentDataByAugment;
+  AUGMENT_DATA_BY_TRADE_ID: AugmentDataByTradeId;
+  GROUPED_AUGMENTS: typeof GROUPED_AUGMENTS;
+  CATALYST_TYPES: typeof CATALYST_TYPES;
+  CATALYST_TO_TAG: typeof CATALYST_TO_TAG;
+  TAG_TO_CATALYST: typeof TAG_TO_CATALYST;
+}
+
+const LANG_SETS = new Map<string, LangDataSet>();
+/** 客戶端語言(`loadForLang` 載入的那一套;載入中 = undefined)。 */
+export let PRIMARY_DATA: LangDataSet | undefined;
+
+function captureLangSet(lang: string, ds: DataSource): LangDataSet {
+  return {
+    lang,
+    source: ds,
+    CLIENT_STRINGS,
+    ITEM_BY_TRANSLATED,
+    ITEM_BY_REF,
+    ITEMS_ITERATOR,
+    GEM_NS_NAMES,
+    UNIQUE_NS_NAMES,
+    ITEM_NS_NAMES,
+    TRADE_TAG_TO_REF,
+    STAT_BY_MATCH_STR,
+    STAT_BY_REF,
+    STATS_ITERATOR,
+    AUGMENT_DATA_BY_AUGMENT,
+    AUGMENT_DATA_BY_TRADE_ID,
+    GROUPED_AUGMENTS,
+    CATALYST_TYPES,
+    CATALYST_TO_TAG,
+    TAG_TO_CATALYST,
+  };
+}
+
+function applyLangSet(set: LangDataSet): void {
+  CLIENT_STRINGS = set.CLIENT_STRINGS;
+  ITEM_BY_TRANSLATED = set.ITEM_BY_TRANSLATED;
+  ITEM_BY_REF = set.ITEM_BY_REF;
+  ITEMS_ITERATOR = set.ITEMS_ITERATOR;
+  GEM_NS_NAMES = set.GEM_NS_NAMES;
+  UNIQUE_NS_NAMES = set.UNIQUE_NS_NAMES;
+  ITEM_NS_NAMES = set.ITEM_NS_NAMES;
+  TRADE_TAG_TO_REF = set.TRADE_TAG_TO_REF;
+  STAT_BY_MATCH_STR = set.STAT_BY_MATCH_STR;
+  STAT_BY_REF = set.STAT_BY_REF;
+  STATS_ITERATOR = set.STATS_ITERATOR;
+  AUGMENT_DATA_BY_AUGMENT = set.AUGMENT_DATA_BY_AUGMENT;
+  AUGMENT_DATA_BY_TRADE_ID = set.AUGMENT_DATA_BY_TRADE_ID;
+  GROUPED_AUGMENTS = set.GROUPED_AUGMENTS;
+  CATALYST_TYPES = set.CATALYST_TYPES;
+  CATALYST_TO_TAG = set.CATALYST_TO_TAG;
+  TAG_TO_CATALYST = set.TAG_TO_CATALYST;
+  LOADED_DATA = { lang: set.lang, source: set.source };
+}
+
+/**
+ * 讓 parser / filters 讀到 `lang` 這一套資料:已快取(同一個 DataSource)→ 整套換回,不讀檔(回 false);
+ * 否則照上游 loadForLang 的流程載入並存起來(回 true)。載入失敗 → 換回原本那一套再拋錯(不留半套)。
+ * 呼叫端負責序列化(同時只能有一個載入在跑;adapter 的佇列)。
+ */
+export async function activateLangData(lang: string): Promise<boolean> {
   const ds = source();
-  CLIENT_STRINGS = await loadClientStrings(lang);
-  await loadItems(lang);
-  await loadStats(lang);
-  LOADED_DATA = { lang, source: ds };
-  loadUltraLateItems();
-  await loadTradeData();
+  for (const [key, set] of LANG_SETS) if (set.source !== ds) LANG_SETS.delete(key);
+  const cached = LANG_SETS.get(lang);
+  if (cached) {
+    if (LOADED_DATA?.lang !== lang || LOADED_DATA.source !== ds) applyLangSet(cached);
+    return false;
+  }
+  const prev = LOADED_DATA ? LANG_SETS.get(LOADED_DATA.lang) : undefined;
+  LOADED_DATA = undefined; // exile-appraiser(code review 第 B 批):載入中不讓別人重用半套資料
+  try {
+    // ↓ 上游 loadForLang 的本體(loadTradeData 留在 loadForLang)
+    CLIENT_STRINGS = await loadClientStrings(lang);
+    await loadItems(lang);
+    await loadStats(lang);
+    LOADED_DATA = { lang, source: ds };
+    loadUltraLateItems();
+  } catch (e) {
+    if (prev) applyLangSet(prev);
+    else LOADED_DATA = undefined;
+    throw e;
+  }
+  LANG_SETS.set(lang, captureLangSet(lang, ds));
+  return true;
+}
+
+/** 某語系的 `client_strings`(語言判斷用;已載入的那幾套直接用記憶體裡的)。 */
+export async function clientStringsFor(lang: string): Promise<TranslationDict> {
+  const set = LANG_SETS.get(lang);
+  if (set && set.source === source()) return set.CLIENT_STRINGS;
+  return await loadClientStrings(lang);
 }
 
 export function loadUltraLateItems() {

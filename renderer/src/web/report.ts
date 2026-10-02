@@ -13,7 +13,7 @@ import * as Poe2 from '@poe2-entry'
 import type { PresetOptions } from '@exile-appraiser/core/games/adapter'
 import { AppConfig } from './Config'
 import { Host } from './background/IPC'
-import { loadedGame } from './games/active'
+import { dataLanguage, loadedGame } from './games/active'
 import { buildReport, copyReport, openIssue, type OpenIssuePath, type Report } from './feedback'
 
 export interface ReportContext {
@@ -33,7 +33,8 @@ function presetOptions (): PresetOptions & { defaultAllSelected: boolean } {
   return {
     league: c.leagueId ?? '',
     realm: c.realm,
-    clientLanguage: c.language,
+    // 第 27 步:這件物品實際解析的語系(國際服依複製文字自動判斷)
+    clientLanguage: dataLanguage.value ?? c.language,
     searchStatRange: pc.searchStatRange,
     currency: pc.defaultCurrency,
     collapseListings: pc.collapseListings,

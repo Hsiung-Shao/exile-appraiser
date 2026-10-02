@@ -7,9 +7,10 @@
  * 2. 把上游散在 Vue 元件裡的流程(search → fetch 10+10、bulk 的 have 選擇、網頁網址)
  *    收成純函式,讓 CLI、測試與 UI 走同一條路。
  */
-import type { DataSource, GameAdapter, ParseFailure, ParseResult, PresetOptions, TradeContext } from '@exile-appraiser/core/games/adapter'
+import type { DataSource, GameAdapter, ItemTextLanguage, ParseFailure, ParseResult, PresetOptions, TradeContext } from '@exile-appraiser/core/games/adapter'
 import { REALMS, useEnglishNames, type Language, type Realm } from '@exile-appraiser/core/realm'
-import { init, loadForLang, configureDataSource } from '@/assets/data'
+import { chooseParseLanguage, detectItemTextLanguage, markersFromClientStrings, type LanguageMarkers } from '@exile-appraiser/core/realm/item-language'
+import { init, loadForLang, configureDataSource, activateLangData, clientStringsFor, ACTIVE_LANG } from '@/assets/data'
 import { parseClipboard as upstreamParse } from '@/parser'
 import type { ParsedItem } from '@/parser/ParsedItem'
 import { createPresets as upstreamCreatePresets } from '@/web/price-check/filters/create-presets'
@@ -37,16 +38,71 @@ export { exchangeUrl } from '@/web/price-check/trade/pathofexile-bulk'
 
 export type Poe1TradeRequest = ReturnType<typeof upstreamCreateTradeRequest>
 
+/** 客戶端語言(`loadData` 載入的那一套)。 */
 let loadedLang: Language | undefined
+/** 第 27 步:各語系複製文字的名牌區標頭(取自各自的 client_strings),語言判斷用。 */
+let markers: LanguageMarkers = {}
+const LANGUAGES: Language[] = ['cmn-Hant', 'en']
+
+/** 第 27 步:載入 / 換語系一律排隊(資料是模組層級全域,兩個載入交錯會留下半套)。 */
+let queue: Promise<unknown> = Promise.resolve()
+function serial<T> (fn: () => Promise<T>): Promise<T> {
+  const run = queue.then(fn, fn)
+  queue = run.catch(() => undefined)
+  return run
+}
 
 async function loadData (source: DataSource, lang: Language): Promise<void> {
-  configureDataSource(source)
-  if (loadedLang === undefined) {
-    await init(lang)
-  } else if (loadedLang !== lang) {
-    await loadForLang(lang)
+  return await serial(async () => {
+    if (loadedLang === undefined) {
+      configureDataSource(source)
+      await init(lang)
+    } else if (loadedLang !== lang) {
+      configureDataSource(source)
+      await loadForLang(lang)
+    } else {
+      // 同語系(切遊戲回來):沿用原本的 DataSource,兩套快取才不會因來源換了而作廢;
+      // 換回客戶端語言那一套(上一件可能是另一語言的物品)
+      await activateLangData(lang)
+    }
+    loadedLang = lang
+    markers = await loadMarkers()
+  })
+}
+
+async function loadMarkers (): Promise<LanguageMarkers> {
+  const out: LanguageMarkers = {}
+  for (const l of LANGUAGES) {
+    try {
+      const m = markersFromClientStrings(await clientStringsFor(l))
+      if (m) out[l] = m
+    } catch (e) {
+      console.error(`[poe1] 讀取 ${l} client_strings 失敗,查價時不會自動判斷這個語言:`, e)
+    }
   }
-  loadedLang = lang
+  return out
+}
+
+/** 第 27 步:物品文字的語言(判斷不出 = undefined)。 */
+export function detectItemLanguage (text: string): Language | undefined {
+  return detectItemTextLanguage(text, markers)
+}
+
+/** 第 27 步:解析前依 realm + 文字語言換好資料集(見 GameAdapter.prepareItemText)。 */
+export async function prepareItemText (text: string, realm: Realm): Promise<ItemTextLanguage> {
+  return await serial(async () => {
+    const clientLanguage = loadedLang
+    const detected = detectItemLanguage(text)
+    if (clientLanguage === undefined) return { detected, lang: detected ?? 'cmn-Hant' }
+    const lang = chooseParseLanguage(realm, clientLanguage, detected)
+    await activateLangData(lang)
+    return { detected, lang, clientLanguage }
+  })
+}
+
+/** 第 27 步:目前資料集的語系。 */
+export function dataLanguage (): Language | undefined {
+  return ACTIVE_LANG as Language | undefined
 }
 
 function parseClipboard (text: string): ParseResult<ParsedItem> | ParseFailure {
@@ -146,6 +202,8 @@ export async function bulkPrices (
 export const poe1Adapter: GameAdapter<ParsedItem, FilterPreset, Poe1TradeRequest> = {
   id: 'poe1',
   loadData,
+  prepareItemText,
+  dataLanguage,
   parseClipboard,
   createPresets: (item, opts) => createPresets(item, opts).presets,
   createTradeRequest,

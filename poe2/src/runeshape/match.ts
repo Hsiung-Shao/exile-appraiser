@@ -7,8 +7,10 @@
  * 不同(繁中客戶端 + 英文辨識,或反過來)→ `ensureRuneshapeIndex(lang)` 只另讀那個語言的 `items.ndjson`(只取 ITEM / GEM 的名稱 / refName / 類別 / tradeTag,
  * 建好的索引快取;資料重載 / 配方換新才重建)。輸出的 `name`(台服交易站查詢用)一律是**客戶端語言**的名稱(以 refName + namespace + 類別對回記憶體裡的 items),
  * `refName`(英文)與 poe.ninja 鍵不受辨識語言影響。
+ * 第 27 步:查價時資料集可能暫時換成另一語言的物品(國際服依物品文字自動判斷語言)——這裡的「客戶端語言」一律取
+ * `PRIMARY_DATA`(`loadForLang` 載入的那一套),不跟著查價的物品語言換。
  */
-import { ITEMS_ITERATOR, LOADED_DATA, RUNESHAPE_RECIPES } from "@/assets/data";
+import { ITEMS_ITERATOR, LOADED_DATA, PRIMARY_DATA, RUNESHAPE_RECIPES } from "@/assets/data";
 import { source } from "@/assets/data/source";
 import type { OcrTextLang } from "../desecration/ocr-text";
 import { buildRuneshapeIndex, matchRunesRowsWith, type NameEntry, type RecipeEntry, type RuneshapeIndex, type RuneshapeMatchRow, type RuneshapeOcrRow } from "./match-core";
@@ -17,13 +19,24 @@ export * from "./match-core";
 
 let cached: { iter: typeof ITEMS_ITERATOR; recipes: typeof RUNESHAPE_RECIPES; en: boolean; index: RuneshapeIndex } | null = null;
 
+/** 第 27 步:客戶端語言那一套的物品迭代器(還沒載完 = 目前繫結,同改版前) */
+function clientItems(): typeof ITEMS_ITERATOR {
+  return PRIMARY_DATA?.ITEMS_ITERATOR ?? ITEMS_ITERATOR;
+}
+
+/** 第 27 步:客戶端語言(還沒載完 = 目前繫結的語系,同改版前) */
+function clientLang(): string | undefined {
+  return PRIMARY_DATA ? PRIMARY_DATA.lang : LOADED_DATA?.lang;
+}
+
 /** 目前語系的索引(資料重載 / 換語系後 `ITEMS_ITERATOR` 換新、或配方資料換新 → 重建) */
 function defaultIndex(): RuneshapeIndex {
-  const en = LOADED_DATA?.lang === "en";
-  if (!cached || cached.iter !== ITEMS_ITERATOR || cached.recipes !== RUNESHAPE_RECIPES || cached.en !== en) {
-    const all = [...ITEMS_ITERATOR('"namespace": "ITEM"'), ...ITEMS_ITERATOR('"namespace": "GEM"')];
+  const en = clientLang() === "en";
+  const items = clientItems();
+  if (!cached || cached.iter !== items || cached.recipes !== RUNESHAPE_RECIPES || cached.en !== en) {
+    const all = [...items('"namespace": "ITEM"'), ...items('"namespace": "GEM"')];
     const recipes = RUNESHAPE_RECIPES?.recipes ?? [];
-    cached = { iter: ITEMS_ITERATOR, recipes: RUNESHAPE_RECIPES, en, index: en ? buildRuneshapeIndex(all, recipes, "en") : buildRuneshapeIndex(all, recipes) };
+    cached = { iter: items, recipes: RUNESHAPE_RECIPES, en, index: en ? buildRuneshapeIndex(all, recipes, "en") : buildRuneshapeIndex(all, recipes) };
   }
   return cached.index;
 }
@@ -36,7 +49,7 @@ export function matchRunesRows(lines: RuneshapeOcrRow[], index: RuneshapeIndex =
 
 /** 目前載入的客戶端資料語系 → 文字語言(載入中 = 繁中,同 `loadedOcrTextLang`) */
 function loadedTextLang(): OcrTextLang {
-  return LOADED_DATA?.lang === "en" ? "en" : "zh";
+  return clientLang() === "en" ? "en" : "zh";
 }
 
 interface AltCacheEntry {
@@ -53,8 +66,9 @@ const refKey = (ns: string, ref: string, category: string) => `${ns}|${ref}|${ca
 /** 另一個語言的 items.ndjson(ITEM / GEM 的名稱)→ 索引;name 一律換回客戶端語言的名稱 */
 function buildAltIndex(ndjson: string, lang: OcrTextLang, recipes: Iterable<RecipeEntry>): RuneshapeIndex {
   const shown = new Map<string, string>();
+  const items = clientItems();
   for (const ns of ["ITEM", "GEM"]) {
-    for (const r of ITEMS_ITERATOR(`"namespace": "${ns}"`)) {
+    for (const r of items(`"namespace": "${ns}"`)) {
       const k = refKey(r.namespace, r.refName, r.craftable?.category ?? "");
       if (!shown.has(k)) shown.set(k, r.name);
     }
@@ -82,7 +96,7 @@ function buildAltIndex(ndjson: string, lang: OcrTextLang, recipes: Iterable<Reci
  */
 export function ensureRuneshapeIndex(lang: OcrTextLang): Promise<boolean> {
   if (lang === loadedTextLang()) return Promise.resolve(true);
-  const iter = ITEMS_ITERATOR;
+  const iter = clientItems();
   const recipes = RUNESHAPE_RECIPES;
   if (altCache && altCache.iter === iter && altCache.recipes === recipes && altCache.lang === lang) {
     if (altCache.index) return Promise.resolve(true);
@@ -95,7 +109,7 @@ export function ensureRuneshapeIndex(lang: OcrTextLang): Promise<boolean> {
       const file = `${lang === "en" ? "en" : "cmn-Hant"}/items.ndjson`;
       const text = await source().text(file);
       // 讀的期間資料又重載了 → 這份對不上新的 name 對照,丟掉(呼叫端會在資料載好後再 ensure)
-      if (altCache !== entry || ITEMS_ITERATOR !== iter) return false;
+      if (altCache !== entry || clientItems() !== iter) return false;
       entry.index = buildAltIndex(text, lang, recipes?.recipes ?? []);
       return true;
     } catch (e) {
@@ -110,7 +124,7 @@ export function ensureRuneshapeIndex(lang: OcrTextLang): Promise<boolean> {
 /** 某辨識語言的索引;還沒準備好(alt 語言尚未 `ensureRuneshapeIndex`)→ undefined */
 export function runeshapeIndexFor(lang: OcrTextLang): RuneshapeIndex | undefined {
   if (lang === loadedTextLang()) return defaultIndex();
-  if (altCache && altCache.iter === ITEMS_ITERATOR && altCache.recipes === RUNESHAPE_RECIPES && altCache.lang === lang) return altCache.index;
+  if (altCache && altCache.iter === clientItems() && altCache.recipes === RUNESHAPE_RECIPES && altCache.lang === lang) return altCache.index;
   return undefined;
 }
 

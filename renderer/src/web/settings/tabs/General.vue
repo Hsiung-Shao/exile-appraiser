@@ -148,6 +148,7 @@
             @click="config.language = l">{{ languageLabel(l) }}</button>
         </div>
       </div>
+      <span class="note" data-note="language-auto">{{ t('ppz.language_auto_hint') }}</span>
     </div>
     <div class="srow">
       <span class="k">{{ t('ppz.league') }}</span>
