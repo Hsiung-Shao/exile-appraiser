@@ -95,7 +95,7 @@ export function installVueErrorHandler (app: App, log = logRendererError): void 
 }
 
 interface ErrorTarget {
-  addEventListener: (type: string, cb: (e: any) => void) => void // eslint-disable-line @typescript-eslint/no-explicit-any
+  addEventListener: (type: string, cb: (e: any) => void) => void // eslint-disable-line @typescript-eslint/no-explicit-any -- 事件型別隨全域物件而異(window / worker),此處只當最小介面用
 }
 
 /** `window` 未捕捉的例外 / Promise(只收冒泡到 window 的;圖片載入失敗不冒泡,不會進來)。 */

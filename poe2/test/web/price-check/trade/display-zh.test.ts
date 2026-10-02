@@ -36,7 +36,7 @@ const FIXTURES = [
   "../../../runeshape/fixtures/trade/fetch-powered-by-verisium-l20.json",
 ];
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- 測試只讀取各種形狀的查價結果欄位,不值得為每種形狀寫型別
 type AnyResult = any;
 
 function allResults(): AnyResult[] {

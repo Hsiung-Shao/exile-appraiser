@@ -100,7 +100,7 @@ export function applyUiohookPrebuildRedirect (opts: { userData: string, fromFile
       fs.copyFileSync(plan.source, tmp)
       try { fs.renameSync(tmp, plan.target) } catch (e) {
         // 另一個行程剛好搶先寫好(可能已載入而鎖住);同雜湊目錄 = 同內容,用它的
-        try { fs.rmSync(tmp, { force: true }) } catch {}
+        try { fs.rmSync(tmp, { force: true }) } catch { /* 暫存檔清不掉不影響結果,下次建置會覆蓋 */ }
         if (!fs.existsSync(plan.target)) throw e
       }
     }

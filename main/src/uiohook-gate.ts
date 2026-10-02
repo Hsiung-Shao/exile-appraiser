@@ -109,7 +109,7 @@ export class UiohookGate {
     this.count = 0
     this.cancelStop()
     // 跟原本一樣無條件呼叫:沒在跑時原生 AddonStop 直接 return(addon.c `is_worker_running == false`)
-    try { this.hook.stop() } catch {}
+    try { this.hook.stop() } catch { /* 停止失敗無法補救,狀態照常重置 */ }
     this.running = false
   }
 

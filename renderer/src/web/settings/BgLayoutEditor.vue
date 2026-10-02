@@ -119,7 +119,7 @@ export default defineComponent({
       if (!p) return
       e.preventDefault()
       box.value?.focus({ preventScroll: true })
-      try { box.value?.setPointerCapture(e.pointerId) } catch {}
+      try { box.value?.setPointerCapture(e.pointerId) } catch { /* 合成事件沒有對應的指標 */ }
       dragging.value = true
       draft.value = { ...draft.value, ...p }
     }

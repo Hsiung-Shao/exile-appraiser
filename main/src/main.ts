@@ -77,7 +77,7 @@ const rawConsoleWarn = console.warn.bind(console)
 captureConsole(console, appLog, format)
 if (LOG_FILE) {
   appLog.onLine((_line, e) => {
-    try { fsSync.appendFileSync(LOG_FILE, `${new Date(e.ts).toISOString()} [pid ${process.pid}] ${e.text}\n`) } catch {}
+    try { fsSync.appendFileSync(LOG_FILE, `${new Date(e.ts).toISOString()} [pid ${process.pid}] ${e.text}\n`) } catch { /* 記錄檔寫不進去(磁碟滿 / 被鎖)不能再拋錯或再記錄,否則會無限遞迴,刻意忽略 */ }
   })
 }
 const LOG_DIR = () => path.join(app.getPath('userData'), 'logs')

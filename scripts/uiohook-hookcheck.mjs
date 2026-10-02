@@ -41,8 +41,8 @@ delete env.UIOHOOK_NAPI_PREBUILD // 不讓外面的設定蓋過要檢查的行�
 console.log(`> ${cmd} ${args.join(' ')}`)
 const r = child_process.spawnSync(cmd, args, { env, stdio: 'ignore', timeout: 60_000, windowsHide: true })
 let log = ''
-try { log = fs.readFileSync(logFile, 'utf8') } catch {}
-try { fs.rmSync(logFile, { force: true }) } catch {}
+try { log = fs.readFileSync(logFile, 'utf8') } catch { /* 沒有記錄檔 = 沒有輸出,log 維持空字串 */ }
+try { fs.rmSync(logFile, { force: true }) } catch { /* 暫存記錄檔刪不掉不影響檢查結果 */ }
 const lines = log.split(/\r?\n/).filter(l => l.includes('[uiohook'))
 for (const l of lines) console.log(l.replace(/^\S+ \[pid \d+\] /, ''))
 if (r.error) console.error(`啟動失敗:${r.error.message}`)

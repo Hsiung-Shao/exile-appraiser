@@ -2,7 +2,7 @@
   "_comment_name": "name 決定 Electron 的 %APPDATA%\\<name> 與預設 User-Agent 的 app 名;改名請改 electron-builder.yml 的 productName/appId。",
   "name": "exile-appraiser",
   "_comment_version": "0.x.y 語意版號,與 root 及各 workspace 的 version 保持一致。Electron 把 `exile-appraiser/<version>` 寫進 User-Agent;GGG 的 Cloudflare 擋的是舊版 Awakened PoE Trade 的產品名+版號,本產品名 0.1.0 實測 200(2026-09-30)。發版前、遊戲改版或 GGG 政策改變時跑 `npm run check-user-agent`。",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "description": "Path of Exile 查價工具(國際服/台服,PoE1 + PoE2)",
   "author": {

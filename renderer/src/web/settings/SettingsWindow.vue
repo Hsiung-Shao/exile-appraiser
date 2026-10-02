@@ -211,7 +211,7 @@ export default defineComponent({
       if (!start || !view.value) return
       e.preventDefault()
       const target = e.currentTarget as HTMLElement
-      try { target.setPointerCapture(e.pointerId) } catch {}
+      try { target.setPointerCapture(e.pointerId) } catch { /* 合成事件沒有對應的指標 */ }
       drag.start(edge, start, e.clientX, e.clientY, view.value)
       const onMove = (ev: PointerEvent) => { if (ev.pointerId === e.pointerId) drag.move(ev.clientX, ev.clientY) }
       const onUp = (ev: PointerEvent) => { if (ev.pointerId !== e.pointerId) return; cleanup(); drag.end(ev.clientX, ev.clientY) }
@@ -223,7 +223,7 @@ export default defineComponent({
         target.removeEventListener('pointercancel', onCancel)
         target.removeEventListener('lostpointercapture', onLost)
         detach = null
-        try { target.releasePointerCapture(e.pointerId) } catch {}
+        try { target.releasePointerCapture(e.pointerId) } catch { /* 指標已被瀏覽器釋放(例如 pointercancel),不需處理 */ }
       }
       target.addEventListener('pointermove', onMove)
       target.addEventListener('pointerup', onUp)
