@@ -1,5 +1,7 @@
+// ⚠ 必須是第一個 import:uiohook-napi 被任何模組載入之前,原生模組路徑過長時改從短路徑載入(uiohook-prebuild.ts)
+import { uiohookPrebuildResult } from './uiohook-prebuild-init'
 import { app, BrowserWindow, dialog, Menu, nativeImage, net, protocol, screen, shell, Tray, type BrowserWindowConstructorOptions, type WebContents } from 'electron'
-import { uiohookGate } from './uiohook-gate'
+import { describeStartError, uiohookGate } from './uiohook-gate'
 import { uIOhook, UiohookKey } from 'uiohook-napi'
 import { StashScroll } from './stash-scroll'
 import { OVERLAY_WINDOW_OPTS } from 'electron-overlay-window'
@@ -52,6 +54,9 @@ const OCR_SELFTEST = RUNESHAPE_SELFTEST ?? argAfter('--ocr-selftest')
 // (`--toast-scan` = 第 16 步的辨識開關通知)、
 // `capturePage()` 存 PNG 後結束(不送任何輸入、不拿單一實例鎖、不建主視窗/托盤/熱鍵)。
 const TOAST_SELFTEST = argAfter('--toast-selftest')
+// `--uiohook-selftest`:只註冊 / 解除全域掛鉤(start → stop → 1 秒後再 start → stop),印出載入的 .node 路徑後結束;
+// 不送任何輸入、不拿單一實例鎖、不建視窗/托盤/熱鍵。手動實機檢查用(scripts/uiohook-hookcheck.mjs),正式版也接受。
+const UIOHOOK_SELFTEST = process.argv.includes('--uiohook-selftest')
 // 效能修正第 17 步:`--capture-bench [--bench-*]`:量 overlay screenshot() 與 desktopCapturer 的耗時、像素 / OCR 一致性(ocr/capture-bench.ts);
 // 不拿單一實例鎖、不送輸入、不搶焦點、不寫影格檔。
 // code review 第 B 批:只在非 packaged 時接受(正式版忽略並正常啟動);量測程式碼動態 import(不在啟動路徑上執行)
@@ -72,6 +77,8 @@ if (LOG_FILE) {
   }
 }
 
+console.log(uiohookPrebuildResult.message)
+
 /**
  * `--quit`:請**已在執行的**主行程正常結束(= 托盤「結束」,會觸發「結束時自動套用更新」)。
  * 這個行程拿不到單一實例鎖 → 把參數交給主行程(`second-instance`)後自己結束;拿到鎖 = 沒有主行程,什麼都不做直接結束。
@@ -79,7 +86,7 @@ if (LOG_FILE) {
  * 無輸入的控制方式(自動驗證 / 腳本用),見 docs/release-flow.md「本機實測」。
  */
 const CONTROL_REQUEST = ['--quit', '--install-update'].find(f => process.argv.includes(f))
-let skipStartup = OCR_SELFTEST != null || TOAST_SELFTEST != null || CAPTURE_BENCH
+let skipStartup = OCR_SELFTEST != null || TOAST_SELFTEST != null || CAPTURE_BENCH || UIOHOOK_SELFTEST
 
 if (OCR_SELFTEST != null) {
   (RUNESHAPE_SELFTEST != null ? runRuneshapeSelftest(RUNESHAPE_SELFTEST, process.argv) : runOcrSelftest(OCR_SELFTEST, process.argv))
@@ -90,6 +97,11 @@ if (OCR_SELFTEST != null) {
     .then(async ({ runCaptureBench }) => await runCaptureBench(process.argv))
     .then((code) => { app.exit(code) })
     .catch((e) => { console.error('[capture-bench]', e); app.exit(1) })
+} else if (UIOHOOK_SELFTEST) {
+  app.whenReady()
+    .then(async () => await runUiohookSelftest())
+    .then((code) => { app.exit(code) })
+    .catch((e) => { console.error('[uiohook-selftest]', e); app.exit(1) })
 } else if (TOAST_SELFTEST != null) {
   app.whenReady()
     .then(() => runToastSelftest(TOAST_SELFTEST))
@@ -469,6 +481,33 @@ function presentToast (msg: ToastMessage, workArea?: WorkArea): void {
   }
   activeToast = t
   t.once('closed', () => { if (activeToast === t) activeToast = null })
+}
+
+/** `--uiohook-selftest`:見上方旗標說明。回傳 0 = 每次 start 都成功 */
+async function runUiohookSelftest (): Promise<number> {
+  let ok = 0
+  let fail = 0
+  const attempt = (label: string) => {
+    try {
+      uIOhook.start()
+      ok++
+      console.log(`[uiohook-selftest] ${label} start OK`)
+    } catch (e) {
+      fail++
+      console.log(`[uiohook-selftest] ${label} start FAIL ${describeStartError(e)}`)
+    }
+    try { uIOhook.stop() } catch (e) { console.log(`[uiohook-selftest] ${label} stop FAIL`, e) }
+  }
+  attempt('ready')
+  await new Promise(resolve => setTimeout(resolve, 1000))
+  attempt('after-1s')
+  const report = process.report?.getReport() as { sharedObjects?: string[] } | undefined
+  for (const so of report?.sharedObjects ?? []) {
+    // 去掉長路徑前綴後的長度(從磁碟機代號算起)
+    if (/uiohook/i.test(so)) console.log(`[uiohook-selftest] loaded ${so}(${so.slice(Math.max(0, so.indexOf(':') - 1)).length} 字元)`)
+  }
+  console.log(`[uiohook-selftest] RESULT ok=${ok} fail=${fail}`)
+  return fail === 0 ? 0 : 1
 }
 
 /** `--toast-selftest <out.png>`:開提示視窗(不動畫、不自動關)、截圖存檔後結束。只截自己的 webContents,不送任何輸入。 */

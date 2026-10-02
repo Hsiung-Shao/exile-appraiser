@@ -25,7 +25,7 @@ vi.mock('electron', () => ({
   }
 }))
 
-import { DEFAULT_STOP_DELAY_MS, UiohookGate } from '../src/uiohook-gate'
+import { DEFAULT_MAX_START_FAILURES, DEFAULT_STOP_DELAY_MS, UiohookGate, describeStartError } from '../src/uiohook-gate'
 import { WidgetAreaTracker } from '../src/windowing/WidgetAreaTracker'
 
 const quiet = () => {}
@@ -98,11 +98,54 @@ describe('UiohookGate', () => {
     hook.start.mockImplementationOnce(() => { throw new Error('UIOHOOK_FAILURE') })
     g.acquire()
     expect(g.isRunning).toBe(false)
-    expect(log).toHaveBeenCalledWith('[uiohook] start failed', expect.any(Error))
+    expect(log).toHaveBeenCalledWith(`[uiohook] start 失敗(第 1/${DEFAULT_MAX_START_FAILURES} 次):UIOHOOK_FAILURE`)
     g.release(); vi.advanceTimersByTime(DEFAULT_STOP_DELAY_MS)
     expect(hook.stop).not.toHaveBeenCalled()
     g.acquire()
     expect(g.isRunning).toBe(true)
+  })
+
+  it('2026-10-03 實機回歸:連續失敗達上限後不再 start、每次失敗只記一行(不帶 stack 物件);成功一次歸零', () => {
+    const log = vi.fn()
+    const err = Object.assign(new Error('Failed to register low level windows hook.'), { code: 'UIOHOOK_ERROR_SET_WINDOWS_HOOK_EX' })
+    hook.start.mockImplementation(() => { throw err })
+    const g = new UiohookGate(hook, { log, stopDelayMs: 0 })
+    for (let i = 0; i < 10; i++) { g.acquire(); g.release() }
+    expect(hook.start).toHaveBeenCalledTimes(DEFAULT_MAX_START_FAILURES)
+    expect(g.gaveUp).toBe(true)
+    expect(g.isRunning).toBe(false)
+    expect(hook.stop).not.toHaveBeenCalled()
+    // 每次呼叫 log 都只有一個字串參數;失敗行含錯誤碼與已知原因;放棄只記一次
+    for (const call of log.mock.calls) expect(call).toHaveLength(1)
+    const lines = log.mock.calls.map(c => c[0] as string)
+    expect(lines.filter(l => l.startsWith('[uiohook] start 失敗'))).toHaveLength(DEFAULT_MAX_START_FAILURES)
+    expect(lines[0]).toContain('UIOHOOK_ERROR_SET_WINDOWS_HOOK_EX: Failed to register low level windows hook.')
+    expect(lines[0]).toContain('路徑過長')
+    expect(lines.filter(l => l.includes('停止重試'))).toHaveLength(1)
+    // 計數照常(release 不會變負、持有者正確)
+    g.acquire()
+    expect(g.holders).toBe(1)
+
+    // 失敗後成功一次 → 計數歸零,之後再失敗又有完整的重試額度
+    hook.start.mockReset()
+    const g2 = new UiohookGate(hook, { log: quiet, stopDelayMs: 0, maxStartFailures: 2 })
+    hook.start.mockImplementationOnce(() => { throw err })
+    g2.acquire(); g2.release()
+    g2.acquire()
+    expect(g2.isRunning).toBe(true)
+    g2.release()
+    hook.start.mockImplementationOnce(() => { throw err })
+    g2.acquire(); g2.release()
+    expect(g2.gaveUp).toBe(false)
+    g2.acquire()
+    expect(hook.start).toHaveBeenCalledTimes(4)
+    expect(g2.isRunning).toBe(true)
+  })
+
+  it('describeStartError:沒有 code / 非 Error 也能轉成一行', () => {
+    expect(describeStartError(new Error('x'))).toBe('x')
+    expect(describeStartError('boom')).toBe('boom')
+    expect(describeStartError(Object.assign(new Error('m'), { code: 'UIOHOOK_FAILURE' }))).toBe('UIOHOOK_FAILURE: m')
   })
 
   it('shutdown:計數非 0 也強制 stop、之後 acquire 不再 start', () => {

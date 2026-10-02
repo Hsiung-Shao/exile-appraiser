@@ -14,6 +14,11 @@
  * 所以送鍵不 acquire。
  *
  * hook 與計時器可注入 / 用假時鐘測(`main/test/uiohook-gate.test.ts`)。
+ *
+ * **start 失敗**(2026-10-03 實機回歸):`SetWindowsHookEx` 失敗時原生層丟 `UIOHOOK_ERROR_SET_WINDOWS_HOOK_EX`。
+ * 實測根因是 `.node` 的完整路徑過長(≥ 252 字元 → GetLastError 0x7E ERROR_MOD_NOT_FOUND),與「延後 start」無關;
+ * 由 `uiohook-prebuild.ts` 在載入前把 .node 複製到短路徑解決。這裡只負責:失敗記一行(錯誤碼 + 訊息,不印 stack),
+ * 連續失敗 `maxStartFailures` 次後停止重試(記一次),避免每次 acquire 都噴錯;成功一次就歸零。
  */
 import { uIOhook } from 'uiohook-napi'
 
@@ -26,20 +31,36 @@ export interface UiohookGateOptions {
   /** 計數歸零後延遲多久才 stop(毫秒);0 = 立即 */
   stopDelayMs?: number
   log?: (msg: string, err?: unknown) => void
+  /** 連續 start 失敗幾次後停止重試(本次執行期間);預設 `DEFAULT_MAX_START_FAILURES` */
+  maxStartFailures?: number
 }
 
 export const DEFAULT_STOP_DELAY_MS = 5000
+export const DEFAULT_MAX_START_FAILURES = 3
+
+/** 原生錯誤 → 一行說明(錯誤碼 + 訊息;掛鉤註冊失敗附上已知原因) */
+export function describeStartError (e: unknown): string {
+  const code = (e as { code?: unknown } | null)?.code
+  const msg = e instanceof Error ? e.message : String(e)
+  const head = typeof code === 'string' ? `${code}: ${msg}` : msg
+  return code === 'UIOHOOK_ERROR_SET_WINDOWS_HOOK_EX'
+    ? `${head}(已知原因:uiohook-napi.node 路徑過長,見 uiohook-prebuild.ts 的啟動 log)`
+    : head
+}
 
 export class UiohookGate {
   private count = 0
   private running = false
   private closed = false
   private stopTimer: ReturnType<typeof setTimeout> | undefined
+  private startFailures = 0
+  private readonly maxStartFailures: number
   private readonly stopDelayMs: number
   private readonly log: (msg: string, err?: unknown) => void
 
   constructor (private readonly hook: HookControl, opts: UiohookGateOptions = {}) {
     this.stopDelayMs = opts.stopDelayMs ?? DEFAULT_STOP_DELAY_MS
+    this.maxStartFailures = Math.max(1, opts.maxStartFailures ?? DEFAULT_MAX_START_FAILURES)
     this.log = opts.log ?? ((msg, err) => { if (err === undefined) console.log(msg); else console.error(msg, err) })
   }
 
@@ -47,18 +68,23 @@ export class UiohookGate {
   get holders (): number { return this.count }
   /** 掛鉤是否在跑(start 成功且尚未 stop) */
   get isRunning (): boolean { return this.running }
+  /** 連續 start 失敗次數已達上限,本次執行不再嘗試 start */
+  get gaveUp (): boolean { return this.startFailures >= this.maxStartFailures }
 
   acquire (): void {
     if (this.closed) return
     this.count++
     this.cancelStop()
-    if (this.running) return
+    if (this.running || this.gaveUp) return
     try {
       this.hook.start()
       this.running = true
+      this.startFailures = 0
       this.log(`[uiohook] start(持有者 ${this.count})`)
     } catch (e) {
-      this.log('[uiohook] start failed', e)
+      this.startFailures++
+      this.log(`[uiohook] start 失敗(第 ${this.startFailures}/${this.maxStartFailures} 次):${describeStartError(e)}`)
+      if (this.gaveUp) this.log('[uiohook] 連續 start 失敗達上限,本次執行停止重試(查價面板游標離開自動關閉、倉庫頁籤捲動不可用)')
     }
   }
 
