@@ -49,7 +49,8 @@ const RANGES_RESOLVED_HERE = new Map<string, string>([
 
 describe("desecration tiers.json 產物", () => {
   it("版本鎖與統計(PoB2 0.23.1:1713 條、三 pool 198/32/1483、全部可比對)", () => {
-    expect(tiers.schema).toBe(1);
+    // 第 22 步:schema 2 = parts 多了 `text.enVariants`(英文客戶端 OCR);其餘欄位與 schema 1 相同
+    expect(tiers.schema).toBe(2);
     expect(tiers.source.pob2Version).toBe("0.23.1");
     expect(Object.keys(tiers.source.files)).toContain("Data/ModVeiled.lua");
     expect(tiers.entries.length).toBe(1713);
@@ -110,6 +111,34 @@ describe("desecration tiers.json 產物", () => {
     expect(tierChecks).toBeGreaterThan(200);
     // 0.23.1 的法杖/長杖沒有 *_implicit_skill profile(見檔頭);抽樣裡有碰到才會 > 0
     expect(skippedProfiles).toBeGreaterThanOrEqual(0);
+  });
+
+  it("第 22 步:text.enVariants = 同一 en stats 列的其他英文寫法(negate 相對 text.en;271 個模板 / 277 個寫法)", () => {
+    const byTemplate = new Map<string, Array<{ text: string; negate?: true }>>();
+    let parts = 0;
+    for (const e of tiers.entries) {
+      for (const p of e.parts) {
+        expect(p.text.en.trim(), e.mod_id).not.toBe("");
+        if (!p.text.enVariants) continue;
+        parts++;
+        expect(p.text.enVariants.length, e.mod_id).toBeGreaterThan(0);
+        for (const v of p.text.enVariants) {
+          expect(v.text, e.mod_id).not.toBe(p.text.en);
+          expect(v.text.trim(), e.mod_id).not.toBe("");
+        }
+        byTemplate.set(p.text.en, p.text.enVariants);
+      }
+    }
+    const all = [...byTemplate.values()].flat();
+    expect(parts).toBe(1058);
+    expect(byTemplate.size).toBe(271);
+    expect(all.length).toBe(277);
+    expect(all.filter((v) => v.negate).length).toBe(248);
+    // 極性:`text.en` 是翻轉後的 `#% reduced Attack Speed` → `#% increased Attack Speed` 是反向寫法
+    const e = tiers.entries.find((x) => x.mod_id === "AbyssModAllMacesKurgalPrefixIncreasedPhysicalDamageReducedAttackSpeed")!;
+    expect(e.parts[0].text.en).toBe("#% reduced Attack Speed");
+    expect(e.parts[0].text.enVariants).toEqual([{ text: "#% increased Attack Speed", negate: true }]);
+    expect(e.parts[1].text.enVariants).toEqual([{ text: "#% reduced Physical Damage", negate: true }, { text: "No Physical Damage" }]);
   });
 
   it("三神專屬詞綴都標了神名(UI 顯示 pool 用)", () => {

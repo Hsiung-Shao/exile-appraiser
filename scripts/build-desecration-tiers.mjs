@@ -17,6 +17,8 @@
 //     cmn-Hant 同 `ref` 的 `matchers[0].string`(繁中);ranges 以 `ref` 的 `#` 對 PoB 文字 fullmatch 取得;
 //     increased/reduced 極性不一致時翻轉一次並記 `direction`
 //   * (exile-appraiser 追加)`text.zhVariants`:同 ref 的其他繁中 matcher(`negate` 相對 `text.zh`),揭露面板 OCR 用
+//   * (exile-appraiser 追加,schema 2,2026-10-02 第 22 步)`text.enVariants`:同一 stat 列(en stats.ndjson,語言無關鍵 = trade hash → ref)
+//     的其他英文 matcher(`negate` 相對 `text.en`),英文客戶端的揭露面板 OCR 用
 // 與 poenavi 的差異(本專案):日文模板 → 繁中模板;poenavi 的 stat_index(GGG trade2 文字)→ EE2 stats.ndjson 的 `ref`;
 // 版本鎖由 git revision 改為 portable 的 `manifest.xml`(版本號 + 逐檔 sha1,且驗證磁碟上的檔與 manifest 相符)。
 // 輸出不含時間戳,同一輸入重跑逐位元組相同。說明見 docs/desecration-tiers.md。
@@ -299,7 +301,7 @@ function loadStats () {
  * @param {boolean} textNegated `text.zh` 相對 ref 是否為反向寫法
  * @returns {Array<{ text: string, negate?: true }>}
  */
-function zhVariants (line, textZh, textNegated) {
+function textVariants (line, textZh, textNegated) {
   /** @type {Array<{ text: string, negate?: true }>} */
   const out = []
   const seen = new Set([textZh])
@@ -375,13 +377,17 @@ function buildParts (/** @type {ModRow} */ row, /** @type {ReturnType<typeof loa
       }
       const textZh = directional ? directional.zh : zh
       // exile-appraiser 追加(WP-S):其他繁中寫法;沒有就不輸出這個鍵(舊資料相容、其餘欄位逐位元組不變)
-      const variants = zhVariants(zhLine, textZh, Boolean(zhLine?.matchers[0].negate) !== Boolean(directional))
+      const variants = textVariants(zhLine, textZh, Boolean(zhLine?.matchers[0].negate) !== Boolean(directional))
+      // 第 22 步(英文客戶端 OCR):同一 en stats 列的其他英文寫法;`text.en` = ref(或 increased/reduced 翻轉後的寫法)
+      // 相對 ref 的極性 = 有沒有翻轉(ref 本身是 negate: false)。沒有就不輸出這個鍵
+      const textEn = directional ? directional.en : en
+      const enVars = textVariants(stat, textEn, Boolean(directional))
       /** @type {Record<string, unknown>} */
       const part = {
         stat_hash: hash,
         stat_id: `desecrated.stat_${hash}`,
         ref: stat.ref,
-        text: { en: directional ? directional.en : en, zh: textZh, ...(variants.length ? { zhVariants: variants } : {}) },
+        text: { en: textEn, zh: textZh, ...(variants.length ? { zhVariants: variants } : {}), ...(enVars.length ? { enVariants: enVars } : {}) },
         ranges,
         source_text: description
       }
@@ -524,8 +530,9 @@ const source = {
   },
   tierDerivation: 'required levels descending within pool/type/group/base-tag profile(poenavi build_poetore_poe2_desecration_tiers.py)'
 }
+// schema 2(第 22 步):parts 多了 `text.enVariants`(可省略);其餘欄位與 schema 1 相同,舊讀取端照讀
 const tiers = {
-  schema: 1,
+  schema: 2,
   source,
   profiles,
   entries,
@@ -562,6 +569,15 @@ console.log(`base_profiles: ${Object.keys(sortedBaseProfiles).length}(unique ${u
   }
   const all = [...byTemplate.values()].flat()
   console.log(`zhVariants: ${byTemplate.size} 個模板有其他寫法,共 ${all.length} 個(negate ${all.filter(v => v.negate).length}、不含 # ${all.filter(v => !v.text.includes('#')).length})`)
+}
+{
+  /** @type {Map<string, Array<{ text: string, negate?: true }>>} */
+  const byTemplate = new Map()
+  for (const e of entries) {
+    for (const p of /** @type {any[]} */ (e.parts)) if (p.text.enVariants && p.text.en.trim()) byTemplate.set(p.text.en, p.text.enVariants)
+  }
+  const all = [...byTemplate.values()].flat()
+  console.log(`enVariants: ${byTemplate.size} 個模板有其他寫法,共 ${all.length} 個(negate ${all.filter(v => v.negate).length}、不含 # ${all.filter(v => !v.text.includes('#')).length})`)
 }
 
 if (!args.includes('--no-manifest')) {

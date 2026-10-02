@@ -22,7 +22,7 @@
       "repo": "PoB2 0.23.1 Data/*.lua + stats.ndjson",
       "path": "scripts/build-desecration-tiers.mjs(PathOfBuildingCommunity-PoE2-Portable/Data;commit 欄 = manifest.xml 的 ModVeiled.lua sha1)",
       "commit": "c73c115603815d875214b7de9057bf0bd10ecc8d",
-      "generatedAt": "2026-09-29T18:39:52.719Z"
+      "generatedAt": "2026-10-02T14:09:02.973Z"
     },
     "data/poe2/runeshape": {
       "repo": "PoE2 GGPK expedition2recipes(Description 欄;game_version 4.5.5.2;來源檔 sha256 9d33c0f326f59e1a4baeb8b72b7d467e88a6a6969bcb1a07388abd1712fd79e8)",
@@ -176,8 +176,8 @@
       "bytes": 54497
     },
     "data/poe2/desecration/tiers.json": {
-      "sha256": "9fbf9da690f0d58c98ac98758d94ff212de29c3bf017ecd71905b9c46d2cf428",
-      "bytes": 1540629
+      "sha256": "acc869f8eb6e3fb8f78f8680f355d7ffb2c0cd792225f6f947414ab8e0c36666",
+      "bytes": 1619794
     },
     "data/poe2/en/app_i18n.json": {
       "sha256": "921236c1d64d21e849c0270d7a6357574c3ac02c30a273b74cab0db2baf43314",

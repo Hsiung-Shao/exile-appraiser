@@ -23,6 +23,11 @@ export interface DesecrationPart {
      * 可能不含 `#`(`無物理傷害`、`擊中時必定造成流血`),比對時當精確文字。舊資料沒有這個欄位。
      */
     zhVariants?: Array<{ text: string; negate?: true }>;
+    /**
+     * exile-appraiser(第 22 步,schema 2):同一 stat 列(en stats.ndjson)的其他英文寫法(英文客戶端的揭露面板 OCR 用)。
+     * `negate: true` = 極性與 **`en`** 相反(`#% reduced Attack Speed` ↔ `#% increased Attack Speed`)。schema 1 的資料沒有這個欄位。
+     */
+    enVariants?: Array<{ text: string; negate?: true }>;
   };
   /** 每個 `#` 一組 [lo, hi];PoB 文字對不上模板時為 null(產生器 diagnostics 會列出) */
   ranges: number[][] | null;
@@ -53,7 +58,8 @@ export interface DesecrationProfile {
 }
 
 export interface DesecrationTiers {
-  schema: 1;
+  /** 2 = parts 多了 `text.enVariants`(第 22 步);其餘與 1 相同,兩版都照讀 */
+  schema: 1 | 2;
   source: {
     pob2Version: string;
     files: Record<string, string>;
