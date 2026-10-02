@@ -12,7 +12,7 @@ ExileAppraiser 在本機開一個網址,用一般瀏覽器就能看、改設定;
 | `--preview` 啟動參數 | 啟動即開伺服器,log 印出 `[preview] --preview:<網址>`;不自動開瀏覽器 |
 
 - 網址形如 `http://127.0.0.1:<臨時埠>/t/<32 位 hex token>/`;可加 `#tab=hotkeys`(`general|price-check|hotkeys|regex|about`)指定一開始的分頁,預設「一般」。
-- 頁面載入後自動開設定視窗(boot script 在 `onOpenSettings` 第一次訂閱時觸發;填滿分頁,寬 < 640px 左選單收成上方分頁;沒有「結束程式」),關掉設定只會看到空的查價面板。
+- 頁面載入後自動開設定視窗(boot script 在 `onOpenSettings` 第一次訂閱時觸發;填滿分頁,寬 < 640px 左選單收成上方分頁;沒有「結束程式」;記住的大小 / 位置不套用、沒有調整大小把手,獨立字級照樣套用),關掉設定只會看到空的查價面板。
 - 結束 ExileAppraiser(`app.quit`)時伺服器一起關;頁面 4 秒連不上會在頂端顯示紅色「已斷線」條。
 
 ### 開發模式

@@ -120,7 +120,8 @@ describe('樣式守門:圖只畫在查價面板 / 設定視窗裡,overlay 其他
   })
   it('查價面板與設定視窗是 .bg-host 且第一個子元素是 BgLayer', () => {
     expect(read('../src/web/App.vue')).toMatch(/id="price-window" class="[^"]*\bbg-host\b[^"]*"[\s\S]{0,300}?<bg-layer \/>/)
-    expect(read('../src/web/settings/SettingsWindow.vue')).toMatch(/class="[^"]*settings-window bg-host"[\s\S]{0,300}?<bg-layer \/>/)
+    // 第 21 步:根元素多了 :class / :style / tabindex / 事件屬性(大小 / 位置與獨立字級),開頭標籤變長 → 放寬到 600 字元
+    expect(read('../src/web/settings/SettingsWindow.vue')).toMatch(/class="[^"]*settings-window bg-host"[\s\S]{0,600}?<bg-layer \/>/)
   })
 })
 

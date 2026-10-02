@@ -48,6 +48,20 @@
         <button class="btn ghost sm" :disabled="config.fsBase === fsDefault" @click="config.fsBase = fsDefault">{{ t('ppz.font_size_reset') }}</button>
       </div>
     </div>
+    <!-- 第 21 步:設定視窗獨立字級(null = 跟隨上面的字級;只作用在設定視窗,查價面板不受影響) -->
+    <div class="srow">
+      <span class="k">{{ t('ppz.settings_window.font_size') }}</span>
+      <div class="ctl" data-setting="settings-font-size">
+        <input v-model.number="swFsSlider" class="slider" type="range" :min="swFsMin" :max="swFsMax" step="1"
+          :class="{ follow: config.settingsFontSize == null }">
+        <button class="btn ghost sm" :disabled="swFsSlider <= swFsMin" @click="swFsSlider -= 1">−</button>
+        <span class="num fs-val sw-fs-val" data-setting="settings-font-size-value">{{ config.settingsFontSize == null ? t('ppz.settings_window.follow_value', { px: config.fsBase }) : `${config.settingsFontSize}px` }}</span>
+        <button class="btn ghost sm" :disabled="swFsSlider >= swFsMax" @click="swFsSlider += 1">+</button>
+        <button class="btn ghost sm" data-action="settings-font-follow" :disabled="config.settingsFontSize == null"
+          @click="config.settingsFontSize = null">{{ t('ppz.settings_window.follow') }}</button>
+      </div>
+      <span class="note">{{ t('ppz.settings_window.font_hint') }}</span>
+    </div>
     <div class="chk-row">
       <label class="chk"><input v-model="config.startupToast" type="checkbox" data-setting="startup-toast"><span>{{ t('ppz.startup_toast') }}</span></label>
     </div>
@@ -177,6 +191,7 @@ import { Host } from '@/web/background/IPC'
 import { useLeagues } from '@/web/background/Leagues'
 import { REALMS, REALM_IDS, TRADE_PATHS, type Language } from '@exile-appraiser/core/realm'
 import { ACCENTS, THEMES, FS_BASE_MIN, FS_BASE_MAX, DEFAULT_FS_BASE, bgImageUrl, normAccent, normBgFile, type Theme } from '@/web/useTheme'
+import { SETTINGS_FS_MAX, SETTINGS_FS_MIN, normSettingsFontSize } from '../settings-window-geom'
 
 /** 主題縮圖:[底, 面板, 字, 強調](同 pob-zh-engine/ui/src/views/SettingsView.svelte 的 SWATCH)。 */
 const SWATCH: Record<Theme, [string, string, string, string]> = {
@@ -246,6 +261,13 @@ export default defineComponent({
       fsMin: FS_BASE_MIN,
       fsMax: FS_BASE_MAX,
       fsDefault: DEFAULT_FS_BASE,
+      swFsMin: SETTINGS_FS_MIN,
+      swFsMax: SETTINGS_FS_MAX,
+      /** 設定視窗字級滑桿:跟隨時停在全域字級;一動就變成獨立字級 */
+      swFsSlider: computed({
+        get: () => config.settingsFontSize ?? config.fsBase,
+        set: (v: number) => { config.settingsFontSize = normSettingsFontSize(Number(v)) }
+      }),
       isCustomAccent: computed(() => !!config.accent && !(ACCENTS as readonly string[]).includes(config.accent)),
       setCustomAccent (e: Event) {
         config.accent = normAccent((e.target as HTMLInputElement).value)
@@ -383,6 +405,8 @@ export default defineComponent({
 .settings-panel .dot.auto {
   width: auto;
   min-width: 20px;
+  height: auto; /* 字級大時(設定視窗獨立字級)文字不被 20px 高度切掉 */
+  min-height: 20px;
   padding: 0 8px;
   border-radius: 10px;
   background: var(--surface-2);
@@ -450,5 +474,12 @@ export default defineComponent({
   min-width: 38px;
   text-align: center;
   font-size: var(--fs-xs);
+}
+.settings-panel .sw-fs-val {
+  min-width: 5.5em;
+  white-space: nowrap;
+}
+.settings-panel .slider.follow {
+  opacity: 0.55;
 }
 </style>

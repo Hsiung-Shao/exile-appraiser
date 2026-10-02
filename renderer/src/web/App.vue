@@ -188,6 +188,7 @@ import { REALMS, isSupportedCombination } from '@exile-appraiser/core/realm'
 import { reloadPhase, reloadError, retryReload } from './loadState'
 import { reportIssue, copyIssueReport, reportStatus, type ReportContext } from './report'
 import { settingsTab } from './settings/tabState'
+import { createBackdropGuard } from './settings/settings-window-geom'
 
 /** APT 的面板寬 28.75rem(rem 當時 = 16px → 460px)。 */
 const PANEL_WIDTH_EM = 28.75
@@ -307,15 +308,13 @@ export default defineComponent({
       }
     }
 
-    // 點暗幕關閉:按下與放開都在暗幕上才算(在視窗內按住拖到暗幕外放開不關)
-    let pressedOnBackdrop = false
+    // 點暗幕關閉:按下與放開都在暗幕上才算(在視窗內按住 / 拖曳移動 / 調整大小後在暗幕上放開不關;settings-window-geom.ts)
+    const backdrop = createBackdropGuard()
     function onSettingsLayerPointerDown (e: PointerEvent) {
-      pressedOnBackdrop = e.target === e.currentTarget
+      backdrop.down(e.target === e.currentTarget)
     }
     function onSettingsLayerClick (e: MouseEvent) {
-      const onBackdrop = pressedOnBackdrop && e.target === e.currentTarget
-      pressedOnBackdrop = false
-      if (onBackdrop && isOverlay) closeSettings('點暗幕')
+      if (backdrop.click(e.target === e.currentTarget) && isOverlay) closeSettings('點暗幕')
     }
 
     const unsubscribers: Array<() => void> = []

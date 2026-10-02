@@ -45,7 +45,7 @@
     </div>
 
     <Teleport to="body">
-      <div v-if="tip" class="pob-dark rx-tip" :style="tip.style" role="tooltip" data-regex="tooltip">
+      <div v-if="tip" class="pob-dark rx-tip" :style="[fsStyle, tip.style]" role="tooltip" data-regex="tooltip">
         <div v-for="(l, i) in tip.e.zh" :key="'z' + i">{{ l }}</div>
         <template v-if="tip.e.en.length">
           <hr>
@@ -73,6 +73,7 @@ import { computed, defineComponent, onBeforeUnmount, ref, shallowRef, watch } fr
 import { useI18n } from 'vue-i18n'
 import { extraLines, hiddenPreview, lineIn, otherLine, pageHasT17, type RegexEntry, type T17Filter } from '@exile-appraiser/regex'
 import { AppConfig } from '@/web/Config'
+import { useSettingsFs } from '@/web/settings/settings-fs'
 import { rafThrottle, windowEndIdx, windowStartIdx } from '../virtual-window'
 import { clearPicks, selectVisible, togglePick, useRegexStore } from './store'
 
@@ -91,9 +92,10 @@ export default defineComponent({
     const bilingual = computed(() => store.ui.bilingual)
     const uiEn = computed(() => config.uiLanguage === 'en')
 
-    // 列高:字級 × line-height 1.45,釘死成整數 px
+    // 列高:字級 × line-height 1.45,釘死成整數 px(字級 = 設定視窗的有效字級,第 21 步)
+    const settingsFs = useSettingsFs()
     const rowH = computed(() => {
-      const fs = config.fsBase || 13
+      const fs = settingsFs.fs.value || 13
       const main = Math.ceil((fs - 1) * 1.45)
       const sub = Math.ceil((fs - 2) * 1.45)
       return (bilingual.value ? main + sub : Math.max(main, 16)) + 9
@@ -169,6 +171,7 @@ export default defineComponent({
     }
 
     return {
+      fsStyle: settingsFs.style,
       t,
       scroller,
       view: store.view,

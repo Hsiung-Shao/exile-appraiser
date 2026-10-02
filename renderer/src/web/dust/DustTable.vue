@@ -74,6 +74,7 @@ import { computed, defineComponent, onBeforeUnmount, ref, shallowRef, watch, typ
 import { useI18n } from 'vue-i18n'
 import type { RankedDust } from '@exile-appraiser/core/dust'
 import { AppConfig } from '@/web/Config'
+import { useSettingsFs } from '@/web/settings/settings-fs'
 import { Host } from '@/web/background/IPC'
 import { displayRounding, usePoeninja } from '@/web/background/Prices'
 import { openTradeSite } from '@/web/trade-site'
@@ -98,9 +99,11 @@ export default defineComponent({
     const uiEn = computed(() => config.uiLanguage === 'en')
     const locale = computed(() => uiEn.value ? 'en-US' : 'zh-TW')
 
-    // 兩行:字級 × 1.45 各一行 + 上下 padding,釘死整數 px
+    // 兩行:字級 × 1.45 各一行 + 上下 padding,釘死整數 px。字級 = 設定視窗的有效字級(第 21 步獨立字級;
+    // 沒有獨立字級 = 全域 fsBase),字級一變 rowH 重算 → startIdx / endIdx 跟著重算
+    const settingsFs = useSettingsFs()
     const rowH = computed(() => {
-      const fs = config.fsBase || 13
+      const fs = settingsFs.fs.value || 13
       return Math.ceil(fs * 1.45) + Math.ceil((fs - 2) * 1.45) + 10
     })
 

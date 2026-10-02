@@ -306,6 +306,13 @@
     "section_data": "資料來源",
     "accent_custom": "自訂顏色",
     "font_size_reset": "預設",
+    "settings_window": {
+      "font_size": "設定視窗字級",
+      "follow": "跟隨全域",
+      "follow_value": "跟隨({px}px)",
+      "font_hint": "只改這個設定視窗的字,查價面板不受影響。視窗內也可以用 Ctrl + 滾輪、Ctrl + = / Ctrl + - 調整,Ctrl + 0 改回跟隨全域。",
+      "reset_size": "還原設定視窗的大小與位置"
+    },
     "startup_toast": "啟動時顯示背景執行提示",
     "hotkey_hold": "按住",
     "hotkey_none": "未設定",

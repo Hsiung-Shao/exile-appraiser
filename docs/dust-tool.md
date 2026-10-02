@@ -74,7 +74,7 @@ base(i) = 50 + 2×(clamp(i,46,68)−46) + floor(3×(clamp(i,46,68)−46)/11) + 2
 
 - 檔案:`renderer/src/web/settings/tabs/Dust.vue`(分頁,包 `DustPanel`)、`renderer/src/web/dust/{DustPanel,DustTable}.vue`、`store.ts`;
   字串 `renderer/src/i18n/*.json` 的 `ppz.dust.*`、分頁名 `ppz.tab_dust`。
-- 版面:這一頁 `SettingsWindow.vue` 替內容區加 `.fill`(不捲動、`DustPanel` 撐滿),表格自己虛擬捲動;關閉 = 設定視窗的 ✕ / Esc / 點暗幕
+- 版面:這一頁 `SettingsWindow.vue` 替內容區加 `.fill`(不捲動、`DustPanel` 撐滿),表格自己虛擬捲動(列高依設定視窗的有效字級 `useSettingsFs().fs` 算,設定視窗獨立字級改變時 rowH 重算);關閉 = 設定視窗的 ✕ / Esc / 點暗幕
   (面板沒有自己的關閉鈕)。選項卡預設收合,展開與否模組層級記住(換分頁再回來不變,不進檔)。
 - 表格:表頭可排序(名稱 / gold / 粉塵 / 價格 / 效率),虛擬捲動(同 `regex/RegexList.vue`)。每列兩行:
   名稱(介面語言)、粉塵、價格(`autoCurrency`:接近或超過 1 div 顯示 div)、效率、動作;第二行 另一語言名稱 · 基底 · gold · 催化劑註記 · ⚠。

@@ -13,17 +13,31 @@
   - 「結束程式」走 IPC `app-quit`(`preview: false`;瀏覽器預覽 / 純瀏覽器不顯示)。
   - 分頁狀態在 ./tabState.ts(托盤「設定」「關於」、OCR 框選返回直接指定分頁)。
   - 自訂背景圖(2026-10-01):根元素加 `.bg-host`、第一個子元素 BgLayer.vue(圖只畫在視窗裡;pobtools.css「自訂背景圖」)。
+  - 大小 / 位置(第 21 步,只在 floating):四邊 + 四角把手(.sw-rz)調整大小、標題列空白處移動(按鈕 / 輸入元件上不觸發);
+    pointer events + setPointerCapture,拖曳中只改畫面,放開才寫 `config.settingsWindow`(settings-window-geom.ts
+    `createRectDrag`);顯示時以 `clampSettingsRect` 夾進暗幕層(= overlay)範圍,暗幕層大小變了(換解析度 / DPI)自動夾回,
+    不回寫設定。最小 480×360。標題列「還原大小」= 設回 null(置中預設)。
+  - 獨立字級(第 21 步):`config.settingsFontSize`(null = 跟隨全域 fsBase)→ 根元素 inline `--fs-base` 與整組 `--fs-*`
+    + class `fs-own`(font-size: var(--fs-md))。設定視窗內的尺寸幾乎都以 `--fs-*` / em 計(沒有 rem),所以只要在根元素
+    重定義變數;查價面板在根元素外,完全不受影響。浮動預設大小改用 `--app-fs-base`(全域字級)= 字級改變不改視窗大小。
+    視窗內有焦點時 Ctrl + 滾輪 / Ctrl + = / Ctrl + - / Ctrl + 0(跟隨)快速調整(preventDefault,不觸發 Electron 整頁縮放)。
+    `provide(SETTINGS_FS_KEY)` 給虛擬捲動列高與 Teleport 出去的提示框 / 對話框(settings-fs.ts)。
 -->
 <template>
-  <div class="settings-panel settings-window bg-host" :class="{ floating }" role="dialog" aria-modal="true"
-    aria-labelledby="settings-window-title" data-settings="window">
+  <div ref="rootEl" class="settings-panel settings-window bg-host"
+    :class="{ floating, 'fs-own': fsVars != null, 'custom-rect': rect != null, dragging }" :style="rootStyle"
+    role="dialog" aria-modal="true" tabindex="-1"
+    aria-labelledby="settings-window-title" data-settings="window" @keydown="onFsKey" @wheel="onFsWheel">
     <!-- 自訂背景圖(設定 › 一般 › 背景;與查價面板同一張) -->
     <bg-layer />
-    <header class="sw-titlebar" :style="dragRegion ? '-webkit-app-region: drag;' : undefined">
+    <header class="sw-titlebar" :class="{ movable: floating }" :style="dragRegion ? '-webkit-app-region: drag;' : undefined"
+      @pointerdown="onTitlePointerDown">
       <span id="settings-window-title" class="sw-title"><i class="mark" />{{ t('ppz.settings') }}</span>
       <span class="chip" data-badge="settings-game">{{ gameBadge }}</span>
       <span class="chip" data-badge="settings-realm">{{ realmBadge }}</span>
       <span class="grow" />
+      <button v-if="floating && hasSavedRect" class="btn ghost sm icon-btn" :title="t('ppz.settings_window.reset_size')"
+        :aria-label="t('ppz.settings_window.reset_size')" data-action="settings-reset-size" @click="resetRect">⟲</button>
       <button class="btn ghost sm icon-btn" :title="t('ppz.close')" :aria-label="t('ppz.close')"
         style="-webkit-app-region: no-drag;" data-action="settings-close" @click="$emit('close')">✕</button>
     </header>
@@ -39,11 +53,16 @@
         <component :is="tabComponent" />
       </div>
     </div>
+    <!-- 調整大小把手(只在 overlay 浮動視窗) -->
+    <template v-if="floating">
+      <div v-for="e in edges" :key="e" class="sw-rz" :class="'rz-' + e" :data-resize="e" :style="{ cursor: cursorOf(e) }"
+        @pointerdown="onResizePointerDown($event, e)" />
+    </template>
   </div>
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, shallowRef, watch } from 'vue'
+import { computed, defineComponent, onBeforeUnmount, onMounted, provide, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import GeneralTab from './tabs/General.vue'
 import PriceCheckTab from './tabs/PriceCheck.vue'
@@ -55,6 +74,13 @@ import AboutTab from './tabs/About.vue'
 import { settingsTab as lastTab, type TabId } from './tabState'
 import { Host } from '@/web/background/IPC'
 import BgLayer from '../ui/BgLayer.vue'
+import { AppConfig } from '@/web/Config'
+import {
+  RESIZE_EDGES, clampSettingsRect, createRectDrag, edgeCursor, effectiveSettingsFs, isInteractiveTarget,
+  settingsFsShortcut, settingsFsVars, settingsFsWheel, stepSettingsFs,
+  type DragEdge, type SettingsWindowRect, type Size
+} from './settings-window-geom'
+import { SETTINGS_FS_KEY } from './settings-fs'
 
 export default defineComponent({
   components: { BgLayer },
@@ -88,7 +114,141 @@ export default defineComponent({
     const bodyEl = shallowRef<HTMLElement | null>(null)
     // 換分頁回到頂端(內容區是共用的捲動容器)
     watch(lastTab, () => { if (bodyEl.value) bodyEl.value.scrollTop = 0 })
+
+    const config = AppConfig()
+    const rootEl = shallowRef<HTMLElement | null>(null)
+
+    // ---- 獨立字級 ----
+    const fsVars = computed(() => settingsFsVars(config.settingsFontSize, config.fsBase))
+    provide(SETTINGS_FS_KEY, {
+      fs: computed(() => effectiveSettingsFs(config.settingsFontSize, config.fsBase) || 13),
+      style: fsVars
+    })
+    function applyFs (action: 'inc' | 'dec' | 'reset') {
+      const next = stepSettingsFs(config.settingsFontSize, config.fsBase, action)
+      if (next !== config.settingsFontSize) {
+        config.settingsFontSize = next
+        console.log(`[settings] 設定視窗字級 → ${next ?? '跟隨全域'}`)
+      }
+    }
+    function onFsKey (e: KeyboardEvent) {
+      // 熱鍵擷取欄(HotkeyInput)會 preventDefault:使用者在錄 Ctrl + = 之類的組合時不搶
+      if (e.defaultPrevented) return
+      const action = settingsFsShortcut(e)
+      if (!action) return
+      e.preventDefault()
+      e.stopPropagation()
+      applyFs(action)
+    }
+    function onFsWheel (e: WheelEvent) {
+      const action = settingsFsWheel(e)
+      if (!action) return
+      e.preventDefault()
+      applyFs(action)
+    }
+
+    // ---- 大小 / 位置(只在 floating) ----
+    /** 暗幕層(= overlay)的 CSS 大小;ResizeObserver 追蹤(視窗縮小、換解析度、切 DPI) */
+    const view = shallowRef<Size | null>(null)
+    const live = shallowRef<SettingsWindowRect | null>(null)
+    const drag = createRectDrag((r) => {
+      config.settingsWindow = r
+      console.log(`[settings] 設定視窗大小 / 位置 → ${r.w}×${r.h} @ ${r.x},${r.y}`)
+    }, (r) => { live.value = r })
+    const dragging = computed(() => live.value != null)
+    const rect = computed<SettingsWindowRect | null>(() => {
+      if (!props.floating) return null
+      if (live.value) return live.value
+      const saved = config.settingsWindow
+      if (!saved || !view.value) return null
+      return clampSettingsRect(saved, view.value)
+    })
+    const rootStyle = computed((): Record<string, string> | undefined => {
+      const r = rect.value
+      if (!fsVars.value && !r) return undefined
+      return {
+        ...(fsVars.value ?? {}),
+        ...(r ? { position: 'absolute', left: `${r.x}px`, top: `${r.y}px`, width: `${r.w}px`, height: `${r.h}px` } : {})
+      }
+    })
+    function layerOf (): HTMLElement | null {
+      return rootEl.value?.parentElement ?? null
+    }
+    function measureView () {
+      const p = layerOf()
+      view.value = p ? { w: p.clientWidth, h: p.clientHeight } : null
+    }
+    let ro: ResizeObserver | null = null
+    onMounted(() => {
+      if (!props.floating) return
+      measureView()
+      const p = layerOf()
+      if (p && typeof ResizeObserver !== 'undefined') {
+        ro = new ResizeObserver(measureView)
+        ro.observe(p)
+      }
+    })
+    /** 目前畫面上的矩形(相對暗幕層);從置中預設開始拖時用量的 */
+    function currentRect (): SettingsWindowRect | null {
+      const el = rootEl.value
+      const p = layerOf()
+      if (!el || !p) return null
+      const a = el.getBoundingClientRect()
+      const b = p.getBoundingClientRect()
+      return { x: Math.round(a.left - b.left), y: Math.round(a.top - b.top), w: Math.round(a.width), h: Math.round(a.height) }
+    }
+    let detach: (() => void) | null = null
+    function beginDrag (e: PointerEvent, edge: DragEdge) {
+      if (!props.floating || e.button !== 0 || drag.active) return
+      measureView()
+      const start = currentRect()
+      if (!start || !view.value) return
+      e.preventDefault()
+      const target = e.currentTarget as HTMLElement
+      try { target.setPointerCapture(e.pointerId) } catch {}
+      drag.start(edge, start, e.clientX, e.clientY, view.value)
+      const onMove = (ev: PointerEvent) => { if (ev.pointerId === e.pointerId) drag.move(ev.clientX, ev.clientY) }
+      const onUp = (ev: PointerEvent) => { if (ev.pointerId !== e.pointerId) return; cleanup(); drag.end(ev.clientX, ev.clientY) }
+      const onCancel = (ev: PointerEvent) => { if (ev.pointerId !== e.pointerId) return; cleanup(); drag.cancel() }
+      const onLost = () => { if (!drag.active) return; cleanup(); drag.end() }
+      function cleanup () {
+        target.removeEventListener('pointermove', onMove)
+        target.removeEventListener('pointerup', onUp)
+        target.removeEventListener('pointercancel', onCancel)
+        target.removeEventListener('lostpointercapture', onLost)
+        detach = null
+        try { target.releasePointerCapture(e.pointerId) } catch {}
+      }
+      target.addEventListener('pointermove', onMove)
+      target.addEventListener('pointerup', onUp)
+      target.addEventListener('pointercancel', onCancel)
+      target.addEventListener('lostpointercapture', onLost)
+      detach = () => { cleanup(); drag.cancel() }
+    }
+    onBeforeUnmount(() => { detach?.(); ro?.disconnect() })
+
     return {
+      rootEl,
+      fsVars,
+      onFsKey,
+      onFsWheel,
+      rect,
+      rootStyle,
+      dragging,
+      edges: RESIZE_EDGES,
+      cursorOf: edgeCursor,
+      hasSavedRect: computed(() => config.settingsWindow != null),
+      resetRect () {
+        config.settingsWindow = null
+        console.log('[settings] 設定視窗大小 / 位置還原為預設')
+      },
+      onTitlePointerDown (e: PointerEvent) {
+        if (!props.floating || isInteractiveTarget(e.target as Element | null)) return
+        beginDrag(e, 'move')
+      },
+      onResizePointerDown (e: PointerEvent, edge: DragEdge) {
+        beginDrag(e, edge)
+      },
       t,
       tabs,
       tab: lastTab,
@@ -128,6 +288,57 @@ export default defineComponent({
   overflow: hidden;
   pointer-events: auto;
 }
+.settings-window:focus {
+  outline: none;
+}
+/* 獨立字級(第 21 步):--fs-* 由 inline style 重定義;繼承字級的文字跟著變 */
+.settings-window.fs-own {
+  font-size: var(--fs-md);
+}
+/* 預設大小跟著「全域」字級(= 改版前),設定視窗字級改變不改視窗大小 */
+.settings-window.floating.fs-own {
+  width: min(calc(var(--app-fs-base) * 61.5), 92vw);
+  height: min(calc(var(--app-fs-base) * 46.75), 88vh);
+}
+/* 徽章外觀預覽要呈現遊戲裡的實際大小(徽章跟全域字級),不跟設定視窗字級 */
+.settings-window.fs-own .badge-preview {
+  --fs-base: var(--app-fs-base);
+  --fs-2xs: calc(var(--app-fs-base) - 3px);
+  --fs-xs: calc(var(--app-fs-base) - 2px);
+  --fs-sm: calc(var(--app-fs-base) - 1px);
+  --fs-md: var(--app-fs-base);
+  --fs-lg: calc(var(--app-fs-base) + 2px);
+  --fs-xl: calc(var(--app-fs-base) + 7px);
+  font-size: var(--fs-md);
+}
+/* 共用控制項(pobtools.css)的高度是固定 px:獨立字級放大時跟著長高,文字不被切掉;字級 ≤ 13 時維持原高度 */
+.settings-window.fs-own :is(.btn, .input:not(textarea), .select) { height: max(26px, calc(var(--fs-base) + 13px)); }
+.settings-window.fs-own .btn.sm { height: max(22px, calc(var(--fs-base) + 9px)); }
+.settings-window.fs-own :is(.input.sm:not(textarea), .select.sm), .settings-window.fs-own .seg button { height: max(24px, calc(var(--fs-base) + 11px)); }
+.settings-window.dragging,
+.settings-window.dragging * {
+  user-select: none;
+}
+.sw-titlebar.movable {
+  cursor: move;
+}
+.sw-titlebar.movable :is(button, input, select, a, label) {
+  cursor: pointer;
+}
+/* 調整大小把手:貼著內緣(根元素 overflow: hidden),邊 6px、角 12px,疊在內容之上 */
+.sw-rz {
+  position: absolute;
+  z-index: 30;
+  touch-action: none;
+}
+.sw-rz.rz-n { top: 0; left: 12px; right: 12px; height: 6px; }
+.sw-rz.rz-s { bottom: 0; left: 12px; right: 12px; height: 6px; }
+.sw-rz.rz-w { left: 0; top: 12px; bottom: 12px; width: 6px; }
+.sw-rz.rz-e { right: 0; top: 12px; bottom: 12px; width: 6px; }
+.sw-rz.rz-nw { top: 0; left: 0; width: 12px; height: 12px; }
+.sw-rz.rz-ne { top: 0; right: 0; width: 12px; height: 12px; }
+.sw-rz.rz-sw { bottom: 0; left: 0; width: 12px; height: 12px; }
+.sw-rz.rz-se { bottom: 0; right: 0; width: 12px; height: 12px; }
 
 /* 標題列(與查價面板 .titlebar 同高同語彙) */
 .sw-titlebar {

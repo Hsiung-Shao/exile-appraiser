@@ -20,6 +20,7 @@ import { Host } from './background/IPC'
 import { createHostConfigSync } from './host-config-sync'
 import { BG_DEFAULT, clampFsBase, normAccent, normBg, normTheme, DEFAULT_FS_BASE, type BgSettings, type Theme } from './useTheme'
 import { defaultOcrBadgeStyle, normOcrBadgeStyle, type OcrBadgeStyle } from './overlay/badge-style'
+import { normSettingsFontSize, normSettingsWindow, type SettingsWindowRect } from './settings/settings-window-geom'
 
 /** 介面字串語言(與客戶端語言 `language` 分開)。 */
 export type UiLanguage = 'cmn-Hant' | 'en'
@@ -105,6 +106,13 @@ export interface Config {
   stashSearch: StashSearchEntry[]
   /** 2026-10-01(第 15 步,移植 APT):倉庫頁籤捲動 Ctrl + 滾輪(預設開;只在 overlay 模式、遊戲前景時有效)。 */
   stashScroll: boolean
+  /**
+   * 第 21 步:設定視窗大小 / 位置(CSS px,相對 overlay 左上角;只在 overlay 模式套用,拖曳結束才寫入)。
+   * null = 置中預設(寬 min(50rem, 92vw)、高 min(38rem, 88vh));顯示時夾進 overlay 可視範圍(settings/settings-window-geom.ts)。
+   */
+  settingsWindow: SettingsWindowRect | null
+  /** 第 21 步:設定視窗獨立字級(11–24 px);null = 跟隨全域 `fsBase`。只作用在設定視窗,查價面板不受影響。 */
+  settingsFontSize: number | null
   // ---- 相容上游元件的推導屬性 ----
   readonly useIntlSite: boolean
   /** 上游元件讀的字級;= `fsBase`(不進檔)。 */
@@ -270,7 +278,9 @@ function createConfig (): Config {
     startupToast: true,
     commands: defaultCommands(),
     stashSearch: [] as StashSearchEntry[],
-    stashScroll: true
+    stashScroll: true,
+    settingsWindow: null as SettingsWindowRect | null,
+    settingsFontSize: null as number | null
   }
   return {
     ...base,
@@ -326,7 +336,9 @@ function serialize (): string {
     startupToast: config.startupToast,
     commands: config.commands,
     stashSearch: config.stashSearch,
-    stashScroll: config.stashScroll
+    stashScroll: config.stashScroll,
+    settingsWindow: config.settingsWindow,
+    settingsFontSize: config.settingsFontSize
   }, null, 2)
 }
 
@@ -419,6 +431,9 @@ function applyLoaded (raw: string) {
   config.stashSearch = normStashSearch(loaded.stashSearch)
   // 倉庫頁籤捲動:舊設定檔沒有 → 預設開;只有明確 false 才關(同 APT 預設)
   config.stashScroll = loaded.stashScroll !== false
+  // 第 21 步:設定視窗大小 / 位置與獨立字級(舊設定檔沒有 → null = 置中預設 / 跟隨全域;壞值 → null)
+  config.settingsWindow = normSettingsWindow(loaded.settingsWindow)
+  config.settingsFontSize = normSettingsFontSize(loaded.settingsFontSize)
 }
 
 /** 測試用:套用一份設定檔內容後回傳序列化結果(`renderer/test/runeshape-config.test.ts`) */

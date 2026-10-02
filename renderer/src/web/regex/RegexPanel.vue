@@ -128,7 +128,7 @@
     </template>
 
     <Teleport to="body">
-      <div v-if="tplConfirm" class="modal rx-modal" @mousedown.self="tplConfirm = null">
+      <div v-if="tplConfirm" class="modal rx-modal" :style="fsStyle" @mousedown.self="tplConfirm = null">
         <div class="rx-dialog" role="dialog" aria-modal="true" data-regex="template-dialog">
           <div class="rx-dialog-title">{{ t('ppz.regex.template_apply_title', { name: uiEn ? tplConfirm.name.en : tplConfirm.name.zh }) }}</div>
           <p>{{ uiEn ? tplConfirm.desc.en : tplConfirm.desc.zh }}</p>
@@ -139,7 +139,7 @@
           </div>
         </div>
       </div>
-      <div v-if="paste" class="modal rx-modal" @mousedown.self="paste = null">
+      <div v-if="paste" class="modal rx-modal" :style="fsStyle" @mousedown.self="paste = null">
         <div class="rx-dialog" role="dialog" aria-modal="true" data-regex="share-dialog">
           <div class="rx-dialog-title">{{ t('ppz.regex.share_paste') }}</div>
           <p class="dim">{{ t('ppz.regex.share_paste_warn') }}</p>
@@ -161,6 +161,7 @@ import { computed, defineComponent, onBeforeUnmount, shallowRef, watch } from 'v
 import { useI18n } from 'vue-i18n'
 import { isAlgoPage, lengthLevel, lineIn, type Mode, type RegexPage, type RegexTemplate } from '@exile-appraiser/regex'
 import { AppConfig, addStashSearchEntry } from '@/web/Config'
+import { useSettingsFs } from '@/web/settings/settings-fs'
 import RegexList from './RegexList.vue'
 import RegexAlgoList from './RegexAlgoList.vue'
 import RegexCombined from './RegexCombined.vue'
@@ -219,6 +220,8 @@ export default defineComponent({
     const paste = shallowRef<{ code: string, error: string, busy: boolean } | null>(null)
 
     return {
+      /** 對話框 Teleport 到 body,綁設定視窗獨立字級變數(第 21 步) */
+      fsStyle: useSettingsFs().style,
       t,
       uiEn,
       games: GAMES,

@@ -306,6 +306,13 @@
     "section_data": "Data sources",
     "accent_custom": "Custom colour",
     "font_size_reset": "Default",
+    "settings_window": {
+      "font_size": "Settings font size",
+      "follow": "Follow global",
+      "follow_value": "Follow ({px}px)",
+      "font_hint": "Only affects this settings window; the price check panel is unchanged. Inside the window you can also use Ctrl + wheel or Ctrl + = / Ctrl + -; Ctrl + 0 goes back to following the global size.",
+      "reset_size": "Reset settings window size and position"
+    },
     "startup_toast": "Show a \"running in the background\" notice at startup",
     "hotkey_hold": "Hold",
     "hotkey_none": "Not set",

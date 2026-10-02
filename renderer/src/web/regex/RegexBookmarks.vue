@@ -36,7 +36,7 @@
     <p v-if="counts.orphans" class="rx-bm-empty">{{ t('ppz.regex.bm_orphans', { n: counts.orphans }) }}</p>
 
     <Teleport to="body">
-      <div v-if="nameModal" class="modal rx-modal" @mousedown.self="nameModal = null">
+      <div v-if="nameModal" class="modal rx-modal" :style="fsStyle" @mousedown.self="nameModal = null">
         <div class="rx-dialog" role="dialog" aria-modal="true" data-regex="bm-name-dialog">
           <div class="rx-dialog-title">{{ t(nameModal.index < 0 ? 'ppz.regex.bm_save' : 'ppz.regex.bm_rename_title') }}</div>
           <label class="rx-dialog-field">
@@ -50,7 +50,7 @@
           </div>
         </div>
       </div>
-      <div v-if="delIdx >= 0" class="modal rx-modal" @mousedown.self="delIdx = -1">
+      <div v-if="delIdx >= 0" class="modal rx-modal" :style="fsStyle" @mousedown.self="delIdx = -1">
         <div class="rx-dialog" role="dialog" aria-modal="true" data-regex="bm-delete-dialog">
           <div class="rx-dialog-title">{{ t('ppz.regex.bm_delete_title') }}</div>
           <p>{{ ui.bookmarks[delIdx] ? t('ppz.regex.bm_delete_confirm', { name: ui.bookmarks[delIdx].name }) : t('ppz.regex.bm_gone') }}</p>
@@ -69,6 +69,7 @@
 import { computed, defineComponent, nextTick, ref, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { AppConfig } from '@/web/Config'
+import { useSettingsFs } from '@/web/settings/settings-fs'
 import {
   deleteBookmark, gameLabel, loadBookmark, renameBookmark, saveBookmark, updateBookmark, useRegexStore
 } from './store'
@@ -95,6 +96,8 @@ export default defineComponent({
     }
 
     return {
+      /** 對話框 Teleport 到 body,綁設定視窗獨立字級變數(第 21 步) */
+      fsStyle: useSettingsFs().style,
       t,
       gameLabel,
       ui: store.ui,
