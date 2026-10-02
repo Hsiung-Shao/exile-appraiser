@@ -1,0 +1,24 @@
+{
+  "category": "Jewel",
+  "influences": [],
+  "info": {
+    "name": "藍寶石",
+    "namespace": "ITEM",
+    "refName": "Sapphire"
+  },
+  "infoVariants": [
+    {
+      "name": "藍寶石",
+      "namespace": "ITEM",
+      "refName": "Sapphire"
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": true,
+  "itemLevel": 80,
+  "name": "藍寶石",
+  "newMods": [],
+  "note": "~b/o 11 chaos",
+  "rarity": "Unique",
+  "unknownModifiers": []
+}

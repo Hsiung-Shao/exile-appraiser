@@ -50,6 +50,12 @@
 - 聯盟:`leagueBy[game][realm]`(舊 `leagueByRealm` 讀檔時併入 `poe1`);PoE2 清單 `/api/trade2/data/leagues`,
   預設規則照 E(清單 > 2 取 index 2)。
 - 切到 PoE2 時若視窗標題仍是 `Path of Exile`,自動改 `Path of Exile 2`(反之亦然;自訂過的不動)。
+- **未鑑定傳奇(2026-10-03 修空白面板)**:上游 `PriceCheckWindow.vue` 在 `CheckedItem` 上方掛 `unidentified-resolver/UnidentifiedResolver.vue`,
+  本專案移植時沒掛 → 未鑑定傳奇(`noUniqueSelection`)整塊不畫、也沒有任何錯誤,查價面板只剩標題列(v0.1.1 起就有)。
+  現在元件逐字移植到 `poe2/src/web/price-check/unidentified-resolver/`,經 `@poe2-entry` 的 `UnidentifiedResolver` 由 App.vue 掛在 PoE2 `CheckedItem` 上方;
+  行為照上游:列出這個基底的傳奇(`ITEMS_ITERATOR` 找 `unique.base`,變體不分;只有一個就自動選),選定 = 物品 `info` 換成那個傳奇
+  (`App.vue` `onIdentify` → `parsed = ok(identified)`,同上游 `handleIdentification`),之後照一般傳奇查(名稱 + 基底 + `identified: false`)。
+  查價區另包 `renderer/src/web/ui/ErrorBoundary.vue`:元件出錯時顯示錯誤框 + 寫 `[renderer-error]`(含堆疊)進 main log,不再整塊空白。
 - `main/src/HostClipboard.ts`:加 `Rarity: ` / `稀有度: ` 開頭(E 的 `uncutSkillGemLine`,PoE2 未切割技能寶石沒有「物品種類」行)。
 - **`@/…` 解析依 importer**:`renderer/vite.config.mts` 的 `gameAwareAtAlias()` —— importer 在 `poe2/src` 時先找 poe2/src 再退回 renderer/src;
   其餘維持「parser / assets/data / web/price-check → poe1」。型別版是 `poe2/tsconfig.vue.json` 的 `@/*: [poe2/src, renderer/src]`。

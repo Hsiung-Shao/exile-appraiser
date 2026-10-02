@@ -20,4 +20,6 @@ export { matchRunesRows, matchRunesRowsFor, ensureRuneshapeIndex } from './runes
 // exile-appraiser:符文塑形無 ninja 價的列 → 自動查交易站(帶與產物相符的篩選;docs/runeshape.md「自動查市集」)
 export { planRuneTradeQuery, runeTradeUnavailable, summarizeRuneTrade, createRuneTradeQueue, withRuneTrade429 } from './runeshape/trade-lookup'
 export { default as CheckedItem } from '@/web/price-check/CheckedItem.vue'
+// exile-appraiser(2026-10-03):未鑑定傳奇選擇(上游 PriceCheckWindow.vue 掛在 CheckedItem 上方;沒掛 = 未鑑定傳奇的查價面板一片空白)
+export { default as UnidentifiedResolver } from '@/web/price-check/unidentified-resolver/UnidentifiedResolver.vue'
 export { default as RateLimiterState } from '@/web/price-check/trade/RateLimiterState.vue'

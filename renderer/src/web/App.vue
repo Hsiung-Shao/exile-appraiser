@@ -100,9 +100,15 @@
               </ui-error-box>
               <pre class="raw-text selectable mx-3 mb-3">{{ rawText }}</pre>
             </template>
-            <component :is="checkedItemComponent" v-else-if="parsed?.isOk() && leagueId && supported"
-              :key="itemKey"
-              :item="parsed.value" :advanced-check="advancedCheck" />
+            <!-- 元件出錯時改畫錯誤框(寫進 main log)而不是整塊空白;換物品自動清除 -->
+            <error-boundary v-else-if="parsed?.isOk() && leagueId && supported" :reset-key="itemKey" where="price-check">
+              <!-- PoE2 未鑑定傳奇:先選是哪個傳奇(上游 PriceCheckWindow.vue 同位置;只有一個就自動選) -->
+              <component :is="unidentifiedResolverComponent" v-if="unidentifiedResolverComponent"
+                :key="`u${itemKey}`" :item="parsed.value" @identify="onIdentify" />
+              <component :is="checkedItemComponent"
+                :key="itemKey"
+                :item="parsed.value" :advanced-check="advancedCheck" />
+            </error-boundary>
 
             <div v-if="!parsed" class="paste-area">
               <p class="paste-hint">{{ t('ppz.paste_hint', { hotkey: hotkeyLabel }) }}</p>
@@ -162,7 +168,7 @@
 <script lang="ts">
 import { computed, defineComponent, onMounted, onUnmounted, provide, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import type { Result } from 'neverthrow'
+import { ok, type Result } from 'neverthrow'
 import type { ItemTextEvent } from '@ipc/types'
 // 兩個遊戲各自的 parser / CheckedItem / RateLimiterState;依 loadedGame(資料已載入完成的遊戲)切換
 import { parseClipboard, type ParsedItem } from '@/parser'
@@ -174,6 +180,7 @@ import { poe1Adapter } from '@exile-appraiser/poe1'
 import type { ItemTextLanguage } from '@exile-appraiser/core/games/adapter'
 import { TRADE_PATHS } from '@exile-appraiser/core/realm'
 import UiErrorBox from '@/web/ui/UiErrorBox.vue'
+import ErrorBoundary from './ui/ErrorBoundary.vue'
 import BgLayer from './ui/BgLayer.vue'
 import SettingsWindow from './settings/SettingsWindow.vue'
 import OcrBadges from './overlay/OcrBadges.vue'
@@ -201,7 +208,7 @@ const PANEL_WIDTH_EM = 28.75
 const LEGACY_FS_SCALE = 1.23
 
 export default defineComponent({
-  components: { UiErrorBox, BgLayer, SettingsWindow, OcrBadges, OcrRegionPicker, RuneshapePrices },
+  components: { UiErrorBox, ErrorBoundary, BgLayer, SettingsWindow, OcrBadges, OcrRegionPicker, RuneshapePrices },
   setup () {
     const { t, te } = useI18n()
     const leagues = useLeagues()
@@ -499,6 +506,13 @@ export default defineComponent({
       itemKey,
       rateLimitWait,
       checkedItemComponent: computed(() => loadedGame.value === 'poe2' ? Poe2.CheckedItem : CheckedItem),
+      // PoE2 未鑑定傳奇的選擇列(PoE1 / APT 沒有這個元件)
+      unidentifiedResolverComponent: computed(() => loadedGame.value === 'poe2' ? Poe2.UnidentifiedResolver : null),
+      /** 上游 PriceCheckWindow `handleIdentification`:選定的傳奇換掉物品(CheckedItem 隨 prop 重建篩選) */
+      onIdentify (identified: Poe2.Poe2ParsedItem) {
+        console.log(`[app] 未鑑定傳奇選定:${identified.info.name} / ${identified.info.refName}`)
+        parsed.value = ok(identified)
+      },
       rateLimiterComponent: computed(() => loadedGame.value === 'poe2' ? Poe2.RateLimiterState : RateLimiterState),
       panelShown,
       advancedCheck,

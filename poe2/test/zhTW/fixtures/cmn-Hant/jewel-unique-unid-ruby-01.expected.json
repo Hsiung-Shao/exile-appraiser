@@ -1,0 +1,24 @@
+{
+  "category": "Jewel",
+  "influences": [],
+  "info": {
+    "name": "紅寶石",
+    "namespace": "ITEM",
+    "refName": "Ruby"
+  },
+  "infoVariants": [
+    {
+      "name": "紅寶石",
+      "namespace": "ITEM",
+      "refName": "Ruby"
+    }
+  ],
+  "isCorrupted": false,
+  "isUnidentified": true,
+  "itemLevel": 80,
+  "name": "紅寶石",
+  "newMods": [],
+  "note": "~b/o 15 divine",
+  "rarity": "Unique",
+  "unknownModifiers": []
+}

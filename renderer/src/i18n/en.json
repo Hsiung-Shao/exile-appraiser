@@ -280,6 +280,8 @@
     "per_hour": "/hr",
     "unsupported_combo": "The Taiwan realm currently supports the Traditional Chinese client only.",
     "parse_error": "Could not parse item text",
+    "panel_error": "The price check panel ran into an error",
+    "panel_error_hint": "Details (with stack trace) were written to the log; search for [renderer-error]. Press Retry or check another item.",
     "rate_limited": "Rate limited, retrying in {seconds}s",
     "version": "Version",
     "data_source": "{repo} {'@'} {commit}",

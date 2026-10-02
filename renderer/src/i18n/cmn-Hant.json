@@ -280,6 +280,8 @@
     "per_hour": "/小時",
     "unsupported_combo": "台服目前只支援繁中客戶端。",
     "parse_error": "無法解析物品文字",
+    "panel_error": "查價面板發生錯誤",
+    "panel_error_hint": "詳細內容(含堆疊)已寫入記錄檔,搜尋 [renderer-error]。可以按重試,或換一件物品。",
     "rate_limited": "限流中,{seconds} 秒後自動重試",
     "version": "版本",
     "data_source": "{repo} {'@'} {commit}",

@@ -1,0 +1,56 @@
+{
+  "baseType": "綠寶石",
+  "category": "Jewel",
+  "influences": [],
+  "info": {
+    "name": "巨光譜",
+    "namespace": "UNIQUE",
+    "refName": "Grand Spectrum",
+    "unique": {
+      "base": "Emerald"
+    }
+  },
+  "infoVariants": [
+    {
+      "name": "巨光譜",
+      "namespace": "UNIQUE",
+      "refName": "Grand Spectrum",
+      "unique": {
+        "base": "Emerald"
+      }
+    }
+  ],
+  "isCorrupted": true,
+  "isUnidentified": false,
+  "itemLevel": 80,
+  "name": "巨光譜",
+  "newMods": [
+    {
+      "info": {
+        "tags": [],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "ref": "#% increased Spirit per socketed Grand Spectrum",
+          "roll": {
+            "dp": false,
+            "max": 2,
+            "min": 2,
+            "unscalable": false,
+            "value": 2
+          },
+          "tradeIds": {
+            "explicit": [
+              "explicit.stat_1430165758"
+            ]
+          },
+          "translation": "每顆巨光譜增加#%精魂"
+        }
+      ]
+    }
+  ],
+  "note": "~b/o 1 divine",
+  "rarity": "Unique",
+  "unknownModifiers": []
+}

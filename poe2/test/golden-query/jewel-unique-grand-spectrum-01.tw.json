@@ -1,0 +1,36 @@
+{
+  "api": "trade",
+  "request": {
+    "query": {
+      "status": {
+        "option": "securable"
+      },
+      "stats": [
+        {
+          "type": "and",
+          "filters": [
+            {
+              "id": "explicit.stat_1430165758",
+              "value": {},
+              "disabled": true
+            }
+          ]
+        }
+      ],
+      "filters": {
+        "trade_filters": {
+          "filters": {
+            "collapse": {
+              "option": "true"
+            }
+          }
+        }
+      },
+      "name": "巨光譜",
+      "type": "綠寶石"
+    },
+    "sort": {
+      "price": "asc"
+    }
+  }
+}

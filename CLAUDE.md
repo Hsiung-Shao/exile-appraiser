@@ -116,6 +116,9 @@ Path of Exile 查價工具(Electron + TypeScript)。把 `apt-patched`(Awakened P
     **框選區域(WP-S2)只在 overlay 的無頭頁面 / 假 host 驗證**(CDP `Input.dispatch*` 只作用於無頭頁面);`ocrRegion` 一律存 client 比例,main 以 client 尺寸換算再減擷取偏移;
     **框了區域就只看區域**(2026-10-01 第 13 步使用者裁定,推翻原本「區域內沒找到必須退回整張」):區域內沒找到面板 → 清徽章、設定頁顯示「區域內沒找到面板」,不改找整個畫面(會把物品浮窗當成面板);
     沒框區域才自動定位整個畫面;`ocr-region-pick` 不進 `PREVIEW_EVENTS`。
+22. **renderer 錯誤一律進 main log**(2026-10-03):main 只收得到 renderer console 的訊息字串(沒有堆疊),所以 `renderer/src/web/renderer-errors.ts` 自己組成一行 `[renderer-error] <位置>(<Vue 來源>) <錯誤> + 堆疊`;
+    入口 = `app.config.errorHandler`、`window` error / unhandledrejection(renderer `main.ts`)、查價區的 `ui/ErrorBoundary.vue`(子元件 setup / 渲染 / watch 出錯 → 錯誤框 + 重試,換物品清除;事件處理出錯只記 log)。
+    **查價面板空白一律先搜 log 的 `[renderer-error]`**;沒有 = 不是拋錯,是 v-if 把整塊藏掉(例:PoE2 未鑑定傳奇沒掛 UnidentifiedResolver,`docs/poe2-port-notes.md`「renderer 接線」)。
 
 ## 指令
 ```bash
@@ -162,6 +165,10 @@ UPDATE_FIXTURES=1 npm test       # 改寫 parser / golden-query 快照;產出必
 - `regex/test/` 另有 `numeric`(0–999 逐值)、`pages`、`combine`、`share`(含範本鍵可還原)、`state` 測試。
 - `renderer/test/price-check-options.test.ts`:物品浮窗設定選項(三選一、僅 PoE2、字串兩語、TradeItem `appendTo` 掛點守門)。
 - 第 24 步(通貨價格區):`core/test/ninja.test.ts`「走勢與成交量」(錄製回應 → schema 3 往返)、`core/test/units.test.ts`(PoE1 APT / PoE2 崇高石神聖石單位)、`renderer/test/price-trend.test.ts`(命中欄位、PoE2 價格源轉接 / 台服沒有價格、成交量四選一與字串、走勢圖幾何、兩代接線與「只對 exchange 類顯示」守門、快取讀取中不重抓)、`poe2/test/web/background/prices-adapter.test.ts`(沒注入 = 原本行為、divine 計價、換算快取依版本失效、區間運算、`requestResults` 換算價)。
+- **查價面板掛載測試(2026-10-03,`renderer/test-vue/`,`vitest.vue.config.mts`)**:沿用 vite 設定(vue 外掛 + `gameAwareAtAlias`),`test-vue/mini-dom.ts` 是 runtime-core `createRenderer` 的物件樹渲染器(**不裝 jsdom**),
+  `setup.ts` 替身 window / document / localStorage / fetch(`./data/` 讀 repo、交易站走 `poe2/test/docs/fetchResponses*.json`、**不連網**)、tippy 換空實例;
+  `price-panel-mount.test.ts` 把使用者回報的三件(`poe2/test/zhTW/fixtures/cmn-Hant/jewel-unique-{unid-sapphire,grand-spectrum,unid-ruby}-01`)掛進 App.vue 同結構(ErrorBoundary > UnidentifiedResolver + CheckedItem),
+  斷言不空白、無錯誤 / Vue 警告、送出的查詢;另驗 ErrorBoundary(錯誤框、`[renderer-error]` 帶堆疊、`resetKey` 清除)與 App.vue / main.ts 接線。`renderer/test/renderer-errors.test.ts` 測格式 / 去重 / 錯誤來源名稱。
 - `renderer/test/`:`feedback.test.ts`(回報網址/剪貼簿路徑/剝帳號鍵)、`trade-site.test.ts`(交易站開啟方式、舊 `dustDockRatio` 相容)等純函式測試。
 - `main/test/external-links.test.ts`:`open-external` 只收 http(s)、主視窗導覽放行 / 攔截規則。
 - `main/test/preview-server.test.ts`:預覽伺服器(token 404 / Host 421 / Origin 403、防穿越、boot script、RPC 往返、SSE 續傳、自動關閉、回覆保留窗口 / 位元組上限、ETag / 304 / immutable),純 Node。

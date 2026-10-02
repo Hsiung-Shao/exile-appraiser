@@ -15,6 +15,10 @@ import { runReload } from './web/loadState'
 import { bumpDataGeneration } from './web/overlay/scan-dedupe'
 import { usePoeninja } from './web/background/Prices'
 import { createPoe2PriceSource } from './web/background/poe2-price-source'
+import { installVueErrorHandler, installWindowErrorLogging } from './web/renderer-errors'
+
+// 未捕捉的例外 / Promise 一律帶堆疊寫進 main log(`[renderer-error]`;main 只收得到 console 的訊息字串)
+installWindowErrorLogging(window)
 
 /** 載入某個遊戲的資料集(每個 adapter 各自持有模組層級資料;切回來時語言沒變就是 no-op)。 */
 async function loadGameData (game: Game, lang: Language): Promise<void> {
@@ -110,7 +114,8 @@ async function boot () {
 
   void useLeagues().load()
 
-  createApp(App)
-    .use(i18nPlugin)
-    .mount('#app')
+  const app = createApp(App)
+  // Vue 錯誤(沒被查價面板的 ErrorBoundary 攔下的)帶元件路徑與堆疊寫進 main log;正式版預設只印 `console.error(err)`
+  installVueErrorHandler(app)
+  app.use(i18nPlugin).mount('#app')
 }
