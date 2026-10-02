@@ -280,7 +280,22 @@ export interface ConfigChangedEvent {
 }
 
 /** 設定面板的分頁(托盤「設定」「關於」用 `open-settings` 指定要開哪頁;查價標題列 ⚖ 開 `dust`)。 */
-export type SettingsTabId = 'general' | 'price-check' | 'hotkeys' | 'chat' | 'regex' | 'dust' | 'about'
+export type SettingsTabId = 'general' | 'price-check' | 'hotkeys' | 'chat' | 'regex' | 'dust' | 'log' | 'about'
+
+/** 第 28 步:設定 › 記錄。main 常駐環形緩衝(最近約 3000 行)的一筆;`seq` 遞增,renderer 以它去重 / 補洞。 */
+export type LogLevel = 'info' | 'warn' | 'error'
+export interface LogEntry {
+  seq: number
+  /** epoch ms */
+  ts: number
+  level: LogLevel
+  text: string
+}
+export interface LogSnapshot {
+  entries: LogEntry[]
+  /** main 目前最大的 seq(0 = 還沒有任何記錄) */
+  lastSeq: number
+}
 
 /** 聊天指令(移植 APT `commands`):熱鍵 → 在遊戲聊天框輸入 `text`(`@last` 前綴 / 後綴規則見 main/src/text-box.ts);`send` = 直接送出。 */
 export interface ChatCommand {
@@ -385,6 +400,14 @@ export interface HostApi {
   runeshapeStats?: () => Promise<RuneshapeStats | undefined>
   /** 第 18 步:回報畫在遊戲上的徽章 / 提示外框(main 擷取後遮掉);預覽端 no-op。 */
   scanMask?: (r: ScanMaskReport) => void
+  /** 第 28 步:記錄快照(IPC `log-get`);帶 `sinceSeq` 只回較新的。預覽端經 RPC 可用(輪詢)。 */
+  getLog?: (sinceSeq?: number) => Promise<LogSnapshot>
+  /** 第 28 步:記錄分頁開 / 關時通知 main 要不要送 `log-lines`(IPC `log-subscribe`);預覽端 no-op。 */
+  logSubscribe?: (on: boolean) => void
+  /** 第 28 步:記錄即時追加(~200 ms 一批;只在 `logSubscribe(true)` 之後才會收到)。預覽端永遠收不到(不在 PREVIEW_EVENTS)。 */
+  onLogLines?: (cb: (entries: LogEntry[]) => void) => () => void
+  /** 第 28 步:開啟記錄資料夾(userData/logs)。瀏覽器預覽 shim 沒有這個方法(`preview: false`)。 */
+  openLogFolder?: () => Promise<void>
 }
 
 /**

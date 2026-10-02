@@ -10,7 +10,7 @@
  */
 import type { HostApi, HostFetchResult, ItemTextEvent, HostConfigForMain, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId } from '@ipc/types'
 import type { ConfigChangedEvent, HotkeyRegistration, OcrAvailability, OcrRegionPickTarget, RevealScanEvent, SettingsTabId, UpdaterInfo } from '@ipc/types'
-import type { RuneshapeScanEvent, RuneshapeStats, RuneshapeUiState, ScanMaskReport } from '@ipc/types'
+import type { LogEntry, LogSnapshot, RuneshapeScanEvent, RuneshapeStats, RuneshapeUiState, ScanMaskReport } from '@ipc/types'
 import { shallowRef } from 'vue'
 import type { HttpFetch } from '@exile-appraiser/core/http'
 import { withRetryAfter } from '@exile-appraiser/core/http'
@@ -202,6 +202,24 @@ class HostTransport {
     if (!window.host?.getPreviewUrl) return null
     return await window.host.getPreviewUrl()
   }
+
+  // ---- 第 28 步:設定 › 記錄(main/src/app-log.ts) ----
+  /** 記錄快照(帶 `sinceSeq` 只回較新的);純瀏覽器沒有 main → 空 */
+  async getLog (sinceSeq?: number): Promise<LogSnapshot> {
+    return (await window.host?.getLog?.(sinceSeq)) ?? { entries: [], lastSeq: 0 }
+  }
+
+  /** 記錄分頁開 / 關:通知 main 要不要送 `log-lines`(預覽端 no-op) */
+  logSubscribe (on: boolean): void { window.host?.logSubscribe?.(on) }
+  onLogLines (cb: (entries: LogEntry[]) => void): () => void {
+    return window.host?.onLogLines?.(cb) ?? (() => {})
+  }
+
+  /** 預覽端收不到 `log-lines`(不在 PREVIEW_EVENTS),記錄分頁要改輪詢 */
+  get logIsPolled (): boolean { return this.isPreview || typeof window.host?.onLogLines !== 'function' }
+  /** 開記錄資料夾:只有 Electron 視窗(預覽 / 純瀏覽器沒有) */
+  get canOpenLogFolder (): boolean { return !this.isPreview && typeof window.host?.openLogFolder === 'function' }
+  async openLogFolder (): Promise<void> { if (this.canOpenLogFolder) await window.host?.openLogFolder?.() }
 
   // ---- 靈魂之井揭露面板(褻瀆)自動辨識(main/src/ocr/reveal-scan.ts;只有 overlay 會收到事件) ----
   onRevealScanResult (cb: (e: RevealScanEvent) => void): () => void {

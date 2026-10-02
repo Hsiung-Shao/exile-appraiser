@@ -37,6 +37,7 @@ import { ScanMaskStore, sanitizeMaskReport } from './ocr/scan-mask'
 import { isAppNavigation, isExternalWebUrl } from './external-links'
 import { BG_DIR_NAME, bgContentType, bgCorsHeaders, bgFileFromPath, normBgFile, resolveBgPath, storedBgName } from './backgrounds'
 import { createFontLister } from './system-fonts'
+import { AppLog, LogFileWriter, captureConsole, consoleMethodForLevel, type LogEntry } from './app-log'
 import {
   TOAST_FADE_MS, TOAST_VISIBLE_MS, isFirstRunAfterUpdate, parseLastRun, priceCheckHotkeyLabel, scanToastMessage, serializeLastRun,
   shouldShowGameAttachToast, shouldShowStartupToast, toastBounds, toastHtml, toastLang, toastMessage, toastWorkArea, type ScanToastKind, type ToastMessage
@@ -67,15 +68,19 @@ if (CAPTURE_BENCH_MODE === 'ignored') console.warn('[main] 正式版不支援 --
 // `--ppz-log-file=<path>`:main 的 console 另外附加寫到檔案(驗證自我重新啟動用;relaunch 會沿用同一組參數,
 // 新行程的 stdout 不一定接得回原終端機)。不用 `--log-file`,那是 Chromium 自己的開關。
 const LOG_FILE = process.argv.find(a => a.startsWith('--ppz-log-file='))?.slice('--ppz-log-file='.length)
+// 第 28 步:常駐記錄(app-log.ts)。console.log / warn / error 與 renderer 轉印行**只在這裡攔一次**:
+// 進環形緩衝(設定 › 記錄 的快照 / 即時追加)、userData/logs/ 的非同步檔案(whenReady 後接上),
+// `--ppz-log-file` 的附加寫檔(行為不變:同步 append、帶 pid)也掛在同一個攔截點。
+let logEmit: ((entries: LogEntry[]) => void) | null = null
+const appLog = new AppLog({ emit: (entries) => { logEmit?.(entries) } })
+const rawConsoleWarn = console.warn.bind(console)
+captureConsole(console, appLog, format)
 if (LOG_FILE) {
-  for (const level of ['log', 'warn', 'error'] as const) {
-    const orig = console[level].bind(console)
-    console[level] = (...args: unknown[]) => {
-      orig(...args)
-      try { fsSync.appendFileSync(LOG_FILE, `${new Date().toISOString()} [pid ${process.pid}] ${format(...args)}\n`) } catch {}
-    }
-  }
+  appLog.onLine((_line, e) => {
+    try { fsSync.appendFileSync(LOG_FILE, `${new Date(e.ts).toISOString()} [pid ${process.pid}] ${e.text}\n`) } catch {}
+  })
 }
+const LOG_DIR = () => path.join(app.getPath('userData'), 'logs')
 
 console.log(uiohookPrebuildResult.message)
 
@@ -316,9 +321,10 @@ function createWindow (mode: WindowMode): BrowserWindow {
   })
   // renderer 的 console 轉印到 main log(沒有 DevTools 時驗證用)
   w.webContents.on('console-message', (...args: unknown[]) => {
-    const details = args[0] as { message?: string } | undefined
+    const details = args[0] as { message?: string, level?: unknown } | undefined
     const message = details?.message ?? (args[2] as string | undefined)
-    if (message) console.log(`[renderer] ${message}`)
+    // 依 renderer 的等級走 console.log / warn / error(記錄分頁的等級欄與篩選用);舊版 Electron 的位置參數 level = args[1]
+    if (message) console[consoleMethodForLevel(details?.level ?? args[1])](`[renderer] ${message}`)
   })
   if (DEV_URL) {
     loadDevUrlWithRetry(w, DEV_URL)
@@ -639,6 +645,18 @@ if (!skipStartup) app.whenReady().then(() => {
   // 事件一律經 Broadcaster:送 webContents,放行清單內的(config-changed / updater-state / switch-game)也送預覽分頁
   const broadcaster = new Broadcaster(() => w.isDestroyed() ? null : w.webContents)
   const send: SendToRenderer = broadcaster.broadcast
+
+  // 第 28 步:記錄檔(非同步寫入;先刪 7 天前的,再把已在緩衝裡的行補寫進去)+ 記錄分頁的即時追加
+  // (只在記錄分頁打開、renderer 送 log-subscribe 後才送;不進 PREVIEW_EVENTS,預覽端改輪詢 log-get)
+  const logWriter = new LogFileWriter({ dir: LOG_DIR(), onError: (e) => { rawConsoleWarn('[log] 寫記錄檔失敗(之後的錯誤不再重複回報)', e) } })
+  void logWriter.purgeOld().then((removed) => {
+    appLog.attachFile(logWriter)
+    if (removed.length) console.log(`[log] 已刪除 ${removed.length} 個 7 天前的記錄檔`)
+  })
+  app.on('will-quit', () => { void logWriter.close() })
+  logEmit = (entries) => { send('log-lines', entries) }
+  // 視窗重新載入(F5 / 開發模式熱重載)後 renderer 的訂閱就沒了:重置,記錄分頁重新掛上時會再送 log-subscribe
+  w.webContents.on('did-start-loading', () => { appLog.setSubscribed(false) })
 
   let overlay: OverlayWindow | undefined
   let poeWindow: GameWindow | undefined
@@ -1251,6 +1269,20 @@ if (!skipStartup) app.whenReady().then(() => {
           console.error('[bg] 複製背景圖失敗', e)
           return null
         }
+      }
+    },
+    // 第 28 步:設定 › 記錄。log-get 回快照({ entries, lastSeq },帶 sinceSeq 只回較新的;預覽端可用 = 輪詢);
+    // log-subscribe(send)= 記錄分頁開著才讓 main 送 log-lines 即時追加;開資料夾只給 Electron 視窗
+    'log-get': { kind: 'invoke', fn: (_ctx, sinceSeq?: unknown) => appLog.snapshot(typeof sinceSeq === 'number' ? sinceSeq : undefined) },
+    'log-subscribe': { kind: 'send', fn: (_ctx, on: unknown) => { appLog.setSubscribed(on === true) } },
+    'log-open-folder': {
+      kind: 'invoke',
+      preview: false,
+      fn: async () => {
+        const dir = LOG_DIR()
+        await fs.mkdir(dir, { recursive: true })
+        const err = await shell.openPath(dir)
+        if (err) throw new Error(err)
       }
     },
     'preview-open':{ kind: 'invoke', fn: () => openPreviewInBrowser() },

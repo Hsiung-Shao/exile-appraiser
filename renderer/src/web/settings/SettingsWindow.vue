@@ -4,6 +4,7 @@
     底部「結束程式」)+ 右側可捲動內容。容器寬 < 640px(container query)時左選單收成上方分頁。
   - 拆粉排行分頁(tabs/Dust.vue,2026-09-30 起;原本停靠在查價下方):內容區加 .fill = 不捲動、子元素撐滿,
     表格自己虛擬捲動。查價標題列的 ⚖ 直接開到這一頁。
+  - 記錄分頁(tabs/Log.vue,第 28 步;在「關於」之前):同樣加 .fill,記錄清單自己虛擬捲動。
   - `floating`(overlay):App.vue 把它放在全螢幕暗幕中央,寬 min(50rem, 92vw)、高 min(38rem, 88vh),
     rem 以 APT 的 16px 換算成 --fs-base × 1.23(同 App.vue 的 LEGACY_FS_SCALE),隨字級縮放。
     非 floating(window 模式 / 瀏覽器預覽):填滿視窗內容區;window 模式標題列可拖曳視窗。
@@ -50,7 +51,7 @@
         <span class="sw-nav-fill" />
         <button v-if="canQuit" class="sw-quit" data-action="app-quit" @click="quit">{{ t('ppz.quit_app') }}</button>
       </nav>
-      <div ref="bodyEl" class="settings-body" :class="{ fill: tab === 'dust' }" role="tabpanel" :data-settings-tab="tab">
+      <div ref="bodyEl" class="settings-body" :class="{ fill: tab === 'dust' || tab === 'log' }" role="tabpanel" :data-settings-tab="tab">
         <component :is="tabComponent" />
       </div>
     </div>
@@ -71,6 +72,7 @@ import HotkeysTab from './tabs/Hotkeys.vue'
 import ChatTab from './tabs/Chat.vue'
 import RegexTab from './tabs/Regex.vue'
 import DustTab from './tabs/Dust.vue'
+import LogTab from './tabs/Log.vue'
 import AboutTab from './tabs/About.vue'
 import { settingsTab as lastTab, type TabId } from './tabState'
 import { Host } from '@/web/background/IPC'
@@ -101,6 +103,7 @@ export default defineComponent({
       { id: 'chat', key: 'ppz.tab_chat' },
       { id: 'regex', key: 'ppz.tab_regex' },
       { id: 'dust', key: 'ppz.tab_dust' },
+      { id: 'log', key: 'ppz.tab_log' },
       { id: 'about', key: 'ppz.tab_about' }
     ]
     const components = {
@@ -110,6 +113,7 @@ export default defineComponent({
       chat: ChatTab,
       regex: RegexTab,
       dust: DustTab,
+      log: LogTab,
       about: AboutTab
     }
     const bodyEl = shallowRef<HTMLElement | null>(null)

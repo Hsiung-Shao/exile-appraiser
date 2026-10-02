@@ -44,6 +44,7 @@ npm run dev:main -- --window --preview --no-updates    # log 印預覽網址
   `http-abort`(`fetchAbort(requestId)`:中止自己這個分頁帶 `requestId` 送出的請求;鍵含預覽 cid,中止不到別的分頁 / Electron 視窗的請求)、
   Regex / 拆粉 / ninja 快取、更新器四個動作、`openExternal`、`openCaptcha`(**開在 Electron 視窗**,cookie 才進得了 session)。
 - 瀏覽器端 no-op:`hideWindow`、`resizeWindow`、`trackArea`、`focusGame`、`usedRecently`(沒有視窗可控)。
+- 設定 › 記錄(第 28 步):`log-get`(`getLog(sinceSeq)`)預覽可讀;`log-lines` 即時追加**不送預覽**,預覽端的記錄分頁每 2 秒用 `sinceSeq` 輪詢;`log-subscribe` 在 shim 是 no-op;`log-open-folder` 是 `preview: false`(預覽端沒有「開啟記錄資料夾」鈕)。
 - 預覽分頁收得到的事件只有 `config-changed`、`updater-state`、`switch-game`。**`item-text` 不送**:否則按一次查價熱鍵,
   overlay 與每個預覽分頁都會各查一次,交易站限流加倍。所以預覽頁不會跟著查價。
 

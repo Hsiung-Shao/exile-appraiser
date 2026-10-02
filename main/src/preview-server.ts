@@ -54,7 +54,9 @@ export const HOST_METHOD_CHANNELS: Readonly<Record<string, string>> = {
   installUpdate: 'updater-install',
   openPreview: 'preview-open',
   getPreviewUrl: 'preview-url',
-  listFonts: 'list-fonts'
+  listFonts: 'list-fonts',
+  // 第 28 步:設定 › 記錄(預覽端輪詢 log-get;log-open-folder 是 preview: false,不在這張表)
+  getLog: 'log-get'
 }
 
 /** `HostApi` 訂閱方法 → 事件名(預覽端只會收到 main `PREVIEW_EVENTS` 放行的那幾個)。 */
@@ -71,7 +73,9 @@ export const HOST_EVENT_METHODS: Readonly<Record<string, string>> = {
   // WP-S2:框選熱鍵事件同樣只給 overlay
   onOcrRegionPick: 'ocr-region-pick',
   // WP-R2:符文塑形掃描結果同樣只給 overlay(不在 PREVIEW_EVENTS)
-  onRuneshapeScanResult: 'runeshape-scan-result'
+  onRuneshapeScanResult: 'runeshape-scan-result',
+  // 第 28 步:記錄即時追加不在 PREVIEW_EVENTS(預覽端永遠收不到,記錄分頁改輪詢 log-get)
+  onLogLines: 'log-lines'
 }
 
 /**
@@ -80,7 +84,7 @@ export const HOST_EVENT_METHODS: Readonly<Record<string, string>> = {
  */
 export const PREVIEW_NOOP_ASYNC = ['hideWindow', 'resizeWindow', 'ocrRevealAvailable', 'overlayActivate', 'ocrRevealNow', 'runeshapeStats', 'revealStats'] as const
 /** WP-R2:`runeshapeUiState`(預覽分頁開設定不該暫停 overlay 的掃描)也是 no-op;第 18 步 `scanMask` 同理(預覽分頁畫的不在遊戲上) */
-export const PREVIEW_NOOP_SYNC = ['trackArea', 'focusGame', 'usedRecently', 'runeshapeUiState', 'scanMask'] as const
+export const PREVIEW_NOOP_SYNC = ['trackArea', 'focusGame', 'usedRecently', 'runeshapeUiState', 'scanMask', 'logSubscribe'] as const
 
 export interface PreviewServerOptions {
   /** 靜態檔根目錄(與 `app://` 相同:打包後是 app 根目錄,開發模式是 renderer/dist)。 */
@@ -230,7 +234,7 @@ export function bootScript (opts: { prefix: string, version: string, methodChann
   return `(function(){var C=${json};
 var cid=(Math.random().toString(36).slice(2)+Date.now().toString(36)).replace(/[^a-z0-9]/g,'').slice(0,40);
 var seq=0,pending={},subs={},es=null,lostT=null,lost=false,autoOpened=false;
-var TABS=['general','price-check','hotkeys','chat','regex','dust','about'];
+var TABS=['general','price-check','hotkeys','chat','regex','dust','log','about'];
 var m=/(?:^|[#&])tab=([a-z-]+)/.exec(location.hash||'');var tab=m&&TABS.indexOf(m[1])>=0?m[1]:'general';
 function emit(n,d){var a=subs[n];if(!a)return;a.slice().forEach(function(cb){try{cb(d)}catch(e){console.error(e)}})}
 function banner(on){try{var id='host-preview-lost',el=document.getElementById(id);

@@ -56,6 +56,7 @@ A price checker for Path of Exile 1 and 2: hover an item in game, press a hotkey
 - **Automatic updates**: the installed version downloads updates in the background and applies them when you quit; later updates only download what changed.
 - **Startup notice**: a short "running in the background" notice with your price-check hotkey appears at the bottom right after launch, and shows the new version after an update.
 - **One-click report**: when a price check goes wrong, a GitHub issue draft is prepared for you to review and submit yourself.
+- **Log page**: Settings › Log shows the app's log directly (filter by errors / OCR / price check / hotkeys, keyword search, copy), no need to dig through files.
 - **Anonymous queries**: no login and no POESESSID required.
 
 ## Getting started
@@ -102,6 +103,7 @@ Steps:
 3. Uniques, currency and similar items are searched immediately; for other items, adjust the filters and click **Search**.
 4. To see the full results on the web, click **Trade** to open the same search in your system browser.
 5. If a price check goes wrong, click "Report this item" at the bottom of the panel to prepare a GitHub issue draft (never sent automatically, no account name included).
+   When reporting a problem you can also open **Settings › Log**, click "Copy filtered lines" (for example with the "Errors" filter) and paste the relevant lines into the issue; "Open log folder" leads to the full log files (`exile-appraiser-<date>.log`, kept for 7 days).
 
 > You can also paste manually: when the panel has no item (or after clicking "Paste another"), paste the item text (what `Ctrl + C` copies in game) and click "Parse".
 
@@ -259,6 +261,7 @@ Settings › About → untick "Automatic updates". You then click "Download" and
 - **OCR runs locally**: it uses Windows' built-in text recognition; screenshots are neither saved nor uploaded, and no keys are sent to the game during recognition.
 - **Anonymous queries**: only anonymous requests to the official trade site and poe.ninja; no login and no POESESSID.
 - **Reports are up to you**: "Report" only opens a pre-filled GitHub issue page; you review and submit it yourself.
+- **The log stays local**: the app log (Settings › Log) lives only in a folder on this computer (`%APPDATA%\exile-appraiser\logs`, kept for 7 days) and is never uploaded automatically; copy and paste it yourself when reporting an issue.
 
 ## Support and community
 

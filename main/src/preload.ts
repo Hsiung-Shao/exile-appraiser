@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { HostApi, HostFetchInit, HostConfigForMain, ItemTextEvent, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId, UpdaterInfo, SettingsTabId, ConfigChangedEvent, OcrRegionPickTarget, RevealScanEvent, RuneshapeScanEvent, RuneshapeUiState, ScanMaskReport } from '@ipc/types'
+import type { HostApi, HostFetchInit, HostConfigForMain, ItemTextEvent, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId, UpdaterInfo, SettingsTabId, ConfigChangedEvent, OcrRegionPickTarget, RevealScanEvent, RuneshapeScanEvent, RuneshapeUiState, ScanMaskReport, LogEntry } from '@ipc/types'
 
 function subscribe<T> (channel: string, cb: (e: T) => void): () => void {
   const listener = (_: unknown, e: T) => cb(e)
@@ -63,7 +63,12 @@ const api: HostApi = {
   runeshapeUiState: (s: RuneshapeUiState) => { ipcRenderer.send('runeshape-ui-state', s) },
   runeshapeStats: () => ipcRenderer.invoke('runeshape-stats'),
   // 第 18 步:畫在遊戲上的徽章 / 提示外框(main 擷取後遮掉)
-  scanMask: (r: ScanMaskReport) => { ipcRenderer.send('scan-mask', r) }
+  scanMask: (r: ScanMaskReport) => { ipcRenderer.send('scan-mask', r) },
+  // 第 28 步:設定 › 記錄
+  getLog: (sinceSeq?: number) => ipcRenderer.invoke('log-get', sinceSeq),
+  logSubscribe: (on: boolean) => { ipcRenderer.send('log-subscribe', on) },
+  onLogLines: (cb: (entries: LogEntry[]) => void) => subscribe('log-lines', cb),
+  openLogFolder: () => ipcRenderer.invoke('log-open-folder')
 }
 
 contextBridge.exposeInMainWorld('host', api)
