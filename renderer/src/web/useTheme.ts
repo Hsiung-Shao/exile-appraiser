@@ -6,7 +6,7 @@
  * 本檔不 import Config(Config 反過來用這裡的常數與正規化函式),避免循環相依。
  */
 import { shallowRef, watch } from 'vue'
-import { BG_FITS, BG_LAYOUT_DEFAULT, BG_ZOOM_MAX, BG_ZOOM_MIN, type BgBakeSpec, type BgFit, type BgLayout } from './bg-bake'
+import { BG_FITS, BG_LAYOUT_DEFAULT, BG_ZOOM_MAX, BG_ZOOM_MIN, bgBakeCache, type BgBakeSpec, type BgFit, type BgLayout } from './bg-bake'
 
 export const THEMES = ['slate', 'light', 'contrast', 'parchment'] as const
 export type Theme = (typeof THEMES)[number]
@@ -182,14 +182,13 @@ export function bgBlurPx (blur: number): number {
 }
 
 /**
- * 預先模糊(bg-bake.ts,效能修正第 10 步)要的設定;霧面 0 / 沒有圖 / 關閉 / 拿不到網址 → null(維持原本的 CSS 呈現)。
- * 值與 bgVars 的 `--bg-image` / `--bg-bright` / `--bg-blur` 一一對應,BgLayer.vue 照它畫出與 CSS filter 同樣的圖。
+ * 預先處理(bg-bake.ts,效能修正第 10 步)要的設定;沒有圖 / 關閉 / 拿不到網址 → null。
+ * 第 30.6 步起霧面 0 也預先處理(blurPx 0 = 只縮放裁切 + 亮度),面板顯示時不再即時縮放原圖並套 filter。
+ * 值與 bgVars 的 `--bg-image` / `--bg-bright` / `--bg-blur` 一一對應,BgLayerImage.vue 照它畫出與 CSS 同樣的圖。
  */
 export function bgBakeSpec (bg: BgSettings, url: string | null): BgBakeSpec | null {
   if (!bg.enabled || !bg.file || !url) return null
-  const blurPx = bgBlurPx(bg.blur)
-  if (blurPx <= 0) return null
-  return { url, bright: bg.bright / 100, blurPx }
+  return { url, bright: bg.bright / 100, blurPx: bgBlurPx(bg.blur) }
 }
 
 /** 目前的預先模糊設定(useBackground 寫、每個 BgLayer.vue 讀) */
@@ -227,7 +226,8 @@ export function useBackground (settings: () => BgSettings, url: (file: string) =
     return { vars: bgVars(b, u), bake: bgBakeSpec(b, u), layout: b.layout, shown: bgVars(b, u) ? u : null }
   }, ({ vars, bake, layout, shown }) => {
     applyBackground(vars)
-    if (bgShownUrl.value !== shown) bgShownUrl.value = shown
+    // 第 30.6 步:背景關閉 / 換圖 → 隱藏中容器保留的圖用不到了
+    if (bgShownUrl.value !== shown) { bgBakeCache.clear(); bgShownUrl.value = shown }
     const cl = bgLayouts.value
     if (!BG_HOSTS.every(h => sameLayout(cl[h], layout[h]))) bgLayouts.value = layout
     const cur = bgBake.value

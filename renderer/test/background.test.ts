@@ -10,7 +10,7 @@ import {
   type BgSettings
 } from '../src/web/useTheme'
 import {
-  BG_LAYOUT_DEFAULT, BG_RESIZE_SETTLE_MS, BG_SCALE, BgBaker, bgBakeKey, bgBakePlan, bgCoverRect, bgCssLayout, bgLayoutIsDefault, bgLayoutRect, createResizeSettle,
+  BG_LAYOUT_DEFAULT, BG_RESIZE_SETTLE_MS, BG_SCALE, BgBakeCache, BgBaker, bgBakeCache, bgBakeFilter, bgBakeKey, bgBakePlan, bgCoverRect, bgCssLayout, bgLayoutIsDefault, bgLayoutRect, createResizeSettle,
   type BgBakeInput, type BgFit, type BgLayout
 } from '../src/web/bg-bake'
 import { BG_PREVIEW_FALLBACK_RATIO, BG_PREVIEW_W_MAX_EM, bgLayoutKeyStep, isDefaultBgLayout, pointerToFocus, previewBoxEm } from '../src/web/settings/bg-layout-ui'
@@ -128,7 +128,8 @@ describe('樣式守門:圖只畫在查價面板 / 設定視窗裡,overlay 其他
     expect(read('../src/web/settings/tabs/General.vue')).toMatch(/data-setting="bg-readability-hint"/)
   })
   it('查價面板與設定視窗是 .bg-host 且第一個子元素是 BgLayer', () => {
-    expect(read('../src/web/App.vue')).toMatch(/id="price-window" class="[^"]*\bbg-host\b[^"]*"[\s\S]{0,300}?<bg-layer host="panel" \/>/)
+    // 第 30.6 步:查價面板把自己的 v-show 條件(panelVisible)傳給 BgLayer,藏起時整層卸載
+    expect(read('../src/web/App.vue')).toMatch(/id="price-window" class="[^"]*\bbg-host\b[^"]*"[\s\S]{0,300}?<bg-layer host="panel" :shown="panelVisible" \/>/)
     // 第 21 步:根元素多了 :class / :style / tabindex / 事件屬性(大小 / 位置與獨立字級),開頭標籤變長 → 放寬到 600 字元
     // 第 26 步:各自宣告自己是哪個容器(讀對應那組顯示位置與填滿方式)
     expect(read('../src/web/settings/SettingsWindow.vue')).toMatch(/class="[^"]*settings-window bg-host"[\s\S]{0,600}?<bg-layer host="settings" \/>/)
@@ -139,12 +140,15 @@ describe('樣式守門:圖只畫在查價面板 / 設定視窗裡,overlay 其他
 
 describe('bgBakeSpec / bgBlurPx(何時預先模糊)', () => {
   const bg = (o: Partial<BgSettings> = {}): BgSettings => ({ ...BG_DEFAULT, file: 'a.png', ...o })
-  it('霧面 0 / 沒選圖 / 關閉 / 沒網址 → null(維持原本的 CSS,原圖直接用)', () => {
-    expect(bgBakeSpec(bg({ blur: 0 }), 'app://bg/a.png')).toBeNull()
-    expect(bgBakeSpec(bg({ blur: 1 }), 'app://bg/a.png')).toBeNull() // 1% → round(0.24) = 0 px
+  it('沒選圖 / 關閉 / 沒網址 → null(沒有背景)', () => {
     expect(bgBakeSpec(bg({ file: '', blur: 50 }), 'app://bg/a.png')).toBeNull()
     expect(bgBakeSpec(bg({ enabled: false, blur: 50 }), 'app://bg/a.png')).toBeNull()
     expect(bgBakeSpec(bg({ blur: 50 }), null)).toBeNull()
+  })
+  it('第 30.6 步:霧面 0 也預先處理(blurPx 0 = 只縮放裁切 + 亮度)', () => {
+    expect(bgBakeSpec(bg({ blur: 0, bright: 60 }), 'app://bg/a.png')).toEqual({ url: 'app://bg/a.png', bright: 0.6, blurPx: 0 })
+    expect(bgBakeSpec(bg({ blur: 1 }), 'app://bg/a.png')?.blurPx).toBe(0) // 1% → round(0.24) = 0 px
+    expect(bgBakeFilter(0.6, 0, 1.56)).toBe('brightness(0.6)')
   })
   it('霧面 > 0 → 與 CSS 變數同值(亮度 0–1、模糊 px)', () => {
     expect(bgBakeSpec(bg({ blur: 50, bright: 60 }), 'app://bg/a.png')).toEqual({ url: 'app://bg/a.png', bright: 0.6, blurPx: 12 })
@@ -232,7 +236,7 @@ describe('createResizeSettle(code review 第 B 批:拖曳改大小時去抖)', (
   })
 })
 
-describe('BgBaker(何時重算、revoke、霧面 0 不模糊、只套用最新的)', () => {
+describe('BgBaker(何時重算、revoke、霧面 0 也預先處理、只套用最新的)', () => {
   const flush = async () => { for (let i = 0; i < 10; i++) await Promise.resolve() }
   function harness (opts: { failLoad?: boolean, failRender?: boolean } = {}) {
     const log: string[] = []
@@ -260,13 +264,22 @@ describe('BgBaker(何時重算、revoke、霧面 0 不模糊、只套用最新�
   }
   const inp = (o: Partial<BgBakeInput> = {}): BgBakeInput => ({ url: 'a', bright: 0.6, blurPx: 12, width: 100, height: 80, dpr: 1, color: '#000', ...o })
 
-  it('霧面 0 / 沒有設定 → 不載入不繪製,維持 CSS', async () => {
+  it('沒有設定(背景關閉)→ 不載入不繪製,維持 CSS', async () => {
     const h = harness()
-    h.baker.update(inp({ blurPx: 0 }))
     h.baker.update(null)
     await flush()
     expect(h.log).toEqual([])
     expect(h.baker.key).toBeNull()
+  })
+  it('第 30.6 步:霧面 0 → 也載入並預先處理(只縮放裁切 + 亮度),之後同一個鍵不重畫', async () => {
+    const h = harness()
+    h.baker.update(inp({ blurPx: 0 }))
+    await flush(); h.loads[0].resolve(); await flush(); h.renders[0].resolve(); await flush()
+    expect(h.log).toEqual(['load a', 'render img:a 0', 'show blob1'])
+    expect(h.baker.key).toBe(bgBakeKey(inp({ blurPx: 0 })))
+    h.baker.update(inp({ blurPx: 0 }))
+    await flush()
+    expect(h.log).toHaveLength(3)
   })
   it('首次:載入 → 繪製 → 換上;同一個鍵不重畫', async () => {
     const h = harness()
@@ -300,12 +313,15 @@ describe('BgBaker(何時重算、revoke、霧面 0 不模糊、只套用最新�
     h.renders[1].resolve(); await flush()
     expect(h.log).toEqual(['load a', 'render img:a 12', 'revoke blob1', 'render img:a 14', 'show blob2'])
   })
-  it('霧面調回 0 → 立刻回到 CSS、revoke 目前的圖、釋放來源圖', async () => {
+  it('霧面調回 0 → 重畫(不重新載入來源圖),新圖好了才換、revoke 舊的;背景關閉 → 立刻回到 CSS、revoke、釋放來源圖', async () => {
     const h = harness()
     h.baker.update(inp())
     await flush(); h.loads[0].resolve(); await flush(); h.renders[0].resolve(); await flush()
     h.baker.update(inp({ blurPx: 0 }))
-    expect(h.log.slice(3)).toEqual(['css', 'revoke blob1', 'release img:a'])
+    await flush(); h.renders[1].resolve(); await flush()
+    expect(h.log.slice(3)).toEqual(['render img:a 0', 'show blob2', 'revoke blob1'])
+    h.baker.update(null)
+    expect(h.log.slice(6)).toEqual(['css', 'revoke blob2', 'release img:a'])
     expect(h.baker.key).toBeNull()
   })
   it('框大小 0(容器隱藏)→ 回到 CSS 但保留來源圖;顯示回來不必重新載入', async () => {
@@ -371,7 +387,7 @@ describe('樣式守門:預先模糊(效能修正第 10 步)', () => {
     expect(Number(m?.[1])).toBe(BG_SCALE)
   })
   it('BgLayer 不把 canvas 放進 DOM(會自成合成層,文字變灰階反鋸齒),只寫 --bg-baked;來源圖以 CORS 載入', () => {
-    const vue = read('../src/web/ui/BgLayer.vue')
+    const vue = read('../src/web/ui/BgLayerImage.vue') // 第 30.6 步:本體移到 BgLayerImage.vue(BgLayer.vue 是閘門)
     expect(vue).not.toMatch(/<canvas/)
     expect(vue).toMatch(/setProperty\('--bg-baked'/)
     expect(vue).toMatch(/URL\.revokeObjectURL/)
@@ -567,7 +583,7 @@ describe('兩組設定各自套用(useBackground → bgLayouts[host];BgLayer 依
     expect(bgShownUrl.value).toBeNull()
   })
   it('BgLayer 依 host 取 bgLayouts、CSS 路徑寫 --bg-pos / --bg-size、預先模糊的輸入帶 layout', () => {
-    const vue = read('../src/web/ui/BgLayer.vue')
+    const vue = read('../src/web/ui/BgLayerImage.vue')
     expect(vue).toMatch(/bgLayouts\.value\[props\.host\]/)
     expect(vue).toMatch(/setProperty\('--bg-pos'/)
     expect(vue).toMatch(/setProperty\('--bg-size'/)
@@ -609,5 +625,153 @@ describe('設定 UI 純函式(bg-layout-ui.ts)與接線', () => {
     expect(ed).toMatch(/setPointerCapture/)
     expect(ed).toMatch(/:disabled="shown\.fit !== 'zoom'"/)
     expect(ed).not.toMatch(/\d(?:\.\d+)?rem\b/) // 設定視窗內不用 rem(第 21 步獨立字級)
+  })
+})
+
+// ---- 第 30.6 步(2026-10-03):背景圖關閉零成本、隱藏時卸載保留畫好的圖、霧面 0 也預先處理 ----
+
+describe('霧面 0 走預先處理:繪製矩形與 CSS 版(background-position / background-size)一致', () => {
+  const imgs = { wide: [1920, 1080], tall: [800, 1600] } as const
+  const boxes = { panel: [460, 900], settings: [900, 700] } as const
+  const layouts: BgLayout[] = []
+  for (const fit of ['cover', 'contain', 'zoom'] as BgFit[]) for (const f of [0, 50, 100]) layouts.push({ x: f, y: 100 - f, fit, zoom: fit === 'zoom' ? 200 : 100 })
+  /** CSS 路徑在框裡的矩形:size / pos 百分比照瀏覽器規則換算(cover / contain 關鍵字也照規則算) */
+  function cssRect (l: BgLayout, iw: number, ih: number, bw: number, bh: number) {
+    const css = bgCssLayout(l, { w: iw, h: ih }, { w: bw, h: bh }) ?? { pos: '50% 50%', size: 'cover' }
+    let w: number, hgt: number
+    if (css.size === 'cover' || css.size === 'contain') {
+      const s = css.size === 'cover' ? Math.max(bw / iw, bh / ih) : Math.min(bw / iw, bh / ih)
+      w = iw * s; hgt = ih * s
+    } else {
+      const [sw, sh] = css.size.split(' ').map(v => parseFloat(v) / 100)
+      w = bw * sw; hgt = bh * sh
+    }
+    const [px, py] = css.pos.split(' ').map(v => parseFloat(v) / 100)
+    return { x: (bw - w) * px, y: (bh - hgt) * py, w, h: hgt }
+  }
+  for (const [ik, [iw, ih]] of Object.entries(imgs)) {
+    for (const [bk, [bw, bh]] of Object.entries(boxes)) {
+      for (const dpr of [1, 1.5]) {
+        it(`${ik} 圖 × ${bk} 框 × dpr ${dpr}:${layouts.length} 種位置 / 填滿方式`, () => {
+          for (const l of layouts) {
+            const input: BgBakeInput = { url: 'u', bright: 0.6, blurPx: 0, width: bw * dpr, height: bh * dpr, dpr, color: '#000', layout: l }
+            const p = bgBakePlan(input, iw, ih)
+            expect(p.filter).toBe('brightness(0.6)')
+            // 畫布像素 → 框的座標(顯示時畫布以 100% 100% 拉滿框,各軸比例 = 畫布 / 框)
+            const sx = p.width / bw
+            const sy = p.height / bh
+            const baked = { x: p.rect.x / sx, y: p.rect.y / sy, w: p.rect.w / sx, h: p.rect.h / sy }
+            const css = cssRect(l, iw, ih, bw, bh)
+            // 畫布拉回框之後與 CSS 版的矩形重合(只剩 bgCssLayout 百分比取 4 位小數的誤差)
+            for (const key of ['x', 'y', 'w', 'h'] as const) expect(Math.abs(baked[key] - css[key])).toBeLessThan(1e-3)
+          }
+        })
+      }
+    }
+  }
+  it('畫布寬高恰好是框 × 1.04 時(無取整誤差)逐位元相同(預設 cover 置中)', () => {
+    const input: BgBakeInput = { url: 'u', bright: 0.6, blurPx: 0, width: 500, height: 1000, dpr: 1, color: '#000' }
+    const p = bgBakePlan(input, 1920, 1080)
+    expect([p.width, p.height]).toEqual([520, 1040])
+    const css = cssRect(BG_LAYOUT_DEFAULT, 1920, 1080, 520, 1040)
+    expect(p.rect).toEqual(css)
+  })
+})
+
+describe('BgBaker.detach / adopt + BgBakeCache(隱藏時保留、再顯示不重畫不閃)', () => {
+  const flush = async () => { for (let i = 0; i < 10; i++) await Promise.resolve() }
+  function harness () {
+    const log: string[] = []
+    let n = 0
+    const loads: Array<() => void> = []
+    const renders: Array<() => void> = []
+    const baker = new BgBaker<string, string>({
+      load: async (url) => await new Promise<string>((resolve) => { log.push(`load ${url}`); loads.push(() => resolve(`img:${url}`)) }),
+      render: async (img, i) => await new Promise<string>((resolve) => { const out = `blob${++n}`; log.push(`render ${img} ${i.blurPx}`); renders.push(() => resolve(out)) }),
+      show: (o) => log.push(`show ${o}`),
+      discard: (o) => log.push(`revoke ${o}`),
+      release: (img) => log.push(`release ${img}`),
+      clear: () => log.push('css')
+    })
+    return { baker, log, loads, renders }
+  }
+  const inp = (o: Partial<BgBakeInput> = {}): BgBakeInput => ({ url: 'a', bright: 0.6, blurPx: 0, width: 100, height: 80, dpr: 1, color: '#000', ...o })
+
+  it('卸載:detach 交出畫好的圖(不 revoke);新掛載 adopt 第一幀就換上,量到同樣大小 → 不載入不重畫', async () => {
+    const a = harness()
+    a.baker.update(inp())
+    await flush(); a.loads[0](); await flush(); a.renders[0](); await flush()
+    const kept = a.baker.detach()
+    a.baker.dispose()
+    expect(kept).toEqual({ key: bgBakeKey(inp()), out: 'blob1' })
+    expect(a.log.slice(3)).toEqual(['release img:a']) // 只放掉來源圖,畫好的圖沒有 revoke、沒有切回 CSS
+    const b = harness()
+    expect(b.baker.adopt(kept!.key, kept!.out)).toBe(true)
+    expect(b.log).toEqual(['show blob1'])
+    b.baker.update(inp())
+    await flush()
+    expect(b.log).toEqual(['show blob1'])
+    expect(b.baker.key).toBe(bgBakeKey(inp()))
+  })
+  it('隱藏中設定變了:adopt 的舊圖先留著(不閃),載入 / 重畫好了才換掉並 revoke', async () => {
+    const b = harness()
+    b.baker.adopt(bgBakeKey(inp()), 'blob9')
+    b.baker.update(inp({ bright: 0.8 }))
+    await flush(); b.loads[0](); await flush()
+    expect(b.baker.key).toBe(bgBakeKey(inp()))
+    b.renders[0](); await flush()
+    expect(b.log).toEqual(['show blob9', 'load a', 'render img:a 0', 'show blob1', 'revoke blob9'])
+  })
+  it('已有圖 / 已卸載時 adopt 不收(回 false,呼叫端自己丟);已卸載 detach 回 null', async () => {
+    const b = harness()
+    b.baker.update(inp())
+    await flush(); b.loads[0](); await flush(); b.renders[0](); await flush()
+    expect(b.baker.adopt('k', 'x')).toBe(false)
+    b.baker.dispose()
+    expect(b.baker.adopt('k', 'x')).toBe(false)
+    expect(b.baker.detach()).toBeNull()
+  })
+  it('BgBakeCache:一個容器一張、放新的丟舊的、take 後就不在、clear 全部丟', () => {
+    const gone: string[] = []
+    const cache = new BgBakeCache<string>()
+    const d = (o: string) => { gone.push(o) }
+    cache.put('panel', 'k1', 'b1', d)
+    cache.put('panel', 'k2', 'b2', d)
+    expect(gone).toEqual(['b1'])
+    cache.put('settings', 'k3', 'b3', d)
+    expect(cache.take('panel')).toMatchObject({ key: 'k2', out: 'b2' })
+    expect(cache.take('panel')).toBeNull()
+    cache.clear()
+    expect(gone).toEqual(['b1', 'b3'])
+    expect(cache.size).toBe(0)
+  })
+  it('useBackground:背景關閉 / 換圖 → 清掉隱藏中容器保留的圖;只改亮度不清', async () => {
+    const s = reactive(normBg({ file: 'a.png' }))
+    useBackground(() => s, f => f ? `app://bg/${f}` : null)
+    await nextTick()
+    const gone: unknown[] = []
+    bgBakeCache.put('panel', 'k', 'b1', o => { gone.push(o) })
+    s.bright = 40
+    await nextTick()
+    expect(gone).toEqual([])
+    s.file = 'b.png'
+    await nextTick()
+    expect(gone).toEqual(['b1'])
+    bgBakeCache.put('panel', 'k', 'b2', o => { gone.push(o) })
+    s.enabled = false
+    await nextTick()
+    expect(gone).toEqual(['b1', 'b2'])
+  })
+  it('接線:BgLayer.vue 是閘門(背景開著且顯示中才掛 BgLayerImage);App.vue 的 v-show 與傳給 BgLayer 的是同一個條件;本體卸載時存、掛載時取', () => {
+    const gate = read('../src/web/ui/BgLayer.vue')
+    expect(gate).toMatch(/<bg-layer-image v-if="on" :host="host" \/>/)
+    expect(gate).toMatch(/props\.shown && bgShownUrl\.value != null/)
+    const app = read('../src/web/App.vue')
+    expect(app).toMatch(/<div v-show="panelVisible"/)
+    expect(app).toMatch(/const panelVisible = computed\(\(\) => isOverlay \? panelShown\.value && !settingsVisible\.value : !settingsVisible\.value\)/)
+    const impl = read('../src/web/ui/BgLayerImage.vue')
+    expect(impl).toMatch(/bgBakeCache\.take\(props\.host\)/)
+    expect(impl).toMatch(/bgShownUrl\.value != null \? baker\.detach\(\) : null/)
+    expect(impl).toMatch(/bgBakeCache\.put\(props\.host/)
   })
 })

@@ -29,15 +29,15 @@
     <div v-if="isOverlay" class="absolute inset-0" @click="handleBackgroundClick" />
 
     <!-- 設定開著時查價面板(含標題列、側邊限流鈕)一律讓位;overlay 只是 v-show 藏起,關設定後原樣回來 -->
-    <div v-show="isOverlay ? panelShown && !settingsVisible : !settingsVisible"
+    <div v-show="panelVisible"
       :class="isOverlay ? ['absolute', 'inset-0', 'flex', 'pointer-events-none', clickPosition === 'stash' ? 'flex-row' : 'flex-row-reverse'] : 'window-body'">
       <div v-if="isOverlay" class="layout-column shrink-0" style="width: var(--game-panel);" />
 
       <div id="price-window" class="layout-column min-h-0 price-panel bg-host"
         :class="isOverlay ? 'is-overlay shrink-0 pointer-events-auto' : 'is-window grow'"
         :style="isOverlay ? { width: `${panelWidth}px` } : undefined">
-        <!-- 自訂背景圖(設定 › 一般 › 背景;只畫在面板裡,overlay 其他區域維持透明) -->
-        <bg-layer host="panel" />
+        <!-- 自訂背景圖(設定 › 一般 › 背景;只畫在面板裡,overlay 其他區域維持透明)。第 30.6 步:面板藏起時整層卸載 -->
+        <bg-layer host="panel" :shown="panelVisible" />
         <header class="titlebar" :style="isOverlay ? undefined : '-webkit-app-region: drag;'">
           <span class="brand"><i class="mark" />{{ t('ppz.title') }}</span>
           <span class="chip" data-badge="game">{{ gameBadge }}</span>
@@ -313,6 +313,8 @@ export default defineComponent({
 
     /** 設定視窗實際顯示:overlay 還要面板開著(失焦 hide-on-blur 一起收);框選層開著時讓出整個畫面 */
     const settingsVisible = computed(() => showSettings.value && !regionPickerOpen.value && (!isOverlay || panelShown.value))
+    /** 查價面板(含標題列、側邊限流鈕)的 v-show 條件;第 30.6 步起背景圖層也照它卸載 / 掛載 */
+    const panelVisible = computed(() => isOverlay ? panelShown.value && !settingsVisible.value : !settingsVisible.value)
 
     /** 開設定到指定分頁(托盤、OCR 框選返回);overlay 要讓面板可互動(main 已 / 另行 assertOverlayActive) */
     function openSettingsTo (tab: SettingsTabId, reason: string) {
@@ -484,6 +486,7 @@ export default defineComponent({
       pasteText,
       showSettings,
       settingsVisible,
+      panelVisible,
       closeSettings,
       onSettingsLayerPointerDown,
       onSettingsLayerClick,

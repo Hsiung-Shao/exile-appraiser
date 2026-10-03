@@ -12,10 +12,15 @@ export interface MiniNode {
   attrs: Record<string, unknown>
   children: MiniNode[]
   parent: MiniNode | null
+  /** 元件直接改 inline 樣式 / dataset 時用(背景圖層 BgLayerImage.vue 的 --bg-pos / --bg-baked;第 30.6 步) */
+  style: { props: Record<string, string>, setProperty: (k: string, v: string) => void, removeProperty: (k: string) => void }
+  dataset: Record<string, string>
 }
 
 function node (tag: string, text = ''): MiniNode {
-  return { tag, text, attrs: {}, children: [], parent: null }
+  const props: Record<string, string> = {}
+  const style = { props, setProperty: (k: string, v: string) => { props[k] = v }, removeProperty: (k: string) => { delete props[k] } }
+  return { tag, text, attrs: {}, children: [], parent: null, style, dataset: {} }
 }
 
 function detach (child: MiniNode) {
