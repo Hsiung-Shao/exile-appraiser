@@ -132,6 +132,8 @@ Path of Exile 查價工具(Electron + TypeScript)。把 `apt-patched`(Awakened P
 24. **效能量測**(第 29 步,2026-10-03,`docs/perf/README.md`):內建診斷 `main/src/perf/perf-monitor.ts`(`--perf-log` 或設定 › 記錄 › 效能;開關存 `userData/perf.json`,**不進 config.json / host-config**;預設關)每 5 秒記 getAppMetrics、卡頓(`perf/lag-probe.ts`,capture-bench 共用)、uiohook 事件、兩個 PanelScan 擷取 / OCR / 被擋原因、GameDetector 列舉與**情境鍵**(`deriveScenario`),寫 app-log `[perf]` 一行 + `userData/logs/perf-<日期>.log`(JSONL,共用 `LogFileWriter` 的 `fileName` / `isOwnFile`)。
     **關著必須零成本**:不開計時器 / 監聽 / 寫檔器,模組計數只准 `++`(`detectorCounters`、PanelScan `sched.captures` / `blockCounts`)。IPC `perf-get` / `perf-set` / `perf-open-file` 全部 `preview: false`。
     外部量測 `scripts/perf-scenario.mjs`(只讀:Win32_Process + Get-Counter,PresentMon 有才量 FPS;**只印提示等使用者按 Enter,絕不送輸入**);基準表 `docs/perf/baseline-v0.1.2.md` 由使用者實機跑。
+    **第五輪閒置降耗**(`docs/perf/changes-round5.md`,改前改後數字):30.2 PanelScan 被 `scanBlock` 擋下不再每秒重排(`nextTickDelay`:停用 / 不是 PoE2 不排、其他原因 10 秒保底;
+    事件 `poke()` / `wake()`(attach / detach / moveresize)立刻重看)。**新增會改變 scanBlock 結果的狀態時,記得在那個事件 `poke()` 掃描**,否則最壞要等 10 秒保底(停用時永遠不會重看)。
 
 ## 指令
 ```bash

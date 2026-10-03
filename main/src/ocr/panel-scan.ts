@@ -221,6 +221,29 @@ export function clampScanInterval (v: unknown): number {
   return Math.min(SCAN_INTERVAL_MAX_MS, Math.max(SCAN_INTERVAL_MIN_MS, Math.round(v)))
 }
 
+/**
+ * 第 30.2 步(閒置降耗):被 `scanBlock` 擋下時的保底 tick 間隔。會改變擋下結果的事件(遊戲前景變化、host-config、
+ * UI 狀態、attach / detach / 視窗移動縮放、暫停熱鍵、框選、OCR 語言)都會 `poke()` / `wake()` 立刻重看,這個只是漏接時的保險。
+ */
+export const BLOCKED_FALLBACK_MS = 10_000
+/** OCR 功能本身停用(關掉 / 不是 PoE2)→ 連保底都不排,只等 host-config 的 `poke()` */
+export const IDLE_STOP_BLOCKS: ReadonlySet<ScanBlock> = new Set<ScanBlock>(['disabled', 'not-poe2'])
+
+/** 這個 tick 結果算不算「被 scanBlock 擋下」(`region-outside` 是擷取之後才知道的區域問題,不算,照掃描間隔) */
+export function isIdleBlocked (res: { kind: string, block?: string } | null | undefined): boolean {
+  return res?.kind === 'blocked' && res.block !== 'region-outside'
+}
+
+/**
+ * 一個 tick 做完後下一個 tick 隔多久(null = 不排,等事件 `poke()`)。
+ * 被 `scanBlock` 擋下:停用 / 不是 PoE2 → null;其他原因 → `BLOCKED_FALLBACK_MS`。
+ * 其餘結果(含 `region-outside`、`busy`、`mask-wait`、例外)照掃描間隔(與第 30.2 步之前相同)。
+ */
+export function nextTickDelay (res: { kind: string, block?: string } | null | undefined, intervalMs: unknown): number | null {
+  if (isIdleBlocked(res)) return IDLE_STOP_BLOCKS.has(res!.block as ScanBlock) ? null : BLOCKED_FALLBACK_MS
+  return clampScanInterval(intervalMs)
+}
+
 /** 含 CJK 字的 OCR 行(數字 / 符號雜訊不算);英文客戶端(第 22 步)= 含兩個連續拉丁字母 */
 const CJK_RE = /[㐀-鿿豈-﫿]/
 export function isRowText (text: string, lang: OcrTextLang = 'zh'): boolean {
@@ -462,6 +485,8 @@ export class PanelScan {
   private readonly clock: ScanClock
   private timer: unknown = null
   private running = false
+  /** 第 30.2 步:上一個 tick 被擋下,目前排的是保底 tick(或什麼都沒排);`wake()` 據此決定要不要立刻重看 */
+  private idleBlocked = false
   /** tick 進行中(含等 detector 資料);重入保護 */
   private ticking = false
   /** 擷取 / OCR 進行中(共用 WinOcr 的另一個掃描據此丟 tick) */
@@ -542,7 +567,19 @@ export class PanelScan {
 
   stop (): void {
     this.running = false
+    this.idleBlocked = false
     if (this.timer != null) { this.clock.clearTimeout(this.timer); this.timer = null }
+  }
+
+  /** 測試:目前有沒有排下一個 tick */
+  get scheduled (): boolean { return this.timer != null }
+
+  /**
+   * 第 30.2 步:可能解除封鎖的低優先事件(遊戲 attach / detach / 視窗移動縮放)。只在目前被擋下(只排了保底 tick 或沒排)時
+   * 才立刻重看;正常掃描中不打斷原本的節奏(拖動視窗時 moveresize 很密,不能每次都插一個 tick)。
+   */
+  wake (): void {
+    if (this.idleBlocked) this.poke()
   }
 
   /** 設定 / UI 狀態改了:不在 tick 中就立刻重新判斷一次(暫停 ↔ 繼續、停用時即時清徽章) */
@@ -652,10 +689,16 @@ export class PanelScan {
   }
 
   private schedule (ms: number) {
+    this.idleBlocked = false
     this.timer = this.clock.setTimeout(() => {
       this.timer = null
-      void this.tick().finally(() => {
-        if (this.running && this.timer == null) this.schedule(clampScanInterval(this.deps.config().intervalMs))
+      let res: TickResult | null = null
+      void this.tick().then((r) => { res = r }).finally(() => {
+        if (!this.running || this.timer != null) return
+        // 第 30.2 步:被 scanBlock 擋下不再每個間隔重排 —— 停用 / 不是 PoE2 不排、其他原因 10 秒保底;事件 poke() / wake() 立刻重看
+        const next = nextTickDelay(res, this.deps.config().intervalMs)
+        if (next != null) this.schedule(next)
+        this.idleBlocked = isIdleBlocked(res)
       })
     }, ms)
   }

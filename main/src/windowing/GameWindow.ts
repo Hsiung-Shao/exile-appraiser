@@ -59,4 +59,9 @@ export class GameWindow extends EventEmitter {
   onAttach (cb: (hasAccess: boolean | undefined) => void) {
     OverlayController.events.on('attach', (e: AttachEvent) => { cb(e.hasAccess) })
   }
+
+  /** 第 30.2 步:遊戲視窗移動 / 縮放(含最小化還原;`targetBounds` 跟著變)。掃描被擋下時據此立刻重看 */
+  onMoveresize (cb: () => void) {
+    OverlayController.events.on('moveresize', () => { cb() })
+  }
 }

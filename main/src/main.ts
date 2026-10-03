@@ -759,6 +759,12 @@ if (!skipStartup) app.whenReady().then(() => {
     revealScan.start(0)
     runeshapeScan.start(DEFAULT_SCAN_INTERVAL_MS / 2)
     poeWindow?.on('active-change', () => { revealScan.poke(); runeshapeScan.poke() })
+    // 第 30.2 步:被擋下時不再每秒重排(10 秒保底;停用 / 不是 PoE2 不排)→ 會改變 scanBlock 結果的視窗事件要叫醒。
+    // wake() 只在目前被擋下時才立刻重看,正常掃描中不插 tick(拖動視窗時 moveresize 很密)
+    const wakeScans = () => { revealScan.wake(); runeshapeScan.wake() }
+    poeWindow?.onAttach(wakeScans)
+    poeWindow?.onDetach(wakeScans)
+    poeWindow?.onMoveresize(wakeScans)
   }
   app.on('will-quit', () => { revealScan.stop(); runeshapeScan.stop() })
 
