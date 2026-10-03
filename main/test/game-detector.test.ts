@@ -3,7 +3,9 @@ import { describe, expect, it, vi } from 'vitest'
 
 vi.mock('electron', () => ({ desktopCapturer: { getSources: vi.fn() } }))
 
-import { GameDetector, decideSwitch, namesSignature } from '../src/windowing/GameDetector'
+import {
+  ABSENT_BACKOFF_MAX_MS, GameDetector, INTERVAL_MS, REQUIRED_HITS, absentDelayMs, anyGamePresent, decideSwitch, namesSignature
+} from '../src/windowing/GameDetector'
 import type { GameId } from '@ipc/types'
 
 const TITLES = { poe1: 'Path of Exile', poe2: 'Path of Exile 2' }
@@ -162,5 +164,153 @@ describe('否決沿用', () => {
     await d.tick()
     await d.tick()
     expect(processTitles).toHaveBeenCalledTimes(2)
+  })
+})
+
+// ---- 第 30.3 步:兩款都不在時列舉退避 2 → 5 → 10 秒;nudge 立刻查並重設 ----
+
+/** 手動推進的假時鐘(計時器 + now 同一條時間軸) */
+function timed (init: { names: string[], extra?: string[] | null, fg?: boolean }) {
+  let t = 0
+  let id = 0
+  const timers = new Map<number, { at: number, fn: () => void }>()
+  const st = { names: init.names, extra: init.extra ?? null, fg: init.fg ?? false }
+  const enumAt: number[] = []
+  const onSwitch = vi.fn()
+  const d = new GameDetector({
+    currentGame: () => 'poe1',
+    windowTitleBy: () => TITLES,
+    onSwitch,
+    isCurrentGameForeground: () => st.fg,
+    listWindowNames: async () => { enumAt.push(t); return st.names },
+    processTitles: async () => st.extra,
+    now: () => t,
+    setTimeout: (fn, ms) => { timers.set(++id, { at: t + ms, fn }); return id },
+    clearTimeout: (h) => { timers.delete(h as number) }
+  })
+  async function advance (ms: number) {
+    const end = t + ms
+    for (;;) {
+      const next = [...timers.entries()].filter(([, v]) => v.at <= end).sort((a, b) => a[1].at - b[1].at)[0]
+      if (!next) break
+      timers.delete(next[0])
+      t = next[1].at
+      next[1].fn()
+      for (let i = 0; i < 20; i++) await Promise.resolve()
+    }
+    t = end
+  }
+  return { d, st, enumAt, onSwitch, advance, pending: () => [...timers.values()].map(v => v.at - t), now: () => t }
+}
+
+describe('列舉退避(遊戲沒開)', () => {
+  it('absentDelayMs:0 → 2 秒;連續 1 / 2 / 3+ 次 → 2 / 5 / 10 秒(上限 10)', () => {
+    expect(absentDelayMs(0)).toBe(INTERVAL_MS)
+    expect([1, 2, 3, 4, 50].map(absentDelayMs)).toEqual([2000, 5000, 10_000, 10_000, 10_000])
+    expect(ABSENT_BACKOFF_MAX_MS).toBe(10_000)
+    expect(anyGamePresent(['Chrome', 'Path of Exile 2'], TITLES)).toBe(true)
+    expect(anyGamePresent(['Chrome', 'Path of Exile 3'], TITLES)).toBe(false)
+    expect(anyGamePresent([''], { poe1: '', poe2: '' })).toBe(false)
+  })
+
+  it('兩款都不在:列舉時間點 2, 4, 9, 19, 29… 秒;60 秒內 8 次(改前每 2 秒 30 次)', async () => {
+    const { d, enumAt, advance, pending } = timed({ names: ['Chrome'] })
+    d.start()
+    await advance(60_000)
+    expect(enumAt).toEqual([2000, 4000, 9000, 19_000, 29_000, 39_000, 49_000, 59_000])
+    expect(enumAt.filter(x => x <= 60_000)).toHaveLength(8)
+    expect(pending()).toHaveLength(1)
+    d.stop()
+    expect(pending()).toEqual([])
+  })
+
+  it('有遊戲視窗(在背景)→ 照舊每 2 秒', async () => {
+    const { d, enumAt, advance } = timed({ names: ['Path of Exile', 'Chrome'] })
+    d.start()
+    await advance(10_000)
+    expect(enumAt).toEqual([2000, 4000, 6000, 8000, 10_000])
+    d.stop()
+  })
+
+  it('退避中另一款啟動:最壞 10 秒內第 1 次命中,再 2 秒確認(連續 2 次條件不變)→ 切換', async () => {
+    const { d, st, enumAt, onSwitch, advance, now } = timed({ names: ['Chrome'], extra: [] })
+    d.start()
+    await advance(20_000) // 已退避到 10 秒
+    expect(d.backoff.nextMs).toBe(10_000)
+    const launchedAt = now() + 1 // 剛錯過列舉
+    st.names = ['Chrome', 'Path of Exile 2']
+    await advance(30_000)
+    expect(onSwitch).toHaveBeenCalledTimes(1)
+    expect(onSwitch).toHaveBeenCalledWith('poe2')
+    const hits = enumAt.filter(x => x >= launchedAt)
+    expect(hits).toHaveLength(REQUIRED_HITS)
+    expect(hits[0] - launchedAt).toBeLessThanOrEqual(ABSENT_BACKOFF_MAX_MS)
+    expect(hits[1] - hits[0]).toBe(INTERVAL_MS)
+    d.stop()
+  })
+
+  it('nudge():退避中立刻查一次並重設退避(之後 2 → 5 → 10 重來)', async () => {
+    const { d, enumAt, advance } = timed({ names: ['Chrome'] })
+    d.start()
+    await advance(25_000) // 2, 4, 9, 19
+    expect(enumAt).toEqual([2000, 4000, 9000, 19_000])
+    d.nudge()
+    await advance(0)
+    expect(enumAt.at(-1)).toBe(25_000)
+    await advance(10_000)
+    expect(enumAt.slice(-3)).toEqual([25_000, 27_000, 32_000])
+    d.stop()
+  })
+
+  it('nudge() 立刻偵測到另一款:命中後回到每 2 秒確認', async () => {
+    const { d, st, onSwitch, advance, now } = timed({ names: ['Chrome'], extra: [] })
+    d.start()
+    await advance(30_000)
+    st.names = ['Path of Exile 2']
+    const t0 = now()
+    d.nudge()
+    await advance(0)
+    await advance(INTERVAL_MS)
+    expect(onSwitch).toHaveBeenCalledWith('poe2')
+    expect(now() - t0).toBe(INTERVAL_MS)
+    d.stop()
+  })
+
+  it('nudge():沒在退避(有遊戲)/ 沒啟動 → 不額外列舉', async () => {
+    const { d, enumAt, advance } = timed({ names: ['Path of Exile'] })
+    d.nudge()
+    await advance(5_000)
+    expect(enumAt).toEqual([])
+    d.start()
+    await advance(2_000)
+    d.nudge()
+    d.nudge()
+    await advance(0)
+    expect(enumAt).toEqual([7000]) // 啟動前推進了 5 秒 → 第一次在 5 + 2 秒
+    d.stop()
+  })
+
+  it('前景跳過也重設退避;stop / start 重設;計時器不洩漏', async () => {
+    const { d, st, enumAt, advance, pending } = timed({ names: ['Chrome'] })
+    d.start()
+    await advance(20_000)
+    expect(d.backoff.streak).toBeGreaterThanOrEqual(3)
+    st.fg = true
+    await advance(10_000)
+    expect(d.backoff.streak).toBe(0)
+    st.fg = false
+    const n = enumAt.length
+    await advance(2_000)
+    expect(enumAt.length).toBe(n + 1)
+    for (let i = 0; i < 10; i++) { d.nudge(); await advance(100) }
+    expect(pending()).toHaveLength(1)
+    d.stop()
+    d.nudge()
+    expect(pending()).toEqual([])
+    expect(d.running).toBe(false)
+    d.start()
+    expect(d.backoff.streak).toBe(0)
+    expect(pending()).toEqual([INTERVAL_MS])
+    d.stop()
   })
 })

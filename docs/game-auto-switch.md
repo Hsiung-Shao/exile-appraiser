@@ -24,6 +24,14 @@
   之後「視窗清單(標題集合)不變」才沿用到 60 秒(`VETO_MS`),清單變了就重查;目前遊戲視窗 **detach**(`GameWindow.onDetach`,視窗被關掉)→ `invalidateVeto()` 立即作廢,
   「最小化後被關掉」不必等 10 秒下限就能切換。
   overlay 模式下目前綁定的遊戲視窗在前景(`poeWindow.isActive`)時視窗必在、判定必為不切換 → 該 tick 直接跳過列舉(連續計數照原行為重置;連續跳過 15 次會強制完整列舉一次,防 focus 狀態殘留)。
+- **列舉退避(第 30.3 步,2026-10-03)**:視窗清單裡**兩款遊戲都不在**時,下一次列舉間隔 2 → 5 → 10 秒(`absentDelayMs`,上限 10 秒);
+  清單裡有任一款(含「另一款在、目前不在」的候選確認期)或前景跳過 → 回到每 2 秒。**切換條件不變**:仍是「目前不在、另一款在」連續 2 次,兩次之間隔 2 秒。
+  退避中收到訊號 → `nudge()` 立刻查一次並重設退避:綁定遊戲 attach / detach、`active-change`(綁定遊戲取得 / 失去前景)、`powerMonitor` `resume` / `unlock-screen`。
+  沒在退避(有遊戲視窗)時 nudge 不做事,不額外列舉。
+  ⚠ electron-overlay-window 的原生 WinEvent hook(`EVENT_SYSTEM_FOREGROUND`)只把**綁定標題**的視窗變化交給 JS(attach / detach / focus / blur / moveresize / fullscreen),
+  其他視窗的前景變化拿不到 → **另一款遊戲啟動沒有事件可接**。
+  **遊戲啟動後被偵測到的最壞延遲**:退避上限 10 秒(第 1 次命中)+ 2 秒(第 2 次確認)≈ **12 秒**,另加一次列舉(約 160 ms)與候選時的 PowerShell 確認;
+  改前是 2 + 2 ≈ 4 秒。綁定的那款遊戲啟動不受影響(原生直接 attach,overlay 不靠偵測器)。
 - `main/src/main.ts` 的 `host-config`:
   - overlay:第一次決定綁定(log `[overlay] attachByTitle "<title>" (game=<game>)`);之後 `game`、目前遊戲的標題、
     `overlayMode` 變了 → 等 500 ms(讓 renderer 300 ms debounce 的存檔落地)→ 寫 game → 重新啟動。

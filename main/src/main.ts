@@ -1,6 +1,6 @@
 // ⚠ 必須是第一個 import:uiohook-napi 被任何模組載入之前,原生模組路徑過長時改從短路徑載入(uiohook-prebuild.ts)
 import { uiohookPrebuildResult } from './uiohook-prebuild-init'
-import { app, BrowserWindow, dialog, Menu, nativeImage, net, protocol, screen, shell, Tray, type BrowserWindowConstructorOptions, type WebContents } from 'electron'
+import { app, BrowserWindow, dialog, Menu, nativeImage, net, powerMonitor, protocol, screen, shell, Tray, type BrowserWindowConstructorOptions, type WebContents } from 'electron'
 import { describeStartError, uiohookGate } from './uiohook-gate'
 import { uIOhook, UiohookKey } from 'uiohook-napi'
 import { StashScroll } from './stash-scroll'
@@ -970,6 +970,12 @@ if (!skipStartup) app.whenReady().then(() => {
     if (cfg.autoSwitchGame) detector.start()
     else detector.stop()
   }
+  // 第 30.3 步:兩款遊戲都不在時列舉退避 2 → 5 → 10 秒;拿得到的前景相關訊號 → nudge()(退避中才立刻重查並重設退避)。
+  // electron-overlay-window 只對綁定的那個標題發 attach / detach / focus / blur(原生 WinEvent hook 不把其他視窗的前景變化交給 JS),
+  // 所以另一款遊戲啟動沒有事件可接 → 最壞延遲 = 退避上限 10 秒 + 第 2 次確認 2 秒(docs/game-auto-switch.md)。
+  poeWindow?.on('active-change', () => { detector.nudge() })
+  powerMonitor.on('resume', () => { detector.nudge() })
+  powerMonitor.on('unlock-screen', () => { detector.nudge() })
 
   /** 第 16 步:辨識暫停 / 繼續的通知(語言跟 `uiLanguage`;熱鍵只在收到 host-config 後才註冊,hostCfg 一定有值) */
   function notifyScan (items: Array<{ kind: ScanToastKind, paused: boolean }>): void {
@@ -984,6 +990,7 @@ if (!skipStartup) app.whenReady().then(() => {
     poeWindow.onAttach(() => {
       // code review 第 B 批:重新 attach → overlay screenshot 的鎖存作廢,下一次擷取重新試原生路徑
       clientCapture.reset()
+      detector.nudge() // 第 30.3 步:綁定的遊戲出現了 → 退避中立刻重查(回到每 2 秒)
       const wasAttached = gameAttached
       gameAttached = true
       attachCount++
@@ -1014,6 +1021,7 @@ if (!skipStartup) app.whenReady().then(() => {
       gameAttached = false
       // code review 第 B 批:遊戲視窗被關掉 → 「只是最小化」的否決立即作廢(最小化後被關掉時更快切到另一款)
       detector.invalidateVeto()
+      detector.nudge()
     })
   }
 

@@ -39,3 +39,33 @@
 `no-window` / 設定視窗開著同樣 10 秒保底、正常掃描每 intervalMs 不變;active-change / setUiState / `wake()` 事件當下就擷取、
 `wake()` 在正常掃描中不插 tick;`disabled` / `not-poe2` 第一次判斷之後 0 tick、沒有計時器,host-config `poke()` 啟用後立刻掃描;
 任何時候最多一個計時器、`stop()` 後 0 個、停用 ↔ 啟用來回切換不累積。既有 `runeshape-scan` / `reveal-scan` / `perf-monitor` 測試不改照過。
+
+## 30.3 GameDetector 列舉退避(遊戲沒開)
+
+**改了什麼**(`main/src/windowing/GameDetector.ts`、`main/src/main.ts`、`docs/game-auto-switch.md`):
+- `setInterval(2 秒)` 改成 setTimeout 鏈;視窗清單裡**兩款遊戲都不在**時下一次列舉間隔 2 → 5 → 10 秒(`absentDelayMs`,上限 10 秒)。
+  清單裡有任一款(含「目前不在、另一款在」的候選確認期)或前景跳過 → 每 2 秒,**「連續 2 次」的切換條件與兩次之間的 2 秒間隔不變**。
+- 訊號調查:electron-overlay-window 的原生 WinEvent hook 有 `EVENT_SYSTEM_FOREGROUND`,但只把**綁定標題**的視窗變化交給 JS
+  (`attach` / `detach` / `focus` / `blur` / `moveresize` / `fullscreen`),其他視窗的前景變化拿不到;Electron 也沒有全域前景事件。
+  能接的訊號 → `nudge()`(只在退避中才立刻查一次並重設退避,有遊戲時不額外列舉):綁定遊戲 `attach` / `detach`、`active-change`、
+  `powerMonitor` `resume` / `unlock-screen`。
+- **遊戲啟動後被偵測到的最壞延遲**(另一款遊戲啟動,沒有事件可接):退避上限 10 秒(第 1 次命中)+ 2 秒(第 2 次確認)≈ **12 秒**,
+  另加列舉(約 160 ms)與候選時的 PowerShell 確認;改前 2 + 2 ≈ 4 秒。綁定的那款遊戲啟動不受影響(原生直接 attach)。寫在 `docs/game-auto-switch.md`。
+
+**改前改後**(no-game,60 秒;改前 = 30.2 之後的建置,只差這一項):
+
+| 指標 | 改前(30.2 後) | 改後 |
+|---|---|---|
+| `detect.enums`(`getSources` 次數) | 30 | **6** |
+| `detect.processProbes` | 0 | 0 |
+| CPU(單核 100% 基準,平均) | 0.78 % | **0.19 %** |
+| 卡頓 最長(每 5 秒一筆的平均) | 153.6 ms | 82.1 ms(有列舉的 5 秒 126–181 ms、沒列舉的 12–16 ms) |
+| 卡頓 p95(平均) | 11.9 ms | 11.9 ms |
+| `reveal.ticks` / `rune.ticks` | 6 / 6 | 6 / 6 |
+
+每次列舉仍會在 main 卡 130–190 ms(`desktopCapturer.getSources`),只是次數變成約 1/5;要再降得換掉列舉方式(計畫 30.7 評估)。
+
+**測試**:`main/test/game-detector.test.ts` 新增 8 項(假計時器 + 假時鐘):`absentDelayMs` / `anyGamePresent`;兩款都不在時列舉時間點
+2, 4, 9, 19, 29… 秒(60 秒 8 次,改前 30 次);有遊戲視窗照舊每 2 秒;退避到 10 秒時另一款啟動 → 10 秒內第 1 次命中、2 秒後第 2 次 → 切換
+(連續 2 次不變);`nudge()` 立刻查並重設退避、立刻命中後 2 秒確認、沒在退避 / 沒啟動時不做事;前景跳過重設退避;stop / start 重設、計時器不洩漏。
+既有 12 項(前景跳過、否決沿用、連續 2 次)不改照過。

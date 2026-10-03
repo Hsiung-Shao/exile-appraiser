@@ -10,14 +10,31 @@
  * 某遊戲「存在」= 有名稱**完全等於** `windowTitleBy[game]` 的視窗(與原生碼的 strcmp 同語意)。
  * 目前遊戲不在、另一款在,**連續 2 次**成立才觸發;兩款都在或都不在 → 不動。
  * desktopCapturer 不列最小化視窗,候選成立時另以 PowerShell `Get-Process` 的 MainWindowTitle(含最小化)確認。
+ *
+ * 第 30.3 步(閒置降耗):兩款遊戲的視窗都不在清單裡時,列舉間隔退避 2 → 5 → 10 秒(`absentDelayMs`,上限 10 秒);
+ * 清單裡有任一款(含候選成立的確認期)→ 回到每 2 秒,所以「連續 2 次」的切換條件與確認間隔不變。
+ * 退避中收到前景相關訊號(`nudge()`:遊戲 attach / detach / 前景變化、系統喚醒 / 解鎖)→ 立刻查一次並重設退避。
+ * 遊戲啟動後被偵測到的最壞延遲:退避上限 10 秒 + 第 2 次確認 2 秒 ≈ 12 秒(另加列舉 / PowerShell 確認本身的時間)。
  */
 import { desktopCapturer } from 'electron'
 import { execFile } from 'node:child_process'
 import type { GameId } from '@ipc/types'
 
 export const GAMES: readonly GameId[] = ['poe1', 'poe2']
-const INTERVAL_MS = 2000
-const REQUIRED_HITS = 2
+export const INTERVAL_MS = 2000
+export const REQUIRED_HITS = 2
+/** 第 30.3 步:兩款遊戲都不在時,連續第 1 / 2 / 3 次以上之後的下一次列舉間隔(上限 10 秒) */
+export const ABSENT_BACKOFF_MS: readonly number[] = [2000, 5000, 10_000]
+export const ABSENT_BACKOFF_MAX_MS = 10_000
+/** 連續 `streak` 次「兩款都不在」之後,下一次列舉隔多久(0 = 有遊戲 / 剛重設 → 每 2 秒) */
+export function absentDelayMs (streak: number): number {
+  if (streak <= 0) return INTERVAL_MS
+  return Math.min(ABSENT_BACKOFF_MAX_MS, ABSENT_BACKOFF_MS[Math.min(streak, ABSENT_BACKOFF_MS.length) - 1])
+}
+/** 視窗名稱清單裡有沒有任一款遊戲(標題完全相同;空標題不算) */
+export function anyGamePresent (names: readonly string[], titles: Record<GameId, string>): boolean {
+  return GAMES.some(g => titles[g] !== '' && names.includes(titles[g]))
+}
 /**
  * 否決(視窗只是最小化)結果的沿用時間(code review 第 B 批):
  * - `VETO_MIN_MS` 內一律沿用,不看視窗清單(無關視窗標題常常在變 —— 瀏覽器分頁、播放器 —— 只看簽章最壞每 2 秒 spawn 一次 PowerShell);
@@ -49,6 +66,9 @@ export interface GameDetectorOpts {
   listWindowNames?: () => Promise<string[]>
   processTitles?: () => Promise<string[] | null>
   now?: () => number
+  /** 測試注入:計時器(預設全域 setTimeout / clearTimeout) */
+  setTimeout?: (fn: () => void, ms: number) => unknown
+  clearTimeout?: (h: unknown) => void
 }
 
 async function listWindowNamesDefault (): Promise<string[]> {
@@ -89,7 +109,8 @@ function processWindowTitles (): Promise<string[] | null> {
 }
 
 export class GameDetector {
-  private timer: NodeJS.Timeout | null = null
+  private started = false
+  private timer: unknown = null
   private busy = false
   private candidate: GameId | null = null
   private hits = 0
@@ -97,26 +118,63 @@ export class GameDetector {
   /** 最近一次「最小化否決」:當時的視窗清單簽章與時間。 */
   private veto: { sig: string, at: number } | null = null
   private fgSkips = 0
+  /** 第 30.3 步:連續幾次列舉都沒有任何一款遊戲的視窗(退避用;有遊戲 / 前景跳過 / nudge 歸零) */
+  private absentStreak = 0
+  private readonly setT: (fn: () => void, ms: number) => unknown
+  private readonly clearT: (h: unknown) => void
 
-  constructor (private opts: GameDetectorOpts) {}
+  constructor (private opts: GameDetectorOpts) {
+    this.setT = opts.setTimeout ?? ((fn, ms) => setTimeout(fn, ms))
+    this.clearT = opts.clearTimeout ?? ((h) => { clearTimeout(h as NodeJS.Timeout) })
+  }
 
-  get running (): boolean { return this.timer != null }
+  get running (): boolean { return this.started }
+
+  /** 測試 / log:目前的退避次數與下一次列舉間隔 */
+  get backoff (): { streak: number, nextMs: number } {
+    return { streak: this.absentStreak, nextMs: absentDelayMs(this.absentStreak) }
+  }
 
   start () {
-    if (this.timer) return
-    console.log(`[detect] 啟動遊戲視窗偵測(每 ${INTERVAL_MS / 1000} 秒,連續 ${REQUIRED_HITS} 次才切換)`)
+    if (this.started) return
+    console.log(`[detect] 啟動遊戲視窗偵測(每 ${INTERVAL_MS / 1000} 秒,兩款都不在時退避到 ${ABSENT_BACKOFF_MAX_MS / 1000} 秒;連續 ${REQUIRED_HITS} 次才切換)`)
+    this.started = true
     this.fired = false
-    this.timer = setInterval(() => { void this.tick() }, INTERVAL_MS)
+    this.absentStreak = 0
+    this.schedule(INTERVAL_MS)
   }
 
   stop () {
-    if (!this.timer) return
-    clearInterval(this.timer)
+    if (!this.started) return
+    this.started = false
+    if (this.timer != null) this.clearT(this.timer)
     this.timer = null
     this.candidate = null
     this.hits = 0
     this.fgSkips = 0
+    this.absentStreak = 0
     console.log('[detect] 停止遊戲視窗偵測')
+  }
+
+  /**
+   * 第 30.3 步:前景相關訊號(遊戲 attach / detach / 前景變化、系統喚醒 / 解鎖)。退避中 → 立刻查一次並重設退避;
+   * 沒在退避(有遊戲視窗、每 2 秒照常查)→ 不動,不額外列舉。
+   */
+  nudge () {
+    if (!this.started || this.absentStreak <= 0) return
+    this.absentStreak = 0
+    if (this.busy) return // 進行中的 tick 做完會用重設後的間隔排下一次
+    if (this.timer != null) this.clearT(this.timer)
+    this.schedule(0)
+  }
+
+  private schedule (ms: number) {
+    this.timer = this.setT(() => {
+      this.timer = null
+      void this.tick().finally(() => {
+        if (this.started && this.timer == null) this.schedule(absentDelayMs(this.absentStreak))
+      })
+    }, ms)
   }
 
   /**
@@ -133,6 +191,7 @@ export class GameDetector {
     this.fired = false
     this.candidate = null
     this.hits = 0
+    this.absentStreak = 0
   }
 
   /** 單次偵測(timer 呼叫;測試直接呼叫)。 */
@@ -143,6 +202,7 @@ export class GameDetector {
       // 目前遊戲在前景 → 視窗必在 → 原判斷必為 null(並重置連續計數)。直接跳過列舉,計數照原行為重置。
       if (this.opts.isCurrentGameForeground?.() && this.fgSkips < MAX_FOREGROUND_SKIPS) {
         this.fgSkips++
+        this.absentStreak = 0
         if (this.candidate) console.log(`[detect] 條件不再成立,取消切換到 ${this.candidate}`)
         this.candidate = null
         this.hits = 0
@@ -154,6 +214,13 @@ export class GameDetector {
       const names = await (this.opts.listWindowNames ?? listWindowNamesDefault)()
       const current = this.opts.currentGame()
       const titles = this.opts.windowTitleBy()
+      // 第 30.3 步:兩款都不在 → 退避 2 → 5 → 10 秒;有任一款(含候選確認期)→ 每 2 秒
+      if (anyGamePresent(names, titles)) {
+        this.absentStreak = 0
+      } else {
+        this.absentStreak++
+        if (this.absentStreak === ABSENT_BACKOFF_MS.length) console.log(`[detect] 兩款遊戲的視窗都不在,列舉間隔退避到 ${ABSENT_BACKOFF_MAX_MS / 1000} 秒(遊戲 attach / 前景變化 / 系統喚醒時立刻重查)`)
+      }
       let target = decideSwitch(names, current, titles)
       if (target != null) {
         // desktopCapturer 不列**最小化**的視窗(實測);全螢幕 PoE 切出去會最小化 → 誤判「目前遊戲不在」。
