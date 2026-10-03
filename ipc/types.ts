@@ -297,6 +297,25 @@ export interface LogSnapshot {
   lastSeq: number
 }
 
+/**
+ * 第 29 步:效能診斷(設定 › 記錄 › 效能;IPC `perf-get` / `perf-set` / `perf-open-file`,三者都只給 Electron 視窗)。
+ * main `perf/perf-monitor.ts`;開關存在 `userData/perf.json`(與 config.json 分開),`--perf-log` 參數也會打開。
+ */
+export interface PerfState {
+  /** 目前是否在記錄 */
+  enabled: boolean
+  /** 這次啟動帶了 `--perf-log` */
+  byArg: boolean
+  /** 設定開關(userData/perf.json) */
+  setting: boolean
+  /** 取樣間隔(ms) */
+  sampleMs: number
+  /** 今天的效能記錄檔完整路徑(`userData/logs/perf-<日期>.log`,JSONL) */
+  file: string
+  /** 最近一筆:時間、情境鍵、一行摘要(與 app-log 的 `[perf]` 行相同) */
+  last: { ts: number, scenario: string, summary: string } | null
+}
+
 /** 聊天指令(移植 APT `commands`):熱鍵 → 在遊戲聊天框輸入 `text`(`@last` 前綴 / 後綴規則見 main/src/text-box.ts);`send` = 直接送出。 */
 export interface ChatCommand {
   text: string
@@ -408,6 +427,12 @@ export interface HostApi {
   onLogLines?: (cb: (entries: LogEntry[]) => void) => () => void
   /** 第 28 步:開啟記錄資料夾(userData/logs)。瀏覽器預覽 shim 沒有這個方法(`preview: false`)。 */
   openLogFolder?: () => Promise<void>
+  /** 第 29 步:效能診斷狀態。瀏覽器預覽 shim 沒有這三個方法(`preview: false`)。 */
+  perfGet?: () => Promise<PerfState>
+  /** 第 29 步:開 / 關效能診斷(存進 userData/perf.json,立即生效);回傳新狀態 */
+  perfSet?: (on: boolean) => Promise<PerfState>
+  /** 第 29 步:用系統預設程式開今天的效能記錄檔(還沒有就開記錄資料夾) */
+  perfOpenFile?: () => Promise<void>
 }
 
 /**

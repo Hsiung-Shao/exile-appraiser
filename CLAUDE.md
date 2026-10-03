@@ -129,6 +129,9 @@ Path of Exile 查價工具(Electron + TypeScript)。把 `apt-patched`(Awakened P
     renderer:`settings/tabs/Log.vue`(`SettingsTabId` `log`,在「關於」前;`.settings-body` 加 `.fill`;虛擬捲動重用 `virtual-window.ts`、列高依 `useSettingsFs`;自動捲到底 / 往上捲暫停 / 捲回恢復;
     「清除畫面」只清畫面,模組層級記 `clearedUpTo` seq,不刪檔)+ `settings/log-view.ts`(**純函式**:`filterLogEntries`、`matchesFilter` 以行內容 tag 判定 OCR / 查價 / 熱鍵、`isErrorLine`、`mergeLogEntries` seq 去重、複製格式 `formatLogLine` 與 main `formatLogEntry` 逐字相同)。
     **新增記錄 tag 要讓篩選抓得到,就改 `log-view.ts` 的三組 tag 清單**(子字串比對,含 `[renderer] ` 轉印行)。**隱私**:記錄只存本機、不自動上傳;回報問題請使用者在「設定 › 記錄」自己複製貼上。
+24. **效能量測**(第 29 步,2026-10-03,`docs/perf/README.md`):內建診斷 `main/src/perf/perf-monitor.ts`(`--perf-log` 或設定 › 記錄 › 效能;開關存 `userData/perf.json`,**不進 config.json / host-config**;預設關)每 5 秒記 getAppMetrics、卡頓(`perf/lag-probe.ts`,capture-bench 共用)、uiohook 事件、兩個 PanelScan 擷取 / OCR / 被擋原因、GameDetector 列舉與**情境鍵**(`deriveScenario`),寫 app-log `[perf]` 一行 + `userData/logs/perf-<日期>.log`(JSONL,共用 `LogFileWriter` 的 `fileName` / `isOwnFile`)。
+    **關著必須零成本**:不開計時器 / 監聽 / 寫檔器,模組計數只准 `++`(`detectorCounters`、PanelScan `sched.captures` / `blockCounts`)。IPC `perf-get` / `perf-set` / `perf-open-file` 全部 `preview: false`。
+    外部量測 `scripts/perf-scenario.mjs`(只讀:Win32_Process + Get-Counter,PresentMon 有才量 FPS;**只印提示等使用者按 Enter,絕不送輸入**);基準表 `docs/perf/baseline-v0.1.2.md` 由使用者實機跑。
 
 ## 指令
 ```bash
@@ -156,6 +159,7 @@ npx electron main/dist/main.js --capture-bench --bench-title=<前景視窗標題
 node scripts/uiohook-hookcheck.mjs [--exe <win-unpacked\ExileAppraiser.exe>] [--user-data-dir <dir>]   # uiohook 全域掛鉤能否註冊(`--uiohook-selftest`;只 start / stop、不送輸入、不拿單一實例鎖);結束碼 0 = PASS
 npm run package                  # 先 build(renderer/dist + main/dist)再 electron-builder(nsis + portable),-p never;產物見 docs/release-flow.md
 UPDATE_FIXTURES=1 npm test       # 改寫 parser / golden-query 快照;產出必人工 review
+node scripts/perf-scenario.mjs --game <遊戲行程名> --hwaccel off --label <版本>   # 第 29 步:逐情境量 CPU / GPU / WS(+ 遊戲 / FPS);手動擺情境按 Enter,不送輸入(docs/perf/README.md)
 ```
 
 ## 發版 checklist
@@ -196,6 +200,7 @@ UPDATE_FIXTURES=1 npm test       # 改寫 parser / golden-query 快照;產出必
   揭露面板 OCR 比對(`ocr-match.test.ts`:真實截圖快照、394 模板 round-trip、模糊、分組;`ocr-fuzzy-equivalence.test.ts`:效能修正第 8 步的模糊比對與改前實作逐位元相同;`ocr-match-hint.test.ts`:2026-10-03 最近查價的物品與面板不符時否決提示,繁中 / 英文快照)。`renderer/test/ocr-reveal.test.ts` 測徽章座標與文字;`renderer/test/region-geom.test.ts` 測框選幾何(WP-S2)。
 - `main/test/app-log.test.ts` + `renderer/test/log-view.test.ts`(第 28 步,記錄):環形緩衝上限 / 順序 / `since`、批次節流與訂閱開關(假計時器)、console 攔截、檔案寫入 / 20 MB 輪替 / 跨日 / 7 天清除 / 寫檔失敗只回報一次(假 fs + 假時鐘)、格式與 renderer 複製格式逐字相同、
   篩選 tag 清單 / 關鍵字 / seq 合併 / 自動捲動判定,以及 **IPC 登錄表守門**(`log-get` 預覽可讀、`log-open-folder` `preview: false` 且不在預覽方法表、`log-lines` 不在 `PREVIEW_EVENTS`、preload 對應、`captureConsole` 只出現一次)。
+- 第 29 步(效能量測):`main/test/perf-monitor.test.ts`(卡頓探針、行程加總、掃描速率、情境鍵矩陣、JSONL / 摘要格式、關著零計時器 / 監聽、perf 檔輪替 / 清除只動 perf 檔、GameDetector / PanelScan 計數、IPC 守門)、`main/test/perf-scenario-script.test.ts`(腳本參數、行程樹、CPU / GPU 換算、PresentMon CSV、Markdown 表、量測腳本只讀)、`renderer/test/perf-section.test.ts`(字串兩語、接線、開關不進 config)。
 - `main/test/updater-core.test.ts`:自動更新狀態轉移(假 updater 模仿 electron-updater 下載完成才註冊 quit handler)、`autoUpdate` 開關、portable / `--no-updates` / 開發模式、錯誤分類。
 - `main/test/startup-toast.test.ts`:啟動提示是否顯示、更新後首次(版本比較 / `last_run.json`)、訊息組字(熱鍵、兩語)、HTML 跳脫與 CSP、位置、第 16 步遊戲啟動提示判斷(`shouldShowGameAttachToast`)與辨識開關通知(`scanToastMessage`);`renderer/test/startup-toast-config.test.ts`:`startupToast` 設定往返。
 - code review 第 C 批:`renderer/test/scan-layer.test.ts`(掃描層共用接線:例外照樣 ack、重排後 ack、外觀 / 字級 / 語言重報、ResizeObserver、resend 保留、兩元件不再各自接線)、`host-config-sync.test.ts`(`settled()`、`HOST_CONFIG_IMMEDIATE_KEYS` 與 main `scanConfigKey` 一致、狀態列時序)、`settings-window-geom.test.ts`(Teleport 對話框 `fs-own`)。

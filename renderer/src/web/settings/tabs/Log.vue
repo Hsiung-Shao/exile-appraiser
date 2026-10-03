@@ -7,9 +7,11 @@
   - 按鈕:複製目前篩選結果、開啟記錄資料夾(只有 Electron 視窗)、清除畫面(只清畫面,不刪檔;模組層級記住,切分頁不復原)。
   - 錯誤行(error 等級 / `[renderer-error]` / 含 failed、失敗、Error)用 --bad 上色,warn 等級用 --warn。
   - 隱私:記錄只存本機(userData/logs),不自動上傳;要回報問題時自己複製貼上。
+  - 第 29 步:頂端「效能」區(PerfSection.vue:效能診斷開關 + 最近一筆摘要 + 開 perf 記錄檔;只有 Electron 視窗)。
 -->
 <template>
   <section class="log-view" data-log="view">
+    <PerfSection v-if="canPerf" />
     <div class="lg-bar">
       <div class="seg" role="group" :aria-label="t('ppz.log.filter')">
         <button v-for="f in filters" :key="f" type="button" :class="{ on: filter === f }" :data-filter="f" :aria-pressed="filter === f"
@@ -57,6 +59,7 @@ import { useI18n } from 'vue-i18n'
 import type { LogEntry } from '@ipc/types'
 import { Host } from '@/web/background/IPC'
 import { useSettingsFs } from '@/web/settings/settings-fs'
+import PerfSection from './PerfSection.vue'
 import { rafThrottle, windowEndIdx, windowStartIdx } from '../../virtual-window'
 import {
   LOG_FILTERS, filterLogEntries, formatLogText, isAtBottom, isErrorLine, logTime, mergeLogEntries, oneLine, type LogFilterId
@@ -72,6 +75,7 @@ const keyword = ref('')
 const entries = shallowRef<LogEntry[]>([])
 const filtered = computed(() => filterLogEntries(entries.value, filter.value, keyword.value))
 const canOpenFolder = Host.canOpenLogFolder
+const canPerf = Host.canPerf
 
 const scroller = ref<HTMLElement | null>(null)
 const scrollTop = shallowRef(0)

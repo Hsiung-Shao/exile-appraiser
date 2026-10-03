@@ -365,6 +365,27 @@ describe('LogFileWriter(假 fs / 假時鐘)', () => {
     await w.idle()
     expect(file('exile-appraiser-2026-10-03.log')?.data).toBe('a\n')
   })
+
+  it('第 29 步:close() 呼叫後同一輪又有 write(結束時記 log)→ 不會在寫完後讀到 null 的 cur', async () => {
+    const { w, file, errors } = mk()
+    w.write('a')
+    await w.idle()
+    const closing = w.close()
+    w.write('late') // 在 close 開始後(同步)進來:丟掉,不能炸
+    await closing
+    await w.idle()
+    expect(errors).toHaveLength(0)
+    expect(file('exile-appraiser-2026-10-03.log')?.data).toBe('a\n')
+    // drain 進行中才 close:等 drain 結束(期間排進來的也一起寫完)再關
+    const m2 = mk()
+    m2.w.write('x')
+    const c2 = m2.w.close()
+    m2.w.write('y')
+    await c2
+    await m2.w.idle()
+    expect(m2.errors).toHaveLength(0)
+    expect(m2.file('exile-appraiser-2026-10-03.log')?.data).toBe('x\ny\n')
+  })
 })
 
 describe('AppLog(整合)', () => {

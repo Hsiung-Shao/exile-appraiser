@@ -598,6 +598,18 @@
       "empty_filtered": "No lines match the filter.",
       "privacy": "The log stays on this computer (the latest ~3000 lines plus 7 days of files in the folder) and is never uploaded automatically; copy and paste it yourself when reporting an issue."
     },
+    "perf": {
+      "title": "Performance",
+      "enable": "Record performance diagnostics (one sample every {sec} s)",
+      "hint": "Records CPU / memory of each app process, main-process stalls, scan and hook counts and the current scenario into the log and a perf log file (local only). Keep it off normally.",
+      "by_arg": "Started with --perf-log, so recording is on",
+      "last": "Latest sample ({time})",
+      "none": "No data yet (the first sample appears about {sec} s after enabling)",
+      "off": "Not recording",
+      "open_file": "Open perf log file",
+      "open_failed": "Could not open the perf log file",
+      "set_failed": "Could not toggle performance diagnostics"
+    },
     "dust": {
       "per_chaos": "≈ {n} dust / chaos",
       "low_confidence": "Only {count} listings on poe.ninja; price is a rough guide",

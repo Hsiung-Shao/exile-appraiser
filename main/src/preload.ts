@@ -68,7 +68,11 @@ const api: HostApi = {
   getLog: (sinceSeq?: number) => ipcRenderer.invoke('log-get', sinceSeq),
   logSubscribe: (on: boolean) => { ipcRenderer.send('log-subscribe', on) },
   onLogLines: (cb: (entries: LogEntry[]) => void) => subscribe('log-lines', cb),
-  openLogFolder: () => ipcRenderer.invoke('log-open-folder')
+  openLogFolder: () => ipcRenderer.invoke('log-open-folder'),
+  // 第 29 步:設定 › 記錄 › 效能(只有 Electron 視窗)
+  perfGet: () => ipcRenderer.invoke('perf-get'),
+  perfSet: (on: boolean) => ipcRenderer.invoke('perf-set', on),
+  perfOpenFile: () => ipcRenderer.invoke('perf-open-file')
 }
 
 contextBridge.exposeInMainWorld('host', api)

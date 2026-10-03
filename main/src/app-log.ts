@@ -193,6 +193,12 @@ export interface LogFileWriterOptions {
   keepDays?: number
   /** 檔案層錯誤(只回報第一次,避免洗版;絕不能再寫進 console 攔截鏈) */
   onError?: (e: unknown) => void
+  /**
+   * 第 29 步(效能診斷 `perf-<日期>.log` 共用同一套輪替 / 保留):檔名規則與「是不是我們的檔」判斷。
+   * 省略 = 記錄檔 `exile-appraiser-<日期>.log`(`logFileName` / `parseLogFileDay`,與改版前相同)。
+   */
+  fileName?: (ms: number) => string
+  isOwnFile?: (name: string) => boolean
 }
 
 /**
@@ -224,7 +230,7 @@ export class LogFileWriter {
       await this.fs.mkdir(this.o.dir)
       const cutoff = this.now() - this.keepMs
       for (const name of await this.fs.readdir(this.o.dir)) {
-        if (parseLogFileDay(name) == null) continue
+        if (!(this.o.isOwnFile ? this.o.isOwnFile(name) : parseLogFileDay(name) != null)) continue
         const file = path.join(this.o.dir, name)
         const st = await this.fs.stat(file)
         if (st && st.mtimeMs < cutoff) {
@@ -247,7 +253,10 @@ export class LogFileWriter {
   }
 
   async close (): Promise<void> {
-    await this.idle()
+    // 第 29 步實測修正:原本 `await this.idle()` 回來到設 closed 之間隔一個 microtask,那段時間進來的 write 會開新的 drain,
+    // 接著這裡把 cur 設成 null → drain 寫完後 `this.cur.size` 讀到 null(結束時有人記 log 就會發生)。
+    // 改成就地等到沒有 drain,最後一次檢查與設 closed 之間沒有 await。
+    while (this.draining) await this.draining
     this.closed = true
     const c = this.cur
     this.cur = null
@@ -287,7 +296,7 @@ export class LogFileWriter {
     }
     if (!this.cur) {
       await this.fs.mkdir(this.o.dir)
-      const file = path.join(this.o.dir, logFileName(t))
+      const file = path.join(this.o.dir, (this.o.fileName ?? logFileName)(t))
       const st = await this.fs.stat(file)
       this.cur = { file, day, size: st?.size ?? 0, h: await this.fs.openAppend(file) }
     }

@@ -10,7 +10,7 @@
  */
 import type { HostApi, HostFetchResult, ItemTextEvent, HostConfigForMain, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId } from '@ipc/types'
 import type { ConfigChangedEvent, HotkeyRegistration, OcrAvailability, OcrRegionPickTarget, RevealScanEvent, SettingsTabId, UpdaterInfo } from '@ipc/types'
-import type { LogEntry, LogSnapshot, RuneshapeScanEvent, RuneshapeStats, RuneshapeUiState, ScanMaskReport } from '@ipc/types'
+import type { LogEntry, LogSnapshot, PerfState, RuneshapeScanEvent, RuneshapeStats, RuneshapeUiState, ScanMaskReport } from '@ipc/types'
 import { shallowRef } from 'vue'
 import type { HttpFetch } from '@exile-appraiser/core/http'
 import { withRetryAfter } from '@exile-appraiser/core/http'
@@ -220,6 +220,12 @@ class HostTransport {
   /** 開記錄資料夾:只有 Electron 視窗(預覽 / 純瀏覽器沒有) */
   get canOpenLogFolder (): boolean { return !this.isPreview && typeof window.host?.openLogFolder === 'function' }
   async openLogFolder (): Promise<void> { if (this.canOpenLogFolder) await window.host?.openLogFolder?.() }
+
+  // ---- 第 29 步:設定 › 記錄 › 效能(main/src/perf/perf-monitor.ts;只有 Electron 視窗) ----
+  get canPerf (): boolean { return !this.isPreview && typeof window.host?.perfGet === 'function' }
+  async perfGet (): Promise<PerfState | null> { return this.canPerf ? ((await window.host?.perfGet?.()) ?? null) : null }
+  async perfSet (on: boolean): Promise<PerfState | null> { return this.canPerf ? ((await window.host?.perfSet?.(on)) ?? null) : null }
+  async perfOpenFile (): Promise<void> { if (this.canPerf) await window.host?.perfOpenFile?.() }
 
   // ---- 靈魂之井揭露面板(褻瀆)自動辨識(main/src/ocr/reveal-scan.ts;只有 overlay 會收到事件) ----
   onRevealScanResult (cb: (e: RevealScanEvent) => void): () => void {

@@ -24,32 +24,12 @@ import { createGameClientCapture } from './overlay-shot'
 import { WIN_OCR_SCRIPT } from './script'
 import { PanelRegionCache, cacheKey, smartRecognize, type PhysRect } from './strategy'
 import { WinOcr } from './WinOcr'
+import { LagProbe } from '../perf/lag-probe'
 
 const sleep = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms))
 const r1 = (n: number) => Math.round(n * 10) / 10
 
-/** 事件迴圈探針:每 4 ms 排一次 setTimeout,記錄實際間隔 − 4(= 那段時間 main 執行緒被佔住多久) */
-class LagProbe {
-  private samples: Array<{ t: number, lag: number }> = []
-  private last = 0
-  private timer: NodeJS.Timeout | null = null
-  start () {
-    this.last = performance.now()
-    const tick = () => {
-      const now = performance.now()
-      this.samples.push({ t: now, lag: now - this.last - 4 })
-      this.last = now
-      this.timer = setTimeout(tick, 4)
-    }
-    this.timer = setTimeout(tick, 4)
-  }
-  stop () { if (this.timer) clearTimeout(this.timer) }
-  maxLag (t0: number, t1: number): number {
-    let m = 0
-    for (const s of this.samples) if (s.t >= t0 && s.t <= t1 + 30 && s.lag > m) m = s.lag
-    return m
-  }
-}
+// 事件迴圈探針(每 4 ms):第 29 步抽到 perf/lag-probe.ts,與效能診斷共用(行為不變)
 
 function summarize (v: number[]): { n: number, min: number, med: number, p90: number, max: number } {
   const s = [...v].sort((a, b) => a - b)

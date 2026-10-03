@@ -29,6 +29,12 @@ export const VETO_MS = 60_000
 /** 目前遊戲在前景而跳過列舉時,連續跳過這麼多次就強制完整列舉一次(防 focus 狀態殘留)。 */
 const MAX_FOREGROUND_SKIPS = 15
 
+/**
+ * 第 29 步效能診斷(`perf/perf-monitor.ts`)讀的模組層級計數:視窗列舉(`getSources`)與 PowerShell 行程標題確認的累計次數。
+ * 只有 `++`,不建物件、不開計時器;診斷關著也照常累加(成本可忽略)。
+ */
+export const detectorCounters = { enums: 0, processProbes: 0 }
+
 export interface GameDetectorOpts {
   /** 目前綁定(overlay)或使用中(window)的遊戲。 */
   currentGame: () => GameId
@@ -144,6 +150,7 @@ export class GameDetector {
       }
       this.fgSkips = 0
       const now = this.opts.now ?? Date.now
+      detectorCounters.enums++
       const names = await (this.opts.listWindowNames ?? listWindowNamesDefault)()
       const current = this.opts.currentGame()
       const titles = this.opts.windowTitleBy()
@@ -159,6 +166,7 @@ export class GameDetector {
           target = null
         } else {
           this.veto = null
+          detectorCounters.processProbes++
           const extra = await (this.opts.processTitles ?? processWindowTitles)()
           if (extra) {
             target = decideSwitch([...names, ...extra], current, titles)

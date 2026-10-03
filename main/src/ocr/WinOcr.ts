@@ -179,6 +179,8 @@ export class WinOcr {
   }
 
   get running (): boolean { return this.proc != null }
+  /** 第 29 步效能診斷:常駐 PowerShell 行程的 pid(沒在跑 = undefined) */
+  get pid (): number | undefined { return this.proc?.pid }
 
   /** 目前(下一次啟動會用)的 OCR 語言包 */
   get lang (): string { return this.opts.lang }

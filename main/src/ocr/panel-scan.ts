@@ -506,7 +506,9 @@ export class PanelScan {
   private lastLogKey = ''
   private logRepeats = 0
   /** 排程層的計數(不進設定頁統計;測試 / 診斷用) */
-  readonly sched = { idleBackoffSkips: 0, locateSkips: 0, locateShared: 0, dedupedRows: 0, maskWaits: 0 }
+  readonly sched = { idleBackoffSkips: 0, locateSkips: 0, locateShared: 0, dedupedRows: 0, maskWaits: 0, captures: 0 }
+  /** 第 29 步效能診斷:被擋下的 tick 依原因累計(`block()`;只有 `++`) */
+  readonly blockCounts: Partial<Record<ScanBlock | 'region-outside', number>> = {}
   readonly stats: Omit<RuneshapeStats, 'active' | 'reason' | 'avgCaptureMs' | 'avgOcrMs' | 'mode' | 'panel' | 'autoRegion'> & { lastError?: string } = {
     ticks: 0, ocrRuns: 0, skippedUnchanged: 0, skippedBusy: 0, locates: 0, locateMisses: 0
   }
@@ -686,6 +688,7 @@ export class PanelScan {
 
   private block (b: ScanBlock | 'region-outside'): TickResult {
     if (b !== this.lastBlock) this.log(`${this.tag} 不掃描:${b}`)
+    this.blockCounts[b] = (this.blockCounts[b] ?? 0) + 1
     this.lastBlock = b
     this.baseline = null
     this.emptyStreak = 0
@@ -849,6 +852,7 @@ export class PanelScan {
     this.inFlight = true
     const t0 = now()
     try {
+      this.sched.captures++
       const cap = await this.deps.capture(env.bounds!)
       const captureMs = now() - t0
       this.pushHist(this.capHist, captureMs)

@@ -10,13 +10,13 @@ import fsSync from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { format } from 'node:util'
-import type { ConfigChangedEvent, GameId, HostConfigForMain, HostFetchInit, HotkeyRegistration, ItemTextEvent, RuneshapeUiState, SettingsTabId, TrackAreaOpts, WindowMode } from '@ipc/types'
+import type { ConfigChangedEvent, GameId, HostConfigForMain, HostFetchInit, HotkeyRegistration, ItemTextEvent, PerfState, RuneshapeUiState, SettingsTabId, TrackAreaOpts, WindowMode } from '@ipc/types'
 import { abortHostFetch, abortKeyOf, hostFetch, installCookiePatch } from './http'
 import { Shortcuts, normalizeHotkey } from './Shortcuts'
 import { nextScanPaused } from './shortcut-actions'
 import { scanConfigKey } from './scan-config'
 import { GameWindow } from './windowing/GameWindow'
-import { GameDetector } from './windowing/GameDetector'
+import { GameDetector, detectorCounters } from './windowing/GameDetector'
 import { OverlayWindow, type SendToRenderer } from './windowing/OverlayWindow'
 import { WidgetAreaTracker } from './windowing/WidgetAreaTracker'
 import { AppUpdater } from './AppUpdater'
@@ -38,6 +38,7 @@ import { isAppNavigation, isExternalWebUrl } from './external-links'
 import { BG_DIR_NAME, bgContentType, bgCorsHeaders, bgFileFromPath, normBgFile, resolveBgPath, storedBgName } from './backgrounds'
 import { createFontLister } from './system-fonts'
 import { AppLog, LogFileWriter, captureConsole, consoleMethodForLevel, type LogEntry } from './app-log'
+import { PerfMonitor, formatPerfSummary, isPerfFile, perfFileName, scanSnapshotOf, type ScenarioInput } from './perf/perf-monitor'
 import {
   TOAST_FADE_MS, TOAST_VISIBLE_MS, isFirstRunAfterUpdate, parseLastRun, priceCheckHotkeyLabel, scanToastMessage, serializeLastRun,
   shouldShowGameAttachToast, shouldShowStartupToast, toastBounds, toastHtml, toastLang, toastMessage, toastWorkArea, type ScanToastKind, type ToastMessage
@@ -81,6 +82,8 @@ if (LOG_FILE) {
   })
 }
 const LOG_DIR = () => path.join(app.getPath('userData'), 'logs')
+// 第 29 步:`--perf-log` = 這次啟動就開效能診斷(perf/perf-monitor.ts;也可在設定 › 記錄 › 效能打開,存 userData/perf.json)
+const PERF_ARG = process.argv.includes('--perf-log')
 
 console.log(uiohookPrebuildResult.message)
 
@@ -1092,6 +1095,72 @@ if (!skipStartup) app.whenReady().then(() => {
     return result
   }
 
+  // ---- 第 29 步:效能診斷(perf/perf-monitor.ts;docs/perf/README.md) ----
+  // `--perf-log` 或設定 › 記錄 › 效能(userData/perf.json)打開;預設關。關著時不開計時器、不掛 uiohook 監聽、不建寫檔器,
+  // 只有各模組的計數器 `++`(GameDetector detectorCounters、PanelScan sched.captures / blockCounts)。
+  // 開著時每 5 秒一筆:app-log 一行 `[perf] …` + userData/logs/perf-<日期>.log(JSONL,沿用 LogFileWriter 的輪替 / 保留 7 天)
+  /** renderer 最近一次回報的查價面板 / 設定 / 框選層狀態(`runeshape-ui-state`,只有 overlay;情境標記用) */
+  let lastUiState: RuneshapeUiState | null = null
+  const PERF_SETTING_PATH = () => path.join(app.getPath('userData'), 'perf.json')
+  let perfSetting = false
+  try { perfSetting = (JSON.parse(fsSync.readFileSync(PERF_SETTING_PATH(), 'utf8')) as { enabled?: unknown }).enabled === true } catch { /* 沒有檔 = 關 */ }
+  let perfWriter: LogFileWriter | null = null
+  const perfWrite = (line: string) => {
+    if (!perfWriter) {
+      perfWriter = new LogFileWriter({
+        dir: LOG_DIR(),
+        fileName: perfFileName,
+        isOwnFile: isPerfFile,
+        onError: (e) => { rawConsoleWarn('[perf] 寫效能記錄檔失敗(之後的錯誤不再重複回報)', e) }
+      })
+      void perfWriter.purgeOld()
+    }
+    perfWriter.write(line)
+  }
+  /** 情境標記用:設定檔的背景圖開著且選了圖(只在效能診斷取樣時讀;讀不到 = null) */
+  const readBgActive = async (): Promise<boolean | null> => {
+    try {
+      const c = JSON.parse(await fs.readFile(CONFIG_PATH(), 'utf8')) as { bg?: { enabled?: unknown, file?: unknown } }
+      return c.bg?.enabled !== false && typeof c.bg?.file === 'string' && c.bg.file !== ''
+    } catch { return null }
+  }
+  const perf = new PerfMonitor({
+    metrics: () => app.getAppMetrics(),
+    scenario: async (): Promise<ScenarioInput> => ({
+      mode: windowMode,
+      gameAttached: windowMode === 'overlay' ? gameAttached : null,
+      gameForeground: windowMode === 'overlay' ? Boolean(poeWindow?.isActive) : null,
+      ui: windowMode === 'overlay' ? lastUiState : null,
+      revealReason: scanSnapshotOf(revealScan).reason,
+      runeReason: scanSnapshotOf(runeshapeScan).reason,
+      bg: await readBgActive(),
+      windowVisible: !w.isDestroyed() && w.isVisible()
+    }),
+    scans: () => ({ reveal: scanSnapshotOf(revealScan), rune: scanSnapshotOf(runeshapeScan) }),
+    uiohook: () => ({ running: uiohookGate.isRunning, holders: uiohookGate.holders }),
+    hookEvents: { on: (fn) => { uIOhook.on('input', fn) }, off: (fn) => { uIOhook.off('input', fn) } },
+    detector: () => ({ enums: detectorCounters.enums, processProbes: detectorCounters.processProbes, running: detector.running }),
+    winOcr: () => (winOcr.running ? { running: true, pid: winOcr.pid } : { running: false }),
+    write: perfWrite,
+    log: (line) => { console.log(line) }
+  })
+  const perfState = (): PerfState => {
+    const last = perf.last
+    return {
+      enabled: perf.enabled,
+      byArg: PERF_ARG,
+      setting: perfSetting,
+      sampleMs: perf.intervalMs,
+      file: path.join(LOG_DIR(), perfFileName(Date.now())),
+      last: last ? { ts: last.ts, scenario: last.scenario, summary: formatPerfSummary(last) } : null
+    }
+  }
+  // 排在其他 will-quit 之前:「效能診斷停止」那行要在記錄檔關閉前寫進去
+  app.prependListener('will-quit', () => {
+    perf.stop()
+    void perfWriter?.close()
+  })
+
   // ---- 所有 IPC handler 的登錄表(ipcMain 與瀏覽器預覽共用;見 host-handlers.ts) ----
   const table: HandlerTable = {
     'app-version': { kind: 'sync', fn: () => app.getVersion() },
@@ -1308,7 +1377,7 @@ if (!skipStartup) app.whenReady().then(() => {
       }
     },
     // renderer 回報查價面板 / 設定 / 框選層開著(符文塑形任一 → 暫停;褻瀆只看設定 / 框選層);send 一律不開放給預覽
-    'runeshape-ui-state': { kind: 'send', fn: (_ctx, s: RuneshapeUiState) => { runeshapeScan.setUiState(s); revealScan.setUiState(s) } },
+    'runeshape-ui-state': { kind: 'send', fn: (_ctx, s: RuneshapeUiState) => { lastUiState = s; runeshapeScan.setUiState(s); revealScan.setUiState(s) } },
     // 第 18 步:renderer 回報畫在遊戲上的徽章 / 提示外框(CSS px + 視窗大小 + 處理到的掃描事件 seq);
     // 擷取後遮掉;在等這份回報的掃描立刻補一個 tick。send 一律不開放給預覽(預覽分頁畫的東西不在遊戲上)
     'scan-mask': {
@@ -1328,9 +1397,44 @@ if (!skipStartup) app.whenReady().then(() => {
     'reveal-stats': { kind: 'invoke', preview: false, fn: () => revealScan.snapshot() },
     // WP-R2:設定頁顯示掃描統計;預覽端不開放
     'runeshape-stats': { kind: 'invoke', preview: false, fn: () => runeshapeScan.snapshot() },
+    // 第 29 步:設定 › 記錄 › 效能(狀態 / 開關 / 開記錄檔);都只給 Electron 視窗
+    'perf-get': { kind: 'invoke', preview: false, fn: () => perfState() },
+    'perf-set': {
+      kind: 'invoke',
+      preview: false,
+      fn: async (_ctx, on: unknown) => {
+        const want = on === true
+        perfSetting = want
+        try {
+          await fs.mkdir(path.dirname(PERF_SETTING_PATH()), { recursive: true })
+          await fs.writeFile(PERF_SETTING_PATH(), JSON.stringify({ enabled: want }, null, 2))
+        } catch (e) {
+          console.warn('[perf] perf.json 寫入失敗(這次執行仍套用)', e)
+        }
+        if (want) perf.start()
+        else perf.stop()
+        return perfState()
+      }
+    },
+    'perf-open-file': {
+      kind: 'invoke',
+      preview: false,
+      fn: async () => {
+        const file = path.join(LOG_DIR(), perfFileName(Date.now()))
+        await fs.mkdir(LOG_DIR(), { recursive: true })
+        const err = await shell.openPath(fsSync.existsSync(file) ? file : LOG_DIR())
+        if (err) throw new Error(err)
+      }
+    },
     ...updater.handlers()
   }
   registerIpc(table)
+
+  // 第 29 步:效能診斷(`--perf-log` 或 perf.json 開著才啟動)
+  if (PERF_ARG || perfSetting) {
+    console.log(`[perf] 啟動即開效能診斷(${PERF_ARG ? '--perf-log' : '設定開關'})`)
+    perf.start()
+  }
 
   if (PREVIEW_ON_START) {
     ensurePreview()
