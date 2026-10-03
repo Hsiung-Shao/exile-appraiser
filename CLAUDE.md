@@ -136,6 +136,7 @@ Path of Exile 查價工具(Electron + TypeScript)。把 `apt-patched`(Awakened P
     事件 `poke()` / `wake()`(attach / detach / moveresize)立刻重看)。**新增會改變 scanBlock 結果的狀態時,記得在那個事件 `poke()` 掃描**,否則最壞要等 10 秒保底(停用時永遠不會重看)。
     30.3 GameDetector 兩款遊戲都不在時列舉退避 2 → 5 → 10 秒(`absentDelayMs`;有任一款 / 候選確認期每 2 秒,連續 2 次條件不變),退避中 `nudge()`(attach / detach / active-change / powerMonitor resume、unlock-screen)立刻重查;
     另一款遊戲啟動沒有事件可接(overlay 原生只回報綁定標題)→ 最壞偵測延遲約 12 秒(`docs/game-auto-switch.md`)。
+    30.8 poe.ninja 4 分鐘定期更新不再常駐:`queuePricesFetch` 才 `touch()`(`renderer/src/web/background/interest-refresh.ts`),最近一次查價 20 分鐘後關掉計時器;**新的「有人在查價」入口一律呼叫 `queuePricesFetch`**,不要自己 `load()`。
 
 ## 指令
 ```bash

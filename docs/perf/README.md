@@ -118,3 +118,4 @@ window 模式下 main 不知道遊戲 / 查價面板 / 設定的狀態(renderer 
 
 - `baseline-v0.1.2.md`:v0.1.2 現況(待使用者實機跑,8 情境 × 硬體加速 開 / 關)。
 - 之後每步(30.x)改完重跑對應情境,改前改後數字寫進該步的說明;步 31 起發版前跑一次並與上一版比較。
+- `changes-round5.md`:30.2(PanelScan 閒置)/ 30.3(GameDetector 退避)/ 30.8(Prices 定期更新)改前改後,含不靠遊戲的 no-game 量測做法。

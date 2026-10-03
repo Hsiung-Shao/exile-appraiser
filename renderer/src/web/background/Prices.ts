@@ -17,6 +17,8 @@
  *   `autoCurrency` 依遊戲換單位(PoE1 照 APT chaos / div;PoE2 崇高石 / 神聖石,規則在 core `ninja/units.ts`);
  *   PoE2 剪貼簿查價也算「有人在查價」(`queuePricesFetch`,節流與 20 分鐘閘門不變);
  *   PoE2 查價元件經 `poe2-price-source.ts` 轉接這裡(`poe2/src/web/background/Prices.ts`)。
+ * - 第 30.8 步(閒置降耗):4 分鐘定期更新不再常駐,只在**最近一次查價後 20 分鐘內**排(`interest-refresh.ts`);
+ *   超過就關掉計時器,下次查價 `queuePricesFetch` 照舊立即 `load()`(資料過期就抓)。抓不抓、抓到什麼與改前相同。
  */
 import { computed, readonly, shallowRef, watch } from 'vue'
 import { createGlobalState } from '@vueuse/core'
@@ -29,6 +31,7 @@ import { Host } from './IPC'
 import { useLeagues } from './Leagues'
 import { priceFromSnapshot, type PriceOfResult } from './price-of'
 import { priceHitFields, type PriceTrendFields } from './price-trend'
+import { createInterestRefresh } from './interest-refresh'
 
 export type { PriceOfResult, PriceOfHit } from './price-of'
 
@@ -174,8 +177,16 @@ export const usePoeninja = createGlobalState(() => {
     }
   }
 
+  // 第 30.8 步:定期更新只在最近一次查價後 20 分鐘內排(原本常駐 setInterval;超過 20 分鐘 load() 本來就直接 return)
+  const periodic = createInterestRefresh({
+    intervalMs: RETRY_INTERVAL_MS,
+    spanMs: INTEREST_SPAN_MS,
+    refresh: () => { void load() }
+  })
+
   function queuePricesFetch () {
     lastInterestTime = Date.now()
+    periodic.touch(lastInterestTime)
     void load()
   }
 
@@ -216,8 +227,6 @@ export const usePoeninja = createGlobalState(() => {
     const game = target.value?.game ?? AppConfig().game
     return autoCurrencyFor(game, value, { divineRate: xchgRate.value, exaltedRate: exaltedRate.value }, opts)
   }
-
-  setInterval(() => { void load() }, RETRY_INTERVAL_MS)
 
   // 剪貼簿查價 = 有人在查價(上游由 PriceCheckWindow 呼叫 queuePricesFetch)。
   // 第 24 步起 PoE2 也算(查價面板「通貨價格區」經 poe2-price-source.ts 讀這份價格表);台服 / 私人聯盟 target 為 null,load 直接 return。
