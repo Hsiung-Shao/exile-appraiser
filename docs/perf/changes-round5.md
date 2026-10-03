@@ -176,3 +176,36 @@
   **霧面 0 的繪製矩形與 CSS 版一致**(寬 / 高圖 × 面板 / 設定框 × dpr 1 / 1.5 × cover / contain / zoom × 3 個焦點,畫布拉回框後誤差 < 0.001 px);
   `detach` / `adopt` / `BgBakeCache`、`useBackground` 關閉 / 換圖清快取、接線守門(閘門條件、App.vue 的 v-show 與 `:shown` 同一個 `panelVisible`)。
   既有測試只改了三處:霧面 0 從「維持 CSS」改為「預先處理」的兩項、讀實作細節的守門改讀 `BgLayerImage.vue`。
+
+## 30.7 electron-overlay-window 原生 hook thread(調查,**不改程式**)
+
+**它在做什麼**(`node_modules/electron-overlay-window` 4.1.0,`src/lib/windows.c` / `dist/index.js`):
+- `OverlayController.attachByTitle()` → 原生 `start()` → `uv_thread_create(hook_thread)`,這條執行緒跑 Win32 訊息迴圈到行程結束:
+  - 全系統 `SetWinEventHook(EVENT_SYSTEM_FOREGROUND)`、`(EVENT_SYSTEM_MINIMIZEEND)`(out-of-context,只在前景切換 / 還原時被叫);
+  - `SetTimer(83 ms)`(約 12 次 / 秒):`GetForegroundWindow()` 與上次不同才做 MSAA 確認並 `handle_new_foreground`;
+  - 目前前景視窗那條執行緒的 `EVENT_OBJECT_NAMECHANGE`(每次前景換人就重掛):前景視窗改標題時比對綁定標題;
+  - 綁定的遊戲 attach 之後另掛它的 `LOCATIONCHANGE` / `DESTROY`。
+- **沒有任何停止 / detach API**:原生只匯出 `start` / `activateOverlay` / `focusTarget` / `screenshot`,JS 端 `attachByTitle` 每個行程只能呼叫一次(`isInitialized`);
+  hook 與計時器的 handle 沒存起來,執行緒也沒有結束條件。遊戲關掉(detach)後執行緒照常在跑,等下一次同標題視窗出現。
+
+**成本**(獨立量測,不靠本程式的其他部分):`dist-perf/owhook-probe.cjs`(gitignore,用完刪)在純 Node 行程裡用 `node-gyp-build` 載入同一個 `.node`,
+`start(沒有 overlay 視窗, 不存在的標題)` = 本程式遊戲沒開時的狀態;對照組是同樣空轉、不 start 的 Node 行程。兩者同時跑,PowerShell `QueryProcessCycleTime` 量 100 秒:
+
+| 指標 | 空轉對照 | hook thread 開著 | 差 |
+|---|---|---|---|
+| CPU cycles / 秒 | 10,876 | 2,113,017 | **約 2.1 M / 秒** |
+| 換算單核(9800X3D,4.7 GHz) | — | — | **約 0.045 %**(16 執行緒的系統 ≈ 0.003 %) |
+| `process.cpuUsage()`(GetProcessTimes,15.6 ms 刻度) | 0 ms / 120 s | 0 ms / 120 s | 低於 OS 計時刻度,量不出 |
+
+量測當下的前景視窗是使用者正在玩的遊戲(不改它的標題);前景是一直改標題的程式(瀏覽器播放中、終端機)時 NAMECHANGE 事件會多一些,但每次只是取標題 + strcmp。
+
+**能不能在遊戲沒開時停掉**:
+| 做法 | 評估 |
+|---|---|
+| 遊戲沒開時 detach / 停 hook thread | **套件不支援**(沒有 stop API、handle 沒保存)。要做只能 fork 原生碼加 `stop`(UnhookWinEvent ×N、KillTimer、PostThreadMessage(WM_QUIT))並自建 win32-x64 prebuild,還要處理 JS 端 `isInitialized` 與 threadsafe function 的釋放;換來的是每秒 ~2 M cycles。不划算 |
+| 不在啟動時 `attachByTitle`,等 GameDetector 偵測到綁定的遊戲才 attach | ① 停用自動切換(`autoSwitchGame: false`)時 GameDetector 根本不跑,得另開輪詢;② GameDetector 的偵測是 `desktopCapturer.getSources` 列舉,**每次在 main 卡 130–190 ms**(30.3 量到),遊戲沒開時每 10 秒一次 ≈ 1.5 % 的 main 執行緒時間,本身就比這條 hook thread 貴兩個數量級;③ 綁定的遊戲啟動後要等最多 10 秒 + 2 秒確認才 attach,這段時間 overlay / 熱鍵 / 掃描都不能用(現在是原生前景事件,幾乎立刻);④ attach 一次就再也停不掉,只省得到「這次執行從沒開過遊戲」的那段 |
+| 拉長 83 ms 計時器 | 也要改原生碼;它是 ForegroundLockTimeout / 搶前景時的補救路徑,拉長會讓 focus / blur(overlay 顯示 / 隱藏、熱鍵是否作用)變慢 |
+
+**結論**:不改。這條執行緒在遊戲沒開時約 0.045 % 單核,低於 GameDetector 一次列舉的成本,而唯一可行的「延後 attach」會增加偵測延遲、需要更貴的輪詢、
+且 attach 後仍停不掉。記為限制:**electron-overlay-window 4.1.0 的 hook thread 一旦啟動就常駐到程式結束**。若之後要再降遊戲沒開時的 main 成本,
+優先處理的是 GameDetector 的 `getSources` 列舉(換成 EnumWindows 之類的原生列舉),不是這條執行緒。

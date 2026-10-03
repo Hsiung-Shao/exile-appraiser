@@ -138,6 +138,7 @@ Path of Exile 查價工具(Electron + TypeScript)。把 `apt-patched`(Awakened P
     另一款遊戲啟動沒有事件可接(overlay 原生只回報綁定標題)→ 最壞偵測延遲約 12 秒(`docs/game-auto-switch.md`)。
     30.8 poe.ninja 4 分鐘定期更新不再常駐:`queuePricesFetch` 才 `touch()`(`renderer/src/web/background/interest-refresh.ts`),最近一次查價 20 分鐘後關掉計時器;**新的「有人在查價」入口一律呼叫 `queuePricesFetch`**,不要自己 `load()`。
     30.6 背景圖:關閉 / 容器隱藏時圖層整個不掛載(`BgLayer.vue` 閘門 + `bgBakeCache` 保留畫好的圖),霧面 0 也預先處理;**新增會藏起 `.bg-host` 的狀態要同步傳給 `<bg-layer :shown>`**。
+    30.7 調查(不改程式):electron-overlay-window 的原生 hook thread(83 ms 計時器 + 全系統 FOREGROUND / MINIMIZEEND + 前景 NAMECHANGE)**沒有 stop API、attach 後常駐到結束**;遊戲沒開時約 0.045 % 單核,比 GameDetector 一次 `getSources` 列舉便宜得多,延後 attach 得不償失。
 
 ## 指令
 ```bash
