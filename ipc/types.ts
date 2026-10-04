@@ -346,7 +346,7 @@ export interface ConfigChangedEvent {
   source: string
 }
 
-/** 設定面板的分頁(托盤「設定」「關於」用 `open-settings` 指定要開哪頁;查價標題列 ⚖ 開 `dust`)。 */
+/** 設定面板的分頁(`open-settings` 指定要開哪頁,如更新提醒開「關於」;查價標題列 ⚖ 開 `dust`)。 */
 export type SettingsTabId = 'general' | 'price-check' | 'hotkeys' | 'chat' | 'regex' | 'dust' | 'log' | 'about'
 
 /** 第 28 步:設定 › 記錄。main 常駐環形緩衝(最近約 3000 行)的一筆;`seq` 遞增,renderer 以它去重 / 補洞。 */
@@ -446,7 +446,7 @@ export interface HostApi {
   onHideWidget: (cb: () => void) => () => void
   /** window 模式下偵測器切遊戲:renderer 跟著切 `config.game`(overlay 模式改走重新啟動)。 */
   onSwitchGame: (cb: (game: GameId) => void) => () => void
-  /** 托盤「設定」「關於」:main 已把視窗叫到前景(window 顯示 / overlay `assertOverlayActive`),renderer 開設定到指定分頁。 */
+  /** 更新提醒等:main 已把視窗叫到前景(window 顯示 / overlay `assertOverlayActive`),renderer 開設定到指定分頁。 */
   onOpenSettings: (cb: (e: { tab: SettingsTabId }) => void) => () => void
   trackArea: (opts: TrackAreaOpts) => void
   focusGame: () => void
@@ -511,6 +511,8 @@ export interface HostApi {
   onLogLines?: (cb: (entries: LogEntry[]) => void) => () => void
   /** 第 28 步:開啟記錄資料夾(userData/logs)。瀏覽器預覽 shim 沒有這個方法(`preview: false`)。 */
   openLogFolder?: () => Promise<void>
+  /** 步 38:開啟設定資料夾(userData,內含 config.json)。托盤選單已移除該項,改由設定 › 關於提供;預覽 shim 沒有(`preview: false`)。 */
+  openConfigFolder?: () => Promise<void>
   /** 第 29 步:效能診斷狀態。瀏覽器預覽 shim 沒有這三個方法(`preview: false`)。 */
   perfGet?: () => Promise<PerfState>
   /** 第 29 步:開 / 關效能診斷(存進 userData/perf.json,立即生效);回傳新狀態 */

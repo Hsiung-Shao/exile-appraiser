@@ -234,6 +234,9 @@ class HostTransport {
   /** 開記錄資料夾:只有 Electron 視窗(預覽 / 純瀏覽器沒有) */
   get canOpenLogFolder (): boolean { return !this.isPreview && typeof window.host?.openLogFolder === 'function' }
   async openLogFolder (): Promise<void> { if (this.canOpenLogFolder) await window.host?.openLogFolder?.() }
+  /** 開設定資料夾:只有 Electron 視窗(預覽 / 純瀏覽器沒有) */
+  get canOpenConfigFolder (): boolean { return !this.isPreview && typeof window.host?.openConfigFolder === 'function' }
+  async openConfigFolder (): Promise<void> { if (this.canOpenConfigFolder) await window.host?.openConfigFolder?.() }
 
   // ---- 第 29 步:設定 › 記錄 › 效能(main/src/perf/perf-monitor.ts;只有 Electron 視窗) ----
   get canPerf (): boolean { return !this.isPreview && typeof window.host?.perfGet === 'function' }

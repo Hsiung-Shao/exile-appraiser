@@ -71,7 +71,7 @@ Path of Exile 查價工具(Electron + TypeScript)。把 `apt-patched`(Awakened P
    - PoE2(`poe2/`)的完整清單見 `docs/poe2-port-notes.md`;`poe2/test/src-coupling.test.ts` 擋 src 再 import `@/web/Config` / IPC / `import.meta.env`
 7. **未解析詞綴不丟棄**:`unknownModifiers` 一律顯示(UI 的 UnknownModifier、CLI 的 ⚠ 清單)。
 8. Windows 環境:寫含中文的檔案用 Write/Edit,不用 PowerShell 讀改寫;spawn Electron 前移除 `ELECTRON_RUN_AS_NODE`(build/script.mjs 已做)。
-9. **介面語言 `uiLanguage` ≠ 客戶端語言 `language`**:`language` 決定資料集與剪貼簿解析(切換要重載資料);`uiLanguage`(`cmn-Hant|en`)只換 UI 字串與托盤選單,不重載資料。新增 UI 字串兩語系都要補(`renderer/src/i18n/{cmn-Hant,en}.json` 的 `ppz.*`;托盤在 `main/src/tray-strings.ts`)。
+9. **介面語言 `uiLanguage` ≠ 客戶端語言 `language`**:`language` 決定資料集與剪貼簿解析(切換要重載資料);`uiLanguage`(`cmn-Hant|en`)只換 UI 字串與托盤選單,不重載資料。新增 UI 字串兩語系都要補(`renderer/src/i18n/{cmn-Hant,en}.json` 的 `ppz.*`;托盤在 `main/src/tray-strings.ts`;托盤右鍵選單只有 在瀏覽器開啟設定 / 版本灰字 / 檢查更新 / 結束,雙擊圖示叫出視窗;「開啟設定資料夾」在設定 › 關於,IPC `config-open-folder`)。
    **第 27 步(查價依物品文字自動判斷語言,`docs/item-language.md`)**:國際服的剪貼簿文字語言 ≠ `language` 時改用文字的語言解析(查詢只用語言無關鍵 → 與客戶端語言設對時逐字相同);
    台服一律 `language`(英文文字照舊 `item.wrong_language`)。判斷 = `core/src/realm/item-language.ts`(名牌區 `ITEM_CLASS` / `RARITY` 標頭,**字串取自各語系 client_strings**);
    兩代 `assets/data/index.ts` 每個語系一套繫結(`activateLangData`,最多兩套、綁 DataSource、失敗回復),`loadForLang` = 客戶端語言那一套(PoE2 `PRIMARY_DATA` / PoE1 `PRIMARY_LANG`);

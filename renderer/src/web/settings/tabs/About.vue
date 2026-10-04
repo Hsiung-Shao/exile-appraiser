@@ -67,6 +67,12 @@
       <button class="btn ghost sm" data-action="report-copy" @click="copy">{{ t('ppz.report.copy') }}</button>
     </div>
     <p v-if="reportMessage" class="hint" :class="{ bad: reportFailed }" data-report-status>{{ reportMessage }}</p>
+    <template v-if="canOpenConfigFolder">
+      <span class="label sub">{{ t('ppz.about.config_folder') }}</span>
+      <div class="btn-row">
+        <button class="btn ghost sm" data-action="config-open-folder" @click="openConfigFolder">{{ t('ppz.about.config_folder_open') }}</button>
+      </div>
+    </template>
   </section>
 
   <section class="card" data-about="thanks">
@@ -289,6 +295,8 @@ export default defineComponent({
       download () { void Host.downloadUpdate() },
       install () { void Host.installUpdate() },
       open,
+      canOpenConfigFolder: Host.canOpenConfigFolder,
+      openConfigFolder () { void Host.openConfigFolder() },
       links: LINKS,
       support: SUPPORT,
       thanks: THANKS,

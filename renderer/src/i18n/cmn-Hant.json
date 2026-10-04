@@ -397,6 +397,8 @@
       "bmc": "Buy Me a Coffee",
       "patreon": "Patreon",
       "report": "回報問題",
+      "config_folder": "設定資料夾",
+      "config_folder_open": "開啟設定資料夾",
       "report_hint": "開啟預填好的 GitHub issue(只帶版本與環境資訊,不會自動送出)。",
       "license": "授權全文",
       "license_title": "{name} — 授權",

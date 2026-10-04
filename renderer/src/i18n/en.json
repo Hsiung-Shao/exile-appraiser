@@ -397,6 +397,8 @@
       "bmc": "Buy Me a Coffee",
       "patreon": "Patreon",
       "report": "Report an issue",
+      "config_folder": "Config folder",
+      "config_folder_open": "Open config folder",
       "report_hint": "Opens a pre-filled GitHub issue (version and environment only; nothing is sent automatically).",
       "license": "License",
       "license_title": "{name} — license",

@@ -684,8 +684,8 @@ function showNear (position: { x: number, y: number }) {
 }
 
 interface TrayActions {
+  /** 只給雙擊托盤圖示用(右鍵選單已不含「顯示」)。 */
   show: () => void
-  openSettings: (tab: SettingsTabId) => void
   openInBrowser: () => void
   checkUpdate: () => void
 }
@@ -711,12 +711,9 @@ function rebuildTrayMenu (lang: TrayLang) {
   const s = trayStrings(lang)
   const a = trayActions
   tray.setContextMenu(Menu.buildFromTemplate([
-    { label: s.show, click: a.show },
-    { label: s.settings, click: () => { a.openSettings('general') } },
     { label: s.openInBrowser, click: a.openInBrowser },
+    { label: s.version(app.getVersion()), enabled: false },
     { label: s.checkUpdate, click: a.checkUpdate },
-    { label: s.openConfigFolder, click: () => { void shell.openPath(app.getPath('userData')) } },
-    { label: s.about, click: () => { a.openSettings('about') } },
     { type: 'separator' },
     { label: s.quit, click: () => { quitting = true; app.quit() } }
   ]))
@@ -994,7 +991,7 @@ if (!skipStartup) app.whenReady().then(() => {
     send('updater-state', info)
     updateReminder?.setInfo(info)
   })
-  /** 托盤「設定」「關於」:先把視窗叫到前景,再請 renderer 開設定到該分頁。 */
+  /** 先把視窗叫到前景,再請 renderer 開設定到該分頁。 */
   const openSettings = (tab: SettingsTabId) => {
     showApp()
     console.log(`[tray] open-settings tab=${tab}`)
@@ -1091,7 +1088,6 @@ if (!skipStartup) app.whenReady().then(() => {
 
   createTray({
     show: showApp,
-    openSettings,
     openInBrowser: () => { openPreviewInBrowser().catch((e) => { console.error('[preview] 開啟失敗', e) }) },
     checkUpdate: () => { void updater.check() }
   })
@@ -1641,6 +1637,15 @@ if (!skipStartup) app.whenReady().then(() => {
         const dir = LOG_DIR()
         await fs.mkdir(dir, { recursive: true })
         const err = await shell.openPath(dir)
+        if (err) throw new Error(err)
+      }
+    },
+    // 步 38:托盤「開啟設定資料夾」移到設定 › 關於;預覽端不開放
+    'config-open-folder': {
+      kind: 'invoke',
+      preview: false,
+      fn: async () => {
+        const err = await shell.openPath(app.getPath('userData'))
         if (err) throw new Error(err)
       }
     },

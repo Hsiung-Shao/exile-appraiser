@@ -64,9 +64,9 @@ A price checker for Path of Exile 1 and 2: hover an item in game, press a hotkey
 ### 1. First launch
 
 - The app runs in the background with no main window. A notice at the bottom right of the screen briefly shows that it is running, together with the price-check hotkey (can be turned off in Settings › General).
-- The app icon lives in the **system tray** (bottom right of the taskbar). Its right-click menu has: Show, Settings, Open settings in browser, Check for updates, Open config folder, About, Quit.
+- The app icon lives in the **system tray** (bottom right of the taskbar). Its right-click menu has only: Open settings in browser, the version (greyed out, not clickable), Check for updates, Quit; double-click the icon to bring up the settings window.
 - Ways to open Settings:
-  - right-click the tray icon → "Settings";
+  - double-click the tray icon (or right-click → "Open settings in browser" to use a browser);
   - in game, with no price panel open, press **`Shift + Space`** (Settings menu);
   - the gear ⚙ in the price panel's title bar.
 
@@ -247,7 +247,7 @@ The trade site is protected by Cloudflare. In Settings › General, click **"Ope
 <details>
 <summary><b>Where are settings stored?</b></summary>
 
-Changes are saved automatically to `%APPDATA%\exile-appraiser\config.json`. "Open config folder" in the tray menu opens that folder.
+Changes are saved automatically to `%APPDATA%\exile-appraiser\config.json`. "Open config folder" in Settings › About opens that folder.
 </details>
 
 <details>
