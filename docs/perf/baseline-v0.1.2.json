@@ -1,0 +1,681 @@
+{
+  "meta": {
+    "when": "2026-10-03 13:21",
+    "label": "v0.1.2",
+    "hwaccel": "off",
+    "seconds": 60,
+    "cores": 16,
+    "app": "ExileAppraiser",
+    "game": "PathOfExile",
+    "presentMon": null,
+    "host": "Hsiung",
+    "os": "Windows_NT 10.0.26100"
+  },
+  "results": [
+    {
+      "id": "no-app",
+      "title": "無程式基準",
+      "baseline": true,
+      "wallSec": 65.2,
+      "cores": 16,
+      "app": {
+        "cpuPct": 2.5,
+        "wsMB": 1155.4,
+        "count": 6,
+        "exited": 0,
+        "procs": [
+          {
+            "pid": 32908,
+            "name": "powershell.exe",
+            "cpuPct": 1.5,
+            "wsMB": 185.5
+          },
+          {
+            "pid": 51000,
+            "name": "ExileAppraiser.exe",
+            "cpuPct": 1.1,
+            "wsMB": 296.5
+          },
+          {
+            "pid": 28748,
+            "name": "ExileAppraiser.exe",
+            "cpuPct": 0,
+            "wsMB": 497.6
+          },
+          {
+            "pid": 63472,
+            "name": "ExileAppraiser.exe",
+            "cpuPct": 0,
+            "wsMB": 114.7
+          },
+          {
+            "pid": 35728,
+            "name": "ExileAppraiser.exe",
+            "cpuPct": 0,
+            "wsMB": 53
+          },
+          {
+            "pid": 46432,
+            "name": "conhost.exe",
+            "cpuPct": 0,
+            "wsMB": 8.1
+          }
+        ]
+      },
+      "game": {
+        "cpuPct": 8.1,
+        "wsMB": 14759.2,
+        "count": 1,
+        "exited": 0,
+        "procs": [
+          {
+            "pid": 41520,
+            "name": "PathOfExile.exe",
+            "cpuPct": 8.1,
+            "wsMB": 14759.2
+          }
+        ]
+      },
+      "gpu": {
+        "n": 60,
+        "appGpu": 0,
+        "gameGpu": 92.1,
+        "sys3d": 98.1,
+        "sysCpu": 56.3
+      },
+      "fps": null,
+      "fpsError": null
+    },
+    {
+      "id": "no-game",
+      "title": "遊戲沒開",
+      "baseline": false,
+      "wallSec": 64.6,
+      "cores": 16,
+      "app": {
+        "cpuPct": 0.8,
+        "wsMB": 1047.5,
+        "count": 6,
+        "exited": 0,
+        "procs": [
+          {
+            "pid": 51000,
+            "name": "ExileAppraiser.exe",
+            "cpuPct": 0.8,
+            "wsMB": 199.3
+          },
+          {
+            "pid": 28748,
+            "name": "ExileAppraiser.exe",
+            "cpuPct": 0,
+            "wsMB": 495.5
+          },
+          {
+            "pid": 32908,
+            "name": "powershell.exe",
+            "cpuPct": 0,
+            "wsMB": 176.8
+          },
+          {
+            "pid": 63472,
+            "name": "ExileAppraiser.exe",
+            "cpuPct": 0,
+            "wsMB": 114.7
+          },
+          {
+            "pid": 35728,
+            "name": "ExileAppraiser.exe",
+            "cpuPct": 0,
+            "wsMB": 53
+          },
+          {
+            "pid": 46432,
+            "name": "conhost.exe",
+            "cpuPct": 0,
+            "wsMB": 8.2
+          }
+        ]
+      },
+      "game": {
+        "cpuPct": 0,
+        "wsMB": 0,
+        "count": 0,
+        "exited": 0,
+        "procs": []
+      },
+      "gpu": {
+        "n": 60,
+        "appGpu": 0,
+        "gameGpu": 0,
+        "sys3d": 3.8,
+        "sysCpu": 43.7
+      },
+      "fps": null,
+      "fpsError": null
+    },
+    {
+      "id": "game-bg",
+      "title": "遊戲開、不在前景",
+      "baseline": false,
+      "wallSec": 64.9,
+      "cores": 16,
+      "app": {
+        "cpuPct": 0.8,
+        "wsMB": 703.6,
+        "count": 6,
+        "exited": 0,
+        "procs": [
+          {
+            "pid": 51000,
+            "name": "ExileAppraiser.exe",
+            "cpuPct": 0.7,
+            "wsMB": 201.4
+          },
+          {
+            "pid": 32908,
+            "name": "powershell.exe",
+            "cpuPct": 0,
+            "wsMB": 176.7
+          },
+          {
+            "pid": 28748,
+            "name": "ExileAppraiser.exe",
+            "cpuPct": 0,
+            "wsMB": 149.1
+          },
+          {
+            "pid": 63472,
+            "name": "ExileAppraiser.exe",
+            "cpuPct": 0,
+            "wsMB": 115
+          },
+          {
+            "pid": 35728,
+            "name": "ExileAppraiser.exe",
+            "cpuPct": 0,
+            "wsMB": 53.3
+          },
+          {
+            "pid": 46432,
+            "name": "conhost.exe",
+            "cpuPct": 0,
+            "wsMB": 8.2
+          }
+        ]
+      },
+      "game": {
+        "cpuPct": 9.9,
+        "wsMB": 14736.8,
+        "count": 1,
+        "exited": 0,
+        "procs": [
+          {
+            "pid": 33348,
+            "name": "PathOfExile.exe",
+            "cpuPct": 9.9,
+            "wsMB": 14736.8
+          }
+        ]
+      },
+      "gpu": {
+        "n": 60,
+        "appGpu": 0,
+        "gameGpu": 92.5,
+        "sys3d": 97.7,
+        "sysCpu": 53.2
+      },
+      "fps": null,
+      "fpsError": null
+    },
+    {
+      "id": "fg-idle",
+      "title": "前景無面板",
+      "baseline": false,
+      "wallSec": 65,
+      "cores": 16,
+      "app": {
+        "cpuPct": 0.7,
+        "wsMB": 954.7,
+        "count": 6,
+        "exited": 0,
+        "procs": [
+          {
+            "pid": 51000,
+            "name": "ExileAppraiser.exe",
+            "cpuPct": 0.7,
+            "wsMB": 192.3
+          },
+          {
+            "pid": 28748,
+            "name": "ExileAppraiser.exe",
+            "cpuPct": 0,
+            "wsMB": 406.2
+          },
+          {
+            "pid": 32908,
+            "name": "powershell.exe",
+            "cpuPct": 0,
+            "wsMB": 184.3
+          },
+          {
+            "pid": 63472,
+            "name": "ExileAppraiser.exe",
+            "cpuPct": 0,
+            "wsMB": 112.1
+          },
+          {
+            "pid": 35728,
+            "name": "ExileAppraiser.exe",
+            "cpuPct": 0,
+            "wsMB": 51.7
+          },
+          {
+            "pid": 46432,
+            "name": "conhost.exe",
+            "cpuPct": 0,
+            "wsMB": 8.2
+          }
+        ]
+      },
+      "game": {
+        "cpuPct": 9.7,
+        "wsMB": 14740.8,
+        "count": 1,
+        "exited": 0,
+        "procs": [
+          {
+            "pid": 33348,
+            "name": "PathOfExile.exe",
+            "cpuPct": 9.7,
+            "wsMB": 14740.8
+          }
+        ]
+      },
+      "gpu": {
+        "n": 60,
+        "appGpu": 0,
+        "gameGpu": 95.1,
+        "sys3d": 97.6,
+        "sysCpu": 52.8
+      },
+      "fps": null,
+      "fpsError": null
+    },
+    {
+      "id": "panel",
+      "title": "查價面板開",
+      "baseline": false,
+      "wallSec": 65.2,
+      "cores": 16,
+      "app": {
+        "cpuPct": 0.8,
+        "wsMB": 1162.6,
+        "count": 6,
+        "exited": 0,
+        "procs": [
+          {
+            "pid": 51000,
+            "name": "ExileAppraiser.exe",
+            "cpuPct": 0.8,
+            "wsMB": 196.2
+          },
+          {
+            "pid": 28748,
+            "name": "ExileAppraiser.exe",
+            "cpuPct": 0,
+            "wsMB": 602.2
+          },
+          {
+            "pid": 32908,
+            "name": "powershell.exe",
+            "cpuPct": 0,
+            "wsMB": 184.3
+          },
+          {
+            "pid": 63472,
+            "name": "ExileAppraiser.exe",
+            "cpuPct": 0,
+            "wsMB": 119.6
+          },
+          {
+            "pid": 35728,
+            "name": "ExileAppraiser.exe",
+            "cpuPct": 0,
+            "wsMB": 52.2
+          },
+          {
+            "pid": 46432,
+            "name": "conhost.exe",
+            "cpuPct": 0,
+            "wsMB": 8.2
+          }
+        ]
+      },
+      "game": {
+        "cpuPct": 10,
+        "wsMB": 14808.6,
+        "count": 1,
+        "exited": 0,
+        "procs": [
+          {
+            "pid": 33348,
+            "name": "PathOfExile.exe",
+            "cpuPct": 10,
+            "wsMB": 14808.6
+          }
+        ]
+      },
+      "gpu": {
+        "n": 60,
+        "appGpu": 0,
+        "gameGpu": 92.1,
+        "sys3d": 98,
+        "sysCpu": 53.6
+      },
+      "fps": null,
+      "fpsError": null
+    },
+    {
+      "id": "ocr-reveal",
+      "title": "褻瀆 OCR 開",
+      "baseline": false,
+      "wallSec": 65,
+      "cores": 16,
+      "app": {
+        "cpuPct": 2.1,
+        "wsMB": 1087.6,
+        "count": 6,
+        "exited": 0,
+        "procs": [
+          {
+            "pid": 51000,
+            "name": "ExileAppraiser.exe",
+            "cpuPct": 1.1,
+            "wsMB": 227.5
+          },
+          {
+            "pid": 32908,
+            "name": "powershell.exe",
+            "cpuPct": 1,
+            "wsMB": 190.8
+          },
+          {
+            "pid": 28748,
+            "name": "ExileAppraiser.exe",
+            "cpuPct": 0,
+            "wsMB": 495.2
+          },
+          {
+            "pid": 63472,
+            "name": "ExileAppraiser.exe",
+            "cpuPct": 0,
+            "wsMB": 113.7
+          },
+          {
+            "pid": 35728,
+            "name": "ExileAppraiser.exe",
+            "cpuPct": 0,
+            "wsMB": 52.1
+          },
+          {
+            "pid": 46432,
+            "name": "conhost.exe",
+            "cpuPct": 0,
+            "wsMB": 8.2
+          }
+        ]
+      },
+      "game": {
+        "cpuPct": 9.3,
+        "wsMB": 14876,
+        "count": 1,
+        "exited": 0,
+        "procs": [
+          {
+            "pid": 33348,
+            "name": "PathOfExile.exe",
+            "cpuPct": 9.3,
+            "wsMB": 14876
+          }
+        ]
+      },
+      "gpu": {
+        "n": 60,
+        "appGpu": 0,
+        "gameGpu": 91.3,
+        "sys3d": 97.4,
+        "sysCpu": 56.1
+      },
+      "fps": null,
+      "fpsError": null
+    },
+    {
+      "id": "ocr-rune",
+      "title": "符文 OCR 開",
+      "baseline": false,
+      "wallSec": 64.9,
+      "cores": 16,
+      "app": {
+        "cpuPct": 0.2,
+        "wsMB": 1006,
+        "count": 6,
+        "exited": 0,
+        "procs": [
+          {
+            "pid": 51000,
+            "name": "ExileAppraiser.exe",
+            "cpuPct": 0.2,
+            "wsMB": 248.3
+          },
+          {
+            "pid": 28748,
+            "name": "ExileAppraiser.exe",
+            "cpuPct": 0,
+            "wsMB": 407.2
+          },
+          {
+            "pid": 32908,
+            "name": "powershell.exe",
+            "cpuPct": 0,
+            "wsMB": 174.6
+          },
+          {
+            "pid": 63472,
+            "name": "ExileAppraiser.exe",
+            "cpuPct": 0,
+            "wsMB": 115.8
+          },
+          {
+            "pid": 35728,
+            "name": "ExileAppraiser.exe",
+            "cpuPct": 0,
+            "wsMB": 51.8
+          },
+          {
+            "pid": 46432,
+            "name": "conhost.exe",
+            "cpuPct": 0,
+            "wsMB": 8.2
+          }
+        ]
+      },
+      "game": {
+        "cpuPct": 8.3,
+        "wsMB": 14883.4,
+        "count": 1,
+        "exited": 0,
+        "procs": [
+          {
+            "pid": 33348,
+            "name": "PathOfExile.exe",
+            "cpuPct": 8.3,
+            "wsMB": 14883.4
+          }
+        ]
+      },
+      "gpu": {
+        "n": 60,
+        "appGpu": 0,
+        "gameGpu": 91.6,
+        "sys3d": 97.4,
+        "sysCpu": 51.9
+      },
+      "fps": null,
+      "fpsError": null
+    },
+    {
+      "id": "bg-on",
+      "title": "背景圖開",
+      "baseline": false,
+      "wallSec": 65.1,
+      "cores": 16,
+      "app": {
+        "cpuPct": 0.8,
+        "wsMB": 1007.2,
+        "count": 6,
+        "exited": 0,
+        "procs": [
+          {
+            "pid": 51000,
+            "name": "ExileAppraiser.exe",
+            "cpuPct": 0.8,
+            "wsMB": 199.9
+          },
+          {
+            "pid": 28748,
+            "name": "ExileAppraiser.exe",
+            "cpuPct": 0,
+            "wsMB": 455.4
+          },
+          {
+            "pid": 32908,
+            "name": "powershell.exe",
+            "cpuPct": 0,
+            "wsMB": 175.6
+          },
+          {
+            "pid": 63472,
+            "name": "ExileAppraiser.exe",
+            "cpuPct": 0,
+            "wsMB": 116.2
+          },
+          {
+            "pid": 35728,
+            "name": "ExileAppraiser.exe",
+            "cpuPct": 0,
+            "wsMB": 51.9
+          },
+          {
+            "pid": 46432,
+            "name": "conhost.exe",
+            "cpuPct": 0,
+            "wsMB": 8.2
+          }
+        ]
+      },
+      "game": {
+        "cpuPct": 9,
+        "wsMB": 14905.3,
+        "count": 1,
+        "exited": 0,
+        "procs": [
+          {
+            "pid": 33348,
+            "name": "PathOfExile.exe",
+            "cpuPct": 9,
+            "wsMB": 14905.3
+          }
+        ]
+      },
+      "gpu": {
+        "n": 60,
+        "appGpu": 0,
+        "gameGpu": 92.7,
+        "sys3d": 98.4,
+        "sysCpu": 52.1
+      },
+      "fps": null,
+      "fpsError": null
+    },
+    {
+      "id": "settings",
+      "title": "設定視窗開",
+      "baseline": false,
+      "wallSec": 64.9,
+      "cores": 16,
+      "app": {
+        "cpuPct": 0.7,
+        "wsMB": 1007.3,
+        "count": 6,
+        "exited": 0,
+        "procs": [
+          {
+            "pid": 51000,
+            "name": "ExileAppraiser.exe",
+            "cpuPct": 0.7,
+            "wsMB": 196.3
+          },
+          {
+            "pid": 28748,
+            "name": "ExileAppraiser.exe",
+            "cpuPct": 0,
+            "wsMB": 455.2
+          },
+          {
+            "pid": 32908,
+            "name": "powershell.exe",
+            "cpuPct": 0,
+            "wsMB": 175.5
+          },
+          {
+            "pid": 63472,
+            "name": "ExileAppraiser.exe",
+            "cpuPct": 0,
+            "wsMB": 120.3
+          },
+          {
+            "pid": 35728,
+            "name": "ExileAppraiser.exe",
+            "cpuPct": 0,
+            "wsMB": 51.9
+          },
+          {
+            "pid": 46432,
+            "name": "conhost.exe",
+            "cpuPct": 0,
+            "wsMB": 8.2
+          }
+        ]
+      },
+      "game": {
+        "cpuPct": 12.8,
+        "wsMB": 14998.9,
+        "count": 1,
+        "exited": 0,
+        "procs": [
+          {
+            "pid": 33348,
+            "name": "PathOfExile.exe",
+            "cpuPct": 12.8,
+            "wsMB": 14998.9
+          }
+        ]
+      },
+      "gpu": {
+        "n": 60,
+        "appGpu": 0,
+        "gameGpu": 92.3,
+        "sys3d": 98.2,
+        "sysCpu": 56
+      },
+      "fps": null,
+      "fpsError": null
+    },
+    {
+      "id": "window",
+      "title": "window 模式",
+      "baseline": false,
+      "skipped": true
+    }
+  ]
+}

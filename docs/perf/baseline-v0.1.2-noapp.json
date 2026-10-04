@@ -1,0 +1,53 @@
+{
+  "meta": {
+    "when": "2026-10-04 15:41",
+    "label": "v0.1.2-noapp",
+    "hwaccel": "off",
+    "seconds": 60,
+    "cores": 16,
+    "app": "ExileAppraiser",
+    "game": "PathOfExile",
+    "presentMon": null,
+    "host": "Hsiung",
+    "os": "Windows_NT 10.0.26100"
+  },
+  "results": [
+    {
+      "id": "no-app",
+      "title": "無程式基準",
+      "baseline": true,
+      "wallSec": 65.4,
+      "cores": 16,
+      "app": {
+        "cpuPct": 0,
+        "wsMB": 0,
+        "count": 0,
+        "exited": 0,
+        "procs": []
+      },
+      "game": {
+        "cpuPct": 9.2,
+        "wsMB": 14755.8,
+        "count": 1,
+        "exited": 0,
+        "procs": [
+          {
+            "pid": 13348,
+            "name": "PathOfExile.exe",
+            "cpuPct": 9.2,
+            "wsMB": 14755.8
+          }
+        ]
+      },
+      "gpu": {
+        "n": 60,
+        "appGpu": 0,
+        "gameGpu": 95.5,
+        "sys3d": 97.9,
+        "sysCpu": 46.3
+      },
+      "fps": null,
+      "fpsError": null
+    }
+  ]
+}
