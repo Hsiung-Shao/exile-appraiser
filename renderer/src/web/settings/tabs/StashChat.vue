@@ -22,7 +22,7 @@
         <input v-model.trim="s.text" class="input sm chat-text num" maxlength="250" :placeholder="t('ppz.chat.stash_placeholder')" :data-setting="`stash-text-${i}`" spellcheck="false">
         <div class="chat-ctl">
           <span class="dim chat-len">{{ s.text.length }}/250</span>
-          <hotkey-input v-model="s.hotkey" class="chat-hotkey" :data-setting="`stash-hotkey-${i}`" />
+          <hotkey-input v-model="s.hotkey" optional class="chat-hotkey" :data-setting="`stash-hotkey-${i}`" />
           <button class="btn ghost sm" :data-action="`stash-remove-${i}`" @click="config.stashSearch.splice(i, 1)">{{ t('ppz.chat.remove') }}</button>
         </div>
         <span v-if="issueText(`stash:${i}`, s.hotkey)" class="err" :data-issue="`stash:${i}`">{{ issueText(`stash:${i}`, s.hotkey) }}</span>
@@ -62,7 +62,7 @@
         <input v-model.trim="c.text" class="input sm chat-text" :placeholder="t('ppz.chat.text_placeholder')" :data-setting="`chat-text-${i}`" spellcheck="false">
         <div class="chat-ctl">
           <label class="chk"><input v-model="c.send" type="checkbox" :data-setting="`chat-send-${i}`"><span>{{ t('ppz.chat.send') }}</span></label>
-          <hotkey-input v-model="c.hotkey" class="chat-hotkey" :data-setting="`chat-hotkey-${i}`" />
+          <hotkey-input v-model="c.hotkey" optional class="chat-hotkey" :data-setting="`chat-hotkey-${i}`" />
           <button class="btn ghost sm" :data-action="`chat-remove-${i}`" @click="config.commands.splice(i, 1)">{{ t('ppz.chat.remove') }}</button>
         </div>
         <span v-if="issueText(`cmd:${i}`, c.hotkey)" class="err" :data-issue="`cmd:${i}`">{{ issueText(`cmd:${i}`, c.hotkey) }}</span>

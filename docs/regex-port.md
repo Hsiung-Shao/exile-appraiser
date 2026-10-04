@@ -281,7 +281,7 @@ PoE1 地圖詞綴 3 條 + 階級 ≥16 + 物品數量 ≥80 + 6L → `"成凋| �
 - 熱鍵總表的書籤唯讀列標資料夾名(`資料夾 › 書籤`;`bookmark-hotkeys.ts` `regexBookmarkFolders`,**不進 host-config**)。
 - 順手修:熱鍵總表的**選填**熱鍵(框選 ×2、符文暫停、快速面板;Config 預設空)「未設定」改灰字(`HotkeyInput` `optional` prop →
   `.is-empty.is-optional::placeholder` = `--ink-3`;`hotkey-table.ts` `OPTIONAL_HOTKEY_FIELDS` / 列 `optional`);紅字只留給必填與衝突 / 註冊失敗。
-  書籤熱鍵欄改用同一個 prop(原本在 RegexBookmarks.vue 自己蓋顏色)。
+  書籤熱鍵欄、倉庫與聊天頁的聊天指令 / 倉庫搜尋熱鍵欄也用同一個 prop(書籤原本在 RegexBookmarks.vue 自己蓋顏色)。
 - i18n `ppz.regex.{bm_title, bm_save_tip, bm_other_note, bm_load_other, bm_update_other, bm_drag, bm_up, bm_down, fd_*, quick_panel_hint_folders}`(繁中 / 英文);
   移除 `bookmarks`、`bm_elsewhere`、`bm_elsewhere_tip`(分頁取代「另一個遊戲還有 N 筆」)。
 - DOM 錨點:`[data-regex=bm-tabs|bm-tab|bm-other-note|bm-groups|bm-folder|bm-folder-toggle|bm-folder-grip|bm-folder-up|bm-folder-down|bm-folder-rename|bm-folder-delete|bm-folder-empty|bm-folder-add|bm-folder-dialog|bm-folder-name|bm-folder-ok|bm-folder-error|bm-folder-delete-dialog|bm-folder-delete-ok|bm-grip|bm-folder-select|bm-up|bm-down|quick-bar-folder|quick-folder]`、`[data-hk-folder]`。

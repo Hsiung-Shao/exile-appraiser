@@ -186,6 +186,11 @@ describe('熱鍵總表', () => {
     const bm = read('renderer/src/web/regex/RegexBookmarks.vue')
     expect(bm).toMatch(/<hotkey-input [^>]*\boptional\b/)
     expect(bm).not.toContain('.rx-bm-hotkey.is-empty::placeholder')
+    // 聊天指令 / 倉庫搜尋熱鍵也是選填(APT 預設六條裡四條沒綁)→ 每一個 hotkey-input 都帶 optional
+    const sc = read(`${SETTINGS}/tabs/StashChat.vue`)
+    const scInputs = sc.match(/<hotkey-input [^>]*>/g) ?? []
+    expect(scInputs).toHaveLength(2)
+    for (const tag of scInputs) expect(tag).toMatch(/\boptional\b/)
     // 衝突 / 註冊失敗仍是紅字(.err)
     expect(read(`${SETTINGS}/tabs/Hotkeys.vue`)).toContain('<span v-if="issueText(r.id, rowHotkey(r))" class="err"')
   })
