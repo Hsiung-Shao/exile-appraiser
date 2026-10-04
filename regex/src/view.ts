@@ -107,6 +107,11 @@ export interface SectionSummaryItem {
 /** 數值條件 → 「≥16」「≤5%」「10–20%」;不是範圍輸入就顯示選項 id;不成立 = null */
 export function condText (e: AlgoEntry, v: AlgoValue, lang: RegexLang): string | null {
   if (e.fragment(v, lang) === null) return null
+  if (e.input.kind === 'select') {
+    // 選項顯示文字(稀有度「稀有」),不是 id
+    const o = e.input.options.find(x => x.id === v.choice)
+    if (o) return lang === 'en' ? o.en : o.zh
+  }
   if (e.input.kind !== 'range') return v.choice ?? (typeof v.min === 'number' ? `≥${v.min}` : null)
   const pct = e.input.percent ? '%' : ''
   const op = rangeOp(v)

@@ -18,7 +18,12 @@
    "Quality": "品質",
    "ItemDisplayStringSockets": "插槽",
    "ItemPopupCorrupted": "已汙染",
-   "Level": "等級"
+   "Level": "等級",
+   "ItemDisplayStringRarity": "稀有度",
+   "ItemDisplayStringNormal": "中",
+   "ItemDisplayStringMagic": "魔法",
+   "ItemDisplayStringRare": "稀有",
+   "ItemDisplayStringUnique": "傳奇"
   },
   "en": {
    "ItemDisplayMapTier": "Waystone Tier",
@@ -34,7 +39,12 @@
    "Quality": "Quality",
    "ItemDisplayStringSockets": "Sockets",
    "ItemPopupCorrupted": "Corrupted",
-   "Level": "Level"
+   "Level": "Level",
+   "ItemDisplayStringRarity": "Rarity",
+   "ItemDisplayStringNormal": "Normal",
+   "ItemDisplayStringMagic": "Magic",
+   "ItemDisplayStringRare": "Rare",
+   "ItemDisplayStringUnique": "Unique"
   }
  }
 }

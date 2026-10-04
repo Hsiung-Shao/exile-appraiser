@@ -25,7 +25,12 @@
    "ItemPopupHunterItem": "狩獵者物品",
    "ItemPopupWarlordItem": "總督軍物品",
    "ItemPopupSearingExarchItem": "卓烙總督物品",
-   "ItemPopupEaterofWorldsItem": "吞噬天地物品"
+   "ItemPopupEaterofWorldsItem": "吞噬天地物品",
+   "ItemDisplayStringRarity": "稀有度",
+   "ItemDisplayStringNormal": "普通",
+   "ItemDisplayStringMagic": "魔法",
+   "ItemDisplayStringRare": "稀有",
+   "ItemDisplayStringUnique": "傳奇"
   },
   "en": {
    "ItemDisplayMapTier": "Map Tier",
@@ -48,7 +53,12 @@
    "ItemPopupHunterItem": "Hunter Item",
    "ItemPopupWarlordItem": "Warlord Item",
    "ItemPopupSearingExarchItem": "Searing Exarch Item",
-   "ItemPopupEaterofWorldsItem": "Eater of Worlds Item"
+   "ItemPopupEaterofWorldsItem": "Eater of Worlds Item",
+   "ItemDisplayStringRarity": "Rarity",
+   "ItemDisplayStringNormal": "Normal",
+   "ItemDisplayStringMagic": "Magic",
+   "ItemDisplayStringRare": "Rare",
+   "ItemDisplayStringUnique": "Unique"
   }
  }
 }

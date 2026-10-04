@@ -67,8 +67,11 @@ describe('combine:地圖詞綴 3 條 + 階級 ≥16 + 物品數量 ≥80 + 6L', 
         ]
       })
       const single = buildCorpus(mapMods, lang).build(picks, 'any')
-      const tier = lang === 'zh' ? '地圖階級.*[^\\d](1[6-9]|[2-9]\\d)' : '"Map Tier.*[^\\d](1[6-9]|[2-9]\\d)"'
-      const qty = lang === 'zh' ? '物品數量.*([89]\\d|\\d\\d\\d)%' : '"Item Quantity.*([89]\\d|\\d\\d\\d)%"'
+      // 第 35 步嚴格寫法:含空白 → 整個 term 加引號
+      const tier = lang === 'zh' ? '"階級 *(1[6-9]|[2-9][0-9])）"' : '"Tier (1[6-9]|[2-9][0-9])\\)"'
+      const qty = lang === 'zh'
+        ? '"物品數量[:：] *\\+?([89][0-9]|[1-9][0-9]{2,}) *%"'
+        : '"Item Quantity[:：] *\\+?([89][0-9]|[1-9][0-9]{2,}) *%"'
       expect(r.query).toBe(`${single.query} ${tier} ${qty} .-.-.-.-.-.`)
       expect(r.length).toBe(charCount(r.query))
       expect(r.ok).toBe(true)
@@ -113,11 +116,13 @@ describe('combine:None 合併', () => {
     expect((r.query.match(/(^|[^\\])!/g) ?? []).length).toBe(1)
     expect(r.query).toContain('|\\!驚嘆"')
   })
-  it('PoE2「稀有怪物 ≥N%」與聖物頁「稀有怪物減少 #% 傷害」合併時確實報 fragment 衝突', () => {
+  it('PoE2「稀有怪物 ≥N%」與聖物頁「稀有怪物減少 #% 傷害」:第 35 步起片段要求冒號,不再誤中(以前 `.*` 會報 fragment 衝突)', () => {
     const relic = page(poe2, 'relic_mods')
     const wn = page(poe2, 'waystone_numeric')
+    const line = relic.entries.flatMap(e => e.zh).find(t => t.startsWith('稀有怪物') && t.includes('#%'))
+    expect(line, '聖物頁仍有「稀有怪物…#%…」行(否則這條測試失去意義)').toBeTruthy()
     const r = combine({ lang: 'zh', mode: 'any', pages: [{ page: relic, picks: [0] }, { page: wn, picks: [idx(wn, 'rare_monsters')] }] })
-    expect(r.conflicts.some(c => c.kind === 'fragment' && c.entry === 'rare_monsters')).toBe(true)
+    expect(r.conflicts.filter(c => c.kind === 'fragment')).toEqual([])
   })
   it('none 之外有演算法 term:!term 在最後,仍只有一個 !', () => {
     const r = combine({
@@ -125,7 +130,8 @@ describe('combine:None 合併', () => {
       pages: [{ page: mapMods, picks: [1, 2] }, { page: mapNum, picks: [0], values: { tier: { min: 16 } } }]
     })
     expect((r.query.match(/!/g) ?? []).length).toBe(1)
-    expect(r.query.indexOf('地圖階級')).toBeLessThan(r.query.indexOf('!'))
+    expect(r.query.indexOf('"階級 ')).toBeGreaterThanOrEqual(0)
+    expect(r.query.indexOf('"階級 ')).toBeLessThan(r.query.indexOf('!'))
   })
 })
 
@@ -140,7 +146,8 @@ describe('combine:衝突偵測', () => {
     const fake: RegexPage = {
       game: 'poe1', id: 'fake', kind: 'mods', title: 'fake', titleEn: 'fake', note: '', limit: 250, groups: ['g'], groupsEn: ['g'],
       entries: [
-        { id: 'a', g: 0, t17: false, affixZh: '', zh: ['地圖掉落物品數量增加 #%'], en: ['x'], hiddenZh: [], hiddenEn: [] },
+        // 第 35 步起片段要求「標籤 + 冒號」,假詞綴行做成同樣格式才誤中
+        { id: 'a', g: 0, t17: false, affixZh: '', zh: ['地圖掉落物品數量: +#%'], en: ['x'], hiddenZh: [], hiddenEn: [] },
         { id: 'b', g: 0, t17: false, affixZh: '', zh: ['怪物移動速度'], en: ['y'], hiddenZh: [], hiddenEn: [] }
       ],
       ambientZh: [], ambientEn: [], namePrefixZh: [], nameSuffixZh: [], namePrefixEn: [], nameSuffixEn: []

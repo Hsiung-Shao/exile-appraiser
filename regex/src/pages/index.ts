@@ -8,7 +8,10 @@ import { isAlgoPage, type AlgoEntry, type AlgoPage, type AlgoValue } from './typ
 export * from './types'
 export { NUMERIC_LABEL_KEYS, numericPages } from './numeric-pages'
 export { VENDOR_LABEL_KEYS, vendorPages } from './vendor-pages'
-export { labelBase, linkColors, linkedSockets, propertyFragment, socketColorCount, wholeLine } from './frag'
+export {
+  isTierNameLine, labelBase, linkColors, linkedSockets, mapTierFragment, propertyFragment, rarityFragment, socketColorCount, strictPropertyFragment,
+  wholeLine
+} from './frag'
 
 /** 一個遊戲的全部演算法頁(數值頁在前、商店頁在後);labels = null → 沒有 */
 export function algoPages (game: RegexGame, labels: RegexLabels | null): RegexPage[] {

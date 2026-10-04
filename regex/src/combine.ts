@@ -156,7 +156,7 @@ export function combine (input: CombineInput): CombineResult {
   const conflicts: Conflict[] = []
   const corpusSels: CombineSel[] = []
   const corpusUnresolved: number[][] = []
-  const algoFrags: Array<{ page: string, entry: string, frag: string }> = []
+  const algoFrags: Array<{ page: string, entry: string, frag: string, own?: (line: string) => boolean }> = []
   let limit = 250
 
   for (const sel of input.pages) {
@@ -177,7 +177,7 @@ export function combine (input: CombineInput): CombineResult {
         }
         frags.push(f)
         algoTerms.push(quoteIfNeeded(f))
-        algoFrags.push({ page: sel.page.id, entry: e.id, frag: f })
+        algoFrags.push({ page: sel.page.id, entry: e.id, frag: f, own: e.ownLine })
       }
       perPage.push({
         id: sel.page.id, kind, picked: picks.length, unresolved: bad, fragments: frags,
@@ -235,20 +235,20 @@ export function combine (input: CombineInput): CombineResult {
 
     // 演算法片段 / 排除詞 對聯集詞綴行
     // 只有真的要比對(有演算法片段,或非 none 模式有排除詞)才展開 lines
-    let linesMemo: Array<{ idx: number, text: string }> | null = null
-    const getLines = (): Array<{ idx: number, text: string }> => {
+    let linesMemo: Array<{ idx: number, text: string, raw: string }> | null = null
+    const getLines = (): Array<{ idx: number, text: string, raw: string }> => {
       if (linesMemo) return linesMemo
-      const out: Array<{ idx: number, text: string }> = []
+      const out: Array<{ idx: number, text: string, raw: string }> = []
       for (let i = 0; i < u.corpus.size(); i++) {
         const e = u.corpus.at(i)
-        for (const l of [...e.texts, ...(e.hidden ?? [])]) for (const t of instantiate(l)) out.push({ idx: i, text: t })
+        for (const l of [...e.texts, ...(e.hidden ?? [])]) for (const t of instantiate(l)) out.push({ idx: i, text: t, raw: l })
       }
       return (linesMemo = out)
     }
     for (const f of algoFrags) {
       const re = safeRegExp(f.frag)
       if (!re) continue
-      const hit = getLines().find(l => re.test(l.text))
+      const hit = getLines().find(l => re.test(l.text) && !f.own?.(l.raw))
       if (hit) conflicts.push({ kind: 'fragment', page: f.page, entry: f.entry, text: `${f.frag} ⇐ ${hit.text}` })
     }
     if (mode !== 'none') {

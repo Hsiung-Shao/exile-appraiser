@@ -31,13 +31,15 @@ const KEYS = {
     'ItemDisplayMapDivinationCardDropBonus',
     'ItemLevelPopup', 'Quality', 'ItemDisplayStringSockets', 'ItemPopupCorrupted', 'Level',
     'ItemPopupShaperItem', 'ItemPopupElderItem', 'ItemPopupCrusaderItem', 'ItemPopupRedeemerItem',
-    'ItemPopupHunterItem', 'ItemPopupWarlordItem', 'ItemPopupSearingExarchItem', 'ItemPopupEaterofWorldsItem'
+    'ItemPopupHunterItem', 'ItemPopupWarlordItem', 'ItemPopupSearingExarchItem', 'ItemPopupEaterofWorldsItem',
+    'ItemDisplayStringRarity', 'ItemDisplayStringNormal', 'ItemDisplayStringMagic', 'ItemDisplayStringRare', 'ItemDisplayStringUnique'
   ],
   poe2: [
     'ItemDisplayMapTier', 'ItemDisplayMapItemRarity', 'ItemDisplayMapPack', 'ItemDisplayMapMonsterRarity',
     'ItemDisplayMapWaystoneDropChance', 'ItemDisplayMapMagicMonsterQuantityBonus', 'ItemDisplayMapRareMonsterQuantityBonus',
     'ItemDisplayMapExperienceGained', 'ItemDisplayMapMonsterEffectiveness',
-    'ItemLevelPopup', 'Quality', 'ItemDisplayStringSockets', 'ItemPopupCorrupted', 'Level'
+    'ItemLevelPopup', 'Quality', 'ItemDisplayStringSockets', 'ItemPopupCorrupted', 'Level',
+    'ItemDisplayStringRarity', 'ItemDisplayStringNormal', 'ItemDisplayStringMagic', 'ItemDisplayStringRare', 'ItemDisplayStringUnique'
   ]
 }
 const SRC = {

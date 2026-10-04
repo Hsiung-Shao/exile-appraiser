@@ -552,7 +552,7 @@
       "op_range": "Range",
       "algo_invalid": "(invalid input)",
       "section_title": "Numeric conditions",
-      "section_hint": "Values on property lines such as tier, quantity and rarity. Each tick is its own condition (all must hold) and joins the modifiers below in one string. Editing a value ticks the row. The separator and \"+\" display have not been confirmed in game.",
+      "section_hint": "Values on property lines such as tier, quantity and rarity. Each tick is its own condition (all must hold) and joins the modifiers below in one string. Editing a value ticks the row. Patterns follow the community format \"Label: +N%\" (half- or full-width colon, optional +; only the whole number right after the colon is matched, never across lines); tier matches the name \"(Tier N)\"; rarity matches the \"Rarity: Rare\" line.",
       "section_expand": "Expand numeric conditions",
       "section_collapse": "Collapse numeric conditions",
       "section_count": "Set {n} / {total}",

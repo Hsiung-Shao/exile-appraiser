@@ -78,17 +78,17 @@ function sameLength (a: string, b: string): Pattern[] {
   return out
 }
 
-function renderAtom (x: Atom): string {
+function renderAtom (x: Atom, any = '\\d'): string {
   let s: string
-  if (x.lo === 0 && x.hi === 9) s = '\\d'
+  if (x.lo === 0 && x.hi === 9) s = any
   else if (x.lo === x.hi) s = String(x.lo)
   else if (x.hi === x.lo + 1) s = `[${x.lo}${x.hi}]`
   else s = `[${x.lo}-${x.hi}]`
   return x.opt ? s + '?' : s
 }
 
-function renderPattern (p: Pattern): string {
-  return p.map(renderAtom).join('')
+function renderPattern (p: Pattern, any = '\\d'): string {
+  return p.map(x => renderAtom(x, any)).join('')
 }
 
 function atomEq (x: Atom, y: Atom): boolean {
@@ -152,10 +152,64 @@ export function rangeRegex (r: NumRange, o: NumOptions): string {
       pats.push(p)
     }
   }
-  const built = joinAlternatives(mergeOptional(pats).map(renderPattern))
+  const built = joinAlternatives(mergeOptional(pats).map(p => renderPattern(p)))
   // 很窄的跨位數區間(例 8–10)逐一列舉反而較短
   const naive = naiveRangeRegex(r, o)
   return naive.length < built.length ? naive : built
+}
+
+// ---- 可讀模式(第 35 步,使用者 2026-10-04)----
+//
+//   readableRangeRegex({ min: 30 }, { digits: 3, open: true })  → "([3-9][0-9]|[1-9][0-9]{2,})"
+//   readableRangeRegex({ min: 100 }, { digits: 3, open: true }) → "[1-9][0-9]{2,}"
+//   readableRangeRegex({ min: 16 }, { digits: 2 })              → "(1[6-9]|[2-9][0-9])"
+//
+// 與 rangeRegex 同樣「整段」比對一個不帶前導零的整數,差別:
+//   * 只寫 `[0-9]`,不寫 `\d`(使用者裁定:社群實用寫法 `\d` 與 `[0-9]` 混用,一律 `[0-9]` 較好讀);
+//   * 兩位數以上的首位維持 `[1-9]`(不做 rangeRegex 的「首位 [1-9] → \d」縮短);
+//   * `open: true` 且沒有 max = 沒有上界:位數比 min 多的整數一律 `[1-9][0-9]{n,}`(n = min 的位數),
+//     min 剛好是 10 的次方(≥ 10)時整段就是 `[1-9][0-9]{n-1,}`。這是唯一用到 `{n,}` 的地方
+//     (社群寫法 `\+?([1-9]\d|[1-9]\d{2,}) *%` 已在遊戲裡用 = 遊戲搜尋列支援 `{n,}`)。
+// 有 max(或 open: false)時與 rangeRegex 同一套拆法(只是換字元類寫法),也會與逐一列舉比長短。
+// 測試:regex/test/numeric.test.ts「可讀模式」對 0–9999 逐值比對。
+
+export interface ReadableOptions extends NumOptions {
+  /** 沒有 max 時不設上界(預設 false = 上界是定義域 10^digits − 1) */
+  open?: boolean
+}
+
+const ANY = '[0-9]'
+
+function readableSpanPatterns (lo: number, hi: number): Pattern[] {
+  const pats: Pattern[] = []
+  const maxLen = String(hi).length
+  for (let len = 1; len <= maxLen; len++) {
+    const first = len === 1 ? 0 : Math.pow(10, len - 1)
+    const last = Math.pow(10, len) - 1
+    const a = Math.max(lo, first)
+    const b = Math.min(hi, last)
+    if (a > b) continue
+    pats.push(...sameLength(String(a), String(b)))
+  }
+  return mergeOptional(pats)
+}
+
+/** 可讀模式(見上);空集合回空字串。含 `|` 時已包 `(…)`。 */
+export function readableRangeRegex (r: NumRange, o: ReadableOptions): string {
+  const openTop = o.open === true && (r.max === undefined || r.max === null)
+  if (!openTop) {
+    const span = normalizeRange(r, o)
+    if (!span) return ''
+    const built = joinAlternatives(readableSpanPatterns(span[0], span[1]).map(p => renderPattern(p, ANY)))
+    const naive = naiveRangeRegex(r, o)
+    return naive.length < built.length ? naive : built
+  }
+  const lo = Math.max(0, Math.ceil(r.min ?? 0))
+  if (!Number.isFinite(lo)) return ''
+  const n = String(lo).length
+  if (n >= 2 && lo === Math.pow(10, n - 1)) return `[1-9]${ANY}{${n - 1},}`
+  const head = readableSpanPatterns(lo, Math.pow(10, n) - 1).map(p => renderPattern(p, ANY))
+  return joinAlternatives([...head, `[1-9]${ANY}{${n},}`])
 }
 
 /** 樸素寫法(逐一列舉),測試用來比長度 */

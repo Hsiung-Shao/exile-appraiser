@@ -157,13 +157,30 @@ describe('演算法頁組成', () => {
       }
     })
   }
-  it('PoE1 階級 ≥16 / 物品數量 ≥80 的實際片段', () => {
+  it('PoE1 階級 ≥16 / 物品數量 ≥80 / 稀有度 的實際片段(第 35 步嚴格寫法)', () => {
     const p = algoPages('poe1', parseLabels(fs.readFileSync(path.join(defaultRegexDataDir(), 'labels.poe1.json'), 'utf8')))[0] as AlgoPage
     const tier = p.entries.find(e => e.id === 'tier')!
     const qty = p.entries.find(e => e.id === 'quantity')!
-    expect(tier.fragment({ min: 16 }, 'zh')).toBe('地圖階級.*[^\\d](1[6-9]|[2-9]\\d)')
-    expect(qty.fragment({ min: 80 }, 'zh')).toBe('物品數量.*([89]\\d|\\d\\d\\d)%')
-    expect(qty.fragment({ min: 80 }, 'en')).toBe('Item Quantity.*([89]\\d|\\d\\d\\d)%')
+    const rar = p.entries.find(e => e.id === 'item_rarity_class')!
+    expect(tier.fragment({ min: 16 }, 'zh')).toBe('階級 *(1[6-9]|[2-9][0-9])）')
+    expect(tier.fragment({ min: 16 }, 'en')).toBe('Tier (1[6-9]|[2-9][0-9])\\)')
+    expect(qty.fragment({ min: 80 }, 'zh')).toBe('物品數量[:：] *\\+?([89][0-9]|[1-9][0-9]{2,}) *%')
+    expect(qty.fragment({ min: 80 }, 'en')).toBe('Item Quantity[:：] *\\+?([89][0-9]|[1-9][0-9]{2,}) *%')
+    expect(rar.fragment({ choice: 'rare' }, 'zh')).toBe('稀有度[:：] *稀有')
+    expect(rar.fragment({ choice: 'normal' }, 'zh')).toBe('稀有度[:：] *普通')
+    expect(rar.fragment({ choice: 'unique' }, 'en')).toBe('Rarity[:：] *Unique')
+  })
+  it('PoE2 怪群大小 ≥20 / 換界石掉落機率 ≥50 / 稀有度 與社群寫法同型(\\d 換成 [0-9])', () => {
+    const p = algoPages('poe2', parseLabels(fs.readFileSync(path.join(defaultRegexDataDir(), 'labels.poe2.json'), 'utf8')))[0] as AlgoPage
+    const f = (id: string, v: AlgoValue): string | null => p.entries.find(e => e.id === id)!.fragment(v, 'zh')
+    // 社群:"怪群大小[:：] *\+?([2-9]\d|[1-9]\d{2,}) *%"、"換界石掉落機率[:：] *\+?([5-9]\d|[1-9]\d{2,}) *%"、"怪物稀有度[:：] *\+?([5-9]|[1-9]\d{1,}) *%"
+    expect(f('pack', { min: 20 })).toBe('怪群大小[:：] *\\+?([2-9][0-9]|[1-9][0-9]{2,}) *%')
+    expect(f('waystone_drop', { min: 50 })).toBe('換界石掉落機率[:：] *\\+?([5-9][0-9]|[1-9][0-9]{2,}) *%')
+    expect(f('monster_rarity', { min: 5 })).toBe('怪物稀有度[:：] *\\+?([5-9]|[1-9][0-9]{1,}) *%')
+    expect(f('rarity', { min: 10 })).toBe('物品稀有度[:：] *\\+?[1-9][0-9]{1,} *%')
+    expect(f('item_rarity_class', { choice: 'rare' })).toBe('稀有度[:：] *稀有')
+    expect(f('item_rarity_class', { choice: 'normal' })).toBe('稀有度[:：] *中')
+    expect(f('tier', { min: 14, max: 14 })).toBe('階級 *14）')
   })
   it('演算法頁的鍵是項目 id(不是標籤文字),存 → 還原同一組', () => {
     const p = loadAllPagesFor('poe1').find(x => x.id === 'vendor_items')!

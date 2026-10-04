@@ -51,13 +51,13 @@
       "repo": "clientstrings(pob-zh-engine tools/ggpk_zh/out/poe1/tables/clientstrings.json(clientstrings,欄 Text;meta game_version 3.29.0.1);regex/scripts/gen-labels.mjs 產生)",
       "path": "../pob-zh-engine/tools/ggpk_zh/out/poe1/tables/clientstrings.json",
       "fetchedAt": "2026-08-22T03:25:46.343Z",
-      "generatedAt": "2026-09-28T17:10:10.127Z"
+      "generatedAt": "2026-10-04T10:20:45.582Z"
     },
     "data/regex/labels.poe2.json": {
       "repo": "clientstrings(pob-zh-engine tools/ggpk2_zh/out/poe2/tables/clientstrings.json(clientstrings,欄 Text;meta game_version 4.5.5.2);regex/scripts/gen-labels.mjs 產生)",
       "path": "../pob-zh-engine/tools/ggpk2_zh/out/poe2/tables/clientstrings.json",
       "fetchedAt": "2026-09-14T17:02:59.512Z",
-      "generatedAt": "2026-09-28T17:10:10.265Z"
+      "generatedAt": "2026-10-04T10:20:45.724Z"
     },
     "data/regex/templates.json": {
       "repo": "exile-appraiser 內建範本(手寫,鍵對應 data/regex/regex_poe*.json 與 regex/src/pages/)",
@@ -240,12 +240,12 @@
       "bytes": 792687
     },
     "data/regex/labels.poe1.json": {
-      "sha256": "b693c733b8e752310680a09ba4f6788a30b5cb647d1ba8754af9bec1772404ff",
-      "bytes": 2282
+      "sha256": "66d912693c2f3349f12ed384390b0383f0bdcfef8c65e120b543b49ac9a86ceb",
+      "bytes": 2676
     },
     "data/regex/labels.poe2.json": {
-      "sha256": "066df703dd1b58c8c300d1dfaa6a44b58c6906eb1e3edcce0a5be1d5de29a58d",
-      "bytes": 1664
+      "sha256": "8906adf8022b293f87c9a21aae9b8030c8cc582588cbf49f5bf7a5ea3714343e",
+      "bytes": 2055
     },
     "data/regex/regex_poe1.json": {
       "sha256": "12eb2319dba30504c98dc37c3fae6e9605875d6c761ad927015cd9b42ec897a8",

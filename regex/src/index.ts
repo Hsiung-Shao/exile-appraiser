@@ -15,14 +15,14 @@ export {
 } from './view'
 export type { LengthLevel, ListFilter, SectionSummaryItem, T17Filter } from './view'
 export { SECTION_HOSTS, numericKeyOf, sectionHostOf, sectionIdOf } from './sections'
-export { domainMax, naiveRangeRegex, normalizeRange, rangeRegex } from './numeric'
-export type { NumOptions, NumRange } from './numeric'
+export { domainMax, naiveRangeRegex, normalizeRange, rangeRegex, readableRangeRegex } from './numeric'
+export type { NumOptions, NumRange, ReadableOptions } from './numeric'
 export { PAGE_KINDS, isCorpusPage, mergeLabels, normalizeLabel, parseLabels } from './data'
 export type { PageKind, RegexLabels } from './data'
 export {
   NUMERIC_LABEL_KEYS, VENDOR_LABEL_KEYS, algoPages, applyPageKeys, combineOrder, defaultValue, entryKey, hostIdOf, isAlgoPage,
-  isSectionPage, labelBase, linkColors, linkedSockets, listedPages, numericPages, pageKeysOf, propertyFragment, rangeOp,
-  sanitizeValue, sectionPageOf, socketColorCount, valueUsable, vendorPages, wholeLine
+  isSectionPage, isTierNameLine, labelBase, linkColors, linkedSockets, listedPages, mapTierFragment, numericPages, pageKeysOf,
+  propertyFragment, rangeOp, rarityFragment, strictPropertyFragment, sanitizeValue, sectionPageOf, socketColorCount, valueUsable, vendorPages, wholeLine
 } from './pages'
 export type { AlgoEntry, AlgoInput, AlgoKind, AlgoOption, AlgoPage, AlgoValue, RangeOp } from './pages'
 export { combine, escapeTerm } from './combine'

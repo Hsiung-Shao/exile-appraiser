@@ -40,6 +40,11 @@ export interface AlgoEntry extends RegexEntry {
   untested?: boolean
   /** 產生片段;輸入不成立(例如空區間)回 null */
   fragment: (v: AlgoValue, lang: RegexLang) => string | null
+  /**
+   * 語料行(原文,含 `#`)本身就是這個項目要比對的對象 → combine 的 fragment 衝突檢查略過它(第 35 步:
+   * 階級片段比對名稱「（階級 N）」,地圖詞綴頁的隱藏行收了魔法地圖名稱「堅定的地圖（階級#）」,中了是對的)
+   */
+  ownLine?: (line: string) => boolean
 }
 
 export interface AlgoPage extends RegexPage {
