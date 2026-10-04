@@ -303,6 +303,7 @@
     "tab_general": "一般",
     "tab_price_check": "查價",
     "tab_hotkeys": "熱鍵",
+    "settings_back": "回到{page}",
     "chat": {
       "section": "聊天指令",
       "hint": "按下熱鍵在遊戲聊天框輸入指令(例如 F5 回藏身處)。",

@@ -16,6 +16,8 @@
   - 「結束程式」走 IPC `app-quit`(`preview: false`;瀏覽器預覽 / 純瀏覽器不顯示)。
   - 分頁狀態在 ./tabState.ts(托盤「設定」「關於」、OCR 框選返回直接指定分頁);實際顯示的分頁 = `resolveSettingsTab(記住的分頁, 遊戲)`
     (舊 id `chat` → 倉庫與聊天、PoE1 看不到自動辨識 → 遊戲)。
+  - 返回連結與瀏覽器歷史(2026-10-05,./settings-nav.ts):熱鍵總表跳到別頁 → 內容區頂端「← 回到熱鍵」(切到別的分頁消失、
+    返回捲回原位置);瀏覽器預覽 / 純瀏覽器換分頁寫進歷史(`#tab=`),上一頁 / 下一頁在分頁間移動,不再直接離開預覽頁。
   - 自訂背景圖(2026-10-01):根元素加 `.bg-host`、第一個子元素 BgLayer.vue(圖只畫在視窗裡;pobtools.css「自訂背景圖」)。
   - 大小 / 位置(第 21 步,只在 floating):四邊 + 四角把手(.sw-rz)調整大小、標題列空白處移動(按鈕 / 輸入元件上不觸發);
     pointer events + setPointerCapture,拖曳中只改畫面,放開才寫 `config.settingsWindow`(settings-window-geom.ts
@@ -59,6 +61,12 @@
         <button v-if="canQuit" class="sw-quit" data-action="app-quit" @click="quit">{{ t('ppz.quit_app') }}</button>
       </nav>
       <div ref="bodyEl" class="settings-body" :class="{ fill: isFill }" role="tabpanel" :data-settings-tab="tab">
+        <!-- 從熱鍵總表跳過來時:返回連結(切到別的分頁就消失;settings-nav.ts) -->
+        <div v-if="backTo" class="sw-back-row">
+          <button class="sw-back" data-action="settings-back" :data-back-to="backTo.from" @click="goBack">
+            <span aria-hidden="true">←</span> {{ t('ppz.settings_back', { page: tabName(backTo.from) }) }}
+          </button>
+        </div>
         <component :is="tabComponent" />
       </div>
     </div>
@@ -71,7 +79,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onBeforeUnmount, onMounted, provide, shallowRef, watch, type Component } from 'vue'
+import { computed, defineComponent, nextTick, onBeforeUnmount, onMounted, provide, shallowRef, watch, type Component } from 'vue'
 import { useI18n } from 'vue-i18n'
 import GeneralTab from './tabs/General.vue'
 import GameTab from './tabs/Game.vue'
@@ -83,8 +91,9 @@ import RegexTab from './tabs/Regex.vue'
 import DustTab from './tabs/Dust.vue'
 import LogTab from './tabs/Log.vue'
 import AboutTab from './tabs/About.vue'
-import { settingsTab as lastTab, type TabId } from './tabState'
+import { settingsTab as lastTab, settingsBack, type TabId } from './tabState'
 import { SETTINGS_TABS, SETTINGS_TAB_GROUPS, resolveSettingsTab, visibleTabs } from './settings-tabs'
+import { createTabHistory, nextBack, usesBrowserHistory } from './settings-nav'
 import { Host } from '@/web/background/IPC'
 import BgLayer from '../ui/BgLayer.vue'
 import { AppConfig } from '@/web/Config'
@@ -127,9 +136,57 @@ export default defineComponent({
     /** 實際顯示的分頁(舊 id / 目前遊戲看不到的分頁在這裡映射) */
     const tab = computed<TabId>(() => resolveSettingsTab(lastTab.value, config.game))
     const bodyEl = shallowRef<HTMLElement | null>(null)
-    // 換分頁回到頂端(內容區是共用的捲動容器)
-    watch(tab, () => { if (bodyEl.value) bodyEl.value.scrollTop = 0 })
     const rootEl = shallowRef<HTMLElement | null>(null)
+
+    // ---- 返回連結 + 瀏覽器歷史(2026-10-05 使用者回報「熱鍵點了聊天指令後就回不去原本設定畫面」;settings-nav.ts) ----
+    /** 「← 回到 …」:只在跳到的那一頁顯示 */
+    const backTo = computed(() => nextBack(settingsBack.value, tab.value))
+    /** 捲到指定位置(等新分頁畫好;換分頁的 watch 先捲回 0) */
+    function scrollBodyTo (y: number | undefined) {
+      if (!y) return
+      void nextTick(() => { if (bodyEl.value) bodyEl.value.scrollTop = y })
+    }
+    /**
+     * 瀏覽器預覽 / 純瀏覽器:分頁寫進瀏覽器歷史(上一頁 / 下一頁在分頁間移動,不會離開預覽頁);
+     * Electron(overlay / window)沒有上一頁,不動歷史。
+     */
+    const tabHistory = usesBrowserHistory(Host) && typeof window !== 'undefined' && window.history
+      ? createTabHistory({
+        history: window.history,
+        location: window.location,
+        addPopListener: (fn) => window.addEventListener('popstate', fn),
+        removePopListener: (fn) => window.removeEventListener('popstate', fn),
+        resolve: (id) => resolveSettingsTab(id, config.game),
+        getScroll: () => bodyEl.value?.scrollTop ?? 0,
+        apply (entry) {
+          settingsBack.value = entry.back
+          lastTab.value = entry.ppzTab
+          console.log(`[settings] 瀏覽器上一頁 / 下一頁 → ${entry.ppzTab}`)
+          scrollBodyTo(entry.scroll)
+        }
+      })
+      : null
+    // 切到別的分頁 → 清掉返回連結;同步瀏覽器歷史(先記下離開那一頁的捲動位置)→ 內容區回到頂端(共用的捲動容器)
+    watch([tab, settingsBack], ([t, back], [oldTab]) => {
+      const kept = nextBack(back, t)
+      if (kept !== back) settingsBack.value = kept
+      tabHistory?.changed(t, kept)
+      if (t !== oldTab && bodyEl.value) bodyEl.value.scrollTop = 0
+    })
+    onMounted(() => { tabHistory?.start(tab.value, backTo.value) })
+    onBeforeUnmount(() => {
+      tabHistory?.stop()
+      // 設定關掉再打開不留舊的返回連結
+      settingsBack.value = null
+    })
+    function goBack () {
+      const back = backTo.value
+      if (!back) return
+      settingsBack.value = null
+      lastTab.value = back.from
+      console.log(`[settings] 返回 → ${back.from}`)
+      scrollBodyTo(back.scroll)
+    }
 
     // ---- 獨立字級 ----
     const fsVars = computed(() => settingsFsVars(config.settingsFontSize, config.fsBase))
@@ -267,6 +324,12 @@ export default defineComponent({
       navGroups,
       tab,
       selectTab (id: TabId) { lastTab.value = id },
+      backTo,
+      goBack,
+      tabName (id: TabId) {
+        const def = SETTINGS_TABS.find(x => x.id === id)
+        return def ? t(def.key) : id
+      },
       isFill: computed(() => SETTINGS_TABS.find(x => x.id === tab.value)?.fill === true),
       bodyEl,
       tabComponent: computed(() => components[tab.value]),
@@ -492,6 +555,28 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+/* 返回連結(從熱鍵總表跳過來時;內容區頂端、不佔卡片樣式) */
+.sw-back-row {
+  flex-shrink: 0;
+  margin: -4px 0 -2px;
+}
+.sw-back {
+  appearance: none;
+  border: 0;
+  background: none;
+  padding: 2px 0;
+  color: var(--gold);
+  font-size: var(--fs-xs);
+  cursor: pointer;
+}
+.sw-back:hover {
+  color: var(--ink-0);
+  text-decoration: underline;
+}
+.sw-back:focus-visible {
+  outline: 1px solid var(--gold);
+  outline-offset: 2px;
 }
 /* 拆粉排行:內容區不捲動,子元素(DustPanel)撐滿,表格自己虛擬捲動 */
 .settings-body.fill {

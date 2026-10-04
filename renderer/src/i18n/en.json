@@ -303,6 +303,7 @@
     "tab_general": "General",
     "tab_price_check": "Price check",
     "tab_hotkeys": "Hotkeys",
+    "settings_back": "Back to {page}",
     "chat": {
       "section": "Chat commands",
       "hint": "Press a hotkey to type a command into the game's chat (e.g. F5 goes to your hideout).",
