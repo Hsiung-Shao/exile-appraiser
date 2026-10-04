@@ -14,13 +14,14 @@ export const overlayLayers = reactive({ reveal: false, rune: false })
 
 /** App.vue 的狀態 + 徽章層 → 回報內容(純函式) */
 export function overlayContentOf (
-  app: { panel: boolean, settings: boolean, picker: boolean },
+  app: { panel: boolean, settings: boolean, picker: boolean, quick?: boolean },
   layers: { reveal: boolean, rune: boolean }
 ): OverlayContentState {
-  return { panel: app.panel, settings: app.settings, picker: app.picker, reveal: layers.reveal, rune: layers.rune }
+  // 第 33 步:正則書籤快速面板(`quick`)
+  return { panel: app.panel, settings: app.settings, picker: app.picker, reveal: layers.reveal, rune: layers.rune, quick: app.quick === true }
 }
 
 /** 內容相同不重送用的鍵 */
 export function overlayContentKey (c: OverlayContentState): string {
-  return `${+c.panel}${+c.settings}${+c.picker}${+c.reveal}${+c.rune}`
+  return `${+c.panel}${+c.settings}${+c.picker}${+c.reveal}${+c.rune}${+(c.quick === true)}`
 }

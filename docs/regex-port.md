@@ -200,6 +200,48 @@ PoE1 地圖詞綴 3 條 + 階級 ≥16 + 物品數量 ≥80 + 6L → `"成凋| �
 - `renderer/test/regex-section.test.ts`:字串兩語與參數、元件用到的鍵、接線守門。
 - 既有 golden(`selftest-report.json`、`perf-equivalence.json`)與 `combine` / `pages` 測試不變(內部仍有 `map_numeric` 頁)。
 
+## 第 33 步:書籤快捷存取 + 一鍵貼進遊戲(2026-10-04)
+
+使用者覺得入口太深、複製再自己貼很麻煩。書籤不必打開正則分頁、不動目前的勾選,點一下 / 按一下熱鍵就把搜尋字串貼進遊戲搜尋列。
+
+### 動作(一次點擊 / 一次熱鍵 = 一次搜尋)
+1. 字串 = `regex/src/quick.ts` `bookmarkQuery`:書籤 → `bookmarkApplyOf` → `combineSels(…, 書籤頁)` → `combine`,**與「載入書籤後的單頁輸出」逐字相同**
+   (宿主詞綴頁含數值區;數值只用書籤存的值,不混目前面板的值)。清單(~3 MB)第一次用到才載(`store.ts` `catalogueFor`)。
+2. renderer `renderer/src/web/regex/quick.ts` → IPC `regex-paste`(`preview: false`)→ main `main/src/regex-paste.ts` `RegexPaster`:
+   - 不能貼 → **只複製**並回原因:視窗模式(`window-mode`)、沒有附著的遊戲視窗(`no-game`)、遊戲與 overlay 都不在前景(`game-inactive`)。
+     上一次還在送(`busy`)/ 空字串(`empty`)什麼都不做。
+   - overlay 有焦點(從書籤列 / 快速面板點的)→ `assertGameActive`(electron-overlay-window `focusTarget`)→ 每 20 ms 看 `targetHasFocus`,
+     最多等 800 ms(等不到 = 只複製 `focus-timeout`,**不對別的視窗送鍵**)→ 再等 80 ms → 送鍵。書籤熱鍵(遊戲本來就在前景)不等。
+   - 寫剪貼簿(**不還原**,使用者要的是複製 + 貼上)→ 沿用倉庫搜尋的 `stashSearchSequence`:Ctrl+F → Ctrl+V → Enter。
+   - 送鍵期間(含之後 250 ms)`StashScroll.quietCtrl(true)`:第五輪 30.1 的 Ctrl 輪詢器看得到我們自己送的 Ctrl,凍結掛鉤持有狀態,
+     不為了這一下去 acquire uiohook 掛鉤。
+3. 瀏覽器預覽 / 純瀏覽器:`Host.canRegexPaste` = false → renderer 用 `navigator.clipboard` 只複製(`preview`)。
+
+### 三個入口
+| 入口 | 檔案 | 說明 |
+|---|---|---|
+| 設定視窗旁的書籤列 | `RegexBookmarkBar.vue` + `quick-geom.ts` `placeBookmarkBar` | 設定 `regexBookmarkBar`(window 模式 / 瀏覽器預覽:設定填滿視窗 → 改成設定上方一條橫排 `inline`,點了只複製並顯示原因)(預設開,熱鍵與視窗分頁「正則書籤快捷存取」卡片可關)。在 App.vue 的 `.settings-layer` 暗幕裡,量設定視窗實際外框(ResizeObserver + MutationObserver 看 inline style = 拖曳中即時跟著):右側直排 → 左側 → 上方橫排 → 下方 → 都沒空間就不顯示;直排比可用高度高就捲動,橫排橫向捲動。點一下:貼上了 → 關設定(焦點已在遊戲);只複製 → 列底顯示原因 5 秒。沒有書籤時顯示「前往正則」 |
+| 快速面板 | `RegexQuickPanel.vue` + `quickPanelKey` | 熱鍵 `hotkeyRegexQuick`(預設空 = 不註冊,overlay 限定)→ main `assertOverlayActive`(被閒置隱藏的 overlay 在 focus() 前先顯示)+ 事件 `regex-quick-open` → 面板。↑↓ / Home / End / PageUp / PageDown 選、Enter 執行、1–9 直接執行、Esc 關(overlay 的 Esc 由 main before-input-event 攔下 → 焦點回遊戲 → focus-change 關面板)、點外面關。貼上了自動關;只複製 → 面板留著顯示原因。overlay 失焦 / 收到物品 / 開框選層也關;overlay-content 回報多一欄 `quick` |
+| 書籤個別熱鍵 | `RegexBookmarks.vue`(每個書籤一個 HotkeyInput)、`shortcut-actions.ts` `regex-bookmark` | 存在書籤上 `hotkey`(state **schema 4**;舊檔照讀、空白不寫出)。renderer 啟動就讀 `regex_state.json`(`ensureStateLoaded`,不載清單)→ `bookmark-hotkeys.ts` → host-config `regexBookmarkHotkeys`(`{index, name, game, hotkey}`)→ main 只註冊 `game` = 目前遊戲的(overlay 限定、接在倉庫搜尋與快速面板之後、先到先得、遊戲保留鍵不註冊)→ 觸發 = 先放開熱鍵按鍵 → 事件 `regex-bookmark-run` → renderer `findBookmark`(索引 + 名字,對不上以名字找)→ `regex-paste`(source `hotkey`)。沒貼成 / 找不到書籤 → main 右下角提示視窗(`regexToastMessage`) |
+
+- 衝突:`hotkey-conflicts.ts` 多 `regexQuick` 與 `rxbm:<書籤索引>`(只算目前遊戲),熱鍵分頁、聊天指令分頁、書籤列表共用 `useHotkeyIssues`;熱鍵分頁另列目前遊戲的書籤熱鍵(唯讀)。
+- i18n `ppz.regex.quick_*` / `bm_hotkey_tip`(繁中 / 英文);main 提示字串在 `regex-paste.ts`(同辨識開關通知的作法)。
+- DOM 錨點:`[data-regex=quick-bar|quick-bar-item|quick-bar-empty|quick-bar-open-regex|quick-bar-notice|quick-bar-running|quick-layer|quick-panel|quick-list|quick-item|quick-empty|quick-notice|bm-hotkey]`、`[data-setting=regex-quick|regex-bookmark-bar|hotkey-regex-quick|regex-bm-hotkey]`。
+
+### 行為差異
+- regex_state.json 寫出 `schema: 4`;書籤多 `hotkey`。舊版程式讀新檔會忽略熱鍵(下次存檔就沒了),其餘相容。schema 3 檔載入**不會**為了版號立刻寫回。
+- renderer 啟動時就讀 regex_state.json(以前是第一次打開正則分頁才讀);清單仍是用到才載。
+- 書籤 = 存書籤當下的單頁輸出;用書籤列 / 快速面板 / 熱鍵執行**不會**改動正則分頁目前的勾選。
+
+### 測試
+- `regex/test/quick.test.ts`:兩遊戲 × 每個清單頁 × 隨機勾選 / 數值 / 模式 / 語言,`bookmarkQuery` = 存書籤當下的單頁輸出(逐字、長度、上限);熱鍵往返、schema 3 舊檔、`regexStateSchemaOf`、`bookmarkHotkeys` / `findBookmark`。
+- `main/test/regex-paste.test.ts`:判斷優先序、送鍵序列(假剪貼簿 / 假送鍵 / 假焦點 / 假 sleep,**不送真實輸入**)、交還焦點後等待 / 逾時 / 中途切走、busy 不重入、quietCtrl、提示兩語、接線守門;
+  `shortcut-actions.test.ts`(註冊條件、順序、另一遊戲 / 壞資料 / 保留鍵)、`stash-scroll.test.ts`(quietCtrl 凍結)、`overlay-idle.test.ts`(`quick`)。
+- `renderer/test/regex-quick.test.ts`:`placeBookmarkBar`(右 / 左 / 上 / 下 / 不顯示、3000 組隨機不重疊不出界)、`quickPanelKey`、提示字串兩語與 vue-i18n 特殊字元、衝突表、設定往返 / host-config、接線守門;`overlay-content.test.ts`。
+- 無頭 Chrome(CDP,假 `window.host` overlay 模式,只作用於無頭頁面):置中預設 → 右側直排;設定視窗貼右 → 左側;設定視窗幾乎全寬 → 上方橫排;沒有書籤 → 空狀態 +「前往正則」;
+  淺色 + 英文介面;點書籤列 → `regexPaste {text, name, source: 'bar'}`、只複製顯示原因、貼上了關設定;快速面板 ↓↓ Enter → 第 3 筆、1 → 貼上後自動關、Esc 關;書籤熱鍵事件 → 對的書籤、找不到 → `missing`;host-config 帶目前全部書籤熱鍵。
+- **真實遊戲內送鍵(Ctrl+F → 貼上 → Enter)、焦點交還時機、與倉庫頁籤捲動同時使用只能使用者實測**(守則 14)。
+
 ## 相關文件
 - [phase2-summary.md](phase2-summary.md)(WP5 摘要與待辦:逐字 golden)
 - [release-flow.md](release-flow.md)(資料同步後照發版流程出版)

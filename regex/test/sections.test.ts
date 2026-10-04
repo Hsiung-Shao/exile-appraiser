@@ -182,7 +182,7 @@ describe('sections:regex_state.json 遷移(schema 2 → 3)', () => {
     // 寫回是新結構(schema 3、沒有舊頁 id),再讀一次不變;遷移可重複呼叫
     const text = serializeRegexState(s)
     const doc = JSON.parse(text)
-    expect(doc.schema).toBe(3)
+    expect(doc.schema).toBe(4) // 第 33 步起 schema 4(書籤熱鍵);數值區結構同 3
     expect(text).not.toMatch(/map_numeric|waystone_numeric/)
     expect(parseRegexState(text).state).toEqual(s)
     const again = structuredClone(s)

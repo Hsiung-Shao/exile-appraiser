@@ -190,3 +190,42 @@ describe('buildShortcutActions', () => {
     expect(normalizeHotkey('')).toBe('')
   })
 })
+
+// 第 33 步:正則書籤快速面板 / 書籤個別熱鍵
+describe('buildShortcutActions:正則書籤(第 33 步)', () => {
+  const rx = [
+    { index: 0, name: 'T17', game: 'poe2' as const, hotkey: 'ctrl+shift+1' },
+    { index: 1, name: '一代', game: 'poe1' as const, hotkey: 'Ctrl + Shift + 2' },
+    { index: 3, name: '空白', game: 'poe2' as const, hotkey: '  ' },
+    { index: 4, name: '撞鍵', game: 'poe2' as const, hotkey: 'Ctrl + Shift + R' },
+    { index: 5, name: '保留', game: 'poe2' as const, hotkey: 'Ctrl + F' }
+  ]
+  it('overlay:快速面板 + 目前遊戲的書籤熱鍵,接在倉庫搜尋之後;另一遊戲 / 空白 / 重複 / 保留鍵不註冊', () => {
+    const a = buildShortcutActions({ ...base, stashSearch: [{ text: 'x', hotkey: 'F3' }], hotkeyRegexQuick: 'F4', regexBookmarkHotkeys: rx }, 'overlay')
+    expect(types(a).slice(-3)).toEqual(['F3=stash-search', 'F4=regex-quick', 'Ctrl + Shift + 1=regex-bookmark'])
+    expect(a.find(x => x.action.type === 'regex-bookmark')?.action).toEqual({ type: 'regex-bookmark', index: 0, name: 'T17', game: 'poe2' })
+    expect(a.filter(x => x.shortcut === 'Ctrl + Shift + R').map(x => x.action.type)).toEqual(['ocr-reveal'])
+    expect(a.some(x => x.shortcut === 'Ctrl + F')).toBe(false)
+    expect(a.filter(x => x.action.type.startsWith('regex')).every(x => !x.keepModKeys)).toBe(true)
+  })
+  it('PoE1 只取 poe1 書籤', () => {
+    const a = buildShortcutActions({ ...base, game: 'poe1', regexBookmarkHotkeys: rx }, 'overlay')
+    expect(a.filter(x => x.action.type === 'regex-bookmark').map(x => x.shortcut)).toEqual(['Ctrl + Shift + 2'])
+  })
+  it('window 模式不註冊;快速面板預設空 = 不註冊', () => {
+    expect(buildShortcutActions({ ...base, hotkeyRegexQuick: 'F4', regexBookmarkHotkeys: rx }, 'window').some(x => x.action.type.startsWith('regex'))).toBe(false)
+    expect(buildShortcutActions({ ...base, hotkeyRegexQuick: '' }, 'overlay').some(x => x.action.type === 'regex-quick')).toBe(false)
+  })
+  it('快速面板與書籤熱鍵相同 → 快速面板先到先得', () => {
+    const a = buildShortcutActions({ ...base, hotkeyRegexQuick: 'Ctrl + Shift + 1', regexBookmarkHotkeys: rx }, 'overlay')
+    expect(a.filter(x => x.shortcut === 'Ctrl + Shift + 1').map(x => x.action.type)).toEqual(['regex-quick'])
+  })
+  it('壞資料(IPC 不可信)略過', () => {
+    const bad = [null, { index: -1, name: 'a', game: 'poe2', hotkey: 'F6' }, { index: 1.5, name: 'a', game: 'poe2', hotkey: 'F6' }, { index: 2, name: 5, game: 'poe2', hotkey: 'F6' }, { index: 2, name: 'ok', game: 'poe2', hotkey: 'F7' }]
+    const a = buildShortcutActions({ ...base, regexBookmarkHotkeys: bad as never }, 'overlay')
+    expect(a.filter(x => x.action.type === 'regex-bookmark').map(x => x.shortcut)).toEqual(['F7'])
+  })
+  it('保留鍵清單含快速面板 / 書籤熱鍵', () => {
+    expect(reservedShortcuts({ ...base, hotkeyRegexQuick: 'Ctrl + V', regexBookmarkHotkeys: rx })).toEqual(expect.arrayContaining(['Ctrl + V', 'Ctrl + F']))
+  })
+})

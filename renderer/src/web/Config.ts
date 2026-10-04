@@ -15,7 +15,8 @@
 import { nextTick, reactive, shallowRef, watch } from 'vue'
 import { REALMS, useEnglishNames, type Game, type Language, type Realm } from '@exile-appraiser/core/realm'
 import type { PriceCheckWidget } from './overlay/interfaces'
-import type { ChatCommand, HostConfigForMain, HotkeyRegistration, OcrLangSetting, OcrRegion, StashSearchEntry } from '@ipc/types'
+import type { ChatCommand, HostConfigForMain, HotkeyRegistration, OcrLangSetting, OcrRegion, RegexBookmarkHotkey, StashSearchEntry } from '@ipc/types'
+import { regexBookmarkHotkeyList } from './regex/bookmark-hotkeys'
 import { Host } from './background/IPC'
 import { dataLanguage } from './games/active'
 import { createHostConfigSync } from './host-config-sync'
@@ -121,6 +122,10 @@ export interface Config {
   settingsWindow: SettingsWindowRect | null
   /** 第 21 步:設定視窗獨立字級(11–24 px);null = 跟隨全域 `fsBase`。只作用在設定視窗,查價面板不受影響。 */
   settingsFontSize: number | null
+  /** 第 33 步:正則書籤快速面板熱鍵(預設空 = 不註冊;只在 overlay 模式)。 */
+  hotkeyRegexQuick: string
+  /** 第 33 步:打開設定時,設定視窗旁浮一排正則書籤(預設開;只在 overlay 模式)。 */
+  regexBookmarkBar: boolean
   // ---- 相容上游元件的推導屬性 ----
   readonly useIntlSite: boolean
   /** 上游元件讀的字級;= `fsBase`(不進檔)。 */
@@ -295,7 +300,9 @@ function createConfig (): Config {
     stashSearch: [] as StashSearchEntry[],
     stashScroll: true,
     settingsWindow: null as SettingsWindowRect | null,
-    settingsFontSize: null as number | null
+    settingsFontSize: null as number | null,
+    hotkeyRegexQuick: '',
+    regexBookmarkBar: true
   }
   return {
     ...base,
@@ -356,7 +363,9 @@ function serialize (): string {
     stashSearch: config.stashSearch,
     stashScroll: config.stashScroll,
     settingsWindow: config.settingsWindow,
-    settingsFontSize: config.settingsFontSize
+    settingsFontSize: config.settingsFontSize,
+    hotkeyRegexQuick: config.hotkeyRegexQuick,
+    regexBookmarkBar: config.regexBookmarkBar
   }, null, 2)
 }
 
@@ -456,6 +465,9 @@ function applyLoaded (raw: string) {
   // 第 21 步:設定視窗大小 / 位置與獨立字級(舊設定檔沒有 → null = 置中預設 / 跟隨全域;壞值 → null)
   config.settingsWindow = normSettingsWindow(loaded.settingsWindow)
   config.settingsFontSize = normSettingsFontSize(loaded.settingsFontSize)
+  // 第 33 步:正則書籤快速面板熱鍵(舊設定檔沒有 → 空 = 不註冊)、設定視窗旁的書籤列(舊設定檔沒有 → 開;只有明確 false 才關)
+  config.hotkeyRegexQuick = typeof loaded.hotkeyRegexQuick === 'string' ? loaded.hotkeyRegexQuick : fresh.hotkeyRegexQuick
+  config.regexBookmarkBar = loaded.regexBookmarkBar !== false
 }
 
 /** 測試用:套用一份設定檔內容後回傳序列化結果(`renderer/test/runeshape-config.test.ts`) */
@@ -491,7 +503,7 @@ export const hotkeyRegistration = shallowRef<HotkeyRegistration | null>(null)
  * 送給 main 的 host-config(Config.ts watch 用;每個欄位都要列在這裡,main 才收得到 —— renderer/test/stash-scroll-config.test.ts 守門)。
  * 物件 / 陣列複製一份,watch 才會追蹤到內層欄位。
  */
-export function hostConfigOf (c: Config): HostConfigForMain {
+export function hostConfigOf (c: Config, regexHotkeys: readonly RegexBookmarkHotkey[] = regexBookmarkHotkeyList.value): HostConfigForMain {
   return {
     hotkey: c.hotkey,
     hotkeyHold: c.hotkeyHold,
@@ -519,7 +531,10 @@ export function hostConfigOf (c: Config): HostConfigForMain {
     startupToast: c.startupToast,
     commands: c.commands.map(x => ({ ...x })),
     stashSearch: c.stashSearch.map(s => ({ ...s })),
-    stashScroll: c.stashScroll
+    stashScroll: c.stashScroll,
+    hotkeyRegexQuick: c.hotkeyRegexQuick,
+    // 第 33 步:書籤個別熱鍵存在 regex_state.json(regex/store.ts 讀檔後寫入這個 ref);main 只註冊目前遊戲的
+    regexBookmarkHotkeys: regexHotkeys.map(b => ({ ...b }))
   }
 }
 

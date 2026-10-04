@@ -384,6 +384,43 @@ describe('StashScroll × Ctrl 來源 × UiohookGate(第五輪 30.1)', () => {
     expect(hook.start).toHaveBeenCalledTimes(1)
   })
 
+  it('第 33 步 quietCtrl:自己送 Ctrl 組合鍵期間不因 Ctrl 變化 acquire / release;結束後照實際狀態', () => {
+    const { gate, hook, game, ctrl, ss } = setup()
+    ss.setEnabled(true)
+    game.isActive = true
+    ss.quietCtrl(true)
+    ctrl.press() // 我們自己送的 Ctrl+F
+    expect(gate.holders).toBe(0)
+    expect(hook.start).not.toHaveBeenCalled()
+    ctrl.releaseKey()
+    ss.quietCtrl(false)
+    expect(gate.holders).toBe(0)
+    expect(hook.start).not.toHaveBeenCalled()
+    // 使用者本來就按著 Ctrl(書籤熱鍵含 Ctrl):持有狀態凍結,不因送鍵中間的放開而 release
+    ctrl.press()
+    expect(gate.holders).toBe(1)
+    ss.quietCtrl(true)
+    ctrl.releaseKey()
+    expect(gate.holders).toBe(1)
+    ss.quietCtrl(false)
+    expect(gate.holders).toBe(0)
+    // quiet 中失焦仍照常 release
+    ctrl.press(); ss.quietCtrl(true)
+    expect(gate.holders).toBe(1)
+    game.isActive = false
+    expect(gate.holders).toBe(0)
+    ss.quietCtrl(false)
+  })
+
+  it('stashScrollShouldHold quiet:沿用 held;沒有 Ctrl 來源 / unavailable 不受影響', () => {
+    const b = { disposed: false, enabled: true, detached: false, gameActive: true }
+    expect(stashScrollShouldHold({ ...b, ctrl: 'down', quiet: true, held: false })).toBe(false)
+    expect(stashScrollShouldHold({ ...b, ctrl: 'up', quiet: true, held: true })).toBe(true)
+    expect(stashScrollShouldHold({ ...b, quiet: true, held: false })).toBe(true)
+    expect(stashScrollShouldHold({ ...b, ctrl: 'unavailable', quiet: true, held: false })).toBe(true)
+    expect(stashScrollShouldHold({ ...b, ctrl: 'down', quiet: true, held: true, gameActive: false })).toBe(false)
+  })
+
   it('wheel:按住 Ctrl 掛鉤開著時照舊送鍵(判斷不變)', () => {
     const { game, ctrl, ss, tap, emitWheel } = setup()
     ss.setEnabled(true)

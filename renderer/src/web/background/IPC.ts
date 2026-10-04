@@ -11,6 +11,7 @@
 import type { HostApi, HostFetchResult, ItemTextEvent, HostConfigForMain, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId } from '@ipc/types'
 import type { ConfigChangedEvent, HotkeyRegistration, OcrAvailability, OcrRegionPickTarget, RevealScanEvent, SettingsTabId, UpdaterInfo } from '@ipc/types'
 import type { LogEntry, LogSnapshot, PerfState, RuneshapeScanEvent, RuneshapeStats, RuneshapeUiState, ScanMaskReport, OverlayContentState } from '@ipc/types'
+import type { RegexBookmarkRunEvent, RegexPasteRequest, RegexPasteResult } from '@ipc/types'
 import { shallowRef } from 'vue'
 import type { HttpFetch } from '@exile-appraiser/core/http'
 import { withRetryAfter } from '@exile-appraiser/core/http'
@@ -270,6 +271,25 @@ class HostTransport {
 
   /** 第五輪 30.4:overlay 上有沒有東西要畫(main 據此閒置隱藏 overlay 視窗;overlay/overlay-content.ts) */
   overlayContent (s: OverlayContentState): void { window.host?.overlayContent?.(s) }
+
+  // ---- 第 33 步:正則書籤快捷存取(main/src/regex-paste.ts) ----
+  /** 能交給 main 複製 + 貼進遊戲(Electron 視窗;預覽 / 純瀏覽器沒有 → 呼叫端自己複製) */
+  get canRegexPaste (): boolean { return !this.isPreview && typeof window.host?.regexPaste === 'function' }
+  /** main 複製 + 貼進遊戲;不支援 → null */
+  async regexPaste (req: RegexPasteRequest): Promise<RegexPasteResult | null> {
+    if (!this.canRegexPaste) return null
+    return (await window.host?.regexPaste?.(req)) ?? null
+  }
+
+  /** 快速面板熱鍵(只有 overlay 會收到) */
+  onRegexQuickOpen (cb: () => void): () => void {
+    return window.host?.onRegexQuickOpen?.(cb) ?? (() => {})
+  }
+
+  /** 書籤個別熱鍵 */
+  onRegexBookmarkRun (cb: (e: RegexBookmarkRunEvent) => void): () => void {
+    return window.host?.onRegexBookmarkRun?.(cb) ?? (() => {})
+  }
 
   async runeshapeStats (): Promise<RuneshapeStats | undefined> {
     return await window.host?.runeshapeStats?.()

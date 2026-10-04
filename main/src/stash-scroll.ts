@@ -21,6 +21,8 @@
  *   放開 Ctrl / 失焦 / detach 就 release(gate 歸零後照樣延遲 5 秒 stop,連續 Ctrl + 滾輪不會反覆 start / stop)。
  *   只有遊戲前景 + 功能開著時才請 `ctrl` 來源輪詢(`setWanted`)。`ctrl` 回報 `unavailable`(沒有 PowerShell 等)→ 退回上一條的舊行為。
  *   掛鉤開始時 libuiohook 以 `GetAsyncKeyState` 初始化修飾鍵(`initialize_modifiers`),所以先按 Ctrl 再開掛鉤,wheel 事件的 `ctrlKey` 仍正確。
+ * - **第 33 步**:正則書籤一鍵貼進遊戲會自己送 Ctrl+F / Ctrl+V(`regex-paste.ts`),Ctrl 輪詢器看得到這個 Ctrl。
+ *   送鍵期間 `quietCtrl(true)` → 掛鉤持有狀態凍結在當下(不因自己送的 Ctrl 去 acquire / release),`quietCtrl(false)` 後照實際 Ctrl 重新判斷。
  */
 import type { CtrlState } from './ctrl-watch'
 
@@ -78,9 +80,15 @@ export function stashScrollShouldHold (s: {
   detached: boolean
   gameActive: boolean
   ctrl?: CtrlState
+  /** 第 33 步:自己送鍵中(忽略 Ctrl 變化,維持 `held`) */
+  quiet?: boolean
+  /** 目前是否持有(`quiet` 時沿用) */
+  held?: boolean
 }): boolean {
   if (s.disposed || !s.enabled || s.detached || !s.gameActive) return false
-  return s.ctrl == null || s.ctrl === 'unavailable' || s.ctrl === 'down'
+  if (s.ctrl == null || s.ctrl === 'unavailable') return true
+  if (s.quiet) return s.held ?? false
+  return s.ctrl === 'down'
 }
 
 /** 第五輪 30.1:Ctrl 狀態來源(`ctrl-watch.ts` `CtrlWatcher`) */
@@ -109,6 +117,8 @@ export class StashScroll {
   private detached = false
   private held = false
   private disposed = false
+  /** 第 33 步:自己送鍵中(正則書籤貼上) */
+  private quiet = false
   private readonly log: (msg: string) => void
 
   constructor (private readonly deps: StashScrollDeps) {
@@ -134,6 +144,13 @@ export class StashScroll {
     this.sync()
   }
 
+  /** 第 33 步:自己送 Ctrl 組合鍵期間凍結掛鉤持有狀態;結束後照實際 Ctrl 重新判斷 */
+  quietCtrl (on: boolean): void {
+    if (this.quiet === on) return
+    this.quiet = on
+    if (!on) this.sync()
+  }
+
   /** 目前是否持有 uiohook 掛鉤 */
   get holding (): boolean { return this.held }
 
@@ -143,7 +160,9 @@ export class StashScroll {
       enabled: this.enabled,
       detached: this.detached,
       gameActive: this.deps.game.isActive,
-      ctrl: this.deps.ctrl?.state
+      ctrl: this.deps.ctrl?.state,
+      quiet: this.quiet,
+      held: this.held
     })
   }
 

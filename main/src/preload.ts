@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { HostApi, HostFetchInit, HostConfigForMain, ItemTextEvent, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId, UpdaterInfo, SettingsTabId, ConfigChangedEvent, OcrRegionPickTarget, RevealScanEvent, RuneshapeScanEvent, RuneshapeUiState, ScanMaskReport, LogEntry, OverlayContentState } from '@ipc/types'
+import type { HostApi, HostFetchInit, HostConfigForMain, ItemTextEvent, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId, UpdaterInfo, SettingsTabId, ConfigChangedEvent, OcrRegionPickTarget, RevealScanEvent, RuneshapeScanEvent, RuneshapeUiState, ScanMaskReport, LogEntry, OverlayContentState, RegexBookmarkRunEvent, RegexPasteRequest } from '@ipc/types'
 
 function subscribe<T> (channel: string, cb: (e: T) => void): () => void {
   const listener = (_: unknown, e: T) => cb(e)
@@ -66,6 +66,10 @@ const api: HostApi = {
   runeshapeUiState: (s: RuneshapeUiState) => { ipcRenderer.send('runeshape-ui-state', s) },
   // 第五輪 30.4:overlay 上有沒有東西要畫(main 閒置隱藏 overlay 視窗)
   overlayContent: (s: OverlayContentState) => { ipcRenderer.send('overlay-content', s) },
+  // 第 33 步:正則書籤快捷存取(複製 + 貼進遊戲、快速面板熱鍵、書籤個別熱鍵);預覽端都沒有
+  regexPaste: (req: RegexPasteRequest) => ipcRenderer.invoke('regex-paste', req),
+  onRegexQuickOpen: (cb: () => void) => subscribe('regex-quick-open', () => { cb() }),
+  onRegexBookmarkRun: (cb: (e: RegexBookmarkRunEvent) => void) => subscribe('regex-bookmark-run', cb),
   runeshapeStats: () => ipcRenderer.invoke('runeshape-stats'),
   // 第 18 步:畫在遊戲上的徽章 / 提示外框(main 擷取後遮掉)
   scanMask: (r: ScanMaskReport) => { ipcRenderer.send('scan-mask', r) },

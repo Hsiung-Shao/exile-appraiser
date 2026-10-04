@@ -21,11 +21,13 @@
  * - 2026-10-01(移植 APT `Shortcuts.ts` 的 paste-in-chat / stash-search 分支):聊天指令與倉庫搜尋。照 APT 先放開熱鍵本身的按鍵,
  *   再交給 `text-box.ts`(寫剪貼簿 + 送按鍵序列,包在 `HostClipboard.restoreShortly`);兩個遊戲都可用,只在 overlay 模式註冊。
  *   遊戲保留鍵(`ipc/reserved-hotkeys.ts`,含 PoE2 的 Ctrl+Alt+C)不註冊。
+ * - 第 33 步:`regex-quick`(正則書籤快速面板)/ `regex-bookmark`(書籤個別熱鍵):先放開熱鍵本身的按鍵(同聊天指令),再交給 main
+ *   (`onRegexQuick` 讓 overlay 取得焦點並叫 renderer 開面板;`onRegexBookmark` 叫 renderer 算字串 → `regex-paste` 送鍵)。只在 overlay 模式註冊。
  */
 import { globalShortcut, screen } from 'electron'
 import { uIOhook, UiohookKey } from 'uiohook-napi'
 import { isModKey, KeyToElectron, mergeTwoHotkeys } from '@ipc/KeyToCode'
-import type { GameId, HostConfigForMain, HotkeyRegistration, ItemTextEvent, OcrRegionPickTarget } from '@ipc/types'
+import type { GameId, HostConfigForMain, HotkeyRegistration, ItemTextEvent, OcrRegionPickTarget, RegexBookmarkRunEvent } from '@ipc/types'
 import { HostClipboard } from './HostClipboard'
 import { buildShortcutActions, normalizeHotkey, reservedShortcuts, sameShortcutActions, type ShortcutAction } from './shortcut-actions'
 import { stashSearch, typeInChat, type TextBoxDeps } from './text-box'
@@ -68,6 +70,10 @@ export class Shortcuts {
       onRuneshapeToggle?: () => void
       /** 第 16 步:褻瀆 / 符文暫停熱鍵相同時的合併動作(不送任何按鍵) */
       onScanToggleBoth?: () => void
+      /** 第 33 步:正則書籤快速面板熱鍵(熱鍵按鍵已放開) */
+      onRegexQuick?: () => void
+      /** 第 33 步:正則書籤個別熱鍵(熱鍵按鍵已放開) */
+      onRegexBookmark?: (e: RegexBookmarkRunEvent) => void
     }
   ) {
     const { poeWindow } = opts
@@ -176,6 +182,15 @@ export class Shortcuts {
     }
 
     const { action } = entry
+    if (action.type === 'regex-quick') {
+      this.opts.onRegexQuick?.()
+      return
+    }
+    if (action.type === 'regex-bookmark') {
+      console.log(`[shortcuts] 正則書籤「${action.name}」`)
+      this.opts.onRegexBookmark?.({ index: action.index, name: action.name, game: action.game })
+      return
+    }
     if (action.type === 'toggle-overlay') {
       this.opts.areaTracker?.removeListeners()
       this.opts.overlay?.toggleActiveState()

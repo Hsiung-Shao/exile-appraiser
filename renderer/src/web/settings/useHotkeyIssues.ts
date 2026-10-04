@@ -4,11 +4,13 @@
  * → main 回報被其他程式佔用(`hotkeyRegistration` 錯誤字串裡引號內的鍵)。
  * 對不回任何欄位的 main 錯誤由 `otherError` 給熱鍵卡片底部顯示。
  * 第 16 步:褻瀆 / 符文暫停鍵相同不算問題(`issueText` 回空),改由 `sharedText` 給提示「與…共用,一次切換兩者」。
+ * 第 33 步:正則書籤快速面板 / 書籤個別熱鍵也在表內(書籤熱鍵從 `regex/bookmark-hotkeys.ts` 來,只算目前遊戲的)。
  */
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { AppConfig, hotkeyRegistration } from '@/web/Config'
 import { hotkeyIssues, hotkeySlots, normalizeHotkey } from './hotkey-conflicts'
+import { regexBookmarkHotkeyList } from '@/web/regex/bookmark-hotkeys'
 
 /** 衝突對象的顯示名稱(i18n 鍵) */
 const SLOT_LABEL: Record<string, string> = {
@@ -18,13 +20,14 @@ const SLOT_LABEL: Record<string, string> = {
   ocr: 'ppz.scan.slot_reveal_pause',
   region: 'ppz.scan.slot_reveal_region',
   runeshape: 'ppz.scan.slot_rune_pause',
-  runeRegion: 'ppz.scan.slot_rune_region'
+  runeRegion: 'ppz.scan.slot_rune_region',
+  regexQuick: 'ppz.regex.quick_hotkey'
 }
 
 export function useHotkeyIssues () {
   const { t } = useI18n()
   const config = AppConfig()
-  const slots = computed(() => hotkeySlots(config))
+  const slots = computed(() => hotkeySlots({ ...config, regexBookmarkHotkeys: regexBookmarkHotkeyList.value }))
   const issues = computed(() => hotkeyIssues(slots.value))
   /** main 回報被其他程式佔用的熱鍵(錯誤字串裡引號內的鍵) */
   const takenKeys = computed(() => {
@@ -34,6 +37,11 @@ export function useHotkeyIssues () {
   })
   const quote = (s: string) => config.uiLanguage === 'en' ? `"${s}"` : `「${s}」`
   function slotName (id: string): string {
+    const rx = /^rxbm:(\d+)$/.exec(id)
+    if (rx) {
+      const b = regexBookmarkHotkeyList.value.find(x => x.index === Number(rx[1]))
+      return quote((b?.name ?? '').slice(0, 24))
+    }
     const m = /^(cmd|stash):(\d+)$/.exec(id)
     if (m) {
       const n = Number(m[2])

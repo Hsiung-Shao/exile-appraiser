@@ -5,7 +5,8 @@ export type { Ambient, Check, Entry, Mode, Options, Result } from './gen'
 export { buildCorpus, entryLines, entryTitle, pageAmbient, parseRegexCatalogue } from './data'
 export type { BuildCorpusOptions, RegexCatalogue, RegexEntry, RegexGame, RegexLang, RegexPage } from './data'
 export {
-  applyKeys, collectKeys, defaultRegexState, keyOf, migrateSections, parseRegexState, picksFor, resolveKeys, serializeRegexState, zhLine
+  REGEX_STATE_SCHEMA, applyKeys, collectKeys, defaultRegexState, keyOf, migrateSections, parseRegexState, picksFor, regexStateSchemaOf, resolveKeys,
+  serializeRegexState, zhLine
 } from './state'
 export type { ParsedRegexState, RegexBookmark, RegexPagePicks, RegexUiState } from './state'
 export { Rng, samplePicks } from './rng'
@@ -33,3 +34,5 @@ export {
 export type { RegexTemplate, ResolvedState, ShareState } from './share'
 export { bookmarkApplyOf, bookmarkBodyOf, combineSels, resolvedValues, savedPicksOf, shareStateOf, valuesOfPage } from './embed'
 export type { BookmarkApply, PicksMap, ValuesMap } from './embed'
+export { bookmarkHotkeys, bookmarkQuery, findBookmark, quickBookmarks } from './quick'
+export type { BookmarkHotkey, BookmarkQuery } from './quick'

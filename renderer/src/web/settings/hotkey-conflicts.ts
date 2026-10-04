@@ -4,6 +4,7 @@
  * 重複的後者不註冊;遊戲保留鍵(`ipc/reserved-hotkeys.ts`)一律不註冊。熱鍵與視窗分頁、聊天指令分頁共用。
  * 例外(第 16 步):褻瀆暫停(`ocr`)與符文暫停(`runeshape`)相同 → main 合併成一個 `scan-toggle-both`,
  * 兩欄都標 `shared`(不是重複,設定頁顯示「與…共用,一次切換兩者」);只有兩欄都會註冊時才成立(條件同 `hotkeySlots`)。
+ * 第 33 步:倉庫搜尋之後是正則書籤快速面板(`regexQuick`)與書籤個別熱鍵(`rxbm:<書籤索引>`,只列目前遊戲的;順序同 main)。
  * 相對路徑匯入(renderer vitest 不載別名)。
  */
 import { hotkeyToString, mergeTwoHotkeys } from '../../../../ipc/KeyToCode'
@@ -23,7 +24,7 @@ export function normalizeHotkey (hotkey: string): string {
 }
 
 export interface HotkeySlot {
-  /** `quick` / `locked` / `overlay` / `ocr` / `region` / `runeshape` / `runeRegion` / `cmd:<i>` / `stash:<i>` */
+  /** `quick` / `locked` / `overlay` / `ocr` / `region` / `runeshape` / `runeRegion` / `cmd:<i>` / `stash:<i>` / `regexQuick` / `rxbm:<書籤索引>` */
   id: string
   hotkey: string
 }
@@ -42,6 +43,10 @@ export interface HotkeyConfigLike {
   runeshapeEnabled?: boolean
   commands: Array<{ text: string, hotkey: string }>
   stashSearch: Array<{ text: string, hotkey: string }>
+  /** 第 33 步:正則書籤快速面板熱鍵 */
+  hotkeyRegexQuick?: string
+  /** 第 33 步:書籤個別熱鍵(全部遊戲;這裡只取 `game` = 目前遊戲的) */
+  regexBookmarkHotkeys?: Array<{ index: number, name: string, game: string, hotkey: string }>
 }
 
 /**
@@ -62,6 +67,10 @@ export function hotkeySlots (c: HotkeyConfigLike): HotkeySlot[] {
   }
   c.commands.forEach((x, i) => { if (x.text.trim()) slots.push({ id: `cmd:${i}`, hotkey: x.hotkey }) })
   c.stashSearch.forEach((x, i) => { if (x.text.trim()) slots.push({ id: `stash:${i}`, hotkey: x.hotkey }) })
+  slots.push({ id: 'regexQuick', hotkey: c.hotkeyRegexQuick ?? '' })
+  for (const b of c.regexBookmarkHotkeys ?? []) {
+    if (b.game === c.game && b.hotkey.trim()) slots.push({ id: `rxbm:${b.index}`, hotkey: b.hotkey })
+  }
   return slots.map(s => ({ id: s.id, hotkey: s.hotkey ? normalizeHotkey(s.hotkey) : '' }))
 }
 

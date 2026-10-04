@@ -16,6 +16,7 @@ import { bumpDataGeneration } from './web/overlay/scan-dedupe'
 import { usePoeninja } from './web/background/Prices'
 import { createPoe2PriceSource } from './web/background/poe2-price-source'
 import { installVueErrorHandler, installWindowErrorLogging } from './web/renderer-errors'
+import { ensureStateLoaded as ensureRegexStateLoaded } from './web/regex/store'
 
 // 未捕捉的例外 / Promise 一律帶堆疊寫進 main log(`[renderer-error]`;main 只收得到 console 的訊息字串)
 installWindowErrorLogging(window)
@@ -59,6 +60,8 @@ async function boot () {
   // overlay 模式:透明視窗疊在遊戲上;在任何東西畫出來之前就讓背景透明
   if (Host.isOverlay) document.documentElement.classList.add('ppz-overlay')
   await initConfig()
+  // 第 33 步:正則書籤的個別熱鍵存在 regex_state.json → 啟動就讀(不載清單),讀到後併進 host-config 註冊
+  void ensureRegexStateLoaded()
   // 外觀(data-theme / --fs-base / 強調色)先套,載資料期間畫面就是正確主題
   useTheme(() => AppConfig())
   // 自訂背景圖(查價面板與設定視窗內的 .bgimg 層;overlay 其他區域維持透明)

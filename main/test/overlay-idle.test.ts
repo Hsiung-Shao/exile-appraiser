@@ -7,7 +7,7 @@ import {
   OVERLAY_IDLE_HIDE_DELAY_MS, OverlayIdleHider, describeOverlayContent, overlayContentWanted, overlayWanted, sanitizeOverlayContent
 } from '../src/windowing/overlay-idle'
 
-const NONE: OverlayContentState = { panel: false, settings: false, picker: false, reveal: false, rune: false }
+const NONE: OverlayContentState = { panel: false, settings: false, picker: false, reveal: false, rune: false, quick: false }
 const withC = (k: keyof OverlayContentState): OverlayContentState => ({ ...NONE, [k]: true })
 const read = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8')
 
@@ -40,7 +40,9 @@ describe('純函式', () => {
   it('overlayContentWanted:還沒回報 = 要顯示;任一來源 = 要顯示;全部 false = 不要', () => {
     expect(overlayContentWanted(null)).toBe(true)
     expect(overlayContentWanted(NONE)).toBe(false)
-    for (const k of ['panel', 'settings', 'picker', 'reveal', 'rune'] as const) expect(overlayContentWanted(withC(k))).toBe(true)
+    for (const k of ['panel', 'settings', 'picker', 'reveal', 'rune', 'quick'] as const) expect(overlayContentWanted(withC(k))).toBe(true)
+    // 第 33 步:舊 renderer 不送 quick = 沒有
+    expect(overlayContentWanted({ panel: false, settings: false, picker: false, reveal: false, rune: false })).toBe(false)
   })
   it('overlayWanted:overlay 有焦點一律要顯示', () => {
     expect(overlayWanted(NONE, true)).toBe(true)

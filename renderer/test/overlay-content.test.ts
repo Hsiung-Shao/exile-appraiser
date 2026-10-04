@@ -10,12 +10,14 @@ const read = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.met
 describe('overlayContentOf / overlayContentKey', () => {
   it('App 狀態 + 徽章層合成回報;鍵逐欄不同', () => {
     const c = overlayContentOf({ panel: true, settings: false, picker: false }, { reveal: false, rune: true })
-    expect(c).toEqual({ panel: true, settings: false, picker: false, reveal: false, rune: true })
+    expect(c).toEqual({ panel: true, settings: false, picker: false, reveal: false, rune: true, quick: false })
+    // 第 33 步:快速面板
+    expect(overlayContentOf({ panel: false, settings: false, picker: false, quick: true }, { reveal: false, rune: false }).quick).toBe(true)
     const keys = new Set<string>()
-    for (let i = 0; i < 32; i++) {
-      keys.add(overlayContentKey({ panel: !!(i & 1), settings: !!(i & 2), picker: !!(i & 4), reveal: !!(i & 8), rune: !!(i & 16) }))
+    for (let i = 0; i < 64; i++) {
+      keys.add(overlayContentKey({ panel: !!(i & 1), settings: !!(i & 2), picker: !!(i & 4), reveal: !!(i & 8), rune: !!(i & 16), quick: !!(i & 32) }))
     }
-    expect(keys.size).toBe(32)
+    expect(keys.size).toBe(64)
   })
   it('徽章層狀態預設 false', () => {
     expect({ ...overlayLayers }).toEqual({ reveal: false, rune: false })
@@ -28,7 +30,7 @@ describe('接線守門', () => {
     const i = app.indexOf('Host.overlayContent(c)')
     expect(i).toBeGreaterThan(-1)
     const block = app.slice(app.lastIndexOf('if (isOverlay) {', i), i)
-    expect(block).toContain('overlayContentOf({ panel: panelShown.value, settings: settingsVisible.value, picker: regionPickerOpen.value }, overlayLayers)')
+    expect(block).toContain('overlayContentOf({ panel: panelShown.value, settings: settingsVisible.value, picker: regionPickerOpen.value, quick: regexQuickOpen.value }, overlayLayers)')
     expect(block).toContain('if (key === lastContentKey) return')
     expect(block).toContain('{ immediate: true }')
   })

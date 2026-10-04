@@ -13,21 +13,25 @@
  * - **數值區(第 32 步)**:地圖 / 換界石數值條件(`map_numeric` / `waystone_numeric`)不在頁面下拉選單,而是宿主詞綴頁
  *   (`map_mods` / `waystone_mods`)頂端的可收合區塊;勾選在記憶體以內部頁 id 存在 `picks`,存檔 / 書籤 / 分享碼以宿主頁為鍵
  *   (`regex/src/sections.ts`、`embed.ts`;舊格式讀入時遷移)。合併與單頁輸出都把數值區緊接在宿主頁之後(`combineSels`)。
+ * - **書籤快捷存取(第 33 步)**:書籤個別熱鍵存在書籤上(`hotkey`,state schema 4);`regexBookmarkHotkeyList`(`bookmark-hotkeys.ts`)
+ *   跟著書籤更新 → Config.ts 併進 host-config 讓 main 註冊。啟動時就讀狀態(`ensureStateLoaded`,不載 ~3 MB 清單),
+ *   清單到第一次執行書籤(`quick.ts` `runRegexBookmark`)或打開正則分頁才載。
  * - 行為移植自 PobTools `host/regex_tool_ui.cpp`(`restoreState` :308、`switchGame` :1006、`loadBookmark` :832、
  *   `updateBookmark` :868、`commitName` :944)。
  */
-import { computed, markRaw, reactive, shallowRef } from 'vue'
+import { computed, markRaw, reactive, shallowRef, watch } from 'vue'
 import {
   algoPages, bookmarkApplyOf, bookmarkBodyOf, buildCorpus, combine, combineSels, decodeShare, defaultRegexState,
   encodeShare, hostIdOf, isAlgoPage, isSectionPage, listedPages, mergeLabels, numericKeyOf, pageKeysOf, parseLabels,
   parseRegexCatalogue, parseRegexState, parseTemplates, picksFor, resolveState, resolvedValues, savedPicksOf, sectionPageOf,
-  serializeRegexState, shareStateOf, visibleRows,
+  serializeRegexState, shareStateOf, visibleRows, bookmarkHotkeys, regexStateSchemaOf,
   type AlgoEntry, type AlgoPage, type AlgoValue, type CombineResult, type Mode, type RegexBookmark, type RegexCatalogue,
   type RegexGame, type RegexLabels, type RegexLang, type RegexPage, type RegexTemplate, type Result, type ShareState, type T17Filter,
   type RegexUiState
 } from '@exile-appraiser/regex'
 import { Host } from '@/web/background/IPC'
 import { AppConfig } from '@/web/Config'
+import { regexBookmarkHotkeyList } from './bookmark-hotkeys'
 
 export const GAMES: readonly RegexGame[] = ['poe1', 'poe2']
 export const gameLabel = (g: RegexGame | ''): string => g === 'poe2' ? 'PoE2' : g === 'poe1' ? 'PoE1' : '?'
@@ -115,12 +119,15 @@ async function fetchTemplates (): Promise<void> {
 }
 
 let started: Promise<void> | null = null
+let stateLoading: Promise<void> | null = null
 
-/** 面板第一次掛上時呼叫;`preferGame` = 目前 AppConfig().game(面板預設跟著目前遊戲,記住的頁屬於它才沿用) */
-export function ensureStarted (preferGame: RegexGame): Promise<void> {
-  if (started) return started
-  selGame.value = preferGame
-  started = (async () => {
+/**
+ * 只讀記憶狀態(勾選 + 書籤;不載清單)。第 33 步起 renderer 啟動時就呼叫:書籤熱鍵要在打開正則分頁之前就註冊。
+ * 讀完把書籤熱鍵交給 `regexBookmarkHotkeyList`(之後書籤變動自動更新)。
+ */
+export function ensureStateLoaded (): Promise<void> {
+  if (stateLoading) return stateLoading
+  stateLoading = (async () => {
     let migrated = false
     try {
       const text = await Host.regexStateLoad()
@@ -128,8 +135,9 @@ export function ensureStarted (preferGame: RegexGame): Promise<void> {
         const r = parseRegexState(text)
         if (r.ok) {
           Object.assign(ui, r.state)
-          // 第 32 步:舊結構(schema ≤ 2,數值頁 map_numeric / waystone_numeric)已在 parseRegexState 轉成新結構 → 立刻寫回
-          migrated = !/"schema":\s*3\b/.test(text)
+          // 第 32 步:舊結構(schema ≤ 2,數值頁 map_numeric / waystone_numeric)已在 parseRegexState 轉成新結構 → 立刻寫回;
+          // 第 33 步:schema 3 → 4 只多了書籤熱鍵(沒有 = 不變),不必為了版號寫回
+          migrated = regexStateSchemaOf(text) < 3
         } else console.warn('[regex] regex_state 無法解析,改用預設值')
       }
     } catch (e) {
@@ -137,9 +145,31 @@ export function ensureStarted (preferGame: RegexGame): Promise<void> {
     }
     stateLoaded.value = true
     if (migrated) scheduleSave()
+    watch(() => bookmarkHotkeys(ui.bookmarks), (list) => {
+      if (JSON.stringify(list) !== JSON.stringify(regexBookmarkHotkeyList.value)) regexBookmarkHotkeyList.value = list
+    }, { immediate: true, deep: true })
+  })()
+  return stateLoading
+}
+
+/** 面板第一次掛上時呼叫;`preferGame` = 目前 AppConfig().game(面板預設跟著目前遊戲,記住的頁屬於它才沿用) */
+export function ensureStarted (preferGame: RegexGame): Promise<void> {
+  if (started) return started
+  selGame.value = preferGame
+  started = (async () => {
+    await ensureStateLoaded()
     await Promise.all([...GAMES.map(fetchCatalogue), fetchTemplates()])
   })()
   return started
+}
+
+/**
+ * 第 33 步:某遊戲的清單(執行書籤用)。沒載過就載(兩個遊戲一起載,同 ensureStarted;面板預設遊戲 = 目前 AppConfig().game);
+ * 載入失敗 = null。
+ */
+export async function catalogueFor (game: RegexGame): Promise<RegexCatalogue | null> {
+  await ensureStarted(AppConfig().game)
+  return catalogues[game].cat
 }
 
 export function retryCatalogue (game: RegexGame): void {
@@ -580,6 +610,17 @@ export function renameBookmark (index: number, name: string): void {
   if (!b || !name) return
   b.name = name
   notice.value = { key: 'ppz.regex.notice_renamed', params: { name } }
+  scheduleSave()
+}
+
+/** 第 33 步:書籤個別熱鍵('' = 清除);存在書籤上(state schema 4) */
+export function setBookmarkHotkey (index: number, hotkey: string): void {
+  const b = ui.bookmarks[index]
+  if (!b) return
+  const hk = hotkey.trim()
+  if ((b.hotkey ?? '') === hk) return
+  if (hk) b.hotkey = hk
+  else delete b.hotkey
   scheduleSave()
 }
 

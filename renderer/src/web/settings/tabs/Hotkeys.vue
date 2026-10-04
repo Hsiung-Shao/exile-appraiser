@@ -10,6 +10,7 @@
   各自保留專屬設定(褻瀆:OCR 語言包狀態;符文:台服提示、顏色門檻)。兩者的熱鍵已從上方通用熱鍵卡片移入各自區塊;
   褻瀆原本「進階:手動輸入比例」四個數字欄位已移除(舊設定檔的 ocrRegion 照常讀取)。
   第 11 步:兩張辨識卡片之後是共用的「徽章外觀」卡片(BadgeStyleSection.vue;字體 / 大小 / 粗體 / 符文三段色 / 外框陰影 + 即時預覽)。
+  第 33 步:「正則書籤快捷存取」卡片(熱鍵卡片之後):設定視窗旁書籤列開關、快速面板熱鍵、目前遊戲的書籤熱鍵一覽(唯讀;在正則分頁的書籤列表設定)。
 -->
 <template>
   <section class="card">
@@ -53,6 +54,31 @@
     <p v-if="config.game === 'poe2'" class="foot" data-setting="scan-hotkeys-moved">{{ t('ppz.scan.hotkeys_moved') }}</p>
     <p v-if="otherError" class="err-line">{{ t('ppz.hotkey_error', { error: otherError }) }}</p>
     <p class="foot">{{ t('ppz.hotkey_capture_hint') }}</p>
+  </section>
+
+  <!-- 第 33 步:正則書籤快捷存取 -->
+  <section class="card" data-setting="regex-quick">
+    <span class="label">{{ t('ppz.regex.quick_section') }}</span>
+    <p class="hint">{{ t('ppz.regex.quick_section_hint') }}</p>
+    <p v-if="!isOverlay" class="err-line warn" data-setting="regex-quick-overlay-only">{{ t('ppz.regex.quick_overlay_only') }}</p>
+    <div class="chk-row">
+      <label class="chk"><input v-model="config.regexBookmarkBar" type="checkbox" data-setting="regex-bookmark-bar"><span>{{ t('ppz.regex.quick_bar_toggle') }}</span></label>
+    </div>
+    <div class="srow">
+      <span class="k">{{ t('ppz.regex.quick_hotkey') }}</span>
+      <div class="ctl">
+        <hotkey-input v-model="config.hotkeyRegexQuick" data-setting="hotkey-regex-quick" />
+      </div>
+      <span v-if="issueText('regexQuick', config.hotkeyRegexQuick)" class="err" data-issue="regexQuick">{{ issueText('regexQuick', config.hotkeyRegexQuick) }}</span>
+    </div>
+    <p class="foot">{{ t('ppz.regex.quick_hotkey_hint') }}</p>
+    <span class="label sub">{{ t('ppz.regex.quick_bm_hotkeys', { game: config.game === 'poe2' ? 'PoE2' : 'PoE1' }) }}</span>
+    <p v-if="!bookmarkHotkeys.length" class="foot" data-setting="regex-bm-hotkeys-none">{{ t('ppz.regex.quick_bm_none') }}</p>
+    <div v-for="b in bookmarkHotkeys" :key="b.index" class="srow" data-setting="regex-bm-hotkey" :data-bm="b.name">
+      <span class="k rx-bmhk-name">{{ b.name }}</span>
+      <div class="ctl"><span class="rx-bmhk-key num">{{ b.hotkey }}</span></div>
+      <span v-if="issueText(`rxbm:${b.index}`, b.hotkey)" class="err" :data-issue="`rxbm:${b.index}`">{{ issueText(`rxbm:${b.index}`, b.hotkey) }}</span>
+    </div>
   </section>
 
   <!-- WP-S:靈魂之井褻瀆自動辨識(只有 PoE2) -->
@@ -154,6 +180,7 @@ import OcrScanSection from '../OcrScanSection.vue'
 import BadgeStyleSection from '../BadgeStyleSection.vue'
 import { normalizeHotkey } from '../hotkey-conflicts'
 import { useHotkeyIssues } from '../useHotkeyIssues'
+import { regexBookmarkHotkeyList } from '@/web/regex/bookmark-hotkeys'
 
 export default defineComponent({
   components: { HotkeyInput, OcrScanSection, BadgeStyleSection },
@@ -205,8 +232,12 @@ export default defineComponent({
       thresholdDraft.high = config.runeshapeThresholds.high
     }
 
+    // 第 33 步:目前遊戲的書籤熱鍵(唯讀一覽;在正則分頁的書籤列表設定)
+    const bookmarkHotkeys = computed(() => regexBookmarkHotkeyList.value.filter(b => b.game === config.game))
+
     return {
-      t, config, issueText, otherError, quickHotkey,
+      t, config, issueText, otherError, quickHotkey, bookmarkHotkeys,
+      isOverlay: Host.isOverlay || !Host.isElectron || Host.isPreview,
       ocrAvail, ocrStatus, ocrWantsEn, checking, canCheck, checkOcr,
       thresholdDraft, applyThresholds
     }
@@ -235,4 +266,8 @@ export default defineComponent({
 .settings-panel .ocr-pick-na { color: var(--ink-2); }
 /* WP-R2 */
 .settings-panel .rs-num { flex: 0 0 5.5em !important; min-width: 0; }
+/* 第 33 步 */
+.settings-panel .label.sub { display: block; margin-top: 10px; }
+.settings-panel .rx-bmhk-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.settings-panel .rx-bmhk-key { font-size: var(--fs-sm); color: var(--ink-0); }
 </style>

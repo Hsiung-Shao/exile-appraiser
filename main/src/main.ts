@@ -1,6 +1,6 @@
 // ⚠ 必須是第一個 import:uiohook-napi 被任何模組載入之前,原生模組路徑過長時改從短路徑載入(uiohook-prebuild.ts)
 import { uiohookPrebuildResult } from './uiohook-prebuild-init'
-import { app, BrowserWindow, dialog, Menu, nativeImage, net, powerMonitor, protocol, screen, shell, Tray, type BrowserWindowConstructorOptions, type WebContents } from 'electron'
+import { app, BrowserWindow, clipboard, dialog, Menu, nativeImage, net, powerMonitor, protocol, screen, shell, Tray, type BrowserWindowConstructorOptions, type WebContents } from 'electron'
 import { describeStartError, uiohookGate } from './uiohook-gate'
 import { uIOhook, UiohookKey } from 'uiohook-napi'
 import { StashScroll } from './stash-scroll'
@@ -11,10 +11,11 @@ import fsSync from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { format } from 'node:util'
-import type { ConfigChangedEvent, GameId, HostConfigForMain, HostFetchInit, HotkeyRegistration, ItemTextEvent, PerfState, RuneshapeUiState, SettingsTabId, TrackAreaOpts, WindowMode } from '@ipc/types'
+import type { ConfigChangedEvent, GameId, HostConfigForMain, HostFetchInit, HotkeyRegistration, ItemTextEvent, PerfState, RegexPasteResult, RuneshapeUiState, SettingsTabId, TrackAreaOpts, WindowMode } from '@ipc/types'
 import { abortHostFetch, abortKeyOf, hostFetch, installCookiePatch } from './http'
 import { Shortcuts, normalizeHotkey } from './Shortcuts'
 import { nextScanPaused } from './shortcut-actions'
+import { RegexPaster, regexToastMessage } from './regex-paste'
 import { scanConfigKey } from './scan-config'
 import { GameWindow } from './windowing/GameWindow'
 import { GameDetector, detectorCounters } from './windowing/GameDetector'
@@ -830,7 +831,15 @@ if (!skipStartup) app.whenReady().then(() => {
         { kind: 'reveal', paused: revealScan.setUserPause(target) },
         { kind: 'rune', paused: runeshapeScan.setUserPause(target) }
       ])
-    }
+    },
+    // 第 33 步:正則書籤快速面板 → overlay 取得焦點(閒置隱藏的視窗在 focus() 前先顯示)→ renderer 開面板(鍵盤上下 + Enter、Esc 關)
+    onRegexQuick: () => {
+      console.log('[regex-quick] 快速面板熱鍵')
+      overlay?.assertOverlayActive()
+      send('regex-quick-open')
+    },
+    // 第 33 步:書籤個別熱鍵 → renderer 算出搜尋字串後呼叫 `regex-paste`(遊戲本來就在前景,不搶焦點、不顯示 overlay)
+    onRegexBookmark: (e) => { send('regex-bookmark-run', e) }
   })
   // uiohook 掛鉤不在啟動時開:只在 WidgetAreaTracker 追蹤查價面板期間開(uiohook-gate.ts;送鍵不需要掛鉤)。
   // 例外(第 15 步):倉庫頁籤捲動開著時,遊戲在前景期間也持有一份(要收 wheel 事件);關著時維持上述行為。
@@ -1217,6 +1226,33 @@ if (!skipStartup) app.whenReady().then(() => {
     void perfWriter?.close()
   })
 
+  // 第 33 步:正則書籤一鍵貼進遊戲(regex-paste.ts;Ctrl+F → 貼上 → Enter,沿用倉庫搜尋的按鍵序列)
+  const regexPaster = new RegexPaster({
+    env: () => ({
+      mode: windowMode,
+      attached: gameAttached,
+      gameFocused: Boolean(poeWindow?.targetHasFocus),
+      overlayInteractable: Boolean(overlay?.isInteractable)
+    }),
+    writeClipboard: (text) => { clipboard.writeText(text) },
+    tap: (key, mods) => { uIOhook.keyTap(UiohookKey[key], mods.map(m => UiohookKey[m])) },
+    focusGame: () => { overlay?.assertGameActive() },
+    gameFocused: () => Boolean(poeWindow?.targetHasFocus),
+    quietCtrl: (on) => { stashScroll?.quietCtrl(on) },
+    log: (msg) => { console.log(msg) }
+  })
+  /** IPC 參數不可信:只收 `{ text: string, name: string, source: bar|quick|hotkey, missing?: true }`(字串上限 2000 字元) */
+  const regexPasteReq = (v: unknown) => {
+    const o = (v != null && typeof v === 'object' ? v : {}) as Record<string, unknown>
+    const source = o.source === 'bar' || o.source === 'quick' || o.source === 'hotkey' ? o.source : 'bar'
+    return {
+      text: typeof o.text === 'string' ? o.text.slice(0, 2000) : '',
+      name: typeof o.name === 'string' ? o.name.slice(0, 80) : '',
+      source,
+      missing: o.missing === true
+    }
+  }
+
   // ---- 所有 IPC handler 的登錄表(ipcMain 與瀏覽器預覽共用;見 host-handlers.ts) ----
   const table: HandlerTable = {
     'app-version': { kind: 'sync', fn: () => app.getVersion() },
@@ -1432,6 +1468,21 @@ if (!skipStartup) app.whenReady().then(() => {
     'ocr-available': { kind: 'invoke', preview: false, fn: () => winOcr.available() },
     // WP-S2:框選層開啟時讓 overlay 取得焦點(可點擊);預覽端不開放
     'overlay-activate': { kind: 'invoke', preview: false, fn: () => { overlay?.assertOverlayActive() } },
+    // 第 33 步:正則書籤複製 + 貼進遊戲搜尋列;不能貼(視窗模式 / 沒有遊戲 / 不在前景)只複製。書籤熱鍵沒貼成 → 右下角提示
+    // (書籤列 / 快速面板由 renderer 自己顯示)。預覽端不開放(預覽分頁沒有遊戲可貼;renderer 改用 navigator.clipboard 只複製)
+    'regex-paste': {
+      kind: 'invoke',
+      preview: false,
+      fn: async (_ctx, raw: unknown): Promise<RegexPasteResult> => {
+        const req = regexPasteReq(raw)
+        console.log(`[regex-quick] 書籤「${req.name}」(${req.source},${[...req.text].length} 字)`)
+        const res = await regexPaster.paste(req.text)
+        if (req.source === 'hotkey' && !res.pasted && res.reason !== 'busy') {
+          presentToast(regexToastMessage(toastLang(hostCfg?.uiLanguage), req.name, req.missing ? 'missing' : res.reason), gameToastArea())
+        }
+        return res
+      }
+    },
     // WP-S2:框選確認後請褻瀆自動辨識立刻重看(丟掉差分基準);先確認是 PoE2 overlay 且遊戲視窗還在
     'ocr-reveal-now': {
       kind: 'invoke',

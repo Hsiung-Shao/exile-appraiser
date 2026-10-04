@@ -2,6 +2,7 @@
   Poe Regex 書籤(WP5):存成書籤 / 載入 / 更新 / 改名 / 刪除(確認),依遊戲過濾;另一個遊戲的筆數與孤兒書籤都明說。
   移植自 PobTools `host/regex_tool_ui.cpp` drawBookmarks :737、drawOrphanNote :817、drawModals :886。
   狀態經 store.ts → Host.regexStateSave(main 原子寫入 userData/regex_state.json)。
+  第 33 步:每個書籤可設個別熱鍵(HotkeyInput,存在書籤 `hotkey`;遊戲裡按下 = 複製並貼進搜尋列),衝突 / 保留鍵 / 被佔用同其他熱鍵(`useHotkeyIssues`)。
 -->
 <template>
   <section class="card rx-bm" data-regex="bookmarks">
@@ -25,12 +26,17 @@
           }) }}</div>
         </div>
         <div class="rx-bm-actions">
+          <hotkey-input :model-value="x.b.hotkey ?? ''" class="rx-bm-hotkey" :title="t('ppz.regex.bm_hotkey_tip')"
+            data-regex="bm-hotkey" @update:model-value="(v: string) => setBookmarkHotkey(x.index, v)" />
           <button class="btn sm" data-regex="bm-load" @click="loadBookmark(x.index)">{{ t('ppz.regex.bm_load') }}</button>
           <button class="btn sm" data-regex="bm-update" :title="t('ppz.regex.bm_update_tip')"
             @click="updateBookmark(x.index)">{{ t('ppz.regex.bm_update') }}</button>
           <button class="btn sm" data-regex="bm-rename" @click="openRename(x.index)">{{ t('ppz.regex.bm_rename') }}</button>
           <button class="btn sm danger" data-regex="bm-delete" @click="delIdx = x.index">{{ t('ppz.regex.bm_delete') }}</button>
         </div>
+        <span v-if="x.b.hotkey && issueText(`rxbm:${x.index}`, x.b.hotkey)" class="rx-bm-issue" :data-issue="`rxbm:${x.index}`">
+          {{ issueText(`rxbm:${x.index}`, x.b.hotkey) }}
+        </span>
       </li>
     </ul>
     <p v-if="counts.orphans" class="rx-bm-empty">{{ t('ppz.regex.bm_orphans', { n: counts.orphans }) }}</p>
@@ -70,11 +76,14 @@ import { computed, defineComponent, nextTick, ref, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { AppConfig } from '@/web/Config'
 import { useSettingsFs } from '@/web/settings/settings-fs'
+import HotkeyInput from '@/web/settings/HotkeyInput.vue'
+import { useHotkeyIssues } from '@/web/settings/useHotkeyIssues'
 import {
-  deleteBookmark, gameLabel, loadBookmark, pagePickCount, renameBookmark, saveBookmark, updateBookmark, useRegexStore
+  deleteBookmark, gameLabel, loadBookmark, pagePickCount, renameBookmark, saveBookmark, setBookmarkHotkey, updateBookmark, useRegexStore
 } from './store'
 
 export default defineComponent({
+  components: { HotkeyInput },
   setup () {
     const { t } = useI18n()
     const store = useRegexStore()
@@ -96,7 +105,11 @@ export default defineComponent({
     }
 
     const settingsFs = useSettingsFs()
+    // 第 33 步:書籤熱鍵的衝突 / 保留鍵 / 被佔用(與熱鍵分頁同一套)
+    const { issueText } = useHotkeyIssues()
     return {
+      issueText,
+      setBookmarkHotkey,
       /** 對話框 Teleport 到 body,綁設定視窗獨立字級變數(第 21 步)+ `fs-own`(控制項補高,code review 第 C 批) */
       fsStyle: settingsFs.style,
       fsClass: settingsFs.cls,
@@ -199,7 +212,22 @@ export default defineComponent({
 }
 .rx-bm-actions {
   display: flex;
+  align-items: center;
   gap: 4px;
+}
+.rx-bm-actions .rx-bm-hotkey {
+  width: 11.5em;
+  flex: 0 0 auto;
+  font-size: var(--fs-xs);
+}
+/* 書籤熱鍵是選填:沒設不用紅字 */
+.rx-bm-actions .rx-bm-hotkey.is-empty::placeholder {
+  color: var(--ink-3);
+}
+.rx-bm-issue {
+  flex: 1 0 100%;
+  font-size: var(--fs-2xs);
+  color: var(--bad);
 }
 .rx-modal {
   position: fixed;

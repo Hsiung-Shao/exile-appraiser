@@ -30,12 +30,13 @@ import type { OverlayContentState } from '@ipc/types'
 /** 延遲隱藏的預設時間 */
 export const OVERLAY_IDLE_HIDE_DELAY_MS = 500
 
-const CONTENT_KEYS = ['panel', 'settings', 'picker', 'reveal', 'rune'] as const
+/** 第 33 步加 `quick`(正則書籤快速面板;舊 renderer 不送 = false) */
+const CONTENT_KEYS = ['panel', 'settings', 'picker', 'reveal', 'rune', 'quick'] as const
 
 /** renderer 回報的內容有沒有要畫的東西(null = 還沒回報 → 當成有,保守不藏) */
 export function overlayContentWanted (c: OverlayContentState | null): boolean {
   if (c == null) return true
-  return CONTENT_KEYS.some(k => c[k])
+  return CONTENT_KEYS.some(k => c[k] === true)
 }
 
 /** 要不要顯示 overlay 視窗:overlay 取得焦點(可互動)或 renderer 有東西要畫 */
@@ -59,7 +60,8 @@ export function sanitizeOverlayContent (v: unknown): OverlayContentState | null 
     settings: o.settings === true,
     picker: o.picker === true,
     reveal: o.reveal === true,
-    rune: o.rune === true
+    rune: o.rune === true,
+    quick: o.quick === true
   }
 }
 

@@ -118,7 +118,51 @@ export interface HostConfigForMain {
    * 只在 overlay 模式生效;開著時遊戲在前景期間會持有 uiohook 掛鉤(main/src/stash-scroll.ts)。
    */
   stashScroll?: boolean
+  /** 第 33 步:正則書籤快速面板熱鍵(預設空 = 不註冊;只在 overlay 模式、遊戲前景時註冊)。 */
+  hotkeyRegexQuick?: string
+  /**
+   * 第 33 步:正則書籤的個別熱鍵(renderer 由 `regex_state.json` 的書籤整理,`regex/src/quick.ts` `bookmarkHotkeys`)。
+   * main 只註冊 `game` = 目前遊戲的(只在 overlay 模式);觸發時把 `{ index, name, game }` 送回 renderer 算出搜尋字串。
+   */
+  regexBookmarkHotkeys?: RegexBookmarkHotkey[]
 }
+
+/** 第 33 步:一筆正則書籤熱鍵(`index` = 書籤在 `regex_state.json` `bookmarks` 的位置) */
+export interface RegexBookmarkHotkey {
+  index: number
+  name: string
+  game: GameId
+  hotkey: string
+}
+
+/** 第 33 步:書籤熱鍵觸發(main → renderer `regex-bookmark-run`);renderer 以 `findBookmark` 找回書籤 */
+export interface RegexBookmarkRunEvent {
+  index: number
+  name: string
+  game: GameId
+}
+
+/** 第 33 步:一鍵貼進遊戲的來源(設定視窗旁的書籤列 / 快速面板 / 書籤熱鍵) */
+export type RegexPasteSource = 'bar' | 'quick' | 'hotkey'
+
+/** 第 33 步:renderer → main `regex-paste` */
+export interface RegexPasteRequest {
+  /** 搜尋字串;空字串 = 書籤產不出東西(main 只顯示提示) */
+  text: string
+  /** 書籤名(log / 提示用) */
+  name: string
+  source: RegexPasteSource
+  /** 書籤熱鍵觸發時找不到書籤 / 清單載入失敗(main 提示「書籤已不存在」;`text` 為空) */
+  missing?: boolean
+}
+
+/**
+ * 第 33 步:只複製、沒貼進遊戲的原因:`window-mode` 視窗模式、`no-game` 沒有附著的遊戲視窗、`game-inactive` 遊戲與 overlay 都不在前景、
+ * `focus-timeout` 焦點交還遊戲後沒等到遊戲取得前景、`busy` 上一次還在送(不複製)、`empty` 搜尋字串是空的(不複製)
+ */
+export type RegexPasteReason = 'window-mode' | 'no-game' | 'game-inactive' | 'focus-timeout' | 'busy' | 'empty'
+
+export type RegexPasteResult = { pasted: true } | { pasted: false, copied: boolean, reason: RegexPasteReason }
 
 /** 面板掃描(符文塑形 / 褻瀆)的一行 OCR 文字(座標 = 遊戲 client 區實體像素)。比對在 renderer。 */
 export interface PanelScanRow {
@@ -219,6 +263,8 @@ export interface OverlayContentState {
   reveal: boolean
   /** 符文塑形徽章層(徽章或層內提示) */
   rune: boolean
+  /** 第 33 步:正則書籤快速面板(舊 renderer 沒有這欄 = false) */
+  quick?: boolean
 }
 
 /** WP-R2:設定頁顯示的掃描統計(`runeshape-stats`)。 */
@@ -438,6 +484,15 @@ export interface HostApi {
   runeshapeUiState?: (s: RuneshapeUiState) => void
   /** 第五輪 30.4:回報 overlay 上有沒有東西要畫(main 據此閒置隱藏 overlay 視窗);預覽端 no-op。 */
   overlayContent?: (s: OverlayContentState) => void
+  /**
+   * 第 33 步:搜尋字串複製 + 貼進遊戲搜尋列(Ctrl+F → 貼上 → Enter;overlay 有焦點時先把焦點還給遊戲)。
+   * 不能貼(視窗模式 / 沒有遊戲 / 不在前景)時只複製並回原因。瀏覽器預覽 shim 沒有這個方法(`preview: false`)。
+   */
+  regexPaste?: (req: RegexPasteRequest) => Promise<RegexPasteResult>
+  /** 第 33 步:快速面板熱鍵按下(main 已讓 overlay 取得焦點);只有 overlay 會收到 */
+  onRegexQuickOpen?: (cb: () => void) => () => void
+  /** 第 33 步:書籤熱鍵按下;renderer 算出字串後呼叫 `regexPaste`(source `hotkey`) */
+  onRegexBookmarkRun?: (cb: (e: RegexBookmarkRunEvent) => void) => () => void
   /** WP-R2:掃描統計(設定頁);預覽端回 undefined。 */
   runeshapeStats?: () => Promise<RuneshapeStats | undefined>
   /** 第 18 步:回報畫在遊戲上的徽章 / 提示外框(main 擷取後遮掉);預覽端 no-op。 */

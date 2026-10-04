@@ -11,6 +11,10 @@
 // `current` 的 `num`(項目 id)、值存在 `numeric[宿主頁 id]`;書籤同樣以宿主頁 + `num` + `numeric` 表示;
 // `collapsed` = 收合的數值區(宿主頁 id)。schema 2 以前頁 id 為 `map_numeric` / `waystone_numeric` 的資料讀入時
 // 轉成新結構(`migrateSections`),寫回一律新結構。
+//
+// schema 4(第 33 步,2026-10-04):書籤可設個別熱鍵 `hotkey`(APT 熱鍵字串,如 `Ctrl + Shift + 1`;空 = 沒設,不寫出)。
+// 熱鍵只在書籤的遊戲 = 目前遊戲時註冊(main `shortcut-actions.ts`)。schema ≤ 3 的舊檔照讀(沒有熱鍵);
+// 舊版程式讀 schema 4 檔會忽略 `hotkey`(下次存檔就沒了),其餘欄位相容。
 
 import type { Mode } from './gen'
 import type { RegexEntry, RegexGame, RegexLang, RegexPage } from './data'
@@ -35,6 +39,17 @@ export interface RegexBookmark {
   numeric?: Record<string, AlgoValue>
   /** 宿主詞綴頁書籤:數值區勾選的項目 id(schema 3;沒有 = 數值區不勾) */
   num?: string[]
+  /** 第 33 步:個別熱鍵(APT 熱鍵字串;沒設 = undefined;schema 4) */
+  hotkey?: string
+}
+
+/** 存檔格式版本(serializeRegexState 寫出的 `schema`) */
+export const REGEX_STATE_SCHEMA = 4
+
+/** 存檔字串的 `schema`(讀不到 = 0 = 最舊);判斷要不要立刻寫回(遷移)用 */
+export function regexStateSchemaOf (text: string): number {
+  const m = /"schema"\s*:\s*(\d+)/.exec(text)
+  return m ? Number(m[1]) : 0
 }
 
 /** regex_state.h `RegexPagePicks` */
@@ -175,6 +190,7 @@ export function parseRegexState (text: string): ParsedRegexState {
         if (isObj(b.numeric)) rec.numeric = numericMap(b.numeric)
         const num = stringArray(b, 'num')
         if (num.length) rec.num = num
+        if (typeof b.hotkey === 'string' && b.hotkey.trim()) rec.hotkey = b.hotkey.trim()
         // 沒名字 / 沒頁 / 沒鍵的書籤 UI 無法提供,留著只會多一列永遠空白的東西
         if (!rec.name || !rec.page || (rec.keys.length === 0 && !rec.num)) continue
         s.bookmarks.push(rec)
@@ -241,7 +257,7 @@ export function migrateSections (s: RegexUiState): boolean {
 /** regex_state.cpp:137 `RegexUiState::Save` 的內容部分(`dump(1, '\t')`);寫檔請 temp + rename */
 export function serializeRegexState (s: RegexUiState): string {
   const doc = {
-    schema: 3,
+    schema: REGEX_STATE_SCHEMA,
     game: s.game,
     page: s.page,
     mode: s.mode,
@@ -253,7 +269,8 @@ export function serializeRegexState (s: RegexUiState): string {
     bookmarks: s.bookmarks.map(b => ({
       name: b.name, page: b.page, game: b.game, mode: b.mode, lang: b.lang, keys: b.keys, alt: b.alt,
       ...(b.numeric && Object.keys(b.numeric).length ? { numeric: b.numeric } : {}),
-      ...(b.num?.length ? { num: b.num } : {})
+      ...(b.num?.length ? { num: b.num } : {}),
+      ...(b.hotkey ? { hotkey: b.hotkey } : {})
     })),
     numeric: Object.fromEntries(Object.entries(s.numeric).filter(([, m]) => Object.keys(m).length > 0)),
     custom: s.custom,

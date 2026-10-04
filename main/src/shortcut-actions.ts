@@ -4,7 +4,7 @@
  */
 import { hotkeyToString, mergeTwoHotkeys } from '@ipc/KeyToCode'
 import { isGameReservedHotkey } from '@ipc/reserved-hotkeys'
-import type { HostConfigForMain, WindowMode } from '@ipc/types'
+import type { GameId, HostConfigForMain, WindowMode } from '@ipc/types'
 
 export interface ShortcutAction {
   shortcut: string
@@ -17,6 +17,10 @@ export interface ShortcutAction {
   | { type: 'paste-in-chat', text: string, send: boolean } | { type: 'stash-search', text: string }
   /** 第 16 步:`hotkeyOcrReveal` 與 `hotkeyRuneshapeToggle` 相同且兩者都會註冊 → 合併成一個動作,一次切換兩個辨識(`nextScanPaused`) */
   | { type: 'scan-toggle-both' }
+  /** 第 33 步:叫出正則書籤快速面板(overlay 取得焦點;不送按鍵) */
+  | { type: 'regex-quick' }
+  /** 第 33 步:正則書籤個別熱鍵(renderer 算出字串後經 `regex-paste` 送 Ctrl+F → 貼上 → Enter) */
+  | { type: 'regex-bookmark', index: number, name: string, game: GameId }
 }
 
 /** 聊天指令 / 倉庫搜尋最多各幾條(設定檔被手改成超大陣列時不註冊一大堆熱鍵) */
@@ -36,7 +40,8 @@ export function normalizeHotkey (hotkey: string): string {
 }
 
 type ActionCfg = Pick<HostConfigForMain, 'hotkey' | 'hotkeyHold' | 'hotkeyLocked' | 'overlayKey' | 'game' | 'hotkeyOcrReveal' | 'hotkeyOcrRegion'> &
-  Partial<Pick<HostConfigForMain, 'runeshapeEnabled' | 'hotkeyRuneshapeToggle' | 'hotkeyRuneshapeRegion' | 'revealAutoEnabled' | 'commands' | 'stashSearch'>>
+  Partial<Pick<HostConfigForMain, 'runeshapeEnabled' | 'hotkeyRuneshapeToggle' | 'hotkeyRuneshapeRegion' | 'revealAutoEnabled' | 'commands' | 'stashSearch' |
+  'hotkeyRegexQuick' | 'regexBookmarkHotkeys'>>
 
 /**
  * 依設定組出要註冊的熱鍵(先到先得;空字串 / 重複 / 遊戲保留的不註冊)。
@@ -53,6 +58,8 @@ type ActionCfg = Pick<HostConfigForMain, 'hotkey' | 'hotkeyHold' | 'hotkeyLocked
  * - 第 16 步:`ocr-reveal` 與 `runeshape-toggle` 兩者都成立且熱鍵正規化後相同 → 合併成一個 `scan-toggle-both`(放在 `ocr-reveal` 的位置,
  *   不算重複);只有一個成立時照舊是單一動作。與其他熱鍵重複的規則不變(先到先得)。
  *   「遊戲在前景才註冊」由 `Shortcuts` 的 active-change 處理(對所有動作一樣)。
+ * - 第 33 步:倉庫搜尋之後是正則書籤快速面板(`hotkeyRegexQuick`,預設空)與書籤個別熱鍵(`regexBookmarkHotkeys`,只取 `game` = 目前遊戲的,
+ *   依書籤順序);兩者**只在 overlay 模式**(同聊天指令:會對遊戲送鍵 / 要 overlay 才有面板可畫)。
  */
 export function buildShortcutActions (cfg: ActionCfg, mode: WindowMode): ShortcutAction[] {
   const quick = mergeTwoHotkeys(normalizeHotkey(cfg.hotkeyHold), normalizeHotkey(cfg.hotkey))
@@ -92,6 +99,12 @@ export function buildShortcutActions (cfg: ActionCfg, mode: WindowMode): Shortcu
         actions.push({ shortcut: normalizeHotkey(s.hotkey), keepModKeys: false, action: { type: 'stash-search', text: s.text.trim() } })
       }
     }
+    if (cfg.hotkeyRegexQuick) {
+      actions.push({ shortcut: normalizeHotkey(cfg.hotkeyRegexQuick), keepModKeys: false, action: { type: 'regex-quick' } })
+    }
+    for (const b of regexBookmarkHotkeysFor(cfg)) {
+      actions.push({ shortcut: normalizeHotkey(b.hotkey), keepModKeys: false, action: { type: 'regex-bookmark', index: b.index, name: b.name, game: b.game } })
+    }
   }
   const seen = new Set<string>()
   return actions.filter(a => {
@@ -101,11 +114,24 @@ export function buildShortcutActions (cfg: ActionCfg, mode: WindowMode): Shortcu
   })
 }
 
+/** 第 33 步:目前遊戲的書籤熱鍵(形狀不對 / 空白 / 另一遊戲的不算;最多 `MAX_TEXT_ACTIONS` 筆) */
+export function regexBookmarkHotkeysFor (cfg: Pick<ActionCfg, 'game' | 'regexBookmarkHotkeys'>): Array<{ index: number, name: string, game: GameId, hotkey: string }> {
+  const out: Array<{ index: number, name: string, game: GameId, hotkey: string }> = []
+  for (const b of (cfg.regexBookmarkHotkeys ?? [])) {
+    if (!b || typeof b.hotkey !== 'string' || !b.hotkey.trim() || b.game !== cfg.game) continue
+    if (typeof b.index !== 'number' || !Number.isInteger(b.index) || b.index < 0 || typeof b.name !== 'string') continue
+    out.push({ index: b.index, name: b.name, game: b.game, hotkey: b.hotkey })
+    if (out.length >= MAX_TEXT_ACTIONS) break
+  }
+  return out
+}
+
 /** 設定裡被當成遊戲保留鍵而不註冊的熱鍵(log / 設定頁提示用) */
 export function reservedShortcuts (cfg: ActionCfg): string[] {
   const all = [
     mergeTwoHotkeys(normalizeHotkey(cfg.hotkeyHold), normalizeHotkey(cfg.hotkey)), cfg.hotkeyLocked, cfg.overlayKey, cfg.hotkeyOcrReveal, cfg.hotkeyOcrRegion,
-    cfg.hotkeyRuneshapeToggle ?? '', cfg.hotkeyRuneshapeRegion ?? '', ...(cfg.commands ?? []).map(c => c?.hotkey ?? ''), ...(cfg.stashSearch ?? []).map(s => s?.hotkey ?? '')
+    cfg.hotkeyRuneshapeToggle ?? '', cfg.hotkeyRuneshapeRegion ?? '', ...(cfg.commands ?? []).map(c => c?.hotkey ?? ''), ...(cfg.stashSearch ?? []).map(s => s?.hotkey ?? ''),
+    cfg.hotkeyRegexQuick ?? '', ...regexBookmarkHotkeysFor(cfg).map(b => b.hotkey)
   ]
   return [...new Set(all.filter(Boolean).map(k => normalizeHotkey(k)).filter(isGameReservedHotkey))]
 }

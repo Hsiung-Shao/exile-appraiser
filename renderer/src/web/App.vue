@@ -23,6 +23,10 @@
   2026-10-01 起沒有「按住 Alt 讓路」(APT OverlayVisibility 已移除):查價中按 Alt 不會藏任何 overlay 介面。
   第五輪 30.4:overlay 上有沒有東西要畫(面板 / 設定 / 框選層 + 兩個徽章層)回報 main(`overlay/overlay-content.ts`),
   都沒有時 main 把 overlay 視窗閒置隱藏;限流狀態鈕(RateLimiterState,展開時每秒輪詢)只在 `panelVisible` 時掛載。
+  第 33 步(正則書籤快捷存取):設定開著時暗幕裡、設定視窗旁浮一排書籤(`regex/RegexBookmarkBar.vue`,設定 `regexBookmarkBar`;
+  window 模式 / 預覽是設定上方一條橫排,點了只複製);以下 overlay 限定:
+  快速面板熱鍵 → `regex/RegexQuickPanel.vue`(`regexQuickOpen`,overlay 失焦 / 收到物品 / 開框選層就關,回報 overlay-content 的 `quick`);
+  書籤個別熱鍵 → `regex/quick.ts` `runRegexBookmarkFromHotkey`(不開任何介面)。貼上了 → 設定 / 面板關閉,焦點在遊戲。
 -->
 <template>
   <div id="app" class="font-ui text-ink-0"
@@ -156,7 +160,12 @@
           </div>
         </template>
       </settings-window>
+      <!-- 第 33 步:設定視窗旁的正則書籤列(跟設定視窗的位置 / 大小走,不重疊;點一下 = 複製 + 貼進遊戲) -->
+      <regex-bookmark-bar v-if="regexBookmarkBar" :inline="!isOverlay" @pasted="closeSettings('正則書籤已貼上')" @open-regex="openRegexTab" />
     </div>
+
+    <!-- 第 33 步:正則書籤快速面板(熱鍵叫出;鍵盤上下 + Enter、Esc 關,選完自動關) -->
+    <regex-quick-panel v-if="isOverlay && regexQuickOpen" @close="closeRegexQuick" />
 
     <!-- WP-S:靈魂之井揭露面板 OCR 徽章(與查價面板並列,不受 panelShown 控制) -->
     <ocr-badges v-if="isOverlay" />
@@ -188,6 +197,9 @@ import SettingsWindow from './settings/SettingsWindow.vue'
 import OcrBadges from './overlay/OcrBadges.vue'
 import OcrRegionPicker from './overlay/OcrRegionPicker.vue'
 import RuneshapePrices from './overlay/RuneshapePrices.vue'
+import RegexBookmarkBar from './regex/RegexBookmarkBar.vue'
+import RegexQuickPanel from './regex/RegexQuickPanel.vue'
+import { runRegexBookmarkFromHotkey } from './regex/quick'
 import { runeshapeTradeHold } from './overlay/runeshape-view'
 import { recordPoe2Item, regionPickerClosed, regionPickerOpen, returnsToSettings } from './overlay/ocr-reveal'
 import { overlayContentKey, overlayContentOf, overlayLayers } from './overlay/overlay-content'
@@ -211,7 +223,7 @@ const PANEL_WIDTH_EM = 28.75
 const LEGACY_FS_SCALE = 1.23
 
 export default defineComponent({
-  components: { UiErrorBox, ErrorBoundary, BgLayer, SettingsWindow, OcrBadges, OcrRegionPicker, RuneshapePrices },
+  components: { UiErrorBox, ErrorBoundary, BgLayer, SettingsWindow, OcrBadges, OcrRegionPicker, RuneshapePrices, RegexBookmarkBar, RegexQuickPanel },
   setup () {
     const { t, te } = useI18n()
     const leagues = useLeagues()
@@ -220,6 +232,8 @@ export default defineComponent({
     const rawText = shallowRef('')
     const pasteText = shallowRef('')
     const showSettings = shallowRef(false)
+    /** 第 33 步:正則書籤快速面板(overlay 限定) */
+    const regexQuickOpen = shallowRef(false)
     const itemKey = shallowRef(0)
     const rateLimitWait = shallowRef(0)
     // ---- overlay 狀態(APT WidgetManager 的最小子集) ----
@@ -301,6 +315,7 @@ export default defineComponent({
       checkPosition.value = e.position
       advancedCheck.value = e.focusOverlay
       showSettings.value = false
+      regexQuickOpen.value = false
       panelShown.value = true
       void load(e.clipboard)
       if (isOverlay) {
@@ -328,6 +343,14 @@ export default defineComponent({
         advancedCheck.value = true
       }
       console.log(`[app] 開啟設定 tab=${tab}(${reason})`)
+    }
+
+    /** 第 33 步:關快速面板;貼上了 = 焦點 main 已交還遊戲;Esc / 點外面(window 模式、預覽收得到)→ 還焦點給遊戲 */
+    function closeRegexQuick (reason: string) {
+      if (!regexQuickOpen.value) return
+      regexQuickOpen.value = false
+      console.log(`[app] 關閉正則書籤快速面板(${reason})`)
+      if (isOverlay && reason !== 'pasted' && reason !== 'focus-change') Host.focusGame()
     }
 
     function closeSettings (reason: string) {
@@ -364,6 +387,7 @@ export default defineComponent({
           if (state.overlay === false) {
             // APT: wmFlags 'hide-on-blur'
             hidePanel(`focus-change game=${state.game} overlay=false`)
+            closeRegexQuick('focus-change')
           } else if (state.usingHotkey && !panelShown.value) {
             // overlayKey 叫出 overlay 但沒有物品:開面板 + 設定(本專案沒有 APT 的選單 widget)
             parsed.value = null
@@ -374,7 +398,16 @@ export default defineComponent({
           }
         }))
         window.addEventListener('resize', onResize)
+        // 第 33 步:快速面板熱鍵(main 已讓 overlay 取得焦點)→ 收起查價面板 / 設定,開面板
+        unsubscribers.push(Host.onRegexQuickOpen(() => {
+          showSettings.value = false
+          hidePanel('正則書籤快速面板')
+          regexQuickOpen.value = true
+          console.log('[app] 開啟正則書籤快速面板')
+        }))
       }
+      // 第 33 步:書籤個別熱鍵(遊戲在前景;算出字串交給 main 貼上,不開任何介面)
+      unsubscribers.push(Host.onRegexBookmarkRun((e) => { void runRegexBookmarkFromHotkey(e) }))
       window.addEventListener('focus', onFocus)
       window.addEventListener('keydown', onKey)
       Host.usedRecently(Host.isElectron)
@@ -424,6 +457,7 @@ export default defineComponent({
     watch(regionPickerOpen, (open) => {
       if (open) {
         showSettings.value = false
+        regexQuickOpen.value = false
         hidePanel('開啟框選層')
         return
       }
@@ -442,7 +476,7 @@ export default defineComponent({
       }, { immediate: true })
       // 第五輪 30.4:overlay 上有沒有東西要畫 → main 閒置隱藏 overlay 視窗(overlay/overlay-content.ts;內容相同不重送)
       let lastContentKey = ''
-      watch(() => overlayContentOf({ panel: panelShown.value, settings: settingsVisible.value, picker: regionPickerOpen.value }, overlayLayers), (c) => {
+      watch(() => overlayContentOf({ panel: panelShown.value, settings: settingsVisible.value, picker: regionPickerOpen.value, quick: regexQuickOpen.value }, overlayLayers), (c) => {
         const key = overlayContentKey(c)
         if (key === lastContentKey) return
         lastContentKey = key
@@ -499,6 +533,11 @@ export default defineComponent({
       settingsVisible,
       panelVisible,
       closeSettings,
+      regexQuickOpen,
+      closeRegexQuick,
+      regexBookmarkBar: computed(() => AppConfig().regexBookmarkBar),
+      /** 書籤列沒有書籤時「前往正則」 */
+      openRegexTab () { settingsTab.value = 'regex' },
       onSettingsLayerPointerDown,
       onSettingsLayerClick,
       toggleSettings () {
