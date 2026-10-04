@@ -471,7 +471,7 @@
       "add_stash": "Add to stash search",
       "add_stash_done": "Added",
       "add_stash_dup": "Already in list",
-      "add_stash_tip": "Add this string to Settings › Chat commands › Stash search, then set its hotkey there (the stash search box takes up to 250 characters)",
+      "add_stash_tip": "Add this string to Settings › Stash & chat › Stash search, then set its hotkey there (the stash search box takes up to 250 characters)",
       "out_zh": "Output: 繁體中文",
       "out_en": "Output: English",
       "lang_tip": "Which client language the string is for. The two produce completely different fragments and are not interchangeable.",

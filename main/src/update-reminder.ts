@@ -3,7 +3,7 @@
  * 視窗(右下角可點擊的提示)在 `main.ts` 的 `showUpdateReminder`;這裡只決定「要不要、什麼時候、提醒什麼」與頁面 HTML。
  *
  * - 提醒什麼(`reminderTarget`):`downloaded` → 立即更新 = 安裝(`autoUpdate` 開時就是 `quitAndInstall(true, true)`);
- *   `available` 安裝版(`autoUpdate` 關)→ 開設定 › 關於並開始下載;`available` portable(`not-supported`)→ 開 Releases 頁。
+ *   `available` 安裝版(`autoUpdate` 關)→ 開設定 › 更新與關於並開始下載;`available` portable(`not-supported`)→ 開 Releases 頁。
  *   其他狀態(還沒檢查、已是最新、下載中、`--no-updates`)= 沒有東西可提醒,**絕不彈**。`checking` / `error` 是暫時狀態:沿用上一個目標。
  * - 什麼時候(`UpdateReminderScheduler`):偵測到新版(或版號變了)→ 立刻一次,之後每 `UPDATE_REMINDER_INTERVAL_MS`(10 分鐘);
  *   「稍後」/ 自動淡出 = 10 分鐘後再提醒;「略過此版本」= 同版號不再提醒(新版號照常);設定 `updateReminder` 關、
@@ -255,7 +255,7 @@ const REMINDER_STRINGS: Readonly<Record<ToastLang, {
     hint: {
       install: '立即更新會重新啟動程式;不按也會在結束程式時自動套用',
       installManual: '按「立即更新」重新啟動並安裝新版',
-      download: '立即更新會開啟設定 › 關於並開始下載',
+      download: '立即更新會開啟設定 › 更新與關於並開始下載',
       releases: '免安裝版請到 Releases 頁下載新版'
     },
     now: '立即更新',
@@ -268,7 +268,7 @@ const REMINDER_STRINGS: Readonly<Record<ToastLang, {
     hint: {
       install: 'Update now restarts the app; otherwise it installs when you quit',
       installManual: 'Update now restarts the app and runs the installer',
-      download: 'Update now opens Settings › About and starts the download',
+      download: 'Update now opens Settings › Updates & about and starts the download',
       releases: 'Download the portable build from the Releases page'
     },
     now: 'Update now',

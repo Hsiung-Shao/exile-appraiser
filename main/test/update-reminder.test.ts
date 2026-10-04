@@ -265,7 +265,9 @@ describe('提醒頁:字串、HTML、按鈕、位置', () => {
     expect(reminderMessage('cmn-Hant', t('install'))).toMatchObject({ title: '流亡鑑價 v0.2.0 已下載,可以更新', primary: '立即更新', later: '稍後', skip: '略過此版本' })
     expect(reminderMessage('cmn-Hant', t('install')).hint).toContain('結束程式時自動套用')
     expect(reminderMessage('cmn-Hant', t('install', false)).hint).not.toContain('結束程式時自動套用')
-    expect(reminderMessage('cmn-Hant', t('download')).hint).toContain('設定 › 關於')
+    // 第 39 步:分頁改名「更新與關於」
+    expect(reminderMessage('cmn-Hant', t('download')).hint).toContain('設定 › 更新與關於')
+    expect(reminderMessage('en', t('download')).hint).toContain('Settings › Updates & about')
     expect(reminderMessage('cmn-Hant', t('releases')).primary).toBe('前往 Releases')
     expect(reminderMessage('en', t('install'))).toMatchObject({ title: 'ExileAppraiser v0.2.0 is ready to install', primary: 'Update now', later: 'Later', skip: 'Skip this version' })
     expect(reminderMessage('en', t('releases')).primary).toBe('Open Releases')
