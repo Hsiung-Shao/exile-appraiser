@@ -276,6 +276,6 @@ describe('code review 第 C 批:Teleport 到 body 的 Regex 對話框 / 提示�
       for (const t of tags) { expect(t).toContain(':class="fsClass"'); expect(t).toContain('fsStyle'); n++ }
       expect(src).toMatch(/fsClass: settingsFs\.cls/)
     }
-    expect(n).toBe(5)
+    expect(n).toBe(7) // 第 36 步:書籤卡片多了資料夾名稱 / 刪除資料夾兩個對話框
   })
 })

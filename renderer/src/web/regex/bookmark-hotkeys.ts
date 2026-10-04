@@ -7,3 +7,9 @@ import type { RegexBookmarkHotkey } from '@ipc/types'
 
 /** 全部書籤的熱鍵(含另一個遊戲的;main 只註冊目前遊戲的,設定頁衝突判定也只看目前遊戲) */
 export const regexBookmarkHotkeyList = shallowRef<RegexBookmarkHotkey[]>([])
+
+/**
+ * 第 36 步:每個書籤(依 `ui.bookmarks` 索引)所在的資料夾('' = 未分類)。只給熱鍵總表的唯讀列標資料夾名用,
+ * **不進 host-config**(main 註冊與資料夾無關)。
+ */
+export const regexBookmarkFolders = shallowRef<string[]>([])

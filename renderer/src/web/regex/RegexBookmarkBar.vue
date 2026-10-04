@@ -8,6 +8,8 @@
   - 依目前遊戲(`AppConfig().game`)過濾;點一下 = `quick.ts` `runRegexBookmark`(source `bar`):貼上了 → emit `pasted`(App 關設定;
     焦點 main 已交還遊戲);只複製 → 這裡顯示原因 5 秒。
   - 尺寸用 em(跟全域字級;不在設定視窗根元素內,不吃設定視窗獨立字級)。
+  - 第 36 步:依資料夾分組(`bookmarkGroupsOf(game, skipEmpty)`,未分類最後;沒有資料夾 = 不畫標題 = 與之前相同外觀),
+    點資料夾標題收合 / 展開(收合狀態存 regex_state,與管理頁、快速面板共用)。
 -->
 <template>
   <div v-show="inline || place.side !== 'none'" ref="root" class="rx-qbar"
@@ -19,11 +21,22 @@
         <span class="rx-qbar-game">{{ gameLabel(game) }}</span>
         <span v-if="running" class="rx-qbar-running pulse" data-regex="quick-bar-running">{{ t('ppz.regex.quick_running') }}</span>
       </div>
-      <button v-for="x in items" :key="x.index" type="button" class="rx-qbar-item" :disabled="running"
-        data-regex="quick-bar-item" :data-bm="x.b.name" @click="run(x.index)">
-        <span class="rx-qbar-name">{{ x.b.name }}</span>
-        <span v-if="x.b.hotkey" class="rx-qbar-kbd num">{{ compactHotkey(x.b.hotkey) }}</span>
-      </button>
+      <template v-for="g in grouped.groups" :key="`g:${g.folder}`">
+        <button v-if="grouped.headers" type="button" class="rx-qbar-folder" :class="{ collapsed: g.collapsed }"
+          :aria-expanded="!g.collapsed" data-regex="quick-bar-folder" :data-folder="g.folder"
+          :title="t(g.collapsed ? 'ppz.regex.fd_expand' : 'ppz.regex.fd_collapse')" @click="toggle(g.folder, !g.collapsed)">
+          <span class="rx-qbar-caret" aria-hidden="true">{{ g.collapsed ? '▸' : '▾' }}</span>
+          <span class="rx-qbar-fname">{{ g.folder || t('ppz.regex.fd_uncategorized') }}</span>
+          <span class="rx-qbar-fcount num">{{ g.items.length }}</span>
+        </button>
+        <template v-if="!g.collapsed">
+          <button v-for="x in g.items" :key="x.index" type="button" class="rx-qbar-item" :class="{ nested: grouped.headers }" :disabled="running"
+            data-regex="quick-bar-item" :data-bm="x.b.name" @click="run(x.index)">
+            <span class="rx-qbar-name">{{ x.b.name }}</span>
+            <span v-if="x.b.hotkey" class="rx-qbar-kbd num">{{ compactHotkey(x.b.hotkey) }}</span>
+          </button>
+        </template>
+      </template>
       <div v-if="!items.length" class="rx-qbar-empty" data-regex="quick-bar-empty">
         <span>{{ t('ppz.regex.quick_empty', { game: gameLabel(game) }) }}</span>
         <button type="button" class="btn ghost sm" data-regex="quick-bar-open-regex" @click="$emit('open-regex')">{{ t('ppz.regex.quick_open_regex') }}</button>
@@ -38,7 +51,7 @@ import { computed, defineComponent, nextTick, onMounted, onUnmounted, ref, shall
 import { useI18n } from 'vue-i18n'
 import { quickBookmarks } from '@exile-appraiser/regex'
 import { AppConfig } from '@/web/Config'
-import { gameLabel, useRegexStore } from './store'
+import { bookmarkGroupsOf, gameLabel, setBookmarkFolderCollapsed, useRegexStore } from './store'
 import { quickRunning, runRegexBookmark } from './quick'
 import { placeBookmarkBar, quickNoticeKey, type BarPlacement } from './quick-geom'
 
@@ -66,6 +79,9 @@ export default defineComponent({
 
     const game = computed(() => config.game)
     const items = computed(() => quickBookmarks(store.ui.bookmarks, game.value))
+    // 第 36 步:依資料夾分組(空資料夾不列;沒有資料夾 = 沒有標題 = 與之前相同);收合狀態與管理頁 / 快速面板共用
+    const grouped = computed(() => bookmarkGroupsOf(game.value, true))
+    const toggle = (folder: string, collapse: boolean) => setBookmarkFolderCollapsed(game.value, folder, collapse)
 
     function layout () {
       if (props.inline) return
@@ -126,8 +142,8 @@ export default defineComponent({
       if (raf) cancelAnimationFrame(raf)
       if (noticeTimer) clearTimeout(noticeTimer)
     })
-    // 書籤增減 / 換遊戲 → 內容高度變了(ResizeObserver 也會抓到;這裡保險)
-    watch(() => items.value.length, () => { void nextTick(layout) })
+    // 書籤增減 / 換遊戲 / 收合資料夾 → 內容高度變了(ResizeObserver 也會抓到;這裡保險)
+    watch(() => [items.value.length, grouped.value.groups.map(g => g.collapsed).join()], () => { void nextTick(layout) })
     // 直排 ↔ 橫排切換後重量一次(直排要量自然高度)
     watch(() => place.value.dir, () => { void nextTick(layout) })
 
@@ -154,7 +170,7 @@ export default defineComponent({
     })
 
     return {
-      t, root, body, place, placed, style, items, game, notice, running: quickRunning, gameLabel, run,
+      t, root, body, place, placed, style, items, grouped, toggle, game, notice, running: quickRunning, gameLabel, run,
       /** `Ctrl + Shift + 1` → `Ctrl+Shift+1`(書籤列窄) */
       compactHotkey: (hk: string) => hk.replace(/\s*\+\s*/g, '+')
     }
@@ -265,6 +281,64 @@ export default defineComponent({
 .rx-qbar-item:disabled {
   cursor: progress;
   opacity: 0.6;
+}
+.rx-qbar-item.nested {
+  padding-left: 1.1em;
+}
+.rx-qbar.row .rx-qbar-item.nested {
+  padding-left: 0.5em;
+}
+/* 第 36 步:資料夾標題(點一下收合 / 展開) */
+.rx-qbar-folder {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  min-width: 0;
+  margin-top: 0.25em;
+  padding: 0.22em 0.4em;
+  border: 0;
+  border-radius: var(--radius-s, 4px);
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--fs-xs);
+  text-align: left;
+  cursor: pointer;
+}
+.rx-qbar-folder:hover {
+  color: var(--ink-0);
+  background: var(--surface-2);
+}
+.rx-qbar-folder:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: -2px;
+}
+.rx-qbar.row .rx-qbar-folder {
+  flex: 0 0 auto;
+  margin: 0 0 0 0.35em;
+  padding-left: 0.6em;
+  border-left: 1px solid var(--edge-1);
+  border-radius: 0;
+  white-space: nowrap;
+}
+.rx-qbar-caret {
+  flex: 0 0 auto;
+  color: var(--gold);
+}
+.rx-qbar-fname {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+.rx-qbar-fcount {
+  flex: 0 0 auto;
+  margin-left: auto;
+  color: var(--ink-3);
+}
+.rx-qbar.row .rx-qbar-fcount {
+  margin-left: 0.2em;
 }
 .rx-qbar-name {
   max-width: 100%;

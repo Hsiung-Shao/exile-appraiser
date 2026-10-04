@@ -5,7 +5,8 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { LEGACY_SETTINGS_TABS, SETTINGS_TABS, SETTINGS_TAB_GROUPS, isTabVisible, resolveSettingsTab, visibleTabs } from '../src/web/settings/settings-tabs'
-import { hotkeyTable, hotkeyTableIds } from '../src/web/settings/hotkey-table'
+import { OPTIONAL_HOTKEY_FIELDS, hotkeyTable, hotkeyTableIds } from '../src/web/settings/hotkey-table'
+import { _roundTripForTest } from '../src/web/Config'
 import { hotkeySlots, type HotkeyConfigLike } from '../src/web/settings/hotkey-conflicts'
 import { hasCurrencyVolume, hasDefaultCurrency, hasItemHover } from '../src/web/settings/tabs/price-check-options'
 
@@ -148,7 +149,8 @@ describe('熱鍵總表', () => {
   })
   it('熱鍵分頁由 hotkeyTable 產生、即時衝突標示走 useHotkeyIssues;功能頁不再放全域熱鍵欄位', () => {
     const vue = read(`${SETTINGS}/tabs/Hotkeys.vue`)
-    expect(vue).toContain('hotkeyTable({ ...config, regexBookmarkHotkeys: regexBookmarkHotkeyList.value }, { overlay: config.overlayMode })')
+    // 第 36 步:opts 多帶書籤資料夾(只標名稱,不影響列與順序)
+    expect(vue).toMatch(/hotkeyTable\(\s*\{ \.\.\.config, regexBookmarkHotkeys: regexBookmarkHotkeyList\.value \},\s*\{ overlay: config\.overlayMode, bookmarkFolders: regexBookmarkFolders\.value \}\)/)
     expect(vue).toMatch(/v-for="g in groups"[\s\S]*v-for="r in g\.rows"/)
     expect(vue).toContain('issueText(r.id, rowHotkey(r))')
     expect(vue).toContain('sharedText(r.id)')
@@ -162,6 +164,44 @@ describe('熱鍵總表', () => {
     expect(sc).toContain('<hotkey-input v-model="c.hotkey"')
     expect(sc).toContain('<hotkey-input v-model="s.hotkey"')
     expect(read('renderer/src/web/regex/RegexBookmarks.vue')).toContain('<hotkey-input')
+  })
+  it('第 36 步:選填熱鍵(Config 預設空)標 optional →「未設定」灰字;有預設值的維持紅字', () => {
+    const { config } = _roundTripForTest(null)
+    const rows = hotkeyTable(fullConfig('poe2'), { overlay: true }).flatMap(g => g.rows)
+    const edits = rows.flatMap(r => r.kind === 'edit' ? [r] : [])
+    expect(edits.length).toBe(8)
+    for (const r of edits) {
+      const def = (config as unknown as Record<string, unknown>)[r.field]
+      expect(typeof def, r.field).toBe('string')
+      expect(r.optional === true, r.field).toBe(def === '')
+      expect(OPTIONAL_HOTKEY_FIELDS.includes(r.field), r.field).toBe(def === '')
+    }
+    expect([...OPTIONAL_HOTKEY_FIELDS].sort()).toEqual(['hotkeyOcrRegion', 'hotkeyRegexQuick', 'hotkeyRuneshapeRegion', 'hotkeyRuneshapeToggle'])
+    expect(read(`${SETTINGS}/tabs/Hotkeys.vue`)).toContain('<hotkey-input v-else v-model="config[r.field]" :optional="r.optional === true"')
+    const hi = read(`${SETTINGS}/HotkeyInput.vue`)
+    expect(hi).toContain("'is-optional': optional")
+    expect(hi).toMatch(/\.hotkey-input\.is-empty::placeholder \{\s*color: var\(--bad\);/)
+    expect(hi).toMatch(/\.hotkey-input\.is-empty\.is-optional::placeholder \{\s*color: var\(--ink-3\);/)
+    // 書籤熱鍵也是選填(第 33 步原本在 RegexBookmarks.vue 自己蓋顏色,改用同一個 prop)
+    const bm = read('renderer/src/web/regex/RegexBookmarks.vue')
+    expect(bm).toMatch(/<hotkey-input [^>]*\boptional\b/)
+    expect(bm).not.toContain('.rx-bm-hotkey.is-empty::placeholder')
+    // 衝突 / 註冊失敗仍是紅字(.err)
+    expect(read(`${SETTINGS}/tabs/Hotkeys.vue`)).toContain('<span v-if="issueText(r.id, rowHotkey(r))" class="err"')
+  })
+  it('第 36 步:書籤唯讀列標資料夾名(未分類不標),列與順序不變', () => {
+    const c = fullConfig('poe2', {
+      regexBookmarkHotkeys: [
+        { index: 0, name: 'a', game: 'poe2', hotkey: 'F6' },
+        { index: 1, name: 'b', game: 'poe2', hotkey: 'F7' },
+        { index: 2, name: 'c', game: 'poe1', hotkey: 'F8' }
+      ]
+    })
+    const plain = hotkeyTable(c, { overlay: true }).flatMap(g => g.rows).filter(r => r.id.startsWith('rxbm:'))
+    const withF = hotkeyTable(c, { overlay: true, bookmarkFolders: ['地圖', '', '倉庫'] }).flatMap(g => g.rows).filter(r => r.id.startsWith('rxbm:'))
+    expect(withF.map(r => r.id)).toEqual(plain.map(r => r.id))
+    expect(withF.map(r => r.kind === 'ref' ? r.folder ?? '' : '?')).toEqual(['地圖', ''])
+    expect(read(`${SETTINGS}/tabs/Hotkeys.vue`)).toContain('<span v-if="r.folder" class="hk-ref-folder" data-hk-folder>{{ r.folder }} ›</span>')
   })
   it('列標籤與組標題兩語都有', () => {
     for (const g of hotkeyTable(fullConfig('poe2'), { overlay: true })) {

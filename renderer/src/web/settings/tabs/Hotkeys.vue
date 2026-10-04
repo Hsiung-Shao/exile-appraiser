@@ -7,6 +7,8 @@
     main 回報對不回任何欄位的錯誤顯示在頁底。
   - 只在 overlay 模式註冊的組(設定選單、自動辨識、倉庫與聊天、正則)在設定不是 overlay 時不列,改顯示一句說明。
   - 自動辨識的暫停 / 繼續熱鍵只在該功能開著時註冊 → 功能關著時列下方標「功能關閉中」。
+  - 第 36 步:選填熱鍵(預設不綁的框選 / 暫停 / 快速面板)沒設時「未設定」用灰字(HotkeyInput `optional`),紅字只留給衝突 / 註冊失敗;
+    正則書籤的唯讀列標資料夾名(`資料夾 › 書籤`)。
 -->
 <template>
   <section class="card hk-table" data-setting="hotkey-table">
@@ -34,7 +36,7 @@
               <span class="dim">+</span>
               <hotkey-input v-model="config.hotkey" no-mod-keys data-setting="hotkey" />
             </template>
-            <hotkey-input v-else v-model="config[r.field]" :data-setting="FIELD_DS[r.field]" />
+            <hotkey-input v-else v-model="config[r.field]" :optional="r.optional === true" :data-setting="FIELD_DS[r.field]" />
           </div>
           <span v-if="issueText(r.id, rowHotkey(r))" class="err" :data-issue="r.id">{{ issueText(r.id, rowHotkey(r)) }}</span>
           <span v-else-if="sharedText(r.id)" class="note" :data-shared="r.id">{{ sharedText(r.id) }}</span>
@@ -43,7 +45,8 @@
         <template v-else>
           <span class="k hk-ref-k">{{ t(r.label) }}</span>
           <div class="ctl">
-            <button class="hk-ref" :data-goto="r.tab" :title="r.text" @click="goto(r.tab)">
+            <button class="hk-ref" :data-goto="r.tab" :title="r.folder ? `${r.folder} › ${r.text}` : r.text" @click="goto(r.tab)">
+              <span v-if="r.folder" class="hk-ref-folder" data-hk-folder>{{ r.folder }} ›</span>
               <span class="hk-ref-text">{{ r.text }}</span>
               <span class="hk-ref-key num" :class="{ unset: !r.hotkey }">{{ r.hotkey || t('ppz.hk.unset') }}</span>
             </button>
@@ -68,7 +71,7 @@ import HelpTip from '../HelpTip.vue'
 import { normalizeHotkey } from '../hotkey-conflicts'
 import { hotkeyTable, type HotkeyField, type HotkeyRow } from '../hotkey-table'
 import { useHotkeyIssues } from '../useHotkeyIssues'
-import { regexBookmarkHotkeyList } from '@/web/regex/bookmark-hotkeys'
+import { regexBookmarkFolders, regexBookmarkHotkeyList } from '@/web/regex/bookmark-hotkeys'
 import { SETTINGS_TABS } from '../settings-tabs'
 import { settingsTab } from '../tabState'
 
@@ -90,7 +93,10 @@ export default defineComponent({
     const { t } = useI18n()
     const config = AppConfig()
     const { issueText, sharedText, otherError } = useHotkeyIssues()
-    const groups = computed(() => hotkeyTable({ ...config, regexBookmarkHotkeys: regexBookmarkHotkeyList.value }, { overlay: config.overlayMode }))
+    // 第 36 步:書籤列標資料夾名(書籤依資料夾排好,同資料夾的列相鄰)
+    const groups = computed(() => hotkeyTable(
+      { ...config, regexBookmarkHotkeys: regexBookmarkHotkeyList.value },
+      { overlay: config.overlayMode, bookmarkFolders: regexBookmarkFolders.value }))
     /** 該列目前的熱鍵(快速查價 = 按住鍵 + 主鍵,main 以合併後的字串註冊,被佔用的錯誤也是這個字串) */
     function rowHotkey (r: HotkeyRow): string {
       if (r.kind === 'ref') return r.hotkey
@@ -175,6 +181,12 @@ export default defineComponent({
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.settings-panel .hk-ref-folder {
+  flex: 0 0 auto;
+  margin-right: -0.4em;
+  color: var(--ink-3);
   white-space: nowrap;
 }
 .settings-panel .hk-ref-key {

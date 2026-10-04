@@ -16,8 +16,10 @@ export type HotkeyField = 'hotkey' | 'hotkeyLocked' | 'overlayKey' | 'hotkeyOcrR
   'hotkeyRuneshapeToggle' | 'hotkeyRuneshapeRegion' | 'hotkeyRegexQuick'
 
 export type HotkeyRow =
-  | { kind: 'edit', id: string, label: string, field: HotkeyField, hold?: boolean, needs?: 'revealAutoEnabled' | 'runeshapeEnabled' }
-  | { kind: 'ref', id: string, label: string, text: string, hotkey: string, tab: SettingsTabId }
+  /** `optional` = 選填(預設不綁;第 36 步:空值「未設定」用灰字,不用錯誤紅字) */
+  | { kind: 'edit', id: string, label: string, field: HotkeyField, hold?: boolean, needs?: 'revealAutoEnabled' | 'runeshapeEnabled', optional?: boolean }
+  /** `folder` = 第 36 步正則書籤所在資料夾(未分類 / 不是書籤 = 沒有) */
+  | { kind: 'ref', id: string, label: string, text: string, hotkey: string, tab: SettingsTabId, folder?: string }
 
 export interface HotkeyGroup {
   id: 'price' | 'menu' | 'scan' | 'regex' | 'stash-chat'
@@ -31,7 +33,12 @@ export interface HotkeyGroup {
 export interface HotkeyTableOpts {
   /** overlay 模式(設定 `overlayMode`):false 時只列查價 */
   overlay: boolean
+  /** 第 36 步:書籤(`ui.bookmarks` 索引)所在資料夾('' = 未分類);沒給 = 不標 */
+  bookmarkFolders?: readonly string[]
 }
+
+/** 選填熱鍵(Config 預設空 = 預設不綁;守門測試對照 Config 預設值) */
+export const OPTIONAL_HOTKEY_FIELDS: readonly HotkeyField[] = ['hotkeyOcrRegion', 'hotkeyRuneshapeToggle', 'hotkeyRuneshapeRegion', 'hotkeyRegexQuick']
 
 /** 總表的組與列(順序 = main 的註冊順序,先到先得) */
 export function hotkeyTable (c: HotkeyConfigLike, opts: HotkeyTableOpts): HotkeyGroup[] {
@@ -55,9 +62,9 @@ export function hotkeyTable (c: HotkeyConfigLike, opts: HotkeyTableOpts): Hotkey
       title: 'ppz.hk_group.scan',
       rows: [
         { kind: 'edit', id: 'ocr', label: 'ppz.scan.slot_reveal_pause', field: 'hotkeyOcrReveal', needs: 'revealAutoEnabled' },
-        { kind: 'edit', id: 'region', label: 'ppz.scan.slot_reveal_region', field: 'hotkeyOcrRegion' },
-        { kind: 'edit', id: 'runeshape', label: 'ppz.scan.slot_rune_pause', field: 'hotkeyRuneshapeToggle', needs: 'runeshapeEnabled' },
-        { kind: 'edit', id: 'runeRegion', label: 'ppz.scan.slot_rune_region', field: 'hotkeyRuneshapeRegion' }
+        { kind: 'edit', id: 'region', label: 'ppz.scan.slot_reveal_region', field: 'hotkeyOcrRegion', optional: true },
+        { kind: 'edit', id: 'runeshape', label: 'ppz.scan.slot_rune_pause', field: 'hotkeyRuneshapeToggle', needs: 'runeshapeEnabled', optional: true },
+        { kind: 'edit', id: 'runeRegion', label: 'ppz.scan.slot_rune_region', field: 'hotkeyRuneshapeRegion', optional: true }
       ]
     })
   }
@@ -69,9 +76,12 @@ export function hotkeyTable (c: HotkeyConfigLike, opts: HotkeyTableOpts): Hotkey
     if (x.text.trim()) chatRows.push({ kind: 'ref', id: `stash:${i}`, label: 'ppz.hk_group.stash_search', text: x.text.trim(), hotkey: x.hotkey, tab: 'stash-chat' })
   })
   groups.push({ id: 'stash-chat', title: 'ppz.hk_group.stash_chat', tab: 'stash-chat', rows: chatRows })
-  const regexRows: HotkeyRow[] = [{ kind: 'edit', id: 'regexQuick', label: 'ppz.regex.quick_hotkey', field: 'hotkeyRegexQuick' }]
+  const regexRows: HotkeyRow[] = [{ kind: 'edit', id: 'regexQuick', label: 'ppz.regex.quick_hotkey', field: 'hotkeyRegexQuick', optional: true }]
+  // 書籤列順序 = 書籤順序(第 36 步起同遊戲書籤永遠依資料夾排好 → 同資料夾的列相鄰)= main 註冊順序
   for (const b of c.regexBookmarkHotkeys ?? []) {
-    if (b.game === c.game && b.hotkey.trim()) regexRows.push({ kind: 'ref', id: `rxbm:${b.index}`, label: 'ppz.hk_group.regex_bookmark', text: b.name, hotkey: b.hotkey, tab: 'regex' })
+    if (b.game !== c.game || !b.hotkey.trim()) continue
+    const folder = opts.bookmarkFolders?.[b.index] ?? ''
+    regexRows.push({ kind: 'ref', id: `rxbm:${b.index}`, label: 'ppz.hk_group.regex_bookmark', text: b.name, hotkey: b.hotkey, tab: 'regex', ...(folder ? { folder } : {}) })
   }
   groups.push({ id: 'regex', title: 'ppz.hk_group.regex', tab: 'regex', rows: regexRows })
   return groups

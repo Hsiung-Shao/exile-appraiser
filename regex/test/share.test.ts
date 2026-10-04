@@ -136,7 +136,7 @@ describe('state schema 2 / 3', () => {
     s.bookmarks.push({ name: 'b', page: 'map_mods', game: 'poe1', mode: 'any', lang: 'zh', keys: [], alt: [], numeric: { tier: { min: 16 } }, num: ['tier'] })
     s.bookmarks.push({ name: 'v', page: 'vendor_items', game: 'poe1', mode: 'any', lang: 'zh', keys: ['links'], alt: ['連結'], numeric: { links: { choice: '6' } } })
     const text = serializeRegexState(s)
-    expect(JSON.parse(text).schema).toBe(4) // 第 33 步起 4
+    expect(JSON.parse(text).schema).toBe(5) // 第 33 步起 4、第 36 步起 5
     const r = parseRegexState(text)
     expect(r.ok).toBe(true)
     expect(r.state).toEqual(s)

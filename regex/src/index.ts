@@ -40,4 +40,9 @@ export type { RegexTemplate, ResolvedState, ShareState } from './share'
 export { bookmarkApplyOf, bookmarkBodyOf, combineSels, resolvedValues, savedPicksOf, shareStateOf, valuesOfPage } from './embed'
 export type { BookmarkApply, PicksMap, ValuesMap } from './embed'
 export { bookmarkHotkeys, bookmarkQuery, findBookmark, quickBookmarks } from './quick'
+export {
+  FOLDER_NAME_MAX, addFolder, deleteFolder, folderCounts, folderList, groupBookmarks, isFolderCollapsed, moveBookmark, moveBookmarkBy,
+  moveFolderBy, moveFolderTo, normalizeFolderName, normalizeFolders, renameFolder, setFolderCollapsed, sortBookmarks
+} from './folders'
+export type { BookmarkFolder, BookmarkGroup, FolderResult, GroupedBookmarks } from './folders'
 export type { BookmarkHotkey, BookmarkQuery } from './quick'

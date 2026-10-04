@@ -85,7 +85,7 @@ describe('書籤熱鍵(state schema 4)', () => {
     const text = serializeRegexState(s)
     const doc = JSON.parse(text)
     expect(doc.schema).toBe(REGEX_STATE_SCHEMA)
-    expect(REGEX_STATE_SCHEMA).toBe(4)
+    expect(REGEX_STATE_SCHEMA).toBe(5) // 第 36 步起 5(書籤資料夾);熱鍵格式同 4
     expect(doc.bookmarks[0].hotkey).toBe('Ctrl + Shift + 1')
     expect('hotkey' in doc.bookmarks[1]).toBe(false)
     expect('hotkey' in doc.bookmarks[2]).toBe(false)

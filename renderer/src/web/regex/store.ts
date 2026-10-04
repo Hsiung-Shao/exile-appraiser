@@ -20,6 +20,9 @@
  *   (`itemModPage(game, null)`,下拉選單看得到);第一次選到它、或存檔 / 書籤 / 分享碼引用它時才 fetch 兩語 `stats.ndjson`
  *   (各 ~2.5 MB)→ `buildItemModData`(只留模板與錨點)→ 換成有項目的頁(`slot.cat` 換新物件,computed 全部重算)→ 再還原那一頁的勾選。
  *   沒載入前不還原那一頁(否則存檔的鍵會被當成「還原不到」)。
+ * - **書籤資料夾(第 36 步)**:書籤 `folder` + 依遊戲各一組的資料夾清單(state schema 5,純函式在 `regex/src/folders.ts`);
+ *   同遊戲書籤在 `ui.bookmarks` 裡永遠依資料夾順序排好(= 顯示順序 = 熱鍵註冊順序)。這裡的包裝(`addBookmarkFolder` …
+ *   `moveBookmarkStep`)只多做 `scheduleSave()`;收合狀態存 state,管理頁 / 書籤列 / 快速面板共用(`bookmarkGroupsOf`)。
  * - 行為移植自 PobTools `host/regex_tool_ui.cpp`(`restoreState` :308、`switchGame` :1006、`loadBookmark` :832、
  *   `updateBookmark` :868、`commitName` :944)。
  */
@@ -30,13 +33,16 @@ import {
   parseRegexCatalogue, parseRegexState, parseTemplates, picksFor, resolveState, resolvedValues, savedPicksOf, sectionPageOf,
   serializeRegexState, shareStateOf, visibleRows, bookmarkHotkeys, regexStateSchemaOf, ITEM_MOD_PAGE_IDS, buildItemModData,
   isItemModPageId, itemModPage, parseStatsNdjson,
+  addFolder, deleteFolder, groupBookmarks, moveBookmark, moveBookmarkBy, moveFolderBy, moveFolderTo, normalizeFolders, renameFolder,
+  setFolderCollapsed,
+  type FolderResult, type GroupedBookmarks,
   type AlgoEntry, type AlgoPage, type AlgoValue, type CombineResult, type Mode, type RegexBookmark, type RegexCatalogue,
   type RegexGame, type RegexLabels, type RegexLang, type RegexPage, type RegexTemplate, type Result, type ShareState, type T17Filter,
   type RegexUiState
 } from '@exile-appraiser/regex'
 import { Host } from '@/web/background/IPC'
 import { AppConfig } from '@/web/Config'
-import { regexBookmarkHotkeyList } from './bookmark-hotkeys'
+import { regexBookmarkFolders, regexBookmarkHotkeyList } from './bookmark-hotkeys'
 
 export const GAMES: readonly RegexGame[] = ['poe1', 'poe2']
 export const gameLabel = (g: RegexGame | ''): string => g === 'poe2' ? 'PoE2' : g === 'poe1' ? 'PoE1' : '?'
@@ -148,7 +154,8 @@ export function ensureStateLoaded (): Promise<void> {
         if (r.ok) {
           Object.assign(ui, r.state)
           // 第 32 步:舊結構(schema ≤ 2,數值頁 map_numeric / waystone_numeric)已在 parseRegexState 轉成新結構 → 立刻寫回;
-          // 第 33 步:schema 3 → 4 只多了書籤熱鍵(沒有 = 不變),不必為了版號寫回
+          // 第 33 步:schema 3 → 4 只多了書籤熱鍵(沒有 = 不變),不必為了版號寫回;
+          // 第 36 步:schema 4 → 5 只多了資料夾(舊檔 = 全部未分類),同樣不為了版號寫回
           migrated = regexStateSchemaOf(text) < 3
         } else console.warn('[regex] regex_state 無法解析,改用預設值')
       }
@@ -160,6 +167,10 @@ export function ensureStateLoaded (): Promise<void> {
     watch(() => bookmarkHotkeys(ui.bookmarks), (list) => {
       if (JSON.stringify(list) !== JSON.stringify(regexBookmarkHotkeyList.value)) regexBookmarkHotkeyList.value = list
     }, { immediate: true, deep: true })
+    // 第 36 步:熱鍵總表的書籤列標資料夾名(不進 host-config)
+    watch(() => ui.bookmarks.map(b => b.folder ?? ''), (list) => {
+      if (list.join('\u0000') !== regexBookmarkFolders.value.join('\u0000')) regexBookmarkFolders.value = list
+    }, { immediate: true })
   })()
   return stateLoading
 }
@@ -254,6 +265,8 @@ function onCatalogueReady (cat: RegexCatalogue): void {
     b.game = cat.game
     dirty = true
   }
+  // 第 36 步:補上遊戲的舊書籤可能帶資料夾 → 補資料夾清單、依資料夾排好(沒資料夾的舊檔不會有任何變動)
+  if (dirty) normalizeFolders(ui)
   // 上次的勾選(每頁一次);還原不到的計數回報,不靜默丟掉
   let missedTotal = 0
   let firstPage = ''
@@ -642,21 +655,18 @@ export async function applyShareCode (code: string): Promise<string[]> {
 
 // ---- 書籤 ----------------------------------------------------------------------
 
-/** 目前遊戲的書籤數、另一個遊戲的(被過濾掉的)數、找不到清單的孤兒數(regex_tool_ui.cpp drawBookmarks :739) */
+/**
+ * 各遊戲的書籤數與找不到清單的孤兒數(regex_tool_ui.cpp drawBookmarks :739)。
+ * 第 36 步起管理卡片上方是 PoE1 / PoE2 分頁(不再只列目前遊戲 + 「另一個遊戲還有 N 筆」)。
+ */
 const bookmarkCounts = computed(() => {
-  let mine = 0; let elsewhere = 0; let orphans = 0
+  const c = { poe1: 0, poe2: 0, orphans: 0 }
   for (const b of ui.bookmarks) {
-    if (!b.game) orphans++
-    else if (b.game === selGame.value) mine++
-    else elsewhere++
+    if (!b.game) c.orphans++
+    else c[b.game]++
   }
-  return { mine, elsewhere, orphans }
+  return c
 })
-
-/** 目前遊戲的書籤(帶原始索引,改名/刪除用) */
-const myBookmarks = computed(() => ui.bookmarks
-  .map((b, index) => ({ b, index }))
-  .filter(x => x.b.game === selGame.value))
 
 /** 書籤 = 目前頁的快照(宿主詞綴頁含數值區:`num` + `numeric`) */
 function currentBookmarkBody (): Omit<RegexBookmark, 'name'> | null {
@@ -753,6 +763,61 @@ export function loadBookmark (index: number): void {
   scheduleSave()
 }
 
+// ---- 書籤資料夾(第 36 步;純函式在 regex/src/folders.ts)-------------------------
+
+/** 某遊戲的書籤依資料夾分組(管理頁不略過空資料夾;書籤列 / 快速面板 `skipEmpty`) */
+export function bookmarkGroupsOf (game: RegexGame, skipEmpty = false): GroupedBookmarks {
+  return groupBookmarks(ui, game, { skipEmpty })
+}
+
+export function addBookmarkFolder (game: RegexGame, name: string): FolderResult {
+  const r = addFolder(ui, game, name)
+  if (r === 'ok') scheduleSave()
+  return r
+}
+
+export function renameBookmarkFolder (game: RegexGame, from: string, to: string): FolderResult {
+  const r = renameFolder(ui, game, from, to)
+  if (r === 'ok') scheduleSave()
+  return r
+}
+
+/** 刪除資料夾(書籤移回未分類);回傳移回的書籤數 */
+export function deleteBookmarkFolder (game: RegexGame, name: string): number {
+  const n = deleteFolder(ui, game, name)
+  if (n >= 0) {
+    notice.value = { key: 'ppz.regex.fd_notice_deleted', params: { name, n } }
+    scheduleSave()
+  }
+  return n
+}
+
+/** 資料夾上移 / 下移(`delta`)或移到第 `to` 個(拖曳) */
+export function moveBookmarkFolder (game: RegexGame, name: string, move: { delta: number } | { to: number }): void {
+  const ok = 'delta' in move ? moveFolderBy(ui, game, name, move.delta) : moveFolderTo(ui, game, name, move.to)
+  if (ok) scheduleSave()
+}
+
+/** 收合 / 展開('' = 未分類);管理頁、書籤列、快速面板共用 */
+export function setBookmarkFolderCollapsed (game: RegexGame, folder: string, on: boolean): void {
+  if (setFolderCollapsed(ui, game, folder, on)) scheduleSave()
+}
+
+/** 書籤移到資料夾(`before` = 放在那個書籤前面,拖曳用);回傳新索引(-1 = 沒動) */
+export function moveBookmarkToFolder (index: number, folder: string, before?: number): number {
+  const was = ui.bookmarks[index]
+  const r = moveBookmark(ui, index, folder, before)
+  if (r >= 0 && was) scheduleSave()
+  return r
+}
+
+/** 書籤在同資料夾內上移 / 下移;回傳新索引 */
+export function moveBookmarkStep (index: number, delta: number): number {
+  const r = moveBookmarkBy(ui, index, delta)
+  if (r !== index) scheduleSave()
+  return r
+}
+
 export function dismissNotice (): void {
   notice.value = null
 }
@@ -780,7 +845,6 @@ export function useRegexStore () {
     notice,
     saveError,
     bookmarkCounts,
-    myBookmarks,
     pageById,
     itemMods
   }

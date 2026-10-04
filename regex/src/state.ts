@@ -15,11 +15,17 @@
 // schema 4(第 33 步,2026-10-04):書籤可設個別熱鍵 `hotkey`(APT 熱鍵字串,如 `Ctrl + Shift + 1`;空 = 沒設,不寫出)。
 // 熱鍵只在書籤的遊戲 = 目前遊戲時註冊(main `shortcut-actions.ts`)。schema ≤ 3 的舊檔照讀(沒有熱鍵);
 // 舊版程式讀 schema 4 檔會忽略 `hotkey`(下次存檔就沒了),其餘欄位相容。
+//
+// schema 5(第 36 步,2026-10-04):書籤資料夾(只有一層,folders.ts)。書籤多 `folder`(空 = 未分類,不寫出);
+// `folders: {poe1: [{name, collapsed}], poe2: [...]}`(依遊戲各一組,陣列順序 = 資料夾順序)、`uncatCollapsed`(未分類收合的遊戲)。
+// schema ≤ 4 的舊檔讀入 = 全部未分類、沒有資料夾(呼叫端不必為了版號立刻寫回);讀入時 `normalizeFolders` 整理
+// (指向不存在資料夾的書籤 → 補資料夾、同遊戲書籤依資料夾順序排好)。舊版程式讀 schema 5 檔會忽略資料夾(書籤內容照讀)。
 
 import type { Mode } from './gen'
 import type { RegexEntry, RegexGame, RegexLang, RegexPage } from './data'
 import type { AlgoValue } from './pages/types'
 import { SECTION_HOSTS, sectionHostOf, unionKeys } from './sections'
+import { normalizeFolders, type BookmarkFolder } from './folders'
 
 /** regex_state.h `RegexBookmark` */
 export interface RegexBookmark {
@@ -41,10 +47,12 @@ export interface RegexBookmark {
   num?: string[]
   /** 第 33 步:個別熱鍵(APT 熱鍵字串;沒設 = undefined;schema 4) */
   hotkey?: string
+  /** 第 36 步:資料夾名稱(沒有 / 空 = 未分類;schema 5) */
+  folder?: string
 }
 
 /** 存檔格式版本(serializeRegexState 寫出的 `schema`) */
-export const REGEX_STATE_SCHEMA = 4
+export const REGEX_STATE_SCHEMA = 5
 
 /** 存檔字串的 `schema`(讀不到 = 0 = 最舊);判斷要不要立刻寫回(遷移)用 */
 export function regexStateSchemaOf (text: string): number {
@@ -80,13 +88,28 @@ export interface RegexUiState {
   outScope: 'combined' | 'page'
   /** 收合的數值區(宿主頁 id);schema 3,預設全部展開 */
   collapsed: string[]
+  /** 第 36 步:書籤資料夾(依遊戲各一組;陣列順序 = 資料夾順序;schema 5) */
+  folders: Record<RegexGame, BookmarkFolder[]>
+  /** 第 36 步:「未分類」收合的遊戲(schema 5) */
+  uncatCollapsed: RegexGame[]
 }
 
 export function defaultRegexState (): RegexUiState {
   return {
     game: '', page: '', mode: 'any', lang: 'zh', bilingual: true, current: [], bookmarks: [],
-    numeric: {}, custom: [], excludes: [], outScope: 'combined', collapsed: []
+    numeric: {}, custom: [], excludes: [], outScope: 'combined', collapsed: [], folders: { poe1: [], poe2: [] }, uncatCollapsed: []
   }
+}
+
+/** 資料夾清單(壞的項目略過;名稱正規化 / 去重由 normalizeFolders 做) */
+function folderArray (raw: unknown): BookmarkFolder[] {
+  if (!Array.isArray(raw)) return []
+  const out: BookmarkFolder[] = []
+  for (const f of raw) {
+    if (typeof f === 'string') out.push({ name: f, collapsed: false })
+    else if (isObj(f) && typeof f.name === 'string') out.push({ name: f.name, collapsed: f.collapsed === true })
+  }
+  return out
 }
 
 /** 只留 AlgoValue 認得的欄位(與 pages/index.ts sanitizeValue 相同規則;這裡不 import 它以免 state ↔ pages 循環) */
@@ -191,6 +214,7 @@ export function parseRegexState (text: string): ParsedRegexState {
         const num = stringArray(b, 'num')
         if (num.length) rec.num = num
         if (typeof b.hotkey === 'string' && b.hotkey.trim()) rec.hotkey = b.hotkey.trim()
+        if (typeof b.folder === 'string' && b.folder.trim()) rec.folder = b.folder
         // 沒名字 / 沒頁 / 沒鍵的書籤 UI 無法提供,留著只會多一列永遠空白的東西
         if (!rec.name || !rec.page || (rec.keys.length === 0 && !rec.num)) continue
         s.bookmarks.push(rec)
@@ -203,7 +227,12 @@ export function parseRegexState (text: string): ParsedRegexState {
     s.excludes = stringArray(doc, 'excludes')
     s.outScope = oneOf(str(doc, 'outScope', 'combined'), 'combined', 'page')
     s.collapsed = stringArray(doc, 'collapsed')
+    if (isObj(doc.folders)) {
+      s.folders = { poe1: folderArray(doc.folders.poe1), poe2: folderArray(doc.folders.poe2) }
+    }
+    s.uncatCollapsed = stringArray(doc, 'uncatCollapsed').map(gameOf).filter((g, i, a): g is RegexGame => g !== '' && a.indexOf(g) === i)
     migrateSections(s)
+    normalizeFolders(s)
     return { ok: true, state: s }
   } catch {
     return { ok: false, state: defaultRegexState() }
@@ -270,13 +299,19 @@ export function serializeRegexState (s: RegexUiState): string {
       name: b.name, page: b.page, game: b.game, mode: b.mode, lang: b.lang, keys: b.keys, alt: b.alt,
       ...(b.numeric && Object.keys(b.numeric).length ? { numeric: b.numeric } : {}),
       ...(b.num?.length ? { num: b.num } : {}),
-      ...(b.hotkey ? { hotkey: b.hotkey } : {})
+      ...(b.hotkey ? { hotkey: b.hotkey } : {}),
+      ...(b.folder ? { folder: b.folder } : {})
     })),
     numeric: Object.fromEntries(Object.entries(s.numeric).filter(([, m]) => Object.keys(m).length > 0)),
     custom: s.custom,
     excludes: s.excludes,
     outScope: s.outScope,
-    collapsed: s.collapsed
+    collapsed: s.collapsed,
+    folders: {
+      poe1: s.folders.poe1.map(f => ({ name: f.name, collapsed: f.collapsed })),
+      poe2: s.folders.poe2.map(f => ({ name: f.name, collapsed: f.collapsed }))
+    },
+    uncatCollapsed: s.uncatCollapsed
   }
   return JSON.stringify(doc, null, '\t')
 }

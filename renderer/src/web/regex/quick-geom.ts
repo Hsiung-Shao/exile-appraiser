@@ -106,6 +106,106 @@ export function quickPanelKey (sel: number, count: number, key: string): QuickKe
   return { sel: cur, action: null, handled: false }
 }
 
+// ---- 第 36 步:快速面板依資料夾分組 ------------------------------------------------
+
+/** 分組(`regex/src/folders.ts` `BookmarkGroup` 的子集;相對路徑匯入不到 workspace 套件型別,這裡只描述用到的欄位) */
+export interface QuickGroupLike {
+  folder: string
+  collapsed: boolean
+  items: ReadonlyArray<{ index: number }>
+}
+
+/** 畫面上的一列:資料夾標題或書籤。`key` = 選擇用的穩定鍵(收合 / 展開後索引會變,鍵不變) */
+export type QuickRow =
+  | { kind: 'head', key: string, folder: string, collapsed: boolean, count: number }
+  /** `no` = 1–9 的快捷編號(只算看得見的書籤;第 10 筆起 0 = 沒有編號) */
+  | { kind: 'item', key: string, folder: string, index: number, no: number }
+
+export const quickHeadKey = (folder: string): string => `h:${folder}`
+export const quickItemKey = (index: number): string => `b:${index}`
+
+/**
+ * 分組 → 畫面列。`headers` = false(沒有資料夾)→ 只有書籤列,與第 36 步前相同;
+ * 收合的組只剩標題列。1–9 照看得見的書籤順序編號。
+ */
+export function quickRows (groups: readonly QuickGroupLike[], headers: boolean): QuickRow[] {
+  const rows: QuickRow[] = []
+  let no = 0
+  for (const g of groups) {
+    const collapsed = headers && g.collapsed
+    if (headers) rows.push({ kind: 'head', key: quickHeadKey(g.folder), folder: g.folder, collapsed, count: g.items.length })
+    if (collapsed) continue
+    for (const it of g.items) {
+      no++
+      rows.push({ kind: 'item', key: quickItemKey(it.index), folder: g.folder, index: it.index, no: no <= 9 ? no : 0 })
+    }
+  }
+  return rows
+}
+
+/** 方向鍵可停的列:書籤 + **收合的**資料夾標題(展開的標題跳過;收合的標題要能停,才能用 → / Enter 展開) */
+export function quickNavRows (rows: readonly QuickRow[]): QuickRow[] {
+  return rows.filter(r => r.kind === 'item' || r.collapsed)
+}
+
+export interface QuickGroupKeyResult {
+  /** 處理後的選擇(列鍵;沒有可選的 = '') */
+  sel: string
+  /** run = 執行 `index`;close = 關閉;toggle = 把 `folder` 設成 `collapse` */
+  action: 'run' | 'close' | 'toggle' | null
+  index?: number
+  folder?: string
+  collapse?: boolean
+  handled: boolean
+}
+
+/**
+ * 快速面板(分組版)的鍵盤:↑↓ 在可停的列間循環(跳過展開的標題)、Home / End、PageUp / PageDown 跳 5 列(不循環)、
+ * ← 收合目前書籤所在的資料夾(選擇移到它的標題)、→ / Enter 在收合的標題上 = 展開(選擇移到第一筆)、
+ * Enter 在書籤上 = 執行、1–9 = 執行看得見的第 N 筆、Esc 關閉。沒有分組標題時 ← / → 不處理(= 第 36 步前)。
+ */
+export function quickGroupedKey (groups: readonly QuickGroupLike[], headers: boolean, sel: string, key: string): QuickGroupKeyResult {
+  if (key === 'Escape') return { sel, action: 'close', handled: true }
+  const rows = quickRows(groups, headers)
+  const nav = quickNavRows(rows)
+  if (!nav.length) return { sel: '', action: null, handled: key === 'Enter' || key.startsWith('Arrow') }
+  const at = nav.findIndex(r => r.key === sel)
+  const cur = at >= 0 ? at : 0
+  const row = nav[cur]
+  const move = (i: number): QuickGroupKeyResult => ({ sel: nav[i].key, action: null, handled: true })
+  const expand = (folder: string): QuickGroupKeyResult => {
+    const g = groups.find(x => x.folder === folder)
+    const first = g?.items[0]
+    return { sel: first ? quickItemKey(first.index) : quickHeadKey(folder), action: 'toggle', folder, collapse: false, handled: true }
+  }
+  switch (key) {
+    case 'ArrowDown': return move(at < 0 ? 0 : (cur + 1) % nav.length)
+    case 'ArrowUp': return move(at < 0 ? nav.length - 1 : (cur - 1 + nav.length) % nav.length)
+    case 'Home': return move(0)
+    case 'End': return move(nav.length - 1)
+    case 'PageDown': return move(Math.min(nav.length - 1, cur + 5))
+    case 'PageUp': return move(Math.max(0, cur - 5))
+    case 'Enter':
+      if (row.kind === 'item') return { sel: row.key, action: 'run', index: row.index, handled: true }
+      return expand(row.folder)
+    case 'ArrowLeft':
+      if (!headers) return { sel: row.key, action: null, handled: false }
+      if (row.kind === 'item') return { sel: quickHeadKey(row.folder), action: 'toggle', folder: row.folder, collapse: true, handled: true }
+      return { sel: row.key, action: null, handled: true }
+    case 'ArrowRight':
+      if (!headers) return { sel: row.key, action: null, handled: false }
+      if (row.kind === 'head') return expand(row.folder)
+      return { sel: row.key, action: null, handled: true }
+  }
+  if (/^[1-9]$/.test(key)) {
+    const n = Number(key)
+    const hit = rows.find(r => r.kind === 'item' && r.no === n)
+    if (hit && hit.kind === 'item') return { sel: hit.key, action: 'run', index: hit.index, handled: true }
+    return { sel: row.key, action: null, handled: true }
+  }
+  return { sel: row.key, action: null, handled: false }
+}
+
 /** 執行結果(main `RegexPasteResult` 加上 renderer 端才有的原因) */
 export type QuickReason = 'window-mode' | 'no-game' | 'game-inactive' | 'focus-timeout' | 'busy' | 'empty' | 'missing' | 'preview' | 'copy-failed'
 
