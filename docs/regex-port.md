@@ -244,6 +244,65 @@ PoE1 地圖詞綴 3 條 + 階級 ≥16 + 物品數量 ≥80 + 6L → `"成凋| �
   淺色 + 英文介面;點書籤列 → `regexPaste {text, name, source: 'bar'}`、只複製顯示原因、貼上了關設定;快速面板 ↓↓ Enter → 第 3 筆、1 → 貼上後自動關、Esc 關;書籤熱鍵事件 → 對的書籤、找不到 → `missing`;host-config 帶目前全部書籤熱鍵。
 - **真實遊戲內送鍵(Ctrl+F → 貼上 → Enter)、焦點交還時機、與倉庫頁籤捲動同時使用只能使用者實測**(守則 14)。
 
+## 第 36 步:書籤資料夾 + PoE1 / PoE2 分頁管理(2026-10-04)
+
+書籤多了以後一長串不好找;另一代的書籤要切遊戲才看得到。資料夾**只有一層**,依遊戲各自一組。
+
+### 資料(`regex/src/folders.ts`、`state.ts`)
+- 書籤 `folder`(空 = 未分類,不寫出);`regex_state.json` **schema 5** 多 `folders: {poe1: [{name, collapsed}], poe2: [...]}`(陣列順序 = 資料夾順序)
+  與 `uncatCollapsed`(「未分類」收合的遊戲)。分享碼 / 範本格式不變;書籤熱鍵照舊屬於書籤本身。
+- schema 1–4 舊檔讀入 = 全部未分類、沒有資料夾,**不為了升版號立刻寫回**(只有 schema ≤ 2 的數值頁遷移會寫回,第 32 步);
+  舊版程式讀 schema 5 檔會忽略資料夾,書籤內容照讀。
+- **順序不變式**:`ui.bookmarks` 裡同一遊戲的書籤永遠依「資料夾順序 → 未分類」排好(`sortBookmarks`,穩定排序,**只在該遊戲原本佔的格子裡換**,
+  另一遊戲 / 孤兒書籤的索引不變)。所以畫面順序 = 陣列順序 = main 註冊書籤熱鍵的先後(先到先得)= 熱鍵總表的列順序,不另存排序。
+- 讀入時 `normalizeFolders`:名稱正規化(去頭尾、合併空白、40 字)、去重 / 去空;書籤指向不存在的資料夾 → 補到清單最後(不丟);排好順序。
+  補上遊戲的舊孤兒書籤(`onCatalogueReady`)也再整理一次。
+- 純函式:`addFolder` / `renameFolder`(書籤跟著改)/ `deleteFolder`(書籤移回未分類,回傳數量)/ `moveFolderTo` / `moveFolderBy` /
+  `setFolderCollapsed` / `moveBookmark(index, folder, before?)`(下拉選單 = 該資料夾最後;拖曳 = 放在某書籤前並進它的資料夾)/
+  `moveBookmarkBy`(同資料夾內上移下移)/ `groupBookmarks(state, game, {skipEmpty})`(管理頁不略過空資料夾;書籤列 / 快速面板略過;
+  只剩未分類一組 = `headers: false` = 不畫標題、收合無效 = 與第 36 步前相同外觀)。renderer store 包一層 `scheduleSave()`。
+
+### 管理(設定 › 工具 › 正則 › 書籤卡,`RegexBookmarks.vue`)
+- 上方 PoE1 / PoE2 分頁(帶筆數;預設 = 正則清單目前的遊戲 `selGame`,清單換遊戲時跟著換)。另一代的書籤可改名、刪除、設熱鍵、移資料夾、排序,不必切遊戲;
+  「載入」= 正則清單切到那一代並載入(`loadBookmark` 本來就會切 `selGame`);「更新」用的是目前清單頁的勾選 → 書籤遊戲 ≠ 清單遊戲時停用並說明。
+  熱鍵衝突提示只算 `AppConfig().game`(main 只註冊目前遊戲)。「存成書籤」存到清單目前的遊戲(未分類),分頁切過去。
+- 依資料夾分組、標題可收合(▾ / ▸ + 筆數);新增 / 改名資料夾(對話框,空白 / 重名提示)、刪除資料夾(`.modal` 確認,書籤移回未分類)。
+- 書籤移到資料夾:每列下拉選單 + 拖曳;排序:拖曳書籤 / 資料夾標題的握把 ⠿(pointer events + `setPointerCapture`,超過 4 px 才開始、Esc 取消、
+  拖到清單上 / 下緣自動捲動;放在書籤上半 / 下半 = 插到前 / 後,放在資料夾標題或空資料夾 = 移到該資料夾最後;資料夾放在別的資料夾上半 / 下半 = 前 / 後)。
+  鍵盤替代:書籤與資料夾都有上移 / 下移按鈕。
+- 清單最高 32em 捲動(原本 240px);尺寸 em / `--fs-*`;兩個新對話框 Teleport 綁 `fsStyle` + `fsClass`(`.rx-modal` 已在 `:is()` 補高範圍內)。
+
+### 書籤列 / 快速面板 / 熱鍵總表
+- 書籤列(`RegexBookmarkBar.vue`)與快速面板(`RegexQuickPanel.vue`)依資料夾分組(`bookmarkGroupsOf(game, true)`:空資料夾不列、未分類最後;
+  沒有資料夾時不畫標題),點標題收合 / 展開;收合狀態存 state,與管理頁共用並記住。
+- 快速面板鍵盤改 `quick-geom.ts` `quickGroupedKey`(選擇以列鍵 `b:<索引>` / `h:<資料夾>` 記,收合後不跑掉):↑↓ 跳過展開的標題、收合的標題可停;
+  ← 收合目前書籤所在的資料夾(選擇移到標題)、→ / Enter 在收合的標題上展開(選擇移到第一筆);1–9 照**看得見的**書籤順序;Enter / Esc 照舊。
+  沒有資料夾時與舊 `quickPanelKey` 逐鍵相同(測試對照),← / → 不處理。有資料夾時提示列改 `quick_panel_hint_folders`。
+- 熱鍵總表的書籤唯讀列標資料夾名(`資料夾 › 書籤`;`bookmark-hotkeys.ts` `regexBookmarkFolders`,**不進 host-config**)。
+- 順手修:熱鍵總表的**選填**熱鍵(框選 ×2、符文暫停、快速面板;Config 預設空)「未設定」改灰字(`HotkeyInput` `optional` prop →
+  `.is-empty.is-optional::placeholder` = `--ink-3`;`hotkey-table.ts` `OPTIONAL_HOTKEY_FIELDS` / 列 `optional`);紅字只留給必填與衝突 / 註冊失敗。
+  書籤熱鍵欄改用同一個 prop(原本在 RegexBookmarks.vue 自己蓋顏色)。
+- i18n `ppz.regex.{bm_title, bm_save_tip, bm_other_note, bm_load_other, bm_update_other, bm_drag, bm_up, bm_down, fd_*, quick_panel_hint_folders}`(繁中 / 英文);
+  移除 `bookmarks`、`bm_elsewhere`、`bm_elsewhere_tip`(分頁取代「另一個遊戲還有 N 筆」)。
+- DOM 錨點:`[data-regex=bm-tabs|bm-tab|bm-other-note|bm-groups|bm-folder|bm-folder-toggle|bm-folder-grip|bm-folder-up|bm-folder-down|bm-folder-rename|bm-folder-delete|bm-folder-empty|bm-folder-add|bm-folder-dialog|bm-folder-name|bm-folder-ok|bm-folder-error|bm-folder-delete-dialog|bm-folder-delete-ok|bm-grip|bm-folder-select|bm-up|bm-down|quick-bar-folder|quick-folder]`、`[data-hk-folder]`。
+
+### 行為差異
+- `regex_state.json` 寫出 `schema: 5`、`folders`、`uncatCollapsed`;書籤可能帶 `folder`。
+- 書籤卡不再只列清單目前遊戲的書籤 + 「另一個遊戲還有 N 筆」,改成兩個分頁。
+- 有資料夾時,同遊戲書籤的陣列順序會隨資料夾順序重排 → 書籤熱鍵的註冊先後(重鍵時誰贏)跟著畫面順序走;另一遊戲的書籤索引不受影響。
+- 沒有建任何資料夾的使用者:書籤列 / 快速面板 / 熱鍵總表外觀與鍵盤操作與第 36 步前相同(只多了管理卡片的分頁與「新增資料夾」)。
+
+### 測試
+- `regex/test/folders.test.ts`:schema 1–4 舊檔 → 5 往返(全部未分類、書籤順序 / 鍵 / 熱鍵 / 數值不變、`bookmarkQuery` 逐字相同、熱鍵清單相同);schema 5 帶資料夾往返;
+  壞資料整理;資料夾 CRUD / 排序 / 收合;書籤移動(下拉 / 拖曳 / 上下移、跨遊戲 / 孤兒不動、另一遊戲格子位置不動);分組顯示;
+  **另一代書籤隨機編輯 30 輪 × 40 步 → 目前遊戲的清單 / 資料夾 / 索引 / 熱鍵清單逐項相同**;2000 步隨機操作不變式(書籤不增不減、順序、`normalizeFolders` 冪等、往返)。
+- `renderer/test/regex-folders.test.ts`:`quickRows` / `quickGroupedKey` 跨分組鍵盤(含與舊 `quickPanelKey` 逐鍵對照)、字串兩語、接線守門(分頁、`setPointerCapture`、`.modal`、fs-own、無 rem、store 都 `scheduleSave`、資料夾名不進 host-config)。
+- `renderer/test/settings-ia.test.ts`:選填熱鍵 = Config 預設空的欄位、灰字 / 紅字 CSS、書籤列標資料夾名;`settings-window-geom.test.ts` Teleport 對話框數 5 → 7。
+- 無頭 Chrome(CDP,假 `window.host` overlay 模式,只作用於無頭頁面):管理頁 PoE1 / PoE2 分頁、書籤列分組與共用收合、新增資料夾對話框、快速面板分組
+  (↓↓ → 收合的標題、← 收合、→ 展開)、熱鍵總表(資料夾名、選填灰字),石板 + 淺色;拖曳(書籤 → 資料夾標題、資料夾排序、書籤插到別的書籤前、拖到下緣自動捲動)、
+  下拉選單移入、下移按鈕;另一代書籤的格子位置不變;console 0 錯誤。
+- **真實 overlay 的拖曳手感、快速面板在遊戲前景時的 ← / → 只能使用者實測**。
+
 ## 第 35 步:數值區嚴格寫法 + 稀有度列(2026-10-04)
 
 使用者提供社群在遊戲裡實際使用的寫法(= 遊戲搜尋列支援 `[:：]`、`\+`、`{n,}` 的證據):
