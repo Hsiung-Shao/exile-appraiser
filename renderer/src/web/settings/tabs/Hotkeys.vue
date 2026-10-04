@@ -2,7 +2,9 @@
   設定 › 熱鍵(第 39 步:熱鍵總表;原「熱鍵與視窗」分頁的視窗設定搬到「遊戲」、辨識卡片搬到「自動辨識」)。
   - 列由 ../hotkey-table.ts `hotkeyTable()` 產生,依功能分組(查價 / 設定選單 / 自動辨識 / 倉庫與聊天 / 正則),順序 = main 註冊順序。
   - `edit` 列直接在這裡編輯(HotkeyInput,按鍵擷取,Esc / Backspace 清除;快速查價 = 按住鍵 + 主鍵);
-    `ref` 列(聊天指令、倉庫搜尋、個別正則書籤:熱鍵與項目綁在一起)唯讀,點「到 … 編輯」跳到該頁
+    `cmd` 列(聊天指令,2026-10-05 使用者裁定「聊天室的不用再進下一層」)也直接在這裡編輯:列標籤 = 指令文字,
+    HotkeyInput 綁 `config.commands[i].hotkey`(與倉庫與聊天頁同一個欄位,即時同步;選填),指令文字仍到倉庫與聊天頁改;
+    `ref` 列(倉庫搜尋、個別正則書籤:熱鍵與項目綁在一起)唯讀,點「到 … 編輯」跳到該頁
     (`jumpToTab`:那一頁頂端出現「← 回到熱鍵」,返回捲回原位置;預覽的瀏覽器上一頁也回得來,settings-nav.ts)。
   - 衝突 / 遊戲保留鍵 / 被其他程式佔用 / 褻瀆與符文暫停鍵共用:useHotkeyIssues(與 main 註冊規則相同,涵蓋全部熱鍵),即時顯示在該列下方;
     main 回報對不回任何欄位的錯誤顯示在頁底。
@@ -25,8 +27,15 @@
         <button v-if="g.tab" class="btn ghost sm hk-goto" :data-goto="g.tab" @click="goto(g.tab, $event)">{{ t('ppz.hk.edit_in', { page: tabName(g.tab) }) }}</button>
       </div>
       <p v-if="!g.rows.length" class="foot" :data-hk-empty="g.id">{{ t(g.id === 'stash-chat' ? 'ppz.hk.empty_stash_chat' : 'ppz.hk.empty') }}</p>
-      <div v-for="r in g.rows" :key="r.id" class="srow" :class="{ ref: r.kind === 'ref' }" :data-hk-row="r.id">
-        <template v-if="r.kind === 'edit'">
+      <div v-for="r in g.rows" :key="r.id" class="srow" :class="{ ref: r.kind === 'ref', cmd: r.kind === 'cmd' }" :data-hk-row="r.id">
+        <template v-if="r.kind === 'cmd'">
+          <span class="k hk-cmd-k num" :title="t('ppz.hk.chat_row', { text: r.text })">{{ r.text }}</span>
+          <div class="ctl">
+            <hotkey-input v-model="config.commands[r.index].hotkey" optional :aria-label="t('ppz.hk.chat_row', { text: r.text })" :data-setting="`hk-chat-hotkey-${r.index}`" />
+          </div>
+          <span v-if="issueText(r.id, rowHotkey(r))" class="err" :data-issue="r.id">{{ issueText(r.id, rowHotkey(r)) }}</span>
+        </template>
+        <template v-else-if="r.kind === 'edit'">
           <span class="k">{{ t(r.label) }}<template v-if="r.id === 'regexQuick'"> <help-tip id="hk-regex-quick" :text="t('ppz.regex.quick_hotkey_hint')" /></template></span>
           <div class="ctl">
             <template v-if="r.hold">
@@ -101,6 +110,7 @@ export default defineComponent({
     /** 該列目前的熱鍵(快速查價 = 按住鍵 + 主鍵,main 以合併後的字串註冊,被佔用的錯誤也是這個字串) */
     function rowHotkey (r: HotkeyRow): string {
       if (r.kind === 'ref') return r.hotkey
+      if (r.kind === 'cmd') return config.commands[r.index]?.hotkey ?? ''
       if (r.hold) return mergeTwoHotkeys(normalizeHotkey(config.hotkeyHold), normalizeHotkey(config.hotkey))
       return config[r.field] ?? ''
     }
@@ -155,6 +165,14 @@ export default defineComponent({
 }
 .settings-panel .hk-group-head .grow {
   flex: 1;
+}
+/* 聊天指令列:標籤 = 指令文字(長的截斷,完整文字在 title);窄版欄寬 34% 也不撐開 */
+.settings-panel .srow > .hk-cmd-k {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink-1);
 }
 .settings-panel .hk-ref {
   appearance: none;

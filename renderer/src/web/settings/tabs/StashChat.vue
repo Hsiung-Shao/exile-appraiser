@@ -6,7 +6,8 @@
   - 倉庫搜尋(APT 的 stash-search widget 只取熱鍵部分):熱鍵 → Ctrl+F → 貼上 → Enter;Poe Regex 頁「加到倉庫搜尋」帶入。
   - 倉庫頁籤捲動(第 15 步,移植 APT hotkeys.vue 的 stashScroll):Ctrl + 滾輪 / 停用(main/src/stash-scroll.ts)。
   - 每列顯示熱鍵問題(遊戲保留鍵 / 與其他熱鍵重複 / 被其他程式佔用),規則同 main(`hotkey-conflicts.ts`);
-    這些熱鍵與項目綁在一起,留在這一頁編輯,「熱鍵」總表唯讀列出並可跳來這裡。
+    倉庫搜尋熱鍵與項目綁在一起,留在這一頁編輯,「熱鍵」總表唯讀列出並可跳來這裡;
+    聊天指令熱鍵在總表也能直接編輯(2026-10-05,同一個 `config.commands[i].hotkey`,兩處即時同步),指令文字只在這一頁改。
   - 三個功能都只在 overlay 模式(main `shortcut-actions.ts` / `stash-scroll.ts`)→ 設定不是 overlay 時整頁只顯示一句說明 + 前往「遊戲」。
 -->
 <template>

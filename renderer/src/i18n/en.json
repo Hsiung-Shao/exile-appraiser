@@ -805,6 +805,7 @@
       "unset": "Not set",
       "empty": "Nothing here.",
       "empty_stash_chat": "No chat commands or stash searches yet.",
+      "chat_row": "Chat command: {text}",
       "off_note": "The feature is off, so this hotkey is not registered.",
       "scan_note": "Pause / resume hotkeys only work while that feature is on; select-area hotkeys open the area picker in game; leave empty to not register.",
       "window_only": "Other hotkeys are only available in overlay mode."

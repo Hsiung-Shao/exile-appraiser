@@ -133,14 +133,17 @@ describe('熱鍵總表', () => {
     expect(head).toContain("type: 'copy-item', focusOverlay: true")
     expect(head).not.toContain('toggle-overlay')
   })
-  it('聊天指令 / 倉庫搜尋 / 個別書籤熱鍵唯讀、點了跳到各自頁面;其餘在總表編輯且設定鍵不重複', () => {
+  it('聊天指令在總表直接編輯(cmd 列);倉庫搜尋 / 個別書籤熱鍵唯讀、點了跳到各自頁面;其餘在總表編輯且設定鍵不重複', () => {
     const groups = hotkeyTable(fullConfig('poe2'), { overlay: true })
     const rows = groups.flatMap(g => g.rows)
     for (const r of rows) {
-      if (/^(cmd|stash):/.test(r.id)) expect(r).toMatchObject({ kind: 'ref', tab: 'stash-chat' })
+      if (/^cmd:/.test(r.id)) expect(r).toMatchObject({ kind: 'cmd', optional: true })
+      else if (/^stash:/.test(r.id)) expect(r).toMatchObject({ kind: 'ref', tab: 'stash-chat' })
       else if (/^rxbm:/.test(r.id)) expect(r).toMatchObject({ kind: 'ref', tab: 'regex' })
       else expect(r.kind, r.id).toBe('edit')
     }
+    // 倉庫與聊天組的「到 … 編輯」保留(改指令文字 / 倉庫搜尋)
+    expect(groups.find(g => g.id === 'stash-chat')!.tab).toBe('stash-chat')
     const fields = rows.flatMap(r => r.kind === 'edit' ? [r.field] : [])
     expect(new Set(fields).size).toBe(fields.length)
     expect(fields.sort()).toEqual(['hotkey', 'hotkeyLocked', 'hotkeyOcrRegion', 'hotkeyOcrReveal', 'hotkeyRegexQuick', 'hotkeyRuneshapeRegion', 'hotkeyRuneshapeToggle', 'overlayKey'])
@@ -207,6 +210,29 @@ describe('熱鍵總表', () => {
     expect(withF.map(r => r.id)).toEqual(plain.map(r => r.id))
     expect(withF.map(r => r.kind === 'ref' ? r.folder ?? '' : '?')).toEqual(['地圖', ''])
     expect(read(`${SETTINGS}/tabs/Hotkeys.vue`)).toContain('<span v-if="r.folder" class="hk-ref-folder" data-hk-folder>{{ r.folder }} ›</span>')
+  })
+  it('2026-10-05:聊天指令列綁 config.commands[index].hotkey(與倉庫與聊天頁同一欄)、標籤 = 指令文字、選填、衝突照 useHotkeyIssues', () => {
+    const c = fullConfig('poe2', {
+      commands: [{ text: '/hideout', hotkey: 'F5' }, { text: '  ', hotkey: 'F2' }, { text: ' @last ty ', hotkey: '' }, { text: '/exit', hotkey: 'F5' }]
+    })
+    const chat = hotkeyTable(c, { overlay: true }).find(g => g.id === 'stash-chat')!.rows
+    const cmds = chat.flatMap(r => r.kind === 'cmd' ? [r] : [])
+    // 文字空白的不列(不註冊);index 對回原陣列;id 與 hotkey-conflicts 的 slot id 相同
+    expect(cmds.map(r => [r.id, r.index, r.text])).toEqual([['cmd:0', 0, '/hideout'], ['cmd:2', 2, '@last ty'], ['cmd:3', 3, '/exit']])
+    for (const r of cmds) expect(r.id).toBe(`cmd:${r.index}`)
+    // 順序:聊天指令在倉庫搜尋之前(= main 註冊順序),倉庫搜尋仍是唯讀列
+    expect(chat.map(r => r.kind)).toEqual(['cmd', 'cmd', 'cmd', 'ref'])
+    const vue = read(`${SETTINGS}/tabs/Hotkeys.vue`)
+    expect(vue).toContain(`<template v-if="r.kind === 'cmd'">`)
+    expect(vue).toContain('<span class="k hk-cmd-k num" :title="t(\'ppz.hk.chat_row\', { text: r.text })">{{ r.text }}</span>')
+    expect(vue).toMatch(/<hotkey-input v-model="config\.commands\[r\.index\]\.hotkey" optional /)
+    expect(vue).toContain("if (r.kind === 'cmd') return config.commands[r.index]?.hotkey ?? ''")
+    // 衝突標示與 edit 列同一套
+    expect(vue.match(/<span v-if="issueText\(r\.id, rowHotkey\(r\)\)" class="err" :data-issue="r\.id">/g)).toHaveLength(2)
+    // 倉庫與聊天頁仍可編輯同一個欄位
+    expect(read(`${SETTINGS}/tabs/StashChat.vue`)).toContain('<hotkey-input v-model="c.hotkey" optional')
+    expect(zh.hk.chat_row).toBe('聊天指令:{text}')
+    expect(en.hk.chat_row).toBe('Chat command: {text}')
   })
   it('列標籤與組標題兩語都有', () => {
     for (const g of hotkeyTable(fullConfig('poe2'), { overlay: true })) {
