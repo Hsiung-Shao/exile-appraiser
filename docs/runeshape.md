@@ -248,7 +248,7 @@ npx electron main/dist/main.js --runeshape-selftest <png> [--runeshape-selftest-
 
 ## 徽章外觀(第 11 步,2026-10-02)
 
-設定 › 熱鍵與視窗 › 兩張辨識卡片之後的「徽章外觀」卡片(`renderer/src/web/settings/BadgeStyleSection.vue`),符文價格徽章與褻瀆徽章共用 `config.ocrBadgeStyle`
+設定 › 自動辨識 › 兩張辨識卡片之後的「徽章外觀」卡片(第 39 步起符文價格門檻也在這張)(`renderer/src/web/settings/BadgeStyleSection.vue`),符文價格徽章與褻瀆徽章共用 `config.ocrBadgeStyle`
 (`renderer/src/web/overlay/badge-style.ts`;只影響 overlay 顯示,不送 main;舊設定檔沒有 → 預設 = 改版前外觀):
 
 | 欄位 | 值 | 符文 | 褻瀆 |

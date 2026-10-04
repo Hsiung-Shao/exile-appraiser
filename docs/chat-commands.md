@@ -7,7 +7,7 @@
 | 段 | 檔案 | 做什麼 |
 |---|---|---|
 | 設定 | `renderer/src/web/Config.ts` | `commands: {text, hotkey, send}[]`(預設 APT 六條:`/hideout`=F5、`/exit`=F9、`@last ty`、`/invite @last`、`/tradewith @last`、`/hideout @last`,全部直接送出;APT 的 `hotkey: null` 讀檔時轉 `''`)、`stashSearch: {text, hotkey}[]`(預設空,text ≤ 250 字);各最多 50 條;兩者都送進 host-config |
-| 分頁 | `renderer/src/web/settings/tabs/Chat.vue` | 「聊天指令」:每列文字 / 直接送出 / 熱鍵 / 刪除、新增、還原預設;「倉庫搜尋」一區。每列顯示熱鍵問題(`hotkey-conflicts.ts`:遊戲保留鍵、與其他熱鍵重複〔先到先得,順序同 main〕、main 回報被其他程式佔用)。window 模式顯示「只在疊加模式註冊」 |
+| 分頁 | `renderer/src/web/settings/tabs/StashChat.vue`(第 39 步前 `Chat.vue`) | 「倉庫與聊天」(倉庫搜尋 / 倉庫頁籤捲動 / 聊天指令;熱鍵另在「熱鍵」總表唯讀列出):每列文字 / 直接送出 / 熱鍵 / 刪除、新增、還原預設;「倉庫搜尋」一區。每列顯示熱鍵問題(`hotkey-conflicts.ts`:遊戲保留鍵、與其他熱鍵重複〔先到先得,順序同 main〕、main 回報被其他程式佔用)。window 模式顯示「只在疊加模式註冊」 |
 | Poe Regex | `renderer/src/web/regex/RegexPanel.vue` | 「加到倉庫搜尋」:把目前字串加進 `stashSearch`(熱鍵空白,到聊天指令分頁設;同字串不重複、> 250 字不能加) |
 | 註冊 | `main/src/shortcut-actions.ts` | 動作 `paste-in-chat` / `stash-search`:**只在 overlay 模式**(熱鍵只在遊戲前景時註冊;window 模式熱鍵一律註冊,會把字打進別的程式),文字空白 / 熱鍵空白不註冊;遊戲保留鍵(`ipc/reserved-hotkeys.ts`:APT 的 Ctrl+C/V/A/F、Ctrl+Enter、Home、Delete、Enter、↑ → ← + PoE2 進階複製 `Ctrl + Alt + C`)對所有動作一律不註冊 |
 | 觸發 | `main/src/Shortcuts.ts` | 照 APT 先放開熱鍵本身的按鍵(`keyToggle up`),再呼叫 `typeInChat` / `stashSearch`;log 只記指令類型不記內容(可能含玩家名) |
