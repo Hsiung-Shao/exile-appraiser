@@ -21,6 +21,8 @@
   自訂背景圖(2026-10-01):#price-window 與設定視窗是 .bg-host,第一個子元素 BgLayer.vue(圖 + 面板底色層),只畫在容器內;
   overlay 根元素與其他區域維持透明(theme/pobtools.css「自訂背景圖」)。
   2026-10-01 起沒有「按住 Alt 讓路」(APT OverlayVisibility 已移除):查價中按 Alt 不會藏任何 overlay 介面。
+  第五輪 30.4:overlay 上有沒有東西要畫(面板 / 設定 / 框選層 + 兩個徽章層)回報 main(`overlay/overlay-content.ts`),
+  都沒有時 main 把 overlay 視窗閒置隱藏;限流狀態鈕(RateLimiterState,展開時每秒輪詢)只在 `panelVisible` 時掛載。
 -->
 <template>
   <div id="app" class="font-ui text-ink-0"
@@ -128,13 +130,13 @@
             <button class="btn ghost sm" data-action="report-copy" @click="copyItemReport">{{ t('ppz.report.copy') }}</button>
           </template>
           <span class="grow" />
-          <component :is="rateLimiterComponent" v-if="!isOverlay" align="end" />
+          <component :is="rateLimiterComponent" v-if="!isOverlay && panelVisible" align="end" />
         </footer>
       </div>
 
       <div v-if="isOverlay" class="layout-column flex-1 min-w-0 justify-end">
         <div class="flex p-2" :class="clickPosition === 'stash' ? 'justify-start' : 'justify-end'">
-          <component :is="rateLimiterComponent" class="pointer-events-auto side-rate-limiter"
+          <component :is="rateLimiterComponent" v-if="panelVisible" class="pointer-events-auto side-rate-limiter"
             :align="clickPosition === 'stash' ? 'start' : 'end'" />
         </div>
       </div>
@@ -188,6 +190,7 @@ import OcrRegionPicker from './overlay/OcrRegionPicker.vue'
 import RuneshapePrices from './overlay/RuneshapePrices.vue'
 import { runeshapeTradeHold } from './overlay/runeshape-view'
 import { recordPoe2Item, regionPickerClosed, regionPickerOpen, returnsToSettings } from './overlay/ocr-reveal'
+import { overlayContentKey, overlayContentOf, overlayLayers } from './overlay/overlay-content'
 import type { SettingsTabId } from '@ipc/types'
 import { AppConfig } from './Config'
 import { Host } from './background/IPC'
@@ -436,6 +439,14 @@ export default defineComponent({
         Host.runeshapeUiState(s)
         // 符文塑形自動查市集:查價面板 / 設定開著 → 佇列暫停,限流額度讓給一般查價
         runeshapeTradeHold.value = s.settings ? '設定開著' : s.panel ? '查價面板開著' : null
+      }, { immediate: true })
+      // 第五輪 30.4:overlay 上有沒有東西要畫 → main 閒置隱藏 overlay 視窗(overlay/overlay-content.ts;內容相同不重送)
+      let lastContentKey = ''
+      watch(() => overlayContentOf({ panel: panelShown.value, settings: settingsVisible.value, picker: regionPickerOpen.value }, overlayLayers), (c) => {
+        const key = overlayContentKey(c)
+        if (key === lastContentKey) return
+        lastContentKey = key
+        Host.overlayContent(c)
       }, { immediate: true })
     }
 

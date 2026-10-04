@@ -1,6 +1,8 @@
 // 移植自 Awakened PoE Trade `main/src/windowing/OverlayWindow.ts`(MIT)。
 // exile-appraiser: WebSocket server → `send(channel, payload)`(webContents.send);BrowserWindow 由 main.ts 建立後傳入;
 //               不開 webview、不自動開 DevTools;狀態變化印 log(開發/驗證用)。
+// 第五輪 30.4:`isInteractable` 改成 getter / setter,改變時同步通知 `onInteractableChange`(main 的 overlay 閒置隱藏:
+//               取得焦點前要先把被閒置隱藏的視窗顯示出來,所以 assertOverlayActive 先設旗標再 activateOverlay)。
 import { BrowserWindow, dialog } from 'electron'
 import { OverlayController } from 'electron-overlay-window'
 import type { GameWindow } from './GameWindow'
@@ -9,7 +11,16 @@ import type { FocusChangeEvent } from '@ipc/types'
 export type SendToRenderer = (channel: string, payload?: unknown) => void
 
 export class OverlayWindow {
-  public isInteractable = false
+  private _isInteractable = false
+  /** 第五輪 30.4:可互動狀態改變(同步呼叫;main 的 OverlayIdleHider.setInteractable) */
+  public onInteractableChange: ((v: boolean) => void) | null = null
+  get isInteractable (): boolean { return this._isInteractable }
+  set isInteractable (v: boolean) {
+    if (this._isInteractable === v) return
+    this._isInteractable = v
+    this.onInteractableChange?.(v)
+  }
+
   public wasUsedRecently = true
   private overlayKey: string = 'Shift + Space'
   private isOverlayKeyUsed = false

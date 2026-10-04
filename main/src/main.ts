@@ -19,6 +19,7 @@ import { GameWindow } from './windowing/GameWindow'
 import { GameDetector, detectorCounters } from './windowing/GameDetector'
 import { OverlayWindow, type SendToRenderer } from './windowing/OverlayWindow'
 import { WidgetAreaTracker } from './windowing/WidgetAreaTracker'
+import { OverlayIdleHider, sanitizeOverlayContent } from './windowing/overlay-idle'
 import { AppUpdater } from './AppUpdater'
 import { trayStrings, type TrayLang } from './tray-strings'
 import { Broadcaster, previewHandlers, registerIpc, type HandlerCtx, type HandlerTable } from './host-handlers'
@@ -671,6 +672,30 @@ if (!skipStartup) app.whenReady().then(() => {
     areaTracker = new WidgetAreaTracker(send, overlay)
   }
 
+  // 第五輪 30.4:遊戲在前景但 overlay 上沒有東西要畫(面板 / 設定 / 框選層 / 兩個徽章層都沒有、overlay 沒焦點)→ 延遲 500 ms hide();
+  // 要畫時 showInactive(不搶焦點)。只藏 / 只再顯示我們自己藏的,遊戲失焦 / detach 交還給 electron-overlay-window(windowing/overlay-idle.ts)
+  let overlayIdle: OverlayIdleHider | undefined
+  if (overlay && poeWindow) {
+    const gw = poeWindow
+    const idle = overlayIdle = new OverlayIdleHider({
+      win: {
+        isVisible: () => !w.isDestroyed() && w.isVisible(),
+        hide: () => { if (!w.isDestroyed()) w.hide() },
+        // 同 electron-overlay-window 在遊戲 focus 時的做法
+        showInactive: () => { if (w.isDestroyed()) return; w.showInactive(); w.setAlwaysOnTop(true, 'screen-saver') }
+      },
+      gameFocused: () => gw.targetHasFocus,
+      log: (msg) => { console.log(msg) }
+    })
+    overlay.onInteractableChange = (v) => { idle.setInteractable(v) }
+    w.on('show', () => { idle.onWindowShown() })
+    gw.onFocusChange((focused) => { if (focused) idle.onGameFocus(); else idle.onGameBlur() })
+    gw.onDetach(() => { idle.onGameBlur() })
+    // renderer 重新載入:回報作廢,重新回報前當成要顯示(保守)
+    w.webContents.on('did-start-loading', () => { idle.setContent(null) })
+    app.on('will-quit', () => { idle.dispose() })
+  }
+
   // WP-S:OCR 常駐 PowerShell 行程(第一次辨識才啟動,閒置 10 分鐘自動結束);褻瀆與符文塑形兩個掃描共用
   // 第 22 步:語言包跟著設定的客戶端語言(`ocr-lang.ts`;PoE2 英文 → en-US、其他 → zh-Hant-TW);host-config 到了才知道,之前掃描本來就不跑
   const winOcr = new WinOcr(WIN_OCR_SCRIPT, { idleMs: 10 * 60_000 })
@@ -773,6 +798,8 @@ if (!skipStartup) app.whenReady().then(() => {
     overlay,
     poeWindow,
     areaTracker,
+    // 第五輪 30.4:熱鍵查價讀剪貼簿前,被閒置隱藏的 overlay 先顯示(renderer 隱藏期間收不到視窗位置更新)
+    beforeItemCopy: () => { overlayIdle?.wake('熱鍵查價') },
     onItem: (e: ItemTextEvent) => {
       send('item-text', e)
       if (windowMode === 'window') showNear(e.position)
@@ -1392,6 +1419,15 @@ if (!skipStartup) app.whenReady().then(() => {
     },
     // renderer 回報查價面板 / 設定 / 框選層開著(符文塑形任一 → 暫停;褻瀆只看設定 / 框選層);send 一律不開放給預覽
     'runeshape-ui-state': { kind: 'send', fn: (_ctx, s: RuneshapeUiState) => { lastUiState = s; runeshapeScan.setUiState(s); revealScan.setUiState(s) } },
+    // 第五輪 30.4:renderer 回報 overlay 上有沒有東西要畫(閒置隱藏 overlay 視窗);預覽分頁畫的不在遊戲上 → 不開放
+    'overlay-content': {
+      kind: 'send',
+      preview: false,
+      fn: (_ctx, s: unknown) => {
+        const c = sanitizeOverlayContent(s)
+        if (c) overlayIdle?.setContent(c)
+      }
+    },
     // 第 18 步:renderer 回報畫在遊戲上的徽章 / 提示外框(CSS px + 視窗大小 + 處理到的掃描事件 seq);
     // 擷取後遮掉;在等這份回報的掃描立刻補一個 tick。send 一律不開放給預覽(預覽分頁畫的東西不在遊戲上)
     'scan-mask': {

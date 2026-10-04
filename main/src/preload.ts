@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { HostApi, HostFetchInit, HostConfigForMain, ItemTextEvent, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId, UpdaterInfo, SettingsTabId, ConfigChangedEvent, OcrRegionPickTarget, RevealScanEvent, RuneshapeScanEvent, RuneshapeUiState, ScanMaskReport, LogEntry } from '@ipc/types'
+import type { HostApi, HostFetchInit, HostConfigForMain, ItemTextEvent, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId, UpdaterInfo, SettingsTabId, ConfigChangedEvent, OcrRegionPickTarget, RevealScanEvent, RuneshapeScanEvent, RuneshapeUiState, ScanMaskReport, LogEntry, OverlayContentState } from '@ipc/types'
 
 function subscribe<T> (channel: string, cb: (e: T) => void): () => void {
   const listener = (_: unknown, e: T) => cb(e)
@@ -61,6 +61,8 @@ const api: HostApi = {
   // WP-R2:符文塑形面板自動查價
   onRuneshapeScanResult: (cb: (e: RuneshapeScanEvent) => void) => subscribe('runeshape-scan-result', cb),
   runeshapeUiState: (s: RuneshapeUiState) => { ipcRenderer.send('runeshape-ui-state', s) },
+  // 第五輪 30.4:overlay 上有沒有東西要畫(main 閒置隱藏 overlay 視窗)
+  overlayContent: (s: OverlayContentState) => { ipcRenderer.send('overlay-content', s) },
   runeshapeStats: () => ipcRenderer.invoke('runeshape-stats'),
   // 第 18 步:畫在遊戲上的徽章 / 提示外框(main 擷取後遮掉)
   scanMask: (r: ScanMaskReport) => { ipcRenderer.send('scan-mask', r) },

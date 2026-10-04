@@ -55,6 +55,7 @@ import { badgeStyleVars, revealBadgeFontPx } from './badge-style'
 import { detectedRegion } from './region-geom'
 import { dataGeneration, scanResultKey } from './scan-dedupe'
 import { useScanLayer } from './useScanLayer'
+import { overlayLayers } from './overlay-content'
 
 type State = 'idle' | 'result'
 type OkResult = Extract<ReturnType<typeof Poe2.matchRevealLines>, { ok: true }>
@@ -216,6 +217,9 @@ export default defineComponent({
     // code review 第 C 批:全域字級(徽章跟隨全域時的字級、估計高度)/ 介面語言(徽章文字;看 i18n 實際的 locale,`uiLanguage` 改了要等字串檔載完才換)改了 → 以最後結果重排
     watch([() => config.fsBase, locale], () => { layout() })
     // 遮罩回報(第 18 步)與資料改變請 main 重送(第 B 批)在 useScanLayer 裡
+    // 第五輪 30.4:這一層有東西 = overlay 要顯示(App.vue 彙整回報 main;overlay-content.ts)
+    watch(() => state.value !== 'idle', (v) => { overlayLayers.reveal = v }, { immediate: true })
+    onUnmounted(() => { overlayLayers.reveal = false })
 
     return { t, state, badges, guessKey, layer, styleVars }
   }

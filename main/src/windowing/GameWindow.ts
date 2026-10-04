@@ -60,6 +60,18 @@ export class GameWindow extends EventEmitter {
     OverlayController.events.on('attach', (e: AttachEvent) => { cb(e.hasAccess) })
   }
 
+  /**
+   * 第五輪 30.4:遊戲視窗取得 / 失去前景(electron-overlay-window 原生 focus / blur;套件自己的處理先跑,`targetHasFocus` 已更新)。
+   * 與 `active-change` 不同:那個也會被 assertOverlayActive / assertGameActive 直接改,這裡只反映真正的前景變化
+   */
+  onFocusChange (cb: (focused: boolean) => void) {
+    OverlayController.events.on('focus', () => { cb(true) })
+    OverlayController.events.on('blur', () => { cb(false) })
+  }
+
+  /** 遊戲視窗目前在前景(electron-overlay-window `targetHasFocus`;它據此決定 overlay 視窗顯示與否) */
+  get targetHasFocus (): boolean { return OverlayController.targetHasFocus }
+
   /** 第 30.2 步:遊戲視窗移動 / 縮放(含最小化還原;`targetBounds` 跟著變)。掃描被擋下時據此立刻重看 */
   onMoveresize (cb: () => void) {
     OverlayController.events.on('moveresize', () => { cb() })

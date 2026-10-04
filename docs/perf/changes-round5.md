@@ -209,3 +209,39 @@
 **結論**:不改。這條執行緒在遊戲沒開時約 0.045 % 單核,低於 GameDetector 一次列舉的成本,而唯一可行的「延後 attach」會增加偵測延遲、需要更貴的輪詢、
 且 attach 後仍停不掉。記為限制:**electron-overlay-window 4.1.0 的 hook thread 一旦啟動就常駐到程式結束**。若之後要再降遊戲沒開時的 main 成本,
 優先處理的是 GameDetector 的 `getSources` 列舉(換成 EnumWindows 之類的原生列舉),不是這條執行緒。
+
+## 30.4 overlay 視窗閒置隱藏 + 限流狀態輪詢只在面板可見時跑
+
+> **未量測(使用者裁定略過)**:2026-10-04 使用者裁定剩下的量測不做、直接優化;本項只以單元測試守門「功能不變」,沒有改前改後數字。
+
+**改了什麼**(`main/src/windowing/overlay-idle.ts`(新)、`OverlayWindow.ts`、`GameWindow.ts`、`Shortcuts.ts`、`main.ts`、`preload.ts`、`preview-server.ts`、
+`ipc/types.ts`、renderer `overlay/overlay-content.ts`(新)、`App.vue`、`OcrBadges.vue`、`RuneshapePrices.vue`、`background/IPC.ts`):
+- electron-overlay-window 在遊戲 attach / focus 時把**全尺寸、透明、置頂**的 overlay 視窗 `showInactive()` 疊在遊戲上,面板關著也一直在。
+  改為:遊戲在前景、overlay 沒焦點、renderer 回報**沒有東西要畫**(查價面板 / 設定 / 框選層 / 褻瀆徽章層 / 符文徽章層(含層內提示)全部沒有)
+  → **延遲 500 ms** `hide()`;任何一項出現 → 立刻 `showInactive()` + `setAlwaysOnTop(true, 'screen-saver')`(同套件 focus 時的做法,不搶焦點)。
+- 彙整是 main 的純邏輯狀態機 `OverlayIdleHider`(renderer 回報原始來源,IPC `overlay-content`,`preview: false`、預覽 shim no-op;內容相同不重送):
+  - 只在**遊戲在前景**(套件的 `targetHasFocus`)時自己藏;遊戲失焦 / detach → 交還給套件(取消計時器、清「是我們藏的」旗標)。
+  - 只再顯示**我們自己藏的**;套件藏的(遊戲不在前景)不越權顯示,等套件 focus 時自己顯示。
+  - overlay 取得焦點(鎖定查價、overlayKey 開設定、框選層、托盤設定)= 要顯示,且 `OverlayWindow.isInteractable` 改成 setter,
+    `assertOverlayActive` 先設旗標(同步顯示)再 `activateOverlay()`(對視窗 `focus()`),不會對隱藏視窗 focus。
+  - 視窗被顯示(BrowserWindow `show`:套件或我們)而沒東西要畫 → 500 ms 後藏;期間又有東西 → 取消(快速切換不閃、不反覆 hide / show)。
+    延遲的另一個用途:藏之前 renderer 已畫出空白畫面,下次顯示時 DWM 留著的最後一幀是空的。
+  - renderer 還沒回報 / 重新載入(`did-start-loading`)= 當成要顯示。
+  - 熱鍵查價:`Shortcuts` 讀剪貼簿之前 `beforeItemCopy` → `wake()`(藏著就先顯示):Chromium 對隱藏視窗不送視窗位置更新
+    (`window.screenX`),先顯示讓 renderer 算面板位置時拿到最新值;讀不到物品 = 500 ms 後再藏。
+- **為什麼選 `hide()`**(讀 `electron-overlay-window` 4.1.0 `dist/index.js` / `src/lib/windows.c`):原生 hook thread 追蹤的是**遊戲**視窗,
+  attach / focus / blur / moveresize / `screenshot()`(BitBlt 遊戲 client)與 overlay 顯示與否無關;熱鍵是 globalShortcut / uiohook;
+  點擊穿透(`setIgnoreMouseEvents`)是視窗樣式,hide / show 不變;套件自己在 blur / detach 也是 `hide()`、focus 時 `showInactive()`。
+  `setOpacity(0)` 的視窗仍在 DWM 合成清單、仍蓋在遊戲上(省不到要省的合成 / 獨占翻頁);縮成 1×1 會與套件 moveresize 時的 `setBounds` 打架,也打亂面板座標。
+- 不受影響:擷取遮罩(scan-mask;隱藏時量版面照常,`getBoundingClientRect` 不需要繪製,ack 不依賴 rAF)、徽章量測、右下角啟動 / 辨識開關提示(另一個視窗)、
+  window 模式(不建立狀態機)、瀏覽器預覽(`windowMode: 'window'`,不回報;shim no-op)。
+- **RateLimiterState**:限流狀態鈕展開(`showRateLimitState`)時元件每秒輪詢一次;原本面板只是 `v-show` 藏起、元件仍掛著照跑。
+  改為 App.vue 兩處(overlay 側邊、window 底列)都 `v-if="…panelVisible"`,面板不可見 = 卸載 = 沒有輪詢(移植檔不改)。
+- BgLayer 面板隱藏時卸載:30.6 已做,略過。
+
+**測試**:`main/test/overlay-idle.test.ts`(20 項,假視窗模仿套件 focus / blur 行為 + 假時鐘):純函式(各來源、還沒回報、sanitize);沒東西 500 ms 後才藏;
+五個來源各自「出現立刻顯示 / 消失 500 ms 後藏」;400 ms 內來回切換 20 次 0 次 hide / show;來源交接不藏;overlay 取得焦點同步顯示、交還後等遊戲回前景才藏;
+遊戲失焦取消計時器且不越權顯示;藏著時失焦再回來;`wake` 三種情況;最多一個計時器、dispose;接線守門(IPC `preview: false`、setter 先於 activateOverlay、
+`beforeItemCopy` 在讀剪貼簿前、preload / 預覽 no-op)。`renderer/test/overlay-content.test.ts`(6 項):合成與鍵、App.vue / 兩個徽章層 / IPC 接線、限流鈕 `v-if` 守門。
+
+**需要使用者在遊戲中親測**:見回報清單(遊戲前景閒置時 overlay 不在、查價 / 鎖定查價 / overlayKey 設定 / 框選 / 褻瀆與符文徽章 / 暫停提示都照常出現、焦點回遊戲、視窗化遊戲移動後查價面板位置)。

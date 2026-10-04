@@ -74,6 +74,7 @@ import { bumpDataGeneration, dataGeneration, scanResultKey } from './scan-dedupe
 import { effectiveOcrLang, ocrTextLangOf } from '../ocr-lang'
 import { badgeStyleVars } from './badge-style'
 import { useScanLayer } from './useScanLayer'
+import { overlayLayers } from './overlay-content'
 
 const TOAST_MS = 2_500
 
@@ -276,7 +277,11 @@ export default defineComponent({
       window.removeEventListener('resize', onResize)
       if (toastTimer) clearTimeout(toastTimer)
       queue.dispose()
+      overlayLayers.rune = false
     })
+    const active = computed(() => state.value !== 'idle' || toast.value != null)
+    // 第五輪 30.4:這一層有徽章或提示 = overlay 要顯示(App.vue 彙整回報 main;overlay-content.ts)
+    watch(active, (v) => { overlayLayers.rune = v }, { immediate: true })
 
     return {
       t,
@@ -290,7 +295,7 @@ export default defineComponent({
       priceTierClass,
       marketWord,
       styleVars,
-      active: computed(() => state.value !== 'idle' || toast.value != null)
+      active
     }
   }
 })

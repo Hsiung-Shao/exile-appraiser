@@ -204,6 +204,23 @@ export interface RuneshapeUiState {
   picker: boolean
 }
 
+/**
+ * 第五輪 30.4:renderer 回報 overlay 上目前有沒有東西要畫(IPC `overlay-content`,只有 overlay;main `windowing/overlay-idle.ts`
+ * 彙整:全部 false 且 overlay 沒有焦點 → 遊戲在前景時延遲 500 ms 隱藏 overlay 視窗)。
+ */
+export interface OverlayContentState {
+  /** 查價面板(overlay 的 `panelShown`;設定開著時也是 true) */
+  panel: boolean
+  /** 設定視窗 */
+  settings: boolean
+  /** 框選層 */
+  picker: boolean
+  /** 褻瀆徽章層(`OcrBadges.vue` 不是 idle) */
+  reveal: boolean
+  /** 符文塑形徽章層(徽章或層內提示) */
+  rune: boolean
+}
+
 /** WP-R2:設定頁顯示的掃描統計(`runeshape-stats`)。 */
 export interface RuneshapeStats {
   /** 目前在掃描 */
@@ -415,6 +432,8 @@ export interface HostApi {
   onRuneshapeScanResult?: (cb: (e: RuneshapeScanEvent) => void) => () => void
   /** WP-R2:回報查價面板 / 設定 / 框選層是否開著(符文塑形:任一開著 → 暫停;褻瀆:設定 / 框選層才暫停);預覽端 no-op。 */
   runeshapeUiState?: (s: RuneshapeUiState) => void
+  /** 第五輪 30.4:回報 overlay 上有沒有東西要畫(main 據此閒置隱藏 overlay 視窗);預覽端 no-op。 */
+  overlayContent?: (s: OverlayContentState) => void
   /** WP-R2:掃描統計(設定頁);預覽端回 undefined。 */
   runeshapeStats?: () => Promise<RuneshapeStats | undefined>
   /** 第 18 步:回報畫在遊戲上的徽章 / 提示外框(main 擷取後遮掉);預覽端 no-op。 */

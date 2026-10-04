@@ -57,6 +57,8 @@ export class Shortcuts {
       overlay?: OverlayWindow
       poeWindow?: GameWindow
       areaTracker?: WidgetAreaTracker
+      /** 第五輪 30.4:查價熱鍵按下、讀剪貼簿之前(main:被閒置隱藏的 overlay 先顯示) */
+      beforeItemCopy?: () => void
       onItem: (e: ItemTextEvent) => void
       /** WP-S:靈魂之井揭露面板 OCR(只在 overlay + PoE2 註冊;不送任何按鍵) */
       onOcrReveal?: () => void
@@ -192,6 +194,7 @@ export class Shortcuts {
     }
 
     const pressPosition = screen.getCursorScreenPoint()
+    this.opts.beforeItemCopy?.()
     this.clipboard.readItemText()
       .then(clipboard => {
         this.opts.areaTracker?.removeListeners()

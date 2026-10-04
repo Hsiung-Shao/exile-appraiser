@@ -10,7 +10,7 @@
  */
 import type { HostApi, HostFetchResult, ItemTextEvent, HostConfigForMain, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId } from '@ipc/types'
 import type { ConfigChangedEvent, HotkeyRegistration, OcrAvailability, OcrRegionPickTarget, RevealScanEvent, SettingsTabId, UpdaterInfo } from '@ipc/types'
-import type { LogEntry, LogSnapshot, PerfState, RuneshapeScanEvent, RuneshapeStats, RuneshapeUiState, ScanMaskReport } from '@ipc/types'
+import type { LogEntry, LogSnapshot, PerfState, RuneshapeScanEvent, RuneshapeStats, RuneshapeUiState, ScanMaskReport, OverlayContentState } from '@ipc/types'
 import { shallowRef } from 'vue'
 import type { HttpFetch } from '@exile-appraiser/core/http'
 import { withRetryAfter } from '@exile-appraiser/core/http'
@@ -259,6 +259,9 @@ class HostTransport {
 
   /** 查價面板 / 設定 / 框選層開著 → main 暫停掃描 */
   runeshapeUiState (s: RuneshapeUiState): void { window.host?.runeshapeUiState?.(s) }
+
+  /** 第五輪 30.4:overlay 上有沒有東西要畫(main 據此閒置隱藏 overlay 視窗;overlay/overlay-content.ts) */
+  overlayContent (s: OverlayContentState): void { window.host?.overlayContent?.(s) }
 
   async runeshapeStats (): Promise<RuneshapeStats | undefined> {
     return await window.host?.runeshapeStats?.()
