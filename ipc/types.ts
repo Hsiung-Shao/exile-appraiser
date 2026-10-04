@@ -109,6 +109,10 @@ export interface HostConfigForMain {
   autoUpdate: boolean
   /** 啟動時在主螢幕右下角短暫顯示「已在背景執行」提示(預設 true;main/src/startup-toast.ts)。 */
   startupToast: boolean
+  /** 第 34 步:有新版本時每 10 分鐘在右下角提醒(預設 true;舊 renderer / 缺欄位 = 開;main/src/update-reminder.ts)。 */
+  updateReminder?: boolean
+  /** 第 34 步:提醒裡按「略過此版本」的版號(同版號不再提醒;null = 沒有略過)。 */
+  updateSkippedVersion?: string | null
   /** 2026-10-01:聊天指令熱鍵(兩個遊戲皆可;只在 overlay 模式、遊戲前景時註冊)。 */
   commands?: ChatCommand[]
   /** 2026-10-01:倉庫搜尋一鍵輸入熱鍵(同上)。 */
@@ -455,6 +459,8 @@ export interface HostApi {
   /** `downloaded` 後結束並執行安裝程式:`autoUpdate` 開 = 靜默安裝並重新啟動(`quitAndInstall(true, true)`);關 = 顯示安裝程式(`quitAndInstall(false)`)。 */
   installUpdate: () => Promise<void>
   onUpdaterState: (cb: (info: UpdaterInfo) => void) => () => void
+  /** 第 34 步:更新提醒裡按了「略過此版本」→ renderer 寫進設定 `updateSkippedVersion`(只有 Electron 視窗收得到;不在 PREVIEW_EVENTS)。 */
+  onUpdateReminderSkip?: (cb: (version: string) => void) => () => void
   /** 另一端(Electron 視窗或其他預覽分頁)存了設定;自己存的不會收到。 */
   onConfigChanged: (cb: (e: ConfigChangedEvent) => void) => () => void
   /** 啟動(或沿用)瀏覽器預覽伺服器並用預設瀏覽器開啟,回傳網址。 */

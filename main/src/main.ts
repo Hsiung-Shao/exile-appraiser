@@ -34,7 +34,11 @@ import { runOcrSelftest, runRuneshapeSelftest } from './ocr/selftest'
 import { loadLocateIndex } from './ocr/locate-data'
 import { ocrLangFor, textLangFor } from './ocr/ocr-lang'
 import { createOverlayClientCapture, displayPhysRect, toScanCapture } from './ocr/capture'
-import { captureBenchMode } from './cli-flags'
+import { captureBenchMode, reminderDevOptions } from './cli-flags'
+import {
+  HoverPausedCountdown, UPDATE_REMINDER_VISIBLE_MS, UpdateReminderScheduler, pointInBounds, reminderBounds, reminderButtonFromUrl, reminderHtml,
+  reminderMessage, type ReminderAction, type ReminderButton, type ReminderMessage, type ReminderTarget
+} from './update-reminder'
 import { DEFAULT_SCAN_INTERVAL_MS, RuneshapeScan } from './ocr/runeshape-scan'
 import { SharedCapture, SharedLocateOcr } from './ocr/panel-scan'
 import { ScanMaskStore, sanitizeMaskReport } from './ocr/scan-mask'
@@ -57,7 +61,7 @@ const argAfter = (flag: string) => {
 const RUNESHAPE_SELFTEST = argAfter('--runeshape-selftest')
 const OCR_SELFTEST = RUNESHAPE_SELFTEST ?? argAfter('--ocr-selftest')
 // `--toast-selftest <out.png> [--toast-lang=en] [--toast-updated] [--toast-hotkey=Ctrl + D] [--toast-scan=reveal:on,rune:paused]`:開出啟動提示視窗
-// (`--toast-scan` = 第 16 步的辨識開關通知)、
+// (`--toast-scan` = 第 16 步的辨識開關通知;`--toast-update=install|download|releases` = 第 34 步更新提醒;截圖視窗畫在副螢幕)、
 // `capturePage()` 存 PNG 後結束(不送任何輸入、不拿單一實例鎖、不建主視窗/托盤/熱鍵)。
 const TOAST_SELFTEST = argAfter('--toast-selftest')
 // `--uiohook-selftest`:只註冊 / 解除全域掛鉤(start → stop → 1 秒後再 start → stop),印出載入的 .node 路徑後結束;
@@ -68,6 +72,8 @@ const UIOHOOK_SELFTEST = process.argv.includes('--uiohook-selftest')
 // code review 第 B 批:只在非 packaged 時接受(正式版忽略並正常啟動);量測程式碼動態 import(不在啟動路徑上執行)
 const CAPTURE_BENCH_MODE = captureBenchMode(process.argv, app.isPackaged)
 const CAPTURE_BENCH = CAPTURE_BENCH_MODE === 'run'
+// 第 34 步:更新提醒的開發版驗證參數(`--reminder-interval-ms=` / `--reminder-auto=later,skip` / `--toast-display=secondary`;正式版忽略)
+const REMINDER_DEV = reminderDevOptions(process.argv, app.isPackaged)
 if (CAPTURE_BENCH_MODE === 'ignored') console.warn('[main] 正式版不支援 --capture-bench(只給開發版量測用),忽略並正常啟動')
 
 // `--ppz-log-file=<path>`:main 的 console 另外附加寫到檔案(驗證自我重新啟動用;relaunch 會沿用同一組參數,
@@ -435,6 +441,25 @@ type WorkArea = { x: number, y: number, width: number, height: number }
  */
 function showStartupToast (msg: ToastMessage, opts: { animate?: boolean, autoClose?: boolean, workArea?: WorkArea } = {}): BrowserWindow {
   const bounds = toastBounds(opts.workArea ?? screen.getPrimaryDisplay().workArea)
+  const t = createToastWindow(bounds, { clickable: false, label: '啟動提示' })
+  t.once('ready-to-show', () => {
+    if (t.isDestroyed()) return
+    t.showInactive()
+    if (opts.autoClose !== false) {
+      setTimeout(() => { if (!t.isDestroyed()) t.destroy() }, TOAST_VISIBLE_MS + TOAST_FADE_MS + 150)
+    }
+  })
+  void t.loadURL(toastDataUrl(msg, opts.animate))
+  console.log(`[toast] 顯示提示 ${JSON.stringify(bounds)}:${msg.title} / ${msg.hint}`)
+  return t
+}
+
+/**
+ * 提示小視窗共用的外殼:無框、透明、置頂、不進工作列、不可取得焦點(`focusable: false` + 呼叫端 `showInactive`)。
+ * `clickable: false` = 點擊穿透(一般提示);`true` = 第 34 步更新提醒(按鈕要能按,仍不搶遊戲焦點)。
+ * 頁面不可導覽到別處(`will-navigate` 一律擋;更新提醒另掛一個 `will-navigate` 依網址判斷按鈕)。
+ */
+function createToastWindow (bounds: WorkArea, opts: { clickable: boolean, label: string }): BrowserWindow {
   const t = new BrowserWindow({
     ...bounds,
     show: false,
@@ -454,21 +479,83 @@ function showStartupToast (msg: ToastMessage, opts: { animate?: boolean, autoClo
     webPreferences: { contextIsolation: true, sandbox: true, nodeIntegration: false, spellcheck: false }
   })
   t.setAlwaysOnTop(true, 'screen-saver')
-  t.setIgnoreMouseEvents(true)
+  if (!opts.clickable) t.setIgnoreMouseEvents(true)
   t.setMenu(null)
-  denyNewWindows(t.webContents, '啟動提示')
+  denyNewWindows(t.webContents, opts.label)
   t.webContents.on('will-navigate', (e) => { e.preventDefault() })
-  t.once('ready-to-show', () => {
-    if (t.isDestroyed()) return
-    t.showInactive()
-    if (opts.autoClose !== false) {
-      setTimeout(() => { if (!t.isDestroyed()) t.destroy() }, TOAST_VISIBLE_MS + TOAST_FADE_MS + 150)
-    }
-  })
-  void t.loadURL(toastDataUrl(msg, opts.animate))
-  console.log(`[toast] 顯示提示 ${JSON.stringify(bounds)}:${msg.title} / ${msg.hint}`)
   return t
 }
+
+// ---- 第 34 步:有新版本時的更新提醒視窗(update-reminder.ts;docs/release-flow.md「更新提醒」) ----
+
+/** 畫面上的更新提醒(同時只有一個;與一般提示不同視窗,但同位置,所以兩者不同時出現 —— 見 presentToast / canShow) */
+let activeReminder: { win: BrowserWindow, poll: NodeJS.Timeout | null, done: boolean } | null = null
+
+/** 收回畫面上的更新提醒(不回報;呼叫端自己決定排程)。 */
+function closeUpdateReminder (): void {
+  const r = activeReminder
+  if (!r) return
+  activeReminder = null
+  r.done = true
+  if (r.poll) clearInterval(r.poll)
+  if (!r.win.isDestroyed()) r.win.destroy()
+}
+
+/**
+ * 右下角可點擊的更新提醒:`showInactive`(不搶焦點)、不點擊穿透、頁面無腳本(按鈕 = `REMINDER_BUTTON_URL` 連結 → `will-navigate` 攔下)。
+ * 約 `visibleMs` 後淡出(滑鼠停在上面時暫停:main 每 200 ms 看游標是否在視窗內,CSS `:hover` 暫停動畫)。
+ * 每個結果只回報一次:按鈕 → `onButton`;淡出完 / 視窗被關 → `onTimeout`。
+ */
+function showUpdateReminder (msg: ReminderMessage, opts: {
+  workArea: WorkArea
+  onButton: (b: ReminderButton) => void
+  onTimeout: () => void
+  animate?: boolean
+  visibleMs?: number
+}): BrowserWindow {
+  closeUpdateReminder()
+  const bounds = reminderBounds(opts.workArea)
+  const t = createToastWindow(bounds, { clickable: true, label: '更新提醒' })
+  const entry: { win: BrowserWindow, poll: NodeJS.Timeout | null, done: boolean } = { win: t, poll: null, done: false }
+  activeReminder = entry
+  const finish = (fn: () => void) => {
+    if (entry.done) return
+    if (activeReminder === entry) activeReminder = null
+    entry.done = true
+    if (entry.poll) clearInterval(entry.poll)
+    if (!t.isDestroyed()) t.destroy()
+    fn()
+  }
+  // 按鈕 = 連到 https://ppz-reminder.invalid/<動作>(createToastWindow 的 will-navigate 已 preventDefault,這裡只判斷是哪個)
+  t.webContents.on('will-navigate', (_e, url) => {
+    const b = reminderButtonFromUrl(url)
+    if (b) {
+      console.log(`[update-reminder] 按鈕 ${b}`)
+      finish(() => { opts.onButton(b) })
+    }
+  })
+  t.once('closed', () => { finish(opts.onTimeout) })
+  t.once('ready-to-show', () => {
+    if (t.isDestroyed() || entry.done) return
+    t.showInactive()
+    if (opts.animate === false) return
+    const countdown = new HoverPausedCountdown(opts.visibleMs ?? UPDATE_REMINDER_VISIBLE_MS)
+    let last = Date.now()
+    entry.poll = setInterval(() => {
+      if (t.isDestroyed()) return
+      const now = Date.now()
+      const hovered = pointInBounds(screen.getCursorScreenPoint(), t.getBounds())
+      if (countdown.advance(now - last, hovered)) finish(opts.onTimeout)
+      last = now
+    }, 200)
+  })
+  void t.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(reminderHtml(msg, iconDataUrl(), { animate: opts.animate, visibleMs: opts.visibleMs }))}`)
+  console.log(`[update-reminder] 顯示提醒視窗 ${JSON.stringify(bounds)}:${msg.title} / ${msg.hint}`)
+  return t
+}
+
+/** presentToast 要顯示一般提示時,先收回畫面上的更新提醒(第 34 步;排程稍後重試) */
+let interruptUpdateReminder: (() => void) | null = null
 
 function toastDataUrl (msg: ToastMessage, animate?: boolean): string {
   return `data:text/html;charset=utf-8,${encodeURIComponent(toastHtml(msg, iconDataUrl(), { animate }))}`
@@ -483,6 +570,8 @@ let activeToastTimer: NodeJS.Timeout | null = null
  * 計時從頁面載入完成開始,`TOAST_VISIBLE_MS + TOAST_FADE_MS` 後銷毀(與 CSS 淡出同步)。
  */
 function presentToast (msg: ToastMessage, workArea?: WorkArea): void {
+  // 第 34 步:同位置不疊兩個視窗 —— 一般提示(按鍵回饋 / 啟動提示)優先,更新提醒收回、等這個提示結束再出現
+  interruptUpdateReminder?.()
   if (activeToastTimer) { clearTimeout(activeToastTimer); activeToastTimer = null }
   const reuse = activeToast && !activeToast.isDestroyed() ? activeToast : null
   // 換內容時也跟著移到這次的螢幕(遊戲換了螢幕)
@@ -533,7 +622,7 @@ async function runUiohookSelftest (): Promise<number> {
 
 /** `--toast-selftest <out.png>`:開提示視窗(不動畫、不自動關)、截圖存檔後結束。只截自己的 webContents,不送任何輸入。 */
 async function runToastSelftest (out: string): Promise<number> {
-  if (!out) { console.error('[toast-selftest] 用法:--toast-selftest <out.png> [--toast-lang=en] [--toast-updated] [--toast-hotkey=Ctrl + D] [--toast-scan=reveal:on,rune:paused]'); return 2 }
+  if (!out) { console.error('[toast-selftest] 用法:--toast-selftest <out.png> [--toast-lang=en] [--toast-updated] [--toast-hotkey=Ctrl + D] [--toast-scan=reveal:on,rune:paused] [--toast-update=install|download|releases] [--toast-update-version=x.y.z] [--toast-update-manual]'); return 2 }
   const argValue = (prefix: string) => process.argv.find(a => a.startsWith(prefix))?.slice(prefix.length)
   // 第 16 步:`--toast-scan=reveal:on,rune:paused` → 辨識開關通知(一項 = 一行)
   const scanArg = argValue('--toast-scan=')
@@ -547,7 +636,29 @@ async function runToastSelftest (out: string): Promise<number> {
     hotkey: argValue('--toast-hotkey=') ?? priceCheckHotkeyLabel('Ctrl', 'D'),
     updated: process.argv.includes('--toast-updated')
   })
-  const t = showStartupToast(msg, { animate: false, autoClose: false })
+  // 截圖視窗畫在副螢幕(沒有副螢幕 → 主螢幕),不擋使用者的主螢幕;showInactive 不搶焦點
+  const primary = screen.getPrimaryDisplay()
+  const workArea = (screen.getAllDisplays().find(d => d.id !== primary.id) ?? primary).workArea
+  // 第 34 步:`--toast-update=install|download|releases [--toast-update-version=0.2.0] [--toast-update-manual]` → 更新提醒樣式
+  const updateArg = argValue('--toast-update=')
+  if (updateArg === 'install' || updateArg === 'download' || updateArg === 'releases') {
+    const target: ReminderTarget = {
+      version: argValue('--toast-update-version=') ?? '0.2.0',
+      action: updateArg as ReminderAction,
+      url: 'https://github.com/Hsiung-Shao/exile-appraiser/releases',
+      autoUpdate: !process.argv.includes('--toast-update-manual')
+    }
+    const r = showUpdateReminder(reminderMessage(toastLang(argValue('--toast-lang=')), target), {
+      workArea, animate: false, onButton: () => {}, onTimeout: () => {}
+    })
+    return await captureToastSelftest(r, out)
+  }
+  const t = showStartupToast(msg, { animate: false, autoClose: false, workArea })
+  return await captureToastSelftest(t, out)
+}
+
+/** 自我測試:等視窗顯示、截自己的 webContents 存 PNG、印 bounds / 焦點狀態後關掉。 */
+async function captureToastSelftest (t: BrowserWindow, out: string): Promise<number> {
   await new Promise<void>((resolve) => { t.once('show', () => { resolve() }) })
   await new Promise<void>((resolve) => { setTimeout(resolve, 400) })
   const img = await t.webContents.capturePage()
@@ -721,11 +832,18 @@ if (!skipStartup) app.whenReady().then(() => {
   }
   const scanEnv = () => ({ overlay: windowMode === 'overlay', gameActive: Boolean(poeWindow?.isActive), bounds: gameBounds() })
   /** code review 第 B 批:提示畫在遊戲所在螢幕的工作區;沒有遊戲視窗(視窗模式 / 還沒 attach)→ 主螢幕 */
-  const gameToastArea = (): WorkArea => toastWorkArea(
-    gameBounds(),
-    screen.getAllDisplays().map(d => ({ rect: displayPhysRect(d), workArea: d.workArea })),
-    screen.getPrimaryDisplay().workArea
-  )
+  const gameToastArea = (): WorkArea => {
+    // 第 34 步開發版驗證 `--toast-display=secondary`:提示畫在副螢幕(正式版不接受這個參數)
+    if (REMINDER_DEV?.secondaryDisplay) {
+      const primary = screen.getPrimaryDisplay()
+      return (screen.getAllDisplays().find(d => d.id !== primary.id) ?? primary).workArea
+    }
+    return toastWorkArea(
+      gameBounds(),
+      screen.getAllDisplays().map(d => ({ rect: displayPhysRect(d), workArea: d.workArea })),
+      screen.getPrimaryDisplay().workArea
+    )
+  }
   // 效能修正第 17 步:擷取先用 overlay 原生 screenshot()(只抓 attach 的遊戲 client、同步數十 ms),throw / 尺寸不符 / 全黑才退回 desktopCapturer;
   // 視窗模式沒有 attach 的遊戲視窗(掃描本來就不跑,scanBlock = not-overlay),不傳 screenshot = 一律 desktopCapturer
   const clientCapture = createOverlayClientCapture({
@@ -869,13 +987,76 @@ if (!skipStartup) app.whenReady().then(() => {
     }
   }
   // 自動更新:狀態推給 renderer;第一次收到 host-config(renderer 已就緒)時才檢查
-  const updater = new AppUpdater((info) => { send('updater-state', info) })
+  // 第 34 步:同一份狀態也交給更新提醒排程(有新版 → 右下角每 10 分鐘提醒)
+  // eslint-disable-next-line prefer-const
+  let updateReminder: UpdateReminderScheduler | undefined
+  const updater = new AppUpdater((info) => {
+    send('updater-state', info)
+    updateReminder?.setInfo(info)
+  })
   /** 托盤「設定」「關於」:先把視窗叫到前景,再請 renderer 開設定到該分頁。 */
   const openSettings = (tab: SettingsTabId) => {
     showApp()
     console.log(`[tray] open-settings tab=${tab}`)
     send('open-settings', { tab })
   }
+
+  // ---- 第 34 步:有新版本時每 10 分鐘提醒(update-reminder.ts;docs/release-flow.md「更新提醒」) ----
+  // 預覽啟動(`--preview`)不彈;還沒收到 Electron 視窗的 host-config 前擋住(設定 / 介面語言未知)。selftest 不會走到這裡。
+  /** 「立即更新」:已下載 → 安裝(autoUpdate 開 = quitAndInstall(true, true));可下載 → 開設定 › 關於並開始下載;portable → Releases 頁 */
+  const runReminderAction = (t: ReminderTarget) => {
+    console.log(`[update-reminder] 立即更新 v${t.version}(${t.action})`)
+    if (t.action === 'install') {
+      reminder.stop()
+      updater.install()
+      return
+    }
+    reminder.closed('action')
+    if (t.action === 'download') {
+      openSettings('about')
+      void updater.download()
+    } else {
+      openExternalSafe(t.url, '更新提醒').catch(() => {})
+    }
+  }
+  /** 依目前狀態自動代按(只有開發版 `--reminder-auto=later,skip`;頁面內 DOM click,不是 OS 輸入) */
+  const devAuto = [...(REMINDER_DEV?.auto ?? [])]
+  const reminder: UpdateReminderScheduler = updateReminder = new UpdateReminderScheduler({
+    timers: { now: () => Date.now(), setTimeout: (fn, ms) => setTimeout(fn, ms), clearTimeout: (h) => { clearTimeout(h as NodeJS.Timeout) } },
+    canShow: () => !(activeToast && !activeToast.isDestroyed()),
+    intervalMs: REMINDER_DEV?.intervalMs,
+    log: (m) => { console.log(m) },
+    persistSkip: (version) => { send('update-reminder-skip', version) },
+    hide: () => { closeUpdateReminder() },
+    show: (t) => {
+      const win = showUpdateReminder(reminderMessage(toastLang(hostCfg?.uiLanguage), t), {
+        workArea: gameToastArea(),
+        onButton: (b) => {
+          if (b === 'later') reminder.closed('later')
+          else if (b === 'skip') reminder.skip()
+          else runReminderAction(t)
+        },
+        onTimeout: () => { reminder.closed('timeout') }
+      })
+      const next = devAuto.shift()
+      if (next) {
+        win.webContents.once('did-finish-load', () => {
+          setTimeout(() => {
+            if (win.isDestroyed()) return
+            console.log(`[update-reminder] (開發版驗證)代按 ${next}`)
+            // 點頁面上那個按鈕連結(DOM click,不是 OS 輸入),走與真的點擊相同的 will-navigate 路徑
+            void win.webContents.executeJavaScript(`document.querySelector('[data-btn="${next === 'later' ? 'later' : 'skip'}"]').click()`)
+          }, 2000)
+        })
+      }
+    }
+  })
+  interruptUpdateReminder = () => {
+    if (!activeReminder) return
+    closeUpdateReminder()
+    reminder.closed('interrupted')
+  }
+  app.on('before-quit', () => { reminder.stop() })
 
   // ---- 瀏覽器預覽伺服器(啟動或沿用;閒置自動關閉後可再開) ----
   let previewStarting: Promise<PreviewServer> | null = null
@@ -1099,6 +1280,9 @@ if (!skipStartup) app.whenReady().then(() => {
     if (cfg.uiLanguage === 'en' || cfg.uiLanguage === 'cmn-Hant') rebuildTrayMenu(cfg.uiLanguage)
     // 先套用 autoUpdate 再做第一次檢查(舊 renderer / 缺欄位 → 預設開)
     updater.setAutoUpdate(cfg.autoUpdate !== false)
+    // 第 34 步:更新提醒開關 / 略過的版號(舊 renderer / 缺欄位 = 開、沒有略過);Electron 視窗的設定到了才解除擋住(預覽啟動一律擋)
+    reminder.setConfig({ enabled: cfg.updateReminder !== false, skippedVersion: cfg.updateSkippedVersion ?? null })
+    if (ctx.source !== 'preview') reminder.setBlocked(PREVIEW_ON_START)
     updater.checkAtStartup()
     // 啟動提示:Electron 視窗第一次送來的設定(renderer 已就緒、熱鍵 / 介面語言已知);預覽端與 `--preview` 啟動不顯示
     if (shouldShowStartupToast({

@@ -3,7 +3,8 @@
  * 差別:APT 走 WebSocket broadcast,這裡用 `send('updater-state')`(`Broadcaster`,也送預覽 client)+ `handlers()` 登錄表。
  * 狀態機與旗標規則在 `updater-core.ts`(純邏輯,有測試);這裡只注入真的 `autoUpdater` / `app`。
  *
- * - 啟動後第一次收到 host-config 時檢查一次(`checkAtStartup`,同時帶入設定 `autoUpdate`),之後每 16 小時。
+ * - 啟動後第一次收到 host-config 時檢查一次(`checkAtStartup`,同時帶入設定 `autoUpdate`),之後每 2 小時(第 34 步,原本 16 小時;
+ *   `periodicCheck`:已下載 / 下載中 / `--no-updates` / 開發模式不檢查)。有新版時右下角每 10 分鐘提醒(`update-reminder.ts`)。
  * - `--no-updates`:連檢查都不做(`disabled-by-flag`)。
  * - 開發模式(`VITE_DEV_SERVER_URL`)不檢查,只記 log;`--force-update-check` 可繞過(會讀 main/dev-app-update.yml,
  *   離線驗證用,見 `main/dev-app-update.yml.example` 與 `scripts/make-fake-update-feed.mjs`)。
@@ -27,11 +28,9 @@
 import { app } from 'electron'
 import { autoUpdater } from 'electron-updater'
 import type { HandlerTable } from './host-handlers'
-import { UpdaterCore, type SendUpdaterState, type UpdaterLike } from './updater-core'
+import { UPDATE_RECHECK_INTERVAL_MS, UpdaterCore, type SendUpdaterState, type UpdaterLike } from './updater-core'
 
 export type { SendUpdaterState } from './updater-core'
-
-const CHECK_INTERVAL_MS = 16 * 60 * 60 * 1000
 
 export class AppUpdater extends UpdaterCore {
   constructor (send: SendUpdaterState) {
@@ -58,7 +57,8 @@ export class AppUpdater extends UpdaterCore {
       },
       send
     })
-    setInterval(() => { void this.check() }, CHECK_INTERVAL_MS).unref()
+    // 第 34 步:常駐時每 2 小時重新檢查(原本 16 小時;開著不關也收得到新版 → 提醒)。條件見 `shouldPeriodicCheck`
+    setInterval(() => { this.periodicCheck() }, UPDATE_RECHECK_INTERVAL_MS).unref()
   }
 
   /** 四個 IPC handler(由 main.ts 併入 `host-handlers.ts` 的登錄表;ipcMain 與瀏覽器預覽共用)。 */

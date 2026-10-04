@@ -43,6 +43,8 @@ const api: HostApi = {
   downloadUpdate: () => ipcRenderer.invoke('updater-download'),
   installUpdate: () => ipcRenderer.invoke('updater-install'),
   onUpdaterState: (cb: (info: UpdaterInfo) => void) => subscribe('updater-state', cb),
+  // 第 34 步:更新提醒「略過此版本」→ renderer 寫設定
+  onUpdateReminderSkip: (cb: (version: string) => void) => subscribe<string>('update-reminder-skip', cb),
   // 自己(Electron 視窗)存的設定也會被廣播回來,這裡略過;只轉交預覽分頁存的
   onConfigChanged: (cb: (e: ConfigChangedEvent) => void) => subscribe<ConfigChangedEvent>('config-changed', (e) => {
     if (e?.source !== 'electron') cb(e)

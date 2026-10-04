@@ -104,6 +104,10 @@ export interface Config {
   autoUpdate: boolean
   /** 啟動時短暫顯示「已在背景執行」提示(預設 true;main/src/startup-toast.ts)。 */
   startupToast: boolean
+  /** 第 34 步:有新版本時每 10 分鐘在右下角提醒(預設 true;舊設定檔沒有 = 開;main/src/update-reminder.ts)。 */
+  updateReminder: boolean
+  /** 第 34 步:提醒裡按「略過此版本」的版號(main 經 `update-reminder-skip` 事件寫進來;同版號不再提醒,新版號照常)。 */
+  updateSkippedVersion: string | null
   /**
    * 第五輪 30.5:硬體加速(預設 false = 改版前一律關)。main 在 app ready 前同步讀設定檔決定(main/src/hw-accel.ts),
    * 改了要重新啟動才生效;不進 host-config。
@@ -169,6 +173,14 @@ export const DEFAULT_HOTKEY_OCR_REVEAL = 'Ctrl + Shift + R'
 /** 第 25 步:OCR 辨識語言設定正規化(只認 `cmn-Hant` / `en`,其餘 / 缺欄位 → `follow` = 跟隨客戶端語言) */
 export function normOcrLang (v: unknown): OcrLangSetting {
   return v === 'cmn-Hant' || v === 'en' ? v : 'follow'
+}
+
+/**
+ * 第 34 步:「略過此版本」的版號正規化:`x.y.z`(可帶後綴,最多 40 字)才算數,其他 → null。
+ * 與 main `update-reminder.ts` `normSkippedVersion` 同規則(`renderer/test/update-reminder-config.test.ts` 對照)。
+ */
+export function normSkippedVersion (v: unknown): string | null {
+  return typeof v === 'string' && v.length <= 40 && /^\d+\.\d+\.\d+[0-9A-Za-z.+-]*$/.test(v) ? v : null
 }
 
 /** OCR 範圍:四個 0–1 的有限數且寬高 > 0 才算數,其餘 → null(整個畫面)。 */
@@ -295,6 +307,8 @@ function createConfig (): Config {
     hotkeyRuneshapeRegion: '',
     autoUpdate: true,
     startupToast: true,
+    updateReminder: true,
+    updateSkippedVersion: null as string | null,
     hardwareAcceleration: false,
     commands: defaultCommands(),
     stashSearch: [] as StashSearchEntry[],
@@ -358,6 +372,8 @@ function serialize (): string {
     hotkeyRuneshapeRegion: config.hotkeyRuneshapeRegion,
     autoUpdate: config.autoUpdate,
     startupToast: config.startupToast,
+    updateReminder: config.updateReminder,
+    updateSkippedVersion: config.updateSkippedVersion,
     hardwareAcceleration: config.hardwareAcceleration,
     commands: config.commands,
     stashSearch: config.stashSearch,
@@ -455,6 +471,9 @@ function applyLoaded (raw: string) {
   config.autoUpdate = loaded.autoUpdate !== false
   // 啟動提示:舊設定檔沒有 → 預設開;只有明確 false 才關
   config.startupToast = loaded.startupToast !== false
+  // 第 34 步:更新提醒(舊設定檔沒有 → 開;只有明確 false 才關)、略過的版號(壞值 → null)
+  config.updateReminder = loaded.updateReminder !== false
+  config.updateSkippedVersion = normSkippedVersion(loaded.updateSkippedVersion)
   // 第五輪 30.5:硬體加速:舊設定檔沒有 → 關(改版前行為);只有明確 true 才開
   config.hardwareAcceleration = loaded.hardwareAcceleration === true
   // 聊天指令:舊設定檔沒有 → APT 預設六條;倉庫搜尋 → 空
@@ -529,6 +548,8 @@ export function hostConfigOf (c: Config, regexHotkeys: readonly RegexBookmarkHot
     hotkeyRuneshapeRegion: c.hotkeyRuneshapeRegion,
     autoUpdate: c.autoUpdate,
     startupToast: c.startupToast,
+    updateReminder: c.updateReminder,
+    updateSkippedVersion: c.updateSkippedVersion,
     commands: c.commands.map(x => ({ ...x })),
     stashSearch: c.stashSearch.map(s => ({ ...s })),
     stashScroll: c.stashScroll,
@@ -593,6 +614,14 @@ export async function initConfig (): Promise<void> {
       console.log(`[app] config-changed from ${source}:已套用`)
     } catch (e) {
       console.error('[app] config-changed 內容無法解析,略過', e)
+    }
+  })
+  // 第 34 步:更新提醒按了「略過此版本」(main 已立即生效;這裡寫進設定,下次啟動也記得)
+  Host.onUpdateReminderSkip((version) => {
+    const v = normSkippedVersion(version)
+    if (v && config.updateSkippedVersion !== v) {
+      console.log(`[app] 更新提醒:略過 v${v}`)
+      config.updateSkippedVersion = v
     }
   })
   // main 偵測到另一款遊戲(window 模式;overlay 模式 main 直接寫設定並重新啟動)

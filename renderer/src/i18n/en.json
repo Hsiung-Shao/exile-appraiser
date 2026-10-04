@@ -430,6 +430,8 @@
       "auto": "Automatic updates",
       "auto_hint": "When on, new versions download in the background and install when you quit the app, so the next launch is up to date. When off, press Download and Install yourself.",
       "auto_hint_portable": "The portable build cannot update itself; this option only affects the installed version.",
+      "reminder": "Remind me when an update is available",
+      "reminder_hint": "When a new version is available, a reminder appears in the bottom-right corner about every 10 minutes (Later or Skip this version). Nothing appears when you are up to date.",
       "current": "Current version {version}"
     },
     "report": {

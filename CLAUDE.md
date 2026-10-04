@@ -93,6 +93,13 @@ Path of Exile 查價工具(Electron + TypeScript)。把 `apt-patched`(Awakened P
     褻瀆 / 符文暫停熱鍵按下顯示「褻瀆辨識:已啟動 / 已暫停」等通知(`scanToastMessage`,`--toast-selftest --toast-scan=reveal:on,rune:paused`);
     所有提示共用一個視窗(`presentToast`,畫面上已有就換內容重新計時)。兩個暫停熱鍵相同 → `shortcut-actions.ts` 合併成 `scan-toggle-both`
     (`nextScanPaused`:任一在執行 → 全停,全停 → 全開),設定頁 `hotkey-conflicts.ts` 標 `shared` 不標重複(docs/reveal-ocr.md)。
+    **更新提醒(第 34 步,2026-10-04)**:`main/src/update-reminder.ts`(純邏輯)+ `main.ts` `showUpdateReminder`:有新版(`downloaded` → 安裝;`available` 安裝版 → 開關於並下載;
+    `available` portable → Releases 頁;版號取自 updater 回報)時右下角立刻一次、之後每 10 分鐘(「稍後」/ 約 8 秒淡出,滑鼠停住暫停淡出),「略過此版本」存設定 `updateSkippedVersion`
+    (main 送 `update-reminder-skip` → renderer 寫檔,不在 `PREVIEW_EVENTS`);**沒有新版絕不彈**;設定 › 關於 `updateReminder`(預設開)、`--preview` / selftest / 安裝中不彈。
+    提醒是**可點擊**的獨立視窗(`focusable: false` + `showInactive`,不搶焦點,不經 overlay → 不受 30.4 閒置隱藏影響);頁面無腳本,按鈕 = `https://ppz-reminder.invalid/<動作>` 連結,
+    main `will-navigate` 攔下判斷(⚠ 不可改回 `#` 錨點:data: 頁面不發 `did-navigate-in-page`)。與一般提示同位置:一般提示優先(提醒收回、稍後再出),提醒等其他提示結束才出現。
+    常駐期間每 2 小時重新檢查更新(`UpdaterCore.periodicCheck` / `shouldPeriodicCheck`;原本 16 小時)。開發模式 `install()` 一律拒絕(假 feed 的假 exe)。
+    `scripts/make-fake-update-feed.mjs` 預設版號 = package.json patch + 1(原本寫死 3.29.1)。驗證參數(非 packaged):`--reminder-interval-ms=`、`--reminder-auto=later,skip`、`--toast-display=secondary`(docs/release-flow.md「更新提醒」)。
 13. **一鍵回報不含 accountName**(`feedback.ts` 也會遞迴剝掉 account/token/cookie 類鍵);只開預填網址,不自動上傳。
 14. **派工/驗證禁止合成鍵盤/滑鼠輸入**(SendInput、uiohook 模擬、PowerShell SendKeys 等):GUI 行為由使用者實測,自動驗證只用 log、DOM 錨點、`--window` 無輸入啟動。
     聊天指令 / 倉庫搜尋(`text-box.ts`)在執行期會對遊戲送鍵,**驗證只准注入假 keyTap / 假剪貼簿的單元測試**,不得為了驗證真的觸發。
@@ -219,6 +226,7 @@ node scripts/perf-scenario.mjs --game <遊戲行程名> --hwaccel off --label <�
   篩選 tag 清單 / 關鍵字 / seq 合併 / 自動捲動判定,以及 **IPC 登錄表守門**(`log-get` 預覽可讀、`log-open-folder` `preview: false` 且不在預覽方法表、`log-lines` 不在 `PREVIEW_EVENTS`、preload 對應、`captureConsole` 只出現一次)。
 - 第 29 步(效能量測):`main/test/perf-monitor.test.ts`(卡頓探針、行程加總、掃描速率、情境鍵矩陣、JSONL / 摘要格式、關著零計時器 / 監聽、perf 檔輪替 / 清除只動 perf 檔、GameDetector / PanelScan 計數、IPC 守門)、`main/test/perf-scenario-script.test.ts`(腳本參數、行程樹、CPU / GPU 換算、PresentMon CSV、Markdown 表、量測腳本只讀)、`renderer/test/perf-section.test.ts`(字串兩語、接線、開關不進 config)。
 - `main/test/updater-core.test.ts`:自動更新狀態轉移(假 updater 模仿 electron-updater 下載完成才註冊 quit handler)、`autoUpdate` 開關、portable / `--no-updates` / 開發模式、錯誤分類。
+- 第 34 步(更新提醒):`main/test/update-reminder.test.ts`(假時鐘排程:無新版不彈、立刻一次 + 10 分鐘間隔、稍後、略過版號 / 新版號再提醒、安裝後停止、開關、blocked、暫時狀態、其他提示延後 / 打斷;淡出 hover 暫停;字串兩語與版號來源;HTML 按鈕網址;定期重新檢查 2 小時;開發模式不安裝;假 feed 預設版號;接線守門)、`renderer/test/update-reminder-config.test.ts`(設定往返、`normSkippedVersion` 與 main 逐字相同、關於頁開關、字串、略過事件接線)。
 - `main/test/startup-toast.test.ts`:啟動提示是否顯示、更新後首次(版本比較 / `last_run.json`)、訊息組字(熱鍵、兩語)、HTML 跳脫與 CSP、位置、第 16 步遊戲啟動提示判斷(`shouldShowGameAttachToast`)與辨識開關通知(`scanToastMessage`);`renderer/test/startup-toast-config.test.ts`:`startupToast` 設定往返。
 - code review 第 C 批:`renderer/test/scan-layer.test.ts`(掃描層共用接線:例外照樣 ack、重排後 ack、外觀 / 字級 / 語言重報、ResizeObserver、resend 保留、兩元件不再各自接線)、`host-config-sync.test.ts`(`settled()`、`HOST_CONFIG_IMMEDIATE_KEYS` 與 main `scanConfigKey` 一致、狀態列時序)、`settings-window-geom.test.ts`(Teleport 對話框 `fs-own`)。
 - code review 第 B 批:`main/test/overlay-shot.test.ts`(重讀 bounds、鎖存 / 30 秒再試 / reset / bounds 改變)、`game-detector.test.ts`(否決 10 秒下限、detach 失效)、`host-config-dedupe.test.ts`(註冊失敗不去重)、`startup-toast.test.ts`(`toastWorkArea`)、`system-fonts.test.ts`(負快取)、`cli-flags.test.ts`(`--capture-bench` 只給非 packaged、main.ts 動態 import 守門)、`runeshape-scan.test.ts`(`resendRows`);`renderer/test/scan-mask.test.ts`(`resend`、`createResendTracker`)、`background.test.ts`(`createResizeSettle`)、`host-fetch.test.ts`(ninja `timeoutMs` 120 秒轉交);`poe2/test/web/price-check/trade/display-zh.test.ts`(off 不載、不阻塞、重用記憶體語系與直接讀檔深度相同)。

@@ -1,7 +1,7 @@
 # 發版流程(GitHub Releases + 自動更新)
 
 自動更新由 `main/src/AppUpdater.ts`(electron-updater,GitHub provider;狀態機在 `updater-core.ts`)負責:
-啟動後檢查一次、之後每 16 小時,讀 `https://github.com/Hsiung-Shao/exile-appraiser/releases/latest` 的 `latest.yml`。
+啟動後檢查一次、之後每 2 小時(第 34 步,原本 16 小時;已下載 / 下載中 / `--no-updates` / 開發模式不重新檢查,失敗只記 log),讀 `https://github.com/Hsiung-Shao/exile-appraiser/releases/latest` 的 `latest.yml`。
 - **設定 `autoUpdate`(預設開,設定 › 關於)+ 安裝版**:檢查到新版就在背景下載 → 關於頁顯示「已下載 vX,結束程式時自動套用」
   → 使用者**正常結束**程式(托盤「結束」、設定「結束程式」、`--quit`)時靜默執行安裝程式,下次啟動即新版;
   「立即重啟並更新」= `quitAndInstall(true, true)`(靜默安裝後自動啟動)。前提與取捨見 AppUpdater.ts 檔頭(2026-09-30 使用者裁定)。
@@ -70,13 +70,39 @@
 - 自我測試(不送任何輸入):`npx electron main/dist/main.js --toast-selftest <out.png> [--toast-lang=en] [--toast-updated] [--toast-hotkey=Ctrl + D] [--toast-scan=reveal:on,rune:paused]`
   → 開出提示視窗(不動畫、不自動關)、`webContents.capturePage()` 存 PNG、印 bounds / focusable 後結束。`--toast-scan` = 辨識開關通知(一項一行)。
 
+## 更新提醒(第 34 步,2026-10-04 使用者需求)
+有可更新的新版時,右下角(與啟動提示同位置、遊戲所在螢幕)約每 10 分鐘提醒一次;**沒有新版絕不出現**。
+純邏輯 `main/src/update-reminder.ts`(`main/test/update-reminder.test.ts`),視窗在 `main.ts` `showUpdateReminder`。
+- 觸發(`reminderTarget`,版號取自 updater 回報的 `version`,不是寫死):
+  `downloaded`(`autoUpdate` 開會自動下載完)→「立即更新」= 安裝(`autoUpdate` 開 = `quitAndInstall(true, true)`,關 = 顯示安裝程式);
+  `available` 安裝版(`autoUpdate` 關)→「立即更新」= 開設定 › 關於並開始下載;`available` portable(`not-supported`,檢查照做,只是不能就地安裝)→「前往 Releases」開 Release 頁。
+  `initial` / `not-available` / `downloading` / `--no-updates` → 不提醒;`checking` / `error`(定期重新檢查中、網路斷)沿用上一個目標。
+- 時機(`UpdateReminderScheduler`):偵測到新版(或版號 / 動作改變)立刻一次,之後每 10 分鐘;「稍後」與約 8 秒自動淡出都是 10 分鐘後再來;
+  滑鼠停在提醒上時暫停淡出(main 每 200 ms 看游標、CSS `:hover` 暫停動畫);「略過此版本」= 存設定 `updateSkippedVersion`,同版號不再提醒,更新的版號照常。
+  畫面上已有其他提示(啟動提示、遊戲啟動提示、辨識開關通知、正則貼上提示)→ 延後 1.5 秒重試;提醒顯示中來了其他提示 → 提醒收回、等那個提示結束再出現(同位置不疊兩個)。
+  按「立即更新」安裝 / 程式結束中 → 停止。設定 › 關於「有新版本時定期提醒」(`updateReminder`,預設開,舊設定檔沒有 = 開)關掉 → 不提醒。`--preview` 啟動、selftest 不提醒。
+- 視窗:同啟動提示的外殼(無框、透明、置頂、`focusable: false` + `showInactive` 不搶遊戲焦點),但**可點擊**(不設點擊穿透);
+  頁面仍無腳本、CSP `default-src 'none'`;三個按鈕是連到 `https://ppz-reminder.invalid/{now,later,skip}` 的連結,main `will-navigate` 攔下(preventDefault)判斷按了哪個,永遠不會真的連線。
+  ⚠ 不可改回同頁錨點 `#…`:data: URL 頁面的錨點導覽不發 `did-navigate-in-page`(dev 實測按鈕完全沒反應)。
+  獨立視窗,不經 overlay → 不受第 30.4 步 overlay 閒置隱藏影響。
+- 略過的版號:main 立即生效,並送事件 `update-reminder-skip`(不在 `PREVIEW_EVENTS`)→ renderer 寫進設定 `updateSkippedVersion`(下次啟動 host-config 帶回)。
+- 截圖:`npx electron main/dist/main.js --toast-selftest <png> --toast-update=install|download|releases [--toast-lang=en] [--toast-update-version=x.y.z] [--toast-update-manual]`
+  (所有 `--toast-selftest` 截圖視窗都畫在副螢幕;沒有副螢幕 → 主螢幕)。
+
 ## 離線驗證(不需 GitHub)
 ```bash
-node scripts/make-fake-update-feed.mjs --serve 45678 --write-dev-config   # 假 latest.yml 3.29.1 + 假 exe,寫 main/dev-app-update.yml
-npm run dev:main -- --window --force-update-check                           # log 應出現 updater-state available 3.29.1
+node scripts/make-fake-update-feed.mjs --serve 45678 --write-dev-config   # 假 latest.yml(版號 = package.json 的 patch + 1,例 0.1.2 → 0.1.3;--version 可覆寫)+ 假 exe,寫 main/dev-app-update.yml
+npm run dev:main -- --window --force-update-check                           # log 應出現 updater-state downloading / downloaded 0.1.3(autoUpdate 關 = available 0.1.3)
 ```
-驗完刪 `main/dev-app-update.yml`(已 gitignore)。portable 模擬:啟動前設環境變數 `PORTABLE_EXECUTABLE_DIR` → `reason=not-supported`。
-(這條路是假 exe,只驗到 `available`;真的下載 / 安裝要走下面的「本機實測」。)
+驗完刪 `main/dev-app-update.yml`(已 gitignore)與 `%LOCALAPPDATA%\exile-appraiser-updater-dev`(假 exe 下載快取)。portable 模擬:啟動前設環境變數 `PORTABLE_EXECUTABLE_DIR` → `reason=not-supported`。
+(這條路是假 exe;開發模式 `install()` 一律拒絕執行(第 34 步起),結束時也不套用。真的下載 / 安裝要走下面的「本機實測」。)
+⚠ `npm run dev:main -- <參數>` 經兩層 npm,參數會被 npm 吃掉(只剩警告 `Unknown cli config`),實際以預設 userData 啟動;
+要帶 `--user-data-dir` 等參數時,先建出開發版 main/dist,再直接在 `main/` 執行 `electron . <參數>`。
+
+更新提醒的開發版驗證參數(只在非 packaged 接受,`cli-flags.ts` `reminderDevOptions`):
+`--reminder-interval-ms=20000`(縮短間隔)、`--reminder-auto=later,skip`(每次出現約 2 秒後依序在頁面內 DOM click 該按鈕;**只准 later / skip**,絕不代按立即更新)、
+`--toast-display=secondary`(提示畫在副螢幕)。2026-10-04 實測(假 feed 0.1.3、另開 `--user-data-dir`):downloaded 0.1.3 → 立刻提醒 #1 → 代按稍後 → 20 秒後 #2 → 代按略過
+→ config.json `updateSkippedVersion: "0.1.3"`、之後不再出現;同一 userData 重新啟動 → 不提醒;feed 0.1.2(= 目前版本)→ not-available、不提醒。
 
 ## 本機實測(兩個真的安裝檔,不對外發布)
 用 `scripts/make-local-update-test.mjs` 打包 A(舊)、B(新)兩個 nsis 安裝檔,更新來源指向本機 generic feed

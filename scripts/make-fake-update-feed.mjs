@@ -1,6 +1,7 @@
 // 產生一個假的 electron-updater 更新來源(generic provider),離線驗證 main/src/AppUpdater.ts 用。
 //
-//   node scripts/make-fake-update-feed.mjs [--out <dir>] [--version 3.29.1] [--serve <port>] [--write-dev-config]
+//   node scripts/make-fake-update-feed.mjs [--out <dir>] [--version <x.y.z>] [--serve <port>] [--write-dev-config]
+//   (`--version` 省略 = package.json 版本的 patch + 1,例 0.1.2 → 0.1.3)
 //
 // - 產出 `<out>/latest.yml` + `<out>/ExileAppraiser-Setup-<version>.exe`(隨機內容的假檔,**不可執行、也不會被執行**:
 //   `autoUpdate` 開時會自動下載到 downloaded,但開發模式 `autoInstallOnAppQuit` 恆為 false(updater-core.ts),
@@ -23,7 +24,17 @@ const opt = (name, def) => {
   return i >= 0 && args[i + 1] && !args[i + 1].startsWith('--') ? args[i + 1] : def
 }
 const out = path.resolve(opt('--out', path.join(ROOT, '.fake-update-feed')))
-const version = opt('--version', '3.29.1')
+/**
+ * 預設假版號 = 目前 package.json 版本的 patch + 1(例 0.1.2 → 0.1.3),看起來就是「下一版」;`--version` 可覆寫。
+ * (2026-10-04 第 34 步:原本寫死 APT 時代的 3.29.1,dev 實測的更新提醒顯示「v3.29.1」被誤會成錯誤。)
+ */
+function nextPatchVersion (current) {
+  const m = /^(\d+)\.(\d+)\.(\d+)/.exec(String(current ?? ''))
+  if (!m) throw new Error(`package.json version 無法解析:${current}`)
+  return `${m[1]}.${m[2]}.${Number(m[3]) + 1}`
+}
+const currentVersion = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')).version
+const version = opt('--version', nextPatchVersion(currentVersion))
 const servePort = args.includes('--serve') ? Number(opt('--serve', '45678')) : null
 const writeDevConfig = args.includes('--write-dev-config')
 

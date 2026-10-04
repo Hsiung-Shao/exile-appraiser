@@ -31,6 +31,11 @@
       <label class="chk"><input v-model="config.autoUpdate" type="checkbox" data-setting="auto-update"><span>{{ t('ppz.update.auto') }}</span></label>
     </div>
     <p class="hint" data-about="auto-update-hint">{{ info?.reason === 'not-supported' ? t('ppz.update.auto_hint_portable') : t('ppz.update.auto_hint') }}</p>
+    <!-- 第 34 步:有新版本時每 10 分鐘在右下角提醒(main/src/update-reminder.ts) -->
+    <div class="chk-row">
+      <label class="chk"><input v-model="config.updateReminder" type="checkbox" data-setting="update-reminder"><span>{{ t('ppz.update.reminder') }}</span></label>
+    </div>
+    <p class="hint" data-about="update-reminder-hint">{{ t('ppz.update.reminder_hint') }}</p>
   </section>
 
   <section class="card">

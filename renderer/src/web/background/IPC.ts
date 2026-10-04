@@ -185,6 +185,11 @@ class HostTransport {
     return window.host?.onUpdaterState(cb) ?? (() => {})
   }
 
+  /** 第 34 步:更新提醒「略過此版本」(只有 Electron 視窗;預覽 shim 沒有 → no-op)。 */
+  onUpdateReminderSkip (cb: (version: string) => void): () => void {
+    return window.host?.onUpdateReminderSkip?.(cb) ?? (() => {})
+  }
+
   // ---- 瀏覽器預覽同步(main 在 config-save 後廣播;自己存的不會收到) ----
   onConfigChanged (cb: (e: ConfigChangedEvent) => void): () => void {
     return window.host?.onConfigChanged?.(cb) ?? (() => {})

@@ -69,6 +69,21 @@ export function updaterFlags (reason: NoDownloadReason, autoUpdate: boolean, dow
   return { autoDownload: autoUpdate, autoInstallOnAppQuit: downloaded ? autoUpdate : true }
 }
 
+/** 第 34 步:常駐時重新檢查更新的間隔(原本 16 小時)。 */
+export const UPDATE_RECHECK_INTERVAL_MS = 2 * 60 * 60_000
+
+/**
+ * 第 34 步:定期重新檢查該不該做(每 `UPDATE_RECHECK_INTERVAL_MS` 呼叫一次)。
+ * 啟動檢查還沒做過(還沒收到 host-config)、`--no-updates`、開發模式(沒加 `--force-update-check`)、
+ * 已下載(不再檢查,維持「安裝」)、下載中 / 檢查中 → 不檢查。`error` / `not-available` / `available` / `initial` → 檢查。
+ */
+export function shouldPeriodicCheck (s: { startupChecked: boolean, reason: NoDownloadReason, isDev: boolean, forceCheck: boolean, state: UpdaterInfo['state'] }): boolean {
+  if (!s.startupChecked) return false
+  if (s.reason === 'disabled-by-flag') return false
+  if (s.isDev && !s.forceCheck) return false
+  return s.state !== 'downloaded' && s.state !== 'downloading' && s.state !== 'checking'
+}
+
 /** 錯誤只取第一行(electron-updater 的訊息常夾整份 HTTP 回應標頭),並粗分 404 / 網路 / 其他。 */
 export function classifyError (err: unknown): { error: string, errorKind: NonNullable<UpdaterInfo['errorKind']> } {
   const raw = err instanceof Error ? err.message : String(err)
@@ -178,6 +193,19 @@ export class UpdaterCore {
     void this.check()
   }
 
+  /**
+   * 第 34 步:常駐期間定期重新檢查(`AppUpdater` 每 2 小時呼叫;原本 16 小時)。條件見上方 `shouldPeriodicCheck`:
+   * 啟動檢查做過之後才開始、已下載 / 下載中 / 檢查中 / `--no-updates` / 開發模式不檢查(不寫 log);失敗只由 'error' 事件記 log。
+   */
+  periodicCheck (): boolean {
+    const go = shouldPeriodicCheck({ startupChecked: this._checkedAtStartup, reason: this.reason, isDev: this.isDev, forceCheck: this.forceCheck, state: this._info.state })
+    if (go) {
+      this.log(`[updater] 定期重新檢查(state=${this._info.state})`)
+      void this.check()
+    }
+    return go
+  }
+
   check = async (): Promise<void> => {
     if (this.updatesDisabled) {
       this.log('[updater] --no-updates:不檢查')
@@ -223,6 +251,11 @@ export class UpdaterCore {
    */
   install () {
     if (this._info.state !== 'downloaded') return
+    if (this.isDev) {
+      // 開發模式下載的是 make-fake-update-feed 的假 exe:絕不執行(第 34 步起提醒視窗也能觸發安裝)
+      this.log('[updater] 開發模式不執行安裝程式(假更新來源)')
+      return
+    }
     const silent = this._autoUpdate
     this.log(`[updater] quitAndInstall(${silent ? 'silent, run after' : 'interactive'})`)
     if (silent) this.deps.updater.quitAndInstall(true, true)
