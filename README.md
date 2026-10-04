@@ -8,8 +8,6 @@
 
 Path of Exile 1 / 2 查價工具:在遊戲裡把滑鼠移到物品上按熱鍵,官方交易站的查價結果直接在游標旁彈出。支援國際服與台服、繁體中文與英文客戶端。
 
-> 前身名稱 `poe-price-zh`;舊版的設定會在第一次啟動時自動搬過來。
-
 ## 下載
 
 僅支援 **Windows**。到 **[Releases 最新版](https://github.com/Hsiung-Shao/exile-appraiser/releases/latest)** 下載:
