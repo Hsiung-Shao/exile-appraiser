@@ -13,15 +13,17 @@
 //
 // 片段 = [錨點 ^] 前文 P + [\+?] + 數值 + 後文 S [錨點 $]:
 //   * 數值 = numeric.ts `readableRangeRegex`(只寫 `[0-9]`;≥ 開放上界 `[1-9][0-9]{n,}`)。
-//   * P = 模板中 `#` 前文字的最短尾段、S = `#` 後文字的最短前段(含 `%`),兩者合計最短且**全部模板語料唯一**。
-//     不夠時才用行首 `^`(P = 整段前文)/ 行尾 `$`(S = 整段後文)錨點(PobTools 產生器同樣以行為單位使用 `^` / `$`)。
+//   * **預設整行**(協調者裁定,使用者 2026-10-04「寧可多幾個字也要好讀」):P = `#` 前整段文字 + 行首 `^`、S = `#` 後整段文字 + 行尾 `$`
+//     (例 `^\+?N 最大生命$`、`^增加 \+?N% 移動速度$`;PobTools 產生器同樣以行為單位使用 `^` / `$`)。
+//     只有整行超過長度上限時才往回縮:先拿掉錨點、再從 P 的開頭 / S 的結尾**以詞為單位**縮(詞界 = 空白與標點,`isWordBreak`;
+//     繁中沒有標點就不縮 —— 寧可整條不收),縮最少、且仍**全部模板語料唯一**的那個。不在詞中間截斷。
 //   * 邊界:≥ 不需要(片段吃到的若只是數字的一段,整個數字只會更大);≤ / 區間在沒有 P 時補前界 `(^|[^0-9])`、
 //     沒有 S 時補後界 `([^0-9]|$)`(與第 35 步 `strictPropertyFragment` 同一套)。
 //   * `\+?`:模板(英文 ref 或該語言模板)寫 `+#`,或 P 不是空的(P 與數字之間可能夾 `+`)時加上。
 // 唯一性(`buildModIndex`,結構化判斷,不逐值列舉):把該語言**全部** stat 的全部 matcher 行(含 negate / 固定值 / 偽詞綴)
 //   拆成「數字位置」(`#` 或字面數字串),片段要能命中某行,必須在某個數字位置「前文以 P 結尾、後文以 S 開頭」;
 //   與自己文字完全相同的行(同字的區域 / 全域詞綴、偽詞綴)不算衝突。判斷時去掉數字前的 `+`、英文摺小寫(都只會多算衝突)。
-//   P / S 不跨過數字(含數字的片段不保證唯一,改取另一側或錨點);P + S 超過 40 字就不提供該詞綴(排除原因 `too_long`)。
+//   別行的 `#` 對上 P / S 裡的數字一律當衝突(保守);縮到詞界仍超過上限(繁中 40 / 英文 60)就不提供該詞綴(排除原因 `too_long`)。
 //   regex/test/item-mods.test.ts 另以真正的 RegExp 對全部模板行逐一驗證(自身 0–999 逐值、其他行數值任意)。
 // 已知限制(UI 註明、文件記錄):數值只認整數(小數詞綴 `dp` 不收);負值(「-5% 火焰抗性」)在 ≥ 條件下會被當成正數命中。
 import { readableRangeRegex } from '../numeric'
@@ -42,7 +44,7 @@ export const ITEM_MOD_TRADE_CATS = ['explicit', 'implicit', 'crafted', 'fracture
 
 /**
  * P + S(含跳脫與錨點)的長度上限;超過就不提供(排除原因 too_long)。
- * 英文字較長(同樣的辨識度約要 1.5 倍字數):繁中 40、英文 60 —— 英文 40 會多排除 ~460 條(例「#% additional Physical Damage Reduction while Focused」)。
+ * 英文字較長(同樣的辨識度約要 1.5 倍字數):繁中 40、英文 60(整行預設下,英文多數排除都是超過 60 字又縮不到詞界內)。
  */
 export const MAX_ANCHOR_TEXT: Readonly<Record<RegexLang, number>> = { zh: 40, en: 60 }
 
@@ -170,22 +172,14 @@ interface Run {
   line: number
   before: string
   after: string
-  /** before 反轉(依它排序,找最長共同尾段) */
-  rev: string
 }
 
 export interface ModIndex {
   lines: string[]
   /** 依 after 排序 */
   byAfter: Run[]
-  /** 依 rev 排序 */
-  byRev: Run[]
   lineNo: Map<string, number>
   fold: boolean
-}
-
-function reverse (s: string): string {
-  return [...s].reverse().join('')
 }
 
 /** 一行的全部數字位置:每個 `#` 佔位、每段字面數字串 */
@@ -196,14 +190,14 @@ function runsOf (line: string, idx: number): Run[] {
     const c = line[i]
     if (c === SLOT) {
       const before = line.slice(0, i)
-      out.push({ line: idx, before, after: line.slice(i + 1), rev: reverse(before) })
+      out.push({ line: idx, before, after: line.slice(i + 1) })
       i++
     } else if (isDigit(c)) {
       let j = i
       while (j < line.length && isDigit(line[j])) j++
       // 數字前的 `+` 由片段的 `\+?` 吃掉 → 前文不含它
       const before = line.slice(0, line[i - 1] === '+' ? i - 1 : i)
-      out.push({ line: idx, before, after: line.slice(j), rev: reverse(before) })
+      out.push({ line: idx, before, after: line.slice(j) })
       i = j
     } else i++
   }
@@ -230,8 +224,7 @@ export function buildModIndex (stats: readonly StatLite[], lang: RegexLang): Mod
   const runs: Run[] = []
   lines.forEach((l, i) => { runs.push(...runsOf(l, i)) })
   const byAfter = [...runs].sort((a, b) => cmp(a.after, b.after))
-  const byRev = [...runs].sort((a, b) => cmp(a.rev, b.rev))
-  return { lines, byAfter, byRev, lineNo, fold }
+  return { lines, byAfter, lineNo, fold }
 }
 
 /** 第一個 ≥ key 的位置 */
@@ -259,11 +252,6 @@ function prefixRange (arr: readonly Run[], prefix: string, get: (r: Run) => stri
   return [a, lo]
 }
 
-function commonPrefix (a: string, b: string): number {
-  let n = 0
-  while (n < a.length && n < b.length && a[n] === b[n]) n++
-  return n
-}
 
 const META = '.^$*+?()[]{}|\\'
 /** 片段裡的字面文字跳脫(與 combine.ts escapeTerm 同一組字元) */
@@ -341,7 +329,7 @@ function plainHead (s: string): string {
 }
 
 /**
- * 模板(單一 `#`)→ 最短唯一的 P / S;找不到(或超過 limit)= null。
+ * 模板(單一 `#`)→ P / S:預設整行(行首 + 行尾錨點),超過 limit 才在詞界往回縮;都不唯一 / 都太長 = null。
  * `template` 是該語言原字形模板;`sameLines` = 同一個 stat 的非 negate 模板(含固定值那幾行,例如「1 個附加的天賦為珠寶插槽」),
  * 命中它們不算誤中(就是這個詞綴);negate 行(「減少 #% 移動速度」)仍算衝突。
  */
@@ -366,10 +354,13 @@ export function chooseAnchor (
   const A = ownNorm.slice(at + 1)
   const shownB = shown.slice(0, at)
   const shownA = shown.slice(at + 1)
-  // 只用 P 的快速路徑(反轉前文排序)只在不跨數字時精確
-  let lastDigitB = -1
-  for (let i = B.length - 1; i >= 0; i--) if (isDigit(B[i])) { lastDigitB = i; break }
-  const maxPPlain = B.length - lastDigitB - 1
+  // P 的起點 / S 的終點只能落在詞界(使用者 2026-10-04:寧可多幾個字也要好讀,不在詞中間截斷)
+  const pStarts: number[] = [0]
+  for (let i = 1; i <= shownB.length; i++) if (isWordBreak(shownB[i - 1])) pStarts.push(i)
+  if (!pStarts.includes(shownB.length)) pStarts.push(shownB.length)
+  const sEnds: number[] = []
+  for (let k = 0; k < shownA.length; k++) if (isWordBreak(shownA[k])) sEnds.push(k)
+  sEnds.push(shownA.length)
 
   let best: ModAnchor | null = null
   const consider = (j: number, caret: boolean, k: number, dollar: boolean): void => {
@@ -379,7 +370,8 @@ export function chooseAnchor (
     const plus = plusHint || p.length > 0 || caret
     const cost = escapeFragText(p).length + escapeFragText(s).length + (caret ? 1 : 0) + (dollar ? 1 : 0)
     if (cost > limit) return
-    if (!best || cost < best.cost || (cost === best.cost && p.length < best.p.length)) {
+    // 越完整越好:預設 = 整行(行首 + 行尾錨點);超過上限才往回縮,縮最少的那個
+    if (!best || cost > best.cost || (cost === best.cost && s.length > best.s.length)) {
       best = { p, s, caret, dollar, plus, cost }
     }
   }
@@ -400,17 +392,16 @@ export function chooseAnchor (
     return { j, caret: false }
   }
 
-  /** S(或整段後文 + `$`)的衝突;區間與上一個(較短的)S 相同 = 衝突相同、只會更長 → 'same'(略過) */
-  let prevRange = ''
-  const conflictsOf = (s: string, exact: boolean): Run[] | null | 'same' => {
+  /** S(exact = 整段後文 + `$`)的衝突;區間太大 = null(不考慮這個 S) */
+  const conflictsOf = (s: string, exact: boolean): Run[] | null => {
     const head = plainHead(s)
-    const [a, b] = prefixRange(idx.byAfter, head, r => r.after)
-    if (!exact && head === s) {
-      const key = `${a},${b}`
-      if (key === prevRange) return 'same'
-      prevRange = key
-    }
-    if (b - a > MAX_SCAN) return null
+    let [a, b] = prefixRange(idx.byAfter, head, r => r.after)
+    if (exact && head === s) {
+      // 整段相等:只取完全相同的那一段(後文完全相同的必排在以它開頭的區間最前面)
+      let e = a
+      while (e < b && idx.byAfter[e].after === s) e++
+      b = e
+    } else if (b - a > MAX_SCAN && !exact) return null
     const out: Run[] = []
     for (let i = a; i < b; i++) {
       const r = idx.byAfter[i]
@@ -419,47 +410,26 @@ export function chooseAnchor (
     return out
   }
 
-  // S 由短到長(k = 0 也就是只用 P);S 已經比目前最佳還長就停
-  for (let k = 0; k <= A.length; k++) {
-    if (best && escapeFragText(shownA.slice(0, k)).length >= (best as ModAnchor).cost) break
-    if (k === 0) {
-      // 只用 P:與 B 共同尾段最長的別行 = 依反轉前文排序後插入點兩側最近的「非同一詞綴」那一筆
-      // 前文以整個 B 結尾的別行 = 反轉後以 rb 開頭的區間 [s0, e0)(完全相同的排最前面)
-      const rb = reverse(B)
-      const [s0, e0] = prefixRange(idx.byRev, rb, r => r.rev)
-      let i = s0
-      while (i < e0 && same.has(idx.byRev[i].line)) i++
-      if (i < e0) {
-        // 有別行的前文以整個 B 結尾:完全相同 = 無解;較長 = 要行首錨點
-        if (idx.byRev[i].rev.length !== rb.length && lastDigitB < 0) consider(B.length, true, 0, false)
-        continue
-      }
-      let need = 0
-      for (let d = s0 - 1; d >= 0; d--) {
-        if (same.has(idx.byRev[d].line)) continue
-        need = Math.max(need, commonPrefix(rb, idx.byRev[d].rev) + 1)
-        break
-      }
-      for (let u = e0; u < idx.byRev.length; u++) {
-        if (same.has(idx.byRev[u].line)) continue
-        need = Math.max(need, commonPrefix(rb, idx.byRev[u].rev) + 1)
-        break
-      }
-      if (need <= maxPPlain) consider(need, false, 0, false)
-      continue
+  const trySide = (k: number, dollar: boolean): void => {
+    const list = conflictsOf(A.slice(0, k), dollar)
+    if (!list) return
+    const n = needP(list)
+    if (!n) return
+    for (const start of pStarts) {
+      const j = shownB.length - start
+      if (n.caret) { if (start === 0) consider(j, true, k, dollar); continue }
+      if (j >= n.j) consider(j, false, k, dollar)
+      if (start === 0) consider(j, true, k, dollar)
     }
-    const list = conflictsOf(A.slice(0, k), false)
-    if (!list || list === 'same') continue
-    const n = needP(list)
-    if (n) consider(n.j, n.caret, k, false)
   }
-  // 行尾錨點:S = 整段後文 + `$`
-  const list = conflictsOf(A, true)
-  if (list && list !== 'same') {
-    const n = needP(list)
-    if (n) consider(n.j, n.caret, A.length, true)
-  }
+  trySide(A.length, true)
+  for (const k of sEnds) trySide(k, false)
   return best
+}
+
+/** 詞界:空白與標點(繁中不以單字切,沒有標點就不縮) */
+function isWordBreak (c: string): boolean {
+  return /[\s,，、:：;；。.!！?？()（）「」『』[\]/·]/.test(c)
 }
 
 /** ≤ / 區間上限的定義域(三位數) */
@@ -630,7 +600,7 @@ export function itemModPage (game: RegexGame, data: ItemModData | null): AlgoPag
     title: '物品詞綴數值',
     titleEn: 'Item mod values',
     note: (poe1 ? 'PoE1' : 'PoE2') + ' 物品詞綴(明確 / 固定 / 工藝 / 破裂)的數值條件,每條各自一個 term(同時成立)。模板取自 stats.ndjson,' +
-      '片段 = 數值 + 足以在全部詞綴模板中唯一辨識的最短文字;只收恰好一個數值的詞綴(「附加 # 至 # 火焰傷害」這類不收),小數與負值不支援。',
+      '片段預設是整行模板文字(行首 / 行尾錨點),太長才以詞為單位往回縮,並保證在全部詞綴模板中唯一;只收恰好一個數值的詞綴(「附加 # 至 # 火焰傷害」這類不收),小數與負值不支援。',
     limit: 250,
     groups: ITEM_MOD_CATEGORIES.map(c => c.zh),
     groupsEn: ITEM_MOD_CATEGORIES.map(c => c.en),

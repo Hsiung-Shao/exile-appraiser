@@ -530,8 +530,8 @@
         "expedition_relic_mods": "Expedition relic upsides and downsides. The no-false-hit guarantee only covers this list.",
         "vendor_items": "Links, socket colours, item level, quality, corrupted and influence. Each tick is its own condition (all must hold). The socket rows assume the zh client shows R-G-B untranslated (untested).",
         "vendor_items_poe2": "Item level, quality, corrupted and gem level. Each tick is its own condition (all must hold).",
-        "item_mod_values": "PoE1 item modifier values (explicit, implicit, crafted, fractured). Each tick is its own condition (all must hold). Templates come from stats.ndjson; each fragment is the number plus the shortest text that is unique among all modifier templates.",
-        "item_mod_values_poe2": "PoE2 item modifier values (explicit, implicit, crafted, fractured). Each tick is its own condition (all must hold). Templates come from stats.ndjson; each fragment is the number plus the shortest text that is unique among all modifier templates."
+        "item_mod_values": "PoE1 item modifier values (explicit, implicit, crafted, fractured). Each tick is its own condition (all must hold). Templates come from stats.ndjson; each fragment is the number plus the whole modifier line (shortened word by word only when too long), unique among all modifier templates.",
+        "item_mod_values_poe2": "PoE2 item modifier values (explicit, implicit, crafted, fractured). Each tick is its own condition (all must hold). Templates come from stats.ndjson; each fragment is the number plus the whole modifier line (shortened word by word only when too long), unique among all modifier templates."
       },
       "view_combined": "Selected (combined) · {n}",
       "view_page": "Single list",
@@ -560,7 +560,7 @@
       "imv_count": "Showing {shown} of {total} matches",
       "imv_more": "{n} more match. Type more words or pick a category to narrow it down.",
       "imv_note": "Only modifiers with exactly one number are listed (multi-value ones such as \"Adds # to # Fire Damage\" are not). Whole numbers only: decimal modifiers are left out, and negative values (e.g. \"-5% to Fire Resistance\") count as positive under ≥. Some fragments are anchored to the start / end of the line to keep longer modifiers with the same words out.",
-      "imv_hint": "Each tick is its own condition (all must hold). Editing a value ticks the row. The ≤ / range upper bound is at most 999; ≥ has no upper bound. Each fragment uses the shortest text that is unique among all modifier templates.",
+      "imv_hint": "Each tick is its own condition (all must hold). Editing a value ticks the row. The ≤ / range upper bound is at most 999; ≥ has no upper bound. Each fragment is the whole modifier line by default, shortened word by word only when too long, and never matches another modifier.",
       "op_ge": "≥",
       "op_le": "≤",
       "op_range": "Range",

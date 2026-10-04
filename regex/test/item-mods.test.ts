@@ -97,15 +97,15 @@ describe('排除統計(資料同步後數字變了要看過再改)', () => {
     const summary = (d: ItemModData) => ({ itemStats: d.itemStats, entries: d.entries.length, merged: d.merged, excluded: d.excluded })
     expect(summary(DATA.poe1)).toEqual({
       itemStats: 7550,
-      entries: 4905,
+      entries: 4786,
       merged: 47,
-      excluded: { decimal: 149, multi_value: 2129, multi_form: 86, multiline: 142, missing_lang: 0, no_unique: 4, too_long: 88 }
+      excluded: { decimal: 149, multi_value: 2129, multi_form: 86, multiline: 142, missing_lang: 0, no_unique: 2, too_long: 209 }
     })
     expect(summary(DATA.poe2)).toEqual({
       itemStats: 1847,
-      entries: 1202,
+      entries: 1198,
       merged: 0,
-      excluded: { decimal: 30, multi_value: 441, multi_form: 135, multiline: 35, missing_lang: 2, no_unique: 0, too_long: 2 }
+      excluded: { decimal: 30, multi_value: 441, multi_form: 135, multiline: 35, missing_lang: 2, no_unique: 0, too_long: 6 }
     })
     for (const g of GAMES) {
       const d = DATA[g]
@@ -128,6 +128,38 @@ describe('排除統計(資料同步後數字變了要看過再改)', () => {
         }
       }
     }
+  })
+})
+
+describe('好讀:預設整行、縮只縮在詞界(協調者裁定 2026-10-04)', () => {
+  const isBreak = (c: string | undefined): boolean => c !== undefined && /[\s,，、:：;；。.!！?？()（）「」『』[\]/·]/.test(c)
+  it('P 是 # 前文字的尾段且起點在詞界、S 是 # 後文字的前段且終點在詞界;錨點 = 整段;整行沒超過上限就一定是整行', () => {
+    const bad: string[] = []
+    let full = 0
+    let total = 0
+    for (const g of GAMES) {
+      for (const e of DATA[g].entries) {
+        for (const l of LANGS) {
+          const a = e.anchors[l]
+          const shown = stripPlus(templateOf(e, l))
+          const at = shown.indexOf('#')
+          const B = shown.slice(0, at)
+          const A = shown.slice(at + 1)
+          total++
+          if (!B.endsWith(a.p) || !A.startsWith(a.s)) { bad.push(`不是模板文字:${e.ref} [${l}]`); continue }
+          const pStart = B.length - a.p.length
+          if (pStart > 0 && !isBreak(B[pStart - 1])) bad.push(`P 斷在詞中:${e.ref} [${l}] 「${a.p}」`)
+          if (a.s.length < A.length && !isBreak(A[a.s.length])) bad.push(`S 斷在詞中:${e.ref} [${l}] 「${a.s}」`)
+          if (a.caret && pStart !== 0) bad.push(`^ 但 P 不是整段:${e.ref} [${l}]`)
+          if (a.dollar && a.s.length !== A.length) bad.push(`$ 但 S 不是整段:${e.ref} [${l}]`)
+          const fullCost = escapeFragText(B).length + escapeFragText(A).length + 2
+          if (fullCost <= MAX_ANCHOR_TEXT[l] && !(a.caret && a.dollar)) bad.push(`整行沒超過上限卻縮了:${e.ref} [${l}]`)
+          if (a.caret && a.dollar) full++
+        }
+      }
+    }
+    expect(bad.slice(0, 10)).toEqual([])
+    console.log(`[item-mods] 整行(^…$):${full} / ${total}(詞綴 × 語言)`)
   })
 })
 
@@ -225,16 +257,16 @@ describe('② 自身模板逐值', () => {
 // ---- 常用 10 條 ----
 
 const COMMON: Array<{ ref: string, m: number, zh: string, en: string }> = [
-  { ref: '+# to maximum Life', m: 80, zh: '^\\+?([89][0-9]|[1-9][0-9]{2,}) 最大生', en: '^\\+?([89][0-9]|[1-9][0-9]{2,}) to maximum Life$' },
-  { ref: '+#% to Fire Resistance', m: 30, zh: '^\\+?([3-9][0-9]|[1-9][0-9]{2,})% 火焰抗', en: '^\\+?([3-9][0-9]|[1-9][0-9]{2,})% to Fire Resistance$' },
-  { ref: '+#% to Cold Resistance', m: 30, zh: '^\\+?([3-9][0-9]|[1-9][0-9]{2,})% 冰冷抗', en: '^\\+?([3-9][0-9]|[1-9][0-9]{2,})% to Cold Resistance$' },
-  { ref: '+#% to Lightning Resistance', m: 30, zh: '^\\+?([3-9][0-9]|[1-9][0-9]{2,})% 閃電抗', en: '^\\+?([3-9][0-9]|[1-9][0-9]{2,})% to Lightning Resistance$' },
-  { ref: '+#% to Chaos Resistance', m: 20, zh: '^\\+?([2-9][0-9]|[1-9][0-9]{2,})% 混沌抗', en: '^\\+?([2-9][0-9]|[1-9][0-9]{2,})% to Chaos Resistance$' },
-  { ref: '+#% to all Elemental Resistances', m: 10, zh: '^\\+?[1-9][0-9]{1,}% 全部元', en: '^\\+?[1-9][0-9]{1,}% to all Elemental Resistances$' },
+  { ref: '+# to maximum Life', m: 80, zh: '^\\+?([89][0-9]|[1-9][0-9]{2,}) 最大生命$', en: '^\\+?([89][0-9]|[1-9][0-9]{2,}) to maximum Life$' },
+  { ref: '+#% to Fire Resistance', m: 30, zh: '^\\+?([3-9][0-9]|[1-9][0-9]{2,})% 火焰抗性$', en: '^\\+?([3-9][0-9]|[1-9][0-9]{2,})% to Fire Resistance$' },
+  { ref: '+#% to Cold Resistance', m: 30, zh: '^\\+?([3-9][0-9]|[1-9][0-9]{2,})% 冰冷抗性$', en: '^\\+?([3-9][0-9]|[1-9][0-9]{2,})% to Cold Resistance$' },
+  { ref: '+#% to Lightning Resistance', m: 30, zh: '^\\+?([3-9][0-9]|[1-9][0-9]{2,})% 閃電抗性$', en: '^\\+?([3-9][0-9]|[1-9][0-9]{2,})% to Lightning Resistance$' },
+  { ref: '+#% to Chaos Resistance', m: 20, zh: '^\\+?([2-9][0-9]|[1-9][0-9]{2,})% 混沌抗性$', en: '^\\+?([2-9][0-9]|[1-9][0-9]{2,})% to Chaos Resistance$' },
+  { ref: '+#% to all Elemental Resistances', m: 10, zh: '^\\+?[1-9][0-9]{1,}% 全部元素抗性$', en: '^\\+?[1-9][0-9]{1,}% to all Elemental Resistances$' },
   { ref: '+# to Strength', m: 30, zh: '^\\+?([3-9][0-9]|[1-9][0-9]{2,}) 力量$', en: '^\\+?([3-9][0-9]|[1-9][0-9]{2,}) to Strength$' },
   { ref: '+# to Dexterity', m: 30, zh: '^\\+?([3-9][0-9]|[1-9][0-9]{2,}) 敏捷$', en: '^\\+?([3-9][0-9]|[1-9][0-9]{2,}) to Dexterity$' },
-  { ref: '+# to Intelligence', m: 30, zh: '^\\+?([3-9][0-9]|[1-9][0-9]{2,}) 智慧$', en: '^\\+?([3-9][0-9]|[1-9][0-9]{2,}) to I' },
-  { ref: '#% increased Movement Speed', m: 25, zh: '^增加 \\+?(2[5-9]|[3-9][0-9]|[1-9][0-9]{2,})% 移', en: '^\\+?(2[5-9]|[3-9][0-9]|[1-9][0-9]{2,})% increased Movement Speed$' }
+  { ref: '+# to Intelligence', m: 30, zh: '^\\+?([3-9][0-9]|[1-9][0-9]{2,}) 智慧$', en: '^\\+?([3-9][0-9]|[1-9][0-9]{2,}) to Intelligence$' },
+  { ref: '#% increased Movement Speed', m: 25, zh: '^增加 \\+?(2[5-9]|[3-9][0-9]|[1-9][0-9]{2,})% 移動速度$', en: '^\\+?(2[5-9]|[3-9][0-9]|[1-9][0-9]{2,})% increased Movement Speed$' }
 ]
 
 describe('PoE1 常用 10 條', () => {
@@ -417,6 +449,6 @@ describe('③ 書籤 / 分享碼 / 合併', () => {
       pages: combineSels(pages, { [page.id]: [life, fire], map_mods: [0, 1] }, { [page.id]: { [page.entries[life].id]: { min: 80 } } })
     })
     expect(r.conflicts.filter(c => c.kind === 'fragment')).toEqual([])
-    expect(r.query).toContain('"^\\+?([89][0-9]|[1-9][0-9]{2,}) 最大生"')
+    expect(r.query).toContain('"^\\+?([89][0-9]|[1-9][0-9]{2,}) 最大生命$"')
   })
 })
