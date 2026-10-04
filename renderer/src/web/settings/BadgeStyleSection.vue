@@ -1,5 +1,6 @@
 <!--
-  設定 › 熱鍵與視窗:「徽章外觀」卡片(第 11 步,使用者需求;放在褻瀆 / 符文兩張 OCR 卡片之後,只有 PoE2)。
+  設定 › 自動辨識:「徽章外觀」卡片(第 11 步,使用者需求;放在褻瀆 / 符文兩張 OCR 卡片之後,只有 PoE2)。
+  第 39 步:符文價格的顏色門檻(`runeshapeThresholds`,原本在符文塑形卡片)搬來和三段顏色放在一起(「符文價格顏色」小節)。
   符文價格徽章與褻瀆徽章共用 `config.ocrBadgeStyle`(overlay/badge-style.ts):
   - 字體:系統已安裝字體(main IPC `list-fonts`,一次性 PowerShell、快取;失敗 = 只剩「跟隨介面」與內建 Noto Sans TC),上方篩選框;
   - 大小:10–32 px 滑桿 +「跟隨」(null = 褻瀆跟 `--fs-base`、符文跟 `--fs-sm`);粗體;
@@ -10,8 +11,11 @@
 -->
 <template>
   <section class="card badge-style-card" data-setting="badge-style-section">
-    <span class="label">{{ t('ppz.badge_style.section') }}</span>
-    <p class="hint">{{ t('ppz.badge_style.hint') }}</p>
+    <div class="card-head">
+      <span class="label">{{ t('ppz.badge_style.section') }}</span>
+      <help-tip id="badge-style" :text="t('ppz.badge_style.help')" />
+    </div>
+    <p class="lead">{{ t('ppz.badge_style.hint') }}</p>
     <div class="srow">
       <span class="k">{{ t('ppz.badge_style.font') }}</span>
       <div class="ctl bs-font">
@@ -45,6 +49,17 @@
         </select>
       </div>
     </div>
+    <span class="sublabel" data-setting="badge-price-colors">{{ t('ppz.badge_style.price_colors') }} <help-tip id="badge-tiers" :text="t('ppz.badge_style.tier_hint')" /></span>
+    <div class="srow">
+      <span class="k">{{ t('ppz.runeshape.thresholds') }}</span>
+      <div class="ctl">
+        <span class="dim">{{ t('ppz.runeshape.threshold_low') }}</span>
+        <input v-model.lazy.number="thresholdDraft.low" class="input sm rs-num" type="number" min="0" step="0.1" data-setting="runeshape-threshold-low" @change="applyThresholds">
+        <span class="dim">{{ t('ppz.runeshape.threshold_high') }}</span>
+        <input v-model.lazy.number="thresholdDraft.high" class="input sm rs-num" type="number" min="0" step="0.5" data-setting="runeshape-threshold-high" @change="applyThresholds">
+        <span class="dim">{{ t('ppz.runeshape.unit_ex') }}</span>
+      </div>
+    </div>
     <div v-for="k in tiers" :key="k" class="srow">
       <span class="k">{{ t(`ppz.badge_style.tier_${k}`) }}</span>
       <div class="ctl">
@@ -54,7 +69,6 @@
         <button class="btn ghost sm" :data-action="`badge-color-reset-${k}`" :disabled="!style.tierColors[k]" @click="style.tierColors[k] = null">{{ t('ppz.badge_style.color_reset') }}</button>
       </div>
     </div>
-    <p class="foot">{{ t('ppz.badge_style.tier_hint') }}</p>
 
     <div ref="preview" class="badge-preview pob-dark" data-setting="badge-preview">
       <div class="bp-stage" :style="runeVars">
@@ -82,14 +96,15 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onMounted, shallowRef } from 'vue'
+import { computed, defineComponent, onMounted, reactive, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { AppConfig } from '@/web/Config'
+import { AppConfig, normRuneshapeThresholds } from '@/web/Config'
 import { Host } from '@/web/background/IPC'
 import {
   BADGE_FONT_SIZE_MAX, BADGE_FONT_SIZE_MIN, BUILTIN_BADGE_FONT, badgeStyleVars, defaultOcrBadgeStyle, fontOptions, isDefaultBadgeStyle, normHexColor,
   type BadgeTier
 } from '@/web/overlay/badge-style'
+import HelpTip from './HelpTip.vue'
 
 /** 計算後的顏色(`rgb(r, g, b)`)→ `#rrggbb`;讀不到 → 後備值 */
 function toHex (css: string, fallback: string): string {
@@ -99,6 +114,7 @@ function toHex (css: string, fallback: string): string {
 }
 
 export default defineComponent({
+  components: { HelpTip },
   setup () {
     const { t } = useI18n()
     const config = AppConfig()
@@ -165,6 +181,15 @@ export default defineComponent({
 
     function resetAll () { config.ocrBadgeStyle = defaultOcrBadgeStyle() }
 
+    // ---- WP-R2:符文塑形顏色門檻(第 39 步從符文卡片搬來;門檻不屬於「還原外觀」的範圍) ----
+    const thresholdDraft = reactive({ low: config.runeshapeThresholds.low, high: config.runeshapeThresholds.high })
+    watch(() => config.runeshapeThresholds, (v) => { thresholdDraft.low = v.low; thresholdDraft.high = v.high })
+    function applyThresholds () {
+      config.runeshapeThresholds = normRuneshapeThresholds({ low: Number(thresholdDraft.low), high: Number(thresholdDraft.high) })
+      thresholdDraft.low = config.runeshapeThresholds.low
+      thresholdDraft.high = config.runeshapeThresholds.high
+    }
+
     return {
       t,
       style,
@@ -189,7 +214,9 @@ export default defineComponent({
       runeVars: computed(() => badgeStyleVars(previewStyle.value, 'rune')),
       revealVars: computed(() => badgeStyleVars(previewStyle.value, 'reveal')),
       isDefault: computed(() => isDefaultBadgeStyle(style.value)),
-      resetAll
+      resetAll,
+      thresholdDraft,
+      applyThresholds
     }
   }
 })

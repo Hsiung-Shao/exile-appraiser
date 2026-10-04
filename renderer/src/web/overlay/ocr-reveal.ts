@@ -317,7 +317,7 @@ export function regionPickerSpec (target: RegionPickerTarget = regionPickerTarge
 }
 
 /**
- * 由設定視窗開的框選層,使用者自己結束(確認 / 取消 / 清除)→ 回到設定的熱鍵分頁;
+ * 由設定視窗開的框選層,使用者自己結束(確認 / 取消 / 清除)→ 回到設定的自動辨識分頁(第 39 步前是熱鍵與視窗);
  * 失焦 / 視窗隱藏代表使用者已回到遊戲,不再把 overlay 叫回來。熱鍵開的一律不回設定。
  */
 export function returnsToSettings (source: RegionPickerSource | null, outcome: RegionPickerOutcome): boolean {

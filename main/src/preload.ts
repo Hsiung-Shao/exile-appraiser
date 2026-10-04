@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { HostApi, HostFetchInit, HostConfigForMain, ItemTextEvent, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId, UpdaterInfo, SettingsTabId, ConfigChangedEvent, OcrRegionPickTarget, RevealScanEvent, RuneshapeScanEvent, RuneshapeUiState, ScanMaskReport, LogEntry, OverlayContentState, RegexBookmarkRunEvent, RegexPasteRequest } from '@ipc/types'
+import type { HostApi, HostFetchInit, HostConfigForMain, ItemTextEvent, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId, UpdaterInfo, SettingsTabId, LegacySettingsTabId, ConfigChangedEvent, OcrRegionPickTarget, RevealScanEvent, RuneshapeScanEvent, RuneshapeUiState, ScanMaskReport, LogEntry, OverlayContentState, RegexBookmarkRunEvent, RegexPasteRequest } from '@ipc/types'
 
 function subscribe<T> (channel: string, cb: (e: T) => void): () => void {
   const listener = (_: unknown, e: T) => cb(e)
@@ -26,7 +26,7 @@ const api: HostApi = {
   onFocusChange: (cb: (e: FocusChangeEvent) => void) => subscribe('focus-change', cb),
   onHideWidget: (cb: () => void) => subscribe('hide-exclusive-widget', () => cb()),
   onSwitchGame: (cb: (game: GameId) => void) => subscribe('switch-game', cb),
-  onOpenSettings: (cb: (e: { tab: SettingsTabId }) => void) => subscribe('open-settings', cb),
+  onOpenSettings: (cb: (e: { tab: SettingsTabId | LegacySettingsTabId }) => void) => subscribe('open-settings', cb),
   trackArea: (opts: TrackAreaOpts) => { ipcRenderer.send('track-area', opts) },
   focusGame: () => { ipcRenderer.send('focus-game') },
   usedRecently: (isOverlay: boolean) => { ipcRenderer.send('used-recently', isOverlay) },

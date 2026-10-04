@@ -105,7 +105,7 @@ export default defineComponent({
     }
 
     const settingsFs = useSettingsFs()
-    // 第 33 步:書籤熱鍵的衝突 / 保留鍵 / 被佔用(與熱鍵分頁同一套)
+    // 第 33 步:書籤熱鍵的衝突 / 保留鍵 / 被佔用(與熱鍵總表同一套)
     const { issueText } = useHotkeyIssues()
     return {
       issueText,

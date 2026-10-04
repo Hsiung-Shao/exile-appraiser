@@ -9,7 +9,7 @@
  *   方法經 RPC 到 main,與 Electron 內行為相同(設定寫同一份 config.json);視窗控制類是 no-op。
  */
 import type { HostApi, HostFetchResult, ItemTextEvent, HostConfigForMain, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId } from '@ipc/types'
-import type { ConfigChangedEvent, HotkeyRegistration, OcrAvailability, OcrRegionPickTarget, RevealScanEvent, SettingsTabId, UpdaterInfo } from '@ipc/types'
+import type { ConfigChangedEvent, HotkeyRegistration, OcrAvailability, OcrRegionPickTarget, RevealScanEvent, SettingsTabId, LegacySettingsTabId, UpdaterInfo } from '@ipc/types'
 import type { LogEntry, LogSnapshot, PerfState, RuneshapeScanEvent, RuneshapeStats, RuneshapeUiState, ScanMaskReport, OverlayContentState } from '@ipc/types'
 import type { RegexBookmarkRunEvent, RegexPasteRequest, RegexPasteResult } from '@ipc/types'
 import { shallowRef } from 'vue'
@@ -133,7 +133,7 @@ class HostTransport {
     return window.host?.onSwitchGame(cb) ?? (() => {})
   }
 
-  onOpenSettings (cb: (e: { tab: SettingsTabId }) => void): () => void {
+  onOpenSettings (cb: (e: { tab: SettingsTabId | LegacySettingsTabId }) => void): () => void {
     return window.host?.onOpenSettings?.(cb) ?? (() => {})
   }
 

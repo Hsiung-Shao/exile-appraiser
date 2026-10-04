@@ -346,8 +346,14 @@ export interface ConfigChangedEvent {
   source: string
 }
 
-/** 設定面板的分頁(`open-settings` 指定要開哪頁,如更新提醒開「關於」;查價標題列 ⚖ 開 `dust`)。 */
-export type SettingsTabId = 'general' | 'price-check' | 'hotkeys' | 'chat' | 'regex' | 'dust' | 'log' | 'about'
+/**
+ * 設定面板的分頁(`open-settings` 指定要開哪頁,如更新提醒開「關於」;查價標題列 ⚖ 開 `dust`)。
+ * 第 39 步(設定頁資訊架構整理)起分兩組:設定(一般 / 遊戲 / 查價 / 倉庫與聊天 / 自動辨識 / 熱鍵 / 更新與關於)、
+ * 工具(正則 / 拆粉排行 / 記錄)。舊值 `chat` 仍可送(`LegacySettingsTabId`),renderer `resolveSettingsTab` 映射到新分頁。
+ */
+export type SettingsTabId = 'general' | 'game' | 'price-check' | 'stash-chat' | 'recognition' | 'hotkeys' | 'about' | 'regex' | 'dust' | 'log'
+/** 第 39 步前的分頁 id(只剩 `chat` 改名;其餘沿用) */
+export type LegacySettingsTabId = 'chat'
 
 /** 第 28 步:設定 › 記錄。main 常駐環形緩衝(最近約 3000 行)的一筆;`seq` 遞增,renderer 以它去重 / 補洞。 */
 export type LogLevel = 'info' | 'warn' | 'error'
@@ -447,7 +453,7 @@ export interface HostApi {
   /** window 模式下偵測器切遊戲:renderer 跟著切 `config.game`(overlay 模式改走重新啟動)。 */
   onSwitchGame: (cb: (game: GameId) => void) => () => void
   /** 更新提醒等:main 已把視窗叫到前景(window 顯示 / overlay `assertOverlayActive`),renderer 開設定到指定分頁。 */
-  onOpenSettings: (cb: (e: { tab: SettingsTabId }) => void) => () => void
+  onOpenSettings: (cb: (e: { tab: SettingsTabId | LegacySettingsTabId }) => void) => () => void
   trackArea: (opts: TrackAreaOpts) => void
   focusGame: () => void
   usedRecently: (isOverlay: boolean) => void

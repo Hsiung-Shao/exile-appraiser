@@ -123,7 +123,8 @@ describe('提示字串', () => {
   })
   it('元件 / 設定頁用到的 ppz.regex.quick_* 兩語都有,且沒有 vue-i18n 特殊字元', () => {
     const used = new Set<string>()
-    for (const f of ['../src/web/regex/RegexBookmarkBar.vue', '../src/web/regex/RegexQuickPanel.vue', '../src/web/settings/tabs/Hotkeys.vue', '../src/web/regex/RegexBookmarks.vue']) {
+    // 第 39 步:快捷存取卡片搬到正則分頁(tabs/Regex.vue)、快速面板熱鍵進熱鍵總表(hotkey-table.ts / tabs/Hotkeys.vue)
+    for (const f of ['../src/web/regex/RegexBookmarkBar.vue', '../src/web/regex/RegexQuickPanel.vue', '../src/web/settings/tabs/Hotkeys.vue', '../src/web/regex/RegexBookmarks.vue', '../src/web/settings/tabs/Regex.vue', '../src/web/settings/hotkey-table.ts']) {
       for (const m of read(f).matchAll(/'ppz\.regex\.((?:quick|bm_hotkey)[a-z_]*)'/g)) used.add(m[1])
     }
     expect(used.size).toBeGreaterThan(12)

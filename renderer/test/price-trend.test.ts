@@ -11,7 +11,7 @@ import {
   coreCurrencyIcon, priceHitFields, sparklineGeometry, toPoe2Entry, volumeParts
 } from '../src/web/background/price-trend'
 import { createPoe2PriceSource, type Poe2NinjaLike } from '../src/web/background/poe2-price-source'
-import { CURRENCY_VOLUME_OPTIONS } from '../src/web/settings/tabs/price-check-options'
+import { CURRENCY_VOLUME_OPTIONS, hasCurrencyVolume } from '../src/web/settings/tabs/price-check-options'
 import { defaultPriceCheck } from '../src/web/Config'
 
 const root = path.resolve(__dirname, '../..')
@@ -168,9 +168,12 @@ describe('成交量設定 / 圖示 / 走勢圖', () => {
     expect(sparklineGeometry([1], 0, 10, 48, 32)).toBeNull()
     expect(sparklineGeometry([1, 2], 3, 3, 48, 32)).toBeNull()
   })
-  it('設定頁兩代都顯示(沒有 v-if)、綁 currencyVolume;字串兩語都有', () => {
+  it('設定頁兩代都顯示(只依伺服器 v-if,第 39 步:台服沒有 poe.ninja 不顯示)、綁 currencyVolume;字串兩語都有', () => {
     const vue = read('renderer/src/web/settings/tabs/PriceCheck.vue')
-    expect(vue).toMatch(/<div class="srow">\s*<span class="k">\{\{ t\('ppz\.currency_volume'\) \}\}/)
+    expect(vue).toMatch(/<div v-if="showVolume" class="srow">\s*<span class="k">\{\{ t\('ppz\.currency_volume'\) \}\}/)
+    expect(vue).toContain('showVolume: computed(() => hasCurrencyVolume(config.realm))')
+    expect(hasCurrencyVolume('intl')).toBe(true)
+    expect(hasCurrencyVolume('tw')).toBe(false)
     expect(vue).toMatch(/pc\.currencyVolume = o\.value/)
     for (const lang of ['en', 'cmn-Hant']) {
       const ppz = JSON.parse(read('renderer/src/i18n/' + lang + '.json')).ppz

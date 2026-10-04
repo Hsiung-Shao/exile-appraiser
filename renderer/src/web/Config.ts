@@ -513,7 +513,7 @@ export function configContentsForRelaunch (): string {
   return serialize()
 }
 
-/** main 的 `Shortcuts.updateActions` 回傳(熱鍵註冊結果);設定頁「熱鍵與視窗」分頁顯示在對應欄位下方。 */
+/** main 的 `Shortcuts.updateActions` 回傳(熱鍵註冊結果);設定頁「熱鍵」總表(與倉庫與聊天、正則書籤)顯示在對應欄位下方。 */
 export type { HotkeyRegistration }
 export const hotkeyRegistration = shallowRef<HotkeyRegistration | null>(null)
 

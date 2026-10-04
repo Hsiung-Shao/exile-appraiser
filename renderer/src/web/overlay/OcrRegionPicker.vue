@@ -1,6 +1,6 @@
 <!--
   exile-appraiser(WP-S2):在遊戲畫面上直接框選 OCR 辨識區域(只在 overlay 掛;見 docs/reveal-ocr.md「框選辨識區域」)。
-  - 開啟:設定 › 熱鍵與視窗 › 靈魂之井褻瀆自動辨識卡片的「在遊戲上框選」,或 `hotkeyOcrRegion` 熱鍵(main 送 `ocr-region-pick`)。
+  - 開啟:設定 › 自動辨識 › 褻瀆詞綴卡片的「在遊戲上框選」,或 `hotkeyOcrRegion` 熱鍵(main 送 `ocr-region-pick`)。
     開啟時呼叫 `overlay-activate`(main `assertOverlayActive`)讓 overlay 可點擊。
   - 畫面:暗幕 rgba(0,0,0,.55),選取框內挖空看得到遊戲原圖;頂部說明條與按鈕是深色島(淺色主題也維持深色,與徽章一致)。
     參考框:目前已存的區域(實線)、上次 OCR 偵測到的面板外框(虛線,`lastDetectedRegion`)。
@@ -9,7 +9,7 @@
   - 確認(Enter / 按鈕):寫 `config.ocrRegion`(client 比例,經 `normOcrRegion`)→ 關層 → `focus-game` → 150 ms 後 `ocr-reveal-now`(請褻瀆自動辨識立刻重看新區域)。
   - 取消:Esc / 按鈕 / overlay 失焦(focus-change overlay=false)/ 視窗隱藏(document hidden)→ 不存、關層。
     overlay 內的 Esc 會先被 main 的 before-input-event 攔下並把焦點還給遊戲 → 走「失焦」取消,結果相同。
-  - 由設定視窗開啟(`regionPickerSource === 'settings'`)時,確認 / 取消鈕 / 清除後**回到設定的熱鍵分頁**(App.vue 讀
+  - 由設定視窗開啟(`regionPickerSource === 'settings'`)時,確認 / 取消鈕 / 清除後**回到設定的自動辨識分頁**(App.vue 讀
     `regionPickerClosed`,見 ocr-reveal.ts `returnsToSettings`):這時不 `focus-game`,確認也**不自動試辨識**
     (置中的設定視窗會擋住揭露面板,截圖辨識必失準);失焦 / 視窗隱藏照舊直接結束。熱鍵開啟的行為不變。
   - 框選中 App.vue 忽略背景點擊。不送任何作業系統層輸入。

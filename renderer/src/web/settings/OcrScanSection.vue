@@ -1,16 +1,20 @@
 <!--
-  設定 › 熱鍵與視窗:PoE2 畫面辨識的一張卡片(2026-10-01 使用者要求「褻瀆與符文的設定對等」,兩張卡片共用這個元件)。
+  設定 › 自動辨識:PoE2 畫面辨識的一張卡片(2026-10-01 使用者要求「褻瀆與符文的設定對等」,兩張卡片共用這個元件)。
   kind = reveal(靈魂之井褻瀆自動辨識,main `reveal-scan.ts`)/ runeshape(符文塑形自動查價,main `runeshape-scan.ts`)。
-  同一套版面:說明 → 啟用 → (#top)→ 目前狀態 → 掃描間隔(100–3000 ms,< 500 顯示 CPU 提示)→ 區域狀態 +「在遊戲上框選」「清除」
-  → 暫停 / 繼續熱鍵 → 框選區域熱鍵 → 最近耗時 → (#extra:褻瀆 = OCR 語言包狀態、符文 = 顏色門檻)→ (#foot 註腳)。
-  熱鍵欄位的衝突 / 保留鍵 / 被佔用提示走 useHotkeyIssues(涵蓋全部熱鍵,與 main 註冊規則相同)。
-  框選沿用 OcrRegionPicker.vue(openRegionPicker('settings', target));瀏覽器預覽 / window 模式沒有框選層 → 不顯示框選鈕、改顯示說明。
-  data-setting / data-action 名稱沿用改版前的(驗證腳本與文件照舊可用),符文多一個 `hotkey-runeshape-region`。
+  同一套版面:標題(+「?」)→ 一句說明 → 啟用 → (#top)→ 目前狀態 → 掃描間隔(100–3000 ms,< 500 顯示 CPU 提示)
+  → 區域狀態(+「?」)+「在遊戲上框選」「清除」→ 最近耗時 → (#extra:褻瀆 = 多個可能詞綴全部列出)→ (#foot)。
+  第 39 步:暫停 / 繼續與框選區域熱鍵搬到「熱鍵」總表(hotkey-table.ts);隱私 / CPU 說明合併到自動辨識頁的共用卡片;
+  卡片標題與開關不再重複「(PoE2)」「(PoE2、疊加模式)」(整頁只在 PoE2 + overlay 出現)。
+  框選沿用 OcrRegionPicker.vue(openRegionPicker('settings', target));瀏覽器預覽沒有框選層 → 不顯示框選鈕、改顯示說明。
+  data-setting / data-action 名稱沿用改版前的(驗證腳本與文件照舊可用)。
 -->
 <template>
   <section class="card scan-card" :data-setting="spec.ds.section" :data-scan="kind">
-    <span class="label">{{ t(spec.i18n.section) }}</span>
-    <p class="hint">{{ t(spec.i18n.hint, { hotkey: pauseHotkey || '—' }) }}</p>
+    <div class="card-head">
+      <span class="label">{{ t(spec.i18n.section) }}</span>
+      <help-tip v-if="spec.i18n.help" :id="`${kind}-help`" :text="t(spec.i18n.help)" />
+    </div>
+    <p class="lead">{{ t(spec.i18n.hint) }}</p>
     <div class="chk-row">
       <label class="chk"><input v-model="enabled" type="checkbox" :data-setting="spec.ds.enabled"><span>{{ t(spec.i18n.enabled) }}</span></label>
     </div>
@@ -32,7 +36,7 @@
     </div>
     <p v-if="interval < warnMs" class="err-line warn" :data-setting="spec.ds.intervalWarn">{{ t('ppz.scan.interval_cpu_warn', { ms: warnMs }) }}</p>
     <div class="srow">
-      <span class="k">{{ t(spec.i18n.region) }}</span>
+      <span class="k">{{ t(spec.i18n.region) }} <help-tip :id="`${kind}-region`" :data-setting="spec.ds.regionHint" :text="t(spec.i18n.regionHint)" /></span>
       <div class="ctl">
         <span class="ocr-region-status" :class="{ unset: !region }" :data-setting="spec.ds.regionStatus">{{ regionStatus }}</span>
       </div>
@@ -45,23 +49,6 @@
       </div>
     </div>
     <p v-if="!canPick" class="foot ocr-pick-na" :data-setting="spec.ds.pickNa">{{ pickUnavailable }}</p>
-    <p class="foot" :data-setting="spec.ds.regionHint">{{ t(spec.i18n.regionHint) }}</p>
-    <div class="srow">
-      <span class="k">{{ t('ppz.scan.hotkey_pause') }}</span>
-      <div class="ctl">
-        <hotkey-input v-model="pauseHotkey" :data-setting="spec.ds.pauseHotkey" />
-      </div>
-      <span v-if="issueText(spec.slot.pause, pauseHotkey)" class="err" :data-issue="spec.slot.pause">{{ issueText(spec.slot.pause, pauseHotkey) }}</span>
-      <span v-else-if="sharedText(spec.slot.pause)" class="note" :data-shared="spec.slot.pause">{{ sharedText(spec.slot.pause) }}</span>
-    </div>
-    <div class="srow">
-      <span class="k">{{ t('ppz.scan.hotkey_region') }}</span>
-      <div class="ctl">
-        <hotkey-input v-model="regionHotkey" :data-setting="spec.ds.regionHotkey" />
-      </div>
-      <span v-if="issueText(spec.slot.region, regionHotkey)" class="err" :data-issue="spec.slot.region">{{ issueText(spec.slot.region, regionHotkey) }}</span>
-    </div>
-    <p class="foot">{{ t(spec.i18n.hotkeyHint) }}</p>
     <div class="srow">
       <span class="k">{{ t('ppz.runeshape.timing') }}</span>
       <div class="ctl">
@@ -83,8 +70,7 @@ import { Host } from '@/web/background/IPC'
 import { openRegionPicker, scanStatus } from '@/web/overlay/ocr-reveal'
 import { regionPercent } from '@/web/overlay/region-geom'
 import { runeshapeLastTimings } from '@/web/overlay/runeshape-view'
-import HotkeyInput from './HotkeyInput.vue'
-import { useHotkeyIssues } from './useHotkeyIssues'
+import HelpTip from './HelpTip.vue'
 
 type Kind = 'reveal' | 'runeshape'
 
@@ -92,13 +78,12 @@ interface ScanSpec {
   enabled: 'revealAutoEnabled' | 'runeshapeEnabled'
   interval: 'revealIntervalMs' | 'runeshapeIntervalMs'
   region: 'ocrRegion' | 'runeshapeRegion'
+  /** 暫停 / 繼續熱鍵(第 39 步起在「熱鍵」總表編輯;這裡只給狀態文字用) */
   pauseHotkey: 'hotkeyOcrReveal' | 'hotkeyRuneshapeToggle'
-  regionHotkey: 'hotkeyOcrRegion' | 'hotkeyRuneshapeRegion'
-  /** `hotkey-conflicts.ts` 的 slot id */
-  slot: { pause: string, region: string }
-  i18n: { section: string, hint: string, enabled: string, region: string, regionUnset: string, regionHint: string, hotkeyHint: string }
+  /** `help`:卡片標題旁「?」的長說明(沒有 = 不顯示) */
+  i18n: { section: string, hint: string, help?: string, enabled: string, region: string, regionUnset: string, regionHint: string }
   /** data-setting / data-action 名稱 */
-  ds: Record<'section' | 'enabled' | 'status' | 'stats' | 'interval' | 'intervalWarn' | 'regionStatus' | 'pick' | 'clear' | 'pickNa' | 'regionHint' | 'pauseHotkey' | 'regionHotkey' | 'timing', string>
+  ds: Record<'section' | 'enabled' | 'status' | 'stats' | 'interval' | 'intervalWarn' | 'regionStatus' | 'pick' | 'clear' | 'pickNa' | 'regionHint' | 'timing', string>
 }
 
 const SPECS: Record<Kind, ScanSpec> = {
@@ -107,16 +92,13 @@ const SPECS: Record<Kind, ScanSpec> = {
     interval: 'revealIntervalMs',
     region: 'ocrRegion',
     pauseHotkey: 'hotkeyOcrReveal',
-    regionHotkey: 'hotkeyOcrRegion',
-    slot: { pause: 'ocr', region: 'region' },
     i18n: {
       section: 'ppz.ocr.section',
       hint: 'ppz.ocr.hint',
       enabled: 'ppz.ocr.auto_enabled',
       region: 'ppz.ocr.region.title',
       regionUnset: 'ppz.ocr.region.status_unset',
-      regionHint: 'ppz.ocr.region.hint',
-      hotkeyHint: 'ppz.scan.hotkey_hint_reveal'
+      regionHint: 'ppz.ocr.region.hint'
     },
     ds: {
       section: 'ocr-section',
@@ -130,8 +112,6 @@ const SPECS: Record<Kind, ScanSpec> = {
       clear: 'ocr-region-clear',
       pickNa: 'ocr-region-pick-unavailable',
       regionHint: 'ocr-region-hint',
-      pauseHotkey: 'hotkey-ocr-reveal',
-      regionHotkey: 'hotkey-ocr-region',
       timing: 'reveal-timing'
     }
   },
@@ -140,16 +120,14 @@ const SPECS: Record<Kind, ScanSpec> = {
     interval: 'runeshapeIntervalMs',
     region: 'runeshapeRegion',
     pauseHotkey: 'hotkeyRuneshapeToggle',
-    regionHotkey: 'hotkeyRuneshapeRegion',
-    slot: { pause: 'runeshape', region: 'runeRegion' },
     i18n: {
       section: 'ppz.runeshape.section',
       hint: 'ppz.runeshape.hint',
+      help: 'ppz.runeshape.display_hint',
       enabled: 'ppz.runeshape.enabled',
       region: 'ppz.runeshape.region',
       regionUnset: 'ppz.runeshape.region_unset',
-      regionHint: 'ppz.runeshape.region_hint',
-      hotkeyHint: 'ppz.scan.hotkey_hint_runeshape'
+      regionHint: 'ppz.runeshape.region_hint'
     },
     ds: {
       section: 'runeshape-section',
@@ -163,15 +141,13 @@ const SPECS: Record<Kind, ScanSpec> = {
       clear: 'runeshape-region-clear',
       pickNa: 'runeshape-region-pick-unavailable',
       regionHint: 'runeshape-region-hint',
-      pauseHotkey: 'hotkey-runeshape-toggle',
-      regionHotkey: 'hotkey-runeshape-region',
       timing: 'runeshape-timing'
     }
   }
 }
 
 export default defineComponent({
-  components: { HotkeyInput },
+  components: { HelpTip },
   props: {
     kind: { type: String as PropType<Kind>, required: true }
   },
@@ -179,20 +155,12 @@ export default defineComponent({
     const { t } = useI18n()
     const config = AppConfig()
     const spec = computed(() => SPECS[props.kind])
-    const { issueText, sharedText } = useHotkeyIssues()
 
     const enabled = computed({
       get: () => config[spec.value.enabled],
       set: (v: boolean) => { config[spec.value.enabled] = v }
     })
-    const pauseHotkey = computed({
-      get: () => config[spec.value.pauseHotkey],
-      set: (v: string) => { config[spec.value.pauseHotkey] = v }
-    })
-    const regionHotkey = computed({
-      get: () => config[spec.value.regionHotkey],
-      set: (v: string) => { config[spec.value.regionHotkey] = v }
-    })
+    const pauseHotkey = computed(() => config[spec.value.pauseHotkey])
     const region = computed<OcrRegion | null>(() => config[spec.value.region])
 
     // ---- 掃描間隔 ----
@@ -264,7 +232,6 @@ export default defineComponent({
       spec,
       enabled,
       pauseHotkey,
-      regionHotkey,
       region,
       interval,
       intervalDraft,
@@ -280,9 +247,7 @@ export default defineComponent({
       canCheck,
       refreshStats,
       status,
-      timingText,
-      issueText,
-      sharedText
+      timingText
     }
   }
 })

@@ -68,8 +68,9 @@ describe('接線守門', () => {
 })
 
 describe('設定頁說明', () => {
-  it('客戶端語言下方有說明,中英字串都有', () => {
-    expect(read('renderer/src/web/settings/tabs/General.vue')).toContain("t('ppz.language_auto_hint')")
+  it('客戶端語言旁有說明(第 39 步起在「遊戲」分頁的「?」),中英字串都有', () => {
+    const game = read('renderer/src/web/settings/tabs/Game.vue')
+    expect(game).toMatch(/\{\{ t\('ppz\.language'\) \}\} <help-tip [^>]*:text="t\('ppz\.language_auto_hint'\)"/)
     for (const lang of ['en', 'cmn-Hant']) {
       const ppz = JSON.parse(read(`renderer/src/i18n/${lang}.json`)).ppz
       expect(typeof ppz.language_auto_hint, lang).toBe('string')

@@ -15,7 +15,7 @@
   設定(settings/SettingsWindow.vue,APT 式方正視窗):overlay 是獨立於 #price-window 的置中浮動層(.settings-layer 暗幕,
   點暗幕 / Esc / ✕ 關閉;設定開著時查價面板整個隱藏,只剩設定視窗,關閉後有物品回到查價面板、沒物品整個收起);
   window 模式與瀏覽器預覽填滿視窗內容區(取代 .window-body)。
-  收到新物品關閉設定;OCR 框選開啟時隱藏設定,由設定開的框選結束後回到設定的熱鍵分頁(ocr-reveal.ts returnsToSettings)。
+  收到新物品關閉設定;OCR 框選開啟時隱藏設定,由設定開的框選結束後回到設定的自動辨識分頁(ocr-reveal.ts returnsToSettings;第 39 步前是熱鍵與視窗分頁)。
   overlayKey(預設 Shift + Space)一律開設定(符文塑形徽章不可點;無 ninja 價的列由 RuneshapePrices.vue 自動查市集)。
   查價面板 / 設定開著時寫 `runeshapeTradeHold`(overlay/runeshape-view.ts)→ 自動查市集佇列暫停,限流額度讓給一般查價。
   自訂背景圖(2026-10-01):#price-window 與設定視窗是 .bg-host,第一個子元素 BgLayer.vue(圖 + 面板底色層),只畫在容器內;
@@ -203,7 +203,7 @@ import { runRegexBookmarkFromHotkey } from './regex/quick'
 import { runeshapeTradeHold } from './overlay/runeshape-view'
 import { recordPoe2Item, regionPickerClosed, regionPickerOpen, returnsToSettings } from './overlay/ocr-reveal'
 import { overlayContentKey, overlayContentOf, overlayLayers } from './overlay/overlay-content'
-import type { SettingsTabId } from '@ipc/types'
+import type { LegacySettingsTabId, SettingsTabId } from '@ipc/types'
 import { AppConfig } from './Config'
 import { Host } from './background/IPC'
 import { openTradeSite } from './trade-site'
@@ -212,6 +212,7 @@ import { REALMS, isSupportedCombination } from '@exile-appraiser/core/realm'
 import { reloadPhase, reloadError, retryReload } from './loadState'
 import { reportIssue, copyIssueReport, reportStatus, type ReportContext } from './report'
 import { settingsTab } from './settings/tabState'
+import { resolveSettingsTab } from './settings/settings-tabs'
 import { createBackdropGuard } from './settings/settings-window-geom'
 
 /** APT 的面板寬 28.75rem(rem 當時 = 16px → 460px)。 */
@@ -334,8 +335,12 @@ export default defineComponent({
     /** 查價面板(含標題列、側邊限流鈕)的 v-show 條件;第 30.6 步起背景圖層也照它卸載 / 掛載 */
     const panelVisible = computed(() => isOverlay ? panelShown.value && !settingsVisible.value : !settingsVisible.value)
 
-    /** 開設定到指定分頁(托盤、OCR 框選返回);overlay 要讓面板可互動(main 已 / 另行 assertOverlayActive) */
-    function openSettingsTo (tab: SettingsTabId, reason: string) {
+    /**
+     * 開設定到指定分頁(托盤、OCR 框選返回);overlay 要讓面板可互動(main 已 / 另行 assertOverlayActive)。
+     * 第 39 步:舊分頁 id(`chat`)與目前遊戲看不到的分頁經 `resolveSettingsTab` 映射到新分頁
+     */
+    function openSettingsTo (requested: SettingsTabId | LegacySettingsTabId, reason: string) {
+      const tab = resolveSettingsTab(requested, AppConfig().game)
       settingsTab.value = tab
       showSettings.value = true
       if (isOverlay) {
@@ -453,7 +458,7 @@ export default defineComponent({
 
     let waitTimer: ReturnType<typeof setInterval> | null = null
     // WP-S2:開框選層(設定頁按鈕或熱鍵)→ 關掉設定 / 查價面板,整個遊戲畫面留給框選;
-    // 由設定開的,使用者確認 / 取消 / 清除後回到設定的熱鍵分頁(失焦結束的不回)
+    // 由設定開的,使用者確認 / 取消 / 清除後回到設定的自動辨識分頁(失焦結束的不回)
     watch(regionPickerOpen, (open) => {
       if (open) {
         showSettings.value = false
@@ -463,7 +468,7 @@ export default defineComponent({
       }
       const c = regionPickerClosed.value
       if (c && returnsToSettings(c.source, c.outcome)) {
-        openSettingsTo('hotkeys', `框選結束:${c.outcome}`)
+        openSettingsTo('recognition', `框選結束:${c.outcome}`)
       }
     })
 

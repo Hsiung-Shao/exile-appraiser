@@ -1,10 +1,11 @@
 <!--
-  設定 › 關於(WP4):品牌 + 版本、更新狀態(main/src/AppUpdater.ts 經 Host.getUpdaterInfo / onUpdaterState)、
+  設定 › 更新與關於(WP4;第 39 步整理:更新 → 設定資料夾 → 資料來源 → 連結 → 致謝):品牌 + 版本、更新狀態(main/src/AppUpdater.ts 經 Host.getUpdaterInfo / onUpdaterState)、
   資料來源(data/MANIFEST.json 的 `sources["data/poe1" | "data/poe2" | "data/poe2/trade" | "data/regex"]`,依目前遊戲列出;
   有 commit 顯示短碼,只有 fetchedAt(交易站快照)顯示抓取日期)、連結列、回報問題、第三方致謝(授權全文 modal)。
   更新字串沿用上游 `updates.*`,上游沒有的放 `ppz.update.*`。所有外連走 Host.openExternal。
   贊助連結一律純文字(Patreon 不可用任何標誌 / 圖示)。
   授權全文 = LICENSES/*.MIT 的複本,放在 renderer/public/licenses/(Vite 帶進 dist;正式版由 app:// 供應)。
+  第 39 步:免安裝版不顯示「自動更新」開關(只對安裝版有效;狀態列已說明);「開啟設定資料夾」從連結卡片獨立成一張。
 -->
 <template>
   <section class="card about-brand">
@@ -27,15 +28,26 @@
       <button v-if="showReleases" class="btn sm" data-action="update-releases" @click="open(releasesUrl)">{{ t('ppz.update.releases') }} ↗</button>
       <button v-if="info?.state === 'downloaded'" class="btn sm primary" data-action="update-install" @click="install">{{ autoApply ? t('ppz.update.restart_now') : t('ppz.update.restart_install') }}</button>
     </div>
-    <div class="chk-row">
-      <label class="chk"><input v-model="config.autoUpdate" type="checkbox" data-setting="auto-update"><span>{{ t('ppz.update.auto') }}</span></label>
-    </div>
-    <p class="hint" data-about="auto-update-hint">{{ info?.reason === 'not-supported' ? t('ppz.update.auto_hint_portable') : t('ppz.update.auto_hint') }}</p>
+    <template v-if="info?.reason !== 'not-supported'">
+      <div class="chk-row">
+        <label class="chk"><input v-model="config.autoUpdate" type="checkbox" data-setting="auto-update"><span>{{ t('ppz.update.auto') }}</span></label>
+        <help-tip id="auto-update" data-about="auto-update-hint" :text="t('ppz.update.auto_hint')" />
+      </div>
+    </template>
     <!-- 第 34 步:有新版本時每 10 分鐘在右下角提醒(main/src/update-reminder.ts) -->
     <div class="chk-row">
       <label class="chk"><input v-model="config.updateReminder" type="checkbox" data-setting="update-reminder"><span>{{ t('ppz.update.reminder') }}</span></label>
+      <help-tip id="update-reminder" data-about="update-reminder-hint" :text="t('ppz.update.reminder_hint')" />
     </div>
-    <p class="hint" data-about="update-reminder-hint">{{ t('ppz.update.reminder_hint') }}</p>
+  </section>
+
+  <section v-if="canOpenConfigFolder" class="card" data-about="config-folder">
+    <div class="srow">
+      <span class="k">{{ t('ppz.about.config_folder') }}</span>
+      <div class="ctl">
+        <button class="btn ghost sm" data-action="config-open-folder" @click="openConfigFolder">{{ t('ppz.about.config_folder_open') }}</button>
+      </div>
+    </div>
   </section>
 
   <section class="card">
@@ -67,12 +79,6 @@
       <button class="btn ghost sm" data-action="report-copy" @click="copy">{{ t('ppz.report.copy') }}</button>
     </div>
     <p v-if="reportMessage" class="hint" :class="{ bad: reportFailed }" data-report-status>{{ reportMessage }}</p>
-    <template v-if="canOpenConfigFolder">
-      <span class="label sub">{{ t('ppz.about.config_folder') }}</span>
-      <div class="btn-row">
-        <button class="btn ghost sm" data-action="config-open-folder" @click="openConfigFolder">{{ t('ppz.about.config_folder_open') }}</button>
-      </div>
-    </template>
   </section>
 
   <section class="card" data-about="thanks">
@@ -112,6 +118,7 @@ import { AppConfig } from '@/web/Config'
 import { Host } from '@/web/background/IPC'
 import { reportIssue, copyIssueReport, reportStatus } from '@/web/report'
 import { usePoeninja } from '@/web/background/Prices'
+import HelpTip from '../HelpTip.vue'
 
 interface ManifestSource {
   repo?: string
@@ -169,6 +176,7 @@ const THANKS: Credit[] = [
 ]
 
 export default defineComponent({
+  components: { HelpTip },
   setup () {
     const { t } = useI18n()
     const sources = shallowRef<Record<string, ManifestSource>>({})

@@ -1,245 +1,119 @@
 <!--
-  設定 › 熱鍵與視窗:熱鍵用 HotkeyInput(按鍵擷取,Esc / Backspace 清除)。
-  main 的 Shortcuts.updateActions 回傳 { ok, error }(Config.ts 的 hotkeyRegistration);
-  error 形如 `hotkey "Ctrl + D", "Shift + Space" is already registered by another application`,
-  依引號裡的熱鍵對回欄位,在該欄位下方以 --bad 顯示;對不回任何欄位的錯誤顯示在熱鍵卡片底部。
-  遊戲保留鍵 / 與其他熱鍵重複也顯示在欄位下方(useHotkeyIssues,涵蓋全部熱鍵,含 PoE2 兩個區塊與聊天指令)。
-  倉庫頁籤捲動(第 15 步,移植 APT hotkeys.vue 的 stashScroll):Ctrl + 滾輪 / 停用;只在 overlay 模式、遊戲在前景時有效(main/src/stash-scroll.ts)。
-  PoE2 的兩張辨識卡片(褻瀆自動辨識、符文塑形自動查價)共用 OcrScanSection.vue(2026-10-01 使用者要求設定對等):
-  啟用、狀態、掃描間隔(100–3000 ms)、區域 + 在遊戲上框選 / 清除、暫停 / 繼續熱鍵、框選區域熱鍵、最近耗時;
-  各自保留專屬設定(褻瀆:OCR 語言包狀態;符文:台服提示、顏色門檻)。兩者的熱鍵已從上方通用熱鍵卡片移入各自區塊;
-  褻瀆原本「進階:手動輸入比例」四個數字欄位已移除(舊設定檔的 ocrRegion 照常讀取)。
-  第 11 步:兩張辨識卡片之後是共用的「徽章外觀」卡片(BadgeStyleSection.vue;字體 / 大小 / 粗體 / 符文三段色 / 外框陰影 + 即時預覽)。
-  第 33 步:「正則書籤快捷存取」卡片(熱鍵卡片之後):設定視窗旁書籤列開關、快速面板熱鍵、目前遊戲的書籤熱鍵一覽(唯讀;在正則分頁的書籤列表設定)。
+  設定 › 熱鍵(第 39 步:熱鍵總表;原「熱鍵與視窗」分頁的視窗設定搬到「遊戲」、辨識卡片搬到「自動辨識」)。
+  - 列由 ../hotkey-table.ts `hotkeyTable()` 產生,依功能分組(查價 / 設定選單 / 自動辨識 / 倉庫與聊天 / 正則),順序 = main 註冊順序。
+  - `edit` 列直接在這裡編輯(HotkeyInput,按鍵擷取,Esc / Backspace 清除;快速查價 = 按住鍵 + 主鍵);
+    `ref` 列(聊天指令、倉庫搜尋、個別正則書籤:熱鍵與項目綁在一起)唯讀,點「到 … 編輯」跳到該頁。
+  - 衝突 / 遊戲保留鍵 / 被其他程式佔用 / 褻瀆與符文暫停鍵共用:useHotkeyIssues(與 main 註冊規則相同,涵蓋全部熱鍵),即時顯示在該列下方;
+    main 回報對不回任何欄位的錯誤顯示在頁底。
+  - 只在 overlay 模式註冊的組(設定選單、自動辨識、倉庫與聊天、正則)在設定不是 overlay 時不列,改顯示一句說明。
+  - 自動辨識的暫停 / 繼續熱鍵只在該功能開著時註冊 → 功能關著時列下方標「功能關閉中」。
 -->
 <template>
-  <section class="card">
-    <span class="label">{{ t('ppz.section_hotkeys') }}</span>
-    <div class="srow">
-      <span class="k">{{ t('ppz.hotkey') }}</span>
-      <div class="ctl">
-        <select v-model="config.hotkeyHold" class="select sm hold-select" data-setting="hotkey-hold" :title="t('ppz.hotkey_hold')">
-          <option value="Ctrl">Ctrl</option>
-          <option value="Alt">Alt</option>
-        </select>
-        <span class="dim">+</span>
-        <hotkey-input v-model="config.hotkey" no-mod-keys data-setting="hotkey" />
-      </div>
-      <span v-if="issueText('quick', quickHotkey)" class="err" data-issue="quick">{{ issueText('quick', quickHotkey) }}</span>
+  <section class="card hk-table" data-setting="hotkey-table">
+    <div class="card-head">
+      <span class="label">{{ t('ppz.section_hotkeys') }}</span>
     </div>
-    <div class="srow">
-      <span class="k">{{ t('ppz.hotkey_locked') }}</span>
-      <div class="ctl">
-        <hotkey-input v-model="config.hotkeyLocked" data-setting="hotkey-locked" />
+    <p class="lead">{{ t('ppz.hotkey_capture_hint') }}</p>
+    <div v-for="g in groups" :key="g.id" class="hk-group" :data-hk-group="g.id">
+      <div class="hk-group-head">
+        <span class="sublabel">{{ t(g.title) }}</span>
+        <help-tip v-if="g.id === 'scan'" id="hk-scan" :text="t('ppz.hk.scan_note')" />
+        <span class="grow" />
+        <button v-if="g.tab" class="btn ghost sm hk-goto" :data-goto="g.tab" @click="goto(g.tab)">{{ t('ppz.hk.edit_in', { page: tabName(g.tab) }) }}</button>
       </div>
-      <span v-if="issueText('locked', config.hotkeyLocked)" class="err" data-issue="locked">{{ issueText('locked', config.hotkeyLocked) }}</span>
-    </div>
-    <div class="srow">
-      <span class="k">{{ t('ppz.overlay_key') }}</span>
-      <div class="ctl">
-        <hotkey-input v-model="config.overlayKey" data-setting="overlay-key" />
+      <p v-if="!g.rows.length" class="foot" :data-hk-empty="g.id">{{ t(g.id === 'stash-chat' ? 'ppz.hk.empty_stash_chat' : 'ppz.hk.empty') }}</p>
+      <div v-for="r in g.rows" :key="r.id" class="srow" :class="{ ref: r.kind === 'ref' }" :data-hk-row="r.id">
+        <template v-if="r.kind === 'edit'">
+          <span class="k">{{ t(r.label) }}<template v-if="r.id === 'regexQuick'"> <help-tip id="hk-regex-quick" :text="t('ppz.regex.quick_hotkey_hint')" /></template></span>
+          <div class="ctl">
+            <template v-if="r.hold">
+              <select v-model="config.hotkeyHold" class="select sm hold-select" data-setting="hotkey-hold" :title="t('ppz.hotkey_hold')" :aria-label="t('ppz.hotkey_hold')">
+                <option value="Ctrl">Ctrl</option>
+                <option value="Alt">Alt</option>
+              </select>
+              <span class="dim">+</span>
+              <hotkey-input v-model="config.hotkey" no-mod-keys data-setting="hotkey" />
+            </template>
+            <hotkey-input v-else v-model="config[r.field]" :data-setting="FIELD_DS[r.field]" />
+          </div>
+          <span v-if="issueText(r.id, rowHotkey(r))" class="err" :data-issue="r.id">{{ issueText(r.id, rowHotkey(r)) }}</span>
+          <span v-else-if="sharedText(r.id)" class="note" :data-shared="r.id">{{ sharedText(r.id) }}</span>
+          <span v-else-if="r.needs && !config[r.needs] && rowHotkey(r)" class="note" :data-hk-off="r.id">{{ t('ppz.hk.off_note') }}</span>
+        </template>
+        <template v-else>
+          <span class="k hk-ref-k">{{ t(r.label) }}</span>
+          <div class="ctl">
+            <button class="hk-ref" :data-goto="r.tab" :title="r.text" @click="goto(r.tab)">
+              <span class="hk-ref-text">{{ r.text }}</span>
+              <span class="hk-ref-key num" :class="{ unset: !r.hotkey }">{{ r.hotkey || t('ppz.hk.unset') }}</span>
+            </button>
+          </div>
+          <span v-if="r.hotkey && issueText(r.id, r.hotkey)" class="err" :data-issue="r.id">{{ issueText(r.id, r.hotkey) }}</span>
+        </template>
       </div>
-      <span v-if="issueText('overlay', config.overlayKey)" class="err" data-issue="overlay">{{ issueText('overlay', config.overlayKey) }}</span>
     </div>
-    <div class="srow">
-      <span class="k">{{ t('ppz.stash_scroll') }}</span>
-      <div class="ctl">
-        <select v-model="config.stashScroll" class="select sm" data-setting="stash-scroll">
-          <option :value="true">{{ t('ppz.stash_scroll_ctrl_wheel') }}</option>
-          <option :value="false">{{ t('ppz.stash_scroll_off') }}</option>
-        </select>
-      </div>
-    </div>
-    <p class="foot" data-setting="stash-scroll-hint">{{ t('ppz.stash_scroll_hint') }}</p>
-    <p v-if="config.game === 'poe2'" class="foot" data-setting="scan-hotkeys-moved">{{ t('ppz.scan.hotkeys_moved') }}</p>
+    <p v-if="!config.overlayMode" class="foot" data-setting="hk-window-only">{{ t('ppz.hk.window_only') }}</p>
     <p v-if="otherError" class="err-line">{{ t('ppz.hotkey_error', { error: otherError }) }}</p>
-    <p class="foot">{{ t('ppz.hotkey_capture_hint') }}</p>
-  </section>
-
-  <!-- 第 33 步:正則書籤快捷存取 -->
-  <section class="card" data-setting="regex-quick">
-    <span class="label">{{ t('ppz.regex.quick_section') }}</span>
-    <p class="hint">{{ t('ppz.regex.quick_section_hint') }}</p>
-    <p v-if="!isOverlay" class="err-line warn" data-setting="regex-quick-overlay-only">{{ t('ppz.regex.quick_overlay_only') }}</p>
-    <div class="chk-row">
-      <label class="chk"><input v-model="config.regexBookmarkBar" type="checkbox" data-setting="regex-bookmark-bar"><span>{{ t('ppz.regex.quick_bar_toggle') }}</span></label>
-    </div>
-    <div class="srow">
-      <span class="k">{{ t('ppz.regex.quick_hotkey') }}</span>
-      <div class="ctl">
-        <hotkey-input v-model="config.hotkeyRegexQuick" data-setting="hotkey-regex-quick" />
-      </div>
-      <span v-if="issueText('regexQuick', config.hotkeyRegexQuick)" class="err" data-issue="regexQuick">{{ issueText('regexQuick', config.hotkeyRegexQuick) }}</span>
-    </div>
-    <p class="foot">{{ t('ppz.regex.quick_hotkey_hint') }}</p>
-    <span class="label sub">{{ t('ppz.regex.quick_bm_hotkeys', { game: config.game === 'poe2' ? 'PoE2' : 'PoE1' }) }}</span>
-    <p v-if="!bookmarkHotkeys.length" class="foot" data-setting="regex-bm-hotkeys-none">{{ t('ppz.regex.quick_bm_none') }}</p>
-    <div v-for="b in bookmarkHotkeys" :key="b.index" class="srow" data-setting="regex-bm-hotkey" :data-bm="b.name">
-      <span class="k rx-bmhk-name">{{ b.name }}</span>
-      <div class="ctl"><span class="rx-bmhk-key num">{{ b.hotkey }}</span></div>
-      <span v-if="issueText(`rxbm:${b.index}`, b.hotkey)" class="err" :data-issue="`rxbm:${b.index}`">{{ issueText(`rxbm:${b.index}`, b.hotkey) }}</span>
-    </div>
-  </section>
-
-  <!-- WP-S:靈魂之井褻瀆自動辨識(只有 PoE2) -->
-  <ocr-scan-section v-if="config.game === 'poe2'" kind="reveal">
-    <template #extra>
-      <div class="srow">
-        <span class="k">{{ t('ppz.ocr.lang') }}</span>
-        <div class="ctl">
-          <select v-model="config.ocrLang" class="select sm" data-setting="ocr-lang">
-            <option value="follow">{{ t('ppz.ocr.lang_follow') }}</option>
-            <option value="cmn-Hant">{{ t('ppz.ocr.lang_zh') }}</option>
-            <option value="en">{{ t('ppz.ocr.lang_en') }}</option>
-          </select>
-        </div>
-      </div>
-      <p class="foot" data-setting="ocr-lang-hint">{{ t('ppz.ocr.lang_hint') }}</p>
-      <div class="srow">
-        <span class="k">{{ t('ppz.ocr.status') }}</span>
-        <div class="ctl">
-          <span class="ocr-status" :class="ocrStatus.kind" data-setting="ocr-status">{{ ocrStatus.text }}</span>
-          <button v-if="canCheck" class="btn ghost sm" data-action="ocr-check" :disabled="checking" @click="checkOcr">{{ t('ppz.ocr.check') }}</button>
-        </div>
-      </div>
-      <p v-if="ocrStatus.kind === 'bad' && ocrAvail && !ocrAvail.ok && ocrAvail.error === 'lang-missing'" class="err-line" data-setting="ocr-lang-missing">{{ t(ocrWantsEn ? 'ppz.ocr.err_lang_missing_en' : 'ppz.ocr.err_lang_missing') }}</p>
-      <div class="chk-row">
-        <label class="chk"><input v-model="config.revealShowAllCandidates" type="checkbox" data-setting="reveal-show-all"><span>{{ t('ppz.ocr.show_all_candidates') }}</span></label>
-      </div>
-      <p class="foot">{{ t('ppz.ocr.show_all_candidates_hint') }}</p>
-    </template>
-    <template #foot>
-      <p class="foot">{{ t('ppz.ocr.cpu_hint') }}</p>
-      <p class="foot">{{ t('ppz.ocr.privacy') }}</p>
-    </template>
-  </ocr-scan-section>
-
-  <!-- WP-R2:符文塑形面板自動查價(只有 PoE2) -->
-  <ocr-scan-section v-if="config.game === 'poe2'" kind="runeshape">
-    <template #top>
-      <p v-if="config.realm === 'tw'" class="err-line warn" data-setting="runeshape-tw">{{ t('ppz.runeshape.tw_no_source') }}</p>
-    </template>
-    <template #extra>
-      <div class="srow">
-        <span class="k">{{ t('ppz.runeshape.thresholds') }}</span>
-        <div class="ctl">
-          <span class="dim">{{ t('ppz.runeshape.threshold_low') }}</span>
-          <input v-model.lazy.number="thresholdDraft.low" class="input sm rs-num" type="number" min="0" step="0.1" data-setting="runeshape-threshold-low" @change="applyThresholds">
-          <span class="dim">{{ t('ppz.runeshape.threshold_high') }}</span>
-          <input v-model.lazy.number="thresholdDraft.high" class="input sm rs-num" type="number" min="0" step="0.5" data-setting="runeshape-threshold-high" @change="applyThresholds">
-          <span class="dim">{{ t('ppz.runeshape.unit_ex') }}</span>
-        </div>
-      </div>
-    </template>
-    <template #foot>
-      <p class="foot">{{ t('ppz.runeshape.cpu_hint') }}</p>
-      <p class="foot">{{ t('ppz.runeshape.display_hint') }}</p>
-    </template>
-  </ocr-scan-section>
-
-  <!-- 第 11 步:OCR 徽章外觀(符文與褻瀆共用;只有 PoE2) -->
-  <badge-style-section v-if="config.game === 'poe2'" />
-
-  <section class="card">
-    <span class="label">{{ t('ppz.section_window') }}</span>
-    <div class="srow">
-      <span class="k">{{ t('ppz.window_title_poe1') }}</span>
-      <div class="ctl">
-        <input v-model.lazy.trim="config.windowTitleBy.poe1" class="input sm" placeholder="Path of Exile" data-setting="window-title-poe1">
-      </div>
-    </div>
-    <div class="srow">
-      <span class="k">{{ t('ppz.window_title_poe2') }}</span>
-      <div class="ctl">
-        <input v-model.lazy.trim="config.windowTitleBy.poe2" class="input sm" placeholder="Path of Exile 2" data-setting="window-title-poe2">
-      </div>
-    </div>
-    <div class="chk-row">
-      <label class="chk"><input v-model="config.autoSwitchGame" type="checkbox"><span>{{ t('ppz.auto_switch_game') }}</span></label>
-    </div>
-    <div class="chk-row">
-      <label class="chk"><input v-model="config.overlayMode" type="checkbox"><span>{{ t('ppz.overlay_mode') }}</span></label>
-    </div>
-    <div class="chk-row">
-      <label class="chk"><input v-model="config.overlayBackgroundClose" type="checkbox"><span>{{ t('ppz.background_close') }}</span></label>
-    </div>
   </section>
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onMounted, reactive, shallowRef, watch } from 'vue'
+import { computed, defineComponent } from 'vue'
 import { useI18n } from 'vue-i18n'
-import type { OcrAvailability } from '@ipc/types'
-import { AppConfig, hostConfigSettled, normRuneshapeThresholds } from '@/web/Config'
-import { afterHostConfigApplied } from '@/web/host-config-sync'
-import { ocrWantsEnglish } from '@/web/ocr-lang'
-import { Host } from '@/web/background/IPC'
+import type { SettingsTabId } from '@ipc/types'
+import { AppConfig } from '@/web/Config'
 import { mergeTwoHotkeys } from '@ipc/KeyToCode'
 import HotkeyInput from '../HotkeyInput.vue'
-import OcrScanSection from '../OcrScanSection.vue'
-import BadgeStyleSection from '../BadgeStyleSection.vue'
+import HelpTip from '../HelpTip.vue'
 import { normalizeHotkey } from '../hotkey-conflicts'
+import { hotkeyTable, type HotkeyField, type HotkeyRow } from '../hotkey-table'
 import { useHotkeyIssues } from '../useHotkeyIssues'
 import { regexBookmarkHotkeyList } from '@/web/regex/bookmark-hotkeys'
+import { SETTINGS_TABS } from '../settings-tabs'
+import { settingsTab } from '../tabState'
+
+/** 熱鍵欄位的 data-setting(沿用改版前各卡片的名稱,驗證腳本與文件照舊可用) */
+const FIELD_DS: Record<HotkeyField, string> = {
+  hotkey: 'hotkey',
+  hotkeyLocked: 'hotkey-locked',
+  overlayKey: 'overlay-key',
+  hotkeyOcrReveal: 'hotkey-ocr-reveal',
+  hotkeyOcrRegion: 'hotkey-ocr-region',
+  hotkeyRuneshapeToggle: 'hotkey-runeshape-toggle',
+  hotkeyRuneshapeRegion: 'hotkey-runeshape-region',
+  hotkeyRegexQuick: 'hotkey-regex-quick'
+}
 
 export default defineComponent({
-  components: { HotkeyInput, OcrScanSection, BadgeStyleSection },
+  components: { HotkeyInput, HelpTip },
   setup () {
     const { t } = useI18n()
     const config = AppConfig()
-    const { issueText, otherError } = useHotkeyIssues()
-    /** 快速查價 = 按住鍵 + 主鍵(main 以合併後的字串註冊,被佔用的錯誤也是這個字串) */
-    const quickHotkey = computed(() => mergeTwoHotkeys(normalizeHotkey(config.hotkeyHold), normalizeHotkey(config.hotkey)))
-
-    // ---- WP-S:OCR 語言包狀態(褻瀆卡片專屬) ----
-    const ocrAvail = shallowRef<OcrAvailability | undefined | null>(null)
-    const checking = shallowRef(false)
-    const canCheck = Host.isElectron && !Host.isPreview
-    async function checkOcr () {
-      if (!canCheck) return
-      checking.value = true
-      try {
-        ocrAvail.value = await Host.ocrRevealAvailable()
-      } catch (e) {
-        ocrAvail.value = { ok: false, error: 'spawn-failed', message: String(e) }
-      } finally {
-        checking.value = false
-      }
+    const { issueText, sharedText, otherError } = useHotkeyIssues()
+    const groups = computed(() => hotkeyTable({ ...config, regexBookmarkHotkeys: regexBookmarkHotkeyList.value }, { overlay: config.overlayMode }))
+    /** 該列目前的熱鍵(快速查價 = 按住鍵 + 主鍵,main 以合併後的字串註冊,被佔用的錯誤也是這個字串) */
+    function rowHotkey (r: HotkeyRow): string {
+      if (r.kind === 'ref') return r.hotkey
+      if (r.hold) return mergeTwoHotkeys(normalizeHotkey(config.hotkeyHold), normalizeHotkey(config.hotkey))
+      return config[r.field] ?? ''
     }
-    onMounted(() => { if (config.game === 'poe2') void checkOcr() })
-    // 第 22 步:OCR 語言包跟著客戶端語言;第 25 步起可用 `ocrLang` 獨立指定(main 收到設定後換語言包)→ 設定送到 main 之後重新檢查
-    watch(() => [config.language, config.ocrLang], () => {
-      if (config.game === 'poe2' && canCheck) void afterHostConfigApplied(hostConfigSettled, () => { void checkOcr() }, 0)
-    })
-    /** 缺的是英文語言包(main 回報想用的語言包;舊 main 沒回報 → 依目前的客戶端語言) */
-    const ocrWantsEn = computed(() => ocrWantsEnglish(ocrAvail.value, config.language, config.ocrLang))
-    const ocrStatus = computed(() => {
-      if (!canCheck) return { kind: 'dim', text: t('ppz.ocr.status_preview') }
-      const a = ocrAvail.value
-      if (checking.value || a === null) return { kind: 'dim', text: t('ppz.ocr.status_checking') }
-      if (a === undefined) return { kind: 'dim', text: t('ppz.ocr.status_preview') }
-      if (a.ok) return { kind: 'good', text: t('ppz.ocr.status_ok', { lang: a.lang }) }
-      if (a.error === 'lang-missing') return { kind: 'bad', text: t(ocrWantsEn.value ? 'ppz.ocr.status_missing_en' : 'ppz.ocr.status_missing', { langs: a.langs?.join(', ') || '—' }) }
-      return { kind: 'bad', text: t('ppz.ocr.status_error', { error: a.message ?? a.error }) }
-    })
-
-    // ---- WP-R2:符文塑形顏色門檻(符文卡片專屬) ----
-    const thresholdDraft = reactive({ low: config.runeshapeThresholds.low, high: config.runeshapeThresholds.high })
-    watch(() => config.runeshapeThresholds, (v) => { thresholdDraft.low = v.low; thresholdDraft.high = v.high })
-    function applyThresholds () {
-      config.runeshapeThresholds = normRuneshapeThresholds({ low: Number(thresholdDraft.low), high: Number(thresholdDraft.high) })
-      thresholdDraft.low = config.runeshapeThresholds.low
-      thresholdDraft.high = config.runeshapeThresholds.high
-    }
-
-    // 第 33 步:目前遊戲的書籤熱鍵(唯讀一覽;在正則分頁的書籤列表設定)
-    const bookmarkHotkeys = computed(() => regexBookmarkHotkeyList.value.filter(b => b.game === config.game))
-
     return {
-      t, config, issueText, otherError, quickHotkey, bookmarkHotkeys,
-      isOverlay: Host.isOverlay || !Host.isElectron || Host.isPreview,
-      ocrAvail, ocrStatus, ocrWantsEn, checking, canCheck, checkOcr,
-      thresholdDraft, applyThresholds
+      t,
+      config,
+      groups,
+      FIELD_DS,
+      rowHotkey,
+      issueText,
+      sharedText,
+      otherError,
+      tabName (id: SettingsTabId) {
+        const def = SETTINGS_TABS.find(x => x.id === id)
+        return def ? t(def.key) : id
+      },
+      goto (id: SettingsTabId) {
+        settingsTab.value = id
+        console.log(`[settings] 熱鍵總表 → ${id}`)
+      }
     }
   }
 })
@@ -256,18 +130,60 @@ export default defineComponent({
 }
 .settings-panel .err-line.ok { color: var(--good, var(--ink-1)); }
 .settings-panel .err-line.warn { color: var(--warn); }
-.settings-panel .ocr-status { font-size: var(--fs-sm); }
-.settings-panel .ocr-status.good { color: var(--good, var(--ink-0)); }
-.settings-panel .ocr-status.bad { color: var(--bad); }
-.settings-panel .ocr-status.dim { color: var(--ink-2); }
-/* WP-S2 */
-.settings-panel .ocr-region-status { font-size: var(--fs-sm); color: var(--ink-0); font-variant-numeric: tabular-nums; }
-.settings-panel .ocr-region-status.unset { color: var(--ink-2); }
-.settings-panel .ocr-pick-na { color: var(--ink-2); }
-/* WP-R2 */
-.settings-panel .rs-num { flex: 0 0 5.5em !important; min-width: 0; }
-/* 第 33 步 */
-.settings-panel .label.sub { display: block; margin-top: 10px; }
-.settings-panel .rx-bmhk-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.settings-panel .rx-bmhk-key { font-size: var(--fs-sm); color: var(--ink-0); }
+.settings-panel .hk-group + .hk-group {
+  margin-top: 0.5em;
+  padding-top: 0.35em;
+  border-top: 1px solid var(--edge-0);
+}
+.settings-panel .hk-group-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  min-height: 2em;
+}
+.settings-panel .hk-group-head .sublabel {
+  margin: 0;
+}
+.settings-panel .hk-group-head .grow {
+  flex: 1;
+}
+.settings-panel .hk-ref {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75em;
+  max-width: 100%;
+  min-width: 0;
+  padding: 0.2em 0.6em;
+  border: 1px dashed var(--edge-1);
+  border-radius: var(--radius-s);
+  background: none;
+  color: var(--ink-1);
+  font-size: var(--fs-xs);
+  text-align: left;
+  cursor: pointer;
+}
+.settings-panel .hk-ref:hover {
+  border-color: var(--gold);
+  color: var(--ink-0);
+}
+.settings-panel .hk-ref:focus-visible {
+  outline: 1px solid var(--gold);
+  outline-offset: 1px;
+}
+.settings-panel .hk-ref-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.settings-panel .hk-ref-key {
+  flex: 0 0 auto;
+  color: var(--ink-0);
+  font-size: var(--fs-sm);
+}
+.settings-panel .hk-ref-key.unset {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
 </style>

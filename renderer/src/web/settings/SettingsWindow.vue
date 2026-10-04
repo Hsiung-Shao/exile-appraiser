@@ -1,7 +1,9 @@
 <!--
   設定視窗(取代 WP2 的查價側欄內細長面板):照 APT `SettingsWindow.vue` 的版面 + PobTools 配色。
-  - 版面:標題列(「設定」+ 遊戲/區服徽章 + ✕)→ 左側選單(一般/查價/熱鍵與視窗/聊天指令/正則/拆粉排行/關於,active 用 --gold 左邊條,
-    底部「結束程式」)+ 右側可捲動內容。容器寬 < 640px(container query)時左選單收成上方分頁。
+  - 版面:標題列(「設定」+ 遊戲/區服徽章 + ✕)→ 左側選單(active 用 --gold 左邊條,底部「結束程式」)+ 右側可捲動內容。
+    第 39 步(設定頁資訊架構整理):選單分兩組 ——「設定」一般 / 遊戲 / 查價 / 倉庫與聊天 / 自動辨識(只在 PoE2)/ 熱鍵(總表)/ 更新與關於,
+    「工具」正則 / 拆粉排行 / 記錄;組標題小字、組間分隔線(分頁表與舊 id 映射在 ./settings-tabs.ts)。
+    容器寬 < 640px(container query)時左選單收成上方分頁:組標題藏起、兩組之間留一條直線分隔。
   - 拆粉排行分頁(tabs/Dust.vue,2026-09-30 起;原本停靠在查價下方):內容區加 .fill = 不捲動、子元素撐滿,
     表格自己虛擬捲動。查價標題列的 ⚖ 直接開到這一頁。
   - 記錄分頁(tabs/Log.vue,第 28 步;在「關於」之前):同樣加 .fill,記錄清單自己虛擬捲動。
@@ -12,7 +14,8 @@
   - 根元素保留 `.settings-panel`:各分頁的 unscoped 選擇器(`.settings-panel .xxx`)與關於頁授權 modal
     (position:absolute; inset:0)都以它為範圍 / 定位。列版面 `.srow` 等也定義在本檔。
   - 「結束程式」走 IPC `app-quit`(`preview: false`;瀏覽器預覽 / 純瀏覽器不顯示)。
-  - 分頁狀態在 ./tabState.ts(托盤「設定」「關於」、OCR 框選返回直接指定分頁)。
+  - 分頁狀態在 ./tabState.ts(托盤「設定」「關於」、OCR 框選返回直接指定分頁);實際顯示的分頁 = `resolveSettingsTab(記住的分頁, 遊戲)`
+    (舊 id `chat` → 倉庫與聊天、PoE1 看不到自動辨識 → 遊戲)。
   - 自訂背景圖(2026-10-01):根元素加 `.bg-host`、第一個子元素 BgLayer.vue(圖只畫在視窗裡;pobtools.css「自訂背景圖」)。
   - 大小 / 位置(第 21 步,只在 floating):四邊 + 四角把手(.sw-rz)調整大小、標題列空白處移動(按鈕 / 輸入元件上不觸發);
     pointer events + setPointerCapture,拖曳中只改畫面,放開才寫 `config.settingsWindow`(settings-window-geom.ts
@@ -45,13 +48,17 @@
     </header>
     <slot name="strips" />
     <div class="sw-main">
-      <nav class="sw-nav" role="tablist">
-        <button v-for="tb in tabs" :key="tb.id" class="sw-nav-item" :class="{ on: tab === tb.id }" role="tab"
-          :aria-selected="tab === tb.id" :data-tab="tb.id" @click="tab = tb.id">{{ t(tb.key) }}</button>
+      <nav class="sw-nav" role="tablist" aria-orientation="vertical">
+        <template v-for="grp in navGroups" :key="grp.id">
+          <span v-if="grp.id !== 'settings'" class="sw-nav-sep" role="separator" />
+          <span class="sw-nav-group" :data-nav-group="grp.id" aria-hidden="true">{{ t(grp.key) }}</span>
+          <button v-for="tb in grp.tabs" :key="tb.id" class="sw-nav-item" :class="{ on: tab === tb.id }" role="tab"
+            :aria-selected="tab === tb.id" :data-tab="tb.id" :data-group="grp.id" @click="selectTab(tb.id)">{{ t(tb.key) }}</button>
+        </template>
         <span class="sw-nav-fill" />
         <button v-if="canQuit" class="sw-quit" data-action="app-quit" @click="quit">{{ t('ppz.quit_app') }}</button>
       </nav>
-      <div ref="bodyEl" class="settings-body" :class="{ fill: tab === 'dust' || tab === 'log' }" role="tabpanel" :data-settings-tab="tab">
+      <div ref="bodyEl" class="settings-body" :class="{ fill: isFill }" role="tabpanel" :data-settings-tab="tab">
         <component :is="tabComponent" />
       </div>
     </div>
@@ -64,17 +71,20 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onBeforeUnmount, onMounted, provide, shallowRef, watch } from 'vue'
+import { computed, defineComponent, onBeforeUnmount, onMounted, provide, shallowRef, watch, type Component } from 'vue'
 import { useI18n } from 'vue-i18n'
 import GeneralTab from './tabs/General.vue'
+import GameTab from './tabs/Game.vue'
 import PriceCheckTab from './tabs/PriceCheck.vue'
+import StashChatTab from './tabs/StashChat.vue'
+import RecognitionTab from './tabs/Recognition.vue'
 import HotkeysTab from './tabs/Hotkeys.vue'
-import ChatTab from './tabs/Chat.vue'
 import RegexTab from './tabs/Regex.vue'
 import DustTab from './tabs/Dust.vue'
 import LogTab from './tabs/Log.vue'
 import AboutTab from './tabs/About.vue'
 import { settingsTab as lastTab, type TabId } from './tabState'
+import { SETTINGS_TABS, SETTINGS_TAB_GROUPS, resolveSettingsTab, visibleTabs } from './settings-tabs'
 import { Host } from '@/web/background/IPC'
 import BgLayer from '../ui/BgLayer.vue'
 import { AppConfig } from '@/web/Config'
@@ -96,31 +106,29 @@ export default defineComponent({
   emits: ['close'],
   setup (props) {
     const { t } = useI18n()
-    const tabs: Array<{ id: TabId, key: string }> = [
-      { id: 'general', key: 'ppz.tab_general' },
-      { id: 'price-check', key: 'ppz.tab_price_check' },
-      { id: 'hotkeys', key: 'ppz.tab_hotkeys' },
-      { id: 'chat', key: 'ppz.tab_chat' },
-      { id: 'regex', key: 'ppz.tab_regex' },
-      { id: 'dust', key: 'ppz.tab_dust' },
-      { id: 'log', key: 'ppz.tab_log' },
-      { id: 'about', key: 'ppz.tab_about' }
-    ]
-    const components = {
+    const config = AppConfig()
+    const components: Record<TabId, Component> = {
       general: GeneralTab,
+      game: GameTab,
       'price-check': PriceCheckTab,
+      'stash-chat': StashChatTab,
+      recognition: RecognitionTab,
       hotkeys: HotkeysTab,
-      chat: ChatTab,
+      about: AboutTab,
       regex: RegexTab,
       dust: DustTab,
-      log: LogTab,
-      about: AboutTab
+      log: LogTab
     }
+    /** 選單:依組(設定 / 工具),目前遊戲看不到的分頁不列(自動辨識只在 PoE2) */
+    const navGroups = computed(() => {
+      const shown = visibleTabs(config.game)
+      return SETTINGS_TAB_GROUPS.map(g => ({ ...g, tabs: shown.filter(x => x.group === g.id) }))
+    })
+    /** 實際顯示的分頁(舊 id / 目前遊戲看不到的分頁在這裡映射) */
+    const tab = computed<TabId>(() => resolveSettingsTab(lastTab.value, config.game))
     const bodyEl = shallowRef<HTMLElement | null>(null)
     // 換分頁回到頂端(內容區是共用的捲動容器)
-    watch(lastTab, () => { if (bodyEl.value) bodyEl.value.scrollTop = 0 })
-
-    const config = AppConfig()
+    watch(tab, () => { if (bodyEl.value) bodyEl.value.scrollTop = 0 })
     const rootEl = shallowRef<HTMLElement | null>(null)
 
     // ---- 獨立字級 ----
@@ -256,10 +264,12 @@ export default defineComponent({
         beginDrag(e, edge)
       },
       t,
-      tabs,
-      tab: lastTab,
+      navGroups,
+      tab,
+      selectTab (id: TabId) { lastTab.value = id },
+      isFill: computed(() => SETTINGS_TABS.find(x => x.id === tab.value)?.fill === true),
       bodyEl,
-      tabComponent: computed(() => components[lastTab.value]),
+      tabComponent: computed(() => components[tab.value]),
       /** window 模式(Electron、非預覽)的標題列可拖曳視窗 */
       dragRegion: computed(() => !props.floating && Host.isElectron && !Host.isPreview),
       canQuit: Host.canQuit,
@@ -440,6 +450,22 @@ export default defineComponent({
 .sw-nav-fill {
   flex: 1;
 }
+/* 第 39 步:選單分組(組標題小字 + 組間分隔線) */
+.sw-nav-group {
+  padding: 6px 12px 2px 16px;
+  color: var(--ink-3);
+  font-size: var(--fs-2xs);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+  user-select: none;
+}
+.sw-nav-sep {
+  flex-shrink: 0;
+  height: 1px;
+  margin: 6px 12px 2px;
+  background: var(--edge-0);
+}
 .sw-quit {
   appearance: none;
   border: 0;
@@ -498,6 +524,15 @@ export default defineComponent({
   }
   .sw-nav-item:hover {
     background: none;
+  }
+  /* 上方分頁:組標題藏起,兩組之間一條直線 */
+  .sw-nav-group {
+    display: none;
+  }
+  .sw-nav-sep {
+    width: 1px;
+    height: auto;
+    margin: 6px 4px;
   }
   .sw-nav-item.on {
     border-bottom-color: var(--gold);
@@ -573,5 +608,35 @@ export default defineComponent({
 .settings-panel .placeholder {
   color: var(--ink-3);
   font-size: var(--fs-sm);
+}
+/* 第 39 步:卡片標題 +「?」、卡片的一句說明、「?」裡的段落、勾選列旁的「?」 */
+.settings-panel .card-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  margin: 0 0 8px;
+}
+.settings-panel .card-head > .label {
+  display: block;
+}
+.settings-panel .lead {
+  margin: -2px 0 6px;
+  font-size: var(--fs-xs);
+  color: var(--ink-2);
+}
+.settings-panel .help-p {
+  display: block;
+}
+.settings-panel .help-p + .help-p {
+  margin-top: 0.5em;
+}
+.settings-panel .chk-row {
+  gap: 0.5em;
+}
+.settings-panel .foot.warn {
+  color: var(--warn);
+}
+.settings-panel .srow > .k .help-tip {
+  margin-left: 0.25em;
 }
 </style>

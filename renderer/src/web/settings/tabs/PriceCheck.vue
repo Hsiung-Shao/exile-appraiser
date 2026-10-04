@@ -1,6 +1,10 @@
-<!-- 設定 › 查價:搜尋條件(容差、預設通貨、API 延遲)與掛單/剪貼簿(賣家、帳號、還原剪貼簿)。 -->
+<!--
+  設定 › 查價(第 39 步整理):搜尋條件(容差、預設通貨、API 延遲)/ 面板顯示(通貨成交量、滑鼠懸停顯示物品)/ 掛單與剪貼簿(賣家、帳號、還原剪貼簿)。
+  只對某遊戲 / 伺服器有效的項目不符條件就不顯示:預設價格通貨只影響 PoE1、通貨成交量只有國際服(poe.ninja)、懸停物品只有 PoE2;
+  面板顯示卡片沒有任何一項時整張不顯示。
+-->
 <template>
-  <section class="card">
+  <section class="card" data-setting="search-section">
     <span class="label">{{ t('ppz.section_search') }}</span>
     <div class="srow">
       <span class="k">{{ t('ppz.stat_range') }}</span>
@@ -10,7 +14,7 @@
         </select>
       </div>
     </div>
-    <div class="srow">
+    <div v-if="showDefaultCurrency" class="srow">
       <span class="k">{{ t('ppz.default_currency') }}</span>
       <div class="ctl">
         <div class="seg" data-setting="default-currency">
@@ -18,7 +22,6 @@
             :data-value="String(c.value)" @click="pc.defaultCurrency = c.value">{{ t(c.key) }}</button>
         </div>
       </div>
-      <span class="note">{{ t('ppz.default_currency_hint') }}</span>
     </div>
     <div class="srow">
       <span class="k">{{ t('ppz.api_latency') }}</span>
@@ -29,7 +32,33 @@
     </div>
   </section>
 
-  <section class="card">
+  <section v-if="showVolume || showItemHover" class="card" data-setting="panel-section">
+    <span class="label">{{ t('ppz.section_panel') }}</span>
+    <!-- 第 24 步:查價面板通貨價格區的每小時成交量(兩代都有;只有國際服有 poe.ninja);照 Exiled Exchange 2 settings-price-check.vue 的四選一 -->
+    <div v-if="showVolume" class="srow">
+      <span class="k">{{ t('ppz.currency_volume') }}</span>
+      <div class="ctl">
+        <div class="seg" data-setting="currency-volume">
+          <button v-for="o in volumeOptions" :key="o.value" :class="{ on: pc.currencyVolume === o.value }"
+            :data-value="o.value" @click="pc.currencyVolume = o.value">{{ t(o.key) }}</button>
+        </div>
+      </div>
+      <span class="note">{{ t('ppz.currency_volume_hint') }}</span>
+    </div>
+    <!-- PoE2 才有(poe1 沒有物品浮窗元件);照 Exiled Exchange 2 settings-price-check.vue 的三選一 -->
+    <div v-if="showItemHover" class="srow">
+      <span class="k">{{ t('ppz.item_hover') }} <help-tip id="item-hover" :text="t('ppz.item_hover_help')" /></span>
+      <div class="ctl">
+        <div class="seg" data-setting="item-hover-tooltip">
+          <button v-for="o in hoverOptions" :key="o.value" :class="{ on: pc.itemHoverTooltip === o.value }"
+            :data-value="o.value" @click="pc.itemHoverTooltip = o.value">{{ t(o.key) }}</button>
+        </div>
+      </div>
+      <span class="note">{{ t('ppz.item_hover_hint') }}</span>
+    </div>
+  </section>
+
+  <section class="card" data-setting="listing-section">
     <span class="label">{{ t('ppz.section_listing') }}</span>
     <div class="srow">
       <span class="k">{{ t('ppz.show_seller') }}</span>
@@ -46,28 +75,6 @@
         <input v-model.lazy.trim="config.accountName" class="input sm" data-setting="account-name">
       </div>
     </div>
-    <!-- 第 24 步:查價面板通貨價格區的每小時成交量(兩代都有);照 Exiled Exchange 2 settings-price-check.vue 的四選一 -->
-    <div class="srow">
-      <span class="k">{{ t('ppz.currency_volume') }}</span>
-      <div class="ctl">
-        <div class="seg" data-setting="currency-volume">
-          <button v-for="o in volumeOptions" :key="o.value" :class="{ on: pc.currencyVolume === o.value }"
-            :data-value="o.value" @click="pc.currencyVolume = o.value">{{ t(o.key) }}</button>
-        </div>
-      </div>
-      <span class="note">{{ t('ppz.currency_volume_hint') }}</span>
-    </div>
-    <!-- PoE2 才有(poe1 沒有物品浮窗元件);照 Exiled Exchange 2 settings-price-check.vue 的三選一 -->
-    <div v-if="showItemHover" class="srow">
-      <span class="k">{{ t('ppz.item_hover') }}</span>
-      <div class="ctl">
-        <div class="seg" data-setting="item-hover-tooltip">
-          <button v-for="o in hoverOptions" :key="o.value" :class="{ on: pc.itemHoverTooltip === o.value }"
-            :data-value="o.value" @click="pc.itemHoverTooltip = o.value">{{ t(o.key) }}</button>
-        </div>
-      </div>
-      <span class="note">{{ t('ppz.item_hover_hint') }}</span>
-    </div>
     <div class="chk-row">
       <label class="chk">
         <input v-model="config.restoreClipboard" type="checkbox" data-setting="restore-clipboard">
@@ -81,9 +88,11 @@
 import { computed, defineComponent } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { AppConfig } from '@/web/Config'
-import { CURRENCY_VOLUME_OPTIONS, HOVER_OPTIONS, hasItemHover } from './price-check-options'
+import { CURRENCY_VOLUME_OPTIONS, HOVER_OPTIONS, hasCurrencyVolume, hasDefaultCurrency, hasItemHover } from './price-check-options'
+import HelpTip from '../HelpTip.vue'
 
 export default defineComponent({
+  components: { HelpTip },
   setup () {
     const { t } = useI18n()
     const config = AppConfig()
@@ -104,7 +113,9 @@ export default defineComponent({
       ] as Array<{ value: false | 'account' | 'ign', key: string }>,
       hoverOptions: HOVER_OPTIONS,
       volumeOptions: CURRENCY_VOLUME_OPTIONS,
-      showItemHover: computed(() => hasItemHover(config.game))
+      showItemHover: computed(() => hasItemHover(config.game)),
+      showDefaultCurrency: computed(() => hasDefaultCurrency(config.game)),
+      showVolume: computed(() => hasCurrencyVolume(config.realm))
     }
   }
 })

@@ -1,4 +1,8 @@
-<!-- 設定 › 一般:介面(語言、主題、強調色、字級)、背景(自訂背景圖,2026-10-01)與遊戲(遊戲、區服、客戶端語言、聯盟);最後一張卡是瀏覽器預覽。 -->
+<!--
+  設定 › 一般(第 39 步整理):介面(語言、主題、強調色、字級、設定視窗字級)、背景(自訂背景圖,2026-10-01)、
+  啟動(啟動提示、硬體加速)、瀏覽器預覽。遊戲 / 伺服器 / 客戶端語言 / 聯盟 / 交易站驗證搬到「遊戲」分頁(Game.vue)。
+  長說明收在「?」(HelpTip.vue),畫面上每項最多一句。
+-->
 <template>
   <section class="card">
     <span class="label">{{ t('ppz.section_interface') }}</span>
@@ -50,7 +54,7 @@
     </div>
     <!-- 第 21 步:設定視窗獨立字級(null = 跟隨上面的字級;只作用在設定視窗,查價面板不受影響) -->
     <div class="srow">
-      <span class="k">{{ t('ppz.settings_window.font_size') }}</span>
+      <span class="k">{{ t('ppz.settings_window.font_size') }} <help-tip id="settings-font-size" :text="t('ppz.settings_window.font_help')" /></span>
       <div class="ctl" data-setting="settings-font-size">
         <input v-model.number="swFsSlider" class="slider" type="range" :min="swFsMin" :max="swFsMax" step="1"
           :class="{ follow: config.settingsFontSize == null }">
@@ -62,23 +66,14 @@
       </div>
       <span class="note">{{ t('ppz.settings_window.font_hint') }}</span>
     </div>
-    <div class="chk-row">
-      <label class="chk"><input v-model="config.startupToast" type="checkbox" data-setting="startup-toast"><span>{{ t('ppz.startup_toast') }}</span></label>
-    </div>
-    <!-- 第五輪 30.5:硬體加速(預設關 = 改版前;main 在啟動時讀設定檔,改了要重新啟動才生效) -->
-    <div class="chk-row">
-      <label class="chk"><input v-model="config.hardwareAcceleration" type="checkbox" data-setting="hardware-acceleration"><span>{{ t('ppz.hw_accel.label') }}</span></label>
-    </div>
-    <p class="foot" data-setting="hardware-acceleration-note">{{ t('ppz.hw_accel.note') }}</p>
-    <div v-if="hwAccelPending" class="hw-restart" data-setting="hardware-acceleration-restart">
-      <span class="warn-text">{{ t('ppz.hw_accel.restart_needed') }}</span>
-      <button v-if="canRelaunch" class="btn sm" data-action="relaunch" :disabled="relaunching" @click="relaunch">{{ t('ppz.hw_accel.restart_now') }}</button>
-    </div>
   </section>
 
   <!-- 自訂背景圖(2026-10-01):查價面板與設定視窗;檔案對話框選 png / jpg / webp(main bg-pick 複製到 userData/backgrounds) -->
   <section class="card" data-setting="background">
-    <span class="label">{{ t('ppz.bg.section') }}</span>
+    <div class="card-head">
+      <span class="label">{{ t('ppz.bg.section') }}</span>
+      <help-tip id="bg" :text="t('ppz.bg.hint')" />
+    </div>
     <div class="bg-row">
       <div class="bg-thumb" :class="{ empty: !bgThumb }" data-setting="bg-thumb"
         :style="bgThumb ? { backgroundImage: bgThumb, filter: `brightness(${config.bg.bright / 100}) blur(${config.bg.blur / 100 * 4}px)` } : undefined">
@@ -102,13 +97,12 @@
       </div>
     </div>
     <div class="srow">
-      <span class="k">{{ t('ppz.bg.panel_opacity') }}</span>
+      <span class="k">{{ t('ppz.bg.panel_opacity') }} <help-tip id="bg-readability" data-setting="bg-readability-hint" :text="t('ppz.bg.readability_hint')" /></span>
       <div class="ctl" data-setting="bg-panel-opacity">
         <input v-model.number="config.bg.panelOpacity" class="slider" type="range" min="0" max="100" step="5">
         <span class="num fs-val">{{ config.bg.panelOpacity }}%</span>
       </div>
     </div>
-    <p class="preview-note" data-setting="bg-readability-hint">{{ t('ppz.bg.readability_hint') }}</p>
     <div class="srow">
       <span class="k">{{ t('ppz.bg.blur') }}</span>
       <div class="ctl" data-setting="bg-blur">
@@ -118,77 +112,44 @@
     </div>
     <!-- 第 26 步(2026-10-03):顯示位置與填滿方式,查價面板 / 設定視窗各一組(有圖才顯示;BgLayoutEditor.vue) -->
     <template v-if="bgUrl">
-      <span class="sublabel">{{ t('ppz.bg.layout.section') }}</span>
+      <span class="sublabel">{{ t('ppz.bg.layout.section') }} <help-tip id="bg-layout" data-setting="bg-layout-hint" :text="t('ppz.bg.layout.hint')" /></span>
       <div class="bg-layouts" data-setting="bg-layouts">
         <bg-layout-editor host="panel" :url="bgUrl" :bright="config.bg.bright" />
         <bg-layout-editor host="settings" :url="bgUrl" :bright="config.bg.bright" />
       </div>
-      <p class="preview-note" data-setting="bg-layout-hint">{{ t('ppz.bg.layout.hint') }}</p>
     </template>
-    <p class="preview-note">{{ t('ppz.bg.hint') }}</p>
     <p v-if="bgError" class="err" data-setting="bg-error">{{ bgError }}</p>
   </section>
 
-  <section class="card">
-    <span class="label">{{ t('ppz.section_game') }}</span>
-    <div class="srow">
-      <span class="k">{{ t('ppz.game') }}</span>
-      <div class="ctl">
-        <div class="seg" data-setting="game">
-          <button v-for="g in games" :key="g.id" :class="{ on: config.game === g.id }" :data-value="g.id"
-            :title="g.title" @click="config.game = g.id">{{ g.label }}</button>
-        </div>
-      </div>
+  <section class="card" data-setting="startup">
+    <span class="label">{{ t('ppz.section_startup') }}</span>
+    <div class="chk-row">
+      <label class="chk"><input v-model="config.startupToast" type="checkbox" data-setting="startup-toast"><span>{{ t('ppz.startup_toast') }}</span></label>
     </div>
-    <div class="srow">
-      <span class="k">{{ t('ppz.realm') }}</span>
-      <div class="ctl">
-        <div class="seg" data-setting="realm">
-          <button v-for="r in realms" :key="r" :class="{ on: config.realm === r }" :data-value="r"
-            @click="config.realm = r">{{ r === 'intl' ? t('ppz.realm_intl') : t('ppz.realm_tw') }}</button>
-        </div>
-      </div>
+    <!-- 第五輪 30.5:硬體加速(預設關 = 改版前;main 在啟動時讀設定檔,改了要重新啟動才生效) -->
+    <div class="chk-row">
+      <label class="chk"><input v-model="config.hardwareAcceleration" type="checkbox" data-setting="hardware-acceleration"><span>{{ t('ppz.hw_accel.label') }}</span></label>
+      <help-tip id="hardware-acceleration" data-setting="hardware-acceleration-note" :text="t('ppz.hw_accel.note')" />
     </div>
-    <div class="srow">
-      <span class="k">{{ t('ppz.language') }}</span>
-      <div class="ctl">
-        <div class="seg" data-setting="language">
-          <button v-for="l in languages" :key="l" :class="{ on: config.language === l }" :data-value="l"
-            @click="config.language = l">{{ languageLabel(l) }}</button>
-        </div>
-      </div>
-      <span class="note" data-note="language-auto">{{ t('ppz.language_auto_hint') }}</span>
-    </div>
-    <div class="srow">
-      <span class="k">{{ t('ppz.league') }}</span>
-      <div class="ctl">
-        <select v-model="leagueId" class="select sm" :disabled="leagues.isLoading.value">
-          <option v-if="leagues.isLoading.value" :value="leagueId">{{ t('ppz.league_loading') }}</option>
-          <option v-for="l in leagues.list.value" :key="l.id" :value="l.id">{{ l.id }}</option>
-        </select>
-      </div>
-      <span v-if="leagues.error.value" class="err">{{ t('ppz.league_failed', { error: leagues.error.value }) }}</span>
-    </div>
-    <div class="srow">
-      <span />
-      <div class="ctl">
-        <button class="btn sm" @click="openCaptcha">{{ t('ppz.open_captcha') }}</button>
-      </div>
+    <div v-if="hwAccelPending" class="hw-restart" data-setting="hardware-acceleration-restart">
+      <span class="warn-text">{{ t('ppz.hw_accel.restart_needed') }}</span>
+      <button v-if="canRelaunch" class="btn sm" data-action="relaunch" :disabled="relaunching" @click="relaunch">{{ t('ppz.hw_accel.restart_now') }}</button>
     </div>
   </section>
 
   <section v-if="hasHost" class="card" data-setting="browser-preview">
-    <span class="label">{{ t('ppz.preview.section') }}</span>
+    <div class="card-head">
+      <span class="label">{{ t('ppz.preview.section') }}</span>
+      <help-tip v-if="!isPreview" id="browser-preview" :text="t('ppz.preview.hint')" />
+    </div>
     <template v-if="isPreview">
       <p class="preview-note" data-preview="active">{{ t('ppz.preview.active') }}</p>
       <p v-if="needsRestart" class="preview-note warn" data-preview="needs-restart">{{ t('ppz.preview.needs_restart') }}</p>
     </template>
     <template v-else>
-      <div class="srow">
-        <span class="k">{{ t('ppz.preview.open') }}</span>
-        <div class="ctl">
-          <button class="btn sm" :disabled="previewBusy" data-action="open-preview" @click="openPreview">{{ t('ppz.preview.open') }}</button>
-        </div>
+      <p class="lead">{{ t('ppz.preview.lead') }}</p>
+      <div class="btn-row">
+        <button class="btn sm" :disabled="previewBusy" data-action="open-preview" @click="openPreview">{{ t('ppz.preview.open') }}</button>
       </div>
       <div v-if="previewUrl" class="srow stack">
         <div class="ctl preview-url">
@@ -196,7 +157,6 @@
           <button class="btn ghost sm" data-action="copy-preview-url" @click="copyPreviewUrl">{{ copied ? t('ppz.preview.copied') : t('ppz.preview.copy') }}</button>
         </div>
       </div>
-      <p class="preview-note">{{ t('ppz.preview.hint') }}</p>
       <p v-if="previewError" class="err">{{ t('ppz.preview.failed', { error: previewError }) }}</p>
     </template>
   </section>
@@ -207,11 +167,11 @@ import { computed, defineComponent, onMounted, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { AppConfig, configContentsForRelaunch, hotkeyRegistration } from '@/web/Config'
 import { Host } from '@/web/background/IPC'
-import { useLeagues } from '@/web/background/Leagues'
-import { REALMS, REALM_IDS, TRADE_PATHS, type Language } from '@exile-appraiser/core/realm'
+import type { Language } from '@exile-appraiser/core/realm'
 import { ACCENTS, THEMES, FS_BASE_MIN, FS_BASE_MAX, DEFAULT_FS_BASE, bgImageUrl, normAccent, normBgFile, type Theme } from '@/web/useTheme'
 import { SETTINGS_FS_MAX, SETTINGS_FS_MIN, normSettingsFontSize } from '../settings-window-geom'
 import BgLayoutEditor from '../BgLayoutEditor.vue'
+import HelpTip from '../HelpTip.vue'
 
 /** 主題縮圖:[底, 面板, 字, 強調](同 pob-zh-engine/ui/src/views/SettingsView.svelte 的 SWATCH)。 */
 const SWATCH: Record<Theme, [string, string, string, string]> = {
@@ -222,10 +182,9 @@ const SWATCH: Record<Theme, [string, string, string, string]> = {
 }
 
 export default defineComponent({
-  components: { BgLayoutEditor },
+  components: { BgLayoutEditor, HelpTip },
   setup () {
     const { t } = useI18n()
-    const leagues = useLeagues()
     const config = AppConfig()
 
     // ---- 瀏覽器預覽(main 的 preview-server;docs/browser-preview.md) ----
@@ -287,14 +246,8 @@ export default defineComponent({
       bgUrl,
       pickBg,
       t,
-      leagues,
       config,
       SWATCH,
-      realms: REALM_IDS,
-      games: [
-        { id: 'poe1' as const, label: 'PoE1', title: 'Path of Exile' },
-        { id: 'poe2' as const, label: 'PoE2', title: 'Path of Exile 2' }
-      ],
       languages: ['cmn-Hant', 'en'] as Language[],
       languageLabel: (l: Language) => l === 'cmn-Hant' ? '繁體中文' : 'English',
       themes: THEMES,
@@ -312,13 +265,6 @@ export default defineComponent({
       isCustomAccent: computed(() => !!config.accent && !(ACCENTS as readonly string[]).includes(config.accent)),
       setCustomAccent (e: Event) {
         config.accent = normAccent((e.target as HTMLInputElement).value)
-      },
-      leagueId: computed<string | undefined>({
-        get: () => leagues.selectedId.value,
-        set: (id) => { leagues.selectedId.value = id }
-      }),
-      openCaptcha () {
-        void Host.openCaptcha(`https://${REALMS[config.realm].host}${TRADE_PATHS[config.game].web}`)
       },
       hasHost: Host.isElectron,
       isPreview: Host.isPreview,

@@ -234,7 +234,7 @@ export function bootScript (opts: { prefix: string, version: string, methodChann
   return `(function(){var C=${json};
 var cid=(Math.random().toString(36).slice(2)+Date.now().toString(36)).replace(/[^a-z0-9]/g,'').slice(0,40);
 var seq=0,pending={},subs={},es=null,lostT=null,lost=false,autoOpened=false;
-var TABS=['general','price-check','hotkeys','chat','regex','dust','log','about'];
+var TABS=['general','game','price-check','stash-chat','recognition','hotkeys','about','regex','dust','log','chat'];
 var m=/(?:^|[#&])tab=([a-z-]+)/.exec(location.hash||'');var tab=m&&TABS.indexOf(m[1])>=0?m[1]:'general';
 function emit(n,d){var a=subs[n];if(!a)return;a.slice().forEach(function(cb){try{cb(d)}catch(e){console.error(e)}})}
 function banner(on){try{var id='host-preview-lost',el=document.getElementById(id);
