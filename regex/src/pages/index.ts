@@ -9,6 +9,11 @@ export * from './types'
 export { NUMERIC_LABEL_KEYS, numericPages } from './numeric-pages'
 export { VENDOR_LABEL_KEYS, vendorPages } from './vendor-pages'
 export {
+  ITEM_MOD_CATEGORIES, ITEM_MOD_PAGE_IDS, ITEM_MOD_TRADE_CATS, MAX_ANCHOR_TEXT, buildItemModData, buildModIndex, chooseAnchor,
+  escapeFragText, filterItemMods, isItemModPageId, itemModCategory, itemModFragment, itemModGroupCounts, itemModPage, parseStatsNdjson
+} from './item-mods'
+export type { ItemModCategory, ItemModData, ItemModEntryData, ItemModExcludeReason, ItemModFilter, ModAnchor, ModIndex, StatLite } from './item-mods'
+export {
   isTierNameLine, labelBase, linkColors, linkedSockets, mapTierFragment, propertyFragment, rarityFragment, socketColorCount, strictPropertyFragment,
   wholeLine
 } from './frag'

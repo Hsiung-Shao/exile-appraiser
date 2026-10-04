@@ -33,7 +33,8 @@ async function queryOf (index: number): Promise<{ text: string, name: string } |
   const store = useRegexStore()
   const b = store.ui.bookmarks[index]
   if (!b || !b.game) return null
-  const cat = await catalogueFor(b.game)
+  // 第 37 步:物品詞綴數值頁的書籤要先載入那一頁(第一次用到才讀 stats.ndjson)
+  const cat = await catalogueFor(b.game, b.page)
   if (!cat) return null
   const q = bookmarkQuery(cat.pages, b)
   if (!q) return null

@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { mergeLabels, parseLabels, parseRegexCatalogue, type RegexCatalogue, type RegexGame, type RegexLabels, type RegexPage } from './data'
-import { algoPages } from './pages'
+import { algoPages, buildItemModData, parseStatsNdjson, type ItemModData, type StatLite } from './pages'
 import { parseTemplates, type RegexTemplate } from './share'
 
 /** repo 的 `data/regex/` */
@@ -46,6 +46,16 @@ export function loadLabelsFor (cat: RegexCatalogue, dir = defaultRegexDataDir())
 export function loadAllPagesFor (game: RegexGame, dir = defaultRegexDataDir()): RegexPage[] {
   const cat = loadRegexCatalogueFile(game, dir)
   return [...cat.pages, ...algoPages(game, loadLabelsFor(cat, dir))]
+}
+
+/**
+ * 第 37 步:物品詞綴數值頁的資料(`data/<game>/{cmn-Hant,en}/stats.ndjson`)。renderer 自己 fetch 同兩個檔再呼叫同一個
+ * `buildItemModData`(store.ts `ensureItemMods`);這裡給 CLI / 測試。
+ */
+export function loadItemModData (game: RegexGame, dir = defaultRegexDataDir()): ItemModData {
+  const base = path.resolve(dir, '..', game)
+  const read = (lang: string): StatLite[] => parseStatsNdjson(fs.readFileSync(path.join(base, lang, 'stats.ndjson'), 'utf8'))
+  return buildItemModData(game, read('cmn-Hant'), read('en'))
 }
 
 export function loadTemplatesFile (dir = defaultRegexDataDir()): RegexTemplate[] {

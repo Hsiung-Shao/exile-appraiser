@@ -25,6 +25,11 @@ export {
   propertyFragment, rangeOp, rarityFragment, strictPropertyFragment, sanitizeValue, sectionPageOf, socketColorCount, valueUsable, vendorPages, wholeLine
 } from './pages'
 export type { AlgoEntry, AlgoInput, AlgoKind, AlgoOption, AlgoPage, AlgoValue, RangeOp } from './pages'
+export {
+  ITEM_MOD_CATEGORIES, ITEM_MOD_PAGE_IDS, MAX_ANCHOR_TEXT, buildItemModData, filterItemMods, isItemModPageId, itemModCategory,
+  itemModFragment, itemModGroupCounts, itemModPage, parseStatsNdjson
+} from './pages'
+export type { ItemModCategory, ItemModData, ItemModEntryData, ItemModExcludeReason, ItemModFilter, ModAnchor } from './pages'
 export { combine, escapeTerm } from './combine'
 export type { CombineInput, CombineResult, CombineSel, Conflict, ConflictKind, PageContribution } from './combine'
 export {

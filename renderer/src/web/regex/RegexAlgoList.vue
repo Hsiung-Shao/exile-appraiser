@@ -4,12 +4,13 @@
   + 這一列產生的片段預覽。改值會順手勾起該列(store.setValue)。片段由 regex/src/pages/ 產生,不經 Corpus。
   第 32 步:`embedded` = 嵌在宿主詞綴頁頂端的數值區(RegexNumericSection.vue 包一層可收合的卡片),勾選 / 清除都以 `page.id` 指定頁,
   不依賴「目前頁」。
+  第 37 步:`rowsOnly` = 只畫這些列(物品詞綴數值頁 RegexItemModList.vue 先篩選 / 限量,幾千條不全部畫);`hint` 覆寫工具列說明。
 -->
 <template>
   <component :is="embedded ? 'div' : 'section'" class="rx-algo" :class="{ card: !embedded, embedded }"
     :data-regex="embedded ? 'section-list' : 'algo-list'" :data-page="page.id">
     <div class="rx-toolbar">
-      <span class="dim rx-algo-hint">{{ t(embedded ? 'ppz.regex.section_hint' : 'ppz.regex.algo_hint') }}</span>
+      <span class="dim rx-algo-hint">{{ hint || t(embedded ? 'ppz.regex.section_hint' : 'ppz.regex.algo_hint') }}</span>
       <span class="grow" />
       <button class="btn sm" :data-regex="embedded ? 'section-clear' : 'clear'" :disabled="!picked.length" :title="t('ppz.regex.clear_tip')"
         @click="clearPicksOn(page.id)">{{ t('ppz.regex.clear') }}</button>
@@ -93,7 +94,11 @@ export default defineComponent({
   props: {
     page: { type: Object as PropType<AlgoPage>, required: true },
     /** 嵌在宿主詞綴頁的數值區(外層卡片由 RegexNumericSection.vue 提供) */
-    embedded: { type: Boolean, default: false }
+    embedded: { type: Boolean, default: false },
+    /** 只畫這些列(項目索引);null = 全部 */
+    rowsOnly: { type: Array as PropType<number[] | null>, default: null },
+    /** 工具列說明(空 = 預設) */
+    hint: { type: String, default: '' }
   },
   setup (props) {
     const { t } = useI18n()
@@ -102,7 +107,9 @@ export default defineComponent({
     const uiEn = computed(() => config.uiLanguage === 'en')
 
     const groups = computed(() => props.page.groups.map((g, i) => (uiEn.value ? props.page.groupsEn[i] : '') || g))
-    const rows = computed(() => props.page.entries.map((e, i) => ({ e, i })))
+    const rows = computed(() => props.rowsOnly
+      ? props.rowsOnly.map(i => ({ e: props.page.entries[i], i })).filter(r => !!r.e)
+      : props.page.entries.map((e, i) => ({ e, i })))
     const rowsOf = (g: number) => rows.value.filter(r => r.e.g === g)
 
     /** range 項目目前的運算:值推得出就用它,否則輸入允許的第一個 */

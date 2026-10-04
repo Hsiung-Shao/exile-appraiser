@@ -60,6 +60,7 @@
 
     <template v-if="page && out">
       <RegexCombined v-if="panelView === 'combined'" />
+      <RegexItemModList v-else-if="itemPage" :key="itemPage.id" :page="itemPage" />
       <RegexAlgoList v-else-if="algoPage" :page="algoPage" />
       <template v-else>
         <RegexNumericSection v-if="section" :key="section.id" :section="section" />
@@ -163,11 +164,12 @@
 <script lang="ts">
 import { computed, defineComponent, onBeforeUnmount, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { isAlgoPage, lengthLevel, lineIn, type Mode, type RegexPage, type RegexTemplate } from '@exile-appraiser/regex'
+import { isAlgoPage, isItemModPageId, lengthLevel, lineIn, type Mode, type RegexPage, type RegexTemplate } from '@exile-appraiser/regex'
 import { AppConfig, addStashSearchEntry } from '@/web/Config'
 import { useSettingsFs } from '@/web/settings/settings-fs'
 import RegexList from './RegexList.vue'
 import RegexAlgoList from './RegexAlgoList.vue'
+import RegexItemModList from './RegexItemModList.vue'
 import RegexCombined from './RegexCombined.vue'
 import RegexBookmarks from './RegexBookmarks.vue'
 import RegexNumericSection from './RegexNumericSection.vue'
@@ -193,7 +195,7 @@ async function writeClipboard (text: string): Promise<void> {
 }
 
 export default defineComponent({
-  components: { RegexList, RegexAlgoList, RegexCombined, RegexBookmarks, RegexNumericSection },
+  components: { RegexList, RegexAlgoList, RegexItemModList, RegexCombined, RegexBookmarks, RegexNumericSection },
   setup () {
     const { t, te } = useI18n()
     const store = useRegexStore()
@@ -246,6 +248,8 @@ export default defineComponent({
       panelView: store.panelView,
       result: computed(() => store.result.value),
       algoPage: computed(() => isAlgoPage(store.page.value) ? store.page.value : null),
+      // 第 37 步:物品詞綴數值頁(幾千條,先篩選再畫;第一次開頁才載入)
+      itemPage: computed(() => isAlgoPage(store.page.value) && isItemModPageId(store.page.value.id) ? store.page.value : null),
       out,
       scope,
       notice: store.notice,

@@ -16,6 +16,10 @@
  * - **書籤快捷存取(第 33 步)**:書籤個別熱鍵存在書籤上(`hotkey`,state schema 4);`regexBookmarkHotkeyList`(`bookmark-hotkeys.ts`)
  *   跟著書籤更新 → Config.ts 併進 host-config 讓 main 註冊。啟動時就讀狀態(`ensureStateLoaded`,不載 ~3 MB 清單),
  *   清單到第一次執行書籤(`quick.ts` `runRegexBookmark`)或打開正則分頁才載。
+ * - **物品詞綴數值頁(第 37 步)**:`item_mod_values`(PoE1)/ `item_mod_values_poe2`(PoE2)在清單載入時先放一個**沒有項目**的頁
+ *   (`itemModPage(game, null)`,下拉選單看得到);第一次選到它、或存檔 / 書籤 / 分享碼引用它時才 fetch 兩語 `stats.ndjson`
+ *   (各 ~2.5 MB)→ `buildItemModData`(只留模板與錨點)→ 換成有項目的頁(`slot.cat` 換新物件,computed 全部重算)→ 再還原那一頁的勾選。
+ *   沒載入前不還原那一頁(否則存檔的鍵會被當成「還原不到」)。
  * - 行為移植自 PobTools `host/regex_tool_ui.cpp`(`restoreState` :308、`switchGame` :1006、`loadBookmark` :832、
  *   `updateBookmark` :868、`commitName` :944)。
  */
@@ -24,7 +28,8 @@ import {
   algoPages, bookmarkApplyOf, bookmarkBodyOf, buildCorpus, combine, combineSels, decodeShare, defaultRegexState,
   encodeShare, hostIdOf, isAlgoPage, isSectionPage, listedPages, mergeLabels, numericKeyOf, pageKeysOf, parseLabels,
   parseRegexCatalogue, parseRegexState, parseTemplates, picksFor, resolveState, resolvedValues, savedPicksOf, sectionPageOf,
-  serializeRegexState, shareStateOf, visibleRows, bookmarkHotkeys, regexStateSchemaOf,
+  serializeRegexState, shareStateOf, visibleRows, bookmarkHotkeys, regexStateSchemaOf, ITEM_MOD_PAGE_IDS, buildItemModData,
+  isItemModPageId, itemModPage, parseStatsNdjson,
   type AlgoEntry, type AlgoPage, type AlgoValue, type CombineResult, type Mode, type RegexBookmark, type RegexCatalogue,
   type RegexGame, type RegexLabels, type RegexLang, type RegexPage, type RegexTemplate, type Result, type ShareState, type T17Filter,
   type RegexUiState
@@ -71,6 +76,13 @@ const templates = shallowRef<RegexTemplate[]>([])
 /** 已經套用過 `ui.current` 的頁(每頁只還原一次) */
 const restored = new Set<string>()
 
+/** 第 37 步:物品詞綴數值頁的載入狀態(每個遊戲一份;`ms` = 讀檔 + 建索引耗時,`count` = 可選詞綴數) */
+const itemMods = reactive<Record<RegexGame, { phase: LoadPhase, error: string, ms: number, count: number }>>({
+  poe1: { phase: 'idle', error: '', ms: 0, count: 0 },
+  poe2: { phase: 'idle', error: '', ms: 0, count: 0 }
+})
+const itemModLoads: Partial<Record<RegexGame, Promise<boolean>>> = {}
+
 // ---- 載入 ----------------------------------------------------------------------
 
 async function fetchText (url: string): Promise<string> {
@@ -95,7 +107,7 @@ async function fetchCatalogue (game: RegexGame): Promise<void> {
     }
     const labels = mergeLabels(cat.labels, fallback)
     slot.labelsFrom = cat.labels ? 'data' : fallback ? 'fallback' : ''
-    cat.pages.push(...algoPages(game, labels))
+    cat.pages.push(...algoPages(game, labels), itemModPage(game, null))
     // 清單 ~3 MB 且載入後唯讀(沒有任何地方就地修改):markRaw 避免整份被包成深層 reactive proxy
     slot.cat = markRaw(cat)
     slot.phase = 'ready'
@@ -167,9 +179,67 @@ export function ensureStarted (preferGame: RegexGame): Promise<void> {
  * 第 33 步:某遊戲的清單(執行書籤用)。沒載過就載(兩個遊戲一起載,同 ensureStarted;面板預設遊戲 = 目前 AppConfig().game);
  * 載入失敗 = null。
  */
-export async function catalogueFor (game: RegexGame): Promise<RegexCatalogue | null> {
+export async function catalogueFor (game: RegexGame, pageId?: string): Promise<RegexCatalogue | null> {
   await ensureStarted(AppConfig().game)
+  // 第 37 步:書籤指向物品詞綴數值頁 → 先把那一頁載進來(清單物件會換新,所以載完再取)
+  if (pageId && isItemModPageId(pageId)) await ensureItemMods(game)
   return catalogues[game].cat
+}
+
+/** 物品詞綴數值頁是否已載入(有項目) */
+function itemModsReady (game: RegexGame): boolean {
+  return itemMods[game].phase === 'ready'
+}
+
+/**
+ * 第 37 步:載入物品詞綴數值頁(兩語 stats.ndjson → `buildItemModData`)。同一遊戲只載一次(失敗可重試);
+ * 載完換掉清單裡的空頁並還原它的勾選。回傳是否成功。
+ */
+export function ensureItemMods (game: RegexGame): Promise<boolean> {
+  const st = itemMods[game]
+  if (st.phase === 'ready') return Promise.resolve(true)
+  const running = itemModLoads[game]
+  if (running) return running
+  const job = (async () => {
+    st.phase = 'loading'
+    st.error = ''
+    try {
+      const t0 = performance.now()
+      const [zh, en] = await Promise.all([
+        fetchText(`./data/${game}/cmn-Hant/stats.ndjson`),
+        fetchText(`./data/${game}/en/stats.ndjson`)
+      ])
+      const data = buildItemModData(game, parseStatsNdjson(zh), parseStatsNdjson(en))
+      const cat = catalogues[game].cat
+      if (!cat) throw new Error('lists not loaded')
+      const id = ITEM_MOD_PAGE_IDS[game]
+      const page = itemModPage(game, data)
+      const next = markRaw({ ...cat, pages: cat.pages.map(p => (p.id === id ? page : p)) })
+      catalogues[game].cat = next
+      st.ms = Math.round(performance.now() - t0)
+      st.count = data.entries.length
+      st.phase = 'ready'
+      console.info(`[regex] 物品詞綴數值頁 ${game}:${data.entries.length} 條,${st.ms} ms`)
+      onCatalogueReady(next)
+      return true
+    } catch (e) {
+      st.phase = 'error'
+      st.error = e instanceof Error ? e.message : String(e)
+      console.error(`[regex] 物品詞綴數值頁載入失敗 ${game}`, e)
+      return false
+    } finally {
+      delete itemModLoads[game]
+    }
+  })()
+  itemModLoads[game] = job
+  return job
+}
+
+/** 存檔 / 分享碼 / 書籤引用到的頁裡有沒有還沒載入的物品詞綴數值頁 → 先載 */
+async function prepareItemMods (game: RegexGame, pageIds: Iterable<string>): Promise<void> {
+  for (const id of pageIds) {
+    if (isItemModPageId(id) && !itemModsReady(game)) { await ensureItemMods(game); return }
+  }
 }
 
 export function retryCatalogue (game: RegexGame): void {
@@ -190,6 +260,8 @@ function onCatalogueReady (cat: RegexCatalogue): void {
   for (const page of cat.pages) {
     if (!views[page.id]) views[page.id] = { search: '', group: -1, t17: 'all' }
     if (restored.has(page.id)) continue
+    // 物品詞綴數值頁還沒載入(沒有項目):先不還原,存檔有引用就去載(載完會再走一次這裡)
+    if (isItemModPageId(page.id) && !itemModsReady(cat.game)) continue
     restored.add(page.id)
     // 數值區的勾選存在宿主頁那筆的 `num`(savedPicksOf 分派)
     const r = savedPicksOf(page, ui)
@@ -208,6 +280,11 @@ function onCatalogueReady (cat: RegexCatalogue): void {
     selPageId.value = shownPages.some(p => p.id === ui.page) ? ui.page : shownPages[0].id
   }
   if (dirty) scheduleSave()
+  // 上次的勾選 / 記住的頁在物品詞綴數值頁 → 背景載入(載完自動還原)
+  const imv = ITEM_MOD_PAGE_IDS[cat.game]
+  if (!itemModsReady(cat.game) && (ui.current.some(c => c.page === imv && c.keys.length) || (cat.game === selGame.value && selPageId.value === imv))) {
+    void ensureItemMods(cat.game)
+  }
 }
 
 // ---- 存檔 ----------------------------------------------------------------------
@@ -444,11 +521,17 @@ export function switchPage (pageId: string): void {
   const cat = catalogue.value
   const id = cat ? hostIdOf(cat.pages, pageId) : pageId
   panelView.value = 'page'
+  if (isItemModPageId(id)) void ensureItemMods(selGame.value)
   if (id === selPageId.value) return
   selPageId.value = id
   ui.game = selGame.value
   ui.page = id
   scheduleSave()
+}
+
+/** 物品詞綴數值頁載入失敗後重試 */
+export function retryItemMods (game: RegexGame): void {
+  void ensureItemMods(game)
 }
 
 export function setPanelView (v: PanelView): void {
@@ -544,12 +627,15 @@ function applyCombo (s: ShareState, what: 'template' | 'share', name: string): v
 }
 
 export function applyTemplate (t: RegexTemplate): void {
-  applyCombo(t.state, 'template', AppConfig().uiLanguage === 'en' ? t.name.en : t.name.zh)
+  const name = AppConfig().uiLanguage === 'en' ? t.name.en : t.name.zh
+  void prepareItemMods(t.state.game, [...Object.keys(t.state.pages), ...Object.keys(t.state.numeric)])
+    .then(() => applyCombo(t.state, 'template', name))
 }
 
 /** 貼上分享碼 = 套用;失敗丟例外(訊息給 UI 顯示) */
 export async function applyShareCode (code: string): Promise<string[]> {
   const d = await decodeShare(code)
+  await prepareItemMods(d.state.game, [...Object.keys(d.state.pages), ...Object.keys(d.state.numeric)])
   applyCombo(d.state, 'share', gameLabel(d.state.game))
   return d.warnings
 }
@@ -635,6 +721,11 @@ export function deleteBookmark (index: number): void {
 export function loadBookmark (index: number): void {
   const b = ui.bookmarks[index]
   if (!b) return
+  // 物品詞綴數值頁還沒載入:先載,載完再套用書籤
+  if (isItemModPageId(b.page)) {
+    const g: RegexGame = b.page === ITEM_MOD_PAGE_IDS.poe2 ? 'poe2' : 'poe1'
+    if (!itemModsReady(g)) { void ensureItemMods(g).then(ok => { if (ok) loadBookmark(index) }); return }
+  }
   const target = pageById(b.page)
   const cat = target ? catalogues[target.game].cat : null
   const a = cat ? bookmarkApplyOf(cat.pages, b) : null
@@ -690,6 +781,7 @@ export function useRegexStore () {
     saveError,
     bookmarkCounts,
     myBookmarks,
-    pageById
+    pageById,
+    itemMods
   }
 }
