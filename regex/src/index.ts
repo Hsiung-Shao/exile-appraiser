@@ -5,25 +5,31 @@ export type { Ambient, Check, Entry, Mode, Options, Result } from './gen'
 export { buildCorpus, entryLines, entryTitle, pageAmbient, parseRegexCatalogue } from './data'
 export type { BuildCorpusOptions, RegexCatalogue, RegexEntry, RegexGame, RegexLang, RegexPage } from './data'
 export {
-  applyKeys, collectKeys, defaultRegexState, keyOf, parseRegexState, picksFor, resolveKeys, serializeRegexState, zhLine
+  applyKeys, collectKeys, defaultRegexState, keyOf, migrateSections, parseRegexState, picksFor, resolveKeys, serializeRegexState, zhLine
 } from './state'
 export type { ParsedRegexState, RegexBookmark, RegexPagePicks, RegexUiState } from './state'
 export { Rng, samplePicks } from './rng'
-export { enLine, entryMatches, extraLines, hiddenPreview, lengthLevel, lineIn, otherLine, pageHasT17, visibleRows } from './view'
-export type { LengthLevel, ListFilter, T17Filter } from './view'
+export {
+  condText, enLine, entryMatches, extraLines, hiddenPreview, lengthLevel, lineIn, otherLine, pageHasT17, sectionSummary, visibleRows
+} from './view'
+export type { LengthLevel, ListFilter, SectionSummaryItem, T17Filter } from './view'
+export { SECTION_HOSTS, numericKeyOf, sectionHostOf, sectionIdOf } from './sections'
 export { domainMax, naiveRangeRegex, normalizeRange, rangeRegex } from './numeric'
 export type { NumOptions, NumRange } from './numeric'
 export { PAGE_KINDS, isCorpusPage, mergeLabels, normalizeLabel, parseLabels } from './data'
 export type { PageKind, RegexLabels } from './data'
 export {
-  NUMERIC_LABEL_KEYS, VENDOR_LABEL_KEYS, algoPages, applyPageKeys, defaultValue, entryKey, isAlgoPage, labelBase,
-  linkColors, linkedSockets, numericPages, pageKeysOf, propertyFragment, rangeOp, sanitizeValue, socketColorCount,
-  valueUsable, vendorPages, wholeLine
+  NUMERIC_LABEL_KEYS, VENDOR_LABEL_KEYS, algoPages, applyPageKeys, combineOrder, defaultValue, entryKey, hostIdOf, isAlgoPage,
+  isSectionPage, labelBase, linkColors, linkedSockets, listedPages, numericPages, pageKeysOf, propertyFragment, rangeOp,
+  sanitizeValue, sectionPageOf, socketColorCount, valueUsable, vendorPages, wholeLine
 } from './pages'
 export type { AlgoEntry, AlgoInput, AlgoKind, AlgoOption, AlgoPage, AlgoValue, RangeOp } from './pages'
 export { combine, escapeTerm } from './combine'
 export type { CombineInput, CombineResult, CombineSel, Conflict, ConflictKind, PageContribution } from './combine'
 export {
-  SHARE_VERSION, base64url, decodeShare, encodeShare, fromBase64url, normalizeShareState, parseTemplates, resolveState
+  SHARE_VERSION, base64url, decodeShare, encodeShare, fromBase64url, migrateShareSections, normalizeShareState, parseTemplates,
+  resolveState
 } from './share'
 export type { RegexTemplate, ResolvedState, ShareState } from './share'
+export { bookmarkApplyOf, bookmarkBodyOf, combineSels, resolvedValues, savedPicksOf, shareStateOf, valuesOfPage } from './embed'
+export type { BookmarkApply, PicksMap, ValuesMap } from './embed'

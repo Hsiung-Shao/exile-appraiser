@@ -4,26 +4,37 @@
 //   分享碼 = JSON → gzip(CompressionStream,瀏覽器 / Electron / Node 18+ 都有)→ base64url(無填充)。
 //   解碼:版本不符丟例外;未知欄位忽略並在 warnings 回報;型別不符的欄位丟掉並回報(不讓半壞的碼整個失敗)。
 // 範本(data/regex/templates.json)用同一個形狀 + 雙語名稱與說明。
+//
+// v2(第 32 步,2026-10-04):地圖 / 換界石數值條件嵌進宿主詞綴頁(sections.ts),新增
+//   `sections:{ 宿主頁 id: [項目 id] }`,數值區的值存在 `numeric[宿主頁 id]`。
+// v1 分享碼與範本照讀:`pages` / `numeric` 裡的 `map_numeric` / `waystone_numeric` 轉到宿主頁(`migrateShareSections`);
+// 解碼 / 正規化的結果一律是 v2。舊版程式(只認 v1)讀 v2 會明確回「版本不符」,不會靜默丟掉數值條件。
 import type { Mode } from './gen'
 import type { RegexGame, RegexPage } from './data'
-import { applyPageKeys, sanitizeValue } from './pages'
+import { applyPageKeys, sanitizeValue, sectionPageOf } from './pages'
 import type { AlgoValue } from './pages/types'
+import { SECTION_HOSTS, unionKeys } from './sections'
 
 export interface ShareState {
-  v: 1
+  v: 2
   game: RegexGame
   mode: Mode
   pages: Record<string, string[]>
+  /** 宿主詞綴頁 id → 數值區勾選的項目 id(v2) */
+  sections: Record<string, string[]>
+  /** 演算法頁 id(商店頁)或宿主詞綴頁 id(數值區)→ 項目 id → 值 */
   numeric: Record<string, Record<string, AlgoValue>>
   custom: string[]
   excludes: string[]
 }
 
-export const SHARE_VERSION = 1
+export const SHARE_VERSION = 2
+/** 仍可讀的舊版本 */
+const READABLE_VERSIONS: readonly unknown[] = [1, 2]
 
 type Json = Record<string, unknown>
 const isObj = (v: unknown): v is Json => typeof v === 'object' && v !== null && !Array.isArray(v)
-const KNOWN = new Set(['v', 'game', 'mode', 'pages', 'numeric', 'custom', 'excludes'])
+const KNOWN = new Set(['v', 'game', 'mode', 'pages', 'sections', 'numeric', 'custom', 'excludes'])
 
 function strList (v: unknown, where: string, warnings: string[]): string[] {
   if (v === undefined) return []
@@ -34,13 +45,30 @@ function strList (v: unknown, where: string, warnings: string[]): string[] {
 }
 
 /**
- * 物件 → ShareState(驗證 + 清理)。`v` 必須是 1;game 必須是 poe1 / poe2;其餘欄位壞掉就丟掉並記 warning。
+ * 第 32 步遷移(就地):`pages` / `numeric` 裡數值頁 id 的部分 → `sections` / `numeric` 的宿主頁 id。
+ * 已是新結構的不受影響(可重複呼叫)。
+ */
+export function migrateShareSections (s: { pages: Record<string, string[]>, sections: Record<string, string[]>, numeric: Record<string, Record<string, AlgoValue>> }): void {
+  for (const [sec, host] of Object.entries(SECTION_HOSTS)) {
+    if (s.pages[sec]) {
+      if (s.pages[sec].length) s.sections[host] = unionKeys(s.sections[host], s.pages[sec])
+      delete s.pages[sec]
+    }
+    if (s.numeric[sec]) {
+      s.numeric[host] = { ...(s.numeric[host] ?? {}), ...s.numeric[sec] }
+      delete s.numeric[sec]
+    }
+  }
+}
+
+/**
+ * 物件 → ShareState(驗證 + 清理)。`v` 必須是 1 或 2(1 會轉成 2 的結構);game 必須是 poe1 / poe2;其餘欄位壞掉就丟掉並記 warning。
  * `requireVersion=false` 給範本檔用(範本沒有 v)。
  */
 export function normalizeShareState (raw: unknown, requireVersion = true): { state: ShareState, warnings: string[] } {
   if (!isObj(raw)) throw new Error('分享碼內容不是物件')
   const warnings: string[] = []
-  if (requireVersion && raw.v !== SHARE_VERSION) throw new Error(`分享碼版本不符(${String(raw.v)},本版只認 ${SHARE_VERSION})`)
+  if (requireVersion && !READABLE_VERSIONS.includes(raw.v)) throw new Error(`分享碼版本不符(${String(raw.v)},本版只認 ${READABLE_VERSIONS.join(' / ')})`)
   const game = raw.game
   if (game !== 'poe1' && game !== 'poe2') throw new Error(`分享碼的遊戲不明(${String(game)})`)
   let mode: Mode = 'any'
@@ -50,6 +78,11 @@ export function normalizeShareState (raw: unknown, requireVersion = true): { sta
   if (raw.pages !== undefined) {
     if (!isObj(raw.pages)) warnings.push('pages 不是物件,已忽略')
     else for (const [id, keys] of Object.entries(raw.pages)) pages[id] = strList(keys, `pages.${id}`, warnings)
+  }
+  const sections: Record<string, string[]> = {}
+  if (raw.sections !== undefined) {
+    if (!isObj(raw.sections)) warnings.push('sections 不是物件,已忽略')
+    else for (const [id, keys] of Object.entries(raw.sections)) sections[id] = strList(keys, `sections.${id}`, warnings)
   }
   const numeric: Record<string, Record<string, AlgoValue>> = {}
   if (raw.numeric !== undefined) {
@@ -68,12 +101,14 @@ export function normalizeShareState (raw: unknown, requireVersion = true): { sta
     }
   }
   for (const k of Object.keys(raw)) if (!KNOWN.has(k) && !(k === 'id' || k === 'name' || k === 'desc')) warnings.push(`未知欄位「${k}」已忽略`)
+  migrateShareSections({ pages, sections, numeric })
   return {
     state: {
-      v: 1,
+      v: 2,
       game,
       mode,
       pages,
+      sections,
       numeric,
       custom: strList(raw.custom, 'custom', warnings),
       excludes: strList(raw.excludes, 'excludes', warnings)
@@ -159,10 +194,11 @@ function textDecoder (): Decoder {
 
 export async function encodeShare (state: ShareState): Promise<string> {
   const doc: ShareState = {
-    v: 1,
+    v: 2,
     game: state.game,
     mode: state.mode,
     pages: state.pages,
+    sections: state.sections,
     numeric: state.numeric,
     custom: state.custom,
     excludes: state.excludes
@@ -188,9 +224,9 @@ export async function decodeShare (code: string): Promise<{ state: ShareState, w
 // ---- 套用(分享碼 / 範本共用) ----
 
 export interface ResolvedState {
-  /** pageId → 勾選索引 */
+  /** pageId → 勾選索引(數值區用它內部的頁 id,例如 map_numeric) */
   picks: Record<string, number[]>
-  /** pageId → entryId → 值(只留存在的頁與項目) */
+  /** pageId → entryId → 值(只留存在的頁與項目;數值區同樣以內部頁 id 為鍵) */
   values: Record<string, Record<string, AlgoValue>>
   /** 鍵還原不到的數量(跨賽季改了、或另一版資料) */
   missed: number
@@ -201,19 +237,28 @@ export interface ResolvedState {
 /** ShareState → 目前清單上的勾選;只看同遊戲的頁 */
 export function resolveState (s: ShareState, pages: readonly RegexPage[]): ResolvedState {
   const out: ResolvedState = { picks: {}, values: {}, missed: 0, unknownPages: [] }
+  const mine = pages.filter(p => p.game === s.game)
   for (const [id, keys] of Object.entries(s.pages)) {
-    const page = pages.find(p => p.id === id && p.game === s.game)
+    const page = mine.find(p => p.id === id)
     if (!page) { out.unknownPages.push(id); out.missed += keys.length; continue }
     const r = applyPageKeys(page, keys)
     out.picks[id] = r.picked
     out.missed += r.missed
   }
+  for (const [host, keys] of Object.entries(s.sections ?? {})) {
+    const sec = sectionPageOf(mine, host)
+    if (!sec) { if (!out.unknownPages.includes(host)) out.unknownPages.push(host); out.missed += keys.length; continue }
+    const r = applyPageKeys(sec, keys)
+    out.picks[sec.id] = r.picked
+    out.missed += r.missed
+  }
   for (const [id, ents] of Object.entries(s.numeric)) {
-    const page = pages.find(p => p.id === id && p.game === s.game)
+    // 宿主詞綴頁 id → 它的數值區;其他(商店頁)= 自己
+    const page = sectionPageOf(mine, id) ?? mine.find(p => p.id === id)
     if (!page) { if (!out.unknownPages.includes(id)) out.unknownPages.push(id); continue }
     const m: Record<string, AlgoValue> = {}
     for (const [eid, v] of Object.entries(ents)) if (page.entries.some(e => e.id === eid)) m[eid] = { ...v }
-    out.values[id] = m
+    out.values[page.id] = m
   }
   return out
 }

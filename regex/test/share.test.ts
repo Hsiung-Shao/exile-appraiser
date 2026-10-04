@@ -1,4 +1,5 @@
-// share.ts:分享碼往返、解碼驗證、範本檔;state.ts schema 2。
+// share.ts:分享碼往返、解碼驗證、範本檔;state.ts schema 2 / 3。
+// 第 32 步:分享碼 v2(數值條件在 `sections` / `numeric[宿主頁]`);v1 舊碼的遷移往返在 sections.test.ts。
 import { describe, expect, it } from 'vitest'
 import { loadAllPagesFor, loadTemplatesFile } from '../src/node'
 import {
@@ -9,11 +10,12 @@ import { applyPageKeys, pageKeysOf } from '../src/pages'
 import { combine } from '../src/combine'
 
 const sample: ShareState = {
-  v: 1,
+  v: 2,
   game: 'poe1',
   mode: 'none',
-  pages: { map_mods: ['#% more Monster Life', 'Monsters Blind on Hit'], map_numeric: ['tier', 'quantity'] },
-  numeric: { map_numeric: { tier: { min: 16 }, quantity: { min: 80, max: 150 } } },
+  pages: { map_mods: ['#% more Monster Life', 'Monsters Blind on Hit'] },
+  sections: { map_mods: ['tier', 'quantity'] },
+  numeric: { map_mods: { tier: { min: 16 }, quantity: { min: 80, max: 150 } } },
   custom: ['自訂 一', 'Custom "two"'],
   excludes: ['反射', '無法回復']
 }
@@ -42,7 +44,8 @@ describe('分享碼', () => {
     expect((await decodeShare(`  ${code.slice(0, 20)}\n${code.slice(20)}  `)).state).toEqual(sample)
   })
   it('版本不符 / 遊戲不明 / 壞碼 → 丟例外', async () => {
-    expect(() => normalizeShareState({ ...sample, v: 2 })).toThrow(/版本/)
+    expect(() => normalizeShareState({ ...sample, v: 3 })).toThrow(/版本/)
+    expect(() => normalizeShareState({ ...sample, v: 1 })).not.toThrow()
     expect(() => normalizeShareState({ ...sample, game: 'poe3' })).toThrow(/遊戲/)
     await expect(decodeShare('not-a-code')).rejects.toThrow()
     await expect(decodeShare('')).rejects.toThrow()
@@ -71,15 +74,16 @@ describe('分享碼', () => {
     const values = { tier: { min: 16 }, quantity: { min: 80 } }
     const before = combine({ lang: 'zh', mode: 'any', pages: [{ page: mm, picks: picks.map_mods }, { page: mn, picks: picks.map_numeric, values }], excludes: ['反射'] })
     const code = await encodeShare({
-      v: 1, game: 'poe1', mode: 'any',
-      pages: { map_mods: pageKeysOf(mm, picks.map_mods).keys, map_numeric: pageKeysOf(mn, picks.map_numeric).keys },
-      numeric: { map_numeric: values }, custom: [], excludes: ['反射']
+      v: 2, game: 'poe1', mode: 'any',
+      pages: { map_mods: pageKeysOf(mm, picks.map_mods).keys },
+      sections: { map_mods: pageKeysOf(mn, picks.map_numeric).keys },
+      numeric: { map_mods: values }, custom: [], excludes: ['反射']
     })
     const d = await decodeShare(code)
     const r = resolveState(d.state, pages)
     const after = combine({ lang: 'zh', mode: d.state.mode, pages: [{ page: mm, picks: r.picks.map_mods }, { page: mn, picks: r.picks.map_numeric, values: r.values.map_numeric }], excludes: d.state.excludes })
     expect(after.query).toBe(before.query)
-    expect(applyPageKeys(mn, d.state.pages.map_numeric).picked).toEqual([0, 1])
+    expect(applyPageKeys(mn, d.state.sections.map_mods).picked).toEqual([0, 1])
   })
 })
 
@@ -120,16 +124,19 @@ describe('範本 data/regex/templates.json', () => {
   })
 })
 
-describe('state schema 2', () => {
-  it('numeric / custom / excludes / outScope / 書籤 numeric 往返', () => {
+describe('state schema 2 / 3', () => {
+  it('numeric / custom / excludes / outScope / collapsed / 書籤 numeric + num 往返', () => {
     const s = defaultRegexState()
-    s.numeric = { map_numeric: { tier: { min: 16 } } }
+    s.numeric = { map_mods: { tier: { min: 16 } }, vendor_items: { links: { choice: '6' } } }
     s.custom = ['x']
     s.excludes = ['反射']
     s.outScope = 'page'
-    s.bookmarks.push({ name: 'b', page: 'map_numeric', game: 'poe1', mode: 'any', lang: 'zh', keys: ['tier'], alt: ['地圖階級'], numeric: { tier: { min: 16 } } })
+    s.collapsed = ['map_mods']
+    s.current.push({ page: 'map_mods', keys: [], alt: [], num: ['tier'] })
+    s.bookmarks.push({ name: 'b', page: 'map_mods', game: 'poe1', mode: 'any', lang: 'zh', keys: [], alt: [], numeric: { tier: { min: 16 } }, num: ['tier'] })
+    s.bookmarks.push({ name: 'v', page: 'vendor_items', game: 'poe1', mode: 'any', lang: 'zh', keys: ['links'], alt: ['連結'], numeric: { links: { choice: '6' } } })
     const text = serializeRegexState(s)
-    expect(JSON.parse(text).schema).toBe(2)
+    expect(JSON.parse(text).schema).toBe(3)
     const r = parseRegexState(text)
     expect(r.ok).toBe(true)
     expect(r.state).toEqual(s)
@@ -142,6 +149,7 @@ describe('state schema 2', () => {
     expect(r.state.custom).toEqual([])
     expect(r.state.excludes).toEqual([])
     expect(r.state.outScope).toBe('combined')
+    expect(r.state.collapsed).toEqual([])
     expect(r.state.mode).toBe('none')
   })
 })

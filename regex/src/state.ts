@@ -6,10 +6,16 @@
 // 存檔格式 schema 2(WP-C):多了演算法頁的數值 `numeric{pageId:{entryId:{min,max,choice}}}`、自訂文字 `custom[]`、
 // 排除詞 `excludes[]`、輸出範圍 `outScope`(合併 / 單頁)與書籤的 `numeric`(演算法頁書籤的值)。
 // schema 1 的舊檔照讀:缺的欄位 = 空 / 預設值。
+//
+// schema 3(第 32 步,2026-10-04):地圖 / 換界石數值條件嵌進宿主詞綴頁(sections.ts)。數值區的勾選存在宿主頁那筆
+// `current` 的 `num`(項目 id)、值存在 `numeric[宿主頁 id]`;書籤同樣以宿主頁 + `num` + `numeric` 表示;
+// `collapsed` = 收合的數值區(宿主頁 id)。schema 2 以前頁 id 為 `map_numeric` / `waystone_numeric` 的資料讀入時
+// 轉成新結構(`migrateSections`),寫回一律新結構。
 
 import type { Mode } from './gen'
 import type { RegexEntry, RegexGame, RegexLang, RegexPage } from './data'
 import type { AlgoValue } from './pages/types'
+import { SECTION_HOSTS, sectionHostOf, unionKeys } from './sections'
 
 /** regex_state.h `RegexBookmark` */
 export interface RegexBookmark {
@@ -25,8 +31,10 @@ export interface RegexBookmark {
   keys: string[]
   /** 中文行,與 keys 同順序;後援 */
   alt: string[]
-  /** 演算法頁書籤:entryId → 值(schema 2;語料頁沒有) */
+  /** 演算法頁書籤:entryId → 值(schema 2;語料頁沒有)。宿主詞綴頁書籤 = 數值區的值(schema 3) */
   numeric?: Record<string, AlgoValue>
+  /** 宿主詞綴頁書籤:數值區勾選的項目 id(schema 3;沒有 = 數值區不勾) */
+  num?: string[]
 }
 
 /** regex_state.h `RegexPagePicks` */
@@ -34,6 +42,8 @@ export interface RegexPagePicks {
   page: string
   keys: string[]
   alt: string[]
+  /** 宿主詞綴頁:數值區勾選的項目 id(schema 3) */
+  num?: string[]
 }
 
 /** regex_state.h `RegexUiState` */
@@ -53,12 +63,14 @@ export interface RegexUiState {
   excludes: string[]
   /** 輸出區顯示合併後(combined)或目前這一頁(page);schema 2 */
   outScope: 'combined' | 'page'
+  /** 收合的數值區(宿主頁 id);schema 3,預設全部展開 */
+  collapsed: string[]
 }
 
 export function defaultRegexState (): RegexUiState {
   return {
     game: '', page: '', mode: 'any', lang: 'zh', bilingual: true, current: [], bookmarks: [],
-    numeric: {}, custom: [], excludes: [], outScope: 'combined'
+    numeric: {}, custom: [], excludes: [], outScope: 'combined', collapsed: []
   }
 }
 
@@ -142,7 +154,10 @@ export function parseRegexState (text: string): ParsedRegexState {
         if (!isObj(p)) continue
         const page = str(p, 'page', '')
         if (!page) continue
-        s.current.push({ page, keys: stringArray(p, 'keys'), alt: stringArray(p, 'alt') })
+        const rec: RegexPagePicks = { page, keys: stringArray(p, 'keys'), alt: stringArray(p, 'alt') }
+        const num = stringArray(p, 'num')
+        if (num.length) rec.num = num
+        s.current.push(rec)
       }
     }
     if (Array.isArray(doc.bookmarks)) {
@@ -158,8 +173,10 @@ export function parseRegexState (text: string): ParsedRegexState {
           alt: stringArray(b, 'alt')
         }
         if (isObj(b.numeric)) rec.numeric = numericMap(b.numeric)
+        const num = stringArray(b, 'num')
+        if (num.length) rec.num = num
         // 沒名字 / 沒頁 / 沒鍵的書籤 UI 無法提供,留著只會多一列永遠空白的東西
-        if (!rec.name || !rec.page || rec.keys.length === 0) continue
+        if (!rec.name || !rec.page || (rec.keys.length === 0 && !rec.num)) continue
         s.bookmarks.push(rec)
       }
     }
@@ -169,30 +186,80 @@ export function parseRegexState (text: string): ParsedRegexState {
     s.custom = stringArray(doc, 'custom')
     s.excludes = stringArray(doc, 'excludes')
     s.outScope = oneOf(str(doc, 'outScope', 'combined'), 'combined', 'page')
+    s.collapsed = stringArray(doc, 'collapsed')
+    migrateSections(s)
     return { ok: true, state: s }
   } catch {
     return { ok: false, state: defaultRegexState() }
   }
 }
 
+/**
+ * 第 32 步遷移(schema ≤ 2 → 3,就地):頁 id 為數值頁(`map_numeric` / `waystone_numeric`)的
+ * 目前勾選、數值、記住的頁、書籤 → 宿主詞綴頁的數值區。已是新結構的資料不受影響(可重複呼叫)。
+ * 回傳是否改了任何東西。
+ */
+export function migrateSections (s: RegexUiState): boolean {
+  let changed = false
+  // 目前勾選:數值頁那筆的 keys(項目 id)併進宿主頁那筆的 num
+  const kept: RegexPagePicks[] = []
+  const moved: Array<[string, string[]]> = []
+  for (const p of s.current) {
+    const host = sectionHostOf(p.page)
+    if (host) { moved.push([host, p.keys]); changed = true } else kept.push(p)
+  }
+  s.current = kept
+  for (const [host, keys] of moved) {
+    if (!keys.length) continue
+    const slot = picksFor(s, host)
+    slot.num = unionKeys(slot.num, keys)
+  }
+  // 數值:numeric[數值頁] → numeric[宿主頁](數值頁的值優先,宿主頁原本不會有值)
+  for (const [sec, host] of Object.entries(SECTION_HOSTS)) {
+    const m = s.numeric[sec]
+    if (!m) continue
+    s.numeric[host] = { ...(s.numeric[host] ?? {}), ...m }
+    delete s.numeric[sec]
+    changed = true
+  }
+  const pageHost = sectionHostOf(s.page)
+  if (pageHost) { s.page = pageHost; changed = true }
+  // 書籤:數值頁書籤 → 宿主頁書籤(詞綴不勾、數值區 = 原本的勾選與值)
+  for (const b of s.bookmarks) {
+    const host = sectionHostOf(b.page)
+    if (!host) continue
+    b.page = host
+    b.num = [...b.keys]
+    b.keys = []
+    b.alt = []
+    changed = true
+  }
+  s.collapsed = s.collapsed.map(id => sectionHostOf(id) ?? id).filter((id, i, a) => a.indexOf(id) === i)
+  return changed
+}
+
 /** regex_state.cpp:137 `RegexUiState::Save` 的內容部分(`dump(1, '\t')`);寫檔請 temp + rename */
 export function serializeRegexState (s: RegexUiState): string {
   const doc = {
-    schema: 2,
+    schema: 3,
     game: s.game,
     page: s.page,
     mode: s.mode,
     lang: s.lang,
     bilingual: s.bilingual,
-    current: s.current.filter(p => p.keys.length > 0).map(p => ({ page: p.page, keys: p.keys, alt: p.alt })),
+    current: s.current.filter(p => p.keys.length > 0 || (p.num?.length ?? 0) > 0).map(p => ({
+      page: p.page, keys: p.keys, alt: p.alt, ...(p.num?.length ? { num: p.num } : {})
+    })),
     bookmarks: s.bookmarks.map(b => ({
       name: b.name, page: b.page, game: b.game, mode: b.mode, lang: b.lang, keys: b.keys, alt: b.alt,
-      ...(b.numeric && Object.keys(b.numeric).length ? { numeric: b.numeric } : {})
+      ...(b.numeric && Object.keys(b.numeric).length ? { numeric: b.numeric } : {}),
+      ...(b.num?.length ? { num: b.num } : {})
     })),
     numeric: Object.fromEntries(Object.entries(s.numeric).filter(([, m]) => Object.keys(m).length > 0)),
     custom: s.custom,
     excludes: s.excludes,
-    outScope: s.outScope
+    outScope: s.outScope,
+    collapsed: s.collapsed
   }
   return JSON.stringify(doc, null, '\t')
 }

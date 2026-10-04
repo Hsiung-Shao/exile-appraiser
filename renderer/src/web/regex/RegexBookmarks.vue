@@ -7,8 +7,8 @@
   <section class="card rx-bm" data-regex="bookmarks">
     <div class="rx-bm-head">
       <span class="label">{{ t('ppz.regex.bookmarks', { game: gameLabel(selGame) }) }}</span>
-      <button class="btn sm" data-regex="bm-save" :disabled="!picked.length"
-        :title="picked.length ? '' : t('ppz.regex.bm_save_need')" @click="openSave">{{ t('ppz.regex.bm_save') }}</button>
+      <button class="btn sm" data-regex="bm-save" :disabled="!pickedTotal"
+        :title="pickedTotal ? '' : t('ppz.regex.bm_save_need')" @click="openSave">{{ t('ppz.regex.bm_save') }}</button>
       <span class="grow" />
       <span v-if="counts.elsewhere" class="rx-bm-else" :title="t('ppz.regex.bm_elsewhere_tip')">
         {{ t('ppz.regex.bm_elsewhere', { game: gameLabel(selGame === 'poe1' ? 'poe2' : 'poe1'), n: counts.elsewhere }) }}
@@ -21,7 +21,7 @@
           <div class="rx-bm-name">{{ x.b.name }}</div>
           <div class="rx-bm-meta">{{ t('ppz.regex.bm_meta', {
             page: pageTitle(x.b.page), mode: t(`ppz.regex.mode_${x.b.mode}`),
-            lang: x.b.lang === 'en' ? 'English' : t('ppz.regex.lang_zh_short'), n: x.b.keys.length
+            lang: x.b.lang === 'en' ? 'English' : t('ppz.regex.lang_zh_short'), n: x.b.keys.length + (x.b.num?.length ?? 0)
           }) }}</div>
         </div>
         <div class="rx-bm-actions">
@@ -71,7 +71,7 @@ import { useI18n } from 'vue-i18n'
 import { AppConfig } from '@/web/Config'
 import { useSettingsFs } from '@/web/settings/settings-fs'
 import {
-  deleteBookmark, gameLabel, loadBookmark, renameBookmark, saveBookmark, updateBookmark, useRegexStore
+  deleteBookmark, gameLabel, loadBookmark, pagePickCount, renameBookmark, saveBookmark, updateBookmark, useRegexStore
 } from './store'
 
 export default defineComponent({
@@ -104,7 +104,8 @@ export default defineComponent({
       gameLabel,
       ui: store.ui,
       selGame: store.selGame,
-      picked: store.picked,
+      /** 目前頁(含數值區)勾了幾項;宿主詞綴頁只勾數值也能存書籤 */
+      pickedTotal: computed(() => store.page.value ? pagePickCount(store.page.value) : 0),
       counts: store.bookmarkCounts,
       mine: store.myBookmarks,
       nameModal,
@@ -116,7 +117,7 @@ export default defineComponent({
       openSave () {
         const p = store.page.value
         if (!p) return
-        nameModal.value = { index: -1, name: t('ppz.regex.bm_default_name', { page: pageTitle(p.id), n: store.picked.value.length }) }
+        nameModal.value = { index: -1, name: t('ppz.regex.bm_default_name', { page: pageTitle(p.id), n: pagePickCount(p) }) }
         void focusName()
       },
       openRename (index: number) {

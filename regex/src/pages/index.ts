@@ -3,7 +3,7 @@ import type { RegexGame, RegexLabels, RegexPage } from '../data'
 import { applyKeys, collectKeys, keyOf, zhLine } from '../state'
 import { numericPages } from './numeric-pages'
 import { vendorPages } from './vendor-pages'
-import { isAlgoPage, type AlgoEntry, type AlgoValue } from './types'
+import { isAlgoPage, type AlgoEntry, type AlgoPage, type AlgoValue } from './types'
 
 export * from './types'
 export { NUMERIC_LABEL_KEYS, numericPages } from './numeric-pages'
@@ -13,6 +13,46 @@ export { labelBase, linkColors, linkedSockets, propertyFragment, socketColorCoun
 /** 一個遊戲的全部演算法頁(數值頁在前、商店頁在後);labels = null → 沒有 */
 export function algoPages (game: RegexGame, labels: RegexLabels | null): RegexPage[] {
   return [...numericPages(game, labels), ...vendorPages(game, labels)]
+}
+
+/** 頁面下拉選單上的頁:不含嵌入宿主頁的數值區(第 32 步) */
+export function listedPages<P extends RegexPage> (pages: readonly P[]): P[] {
+  return pages.filter(p => !isSectionPage(p))
+}
+
+/** 是不是嵌入式數值區 */
+export function isSectionPage (p: RegexPage | null | undefined): p is AlgoPage {
+  return isAlgoPage(p) && !!p.sectionOf
+}
+
+/** 宿主頁的數值區(同遊戲);沒有 = null */
+export function sectionPageOf (pages: readonly RegexPage[], host: RegexPage | string): AlgoPage | null {
+  const id = typeof host === 'string' ? host : host.id
+  const game = typeof host === 'string' ? undefined : host.game
+  for (const p of pages) if (isSectionPage(p) && p.sectionOf === id && (!game || p.game === game)) return p
+  return null
+}
+
+/** 頁 id → 使用者看到的頁(數值區 = 宿主頁,其他 = 自己) */
+export function hostIdOf (pages: readonly RegexPage[], id: string): string {
+  const p = pages.find(x => x.id === id)
+  return p && isSectionPage(p) ? p.sectionOf! : id
+}
+
+/**
+ * 合併用的頁序(第 32 步):清單頁依序,每個宿主頁後面緊接它的數值區。
+ * `combine()` 的演算法 term 依演算法頁的相對順序排列,數值區仍在商店頁之前 → 與舊版(數值頁獨立排在全部語料頁之後)逐字相同。
+ * `only` = 只取這一頁(單頁輸出:宿主頁 + 它的數值區)。
+ */
+export function combineOrder (pages: readonly RegexPage[], only?: string): RegexPage[] {
+  const out: RegexPage[] = []
+  for (const p of listedPages(pages)) {
+    if (only !== undefined && p.id !== only) continue
+    out.push(p)
+    const sec = sectionPageOf(pages, p)
+    if (sec) out.push(sec)
+  }
+  return out
 }
 
 /** 存檔 / 分享用的鍵 */

@@ -130,8 +130,8 @@ PobTools 語彙(`.card .seg .chk .select .input .btn .pulse`):
 ### 演算法頁(`regex/src/pages/`,kind `numeric` / `sockets`)
 | 頁 | 遊戲 | 項目 |
 |---|---|---|
-| `map_numeric` | PoE1 | 地圖階級、物品數量、物品稀有度、怪物群大小、更多聖甲蟲 / 通貨 / 地圖 / 命運卡 |
-| `waystone_numeric` | PoE2 | 換界石階級、物品稀有度、怪群大小、怪物稀有度、換界石掉落機率、魔法 / 稀有怪物、獲得經驗值、怪物效能 |
+| `map_numeric`(第 32 步起 = `map_mods` 頂端的數值區,不在下拉選單) | PoE1 | 地圖階級、物品數量、物品稀有度、怪物群大小、更多聖甲蟲 / 通貨 / 地圖 / 命運卡 |
+| `waystone_numeric`(第 32 步起 = `waystone_mods` 頂端的數值區) | PoE2 | 換界石階級、物品稀有度、怪群大小、怪物稀有度、換界石掉落機率、魔法 / 稀有怪物、獲得經驗值、怪物效能 |
 | `vendor_items` | PoE1 | 連結數 ≥(3–6L)、鏈接顏色(任意順序、需相鄰)、插槽顏色數 ≥、物品等級、品質、寶石等級 ≥、已汙染、勢力基底 |
 | `vendor_items_poe2` | PoE2 | 物品等級、品質、寶石等級 ≥、已汙染 |
 
@@ -146,18 +146,59 @@ PobTools 語彙(`.card .seg .chk .select .input .btn .pulse`):
 - 回傳 `perPage[{id, kind, picked, length, unresolved, fragments}]`(貢獻 = 片段字數 + 每片段 1 分隔)、`customLength`、`excludesLength`、`length`(整串碼點數)、`limit`(參與頁最小值,250)。
 
 ### 分享碼與範本(`regex/src/share.ts`、`data/regex/templates.json`)
-- `ShareState = {v:1, game, mode, pages:{pageId:[鍵]}, numeric:{pageId:{entryId:{min,max,choice}}}, custom[], excludes[]}` → JSON → gzip(`CompressionStream`)→ base64url(無填充,開頭 `H4sI`)。解碼:版本 / 遊戲不符丟例外;未知欄位與型別不符的欄位丟掉並回 warnings。`resolveState` 還原勾選,回報還原不到的鍵數與不存在的頁。
+- `ShareState = {v:2, game, mode, pages:{pageId:[鍵]}, sections:{宿主頁 id:[項目 id]}, numeric:{pageId 或宿主頁 id:{entryId:{min,max,choice}}}, custom[], excludes[]}`(v1 → v2 見下方「第 32 步」)→ JSON → gzip(`CompressionStream`)→ base64url(無填充,開頭 `H4sI`)。解碼:版本 / 遊戲不符丟例外;未知欄位與型別不符的欄位丟掉並回 warnings。`resolveState` 還原勾選,回報還原不到的鍵數與不存在的頁。
 - 範本 7 組(PoE1:T17 危險詞綴、地圖無反射 / 無 -最大抗性、6L 商店、RGB 鏈接商店、探險日誌(排除難打詞綴);PoE2:換界石危險詞綴、碑牌高價值),雙語名稱 / 說明;測試斷言每個鍵都還原得到、兩語合併無衝突且不超長。⚠「探險日誌 高價值」:日誌清單只有怪物 / 玩家詞綴,沒有標示價值的行,所以做成「排除難打詞綴」。
 
 ### UI
 - 標題列:遊戲 / **檢視**(`已選(合併)· N 頁` | `單頁清單`)/ 清單(下拉,附勾選數)/ 模式 / 雙語;第二列「套用範本…」下拉(套用前確認一次,覆蓋該遊戲全部頁)、「複製分享碼」、「貼上分享碼」(對話框,貼上 = 套用)。
 - `RegexCombined.vue`:各頁勾選數 / 貢獻長度 / 無法單獨指定、自訂文字與排除詞 chips、衝突清單。`RegexAlgoList.vue`:演算法頁每列 勾選 + `.seg`(≥ / ≤ / 區間、選項)+ `.input.sm` + 片段預覽;改值自動勾選。
 - 輸出區 `.seg` 合併 / 單頁(`outScope`,預設合併),合併時列出每頁貢獻。
-- 狀態 schema 2(`state.ts`):`numeric`、`custom`、`excludes`、`outScope`、書籤的 `numeric`;schema 1 舊檔照讀。
+- 狀態 schema 2(`state.ts`):`numeric`、`custom`、`excludes`、`outScope`、書籤的 `numeric`;schema 1 舊檔照讀。(第 32 步起 schema 3,見下)
 - DOM 錨點新增:`[data-regex=view|template|template-dialog|template-ok|share-copy|share-paste|share-dialog|share-input|share-ok|out-scope|parts|conflict-count|combined|combined-pages|clear-all|custom-input|custom-add|excludes-input|excludes-add|excludes-remove|algo-list|algo-check-<id>|algo-op-<id>|algo-min-<id>|algo-max-<id>|algo-choice-<id>|algo-color-<id>-<c>|algo-frag|untested]`。
 
 ### WP-C 驗證(2026-09-29,headless Chrome + CDP,只用 DOM 事件)
 PoE1 地圖詞綴 3 條 + 階級 ≥16 + 物品數量 ≥80 + 6L → `"成凋| 怪物傷| 怪物攻" 地圖階級.*[^\d](1[6-9]|[2-9]\d) 物品數量.*([89]\d|\d\d\d)% .-.-.-.-.-.`(77 字,每頁 13 / 51 / 12,與 combine.test 同一串);None + 排除詞「反射」→ 只有一個 `!`;分享碼複製 → 全部清除 → 貼上 → 同一串、同樣勾選;範本 T17 → map_mods 8 條、None;淺色、英文介面各截一張;console 無錯誤。
+
+## 第 32 步:數值條件嵌進詞綴頁(2026-10-04)
+
+使用者找不到獨立頁「地圖數值條件 / 換界石數值條件」(要另選頁再看合併)。改成 PoE1「地圖詞綴」(`map_mods`)/ PoE2「換界石詞綴」(`waystone_mods`)
+頁頂端的可收合**數值區**,與詞綴輸出合成同一條正則;兩個獨立頁從頁面下拉選單移除。
+
+### 內部模型(`regex/src/sections.ts`、`embed.ts`)
+- 數值區仍是 `numericPages()` 的演算法頁物件(id `map_numeric` / `waystone_numeric` 只在內部用:合併的 `perPage`、golden 雜湊、CLI `--page`),
+  多一個 `sectionOf`(宿主頁 id)。`listedPages()` = 下拉選單上的頁(去掉數值區);`sectionPageOf(pages, host)`;`hostIdOf()`(合併檢視的數值區列 → 宿主頁)。
+- 合併:`combineOrder()` / `combineSels()` = 清單頁依序、**宿主頁後面緊接它的數值區**。`combine()` 的演算法 term 只依演算法頁的相對順序排列,數值區仍在商店頁之前
+  → 與舊版「cat.pages = 語料頁 → 數值頁 → 商店頁」**逐字相同**(`combine.ts` 規則不變;limit / 衝突也相同)。單頁輸出(`outScope: page`)= 宿主頁 + 它的數值區。
+- renderer store 的勾選仍以頁 id 為鍵(數值區 = 內部 id),值以**存放鍵** `numericKeyOf()`(數值區 = 宿主頁 id)存在 `ui.numeric`;
+  狀態 ↔ 勾選 / 書籤 / 分享碼的轉換全部走 `embed.ts` 純函式(`savedPicksOf` / `bookmarkBodyOf` / `bookmarkApplyOf` / `shareStateOf` / `resolvedValues`),store 不另寫一套。
+
+### 新格式與遷移(讀入一律轉成新結構,寫回一律新結構)
+| 資料 | 舊(數值頁 id) | 新 |
+|---|---|---|
+| `regex_state.json` | schema 2:`current[{page:'map_numeric', keys:[項目 id]}]`、`numeric.map_numeric`、`page:'map_numeric'`、書籤 `page:'map_numeric'` | **schema 3**:宿主頁那筆 `current[{page:'map_mods', keys, alt, num:[項目 id]}]`、`numeric.map_mods`、`page:'map_mods'`;書籤 `{page:'map_mods', keys:[], alt:[], num, numeric}`;`collapsed:[宿主頁 id]`(收合的數值區,預設展開)。`parseRegexState` 內 `migrateSections()`;舊檔載入後 renderer 立刻寫回 schema 3 |
+| 書籤 | 數值頁書籤 = 只有數值 | 宿主頁書籤 = **整頁快照**(詞綴 + 數值區):載入時兩者一起覆寫;舊的詞綴書籤(沒有 `num`)載入 = 數值區不勾 → 單頁輸出與當初存的一樣;只勾數值也能存 |
+| 分享碼 | v1:`pages.map_numeric`、`numeric.map_numeric` | **v2**:`sections.map_mods`、`numeric.map_mods`。v1 照讀(`normalizeShareState` 內 `migrateShareSections()`);舊版程式讀 v2 會明確回「版本不符」 |
+| 範本 `templates.json` | 同分享碼 v1 形狀 | 讀入同樣轉換;出貨的 7 組都沒有引用數值頁(檔案不需改) |
+| 合併頁 | 下拉選單裡的「地圖數值條件」頁 | 合併檢視裡數值區自成一列(名稱沿用「地圖數值條件」),點它跳到宿主頁 |
+
+### UI(`renderer/src/web/regex/RegexNumericSection.vue`)
+- 宿主頁 = 數值區卡片(標題列:▾/▸、「數值條件」、`已設 N / M`、單頁輸出中的貢獻字數)+ 下方原本的詞綴清單。列 UI 重用 `RegexAlgoList.vue`(`embedded`;勾選 / 清除以 `page.id` 指定頁,不依賴目前頁)。
+- 收合時標題列顯示已設條件摘要(`view.ts` `sectionSummary` / `condText`:`地圖階級 ≥16 · 物品數量 ≥80%`,輸入不成立標紅),沒有就「沒有設定數值條件」。
+- 下拉選單的勾選數、書籤「存成書籤」可用條件、書籤列項數都含數值區。長度警示照原本三色(輸出區)。
+- i18n `ppz.regex.section_{title,hint,expand,collapse,count,length,none}`(繁中 / 英文);英文頁說明 `page_note.{map,waystone}_numeric` 移除(頁已不在選單,實測提示改寫進 `section_hint`)。
+- DOM 錨點:`[data-regex=section|section-toggle|section-count|section-length|section-summary|section-list|section-clear]`(數值區內的列沿用 `algo-check-<id>` 等)。
+
+### 行為差異
+- 宿主頁的**單頁輸出**現在含數值區(以前只有詞綴);合併輸出不變。
+- 舊 state 記住的頁若是數值頁 → 改選宿主頁。
+- 載入數值頁的舊書籤現在會一併把宿主頁的詞綴勾選清空(書籤 = 整頁快照);以前只動數值頁、詞綴頁不變。單頁輸出與當初相同。
+
+### 測試
+- `regex/test/sections.test.ts`:頁組成 / 順序;固定案例遷移(勾選、數值、記住的頁、書籤、可重複遷移、寫回無舊 id);兩遊戲 × 40 組隨機舊檔 × 2 語 × 3 模式
+  合併輸出逐字相同(含再存再讀);舊書籤(數值 / 詞綴 / 商店)單頁輸出逐字相同;新書籤本體往返;兩遊戲 × 20 組 v1 舊分享碼 → v2 → 輸出逐字相同、再複製 v2 往返;
+  舊格式範本;`templates.json` 無舊 id;`condText` / `sectionSummary`。突變檢查:把數值區改排到全部清單頁之後 → 6 項紅。
+- `renderer/test/regex-section.test.ts`:字串兩語與參數、元件用到的鍵、接線守門。
+- 既有 golden(`selftest-report.json`、`perf-equivalence.json`)與 `combine` / `pages` 測試不變(內部仍有 `map_numeric` 頁)。
 
 ## 相關文件
 - [phase2-summary.md](phase2-summary.md)(WP5 摘要與待辦:逐字 golden)

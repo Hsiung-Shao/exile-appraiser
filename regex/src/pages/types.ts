@@ -45,6 +45,11 @@ export interface AlgoEntry extends RegexEntry {
 export interface AlgoPage extends RegexPage {
   kind: AlgoKind
   entries: AlgoEntry[]
+  /**
+   * 嵌入式數值區(第 32 步):宿主詞綴頁 id。有值 = 不出現在頁面下拉選單,顯示在宿主頁頂端、合併時緊接宿主頁
+   * (見 ../sections.ts)。
+   */
+  sectionOf?: string
 }
 
 export function isAlgoPage (p: RegexPage | null | undefined): p is AlgoPage {

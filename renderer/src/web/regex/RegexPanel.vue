@@ -1,7 +1,8 @@
 <!--
   Poe Regex 面板(WP5 + WP-C,設定 › 正則):勾選詞綴 / 數值條件 → 產生貼進遊戲搜尋列的字串。
   版面照 PobTools `host/regex_tool_ui.cpp`:標題列(遊戲 / 檢視 / 清單 / 模式 / 已勾選 / 雙語)+ 範本與分享碼
-  → 清單(語料頁 RegexList.vue、演算法頁 RegexAlgoList.vue、已選合併 RegexCombined.vue)
+  → 清單(語料頁 RegexList.vue、演算法頁 RegexAlgoList.vue、已選合併 RegexCombined.vue;
+    地圖詞綴 / 換界石詞綴頁頂端另有數值區 RegexNumericSection.vue,第 32 步)
   → 輸出(合併 / 單頁、長度三色、複製、輸出語言、無法單獨指定、用到的片段)→ 書籤(RegexBookmarks.vue)。
   演算法全在 `@exile-appraiser/regex`(純 TS);狀態在 ./store.ts。
 -->
@@ -21,7 +22,7 @@
         </div>
         <select v-if="catalogue" class="select sm rx-page" data-regex="page" :value="page?.id"
           @change="switchPage(($event.target as HTMLSelectElement).value)">
-          <option v-for="p in catalogue.pages" :key="p.id" :value="p.id">{{ pageTitle(p) }}{{ (picks[p.id]?.length ?? 0) ? ` (${picks[p.id].length})` : '' }}</option>
+          <option v-for="p in listed" :key="p.id" :value="p.id">{{ pageTitle(p) }}{{ pagePickCount(p) ? ` (${pagePickCount(p)})` : '' }}</option>
         </select>
         <div class="seg" data-regex="mode">
           <button v-for="m in modes" :key="m" :class="{ on: ui.mode === m }" :data-value="m"
@@ -60,7 +61,10 @@
     <template v-if="page && out">
       <RegexCombined v-if="panelView === 'combined'" />
       <RegexAlgoList v-else-if="algoPage" :page="algoPage" />
-      <RegexList v-else />
+      <template v-else>
+        <RegexNumericSection v-if="section" :key="section.id" :section="section" />
+        <RegexList />
+      </template>
 
       <section class="card rx-out" data-regex="output" :data-scope="scope">
         <div class="rx-out-row">
@@ -166,9 +170,10 @@ import RegexList from './RegexList.vue'
 import RegexAlgoList from './RegexAlgoList.vue'
 import RegexCombined from './RegexCombined.vue'
 import RegexBookmarks from './RegexBookmarks.vue'
+import RegexNumericSection from './RegexNumericSection.vue'
 import {
   GAMES, applyShareCode, applyTemplate, dismissNotice, ensureStarted, flushSave, gameLabel, hasPendingSave, makeShareCode,
-  retryCatalogue, setBilingual, setLang, setMode, setOutScope, setPanelView, switchGame, switchPage, useRegexStore
+  pagePickCount, retryCatalogue, setBilingual, setLang, setMode, setOutScope, setPanelView, switchGame, switchPage, useRegexStore
 } from './store'
 
 /** 按鈕文字只能放純文字;複製失敗(例如視窗沒有焦點)時退回 execCommand */
@@ -188,7 +193,7 @@ async function writeClipboard (text: string): Promise<void> {
 }
 
 export default defineComponent({
-  components: { RegexList, RegexAlgoList, RegexCombined, RegexBookmarks },
+  components: { RegexList, RegexAlgoList, RegexCombined, RegexBookmarks, RegexNumericSection },
   setup () {
     const { t, te } = useI18n()
     const store = useRegexStore()
@@ -230,9 +235,11 @@ export default defineComponent({
       modes: ['any', 'all', 'none'] as Mode[],
       gameLabel,
       ui: store.ui,
-      picks: store.picks,
       selGame: store.selGame,
       catalogue: store.catalogue,
+      listed: store.listed,
+      section: store.section,
+      pagePickCount,
       page: store.page,
       picked: store.picked,
       pickedPages: store.pickedPages,

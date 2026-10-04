@@ -1,4 +1,4 @@
-// 演算法頁:地圖 / 換界石的數值條件(kind 'numeric')。
+// 演算法頁:地圖 / 換界石的數值條件(kind 'numeric');第 32 步起是宿主詞綴頁頂端的數值區(`sectionOf`)。
 // 每條 = clientstrings 標籤(`labels[key]`,暫代檔 data/regex/labels.<game>.json 或 schema 2 資料檔的 `labels`)+ 數值正則。
 // 標籤缺鍵 → 該條不出現(不猜譯名)。
 import type { RegexGame, RegexLabels, RegexLang } from '../data'
@@ -82,6 +82,8 @@ export function numericPages (game: RegexGame, labels: RegexLabels | null): Algo
     game,
     id: poe1 ? 'map_numeric' : 'waystone_numeric',
     kind: 'numeric',
+    // 第 32 步起嵌在詞綴頁頂端(不是獨立頁);id 只在內部使用(合併的 perPage、golden 雜湊)
+    sectionOf: poe1 ? 'map_mods' : 'waystone_mods',
     title: poe1 ? '地圖數值條件' : '換界石數值條件',
     titleEn: poe1 ? 'Map values' : 'Waystone values',
     note: poe1

@@ -3,6 +3,7 @@
 // `refreshFilter` :1017、`matches` :1045、`drawOutput` 的長度三色 :662。純 TS,無 DOM,可在 vitest 測。
 
 import type { RegexEntry, RegexLang, RegexPage } from './data'
+import { rangeOp, type AlgoEntry, type AlgoPage, type AlgoValue } from './pages/types'
 import { zhLine } from './state'
 
 /** regex_tool_ui.cpp:69 `EnLine`:英文全部行以「 / 」接起(同一個中文名對到多個英文時全列);沒有英文就退回中文 */
@@ -92,4 +93,44 @@ export function lengthLevel (len: number, limit: number): LengthLevel {
 export function hiddenPreview (d: RegexEntry, lang: RegexLang, max = 4): { lines: string[], more: number } {
   const h = lang === 'zh' ? d.hiddenZh : d.hiddenEn
   return { lines: h.slice(0, max), more: Math.max(0, h.length - max) }
+}
+
+// ---- 嵌入式數值區(第 32 步):收合時的摘要 ----
+
+/** 摘要的一項:名稱 + 條件文字(輸入不成立 = null) */
+export interface SectionSummaryItem {
+  id: string
+  label: string
+  cond: string | null
+}
+
+/** 數值條件 → 「≥16」「≤5%」「10–20%」;不是範圍輸入就顯示選項 id;不成立 = null */
+export function condText (e: AlgoEntry, v: AlgoValue, lang: RegexLang): string | null {
+  if (e.fragment(v, lang) === null) return null
+  if (e.input.kind !== 'range') return v.choice ?? (typeof v.min === 'number' ? `≥${v.min}` : null)
+  const pct = e.input.percent ? '%' : ''
+  const op = rangeOp(v)
+  if (op === 'ge') return `≥${v.min}${pct}`
+  if (op === 'le') return `≤${v.max}${pct}`
+  if (op === 'range') return `${v.min}–${v.max}${pct}`
+  return null
+}
+
+/**
+ * 數值區收合時顯示的摘要:只列已勾選的項目,依列順序;`valueOf` = 項目目前的值(沒存過 = 預設值)。
+ * `labelLang` = 名稱用的語言(介面語言),條件文字與片段無關、兩語相同。
+ */
+export function sectionSummary (
+  page: AlgoPage,
+  picked: Iterable<number>,
+  valueOf: (e: AlgoEntry) => AlgoValue,
+  labelLang: RegexLang
+): SectionSummaryItem[] {
+  const set = new Set(picked)
+  const out: SectionSummaryItem[] = []
+  page.entries.forEach((e, i) => {
+    if (!set.has(i)) return
+    out.push({ id: e.id, label: (labelLang === 'en' ? e.en[0] : e.zh[0]) ?? e.id, cond: condText(e, valueOf(e), labelLang) })
+  })
+  return out
 }

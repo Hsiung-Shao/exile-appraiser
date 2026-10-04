@@ -9,15 +9,20 @@
  * - 範本 `./data/regex/templates.json`、分享碼(regex/src/share.ts)都走 `applyCombo()`:覆蓋目前遊戲全部頁的勾選。
  * - 記憶:`regex/src/state.ts` 的 `RegexUiState`(schema 2 多了 numeric / custom / excludes / outScope),
  *   經 `Host.regexStateLoad/Save`(main 寫 `userData/regex_state.json`,tmp + rename;純瀏覽器 localStorage)。
- *   所有改變勾選的動作都走 `picksChanged()`,只有一個地方可能忘了存。
+ *   所有改變勾選的動作都走 `setPicksOn()`(書籤 / 範本 / 分享碼走 `syncCurrent()` + `scheduleSave()`)。
+ * - **數值區(第 32 步)**:地圖 / 換界石數值條件(`map_numeric` / `waystone_numeric`)不在頁面下拉選單,而是宿主詞綴頁
+ *   (`map_mods` / `waystone_mods`)頂端的可收合區塊;勾選在記憶體以內部頁 id 存在 `picks`,存檔 / 書籤 / 分享碼以宿主頁為鍵
+ *   (`regex/src/sections.ts`、`embed.ts`;舊格式讀入時遷移)。合併與單頁輸出都把數值區緊接在宿主頁之後(`combineSels`)。
  * - 行為移植自 PobTools `host/regex_tool_ui.cpp`(`restoreState` :308、`switchGame` :1006、`loadBookmark` :832、
  *   `updateBookmark` :868、`commitName` :944)。
  */
 import { computed, markRaw, reactive, shallowRef } from 'vue'
 import {
-  algoPages, applyPageKeys, mergeLabels, buildCorpus, combine, decodeShare, defaultRegexState, encodeShare, isAlgoPage, pageKeysOf,
-  parseLabels, parseRegexCatalogue, parseRegexState, parseTemplates, picksFor, resolveState, serializeRegexState, visibleRows,
-  type AlgoEntry, type AlgoValue, type CombineResult, type CombineSel, type Mode, type RegexBookmark, type RegexCatalogue,
+  algoPages, bookmarkApplyOf, bookmarkBodyOf, buildCorpus, combine, combineSels, decodeShare, defaultRegexState,
+  encodeShare, hostIdOf, isAlgoPage, isSectionPage, listedPages, mergeLabels, numericKeyOf, pageKeysOf, parseLabels,
+  parseRegexCatalogue, parseRegexState, parseTemplates, picksFor, resolveState, resolvedValues, savedPicksOf, sectionPageOf,
+  serializeRegexState, shareStateOf, visibleRows,
+  type AlgoEntry, type AlgoPage, type AlgoValue, type CombineResult, type Mode, type RegexBookmark, type RegexCatalogue,
   type RegexGame, type RegexLabels, type RegexLang, type RegexPage, type RegexTemplate, type Result, type ShareState, type T17Filter,
   type RegexUiState
 } from '@exile-appraiser/regex'
@@ -116,17 +121,22 @@ export function ensureStarted (preferGame: RegexGame): Promise<void> {
   if (started) return started
   selGame.value = preferGame
   started = (async () => {
+    let migrated = false
     try {
       const text = await Host.regexStateLoad()
       if (text) {
         const r = parseRegexState(text)
-        if (r.ok) Object.assign(ui, r.state)
-        else console.warn('[regex] regex_state 無法解析,改用預設值')
+        if (r.ok) {
+          Object.assign(ui, r.state)
+          // 第 32 步:舊結構(schema ≤ 2,數值頁 map_numeric / waystone_numeric)已在 parseRegexState 轉成新結構 → 立刻寫回
+          migrated = !/"schema":\s*3\b/.test(text)
+        } else console.warn('[regex] regex_state 無法解析,改用預設值')
       }
     } catch (e) {
       console.warn('[regex] regex_state 讀取失敗', e)
     }
     stateLoaded.value = true
+    if (migrated) scheduleSave()
     await Promise.all([...GAMES.map(fetchCatalogue), fetchTemplates()])
   })()
   return started
@@ -151,19 +161,21 @@ function onCatalogueReady (cat: RegexCatalogue): void {
     if (!views[page.id]) views[page.id] = { search: '', group: -1, t17: 'all' }
     if (restored.has(page.id)) continue
     restored.add(page.id)
-    const saved = ui.current.find(p => p.page === page.id)
-    if (!saved) continue
-    const r = applyPageKeys(page, saved.keys, saved.alt)
+    // 數值區的勾選存在宿主頁那筆的 `num`(savedPicksOf 分派)
+    const r = savedPicksOf(page, ui)
+    if (!r) continue
     picks[page.id] = r.picked
     if (r.missed > 0) {
       missedTotal += r.missed
-      if (!firstPage) firstPage = (AppConfig().uiLanguage === 'en' ? page.titleEn : '') || page.title
+      const shown = isSectionPage(page) ? cat.pages.find(p => p.id === page.sectionOf) ?? page : page
+      if (!firstPage) firstPage = (AppConfig().uiLanguage === 'en' ? shown.titleEn : '') || shown.title
     }
   }
   if (missedTotal > 0) notice.value = { key: 'ppz.regex.notice_restore_missed', params: { n: missedTotal, page: firstPage } }
-  // 目前選的遊戲的清單到了:選頁(記住的頁若屬於這個遊戲就用它)
-  if (cat.game === selGame.value && !cat.pages.some(p => p.id === selPageId.value)) {
-    selPageId.value = cat.pages.some(p => p.id === ui.page) ? ui.page : cat.pages[0].id
+  // 目前選的遊戲的清單到了:選頁(記住的頁若屬於這個遊戲就用它;數值區不是可選的頁)
+  const shownPages = listedPages(cat.pages)
+  if (cat.game === selGame.value && !shownPages.some(p => p.id === selPageId.value)) {
+    selPageId.value = shownPages.some(p => p.id === ui.page) ? ui.page : shownPages[0].id
   }
   if (dirty) scheduleSave()
 }
@@ -203,10 +215,17 @@ export function hasPendingSave (): boolean {
 // ---- 選擇 ----------------------------------------------------------------------
 
 const catalogue = computed(() => catalogues[selGame.value].cat)
+/** 頁面下拉選單上的頁(不含數值區) */
+const listed = computed<RegexPage[]>(() => catalogue.value ? listedPages(catalogue.value.pages) : [])
 const page = computed<RegexPage | null>(() => {
+  const l = listed.value
+  return l.find(p => p.id === selPageId.value) ?? l[0] ?? null
+})
+/** 目前頁的數值區(只有宿主詞綴頁有) */
+const section = computed<AlgoPage | null>(() => {
   const cat = catalogue.value
-  if (!cat) return null
-  return cat.pages.find(p => p.id === selPageId.value) ?? cat.pages[0] ?? null
+  const p = page.value
+  return cat && p ? sectionPageOf(cat.pages, p) : null
 })
 
 function pageById (id: string): RegexPage | null {
@@ -235,61 +254,95 @@ const result = computed<Result | null>(() => {
   return buildCorpus(p, ui.lang).build(picked.value, ui.mode)
 })
 
-/** 演算法頁項目目前的值(沒存過 = 預設值) */
+/** 演算法頁 / 數值區項目目前的值(沒存過 = 預設值;數值區的值存在宿主頁 id 底下) */
 export function valueOf (pageId: string, e: AlgoEntry): AlgoValue {
-  return ui.numeric[pageId]?.[e.id] ?? e.input.def
+  return ui.numeric[numericKeyOf(pageId)]?.[e.id] ?? e.input.def
 }
 
-function selOf (p: RegexPage): CombineSel {
-  return { page: p, picks: picks[p.id] ?? [], values: ui.numeric[p.id] }
-}
-
-/** 目前這一頁單獨的輸出(語料頁 = build().query;演算法頁 = 該頁 term) */
+/** 目前這一頁單獨的輸出(語料頁 = build().query;演算法頁 = 該頁 term;宿主詞綴頁 = 詞綴 + 數值區合成一條) */
 const pageCombined = computed<CombineResult | null>(() => {
+  const cat = catalogue.value
   const p = page.value
-  if (!p) return null
-  return combine({ lang: ui.lang, mode: ui.mode, pages: [selOf(p)] })
+  if (!cat || !p) return null
+  return combine({ lang: ui.lang, mode: ui.mode, pages: combineSels(cat.pages, picks, ui.numeric, p.id) })
 })
 
-/** 目前遊戲所有有勾選的頁 + 自訂文字 + 排除詞 */
+/** 目前遊戲所有有勾選的頁 + 自訂文字 + 排除詞(數值區緊接宿主頁,與舊版合併頁逐字相同) */
 const combined = computed<CombineResult | null>(() => {
   const cat = catalogue.value
   if (!cat) return null
   return combine({
     lang: ui.lang,
     mode: ui.mode,
-    pages: cat.pages.filter(p => (picks[p.id]?.length ?? 0) > 0).map(selOf),
+    pages: combineSels(cat.pages, picks, ui.numeric),
     custom: ui.custom,
     excludes: ui.excludes
   })
 })
 
-/** 目前遊戲各頁勾選數(合併檢視用) */
-const pickedPages = computed(() => (catalogue.value?.pages ?? [])
-  .map(p => ({ page: p, n: picks[p.id]?.length ?? 0 }))
-  .filter(x => x.n > 0))
+/** 目前遊戲各頁勾選數(合併檢視用;數值區自成一列,排在宿主頁後面) */
+const pickedPages = computed(() => {
+  const cat = catalogue.value
+  if (!cat) return []
+  return combineSels(cat.pages, picks, ui.numeric).map(s => ({ page: s.page, n: s.picks.length }))
+})
 
+/** 下拉選單 / 書籤用:這一頁(含它的數值區)總共勾了幾項 */
+export function pagePickCount (p: RegexPage): number {
+  const cat = catalogues[p.game]?.cat
+  const sec = cat ? sectionPageOf(cat.pages, p) : null
+  return (picks[p.id]?.length ?? 0) + (sec ? picks[sec.id]?.length ?? 0 : 0)
+}
+
+/** 勾選(索引)→ 存檔的鍵;數值區寫進宿主頁那筆的 `num` */
 function syncCurrent (p: RegexPage): void {
+  if (isSectionPage(p)) {
+    const slot = picksFor(ui, p.sectionOf!)
+    const num = pageKeysOf(p, picks[p.id] ?? []).keys
+    if (num.length) slot.num = num
+    else delete slot.num
+    return
+  }
   const k = pageKeysOf(p, picks[p.id] ?? [])
   const slot = picksFor(ui, p.id)
   slot.keys = k.keys
   slot.alt = k.alt
 }
 
-function picksChanged (): void {
-  const p = page.value
+function findPage (pageId: string): RegexPage | null {
+  return catalogue.value?.pages.find(p => p.id === pageId) ?? null
+}
+
+function setPicksOn (pageId: string, list: Iterable<number>): void {
+  const p = findPage(pageId)
   if (!p) return
+  picks[p.id] = [...new Set(list)].sort((a, b) => a - b)
   syncCurrent(p)
   ui.game = selGame.value
-  ui.page = p.id
+  if (page.value) ui.page = page.value.id
   scheduleSave()
 }
 
 function setPicks (list: Iterable<number>): void {
   const p = page.value
   if (!p) return
-  picks[p.id] = [...new Set(list)].sort((a, b) => a - b)
-  picksChanged()
+  setPicksOn(p.id, list)
+}
+
+/** 指定頁(數值區用它的內部頁 id)的勾選 */
+export function picksOf (pageId: string): number[] {
+  return picks[pageId] ?? []
+}
+
+export function togglePickOn (pageId: string, i: number, on: boolean): void {
+  const s = new Set(picksOf(pageId))
+  if (on) s.add(i)
+  else s.delete(i)
+  setPicksOn(pageId, s)
+}
+
+export function clearPicksOn (pageId: string): void {
+  setPicksOn(pageId, [])
 }
 
 export function togglePick (i: number, on: boolean): void {
@@ -308,16 +361,28 @@ export function clearPicks (): void {
   setPicks([])
 }
 
-/** 演算法頁:改值(順手勾起該列——改了值卻沒勾,輸出不會變,容易以為沒生效) */
+/** 演算法頁 / 數值區:改值(順手勾起該列——改了值卻沒勾,輸出不會變,容易以為沒生效) */
 export function setValue (pageId: string, e: AlgoEntry, v: AlgoValue, tick = true): void {
-  const m = { ...(ui.numeric[pageId] ?? {}) }
+  const key = numericKeyOf(pageId)
+  const m = { ...(ui.numeric[key] ?? {}) }
   m[e.id] = { ...v }
-  ui.numeric[pageId] = m
-  const p = page.value
-  if (tick && p && p.id === pageId) {
+  ui.numeric[key] = m
+  const p = findPage(pageId)
+  if (tick && p) {
     const i = p.entries.indexOf(e)
-    if (i >= 0 && !pickedSet.value.has(i)) { togglePick(i, true); return }
+    if (i >= 0 && !picksOf(pageId).includes(i)) { togglePickOn(pageId, i, true); return }
   }
+  scheduleSave()
+}
+
+/** 數值區收合(以宿主頁 id 記,存檔;預設展開) */
+export function isCollapsed (hostId: string): boolean {
+  return ui.collapsed.includes(hostId)
+}
+
+export function setCollapsed (hostId: string, on: boolean): void {
+  if (on === isCollapsed(hostId)) return
+  ui.collapsed = on ? [...ui.collapsed, hostId] : ui.collapsed.filter(x => x !== hostId)
   scheduleSave()
 }
 
@@ -338,13 +403,16 @@ export function switchGame (g: RegexGame): void {
   if (g === selGame.value) return
   selGame.value = g
   const cat = catalogues[g].cat
-  selPageId.value = cat?.pages[0]?.id ?? ''
+  selPageId.value = cat ? listedPages(cat.pages)[0]?.id ?? '' : ''
   ui.game = g
   if (cat) ui.page = selPageId.value
   scheduleSave()
 }
 
-export function switchPage (id: string): void {
+export function switchPage (pageId: string): void {
+  // 合併檢視的數值區列 → 宿主頁(數值區不是可選的頁)
+  const cat = catalogue.value
+  const id = cat ? hostIdOf(cat.pages, pageId) : pageId
   panelView.value = 'page'
   if (id === selPageId.value) return
   selPageId.value = id
@@ -401,25 +469,11 @@ export function removeCustom (kind: 'custom' | 'excludes', index: number): void 
 
 // ---- 範本 / 分享碼 --------------------------------------------------------------
 
-/** 目前遊戲的勾選 → ShareState(只含有勾選的頁;數值只含已勾選項目) */
+/** 目前遊戲的勾選 → ShareState v2(只含有勾選的頁;數值區在 `sections`;數值只含已勾選項目) */
 export function currentShareState (): ShareState | null {
   const cat = catalogue.value
   if (!cat) return null
-  const s: ShareState = { v: 1, game: selGame.value, mode: ui.mode, pages: {}, numeric: {}, custom: [...ui.custom], excludes: [...ui.excludes] }
-  for (const p of cat.pages) {
-    const pk = picks[p.id] ?? []
-    if (!pk.length) continue
-    s.pages[p.id] = pageKeysOf(p, pk).keys
-    if (isAlgoPage(p)) {
-      const m: Record<string, AlgoValue> = {}
-      for (const i of pk) {
-        const e = p.entries[i]
-        m[e.id] = { ...valueOf(p.id, e) }
-      }
-      s.numeric[p.id] = m
-    }
-  }
-  return s
+  return shareStateOf(selGame.value, cat.pages, picks, ui.numeric, { mode: ui.mode, custom: ui.custom, excludes: ui.excludes })
 }
 
 export async function makeShareCode (): Promise<string> {
@@ -443,8 +497,9 @@ function applyCombo (s: ShareState, what: 'template' | 'share', name: string): v
   for (const p of cat.pages) {
     picks[p.id] = r.picks[p.id] ?? []
     syncCurrent(p)
-    if (isAlgoPage(p)) ui.numeric[p.id] = { ...(ui.numeric[p.id] ?? {}), ...(r.values[p.id] ?? {}) }
   }
+  // 數值:以存放鍵併入(數值區 = 宿主頁 id)
+  for (const [key, m] of Object.entries(resolvedValues(r.values))) ui.numeric[key] = { ...(ui.numeric[key] ?? {}), ...m }
   ui.custom = [...s.custom]
   ui.excludes = [...s.excludes]
   ui.mode = s.mode
@@ -487,18 +542,12 @@ const myBookmarks = computed(() => ui.bookmarks
   .map((b, index) => ({ b, index }))
   .filter(x => x.b.game === selGame.value))
 
+/** 書籤 = 目前頁的快照(宿主詞綴頁含數值區:`num` + `numeric`) */
 function currentBookmarkBody (): Omit<RegexBookmark, 'name'> | null {
+  const cat = catalogue.value
   const p = page.value
-  if (!p) return null
-  const k = pageKeysOf(p, picked.value)
-  if (!k.keys.length) return null
-  const body: Omit<RegexBookmark, 'name'> = { page: p.id, game: selGame.value, mode: ui.mode, lang: ui.lang, keys: k.keys, alt: k.alt }
-  if (isAlgoPage(p)) {
-    const m: Record<string, AlgoValue> = {}
-    for (const i of picked.value) m[p.entries[i].id] = { ...valueOf(p.id, p.entries[i]) }
-    body.numeric = m
-  }
-  return body
+  if (!cat || !p) return null
+  return bookmarkBodyOf(cat.pages, p, picks, ui.numeric, { game: selGame.value, mode: ui.mode, lang: ui.lang })
 }
 
 export function saveBookmark (name: string): boolean {
@@ -520,6 +569,7 @@ export function updateBookmark (index: number): void {
     return
   }
   if (!body.numeric) delete b.numeric
+  if (!body.num) delete b.num
   Object.assign(b, body)
   notice.value = { key: 'ppz.regex.notice_updated', params: { name: b.name } }
   scheduleSave()
@@ -545,23 +595,30 @@ export function loadBookmark (index: number): void {
   const b = ui.bookmarks[index]
   if (!b) return
   const target = pageById(b.page)
-  if (!target) {
+  const cat = target ? catalogues[target.game].cat : null
+  const a = cat ? bookmarkApplyOf(cat.pages, b) : null
+  if (!cat || !a) {
     notice.value = { key: 'ppz.regex.notice_missing_page', params: { name: b.name, page: b.page } }
     return
   }
-  // 書籤自帶遊戲:載入後選擇器一定指向它
-  selGame.value = target.game
-  selPageId.value = target.id
+  // 書籤自帶遊戲:載入後選擇器一定指向它;宿主詞綴頁書籤一併覆寫數值區(整頁快照)
+  selGame.value = a.page.game
+  selPageId.value = a.page.id
   panelView.value = 'page'
   ui.mode = b.mode
   ui.lang = b.lang
-  const r = applyPageKeys(target, b.keys, b.alt)
-  picks[target.id] = r.picked
-  if (b.numeric && isAlgoPage(target)) ui.numeric[target.id] = { ...(ui.numeric[target.id] ?? {}), ...b.numeric }
-  notice.value = r.missed > 0
-    ? { key: 'ppz.regex.notice_loaded_missed', params: { name: b.name, n: r.missed } }
+  for (const [id, list] of Object.entries(a.picks)) {
+    picks[id] = list
+    const p = cat.pages.find(x => x.id === id)
+    if (p) syncCurrent(p)
+  }
+  for (const [key, m] of Object.entries(a.values)) ui.numeric[key] = { ...(ui.numeric[key] ?? {}), ...m }
+  notice.value = a.missed > 0
+    ? { key: 'ppz.regex.notice_loaded_missed', params: { name: b.name, n: a.missed } }
     : { key: 'ppz.regex.notice_loaded', params: { name: b.name } }
-  picksChanged()
+  ui.game = selGame.value
+  ui.page = a.page.id
+  scheduleSave()
 }
 
 export function dismissNotice (): void {
@@ -576,6 +633,8 @@ export function useRegexStore () {
     selGame,
     page,
     catalogue,
+    listed,
+    section,
     view,
     picked,
     pickedSet,

@@ -2,14 +2,17 @@
   Poe Regex 演算法頁清單(WP-C):數值頁(地圖 / 換界石)與商店頁。項目少,不用虛擬捲動。
   每列:勾選 + 名稱(待實測標記)+ 輸入(range:.seg ≥/≤/區間 + .input.sm 數字;select / count:.seg 選項;colors:R/G/B 數量)
   + 這一列產生的片段預覽。改值會順手勾起該列(store.setValue)。片段由 regex/src/pages/ 產生,不經 Corpus。
+  第 32 步:`embedded` = 嵌在宿主詞綴頁頂端的數值區(RegexNumericSection.vue 包一層可收合的卡片),勾選 / 清除都以 `page.id` 指定頁,
+  不依賴「目前頁」。
 -->
 <template>
-  <section class="card rx-algo" data-regex="algo-list" :data-page="page.id">
+  <component :is="embedded ? 'div' : 'section'" class="rx-algo" :class="{ card: !embedded, embedded }"
+    :data-regex="embedded ? 'section-list' : 'algo-list'" :data-page="page.id">
     <div class="rx-toolbar">
-      <span class="dim rx-algo-hint">{{ t('ppz.regex.algo_hint') }}</span>
+      <span class="dim rx-algo-hint">{{ t(embedded ? 'ppz.regex.section_hint' : 'ppz.regex.algo_hint') }}</span>
       <span class="grow" />
-      <button class="btn sm" data-regex="clear" :disabled="!picked.length" :title="t('ppz.regex.clear_tip')"
-        @click="clearPicks">{{ t('ppz.regex.clear') }}</button>
+      <button class="btn sm" :data-regex="embedded ? 'section-clear' : 'clear'" :disabled="!picked.length" :title="t('ppz.regex.clear_tip')"
+        @click="clearPicksOn(page.id)">{{ t('ppz.regex.clear') }}</button>
     </div>
     <template v-for="(g, gi) in groups" :key="gi">
       <div v-if="rowsOf(gi).length" class="rx-algo-group">
@@ -18,7 +21,7 @@
           :data-id="r.e.id">
           <label class="chk rx-algo-name">
             <input type="checkbox" :checked="pickedSet.has(r.i)" :data-regex="`algo-check-${r.e.id}`"
-              @change="togglePick(r.i, ($event.target as HTMLInputElement).checked)">
+              @change="togglePickOn(page.id, r.i, ($event.target as HTMLInputElement).checked)">
             <span>{{ nameOf(r.e) }}</span>
             <span v-if="r.e.untested" class="chip soft rx-untested" :title="t('ppz.regex.untested_tip')"
               data-regex="untested">{{ t('ppz.regex.untested') }}</span>
@@ -76,7 +79,7 @@
         </div>
       </div>
     </template>
-  </section>
+  </component>
 </template>
 
 <script lang="ts">
@@ -84,11 +87,13 @@ import { computed, defineComponent, type PropType } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { rangeOp, type AlgoEntry, type AlgoPage, type AlgoValue, type RangeOp } from '@exile-appraiser/regex'
 import { AppConfig } from '@/web/Config'
-import { clearPicks, setValue, togglePick, useRegexStore, valueOf } from './store'
+import { clearPicksOn, picksOf, setValue, togglePickOn, useRegexStore, valueOf } from './store'
 
 export default defineComponent({
   props: {
-    page: { type: Object as PropType<AlgoPage>, required: true }
+    page: { type: Object as PropType<AlgoPage>, required: true },
+    /** 嵌在宿主詞綴頁的數值區(外層卡片由 RegexNumericSection.vue 提供) */
+    embedded: { type: Boolean, default: false }
   },
   setup (props) {
     const { t } = useI18n()
@@ -147,8 +152,8 @@ export default defineComponent({
       uiEn,
       groups,
       rowsOf,
-      picked: store.picked,
-      pickedSet: store.pickedSet,
+      picked: computed(() => picksOf(props.page.id)),
+      pickedSet: computed(() => new Set(picksOf(props.page.id))),
       valueOf,
       opOf,
       setOp,
@@ -156,8 +161,8 @@ export default defineComponent({
       setChoice,
       colorCount,
       setColor,
-      togglePick,
-      clearPicks,
+      togglePickOn,
+      clearPicksOn,
       nameOf: (e: AlgoEntry) => (uiEn.value ? e.en[0] : e.zh[0]) ?? e.id,
       fragOf: (e: AlgoEntry) => e.fragment(valueOf(props.page.id, e), store.ui.lang)
     }
@@ -170,6 +175,9 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+.rx-algo.embedded {
+  padding: 0;
 }
 .rx-algo-hint {
   font-size: var(--fs-xs);
