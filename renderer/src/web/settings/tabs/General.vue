@@ -65,6 +65,15 @@
     <div class="chk-row">
       <label class="chk"><input v-model="config.startupToast" type="checkbox" data-setting="startup-toast"><span>{{ t('ppz.startup_toast') }}</span></label>
     </div>
+    <!-- 第五輪 30.5:硬體加速(預設關 = 改版前;main 在啟動時讀設定檔,改了要重新啟動才生效) -->
+    <div class="chk-row">
+      <label class="chk"><input v-model="config.hardwareAcceleration" type="checkbox" data-setting="hardware-acceleration"><span>{{ t('ppz.hw_accel.label') }}</span></label>
+    </div>
+    <p class="foot" data-setting="hardware-acceleration-note">{{ t('ppz.hw_accel.note') }}</p>
+    <div v-if="hwAccelPending" class="hw-restart" data-setting="hardware-acceleration-restart">
+      <span class="warn-text">{{ t('ppz.hw_accel.restart_needed') }}</span>
+      <button v-if="canRelaunch" class="btn sm" data-action="relaunch" :disabled="relaunching" @click="relaunch">{{ t('ppz.hw_accel.restart_now') }}</button>
+    </div>
   </section>
 
   <!-- 自訂背景圖(2026-10-01):查價面板與設定視窗;檔案對話框選 png / jpg / webp(main bg-pick 複製到 userData/backgrounds) -->
@@ -196,7 +205,7 @@
 <script lang="ts">
 import { computed, defineComponent, onMounted, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { AppConfig, hotkeyRegistration } from '@/web/Config'
+import { AppConfig, configContentsForRelaunch, hotkeyRegistration } from '@/web/Config'
 import { Host } from '@/web/background/IPC'
 import { useLeagues } from '@/web/background/Leagues'
 import { REALMS, REALM_IDS, TRADE_PATHS, type Language } from '@exile-appraiser/core/realm'
@@ -229,6 +238,20 @@ export default defineComponent({
       try { previewUrl.value = await Host.getPreviewUrl() } catch {}
     })
 
+    // ---- 第五輪 30.5:硬體加速(啟動時套用的值;拿不到(預覽 / 純瀏覽器)= 開設定頁時的值)----
+    const hwAccelAtStart = shallowRef<boolean>(config.hardwareAcceleration)
+    const relaunching = shallowRef(false)
+    onMounted(async () => {
+      try {
+        const v = await Host.hwAccelActive()
+        if (typeof v === 'boolean') hwAccelAtStart.value = v
+      } catch {}
+    })
+    async function relaunch () {
+      relaunching.value = true
+      try { await Host.appRelaunch(configContentsForRelaunch()) } catch { relaunching.value = false }
+    }
+
     // ---- 自訂背景圖 ----
     const bgBusy = shallowRef(false)
     const bgError = shallowRef<string | null>(null)
@@ -253,6 +276,10 @@ export default defineComponent({
       }
     }
     return {
+      hwAccelPending: computed(() => config.hardwareAcceleration !== hwAccelAtStart.value),
+      canRelaunch: Host.canRelaunch,
+      relaunching,
+      relaunch,
       canPickBg: Host.canPickBg,
       bgBusy,
       bgError,
@@ -328,6 +355,17 @@ export default defineComponent({
 </script>
 
 <style>
+/* 第五輪 30.5:硬體加速「重新啟動後生效」列(尺寸用 em / --fs-*,跟設定視窗獨立字級) */
+.settings-panel .hw-restart {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  margin-top: 4px;
+  font-size: var(--fs-xs);
+}
+.settings-panel .hw-restart .warn-text {
+  color: var(--warn, var(--gold));
+}
 .settings-panel .preview-note {
   margin: 0;
   color: var(--ink-2);

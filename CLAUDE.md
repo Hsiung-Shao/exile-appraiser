@@ -143,6 +143,8 @@ Path of Exile 查價工具(Electron + TypeScript)。把 `apt-patched`(Awakened P
     面板 / 設定 / 框選層 / 兩個徽章層都沒有 → 延遲 500 ms `hide()`,有東西立刻 `showInactive()`(`main/src/windowing/overlay-idle.ts`;只藏 / 只再顯示自己藏的,遊戲失焦 / detach 交還套件;
     `OverlayWindow.isInteractable` setter 在 `activateOverlay` 前同步顯示;查價熱鍵讀剪貼簿前 `wake()`)。**新增畫在 overlay 上的東西一定要接進 `overlayLayers` / App.vue 的回報**,否則遊戲前景時視窗可能藏著;
     限流狀態鈕只在 `panelVisible` 時掛載(展開時的 1 秒輪詢跟著停)。
+    30.5(未量測):硬體加速改為設定 `hardwareAcceleration`(預設 false = 改版前一律關;`main/src/hw-accel.ts`):main 在 `migrateLegacyConfig` 之後、ready 前同步讀 config.json,selftest / 控制參數 / 第二實例一律關;
+    不進 host-config,改了要重新啟動(設定 › 一般「立即重新啟動」= IPC `app-relaunch`:renderer 送整份設定、main 寫檔再 `relaunchSelf`;`hw-accel-active` 回這次啟動的值;兩者 `preview: false`)。
 
 ## 指令
 ```bash

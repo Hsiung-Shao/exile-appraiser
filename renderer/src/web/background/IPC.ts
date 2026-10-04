@@ -156,6 +156,14 @@ class HostTransport {
   /** 設定視窗「結束程式」可用:只有 Electron 視窗(預覽端 / 純瀏覽器沒有 `app-quit`)。 */
   get canQuit (): boolean { return !this.isPreview && typeof window.host?.appQuit === 'function' }
   async appQuit (): Promise<void> { if (this.canQuit) await window.host?.appQuit?.() }
+  /** 第五輪 30.5:能不能從設定頁重新啟動(預覽端 / 純瀏覽器不行) */
+  get canRelaunch (): boolean { return !this.isPreview && typeof window.host?.appRelaunch === 'function' }
+  async appRelaunch (contents: string): Promise<void> { if (this.canRelaunch) await window.host?.appRelaunch?.(contents) }
+  /** 第五輪 30.5:這次啟動實際套用的硬體加速;預覽端 / 純瀏覽器回 undefined */
+  async hwAccelActive (): Promise<boolean | undefined> {
+    if (this.isPreview || typeof window.host?.hwAccelActive !== 'function') return undefined
+    return await window.host.hwAccelActive()
+  }
 
   /** 自訂背景圖:只有 Electron 視窗能開檔案對話框(預覽 / 純瀏覽器沒有) */
   get canPickBg (): boolean { return !this.isPreview && typeof window.host?.bgPick === 'function' }

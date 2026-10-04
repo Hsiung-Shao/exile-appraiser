@@ -349,6 +349,12 @@
       "reset_size": "還原設定視窗的大小與位置"
     },
     "startup_toast": "啟動時顯示背景執行提示",
+    "hw_accel": {
+      "label": "硬體加速(GPU)",
+      "note": "預設關閉(與舊版相同,由 CPU 繪製)。開啟後改用 GPU 繪製,捲動與背景圖可能更順,但會與遊戲共用 GPU;畫面異常時請關回。",
+      "restart_needed": "重新啟動後生效",
+      "restart_now": "立即重新啟動"
+    },
     "hotkey_hold": "按住",
     "hotkey_none": "未設定",
     "hotkey_capture_hint": "點一下欄位後直接按下按鍵組合;Esc / Backspace 清除。",

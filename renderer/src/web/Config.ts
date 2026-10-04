@@ -103,6 +103,11 @@ export interface Config {
   autoUpdate: boolean
   /** 啟動時短暫顯示「已在背景執行」提示(預設 true;main/src/startup-toast.ts)。 */
   startupToast: boolean
+  /**
+   * 第五輪 30.5:硬體加速(預設 false = 改版前一律關)。main 在 app ready 前同步讀設定檔決定(main/src/hw-accel.ts),
+   * 改了要重新啟動才生效;不進 host-config。
+   */
+  hardwareAcceleration: boolean
   /** 2026-10-01:聊天指令熱鍵(移植 APT `commands`;預設同 APT)。 */
   commands: ChatCommand[]
   /** 2026-10-01:倉庫搜尋一鍵輸入熱鍵(預設空)。 */
@@ -285,6 +290,7 @@ function createConfig (): Config {
     hotkeyRuneshapeRegion: '',
     autoUpdate: true,
     startupToast: true,
+    hardwareAcceleration: false,
     commands: defaultCommands(),
     stashSearch: [] as StashSearchEntry[],
     stashScroll: true,
@@ -345,6 +351,7 @@ function serialize (): string {
     hotkeyRuneshapeRegion: config.hotkeyRuneshapeRegion,
     autoUpdate: config.autoUpdate,
     startupToast: config.startupToast,
+    hardwareAcceleration: config.hardwareAcceleration,
     commands: config.commands,
     stashSearch: config.stashSearch,
     stashScroll: config.stashScroll,
@@ -439,6 +446,8 @@ function applyLoaded (raw: string) {
   config.autoUpdate = loaded.autoUpdate !== false
   // 啟動提示:舊設定檔沒有 → 預設開;只有明確 false 才關
   config.startupToast = loaded.startupToast !== false
+  // 第五輪 30.5:硬體加速:舊設定檔沒有 → 關(改版前行為);只有明確 true 才開
+  config.hardwareAcceleration = loaded.hardwareAcceleration === true
   // 聊天指令:舊設定檔沒有 → APT 預設六條;倉庫搜尋 → 空
   config.commands = normCommands(loaded.commands)
   config.stashSearch = normStashSearch(loaded.stashSearch)
@@ -463,6 +472,15 @@ export function _roundTripForTest (raw: string | null): { config: Config, serial
 let saveTimer: ReturnType<typeof setTimeout> | null = null
 /** 剛從 `config-changed` 套用的內容(serialize 後):watch 看到同一份就不再存檔,避免兩端互相回存。 */
 let appliedExternal: string | null = null
+
+/**
+ * 第五輪 30.5:設定頁「重新啟動」用:取消等待中的存檔(300 ms debounce),回傳目前整份設定 —— main `app-relaunch` 直接寫檔再重新啟動,
+ * debounce 內的變更(例如剛切的硬體加速)不會遺失。
+ */
+export function configContentsForRelaunch (): string {
+  if (saveTimer) { clearTimeout(saveTimer); saveTimer = null }
+  return serialize()
+}
 
 /** main 的 `Shortcuts.updateActions` 回傳(熱鍵註冊結果);設定頁「熱鍵與視窗」分頁顯示在對應欄位下方。 */
 export type { HotkeyRegistration }

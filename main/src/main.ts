@@ -20,6 +20,7 @@ import { GameDetector, detectorCounters } from './windowing/GameDetector'
 import { OverlayWindow, type SendToRenderer } from './windowing/OverlayWindow'
 import { WidgetAreaTracker } from './windowing/WidgetAreaTracker'
 import { OverlayIdleHider, sanitizeOverlayContent } from './windowing/overlay-idle'
+import { hardwareAccelerationFromConfig, isConfigContents, shouldDisableHardwareAcceleration } from './hw-accel'
 import { AppUpdater } from './AppUpdater'
 import { trayStrings, type TrayLang } from './tray-strings'
 import { Broadcaster, previewHandlers, registerIpc, type HandlerCtx, type HandlerTable } from './host-handlers'
@@ -125,7 +126,6 @@ if (OCR_SELFTEST != null) {
   skipStartup = true
   app.exit()
 }
-app.disableHardwareAcceleration()
 
 // 正式版不用 file://(sandbox 下 fetch / 動態 import 對 file: 一律失敗),改註冊 app:// 供應 renderer/dist。
 const APP_SCHEME = 'app'
@@ -217,6 +217,15 @@ function migrateLegacyConfig () {
   }
 }
 if (!skipStartup) migrateLegacyConfig()
+
+// 第五輪 30.5:硬體加速改為設定(`hardwareAcceleration`,預設 false = 改版前一律關)。只能在 app ready 前決定 → 這裡同步讀設定檔
+// (在舊版設定搬移之後);selftest / 量測 / 控制參數 / 第二實例維持一律關。改了要重新啟動才生效(IPC `app-relaunch`)
+const HW_ACCEL_SETTING = (() => {
+  if (skipStartup) return false
+  try { return hardwareAccelerationFromConfig(fsSync.readFileSync(CONFIG_PATH(), 'utf8')) } catch { return false }
+})()
+if (shouldDisableHardwareAcceleration({ skipStartup, setting: HW_ACCEL_SETTING })) app.disableHardwareAcceleration()
+if (!skipStartup) console.log(`[main] 硬體加速 ${HW_ACCEL_SETTING ? '開' : '關'}(設定 hardwareAcceleration)`)
 
 let win: BrowserWindow | null = null
 let captchaWin: BrowserWindow | null = null
@@ -1345,6 +1354,20 @@ if (!skipStartup) app.whenReady().then(() => {
         console.log('[app] 設定視窗:結束程式')
         quitting = true
         app.quit()
+      }
+    },
+    // 第五輪 30.5:這次啟動實際套用的硬體加速(設定頁「重新啟動後生效」提示用);預覽端不開放
+    'hw-accel-active': { kind: 'invoke', preview: false, fn: () => HW_ACCEL_SETTING },
+    // 第五輪 30.5:設定頁「重新啟動」:先把 renderer 目前的設定整份寫檔(debounce 中的變更不會遺失),再自我重新啟動;預覽端不開放
+    'app-relaunch': {
+      kind: 'invoke',
+      preview: false,
+      fn: async (_ctx, contents: unknown) => {
+        if (isConfigContents(contents)) {
+          await fs.mkdir(path.dirname(CONFIG_PATH()), { recursive: true })
+          await fs.writeFile(CONFIG_PATH(), contents)
+        }
+        relaunchSelf('設定:重新啟動(硬體加速)')
       }
     },
     // 自訂背景圖:檔案對話框選圖(只列 png / jpg / webp)→ 複製到 userData/backgrounds → 回傳檔名(取消 / 失敗回 null)。

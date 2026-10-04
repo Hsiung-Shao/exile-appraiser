@@ -35,6 +35,9 @@ const api: HostApi = {
   hideWindow: () => ipcRenderer.invoke('window-hide'),
   resizeWindow: (width: number, height: number) => ipcRenderer.invoke('window-resize', width, height),
   appQuit: () => ipcRenderer.invoke('app-quit'),
+  // 第五輪 30.5:硬體加速(啟動時套用的值 / 寫設定後重新啟動)
+  hwAccelActive: () => ipcRenderer.invoke('hw-accel-active'),
+  appRelaunch: (contents: string) => ipcRenderer.invoke('app-relaunch', contents),
   getUpdaterInfo: () => ipcRenderer.invoke('updater-info'),
   checkForUpdate: () => ipcRenderer.invoke('updater-check'),
   downloadUpdate: () => ipcRenderer.invoke('updater-download'),

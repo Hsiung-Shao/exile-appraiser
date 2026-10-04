@@ -245,3 +245,22 @@
 `beforeItemCopy` 在讀剪貼簿前、preload / 預覽 no-op)。`renderer/test/overlay-content.test.ts`(6 項):合成與鍵、App.vue / 兩個徽章層 / IPC 接線、限流鈕 `v-if` 守門。
 
 **需要使用者在遊戲中親測**:見回報清單(遊戲前景閒置時 overlay 不在、查價 / 鎖定查價 / overlayKey 設定 / 框選 / 褻瀆與符文徽章 / 暫停提示都照常出現、焦點回遊戲、視窗化遊戲移動後查價面板位置)。
+
+## 30.5 硬體加速改為設定(預設關 = 現狀)
+
+> **未量測(使用者裁定略過)**:原計畫「依量測數字決定預設」,2026-10-04 使用者裁定不量測、直接做;因此**預設維持關**(與 v0.1.2 完全相同),開不開交給使用者。
+
+**改了什麼**(新檔 `main/src/hw-accel.ts`、`main/src/main.ts`、`preload.ts`、`ipc/types.ts`、renderer `Config.ts`、`background/IPC.ts`、`settings/tabs/General.vue`、`i18n/{cmn-Hant,en}.json`):
+- 原本模組頂層無條件 `app.disableHardwareAcceleration()`。改為設定 `hardwareAcceleration: boolean`(預設 false):
+  main 在舊版設定搬移(`migrateLegacyConfig`)之後、app ready 之前**同步**讀 `config.json`(`hardwareAccelerationFromConfig`:沒有檔 / 壞檔 / 沒有鍵 / 不是 `true` → false),
+  `shouldDisableHardwareAcceleration`:selftest / 量測 / 控制參數(`--quit` 等)/ 第二實例(`skipStartup`)一律關(維持改版前),正常啟動看設定。啟動 log 一行 `[main] 硬體加速 開/關`。
+- renderer 設定 `hardwareAcceleration`:舊設定檔沒有 → false、只有明確 `true` 才開(會寫回檔);**不進 host-config**(main 只在啟動時讀)。
+- 設定 › 一般:開關 + 說明 +「重新啟動後生效」(目前值 ≠ 這次啟動實際套用的值,IPC `hw-accel-active`;預覽端拿不到 = 與開設定頁時的值比)+「立即重新啟動」鈕
+  (IPC `app-relaunch`:renderer 取消 300 ms 存檔 debounce、送整份設定 → main 驗證是 JSON 物件才寫檔 → 沿用既有 `relaunchSelf`)。兩個 IPC 都 `preview: false`,預覽端不顯示按鈕。
+- 字串 `ppz.hw_accel.{label,note,restart_needed,restart_now}` 繁中 / 英文。
+
+**測試**:`main/test/hw-accel.test.ts`(7 項:讀設定各種壞值、只有 true 才開、skipStartup 一律關、`isConfigContents`、main.ts 只剩一處條件式呼叫且在搬移之後 / whenReady 之前、
+IPC `preview: false`、relaunch 先寫檔再重啟、preload 對應、預覽 boot script 沒有)、`renderer/test/hw-accel-config.test.ts`(6 項:往返 / 正規化、不進 host-config、
+`configContentsForRelaunch` 含剛改的值、設定頁接線、兩語字串)。
+
+**行為差異**:預設與改版前相同;使用者打開並重新啟動後才改用 GPU 繪製(透明 overlay、背景圖、捲動)。**需要使用者實機確認**:開啟後 overlay 透明 / 點擊穿透 / 徽章 / 背景圖顯示正常、遊戲 FPS 是否受影響、「立即重新啟動」後設定保留且生效。

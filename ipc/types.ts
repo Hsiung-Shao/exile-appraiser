@@ -381,6 +381,10 @@ export interface HostApi {
   resizeWindow: (width: number, height: number) => Promise<void>
   /** 設定視窗「結束程式」(= 托盤「結束」,IPC `app-quit`)。瀏覽器預覽 shim 沒有這個方法(`preview: false`)。 */
   appQuit?: () => Promise<void>
+  /** 第五輪 30.5:這次啟動實際套用的硬體加速(`hardwareAcceleration` 只在啟動時生效)。瀏覽器預覽 shim 沒有這個方法(`preview: false`)。 */
+  hwAccelActive?: () => Promise<boolean>
+  /** 第五輪 30.5:把目前設定整份寫檔後自我重新啟動(設定頁「重新啟動」)。瀏覽器預覽 shim 沒有這個方法(`preview: false`)。 */
+  appRelaunch?: (contents: string) => Promise<void>
   /**
    * 自訂背景圖:檔案對話框選 png / jpg / webp → main 複製到 `userData/backgrounds/` → 回傳檔名(取消 / 失敗 = null)。
    * 圖片由 `app://bg/<檔名>`(預覽:`<prefix>bg/<檔名>`)載入。瀏覽器預覽 shim 沒有這個方法(`preview: false`)。
