@@ -4,6 +4,7 @@ import { app, BrowserWindow, dialog, Menu, nativeImage, net, powerMonitor, proto
 import { describeStartError, uiohookGate } from './uiohook-gate'
 import { uIOhook, UiohookKey } from 'uiohook-napi'
 import { StashScroll } from './stash-scroll'
+import { CtrlWatcher } from './ctrl-watch'
 import { OVERLAY_WINDOW_OPTS } from 'electron-overlay-window'
 import fs from 'node:fs/promises'
 import fsSync from 'node:fs'
@@ -834,8 +835,13 @@ if (!skipStartup) app.whenReady().then(() => {
   // uiohook 掛鉤不在啟動時開:只在 WidgetAreaTracker 追蹤查價面板期間開(uiohook-gate.ts;送鍵不需要掛鉤)。
   // 例外(第 15 步):倉庫頁籤捲動開著時,遊戲在前景期間也持有一份(要收 wheel 事件);關著時維持上述行為。
   // 開關在第一次 host-config 才設(之前 enabled = false,不持有)。
+  // 第五輪 30.1(使用者裁定):再縮小為「遊戲前景 + 按住 Ctrl」才持有;Ctrl 由常駐 PowerShell 輪詢 GetAsyncKeyState 偵測(ctrl-watch.ts,
+  // 只在遊戲前景 + 功能開著時輪詢,不裝掛鉤);輪詢器用不了(沒有 PowerShell 等)→ 退回前景期間一直持有
+  const ctrlWatch = windowMode === 'overlay' && poeWindow ? new CtrlWatcher() : undefined
+  app.on('will-quit', () => { ctrlWatch?.dispose() })
   const stashScroll = windowMode === 'overlay' && poeWindow
     ? new StashScroll({
+      ctrl: ctrlWatch,
       game: poeWindow,
       gate: uiohookGate,
       onWheel: (fn) => { uIOhook.on('wheel', fn) },

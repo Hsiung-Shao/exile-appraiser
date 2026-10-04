@@ -264,3 +264,43 @@ IPC `preview: false`、relaunch 先寫檔再重啟、preload 對應、預覽 boo
 `configContentsForRelaunch` 含剛改的值、設定頁接線、兩語字串)。
 
 **行為差異**:預設與改版前相同;使用者打開並重新啟動後才改用 GPU 繪製(透明 overlay、背景圖、捲動)。**需要使用者實機確認**:開啟後 overlay 透明 / 點擊穿透 / 徽章 / 背景圖顯示正常、遊戲 FPS 是否受影響、「立即重新啟動」後設定保留且生效。
+
+## 30.1 倉庫頁籤捲動:只在「遊戲前景 + 按住 Ctrl」時持有 uiohook 掛鉤
+
+> **未量測(使用者裁定略過)**:沒有跑 perf-scenario;下面「輪詢器成本」是為了選做法在本機量的單一數字,不是情境表。
+> 原計畫(截圖偵測倉庫面板)由使用者 2026-10-04 改裁定為「按住 Ctrl 才掛」。
+
+**問題**:`stashScroll`(預設開)時,遊戲在前景的整段時間都持有 uiohook 全域掛鉤(`WH_KEYBOARD_LL` + `WH_MOUSE_LL`):遊戲收到的每個鍵盤 / 滑鼠事件
+都先經過本程式的掛鉤執行緒,而且每個事件都進 main 建 JS 物件。難點:不靠全域掛鉤也要知道 Ctrl 有沒有按著。
+
+**調查(低成本偵測 Ctrl 的選項)**:
+
+| 做法 | 結論 |
+|---|---|
+| uiohook 只掛鍵盤、不掛滑鼠 | **不行**:libuiohook `hook_run`(`libuiohook/src/windows/input_hook.c`)一律同時 `SetWindowsHookEx(WH_KEYBOARD_LL)` + `(WH_MOUSE_LL)`,uiohook-napi 沒有選項;要做得自編原生碼(新原生依賴)。而且鍵盤 LL 掛鉤本身仍在遊戲的輸入路徑上 |
+| electron-overlay-window | **沒有**:原生只匯出 `start` / `activateOverlay` / `focusTarget` / `screenshot`,沒有按鍵狀態 |
+| Electron API | **沒有**:`globalShortcut`(RegisterHotKey)不能註冊單獨的修飾鍵;`before-input-event` 只有 overlay 有焦點時才收得到 |
+| koffi / ffi 呼叫 `GetAsyncKeyState` | 專案沒有 FFI 套件,加了就是新的原生依賴(依指示不採用) |
+| 自己編小 exe(執行期用 .NET Framework 的 csc 編) | 記憶體最省,但執行期產生 exe 容易被防毒誤判,不採用 |
+| **常駐 PowerShell + `Add-Type` 內嵌 C# 輪詢 `GetAsyncKeyState`**(採用) | Windows 內建、本專案已用 PowerShell 跑 OCR / 列字體 / 行程確認;輪詢在 C# 迴圈裡,不經 PowerShell 直譯;不裝掛鉤、不送輸入、不在遊戲的輸入路徑上 |
+
+**輪詢器成本(2026-10-04 本機,30 秒 GetProcessTimes)**:輪詢 30 ms ≈ 2.6 ms CPU / 秒;**採用 50 ms ≈ 1.0 ms CPU / 秒(約 0.1 % 單核)**;不輪詢(送 `0`,停在 WaitHandle)0;
+工作集約 80 MB;啟動(含 C# 編譯)約 0.9 秒、約 0.3 秒 CPU。現況掛鉤的成本與輸入量成正比(遊戲中滑鼠移動 125–1000 次 / 秒,每次都進 main),沒有量;
+輪詢器是固定的小成本,且**不在遊戲的輸入路徑上**,判斷不比現況高,所以實作。代價是多一個常駐 powershell.exe(約 80 MB),不需要 10 分鐘後關掉。
+
+**改了什麼**(新檔 `main/src/ctrl-watch.ts`、`main/src/stash-scroll.ts`、`main/src/main.ts`、`docs/chat-commands.md`):
+- `CtrlWatcher`:`setWanted(true)` 才啟動 / 叫醒輪詢器(ready 後送 `1`,立刻回報目前狀態);只有狀態改變才回報 `down` / `up`;`setWanted(false)` → 狀態回 `up`、送 `0`、
+  `IDLE_EXIT_MS`(10 分鐘)後關行程;崩潰自動重啟,ready 前連續失敗 3 次 / 啟動逾時 15 秒 ×3 / 非 Windows → `unavailable`。stdin 關閉(main 結束)行程自己結束。
+- `StashScroll`:持有條件改為純函式 `stashScrollShouldHold`:開著 + 未 detach + 遊戲前景 + (Ctrl `down` 或來源 `unavailable`);只在「開著 + 前景 + 未 detach」時 `setWanted(true)`。
+  放開 Ctrl / 失焦 / detach / 關閉 / dispose → release;gate 歸零照舊延遲 5 秒 stop(連續 Ctrl + 滾輪不反覆 start / stop)。wheel 判斷(`stashScrollKey`)不變。
+- 延遲:按下 Ctrl → 最壞 50 ms + 計時器刻度 15.6 ms + 管線 → `gate.acquire()` 同步 `start()`,< 100 ms;libuiohook 開始時用 `GetAsyncKeyState` 初始化修飾鍵,
+  所以「先按 Ctrl 才開的掛鉤」收到的 wheel 事件 `ctrlKey` 仍是 true。
+- 與第 5 步 gate / 送鍵:StashScroll 最多持有 1 份(`held` 旗標),與 WidgetAreaTracker 的持有各自計數;`keyTap` 走 SendInput 不需要掛鉤。
+  本程式自己送的 Ctrl 組合鍵(PoE1 查價 Ctrl+C、聊天指令 Ctrl+V)也會讓 `GetAsyncKeyState` 看到 Ctrl → 短暫持有一次,無害。
+- 輪詢器用不了 → 退回改版前(前景期間一直持有),倉庫頁籤捲動不失效。
+
+**測試**:`main/test/ctrl-watch.test.ts`(11 項,假行程 + 假時鐘):解析、腳本只讀按鍵狀態(沒有 SetWindowsHookEx / SendInput / keybd_event / SendKeys)且間隔 ≤ 50 ms、
+不需要不啟動、ready 後送 1、down / up、停止後在路上的行不回報、沿用行程、10 分鐘閒置關閉與取消、崩潰重啟、3 次失敗 unavailable、成功後失敗次數歸零、啟動逾時、
+沒有 powershell / 非 Windows、dispose 清計時器、main.ts 接線。`main/test/stash-scroll.test.ts` 新增 9 項:`stashScrollShouldHold` 矩陣;前景沒按 Ctrl 不持有、按下同步 start、
+放開 5 秒後 stop;50 次按放只 start 一次且計數歸零;按著 Ctrl 時失焦 / detach / 關閉 / dispose 都 release 並停止輪詢;關閉 / 不在前景不輪詢;unavailable 退回舊行為;
+與面板追蹤交錯不洩漏;wheel 判斷不變。既有 17 項(沒有 Ctrl 來源 = 舊行為)不改照過。

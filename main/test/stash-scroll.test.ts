@@ -2,7 +2,8 @@
 // 全部用假的 game / gate hook / tap,不裝真的掛鉤、不送任何輸入。
 import { EventEmitter } from 'node:events'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { isStashArea, stashScrollKey, stashSidebarWidth, StashScroll, type StashBounds, type WheelLike } from '../src/stash-scroll'
+import { isStashArea, stashScrollKey, stashScrollShouldHold, stashSidebarWidth, StashScroll, type StashBounds, type StashCtrlSource, type WheelLike } from '../src/stash-scroll'
+import type { CtrlState } from '../src/ctrl-watch'
 import { DEFAULT_STOP_DELAY_MS, UiohookGate } from '../src/uiohook-gate'
 
 const B1080: StashBounds = { x: 0, y: 0, width: 1920, height: 1080 }
@@ -234,5 +235,162 @@ describe('StashScroll × UiohookGate', () => {
     detach()
     emitWheel(wheel(1200, 500, 1))
     expect(tap).toHaveBeenCalledTimes(2)
+  })
+})
+
+// ---- 第五輪 30.1:只在「遊戲前景 + 按住 Ctrl」才持有掛鉤 ----
+class FakeCtrl implements StashCtrlSource {
+  state: CtrlState = 'up'
+  wanted = false
+  wantedLog: boolean[] = []
+  private fns: Array<(s: CtrlState) => void> = []
+  setWanted (on: boolean) { if (on !== this.wanted) { this.wanted = on; this.wantedLog.push(on); if (!on) this.set('up') } }
+  onState (fn: (s: CtrlState) => void) { this.fns.push(fn) }
+  set (s: CtrlState) { if (s === this.state) return; if (this.state === 'unavailable') return; this.state = s; for (const f of this.fns) f(s) }
+  press () { if (this.wanted) this.set('down') }
+  releaseKey () { if (this.wanted) this.set('up') }
+}
+
+describe('stashScrollShouldHold(第五輪 30.1)', () => {
+  const base = { disposed: false, enabled: true, detached: false, gameActive: true }
+  it('沒有 Ctrl 來源 = 改版前(前景就持有);有來源 → 只有 down 才持有;unavailable → 退回改版前', () => {
+    expect(stashScrollShouldHold(base)).toBe(true)
+    expect(stashScrollShouldHold({ ...base, ctrl: 'up' })).toBe(false)
+    expect(stashScrollShouldHold({ ...base, ctrl: 'down' })).toBe(true)
+    expect(stashScrollShouldHold({ ...base, ctrl: 'unavailable' })).toBe(true)
+  })
+  it('關閉 / 不在前景 / detach / dispose → 不論 Ctrl 都不持有', () => {
+    for (const ctrl of [undefined, 'up', 'down', 'unavailable'] as const) {
+      expect(stashScrollShouldHold({ ...base, ctrl, enabled: false })).toBe(false)
+      expect(stashScrollShouldHold({ ...base, ctrl, gameActive: false })).toBe(false)
+      expect(stashScrollShouldHold({ ...base, ctrl, detached: true })).toBe(false)
+      expect(stashScrollShouldHold({ ...base, ctrl, disposed: true })).toBe(false)
+    }
+  })
+})
+
+describe('StashScroll × Ctrl 來源 × UiohookGate(第五輪 30.1)', () => {
+  beforeEach(() => { vi.useFakeTimers() })
+  afterEach(() => { vi.useRealTimers() })
+
+  const setup = () => {
+    const hook = { start: vi.fn(), stop: vi.fn() }
+    const gate = new UiohookGate(hook, { log: () => {} })
+    const game = new FakeGame()
+    const ctrl = new FakeCtrl()
+    const wheelFns: Array<(e: WheelLike) => void> = []
+    const detachFns: Array<() => void> = []
+    const attachFns: Array<() => void> = []
+    const tap = vi.fn()
+    const ss = new StashScroll({
+      game, gate, ctrl, tap, log: () => {},
+      onWheel: (fn) => { wheelFns.push(fn) },
+      onAttach: (fn) => { attachFns.push(fn) },
+      onDetach: (fn) => { detachFns.push(fn) }
+    })
+    return {
+      hook, gate, game, ctrl, ss, tap,
+      emitWheel: (e: WheelLike) => { for (const fn of wheelFns) fn(e) },
+      detach: () => detachFns.forEach(f => f()),
+      attach: () => attachFns.forEach(f => f())
+    }
+  }
+
+  it('前景但沒按 Ctrl:不持有掛鉤(只請來源輪詢);按下 → 同步 acquire / start;放開 → release,5 秒後 stop', () => {
+    const { gate, hook, game, ctrl, ss } = setup()
+    ss.setEnabled(true)
+    game.isActive = true
+    expect(ctrl.wanted).toBe(true)
+    expect(gate.holders).toBe(0)
+    expect(hook.start).not.toHaveBeenCalled()
+    ctrl.press()
+    expect(gate.holders).toBe(1)
+    expect(hook.start).toHaveBeenCalledTimes(1)
+    ctrl.releaseKey()
+    expect(gate.holders).toBe(0)
+    vi.advanceTimersByTime(DEFAULT_STOP_DELAY_MS)
+    expect(hook.stop).toHaveBeenCalledTimes(1)
+  })
+
+  it('連續 Ctrl + 滾輪(5 秒內反覆按放)不反覆 start / stop;計數不洩漏', () => {
+    const { gate, hook, game, ctrl, ss } = setup()
+    ss.setEnabled(true)
+    game.isActive = true
+    for (let i = 0; i < 50; i++) { ctrl.press(); vi.advanceTimersByTime(300); ctrl.releaseKey(); vi.advanceTimersByTime(700) }
+    expect(hook.start).toHaveBeenCalledTimes(1)
+    expect(hook.stop).not.toHaveBeenCalled()
+    expect(gate.holders).toBe(0)
+    vi.advanceTimersByTime(DEFAULT_STOP_DELAY_MS)
+    expect(hook.stop).toHaveBeenCalledTimes(1)
+  })
+
+  it('按著 Ctrl 時失焦 / detach / 關閉 / dispose → release 且停止輪詢', () => {
+    const { gate, game, ctrl, ss, detach, attach } = setup()
+    ss.setEnabled(true)
+    game.isActive = true; ctrl.press()
+    expect(gate.holders).toBe(1)
+    game.isActive = false
+    expect(gate.holders).toBe(0)
+    expect(ctrl.wanted).toBe(false)
+    game.isActive = true; ctrl.press()
+    detach()
+    expect(gate.holders).toBe(0)
+    expect(ctrl.wanted).toBe(false)
+    attach(); ctrl.press()
+    expect(gate.holders).toBe(1)
+    ss.setEnabled(false)
+    expect(gate.holders).toBe(0)
+    expect(ctrl.wanted).toBe(false)
+    ss.setEnabled(true); ctrl.press()
+    ss.dispose()
+    expect(gate.holders).toBe(0)
+    expect(ctrl.wanted).toBe(false)
+  })
+
+  it('功能關閉 / 遊戲不在前景:不輪詢 Ctrl(輪詢器停著)', () => {
+    const { ctrl, game, ss } = setup()
+    ss.setEnabled(false)
+    game.isActive = true
+    expect(ctrl.wantedLog).toEqual([])
+    ss.setEnabled(true)
+    game.isActive = false
+    expect(ctrl.wantedLog).toEqual([true, false])
+  })
+
+  it('Ctrl 來源 unavailable(沒有 PowerShell 等)→ 退回改版前:前景期間一直持有', () => {
+    const { gate, game, ctrl, ss } = setup()
+    ss.setEnabled(true)
+    ctrl.state = 'unavailable'
+    ;(ctrl as any).fns.forEach((f: any) => f('unavailable'))
+    game.isActive = true
+    expect(gate.holders).toBe(1)
+    game.isActive = false
+    expect(gate.holders).toBe(0)
+  })
+
+  it('與查價面板追蹤(WidgetAreaTracker)交錯:計數各自獨立、不為負', () => {
+    const { gate, hook, game, ctrl, ss } = setup()
+    ss.setEnabled(true)
+    game.isActive = true
+    gate.acquire() // 快速查價面板追蹤
+    ctrl.press()
+    expect(gate.holders).toBe(2)
+    gate.release()
+    expect(gate.holders).toBe(1)
+    ctrl.releaseKey()
+    expect(gate.holders).toBe(0)
+    ctrl.releaseKey(); game.isActive = false; ss.setEnabled(false)
+    expect(gate.holders).toBe(0)
+    expect(hook.start).toHaveBeenCalledTimes(1)
+  })
+
+  it('wheel:按住 Ctrl 掛鉤開著時照舊送鍵(判斷不變)', () => {
+    const { game, ctrl, ss, tap, emitWheel } = setup()
+    ss.setEnabled(true)
+    game.isActive = true
+    ctrl.press()
+    emitWheel(wheel(1200, 500, 1))
+    emitWheel(wheel(300, 400, 1))
+    expect(tap.mock.calls).toEqual([['ArrowRight']])
   })
 })

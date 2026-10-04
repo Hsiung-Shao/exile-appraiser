@@ -17,7 +17,12 @@
  * - uiohook 掛鉤(`uiohook-gate.ts`)折衷:功能開著時,遊戲在前景期間 acquire 一份;失焦 / 遊戲視窗 detach / 功能關閉 /
  *   dispose 時 release。關閉時完全維持第 5 步行為(只有查價面板追蹤期間才開掛鉤)。gate 歸零後延遲 5 秒才 stop,前景抖動不會頻繁 start / stop。
  * - 送鍵用注入的 `tap`(main.ts 給 uiohook `keyTap`);**單元測試只給假的 tap,不送任何真實輸入**。
+ * - **第五輪 30.1(使用者裁定)**:有 `ctrl` 來源(`ctrl-watch.ts`,不靠掛鉤輪詢 Ctrl)時,改成「開著 + 遊戲前景 + **按住 Ctrl**」才持有掛鉤,
+ *   放開 Ctrl / 失焦 / detach 就 release(gate 歸零後照樣延遲 5 秒 stop,連續 Ctrl + 滾輪不會反覆 start / stop)。
+ *   只有遊戲前景 + 功能開著時才請 `ctrl` 來源輪詢(`setWanted`)。`ctrl` 回報 `unavailable`(沒有 PowerShell 等)→ 退回上一條的舊行為。
+ *   掛鉤開始時 libuiohook 以 `GetAsyncKeyState` 初始化修飾鍵(`initialize_modifiers`),所以先按 Ctrl 再開掛鉤,wheel 事件的 `ctrlKey` 仍正確。
  */
+import type { CtrlState } from './ctrl-watch'
 
 export type StashScrollKey = 'ArrowRight' | 'ArrowLeft'
 
@@ -66,6 +71,25 @@ export interface StashScrollGame {
   on: (event: 'active-change', listener: (isActive: boolean) => void) => unknown
 }
 
+/** 第五輪 30.1:要不要持有 uiohook 掛鉤(純函式)。`ctrl` 省略 = 沒有 Ctrl 來源 = 改版前行為(前景期間一直持有) */
+export function stashScrollShouldHold (s: {
+  disposed: boolean
+  enabled: boolean
+  detached: boolean
+  gameActive: boolean
+  ctrl?: CtrlState
+}): boolean {
+  if (s.disposed || !s.enabled || s.detached || !s.gameActive) return false
+  return s.ctrl == null || s.ctrl === 'unavailable' || s.ctrl === 'down'
+}
+
+/** 第五輪 30.1:Ctrl 狀態來源(`ctrl-watch.ts` `CtrlWatcher`) */
+export interface StashCtrlSource {
+  readonly state: CtrlState
+  setWanted: (on: boolean) => void
+  onState: (fn: (s: CtrlState) => void) => void
+}
+
 export interface StashScrollDeps {
   game: StashScrollGame
   gate: { acquire: () => void, release: () => void }
@@ -75,6 +99,8 @@ export interface StashScrollDeps {
   onAttach?: (fn: () => void) => void
   onDetach?: (fn: () => void) => void
   tap: (key: StashScrollKey) => void
+  /** 第五輪 30.1:Ctrl 狀態來源;省略 = 遊戲前景期間一直持有(改版前) */
+  ctrl?: StashCtrlSource
   log?: (msg: string) => void
 }
 
@@ -91,6 +117,7 @@ export class StashScroll {
     deps.onAttach?.(() => { this.detached = false; this.sync() })
     deps.onDetach?.(() => { this.detached = true; this.sync() })
     deps.onWheel((e) => { this.handleWheel(e) })
+    deps.ctrl?.onState(() => { this.sync() })
   }
 
   /** host-config:`stashScroll !== false`(只在 overlay 模式建立本物件) */
@@ -111,10 +138,18 @@ export class StashScroll {
   get holding (): boolean { return this.held }
 
   private get shouldHold (): boolean {
-    return !this.disposed && this.enabled && !this.detached && this.deps.game.isActive
+    return stashScrollShouldHold({
+      disposed: this.disposed,
+      enabled: this.enabled,
+      detached: this.detached,
+      gameActive: this.deps.game.isActive,
+      ctrl: this.deps.ctrl?.state
+    })
   }
 
   private sync (): void {
+    // 只有遊戲前景 + 功能開著時才需要知道 Ctrl(其他時候輪詢器停著,閒置一段時間後關掉)
+    this.deps.ctrl?.setWanted(!this.disposed && this.enabled && !this.detached && this.deps.game.isActive)
     const want = this.shouldHold
     if (want === this.held) return
     this.held = want

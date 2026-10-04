@@ -48,6 +48,11 @@ macOS 的 Ctrl 改 Meta(倉庫搜尋的 Ctrl+F 維持 Ctrl)。
 (只有查價面板追蹤期間才開掛鉤)。gate 歸零後延遲 5 秒才 stop,前景切換抖動不會頻繁 start / stop;重新啟動 / 結束仍由 `shutdown()` 強制停。
 開關在第一次 host-config 才設(之前不持有);啟動時遊戲已在前景 → 收到設定立刻持有。
 
+**第五輪 30.1(2026-10-04 使用者裁定)**:再縮小為「功能開著 + 遊戲前景 + **按住 Ctrl**」才持有掛鉤,放開 Ctrl / 失焦 / detach 就 release(gate 照樣延遲 5 秒 stop)。
+Ctrl 不靠掛鉤偵測:`main/src/ctrl-watch.ts` 常駐 PowerShell + 內嵌 C# 每 50 ms `GetAsyncKeyState(VK_CONTROL)`,只在狀態改變時回報(只在遊戲前景 + 功能開著時輪詢,
+不需要 10 分鐘後關行程);按下到持有掛鉤 < 100 ms,libuiohook 開始時以 `GetAsyncKeyState` 初始化修飾鍵,所以先按 Ctrl 再開的掛鉤 wheel 事件 `ctrlKey` 仍正確。
+輪詢器用不了(沒有 powershell.exe(Wine)、Add-Type 被擋、連續 3 次啟動失敗)→ log 一行、退回上一段的行為。取捨與其他選項見 `docs/perf/changes-round5.md` 30.1。
+
 **掛鉤註冊失敗(2026-10-03 實機回歸)**:測試版放在很深的目錄時,每次 start 都丟 `UIOHOOK_ERROR_SET_WINDOWS_HOOK_EX`,倉庫頁籤捲動與查價面板游標離開自動關閉全部失效。根因不是延後 start,而是 `SetWindowsHookEx` 的 hMod 是 `uiohook-napi.node` 本身,其完整路徑 ≥ 252 字元時系統回 0x7E(ERROR_MOD_NOT_FOUND)(實測同一個 .node:≤ 251 字元成功、≥ 252 字元必失敗;啟動時 / 5 秒後 / stop 後再 start 結果都一樣)。修正:`main/src/uiohook-prebuild.ts` 在載入前發現路徑 > 240 字元就把 .node 複製到 `<userData>\native\uiohook-napi-<雜湊>\` 並設 `UIOHOOK_NAPI_PREBUILD`(node-gyp-build 讀這個環境變數)。gate 每次失敗只記一行錯誤碼,連續 3 次後本次執行停止重試。實機檢查:`node scripts/uiohook-hookcheck.mjs [--exe <ExileAppraiser.exe>]`(只註冊 / 解除掛鉤,不送輸入)。
 
 **與查價面板的互動**:overlay 取得焦點(鎖定查價、設定、點進面板)時 `GameWindow.isActive` = false → 不送鍵,面板內 Ctrl + 滾輪不受影響。
