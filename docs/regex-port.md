@@ -107,10 +107,10 @@ PobTools 語彙(`.card .seg .chk .select .input .btn .pulse`):
 
 1. PobTools 端(維護者本機)重跑 `tools/gen_regex_data.py` / `gen_regex_data2.py` → commit `host/data/regex_poe*.json` →
    建置部署到 `pob-zh-engine/dist/Data/` → 跑 `pob-zh.exe --regex-selftest` 更新 `dist/regex_selftest.txt`。
-2. 本 repo:`node scripts/sync-regex-data.mjs --from ../pob-zh-engine`
+2. 本 repo:`node scripts/sync-regex-data.mjs --from ../Pob2/pob-zh-engine`
    - 守門:`dist/Data` 與 git 追蹤的 `host/data` 兩份必須逐位元組相同,且 `host/data/regex_*.json` 不得有未提交變更。
    - 逐位元組複製到 `data/regex/`,以 `verify-data-manifest.mjs --write --prefix data/regex --commit <HEAD>` 重寫 MANIFEST 該前綴。
-3. `node regex/test/golden/extract-from-report.mjs ../pob-zh-engine/dist/regex_selftest.txt` 更新基準 → `npm test`。
+3. `node regex/test/golden/extract-from-report.mjs ../Pob2/pob-zh-engine/dist/regex_selftest.txt` 更新基準 → `npm test`。
    數量類斷言(data.test.ts 的 `EXPECTED`)也要跟著改;任何差異都要能用資料變更解釋。
 
 ## WP-C:演算法頁 / 合併 / 分享碼 / 範本(2026-09-29)
@@ -121,7 +121,7 @@ PobTools 語彙(`.card .seg .chk .select .input .btn .pulse`):
 - `regex_poe*.json` 頂層 `labels{zh,en}`(clientstrings 鍵 → 文字)、頁面 `kind`(`mods` / `names`)。`data.ts` 同時接受 schema 1(缺 `kind` = mods、缺 `labels` = null);未知 kind 當 mods。
 - `normalizeLabel`:`{0}` → `#`、PoE2 的 `[Id|文字]` → 文字、`[Id]` → Id。
 - 標籤合併 `mergeLabels(資料檔 labels, 暫代檔)`:資料檔**逐鍵優先**,暫代檔 `data/regex/labels.poe{1,2}.json` 只補缺鍵(PoE2 schema 2 目前缺 `ItemDisplayMap{Magic,Rare}MonsterQuantityBonus`、`ExperienceGained`、`MonsterEffectiveness`、`ItemPopupCorrupted`)。兩份都有的鍵在測試裡斷言逐字相同。
-- 暫代檔產生:`node regex/scripts/gen-labels.mjs --from ../pob-zh-engine`(讀 `tools/ggpk_zh/out/poe1/tables/clientstrings.json`、`tools/ggpk2_zh/out/poe2/tables/clientstrings.json` 的 `Text` 欄,以**鍵**取值、缺鍵 exit 1、與 `regex_poe*.json` ambient 行交叉比對),寫完以 `verify-data-manifest --write --prefix data/regex/labels.<game>.json` 各記一個來源(最長前綴歸屬,不併入 PobTools 同步的 `data/regex` 前綴)。`templates.json` 同樣自成一個前綴。
+- 暫代檔產生:`node regex/scripts/gen-labels.mjs --from ../Pob2/pob-zh-engine`(讀 `tools/ggpk_zh/out/poe1/tables/clientstrings.json`、`tools/ggpk2_zh/out/poe2/tables/clientstrings.json` 的 `Text` 欄,以**鍵**取值、缺鍵 exit 1、與 `regex_poe*.json` ambient 行交叉比對),寫完以 `verify-data-manifest --write --prefix data/regex/labels.<game>.json` 各記一個來源(最長前綴歸屬,不併入 PobTools 同步的 `data/regex` 前綴)。`templates.json` 同樣自成一個前綴。
 
 ### 數值 → 正則(`regex/src/numeric.ts`)
 `rangeRegex({min?, max?}, {digits: 1|2|3})`:依位數切等長區間 → 首位頭 / 中 / 尾三段遞迴拆成字元類序列 → 兩位數以上首位 `[1-9]` 換 `\d` → `P` 與 `X P` 合併成 `X?P` → 與逐一列舉比取短。只用 `\d [] ? | ()`(不用 `{n}`、不用大寫跳脫)。

@@ -125,7 +125,7 @@ EE2(`main/src/shortcuts/Shortcuts.ts` 的 `pressKeysToCopyItemText`)送的是 `m
 
 ```bash
 # PobTools 更新 PoB2 portable 後,或 data/poe2/{en,cmn-Hant}/stats.ndjson 同步後(sync-data --game poe2)都要重跑:
-node scripts/build-desecration-tiers.mjs --from ../pob-zh-engine/dist/PathOfBuildingCommunity-PoE2-Portable/Data
+node scripts/build-desecration-tiers.mjs --from ../Pob2/pob-zh-engine/dist/PathOfBuildingCommunity-PoE2-Portable/Data
 # → 重寫 data/poe2/desecration/{tiers,base_profiles}.json 與 MANIFEST 的 data/poe2/desecration 前綴
 cd poe2 && npx vitest run test/desecration   # 統計斷言(1713 / 198 / 32 / 1483 / 422;enVariants 271 / 277 / 248 / 1058)會紅 → 逐項確認後更新
 ```

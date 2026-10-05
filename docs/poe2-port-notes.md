@@ -37,7 +37,7 @@
 | 檔案 | 問題 | 修正 | 回歸 |
 |---|---|---|---|
 | `parser/Parser.ts` `parseNamePlate` | 沒有 `Item Class:` 行一律當寶石(上游 meta 技能寶石 hack)→ 交易站「複製物品」文字(無 Item Class)的傳奇 / 稀有 / 魔法 / 普通物品全部 `item.unknown` | 稀有度是物品稀有度時不強制歸類,交給 `findInDatabase` | `test/Parser/auspex-and-magic-tablet.test.ts`(觀鳥者:英文原文 + GGPK 組的繁中) |
-| `parser/magic-name.ts` `magicBasetype` | 只比長度、同長取先出現 → 詞綴名含物品名時挑錯底材(繁中「昇華的幻像異界之譫妄碑牌」→「幻像異界」) | `anchorRank`:繁中底材必在名稱結尾、英文底材緊接 `of` 之前或在結尾,位置優先再比長度 | 同上 + `test/Parser/magic-name-collisions.test.ts`(`scripts/scan-magic-name-collisions.mjs --from ../pob-zh-engine` 產生的 GGPK 詞綴名 × 底材潛在碰撞,已知歧義列在測試檔) |
+| `parser/magic-name.ts` `magicBasetype` | 只比長度、同長取先出現 → 詞綴名含物品名時挑錯底材(繁中「昇華的幻像異界之譫妄碑牌」→「幻像異界」) | `anchorRank`:繁中底材必在名稱結尾、英文底材緊接 `of` 之前或在結尾,位置優先再比長度 | 同上 + `test/Parser/magic-name-collisions.test.ts`(`scripts/scan-magic-name-collisions.mjs --from ../Pob2/pob-zh-engine` 產生的 GGPK 詞綴名 × 底材潛在碰撞,已知歧義列在測試檔) |
 
 **與原計畫不同處**:`Parser.ts:1420,1425` 的 `useAugment` 沒有改成回呼 —— 它來自 `web/price-check/item-editor/augment.ts`,
 實際是純 TS(無 Vue / 設定依賴),所以整檔照搬,Parser 的 import 不動;只有 `savedAugments` 為空(預設)時它不會被呼叫,

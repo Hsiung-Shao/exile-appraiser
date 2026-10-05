@@ -1,7 +1,7 @@
 // @ts-check
 // 從 fork 單向同步資料檔(逐位元組複製,保留原行尾),然後重寫 MANIFEST 中該遊戲的部分。
-//   node scripts/sync-data-from-apt.mjs --from ../apt-patched                 → data/poe1(PoE1,apt-patched)
-//   node scripts/sync-data-from-apt.mjs --game poe2 --from ../ee2-patched     → data/poe2(PoE2,ee2-patched)
+//   node scripts/sync-data-from-apt.mjs --from ../過時專案/apt-patched                 → data/poe1(PoE1,apt-patched)
+//   node scripts/sync-data-from-apt.mjs --game poe2 --from ../過時專案/ee2-patched     → data/poe2(PoE2,ee2-patched)
 // 資料只在 fork 端產生(apt `npm run regen-data`、ee2 的 tools-local),本專案不改資料內容。
 // PoE2 的 `*.index.bin` 在 ee2-patched 是 gitignore 的,這裡同步後用 make-index-files --game poe2 重產
 // (演算法與 E 的 renderer/src/assets/make-index-files.mjs 相同,產物與 E 本機跑出來的逐位元組一致)。
@@ -22,7 +22,7 @@ if (GAME !== 'poe1' && GAME !== 'poe2') {
   console.error(`--game 只接受 poe1 / poe2(收到 ${GAME})`)
   process.exit(2)
 }
-const FROM = path.resolve(ROOT, flag('--from') ?? (GAME === 'poe2' ? '../ee2-patched' : '../apt-patched'))
+const FROM = path.resolve(ROOT, flag('--from') ?? (GAME === 'poe2' ? '../過時專案/ee2-patched' : '../過時專案/apt-patched'))
 const SRC = path.join(FROM, 'renderer', 'public', 'data')
 const DST = path.join(ROOT, 'data', GAME)
 const LANGS = ['cmn-Hant', 'en']

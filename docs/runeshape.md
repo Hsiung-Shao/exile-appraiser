@@ -68,7 +68,7 @@ PoE2 **符文塑形面板**(Runes of Aldur 機制)開著時,自動辨識每一�
   `*Plain` 剝掉 `[Rarity|X]` 標記只留 X;以 GGPK `id`(如 `3SlotPileofVerisium1`)排序,不用 row 當鍵。
 - **同步**(資料只單向同步,維護者管線 `pob-zh-engine/tools/` 不進本 repo):
   ```bash
-  node scripts/sync-runeshape-data.mjs --from ../pob-zh-engine   # 讀 tools/ggpk2_zh/out/poe2/tables/expedition2recipes.json + meta.json
+  node scripts/sync-runeshape-data.mjs --from ../Pob2/pob-zh-engine   # 讀 tools/ggpk2_zh/out/poe2/tables/expedition2recipes.json + meta.json
   ```
   守門:table / column 正確、id 不重複、標記只允許 `[Rarity|…]` 且中英數量相同、`zhPlain` / `enPlain` 不重複;輸出不含時間戳(同來源重跑逐位元組相同)。
   MANIFEST 前綴 `data/poe2/runeshape`:來源在 gitignored `tools/` 沒有 commit → 記 `fetchedAt` = meta.json 抽取時間、`repo` 欄帶 game_version 與來源檔 sha256。

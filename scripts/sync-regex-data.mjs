@@ -1,6 +1,6 @@
 // @ts-check
 // Poe Regex 清單檔單向同步:pob-zh-engine `dist/Data/regex_poe{1,2}.json` → data/regex/(逐位元組複製),然後重寫 MANIFEST 的 data/regex 前綴。
-//   node scripts/sync-regex-data.mjs --from ../pob-zh-engine [--allow-dirty]
+//   node scripts/sync-regex-data.mjs --from ../Pob2/pob-zh-engine [--allow-dirty]
 // 資料只在 PobTools 端產生(維護者本機的 tools/gen_regex_data{,2}.py,從 GGPK 產),本專案不改內容。
 // 守門:
 //   * pob-zh-engine 的 git 追蹤版本在 `host/data/regex_poe*.json`(dist/Data 是 gitignore 的安裝目錄複本),
@@ -22,7 +22,7 @@ const flag = (name) => {
   const i = args.indexOf(name)
   return i === -1 ? undefined : args[i + 1]
 }
-const FROM = path.resolve(ROOT, flag('--from') ?? '../pob-zh-engine')
+const FROM = path.resolve(ROOT, flag('--from') ?? '../Pob2/pob-zh-engine')
 const SRC = path.join(FROM, 'dist', 'Data')
 const TRACKED = path.join(FROM, 'host', 'data')
 const DST = path.join(ROOT, 'data', 'regex')

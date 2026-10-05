@@ -1,6 +1,6 @@
 // @ts-check
 // Poe Regex 演算法頁的標籤暫代檔:PobTools 維護者管線的 clientstrings 抽取結果 → data/regex/labels.poe{1,2}.json。
-//   node regex/scripts/gen-labels.mjs --from ../pob-zh-engine
+//   node regex/scripts/gen-labels.mjs --from ../Pob2/pob-zh-engine
 //
 // 為什麼有這支:PobTools 產生器升到 schema 2 後,`regex_poe*.json` 頂層會自帶 `labels{zh,en}`(regex/src/data.ts 優先讀它);
 // 在那之前用這份暫代檔讓演算法頁可以跑。來源只有一個:
@@ -21,7 +21,7 @@ const flag = (/** @type {string} */ name) => {
   const i = args.indexOf(name)
   return i === -1 ? undefined : args[i + 1]
 }
-const FROM = path.resolve(ROOT, flag('--from') ?? '../pob-zh-engine')
+const FROM = path.resolve(ROOT, flag('--from') ?? '../Pob2/pob-zh-engine')
 
 /** 演算法頁用到的鍵(regex/src/pages/*.ts 的 LABEL_KEYS 必須是它的子集;測試會檢查) */
 const KEYS = {

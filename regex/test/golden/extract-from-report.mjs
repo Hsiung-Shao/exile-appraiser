@@ -1,7 +1,7 @@
 // @ts-check
 // 從 C++ `pob-zh.exe --regex-selftest` 的報告(pob-zh-engine `dist/regex_selftest.txt`)抽出逐字印出的 golden 值,
 // 寫成 selftest-report.json(golden.test.ts 讀它)。報告格式改了這裡就會丟例外,不會悄悄少抽。
-//   node regex/test/golden/extract-from-report.mjs ../pob-zh-engine/dist/regex_selftest.txt
+//   node regex/test/golden/extract-from-report.mjs ../Pob2/pob-zh-engine/dist/regex_selftest.txt
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'

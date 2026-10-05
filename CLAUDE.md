@@ -5,7 +5,7 @@
 
 Path of Exile 查價工具(Electron + TypeScript)。把 `apt-patched`(Awakened PoE Trade 繁中 fork,PoE1)與
 `ee2-patched`(Exiled Exchange 2 繁中 fork,PoE2)合併成一支 app;設計參考 poenavi(日文客戶端用的 PoE1/PoE2 一體查價)。
-**獨立 git repo**,寄放在 `D:\codeproject\Pob2\exile-appraiser\`(Pob2 的 `.gitignore` / `info/exclude` 已排除),不併進 PobTools。
+**獨立 git repo**,位於 `D:\codeproject\exile-appraiser\`(2026-10-06 從 Pob2 底下搬出;PobTools 在 `../Pob2`,apt-patched / ee2-patched 在 `../過時專案`),不併進 PobTools。
 
 ## 佈局(npm workspaces)
 | 目錄 | 內容 | 規則 |
@@ -48,7 +48,7 @@ Path of Exile 查價工具(Electron + TypeScript)。把 `apt-patched`(Awakened P
 目前遊戲不在、另一款在連續 2 次才切(「只是最小化」的否決 10 秒內一律沿用、之後清單不變沿用到 60 秒,遊戲 detach 立即作廢);overlay 模式下手動切 game / 改該遊戲標題 / 改 overlayMode 也立即重新啟動。詳見 `docs/game-auto-switch.md`。
 
 ## 必守規則
-1. **資料只單向同步,不在本 repo 產生**:`npm run sync-data -- --from ../apt-patched`、`npm run sync-data -- --game poe2 --from ../ee2-patched`(會拒絕來源有未 commit 變更)→ 自動重寫 MANIFEST 該前綴。PoE2 交易站快照:`node scripts/fetch-poe2-trade-data.mjs`(新賽季重跑)。
+1. **資料只單向同步,不在本 repo 產生**:`npm run sync-data -- --from ../過時專案/apt-patched`、`npm run sync-data -- --game poe2 --from ../過時專案/ee2-patched`(會拒絕來源有未 commit 變更)→ 自動重寫 MANIFEST 該前綴。PoE2 交易站快照:`node scripts/fetch-poe2-trade-data.mjs`(新賽季重跑)。
    `npm test` 第一步就是 `verify-data`;MANIFEST 不符一律紅。改行尾/改 ndjson 必重跑 `make-index-files`(byte offset 索引)。
 2. **語言無關鍵對接**:詞綴送 trade stat id、物品名送 `refName`(intl)或 `name`(tw)。`items` 端點沒有 id,**禁止位置對位**。
 3. **realm 模型**:`intl` = `www.pathofexile.com` + 英文名;`tw` = `pathofexile.tw`(裸 host)+ 繁中名。`useIntlSite` 由 realm+language 推導,不是開關。
@@ -78,7 +78,7 @@ Path of Exile 查價工具(Electron + TypeScript)。把 `apt-patched`(Awakened P
    adapter `prepareItemText(text, realm)` / `dataLanguage()`,與 `loadData` 共用佇列。renderer `App.vue` `load()` 先 `prepareItemText` 再解析;`dataLanguage`(`web/games/active.ts`)決定 `useIntlSite` 與一鍵回報重算;
    ⚠ **背景功能(揭露面板 OCR、符文塑形)的「客戶端語言」一律取 primary,不得改回讀 `LOADED_DATA`**(查價時目前那一套可能是另一語言);PoE2 host 選項 `language` 由 adapter 設,renderer provider 不給。
 10. **主題 token 來自 PobTools `app.css`**(`renderer/src/theme/pobtools.css`);Tailwind 的 gray 色階等是指向 token 的別名,**移植的 poe1/poe2 `.vue` 不改 class**;要改色改 token。淺色主題下 tooltip 維持深色島。
-11. **Regex 資料只單向同步**:`node scripts/sync-regex-data.mjs --from ../pob-zh-engine`(來源 `dist/Data/regex_poe*.json`,必須與 `host/data` 已提交版本逐位元組相同;PobTools 未 commit 時只能 `--allow-dirty`,MANIFEST 會記 `dirty: true`)→ 重寫 MANIFEST `data/regex`。不在本 repo 改 regex 資料;演算法改動要與 C++ 版同步並對 `regex/test/golden/` 比對。
+11. **Regex 資料只單向同步**:`node scripts/sync-regex-data.mjs --from ../Pob2/pob-zh-engine`(來源 `dist/Data/regex_poe*.json`,必須與 `host/data` 已提交版本逐位元組相同;PobTools 未 commit 時只能 `--allow-dirty`,MANIFEST 會記 `dirty: true`)→ 重寫 MANIFEST `data/regex`。不在本 repo 改 regex 資料;演算法改動要與 C++ 版同步並對 `regex/test/golden/` 比對。
 12. **更新器**(2026-09-30 使用者裁定改為自動):設定 `autoUpdate`(預設開)+ 安裝版 = 背景自動下載、**正常結束程式時靜默套用**(`autoInstallOnAppQuit`),
     關於頁另有「立即重啟並更新」(`quitAndInstall(true, true)`);`autoUpdate` 關 = 手動下載 / 安裝;portable 只導去 Releases。狀態機與旗標規則在 `main/src/updater-core.ts`(有測試)。
     ⚠ electron-updater 只在**下載完成那一刻** `autoInstallOnAppQuit` 為 true 才註冊 quit handler,下載完成前旗標必須維持 true。
@@ -162,16 +162,16 @@ npm test                         # verify-data + poe1 vitest + poe2 vitest(parse
 npm run typecheck                # core / poe1 / poe2(tsc + vue-tsc)/ renderer(vue-tsc)/ main
 npm run check -- <物品.txt> [--game poe2] --realm both [--online]   # 無頭驗證:兩區 payload / 端點 / 網頁網址;--online 真的打(可能被 CF 擋)
 npm run cli --workspace regex -- --game poe1 --page map_mods --lang zh --mode any --random 7,5   # Regex 無頭產生 + Verify(--list 列頁面)
-node scripts/sync-regex-data.mjs --from ../pob-zh-engine   # Regex 資料單向同步(PobTools host/data 有未提交變更時加 --allow-dirty,MANIFEST 記 dirty: true)
-node scripts/sync-runeshape-data.mjs --from ../pob-zh-engine   # 符文塑形配方結果 → data/poe2/runeshape/recipes.json + MANIFEST(來源 tools/ggpk2_zh/out/poe2/tables/expedition2recipes.json;新賽季重抽 GGPK 後重跑)
-node regex/scripts/gen-labels.mjs --from ../pob-zh-engine  # Regex 暫代標籤 data/regex/labels.poe*.json(clientstrings,以鍵取值)
+node scripts/sync-regex-data.mjs --from ../Pob2/pob-zh-engine   # Regex 資料單向同步(PobTools host/data 有未提交變更時加 --allow-dirty,MANIFEST 記 dirty: true)
+node scripts/sync-runeshape-data.mjs --from ../Pob2/pob-zh-engine   # 符文塑形配方結果 → data/poe2/runeshape/recipes.json + MANIFEST(來源 tools/ggpk2_zh/out/poe2/tables/expedition2recipes.json;新賽季重抽 GGPK 後重跑)
+node regex/scripts/gen-labels.mjs --from ../Pob2/pob-zh-engine  # Regex 暫代標籤 data/regex/labels.poe*.json(clientstrings,以鍵取值)
 node scripts/sync-dust-data.mjs --from <poe-disenchant-tool clone>   # 拆粉資料 data/dust/poe-dust.json + LICENSE + MANIFEST
 node scripts/dust-crosscheck.mjs                            # APT vs poe-dust 交叉比對 → docs/dust-crosscheck.md
 npm run build-icons              # brand/*.svg → icon.png/ico、tray-*.png(冪等,重跑 hash 不變)
 npm run dev:renderer             # Vite 5173(純瀏覽器只能看 UI)
 npm run dev:main                 # esbuild watch + 啟動 Electron(需先起 dev:renderer)
 npm run dev:main -- --window --preview --no-updates   # 另開瀏覽器預覽,log 印 `[preview] --preview:<網址>`(預覽供應已 build 的 renderer/dist)
-node scripts/build-desecration-tiers.mjs --from ../pob-zh-engine/dist/PathOfBuildingCommunity-PoE2-Portable/Data   # 褻瀆 Tier 資料表 → data/poe2/desecration + MANIFEST
+node scripts/build-desecration-tiers.mjs --from ../Pob2/pob-zh-engine/dist/PathOfBuildingCommunity-PoE2-Portable/Data   # 褻瀆 Tier 資料表 → data/poe2/desecration + MANIFEST
 node scripts/ocr-fixture.mjs     # WP-S:fixtures/ocr/*.{webp,png} → *.ocr.json 快照(需 Windows + zh-Hant-TW OCR 語言包;第 22 步 `--lang en-US`,省略 = 依檔名 `-en-` → en-US)
 node scripts/ocr-fixture.mjs --set runeshape   # WP-R2:poe2/test/runeshape/fixtures/ocr(整張 ×3 + 定位段 ×1 + 定位框 ×3);--set all 兩組都跑
 npx electron main/dist/main.js --runeshape-selftest <png>   # WP-R2:自動定位 + 手動區域兩條路的耗時、定位框、每列比對與錄製檔價格
@@ -186,7 +186,7 @@ node scripts/perf-scenario.mjs --game <遊戲行程名> --hwaccel off --label <�
 
 ## 發版 checklist
 1. 改 root、main 與各 workspace 的 `version`(`0.x.y`)→ `npm run check-user-agent`;更新說明寫在 `docs/release-notes/v<version>.md`。
-2. `npm run sync-data -- --from ../apt-patched` → `npm test` 全綠(快照差異逐筆 review)。
+2. `npm run sync-data -- --from ../過時專案/apt-patched` → `npm test` 全綠(快照差異逐筆 review)。
 3. `npm run typecheck` → `npm run package` → 乾淨機器裝一次:熱鍵 → 列表;intl / tw 各查一件真實物品。
 4. 產物內含 `LICENSE.txt`、`NOTICE.md`、`LICENSES/`;`latest.yml` 的 `path` = `ExileAppraiser-Setup-<version>.exe`。GitHub Release 由 `gh release create` 手動建(electron-builder 永遠 `-p never`),四個檔與步驟見 `docs/release-flow.md`。
 5. 發版前必先讓使用者確認;`git push` 也算對外動作。

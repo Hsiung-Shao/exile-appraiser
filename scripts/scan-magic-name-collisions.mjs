@@ -1,6 +1,6 @@
 // @ts-check
 // PoE2 魔法物品名「詞綴名 × 底材名」碰撞掃描 → poe2/test/Parser/fixtures/magic-name-collisions.json
-//   node scripts/scan-magic-name-collisions.mjs --from ../pob-zh-engine [--check]
+//   node scripts/scan-magic-name-collisions.mjs --from ../Pob2/pob-zh-engine [--check]
 //
 // 為什麼:魔法物品只有一行名稱(前綴 + 底材 + 後綴),parser 的 `magicBasetype`(poe2/src/parser/magic-name.ts)
 // 靠「名稱的子字串哪個是物品名」找底材。詞綴名本身含另一個物品名時就可能挑錯

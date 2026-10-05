@@ -4,7 +4,7 @@
 // MANIFEST 的 `data/poe2/desecration` 前綴。
 //
 //   node scripts/build-desecration-tiers.mjs --from <PoB2 portable 的 Data 目錄> [--no-manifest] [--allow-mismatch]
-//   例:node scripts/build-desecration-tiers.mjs --from ../pob-zh-engine/dist/PathOfBuildingCommunity-PoE2-Portable/Data
+//   例:node scripts/build-desecration-tiers.mjs --from ../Pob2/pob-zh-engine/dist/PathOfBuildingCommunity-PoE2-Portable/Data
 //
 // 邏輯逐段移植自 poenavi `scripts/build_poetore_poe2_desecration_tiers.py`(MIT,Buri_Isono):
 //   * lua 逐行 regex 解析(ROW_RE、type/group/level/weightKey/weightVal/modTags/tradeHashes)

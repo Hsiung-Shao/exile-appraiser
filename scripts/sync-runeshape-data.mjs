@@ -1,7 +1,7 @@
 // @ts-check
 // 符文塑形「配方結果」資料單向同步:pob-zh-engine 的 PoE2 GGPK 抽取表 `expedition2recipes`(Description 欄)
 // → data/poe2/runeshape/recipes.json,然後重寫 MANIFEST 的 data/poe2/runeshape 前綴。
-//   node scripts/sync-runeshape-data.mjs --from ../pob-zh-engine [--no-manifest]
+//   node scripts/sync-runeshape-data.mjs --from ../Pob2/pob-zh-engine [--no-manifest]
 // 來源:`<from>/tools/ggpk2_zh/out/poe2/tables/expedition2recipes.json`(維護者本機的 GGPK 抽取管線產物,
 //       pob-zh-engine 的 tools/ 不進 git → MANIFEST 記抽取時間 fetchedAt + 遊戲版本 + 來源檔 sha256,不記 commit)。
 // GGPK = 第一真值;本腳本**不翻譯、不補值**,只做:

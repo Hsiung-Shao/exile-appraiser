@@ -8,7 +8,7 @@ import { magicBasetype } from "@/parser/magic-name";
 /**
  * exile-appraiser:魔法物品名「詞綴名 × 底材名」碰撞的回歸網。
  *
- * fixture 由 `node scripts/scan-magic-name-collisions.mjs --from ../pob-zh-engine` 產生
+ * fixture 由 `node scripts/scan-magic-name-collisions.mjs --from ../Pob2/pob-zh-engine` 產生
  * (GGPK Mods 表全部詞綴名 × 魔法可出的底材,只留「名稱裡有一個不是底材、長度 ≥ 底材的物品名」的組合)。
  * 每一組照遊戲的組句方式拼出名稱,餵給真正的 magicBasetype,必須還原出底材。
  * 起因:繁中「昇華的幻像異界之譫妄碑牌」被解析成「幻像異界」(見 magic-name.ts 的 anchorRank)。
