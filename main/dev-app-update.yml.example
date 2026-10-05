@@ -6,7 +6,7 @@
 #   (會直接寫好 main/dev-app-update.yml;也可手動照下面填)
 provider: generic
 # 檢查(latest.yml)用 file:// 也可以;要驗「下載」請用 --serve 的 HTTP 網址。
-url: file:///D:/codeproject/Pob2/exile-appraiser/.fake-update-feed/
+url: file:///D:/codeproject/exile-appraiser/.fake-update-feed/
 # url: http://127.0.0.1:45678/
 # 下載暫存目錄名:%LOCALAPPDATA%\<updaterCacheDirName>\pending\(與正式版分開)
 updaterCacheDirName: exile-appraiser-updater-dev

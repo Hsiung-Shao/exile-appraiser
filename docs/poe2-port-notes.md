@@ -1,6 +1,6 @@
 # PoE2 adapter 移植筆記(**已完成**,2026-09-28)
 
-來源:`D:\codeproject\Pob2\ee2-patched`(Exiled Exchange 2 zh-TW fork,MIT)@ `fc7de73c`。
+來源:`D:\codeproject\過時專案\ee2-patched`(Exiled Exchange 2 zh-TW fork,MIT)@ `fc7de73c`。
 架構同 poe1(衍生自 Awakened PoE Trade),內容已分歧:Parser.ts 2,293 行 vs 1,750,多 `augment-builder.ts`、`calc-base.ts`。
 
 ## 結果一覽
