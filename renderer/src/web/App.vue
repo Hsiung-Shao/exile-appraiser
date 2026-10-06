@@ -114,6 +114,9 @@
               <component :is="checkedItemComponent"
                 :key="itemKey"
                 :item="parsed.value" :advanced-check="advancedCheck" />
+              <!-- window 模式沒有側欄:相關物品放在查價區下方 -->
+              <component :is="relatedItemsComponent" v-if="!isOverlay && showRelated"
+                class="related-inline" :style="relatedStyle" :item="relatedItem" click-position="window" />
             </error-boundary>
 
             <div v-if="!parsed" class="paste-area">
@@ -139,6 +142,18 @@
       </div>
 
       <div v-if="isOverlay" class="layout-column flex-1 min-w-0 justify-end">
+        <!-- 相關物品(item-drop.json 同組 + poe.ninja 價;上游 PriceCheckWindow 同位置:緊貼查價面板,只在國際服) -->
+        <div v-if="showRelated" class="flex" :class="clickPosition === 'stash' ? 'justify-start' : 'justify-end'" :style="relatedStyle">
+          <!-- 自己是 .bg-host:跟查價面板吃同一張背景圖、面板不透明度與可讀性規則(顯示位置沿用查價面板那組;instance 分開快取) -->
+          <div class="related-host bg-host pointer-events-auto" :class="`side-${clickPosition}`">
+            <bg-layer host="panel" instance="related" :shown="showRelated" />
+            <error-boundary :reset-key="itemKey" where="related-items">
+              <component :is="relatedItemsComponent"
+                :item="relatedItem" :click-position="clickPosition" />
+            </error-boundary>
+          </div>
+        </div>
+        <span class="grow" />
         <div class="flex p-2" :class="clickPosition === 'stash' ? 'justify-start' : 'justify-end'">
           <component :is="rateLimiterComponent" v-if="panelVisible" class="pointer-events-auto side-rate-limiter"
             :align="clickPosition === 'stash' ? 'start' : 'end'" />
@@ -185,6 +200,8 @@ import type { ItemTextEvent } from '@ipc/types'
 import { parseClipboard, type ParsedItem } from '@/parser'
 import CheckedItem from '@poe1/CheckedItem.vue'
 import RateLimiterState from '@poe1/trade/RateLimiterState.vue'
+import RelatedItems from '@poe1/related-items/RelatedItems.vue'
+import { relatedItemsZoom } from './related-items-scale'
 import * as Poe2 from '@poe2-entry'
 import { dataLanguage, loadedGame } from './games/active'
 import { poe1Adapter } from '@exile-appraiser/poe1'
@@ -572,6 +589,12 @@ export default defineComponent({
         parsed.value = ok(identified)
       },
       rateLimiterComponent: computed(() => loadedGame.value === 'poe2' ? Poe2.RateLimiterState : RateLimiterState),
+      relatedItemsComponent: computed(() => loadedGame.value === 'poe2' ? Poe2.RelatedItems : RelatedItems),
+      /** 相關物品的價格只有 poe.ninja(國際服、要有聯盟,與查價區同條件);台服整塊不出現。物品不在任何一組時元件本身不輸出 */
+      /** 相關物品大小(設定 › 查價;移植檔內部用 rem,外層 zoom 放大到 APT 原本大小,related-items-scale.ts) */
+      relatedStyle: computed(() => ({ zoom: String(relatedItemsZoom(AppConfig().relatedItemsScale)) })),
+      relatedItem: computed(() => parsed.value?.isOk() ? parsed.value.value : null),
+      showRelated: computed(() => Boolean(parsed.value?.isOk() && leagues.selectedId.value && AppConfig().realm === 'intl' && isSupportedCombination(AppConfig().realm, AppConfig().language) && panelVisible.value)),
       panelShown,
       advancedCheck,
       clickPosition,
@@ -871,6 +894,30 @@ input[type=number]::-webkit-outer-spin-button {
 }
 .settings-layer.is-window > .settings-window {
   flex: 1;
+}
+
+/* 相關物品(overlay 側欄):外層 .related-host 是 .bg-host(背景圖畫在它裡面),上游的 mt-6 移到外層,圓角與面板同側 */
+.related-host {
+  margin-top: 1.5rem;
+  align-self: flex-start;
+}
+.related-host.side-stash {
+  border-radius: 0 0.5rem 0.5rem 0;
+}
+.related-host.side-inventory {
+  border-radius: 0.5rem 0 0 0.5rem;
+}
+.related-host > [data-panel="related-items"] {
+  margin-top: 0;
+}
+/* 移植檔的物品名稱用 text-gray-600(= --edge-2 邊框色,在深色面板上幾乎讀不到;2026-10-06 使用者回報)→ 次要字色。
+   開背景時 pobtools.css 的 `:root[data-bg] .bg-host .text-gray-600` 特異度較高,照它(--ink-3,已量過對比) */
+:is(.related-host, .related-inline) .text-gray-600 {
+  color: var(--ink-2);
+}
+/* window 模式:相關物品在查價區下方(上游樣式有 mt-6 與四邊框) */
+.related-inline {
+  margin: 0 0.75rem 0.75rem;
 }
 
 /* overlay:限流狀態鈕在面板外、疊在遊戲畫面上,要有實底才讀得到 */

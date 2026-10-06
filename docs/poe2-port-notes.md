@@ -117,6 +117,13 @@
 - **連帶影響(價格源接上後 PoE2 開始有值,行為 = EE2)**:結果列「(X ex)」換算價(`pathofexile-trade.ts` `requestResults` 的 `normalizedPrice`;掛單幣別不是 ex / div 才顯示)、`ExtractionValue`(第一筆掛單低於「符文合計 − 萃取石」時紅框)、`ItemSumPrice`(物品編輯器 / 結果列的符文合計)、`FilterModifierAnointment`、`QualityEditor` 的觸媒總價。符文塑形 `priceOf` 不經這條路,行為不變。上游已知小毛病照舊:`normalizedPrice` 是 `displayRounding` 字串(小數點兩側有 hair space),`ExtractionValue` 以 `parseFloat` 讀回時小數會被截掉。
 - 驗證:`core/test/ninja.test.ts`「走勢與成交量」、`core/test/units.test.ts`、`renderer/test/price-trend.test.ts`、`poe2/test/web/background/prices-adapter.test.ts`;畫面以無頭 Chrome + 假 `window.host`(錄製的 ninja 快照 + 錄製的 trade2 exchange 回應)截圖:PoE1 神聖石、PoE2 破裂石(錄製檔沒有 Delirium / 液態情緒類別)× 成交量「兩者」/「不顯示」、台服、PoE1 傳奇(不顯示)。
 
+## 相關物品(2026-10-06,使用者要求「過去 APT 有的這個功能」)
+- 元件:PoE2 `web/price-check/related-items/RelatedItems.vue`(EE2 移植)、PoE1 同名檔在 `poe1/src/web/price-check/related-items/`(APT 移植),兩者模板 / 樣式與上游相同;`getItemPrices` 等搬到 core `games/related-items.ts`(純函式、兩代共用),上游 id 找不到物品時整塊變英文 `Can't find "…"`,這裡改成略過那一筆 + log `[related]` 一次。
+- 資料 `data/poe{1,2}/item-drop.json`(本來就同步進來);**耦合點 12 補充**:轉接殼 `web/background/Prices.ts` 的 `ITEM_DROP` 原本寫死空陣列,改成 getter 讀 `@/assets/data` 已載入的 `ITEM_DROP`(上游 EE2 由價格源附帶)。
+- 接線(renderer `App.vue`,上游 PriceCheckWindow.vue 同位置):overlay 在側欄、緊貼查價面板、限流鈕上方(包 ErrorBoundary);window 模式沒有側欄 → 查價區 CheckedItem 下方;`relatedItemsComponent` 依 `loadedGame` 切兩代;**只在國際服**(價格只有 poe.ninja,台服整塊不出現)。
+- 已知資料缺口(測試鎖數字):PoE1 2 筆(The Beachhead 系列傳奇地圖不在 items.ndjson)、PoE2 6 筆(`Techrod's Revenge`、`Zarokh's Reliquary Key: …`、`Sekhema's Resolve // Ring`、`Edyrns Tusks` 少撇號等)。
+- 驗證:`poe1/test/related-items.test.ts`、`poe2/test/related-items.test.ts`(真實資料 + ninja 錄製檔 / 假價格源、全量 id 對照)、`renderer/test-vue/related-items-mount.test.ts`(兩代真掛載 + App.vue 接線守門)。
+
 ## 未做 / 待辦
 - 預測價(PricePrediction)。
 - GUI 實機(熱鍵 → overlay 附著 PoE2 視窗 → 台服真實掛單)由使用者實測。

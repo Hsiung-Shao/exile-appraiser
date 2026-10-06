@@ -3,7 +3,7 @@
  *
  * renderer 的 tsconfig 不能直接讀 poe2 原始碼(`@/…` 會被指到 poe1),所以這裡手寫 renderer 真正用到的子集;
  * 與實作的一致性由 poe2/src/renderer-entry.check.ts 在 poe2 的型別檢查裡把關。
- * .vue 元件(`CheckedItem`、`UnidentifiedResolver`、`RateLimiterState`)的型別走 env.d.ts 的 `*.vue` 宣告。
+ * .vue 元件(`CheckedItem`、`UnidentifiedResolver`、`RateLimiterState`、`RelatedItems`)的型別走 env.d.ts 的 `*.vue` 宣告。
  */
 import type { DefineComponent } from 'vue'
 import type { Result } from 'neverthrow'
@@ -117,6 +117,8 @@ export declare const CheckedItem: DefineComponent<{}, {}, any>
 /** 未鑑定傳奇:列出這個基底可能的傳奇(只有一個就自動選),選定後 emit `identify`(換好 `info` 的物品) */
 export declare const UnidentifiedResolver: DefineComponent<{}, {}, any>
 export declare const RateLimiterState: DefineComponent<{}, {}, any>
+/** 相關物品(item-drop.json 同組物品 + poe.ninja 價格);props `item`、`clickPosition` */
+export declare const RelatedItems: DefineComponent<{}, {}, any>
 export declare const createPresets: Poe2ReportFns['createPresets']
 export declare const createTradeRequest: Poe2ReportFns['createTradeRequest']
 /** 資料沒載入(不是 PoE2 / 舊安裝缺檔)→ undefined */

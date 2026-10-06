@@ -7,7 +7,7 @@
   本體的說明(預先處理、顯示位置 / 填滿方式、CSS 路徑)見 BgLayerImage.vue。
 -->
 <template>
-  <bg-layer-image v-if="on" :host="host" />
+  <bg-layer-image v-if="on" :host="host" :instance="instance" />
 </template>
 
 <script lang="ts">
@@ -20,6 +20,11 @@ export default defineComponent({
   props: {
     /** 這一層畫在哪個容器:查價面板(#price-window)/ 設定視窗 */
     host: { type: String as PropType<BgHost>, default: 'panel' },
+    /**
+     * 同一個 host 的第二個容器(2026-10-06:查價面板旁的相關物品沿用 panel 的顯示位置 / 填滿方式):
+     * 給了就用它當預先處理快取的鍵,且不回寫 `bgHostSize`(那是查價面板本身的大小,給設定頁預覽框當長寬比)
+     */
+    instance: { type: String, default: undefined },
     /** 容器目前是否顯示(查價面板的 v-show 條件);false = 卸載本體 */
     shown: { type: Boolean, default: true }
   },

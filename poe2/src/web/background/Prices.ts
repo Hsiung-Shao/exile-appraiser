@@ -18,7 +18,7 @@
  * 型別與常數(`CoreCurrency`、`DivCurrency`、`CurrencyValue`)與 `displayRounding` 逐字照抄上游。
  */
 import type { DropEntry } from "@/assets/data";
-import { ITEM_BY_REF } from "@/assets/data";
+import { ITEM_BY_REF, ITEM_DROP as ITEM_DROP_DATA } from "@/assets/data";
 import { autoCurrencyPoe2, type ChaosRates } from "@exile-appraiser/core/ninja";
 
 interface DbQuery {
@@ -125,7 +125,12 @@ function createPoeninja() {
       return xchgRate.value !== undefined ? [exaltedCurrency()] : [];
     },
   };
-  const ITEM_DROP: { value: DropEntry[] } = { value: [] };
+  // 相關物品面板(related-items/RelatedItems.vue):上游由價格源附帶,這裡直接讀已載入的 `item-drop.json`
+  const ITEM_DROP: Box<DropEntry[]> = {
+    get value() {
+      return ITEM_DROP_DATA ?? [];
+    },
+  };
 
   let priceCache = new Map<string, CurrencyValue>();
   let priceCacheRevision: string | undefined;

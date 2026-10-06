@@ -1,6 +1,6 @@
 <!--
-  設定 › 查價(第 39 步整理):搜尋條件(容差、預設通貨、API 延遲)/ 面板顯示(通貨成交量、滑鼠懸停顯示物品)/ 掛單與剪貼簿(賣家、帳號、還原剪貼簿)。
-  只對某遊戲 / 伺服器有效的項目不符條件就不顯示:預設價格通貨只影響 PoE1、通貨成交量只有國際服(poe.ninja)、懸停物品只有 PoE2;
+  設定 › 查價(第 39 步整理):搜尋條件(容差、預設通貨、API 延遲)/ 面板顯示(通貨成交量、相關物品大小、滑鼠懸停顯示物品)/ 掛單與剪貼簿(賣家、帳號、還原剪貼簿)。
+  只對某遊戲 / 伺服器有效的項目不符條件就不顯示:預設價格通貨只影響 PoE1、通貨成交量 / 相關物品大小只有國際服(poe.ninja)、懸停物品只有 PoE2;
   面板顯示卡片沒有任何一項時整張不顯示。
 -->
 <template>
@@ -44,6 +44,18 @@
         </div>
       </div>
       <span class="note">{{ t('ppz.currency_volume_hint') }}</span>
+    </div>
+    <!-- 2026-10-06:查價面板旁「相關物品」的大小(只有國際服顯示相關物品;related-items-scale.ts) -->
+    <div v-if="showVolume" class="srow">
+      <span class="k">{{ t('ppz.related_items_scale') }}</span>
+      <div class="ctl" data-setting="related-items-scale">
+        <input v-model.number="config.relatedItemsScale" class="slider" type="range" :min="relMin" :max="relMax" step="5">
+        <button class="btn ghost sm" :disabled="config.relatedItemsScale <= relMin" @click="config.relatedItemsScale = Math.max(relMin, config.relatedItemsScale - 10)">−</button>
+        <span class="num fs-val">{{ config.relatedItemsScale }}%</span>
+        <button class="btn ghost sm" :disabled="config.relatedItemsScale >= relMax" @click="config.relatedItemsScale = Math.min(relMax, config.relatedItemsScale + 10)">+</button>
+        <button class="btn ghost sm" :disabled="config.relatedItemsScale === relDefault" @click="config.relatedItemsScale = relDefault">{{ t('ppz.font_size_reset') }}</button>
+      </div>
+      <span class="note">{{ t('ppz.related_items_scale_hint') }}</span>
     </div>
     <!-- PoE2 才有(poe1 沒有物品浮窗元件);照 Exiled Exchange 2 settings-price-check.vue 的三選一 -->
     <div v-if="showItemHover" class="srow">
@@ -90,6 +102,7 @@ import { useI18n } from 'vue-i18n'
 import { AppConfig } from '@/web/Config'
 import { CURRENCY_VOLUME_OPTIONS, HOVER_OPTIONS, hasCurrencyVolume, hasDefaultCurrency, hasItemHover } from './price-check-options'
 import HelpTip from '../HelpTip.vue'
+import { RELATED_SCALE_DEFAULT, RELATED_SCALE_MAX, RELATED_SCALE_MIN } from '../../related-items-scale'
 
 export default defineComponent({
   components: { HelpTip },
@@ -113,6 +126,9 @@ export default defineComponent({
       ] as Array<{ value: false | 'account' | 'ign', key: string }>,
       hoverOptions: HOVER_OPTIONS,
       volumeOptions: CURRENCY_VOLUME_OPTIONS,
+      relMin: RELATED_SCALE_MIN,
+      relMax: RELATED_SCALE_MAX,
+      relDefault: RELATED_SCALE_DEFAULT,
       showItemHover: computed(() => hasItemHover(config.game)),
       showDefaultCurrency: computed(() => hasDefaultCurrency(config.game)),
       showVolume: computed(() => hasCurrencyVolume(config.realm))

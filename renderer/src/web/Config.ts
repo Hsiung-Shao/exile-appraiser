@@ -23,6 +23,7 @@ import { createHostConfigSync } from './host-config-sync'
 import { clampFsBase, normAccent, normBg, normTheme, DEFAULT_FS_BASE, type BgSettings, type Theme } from './useTheme'
 import { defaultOcrBadgeStyle, normOcrBadgeStyle, type OcrBadgeStyle } from './overlay/badge-style'
 import { normSettingsFontSize, normSettingsWindow, type SettingsWindowRect } from './settings/settings-window-geom'
+import { RELATED_SCALE_DEFAULT, normRelatedItemsScale } from './related-items-scale'
 
 /** 介面字串語言(與客戶端語言 `language` 分開)。 */
 export type UiLanguage = 'cmn-Hant' | 'en'
@@ -126,6 +127,8 @@ export interface Config {
   settingsWindow: SettingsWindowRect | null
   /** 第 21 步:設定視窗獨立字級(11–24 px);null = 跟隨全域 `fsBase`。只作用在設定視窗,查價面板不受影響。 */
   settingsFontSize: number | null
+  /** 2026-10-06:查價面板旁「相關物品」的大小(70–200 %,100 = APT 原本大小;related-items-scale.ts)。 */
+  relatedItemsScale: number
   /** 第 33 步:正則書籤快速面板熱鍵(預設空 = 不註冊;只在 overlay 模式)。 */
   hotkeyRegexQuick: string
   /** 第 33 步:打開設定時,設定視窗旁浮一排正則書籤(預設開;只在 overlay 模式)。 */
@@ -315,6 +318,7 @@ function createConfig (): Config {
     stashScroll: true,
     settingsWindow: null as SettingsWindowRect | null,
     settingsFontSize: null as number | null,
+    relatedItemsScale: RELATED_SCALE_DEFAULT,
     hotkeyRegexQuick: '',
     regexBookmarkBar: true
   }
@@ -380,6 +384,7 @@ function serialize (): string {
     stashScroll: config.stashScroll,
     settingsWindow: config.settingsWindow,
     settingsFontSize: config.settingsFontSize,
+    relatedItemsScale: config.relatedItemsScale,
     hotkeyRegexQuick: config.hotkeyRegexQuick,
     regexBookmarkBar: config.regexBookmarkBar
   }, null, 2)
@@ -484,6 +489,8 @@ function applyLoaded (raw: string) {
   // 第 21 步:設定視窗大小 / 位置與獨立字級(舊設定檔沒有 → null = 置中預設 / 跟隨全域;壞值 → null)
   config.settingsWindow = normSettingsWindow(loaded.settingsWindow)
   config.settingsFontSize = normSettingsFontSize(loaded.settingsFontSize)
+  // 2026-10-06:相關物品大小(舊設定檔沒有 → 100;壞值 → 100;超出範圍夾回)
+  config.relatedItemsScale = normRelatedItemsScale(loaded.relatedItemsScale)
   // 第 33 步:正則書籤快速面板熱鍵(舊設定檔沒有 → 空 = 不註冊)、設定視窗旁的書籤列(舊設定檔沒有 → 開;只有明確 false 才關)
   config.hotkeyRegexQuick = typeof loaded.hotkeyRegexQuick === 'string' ? loaded.hotkeyRegexQuick : fresh.hotkeyRegexQuick
   config.regexBookmarkBar = loaded.regexBookmarkBar !== false

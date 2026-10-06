@@ -23,3 +23,5 @@ export { default as CheckedItem } from '@/web/price-check/CheckedItem.vue'
 // exile-appraiser(2026-10-03):未鑑定傳奇選擇(上游 PriceCheckWindow.vue 掛在 CheckedItem 上方;沒掛 = 未鑑定傳奇的查價面板一片空白)
 export { default as UnidentifiedResolver } from '@/web/price-check/unidentified-resolver/UnidentifiedResolver.vue'
 export { default as RateLimiterState } from '@/web/price-check/trade/RateLimiterState.vue'
+// exile-appraiser:查價面板旁的相關物品(上游 PriceCheckWindow.vue 掛在限流鈕旁;資料 item-drop.json)
+export { default as RelatedItems } from '@/web/price-check/related-items/RelatedItems.vue'

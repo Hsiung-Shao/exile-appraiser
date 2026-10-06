@@ -48,7 +48,9 @@ async function decoded (src: string, cors: boolean): Promise<HTMLImageElement> {
 export default defineComponent({
   props: {
     /** 這一層畫在哪個容器:查價面板(#price-window)/ 設定視窗 */
-    host: { type: String as PropType<BgHost>, default: 'panel' }
+    host: { type: String as PropType<BgHost>, default: 'panel' },
+    /** 同一個 host 的第二個容器(BgLayer.vue `instance`):快取鍵用它,且不回寫 bgHostSize */
+    instance: { type: String, default: undefined }
   },
   setup (props) {
     const imgEl = ref<HTMLElement | null>(null)
@@ -154,7 +156,7 @@ export default defineComponent({
       }
     }
     function recordSize (): void {
-      if (!(width > 0 && height > 0)) return
+      if (!(width > 0 && height > 0) || props.instance) return
       const dpr = window.devicePixelRatio || 1
       const next = { w: Math.round(width / dpr), h: Math.round(height / dpr) }
       const cur = bgHostSize.value[props.host]
@@ -176,7 +178,7 @@ export default defineComponent({
       const el = imgEl.value
       if (!el) return
       // 第 30.6 步:上次隱藏前畫好的圖 → 第一幀就用它(ResizeObserver 量到大小後鍵相同就不重畫)
-      const cached = bgBakeCache.take(props.host)
+      const cached = bgBakeCache.take(props.instance ?? props.host)
       if (cached && !baker.adopt(cached.key, cached.out as Baked)) cached.discard(cached.out)
       ro = new ResizeObserver((entries) => {
         const e = entries[entries.length - 1]
@@ -206,7 +208,7 @@ export default defineComponent({
       naturalLoading = null
       // 第 30.6 步:背景還開著(只是容器隱藏)→ 畫好的圖留給下次顯示;背景關閉時 bgShownUrl 已是 null,直接丟掉
       const kept = bgShownUrl.value != null ? baker.detach() : null
-      if (kept) bgBakeCache.put(props.host, kept.key, kept.out, b => { discardBaked(b as Baked) })
+      if (kept) bgBakeCache.put(props.instance ?? props.host, kept.key, kept.out, b => { discardBaked(b as Baked) })
       baker.dispose()
     })
     return { imgEl }

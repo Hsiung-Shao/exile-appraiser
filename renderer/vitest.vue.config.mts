@@ -10,7 +10,9 @@ export default mergeConfig(viteConfig, defineConfig({
     include: ['test-vue/**/*.test.ts'],
     setupFiles: ['test-vue/setup.ts'],
     // .vue 要編成用戶端版(node 環境預設走 SSR 轉換,元件會變成 ssrRender、拿不到 $style / 用戶端掛載流程)
-    testTransformMode: { web: ['**/*'] },
+    // `**/*` 由 micromatch 比對(dot: false):路徑含點開頭的目錄(git worktree 在 `.claude/worktrees/…`)會比對不到 → 退回 SSR,
+    // 掛載時 `useSSRContext()` 是 undefined;第二條讓這種路徑也走 web
+    testTransformMode: { web: ['**/*', '**/.*/**/*'] },
     testTimeout: 120_000,
     hookTimeout: 300_000
   }

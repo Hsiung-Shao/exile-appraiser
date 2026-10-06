@@ -274,6 +274,8 @@
     "currency_volume_item": "物品 / 小時",
     "currency_volume_both": "兩者",
     "currency_volume_hint": "查通貨時在價格區顯示 poe.ninja 的每小時成交量。",
+    "related_items_scale": "相關物品大小",
+    "related_items_scale_hint": "查價面板旁同組碎片與可換物品的字與圖示大小;100% = APT 原本大小,並隨介面字級縮放。",
     "highest_volume": "成交量最大:",
     "per_hour": "/小時",
     "unsupported_combo": "台服目前只支援繁中客戶端。",

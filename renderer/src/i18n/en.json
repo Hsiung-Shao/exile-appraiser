@@ -274,6 +274,8 @@
     "currency_volume_item": "Items / hour",
     "currency_volume_both": "Both",
     "currency_volume_hint": "For currency items, shows poe.ninja's hourly trade volume in the price area.",
+    "related_items_scale": "Related items size",
+    "related_items_scale_hint": "Text and icon size of the related fragments / rewards beside the price panel; 100% = original APT size, scales with the UI font size.",
     "highest_volume": "Highest volume:",
     "per_hour": "/hr",
     "unsupported_combo": "The Taiwan realm currently supports the Traditional Chinese client only.",

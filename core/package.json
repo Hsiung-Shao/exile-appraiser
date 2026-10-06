@@ -12,6 +12,7 @@
     "./realm/leagues": "./src/realm/leagues.ts",
     "./realm/item-language": "./src/realm/item-language.ts",
     "./games/adapter": "./src/games/adapter.ts",
+    "./games/related-items": "./src/games/related-items.ts",
     "./ninja": "./src/ninja/index.ts",
     "./dust": "./src/dust/index.ts"
   },
