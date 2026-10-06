@@ -29,6 +29,13 @@ export interface ShareState {
 }
 
 export const SHARE_VERSION = 2
+/**
+ * 解碼上限(與 PobTools `host/regex_share.h` `kMaxCodeChars` / `kMaxJsonBytes` 相同):分享碼超過這個字元數直接拒絕,
+ * 解壓後的 JSON 超過這個位元組數也拒絕(真實狀態只有幾 KB;防惡意壓縮炸彈)。main 的命令列參數檢查
+ * (`main/src/regex-share.ts` `REGEX_SHARE_MAX_CODE_CHARS`)與這裡相同,守門測試鎖住。
+ */
+export const SHARE_MAX_CODE_CHARS = 4 * 1024 * 1024
+export const SHARE_MAX_JSON_BYTES = 8 * 1024 * 1024
 /** 仍可讀的舊版本 */
 const READABLE_VERSIONS: readonly unknown[] = [1, 2]
 
@@ -121,7 +128,7 @@ export function normalizeShareState (raw: unknown, requireVersion = true): { sta
 
 interface ByteStream {
   writable: { getWriter: () => { write: (b: Uint8Array) => Promise<void>, close: () => Promise<void> } }
-  readable: { getReader: () => { read: () => Promise<{ done: boolean, value?: Uint8Array }> } }
+  readable: { getReader: () => { read: () => Promise<{ done: boolean, value?: Uint8Array }>, cancel?: () => Promise<void> } }
 }
 type StreamCtor = new (format: string) => ByteStream
 interface Codec { encode: (s: string) => Uint8Array }
@@ -133,7 +140,7 @@ function streamCtor (name: 'CompressionStream' | 'DecompressionStream'): StreamC
   return C
 }
 
-async function pipe (bytes: Uint8Array, ts: ByteStream): Promise<Uint8Array> {
+async function pipe (bytes: Uint8Array, ts: ByteStream, maxOut = Infinity): Promise<Uint8Array> {
   const w = ts.writable.getWriter()
   // 不 await 寫入(背壓下會等讀端),錯誤由讀端丟出;這裡吞掉避免 unhandled rejection
   w.write(bytes).catch(() => {})
@@ -144,7 +151,14 @@ async function pipe (bytes: Uint8Array, ts: ByteStream): Promise<Uint8Array> {
   for (;;) {
     const { done, value } = await r.read()
     if (done) break
-    if (value) { chunks.push(value); total += value.length }
+    if (value) {
+      chunks.push(value)
+      total += value.length
+      if (total > maxOut) {
+        r.cancel?.().catch(() => {})
+        throw new Error(`解壓後超過 ${maxOut} 位元組`)
+      }
+    }
   }
   const out = new Uint8Array(total)
   let off = 0
@@ -210,9 +224,10 @@ export async function encodeShare (state: ShareState): Promise<string> {
 export async function decodeShare (code: string): Promise<{ state: ShareState, warnings: string[] }> {
   const text = code.trim()
   if (!text) throw new Error('分享碼是空的')
+  if (text.length > SHARE_MAX_CODE_CHARS) throw new Error(`分享碼太長(${text.length} 字元)`)
   let json: string
   try {
-    json = textDecoder().decode(await pipe(fromBase64url(text), new (streamCtor('DecompressionStream'))('gzip')))
+    json = textDecoder().decode(await pipe(fromBase64url(text), new (streamCtor('DecompressionStream'))('gzip'), SHARE_MAX_JSON_BYTES))
   } catch (e) {
     throw new Error(`分享碼無法解壓縮(${e instanceof Error ? e.message : String(e)})`)
   }

@@ -56,7 +56,9 @@ export const HOST_METHOD_CHANNELS: Readonly<Record<string, string>> = {
   getPreviewUrl: 'preview-url',
   listFonts: 'list-fonts',
   // 第 28 步:設定 › 記錄(預覽端輪詢 log-get;log-open-folder 是 preview: false,不在這張表)
-  getLog: 'log-get'
+  getLog: 'log-get',
+  // 一鍵從 PobTools 送正則分享碼:overlay 而遊戲沒開時 main 開的瀏覽器設定頁,啟動時拿走目標為 preview 的那一筆
+  regexShareTake: 'regex-share-take'
 }
 
 /** `HostApi` 訂閱方法 → 事件名(預覽端只會收到 main `PREVIEW_EVENTS` 放行的那幾個)。 */

@@ -195,7 +195,7 @@
 import { computed, defineComponent, onMounted, onUnmounted, provide, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ok, type Result } from 'neverthrow'
-import type { ItemTextEvent } from '@ipc/types'
+import type { ItemTextEvent, RegexShareRequest } from '@ipc/types'
 // 兩個遊戲各自的 parser / CheckedItem / RateLimiterState;依 loadedGame(資料已載入完成的遊戲)切換
 import { parseClipboard, type ParsedItem } from '@/parser'
 import CheckedItem from '@poe1/CheckedItem.vue'
@@ -217,6 +217,7 @@ import RuneshapePrices from './overlay/RuneshapePrices.vue'
 import RegexBookmarkBar from './regex/RegexBookmarkBar.vue'
 import RegexQuickPanel from './regex/RegexQuickPanel.vue'
 import { runRegexBookmarkFromHotkey } from './regex/quick'
+import { incomingShare } from './regex/incoming'
 import { runeshapeTradeHold } from './overlay/runeshape-view'
 import { recordPoe2Item, regionPickerClosed, regionPickerOpen, returnsToSettings } from './overlay/ocr-reveal'
 import { overlayContentKey, overlayContentOf, overlayLayers } from './overlay/overlay-content'
@@ -430,6 +431,16 @@ export default defineComponent({
       }
       // 第 33 步:書籤個別熱鍵(遊戲在前景;算出字串交給 main 貼上,不開任何介面)
       unsubscribers.push(Host.onRegexBookmarkRun((e) => { void runRegexBookmarkFromHotkey(e) }))
+      // 一鍵從 PobTools 送正則分享碼(main/src/regex-share.ts):開設定 › 正則,確認對話框在 RegexPanel.vue(使用者確認才套用)。
+      // 先掛監聽再拿啟動參數帶來的那一筆(main 在 take 之前收到的都留著)
+      const onRegexShare = (req: RegexShareRequest) => {
+        // 快速面板開著就收起(不走 closeRegexQuick:那會把焦點還給遊戲)
+        if (regexQuickOpen.value) { regexQuickOpen.value = false; console.log('[app] 關閉正則書籤快速面板(regex-share)') }
+        openSettingsTo('regex', `PobTools 正則分享碼 #${req.id}`)
+        void incomingShare.receive(req)
+      }
+      unsubscribers.push(Host.onRegexShare(onRegexShare))
+      Host.regexShareTake().then((req) => { if (req) onRegexShare(req) }).catch((e) => { console.warn('[app] regex-share-take 失敗', e) })
       window.addEventListener('focus', onFocus)
       window.addEventListener('keydown', onKey)
       Host.usedRecently(Host.isElectron)

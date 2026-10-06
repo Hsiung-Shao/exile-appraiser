@@ -153,3 +153,18 @@ describe('state schema 2 / 3', () => {
     expect(r.state.mode).toBe('none')
   })
 })
+
+describe('解碼上限(一鍵從 PobTools 送分享碼;與 PobTools regex_share.h 相同)', () => {
+  it('分享碼超過字元上限直接拒絕(不解壓)', async () => {
+    const { SHARE_MAX_CODE_CHARS, decodeShare } = await import('../src/share')
+    expect(SHARE_MAX_CODE_CHARS).toBe(4 * 1024 * 1024)
+    await expect(decodeShare('A'.repeat(SHARE_MAX_CODE_CHARS + 1))).rejects.toThrow('分享碼太長')
+  })
+  it('解壓後超過位元組上限拒絕(壓縮炸彈)', async () => {
+    const { SHARE_MAX_JSON_BYTES, base64url, decodeShare } = await import('../src/share')
+    expect(SHARE_MAX_JSON_BYTES).toBe(8 * 1024 * 1024)
+    const zeros = new Uint8Array(SHARE_MAX_JSON_BYTES + 1024)
+    const gz = new Uint8Array(await new Response(new Blob([zeros]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer())
+    await expect(decodeShare(base64url(gz))).rejects.toThrow('解壓後超過')
+  })
+})

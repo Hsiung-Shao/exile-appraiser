@@ -38,8 +38,9 @@ import {
   type FolderResult, type GroupedBookmarks,
   type AlgoEntry, type AlgoPage, type AlgoValue, type CombineResult, type Mode, type RegexBookmark, type RegexCatalogue,
   type RegexGame, type RegexLabels, type RegexLang, type RegexPage, type RegexTemplate, type Result, type ShareState, type T17Filter,
-  type RegexUiState
+  type RegexUiState, type ResolvedState
 } from '@exile-appraiser/regex'
+import type { CurrentCombo } from './incoming-share'
 import { Host } from '@/web/background/IPC'
 import { AppConfig } from '@/web/Config'
 import { regexBookmarkFolders, regexBookmarkHotkeyList } from './bookmark-hotkeys'
@@ -651,6 +652,34 @@ export async function applyShareCode (code: string): Promise<string[]> {
   await prepareItemMods(d.state.game, [...Object.keys(d.state.pages), ...Object.keys(d.state.numeric)])
   applyCombo(d.state, 'share', gameLabel(d.state.game))
   return d.warnings
+}
+
+/**
+ * 一鍵從 PobTools 送分享碼(`incoming-share.ts`):確認對話框要的資料 —— 清單載好、引用到的物品詞綴數值頁先載,
+ * 再以與 `applyCombo` 相同的 `resolveState` 算出會套用什麼。清單載入失敗 = null。
+ */
+export async function prepareShareState (s: ShareState): Promise<{ pages: readonly RegexPage[], resolved: ResolvedState } | null> {
+  await ensureStarted(AppConfig().game)
+  await prepareItemMods(s.game, [...Object.keys(s.pages), ...Object.keys(s.numeric)])
+  const cat = catalogues[s.game].cat
+  if (!cat) return null
+  return { pages: cat.pages, resolved: resolveState(s, cat.pages) }
+}
+
+/** 某遊戲目前的勾選(頁 id → 勾選數,含數值區)與自訂文字 / 排除詞 / 模式(確認對話框「會覆蓋」用) */
+export function currentComboOf (game: RegexGame): CurrentCombo {
+  const cat = catalogues[game].cat
+  const pages: Array<{ id: string, n: number }> = []
+  for (const p of cat?.pages ?? []) {
+    const n = picks[p.id]?.length ?? 0
+    if (n) pages.push({ id: p.id, n })
+  }
+  return { pages, custom: ui.custom.length, excludes: ui.excludes.length, mode: ui.mode }
+}
+
+/** 使用者在確認對話框按「套用」:與貼上分享碼相同(`applyCombo`,覆蓋該遊戲全部清單) */
+export function applySharedState (s: ShareState): void {
+  applyCombo(s, 'share', gameLabel(s.game))
 }
 
 // ---- 書籤 ----------------------------------------------------------------------

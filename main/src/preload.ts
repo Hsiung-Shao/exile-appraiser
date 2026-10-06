@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { HostApi, HostFetchInit, HostConfigForMain, ItemTextEvent, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId, UpdaterInfo, SettingsTabId, LegacySettingsTabId, ConfigChangedEvent, OcrRegionPickTarget, RevealScanEvent, RuneshapeScanEvent, RuneshapeUiState, ScanMaskReport, LogEntry, OverlayContentState, RegexBookmarkRunEvent, RegexPasteRequest } from '@ipc/types'
+import type { HostApi, HostFetchInit, HostConfigForMain, ItemTextEvent, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId, UpdaterInfo, SettingsTabId, LegacySettingsTabId, ConfigChangedEvent, OcrRegionPickTarget, RevealScanEvent, RuneshapeScanEvent, RuneshapeUiState, ScanMaskReport, LogEntry, OverlayContentState, RegexBookmarkRunEvent, RegexPasteRequest, RegexShareRequest } from '@ipc/types'
 
 function subscribe<T> (channel: string, cb: (e: T) => void): () => void {
   const listener = (_: unknown, e: T) => cb(e)
@@ -72,6 +72,9 @@ const api: HostApi = {
   regexPaste: (req: RegexPasteRequest) => ipcRenderer.invoke('regex-paste', req),
   onRegexQuickOpen: (cb: () => void) => subscribe('regex-quick-open', () => { cb() }),
   onRegexBookmarkRun: (cb: (e: RegexBookmarkRunEvent) => void) => subscribe('regex-bookmark-run', cb),
+  // 一鍵從 PobTools 送正則分享碼(main/src/regex-share.ts);預覽端都沒有
+  regexShareTake: () => ipcRenderer.invoke('regex-share-take'),
+  onRegexShare: (cb: (req: RegexShareRequest) => void) => subscribe('regex-share', cb),
   runeshapeStats: () => ipcRenderer.invoke('runeshape-stats'),
   // 第 18 步:畫在遊戲上的徽章 / 提示外框(main 擷取後遮掉)
   scanMask: (r: ScanMaskReport) => { ipcRenderer.send('scan-mask', r) },

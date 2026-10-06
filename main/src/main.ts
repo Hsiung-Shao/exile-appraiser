@@ -36,6 +36,10 @@ import { ocrLangFor, textLangFor } from './ocr/ocr-lang'
 import { createOverlayClientCapture, displayPhysRect, toScanCapture } from './ocr/capture'
 import { captureBenchMode, reminderDevOptions } from './cli-flags'
 import {
+  RegexShareInbox, RegexShareStartupGate, findRegexShareArg, hasRegexShareArg, regexShareTarget, resolveRegexShareArg, stripRegexShareArgs,
+  type RegexShareFs, type RegexShareRequest, type RegexShareTarget
+} from './regex-share'
+import {
   HoverPausedCountdown, UPDATE_REMINDER_VISIBLE_MS, UpdateReminderScheduler, pointInBounds, reminderBounds, reminderButtonFromUrl, reminderHtml,
   reminderMessage, type ReminderAction, type ReminderButton, type ReminderMessage, type ReminderTarget
 } from './update-reminder'
@@ -126,7 +130,9 @@ if (OCR_SELFTEST != null) {
     .then((code) => { app.exit(code) })
     .catch((e) => { console.error('[toast-selftest]', e); app.exit(1) })
 } else if (!app.requestSingleInstanceLock()) {
-  console.log(CONTROL_REQUEST ? `[main] ${CONTROL_REQUEST}:已轉交執行中的 ExileAppraiser` : '[main] 已有另一個 ExileAppraiser 在執行,結束')
+  console.log(CONTROL_REQUEST
+    ? `[main] ${CONTROL_REQUEST}:已轉交執行中的 ExileAppraiser`
+    : hasRegexShareArg(process.argv) ? '[main] 正則分享碼參數:已轉交執行中的 ExileAppraiser' : '[main] 已有另一個 ExileAppraiser 在執行,結束')
   skipStartup = true
   app.exit()
 } else if (CONTROL_REQUEST) {
@@ -282,11 +288,13 @@ function writeGameToConfig (game: GameId) {
  * `app.exit` 不發 will-quit,所以 uiohook 在這裡停;先放單一實例鎖,新行程才不會被舊行程擋掉。
  */
 function relaunchSelf (reason: string) {
-  console.log(`[main] 重新啟動(${reason}),relaunch args=${JSON.stringify(process.argv.slice(1))}`)
+  // 正則分享碼參數(--regex-share / --regex-share-file)只在這次啟動用一次:不帶進新行程,否則重新啟動後又跳一次確認
+  const args = stripRegexShareArgs(process.argv.slice(1))
+  console.log(`[main] 重新啟動(${reason}),relaunch args=${JSON.stringify(args)}`)
   quitting = true
   uiohookGate.shutdown()
   app.releaseSingleInstanceLock()
-  app.relaunch({ args: process.argv.slice(1) })
+  app.relaunch({ args })
   app.exit(0)
 }
 
@@ -983,6 +991,49 @@ if (!skipStartup) app.whenReady().then(() => {
       win?.show(); win?.focus()
     }
   }
+
+  // ---- 一鍵從 PobTools 送正則分享碼(regex-share.ts;docs/regex-share-cli.md) ----
+  // renderer 掛好監聽後呼叫 regex-share-take(= 就緒);之前收到的先留著。只做格式檢查,解碼與確認在 renderer。
+  const regexShareInbox = new RegexShareInbox({ deliver: (req) => { send('regex-share', req) }, log: (m) => { console.log(m) } })
+  w.webContents.on('did-start-loading', () => { regexShareInbox.reset() })
+  const regexShareFs: RegexShareFs = {
+    stat: async (p) => await fs.stat(p),
+    readFile: async (p) => await fs.readFile(p, 'utf8')
+  }
+  /** 叫出視窗;overlay 還沒綁定遊戲視窗時套件可能丟例外 → 只記 log(分享碼請求照樣留給 renderer) */
+  const showAppForRegexShare = () => {
+    try { showApp() } catch (e) { console.warn('[regex-share] 叫出視窗失敗(請求仍會在設定 › 正則顯示)', e) }
+  }
+  // 首次啟動帶參數:overlay 還沒綁定 / 還沒收到遊戲 attach 前 gameAttached 一定是 false → 等啟動穩定再決定顯示在哪(regex-share.ts)
+  const regexShareGate = new RegexShareStartupGate({
+    settled: windowMode !== 'overlay' || !poeWindow,
+    setTimeout: (fn, ms) => setTimeout(fn, ms),
+    clearTimeout: (t) => { clearTimeout(t as NodeJS.Timeout) },
+    log: (m) => { console.log(m) }
+  })
+  /** 決定顯示目標 → 放進信箱 → 叫出視窗(overlay 而遊戲沒開 → 用預設瀏覽器開設定 › 正則) */
+  const routeRegexShare = (req: Omit<RegexShareRequest, 'id'>) => {
+    const target: RegexShareTarget = regexShareTarget(windowMode, windowMode === 'overlay' ? gameAttached : true)
+    const full = regexShareInbox.push(req, target)
+    if (full.error) console.warn(`[regex-share] 參數不合格 #${full.id}:${full.error.reason}(${full.error.detail})`)
+    if (target === 'preview') {
+      console.log(`[regex-share] #${full.id} overlay 模式且遊戲沒開 → 用瀏覽器開設定 › 正則`)
+      openPreviewInBrowser('#tab=regex').catch((e) => { console.error('[regex-share] 開啟瀏覽器設定頁失敗', e) })
+    } else {
+      showAppForRegexShare()
+    }
+  }
+  /** argv 有分享碼參數 → 檢查 / 讀檔後交給 routeRegexShare;沒有 = false(呼叫端照原本行為) */
+  const handleRegexShareArgv = (argv: readonly string[], cwd: string): boolean => {
+    const arg = findRegexShareArg(argv)
+    if (!arg) return false
+    void resolveRegexShareArg(arg, cwd, regexShareFs).then((req) => {
+      regexShareGate.whenSettled(() => { routeRegexShare(req) })
+    }).catch((e) => { console.error('[regex-share] 處理參數失敗', e) })
+    return true
+  }
+  // 首次啟動就帶參數:先留在信箱,renderer 就緒(regex-share-take)時交出去
+  handleRegexShareArgv(process.argv, process.cwd())
   // 自動更新:狀態推給 renderer;第一次收到 host-config(renderer 已就緒)時才檢查
   // 第 34 步:同一份狀態也交給更新提醒排程(有新版 → 右下角每 10 分鐘提醒)
   // eslint-disable-next-line prefer-const
@@ -1079,11 +1130,13 @@ if (!skipStartup) app.whenReady().then(() => {
     }).finally(() => { previewStarting = null })
     return await previewStarting
   }
-  const openPreviewInBrowser = async (): Promise<{ url: string }> => {
+  /** `hash` = 開哪個設定分頁(例:`#tab=regex`;預覽 boot script 讀 `#tab=`) */
+  const openPreviewInBrowser = async (hash = ''): Promise<{ url: string }> => {
     const srv = await ensurePreview()
-    console.log(`[preview] 以預設瀏覽器開啟 ${srv.url}`)
-    await shell.openExternal(srv.url)
-    return { url: srv.url }
+    const url = srv.url + hash
+    console.log(`[preview] 以預設瀏覽器開啟 ${url}`)
+    await shell.openExternal(url)
+    return { url }
   }
 
   createTray({
@@ -1093,7 +1146,7 @@ if (!skipStartup) app.whenReady().then(() => {
   })
   // 第二個行程帶 `--quit` → 走與托盤「結束」相同的正常結束(exit code 0,會觸發結束時自動套用更新);
   // `--install-update` → 等同關於頁「立即重啟並更新」(只在 downloaded 時有作用);其餘 = 叫出視窗
-  app.on('second-instance', (_e, argv) => {
+  app.on('second-instance', (_e, argv, workingDirectory) => {
     if (argv.includes('--quit')) {
       console.log('[main] second-instance --quit:結束程式')
       quitting = true
@@ -1105,6 +1158,8 @@ if (!skipStartup) app.whenReady().then(() => {
       updater.install()
       return
     }
+    // 一鍵從 PobTools 送正則分享碼:讀檔 / 檢查完才叫出視窗(相對路徑以第二個行程的工作目錄為準)
+    if (handleRegexShareArgv(argv, workingDirectory)) return
     showApp()
   })
 
@@ -1216,6 +1271,7 @@ if (!skipStartup) app.whenReady().then(() => {
   let trackingSince: number | null = null
   if (poeWindow) {
     poeWindow.onAttach(() => {
+      regexShareGate.settle('遊戲 attach')
       // code review 第 B 批:重新 attach → overlay screenshot 的鎖存作廢,下一次擷取重新試原生路徑
       clientCapture.reset()
       detector.nudge() // 第 30.3 步:綁定的遊戲出現了 → 退避中立刻重查(回到每 2 秒)
@@ -1332,6 +1388,7 @@ if (!skipStartup) app.whenReady().then(() => {
         bound = { game: cfg.game, title }
         trackingSince = Date.now()
         overlay.updateOpts(normalizeHotkey(cfg.overlayKey), title, cfg.game)
+        regexShareGate.trackingStarted()
       } else {
         overlay.setOverlayKey(normalizeHotkey(cfg.overlayKey))
       }
@@ -1657,6 +1714,17 @@ if (!skipStartup) app.whenReady().then(() => {
     'ocr-available': { kind: 'invoke', preview: false, fn: () => winOcr.available() },
     // WP-S2:框選層開啟時讓 overlay 取得焦點(可點擊);預覽端不開放
     'overlay-activate': { kind: 'invoke', preview: false, fn: () => { overlay?.assertOverlayActive() } },
+    // 一鍵從 PobTools 送正則分享碼:Electron renderer 掛好 `regex-share` 監聽後拿走啟動時留著的那一筆(之後的直接送事件);
+    // 預覽分頁(overlay 而遊戲沒開時開的瀏覽器設定頁)啟動時拿走目標為 preview 的那一筆
+    'regex-share-take': {
+      kind: 'invoke',
+      fn: (ctx) => {
+        const target: RegexShareTarget = ctx.source === 'preview' ? 'preview' : 'app'
+        const req = regexShareInbox.take(target)
+        if (req && target === 'app') showAppForRegexShare()
+        return req
+      }
+    },
     // 第 33 步:正則書籤複製 + 貼進遊戲搜尋列;不能貼(視窗模式 / 沒有遊戲 / 不在前景)只複製。書籤熱鍵沒貼成 → 右下角提示
     // (書籤列 / 快速面板由 renderer 自己顯示)。預覽端不開放(預覽分頁沒有遊戲可貼;renderer 改用 navigator.clipboard 只複製)
     'regex-paste': {

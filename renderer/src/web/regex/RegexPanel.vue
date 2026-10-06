@@ -161,6 +161,42 @@
           </div>
         </div>
       </div>
+      <!-- 一鍵從 PobTools 送正則分享碼(incoming-share.ts):確認才套用,取消不改任何狀態;點暗幕不關(避免誤觸) -->
+      <div v-if="incoming" class="modal rx-modal" :class="fsClass" :style="fsStyle">
+        <div class="rx-dialog" role="dialog" aria-modal="true" data-regex="incoming-dialog" :data-phase="incoming.phase">
+          <div class="rx-dialog-title">{{ t('ppz.regex.incoming_title') }}</div>
+          <p class="dim" data-regex="incoming-source">{{ t('ppz.regex.incoming_source', { source: 'PobTools' }) }}</p>
+          <p v-if="incoming.phase === 'loading'" class="pulse">{{ t('ppz.regex.incoming_loading') }}</p>
+          <p v-else-if="incoming.phase === 'error'" class="rx-bad" data-regex="incoming-error" :data-reason="incoming.reason">
+            {{ t(`ppz.regex.incoming_err_${incoming.reason}`, { detail: incoming.detail }) }}
+          </p>
+          <template v-else>
+            <p data-regex="incoming-game">{{ t('ppz.regex.incoming_game', { game: gameLabel(incoming.summary.game) }) }}</p>
+            <p class="rx-warn">{{ t('ppz.regex.incoming_overwrite', { game: gameLabel(incoming.summary.game) }) }}</p>
+            <p class="dim">{{ incoming.summary.replaced.length ? t('ppz.regex.incoming_replaced', { n: incoming.summary.replaced.length }) : t('ppz.regex.incoming_replaced_none', { game: gameLabel(incoming.summary.game) }) }}</p>
+            <ul v-if="incoming.summary.replaced.length" class="rx-incoming-list" data-regex="incoming-replaced">
+              <li v-for="r in incoming.summary.replaced" :key="r.id">{{ pageTitleOf(r.id) }}({{ r.n }})</li>
+            </ul>
+            <p>{{ t('ppz.regex.incoming_lists', { n: incoming.summary.incoming.length }) }}</p>
+            <ul v-if="incoming.summary.incoming.length" class="rx-incoming-list" data-regex="incoming-lists">
+              <li v-for="r in incoming.summary.incoming" :key="r.id">{{ pageTitleOf(r.id) }}({{ r.n }})</li>
+            </ul>
+            <p class="dim" data-regex="incoming-rest">
+              {{ t('ppz.regex.incoming_rest', {
+                custom: incoming.summary.custom, excludes: incoming.summary.excludes, mode: t(`ppz.regex.mode_${incoming.summary.mode}`),
+                curCustom: incoming.summary.current.custom, curExcludes: incoming.summary.current.excludes
+              }) }}
+            </p>
+            <p v-if="incoming.summary.missed > 0 || incoming.summary.unknownPages.length" class="rx-warn" data-regex="incoming-missed">
+              {{ t('ppz.regex.incoming_missed', { n: incoming.summary.missed, pages: incoming.summary.unknownPages.join(', ') || '-' }) }}
+            </p>
+          </template>
+          <div class="rx-dialog-btns">
+            <button v-if="incoming.phase === 'confirm'" class="btn primary" data-regex="incoming-ok" @click="confirmIncoming">{{ t('ppz.regex.apply') }}</button>
+            <button class="btn" data-regex="incoming-cancel" @click="cancelIncoming">{{ incoming.phase === 'confirm' ? t('ppz.regex.cancel') : t('ppz.regex.incoming_close') }}</button>
+          </div>
+        </div>
+      </div>
     </Teleport>
   </div>
 </template>
@@ -181,6 +217,7 @@ import {
   GAMES, applyShareCode, applyTemplate, dismissNotice, ensureStarted, flushSave, gameLabel, hasPendingSave, makeShareCode,
   pagePickCount, retryCatalogue, setBilingual, setLang, setMode, setOutScope, setPanelView, switchGame, switchPage, useRegexStore
 } from './store'
+import { incomingShare } from './incoming'
 
 /** 按鈕文字只能放純文字;複製失敗(例如視窗沒有焦點)時退回 execCommand */
 async function writeClipboard (text: string): Promise<void> {
@@ -264,6 +301,14 @@ export default defineComponent({
       shareState,
       tplConfirm,
       paste,
+      /** 一鍵從 PobTools 送來的分享碼(確認 / 錯誤對話框) */
+      incoming: incomingShare.view,
+      pageTitleOf (id: string) {
+        const p = store.pageById(id)
+        return p ? pageTitle(p) : id
+      },
+      confirmIncoming () { incomingShare.confirm() },
+      cancelIncoming () { incomingShare.cancel() },
       lenLevel: computed(() => {
         const r = out.value
         return r ? lengthLevel(r.length, r.limit) : 'ok'
@@ -377,6 +422,13 @@ export default defineComponent({
   flex-wrap: wrap;
   align-items: center;
   gap: 6px 8px;
+}
+.rx-incoming-list {
+  margin: 0 0 6px;
+  padding-left: 18px;
+  max-height: 140px;
+  overflow-y: auto;
+  font-size: var(--fs-sm);
 }
 .rx-head-tools {
   margin-top: 8px;

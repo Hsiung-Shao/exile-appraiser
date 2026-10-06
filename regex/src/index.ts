@@ -33,7 +33,7 @@ export type { ItemModCategory, ItemModData, ItemModEntryData, ItemModExcludeReas
 export { combine, escapeTerm } from './combine'
 export type { CombineInput, CombineResult, CombineSel, Conflict, ConflictKind, PageContribution } from './combine'
 export {
-  SHARE_VERSION, base64url, decodeShare, encodeShare, fromBase64url, migrateShareSections, normalizeShareState, parseTemplates,
+  SHARE_MAX_CODE_CHARS, SHARE_MAX_JSON_BYTES, SHARE_VERSION, base64url, decodeShare, encodeShare, fromBase64url, migrateShareSections, normalizeShareState, parseTemplates,
   resolveState
 } from './share'
 export type { RegexTemplate, ResolvedState, ShareState } from './share'

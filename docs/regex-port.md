@@ -479,6 +479,7 @@ PoE1 地圖詞綴 3 條 + 階級 ≥16 + 物品數量 ≥80 + 6L → `"成凋| �
 - PoE2 白裝是否顯示「稀有度: 中」(照 clientstrings,沒有剪貼簿樣本);碑牌 / 換界石 / 物品基底的稀有度行寫法(PoE2 繁中樣本只有碑牌(魔法)與裝備)。
 
 ## 相關文件
+- [regex-share-cli.md](regex-share-cli.md)(從命令列 / PobTools 送分享碼:`--regex-share`、確認對話框、找 exe)
 - [phase2-summary.md](phase2-summary.md)(WP5 摘要與待辦:逐字 golden)
 - [release-flow.md](release-flow.md)(資料同步後照發版流程出版)
 - 專案守則:[../CLAUDE.md](../CLAUDE.md)

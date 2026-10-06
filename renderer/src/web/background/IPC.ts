@@ -11,7 +11,7 @@
 import type { HostApi, HostFetchResult, ItemTextEvent, HostConfigForMain, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId } from '@ipc/types'
 import type { ConfigChangedEvent, HotkeyRegistration, OcrAvailability, OcrRegionPickTarget, RevealScanEvent, SettingsTabId, LegacySettingsTabId, UpdaterInfo } from '@ipc/types'
 import type { LogEntry, LogSnapshot, PerfState, RuneshapeScanEvent, RuneshapeStats, RuneshapeUiState, ScanMaskReport, OverlayContentState } from '@ipc/types'
-import type { RegexBookmarkRunEvent, RegexPasteRequest, RegexPasteResult } from '@ipc/types'
+import type { RegexBookmarkRunEvent, RegexPasteRequest, RegexPasteResult, RegexShareRequest } from '@ipc/types'
 import { shallowRef } from 'vue'
 import type { HttpFetch } from '@exile-appraiser/core/http'
 import { withRetryAfter } from '@exile-appraiser/core/http'
@@ -297,6 +297,20 @@ class HostTransport {
   /** 書籤個別熱鍵 */
   onRegexBookmarkRun (cb: (e: RegexBookmarkRunEvent) => void): () => void {
     return window.host?.onRegexBookmarkRun?.(cb) ?? (() => {})
+  }
+
+  // ---- 一鍵從 PobTools 送正則分享碼(main/src/regex-share.ts;預覽 / 純瀏覽器沒有) ----
+  /** main 之後收到的分享碼請求(第二個行程帶 `--regex-share`) */
+  onRegexShare (cb: (req: RegexShareRequest) => void): () => void {
+    return window.host?.onRegexShare?.(cb) ?? (() => {})
+  }
+
+  /**
+   * 啟動參數帶來、還沒送出的那一筆(先掛好 `onRegexShare` 再呼叫);沒有 / 不支援 = null。
+   * 預覽分頁也呼叫(main 依來源只交出目標為 preview 的那一筆:overlay 而遊戲沒開時開的瀏覽器設定頁)。
+   */
+  async regexShareTake (): Promise<RegexShareRequest | null> {
+    return (await window.host?.regexShareTake?.()) ?? null
   }
 
   async runeshapeStats (): Promise<RuneshapeStats | undefined> {

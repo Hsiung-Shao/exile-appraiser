@@ -146,6 +146,25 @@ export interface RegexBookmarkRunEvent {
   game: GameId
 }
 
+/**
+ * 一鍵從 PobTools 送正則分享碼(`--regex-share <碼>` / `--regex-share-file <檔>`,main/src/regex-share.ts;docs/regex-share-cli.md)。
+ * 參數不合格(沒給值、字元集 / 長度不符、讀檔失敗)→ `error`(renderer 顯示錯誤,不套用任何東西)。
+ */
+export type RegexShareErrorReason = 'missing-value' | 'both-flags' | 'empty' | 'too-long' | 'charset' | 'file-read' | 'file-too-large'
+
+/** main → renderer `regex-share`(或 renderer 啟動時 `regex-share-take` 拿到的那一筆);`code` 與 `error` 二擇一 */
+export interface RegexShareRequest {
+  /** main 端遞增編號(log 對照用) */
+  id: number
+  /** 目前只有 PobTools 會用命令列送來 */
+  source: 'pobtools'
+  /** 參數來源:`arg` = `--regex-share`、`file` = `--regex-share-file` */
+  via: 'arg' | 'file'
+  /** 已通過字元集 / 長度檢查的分享碼(尚未解碼) */
+  code?: string
+  error?: { reason: RegexShareErrorReason, detail: string }
+}
+
 /** 第 33 步:一鍵貼進遊戲的來源(設定視窗旁的書籤列 / 快速面板 / 書籤熱鍵) */
 export type RegexPasteSource = 'bar' | 'quick' | 'hotkey'
 
@@ -505,6 +524,13 @@ export interface HostApi {
   onRegexQuickOpen?: (cb: () => void) => () => void
   /** 第 33 步:書籤熱鍵按下;renderer 算出字串後呼叫 `regexPaste`(source `hotkey`) */
   onRegexBookmarkRun?: (cb: (e: RegexBookmarkRunEvent) => void) => () => void
+  /**
+   * 一鍵從 PobTools 送正則分享碼:renderer 掛好監聽後呼叫一次,拿走啟動參數帶來、還沒送出的那一筆(沒有 = null)。
+   * 之後收到的(第二個行程帶參數)走 `onRegexShare`(只給 Electron)。預覽分頁也能呼叫:只拿到目標為瀏覽器設定頁的那一筆
+   * (overlay 模式而遊戲沒開時,main 改用瀏覽器開設定 › 正則)。
+   */
+  regexShareTake?: () => Promise<RegexShareRequest | null>
+  onRegexShare?: (cb: (req: RegexShareRequest) => void) => () => void
   /** WP-R2:掃描統計(設定頁);預覽端回 undefined。 */
   runeshapeStats?: () => Promise<RuneshapeStats | undefined>
   /** 第 18 步:回報畫在遊戲上的徽章 / 提示外框(main 擷取後遮掉);預覽端 no-op。 */
