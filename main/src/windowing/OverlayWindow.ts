@@ -36,6 +36,13 @@ export class OverlayWindow {
   }
 
   assertOverlayActive = () => {
+    // 2026-10-07:還沒 attachByTitle(第一次 host-config 之前)時 electron-overlay-window 的 activateOverlay 會 throw
+    // 「You are using the library in tracking mode」→ main 行程錯誤框。例:啟動中又開一次程式(second-instance → showApp)。
+    // 這時 overlay 還沒有內容可互動,略過即可
+    if (!this.poeWindow.isTracking) {
+      console.log('[overlay] assertOverlayActive 略過:尚未綁定遊戲視窗(attachByTitle 之前)')
+      return
+    }
     if (!this.isInteractable) {
       console.log('[overlay] assertOverlayActive → overlay 取得焦點(可點擊)')
       this.isInteractable = true

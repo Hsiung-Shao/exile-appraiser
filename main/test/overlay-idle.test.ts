@@ -236,6 +236,18 @@ describe('接線守門', () => {
     expect(src).toContain('this.onInteractableChange?.(v)')
   })
 
+  it('OverlayWindow:attachByTitle 之前 assertOverlayActive 不呼叫 activateOverlay(否則套件 throw → main 錯誤框)', () => {
+    const src = read('../src/windowing/OverlayWindow.ts')
+    const fn = src.slice(src.indexOf('assertOverlayActive = () =>'), src.indexOf('assertGameActive = () =>'))
+    const guard = fn.indexOf('if (!this.poeWindow.isTracking)')
+    expect(guard).toBeGreaterThan(-1)
+    expect(guard).toBeLessThan(fn.indexOf('OverlayController.activateOverlay()'))
+    expect(fn.slice(guard, fn.indexOf('}', guard))).toContain('return')
+    // GameWindow 在 attachByTitle 之後才設 isTracking
+    const gw = read('../src/windowing/GameWindow.ts')
+    expect(gw.indexOf('this._isTracking = true')).toBeGreaterThan(gw.indexOf('OverlayController.attachByTitle(window, title'))
+  })
+
   it('preload / 預覽 no-op', () => {
     expect(read('../src/preload.ts')).toContain("overlayContent: (s: OverlayContentState) => { ipcRenderer.send('overlay-content', s) }")
     expect(read('../src/preview-server.ts')).toMatch(/PREVIEW_NOOP_SYNC = \[[^\]]*'overlayContent'/)
