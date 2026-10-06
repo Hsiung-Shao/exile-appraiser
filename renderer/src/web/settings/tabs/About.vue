@@ -5,6 +5,7 @@
   更新字串沿用上游 `updates.*`,上游沒有的放 `ppz.update.*`。所有外連走 Host.openExternal。
   贊助連結一律純文字(Patreon 不可用任何標誌 / 圖示)。
   授權全文 = LICENSES/*.MIT 的複本,放在 renderer/public/licenses/(Vite 帶進 dist;正式版由 app:// 供應)。
+  2026-10-07:品牌卡片多一行「支援遊戲版本」(`settings/game-versions.ts`,遊戲改版 / 資料同步 / 發版時更新)。
   第 39 步:免安裝版不顯示「自動更新」開關(只對安裝版有效;狀態列已說明);「開啟設定資料夾」從連結卡片獨立成一張。
 -->
 <template>
@@ -16,6 +17,7 @@
       <span class="chip soft" data-about="version">{{ version }}</span>
     </div>
     <p class="tagline">{{ t('ppz.about.tagline') }}</p>
+    <p class="game-versions" data-about="game-versions">{{ t('ppz.about.game_versions', gameVersions) }}</p>
   </section>
 
   <section class="card" data-about="update">
@@ -119,6 +121,7 @@ import { Host } from '@/web/background/IPC'
 import { reportIssue, copyIssueReport, reportStatus } from '@/web/report'
 import { usePoeninja } from '@/web/background/Prices'
 import HelpTip from '../HelpTip.vue'
+import { SUPPORTED_GAME_VERSIONS } from '../game-versions'
 
 interface ManifestSource {
   repo?: string
@@ -281,6 +284,7 @@ export default defineComponent({
       config: AppConfig(),
       autoApply,
       version: Host.version,
+      gameVersions: SUPPORTED_GAME_VERSIONS,
       rows,
       manifestError,
       ninjaText,
@@ -358,6 +362,11 @@ export default defineComponent({
 }
 .about-brand .tagline {
   margin: 6px 0 0;
+  color: var(--ink-2);
+  font-size: var(--fs-xs);
+}
+.about-brand .game-versions {
+  margin: 2px 0 0;
   color: var(--ink-2);
   font-size: var(--fs-xs);
 }

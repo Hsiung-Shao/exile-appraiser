@@ -187,6 +187,7 @@ node scripts/perf-scenario.mjs --game <遊戲行程名> --hwaccel off --label <�
 
 ## 發版 checklist
 1. 改 root、main 與各 workspace 的 `version`(`0.x.y`)→ `npm run check-user-agent`;更新說明寫在 `docs/release-notes/v<version>.md`。
+   確認關於頁「支援遊戲版本」(`renderer/src/web/settings/game-versions.ts`)仍是兩代的最新版本,不是就更新。
 2. `npm run sync-data -- --from ../過時專案/apt-patched` → `npm test` 全綠(快照差異逐筆 review)。
 3. `npm run typecheck` → `npm run package` → 乾淨機器裝一次:熱鍵 → 列表;intl / tw 各查一件真實物品。
 4. 產物內含 `LICENSE.txt`、`NOTICE.md`、`LICENSES/`;`latest.yml` 的 `path` = `ExileAppraiser-Setup-<version>.exe`。GitHub Release 由 `gh release create` 手動建(electron-builder 永遠 `-p never`),四個檔與步驟見 `docs/release-flow.md`。

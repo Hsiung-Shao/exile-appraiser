@@ -385,6 +385,7 @@
     "data_fetched": "fetched {date}",
     "about": {
       "tagline": "Path of Exile price checker (PoE1 / PoE2, International / Taiwan realms)",
+      "game_versions": "Supported game versions: PoE1 {poe1} · PoE2 {poe2} (both current latest versions)",
       "section_update": "Updates",
       "section_links": "Links",
       "section_thanks": "Third-party credits",

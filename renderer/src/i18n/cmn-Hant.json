@@ -385,6 +385,7 @@
     "data_fetched": "抓取於 {date}",
     "about": {
       "tagline": "Path of Exile 查價工具(PoE1 / PoE2,國際服 / 台服)",
+      "game_versions": "支援遊戲版本:PoE1 {poe1} · PoE2 {poe2}(目前最新版本皆支援)",
       "section_update": "更新",
       "section_links": "連結",
       "section_thanks": "第三方致謝",
