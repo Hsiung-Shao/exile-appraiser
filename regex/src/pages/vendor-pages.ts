@@ -5,6 +5,7 @@
 import type { RegexGame, RegexLabels } from '../data'
 import { labelBase, linkColors, linkedSockets, propertyFragment, socketColorCount, wholeLine } from './frag'
 import type { AlgoEntry, AlgoOption, AlgoPage } from './types'
+import { RARITY_LABEL_KEYS, rarityConditionEntry } from '../rarity'
 
 const INFLUENCES: Array<{ id: string, key: string }> = [
   { id: 'shaper', key: 'ItemPopupShaperItem' },
@@ -18,8 +19,8 @@ const INFLUENCES: Array<{ id: string, key: string }> = [
 ]
 
 export const VENDOR_LABEL_KEYS: Record<RegexGame, string[]> = {
-  poe1: ['ItemLevelPopup', 'Quality', 'ItemDisplayStringSockets', 'ItemPopupCorrupted', 'Level', ...INFLUENCES.map(i => i.key)],
-  poe2: ['ItemLevelPopup', 'Quality', 'ItemPopupCorrupted', 'Level']
+  poe1: ['ItemLevelPopup', 'Quality', 'ItemDisplayStringSockets', 'Level', ...RARITY_LABEL_KEYS, ...INFLUENCES.map(i => i.key)],
+  poe2: ['ItemLevelPopup', 'Quality', 'Level', ...RARITY_LABEL_KEYS]
 }
 
 const COLOR_OPTIONS: AlgoOption[] = [
@@ -99,14 +100,10 @@ export function vendorPages (game: RegexGame, labels: RegexLabels | null): AlgoP
       fragment: (v, lang) => propertyFragment(lang === 'zh' ? gemLevel.zh : gemLevel.en, { min: v.min }, 2, false, true)
     })
   }
-  const corrupted = L('ItemPopupCorrupted')
-  if (corrupted) {
-    entries.push({
-      ...base('corrupted', 1, labelBase(corrupted.zh), labelBase(corrupted.en)),
-      input: { kind: 'select', options: [], def: {} },
-      fragment: (_v, lang) => wholeLine([lang === 'zh' ? corrupted.zh : corrupted.en])
-    })
-  }
+  // 第 40 步:原本的「已汙染」勾選列換成稀有度 | 汙染條件列;id 仍是 `corrupted`、預設 `|c`(只有已汙染)
+  // → 舊書籤 / 分享碼的「已汙染」輸出逐字相同(`^已汙染$`),現在另可選未汙染與稀有度
+  const cond = rarityConditionEntry(labels, 'corrupted', '|c', 1)
+  if (cond) entries.push(cond)
   if (poe1) {
     const infl = INFLUENCES.map(i => ({ id: i.id, t: L(i.key) })).filter((x): x is { id: string, t: { zh: string, en: string } } => x.t !== null)
     if (infl.length) {

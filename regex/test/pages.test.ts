@@ -146,7 +146,10 @@ describe('演算法頁組成', () => {
   for (const game of ['poe1', 'poe2'] as const) {
     it(`${game}:數值頁 + 商店頁;每個項目的預設值在兩語下都產得出片段`, () => {
       const pages = loadAllPagesFor(game).filter(isAlgoPage) as AlgoPage[]
-      expect(pages.map(p => p.id)).toEqual(game === 'poe1' ? ['map_numeric', 'vendor_items'] : ['waystone_numeric', 'vendor_items_poe2'])
+      // 第 40 步起後面多了稀有度 / 汙染條件區(物品基底、碑牌詞綴、物品詞綴數值)
+      expect(pages.map(p => p.id)).toEqual(game === 'poe1'
+        ? ['map_numeric', 'vendor_items', 'vendor_bases_cond', 'item_mod_values_cond']
+        : ['waystone_numeric', 'vendor_items_poe2', 'vendor_bases_cond', 'tablet_mods_cond', 'item_mod_values_poe2_cond'])
       for (const p of pages) {
         expect(p.entries.length).toBeGreaterThan(0)
         expect(new Set(p.entries.map(e => e.id)).size).toBe(p.entries.length)

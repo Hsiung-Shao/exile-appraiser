@@ -33,6 +33,11 @@ export type AlgoInput =
   | { kind: 'colors', maxTotal: number, def: AlgoValue }
   /** 插槽顏色數:choice = 顏色(r / g / b / w)、min = 至少幾個 */
   | { kind: 'count', options: AlgoOption[], lo: number, hi: number, def: AlgoValue }
+  /**
+   * 稀有度 | 汙染條件列(第 40 步,rarity.ts):稀有度可多選、汙染二選一(可都不選);
+   * choice = 稀有度字母(n / m / r / u)+ 選填 `|u`(未汙染)/ `|c`(已汙染),舊單字 normal / magic / rare / unique 照讀
+   */
+  | { kind: 'rarity', options: AlgoOption[], corruption: AlgoOption[], def: AlgoValue }
 
 export interface AlgoEntry extends RegexEntry {
   input: AlgoInput
@@ -40,6 +45,11 @@ export interface AlgoEntry extends RegexEntry {
   untested?: boolean
   /** 產生片段;輸入不成立(例如空區間)回 null */
   fragment: (v: AlgoValue, lang: RegexLang) => string | null
+  /**
+   * 一列輸出多個 term(第 40 步條件列:稀有度、汙染各一個);有它時 combine 逐 term 加入,`fragment` 只是顯示用(以空白相連)。
+   * 沒有任何 term = null(與 fragment 相同,當成輸入不成立)
+   */
+  terms?: (v: AlgoValue, lang: RegexLang) => string[] | null
   /**
    * 語料行(原文,含 `#`)本身就是這個項目要比對的對象 → combine 的 fragment 衝突檢查略過它(第 35 步:
    * 階級片段比對名稱「（階級 N）」,地圖詞綴頁的隱藏行收了魔法地圖名稱「堅定的地圖（階級#）」,中了是對的)

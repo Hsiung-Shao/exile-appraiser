@@ -12,10 +12,18 @@
 //
 // 本檔不 import 任何模組(state.ts / share.ts / pages 都會用到,避免循環)。
 
-/** 數值區的(內部)頁 id → 宿主詞綴頁 id */
+/**
+ * 數值區的(內部)頁 id → 宿主詞綴頁 id。
+ * 第 40 步起另有「稀有度 / 汙染」條件區(rarity.ts `conditionSections`,只有一列條件列),同一套嵌入機制:
+ * 物品基底(兩遊戲同 id)、碑牌詞綴(PoE2)、物品詞綴數值(兩遊戲各一)。
+ */
 export const SECTION_HOSTS: Readonly<Record<string, string>> = Object.freeze({
   map_numeric: 'map_mods',
-  waystone_numeric: 'waystone_mods'
+  waystone_numeric: 'waystone_mods',
+  vendor_bases_cond: 'vendor_bases',
+  tablet_mods_cond: 'tablet_mods',
+  item_mod_values_cond: 'item_mod_values',
+  item_mod_values_poe2_cond: 'item_mod_values_poe2'
 })
 
 /** 數值區頁 id → 宿主頁 id;不是數值區 = undefined */

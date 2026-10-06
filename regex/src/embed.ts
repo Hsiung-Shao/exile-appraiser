@@ -59,7 +59,8 @@ export function bookmarkBodyOf (
     const m: Record<string, AlgoValue> = {}
     for (const i of secPicked) { const e = sec.entries[i]; m[e.id] = { ...(cur[e.id] ?? e.input.def) } }
     body.num = pageKeysOf(sec, secPicked).keys
-    body.numeric = m
+    // 宿主本身是演算法頁(第 40 步:物品詞綴數值頁 + 條件區)時兩邊的值共用宿主 id,項目 id 不重疊 → 合併
+    body.numeric = { ...(body.numeric ?? {}), ...m }
   }
   if (!body.keys.length && !body.num) return null
   return body
@@ -103,9 +104,9 @@ export function bookmarkApplyOf (pages: readonly RegexPage[], b: RegexBookmark):
     out.picks[sec.id] = rs.picked
     out.missed += rs.missed
     if (b.numeric && num?.length) out.values[numericKeyOf(sec.id)] = { ...b.numeric }
-  } else if (b.numeric && isAlgoPage(page)) {
-    out.values[page.id] = { ...b.numeric }
   }
+  // 演算法頁本身的值(宿主有條件區時與它共用同一個存放鍵,合併)
+  if (b.numeric && isAlgoPage(page)) out.values[page.id] = { ...(out.values[page.id] ?? {}), ...b.numeric }
   return out
 }
 
@@ -126,7 +127,8 @@ export function shareStateOf (
       const cur = valuesOfPage(values, p.id) ?? {}
       const m: Record<string, AlgoValue> = {}
       for (const i of pk) { const e = p.entries[i]; m[e.id] = { ...(cur[e.id] ?? e.input.def) } }
-      s.numeric[numericKeyOf(p.id)] = m
+      // 宿主演算法頁與它的條件區共用宿主 id(項目 id 不重疊)→ 合併
+      s.numeric[numericKeyOf(p.id)] = { ...(s.numeric[numericKeyOf(p.id)] ?? {}), ...m }
     }
   }
   return s

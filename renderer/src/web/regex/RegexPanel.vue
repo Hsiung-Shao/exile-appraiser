@@ -60,7 +60,11 @@
 
     <template v-if="page && out">
       <RegexCombined v-if="panelView === 'combined'" />
-      <RegexItemModList v-else-if="itemPage" :key="itemPage.id" :page="itemPage" />
+      <template v-else-if="itemPage">
+        <!-- 第 40 步:物品詞綴數值頁頂端的稀有度 / 汙染條件區 -->
+        <RegexNumericSection v-if="section" :key="section.id" :section="section" />
+        <RegexItemModList :key="itemPage.id" :page="itemPage" />
+      </template>
       <RegexAlgoList v-else-if="algoPage" :page="algoPage" />
       <template v-else>
         <RegexNumericSection v-if="section" :key="section.id" :section="section" />

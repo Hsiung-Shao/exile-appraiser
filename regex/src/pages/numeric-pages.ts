@@ -2,7 +2,8 @@
 // 每條 = clientstrings 標籤(`labels[key]`,暫代檔 data/regex/labels.<game>.json 或 schema 2 資料檔的 `labels`)+ 數值正則。
 // 標籤缺鍵 → 該條不出現(不猜譯名)。
 import type { RegexGame, RegexLabels, RegexLang } from '../data'
-import { isTierNameLine, labelBase, mapTierFragment, rarityFragment, strictPropertyFragment } from './frag'
+import { isTierNameLine, labelBase, mapTierFragment, strictPropertyFragment } from './frag'
+import { RARITY_LABEL_KEYS, rarityConditionEntry } from '../rarity'
 import type { AlgoEntry, AlgoOption, AlgoPage, AlgoValue, RangeOp } from './types'
 
 interface NumSpec {
@@ -42,23 +43,15 @@ const POE2_WAYSTONE: NumSpec[] = [
 ]
 
 /**
- * 稀有度列(第 35 步):標籤 `ItemDisplayStringRarity`、選項 `ItemDisplayString{Normal,Magic,Rare,Unique}`(兩遊戲同鍵;
- * 普通的繁中 PoE1 =「普通」、PoE2 =「中」,與各自剪貼簿解析器的 RARITY_NORMAL 相同)。缺鍵的選項不出現,標籤或選項全缺 → 整列不出現。
- * 放在數值區最後(不插隊,既有列的位置不變)。
+ * 稀有度列(第 35 步;第 40 步起是「稀有度 | 汙染」條件列,rarity.ts):id 仍是 `item_rarity_class`、預設仍是 `rare`
+ * → 舊值照讀、輸出逐字相同;稀有度可多選、多了汙染二選一。放在數值區最後(不插隊)。
  */
-const RARITY_LABEL_KEY = 'ItemDisplayStringRarity'
-const RARITY_OPTIONS: Array<{ id: string, key: string }> = [
-  { id: 'normal', key: 'ItemDisplayStringNormal' },
-  { id: 'magic', key: 'ItemDisplayStringMagic' },
-  { id: 'rare', key: 'ItemDisplayStringRare' },
-  { id: 'unique', key: 'ItemDisplayStringUnique' }
-]
-const RARITY_KEYS = [RARITY_LABEL_KEY, ...RARITY_OPTIONS.map(o => o.key)]
+export const RARITY_ENTRY_ID = 'item_rarity_class'
 
 /** 本檔用到的 clientstrings 鍵(測試檢查它們都在 labels 暫代檔裡) */
 export const NUMERIC_LABEL_KEYS: Record<RegexGame, string[]> = {
-  poe1: [...POE1_MAP.map(s => s.key), ...RARITY_KEYS],
-  poe2: [...POE2_WAYSTONE.map(s => s.key), ...RARITY_KEYS]
+  poe1: [...POE1_MAP.map(s => s.key), ...RARITY_LABEL_KEYS],
+  poe2: [...POE2_WAYSTONE.map(s => s.key), ...RARITY_LABEL_KEYS]
 }
 
 export function labelOf (labels: RegexLabels, key: string, lang: RegexLang): string | undefined {
@@ -90,40 +83,10 @@ function numEntry (s: NumSpec, labels: RegexLabels): AlgoEntry | null {
   }
 }
 
-export const RARITY_ENTRY_ID = 'item_rarity_class'
-
-function rarityEntry (labels: RegexLabels): AlgoEntry | null {
-  const zh = labels.zh[RARITY_LABEL_KEY]
-  const en = labels.en[RARITY_LABEL_KEY]
-  if (!zh || !en) return null
-  const opts: AlgoOption[] = []
-  for (const o of RARITY_OPTIONS) {
-    const oz = labels.zh[o.key]
-    const oe = labels.en[o.key]
-    if (oz && oe) opts.push({ id: o.id, zh: oz, en: oe })
-  }
-  if (!opts.length) return null
-  return {
-    id: RARITY_ENTRY_ID,
-    g: 0,
-    t17: false,
-    affixZh: '',
-    zh: [labelBase(zh)],
-    en: [labelBase(en)],
-    hiddenZh: [],
-    hiddenEn: [],
-    input: { kind: 'select', options: opts, def: { choice: opts.some(o => o.id === 'rare') ? 'rare' : opts[0].id } },
-    fragment: (v, lang) => {
-      const o = opts.find(x => x.id === v.choice)
-      return o ? rarityFragment(lang === 'zh' ? zh : en, lang === 'zh' ? o.zh : o.en) : null
-    }
-  }
-}
-
 export function numericPages (game: RegexGame, labels: RegexLabels | null): AlgoPage[] {
   if (!labels) return []
   const specs = game === 'poe1' ? POE1_MAP : POE2_WAYSTONE
-  const entries = [...specs.map(s => numEntry(s, labels)), rarityEntry(labels)].filter((e): e is AlgoEntry => e !== null)
+  const entries = [...specs.map(s => numEntry(s, labels)), rarityConditionEntry(labels, RARITY_ENTRY_ID, 'rare')].filter((e): e is AlgoEntry => e !== null)
   if (!entries.length) return []
   const poe1 = game === 'poe1'
   return [{

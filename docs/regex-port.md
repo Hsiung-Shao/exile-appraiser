@@ -120,7 +120,7 @@ PobTools 語彙(`.card .seg .chk .select .input .btn .pulse`):
 ### 資料 schema 2
 - `regex_poe*.json` 頂層 `labels{zh,en}`(clientstrings 鍵 → 文字)、頁面 `kind`(`mods` / `names`)。`data.ts` 同時接受 schema 1(缺 `kind` = mods、缺 `labels` = null);未知 kind 當 mods。
 - `normalizeLabel`:`{0}` → `#`、PoE2 的 `[Id|文字]` → 文字、`[Id]` → Id。
-- 標籤合併 `mergeLabels(資料檔 labels, 暫代檔)`:資料檔**逐鍵優先**,暫代檔 `data/regex/labels.poe{1,2}.json` 只補缺鍵(PoE2 schema 2 目前缺 `ItemDisplayMap{Magic,Rare}MonsterQuantityBonus`、`ExperienceGained`、`MonsterEffectiveness`、`ItemPopupCorrupted`)。兩份都有的鍵在測試裡斷言逐字相同。
+- 標籤合併 `mergeLabels(資料檔 labels, 暫代檔)`:資料檔**逐鍵優先**,暫代檔 `data/regex/labels.poe{1,2}.json` 只補缺鍵(PoE2 schema 2 目前缺 `ItemDisplayMap{Magic,Rare}MonsterQuantityBonus`、`ExperienceGained`、`MonsterEffectiveness`;`ItemPopupCorrupted` 早期也缺,2026-10-06 確認資料檔已有)。兩份都有的鍵在測試裡斷言逐字相同。
 - 暫代檔產生:`node regex/scripts/gen-labels.mjs --from ../Pob2/pob-zh-engine`(讀 `tools/ggpk_zh/out/poe1/tables/clientstrings.json`、`tools/ggpk2_zh/out/poe2/tables/clientstrings.json` 的 `Text` 欄,以**鍵**取值、缺鍵 exit 1、與 `regex_poe*.json` ambient 行交叉比對),寫完以 `verify-data-manifest --write --prefix data/regex/labels.<game>.json` 各記一個來源(最長前綴歸屬,不併入 PobTools 同步的 `data/regex` 前綴)。`templates.json` 同樣自成一個前綴。
 
 ### 數值 → 正則(`regex/src/numeric.ts`)
@@ -304,6 +304,7 @@ PoE1 地圖詞綴 3 條 + 階級 ≥16 + 物品數量 ≥80 + 6L → `"成凋| �
 - **真實 overlay 的拖曳手感、快速面板在遊戲前景時的 ← / → 只能使用者實測**。
 
 ## 第 35 步:數值區嚴格寫法 + 稀有度列(2026-10-04)
+> 第 40 步(2026-10-06)起稀有度列擴充為「稀有度 | 汙染」條件列(稀有度可多選、併入汙染,舊值照讀),並加到其他頁;見「第 40 步」。
 
 使用者提供社群在遊戲裡實際使用的寫法(= 遊戲搜尋列支援 `[:：]`、`\+`、`{n,}` 的證據):
 `"稀有度[:：] *稀有" "物品稀有度[:：] *\+?([1-9]\d|[1-9]\d{2,}) *%" "怪群大小[:：] *\+?([2-9]\d|[1-9]\d{2,}) *%" "怪物效能[:：] *\+?([1-9]\d|[1-9]\d{2,}) *%" "怪物稀有度[:：] *\+?([5-9]|[1-9]\d{1,}) *%" "換界石掉落機率[:：] *\+?([5-9]\d|[1-9]\d{2,}) *%"`、`"階級 14"`。
@@ -433,6 +434,49 @@ PoE1 地圖詞綴 3 條 + 階級 ≥16 + 物品數量 ≥80 + 6L → `"成凋| �
 
 為什麼要 `^`:「`# 最大生命`」也出現在「每級 # 最大生命」「裝備中每個空的紅色插槽，# 最大生命」「每 10 點智慧 # 最大生命」等行尾,
 「% 火焰抗性」也出現在「每 1% 火焰抗性 #% 混沌抗性」,只有行首錨點能分開;使用者範例 `\+?([89][0-9]|[1-9][0-9]{2,}) 最大生命` 會誤中這些行。
+
+## 第 40 步:稀有度 | 汙染條件列(2026-10-06)
+使用者轉述 Discord 回饋(keiyada):要有一排稀有度按鈕、地圖要能指定是否腐化。
+第一版做成面板頂端的全域多選按鈕 + 數值區獨立汙染列(未 commit),使用者看過後裁定:**稀有度維持舊版「數值區裡一列」的做法,
+同一列併入汙染(`普通 魔法 稀有 傳奇 | 未汙染 已汙染`),再擴充到其他用得到的頁**;全域按鈕撤回。
+
+### 條件列(`regex/src/rarity.ts`,input kind `rarity`)
+- 稀有度**可多選**、汙染**二選一可都不選**(再點同一個 = 取消);兩組 `.seg` 中間一條分隔線(`RegexAlgoList.vue`,`.rx-algo-row.cond` 輸入欄依內容寬,同一行)。
+- 值存 `AlgoValue.choice`:稀有度字母(n 普通 / m 魔法 / r 稀有 / u 傳奇)+ 選填 `|u`(未汙染)/ `|c`(已汙染),例:`mr|u`、`|c`。
+  第 35 步的單字 `normal` / `magic` / `rare` / `unique` 照讀 = 只選那一個;格式不完整一律當什麼都沒選(`nope` 不會被讀成「普通」)。
+  → **存檔格式不變**(state 仍 schema 5、分享碼仍 v2),舊 state / 書籤 / 分享碼不用遷移。
+- 一列輸出兩個獨立 AND term(`AlgoEntry.terms`,combine 逐 term 加入、各自加引號、各自做誤中檢查;`fragment` = 以空白相連,只給預覽與 `condText`):
+  - 稀有度:選一個 = `rarityFragment`(第 35 步原樣);選多個 = `稀有度[:：] *(魔法|稀有)`(固定順序);全選 = 不加。
+  - 汙染:已汙染 = `^已汙染$`(整行,與商店頁原片段相同);未汙染 = `!^已汙染$` —— combine 對 `!` 開頭的 term 加引號 → `"!^已汙染$"`,否定 term 不做誤中檢查;
+    已汙染 term 對語料裡「已汙染」這一行本身不算誤中(`ownLine`)。
+  - 什麼都沒選 = 輸入不成立(invalid,不輸出)。
+- 標籤取自 clientstrings:`ItemDisplayStringRarity` + `ItemDisplayString{Normal,Magic,Rare,Unique}`(PoE2 普通 =「中」)、`ItemPopupCorrupted`;「未汙染」是介面字(去「已」加「未」)。
+- 收合摘要 / `condText`:「魔法、稀有 · 未汙染」。
+
+### 各頁
+| 頁 | 位置 | 列 id | 勾選預設 |
+|---|---|---|---|
+| 地圖詞綴 / 換界石詞綴 | 數值區最後一列(第 35 步原位) | `item_rarity_class` | `rare`(同第 35 步) |
+| 商店 / 物品條件 | 原「已汙染」勾選列的位置 | `corrupted`(沿用) | `\|c`(只有已汙染 → 舊勾選輸出逐字相同) |
+| 物品基底(兩遊戲)、碑牌詞綴(PoE2)、物品詞綴數值(兩遊戲) | 頁頂新的「稀有度 / 汙染」條件區(只有這一列) | `item_rarity_class` | `r` |
+
+條件區沿用第 32 步嵌入機制:`conditionSections()`(併進 `algoPages()`)產生 `vendor_bases_cond` / `tablet_mods_cond` / `item_mod_values_cond` / `item_mod_values_poe2_cond`,
+`SECTION_HOSTS` 對到宿主;勾選存宿主那筆 `current.num`、值存 `numeric[宿主]`、書籤 `num` + `numeric`、分享碼 `sections` + `numeric`、`combineOrder` 宿主後緊接條件區。
+**物品詞綴數值頁本身是演算法頁**:它的數值與條件區共用 `numeric[宿主]`(項目 id 不重疊)→ `bookmarkBodyOf` / `bookmarkApplyOf` / `shareStateOf` 改成合併,
+`resolveState` 依項目 id 分回條件區與宿主頁。UI:`RegexNumericSection.vue` 條件區標題 `section_title_cond`、說明 `section_hint_cond`;`RegexPanel.vue` 物品詞綴數值頁上方也掛條件區。
+
+### 測試
+- `regex/test/rarity.test.ts`:條件區接線(宿主、預設、不在下拉選單、單頁 = 宿主 + 條件區)、數值區最後一列、商店頁舊「已汙染」輸出不變、一列兩 term(引號 / 三種 mode / 長度 / 無衝突)、
+  已汙染對「已汙染」語料行不算衝突、全空 = invalid、schema 5 舊單字照讀、物品基底書籤往返、物品詞綴數值頁宿主數值 + 條件區書籤 / 分享碼往返、碑牌條件區分享碼往返。
+- `regex/test/strict-fragments.test.ts` ③(改寫):14 種稀有度組合 × 分隔寫法、物品 / 怪物稀有度 0–999、單選與第 35 步逐字相同、choice 編解碼與按鈕切換、
+  全部語料行(已汙染只中「已汙染」本身)、PoE1 地圖剪貼簿、兩遊戲中英剪貼簿「已汙染」⇔ 命中(含 `map-t16-corrupted.txt`)、`condText`。
+- `golden/perf-equivalence.json` 重產:**既有 804 鍵 0 變動**(預設輸出與改版前相同),只新增 5 個條件區的 180 鍵。
+- `renderer/test/regex-rarity.test.ts`:字串兩語(不含 `|@$`)、RegexAlgoList `rarity` 分支、條件區標題 / 說明、物品詞綴數值頁掛條件區、樣式不用 rem。
+- 瀏覽器(Vite dev,只在預覽分頁內點 DOM):地圖數值區條件列(多選魔法 + 稀有 + 未汙染 → `"稀有度[:：] *(魔法|稀有)" "!^已汙染$"`、自動勾選)、物品基底 / 物品詞綴數值頁頂端「稀有度 / 汙染」區、商店頁預設已汙染;兩組按鈕同一行。
+
+### 待使用者在遊戲內實測
+- `"!^已汙染$"` 在倉庫 / 商店搜尋是否真的排除汙染物品。
+- PoE2 白裝是否顯示「稀有度: 中」(照 clientstrings,沒有剪貼簿樣本);碑牌 / 換界石 / 物品基底的稀有度行寫法(PoE2 繁中樣本只有碑牌(魔法)與裝備)。
 
 ## 相關文件
 - [phase2-summary.md](phase2-summary.md)(WP5 摘要與待辦:逐字 golden)

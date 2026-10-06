@@ -3,6 +3,7 @@ import type { RegexGame, RegexLabels, RegexPage } from '../data'
 import { applyKeys, collectKeys, keyOf, zhLine } from '../state'
 import { numericPages } from './numeric-pages'
 import { vendorPages } from './vendor-pages'
+import { conditionSections } from '../rarity'
 import { isAlgoPage, type AlgoEntry, type AlgoPage, type AlgoValue } from './types'
 
 export * from './types'
@@ -18,9 +19,9 @@ export {
   wholeLine
 } from './frag'
 
-/** 一個遊戲的全部演算法頁(數值頁在前、商店頁在後);labels = null → 沒有 */
+/** 一個遊戲的全部演算法頁(數值頁在前、商店頁在後,再來是第 40 步的稀有度 / 汙染條件區);labels = null → 沒有 */
 export function algoPages (game: RegexGame, labels: RegexLabels | null): RegexPage[] {
-  return [...numericPages(game, labels), ...vendorPages(game, labels)]
+  return [...numericPages(game, labels), ...vendorPages(game, labels), ...conditionSections(game, labels)]
 }
 
 /** 頁面下拉選單上的頁:不含嵌入宿主頁的數值區(第 32 步) */

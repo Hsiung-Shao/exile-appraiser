@@ -4,13 +4,15 @@
   + 這一列產生的片段預覽。改值會順手勾起該列(store.setValue)。片段由 regex/src/pages/ 產生,不經 Corpus。
   第 32 步:`embedded` = 嵌在宿主詞綴頁頂端的數值區(RegexNumericSection.vue 包一層可收合的卡片),勾選 / 清除都以 `page.id` 指定頁,
   不依賴「目前頁」。
+  第 40 步:稀有度 | 汙染條件列(input kind `rarity`):兩組 .seg —— 稀有度可多選、汙染二選一(再點同一個 = 取消),中間一條分隔線;
+  條件區(物品基底 / 碑牌 / 物品詞綴數值頂端,只有這一列)的工具列說明用 `section_hint_cond`。
   第 37 步:`rowsOnly` = 只畫這些列(物品詞綴數值頁 RegexItemModList.vue 先篩選 / 限量,幾千條不全部畫);`hint` 覆寫工具列說明。
 -->
 <template>
   <component :is="embedded ? 'div' : 'section'" class="rx-algo" :class="{ card: !embedded, embedded }"
     :data-regex="embedded ? 'section-list' : 'algo-list'" :data-page="page.id">
     <div class="rx-toolbar">
-      <span class="dim rx-algo-hint">{{ hint || t(embedded ? 'ppz.regex.section_hint' : 'ppz.regex.algo_hint') }}</span>
+      <span class="dim rx-algo-hint">{{ hint || t(embedded ? (condSection ? 'ppz.regex.section_hint_cond' : 'ppz.regex.section_hint') : 'ppz.regex.algo_hint') }}</span>
       <span class="grow" />
       <button class="btn sm" :data-regex="embedded ? 'section-clear' : 'clear'" :disabled="!picked.length" :title="t('ppz.regex.clear_tip')"
         @click="clearPicksOn(page.id)">{{ t('ppz.regex.clear') }}</button>
@@ -56,6 +58,20 @@
               <button v-for="o in r.e.input.options" :key="o.id" :class="{ on: valueOf(page.id, r.e).choice === o.id }"
                 :data-value="o.id" @click="setChoice(r.e, o.id)">{{ uiEn ? o.en : o.zh }}</button>
             </div>
+            <!-- 稀有度 | 汙染(第 40 步):稀有度多選、汙染二選一可取消 -->
+            <template v-else-if="r.e.input.kind === 'rarity'">
+              <div class="seg rx-algo-seg" :data-regex="`algo-rarity-${r.e.id}`">
+                <button v-for="o in r.e.input.options" :key="o.id" :class="{ on: rarityOf(r.e).rarity.includes(o.id) }"
+                  :data-value="o.id" :aria-pressed="rarityOf(r.e).rarity.includes(o.id)"
+                  @click="setChoice(r.e, toggleRarityIn(valueOf(page.id, r.e).choice, o.id))">{{ uiEn ? o.en : o.zh }}</button>
+              </div>
+              <span class="rx-algo-sep" aria-hidden="true" />
+              <div class="seg rx-algo-seg" :data-regex="`algo-corruption-${r.e.id}`">
+                <button v-for="o in r.e.input.corruption" :key="o.id" :class="{ on: rarityOf(r.e).corruption === o.id }"
+                  :data-value="o.id" :aria-pressed="rarityOf(r.e).corruption === o.id"
+                  @click="setChoice(r.e, toggleCorruptionIn(valueOf(page.id, r.e).choice, o.id as 'uncorrupted' | 'corrupted'))">{{ uiEn ? o.en : o.zh }}</button>
+              </div>
+            </template>
             <!-- 顏色數 -->
             <template v-else-if="r.e.input.kind === 'count'">
               <div class="seg" :data-regex="`algo-choice-${r.e.id}`">
@@ -86,7 +102,9 @@
 <script lang="ts">
 import { computed, defineComponent, type PropType } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { rangeOp, type AlgoEntry, type AlgoPage, type AlgoValue, type RangeOp } from '@exile-appraiser/regex'
+import {
+  isConditionSectionId, parseRarityChoice, rangeOp, toggleCorruptionIn, toggleRarityIn, type AlgoEntry, type AlgoPage, type AlgoValue, type RangeOp
+} from '@exile-appraiser/regex'
 import { AppConfig } from '@/web/Config'
 import { clearPicksOn, picksOf, setValue, togglePickOn, useRegexStore, valueOf } from './store'
 
@@ -166,6 +184,10 @@ export default defineComponent({
       setOp,
       setNum,
       setChoice,
+      rarityOf: (e: AlgoEntry) => parseRarityChoice(valueOf(props.page.id, e).choice),
+      toggleRarityIn,
+      toggleCorruptionIn,
+      condSection: computed(() => isConditionSectionId(props.page.id)),
       colorCount,
       setColor,
       togglePickOn,
@@ -189,6 +211,13 @@ export default defineComponent({
 .rx-algo-hint {
   font-size: var(--fs-xs);
   color: var(--ink-3);
+}
+/* 稀有度 | 汙染之間的分隔線(第 40 步) */
+.rx-algo-sep {
+  align-self: stretch;
+  width: 1px;
+  margin: 0.2em 0.3em;
+  background: var(--edge-1);
 }
 .rx-algo-group {
   display: flex;

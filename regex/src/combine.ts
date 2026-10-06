@@ -4,7 +4,8 @@
 // 合成規則:
 //   * 語料頁(mods / names)用面板的模式:any → 全部頁的 token 以 `|` 併成**一個** term;all → 每個 token 各一個 term;
 //     none → 併進**唯一一個** `"!a|b|…"` term。
-//   * 演算法頁(numeric / sockets)每個勾選各一個 term(同時成立;例:階級 ≥16 且 物品數量 ≥80)。
+//   * 演算法頁(numeric / sockets)每個勾選各一個 term(同時成立;例:階級 ≥16 且 物品數量 ≥80);
+//     第 40 步的稀有度 | 汙染條件列一個勾選可出兩個 term(`AlgoEntry.terms`),`!` 開頭的 term 加引號。
 //   * 自訂文字:使用者輸入 → 正則跳脫 → 獨立 term(不驗證,標 unverified)。
 //   * 排除詞:跳脫後併進 none 的那個 `!` term。
 //   順序:any term、all terms、演算法 terms、自訂 terms、none term。只有一個語料頁時,結果與該頁 `Corpus.build().query` 逐字相同。
@@ -78,7 +79,8 @@ export interface CombineResult {
 
 /** gen.ts `QuoteIfNeeded` 同規則 */
 function quoteIfNeeded (term: string): string {
-  return term.includes(' ') ? `"${term}"` : term
+  // `!` 開頭 = 否定片段(第 40 步條件列「未汙染」):包引號讓 `!` 作用於整個 term
+  return term.includes(' ') || term.startsWith('!') ? `"${term}"` : term
 }
 
 /** 使用者輸入 → 遊戲搜尋列的字面 term:去掉 `"`(term 界線)、跳脫正則語法、開頭的 `!` 也跳脫 */
@@ -169,15 +171,24 @@ export function combine (input: CombineInput): CombineResult {
       let bad = 0
       for (const i of picks) {
         const e = sel.page.entries[i]
-        const f = e.fragment(sel.values?.[e.id] ?? e.input.def, lang)
-        if (!f) {
+        const v = sel.values?.[e.id] ?? e.input.def
+        // 第 40 步:一列可以輸出多個 term(稀有度 | 汙染條件列),各自一個 AND term
+        let ts: string[] | null
+        if (e.terms) ts = e.terms(v, lang)
+        else {
+          const f = e.fragment(v, lang)
+          ts = f ? [f] : null
+        }
+        if (!ts?.length) {
           bad++
           conflicts.push({ kind: 'invalid', page: sel.page.id, entry: e.id, text: e[lang][0] ?? e.id })
           continue
         }
-        frags.push(f)
-        algoTerms.push(quoteIfNeeded(f))
-        algoFrags.push({ page: sel.page.id, entry: e.id, frag: f, own: e.ownLine })
+        for (const f of ts) {
+          frags.push(f)
+          algoTerms.push(quoteIfNeeded(f))
+          algoFrags.push({ page: sel.page.id, entry: e.id, frag: f, own: e.ownLine })
+        }
       }
       perPage.push({
         id: sel.page.id, kind, picked: picks.length, unresolved: bad, fragments: frags,
@@ -246,6 +257,8 @@ export function combine (input: CombineInput): CombineResult {
       return (linesMemo = out)
     }
     for (const f of algoFrags) {
+      // 否定片段(`!…`)不會「誤中」詞綴行
+      if (f.frag.startsWith('!')) continue
       const re = safeRegExp(f.frag)
       if (!re) continue
       const hit = getLines().find(l => re.test(l.text) && !f.own?.(l.raw))

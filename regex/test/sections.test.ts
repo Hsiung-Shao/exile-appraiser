@@ -21,7 +21,8 @@ const all = { poe1: loadAllPagesFor('poe1'), poe2: loadAllPagesFor('poe2') }
 const HOST = { poe1: 'map_mods', poe2: 'waystone_mods' } as const
 const SEC = { poe1: 'map_numeric', poe2: 'waystone_numeric' } as const
 const VENDOR = { poe1: 'vendor_items', poe2: 'vendor_items_poe2' } as const
-const OTHER = { poe1: 'logbook_mods', poe2: 'tablet_mods' } as const
+// 沒有嵌入區的頁(第 40 步起 PoE2 碑牌詞綴有稀有度 / 汙染條件區,改用遺物詞綴)
+const OTHER = { poe1: 'logbook_mods', poe2: 'relic_mods' } as const
 const MODES: Mode[] = ['any', 'all', 'none']
 const byId = (pages: RegexPage[], id: string): RegexPage => pages.find(p => p.id === id)!
 
@@ -142,7 +143,15 @@ describe('sections:頁組成', () => {
     })
   }
   it('id 對照', () => {
-    expect(SECTION_HOSTS).toEqual({ map_numeric: 'map_mods', waystone_numeric: 'waystone_mods' })
+    expect(SECTION_HOSTS).toEqual({
+      map_numeric: 'map_mods',
+      waystone_numeric: 'waystone_mods',
+      // 第 40 步:稀有度 / 汙染條件區
+      vendor_bases_cond: 'vendor_bases',
+      tablet_mods_cond: 'tablet_mods',
+      item_mod_values_cond: 'item_mod_values',
+      item_mod_values_poe2_cond: 'item_mod_values_poe2'
+    })
     expect(sectionHostOf('map_numeric')).toBe('map_mods')
     expect(sectionHostOf('map_mods')).toBeUndefined()
     expect(sectionHostOf('toString')).toBeUndefined()

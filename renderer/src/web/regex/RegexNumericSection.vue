@@ -4,6 +4,7 @@
   (store `pageCombined` / `combined` 走 `combineSels`,數值區緊接宿主頁)。
   列 UI 重用 RegexAlgoList.vue(`embedded`);預設展開,收合狀態存在 regex_state.json 的 `collapsed`,
   收合時標題列仍顯示已設條件的摘要(regex/src/view.ts `sectionSummary`)。
+  第 40 步:同一個元件也畫「稀有度 / 汙染」條件區(物品基底、碑牌詞綴、物品詞綴數值頂端,只有條件列一列),標題換 `section_title_cond`。
 -->
 <template>
   <section class="card rx-sec" data-regex="section" :data-page="section.id" :data-host="hostId"
@@ -11,7 +12,7 @@
     <button type="button" class="rx-sec-head" data-regex="section-toggle" :aria-expanded="!collapsed"
       :title="t(collapsed ? 'ppz.regex.section_expand' : 'ppz.regex.section_collapse')" @click="toggle">
       <span class="rx-sec-caret" aria-hidden="true">{{ collapsed ? '▸' : '▾' }}</span>
-      <span class="rx-sec-title">{{ t('ppz.regex.section_title') }}</span>
+      <span class="rx-sec-title">{{ t(condSection ? 'ppz.regex.section_title_cond' : 'ppz.regex.section_title') }}</span>
       <span class="rx-sec-count num" data-regex="section-count">{{ t('ppz.regex.section_count', { n: picked.length, total: section.entries.length }) }}</span>
       <span v-if="contrib > 0" class="rx-sec-len num" data-regex="section-length">{{ t('ppz.regex.section_length', { n: contrib }) }}</span>
       <span v-if="collapsed" class="rx-sec-summary" data-regex="section-summary">
@@ -30,7 +31,7 @@
 <script lang="ts">
 import { computed, defineComponent, type PropType } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { sectionSummary, type AlgoPage } from '@exile-appraiser/regex'
+import { isConditionSectionId, sectionSummary, type AlgoPage } from '@exile-appraiser/regex'
 import { AppConfig } from '@/web/Config'
 import RegexAlgoList from './RegexAlgoList.vue'
 import { isCollapsed, picksOf, setCollapsed, useRegexStore, valueOf } from './store'
@@ -50,6 +51,7 @@ export default defineComponent({
     return {
       t,
       hostId,
+      condSection: computed(() => isConditionSectionId(props.section.id)),
       collapsed,
       picked,
       /** 這一區在目前單頁輸出裡的貢獻字數(片段 + 分隔) */

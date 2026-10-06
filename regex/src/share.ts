@@ -11,7 +11,7 @@
 // 解碼 / 正規化的結果一律是 v2。舊版程式(只認 v1)讀 v2 會明確回「版本不符」,不會靜默丟掉數值條件。
 import type { Mode } from './gen'
 import type { RegexGame, RegexPage } from './data'
-import { applyPageKeys, sanitizeValue, sectionPageOf } from './pages'
+import { applyPageKeys, isAlgoPage, sanitizeValue, sectionPageOf } from './pages'
 import type { AlgoValue } from './pages/types'
 import { SECTION_HOSTS, unionKeys } from './sections'
 
@@ -253,12 +253,17 @@ export function resolveState (s: ShareState, pages: readonly RegexPage[]): Resol
     out.missed += r.missed
   }
   for (const [id, ents] of Object.entries(s.numeric)) {
-    // 宿主詞綴頁 id → 它的數值區;其他(商店頁)= 自己
-    const page = sectionPageOf(mine, id) ?? mine.find(p => p.id === id)
-    if (!page) { if (!out.unknownPages.includes(id)) out.unknownPages.push(id); continue }
-    const m: Record<string, AlgoValue> = {}
-    for (const [eid, v] of Object.entries(ents)) if (page.entries.some(e => e.id === eid)) m[eid] = { ...v }
-    out.values[page.id] = m
+    // 宿主詞綴頁 id → 它的數值區;其他(商店頁)= 自己。宿主本身也是演算法頁時(第 40 步:物品詞綴數值頁 + 條件區)
+    // 兩邊共用這個鍵,依項目 id 各自分回去
+    const sec = sectionPageOf(mine, id)
+    const own = mine.find(p => p.id === id)
+    const targets: RegexPage[] = sec ? [sec, ...(own && isAlgoPage(own) ? [own] : [])] : own ? [own] : []
+    if (!targets.length) { if (!out.unknownPages.includes(id)) out.unknownPages.push(id); continue }
+    for (const page of targets) {
+      const m: Record<string, AlgoValue> = {}
+      for (const [eid, v] of Object.entries(ents)) if (page.entries.some(e => e.id === eid)) m[eid] = { ...v }
+      out.values[page.id] = m
+    }
   }
   return out
 }

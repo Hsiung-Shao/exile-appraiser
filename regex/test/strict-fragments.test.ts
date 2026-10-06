@@ -2,7 +2,7 @@
 // 依據與推理見 regex/src/pages/frag.ts「嚴格寫法」段。本檔驗:
 //   ① 0–999 逐值 × 分隔寫法(半形 / 全形冒號、有無空白、有無 +、(augmented)、% 前空白)
 //   ② 跨行負例:標籤行數值不符、下一行有符合的數值 → `.` 跨行或不跨行兩種假設下都不中(舊 `.*` 寫法在跨行假設下會中)
-//   ③ 稀有度列不中「物品稀有度 / 怪物稀有度」行與任何語料行;真實剪貼簿樣本只中稀有度那一行
+//   ③ 稀有度 | 汙染條件列(第 40 步起稀有度可多選、併入汙染)不中「物品稀有度 / 怪物稀有度」行與任何語料行;真實剪貼簿樣本只中稀有度 / 汙染那一行
 //   ④ 階級:名稱格式的證據(APT 解析器、items.ndjson、剪貼簿樣本)+ 逐值
 //   ⑤ 舊書籤 / 分享碼(只存數值)換成新片段後,對真實格式的屬性行命中集合與舊片段相同
 import fs from 'node:fs'
@@ -10,6 +10,7 @@ import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { isCorpusPage } from '../src/data'
 import { defaultRegexDataDir, loadAllPagesFor } from '../src/node'
+import { encodeRarityChoice, parseRarityChoice, toggleCorruptionIn, toggleRarityIn, type Corruption } from '../src/rarity'
 import {
   isAlgoPage, mapTierFragment, propertyFragment, rarityFragment, strictPropertyFragment, type AlgoEntry, type AlgoPage, type AlgoValue
 } from '../src/pages'
@@ -148,23 +149,47 @@ function corpusLines (): string[] {
   return [...out]
 }
 
-describe('③ 稀有度列', () => {
+describe('③ 稀有度 | 汙染條件列(第 35 步稀有度列;第 40 步起稀有度可多選、併入汙染)', () => {
+  const rowOf = (game: 'poe1' | 'poe2'): AlgoEntry => numPage(game).entries.find(x => x.id === 'item_rarity_class')!
+  const optsOf = (e: AlgoEntry) => {
+    if (e.input.kind !== 'rarity') throw new Error('rarity')
+    return e.input
+  }
+  /** 全部非空、非全選的稀有度組合(全選 = 不加稀有度條件) */
+  const subsets = (ids: string[]): string[][] => {
+    const out: string[][] = []
+    for (let m = 1; m < (1 << ids.length) - 1; m++) out.push(ids.filter((_, i) => m & (1 << i)))
+    return out
+  }
+  const choiceOf = (rarity: string[], corruption: Corruption = ''): AlgoValue => ({ choice: encodeRarityChoice({ rarity, corruption }) })
   for (const game of GAMES) {
-    it(`${game}:四個選項 × 分隔寫法命中;別的選項、物品稀有度 / 怪物稀有度 0–999 都不中`, () => {
-      const e = numPage(game).entries.find(x => x.id === 'item_rarity_class')!
-      expect(e, '稀有度列存在').toBeTruthy()
-      expect(e.input.kind).toBe('select')
-      if (e.input.kind !== 'select') return
-      expect(e.input.options.map(o => o.id)).toEqual(['normal', 'magic', 'rare', 'unique'])
+    it(`${game}:條件列在數值區最後;四個稀有度 + 未 / 已汙染;預設仍是稀有(普通的繁中照 clientstrings)`, () => {
+      const p = numPage(game)
+      const e = rowOf(game)
+      expect(p.entries[p.entries.length - 1].id).toBe(e.id)
+      const inp = optsOf(e)
+      expect(inp.options.map(o => o.id)).toEqual(['normal', 'magic', 'rare', 'unique'])
+      expect(inp.options[0].zh).toBe(game === 'poe1' ? '普通' : '中')
+      expect(inp.corruption.map(o => [o.id, o.zh, o.en])).toEqual([['uncorrupted', '未汙染', 'Not Corrupted'], ['corrupted', '已汙染', 'Corrupted']])
+      expect(inp.def).toEqual({ choice: 'rare' })
+      expect(e.terms!(choiceOf([]), 'zh')).toBeNull()
+      expect(e.terms!(choiceOf(['normal', 'magic', 'rare', 'unique']), 'zh')).toBeNull()
+      expect(e.terms!(choiceOf(['normal', 'magic', 'rare', 'unique'], 'uncorrupted'), 'zh')).toEqual(['!^已汙染$'])
+    })
+    it(`${game}:每個稀有度組合 × 分隔寫法只中選到的;物品稀有度 / 怪物稀有度 0–999 都不中`, () => {
+      const e = rowOf(game)
+      const inp = optsOf(e)
       for (const lang of ['zh', 'en'] as const) {
         const rarityLabel = lang === 'zh' ? e.zh[0] : e.en[0]
         const itemRarity = lang === 'zh' ? '物品稀有度' : 'Item Rarity'
         const monsterRarity = lang === 'zh' ? '怪物稀有度' : 'Monster Rarity'
-        for (const o of e.input.options) {
-          const r = ci(e.fragment({ choice: o.id }, lang)!)
-          for (const opt of e.input.options) {
+        for (const pick of subsets(inp.options.map(o => o.id))) {
+          const ts = e.terms!(choiceOf(pick), lang)!
+          expect(ts.length).toBe(1)
+          const r = ci(ts[0])
+          for (const opt of inp.options) {
             const val = lang === 'zh' ? opt.zh : opt.en
-            for (const sep of [': ', '：', ':', '： ']) expect(r.test(`${rarityLabel}${sep}${val}`)).toBe(opt.id === o.id)
+            for (const sep of [': ', '：', ':', '： ']) expect(r.test(`${rarityLabel}${sep}${val}`), `${pick} ${val}`).toBe(pick.includes(opt.id))
           }
           for (let n = 0; n <= 999; n++) {
             for (const lab of [itemRarity, monsterRarity]) {
@@ -177,24 +202,56 @@ describe('③ 稀有度列', () => {
       }
     })
   }
-  it('兩遊戲全部語料行(詞綴 / 隱藏 / ambient,中英,# 代入樣本值)都不中任何稀有度片段', () => {
+  it('單選與第 35 步 rarityFragment 逐字相同(舊單字 choice 照讀);多選依固定順序;汙染各自一個 term', () => {
+    const e = rowOf('poe1')
+    expect(e.fragment({ choice: 'rare' }, 'zh')).toBe(rarityFragment('稀有度', '稀有'))
+    expect(e.fragment({ choice: 'rare' }, 'zh')).toBe('稀有度[:：] *稀有')
+    expect(e.fragment({ choice: 'normal' }, 'zh')).toBe('稀有度[:：] *普通')
+    expect(e.fragment({ choice: 'unique' }, 'en')).toBe('Rarity[:：] *Unique')
+    expect(e.terms!(choiceOf(['rare', 'magic'], 'uncorrupted'), 'zh')).toEqual(['稀有度[:：] *(魔法|稀有)', '!^已汙染$'])
+    expect(e.terms!(choiceOf(['unique', 'normal', 'rare'], 'corrupted'), 'en')).toEqual(['Rarity[:：] *(Normal|Rare|Unique)', '^Corrupted$'])
+    expect(rowOf('poe2').terms!(choiceOf(['normal', 'magic']), 'zh')).toEqual(['稀有度[:：] *(中|魔法)'])
+    expect(e.fragment(choiceOf(['magic'], 'corrupted'), 'zh')).toBe('稀有度[:：] *魔法 ^已汙染$')
+  })
+  it('choice 編解碼:新格式、舊單字、壞值;按鈕切換', () => {
+    expect(parseRarityChoice('mr|u')).toEqual({ rarity: ['magic', 'rare'], corruption: 'uncorrupted' })
+    expect(parseRarityChoice('|c')).toEqual({ rarity: [], corruption: 'corrupted' })
+    expect(parseRarityChoice('magic')).toEqual({ rarity: ['magic'], corruption: '' })
+    expect(parseRarityChoice('xyz|q')).toEqual({ rarity: [], corruption: '' })
+    expect(parseRarityChoice(undefined)).toEqual({ rarity: [], corruption: '' })
+    expect(encodeRarityChoice({ rarity: ['unique', 'normal'], corruption: 'corrupted' })).toBe('nu|c')
+    expect(encodeRarityChoice({ rarity: ['rare'], corruption: '' })).toBe('r')
+    expect(toggleRarityIn('rare', 'magic')).toBe('mr')
+    expect(toggleRarityIn('mr|u', 'rare')).toBe('m|u')
+    expect(toggleCorruptionIn('m', 'uncorrupted')).toBe('m|u')
+    expect(toggleCorruptionIn('m|u', 'corrupted')).toBe('m|c')
+    expect(toggleCorruptionIn('m|c', 'corrupted')).toBe('m')
+    for (const id of ['normal', 'magic', 'rare', 'unique']) expect(encodeRarityChoice(parseRarityChoice(id))).toHaveLength(1)
+    expect(encodeRarityChoice({ rarity: ['normal', 'magic', 'rare', 'unique'], corruption: 'uncorrupted' }).length).toBeLessThanOrEqual(16)
+  })
+  it('兩遊戲全部語料行(詞綴 / 隱藏 / ambient,中英,# 代入樣本值)都不中任何稀有度組合;已汙染只中「已汙染」這行本身', () => {
     const lines = corpusLines()
     expect(lines.length).toBeGreaterThan(1000)
     for (const game of GAMES) {
-      const e = numPage(game).entries.find(x => x.id === 'item_rarity_class')!
-      if (e.input.kind !== 'select') throw new Error('select')
-      for (const o of e.input.options) {
+      const e = rowOf(game)
+      for (const pick of subsets(optsOf(e).options.map(o => o.id))) {
         for (const lang of ['zh', 'en'] as const) {
-          const r = ci(e.fragment({ choice: o.id }, lang)!)
+          const r = ci(e.terms!(choiceOf(pick), lang)![0])
           const hit = lines.find(l => r.test(l))
-          expect(hit, `${game} ${o.id} ${lang}`).toBeUndefined()
+          expect(hit, `${game} ${pick} ${lang}`).toBeUndefined()
         }
+      }
+      for (const lang of ['zh', 'en'] as const) {
+        const word = lang === 'zh' ? '已汙染' : 'Corrupted'
+        const r = ci(e.terms!(choiceOf([], 'corrupted'), lang)![0])
+        expect(r.test(word)).toBe(true)
+        expect(lines.find(l => l !== word && r.test(l)), `${game} ${lang}`).toBeUndefined()
       }
     }
   })
-  it('PoE1 真實剪貼簿(繁中 / 英文地圖樣本):只中「稀有度: X」那一行,且只有對的選項中', () => {
-    const e = numPage('poe1').entries.find(x => x.id === 'item_rarity_class')!
-    if (e.input.kind !== 'select') throw new Error('select')
+  it('PoE1 真實剪貼簿(繁中 / 英文地圖樣本):只中「稀有度: X」那一行,且只有含它的組合中', () => {
+    const e = rowOf('poe1')
+    const inp = optsOf(e)
     const dirs = [['poe1/test/fixtures/cmn-Hant', 'zh'], ['poe1/test/fixtures/filter-visibility', 'zh'], ['poe1/test/fixtures/en', 'en']] as const
     let files = 0
     for (const [dir, lang] of dirs) {
@@ -202,24 +259,45 @@ describe('③ 稀有度列', () => {
         const lines = readLines(`${dir}/${name}`)
         const rarityLine = lines.find(l => /^(稀有度|Rarity): /.test(l))!
         expect(rarityLine, name).toBeTruthy()
-        for (const o of e.input.options) {
-          const r = ci(e.fragment({ choice: o.id }, lang)!)
+        for (const pick of subsets(inp.options.map(o => o.id))) {
+          const r = ci(e.terms!(choiceOf(pick), lang)![0])
           const hits = lines.filter(l => r.test(l))
-          const want = rarityLine.endsWith(lang === 'zh' ? o.zh : o.en) ? [rarityLine] : []
-          expect(hits, `${name} ${o.id}`).toEqual(want)
+          const on = inp.options.some(o => pick.includes(o.id) && rarityLine.endsWith(lang === 'zh' ? o.zh : o.en))
+          expect(hits, `${name} ${pick}`).toEqual(on ? [rarityLine] : [])
         }
         files++
       }
     }
     expect(files).toBeGreaterThanOrEqual(13)
   })
-  it('收合摘要 condText 顯示選項文字(不是 id);未知選項 = 不成立', () => {
-    const e = numPage('poe1').entries.find(x => x.id === 'item_rarity_class')!
+  it('真實剪貼簿(兩遊戲 × 中英):有「已汙染 / Corrupted」行的樣本 ⇔ 已汙染 term 命中(含汙染的 T16 地圖)', () => {
+    const dirs = [
+      ['poe1', 'poe1/test/fixtures/cmn-Hant', 'zh'], ['poe1', 'poe1/test/fixtures/filter-visibility', 'zh'], ['poe1', 'poe1/test/fixtures/en', 'en'],
+      ['poe2', 'poe2/test/zhTW/fixtures/cmn-Hant', 'zh'], ['poe2', 'poe2/test/zhTW/fixtures/en', 'en']
+    ] as const
+    const hitFiles: string[] = []
+    let files = 0
+    for (const [game, dir, lang] of dirs) {
+      const r = ci(rowOf(game).terms!(choiceOf([], 'corrupted'), lang)![0])
+      for (const name of fs.readdirSync(path.join(ROOT, dir)).filter(n => n.endsWith('.txt'))) {
+        const lines = readLines(`${dir}/${name}`)
+        const has = lines.some(l => l === (lang === 'zh' ? '已汙染' : 'Corrupted'))
+        if (has) hitFiles.push(name)
+        expect(lines.some(l => r.test(l)), name).toBe(has)
+        files++
+      }
+    }
+    expect(files).toBeGreaterThanOrEqual(30)
+    expect(hitFiles).toContain('map-t16-corrupted.txt')
+  })
+  it('收合摘要 condText:「魔法、稀有 · 未汙染」;舊單字照讀;什麼都沒選 = 不成立', () => {
+    const e = rowOf('poe1')
     expect(condText(e, { choice: 'rare' }, 'zh')).toBe('稀有')
     expect(condText(e, { choice: 'normal' }, 'zh')).toBe('普通')
     expect(condText(e, { choice: 'unique' }, 'en')).toBe('Unique')
+    expect(condText(e, choiceOf(['magic', 'rare'], 'uncorrupted'), 'zh')).toBe('魔法、稀有 · 未汙染')
+    expect(condText(e, choiceOf([], 'corrupted'), 'en')).toBe('Corrupted')
     expect(condText(e, { choice: 'nope' }, 'zh')).toBeNull()
-    expect(e.input.kind === 'select' && e.input.def.choice).toBe('rare')
   })
   it('rarityFragment:空值回 null', () => {
     expect(rarityFragment('稀有度', '')).toBeNull()

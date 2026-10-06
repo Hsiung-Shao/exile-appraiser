@@ -41,6 +41,12 @@ export { bookmarkApplyOf, bookmarkBodyOf, combineSels, resolvedValues, savedPick
 export type { BookmarkApply, PicksMap, ValuesMap } from './embed'
 export { bookmarkHotkeys, bookmarkQuery, findBookmark, quickBookmarks } from './quick'
 export {
+  CONDITION_SECTIONS, RARITY_LABEL_KEYS, conditionSections, encodeRarityChoice, isConditionSectionId, parseRarityChoice, rarityConditionEntry,
+  rarityConditionText,
+  toggleCorruptionIn, toggleRarityIn
+} from './rarity'
+export type { Corruption, RarityChoice } from './rarity'
+export {
   FOLDER_NAME_MAX, addFolder, deleteFolder, folderCounts, folderList, groupBookmarks, isFolderCollapsed, moveBookmark, moveBookmarkBy,
   moveFolderBy, moveFolderTo, normalizeFolderName, normalizeFolders, renameFolder, setFolderCollapsed, sortBookmarks
 } from './folders'

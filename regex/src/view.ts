@@ -5,6 +5,7 @@
 import type { RegexEntry, RegexLang, RegexPage } from './data'
 import { rangeOp, type AlgoEntry, type AlgoPage, type AlgoValue } from './pages/types'
 import { zhLine } from './state'
+import { rarityConditionText } from './rarity'
 
 /** regex_tool_ui.cpp:69 `EnLine`:英文全部行以「 / 」接起(同一個中文名對到多個英文時全列);沒有英文就退回中文 */
 export function enLine (d: RegexEntry): string {
@@ -107,6 +108,8 @@ export interface SectionSummaryItem {
 /** 數值條件 → 「≥16」「≤5%」「10–20%」;不是範圍輸入就顯示選項 id;不成立 = null */
 export function condText (e: AlgoEntry, v: AlgoValue, lang: RegexLang): string | null {
   if (e.fragment(v, lang) === null) return null
+  // 第 40 步:稀有度 | 汙染條件列 →「魔法、稀有 · 未汙染」
+  if (e.input.kind === 'rarity') return rarityConditionText(e, v, lang)
   if (e.input.kind === 'select') {
     // 選項顯示文字(稀有度「稀有」),不是 id
     const o = e.input.options.find(x => x.id === v.choice)
