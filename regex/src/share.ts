@@ -217,23 +217,31 @@ export async function encodeShare (state: ShareState): Promise<string> {
     custom: state.custom,
     excludes: state.excludes
   }
-  const gz = await pipe(textEncoder().encode(JSON.stringify(doc)), new (streamCtor('CompressionStream'))('gzip'))
+  return await gzipBase64url(JSON.stringify(doc))
+}
+
+/** JSON 字串 → gzip → base64url(分享碼與書籤包共用;第 40 步書籤包 bookmarks-share.ts) */
+export async function gzipBase64url (json: string): Promise<string> {
+  const gz = await pipe(textEncoder().encode(json), new (streamCtor('CompressionStream'))('gzip'))
   return base64url(gz)
 }
 
-export async function decodeShare (code: string): Promise<{ state: ShareState, warnings: string[] }> {
+/** base64url → gunzip → JSON 值;`label` = 錯誤訊息用的名稱(分享碼 / 書籤包)。長度與解壓上限同 SHARE_MAX_* */
+export async function gunzipBase64url (code: string, label = '分享碼'): Promise<unknown> {
   const text = code.trim()
-  if (!text) throw new Error('分享碼是空的')
-  if (text.length > SHARE_MAX_CODE_CHARS) throw new Error(`分享碼太長(${text.length} 字元)`)
+  if (!text) throw new Error(`${label}是空的`)
+  if (text.length > SHARE_MAX_CODE_CHARS) throw new Error(`${label}太長(${text.length} 字元)`)
   let json: string
   try {
     json = textDecoder().decode(await pipe(fromBase64url(text), new (streamCtor('DecompressionStream'))('gzip'), SHARE_MAX_JSON_BYTES))
   } catch (e) {
-    throw new Error(`分享碼無法解壓縮(${e instanceof Error ? e.message : String(e)})`)
+    throw new Error(`${label}無法解壓縮(${e instanceof Error ? e.message : String(e)})`)
   }
-  let raw: unknown
-  try { raw = JSON.parse(json) } catch { throw new Error('分享碼內容不是 JSON') }
-  return normalizeShareState(raw, true)
+  try { return JSON.parse(json) } catch { throw new Error(`${label}內容不是 JSON`) }
+}
+
+export async function decodeShare (code: string): Promise<{ state: ShareState, warnings: string[] }> {
+  return normalizeShareState(await gunzipBase64url(code, '分享碼'), true)
 }
 
 // ---- 套用(分享碼 / 範本共用) ----

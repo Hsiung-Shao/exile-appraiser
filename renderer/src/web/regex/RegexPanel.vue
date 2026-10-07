@@ -161,15 +161,41 @@
           </div>
         </div>
       </div>
-      <!-- 一鍵從 PobTools 送正則分享碼(incoming-share.ts):確認才套用,取消不改任何狀態;點暗幕不關(避免誤觸) -->
+      <!-- 一鍵從 PobTools 送正則分享碼 / 書籤包(incoming-share.ts):確認才套用 / 加入,取消不改任何狀態;點暗幕不關(避免誤觸) -->
       <div v-if="incoming" class="modal rx-modal" :class="fsClass" :style="fsStyle">
         <div class="rx-dialog" role="dialog" aria-modal="true" data-regex="incoming-dialog" :data-phase="incoming.phase">
-          <div class="rx-dialog-title">{{ t('ppz.regex.incoming_title') }}</div>
+          <div class="rx-dialog-title">{{ t(incoming.kind === 'bookmarks' ? 'ppz.regex.incoming_bm_title' : 'ppz.regex.incoming_title') }}</div>
           <p class="dim" data-regex="incoming-source">{{ t('ppz.regex.incoming_source', { source: 'PobTools' }) }}</p>
           <p v-if="incoming.phase === 'loading'" class="pulse">{{ t('ppz.regex.incoming_loading') }}</p>
           <p v-else-if="incoming.phase === 'error'" class="rx-bad" data-regex="incoming-error" :data-reason="incoming.reason">
             {{ t(`ppz.regex.incoming_err_${incoming.reason}`, { detail: incoming.detail }) }}
           </p>
+          <!-- 第 40 步:書籤包 —— 依遊戲 → 資料夾列出要加入的書籤;新資料夾、改名、找不到的項目另外標示 -->
+          <template v-else-if="incoming.phase === 'confirm-bookmarks'">
+            <p data-regex="incoming-bm-total">{{ t('ppz.regex.incoming_bm_total', { n: incoming.summary.total }) }}</p>
+            <p class="dim">{{ t('ppz.regex.incoming_bm_keep') }}</p>
+            <div class="rx-incoming-list" data-regex="incoming-bm-list">
+              <div v-for="g in incoming.summary.games" :key="g.game" class="rx-incoming-game" :data-game="g.game">
+                <div class="label">{{ gameLabel(g.game) }}</div>
+                <div v-for="f in g.folders" :key="f.folder" class="rx-incoming-folder" :data-folder="f.folder">
+                  <div class="rx-incoming-fname">
+                    {{ f.folder || t('ppz.regex.fd_uncategorized') }}
+                    <span v-if="f.isNew" class="chip soft" data-regex="incoming-bm-newfolder">{{ t('ppz.regex.incoming_bm_new_folder') }}</span>
+                  </div>
+                  <ul>
+                    <li v-for="(x, k) in f.items" :key="k" data-regex="incoming-bm-item" :data-bm="x.name">
+                      <template v-if="x.name !== x.originalName">{{ t('ppz.regex.incoming_bm_renamed', { from: x.originalName, to: x.name }) }}</template>
+                      <template v-else>{{ x.name }}</template>
+                      <span class="dim">({{ pageTitleOf(x.page) }})</span>
+                      <span v-if="x.missed > 0" class="rx-warn" data-regex="incoming-bm-missed">{{ t('ppz.regex.incoming_bm_missed', { n: x.missed }) }}</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <p v-if="incoming.summary.renamed > 0" class="dim" data-regex="incoming-bm-renamed">{{ t('ppz.regex.incoming_bm_renamed_note', { n: incoming.summary.renamed }) }}</p>
+            <p v-if="incoming.summary.withMissed > 0" class="rx-warn">{{ t('ppz.regex.incoming_bm_missed_note', { n: incoming.summary.withMissed }) }}</p>
+          </template>
           <template v-else>
             <p data-regex="incoming-game">{{ t('ppz.regex.incoming_game', { game: gameLabel(incoming.summary.game) }) }}</p>
             <p class="rx-warn">{{ t('ppz.regex.incoming_overwrite', { game: gameLabel(incoming.summary.game) }) }}</p>
@@ -193,7 +219,8 @@
           </template>
           <div class="rx-dialog-btns">
             <button v-if="incoming.phase === 'confirm'" class="btn primary" data-regex="incoming-ok" @click="confirmIncoming">{{ t('ppz.regex.apply') }}</button>
-            <button class="btn" data-regex="incoming-cancel" @click="cancelIncoming">{{ incoming.phase === 'confirm' ? t('ppz.regex.cancel') : t('ppz.regex.incoming_close') }}</button>
+            <button v-else-if="incoming.phase === 'confirm-bookmarks'" class="btn primary" data-regex="incoming-ok" @click="confirmIncoming">{{ t('ppz.regex.incoming_bm_add') }}</button>
+            <button class="btn" data-regex="incoming-cancel" @click="cancelIncoming">{{ incoming.phase === 'confirm' || incoming.phase === 'confirm-bookmarks' ? t('ppz.regex.cancel') : t('ppz.regex.incoming_close') }}</button>
           </div>
         </div>
       </div>
@@ -422,6 +449,16 @@ export default defineComponent({
   flex-wrap: wrap;
   align-items: center;
   gap: 6px 8px;
+}
+.rx-incoming-game + .rx-incoming-game {
+  margin-top: 6px;
+}
+.rx-incoming-folder ul {
+  margin: 0 0 4px;
+  padding-left: 1.4em;
+}
+.rx-incoming-fname {
+  font-weight: 600;
 }
 .rx-incoming-list {
   margin: 0 0 6px;

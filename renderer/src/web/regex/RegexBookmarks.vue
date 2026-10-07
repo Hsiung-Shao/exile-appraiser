@@ -12,9 +12,10 @@
   - 書籤移到資料夾:每列下拉選單 + 拖曳(握把 ⠿,pointer events + setPointerCapture;放在書籤上 = 插到它前 / 後並進它的資料夾,
     放在資料夾標題 / 空資料夾 = 移到該資料夾最後)。資料夾排序:拖曳標題的握把。鍵盤替代:書籤與資料夾都有上移 / 下移按鈕。
   - 熱鍵衝突提示(`rxbm:<索引>`)只算目前遊戲(main 只註冊目前遊戲的書籤熱鍵),另一代的書籤不顯示衝突。
+  第 40 步:PobTools 送來的書籤加入後(store `bookmarkReveal`)→ 分頁切到那一代、捲到這張卡片、新書籤短暫醒目(`.revealed`)。
 -->
 <template>
-  <section class="card rx-bm" data-regex="bookmarks" :data-tab="tab">
+  <section ref="rootEl" class="card rx-bm" data-regex="bookmarks" :data-tab="tab">
     <div class="rx-bm-head">
       <span class="label">{{ t('ppz.regex.bm_title') }}</span>
       <div class="seg rx-bm-tabs" role="tablist" data-regex="bm-tabs">
@@ -55,7 +56,7 @@
         </div>
         <ul v-if="!g.collapsed" class="rx-bm-list" :class="{ nested: grouped.headers }">
           <li v-for="(x, k) in g.items" :key="x.index" class="rx-bm-item" :data-bm="x.b.name" :data-bm-index="x.index" data-drop-bm="1"
-            :class="{ 'drop-before': isDrop('before', x.index), 'drop-after': isDrop('after', x.index), dragged: drag?.active && drag.src.kind === 'bm' && drag.src.index === x.index }">
+            :class="{ 'drop-before': isDrop('before', x.index), 'drop-after': isDrop('after', x.index), dragged: drag?.active && drag.src.kind === 'bm' && drag.src.index === x.index, revealed: isRevealed(x.b) }">
             <span class="rx-bm-grip" role="button" tabindex="-1" :aria-label="t('ppz.regex.bm_drag')" :title="t('ppz.regex.bm_drag')"
               data-regex="bm-grip" @pointerdown="onGripDown($event, { kind: 'bm', index: x.index })">⠿</span>
             <div class="rx-bm-text">
@@ -162,8 +163,9 @@ import { useHotkeyIssues } from '@/web/settings/useHotkeyIssues'
 import {
   GAMES, addBookmarkFolder, bookmarkGroupsOf, deleteBookmark, deleteBookmarkFolder, gameLabel, loadBookmark, moveBookmarkFolder,
   moveBookmarkStep, moveBookmarkToFolder, pagePickCount, renameBookmark, renameBookmarkFolder, saveBookmark, setBookmarkFolderCollapsed,
-  setBookmarkHotkey, updateBookmark, useRegexStore
+  setBookmarkHotkey, updateBookmark, useRegexStore, bookmarkReveal
 } from './store'
+import type { RegexBookmark } from '@exile-appraiser/regex'
 
 /** 拖曳來源 */
 type DragSrc = { kind: 'bm', index: number } | { kind: 'folder', name: string }
@@ -321,10 +323,27 @@ export default defineComponent({
     }
     onUnmounted(() => endDrag(null, false))
 
+    // 第 40 步:PobTools 送來的書籤剛加入 → 切到那一代、捲到卡片、新書籤醒目約 4 秒
+    const rootEl = ref<HTMLElement | null>(null)
+    const revealed = shallowRef<Set<string>>(new Set())
+    let revealTimer: ReturnType<typeof setTimeout> | undefined
+    watch(bookmarkReveal, (r) => {
+      if (!r) return
+      tab.value = r.game
+      revealed.value = new Set(r.keys)
+      clearTimeout(revealTimer)
+      revealTimer = setTimeout(() => { revealed.value = new Set() }, 4000)
+      void nextTick(() => { rootEl.value?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }) })
+    })
+    onUnmounted(() => { clearTimeout(revealTimer) })
+    const isRevealed = (b: RegexBookmark) => revealed.value.size > 0 && b.game === tab.value && revealed.value.has(`${b.folder ?? ''}\u0000${b.name}`)
+
     const settingsFs = useSettingsFs()
     // 第 33 步:書籤熱鍵的衝突 / 保留鍵 / 被佔用(與熱鍵總表同一套;只算目前遊戲)
     const { issueText } = useHotkeyIssues()
     return {
+      rootEl,
+      isRevealed,
       issueText,
       setBookmarkHotkey,
       /** 對話框 Teleport 到 body,綁設定視窗獨立字級變數(第 21 步)+ `fs-own`(控制項補高,code review 第 C 批) */
@@ -550,6 +569,10 @@ export default defineComponent({
   gap: 4px 10px;
   padding: 6px 0;
   border-top: 1px solid var(--edge-0);
+}
+.rx-bm-item.revealed {
+  background: var(--gold-soft);
+  transition: background 0.4s;
 }
 .rx-bm-item:first-child {
   border-top: 0;

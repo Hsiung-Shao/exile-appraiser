@@ -17,19 +17,29 @@ const CODE = 'H4sIAAAAAAAAA-_abc123'
 
 describe('findRegexShareArg', () => {
   it('兩種寫法:--flag=值 / --flag 值', () => {
-    expect(findRegexShareArg([EXE, `--regex-share=${CODE}`])).toEqual({ via: 'arg', value: CODE })
-    expect(findRegexShareArg([EXE, '--regex-share', CODE])).toEqual({ via: 'arg', value: CODE })
-    expect(findRegexShareArg([EXE, '--regex-share-file=C:\\t\\a.txt'])).toEqual({ via: 'file', value: 'C:\\t\\a.txt' })
-    expect(findRegexShareArg([EXE, '--regex-share-file', 'a.txt'])).toEqual({ via: 'file', value: 'a.txt' })
+    expect(findRegexShareArg([EXE, `--regex-share=${CODE}`])).toEqual({ kind: 'share', via: 'arg', value: CODE })
+    expect(findRegexShareArg([EXE, '--regex-share', CODE])).toEqual({ kind: 'share', via: 'arg', value: CODE })
+    expect(findRegexShareArg([EXE, '--regex-share-file=C:\\t\\a.txt'])).toEqual({ kind: 'share', via: 'file', value: 'C:\\t\\a.txt' })
+    expect(findRegexShareArg([EXE, '--regex-share-file', 'a.txt'])).toEqual({ kind: 'share', via: 'file', value: 'a.txt' })
   })
   it('Chromium 轉交 second-instance 時開關排前、轉小寫 → 取最後一個一般參數', () => {
-    expect(findRegexShareArg([EXE, '--allow-file-access-from-files', '--REGEX-SHARE', '--original-process-start-time=1', CODE])).toEqual({ via: 'arg', value: CODE })
-    expect(findRegexShareArg([EXE, '--regex-share', '--x'])).toEqual({ via: 'arg', error: 'missing-value', detail: '--regex-share' })
+    expect(findRegexShareArg([EXE, '--allow-file-access-from-files', '--REGEX-SHARE', '--original-process-start-time=1', CODE])).toEqual({ kind: 'share', via: 'arg', value: CODE })
+    expect(findRegexShareArg([EXE, '--regex-share', '--x'])).toEqual({ kind: 'share', via: 'arg', error: 'missing-value', detail: '--regex-share' })
   })
   it('沒有參數 = null;兩個都給 = 錯誤(不猜);不把 argv[0] 當值', () => {
     expect(findRegexShareArg([EXE, '--window'])).toBeNull()
     expect(findRegexShareArg([EXE, `--regex-share=${CODE}`, '--regex-share-file=a'])?.error).toBe('both-flags')
     expect(findRegexShareArg(['--regex-share'])).toBeNull()
+  })
+  it('第 40 步書籤包:--regex-bookmarks / --regex-bookmarks-file;與 --regex-share 同時給 = 錯誤', () => {
+    expect(findRegexShareArg([EXE, `--regex-bookmarks=${CODE}`])).toEqual({ kind: 'bookmarks', via: 'arg', value: CODE })
+    expect(findRegexShareArg([EXE, '--regex-bookmarks-file', 'b.txt'])).toEqual({ kind: 'bookmarks', via: 'file', value: 'b.txt' })
+    expect(findRegexShareArg([EXE, '--REGEX-BOOKMARKS', '--x', CODE])).toEqual({ kind: 'bookmarks', via: 'arg', value: CODE })
+    const both = findRegexShareArg([EXE, `--regex-share=${CODE}`, `--regex-bookmarks=${CODE}`])
+    expect(both).toMatchObject({ error: 'both-flags', detail: expect.stringContaining('--regex-bookmarks') })
+    expect(findRegexShareArg([EXE, '--regex-bookmarks=a', '--regex-bookmarks-file=b'])?.error).toBe('both-flags')
+    expect(hasRegexShareArg([EXE, '--regex-bookmarks-file=x'])).toBe(true)
+    expect(stripRegexShareArgs(['--regex-bookmarks', CODE, '--regex-bookmarks-file=x', '--window'])).toEqual(['--window'])
   })
   it('hasRegexShareArg 只看開關名', () => {
     expect(hasRegexShareArg([EXE, '--regex-share=x'])).toBe(true)
@@ -73,27 +83,27 @@ describe('resolveRegexShareArg(讀檔用假 fs;只讀不刪)', () => {
   const cwd = path.resolve('/work')
   it('參數:合格 → code;不合格 → error,不讀任何檔', async () => {
     const calls: string[] = []
-    expect(await resolveRegexShareArg({ via: 'arg', value: CODE }, cwd, fakeFs({}, calls))).toEqual({ source: 'pobtools', via: 'arg', code: CODE })
-    expect((await resolveRegexShareArg({ via: 'arg', value: 'x y' }, cwd, fakeFs({}, calls))).error?.reason).toBe('charset')
+    expect(await resolveRegexShareArg({ kind: 'share', via: 'arg', value: CODE }, cwd, fakeFs({}, calls))).toEqual({ source: 'pobtools', kind: 'share', via: 'arg', code: CODE })
+    expect((await resolveRegexShareArg({ kind: 'share', via: 'arg', value: 'x y' }, cwd, fakeFs({}, calls))).error?.reason).toBe('charset')
     expect(calls).toEqual([])
   })
   it('檔案:相對路徑以呼叫端工作目錄為準;內容照同一套檢查', async () => {
     const p = path.resolve(cwd, 'share.txt')
     const calls: string[] = []
-    expect(await resolveRegexShareArg({ via: 'file', value: 'share.txt' }, cwd, fakeFs({ [p]: `${CODE}\n` }, calls))).toEqual({ source: 'pobtools', via: 'file', code: CODE })
+    expect(await resolveRegexShareArg({ kind: 'bookmarks', via: 'file', value: 'share.txt' }, cwd, fakeFs({ [p]: `${CODE}\n` }, calls))).toEqual({ source: 'pobtools', kind: 'bookmarks', via: 'file', code: CODE })
     expect(calls).toEqual([`stat ${p}`, `read ${p}`])
   })
   it('檔案錯誤:不存在 / 不是檔案 / 太大 / 內容不合格', async () => {
     const p = path.resolve(cwd, 'x')
-    expect((await resolveRegexShareArg({ via: 'file', value: 'x' }, cwd, fakeFs({}))).error).toMatchObject({ reason: 'file-read', detail: expect.stringContaining('ENOENT') })
-    expect((await resolveRegexShareArg({ via: 'file', value: 'x' }, cwd, fakeFs({ [p]: 'dir' }))).error?.reason).toBe('file-read')
+    expect((await resolveRegexShareArg({ kind: 'share' as const, via: 'file' as const, value: 'x' }, cwd, fakeFs({}))).error).toMatchObject({ reason: 'file-read', detail: expect.stringContaining('ENOENT') })
+    expect((await resolveRegexShareArg({ kind: 'share' as const, via: 'file' as const, value: 'x' }, cwd, fakeFs({ [p]: 'dir' }))).error?.reason).toBe('file-read')
     const big: RegexShareFs = { stat: async () => ({ size: REGEX_SHARE_MAX_FILE_BYTES + 1, isFile: () => true }), readFile: vi.fn() }
-    expect((await resolveRegexShareArg({ via: 'file', value: 'x' }, cwd, big)).error?.reason).toBe('file-too-large')
+    expect((await resolveRegexShareArg({ kind: 'share' as const, via: 'file' as const, value: 'x' }, cwd, big)).error?.reason).toBe('file-too-large')
     expect(big.readFile).not.toHaveBeenCalled()
-    expect((await resolveRegexShareArg({ via: 'file', value: 'x' }, cwd, fakeFs({ [p]: '!!' }))).error?.reason).toBe('charset')
+    expect((await resolveRegexShareArg({ kind: 'share' as const, via: 'file' as const, value: 'x' }, cwd, fakeFs({ [p]: '!!' }))).error?.reason).toBe('charset')
   })
   it('參數本身有錯 → 原樣轉成 error', async () => {
-    expect(await resolveRegexShareArg({ via: 'arg', error: 'missing-value', detail: 'd' }, cwd, fakeFs({}))).toEqual({ source: 'pobtools', via: 'arg', error: { reason: 'missing-value', detail: 'd' } })
+    expect(await resolveRegexShareArg({ kind: 'share', via: 'arg', error: 'missing-value', detail: 'd' }, cwd, fakeFs({}))).toEqual({ source: 'pobtools', kind: 'share', via: 'arg', error: { reason: 'missing-value', detail: 'd' } })
   })
 })
 
@@ -118,7 +128,7 @@ describe('顯示目標與信箱', () => {
     expect(regexShareTarget('overlay', true)).toBe('app')
     expect(regexShareTarget('window', false)).toBe('app')
   })
-  const req = { source: 'pobtools' as const, via: 'arg' as const, code: CODE }
+  const req = { source: 'pobtools' as const, kind: 'share' as const, via: 'arg' as const, code: CODE }
   it('app:就緒前先留著、take 交出並標記就緒;之後直接送事件', () => {
     const deliver = vi.fn()
     const box = new RegexShareInbox({ deliver, log: () => {} })

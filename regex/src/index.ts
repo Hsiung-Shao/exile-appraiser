@@ -5,7 +5,7 @@ export type { Ambient, Check, Entry, Mode, Options, Result } from './gen'
 export { buildCorpus, entryLines, entryTitle, pageAmbient, parseRegexCatalogue } from './data'
 export type { BuildCorpusOptions, RegexCatalogue, RegexEntry, RegexGame, RegexLang, RegexPage } from './data'
 export {
-  REGEX_STATE_SCHEMA, applyKeys, collectKeys, defaultRegexState, keyOf, migrateSections, parseRegexState, picksFor, regexStateSchemaOf, resolveKeys,
+  REGEX_STATE_SCHEMA, applyKeys, collectKeys, defaultRegexState, keyOf, migrateSections, parseBookmark, parseRegexState, picksFor, regexStateSchemaOf, resolveKeys,
   serializeRegexState, zhLine
 } from './state'
 export type { ParsedRegexState, RegexBookmark, RegexPagePicks, RegexUiState } from './state'
@@ -33,13 +33,18 @@ export type { ItemModCategory, ItemModData, ItemModEntryData, ItemModExcludeReas
 export { combine, escapeTerm } from './combine'
 export type { CombineInput, CombineResult, CombineSel, Conflict, ConflictKind, PageContribution } from './combine'
 export {
-  SHARE_MAX_CODE_CHARS, SHARE_MAX_JSON_BYTES, SHARE_VERSION, base64url, decodeShare, encodeShare, fromBase64url, migrateShareSections, normalizeShareState, parseTemplates,
+  SHARE_MAX_CODE_CHARS, SHARE_MAX_JSON_BYTES, SHARE_VERSION, base64url, decodeShare, encodeShare, fromBase64url, gunzipBase64url, gzipBase64url, migrateShareSections, normalizeShareState, parseTemplates,
   resolveState
 } from './share'
 export type { RegexTemplate, ResolvedState, ShareState } from './share'
 export { bookmarkApplyOf, bookmarkBodyOf, combineSels, resolvedValues, savedPicksOf, shareStateOf, valuesOfPage } from './embed'
 export type { BookmarkApply, PicksMap, ValuesMap } from './embed'
 export { bookmarkHotkeys, bookmarkQuery, findBookmark, quickBookmarks } from './quick'
+export {
+  BOOKMARK_PACK_KIND, BOOKMARK_PACK_VERSION, bookmarkMissed, canonicalBookmarkPackJson, decodeBookmarks, encodeBookmarks, mergeBookmarks,
+  normalizeBookmarkPack
+} from './bookmarks-share'
+export type { BookmarkPack, MergeResult, MergedBookmark } from './bookmarks-share'
 export {
   CONDITION_SECTIONS, RARITY_LABEL_KEYS, conditionSections, encodeRarityChoice, isConditionSectionId, parseRarityChoice, rarityConditionEntry,
   rarityConditionText,

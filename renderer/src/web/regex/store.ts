@@ -38,7 +38,7 @@ import {
   type FolderResult, type GroupedBookmarks,
   type AlgoEntry, type AlgoPage, type AlgoValue, type CombineResult, type Mode, type RegexBookmark, type RegexCatalogue,
   type RegexGame, type RegexLabels, type RegexLang, type RegexPage, type RegexTemplate, type Result, type ShareState, type T17Filter,
-  type RegexUiState, type ResolvedState
+  type RegexUiState, type ResolvedState, type BookmarkPack, type MergeResult, bookmarkMissed, mergeBookmarks
 } from '@exile-appraiser/regex'
 import type { CurrentCombo } from './incoming-share'
 import { Host } from '@/web/background/IPC'
@@ -680,6 +680,43 @@ export function currentComboOf (game: RegexGame): CurrentCombo {
 /** 使用者在確認對話框按「套用」:與貼上分享碼相同(`applyCombo`,覆蓋該遊戲全部清單) */
 export function applySharedState (s: ShareState): void {
   applyCombo(s, 'share', gameLabel(s.game))
+}
+
+/**
+ * 第 40 步:PobTools 送來的書籤包 —— 確認對話框要的資料:相關遊戲的清單載好(物品詞綴數值頁書籤先載那一頁)、
+ * 預覽合併(`mergeBookmarks`,不改狀態)與每筆書籤找不到幾項(`bookmarkMissed`)。清單載入失敗 = null。
+ */
+export async function prepareBookmarkPack (pack: BookmarkPack): Promise<{ merge: MergeResult, missed: number[] } | null> {
+  await ensureStarted(AppConfig().game)
+  const games = [...new Set(pack.bookmarks.map(b => b.game))].filter((g): g is RegexGame => g === 'poe1' || g === 'poe2')
+  for (const g of games) await prepareItemMods(g, pack.bookmarks.filter(b => b.game === g).map(b => b.page))
+  if (games.some(g => !catalogues[g].cat)) return null
+  return {
+    merge: mergeBookmarks(ui, pack),
+    missed: pack.bookmarks.map(b => bookmarkMissed(catalogues[b.game as RegexGame].cat!.pages, b))
+  }
+}
+
+/** 加入後要在書籤卡片顯示的那幾筆(RegexBookmarks.vue 監看:切分頁、捲到卡片、短暫醒目);`seq` 讓同一批再送一次也會觸發 */
+export const bookmarkReveal = shallowRef<{ game: RegexGame, keys: string[], seq: number } | null>(null)
+let revealSeq = 0
+
+/** 使用者在確認對話框按「加入」:書籤包併進書籤(不動勾選;同名改名),展開放進去的資料夾 */
+export function addBookmarksFromPack (pack: BookmarkPack): void {
+  const r = mergeBookmarks(ui, pack)
+  ui.bookmarks = r.state.bookmarks
+  ui.folders = r.state.folders
+  for (const a of r.added) setFolderCollapsed(ui, a.game, a.folder, false)
+  notice.value = { key: 'ppz.regex.notice_bm_added', params: { n: r.added.length, renamed: r.renamed.length } }
+  const first = r.added[0]
+  if (first) {
+    bookmarkReveal.value = {
+      game: first.game,
+      keys: r.added.filter(a => a.game === first.game).map(a => `${a.folder}\u0000${a.name}`),
+      seq: ++revealSeq
+    }
+  }
+  scheduleSave()
 }
 
 // ---- 書籤 ----------------------------------------------------------------------

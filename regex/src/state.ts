@@ -167,6 +167,30 @@ function gameOf (v: string): RegexGame | '' {
   return v === 'poe1' || v === 'poe2' ? v : ''
 }
 
+/**
+ * 一筆書籤(regex_state.json 的 `bookmarks[]`;第 40 步起書籤包 bookmarks-share.ts 共用同一套驗證)。
+ * 不是物件 / 沒名字 / 沒頁 / 沒鍵 = null(UI 無法提供,留著只會多一列永遠空白的東西);欄位型別不符 = 丟例外(呼叫端決定整份失敗或只略過這筆)。
+ */
+export function parseBookmark (b: unknown): RegexBookmark | null {
+  if (!isObj(b)) return null
+  const rec: RegexBookmark = {
+    name: str(b, 'name', ''),
+    page: str(b, 'page', ''),
+    game: gameOf(str(b, 'game', '')),
+    mode: oneOf(str(b, 'mode', 'any'), 'any', 'all', 'none'),
+    lang: oneOf(str(b, 'lang', 'zh'), 'zh', 'en'),
+    keys: stringArray(b, 'keys'),
+    alt: stringArray(b, 'alt')
+  }
+  if (isObj(b.numeric)) rec.numeric = numericMap(b.numeric)
+  const num = stringArray(b, 'num')
+  if (num.length) rec.num = num
+  if (typeof b.hotkey === 'string' && b.hotkey.trim()) rec.hotkey = b.hotkey.trim()
+  if (typeof b.folder === 'string' && b.folder.trim()) rec.folder = b.folder
+  if (!rec.name || !rec.page || (rec.keys.length === 0 && !rec.num)) return null
+  return rec
+}
+
 export interface ParsedRegexState {
   /** false = 空字串 / 壞 JSON / 型別不符;state 為預設值(書籤與勾選不留半讀的殘骸) */
   ok: boolean
@@ -200,24 +224,8 @@ export function parseRegexState (text: string): ParsedRegexState {
     }
     if (Array.isArray(doc.bookmarks)) {
       for (const b of doc.bookmarks) {
-        if (!isObj(b)) continue
-        const rec: RegexBookmark = {
-          name: str(b, 'name', ''),
-          page: str(b, 'page', ''),
-          game: gameOf(str(b, 'game', '')),
-          mode: oneOf(str(b, 'mode', 'any'), 'any', 'all', 'none'),
-          lang: oneOf(str(b, 'lang', 'zh'), 'zh', 'en'),
-          keys: stringArray(b, 'keys'),
-          alt: stringArray(b, 'alt')
-        }
-        if (isObj(b.numeric)) rec.numeric = numericMap(b.numeric)
-        const num = stringArray(b, 'num')
-        if (num.length) rec.num = num
-        if (typeof b.hotkey === 'string' && b.hotkey.trim()) rec.hotkey = b.hotkey.trim()
-        if (typeof b.folder === 'string' && b.folder.trim()) rec.folder = b.folder
-        // 沒名字 / 沒頁 / 沒鍵的書籤 UI 無法提供,留著只會多一列永遠空白的東西
-        if (!rec.name || !rec.page || (rec.keys.length === 0 && !rec.num)) continue
-        s.bookmarks.push(rec)
+        const rec = parseBookmark(b)
+        if (rec) s.bookmarks.push(rec)
       }
     }
     if (isObj(doc.numeric)) {

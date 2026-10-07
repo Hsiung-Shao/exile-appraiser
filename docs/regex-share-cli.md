@@ -1,6 +1,6 @@
 # 從命令列送 Poe Regex 分享碼(`--regex-share`)
 
-2026-10-07 起，外部程式(目前是 PobTools)可以用命令列參數把 Poe Regex 分享碼交給 ExileAppraiser。
+2026-10-07 起，外部程式(目前是 PobTools)可以用命令列參數把 Poe Regex 分享碼(覆蓋目前的勾選)或書籤包(加進書籤，見「書籤包」)交給 ExileAppraiser。
 使用者在 ExileAppraiser 的確認對話框按「套用」才會生效。
 
 本文件是**給呼叫端(PobTools)實作用的介面規格**。實作在 `main/src/regex-share.ts`(參數、檢查、信箱、顯示目標)
@@ -24,7 +24,7 @@
   - 檔案大小上限 = 4 MiB + 4096 位元組。
   - 相對路徑以**呼叫端行程的工作目錄**為準；建議傳絕對路徑。
   - ExileAppraiser **只讀不刪**，暫存檔由呼叫端自己清。
-- **兩個參數不能同時給**，同時給會回報錯誤。
+- **只能給一個參數**：分享碼與書籤包的四個參數同時給兩個以上，會回報錯誤。
 
 ## 單一實例
 
@@ -78,6 +78,113 @@ ExileAppraiser 只允許一個實例在執行。
 | `decode` | 字元集對、但解不開(不是 gzip、JSON 壞了、版本不符、遊戲不明、解壓後超過 8 MiB) |
 | `not-loaded` | 該遊戲的正則清單載入失敗 |
 
+## 書籤包(`--regex-bookmarks`,2026-10-07 第 40 步)
+
+把 PobTools 使用者**自選**的正則書籤(單筆、整個資料夾，兩個遊戲可混選)送進來,**加進書籤，不動目前的勾選**。
+實作在 `regex/src/bookmarks-share.ts`,匯出 `encodeBookmarks` / `decodeBookmarks` / `normalizeBookmarkPack` / `mergeBookmarks` / `canonicalBookmarkPackJson` / `bookmarkMissed`。
+
+| 參數 | 內容 |
+|---|---|
+| `--regex-bookmarks=<書籤包碼>` | 書籤包碼本身 |
+| `--regex-bookmarks-file=<檔案路徑>` | UTF-8 文字檔，內容是書籤包碼 |
+
+- 字元集、長度上限、檔案上限、錯誤原因、單一實例轉交、顯示位置，**全部與 `--regex-share` 相同**。
+- 四個參數(`--regex-share`、`--regex-share-file`、`--regex-bookmarks`、`--regex-bookmarks-file`)只能給一個，給兩個以上 = `both-flags`。
+
+### 格式
+
+編碼與分享碼相同：JSON → gzip → base64url(不帶 `=` 補位)。解壓後的 JSON 是：
+
+```
+{ "kind": "regex-bookmarks", "v": 1,
+  "folders": { "poe1": [{ "name": 字串, "collapsed": 布林 }], "poe2": [ ... ] },
+  "bookmarks": [ { "name", "page", "game", "mode", "lang", "keys", "alt", "numeric"?, "num"?, "folder"? } ] }
+```
+
+| 欄位 | 型別 | 說明 |
+|---|---|---|
+| `kind` | `"regex-bookmarks"` | 固定，不符 = 錯誤 |
+| `v` | `1` | 版本，不符 = 錯誤 |
+| `folders.poe1` / `folders.poe2` | 陣列 | 資料夾(依順序)。名稱會正規化：去前後空白、連續空白變一個、最多 40 字。`collapsed` 只用在**新建**的資料夾 |
+| `bookmarks[].name` | 字串，必填 | 書籤名稱 |
+| `bookmarks[].page` | 字串，必填 | 頁 id(例 `map_mods`、`waystone_mods`、`vendor_bases`、`item_mod_values`) |
+| `bookmarks[].game` | `"poe1"` / `"poe2"`,必填 | |
+| `bookmarks[].mode` | `"any"` / `"all"` / `"none"` | 認不得 → `any` |
+| `bookmarks[].lang` | `"zh"` / `"en"` | 輸出語言；認不得 → `zh` |
+| `bookmarks[].keys` | 字串陣列 | 勾選的詞綴鍵：語料頁 = 英文第一行；演算法頁 = 項目 id |
+| `bookmarks[].alt` | 字串陣列 | 與 `keys` 同順序的中文行(後援) |
+| `bookmarks[].numeric` | 物件，選填 | 數值：項目 id → `{ min?, max?, choice? }`。宿主詞綴頁 = 數值區 / 條件區的值 |
+| `bookmarks[].num` | 字串陣列，選填 | 宿主詞綴頁的數值區 / 條件區勾選的項目 id |
+| `bookmarks[].folder` | 字串，選填 | 資料夾名稱；沒有 / 空 = 未分類。沒列在 `folders` 的會自動補上 |
+
+- 書籤欄位與 ExileAppraiser `regex_state.json` schema 5 的書籤相同(驗證共用 `parseBookmark`)。
+- **`hotkey` 不帶**：寫了也會被丟掉，避免熱鍵衝突。
+- `keys` 與 `num` 都空的書籤會被略過。
+- 壞掉的書籤 / 資料夾略過並記警告，不會讓整包失敗；`kind` / `v` 不符、不是物件、解不開才會整包失敗(`decode`)。
+- 稀有度 | 汙染條件列(`item_rarity_class`)的 `choice` 是字母編碼：稀有度 `n` 普通、`m` 魔法、`r` 稀有、`u` 傳奇(依此順序)，加上選填的 `|u` 未汙染 / `|c` 已汙染。例：`mr|u`、`|c`、`r`。舊的單字 `normal` / `magic` / `rare` / `unique` 也接受。
+
+### 合併規則(`mergeBookmarks`)
+
+- **只新增書籤 / 資料夾**:目前的勾選、數值、自訂文字、排除詞、模式都不動，既有書籤也不動。
+- **資料夾**:以「遊戲 + 名稱」對應。已有的就併進去(收合狀態不變);沒有的依包內順序加在該遊戲資料夾最後。
+- **同名**:同遊戲 + 同資料夾 + 同名(包含這次已加入的)→ 新的那筆改名為 `名 (2)`、`名 (3)`…。不同資料夾同名不算撞名。
+- **物品詞綴數值頁**:鍵不互通(PobTools 用 GGPK stat id,這邊用交易站 stat id)。這類書籤**照樣加入**，確認對話框標示「找不到 N 項」;載入時會略過那些項目。
+
+### 確認對話框
+
+- 列出：來源 PobTools、依遊戲 → 資料夾分組要加入的書籤，並標示新資料夾、改名(原名 → 新名)、每筆找不到幾項。
+- 按「加入」才寫入；取消不改任何狀態。
+- 加入後書籤卡片切到該遊戲、展開放進去的資料夾、捲到卡片，新書籤短暫醒目。
+
+### 對拍
+
+- `encodeBookmarks` 壓縮的是 `canonicalBookmarkPackJson` 產生的**正規 JSON**:鍵順序同上表、沒有空白、選填欄位空的不寫、不帶 `hotkey`。
+- **gzip 的位元組因實作而不同**(Node / Chromium 的 CompressionStream 與 zlib 預設參數不一定一樣),所以**碼不保證逐字相同**。請比對「解碼後的 JSON 字串」;下面的碼保證能被兩邊解開。
+
+### 範例
+
+#### 範例一:單筆書籤(PoE1,未分類)
+
+正規 JSON:
+
+```json
+{"kind":"regex-bookmarks","v":1,"folders":{"poe1":[],"poe2":[]},"bookmarks":[{"name":"範例一","page":"map_mods","game":"poe1","mode":"none","lang":"zh","keys":["#% more Monster Life"],"alt":["#% 更多怪物生命"]}]}
+```
+
+`encodeBookmarks` 產生的碼(272 字元):
+
+```
+H4sIAAAAAAAACkWMP4rCQBTGrxI-sXsWWs4Z3BNIkJG8xJDMvDARUUPAwkasFrbaLWxsdpttLGz0NCa5hoy7YPf9_VXIUhtBwXHCq8FMJDPaZSUIS6ghIZY8YldCVSiEh1CTkLwaeVUTXg81qWC1YSh0v7v77XC_bEEodOIjo4upkciDk7_RE0cwEnlnxTIIubYJFDZzEDJeeyp6_cCI4-BNbLlgF4zTmBESdL74r9uvc3P6bLc_3f67-zg271eEdVg_AAeVUVjdAAAA
+```
+
+#### 範例二:整個資料夾(PoE1,含數值區與稀有度 | 汙染列)
+
+正規 JSON:
+
+```json
+{"kind":"regex-bookmarks","v":1,"folders":{"poe1":[{"name":"刷圖","collapsed":false}],"poe2":[]},"bookmarks":[{"name":"範例二 A","page":"map_mods","game":"poe1","mode":"any","lang":"zh","keys":["#% more Monster Life","Players have #% less effect of Flasks applied to them"],"alt":["#% 更多怪物生命","#%更少施加於玩家的藥劑效果"],"numeric":{"tier":{"min":16},"item_rarity_class":{"choice":"mr|u"}},"num":["tier","item_rarity_class"],"folder":"刷圖"},{"name":"範例二 B","page":"map_mods","game":"poe1","mode":"any","lang":"en","keys":[],"alt":[],"numeric":{"quantity":{"min":80}},"num":["quantity"],"folder":"刷圖"}]}
+```
+
+`encodeBookmarks` 產生的碼(546 字元):
+
+```
+H4sIAAAAAAAACp2RwWoUQRCGX6X5l7214OYgMjc9eFLwHoalnanZbaZ7euzuDY7rgIccYhRhQVeIIXowh-SgHsRASHyazIyPIT3qboQ9eWq6qv6_qr6aI5dFigiWJvTkxiNjci1s7sCxg2jEkRmVknWI5igNjRBtz1EITYjQ7J01h0twJEYpUTpKEWVCOapjHoq3EG3HNcfa9Jq4-7J79ePl1fkrdgccpZiEoBblWJs0dJ_8Lut7cmiThp8oKnAoUUwQ4ekUHDlVwRaDIdPGEntgCufJsvsyI3A8VKIi69hU7BAbDJki5xhlGSWemYzdU8LljomyVJJS5g3zU9KIOYTyf2zb99-aTwft89PuxUn35kOzuATHYBjCXxft8rLZ_9guL7rXJ83n793B7s93x83-on271x4dBqNipsnKJPDzkmx4tSwQjW7VHNKTHlthpa_GiRKux5xMjUx6GvbZDHXde4Rhev0mUfz3TOuj1HwD6bv_SZqKNekVm393ezwThZe-Wu13--a1yVfZTZPG9S-D8MkChQIAAA
+```
+
+#### 範例三:兩個遊戲混選
+
+正規 JSON:
+
+```json
+{"kind":"regex-bookmarks","v":1,"folders":{"poe1":[],"poe2":[{"name":"換界石","collapsed":true}]},"bookmarks":[{"name":"範例三 A","page":"map_mods","game":"poe1","mode":"none","lang":"zh","keys":["#% more Monster Life"],"alt":["#% 更多怪物生命"]},{"name":"範例三 B","page":"waystone_mods","game":"poe2","mode":"all","lang":"zh","keys":["Monsters have #% Critical Damage Bonus"],"alt":["#%怪物暴擊傷害加成"],"numeric":{"tier":{"min":15}},"num":["tier"],"folder":"換界石"}]}
+```
+
+`encodeBookmarks` 產生的碼(454 字元):
+
+```
+H4sIAAAAAAAACnWRsU4CQRCGX2XzE7u1gMRmO9FSn8BczMoNx4XbXbJ3oEguMcZC0ESN2kCBhY0WWkCijT6Nd_caZkGDRK12dv6Zf77k76EZah8ClgI6WN0zpqmkbcbg6ECUOeom8snGED20DJUhdjzuqgrETg9aKoJAfjEqbs-L8QQcNRNFshWTD5HYNqVeyrGw_bFUPJ98vJ99vPbZOjhaMnBNJVu7yvjufjAfm13lUMZ3P200gSOSOoDAYQMcTeo6X5RWmDKW2LbRcUKWbYV1gscho-RLzkfT7H6YHz0W_YfiZpxdvcFL-R9A1QXQvuzGidH0m6qyoJJR9A_UF0zMGrJDrLTCNmyYhDUZsU2pZECsanQ7XsKc8-XDaX49yI5fsqdJNrjLTy_dkG4rsmHNpZGEZN2rQg1RXkvTmeosZor3Hd1SPKmXfgKKwcRg8gEAAA
+```
+
 ## 呼叫端怎麼找到 ExileAppraiser.exe
 
 安裝檔由 electron-builder(NSIS)產生：
@@ -113,6 +220,7 @@ NSIS 用的機碼名稱是 `appId` 的 UUID v5(electron-builder 固定的命名�
 
 ## 測試
 
+- `regex/test/bookmarks-share.test.ts`:書籤包往返、正規 JSON、hotkey 剔除、損壞輸入、上限、合併(資料夾 / 改名 / 其他狀態不動)、找不到計數。
 - `main/test/regex-share.test.ts`:參數解析(兩種寫法、Chromium 重排、缺值、兩個都給)、格式檢查、讀檔(假 fs)、重新啟動不帶參數、信箱依目標交出、啟動等待(假時鐘)、上限一致、接線守門。
 - `renderer/test/regex-incoming.test.ts`:確認流程(錯誤 / 解碼失敗 / 確認才套用 / 取消不改 / 新請求取代舊請求)、字串兩語、接線。
 - `regex/test/share.test.ts`:解碼上限(超長、壓縮炸彈)。

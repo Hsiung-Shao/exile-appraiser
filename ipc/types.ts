@@ -158,7 +158,9 @@ export interface RegexShareRequest {
   id: number
   /** 目前只有 PobTools 會用命令列送來 */
   source: 'pobtools'
-  /** 參數來源:`arg` = `--regex-share`、`file` = `--regex-share-file` */
+  /** `share` = 分享碼(覆蓋勾選,`--regex-share`);`bookmarks` = 書籤包(加進書籤,`--regex-bookmarks`;第 40 步) */
+  kind: 'share' | 'bookmarks'
+  /** 參數來源:`arg` = `--regex-share` / `--regex-bookmarks`、`file` = `--regex-share-file` / `--regex-bookmarks-file` */
   via: 'arg' | 'file'
   /** 已通過字元集 / 長度檢查的分享碼(尚未解碼) */
   code?: string

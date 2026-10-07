@@ -1,5 +1,7 @@
 /**
  * 一鍵從 PobTools 送正則分享碼(2026-10-07;介面規格見 docs/regex-share-cli.md)。
+ * 同日第 40 步:另有書籤包 `--regex-bookmarks` / `--regex-bookmarks-file`(加進書籤、不動勾選;格式 regex/src/bookmarks-share.ts),
+ * 參數規則、檢查、信箱、顯示目標全部共用,請求帶 `kind`('share' | 'bookmarks')。
  *
  * PobTools 以 `<ExileAppraiser.exe> --regex-share <分享碼>`(或 `--regex-share-file <檔案路徑>`,碼太長時用)啟動本程式:
  * - 沒有在執行:這個行程拿到單一實例鎖,whenReady 後解析 `process.argv` → 放進 `RegexShareInbox`,
@@ -26,13 +28,24 @@ export const REGEX_SHARE_MAX_CODE_CHARS = 4 * 1024 * 1024
 export const REGEX_SHARE_MAX_FILE_BYTES = REGEX_SHARE_MAX_CODE_CHARS + 4096
 export const REGEX_SHARE_FLAG = '--regex-share'
 export const REGEX_SHARE_FILE_FLAG = '--regex-share-file'
+export const REGEX_BOOKMARKS_FLAG = '--regex-bookmarks'
+export const REGEX_BOOKMARKS_FILE_FLAG = '--regex-bookmarks-file'
+
+type ShareKind = RegexShareRequest['kind']
+/** 四個開關:種類 × 直接給碼 / 給檔案 */
+const FLAGS: ReadonlyArray<{ flag: string, kind: ShareKind, via: 'arg' | 'file' }> = [
+  { flag: REGEX_SHARE_FLAG, kind: 'share', via: 'arg' },
+  { flag: REGEX_SHARE_FILE_FLAG, kind: 'share', via: 'file' },
+  { flag: REGEX_BOOKMARKS_FLAG, kind: 'bookmarks', via: 'arg' },
+  { flag: REGEX_BOOKMARKS_FILE_FLAG, kind: 'bookmarks', via: 'file' }
+]
 
 const CODE_CHARSET = /^[A-Za-z0-9_-]+$/
 
 /** 命令列上找到的分享碼參數(還沒讀檔、還沒檢查) */
 export type RegexShareArg =
-  | { via: 'arg' | 'file', value: string }
-  | { via: 'arg' | 'file', error: RegexShareErrorReason, detail: string }
+  | { kind: ShareKind, via: 'arg' | 'file', value: string }
+  | { kind: ShareKind, via: 'arg' | 'file', error: RegexShareErrorReason, detail: string }
 
 const isSwitch = (a: string) => a.startsWith('-')
 
@@ -54,25 +67,27 @@ function switchValue (argv: readonly string[], flag: string): string | null | un
 }
 
 /**
- * 從 argv(`process.argv` 或 `second-instance` 的 argv)找分享碼參數;沒有 = null。
- * 兩種都給 = 錯誤(不猜要用哪一個)。開發模式 argv 裡的 app 路徑(`.`、`main/dist/main.js`)若被誤取,會在格式檢查被擋下。
+ * 從 argv(`process.argv` 或 `second-instance` 的 argv)找分享碼 / 書籤包參數;沒有 = null。
+ * 給了兩個以上 = 錯誤(不猜要用哪一個)。開發模式 argv 裡的 app 路徑(`.`、`main/dist/main.js`)若被誤取,會在格式檢查被擋下。
  */
 export function findRegexShareArg (argv: readonly string[]): RegexShareArg | null {
-  const code = switchValue(argv, REGEX_SHARE_FLAG)
-  const file = switchValue(argv, REGEX_SHARE_FILE_FLAG)
-  if (code !== undefined && file !== undefined) return { via: 'arg', error: 'both-flags', detail: `${REGEX_SHARE_FLAG} 與 ${REGEX_SHARE_FILE_FLAG} 只能給一個` }
-  if (code !== undefined) return code == null ? { via: 'arg', error: 'missing-value', detail: REGEX_SHARE_FLAG } : { via: 'arg', value: code }
-  if (file !== undefined) return file == null ? { via: 'file', error: 'missing-value', detail: REGEX_SHARE_FILE_FLAG } : { via: 'file', value: file }
-  return null
+  const found = FLAGS.map(f => ({ ...f, value: switchValue(argv, f.flag) })).filter(f => f.value !== undefined)
+  if (!found.length) return null
+  const first = found[0]
+  if (found.length > 1) return { kind: first.kind, via: first.via, error: 'both-flags', detail: `${found.map(f => f.flag).join('、')} 只能給一個` }
+  return first.value == null
+    ? { kind: first.kind, via: first.via, error: 'missing-value', detail: first.flag }
+    : { kind: first.kind, via: first.via, value: first.value }
 }
 
-/** argv 裡有沒有分享碼參數(只看開關名;值對不對交給 `findRegexShareArg`) */
+const isFlagArg = (a: string): boolean => {
+  const al = a.toLowerCase()
+  return FLAGS.some(f => al === f.flag || al.startsWith(`${f.flag}=`))
+}
+
+/** argv 裡有沒有分享碼 / 書籤包參數(只看開關名;值對不對交給 `findRegexShareArg`) */
 export function hasRegexShareArg (argv: readonly string[]): boolean {
-  return argv.some((a, i) => {
-    if (i === 0) return false
-    const al = a.toLowerCase()
-    return al === REGEX_SHARE_FLAG || al === REGEX_SHARE_FILE_FLAG || al.startsWith(`${REGEX_SHARE_FLAG}=`) || al.startsWith(`${REGEX_SHARE_FILE_FLAG}=`)
-  })
+  return argv.some((a, i) => i > 0 && isFlagArg(a))
 }
 
 /**
@@ -82,13 +97,9 @@ export function hasRegexShareArg (argv: readonly string[]): boolean {
 export function stripRegexShareArgs (args: readonly string[]): string[] {
   const out: string[] = []
   for (let i = 0; i < args.length; i++) {
-    const al = args[i].toLowerCase()
-    if (al.startsWith(`${REGEX_SHARE_FLAG}=`) || al.startsWith(`${REGEX_SHARE_FILE_FLAG}=`)) continue
-    if (al === REGEX_SHARE_FLAG || al === REGEX_SHARE_FILE_FLAG) {
-      if (args[i + 1] != null && !isSwitch(args[i + 1])) i++
-      continue
-    }
-    out.push(args[i])
+    if (!isFlagArg(args[i])) { out.push(args[i]); continue }
+    // `--flag 值`:緊接的值一起拿掉(`--flag=值` 本身就含值)
+    if (!args[i].includes('=') && args[i + 1] != null && !isSwitch(args[i + 1])) i++
   }
   return out
 }
@@ -118,7 +129,7 @@ export interface RegexShareFs {
 export async function resolveRegexShareArg (
   arg: RegexShareArg, cwd: string, fs: RegexShareFs
 ): Promise<Omit<RegexShareRequest, 'id'>> {
-  const base = { source: 'pobtools' as const, via: arg.via }
+  const base = { source: 'pobtools' as const, kind: arg.kind, via: arg.via }
   if ('error' in arg) return { ...base, error: { reason: arg.error, detail: arg.detail } }
   if (arg.via === 'arg') {
     const v = validateShareCode(arg.value)
@@ -141,8 +152,8 @@ export async function resolveRegexShareArg (
 
 /** log 用的一行摘要(不印分享碼內容,只印長度) */
 export function describeRegexShareRequest (req: RegexShareRequest): string {
-  if (req.error) return `#${req.id} ${req.via} 不合格:${req.error.reason}(${req.error.detail})`
-  return `#${req.id} ${req.via} ${req.code?.length ?? 0} 字元`
+  if (req.error) return `#${req.id} ${req.kind} ${req.via} 不合格:${req.error.reason}(${req.error.detail})`
+  return `#${req.id} ${req.kind} ${req.via} ${req.code?.length ?? 0} 字元`
 }
 
 /**
