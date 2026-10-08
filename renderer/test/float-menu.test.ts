@@ -170,3 +170,22 @@ describe('內建速查表(2026-10-08 使用者要求自帶 + 可手動匯入)', 
     expect(read('NOTICE.md')).toContain(BUILTIN_CHEAT_SHEET.source)
   })
 })
+
+describe('速查表放大框可調整(2026-10-08 使用者要求)', () => {
+  it('cheatSheetZoom 往返:舊檔 / 壞值 = null;合法值保留', () => {
+    expect(_roundTripForTest(null).config.cheatSheetZoom).toBeNull()
+    expect(_roundTripForTest('{"cheatSheetZoom":{"x":-5}}').config.cheatSheetZoom).toBeNull()
+    const r = _roundTripForTest('{"cheatSheetZoom":{"x":400,"y":30,"w":1200,"h":500}}')
+    expect(r.config.cheatSheetZoom).toEqual({ x: 400, y: 30, w: 1200, h: 500 })
+    expect(JSON.parse(r.serialized).cheatSheetZoom).toEqual({ x: 400, y: 30, w: 1200, h: 500 })
+  })
+  it('只在釘住時有把手 / 可移動;放開才寫設定;有存才顯示還原', () => {
+    const m = read('renderer/src/web/overlay/FloatMenu.vue')
+    expect(m).toContain('<template v-if="pinned">')
+    expect(m).toContain('@pointerdown="beginZoomDrag($event, e)"')
+    expect(m).toContain('if (!pinned.value || e.button !== 0 || zoomDrag.active) return')
+    expect(m).toMatch(/createRectDrag\(\(r\) => \{\s*config\.cheatSheetZoom = r/)
+    expect(m).toContain('v-if="pinned && config.cheatSheetZoom"')
+    expect(m).toContain('clampSettingsRect(config.cheatSheetZoom, view)')
+  })
+})

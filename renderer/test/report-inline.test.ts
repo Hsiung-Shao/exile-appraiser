@@ -71,3 +71,13 @@ describe('接線守門', () => {
     expect(s).toContain("t('ppz.wrong_language'")
   })
 })
+
+describe('未解析詞綴列不貼邊(2026-10-08)', () => {
+  it('兩代 UnknownModifier 根元素帶 ppz-unknown-mod,樣式有左右留白', () => {
+    for (const f of ['poe1/src/web/price-check/filters/UnknownModifier.vue', 'poe2/src/web/price-check/filters/UnknownModifier.vue']) {
+      expect(read(f)).toMatch(/<template>\r?\n {2}<div class="[^"]*ppz-unknown-mod">/)
+    }
+    const s = read('renderer/src/web/ui/ReportInline.vue')
+    expect(s).toMatch(/\.ppz-unknown-mod \{\s*padding-left: 0\.6em;\s*padding-right: 0\.6em;/)
+  })
+})

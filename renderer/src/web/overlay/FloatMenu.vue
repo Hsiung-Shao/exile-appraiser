@@ -94,16 +94,24 @@
     <p v-if="notice" class="fm-notice" data-menu="notice">{{ notice }}</p>
   </div>
 
-  <!-- 速查表放大:hover = 暫時(點擊穿透),點縮圖 = 釘住(標題列 ✕) -->
-  <div v-if="zoomShown" class="fm-zoom" :class="{ pinned }" :style="zoomStyle" data-layer="sheet-zoom">
-    <div class="fm-zoom-head">
+  <!-- 速查表放大:hover = 暫時(點擊穿透),點縮圖 = 釘住(標題列 ✕);釘住時拖標題列移動、四邊 / 四角調整大小(放開才寫 cheatSheetZoom) -->
+  <div v-if="zoomShown" class="fm-zoom" :class="{ pinned, dragging: zoomLive != null }" :style="zoomStyle" data-layer="sheet-zoom">
+    <div class="fm-zoom-head" :class="{ movable: pinned }" data-menu="sheet-zoom-drag" @pointerdown="onZoomHeadDown">
       <span class="fm-zoom-title">{{ t('ppz.menu.sheet_title') }}</span>
       <span class="fm-hint">{{ t(pinned ? 'ppz.menu.sheet_pinned_hint' : 'ppz.menu.sheet_peek_hint') }}</span>
+      <button v-if="pinned && config.cheatSheetZoom" type="button" class="fm-x" :aria-label="t('ppz.menu.sheet_reset_size')" :title="t('ppz.menu.sheet_reset_size')"
+        data-action="sheet-zoom-reset" @click="resetZoomRect">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4v6h6" /><path d="M20 12a8 8 0 1 1-2.3-5.7L4 10" /></svg>
+      </button>
       <button v-if="pinned" type="button" class="fm-x" :aria-label="t('ppz.menu.sheet_close')" data-action="sheet-unpin" @click="pinned = false; peek = false">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
       </button>
     </div>
-    <img class="fm-zoom-img" :src="sheetUrl ?? undefined" alt="">
+    <img class="fm-zoom-img" :src="sheetUrl ?? undefined" alt="" draggable="false">
+    <template v-if="pinned">
+      <div v-for="e in zoomEdges" :key="e" class="fm-rz" :class="'rz-' + e" :data-resize="e" :style="{ cursor: edgeCursor(e) }"
+        @pointerdown="beginZoomDrag($event, e)" />
+    </template>
   </div>
 </template>
 
@@ -119,6 +127,7 @@ import { copyRegexBookmark, quickRunning, regexBookmarkPreview, runRegexBookmark
 import { quickNoticeKey } from '@/web/regex/quick-geom'
 import { BUILTIN_CHEAT_SHEET, bookmarkActionFor, cheatSheetUrl, floatMenuPlace, floatMenuPosOf, sheetZoomRect } from './float-menu-geom'
 import { floatMenuSection } from './float-menu-state'
+import { RESIZE_EDGES, clampSettingsRect, createRectDrag, edgeCursor, isInteractiveTarget, type DragEdge, type SettingsWindowRect } from '@/web/settings/settings-window-geom'
 
 defineProps<{ settingsOpen: boolean }>()
 const emit = defineEmits<{
@@ -234,10 +243,57 @@ const peek = shallowRef(false)
 const pinned = shallowRef(false)
 const zoomShown = computed(() => !!sheetUrl.value && !sheetBroken.value && section.value === 'sheet' && (peek.value || pinned.value))
 watch(zoomShown, (on) => { emit('zoom', on) })
-const zoomStyle = computed(() => {
+// 放大框:拖曳中 = live;存過 = 記住的(夾回畫面);沒存 = 選單旁到畫面邊(sheetZoomRect)
+const zoomLive = shallowRef<SettingsWindowRect | null>(null)
+const zoomRect = computed<SettingsWindowRect>(() => {
+  if (zoomLive.value) return zoomLive.value
+  if (config.cheatSheetZoom) return clampSettingsRect(config.cheatSheetZoom, view)
   const r = sheetZoomRect({ ...place.value, w: size.w, h: size.h }, view)
-  return { left: `${r.left}px`, top: `${r.top}px`, width: `${r.w}px`, height: `${r.h}px` }
+  return { x: r.left, y: r.top, w: r.w, h: r.h }
 })
+const zoomStyle = computed(() => {
+  const r = zoomRect.value
+  return { left: `${r.x}px`, top: `${r.y}px`, width: `${r.w}px`, height: `${r.h}px` }
+})
+const zoomDrag = createRectDrag((r) => {
+  config.cheatSheetZoom = r
+  console.log(`[menu] 速查表大小 / 位置 → ${r.w}×${r.h} @ ${r.x},${r.y}`)
+}, (r) => { zoomLive.value = r })
+const zoomEdges = RESIZE_EDGES
+let zoomDetach: (() => void) | null = null
+function beginZoomDrag (e: PointerEvent, edge: DragEdge) {
+  if (!pinned.value || e.button !== 0 || zoomDrag.active) return
+  e.preventDefault()
+  e.stopPropagation()
+  const target = e.currentTarget as HTMLElement
+  try { target.setPointerCapture(e.pointerId) } catch { /* 合成事件沒有對應的指標 */ }
+  zoomDrag.start(edge, zoomRect.value, e.clientX, e.clientY, { w: view.w, h: view.h })
+  const onMove = (ev: PointerEvent) => { if (ev.pointerId === e.pointerId) zoomDrag.move(ev.clientX, ev.clientY) }
+  const onUp = (ev: PointerEvent) => { if (ev.pointerId !== e.pointerId) return; cleanup(); zoomDrag.end(ev.clientX, ev.clientY) }
+  const onCancel = (ev: PointerEvent) => { if (ev.pointerId !== e.pointerId) return; cleanup(); zoomDrag.cancel() }
+  const onLost = () => { if (!zoomDrag.active) return; cleanup(); zoomDrag.end() }
+  function cleanup () {
+    target.removeEventListener('pointermove', onMove)
+    target.removeEventListener('pointerup', onUp)
+    target.removeEventListener('pointercancel', onCancel)
+    target.removeEventListener('lostpointercapture', onLost)
+    zoomDetach = null
+    try { target.releasePointerCapture(e.pointerId) } catch { /* 指標已被釋放 */ }
+  }
+  target.addEventListener('pointermove', onMove)
+  target.addEventListener('pointerup', onUp)
+  target.addEventListener('pointercancel', onCancel)
+  target.addEventListener('lostpointercapture', onLost)
+  zoomDetach = () => { cleanup(); zoomDrag.cancel() }
+}
+function onZoomHeadDown (e: PointerEvent) {
+  if (!pinned.value || isInteractiveTarget(e.target as Element | null)) return
+  beginZoomDrag(e, 'move')
+}
+function resetZoomRect () {
+  config.cheatSheetZoom = null
+  console.log('[menu] 速查表大小 / 位置還原為預設')
+}
 
 async function pickSheet () {
   const name = normBgFile(await Host.sheetPick())
@@ -277,6 +333,7 @@ onUnmounted(() => {
   window.removeEventListener('resize', onResize)
   window.removeEventListener('keydown', onKey, true)
   ro?.disconnect()
+  zoomDetach?.()
   emit('zoom', false)
 })
 
@@ -494,7 +551,19 @@ onUnmounted(() => {
   background: var(--surface-1);
   font-size: var(--fs-md);
 }
+.fm-zoom-head.movable { cursor: move; touch-action: none; user-select: none; }
+.fm-zoom.dragging { opacity: 0.94; }
 .fm-zoom-title { font-weight: 600; }
+/* 調整大小把手(只在釘住時;同設定視窗 .sw-rz) */
+.fm-rz { position: absolute; z-index: 2; touch-action: none; }
+.fm-rz.rz-n { top: 0; left: 12px; right: 12px; height: 6px; }
+.fm-rz.rz-s { bottom: 0; left: 12px; right: 12px; height: 6px; }
+.fm-rz.rz-w { left: 0; top: 12px; bottom: 12px; width: 6px; }
+.fm-rz.rz-e { right: 0; top: 12px; bottom: 12px; width: 6px; }
+.fm-rz.rz-nw { top: 0; left: 0; width: 12px; height: 12px; }
+.fm-rz.rz-ne { top: 0; right: 0; width: 12px; height: 12px; }
+.fm-rz.rz-sw { bottom: 0; left: 0; width: 12px; height: 12px; }
+.fm-rz.rz-se { bottom: 0; right: 0; width: 12px; height: 12px; }
 .fm-zoom-head .fm-hint { text-align: right; }
 .fm-zoom-img { flex: 1; min-height: 0; width: 100%; object-fit: contain; }
 </style>

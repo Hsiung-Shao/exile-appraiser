@@ -41,13 +41,22 @@ function report (kind: 'item' | 'mod' | 'trade') {
 }
 </script>
 
+<!-- 移植的 UnknownModifier 根元素加 class ppz-unknown-mod(2026-10-08 使用者回報「自貼邊沒有間隔」):左右留白 + 淡黃底,與上方提示框同語彙 -->
+<style>
+.ppz-unknown-mod {
+  padding-left: 0.6em;
+  padding-right: 0.6em;
+  background: color-mix(in srgb, var(--warn) 7%, transparent);
+}
+</style>
+
 <style scoped>
 .report-summary {
   display: flex;
   align-items: center;
   gap: 0.6em;
-  margin: 0.5em 0;
-  padding: 0.55em 0.7em;
+  margin: 0.6em 0 0.75em;
+  padding: 0.6em 0.75em;
   border: 1px solid color-mix(in srgb, var(--warn) 45%, transparent);
   border-radius: var(--radius-m);
   background: color-mix(in srgb, var(--warn) 12%, var(--surface-1));

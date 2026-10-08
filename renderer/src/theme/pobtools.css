@@ -276,6 +276,12 @@
 :where(:root[data-bg] .bg-host .price-main > * > *, :root[data-bg] .bg-host .settings-body > :not(.card)) {
   background-color: color-mix(in srgb, var(--surface-0-c) var(--bg-lift, 0%), transparent);
 }
+/* 2026-10-08 使用者回報:補了底色的查價區塊,裡面的勾選框 / 數值框 / 「詞綴」/「交易」貼著底色左右邊 → 左右留白
+   (只在背景模式有底色才需要;:where 特異度 0,區塊自己有 px-* 時以它為準) */
+:where(:root[data-bg] .bg-host .price-main > * > *) {
+  padding-left: 0.6em;
+  padding-right: 0.6em;
+}
 /* 瀏覽器預設樣式把按鈕 / 輸入框 / 下拉的 text-shadow 設成 none(不繼承):背景模式下讓它們也吃容器的光暈 */
 :root[data-bg] .bg-host :is(button, input, select, textarea) {
   text-shadow: inherit;

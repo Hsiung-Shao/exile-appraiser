@@ -141,6 +141,8 @@ export interface Config {
   floatMenu: FloatMenuPos | null
   /** 2026-10-08:懸浮選單的速查表圖片檔名(`userData/cheatsheets/`;空 = 沒匯入)。規則同背景圖 `normBgFile`。 */
   cheatSheet: string
+  /** 2026-10-08:速查表放大框釘住後調整的大小 / 位置(CSS px,同 settingsWindow 規則;放開才寫)。null = 選單旁到畫面邊的預設。 */
+  cheatSheetZoom: SettingsWindowRect | null
   // ---- 相容上游元件的推導屬性 ----
   readonly useIntlSite: boolean
   /** 上游元件讀的字級;= `fsBase`(不進檔)。 */
@@ -330,7 +332,8 @@ function createConfig (): Config {
     hotkeyRegexQuick: '',
     regexBookmarkBar: true,
     floatMenu: null as FloatMenuPos | null,
-    cheatSheet: ''
+    cheatSheet: '',
+    cheatSheetZoom: null as SettingsWindowRect | null
   }
   return {
     ...base,
@@ -398,7 +401,8 @@ function serialize (): string {
     hotkeyRegexQuick: config.hotkeyRegexQuick,
     regexBookmarkBar: config.regexBookmarkBar,
     floatMenu: config.floatMenu,
-    cheatSheet: config.cheatSheet
+    cheatSheet: config.cheatSheet,
+    cheatSheetZoom: config.cheatSheetZoom
   }, null, 2)
 }
 
@@ -509,6 +513,7 @@ function applyLoaded (raw: string) {
   // 2026-10-08:懸浮選單位置 / 速查表(舊設定檔沒有 → 左上角預設 / 沒匯入;壞值同)
   config.floatMenu = normFloatMenuPos(loaded.floatMenu)
   config.cheatSheet = normBgFile(loaded.cheatSheet)
+  config.cheatSheetZoom = normSettingsWindow(loaded.cheatSheetZoom)
 }
 
 /** 測試用:套用一份設定檔內容後回傳序列化結果(`renderer/test/runeshape-config.test.ts`) */

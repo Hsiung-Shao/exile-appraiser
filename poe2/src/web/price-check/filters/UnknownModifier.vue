@@ -1,5 +1,6 @@
 <template>
-  <div class="flex flex-row justify-between border-b border-gray-700">
+  <div class="flex flex-row justify-between border-b border-gray-700 ppz-unknown-mod">
+    <!-- exile-appraiser: ppz-unknown-mod = 就地回報列的左右間隔與淡黃底(樣式在 renderer ui/ReportInline.vue) -->
     <div class="py-2 flex flex-col">
       <div class="pb-1 flex items-baseline">
         <i class="w-5 shrink-0 fas fa-exclamation-triangle text-orange-400"></i>
