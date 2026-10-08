@@ -91,6 +91,7 @@
     <template #actions>
       <button class="btn" @click="execSearch">{{ t('Retry') }}</button>
       <button class="btn" @click="openTradeLink">{{ t('Browser') }}</button>
+      <report-inline mode="trade" :detail="error" />
     </template>
   </ui-error-box>
 </template>
@@ -100,6 +101,8 @@
 import { defineComponent, PropType, computed, watch, ComputedRef, Ref, shallowRef, shallowReactive, inject, readonly } from 'vue'
 import { useI18nNs } from '@/web/i18n'
 import UiErrorBox from '@/web/ui/UiErrorBox.vue'
+// exile-appraiser: 就地回報(2026-10-08):查價失敗時錯誤框多一顆「回報問題」(沒有宿主注入時不畫)
+import ReportInline from '@/web/ui/ReportInline.vue'
 import { BulkSearch, execBulkSearch, createTradeRequest, PricingResult } from './pathofexile-bulk'
 import { activeTradeContext, getTradeEndpoint } from './common'
 import { AppConfig } from '@/web/Config'
@@ -264,7 +267,7 @@ function useMarketRatioFinder () {
 }
 
 export default defineComponent({
-  components: { OnlineFilter, TradeLinks, UiErrorBox },
+  components: { OnlineFilter, TradeLinks, UiErrorBox, ReportInline },
   emits: ['reset'],
   props: {
     filters: {

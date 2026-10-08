@@ -19,10 +19,10 @@ describe('bgCorsHeaders(app://bg/ 回應;效能修正第 10 步)', () => {
       'http://127.0.0.1:5173', 'app://app/x', '*']) expect(bgCorsHeaders(o, allowed)).toEqual({})
     expect(bgCorsHeaders('app://app', [])).toEqual({})
   })
-  it('main.ts 只在 app://bg/ 回應套用(其他路由沒有)', () => {
+  it('main.ts 只在 app://bg/ 與 app://sheet/(懸浮選單速查表,2026-10-08)回應套用(其他路由沒有)', () => {
     const main = fs.readFileSync(path.join(__dirname, '../src/main.ts'), 'utf8')
     expect(main.match(/bgCorsHeaders\(/g)).toHaveLength(1)
-    expect(main).toMatch(/if \(url\.host === 'bg'\) \{[\s\S]{0,600}?bgCorsHeaders\(request\.headers\.get\('origin'\), APP_ORIGINS\)[\s\S]{0,200}?\n {4}\}/)
+    expect(main).toMatch(/if \(url\.host === 'bg' \|\| url\.host === 'sheet'\) \{[\s\S]{0,600}?bgCorsHeaders\(request\.headers\.get\('origin'\), APP_ORIGINS\)[\s\S]{0,200}?\n {4}\}/)
     expect(main).not.toMatch(/Access-Control-Allow-Origin['"]?\s*:\s*['"]\*/)
   })
 })

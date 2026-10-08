@@ -168,7 +168,7 @@ export interface RegexShareRequest {
 }
 
 /** 第 33 步:一鍵貼進遊戲的來源(設定視窗旁的書籤列 / 快速面板 / 書籤熱鍵) */
-export type RegexPasteSource = 'bar' | 'quick' | 'hotkey'
+export type RegexPasteSource = 'bar' | 'quick' | 'hotkey' | 'menu'
 
 /** 第 33 步:renderer → main `regex-paste` */
 export interface RegexPasteRequest {
@@ -290,6 +290,8 @@ export interface OverlayContentState {
   rune: boolean
   /** 第 33 步:正則書籤快速面板(舊 renderer 沒有這欄 = false) */
   quick?: boolean
+  /** 2026-10-08:APT 式懸浮選單(含速查表放大;舊 renderer 沒有這欄 = false) */
+  menu?: boolean
 }
 
 /** WP-R2:設定頁顯示的掃描統計(`runeshape-stats`)。 */
@@ -467,6 +469,8 @@ export interface HostApi {
    * 圖片由 `app://bg/<檔名>`(預覽:`<prefix>bg/<檔名>`)載入。瀏覽器預覽 shim 沒有這個方法(`preview: false`)。
    */
   bgPick?: () => Promise<string | null>
+  /** 懸浮選單速查表(2026-10-08):同 bgPick,存 `userData/cheatsheets/`,由 `app://sheet/<檔名>`(預覽 `<prefix>sheet/<檔名>`)載入。 */
+  sheetPick?: () => Promise<string | null>
   /** main 建立視窗時決定的模式(啟動後不變)。 */
   readonly windowMode: WindowMode
   onFocusChange: (cb: (e: FocusChangeEvent) => void) => () => void

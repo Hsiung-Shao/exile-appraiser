@@ -62,6 +62,7 @@
         <div class="flex-1 border-b border-gray-700" />
       </div>
       <form @submit.prevent="handleStatsSubmit">
+        <report-inline v-if="showUnknownMods" mode="summary" :count="item.unknownModifiers.length" />
         <template v-for="filter of filteredStats">
           <filter-group v-if="filter.group" :key="`group_${filter.meta.tag}_${filter.meta.text}`"
             :group="filter"
@@ -100,6 +101,8 @@ import FilterGroup from './FilterGroup.vue'
 import FilterBtnNumeric from './FilterBtnNumeric.vue'
 import FilterBtnLogical from './FilterBtnLogical.vue'
 import UnknownModifier from './UnknownModifier.vue'
+// exile-appraiser: 就地回報(2026-10-08):有未解析詞綴時在清單最上方顯示條數 +「回報問題」(沒有宿主注入時不畫)
+import ReportInline from '@/web/ui/ReportInline.vue'
 import { ItemFilters, FilterOrGroup } from './interfaces'
 import { ParsedItem, ItemRarity, ItemCategory } from '@/parser'
 
@@ -112,6 +115,7 @@ export default defineComponent({
     FilterBtnNumeric,
     FilterBtnLogical,
     UnknownModifier,
+    ReportInline,
     UiToggle
   },
   props: {

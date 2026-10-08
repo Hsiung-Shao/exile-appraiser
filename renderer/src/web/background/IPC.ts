@@ -170,6 +170,9 @@ class HostTransport {
   get canPickBg (): boolean { return !this.isPreview && typeof window.host?.bgPick === 'function' }
   /** 檔案對話框選圖 → main 複製到 userData/backgrounds → 檔名;取消 / 失敗 / 不支援 → null */
   async bgPick (): Promise<string | null> { return this.canPickBg ? (await window.host?.bgPick?.()) ?? null : null }
+  /** 懸浮選單速查表:同上,存 userData/cheatsheets(預覽 / 純瀏覽器沒有對話框) */
+  get canPickSheet (): boolean { return !this.isPreview && typeof window.host?.sheetPick === 'function' }
+  async sheetPick (): Promise<string | null> { return this.canPickSheet ? (await window.host?.sheetPick?.()) ?? null : null }
 
   // ---- 自動更新(main/src/AppUpdater.ts)。純瀏覽器沒有更新器:一律「不支援」。 ----
   async getUpdaterInfo (): Promise<UpdaterInfo> {

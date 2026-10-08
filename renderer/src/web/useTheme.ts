@@ -126,12 +126,12 @@ export function normBg (v: unknown): BgSettings {
 }
 
 /** 背景圖網址:Electron 視窗 `app://bg/<檔名>`;瀏覽器預覽 `<頁面所在的 /t/<token>/>bg/<檔名>`(token 保護);純瀏覽器沒有 → null */
-export function bgImageUrl (file: string, env: { electron: boolean, preview: boolean, baseURI: string }): string | null {
+export function bgImageUrl (file: string, env: { electron: boolean, preview: boolean, baseURI: string }, route: 'bg' | 'sheet' = 'bg'): string | null {
   const name = normBgFile(file)
   if (!name || !env.electron) return null
   const enc = encodeURIComponent(name)
-  if (!env.preview) return `app://bg/${enc}`
-  try { return new URL(`bg/${enc}`, env.baseURI).href } catch { return null }
+  if (!env.preview) return `app://${route}/${enc}`
+  try { return new URL(`${route}/${enc}`, env.baseURI).href } catch { return null }
 }
 
 // ---- 可讀性(2026-10-01,使用者回報「透明面板後字體會變得不明顯」)----

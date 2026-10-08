@@ -154,6 +154,7 @@
     <template #actions>
       <button class="btn" @click="execSearch">{{ t("Retry") }}</button>
       <button class="btn" @click="openTradeLink">{{ t("Browser") }}</button>
+      <report-inline mode="trade" :detail="error" />
     </template>
   </ui-error-box>
 </template>
@@ -169,6 +170,8 @@ import {
 } from "vue";
 import { useI18nNs } from "@/web/i18n";
 import UiErrorBox from "@/web/ui/UiErrorBox.vue";
+// exile-appraiser: 就地回報(2026-10-08):查價失敗時錯誤框多一顆「回報問題」(沒有宿主注入時不畫)
+import ReportInline from "@/web/ui/ReportInline.vue";
 import { createTradeRequest } from "./pathofexile-bulk";
 import { getTradeEndpoint } from "./common";
 import { AppConfig } from "@/web/Config";
@@ -184,7 +187,7 @@ import { useBulkApi } from "./bulk-api";
 const slowdown = artificialSlowdown(900);
 
 export default defineComponent({
-  components: { OnlineFilter, TradeLinks, UiErrorBox },
+  components: { OnlineFilter, TradeLinks, UiErrorBox, ReportInline },
   props: {
     filters: {
       type: Object as PropType<ItemFilters>,

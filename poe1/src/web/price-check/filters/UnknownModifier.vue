@@ -7,9 +7,11 @@
         <span class="search-text-full whitespace-pre-wrap cursor-default"><ItemModifierText :text="stat.text" /></span>
       </div>
     </div>
-    <div class="ml-5 text-xs leading-none">
-      <span class="text-gray-600">{{ t(stat.type) }} &mdash; </span>
-      <span class="text-orange-400">{{ t('Not recognized modifier') }}</span>
+    <div class="ml-5 text-xs leading-none flex items-center gap-x-2">
+      <span><span class="text-gray-600">{{ t(stat.type) }} &mdash; </span>
+      <span class="text-orange-400">{{ t('Not recognized modifier') }}</span></span>
+      <span class="grow" />
+      <report-inline mode="mod" :detail="stat.text" />
     </div>
   </div>
 </template>
@@ -20,6 +22,8 @@ import { useI18n } from 'vue-i18n'
 import { ParsedItem } from '@/parser'
 
 import ItemModifierText from '@/web/ui/ItemModifierText.vue'
+// exile-appraiser: 就地回報(2026-10-08):未解析詞綴旁直接放「回報這條」(沒有宿主注入時不畫)
+import ReportInline from '@/web/ui/ReportInline.vue'
 
 defineProps<{
   stat: ParsedItem['unknownModifiers'][number]

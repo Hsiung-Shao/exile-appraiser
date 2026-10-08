@@ -648,3 +648,33 @@ describe('preview-server 背景圖快取(token 保護不變)', () => {
     expect((await request(srv, { path: `${srv.prefix}bg/none.png`, headers: { 'If-None-Match': '*' } })).status).toBe(404)
   })
 })
+
+describe('preview-server 懸浮選單速查表(2026-10-08,`sheet/`)', () => {
+  let sheetDir: string
+  let bgDir: string
+  const PNG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 7, 7])
+  beforeAll(() => {
+    sheetDir = fs.mkdtempSync(path.join(os.tmpdir(), 'preview-sheet-'))
+    bgDir = fs.mkdtempSync(path.join(os.tmpdir(), 'preview-bg2-'))
+    fs.writeFileSync(path.join(sheetDir, 'syndicate-0a1b2c3d.png'), PNG)
+    fs.writeFileSync(path.join(bgDir, 'sky-0a1b2c3d.png'), PNG)
+  })
+  afterAll(() => {
+    fs.rmSync(sheetDir, { recursive: true, force: true })
+    fs.rmSync(bgDir, { recursive: true, force: true })
+  })
+
+  it('sheet/ 只讀 sheetDir;兩個資料夾不互通;防穿越 / 沒有 token 一律 404;沒給 sheetDir = 沒有這條路由', async () => {
+    const srv = await start({ bgDir, sheetDir })
+    const ok = await request(srv, { path: `${srv.prefix}sheet/syndicate-0a1b2c3d.png` })
+    expect(ok.status).toBe(200)
+    expect(ok.headers['content-type']).toBe('image/png')
+    expect((await request(srv, { path: `${srv.prefix}sheet/sky-0a1b2c3d.png` })).status).toBe(404)
+    expect((await request(srv, { path: `${srv.prefix}bg/syndicate-0a1b2c3d.png` })).status).toBe(404)
+    for (const p of [`${srv.prefix}sheet/..%2Fx.png`, `${srv.prefix}sheet/a%2Fb.png`, `${srv.prefix}sheet/x.txt`, '/sheet/syndicate-0a1b2c3d.png']) {
+      expect((await request(srv, { path: p })).status, p).toBe(404)
+    }
+    const noSheet = await start({ bgDir })
+    expect((await request(noSheet, { path: `${noSheet.prefix}sheet/syndicate-0a1b2c3d.png` })).status).toBe(404)
+  })
+})

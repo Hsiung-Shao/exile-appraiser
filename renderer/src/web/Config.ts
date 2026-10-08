@@ -20,10 +20,11 @@ import { regexBookmarkHotkeyList } from './regex/bookmark-hotkeys'
 import { Host } from './background/IPC'
 import { dataLanguage } from './games/active'
 import { createHostConfigSync } from './host-config-sync'
-import { clampFsBase, normAccent, normBg, normTheme, DEFAULT_FS_BASE, type BgSettings, type Theme } from './useTheme'
+import { clampFsBase, normAccent, normBg, normBgFile, normTheme, DEFAULT_FS_BASE, type BgSettings, type Theme } from './useTheme'
 import { defaultOcrBadgeStyle, normOcrBadgeStyle, type OcrBadgeStyle } from './overlay/badge-style'
 import { normSettingsFontSize, normSettingsWindow, type SettingsWindowRect } from './settings/settings-window-geom'
 import { RELATED_SCALE_DEFAULT, normRelatedItemsScale } from './related-items-scale'
+import { normFloatMenuPos, type FloatMenuPos } from './overlay/float-menu-geom'
 
 /** 介面字串語言(與客戶端語言 `language` 分開)。 */
 export type UiLanguage = 'cmn-Hant' | 'en'
@@ -133,6 +134,13 @@ export interface Config {
   hotkeyRegexQuick: string
   /** 第 33 步:打開設定時,設定視窗旁浮一排正則書籤(預設開;只在 overlay 模式)。 */
   regexBookmarkBar: boolean
+  /**
+   * 2026-10-08:APT 式懸浮選單的位置(overlay 內左上角的比例 0–1;拖曳放開才寫)。null = 左上角預設;
+   * 顯示時夾回畫面內(overlay/float-menu-geom.ts)。
+   */
+  floatMenu: FloatMenuPos | null
+  /** 2026-10-08:懸浮選單的速查表圖片檔名(`userData/cheatsheets/`;空 = 沒匯入)。規則同背景圖 `normBgFile`。 */
+  cheatSheet: string
   // ---- 相容上游元件的推導屬性 ----
   readonly useIntlSite: boolean
   /** 上游元件讀的字級;= `fsBase`(不進檔)。 */
@@ -320,7 +328,9 @@ function createConfig (): Config {
     settingsFontSize: null as number | null,
     relatedItemsScale: RELATED_SCALE_DEFAULT,
     hotkeyRegexQuick: '',
-    regexBookmarkBar: true
+    regexBookmarkBar: true,
+    floatMenu: null as FloatMenuPos | null,
+    cheatSheet: ''
   }
   return {
     ...base,
@@ -386,7 +396,9 @@ function serialize (): string {
     settingsFontSize: config.settingsFontSize,
     relatedItemsScale: config.relatedItemsScale,
     hotkeyRegexQuick: config.hotkeyRegexQuick,
-    regexBookmarkBar: config.regexBookmarkBar
+    regexBookmarkBar: config.regexBookmarkBar,
+    floatMenu: config.floatMenu,
+    cheatSheet: config.cheatSheet
   }, null, 2)
 }
 
@@ -494,6 +506,9 @@ function applyLoaded (raw: string) {
   // 第 33 步:正則書籤快速面板熱鍵(舊設定檔沒有 → 空 = 不註冊)、設定視窗旁的書籤列(舊設定檔沒有 → 開;只有明確 false 才關)
   config.hotkeyRegexQuick = typeof loaded.hotkeyRegexQuick === 'string' ? loaded.hotkeyRegexQuick : fresh.hotkeyRegexQuick
   config.regexBookmarkBar = loaded.regexBookmarkBar !== false
+  // 2026-10-08:懸浮選單位置 / 速查表(舊設定檔沒有 → 左上角預設 / 沒匯入;壞值同)
+  config.floatMenu = normFloatMenuPos(loaded.floatMenu)
+  config.cheatSheet = normBgFile(loaded.cheatSheet)
 }
 
 /** 測試用:套用一份設定檔內容後回傳序列化結果(`renderer/test/runeshape-config.test.ts`) */

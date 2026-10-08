@@ -213,6 +213,11 @@
         <div class="flex-1 border-b border-gray-700" />
       </div>
       <form @submit.prevent="handleStatsSubmit">
+        <report-inline
+          v-if="showUnknownMods"
+          mode="summary"
+          :count="item.unknownModifiers.length"
+        />
         <filter-modifier
           v-for="filter of filteredStats"
           :key="filter.tag + '/' + filter.text"
@@ -303,6 +308,8 @@ import FilterModifier from "./FilterModifier.vue";
 import FilterBtnNumeric from "./FilterBtnNumeric.vue";
 import FilterBtnLogical from "./FilterBtnLogical.vue";
 import UnknownModifier from "./UnknownModifier.vue";
+// exile-appraiser: 就地回報(2026-10-08):有未解析詞綴時在清單最上方顯示條數 +「回報問題」(沒有宿主注入時不畫)
+import ReportInline from "@/web/ui/ReportInline.vue";
 import { ItemFilters, StatFilter } from "./interfaces";
 import {
   ParsedItem,
@@ -327,6 +334,7 @@ export default defineComponent({
     FilterBtnDropdown,
     ItemEditorV2,
     UnknownModifier,
+    ReportInline,
     Popover,
     UiToggle,
   },

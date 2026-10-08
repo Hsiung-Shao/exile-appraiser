@@ -18,6 +18,10 @@
         <span class="text-orange-400">{{ t("Not recognized modifier") }}</span>
       </div>
     </div>
+    <!-- exile-appraiser: 就地回報(2026-10-08) -->
+    <div class="py-2 pl-2 flex items-end shrink-0">
+      <report-inline mode="mod" :detail="stat.text" />
+    </div>
   </div>
 </template>
 
@@ -26,11 +30,13 @@ import { useI18n } from "vue-i18n";
 import { ParsedItem } from "@/parser";
 import ItemModifierText from "../../ui/ItemModifierText.vue";
 import { defineComponent, PropType } from "vue";
+// exile-appraiser: 就地回報(2026-10-08):未解析詞綴旁直接放「回報這條」(沒有宿主注入時不畫)
+import ReportInline from "@/web/ui/ReportInline.vue";
 // exile-appraiser: 移除「重新載入交易站資料」鈕(ReloadTradeData):本專案的交易站 data 是離線快照(data/poe2/trade),
 // 重載不會多認得任何詞綴;它的「重試物品」又靠上游 Host.selfDispatch(本專案沒有)。
 
 export default defineComponent({
-  components: { ItemModifierText },
+  components: { ItemModifierText, ReportInline },
   props: {
     stat: {
       type: Object as PropType<ParsedItem["unknownModifiers"][number]>,

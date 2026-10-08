@@ -54,6 +54,8 @@ const api: HostApi = {
   listFonts: () => ipcRenderer.invoke('list-fonts'),
   // 自訂背景圖(檔案對話框選圖 → 複製到 userData/backgrounds)
   bgPick: () => ipcRenderer.invoke('bg-pick'),
+  // 懸浮選單速查表(檔案對話框選圖 → 複製到 userData/cheatsheets)
+  sheetPick: () => ipcRenderer.invoke('sheet-pick'),
   // 靈魂之井揭露面板(褻瀆)自動辨識
   onRevealScanResult: (cb: (e: RevealScanEvent) => void) => subscribe('reveal-scan-result', cb),
   revealStats: () => ipcRenderer.invoke('reveal-stats'),

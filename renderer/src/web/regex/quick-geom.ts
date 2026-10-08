@@ -207,7 +207,7 @@ export function quickGroupedKey (groups: readonly QuickGroupLike[], headers: boo
 }
 
 /** 執行結果(main `RegexPasteResult` 加上 renderer 端才有的原因) */
-export type QuickReason = 'window-mode' | 'no-game' | 'game-inactive' | 'focus-timeout' | 'busy' | 'empty' | 'missing' | 'preview' | 'copy-failed'
+export type QuickReason = 'window-mode' | 'no-game' | 'game-inactive' | 'focus-timeout' | 'busy' | 'empty' | 'missing' | 'preview' | 'copy-failed' | 'other-game'
 
 export interface QuickOutcome {
   pasted: boolean
@@ -222,4 +222,4 @@ export function quickNoticeKey (o: QuickOutcome): string | null {
 }
 
 /** 全部原因(i18n 守門用) */
-export const QUICK_REASONS: readonly QuickReason[] = ['window-mode', 'no-game', 'game-inactive', 'focus-timeout', 'busy', 'empty', 'missing', 'preview', 'copy-failed']
+export const QUICK_REASONS: readonly QuickReason[] = ['window-mode', 'no-game', 'game-inactive', 'focus-timeout', 'busy', 'empty', 'missing', 'preview', 'copy-failed', 'other-game']

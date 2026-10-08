@@ -101,7 +101,8 @@
                 <p>{{ parseErrorText(parsed.error) }}</p>
                 <template #actions>
                   <button class="btn sm" data-action="copy-raw" @click="copyRaw">{{ copied ? t('ppz.copied') : t('ppz.copy_raw') }}</button>
-                  <button class="btn sm" data-action="report-parse" @click="reportParseError">{{ t('ppz.report.parse') }} ↗</button>
+                  <!-- 就地回報(2026-10-08):無法辨識的物品,回報是主要動作 -->
+                  <button class="btn sm primary" data-action="report-parse" @click="reportParseError">{{ t('ppz.report.parse') }} ↗</button>
                 </template>
               </ui-error-box>
               <pre class="raw-text selectable mx-3 mb-3">{{ rawText }}</pre>
@@ -182,6 +183,10 @@
     <!-- 第 33 步:正則書籤快速面板(熱鍵叫出;鍵盤上下 + Enter、Esc 關,選完自動關) -->
     <regex-quick-panel v-if="isOverlay && regexQuickOpen" @close="closeRegexQuick" />
 
+    <!-- 2026-10-08:APT 式懸浮選單(overlayKey 叫出;設定 / 正則書籤 / 速查表。設定開著時仍在最上層) -->
+    <float-menu v-if="isOverlay && floatMenuOpen" :settings-open="settingsVisible"
+      @close="closeFloatMenu" @settings="menuToggleSettings" @pasted="onMenuPasted" />
+
     <!-- WP-S:靈魂之井揭露面板 OCR 徽章(與查價面板並列,不受 panelShown 控制) -->
     <ocr-badges v-if="isOverlay" />
     <!-- WP-R2:符文塑形面板自動查價徽章(同 OCR 徽章層級) -->
@@ -216,6 +221,7 @@ import OcrRegionPicker from './overlay/OcrRegionPicker.vue'
 import RuneshapePrices from './overlay/RuneshapePrices.vue'
 import RegexBookmarkBar from './regex/RegexBookmarkBar.vue'
 import RegexQuickPanel from './regex/RegexQuickPanel.vue'
+import FloatMenu from './overlay/FloatMenu.vue'
 import { runRegexBookmarkFromHotkey } from './regex/quick'
 import { incomingShare } from './regex/incoming'
 import { runeshapeTradeHold } from './overlay/runeshape-view'
@@ -229,6 +235,7 @@ import { useLeagues } from './background/Leagues'
 import { REALMS, isSupportedCombination } from '@exile-appraiser/core/realm'
 import { reloadPhase, reloadError, retryReload } from './loadState'
 import { reportIssue, copyIssueReport, reportStatus, type ReportContext } from './report'
+import { REPORT_INLINE_KEY, inlineReportError } from './report-inline'
 import { settingsTab } from './settings/tabState'
 import { resolveSettingsTab } from './settings/settings-tabs'
 import { createBackdropGuard } from './settings/settings-window-geom'
@@ -242,7 +249,7 @@ const PANEL_WIDTH_EM = 28.75
 const LEGACY_FS_SCALE = 1.23
 
 export default defineComponent({
-  components: { UiErrorBox, ErrorBoundary, BgLayer, SettingsWindow, OcrBadges, OcrRegionPicker, RuneshapePrices, RegexBookmarkBar, RegexQuickPanel },
+  components: { UiErrorBox, ErrorBoundary, BgLayer, SettingsWindow, OcrBadges, OcrRegionPicker, RuneshapePrices, RegexBookmarkBar, RegexQuickPanel, FloatMenu },
   setup () {
     const { t, te } = useI18n()
     const leagues = useLeagues()
@@ -253,6 +260,8 @@ export default defineComponent({
     const showSettings = shallowRef(false)
     /** 第 33 步:正則書籤快速面板(overlay 限定) */
     const regexQuickOpen = shallowRef(false)
+    /** 2026-10-08:APT 式懸浮選單(overlay 限定;overlay/FloatMenu.vue) */
+    const floatMenuOpen = shallowRef(false)
     const itemKey = shallowRef(0)
     const rateLimitWait = shallowRef(0)
     // ---- overlay 狀態(APT WidgetManager 的最小子集) ----
@@ -273,6 +282,12 @@ export default defineComponent({
     // 一律交給 openTradeSite:預設系統瀏覽器(同「交易」鈕的 Host.openExternal,使用者已登入);
     // 以前這裡直接開 Host.openCaptcha(沒有登入狀態的 Electron 視窗)。Cloudflare 驗證另有「開啟驗證視窗」鈕。
     provide('builtin-browser', openTradeSite)
+    // 就地回報(2026-10-08):未解析詞綴 / 查價錯誤框旁的回報鈕(移植元件經 ui/ReportInline.vue inject)
+    provide(REPORT_INLINE_KEY, {
+      report (kind, detail) {
+        void reportIssue({ ...itemReportContext(), error: inlineReportError(kind, detail) })
+      }
+    })
 
     /** 第 27 步:每次 load 遞增;換語系資料要等時,較舊的那次等完就不再覆蓋較新的物品。 */
     let loadSeq = 0
@@ -335,6 +350,7 @@ export default defineComponent({
       advancedCheck.value = e.focusOverlay
       showSettings.value = false
       regexQuickOpen.value = false
+      floatMenuOpen.value = false
       panelShown.value = true
       void load(e.clipboard)
       if (isOverlay) {
@@ -383,8 +399,25 @@ export default defineComponent({
       // overlay 沒有物品時,面板只是為了設定才開的:一起收起並把焦點還給遊戲
       if (isOverlay && !parsed.value) {
         hidePanel('關閉設定且沒有物品')
-        Host.focusGame()
+        // 懸浮選單還開著:焦點留在 overlay(選單可以繼續用)
+        if (!floatMenuOpen.value) Host.focusGame()
       }
+    }
+
+    /** 2026-10-08:收起懸浮選單;✕ / 點背景 → 沒有查價面板時把焦點還給遊戲(focus-change / 貼上了 = 焦點已在遊戲) */
+    function closeFloatMenu (reason: string) {
+      if (!floatMenuOpen.value) return
+      floatMenuOpen.value = false
+      console.log(`[app] 收起懸浮選單(${reason})`)
+      if (reason === 'focus-change' || reason === 'pasted') return
+      if (showSettings.value) closeSettings(`懸浮選單收起:${reason}`)
+      if (isOverlay && !panelShown.value) Host.focusGame()
+    }
+
+    /** 懸浮選單「設定」:開關設定視窗(開 = 上次的分頁) */
+    function menuToggleSettings () {
+      if (settingsVisible.value) closeSettings('懸浮選單')
+      else openSettingsTo(settingsTab.value, '懸浮選單')
     }
 
     // 點暗幕關閉:按下與放開都在暗幕上才算(在視窗內按住 / 拖曳移動 / 調整大小後在暗幕上放開不關;settings-window-geom.ts)
@@ -411,18 +444,18 @@ export default defineComponent({
             // APT: wmFlags 'hide-on-blur'
             hidePanel(`focus-change game=${state.game} overlay=false`)
             closeRegexQuick('focus-change')
+            closeFloatMenu('focus-change')
           } else if (state.usingHotkey && !panelShown.value) {
-            // overlayKey 叫出 overlay 但沒有物品:開面板 + 設定(本專案沒有 APT 的選單 widget)
+            // overlayKey 叫出 overlay 但沒有物品:APT 式懸浮選單(2026-10-08 使用者裁定;點「設定」才開設定視窗)
             parsed.value = null
-            showSettings.value = true
-            panelShown.value = true
-            advancedCheck.value = true
-            console.log('[app] overlayKey 叫出設定面板')
+            floatMenuOpen.value = true
+            console.log('[app] overlayKey 叫出懸浮選單')
           }
         }))
         window.addEventListener('resize', onResize)
         // 第 33 步:快速面板熱鍵(main 已讓 overlay 取得焦點)→ 收起查價面板 / 設定,開面板
         unsubscribers.push(Host.onRegexQuickOpen(() => {
+          floatMenuOpen.value = false
           showSettings.value = false
           hidePanel('正則書籤快速面板')
           regexQuickOpen.value = true
@@ -478,6 +511,10 @@ export default defineComponent({
     function handleBackgroundClick () {
       // WP-S2:框選中不因背景點擊關閉(框選層本身在最上層,這裡是保險)
       if (regionPickerOpen.value) return
+      if (floatMenuOpen.value) {
+        closeFloatMenu('點背景')
+        return
+      }
       if (AppConfig().overlayBackgroundClose) {
         hidePanel('點背景')
         Host.focusGame()
@@ -491,6 +528,7 @@ export default defineComponent({
       if (open) {
         showSettings.value = false
         regexQuickOpen.value = false
+        floatMenuOpen.value = false
         hidePanel('開啟框選層')
         return
       }
@@ -509,7 +547,7 @@ export default defineComponent({
       }, { immediate: true })
       // 第五輪 30.4:overlay 上有沒有東西要畫 → main 閒置隱藏 overlay 視窗(overlay/overlay-content.ts;內容相同不重送)
       let lastContentKey = ''
-      watch(() => overlayContentOf({ panel: panelShown.value, settings: settingsVisible.value, picker: regionPickerOpen.value, quick: regexQuickOpen.value }, overlayLayers), (c) => {
+      watch(() => overlayContentOf({ panel: panelShown.value, settings: settingsVisible.value, picker: regionPickerOpen.value, quick: regexQuickOpen.value, menu: floatMenuOpen.value }, overlayLayers), (c) => {
         const key = overlayContentKey(c)
         if (key === lastContentKey) return
         lastContentKey = key
@@ -568,6 +606,11 @@ export default defineComponent({
       closeSettings,
       regexQuickOpen,
       closeRegexQuick,
+      floatMenuOpen,
+      closeFloatMenu,
+      menuToggleSettings,
+      /** 懸浮選單的書籤貼進遊戲了:焦點 main 已交還遊戲,選單收起 */
+      onMenuPasted () { closeFloatMenu('pasted') },
       regexBookmarkBar: computed(() => AppConfig().regexBookmarkBar),
       /** 書籤列沒有書籤時「前往正則」 */
       openRegexTab () { settingsTab.value = 'regex' },
@@ -646,6 +689,11 @@ export default defineComponent({
       /** 台服 + 英文客戶端(不支援):一鍵切國際服或切繁中客戶端。 */
       /** parser 回的是 i18n 鍵(item.parse_error / item.unknown),可能帶「: 細節」;翻得到就翻,細節保留原文。 */
       parseErrorText (error: string): string {
+        // PoE2 parser:`item.wrong_language|<物品文字語言>|<客戶端語言>`(上游用 | 分隔,不是「: 細節」)
+        if (error.startsWith('item.wrong_language|')) {
+          const [, found, configured] = error.split('|')
+          return t('ppz.wrong_language', { found: found ?? '?', configured: configured ?? '?' })
+        }
         const i = error.indexOf(': ')
         const key = i < 0 ? error : error.slice(0, i)
         if (!te(key) && !te(key, 'en')) return error

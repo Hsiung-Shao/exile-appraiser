@@ -66,6 +66,36 @@ export async function runRegexBookmark (index: number, source: RegexPasteSource)
 }
 
 /**
+ * 2026-10-08 懸浮選單:另一代的書籤只複製,不貼(貼進不是那款的遊戲沒有意義)。字串與貼上相同(`bookmarkQuery`)。
+ */
+export async function copyRegexBookmark (index: number): Promise<QuickOutcome> {
+  if (quickRunning.value) return { pasted: false, copied: false, reason: 'busy' }
+  quickRunning.value = true
+  try {
+    await ensureStateLoaded()
+    const q = await queryOf(index)
+    if (!q) return { pasted: false, copied: false, reason: 'missing' }
+    if (!q.text) return { pasted: false, copied: false, reason: 'empty' }
+    const copied = await copyInBrowser(q.text)
+    return { pasted: false, copied, reason: copied ? 'other-game' : 'copy-failed' }
+  } catch (e) {
+    console.error('[regex-quick] 複製書籤失敗', e)
+    return { pasted: false, copied: false, reason: 'missing' }
+  } finally {
+    quickRunning.value = false
+  }
+}
+
+/** 懸浮選單書籤列下方的字串預覽(找不到 / 載入失敗 = '';清單第一次用到才載) */
+export async function regexBookmarkPreview (index: number): Promise<string> {
+  try {
+    return (await queryOf(index))?.text ?? ''
+  } catch {
+    return ''
+  }
+}
+
+/**
  * 書籤個別熱鍵(main 已註冊、遊戲在前景):找回書籤 → 字串 → `regex-paste`(source `hotkey`)。
  * 沒貼成的提示由 main 畫在右下角提示視窗(overlay 此時可能是閒置隱藏的);找不到書籤也交給 main 提示(`missing`)。
  */

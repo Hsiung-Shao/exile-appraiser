@@ -14,6 +14,12 @@ import path from 'node:path'
 /** 背景資料夾名稱(在 userData 底下) */
 export const BG_DIR_NAME = 'backgrounds'
 
+/**
+ * 懸浮選單的速查表圖片(2026-10-08,使用者自己匯入一張密教速查表)。檔名 / 防穿越 / 存檔規則與背景圖相同(本檔全部函式共用),
+ * 但**另開資料夾**:`bg-pick` 成功後會刪掉 backgrounds 裡其他所有圖。載入 `app://sheet/<檔名>` / 預覽 `<prefix>sheet/<檔名>`。
+ */
+export const SHEET_DIR_NAME = 'cheatsheets'
+
 /** 允許的副檔名(小寫,不含點) */
 export const BG_EXTENSIONS = ['png', 'jpg', 'jpeg', 'webp'] as const
 

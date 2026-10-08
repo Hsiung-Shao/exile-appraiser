@@ -47,7 +47,7 @@ import { DEFAULT_SCAN_INTERVAL_MS, RuneshapeScan } from './ocr/runeshape-scan'
 import { SharedCapture, SharedLocateOcr } from './ocr/panel-scan'
 import { ScanMaskStore, sanitizeMaskReport } from './ocr/scan-mask'
 import { isAppNavigation, isExternalWebUrl } from './external-links'
-import { BG_DIR_NAME, bgContentType, bgCorsHeaders, bgFileFromPath, normBgFile, resolveBgPath, storedBgName } from './backgrounds'
+import { BG_DIR_NAME, SHEET_DIR_NAME, bgContentType, bgCorsHeaders, bgFileFromPath, normBgFile, resolveBgPath, storedBgName } from './backgrounds'
 import { createFontLister } from './system-fonts'
 import { AppLog, LogFileWriter, captureConsole, consoleMethodForLevel, type LogEntry } from './app-log'
 import { PerfMonitor, formatPerfSummary, isPerfFile, perfFileName, scanSnapshotOf, type ScenarioInput } from './perf/perf-monitor'
@@ -150,6 +150,8 @@ protocol.registerSchemesAsPrivileged([{
 
 /** 自訂背景圖的資料夾(`userData/backgrounds`;backgrounds.ts) */
 const BG_DIR = () => path.join(app.getPath('userData'), BG_DIR_NAME)
+/** 懸浮選單的速查表圖片(`userData/cheatsheets`;規則同背景圖,另開資料夾) */
+const SHEET_DIR = () => path.join(app.getPath('userData'), SHEET_DIR_NAME)
 
 /**
  * `app://app/…` = renderer/dist(只有正式版;開發模式走 Vite);`app://bg/<檔名>` = 自訂背景圖(兩種模式都有)。
@@ -160,9 +162,9 @@ function installAppProtocol (serveRenderer: boolean) {
   const root = __dirname
   protocol.handle(APP_SCHEME, (request) => {
     const url = new URL(request.url)
-    if (url.host === 'bg') {
+    if (url.host === 'bg' || url.host === 'sheet') {
       const name = bgFileFromPath(url.pathname)
-      const file = name == null ? null : resolveBgPath(BG_DIR(), name)
+      const file = name == null ? null : resolveBgPath(url.host === 'bg' ? BG_DIR() : SHEET_DIR(), name)
       if (!file) return new Response('not found', { status: 404 })
       return net.fetch(pathToFileURL(file).toString()).then(r => r.ok
         ? new Response(r.body, { status: 200, headers: { 'Content-Type': bgContentType(file), 'Cache-Control': 'no-cache', ...bgCorsHeaders(request.headers.get('origin'), APP_ORIGINS) } })
@@ -1119,6 +1121,8 @@ if (!skipStartup) app.whenReady().then(() => {
       staticRoot: root,
       // 自訂背景圖:`<prefix>bg/<檔名>`(同樣要 token)
       bgDir: BG_DIR(),
+      // 懸浮選單速查表:`<prefix>sheet/<檔名>`
+      sheetDir: SHEET_DIR(),
       handlers: previewHandlers(table),
       version: app.getVersion(),
       log: (m) => { console.log(m) },
@@ -1481,12 +1485,44 @@ if (!skipStartup) app.whenReady().then(() => {
   /** IPC 參數不可信:只收 `{ text: string, name: string, source: bar|quick|hotkey, missing?: true }`(字串上限 2000 字元) */
   const regexPasteReq = (v: unknown) => {
     const o = (v != null && typeof v === 'object' ? v : {}) as Record<string, unknown>
-    const source = o.source === 'bar' || o.source === 'quick' || o.source === 'hotkey' ? o.source : 'bar'
+    const source = o.source === 'bar' || o.source === 'quick' || o.source === 'hotkey' || o.source === 'menu' ? o.source : 'bar'
     return {
       text: typeof o.text === 'string' ? o.text.slice(0, 2000) : '',
       name: typeof o.name === 'string' ? o.name.slice(0, 80) : '',
       source,
       missing: o.missing === true
+    }
+  }
+
+  /**
+   * 檔案對話框選圖(只列 png / jpg / webp)→ 複製到 `dir`(檔名 = 清理後原名 + 內容雜湊,backgrounds.ts)→ 回傳檔名(取消 / 失敗回 null)。
+   * 只複製選到的那一個檔;成功後刪掉資料夾裡其他舊圖(只刪合法檔名的檔)。背景圖(bg-pick)與速查表(sheet-pick)共用,各自一個資料夾
+   */
+  const pickImageInto = async (dir: string, tag: string, title: string): Promise<string | null> => {
+    const opts = {
+      title,
+      properties: ['openFile' as const],
+      filters: [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp'] }]
+    }
+    const res = win && !win.isDestroyed() ? await dialog.showOpenDialog(win, opts) : await dialog.showOpenDialog(opts)
+    if (res.canceled || !res.filePaths[0]) return null
+    const src = res.filePaths[0]
+    try {
+      const data = await fs.readFile(src)
+      const name = storedBgName(src, data)
+      if (!name) { console.warn(`[${tag}] 不支援的檔案類型`); return null }
+      await fs.mkdir(dir, { recursive: true })
+      const dest = resolveBgPath(dir, name)
+      if (!dest) return null
+      await fs.writeFile(dest, data)
+      for (const f of await fs.readdir(dir)) {
+        if (f !== name && normBgFile(f)) await fs.rm(path.join(dir, f), { force: true }).catch(() => {})
+      }
+      console.log(`[${tag}] 圖片 → ${name}(${data.length} bytes)`)
+      return name
+    } catch (e) {
+      console.error(`[${tag}] 複製圖片失敗`, e)
+      return null
     }
   }
 
@@ -1651,38 +1687,9 @@ if (!skipStartup) app.whenReady().then(() => {
     },
     // 自訂背景圖:檔案對話框選圖(只列 png / jpg / webp)→ 複製到 userData/backgrounds → 回傳檔名(取消 / 失敗回 null)。
     // 只複製選到的那一個檔;成功後刪掉資料夾裡其他舊的背景圖(只刪合法檔名的檔)。預覽端不開放(對話框在桌面上)
-    'bg-pick': {
-      kind: 'invoke',
-      preview: false,
-      fn: async () => {
-        const opts = {
-          title: 'Background image',
-          properties: ['openFile' as const],
-          filters: [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp'] }]
-        }
-        const res = win && !win.isDestroyed() ? await dialog.showOpenDialog(win, opts) : await dialog.showOpenDialog(opts)
-        if (res.canceled || !res.filePaths[0]) return null
-        const src = res.filePaths[0]
-        try {
-          const data = await fs.readFile(src)
-          const name = storedBgName(src, data)
-          if (!name) { console.warn('[bg] 不支援的檔案類型'); return null }
-          const dir = BG_DIR()
-          await fs.mkdir(dir, { recursive: true })
-          const dest = resolveBgPath(dir, name)
-          if (!dest) return null
-          await fs.writeFile(dest, data)
-          for (const f of await fs.readdir(dir)) {
-            if (f !== name && normBgFile(f)) await fs.rm(path.join(dir, f), { force: true }).catch(() => {})
-          }
-          console.log(`[bg] 背景圖 → ${name}(${data.length} bytes)`)
-          return name
-        } catch (e) {
-          console.error('[bg] 複製背景圖失敗', e)
-          return null
-        }
-      }
-    },
+    'bg-pick': { kind: 'invoke', preview: false, fn: () => pickImageInto(BG_DIR(), 'bg', 'Background image') },
+    // 懸浮選單的速查表圖片(2026-10-08):流程與背景圖相同,存 userData/cheatsheets(另開資料夾,bg-pick 會清自己的資料夾)
+    'sheet-pick': { kind: 'invoke', preview: false, fn: () => pickImageInto(SHEET_DIR(), 'sheet', 'Cheat sheet image') },
     // 第 28 步:設定 › 記錄。log-get 回快照({ entries, lastSeq },帶 sinceSeq 只回較新的;預覽端可用 = 輪詢);
     // log-subscribe(send)= 記錄分頁開著才讓 main 送 log-lines 即時追加;開資料夾只給 Electron 視窗
     'log-get': { kind: 'invoke', fn: (_ctx, sinceSeq?: unknown) => appLog.snapshot(typeof sinceSeq === 'number' ? sinceSeq : undefined) },

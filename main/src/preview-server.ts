@@ -93,6 +93,8 @@ export interface PreviewServerOptions {
   staticRoot: string
   /** 自訂背景圖資料夾(`userData/backgrounds`);`<prefix>bg/<檔名>` 供應,與 `app://bg/` 同一套檔名 / 防穿越規則。省略 = 沒有這條路由 */
   bgDir?: string
+  /** 懸浮選單速查表資料夾(`userData/cheatsheets`);`<prefix>sheet/<檔名>`,規則同 bgDir。省略 = 沒有這條路由 */
+  sheetDir?: string
   /** channel → handler(只含開放給預覽端的)。 */
   handlers: Readonly<Record<string, PreviewHandler>>
   version: string
@@ -503,10 +505,10 @@ export async function startPreviewServer (opts: PreviewServerOptions): Promise<P
     res.end(headOnly ? undefined : body)
   }
 
-  /** 自訂背景圖(token 之後的 `bg/<檔名>`;檔名不合法 / 跳出資料夾 / 不存在一律 404) */
-  const serveBg = async (req: http.IncomingMessage, res: http.ServerResponse, rest: string, headOnly: boolean) => {
-    const name = opts.bgDir ? bgFileFromPath(rest.slice('bg/'.length)) : null
-    const file = name == null || !opts.bgDir ? null : resolveBgPath(opts.bgDir, name)
+  /** 自訂背景圖 / 速查表(token 之後的 `bg/<檔名>` / `sheet/<檔名>`;檔名不合法 / 跳出資料夾 / 不存在一律 404) */
+  const serveBg = async (req: http.IncomingMessage, res: http.ServerResponse, rest: string, headOnly: boolean, dir: string | undefined, route: string) => {
+    const name = dir ? bgFileFromPath(rest.slice(route.length)) : null
+    const file = name == null || !dir ? null : resolveBgPath(dir, name)
     if (!file) return respond(res, 404, 'not found')
     let st: Awaited<ReturnType<typeof fs.stat>>
     try {
@@ -545,7 +547,8 @@ export async function startPreviewServer (opts: PreviewServerOptions): Promise<P
       return handleEvents(req, res, cid)
     }
     if (req.method !== 'GET' && req.method !== 'HEAD') return respond(res, 405, 'method not allowed')
-    if (rest.startsWith('bg/')) return void serveBg(req, res, rest, req.method === 'HEAD')
+    if (rest.startsWith('bg/')) return void serveBg(req, res, rest, req.method === 'HEAD', opts.bgDir, 'bg/')
+    if (rest.startsWith('sheet/')) return void serveBg(req, res, rest, req.method === 'HEAD', opts.sheetDir, 'sheet/')
     void serveStatic(req, res, '/' + rest, req.method === 'HEAD')
   })
   server.on('connection', (sock) => {
