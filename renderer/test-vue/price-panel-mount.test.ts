@@ -221,10 +221,11 @@ describe('ErrorBoundary', () => {
 
 describe('接線守門', () => {
   const app = fs.readFileSync(path.join(ROOT, 'renderer/src/web/App.vue'), 'utf8')
-  it('App.vue 查價區包 ErrorBoundary,PoE2 掛 UnidentifiedResolver 並以 identify 換掉物品', () => {
+  it('App.vue 查價區包 ErrorBoundary,兩代都掛 UnidentifiedResolver 並以 identify 換掉物品', () => {
     expect(app).toMatch(/<error-boundary v-else-if="parsed\?\.isOk\(\) && leagueId && supported" :reset-key="itemKey"/)
     expect(app).toMatch(/<component :is="unidentifiedResolverComponent"[^>]*@identify="onIdentify"/)
-    expect(app).toContain("loadedGame.value === 'poe2' ? Poe2.UnidentifiedResolver : null")
+    // 2026-10-08:PoE1 也接上(APT 移植);原本是 null → PoE1 未鑑定傳奇查價區空白
+    expect(app).toContain("loadedGame.value === 'poe2' ? Poe2.UnidentifiedResolver : Poe1UnidentifiedResolver")
     expect(app).toMatch(/onIdentify \(identified[^)]*\) \{[\s\S]*?parsed\.value = ok\(identified\)/)
   })
   it('renderer main.ts 裝了 Vue errorHandler 與 window 未捕捉錯誤記錄', () => {

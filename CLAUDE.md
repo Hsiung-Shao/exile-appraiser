@@ -129,7 +129,7 @@ Path of Exile 查價工具(Electron + TypeScript)。把 `apt-patched`(Awakened P
     沒框區域才自動定位整個畫面;`ocr-region-pick` 不進 `PREVIEW_EVENTS`。
 22. **renderer 錯誤一律進 main log**(2026-10-03):main 只收得到 renderer console 的訊息字串(沒有堆疊),所以 `renderer/src/web/renderer-errors.ts` 自己組成一行 `[renderer-error] <位置>(<Vue 來源>) <錯誤> + 堆疊`;
     入口 = `app.config.errorHandler`、`window` error / unhandledrejection(renderer `main.ts`)、查價區的 `ui/ErrorBoundary.vue`(子元件 setup / 渲染 / watch 出錯 → 錯誤框 + 重試,換物品清除;事件處理出錯只記 log)。
-    **查價面板空白一律先搜 log 的 `[renderer-error]`**;沒有 = 不是拋錯,是 v-if 把整塊藏掉(例:PoE2 未鑑定傳奇沒掛 UnidentifiedResolver,`docs/poe2-port-notes.md`「renderer 接線」)。
+    **查價面板空白一律先搜 log 的 `[renderer-error]`**;沒有 = 不是拋錯,是 v-if 把整塊藏掉(例:PoE2 未鑑定傳奇沒掛 UnidentifiedResolver,`docs/poe2-port-notes.md`「renderer 接線」;PoE1 同樣問題 2026-10-08 使用者回報羊毛之鞋,補移植 APT `unidentified-resolver/UnidentifiedResolver.vue` 逐字,測試 `renderer/test-vue/poe1-unidentified-mount.test.ts`)。
 23. **常駐記錄 + 設定 › 記錄**(第 28 步,2026-10-03):`main/src/app-log.ts` 在 `main.ts` 最前面**只攔一次** console.log / warn / error(`captureConsole`;`--ppz-log-file` 的同步附加寫檔改掛 `appLog.onLine`,行為不變),
     renderer 轉印(`console-message`)改依等級走 `console.log / warn / error`(行首仍是 `[renderer] `,renderer-error 因此是 error 等級)。**不要再另外攔 console**。三個出口:
     ① `LogRing` 環形緩衝最近 3000 行(每行 `seq` 遞增、單行上限 8000 字元);② `LogFileWriter` 寫 `userData/logs/exile-appraiser-<YYYY-MM-DD>.log`

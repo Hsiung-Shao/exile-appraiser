@@ -109,7 +109,7 @@
             </template>
             <!-- 元件出錯時改畫錯誤框(寫進 main log)而不是整塊空白;換物品自動清除 -->
             <error-boundary v-else-if="parsed?.isOk() && leagueId && supported" :reset-key="itemKey" where="price-check">
-              <!-- PoE2 未鑑定傳奇:先選是哪個傳奇(上游 PriceCheckWindow.vue 同位置;只有一個就自動選) -->
+              <!-- 未鑑定傳奇:先選是哪個傳奇(兩代上游 PriceCheckWindow.vue 同位置;只有一個就自動選) -->
               <component :is="unidentifiedResolverComponent" v-if="unidentifiedResolverComponent"
                 :key="`u${itemKey}`" :item="parsed.value" @identify="onIdentify" />
               <component :is="checkedItemComponent"
@@ -206,6 +206,8 @@ import { parseClipboard, type ParsedItem } from '@/parser'
 import CheckedItem from '@poe1/CheckedItem.vue'
 import RateLimiterState from '@poe1/trade/RateLimiterState.vue'
 import RelatedItems from '@poe1/related-items/RelatedItems.vue'
+// 2026-10-08:PoE1 未鑑定傳奇(APT UnidentifiedResolver 逐字移植;沒接時 CheckedItem 的 show 整塊藏掉 = 查價空白)
+import Poe1UnidentifiedResolver from '@poe1/unidentified-resolver/UnidentifiedResolver.vue'
 import { relatedItemsZoom } from './related-items-scale'
 import * as Poe2 from '@poe2-entry'
 import { dataLanguage, loadedGame } from './games/active'
@@ -635,10 +637,10 @@ export default defineComponent({
       itemKey,
       rateLimitWait,
       checkedItemComponent: computed(() => loadedGame.value === 'poe2' ? Poe2.CheckedItem : CheckedItem),
-      // PoE2 未鑑定傳奇的選擇列(PoE1 / APT 沒有這個元件)
-      unidentifiedResolverComponent: computed(() => loadedGame.value === 'poe2' ? Poe2.UnidentifiedResolver : null),
+      // 未鑑定傳奇的選擇列(PoE2 = EE2、PoE1 = APT 的 UnidentifiedResolver;2026-10-08 補上 PoE1)
+      unidentifiedResolverComponent: computed(() => loadedGame.value === 'poe2' ? Poe2.UnidentifiedResolver : Poe1UnidentifiedResolver),
       /** 上游 PriceCheckWindow `handleIdentification`:選定的傳奇換掉物品(CheckedItem 隨 prop 重建篩選) */
-      onIdentify (identified: Poe2.Poe2ParsedItem) {
+      onIdentify (identified: Poe2.Poe2ParsedItem | ParsedItem) {
         console.log(`[app] 未鑑定傳奇選定:${identified.info.name} / ${identified.info.refName}`)
         parsed.value = ok(identified)
       },
