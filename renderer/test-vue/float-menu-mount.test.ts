@@ -93,15 +93,18 @@ describe('FloatMenu 真掛載', () => {
     app.unmount()
   })
 
-  it('速查表:沒匯入 → 空狀態(測試環境沒有檔案對話框 → 提示在程式視窗匯入)', async () => {
+  it('速查表:沒匯入 → 內建那張(標「內建 3.29 版」,沒有「還原內建」);縮圖指向 cheatsheets/', async () => {
     floatMenuSection.value = ''
     const { container, errors, app } = render()
     await settle()
     click(byAction(container, 'menu-sheet')[0])
     await settle()
     expect(errors).toEqual([])
-    expect(findAll(container, byAttr('data-menu', 'sheet-empty')).length).toBe(1)
-    expect(text(container)).toContain('還沒有速查表')
+    expect(findAll(container, byAttr('data-menu', 'sheet-empty'))).toEqual([])
+    expect(text(findAll(container, byAttr('data-menu', 'sheet-name'))[0])).toBe('內建 3.29 版')
+    expect(byAction(container, 'sheet-remove')).toEqual([])
+    const img = findAll(container, (n: MiniNode) => n.tag === 'img')[0]
+    expect(String(img.attrs.src)).toMatch(/cheatsheets\/syndicate-3\.29\.webp$/)
     expect(findAll(container, byAttr('data-layer', 'sheet-zoom'))).toEqual([])
     app.unmount()
   })

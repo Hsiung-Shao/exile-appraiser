@@ -65,6 +65,25 @@ export function sheetZoomRect (
   return { left: margin, top, w: Math.max(120, leftSpace), h }
 }
 
+/**
+ * 內建速查表(2026-10-08 使用者要求「由我們自帶且同時支援手動匯入」):`renderer/public/cheatsheets/`,隨 renderer 一起供應
+ * (Electron `app://app/…`、開發 Vite、瀏覽器預覽都用相對網址)。設定 `cheatSheet` 空 = 用這張;有匯入的檔名 = 用使用者的。
+ * 新賽季換圖:放新檔、改這裡的 `file` / `version`(圖上保留來源標示,NOTICE.md 有列)。
+ */
+export const BUILTIN_CHEAT_SHEET = {
+  file: 'cheatsheets/syndicate-3.29.webp',
+  version: '3.29',
+  source: 'elrincondelexiliado.com/syndicate'
+} as const
+
+/** 速查表網址:有匯入的(`customUrl`,由 bgImageUrl 算好)優先,否則內建 */
+export function cheatSheetUrl (customUrl: string | null, baseURI: string): { url: string, builtin: boolean } {
+  if (customUrl) return { url: customUrl, builtin: false }
+  let url: string = BUILTIN_CHEAT_SHEET.file
+  try { url = new URL(BUILTIN_CHEAT_SHEET.file, baseURI).href } catch {}
+  return { url, builtin: true }
+}
+
 /** 書籤列:目前遊戲的書籤 = 貼進遊戲;另一代 = 只複製(貼進不是那款的遊戲沒有意義) */
 export function bookmarkActionFor (listGame: RegexGame, currentGame: RegexGame): 'paste' | 'copy' {
   return listGame === currentGame ? 'paste' : 'copy'

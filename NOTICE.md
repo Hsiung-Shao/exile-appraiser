@@ -11,4 +11,8 @@
 | Path of Building Community(PoE2 版) | `data/poe2/desecration/*` 由其 `Data/{ModItem,ModJewel,ModVeiled}.lua`、`Data/Bases/*.lua` 的詞綴 / 底材資料衍生 | MIT | https://github.com/PathOfBuildingCommunity/PathOfBuilding-PoE2 |
 | poe-disenchant-tool(deronek)與 @alserom 的 poe-dust gist | 拆粉排行:`data/dust/poe-dust.json`(由 `data/dust/poe-dust.js` 逐筆轉 JSON)的 goldCost / slots 與交叉比對用數值;數值最初由 @alserom 整理(https://gist.github.com/alserom/22bdd4106806cbd4f85a5cb8c4345c08) | MIT | https://github.com/deronek/poe-disenchant-tool |
 
+懸浮選單內建的密教速查表圖片 `renderer/public/cheatsheets/syndicate-3.29.webp` 由 El Rincón del Exiliado 產生
+(https://pathofexile.elrincondelexiliado.com/syndicate ,圖上保留其來源標示 elrincondelexiliado.com/syndicate),
+著作權屬原作者;該網站未標示授權條款。使用者可在懸浮選單改用自己匯入的圖片。
+
 Path of Exile、遊戲內名詞、物品與相關資料為 Grinding Gear Games 所有。本專案與 GGG 無關,亦未獲其背書。

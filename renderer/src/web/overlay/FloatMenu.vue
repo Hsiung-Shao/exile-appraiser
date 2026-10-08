@@ -78,15 +78,16 @@
         </button>
         <p class="fm-hint">{{ t('ppz.menu.sheet_hover_hint') }}</p>
         <div class="fm-sheet-row">
-          <span class="fm-sheet-name">{{ config.cheatSheet }}</span>
+          <span class="fm-sheet-name" data-menu="sheet-name">{{ sheet.builtin ? t('ppz.menu.sheet_builtin', { version: BUILTIN_CHEAT_SHEET.version }) : config.cheatSheet }}</span>
           <button v-if="canPick" type="button" class="btn sm" data-action="sheet-change" @click="pickSheet">{{ t('ppz.menu.sheet_change') }}</button>
-          <button type="button" class="btn ghost sm" data-action="sheet-remove" @click="removeSheet">{{ t('ppz.menu.sheet_remove') }}</button>
+          <button v-if="!sheet.builtin" type="button" class="btn ghost sm" data-action="sheet-remove" @click="removeSheet">{{ t('ppz.menu.sheet_remove') }}</button>
         </div>
       </template>
       <div v-else class="fm-sheet-empty" data-menu="sheet-empty">
-        <div>{{ t(sheetBroken ? 'ppz.menu.sheet_failed' : 'ppz.menu.sheet_empty') }}</div>
+        <div>{{ t('ppz.menu.sheet_failed') }}</div>
         <div class="fm-hint">{{ t(canPick ? 'ppz.menu.sheet_empty_sub' : 'ppz.menu.sheet_no_dialog') }}</div>
         <button v-if="canPick" type="button" class="btn sm primary" data-action="sheet-import" @click="pickSheet">{{ t('ppz.menu.sheet_import') }}</button>
+        <button v-if="!sheet.builtin" type="button" class="btn ghost sm" data-action="sheet-remove" @click="removeSheet">{{ t('ppz.menu.sheet_remove') }}</button>
       </div>
     </div>
 
@@ -116,7 +117,7 @@ import { bgImageUrl, normBgFile } from '@/web/useTheme'
 import { bookmarkGroupsOf, gameLabel, setBookmarkFolderCollapsed, useRegexStore } from '@/web/regex/store'
 import { copyRegexBookmark, quickRunning, regexBookmarkPreview, runRegexBookmark } from '@/web/regex/quick'
 import { quickNoticeKey } from '@/web/regex/quick-geom'
-import { bookmarkActionFor, floatMenuPlace, floatMenuPosOf, sheetZoomRect } from './float-menu-geom'
+import { BUILTIN_CHEAT_SHEET, bookmarkActionFor, cheatSheetUrl, floatMenuPlace, floatMenuPosOf, sheetZoomRect } from './float-menu-geom'
 import { floatMenuSection } from './float-menu-state'
 
 defineProps<{ settingsOpen: boolean }>()
@@ -225,7 +226,9 @@ async function runBookmark (index: number) {
 // ---- 速查表 ----
 const canPick = computed(() => Host.canPickSheet)
 const sheetBroken = shallowRef(false)
-const sheetUrl = computed(() => bgImageUrl(config.cheatSheet, { electron: Host.isElectron, preview: Host.isPreview, baseURI: document.baseURI }, 'sheet'))
+// 有匯入的用使用者的(app://sheet/ / 預覽 sheet/),否則內建那張(renderer/public/cheatsheets/)
+const sheet = computed(() => cheatSheetUrl(bgImageUrl(config.cheatSheet, { electron: Host.isElectron, preview: Host.isPreview, baseURI: document.baseURI }, 'sheet'), document.baseURI))
+const sheetUrl = computed(() => sheet.value.url)
 watch(() => config.cheatSheet, () => { sheetBroken.value = false })
 const peek = shallowRef(false)
 const pinned = shallowRef(false)

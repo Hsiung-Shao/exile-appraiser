@@ -141,7 +141,7 @@ describe('接線守門', () => {
 describe('字串兩語', () => {
   const keys = ['title', 'settings', 'bookmarks', 'sheet', 'close', 'drag', 'bm_hint_paste', 'bm_hint_copy', 'bm_empty', 'sheet_zoom',
     'sheet_hover_hint', 'sheet_pinned_hint', 'sheet_peek_hint', 'sheet_close', 'sheet_title', 'sheet_change', 'sheet_remove',
-    'sheet_empty', 'sheet_empty_sub', 'sheet_import', 'sheet_no_dialog', 'sheet_failed']
+    'sheet_builtin', 'sheet_empty_sub', 'sheet_import', 'sheet_no_dialog', 'sheet_failed']
   for (const lang of ['cmn-Hant', 'en']) {
     it(lang, () => {
       const j = JSON.parse(read(`renderer/src/i18n/${lang}.json`)).ppz
@@ -156,5 +156,17 @@ describe('字串兩語', () => {
   it('繁中沒有簡體字', () => {
     const j = JSON.stringify(JSON.parse(read('renderer/src/i18n/cmn-Hant.json')).ppz.menu)
     expect(j).not.toMatch(/[单设复制载显]/)
+  })
+})
+
+describe('內建速查表(2026-10-08 使用者要求自帶 + 可手動匯入)', () => {
+  it('沒匯入 → 內建(相對 renderer 根目錄);有匯入 → 使用者的', async () => {
+    const { BUILTIN_CHEAT_SHEET, cheatSheetUrl } = await import('../src/web/overlay/float-menu-geom')
+    expect(cheatSheetUrl(null, 'app://app/index.html')).toEqual({ url: 'app://app/cheatsheets/syndicate-3.29.webp', builtin: true })
+    expect(cheatSheetUrl(null, 'http://127.0.0.1:9/t/abc/')).toEqual({ url: 'http://127.0.0.1:9/t/abc/cheatsheets/syndicate-3.29.webp', builtin: true })
+    expect(cheatSheetUrl('app://sheet/x.png', 'app://app/')).toEqual({ url: 'app://sheet/x.png', builtin: false })
+    // 檔案真的在 renderer/public(打包進 renderer/dist)
+    expect(fs.existsSync(path.join(ROOT, 'renderer/public', BUILTIN_CHEAT_SHEET.file))).toBe(true)
+    expect(read('NOTICE.md')).toContain(BUILTIN_CHEAT_SHEET.source)
   })
 })
