@@ -97,9 +97,10 @@ describe('排除統計(資料同步後數字變了要看過再改)', () => {
     const summary = (d: ItemModData) => ({ itemStats: d.itemStats, entries: d.entries.length, merged: d.merged, excluded: d.excluded })
     expect(summary(DATA.poe1)).toEqual({
       itemStats: 7550,
-      entries: 4786,
+      // 2026-10-08:假掰(The Adorned)補上遊戲內寫法 → 該條有兩種繁中寫法,改列 multi_form(4786 → 4785、86 → 87)
+      entries: 4785,
       merged: 47,
-      excluded: { decimal: 149, multi_value: 2129, multi_form: 86, multiline: 142, missing_lang: 0, no_unique: 2, too_long: 209 }
+      excluded: { decimal: 149, multi_value: 2129, multi_form: 87, multiline: 142, missing_lang: 0, no_unique: 2, too_long: 209 }
     })
     expect(summary(DATA.poe2)).toEqual({
       itemStats: 1847,

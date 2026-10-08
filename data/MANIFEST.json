@@ -9,8 +9,8 @@
     "data/poe1": {
       "repo": "apt-patched (Hsiung-Shao/awakened-poe-trade-zh-TW)",
       "path": "renderer/public/data",
-      "commit": "a73fe3b5f1328f074c68ff42526cd3b09d881b2b",
-      "generatedAt": "2026-09-28T10:25:18.790Z"
+      "commit": "384d1c5c5c751a954b97c002361a9c6370ab18f7",
+      "generatedAt": "2026-10-08T13:10:18.039Z"
     },
     "data/poe2": {
       "repo": "ee2-patched (Hsiung-Shao/Exiled-Exchange-2-zh-TW)",
@@ -92,16 +92,16 @@
       "bytes": 1534551
     },
     "data/poe1/cmn-Hant/stats-matcher.index.bin": {
-      "sha256": "ff7e2b2ef4e8661dd300fb5976fad37d58b2bbdab16e1f7b003fa67c93d13916",
-      "bytes": 91632
+      "sha256": "1b95f15331bb0843a9a30e034141ca1d29e544fd78962a14d7cdd2c48f627372",
+      "bytes": 91648
     },
     "data/poe1/cmn-Hant/stats-ref.index.bin": {
-      "sha256": "00554093044ba560e9e60cb8a4a11bcda0376e2571bc73836f8cb92b17782de7",
+      "sha256": "4daf1fee8d7bdee6771b336e062594e6cf747d280454fa4e7720a159ead31ff5",
       "bytes": 74224
     },
     "data/poe1/cmn-Hant/stats.ndjson": {
-      "sha256": "877bd999c31c347eca259468c0a49d03db39b82092d57fda96a905caf5b3abaa",
-      "bytes": 2463737
+      "sha256": "f376a3220c16027e2df299cc51ff3da5cc773be79f2654eb6bef626ef1c271fa",
+      "bytes": 2463891
     },
     "data/poe1/en/app_i18n.json": {
       "sha256": "d84e18ab6355d469f6a40dfeaa5425f78d71c1163b368a9b4853445d5617cea8",

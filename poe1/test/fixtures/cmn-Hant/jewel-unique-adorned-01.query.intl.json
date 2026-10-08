@@ -1,0 +1,48 @@
+{
+  "api": "trade",
+  "request": {
+    "query": {
+      "status": {
+        "option": "available"
+      },
+      "stats": [
+        {
+          "type": "and",
+          "filters": [
+            {
+              "id": "explicit.stat_461663422",
+              "value": {
+                "min": 2
+              },
+              "disabled": false
+            }
+          ]
+        }
+      ],
+      "filters": {
+        "trade_filters": {
+          "filters": {
+            "collapse": {
+              "option": "true"
+            }
+          }
+        },
+        "misc_filters": {
+          "filters": {
+            "foulborn_item": {
+              "option": "false"
+            },
+            "vestigial": {
+              "option": "false"
+            }
+          }
+        }
+      },
+      "name": "The Adorned",
+      "type": "Crimson Jewel"
+    },
+    "sort": {
+      "price": "asc"
+    }
+  }
+}

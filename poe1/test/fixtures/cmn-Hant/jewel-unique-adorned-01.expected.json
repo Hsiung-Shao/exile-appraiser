@@ -1,0 +1,220 @@
+{
+  "baseType": "赤紅珠寶",
+  "category": "Jewel",
+  "dustEquivalent": 23670,
+  "influences": [],
+  "info": {
+    "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvSmV3ZWxzL1RyaWFsbWFzdGVySmV3IiwidyI6MSwiaCI6MSwic2NhbGUiOjF9XQ/f04386d454/TrialmasterJew.png",
+    "name": "假掰",
+    "namespace": "UNIQUE",
+    "refName": "The Adorned",
+    "unique": {
+      "base": "Crimson Jewel",
+      "disenchantValue": 10.52
+    }
+  },
+  "infoVariants": [
+    {
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvSmV3ZWxzL1RyaWFsbWFzdGVySmV3IiwidyI6MSwiaCI6MSwic2NhbGUiOjF9XQ/f04386d454/TrialmasterJew.png",
+      "name": "假掰",
+      "namespace": "UNIQUE",
+      "refName": "The Adorned",
+      "unique": {
+        "base": "Crimson Jewel",
+        "disenchantValue": 10.52
+      }
+    }
+  ],
+  "isCorrupted": true,
+  "isUnidentified": false,
+  "itemLevel": 82,
+  "name": "假掰",
+  "newMods": [
+    {
+      "info": {
+        "tags": [],
+        "type": "explicit"
+      },
+      "stats": [
+        {
+          "roll": {
+            "dp": false,
+            "max": 100,
+            "min": 0,
+            "unscalable": false,
+            "value": 12
+          },
+          "stat": {
+            "better": 1,
+            "matchers": [
+              {
+                "string": "增加 #% 天賦樹珠寶插槽的效果，包含已汙染魔法珠寶"
+              },
+              {
+                "negate": true,
+                "string": "減少 #% 天賦樹珠寶插槽的效果，包含已汙染魔法珠寶"
+              },
+              {
+                "string": "增加#%天賦樹插槽內的已汙染魔法珠寶效果"
+              },
+              {
+                "negate": true,
+                "string": "減少#%天賦樹插槽內的已汙染魔法珠寶效果"
+              }
+            ],
+            "ref": "#% increased Effect of Jewel Socket Passive Skills containing Corrupted Magic Jewels",
+            "trade": {
+              "ids": {
+                "explicit": [
+                  "explicit.stat_461663422"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "增加#%天賦樹插槽內的已汙染魔法珠寶效果"
+          }
+        }
+      ]
+    }
+  ],
+  "rarity": "Unique",
+  "rawText": "物品種類: 珠寶\r\n稀有度: 傳奇\r\n假掰\r\n赤紅珠寶\r\n--------\r\n僅限: 1\r\n--------\r\n物品等級: 82\r\n--------\r\n{ 傳奇詞綴 }\r\n增加12(0-100)%天賦樹插槽內的已汙染魔法珠寶效果\r\n--------\r\n在巔峰時期，瓦爾在陽光下閃閃發光。\r\n十年，一個世紀，一個劫際的繁榮…\r\n現在只不過是一時的奇蹟。\r\n--------\r\n放置到一個天賦樹的珠寶插槽中以產生效果。右鍵點擊以移出插槽。\r\n--------\r\n已汙染\r\n--------\r\n備註: ~b/o 1 regret\r\n",
+  "statsByType": [
+    {
+      "sources": [
+        {
+          "contributes": {
+            "max": 100,
+            "min": 0,
+            "value": 12
+          },
+          "modifier": {
+            "info": {
+              "tags": [],
+              "type": "explicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 100,
+                  "min": 0,
+                  "unscalable": false,
+                  "value": 12
+                },
+                "stat": {
+                  "better": 1,
+                  "matchers": [
+                    {
+                      "string": "增加 #% 天賦樹珠寶插槽的效果，包含已汙染魔法珠寶"
+                    },
+                    {
+                      "negate": true,
+                      "string": "減少 #% 天賦樹珠寶插槽的效果，包含已汙染魔法珠寶"
+                    },
+                    {
+                      "string": "增加#%天賦樹插槽內的已汙染魔法珠寶效果"
+                    },
+                    {
+                      "negate": true,
+                      "string": "減少#%天賦樹插槽內的已汙染魔法珠寶效果"
+                    }
+                  ],
+                  "ref": "#% increased Effect of Jewel Socket Passive Skills containing Corrupted Magic Jewels",
+                  "trade": {
+                    "ids": {
+                      "explicit": [
+                        "explicit.stat_461663422"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "增加#%天賦樹插槽內的已汙染魔法珠寶效果"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "roll": {
+              "dp": false,
+              "max": 100,
+              "min": 0,
+              "unscalable": false,
+              "value": 12
+            },
+            "stat": {
+              "better": 1,
+              "matchers": [
+                {
+                  "string": "增加 #% 天賦樹珠寶插槽的效果，包含已汙染魔法珠寶"
+                },
+                {
+                  "negate": true,
+                  "string": "減少 #% 天賦樹珠寶插槽的效果，包含已汙染魔法珠寶"
+                },
+                {
+                  "string": "增加#%天賦樹插槽內的已汙染魔法珠寶效果"
+                },
+                {
+                  "negate": true,
+                  "string": "減少#%天賦樹插槽內的已汙染魔法珠寶效果"
+                }
+              ],
+              "ref": "#% increased Effect of Jewel Socket Passive Skills containing Corrupted Magic Jewels",
+              "trade": {
+                "ids": {
+                  "explicit": [
+                    "explicit.stat_461663422"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "增加#%天賦樹插槽內的已汙染魔法珠寶效果"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 1,
+        "matchers": [
+          {
+            "string": "增加 #% 天賦樹珠寶插槽的效果，包含已汙染魔法珠寶"
+          },
+          {
+            "negate": true,
+            "string": "減少 #% 天賦樹珠寶插槽的效果，包含已汙染魔法珠寶"
+          },
+          {
+            "string": "增加#%天賦樹插槽內的已汙染魔法珠寶效果"
+          },
+          {
+            "negate": true,
+            "string": "減少#%天賦樹插槽內的已汙染魔法珠寶效果"
+          }
+        ],
+        "ref": "#% increased Effect of Jewel Socket Passive Skills containing Corrupted Magic Jewels",
+        "trade": {
+          "ids": {
+            "explicit": [
+              "explicit.stat_461663422"
+            ]
+          }
+        }
+      },
+      "type": "explicit"
+    }
+  ],
+  "uniqueBase": {
+    "craftable": {
+      "category": "Jewel"
+    },
+    "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvSmV3ZWxzL2Jhc2ljc3RyIiwidyI6MSwiaCI6MSwic2NhbGUiOjF9XQ/8129ab1f4d/basicstr.png",
+    "name": "赤紅珠寶",
+    "namespace": "ITEM",
+    "refName": "Crimson Jewel"
+  },
+  "unknownModifiers": []
+}
