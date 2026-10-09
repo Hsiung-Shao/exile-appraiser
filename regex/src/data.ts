@@ -39,6 +39,9 @@ export interface RegexEntry {
   en: string[]
   hiddenZh: string[]
   hiddenEn: string[]
+  /** 同一條詞綴在別的 roll 值印的其他寫法(gen.ts `Entry.alts`);沒有就省略 */
+  altZh?: string[]
+  altEn?: string[]
 }
 
 export interface RegexPage {
@@ -148,6 +151,10 @@ export function parseRegexCatalogue (input: string | unknown, game: RegexGame): 
         hiddenZh: stringArray(e, 'hiddenZh'),
         hiddenEn: stringArray(e, 'hiddenEn')
       }
+      const altZh = stringArray(e, 'altZh')
+      const altEn = stringArray(e, 'altEn')
+      if (altZh.length) d.altZh = altZh
+      if (altEn.length) d.altEn = altEn
       if (d.zh.length === 0 && d.en.length === 0) continue
       if (d.g < 0 || d.g >= page.groups.length) d.g = 0
       page.entries.push(d)
@@ -207,14 +214,16 @@ export function parseLabels (input: string | unknown): RegexLabels {
 }
 
 /** 一筆項目在某語言下實際用的行(`buildCorpus` 的 want/fallback);`usedWant=false` 表示退回另一語言 */
-export function entryLines (d: RegexEntry, lang: RegexLang): { texts: string[], hidden: string[], usedWant: boolean } {
+export function entryLines (d: RegexEntry, lang: RegexLang): { texts: string[], hidden: string[], alts: string[], usedWant: boolean } {
   const zh = lang === 'zh'
   const want = zh ? d.zh : d.en
   const other = zh ? d.en : d.zh
   const usedWant = want.length > 0
+  const zhSide = usedWant === zh
   return {
     texts: usedWant ? want : other,
-    hidden: usedWant ? (zh ? d.hiddenZh : d.hiddenEn) : (zh ? d.hiddenEn : d.hiddenZh),
+    hidden: zhSide ? d.hiddenZh : d.hiddenEn,
+    alts: (zhSide ? d.altZh : d.altEn) ?? [],
     usedWant
   }
 }
@@ -252,7 +261,8 @@ export function buildCorpus (page: RegexPage, lang: RegexLang, opt: BuildCorpusO
   if (hit) return hit
   const es: Entry[] = page.entries.map(d => {
     const l = entryLines(d, lang)
-    return { id: d.id, texts: l.texts, hidden: full ? l.hidden : [] }
+    // alts 是印出的文字,不是 hidden:不放 hidden 時照樣帶(regex_selftest.cpp DataTests 同)
+    return { id: d.id, texts: l.texts, hidden: full ? l.hidden : [], ...(l.alts.length ? { alts: l.alts } : {}) }
   })
   const c = new Corpus(es, full ? pageAmbient(page, lang) : {}, { maxTokenChars: opt.maxTokenChars, anchors: opt.anchors })
   byKey.set(key, c)

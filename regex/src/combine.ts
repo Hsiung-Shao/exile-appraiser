@@ -8,7 +8,9 @@
 //     第 40 步的稀有度 | 汙染條件列一個勾選可出兩個 term(`AlgoEntry.terms`),`!` 開頭的 term 加引號。
 //   * 自訂文字:使用者輸入 → 正則跳脫 → 獨立 term(不驗證,標 unverified)。
 //   * 排除詞:跳脫後併進 none 的那個 `!` term。
-//   順序:any term、all terms、演算法 terms、自訂 terms、none term。只有一個語料頁時,結果與該頁 `Corpus.build().query` 逐字相同。
+//   * 物品類型條件(`class-term.ts`):勾選的語料頁全部屬於同一類(目前只有 PoE2 碑牌頁)時多一個 AND term(`"碑牌"`)。
+//   順序:any term、all terms、演算法 terms、物品類型 term、自訂 terms、none term。
+//   只有一個語料頁時,結果與該頁 `Corpus.build().query` 逐字相同(有物品類型條件的頁再多那一段)。
 // 驗證:參與的語料頁 **corpus 聯集**(entries 與 ambient 都聯集)對「語料頁 token 組成的那部分」做 `Verify`
 //   (跨頁誤中會以 extra 顯示);演算法片段不經 Corpus,只檢查會不會誤中聯集裡任一詞綴行(`#` 代入多個樣本值);
 //   排除詞若命中已勾選的詞綴(any / all 模式)= 自相矛盾,也列為衝突。
@@ -23,6 +25,7 @@ import { charCount, Corpus, type Ambient, type Check, type Entry, type Mode } fr
 import { buildCorpus, entryLines, isCorpusPage, pageAmbient, type PageKind, type RegexLang, type RegexPage } from './data'
 import { isAlgoPage, type AlgoEntry, type AlgoValue, type CondGuard } from './pages/types'
 import { parseRarityChoice, rarityConditionText, type RarityChoice } from './rarity'
+import { sharedClassTerm } from './class-term'
 
 export interface CombineSel {
   page: RegexPage
@@ -74,6 +77,8 @@ export interface CombineResult {
   excludes: Array<{ text: string, token: string }>
   customLength: number
   excludesLength: number
+  /** 物品類型條件 term(已加引號;沒有 = null),長度含在 `length` 裡 */
+  classTerm: string | null
   /**
    * 送進 Verify 的字串:只有語料頁 token 的那部分(any / all / none 同 gen.ts 寫法)。
    * 演算法片段與自訂文字不在內:Verify 把 term 當字面 token 讀,而片段裡的 `.` `-` 與數字在它的模型中是「可能是數值」的字元,
@@ -131,7 +136,7 @@ function unionCorpus (pages: RegexPage[], lang: RegexLang): UnionCorpus {
     offsets.push(entries.length)
     for (const d of p.entries) {
       const l = entryLines(d, lang)
-      entries.push({ id: `${p.id}:${d.id}`, texts: l.texts, hidden: l.hidden })
+      entries.push({ id: `${p.id}:${d.id}`, texts: l.texts, hidden: l.hidden, ...(l.alts.length ? { alts: l.alts } : {}) })
       owner.push([p.id, d.id])
     }
     const a = pageAmbient(p, lang)
@@ -342,9 +347,13 @@ export function combine (input: CombineInput): CombineResult {
   const excludes = (input.excludes ?? []).map(t => ({ text: t, token: escapeTerm(t) })).filter(x => x.token)
   noneTokens.push(...excludes.map(x => x.token))
 
+  const shared = sharedClassTerm(corpusSels.map(s => s.page), lang)
+  const classTerm = shared ? `"${shared}"` : null
   const terms: string[] = []
   if (anyTokens.length) terms.push(`"${anyTokens.join('|')}"`)
-  terms.push(...allTerms, ...algoTerms, ...custom.map(c => quoteIfNeeded(c.term)))
+  terms.push(...allTerms, ...algoTerms)
+  if (classTerm) terms.push(classTerm)
+  terms.push(...custom.map(c => quoteIfNeeded(c.term)))
   if (noneTokens.length) terms.push(`"!${noneTokens.join('|')}"`)
   // R10:條件不可能同時成立 = 不出字串
   const query = condClash ? '' : terms.join(' ')
@@ -417,6 +426,7 @@ export function combine (input: CombineInput): CombineResult {
     verifyQuery,
     customLength: custom.reduce((n, c) => n + charCount(quoteIfNeeded(c.term)) + 1, 0),
     excludesLength: excludes.reduce((n, x) => n + charCount(x.token) + 1, 0),
+    classTerm,
     check,
     conflicts,
     ok: conflicts.length === 0 && check.missing.length === 0

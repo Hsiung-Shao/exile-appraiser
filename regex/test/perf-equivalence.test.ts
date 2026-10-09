@@ -32,6 +32,16 @@ function pickSets (p: RegexPage): Array<[string, number[]]> {
   return sets.filter(([, pk]) => pk.length > 0)
 }
 
+/**
+ * 2026-10-09 `CombineResult` 加了 `classTerm`(物品類型條件,`class-term.ts`)。沒有條件(null)= 改版前的輸出,
+ * 雜湊時拿掉這個欄位,golden 才能繼續證明「沒有條件的頁逐字不變」;有條件的頁(碑牌單頁)照實改變。
+ */
+function legacyShape (r: ReturnType<typeof combine>): unknown {
+  if (r.classTerm !== null) return r
+  const { classTerm: _omit, ...rest } = r
+  return rest
+}
+
 function compute (): Record<string, string> {
   const out: Record<string, string> = {}
   for (const game of ['poe1', 'poe2'] as const) {
@@ -49,7 +59,7 @@ function compute (): Record<string, string> {
               parts.push(c.verify(pk, c.build(pk, mode).query))
             }
             const cmb = combine({ lang, mode, pages: [{ page: p, picks: pk }], excludes: name === 'r2x10' ? ['魔法', 'Life'] : undefined })
-            parts.push(cmb)
+            parts.push(legacyShape(cmb))
             out[key] = sha(parts)
           }
         }
@@ -66,7 +76,7 @@ function compute (): Record<string, string> {
             { page: b, picks: samplePicks(12, b.entries.length, 15) },
             ...(algo ? [{ page: algo, picks: [0, 1] }] : [])
           ]
-          out[`${game}|multi|${a.id}+${b.id}|${lang}|${mode}`] = sha(combine({ lang, mode, pages: sels, custom: ['abc.d'], excludes: ['火', 'cold'] }))
+          out[`${game}|multi|${a.id}+${b.id}|${lang}|${mode}`] = sha(legacyShape(combine({ lang, mode, pages: sels, custom: ['abc.d'], excludes: ['火', 'cold'] })))
         }
       }
     }

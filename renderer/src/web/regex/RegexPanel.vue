@@ -120,6 +120,8 @@
           <a v-if="panelView !== 'combined'" href="#" @click.prevent="setPanelView('combined')">{{ t('ppz.regex.see_combined') }}</a>
         </p>
         <p v-if="scope === 'combined' && out.custom.length" class="dim rx-conflict-line">{{ t('ppz.regex.custom_unverified') }}</p>
+        <!-- 2026-10-09:物品類型條件(regex/src/class-term.ts;目前只有碑牌頁) -->
+        <p v-if="out.classTerm" class="dim rx-conflict-line" data-regex="class-term">{{ t('ppz.regex.class_term', { term: out.classTerm }) }}</p>
         <template v-if="scope === 'page' && result">
           <details v-if="result.unresolved.length" class="rx-details" data-regex="unresolved">
             <summary class="rx-warn">{{ t('ppz.regex.unresolved', { n: result.unresolved.length }) }}</summary>

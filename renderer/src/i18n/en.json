@@ -606,6 +606,7 @@
       "conflicts": "{n} merge conflicts",
       "see_combined": "Show",
       "custom_unverified": "Custom text is not verified and may match other items.",
+      "class_term": "{term} was added automatically: only Tablets light up, so other items (e.g. a jewel's \"Area of Effect\") are not matched.",
       "algo_hint": "Each tick is its own condition (all must hold). Editing a value ticks the row.",
       "imv_loading": "Loading item modifiers (the first visit reads the modifier table, about a second)…",
       "imv_failed": "Could not load item modifiers: {error}",
