@@ -258,18 +258,19 @@ describe('② 自身模板逐值', () => {
 // ---- 常用 10 條 ----
 
 const COMMON: Array<{ ref: string, m: number, zh: string, en: string }> = [
-  { ref: '+# to maximum Life', m: 80, zh: '^\\+?([89][0-9]|[1-9][0-9]{2,}) 最大生命$', en: '^\\+?([89][0-9]|[1-9][0-9]{2,}) to maximum Life$' },
-  { ref: '+#% to Fire Resistance', m: 30, zh: '^\\+?([3-9][0-9]|[1-9][0-9]{2,})% 火焰抗性$', en: '^\\+?([3-9][0-9]|[1-9][0-9]{2,})% to Fire Resistance$' },
-  { ref: '+#% to Cold Resistance', m: 30, zh: '^\\+?([3-9][0-9]|[1-9][0-9]{2,})% 冰冷抗性$', en: '^\\+?([3-9][0-9]|[1-9][0-9]{2,})% to Cold Resistance$' },
-  { ref: '+#% to Lightning Resistance', m: 30, zh: '^\\+?([3-9][0-9]|[1-9][0-9]{2,})% 閃電抗性$', en: '^\\+?([3-9][0-9]|[1-9][0-9]{2,})% to Lightning Resistance$' },
-  { ref: '+#% to Chaos Resistance', m: 20, zh: '^\\+?([2-9][0-9]|[1-9][0-9]{2,})% 混沌抗性$', en: '^\\+?([2-9][0-9]|[1-9][0-9]{2,})% to Chaos Resistance$' },
-  { ref: '+#% to all Elemental Resistances', m: 10, zh: '^\\+?[1-9][0-9]{1,}% 全部元素抗性$', en: '^\\+?[1-9][0-9]{1,}% to all Elemental Resistances$' },
-  { ref: '+# to Strength', m: 30, zh: '^\\+?([3-9][0-9]|[1-9][0-9]{2,}) 力量$', en: '^\\+?([3-9][0-9]|[1-9][0-9]{2,}) to Strength$' },
-  { ref: '+# to Dexterity', m: 30, zh: '^\\+?([3-9][0-9]|[1-9][0-9]{2,}) 敏捷$', en: '^\\+?([3-9][0-9]|[1-9][0-9]{2,}) to Dexterity$' },
-  { ref: '+# to Intelligence', m: 30, zh: '^\\+?([3-9][0-9]|[1-9][0-9]{2,}) 智慧$', en: '^\\+?([3-9][0-9]|[1-9][0-9]{2,}) to Intelligence$' },
-  { ref: '#% increased Movement Speed', m: 25, zh: '^增加 \\+?(2[5-9]|[3-9][0-9]|[1-9][0-9]{2,})% 移動速度$', en: '^\\+?(2[5-9]|[3-9][0-9]|[1-9][0-9]{2,})% increased Movement Speed$' }
+  { ref: '+# to maximum Life', m: 80, zh: '^\\+?([89][0-9]|[1-9][0-9]{2,}) 最大生命($| \\()', en: '^\\+?([89][0-9]|[1-9][0-9]{2,}) to maximum Life($| \\()' },
+  { ref: '+#% to Fire Resistance', m: 30, zh: '^\\+?([3-9][0-9]|[1-9][0-9]{2,})% 火焰抗性($| \\()', en: '^\\+?([3-9][0-9]|[1-9][0-9]{2,})% to Fire Resistance($| \\()' },
+  { ref: '+#% to Cold Resistance', m: 30, zh: '^\\+?([3-9][0-9]|[1-9][0-9]{2,})% 冰冷抗性($| \\()', en: '^\\+?([3-9][0-9]|[1-9][0-9]{2,})% to Cold Resistance($| \\()' },
+  { ref: '+#% to Lightning Resistance', m: 30, zh: '^\\+?([3-9][0-9]|[1-9][0-9]{2,})% 閃電抗性($| \\()', en: '^\\+?([3-9][0-9]|[1-9][0-9]{2,})% to Lightning Resistance($| \\()' },
+  { ref: '+#% to Chaos Resistance', m: 20, zh: '^\\+?([2-9][0-9]|[1-9][0-9]{2,})% 混沌抗性($| \\()', en: '^\\+?([2-9][0-9]|[1-9][0-9]{2,})% to Chaos Resistance($| \\()' },
+  { ref: '+#% to all Elemental Resistances', m: 10, zh: '^\\+?[1-9][0-9]{1,}% 全部元素抗性($| \\()', en: '^\\+?[1-9][0-9]{1,}% to all Elemental Resistances($| \\()' },
+  { ref: '+# to Strength', m: 30, zh: '^\\+?([3-9][0-9]|[1-9][0-9]{2,}) 力量($| \\()', en: '^\\+?([3-9][0-9]|[1-9][0-9]{2,}) to Strength($| \\()' },
+  { ref: '+# to Dexterity', m: 30, zh: '^\\+?([3-9][0-9]|[1-9][0-9]{2,}) 敏捷($| \\()', en: '^\\+?([3-9][0-9]|[1-9][0-9]{2,}) to Dexterity($| \\()' },
+  { ref: '+# to Intelligence', m: 30, zh: '^\\+?([3-9][0-9]|[1-9][0-9]{2,}) 智慧($| \\()', en: '^\\+?([3-9][0-9]|[1-9][0-9]{2,}) to Intelligence($| \\()' },
+  { ref: '#% increased Movement Speed', m: 25, zh: '^增加 \\+?(2[5-9]|[3-9][0-9]|[1-9][0-9]{2,})% 移動速度($| \\()', en: '^\\+?(2[5-9]|[3-9][0-9]|[1-9][0-9]{2,})% increased Movement Speed($| \\()' }
 ]
 
+// T6(2026-10-09):行尾可接「空白 + 括號標記」(破裂 / 固定 / 符文…),原本以 `$` 結尾的片段改以 `($| \()` 結尾
 describe('PoE1 常用 10 條', () => {
   const find = (ref: string): ItemModEntryData => {
     const e = DATA.poe1.entries.find(x => x.ref === ref)
@@ -450,6 +451,6 @@ describe('③ 書籤 / 分享碼 / 合併', () => {
       pages: combineSels(pages, { [page.id]: [life, fire], map_mods: [0, 1] }, { [page.id]: { [page.entries[life].id]: { min: 80 } } })
     })
     expect(r.conflicts.filter(c => c.kind === 'fragment')).toEqual([])
-    expect(r.query).toContain('"^\\+?([89][0-9]|[1-9][0-9]{2,}) 最大生命$"')
+    expect(r.query).toContain('"^\\+?([89][0-9]|[1-9][0-9]{2,}) 最大生命($| \\()"')
   })
 })

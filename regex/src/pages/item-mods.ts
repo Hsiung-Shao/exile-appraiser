@@ -15,6 +15,8 @@
 //   * 數值 = numeric.ts `readableRangeRegex`(只寫 `[0-9]`;≥ 開放上界 `[1-9][0-9]{n,}`)。
 //   * **預設整行**(協調者裁定,使用者 2026-10-04「寧可多幾個字也要好讀」):P = `#` 前整段文字 + 行首 `^`、S = `#` 後整段文字 + 行尾 `$`
 //     (例 `^\+?N 最大生命$`、`^增加 \+?N% 移動速度$`;PobTools 產生器同樣以行為單位使用 `^` / `$`)。
+//     行尾錨點輸出為 `LINE_END` `($| \()`(行尾或接著破裂等「空白 + 括號標記」;唯一性把「本行文字 + ` (`…」的模板也算衝突);
+//     錨點挑選與長度(`cost`)仍以 `$` 一字計,收錄結果不變。
 //     只有整行超過長度上限時才往回縮:先拿掉錨點、再從 P 的開頭 / S 的結尾**以詞為單位**縮(詞界 = 空白與標點,`isWordBreak`;
 //     繁中沒有標點就不縮 —— 寧可整條不收),縮最少、且仍**全部模板語料唯一**的那個。不在詞中間截斷。
 //   * 邊界:≥ 不需要(片段吃到的若只是數字的一段,整個數字只會更大);≤ / 區間在沒有 P 時補前界 `(^|[^0-9])`、
@@ -277,6 +279,13 @@ export interface ModAnchor {
 const MAX_SCAN = 1500
 
 /**
+ * 行尾標記:遊戲搜尋文字在破裂(實測)/ 固定 / 符文等詞綴行的文字後面接「空白 + 括號標記」(`增加238%法術傷害 (fractured)`),
+ * 所以片段的「行尾」= 真正行尾或接著這段標記(2026-10-09 使用者實測:`法術傷害$` 不中、`法術傷害 \(` 中、`法術傷害\(` 不中)。
+ */
+export const LINE_END = '($| \\()'
+const MARKER_HEAD = ' ('
+
+/**
  * 別行的後文 `other` 是否以 S 開頭(exact = 整段相等)。`other` 裡的 `#` 佔位可對上 S 的一整串數字(保守:視為相符)。
  */
 function afterMatches (other: string, s: string, exact: boolean): boolean {
@@ -296,7 +305,7 @@ function afterMatches (other: string, s: string, exact: boolean): boolean {
     i++
     k++
   }
-  return !exact || i === other.length
+  return !exact || i === other.length || other.startsWith(MARKER_HEAD, i)
 }
 
 /**
@@ -398,9 +407,11 @@ export function chooseAnchor (
     let [a, b] = prefixRange(idx.byAfter, head, r => r.after)
     if (exact && head === s) {
       // 整段相等:只取完全相同的那一段(後文完全相同的必排在以它開頭的區間最前面)
+      // 加上「本行文字 + 行尾標記」寫法的模板(`LINE_END` 也會命中它們)
       let e = a
       while (e < b && idx.byAfter[e].after === s) e++
-      b = e
+      const [ma, mb] = prefixRange(idx.byAfter, s + MARKER_HEAD, r => r.after)
+      return [...idx.byAfter.slice(a, e), ...idx.byAfter.slice(ma, mb)]
     } else if (b - a > MAX_SCAN && !exact) return null
     const out: Run[] = []
     for (let i = a; i < b; i++) {
@@ -452,7 +463,7 @@ export function itemModFragment (a: ModAnchor, v: AlgoValue): string | null {
   let p = escapeFragText(a.p)
   // 片段開頭的 `!` = 遊戲的排除語法,要跳脫
   if (!a.caret && p.startsWith('!')) p = '\\' + p
-  return `${a.caret ? '^' : ''}${p}${left}${a.plus ? '\\+?' : ''}${num}${escapeFragText(a.s)}${right}${a.dollar ? '$' : ''}`
+  return `${a.caret ? '^' : ''}${p}${left}${a.plus ? '\\+?' : ''}${num}${escapeFragText(a.s)}${right}${a.dollar ? LINE_END : ''}`
 }
 
 // ---- 建頁 ----
