@@ -471,10 +471,13 @@ export function itemModFragment (a: ModAnchor, v: AlgoValue): string | null {
   return `${a.caret ? '^' : ''}${p}${left}${a.plus ? '\\+?' : ''}${num}${sideText(a, 's')}${right}${a.dollar ? LINE_END : ''}`
 }
 
-/** 交替群組:兩種寫法其中一種差異段是空的 → `(X)?`;否則 `(A|B|…)`(遊戲正則避免 `(?:`) */
+/**
+ * 交替群組:選項含空字串 → 非空選項交替後整組可省略 `(A|B)?`(單一非空 = `(X)?`;不輸出 `(|`);
+ * 否則 `(A|B|…)`(遊戲正則避免 `(?:`)
+ */
 function altGroup (opts: readonly string[]): string {
-  const nonEmpty = opts.filter(o => o)
-  if (nonEmpty.length === 1 && opts.length === 2) return `(${escapeFragText(nonEmpty[0])})?`
+  const nonEmpty = [...new Set(opts.filter(o => o))]
+  if (nonEmpty.length && nonEmpty.length < opts.length) return `(${nonEmpty.map(escapeFragText).join('|')})?`
   return `(${opts.map(escapeFragText).join('|')})`
 }
 
@@ -588,7 +591,8 @@ function coreForm (forms: readonly string[]): string | undefined {
   return forms.find(f => forms.every(o => o.includes(f)))
 }
 
-type Template = { t: string, alts?: string[] } | { reason: ItemModExcludeReason }
+/** `arb` = 模板取自仲裁檔(用來讓舊條目先挑 id,見 buildItemModData) */
+type Template = { t: string, alts?: string[], arb?: boolean } | { reason: ItemModExcludeReason }
 
 /**
  * 該語言的模板:恰好一條非 negate、非固定值的 matcher,且恰好一個 `#`、單行。
@@ -602,6 +606,7 @@ function templateOf (s: StatLite, arb?: readonly string[]): Template {
   if (!single.length) return { reason: 'multi_value' }
   let t = single[0].trim()
   let alts: string[] | undefined
+  let viaArb = false
   if (single.length > 1) {
     const forms = single.map(m => m.trim())
     const core = coreForm(forms)
@@ -609,6 +614,7 @@ function templateOf (s: StatLite, arb?: readonly string[]): Template {
     else {
       const picked = (arb ?? []).filter(f => (f.match(/#/g) ?? []).length === 1).map(f => f.trim())
       if (!picked.length) return { reason: 'multi_form' }
+      viaArb = true
       if (picked.length === 1) t = picked[0]
       else {
         // 仲裁多種一律交替(含彼此包含的情形:差異段之一為空 → `(X)?`)。不取被包含者:仲裁寫法用整行錨點,
@@ -620,7 +626,7 @@ function templateOf (s: StatLite, arb?: readonly string[]): Template {
     }
   }
   if (t.includes('\n')) return { reason: 'multiline' }
-  return alts ? { t, alts } : { t }
+  return { t, ...(alts ? { alts } : {}), ...(viaArb ? { arb: true } : {}) }
 }
 
 /** 模板 → 錨點(單一寫法走 chooseAnchor;交替走 altAnchor) */
@@ -654,8 +660,9 @@ export function buildItemModData (
   }
   const seenKey = new Set<string>()
   const seenText = new Set<string>()
-  const usedId = new Set<string>()
-  const entries: ItemModEntryData[] = []
+  // id 分兩輪給:不靠仲裁的條目(= 沒有仲裁檔時就有的條目)先依原順序挑,靠仲裁新收的再挑 →
+  // 有沒有仲裁檔,舊條目的 id 都相同(存檔 / 書籤 / 分享碼的鍵穩定)
+  const pending: Array<{ e: Omit<ItemModEntryData, 'id'>, statId: string, key: string, arb: boolean }> = []
   let itemStats = 0
   let merged = 0
   for (const zs of zhStats) {
@@ -681,18 +688,31 @@ export function buildItemModData (
       continue
     }
     seenText.add(textKey)
-    const id = usedId.has(zs.statId!) ? key : zs.statId!
-    usedId.add(id)
-    entries.push({
-      id,
-      ref: zs.ref,
-      zh: zt.t,
-      en: et.t,
-      cat: itemModCategory(zs.ref),
-      percent: zt.t.includes('#%') || et.t.includes('#%'),
-      anchors: { zh: za, en: ea }
+    pending.push({
+      statId: zs.statId!,
+      key,
+      arb: zt.arb === true || et.arb === true,
+      e: {
+        ref: zs.ref,
+        zh: zt.t,
+        en: et.t,
+        cat: itemModCategory(zs.ref),
+        percent: zt.t.includes('#%') || et.t.includes('#%'),
+        anchors: { zh: za, en: ea }
+      }
     })
   }
+  const ids: string[] = new Array(pending.length)
+  const usedId = new Set<string>()
+  for (const round of [false, true]) {
+    pending.forEach((x, i) => {
+      if (x.arb !== round) return
+      const id = usedId.has(x.statId) ? x.key : x.statId
+      usedId.add(id)
+      ids[i] = id
+    })
+  }
+  const entries: ItemModEntryData[] = pending.map((x, i) => ({ id: ids[i], ...x.e }))
   return { game, entries, itemStats, merged, excluded, samples }
 }
 

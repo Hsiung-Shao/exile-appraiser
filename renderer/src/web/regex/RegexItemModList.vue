@@ -27,6 +27,7 @@
         <span class="dim num rx-imv-count" data-regex="imv-count">{{ t('ppz.regex.imv_count', { shown: filtered.rows.length, total: filtered.total }) }}</span>
       </div>
       <p class="dim rx-imv-note" data-regex="imv-note">{{ t('ppz.regex.imv_note') }}</p>
+      <p v-if="formsMissing" class="rx-bad" data-regex="imv-forms-missing">{{ t('ppz.regex.imv_forms_missing') }}</p>
       <p v-if="filtered.total > filtered.rows.length" class="dim rx-imv-more" data-regex="imv-more">
         {{ t('ppz.regex.imv_more', { n: filtered.total - filtered.rows.length }) }}
       </p>
@@ -69,6 +70,7 @@ export default defineComponent({
       t,
       state,
       phase: computed(() => state.value.phase),
+      formsMissing: computed(() => state.value.formsMissing),
       view: store.view,
       groups,
       counts: computed(() => itemModGroupCounts(props.page)),

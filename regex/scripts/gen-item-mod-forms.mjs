@@ -4,6 +4,7 @@
 // 不上網;仲裁要重做時先更新 arb 檔(做法見 docs/regex-port.md「多種寫法仲裁」)。
 //   node regex/scripts/gen-item-mod-forms.mjs
 //   node scripts/verify-data-manifest.mjs --write --prefix data/regex/item-mod-forms.json --source "<…>" --fetched-at 2026-10-10
+import crypto from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -35,8 +36,11 @@ function statsOf (game, lang) {
   return map
 }
 
-const arb = JSON.parse(fs.readFileSync(ARB, 'utf8'))
-const out = { schema: 1, fetchedAt: arb.fetchedAt, sources: arb.sources, note: '由 regex/scripts/gen-item-mod-forms.mjs 產生,勿手改。值 = poe2db / poedb 上查得到的寫法(依 stats.ndjson 順序)。', poe1: { zh: {}, en: {} }, poe2: { zh: {}, en: {} } }
+const arbText = fs.readFileSync(ARB, 'utf8')
+const arb = JSON.parse(arbText)
+// 原始仲裁結果檔的雜湊寫進產出:MANIFEST 鎖住產出檔 = 連帶鎖住它由哪一份原始結果產生(arb 檔是瀏覽器抓取結果,無法由腳本重現)
+const arbSha256 = crypto.createHash('sha256').update(arbText).digest('hex')
+const out = { schema: 1, fetchedAt: arb.fetchedAt, sources: arb.sources, arbSha256, note: '由 regex/scripts/gen-item-mod-forms.mjs 產生,勿手改。值 = poe2db / poedb 上查得到的寫法(依 stats.ndjson 順序)。', poe1: { zh: {}, en: {} }, poe2: { zh: {}, en: {} } }
 const cache = {}
 let missing = 0
 for (const r of arb.rows) {

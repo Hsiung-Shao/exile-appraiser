@@ -5,6 +5,7 @@
   "poe2": "https://poe2db.tw/tw/Modifiers(463 頁 × tw/us)",
   "poe1": "https://poedb.tw/tw/Modifiers(549 頁 × tw/us)"
  },
+ "arbSha256": "9f097aa40de4d16d1966081233ed5dd2cc0229b917a8450d9f119c877e478e31",
  "note": "由 regex/scripts/gen-item-mod-forms.mjs 產生,勿手改。值 = poe2db / poedb 上查得到的寫法(依 stats.ndjson 順序)。",
  "poe1": {
   "zh": {

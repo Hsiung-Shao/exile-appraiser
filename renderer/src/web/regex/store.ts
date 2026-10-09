@@ -45,6 +45,7 @@ import type { CurrentCombo } from './incoming-share'
 import { Host } from '@/web/background/IPC'
 import { AppConfig } from '@/web/Config'
 import { regexBookmarkFolders, regexBookmarkHotkeyList } from './bookmark-hotkeys'
+import { mergeKeptKeys, type KeyList } from './item-mod-keep'
 
 export const GAMES: readonly RegexGame[] = ['poe1', 'poe2']
 export const gameLabel = (g: RegexGame | ''): string => g === 'poe2' ? 'PoE2' : g === 'poe1' ? 'PoE1' : '?'
@@ -85,10 +86,16 @@ const templates = shallowRef<RegexTemplate[]>([])
 const restored = new Set<string>()
 
 /** 第 37 步:物品詞綴數值頁的載入狀態(每個遊戲一份;`ms` = 讀檔 + 建索引耗時,`count` = 可選詞綴數) */
-const itemMods = reactive<Record<RegexGame, { phase: LoadPhase, error: string, ms: number, count: number }>>({
-  poe1: { phase: 'idle', error: '', ms: 0, count: 0 },
-  poe2: { phase: 'idle', error: '', ms: 0, count: 0 }
+/** `formsMissing` = 多種寫法仲裁檔(item-mod-forms.json)沒載入 / 格式不符 → 靠仲裁收錄的詞綴暫時沒有(UI 提示、存檔鍵保留) */
+const itemMods = reactive<Record<RegexGame, { phase: LoadPhase, error: string, ms: number, count: number, formsMissing: boolean }>>({
+  poe1: { phase: 'idle', error: '', ms: 0, count: 0, formsMissing: false },
+  poe2: { phase: 'idle', error: '', ms: 0, count: 0, formsMissing: false }
 })
+/**
+ * 仲裁檔沒載入時,物品詞綴數值頁存檔裡還原不到的鍵(與同索引 alt),依頁 id 暫存;`syncCurrent` 寫回存檔時接在後面
+ * (`mergeKeptKeys`),使用者再存檔不會把它們洗掉。清除全部 / 套用範本、分享碼 / 載入書籤 = 使用者明確覆蓋 → 丟掉。
+ */
+const keptKeys: Record<string, KeyList> = {}
 const itemModLoads: Partial<Record<RegexGame, Promise<boolean>>> = {}
 
 // ---- 載入 ----------------------------------------------------------------------
@@ -219,16 +226,21 @@ export function ensureItemMods (game: RegexGame): Promise<boolean> {
     try {
       const t0 = performance.now()
       // 多種寫法仲裁檔(item-mod-forms.json)與 stats.ndjson 並行;失敗 = 沒有仲裁(舊行為),不讓整頁載入失敗
+      let formsMissing = false
       const [zh, en, forms] = await Promise.all([
         fetchText(`./data/${game}/cmn-Hant/stats.ndjson`),
         fetchText(`./data/${game}/en/stats.ndjson`),
         fetchText('./data/regex/item-mod-forms.json')
           .then(t => {
             const f = parseItemModForms(t, game)
-            if (!f) console.warn(`[regex] item-mod-forms.json 格式不符,${game} 不使用多種寫法仲裁`)
+            if (!f) {
+              formsMissing = true
+              console.warn(`[regex] item-mod-forms.json 格式不符,${game} 不使用多種寫法仲裁`)
+            }
             return f
           })
           .catch((e: unknown) => {
+            formsMissing = true
             console.warn(`[regex] item-mod-forms.json 載入失敗,${game} 不使用多種寫法仲裁:${e instanceof Error ? e.message : String(e)}`)
             return null
           })
@@ -242,6 +254,7 @@ export function ensureItemMods (game: RegexGame): Promise<boolean> {
       catalogues[game].cat = next
       st.ms = Math.round(performance.now() - t0)
       st.count = data.entries.length
+      st.formsMissing = formsMissing
       st.phase = 'ready'
       console.info(`[regex] 物品詞綴數值頁 ${game}:${data.entries.length} 條,${st.ms} ms`)
       onCatalogueReady(next)
@@ -270,6 +283,21 @@ export function retryCatalogue (game: RegexGame): void {
   void fetchCatalogue(game)
 }
 
+/** 降級時暫存存檔裡還原不到的鍵:存檔的鍵(依原順序、帶 alt)減掉 `pageKeysOf(還原到的勾選)` 的鍵 */
+function keepMissedKeys (page: RegexPage, picked: readonly number[]): void {
+  const saved = ui.current.find(c => c.page === page.id)
+  if (!saved) return
+  const got = new Set(pageKeysOf(page, picked).keys)
+  const keys: string[] = []
+  const alt: string[] = []
+  saved.keys.forEach((k, i) => {
+    if (got.has(k)) return
+    keys.push(k)
+    alt.push(saved.alt?.[i] ?? '')
+  })
+  if (keys.length) keptKeys[page.id] = { keys, alt }
+}
+
 function onCatalogueReady (cat: RegexCatalogue): void {
   // 舊書籤沒有 game:由 page id 補上並寫回(regex_tool_ui.cpp restoreState :319)
   let dirty = false
@@ -293,6 +321,7 @@ function onCatalogueReady (cat: RegexCatalogue): void {
     const r = savedPicksOf(page, ui)
     if (!r) continue
     picks[page.id] = r.picked
+    if (r.missed > 0 && isItemModPageId(page.id) && itemMods[cat.game].formsMissing) keepMissedKeys(page, r.picked)
     if (r.missed > 0) {
       missedTotal += r.missed
       const shown = isSectionPage(page) ? cat.pages.find(p => p.id === page.sectionOf) ?? page : page
@@ -453,8 +482,11 @@ function syncCurrent (p: RegexPage): void {
   }
   const k = pageKeysOf(p, picks[p.id] ?? [])
   const slot = picksFor(ui, p.id)
-  slot.keys = k.keys
-  slot.alt = k.alt
+  // 仲裁檔沒載入時暫存的還原不到的鍵接回去(沒有暫存 = 行為同前)
+  const kept = keptKeys[p.id]
+  const m = kept ? mergeKeptKeys(k, kept) : k
+  slot.keys = m.keys
+  slot.alt = m.alt
 }
 
 function findPage (pageId: string): RegexPage | null {
@@ -539,8 +571,9 @@ export function clearAllPicks (): void {
   const cat = catalogue.value
   if (!cat) return
   for (const p of cat.pages) {
-    if (!picks[p.id]?.length) continue
+    if (!picks[p.id]?.length && !keptKeys[p.id]) continue
     picks[p.id] = []
+    delete keptKeys[p.id]
     syncCurrent(p)
   }
   scheduleSave()
@@ -650,6 +683,7 @@ function applyCombo (s: ShareState, what: 'template' | 'share', name: string): v
   const r = resolveState(s, cat.pages)
   for (const p of cat.pages) {
     picks[p.id] = r.picks[p.id] ?? []
+    delete keptKeys[p.id]
     syncCurrent(p)
   }
   // 數值:以存放鍵併入(數值區 = 宿主頁 id)
@@ -844,6 +878,7 @@ export function loadBookmark (index: number): void {
   ui.lang = b.lang
   for (const [id, list] of Object.entries(a.picks)) {
     picks[id] = list
+    delete keptKeys[id]
     const p = cat.pages.find(x => x.id === id)
     if (p) syncCurrent(p)
   }

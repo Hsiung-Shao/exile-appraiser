@@ -48,10 +48,10 @@
       }
     },
     "data/regex/item-mod-forms.json": {
-      "repo": "poe2db.tw / poedb.tw 仲裁(regex/scripts/data/item-mod-forms-arb.json → regex/scripts/gen-item-mod-forms.mjs 產生)",
+      "repo": "poe2db.tw / poedb.tw 仲裁(regex/scripts/data/item-mod-forms-arb.json → regex/scripts/gen-item-mod-forms.mjs 產生;產出檔 arbSha256 = 原始結果檔雜湊)",
       "path": "regex/scripts/data/item-mod-forms-arb.json",
       "fetchedAt": "2026-10-10T00:00:00Z",
-      "generatedAt": "2026-10-09T21:07:10.148Z"
+      "generatedAt": "2026-10-09T22:49:45.138Z"
     },
     "data/regex/labels.poe1.json": {
       "repo": "clientstrings(pob-zh-engine tools/ggpk_zh/out/poe1/tables/clientstrings.json(clientstrings,欄 Text;meta game_version 3.29.0.1);regex/scripts/gen-labels.mjs 產生)",
@@ -246,8 +246,8 @@
       "bytes": 792687
     },
     "data/regex/item-mod-forms.json": {
-      "sha256": "02d0e06205c5caf844cb74c7c3dd687360cc63d459089c181cc6a77a9bb4c75d",
-      "bytes": 46664
+      "sha256": "d28b1410f1031795b059b5115b9423669201b07947211e29ff5111d3deda82a2",
+      "bytes": 46746
     },
     "data/regex/labels.poe1.json": {
       "sha256": "66d912693c2f3349f12ed384390b0383f0bdcfef8c65e120b543b49ac9a86ceb",
