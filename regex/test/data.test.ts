@@ -13,7 +13,8 @@ const EXPECTED = {
     gem_names: 892, tattoos: 132, heist_equipment_mods: 141, heist_contracts: 107, vendor_bases: 1057
   },
   poe2: {
-    waystone_mods: 34, tablet_mods: 81, relic_mods: 36, expedition_relic_mods: 55,
+    // tablet_mods 81 → 83:2026-10-09 GGPK 0.5.5.4.2 重抽補上探險「炸藥範圍」「瓦爾遺物」
+    waystone_mods: 34, tablet_mods: 83, relic_mods: 36, expedition_relic_mods: 55,
     flask_charm_mods: 21, gem_names: 1050, vendor_bases: 1763
   }
 } as const

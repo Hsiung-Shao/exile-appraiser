@@ -49,12 +49,16 @@ const pctLines = (lab: string, n: number): string[] => [
 ]
 
 describe('① strictPropertyFragment:0–999 逐值 × 分隔寫法', () => {
-  it('百分比(物品數量)', () => {
+  it('百分比(物品數量;R10:只有遊戲印法「: 」的寫法會中)', () => {
     for (const c of CONDS) {
       const f = strictPropertyFragment('物品數量', c.v, 3, true)!
       const r = ci(f)
       for (let n = 0; n <= 999; n++) {
-        for (const line of pctLines('物品數量', n)) if (r.test(line) !== c.ok(n)) throw new Error(`${f} × 「${line}」 期望 ${c.ok(n)}`)
+        // R10:遊戲印「物品數量: +68% (augmented)」→ 只有 pctLines 的 [0] [1] [5](「: 」)是片段要中的;其他分隔寫法一律不中
+        pctLines('物品數量', n).forEach((line, k) => {
+          const want = (k === 0 || k === 1 || k === 5) && c.ok(n)
+          if (r.test(line) !== want) throw new Error(`${f} × 「${line}」 期望 ${want}`)
+        })
       }
       // 開放上界:≥ 條件對 1000+ 也成立
       for (const n of [1000, 1234, 99999]) expect(r.test(`物品數量: +${n}%`)).toBe(c.ok(n))
@@ -189,7 +193,8 @@ describe('③ 稀有度 | 汙染條件列(第 35 步稀有度列;第 40 步起�
           const r = ci(ts[0])
           for (const opt of inp.options) {
             const val = lang === 'zh' ? opt.zh : opt.en
-            for (const sep of [': ', '：', ':', '： ']) expect(r.test(`${rarityLabel}${sep}${val}`), `${pick} ${val}`).toBe(pick.includes(opt.id))
+            // R10:短 term 依遊戲印法「稀有度: 稀有」—— 只有「: 」會中
+            for (const sep of [': ', '：', ':', '： ']) expect(r.test(`${rarityLabel}${sep}${val}`), `${pick} ${val} ${sep}`).toBe(sep === ': ' && pick.includes(opt.id))
           }
           for (let n = 0; n <= 999; n++) {
             for (const lab of [itemRarity, monsterRarity]) {
@@ -202,16 +207,17 @@ describe('③ 稀有度 | 汙染條件列(第 35 步稀有度列;第 40 步起�
       }
     })
   }
-  it('單選與第 35 步 rarityFragment 逐字相同(舊單字 choice 照讀);多選依固定順序;汙染各自一個 term', () => {
+  it('單選 = 短的遊戲格式 term(舊單字 choice 照讀);多選為固定順序的字元類;汙染各自一個 term(R10)', () => {
+    // 列單獨(沒有語料可比對縮短):稀有度短寫「度: 稀」/「度: [魔稀]」、汙染整行;第 35 步 rarityFragment 留作退回寫法
     const e = rowOf('poe1')
-    expect(e.fragment({ choice: 'rare' }, 'zh')).toBe(rarityFragment('稀有度', '稀有'))
-    expect(e.fragment({ choice: 'rare' }, 'zh')).toBe('稀有度[:：] *稀有')
-    expect(e.fragment({ choice: 'normal' }, 'zh')).toBe('稀有度[:：] *普通')
-    expect(e.fragment({ choice: 'unique' }, 'en')).toBe('Rarity[:：] *Unique')
-    expect(e.terms!(choiceOf(['rare', 'magic'], 'uncorrupted'), 'zh')).toEqual(['稀有度[:：] *(魔法|稀有)', '!^已汙染$'])
-    expect(e.terms!(choiceOf(['unique', 'normal', 'rare'], 'corrupted'), 'en')).toEqual(['Rarity[:：] *(Normal|Rare|Unique)', '^Corrupted$'])
-    expect(rowOf('poe2').terms!(choiceOf(['normal', 'magic']), 'zh')).toEqual(['稀有度[:：] *(中|魔法)'])
-    expect(e.fragment(choiceOf(['magic'], 'corrupted'), 'zh')).toBe('稀有度[:：] *魔法 ^已汙染$')
+    expect(rarityFragment('稀有度', '稀有')).toBe('稀有度[:：] *稀有')
+    expect(e.fragment({ choice: 'rare' }, 'zh')).toBe('度: 稀')
+    expect(e.fragment({ choice: 'normal' }, 'zh')).toBe('度: 普')
+    expect(e.fragment({ choice: 'unique' }, 'en')).toBe('y: u')
+    expect(e.terms!(choiceOf(['rare', 'magic'], 'uncorrupted'), 'zh')).toEqual(['度: [魔稀]', '!^已汙染$'])
+    expect(e.terms!(choiceOf(['unique', 'normal', 'rare'], 'corrupted'), 'en')).toEqual(['y: [nru]', '^Corrupted$'])
+    expect(rowOf('poe2').terms!(choiceOf(['normal', 'magic']), 'zh')).toEqual(['度: [中魔]'])
+    expect(e.fragment(choiceOf(['magic'], 'corrupted'), 'zh')).toBe('度: 魔 ^已汙染$')
   })
   it('choice 編解碼:新格式、舊單字、壞值;按鈕切換', () => {
     expect(parseRarityChoice('mr|u')).toEqual({ rarity: ['magic', 'rare'], corruption: 'uncorrupted' })
@@ -392,7 +398,8 @@ describe('⑤ 舊書籤 / 分享碼(只存數值)→ 新片段:對真實格式�
       for (const e of entries) {
         for (const lang of ['zh', 'en'] as const) {
           const lab = lang === 'zh' ? e.zh[0] : e.en[0]
-          const isProperty = (l: string): boolean => new RegExp(`${lab}[:：]`, 'i').test(l)
+          // R10:新片段只認遊戲印法「標籤: 」(半形冒號 + 空白);其他分隔寫法(「標籤：+N%」)遊戲不會印,不算屬性行
+          const isProperty = (l: string): boolean => new RegExp(`${lab}: `, 'i').test(l)
           for (const c of CONDS) {
             const oldR = ci(propertyFragment(lab, c.v, 3, true)!)
             const newR = ci(e.fragment(c.v, lang)!)

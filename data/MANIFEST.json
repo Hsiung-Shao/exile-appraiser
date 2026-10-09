@@ -39,12 +39,12 @@
     "data/regex": {
       "repo": "pob-zh-engine dist/Data (PobTools Poe Regex)",
       "path": "pob-zh-engine/dist/Data(git 追蹤於 pob-zh-engine/host/data)",
-      "commit": "d9ef0b6739349eb8021bd81fd3fb60c8e35391a2",
-      "generatedAt": "2026-09-29T05:32:27.627Z",
+      "commit": "3108275f34883b57a477b65d5b2df77d077f9f10",
+      "generatedAt": "2026-10-08T19:30:21.592Z",
       "dirty": true,
       "dirtyFiles": {
-        "regex_poe1.json": "12eb2319dba30504c98dc37c3fae6e9605875d6c761ad927015cd9b42ec897a8",
-        "regex_poe2.json": "69d89daab1e7365726343aa8ce5760137d99d537d79cf9710e222ba3354eec98"
+        "regex_poe1.json": "feabae052b9568c0b807e2b51acc7b661ae0c9381c432d07fcd534d2c1db2c2a",
+        "regex_poe2.json": "598e59ed4bb8f1d387388beca62dde151b393f39ab14fbc774bc9ce56d8e5159"
       }
     },
     "data/regex/labels.poe1.json": {
@@ -248,12 +248,12 @@
       "bytes": 2055
     },
     "data/regex/regex_poe1.json": {
-      "sha256": "12eb2319dba30504c98dc37c3fae6e9605875d6c761ad927015cd9b42ec897a8",
-      "bytes": 1756775
+      "sha256": "feabae052b9568c0b807e2b51acc7b661ae0c9381c432d07fcd534d2c1db2c2a",
+      "bytes": 1757179
     },
     "data/regex/regex_poe2.json": {
-      "sha256": "69d89daab1e7365726343aa8ce5760137d99d537d79cf9710e222ba3354eec98",
-      "bytes": 1406070
+      "sha256": "598e59ed4bb8f1d387388beca62dde151b393f39ab14fbc774bc9ce56d8e5159",
+      "bytes": 1412700
     },
     "data/regex/templates.json": {
       "sha256": "697e60418b47465d6eded560260f39e3d2e4ac6f6340e0605a8799ec508bd91d",

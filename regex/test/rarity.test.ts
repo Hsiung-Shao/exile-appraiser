@@ -56,7 +56,7 @@ describe('條件區接線', () => {
       const q = combine({ lang: 'zh', mode: 'any', pages: combineSels(pages[g], { [id]: [idx(p, 'corrupted')] }, {}, id) })
       expect(q.query).toBe('^已汙染$')
       const q2 = combine({ lang: 'en', mode: 'any', pages: combineSels(pages[g], { [id]: [idx(p, 'corrupted')] }, { [id]: { corrupted: ch(['rare'], 'uncorrupted') } }, id) })
-      expect(q2.query).toBe('"Rarity[:：] *Rare" "!^Corrupted$"')
+      expect(q2.query).toBe('"y: r" "!^Corrupted$"') // R10 短稀有度 term
     }
   })
 })
@@ -72,11 +72,12 @@ describe('combine:一列兩個 term', () => {
         pages: combineSels(pages[g], { vendor_bases: [0], [sec.id]: [0] }, { vendor_bases: { item_rarity_class: ch(['normal', 'magic'], 'uncorrupted') } }, 'vendor_bases')
       })
       // none 模式的排除 term 排最後;條件列 term 照樣正向
-      expect(r.query, mode).toContain('"稀有度[:：] *(中|魔法)" "!^已汙染$"')
+      // R10:短稀有度 term;基底名稱不是物品文字(names 頁)→ 汙染整行
+      expect(r.query, mode).toContain('"度: [中魔]" "!^已汙染$"')
       if (mode !== 'none') expect(r.query.endsWith(' "!^已汙染$"'), `${mode} ${r.query}`).toBe(true)
       const pc = r.perPage.find(x => x.id === sec.id)!
-      expect(pc.fragments).toEqual(['稀有度[:：] *(中|魔法)', '!^已汙染$'])
-      expect(pc.length).toBe('"稀有度[:：] *(中|魔法)" "!^已汙染$" '.length)
+      expect(pc.fragments).toEqual(['度: [中魔]', '!^已汙染$'])
+      expect(pc.length).toBe('"度: [中魔]" "!^已汙染$" '.length)
       expect(r.conflicts, mode).toEqual([])
     }
   })
@@ -97,14 +98,14 @@ describe('combine:一列兩個 term', () => {
 })
 
 describe('舊值相容與往返', () => {
-  it('schema 5 state 的 item_rarity_class 舊單字照讀,輸出與第 35 步相同', () => {
+  it('schema 5 state 的 item_rarity_class 舊單字照讀(R10 短片段)', () => {
     const s = parseRegexState(JSON.stringify({
       schema: 5, current: [{ page: 'waystone_mods', keys: [], alt: [], num: ['item_rarity_class'] }],
       numeric: { waystone_mods: { item_rarity_class: { choice: 'magic' } } }
     })).state
     const sec = sectionPageOf(pages.poe2, 'waystone_mods') as AlgoPage
     const q = combine({ lang: 'zh', mode: 'any', pages: combineSels(pages.poe2, { [sec.id]: [idx(sec, 'item_rarity_class')] }, s.numeric, 'waystone_mods') })
-    expect(q.query).toBe('"稀有度[:：] *魔法"')
+    expect(q.query).toBe('"度: 魔"')
   })
   it('書籤:物品基底 + 條件區往返,快捷字串 = 單頁輸出', () => {
     const g = 'poe1'
@@ -116,7 +117,7 @@ describe('舊值相容與往返', () => {
     expect(body.num).toEqual(['item_rarity_class'])
     expect(body.numeric).toEqual({ item_rarity_class: ch(['normal'], 'uncorrupted') })
     const want = combine({ lang: 'zh', mode: 'any', pages: combineSels(pages[g], picks, values, 'vendor_bases') }).query
-    expect(want).toContain('"稀有度[:：] *普通" "!^已汙染$"')
+    expect(want).toContain('"度: 普" "!^已汙染$"')
     expect(bookmarkQuery(pages[g], { name: 'x', ...body })!.query).toBe(want)
   })
   it('物品詞綴數值頁:宿主自己的數值與條件區共用存放鍵 → 書籤 / 分享碼兩邊都保留', async () => {
@@ -129,7 +130,7 @@ describe('舊值相容與往返', () => {
       const picks = { [page.id]: [0], [sec.id]: [0] }
       const values = { [page.id]: { [e0]: { min: 7 }, item_rarity_class: ch(['rare'], 'uncorrupted') } }
       const want = combine({ lang: 'en', mode: 'any', pages: combineSels(all, picks, values, page.id) }).query
-      expect(want.endsWith(' "Rarity[:：] *Rare" "!^Corrupted$"'), want).toBe(true)
+      expect(want.endsWith(' "y: r" "!^Corrupted$"'), want).toBe(true) // R10 短稀有度 term
       // 書籤
       const body = bookmarkBodyOf(all, page, picks, values, { game: g, mode: 'any', lang: 'en' })!
       expect(body.numeric).toEqual(values[page.id])

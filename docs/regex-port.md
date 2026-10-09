@@ -485,6 +485,38 @@ PoE1 地圖詞綴 3 條 + 階級 ≥16 + 物品數量 ≥80 + 6L → `"成凋| �
 - `"!^已汙染$"` 在倉庫 / 商店搜尋是否真的排除汙染物品。
 - PoE2 白裝是否顯示「稀有度: 中」(照 clientstrings,沒有剪貼簿樣本);碑牌 / 換界石 / 物品基底的稀有度行寫法(PoE2 繁中樣本只有碑牌(魔法)與裝備)。
 
+## 碑牌詞綴補缺漏:歸組與「依 roll 值換寫法」(2026-10-09)
+
+使用者對照 poe2db 八種碑牌的 ModifiersCalc,要求以 poe2db 為準補齊。A+B 合計門檻的寫法遊戲內不會亮,已放棄。
+
+### 缺漏與處理
+| 缺漏 | 根因 | 處理 |
+|---|---|---|
+| 探險少 2 條(炸藥範圍、瓦爾遺物) | PobTools 抽取快取是 9/15 的 GGPK,當時這兩條沒有繁中(`quarantine.json` no_translation);10/8 更新後的 GGPK 已有 | 另一個任務重抽 GGPK(2026-10-08,0.5.5.4.2)後重跑產生器、同步:兩條補上,其他頁 0 變動;八種碑牌與 poe2db 逐條對過,只差「額外的一個召喚法陣」「額外一道深淵」兩條字面(roll 固定 1,GGPK 值 1 印「一個 / 一道」,poe2db 用通用模板顯示「1個 / 1道」)|
+| 精髓 / 保險箱 / 神殿歸到「總督」 | `gen_regex_data2.py` `group_by_tablet` 只看 `tower_augment_*`;同一行另有 `default`(每種碑牌都出)也被歸成單一碑牌 | 有 `default` → 「通用」 |
+| 數量 1–2 的詞綴只收一種寫法 | `Wording._pick` 只取第一個符合的變體;遊戲值 1 印「一個 / 首名 / an additional Strongbox」、≥ 2 印「#個 / 前#名 / # additional Strongboxes」 | 新欄位 `altZh` / `altEn` + 產生演算法(下節) |
+
+不改的:「一道深淵」「一個精髓」是 GGPK 值 = 1 的真實寫法(poe2db 顯示「1道」是用通用模板渲染);尾巴多的 `]` 照 PobTools 既有決策保留;神廟沒有前後綴名稱是 GGPK `Mods.Name` 本身空的。
+
+### `alts`(資料欄位 `altZh` / `altEn`,`gen.ts` `Entry.alts`)
+- 產生:PobTools `regex_common.py` `Wording.lines_alt`(頁設定 `alt_wordings`,目前只開碑牌頁;PoE1 產出位元組不變)。roll 範圍也符合的其他變體;沒有條件(或條件全是 `#`)的後備變體,只有在前面的條件沒有完全涵蓋 roll 範圍時才算(否則「增加#%怪物群大小」會多出不可能的「減少」)。同時寫進 `hiddenZh` / `hiddenEn`。
+- 演算法(`gen.ts` 與 PobTools `regex_gen.cpp` 同步改,C++ selftest T17 / TS `synthetic.test.ts` T17):token 要**同時一定命中每一種其他寫法**,才算「找到」該項(any 的覆蓋計數、all 的專屬 token 都照此);Verify 的 definite 同理;alts 也併入 hidden 否決其他項目。沒有 alts 的項目行為不變:`perf-equivalence.json` 984 鍵只有碑牌相關 42 鍵改變(重新歸組 + alts + 重抽補的 2 條),已重產。
+- 例:英文總督「Map contains an additional Strongbox」原本產生 `"ox$"`,值 2 的「…2 additional Strongboxes」抓不到 → 現在 `"l st"`(神殿 `"l sh"`)兩種都中;繁中原本的片段(`"個保"`、`"土"`、`"守"`)本來就兩種都中,不變。英文「…Azmeri Spirit(s)」改版前就無法單獨指定(與通用那條幾乎同字),維持據實回報。
+
+### 測試
+`regex/test/tablet-variants.test.ts`:每個有 alts 的列 × 兩語 × any / all,單選產生的字串必須命中主寫法(代 1、2、10)與每種其他寫法(代 2、10);碑牌頁各組列數鎖數字(通用 24、裂痕 7、探險 13、譫妄 9、祭祀 9、深淵 9、總督 5、神廟 7 = 83)。`golden/selftest-report.json` 由新的 C++ 報告重抽(PASS 486 → 494 = T17 的 8 條;碑牌 81 → 83 列,繁中 83/83、英文 80/83 可單獨指定,卡住的 3 條與改版前相同)。
+
+## 物品類型條件 class-term(2026-10-09)
+
+使用者回報:碑牌頁產生的 `"圍|個瓦"` 在商店裡讓瓦爾珠寶也亮了(珠寶的「範圍效果」含「圍」)。語料片段只保證不中**同一頁清單**的其他詞綴,倉庫 / 商店搜尋卻掃所有物品;對整個物品詞綴庫否決代價太大(實驗:碑牌頁可單獨指定 繁中 83 → 42、英文 80 → 28),所以改成多一個 AND term:這類物品名稱一定含的字。
+
+- **規則**(`regex/src/class-term.ts`):`classTermOf(page, lang)` 查表;`sharedClassTerm(pages, lang)` 只在**有勾選的語料頁全部**屬於同一類型時才回傳(碑牌頁 + 換界石頁一起勾時加了會把換界石擋掉)。演算法頁(數值區、條件區)不影響判斷。`combine.ts` 只拿**有產出 token** 的語料頁去判斷:只勾了無法單獨指定的詞綴(例:英文 `TowerMapBossAdditionalSpirit`)時字串會只剩 `"tablet"`、亮所有碑牌,所以不加(`tablet-variants.test.ts` C3)。
+- **目前只有** `poe2/tablet_mods`:繁中 `碑牌`、英文 `tablet`(八種碑牌基底名都以「碑牌」/「Tablet」結尾,`regex/test/tablet-variants.test.ts` 對 items.ndjson 守門)。使用者裁定先只做碑牌頁。
+- **term 位置**(`combine.ts`):any term → all terms → 演算法 terms(含 R10 合併後的稀有度 / 汙染 term)→ **物品類型 term** → 自訂 terms → none term。加引號(`"碑牌"`),長度算進 `length`;`CombineResult.classTerm` 另外給出。只有一個語料頁時,結果 = 該頁 `Corpus.build().query` 再多這一段。
+- 例(R10 E1,碑牌為目前頁):`"%維" "度: 稀" "碑牌"`。
+- 與 R10 的交互:R10 合併只併同一物品組(`sections.ts planMerge`),碑牌頁與換界石頁不同組,所以「已選(合併)」以碑牌為目前頁時一定只有碑牌語料 → 會加 class-term。R10 條件縮短的防護語料(`combine.ts mergeConditions`)也收 `altZh` / `altEn`(`merge-group.test.ts` M4)。
+- PobTools 端已移植(PobTools 46d1ae2 / 829c19d;C++ golden 已由本分支重產,`--regex-selftest` 1056 / 0)。
+
 ## 相關文件
 - [regex-share-cli.md](regex-share-cli.md)(從命令列 / PobTools 送分享碼:`--regex-share`、確認對話框、找 exe)
 - [phase2-summary.md](phase2-summary.md)(WP5 摘要與待辦:逐字 golden)

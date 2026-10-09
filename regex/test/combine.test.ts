@@ -67,11 +67,11 @@ describe('combine:地圖詞綴 3 條 + 階級 ≥16 + 物品數量 ≥80 + 6L', 
         ]
       })
       const single = buildCorpus(mapMods, lang).build(picks, 'any')
-      // 第 35 步嚴格寫法:含空白 → 整個 term 加引號
-      const tier = lang === 'zh' ? '"階級 *(1[6-9]|[2-9][0-9])）"' : '"Tier (1[6-9]|[2-9][0-9])\\)"'
+      // 含空白 → 整個 term 加引號。R10:階級 ≥16 到最高階 17 為止;百分比行「標籤: \+?N%」
+      const tier = lang === 'zh' ? '"階級 *1[67]）"' : '"Tier 1[67]\\)"'
       const qty = lang === 'zh'
-        ? '"物品數量[:：] *\\+?([89][0-9]|[1-9][0-9]{2,}) *%"'
-        : '"Item Quantity[:：] *\\+?([89][0-9]|[1-9][0-9]{2,}) *%"'
+        ? '"物品數量: \\+?([89][0-9]|[1-9][0-9]{2,})%"'
+        : '"Item Quantity: \\+?([89][0-9]|[1-9][0-9]{2,})%"'
       expect(r.query).toBe(`${single.query} ${tier} ${qty} .-.-.-.-.-.`)
       expect(r.length).toBe(charCount(r.query))
       expect(r.ok).toBe(true)

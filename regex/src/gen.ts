@@ -20,6 +20,11 @@ export interface Entry {
   texts: string[]
   /** 搜尋也會讀但不是詞綴行的文字(進階說明、標籤、提醒文字、名稱片段);只否決 */
   hidden?: string[]
+  /**
+   * C++ `Entry::alts`(regex_gen.h):同一條詞綴在別的 roll 值印出的其他寫法(值 1「…額外的一個保險箱」、
+   * 值 2「…額外的#個保險箱」)。token 要同時一定命中每一行才算「找到」這一項;不提 token,對其他項目像 hidden 一樣否決。
+   */
+  alts?: string[]
 }
 
 /** C++ `Ambient`(regex_gen.h):頁面上每件物品都有的文字 */
@@ -339,7 +344,10 @@ function binarySearch (arr: readonly number[], x: number): boolean {
 export class Corpus {
   private entries: Entry[] = []
   private prepped: Prepped[] = []
+  /** 每項的 hidden + alts(只否決) */
   private hidden: Prepped[] = []
+  /** 每項的其他寫法(regex_gen.cpp `Impl::alts`) */
+  private alts: Prepped[] = []
   private ambient: Prepped = { lines: [], hasNumber: false }
   private opt: Required<Options> = { maxTokenChars: 12, anchors: true }
   /** token → 印出文字字面含它的語料(遞增) */
@@ -381,6 +389,12 @@ export class Corpus {
     return false
   }
 
+  /** regex_gen.cpp `Impl::CoversAlts`:命中第 e 項印出文字的 token,是否也一定命中它的每一種其他寫法 */
+  private coversAlts (e: number, tok: Token): boolean {
+    for (const ln of this.alts[e].lines) if (!alwaysMatchesLine(ln, tok)) return false
+    return true
+  }
+
   /**
    * regex_gen.cpp:347 `Impl::Safe`:六條否決,順序照 C++:
    *   ① 可見命中有未勾 ② ambient 索引 ③ hidden 索引命中未勾 ④ 名稱接縫
@@ -416,6 +430,7 @@ export class Corpus {
     this.buildMemo = new Map()
     this.prepped = []
     this.hidden = []
+    this.alts = []
     this.index = new Map()
     this.hiddenIndex = new Map()
     this.ambientIndex = new Set()
@@ -427,7 +442,9 @@ export class Corpus {
     this.rightFull = new Set()
     for (const e of entries) {
       this.prepped.push(prep(e.texts))
-      this.hidden.push(prep(e.hidden))
+      // 其他寫法也印在物品上,與 hidden 一樣否決;資料通常已放進 hidden,重複的行索引到同一組鍵
+      this.hidden.push(prep(e.alts?.length ? [...(e.hidden ?? []), ...e.alts] : e.hidden))
+      this.alts.push(prep(e.alts))
     }
     const { maxTokenChars, anchors } = this.opt
     for (let i = 0; i < this.prepped.length; i++) {
@@ -527,6 +544,7 @@ export class Corpus {
         let best: Candidate | null = null
         for (const c of cands) {
           if (c.hits.length !== 1 || c.hits[0] !== s) continue
+          if (!this.coversAlts(s, c.tok)) continue
           if (c.hiddenHits && c.hiddenHits.some(h => h !== s)) continue
           if (!best || c.cost < best.cost || (c.cost === best.cost && lessCodePoint(c.rendered, best.rendered))) best = c
         }
@@ -542,7 +560,7 @@ export class Corpus {
         let bestScore = 0
         for (const c of cands) {
           let fresh = 0
-          for (const h of c.hits) if (isSelected[h] && !done[h]) fresh++
+          for (const h of c.hits) if (isSelected[h] && !done[h] && this.coversAlts(h, c.tok)) fresh++
           if (fresh === 0) continue
           const score = fresh / c.cost
           if (!best || score > bestScore ||
@@ -555,7 +573,7 @@ export class Corpus {
         if (!best) break
         r.usedTokens.push(best.rendered)
         for (const h of best.hits) {
-          if (isSelected[h] && !done[h]) { done[h] = true; left-- }
+          if (isSelected[h] && !done[h] && this.coversAlts(h, best.tok)) { done[h] = true; left-- }
         }
       }
       for (const s of picks) if (!done[s]) r.unresolved.push(s)
@@ -590,10 +608,18 @@ export class Corpus {
     for (const term of terms) {
       const alts = parseAlternation(term)
       for (let e = 0; e < n; e++) {
+        let found = false
         for (const t of alts) {
-          if (alwaysMatches(this.prepped[e], t)) definite[e] = true
+          if (alwaysMatches(this.prepped[e], t)) found = true
           if (mayMatch(this.prepped[e], t) || mayMatch(this.hidden[e], t)) possible[e] = true
         }
+        // 物品可能印其中任一種寫法:每一種其他寫法也要被這一段的某個 token 一定命中才算找到
+        if (found) {
+          for (const ln of this.alts[e].lines) {
+            if (!alts.some(t => alwaysMatchesLine(ln, t))) { found = false; break }
+          }
+        }
+        if (found) definite[e] = true
       }
       for (const t of alts) {
         if (mayMatch(this.ambient, t) || this.joinsName(t)) chk.ambient.push(render(t))
