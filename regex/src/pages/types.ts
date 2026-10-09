@@ -4,6 +4,17 @@
 // 差別只在每個項目多了 `input`(數值 / 選項)與 `fragment()`:演算法頁**不經 Corpus 覆蓋演算法**,
 // 片段由程式直接組出,視為使用者確定的 term(combine.ts 對它們只做「會不會誤中其他頁詞綴」的檢查)。
 import type { RegexEntry, RegexLang, RegexPage } from '../data'
+import type { RarityChoice } from '../rarity'
+
+/**
+ * R10:稀有度 | 汙染 term 縮短時的語料防護。`hits` = 候選片段是否命中參與合併之語料頁的某一行
+ * (項目行、隱藏行、ambient;條件列自己的「已汙染」行除外);`itemText` = 其中有詞綴類(mods)語料頁,
+ * 也就是語料代表被搜尋物品本身的行。
+ */
+export interface CondGuard {
+  hits: (frag: string) => boolean
+  itemText: boolean
+}
 
 export type AlgoKind = 'numeric' | 'sockets'
 
@@ -50,6 +61,11 @@ export interface AlgoEntry extends RegexEntry {
    * 沒有任何 term = null(與 fragment 相同,當成輸入不成立)
    */
   terms?: (v: AlgoValue, lang: RegexLang) => string[] | null
+  /**
+   * R10,只在稀有度 | 汙染條件列:combine 把參與合併的所有條件列併成一個選取(稀有度取交集、汙染須一致),
+   * 再以它與語料防護(`guard`;沒有語料頁參與 = null)要 term(依序 [稀有度?, 汙染?];沒有 = null)
+   */
+  condTerms?: (c: RarityChoice, lang: RegexLang, guard: CondGuard | null) => string[] | null
   /**
    * 語料行(原文,含 `#`)本身就是這個項目要比對的對象 → combine 的 fragment 衝突檢查略過它(第 35 步:
    * 階級片段比對名稱「（階級 N）」,地圖詞綴頁的隱藏行收了魔法地圖名稱「堅定的地圖（階級#）」,中了是對的)

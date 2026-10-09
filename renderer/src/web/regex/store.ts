@@ -5,7 +5,8 @@
  *   兩個遊戲都載(書籤跨遊戲要查頁名、舊書籤要由 page id 補 game),一檔壞不拖垮另一檔(regex_data.cpp `Load`)。
  * - 演算法頁(WP-C):清單檔自帶 `labels`(schema 2)逐鍵優先,暫代檔 `./data/regex/labels.<game>.json` 補缺鍵,
  *   再以 `algoPages()` 組出數值頁 / 商店頁接在語料頁後面(同一個 `cat.pages`,清單、勾選、書籤共用)。
- * - 合併:`combined` = 目前遊戲所有有勾選的頁 + 自訂文字 + 排除詞 經 `combine()` 合成一串(regex/src/combine.ts)。
+ * - 合併:`combined` = 目前頁所屬物品組(R10,regex/src/sections.ts planMerge)的有勾選頁 + 自訂文字 + 排除詞 經 `combine()` 合成一串
+ *   (輸入由 regex/src/embed.ts `mergeSels` 組;其他物品組的勾選不併入,`mergeSkipped` 計數)。
  * - 範本 `./data/regex/templates.json`、分享碼(regex/src/share.ts)都走 `applyCombo()`:覆蓋目前遊戲全部頁的勾選。
  * - 記憶:`regex/src/state.ts` 的 `RegexUiState`(schema 2 多了 numeric / custom / excludes / outScope),
  *   經 `Host.regexStateLoad/Save`(main 寫 `userData/regex_state.json`,tmp + rename;純瀏覽器 localStorage)。
@@ -28,7 +29,7 @@
  */
 import { computed, markRaw, reactive, shallowRef, watch } from 'vue'
 import {
-  algoPages, bookmarkApplyOf, bookmarkBodyOf, buildCorpus, combine, combineSels, decodeShare, defaultRegexState,
+  algoPages, bookmarkApplyOf, bookmarkBodyOf, buildCorpus, combine, combineSels, mergeSels, decodeShare, defaultRegexState,
   encodeShare, hostIdOf, isAlgoPage, isSectionPage, listedPages, mergeLabels, numericKeyOf, pageKeysOf, parseLabels,
   parseRegexCatalogue, parseRegexState, parseTemplates, picksFor, resolveState, resolvedValues, savedPicksOf, sectionPageOf,
   serializeRegexState, shareStateOf, visibleRows, bookmarkHotkeys, regexStateSchemaOf, ITEM_MOD_PAGE_IDS, buildItemModData,
@@ -388,24 +389,39 @@ const pageCombined = computed<CombineResult | null>(() => {
   return combine({ lang: ui.lang, mode: ui.mode, pages: combineSels(cat.pages, picks, ui.numeric, p.id) })
 })
 
-/** 目前遊戲所有有勾選的頁 + 自訂文字 + 排除詞(數值區緊接宿主頁,與舊版合併頁逐字相同) */
-const combined = computed<CombineResult | null>(() => {
+/**
+ * R10:合併只取目前頁所屬物品組的有勾選頁(regex/src embed.ts mergeSels;PobTools regex_tool_ui.cpp mergeIdx)。
+ * `skippedPages` = 其他物品組的有勾選頁數(介面提示「另有 N 頁…未併入」)。
+ */
+const merge = computed(() => {
   const cat = catalogue.value
   if (!cat) return null
+  return mergeSels(cat.pages, picks, ui.numeric, page.value?.id ?? '')
+})
+
+/** 目前頁物品組的有勾選頁 + 自訂文字 + 排除詞(數值區緊接宿主頁) */
+const combined = computed<CombineResult | null>(() => {
+  const m = merge.value
+  if (!m) return null
   return combine({
     lang: ui.lang,
     mode: ui.mode,
-    pages: combineSels(cat.pages, picks, ui.numeric),
+    pages: m.sels,
     custom: ui.custom,
     excludes: ui.excludes
   })
 })
 
-/** 目前遊戲各頁勾選數(合併檢視用;數值區自成一列,排在宿主頁後面) */
-const pickedPages = computed(() => {
+/** 併入合併的各頁勾選數(合併檢視用;數值區自成一列,排在宿主頁後面) */
+const pickedPages = computed(() => (merge.value?.picked ?? []).map(s => ({ page: s.page, n: s.picks.length })))
+
+/** 其他物品組、未併入合併的有勾選頁數 */
+const mergeSkipped = computed(() => merge.value?.skippedPages ?? 0)
+
+/** 目前遊戲任一頁(不分物品組)有勾選:「全部清除」、分享碼用 */
+const anyPicked = computed(() => {
   const cat = catalogue.value
-  if (!cat) return []
-  return combineSels(cat.pages, picks, ui.numeric).map(s => ({ page: s.page, n: s.picks.length }))
+  return !!cat && combineSels(cat.pages, picks, ui.numeric).length > 0
 })
 
 /** 下拉選單 / 書籤用:這一頁(含它的數值區)總共勾了幾項 */
@@ -906,6 +922,8 @@ export function useRegexStore () {
     pageCombined,
     combined,
     pickedPages,
+    mergeSkipped,
+    anyPicked,
     panelView,
     templates,
     notice,

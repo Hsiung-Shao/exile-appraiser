@@ -41,7 +41,7 @@
           <option value="" disabled>{{ t('ppz.regex.template_ph', { n: myTemplates.length }) }}</option>
           <option v-for="tp in myTemplates" :key="tp.id" :value="tp.id">{{ uiEn ? tp.name.en : tp.name.zh }}</option>
         </select>
-        <button class="btn sm" data-regex="share-copy" :disabled="!pickedPages.length && !ui.custom.length && !ui.excludes.length"
+        <button class="btn sm" data-regex="share-copy" :disabled="!anyPicked && !ui.custom.length && !ui.excludes.length"
           :title="t('ppz.regex.share_copy_tip')" @click="copyShare">
           {{ shareState === 'ok' ? t('ppz.regex.copied') : shareState === 'fail' ? t('ppz.regex.copy_failed') : t('ppz.regex.share_copy') }}
         </button>
@@ -110,6 +110,11 @@
           <button class="btn ghost sm" @click="dismissNotice">{{ t('ppz.regex.dismiss') }}</button>
         </div>
         <p v-if="saveError" class="rx-bad">{{ t('ppz.regex.save_failed', { error: saveError }) }}</p>
+        <!-- R10:稀有度 / 汙染條件互相矛盾 → 不出字串;合併只併目前頁的物品組 -->
+        <p v-if="!out.query && conditionClash" class="rx-bad rx-conflict-line" data-regex="condition-clash">{{ t('ppz.regex.condition_clash_out') }}</p>
+        <p v-if="scope === 'combined' && mergeSkipped > 0" class="dim rx-conflict-line" data-regex="merge-skipped">
+          {{ t('ppz.regex.merge_skipped', { n: mergeSkipped }) }}
+        </p>
         <p v-if="scope === 'combined' && out.conflicts.length" class="rx-warn rx-conflict-line" data-regex="conflict-count">
           {{ t('ppz.regex.conflicts', { n: out.conflicts.length }) }}
           <a v-if="panelView !== 'combined'" href="#" @click.prevent="setPanelView('combined')">{{ t('ppz.regex.see_combined') }}</a>
@@ -313,6 +318,9 @@ export default defineComponent({
       page: store.page,
       picked: store.picked,
       pickedPages: store.pickedPages,
+      mergeSkipped: store.mergeSkipped,
+      anyPicked: store.anyPicked,
+      conditionClash: computed(() => !!out.value?.conflicts.some(c => c.kind === 'conditionClash')),
       panelView: store.panelView,
       result: computed(() => store.result.value),
       algoPage: computed(() => isAlgoPage(store.page.value) ? store.page.value : null),

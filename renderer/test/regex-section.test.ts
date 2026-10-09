@@ -55,7 +55,9 @@ describe('數值區接線', () => {
     expect(panel.indexOf('<RegexList', i)).toBeGreaterThan(i)
   })
   it('合併與單頁輸出都走 combineSels;存檔 / 書籤 / 分享碼走 embed.ts 純函式', () => {
-    expect(store.match(/combineSels\(cat\.pages, picks, ui\.numeric/g)?.length).toBeGreaterThanOrEqual(3)
+    // R10:合併改走 mergeSels(內部即 combineSels + 物品組篩選);單頁輸出與「有沒有勾選」仍直接用 combineSels
+    expect(store.match(/combineSels\(cat\.pages, picks, ui\.numeric/g)?.length).toBeGreaterThanOrEqual(2)
+    expect(store).toMatch(/mergeSels\(cat\.pages, picks, ui\.numeric/)
     for (const fn of ['savedPicksOf(', 'bookmarkBodyOf(', 'bookmarkApplyOf(', 'shareStateOf(', 'resolvedValues(']) {
       expect(store, fn).toContain(fn)
     }

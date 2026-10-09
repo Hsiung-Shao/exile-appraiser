@@ -77,7 +77,7 @@ function numEntry (s: NumSpec, labels: RegexLabels): AlgoEntry | null {
     },
     // 階級在物品名稱「（階級 N）」,不在屬性行(見 frag.ts mapTierFragment);其餘是「標籤: +N%」屬性行
     fragment: s.id === 'tier'
-      ? (v, lang) => mapTierFragment(v, s.digits, lang)
+      ? (v, lang) => mapTierFragment(v, s.digits, lang, s.hi ?? 0)
       : (v, lang) => strictPropertyFragment(lang === 'zh' ? zh : en, v, s.digits, s.percent),
     ...(s.id === 'tier' ? { ownLine: isTierNameLine } : {})
   }

@@ -3,6 +3,9 @@
 // 產生來源:commit 36d0ac2 的父 commit bb686d0(修改前實作)+ 本檔(36d0ac2 版)以 PERF_EQ_WRITE=1 重產,與 repo 內 golden 逐位元組相同(2026-10-02 code review 第 D 批複驗)。
 // 2026-10-04 第 35 步(數值區嚴格片段 + 稀有度列)重產:804 鍵中只有 120 鍵變 —— poe1|map_numeric 36、poe2|waystone_numeric 36、
 // 兩遊戲 multi(帶數值頁 picks [0,1])30 + 18;語料頁 build / verify 與商店頁全部不變。
+// 2026-10-09 R10(階級 ≥ 帶上限、百分比行「標籤: \+?N%」、稀有度短 term)重產:只有 300 鍵變 —— map_numeric / waystone_numeric 各 36、
+// 五個條件區(vendor_bases_cond ×2、item_mod_values_cond、item_mod_values_poe2_cond、tablet_mods_cond)各 36、multi 30 + 18;
+// 語料頁 build / verify 與商店頁全部不變。
 // 重生(僅在演算法有意改動時):`PERF_EQ_WRITE=1 npx vitest run test/perf-equivalence.test.ts`
 import { createHash } from 'node:crypto'
 import fs from 'node:fs'

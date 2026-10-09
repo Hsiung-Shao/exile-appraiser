@@ -46,3 +46,36 @@ export function numericKeyOf (pageId: string): string {
 export function unionKeys (a: readonly string[] | undefined, b: readonly string[] | undefined): string[] {
   return [...new Set([...(a ?? []), ...(b ?? [])])]
 }
+
+// ---- 物品組(R10,2026-10-09;PobTools regex_algo_pages.cpp ItemGroupOf / PlanMerge)----
+// 一條搜尋字串只描述一種物品:合併只併「目前頁所屬物品組」的頁。裝備類頁(商店基底、商店物品條件、物品詞綴數值、
+// 藥劑 / 護符詞綴)描述的是同一批物品 → 同組 `equipment`;section 歸宿主組;其餘頁自成一組(組名 = 頁 id)。
+
+const EQUIPMENT_PAGES: readonly string[] = [
+  'vendor_bases', 'vendor_items', 'vendor_items_poe2', 'item_mod_values', 'item_mod_values_poe2', 'flask_mods', 'flask_charm_mods'
+]
+
+/** 頁 → 物品組名 */
+export function itemGroupOf (pageId: string): string {
+  const host = numericKeyOf(pageId)
+  return EQUIPMENT_PAGES.includes(host) ? 'equipment' : host
+}
+
+export interface MergePlan {
+  /** 併入的頁 id(與目前頁同組,保留原順序) */
+  merged: string[]
+  /** 未併入的頁數(宿主與其 section 合算一頁) */
+  skippedPages: number
+}
+
+/** 目前頁 `currentId` 時,有勾選的頁 `pickedIds`(合併順序)裡哪些併入合併輸出 */
+export function planMerge (currentId: string, pickedIds: readonly string[]): MergePlan {
+  const group = itemGroupOf(currentId)
+  const merged: string[] = []
+  const skipped = new Set<string>()
+  for (const id of pickedIds) {
+    if (itemGroupOf(id) === group) merged.push(id)
+    else skipped.add(numericKeyOf(id))
+  }
+  return { merged, skippedPages: skipped.size }
+}

@@ -14,7 +14,8 @@ export {
   condText, enLine, entryMatches, extraLines, hiddenPreview, lengthLevel, lineIn, otherLine, pageHasT17, sectionSummary, visibleRows
 } from './view'
 export type { LengthLevel, ListFilter, SectionSummaryItem, T17Filter } from './view'
-export { SECTION_HOSTS, numericKeyOf, sectionHostOf, sectionIdOf } from './sections'
+export { SECTION_HOSTS, itemGroupOf, numericKeyOf, planMerge, sectionHostOf, sectionIdOf } from './sections'
+export type { MergePlan } from './sections'
 export { domainMax, naiveRangeRegex, normalizeRange, rangeRegex, readableRangeRegex } from './numeric'
 export type { NumOptions, NumRange, ReadableOptions } from './numeric'
 export { PAGE_KINDS, isCorpusPage, mergeLabels, normalizeLabel, parseLabels } from './data'
@@ -37,7 +38,7 @@ export {
   resolveState
 } from './share'
 export type { RegexTemplate, ResolvedState, ShareState } from './share'
-export { bookmarkApplyOf, bookmarkBodyOf, combineSels, resolvedValues, savedPicksOf, shareStateOf, valuesOfPage } from './embed'
+export { bookmarkApplyOf, bookmarkBodyOf, combineSels, mergeSels, resolvedValues, savedPicksOf, shareStateOf, valuesOfPage } from './embed'
 export type { BookmarkApply, PicksMap, ValuesMap } from './embed'
 export { bookmarkHotkeys, bookmarkQuery, findBookmark, quickBookmarks } from './quick'
 export {
