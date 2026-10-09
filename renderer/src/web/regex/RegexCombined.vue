@@ -7,10 +7,14 @@
     <div class="rx-toolbar">
       <span class="label rx-comb-title">{{ t('ppz.regex.combined_title', { game: gameLabel(selGame) }) }}</span>
       <span class="grow" />
-      <button class="btn sm" data-regex="clear-all" :disabled="!pages.length" @click="clearAllPicks">{{ t('ppz.regex.clear_all') }}</button>
+      <button class="btn sm" data-regex="clear-all" :disabled="!anyPicked" @click="clearAllPicks">{{ t('ppz.regex.clear_all') }}</button>
     </div>
 
-    <p v-if="!pages.length" class="rx-comb-empty">{{ t('ppz.regex.combined_empty') }}</p>
+    <!-- R10:合併只併目前頁的物品組;其他物品的勾選另計 -->
+    <p v-if="!pages.length && mergeSkipped > 0" class="rx-comb-empty" data-regex="combined-empty-group">
+      {{ t('ppz.regex.combined_empty_group', { n: mergeSkipped }) }}
+    </p>
+    <p v-else-if="!pages.length" class="rx-comb-empty">{{ t('ppz.regex.combined_empty') }}</p>
     <table v-else class="rx-comb-table" data-regex="combined-pages">
       <thead>
         <tr>
@@ -44,6 +48,9 @@
         </tr>
       </tbody>
     </table>
+    <p v-if="pages.length && mergeSkipped > 0" class="dim rx-chips-note" data-regex="merge-skipped">
+      {{ t('ppz.regex.merge_skipped', { n: mergeSkipped }) }}
+    </p>
 
     <div v-for="kind in kinds" :key="kind" class="rx-chips-block" :data-regex="`${kind}-block`">
       <div class="rx-chips-head">
@@ -100,6 +107,8 @@ export default defineComponent({
       selGame: store.selGame,
       combined: store.combined,
       pages,
+      mergeSkipped: store.mergeSkipped,
+      anyPicked: store.anyPicked,
       drafts,
       kinds: ['custom', 'excludes'] as Array<'custom' | 'excludes'>,
       gameLabel,

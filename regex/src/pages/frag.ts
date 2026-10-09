@@ -53,7 +53,9 @@ export function strictPropertyFragment (
   if (!re) return null
   const base = labelBase(label)
   if (!base) return null
-  if (percent) return `${base}[:：] *\\+?${re} *%`
+  // R10:遊戲印法「怪群大小: +13% (augmented)」「物品數量: +68% (augmented)」(兩遊戲,使用者自客戶端複製):
+  // 半形冒號 + 一個空白、% 前沒有空白
+  if (percent) return `${base}: \\+?${re}%`
   return `${base}[:：]? *\\+?${re}${op === 'ge' ? '' : '([^0-9]|$)'}`
 }
 
@@ -79,10 +81,16 @@ export function isTierNameLine (line: string): boolean {
   return /（階級 *#）|\(Tier #\)/i.test(line)
 }
 
-export function mapTierFragment (v: AlgoValue, digits: 1 | 2 | 3, lang: 'zh' | 'en'): string | null {
+/**
+ * `hi` > 0 = 最高階級(R10):≥ 條件改成 min..hi 的封閉區間(「≥15」of 1..16 → `1[56]` 而不是 `(1[5-9]|[2-9][0-9])`);
+ * 下限高於 hi(存檔值超出輸入範圍)維持開放寫法。
+ */
+export function mapTierFragment (v: AlgoValue, digits: 1 | 2 | 3, lang: 'zh' | 'en', hi = 0): string | null {
   const op = rangeOp(v)
   if (!op) return null
-  const re = readableRangeRegex({ min: op === 'le' ? undefined : v.min, max: op === 'ge' ? undefined : v.max }, { digits })
+  let max = op === 'ge' ? undefined : v.max
+  if (op === 'ge' && hi > 0 && (v.min as number) <= hi) max = hi
+  const re = readableRangeRegex({ min: op === 'le' ? undefined : v.min, max }, { digits })
   if (!re) return null
   const f = TIER_NAME_FORMAT[lang]
   return `${f.head}${re}${f.tail}`

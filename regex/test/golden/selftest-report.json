@@ -1,7 +1,7 @@
 {
   "_source": "pob-zh-engine dist/regex_selftest.txt(pob-zh.exe --regex-selftest);由 extract-from-report.mjs 產生,勿手改",
   "_cppPassFail": {
-    "pass": 486,
+    "pass": 1054,
     "fail": 0
   },
   "synthetic": {
@@ -107,8 +107,8 @@
       "lang": "zh",
       "game": "poe2",
       "page": "tablet_mods",
-      "length": 23,
-      "plain": 199
+      "length": 24,
+      "plain": 186
     },
     {
       "lang": "zh",
@@ -226,8 +226,8 @@
       "lang": "en",
       "game": "poe2",
       "page": "tablet_mods",
-      "length": 38,
-      "plain": 553
+      "length": 34,
+      "plain": 545
     },
     {
       "lang": "en",
@@ -426,10 +426,10 @@
       "lang": "zh",
       "game": "poe2",
       "page": "tablet_mods",
-      "entries": 81,
-      "ambientLines": 67,
-      "findable": 81,
-      "tried": 81,
+      "entries": 83,
+      "ambientLines": 83,
+      "findable": 83,
+      "tried": 83,
       "stuckExamples": [],
       "stuckByHidden": 0,
       "stuckByHiddenExamples": []
@@ -687,10 +687,10 @@
       "lang": "en",
       "game": "poe2",
       "page": "tablet_mods",
-      "entries": 81,
-      "ambientLines": 69,
-      "findable": 78,
-      "tried": 81,
+      "entries": 83,
+      "ambientLines": 85,
+      "findable": 80,
+      "tried": 83,
       "stuckExamples": [
         "Map contains # additional Azmeri Spirit",
         "Map contains an additional Azmeri Spirit",

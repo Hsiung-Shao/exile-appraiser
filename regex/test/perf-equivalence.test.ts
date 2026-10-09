@@ -3,6 +3,14 @@
 // 產生來源:commit 36d0ac2 的父 commit bb686d0(修改前實作)+ 本檔(36d0ac2 版)以 PERF_EQ_WRITE=1 重產,與 repo 內 golden 逐位元組相同(2026-10-02 code review 第 D 批複驗)。
 // 2026-10-04 第 35 步(數值區嚴格片段 + 稀有度列)重產:804 鍵中只有 120 鍵變 —— poe1|map_numeric 36、poe2|waystone_numeric 36、
 // 兩遊戲 multi(帶數值頁 picks [0,1])30 + 18;語料頁 build / verify 與商店頁全部不變。
+// 2026-10-09 R10(階級 ≥ 帶上限、百分比行「標籤: \+?N%」、稀有度短 term)重產:只有 300 鍵變 —— map_numeric / waystone_numeric 各 36、
+// 五個條件區(vendor_bases_cond ×2、item_mod_values_cond、item_mod_values_poe2_cond、tablet_mods_cond)各 36、multi 30 + 18;
+// 語料頁 build / verify 與商店頁全部不變。
+// 2026-10-09 併入碑牌補漏(alts + class-term,另一 session 單獨重產時 42 鍵變:poe2|tablet_mods 36 + multi waystone_mods+tablet_mods 6)後重產:
+// 對 87121ad 共 336 鍵變 = R10 300 + 碑牌 42 − 重疊 6(multi waystone_mods+tablet_mods 兩語 × 三模式);tablet_mods_cond 只在 R10 那 36 鍵
+// (條件區單獨合併沒有語料頁,不加物品類型 term)。
+// 2026-10-09 碑牌 ambient 補固有詞綴(繁中 +16 行、英文 +16 行)後重產:只有 12 鍵變 —— poe2|tablet_mods 9
+// (zh all × all / r3x40 / r4x120;en any / all / none × all / r4x120)、multi waystone_mods+tablet_mods en 三模式 3;tablet_mods_cond 不變。
 // 重生(僅在演算法有意改動時):`PERF_EQ_WRITE=1 npx vitest run test/perf-equivalence.test.ts`
 import { createHash } from 'node:crypto'
 import fs from 'node:fs'
@@ -29,6 +37,16 @@ function pickSets (p: RegexPage): Array<[string, number[]]> {
   return sets.filter(([, pk]) => pk.length > 0)
 }
 
+/**
+ * 2026-10-09 `CombineResult` 加了 `classTerm`(物品類型條件,`class-term.ts`)。沒有條件(null)= 改版前的輸出,
+ * 雜湊時拿掉這個欄位,golden 才能繼續證明「沒有條件的頁逐字不變」;有條件的頁(碑牌單頁)照實改變。
+ */
+function legacyShape (r: ReturnType<typeof combine>): unknown {
+  if (r.classTerm !== null) return r
+  const { classTerm: _omit, ...rest } = r
+  return rest
+}
+
 function compute (): Record<string, string> {
   const out: Record<string, string> = {}
   for (const game of ['poe1', 'poe2'] as const) {
@@ -46,7 +64,7 @@ function compute (): Record<string, string> {
               parts.push(c.verify(pk, c.build(pk, mode).query))
             }
             const cmb = combine({ lang, mode, pages: [{ page: p, picks: pk }], excludes: name === 'r2x10' ? ['魔法', 'Life'] : undefined })
-            parts.push(cmb)
+            parts.push(legacyShape(cmb))
             out[key] = sha(parts)
           }
         }
@@ -63,7 +81,7 @@ function compute (): Record<string, string> {
             { page: b, picks: samplePicks(12, b.entries.length, 15) },
             ...(algo ? [{ page: algo, picks: [0, 1] }] : [])
           ]
-          out[`${game}|multi|${a.id}+${b.id}|${lang}|${mode}`] = sha(combine({ lang, mode, pages: sels, custom: ['abc.d'], excludes: ['火', 'cold'] }))
+          out[`${game}|multi|${a.id}+${b.id}|${lang}|${mode}`] = sha(legacyShape(combine({ lang, mode, pages: sels, custom: ['abc.d'], excludes: ['火', 'cold'] })))
         }
       }
     }

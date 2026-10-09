@@ -8,7 +8,7 @@ import type { RegexGame, RegexPage } from './data'
 import { applyPageKeys, combineOrder, isSectionPage, pageKeysOf, sectionPageOf } from './pages'
 import { isAlgoPage, type AlgoValue } from './pages/types'
 import type { CombineSel } from './combine'
-import { numericKeyOf } from './sections'
+import { numericKeyOf, planMerge } from './sections'
 import type { RegexBookmark, RegexUiState } from './state'
 import type { ShareState } from './share'
 
@@ -36,6 +36,29 @@ export function combineSels (pages: readonly RegexPage[], picks: PicksMap, value
   return combineOrder(pages, only)
     .map(p => ({ page: p, picks: [...(picks[p.id] ?? [])], values: valuesOfPage(values, p.id) }))
     .filter(s => only !== undefined || s.picks.length > 0)
+}
+
+/**
+ * R10「已選(合併)」的輸入(PobTools regex_tool_ui.cpp mergeIdx / combinedAll):有勾選的頁只取目前頁 `currentId` 的物品組
+ * (sections.ts planMerge)。`picked` = 併入的有勾選頁(清單顯示用);`sels` = 送進 combine 的(勾了 section、宿主語料頁沒勾時,
+ * 宿主以空勾選放在 section 前面,當條件 term 縮短的防護語料);`skippedPages` = 其他物品組的有勾選頁數(宿主 + section 算一頁)。
+ */
+export function mergeSels (
+  pages: readonly RegexPage[], picks: PicksMap, values: ValuesMap, currentId: string
+): { sels: CombineSel[], picked: CombineSel[], skippedPages: number } {
+  const all = combineSels(pages, picks, values)
+  const plan = planMerge(currentId, all.map(s => s.page.id))
+  const picked = all.filter(s => plan.merged.includes(s.page.id))
+  const sels: CombineSel[] = []
+  for (const s of picked) {
+    const hostId = isSectionPage(s.page) ? s.page.sectionOf! : null
+    if (hostId && !plan.merged.includes(hostId)) {
+      const host = pages.find(p => p.id === hostId)
+      if (host && !isAlgoPage(host)) sels.push({ page: host, picks: [], values: valuesOfPage(values, host.id) })
+    }
+    sels.push(s)
+  }
+  return { sels, picked, skippedPages: plan.skippedPages }
 }
 
 /** 宿主頁(或任何清單頁)目前內容 → 書籤本體;詞綴與數值區都沒勾 = null */

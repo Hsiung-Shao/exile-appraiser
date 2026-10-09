@@ -243,6 +243,39 @@ describe('T16 anchors are honoured against hidden lines too(:301)', () => {
   })
 })
 
+describe("T17 a modifier's other wordings must be found too", () => {
+  // 總督碑牌 1..2:值 1 "an additional Strongbox"、值 2 "# additional Strongboxes";"ox$" 只中單數
+  const c = makeEx([
+    { id: 'box', texts: ['Map contains an additional Strongbox'], alts: ['Map contains # additional Strongboxes'] },
+    { id: 'chance', texts: ['Map has #% increased chance to contain Strongboxes'] }
+  ])
+  for (const mode of ['any', 'all'] as const) {
+    it(`the token covers both wordings (${mode})`, () => {
+      const r = c.build([0], mode)
+      expect(r.exact && c.verify([0], r.query).ok).toBe(true)
+      expect(r.query.includes('ox$')).toBe(false)
+      expect(r.query).toBe(mode === 'any' ? '"l"' : 'l')
+    })
+  }
+  it('a term that misses the other wording is a miss', () => {
+    const v = c.verify([0], '"ox$"')
+    expect(!v.ok && v.missing.length === 1).toBe(true)
+  })
+  it('the other wording vetoes like hidden text for everyone else', () => {
+    const r2 = c.build([1], 'any')
+    expect(r2.exact && c.verify([1], r2.query).ok).toBe(true)
+    expect(r2.query).toBe('"%"')
+  })
+  it('a wording no token can cover leaves the pick unresolved', () => {
+    const d = makeEx([{ id: 'box', texts: ['box'], alts: ['# boxes'] }, { id: 'found', texts: ['boxes found'] }])
+    expect(d.build([0], 'any').exact).toBe(false)
+  })
+  it('an entry without alts behaves as before', () => {
+    const e = makeEx([{ id: 'box', texts: ['box'] }, { id: 'found', texts: ['boxes found'] }])
+    expect(e.build([0], 'any').query).toBe('"x$"')
+  })
+})
+
 // TS 移植額外的邊界(C++ 沒有對應 T 編號,但行為照 regex_gen.cpp 推導)
 describe('(port) edge cases', () => {
   it('empty selection → empty result; out-of-range and duplicate picks ignored(:449,:454)', () => {
