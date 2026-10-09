@@ -1,8 +1,8 @@
 {
   "_source": "pob-zh-engine dist/regex_selftest.txt(pob-zh.exe --regex-selftest);由 extract-from-report.mjs 產生,勿手改",
   "_cppPassFail": {
-    "pass": 494,
-    "fail": 0
+    "pass": 1047,
+    "fail": 7
   },
   "synthetic": {
     "T1 one pick": "\"咒\"",
@@ -427,7 +427,7 @@
       "game": "poe2",
       "page": "tablet_mods",
       "entries": 83,
-      "ambientLines": 67,
+      "ambientLines": 83,
       "findable": 83,
       "tried": 83,
       "stuckExamples": [],
@@ -688,7 +688,7 @@
       "game": "poe2",
       "page": "tablet_mods",
       "entries": 83,
-      "ambientLines": 69,
+      "ambientLines": 85,
       "findable": 80,
       "tried": 83,
       "stuckExamples": [

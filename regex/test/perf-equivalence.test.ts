@@ -9,6 +9,8 @@
 // 2026-10-09 併入碑牌補漏(alts + class-term,另一 session 單獨重產時 42 鍵變:poe2|tablet_mods 36 + multi waystone_mods+tablet_mods 6)後重產:
 // 對 87121ad 共 336 鍵變 = R10 300 + 碑牌 42 − 重疊 6(multi waystone_mods+tablet_mods 兩語 × 三模式);tablet_mods_cond 只在 R10 那 36 鍵
 // (條件區單獨合併沒有語料頁,不加物品類型 term)。
+// 2026-10-09 碑牌 ambient 補固有詞綴(繁中 +16 行、英文 +16 行)後重產:只有 12 鍵變 —— poe2|tablet_mods 9
+// (zh all × all / r3x40 / r4x120;en any / all / none × all / r4x120)、multi waystone_mods+tablet_mods en 三模式 3;tablet_mods_cond 不變。
 // 重生(僅在演算法有意改動時):`PERF_EQ_WRITE=1 npx vitest run test/perf-equivalence.test.ts`
 import { createHash } from 'node:crypto'
 import fs from 'node:fs'
