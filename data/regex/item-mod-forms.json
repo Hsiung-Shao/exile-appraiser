@@ -1,0 +1,980 @@
+{
+ "schema": 1,
+ "fetchedAt": "2026-10-10",
+ "sources": {
+  "poe2": "https://poe2db.tw/tw/Modifiers(463 頁 × tw/us)",
+  "poe1": "https://poedb.tw/tw/Modifiers(549 頁 × tw/us)"
+ },
+ "note": "由 regex/scripts/gen-item-mod-forms.mjs 產生,勿手改。值 = poe2db / poedb 上查得到的寫法(依 stats.ndjson 順序)。",
+ "poe1": {
+  "zh": {
+   "stat_1083387327|#% increased Quantity of Expedition Logbooks dropped by Runic Monsters in your Maps": [
+    "增加 #% 你的地圖中符文怪物掉落探險日誌的數量"
+   ],
+   "stat_1122693835|#% increased Effect of Non-Damaging Ailments you inflict during Effect": [
+    "效果持續時間內，增加 #% 你造成非傷害型異常狀態的效果"
+   ],
+   "stat_1217583941|Buffs on Players expire #% faster": [
+    "玩家身上的增益效果加速 #% 失效"
+   ],
+   "stat_1259656520|Immortal Syndicate Members in your Maps are #% more\nlikely to offer to Bargain for Items": [
+    "你地圖中的永生密教成員\n有 #% 更多機率交涉物品"
+   ],
+   "stat_144887967|#% chance to gain Phasing for # seconds when your Trap is triggered by an Enemy": [
+    "陷阱被敵人觸發時有 #% 機率獲得 3 秒迷蹤效果"
+   ],
+   "stat_1493325653|Prevent +#% of Suppressed Spell Damage while on Full Energy Shield": [
+    "滿能量護盾時，防止 #% 壓抑法術傷害"
+   ],
+   "stat_1505882627|Harvest Crops in your Maps have #% increased chance to contain a Tier 4 Plant": [
+    "你地圖中收割作物增加 #% 機率成長至階級 4 的作物"
+   ],
+   "stat_1539368271|#% increased Explosive Placement Range in your Maps": [
+    "增加 #% 你地圖中爆裂物的放置距離"
+   ],
+   "stat_1595637549|Red Beasts in your Maps have #% increased chance to be from The Caverns": [
+    "你地圖中的紅色野獸增加 #% 機率來自洞窟"
+   ],
+   "stat_1640965354|Area contains #% increased number of Runic Monster Markers": [
+    "區域增加 #% 魔符怪物標記的數量"
+   ],
+   "stat_1640965354|Your Maps contain #% increased number of Runic Monster Markers": [
+    "你的地圖增加 #% 符文怪物印記的數量"
+   ],
+   "stat_1769611692|Delirium in your Maps increases #% faster with distance from the mirror": [
+    "你地圖中的鏡子遠方的譫妄強化比平常快 #%"
+   ],
+   "stat_1915989164|Area contains #% increased number of Monster Markers": [
+    "區域增加 #% 怪物標記的數量"
+   ],
+   "stat_2181129193|#% additional Physical Damage Reduction while stationary": [
+    "站立時，有額外 #% 物理傷害減免"
+   ],
+   "stat_2301218725|#% increased Stack size of Simulacrum Splinters found in your Maps": [
+    "增加 #% 你地圖中掉落幻像斷片的堆疊數量"
+   ],
+   "stat_2436491720|Red Beasts in your Maps have #% increased chance to be from The Sands": [
+    "你地圖中的紅色野獸增加 #% 機率來自飛沙"
+   ],
+   "stat_2443457281|Socketed Projectile Spells deal #% more Damage with Hits": [
+    "插槽中的投射物法術造成 #% 更多擊中傷害"
+   ],
+   "stat_2459602321|#% increased Rarity of Fish Caught per held Dead Fish": [
+    "每隻死魚增加 #% 釣魚稀有度"
+   ],
+   "stat_2528955616|Gain # Energy Shield per Enemy Killed": [
+    "每個被擊殺的敵人，獲得 # 能量護盾"
+   ],
+   "stat_2722831300|Abysses in your Maps have #% increased chance to lead to an Abyssal Depths": [
+    "你地圖中的深淵增加 #% 機率引導至絕望深淵"
+   ],
+   "stat_28299254|Herald of Thunder's Storms Hit Enemies with #% increased Frequency": [
+    "閃電之捷的風暴增加 #% 擊中敵人的頻率"
+   ],
+   "stat_286947568|Players Prevent +#% of Suppressed Spell Damage": [
+    "玩家 #% 防止壓抑法術傷害的總量"
+   ],
+   "stat_2934907255|#% increased Quantity of Vendor Refresh Currencies dropped by Monsters in your Maps": [
+    "增加 #% 你地圖中怪物掉落刷新商人的通貨數量"
+   ],
+   "stat_3034509000|Wild Rogue Exiles in your Maps have #% chance to be Possessed by a Tormented Spirit": [
+    "你地圖中的野生盜賊流亡者有 #% 機率被罪魂附身"
+   ],
+   "stat_3087912144|Passive Skills in Radius also grant: #% increased Unarmed Attack Speed with Melee Skills": [
+    "範圍內天賦同時給予：近戰技能增加 #% 空手攻擊速度"
+   ],
+   "stat_3090817208|Red Beasts in your Maps have #% increased chance to be from The Wilds": [
+    "你地圖中的紅色野獸增加 #% 機率來自獸性"
+   ],
+   "stat_3100457893|Gain Immunity to Physical Damage for # second on Rampage": [
+    "暴怒狀態時免疫物理傷害 # 秒"
+   ],
+   "stat_3148570142|Gain # Life per Bleeding Enemy Hit": [
+    "每個擊中流血的敵人，獲得 # 生命"
+   ],
+   "stat_3308030688|#% increased Mana Regeneration Rate while stationary": [
+    "站立時，增加 #% 魔力恢復率"
+   ],
+   "stat_3454830051|#% increased Main Hand Critical Strike Chance per\nMurderous Eye Jewel affecting you, up to a maximum of 200%": [
+    "每顆影響你的殺戮之眼珠寶，增加 #% 主手暴擊率，最多 200%"
+   ],
+   "stat_3550168289|Area is inhabited by an additional Rogue Exile": [
+    "區域含有額外#位盜賊流亡者"
+   ],
+   "stat_405988579|Delirium Bosses in your Maps drop #% increased Simulacrum Splinters": [
+    "你地圖中的譫妄頭目增加掉落 #% 幻像斷片"
+   ],
+   "stat_4116705863|Prevent +#% of Suppressed Spell Damage": [
+    "#% 防止壓抑法術傷害的總量",
+    "阻止 #% 的壓抑法術傷害"
+   ],
+   "stat_4219583418|#% increased quantity of Artifacts dropped by Monsters": [
+    "增加 #% 怪物掉落文物的數量"
+   ],
+   "stat_461663422|#% increased Effect of Jewel Socket Passive Skills containing Corrupted Magic Jewels": [
+    "增加#%天賦樹插槽內的已汙染魔法珠寶效果"
+   ],
+   "stat_59091266|Red Beasts in your Maps have #% increased chance to be from The Deep": [
+    "你地圖中的紅色野獸增加 #% 機率來自深潭"
+   ],
+   "stat_615948723|Delirium Bosses in your Maps have #% increased chance to drop Unique Cluster Jewels": [
+    "你地圖中的譫妄頭目增加 #% 機率掉落傳奇星團珠寶"
+   ],
+   "stat_736847554|Totems fire # additional Projectile": [
+    "圖騰發射額外 # 投射物"
+   ],
+   "stat_757315075|Gain Unholy Might for # second on Rampage": [
+    "暴怒狀態時獲得不潔之力 # 秒"
+   ]
+  },
+  "en": {
+   "stat_1031404836|Skills Fire # additional Projectile for 4 seconds after\nyou consume a total of 8 Steel Shards": [
+    "Skills Fire # additional Projectiles for 4 seconds after\nyou consume a total of 8 Steel Shards"
+   ],
+   "stat_1083387327|#% increased Quantity of Expedition Logbooks dropped by Runic Monsters in your Maps": [
+    "#% increased Quantity of Expedition Logbooks dropped by Runic Monsters in your Maps"
+   ],
+   "stat_1122693835|#% increased Effect of Non-Damaging Ailments you inflict during Effect": [
+    "#% increased Effect of Non-Damaging Ailments you inflict during Effect"
+   ],
+   "stat_1193925814|Mana Flasks gain # Charge every 3 seconds": [
+    "Mana Flasks gain # Charges every 3 seconds"
+   ],
+   "stat_1217583941|Buffs on Players expire #% faster": [
+    "Buffs on Players expire #% faster"
+   ],
+   "stat_1259656520|Immortal Syndicate Members in your Maps are #% more\nlikely to offer to Bargain for Items": [
+    "Immortal Syndicate Members in your Maps are #% more\nlikely to offer to Bargain for Items"
+   ],
+   "stat_144887967|#% chance to gain Phasing for # seconds when your Trap is triggered by an Enemy": [
+    "#% chance to gain Phasing for 3 seconds when your Trap is triggered by an Enemy"
+   ],
+   "stat_1488891279|Chill Enemies for # second on Hit with this Weapon when in Off Hand": [
+    "Chill Enemies for # second on Hit with this Weapon when in Off Hand"
+   ],
+   "stat_1493325653|Prevent +#% of Suppressed Spell Damage while on Full Energy Shield": [
+    "Prevent #% of Suppressed Spell Damage while on Full Energy Shield"
+   ],
+   "stat_1524679549|While a Unique Enemy is in your Presence, Non-Vaal Strike Skills target # additional nearby Enemy": [
+    "While a Unique Enemy is in your Presence, Non-Vaal Strike Skills target # additional nearby Enemies"
+   ],
+   "stat_1539368271|#% increased Explosive Placement Range in your Maps": [
+    "#% increased Explosive Placement Range in your Maps"
+   ],
+   "stat_1582728645|Gain # Charge when you are Hit by an Enemy": [
+    "Gain # Charges when you are Hit by an Enemy"
+   ],
+   "stat_1595637549|Red Beasts in your Maps have #% increased chance to be from The Caverns": [
+    "Red Beasts in your Maps have #% increased chance to be from The Caverns"
+   ],
+   "stat_1640965354|Area contains #% increased number of Runic Monster Markers": [
+    "Area contains #% increased number of Runic Monster Markers"
+   ],
+   "stat_1640965354|Your Maps contain #% increased number of Runic Monster Markers": [
+    "Your Maps contain #% increased number of Runic Monster Markers"
+   ],
+   "stat_1661253443|Non-Vaal Strike Skills target # additional nearby Enemy": [
+    "Non-Vaal Strike Skills target # additional nearby Enemies"
+   ],
+   "stat_1751584857|Monsters inflict # Grasping Vine on Hit": [
+    "Monsters inflict # Grasping Vines on Hit"
+   ],
+   "stat_1769611692|Delirium in your Maps increases #% faster with distance from the mirror": [
+    "Delirium in your Maps increases #% faster with distance from the mirror"
+   ],
+   "stat_1833990055|Cannot Poison Enemies with at least # Poison on them": [
+    "Cannot Poison Enemies with at least # Poisons on them"
+   ],
+   "stat_1884100040|While a Pinnacle Atlas Boss is in your Presence, Non-Vaal Strike Skills target # additional nearby Enemy": [
+    "While a Pinnacle Atlas Boss is in your Presence, Non-Vaal Strike Skills target # additional nearby Enemies"
+   ],
+   "stat_1915989164|Area contains #% increased number of Monster Markers": [
+    "Area contains #% increased number of Monster Markers"
+   ],
+   "stat_2076080860|+# metre to Melee Strike Range per White Socket": [
+    "# metres to Melee Strike Range per White Socket"
+   ],
+   "stat_2076876595|Totems Taunt Enemies around them for # second when Summoned": [
+    "Totems Taunt Enemies around them for # seconds when Summoned"
+   ],
+   "stat_215346464|You cannot be Shocked for # second after being Shocked": [
+    "You cannot be Shocked for # seconds after being Shocked"
+   ],
+   "stat_2181129193|#% additional Physical Damage Reduction while stationary": [
+    "#% additional Physical Damage Reduction while stationary"
+   ],
+   "stat_2224292784|Can have up to # additional Trap placed at a time": [
+    "Can have up to # additional Trap placed at a time",
+    "Can have up to # additional Traps placed at a time"
+   ],
+   "stat_2301218725|#% increased Stack size of Simulacrum Splinters found in your Maps": [
+    "#% increased Stack size of Simulacrum Splinters found in your Maps"
+   ],
+   "stat_2306924373|You cannot be Chilled for # second after being Chilled": [
+    "You cannot be Chilled for # seconds after being Chilled"
+   ],
+   "stat_2388347909|Leftmost # Magic Utility Flask constantly applies its Flask Effect to you": [
+    "Leftmost # Magic Utility Flasks constantly apply their Flask Effects to you"
+   ],
+   "stat_2436491720|Red Beasts in your Maps have #% increased chance to be from The Sands": [
+    "Red Beasts in your Maps have #% increased chance to be from The Sands"
+   ],
+   "stat_2443457281|Socketed Projectile Spells deal #% more Damage with Hits": [
+    "Socketed Projectile Spells deal #% more Damage with Hits"
+   ],
+   "stat_2459602321|#% increased Rarity of Fish Caught per held Dead Fish": [
+    "#% increased Rarity of Fish Caught per held Dead Fish"
+   ],
+   "stat_2459809121|Chill Enemy for # second when Hit, reducing their Action Speed by 30%": [
+    "Chill Enemy for # second when Hit, reducing their Action Speed by 30%",
+    "Chill Enemy for # seconds when Hit, reducing their Action Speed by 30%"
+   ],
+   "stat_2528955616|Gain # Energy Shield per Enemy Killed": [
+    "Gain # Energy Shield per Enemy Killed"
+   ],
+   "stat_2557247391|Recharges # Charge when you Consume an Ignited corpse": [
+    "Recharges # Charges when you Consume an Ignited corpse"
+   ],
+   "stat_2567919918|Utility Flasks gain # Charge every 3 seconds": [
+    "Utility Flasks gain # Charges every 3 seconds"
+   ],
+   "stat_2592686757|Life Flasks gain # Charge every 3 seconds": [
+    "Life Flasks gain # Charges every 3 seconds"
+   ],
+   "stat_2697049014|Gain # Power Charge on use": [
+    "Gain # Power Charges on use"
+   ],
+   "stat_2722831300|Abysses in your Maps have #% increased chance to lead to an Abyssal Depths": [
+    "Abysses in your Maps have #% increased chance to lead to an Abyssal Depths"
+   ],
+   "stat_276813598|All Hits with your next Non-Channelling Attack within # second of taking a Critical Strike will be Critical Strikes": [
+    "All Hits with your next Non-Channelling Attack within # seconds of taking a Critical Strike will be Critical Strikes"
+   ],
+   "stat_28299254|Herald of Thunder's Storms Hit Enemies with #% increased Frequency": [
+    "Herald of Thunder's Storms Hit Enemies with #% increased Frequency"
+   ],
+   "stat_286947568|Players Prevent +#% of Suppressed Spell Damage": [
+    "Players have #% to amount of Suppressed Spell Damage Prevented"
+   ],
+   "stat_2894476716|Gain # Endurance Charge every second if you've been Hit Recently": [
+    "Gain # Endurance Charges every second if you've been Hit Recently"
+   ],
+   "stat_2934907255|#% increased Quantity of Vendor Refresh Currencies dropped by Monsters in your Maps": [
+    "#% increased Quantity of Vendor Refresh Currencies dropped by Monsters in your Maps"
+   ],
+   "stat_3013430129|+# second to Summon Skeleton Cooldown": [
+    "# second to Summon Skeleton Cooldown"
+   ],
+   "stat_3034509000|Wild Rogue Exiles in your Maps have #% chance to be Possessed by a Tormented Spirit": [
+    "Wild Rogue Exiles in your Maps have #% chance to be Possessed by a Tormented Spirit"
+   ],
+   "stat_3087912144|Passive Skills in Radius also grant: #% increased Unarmed Attack Speed with Melee Skills": [
+    "Passive Skills in Radius also grant: #% increased Unarmed Attack Speed with Melee Skills"
+   ],
+   "stat_3090817208|Red Beasts in your Maps have #% increased chance to be from The Wilds": [
+    "Red Beasts in your Maps have #% increased chance to be from The Wilds"
+   ],
+   "stat_3100457893|Gain Immunity to Physical Damage for # second on Rampage": [
+    "Gain Immunity to Physical Damage for # seconds on Rampage"
+   ],
+   "stat_3148570142|Gain # Life per Bleeding Enemy Hit": [
+    "Gain # Life per Bleeding Enemy Hit"
+   ],
+   "stat_3182714256|+# Prefix Modifier allowed": [
+    "# Prefix Modifier allowed",
+    "# Prefix Modifiers allowed"
+   ],
+   "stat_3230795453|Gain # Frenzy Charge on use": [
+    "Gain # Frenzy Charges on use"
+   ],
+   "stat_3255961830|+# metre to Melee Strike Range if you have Killed Recently": [
+    "# metres to Melee Strike Range if you have Killed Recently"
+   ],
+   "stat_3273962791|+# metre to Melee Strike Range with Unarmed Attacks": [
+    "# metres to Melee Strike Range with Unarmed Attacks"
+   ],
+   "stat_3308030688|#% increased Mana Regeneration Rate while stationary": [
+    "#% increased Mana Regeneration Rate while stationary"
+   ],
+   "stat_3454830051|#% increased Main Hand Critical Strike Chance per\nMurderous Eye Jewel affecting you, up to a maximum of 200%": [
+    "#% increased Main Hand Critical Strike Chance per\nMurderous Eye Jewel affecting you, up to a maximum of 200%"
+   ],
+   "stat_3599443205|Flasks gain # Charge per second if you've Hit a Unique Enemy Recently": [
+    "Flasks gain # Charges per second if you've Hit a Unique Enemy Recently"
+   ],
+   "stat_3612464552|You cannot be Frozen for # second after being Frozen": [
+    "You cannot be Frozen for # seconds after being Frozen"
+   ],
+   "stat_3714207489|You gain Onslaught for # second per Endurance Charge when Hit": [
+    "You gain Onslaught for # seconds per Endurance Charge when Hit"
+   ],
+   "stat_3986030307|Gain # Endurance Charge on use": [
+    "Gain # Endurance Charges on use"
+   ],
+   "stat_405988579|Delirium Bosses in your Maps drop #% increased Simulacrum Splinters": [
+    "Delirium Bosses in your Maps drop #% increased Simulacrum Splinters"
+   ],
+   "stat_4116705863|Prevent +#% of Suppressed Spell Damage": [
+    "#% to amount of Suppressed Spell Damage Prevented",
+    "Prevent #% of Suppressed Spell Damage"
+   ],
+   "stat_4145689649|Gain Adrenaline for # second on Kill": [
+    "Gain Adrenaline for # seconds on Kill"
+   ],
+   "stat_4197693974|While on Low Life, Life Flasks gain # Charge every 3 seconds": [
+    "While on Low Life, Life Flasks gain # Charges every 3 seconds"
+   ],
+   "stat_4202723071|Wither on Hit with this weapon against Enemies with at least # Poison on them": [
+    "Wither on Hit with this weapon against Enemies with at least # Poisons on them"
+   ],
+   "stat_4219583418|#% increased quantity of Artifacts dropped by Monsters": [
+    "#% increased quantity of Artifacts dropped by Monsters"
+   ],
+   "stat_4231915769|Gain Adrenaline for # second when Ward Breaks": [
+    "Gain Adrenaline for # seconds when Ward Breaks"
+   ],
+   "stat_59091266|Red Beasts in your Maps have #% increased chance to be from The Deep": [
+    "Red Beasts in your Maps have #% increased chance to be from The Deep"
+   ],
+   "stat_615948723|Delirium Bosses in your Maps have #% increased chance to drop Unique Cluster Jewels": [
+    "Delirium Bosses in your Maps have #% increased chance to drop Unique Cluster Jewels"
+   ],
+   "stat_661376813|Gain Onslaught for # second per Frenzy Charge consumed on use": [
+    "Gain Onslaught for # seconds per Frenzy Charge consumed on use"
+   ],
+   "stat_718638445|+# Suffix Modifier allowed": [
+    "# Suffix Modifier allowed",
+    "# Suffix Modifiers allowed"
+   ],
+   "stat_757315075|Gain Unholy Might for # second on Rampage": [
+    "Gain Unholy Might for # seconds on Rampage"
+   ],
+   "stat_947072590|You cannot be Ignited for # second after being Ignited": [
+    "You cannot be Ignited for # seconds after being Ignited"
+   ]
+  }
+ },
+ "poe2": {
+  "zh": {
+   "stat_1031644647|Revived Monsters from Ritual Altars in Map have #% increased chance to be Magic": [
+    "增加#%祭祀神壇中被復活的怪物為魔法的機率",
+    "地圖內的祭祀神壇所復活的怪物增加#%為魔法怪物的機率"
+   ],
+   "stat_1083387327|#% increased Quantity of Expedition Logbooks dropped by Runic Monsters in Map": [
+    "增加#%符文怪物掉落的探險日誌數量",
+    "增加#%符文怪物掉落探險日誌的數量",
+    "增加#%地圖內的探險事件所生成的符文怪物掉落的探險日誌數量"
+   ],
+   "stat_1090596078|Breaches in Map spawn #% increased Magic Monsters": [
+    "增加#%地圖內裂痕生成的魔法怪物"
+   ],
+   "stat_1136768410|#% increased Cast Speed when on Low Life": [
+    "貧血狀態時增加#%施法速度"
+   ],
+   "stat_1174076861|#% increased Cast Speed if you've dealt a Critical Hit Recently": [
+    "若你近期造成暴擊，增加#%施法速度"
+   ],
+   "stat_1174954559|Delirium Fog in Map lasts # additional seconds before dissipating": [
+    "地圖內含有的譫妄迷霧會在消散前額外持續#秒"
+   ],
+   "stat_120737942|Ritual Altars in Map allow rerolling Favours an additional time": [
+    "地圖內的祭祀神壇可以額外重骰#次"
+   ],
+   "stat_1210760818|Breaches in Map have #% increased Pack Size": [
+    "增加#%裂痕怪物群大小",
+    "增加#%地圖內裂痕的怪物群大小"
+   ],
+   "stat_1263695895|#% increased Light Radius": [
+    "增加#%照亮範圍"
+   ],
+   "stat_1276056105|#% increased Gold found in Map": [
+    "增加#%本區域中金幣的掉落量",
+    "增加#%地圖內所獲取的金幣數量"
+   ],
+   "stat_1350127730|#% increased Reservation Efficiency of Remnant Skills": [
+    "增加#%痕跡技能的保留效用"
+   ],
+   "stat_1352729973|Map has #% increased chance to contain Rogue Exiles": [
+    "增加#%盜賊流亡者機率",
+    "增加#%地圖內含有盜賊流亡者的機率"
+   ],
+   "stat_1388221282|Abyss Cracks have #% chance to spawn all Monsters as at least Magic": [
+    "深淵裂縫有#%機率使所有生成的怪物至少為魔法",
+    "深淵裂縫有#%機率生成的所有怪物稀有度至少為魔法"
+   ],
+   "stat_1468737867|Map contains an additional Shrine": [
+    "地圖內含有額外的#個神殿"
+   ],
+   "stat_1518586897|#% increased Cast Speed for each different Non-Instant Spell you've Cast Recently": [
+    "你近期每施放一個不同的非瞬發法術，增加#%施法速度"
+   ],
+   "stat_1539368271|#% increased Expedition Explosive Placement Range in Map": [
+    "增加#%地圖內的探險事件放置炸藥的距離"
+   ],
+   "stat_159726667|Monsters Sacrificed at Ritual Altars in Map grant #% increased Tribute": [
+    "增加#%在地圖內的祭祀神壇所獻祭的怪物提供的貢禮數量"
+   ],
+   "stat_1640965354|Map contains #% increased number of Runic Monster Markers": [
+    "區域增加#%符文怪物印記的數量",
+    "增加#%地圖內含有的符文怪物印記的數量"
+   ],
+   "stat_1653625239|Breaches in Map spawn an additional Rare Monster": [
+    "地圖內的裂痕會生成額外#個稀有怪物"
+   ],
+   "stat_1697191405|#% increased Reservation Efficiency of Herald Skills": [
+    "捷光環技能增加#%保留效用"
+   ],
+   "stat_1710200734|#% increased chance for Desecrated Currency from Abysses in Map": [
+    "增加#%來自地圖內深淵的褻瀆通貨掉落機率"
+   ],
+   "stat_1714971114|Mark Skills have #% increased Use Speed": [
+    "增加#%印記技能的施法速度"
+   ],
+   "stat_1769611692|Delirium Fog in Map applies #% increased Deliriousness to Players": [
+    "地圖中的譫妄會增加#%玩家的譫妄程度"
+   ],
+   "stat_1805633363|#% increased Reservation Efficiency of Minion Skills": [
+    "召喚物技能增加#%保留效用"
+   ],
+   "stat_1825943485|Map has #% increased chance to contain Essences": [
+    "增加#%精髓機率",
+    "增加#%地圖內含有精髓的機率"
+   ],
+   "stat_1869147066|#% increased Glory generation for Banner Skills": [
+    "鬥旗技能增加#%生成的榮耀"
+   ],
+   "stat_1914226331|#% increased Cast Speed while on Full Mana": [
+    "滿魔力時，增加#%施法速度"
+   ],
+   "stat_2017682521|#% increased Pack Size in Map": [
+    "增加#%怪物群大小",
+    "增加#%地圖內的怪物群大小"
+   ],
+   "stat_2065500219|Monsters have #% increased Effectiveness": [
+    "你地圖內的怪物增加#%效用",
+    "增加#%怪物的效用"
+   ],
+   "stat_2162684861|Map contains an additional Essence": [
+    "區域含有#個額外精髓",
+    "你的地圖含有#個額外精髓",
+    "地圖內含有額外的#個精髓"
+   ],
+   "stat_2189073790|Projectiles have #% chance to Fork if you've dealt a Melee Hit in the past eight seconds": [
+    "如果你在過去8秒內以近戰擊中，則投射物有#%機率分裂"
+   ],
+   "stat_2224050171|Breaches in Map contain # additional Clasped Hand": [
+    "你地圖內的裂痕含有#個額外抑制之手"
+   ],
+   "stat_231864447|Map contains an additional Rare Chest": [
+    "地圖內含有額外的#個稀有箱子"
+   ],
+   "stat_2323782229|Slaying Rare Monsters in Map pauses the Delirium Mirror Timer for 1 second": [
+    "地圖內的譫妄迷霧在擊殺稀有怪物時會暫停#秒"
+   ],
+   "stat_2369495153|#% increased Cost Efficiency of Skills if you've consumed a Power Charge Recently": [
+    "若你近期有消耗一顆暴擊球，技能消耗效用增加#%"
+   ],
+   "stat_2378065031|Curse Skills have #% increased Cast Speed": [
+    "增加#%詛咒技能的施法速度"
+   ],
+   "stat_2390685262|#% increased Quantity of Items found in Map": [
+    "增加#%此區域找到的物品數量"
+   ],
+   "stat_2416650879|#% increased Rage Cost Efficiency": [
+    "增加#%盛怒消耗效用"
+   ],
+   "stat_2433436306|Unstable Breaches in Map have #% increased chance to contain Vruun, Marshal of Xesht": [
+    "增加#%不穩定裂痕包含烈許的統領．弗倫的機率",
+    "增加#%地圖內的不穩定裂痕含有烈許的統領．弗倫的機率"
+   ],
+   "stat_2440265466|Map has #% chance to contain three additional Breaches": [
+    "地圖有#%的機率含有額外三個裂痕"
+   ],
+   "stat_2481353198|#% increased Block chance": [
+    "增加#%格擋率",
+    "增加#%格擋機率"
+   ],
+   "stat_2488361432|#% increased Monster Cast Speed": [
+    "增加#%怪物施法速度"
+   ],
+   "stat_2504358770|Breaches in Map open and close #% faster": [
+    "增加#%地圖內包含的裂痕擴張和關閉的速度"
+   ],
+   "stat_263495202|#% increased Cost Efficiency": [
+    "增加#%消耗效用"
+   ],
+   "stat_2653231923|#% increased Mana Cost Efficiency of Spells": [
+    "增加#%法術的魔力消耗效用"
+   ],
+   "stat_267210597|Map has #% increased chance to contain a Summoning Circle": [
+    "增加#%召喚法陣機率",
+    "增加#%地圖內有含有召喚法陣的機率"
+   ],
+   "stat_2672805335|#% increased Attack and Cast Speed": [
+    "增加#%攻擊和施法速度"
+   ],
+   "stat_2694800111|#% increased number of Rare Expedition Monsters in Map": [
+    "增加#%地圖內的探險事件含有稀有怪物的數量"
+   ],
+   "stat_2720982137|Banner Skills have #% increased Duration": [
+    "鬥旗技能增加#%持續時間"
+   ],
+   "stat_2722831300|Abysses in Map have #% increased chance to lead to an Abyssal Depths": [
+    "增加#%深淵通往無盡深淵的機率",
+    "地圖內的深淵增加有#%機率前往無盡深淵"
+   ],
+   "stat_2777224821|#% increased Quantity of Waystones found in Map": [
+    "增加#%地圖內找到的換界石數量"
+   ],
+   "stat_2778285247|#% increased Quantity of Hiveblood found in Map": [
+    "增加#%找到的巢裔之血數量",
+    "增加#%地圖內找到的巢裔之血數量"
+   ],
+   "stat_2789248444|#% increased chance for Abyssal monsters in Map to have Abyssal Modifiers": [
+    "增加#%深淵怪物擁有深淵詞綴的機率",
+    "地圖內的深淵怪物增加#%擁有深淵詞綴的機率"
+   ],
+   "stat_281990982|You and Allies in your Presence have #% increased Cast Speed": [
+    "你與處於你存在範圍中的友方增加#%施法速度"
+   ],
+   "stat_28208665|Favours Deferred at Ritual Altars in Map reappear #% sooner": [
+    "地圖內的祭祀神壇所延遲的恩惠之物出現速度加快#%"
+   ],
+   "stat_2839545956|Map contains an additional Summoning Circle": [
+    "地圖內含有額外的#個召喚法陣"
+   ],
+   "stat_2852112245|Expeditions contain 1 Vaal Relic in Map": [
+    "地圖中的探險含有#個瓦爾遺物"
+   ],
+   "stat_2890355696|Map has #% chance to contain four additional Abysses": [
+    "深淵有#%機率含有額外4個坑洞",
+    "地圖有#%機率包含4道額外深淵"
+   ],
+   "stat_2891184298|#% increased Cast Speed": [
+    "增加#%施法速度"
+   ],
+   "stat_289128254|Allies in your Presence have #% increased Cast Speed": [
+    "處於你存在範圍中的友方增加#%施法速度"
+   ],
+   "stat_2895378479|#% increased Effectiveness of Rare Breach Monsters in Map": [
+    "增加#%稀有裂痕怪物的效用",
+    "增加#%地圖內稀有裂痕怪物的效用"
+   ],
+   "stat_2898517796|#% increased amount of Magic Chests": [
+    "增加#%魔法寶箱數量"
+   ],
+   "stat_2975078312|Abyssal Monsters grant #% increased Experience": [
+    "增加#%深淵怪物賦予的經驗"
+   ],
+   "stat_3003542304|Projectiles have #% chance for an additional Projectile when Forking": [
+    "投射物分裂時有#%機率發射1個額外投射物"
+   ],
+   "stat_3039133122|#% increased Expedition Explosive Area of Effect in Map": [
+    "增加#%地圖中探險炸藥的範圍效果"
+   ],
+   "stat_3049505189|Map has #% chance to contain an additional Breach": [
+    "地圖有#%的機率含有額外的裂痕"
+   ],
+   "stat_3078574625|#% increased Effect of Expedition Remnants in Map": [
+    "增加#%地圖內的探險事件魔符的效果"
+   ],
+   "stat_3091578504|Minions have #% increased Attack and Cast Speed": [
+    "召喚物增加#%攻擊和施法速度"
+   ],
+   "stat_310945763|#% increased Life Cost Efficiency": [
+    "增加#%生命消耗效用"
+   ],
+   "stat_3119172063|#% increased Quantity of Items dropped by Map Bosses": [
+    "增加#%地圖頭目掉落物品數量",
+    "增加#%地圖頭目的掉落物品數量"
+   ],
+   "stat_3240183538|Map contains # additional Strongboxes": [
+    "區域含有#個額外保險箱",
+    "你的地圖含有額外#個保險箱",
+    "地圖內含有額外的#個保險箱"
+   ],
+   "stat_3289828378|#% increased Expedition Explosive Radius in Map": [
+    "#%增加包含的探險爆炸範圍"
+   ],
+   "stat_3350279336|#% increased Cost Efficiency of Attacks": [
+    "增加#%攻擊消耗效用"
+   ],
+   "stat_3396435291|#% increased Mana Cost Efficiency if you have Dodge Rolled Recently": [
+    "若你近期有閃避翻滾，增加#%魔力消耗效用"
+   ],
+   "stat_3413635271|#% increased Reservation Efficiency of Companion Skills": [
+    "盟友技能增加#%保留效用"
+   ],
+   "stat_34174842|#% increased Cast Speed per 20 Spirit": [
+    "每20精魂增加#%施法速度"
+   ],
+   "stat_3464380325|Projectiles Split towards # targets": [
+    "投射物裂化至#個目標"
+   ],
+   "stat_3465791711|Delirium Monsters in Map have #% increased Pack Size": [
+    "增加#%地圖內的譫妄怪物怪物群大小"
+   ],
+   "stat_3490187949|Map contains # additional Abysses": [
+    "地圖內含有額外#道深淵",
+    "區域中含有額外#道深淵"
+   ],
+   "stat_3523867985|#% increased Armour, Evasion and Energy Shield": [
+    "增加#%護甲、閃避、和能量護盾",
+    "增加#%護甲值、閃避和能量護盾"
+   ],
+   "stat_3550168289|Map is inhabited by # additional Rogue Exile": [
+    "地圖含有額外#個盜賊流亡者",
+    "地圖內含有#名額外盜賊流亡者"
+   ],
+   "stat_3581035970|#% increased Spirit Reservation Efficiency of Buff Skills per 100 Maximum Life": [
+    "每100最大生命增加#%增益技能的精魂保留效用"
+   ],
+   "stat_358129101|Map contains # additional Azmeri Spirit": [
+    "區域含有#個額外阿茲莫里魂靈",
+    "地圖內含有#個額外阿茲莫里魂靈"
+   ],
+   "stat_3732878551|Rare Monsters in Map have a #% Surpassing chance to have an additional Modifier": [
+    "稀有怪物有#%滿溢機率獲得一條額外詞綴"
+   ],
+   "stat_3753446846|Expeditions in Map have # Remnant": [
+    "地圖內的探險事件含有#魔符"
+   ],
+   "stat_3762913035|Unstable Breaches in Map spawn an additional Rare Monster when Stabilised": [
+    "不穩定裂痕在穩定後會生成#名額外稀有怪物",
+    "地圖內的不穩定裂痕會在穩定後生成#名額外稀有怪物]"
+   ],
+   "stat_3771516363|#% additional Physical Damage Reduction": [
+    "額外#%物理傷害減免"
+   ],
+   "stat_3793155082|Map has #% increased number of Rare Monsters": [
+    "增加#%稀有怪物",
+    "增加#%地圖含有的稀有怪物數量"
+   ],
+   "stat_3815617979|Map has #% increased chance to contain Azmeri Spirits": [
+    "增加#%阿茲莫里魂靈機率",
+    "增加#%地圖內有含有阿茲莫里魂靈的機率"
+   ],
+   "stat_3836551197|#% increased Stack size of Simulacrum Splinters found in Map": [
+    "增加#%地圖內掉落的幻像斷片數量",
+    "增加#%區域中所發現幻像斷片的堆疊大小"
+   ],
+   "stat_3871299443|Verisium Remnants have #% chance to add an additional Runic Modifier in Map": [
+    "有#%機率額外添加一個符文詞綴",
+    "地圖中的維里西姆遺物擁有+#%機率添加一條額外符文詞綴"
+   ],
+   "stat_3873704640|Map has #% increased Magic Monsters": [
+    "增加#%魔法怪物",
+    "增加#%地圖含有的魔法怪物"
+   ],
+   "stat_3910614548|#% increased Attack and Cast Speed if you've summoned a Totem Recently": [
+    "若你近期召喚過圖騰，增加#%攻擊和施法速度"
+   ],
+   "stat_3917489142|#% increased Rarity of Items found": [
+    "增加#%找到的物品稀有度",
+    "增加#%地圖內找到的物品稀有度"
+   ],
+   "stat_3962960008|Delirium Encounters in Map are #% more likely to spawn Unique Bosses": [
+    "地圖內的譫妄有#%更多機率生成傳奇頭目",
+    "增加#%譫妄迷霧中生成額外傳奇頭目碎片的機率"
+   ],
+   "stat_3979184174|Revived Monsters from Ritual Altars in Map have #% increased chance to be Rare": [
+    "增加#%祭祀神壇中被復活的怪物為稀有的機率",
+    "地圖內的祭祀神壇所復活的怪物增加#%為稀有怪物的機率"
+   ],
+   "stat_4101445926|#% increased Mana Cost Efficiency": [
+    "增加#%魔力消耗效用"
+   ],
+   "stat_4104094246|Unstable Breaches in Map take an additional second to collapse after timer is filled": [
+    "不穩定裂痕在計時器被填滿後會再過#秒才崩塌",
+    "地圖內的不穩定裂痕會在計時器填滿後再過額外#秒才崩塌"
+   ],
+   "stat_4157613372|Abyss Pits have #% chance to spawn all Monsters as at least Magic": [
+    "深淵坑洞有#%機率使所有生成的怪物至少為魔法",
+    "深淵坑洞有#%機率生成的所有怪物稀有度至少為魔法"
+   ],
+   "stat_4160330571|Area contains # additional Chest Marker": [
+    "區域含有#個額外保險箱標記"
+   ],
+   "stat_4219583418|#% increased quantity of Expedition Artifacts dropped by Monsters in Map": [
+    "增加#%怪物掉落文物的數量",
+    "增加#%地圖內的探險事件怪物所掉落的文物數量"
+   ],
+   "stat_4219853180|Ritual Favours in Map have #% increased chance to be Omens": [
+    "增加#%地圖內的祭祀神壇獎勵為預兆的機率"
+   ],
+   "stat_4255069232|#% increased Rarity of Items dropped by Map Bosses": [
+    "增加#%地圖頭目掉落物品的稀有度",
+    "增加#%你地圖內地圖頭目掉落物品的稀有度"
+   ],
+   "stat_4279535856|Map has #% increased chance to contain Strongboxes": [
+    "增加#%保險箱機率",
+    "增加#%地圖內有含有保險箱的機率"
+   ],
+   "stat_429143663|Banner Skills have #% increased Area of Effect": [
+    "鬥旗技能增加#%範圍效果"
+   ],
+   "stat_472520716|#% of Damage taken Recouped as Mana": [
+    "承受的#%傷害補償為魔力"
+   ],
+   "stat_472809816|#% increased Quantity of Wombgifts found in Map": [
+    "增加#%找到的胎贈數量",
+    "增加#%地圖內找到的胎贈數量"
+   ],
+   "stat_53386210|#% increased Spirit Reservation Efficiency of Skills": [
+    "技能增加#%精魂保留效用"
+   ],
+   "stat_551040294|Delirium Fog in Map spawns #% increased Fracturing Mirrors": [
+    "增加#%地圖內的譫妄生成破碎之鏡"
+   ],
+   "stat_57434274|#% increased Experience gain in Map": [
+    "增加#%經驗獲得",
+    "增加#%地圖內所獲取的經驗量"
+   ],
+   "stat_588512487|Map has # additional random Modifier": [
+    "地圖有#個額外變動詞綴"
+   ],
+   "stat_624534143|#% increased Quantity of Breach Splinters dropped by Breach Monsters in Map": [
+    "增加#%地圖內包含的裂痕怪物所掉落的裂痕裂片數量"
+   ],
+   "stat_632698321|#% increased chance Vaal Beacons summon additional Monsters in Map": [
+    "增加#%地圖內的瓦爾烽塔召喚額外怪物的機率"
+   ],
+   "stat_656291658|#% increased Cast Speed when on Full Life": [
+    "滿血時增加#%施法速度"
+   ],
+   "stat_664606484|Abyssal Monsters have #% increased Effectiveness for each closed Pit, up to 100%": [
+    "每有一個已關閉的坑洞，增加#%深淵怪物效用，最多100%",
+    "每有一個關閉了的坑洞，即增加#%深淵怪物效用，最多1000%"
+   ],
+   "stat_689816330|Map has #% increased chance to contain Shrines": [
+    "增加#%神殿機率",
+    "增加#%地圖內含有神殿的機率"
+   ],
+   "stat_775597083|Map contains an additional Azmeri Spirit": [
+    "地圖內含有額外的#個阿茲莫里魂靈"
+   ],
+   "stat_798469000|#% increased amount of Rare Chests": [
+    "增加#%稀有寶箱數量"
+   ],
+   "stat_828533480|#% Chance to gain a Charge when you kill an enemy": [
+    "殺死敵人時有#%機率獲得一顆充能"
+   ],
+   "stat_944630113|Abysses in Map spawn #% increased Monsters": [
+    "增加#%深淵生成的怪物數量",
+    "增加#%地圖內的深淵生成的怪物數量"
+   ]
+  },
+  "en": {
+   "stat_1031644647|Revived Monsters from Ritual Altars in Map have #% increased chance to be Magic": [
+    "Revived Monsters from Ritual Altars have #% increased chance to be Magic",
+    "Revived Monsters from Ritual Altars in Map have #% increased chance to be Magic"
+   ],
+   "stat_1090596078|Breaches in Map spawn #% increased Magic Monsters": [
+    "Breaches in Map spawn #% increased Magic Monsters"
+   ],
+   "stat_1174954559|Delirium Fog in Map lasts # additional seconds before dissipating": [
+    "Delirium Fog in Map lasts # additional seconds before dissipating"
+   ],
+   "stat_120737942|Ritual Altars in Map allow rerolling Favours an additional time": [
+    "Ritual Altars in Map allow rerolling Favours # additional times"
+   ],
+   "stat_1210760818|Breaches in Map have #% increased Pack Size": [
+    "Breaches have #% increased Pack Size",
+    "Breaches in Map have #% increased Pack Size"
+   ],
+   "stat_1276056105|#% increased Gold found in Map": [
+    "#% increased Gold found in Map",
+    "#% increased Gold found in this Area"
+   ],
+   "stat_1352729973|Map has #% increased chance to contain Rogue Exiles": [
+    "#% increased chance of Rogue Exiles",
+    "Map has #% increased chance to contain Rogue Exiles"
+   ],
+   "stat_1468737867|Map contains an additional Shrine": [
+    "Map contains # additional Shrines"
+   ],
+   "stat_159726667|Monsters Sacrificed at Ritual Altars in Map grant #% increased Tribute": [
+    "Monsters Sacrificed at Ritual Altars in Map grant #% increased Tribute"
+   ],
+   "stat_1653625239|Breaches in Map spawn an additional Rare Monster": [
+    "Breaches in Map spawn # additional Rare Monsters"
+   ],
+   "stat_1710200734|#% increased chance for Desecrated Currency from Abysses in Map": [
+    "#% increased chance for Desecrated Currency from Abysses in Map"
+   ],
+   "stat_1769611692|Delirium Fog in Map applies #% increased Deliriousness to Players": [
+    "Delirium Fog in Map applies #% increased Deliriousness to Players"
+   ],
+   "stat_1825943485|Map has #% increased chance to contain Essences": [
+    "#% increased chance of Essences",
+    "Map has #% increased chance to contain Essences"
+   ],
+   "stat_2017682521|#% increased Pack Size in Map": [
+    "#% increased Pack Size",
+    "#% increased Pack Size in Map"
+   ],
+   "stat_2065500219|Monsters have #% increased Effectiveness": [
+    "#% increased Effectiveness of Monsters in your Maps",
+    "Monsters have #% increased Effectiveness"
+   ],
+   "stat_2162684861|Map contains an additional Essence": [
+    "Map contains # additional Essences",
+    "Area contains # additional Essences",
+    "Your Maps contain # additional Essences"
+   ],
+   "stat_2224050171|Breaches in Map contain # additional Clasped Hand": [
+    "Breaches in your Maps contain # additional Clasped Hands"
+   ],
+   "stat_231864447|Map contains an additional Rare Chest": [
+    "Map contains # additional Rare Chests"
+   ],
+   "stat_2323782229|Slaying Rare Monsters in Map pauses the Delirium Mirror Timer for 1 second": [
+    "Slaying Rare Monsters in Map pauses the Delirium Mirror Timer for # seconds"
+   ],
+   "stat_2433436306|Unstable Breaches in Map have #% increased chance to contain Vruun, Marshal of Xesht": [
+    "Unstable Breaches have #% increased chance to contain Vruun, Marshal of Xesht",
+    "Unstable Breaches in Map have #% increased chance to contain Vruun, Marshal of Xesht"
+   ],
+   "stat_2440265466|Map has #% chance to contain three additional Breaches": [
+    "Map has #% chance to contain three additional Breaches"
+   ],
+   "stat_2504358770|Breaches in Map open and close #% faster": [
+    "Breaches in Map open and close #% faster"
+   ],
+   "stat_2550456553|Rare Monsters have # additional Modifier": [
+    "Rare Monsters have # additional Modifiers"
+   ],
+   "stat_267210597|Map has #% increased chance to contain a Summoning Circle": [
+    "#% increased chance of Summoning Circles",
+    "Map has #% increased chance to contain a Summoning Circle"
+   ],
+   "stat_2722831300|Abysses in Map have #% increased chance to lead to an Abyssal Depths": [
+    "Abysses have #% increased chance to lead to an Abyssal Depths",
+    "Abysses in Map have #% increased chance to lead to an Abyssal Depths"
+   ],
+   "stat_2734787892|Breach Hives in Map have an additional wave of Hiveborn Monsters": [
+    "Breach Hives have # additional waves of Hiveborn Monsters",
+    "Breach Hives in Map have # additional waves of Hiveborn Monsters"
+   ],
+   "stat_2789248444|#% increased chance for Abyssal monsters in Map to have Abyssal Modifiers": [
+    "#% increased chance for Abyssal monsters to have Abyssal Modifiers",
+    "#% increased chance for Abyssal monsters in Map to have Abyssal Modifiers"
+   ],
+   "stat_28208665|Favours Deferred at Ritual Altars in Map reappear #% sooner": [
+    "Favours Deferred at Ritual Altars in Map reappear #% sooner"
+   ],
+   "stat_2839545956|Map contains an additional Summoning Circle": [
+    "Map contains # additional Summoning Circles"
+   ],
+   "stat_2890355696|Map has #% chance to contain four additional Abysses": [
+    "Map has #% chance to contain four additional Abysses",
+    "Abysses have a #% chance to contain 4 additional Pits"
+   ],
+   "stat_2975078312|Abyssal Monsters grant #% increased Experience": [
+    "Abyssal Monsters grant #% increased Experience"
+   ],
+   "stat_3049505189|Map has #% chance to contain an additional Breach": [
+    "Map has #% chance to contain an additional Breach"
+   ],
+   "stat_3078574625|#% increased Effect of Expedition Remnants in Map": [
+    "#% increased Effect of Expedition Remnants in Map"
+   ],
+   "stat_3182714256|# Prefix Modifier allowed": [
+    "# Prefix Modifier allowed",
+    "# Prefix Modifiers allowed"
+   ],
+   "stat_3240183538|Map contains # additional Strongboxes": [
+    "Map contains # additional Strongboxes",
+    "Area contains # additional Strongboxes",
+    "Your Maps contain # additional Strongboxes"
+   ],
+   "stat_3371085671|Unique Monsters have # additional Rare Modifier": [
+    "Unique Monsters have # additional Rare Modifiers"
+   ],
+   "stat_3465791711|Delirium Monsters in Map have #% increased Pack Size": [
+    "Delirium Monsters in Map have #% increased Pack Size"
+   ],
+   "stat_3490187949|Map contains # additional Abysses": [
+    "Map contains # additional Abysses",
+    "Area contains # additional Abysses"
+   ],
+   "stat_3550168289|Map is inhabited by # additional Rogue Exile": [
+    "Map is inhabited by # additional Rogue Exiles",
+    "Area is inhabited by # additional Rogue Exiles"
+   ],
+   "stat_358129101|Map contains # additional Azmeri Spirit": [
+    "Map contains # additional Azmeri Spirits",
+    "Area contains # additional Azmeri Spirits"
+   ],
+   "stat_3732878551|Rare Monsters in Map have a #% Surpassing chance to have an additional Modifier": [
+    "Rare Monsters have a #% Surpassing chance to have an additional Modifier"
+   ],
+   "stat_3753446846|Expeditions in Map have # Remnant": [
+    "Expeditions in Map have # Remnants"
+   ],
+   "stat_3762913035|Unstable Breaches in Map spawn an additional Rare Monster when Stabilised": [
+    "Unstable Breaches spawn # additional Rare Monsters when Stabilised",
+    "Unstable Breaches in Map spawn # additional Rare Monsters when Stabilised"
+   ],
+   "stat_3793155082|Map has #% increased number of Rare Monsters": [
+    "#% increased Rare Monsters",
+    "Map has #% increased number of Rare Monsters"
+   ],
+   "stat_3815617979|Map has #% increased chance to contain Azmeri Spirits": [
+    "#% increased chance of Azmeri Spirits",
+    "Map has #% increased chance to contain Azmeri Spirits"
+   ],
+   "stat_3836551197|#% increased Stack size of Simulacrum Splinters found in Map": [
+    "#% increased Stack size of Simulacrum Splinters found in Map",
+    "#% increased Stack size of Simulacrum Splinters found in Area"
+   ],
+   "stat_3962960008|Delirium Encounters in Map are #% more likely to spawn Unique Bosses": [
+    "Delirium Encounters in Map are #% more likely to spawn Unique Bosses",
+    "#% increased chance to manifest additional Unique Boss Shards within Delirium Fog"
+   ],
+   "stat_3979184174|Revived Monsters from Ritual Altars in Map have #% increased chance to be Rare": [
+    "Revived Monsters from Ritual Altars have #% increased chance to be Rare",
+    "Revived Monsters from Ritual Altars in Map have #% increased chance to be Rare"
+   ],
+   "stat_4104094246|Unstable Breaches in Map take an additional second to collapse after timer is filled": [
+    "Unstable Breaches take # additional seconds to collapse after timer is filled",
+    "Unstable Breaches in Map take # additional seconds to collapse after timer is filled"
+   ],
+   "stat_4160330571|Area contains # additional Chest Marker": [
+    "Area contains # additional Chest Markers"
+   ],
+   "stat_4219583418|#% increased quantity of Expedition Artifacts dropped by Monsters in Map": [
+    "#% increased quantity of Artifacts dropped by Monsters",
+    "#% increased quantity of Expedition Artifacts dropped by Monsters in Map"
+   ],
+   "stat_4219853180|Ritual Favours in Map have #% increased chance to be Omens": [
+    "Ritual Favours in Map have #% increased chance to be Omens"
+   ],
+   "stat_4279535856|Map has #% increased chance to contain Strongboxes": [
+    "#% increased chance of Strongboxes",
+    "Map has #% increased chance to contain Strongboxes"
+   ],
+   "stat_551040294|Delirium Fog in Map spawns #% increased Fracturing Mirrors": [
+    "Delirium Fog in Map spawns #% increased Fracturing Mirrors"
+   ],
+   "stat_588512487|Map has # additional random Modifier": [
+    "Map has # additional random Modifiers"
+   ],
+   "stat_624534143|#% increased Quantity of Breach Splinters dropped by Breach Monsters in Map": [
+    "#% increased Quantity of Breach Splinters dropped by Breach Monsters in Map"
+   ],
+   "stat_689816330|Map has #% increased chance to contain Shrines": [
+    "#% increased chance of Shrines",
+    "Map has #% increased chance to contain Shrines"
+   ],
+   "stat_718638445|# Suffix Modifier allowed": [
+    "# Suffix Modifier allowed",
+    "# Suffix Modifiers allowed"
+   ],
+   "stat_944630113|Abysses in Map spawn #% increased Monsters": [
+    "Abysses spawn #% increased Monsters",
+    "Abysses in Map spawn #% increased Monsters"
+   ]
+  }
+ }
+}

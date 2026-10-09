@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { mergeLabels, parseLabels, parseRegexCatalogue, type RegexCatalogue, type RegexGame, type RegexLabels, type RegexPage } from './data'
-import { algoPages, buildItemModData, parseStatsNdjson, type ItemModData, type StatLite } from './pages'
+import { algoPages, buildItemModData, parseItemModForms, parseStatsNdjson, type ItemModData, type StatLite } from './pages'
 import { parseTemplates, type RegexTemplate } from './share'
 
 /** repo 的 `data/regex/` */
@@ -51,11 +51,14 @@ export function loadAllPagesFor (game: RegexGame, dir = defaultRegexDataDir()): 
 /**
  * 第 37 步:物品詞綴數值頁的資料(`data/<game>/{cmn-Hant,en}/stats.ndjson`)。renderer 自己 fetch 同兩個檔再呼叫同一個
  * `buildItemModData`(store.ts `ensureItemMods`);這裡給 CLI / 測試。
+ * 多種寫法仲裁檔 `data/regex/item-mod-forms.json` 有就帶入(沒有 / 壞掉 = 不仲裁,舊行為)。
  */
 export function loadItemModData (game: RegexGame, dir = defaultRegexDataDir()): ItemModData {
   const base = path.resolve(dir, '..', game)
   const read = (lang: string): StatLite[] => parseStatsNdjson(fs.readFileSync(path.join(base, lang, 'stats.ndjson'), 'utf8'))
-  return buildItemModData(game, read('cmn-Hant'), read('en'))
+  const formsFile = path.join(dir, 'item-mod-forms.json')
+  const forms = fs.existsSync(formsFile) ? parseItemModForms(fs.readFileSync(formsFile, 'utf8'), game) : null
+  return buildItemModData(game, read('cmn-Hant'), read('en'), forms)
 }
 
 export function loadTemplatesFile (dir = defaultRegexDataDir()): RegexTemplate[] {

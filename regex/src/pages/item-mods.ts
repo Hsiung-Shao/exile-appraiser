@@ -271,8 +271,13 @@ export interface ModAnchor {
   caret: boolean
   dollar: boolean
   plus: boolean
-  /** P + S 跳脫後的長度(含錨點) */
+  /** P + S 跳脫後的長度(含錨點;有 `alt` 時含交替群組) */
   cost: number
+  /**
+   * 多種寫法仲裁(item-mod-forms.json)的交替段:`side` 那一段(p 或 s,原字形)第 `at` 起 `len` 個字
+   * (= 第一種寫法的差異段 `opts[0]`)換成 `(opts…)` 交替。沒有 = 單一寫法(舊行為)。
+   */
+  alt?: { side: 'p' | 's', at: number, len: number, opts: string[] }
 }
 
 /** 大區間(例如 S = 「%」)不逐一走,改試更長的 S */
@@ -460,10 +465,91 @@ export function itemModFragment (a: ModAnchor, v: AlgoValue): string | null {
   const bounded = op !== 'ge'
   const left = bounded && !a.p && !a.caret ? '(^|[^0-9])' : ''
   const right = bounded && !a.s && !a.dollar ? '([^0-9]|$)' : ''
-  let p = escapeFragText(a.p)
+  let p = sideText(a, 'p')
   // 片段開頭的 `!` = 遊戲的排除語法,要跳脫
   if (!a.caret && p.startsWith('!')) p = '\\' + p
-  return `${a.caret ? '^' : ''}${p}${left}${a.plus ? '\\+?' : ''}${num}${escapeFragText(a.s)}${right}${a.dollar ? LINE_END : ''}`
+  return `${a.caret ? '^' : ''}${p}${left}${a.plus ? '\\+?' : ''}${num}${sideText(a, 's')}${right}${a.dollar ? LINE_END : ''}`
+}
+
+/** 交替群組:兩種寫法其中一種差異段是空的 → `(X)?`;否則 `(A|B|…)`(遊戲正則避免 `(?:`) */
+function altGroup (opts: readonly string[]): string {
+  const nonEmpty = opts.filter(o => o)
+  if (nonEmpty.length === 1 && opts.length === 2) return `(${escapeFragText(nonEmpty[0])})?`
+  return `(${opts.map(escapeFragText).join('|')})`
+}
+
+/** 錨點的 p / s 跳脫後文字(有交替段就換成群組) */
+function sideText (a: ModAnchor, side: 'p' | 's'): string {
+  const t = side === 'p' ? a.p : a.s
+  const alt = a.alt
+  if (!alt || alt.side !== side) return escapeFragText(t)
+  return escapeFragText(t.slice(0, alt.at)) + altGroup(alt.opts) + escapeFragText(t.slice(alt.at + alt.len))
+}
+
+// ---- 多種寫法仲裁(data/regex/item-mod-forms.json) ----
+
+/** 仲裁表:`<statId>|<ref>` → 該語言查得到的寫法(stats.ndjson 原 matcher 字串、原順序) */
+export interface ItemModForms {
+  zh: Record<string, string[]>
+  en: Record<string, string[]>
+}
+
+/** 解析仲裁檔(schema 1)取一個遊戲;格式不對 = null(呼叫端退回沒有仲裁 = 舊行為) */
+export function parseItemModForms (text: string, game: RegexGame): ItemModForms | null {
+  let j: unknown
+  try { j = JSON.parse(text) } catch { return null }
+  if (!isObj(j) || j.schema !== 1 || !isObj(j[game])) return null
+  const g = j[game] as Json
+  const lang = (v: unknown): Record<string, string[]> => {
+    const out: Record<string, string[]> = {}
+    if (!isObj(v)) return out
+    for (const [k, xs] of Object.entries(v)) {
+      if (Array.isArray(xs) && xs.length && xs.every(x => typeof x === 'string')) out[k] = xs as string[]
+    }
+    return out
+  }
+  return { zh: lang(g.zh), en: lang(g.en) }
+}
+
+/** 多種寫法 → 共同前綴 / 後綴 + 差異段;差異段含 `#` 或任一寫法多行 = null */
+function splitForms (forms: readonly string[]): { cp: number, cs: number, opts: string[] } | null {
+  if (forms.some(f => f.includes('\n'))) return null
+  const minLen = Math.min(...forms.map(f => f.length))
+  let cp = 0
+  while (cp < minLen && forms.every(f => f[cp] === forms[0][cp])) cp++
+  let cs = 0
+  while (cs < minLen - cp && forms.every(f => f[f.length - 1 - cs] === forms[0][forms[0].length - 1 - cs])) cs++
+  const opts = forms.map(f => f.slice(cp, f.length - cs))
+  if (opts.some(o => o.includes('#'))) return null
+  return { cp, cs, opts }
+}
+
+/**
+ * 多種寫法的交替錨點:每種寫法都要以**整行**(行首 + 行尾錨點、不縮短)通過 `chooseAnchor` 唯一性判斷
+ * (交替只會命中這幾種寫法本身,所以逐一驗證 = 整條驗證);組合後片段(P + S 含交替,跳脫後 + 錨點)不得超過 limit。
+ */
+function altAnchor (
+  idx: ModIndex, forms: readonly string[], plusHint: boolean, limit: number, sameLines: readonly string[]
+): ModAnchor | null {
+  const shown = forms.map(f => stripPlus(f).trim())
+  const sp = splitForms(shown)
+  if (!sp) return null
+  for (const f of shown) {
+    const a = chooseAnchor(idx, f, plusHint, Number.MAX_SAFE_INTEGER, sameLines)
+    const at = f.indexOf('#')
+    if (!a || !a.caret || !a.dollar || a.p !== f.slice(0, at) || a.s !== f.slice(at + 1)) return null
+  }
+  const f0 = shown[0]
+  const hash = f0.indexOf('#')
+  const p = f0.slice(0, hash)
+  const s = f0.slice(hash + 1)
+  const len = sp.opts[0].length
+  const alt: ModAnchor['alt'] = hash < sp.cp
+    ? { side: 's', at: sp.cp - hash - 1, len, opts: sp.opts }
+    : { side: 'p', at: sp.cp, len, opts: sp.opts }
+  const a: ModAnchor = { p, s, caret: true, dollar: true, plus: true, cost: 0, alt }
+  a.cost = sideText(a, 'p').length + sideText(a, 's').length + 2
+  return a.cost > limit ? null : a
 }
 
 // ---- 建頁 ----
@@ -497,22 +583,50 @@ function keyOfStat (s: StatLite): string | null {
   return s.statId ? `${s.statId}|${s.ref}` : null
 }
 
-/** 該語言的模板:恰好一條非 negate、非固定值的 matcher,且恰好一個 `#`、單行 */
-function templateOf (s: StatLite): { t: string } | { reason: ItemModExcludeReason } {
+/** 有一種被其他每一種包含的寫法(PoE2「增加#%移動速度」⊂「玩家增加#%移動速度」) */
+function coreForm (forms: readonly string[]): string | undefined {
+  return forms.find(f => forms.every(o => o.includes(f)))
+}
+
+type Template = { t: string, alts?: string[] } | { reason: ItemModExcludeReason }
+
+/**
+ * 該語言的模板:恰好一條非 negate、非固定值的 matcher,且恰好一個 `#`、單行。
+ * 多種寫法:有一種被其他每一種包含就用它(片段多半也中較長的寫法;唯一性判斷時同一 stat 的其他寫法不算誤中);
+ * 否則查仲裁(`arb` = item-mod-forms.json 該鍵的寫法):沒有 → multi_form;一種 → 用它;多種 → 交替
+ * (`alts`;差異段含 `#` / 多行 → multi_form)。
+ */
+function templateOf (s: StatLite, arb?: readonly string[]): Template {
   if (s.dp) return { reason: 'decimal' }
   const single = s.plain.filter(m => (m.match(/#/g) ?? []).length === 1)
   if (!single.length) return { reason: 'multi_value' }
   let t = single[0].trim()
+  let alts: string[] | undefined
   if (single.length > 1) {
-    // 多種寫法:有一種被其他每一種包含(PoE2「增加#%移動速度」⊂「玩家增加#%移動速度」)就用它(片段多半也中較長的寫法;
-    // 唯一性判斷時同一 stat 的其他寫法不算誤中);否則不收
     const forms = single.map(m => m.trim())
-    const core = forms.find(f => forms.every(o => o.includes(f)))
-    if (!core) return { reason: 'multi_form' }
-    t = core
+    const core = coreForm(forms)
+    if (core) t = core
+    else {
+      const picked = (arb ?? []).filter(f => (f.match(/#/g) ?? []).length === 1).map(f => f.trim())
+      if (!picked.length) return { reason: 'multi_form' }
+      if (picked.length === 1) t = picked[0]
+      else {
+        // 仲裁多種一律交替(含彼此包含的情形:差異段之一為空 → `(X)?`)。不取被包含者:仲裁寫法用整行錨點,
+        // 較短的那種整行片段中不了較長的寫法(「#% increased Pack Size」整行不中「… in Map」)。
+        if (!splitForms(picked.map(f => stripPlus(f).trim()))) return { reason: 'multi_form' }
+        t = picked[0]
+        alts = picked
+      }
+    }
   }
   if (t.includes('\n')) return { reason: 'multiline' }
-  return { t }
+  return alts ? { t, alts } : { t }
+}
+
+/** 模板 → 錨點(單一寫法走 chooseAnchor;交替走 altAnchor) */
+function anchorOf (idx: ModIndex, tpl: { t: string, alts?: string[] }, plusHint: boolean, limit: number, same: readonly string[]): ModAnchor | null {
+  if (tpl.alts) return altAnchor(idx, tpl.alts, plusHint || tpl.alts.some(f => /\+#/.test(f)), limit, same)
+  return chooseAnchor(idx, tpl.t, plusHint || /\+#/.test(tpl.t), limit, same)
 }
 
 const EMPTY_COUNTS = (): Record<ItemModExcludeReason, number> => ({
@@ -523,7 +637,9 @@ const EMPTY_COUNTS = (): Record<ItemModExcludeReason, number> => ({
  * 兩語言 stat 表 → 可選詞綴(含兩語錨點)+ 排除統計。純函式;建索引約數百 ms(renderer 第一次開頁才跑)。
  * 兩語言都找得到唯一片段才收(輸出語言切換時同一列兩邊都能用)。
  */
-export function buildItemModData (game: RegexGame, zhStats: readonly StatLite[], enStats: readonly StatLite[]): ItemModData {
+export function buildItemModData (
+  game: RegexGame, zhStats: readonly StatLite[], enStats: readonly StatLite[], forms: ItemModForms | null = null
+): ItemModData {
   const zhIdx = buildModIndex(zhStats, 'zh')
   const enIdx = buildModIndex(enStats, 'en')
   const enByKey = new Map<string, StatLite>()
@@ -549,19 +665,19 @@ export function buildItemModData (game: RegexGame, zhStats: readonly StatLite[],
     itemStats++
     const es = enByKey.get(key)
     if (!es) { exclude('missing_lang', zs.ref); continue }
-    const zt = templateOf(zs)
+    const zt = templateOf(zs, forms?.zh[key])
     if ('reason' in zt) { exclude(zt.reason, zs.ref); continue }
-    const et = templateOf(es)
+    const et = templateOf(es, forms?.en[key])
     if ('reason' in et) { exclude(et.reason, zs.ref); continue }
     // 兩語模板都相同的不同 stat(同字的區域 / 全域詞綴):物品上分不出來,併成一列(留第一個鍵)
     const textKey = `${stripPlus(zt.t)}\u0001${stripPlus(et.t).toLowerCase()}`
     if (seenText.has(textKey)) { merged++; continue }
     const plusHint = /\+#/.test(zs.ref)
-    const za = chooseAnchor(zhIdx, zt.t, plusHint || /\+#/.test(zt.t), MAX_ANCHOR_TEXT.zh, zs.same)
-    const ea = chooseAnchor(enIdx, et.t, plusHint || /\+#/.test(et.t), MAX_ANCHOR_TEXT.en, es.same)
+    const za = anchorOf(zhIdx, zt, plusHint, MAX_ANCHOR_TEXT.zh, zs.same)
+    const ea = anchorOf(enIdx, et, plusHint, MAX_ANCHOR_TEXT.en, es.same)
     if (!za || !ea) {
       // 有解但超過長度上限 vs 根本沒有唯一寫法:放寬上限再試一次來區分
-      exclude(longOnly(zhIdx, zt.t, za, zs.same) || longOnly(enIdx, et.t, ea, es.same) ? 'too_long' : 'no_unique', zs.ref)
+      exclude(longOnly(zhIdx, zt, za, plusHint, zs.same) || longOnly(enIdx, et, ea, plusHint, es.same) ? 'too_long' : 'no_unique', zs.ref)
       continue
     }
     seenText.add(textKey)
@@ -581,9 +697,10 @@ export function buildItemModData (game: RegexGame, zhStats: readonly StatLite[],
 }
 
 /** 沒找到錨點時:是不是只因為超過長度上限(放寬到 400 字就找得到) */
-function longOnly (idx: ModIndex, template: string, found: ModAnchor | null, same: readonly string[]): boolean {
+function longOnly (idx: ModIndex, tpl: { t: string, alts?: string[] }, found: ModAnchor | null, plusHint: boolean, same: readonly string[]): boolean {
   if (found) return false
-  return chooseAnchor(idx, template, false, 400, same) !== null
+  if (tpl.alts) return anchorOf(idx, tpl, plusHint, 400, same) !== null
+  return chooseAnchor(idx, tpl.t, false, 400, same) !== null
 }
 
 const ALL_OPS: RangeOp[] = ['ge', 'le', 'range']

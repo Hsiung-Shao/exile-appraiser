@@ -47,7 +47,9 @@ describe('物品詞綴數值頁接線', () => {
     expect(store).toMatch(/cat\.pages\.push\(\.\.\.algoPages\(game, labels\), itemModPage\(game, null\)\)/)
     expect(store).toContain('./data/${game}/cmn-Hant/stats.ndjson')
     expect(store).toContain('./data/${game}/en/stats.ndjson')
-    expect(store).toMatch(/buildItemModData\(game, parseStatsNdjson\(zh\), parseStatsNdjson\(en\)\)/)
+    expect(store).toMatch(/buildItemModData\(game, parseStatsNdjson\(zh\), parseStatsNdjson\(en\), forms\)/)
+    // 2026-10-10:多種寫法仲裁檔與 stats.ndjson 一起載入
+    expect(store).toContain('./data/regex/item-mod-forms.json')
     // 載入只在 ensureItemMods 裡(不在 fetchCatalogue 就讀)
     const fetchCat = store.slice(store.indexOf('async function fetchCatalogue'), store.indexOf('async function fetchTemplates'))
     expect(fetchCat).not.toContain('stats.ndjson')

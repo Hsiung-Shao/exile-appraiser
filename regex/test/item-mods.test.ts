@@ -98,15 +98,18 @@ describe('排除統計(資料同步後數字變了要看過再改)', () => {
     expect(summary(DATA.poe1)).toEqual({
       itemStats: 7550,
       // 2026-10-08:假掰(The Adorned)補上遊戲內寫法 → 該條有兩種繁中寫法,改列 multi_form(4786 → 4785、86 → 87)
-      entries: 4785,
+      // 2026-10-10:多種寫法改查 poe2db / poedb 仲裁檔 data/regex/item-mod-forms.json(4785 → 4854、multi_form 87 → 12;
+      // 原卡在 multi_form 的條目往下走,改由 multiline +2、too_long +4 排除)
+      entries: 4854,
       merged: 47,
-      excluded: { decimal: 149, multi_value: 2129, multi_form: 87, multiline: 142, missing_lang: 0, no_unique: 2, too_long: 209 }
+      excluded: { decimal: 149, multi_value: 2129, multi_form: 12, multiline: 144, missing_lang: 0, no_unique: 2, too_long: 213 }
     })
     expect(summary(DATA.poe2)).toEqual({
       itemStats: 1847,
-      entries: 1198,
+      // 2026-10-10:同上仲裁(1198 → 1294、multi_form 135 → 33、too_long 6 → 12)
+      entries: 1294,
       merged: 0,
-      excluded: { decimal: 30, multi_value: 441, multi_form: 135, multiline: 35, missing_lang: 2, no_unique: 0, too_long: 6 }
+      excluded: { decimal: 30, multi_value: 441, multi_form: 33, multiline: 35, missing_lang: 2, no_unique: 0, too_long: 12 }
     })
     for (const g of GAMES) {
       const d = DATA[g]

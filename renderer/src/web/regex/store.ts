@@ -33,7 +33,7 @@ import {
   encodeShare, hostIdOf, isAlgoPage, isSectionPage, listedPages, mergeLabels, numericKeyOf, pageKeysOf, parseLabels,
   parseRegexCatalogue, parseRegexState, parseTemplates, picksFor, resolveState, resolvedValues, savedPicksOf, sectionPageOf,
   serializeRegexState, shareStateOf, visibleRows, bookmarkHotkeys, regexStateSchemaOf, ITEM_MOD_PAGE_IDS, buildItemModData,
-  isItemModPageId, itemModPage, parseStatsNdjson,
+  isItemModPageId, itemModPage, parseItemModForms, parseStatsNdjson,
   addFolder, deleteFolder, groupBookmarks, moveBookmark, moveBookmarkBy, moveFolderBy, moveFolderTo, normalizeFolders, renameFolder,
   setFolderCollapsed,
   type FolderResult, type GroupedBookmarks,
@@ -218,11 +218,22 @@ export function ensureItemMods (game: RegexGame): Promise<boolean> {
     st.error = ''
     try {
       const t0 = performance.now()
-      const [zh, en] = await Promise.all([
+      // 多種寫法仲裁檔(item-mod-forms.json)與 stats.ndjson 並行;失敗 = 沒有仲裁(舊行為),不讓整頁載入失敗
+      const [zh, en, forms] = await Promise.all([
         fetchText(`./data/${game}/cmn-Hant/stats.ndjson`),
-        fetchText(`./data/${game}/en/stats.ndjson`)
+        fetchText(`./data/${game}/en/stats.ndjson`),
+        fetchText('./data/regex/item-mod-forms.json')
+          .then(t => {
+            const f = parseItemModForms(t, game)
+            if (!f) console.warn(`[regex] item-mod-forms.json 格式不符,${game} 不使用多種寫法仲裁`)
+            return f
+          })
+          .catch((e: unknown) => {
+            console.warn(`[regex] item-mod-forms.json 載入失敗,${game} 不使用多種寫法仲裁:${e instanceof Error ? e.message : String(e)}`)
+            return null
+          })
       ])
-      const data = buildItemModData(game, parseStatsNdjson(zh), parseStatsNdjson(en))
+      const data = buildItemModData(game, parseStatsNdjson(zh), parseStatsNdjson(en), forms)
       const cat = catalogues[game].cat
       if (!cat) throw new Error('lists not loaded')
       const id = ITEM_MOD_PAGE_IDS[game]

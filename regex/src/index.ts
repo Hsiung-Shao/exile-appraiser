@@ -28,9 +28,9 @@ export {
 export type { AlgoEntry, AlgoInput, AlgoKind, AlgoOption, AlgoPage, AlgoValue, RangeOp } from './pages'
 export {
   ITEM_MOD_CATEGORIES, ITEM_MOD_PAGE_IDS, MAX_ANCHOR_TEXT, buildItemModData, filterItemMods, isItemModPageId, itemModCategory,
-  itemModFragment, itemModGroupCounts, itemModPage, parseStatsNdjson
+  itemModFragment, itemModGroupCounts, itemModPage, parseItemModForms, parseStatsNdjson
 } from './pages'
-export type { ItemModCategory, ItemModData, ItemModEntryData, ItemModExcludeReason, ItemModFilter, ModAnchor } from './pages'
+export type { ItemModCategory, ItemModData, ItemModEntryData, ItemModExcludeReason, ItemModFilter, ItemModForms, ModAnchor } from './pages'
 export { combine, escapeTerm } from './combine'
 export type { CombineInput, CombineResult, CombineSel, Conflict, ConflictKind, PageContribution } from './combine'
 export {

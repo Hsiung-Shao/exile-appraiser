@@ -1,0 +1,5369 @@
+{
+ "schema": 1,
+ "note": "poe2db.tw / poedb.tw 仲裁原始結果:物品詞綴數值頁「多種寫法」詞綴每種寫法是否出現在站上(整頁 Modifiers 所有區塊連結逐頁抓取,ModsView str + 頁內詞綴元素 / 表格 / 清單文字,數值與範圍正規化成 #,繁中去空白、英文不分大小寫,逐字比對)。由 Claude in Chrome 於 2026-10-10 抓取;regex/scripts/gen-item-mod-forms.mjs 由此產生 data/regex/item-mod-forms.json。",
+ "fetchedAt": "2026-10-10",
+ "sources": {
+  "poe2": "https://poe2db.tw/tw/Modifiers(463 頁 × tw/us)",
+  "poe1": "https://poedb.tw/tw/Modifiers(549 頁 × tw/us)"
+ },
+ "rows": [
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% Chance to gain a Charge when you kill an enemy",
+   "forms": [
+    {
+     "text": "殺死敵人時有#%機率獲得一顆充能",
+     "found": true
+    },
+    {
+     "text": "殺死敵人時有#%機率獲得一個充能",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% additional Physical Damage Reduction",
+   "forms": [
+    {
+     "text": "#%額外物理傷害減免",
+     "found": false
+    },
+    {
+     "text": "額外#%物理傷害減免",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Armour, Evasion and Energy Shield",
+   "forms": [
+    {
+     "text": "增加#%護甲、閃避、和能量護盾",
+     "found": true
+    },
+    {
+     "text": "增加#%護甲值、閃避和能量護盾",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Attack and Cast Speed",
+   "forms": [
+    {
+     "text": "增加#%攻擊和施法速度",
+     "found": true
+    },
+    {
+     "text": "增加#%攻擊和施放速度",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Attack and Cast Speed if you've summoned a Totem Recently",
+   "forms": [
+    {
+     "text": "若你近期召喚過圖騰，增加#%攻擊和施法速度",
+     "found": true
+    },
+    {
+     "text": "若你近期召喚過圖騰，增加#%攻擊和施放速度",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Block chance",
+   "forms": [
+    {
+     "text": "增加#%格擋率",
+     "found": true
+    },
+    {
+     "text": "增加#%格擋機率",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Cast Speed",
+   "forms": [
+    {
+     "text": "增加#%施法速度",
+     "found": true
+    },
+    {
+     "text": "增加#%施放速度",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Cast Speed for each different Non-Instant Spell you've Cast Recently",
+   "forms": [
+    {
+     "text": "你近期每施放一個不同的非瞬發法術，增加#%施法速度",
+     "found": true
+    },
+    {
+     "text": "你近期每施放一個不同的非瞬發法術，增加#%施放速度",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Cast Speed if you've dealt a Critical Hit Recently",
+   "forms": [
+    {
+     "text": "若你近期造成暴擊，增加#%施法速度",
+     "found": true
+    },
+    {
+     "text": "若你近期造成暴擊，增加#%施放速度",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Cast Speed per 20 Spirit",
+   "forms": [
+    {
+     "text": "每20精魂增加#%施法速度",
+     "found": true
+    },
+    {
+     "text": "每20精魂增加#%施放速度",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Cast Speed when on Full Life",
+   "forms": [
+    {
+     "text": "滿血時增加#%施法速度",
+     "found": true
+    },
+    {
+     "text": "滿血時增加#%施放速度",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Cast Speed when on Low Life",
+   "forms": [
+    {
+     "text": "貧血狀態時增加#%施法速度",
+     "found": true
+    },
+    {
+     "text": "貧血狀態時增加#%施放速度",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Cast Speed while on Full Mana",
+   "forms": [
+    {
+     "text": "滿魔力時，增加#%施法速度",
+     "found": true
+    },
+    {
+     "text": "滿魔力時，增加#%施放速度",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Cost Efficiency",
+   "forms": [
+    {
+     "text": "增加#%消耗效用",
+     "found": true
+    },
+    {
+     "text": "增加#%消耗效率",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Cost Efficiency of Attacks",
+   "forms": [
+    {
+     "text": "增加#%攻擊消耗效用",
+     "found": true
+    },
+    {
+     "text": "增加#%攻擊消耗效率",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Cost Efficiency of Skills if you've consumed a Power Charge Recently",
+   "forms": [
+    {
+     "text": "若你近期有消耗一顆暴擊球，技能消耗效用增加#%",
+     "found": true
+    },
+    {
+     "text": "若你近期有消耗一顆暴擊球，技能消耗效率增加#%",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Effect of Expedition Remnants in Map",
+   "forms": [
+    {
+     "text": "增加#%區域中的遺物效果",
+     "found": false
+    },
+    {
+     "text": "增加#%你地圖內的遺物效果",
+     "found": false
+    },
+    {
+     "text": "增加#%地圖內的探險事件魔符的效果",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Effectiveness of Rare Breach Monsters in Map",
+   "forms": [
+    {
+     "text": "增加#%稀有裂痕怪物的效用",
+     "found": true
+    },
+    {
+     "text": "增加#%地圖內稀有裂痕怪物的效用",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Expedition Explosive Placement Range in Map",
+   "forms": [
+    {
+     "text": "增加#%探險爆破物的放置範圍",
+     "found": false
+    },
+    {
+     "text": "增加#%地圖內的探險事件放置炸藥的距離",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Expedition Explosive Radius in Map",
+   "forms": [
+    {
+     "text": "增加#%探險爆炸的半徑",
+     "found": false
+    },
+    {
+     "text": "#%增加包含的探險爆炸範圍",
+     "found": true
+    },
+    {
+     "text": "增加#%地圖內的探險事件爆炸的範圍",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Experience gain in Map",
+   "forms": [
+    {
+     "text": "增加#%經驗獲得",
+     "found": true
+    },
+    {
+     "text": "增加#%你地圖內獲得的經驗",
+     "found": false
+    },
+    {
+     "text": "增加#%地圖內所獲取的經驗量",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Glory generation for Banner Skills",
+   "forms": [
+    {
+     "text": "鬥旗技能增加#%生成的榮耀",
+     "found": true
+    },
+    {
+     "text": "旗幟技能增加#%生成的榮耀",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Gold found in Map",
+   "forms": [
+    {
+     "text": "增加#%你地圖內金幣的掉落量",
+     "found": false
+    },
+    {
+     "text": "增加#%本區域中金幣的掉落量",
+     "found": true
+    },
+    {
+     "text": "增加#%地圖內所獲取的金幣數量",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Life Cost Efficiency",
+   "forms": [
+    {
+     "text": "增加#%生命消耗效用",
+     "found": true
+    },
+    {
+     "text": "增加#%生命消耗效率",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Light Radius",
+   "forms": [
+    {
+     "text": "增加#%照亮範圍",
+     "found": true
+    },
+    {
+     "text": "增加#%光線範圍",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Mana Cost Efficiency",
+   "forms": [
+    {
+     "text": "增加#%魔力消耗效用",
+     "found": true
+    },
+    {
+     "text": "增加#%魔力消耗效率",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Mana Cost Efficiency if you have Dodge Rolled Recently",
+   "forms": [
+    {
+     "text": "若你近期有閃避翻滾，增加#%魔力消耗效用",
+     "found": true
+    },
+    {
+     "text": "若你近期有閃避翻滾，增加#%魔力消耗效率",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Mana Cost Efficiency of Spells",
+   "forms": [
+    {
+     "text": "增加#%法術的魔力消耗效用",
+     "found": true
+    },
+    {
+     "text": "增加#%法術的魔力消耗效率",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Monster Cast Speed",
+   "forms": [
+    {
+     "text": "增加#%怪物施法速度",
+     "found": true
+    },
+    {
+     "text": "增加#%怪物施放速度",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Pack Size in Map",
+   "forms": [
+    {
+     "text": "增加#%怪物群大小",
+     "found": true
+    },
+    {
+     "text": "增加#%地圖內的怪物群大小",
+     "found": true
+    },
+    {
+     "text": "減少#%地圖內的怪物群大小",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Quantity of Breach Splinters dropped by Breach Monsters in Map",
+   "forms": [
+    {
+     "text": "增加#%區域中裂痕怪物掉落的裂痕斷片數量",
+     "found": false
+    },
+    {
+     "text": "增加#%你地圖內裂痕怪物掉落裂痕裂片的數量",
+     "found": false
+    },
+    {
+     "text": "增加#%地圖內包含的裂痕怪物所掉落的裂痕裂片數量",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Quantity of Expedition Logbooks dropped by Runic Monsters in Map",
+   "forms": [
+    {
+     "text": "增加#%符文怪物掉落的探險日誌數量",
+     "found": true
+    },
+    {
+     "text": "增加#%符文怪物掉落探險日誌的數量",
+     "found": true
+    },
+    {
+     "text": "增加#%地圖內的探險事件所生成的符文怪物掉落的探險日誌數量",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Quantity of Hiveblood found in Map",
+   "forms": [
+    {
+     "text": "增加#%找到的巢裔之血數量",
+     "found": true
+    },
+    {
+     "text": "增加#%地圖內找到的巢裔之血數量",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Quantity of Items dropped by Map Bosses",
+   "forms": [
+    {
+     "text": "增加#%地圖頭目掉落物品數量",
+     "found": true
+    },
+    {
+     "text": "增加#%地圖頭目的掉落物品數量",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Quantity of Items found in Map",
+   "forms": [
+    {
+     "text": "增加#%找到的物品數量",
+     "found": false
+    },
+    {
+     "text": "增加#%此區域找到的物品數量",
+     "found": true
+    },
+    {
+     "text": "增加#%地圖內找到的物品數量",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Quantity of Waystones found in Map",
+   "forms": [
+    {
+     "text": "增加#%找到的換界石數量",
+     "found": false
+    },
+    {
+     "text": "增加#%地圖內找到的換界石數量",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Quantity of Wombgifts found in Map",
+   "forms": [
+    {
+     "text": "增加#%找到的胎贈數量",
+     "found": true
+    },
+    {
+     "text": "增加#%地圖內找到的胎贈數量",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Rage Cost Efficiency",
+   "forms": [
+    {
+     "text": "增加#%盛怒消耗效用",
+     "found": true
+    },
+    {
+     "text": "增加#%盛怒消耗效率",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Rarity of Items dropped by Map Bosses",
+   "forms": [
+    {
+     "text": "增加#%地圖頭目掉落物品的稀有度",
+     "found": true
+    },
+    {
+     "text": "增加#%你地圖內地圖頭目掉落物品的稀有度",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Rarity of Items found",
+   "forms": [
+    {
+     "text": "增加#%找到的物品稀有度",
+     "found": true
+    },
+    {
+     "text": "增加#%地圖內找到的物品稀有度",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Reservation Efficiency of Companion Skills",
+   "forms": [
+    {
+     "text": "盟友技能增加#%保留效用",
+     "found": true
+    },
+    {
+     "text": "盟友技能增加#%保留效率",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Reservation Efficiency of Herald Skills",
+   "forms": [
+    {
+     "text": "捷光環技能增加#%保留效用",
+     "found": true
+    },
+    {
+     "text": "捷光環技能增加#%保留效率",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Reservation Efficiency of Minion Skills",
+   "forms": [
+    {
+     "text": "召喚物技能增加#%保留效用",
+     "found": true
+    },
+    {
+     "text": "召喚物技能增加#%保留效率",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Reservation Efficiency of Remnant Skills",
+   "forms": [
+    {
+     "text": "增加#%痕跡技能的保留效用",
+     "found": true
+    },
+    {
+     "text": "增加#%痕跡技能的保留效率",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Spirit Reservation Efficiency of Buff Skills per 100 Maximum Life",
+   "forms": [
+    {
+     "text": "每100最大生命增加#%增益技能的精魂保留效用",
+     "found": true
+    },
+    {
+     "text": "每100最大生命增加#%增益技能的精魂保留效率",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Spirit Reservation Efficiency of Skills",
+   "forms": [
+    {
+     "text": "增加#%精魂保留效用",
+     "found": false
+    },
+    {
+     "text": "增加#%精魂保留效率",
+     "found": false
+    },
+    {
+     "text": "技能增加#%精魂保留效用",
+     "found": true
+    },
+    {
+     "text": "技能增加#%精魂保留效率",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Stack size of Simulacrum Splinters found in Map",
+   "forms": [
+    {
+     "text": "增加#%地圖內掉落的幻像斷片數量",
+     "found": true
+    },
+    {
+     "text": "增加#%你地圖內掉落幻像斷片的堆疊數量",
+     "found": false
+    },
+    {
+     "text": "增加#%區域中所發現幻像斷片的堆疊大小",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased amount of Magic Chests",
+   "forms": [
+    {
+     "text": "增加#%魔法寶箱數量",
+     "found": true
+    },
+    {
+     "text": "增加#%魔法箱子的數量",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased amount of Rare Chests",
+   "forms": [
+    {
+     "text": "增加#%稀有寶箱數量",
+     "found": true
+    },
+    {
+     "text": "增加#%稀有箱子數量",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased chance Vaal Beacons summon additional Monsters in Map",
+   "forms": [
+    {
+     "text": "增加#%瓦爾烽塔召喚額外怪物的機率",
+     "found": false
+    },
+    {
+     "text": "增加#%地圖內的瓦爾烽塔召喚額外怪物的機率",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased chance for Abyssal monsters in Map to have Abyssal Modifiers",
+   "forms": [
+    {
+     "text": "增加#%深淵怪物擁有深淵詞綴的機率",
+     "found": true
+    },
+    {
+     "text": "地圖內的深淵怪物增加#%擁有深淵詞綴的機率",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased chance for Desecrated Currency from Abysses in Map",
+   "forms": [
+    {
+     "text": "增加#%找到褻瀆通貨的機率",
+     "found": false
+    },
+    {
+     "text": "增加#%來自地圖內深淵的褻瀆通貨掉落機率",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased number of Monster Packs",
+   "forms": [
+    {
+     "text": "增加#%怪物群數量",
+     "found": false
+    },
+    {
+     "text": "增加#%你地圖內的怪物群數量",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased number of Rare Expedition Monsters in Map",
+   "forms": [
+    {
+     "text": "增加#%稀有探險怪物的數量",
+     "found": false
+    },
+    {
+     "text": "增加#%區域中稀有探險怪物",
+     "found": false
+    },
+    {
+     "text": "增加#%地圖內的探險事件含有稀有怪物的數量",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased quantity of Expedition Artifacts dropped by Monsters in Map",
+   "forms": [
+    {
+     "text": "增加#%怪物掉落文物的數量",
+     "found": true
+    },
+    {
+     "text": "增加#%你地圖內的怪物所掉落的文物數量",
+     "found": false
+    },
+    {
+     "text": "增加#%地圖內的探險事件怪物所掉落的文物數量",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% of Damage taken Recouped as Mana",
+   "forms": [
+    {
+     "text": "承受的#%傷害補償為魔力",
+     "found": true
+    },
+    {
+     "text": "#%的承受傷害補償為魔力",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Abyss Cracks have #% chance to spawn all Monsters as at least Magic",
+   "forms": [
+    {
+     "text": "深淵裂縫有#%機率使所有生成的怪物至少為魔法",
+     "found": true
+    },
+    {
+     "text": "深淵裂縫有#%機率生成的所有怪物稀有度至少為魔法",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Abyss Pits have #% chance to spawn all Monsters as at least Magic",
+   "forms": [
+    {
+     "text": "深淵坑洞有#%機率使所有生成的怪物至少為魔法",
+     "found": true
+    },
+    {
+     "text": "深淵坑洞有#%機率生成的所有怪物稀有度至少為魔法",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Abyss Pits in Map are twice as likely to have Rewards",
+   "forms": [
+    {
+     "text": "地圖內的深淵坑洞有#%更少機率不含有獎勵",
+     "found": false
+    },
+    {
+     "text": "區域中的深淵坑洞有#%更少機率不含有獎勵",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Abyssal Monsters grant #% increased Experience",
+   "forms": [
+    {
+     "text": "增加#%深淵怪物賦予的經驗",
+     "found": true
+    },
+    {
+     "text": "你地圖內的深淵怪物增加#%經驗",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Abyssal Monsters have #% increased Effectiveness for each closed Pit, up to 100%",
+   "forms": [
+    {
+     "text": "每有一個已關閉的坑洞，增加#%深淵怪物效用，最多100%",
+     "found": true
+    },
+    {
+     "text": "每有一個關閉了的坑洞，即增加#%深淵怪物效用，最多1000%",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Abysses in Map have #% increased chance to lead to an Abyssal Depths",
+   "forms": [
+    {
+     "text": "增加#%深淵通往無盡深淵的機率",
+     "found": true
+    },
+    {
+     "text": "地圖內的深淵增加有#%機率前往無盡深淵",
+     "found": true
+    },
+    {
+     "text": "區域中的深淵增加有#%機率前往無盡深淵",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Abysses in Map spawn #% increased Monsters",
+   "forms": [
+    {
+     "text": "增加#%深淵生成的怪物數量",
+     "found": true
+    },
+    {
+     "text": "增加#%地圖內的深淵生成的怪物數量",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Allies in your Presence have #% increased Cast Speed",
+   "forms": [
+    {
+     "text": "處於你存在範圍中的友方增加#%施法速度",
+     "found": true
+    },
+    {
+     "text": "處於你存在範圍中的友方增加#%施放速度",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Area contains # additional Chest Marker",
+   "forms": [
+    {
+     "text": "區域含有#個額外保險箱標記",
+     "found": true
+    },
+    {
+     "text": "你地圖內的探險事件含有額外#個寶箱標記",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Area has #% chance to contain a Shrine",
+   "forms": [
+    {
+     "text": "區域有#%機率含有1個神殿",
+     "found": false
+    },
+    {
+     "text": "你的地圖#%機率含有1個神殿",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Area has #% chance to contain a Strongbox",
+   "forms": [
+    {
+     "text": "區域有#%機率含有1個保險箱",
+     "found": false
+    },
+    {
+     "text": "你的地圖#%機率含有1個保險箱",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Area has #% chance to contain an Essence",
+   "forms": [
+    {
+     "text": "區域有#%機率含有1個精髓",
+     "found": false
+    },
+    {
+     "text": "你的地圖#%機率含有1個精髓",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Banner Skills have #% increased Area of Effect",
+   "forms": [
+    {
+     "text": "鬥旗技能增加#%範圍效果",
+     "found": true
+    },
+    {
+     "text": "旗幟技能增加#%範圍效果",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Banner Skills have #% increased Duration",
+   "forms": [
+    {
+     "text": "鬥旗技能增加#%持續時間",
+     "found": true
+    },
+    {
+     "text": "旗幟技能增加#%持續時間",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Breaches expand to at least # metre in radius\nBreaches remain open while there are alive Breach Monsters",
+   "forms": [
+    {
+     "text": "裂痕擴展半徑至少為#公尺\n只要仍有存活的裂痕怪物，裂痕就會保持開啟的狀態",
+     "found": false
+    },
+    {
+     "text": "你地圖內的裂痕擴展半徑至少為#公尺\n只要地圖內仍有存活的裂痕怪物，裂痕就會保持開啟的狀態",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Breaches in Map contain # additional Clasped Hand",
+   "forms": [
+    {
+     "text": "區域中的裂痕含有#個額外抑制之手",
+     "found": false
+    },
+    {
+     "text": "你地圖內的裂痕含有#個額外抑制之手",
+     "found": true
+    },
+    {
+     "text": "地圖內的裂痕含有#個額外的抑制之手",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Breaches in Map have #% increased Pack Size",
+   "forms": [
+    {
+     "text": "裂痕增加#%怪物密度",
+     "found": false
+    },
+    {
+     "text": "增加#%裂痕怪物群大小",
+     "found": true
+    },
+    {
+     "text": "增加#%地圖內裂痕的怪物群大小",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Breaches in Map open and close #% faster",
+   "forms": [
+    {
+     "text": "裂痕開啟和關閉比平常快#%",
+     "found": false
+    },
+    {
+     "text": "你地圖內的裂痕開啟和關閉比平常加快#%",
+     "found": false
+    },
+    {
+     "text": "增加#%地圖內包含的裂痕擴張和關閉的速度",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Breaches in Map spawn #% increased Magic Monsters",
+   "forms": [
+    {
+     "text": "增加#%地圖內裂痕生成的魔法怪物",
+     "found": true
+    },
+    {
+     "text": "增加#%區域中裂痕生成的魔法怪物",
+     "found": false
+    },
+    {
+     "text": "你地圖內的裂痕增加產生#%魔法怪物",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Breaches in Map spawn an additional Rare Monster",
+   "forms": [
+    {
+     "text": "區域中裂痕生成#個額外的稀有怪物",
+     "found": false
+    },
+    {
+     "text": "你地圖內的裂痕產生#個額外稀有怪物",
+     "found": false
+    },
+    {
+     "text": "地圖內的裂痕會生成額外#個稀有怪物",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Curse Skills have #% increased Cast Speed",
+   "forms": [
+    {
+     "text": "增加#%詛咒技能的施法速度",
+     "found": true
+    },
+    {
+     "text": "增加#%詛咒技能的施放速度",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Deferring Favours at Ritual Altars in Map costs #% increased Tribute",
+   "forms": [
+    {
+     "text": "增加#%在祭祀神壇推遲恩惠所需的貢禮",
+     "found": false
+    },
+    {
+     "text": "增加#%地圖內的祭祀神壇所需的貢禮數量",
+     "found": false
+    },
+    {
+     "text": "增加#%區域中祭祀神壇推遲恩惠的貢禮消耗",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Delirious Monsters Killed in Map provide #% increased Reward Progress",
+   "forms": [
+    {
+     "text": "你地圖內擊殺的譫妄怪物。增加#%獎勵進度",
+     "found": false
+    },
+    {
+     "text": "增加#%地圖內的譫妄怪物擊殺時的獎勵進度量",
+     "found": false
+    },
+    {
+     "text": "增加#%區域中擊殺的譫妄怪物提供的獎勵進度",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Delirium Encounters in Map are #% more likely to spawn Unique Bosses",
+   "forms": [
+    {
+     "text": "地圖內的譫妄有#%更多機率生成傳奇頭目",
+     "found": true
+    },
+    {
+     "text": "區域中譫妄遭遇有#%更高可能性生成傳奇頭目",
+     "found": false
+    },
+    {
+     "text": "增加#%譫妄迷霧中生成額外傳奇頭目碎片的機率",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Delirium Encounters in affected Map have #% chance to generate an additional Reward",
+   "forms": [
+    {
+     "text": "區域中譫妄事件有#%機率產生1個額外獎勵",
+     "found": false
+    },
+    {
+     "text": "你地圖內的譫妄事件有#%機率產生1個額外獎勵",
+     "found": false
+    },
+    {
+     "text": "受影響的地圖內包含的譫妄有#%機率生成額外獎勵",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Delirium Fog in Map applies #% increased Deliriousness to Players",
+   "forms": [
+    {
+     "text": "區域內的譫妄會增加#%玩家的譫妄程度",
+     "found": false
+    },
+    {
+     "text": "你地圖中的譫妄會增加#%玩家的譫妄程度",
+     "found": false
+    },
+    {
+     "text": "地圖中的譫妄會增加#%玩家的譫妄程度",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Delirium Fog in Map dissipates #% faster",
+   "forms": [
+    {
+     "text": "增加#%譫妄迷霧消散速度",
+     "found": false
+    },
+    {
+     "text": "區域中譫妄之霧消散加快#%",
+     "found": false
+    },
+    {
+     "text": "增加#%地圖內的譫妄迷霧消散速度",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Delirium Fog in Map lasts # additional seconds before dissipating",
+   "forms": [
+    {
+     "text": "區域中譫妄之霧消散前額外持續#秒",
+     "found": false
+    },
+    {
+     "text": "你地圖內的譫妄迷霧在消散前持續額外#秒",
+     "found": false
+    },
+    {
+     "text": "地圖內的譫妄迷霧在消散前會額外持續#秒",
+     "found": false
+    },
+    {
+     "text": "地圖內含有的譫妄迷霧會在消散前額外持續#秒",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Delirium Fog in Map spawns #% increased Fracturing Mirrors",
+   "forms": [
+    {
+     "text": "增加#%地圖內的譫妄生成破碎之鏡",
+     "found": true
+    },
+    {
+     "text": "增加#%區域中譫妄之霧產生的破裂之鏡",
+     "found": false
+    },
+    {
+     "text": "增加#%在譫妄迷霧中顯現的破裂之鏡數量",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Delirium Monsters in Map have #% increased Pack Size",
+   "forms": [
+    {
+     "text": "增加#%地圖內的譫妄怪物怪物群大小",
+     "found": true
+    },
+    {
+     "text": "增加#%區域中譫妄怪物的怪物群大小",
+     "found": false
+    },
+    {
+     "text": "你地圖內的譫妄怪物增加#%怪物群大小",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Expeditions in Map have # Remnant",
+   "forms": [
+    {
+     "text": "區域中的探險#個遺物",
+     "found": false
+    },
+    {
+     "text": "地圖內的探險事件含有#魔符",
+     "found": true
+    },
+    {
+     "text": "在你的地圖內，探險具有#個遺物",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Favours Deferred at Ritual Altars in Map reappear #% sooner",
+   "forms": [
+    {
+     "text": "區域中祭祀神壇推遲的恩惠再次出現的速度加快#%",
+     "found": false
+    },
+    {
+     "text": "於祭祀神壇推遲的恩惠之物會加快#%再次出現的時間",
+     "found": false
+    },
+    {
+     "text": "地圖內的祭祀神壇所延遲的恩惠之物出現速度加快#%",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Map contains # additional Abysses",
+   "forms": [
+    {
+     "text": "地圖內含有額外#道深淵",
+     "found": true
+    },
+    {
+     "text": "區域中含有額外#道深淵",
+     "found": true
+    },
+    {
+     "text": "你的地圖含有#個額外深淵",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Map contains # additional Azmeri Spirit",
+   "forms": [
+    {
+     "text": "區域含有#個額外阿茲莫里魂靈",
+     "found": true
+    },
+    {
+     "text": "地圖內含有#個額外阿茲莫里魂靈",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Map contains # additional Strongboxes",
+   "forms": [
+    {
+     "text": "區域含有#個額外保險箱",
+     "found": true
+    },
+    {
+     "text": "你的地圖含有額外#個保險箱",
+     "found": true
+    },
+    {
+     "text": "地圖內含有額外的#個保險箱",
+     "found": true
+    },
+    {
+     "text": "具有地圖頭目的地區內含#個額外的保險箱",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Map contains #% increased number of Runic Monster Markers",
+   "forms": [
+    {
+     "text": "增加#%符文怪物標記的數量",
+     "found": false
+    },
+    {
+     "text": "區域增加#%符文怪物印記的數量",
+     "found": true
+    },
+    {
+     "text": "增加#%地圖內含有的符文怪物印記的數量",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Map contains an additional Azmeri Spirit",
+   "forms": [
+    {
+     "text": "地圖內含有額外的#個阿茲莫里魂靈",
+     "found": true
+    },
+    {
+     "text": "具有地圖頭目的地區內含#個額外的阿茲莫里魂靈",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Map contains an additional Essence",
+   "forms": [
+    {
+     "text": "區域含有#個額外精髓",
+     "found": true
+    },
+    {
+     "text": "你的地圖含有#個額外精髓",
+     "found": true
+    },
+    {
+     "text": "地圖內含有額外的#個精髓",
+     "found": true
+    },
+    {
+     "text": "具有地圖頭目的地區內含#個額外的精髓",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Map contains an additional Rare Chest",
+   "forms": [
+    {
+     "text": "區域含有#個額外稀有箱子",
+     "found": false
+    },
+    {
+     "text": "你的地圖含有#個額外稀有箱子",
+     "found": false
+    },
+    {
+     "text": "地圖內含有額外的#個稀有箱子",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Map contains an additional Shrine",
+   "forms": [
+    {
+     "text": "區域含有#個額外神殿",
+     "found": false
+    },
+    {
+     "text": "你的地圖含有#個額外神殿",
+     "found": false
+    },
+    {
+     "text": "地圖內含有額外的#個神殿",
+     "found": true
+    },
+    {
+     "text": "具有地圖頭目的地區內含#座額外的神殿",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Map contains an additional Summoning Circle",
+   "forms": [
+    {
+     "text": "地圖內含有額外的#個召喚法陣",
+     "found": true
+    },
+    {
+     "text": "區域含有一個召喚法陣\n區域含有#個重啟符文",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Map has # additional random Modifier",
+   "forms": [
+    {
+     "text": "地圖有#個額外詞綴",
+     "found": false
+    },
+    {
+     "text": "地圖有#個額外變動詞綴",
+     "found": true
+    },
+    {
+     "text": "你的地圖有#個額外變動詞綴",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Map has #% chance to contain an additional Breach",
+   "forms": [
+    {
+     "text": "地圖有#%的機率含有額外的裂痕",
+     "found": true
+    },
+    {
+     "text": "你含有裂痕的地圖有#%機率含有1個額外裂痕",
+     "found": false
+    },
+    {
+     "text": "含有裂痕的區域有#%機率含有1個額外的裂痕",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Map has #% chance to contain four additional Abysses",
+   "forms": [
+    {
+     "text": "深淵有#%機率含有額外4個坑洞",
+     "found": true
+    },
+    {
+     "text": "地圖有#%機率包含4道額外深淵",
+     "found": true
+    },
+    {
+     "text": "區域有#%機率包含4道額外深淵",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Map has #% chance to contain three additional Breaches",
+   "forms": [
+    {
+     "text": "地圖有#%的機率含有額外三個裂痕",
+     "found": true
+    },
+    {
+     "text": "你含有裂痕的地圖有#%機率含有3個額外裂痕",
+     "found": false
+    },
+    {
+     "text": "含有裂痕的區域有#%機率含有3個額外的裂痕",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Map has #% increased Magic Monsters",
+   "forms": [
+    {
+     "text": "增加#%魔法怪物",
+     "found": true
+    },
+    {
+     "text": "增加#%地圖含有的魔法怪物",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Map has #% increased chance to contain Azmeri Spirits",
+   "forms": [
+    {
+     "text": "增加#%阿茲莫里魂靈機率",
+     "found": true
+    },
+    {
+     "text": "增加#%區域中含有阿茲莫里魂靈的機率",
+     "found": false
+    },
+    {
+     "text": "增加#%地圖內有含有阿茲莫里魂靈的機率",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Map has #% increased chance to contain Essences",
+   "forms": [
+    {
+     "text": "增加#%精髓機率",
+     "found": true
+    },
+    {
+     "text": "增加#%地圖內含有精髓的機率",
+     "found": true
+    },
+    {
+     "text": "增加#%區域中含有精髓的機率",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Map has #% increased chance to contain Rogue Exiles",
+   "forms": [
+    {
+     "text": "增加#%盜賊流亡者機率",
+     "found": true
+    },
+    {
+     "text": "增加#%地圖內含有盜賊流亡者的機率",
+     "found": true
+    },
+    {
+     "text": "增加#%區域中含有盜賊流亡者的機率",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Map has #% increased chance to contain Shrines",
+   "forms": [
+    {
+     "text": "增加#%神殿機率",
+     "found": true
+    },
+    {
+     "text": "增加#%地圖內含有神殿的機率",
+     "found": true
+    },
+    {
+     "text": "增加#%區域中含有神殿的機率",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Map has #% increased chance to contain Strongboxes",
+   "forms": [
+    {
+     "text": "增加#%保險箱機率",
+     "found": true
+    },
+    {
+     "text": "增加#%區域中含有保險箱的機率",
+     "found": false
+    },
+    {
+     "text": "增加#%地圖內有含有保險箱的機率",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Map has #% increased chance to contain a Summoning Circle",
+   "forms": [
+    {
+     "text": "增加#%召喚法陣機率",
+     "found": true
+    },
+    {
+     "text": "增加#%地圖內有含有召喚法陣的機率",
+     "found": true
+    },
+    {
+     "text": "區域中有#%增加含有額外的召喚法陣的機率",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Map has #% increased number of Rare Monsters",
+   "forms": [
+    {
+     "text": "增加#%稀有怪物",
+     "found": true
+    },
+    {
+     "text": "增加#%地圖含有的稀有怪物數量",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Map is inhabited by # additional Rogue Exile",
+   "forms": [
+    {
+     "text": "地圖含有額外#個盜賊流亡者",
+     "found": true
+    },
+    {
+     "text": "地圖內含有#名額外盜賊流亡者",
+     "found": true
+    },
+    {
+     "text": "你的地圖含有額外#個盜賊流亡者",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Mark Skills have #% increased Use Speed",
+   "forms": [
+    {
+     "text": "增加#%印記技能的施法速度",
+     "found": true
+    },
+    {
+     "text": "增加#%印記技能的施放速度",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Minions have #% increased Attack and Cast Speed",
+   "forms": [
+    {
+     "text": "召喚物增加#%攻擊和施法速度",
+     "found": true
+    },
+    {
+     "text": "召喚物增加#%攻擊和施放速度",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Monsters Sacrificed at Ritual Altars in Map grant #% increased Tribute",
+   "forms": [
+    {
+     "text": "區域中被獻祭至祭祀神壇的怪物，增加#%貢禮",
+     "found": false
+    },
+    {
+     "text": "增加#%於祭祀神壇獻祭的怪物所提供的貢禮數量",
+     "found": false
+    },
+    {
+     "text": "增加#%在地圖內的祭祀神壇所獻祭的怪物提供的貢禮數量",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Monsters have #% increased Effectiveness",
+   "forms": [
+    {
+     "text": "你地圖內的怪物增加#%效用",
+     "found": true
+    },
+    {
+     "text": "增加#%怪物的效用",
+     "found": true
+    },
+    {
+     "text": "你地圖內的怪物減少#%效用",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Projectiles Split towards # targets",
+   "forms": [
+    {
+     "text": "投射物裂化至#個目標",
+     "found": true
+    },
+    {
+     "text": "投射物分裂至#個目標",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Projectiles have #% chance for an additional Projectile when Forking",
+   "forms": [
+    {
+     "text": "投射物分裂時有#%機率發射1個額外投射物",
+     "found": true
+    },
+    {
+     "text": "投射物分岔時有#%機率發射1個額外投射物",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Projectiles have #% chance to Fork if you've dealt a Melee Hit in the past eight seconds",
+   "forms": [
+    {
+     "text": "如果你在過去8秒內以近戰擊中，則投射物有#%機率分裂",
+     "found": true
+    },
+    {
+     "text": "如果你在過去8秒內以近戰擊中，則投射物有#%機率分岔",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Rare Monsters in Map have a #% Surpassing chance to have an additional Modifier",
+   "forms": [
+    {
+     "text": "稀有怪物有#%滿溢機率獲得一條額外詞綴",
+     "found": true
+    },
+    {
+     "text": "地圖內的稀有怪物有#%滿溢機率獲得一條額外詞綴",
+     "found": false
+    },
+    {
+     "text": "你地圖內的稀有怪物有#%滿溢機率擁有一條額外詞綴",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Rerolling Favours at Ritual Altars in Map costs #% increased Tribute",
+   "forms": [
+    {
+     "text": "增加#%於祭祀神壇重骰恩惠之物消耗的恩惠",
+     "found": false
+    },
+    {
+     "text": "增加#%地圖內的祭祀神壇重骰所需的貢禮數量",
+     "found": false
+    },
+    {
+     "text": "增加#%在區域中祭祀神壇重骰恩惠的貢禮消耗",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Revived Monsters from Ritual Altars in Map have #% increased chance to be Magic",
+   "forms": [
+    {
+     "text": "增加#%祭祀神壇中被復活的怪物為魔法的機率",
+     "found": true
+    },
+    {
+     "text": "增加#%區域中祭祀神壇將怪物復甦為魔法怪物的機率",
+     "found": false
+    },
+    {
+     "text": "地圖內的祭祀神壇所復活的怪物增加#%為魔法怪物的機率",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Revived Monsters from Ritual Altars in Map have #% increased chance to be Rare",
+   "forms": [
+    {
+     "text": "增加#%祭祀神壇中被復活的怪物為稀有的機率",
+     "found": true
+    },
+    {
+     "text": "增加#%區域中祭祀神壇將怪物復甦為稀有怪物的機率",
+     "found": false
+    },
+    {
+     "text": "地圖內的祭祀神壇所復活的怪物增加#%為稀有怪物的機率",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Ritual Altars in Map allow rerolling Favours an additional time",
+   "forms": [
+    {
+     "text": "祭祀神壇允許額外重骰恩惠之物#次",
+     "found": false
+    },
+    {
+     "text": "地圖內的祭祀神壇可以額外重骰#次",
+     "found": true
+    },
+    {
+     "text": "區域中的祭祀神壇可以重骰恩賜之物額外#次",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Ritual Favours in Map have #% increased chance to be Omens",
+   "forms": [
+    {
+     "text": "增加#%區域中祭祀恩惠含有徵兆的機率",
+     "found": false
+    },
+    {
+     "text": "增加#%你地圖內的祭祀恩惠含有徵兆的機率",
+     "found": false
+    },
+    {
+     "text": "增加#%地圖內的祭祀神壇獎勵為預兆的機率",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Slaying Rare Monsters in Map pauses the Delirium Mirror Timer for 1 second",
+   "forms": [
+    {
+     "text": "地圖內的譫妄迷霧在擊殺稀有怪物時會暫停#秒",
+     "found": true
+    },
+    {
+     "text": "擊殺區域中稀有怪物會使譫妄之鏡的計時器暫停#秒",
+     "found": false
+    },
+    {
+     "text": "擊殺你地圖內的稀有怪物會使譫妄之鏡的計時器暫停#秒",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Unstable Breaches in Map have #% increased chance to contain Vruun, Marshal of Xesht",
+   "forms": [
+    {
+     "text": "增加#%不穩定裂痕包含烈許的統領．弗倫的機率",
+     "found": true
+    },
+    {
+     "text": "增加#%地圖內的不穩定裂痕含有烈許的統領．弗倫的機率",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Unstable Breaches in Map spawn an additional Rare Monster when Stabilised",
+   "forms": [
+    {
+     "text": "不穩定裂痕在穩定後會生成#名額外稀有怪物",
+     "found": true
+    },
+    {
+     "text": "地圖內的不穩定裂痕會在穩定後生成#名額外稀有怪物",
+     "found": false
+    },
+    {
+     "text": "地圖內的不穩定裂痕會在穩定後生成#名額外稀有怪物]",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Unstable Breaches in Map take an additional second to collapse after timer is filled",
+   "forms": [
+    {
+     "text": "不穩定裂痕在計時器被填滿後會再過#秒才崩塌",
+     "found": true
+    },
+    {
+     "text": "地圖內的不穩定裂痕會在計時器填滿後再過額外#秒才崩塌",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "You and Allies in your Presence have #% increased Cast Speed",
+   "forms": [
+    {
+     "text": "你與處於你存在範圍中的友方增加#%施法速度",
+     "found": true
+    },
+    {
+     "text": "你與處於你存在範圍中的友方增加#%施放速度",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Verisium Remnants have #% chance to add an additional Runic Modifier in Map",
+   "forms": [
+    {
+     "text": "有#%機率額外添加一個符文詞綴",
+     "found": true
+    },
+    {
+     "text": "地圖中的維里西姆遺物擁有+#%機率添加一條額外符文詞綴",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "#% increased Expedition Explosive Area of Effect in Map",
+   "forms": [
+    {
+     "text": "增加#%地圖中探險炸藥的範圍效果",
+     "found": true
+    },
+    {
+     "text": "#% increased Expedition Explosive Area of Effect in Map",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "zh",
+   "ref": "Expeditions contain 1 Vaal Relic in Map",
+   "forms": [
+    {
+     "text": "地圖中的探險含有#個瓦爾遺物",
+     "found": true
+    },
+    {
+     "text": "Expeditions contain # Vaal Relics in Map",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "# Prefix Modifier allowed",
+   "forms": [
+    {
+     "text": "# Prefix Modifier allowed",
+     "found": true
+    },
+    {
+     "text": "# Prefix Modifiers allowed",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "# Suffix Modifier allowed",
+   "forms": [
+    {
+     "text": "# Suffix Modifier allowed",
+     "found": true
+    },
+    {
+     "text": "# Suffix Modifiers allowed",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "#% increased Effect of Expedition Remnants in Map",
+   "forms": [
+    {
+     "text": "#% increased Effect of Remnants in Area",
+     "found": false
+    },
+    {
+     "text": "#% increased Effect of Remnants in your Maps",
+     "found": false
+    },
+    {
+     "text": "#% increased Effect of Expedition Remnants in Map",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "#% increased Gold found in Map",
+   "forms": [
+    {
+     "text": "#% increased Gold found in Map",
+     "found": true
+    },
+    {
+     "text": "#% increased Gold found in your Maps",
+     "found": false
+    },
+    {
+     "text": "#% increased Gold found in this Area",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "#% increased Pack Size in Map",
+   "forms": [
+    {
+     "text": "#% increased Pack Size",
+     "found": true
+    },
+    {
+     "text": "#% reduced Pack Size in Map",
+     "found": false
+    },
+    {
+     "text": "#% increased Pack Size in Map",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "#% increased Quantity of Breach Splinters dropped by Breach Monsters in Map",
+   "forms": [
+    {
+     "text": "#% increased Quantity of Breach Splinters dropped by Breach Monsters in Map",
+     "found": true
+    },
+    {
+     "text": "#% increased Quantity of Breach Splinters dropped by Breach Monsters in Area",
+     "found": false
+    },
+    {
+     "text": "#% increased Quantity of Breach Splinters dropped by Breach Monsters in your Maps",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "#% increased Stack size of Simulacrum Splinters found in Map",
+   "forms": [
+    {
+     "text": "#% increased Stack size of Simulacrum Splinters found in Map",
+     "found": true
+    },
+    {
+     "text": "#% increased Stack size of Simulacrum Splinters found in Area",
+     "found": true
+    },
+    {
+     "text": "#% increased Stack size of Simulacrum Splinters found in your Maps",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "#% increased chance for Abyssal monsters in Map to have Abyssal Modifiers",
+   "forms": [
+    {
+     "text": "#% increased chance for Abyssal monsters to have Abyssal Modifiers",
+     "found": true
+    },
+    {
+     "text": "#% increased chance for Abyssal monsters in Map to have Abyssal Modifiers",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "#% increased chance for Desecrated Currency from Abysses in Map",
+   "forms": [
+    {
+     "text": "#% increased chance to find Desecrated Currency",
+     "found": false
+    },
+    {
+     "text": "#% increased chance for Desecrated Currency from Abysses in Map",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "#% increased quantity of Expedition Artifacts dropped by Monsters in Map",
+   "forms": [
+    {
+     "text": "#% increased quantity of Artifacts dropped by Monsters",
+     "found": true
+    },
+    {
+     "text": "#% increased quantity of Artifacts dropped by Monsters in your Maps",
+     "found": false
+    },
+    {
+     "text": "#% increased quantity of Expedition Artifacts dropped by Monsters in Map",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Abyss Pits in Map are twice as likely to have Rewards",
+   "forms": [
+    {
+     "text": "Abyss Pits in Map are #% less likely to have no Rewards",
+     "found": false
+    },
+    {
+     "text": "Abyss Pits in Area are #% less likely to have no Rewards",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Abyssal Monsters grant #% increased Experience",
+   "forms": [
+    {
+     "text": "Abyssal Monsters grant #% increased Experience",
+     "found": true
+    },
+    {
+     "text": "Abyss Monsters in your Maps grant #% increased Experience",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Abysses in Map have #% increased chance to lead to an Abyssal Depths",
+   "forms": [
+    {
+     "text": "Abysses have #% increased chance to lead to an Abyssal Depths",
+     "found": true
+    },
+    {
+     "text": "Abysses in Map have #% increased chance to lead to an Abyssal Depths",
+     "found": true
+    },
+    {
+     "text": "Abysses in Area have #% increased chance to lead to an Abyssal Depths",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Abysses in Map spawn #% increased Monsters",
+   "forms": [
+    {
+     "text": "Abysses spawn #% increased Monsters",
+     "found": true
+    },
+    {
+     "text": "Abysses in Map spawn #% increased Monsters",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Area contains # additional Chest Marker",
+   "forms": [
+    {
+     "text": "Area contains # additional Chest Markers",
+     "found": true
+    },
+    {
+     "text": "Expedition encounters in your Maps contain # additional Chest Markers",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Area has #% chance to contain a Shrine",
+   "forms": [
+    {
+     "text": "Area has #% chance to contain a Shrine",
+     "found": false
+    },
+    {
+     "text": "Your Maps have #% chance to contain a Shrine",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Area has #% chance to contain a Strongbox",
+   "forms": [
+    {
+     "text": "Area has #% chance to contain a Strongbox",
+     "found": false
+    },
+    {
+     "text": "Your Maps have #% chance to contain a Strongbox",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Area has #% chance to contain an Essence",
+   "forms": [
+    {
+     "text": "Area has #% chance to contain an Essence",
+     "found": false
+    },
+    {
+     "text": "Your Maps have #% chance to contain an Essence",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Breach Hives in Map have an additional wave of Hiveborn Monsters",
+   "forms": [
+    {
+     "text": "Breach Hives have # additional waves of Hiveborn Monsters",
+     "found": true
+    },
+    {
+     "text": "Breach Hives in Map have # additional waves of Hiveborn Monsters",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Breaches expand to at least # metre in radius\nBreaches remain open while there are alive Breach Monsters",
+   "forms": [
+    {
+     "text": "Breaches expand to at least # metres in radius\nBreaches remain open while there are alive Breach Monsters",
+     "found": false
+    },
+    {
+     "text": "Breaches in your Maps expand to at least # metres in radius\nBreaches in your Maps remain open while there are alive Breach Monsters",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Breaches in Map contain # additional Clasped Hand",
+   "forms": [
+    {
+     "text": "Breaches in Map contain # additional Clasped Hands",
+     "found": false
+    },
+    {
+     "text": "Breaches in Area contain # additional Clasped Hands",
+     "found": false
+    },
+    {
+     "text": "Breaches in your Maps contain # additional Clasped Hands",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Breaches in Map have #% increased Pack Size",
+   "forms": [
+    {
+     "text": "Breaches have #% increased Pack Size",
+     "found": true
+    },
+    {
+     "text": "Breaches have #% increased Monster density",
+     "found": false
+    },
+    {
+     "text": "Breaches in Map have #% increased Pack Size",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Breaches in Map open and close #% faster",
+   "forms": [
+    {
+     "text": "Breaches open and close #% faster",
+     "found": false
+    },
+    {
+     "text": "Breaches in Map open and close #% faster",
+     "found": true
+    },
+    {
+     "text": "Breaches in your Maps open and close #% faster",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Breaches in Map spawn #% increased Magic Monsters",
+   "forms": [
+    {
+     "text": "Breaches in Map spawn #% increased Magic Monsters",
+     "found": true
+    },
+    {
+     "text": "Breaches in Area spawn #% increased Magic Monsters",
+     "found": false
+    },
+    {
+     "text": "Breaches in your Maps spawn #% increased Magic Monsters",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Breaches in Map spawn an additional Rare Monster",
+   "forms": [
+    {
+     "text": "Breaches in Map spawn # additional Rare Monsters",
+     "found": true
+    },
+    {
+     "text": "Breaches in Area spawn # additional Rare Monsters",
+     "found": false
+    },
+    {
+     "text": "Breaches in your Maps spawn # additional Rare Monsters",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Deferring Favours at Ritual Altars in Map costs #% increased Tribute",
+   "forms": [
+    {
+     "text": "Deferring Favours at Ritual Altars costs #% increased Tribute",
+     "found": false
+    },
+    {
+     "text": "Deferring Favours at Ritual Altars in Map costs #% increased Tribute",
+     "found": false
+    },
+    {
+     "text": "Deferring Favours at Ritual Altars in Area costs #% increased Tribute",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Delirious Monsters Killed in Map provide #% increased Reward Progress",
+   "forms": [
+    {
+     "text": "Delirious Monsters Killed in Map provide #% increased Reward Progress",
+     "found": false
+    },
+    {
+     "text": "Delirious Monsters Killed in Area provide #% increased Reward Progress",
+     "found": false
+    },
+    {
+     "text": "Delirious Monsters killed in your Maps provide #% increased Reward Progress",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Delirium Encounters in Map are #% more likely to spawn Unique Bosses",
+   "forms": [
+    {
+     "text": "Delirium Encounters in Map are #% more likely to spawn Unique Bosses",
+     "found": true
+    },
+    {
+     "text": "Delirium Encounters in Area are #% more likely to spawn Unique Bosses",
+     "found": false
+    },
+    {
+     "text": "#% increased chance to manifest additional Unique Boss Shards within Delirium Fog",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Delirium Encounters in affected Map have #% chance to generate an additional Reward",
+   "forms": [
+    {
+     "text": "Delirium Encounters in Area have #% chance to generate an additional Reward",
+     "found": false
+    },
+    {
+     "text": "Delirium Encounters in your Maps have #% chance to generate an additional Reward",
+     "found": false
+    },
+    {
+     "text": "Delirium Encounters in affected Map have #% chance to generate an additional Reward",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Delirium Fog in Map applies #% increased Deliriousness to Players",
+   "forms": [
+    {
+     "text": "Delirium Fog in Map applies #% increased Deliriousness to Players",
+     "found": true
+    },
+    {
+     "text": "Delirium Fog in Area applies #% increased Deliriousness to Players",
+     "found": false
+    },
+    {
+     "text": "Delirium Fog in your Maps applies #% increased Deliriousness to Players",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Delirium Fog in Map dissipates #% faster",
+   "forms": [
+    {
+     "text": "Delirium Fog dissipates #% faster",
+     "found": false
+    },
+    {
+     "text": "Delirium Fog in Map dissipates #% faster",
+     "found": false
+    },
+    {
+     "text": "Delirium Fog in Area dissipates #% faster",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Delirium Fog in Map lasts # additional seconds before dissipating",
+   "forms": [
+    {
+     "text": "Delirium Fog in Map lasts # additional seconds before dissipating",
+     "found": true
+    },
+    {
+     "text": "Delirium Fog in Area lasts # additional seconds before dissipating",
+     "found": false
+    },
+    {
+     "text": "Delirium Fog in your Maps lasts # additional seconds before dissipating",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Delirium Fog in Map spawns #% increased Fracturing Mirrors",
+   "forms": [
+    {
+     "text": "Delirium Fog in Map spawns #% increased Fracturing Mirrors",
+     "found": true
+    },
+    {
+     "text": "Delirium Fog in Area spawns #% increased Fracturing Mirrors",
+     "found": false
+    },
+    {
+     "text": "#% increased Fracturing Mirrors manifested within Delirium Fog",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Delirium Monsters in Map have #% increased Pack Size",
+   "forms": [
+    {
+     "text": "Delirium Monsters in Map have #% increased Pack Size",
+     "found": true
+    },
+    {
+     "text": "Delirium Monsters in Area have #% increased Pack Size",
+     "found": false
+    },
+    {
+     "text": "Delirium Monsters in your Maps have #% increased Pack Size",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Expeditions in Map have # Remnant",
+   "forms": [
+    {
+     "text": "Expeditions in Map have # Remnants",
+     "found": true
+    },
+    {
+     "text": "Expeditions in Area have # Remnants",
+     "found": false
+    },
+    {
+     "text": "Expeditions in your Maps have # Remnants",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Favours Deferred at Ritual Altars in Map reappear #% sooner",
+   "forms": [
+    {
+     "text": "Favours Deferred at Ritual Altars reappear #% sooner",
+     "found": false
+    },
+    {
+     "text": "Favours Deferred at Ritual Altars in Map reappear #% sooner",
+     "found": true
+    },
+    {
+     "text": "Favours Deferred at Ritual Altars in Area reappear #% sooner",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Map contains # additional Abysses",
+   "forms": [
+    {
+     "text": "Map contains # additional Abysses",
+     "found": true
+    },
+    {
+     "text": "Area contains # additional Abysses",
+     "found": true
+    },
+    {
+     "text": "Your Maps contain # additional Abyss",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Map contains # additional Azmeri Spirit",
+   "forms": [
+    {
+     "text": "Map contains # additional Azmeri Spirits",
+     "found": true
+    },
+    {
+     "text": "Area contains # additional Azmeri Spirits",
+     "found": true
+    },
+    {
+     "text": "Areas with Powerful Map Bosses contain # additional Azmeri Spirits",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Map contains # additional Strongboxes",
+   "forms": [
+    {
+     "text": "Map contains # additional Strongboxes",
+     "found": true
+    },
+    {
+     "text": "Area contains # additional Strongboxes",
+     "found": true
+    },
+    {
+     "text": "Your Maps contain # additional Strongboxes",
+     "found": true
+    },
+    {
+     "text": "Areas with Powerful Map Bosses contain # additional Strongboxes",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Map contains an additional Essence",
+   "forms": [
+    {
+     "text": "Map contains # additional Essences",
+     "found": true
+    },
+    {
+     "text": "Area contains # additional Essences",
+     "found": true
+    },
+    {
+     "text": "Your Maps contain # additional Essences",
+     "found": true
+    },
+    {
+     "text": "Areas with Powerful Map Bosses contain # additional Essences",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Map contains an additional Rare Chest",
+   "forms": [
+    {
+     "text": "Map contains # additional Rare Chests",
+     "found": true
+    },
+    {
+     "text": "Area contains # additional Rare Chests",
+     "found": false
+    },
+    {
+     "text": "Your Maps contain # additional Rare Chests",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Map contains an additional Shrine",
+   "forms": [
+    {
+     "text": "Map contains # additional Shrines",
+     "found": true
+    },
+    {
+     "text": "Area contains # additional Shrines",
+     "found": false
+    },
+    {
+     "text": "Your Maps contain # additional Shrines",
+     "found": false
+    },
+    {
+     "text": "Areas with Powerful Map Bosses contain # additional Shrines",
+     "found": false
+    },
+    {
+     "text": "Areas with Map Powerful Map Bosses contain # additional Shrines",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Map contains an additional Summoning Circle",
+   "forms": [
+    {
+     "text": "Map contains # additional Summoning Circles",
+     "found": true
+    },
+    {
+     "text": "Area contains a Summoning Circle\nArea contains # Reactivation Runes",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Map has # additional random Modifier",
+   "forms": [
+    {
+     "text": "Map has # additional random Modifiers",
+     "found": true
+    },
+    {
+     "text": "Your Maps have # additional random Modifier",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Map has #% chance to contain an additional Breach",
+   "forms": [
+    {
+     "text": "Map has #% chance to contain an additional Breach",
+     "found": true
+    },
+    {
+     "text": "Areas which contain Breaches have #% chance to contain an additional Breach",
+     "found": false
+    },
+    {
+     "text": "Your Maps which contain Breaches have #% chance to contain an additional Breach",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Map has #% chance to contain four additional Abysses",
+   "forms": [
+    {
+     "text": "Map has #% chance to contain four additional Abysses",
+     "found": true
+    },
+    {
+     "text": "Abysses have a #% chance to contain 4 additional Pits",
+     "found": true
+    },
+    {
+     "text": "Area has #% chance to contain four additional Abysses",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Map has #% chance to contain three additional Breaches",
+   "forms": [
+    {
+     "text": "Map has #% chance to contain three additional Breaches",
+     "found": true
+    },
+    {
+     "text": "Areas which contain Breaches have #% chance to contain three additional Breaches",
+     "found": false
+    },
+    {
+     "text": "Your Maps which contain Breaches have #% chance to contain three additional Breaches",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Map has #% increased chance to contain Azmeri Spirits",
+   "forms": [
+    {
+     "text": "#% increased chance of Azmeri Spirits",
+     "found": true
+    },
+    {
+     "text": "Map has #% increased chance to contain Azmeri Spirits",
+     "found": true
+    },
+    {
+     "text": "Area has #% increased chance to contain Azmeri Spirits",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Map has #% increased chance to contain Essences",
+   "forms": [
+    {
+     "text": "#% increased chance of Essences",
+     "found": true
+    },
+    {
+     "text": "Map has #% increased chance to contain Essences",
+     "found": true
+    },
+    {
+     "text": "Area has #% increased chance to contain Essences",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Map has #% increased chance to contain Rogue Exiles",
+   "forms": [
+    {
+     "text": "#% increased chance of Rogue Exiles",
+     "found": true
+    },
+    {
+     "text": "Map has #% increased chance to contain Rogue Exiles",
+     "found": true
+    },
+    {
+     "text": "Area has #% increased chance to contain Rogue Exiles",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Map has #% increased chance to contain Shrines",
+   "forms": [
+    {
+     "text": "#% increased chance of Shrines",
+     "found": true
+    },
+    {
+     "text": "Map has #% increased chance to contain Shrines",
+     "found": true
+    },
+    {
+     "text": "Area has #% increased chance to contain Shrines",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Map has #% increased chance to contain Strongboxes",
+   "forms": [
+    {
+     "text": "#% increased chance of Strongboxes",
+     "found": true
+    },
+    {
+     "text": "Map has #% increased chance to contain Strongboxes",
+     "found": true
+    },
+    {
+     "text": "Area has #% increased chance to contain Strongboxes",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Map has #% increased chance to contain a Summoning Circle",
+   "forms": [
+    {
+     "text": "#% increased chance of Summoning Circles",
+     "found": true
+    },
+    {
+     "text": "Map has #% increased chance to contain a Summoning Circle",
+     "found": true
+    },
+    {
+     "text": "Area has #% increased chance to contain a Summoning Circle",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Map has #% increased number of Rare Monsters",
+   "forms": [
+    {
+     "text": "#% increased Rare Monsters",
+     "found": true
+    },
+    {
+     "text": "Map has #% increased number of Rare Monsters",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Map is inhabited by # additional Rogue Exile",
+   "forms": [
+    {
+     "text": "Map is inhabited by # additional Rogue Exiles",
+     "found": true
+    },
+    {
+     "text": "Area is inhabited by # additional Rogue Exiles",
+     "found": true
+    },
+    {
+     "text": "Your Maps are inhabited by # additional Rogue Exiles",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Monsters Sacrificed at Ritual Altars in Map grant #% increased Tribute",
+   "forms": [
+    {
+     "text": "Monsters Sacrificed at Ritual Altars grant #% increased Tribute",
+     "found": false
+    },
+    {
+     "text": "Monsters Sacrificed at Ritual Altars in Map grant #% increased Tribute",
+     "found": true
+    },
+    {
+     "text": "Monsters Sacrificed at Ritual Altars in Area grant #% increased Tribute",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Monsters have #% increased Effectiveness",
+   "forms": [
+    {
+     "text": "#% increased Effectiveness of Monsters in your Maps",
+     "found": true
+    },
+    {
+     "text": "Monsters have #% increased Effectiveness",
+     "found": true
+    },
+    {
+     "text": "#% reduced Effectiveness of Monsters in your Maps",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Rare Monsters have # additional Modifier",
+   "forms": [
+    {
+     "text": "Rare Monsters have # additional Modifiers",
+     "found": true
+    },
+    {
+     "text": "Rare Monsters in your Maps have # additional Modifiers",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Rare Monsters in Map have a #% Surpassing chance to have an additional Modifier",
+   "forms": [
+    {
+     "text": "Rare Monsters have a #% Surpassing chance to have an additional Modifier",
+     "found": true
+    },
+    {
+     "text": "Rare Monsters in Map have a #% Surpassing chance to have an additional Modifier",
+     "found": false
+    },
+    {
+     "text": "Rare Monsters in your Maps have a #% Surpassing chance to have an additional Modifier",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Remnants have #% chance to have an additional Suffix Modifier",
+   "forms": [
+    {
+     "text": "Remnants have #% chance to have an additional Suffix Modifier",
+     "found": false
+    },
+    {
+     "text": "Remnants in your Maps have #% chance to have an additional Suffix Modifier",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Rerolling Favours at Ritual Altars in Map costs #% increased Tribute",
+   "forms": [
+    {
+     "text": "Rerolling Favours at Ritual Altars costs #% increased Tribute",
+     "found": false
+    },
+    {
+     "text": "Rerolling Favours at Ritual Altars in Map costs #% increased Tribute",
+     "found": false
+    },
+    {
+     "text": "Rerolling Favours at Ritual Altars in Area costs #% increased Tribute",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Revived Monsters from Ritual Altars in Map have #% increased chance to be Magic",
+   "forms": [
+    {
+     "text": "Revived Monsters from Ritual Altars have #% increased chance to be Magic",
+     "found": true
+    },
+    {
+     "text": "Revived Monsters from Ritual Altars in Map have #% increased chance to be Magic",
+     "found": true
+    },
+    {
+     "text": "Revived Monsters from Ritual Altars in Area have #% increased chance to be Magic",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Revived Monsters from Ritual Altars in Map have #% increased chance to be Rare",
+   "forms": [
+    {
+     "text": "Revived Monsters from Ritual Altars have #% increased chance to be Rare",
+     "found": true
+    },
+    {
+     "text": "Revived Monsters from Ritual Altars in Map have #% increased chance to be Rare",
+     "found": true
+    },
+    {
+     "text": "Revived Monsters from Ritual Altars in Area have #% increased chance to be Rare",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Ritual Altars in Map allow rerolling Favours an additional time",
+   "forms": [
+    {
+     "text": "Ritual Altars allow rerolling Favours # additional times",
+     "found": false
+    },
+    {
+     "text": "Ritual Altars in Map allow rerolling Favours # additional times",
+     "found": true
+    },
+    {
+     "text": "Ritual Altars in Area allow rerolling Favours # additional times",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Ritual Favours in Map have #% increased chance to be Omens",
+   "forms": [
+    {
+     "text": "Ritual Favours in Map have #% increased chance to be Omens",
+     "found": true
+    },
+    {
+     "text": "Ritual Favours in Area have #% increased chance to be Omens",
+     "found": false
+    },
+    {
+     "text": "Ritual Favours in your Maps have #% increased chance to be Omens",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Slaying Rare Monsters in Map pauses the Delirium Mirror Timer for 1 second",
+   "forms": [
+    {
+     "text": "Slaying Rare Monsters in Map pauses the Delirium Mirror Timer for # seconds",
+     "found": true
+    },
+    {
+     "text": "Slaying Rare Monsters in Area pauses the Delirium Mirror Timer for # seconds",
+     "found": false
+    },
+    {
+     "text": "Slaying Rare Monsters in your Maps pauses the Delirium Mirror Timer for # seconds",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Unique Monsters have # additional Rare Modifier",
+   "forms": [
+    {
+     "text": "Unique Monsters have # additional Rare Modifiers",
+     "found": true
+    },
+    {
+     "text": "Unique Monsters in your Maps have # additional Rare Modifiers",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Unstable Breaches in Map have #% increased chance to contain Vruun, Marshal of Xesht",
+   "forms": [
+    {
+     "text": "Unstable Breaches have #% increased chance to contain Vruun, Marshal of Xesht",
+     "found": true
+    },
+    {
+     "text": "Unstable Breaches in Map have #% increased chance to contain Vruun, Marshal of Xesht",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Unstable Breaches in Map spawn an additional Rare Monster when Stabilised",
+   "forms": [
+    {
+     "text": "Unstable Breaches spawn # additional Rare Monsters when Stabilised",
+     "found": true
+    },
+    {
+     "text": "Unstable Breaches in Map spawn # additional Rare Monsters when Stabilised",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe2",
+   "lang": "en",
+   "ref": "Unstable Breaches in Map take an additional second to collapse after timer is filled",
+   "forms": [
+    {
+     "text": "Unstable Breaches take # additional seconds to collapse after timer is filled",
+     "found": true
+    },
+    {
+     "text": "Unstable Breaches in Map take # additional seconds to collapse after timer is filled",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "#% additional Physical Damage Reduction while stationary",
+   "forms": [
+    {
+     "text": "站立時，承受 #% 物理傷害",
+     "found": false
+    },
+    {
+     "text": "站立時，有額外 #% 物理傷害減免",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "#% chance to gain Phasing for # seconds when your Trap is triggered by an Enemy",
+   "forms": [
+    {
+     "text": "陷阱被敵人觸發時有 #% 機率獲得 3 秒迷蹤效果",
+     "found": true
+    },
+    {
+     "text": "陷阱被敵人觸發時獲得 # 秒迷蹤效果",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "#% increased Effect of Jewel Socket Passive Skills containing Corrupted Magic Jewels",
+   "forms": [
+    {
+     "text": "增加 #% 天賦樹珠寶插槽的效果，包含已汙染魔法珠寶",
+     "found": false
+    },
+    {
+     "text": "增加#%天賦樹插槽內的已汙染魔法珠寶效果",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "#% increased Effect of Non-Damaging Ailments you inflict during Effect",
+   "forms": [
+    {
+     "text": "效果持續時間內，增加 #% 你造成非傷害型異常狀態的效果",
+     "found": true
+    },
+    {
+     "text": "效果持續時間內，減少 #% 你造成非傷害型異常狀態的效果",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "#% increased Explosive Placement Range",
+   "forms": [
+    {
+     "text": "增加 #% 爆裂物放置範圍",
+     "found": false
+    },
+    {
+     "text": "減少 #% 爆裂物放置範圍",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "#% increased Explosive Placement Range in your Maps",
+   "forms": [
+    {
+     "text": "增加 #% 你地圖中爆裂物的放置距離",
+     "found": true
+    },
+    {
+     "text": "減少 #% 你地圖中爆裂物的放置距離",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "#% increased Main Hand Critical Strike Chance per\nMurderous Eye Jewel affecting you, up to a maximum of 200%",
+   "forms": [
+    {
+     "text": "每顆影響你的殺戮之眼珠寶，增加 #% 主手暴擊率，最多 200%",
+     "found": true
+    },
+    {
+     "text": "每顆影響你的殺戮之眼珠寶，減少 #% 主手暴擊率",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "#% increased Mana Regeneration Rate while stationary",
+   "forms": [
+    {
+     "text": "站立時，增加 #% 魔力恢復率",
+     "found": true
+    },
+    {
+     "text": "站立時減少 #% 魔力恢復率",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "#% increased quantity of Artifacts dropped by Monsters",
+   "forms": [
+    {
+     "text": "增加 #% 怪物掉落文物的數量",
+     "found": true
+    },
+    {
+     "text": "減少 #% 怪物掉落文物的數量",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "#% increased Quantity of Expedition Logbooks dropped by Runic Monsters in your Maps",
+   "forms": [
+    {
+     "text": "增加 #% 你的地圖中符文怪物掉落探險日誌的數量",
+     "found": true
+    },
+    {
+     "text": "減少 #% 你的地圖中符文怪物掉落探險日誌的數量",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "#% increased Quantity of Vendor Refresh Currencies dropped by Monsters in your Maps",
+   "forms": [
+    {
+     "text": "增加 #% 你地圖中怪物掉落刷新商人的通貨數量",
+     "found": true
+    },
+    {
+     "text": "減少 #% 你地圖中怪物掉落刷新商人的通貨數量",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "#% increased Rarity of Fish Caught per held Dead Fish",
+   "forms": [
+    {
+     "text": "每隻死魚增加 #% 釣魚稀有度",
+     "found": true
+    },
+    {
+     "text": "每隻死魚減少 #% 釣魚稀有度",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "#% increased Stack size of Simulacrum Splinters found in your Maps",
+   "forms": [
+    {
+     "text": "增加 #% 你地圖中掉落幻像斷片的堆疊數量",
+     "found": true
+    },
+    {
+     "text": "減少 #% 你地圖中掉落幻像斷片的堆疊數量",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "Abysses in your Maps have #% increased chance to lead to an Abyssal Depths",
+   "forms": [
+    {
+     "text": "你地圖中的深淵增加 #% 機率引導至絕望深淵",
+     "found": true
+    },
+    {
+     "text": "你地圖中的深淵減少 #% 機率引導至絕望深淵",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "Adds # minimum Cold Damage to Spells per Power Charge",
+   "forms": [
+    {
+     "text": "每顆暴擊球為法術附加 # 最小冰冷傷害",
+     "found": false
+    },
+    {
+     "text": "每顆暴擊球為法術附加 # 最大冰冷傷害",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "Area contains #% increased number of Monster Markers",
+   "forms": [
+    {
+     "text": "區域增加 #% 怪物標記的數量",
+     "found": true
+    },
+    {
+     "text": "區域減少 #% 怪物標記的數量",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "Area contains #% increased number of Runic Monster Markers",
+   "forms": [
+    {
+     "text": "區域增加 #% 魔符怪物標記的數量",
+     "found": true
+    },
+    {
+     "text": "區域減少 #% 魔符怪物標記的數量",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "Area is inhabited by an additional Rogue Exile",
+   "forms": [
+    {
+     "text": "區域含有額外#位盜賊流亡者",
+     "found": true
+    },
+    {
+     "text": "地圖含有額外 # 個盜賊流亡者",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "Buffs on Players expire #% faster",
+   "forms": [
+    {
+     "text": "玩家身上的增益效果加速 #% 失效",
+     "found": true
+    },
+    {
+     "text": "玩家身上的增益效果減緩 #% 失效",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "Delirium Bosses in your Maps drop #% increased Simulacrum Splinters",
+   "forms": [
+    {
+     "text": "你地圖中的譫妄頭目增加掉落 #% 幻像斷片",
+     "found": true
+    },
+    {
+     "text": "你地圖中的譫妄頭目減少掉落 #% 幻像斷片",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "Delirium Bosses in your Maps have #% increased chance to drop Unique Cluster Jewels",
+   "forms": [
+    {
+     "text": "你地圖中的譫妄頭目增加 #% 機率掉落傳奇星團珠寶",
+     "found": true
+    },
+    {
+     "text": "你地圖中的譫妄頭目減少 #% 機率掉落傳奇星團珠寶",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "Delirium in your Maps increases #% faster with distance from the mirror",
+   "forms": [
+    {
+     "text": "你地圖中的鏡子遠方的譫妄強化比平常快 #%",
+     "found": true
+    },
+    {
+     "text": "你地圖中的鏡子遠方的譫妄強化比平常慢 #%",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "Gain # Energy Shield per Enemy Killed",
+   "forms": [
+    {
+     "text": "每個被擊殺的敵人，失去 # 能量護盾",
+     "found": false
+    },
+    {
+     "text": "每個被擊殺的敵人，獲得 # 能量護盾",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "Gain # Life per Bleeding Enemy Hit",
+   "forms": [
+    {
+     "text": "每個擊中流血的敵人，失去 # 生命",
+     "found": false
+    },
+    {
+     "text": "每個擊中流血的敵人，獲得 # 生命",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "Gain Immunity to Physical Damage for # second on Rampage",
+   "forms": [
+    {
+     "text": "暴怒時獲得物理傷害免疫，持續 # 秒",
+     "found": false
+    },
+    {
+     "text": "暴怒狀態時免疫物理傷害 # 秒",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "Gain Unholy Might for # second on Rampage",
+   "forms": [
+    {
+     "text": "暴怒時獲得不潔之力，持續 # 秒",
+     "found": false
+    },
+    {
+     "text": "暴怒狀態時獲得不潔之力 # 秒",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "Harvest Crops in your Maps have #% increased chance to contain a Tier 4 Plant",
+   "forms": [
+    {
+     "text": "你地圖中收割作物增加 #% 機率成長至階級 4 的作物",
+     "found": true
+    },
+    {
+     "text": "你地圖中收割作物減少 #% 機率成長至階級 4 的作物",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "Herald of Thunder's Storms Hit Enemies with #% increased Frequency",
+   "forms": [
+    {
+     "text": "閃電之捷的風暴增加 #% 擊中敵人的頻率",
+     "found": true
+    },
+    {
+     "text": "閃電之捷的風暴減少 #% 擊中敵人的頻率",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "Immortal Syndicate Members in your Maps are #% more\nlikely to offer to Bargain for Items",
+   "forms": [
+    {
+     "text": "你地圖中的永生密教成員\n有 #% 更多機率交涉物品",
+     "found": true
+    },
+    {
+     "text": "你地圖中的永生密教成員\n有 #% 更少機率交涉物品",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "Passive Skills in Radius also grant: #% increased Unarmed Attack Speed with Melee Skills",
+   "forms": [
+    {
+     "text": "範圍內天賦同時給予：近戰技能增加 #% 空手攻擊速度",
+     "found": true
+    },
+    {
+     "text": "範圍內天賦同時給予：近戰技能減少 #% 空手攻擊速度",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "Players Prevent +#% of Suppressed Spell Damage",
+   "forms": [
+    {
+     "text": "玩家 #% 防止壓抑法術傷害的總量",
+     "found": true
+    },
+    {
+     "text": "玩家阻止 #% 壓抑法術傷害",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "Prevent +#% of Suppressed Spell Damage",
+   "forms": [
+    {
+     "text": "#% 防止壓抑法術傷害的總量",
+     "found": true
+    },
+    {
+     "text": "阻止 #% 的壓抑法術傷害",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "Prevent +#% of Suppressed Spell Damage while on Full Energy Shield",
+   "forms": [
+    {
+     "text": "滿能量護盾時，#% 防止壓抑法術傷害的總量",
+     "found": false
+    },
+    {
+     "text": "滿能量護盾時，防止 #% 壓抑法術傷害",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "Recover #% of Mana when you Shock an Enemy",
+   "forms": [
+    {
+     "text": "當你感電敵人時，失去 #% 魔力",
+     "found": false
+    },
+    {
+     "text": "當你感電敵人時，恢復 #% 魔力",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "Red Beasts in your Maps have #% increased chance to be from The Caverns",
+   "forms": [
+    {
+     "text": "你地圖中的紅色野獸增加 #% 機率來自洞窟",
+     "found": true
+    },
+    {
+     "text": "你地圖中的紅色野獸減少 #% 機率來自洞窟",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "Red Beasts in your Maps have #% increased chance to be from The Deep",
+   "forms": [
+    {
+     "text": "你地圖中的紅色野獸增加 #% 機率來自深潭",
+     "found": true
+    },
+    {
+     "text": "你地圖中的紅色野獸減少 #% 機率來自深潭",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "Red Beasts in your Maps have #% increased chance to be from The Sands",
+   "forms": [
+    {
+     "text": "你地圖中的紅色野獸增加 #% 機率來自飛沙",
+     "found": true
+    },
+    {
+     "text": "你地圖中的紅色野獸減少 #% 機率來自飛沙",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "Red Beasts in your Maps have #% increased chance to be from The Wilds",
+   "forms": [
+    {
+     "text": "你地圖中的紅色野獸增加 #% 機率來自獸性",
+     "found": true
+    },
+    {
+     "text": "你地圖中的紅色野獸減少 #% 機率來自獸性",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "Socketed Projectile Spells deal #% more Damage with Hits",
+   "forms": [
+    {
+     "text": "插槽中的投射物法術造成 #% 更多擊中傷害",
+     "found": true
+    },
+    {
+     "text": "插槽中的投射物法術造成 #% 更少擊中傷害",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "Totems fire # additional Projectile",
+   "forms": [
+    {
+     "text": "圖騰發射 # 個額外投射物",
+     "found": false
+    },
+    {
+     "text": "圖騰發射額外 # 投射物",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "Wild Rogue Exiles in your Maps have #% chance to be Possessed by a Tormented Spirit",
+   "forms": [
+    {
+     "text": "你地圖中的野生盜賊流亡者有 #% 機率有噬魂者",
+     "found": false
+    },
+    {
+     "text": "你地圖中的野生盜賊流亡者有 #% 機率被罪魂附身",
+     "found": true
+    },
+    {
+     "text": "你地圖中的野生盜賊流亡者有 #% 機率被罪魂附身\n你地圖中的野生盜賊流亡者有噬魂者",
+     "found": false
+    },
+    {
+     "text": "你地圖中的野生盜賊流亡者被罪魂附身\n你地圖中的野生盜賊流亡者有 #% 機率有噬魂者",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "zh",
+   "ref": "Your Maps contain #% increased number of Runic Monster Markers",
+   "forms": [
+    {
+     "text": "你的地圖增加 #% 符文怪物印記的數量",
+     "found": true
+    },
+    {
+     "text": "你的地圖減少 #% 符文怪物印記的數量",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "#% additional Physical Damage Reduction while stationary",
+   "forms": [
+    {
+     "text": "#% Physical Damage taken while stationary",
+     "found": false
+    },
+    {
+     "text": "#% additional Physical Damage Reduction while stationary",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "#% chance to gain Phasing for # seconds when your Trap is triggered by an Enemy",
+   "forms": [
+    {
+     "text": "#% chance to gain Phasing for 3 seconds when your Trap is triggered by an Enemy",
+     "found": true
+    },
+    {
+     "text": "Gain Phasing for # seconds when your Trap is triggered by an Enemy",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "#% increased Effect of Non-Damaging Ailments you inflict during Effect",
+   "forms": [
+    {
+     "text": "#% increased Effect of Non-Damaging Ailments you inflict during Effect",
+     "found": true
+    },
+    {
+     "text": "#% reduced Effect of Non-Damaging Ailments you inflict during Effect",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "#% increased Explosive Placement Range",
+   "forms": [
+    {
+     "text": "#% increased Explosive Placement Range",
+     "found": false
+    },
+    {
+     "text": "#% reduced Explosive Placement Range",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "#% increased Explosive Placement Range in your Maps",
+   "forms": [
+    {
+     "text": "#% increased Explosive Placement Range in your Maps",
+     "found": true
+    },
+    {
+     "text": "#% reduced Explosive Placement Range in your Maps",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "#% increased Main Hand Critical Strike Chance per\nMurderous Eye Jewel affecting you, up to a maximum of 200%",
+   "forms": [
+    {
+     "text": "#% increased Main Hand Critical Strike Chance per\nMurderous Eye Jewel affecting you, up to a maximum of 200%",
+     "found": true
+    },
+    {
+     "text": "#% reduced Main Hand Critical Strike Chance per\nMurderous Eye Jewel affecting you",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "#% increased Mana Regeneration Rate while stationary",
+   "forms": [
+    {
+     "text": "#% increased Mana Regeneration Rate while stationary",
+     "found": true
+    },
+    {
+     "text": "#% reduced Mana Regeneration Rate while stationary",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "#% increased quantity of Artifacts dropped by Monsters",
+   "forms": [
+    {
+     "text": "#% increased quantity of Artifacts dropped by Monsters",
+     "found": true
+    },
+    {
+     "text": "#% reduced quantity of Artifacts dropped by Monsters",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "#% increased Quantity of Expedition Logbooks dropped by Runic Monsters in your Maps",
+   "forms": [
+    {
+     "text": "#% increased Quantity of Expedition Logbooks dropped by Runic Monsters in your Maps",
+     "found": true
+    },
+    {
+     "text": "#% reduced Quantity of Expedition Logbooks dropped by Runic Monsters in your Maps",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "#% increased Quantity of Vendor Refresh Currencies dropped by Monsters in your Maps",
+   "forms": [
+    {
+     "text": "#% increased Quantity of Vendor Refresh Currencies dropped by Monsters in your Maps",
+     "found": true
+    },
+    {
+     "text": "#% reduced Quantity of Vendor Refresh Currencies dropped by Monsters in your Maps",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "#% increased Rarity of Fish Caught per held Dead Fish",
+   "forms": [
+    {
+     "text": "#% increased Rarity of Fish Caught per held Dead Fish",
+     "found": true
+    },
+    {
+     "text": "#% reduced Rarity of Fish Caught per held Dead Fish",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "#% increased Stack size of Simulacrum Splinters found in your Maps",
+   "forms": [
+    {
+     "text": "#% increased Stack size of Simulacrum Splinters found in your Maps",
+     "found": true
+    },
+    {
+     "text": "#% reduced Stack size of Simulacrum Splinters found in your Maps",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "+# metre to Melee Strike Range if you have Killed Recently",
+   "forms": [
+    {
+     "text": "# metre to Melee Strike Range if you have Killed Recently",
+     "found": false
+    },
+    {
+     "text": "# metres to Melee Strike Range if you have Killed Recently",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "+# metre to Melee Strike Range per White Socket",
+   "forms": [
+    {
+     "text": "# metre to Melee Strike Range per White Socket",
+     "found": false
+    },
+    {
+     "text": "# metres to Melee Strike Range per White Socket",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "+# metre to Melee Strike Range with Unarmed Attacks",
+   "forms": [
+    {
+     "text": "# metre to Melee Strike Range with Unarmed Attacks",
+     "found": false
+    },
+    {
+     "text": "# metres to Melee Strike Range with Unarmed Attacks",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "+# Prefix Modifier allowed",
+   "forms": [
+    {
+     "text": "# Prefix Modifier allowed",
+     "found": true
+    },
+    {
+     "text": "# Prefix Modifiers allowed",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "+# second to Summon Skeleton Cooldown",
+   "forms": [
+    {
+     "text": "# second to Summon Skeleton Cooldown",
+     "found": true
+    },
+    {
+     "text": "# seconds to Summon Skeleton Cooldown",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "+# Suffix Modifier allowed",
+   "forms": [
+    {
+     "text": "# Suffix Modifier allowed",
+     "found": true
+    },
+    {
+     "text": "# Suffix Modifiers allowed",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Abysses in your Maps have #% increased chance to lead to an Abyssal Depths",
+   "forms": [
+    {
+     "text": "Abysses in your Maps have #% increased chance to lead to an Abyssal Depths",
+     "found": true
+    },
+    {
+     "text": "Abysses in your Maps have #% reduced chance to lead to an Abyssal Depths",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Adds # minimum Cold Damage to Spells per Power Charge",
+   "forms": [
+    {
+     "text": "Adds # minimum Cold Damage to Spells per Power Charge",
+     "found": false
+    },
+    {
+     "text": "Adds # maximum Cold Damage to Spells per Power Charge",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "All Hits with your next Non-Channelling Attack within # second of taking a Critical Strike will be Critical Strikes",
+   "forms": [
+    {
+     "text": "All Hits with your next Non-Channelling Attack within # second of taking a Critical Strike will be Critical Strikes",
+     "found": false
+    },
+    {
+     "text": "All Hits with your next Non-Channelling Attack within # seconds of taking a Critical Strike will be Critical Strikes",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Area contains #% increased number of Monster Markers",
+   "forms": [
+    {
+     "text": "Area contains #% increased number of Monster Markers",
+     "found": true
+    },
+    {
+     "text": "Area contains #% reduced number of Monster Markers",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Area contains #% increased number of Runic Monster Markers",
+   "forms": [
+    {
+     "text": "Area contains #% increased number of Runic Monster Markers",
+     "found": true
+    },
+    {
+     "text": "Area contains #% reduced number of Runic Monster Markers",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Buffs on Players expire #% faster",
+   "forms": [
+    {
+     "text": "Buffs on Players expire #% faster",
+     "found": true
+    },
+    {
+     "text": "Buffs on Players expire #% slower",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Can have up to # additional Trap placed at a time",
+   "forms": [
+    {
+     "text": "Can have up to # additional Trap placed at a time",
+     "found": true
+    },
+    {
+     "text": "Can have up to # additional Traps placed at a time",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Cannot Poison Enemies with at least # Poison on them",
+   "forms": [
+    {
+     "text": "Cannot Poison Enemies with at least # Poison on them",
+     "found": false
+    },
+    {
+     "text": "Cannot Poison Enemies with at least # Poisons on them",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Chill Enemies for # second on Hit with this Weapon when in Off Hand",
+   "forms": [
+    {
+     "text": "Chill Enemies for # second on Hit with this Weapon when in Off Hand",
+     "found": true
+    },
+    {
+     "text": "Chill Enemies for # seconds on Hit with this Weapon when in Off Hand",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Chill Enemy for # second when Hit, reducing their Action Speed by 30%",
+   "forms": [
+    {
+     "text": "Chill Enemy for # second when Hit, reducing their Action Speed by 30%",
+     "found": true
+    },
+    {
+     "text": "Chill Enemy for # seconds when Hit, reducing their Action Speed by 30%",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Delirium Bosses in your Maps drop #% increased Simulacrum Splinters",
+   "forms": [
+    {
+     "text": "Delirium Bosses in your Maps drop #% increased Simulacrum Splinters",
+     "found": true
+    },
+    {
+     "text": "Delirium Bosses in your Maps drop #% reduced Simulacrum Splinters",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Delirium Bosses in your Maps have #% increased chance to drop Unique Cluster Jewels",
+   "forms": [
+    {
+     "text": "Delirium Bosses in your Maps have #% increased chance to drop Unique Cluster Jewels",
+     "found": true
+    },
+    {
+     "text": "Delirium Bosses in your Maps have #% reduced chance to drop Unique Cluster Jewels",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Delirium in your Maps increases #% faster with distance from the mirror",
+   "forms": [
+    {
+     "text": "Delirium in your Maps increases #% faster with distance from the mirror",
+     "found": true
+    },
+    {
+     "text": "Delirium in your Maps increases #% slower with distance from the mirror",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Duplicates up to # random Offer Reward upon defeating the Herald of the Scourge",
+   "forms": [
+    {
+     "text": "Duplicates up to # random Offer Reward upon defeating the Herald of the Scourge",
+     "found": false
+    },
+    {
+     "text": "Duplicates up to # random Offer Rewards upon defeating the Herald of the Scourge",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Flasks gain # Charge per second if you've Hit a Unique Enemy Recently",
+   "forms": [
+    {
+     "text": "Flasks gain # Charge per second if you've Hit a Unique Enemy Recently",
+     "found": false
+    },
+    {
+     "text": "Flasks gain # Charges per second if you've Hit a Unique Enemy Recently",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Gain # Charge when you are Hit by an Enemy",
+   "forms": [
+    {
+     "text": "Gain # Charge when you are Hit by an Enemy",
+     "found": false
+    },
+    {
+     "text": "Gain # Charges when you are Hit by an Enemy",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Gain # Endurance Charge every second if you've been Hit Recently",
+   "forms": [
+    {
+     "text": "Gain # Endurance Charge every second if you've been Hit Recently",
+     "found": false
+    },
+    {
+     "text": "Gain # Endurance Charges every second if you've been Hit Recently",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Gain # Endurance Charge every second if you've been Hit Recently and\n4 Warlord Items are Equipped",
+   "forms": [
+    {
+     "text": "Gain # Endurance Charge every second if you've been Hit Recently and\n4 Warlord Items are Equipped",
+     "found": false
+    },
+    {
+     "text": "Gain # Endurance Charges every second if you've been Hit Recently and\n4 Warlord Items are Equipped",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Gain # Endurance Charge on use",
+   "forms": [
+    {
+     "text": "Gain # Endurance Charge on use",
+     "found": false
+    },
+    {
+     "text": "Gain # Endurance Charges on use",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Gain # Energy Shield per Enemy Killed",
+   "forms": [
+    {
+     "text": "Gain # Energy Shield per Enemy Killed",
+     "found": true
+    },
+    {
+     "text": "Lose # Energy Shield per Enemy Killed",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Gain # Frenzy Charge on use",
+   "forms": [
+    {
+     "text": "Gain # Frenzy Charge on use",
+     "found": false
+    },
+    {
+     "text": "Gain # Frenzy Charges on use",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Gain # Life per Bleeding Enemy Hit",
+   "forms": [
+    {
+     "text": "Gain # Life per Bleeding Enemy Hit",
+     "found": true
+    },
+    {
+     "text": "Lose # Life per Bleeding Enemy Hit",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Gain # Power Charge on use",
+   "forms": [
+    {
+     "text": "Gain # Power Charge on use",
+     "found": false
+    },
+    {
+     "text": "Gain # Power Charges on use",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Gain Adrenaline for # second on Kill",
+   "forms": [
+    {
+     "text": "Gain Adrenaline for # second on Kill",
+     "found": false
+    },
+    {
+     "text": "Gain Adrenaline for # seconds on Kill",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Gain Adrenaline for # second when Ward Breaks",
+   "forms": [
+    {
+     "text": "Gain Adrenaline for # second when Ward Breaks",
+     "found": false
+    },
+    {
+     "text": "Gain Adrenaline for # seconds when Ward Breaks",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Gain Immunity to Physical Damage for # second on Rampage",
+   "forms": [
+    {
+     "text": "Gain Immunity to Physical Damage for # second on Rampage",
+     "found": false
+    },
+    {
+     "text": "Gain Immunity to Physical Damage for # seconds on Rampage",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Gain Onslaught for # second per Frenzy Charge consumed on use",
+   "forms": [
+    {
+     "text": "Gain Onslaught for # second per Frenzy Charge consumed on use",
+     "found": false
+    },
+    {
+     "text": "Gain Onslaught for # seconds per Frenzy Charge consumed on use",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Gain Unholy Might for # second on Rampage",
+   "forms": [
+    {
+     "text": "Gain Unholy Might for # second on Rampage",
+     "found": false
+    },
+    {
+     "text": "Gain Unholy Might for # seconds on Rampage",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Herald of Thunder's Storms Hit Enemies with #% increased Frequency",
+   "forms": [
+    {
+     "text": "Herald of Thunder's Storms Hit Enemies with #% increased Frequency",
+     "found": true
+    },
+    {
+     "text": "Herald of Thunder's Storms Hit Enemies with #% reduced Frequency",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Immortal Syndicate Members in your Maps are #% more\nlikely to offer to Bargain for Items",
+   "forms": [
+    {
+     "text": "Immortal Syndicate Members in your Maps are #% less\nlikely to offer to Bargain for Items",
+     "found": false
+    },
+    {
+     "text": "Immortal Syndicate Members in your Maps are #% more\nlikely to offer to Bargain for Items",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Leftmost # Magic Utility Flask constantly applies its Flask Effect to you",
+   "forms": [
+    {
+     "text": "Leftmost # Magic Utility Flask constantly applies its Flask Effect to you",
+     "found": false
+    },
+    {
+     "text": "Leftmost # Magic Utility Flasks constantly apply their Flask Effects to you",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Life Flasks gain # Charge every 3 seconds",
+   "forms": [
+    {
+     "text": "Life Flasks gain # Charge every 3 seconds",
+     "found": false
+    },
+    {
+     "text": "Life Flasks gain # Charges every 3 seconds",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Mana Flasks gain # Charge every 3 seconds",
+   "forms": [
+    {
+     "text": "Mana Flasks gain # Charge every 3 seconds",
+     "found": false
+    },
+    {
+     "text": "Mana Flasks gain # Charges every 3 seconds",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Monsters inflict # Grasping Vine on Hit",
+   "forms": [
+    {
+     "text": "Monsters inflict # Grasping Vine on Hit",
+     "found": false
+    },
+    {
+     "text": "Monsters inflict # Grasping Vines on Hit",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Non-Vaal Strike Skills target # additional nearby Enemy",
+   "forms": [
+    {
+     "text": "Non-Vaal Strike Skills target # additional nearby Enemies",
+     "found": true
+    },
+    {
+     "text": "Non-Vaal Strike Skills target # additional nearby Enemy",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Only # Portal is opened to each of your Maps",
+   "forms": [
+    {
+     "text": "Only # Portal is opened to each of your Maps",
+     "found": false
+    },
+    {
+     "text": "Only # Portals are opened to each of your Maps",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Passive Skills in Radius also grant: #% increased Unarmed Attack Speed with Melee Skills",
+   "forms": [
+    {
+     "text": "Passive Skills in Radius also grant: #% increased Unarmed Attack Speed with Melee Skills",
+     "found": true
+    },
+    {
+     "text": "Passive Skills in Radius also grant: #% reduced Unarmed Attack Speed with Melee Skills",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Players Prevent +#% of Suppressed Spell Damage",
+   "forms": [
+    {
+     "text": "Players have #% to amount of Suppressed Spell Damage Prevented",
+     "found": true
+    },
+    {
+     "text": "Players Prevent #% of Suppressed Spell Damage",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Prevent +#% of Suppressed Spell Damage",
+   "forms": [
+    {
+     "text": "#% to amount of Suppressed Spell Damage Prevented",
+     "found": true
+    },
+    {
+     "text": "Prevent #% of Suppressed Spell Damage",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Prevent +#% of Suppressed Spell Damage while on Full Energy Shield",
+   "forms": [
+    {
+     "text": "#% to amount of Suppressed Spell Damage Prevented while on Full Energy Shield",
+     "found": false
+    },
+    {
+     "text": "Prevent #% of Suppressed Spell Damage while on Full Energy Shield",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Projectiles Pierce # additional Targets if 2 Hunter Items are Equipped",
+   "forms": [
+    {
+     "text": "Projectiles Pierce # additional Target if 2 Hunter Items are Equipped",
+     "found": false
+    },
+    {
+     "text": "Projectiles Pierce # additional Targets if 2 Hunter Items are Equipped",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Recharges # Charge when you Consume an Ignited corpse",
+   "forms": [
+    {
+     "text": "Recharges # Charge when you Consume an Ignited corpse",
+     "found": false
+    },
+    {
+     "text": "Recharges # Charges when you Consume an Ignited corpse",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Recover #% of Mana when you Shock an Enemy",
+   "forms": [
+    {
+     "text": "Lose #% of Mana when you Shock an Enemy",
+     "found": false
+    },
+    {
+     "text": "Recover #% of Mana when you Shock an Enemy",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Red Beasts in your Maps have #% increased chance to be from The Caverns",
+   "forms": [
+    {
+     "text": "Red Beasts in your Maps have #% increased chance to be from The Caverns",
+     "found": true
+    },
+    {
+     "text": "Red Beasts in your Maps have #% reduced chance to be from The Caverns",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Red Beasts in your Maps have #% increased chance to be from The Deep",
+   "forms": [
+    {
+     "text": "Red Beasts in your Maps have #% increased chance to be from The Deep",
+     "found": true
+    },
+    {
+     "text": "Red Beasts in your Maps have #% reduced chance to be from The Deep",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Red Beasts in your Maps have #% increased chance to be from The Sands",
+   "forms": [
+    {
+     "text": "Red Beasts in your Maps have #% increased chance to be from The Sands",
+     "found": true
+    },
+    {
+     "text": "Red Beasts in your Maps have #% reduced chance to be from The Sands",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Red Beasts in your Maps have #% increased chance to be from The Wilds",
+   "forms": [
+    {
+     "text": "Red Beasts in your Maps have #% increased chance to be from The Wilds",
+     "found": true
+    },
+    {
+     "text": "Red Beasts in your Maps have #% reduced chance to be from The Wilds",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Rightmost # Magic Utility Flask constantly applies its Flask Effect to you",
+   "forms": [
+    {
+     "text": "Rightmost # Magic Utility Flask constantly applies its Flask Effect to you",
+     "found": false
+    },
+    {
+     "text": "Rightmost # Magic Utility Flasks constantly apply their Flask Effects to you",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Skills Fire # additional Projectile for 4 seconds after\nyou consume a total of 8 Steel Shards",
+   "forms": [
+    {
+     "text": "Skills Fire # additional Projectile for 4 seconds after\nyou consume a total of 8 Steel Shards",
+     "found": false
+    },
+    {
+     "text": "Skills Fire # additional Projectiles for 4 seconds after\nyou consume a total of 8 Steel Shards",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Socketed Projectile Spells deal #% more Damage with Hits",
+   "forms": [
+    {
+     "text": "Socketed Projectile Spells deal #% less Damage with Hits",
+     "found": false
+    },
+    {
+     "text": "Socketed Projectile Spells deal #% more Damage with Hits",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Totems Taunt Enemies around them for # second when Summoned",
+   "forms": [
+    {
+     "text": "Totems Taunt Enemies around them for # second when Summoned",
+     "found": false
+    },
+    {
+     "text": "Totems Taunt Enemies around them for # seconds when Summoned",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Utility Flasks gain # Charge every 3 seconds",
+   "forms": [
+    {
+     "text": "Utility Flasks gain # Charge every 3 seconds",
+     "found": false
+    },
+    {
+     "text": "Utility Flasks gain # Charges every 3 seconds",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "While a Pinnacle Atlas Boss is in your Presence, Non-Vaal Strike Skills target # additional nearby Enemy",
+   "forms": [
+    {
+     "text": "While a Pinnacle Atlas Boss is in your Presence, Non-Vaal Strike Skills target # additional nearby Enemies",
+     "found": true
+    },
+    {
+     "text": "While a Pinnacle Atlas Boss is in your Presence, Non-Vaal Strike Skills target # additional nearby Enemy",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "While a Unique Enemy is in your Presence, Non-Vaal Strike Skills target # additional nearby Enemy",
+   "forms": [
+    {
+     "text": "While a Unique Enemy is in your Presence, Non-Vaal Strike Skills target # additional nearby Enemies",
+     "found": true
+    },
+    {
+     "text": "While a Unique Enemy is in your Presence, Non-Vaal Strike Skills target # additional nearby Enemy",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "While on Low Life, Life Flasks gain # Charge every 3 seconds",
+   "forms": [
+    {
+     "text": "While on Low Life, Life Flasks gain # Charge every 3 seconds",
+     "found": false
+    },
+    {
+     "text": "While on Low Life, Life Flasks gain # Charges every 3 seconds",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Wild Rogue Exiles in your Maps have #% chance to be Possessed by a Tormented Spirit",
+   "forms": [
+    {
+     "text": "Wild Rogue Exiles in your Maps are Possessed by a Tormented Spirit\nWild Rogue Exiles in your Maps have #% chance to have Soul Eater",
+     "found": false
+    },
+    {
+     "text": "Wild Rogue Exiles in your Maps have #% chance to be Possessed by a Tormented Spirit",
+     "found": true
+    },
+    {
+     "text": "Wild Rogue Exiles in your Maps have #% chance to be Possessed by a Tormented Spirit\nWild Rogue Exiles in your Maps have Soul Eater",
+     "found": false
+    },
+    {
+     "text": "Wild Rogue Exiles in your Maps have #% chance to have Soul Eater",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "With at least 40 Intelligence in Radius, Projectiles gain radius as they travel farther, up to a maximum of +# metre to radius",
+   "forms": [
+    {
+     "text": "With at least 40 Intelligence in Radius, Projectiles gain radius as they travel farther, up to a maximum of # metre to radius",
+     "found": false
+    },
+    {
+     "text": "With at least 40 Intelligence in Radius, Projectiles gain radius as they travel farther, up to a maximum of # metres to radius",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Wither on Hit with this weapon against Enemies with at least # Poison on them",
+   "forms": [
+    {
+     "text": "Wither on Hit with this weapon against Enemies with at least # Poison on them",
+     "found": false
+    },
+    {
+     "text": "Wither on Hit with this weapon against Enemies with at least # Poisons on them",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "You cannot be Chilled for # second after being Chilled",
+   "forms": [
+    {
+     "text": "You cannot be Chilled for # second after being Chilled",
+     "found": false
+    },
+    {
+     "text": "You cannot be Chilled for # seconds after being Chilled",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "You cannot be Frozen for # second after being Frozen",
+   "forms": [
+    {
+     "text": "You cannot be Frozen for # second after being Frozen",
+     "found": false
+    },
+    {
+     "text": "You cannot be Frozen for # seconds after being Frozen",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "You cannot be Ignited for # second after being Ignited",
+   "forms": [
+    {
+     "text": "You cannot be Ignited for # second after being Ignited",
+     "found": false
+    },
+    {
+     "text": "You cannot be Ignited for # seconds after being Ignited",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "You cannot be Shocked for # second after being Shocked",
+   "forms": [
+    {
+     "text": "You cannot be Shocked for # second after being Shocked",
+     "found": false
+    },
+    {
+     "text": "You cannot be Shocked for # seconds after being Shocked",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "You gain Adrenaline for # second on using a Vaal Skill",
+   "forms": [
+    {
+     "text": "You gain Adrenaline for # second on using a Vaal Skill",
+     "found": false
+    },
+    {
+     "text": "You gain Adrenaline for # seconds on using a Vaal Skill",
+     "found": false
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "You gain Onslaught for # second per Endurance Charge when Hit",
+   "forms": [
+    {
+     "text": "You gain Onslaught for # second per Endurance Charge when Hit",
+     "found": false
+    },
+    {
+     "text": "You gain Onslaught for # seconds per Endurance Charge when Hit",
+     "found": true
+    }
+   ]
+  },
+  {
+   "game": "poe1",
+   "lang": "en",
+   "ref": "Your Maps contain #% increased number of Runic Monster Markers",
+   "forms": [
+    {
+     "text": "Your Maps contain #% increased number of Runic Monster Markers",
+     "found": true
+    },
+    {
+     "text": "Your Maps contain #% reduced number of Runic Monster Markers",
+     "found": false
+    }
+   ]
+  }
+ ]
+}
