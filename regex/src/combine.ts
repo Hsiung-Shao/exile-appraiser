@@ -268,6 +268,8 @@ export function combine (input: CombineInput): CombineResult {
   const conflicts: Conflict[] = []
   const corpusSels: CombineSel[] = []
   const corpusUnresolved: number[][] = []
+  /** 有產出 token 的語料頁(物品類型條件只看它們) */
+  const tokenPages: RegexPage[] = []
   const algoFrags: Array<{ page: string, entry: string, frag: string, own?: (line: string) => boolean }> = []
   let limit = 250
   // R10:條件列等全部看完再合併;位置 = 當時的 algoTerms / perPage / 該頁 fragments 長度
@@ -329,6 +331,7 @@ export function combine (input: CombineInput): CombineResult {
     if (!isCorpusPage(sel.page)) continue
     const r = buildCorpus(sel.page, lang).build(picks, mode)
     corpusSels.push({ page: sel.page, picks })
+    if (r.usedTokens.length) tokenPages.push(sel.page)
     corpusUnresolved.push(r.unresolved)
     modTokens.push(...r.usedTokens)
     if (mode === 'any') anyTokens.push(...r.usedTokens)
@@ -347,7 +350,8 @@ export function combine (input: CombineInput): CombineResult {
   const excludes = (input.excludes ?? []).map(t => ({ text: t, token: escapeTerm(t) })).filter(x => x.token)
   noneTokens.push(...excludes.map(x => x.token))
 
-  const shared = sharedClassTerm(corpusSels.map(s => s.page), lang)
+  // 只算有產出 token 的語料頁:只勾了無法單獨指定的詞綴時,字串只剩物品類型 term 會亮整類物品 → 不加
+  const shared = sharedClassTerm(tokenPages, lang)
   const classTerm = shared ? `"${shared}"` : null
   const terms: string[] = []
   if (anyTokens.length) terms.push(`"${anyTokens.join('|')}"`)

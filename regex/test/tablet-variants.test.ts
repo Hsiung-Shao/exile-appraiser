@@ -152,6 +152,18 @@ describe('物品類型條件:碑牌頁輸出多一段「碑牌」(只會亮碑�
     expect(lit(tablets)).toBe(true)
   })
 
+  it('C3 只勾無法單獨指定的詞綴 → 不加物品類型 term(否則只剩「tablet」會亮所有碑牌);卡住 + 正常各一條 → 照加', () => {
+    const stuck = pick('TowerMapBossAdditionalSpirit')
+    expect(stuck).toBeGreaterThanOrEqual(0)
+    const only = combine({ lang: 'en', mode: 'any', pages: [{ page: tablet, picks: [stuck] }] })
+    expect(only.perPage[0].fragments).toEqual([])
+    expect(only.classTerm).toBeNull()
+    expect(only.query).toBe('')
+    const mixed = combine({ lang: 'en', mode: 'any', pages: [{ page: tablet, picks: [stuck, picks[0]] }] })
+    expect(mixed.classTerm).toBe('"tablet"')
+    expect(mixed.query.endsWith(' "tablet"')).toBe(true)
+  })
+
   it('其他頁沒有物品類型條件', () => {
     for (const p of pages) if (p.id !== 'tablet_mods') expect(classTermOf(p, 'zh'), p.id).toBeNull()
   })
