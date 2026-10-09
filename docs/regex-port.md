@@ -508,7 +508,7 @@ PoE1 地圖詞綴 3 條 + 階級 ≥16 + 物品數量 ≥80 + 6L → `"成凋| �
 - **term 位置**(`combine.ts`):any term → all terms → 演算法 terms(含 R10 合併後的稀有度 / 汙染 term)→ **物品類型 term** → 自訂 terms → none term。加引號(`"碑牌"`),長度算進 `length`;`CombineResult.classTerm` 另外給出。只有一個語料頁時,結果 = 該頁 `Corpus.build().query` 再多這一段。
 - 例(R10 E1,碑牌為目前頁):`"%維" "度: 稀" "碑牌"`。
 - 與 R10 的交互:R10 合併只併同一物品組(`sections.ts planMerge`),碑牌頁與換界石頁不同組,所以「已選(合併)」以碑牌為目前頁時一定只有碑牌語料 → 會加 class-term。R10 條件縮短的防護語料(`combine.ts mergeConditions`)也收 `altZh` / `altEn`(`merge-group.test.ts` M4)。
-- PobTools 端尚未移植(C++ golden 等 C++ 完成後再重產)。
+- PobTools 端已移植(PobTools 46d1ae2 / 829c19d;C++ golden 已由本分支重產,`--regex-selftest` 1056 / 0)。
 
 ## 相關文件
 - [regex-share-cli.md](regex-share-cli.md)(從命令列 / PobTools 送分享碼:`--regex-share`、確認對話框、找 exe)
