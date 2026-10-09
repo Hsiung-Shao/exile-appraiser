@@ -1,8 +1,8 @@
 {
   "_source": "pob-zh-engine dist/regex_selftest.txt(pob-zh.exe --regex-selftest);由 extract-from-report.mjs 產生,勿手改",
   "_cppPassFail": {
-    "pass": 1047,
-    "fail": 7
+    "pass": 1054,
+    "fail": 0
   },
   "synthetic": {
     "T1 one pick": "\"咒\"",
