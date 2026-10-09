@@ -49,10 +49,10 @@ export function unionKeys (a: readonly string[] | undefined, b: readonly string[
 
 // ---- 物品組(R10,2026-10-09;PobTools regex_algo_pages.cpp ItemGroupOf / PlanMerge)----
 // 一條搜尋字串只描述一種物品:合併只併「目前頁所屬物品組」的頁。裝備類頁(商店基底、商店物品條件、物品詞綴數值、
-// 藥劑 / 護符詞綴)描述的是同一批物品 → 同組 `equipment`;section 歸宿主組;其餘頁自成一組(組名 = 頁 id)。
+// 藥劑 / 護符詞綴、寶石名稱;寶石名稱為使用者 2026-10-09 裁定)描述的是同一批物品 → 同組 `equipment`;section 歸宿主組;其餘頁自成一組(組名 = 頁 id)。
 
 const EQUIPMENT_PAGES: readonly string[] = [
-  'vendor_bases', 'vendor_items', 'vendor_items_poe2', 'item_mod_values', 'item_mod_values_poe2', 'flask_mods', 'flask_charm_mods'
+  'vendor_bases', 'vendor_items', 'vendor_items_poe2', 'item_mod_values', 'item_mod_values_poe2', 'flask_mods', 'flask_charm_mods', 'gem_names'
 ]
 
 /** 頁 → 物品組名 */

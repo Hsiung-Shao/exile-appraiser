@@ -106,7 +106,7 @@ function withExtraLine (p: RegexPage, id: string, zh: string, en: string): Regex
 
 // ---- G ----
 describe('R10-G 合併只限同一物品組', () => {
-  const EQUIP = ['vendor_bases', 'vendor_items', 'vendor_items_poe2', 'item_mod_values', 'item_mod_values_poe2', 'flask_mods', 'flask_charm_mods']
+  const EQUIP = ['vendor_bases', 'vendor_items', 'vendor_items_poe2', 'item_mod_values', 'item_mod_values_poe2', 'flask_mods', 'flask_charm_mods', 'gem_names']
   it('G3 物品組對照完整:裝備組成員都是 equipment、section 歸宿主組、其餘頁自成一組', () => {
     for (const g of ['poe1', 'poe2'] as const) {
       const ids = [...pages[g].map(p => p.id), g === 'poe2' ? 'item_mod_values_poe2' : 'item_mod_values']
@@ -143,6 +143,25 @@ describe('R10-G 合併只限同一物品組', () => {
   it('G4 宿主與其 section 都未併入只算 1 頁', () => {
     expect(planMerge('tablet_mods', ['waystone_mods', 'waystone_numeric', 'map_mods']).skippedPages).toBe(2)
   })
+
+  for (const [g, vendorId] of [['poe1', 'vendor_items'], ['poe2', 'vendor_items_poe2']] as const) {
+    it(`G5 寶石名稱與商店物品條件可合併(${g}):寶石 + 寶石等級 ≥3 兩頁都併入;碑牌為目前頁時寶石不併入`, () => {
+      const gems = byId(g, 'gem_names')
+      const vendor = byId(g, vendorId) as AlgoPage
+      const lv = idx(vendor, 'gem_level')
+      expect(lv).toBeGreaterThanOrEqual(0)
+      const picks = { gem_names: [0], [vendorId]: [lv] }
+      const values = { [vendorId]: { gem_level: min(3) } }
+      const m = mergeSels(pages[g], picks, values, 'gem_names')
+      expect(m.picked.map(s => s.page.id).sort()).toEqual(['gem_names', vendorId].sort())
+      expect(m.skippedPages).toBe(0)
+      const r = combine({ lang: 'zh', mode: 'any', pages: m.sels })
+      expect(r.perPage.map(c => c.id).sort()).toEqual(['gem_names', vendorId].sort())
+      expect(planMerge(vendorId, ['gem_names', vendorId])).toEqual({ merged: ['gem_names', vendorId], skippedPages: 0 })
+      expect(planMerge('tablet_mods', ['gem_names', 'tablet_mods'])).toEqual({ merged: ['tablet_mods'], skippedPages: 1 })
+      expect(gems.id).toBe('gem_names')
+    })
+  }
 })
 
 // ---- E ----
@@ -271,7 +290,7 @@ describe('R10-F 條件片段縮短(PoE2 / PoE1 皆「標籤: 值」)', () => {
       expect(other).toEqual([])
     })
   }
-  it('F5 汙染縮短:換界石全文(未汙染)不被 已汙 命中,加一行「已汙染」後命中', () => {
+  it('F5b 汙染縮短:換界石全文(未汙染)不被 已汙 命中,加一行「已汙染」後命中', () => {
     const corrupted = [...WAYSTONE, '已汙染']
     expect(holdsFor('已汙', WAYSTONE)).toBe(false)
     expect(holdsFor('已汙', corrupted)).toBe(true)
