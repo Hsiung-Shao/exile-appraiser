@@ -283,9 +283,12 @@ export function retryCatalogue (game: RegexGame): void {
   void fetchCatalogue(game)
 }
 
-/** 降級時暫存存檔裡還原不到的鍵:存檔的鍵(依原順序、帶 alt)減掉 `pageKeysOf(還原到的勾選)` 的鍵 */
-function keepMissedKeys (page: RegexPage, picked: readonly number[]): void {
-  const saved = ui.current.find(c => c.page === page.id)
+/**
+ * 降級時暫存還原不到的鍵:來源的鍵(依原順序、帶 alt)減掉 `pageKeysOf(還原到的勾選)` 的鍵。
+ * 來源 = 存檔那一頁(預設)或載入的書籤。
+ */
+function keepMissedKeys (page: RegexPage, picked: readonly number[], from?: KeyList): void {
+  const saved = from ?? ui.current.find(c => c.page === page.id)
   if (!saved) return
   const got = new Set(pageKeysOf(page, picked).keys)
   const keys: string[] = []
@@ -800,7 +803,19 @@ function currentBookmarkBody (): Omit<RegexBookmark, 'name'> | null {
   const cat = catalogue.value
   const p = page.value
   if (!cat || !p) return null
-  return bookmarkBodyOf(cat.pages, p, picks, ui.numeric, { game: selGame.value, mode: ui.mode, lang: ui.lang })
+  const meta = { game: selGame.value, mode: ui.mode, lang: ui.lang }
+  const body = bookmarkBodyOf(cat.pages, p, picks, ui.numeric, meta)
+  // 仲裁檔沒載入時暫存的還原不到的鍵(物品詞綴頁)也寫進書籤,連同它們在 ui.numeric 裡的值;否則儲存 / 更新書籤會永久丟掉
+  const kept = keptKeys[p.id]
+  if (!kept?.keys.length) return body
+  const out = body ?? { page: p.id, ...meta, keys: [], alt: [] }
+  const m = mergeKeptKeys({ keys: out.keys, alt: out.alt }, kept)
+  out.keys = m.keys
+  out.alt = m.alt
+  const cur = ui.numeric[p.id] ?? {}
+  const vals = kept.keys.filter(k => cur[k] && !out.numeric?.[k])
+  if (vals.length) out.numeric = { ...(out.numeric ?? {}), ...Object.fromEntries(vals.map(k => [k, { ...cur[k] }])) }
+  return out
 }
 
 export function saveBookmark (name: string): boolean {
@@ -880,6 +895,8 @@ export function loadBookmark (index: number): void {
     picks[id] = list
     delete keptKeys[id]
     const p = cat.pages.find(x => x.id === id)
+    // 降級時書籤裡還原不到的物品詞綴鍵也暫存(「載入書籤 → 更新書籤」不會丟鍵)
+    if (p && id === b.page && isItemModPageId(id) && itemMods[p.game].formsMissing) keepMissedKeys(p, list, b)
     if (p) syncCurrent(p)
   }
   for (const [key, m] of Object.entries(a.values)) ui.numeric[key] = { ...(ui.numeric[key] ?? {}), ...m }

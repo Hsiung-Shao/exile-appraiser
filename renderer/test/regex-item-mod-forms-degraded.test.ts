@@ -75,6 +75,15 @@ describe('S1 仲裁檔沒載入時保留存檔鍵', () => {
     const body = src.slice(start, end < 0 ? undefined : end)
     expect(body, 'syncCurrent 內應呼叫 mergeKeptKeys').toContain('mergeKeptKeys(')
   })
+
+  it('S1h 降級時儲存 / 更新書籤也保留暫存鍵', () => {
+    const src = read('renderer/src/web/regex/store.ts')
+    const start = src.indexOf('function currentBookmarkBody')
+    expect(start, 'store.ts 應有 currentBookmarkBody 函式').toBeGreaterThanOrEqual(0)
+    const end = src.indexOf('\n}\n', start)
+    const body = src.slice(start, end < 0 ? undefined : end)
+    expect(body, 'currentBookmarkBody 內應用到 keptKeys 或 mergeKeptKeys').toMatch(/keptKeys|mergeKeptKeys/)
+  })
 })
 
 describe('S2 仲裁檔沒載入的降級提示', () => {
