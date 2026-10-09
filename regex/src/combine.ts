@@ -216,7 +216,7 @@ function mergeConditions (
     const raw: string[] = []
     for (const d of gp.entries) {
       const l = entryLines(d, lang)
-      raw.push(...l.texts, ...l.hidden)
+      raw.push(...l.texts, ...l.hidden, ...l.alts) // alts = 同一詞綴別的 roll 值印的寫法,也是物品上的字
     }
     const a = pageAmbient(gp, lang)
     raw.push(...(a.lines ?? []), ...(a.nameLeft ?? []), ...(a.nameRight ?? []))

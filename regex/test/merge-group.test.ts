@@ -166,7 +166,7 @@ describe('R10-G 合併只限同一物品組', () => {
 
 // ---- E ----
 describe('R10-E 截圖案例端到端', () => {
-  it('E1 以碑牌為目前頁合併 = "%維" "度: 稀",不含「階級」', () => {
+  it('E1 以碑牌為目前頁合併 = "%維" "度: 稀" "碑牌"(物品類型 term 在演算法 term 之後),不含「階級」', () => {
     const tablet = byId('poe2', 'tablet_mods')
     const waystone = byId('poe2', 'waystone_mods')
     const tc = byId('poe2', 'tablet_mods_cond') as AlgoPage
@@ -182,7 +182,7 @@ describe('R10-E 截圖案例端到端', () => {
     const plan = planMerge('tablet_mods', ['waystone_numeric', 'tablet_mods', 'tablet_mods_cond'])
     const r = combine({ lang: 'zh', mode: 'any', pages: all.filter(a => plan.merged.includes(a.id)).map(a => a.sel) })
     expect(r.query).not.toContain('階級')
-    expect(terms(r.query)).toEqual(['%維', '度: 稀'])
+    expect(terms(r.query)).toEqual(['%維', '度: 稀', '碑牌'])
     expect(r.ok).toBe(true)
   })
 })
@@ -414,5 +414,20 @@ describe('R10-M 合併輸入只取目前頁的物品組', () => {
   })
   it('M3 沒有任何勾選 = 空、0 頁未併入', () => {
     expect(mergeSels(p2, {}, {}, 'tablet_mods')).toEqual({ sels: [], picked: [], skippedPages: 0 })
+  })
+  it('M4 條件縮短的防護語料含其他寫法(altZh / altEn):只在 alts 出現的相似行也會讓稀有度 / 汙染退回完整寫法', () => {
+    const waystone = byId('poe2', 'waystone_mods')
+    const e: RegexEntry = {
+      id: 'r10_fake_alt_only', g: 0, t17: false, affixZh: '', zh: ['怪物增加#%命中值'], en: ['Monsters have #% increased Accuracy'],
+      hiddenZh: [], hiddenEn: [], altZh: ['測試強度: 稀少的#', '已汙染的地圖 #%'], altEn: ['Test Intensity: rx #', 'Corrupted Maps #%']
+    }
+    const fake: RegexPage = { ...waystone, entries: [...waystone.entries, e] }
+    const r = idx(wn, RARITY_ENTRY_ID)
+    const zh = sectionTerms(fake, wn, r, choice(['rare'], 'corrupted'), 'zh')
+    expect(zh.length).toBe(2)
+    expect(zh[0]).toContain('稀有度')
+    expect(zh[1]).toBe('^已汙染$')
+    const en = sectionTerms(fake, wn, r, choice(['rare']), 'en')
+    expect(en[0]).toContain('Rarity')
   })
 })

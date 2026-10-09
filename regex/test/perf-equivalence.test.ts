@@ -6,6 +6,9 @@
 // 2026-10-09 R10(階級 ≥ 帶上限、百分比行「標籤: \+?N%」、稀有度短 term)重產:只有 300 鍵變 —— map_numeric / waystone_numeric 各 36、
 // 五個條件區(vendor_bases_cond ×2、item_mod_values_cond、item_mod_values_poe2_cond、tablet_mods_cond)各 36、multi 30 + 18;
 // 語料頁 build / verify 與商店頁全部不變。
+// 2026-10-09 併入碑牌補漏(alts + class-term,另一 session 單獨重產時 42 鍵變:poe2|tablet_mods 36 + multi waystone_mods+tablet_mods 6)後重產:
+// 對 87121ad 共 336 鍵變 = R10 300 + 碑牌 42 − 重疊 6(multi waystone_mods+tablet_mods 兩語 × 三模式);tablet_mods_cond 只在 R10 那 36 鍵
+// (條件區單獨合併沒有語料頁,不加物品類型 term)。
 // 重生(僅在演算法有意改動時):`PERF_EQ_WRITE=1 npx vitest run test/perf-equivalence.test.ts`
 import { createHash } from 'node:crypto'
 import fs from 'node:fs'

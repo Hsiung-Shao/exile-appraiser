@@ -499,6 +499,17 @@ PoE1 地圖詞綴 3 條 + 階級 ≥16 + 物品數量 ≥80 + 6L → `"成凋| �
 ### 測試
 `regex/test/tablet-variants.test.ts`:每個有 alts 的列 × 兩語 × any / all,單選產生的字串必須命中主寫法(代 1、2、10)與每種其他寫法(代 2、10);碑牌頁各組列數鎖數字(通用 24、裂痕 7、探險 13、譫妄 9、祭祀 9、深淵 9、總督 5、神廟 7 = 83)。`golden/selftest-report.json` 由新的 C++ 報告重抽(PASS 486 → 494 = T17 的 8 條;碑牌 81 → 83 列,繁中 83/83、英文 80/83 可單獨指定,卡住的 3 條與改版前相同)。
 
+## 物品類型條件 class-term(2026-10-09)
+
+使用者回報:碑牌頁產生的 `"圍|個瓦"` 在商店裡讓瓦爾珠寶也亮了(珠寶的「範圍效果」含「圍」)。語料片段只保證不中**同一頁清單**的其他詞綴,倉庫 / 商店搜尋卻掃所有物品;對整個物品詞綴庫否決代價太大(實驗:碑牌頁可單獨指定 繁中 83 → 42、英文 80 → 28),所以改成多一個 AND term:這類物品名稱一定含的字。
+
+- **規則**(`regex/src/class-term.ts`):`classTermOf(page, lang)` 查表;`sharedClassTerm(pages, lang)` 只在**有勾選的語料頁全部**屬於同一類型時才回傳(碑牌頁 + 換界石頁一起勾時加了會把換界石擋掉)。演算法頁(數值區、條件區)不影響判斷。
+- **目前只有** `poe2/tablet_mods`:繁中 `碑牌`、英文 `tablet`(八種碑牌基底名都以「碑牌」/「Tablet」結尾,`regex/test/tablet-variants.test.ts` 對 items.ndjson 守門)。使用者裁定先只做碑牌頁。
+- **term 位置**(`combine.ts`):any term → all terms → 演算法 terms(含 R10 合併後的稀有度 / 汙染 term)→ **物品類型 term** → 自訂 terms → none term。加引號(`"碑牌"`),長度算進 `length`;`CombineResult.classTerm` 另外給出。只有一個語料頁時,結果 = 該頁 `Corpus.build().query` 再多這一段。
+- 例(R10 E1,碑牌為目前頁):`"%維" "度: 稀" "碑牌"`。
+- 與 R10 的交互:R10 合併只併同一物品組(`sections.ts planMerge`),碑牌頁與換界石頁不同組,所以「已選(合併)」以碑牌為目前頁時一定只有碑牌語料 → 會加 class-term。R10 條件縮短的防護語料(`combine.ts mergeConditions`)也收 `altZh` / `altEn`(`merge-group.test.ts` M4)。
+- PobTools 端尚未移植(C++ golden 等 C++ 完成後再重產)。
+
 ## 相關文件
 - [regex-share-cli.md](regex-share-cli.md)(從命令列 / PobTools 送分享碼:`--regex-share`、確認對話框、找 exe)
 - [phase2-summary.md](phase2-summary.md)(WP5 摘要與待辦:逐字 golden)
