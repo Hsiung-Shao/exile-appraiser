@@ -53,6 +53,7 @@
 - **v0.2.0**(2026-10-06 備妥):查價面板旁的相關物品(移植 APT / EE2 RelatedItems,PoE1 / PoE2,只在國際服)+ 相關物品大小設定、跟著背景與可讀性規則。使用者指定版號 0.2.0。更新說明 `docs/release-notes/v0.2.0.md`。
 - **v0.2.1**(2026-10-07 備妥):正則「稀有度 / 汙染」條件列(稀有度多選、汙染二選一;地圖 / 換界石數值區、商店頁,並擴充到物品基底 / 碑牌詞綴 / 物品詞綴數值)+ 關於頁顯示支援遊戲版本(PoE1 3.29.3 · PoE2 0.5.5d)+ 命令列 `--regex-share` / `--regex-bookmarks` 接收 PobTools 正則分享碼與書籤(`docs/regex-share-cli.md`)+ 修正啟動中再開一次的錯誤框。使用者指定版號 0.2.1。更新說明 `docs/release-notes/v0.2.1.md`。**沒有發佈**,內容併入 v0.2.2。
 - **v0.2.2**(2026-10-08 備妥):APT 式懸浮選單(Shift + Space:設定 / 正則書籤 PoE1・PoE2 切換與字串預覽 / 內建 3.29 密教速查表 + 匯入、可調整大小)、回報按鈕放在問題旁邊、PoE1 未鑑定傳奇查價空白修正(移植 APT UnidentifiedResolver)、假掰詞綴遊戲內寫法(apt-patched 384d1c5)、背景圖模式查價區塊留白,並含未發佈的 v0.2.1 全部內容。使用者指定版號 0.2.2。更新說明 `docs/release-notes/v0.2.2.md`(含 v0.2.1 內容)。⚠ 內建速查表圖片來源 elrincondelexiliado.com 未標授權,發佈前使用者確認。
+- **v0.2.3**(2026-10-10 備妥):Regex 物品詞綴數值頁行尾改 `($| \()`(破裂詞綴搜得到)、多種寫法依 poe2db / poedb 仲裁收錄(`data/regex/item-mod-forms.json`;PoE2 +96、PoE1 +69 條)、併入 PobTools R10(合併只限同類物品、條件片段縮短、寶石名稱頁歸入裝備組)與碑牌補漏(83 條、altZh/altEn 備用寫法、物品類型條件 class-term)。使用者指定版號 0.2.3。更新說明 `docs/release-notes/v0.2.3.md`。
 
 ## 啟動提示(已在背景執行)
 程式啟動後沒有可見視窗,所以第一次收到 Electron 視窗的 host-config 時,在工作區右下角(托盤上方,邊距 16px;
