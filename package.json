@@ -1,6 +1,6 @@
 {
   "name": "exile-appraiser",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "private": true,
   "description": "Path of Exile 查價工具(繁中/英文客戶端,國際服與台服;PoE1 + PoE2)",
   "license": "MIT",
