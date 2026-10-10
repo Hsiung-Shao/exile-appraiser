@@ -1,6 +1,6 @@
 {
   "name": "@exile-appraiser/poe1",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "private": true,
   "type": "module",
   "description": "PoE1 adapter:parser / filters / trade,逐檔移植自 awakened-poe-trade-zh-TW(MIT)",

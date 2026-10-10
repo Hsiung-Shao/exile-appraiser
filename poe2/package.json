@@ -1,6 +1,6 @@
 {
   "name": "@exile-appraiser/poe2",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "private": true,
   "type": "module",
   "description": "PoE2 adapter:parser / filters / trade,逐檔移植自 Exiled-Exchange-2-zh-TW(MIT)",

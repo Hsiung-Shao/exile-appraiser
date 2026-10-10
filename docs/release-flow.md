@@ -55,6 +55,7 @@
 - **v0.2.2**(2026-10-08 備妥):APT 式懸浮選單(Shift + Space:設定 / 正則書籤 PoE1・PoE2 切換與字串預覽 / 內建 3.29 密教速查表 + 匯入、可調整大小)、回報按鈕放在問題旁邊、PoE1 未鑑定傳奇查價空白修正(移植 APT UnidentifiedResolver)、假掰詞綴遊戲內寫法(apt-patched 384d1c5)、背景圖模式查價區塊留白,並含未發佈的 v0.2.1 全部內容。使用者指定版號 0.2.2。更新說明 `docs/release-notes/v0.2.2.md`(含 v0.2.1 內容)。⚠ 內建速查表圖片來源 elrincondelexiliado.com 未標授權,發佈前使用者確認。
 - **v0.2.3**(2026-10-10 備妥):Regex 物品詞綴數值頁行尾改 `($| \()`(破裂詞綴搜得到)、多種寫法依 poe2db / poedb 仲裁收錄(`data/regex/item-mod-forms.json`;PoE2 +96、PoE1 +69 條)、併入 PobTools R10(合併只限同類物品、條件片段縮短、寶石名稱頁歸入裝備組)與碑牌補漏(83 條、altZh/altEn 備用寫法、物品類型條件 class-term)。使用者指定版號 0.2.3。更新說明 `docs/release-notes/v0.2.3.md`。
 - **v0.2.4**(2026-10-10 備妥):v0.2.3 code review 建議落實 —— 多種寫法仲裁檔讀取失敗時提示並保留存檔 / 書籤裡還原不到的勾選、條目 id 兩輪分配(仲裁擴充不改舊鍵)、交替 `(A|B)?`、仲裁產出帶 `arbSha256`;新增 `docs/regex-excluded-mods.md`(仍排除詞綴查詢表)。使用者指定版號 0.2.4。更新說明 `docs/release-notes/v0.2.4.md`。
+- **v0.2.5**(2026-10-10 備妥):修正同名多底材且資料沒有 `disc` 時解析丟 TypeError(issue #1 術士長靴);使用者指定版號 0.2.5。更新說明 `docs/release-notes/v0.2.5.md`。
 
 ## 啟動提示(已在背景執行)
 程式啟動後沒有可見視窗,所以第一次收到 Electron 視窗的 host-config 時,在工作區右下角(托盤上方,邊距 16px;
