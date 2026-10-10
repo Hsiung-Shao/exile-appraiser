@@ -105,6 +105,17 @@ export function calcPropPercentile (
   return Math.min(Math.max(result, 0), 100)
 }
 
+// exile-appraiser: 由畫面上的防禦值反推底材原值(扣掉品質與本地增加 / 附加詞綴),
+// 給「同名多底材且沒有 disc」時挑底材用(`pickByDefenceBase`)。
+export function calcDefenceBase (
+  total: number,
+  statRefs: { flat: string[], incr: string[] },
+  item: ParsedItem
+): number {
+  const { incr, flat } = calcPropBase(statRefs, item)
+  return calcFlat(total, incr.value, item.quality ?? 0) - flat.value
+}
+
 function calcPropBase (
   statRefs: { flat: string[], incr: string[] },
   item: ParsedItem

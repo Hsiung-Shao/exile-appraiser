@@ -15,7 +15,7 @@ import { ItemCategory, JEWELLERY } from './meta'
 import { IncursionRoom, ParsedItem, ItemInfluence, ItemRarity } from './ParsedItem'
 import { magicBasetype } from './magic-name'
 import { isModInfoLine, groupLinesByMod, parseModInfoLine, parseModType, type ModifierInfo, type ParsedModifier, ENCHANT_LINE, SCOURGE_LINE, IMPLICIT_LINE } from './advanced-mod-desc'
-import { calcPropPercentile, QUALITY_STATS } from './calc-q20'
+import { calcDefenceBase, calcPropPercentile, QUALITY_STATS } from './calc-q20'
 
 type SectionParseResult =
   | 'SECTION_PARSED'
@@ -434,22 +434,41 @@ function pickCorrectVariant (item: ParserState) {
   }
 }
 
+// exile-appraiser: 沒有 disc 的同名底材,比對「反推出的底材原值」(已扣品質與本地詞綴)與各底材範圍:
+// 範圍內(允許 ±1 的顯示四捨五入)距離 0,否則取距離最近;物品有的防禦類型底材必須也有
+// (純 ES 手套不會選到閃避底材);平手取資料順序第一個。沒有可比的防禦值(武器、魔符等)回傳 undefined。
+const DEFENCES = [
+  ['armourAR', 'ar', QUALITY_STATS.ARMOUR],
+  ['armourEV', 'ev', QUALITY_STATS.EVASION],
+  ['armourES', 'es', QUALITY_STATS.ENERGY_SHIELD]
+] as const
+
+function pickByDefenceBase (variants: BaseType[], item: ParsedItem): BaseType | undefined {
+  const present = DEFENCES.filter(([prop]) => item[prop])
+  if (!present.length) return undefined
+  let best: BaseType | undefined
+  let bestDist = Infinity
+  for (const variant of variants) {
+    const a = variant.armour
+    if (!a || present.some(([, key]) => !a[key])) continue
+    let dist = 0
+    for (const [prop, key, refs] of present) {
+      const [min, max] = a[key]!
+      const base = calcDefenceBase(item[prop]!, refs, item)
+      dist += Math.max(0, min - 1 - base, base - (max + 1))
+    }
+    if (dist < bestDist) { best = variant; bestDist = dist }
+  }
+  return best
+}
+
 function _pickCorrectVariant (variants: BaseType[], item: ParsedItem): BaseType | undefined {
   if (variants.length <= 1) return variants[0]
 
   for (const variant of variants) {
     // exile-appraiser: 部分同名底材(術士長靴 / 絲絨手套等)資料沒有 `disc`,上游的 `disc!` 會在
-    // 這裡 TypeError(issue #1)。沒有 disc 時改比對護甲 / 閃避 / 能量護盾數值是否落在底材範圍內;
-    // 沒有可比的數值(武器、魔符等)就跳過,由呼叫端退回第一個變體。
-    if (!variant.disc) {
-      const a = variant.armour
-      const hit = (v: number | undefined, r: readonly number[] | undefined) =>
-        v != null && r != null && v >= r[0] && v <= r[1]
-      if (a && (hit(item.armourAR, a.ar) || hit(item.armourEV, a.ev) || hit(item.armourES, a.es))) {
-        return variant
-      }
-      continue
-    }
+    // 這裡 TypeError(issue #1)。沒有 disc 的整組改由 `pickByDefenceBase` 依防禦值挑。
+    if (!variant.disc) return pickByDefenceBase(variants, item)
     const cond = variant.disc
 
     if (cond.propAR && !item.armourAR) continue
