@@ -438,7 +438,19 @@ function _pickCorrectVariant (variants: BaseType[], item: ParsedItem): BaseType 
   if (variants.length <= 1) return variants[0]
 
   for (const variant of variants) {
-    const cond = variant.disc!
+    // exile-appraiser: 部分同名底材(術士長靴 / 絲絨手套等)資料沒有 `disc`,上游的 `disc!` 會在
+    // 這裡 TypeError(issue #1)。沒有 disc 時改比對護甲 / 閃避 / 能量護盾數值是否落在底材範圍內;
+    // 沒有可比的數值(武器、魔符等)就跳過,由呼叫端退回第一個變體。
+    if (!variant.disc) {
+      const a = variant.armour
+      const hit = (v: number | undefined, r: readonly number[] | undefined) =>
+        v != null && r != null && v >= r[0] && v <= r[1]
+      if (a && (hit(item.armourAR, a.ar) || hit(item.armourEV, a.ev) || hit(item.armourES, a.es))) {
+        return variant
+      }
+      continue
+    }
+    const cond = variant.disc
 
     if (cond.propAR && !item.armourAR) continue
     if (cond.propEV && !item.armourEV) continue
