@@ -24,7 +24,7 @@
 `main/src/ocr/stash-scan.ts` `StashScan`(預設每 1 秒;與褻瀆 / 符文共用 WinOcr、擷取):
 1. 擷取遊戲 client,取**子頁按鈕列**(`stripRect`:x 0 – h×37/60、y 150–268 / 1440)的灰階縮圖;與上次**找到按鈕**時相同 → 不 OCR。
    範圍:按鈕文字中心 201、資料夾內 +47 = 248(文字下緣約 260 仍在條內);下緣不超過聖甲蟲第一列徽章頂端(約 269),
-   免得換格 / 價格載入改變縮圖而重 OCR(2026-10-14 code review I1,原本 140–300)。沒找到按鈕時不更新基準 → 下一 tick 一定重 OCR(B1)。
+   免得換格 / 價格載入改變縮圖而重 OCR(2026-10-14 code review I1,原本 140–300)。疊層顯示中沒找到按鈕時作廢基準 → 下一 tick 一定重 OCR(B1);沒顯示時照常記基準,畫面靜止不 OCR(N1)。
 2. OCR ×3 → `findSubtabButtons`:去空白後整行等於按鈕文字、水平位置對得上的才算;**4 顆至少 3 顆**(使用者錄影裡目前子頁的「一般」OCR 沒讀到)。
    按鈕文字取自 GGPK clientstrings `FragmentStashSubTab{Other,Scarab,Betrayal,Eldritch}`:一般 / 聖甲蟲 / 不滅之火 / 異能、General / Scarab / Allflame / Eldritch。
 3. 由文字垂直中心推整體偏移,吸附到 0 或資料夾偏移 47/1440·h(誤差 12/1440·h 內),都不近 = 沒找到。
@@ -50,7 +50,7 @@
 
 ## 測試
 `core/test/stash-layout.test.ts`(S1–S4c)、`core/test/stash-detect.test.ts`(S5–S7,真實 OCR 快照 `core/test/stash/fixtures/ocr/`,
-`node scripts/ocr-fixture.mjs --set stash` 產生)、`main/test/stash-scan.test.ts`(S8–S12c、S9e–S9f)、`renderer/test/stash-prices.test.ts`(S13–S17)、
+`node scripts/ocr-fixture.mjs --set stash` 產生)、`main/test/stash-scan.test.ts`(S8–S12c、S9e–S9g)、`renderer/test/stash-prices.test.ts`(S13–S17)、
 `core/test/ninja.test.ts` S15。
 
 ## 待使用者實機確認

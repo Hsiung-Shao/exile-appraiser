@@ -631,3 +631,15 @@ describe('S9f host-config 未到不掃描(I2)', () => {
     expect(m?.[1]).toContain('hostCfg != null')
   })
 })
+
+describe('S9g 沒顯示時沒找到也照常差分(N1)', () => {
+  it('沒顯示時連續沒找到、縮圖不變 → 第 2 個 tick 回 unchanged、recognize 只呼叫一次', async () => {
+    const h = harness()
+    h.state.lines = TOOLTIP_LINES
+    expect(await h.scan.tick()).toMatchObject({ kind: 'ocr', found: false, sent: null })
+    // 沒找到一律作廢基準 → 平常玩遊戲每 tick 都 OCR ×3
+    expect(await h.scan.tick()).toEqual({ kind: 'unchanged' })
+    expect(h.state.ocrs).toBe(1)
+    expect(h.events).toHaveLength(0)
+  })
+})

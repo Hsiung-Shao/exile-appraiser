@@ -7,7 +7,7 @@
  *   擷取 → 按鈕列灰階縮圖與上次 OCR 時比對,沒變就不 OCR → 有變化才 OCR(×3)→ `findSubtabButtons`(四顆按鈕文字至少 3 顆、
  *   由文字高度推資料夾偏移)→ 每顆按鈕文字 p99 亮度 → `activeSubtab`(目前子頁的文字較亮)→ 狀態變了才送 `stash-scan-result`。
  * 沒找到按鈕:游標停在已顯示子頁的格子上(遊戲說明框可能蓋住按鈕列,`holdOnMiss`)→ 維持原狀,但連續最多 `STASH_HOLD_LIMIT` 次;
- * 否則連續 2 次才送 `hide`。差分基準只在找到按鈕時更新(沒找到時下一 tick 一定重 OCR,畫面靜止也收得掉)。
+ * 否則連續 2 次才送 `hide`。疊層顯示中沒找到按鈕時作廢差分基準(下一 tick 一定重 OCR,畫面靜止也收得掉);沒顯示時照常差分。
  *
  * 與褻瀆 / 符文塑形共用 WinOcr(別的掃描忙碌就丟這個 tick)與擷取(`SharedCapture`)。被擋下時的排程同 `panel-scan.ts`:
  * 停用 / 不是 PoE1 → 不排(等 `poke()`);其他原因 10 秒保底。不送任何鍵盤 / 滑鼠輸入。
@@ -245,8 +245,9 @@ export class StashScan {
     const match = findSubtabButtons(clientLines, client.h, lang)
 
     if (!match.found) {
-      // 差分基準不更新(B1):沒找到時畫面靜止也要重 OCR,否則 miss 累計不到上限、疊層收不掉
-      this.baseline = null
+      // 疊層顯示中(含 held / miss 累計期間)作廢差分基準(B1):畫面靜止也要重 OCR,否則 miss 累計不到上限、疊層收不掉;
+      // 沒顯示時照常記下這次縮圖(N1):平常玩遊戲畫面沒變就不 OCR
+      this.baseline = this.shown ? null : { key, fp }
       const held = this.shown != null && this.holdStreak < STASH_HOLD_LIMIT && this.deps.holdOnMiss?.() === true
       if (held) {
         this.holdStreak++
