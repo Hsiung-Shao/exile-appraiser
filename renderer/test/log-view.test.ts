@@ -21,7 +21,7 @@ describe('isErrorLine', () => {
 
 describe('matchesFilter(以行內容 tag 判定)', () => {
   const cases: Array<[string, string[], string[]]> = [
-    ['ocr', ['[ocr] 可用', '[reveal-scan] 找到面板', '[runeshape] 掃描', '[ocr-region] 框選', '[renderer] [reveal-scan] x', '[capture] overlay screenshot 不可用', '[scan-mask] 遮掉 2 塊'], ['[shortcuts] x', '[app] 解析 OK']],
+    ['ocr', ['[ocr] 可用', '[reveal-scan] 找到面板', '[runeshape] 掃描', '[ocr-region] 框選', '[renderer] [reveal-scan] x', '[capture] overlay screenshot 不可用', '[scan-mask] 遮掉 2 塊', '[stash] 碎片頁:scarabs', '[renderer] [stash] 顯示疊層'], ['[shortcuts] x', '[app] 解析 OK']],
     ['trade', ['[app] 解析(poe1) OK: A / B', '[trade] POST /search', '[trade-site] 開啟', '[ninja] 價格表', '[http] GET', '[renderer] [app] 解析(poe2) 失敗: x'], ['[ocr] x', '[shortcuts] y']],
     ['hotkey', ['[shortcuts] 註冊 Ctrl+D', '[uiohook] start', '[uiohook-selftest] x'], ['[ocr] x', '[trade] y']]
   ]

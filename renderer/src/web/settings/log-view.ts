@@ -18,12 +18,12 @@ export function isErrorLine (e: Pick<LogEntry, 'level' | 'text'>): boolean {
 
 /**
  * 以行內容的 tag 判定分類(任一前綴命中即算):
- * - OCR:`[ocr`(含 `[ocr-region]`)、`[reveal-scan]`、`[runeshape]`、`[capture]`、`[scan-mask]`、`[desecration]`
+ * - OCR:`[ocr`(含 `[ocr-region]`)、`[reveal-scan]`、`[runeshape]`、`[capture]`、`[scan-mask]`、`[desecration]`、`[stash]`(PoE1 倉庫價格疊層)
  * - 查價:`[app] 解析`、`[trade`(含 `[trade-site]`)、`[ninja]`、`[http]`、`[poe1]`、`[poe2]`
  * - 熱鍵:`[shortcuts]`、`[uiohook`
  * 子字串比對,所以 renderer 轉印行(`[renderer] [app] 解析…`)也算。
  */
-const OCR_TAGS = ['[ocr', '[reveal-scan]', '[runeshape]', '[capture]', '[scan-mask]', '[desecration]']
+const OCR_TAGS = ['[ocr', '[reveal-scan]', '[runeshape]', '[capture]', '[scan-mask]', '[desecration]', '[stash]']
 const TRADE_TAGS = ['[app] 解析', '[trade', '[ninja]', '[http]', '[poe1]', '[poe2]']
 const HOTKEY_TAGS = ['[shortcuts]', '[uiohook']
 
