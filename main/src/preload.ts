@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { HostApi, HostFetchInit, HostConfigForMain, ItemTextEvent, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId, UpdaterInfo, SettingsTabId, LegacySettingsTabId, ConfigChangedEvent, OcrRegionPickTarget, RevealScanEvent, RuneshapeScanEvent, RuneshapeUiState, ScanMaskReport, LogEntry, OverlayContentState, RegexBookmarkRunEvent, RegexPasteRequest, RegexShareRequest } from '@ipc/types'
+import type { HostApi, HostFetchInit, HostConfigForMain, ItemTextEvent, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId, UpdaterInfo, SettingsTabId, LegacySettingsTabId, ConfigChangedEvent, OcrRegionPickTarget, RevealScanEvent, RuneshapeScanEvent, RuneshapeUiState, StashCursorEvent, StashScanEvent, ScanMaskReport, LogEntry, OverlayContentState, RegexBookmarkRunEvent, RegexPasteRequest, RegexShareRequest } from '@ipc/types'
 
 function subscribe<T> (channel: string, cb: (e: T) => void): () => void {
   const listener = (_: unknown, e: T) => cb(e)
@@ -78,6 +78,9 @@ const api: HostApi = {
   regexShareTake: () => ipcRenderer.invoke('regex-share-take'),
   onRegexShare: (cb: (req: RegexShareRequest) => void) => subscribe('regex-share', cb),
   runeshapeStats: () => ipcRenderer.invoke('runeshape-stats'),
+  onStashScanResult: (cb: (e: StashScanEvent) => void) => subscribe('stash-scan-result', cb),
+  onStashCursor: (cb: (e: StashCursorEvent) => void) => subscribe('stash-cursor', cb),
+  stashStats: () => ipcRenderer.invoke('stash-stats'),
   // 第 18 步:畫在遊戲上的徽章 / 提示外框(main 擷取後遮掉)
   scanMask: (r: ScanMaskReport) => { ipcRenderer.send('scan-mask', r) },
   // 第 28 步:設定 › 記錄

@@ -10,7 +10,7 @@
  */
 import type { HostApi, HostFetchResult, ItemTextEvent, HostConfigForMain, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId } from '@ipc/types'
 import type { ConfigChangedEvent, HotkeyRegistration, OcrAvailability, OcrRegionPickTarget, RevealScanEvent, SettingsTabId, LegacySettingsTabId, UpdaterInfo } from '@ipc/types'
-import type { LogEntry, LogSnapshot, PerfState, RuneshapeScanEvent, RuneshapeStats, RuneshapeUiState, ScanMaskReport, OverlayContentState } from '@ipc/types'
+import type { LogEntry, LogSnapshot, PerfState, RuneshapeScanEvent, RuneshapeStats, RuneshapeUiState, ScanMaskReport, OverlayContentState, StashCursorEvent, StashScanEvent, StashStats } from '@ipc/types'
 import type { RegexBookmarkRunEvent, RegexPasteRequest, RegexPasteResult, RegexShareRequest } from '@ipc/types'
 import { shallowRef } from 'vue'
 import type { HttpFetch } from '@exile-appraiser/core/http'
@@ -275,6 +275,19 @@ class HostTransport {
   // ---- WP-R2:符文塑形面板自動查價(overlay 限定;預覽端 / 純瀏覽器 no-op) ----
   onRuneshapeScanResult (cb: (e: RuneshapeScanEvent) => void): () => void {
     return window.host?.onRuneshapeScanResult?.(cb) ?? (() => {})
+  }
+
+  // ---- PoE1 倉庫價格疊層(overlay 限定;預覽端 / 純瀏覽器 no-op) ----
+  onStashScanResult (cb: (e: StashScanEvent) => void): () => void {
+    return window.host?.onStashScanResult?.(cb) ?? (() => {})
+  }
+
+  onStashCursor (cb: (e: StashCursorEvent) => void): () => void {
+    return window.host?.onStashCursor?.(cb) ?? (() => {})
+  }
+
+  async stashStats (): Promise<StashStats | undefined> {
+    return await window.host?.stashStats?.()
   }
 
   /** 查價面板 / 設定 / 框選層開著 → main 暫停掃描 */

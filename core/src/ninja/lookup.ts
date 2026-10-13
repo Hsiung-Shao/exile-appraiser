@@ -116,6 +116,7 @@ const CATEGORY_SLUG: Record<string, string> = {
   Fragment: 'fragments',
   DeliriumOrb: 'delirium-orbs',
   Scarab: 'scarabs',
+  AllflameEmber: 'allflame-embers',
   Fossil: 'fossils',
   Resonator: 'resonators',
   Oil: 'oils',

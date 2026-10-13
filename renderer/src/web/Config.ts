@@ -93,6 +93,14 @@ export interface Config {
   runeshapeIntervalMs: number
   /** WP-R2:徽章顏色門檻(崇高石):< low 暗色、≥ high 金色、之間一般。 */
   runeshapeThresholds: RuneshapeThresholds
+  /** PoE1 倉庫價格疊層(碎片頁:一般 / 聖甲蟲 / 不滅之火;預設開;只在 PoE1 + overlay 有作用)。 */
+  stashPricesEnabled: boolean
+  /** PoE1 倉庫價格疊層:子頁按鈕列掃描間隔 ms(100–3000,預設 1000)。 */
+  stashPricesIntervalMs: number
+  /** PoE1 倉庫價格疊層:徽章上顯示物品名稱(辨識檢視;預設開)。 */
+  stashShowNames: boolean
+  /** PoE1 倉庫價格疊層:徽章顏色門檻(混沌石):< low 暗色、≥ high 金色、之間一般(規則同符文塑形)。 */
+  stashThresholds: RuneshapeThresholds
   /**
    * 第 11 步:OCR 徽章外觀(符文價格徽章與褻瀆徽章共用;字體 / 大小 / 粗體 / 外框陰影,三段價格色只給符文)。
    * 只影響 overlay 顯示,不送 main;舊設定檔沒有 → 預設(= 改版前外觀)。`overlay/badge-style.ts`。
@@ -265,6 +273,9 @@ export const SCAN_INTERVAL_MAX_MS = 3000
 /** 低於這個值設定頁顯示 CPU 負擔提示 */
 export const SCAN_INTERVAL_CPU_WARN_MS = 500
 
+/** PoE1 倉庫價格疊層:徽章顏色門檻(混沌石) */
+export const DEFAULT_STASH_THRESHOLDS: Readonly<RuneshapeThresholds> = { low: 5, high: 50 }
+
 /** WP-R2:掃描間隔 100–3000 ms(main `clampScanInterval` 同規則);不是數字 → 1000 */
 export function clampRuneshapeInterval (v: unknown): number {
   if (typeof v !== 'number' || !Number.isFinite(v)) return DEFAULT_RUNESHAPE_INTERVAL_MS
@@ -272,12 +283,12 @@ export function clampRuneshapeInterval (v: unknown): number {
 }
 
 /** WP-R2:門檻正規化:兩個非負有限數,high < low 時對調;壞掉 → 預設 */
-export function normRuneshapeThresholds (v: unknown): RuneshapeThresholds {
-  if (!v || typeof v !== 'object') return { ...DEFAULT_RUNESHAPE_THRESHOLDS }
+export function normRuneshapeThresholds (v: unknown, def: Readonly<RuneshapeThresholds> = DEFAULT_RUNESHAPE_THRESHOLDS): RuneshapeThresholds {
+  if (!v || typeof v !== 'object') return { ...def }
   const r = v as Record<string, unknown>
   const ok = (n: unknown): n is number => typeof n === 'number' && Number.isFinite(n) && n >= 0
-  const low = ok(r.low) ? r.low : DEFAULT_RUNESHAPE_THRESHOLDS.low
-  const high = ok(r.high) ? r.high : DEFAULT_RUNESHAPE_THRESHOLDS.high
+  const low = ok(r.low) ? r.low : def.low
+  const high = ok(r.high) ? r.high : def.high
   return high < low ? { low: high, high: low } : { low, high }
 }
 
@@ -315,6 +326,10 @@ function createConfig (): Config {
     runeshapeRegion: null as OcrRegion | null,
     runeshapeIntervalMs: DEFAULT_RUNESHAPE_INTERVAL_MS,
     runeshapeThresholds: { ...DEFAULT_RUNESHAPE_THRESHOLDS },
+    stashPricesEnabled: true,
+    stashPricesIntervalMs: DEFAULT_RUNESHAPE_INTERVAL_MS,
+    stashShowNames: true,
+    stashThresholds: { ...DEFAULT_STASH_THRESHOLDS },
     ocrBadgeStyle: defaultOcrBadgeStyle(),
     hotkeyRuneshapeToggle: '',
     hotkeyRuneshapeRegion: '',
@@ -384,6 +399,10 @@ function serialize (): string {
     runeshapeRegion: config.runeshapeRegion,
     runeshapeIntervalMs: config.runeshapeIntervalMs,
     runeshapeThresholds: config.runeshapeThresholds,
+    stashPricesEnabled: config.stashPricesEnabled,
+    stashPricesIntervalMs: config.stashPricesIntervalMs,
+    stashShowNames: config.stashShowNames,
+    stashThresholds: config.stashThresholds,
     ocrBadgeStyle: config.ocrBadgeStyle,
     hotkeyRuneshapeToggle: config.hotkeyRuneshapeToggle,
     hotkeyRuneshapeRegion: config.hotkeyRuneshapeRegion,
@@ -483,6 +502,11 @@ function applyLoaded (raw: string) {
   config.runeshapeRegion = normOcrRegion(loaded.runeshapeRegion)
   config.runeshapeIntervalMs = clampRuneshapeInterval(loaded.runeshapeIntervalMs)
   config.runeshapeThresholds = normRuneshapeThresholds(loaded.runeshapeThresholds)
+  // PoE1 倉庫價格疊層(舊設定檔沒有 → 開、1000 ms、顯示名稱、預設門檻)
+  config.stashPricesEnabled = loaded.stashPricesEnabled !== false
+  config.stashPricesIntervalMs = clampRuneshapeInterval(loaded.stashPricesIntervalMs)
+  config.stashShowNames = loaded.stashShowNames !== false
+  config.stashThresholds = normRuneshapeThresholds(loaded.stashThresholds, DEFAULT_STASH_THRESHOLDS)
   // 第 11 步:徽章外觀(舊設定檔沒有 → 預設;壞值逐欄回預設)
   config.ocrBadgeStyle = normOcrBadgeStyle(loaded.ocrBadgeStyle)
   config.hotkeyRuneshapeToggle = typeof loaded.hotkeyRuneshapeToggle === 'string' ? loaded.hotkeyRuneshapeToggle : fresh.hotkeyRuneshapeToggle
@@ -573,6 +597,8 @@ export function hostConfigOf (c: Config, regexHotkeys: readonly RegexBookmarkHot
     runeshapeIntervalMs: c.runeshapeIntervalMs,
     hotkeyRuneshapeToggle: c.hotkeyRuneshapeToggle,
     hotkeyRuneshapeRegion: c.hotkeyRuneshapeRegion,
+    stashPricesEnabled: c.stashPricesEnabled,
+    stashPricesIntervalMs: c.stashPricesIntervalMs,
     autoUpdate: c.autoUpdate,
     startupToast: c.startupToast,
     updateReminder: c.updateReminder,
@@ -602,7 +628,8 @@ async function sendHostConfig (cfg: HostConfigForMain): Promise<void> {
 export const HOST_CONFIG_IMMEDIATE_KEYS: ReadonlyArray<keyof HostConfigForMain> = [
   'game', 'overlayMode', 'ocrLang',
   'revealAutoEnabled', 'revealIntervalMs', 'ocrRegion',
-  'runeshapeEnabled', 'runeshapeRegion', 'runeshapeIntervalMs'
+  'runeshapeEnabled', 'runeshapeRegion', 'runeshapeIntervalMs',
+  'stashPricesEnabled', 'stashPricesIntervalMs'
 ]
 
 /** 設定頁每改一個欄位 watch 都會觸發:相同內容不送、一般欄位 300 ms trailing debounce;第一次與 `HOST_CONFIG_IMMEDIATE_KEYS` 立刻送 */

@@ -79,16 +79,27 @@ describe('fetchAll(PoE1 錄製檔)', () => {
   let result!: NinjaFetchResult
   beforeAll(async () => { result = await client.fetchAll() })
 
-  it('照順序打 exchange 12 類 + item 8 類,每個請求之間等 300ms', () => {
+  it('照順序打 exchange 13 類 + item 8 類,每個請求之間等 300ms', () => {
     const expected = [
       ...NINJA_CATEGORIES.poe1.exchange.map(t => `https://poe.ninja/poe1/api/economy/exchange/current/overview?league=Allflame&type=${t}`),
       ...NINJA_CATEGORIES.poe1.item.map(t => `https://poe.ninja/poe1/api/economy/stash/current/item/overview?league=Allflame&type=${t}`)
     ]
     expect(urls).toEqual(expected)
     expect(calls).toEqual(new Array(expected.length - 1).fill(300))
-    expect(result.fetchedTypes).toHaveLength(20)
+    expect(result.fetchedTypes).toHaveLength(21)
     expect(result.failedTypes).toEqual([])
     expect(result.fetchedAt).toBe(1_000_000)
+  })
+
+  it('S15 不滅之火餘燼 8 種都有混沌石價(PoE1 倉庫疊層的不滅之火子頁)', () => {
+    // 錄製檔 exchange_AllflameEmber.json(2026-10-14 補抓);少抓這個類別 → 倉庫疊層不滅之火子頁整頁沒有價格
+    const embers = ['Flesh', 'Propagation', 'the Gilded', 'Kulemak', 'Resplendence', 'the Ethereal', 'the Wildwood', 'Toads']
+    for (const e of embers) {
+      const hit = result.prices.get(`currency|Allflame Ember of ${e}`)
+      expect(hit, e).toBeDefined()
+      expect(hit!.chaos).toBeGreaterThan(0)
+      expect(hit!.type).toBe('AllflameEmber')
+    }
   })
 
   it('divine 匯率取 exchange core.rates(1 / 0.002691)', () => {
@@ -227,7 +238,7 @@ describe('解析規則(合成回應)', () => {
     const { http } = recordingHttp({ exchange_Oil: { status: 500, body: '' }, exchange_Fossil: { status: 200, body: 'not json' } })
     const r = await createNinjaClient({ http, game: 'poe1', league: LEAGUE, sleep: async () => {} }).fetchAll()
     expect(r.failedTypes.map(f => f.type)).toEqual(['Oil', 'Fossil'])
-    expect(r.fetchedTypes).toHaveLength(18)
+    expect(r.fetchedTypes).toHaveLength(19)
     const allFail: HttpFetch = async () => response(503, '')
     await expect(createNinjaClient({ http: allFail, game: 'poe1', league: LEAGUE, sleep: async () => {} }).fetchAll())
       .rejects.toThrow(/全部類別都失敗/)

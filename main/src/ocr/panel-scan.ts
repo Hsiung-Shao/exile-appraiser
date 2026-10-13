@@ -413,6 +413,8 @@ export interface ScanCapture {
   recognize: (rect: PhysRect, scale: number) => Promise<{ lines: OcrTextLine[], ms: number }>
   /** 第 18 步:這次擷取遮掉了幾塊我們自己畫的東西(log 用;0 / 省略 = 沒有) */
   masked?: number
+  /** PoE1 倉庫價格疊層:影像某塊原解析度的灰階像素(列優先;夾在影像內)。省略 = 不支援(測試 / 舊擷取) */
+  gray?: (rect: PhysRect) => Uint8Array
 }
 
 export interface ScanClock {

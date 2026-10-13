@@ -8,11 +8,14 @@
   - 每列顯示熱鍵問題(遊戲保留鍵 / 與其他熱鍵重複 / 被其他程式佔用),規則同 main(`hotkey-conflicts.ts`);
     倉庫搜尋熱鍵與項目綁在一起,留在這一頁編輯,「熱鍵」總表唯讀列出並可跳來這裡;
     聊天指令熱鍵在總表也能直接編輯(2026-10-05,同一個 `config.commands[i].hotkey`,兩處即時同步),指令文字只在這一頁改。
+  - PoE1 倉庫價格疊層(碎片頁每格標 poe.ninja 價;`StashPricesSection.vue`)放在最上面,只在 PoE1 顯示。
   - 三個功能都只在 overlay 模式(main `shortcut-actions.ts` / `stash-scroll.ts`)→ 設定不是 overlay 時整頁只顯示一句說明 + 前往「遊戲」。
 -->
 <template>
   <overlay-gate v-if="!config.overlayMode" />
   <template v-else>
+    <!-- PoE1 倉庫價格疊層(碎片頁;只有 PoE1 有) -->
+    <stash-prices-section v-if="config.game === 'poe1'" />
     <section class="card" data-setting="stash-search">
       <div class="card-head">
         <span class="label">{{ t('ppz.chat.stash_section') }}</span>
@@ -83,10 +86,11 @@ import { AppConfig, MAX_TEXT_ENTRIES, defaultCommands } from '@/web/Config'
 import HotkeyInput from '../HotkeyInput.vue'
 import HelpTip from '../HelpTip.vue'
 import OverlayGate from '../OverlayGate.vue'
+import StashPricesSection from '../StashPricesSection.vue'
 import { useHotkeyIssues } from '../useHotkeyIssues'
 
 export default defineComponent({
-  components: { HotkeyInput, HelpTip, OverlayGate },
+  components: { HotkeyInput, HelpTip, OverlayGate, StashPricesSection },
   setup () {
     const { t } = useI18n()
     const config = AppConfig()

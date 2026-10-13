@@ -114,7 +114,7 @@ describe('接線守門', () => {
   })
   it('overlay 圖層回報含 menu(否則遊戲前景時視窗可能被閒置隱藏)', () => {
     expect(app).toContain('menu: floatMenuOpen.value }, overlayLayers)')
-    expect(read('main/src/windowing/overlay-idle.ts')).toContain("'quick', 'menu'] as const")
+    expect(read('main/src/windowing/overlay-idle.ts')).toContain("'quick', 'menu', 'stash'] as const")
     expect(read('ipc/types.ts')).toMatch(/menu\?: boolean/)
   })
   it('選單:書籤目前遊戲貼上(source menu)、另一代複製;速查表只在 Electron 視窗選檔', () => {

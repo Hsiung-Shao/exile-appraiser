@@ -44,6 +44,9 @@ import {
   reminderMessage, type ReminderAction, type ReminderButton, type ReminderMessage, type ReminderTarget
 } from './update-reminder'
 import { DEFAULT_SCAN_INTERVAL_MS, RuneshapeScan } from './ocr/runeshape-scan'
+import { StashScan } from './ocr/stash-scan'
+import { StashCursor } from './stash-cursor'
+import { loadStashLayouts } from './stash-layout-data'
 import { SharedCapture, SharedLocateOcr } from './ocr/panel-scan'
 import { ScanMaskStore, sanitizeMaskReport } from './ocr/scan-mask'
 import { isAppNavigation, isExternalWebUrl } from './external-links'
@@ -875,6 +878,8 @@ if (!skipStartup) app.whenReady().then(() => {
   // 查價面板開著不暫停;與符文塑形共用 WinOcr,對方忙碌就丟 tick。hostCfg 在下方宣告,計時器觸發時已初始化。
   // eslint-disable-next-line prefer-const
   let runeshapeScan: RuneshapeScan
+  // eslint-disable-next-line prefer-const
+  let stashScan: StashScan
   const revealScan = new RevealScan({
     config: () => ({
       enabled: hostCfg?.revealAutoEnabled !== false,
@@ -883,7 +888,7 @@ if (!skipStartup) app.whenReady().then(() => {
       intervalMs: hostCfg?.revealIntervalMs ?? DEFAULT_SCAN_INTERVAL_MS
     }),
     env: scanEnv,
-    ocrBusy: () => runeshapeScan.busy,
+    ocrBusy: () => runeshapeScan.busy || stashScan.busy,
     capture: scanCapture,
     locateOcr: sharedLocateOcr,
     // 面板定位 / 判定用 tiers.json 的模板 skeleton(第一次掃描才讀;第 22 步:每種語言各一份)
@@ -906,7 +911,7 @@ if (!skipStartup) app.whenReady().then(() => {
     }),
     env: scanEnv,
     textLang: ocrTextLang,
-    ocrBusy: () => revealScan.busy,
+    ocrBusy: () => revealScan.busy || stashScan.busy,
     capture: scanCapture,
     locateOcr: sharedLocateOcr,
     drawPending: () => scanMask.pending(Date.now()),
@@ -915,19 +920,44 @@ if (!skipStartup) app.whenReady().then(() => {
       send('runeshape-scan-result', ev)
     }
   })
+  // PoE1 倉庫價格疊層:游標停在哪一格(只在疊層顯示中 + 遊戲前景時輪詢;不裝掛鉤、不送輸入)
+  const stashCursor = new StashCursor({
+    cursor: () => screen.dipToScreenPoint(screen.getCursorScreenPoint()),
+    bounds: gameBounds,
+    active: () => Boolean(poeWindow?.isActive),
+    layouts: () => loadStashLayouts(),
+    send: (e) => { send('stash-cursor', e) }
+  })
+  // PoE1 倉庫價格疊層:偵測碎片頁開著 / 目前子頁(只 OCR 子頁按鈕列;物品身分靠固定版面,不 OCR)
+  stashScan = new StashScan({
+    config: () => ({
+      enabled: hostCfg?.stashPricesEnabled !== false,
+      game: hostCfg?.game ?? 'poe1',
+      intervalMs: hostCfg?.stashPricesIntervalMs ?? DEFAULT_SCAN_INTERVAL_MS
+    }),
+    env: scanEnv,
+    textLang: ocrTextLang,
+    ocrBusy: () => revealScan.busy || runeshapeScan.busy,
+    capture: scanCapture,
+    holdOnMiss: () => stashCursor.inPanel(),
+    onShowingChange: (showing, st) => { stashCursor.setShown(showing && st.subtab ? { subtab: st.subtab, yOffset: st.yOffset, clientH: st.clientH } : null) },
+    log: (msg) => { console.log(msg) },
+    send: (ev) => { send('stash-scan-result', ev) }
+  })
   if (windowMode === 'overlay') {
-    // 兩個掃描同時開著時錯開半個間隔,輪流使用 WinOcr
+    // 掃描同時開著時錯開起始,輪流使用 WinOcr(倉庫只在 PoE1、另兩個只在 PoE2,實際不會三個一起跑)
     revealScan.start(0)
     runeshapeScan.start(DEFAULT_SCAN_INTERVAL_MS / 2)
-    poeWindow?.on('active-change', () => { revealScan.poke(); runeshapeScan.poke() })
+    stashScan.start(DEFAULT_SCAN_INTERVAL_MS / 4)
+    poeWindow?.on('active-change', () => { revealScan.poke(); runeshapeScan.poke(); stashScan.poke(); stashCursor.refresh() })
     // 第 30.2 步:被擋下時不再每秒重排(10 秒保底;停用 / 不是 PoE2 不排)→ 會改變 scanBlock 結果的視窗事件要叫醒。
     // wake() 只在目前被擋下時才立刻重看,正常掃描中不插 tick(拖動視窗時 moveresize 很密)
-    const wakeScans = () => { revealScan.wake(); runeshapeScan.wake() }
+    const wakeScans = () => { revealScan.wake(); runeshapeScan.wake(); stashScan.wake() }
     poeWindow?.onAttach(wakeScans)
     poeWindow?.onDetach(wakeScans)
     poeWindow?.onMoveresize(wakeScans)
   }
-  app.on('will-quit', () => { revealScan.stop(); runeshapeScan.stop() })
+  app.on('will-quit', () => { revealScan.stop(); runeshapeScan.stop(); stashScan.stop(); stashCursor.stop() })
 
   const shortcuts = new Shortcuts({
     mode: windowMode,
@@ -1332,6 +1362,7 @@ if (!skipStartup) app.whenReady().then(() => {
       lastScanKey = scanKey
       revealScan.poke()
       runeshapeScan.poke()
+      stashScan.poke()
     }
     if (cfg.uiLanguage === 'en' || cfg.uiLanguage === 'cmn-Hant') rebuildTrayMenu(cfg.uiLanguage)
     // 先套用 autoUpdate 再做第一次檢查(舊 renderer / 缺欄位 → 預設開)
@@ -1762,7 +1793,7 @@ if (!skipStartup) app.whenReady().then(() => {
       }
     },
     // renderer 回報查價面板 / 設定 / 框選層開著(符文塑形任一 → 暫停;褻瀆只看設定 / 框選層);send 一律不開放給預覽
-    'runeshape-ui-state': { kind: 'send', fn: (_ctx, s: RuneshapeUiState) => { lastUiState = s; runeshapeScan.setUiState(s); revealScan.setUiState(s) } },
+    'runeshape-ui-state': { kind: 'send', fn: (_ctx, s: RuneshapeUiState) => { lastUiState = s; runeshapeScan.setUiState(s); revealScan.setUiState(s); stashScan.setUiState(s) } },
     // 第五輪 30.4:renderer 回報 overlay 上有沒有東西要畫(閒置隱藏 overlay 視窗);預覽分頁畫的不在遊戲上 → 不開放
     'overlay-content': {
       kind: 'send',
@@ -1791,6 +1822,7 @@ if (!skipStartup) app.whenReady().then(() => {
     'reveal-stats': { kind: 'invoke', preview: false, fn: () => revealScan.snapshot() },
     // WP-R2:設定頁顯示掃描統計;預覽端不開放
     'runeshape-stats': { kind: 'invoke', preview: false, fn: () => runeshapeScan.snapshot() },
+    'stash-stats': { kind: 'invoke', preview: false, fn: () => stashScan.snapshot() },
     // 第 29 步:設定 › 記錄 › 效能(狀態 / 開關 / 開記錄檔);都只給 Electron 視窗
     'perf-get': { kind: 'invoke', preview: false, fn: () => perfState() },
     'perf-set': {

@@ -147,6 +147,22 @@
         }
       }
     },
+    "stash": {
+      "section": "倉庫價格(PoE1 碎片頁)",
+      "hint": "打開倉庫碎片頁的「一般 / 聖甲蟲 / 不滅之火」時,自動在每格標上 poe.ninja 價格(只辨識子頁按鈕文字,物品依固定版面對應)。",
+      "enabled": "自動標價",
+      "show_names": "徽章顯示物品名稱",
+      "show_names_hint": "用來確認每格辨識的物品對不對;確認後可關掉,只留價格。",
+      "thresholds": "價格顏色門檻(混沌石)",
+      "status_showing": "偵測到碎片頁:{subtab}",
+      "status_idle": "等待打開倉庫碎片頁",
+      "subtab_general": "一般",
+      "subtab_scarabs": "聖甲蟲",
+      "subtab_allflame": "不滅之火",
+      "tw_no_source": "台服沒有 poe.ninja 價格:倉庫疊層只顯示物品名稱。",
+      "unit_c": "混",
+      "unit_div": "神"
+    },
     "runeshape": {
       "section": "符文塑形",
       "hint": "開著符文塑形面板時,在每一列右側標出參考價。",

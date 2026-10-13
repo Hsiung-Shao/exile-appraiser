@@ -147,6 +147,22 @@
         }
       }
     },
+    "stash": {
+      "section": "Stash prices (PoE1 fragment tab)",
+      "hint": "When the stash fragment tab (General / Scarab / Allflame) is open, each slot is labelled with its poe.ninja price (only the sub-tab buttons are read by OCR; items are mapped by the fixed layout).",
+      "enabled": "Label prices automatically",
+      "show_names": "Show item names on badges",
+      "show_names_hint": "Use this to check that each slot is recognised correctly; turn it off afterwards to keep only prices.",
+      "thresholds": "Price colour thresholds (chaos)",
+      "status_showing": "Fragment tab detected: {subtab}",
+      "status_idle": "Waiting for the stash fragment tab",
+      "subtab_general": "General",
+      "subtab_scarabs": "Scarab",
+      "subtab_allflame": "Allflame",
+      "tw_no_source": "poe.ninja has no prices for the Taiwan realm: the stash overlay shows item names only.",
+      "unit_c": "c",
+      "unit_div": "div"
+    },
     "runeshape": {
       "section": "Runeshape",
       "hint": "While the runeshape panel is open, a reference price is shown next to each row.",

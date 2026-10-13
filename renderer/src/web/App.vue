@@ -191,6 +191,8 @@
     <ocr-badges v-if="isOverlay" />
     <!-- WP-R2:符文塑形面板自動查價徽章(同 OCR 徽章層級) -->
     <runeshape-prices v-if="isOverlay" />
+    <!-- PoE1 倉庫價格疊層(碎片頁:一般 / 聖甲蟲 / 不滅之火;呈現照符文徽章) -->
+    <stash-prices v-if="isOverlay" />
     <!-- WP-S2:在遊戲畫面上框選 OCR 區域(開著時忽略背景點擊) -->
     <ocr-region-picker v-if="isOverlay" />
   </div>
@@ -221,6 +223,7 @@ import SettingsWindow from './settings/SettingsWindow.vue'
 import OcrBadges from './overlay/OcrBadges.vue'
 import OcrRegionPicker from './overlay/OcrRegionPicker.vue'
 import RuneshapePrices from './overlay/RuneshapePrices.vue'
+import StashPrices from './overlay/StashPrices.vue'
 import RegexBookmarkBar from './regex/RegexBookmarkBar.vue'
 import RegexQuickPanel from './regex/RegexQuickPanel.vue'
 import FloatMenu from './overlay/FloatMenu.vue'
@@ -251,7 +254,7 @@ const PANEL_WIDTH_EM = 28.75
 const LEGACY_FS_SCALE = 1.23
 
 export default defineComponent({
-  components: { UiErrorBox, ErrorBoundary, BgLayer, SettingsWindow, OcrBadges, OcrRegionPicker, RuneshapePrices, RegexBookmarkBar, RegexQuickPanel, FloatMenu },
+  components: { UiErrorBox, ErrorBoundary, BgLayer, SettingsWindow, OcrBadges, OcrRegionPicker, RuneshapePrices, StashPrices, RegexBookmarkBar, RegexQuickPanel, FloatMenu },
   setup () {
     const { t, te } = useI18n()
     const leagues = useLeagues()

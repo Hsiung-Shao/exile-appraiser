@@ -103,6 +103,10 @@ export interface HostConfigForMain {
   runeshapeIntervalMs: number
   /** WP-R2:暫停 / 繼續自動查價的熱鍵(預設空 = 不註冊;overlay + PoE2 + 已啟用才註冊)。 */
   hotkeyRuneshapeToggle: string
+  /** PoE1 倉庫價格疊層(碎片頁三子頁;預設開;只在 PoE1 + overlay 有作用)。舊 renderer 沒有這欄 = 開 */
+  stashPricesEnabled?: boolean
+  /** PoE1 倉庫價格疊層掃描間隔(ms,100–3000,預設 1000) */
+  stashPricesIntervalMs?: number
   /** 2026-10-01:框選符文塑形面板區域的熱鍵(預設空 = 不註冊;註冊條件同 `hotkeyOcrRegion`:overlay + PoE2 + 遊戲前景)。 */
   hotkeyRuneshapeRegion?: string
   /** 自動更新(預設 true):安裝版背景下載新版、結束程式時靜默套用;false = 手動(按下載 → 按安裝)。見 main/src/updater-core.ts。 */
@@ -246,6 +250,36 @@ export type RuneshapeScanEvent = PanelScanEvent
 export type RevealScanEvent = PanelScanEvent
 
 /**
+ * PoE1 倉庫價格疊層:`stash-scan-result`(main `ocr/stash-scan.ts`;main → overlay;**不送瀏覽器預覽**)。
+ * - `show`:碎片頁開著、目前子頁 `subtab`(一般 / 聖甲蟲 / 不滅之火),整體下移 `yOffset`(client 實體像素;倉庫頁在資料夾內 = 47/1440·h)。
+ * - `hide`:碎片頁關了 / 換到其他頁 / 子頁是異能或判不出 / 停用、不是 PoE1 overlay、沒有遊戲視窗。
+ */
+export interface StashScanEvent {
+  seq: number
+  ts: number
+  reason: 'show' | 'hide'
+  subtab: 'general' | 'scarabs' | 'allflame' | null
+  yOffset: number
+  client: { w: number, h: number }
+  /** OCR 耗時(ms;有跑 OCR 的那一次才有) */
+  ocrMs?: number
+}
+/** `stash-cursor`:游標停在哪一格(該格 refName;不在任何格 = null)。只在疊層顯示中 + 遊戲前景時輪詢、換格才送 */
+export interface StashCursorEvent {
+  refName: string | null
+}
+/** 設定頁狀態列(`stash-stats`) */
+export interface StashStats {
+  /** 最近一次被擋下的原因;null = 正在掃描 */
+  block: string | null
+  showing: boolean
+  subtab: 'general' | 'scarabs' | 'allflame' | null
+  /** 最近一次 OCR 的耗時(ms) */
+  lastOcrMs: number | null
+  ocrCount: number
+}
+
+/**
  * 效能修正第 18 步:renderer 回報畫在遊戲上的東西(`scan-mask`;main `scan-mask.ts`)。擷取會截到 overlay 自己,
  * main 擷取後把這些矩形填掉再 OCR、差分不比那幾格。`source` = 哪一層(褻瀆徽章層 / 符文徽章層),每層一份、新的取代舊的。
  */
@@ -288,6 +322,8 @@ export interface OverlayContentState {
   reveal: boolean
   /** 符文塑形徽章層(徽章或層內提示) */
   rune: boolean
+  /** PoE1 倉庫價格疊層(舊 renderer 沒有這欄 = false) */
+  stash?: boolean
   /** 第 33 步:正則書籤快速面板(舊 renderer 沒有這欄 = false) */
   quick?: boolean
   /** 2026-10-08:APT 式懸浮選單(含速查表放大;舊 renderer 沒有這欄 = false) */
@@ -539,6 +575,12 @@ export interface HostApi {
   onRegexShare?: (cb: (req: RegexShareRequest) => void) => () => void
   /** WP-R2:掃描統計(設定頁);預覽端回 undefined。 */
   runeshapeStats?: () => Promise<RuneshapeStats | undefined>
+  /** PoE1 倉庫價格疊層:碎片頁偵測結果(只有 overlay 會收到) */
+  onStashScanResult?: (cb: (e: StashScanEvent) => void) => () => void
+  /** PoE1 倉庫價格疊層:游標停在哪一格(只有 overlay 會收到) */
+  onStashCursor?: (cb: (e: StashCursorEvent) => void) => () => void
+  /** PoE1 倉庫價格疊層統計(設定頁);預覽端回 undefined */
+  stashStats?: () => Promise<StashStats | undefined>
   /** 第 18 步:回報畫在遊戲上的徽章 / 提示外框(main 擷取後遮掉);預覽端 no-op。 */
   scanMask?: (r: ScanMaskReport) => void
   /** 第 28 步:記錄快照(IPC `log-get`);帶 `sinceSeq` 只回較新的。預覽端經 RPC 可用(輪詢)。 */

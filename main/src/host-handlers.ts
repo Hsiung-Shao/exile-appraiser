@@ -52,7 +52,7 @@ export function previewHandlers (table: HandlerTable): Record<string, PreviewHan
 
 /**
  * 預覽端收得到的事件。其餘(`item-text`、`focus-change`、`hide-exclusive-widget`、`open-settings`、
- * 褻瀆自動辨識的 `reveal-scan-result`、WP-S2 的 `ocr-region-pick`、WP-R2 的 `runeshape-scan-result`)
+ * 褻瀆自動辨識的 `reveal-scan-result`、WP-S2 的 `ocr-region-pick`、WP-R2 的 `runeshape-scan-result`、PoE1 倉庫價格疊層的 `stash-scan-result` / `stash-cursor`)
  * 只給 overlay:預覽分頁若也收 `item-text` 會替同一件物品再查一次價,交易站限流直接加倍。
  */
 export const PREVIEW_EVENTS: ReadonlySet<string> = new Set(['config-changed', 'updater-state', 'switch-game'])

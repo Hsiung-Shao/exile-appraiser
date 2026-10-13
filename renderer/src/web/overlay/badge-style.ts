@@ -82,7 +82,7 @@ export const BADGE_HALO: Readonly<Record<Exclude<BadgeOutline, 'none'>, string>>
 }
 
 /**
- * 徽章層根元素的 CSS 變數。`layer` = rune(符文:主文字 `--fs-sm`、小字 `--fs-xs` = 主 − 1)/ reveal(褻瀆:主 `--fs-base`、小字 = 主 − 2;
+ * 徽章層根元素的 CSS 變數。`layer` = rune(符文;PoE1 倉庫價格疊層 `stash` 同規則:主文字 `--fs-sm`、小字 `--fs-xs` = 主 − 1)/ reveal(褻瀆:主 `--fs-base`、小字 = 主 − 2;
  * 不吃價格三段色)。預設值的欄位不輸出(樣式裡的 `var(--badge-x, 原值)` 回到原值)。
  *
  * | 變數 | 用途 |
@@ -93,18 +93,19 @@ export const BADGE_HALO: Readonly<Record<Exclude<BadgeOutline, 'none'>, string>>
  * | `--badge-low` / `--badge-mid` / `--badge-high` | 符文三段價格色(字色 + 左條) |
  * | `--badge-halo` | text-shadow |
  */
-export function badgeStyleVars (s: OcrBadgeStyle, layer: 'rune' | 'reveal'): Record<string, string> {
+export function badgeStyleVars (s: OcrBadgeStyle, layer: 'rune' | 'reveal' | 'stash'): Record<string, string> {
   const out: Record<string, string> = {}
   if (s.fontFamily) out['--badge-font'] = `"${s.fontFamily}", var(--font-ui)`
   if (s.fontSize != null) {
     out['--badge-fs'] = `${s.fontSize}px`
-    out['--badge-fs-xs'] = `${s.fontSize - (layer === 'rune' ? 1 : 2)}px`
+    out['--badge-fs-xs'] = `${s.fontSize - (layer === 'reveal' ? 2 : 1)}px`
   }
   if (s.bold) {
     out['--badge-weight'] = '700'
     out['--badge-weight-strong'] = '800'
   }
-  if (layer === 'rune') {
+  // 價格三段色:符文塑形與 PoE1 倉庫價格疊層(同一組設定,呈現照符文)
+  if (layer !== 'reveal') {
     for (const k of ['low', 'mid', 'high'] as const) {
       const c = s.tierColors[k]
       if (c) out[`--badge-${k}`] = c

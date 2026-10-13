@@ -173,8 +173,25 @@ export function toScanCapture (cap: { image: NativeImage, offset: { x: number, y
     client: cap.client,
     fingerprint: rect => grayFingerprint(cap.image, rect, FINGERPRINT_WIDTH, m),
     recognize: rectRecognizer(cap.image, ocr, m),
-    masked: m?.length ?? 0
+    masked: m?.length ?? 0,
+    gray: rect => grayPixels(cap.image, rect)
   }
+}
+
+/** PoE1 倉庫價格疊層:影像某塊原解析度灰階(按鈕文字亮度判定目前子頁;不縮放、不遮罩 —— 按鈕列不會有我們畫的徽章) */
+export function grayPixels (img: NativeImage, rect: PhysRect): Uint8Array {
+  const size = img.getSize()
+  const x = Math.max(0, Math.min(size.width - 1, Math.round(rect.x)))
+  const y = Math.max(0, Math.min(size.height - 1, Math.round(rect.y)))
+  const r = {
+    x,
+    y,
+    width: Math.max(1, Math.min(size.width - x, Math.round(rect.width))),
+    height: Math.max(1, Math.min(size.height - y, Math.round(rect.height)))
+  }
+  const part = img.crop(r)
+  const s = part.getSize()
+  return bgraToGray(part.toBitmap(), s.width, s.height).data
 }
 
 /**

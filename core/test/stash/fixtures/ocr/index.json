@@ -1,0 +1,40 @@
+{
+ "note": "使用者錄影(2026-10-14)裁出的倉庫按鈕列區(client 座標 = 圖像素 + crop);subtab = 目前子頁(null = 不該判定出子頁:說明框遮住 / 不是按鈕列)",
+ "fixtures": [
+  {
+   "file": "strip-scarabs-1432.png",
+   "clientH": 1432,
+   "cropX": 0,
+   "cropY": 139,
+   "subtab": "scarabs"
+  },
+  {
+   "file": "strip-general-1432.png",
+   "clientH": 1432,
+   "cropX": 0,
+   "cropY": 139,
+   "subtab": "general"
+  },
+  {
+   "file": "strip-allflame-1432.png",
+   "clientH": 1432,
+   "cropX": 0,
+   "cropY": 139,
+   "subtab": "allflame"
+  },
+  {
+   "file": "strip-tooltip-1432.png",
+   "clientH": 1432,
+   "cropX": 0,
+   "cropY": 139,
+   "subtab": null
+  },
+  {
+   "file": "neg-grid-1432.png",
+   "clientH": 1432,
+   "cropX": 0,
+   "cropY": 400,
+   "subtab": null
+  }
+ ]
+}
