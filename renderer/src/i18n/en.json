@@ -382,6 +382,7 @@
     "data_poe1": "PoE1 data",
     "data_poe2": "PoE2 data",
     "data_poe2_trade": "PoE2 trade snapshot",
+    "data_poe1_stash": "PoE1 stash layouts",
     "data_regex": "Regex data",
     "data_fetched": "fetched {date}",
     "about": {
@@ -415,7 +416,8 @@
       "pobtools": "Poe Regex search-string algorithm and data (same author)",
       "pob_poe2": "PoE2 desecrated modifier tier data derived from its Data/*.lua",
       "disenchant": "Disenchant ranking: gold fees, inventory slots, inherent-influence inference and dust values for cross-checking",
-      "alserom": "poe-dust table (source of poe-disenchant-tool dust values)"
+      "alserom": "poe-dust table (source of poe-disenchant-tool dust values)",
+      "exile_ui": "Fixed stash layout coordinates and scaling rules for the stash price overlay (Stash-Ninja)"
     },
     "update": {
       "initial": "Not checked yet",

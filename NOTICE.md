@@ -10,6 +10,7 @@
 | PoENavi(Buri) | 設計參考:PoE1/PoE2 一體化查價流程、容差選單、限流與未解析詞綴呈現方式;另 `scripts/build-desecration-tiers.mjs` 逐段移植其 `scripts/build_poetore_poe2_desecration_tiers.py`(PoE2 褻瀆 Tier 資料表產生規則) | MIT | https://github.com/buri34/poenavi |
 | Path of Building Community(PoE2 版) | `data/poe2/desecration/*` 由其 `Data/{ModItem,ModJewel,ModVeiled}.lua`、`Data/Bases/*.lua` 的詞綴 / 底材資料衍生 | MIT | https://github.com/PathOfBuildingCommunity/PathOfBuilding-PoE2 |
 | poe-disenchant-tool(deronek)與 @alserom 的 poe-dust gist | 拆粉排行:`data/dust/poe-dust.json`(由 `data/dust/poe-dust.js` 逐筆轉 JSON)的 goldCost / slots 與交叉比對用數值;數值最初由 @alserom 整理(https://gist.github.com/alserom/22bdd4106806cbd4f85a5cb8c4345c08) | MIT | https://github.com/deronek/poe-disenchant-tool |
+| Exile UI(Lailloken) | PoE1 倉庫價格疊層:`data/poe1/stash/layouts.json`(由 `data/global/[stash-ninja] tabs.json` 的碎片頁三子頁轉出)與格子換算規則(`core/src/stash/layout.ts`,移植自 `modules/stash-ninja.ahk`) | MIT | https://github.com/Lailloken/Exile-UI |
 
 懸浮選單內建的密教速查表圖片 `renderer/public/cheatsheets/syndicate-3.29.webp` 由 El Rincón del Exiliado 產生
 (https://pathofexile.elrincondelexiliado.com/syndicate ,圖上保留其來源標示 elrincondelexiliado.com/syndicate),

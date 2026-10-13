@@ -382,6 +382,7 @@
     "data_poe1": "PoE1 資料",
     "data_poe2": "PoE2 資料",
     "data_poe2_trade": "PoE2 交易站快照",
+    "data_poe1_stash": "PoE1 倉庫版面",
     "data_regex": "正則資料",
     "data_fetched": "抓取於 {date}",
     "about": {
@@ -415,7 +416,8 @@
       "pobtools": "Poe Regex 搜尋字串演算法與資料(同作者專案)",
       "pob_poe2": "PoE2 褻瀆詞綴 Tier 資料由其 Data/*.lua 推導",
       "disenchant": "拆粉排行的 gold 手續費、背包格數、固有勢力推算與交叉比對用粉塵數值",
-      "alserom": "poe-dust 資料表(poe-disenchant-tool 的粉塵數值來源)"
+      "alserom": "poe-dust 資料表(poe-disenchant-tool 的粉塵數值來源)",
+      "exile_ui": "倉庫價格疊層的固定版面座標與換算規則(Stash-Ninja)"
     },
     "update": {
       "initial": "尚未檢查更新",

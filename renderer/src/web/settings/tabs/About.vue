@@ -133,6 +133,7 @@ interface ManifestSource {
 const PREFIXES: Record<'poe1' | 'poe2', Array<{ prefix: string, key: string }>> = {
   poe1: [
     { prefix: 'data/poe1', key: 'ppz.data_poe1' },
+    { prefix: 'data/poe1/stash', key: 'ppz.data_poe1_stash' },
     { prefix: 'data/regex', key: 'ppz.data_regex' }
   ],
   poe2: [
@@ -175,6 +176,7 @@ const THANKS: Credit[] = [
   { name: 'Exiled Exchange 2', author: 'Kvan7', license: 'MIT', url: 'https://github.com/Kvan7/Exiled-Exchange-2', desc: 'ppz.about.ee2', licenseFile: 'exiled-exchange-2.MIT' },
   { name: 'Exiled-Exchange-2-zh-TW', author: 'Hsiung-Shao', license: 'MIT', url: 'https://github.com/Hsiung-Shao/Exiled-Exchange-2-zh-TW', desc: 'ppz.about.ee2_zh', licenseFile: 'exiled-exchange-2.MIT' },
   { name: 'poe-disenchant-tool', author: 'deronek', license: 'MIT', url: 'https://github.com/deronek/poe-disenchant-tool', desc: 'ppz.about.disenchant', licenseFile: 'poe-disenchant-tool.MIT' },
+  { name: 'Exile UI', author: 'Lailloken', license: 'MIT', url: 'https://github.com/Lailloken/Exile-UI', desc: 'ppz.about.exile_ui', licenseFile: 'exile-ui.MIT' },
   { name: 'poe-dust (gist)', author: '@alserom', url: 'https://gist.github.com/alserom/22bdd4106806cbd4f85a5cb8c4345c08', desc: 'ppz.about.alserom' }
 ]
 
