@@ -1,5 +1,5 @@
 {
- "note": "使用者錄影(2026-10-14)裁出的倉庫按鈕列區(client 座標 = 圖像素 + crop);subtab = 目前子頁(null = 不該判定出子頁:說明框遮住 / 不是按鈕列)",
+ "note": "使用者錄影(2026-10-14)裁出的倉庫按鈕列區(client 座標 = 圖像素 + crop);subtab = 目前子頁(null = 不該判定出子頁:說明框遮住 / 不是按鈕列);*-1440* 為使用者 2560×1440 實機截圖(2026-10-14,-folder = 整張下移 47 px 模擬資料夾內),只裁 y 170–268(頁籤列被切半時 OCR 讀不到按鈕)",
  "fixtures": [
   {
    "file": "strip-scarabs-1432.png",
@@ -35,6 +35,20 @@
    "cropX": 0,
    "cropY": 400,
    "subtab": null
+  },
+  {
+   "file": "strip-general-1440.png",
+   "clientH": 1440,
+   "cropX": 0,
+   "cropY": 170,
+   "subtab": "general"
+  },
+  {
+   "file": "strip-general-1440-folder.png",
+   "clientH": 1440,
+   "cropX": 0,
+   "cropY": 170,
+   "subtab": "general"
   }
  ]
 }

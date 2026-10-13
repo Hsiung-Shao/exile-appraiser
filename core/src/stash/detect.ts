@@ -20,11 +20,12 @@ const BASE = 1440
 const at = (v: number, h: number) => Math.floor(v / BASE * h)
 
 /**
- * OCR 掃描條(按鈕列 ± 資料夾偏移;寬 = 倉庫面板寬 h × 37/60)。y 150–268 / 1440:按鈕文字中心 201、資料夾內 +47 = 248
+ * OCR 掃描條(按鈕列 ± 資料夾偏移;寬 = 倉庫面板寬 h × 37/60)。y 170–268 / 1440(上緣 170 = 倉庫頁籤字下緣:切到頁籤字的一半時
+ * Windows OCR 排版錯亂、按鈕只讀到 0–1 顆,使用者 2560×1440 實機截圖重現,2026-10-14):按鈕文字中心 201、資料夾內 +47 = 248
  * (文字下緣約 260 仍在內);下緣不超過聖甲蟲第一列徽章頂端(約 269),免得換格 / 價格載入觸發重 OCR。
  */
 export function stripRect (clientH: number): Rect {
-  const y = at(150, clientH)
+  const y = at(170, clientH)
   return { x: 0, y, w: Math.floor(clientH * 37 / 60), h: at(268, clientH) - y }
 }
 

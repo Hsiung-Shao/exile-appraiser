@@ -41,14 +41,30 @@ const ZH_LABELS = ['一般', '聖甲蟲', '不滅之火', '異能']
 const EN_LABELS = ['General', 'Scarab', 'Allflame', 'Eldritch']
 const isButtonLine = (l: TextLine): boolean => ZH_LABELS.includes(l.text.replace(/\s+/g, ''))
 
+describe('S6b 實機 2560×1440 截圖(使用者回報徽章沒出現)', () => {
+  it('掃描條上緣不切到倉庫頁籤列(頁籤字下緣 170 / 1440)', () => {
+    // 上緣切到頁籤字的一半 → Windows OCR 排版錯亂、四顆按鈕只讀到 0–1 顆(實機截圖重現)
+    for (const h of [1080, 1432, 1440, 2160]) expect(stripRect(h).y, `h=${h}`).toBeGreaterThanOrEqual(Math.floor(170 / 1440 * h))
+  })
+  it('實機截圖(不在資料夾)找到按鈕、偏移 0', () => {
+    const m = findSubtabButtons(clientLines('strip-general-1440.png'), 1440, 'zh')
+    expect(m).toEqual({ found: true, matched: 3, yOffset: 0 })
+  })
+  it('實機截圖下移 47(資料夾內)找到按鈕、偏移 = folderOffset', () => {
+    const m = findSubtabButtons(clientLines('strip-general-1440-folder.png'), 1440, 'zh')
+    expect(m.found).toBe(true)
+    expect(m.yOffset).toBe(folderOffset(1440))
+  })
+})
+
 describe('S7b 幾何輔助函式', () => {
   it('stripRect(1440) 為按鈕列掃描條', () => {
     // 比例或 w = h·37/60 公式錯 → 失敗
-    expect(stripRect(1440)).toEqual({ x: 0, y: 150, w: 888, h: 118 })
+    expect(stripRect(1440)).toEqual({ x: 0, y: 170, w: 888, h: 98 })
   })
   it('stripRect(1432) 各欄取 floor', () => {
     // 忘了 floor 或 h 不是「底 − y」→ 失敗
-    const y = Math.floor(150 / 1440 * 1432)
+    const y = Math.floor(170 / 1440 * 1432)
     expect(stripRect(1432)).toEqual({ x: 0, y, w: Math.floor(1432 * 37 / 60), h: Math.floor(268 / 1440 * 1432) - y })
   })
   it('聖甲蟲格子徽章(格下緣往上 28 px)不進掃描條', () => {

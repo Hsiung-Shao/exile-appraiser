@@ -45,6 +45,9 @@ export function stashBlock (cfg: StashScanConfig, env: ScanEnv, ui: RuneshapeUiS
   return null
 }
 
+/** 「沒找到子頁按鈕」診斷記錄的最小間隔 */
+export const STASH_MISS_LOG_MS = 30_000
+
 /** 連續幾次沒找到按鈕(且沒被維持)才收掉 */
 export const STASH_MISS_LIMIT = 2
 /** 連續維持(held)上限:超過後照常累計 miss(游標停在格上按 Esc 關倉庫時不卡住);找到按鈕歸零 */
@@ -102,6 +105,8 @@ export class StashScan {
   private shown: { subtab: StashSubtab, yOffset: number, clientW: number, clientH: number } | null = null
   private lastBlock: StashBlock | null = null
   private lastOcrMs: number | null = null
+  /** 「沒找到按鈕」診斷記錄的上次時間(節流) */
+  private lastMissLogAt = -Infinity
   private ocrCount = 0
 
   constructor (deps: StashScanDeps) {
@@ -245,6 +250,13 @@ export class StashScan {
     const match = findSubtabButtons(clientLines, client.h, lang)
 
     if (!match.found) {
+      // 診斷:讀到 1–2 顆按鈕(像碎片頁但沒過門檻)時記下 OCR 文字,最多每 30 秒一次(實機回報「徽章沒出現」時查得到原因)
+      const now = this.clock.now()
+      if (match.matched > 0 && now - this.lastMissLogAt >= STASH_MISS_LOG_MS) {
+        this.lastMissLogAt = now
+        this.deps.log?.(`[stash] 沒找到子頁按鈕(認到 ${match.matched} 顆,client ${client.w}×${client.h}):` +
+          clientLines.map(l => l.text.replace(/\s+/g, '')).join(' | ').slice(0, 200))
+      }
       // 疊層顯示中(含 held / miss 累計期間)作廢差分基準(B1):畫面靜止也要重 OCR,否則 miss 累計不到上限、疊層收不掉;
       // 沒顯示時照常記下這次縮圖(N1):平常玩遊戲畫面沒變就不 OCR
       this.baseline = this.shown ? null : { key, fp }
