@@ -57,5 +57,7 @@ PoE2 共用 `ocrBadgeStyle`;價格門檻改綁 `stashThresholds`,單位 C,預覽
 `core/test/stash-layout.test.ts`(S1–S4c)、`core/test/stash-detect.test.ts`(S5–S7,真實 OCR 快照 `core/test/stash/fixtures/ocr/`,
 `node scripts/ocr-fixture.mjs --set stash` 產生)、`main/test/stash-scan.test.ts`(S8–S12c、S9e–S9g)、`renderer/test/stash-prices.test.ts`(S13–S17,含 S14d 單位 C / D)、`renderer/test/settings-ia.test.ts`(自動辨識頁兩代顯示)。
 
-## 待使用者實機確認
-真實 overlay 位置(含資料夾內、其他解析度 / 非 16:9)、子頁切換即時性、說明框遮住按鈕時不閃、滑鼠停格只留該格、英文客戶端按鈕文字。
+## 實機確認
+- **已確認(2026-10-14,使用者 2560×1440、倉庫不在資料夾)**:繁中介面與英文介面的一般 / 聖甲蟲子頁都出現徽章與價格。
+  過程中修了兩個只在實機出現的問題:掃描條切到倉庫頁籤字(上緣改 170)、英文小型大寫字(比對改不分大小寫)。
+- **待確認**:倉庫頁在資料夾內(只用合成下移圖驗過)、其他解析度 / 非 16:9、說明框遮住按鈕時不閃、滑鼠停格只留該格。
