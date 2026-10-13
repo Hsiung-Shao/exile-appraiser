@@ -1,6 +1,7 @@
 <!--
   設定 › 自動辨識:「徽章外觀」卡片(第 11 步,使用者需求;放在褻瀆 / 符文兩張 OCR 卡片之後,只有 PoE2)。
   第 39 步:符文價格的顏色門檻(`runeshapeThresholds`,原本在符文塑形卡片)搬來和三段顏色放在一起(「符文價格顏色」小節)。
+  2026-10-14:PoE1 也顯示(倉庫價格疊層共用同一組外觀):門檻改綁 `stashThresholds`(混沌石,單位 C)、預覽顯示 C / D、不顯示褻瀆預覽。
   符文價格徽章與褻瀆徽章共用 `config.ocrBadgeStyle`(overlay/badge-style.ts):
   - 字體:系統已安裝字體(main IPC `list-fonts`,一次性 PowerShell、快取;失敗 = 只剩「跟隨介面」與內建 Noto Sans TC),上方篩選框;
   - 大小:10–32 px 滑桿 +「跟隨」(null = 褻瀆跟 `--fs-base`、符文跟 `--fs-sm`);粗體;
@@ -13,9 +14,9 @@
   <section class="card badge-style-card" data-setting="badge-style-section">
     <div class="card-head">
       <span class="label">{{ t('ppz.badge_style.section') }}</span>
-      <help-tip id="badge-style" :text="t('ppz.badge_style.help')" />
+      <help-tip v-if="!isPoe1" id="badge-style" :text="t('ppz.badge_style.help')" />
     </div>
-    <p class="lead">{{ t('ppz.badge_style.hint') }}</p>
+    <p class="lead">{{ t(isPoe1 ? 'ppz.badge_style.hint_poe1' : 'ppz.badge_style.hint') }}</p>
     <div class="srow">
       <span class="k">{{ t('ppz.badge_style.font') }}</span>
       <div class="ctl bs-font">
@@ -49,15 +50,15 @@
         </select>
       </div>
     </div>
-    <span class="sublabel" data-setting="badge-price-colors">{{ t('ppz.badge_style.price_colors') }} <help-tip id="badge-tiers" :text="t('ppz.badge_style.tier_hint')" /></span>
+    <span class="sublabel" data-setting="badge-price-colors">{{ t(isPoe1 ? 'ppz.badge_style.price_colors_poe1' : 'ppz.badge_style.price_colors') }} <help-tip id="badge-tiers" :text="t(isPoe1 ? 'ppz.badge_style.tier_hint_poe1' : 'ppz.badge_style.tier_hint')" /></span>
     <div class="srow">
       <span class="k">{{ t('ppz.runeshape.thresholds') }}</span>
       <div class="ctl">
         <span class="dim">{{ t('ppz.runeshape.threshold_low') }}</span>
-        <input v-model.lazy.number="thresholdDraft.low" class="input sm rs-num" type="number" min="0" step="0.1" data-setting="runeshape-threshold-low" @change="applyThresholds">
+        <input v-model.lazy.number="thresholdDraft.low" class="input sm rs-num" type="number" min="0" :step="isPoe1 ? 1 : 0.1" :data-setting="isPoe1 ? 'stash-threshold-low' : 'runeshape-threshold-low'" @change="applyThresholds">
         <span class="dim">{{ t('ppz.runeshape.threshold_high') }}</span>
-        <input v-model.lazy.number="thresholdDraft.high" class="input sm rs-num" type="number" min="0" step="0.5" data-setting="runeshape-threshold-high" @change="applyThresholds">
-        <span class="dim">{{ t('ppz.runeshape.unit_ex') }}</span>
+        <input v-model.lazy.number="thresholdDraft.high" class="input sm rs-num" type="number" min="0" :step="isPoe1 ? 5 : 0.5" :data-setting="isPoe1 ? 'stash-threshold-high' : 'runeshape-threshold-high'" @change="applyThresholds">
+        <span class="dim">{{ isPoe1 ? t('ppz.stash.unit_c') : t('ppz.runeshape.unit_ex') }}</span>
       </div>
     </div>
     <div v-for="k in tiers" :key="k" class="srow">
@@ -71,12 +72,17 @@
     </div>
 
     <div ref="preview" class="badge-preview pob-dark" data-setting="badge-preview">
-      <div class="bp-stage" :style="runeVars">
+      <div v-if="isPoe1" class="bp-stage" :style="runeVars">
+        <div class="rs-badge tier-low kind-price" data-preview="low"><span class="rs-total">2<span class="rs-unit">{{ t('ppz.stash.unit_c') }}</span></span></div>
+        <div class="rs-badge tier-mid kind-price" data-preview="mid"><span class="rs-total">18<span class="rs-unit">{{ t('ppz.stash.unit_c') }}</span></span></div>
+        <div class="rs-badge tier-high kind-price" data-preview="high"><span class="rs-total">1.5<span class="rs-unit">{{ t('ppz.stash.unit_div') }}</span></span></div>
+      </div>
+      <div v-else class="bp-stage" :style="runeVars">
         <div class="rs-badge tier-low kind-price" data-preview="low"><span class="rs-total">0.3<span class="rs-unit">{{ t('ppz.runeshape.unit_ex') }}</span></span></div>
         <div class="rs-badge tier-mid kind-price" data-preview="mid"><span class="rs-total">2.5<span class="rs-unit">{{ t('ppz.runeshape.unit_ex') }}</span></span></div>
         <div class="rs-badge tier-high kind-price" data-preview="high"><span class="rs-total">3<span class="rs-unit">{{ t('ppz.runeshape.unit_div') }}</span></span></div>
       </div>
-      <div class="bp-stage" :style="revealVars">
+      <div v-if="!isPoe1" class="bp-stage" :style="revealVars">
         <div class="ocr-badge" data-preview="reveal">
           <div class="ocr-row">{{ t('ppz.badge_style.sample_reveal') }}</div>
           <div class="ocr-row fuzzy">≈ {{ t('ppz.badge_style.sample_reveal') }}</div>
@@ -98,7 +104,7 @@
 <script lang="ts">
 import { computed, defineComponent, onMounted, reactive, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { AppConfig, normRuneshapeThresholds } from '@/web/Config'
+import { AppConfig, DEFAULT_STASH_THRESHOLDS, normRuneshapeThresholds } from '@/web/Config'
 import { Host } from '@/web/background/IPC'
 import {
   BADGE_FONT_SIZE_MAX, BADGE_FONT_SIZE_MIN, BUILTIN_BADGE_FONT, badgeStyleVars, defaultOcrBadgeStyle, fontOptions, isDefaultBadgeStyle, normHexColor,
@@ -182,12 +188,16 @@ export default defineComponent({
     function resetAll () { config.ocrBadgeStyle = defaultOcrBadgeStyle() }
 
     // ---- WP-R2:符文塑形顏色門檻(第 39 步從符文卡片搬來;門檻不屬於「還原外觀」的範圍) ----
-    const thresholdDraft = reactive({ low: config.runeshapeThresholds.low, high: config.runeshapeThresholds.high })
-    watch(() => config.runeshapeThresholds, (v) => { thresholdDraft.low = v.low; thresholdDraft.high = v.high })
+    // PoE1 = 倉庫價格疊層的門檻(混沌石);PoE2 = 符文塑形(崇高石)
+    const isPoe1 = computed(() => config.game === 'poe1')
+    const currentThresholds = () => isPoe1.value ? config.stashThresholds : config.runeshapeThresholds
+    const thresholdDraft = reactive({ ...currentThresholds() })
+    watch(() => [isPoe1.value, config.runeshapeThresholds, config.stashThresholds], () => { Object.assign(thresholdDraft, currentThresholds()) })
     function applyThresholds () {
-      config.runeshapeThresholds = normRuneshapeThresholds({ low: Number(thresholdDraft.low), high: Number(thresholdDraft.high) })
-      thresholdDraft.low = config.runeshapeThresholds.low
-      thresholdDraft.high = config.runeshapeThresholds.high
+      const v = { low: Number(thresholdDraft.low), high: Number(thresholdDraft.high) }
+      if (isPoe1.value) config.stashThresholds = normRuneshapeThresholds(v, DEFAULT_STASH_THRESHOLDS)
+      else config.runeshapeThresholds = normRuneshapeThresholds(v)
+      Object.assign(thresholdDraft, currentThresholds())
     }
 
     return {
@@ -216,7 +226,8 @@ export default defineComponent({
       isDefault: computed(() => isDefaultBadgeStyle(style.value)),
       resetAll,
       thresholdDraft,
-      applyThresholds
+      applyThresholds,
+      isPoe1
     }
   }
 })

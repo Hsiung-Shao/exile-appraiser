@@ -251,14 +251,14 @@ export type RevealScanEvent = PanelScanEvent
 
 /**
  * PoE1 倉庫價格疊層:`stash-scan-result`(main `ocr/stash-scan.ts`;main → overlay;**不送瀏覽器預覽**)。
- * - `show`:碎片頁開著、目前子頁 `subtab`(一般 / 聖甲蟲 / 不滅之火),整體下移 `yOffset`(client 實體像素;倉庫頁在資料夾內 = 47/1440·h)。
- * - `hide`:碎片頁關了 / 換到其他頁 / 子頁是異能或判不出 / 停用、不是 PoE1 overlay、沒有遊戲視窗。
+ * - `show`:碎片頁開著、目前子頁 `subtab`(一般 / 聖甲蟲),整體下移 `yOffset`(client 實體像素;倉庫頁在資料夾內 = 47/1440·h)。
+ * - `hide`:碎片頁關了 / 換到其他頁 / 子頁是不滅之火 / 異能或判不出 / 停用、不是 PoE1 overlay、沒有遊戲視窗。
  */
 export interface StashScanEvent {
   seq: number
   ts: number
   reason: 'show' | 'hide'
-  subtab: 'general' | 'scarabs' | 'allflame' | null
+  subtab: 'general' | 'scarabs' | null
   yOffset: number
   client: { w: number, h: number }
   /** OCR 耗時(ms;有跑 OCR 的那一次才有) */
@@ -273,7 +273,7 @@ export interface StashStats {
   /** 最近一次被擋下的原因;null = 正在掃描 */
   block: string | null
   showing: boolean
-  subtab: 'general' | 'scarabs' | 'allflame' | null
+  subtab: 'general' | 'scarabs' | null
   /** 最近一次 OCR 的耗時(ms) */
   lastOcrMs: number | null
   ocrCount: number

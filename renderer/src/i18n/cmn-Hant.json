@@ -149,19 +149,22 @@
     },
     "stash": {
       "section": "倉庫價格(PoE1 碎片頁)",
-      "hint": "打開倉庫碎片頁的「一般 / 聖甲蟲 / 不滅之火」時,自動在每格標上 poe.ninja 價格(只辨識子頁按鈕文字,物品依固定版面對應)。",
+      "hint": "打開倉庫碎片頁的「一般 / 聖甲蟲」時,自動在每格標上 poe.ninja 價格(C = 混沌石、D = 神聖石)。",
       "enabled": "自動標價",
       "show_names": "徽章顯示物品名稱",
       "show_names_hint": "用來確認每格辨識的物品對不對;確認後可關掉,只留價格。",
-      "thresholds": "價格顏色門檻(混沌石)",
       "status_showing": "偵測到碎片頁:{subtab}",
       "status_idle": "等待打開倉庫碎片頁",
       "subtab_general": "一般",
       "subtab_scarabs": "聖甲蟲",
-      "subtab_allflame": "不滅之火",
       "tw_no_source": "台服沒有 poe.ninja 價格:倉庫疊層只顯示物品名稱。",
-      "unit_c": "混",
-      "unit_div": "神"
+      "unit_c": "C",
+      "unit_div": "D",
+      "help": "只用 OCR 讀碎片頁頂端的子頁按鈕(判斷倉庫開著、在哪個子頁);每格是什麼物品依固定版面對應,不需要框選區域。滑鼠停在某格時只留那一格,避免蓋住遊戲說明框。字體、大小與價格顏色在下方「徽章外觀」。",
+      "status_disabled": "已停用",
+      "status_game_inactive": "遊戲不在前景(暫停)",
+      "status_ui_open": "查價面板 / 設定開著(暫停)",
+      "timing": "OCR {ms} ms(共 {count} 次)"
     },
     "runeshape": {
       "section": "符文塑形",
@@ -239,7 +242,10 @@
       "sample_reveal": "T4 · 一般 · 21–26",
       "reset_all": "全部還原預設",
       "help": "字體、大小、粗體、外框兩種徽章都套用;價格顏色只用在符文徽章,褻瀆的語意色(例如模糊命中警告色)維持原樣。",
-      "price_colors": "符文價格顏色"
+      "price_colors": "符文價格顏色",
+      "hint_poe1": "倉庫價格徽章使用這組外觀(與 PoE2 符文 / 褻瀆徽章共用),改了立即生效。",
+      "price_colors_poe1": "倉庫價格顏色",
+      "tier_hint_poe1": "價格(混沌石)低於第一個門檻用低價顏色、達到第二個門檻用高價顏色,其餘用中價顏色;顏色同時套用到文字與左側色條。"
     },
     "preview": {
       "section": "瀏覽器預覽",

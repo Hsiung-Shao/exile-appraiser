@@ -158,12 +158,21 @@ describe('S16 台服不顯示價格', () => {
 })
 
 describe('S16b 名稱短名規則', () => {
-  it('去前後綴;其他原樣', () => {
+  it('去「聖甲蟲:」前綴與英文 Scarab 字樣;其他原樣', () => {
     expect(shortStashName('聖甲蟲：落降深淵')).toBe('落降深淵')
     expect(shortStashName('聖甲蟲:落降深淵')).toBe('落降深淵')
-    expect(shortStashName('不滅之火骷髏馬克餘燼')).toBe('骷髏馬克')
-    expect(shortStashName('Allflame Ember of Kulemak')).toBe('Kulemak')
+    expect(shortStashName('Horned Scarab of Nemeses')).toBe('Horned Nemeses')
     expect(shortStashName('黃昏的奉獻')).toBe('黃昏的奉獻')
+  })
+})
+
+describe('S14d 價格單位', () => {
+  it('混沌石 = C、神聖石 = D(兩語相同,2026-10-14 使用者指定)', () => {
+    // 改回「混 / 神」或英文 c / div → 失敗
+    for (const lang of ['cmn-Hant', 'en']) {
+      const st = JSON.parse(readFileSync(fileURLToPath(new URL(`../src/i18n/${lang}.json`, import.meta.url)), 'utf8')).ppz.stash
+      expect([st.unit_c, st.unit_div], lang).toEqual(['C', 'D'])
+    }
   })
 })
 

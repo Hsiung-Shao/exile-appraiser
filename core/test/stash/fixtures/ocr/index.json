@@ -1,5 +1,5 @@
 {
- "note": "使用者錄影(2026-10-14)裁出的倉庫按鈕列區(client 座標 = 圖像素 + crop);subtab = 目前子頁(null = 不該判定出子頁:說明框遮住 / 不是按鈕列);*-1440* 為使用者 2560×1440 實機截圖(2026-10-14,-folder = 整張下移 47 px 模擬資料夾內),只裁 y 170–268(頁籤列被切半時 OCR 讀不到按鈕)",
+ "note": "使用者錄影(2026-10-14)裁出的倉庫按鈕列區(client 座標 = 圖像素 + crop);subtab = 目前子頁(null = 不該判定出子頁:說明框遮住 / 不是按鈕列);*-1440* 為使用者 2560×1440 實機截圖(2026-10-14,-folder = 整張下移 47 px 模擬資料夾內),只裁 y 170–268(頁籤列被切半時 OCR 讀不到按鈕);strip-allflame-1432 是不滅之火子頁(2026-10-14 起不畫 → subtab null)",
  "fixtures": [
   {
    "file": "strip-scarabs-1432.png",
@@ -20,7 +20,7 @@
    "clientH": 1432,
    "cropX": 0,
    "cropY": 139,
-   "subtab": "allflame"
+   "subtab": null
   },
   {
    "file": "strip-tooltip-1432.png",

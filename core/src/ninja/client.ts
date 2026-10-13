@@ -45,9 +45,7 @@ export interface NinjaCategories {
 export const NINJA_CATEGORIES: Record<NinjaGame, NinjaCategories> = {
   poe1: {
     exchange: ['Currency', 'Fragment', 'Scarab', 'Oil', 'Essence', 'Fossil', 'Resonator', 'DeliriumOrb',
-      'Tattoo', 'Omen', 'Runegraft', 'DivinationCard',
-      // PoE1 倉庫價格疊層(碎片頁「不滅之火」子頁):不滅之火餘燼(Exile-UI stash-ninja 同類別名)
-      'AllflameEmber'],
+      'Tattoo', 'Omen', 'Runegraft', 'DivinationCard'],
     item: ['SkillGem', 'Map', 'UniqueMap', 'UniqueWeapon', 'UniqueArmour', 'UniqueAccessory', 'UniqueJewel', 'UniqueFlask']
   },
   poe2: {

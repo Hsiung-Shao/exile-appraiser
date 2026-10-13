@@ -4,14 +4,14 @@
 (https://github.com/Lailloken/Exile-UI/wiki/Stash‐Ninja,MIT)。
 
 ## 範圍
-- 碎片頁三個子頁:**一般**(60 格)、**聖甲蟲**(115 格)、**不滅之火**(8 格)。「異能」子頁沒有版面 → 不畫。
+- 碎片頁兩個子頁:**一般**(60 格)、**聖甲蟲**(115 格)。「不滅之火」(2026-10-14 使用者決定刪除)與「異能」子頁 → 不畫。
 - 只在 PoE1 + overlay 模式;國際服才有價格(台服沒有 poe.ninja → 只顯示名稱,提示一次)。
 - 第二段(未做):讀每格數量 → 堆疊總價、整頁總價。
 
 ## 為什麼物品身分不靠 OCR
 格子裡只有圖示 + 數量,名稱要滑鼠移上去才看得到。物品身分改用**固定版面**依位置對應:
 `data/poe1/stash/layouts.json` 由 `scripts/sync-stash-layouts.mjs --from <Exile-UI clone>` 從 Exile-UI
-`data/global/[stash-ninja] tabs.json` 轉出(fragments / scarabs / betrayal 三組)。
+`data/global/[stash-ninja] tabs.json` 轉出(fragments / scarabs 兩組;betrayal = 不滅之火不取)。
 
 - 座標:1440 基準;x 或 y 為 0 = 接續前一格。換算 `core/src/stash/layout.ts` `cellRects`,與 Exile-UI `stash-ninja.ahk` 逐格相同
   (x 先 `Format("{:.10f}")` 取 10 位小數再乘、y 直接 Floor;box = h/32、h/24、h/20;gap = h//160、Round(h/72)、Round(h/80))。
@@ -45,16 +45,17 @@
 ## 呈現(照符文塑形徽章)
 `renderer/src/web/overlay/StashPrices.vue` + `stash-view.ts`:徽章貼在格子下緣、格寬內置中;外觀沿用 `.rs-badge`、`config.ocrBadgeStyle`
 的 `--badge-*` 變數與三段價格色(`badgeStyleVars(…, 'stash')`);門檻 `stashThresholds`(混沌石,預設 5 / 50);≥ 1 神聖石改神聖石。
-名稱那一行 = 辨識檢視(`stashShowNames`,預設開)。設定在 設定 › 倉庫與聊天 › 倉庫價格(只在 PoE1 顯示)。
+價格單位:混沌石 **C**、神聖石 **D**(2026-10-14 使用者指定,兩語相同)。名稱那一行 = 辨識檢視(`stashShowNames`,預設開)。
+設定在 **設定 › 自動辨識**(2026-10-14 使用者回報放在「倉庫與聊天」找不到,搬過來;自動辨識頁 PoE1 起也顯示):PoE1 時只有共用卡片、
+「倉庫價格」卡片(版面照褻瀆 / 符文卡片:啟用、狀態、掃描間隔、最近耗時、顯示名稱;`StashPricesSection.vue`)與「徽章外觀」(字體 / 大小 / 外框與
+PoE2 共用 `ocrBadgeStyle`;價格門檻改綁 `stashThresholds`,單位 C,預覽顯示 C / D);褻瀆 / 符文卡片只在 PoE2。
 
 ## 價格
-`usePoeninja().priceOf(refName)`;poe.ninja 類別 Scarab / Fragment 原本就有,2026-10-14 補 `AllflameEmber`(網頁 slug `allflame-embers`;
-錄製檔 `core/test/recordings/ninja/exchange_AllflameEmber.json`)。層顯示時 `queuePricesFetch()`。
+`usePoeninja().priceOf(refName)`;poe.ninja 類別 Scarab / Fragment 原本就有(曾為不滅之火補 `AllflameEmber`,刪除不滅之火時一併撤回)。層顯示時 `queuePricesFetch()`。
 
 ## 測試
 `core/test/stash-layout.test.ts`(S1–S4c)、`core/test/stash-detect.test.ts`(S5–S7,真實 OCR 快照 `core/test/stash/fixtures/ocr/`,
-`node scripts/ocr-fixture.mjs --set stash` 產生)、`main/test/stash-scan.test.ts`(S8–S12c、S9e–S9g)、`renderer/test/stash-prices.test.ts`(S13–S17)、
-`core/test/ninja.test.ts` S15。
+`node scripts/ocr-fixture.mjs --set stash` 產生)、`main/test/stash-scan.test.ts`(S8–S12c、S9e–S9g)、`renderer/test/stash-prices.test.ts`(S13–S17,含 S14d 單位 C / D)、`renderer/test/settings-ia.test.ts`(自動辨識頁兩代顯示)。
 
 ## 待使用者實機確認
 真實 overlay 位置(含資料夾內、其他解析度 / 非 16:9)、子頁切換即時性、說明框遮住按鈕時不閃、滑鼠停格只留該格、英文客戶端按鈕文字。

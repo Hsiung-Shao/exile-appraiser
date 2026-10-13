@@ -2,7 +2,7 @@
   "schema": 1,
   "base": 1440,
   "note": "座標 = Exile-UI 1440 基準;x 或 y 為 0 = 接續前一格(換算見 core/src/stash/layout.ts)",
-  "buttons": {"general":{"x":116,"y":186},"scarabs":{"x":284,"y":0},"allflame":{"x":452,"y":0}},
+  "buttons": {"general":{"x":116,"y":186},"scarabs":{"x":284,"y":0}},
   "subtabs": {
     "general": [
       {"x":124,"y":266,"refName":"Sacrifice at Dusk"},
@@ -182,16 +182,6 @@
       {"x":785,"y":654,"refName":"Horned Scarab of Tradition"},
       {"x":785,"y":708,"refName":"Horned Scarab of Glittering"},
       {"x":785,"y":762,"refName":"Horned Scarab of Pandemonium"}
-    ],
-    "allflame": [
-      {"x":272,"y":505,"refName":"Allflame Ember of Resplendence"},
-      {"x":0,"y":0,"refName":"Allflame Ember of Kulemak"},
-      {"x":453,"y":0,"refName":"Allflame Ember of the Ethereal"},
-      {"x":0,"y":0,"refName":"Allflame Ember of Propagation"},
-      {"x":272,"y":613,"refName":"Allflame Ember of the Gilded"},
-      {"x":0,"y":0,"refName":"Allflame Ember of Flesh"},
-      {"x":453,"y":0,"refName":"Allflame Ember of the Wildwood"},
-      {"x":0,"y":0,"refName":"Allflame Ember of Toads"}
     ]
   }
 }

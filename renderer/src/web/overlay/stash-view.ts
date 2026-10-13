@@ -28,11 +28,11 @@ export interface StashBadgeView {
   hovered: boolean
 }
 
-/** 格內短名:去掉「聖甲蟲:」前綴、不滅之火的前綴與「餘燼」;英文去掉 Scarab / Allflame Ember 字樣 */
+/** 格內短名:去掉「聖甲蟲:」前綴;英文去掉 Scarab 字樣 */
 export function shortStashName (name: string): string {
-  const zh = name.replace(/^聖甲蟲[：:]/, '').replace(/^不滅之火/, '').replace(/餘燼$/, '')
+  const zh = name.replace(/^聖甲蟲[：:]/, '')
   if (zh !== name) return zh
-  return name.replace(/^Allflame Ember of /, '').replace(/ Scarab( of)?/, '').trim() || name
+  return name.replace(/ Scarab( of)?/, '').trim() || name
 }
 
 /** chaos → 顯示單位(PoE1:≥ 1 神聖石改神聖石,與查價面板 autoCurrency 同精神) */

@@ -164,14 +164,6 @@
         "Kingmaker",
         "Foulborn Reefbane"
       ]
-    },
-    "exchange_AllflameEmber.json": {
-      "url": "https://poe.ninja/poe1/api/economy/exchange/current/overview?league=Allflame&type=AllflameEmber",
-      "status": 200,
-      "bytes": 4619,
-      "lines": 8,
-      "fetchedAt": "2026-10-14",
-      "note": "PoE1 倉庫價格疊層補抓(不滅之火餘燼類別),原樣"
     }
   }
 }

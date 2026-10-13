@@ -113,7 +113,8 @@ describe('S7b 幾何輔助函式', () => {
     // 順序錯 → 判定成別的子頁
     expect([...SUBTAB_LABELS.zh]).toEqual(ZH_LABELS)
     expect([...SUBTAB_LABELS.en]).toEqual(EN_LABELS)
-    expect([...BUTTON_SUBTABS]).toEqual(['general', 'scarabs', 'allflame', null])
+    // 不滅之火 2026-10-14 使用者決定不做 → 第 3 顆與異能一樣不畫
+    expect([...BUTTON_SUBTABS]).toEqual(['general', 'scarabs', null, null])
   })
 })
 
@@ -238,7 +239,7 @@ async function buttonP99 (name: string): Promise<number[]> {
   })
 }
 
-describe('S7 子頁判定三頁各自正確', () => {
+describe('S7 子頁判定:一般 / 聖甲蟲各自正確,不滅之火不畫', () => {
   for (const name of STRIPS) {
     it(`${name} 由像素判定 = index.json 的子頁`, async () => {
       // 按鈕框錯位、p99 算錯、或 BUTTON_SUBTABS 對應錯 → 失敗
@@ -246,6 +247,10 @@ describe('S7 子頁判定三頁各自正確', () => {
       expect(activeSubtab(p)).toBe(fixture(name).subtab)
     })
   }
+  it('第 3 顆(不滅之火)最亮 → null', () => {
+    // 把不滅之火對到某子頁 → 已移除的子頁又被畫出來
+    expect(activeSubtab([140, 141, 160, 143])).toBeNull()
+  })
   it('第 4 顆(異能)最亮 → null', () => {
     // 把異能對到某子頁 → 失敗
     expect(activeSubtab([140, 141, 143, 160])).toBeNull()

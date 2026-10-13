@@ -1,9 +1,10 @@
 <!--
-  設定 › 自動辨識(第 39 步,原「熱鍵與視窗」分頁 PoE2 的三張卡片;只在 PoE2 出現在選單):
+  設定 › 自動辨識(第 39 步,原「熱鍵與視窗」分頁 PoE2 的三張卡片;2026-10-14 起 PoE1 也出現在選單:倉庫價格疊層):
   - 共用:辨識語言(`ocrLang`,褻瀆與符文塑形共用,第 25 步)、OCR 語言包狀態、隱私與 CPU 各一句(原本分散在兩張卡片 ×2–3 次)。
   - 褻瀆詞綴 / 符文塑形:OcrScanSection.vue(啟用、狀態、掃描間隔、區域、最近耗時);暫停 / 框選熱鍵搬到「熱鍵」總表。
   - 徽章外觀:BadgeStyleSection.vue(符文價格顏色的門檻 `runeshapeThresholds` 從符文卡片搬來,與三段顏色放在一起)。
-  兩個辨識都只在 overlay 模式 → 設定不是 overlay 時整頁只顯示 OverlayGate。設定鍵 / 行為不變。
+  - PoE1:共用卡片 + 倉庫價格(StashPricesSection.vue)+ 徽章外觀(門檻改用 `stashThresholds` 混沌石);褻瀆 / 符文兩張卡片只在 PoE2。
+  所有辨識都只在 overlay 模式 → 設定不是 overlay 時整頁只顯示 OverlayGate。設定鍵 / 行為不變。
 -->
 <template>
   <overlay-gate v-if="!config.overlayMode" />
@@ -34,8 +35,11 @@
       <p v-if="ocrStatus.kind === 'bad' && ocrAvail && !ocrAvail.ok && ocrAvail.error === 'lang-missing'" class="err-line" data-setting="ocr-lang-missing">{{ t(ocrWantsEn ? 'ppz.ocr.err_lang_missing_en' : 'ppz.ocr.err_lang_missing') }}</p>
     </section>
 
+    <!-- PoE1 倉庫價格疊層(碎片頁;2026-10-14 從「倉庫與聊天」搬來) -->
+    <stash-prices-section v-if="config.game === 'poe1'" />
+
     <!-- WP-S:靈魂之井褻瀆自動辨識 -->
-    <ocr-scan-section kind="reveal">
+    <ocr-scan-section v-if="config.game === 'poe2'" kind="reveal">
       <template #extra>
         <div class="chk-row">
           <label class="chk"><input v-model="config.revealShowAllCandidates" type="checkbox" data-setting="reveal-show-all"><span>{{ t('ppz.ocr.show_all_candidates') }}</span></label>
@@ -45,7 +49,7 @@
     </ocr-scan-section>
 
     <!-- WP-R2:符文塑形面板自動查價 -->
-    <ocr-scan-section kind="runeshape">
+    <ocr-scan-section v-if="config.game === 'poe2'" kind="runeshape">
       <template #top>
         <p v-if="config.realm === 'tw'" class="foot warn" data-setting="runeshape-tw">{{ t('ppz.runeshape.tw_no_source') }}</p>
       </template>
@@ -66,11 +70,12 @@ import { ocrWantsEnglish } from '@/web/ocr-lang'
 import { Host } from '@/web/background/IPC'
 import OcrScanSection from '../OcrScanSection.vue'
 import BadgeStyleSection from '../BadgeStyleSection.vue'
+import StashPricesSection from '../StashPricesSection.vue'
 import HelpTip from '../HelpTip.vue'
 import OverlayGate from '../OverlayGate.vue'
 
 export default defineComponent({
-  components: { OcrScanSection, BadgeStyleSection, HelpTip, OverlayGate },
+  components: { OcrScanSection, BadgeStyleSection, StashPricesSection, HelpTip, OverlayGate },
   setup () {
     const { t } = useI18n()
     const config = AppConfig()
@@ -90,10 +95,10 @@ export default defineComponent({
         checking.value = false
       }
     }
-    onMounted(() => { if (config.game === 'poe2') void checkOcr() })
+    onMounted(() => { void checkOcr() })
     // 第 22 步:OCR 語言包跟著客戶端語言;第 25 步起可用 `ocrLang` 獨立指定(main 收到設定後換語言包)→ 設定送到 main 之後重新檢查
     watch(() => [config.language, config.ocrLang], () => {
-      if (config.game === 'poe2' && canCheck) void afterHostConfigApplied(hostConfigSettled, () => { void checkOcr() }, 0)
+      if (canCheck) void afterHostConfigApplied(hostConfigSettled, () => { void checkOcr() }, 0)
     })
     /** 缺的是英文語言包(main 回報想用的語言包;舊 main 沒回報 → 依目前的客戶端語言) */
     const ocrWantsEn = computed(() => ocrWantsEnglish(ocrAvail.value, config.language, config.ocrLang))

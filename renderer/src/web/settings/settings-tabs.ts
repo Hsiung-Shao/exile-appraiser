@@ -27,7 +27,8 @@ export const SETTINGS_TABS: readonly SettingsTabDef[] = [
   { id: 'game', key: 'ppz.tab_game', group: 'settings' },
   { id: 'price-check', key: 'ppz.tab_price_check', group: 'settings' },
   { id: 'stash-chat', key: 'ppz.tab_stash_chat', group: 'settings' },
-  { id: 'recognition', key: 'ppz.tab_recognition', group: 'settings', poe2Only: true },
+  // 2026-10-14 起 PoE1 也顯示(倉庫價格疊層);poe2Only 機制保留給之後只屬於 PoE2 的分頁
+  { id: 'recognition', key: 'ppz.tab_recognition', group: 'settings' },
   { id: 'hotkeys', key: 'ppz.tab_hotkeys', group: 'settings' },
   { id: 'about', key: 'ppz.tab_about', group: 'settings' },
   { id: 'regex', key: 'ppz.tab_regex', group: 'tools' },
@@ -61,7 +62,7 @@ export function visibleTabs (game: 'poe1' | 'poe2'): SettingsTabDef[] {
 
 /**
  * 任何來源的分頁 id(托盤 / 預覽網址 `#tab=` / 程式內跳轉 / 舊值)→ 實際要顯示的分頁。
- * 不認得的 → `general`;舊值照 `LEGACY_SETTINGS_TABS`;目前遊戲看不到的(PoE1 的自動辨識)→ `game`。
+ * 不認得的 → `general`;舊值照 `LEGACY_SETTINGS_TABS`;目前遊戲看不到的(`poe2Only` 分頁在 PoE1)→ `game`。
  */
 export function resolveSettingsTab (id: string | null | undefined, game: 'poe1' | 'poe2'): SettingsTabId {
   let tab: SettingsTabId = 'general'

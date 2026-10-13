@@ -213,8 +213,10 @@ describe('瀏覽器預覽的上一頁 / 下一頁', () => {
     const n = br.entries.length
     w.select('stash-chat')
     expect(br.entries).toHaveLength(n)
-    br.typeHash('#tab=recognition') // PoE1 看不到自動辨識 → 遊戲
-    expect(w.s.tab).toBe('game')
+    br.typeHash('#tab=recognition') // 2026-10-14 起 PoE1 也有自動辨識(倉庫價格)
+    expect(w.s.tab).toBe('recognition')
+    br.typeHash('#tab=nope') // 不認得 → 一般
+    expect(w.s.tab).toBe('general')
   })
 
   it('關掉設定(stop)後不再處理上一頁', () => {

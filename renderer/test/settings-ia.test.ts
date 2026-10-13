@@ -1,5 +1,5 @@
 // 第 39 步(設定頁資訊架構整理)守門:分頁表與舊 id 映射、熱鍵總表涵蓋 hotkey-conflicts.ts 的全部熱鍵、
-// PoE1 不顯示自動辨識頁、條件隱藏、功能頁不再放全域熱鍵、說明一句 + 「?」、i18n 兩語齊全。
+// 自動辨識頁兩代都顯示(PoE1 = 倉庫價格)、條件隱藏、功能頁不再放全域熱鍵、說明一句 + 「?」、i18n 兩語齊全。
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -46,12 +46,20 @@ describe('分頁表與舊 id 映射', () => {
       expect(resolveSettingsTab('__proto__', game)).toBe('general')
     }
   })
-  it('PoE1 不顯示自動辨識頁(選單看不到、指定了改到「遊戲」);PoE2 顯示', () => {
-    expect(visibleTabs('poe1').map(t => t.id)).not.toContain('recognition')
+  it('自動辨識頁兩代都顯示(2026-10-14 起 PoE1 = 倉庫價格);PoE1 只放倉庫卡片、PoE2 只放褻瀆 / 符文', () => {
+    // 使用者回報「倉庫價格放在倉庫與聊天不知道去哪找」→ 搬到自動辨識,PoE1 也要看得到
+    expect(visibleTabs('poe1').map(t => t.id)).toContain('recognition')
     expect(visibleTabs('poe2').map(t => t.id)).toContain('recognition')
-    expect(resolveSettingsTab('recognition', 'poe1')).toBe('game')
+    expect(resolveSettingsTab('recognition', 'poe1')).toBe('recognition')
     expect(resolveSettingsTab('recognition', 'poe2')).toBe('recognition')
-    expect(visibleTabs('poe1')).toHaveLength(SETTINGS_TABS.length - 1)
+    const rec = read('renderer/src/web/settings/tabs/Recognition.vue')
+    expect(rec).toContain(`<stash-prices-section v-if="config.game === 'poe1'" />`)
+    expect(rec).toContain(`<ocr-scan-section v-if="config.game === 'poe2'" kind="reveal">`)
+    expect(rec).toContain(`<ocr-scan-section v-if="config.game === 'poe2'" kind="runeshape">`)
+    expect(read('renderer/src/web/settings/tabs/StashChat.vue')).not.toContain('stash-prices-section')
+    // 徽章外觀:PoE1 門檻綁 stashThresholds(混沌石)
+    const badge = read('renderer/src/web/settings/BadgeStyleSection.vue')
+    expect(badge).toContain('config.stashThresholds = normRuneshapeThresholds(v, DEFAULT_STASH_THRESHOLDS)')
   })
   it('跳轉呼叫:托盤 / 預覽網址經 resolveSettingsTab;OCR 框選回自動辨識;⚖ 拆粉排行;書籤列「前往正則」', () => {
     const app = read('renderer/src/web/App.vue')

@@ -16,7 +16,7 @@
       "repo": "Lailloken/Exile-UI data/global/[stash-ninja] tabs.json",
       "path": "https://github.com/Lailloken/Exile-UI/blob/67d1a3637e97b791072129f0cf890e22f385b237/data/global/%5Bstash-ninja%5D%20tabs.json",
       "commit": "67d1a3637e97b791072129f0cf890e22f385b237",
-      "generatedAt": "2026-10-13T21:52:13.511Z"
+      "generatedAt": "2026-10-13T23:18:38.600Z"
     },
     "data/poe2": {
       "repo": "ee2-patched (Hsiung-Shao/Exiled-Exchange-2-zh-TW)",
@@ -152,8 +152,8 @@
       "bytes": 40521
     },
     "data/poe1/stash/layouts.json": {
-      "sha256": "07448240989b8be4066ee030981e55243cf890a3edc2a08c5ca89e99db77b697",
-      "bytes": 11085
+      "sha256": "243d7952d635a2c657e84cd4a17dd2a18b6a0269b3f5c1e247bb8b1972967a25",
+      "bytes": 10532
     },
     "data/poe2/cmn-Hant/app_i18n.json": {
       "sha256": "2cb73288b387a1fc8760aab18b3725cbfc652cd6823d5a8faee6d566d556fca3",

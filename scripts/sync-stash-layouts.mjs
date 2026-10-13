@@ -4,7 +4,8 @@
 //   node scripts/sync-stash-layouts.mjs --from <Exile-UI clone> [--allow-dirty]
 // 來源:https://github.com/Lailloken/Exile-UI(MIT)。
 // 規則:
-//   * 只取碎片頁三個子頁:fragments(一般)、scarabs(聖甲蟲)、betrayal(不滅之火);tab_* 三列 = 子頁按鈕位置。
+//   * 只取碎片頁兩個子頁:fragments(一般)、scarabs(聖甲蟲)(2026-10-14 使用者決定不做不滅之火 betrayal);
+//     tab_* 三列 = 子頁按鈕位置(只留這兩頁的)。
 //   * 座標維持 1440 基準與「0 = 接續前一格」的寫法(換算規則在 core/src/stash/layout.ts,與 Exile-UI 逐格相同)。
 //   * 名稱:聖甲蟲 "of xxx" 接上一格的前綴(Exile-UI stash-ninja.ahk 同規則);以英文全名對 data/poe1/en/items.ndjson
 //     的 refName(不分大小寫)→ 寫標準寫法;對不到 → 失敗(表的第 4 欄 ID 可能過期,不拿來對接)。
@@ -51,9 +52,10 @@ for (const line of fs.readFileSync(path.join(ROOT, 'data', 'poe1', 'en', 'items.
   if (o.namespace === 'ITEM') refNames.set(String(o.refName).toLowerCase(), o.refName)
 }
 
-/** Exile-UI 鍵 → 本專案子頁 id(碎片頁「一般 / 聖甲蟲 / 不滅之火」) */
-const SUBTABS = /** @type {const} */ ([['general', 'fragments'], ['scarabs', 'scarabs'], ['allflame', 'betrayal']])
-const BUTTONS = /** @type {const} */ ({ tab_fragments: 'general', tab_scarabs: 'scarabs', tab_betrayal: 'allflame' })
+/** Exile-UI 鍵 → 本專案子頁 id(碎片頁「一般 / 聖甲蟲」) */
+const SUBTABS = /** @type {const} */ ([['general', 'fragments'], ['scarabs', 'scarabs']])
+/** 子頁按鈕(`tab_betrayal` = 不滅之火,不做 → 略過) */
+const BUTTONS = /** @type {const} */ ({ tab_fragments: 'general', tab_scarabs: 'scarabs', tab_betrayal: null })
 
 const src = JSON.parse(fs.readFileSync(SRC, 'utf8'))
 const num = (/** @type {unknown} */ v, /** @type {string} */ where) => {
@@ -80,9 +82,9 @@ for (const [id, key] of SUBTABS) {
     const y = num(row[1], where)
     const name = String(row[2])
     if (name.startsWith('tab_')) {
+      if (!(name in BUTTONS)) throw new Error(`${where}:未知子頁按鈕 ${name}`)
       const b = BUTTONS[/** @type {keyof typeof BUTTONS} */ (name)]
-      if (!b) throw new Error(`${where}:未知子頁按鈕 ${name}`)
-      btn[b] = { x, y }
+      if (b) btn[b] = { x, y }
       continue
     }
     if (cells.length === 0 && (x === 0 || y === 0)) throw new Error(`${where}:第一格必須有完整座標`)
@@ -93,7 +95,7 @@ for (const [id, key] of SUBTABS) {
     if (!refName) throw new Error(`${where}:「${full}」在 data/poe1/en/items.ndjson 找不到`)
     cells.push({ x, y, refName })
   }
-  if (Object.keys(btn).length !== 3) throw new Error(`${key}:子頁按鈕不是三顆`)
+  if (Object.keys(btn).length !== SUBTABS.length) throw new Error(`${key}:子頁按鈕數不符`)
   if (buttons && JSON.stringify(buttons) !== JSON.stringify(btn)) throw new Error(`${key}:子頁按鈕位置與其他子頁不同`)
   buttons = btn
   subtabs[id] = cells

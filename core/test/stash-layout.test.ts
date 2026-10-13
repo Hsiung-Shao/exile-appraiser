@@ -58,12 +58,14 @@ function oRects (file: StashLayoutFile, s: StashSubtab, h: number, yOffset = 0):
 const layouts = (): StashLayoutFile => parseStashLayouts(RAW_LAYOUTS)
 
 describe('S1 版面資料', () => {
-  it('三子頁每格 refName 在英繁 items.ndjson 都有、格數 60/115/8、子頁內不重複', () => {
+  it('兩子頁每格 refName 在英繁 items.ndjson 都有、格數 60/115、子頁內不重複(不滅之火已移除)', () => {
     const file = layouts()
-    expect([...STASH_SUBTABS]).toEqual(['general', 'scarabs', 'allflame'])
+    expect([...STASH_SUBTABS]).toEqual(['general', 'scarabs'])
+    // 不滅之火 2026-10-14 使用者決定不做:資料檔不該再帶這一組
+    expect(Object.keys(file.subtabs)).toEqual(['general', 'scarabs'])
     const en = itemNames('en')
     const zh = itemNames('cmn-Hant')
-    const counts = { general: 60, scarabs: 115, allflame: 8 }
+    const counts = { general: 60, scarabs: 115 }
     for (const s of STASH_SUBTABS) {
       const cells = file.subtabs[s]
       expect(cells.length, s).toBe(counts[s])
@@ -174,11 +176,10 @@ describe('S4c parseStashLayouts 擋壞格式', () => {
   const good = (): any => ({
     schema: 1,
     base: 1440,
-    buttons: { general: { x: 1, y: 1 }, scarabs: { x: 2, y: 0 }, allflame: { x: 3, y: 0 } },
+    buttons: { general: { x: 1, y: 1 }, scarabs: { x: 2, y: 0 } },
     subtabs: {
       general: [{ x: 10, y: 10, refName: 'A' }, { x: 0, y: 0, refName: 'B' }],
-      scarabs: [{ x: 10, y: 10, refName: 'C' }],
-      allflame: [{ x: 10, y: 10, refName: 'D' }]
+      scarabs: [{ x: 10, y: 10, refName: 'C' }]
     }
   })
 
@@ -198,7 +199,7 @@ describe('S4c parseStashLayouts 擋壞格式', () => {
   })
 
   it('第一格 x 為 0 時 throw', () => {
-    const f = good(); f.subtabs.allflame[0].x = 0
+    const f = good(); f.subtabs.scarabs[0].x = 0
     expect(() => parseStashLayouts(f)).toThrow()
   })
 

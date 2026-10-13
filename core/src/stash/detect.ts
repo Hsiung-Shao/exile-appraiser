@@ -13,8 +13,8 @@ export const SUBTAB_LABELS: Record<StashTextLang, readonly [string, string, stri
   zh: ['一般', '聖甲蟲', '不滅之火', '異能'],
   en: ['General', 'Scarab', 'Allflame', 'Eldritch']
 }
-/** 第 4 顆(異能)沒有版面 → null */
-export const BUTTON_SUBTABS: readonly [StashSubtab, StashSubtab, StashSubtab, null] = ['general', 'scarabs', 'allflame', null]
+/** 第 3 顆(不滅之火,2026-10-14 使用者決定不做)、第 4 顆(異能)沒有版面 → null(按鈕文字仍用來判定碎片頁開著) */
+export const BUTTON_SUBTABS: readonly [StashSubtab, StashSubtab, null, null] = ['general', 'scarabs', null, null]
 
 const BASE = 1440
 const at = (v: number, h: number) => Math.floor(v / BASE * h)

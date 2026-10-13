@@ -93,7 +93,7 @@ export interface Config {
   runeshapeIntervalMs: number
   /** WP-R2:徽章顏色門檻(崇高石):< low 暗色、≥ high 金色、之間一般。 */
   runeshapeThresholds: RuneshapeThresholds
-  /** PoE1 倉庫價格疊層(碎片頁:一般 / 聖甲蟲 / 不滅之火;預設開;只在 PoE1 + overlay 有作用)。 */
+  /** PoE1 倉庫價格疊層(碎片頁:一般 / 聖甲蟲;預設開;只在 PoE1 + overlay 有作用)。 */
   stashPricesEnabled: boolean
   /** PoE1 倉庫價格疊層:子頁按鈕列掃描間隔 ms(100–3000,預設 1000)。 */
   stashPricesIntervalMs: number

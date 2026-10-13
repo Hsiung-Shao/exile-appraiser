@@ -2,22 +2,79 @@
   "note": "使用者錄影(2026-10-14,client 高 1432、倉庫不在資料夾)人工標註。hover = 滑鼠停在該格時遊戲說明框的標題(繁中)與該格畫面中心;slots = 由放大影格量到的格子底框中心。座標為 client 實體像素。",
   "clientH": 1432,
   "hover": [
-    { "subtab": "scarabs", "x": 150, "y": 272, "name": "聖甲蟲：風險製圖" },
-    { "subtab": "scarabs", "x": 150, "y": 520, "name": "聖甲蟲：侵略穿越" },
-    { "subtab": "scarabs", "x": 420, "y": 770, "name": "聖甲蟲：卡爾葛" },
-    { "subtab": "scarabs", "x": 472, "y": 272, "name": "聖甲蟲：尊師感染" },
-    { "subtab": "scarabs", "x": 578, "y": 398, "name": "聖甲蟲：落降深淵" },
-    { "subtab": "scarabs", "x": 632, "y": 398, "name": "聖甲蟲：伴侶深淵" },
-    { "subtab": "general", "x": 392, "y": 290, "name": "奧赫茲明刻紋" },
-    { "subtab": "general", "x": 392, "y": 370, "name": "巴倫刻紋" },
-    { "subtab": "general", "x": 697, "y": 535, "name": "釋界之令" },
-    { "subtab": "general", "x": 542, "y": 700, "name": "敬畏之迴響" },
-    { "subtab": "allflame", "x": 395, "y": 530, "name": "不滅之火骷髏馬克餘燼" },
-    { "subtab": "allflame", "x": 575, "y": 530, "name": "不滅之火傳播餘燼" },
-    { "subtab": "allflame", "x": 485, "y": 640, "name": "不滅之火荒林餘燼" }
+    {
+      "subtab": "scarabs",
+      "x": 150,
+      "y": 272,
+      "name": "聖甲蟲：風險製圖"
+    },
+    {
+      "subtab": "scarabs",
+      "x": 150,
+      "y": 520,
+      "name": "聖甲蟲：侵略穿越"
+    },
+    {
+      "subtab": "scarabs",
+      "x": 420,
+      "y": 770,
+      "name": "聖甲蟲：卡爾葛"
+    },
+    {
+      "subtab": "scarabs",
+      "x": 472,
+      "y": 272,
+      "name": "聖甲蟲：尊師感染"
+    },
+    {
+      "subtab": "scarabs",
+      "x": 578,
+      "y": 398,
+      "name": "聖甲蟲：落降深淵"
+    },
+    {
+      "subtab": "scarabs",
+      "x": 632,
+      "y": 398,
+      "name": "聖甲蟲：伴侶深淵"
+    },
+    {
+      "subtab": "general",
+      "x": 392,
+      "y": 290,
+      "name": "奧赫茲明刻紋"
+    },
+    {
+      "subtab": "general",
+      "x": 392,
+      "y": 370,
+      "name": "巴倫刻紋"
+    },
+    {
+      "subtab": "general",
+      "x": 697,
+      "y": 535,
+      "name": "釋界之令"
+    },
+    {
+      "subtab": "general",
+      "x": 542,
+      "y": 700,
+      "name": "敬畏之迴響"
+    }
   ],
   "slots": [
-    { "subtab": "scarabs", "refName": "Cartography Scarab of Escalation", "cx": 98, "cy": 268 },
-    { "subtab": "general", "refName": "Sacrifice at Dusk", "cx": 149.5, "cy": 290 }
+    {
+      "subtab": "scarabs",
+      "refName": "Cartography Scarab of Escalation",
+      "cx": 98,
+      "cy": 268
+    },
+    {
+      "subtab": "general",
+      "refName": "Sacrifice at Dusk",
+      "cx": 149.5,
+      "cy": 290
+    }
   ]
 }
