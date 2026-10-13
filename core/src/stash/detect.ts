@@ -65,7 +65,8 @@ export function findSubtabButtons (lines: readonly TextLine[], clientH: number, 
     let best: TextLine | null = null
     let bestD = Infinity
     for (const l of lines) {
-      if (l.text.replace(/\s+/g, '') !== labels[k]) continue
+      // 不分大小寫:英文介面的按鈕是小型大寫字,OCR 讀成全大寫(GENERAL / SCARAB…;使用者實機截圖,2026-10-14)
+      if (l.text.replace(/\s+/g, '').toUpperCase() !== labels[k].toUpperCase()) continue
       const d = Math.abs(l.x + l.w / 2 - cx)
       if (d <= xTol && d < bestD) { best = l; bestD = d }
     }

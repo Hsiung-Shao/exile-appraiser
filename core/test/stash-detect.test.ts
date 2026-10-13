@@ -57,6 +57,17 @@ describe('S6b 實機 2560×1440 截圖(使用者回報徽章沒出現)', () => {
   })
 })
 
+describe('S6c 實機英文介面(按鈕是小型大寫字)', () => {
+  it('OCR 讀成全大寫(GENERAL / SCARAB…)仍算命中', () => {
+    // 區分大小寫比對 'General' → 四顆全對不上、英文介面永遠不出現徽章(使用者實機回報)
+    const m = findSubtabButtons(clientLines('strip-general-1440-en.png'), 1440, 'en')
+    expect(m).toEqual({ found: true, matched: 4, yOffset: 0 })
+  })
+  it('英文截圖的目前子頁(一般)由像素判定', async () => {
+    expect(activeSubtab(await buttonP99('strip-general-1440-en.png'))).toBe('general')
+  })
+})
+
 describe('S7b 幾何輔助函式', () => {
   it('stripRect(1440) 為按鈕列掃描條', () => {
     // 比例或 w = h·37/60 公式錯 → 失敗

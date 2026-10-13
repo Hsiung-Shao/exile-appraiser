@@ -1,0 +1,76 @@
+{
+  "schema": 1,
+  "source": "strip-general-1440-en.png",
+  "srcW": 888,
+  "srcH": 98,
+  "scale": 3,
+  "w": 2664,
+  "h": 294,
+  "lang": "en-US",
+  "lines": [
+    {
+      "text": "GENERAL",
+      "x": 442,
+      "y": 81,
+      "w": 275,
+      "h": 54,
+      "words": [
+        {
+          "text": "GENERAL",
+          "x": 442,
+          "y": 81,
+          "w": 275,
+          "h": 54
+        }
+      ]
+    },
+    {
+      "text": "SCARAB",
+      "x": 963,
+      "y": 81,
+      "w": 229,
+      "h": 54,
+      "words": [
+        {
+          "text": "SCARAB",
+          "x": 963,
+          "y": 81,
+          "w": 229,
+          "h": 54
+        }
+      ]
+    },
+    {
+      "text": "ALLFLAME",
+      "x": 1425,
+      "y": 81,
+      "w": 310,
+      "h": 54,
+      "words": [
+        {
+          "text": "ALLFLAME",
+          "x": 1425,
+          "y": 81,
+          "w": 310,
+          "h": 54
+        }
+      ]
+    },
+    {
+      "text": "ELDRITCH",
+      "x": 1933,
+      "y": 82,
+      "w": 299,
+      "h": 53,
+      "words": [
+        {
+          "text": "ELDRITCH",
+          "x": 1933,
+          "y": 82,
+          "w": 299,
+          "h": 53
+        }
+      ]
+    }
+  ]
+}
