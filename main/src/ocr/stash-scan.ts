@@ -6,7 +6,8 @@
  * 這裡只看倉庫面板頂端的子頁按鈕列(`core/src/stash/detect.ts` `stripRect`,約 883 × 159 @1432):
  *   擷取 → 按鈕列灰階縮圖與上次 OCR 時比對,沒變就不 OCR → 有變化才 OCR(×3)→ `findSubtabButtons`(四顆按鈕文字至少 3 顆、
  *   由文字高度推資料夾偏移)→ 每顆按鈕文字 p99 亮度 → `activeSubtab`(目前子頁的文字較亮)→ 狀態變了才送 `stash-scan-result`。
- * 沒找到按鈕:游標在倉庫面板內(遊戲說明框可能蓋住按鈕列,`holdOnMiss`)→ 維持原狀;否則連續 2 次才送 `hide`。
+ * 沒找到按鈕:游標停在已顯示子頁的格子上(遊戲說明框可能蓋住按鈕列,`holdOnMiss`)→ 維持原狀,但連續最多 `STASH_HOLD_LIMIT` 次;
+ * 否則連續 2 次才送 `hide`。差分基準只在找到按鈕時更新(沒找到時下一 tick 一定重 OCR,畫面靜止也收得掉)。
  *
  * 與褻瀆 / 符文塑形共用 WinOcr(別的掃描忙碌就丟這個 tick)與擷取(`SharedCapture`)。被擋下時的排程同 `panel-scan.ts`:
  * 停用 / 不是 PoE1 → 不排(等 `poke()`);其他原因 10 秒保底。不送任何鍵盤 / 滑鼠輸入。
@@ -44,8 +45,10 @@ export function stashBlock (cfg: StashScanConfig, env: ScanEnv, ui: RuneshapeUiS
   return null
 }
 
-/** 連續幾次沒找到按鈕(且游標不在倉庫面板內)才收掉 */
+/** 連續幾次沒找到按鈕(且沒被維持)才收掉 */
 export const STASH_MISS_LIMIT = 2
+/** 連續維持(held)上限:超過後照常累計 miss(游標停在格上按 Esc 關倉庫時不卡住);找到按鈕歸零 */
+export const STASH_HOLD_LIMIT = 5
 
 export interface StashScanDeps {
   clock?: ScanClock
@@ -57,7 +60,7 @@ export interface StashScanDeps {
   send: (ev: StashScanEvent) => void
   /** OCR 語言(按鈕文字繁中 / 英文) */
   textLang?: () => OcrTextLang
-  /** 游標在倉庫面板內(說明框可能蓋住按鈕列 → 沒找到不算 miss);省略 = 否 */
+  /** 游標停在疊層的格子上(說明框可能蓋住按鈕列 → 沒找到不算 miss,最多 `STASH_HOLD_LIMIT` 次);省略 = 否 */
   holdOnMiss?: () => boolean
   /** 顯示狀態改變(main 依此開關游標輪詢) */
   onShowingChange?: (showing: boolean, state: { subtab: StashSubtab | null, yOffset: number, clientH: number }) => void
@@ -94,6 +97,7 @@ export class StashScan {
   private ui: RuneshapeUiState = { panel: false, settings: false, picker: false }
   private baseline: { key: string, fp: Fingerprint } | null = null
   private missStreak = 0
+  private holdStreak = 0
   private seq = 0
   private shown: { subtab: StashSubtab, yOffset: number, clientW: number, clientH: number } | null = null
   private lastBlock: StashBlock | null = null
@@ -179,6 +183,8 @@ export class StashScan {
   private hide (client: { w: number, h: number }, ocrMs?: number): StashScanEvent['reason'] | null {
     if (!this.shown) return null
     this.shown = null
+    this.missStreak = 0
+    this.holdStreak = 0
     this.emit('hide', client, ocrMs)
     return 'hide'
   }
@@ -234,19 +240,25 @@ export class StashScan {
     const { lines, ms } = await cap.recognize(strip, 3)
     this.ocrCount++
     this.lastOcrMs = ms
-    this.baseline = { key, fp }
     const clientLines = lines.map((l: OcrTextLine) => ({ text: l.text, x: l.x + cap.offset.x, y: l.y + cap.offset.y, w: l.w, h: l.h }))
     const lang = this.deps.textLang?.() ?? 'zh'
     const match = findSubtabButtons(clientLines, client.h, lang)
 
     if (!match.found) {
-      const held = this.shown != null && this.deps.holdOnMiss?.() === true
-      if (held) return { kind: 'ocr', found: false, subtab: this.shown!.subtab, held: true, sent: null, ms }
+      // 差分基準不更新(B1):沒找到時畫面靜止也要重 OCR,否則 miss 累計不到上限、疊層收不掉
+      this.baseline = null
+      const held = this.shown != null && this.holdStreak < STASH_HOLD_LIMIT && this.deps.holdOnMiss?.() === true
+      if (held) {
+        this.holdStreak++
+        return { kind: 'ocr', found: false, subtab: this.shown!.subtab, held: true, sent: null, ms }
+      }
       this.missStreak++
       const sent = this.missStreak >= STASH_MISS_LIMIT ? this.hide(client, ms) : null
       return { kind: 'ocr', found: false, subtab: null, held: false, sent, ms }
     }
+    this.baseline = { key, fp }
     this.missStreak = 0
+    this.holdStreak = 0
 
     let subtab: StashSubtab | null = null
     if (cap.gray) {

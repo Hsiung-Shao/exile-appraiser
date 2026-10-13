@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url'
 import type { StashScanEvent, RuneshapeUiState } from '@ipc/types'
 import type { Fingerprint, ScanCapture, ScanClock, ScanEnv } from '../src/ocr/panel-scan'
 import {
-  STASH_CLEARING_BLOCKS, STASH_MISS_LIMIT, StashScan, stashBlock, type StashScanConfig
+  STASH_CLEARING_BLOCKS, STASH_HOLD_LIMIT, STASH_MISS_LIMIT, StashScan, stashBlock, type StashScanConfig
 } from '../src/ocr/stash-scan'
 import { STASH_CURSOR_INTERVAL_MS, StashCursor, stashPanelContains } from '../src/stash-cursor'
 import { buttonRects, type TextLine } from '../../core/src/stash/detect'
@@ -514,5 +514,120 @@ describe('S12b 面板範圍判定', () => {
     st.cursor = { x: 110, y: 49 }
     expect(cur.inPanel()).toBe(false)
     cur.stop()
+  })
+})
+
+describe('S9e 沒找到按鈕後畫面靜止仍收起(B1)', () => {
+  it('已顯示、沒找到按鈕後縮圖不再改變、游標不在格上 → 第 2 個 tick 送 hide', async () => {
+    const h = harness()
+    await showScarabs(h)
+    h.state.lines = TOOLTIP_LINES
+    h.state.hold = false
+    h.changeFrame()
+    expect(await h.scan.tick()).toMatchObject({ kind: 'ocr', found: false, sent: null })
+    // 沒找到時也更新差分基準 → 這裡走 unchanged,疊層永遠收不掉
+    expect(await h.scan.tick()).toMatchObject({ kind: 'ocr', found: false, sent: 'hide' })
+    expect(h.events.map(e => e.reason)).toEqual(['show', 'hide'])
+  })
+})
+
+describe('S8b 維持有上限(B2b)', () => {
+  it(`連續 held ${STASH_HOLD_LIMIT} 次後照常累計,第 7 次送 hide`, async () => {
+    expect(STASH_HOLD_LIMIT).toBe(5)
+    const h = harness()
+    await showScarabs(h)
+    h.state.lines = TOOLTIP_LINES
+    h.state.hold = true
+    for (let i = 0; i < STASH_HOLD_LIMIT; i++) {
+      h.changeFrame()
+      expect(await h.scan.tick(), `第 ${i + 1} 次`).toMatchObject({ found: false, held: true, sent: null })
+    }
+    h.changeFrame()
+    // 沒有上限 → 游標停在格上按 Esc 關倉庫時疊層卡住
+    expect(await h.scan.tick()).toMatchObject({ found: false, held: false, sent: null })
+    h.changeFrame()
+    expect(await h.scan.tick()).toMatchObject({ found: false, held: false, sent: 'hide' })
+    expect(h.events.map(e => e.reason)).toEqual(['show', 'hide'])
+  })
+  it('找到按鈕後 held 次數歸零', async () => {
+    const h = harness()
+    await showScarabs(h)
+    h.state.hold = true
+    for (let i = 0; i < STASH_HOLD_LIMIT - 1; i++) {
+      h.state.lines = TOOLTIP_LINES
+      h.changeFrame()
+      await h.scan.tick()
+    }
+    h.state.lines = SCARAB_LINES
+    h.changeFrame()
+    expect(await h.scan.tick()).toMatchObject({ found: true })
+    h.state.lines = TOOLTIP_LINES
+    for (let i = 0; i < STASH_HOLD_LIMIT; i++) {
+      h.changeFrame()
+      // 找到時沒歸零 → 這裡提早不維持
+      expect(await h.scan.tick(), `第 ${i + 1} 次`).toMatchObject({ found: false, held: true, sent: null })
+    }
+  })
+})
+
+describe('S12c 游標在格上判定(B2a)', () => {
+  function onCellHarness () {
+    const st = { cursor: { x: 0, y: 0 } }
+    const bounds = { x: 100, y: 50, width: W, height: H }
+    const cur = new StashCursor({
+      clock: fakeClock().clock,
+      cursor: () => st.cursor,
+      bounds: () => bounds,
+      active: () => true,
+      layouts: () => LAYOUTS,
+      send: () => {}
+    })
+    const at = (cx: number, cy: number) => { st.cursor = { x: bounds.x + cx, y: bounds.y + cy } }
+    return { cur, at }
+  }
+  const cells = cellRects(LAYOUTS, 'scarabs', H, 0)
+
+  it('格上為真;頁籤列 / 格子之間為假(仍在面板內)', () => {
+    const c = onCellHarness()
+    c.cur.setShown({ subtab: 'scarabs', yOffset: 0, clientH: H })
+    const a = cells[0]
+    c.at(a.x + 2, a.y + 2)
+    expect(c.cur.onCell()).toBe(true)
+    // 用整個面板判定 → 點別的頁籤時也維持,徽章錯畫在別頁
+    const tab = buttonRects(H, 0)[1]
+    c.at(tab.x + 5, tab.y + 5)
+    expect(c.cur.inPanel()).toBe(true)
+    expect(c.cur.onCell()).toBe(false)
+    const b = cells.find(r => r.y === a.y && r.x > a.x + a.w)!
+    const gx = Math.floor((a.x + a.w + b.x) / 2)
+    expect(b.x - (a.x + a.w)).toBeGreaterThan(1)
+    c.at(gx, a.y + 2)
+    expect(c.cur.inPanel()).toBe(true)
+    expect(c.cur.onCell()).toBe(false)
+    c.cur.stop()
+  })
+  it('疊層沒顯示 → 假', () => {
+    const c = onCellHarness()
+    const a = cells[0]
+    c.at(a.x + 2, a.y + 2)
+    expect(c.cur.onCell()).toBe(false)
+    c.cur.setShown({ subtab: 'scarabs', yOffset: 0, clientH: H })
+    expect(c.cur.onCell()).toBe(true)
+    c.cur.setShown(null)
+    expect(c.cur.onCell()).toBe(false)
+  })
+  it('main.ts 的 holdOnMiss 用 onCell', () => {
+    const src = fs.readFileSync(path.join(ROOT, 'main/src/main.ts'), 'utf8')
+    const m = /new StashScan\(\{[\s\S]*?holdOnMiss:\s*([^\n]*)/.exec(src)
+    expect(m?.[1]).toContain('stashCursor.onCell()')
+  })
+})
+
+describe('S9f host-config 未到不掃描(I2)', () => {
+  it('main.ts 的 StashScan enabled 要求 hostCfg 已到', () => {
+    const src = fs.readFileSync(path.join(ROOT, 'main/src/main.ts'), 'utf8')
+    const m = /new StashScan\(\{[\s\S]*?enabled:\s*([^\n]*)/.exec(src)
+    // 只寫 hostCfg?.stashPricesEnabled !== false → 啟動空窗 PoE2 使用者也被擷取 + OCR
+    expect(m?.[1]).toContain('hostCfg != null')
   })
 })

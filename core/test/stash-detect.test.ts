@@ -12,7 +12,7 @@ import {
   BUTTON_SUBTABS, SUBTAB_LABELS, activeSubtab, buttonRects, findSubtabButtons,
   folderOffset, percentile, stripRect, type TextLine
 } from '../src/stash/detect'
-import type { StashSubtab } from '../src/stash/layout'
+import { cellRects, parseStashLayouts, type StashSubtab } from '../src/stash/layout'
 
 const FIX_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'stash/fixtures/ocr')
 
@@ -44,12 +44,27 @@ const isButtonLine = (l: TextLine): boolean => ZH_LABELS.includes(l.text.replace
 describe('S7b 幾何輔助函式', () => {
   it('stripRect(1440) 為按鈕列掃描條', () => {
     // 比例或 w = h·37/60 公式錯 → 失敗
-    expect(stripRect(1440)).toEqual({ x: 0, y: 140, w: 888, h: 160 })
+    expect(stripRect(1440)).toEqual({ x: 0, y: 150, w: 888, h: 118 })
   })
   it('stripRect(1432) 各欄取 floor', () => {
     // 忘了 floor 或 h 不是「底 − y」→ 失敗
-    const y = Math.floor(140 / 1440 * 1432)
-    expect(stripRect(1432)).toEqual({ x: 0, y, w: Math.floor(1432 * 37 / 60), h: Math.floor(300 / 1440 * 1432) - y })
+    const y = Math.floor(150 / 1440 * 1432)
+    expect(stripRect(1432)).toEqual({ x: 0, y, w: Math.floor(1432 * 37 / 60), h: Math.floor(268 / 1440 * 1432) - y })
+  })
+  it('聖甲蟲格子徽章(格下緣往上 28 px)不進掃描條', () => {
+    // 掃描條太高 → 第一列徽章換格 / 價格載入都觸發重 OCR
+    const layouts = parseStashLayouts(JSON.parse(fs.readFileSync(path.resolve(FIX_DIR, '../../../../../data/poe1/stash/layouts.json'), 'utf8')))
+    const strip = stripRect(1440)
+    const cells = cellRects(layouts, 'scarabs', 1440)
+    expect(cells[0].y + cells[0].h - 28).toBeGreaterThanOrEqual(strip.y + strip.h)
+    expect(Math.min(...cells.map(c => c.y + c.h)) - 28).toBeGreaterThanOrEqual(strip.y + strip.h)
+  })
+  it('資料夾內按鈕文字仍在掃描條內', () => {
+    // 掃描條太矮 → 資料夾內的按鈕被切掉
+    const strip = stripRect(1440)
+    const textBottom = 201 + folderOffset(1440) + 12
+    expect(textBottom).toBeLessThanOrEqual(strip.y + strip.h)
+    expect(buttonRects(1440, 0)[0].y).toBeGreaterThanOrEqual(strip.y)
   })
   it('buttonRects(1440,0) 第 2 顆為 284,186,152,36', () => {
     // 按鈕間距 168 或起點 116 錯 → 失敗

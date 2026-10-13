@@ -22,12 +22,18 @@
 
 ## OCR 只做偵測
 `main/src/ocr/stash-scan.ts` `StashScan`(預設每 1 秒;與褻瀆 / 符文共用 WinOcr、擷取):
-1. 擷取遊戲 client,取**子頁按鈕列**(`stripRect`:x 0 – h×37/60、y 140–300 / 1440)的灰階縮圖;與上次 OCR 時相同 → 不 OCR。
+1. 擷取遊戲 client,取**子頁按鈕列**(`stripRect`:x 0 – h×37/60、y 150–268 / 1440)的灰階縮圖;與上次**找到按鈕**時相同 → 不 OCR。
+   範圍:按鈕文字中心 201、資料夾內 +47 = 248(文字下緣約 260 仍在條內);下緣不超過聖甲蟲第一列徽章頂端(約 269),
+   免得換格 / 價格載入改變縮圖而重 OCR(2026-10-14 code review I1,原本 140–300)。沒找到按鈕時不更新基準 → 下一 tick 一定重 OCR(B1)。
 2. OCR ×3 → `findSubtabButtons`:去空白後整行等於按鈕文字、水平位置對得上的才算;**4 顆至少 3 顆**(使用者錄影裡目前子頁的「一般」OCR 沒讀到)。
    按鈕文字取自 GGPK clientstrings `FragmentStashSubTab{Other,Scarab,Betrayal,Eldritch}`:一般 / 聖甲蟲 / 不滅之火 / 異能、General / Scarab / Allflame / Eldritch。
 3. 由文字垂直中心推整體偏移,吸附到 0 或資料夾偏移 47/1440·h(誤差 12/1440·h 內),都不近 = 沒找到。
 4. 目前子頁:每顆按鈕的灰階 p99,最亮者比第二亮至少 8(錄影:目前子頁 158–162、其他 141–144);第 4 顆(異能)最亮或差距不足 → 不畫。
-5. 沒找到按鈕:游標在倉庫面板內(遊戲說明框常蓋住按鈕列)→ 維持;否則連續 2 次才收起。
+5. 沒找到按鈕:游標停在已顯示子頁的**格子上**(`StashCursor.onCell()`;遊戲說明框只在游標停在物品格上才出現,常蓋住按鈕列)→ 維持,
+   但連續最多 `STASH_HOLD_LIMIT` = 5 次,之後照常累計(游標停在格上按 Esc 關倉庫時不卡住);找到按鈕時歸零。否則連續 2 次才收起。
+   不用整個倉庫面板(`inPanel()`,含頁籤列)判定:點別的倉庫頁籤時游標在面板內,碎片頁徽章會錯畫在別頁上(code review B2)。
+   副作用:說明框蓋住按鈕列且游標停在同一格超過約 5 次掃描,疊層會先收起,游標移開、按鈕列露出後再出現。
+6. host-config 還沒送到 main 前不掃描(`enabled: hostCfg != null && …`;否則 PoE2 使用者啟動空窗也會擷取 + OCR)。
 
 ## 游標與說明框
 遊戲說明框畫在格子附近,overlay 在遊戲上層會蓋住它。`main/src/stash-cursor.ts`:只在「疊層顯示中 + 遊戲前景」時每 80 ms 讀
@@ -44,7 +50,7 @@
 
 ## 測試
 `core/test/stash-layout.test.ts`(S1–S4c)、`core/test/stash-detect.test.ts`(S5–S7,真實 OCR 快照 `core/test/stash/fixtures/ocr/`,
-`node scripts/ocr-fixture.mjs --set stash` 產生)、`main/test/stash-scan.test.ts`(S8–S12)、`renderer/test/stash-prices.test.ts`(S13–S17)、
+`node scripts/ocr-fixture.mjs --set stash` 產生)、`main/test/stash-scan.test.ts`(S8–S12c、S9e–S9f)、`renderer/test/stash-prices.test.ts`(S13–S17)、
 `core/test/ninja.test.ts` S15。
 
 ## 待使用者實機確認

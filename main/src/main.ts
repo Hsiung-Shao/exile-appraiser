@@ -931,7 +931,7 @@ if (!skipStartup) app.whenReady().then(() => {
   // PoE1 倉庫價格疊層:偵測碎片頁開著 / 目前子頁(只 OCR 子頁按鈕列;物品身分靠固定版面,不 OCR)
   stashScan = new StashScan({
     config: () => ({
-      enabled: hostCfg?.stashPricesEnabled !== false,
+      enabled: hostCfg != null && hostCfg.stashPricesEnabled !== false,
       game: hostCfg?.game ?? 'poe1',
       intervalMs: hostCfg?.stashPricesIntervalMs ?? DEFAULT_SCAN_INTERVAL_MS
     }),
@@ -939,7 +939,7 @@ if (!skipStartup) app.whenReady().then(() => {
     textLang: ocrTextLang,
     ocrBusy: () => revealScan.busy || runeshapeScan.busy,
     capture: scanCapture,
-    holdOnMiss: () => stashCursor.inPanel(),
+    holdOnMiss: () => stashCursor.onCell(),
     onShowingChange: (showing, st) => { stashCursor.setShown(showing && st.subtab ? { subtab: st.subtab, yOffset: st.yOffset, clientH: st.clientH } : null) },
     log: (msg) => { console.log(msg) },
     send: (ev) => { send('stash-scan-result', ev) }

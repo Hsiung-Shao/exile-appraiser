@@ -19,10 +19,13 @@ export const BUTTON_SUBTABS: readonly [StashSubtab, StashSubtab, StashSubtab, nu
 const BASE = 1440
 const at = (v: number, h: number) => Math.floor(v / BASE * h)
 
-/** OCR 掃描條(按鈕列 ± 資料夾偏移;寬 = 倉庫面板寬 h × 37/60) */
+/**
+ * OCR 掃描條(按鈕列 ± 資料夾偏移;寬 = 倉庫面板寬 h × 37/60)。y 150–268 / 1440:按鈕文字中心 201、資料夾內 +47 = 248
+ * (文字下緣約 260 仍在內);下緣不超過聖甲蟲第一列徽章頂端(約 269),免得換格 / 價格載入觸發重 OCR。
+ */
 export function stripRect (clientH: number): Rect {
-  const y = at(140, clientH)
-  return { x: 0, y, w: Math.floor(clientH * 37 / 60), h: at(300, clientH) - y }
+  const y = at(150, clientH)
+  return { x: 0, y, w: Math.floor(clientH * 37 / 60), h: at(268, clientH) - y }
 }
 
 /** 倉庫頁在資料夾內時,整個內容下移(Exile-UI `in_folder` = +47 / 1440) */

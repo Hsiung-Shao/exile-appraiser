@@ -2,7 +2,8 @@
  * PoE1 倉庫價格疊層:游標停在哪一格(renderer 據此只留該格徽章、放大顯示,不蓋住遊戲說明框)。
  * 只在「疊層顯示中 + 遊戲前景」時每 `intervalMs` 讀一次游標位置(`screen.getCursorScreenPoint` 由 main 注入,
  * 不裝鍵盤滑鼠掛鉤、不送任何輸入),換格才送事件;其他時候沒有計時器。
- * 另提供 `inPanel()`:游標在倉庫面板內(說明框可能蓋住子頁按鈕列 → 掃描沒找到按鈕時維持原狀)。
+ * 另提供 `onCell()`:游標停在已顯示子頁的某一格(遊戲說明框只在游標停在物品格上才出現、可能蓋住子頁按鈕列
+ * → 掃描沒找到按鈕時維持原狀);`inPanel()`(整個倉庫面板,含頁籤列)保留但不拿來維持(點別的倉庫頁籤時會誤留)。
  */
 import type { StashCursorEvent } from '@ipc/types'
 import { cellRects, hitCell, type CellRect, type StashLayoutFile, type StashSubtab } from '../../core/src/stash/layout'
@@ -80,6 +81,13 @@ export class StashCursor {
   inPanel (): boolean {
     const p = this.clientPoint()
     return p != null && stashPanelContains(p.h, p.x, p.y)
+  }
+
+  /** 游標停在已顯示子頁的某一格(疊層沒顯示 / 沒有遊戲視窗 = 否) */
+  onCell (): boolean {
+    if (!this.state || this.cells.length === 0) return false
+    const p = this.clientPoint()
+    return p != null && hitCell(this.cells, p.x, p.y) != null
   }
 
   private clientPoint (): { x: number, y: number, h: number } | null {
