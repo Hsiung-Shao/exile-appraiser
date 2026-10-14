@@ -49,7 +49,7 @@ type R = { x: number, y: number, w: number, h: number }
  * `store` 模式:遮罩走真的 `ScanMaskStore`(含 300 ms 保留期與 ack),renderer 由 `badgesOf(ev)` 模擬(viewport = client → CSS px = client px);
  * `autoAck` = 每個事件立刻回報遮罩(帶 seq)並通知 `maskReported`。
  */
-function harness (tab: StashSubtab = 'scarabs', opts: { H?: number, store?: boolean, autoAck?: boolean, badgesOf?: (ev: StashScanEvent) => R[] } = {}) {
+function harness (tab: StashSubtab = 'scarabs', opts: { H?: number, store?: boolean, autoAck?: boolean, badgesOf?: (ev: StashScanEvent) => R[], onEvent?: (ev: StashScanEvent) => void } = {}) {
   const H = opts.H ?? BASE_H
   const base = IMAGES[`${tab}@${H}`]
   const W = base.width
@@ -111,6 +111,7 @@ function harness (tab: StashSubtab = 'scarabs', opts: { H?: number, store?: bool
       events.push(e)
       if (!store) return
       store.noteSent('stash', e.seq, state.now)
+      opts.onEvent?.(e)
       if (opts.autoAck) report(e.reason === 'show' && !e.peek && opts.badgesOf ? opts.badgesOf(e) : [], e.seq)
     },
     textLang: () => 'zh',
@@ -163,7 +164,7 @@ describe('V8 事件帶數量', () => {
     expect(ev.quantities).toHaveLength(LAYOUTS.subtabs.scarabs.length)
     const ok = ev.quantities!.filter((q, i) => q === TRUTH.scarabs[i]).length
     const wrong = ev.quantities!.filter((q, i) => q != null && q !== TRUTH.scarabs[i]).length
-    // 2026-10-15 code review 加低分門檻後 105(改前 109)
+    // 2026-10-15 放寬低分門檻後 109(改前 109)
     expect(ok).toBeGreaterThanOrEqual(103)
     expect(wrong).toBe(0)
     expect(typeof ev.qtyMs).toBe('number')
@@ -418,6 +419,95 @@ describe('code review:遮罩與 peek 時序', () => {
     expect(covered).toBeLessThanOrEqual(6)
     expect(ev.peek).toBeFalsy()
     expect(ev.quantities![0]).toBe(70)
+  })
+})
+
+/** 標準常態 CDF(Abramowitz–Stegun 7.1.26) */
+function phi (z: number): number {
+  const x = Math.abs(z) / Math.SQRT2
+  const t = 1 / (1 + 0.3275911 * x)
+  const erf = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x)
+  return z >= 0 ? (1 + erf) / 2 : (1 - erf) / 2
+}
+/** 畫徽章的 box-shadow(0 offsetY blur rgba(0,0,0,alpha);只畫在徽章框外)到乾淨畫面上 */
+function withShadow (clean: Uint8Array, width: number, height: number, badges: R[], alpha = 0.55, offsetY = 10, blur = 32): Uint8Array {
+  const out = Uint8Array.from(clean)
+  const sigma = blur / 2
+  const keep = new Float32Array(width * height).fill(1)
+  for (const b of badges) {
+    const y0 = b.y + offsetY
+    const y1 = y0 + b.h
+    for (let y = Math.max(0, b.y - 3 * sigma); y < Math.min(height, y1 + 3 * sigma); y++) {
+      const ay = phi((y + 0.5 - y0) / sigma) - phi((y + 0.5 - y1) / sigma)
+      for (let x = Math.max(0, b.x - 3 * sigma); x < Math.min(width, b.x + b.w + 3 * sigma); x++) {
+        const ax = phi((x + 0.5 - b.x) / sigma) - phi((x + 0.5 - b.x - b.w) / sigma)
+        keep[y * width + x] *= 1 - alpha * ax * ay
+      }
+    }
+  }
+  const inside = (x: number, y: number) => badges.some(b => x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h)
+  for (let i = 0; i < width * height; i++) {
+    if (keep[i] === 1) continue
+    if (inside(i % width, Math.floor(i / width))) continue
+    for (let c = 0; c < 3; c++) out[i * 3 + c] = Math.round(clean[i * 3 + c] * keep[i])
+  }
+  return out
+}
+
+describe('code review 第 2 輪', () => {
+  it('最右欄的格子讀三位數不會因像素區不含延伸裁切而永遠不確定', async () => {
+    const h = harness()
+    const rs = h.rects()
+    const right = Math.max(...rs.map(r => r.x))
+    const idx = rs.findIndex(r => r.x === right)
+    expect(TRUTH.scarabs[24]).toBe(100)
+    h.copyDigits(24, idx)
+    await h.scan.tick()
+    expect(h.events.at(-1)!.quantities![idx]).toBe(100)
+  })
+
+  // 實際 --shadow-float(0 10px 32px .55)、更濃、以及陡峭到字形比對必定失準的極端陰影(驗「重讀值沒變 → 停止字形比對」的保險)
+  it.each([[0.55, 10, 32], [0.9, 10, 32], [0.95, -6, 8]])('徽章陰影(不透明度 %f、往下 %ipx、模糊 %ipx)畫回後不會 peek 循環', async (alpha, offsetY, blur) => {
+    const badges = () => bottomBadges(h.rects(), BADGE_1LINE)
+    let clean = new Uint8Array(0)
+    const h = harness('scarabs', {
+      store: true,
+      autoAck: true,
+      badgesOf: badges,
+      // renderer:徽章畫在畫面上 = 陰影;peek / 收起 = 乾淨畫面
+      onEvent: (e) => { h.state.img.data = e.reason === 'show' && !e.peek ? withShadow(clean, h.W, h.H, padded(badges(), 0), alpha, offsetY, blur) : Uint8Array.from(clean) }
+    })
+    clean = Uint8Array.from(h.state.img.data)
+    await h.scan.tick()
+    const peeks: number[] = []
+    for (let i = 0; i < 12; i++) {
+      h.state.now += 1000
+      const before = h.events.length
+      await h.scan.tick()
+      peeks.push(h.events.slice(before).filter(e => e.peek).length)
+    }
+    console.log(`[陰影 ${alpha} ${offsetY} ${blur}] 每個 tick 的 peek:${peeks.join(',')}`)
+    expect(peeks.reduce((a, b) => a + b, 0)).toBeLessThanOrEqual(1)
+    expect(peeks.slice(4)).toEqual(Array(8).fill(0))
+    // 數量仍與第一次讀到的相同
+    expect(h.events.at(-1)!.quantities![0]).toBe(44)
+  })
+
+  it('游標換格後即使先收到換格前就在路上的舊報告,也要等滿遮罩保留期才讀', async () => {
+    const h = harness('scarabs', { store: true, autoAck: true })
+    await h.scan.tick()
+    const n = h.scan.snapshot().qtyCells!
+    h.state.now += 1000
+    h.scan.cursorMoved()
+    // 換格前送出、換格後才到的報告(還是舊畫面)
+    h.report([])
+    h.copyDigits(24, 0)
+    h.state.now += 20
+    await h.scan.tick()
+    expect(h.scan.snapshot().qtyCells).toBe(n)
+    h.state.now += MASK_LINGER_MS
+    await h.scan.tick()
+    expect(h.scan.snapshot().qtyCells).toBe(n + 1)
   })
 })
 

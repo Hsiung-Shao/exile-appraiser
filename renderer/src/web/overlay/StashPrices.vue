@@ -7,7 +7,7 @@
   - 游標停在某格(main `stash-cursor`)→ 只留那一格、放大加全名,不蓋住遊戲說明框。
   - 整層 `pointer-events: none`。不送任何輸入。物品名稱只讀 repo 資料(版面上的 refName → cmn-Hant items.ndjson)。
   - 2026-10-15 倉庫價值:`show` 帶每格數量(main 讀格子左上角的堆疊數量)→ 徽章改顯示小計(單價 × 數量;三段色 / C・D 依小計),
-    數量讀不到只顯示單價 +「?」;空格不畫;停格時明細卡(單價 / 數量 / 小計);倉庫右側「本頁價值」卡(總計 C、≈ D、已讀 / 未讀格數)
+    數量讀不到只顯示單價 +「?」;空格不畫;停格時明細卡(單價 / 數量 / 小計);倉庫面板底部「本頁價值」卡(總計 C、≈ D、已讀 / 未讀格數)
     並寫進共用狀態 `stash-value.ts`(懸浮選單讀)。`peek` → 格子徽章暫時收起(main 用乾淨畫面重讀被徽章蓋住的數字)。
     沒算進總價的格(數量讀不到 / 有數量但沒價格)徽章左側加警示色標記「?」/「無價」+ 虛線框,停格明細卡寫原因;
     本頁價值卡另有「數量以畫面辨識,可能讀錯」說明與未計入格數(使用者 2026-10-15 要求)。
@@ -36,13 +36,17 @@
         <span v-else-if="b.status === 'no-price'" class="st-dim">?</span>
       </template>
     </div>
-    <div v-if="card" class="st-value" data-stash="value" role="status" :style="{ left: `${card.left}px`, top: `${card.top}px` }">
-      <span class="st-value-title">{{ t('ppz.stash.value_title') }}</span>
-      <span class="st-value-total num" data-stash="value-total">{{ card.chaos }} {{ unitLabel('c') }}</span>
-      <span v-if="card.div" class="st-value-div num" data-stash="value-div">≈ {{ card.div }} {{ unitLabel('div') }}</span>
-      <span class="st-value-counts" data-stash="value-counts">{{ t('ppz.stash.value_counts', { known: card.known, unknown: card.unknown }) }}</span>
-      <span v-if="card.excluded" class="st-value-excluded" data-stash="value-excluded">{{ t('ppz.stash.value_excluded', { n: card.excluded, unknown: card.unknown, noPrice: card.noPrice }) }}</span>
-      <span class="st-value-note" data-stash="value-note">{{ t('ppz.stash.value_note') }}</span>
+    <div v-if="card" class="st-value" data-stash="value" role="status" :style="{ left: `${card.left}px`, top: `${card.top}px`, maxWidth: `${card.maxWidth}px`, maxHeight: `${card.maxHeight}px` }">
+      <span class="st-value-line">
+        <span class="st-value-title">{{ t('ppz.stash.value_title') }}</span>
+        <span class="st-value-total num" data-stash="value-total">{{ card.chaos }} {{ unitLabel('c') }}</span>
+        <span v-if="card.div" class="st-value-div num" data-stash="value-div">≈ {{ card.div }} {{ unitLabel('div') }}</span>
+        <span class="st-value-counts" data-stash="value-counts">{{ t('ppz.stash.value_counts', { known: card.known, unknown: card.unknown }) }}</span>
+      </span>
+      <span class="st-value-line st-value-sub">
+        <span v-if="card.excluded" class="st-value-excluded" data-stash="value-excluded">{{ t('ppz.stash.value_excluded', { n: card.excluded, unknown: card.unknown, noPrice: card.noPrice }) }}</span>
+        <span class="st-value-note" data-stash="value-note">{{ t('ppz.stash.value_note') }}</span>
+      </span>
     </div>
     <div v-if="toast" class="rs-toast warn" data-stash="toast">{{ toast }}</div>
   </div>
@@ -141,7 +145,7 @@ export default defineComponent({
       if (!s || !data || !quantities.value) return null
       return stashPageValue({ file: data.file, subtab: s.subtab, priceOf: (r) => ninja.priceOf(r), quantities: quantities.value })
     })
-    /** 「本頁價值」卡:倉庫面板右側、格子區頂端(不蓋格子 → 不影響 main 讀數量);台服沒有價格 → 不顯示 */
+    /** 「本頁價值」卡:倉庫面板底部空白帶(格子區下方、搜尋列上方;不蓋格子 → 不影響 main 讀數量、不蓋右側頁籤清單);台服沒有價格 → 不顯示 */
     const card = computed(() => {
       const v = pageValue.value
       const s = shown.value
@@ -269,10 +273,13 @@ export default defineComponent({
 /* 本頁價值卡:倉庫面板右側 */
 .st-layer .st-value {
   position: absolute;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 6px 12px;
+  justify-content: center;
+  gap: 1px;
+  padding: 3px 10px;
+  overflow: hidden;
   border-radius: 10px;
   border: 1px solid var(--accent);
   background: color-mix(in srgb, var(--surface-1, #0e1116) 92%, transparent);
@@ -281,10 +288,11 @@ export default defineComponent({
   font-size: var(--badge-fs-xs, var(--fs-xs));
   white-space: nowrap;
 }
+.st-layer .st-value-line { display: flex; align-items: baseline; gap: 0.8em; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .st-layer .st-value-title { color: var(--ink-3); }
 .st-layer .st-value-total { font-size: var(--badge-fs, var(--fs-lg, 1.1em)); font-weight: 700; }
 .st-layer .st-value-div { color: var(--ink-2); }
 .st-layer .st-value-counts { color: var(--ink-3); }
 .st-layer .st-value-excluded { color: var(--badge-warn, var(--warn)); }
-.st-layer .st-value-note { max-width: 16em; white-space: normal; color: var(--ink-3); }
+.st-layer .st-value-note { min-width: 0; overflow: hidden; text-overflow: ellipsis; color: var(--ink-3); }
 </style>

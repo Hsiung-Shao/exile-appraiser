@@ -52,6 +52,20 @@ export async function buildTemplatesJson (fixDir = FIXTURE_DIR) {
       samples.push(...digitSamples(qtyCrop(img, r, clientH, clientH), t))
     })
   }
+  // 第二批(2026-10-15 起,truth.more):同樣規則;`train: false` = 只當驗證 fixture、不進訓練(也不列來源)
+  for (const m of truth.more ?? []) {
+    if (m.train === false) continue
+    const buf = fs.readFileSync(path.join(fixDir, m.file))
+    sources.push({ file: `core/test/stash/fixtures/qty/${m.file}`, sha256: crypto.createHash('sha256').update(buf).digest('hex') })
+    const { data, info } = await sharp(buf).removeAlpha().raw().toBuffer({ resolveWithObject: true })
+    if (info.height !== clientH) throw new Error(`${m.file}:高 ${info.height} ≠ clientH ${clientH}`)
+    const img = { data, width: info.width, height: info.height, channels: info.channels }
+    cellRects(layouts, m.tab, clientH).forEach((/** @type {{x:number,y:number,w:number,h:number}} */ r, /** @type {number} */ i) => {
+      const t = m.values[i]
+      if (typeof t !== 'number') return
+      samples.push(...digitSamples(qtyCrop(img, r, clientH, clientH), t))
+    })
+  }
   const t = buildDigitTemplates(samples, clientH)
   return serialize({ ...t, sources })
 }

@@ -2,8 +2,8 @@
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { parseStashLayouts, type StashLayoutFile } from '../../core/src/stash/layout'
-import { layoutStashBadges, stashPageValue, type StashLayoutInput } from '../src/web/overlay/stash-view'
+import { cellRects, parseStashLayouts, type StashLayoutFile } from '../../core/src/stash/layout'
+import { layoutStashBadges, stashPageValue, stashValueCardPos, type StashLayoutInput } from '../src/web/overlay/stash-view'
 import { stashValueText } from '../src/web/overlay/stash-value'
 import type { PriceOfResult } from '../src/web/background/price-of'
 import { HOST_CONFIG_IMMEDIATE_KEYS, _roundTripForTest, hostConfigOf } from '../src/web/Config'
@@ -212,5 +212,35 @@ describe('V16 倉庫價格只支援國際服', () => {
     const src = read('../src/web/overlay/FloatMenu.vue')
     expect(src).toMatch(/config\.realm === 'tw'[^\n]*'ppz\.menu\.stash_tw'/)
     expect(src).toMatch(/data-menu="stash" :data-disabled="stashOff \? 'true' : 'false'"/)
+  })
+})
+
+describe('V17 本頁價值卡放在倉庫面板底部', () => {
+  it.each([
+    ['general', 1125, 0], ['scarabs', 1125, 0], ['general', 1440, 0], ['scarabs', 1440, 0], ['scarabs', 1440, 40], ['general', 2160, 0]
+  ] as const)('%s @%i 高(資料夾偏移 %i):卡片在格子區下方、面板內,不蓋右側頁籤清單', (subtab, h, yOffset) => {
+    const client = { w: Math.round(h * 16 / 9), h }
+    // 介面縮放 150%:CSS px = client px / 1.5
+    for (const scale of [1, 1.5]) {
+      const viewport = { w: client.w / scale, h: client.h / scale }
+      const pos = stashValueCardPos({ file: FILE, subtab, yOffset, client, viewport })!
+      const sx = viewport.w / client.w
+      const sy = viewport.h / client.h
+      const cells = cellRects(FILE, subtab, h, yOffset)
+      const cellBottom = Math.max(...cells.map(c => c.y + c.h)) * sy
+      const panelRight = Math.floor(h * 37 / 60) * sx
+      // 格子區下方(不蓋任何格子)
+      expect(pos.top).toBeGreaterThan(cellBottom)
+      // 面板內:左右不出面板(右緣外是倉庫頁籤清單)
+      expect(pos.left).toBeGreaterThanOrEqual(0)
+      expect(pos.left + pos.maxWidth).toBeLessThanOrEqual(panelRight)
+      // 高度在空白帶內(搜尋列上方:1440 基準 1150 + 資料夾偏移)
+      expect(pos.top + pos.maxHeight).toBeLessThanOrEqual((1150 / 1440 * h + yOffset) * sy)
+      expect(pos.maxHeight).toBeGreaterThan(0)
+    }
+  })
+  it('卡片版面:單行為主(說明收成一行)、高寬受限不溢出', () => {
+    const src = read('../src/web/overlay/StashPrices.vue')
+    expect(src).toMatch(/:style="\{ left: `\$\{card\.left\}px`, top: `\$\{card\.top\}px`, maxWidth: `\$\{card\.maxWidth\}px`, maxHeight: `\$\{card\.maxHeight\}px` \}"/)
   })
 })

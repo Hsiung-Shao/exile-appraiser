@@ -24,6 +24,8 @@ const TRUTH = JSON.parse(fs.readFileSync(path.join(FIX, 'truth.json'), 'utf8')) 
   general: number[]
   scarabs: number[]
   empties: Record<StashSubtab, Array<{ x: number, y: number }>>
+  /** 第二批截圖(2026-10-15) */
+  more: Array<{ tab: StashSubtab, file: string, values: number[], train?: boolean }>
 }
 const LAYOUTS = parseStashLayouts(JSON.parse(fs.readFileSync(path.join(ROOT, 'data/poe1/stash/layouts.json'), 'utf8')))
 const TEMPLATE_FILE = path.join(ROOT, 'data/poe1/stash/digit-templates.json')
@@ -62,16 +64,16 @@ async function readAll (templates: (tab: StashSubtab, i: number) => DigitTemplat
 }
 
 describe('V1 兩張截圖逐格讀數量', () => {
-  it('全模板:175 格錯 0、不確定 ≤ 14', async () => {
+  it('全模板:175 格錯 0、不確定 ≤ 8', async () => {
     const t = await readAll(() => TEMPLATES)
     console.log(`[V1 全模板] 正確 ${t.ok}/175,錯 ${t.wrong.length} ${t.wrong.join('; ')},不確定 ${t.unknown.length} ${t.unknown.join('; ')}`)
-    // 2026-10-15 code review 加低分門檻後:正確 163、錯 0、不確定 12(改前 169 / 0 / 6)
+    // 2026-10-15 使用者選「放寬一點」的低分門檻(< 0.70 且次佳差 < 0.15):改前 169 / 0 / 6
     expect(t.wrong).toEqual([])
-    expect(t.unknown.length).toBeLessThanOrEqual(14)
+    expect(t.unknown.length).toBeLessThanOrEqual(8)
     expect(t.wrongHigh).toEqual([])
   })
 
-  it('留一驗證(每格用其他格的樣本重建模板):錯 0、不確定 ≤ 18', async () => {
+  it('留一驗證(每格用其他格的樣本重建模板):錯 0、不確定 ≤ 10', async () => {
     const H = TRUTH.clientH
     const per = new Map<string, Array<{ d: number, v: Float64Array }>>()
     for (const tab of TABS) {
@@ -83,9 +85,9 @@ describe('V1 兩張截圖逐格讀數量', () => {
       return buildDigitTemplates([...per].filter(([k]) => k !== self).flatMap(([, v]) => v), H)
     })
     console.log(`[V1 留一] 正確 ${t.ok}/175,錯 ${t.wrong.length} ${t.wrong.join('; ')},不確定 ${t.unknown.length} ${t.unknown.join('; ')}`)
-    // 改前 166 / 錯 1(19→10)/ 8;改後 158 / 0 / 17
+    // 改前 166 / 錯 1(19→10 @0.693/0.123)/ 8
     expect(t.wrong).toEqual([])
-    expect(t.unknown.length).toBeLessThanOrEqual(18)
+    expect(t.unknown.length).toBeLessThanOrEqual(10)
     expect(t.wrongHigh).toEqual([])
   })
 })
@@ -140,10 +142,11 @@ describe('V3 低信心回未知', () => {
     expect(r.wrong).toEqual([])
   })
 
-  it('中度糊化(σ 1.0)一個都不錯,讀不準的退回不確定', async () => {
+  it('中度糊化(σ 1.0)錯 ≤ 1 格且錯的不標高信心;其餘退回不確定', async () => {
     const r = await blurred(1.0)
-    // 改前錯 1(11→14 @0.718)、不確定 10;改後錯 0、不確定 20
-    expect(r.wrong).toEqual([])
+    // 放寬門檻不擋 11→14 @0.718/0.226(使用者 2026-10-15 選擇)
+    expect(r.wrong.length).toBeLessThanOrEqual(1)
+    for (const w of r.wrong) expect(Number(w.match(/\(([\d.]+)\)$/)![1])).toBeLessThan(QTY_HIGH_CONFIDENCE)
     expect(r.unknown).toBeGreaterThan(0)
   })
 
@@ -191,12 +194,12 @@ describe('V4 漏讀一位被擋', () => {
 })
 
 describe('V5 縮放到不同 client 高', () => {
-  it('截圖放大到 1440 高:錯 0、不確定 ≤ 12', async () => {
+  it('截圖放大到 1440 高:錯 0、不確定 ≤ 8', async () => {
     const t = await readAll(() => TEMPLATES, 1440)
     console.log(`[V5 1440] 正確 ${t.ok}/175,錯 ${t.wrong.length} ${t.wrong.join('; ')},不確定 ${t.unknown.length} ${t.unknown.join('; ')}`)
-    // 改前 170 / 0 / 5;改後 165 / 0 / 10
+    // 改前 170 / 0 / 5
     expect(t.wrong).toEqual([])
-    expect(t.unknown.length).toBeLessThanOrEqual(12)
+    expect(t.unknown.length).toBeLessThanOrEqual(8)
     expect(t.wrongHigh).toEqual([])
   })
 
@@ -292,7 +295,7 @@ describe('V14 code review 修正(寧缺勿錯)', () => {
     expect(q.reason).not.toBe('empty')
   })
 
-  it('已知錯讀(留一 19→10、σ 1.0 糊化 11→14)回不確定', async () => {
+  it('已知錯讀:留一 19→10 回不確定;σ 1.0 糊化 11→14(放寬門檻不擋)不標高信心', async () => {
     const H = TRUTH.clientH
     const imgs = await loadImage('scarabs')
     const rects = cellRects(LAYOUTS, 'scarabs', H)
@@ -307,7 +310,26 @@ describe('V14 code review 修正(寧缺勿錯)', () => {
     const blur = readCellQuantity({ data, width: info.width, height: info.height, channels: info.channels }, rects[94], TEMPLATES, { clientH: H })
     console.log(`[V14 已知錯讀] 留一 #80 ${loo.qty}(${loo.reason} ${loo.confidence}/${loo.margin}),σ 1.0 #94 ${blur.qty}(${blur.reason} ${blur.confidence}/${blur.margin})`)
     expect(loo.qty).toBeNull()
-    expect(blur.qty).toBeNull()
+    expect(blur.qty === null || blur.confidence < QTY_HIGH_CONFIDENCE).toBe(true)
+  })
+})
+
+describe('V18 第二批截圖(2026-10-15,聖甲蟲頁、玩家移動過物品)', () => {
+  it('驗證用(不進訓練):115 格錯 0、不確定 ≤ 4;右側單獨欄 7 / 50 / 87 / 22 / 41 / 11 / 2 / 20 至少讀到 5 格', async () => {
+    const m = TRUTH.more[0]
+    const { data, info } = await sharp(path.join(FIX, m.file)).removeAlpha().raw().toBuffer({ resolveWithObject: true })
+    const img = { data, width: info.width, height: info.height, channels: info.channels }
+    const rects = cellRects(LAYOUTS, m.tab, img.height)
+    expect(rects).toHaveLength(m.values.length)
+    const out = rects.map((r, i) => ({ id: `${m.file}#${i}`, truth: m.values[i], r: readCellQuantity(img, r, TEMPLATES, { clientH: img.height }) }))
+    const t = tally(out)
+    console.log(`[V18 第二批] 正確 ${t.ok}/115,錯 ${t.wrong.length} ${t.wrong.join('; ')},不確定 ${t.unknown.length} ${t.unknown.join('; ')}`)
+    expect(t.wrong).toEqual([])
+    // 不確定:#2 31(低分)、#100 7(灰白聖甲蟲圖示緊貼數字 → 漏讀檢查擋下)、#102 87(7 疊在圖示上 → 只剩 8 → 擋下)、#107 20(低分)
+    expect(t.unknown.length).toBeLessThanOrEqual(4)
+    const col = out.slice(100, 108)
+    expect(col.map(o => o.truth)).toEqual([7, 50, 87, 22, 41, 11, 2, 20])
+    expect(col.filter(o => o.r.qty === o.truth).length).toBeGreaterThanOrEqual(5)
   })
 })
 
@@ -323,7 +345,8 @@ describe('V6 模板資料可重現', () => {
     for (const s of TEMPLATES.sources ?? []) {
       expect(s.sha256).toBe(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, s.file))).digest('hex'))
     }
-    expect(TEMPLATES.sources).toHaveLength(2)
+    // 第一批兩張 + 第二批聖甲蟲一張(2026-10-15)
+    expect(TEMPLATES.sources).toHaveLength(2 + TRUTH.more.filter(m => m.train !== false).length)
     expect(TEMPLATES.baseClientH).toBe(TRUTH.clientH)
     expect(TEMPLATES.counts.every(n => n > 0)).toBe(true)
   })

@@ -162,12 +162,22 @@ export function stashPageValue (inp: Pick<StashLayoutInput, 'file' | 'subtab' | 
   return v
 }
 
-/** 「本頁價值」卡的位置(CSS px):倉庫面板右緣外(h × 37/60 + 12)、格子區頂端;不蓋任何格子與按鈕列 */
-export function stashValueCardPos (inp: Pick<StashLayoutInput, 'file' | 'subtab' | 'yOffset' | 'client' | 'viewport'>): { left: number, top: number } | null {
+/**
+ * 「本頁價值」卡的位置與大小上限(CSS px):倉庫面板**底部**的空白帶 —— 格子區下方的面板框飾之下、搜尋列(強調物品)上方
+ * (1440 基準 y 1066–1146、x 24 – 面板寬 888 − 24;跟著資料夾偏移)。2026-10-15 使用者實機截圖:原本放在面板右緣外會蓋住倉庫頁籤清單。
+ * 不蓋任何格子(main 讀數量不受影響)、不出面板右緣。
+ */
+export const STASH_VALUE_BAND_1440 = { x0: 24, x1: 888 - 24, y0: 1066, y1: 1146 } as const
+
+export function stashValueCardPos (inp: Pick<StashLayoutInput, 'file' | 'subtab' | 'yOffset' | 'client' | 'viewport'>): { left: number, top: number, maxWidth: number, maxHeight: number } | null {
   if (!(inp.client.w > 0 && inp.client.h > 0)) return null
   const sx = inp.viewport.w / inp.client.w
   const sy = inp.viewport.h / inp.client.h
-  const rects = cellRects(inp.file, inp.subtab, inp.client.h, inp.yOffset)
-  const top = rects.length ? Math.min(...rects.map(r => r.y)) : 0
-  return { left: (Math.floor(inp.client.h * 37 / 60) + 12) * sx, top: top * sy }
+  const k = inp.client.h / 1440
+  const b = STASH_VALUE_BAND_1440
+  const top = Math.ceil(b.y0 * k) + inp.yOffset
+  const bottom = Math.floor(b.y1 * k) + inp.yOffset
+  const left = Math.ceil(b.x0 * k)
+  const right = Math.min(Math.floor(b.x1 * k), Math.floor(inp.client.h * 37 / 60))
+  return { left: left * sx, top: top * sy, maxWidth: (right - left) * sx, maxHeight: (bottom - top) * sy }
 }

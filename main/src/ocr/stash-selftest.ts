@@ -9,7 +9,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { app, BrowserWindow, nativeImage } from 'electron'
 import { cellRects, type StashSubtab } from '../../../core/src/stash/layout'
-import { readCellQuantity, type QtyResult } from '../../../core/src/stash/quantity'
+import { QTY_PARAMS, readCellQuantity, type QtyResult } from '../../../core/src/stash/quantity'
 import { loadStashDigitTemplates, loadStashLayouts } from '../stash-layout-data'
 import { rawPixels } from './capture'
 
@@ -31,7 +31,8 @@ export async function runStashSelftest (png: string, argv: string[]): Promise<nu
   // 與 StashScan 相同:一次取整個格子區的像素,格子換成區域內座標
   const bx0 = Math.max(0, Math.min(...rects.map(r => r.x)) - 8)
   const by0 = Math.max(0, Math.min(...rects.map(r => r.y)) - 2)
-  const bx1 = Math.max(...rects.map(r => r.x + r.w)) + 2
+  // 右界含漏讀檢查的延伸裁切(與 StashScan 相同),最右欄的三位數才不會因延伸區出界而不確定
+  const bx1 = Math.max(...rects.map(r => r.x + r.w)) + Math.ceil(QTY_PARAMS.extW * clientH / templates.baseClientH) + 2
   const by1 = Math.max(...rects.map(r => r.y + r.h)) + 2
   const t0 = performance.now()
   const px = rawPixels(img, { x: bx0, y: by0, width: bx1 - bx0, height: by1 - by0 })
@@ -53,7 +54,9 @@ export async function runStashSelftest (png: string, argv: string[]): Promise<nu
   if (fs.existsSync(truthFile)) {
     try {
       const j = JSON.parse(fs.readFileSync(truthFile, 'utf8')) as Record<string, unknown>
-      const arr = j[subtab]
+      // 第二批起(truth.more)依檔名找;沒有就用該子頁的第一批真值
+      const more = Array.isArray(j.more) ? (j.more as Array<{ tab?: string, file?: string, values?: unknown }>).find(m => m.file === path.basename(png) && m.tab === subtab) : undefined
+      const arr = more?.values ?? j[subtab]
       if (Array.isArray(arr) && arr.length === rects.length && j.clientH === clientH) truth = arr as number[]
     } catch { /* 沒有可用的真值就只印讀數 */ }
   }
