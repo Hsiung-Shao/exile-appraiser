@@ -45,6 +45,7 @@ import {
 } from './update-reminder'
 import { DEFAULT_SCAN_INTERVAL_MS, RuneshapeScan } from './ocr/runeshape-scan'
 import { StashScan } from './ocr/stash-scan'
+import { isStashCaptureFile, saveStashDump, type StashDumpData } from './ocr/stash-dump'
 import { StashCursor } from './stash-cursor'
 import { loadStashDigitTemplates, loadStashLayouts } from './stash-layout-data'
 import { SharedCapture, SharedLocateOcr } from './ocr/panel-scan'
@@ -102,6 +103,11 @@ if (LOG_FILE) {
   })
 }
 const LOG_DIR = () => path.join(app.getPath('userData'), 'logs')
+/** 除錯「存下倉庫擷取畫面」:擷取的 BGRA 原始像素 → 無損 PNG(與 `rawPixels` 同一份資料,不縮放、不壓縮失真) */
+function encodeBgraPng (img: StashDumpData['image']): Uint8Array {
+  if (img.channels !== 4) throw new Error(`stash-dump: 只支援 BGRA(channels ${img.channels})`)
+  return nativeImage.createFromBitmap(Buffer.from(img.data.buffer, img.data.byteOffset, img.data.length), { width: img.width, height: img.height }).toPNG()
+}
 // 第 29 步:`--perf-log` = 這次啟動就開效能診斷(perf/perf-monitor.ts;也可在設定 › 記錄 › 效能打開,存 userData/perf.json)
 const PERF_ARG = process.argv.includes('--perf-log')
 
@@ -798,6 +804,10 @@ if (!skipStartup) app.whenReady().then(() => {
     if (removed.length) console.log(`[log] 已刪除 ${removed.length} 個 7 天前的記錄檔`)
   })
   app.on('will-quit', () => { void logWriter.close() })
+  // 除錯「存下倉庫擷取畫面」的 stash-capture-*.png / .json 同樣保留 7 天(記錄檔的預設規則不認這個檔名)
+  void new LogFileWriter({ dir: LOG_DIR(), isOwnFile: isStashCaptureFile }).purgeOld().then((removed) => {
+    if (removed.length) console.log(`[log] 已刪除 ${removed.length} 個 7 天前的倉庫擷取檔`)
+  })
   logEmit = (entries) => { send('log-lines', entries) }
   // 視窗重新載入(F5 / 開發模式熱重載)後 renderer 的訂閱就沒了:重置,記錄分頁重新掛上時會再送 log-subscribe
   w.webContents.on('did-start-loading', () => { appLog.setSubscribed(false) })
@@ -958,6 +968,8 @@ if (!skipStartup) app.whenReady().then(() => {
     qty: { layouts: () => loadStashLayouts(), templates: () => loadStashDigitTemplates() },
     qtyPaused: () => stashCursor.onCell(),
     drawPending: () => scanMask.pending(Date.now()),
+    // 除錯「存下倉庫擷取畫面」:BGRA 原始像素 → 無損 PNG(nativeImage)+ 同名 JSON
+    saveDump: (d) => saveStashDump(d, { dir: LOG_DIR(), version: app.getVersion(), encodePng: encodeBgraPng }),
     send: (ev) => {
       scanMask.noteSent('stash', ev.seq, Date.now())
       send('stash-scan-result', ev)
@@ -1870,6 +1882,8 @@ if (!skipStartup) app.whenReady().then(() => {
     // WP-R2:設定頁顯示掃描統計;預覽端不開放
     'runeshape-stats': { kind: 'invoke', preview: false, fn: () => runeshapeScan.snapshot() },
     'stash-stats': { kind: 'invoke', preview: false, fn: () => stashScan.snapshot() },
+    // 除錯:設定 › 記錄「存下倉庫擷取畫面」→ 下一次顯示中的倉庫擷取存成 PNG + JSON(userData/logs;只存本機)
+    'stash-dump': { kind: 'invoke', preview: false, fn: () => stashScan.requestDump() },
     // 第 29 步:設定 › 記錄 › 效能(狀態 / 開關 / 開記錄檔);都只給 Electron 視窗
     'perf-get': { kind: 'invoke', preview: false, fn: () => perfState() },
     'perf-set': {

@@ -35,6 +35,8 @@ import {
 } from './panel-scan'
 import { regionSearchRect, type PhysRect } from './strategy'
 import { MASK_ACK_TIMEOUT_MS, MASK_LINGER_MS } from './scan-mask'
+import type { StashDumpData } from './stash-dump'
+import type { StashDumpResult } from '@ipc/types'
 
 export interface StashScanConfig {
   enabled: boolean
@@ -98,7 +100,14 @@ export interface StashScanDeps {
   qtyPaused?: () => boolean
   /** 送出的事件還沒被 renderer 回報遮罩(ack)→ 這個 tick 不擷取(main `ScanMaskStore.pending`);省略 = 不等 */
   drawPending?: () => boolean
+  /** 除錯「存下倉庫擷取畫面」:寫檔(main `saveStashDump`),回傳 PNG 路徑;省略 = 不支援 */
+  saveDump?: (d: StashDumpData) => Promise<string>
 }
+
+/** 「存下倉庫擷取畫面」:等下一次顯示中擷取的上限 */
+export const STASH_DUMP_TIMEOUT_MS = 3000
+/** 按下時掃描暫停中(設定視窗開著 / 遊戲失焦):等使用者關掉設定回到遊戲的上限 */
+export const STASH_DUMP_WAIT_UI_MS = 30_000
 
 /** peek 送出後至少等幾個 tick、且超過 `STASH_PEEK_TIMEOUT_MS` 仍蓋著才放棄(沿用舊值) */
 export const STASH_PEEK_LIMIT = 3
@@ -270,6 +279,8 @@ export class StashScan {
   private lastUnreadLog = ''
   /** 游標換格的時間;等滿 `MASK_LINGER_MS` 前不讀數量 */
   private cursorAt: number | null = null
+  /** 「存下倉庫擷取畫面」等待中的請求(沒按 = null,讀數量時只多這一個判斷) */
+  private dumpReq: { promise: Promise<StashDumpResult>, finish: (r: StashDumpResult) => void, stopTimer: () => void } | null = null
   /** 效能診斷(perf-monitor `stashSnapshotOf`)用的累計計數:只 `++`,關著零成本 */
   readonly counters = { ticks: 0, captures: 0, ocrRuns: 0, skippedUnchanged: 0, skippedBusy: 0, qtyRuns: 0, qtyCells: 0, qtyPeeks: 0, qtyCursorSkips: 0, qtyMasked: 0, maskWaits: 0 }
   /** 效能診斷:被 `stashBlock` 擋下的 tick 依原因累計 */
@@ -307,6 +318,90 @@ export class StashScan {
   /** 視窗事件:只在被擋下時才立刻重看 */
   wake (): void {
     if (this.idleBlocked) this.poke()
+  }
+
+  /**
+   * 除錯「存下倉庫擷取畫面」(IPC `stash-dump`):下一次顯示中、會讀數量的擷取存成 PNG + JSON(`saveDump`)。
+   * 停止類原因(停用 / 不是 PoE1 / 台服 / 暫停熱鍵 / 非 overlay / 沒有視窗)或疊層沒顯示 → 立刻回原因;
+   * 掃描暫停中(設定開著 / 遊戲失焦)等 `STASH_DUMP_WAIT_UI_MS`,否則 `STASH_DUMP_TIMEOUT_MS`;等待中再按 = 同一個請求。
+   */
+  requestDump (): Promise<StashDumpResult> {
+    if (this.dumpReq) return this.dumpReq.promise
+    if (!this.deps.saveDump) return Promise.resolve({ ok: false, reason: 'unsupported' })
+    const cfg = this.deps.config()
+    const block = stashBlock(cfg, this.deps.env(), this.ui, this.userPaused)
+    if (block && STASH_CLEARING_BLOCKS.has(block)) return Promise.resolve({ ok: false, reason: block })
+    if (!this.shown) return Promise.resolve({ ok: false, reason: 'not-showing' })
+    if (cfg.readQuantity === false) return Promise.resolve({ ok: false, reason: 'qty-off' })
+    const waitMs = block ? STASH_DUMP_WAIT_UI_MS : STASH_DUMP_TIMEOUT_MS
+    let resolve!: (r: StashDumpResult) => void
+    const promise = new Promise<StashDumpResult>(r => { resolve = r })
+    let done = false
+    const timer = this.clock.setTimeout(() => { finish({ ok: false, reason: 'timeout' }) }, waitMs)
+    const stopTimer = () => { this.clock.clearTimeout(timer) }
+    const finish = (r: StashDumpResult) => {
+      if (done) return
+      done = true
+      if (this.dumpReq?.promise === promise) this.dumpReq = null
+      stopTimer()
+      resolve(r)
+    }
+    this.dumpReq = { promise, finish, stopTimer }
+    this.deps.log?.(`[stash] 等待下一次擷取存檔(最多 ${Math.round(waitMs / 1000)} 秒)`)
+    this.poke()
+    return promise
+  }
+
+  /** 這次讀數量的像素區存檔(`readQuantities` 讀完後;值 / 原因 = 這個 tick 讀完的結果) */
+  private dumpCapture (
+    shown: { subtab: StashSubtab, yOffset: number, clientW: number, clientH: number },
+    cap: ScanCapture,
+    px: { data: Uint8Array, width: number, height: number, channels: number, x: number, y: number },
+    rects: ReadonlyArray<{ refName: string }>,
+    img: QtyRect[],
+    crops: QtyRect[],
+    masks: QtyRect[],
+    st: QtyState,
+    baseClientH: number
+  ): void {
+    const req = this.dumpReq
+    const save = this.deps.saveDump
+    if (!req || !save) return
+    // 寫檔中不再觸發第二次存檔、也不會逾時(再按 = 新的請求)
+    this.dumpReq = null
+    req.stopTimer()
+    const local = (r: QtyRect) => ({ x: r.x - px.x, y: r.y - px.y, w: r.w, h: r.h })
+    const data: StashDumpData = {
+      ts: this.clock.now(),
+      subtab: shown.subtab,
+      yOffset: shown.yOffset,
+      client: { w: shown.clientW, h: shown.clientH },
+      offset: { ...cap.offset },
+      origin: { x: px.x, y: px.y },
+      baseClientH,
+      image: { data: px.data.slice(), width: px.width, height: px.height, channels: px.channels },
+      masks: masks.map(m => ({ ...m })),
+      cells: rects.map((r, i) => ({
+        i,
+        refName: r.refName,
+        rect: local(img[i]),
+        crop: local(crops[i]),
+        value: st.values[i],
+        pending: st.want.has(i),
+        ...(st.cells[i].why ? { why: { ...st.cells[i].why! } } : {})
+      }))
+    }
+    save(data).then(
+      (file) => {
+        this.deps.log?.(`[stash] 已存擷取畫面 ${file.split(/[\\/]/).pop()}`)
+        req.finish({ ok: true, file })
+      },
+      (e: unknown) => {
+        const message = e instanceof Error ? e.message : String(e)
+        this.deps.log?.(`[stash] 存擷取畫面失敗:${message}`)
+        req.finish({ ok: false, reason: 'write-failed', message })
+      }
+    )
   }
 
   /** 使用者暫停中(暫停熱鍵) */
@@ -417,6 +512,7 @@ export class StashScan {
     if (!this.shown) return null
     this.shown = null
     this.qty = null
+    if (this.dumpReq) this.dumpReq.finish({ ok: false, reason: 'not-showing' })
     this.missStreak = 0
     this.holdStreak = 0
     this.emit('hide', client, ocrMs)
@@ -564,7 +660,11 @@ export class StashScan {
     const cfg = this.deps.config()
     const layouts = this.deps.qty?.layouts() ?? null
     const templates = this.deps.qty?.templates() ?? null
-    if (!shown || cfg.readQuantity === false || !layouts || !templates || !cap.pixels) { this.qty = null; return null }
+    if (!shown || cfg.readQuantity === false || !layouts || !templates || !cap.pixels) {
+      this.qty = null
+      if (this.dumpReq) this.dumpReq.finish({ ok: false, reason: cfg.readQuantity === false ? 'qty-off' : 'no-data' })
+      return null
+    }
     const key = `${shown.subtab}|${shown.yOffset}|${shown.clientW}x${shown.clientH}@${cap.offset.x},${cap.offset.y}`
     const rects = cellRects(layouts, shown.subtab, shown.clientH, shown.yOffset)
     if (fresh || this.qty?.key !== key) {
@@ -677,6 +777,7 @@ export class StashScan {
       this.lastQtyMs = ms
       if (fresh) this.deps.log?.(`[stash] 讀數量 ${reads} 格,${ms} ms`)
     }
+    if (this.dumpReq) this.dumpCapture(shown, cap, px, rects, img, crops, masks, st, templates.baseClientH)
     // 除錯記錄:讀不到的格與原因有變才寫一行(子頁 / 版面換了 = 狀態重建,也會重寫)
     const unread = stashUnreadSummary(rects, st.values, st.cells, st.want)
     const unreadKey = `${key}|${unread}`

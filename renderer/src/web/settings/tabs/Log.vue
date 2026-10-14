@@ -7,6 +7,8 @@
   - 按鈕:複製目前篩選結果、開啟記錄資料夾(只有 Electron 視窗)、清除畫面(只清畫面,不刪檔;模組層級記住,切分頁不復原)。
   - 錯誤行(error 等級 / `[renderer-error]` / 含 failed、失敗、Error)用 --bad 上色,warn 等級用 --warn。
   - 隱私:記錄只存本機(userData/logs),不自動上傳;要回報問題時自己複製貼上。
+  - 除錯「存下倉庫擷取畫面」(倉庫價值數量辨識重訓用;只有 Electron 視窗):IPC `stash-dump` → main 存下一次倉庫擷取的
+    格子區 PNG + JSON 到記錄資料夾;等待中按鈕停用,結果一句(../stash-dump-view.ts)。
   - 第 29 步:頂端「效能」區(PerfSection.vue:效能診斷開關 + 最近一筆摘要 + 開 perf 記錄檔;只有 Electron 視窗)。
 -->
 <template>
@@ -28,6 +30,10 @@
       <button v-if="!stick" class="btn ghost sm lg-paused" type="button" data-action="log-resume" :title="t('ppz.log.paused_tip')"
         @click="resume">{{ t('ppz.log.paused') }}</button>
       <span class="lg-count" data-log="count">{{ t('ppz.log.count', { shown: filtered.length, total: entries.length }) }}</span>
+    </div>
+    <div v-if="canStashDump" class="lg-bar lg-dump">
+      <button class="btn ghost sm" type="button" data-action="stash-dump" :disabled="dumping" @click="stashDump">{{ t('ppz.log.stash_dump') }}</button>
+      <span class="lg-hint">{{ t('ppz.log.stash_dump_hint') }}</span>
     </div>
     <p v-if="status" class="lg-status" :class="{ bad: statusBad }" data-log="status">{{ status }}</p>
 
@@ -60,6 +66,7 @@ import type { LogEntry } from '@ipc/types'
 import { Host } from '@/web/background/IPC'
 import { useSettingsFs } from '@/web/settings/settings-fs'
 import PerfSection from './PerfSection.vue'
+import { stashDumpMessage } from '../stash-dump-view'
 import { rafThrottle, windowEndIdx, windowStartIdx } from '../../virtual-window'
 import {
   LOG_FILTERS, filterLogEntries, formatLogText, isAtBottom, isErrorLine, logTime, mergeLogEntries, oneLine, type LogFilterId
@@ -76,6 +83,7 @@ const entries = shallowRef<LogEntry[]>([])
 const filtered = computed(() => filterLogEntries(entries.value, filter.value, keyword.value))
 const canOpenFolder = Host.canOpenLogFolder
 const canPerf = Host.canPerf
+const canStashDump = Host.canStashDump
 
 const scroller = ref<HTMLElement | null>(null)
 const scrollTop = shallowRef(0)
@@ -213,6 +221,23 @@ async function openFolder () {
     console.warn('[log] 開啟記錄資料夾失敗', e)
   }
 }
+const dumping = ref(false)
+async function stashDump () {
+  if (dumping.value) return
+  dumping.value = true
+  status.value = t('ppz.log.stash_dump_waiting')
+  statusBad.value = false
+  if (statusTimer) clearTimeout(statusTimer)
+  try {
+    const m = stashDumpMessage(await Host.stashDump())
+    say(t(m.key, m.params), m.bad)
+  } catch (e) {
+    say(t('ppz.log.stash_dump_failed', { msg: e instanceof Error ? e.message : String(e) }), true)
+    console.warn('[log] 存倉庫擷取畫面失敗', e)
+  } finally {
+    dumping.value = false
+  }
+}
 function clear () {
   const last = entries.value.length ? entries.value[entries.value.length - 1].seq : 0
   if (last > clearedUpTo) clearedUpTo = last
@@ -242,6 +267,7 @@ function clear () {
 .log-view .lg-search { flex: 1; min-width: 8em; max-width: calc(var(--fs-base) * 22); }
 .log-view .lg-count { font-size: var(--fs-2xs); color: var(--ink-3); white-space: nowrap; }
 .log-view .lg-paused { color: var(--warn); }
+.log-view .lg-hint { flex: 1; min-width: 12em; font-size: var(--fs-2xs); color: var(--ink-3); }
 .log-view .lg-status { margin: 0; font-size: var(--fs-xs); color: var(--ink-2); }
 .log-view .lg-status.bad { color: var(--bad); }
 .log-view .lg-foot { margin: 0; flex-shrink: 0; font-size: var(--fs-2xs); color: var(--ink-3); }

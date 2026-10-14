@@ -10,7 +10,7 @@
  */
 import type { HostApi, HostFetchResult, ItemTextEvent, HostConfigForMain, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId } from '@ipc/types'
 import type { ConfigChangedEvent, HotkeyRegistration, OcrAvailability, OcrRegionPickTarget, RevealScanEvent, SettingsTabId, LegacySettingsTabId, UpdaterInfo } from '@ipc/types'
-import type { LogEntry, LogSnapshot, PerfRendererReport, PerfState, PerfStateEvent, RuneshapeScanEvent, RuneshapeStats, RuneshapeUiState, ScanMaskReport, OverlayContentState, StashCursorEvent, StashScanEvent, StashStats } from '@ipc/types'
+import type { LogEntry, LogSnapshot, PerfRendererReport, PerfState, PerfStateEvent, RuneshapeScanEvent, RuneshapeStats, RuneshapeUiState, ScanMaskReport, OverlayContentState, StashCursorEvent, StashDumpResult, StashScanEvent, StashStats } from '@ipc/types'
 import type { RegexBookmarkRunEvent, RegexPasteRequest, RegexPasteResult, RegexShareRequest } from '@ipc/types'
 import { shallowRef } from 'vue'
 import type { HttpFetch } from '@exile-appraiser/core/http'
@@ -303,6 +303,12 @@ class HostTransport {
 
   async stashStats (): Promise<StashStats | undefined> {
     return await window.host?.stashStats?.()
+  }
+
+  /** 除錯「存下倉庫擷取畫面」:只有 Electron 視窗(預覽 / 純瀏覽器沒有) */
+  get canStashDump (): boolean { return !this.isPreview && typeof window.host?.stashDump === 'function' }
+  async stashDump (): Promise<StashDumpResult> {
+    return this.canStashDump ? await window.host!.stashDump!() : { ok: false, reason: 'unsupported' }
   }
 
   /** 查價面板 / 設定 / 框選層開著 → main 暫停掃描 */

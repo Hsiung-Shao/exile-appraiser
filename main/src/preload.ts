@@ -83,6 +83,7 @@ const api: HostApi = {
   onStashScanResult: (cb: (e: StashScanEvent) => void) => subscribe('stash-scan-result', cb),
   onStashCursor: (cb: (e: StashCursorEvent) => void) => subscribe('stash-cursor', cb),
   stashStats: () => ipcRenderer.invoke('stash-stats'),
+  stashDump: () => ipcRenderer.invoke('stash-dump'),
   // 第 18 步:畫在遊戲上的徽章 / 提示外框(main 擷取後遮掉)
   scanMask: (r: ScanMaskReport) => { ipcRenderer.send('scan-mask', r) },
   // 第 28 步:設定 › 記錄

@@ -863,7 +863,21 @@
       "paused_tip": "往上捲時暫停自動捲動;點這裡(或捲回最底)恢復",
       "empty": "目前沒有記錄。",
       "empty_filtered": "沒有符合篩選的記錄。",
-      "privacy": "記錄只存在這台電腦(最近約 3000 行 + 資料夾裡保留 7 天的檔案),不會自動上傳;回報問題時請自行複製貼上。"
+      "privacy": "記錄只存在這台電腦(最近約 3000 行 + 資料夾裡保留 7 天的檔案),不會自動上傳;回報問題時請自行複製貼上。",
+      "stash_dump": "存下倉庫擷取畫面",
+      "stash_dump_hint": "在 PoE1 倉庫碎片頁開著時按,把程式實際擷取的格子區存到記錄資料夾,用來改善數量辨識;只存在本機。",
+      "stash_dump_waiting": "等待下一次倉庫擷取…(設定視窗開著時掃描暫停,請關閉設定回到倉庫)",
+      "stash_dump_saved": "已存:{file}(在記錄資料夾)",
+      "stash_dump_failed": "存檔失敗:{msg}",
+      "stash_dump_not_showing": "倉庫價格疊層沒有顯示:請先在遊戲裡打開倉庫碎片頁(一般 / 聖甲蟲子頁)。",
+      "stash_dump_timeout": "等不到倉庫擷取(逾時):請確認倉庫碎片頁開著、遊戲在前景,再按一次。",
+      "stash_dump_disabled": "倉庫價格已停用:請先在「自動辨識」開啟。",
+      "stash_dump_not_poe1": "只支援 PoE1 倉庫。",
+      "stash_dump_not_intl": "倉庫價格只支援國際服。",
+      "stash_dump_paused": "倉庫價格已暫停(暫停熱鍵):請先繼續。",
+      "stash_dump_not_overlay": "只在 overlay 模式可用。",
+      "stash_dump_no_window": "找不到遊戲視窗。",
+      "stash_dump_qty_off": "「倉庫價值」(讀取堆疊數量)已關閉:請先開啟。"
     },
     "perf": {
       "title": "效能",

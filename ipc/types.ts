@@ -303,6 +303,12 @@ export interface StashStats {
   /** 讀過幾格數量(累計) */
   qtyCells?: number
 }
+/**
+ * 除錯「存下倉庫擷取畫面」(`stash-dump`):成功 = PNG 完整路徑(同名 .json 在旁邊,都在 userData/logs);
+ * 失敗 `reason`:`not-showing`、StashScan 的停止原因(`disabled` / `not-poe1` / `not-intl` / `user-paused` / `not-overlay` / `no-window`)、
+ * `qty-off`、`no-data`、`timeout`、`write-failed`(帶 `message`)、`unsupported`
+ */
+export type StashDumpResult = { ok: true, file: string } | { ok: false, reason: string, message?: string }
 
 /**
  * 效能修正第 18 步:renderer 回報畫在遊戲上的東西(`scan-mask`;main `scan-mask.ts`)。擷取會截到 overlay 自己,
@@ -636,6 +642,8 @@ export interface HostApi {
   onStashCursor?: (cb: (e: StashCursorEvent) => void) => () => void
   /** PoE1 倉庫價格疊層統計(設定頁);預覽端回 undefined */
   stashStats?: () => Promise<StashStats | undefined>
+  /** 除錯:下一次倉庫擷取存成 PNG + JSON(userData/logs);預覽 shim 沒有(`preview: false`) */
+  stashDump?: () => Promise<StashDumpResult>
   /** 第 18 步:回報畫在遊戲上的徽章 / 提示外框(main 擷取後遮掉);預覽端 no-op。 */
   scanMask?: (r: ScanMaskReport) => void
   /** 第 28 步:記錄快照(IPC `log-get`);帶 `sinceSeq` 只回較新的。預覽端經 RPC 可用(輪詢)。 */

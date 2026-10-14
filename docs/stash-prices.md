@@ -121,6 +121,19 @@ host-config 帶 `realm`(`HOST_CONFIG_IMMEDIATE_KEYS`、main `scanConfigKey` 都�
   本頁價值卡加「數量以畫面辨識,可能讀錯…」說明與「未計入 N 格(數量未讀 a、無價 b)」(`stashPageValue().excluded` = unknown + noPrice)。
 - **待使用者實機確認**:2560×1440 一般 / 聖甲蟲的數量與總價、移動物品後更新(含 peek 時徽章短暫收起的觀感)、停格明細;準確度不足時請補原解析度 PNG 再調模板。
 
+## 除錯:存下擷取畫面(2026-10-15)
+實機上有些格「讀到正確數字但信心不足」被標「?」時,用**程式實際擷取到的原解析度畫面**重訓數字模板(`core/src/stash/quantity.ts`、
+`scripts/build-stash-digit-templates.mjs` → `data/poe1/stash/digit-templates.json`)。
+- 入口:設定 › 記錄「存下倉庫擷取畫面」(只有 Electron 視窗;`Log.vue`,結果文案 `settings/stash-dump-view.ts`)→ IPC `stash-dump`(invoke、`preview: false`)→ `StashScan.requestDump()`。
+- 時機:**下一次顯示中、會讀數量的擷取**(游標停在格上 / 剛換格的 tick 跳過,與讀數量相同);讀完那一格的數量後存,JSON 的讀數 = 這個 tick 的結果。
+  停止原因(停用 / 不是 PoE1 / 台服 / 暫停熱鍵 / 非 overlay / 沒有遊戲視窗)、疊層沒顯示、「倉庫價值」關閉 → 立刻回原因;
+  掃描暫停中(設定視窗開著 / 遊戲失焦 —— 從設定頁按一定是這種)等 30 秒(`STASH_DUMP_WAIT_UI_MS`):關掉設定回到倉庫後下一個 tick 存;否則等 3 秒(`STASH_DUMP_TIMEOUT_MS`)。等待中再按 = 同一個請求;疊層收起 → `not-showing`。
+- 內容(`main/src/ocr/stash-dump.ts`,存在 `userData/logs/`):`stash-capture-<YYYYMMDD-HHmmss>-<子頁>.png` = 讀數量那一塊 `cap.pixels`(所有格的數字裁切區外框 + 右側延伸 `QTY_PARAMS.extW`,原解析度 BGRA → `nativeImage` 無損 PNG,**沒有**遮罩填色,徽章照原樣在畫面上);
+  同名 `.json` = 版本號、client 尺寸、擷取偏移、像素區原點 `origin`(擷取影像座標)、子頁、yOffset、`baseClientH`、遮罩矩形、每格 `rect` / `crop`(像素區座標)/ `value` / `pending` / `why`(讀不到的原因、讀到的字、分數 / 差)。
+  存完寫一行 `[stash] 已存擷取畫面 <檔名>`。
+- 清理:記錄檔的 `purgeOld` 只認 `exile-appraiser-<日期>.log`;啟動時另以 `isStashCaptureFile` 跑一次 `LogFileWriter.purgeOld`,刪 7 天前的擷取檔。
+- 效能:沒按時只多 `dumpReq` 一個 null 判斷;測試 `main/test/stash-dump.test.ts`、`renderer/test/stash-dump.test.ts`。
+
 ## 測試
 `core/test/stash-quantity.test.ts`(V1–V6、V14 code review:4 位數 / 單獨 0 / 超出影像 / 已知錯讀)、`main/test/stash-quantity-scan.test.ts`(V7 / V8 / V13 / peek;code review:游標換格競態、peek 時序與放棄、陰影不算變化、數字帶)、`renderer/test/stash-value.test.ts`(V9 / V10 / V13)、
 `renderer/test-vue/stash-prices-mount.test.ts`(V11)、`renderer/test-vue/float-menu-mount.test.ts`(V12);
