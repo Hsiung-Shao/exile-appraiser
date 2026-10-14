@@ -933,7 +933,8 @@ if (!skipStartup) app.whenReady().then(() => {
     config: () => ({
       enabled: hostCfg != null && hostCfg.stashPricesEnabled !== false,
       game: hostCfg?.game ?? 'poe1',
-      intervalMs: hostCfg?.stashPricesIntervalMs ?? DEFAULT_SCAN_INTERVAL_MS
+      intervalMs: hostCfg?.stashPricesIntervalMs ?? DEFAULT_SCAN_INTERVAL_MS,
+      region: hostCfg?.stashRegion ?? null
     }),
     env: scanEnv,
     textLang: ocrTextLang,

@@ -6,6 +6,9 @@ import { cellRects, parseStashLayouts, type StashLayoutFile } from '../../core/s
 import { layoutStashBadges, shortStashName, stashPriceUnit, type StashLayoutInput } from '../src/web/overlay/stash-view'
 import type { PriceOfResult } from '../src/web/background/price-of'
 import { badgeStyleVars, defaultOcrBadgeStyle } from '../src/web/overlay/badge-style'
+import { _roundTripForTest } from '../src/web/Config'
+import { REGION_PICKER_SPECS } from '../src/web/overlay/ocr-reveal'
+import { defaultStripRegion } from '../../core/src/stash/detect'
 import { overlayContentKey, overlayContentOf, overlayLayers } from '../src/web/overlay/overlay-content'
 
 const read = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8')
@@ -173,6 +176,30 @@ describe('S14d 價格單位', () => {
       const st = JSON.parse(readFileSync(fileURLToPath(new URL(`../src/i18n/${lang}.json`, import.meta.url)), 'utf8')).ppz.stash
       expect([st.unit_c, st.unit_div], lang).toEqual(['C', 'D'])
     }
+  })
+})
+
+describe('S18e 自訂倉庫 OCR 區域(設定 / 框選層)', () => {
+  it('stashRegion 預設 null、存讀往返、壞值回 null', () => {
+    // 沒存 / 讀壞 → 使用者框的區域重開就不見,或壞值讓 main 算出怪矩形
+    expect(_roundTripForTest(null).config.stashRegion).toBeNull()
+    const r = { x: 0.01, y: 0.12, w: 0.35, h: 0.07 }
+    const rt = _roundTripForTest(JSON.stringify({ stashRegion: r }))
+    expect(rt.config.stashRegion).toEqual(r)
+    expect(JSON.parse(rt.serialized).stashRegion).toEqual(r)
+    expect(_roundTripForTest(JSON.stringify({ stashRegion: { x: 'a' } })).config.stashRegion).toBeNull()
+  })
+  it('框選層有「倉庫」目標:寫 stashRegion,沒框過時顯示預設按鈕列', () => {
+    // 沒有這個目標 → 設定頁的框選鈕框到別的功能的區域
+    const spec = REGION_PICKER_SPECS.stash
+    expect(spec.field).toBe('stashRegion')
+    expect(spec.defaultRegion?.({ w: 2560, h: 1440 })).toEqual(defaultStripRegion(2560, 1440))
+    expect(REGION_PICKER_SPECS.reveal.defaultRegion).toBeUndefined()
+  })
+  it('設定卡片有區域列、框選鈕與還原預設', () => {
+    const card = readFileSync(fileURLToPath(new URL('../src/web/settings/StashPricesSection.vue', import.meta.url)), 'utf8')
+    expect(card).toContain("openRegionPicker('settings', 'stash')")
+    expect(card).toContain('config.stashRegion = null')
   })
 })
 

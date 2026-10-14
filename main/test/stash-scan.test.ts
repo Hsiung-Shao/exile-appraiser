@@ -13,7 +13,7 @@ import {
   STASH_CLEARING_BLOCKS, STASH_HOLD_LIMIT, STASH_MISS_LIMIT, StashScan, stashBlock, type StashScanConfig
 } from '../src/ocr/stash-scan'
 import { STASH_CURSOR_INTERVAL_MS, StashCursor, stashPanelContains } from '../src/stash-cursor'
-import { buttonRects, type TextLine } from '../../core/src/stash/detect'
+import { buttonRects, stripRect, type TextLine } from '../../core/src/stash/detect'
 import { cellRects, parseStashLayouts, type StashLayoutFile } from '../../core/src/stash/layout'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -86,7 +86,8 @@ function harness () {
     client: { w: W, h: H },
     captures: 0,
     ocrs: 0,
-    grays: 0
+    grays: 0,
+    ocrRects: [] as Array<{ x: number, y: number, width: number, height: number }>
   }
   const events: StashScanEvent[] = []
   const showingCalls: Array<{ showing: boolean, st: { subtab: unknown, yOffset: number, clientH: number } }> = []
@@ -103,8 +104,9 @@ function harness () {
         offset: { x: 0, y: 0 },
         client,
         fingerprint: () => state.frame,
-        recognize: async () => {
+        recognize: async (rect) => {
           state.ocrs++
+          state.ocrRects.push({ ...rect })
           return { lines: state.lines.map(l => ({ ...l })), ms: 42 }
         },
         gray: (rect) => {
@@ -641,5 +643,30 @@ describe('S9g 沒顯示時沒找到也照常差分(N1)', () => {
     expect(await h.scan.tick()).toEqual({ kind: 'unchanged' })
     expect(h.state.ocrs).toBe(1)
     expect(h.events).toHaveLength(0)
+  })
+})
+
+describe('S18 使用者框選的倉庫 OCR 區域', () => {
+  it('沒框區域 → OCR 預設按鈕列(stripRect)', async () => {
+    // 預設路徑被改壞 → 沒框過的使用者偵測不到碎片頁
+    const h = harness()
+    await h.scan.tick()
+    const s = stripRect(H)
+    expect(h.state.ocrRects[0]).toEqual({ x: s.x, y: s.y, width: s.w, height: s.h })
+  })
+  it('框了區域 → OCR 使用者的區域(client 比例換成像素)', async () => {
+    // 忽略 cfg.region → 使用者框了也沒用
+    const h = harness()
+    h.cfg.region = { x: 0.1, y: 0.2, w: 0.3, h: 0.1 }
+    await h.scan.tick()
+    expect(h.state.ocrRects[0]).toEqual({ x: Math.round(0.1 * W), y: Math.round(0.2 * H), width: Math.round(0.3 * W), height: Math.round(0.1 * H) })
+  })
+  it('改了區域 → 縮圖相同也重新 OCR', async () => {
+    // 差分基準沒綁區域 → 換區域後沿用舊結果、不重看
+    const h = harness()
+    await h.scan.tick()
+    h.cfg.region = { x: 0, y: 0.1, w: 0.4, h: 0.1 }
+    await h.scan.tick()
+    expect(h.state.ocrs).toBe(2)
   })
 })

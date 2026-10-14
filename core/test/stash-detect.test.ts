@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url'
 import sharp from 'sharp'
 import {
   BUTTON_SUBTABS, SUBTAB_LABELS, activeSubtab, buttonRects, findSubtabButtons,
-  folderOffset, percentile, stripRect, type TextLine
+  defaultStripRegion, folderOffset, percentile, stripRect, type TextLine
 } from '../src/stash/detect'
 import { cellRects, parseStashLayouts, type StashSubtab } from '../src/stash/layout'
 
@@ -65,6 +65,20 @@ describe('S6c 實機英文介面(按鈕是小型大寫字)', () => {
   })
   it('英文截圖的目前子頁(一般)由像素判定', async () => {
     expect(activeSubtab(await buttonP99('strip-general-1440-en.png'))).toBe('general')
+  })
+})
+
+describe('S18d 預設區域(client 比例)', () => {
+  it('defaultStripRegion = stripRect 換成 client 比例', () => {
+    // 比例算錯 → 框選層顯示的「目前區域」和實際 OCR 的位置不一致
+    for (const [w, h] of [[2560, 1440], [1920, 1080], [2012, 1432]]) {
+      const r = defaultStripRegion(w, h)
+      const s = stripRect(h)
+      expect(r.x * w).toBeCloseTo(s.x, 6)
+      expect(r.y * h).toBeCloseTo(s.y, 6)
+      expect(r.w * w).toBeCloseTo(s.w, 6)
+      expect(r.h * h).toBeCloseTo(s.h, 6)
+    }
   })
 })
 

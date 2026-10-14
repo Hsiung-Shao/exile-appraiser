@@ -29,6 +29,12 @@ export function stripRect (clientH: number): Rect {
   return { x: 0, y, w: Math.floor(clientH * 37 / 60), h: at(268, clientH) - y }
 }
 
+/** 預設掃描條換成 client 比例(設定頁 / 框選層顯示「目前區域」用;使用者沒框過時 main 用的就是這一塊) */
+export function defaultStripRegion (clientW: number, clientH: number): { x: number, y: number, w: number, h: number } {
+  const s = stripRect(clientH)
+  return { x: s.x / clientW, y: s.y / clientH, w: s.w / clientW, h: s.h / clientH }
+}
+
 /** 倉庫頁在資料夾內時,整個內容下移(Exile-UI `in_folder` = +47 / 1440) */
 export function folderOffset (clientH: number): number {
   return at(47, clientH)

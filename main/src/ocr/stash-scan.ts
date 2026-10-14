@@ -12,7 +12,7 @@
  * 與褻瀆 / 符文塑形共用 WinOcr(別的掃描忙碌就丟這個 tick)與擷取(`SharedCapture`)。被擋下時的排程同 `panel-scan.ts`:
  * 停用 / 不是 PoE1 → 不排(等 `poke()`);其他原因 10 秒保底。不送任何鍵盤 / 滑鼠輸入。
  */
-import type { RuneshapeUiState, StashScanEvent, StashStats } from '@ipc/types'
+import type { OcrRegion, RuneshapeUiState, StashScanEvent, StashStats } from '@ipc/types'
 import type { OcrTextLang, OcrTextLine } from '../../../poe2/src/desecration/ocr-text'
 import { activeSubtab, buttonRects, findSubtabButtons, percentile, stripRect, type Rect } from '../../../core/src/stash/detect'
 import type { StashSubtab } from '../../../core/src/stash/layout'
@@ -20,12 +20,14 @@ import {
   BLOCKED_FALLBACK_MS, clampScanInterval, isChanged, isLargeChange, DEFAULT_DIFF_THRESHOLDS,
   type Fingerprint, type ScanCapture, type ScanClock, type ScanEnv
 } from './panel-scan'
-import type { PhysRect } from './strategy'
+import { regionSearchRect, type PhysRect } from './strategy'
 
 export interface StashScanConfig {
   enabled: boolean
   game: 'poe1' | 'poe2'
   intervalMs: number
+  /** 使用者框的 OCR 區域(client 比例;2026-10-14 使用者要求可自訂);null / 省略 = 預設按鈕列 `stripRect` */
+  region?: OcrRegion | null
 }
 
 export type StashBlock = 'disabled' | 'not-poe1' | 'not-overlay' | 'no-window' | 'game-inactive' | 'ui-open'
@@ -232,9 +234,10 @@ export class StashScan {
     this.inFlight = true
     const cap = await this.deps.capture(env.bounds!)
     const client = cap.client
-    const strip = toImage(stripRect(client.h), cap.offset)
+    // 使用者框的區域優先(換算失敗 / 落在影像外 → 預設按鈕列)
+    const strip = regionSearchRect(cap.size, cfg.region, { client, offset: cap.offset }) ?? toImage(stripRect(client.h), cap.offset)
     const fp = cap.fingerprint(strip)
-    const key = `${client.w}x${client.h}@${cap.offset.x},${cap.offset.y}`
+    const key = `${client.w}x${client.h}@${cap.offset.x},${cap.offset.y}|${strip.x},${strip.y},${strip.width},${strip.height}`
     const prev = this.baseline?.key === key ? this.baseline.fp : null
     // 畫面沒變:狀態不會變(子頁 / 開關都會改變按鈕列)
     if (prev && !isChanged(this.diff(prev, fp), DEFAULT_DIFF_THRESHOLDS) && !isLargeChange(prev, fp)) {

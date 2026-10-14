@@ -8,6 +8,7 @@
  *   (沒有 15 秒自動消失、沒有「再按一次清除」)。`revealScanAction` 決定每個事件要做什麼。
  * 只做型別匯入(renderer vitest 沒有別名)。
  */
+import { defaultStripRegion } from '../../../../core/src/stash/detect'
 import { shallowRef } from 'vue'
 import type { Poe2RevealCandidate, Poe2RevealResult } from '@poe2-entry'
 import type { OcrRegion, RevealScanEvent, RuneshapeStats } from '@ipc/types'
@@ -271,13 +272,13 @@ export const regionPickerClosed = shallowRef<{ source: RegionPickerSource | null
 
 // ---- WP-R2:框選層參數化(同一個 OcrRegionPicker.vue 框兩種區域) ----
 
-/** 框哪一種區域:`reveal` = 靈魂之井揭露面板(WP-S2);`runeshape` = 符文塑形面板(WP-R2) */
-export type RegionPickerTarget = 'reveal' | 'runeshape'
+/** 框哪一種區域:`reveal` = 靈魂之井揭露面板(WP-S2);`runeshape` = 符文塑形面板(WP-R2);`stash` = PoE1 倉庫碎片頁按鈕列(2026-10-14) */
+export type RegionPickerTarget = 'reveal' | 'runeshape' | 'stash'
 
 export interface RegionPickerSpec {
   target: RegionPickerTarget
   /** 存到設定的哪個欄位(client 比例) */
-  field: 'ocrRegion' | 'runeshapeRegion'
+  field: 'ocrRegion' | 'runeshapeRegion' | 'stashRegion'
   /** 說明條標題 / 副標(i18n 鍵) */
   titleKey: string
   subKey: string
@@ -288,6 +289,8 @@ export interface RegionPickerSpec {
   afterConfirm: 'reveal-now' | 'focus-game'
   /** 顯示「上次偵測」參考框與「套用上次偵測」鈕(只有揭露面板有偵測結果) */
   showLastDetected: boolean
+  /** 沒框過時程式實際用的區域(client 比例;框選層當「目前區域」顯示並當初始框)。省略 = 沒框過就是沒有區域 */
+  defaultRegion?: (viewport: { w: number, h: number }) => OcrRegion
 }
 
 export const REGION_PICKER_SPECS: Readonly<Record<RegionPickerTarget, RegionPickerSpec>> = {
@@ -306,6 +309,16 @@ export const REGION_PICKER_SPECS: Readonly<Record<RegionPickerTarget, RegionPick
     subKey: 'ppz.runeshape.picker.sub',
     afterConfirm: 'focus-game',
     showLastDetected: false
+  },
+  stash: {
+    target: 'stash',
+    field: 'stashRegion',
+    titleKey: 'ppz.stash.picker.help',
+    subKey: 'ppz.stash.picker.sub',
+    afterConfirm: 'focus-game',
+    showLastDetected: false,
+    // viewport 與遊戲 client 同比例(overlay 蓋滿 client)→ 比例相同
+    defaultRegion: (vp) => defaultStripRegion(vp.w, vp.h)
   }
 }
 

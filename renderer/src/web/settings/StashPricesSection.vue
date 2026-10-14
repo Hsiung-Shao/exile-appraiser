@@ -1,7 +1,8 @@
 <!--
   設定 › 自動辨識 › 倉庫價格(PoE1 碎片頁疊層;只在 PoE1 顯示)。2026-10-14 使用者回報「放在倉庫與聊天不知道去哪找」→
   搬到「自動辨識」分頁,版面照褻瀆 / 符文塑形的卡片(OcrScanSection.vue):標題(+「?」)→ 一句說明 → 啟用 → 目前狀態(+ 重新整理)
-  → 掃描間隔(100–3000 ms,< 500 顯示 CPU 提示)→ 最近耗時 → 顯示物品名稱。沒有區域框選(位置由固定版面決定)。
+  → 掃描間隔(100–3000 ms,< 500 顯示 CPU 提示)→ OCR 區域(+ 在遊戲上框選 / 還原預設;沒框過 = 預設碎片頁按鈕列)→ 最近耗時 → 顯示物品名稱。
+  OCR 區域只決定讀子頁按鈕的那一塊;每格物品位置仍由固定版面決定。
   價格顏色門檻(`stashThresholds`,混沌石)與字體 / 大小 / 外框在同一頁的「徽章外觀」卡片(BadgeStyleSection.vue,與 PoE2 相同)。
 -->
 <template>
@@ -32,6 +33,20 @@
     </div>
     <p v-if="config.stashPricesIntervalMs < warnMs" class="err-line warn" data-setting="stash-interval-warn">{{ t('ppz.scan.interval_cpu_warn', { ms: warnMs }) }}</p>
     <div class="srow">
+      <span class="k">{{ t('ppz.stash.region') }} <help-tip id="stash-region" data-setting="stash-region-hint" :text="t('ppz.stash.region_hint')" /></span>
+      <div class="ctl">
+        <span class="ocr-region-status" :class="{ unset: !config.stashRegion }" data-setting="stash-region-status">{{ regionStatus }}</span>
+      </div>
+    </div>
+    <div class="srow">
+      <span class="k" />
+      <div class="ctl">
+        <button v-if="canPick" class="btn sm primary" data-action="stash-region-pick" @click="pick">{{ t('ppz.ocr.region.pick') }}</button>
+        <button class="btn sm" data-action="stash-region-reset" :disabled="!config.stashRegion" @click="resetRegion">{{ t('ppz.stash.region_reset') }}</button>
+      </div>
+    </div>
+    <p v-if="!canPick" class="foot ocr-pick-na" data-setting="stash-region-pick-unavailable">{{ pickUnavailable }}</p>
+    <div class="srow">
       <span class="k">{{ t('ppz.runeshape.timing') }}</span>
       <div class="ctl">
         <span class="scan-status dim" data-setting="stash-timing">{{ timingText }}</span>
@@ -51,6 +66,8 @@ import type { StashStats } from '@ipc/types'
 import { AppConfig, SCAN_INTERVAL_CPU_WARN_MS, SCAN_INTERVAL_MAX_MS, SCAN_INTERVAL_MIN_MS, clampRuneshapeInterval, hostConfigSettled } from '@/web/Config'
 import { afterHostConfigApplied } from '@/web/host-config-sync'
 import { Host } from '@/web/background/IPC'
+import { openRegionPicker } from '@/web/overlay/ocr-reveal'
+import { regionPercent } from '@/web/overlay/region-geom'
 import HelpTip from './HelpTip.vue'
 
 export default defineComponent({
@@ -97,10 +114,29 @@ export default defineComponent({
       return t('ppz.stash.timing', { ms: s.lastOcrMs, count: s.ocrCount })
     })
 
+    // ---- OCR 區域(2026-10-14 使用者要求可自訂;null = 預設碎片頁按鈕列)----
+    /** 只有 Electron overlay 有框選層;瀏覽器預覽 / window 模式不行(同 OcrScanSection) */
+    const canPick = Host.isElectron && !Host.isPreview && Host.isOverlay
+    const pickUnavailable = computed(() => Host.isPreview || !Host.isElectron ? t('ppz.ocr.region.pick_preview') : t('ppz.ocr.region.pick_window'))
+    const regionStatus = computed(() => config.stashRegion
+      ? t('ppz.ocr.region.status_set', regionPercent(config.stashRegion))
+      : t('ppz.stash.region_default'))
+    function pick () {
+      if (canPick) openRegionPicker('settings', 'stash')
+    }
+    function resetRegion () {
+      config.stashRegion = null
+    }
+
     return {
       t,
       config,
       canCheck,
+      canPick,
+      pickUnavailable,
+      regionStatus,
+      pick,
+      resetRegion,
       intervalDraft,
       applyInterval,
       minMs: SCAN_INTERVAL_MIN_MS,

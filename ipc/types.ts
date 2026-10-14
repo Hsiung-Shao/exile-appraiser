@@ -107,6 +107,8 @@ export interface HostConfigForMain {
   stashPricesEnabled?: boolean
   /** PoE1 倉庫價格疊層掃描間隔(ms,100–3000,預設 1000) */
   stashPricesIntervalMs?: number
+  /** PoE1 倉庫價格疊層 OCR 區域(client 比例;null / 省略 = 預設碎片頁按鈕列) */
+  stashRegion?: OcrRegion | null
   /** 2026-10-01:框選符文塑形面板區域的熱鍵(預設空 = 不註冊;註冊條件同 `hotkeyOcrRegion`:overlay + PoE2 + 遊戲前景)。 */
   hotkeyRuneshapeRegion?: string
   /** 自動更新(預設 true):安裝版背景下載新版、結束程式時靜默套用;false = 手動(按下載 → 按安裝)。見 main/src/updater-core.ts。 */
