@@ -10,8 +10,6 @@ import { hasCraftingValue, likelyFinishedItem } from "./common";
 import { createUniquePresets, PRESET_UNIQUES } from "./create-unique-filters";
 // exile-appraiser: 破裂詞綴預設可見(自寫 fractured-toggle.ts)
 import { revealFracturedRows } from "./fractured-toggle";
-// exile-appraiser: 2026-10-15 底材預設(上游 trends 的「有價值底材」判定)
-import { isValuableBasetype } from "../trends/getDetailsId";
 
 const ROMAN_NUMERALS = ["I", "II", "III", "IV", "V"];
 
@@ -114,10 +112,7 @@ export function createPresets(
   };
 
   return {
-    // exile-appraiser: 使用者 2026-10-15 裁定(與 EE2 不同,與 PoE1 一致):有「底材」preset 的武器 / 防具 / 飾品 / 箭袋
-    // (`isValuableBasetype`;珠寶、換界石等維持上游)預設切到它(查該底材 type,不查類別);
-    // preset 內容、順序與詞綴勾選方式維持上游,pseudo 仍可切回
-    active: isValuableBasetype(item) ? baseItemPreset.id : pseudoPreset.id,
+    active: pseudoPreset.id,
     presets: [pseudoPreset, baseItemPreset],
   };
 }

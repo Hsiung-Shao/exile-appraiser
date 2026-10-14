@@ -5,6 +5,8 @@ import { ModifierType } from "@/parser/modifiers";
 import { BaseType, ITEM_BY_REF } from "@/assets/data";
 import { CATEGORY_TO_TRADE_ID } from "../trade/pathofexile-trade";
 import { ARMOUR, GEM, WEAPON } from "@/parser/meta";
+// exile-appraiser: 2026-10-15 魔法 / 稀有底材預設查 type
+import { ACCESSORY } from "@/parser/meta";
 import { maxUsefulItemLevel } from "./common";
 
 export const SPECIAL_SUPPORT_GEM = [
@@ -211,6 +213,12 @@ export function createFilters(
         item.category === ItemCategory.Charm
       ) {
         disabled = false;
+      }
+      // exile-appraiser: 使用者 2026-10-15 裁定(與 EE2 不同,與 PoE1 一致):魔法 / 稀有的武器 / 防具 / 飾品 / 箭袋
+      // (= trends `isValuableBasetype` 的範圍,不看物等)預設查該底材 type、不查類別,避免結果混進其他底材;
+      // preset 與詞綴勾選照上游(仍是 pseudo),FilterName 可切回類別
+      if (isMagicOrRareBase(item)) {
+        disabled = true;
       }
       filters.searchRelaxed = {
         category: item.category,
@@ -705,4 +713,19 @@ function ceilToBracket(value: number, brackets: readonly number[]) {
     }
   }
   return prev;
+}
+
+// exile-appraiser: 2026-10-15 魔法 / 稀有底材預設查 type(範圍同 trends/getDetailsId.ts `isValuableBasetype`;不 import 它以免循環引用)
+function isMagicOrRareBase(item: ParsedItem): boolean {
+  if (
+    !(item.rarity === ItemRarity.Magic || item.rarity === ItemRarity.Rare) ||
+    !item.category
+  )
+    return false;
+  return (
+    ACCESSORY.has(item.category) ||
+    ARMOUR.has(item.category) ||
+    WEAPON.has(item.category) ||
+    item.category === ItemCategory.Quiver
+  );
 }

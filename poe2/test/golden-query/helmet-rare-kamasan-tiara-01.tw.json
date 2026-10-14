@@ -127,9 +127,6 @@
         },
         "type_filters": {
           "filters": {
-            "category": {
-              "option": "armour.helmet"
-            },
             "rarity": {
               "option": "nonunique"
             }
@@ -152,7 +149,8 @@
             }
           }
         }
-      }
+      },
+      "type": "符鍛卡瑪薩頭冠"
     },
     "sort": {
       "price": "asc"

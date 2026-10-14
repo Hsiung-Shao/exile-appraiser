@@ -85,9 +85,6 @@
         },
         "type_filters": {
           "filters": {
-            "category": {
-              "option": "armour.boots"
-            },
             "rarity": {
               "option": "nonunique"
             }
@@ -113,7 +110,8 @@
             }
           }
         }
-      }
+      },
+      "type": "奢華便鞋"
     },
     "sort": {
       "price": "asc"

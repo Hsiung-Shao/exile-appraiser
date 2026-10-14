@@ -99,9 +99,6 @@
         },
         "type_filters": {
           "filters": {
-            "category": {
-              "option": "weapon.wand"
-            },
             "rarity": {
               "option": "nonunique"
             }
@@ -120,7 +117,8 @@
             }
           }
         }
-      }
+      },
+      "type": "Dueling Wand"
     },
     "sort": {
       "price": "asc"

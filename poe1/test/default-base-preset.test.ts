@@ -3,7 +3,7 @@ import { init } from '@/assets/data'
 import { parseClipboard } from '@/parser'
 import { createPresets, createTradeRequest } from '../src/index'
 
-// 2026-10-15 使用者裁定(與 APT 不同):有「底材」preset 的物品預設切到它(查該底材,不查類別)
+// 2026-10-15 使用者裁定(與 APT 不同):魔法 / 稀有的武器 / 防具 / 飾品 / 箭袋預設仍是 pseudo preset,但搜尋改查該底材 type(不查類別),不看物等
 const OPTS = {
   league: 'Standard', realm: 'intl' as const, clientLanguage: 'en' as const, searchStatRange: 10,
   currency: null, collapseListings: 'api' as const, activateStockFilter: false, merchantOnly: false
@@ -54,6 +54,22 @@ Int: 200
 Item Level: 85
 `
 
+const JEWEL_RARE = `Item Class: Jewels
+Rarity: Rare
+Chimera Eye
+Cobalt Jewel
+--------
+Limited to: 1 Cobalt Jewel
+--------
+Requirements:
+Level: 1
+--------
+Item Level: 84
+--------
+13% increased Spell Damage
+4% increased Attack Speed
+`
+
 function build (text: string) {
   const item = parseClipboard(text)._unsafeUnwrap()
   const { presets, active } = createPresets(item, OPTS)
@@ -64,18 +80,22 @@ function build (text: string) {
 
 beforeAll(async () => { await init('en') })
 
-describe('有底材 preset 時預設查底材', () => {
-  it('稀有術士手套物等 86 預設底材 preset、查 type', () => {
+const category = (q: any) => q.filters.type_filters?.filters.category?.option
+
+describe('魔法 / 稀有底材預設查該底材(preset 不變)', () => {
+  it('稀有術士手套物等 86 預設 pseudo、查 type 不查類別', () => {
     const r = build(GLOVES(86))
     expect(r.presets.map(p => p.id)).toEqual(['filters.preset_pseudo', 'filters.preset_base_item'])
-    expect(r.active).toBe('filters.preset_base_item')
+    expect(r.active).toBe('filters.preset_pseudo')
     expect(r.query.type).toBe('Warlock Gloves')
+    expect(category(r.query)).toBeUndefined()
   })
 
-  it('魔法螺旋戒指物等 84 預設底材 preset、查 type', () => {
+  it('魔法螺旋戒指預設 pseudo、查 type 不查類別', () => {
     const r = build(RING_MAGIC)
-    expect(r.active).toBe('filters.preset_base_item')
+    expect(r.active).toBe('filters.preset_pseudo')
     expect(r.query.type).toBe('Helical Ring')
+    expect(category(r.query)).toBeUndefined()
   })
 
   it('普通動能魔杖維持精確 preset 查 type', () => {
@@ -84,18 +104,22 @@ describe('有底材 preset 時預設查底材', () => {
     expect(r.query.type).toBe('Kinetic Wand')
   })
 
-  it('物等 < 82 的稀有手套沒有底材 preset、維持查類別', () => {
+  it('物等 < 82 的稀有手套同樣查 type(不看物等)', () => {
     const r = build(GLOVES(75))
     expect(r.presets.map(p => p.id)).toEqual(['filters.preset_pseudo'])
-    expect(r.active).toBe('filters.preset_pseudo')
-    expect(r.query.type).toBeUndefined()
-    expect(r.query.filters.type_filters?.filters.category?.option).toBe('armour.gloves')
+    expect(r.query.type).toBe('Warlock Gloves')
+    expect(category(r.query)).toBeUndefined()
   })
 
-  it('已汙染(成品)的高物等手套維持查類別', () => {
+  it('已汙染(成品)手套維持 pseudo、同樣查 type', () => {
     const r = build(GLOVES(86, '--------\nCorrupted\n'))
     expect(r.presets.map(p => p.id)).toEqual(['filters.preset_pseudo'])
-    expect(r.active).toBe('filters.preset_pseudo')
+    expect(r.query.type).toBe('Warlock Gloves')
+  })
+
+  it('稀有珠寶不動、維持查類別', () => {
+    const r = build(JEWEL_RARE)
     expect(r.query.type).toBeUndefined()
+    expect(category(r.query)).toBe('jewel')
   })
 })

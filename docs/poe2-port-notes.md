@@ -172,13 +172,17 @@
 - 市價卡補回「底材」標示(有價值的底材,原本 ItemQuickPrice `#item` 插槽的 `:base_item`;新字串 `ppz.hero.base_item`)。
 - 範圍膠囊「最小 / 最大」placeholder 與「–」改 `--ink-2`(placeholder 選擇器原本寫成 `:slotted(input::placeholder)`,編出來無效)。
 
-## 預設底材 preset(2026-10-15,使用者裁定,與 APT / EE2 不同)
+## 魔法 / 稀有底材預設查 type(2026-10-15,使用者裁定,與 APT / EE2 不同)
 
-使用者回報 PoE1 查術士手套 / 螺旋戒指 / 動能魔杖時預設只查類別(「類別:戒指」)。APT / EE2 的規則:魔法 / 稀有且有工藝價值(PoE1 物等 ≥ 82、PoE2 物等 ≥ 該類上限 − 15,或有勢力 / 破裂 / 合成…)且不像成品時,多一個「底材」preset `filters.preset_base_item`,但預設停在 pseudo(查類別)。
+使用者回報 PoE1 查術士手套 / 螺旋戒指 / 動能魔杖時預設只查類別(「類別:戒指」),結果混進其他底材。使用者原話:查詢內容本身照查價面板調整,「固定查底材只是為了確保查詢不出現其他底材」。
 
-改法(兩代 `filters/create-presets.ts`,`// exile-appraiser:` 註解):有底材 preset **且** `trends/getDetailsId.ts` `isValuableBasetype(item)`(普通 / 魔法 / 稀有的武器 / 防具 / 飾品 / 箭袋)時 `active` = 底材 preset;珠寶、換界石、星團等維持 pseudo(避免改到與「底材」無關的物品)。preset 內容、順序、詞綴勾選方式照上游,使用者可切回 pseudo / 點 FilterName 改回類別。普通物品本來就是精確 preset 查 `type`,不受影響。
+APT / EE2 規則:魔法 / 稀有走 pseudo preset,`searchRelaxed = { category, disabled: opts.exact }` → 預設查類別;另有工藝價值時多一個「底材」preset(預設不選)。
 
-影響:PoE2 golden-query `spear-rare-soaring-spear-01`(intl / tw)與 `en-spear-rare-soaring-spear-01.intl` 從「類別 + DPS + 詞綴(未勾)」變成底材 preset 的「`type: Flying Spear` + ilvl ≥ 82 + 基底詞綴」;PoE1 快照 0 變動。測試 `poe1/test/default-base-preset.test.ts`、`poe2/test/web/price-check/filters/default-base-preset.test.ts`;破裂切換 / DPS 隱藏列測試(驗 pseudo preset 的功能)改為固定取 pseudo preset。
+改法(兩代 `filters/create-item-filters.ts`,`// exile-appraiser:` 註解):`isMagicOrRareBase(item)`(魔法 / 稀有的武器 / 防具 / 飾品 / 箭袋,範圍同 `trends/getDetailsId.ts` `isValuableBasetype`;因 getDetailsId 反向 import 本檔,為免循環引用另寫一份)時 `searchRelaxed.disabled = true` —— 預設查該底材 `type`、不送 `category`,**不看物等、成品也一樣**。preset 仍是 pseudo,詞綴勾選 / DPS / 防禦等照上游;FilterName 點一下可切回類別。普通物品本來就查 `type`;珠寶、換界石、地圖、星團等不動。
+
+(同日先試過「預設切到底材 preset」(commit 7236d68),會把詞綴與 DPS 換成底材 preset 的查法,使用者否決後撤回。)
+
+影響(golden-query 逐筆比對 8294d40,每份只有 `type_filters.filters.category` 移除 + `query.type` 新增):PoE1 `en/ring-rare-01.query.intl`(Opal Ring);PoE2 `boots-rare-luxurious-slippers-01`、`helmet-rare-kamasan-tiara-01`、`spear-rare-soaring-spear-01`、`wand-rare-dueling-wand-01` 各 intl / tw + `en-` intl(共 12 份)。測試 `poe1/test/default-base-preset.test.ts`、`poe2/test/web/price-check/filters/default-base-preset.test.ts`;`poe2/test/zhTW/trade-query.test.ts`「sends English names/types」的法杖 / 便鞋改為預期 `type`。
 
 ## 未做 / 待辦
 - 預測價(PricePrediction)。

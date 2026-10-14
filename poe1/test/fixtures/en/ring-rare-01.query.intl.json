@@ -73,9 +73,6 @@
           "filters": {
             "rarity": {
               "option": "nonunique"
-            },
-            "category": {
-              "option": "accessory.ring"
             }
           }
         },
@@ -89,7 +86,8 @@
             }
           }
         }
-      }
+      },
+      "type": "Opal Ring"
     },
     "sort": {
       "price": "asc"

@@ -1,6 +1,8 @@
 import type { ItemFilters } from './interfaces'
 import { ParsedItem, ItemCategory, ItemRarity } from '@/parser'
 import { MAGIC_ONLY_OR_UNIQUE_ITEM, CONSUMABLE_CRAFTABLE_ITEM, JEWELLERY } from '@/parser/meta'
+// exile-appraiser: 2026-10-15 魔法 / 稀有底材預設查 type
+import { ARMOUR, WEAPON } from '@/parser/meta'
 import { tradeTag } from '../trade/common'
 import { ModifierType } from '@/parser/modifiers'
 import { BaseType, ITEM_BY_REF, ITEM_BY_TRANSLATED } from '@/assets/data'
@@ -292,6 +294,12 @@ function createFiltersInner (
         item.category === ItemCategory.HeistContract
       ) {
         disabled = false
+      }
+      // exile-appraiser: 使用者 2026-10-15 裁定(與 APT 不同):魔法 / 稀有的武器 / 防具 / 飾品 / 箭袋
+      // (= trends `isValuableBasetype` 的範圍,不看物等)預設查該底材 type、不查類別,避免結果混進其他底材;
+      // preset 與詞綴勾選照上游(仍是 pseudo),FilterName 可切回類別
+      if (isMagicOrRareBase(item)) {
+        disabled = true
       }
       filters.searchRelaxed = {
         category: item.category,
@@ -585,4 +593,15 @@ function ceilToBracket (value: number, brackets: readonly number[]) {
     }
   }
   return prev
+}
+
+// exile-appraiser: 2026-10-15 魔法 / 稀有底材預設查 type(範圍同 trends/getDetailsId.ts `isValuableBasetype`;不 import 它以免循環引用)
+function isMagicOrRareBase (item: ParsedItem): boolean {
+  if (!(item.rarity === ItemRarity.Magic || item.rarity === ItemRarity.Rare) || !item.category) return false
+  return (
+    JEWELLERY.has(item.category) ||
+    ARMOUR.has(item.category) ||
+    WEAPON.has(item.category) ||
+    item.category === ItemCategory.Quiver
+  )
 }

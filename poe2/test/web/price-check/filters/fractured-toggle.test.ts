@@ -57,12 +57,7 @@ function parse(text: string): ParsedItem {
 }
 function preset(item: ParsedItem): FilterPreset {
   const { presets, active } = createPresets(item, OPTS);
-  // 破裂切換是 pseudo preset 的功能;2026-10-15 起有底材 preset 的武器 / 防具預設是底材,這裡固定取 pseudo
-  return (
-    presets.find((p) => p.id === "filters.preset_pseudo") ??
-    presets.find((p) => p.id === active) ??
-    presets[0]
-  );
+  return presets.find((p) => p.id === active) ?? presets[0];
 }
 const toggles = (item: ParsedItem, p: FilterPreset) =>
   p.stats.filter((f) => canToggleFractured(f, item));
