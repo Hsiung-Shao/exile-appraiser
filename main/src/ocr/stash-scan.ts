@@ -123,6 +123,45 @@ interface QtyCell {
   shapeOff?: boolean
   /** 連續幾次 peek 重讀沒有讀到新的數量(保險:≥ 2 也停止字形比對) */
   peekNoChange?: number
+  /** 最近一次讀成「不確定」的原因(除錯記錄用;讀到數量 / 空格時清掉) */
+  why?: QtyWhy
+}
+
+/** 除錯記錄:一格讀不到數量的原因 */
+export interface QtyWhy { reason: string, raw?: string, confidence: number, margin: number }
+
+const QTY_REASON_ZH: Record<string, string> = {
+  'low-confidence': '分數低',
+  'missed-digit': '疑似漏讀一位',
+  'too-many': '位數過多',
+  'leading-zero': '開頭為 0',
+  zero: '單獨的 0',
+  outside: '超出畫面',
+  masked: '被遮住'
+}
+
+/**
+ * 倉庫價值除錯記錄(2026-10-15 使用者要求):數量讀不到(「?」)的格子與原因,一格一段;全部讀到 / 空格 = 空字串。
+ * 從沒讀到、還在等徽章收起重讀的格(`want` 內、沒有 `why`)標「被徽章遮住」。
+ */
+export function stashUnreadSummary (
+  rects: ReadonlyArray<{ refName: string }>,
+  values: ReadonlyArray<number | null>,
+  cells: ReadonlyArray<{ why?: QtyWhy }>,
+  want: ReadonlySet<number>
+): string {
+  const parts: string[] = []
+  for (let i = 0; i < rects.length; i++) {
+    if (values[i] != null) continue
+    const w = cells[i]?.why
+    if (w) {
+      const zh = QTY_REASON_ZH[w.reason] ?? w.reason
+      parts.push(`#${i + 1} ${rects[i].refName} ${zh}(讀到 ${w.raw || '無'},分數 ${w.confidence.toFixed(2)} / 差 ${w.margin.toFixed(2)})`)
+    } else if (want.has(i)) {
+      parts.push(`#${i + 1} ${rects[i].refName} 被徽章遮住,等待重讀`)
+    }
+  }
+  return parts.join(';')
 }
 
 interface QtyState {
@@ -227,6 +266,8 @@ export class StashScan {
   private userPaused = false
   private qty: QtyState | null = null
   private lastQtyMs: number | null = null
+  /** 上次寫進記錄的未讀格摘要(含版面鍵;相同不重寫) */
+  private lastUnreadLog = ''
   /** 游標換格的時間;等滿 `MASK_LINGER_MS` 前不讀數量 */
   private cursorAt: number | null = null
   /** 效能診斷(perf-monitor `stashSnapshotOf`)用的累計計數:只 `++`,關著零成本 */
@@ -607,6 +648,7 @@ export class StashScan {
         cs.peekNoChange = 0
       }
       cs.peekWant = false
+      cs.why = next == null ? { reason: r.reason, raw: r.raw, confidence: r.confidence, margin: r.margin } : undefined
       st.values[i] = next
       cs.clean = cur
       cs.band = r.band
@@ -634,6 +676,13 @@ export class StashScan {
       this.counters.qtyCells += reads
       this.lastQtyMs = ms
       if (fresh) this.deps.log?.(`[stash] 讀數量 ${reads} 格,${ms} ms`)
+    }
+    // 除錯記錄:讀不到的格與原因有變才寫一行(子頁 / 版面換了 = 狀態重建,也會重寫)
+    const unread = stashUnreadSummary(rects, st.values, st.cells, st.want)
+    const unreadKey = `${key}|${unread}`
+    if (unreadKey !== this.lastUnreadLog) {
+      this.lastUnreadLog = unreadKey
+      if (unread) this.deps.log?.(`[stash] 數量未讀 ${unread.split(';').length} 格(${shown.subtab}):${unread}`)
     }
     return { ms }
   }
