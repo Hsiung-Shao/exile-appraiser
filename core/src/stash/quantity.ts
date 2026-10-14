@@ -7,8 +7,9 @@
 //   → 白色程度 max(0, min(R,G,B) − (max − min) − 100)(數字是白字;彩色圖示 / 暗底 → 0)
 //   → 11×15 模板 NCC 滑動比對(積分影像算視窗平均 / 變異;模板已零平均、單位長度)→ ≥ 0.5 的候選、NMS
 //   → 以最強者為錨,同列(±1 px)間距 7–12 px 往左右串接,最多 3 位
-//   → 門檻:每位 ≥ 0.6、與次佳數字差 ≥ 0.05、開頭非 0、末位右側一格寬內 < 4 個純白像素(否則可能漏讀一位)。
-// 寧缺勿錯:任何一項不過 → qty null(畫面顯示「?」、不計入總價);沒有任何候選 = 空格。
+//   → 門檻:每位 ≥ 0.6、與次佳數字差 ≥ 0.05、低分(< 0.72)時次佳差須 ≥ 0.23、開頭非 0、不是單獨的「0」、
+//     末位右側一格寬內 < 4 個純白像素(否則可能漏讀一位;檢查區超出裁切區時改看往右延伸的裁切區,影像外 = 不確定)。
+// 寧缺勿錯:任何一項不過 → qty null(畫面顯示「?」、不計入總價);沒有任何候選 = 空格;裁切區超出影像 = 不確定。
 
 export interface QtyRect { x: number, y: number, w: number, h: number }
 
@@ -38,7 +39,7 @@ export interface DigitTemplates {
   sources?: Array<{ file: string, sha256: string }>
 }
 
-export type QtyReason = 'ok' | 'empty' | 'low-confidence' | 'missed-digit' | 'too-many' | 'leading-zero' | 'masked'
+export type QtyReason = 'ok' | 'empty' | 'low-confidence' | 'missed-digit' | 'too-many' | 'leading-zero' | 'masked' | 'zero' | 'outside'
 
 export interface QtyResult {
   /** 讀到的數量;空格 / 不確定 = null */
@@ -50,6 +51,8 @@ export interface QtyResult {
   reason: QtyReason
   /** 串接出的數字字串(不確定時也有,診斷用) */
   raw?: string
+  /** 數字帶(影像像素;串接數字的列 ± 2、左緣到末位右側再一位,夾在裁切區內):徽章蓋到這裡才算「蓋住數字」。沒有候選 = 省略 */
+  band?: QtyRect
 }
 
 /** 參數(基準 client 高的像素) */
@@ -66,6 +69,11 @@ export const QTY_PARAMS = {
   maxDigits: 3,
   minScore: 0.6,
   minMargin: 0.05,
+  /** 低分讀值(最低位分數 < lowScore)要求次佳差 ≥ lowScoreMargin(2026-10-15 code review:留一 19→10 @0.693/0.123、σ 1.0 11→14 @0.718/0.226) */
+  lowScore: 0.72,
+  lowScoreMargin: 0.23,
+  /** 漏讀檢查 ① 超出裁切區時,往右延伸的裁切區多取幾個基準像素(4 位數堆疊的第 4 位落在裁切區外) */
+  extW: 8,
   /** 漏讀檢查:末位右側區域的純白像素(最暗通道 ≥ 230、色差 ≤ 40)達這個數 → 不確定 */
   residWhite: 230,
   residSat: 40,
@@ -96,11 +104,11 @@ export interface QtyCrop {
 }
 
 /** 格子(影像像素)→ 數字裁切區(影像像素,可能是小數) */
-export function qtyCropRect (cell: QtyRect, clientH: number, baseClientH: number): { x: number, y: number, w: number, h: number, k: number, bw: number, bh: number } {
+export function qtyCropRect (cell: QtyRect, clientH: number, baseClientH: number, extraBase = 0): { x: number, y: number, w: number, h: number, k: number, bw: number, bh: number } {
   const k = clientH / baseClientH
   const w = Math.round(cell.w * QTY_PARAMS.cropW)
   const h = Math.round(cell.h * QTY_PARAMS.cropH)
-  const bw = Math.max(1, Math.round(w / k))
+  const bw = Math.max(1, Math.round(w / k)) + extraBase
   const bh = Math.max(1, Math.round(h / k))
   return { x: cell.x + QTY_PARAMS.cropDx * k, y: cell.y, w: bw * k, h: bh * k, k, bw, bh }
 }
@@ -113,8 +121,8 @@ function overlaps (a: QtyRect, b: QtyRect): boolean {
  * 影像某塊縮放到基準尺寸(面積平均;k = 1 且整數起點時逐像素相同)。影像外 = 黑。
  * `mask`(影像像素)蓋到的基準像素白色程度歸 0、漏讀檢查也不算(我們自己畫在遊戲上的徽章)。
  */
-export function qtyCrop (img: QtyImage, cell: QtyRect, clientH: number, baseClientH: number, mask?: readonly QtyRect[]): QtyCrop {
-  const c = qtyCropRect(cell, clientH, baseClientH)
+export function qtyCrop (img: QtyImage, cell: QtyRect, clientH: number, baseClientH: number, mask?: readonly QtyRect[], extraBase = 0): QtyCrop {
+  const c = qtyCropRect(cell, clientH, baseClientH, extraBase)
   const { bw, bh, k } = c
   const rgb = new Float32Array(bw * bh * 3)
   const ch = img.channels
@@ -278,8 +286,11 @@ function candidates (crop: QtyCrop, tpl: TemplatePack): Cand[] {
   return out
 }
 
-/** 一格的數量(基準尺寸裁切區已備妥) */
-export function decodeQtyCrop (crop: QtyCrop, templates: DigitTemplates): QtyResult & { chain?: Array<{ x: number, y: number, d: number }>, neighbor?: number } {
+/**
+ * 一格的數量(基準尺寸裁切區已備妥)。`ext` = 同一原點、往右多取 `QTY_PARAMS.extW` 基準像素的裁切區(只在漏讀檢查 ① 超出裁切區時才呼叫;
+ * 省略 / 回 null(影像外)→ 不確定)
+ */
+export function decodeQtyCrop (crop: QtyCrop, templates: DigitTemplates, ext?: () => QtyCrop | null): QtyResult & { chain?: Array<{ x: number, y: number, d: number }>, neighbor?: number, bandBase?: { x: number, y: number, w: number, h: number } } {
   const P = QTY_PARAMS
   const cands = candidates(crop, templatesOf(templates))
   cands.sort((a, b) => b.sc - a.sc)
@@ -321,15 +332,22 @@ export function decodeQtyCrop (crop: QtyCrop, templates: DigitTemplates): QtyRes
   margin = round3(margin)
   const first = chain[0]
   const last = chain[chain.length - 1]
-  // 漏讀檢查 ①(研究原式):末位之後一格寬內的純白像素(最暗通道 ≥ 230、色差 ≤ 40)≥ 4
+  // 漏讀檢查 ①(研究原式):末位之後一格寬內的純白像素(最暗通道 ≥ 230、色差 ≤ 40)≥ 4。
+  // 檢查區超出裁切區(三位數已頂到裁切區右緣;4 位數的第 4 位在外面)→ 改看往右延伸的裁切區;拿不到(影像外)→ 不確定
+  const residX1 = last.x + QTY_TEMPLATE_W + 4
+  let rc: QtyCrop | null = crop
+  if (residX1 > crop.w) {
+    const e = ext?.() ?? null
+    rc = e && e.w >= residX1 && e.h === crop.h ? e : null
+  }
   let resid = 0
-  for (let y = Math.max(0, last.y + 2); y < Math.min(crop.h, last.y + QTY_TEMPLATE_H - 2); y++) {
-    for (let x = Math.max(0, last.x + P.advMin + 2); x < Math.min(crop.w, last.x + QTY_TEMPLATE_W + 4); x++) {
-      const i = y * crop.w + x
-      if (crop.masked?.[i]) continue
-      const r = crop.rgb[i * 3]
-      const g = crop.rgb[i * 3 + 1]
-      const b = crop.rgb[i * 3 + 2]
+  if (rc) for (let y = Math.max(0, last.y + 2); y < Math.min(rc.h, last.y + QTY_TEMPLATE_H - 2); y++) {
+    for (let x = Math.max(0, last.x + P.advMin + 2); x < Math.min(rc.w, residX1); x++) {
+      const i = y * rc.w + x
+      if (rc.masked?.[i]) continue
+      const r = rc.rgb[i * 3]
+      const g = rc.rgb[i * 3 + 1]
+      const b = rc.rgb[i * 3 + 2]
       const mn = Math.min(r, g, b)
       const mx = Math.max(r, g, b)
       if (mn >= P.residWhite && mx - mn <= P.residSat) resid++
@@ -346,23 +364,39 @@ export function decodeQtyCrop (crop: QtyCrop, templates: DigitTemplates): QtyRes
     }
   }
   const neighbor = ownMass > 0 ? round3(nbMass / ownMass) : 0
+  // 三位數:末位之後還有一位(4 位數堆疊;縮放 / 模糊後 ① 抓不到)→ 在延伸裁切區看同一個筆畫量條件(只看右側;隔壁格的數字在延伸區外)
+  let fourth = false
+  if (rc && chain.length >= P.maxDigits && ownMass > 0) {
+    let m = 0
+    for (let dy = -1; dy <= 1; dy++) {
+      for (let adv = P.advMin + 1; adv < P.advMax; adv++) m = Math.max(m, strokeMass(rc, last.x + adv, last.y + dy))
+    }
+    fourth = m / ownMass >= P.neighborMass
+  }
   const chainOut = chain.map(c => ({ x: c.x, y: c.y, d: c.d }))
-  const base = { confidence, margin, raw, chain: chainOut, neighbor }
-  // 遮罩蓋到數字列(左緣到末位右側一格寬)→ 不確定(數字可能被我們的徽章蓋掉一部分)
-  if (crop.masked) {
-    const y0 = Math.max(0, Math.min(...chain.map(c => c.y)) - 2)
-    const y1 = Math.min(crop.h, Math.max(...chain.map(c => c.y)) + QTY_TEMPLATE_H + 2)
-    const x1 = Math.min(crop.w, last.x + QTY_TEMPLATE_W + P.advMax)
-    for (let y = y0; y < y1; y++) {
+  // 數字帶(基準像素,夾在裁切區內):數字列 ± 2、左緣到末位右側再一位
+  const by0 = Math.max(0, Math.min(...chain.map(c => c.y)) - 2)
+  const by1 = Math.min(crop.h, Math.max(...chain.map(c => c.y)) + QTY_TEMPLATE_H + 2)
+  const bx1 = Math.min(crop.w, last.x + QTY_TEMPLATE_W + P.advMax)
+  const bandBase = { x: 0, y: by0, w: Math.max(1, bx1), h: Math.max(1, by1 - by0) }
+  const base = { confidence, margin, raw, chain: chainOut, neighbor, bandBase }
+  // 遮罩蓋到數字列(左緣到末位右側一格寬)→ 不確定(數字可能被我們的徽章蓋掉一部分);延伸區(4 位數的第 4 位)同樣要沒被蓋
+  for (const m of [crop, rc !== crop ? rc : null]) {
+    if (!m?.masked) continue
+    const x1 = Math.min(m.w, last.x + QTY_TEMPLATE_W + P.advMax)
+    for (let y = by0; y < by1; y++) {
       for (let x = 0; x < x1; x++) {
-        if (crop.masked[y * crop.w + x]) return { qty: null, reason: 'masked', ...base }
+        if (m.masked[y * m.w + x]) return { qty: null, reason: 'masked', ...base }
       }
     }
   }
   if (chain.length > P.maxDigits) return { qty: null, reason: 'too-many', ...base }
   if (raw.length > 1 && raw[0] === '0') return { qty: null, reason: 'leading-zero', ...base }
   if (confidence < P.minScore || margin < P.minMargin) return { qty: null, reason: 'low-confidence', ...base }
-  if (resid >= P.residCount || (chain.length < P.maxDigits && neighbor >= P.neighborMass)) return { qty: null, reason: 'missed-digit', ...base }
+  if (confidence < P.lowScore && margin < P.lowScoreMargin) return { qty: null, reason: 'low-confidence', ...base }
+  if (!rc || fourth || resid >= P.residCount || (chain.length < P.maxDigits && neighbor >= P.neighborMass)) return { qty: null, reason: 'missed-digit', ...base }
+  // 堆疊數不可能是 0:單獨的「0」是誤讀(不當成空格)
+  if (raw === '0') return { qty: null, reason: 'zero', ...base }
   return { qty: Number(raw), reason: 'ok', ...base }
 }
 
@@ -377,12 +411,26 @@ export interface QtyReadOptions {
   mask?: readonly QtyRect[]
 }
 
-/** 讀一格的堆疊數量。`cell` = 影像像素的格子矩形(client 座標減擷取偏移) */
+function insideImage (img: QtyImage, r: { x: number, y: number, w: number, h: number }): boolean {
+  return r.x >= 0 && r.y >= 0 && r.x + r.w <= img.width && r.y + r.h <= img.height
+}
+
+/** 讀一格的堆疊數量。`cell` = 影像像素的格子矩形(client 座標減擷取偏移)。裁切區超出影像 → null(`outside`,不當成空格) */
 export function readCellQuantity (img: QtyImage, cell: QtyRect, templates: DigitTemplates, opts: QtyReadOptions): QtyResult {
+  const rect = qtyCropRect(cell, opts.clientH, templates.baseClientH)
+  if (!insideImage(img, rect)) return { qty: null, confidence: 0, margin: 0, reason: 'outside' }
   const crop = qtyCrop(img, cell, opts.clientH, templates.baseClientH, opts.mask)
-  const r = decodeQtyCrop(crop, templates)
+  const ext = (): QtyCrop | null => {
+    const er = qtyCropRect(cell, opts.clientH, templates.baseClientH, QTY_PARAMS.extW)
+    return insideImage(img, er) ? qtyCrop(img, cell, opts.clientH, templates.baseClientH, opts.mask, QTY_PARAMS.extW) : null
+  }
+  const r = decodeQtyCrop(crop, templates, ext)
   const out: QtyResult = { qty: r.qty, confidence: r.confidence, margin: r.margin, reason: r.reason }
   if (r.raw != null) out.raw = r.raw
+  if (r.bandBase) {
+    const b = r.bandBase
+    out.band = { x: crop.x0 + b.x * crop.k, y: crop.y0 + b.y * crop.k, w: b.w * crop.k, h: b.h * crop.k }
+  }
   return out
 }
 
@@ -391,25 +439,94 @@ export function readCellQuantity (img: QtyImage, cell: QtyRect, templates: Digit
  * 數字改變 → 至少一條直帶差很多;畫面靜止 → 完全相同。
  */
 export function qtyCellSignature (img: QtyImage, cell: QtyRect, clientH: number, baseClientH: number, mask?: readonly QtyRect[]): number[] {
+  return qtyMapSignature(qtyWhiteMap(img, cell, clientH, baseClientH), mask)
+}
+
+/**
+ * 裁切區(原解析度、不縮放,夾在影像內)的白色程度圖:變化偵測用(與 `qtyMapSignature` / `qtyShapeChanged` 搭配;
+ * 存一份「上次乾淨讀數時」的圖,被遮時比露出的部分)。`v` = 白色程度;`g` = 減 `whiteBase` 前的值 min − (max − min)(可為負,變暗時等比例縮小)
+ */
+export interface QtyWhiteMap { x: number, y: number, w: number, h: number, v: Float32Array, g: Float32Array }
+
+export function qtyWhiteMap (img: QtyImage, cell: QtyRect, clientH: number, baseClientH: number): QtyWhiteMap {
   const c = qtyCropRect(cell, clientH, baseClientH)
   const x0 = Math.max(0, Math.round(c.x))
   const y0 = Math.max(0, Math.round(c.y))
   const x1 = Math.min(img.width, Math.round(c.x + c.w))
   const y1 = Math.min(img.height, Math.round(c.y + c.h))
-  const sig = [0, 0, 0, 0]
-  if (x1 <= x0 || y1 <= y0) return sig
-  const span = (x1 - x0) / 4
-  const ms = mask?.filter(m => overlaps(m, { x: x0, y: y0, w: x1 - x0, h: y1 - y0 })) ?? []
+  const w = Math.max(0, x1 - x0)
+  const h = Math.max(0, y1 - y0)
+  const v = new Float32Array(w * h)
+  const g = new Float32Array(w * h)
   const ch = img.channels
-  for (let y = y0; y < y1; y++) {
-    for (let x = x0; x < x1; x++) {
-      if (ms.length && ms.some(m => x >= m.x && x < m.x + m.w && y >= m.y && y < m.y + m.h)) continue
-      const p = (y * img.width + x) * ch
-      const v = whiteness(img.data[p], img.data[p + 1], img.data[p + 2])
-      if (v > 0) sig[Math.min(3, Math.floor((x - x0) / span))] += v
+  const data = img.data
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const p = ((y0 + y) * img.width + x0 + x) * ch
+      const r = data[p]
+      const gg = data[p + 1]
+      const b = data[p + 2]
+      const mn = Math.min(r, gg, b)
+      const raw = mn - (Math.max(r, gg, b) - mn)
+      g[y * w + x] = raw
+      v[y * w + x] = Math.max(0, raw - QTY_PARAMS.whiteBase)
+    }
+  }
+  return { x: x0, y: y0, w, h, v, g }
+}
+
+/** 白色程度圖分 4 條直帶的總和(`mask` 蓋到的像素不算)。同一組遮罩下比兩張圖 = 「露出的部分有沒有變」 */
+export function qtyMapSignature (map: QtyWhiteMap, mask?: readonly QtyRect[]): number[] {
+  const sig = [0, 0, 0, 0]
+  if (!map.w || !map.h) return sig
+  const span = map.w / 4
+  const ms = mask?.filter(m => overlaps(m, map)) ?? []
+  for (let y = 0; y < map.h; y++) {
+    const Y = map.y + y
+    for (let x = 0; x < map.w; x++) {
+      const v = map.v[y * map.w + x]
+      if (v <= 0) continue
+      const X = map.x + x
+      if (ms.length && ms.some(m => X >= m.x && X < m.x + m.w && Y >= m.y && Y < m.y + m.h)) continue
+      sig[Math.min(3, Math.floor(x / span))] += v
     }
   }
   return sig
+}
+
+/** 字形相似度(`qtyShapeChanged` 的 NCC)低於這個值 = 變了。徽章陰影(上方漸層變暗 2–15%)≈ 1.000;換成別的數字的格 ≤ 0.85 */
+export const QTY_SHAPE_MIN_NCC = 0.97
+
+/**
+ * 兩張圖露出部分(`mask` 蓋到的不算)的字形是否不同:`g` 的正規化互相關(NCC)< `QTY_SHAPE_MIN_NCC`。
+ * 不受亮度整體縮放影響 → 拿「沒有徽章時」的乾淨圖與「多了徽章(陰影讓數字變暗)」的畫面比,只有字形變了才算變。
+ * 兩張圖位置 / 大小不同 → 視為變了。
+ */
+export function qtyShapeChanged (a: QtyWhiteMap, b: QtyWhiteMap, mask?: readonly QtyRect[]): boolean {
+  if (a.x !== b.x || a.y !== b.y || a.w !== b.w || a.h !== b.h) return true
+  const ms = mask?.filter(m => overlaps(m, a)) ?? []
+  let n = 0
+  let sa = 0
+  let sb = 0
+  let saa = 0
+  let sbb = 0
+  let sab = 0
+  for (let y = 0; y < a.h; y++) {
+    const Y = a.y + y
+    for (let x = 0; x < a.w; x++) {
+      const X = a.x + x
+      if (ms.length && ms.some(m => X >= m.x && X < m.x + m.w && Y >= m.y && Y < m.y + m.h)) continue
+      const u = a.g[y * a.w + x]
+      const v = b.g[y * a.w + x]
+      n++; sa += u; sb += v; saa += u * u; sbb += v * v; sab += u * v
+    }
+  }
+  if (n < 2) return false
+  const va = saa - sa * sa / n
+  const vb = sbb - sb * sb / n
+  // 露出部分是平的(沒有字形):兩張都平才算沒變
+  if (!(va > 1e-6) || !(vb > 1e-6)) return (va > 1e-6) !== (vb > 1e-6)
+  return (sab - sa * sb / n) / Math.sqrt(va * vb) < QTY_SHAPE_MIN_NCC
 }
 
 /** 簽章差:任一直帶差超過這個值 = 變了(約 2 個純白像素) */

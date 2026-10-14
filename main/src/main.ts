@@ -934,7 +934,8 @@ if (!skipStartup) app.whenReady().then(() => {
     bounds: gameBounds,
     active: () => Boolean(poeWindow?.isActive),
     layouts: () => loadStashLayouts(),
-    send: (e) => { send('stash-cursor', e) }
+    // 換格 → renderer 重畫徽章(沒有 ack):倉庫掃描等下一份遮罩報告才讀數量
+    send: (e) => { send('stash-cursor', e); stashScan.cursorMoved() }
   })
   // PoE1 倉庫價格疊層:偵測碎片頁開著 / 目前子頁(只 OCR 子頁按鈕列;物品身分靠固定版面,不 OCR)
   stashScan = new StashScan({
@@ -943,7 +944,8 @@ if (!skipStartup) app.whenReady().then(() => {
       game: hostCfg?.game ?? 'poe1',
       intervalMs: hostCfg?.stashPricesIntervalMs ?? DEFAULT_SCAN_INTERVAL_MS,
       region: hostCfg?.stashRegion ?? null,
-      readQuantity: hostCfg?.stashReadQuantity !== false
+      readQuantity: hostCfg?.stashReadQuantity !== false,
+      realm: hostCfg?.realm === 'tw' ? 'tw' : 'intl'
     }),
     env: scanEnv,
     textLang: ocrTextLang,
@@ -1856,8 +1858,8 @@ if (!skipStartup) app.whenReady().then(() => {
         scanMask.report(rep, Date.now())
         revealScan.drawSettled()
         runeshapeScan.drawSettled()
-        // 倉庫價值:peek(收起徽章)ack 到了 → 立刻用乾淨畫面重讀,不等下一個間隔
-        if (rep.source === 'stash') stashScan.poke()
+        // 倉庫價值:只有 peek(收起徽章)的 ack 才排重看(延後一個遮罩保留期);游標換格後等這份報告才讀數量
+        if (rep.source === 'stash') stashScan.maskReported(rep)
         // code review 第 B 批:renderer 沒畫出最近的 rows(資料當時沒載好 / 世代改了)→ 該掃描下一 tick 重新 OCR 並照送
         // (倉庫層的資料不影響 main 送的內容 → 不處理 resend)
         if (rep.resend && rep.source !== 'stash') (rep.source === 'reveal' ? revealScan : runeshapeScan).resendRows()

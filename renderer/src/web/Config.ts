@@ -627,6 +627,8 @@ export function hostConfigOf (c: Config, regexHotkeys: readonly RegexBookmarkHot
     stashPricesIntervalMs: c.stashPricesIntervalMs,
     stashRegion: c.stashRegion ? { ...c.stashRegion } : null,
     stashReadQuantity: c.stashReadQuantity,
+    // 2026-10-15:倉庫價格 / 倉庫價值只支援國際服 → main 台服不掃描
+    realm: c.realm,
     autoUpdate: c.autoUpdate,
     startupToast: c.startupToast,
     updateReminder: c.updateReminder,
@@ -657,7 +659,7 @@ export const HOST_CONFIG_IMMEDIATE_KEYS: ReadonlyArray<keyof HostConfigForMain> 
   'game', 'overlayMode', 'ocrLang',
   'revealAutoEnabled', 'revealIntervalMs', 'ocrRegion',
   'runeshapeEnabled', 'runeshapeRegion', 'runeshapeIntervalMs',
-  'stashPricesEnabled', 'stashPricesIntervalMs', 'stashRegion', 'stashReadQuantity'
+  'stashPricesEnabled', 'stashPricesIntervalMs', 'stashRegion', 'stashReadQuantity', 'realm'
 ]
 
 /** 設定頁每改一個欄位 watch 都會觸發:相同內容不送、一般欄位 300 ms trailing debounce;第一次與 `HOST_CONFIG_IMMEDIATE_KEYS` 立刻送 */

@@ -32,6 +32,11 @@ export interface StashBadgeView {
   qty?: number | null
   /** 數量讀不到 → 徽章只顯示單價 +「?」 */
   qtyUnknown?: boolean
+  /**
+   * 沒算進總價的原因標記(徽章上的醒目記號):`qty-unknown` = 數量讀不到(「?」);`no-price` = 有數量但沒有價格(「無價」)。
+   * 沒有數量(關閉讀數量)/ 正常 / 價格讀取中 = 省略
+   */
+  mark?: 'qty-unknown' | 'no-price'
   /** 空格(數量 0;只有停格時才會出現在清單裡) */
   empty?: boolean
   /** 有數量時的單價 / 小計(停格明細卡) */
@@ -117,6 +122,8 @@ export function layoutStashBadges (inp: StashLayoutInput): StashBadgeView[] {
       }
       if (p.lowConfidence) b.lowConfidence = true
     }
+    if (qty === null) b.mark = 'qty-unknown'
+    else if (qty != null && qty > 0 && p.status !== 'ok' && p.status !== 'loading') b.mark = 'no-price'
     out.push(b)
   })
   return out
@@ -131,15 +138,17 @@ export interface StashPageValue {
   unknown: number
   /** 空格數 */
   empty: number
-  /** 有數量但沒有價格(poe.ninja 沒有 / 讀取中)的格數 */
+  /** 有數量但沒有價格(poe.ninja 沒有)的格數;價格讀取中不算 */
   noPrice: number
+  /** 沒算進總價的格數 = 數量讀不到 + 有數量但沒有價格(徽章上有標記的格) */
+  excluded: number
 }
 
 /** 整頁價值;沒有數量 → null */
 export function stashPageValue (inp: Pick<StashLayoutInput, 'file' | 'subtab' | 'priceOf' | 'quantities'>): StashPageValue | null {
   const q = inp.quantities
   if (!q) return null
-  const v: StashPageValue = { totalChaos: 0, known: 0, unknown: 0, empty: 0, noPrice: 0 }
+  const v: StashPageValue = { totalChaos: 0, known: 0, unknown: 0, empty: 0, noPrice: 0, excluded: 0 }
   inp.file.subtabs[inp.subtab].forEach((c, i) => {
     const qty = q[i] ?? null
     if (qty === null) { v.unknown++; return }
@@ -147,8 +156,9 @@ export function stashPageValue (inp: Pick<StashLayoutInput, 'file' | 'subtab' | 
     v.known++
     const p = inp.priceOf(c.refName)
     if (p.status === 'ok') v.totalChaos += p.chaos * qty
-    else v.noPrice++
+    else if (p.status !== 'loading') v.noPrice++
   })
+  v.excluded = v.unknown + v.noPrice
   return v
 }
 

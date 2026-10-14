@@ -85,8 +85,8 @@ function render () {
 }
 
 let seq = 0
-function show (quantities?: Array<number | null>, peek?: boolean) {
-  scanCb!({ seq: ++seq, ts: 0, reason: 'show', subtab: 'scarabs', yOffset: 0, client: { w: 1280, h: 900 }, quantities, ...(peek ? { peek } : {}) })
+function show (quantities?: Array<number | null>, peek?: boolean, subtab: 'scarabs' | 'general' = 'scarabs') {
+  scanCb!({ seq: ++seq, ts: 0, reason: 'show', subtab, yOffset: 0, client: { w: 1280, h: 900 }, quantities, ...(peek ? { peek } : {}) })
 }
 
 describe('V11 倉庫價值疊層', () => {
@@ -116,7 +116,7 @@ describe('V11 倉庫價值疊層', () => {
     const [c0, c1, c2] = idx.map(i => LAYOUTS.subtabs.scarabs[i])
     expect(byRef.get(c0.refName)!.attrs['data-qty']).toBe('3')
     expect(byRef.has(c2.refName)).toBe(false)
-    expect(findAll(byRef.get(c1.refName)!, byAttr('data-stash', 'qty-unknown'))).toHaveLength(1)
+    expect(findAll(byRef.get(c1.refName)!, byAttr('data-stash', 'mark')).map(m => m.attrs['data-mark'])).toEqual(['qty-unknown'])
     // 本頁價值卡:總價 + 已讀 / 未讀
     const card = all(container, 'value')[0]
     expect(card).toBeTruthy()
@@ -175,6 +175,45 @@ describe('V11 倉庫價值疊層', () => {
     show(qty)
     await settle(40)
     expect(all(container, 'badge').length).toBe(N - 1)
+    app.unmount()
+  })
+
+  it('未計入總價的格子有標記(數量未讀「?」/ 無價)、明細卡寫原因、本頁價值卡有說明與未計入格數', async () => {
+    const { container, app, errors } = render()
+    await settle()
+    // 聖甲蟲頁:一格數量讀不到(錄製檔聖甲蟲都有價格)
+    show(qty)
+    await settle(40)
+    let byRef = new Map(all(container, 'badge').map(b => [b.attrs['data-ref'], b]))
+    const markOf = (ref: string) => findAll(byRef.get(ref)!, byAttr('data-stash', 'mark'))
+    const unknownRef = LAYOUTS.subtabs.scarabs[idx[1]].refName
+    expect(markOf(unknownRef).map(m => m.attrs['data-mark'])).toEqual(['qty-unknown'])
+    expect(text(markOf(unknownRef)[0])).toBe('?')
+    expect(byRef.get(unknownRef)!.attrs.class).toContain('st-flagged')
+    // 正常的格沒有標記
+    expect(markOf(LAYOUTS.subtabs.scarabs[idx[0]].refName)).toHaveLength(0)
+    let card = all(container, 'value')[0]
+    expect(text(all(card, 'value-note')[0])).toContain('可能讀錯')
+    expect(text(all(card, 'value-excluded')[0])).toContain('未計入 1 格')
+    cursorCb!({ refName: unknownRef })
+    await settle(40)
+    expect(text(all(container, 'badge')[0])).toContain('數量未讀取,未計入總價')
+    cursorCb!({ refName: null })
+    // 一般頁:錄製檔沒有碎片價格 → 有數量的格標「無價」
+    const noPriceRef = LAYOUTS.subtabs.general[0].refName
+    expect(usePoeninja().priceOf(noPriceRef).status).toBe('no-price')
+    show([2, ...Array(LAYOUTS.subtabs.general.length - 1).fill(0)], false, 'general')
+    await settle(40)
+    byRef = new Map(all(container, 'badge').map(b => [b.attrs['data-ref'], b]))
+    expect(markOf(noPriceRef).map(m => m.attrs['data-mark'])).toEqual(['no-price'])
+    expect(text(markOf(noPriceRef)[0])).toBe('無價')
+    card = all(container, 'value')[0]
+    expect(text(all(card, 'value-excluded')[0])).toContain('未計入 1 格')
+    cursorCb!({ refName: noPriceRef })
+    await settle(40)
+    expect(text(all(container, 'badge')[0])).toContain('沒有價格,未計入總價')
+    cursorCb!({ refName: null })
+    expect(errors).toEqual([])
     app.unmount()
   })
 

@@ -76,7 +76,7 @@ describe('CSS 變數(badgeStyleVars)', () => {
     expect(BADGE_HALO.outline.split(', ')).toHaveLength(8)
   })
   it('樣式守門:徽章 CSS 裡每個 var(--badge-…) 都有原值後援;沒有後援的只能是繼承屬性(font-weight / text-shadow)', () => {
-    for (const f of ['OcrBadges.vue', 'RuneshapePrices.vue']) {
+    for (const f of ['OcrBadges.vue', 'RuneshapePrices.vue', 'StashPrices.vue']) {
       const css = fs.readFileSync(path.join(__dirname, '../src/web/overlay', f), 'utf8').split('<style>')[1]
       const decls = css.match(/[a-z-]+:\s*[^;{}]*var\(--badge-[^;{}]*/g) ?? []
       expect(decls.length).toBeGreaterThan(3)

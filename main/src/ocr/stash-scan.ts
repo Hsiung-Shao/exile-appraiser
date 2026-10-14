@@ -12,8 +12,11 @@
  * 2026-10-15 倉庫價值:顯示中且開著「讀取堆疊數量」(`readQuantity`)時,同一張擷取對版面每格讀左上角的堆疊數量
  * (core `quantity.ts` 數字模板比對,不用 WinOCR):第一次顯示讀全部格;之後每格以便宜的簽章(數字區白色程度)比對,變了才重讀那一格;
  * 游標停在格子上(遊戲說明框 / 游標上的物品可能蓋住格子)→ 這個 tick 不讀。我們自己的徽章會蓋住數字(擷取截得到 overlay):
- * 蓋到的格不讀,沿用上次值;蓋到的格露出部分變了(數量可能改了)→ 送 `peek` 請 renderer 暫時收起格子徽章,ack 後用乾淨畫面重讀。
- * 每個事件都等 renderer 回報遮罩(ack,`drawPending`)才擷取下一張。
+ * 只有遮罩蓋到「數字帶」(上次讀到的數字列;沒讀過 = 整個裁切區)才算蓋住:不讀,沿用上次值;蓋住的格露出部分變了
+ * (同一組遮罩比上次被遮時;剛被蓋住時比上次乾淨讀數的字形)→ 送 `peek` 請 renderer 暫時收起格子徽章,ack 後用乾淨畫面重讀
+ * (ack 後舊徽章外框還會再遮 `MASK_LINGER_MS` → 延後一個保留期才重看;等太久以時間判斷放棄)。
+ * 每個事件都等 renderer 回報遮罩(ack,`drawPending`)才擷取下一張;游標換格(`stash-cursor`,renderer 只畫停的那格 ↔ 畫回全部)沒有 ack →
+ * 換格後等下一份倉庫遮罩報告(最多 `MASK_LINGER_MS`)才讀數量。
  *
  * 與褻瀆 / 符文塑形共用 WinOcr(別的掃描忙碌就丟這個 tick)與擷取(`SharedCapture`)。被擋下時的排程同 `panel-scan.ts`:
  * 停用 / 不是 PoE1 → 不排(等 `poke()`);其他原因 10 秒保底。不送任何鍵盤 / 滑鼠輸入。
@@ -23,13 +26,15 @@ import type { OcrTextLang, OcrTextLine } from '../../../poe2/src/desecration/ocr
 import { activeSubtab, buttonRects, findSubtabButtons, percentile, stripRect, stripZone, type Rect } from '../../../core/src/stash/detect'
 import { cellRects, type StashLayoutFile, type StashSubtab } from '../../../core/src/stash/layout'
 import {
-  qtyCellSignature, qtyCropRect, qtySignatureChanged, readCellQuantity, type DigitTemplates, type QtyRect
+  qtyCropRect, qtyMapSignature, qtyShapeChanged, qtySignatureChanged, qtyWhiteMap, readCellQuantity,
+  type DigitTemplates, type QtyRect, type QtyWhiteMap
 } from '../../../core/src/stash/quantity'
 import {
   BLOCKED_FALLBACK_MS, clampScanInterval, isChanged, isLargeChange, DEFAULT_DIFF_THRESHOLDS,
   type Fingerprint, type ScanCapture, type ScanClock, type ScanEnv
 } from './panel-scan'
 import { regionSearchRect, type PhysRect } from './strategy'
+import { MASK_ACK_TIMEOUT_MS, MASK_LINGER_MS } from './scan-mask'
 
 export interface StashScanConfig {
   enabled: boolean
@@ -39,19 +44,23 @@ export interface StashScanConfig {
   region?: OcrRegion | null
   /** 2026-10-15:讀每格堆疊數量(倉庫價值);省略 = 開 */
   readQuantity?: boolean
+  /** 伺服器(省略 = 國際服) */
+  realm?: 'intl' | 'tw'
 }
 
 /** `user-paused` = 使用者按暫停熱鍵(2026-10-14;暫停當下 `toggleUserPause` 已收掉疊層) */
-export type StashBlock = 'disabled' | 'not-poe1' | 'user-paused' | 'not-overlay' | 'no-window' | 'game-inactive' | 'ui-open'
+export type StashBlock = 'disabled' | 'not-poe1' | 'not-intl' | 'user-paused' | 'not-overlay' | 'no-window' | 'game-inactive' | 'ui-open'
 
 /** 這幾種「停止」要收掉疊層;失焦 / UI 開著只是暫停(疊層留著) */
-export const STASH_CLEARING_BLOCKS: ReadonlySet<StashBlock> = new Set<StashBlock>(['disabled', 'not-poe1', 'not-overlay', 'no-window', 'user-paused'])
-/** 功能本身停用 / 使用者暫停 → 連保底 tick 都不排,等 host-config 的 `poke()` / 繼續熱鍵 */
-const IDLE_STOP: ReadonlySet<StashBlock> = new Set<StashBlock>(['disabled', 'not-poe1', 'user-paused'])
+export const STASH_CLEARING_BLOCKS: ReadonlySet<StashBlock> = new Set<StashBlock>(['disabled', 'not-poe1', 'not-intl', 'not-overlay', 'no-window', 'user-paused'])
+/** 功能本身停用 / 台服 / 使用者暫停 → 連保底 tick 都不排,等 host-config 的 `poke()`(realm 在 `scanConfigKey` 裡)/ 繼續熱鍵 */
+const IDLE_STOP: ReadonlySet<StashBlock> = new Set<StashBlock>(['disabled', 'not-poe1', 'not-intl', 'user-paused'])
 
 export function stashBlock (cfg: StashScanConfig, env: ScanEnv, ui: RuneshapeUiState, userPaused = false): StashBlock | null {
   if (!cfg.enabled) return 'disabled'
   if (cfg.game !== 'poe1') return 'not-poe1'
+  // 2026-10-15 使用者裁定:倉庫價格 / 倉庫價值只支援國際服(台服沒有 poe.ninja)→ 完全不掃描(不讀按鈕、不讀數量)
+  if (cfg.realm === 'tw') return 'not-intl'
   if (userPaused) return 'user-paused'
   if (!env.overlay) return 'not-overlay'
   if (!env.bounds || !(env.bounds.width > 0 && env.bounds.height > 0)) return 'no-window'
@@ -91,13 +100,19 @@ export interface StashScanDeps {
   drawPending?: () => boolean
 }
 
-/** peek 送出後最多等幾個 tick 讓徽章收起(遮罩一直沒清掉 → 放棄,沿用舊值) */
+/** peek 送出後至少等幾個 tick、且超過 `STASH_PEEK_TIMEOUT_MS` 仍蓋著才放棄(沿用舊值) */
 export const STASH_PEEK_LIMIT = 3
+/** peek 等待上限(以時間算:ack 最多等 `MASK_ACK_TIMEOUT_MS`、ack 後舊徽章外框再遮 `MASK_LINGER_MS`;間隔再短也不會提早放棄) */
+export const STASH_PEEK_TIMEOUT_MS = MASK_ACK_TIMEOUT_MS + MASK_LINGER_MS + 500
+/** peek 的 ack 到了之後,等舊徽章外框的保留期過了再重看 */
+export const STASH_PEEK_REREAD_DELAY_MS = MASK_LINGER_MS + 50
 
 interface QtyCell {
-  /** 上次在沒被遮住時讀數量的簽章 */
-  clean?: number[]
-  /** 被遮住時最近一次的簽章 + 遮罩位置(遮罩位置變了 = 重設基準,不算數量變化) */
+  /** 上次乾淨讀數時的白色程度圖(像素區座標) */
+  clean?: QtyWhiteMap
+  /** 上次讀到的數字帶(像素區座標);沒讀過 / 空格 = 整個裁切區 */
+  band?: QtyRect
+  /** 被遮住時最近一次的簽章 + 遮罩位置(同一組遮罩才互比) */
   masked?: { sig: number[], key: string }
 }
 
@@ -110,6 +125,10 @@ interface QtyState {
   /** 已送 peek、等 renderer 收起徽章 */
   peek: boolean
   peekTries: number
+  /** 開始 peek 的時間(clock) */
+  peekAt: number
+  /** 像素區(`cap.pixels`)原點:變了 → 白色程度圖 / 數字帶座標作廢 */
+  org: { x: number, y: number } | null
   /** 上次送出的(比對要不要再送) */
   sentValues: Array<number | null> | null
   sentPeek: boolean
@@ -199,8 +218,11 @@ export class StashScan {
   private userPaused = false
   private qty: QtyState | null = null
   private lastQtyMs: number | null = null
+  /** 游標換格的時間;收到下一份倉庫遮罩報告(`cursorMask`)或過了 `MASK_LINGER_MS` 前不讀數量 */
+  private cursorAt: number | null = null
+  private cursorMask = false
   /** 效能診斷(perf-monitor `stashSnapshotOf`)用的累計計數:只 `++`,關著零成本 */
-  readonly counters = { ticks: 0, captures: 0, ocrRuns: 0, skippedUnchanged: 0, skippedBusy: 0, qtyRuns: 0, qtyCells: 0, qtyPeeks: 0, qtyCursorSkips: 0, maskWaits: 0 }
+  readonly counters = { ticks: 0, captures: 0, ocrRuns: 0, skippedUnchanged: 0, skippedBusy: 0, qtyRuns: 0, qtyCells: 0, qtyPeeks: 0, qtyCursorSkips: 0, qtyMasked: 0, maskWaits: 0 }
   /** 效能診斷:被 `stashBlock` 擋下的 tick 依原因累計 */
   readonly blockCounts: Partial<Record<StashBlock, number>> = {}
 
@@ -255,6 +277,37 @@ export class StashScan {
   setUserPause (paused: boolean): boolean {
     if (this.userPaused !== paused) this.toggleUserPause()
     return this.userPaused
+  }
+
+  /**
+   * 游標換格(main `StashCursor` 送 `stash-cursor`):renderer 會重畫徽章(只留停的那格 ↔ 畫回全部),這個重畫沒有 ack →
+   * 等下一份倉庫遮罩報告(或 `MASK_LINGER_MS`)才讀數量,免得截到「徽章已畫、遮罩未回報」的畫面把徽章上的價格讀成數量
+   */
+  cursorMoved (): void {
+    if (!this.shown) return
+    this.cursorAt = this.clock.now()
+    this.cursorMask = false
+  }
+
+  /**
+   * renderer 回報倉庫層遮罩(`scan-mask` source `stash`)。只有帶 seq(ack)且正在等 peek(徽章收起)時才排重看,
+   * 並延後一個遮罩保留期(舊徽章外框還會再遮 `MASK_LINGER_MS`);其他報告不插 tick(瀏覽倉庫時報告很密,不可繞過掃描間隔)
+   */
+  maskReported (rep: { seq?: number }): void {
+    if (this.cursorAt != null) this.cursorMask = true
+    if (rep.seq != null && this.qty?.peek) this.pokeIn(STASH_PEEK_REREAD_DELAY_MS)
+  }
+
+  private pokeIn (ms: number): void {
+    if (!this.running || this.ticking) return
+    this.schedule(ms)
+  }
+
+  /** 游標換格後還在等遮罩報告(最多 `MASK_LINGER_MS`) */
+  private cursorSettling (): boolean {
+    if (this.cursorAt == null) return false
+    if (this.cursorMask || this.clock.now() - this.cursorAt >= MASK_LINGER_MS) { this.cursorAt = null; return false }
+    return true
   }
 
   setUiState (s: RuneshapeUiState): void {
@@ -466,11 +519,16 @@ export class StashScan {
     const key = `${shown.subtab}|${shown.yOffset}|${shown.clientW}x${shown.clientH}@${cap.offset.x},${cap.offset.y}`
     const rects = cellRects(layouts, shown.subtab, shown.clientH, shown.yOffset)
     if (fresh || this.qty?.key !== key) {
-      this.qty = { key, cells: rects.map(() => ({})), values: rects.map(() => null), want: new Set(rects.keys()), peek: false, peekTries: 0, sentValues: null, sentPeek: false }
+      this.qty = {
+        key, cells: rects.map(() => ({})), values: rects.map(() => null), want: new Set(rects.keys()),
+        peek: false, peekTries: 0, peekAt: 0, org: null, sentValues: null, sentPeek: false
+      }
     }
     const st = this.qty!
     // 游標停在格上:遊戲說明框 / 游標上的物品可能蓋住格子 → 這次不讀也不更新基準(第一次顯示除外:打開倉庫的瞬間不會有說明框)
     if (!fresh && this.deps.qtyPaused?.()) { this.counters.qtyCursorSkips++; return null }
+    // 游標剛換格:renderer 重畫的徽章可能還沒回報遮罩
+    if (!fresh && this.cursorSettling()) { this.counters.qtyCursorSkips++; return null }
 
     const t0 = performance.now()
     // 影像座標(client − 擷取偏移);一次取整個格子區的像素
@@ -481,29 +539,53 @@ export class StashScan {
     const bx1 = Math.ceil(Math.max(...crops.map(c => c.x + c.w))) + 2
     const by1 = Math.ceil(Math.max(...crops.map(c => c.y + c.h))) + 2
     const px = cap.pixels({ x: bx0, y: by0, width: bx1 - bx0, height: by1 - by0 })
+    if (st.org && (st.org.x !== px.x || st.org.y !== px.y)) {
+      // 像素區原點變了:存的圖 / 數字帶座標作廢 → 全部重讀
+      st.cells = rects.map(() => ({}))
+      st.want = new Set(rects.keys())
+    }
+    st.org = { x: px.x, y: px.y }
     const local = (r: QtyRect): QtyRect => ({ x: r.x - px.x, y: r.y - px.y, w: r.w, h: r.h })
     const masks = (cap.maskRects ?? []).map(local)
+    const hits = (list: readonly QtyRect[], r: QtyRect) => list.filter(m => m.x < r.x + r.w && r.x < m.x + m.w && m.y < r.y + r.h && r.y < m.y + m.h)
     let reads = 0
     let needPeek = false
     for (let i = 0; i < rects.length; i++) {
       const cell = local(img[i])
       const c = local(crops[i])
-      const hit = masks.filter(m => m.x < c.x + c.w && c.x < m.x + m.w && m.y < c.y + c.h && c.y < m.y + m.h)
-      const sig = qtyCellSignature(px, cell, shown.clientH, templates.baseClientH, hit)
       const cs = st.cells[i]
-      if (hit.length) {
-        // 被我們的徽章蓋住:不讀。露出的部分跟上次(同一組遮罩)比有變 → 數量可能改了 → 要 peek 重讀
-        const mkey = hit.map(m => `${m.x},${m.y},${m.w},${m.h}`).join(';')
-        if (cs.masked && cs.masked.key === mkey && qtySignatureChanged(cs.masked.sig, sig)) st.want.add(i)
+      // 裁切區內的遮罩(徽章像素一律不算、也不拿來讀);蓋到數字帶才算「蓋住數字」
+      const inCrop = hits(masks, c)
+      const cur = qtyWhiteMap(px, cell, shown.clientH, templates.baseClientH)
+      const sig = qtyMapSignature(cur, inCrop)
+      if (hits(inCrop, cs.band ?? c).length) {
+        this.counters.qtyMasked++
+        // 被我們的徽章蓋住:不讀。露出的部分有變 → 數量可能改了 → 要 peek 重讀:
+        // 同一組遮罩 → 比上次被遮時的簽章;剛被蓋住 / 遮罩換了位置 → 比上次乾淨讀數的字形(NCC,不受徽章陰影變暗影響)
+        const mkey = inCrop.map(m => `${m.x},${m.y},${m.w},${m.h}`).join(';')
+        if (cs.masked && cs.masked.key === mkey) {
+          if (qtySignatureChanged(cs.masked.sig, sig)) st.want.add(i)
+        } else if (!cs.clean || qtyShapeChanged(cs.clean, cur, inCrop)) {
+          st.want.add(i)
+        }
         cs.masked = { sig, key: mkey }
         if (st.want.has(i)) needPeek = true
         continue
       }
       cs.masked = undefined
-      if (!st.want.has(i) && !qtySignatureChanged(cs.clean, sig)) continue
-      const r = readCellQuantity(px, cell, templates, { clientH: shown.clientH })
+      if (!st.want.has(i) && cs.clean && !qtySignatureChanged(qtyMapSignature(cs.clean, inCrop), sig)) continue
+      const r = readCellQuantity(px, cell, templates, { clientH: shown.clientH, mask: inCrop })
+      if (r.reason === 'masked') {
+        // 數字延伸到遮罩底下(例如位數變多):當成蓋住,等 peek
+        cs.band = r.band
+        st.want.add(i)
+        needPeek = true
+        continue
+      }
+      // 空格只認 `empty`;單獨的 0、超出影像、不確定 → null
       st.values[i] = r.reason === 'ok' ? r.qty : r.reason === 'empty' ? 0 : null
-      cs.clean = sig
+      cs.clean = cur
+      cs.band = r.band
       st.want.delete(i)
       reads++
     }
@@ -512,8 +594,9 @@ export class StashScan {
       if (!st.peek) {
         st.peek = true
         st.peekTries = 0
+        st.peekAt = this.clock.now()
         this.counters.qtyPeeks++
-      } else if (++st.peekTries > STASH_PEEK_LIMIT) {
+      } else if (++st.peekTries > STASH_PEEK_LIMIT && this.clock.now() - st.peekAt > STASH_PEEK_TIMEOUT_MS) {
         // 遮罩一直沒清掉(renderer 沒收起 / 沒回報)→ 放棄這次,沿用舊值
         this.deps.log?.(`[stash] 徽章遮住的格子等不到收起,沿用舊數量(${st.want.size} 格)`)
         st.want.clear()

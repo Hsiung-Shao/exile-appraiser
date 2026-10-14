@@ -9,8 +9,9 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import sharp from 'sharp'
 import type { StashScanEvent } from '@ipc/types'
-import type { Fingerprint, ScanCapture, ScanEnv } from '../src/ocr/panel-scan'
-import { StashScan, type StashScanConfig } from '../src/ocr/stash-scan'
+import type { Fingerprint, ScanCapture, ScanClock, ScanEnv } from '../src/ocr/panel-scan'
+import { MASK_LINGER_MS, ScanMaskStore } from '../src/ocr/scan-mask'
+import { STASH_PEEK_TIMEOUT_MS, StashScan, type StashScanConfig } from '../src/ocr/stash-scan'
 import { SUBTAB_LABELS, buttonRects, type TextLine } from '../../core/src/stash/detect'
 import { cellRects, parseStashLayouts, type StashSubtab } from '../../core/src/stash/layout'
 import { parseDigitTemplates, qtyCropRect } from '../../core/src/stash/quantity'
@@ -20,38 +21,65 @@ const FIX = path.join(ROOT, 'core/test/stash/fixtures/qty')
 const TRUTH = JSON.parse(fs.readFileSync(path.join(FIX, 'truth.json'), 'utf8')) as Record<StashSubtab, number[]> & { files: Record<StashSubtab, string> }
 const LAYOUTS = parseStashLayouts(JSON.parse(fs.readFileSync(path.join(ROOT, 'data/poe1/stash/layouts.json'), 'utf8')))
 const TEMPLATES = parseDigitTemplates(JSON.parse(fs.readFileSync(path.join(ROOT, 'data/poe1/stash/digit-templates.json'), 'utf8')))
-const H = 1125
-const W = 700
+const BASE_H = 1125
 
 interface Img { data: Uint8Array, width: number, height: number }
-const IMAGES: Partial<Record<StashSubtab, Img>> = {}
+const IMAGES: Record<string, Img> = {}
 beforeAll(async () => {
   for (const tab of ['general', 'scarabs'] as const) {
-    const { data, info } = await sharp(path.join(FIX, TRUTH.files[tab])).removeAlpha().raw().toBuffer({ resolveWithObject: true })
-    IMAGES[tab] = { data: new Uint8Array(data), width: info.width, height: info.height }
+    for (const h of [BASE_H, 1440]) {
+      let s = sharp(path.join(FIX, TRUTH.files[tab])).removeAlpha()
+      if (h !== BASE_H) s = s.resize({ height: h, kernel: 'lanczos3' })
+      const { data, info } = await s.raw().toBuffer({ resolveWithObject: true })
+      IMAGES[`${tab}@${h}`] = { data: new Uint8Array(data), width: info.width, height: info.height }
+    }
   }
 })
 
 /** 合成按鈕列 OCR 行(四顆都在、偏移 0) */
-function buttonLines (): TextLine[] {
+function buttonLines (H: number): TextLine[] {
   return buttonRects(H, 0).map((r, k) => ({ text: SUBTAB_LABELS.zh[k], x: r.x + r.w / 2 - 20, y: Math.floor(201 / 1440 * H) - 8, w: 40, h: 16 }))
 }
 const BRIGHT: Record<StashSubtab, number[]> = { general: [160, 140, 140, 140], scarabs: [140, 160, 140, 140] }
 const fp = (v: number): Fingerprint => ({ w: 64, h: 12, data: new Uint8Array(64 * 12).fill(v) })
 
-function harness (tab: StashSubtab = 'scarabs') {
+type R = { x: number, y: number, w: number, h: number }
+
+/**
+ * `store` 模式:遮罩走真的 `ScanMaskStore`(含 300 ms 保留期與 ack),renderer 由 `badgesOf(ev)` 模擬(viewport = client → CSS px = client px);
+ * `autoAck` = 每個事件立刻回報遮罩(帶 seq)並通知 `maskReported`。
+ */
+function harness (tab: StashSubtab = 'scarabs', opts: { H?: number, store?: boolean, autoAck?: boolean, badgesOf?: (ev: StashScanEvent) => R[] } = {}) {
+  const H = opts.H ?? BASE_H
+  const base = IMAGES[`${tab}@${H}`]
+  const W = base.width
   const cfg: StashScanConfig = { enabled: true, game: 'poe1', intervalMs: 1000, readQuantity: true }
   const env: ScanEnv = { overlay: true, gameActive: true, bounds: { x: 0, y: 0, width: W, height: H } }
   const state = {
     tab,
-    img: { ...IMAGES[tab]!, data: Uint8Array.from(IMAGES[tab]!.data) },
-    masks: [] as Array<{ x: number, y: number, w: number, h: number }>,
+    img: { ...base, data: Uint8Array.from(base.data) },
+    masks: [] as R[],
     cursorOnCell: false,
     pending: false,
-    strip: fp(10)
+    strip: fp(10),
+    now: 10_000
   }
+  const timers: Array<{ ms: number }> = []
+  const clock: ScanClock = {
+    now: () => state.now,
+    setTimeout: (_fn, ms) => { timers.push({ ms }); return timers.length },
+    clearTimeout: () => {}
+  }
+  const store = opts.store ? new ScanMaskStore() : null
   const events: StashScanEvent[] = []
-  const scan = new StashScan({
+  /** renderer 回報目前畫面上的徽章(帶 seq = ack) */
+  function report (rects: R[], seq?: number) {
+    const rep = { source: 'stash' as const, viewport: { w: W, h: H }, rects, ...(seq != null ? { seq } : {}) }
+    store!.report(rep, state.now)
+    scan.maskReported(rep)
+  }
+  const scan: StashScan = new StashScan({
+    clock,
     config: () => cfg,
     env: () => env,
     ocrBusy: () => false,
@@ -62,7 +90,7 @@ function harness (tab: StashSubtab = 'scarabs') {
         offset: { x: 0, y: 0 },
         client: { w: W, h: H },
         fingerprint: () => state.strip,
-        recognize: async () => ({ lines: buttonLines(), ms: 30 }),
+        recognize: async () => ({ lines: buttonLines(H), ms: 30 }),
         gray: (rect) => {
           const k = buttonRects(H, 0).findIndex(b => Math.abs(b.x - rect.x) <= 1)
           return new Uint8Array(32).fill(k >= 0 ? BRIGHT[state.tab][k] : 0)
@@ -76,14 +104,19 @@ function harness (tab: StashSubtab = 'scarabs') {
           for (let j = 0; j < h; j++) out.set(img.data.subarray(((y + j) * img.width + x) * 3, ((y + j) * img.width + x + w) * 3), j * w * 3)
           return { data: out, width: w, height: h, channels: 3, x, y }
         },
-        maskRects: state.masks.map(m => ({ ...m }))
+        maskRects: store ? store.imageRects({ w: W, h: H }, { x: 0, y: 0 }, { w: W, h: H }, state.now) : state.masks.map(m => ({ ...m }))
       }
     },
-    send: (e) => { events.push(e) },
+    send: (e) => {
+      events.push(e)
+      if (!store) return
+      store.noteSent('stash', e.seq, state.now)
+      if (opts.autoAck) report(e.reason === 'show' && !e.peek && opts.badgesOf ? opts.badgesOf(e) : [], e.seq)
+    },
     textLang: () => 'zh',
     qty: { layouts: () => LAYOUTS, templates: () => TEMPLATES },
     qtyPaused: () => state.cursorOnCell,
-    drawPending: () => state.pending
+    drawPending: () => store ? store.pending(state.now) : state.pending
   })
   const rects = () => cellRects(LAYOUTS, state.tab, H, 0)
   /** 把 from 格的數字區(裁切區)貼到 to 格 */
@@ -100,8 +133,26 @@ function harness (tab: StashSubtab = 'scarabs') {
       }
     }
   }
-  return { scan, cfg, env, state, events, rects, copyDigits }
+  /** 畫面上畫一塊(模擬徽章:白底字塊) */
+  function paint (r: R, v = 255) {
+    const { img } = state
+    for (let y = Math.max(0, r.y); y < Math.min(img.height, r.y + r.h); y++) {
+      for (let x = Math.max(0, r.x); x < Math.min(img.width, r.x + r.w); x++) {
+        const d = (y * img.width + x) * 3
+        img.data[d] = v; img.data[d + 1] = v; img.data[d + 2] = v
+      }
+    }
+  }
+  return { scan, cfg, env, state, events, rects, copyDigits, paint, report, store, timers, H, W }
 }
+
+/** 徽章貼格下緣、格寬(StashPrices.vue:translate(-50%, -100%)、寬 = max(格寬, 28));h = 徽章高(CSS px = client px) */
+function bottomBadges (rs: R[], h: number, skip?: (i: number) => boolean): R[] {
+  return rs.flatMap((r, i) => skip?.(i) ? [] : [{ x: r.x, y: r.y + r.h - h, w: r.w, h }])
+}
+/** 一行徽章(不顯示名稱):--fs-xs 11 px × line-height 1.25 + 上下 padding 1 px ≈ 16 px;顯示名稱(兩行)≈ 30 px */
+const BADGE_1LINE = 16
+const BADGE_NAMES = 30
 
 describe('V8 事件帶數量', () => {
   it('第一次顯示的 show 帶 quantities,長度 = 版面格數,絕大多數與人工判讀相同', async () => {
@@ -112,7 +163,8 @@ describe('V8 事件帶數量', () => {
     expect(ev.quantities).toHaveLength(LAYOUTS.subtabs.scarabs.length)
     const ok = ev.quantities!.filter((q, i) => q === TRUTH.scarabs[i]).length
     const wrong = ev.quantities!.filter((q, i) => q != null && q !== TRUTH.scarabs[i]).length
-    expect(ok).toBeGreaterThanOrEqual(108)
+    // 2026-10-15 code review 加低分門檻後 105(改前 109)
+    expect(ok).toBeGreaterThanOrEqual(103)
     expect(wrong).toBe(0)
     expect(typeof ev.qtyMs).toBe('number')
     expect(h.scan.snapshot().qtyCells).toBe(115)
@@ -209,6 +261,163 @@ describe('徽章蓋住數字(peek)', () => {
     const r = await h.scan.tick()
     expect(r.kind).toBe('mask-wait')
     expect(h.events).toHaveLength(0)
+  })
+})
+
+/** 遮罩外擴(main `MASK_PAD_CSS_PX`,viewport = client 時 = client px) */
+const padded = (rs: R[], p = 3): R[] => rs.map(r => ({ x: r.x - p, y: r.y - p, w: r.w + p * 2, h: r.h + p * 2 }))
+
+describe('code review:遮罩與 peek 時序', () => {
+  it('游標離開格子後、倉庫遮罩報告前不讀數量(不把剛畫出的徽章字讀成數量)', async () => {
+    const h = harness('scarabs', { store: true, autoAck: true, badgesOf: () => bottomBadges(h.rects(), BADGE_1LINE) })
+    await h.scan.tick()
+    const q0 = h.events.at(-1)!.quantities!.slice()
+    const r0 = h.rects()[0]
+    // 游標進格:renderer 只留那一格(放大、畫在格子下方)
+    h.state.now += 500
+    h.state.cursorOnCell = true
+    h.scan.cursorMoved()
+    h.report([{ x: r0.x, y: r0.y + r0.h + 4, w: r0.w * 3, h: 20 }])
+    h.state.now += 1000
+    // 游標離格:renderer 已把全部徽章畫回畫面上,但遮罩報告還沒到
+    h.state.cursorOnCell = false
+    h.scan.cursorMoved()
+    for (const b of bottomBadges(h.rects(), BADGE_1LINE)) h.paint(b)
+    const n = h.scan.snapshot().qtyCells!
+    const evs = h.events.length
+    await h.scan.tick()
+    expect(h.scan.snapshot().qtyCells).toBe(n)
+    // 報告到了:徽章都在遮罩內 → 露出的部分沒變,不讀、不送事件
+    h.report(bottomBadges(h.rects(), BADGE_1LINE))
+    h.state.now += 50
+    await h.scan.tick()
+    expect(h.scan.snapshot().qtyCells).toBe(n)
+    expect(h.events.length).toBe(evs)
+    expect(q0[0]).toBe(44)
+  })
+
+  it('游標離格後超過遮罩保留期仍沒有報告 → 恢復讀數量', async () => {
+    const h = harness('scarabs', { store: true, autoAck: true })
+    await h.scan.tick()
+    const n = h.scan.snapshot().qtyCells!
+    h.state.now += 500
+    h.scan.cursorMoved()
+    h.copyDigits(24, 0)
+    h.state.now += MASK_LINGER_MS + 1
+    await h.scan.tick()
+    expect(h.scan.snapshot().qtyCells).toBe(n + 1)
+  })
+
+  it('倉庫遮罩報告只在等 peek 時才排重看,且延後一個遮罩保留期', async () => {
+    const h = harness('scarabs', { store: true })
+    const r0 = h.rects()[0]
+    h.report([{ x: r0.x, y: r0.y, w: r0.w, h: r0.h }])
+    h.scan.start(60_000)
+    const t0 = h.timers.length
+    h.scan.maskReported({ seq: 99 })
+    h.scan.maskReported({})
+    expect(h.timers.length).toBe(t0)
+    await h.scan.tick()
+    const ev = h.events.at(-1)!
+    expect(ev.peek).toBe(true)
+    const t1 = h.timers.length
+    h.report([], ev.seq)
+    expect(h.timers.length).toBe(t1 + 1)
+    expect(h.timers.at(-1)!.ms).toBeGreaterThan(MASK_LINGER_MS)
+  })
+
+  it('main:倉庫遮罩報告交給 maskReported(不再每份都 poke)、游標換格通知 cursorMoved', () => {
+    const src = fs.readFileSync(path.join(ROOT, 'main/src/main.ts'), 'utf8')
+    const handler = src.slice(src.indexOf("'scan-mask': {"), src.indexOf("'reveal-stats'"))
+    expect(handler).toContain('stashScan.maskReported(rep)')
+    expect(handler).not.toMatch(/stashScan\.poke\(\)/)
+    expect(src).toMatch(/send\('stash-cursor', e\)[^\n]*stashScan\.cursorMoved\(\)|stashScan\.cursorMoved\(\)[^\n]*send\('stash-cursor', e\)/)
+  })
+
+  it('peek ack 後遮罩保留期內的 tick 不算等待次數,保留期過後用乾淨畫面讀到新數量', async () => {
+    const h = harness('scarabs', { store: true, autoAck: true, badgesOf: () => bottomBadges(h.rects(), BADGE_1LINE) })
+    await h.scan.tick()
+    h.state.now += 1000
+    await h.scan.tick()
+    expect(h.events.at(-1)!.quantities![0]).toBe(44)
+    h.state.now += 1000
+    h.copyDigits(24, 0)
+    await h.scan.tick()
+    expect(h.events.at(-1)!.peek).toBe(true)
+    // ack 立刻到(徽章收起)→ 舊徽章外框還在保留期(300 ms)內;間隔很短時連續幾個 tick 都落在保留期內
+    for (let i = 0; i < 5; i++) { h.state.now += 50; await h.scan.tick() }
+    h.state.now += MASK_LINGER_MS
+    await h.scan.tick()
+    const ev = h.events.at(-1)!
+    expect(ev.peek).toBeFalsy()
+    expect(ev.quantities![0]).toBe(100)
+  })
+
+  it('peek 一直等不到徽章收起:以時間判斷,超過等待上限才放棄', async () => {
+    const h = harness()
+    const r0 = h.rects()[0]
+    h.state.masks = [{ x: r0.x, y: r0.y, w: r0.w, h: r0.h }]
+    await h.scan.tick()
+    expect(h.events.at(-1)!.peek).toBe(true)
+    for (let i = 0; i < 10; i++) { h.state.now += 100; await h.scan.tick() }
+    expect(h.events.at(-1)!.peek).toBe(true)
+    h.state.now += STASH_PEEK_TIMEOUT_MS
+    await h.scan.tick()
+    expect(h.events.at(-1)!.peek).toBeFalsy()
+  })
+
+  it('徽章陰影讓數字變暗(約 15%)不算數量變化,不會 peek', async () => {
+    const h = harness('scarabs', { store: true, autoAck: true, badgesOf: () => bottomBadges(h.rects(), BADGE_1LINE) })
+    await h.scan.tick()
+    const evs = h.events.length
+    // 徽章畫上後:陰影讓上方的數字變暗
+    const { img } = h.state
+    for (const r of h.rects()) {
+      for (let y = r.y; y < r.y + r.h - BADGE_1LINE; y++) {
+        for (let x = r.x - 3; x < r.x + r.w; x++) {
+          const d = (y * img.width + x) * 3
+          for (let c = 0; c < 3; c++) img.data[d + c] = Math.round(img.data[d + c] * 0.85)
+        }
+      }
+    }
+    h.state.now += 1000
+    await h.scan.tick()
+    h.state.now += 1000
+    await h.scan.tick()
+    expect(h.events.slice(evs).filter(e => e.peek)).toEqual([])
+  })
+
+  it('徽章出現與數字改變在同一個 tick → 仍與乾淨讀數比對,偵測到變化並 peek', async () => {
+    const h = harness()
+    await h.scan.tick()
+    const rs = h.rects()
+    h.state.masks = rs.map(r => ({ x: r.x, y: r.y + Math.floor(r.h * 0.4), w: r.w, h: Math.ceil(r.h * 0.6) }))
+    h.copyDigits(24, 0)
+    await h.scan.tick()
+    expect(h.events.at(-1)!.peek).toBe(true)
+  })
+
+  it.each([1125, 1440])('一行徽章貼格下緣時一般頁大部分格不算蓋住數字(client 高 %i):數字改了直接重讀、不 peek', async (H) => {
+    const h = harness('general', { H })
+    await h.scan.tick()
+    expect(TRUTH.general[20]).toBe(70)
+    h.state.masks = padded(bottomBadges(h.rects(), BADGE_1LINE))
+    await h.scan.tick()
+    const m0 = h.scan.counters.qtyMasked
+    await h.scan.tick()
+    const covered = h.scan.counters.qtyMasked - m0
+    h.copyDigits(20, 0)
+    await h.scan.tick()
+    const ev = h.events.at(-1)!
+    // 顯示名稱(兩行)時徽章高約 30 px:實際蓋到數字(數字在格子上 55–65%),只記錄數字
+    h.state.masks = padded(bottomBadges(h.rects(), BADGE_NAMES))
+    await h.scan.tick()
+    const m1 = h.scan.counters.qtyMasked
+    await h.scan.tick()
+    console.log(`[蓋住數字] general @${H}:一行徽章 ${covered}/60 格、顯示名稱 ${h.scan.counters.qtyMasked - m1}/60 格`)
+    expect(covered).toBeLessThanOrEqual(6)
+    expect(ev.peek).toBeFalsy()
+    expect(ev.quantities![0]).toBe(70)
   })
 })
 

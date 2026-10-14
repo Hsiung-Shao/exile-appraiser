@@ -136,6 +136,8 @@ export function stashScanStatus (
 ): ScanCardStatus | null {
   if (!s) return null
   if (s.block === 'user-paused') return { code: 'paused', tone: 'warn', text: t('ppz.ocr.scan_status_paused', { hotkey: hotkey || '—' }) }
+  // 2026-10-15:台服 main 完全不掃描
+  if (s.block === 'not-intl') return { code: 'not-intl', tone: 'warn', text: t('ppz.stash.status_not_intl') }
   if (s.showing && s.subtab) return { code: 'showing', tone: 'ok', text: t('ppz.stash.status_showing', { subtab: t(`ppz.stash.subtab_${s.subtab}`) }) }
   if (s.block === 'game-inactive' || s.block === 'no-window') return { code: s.block, tone: 'dim', text: t('ppz.stash.status_game_inactive') }
   if (s.block === 'ui-open') return { code: 'ui-open', tone: 'dim', text: t('ppz.stash.status_ui_open') }

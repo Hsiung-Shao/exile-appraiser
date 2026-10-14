@@ -9,13 +9,15 @@
   - 2026-10-15 倉庫價值:`show` 帶每格數量(main 讀格子左上角的堆疊數量)→ 徽章改顯示小計(單價 × 數量;三段色 / C・D 依小計),
     數量讀不到只顯示單價 +「?」;空格不畫;停格時明細卡(單價 / 數量 / 小計);倉庫右側「本頁價值」卡(總計 C、≈ D、已讀 / 未讀格數)
     並寫進共用狀態 `stash-value.ts`(懸浮選單讀)。`peek` → 格子徽章暫時收起(main 用乾淨畫面重讀被徽章蓋住的數字)。
+    沒算進總價的格(數量讀不到 / 有數量但沒價格)徽章左側加警示色標記「?」/「無價」+ 虛線框,停格明細卡寫原因;
+    本頁價值卡另有「數量以畫面辨識,可能讀錯」說明與未計入格數(使用者 2026-10-15 要求)。
   - 擷取遮罩:main 讀格子數量時會截到這一層 → 走共用掃描層 `useScanLayer`(source `stash`):DOM 更新後回報徽章外框,
     每個事件處理完帶 seq(ack),main 等 ack 才擷取下一張;蓋到數字的格 main 不讀(沿用舊值)。
 -->
 <template>
   <div v-if="active" ref="layer" class="st-layer pob-dark" data-stash-layer :data-stash-subtab="shown?.subtab" :data-stash-peek="peek ? 'true' : undefined" :style="styleVars">
     <div v-for="b in badges" :key="b.key" class="rs-badge st-badge"
-      :class="[b.tier ? `ptier-${b.tier}` : '', `st-${b.status}`, { hovered: b.hovered, 'st-unknown': b.qtyUnknown, 'st-detail': b.hovered && b.qty !== undefined }]"
+      :class="[b.tier ? `ptier-${b.tier}` : '', `st-${b.status}`, { hovered: b.hovered, 'st-unknown': b.qtyUnknown, 'st-flagged': !!b.mark, 'st-detail': b.hovered && b.qty !== undefined }]"
       data-stash="badge" :data-ref="b.refName" :data-status="b.status" :data-qty="b.qty === undefined ? undefined : String(b.qty)"
       :style="{ left: `${b.left}px`, top: `${b.top}px`, maxWidth: b.hovered ? undefined : `${Math.max(b.width, 28)}px` }"
       :title="b.refName">
@@ -24,11 +26,12 @@
         <span class="st-row" data-stash="unit-price"><span>{{ t('ppz.stash.qty_unit_price') }}</span><span class="num">{{ priceText(b.unitPrice, b.status) }}</span></span>
         <span class="st-row" data-stash="qty"><span>{{ t('ppz.stash.qty_count') }}</span><span class="num">{{ b.qty === null ? '?' : `× ${b.qty}` }}</span></span>
         <span class="st-row st-sub" data-stash="subtotal"><span>{{ t('ppz.stash.qty_subtotal') }}</span><span class="num">{{ b.subtotal ? priceText(b.subtotal, b.status) : '—' }}</span></span>
-        <span v-if="b.qtyUnknown" class="st-dim st-note">{{ t('ppz.stash.qty_unknown') }}</span>
+        <span v-if="b.mark" class="st-note" data-stash="note">{{ b.mark === 'qty-unknown' ? t('ppz.stash.qty_unknown') : t('ppz.stash.no_price_excluded') }}</span>
       </template>
       <template v-else>
         <span v-if="showNames || b.hovered" class="st-name">{{ b.name }}</span>
-        <span v-if="b.price" class="rs-total">{{ b.price.value }}<span class="rs-unit">{{ unitLabel(b.price.unit) }}</span><span v-if="b.qtyUnknown" class="rs-lc" data-stash="qty-unknown" :title="t('ppz.stash.qty_unknown')">?</span><span v-else-if="b.lowConfidence" class="rs-lc" :title="t('ppz.runeshape.low_confidence')">?</span></span>
+        <span v-if="b.price" class="rs-total"><span v-if="b.mark" class="st-mark" data-stash="mark" :data-mark="b.mark" :title="markTitle(b.mark)">{{ markText(b.mark) }}</span>{{ b.price.value }}<span class="rs-unit">{{ unitLabel(b.price.unit) }}</span><span v-if="!b.mark && b.lowConfidence" class="rs-lc" :title="t('ppz.runeshape.low_confidence')">?</span></span>
+        <span v-else-if="b.mark" class="st-mark" data-stash="mark" :data-mark="b.mark" :title="markTitle(b.mark)">{{ markText(b.mark) }}</span>
         <span v-else-if="b.status === 'loading'" class="st-dim">…</span>
         <span v-else-if="b.status === 'no-price'" class="st-dim">?</span>
       </template>
@@ -38,6 +41,8 @@
       <span class="st-value-total num" data-stash="value-total">{{ card.chaos }} {{ unitLabel('c') }}</span>
       <span v-if="card.div" class="st-value-div num" data-stash="value-div">≈ {{ card.div }} {{ unitLabel('div') }}</span>
       <span class="st-value-counts" data-stash="value-counts">{{ t('ppz.stash.value_counts', { known: card.known, unknown: card.unknown }) }}</span>
+      <span v-if="card.excluded" class="st-value-excluded" data-stash="value-excluded">{{ t('ppz.stash.value_excluded', { n: card.excluded, unknown: card.unknown, noPrice: card.noPrice }) }}</span>
+      <span class="st-value-note" data-stash="value-note">{{ t('ppz.stash.value_note') }}</span>
     </div>
     <div v-if="toast" class="rs-toast warn" data-stash="toast">{{ toast }}</div>
   </div>
@@ -144,7 +149,7 @@ export default defineComponent({
       if (!v || !s || !data || config.realm === 'tw') return null
       const pos = stashValueCardPos({ file: data.file, subtab: s.subtab, yOffset: s.yOffset, client: s.client, viewport: viewport.value })
       if (!pos) return null
-      return { ...pos, ...stashValueText({ totalChaos: v.totalChaos, divineRate: ninja.xchgRate.value }), known: v.known, unknown: v.unknown }
+      return { ...pos, ...stashValueText({ totalChaos: v.totalChaos, divineRate: ninja.xchgRate.value }), known: v.known, unknown: v.unknown, noPrice: v.noPrice, excluded: v.excluded }
     })
     // 懸浮選單「倉庫本頁價值」列讀這份
     watch([pageValue, () => ninja.xchgRate.value, () => config.realm], () => {
@@ -158,6 +163,8 @@ export default defineComponent({
     const styleVars = computed(() => badgeStyleVars(config.ocrBadgeStyle, 'stash'))
     const showNames = computed(() => config.stashShowNames)
     const unitLabel = (u: StashPriceUnit) => t(`ppz.stash.unit_${u}`)
+    const markText = (m: StashBadgeView['mark']) => m === 'qty-unknown' ? '?' : t('ppz.stash.mark_no_price')
+    const markTitle = (m: StashBadgeView['mark']) => m === 'qty-unknown' ? t('ppz.stash.qty_unknown') : t('ppz.stash.no_price_excluded')
     const priceText = (p: StashBadgeView['unitPrice'], status: StashBadgeView['status']) =>
       p ? `${p.value} ${unitLabel(p.unit)}` : status === 'loading' ? '…' : '?'
 
@@ -188,7 +195,7 @@ export default defineComponent({
     // 第五輪 30.4:有徽章 / 提示 = overlay 要顯示(overlay-content.ts)
     watch(active, (v) => { overlayLayers.stash = v }, { immediate: true })
 
-    return { t, layer, shown, peek, badges, card, toast, styleVars, showNames, unitLabel, priceText, active }
+    return { t, layer, shown, peek, badges, card, toast, styleVars, showNames, unitLabel, priceText, markText, markTitle, active }
   }
 })
 </script>
@@ -234,6 +241,20 @@ export default defineComponent({
 .st-layer .st-badge.hovered .st-name { color: var(--ink-0); }
 /* 倉庫價值:數量讀不到 = 灰字(不分段) */
 .st-layer .st-badge.st-unknown { color: var(--ink-3); }
+/* 沒算進總價的格:警示色標記(「?」數量未讀 /「無價」)+ 虛線框;字級 / 字體跟徽章外觀(--badge-*)走 */
+.st-layer .st-badge.st-flagged { outline: 1px dashed var(--badge-warn, var(--warn)); outline-offset: -1px; }
+.st-layer .st-mark {
+  display: inline-block;
+  margin-right: 3px;
+  padding: 0 3px;
+  border-radius: 999px;
+  background: var(--badge-warn, var(--warn));
+  color: var(--badge-warn-ink, #1a1206);
+  font-size: var(--badge-fs-xs, var(--fs-xs));
+  font-weight: 700;
+  line-height: 1.2;
+  text-shadow: none;
+}
 /* 停格明細卡(單價 / 數量 / 小計;設計稿 StashValue) */
 .st-layer .st-badge.st-detail {
   flex-direction: column;
@@ -244,7 +265,7 @@ export default defineComponent({
 }
 .st-layer .st-detail .st-row { display: flex; justify-content: space-between; gap: 1.2em; color: var(--ink-2); }
 .st-layer .st-detail .st-sub { padding-top: 3px; border-top: 1px solid var(--line, rgba(255, 255, 255, 0.12)); font-weight: 700; color: var(--badge-high, var(--gold)); }
-.st-layer .st-detail .st-note { font-size: var(--badge-fs-xs, var(--fs-xs)); }
+.st-layer .st-detail .st-note { font-size: var(--badge-fs-xs, var(--fs-xs)); color: var(--badge-warn, var(--warn)); }
 /* 本頁價值卡:倉庫面板右側 */
 .st-layer .st-value {
   position: absolute;
@@ -264,4 +285,6 @@ export default defineComponent({
 .st-layer .st-value-total { font-size: var(--badge-fs, var(--fs-lg, 1.1em)); font-weight: 700; }
 .st-layer .st-value-div { color: var(--ink-2); }
 .st-layer .st-value-counts { color: var(--ink-3); }
+.st-layer .st-value-excluded { color: var(--badge-warn, var(--warn)); }
+.st-layer .st-value-note { max-width: 16em; white-space: normal; color: var(--ink-3); }
 </style>

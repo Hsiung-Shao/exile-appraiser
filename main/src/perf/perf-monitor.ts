@@ -176,7 +176,7 @@ export interface ScenarioTags {
 }
 
 /** 這些原因 = OCR 功能關著(不是暫時停) */
-const OCR_OFF: ReadonlySet<string> = new Set(['disabled', 'not-poe2', 'not-poe1', 'not-overlay', 'user-paused', 'no-data', 'stopped'])
+const OCR_OFF: ReadonlySet<string> = new Set(['disabled', 'not-poe2', 'not-poe1', 'not-intl', 'not-overlay', 'user-paused', 'no-data', 'stopped'])
 export const ocrOn = (reason: string | null) => !OCR_OFF.has(reason ?? '')
 
 /**

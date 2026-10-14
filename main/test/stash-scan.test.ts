@@ -265,9 +265,9 @@ describe('S9c 擋下條件與收起', () => {
     expect(stashBlock(okCfg, okEnv, { ...ui0, picker: true })).toBe('ui-open')
     expect(stashBlock(okCfg, okEnv, ui0)).toBeNull()
   })
-  it('會清疊層的原因只有 disabled / not-poe1 / not-overlay / no-window / user-paused', () => {
+  it('會清疊層的原因只有 disabled / not-poe1 / not-intl / not-overlay / no-window / user-paused', () => {
     // 失焦也清 → 切出遊戲再回來疊層要重新 OCR 才出現
-    expect([...STASH_CLEARING_BLOCKS].sort()).toEqual(['disabled', 'no-window', 'not-overlay', 'not-poe1', 'user-paused'])
+    expect([...STASH_CLEARING_BLOCKS].sort()).toEqual(['disabled', 'no-window', 'not-intl', 'not-overlay', 'not-poe1', 'user-paused'])
   })
   it('顯示中改成停用 → blocked 並送 hide', async () => {
     const h = harness()
@@ -787,5 +787,44 @@ describe('S19 使用者暫停熱鍵(T21)', () => {
     expect(h.scan.setUserPause(true)).toBe(true)
     expect(h.scan.setUserPause(true)).toBe(true)
     expect(h.events).toEqual([])
+  })
+})
+
+describe('S21 只支援國際服(台服完全不掃描)', () => {
+  it('台服:不擷取、擋下原因 not-intl、已顯示的疊層收掉、不排計時器', async () => {
+    const h = harness()
+    await showScarabs(h)
+    h.cfg.realm = 'tw'
+    const caps = h.state.captures
+    expect(await h.scan.tick()).toEqual({ kind: 'blocked', block: 'not-intl' })
+    expect(h.events.map(e => e.reason)).toEqual(['show', 'hide'])
+    // 迴圈跑起來:被擋下後連保底 tick 都不排
+    h.scan.start(0)
+    await h.clk.advance(60_000)
+    expect(h.state.captures).toBe(caps)
+    expect(h.clk.pending()).toEqual([])
+    expect(h.scan.snapshot().block).toBe('not-intl')
+    h.scan.stop()
+  })
+  it('切回國際服 → poke 後立刻恢復掃描', async () => {
+    const h = harness()
+    h.cfg.realm = 'tw'
+    h.scan.start(0)
+    await h.clk.advance(1)
+    expect(h.state.captures).toBe(0)
+    h.cfg.realm = 'intl'
+    h.scan.poke()
+    await h.clk.advance(1)
+    expect(h.state.captures).toBe(1)
+    expect(h.scan.showing).toBe(true)
+    h.scan.stop()
+  })
+  it('not-intl 會收掉疊層;main 把 hostCfg.realm 傳進倉庫掃描、realm 改變算掃描設定變更(會 poke)', async () => {
+    expect(STASH_CLEARING_BLOCKS.has('not-intl')).toBe(true)
+    const src = fs.readFileSync(path.join(HERE, '../src/main.ts'), 'utf8')
+    expect(src).toMatch(/stashScan = new StashScan\(\{\s*config: \(\) => \(\{[^}]*realm: hostCfg\?\.realm/)
+    const { scanConfigKey } = await import('../src/scan-config')
+    const base = { game: 'poe1' as const, stashPricesEnabled: true }
+    expect(scanConfigKey({ ...base, realm: 'intl' })).not.toBe(scanConfigKey({ ...base, realm: 'tw' }))
   })
 })

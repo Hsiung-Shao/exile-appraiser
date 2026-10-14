@@ -72,14 +72,14 @@
         </div>
       </section>
       <section v-if="showInfo" class="fm-group" data-group="stash">
-        <div class="fm-row fm-info" :class="{ off: config.game !== 'poe1' }" data-menu="stash" :data-disabled="config.game !== 'poe1' ? 'true' : 'false'">
+        <div class="fm-row fm-info" :class="{ off: stashOff }" data-menu="stash" :data-disabled="stashOff ? 'true' : 'false'">
           <span class="fm-ic">
             <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M3 15h18M9 3v18M15 3v18" /></svg>
           </span>
           <span class="fm-main">
             <span>{{ t('ppz.menu.stash_title') }}</span>
             <span v-if="stashRow" class="fm-sub">{{ t('ppz.menu.stash_sub', { subtab: t(`ppz.stash.subtab_${stashRow.subtab}`), known: stashRow.known, unknown: stashRow.unknown }) }}</span>
-            <span v-else class="fm-sub">{{ t(config.game === 'poe1' ? 'ppz.menu.stash_none' : 'ppz.menu.stash_poe2') }}</span>
+            <span v-else class="fm-sub">{{ t(config.game !== 'poe1' ? 'ppz.menu.stash_poe2' : config.realm === 'tw' ? 'ppz.menu.stash_tw' : 'ppz.menu.stash_none') }}</span>
           </span>
           <span v-if="stashRow" class="fm-value num" data-menu="stash-value">{{ stashRow.chaos }} {{ t('ppz.stash.unit_c') }}<template v-if="stashRow.div"> ≈ {{ stashRow.div }} {{ t('ppz.stash.unit_div') }}</template></span>
           <span v-else class="fm-value num">—</span>
@@ -294,9 +294,11 @@ const marketTarget = computed(() => {
 })
 const market = computed(() => marketRateOf(ninja.snapshot.value as NinjaSnapshot | null, marketTarget.value))
 /** 倉庫本頁價值(2026-10-15):倉庫疊層算好的整頁價值(stash-value.ts);PoE1 且疊層顯示中有數量才有 */
+/** 倉庫列停用:不是 PoE1,或台服(倉庫價格只支援國際服,main 不掃描) */
+const stashOff = computed(() => config.game !== 'poe1' || config.realm === 'tw')
 const stashRow = computed(() => {
   const v = stashValue.value
-  if (config.game !== 'poe1' || !v) return null
+  if (stashOff.value || !v) return null
   return { subtab: v.subtab, known: v.known, unknown: v.unknown, ...stashValueText(v) }
 })
 function changeText (n: number): string {

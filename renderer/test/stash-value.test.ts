@@ -84,6 +84,53 @@ describe('V9 小計與總價', () => {
   })
 })
 
+describe('V15 未計入總價的格子標記', () => {
+  const refIdx = new Map(FILE.subtabs.general.map((c, i) => [c.refName, i]))
+  // 第 0 格 3 個、第 1 格讀不到、第 2 格 4 個但沒價格、第 3 格讀不到又沒價格、第 4 格價格讀取中
+  const prices: Record<number, PriceOfResult> = { 2: { status: 'no-price' }, 3: { status: 'no-price' }, 4: { status: 'loading' } }
+  const inp = () => input({ quantities: qtys([3, null, 4, null, 2]), priceOf: r => prices[refIdx.get(r)!] ?? okPrice(10) })
+
+  it('數量讀不到 → qty-unknown;有數量但沒價格 → no-price;正常 / 讀取中沒有標記', () => {
+    const by = new Map(layoutStashBadges(inp()).map(b => [refIdx.get(b.refName)!, b]))
+    expect(by.get(0)!.mark).toBeUndefined()
+    expect(by.get(1)!.mark).toBe('qty-unknown')
+    expect(by.get(2)!.mark).toBe('no-price')
+    // 讀不到數量優先(不管有沒有價格都沒算進總價,先處理數量)
+    expect(by.get(3)!.mark).toBe('qty-unknown')
+    expect(by.get(4)!.mark).toBeUndefined()
+  })
+
+  it('沒有數量(關閉讀數量)→ 沒有標記', () => {
+    expect(layoutStashBadges(input({ priceOf: () => ({ status: 'no-price' }) })).every(b => b.mark === undefined)).toBe(true)
+  })
+
+  it('未計入格數 = 數量未讀 + 有數量但沒價格(讀取中不算)', () => {
+    const v = stashPageValue(inp())!
+    expect(v.unknown).toBe(2)
+    expect(v.noPrice).toBe(1)
+    expect(v.excluded).toBe(3)
+    expect(v.totalChaos).toBe(30)
+  })
+
+  it('兩語字串:明細卡說明、無價標記、本頁價值卡說明與未計入格數', () => {
+    for (const lang of ['cmn-Hant', 'en']) {
+      const s = JSON.parse(read(`../src/i18n/${lang}.json`)).ppz.stash
+      for (const k of ['qty_unknown', 'no_price_excluded', 'mark_no_price', 'value_note', 'value_excluded']) expect(s[k], `${lang} ${k}`).toBeTruthy()
+      expect(s.value_excluded, lang).toContain('{n}')
+      expect(s.value_excluded, lang).toContain('{unknown}')
+      expect(s.value_excluded, lang).toContain('{noPrice}')
+    }
+    const zh = JSON.parse(read('../src/i18n/cmn-Hant.json')).ppz.stash
+    expect(zh.qty_unknown).toBe('數量未讀取,未計入總價')
+  })
+
+  it('標記樣式用警示色且可被徽章外觀覆蓋(var(--badge-…, 原值))', () => {
+    const css = read('../src/web/overlay/StashPrices.vue').split('<style>')[1]
+    const rule = css.slice(css.indexOf('.st-layer .st-mark {'))
+    expect(rule.slice(0, rule.indexOf('}'))).toMatch(/var\(--badge-warn, var\(--warn\)\)/)
+  })
+})
+
 describe('V10 單位與分段色依小計', () => {
   it('單價 10 × 6 = 60 → high(依小計,不是單價的 mid)', () => {
     const b = layoutStashBadges(input({ quantities: qtys([6]) }))[0]
@@ -139,5 +186,31 @@ describe('V13 關閉讀數量(設定與接線)', () => {
     expect(src).toMatch(/useScanLayer<StashScanEvent>\(\{\s*source: 'stash'/)
     expect(src).toContain('ref="layer"')
     expect(src).toContain('stashValue.value')
+  })
+})
+
+describe('V16 倉庫價格只支援國際服', () => {
+  it('伺服器送給 main 且立即送(main 台服不掃描)', () => {
+    const tw = _roundTripForTest('{"realm":"tw"}')
+    expect(hostConfigOf(tw.config).realm).toBe('tw')
+    expect(hostConfigOf(_roundTripForTest(null).config).realm).toBe('intl')
+    expect(HOST_CONFIG_IMMEDIATE_KEYS).toContain('realm')
+  })
+  it('設定狀態列:not-intl → 警示「只支援國際服」;兩語字串', async () => {
+    const { stashScanStatus } = await import('../src/web/settings/scan-card-specs')
+    const tr = (k: string) => k
+    expect(stashScanStatus({ block: 'not-intl', showing: false, subtab: null, lastOcrMs: null, ocrCount: 0 }, tr, ''))
+      .toEqual({ code: 'not-intl', tone: 'warn', text: 'ppz.stash.status_not_intl' })
+    for (const lang of ['cmn-Hant', 'en']) {
+      const j = JSON.parse(read(`../src/i18n/${lang}.json`)).ppz
+      expect(j.stash.status_not_intl, lang).toBeTruthy()
+      expect(j.menu.stash_tw, lang).toBeTruthy()
+    }
+    expect(JSON.parse(read('../src/i18n/cmn-Hant.json')).ppz.stash.status_not_intl).toBe('只支援國際服')
+  })
+  it('懸浮選單倉庫列:台服顯示「只支援國際服」說明、整列停用', () => {
+    const src = read('../src/web/overlay/FloatMenu.vue')
+    expect(src).toMatch(/config\.realm === 'tw'[^\n]*'ppz\.menu\.stash_tw'/)
+    expect(src).toMatch(/data-menu="stash" :data-disabled="stashOff \? 'true' : 'false'"/)
   })
 })
