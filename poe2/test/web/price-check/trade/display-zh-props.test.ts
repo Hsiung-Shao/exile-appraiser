@@ -3,7 +3,11 @@ import fs from "fs";
 import path from "path";
 import { init } from "@/assets/data";
 import { __testExports } from "@/web/price-check/trade/pathofexile-trade";
+import { setHostOptions } from "@/parser/host-options";
 import {
+  __displayZhTest,
+  displayZhFor,
+  scheduleDisplayZhPreload,
   loadDisplayZhData,
   translateDisplayItem,
   translateModLine,
@@ -60,12 +64,32 @@ describe("懸停浮窗繁中:符文詞綴、類別行、需求行", () => {
     expect(translateModLine("10% reduced Armour, Evasion and Energy Shield", "rune.stat_3523867985", data).zh).toBeUndefined();
   });
 
-  it("身體護甲類別行換成 app_i18n 的繁中類別名", () => {
+  it("身體護甲類別行換成 GGPK 物品種類名「胸甲」", () => {
     const { before, after } = zhOf(bodyArmour());
     expect(before.nameBlock![0].text).toBe("Body Armour ");
-    expect(after.nameBlock![0]).toEqual({ ...before.nameBlock![0], text: "身體護甲 " });
+    expect(after.nameBlock![0]).toEqual({ ...before.nameBlock![0], text: "胸甲 " });
     // 其他屬性行不動
     expect(after.nameBlock!.slice(1)).toEqual(before.nameBlock!.slice(1));
+  });
+
+  it("類別名以 GGPK Id / 英文名 / 英文複數去 s 對接(Charm → 護符、Waystone → 換界石)", () => {
+    const cls = (name: string) => {
+      const r = bodyArmour();
+      r.item.properties[0].name = name;
+      return zhOf(r).after.nameBlock![0].text;
+    };
+    expect(cls("Charm")).toBe("護符 ");
+    expect(cls("Waystone")).toBe("換界石 ");
+    expect(cls("[Mace|Two Hand Mace]")).toBe("雙手錘 ");
+    expect(cls("Helmet")).toBe("頭部 ");
+    expect(cls("Tablet")).toBe("碑牌 ");
+    expect(cls("[Crossbow]")).toBe("十字弓 ");
+    // GGPK 沒有同名種類(藥劑分生命 / 魔力)→ 維持英文
+    expect(cls("[Flask]")).toBe("Flask ");
+  });
+
+  it("載入的物品種類資料來自 data/poe2/item-classes", () => {
+    expect(data.itemClassZh?.get("Body Armour")).toEqual(new Set(["胸甲"]));
   });
 
   it("需求行換成「需求: 等級 80, 67 力量, 67 敏捷」", () => {
@@ -90,6 +114,34 @@ describe("懸停浮窗繁中:符文詞綴、類別行、需求行", () => {
     const before = __testExports.parseFetchResult(r)!;
     expect(after.itemProps).toEqual(before.itemProps);
     expect(after.nameBlock![0].text).toBe("Quarterstaff ");
+  });
+
+  it("啟動後閒置預載:國際服 + 繁中介面 + 浮窗非關閉時排程,第一次查價就有轉換函式", async () => {
+    __displayZhTest.reset();
+    const queued: Array<() => void> = [];
+    const later = (fn: () => void) => void queued.push(fn);
+    try {
+      setHostOptions({ uiLanguage: "en" });
+      expect(scheduleDisplayZhPreload("intl", later)).toBe(false);
+      setHostOptions({ uiLanguage: "cmn-Hant" });
+      expect(scheduleDisplayZhPreload("tw", later)).toBe(false);
+      setHostOptions({ itemHoverTooltip: "off" });
+      expect(scheduleDisplayZhPreload("intl", later)).toBe(false);
+      expect(queued).toHaveLength(0);
+
+      setHostOptions({ itemHoverTooltip: "keybind" });
+      expect(scheduleDisplayZhPreload("intl", later)).toBe(true);
+      // 排程當下不載(不拖慢啟動)
+      expect(displayZhFor("intl")).toBeUndefined();
+      expect(queued).toHaveLength(1);
+      queued[0]();
+      await loadDisplayZhData();
+      // 已載好 → 再排程是 no-op;第一次查價同步拿到轉換函式
+      expect(scheduleDisplayZhPreload("intl", later)).toBe(false);
+      expect(displayZhFor("intl")).toBeTypeOf("function");
+    } finally {
+      setHostOptions({ uiLanguage: "en", itemHoverTooltip: "keybind" });
+    }
   });
 
   it("輸入不被修改", () => {

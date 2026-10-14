@@ -112,9 +112,10 @@
 - **2026-10-14 補翻(使用者實機 Viper Coat 領主鎖甲:符文詞綴、類別行、需求行仍是英文)**:
   - 根因:符文詞綴 `rune.stat_3523867985`「#% increased Armour, Evasion and Energy Shield」的繁中條目有兩種同旗標寫法(`增加#%護甲、閃避、和能量護盾` / `增加#%護甲值、閃避和能量護盾`)→ 判為不唯一保留英文(不是符文合計值的問題);類別行(`properties[0]`)與需求行原本就不在翻譯範圍。
   - 同旗標多種寫法:另讀台服交易站快照 `data/poe2/trade/tw/stats.json`,同一個 trade stat id 的文字代入同樣數值後**恰好命中其中一個候選**才採用(只用來挑、不產生新字串;交易站只有正向寫法,reduced 行仍保留英文)。錄製回應覆蓋率 92 → 97 / 104(物品稀有度、怪物效用、換界石數量、精髓、照亮範圍解開;金幣 `1276056105` 仍不唯一)。
-  - 類別行:`properties[0]`(無數值)名稱 → `ItemCategory` → `CATEGORY_TO_TRADE_ID` → `cmn-Hant/app_i18n.json` `item_category`(`armour.chest` → `armour_chest` = 「身體護甲」;遊戲內寫法是「胸甲」,repo 沒有遊戲的物品種類對照,沿用 EE2 字串)。對不上(`Quarterstaff`、`Waystone`、`Relic`、`Tablet`…)保留英文。
+  - 類別行(2026-10-15 改用遊戲本身的物品種類名,使用者裁定):`properties[0]`(無數值)名稱 → GGPK `ItemClasses` 繁中名(`data/poe2/item-classes/item-classes.json`,`node scripts/sync-poe2-item-classes.mjs --from ../Pob2/pob-zh-engine` 由 pob-zh-engine 的 PoE2 GGPK 抽取表 `itemclasses` 單向同步,MANIFEST 前綴 `data/poe2/item-classes` 記 fetchedAt / game_version / 來源 sha256,不手改)。對接:交易站名稱 = GGPK `Id` 或英文名(`Body Armour` → 胸甲、`Helmet` → 頭部、`Tablet` → 碑牌),沒有才比「英文名去掉結尾 s」(`Charm` ↔ `Charms` → 護符、`Waystone` ↔ `Waystones` → 換界石);繁中名必須唯一。對不上保留英文(`Quarterstaff`:GGPK 英文 `Quarterstaves`、`Flask`:GGPK 只有生命 / 魔力藥劑)。
   - 需求行:依 `requirements[].type`(62 等級 / 63 力量 / 64 敏捷 / 65 智慧)取繁中 `client_strings` 的 `REQUIRES`(`需求: `)與 `REQUIRES_LINE` 裡的字 → `需求: 等級 ` + `80, 67 力量, 67 敏捷`;有未知 type 整行保留英文。
   - 三份補充資料各自載入,失敗只記錄、該部分維持英文。測試 `poe2/test/web/price-check/trade/display-zh-props.test.ts`。
+  - **啟動後預先載入(2026-10-15,使用者回報重啟後第一次查價浮窗全英文)**:`scheduleDisplayZhPreload(realm)`(`@poe2-entry` 匯出),renderer `main.ts` 在 PoE2 資料載好後與 遊戲 / 資料語言 / 伺服器 / 介面語言 / 浮窗設定 改變時呼叫;符合翻譯條件且還沒載才排到 `requestIdleCallback`(最多等 5 秒;沒有就 `setTimeout` 2 秒),不拖慢啟動。查價時的背景載入仍是後備。量測(Node,同一份資料):整份載入約 50 ms、常駐約 6 MB(客戶端繁中時重用記憶體裡的 stats / items,增加更少);翻 21 件約 9 ms(第一次編 RegExp)/ 2.4 ms —— 與使用者 log 的記憶體 560 MB → 1.1 GB、1.4 秒 longtask 不在同一量級,不是它造成。
 
 ## 通貨價格區(2026-10-02 第 24 步,使用者要求 PoE1 / PoE2 都要有)
 - 元件:PoE2 `web/price-check/trends/PriceTrend.vue`、`stack-value/StackValue.vue`、`web/ui/CoreCurrencyImg.vue`(EE2 移植,檔頭 MIT 出處);PoE1 同名兩檔在 `poe1/src/web/price-check/{trends,expected-value}/`(APT 移植 + EE2 的成交量區塊)。兩代 `CheckedItem.vue` 把它們掛回原位(filter-name 之後 / 搜尋鈕與結果之後)。

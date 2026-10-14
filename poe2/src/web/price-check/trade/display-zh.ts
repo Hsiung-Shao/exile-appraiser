@@ -19,7 +19,7 @@
  * 2026-10-14(使用者實機:符文詞綴、類別行、需求行仍是英文):
  * - 同旗標多種繁中寫法(例:`增加#%護甲、閃避、和能量護盾` / `增加#%護甲值、閃避和能量護盾`)→ 以台服交易站
  *   `data/poe2/trade/tw/stats.json` 同一個 trade stat id 的文字代入同樣數值,恰好命中其中一個才採用;否則照舊保留英文。
- * - 物品類別行(`properties[0]`,沒有數值)→ `ItemCategory` → `CATEGORY_TO_TRADE_ID` → `cmn-Hant/app_i18n.json` 的 `item_category`。
+ * - 物品類別行(`properties[0]`,沒有數值)→ GGPK 物品種類繁中名(`data/poe2/item-classes/`,`scripts/sync-poe2-item-classes.mjs`)。
  * - 需求行 → 依 `requirements[].type`(62 等級 / 63 力量 / 64 敏捷 / 65 智慧,語言無關)取繁中 `client_strings`
  *   的 `REQUIRES` 與 `REQUIRES_LINE` 裡的字;有任何一項對不上就整行保留英文。
  *
@@ -34,10 +34,9 @@ import { source } from "@/assets/data/source";
 import type { DataSource } from "@exile-appraiser/core/games/adapter";
 import { clientStringsFor } from "@/assets/data";
 import type { Stat, StatMatcher, TranslationDict } from "@/assets/data/interfaces";
-import type { ItemCategory } from "@/parser/meta";
 import { parseAffixStrings } from "@/parser/Parser";
 import { hostOptions } from "@/parser/host-options";
-import { CATEGORY_TO_TRADE_ID, type DisplayItem, type DisplayItemLine } from "./pathofexile-trade";
+import type { DisplayItem, DisplayItemLine } from "./pathofexile-trade";
 
 /** 本模組翻的詞綴區塊(`DisplayItem[`${t}Mods`]`、fetch `item[`${t}Mods`]`、`extended.hashes[t]`)。veiled 不在內。 */
 export const ZH_MOD_TYPES = [
@@ -83,8 +82,8 @@ export interface DisplayZhData {
   itemNames: Map<string, Set<string>>;
   /** 台服交易站 trade stat id(`rune.stat_123`)→ 繁中文字;同旗標多種寫法時用來挑一個 */
   tradeTextZh?: Map<string, string>;
-  /** `app_i18n.json` `item_category`(鍵 = trade 類別 id 的 `.` 換 `_`) */
-  categoryZh?: Record<string, string>;
+  /** GGPK `ItemClasses` 的 Id 與英文名(`data/poe2/item-classes/item-classes.json`)→ 繁中名集合 */
+  itemClassZh?: Map<string, Set<string>>;
   /** 需求行:`REQUIRES`(`需求: `)與各 requirement type 的字 */
   requiresZh?: { label: string; level: string; attrs: Record<number, string> };
 }
@@ -93,8 +92,8 @@ export interface DisplayZhData {
 export interface DisplayZhExtras {
   /** `trade/tw/stats.json` */
   tradeStatsTw?: string;
-  /** `cmn-Hant/app_i18n.json` */
-  appI18nZh?: string;
+  /** `item-classes/item-classes.json`(`scripts/sync-poe2-item-classes.mjs` 由 GGPK 同步) */
+  itemClasses?: string;
   /** `cmn-Hant/client_strings.js` 的 default export */
   clientStringsZh?: Pick<TranslationDict, "REQUIRES" | "REQUIRES_LINE">;
 }
@@ -175,13 +174,20 @@ function buildExtras(extras: DisplayZhExtras | undefined): Partial<DisplayZhData
     }
     out.tradeTextZh = map;
   }
-  if (extras?.appI18nZh) {
-    const cat = (JSON.parse(extras.appI18nZh) as { item_category?: unknown }).item_category;
-    if (cat && typeof cat === "object") {
-      const rec: Record<string, string> = {};
-      for (const [k, v] of Object.entries(cat)) if (typeof v === "string") rec[k] = v;
-      out.categoryZh = rec;
+  if (extras?.itemClasses) {
+    const json = JSON.parse(extras.itemClasses) as { classes?: Array<{ id?: unknown; en?: unknown; zh?: unknown }> };
+    const map = new Map<string, Set<string>>();
+    const add = (key: string, zh: string) => {
+      let set = map.get(key);
+      if (!set) map.set(key, (set = new Set()));
+      set.add(zh);
+    };
+    for (const c of json.classes ?? []) {
+      if (typeof c.zh !== "string" || !c.zh) continue;
+      if (typeof c.id === "string") add(c.id, c.zh);
+      if (typeof c.en === "string" && c.en !== c.id) add(c.en, c.zh);
     }
+    out.itemClassZh = map;
   }
   const req = requiresWords(extras?.clientStringsZh);
   if (req) out.requiresZh = req;
@@ -282,6 +288,46 @@ export function loadDisplayZhData(ds: DataSource = source()): Promise<DisplayZhD
   return p;
 }
 
+/** 浮窗會翻繁中的條件(國際服、介面繁中、懸停浮窗不是「關閉」);與 `displayZhFor` 共用 */
+function wantsZh(realm: string): boolean {
+  const opts = hostOptions();
+  return realm === "intl" && opts.uiLanguage === "cmn-Hant" && opts.itemHoverTooltip !== "off";
+}
+
+/** 延後到閒置:`requestIdleCallback`(最多等 5 秒),沒有就 `setTimeout` 2 秒(不跟啟動搶 CPU / 讀檔) */
+function whenIdle(fn: () => void): void {
+  const ric = (globalThis as { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number })
+    .requestIdleCallback;
+  if (typeof ric === "function") ric(fn, { timeout: 5000 });
+  else setTimeout(fn, 2000);
+}
+
+/**
+ * 2026-10-15(使用者回報重啟後第一次查價浮窗全英文):renderer 在 PoE2 資料載好後、或設定(遊戲 / 伺服器 / 介面語言 /
+ * 懸停浮窗)改變時呼叫;符合翻譯條件且還沒載 / 沒在載 → 排到閒置時背景載入,第一次查價就能同步翻。
+ * 回傳是否排了新的載入。不符條件或已載好 / 載入中 → no-op(查價時 `displayZhFor` 的背景載入仍是後備)。
+ */
+export function scheduleDisplayZhPreload(realm: string, later: (fn: () => void) => void = whenIdle): boolean {
+  if (!wantsZh(realm)) return false;
+  let ds: DataSource;
+  try {
+    ds = source();
+  } catch {
+    return false;
+  }
+  if (ready.has(ds) || loaded.has(ds)) return false;
+  later(() => {
+    // 排程到執行之間設定可能又變了
+    if (!wantsZh(realm)) return;
+    const started = Date.now();
+    loadDisplayZhData(ds).then(
+      () => console.log(`[trade] 懸停浮窗繁中資料預先載入完成(${Date.now() - started} ms)`),
+      (e) => console.error("[trade] 懸停浮窗繁中資料預先載入失敗,查價時再試:", e),
+    );
+  });
+  return true;
+}
+
 /** 補充來源各自讀;失敗只記錄,那部分維持英文(詞綴翻譯照常) */
 async function loadExtras(ds: DataSource): Promise<DisplayZhExtras> {
   const soft = <T>(what: string, run: () => Promise<T>): Promise<T | undefined> =>
@@ -295,16 +341,16 @@ async function loadExtras(ds: DataSource): Promise<DisplayZhExtras> {
   } catch {
     primary = false;
   }
-  const [tradeStatsTw, appI18nZh, clientStringsZh] = await Promise.all([
+  const [tradeStatsTw, itemClasses, clientStringsZh] = await Promise.all([
     soft("trade/tw/stats.json", () => ds.text("trade/tw/stats.json")),
-    soft("cmn-Hant/app_i18n.json", () => ds.text("cmn-Hant/app_i18n.json")),
+    soft("item-classes/item-classes.json", () => ds.text("item-classes/item-classes.json")),
     soft("cmn-Hant/client_strings.js", async () =>
       primary
         ? await clientStringsFor("cmn-Hant")
         : ((await ds.module("cmn-Hant/client_strings.js")) as TranslationDict),
     ),
   ]);
-  return { tradeStatsTw, appI18nZh, clientStringsZh };
+  return { tradeStatsTw, itemClasses, clientStringsZh };
 }
 
 /** 測試用:清掉某個 DataSource 的快取(模擬第一次查價) */
@@ -547,7 +593,11 @@ function translateTitle(title: string[], item: ZhFetchItem, data: DisplayZhData)
   });
 }
 
-/** 物品類別行(`buildNameBlock` 把沒有數值的 `properties[0]` 原樣放在第一行)→ `app_i18n` `item_category`。 */
+/**
+ * 物品類別行(`buildNameBlock` 把沒有數值的 `properties[0]` 原樣放在第一行)→ GGPK 物品種類繁中名。
+ * 交易站給的是單數英文(`Body Armour`、`Charm`、`Waystone`);先比 GGPK `Id` / 英文名(`Body Armour`、`Tablet`),
+ * 沒有才比「英文名去掉結尾 s」(`Charms` → `Charm`、`Waystones` → `Waystone`)。繁中名必須唯一,否則保留英文。
+ */
 function translateClassLine(
   block: DisplayItem["nameBlock"],
   item: ZhFetchItem,
@@ -555,11 +605,13 @@ function translateClassLine(
 ): DisplayItem["nameBlock"] {
   const first = block?.[0];
   const prop = item.properties?.[0];
-  if (!block || !first || !prop || prop.values?.length || !data.categoryZh) return block;
+  const classes = data.itemClassZh;
+  if (!block || !first || !prop || prop.values?.length || !classes) return block;
   const name = parseAffixStrings(prop.name);
   if (first.text !== `${name} ` || first.value) return block;
-  const tradeId = CATEGORY_TO_TRADE_ID.get(name as ItemCategory);
-  const zh = tradeId ? data.categoryZh[tradeId.replace(/\./g, "_")] : undefined;
+  let names = classes.get(name);
+  if (!names) names = classes.get(`${name}s`);
+  const zh = names?.size === 1 ? [...names][0] : undefined;
   if (!zh) return block;
   return [{ ...first, text: `${zh} ` }, ...block.slice(1)];
 }
@@ -643,8 +695,7 @@ export function translateDisplayItem(
 export function displayZhFor(
   realm: string,
 ): ((display: DisplayItem, item: ZhFetchItem) => DisplayItem) | undefined {
-  const opts = hostOptions();
-  if (realm !== "intl" || opts.uiLanguage !== "cmn-Hant" || opts.itemHoverTooltip === "off") return undefined;
+  if (!wantsZh(realm)) return undefined;
   let ds: DataSource;
   try {
     ds = source();

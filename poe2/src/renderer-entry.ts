@@ -10,6 +10,8 @@
 export { poe2Adapter, browserDataSource, setTradeContextProvider, setHostOptionsProvider } from './index'
 // exile-appraiser(第 24 步):查價面板「通貨價格區」—— renderer 注入 poe.ninja 價格源(web/background/Prices.ts)
 export { setPriceSource } from '@/web/background/Prices'
+// exile-appraiser(2026-10-15):查價結果懸停浮窗繁中資料在啟動後閒置時預先載入(第一次查價就能翻)
+export { scheduleDisplayZhPreload } from '@/web/price-check/trade/display-zh'
 // exile-appraiser: 一鍵回報(renderer/src/web/report.ts)用預設篩選重算查詢 JSON
 export { createPresets, createTradeRequest } from './index'
 export { parseClipboard } from '@/parser'

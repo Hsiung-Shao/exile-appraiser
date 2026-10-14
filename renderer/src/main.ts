@@ -95,6 +95,11 @@ async function boot () {
   // 第 24 步:PoE2 查價元件(通貨價格區、結果列換算價、ExtractionValue…)讀 renderer 的 poe.ninja 價格表
   // (getter:第一次用到才建立 usePoeninja,不改變它的建立時機)
   Poe2.setPriceSource(createPoe2PriceSource(() => usePoeninja()))
+  // 2026-10-15:PoE2 查價結果懸停浮窗的繁中資料在資料載好後閒置時預先載入(原本第一次查價才背景載入 → 第一次全英文);
+  // 換遊戲 / 客戶端語言(新的資料來源)/ 伺服器 / 介面語言 / 浮窗設定時重看,不符條件或已載好是 no-op
+  watch(() => [loadedGame.value, dataLanguage.value, AppConfig().realm, AppConfig().uiLanguage, AppConfig().priceCheck.itemHoverTooltip] as const,
+    ([game, , realm]) => { if (game === 'poe2') Poe2.scheduleDisplayZhPreload(realm) },
+    { immediate: true })
 
   // 切遊戲 / 客戶端語言:重載該遊戲的資料集(不必重啟);切遊戲或介面語言:重載 app_i18n。
   // 只切介面語言不碰資料集。資料載完才切 loadedGame。

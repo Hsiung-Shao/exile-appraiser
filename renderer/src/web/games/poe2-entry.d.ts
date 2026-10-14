@@ -112,6 +112,8 @@ export declare function browserDataSource (baseUrl: string): DataSource
 export declare function setTradeContextProvider (provider: () => TradeContext): void
 export declare function setHostOptionsProvider (next: (() => Partial<Poe2HostOptions>) | undefined): void
 export declare function setPriceSource (next: Poe2PriceSource | undefined): void
+/** 查價結果懸停浮窗繁中資料:符合條件(國際服 + 介面繁中 + 浮窗非關閉)且還沒載時排到閒置載入;回傳是否排了新的載入 */
+export declare function scheduleDisplayZhPreload (realm: string, later?: (fn: () => void) => void): boolean
 export declare function parseClipboard (clipboard: string): Result<Poe2ParsedItem, string>
 export declare const CheckedItem: DefineComponent<{}, {}, any>
 /** 未鑑定傳奇:列出這個基底可能的傳奇(只有一個就自動選),選定後 emit `identify`(換好 `info` 的物品) */

@@ -244,11 +244,11 @@ describe("何時翻(displayZhFor / requestResults)", () => {
   it("code review 第 B 批:重用 @/assets/data 已載入的語系,只讀缺的檔;結果與三個檔直接讀相同(en / cmn-Hant 兩種客戶端)", async () => {
     const DATA = path.resolve(__dirname, "../../../../../data/poe2");
     const read = (rel: string) => fs.readFileSync(path.join(DATA, rel), "utf8");
-    // 2026-10-14:另讀台服交易站 stats(挑同旗標寫法)、app_i18n(類別行)、client_strings(需求行;走 module 不經 text)
+    // 2026-10-14:另讀台服交易站 stats(挑同旗標寫法)、GGPK 物品種類(類別行)、client_strings(需求行;走 module 不經 text)
     const clientStringsZh = (await source().module("cmn-Hant/client_strings.js")) as never;
     const expected = buildDisplayZhData(read("en/stats.ndjson"), read("cmn-Hant/stats.ndjson"), read("cmn-Hant/items.ndjson"), {
       tradeStatsTw: read("trade/tw/stats.json"),
-      appI18nZh: read("cmn-Hant/app_i18n.json"),
+      itemClasses: read("item-classes/item-classes.json"),
       clientStringsZh,
     });
     expect(expected.requiresZh).toEqual({
@@ -269,9 +269,9 @@ describe("何時翻(displayZhFor / requestResults)", () => {
     expect(LOADED_DATA?.lang).toBe("en");
     const en = await reqs();
     expect(en.files).toEqual([
-      "cmn-Hant/app_i18n.json",
       "cmn-Hant/items.ndjson",
       "cmn-Hant/stats.ndjson",
+      "item-classes/item-classes.json",
       "trade/tw/stats.json",
     ]);
     expect(en.d).toEqual(expected);
@@ -279,7 +279,7 @@ describe("何時翻(displayZhFor / requestResults)", () => {
       await loadForLang("cmn-Hant");
       expect(LOADED_DATA?.lang).toBe("cmn-Hant");
       const zh = await reqs();
-      expect(zh.files).toEqual(["cmn-Hant/app_i18n.json", "en/stats.ndjson", "trade/tw/stats.json"]);
+      expect(zh.files).toEqual(["en/stats.ndjson", "item-classes/item-classes.json", "trade/tw/stats.json"]);
       expect(zh.d).toEqual(expected);
     } finally {
       await loadForLang("en");

@@ -1,0 +1,477 @@
+{
+  "schema": 1,
+  "source": {
+    "table": "itemclasses",
+    "column": "Name",
+    "sha256": "2e43a23ad35fb8c569e675f9a32b78117532a5c7eda2a016bc3d53556ba96829",
+    "ggpkVersion": "0.5.5.4.2",
+    "extractedAt": "2026-10-13T22:56:18+00:00"
+  },
+  "classes": [
+    {
+      "id": "AbyssJewel",
+      "en": "Abyss Jewels",
+      "zh": "深淵珠寶"
+    },
+    {
+      "id": "Active Skill Gem",
+      "en": "Skill Gems",
+      "zh": "技能寶石"
+    },
+    {
+      "id": "Amulet",
+      "en": "Amulets",
+      "zh": "項鍊"
+    },
+    {
+      "id": "ArchnemesisMod",
+      "en": "Archnemesis Mods",
+      "zh": "宿敵詞綴"
+    },
+    {
+      "id": "AtlasCurrency",
+      "en": "Map Fragments",
+      "zh": "地圖碎片"
+    },
+    {
+      "id": "AtlasUpgradeItem",
+      "en": "Atlas Upgrade Items",
+      "zh": "輿圖升級道具"
+    },
+    {
+      "id": "Belt",
+      "en": "Belts",
+      "zh": "腰帶"
+    },
+    {
+      "id": "Body Armour",
+      "en": "Body Armours",
+      "zh": "胸甲"
+    },
+    {
+      "id": "Boots",
+      "en": "Boots",
+      "zh": "鞋子"
+    },
+    {
+      "id": "Bow",
+      "en": "Bows",
+      "zh": "弓"
+    },
+    {
+      "id": "Breachstone",
+      "en": "Breachstones",
+      "zh": "裂痕石"
+    },
+    {
+      "id": "BrequelFruit",
+      "en": "Wombgifts",
+      "zh": "胎贈"
+    },
+    {
+      "id": "Buckler",
+      "en": "Bucklers",
+      "zh": "輕盾"
+    },
+    {
+      "id": "Claw",
+      "en": "Claws",
+      "zh": "爪"
+    },
+    {
+      "id": "Crossbow",
+      "en": "Crossbows",
+      "zh": "十字弓"
+    },
+    {
+      "id": "Currency",
+      "en": "Currency",
+      "zh": "通貨"
+    },
+    {
+      "id": "Dagger",
+      "en": "Daggers",
+      "zh": "匕首"
+    },
+    {
+      "id": "DelveSocketableCurrency",
+      "en": "Delve Socketable Currency",
+      "zh": "掘獄插槽通貨"
+    },
+    {
+      "id": "DelveStackableSocketableCurrency",
+      "en": "Delve Stackable Socketable Currency",
+      "zh": "掘獄可堆疊有插槽通貨"
+    },
+    {
+      "id": "DivinationCard",
+      "en": "Divination Cards",
+      "zh": "命運卡"
+    },
+    {
+      "id": "Expedition2Logbooks",
+      "en": "Expedition Logbook",
+      "zh": "探險日誌"
+    },
+    {
+      "id": "ExpeditionLogbook",
+      "en": "Expedition Logbooks",
+      "zh": "探險日誌"
+    },
+    {
+      "id": "FishingRod",
+      "en": "Fishing Rods",
+      "zh": "魚竿"
+    },
+    {
+      "id": "Flail",
+      "en": "Flails",
+      "zh": "鏈錘"
+    },
+    {
+      "id": "Focus",
+      "en": "Foci",
+      "zh": "法器"
+    },
+    {
+      "id": "Gloves",
+      "en": "Gloves",
+      "zh": "手套"
+    },
+    {
+      "id": "HeistBlueprint",
+      "en": "Blueprints",
+      "zh": "藍圖"
+    },
+    {
+      "id": "HeistContract",
+      "en": "Contracts",
+      "zh": "契約書"
+    },
+    {
+      "id": "HeistEquipmentReward",
+      "en": "Heist Brooches",
+      "zh": "劫盜胸針"
+    },
+    {
+      "id": "HeistEquipmentTool",
+      "en": "Heist Tools",
+      "zh": "劫盜工具"
+    },
+    {
+      "id": "HeistEquipmentUtility",
+      "en": "Heist Cloaks",
+      "zh": "劫盜披風"
+    },
+    {
+      "id": "HeistEquipmentWeapon",
+      "en": "Heist Gear",
+      "zh": "劫盜裝備"
+    },
+    {
+      "id": "HeistObjective",
+      "en": "Heist Targets",
+      "zh": "劫盜目標"
+    },
+    {
+      "id": "Helmet",
+      "en": "Helmets",
+      "zh": "頭部"
+    },
+    {
+      "id": "HiddenItem",
+      "en": "Hidden Items",
+      "zh": "隱藏道具"
+    },
+    {
+      "id": "HideoutDoodad",
+      "en": "Hideout Doodads",
+      "zh": "藏身處裝飾"
+    },
+    {
+      "id": "Incubator",
+      "en": "Incubators",
+      "zh": "培育器"
+    },
+    {
+      "id": "IncubatorStackable",
+      "en": "Incubators",
+      "zh": "培育器"
+    },
+    {
+      "id": "IncursionArm",
+      "en": "Transcendent Arm",
+      "zh": "超凡之臂"
+    },
+    {
+      "id": "IncursionItem",
+      "en": "Incursion Items",
+      "zh": "穿越物品"
+    },
+    {
+      "id": "IncursionLeg",
+      "en": "Transcendent Leg",
+      "zh": "超凡之腿"
+    },
+    {
+      "id": "InstanceLocalItem",
+      "en": "Instance Local Items",
+      "zh": "地區物品"
+    },
+    {
+      "id": "ItemisedSanctum",
+      "en": "Trial Coins",
+      "zh": "試煉代幣"
+    },
+    {
+      "id": "Jewel",
+      "en": "Jewels",
+      "zh": "珠寶"
+    },
+    {
+      "id": "LargeRelic",
+      "en": "Large Relics",
+      "zh": "大型聖物"
+    },
+    {
+      "id": "Leaguestone",
+      "en": "Leaguestones",
+      "zh": "聯盟石"
+    },
+    {
+      "id": "LifeFlask",
+      "en": "Life Flasks",
+      "zh": "生命藥劑"
+    },
+    {
+      "id": "ManaFlask",
+      "en": "Mana Flasks",
+      "zh": "魔力藥劑"
+    },
+    {
+      "id": "Map",
+      "en": "Waystones",
+      "zh": "換界石"
+    },
+    {
+      "id": "MapFragment",
+      "en": "Map Fragments",
+      "zh": "地圖碎片"
+    },
+    {
+      "id": "MediumRelic",
+      "en": "Medium Relics",
+      "zh": "中型聖物"
+    },
+    {
+      "id": "MemoryLine",
+      "en": "Memories",
+      "zh": "記憶"
+    },
+    {
+      "id": "Microtransaction",
+      "en": "Microtransactions",
+      "zh": "商城物品"
+    },
+    {
+      "id": "MiscMapItem",
+      "en": "Misc Map Items",
+      "zh": "其它"
+    },
+    {
+      "id": "Omen",
+      "en": "Omen",
+      "zh": "預兆"
+    },
+    {
+      "id": "One Hand Axe",
+      "en": "One Hand Axes",
+      "zh": "單手斧"
+    },
+    {
+      "id": "One Hand Mace",
+      "en": "One Hand Maces",
+      "zh": "單手錘"
+    },
+    {
+      "id": "One Hand Sword",
+      "en": "One Hand Swords",
+      "zh": "單手劍"
+    },
+    {
+      "id": "PantheonSoul",
+      "en": "Pantheon Souls",
+      "zh": "眾神之魂"
+    },
+    {
+      "id": "PinnacleKeyStackable",
+      "en": "Pinnacle Keys",
+      "zh": "巔峰鑰匙"
+    },
+    {
+      "id": "QuestItem",
+      "en": "Quest Items",
+      "zh": "任務物品"
+    },
+    {
+      "id": "Quiver",
+      "en": "Quivers",
+      "zh": "箭袋"
+    },
+    {
+      "id": "Relic",
+      "en": "Relics",
+      "zh": "聖物"
+    },
+    {
+      "id": "Ring",
+      "en": "Rings",
+      "zh": "戒指"
+    },
+    {
+      "id": "SanctumSpecialRelic",
+      "en": "Sanctified Relics",
+      "zh": "神化聖物"
+    },
+    {
+      "id": "Sceptre",
+      "en": "Sceptres",
+      "zh": "權杖"
+    },
+    {
+      "id": "SentinelDrone",
+      "en": "Sentinels",
+      "zh": "護衛"
+    },
+    {
+      "id": "Shield",
+      "en": "Shields",
+      "zh": "盾"
+    },
+    {
+      "id": "SkillGemToken",
+      "en": "Currency",
+      "zh": "通貨"
+    },
+    {
+      "id": "SmallRelic",
+      "en": "Small Relics",
+      "zh": "小型聖物"
+    },
+    {
+      "id": "SoulCore",
+      "en": "Augment",
+      "zh": "增幅"
+    },
+    {
+      "id": "Spear",
+      "en": "Spears",
+      "zh": "長矛"
+    },
+    {
+      "id": "StackableCurrency",
+      "en": "Stackable Currency",
+      "zh": "可堆疊通貨"
+    },
+    {
+      "id": "Staff",
+      "en": "Staves",
+      "zh": "長杖"
+    },
+    {
+      "id": "Support Skill Gem",
+      "en": "Support Gems",
+      "zh": "輔助寶石"
+    },
+    {
+      "id": "Talisman",
+      "en": "Talismans",
+      "zh": "魔符"
+    },
+    {
+      "id": "TowerAugmentation",
+      "en": "Tablet",
+      "zh": "碑牌"
+    },
+    {
+      "id": "TrapTool",
+      "en": "Traps",
+      "zh": "陷阱"
+    },
+    {
+      "id": "Trinket",
+      "en": "Trinkets",
+      "zh": "飾品"
+    },
+    {
+      "id": "Two Hand Axe",
+      "en": "Two Hand Axes",
+      "zh": "雙手斧"
+    },
+    {
+      "id": "Two Hand Mace",
+      "en": "Two Hand Maces",
+      "zh": "雙手錘"
+    },
+    {
+      "id": "Two Hand Sword",
+      "en": "Two Hand Swords",
+      "zh": "雙手劍"
+    },
+    {
+      "id": "UltimatumKey",
+      "en": "Inscribed Ultimatum",
+      "zh": "最後通牒雕刻"
+    },
+    {
+      "id": "UncutReservationGemStackable",
+      "en": "Uncut Spirit Gems",
+      "zh": "未切割的精魂寶石"
+    },
+    {
+      "id": "UncutSkillGemStackable",
+      "en": "Uncut Skill Gems",
+      "zh": "未切割的技能寶石"
+    },
+    {
+      "id": "UncutSupportGemStackable",
+      "en": "Uncut Support Gems",
+      "zh": "未切割的輔助寶石"
+    },
+    {
+      "id": "UniqueFragment",
+      "en": "Pieces",
+      "zh": "碎片"
+    },
+    {
+      "id": "UniqueShard",
+      "en": "Shards",
+      "zh": "碎片"
+    },
+    {
+      "id": "UniqueShardBase",
+      "en": "Shard Hearts",
+      "zh": "碎片之心"
+    },
+    {
+      "id": "UtilityFlask",
+      "en": "Charms",
+      "zh": "護符"
+    },
+    {
+      "id": "VaultKey",
+      "en": "Vault Keys",
+      "zh": "遺鑰"
+    },
+    {
+      "id": "Wand",
+      "en": "Wands",
+      "zh": "法杖"
+    },
+    {
+      "id": "Warstaff",
+      "en": "Quarterstaves",
+      "zh": "細杖"
+    }
+  ]
+}
