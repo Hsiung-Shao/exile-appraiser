@@ -2,12 +2,13 @@
 // 一次性錄製:對國際服 PoE1 交易站實查幾類物品(稀有 / 傳奇 / 寶石 / 破裂 / 工藝 / 勢力),
 // 把 `/api/trade/fetch` 的回應剝掉個資後存成 poe1/test/docs/fetchResponses.json(查價結果懸停浮窗的測試資料)。
 //   node scripts/record-poe1-fetch.mjs [--league Standard] [--per-case 2]
+//   node scripts/record-poe1-fetch.mjs --scrub-only   (不上網,只對既有錄製檔重新剝除個資)
 //
 // 只在維護者手動執行時上網;測試只讀錄製檔(CLAUDE.md 守則 5 / 15 的精神:自動驗證不連網)。
 // 每類 1 次 search + 1 次 fetch,請求間隔至少 7 秒,遵守 X-Rate-Limit / Retry-After;
 // 收到 403 / 429 / 非 JSON(Cloudflare 擋)一律停下、不重試、不繞過。
 // 剝除(同 poe2/test/runeshape/fixtures/trade 的規則):listing.account 的帳號名 / 角色名改成 sellerN / SellerN、
-// 其餘帳號欄位只留線上狀態;listing.whisper / whisper_token / stash 刪除;item.note 只保留標價格式(其他文字改成 `~price`)。
+// 其餘帳號欄位只留線上狀態;item.extended.text(base64 物品全文,含備註原文)刪除;listing.whisper / whisper_token / stash 刪除;item.note 只保留標價格式(其他文字改成 `~price`)。
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -81,6 +82,8 @@ function scrub (r) {
   delete listing.whisper
   delete listing.whisper_token
   delete listing.stash
+  // extended.text = base64 物品全文(含 Note 原文),浮窗不用 → 整個刪掉
+  if (r.item?.extended) delete r.item.extended.text
   const acc = listing.account ?? {}
   sellerN += 1
   listing.account = {
@@ -92,6 +95,19 @@ function scrub (r) {
     r.item.note = '~price'
   }
   return r
+}
+
+if (args.includes('--scrub-only')) {
+  const rec = JSON.parse(fs.readFileSync(OUT, 'utf8'))
+  for (const r of rec.result) {
+    delete r.listing?.whisper
+    delete r.listing?.whisper_token
+    delete r.listing?.stash
+    if (r.item?.extended) delete r.item.extended.text
+  }
+  fs.writeFileSync(OUT, JSON.stringify(rec, null, 2) + '\n')
+  console.log(`已重新剝除 ${path.relative(ROOT, OUT)}`)
+  process.exit(0)
 }
 
 /** @type {any[]} */

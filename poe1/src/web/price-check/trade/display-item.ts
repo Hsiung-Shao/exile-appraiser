@@ -52,6 +52,8 @@ export interface DisplayLine {
   key?: DisplayLineKey
   /** 屬性值(多值以 `, ` 分隔顯示,各自上色) */
   values?: DisplayValue[]
+  /** displayMode 3(藥劑等 `Recovers %0 Life over %1 Seconds`):佔位符已代入數值的分段,`value` 為 true 的段套數值顏色;有它時 values 不再另外顯示 */
+  segments?: Array<{ text: string, color: number, value?: boolean }>
   color: number
   tier?: string
   /** 詞綴的 trade stat id(`explicit.stat_123`;去掉新格式的 `stat.` 前綴);沒有 = 不翻 */
@@ -237,6 +239,19 @@ function buildNameBlock (item: FetchItem, rarity: DisplayRarity): DisplayLine[] 
   return props.map((p, i) => {
     const name = stripMarkup(p.name ?? '')
     const values = valuesOf(p)
+    if (p.displayMode === 3 && /%\d/.test(name)) {
+      // displayMode 3:`%N` 換成 values[N](各自保留數值顏色),不加冒號;對不上的佔位符以空字串代入,不讓 `%N` 留在畫面
+      const segments: Array<{ text: string, color: number, value?: boolean }> = []
+      let last = 0
+      for (const m of name.matchAll(/%(\d+)/g)) {
+        if (m.index! > last) segments.push({ text: name.slice(last, m.index), color: TradeNumberColors.White })
+        const v = values[Number(m[1])]
+        if (v) segments.push({ text: v.text, color: v.color, value: true })
+        last = m.index! + m[0].length
+      }
+      if (last < name.length) segments.push({ text: name.slice(last), color: TradeNumberColors.White })
+      return { text: segments.map(x => x.text).join(''), key: 'prop', segments, color: TradeNumberColors.White }
+    }
     if (!values.length) {
       // 第一行沒有數值:寶石是標籤行(`Spell, Chaining, Lightning`),其他是物品類別(`Bow`)
       const key: DisplayLineKey = i === 0 ? (rarity === 'Gem' ? 'tags' : 'class') : 'prop'

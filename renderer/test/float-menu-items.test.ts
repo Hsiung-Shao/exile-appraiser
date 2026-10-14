@@ -80,6 +80,16 @@ describe('F3 鍵盤上下與 Enter', () => {
     // 選取超出(清單被篩掉)→ Enter 夾回最後一列
     expect(menuKey({ key: 'Enter' }, 3, 7)).toEqual({ sel: 2, run: true })
   })
+  it('沒有選取(sel = -1)時 Enter 不攔也不執行', () => {
+    expect(menuKey({ key: 'Enter' }, 3, -1)).toBeNull()
+  })
+  it('搜尋框有字時 Home / End 不攔,留給輸入框移游標;空時照常選列', () => {
+    expect(menuKey({ key: 'Home' }, 3, 1, false)).toBeNull()
+    expect(menuKey({ key: 'End' }, 3, 1, false)).toBeNull()
+    expect(menuKey({ key: 'Home' }, 3, 1, true)).toEqual({ sel: 0, run: false })
+    expect(menuKey({ key: 'End' }, 3, 1, true)).toEqual({ sel: 2, run: false })
+    expect(menuKey({ key: 'ArrowDown' }, 3, 0, false)).toEqual({ sel: 1, run: false })
+  })
   it('1–9、← →、Tab、Esc 不攔(交給輸入框 / 瀏覽器 / main);空清單不動作', () => {
     for (const key of ['1', '9', 'ArrowLeft', 'ArrowRight', 'Tab', 'Escape', 'a']) expect(menuKey({ key }, 3, 0)).toBeNull()
     expect(menuKey({ key: 'Enter' }, 0, 0)).toBeNull()

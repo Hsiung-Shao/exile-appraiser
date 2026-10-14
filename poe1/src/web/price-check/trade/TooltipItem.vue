@@ -13,8 +13,11 @@
           <div :data-section="section.key">
             <div v-for="(mod, j) in section.content" :key="j" class="flex items-center justify-between gap-1">
               <span class="flex-grow text-center">
-                <span :class="mod.values ? 'text-gray-400' : $style[`c-${mod.color}`]">{{ mod.text }}</span>
-                <template v-for="(v, k) in mod.values ?? []" :key="k">
+                <template v-if="mod.segments">
+                  <span v-for="(sg, k) in mod.segments" :key="k" :class="sg.value ? $style[`c-${sg.color}`] : 'text-gray-400'">{{ sg.text }}</span>
+                </template>
+                <span v-else :class="mod.values ? 'text-gray-400' : $style[`c-${mod.color}`]">{{ mod.text }}</span>
+                <template v-for="(v, k) in mod.segments ? [] : (mod.values ?? [])" :key="k">
                   <span v-if="k">, </span>
                   <span :class="$style[`c-${v.color}`]">{{ v.text }}</span>
                 </template>

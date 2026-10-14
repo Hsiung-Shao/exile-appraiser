@@ -534,6 +534,8 @@ function translateInfoLine (l: DisplayLine, item: FetchItem, data: DisplayZhData
   switch (l.key) {
     case 'class': return { ...l, text: translateClass(l.text, data) }
     case 'prop':
+      // 有 segments(displayMode 3 已代入數值)的行保留英文,避免文字與分段不同步
+      return l.segments ? l : { ...l, text: translateLabel(l.text, data) }
     case 'ilvl':
     case 'sockets':
     case 'tag': return { ...l, text: translateLabel(l.text, data) }

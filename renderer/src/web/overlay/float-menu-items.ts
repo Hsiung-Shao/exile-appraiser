@@ -81,18 +81,20 @@ export function menuRows (items: MenuItem[], query: string): MenuItem[] {
 }
 
 /**
- * 選單鍵盤:只處理 ↑↓(循環)/ Home / End / Enter。其他鍵(1–9、← →、Tab、Esc、文字)回 null = 不攔,
+ * 選單鍵盤:只處理 ↑↓(循環)/ Home / End(搜尋框為空時才處理)/ Enter(有選取時才處理)。其他鍵(1–9、← →、Tab、Esc、文字)回 null = 不攔,
  * 交給搜尋框 / 瀏覽器(Tab 換焦點)/ main(overlay 的 Esc 由 main 攔下收起選單)。
  */
-export function menuKey (e: { key: string }, count: number, sel: number): { sel: number, run: boolean } | null {
+export function menuKey (e: { key: string }, count: number, sel: number, queryEmpty = true): { sel: number, run: boolean } | null {
   if (count <= 0) return null
   const cur = Math.min(Math.max(sel, -1), count - 1)
   switch (e.key) {
     case 'ArrowDown': return { sel: cur + 1 >= count ? 0 : cur + 1, run: false }
     case 'ArrowUp': return { sel: cur <= 0 ? count - 1 : cur - 1, run: false }
-    case 'Home': return { sel: 0, run: false }
-    case 'End': return { sel: count - 1, run: false }
-    case 'Enter': return { sel: Math.max(0, cur), run: true }
+    // Home / End 在搜尋框有字時留給輸入框移游標
+    case 'Home': return queryEmpty ? { sel: 0, run: false } : null
+    case 'End': return queryEmpty ? { sel: count - 1, run: false } : null
+    // 沒有選取時 Enter 不攔(剛叫出選單就按 Enter 不該切換第一個開關)
+    case 'Enter': return cur < 0 ? null : { sel: cur, run: true }
     default: return null
   }
 }

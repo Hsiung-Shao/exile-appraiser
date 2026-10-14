@@ -27,6 +27,7 @@ describe('P1 PoE1 解析物品資料', () => {
     expect(REC.result.length).toBe(12)
     const raw = JSON.stringify(REC)
     expect(raw).not.toMatch(/whisper|"stash"/)
+    for (const r of REC.result) expect(Object.keys((r.item as FetchItem & { extended?: object }).extended ?? {})).not.toContain('text')
     for (const r of REC.result) expect((r.listing as { account: { name: string } }).account.name).toMatch(/^seller\d+$/)
   })
 
@@ -115,6 +116,35 @@ describe('P1 PoE1 解析物品資料', () => {
       ['+50 to maximum Life', 'P5', 'explicit.stat_3299347043']
     ])
     expect(d.craftedMods![0]).toMatchObject({ tradeId: 'crafted.stat_4220027924', tier: undefined })
+  })
+
+  it('藥劑屬性 displayMode 3:%N 代入數值、保留顏色、不留冒號與佔位符', () => {
+    const item: FetchItem = {
+      name: '', typeLine: 'Divine Life Flask', baseType: 'Divine Life Flask', frameType: 0, identified: true,
+      properties: [
+        { name: 'Divine Life Flask', values: [], displayMode: 0 },
+        { name: 'Recovers %0 Life over %1 Seconds', values: [['1350', 1], ['4.20', 1]], displayMode: 3 },
+        { name: 'Consumes %0 of %1 Charges on use', values: [['25', 0], ['60', 0]], displayMode: 3 },
+        { name: 'Lasts %0 Seconds', values: [['4.00', 1]], displayMode: 3 }
+      ]
+    }
+    const d = parseFetchItem(item)!
+    const lines = d.nameBlock!
+    expect(lines.map(l => l.text)).toEqual(['Divine Life Flask', 'Recovers 1350 Life over 4.20 Seconds', 'Consumes 25 of 60 Charges on use', 'Lasts 4.00 Seconds'])
+    expect(JSON.stringify(lines)).not.toMatch(/%\d/)
+    expect(lines[1].segments).toEqual([
+      { text: 'Recovers ', color: TradeNumberColors.White },
+      { text: '1350', color: 1, value: true },
+      { text: ' Life over ', color: TradeNumberColors.White },
+      { text: '4.20', color: 1, value: true },
+      { text: ' Seconds', color: TradeNumberColors.White }
+    ])
+    expect(lines[1].values).toBeUndefined()
+  })
+
+  it('displayMode 3 的佔位符比數值多時不留 %N', () => {
+    const d = parseFetchItem({ properties: [{ name: 'Lasts %0 Seconds, %1', values: [['4.00', 1]], displayMode: 3 }] } as FetchItem)!
+    expect(d.nameBlock![0].text).toBe('Lasts 4.00 Seconds, ')
   })
 
   it('資料不全的回應不丟錯', () => {

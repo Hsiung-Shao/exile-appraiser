@@ -332,7 +332,7 @@ function setChip (c: MenuChip) {
 }
 function onSearchKey (e: KeyboardEvent) {
   const list = rows.value
-  const r = menuKey(e, list.length, list.findIndex(x => x.id === selId.value))
+  const r = menuKey(e, list.length, list.findIndex(x => x.id === selId.value), !queryOn.value)
   if (!r) return
   e.preventDefault()
   const it = list[r.sel]
