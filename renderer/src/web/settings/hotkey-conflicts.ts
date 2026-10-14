@@ -45,7 +45,7 @@ export interface HotkeyConfigLike {
   /** 2026-10-14:PoE1 倉庫價格暫停 / 繼續、框選倉庫 OCR 區域(預設空) */
   hotkeyStashToggle?: string
   hotkeyStashRegion?: string
-  /** 倉庫價格開著(省略 = 開;關著時暫停熱鍵不註冊) */
+  /** 倉庫價格開著(省略 = 開;熱鍵不看這個:關著時按下 = 啟動) */
   stashPricesEnabled?: boolean
   commands: Array<{ text: string, hotkey: string }>
   stashSearch: Array<{ text: string, hotkey: string }>
@@ -71,7 +71,7 @@ export function hotkeySlots (c: HotkeyConfigLike): HotkeySlot[] {
     if (c.runeshapeEnabled) slots.push({ id: 'runeshape', hotkey: c.hotkeyRuneshapeToggle })
     slots.push({ id: 'runeRegion', hotkey: c.hotkeyRuneshapeRegion ?? '' })
   } else {
-    if (c.stashPricesEnabled !== false) slots.push({ id: 'stashToggle', hotkey: c.hotkeyStashToggle ?? '' })
+    slots.push({ id: 'stashToggle', hotkey: c.hotkeyStashToggle ?? '' })
     slots.push({ id: 'stashRegion', hotkey: c.hotkeyStashRegion ?? '' })
   }
   c.commands.forEach((x, i) => { if (x.text.trim()) slots.push({ id: `cmd:${i}`, hotkey: x.hotkey }) })

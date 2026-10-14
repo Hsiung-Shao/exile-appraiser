@@ -142,7 +142,7 @@ describe('熱鍵總表', () => {
     const p1 = hotkeyTable(fullConfig('poe1', { stashPricesEnabled: false }), { overlay: true }).find(g => g.id === 'scan')!.rows
     // 少列 / 欄位接錯 → 使用者在總表找不到倉庫價格熱鍵
     expect(p1.map(r => r.kind === 'edit' ? [r.id, r.field, r.needs ?? null, r.optional === true] : r.id)).toEqual([
-      ['stashToggle', 'hotkeyStashToggle', 'stashPricesEnabled', true],
+      ['stashToggle', 'hotkeyStashToggle', null, true],
       ['stashRegion', 'hotkeyStashRegion', null, true]
     ])
     expect(hotkeyTable(fullConfig('poe2'), { overlay: true }).map(g => g.id)).toEqual(['price', 'menu', 'scan', 'stash-chat', 'regex'])

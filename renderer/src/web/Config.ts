@@ -112,7 +112,7 @@ export interface Config {
   hotkeyRuneshapeToggle: string
   /** 2026-10-01:框選符文塑形面板區域的熱鍵(預設空 = 不註冊;overlay 模式 + PoE2 才註冊)。 */
   hotkeyRuneshapeRegion: string
-  /** 2026-10-14:PoE1 倉庫價格暫停 / 繼續熱鍵(預設空 = 不註冊;overlay 模式 + PoE1 + 倉庫價格開著才註冊)。 */
+  /** 2026-10-14:PoE1 倉庫價格暫停 / 繼續熱鍵(預設空 = 不註冊;overlay 模式 + PoE1 就註冊;倉庫價格關著時按下 = 啟動)。 */
   hotkeyStashToggle: string
   /** 2026-10-14:框選倉庫 OCR 區域的熱鍵(預設空 = 不註冊;overlay 模式 + PoE1 才註冊)。 */
   hotkeyStashRegion: string
@@ -695,6 +695,13 @@ export async function initConfig (): Promise<void> {
     if (v && config.updateSkippedVersion !== v) {
       console.log(`[app] 更新提醒:略過 v${v}`)
       config.updateSkippedVersion = v
+    }
+  })
+  // 倉庫價格熱鍵在功能關著時按下 = 啟動(main 已清掉暫停;設定寫進去後 host-config 會送回 main 啟動掃描)
+  Host.onStashEnable(() => {
+    if (!config.stashPricesEnabled) {
+      console.log('[app] 倉庫價格:熱鍵啟動')
+      config.stashPricesEnabled = true
     }
   })
   // main 偵測到另一款遊戲(window 模式;overlay 模式 main 直接寫設定並重新啟動)

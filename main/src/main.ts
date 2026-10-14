@@ -14,7 +14,7 @@ import { format } from 'node:util'
 import type { ConfigChangedEvent, GameId, HostConfigForMain, HostFetchInit, HotkeyRegistration, ItemTextEvent, PerfState, RegexPasteResult, RuneshapeUiState, SettingsTabId, TrackAreaOpts, WindowMode } from '@ipc/types'
 import { abortHostFetch, abortKeyOf, hostFetch, installCookiePatch } from './http'
 import { Shortcuts, normalizeHotkey } from './Shortcuts'
-import { nextScanPaused } from './shortcut-actions'
+import { nextScanPaused, stashHotkeyAction } from './shortcut-actions'
 import { RegexPaster, regexToastMessage } from './regex-paste'
 import { scanConfigKey } from './scan-config'
 import { GameWindow } from './windowing/GameWindow'
@@ -981,7 +981,16 @@ if (!skipStartup) app.whenReady().then(() => {
     // WP-R2:符文塑形自動查價暫停 / 繼續
     onRuneshapeToggle: () => { notifyScan([{ kind: 'rune', paused: runeshapeScan.toggleUserPause() }]) },
     // 2026-10-14:PoE1 倉庫價格暫停 / 繼續(暫停 = 收掉疊層)
-    onStashToggle: () => { notifyScan([{ kind: 'stash', paused: stashScan.toggleUserPause() }]) },
+    // 功能關著時按熱鍵 = 啟動:清掉使用者暫停、請 renderer 把 stashPricesEnabled 設成 true(host-config 會送回來啟動掃描)
+    onStashToggle: () => {
+      if (stashHotkeyAction(hostCfg?.stashPricesEnabled) === 'enable') {
+        stashScan.setUserPause(false)
+        send('stash-enable')
+        notifyScan([{ kind: 'stash', paused: false }])
+        return
+      }
+      notifyScan([{ kind: 'stash', paused: stashScan.toggleUserPause() }])
+    },
     // 第 16 步:兩個暫停熱鍵相同 → 合併動作(只在兩者都符合註冊條件時才有;任一個在執行 → 全部暫停,全部暫停 → 全部繼續)
     onScanToggleBoth: () => {
       const target = nextScanPaused([revealScan.paused, runeshapeScan.paused])

@@ -14,23 +14,25 @@ describe('關於頁:支援遊戲版本', () => {
   it('兩代版號都有', () => {
     expect(SUPPORTED_GAME_VERSIONS).toEqual({ poe1: '3.29.3', poe2: '0.5.5d' })
   })
-  it('字串兩語:「支援 {game}」與區塊標籤,不含 vue-i18n 特殊字元', () => {
+  it('字串兩語:區塊標題與說明,不含 vue-i18n 特殊字元', () => {
     for (const lang of ['cmn-Hant', 'en']) {
       const a = ppz(lang).about
-      expect([...String(a.supports).matchAll(/\{(\w+)\}/g)].map(m => m[1]), lang).toEqual(['game'])
+      expect(typeof a.game_versions_title, lang).toBe('string')
       expect(typeof a.game_versions_label, lang).toBe('string')
-      for (const s of [a.supports, a.game_versions_label]) expect(s, lang).not.toMatch(/[|@$]/)
-      // 舊的一行小字已移除
+      for (const s of [a.game_versions_title, a.game_versions_label]) expect(s, lang).not.toMatch(/[|@$]/)
+      // 舊的一行小字與大字塊標籤已移除
       expect(a.game_versions, lang).toBeUndefined()
+      expect(a.supports, lang).toBeUndefined()
     }
   })
-  it('品牌卡片右側兩個大字塊(每代一塊,版號用等寬數字),尺寸不用 rem', () => {
+  it('品牌卡片下方整列:標題 + 每代一個「遊戲 | 版號」膠囊(不用金框大字塊、不用 rem)', () => {
     const v = vue()
     expect(v).toMatch(/gameVersions: SUPPORTED_GAME_VERSIONS/)
-    // 版號又變回一行小字 → 使用者看不到
-    expect(v).toMatch(/<div class="gv-row" data-about="game-versions"[^>]*>[\s\S]*v-for="g in gameBlocks"[\s\S]*class="gv-num num"/)
-    expect(v).toMatch(/\.about-brand \.gv-block \{[^}]*border: 1px solid var\(--gold\)/)
-    expect(v).toMatch(/\.about-brand \.gv-num \{[^}]*font-size: calc\(var\(--fs-base\) \* [\d.]+\)/)
+    expect(v).toMatch(/<div class="gv-row" data-about="game-versions"[^>]*>[\s\S]*class="gv-title"[\s\S]*v-for="g in gameBlocks"[\s\S]*class="gv-game"[\s\S]*class="gv-num num"/)
+    // 獨佔一列、上方分隔線
+    expect(v).toMatch(/\.about-brand \.gv-row \{[^}]*flex: 1 1 100%[^}]*border-top: 1px solid var\(--edge-1\)/)
+    // 使用者 2026-10-14 嫌醜:金框大字塊不再出現
+    expect(v).not.toMatch(/\.about-brand \.gv-block \{[^}]*border: 1px solid var\(--gold\)/)
     expect(v.replace(/<!--[\s\S]*?-->/g, '')).not.toMatch(/\d(?:\.\d+)?rem\b/)
   })
 })

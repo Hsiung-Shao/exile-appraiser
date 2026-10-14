@@ -111,7 +111,7 @@ export interface HostConfigForMain {
   stashRegion?: OcrRegion | null
   /** 2026-10-01:框選符文塑形面板區域的熱鍵(預設空 = 不註冊;註冊條件同 `hotkeyOcrRegion`:overlay + PoE2 + 遊戲前景)。 */
   hotkeyRuneshapeRegion?: string
-  /** 2026-10-14:PoE1 倉庫價格暫停 / 繼續熱鍵(預設空 = 不註冊;overlay + PoE1 + `stashPricesEnabled` 才註冊)。 */
+  /** 2026-10-14:PoE1 倉庫價格暫停 / 繼續熱鍵(預設空 = 不註冊;overlay + PoE1 就註冊,功能關著時按下 = 啟動)。 */
   hotkeyStashToggle?: string
   /** 2026-10-14:框選倉庫 OCR 區域的熱鍵(預設空 = 不註冊;overlay + PoE1 才註冊)。 */
   hotkeyStashRegion?: string
@@ -562,6 +562,8 @@ export interface HostApi {
   onUpdaterState: (cb: (info: UpdaterInfo) => void) => () => void
   /** 第 34 步:更新提醒裡按了「略過此版本」→ renderer 寫進設定 `updateSkippedVersion`(只有 Electron 視窗收得到;不在 PREVIEW_EVENTS)。 */
   onUpdateReminderSkip?: (cb: (version: string) => void) => () => void
+  /** 倉庫價格熱鍵在功能關著時按下 → renderer 把 `stashPricesEnabled` 設成 true(只有 Electron 視窗;不在 PREVIEW_EVENTS)。 */
+  onStashEnable?: (cb: () => void) => () => void
   /** 另一端(Electron 視窗或其他預覽分頁)存了設定;自己存的不會收到。 */
   onConfigChanged: (cb: (e: ConfigChangedEvent) => void) => () => void
   /** 啟動(或沿用)瀏覽器預覽伺服器並用預設瀏覽器開啟,回傳網址。 */

@@ -83,7 +83,7 @@
       "slot_reveal_region": "褻瀆辨識:框選區域",
       "slot_rune_pause": "符文塑形:暫停 / 繼續",
       "slot_rune_region": "符文塑形:框選區域",
-      "slot_stash_pause": "倉庫價格:暫停 / 繼續",
+      "slot_stash_pause": "倉庫價格:啟動 / 暫停",
       "slot_stash_region": "倉庫價格:框選區域",
       "shared_with_rune": "與符文辨識共用,一次切換兩者",
       "shared_with_reveal": "與褻瀆辨識共用,一次切換兩者",
@@ -419,7 +419,7 @@
     "about": {
       "tagline": "Path of Exile 查價工具(PoE1 / PoE2,國際服 / 台服)",
       "game_versions_label": "支援遊戲版本(目前最新版本皆支援)",
-      "supports": "支援 {game}",
+      "game_versions_title": "支援遊戲版本",
       "section_update": "更新",
       "section_links": "連結",
       "section_thanks": "第三方致謝",

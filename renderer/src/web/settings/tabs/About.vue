@@ -20,10 +20,11 @@
       <p class="tagline">{{ t('ppz.about.tagline') }}</p>
     </div>
     <div class="gv-row" data-about="game-versions" role="group" :aria-label="t('ppz.about.game_versions_label')" :title="t('ppz.about.game_versions_label')">
-      <div v-for="g in gameBlocks" :key="g.id" class="gv-block" :data-game="g.id">
-        <span class="gv-label">{{ t('ppz.about.supports', { game: g.name }) }}</span>
+      <span class="gv-title">{{ t('ppz.about.game_versions_title') }}</span>
+      <span v-for="g in gameBlocks" :key="g.id" class="gv-block" :data-game="g.id">
+        <span class="gv-game">{{ g.name }}</span>
         <span class="gv-num num">{{ g.version }}</span>
-      </div>
+      </span>
     </div>
   </section>
 
@@ -336,35 +337,44 @@ export default defineComponent({
   flex: 1 1 14em;
   min-width: 0;
 }
-/* 支援遊戲版本:兩個大字塊(強調色邊框、大號等寬數字;尺寸跟設定視窗字級 --fs-base) */
+/* 支援遊戲版本:品牌卡片下方獨佔一列,標題 + 每代一個「遊戲 | 版號」膠囊(2026-10-14 使用者嫌金框大字塊醜) */
 .about-brand .gv-row {
   display: flex;
-  gap: 0.6em;
-  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5em 0.6em;
+  flex: 1 1 100%;
+  padding-top: 0.7em;
+  border-top: 1px solid var(--edge-1);
+}
+.about-brand .gv-title {
+  margin-right: 0.3em;
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
 }
 .about-brand .gv-block {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.15em;
-  min-width: 6.5em;
-  padding: 0.45em 0.8em 0.5em;
-  border: 1px solid var(--gold);
-  border-radius: var(--radius-s);
-  background: color-mix(in srgb, var(--gold) 8%, transparent);
+  display: inline-flex;
+  align-items: stretch;
+  overflow: hidden;
+  border: 1px solid var(--edge-1);
+  border-radius: 999px;
+  background: var(--surface-2);
+  line-height: 1.9;
 }
-.about-brand .gv-label {
+.about-brand .gv-game {
+  padding: 0 0.7em;
   color: var(--ink-2);
   font-size: var(--fs-xs);
-  white-space: nowrap;
+  font-weight: 600;
+  background: var(--surface-1);
+  border-right: 1px solid var(--edge-1);
 }
 .about-brand .gv-num {
-  color: var(--gold);
-  font-size: calc(var(--fs-base) * 1.85);
+  padding: 0 0.8em;
+  color: var(--ink-0);
+  font-size: var(--fs-md);
   font-weight: 700;
-  line-height: 1.1;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.02em;
 }
 .settings-panel .btn-row {
   display: flex;

@@ -74,7 +74,7 @@ export function hotkeyTable (c: HotkeyConfigLike, opts: HotkeyTableOpts): Hotkey
       id: 'scan',
       title: 'ppz.hk_group.scan',
       rows: [
-        { kind: 'edit', id: 'stashToggle', label: 'ppz.scan.slot_stash_pause', field: 'hotkeyStashToggle', needs: 'stashPricesEnabled', optional: true },
+        { kind: 'edit', id: 'stashToggle', label: 'ppz.scan.slot_stash_pause', field: 'hotkeyStashToggle', optional: true },
         { kind: 'edit', id: 'stashRegion', label: 'ppz.scan.slot_stash_region', field: 'hotkeyStashRegion', optional: true }
       ]
     })

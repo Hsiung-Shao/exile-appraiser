@@ -1,7 +1,7 @@
 // exile-appraiser(WP-S2):熱鍵動作表(`src/shortcut-actions.ts`)的註冊條件。不啟動 Electron、不送任何按鍵。
 import { describe, expect, it } from 'vitest'
 import { GAME_RESERVED_HOTKEYS } from '@ipc/reserved-hotkeys'
-import { buildShortcutActions, nextScanPaused, normalizeHotkey, reservedShortcuts, sameShortcutActions } from '../src/shortcut-actions'
+import { buildShortcutActions, nextScanPaused, normalizeHotkey, reservedShortcuts, sameShortcutActions, stashHotkeyAction } from '../src/shortcut-actions'
 
 const base = {
   hotkey: 'D',
@@ -240,12 +240,31 @@ describe('倉庫價格熱鍵', () => {
     expect(a.filter(x => x.action.type.startsWith('stash-t') || x.action.type === 'stash-region').every(x => !x.keepModKeys)).toBe(true)
     expect(buildShortcutActions({ ...base, game: 'poe1' }, 'overlay').some(x => x.action.type === 'stash-toggle' || x.action.type === 'stash-region')).toBe(false)
   })
-  it('倉庫價格關著 → 只註冊框選;PoE2 / window 模式 → 都不註冊', () => {
+  it('倉庫價格關著 → 兩個仍註冊(按下就能啟動);PoE2 / window 模式 → 都不註冊', () => {
+    // 關著就不註冊 → 使用者設了 F6 按了沒反應
     expect(types(buildShortcutActions({ ...p1, stashPricesEnabled: false }, 'overlay')).filter(s => s.includes('=stash-t') || s.includes('=stash-region')))
-      .toEqual(['Ctrl + Shift + G=stash-region'])
+      .toEqual(['Ctrl + Shift + S=stash-toggle', 'Ctrl + Shift + G=stash-region'])
     for (const a of [buildShortcutActions({ ...p1, game: 'poe2' }, 'overlay'), buildShortcutActions(p1, 'window')]) {
       expect(a.some(x => x.action.type === 'stash-toggle' || x.action.type === 'stash-region')).toBe(false)
     }
+  })
+  it('熱鍵按下:功能關著 → 啟動(送 stash-enable);開著 / 省略 → 暫停繼續切換', () => {
+    expect(stashHotkeyAction(false)).toBe('enable')
+    expect(stashHotkeyAction(true)).toBe('toggle')
+    expect(stashHotkeyAction(undefined)).toBe('toggle')
+  })
+  it('接線:main 關著時送 stash-enable 並提示 on;preload 對應;不進預覽事件', () => {
+    const fs = require('node:fs') as typeof import('node:fs')
+    const main = fs.readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8')
+    const i = main.indexOf('onStashToggle:')
+    const block = main.slice(i, main.indexOf('onScanToggleBoth', i))
+    expect(block).toContain("stashHotkeyAction(hostCfg?.stashPricesEnabled)")
+    expect(block).toContain("send('stash-enable')")
+    expect(block).toContain('setUserPause(false)')
+    expect(block).toContain("kind: 'stash', paused: false")
+    expect(fs.readFileSync(new URL('../src/preload.ts', import.meta.url), 'utf8')).toContain("subscribe<void>('stash-enable', cb)")
+    const h = fs.readFileSync(new URL('../src/host-handlers.ts', import.meta.url), 'utf8')
+    expect(/PREVIEW_EVENTS[^=]*=\s*new Set\(\[([^\]]*)\]\)/.exec(h)?.[1]).not.toContain('stash-enable')
   })
   it('遊戲保留鍵不註冊並列入保留清單;與既有熱鍵重複時先到先得', () => {
     const a = buildShortcutActions({ ...p1, hotkeyStashToggle: 'Ctrl + F', hotkeyStashRegion: 'Shift + Space' }, 'overlay')
@@ -258,7 +277,7 @@ describe('倉庫價格熱鍵', () => {
     expect(sc).toContain("this.opts.onStashToggle?.()")
     expect(sc).toContain("entry.action.type === 'stash-region'")
     const m = fs.readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8')
-    expect(m).toContain("onStashToggle: () => { notifyScan([{ kind: 'stash', paused: stashScan.toggleUserPause() }]) }")
+    expect(m).toContain("notifyScan([{ kind: 'stash', paused: stashScan.toggleUserPause() }])")
     expect(m).toMatch(/onOcrRegionPick: \(target\) => \{[^\n]*target === 'runeshape' \|\| target === 'stash'/)
   })
 })

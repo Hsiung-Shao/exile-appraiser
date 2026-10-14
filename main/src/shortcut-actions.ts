@@ -60,11 +60,16 @@ type ActionCfg = Pick<HostConfigForMain, 'hotkey' | 'hotkeyHold' | 'hotkeyLocked
  * - 第 16 步:`ocr-reveal` 與 `runeshape-toggle` 兩者都成立且熱鍵正規化後相同 → 合併成一個 `scan-toggle-both`(放在 `ocr-reveal` 的位置,
  *   不算重複);只有一個成立時照舊是單一動作。與其他熱鍵重複的規則不變(先到先得)。
  *   「遊戲在前景才註冊」由 `Shortcuts` 的 active-change 處理(對所有動作一樣)。
- * - 2026-10-14:PoE1 `stash-toggle`(倉庫價格暫停 / 繼續,`hotkeyStashToggle` 預設空;另外要 `stashPricesEnabled`,省略 = 開)、
+ * - 2026-10-14:PoE1 `stash-toggle`(倉庫價格啟動 / 暫停,`hotkeyStashToggle` 預設空;**不看 `stashPricesEnabled`**:關著時按下 = 啟動,見 `stashHotkeyAction`)、
  *   `stash-region`(框選倉庫 OCR 區域,`hotkeyStashRegion` 預設空;不看是否啟用)只在 overlay + PoE1 註冊,位置同 PoE2 的辨識熱鍵。
  * - 第 33 步:倉庫搜尋之後是正則書籤快速面板(`hotkeyRegexQuick`,預設空)與書籤個別熱鍵(`regexBookmarkHotkeys`,只取 `game` = 目前遊戲的,
  *   依書籤順序);兩者**只在 overlay 模式**(同聊天指令:會對遊戲送鍵 / 要 overlay 才有面板可畫)。
  */
+/** 倉庫價格熱鍵按下:功能關著(`stashPricesEnabled === false`)= 啟動(通知 renderer 開啟設定);否則 = 暫停 / 繼續切換 */
+export function stashHotkeyAction (enabled: boolean | undefined): 'enable' | 'toggle' {
+  return enabled === false ? 'enable' : 'toggle'
+}
+
 export function buildShortcutActions (cfg: ActionCfg, mode: WindowMode): ShortcutAction[] {
   const quick = mergeTwoHotkeys(normalizeHotkey(cfg.hotkeyHold), normalizeHotkey(cfg.hotkey))
   const locked = normalizeHotkey(cfg.hotkeyLocked)
@@ -94,7 +99,7 @@ export function buildShortcutActions (cfg: ActionCfg, mode: WindowMode): Shortcu
       }
     } else {
       // 2026-10-14:PoE1 倉庫價格(暫停熱鍵只在功能開著時註冊;框選不看)
-      if (cfg.hotkeyStashToggle && cfg.stashPricesEnabled !== false) {
+      if (cfg.hotkeyStashToggle) {
         actions.push({ shortcut: normalizeHotkey(cfg.hotkeyStashToggle), keepModKeys: false, action: { type: 'stash-toggle' } })
       }
       if (cfg.hotkeyStashRegion) {

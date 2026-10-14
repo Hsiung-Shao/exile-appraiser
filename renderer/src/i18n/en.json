@@ -83,7 +83,7 @@
       "slot_reveal_region": "Desecration: select area",
       "slot_rune_pause": "Runeshape: pause / resume",
       "slot_rune_region": "Runeshape: select area",
-      "slot_stash_pause": "Stash prices: pause / resume",
+      "slot_stash_pause": "Stash prices: start / pause",
       "slot_stash_region": "Stash prices: select area",
       "shared_with_rune": "Shared with rune detection: toggles both at once",
       "shared_with_reveal": "Shared with desecration detection: toggles both at once",
@@ -419,7 +419,7 @@
     "about": {
       "tagline": "Path of Exile price checker (PoE1 / PoE2, International / Taiwan realms)",
       "game_versions_label": "Supported game versions (the latest versions of both games are supported)",
-      "supports": "Supports {game}",
+      "game_versions_title": "Supported game versions",
       "section_update": "Updates",
       "section_links": "Links",
       "section_thanks": "Third-party credits",
