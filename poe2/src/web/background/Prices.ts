@@ -46,7 +46,7 @@ export const DivCurrency: CoreCurrency = {
   abbrev: "div",
   ref: "Divine Orb",
   text: "Divine Orb",
-  icon: "/images/div.png",
+  icon: "/images/poe2/divine.png",
 };
 
 /** 上游 `findPriceByQuery` 回傳的欄位(上游的 NinjaDenseExchangeInfo / NinjaDenseStashInfo 子集 + url / cx)。 */
@@ -100,7 +100,7 @@ function exaltedCurrency(): CoreCurrency {
     abbrev: "ex",
     ref: "Exalted Orb",
     text,
-    icon: "/images/exa.png",
+    icon: "/images/poe2/exa.png",
   };
 }
 

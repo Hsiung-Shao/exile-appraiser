@@ -24,20 +24,20 @@
   >
     <img
       v-if="currency === 'div'"
-      src="/images/divine.png"
+      src="/images/poe2/divine.png"
       class="max-w-full max-h-full"
     />
     <img
       v-else-if="currency === 'chaos'"
-      src="/images/chaos.png"
+      src="/images/poe2/chaos.png"
       class="max-w-full max-h-full"
     />
     <!-- <img
         v-else-if="currency === 'annul'"
-        src="/images/annul.png"
+        src="/images/poe2/annul.png"
         class="max-w-full max-h-full"
       /> -->
-    <img v-else src="/images/exa.png" class="max-w-full max-h-full" />
+    <img v-else src="/images/poe2/exa.png" class="max-w-full max-h-full" />
   </div>
 </template>
 

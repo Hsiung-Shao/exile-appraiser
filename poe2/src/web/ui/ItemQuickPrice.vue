@@ -39,20 +39,20 @@
     >
       <img
         v-if="price?.currency === 'div'"
-        src="/images/divine.png"
+        src="/images/poe2/divine.png"
         class="max-w-full max-h-full"
       />
       <img
         v-else-if="price?.currency === 'chaos'"
-        src="/images/chaos.png"
+        src="/images/poe2/chaos.png"
         class="max-w-full max-h-full"
       />
       <img
         v-else-if="price?.currency === 'annul'"
-        src="/images/annul.png"
+        src="/images/poe2/annul.png"
         class="max-w-full max-h-full"
       />
-      <img v-else src="/images/exa.png" class="max-w-full max-h-full" />
+      <img v-else src="/images/poe2/exa.png" class="max-w-full max-h-full" />
     </div>
   </div>
 </template>
@@ -86,7 +86,7 @@ export default defineComponent({
     },
     itemImg: {
       type: String,
-      default: "/images/wisdom.png",
+      default: "/images/poe2/wisdom.png",
     },
     currencyText: {
       type: Boolean,

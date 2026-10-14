@@ -17,7 +17,7 @@
             }"
             @click="selectedCurr = 'xchgExalted'"
           >
-            <img src="/images/exa.png" class="trade-bulk-currency-icon" />
+            <img src="/images/poe2/exa.png" class="trade-bulk-currency-icon" />
             <span>{{ result.xchgExalted.listed.value?.total ?? "?" }}</span>
           </button>
           <button
@@ -28,7 +28,7 @@
             }"
             @click="selectedCurr = 'xchgChaos'"
           >
-            <img src="/images/chaos.png" class="trade-bulk-currency-icon" />
+            <img src="/images/poe2/chaos.png" class="trade-bulk-currency-icon" />
             <span>{{ result.xchgChaos.listed.value?.total ?? "?" }}</span>
           </button>
           <button
@@ -39,7 +39,7 @@
             }"
             @click="selectedCurr = 'xchgStable'"
           >
-            <img src="/images/divine.png" class="trade-bulk-currency-icon" />
+            <img src="/images/poe2/divine.png" class="trade-bulk-currency-icon" />
             <span>{{ result.xchgStable.listed.value?.total ?? "?" }}</span>
           </button>
           <span class="ml-1"

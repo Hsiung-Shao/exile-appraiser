@@ -1,0 +1,35 @@
+{
+  "source": "data/poe2/en/items.ndjson icon(web.poecdn.com)",
+  "files": {
+    "exa.png": {
+      "refName": "Exalted Orb",
+      "url": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQ3VycmVuY3lBZGRNb2RUb1JhcmUiLCJzY2FsZSI6MSwicmVhbG0iOiJwb2UyIn1d/ad7c366789/CurrencyAddModToRare.png",
+      "sha256": "7c9a0b262b5a89cdabc863ad6804d1b05bc04e1afb74527d1646e35fd60b1287",
+      "bytes": 10624
+    },
+    "divine.png": {
+      "refName": "Divine Orb",
+      "url": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQ3VycmVuY3lNb2RWYWx1ZXMiLCJzY2FsZSI6MSwicmVhbG0iOiJwb2UyIn1d/2986e220b3/CurrencyModValues.png",
+      "sha256": "1e44c6e52e13908f3004c362288083450850e0c75c3ada13924ef5d4ed1d24d0",
+      "bytes": 8950
+    },
+    "chaos.png": {
+      "refName": "Chaos Orb",
+      "url": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQ3VycmVuY3lSZXJvbGxSYXJlIiwic2NhbGUiOjEsInJlYWxtIjoicG9lMiJ9XQ/c0ca392a78/CurrencyRerollRare.png",
+      "sha256": "2dd0851042d37c72ef7453da58916840456d4bad744f6eea745e6b7e6a631a01",
+      "bytes": 10590
+    },
+    "annul.png": {
+      "refName": "Orb of Annulment",
+      "url": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQW5udWxsT3JiIiwic2NhbGUiOjEsInJlYWxtIjoicG9lMiJ9XQ/2daba8ccca/AnnullOrb.png",
+      "sha256": "9c9bf69a9c1ad355c2a0985f550070689e0585f3fc99529a8685b13e2cf9a480",
+      "bytes": 6307
+    },
+    "wisdom.png": {
+      "refName": "Scroll of Wisdom",
+      "url": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQ3VycmVuY3lJZGVudGlmaWNhdGlvbiIsInNjYWxlIjoxLCJyZWFsbSI6InBvZTIifV0/884f7bc58b/CurrencyIdentification.png",
+      "sha256": "41489384c6aacdcc7fd13f820b481232818948ded585f88c747b5b5f7c423205",
+      "bytes": 7505
+    }
+  }
+}

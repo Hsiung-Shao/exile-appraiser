@@ -2,6 +2,7 @@
   移植自 Exiled Exchange 2(Kvan7,MIT)經繁中 fork Exiled-Exchange-2-zh-TW(Hsiung-Shao,MIT)
   `renderer/src/web/ui/CoreCurrencyImg.vue`(fc7de73c),逐字。授權見 NOTICE.md / LICENSES/。
   同一張對照表的純函式版:renderer/src/web/background/price-trend.ts `coreCurrencyIcon`(PoE1 通貨價格區用)。
+  exile-appraiser: 圖示路徑改 /images/poe2/(PoE2 自己的圖,見 renderer/public/images/poe2/SOURCE.json),不借 PoE1 的圖。
 -->
 <template>
   <div
@@ -34,13 +35,13 @@ export default defineComponent({
     const icon = computed(() => {
       switch (props.currency.toLowerCase().charAt(0)) {
         case "d":
-          return "/images/divine.png";
+          return "/images/poe2/divine.png";
         case "c":
-          return "/images/chaos.png";
+          return "/images/poe2/chaos.png";
         case "e":
-          return "/images/exa.png";
+          return "/images/poe2/exa.png";
         case "a":
-          return "/images/annul.png";
+          return "/images/poe2/annul.png";
         default:
           return "/images/404.png";
       }
