@@ -1,3 +1,7 @@
+<!--
+  exile-appraiser(2026-10-14):通貨圖示改用 PoE2 自己的圖 `/images/poe2/{divine,chaos,annul,exa,wisdom}.png`
+  (`renderer/public/images/poe2/`,來源記在 SOURCE.json,`scripts/fetch-poe2-currency-icons.mjs` 重抓);原本與 PoE1 共用 `/images/*.png`。
+-->
 <template>
   <div class="flex items-center gap-x-1">
     <slot name="item">

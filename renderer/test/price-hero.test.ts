@@ -1,17 +1,11 @@
 // P2(查價面板 B 改版):價格區 PriceHero 的純邏輯 —— 一般物品摘要(建議售價 / 最低 / 中位 / 符合)與通貨兌換比
 import { describe, expect, it } from 'vitest'
-import { buildItemHero, fmtAmount, formatTotal, rateSides, unitIconFor } from '../src/web/price-panel/price-hero'
+import * as fs from 'node:fs'
+import * as path from 'node:path'
+import { fmtAmount, rateSides, unitIconFor } from '../src/web/price-panel/price-hero'
 
-const r = (priceAmount: number, priceCurrency = 'chaos') => ({ priceAmount, priceCurrency })
-const id = (a: number) => a
-const showChaos = (b: number) => ({ amount: b, unit: 'chaos' })
 
 describe('數字與筆數格式', () => {
-  it('符合筆數:不精確時加 +,沒有總數給空字串', () => {
-    expect(formatTotal(10000, true)).toBe('10000+')
-    expect(formatTotal(42, false)).toBe('42')
-    expect(formatTotal(undefined, false)).toBe('')
-  })
   it('金額:< 1 取兩位有效、< 10 一位小數、其餘取整加千分位', () => {
     expect(fmtAmount(0.04321)).toBe('0.043')
     expect(fmtAmount(2.5)).toBe('2.5')
@@ -45,41 +39,28 @@ describe('rateSides(通貨兌換比 1 X → N Y)', () => {
   })
 })
 
-describe('buildItemHero(一般物品價格區)', () => {
-  it('搜尋結果還沒回來 → 讀取中', () => {
-    expect(buildItemHero({ listings: [], total: undefined, ready: false, show: showChaos })).toMatchObject({ state: 'loading', total: '' })
+describe('一般物品價格區已移除', () => {
+  it('price-hero 模組與 PriceHero 不再有一般物品模式', () => {
+    const src = fs.readFileSync(path.resolve(__dirname, '../src/web/price-panel/price-hero.ts'), 'utf8')
+    const vue = fs.readFileSync(path.resolve(__dirname, '../src/web/price-panel/PriceHero.vue'), 'utf8')
+    expect(src).not.toMatch(/buildItemHero|ItemHeroView|HERO_TAKE|formatTotal|summarizeConverted/)
+    expect(vue).not.toMatch(/mode === 'item'|ItemHeroView|ppz\.hero\.suggested/)
   })
-  it('符合 0 筆 → 沒有結果', () => {
-    expect(buildItemHero({ listings: [], total: 0, ready: true, show: showChaos })).toMatchObject({ state: 'empty', total: '0' })
+})
+
+describe('fmtAmount 依單位保留小數', () => {
+  it('神聖石 / 崇高石保留一位小數(12.5 div 不取整)', () => {
+    expect(fmtAmount(12.5, 'div')).toBe('12.5')
+    expect(fmtAmount(12, 'div')).toBe('12')
+    expect(fmtAmount(0.5, 'div')).toBe('0.5')
+    expect(fmtAmount(1234.56, 'exalted')).toBe('1,234.6')
   })
-  it('有總數但掛單還沒抓到(全是補位)→ 讀取中', () => {
-    expect(buildItemHero({ listings: [undefined, undefined], total: 5, ready: true, toBase: id, show: showChaos }).state).toBe('loading')
+  it('chaos:小於 10 一位小數、10 以上取整', () => {
+    expect(fmtAmount(7.46, 'chaos')).toBe('7.5')
+    expect(fmtAmount(123.4, 'chaos')).toBe('123')
   })
-  it('3 筆以上:建議售價 = 中位,另列最低 / 中位 / 符合', () => {
-    const v = buildItemHero({ listings: [r(1), r(2), r(3), undefined], total: 5, ready: true, toBase: id, show: showChaos })
-    expect(v).toEqual({
-      state: 'ready', converted: true, few: false, total: '5',
-      suggested: { amount: 2, unit: 'chaos' }, min: { amount: 1, unit: 'chaos' }, median: { amount: 2, unit: 'chaos' }
-    })
-  })
-  it('不到 3 筆:建議售價退回最低、沒有中位、標少', () => {
-    const v = buildItemHero({ listings: [r(4), r(9)], total: 2, ready: true, toBase: id, show: showChaos })
-    expect(v).toMatchObject({ state: 'ready', few: true, suggested: { amount: 4 }, min: { amount: 4 } })
-    expect(v.median).toBeUndefined()
-  })
-  it('混幣別先換成同一單位再算,顯示單位由 show 決定', () => {
-    const toChaos = (a: number, c: string) => c === 'divine' ? a * 200 : c === 'chaos' ? a : undefined
-    const show = (b: number) => b >= 200 ? { amount: b / 200, unit: 'div' } : { amount: b, unit: 'chaos' }
-    const v = buildItemHero({ listings: [r(150), r(1, 'divine'), r(1.5, 'divine')], total: 3, ready: true, toBase: toChaos, show })
-    expect(v).toMatchObject({ converted: true, min: { amount: 150, unit: 'chaos' }, median: { amount: 1, unit: 'div' } })
-  })
-  it('沒有匯率(台服):用筆數最多的原幣別顯示', () => {
-    const v = buildItemHero({ listings: [r(1, 'divine'), r(100), r(2, 'divine')], total: 3, ready: true, show: showChaos })
-    expect(v).toMatchObject({ converted: false, min: { amount: 1, unit: 'divine' }, suggested: { amount: 1, unit: 'divine' }, few: true })
-  })
-  it('不精確總數顯示 +;只取前 10 筆', () => {
-    const many = Array.from({ length: 15 }, (_, i) => r(i + 1))
-    const v = buildItemHero({ listings: many, total: 10000, inexact: true, ready: true, toBase: id, show: showChaos })
-    expect(v).toMatchObject({ total: '10000+', median: { amount: 5.5 } })
+  it('兌換比右邊照幣別保留小數', () => {
+    expect(rateSides({ min: 12.5, max: 12.5, currency: 'div' }, false)).toEqual({ left: '1', right: '12.5' })
+    expect(rateSides({ min: 123.4, max: 123.4, currency: 'chaos' }, false)).toEqual({ left: '1', right: '123' })
   })
 })

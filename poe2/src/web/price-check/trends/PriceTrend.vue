@@ -139,6 +139,7 @@ export default defineComponent({
         volumeItems:
           vol && volumeParts.value.item ? { amount: dot(vol.itemsPerHour) } : undefined,
         highest: vol?.highestVolumeCurrency,
+        baseItem: valuableBasetype.value,
       };
     });
 

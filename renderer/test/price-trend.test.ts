@@ -200,8 +200,11 @@ describe('接線守門', () => {
     ] as const) {
       expect(read(trend), trend).toMatch(new RegExp(`<price-hero [^>]*game="${game}" mode="currency"`))
       expect(read(stack), stack).toMatch(new RegExp(`<stack-card v-if="show" game="${game}"`))
-      expect(read(checked), checked).toMatch(new RegExp(`<price-hero v-if="itemHero" game="${game}" mode="item"`))
+      // 2026-10-14 使用者看過實機:一般物品頂端「建議售價」價格區整塊移除(連同換算 adapter)
+      expect(read(checked), checked).not.toMatch(/<price-hero|itemHero|buildItemHero|price-hero-adapter|TradeListingState/)
+      expect(fs.existsSync(path.join(root, `${game}/src/web/price-check/price-hero-adapter.ts`)), `${game} price-hero-adapter`).toBe(false)
       for (const f of [trend, stack, checked]) expect(read(f), f).toContain('2026-10-14 B 改版:本檔呈現層已重寫')
+      expect(read(trend), `${trend} 底材標示`).toMatch(/baseItem: valuableBasetype\.value/)
     }
   })
   it('PriceTrend / StackValue 只對 exchange 類顯示;不用 apexcharts;檔頭有 MIT 出處', () => {

@@ -1,7 +1,8 @@
 <!--
   查價面板 B 改版 P4(2026-10-14):掛單卡標題列右側「方塊 / 長條」切換(aria-pressed)。
   兩代 TradeListing / TradeBulk 以 `@/web/price-panel/ListingLayoutToggle.vue` 使用,v-model = useListingLayout 的值。
-  掛單卡共用樣式(.listing-*)也放這裡(unscoped,class 都以 listing- 開頭)。
+  掛單卡共用樣式(.listing-*)也放這裡(unscoped,class 都以 listing- 開頭);根節點 `.listing-root` / 卡片 `.listing-card` / 內容 `.listing-body`
+  不縮、不另開捲動區(守門 `renderer/test/listing-card-layout.test.ts`)。
 -->
 <template>
   <span class="listing-seg" role="group" :aria-label="t('ppz.listing.layout_group')" data-action="listing-layout">
@@ -32,16 +33,29 @@ function pick (mode: ListingLayoutMode) {
 </script>
 
 <style>
-/* ---- 掛單卡(兩代 TradeListing / TradeBulk 共用;只用主題 token) ---- */
+/* ---- 掛單卡(兩代 TradeListing / TradeBulk 共用;只用主題 token) ----
+   掛單完整顯示、跟著面板(`.price-main`)一起捲動:CheckedItem 是 `.layout-column`(height: 100% = 面板捲動區高度),
+   根節點 / 卡片若可縮(min-height: 0)會被 flex 壓到只剩標題列,內層捲動區再把掛單裁掉(2026-10-14 修正)→ 一律 flex: none、內層不捲動 */
+.listing-root {
+  display: flex;
+  flex-direction: column;
+  flex: none;
+}
 .listing-card {
   display: flex;
   flex-direction: column;
+  flex: none;
   gap: 0.4em;
   padding: 0.6em;
   border-radius: var(--radius-m, 8px);
   background: var(--surface-1);
   border: 1px solid var(--edge-0);
-  min-height: 0;
+}
+.listing-body {
+  display: flex;
+  flex-direction: column;
+  /* clip 不會把另一軸變成捲動容器(hidden 會讓 overflow-y 變 auto) */
+  overflow-x: clip;
 }
 .listing-head {
   display: flex;

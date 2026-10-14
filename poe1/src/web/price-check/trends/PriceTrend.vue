@@ -101,7 +101,8 @@ export default defineComponent({
         change: tr.change,
         volumeValue: vol && volumeParts.value.value ? { amount: vol.perHour, unit: vol.currency } : undefined,
         volumeItems: vol && volumeParts.value.item ? { amount: vol.itemsPerHour } : undefined,
-        highest: vol?.highest
+        highest: vol?.highest,
+        baseItem: valuableBasetype.value
       }
     })
 

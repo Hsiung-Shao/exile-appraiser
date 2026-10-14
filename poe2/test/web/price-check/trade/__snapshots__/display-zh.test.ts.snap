@@ -2,7 +2,7 @@
 
 exports[`懸停浮窗繁中(display-zh) > 錄製回應逐行結果(快照)與覆蓋率 1`] = `
 "## 65c7c4e8 ["Collector's Corsair Cap of Curvation"] → ["Collector's Corsair Cap of Curvation"]
-  [ambiguous] explicit explicit.stat_3917489142 "14% increased Rarity of Items found" → null
+  [ok] explicit explicit.stat_3917489142 "14% increased Rarity of Items found" → "增加14%找到的物品稀有度"
   [ok] explicit explicit.stat_3033371881 "Gain Deflection Rating equal to 17% of Evasion Rating" → "獲得等同17%閃避值的偏斜值"
 ## 00d17082 ["Phoenix Brand","Crumbling Maul"] → ["Phoenix Brand","崩毀重錘"]
   [ok] implicit implicit.stat_1541903247 "Causes Enemies to Explode on Critical kill, for 10% of their Life as Physical Damage" → "透過暴擊擊殺敵人時使其爆炸，造成等同於其10%生命的物理傷害"
@@ -68,9 +68,9 @@ exports[`懸停浮窗繁中(display-zh) > 錄製回應逐行結果(快照)與覆
   [no-id] explicit - "7% chance to Avoid gaining an Affliction" → null
 ## 03d44656 ["Phoenix Edict","Precursor Tablet"] → ["Phoenix Edict","Precursor Tablet"]
   [ok] implicit implicit.stat_4041853756 "Adds Irradiated to a Map \\n10 uses remaining" → "在地圖內加入照耀區域\\n剩餘10次使用"
-  [ambiguous] explicit explicit.stat_2065500219 "Monsters have 10% increased Effectiveness" → null
-  [ambiguous] explicit explicit.stat_2777224821 "39% increased Quantity of Waystones found in Map" → null
-  [ambiguous] explicit explicit.stat_1825943485 "Map has 85% increased chance to contain Essences" → null
+  [ok] explicit explicit.stat_2065500219 "Monsters have 10% increased Effectiveness" → "增加10%怪物的效用"
+  [ok] explicit explicit.stat_2777224821 "39% increased Quantity of Waystones found in Map" → "增加39%地圖內找到的換界石數量"
+  [ok] explicit explicit.stat_1825943485 "Map has 85% increased chance to contain Essences" → "增加85%區域中含有精髓的機率"
   [ambiguous] explicit explicit.stat_1276056105 "34% increased Gold found in Map" → null
 ## 91c9f13d ["Vaal Inscribed Ultimatum of Hexing"] → ["Vaal Inscribed Ultimatum of Hexing"]
   [unknown-id] explicit explicit.stat_3076483222|64921 "Sacrifice up to 10 Vaal Orbs to receive double on Trial completion" → null
@@ -113,7 +113,7 @@ exports[`懸停浮窗繁中(display-zh) > 錄製回應逐行結果(快照)與覆
   [ok] explicit stat.explicit.stat_1037193709 "Adds 56 to 88 Cold Damage" → "附加56至88冰冷傷害"
   [ok] explicit stat.explicit.stat_691932474 "+47 to Accuracy Rating" → "+47命中值"
   [ok] explicit stat.explicit.stat_3639275092 "35% reduced Attribute Requirements" → "減少35%能力值需求"
-  [ambiguous] explicit stat.explicit.stat_1263695895 "15% increased Light Radius" → null
+  [ok] explicit stat.explicit.stat_1263695895 "15% increased Light Radius" → "增加15%照亮範圍"
   [ok] explicit stat.desecrated.stat_2250681686 "Grenade Skills have +1 Cooldown Use" → "擲彈技能有+1次冷卻使用次數"
   [ok] explicit stat.crafted.stat_3035140377 "+3 to Level of all Attack Skills" → "全部攻擊技能等級+3"
   [ok] pseudo pseudo.pseudo_number_of_crafted_mods "1 Crafted Modifiers" → "1 工藝詞綴"
@@ -143,20 +143,15 @@ exports[`懸停浮窗繁中(display-zh) > 錄製回應逐行結果(快照)與覆
 exports[`懸停浮窗繁中(display-zh) > 錄製回應逐行結果(快照)與覆蓋率 2`] = `
 {
   "kept": [
-    "ambiguous explicit.stat_3917489142 14% increased Rarity of Items found",
     "no-en-match explicit.stat_791928121 Causes 23% increased Stun Buildup",
     "no-id - Monsters deal 7% reduced Damage",
     "no-id - 7% chance to Avoid gaining an Affliction",
-    "ambiguous explicit.stat_2065500219 Monsters have 10% increased Effectiveness",
-    "ambiguous explicit.stat_2777224821 39% increased Quantity of Waystones found in Map",
-    "ambiguous explicit.stat_1825943485 Map has 85% increased chance to contain Essences",
     "ambiguous explicit.stat_1276056105 34% increased Gold found in Map",
     "unknown-id explicit.stat_3076483222|64921 Sacrifice up to 10 Vaal Orbs to receive double on Trial completion",
     "no-en-match explicit.stat_3793155082 22% increased number of Rare Monsters",
     "no-en-match explicit.stat_791928121 Causes 43% increased Stun Buildup",
-    "ambiguous stat.explicit.stat_1263695895 15% increased Light Radius",
   ],
-  "ok": 92,
+  "ok": 97,
   "total": 104,
 }
 `;

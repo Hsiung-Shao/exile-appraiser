@@ -8,7 +8,7 @@ import { defineComponent, h, nextTick } from 'vue'
 import { createI18n } from 'vue-i18n'
 import PriceHero from '../src/web/price-panel/PriceHero.vue'
 import StackCard from '../src/web/price-panel/StackCard.vue'
-import type { ItemHeroView, MarketView, StackView } from '../src/web/price-panel/price-hero'
+import type { MarketView, StackView } from '../src/web/price-panel/price-hero'
 import { mount, text, findAll, byAttr, type MiniNode } from './mini-dom'
 
 const ROOT = path.resolve(__dirname, '../..')
@@ -36,39 +36,6 @@ const one = (root: MiniNode, attr: string) => {
   return hits[0]
 }
 const imgs = (n: MiniNode) => findAll(n, x => x.tag === 'img').map(x => x.attrs.src)
-
-describe('PriceHero 一般物品模式', () => {
-  it('有結果:顯示建議售價(混沌石圖示)、最低、中位、符合 10000+', async () => {
-    const view: ItemHeroView = {
-      state: 'ready', converted: true, few: false, total: '10000+',
-      suggested: { amount: 1, unit: 'chaos' }, min: { amount: 1, unit: 'chaos' }, median: { amount: 1.5, unit: 'chaos' }
-    }
-    const { container, warnings, errors } = await render(PriceHero, { game: 'poe1', mode: 'item', view })
-    expect(text(one(container, 'data-hero-suggested'))).toBe('1')
-    expect(imgs(one(container, 'data-hero-suggested'))).toEqual(['/images/chaos.png'])
-    expect(text(one(container, 'data-hero-min'))).toBe('1 c')
-    expect(text(one(container, 'data-hero-median'))).toBe('1.5 c')
-    expect(text(one(container, 'data-hero-total'))).toBe('10000+')
-    expect(text(container)).toContain('建議售價')
-    expect(findAll(container, byAttr('data-hero-few'))).toEqual([])
-    expect(warnings).toEqual([])
-    expect(errors).toEqual([])
-  })
-  it('筆數少:標「筆數少」、中位顯示 —', async () => {
-    const view: ItemHeroView = { state: 'ready', converted: true, few: true, total: '2', suggested: { amount: 3, unit: 'exalted' }, min: { amount: 3, unit: 'exalted' } }
-    const { container } = await render(PriceHero, { game: 'poe2', mode: 'item', view })
-    expect(text(one(container, 'data-hero-few'))).toBe('筆數少')
-    expect(text(one(container, 'data-hero-median'))).toBe('—')
-    expect(imgs(one(container, 'data-hero-suggested'))).toEqual(['/images/poe2/exa.png'])
-  })
-  it('讀取中 / 沒有結果:只顯示狀態列', async () => {
-    const loading = await render(PriceHero, { game: 'poe1', mode: 'item', view: { state: 'loading', total: '', few: false, converted: false } })
-    expect(text(one(loading.container, 'data-hero-status'))).toContain('查詢中')
-    const empty = await render(PriceHero, { game: 'poe1', mode: 'item', view: { state: 'empty', total: '0', few: false, converted: false } })
-    expect(text(one(empty.container, 'data-hero-status'))).toContain('沒有符合的掛單')
-    expect(findAll(empty.container, byAttr('data-hero-suggested'))).toEqual([])
-  })
-})
 
 describe('PriceHero 通貨模式', () => {
   const market: MarketView = {
@@ -107,6 +74,14 @@ describe('PriceHero 通貨模式', () => {
     expect(findAll(container, byAttr('data-volume-value'))).toEqual([])
     expect(findAll(container, byAttr('data-highest-volume'))).toEqual([])
   })
+  it('有價值的底材時市價卡標示「底材」', async () => {
+    const { container } = await render(PriceHero, { game: 'poe1', mode: 'currency', market: { ...market, baseItem: true } })
+    expect(text(one(container, 'data-hero-base'))).toBe('底材')
+  })
+  it('一般通貨不標示底材', async () => {
+    const { container } = await render(PriceHero, { game: 'poe1', mode: 'currency', market })
+    expect(findAll(container, byAttr('data-hero-base'))).toEqual([])
+  })
   it('點走勢 emit open(開 poe.ninja)', async () => {
     let opened = 0
     const { container } = await render(PriceHero, { game: 'poe2', mode: 'currency', market, onOpen: () => { opened++ } })
@@ -123,5 +98,14 @@ describe('StackCard(你的這一疊)', () => {
     expect(imgs(one(container, 'data-stack-max'))).toEqual(['/images/poe2/divine.png'])
     expect(text(container)).toContain('你的這一疊')
     expect(warnings).toEqual([])
+  })
+  it('神聖石金額保留一位小數(12.5 不取整)', async () => {
+    const stack: StackView = { have: { count: 25, value: { amount: 12.5, unit: 'div' } } }
+    const { container } = await render(StackCard, { game: 'poe1', stack })
+    expect(text(one(container, 'data-stack-have'))).toBe('庫存 × 25 = 12.5')
+  })
+  it('PriceHero 只剩通貨模式:mode="item" 不輸出任何東西', async () => {
+    const { container } = await render(PriceHero, { game: 'poe1', mode: 'item' })
+    expect(findAll(container, byAttr('data-price-hero'))).toEqual([])
   })
 })

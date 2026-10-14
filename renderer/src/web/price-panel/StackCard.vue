@@ -7,11 +7,11 @@
     <div class="ph-stats" :style="{ gridTemplateColumns: stack.oneStack ? 'repeat(2, minmax(0, 1fr))' : 'minmax(0, 1fr)' }">
       <div class="ph-stat" data-stack-have>
         <span>{{ t('ppz.hero.stack_have', [stack.have.count]) }}</span>
-        <b>= {{ fmtAmount(stack.have.value.amount) }}<img v-if="icon(stack.have.value.unit)" :src="icon(stack.have.value.unit)" :alt="stack.have.value.unit"><template v-else>&nbsp;{{ unitShort(stack.have.value.unit) }}</template></b>
+        <b>= {{ fmtAmount(stack.have.value.amount, stack.have.value.unit) }}<img v-if="icon(stack.have.value.unit)" :src="icon(stack.have.value.unit)" :alt="stack.have.value.unit"><template v-else>&nbsp;{{ unitShort(stack.have.value.unit) }}</template></b>
       </div>
       <div v-if="stack.oneStack" class="ph-stat" data-stack-max>
         <span>{{ t('ppz.hero.stack_max', [stack.oneStack.count]) }}</span>
-        <b>= {{ fmtAmount(stack.oneStack.value.amount) }}<img v-if="icon(stack.oneStack.value.unit)" :src="icon(stack.oneStack.value.unit)" :alt="stack.oneStack.value.unit"><template v-else>&nbsp;{{ unitShort(stack.oneStack.value.unit) }}</template></b>
+        <b>= {{ fmtAmount(stack.oneStack.value.amount, stack.oneStack.value.unit) }}<img v-if="icon(stack.oneStack.value.unit)" :src="icon(stack.oneStack.value.unit)" :alt="stack.oneStack.value.unit"><template v-else>&nbsp;{{ unitShort(stack.oneStack.value.unit) }}</template></b>
       </div>
     </div>
   </section>

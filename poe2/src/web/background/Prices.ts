@@ -1,5 +1,7 @@
 /**
  * exile-appraiser: 取代上游 `web/background/Prices.ts`(poe.ninja 參考價)。
+ * 2026-10-14:divine / exalted 圖示改用 PoE2 自己的圖 `/images/poe2/{divine,exa}.png`(`renderer/public/images/poe2/` + SOURCE.json;
+ * 原本 divine 指向 PoE1 圖目錄下一個不存在的 div 圖);查價面板 B 改版的價格區 / 「你的這一疊」也讀這裡的 `xchgRate` 與 `autoCurrency`。
  *
  * 上游 EE2 自己抓 `api.exiledexchange2.dev` 的代理資料;本專案的價格表由 renderer 殼
  * (`renderer/src/web/background/Prices.ts`,poe.ninja exchange / item overview,快照 schema 3)統一抓取與快取,

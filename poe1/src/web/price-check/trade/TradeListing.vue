@@ -1,9 +1,9 @@
 <template>
-  <div v-if="!error" class="layout-column min-h-0" style="height: auto;">
+  <div v-if="!error" class="listing-root">
     <div v-if="item.info.exchangeable" :class="$style.legacyMessage">
       {{ t(':legacy_bulk_xchg_msg') }}
     </div>
-    <div class="listing-card layout-column min-h-0" data-listing-kind="item">
+    <div class="listing-card" data-listing-kind="item">
     <div class="listing-head">
       <span class="listing-head-title">{{ t('ppz.listing.title') }}</span>
       <span v-if="lowest" class="listing-head-sub" data-listing-lowest>{{ t('ppz.listing.lowest', { price: lowest }) }}</span>
@@ -18,7 +18,7 @@
       <trade-links v-if="list"
         :get-link="makeTradeLink" />
     </div>
-    <div class="layout-column overflow-y-auto overflow-x-hidden">
+    <div class="listing-body">
       <div v-if="layout === 'grid'" class="listing-grid" data-listing-layout="grid">
         <template v-for="(result, idx) in groupedResults">
           <div v-if="!result" :key="idx" class="listing-tile is-placeholder"></div>

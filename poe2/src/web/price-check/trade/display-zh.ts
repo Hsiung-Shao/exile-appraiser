@@ -16,6 +16,13 @@
  *
  * veiled(未揭露)行與 P/S tier、排序完全不動;只換 `text`。
  *
+ * 2026-10-14(使用者實機:符文詞綴、類別行、需求行仍是英文):
+ * - 同旗標多種繁中寫法(例:`增加#%護甲、閃避、和能量護盾` / `增加#%護甲值、閃避和能量護盾`)→ 以台服交易站
+ *   `data/poe2/trade/tw/stats.json` 同一個 trade stat id 的文字代入同樣數值,恰好命中其中一個才採用;否則照舊保留英文。
+ * - 物品類別行(`properties[0]`,沒有數值)→ `ItemCategory` → `CATEGORY_TO_TRADE_ID` → `cmn-Hant/app_i18n.json` 的 `item_category`。
+ * - 需求行 → 依 `requirements[].type`(62 等級 / 63 力量 / 64 敏捷 / 65 智慧,語言無關)取繁中 `client_strings`
+ *   的 `REQUIRES` 與 `REQUIRES_LINE` 裡的字;有任何一項對不上就整行保留英文。
+ *
  * code review 第 B 批(載入不擋查價):
  * - 懸停浮窗設成「關閉」(`hostOptions().itemHoverTooltip === "off"`)→ 不載資料、不翻。
  * - `requestResults` 不 await 資料:已在記憶體就同步翻;還沒載 → 這次回英文、背景開始載,載好後下一次查價(含快取結果)就是繁中。
@@ -25,10 +32,12 @@
 import { LOADED_DATA, ITEMS_ITERATOR, STATS_ITERATOR } from "@/assets/data";
 import { source } from "@/assets/data/source";
 import type { DataSource } from "@exile-appraiser/core/games/adapter";
-import type { Stat, StatMatcher } from "@/assets/data/interfaces";
+import { clientStringsFor } from "@/assets/data";
+import type { Stat, StatMatcher, TranslationDict } from "@/assets/data/interfaces";
+import type { ItemCategory } from "@/parser/meta";
 import { parseAffixStrings } from "@/parser/Parser";
 import { hostOptions } from "@/parser/host-options";
-import type { DisplayItem, DisplayItemLine } from "./pathofexile-trade";
+import { CATEGORY_TO_TRADE_ID, type DisplayItem, type DisplayItemLine } from "./pathofexile-trade";
 
 /** 本模組翻的詞綴區塊(`DisplayItem[`${t}Mods`]`、fetch `item[`${t}Mods`]`、`extended.hashes[t]`)。veiled 不在內。 */
 export const ZH_MOD_TYPES = [
@@ -50,6 +59,8 @@ export interface ZhFetchItem {
   typeLine?: string;
   baseType?: string;
   rarity?: string;
+  properties?: ReadonlyArray<{ name: string; values?: ReadonlyArray<readonly unknown[]> }>;
+  requirements?: ReadonlyArray<{ name: string; type?: number; values?: ReadonlyArray<readonly unknown[]> }>;
   extended?: { hashes?: Record<string, ReadonlyArray<readonly [string, ...unknown[]] | null | undefined>> };
   /** `${type}Mods` 各區塊(字串陣列或 `{ description, hash }` 物件陣列)以 `modsOf()` 讀 */
 }
@@ -70,6 +81,22 @@ export interface DisplayZhData {
   statsByHash: Map<string, StatPair[]>;
   /** `${namespace}::${refName}` → 繁中名集合 */
   itemNames: Map<string, Set<string>>;
+  /** 台服交易站 trade stat id(`rune.stat_123`)→ 繁中文字;同旗標多種寫法時用來挑一個 */
+  tradeTextZh?: Map<string, string>;
+  /** `app_i18n.json` `item_category`(鍵 = trade 類別 id 的 `.` 換 `_`) */
+  categoryZh?: Record<string, string>;
+  /** 需求行:`REQUIRES`(`需求: `)與各 requirement type 的字 */
+  requiresZh?: { label: string; level: string; attrs: Record<number, string> };
+}
+
+/** 繁中 stats / items 以外的補充來源(原始內容;沒有 = 那部分不翻) */
+export interface DisplayZhExtras {
+  /** `trade/tw/stats.json` */
+  tradeStatsTw?: string;
+  /** `cmn-Hant/app_i18n.json` */
+  appI18nZh?: string;
+  /** `cmn-Hant/client_strings.js` 的 default export */
+  clientStringsZh?: Pick<TranslationDict, "REQUIRES" | "REQUIRES_LINE">;
 }
 
 export type ZhLineReason =
@@ -111,12 +138,54 @@ export function buildDisplayZhData(
   enStatsNdjson: string,
   zhStatsNdjson: string,
   zhItemsNdjson: string,
+  extras?: DisplayZhExtras,
 ): DisplayZhData {
   return buildDisplayZhDataFrom(
     parseNdjson<Stat>(enStatsNdjson),
     parseNdjson<Stat>(zhStatsNdjson),
     parseNdjson<ZhItemRecord>(zhItemsNdjson),
+    extras,
   );
+}
+
+/** `REQUIRES_LINE`(`…(?:等級[^\d,]*(?<level>\d+))?…(?<str>\d+)[^\d,]*(力量|力量)…`)取出各項的字;結構不符 → undefined。 */
+function requiresWords(cs: DisplayZhExtras["clientStringsZh"]): DisplayZhData["requiresZh"] {
+  const src = cs?.REQUIRES_LINE?.source;
+  if (!cs?.REQUIRES || !src) return undefined;
+  const level = /\(\?:([^()[\]\\|]+)\[\^\\d,\]\*\(\?<level>/.exec(src)?.[1];
+  const word = (k: string) => new RegExp(escapeRe(`(?<${k}>\\d+)[^\\d,]*(`) + "([^|()]+)").exec(src)?.[1];
+  const str = word("str");
+  const dex = word("dex");
+  const int = word("int");
+  if (!level || !str || !dex || !int) return undefined;
+  return { label: cs.REQUIRES, level, attrs: { 63: str, 64: dex, 65: int } };
+}
+
+function buildExtras(extras: DisplayZhExtras | undefined): Partial<DisplayZhData> {
+  const out: Partial<DisplayZhData> = {};
+  if (extras?.tradeStatsTw) {
+    const map = new Map<string, string>();
+    const json = JSON.parse(extras.tradeStatsTw) as {
+      result?: Array<{ entries?: Array<{ id?: unknown; text?: unknown }> }>;
+    };
+    for (const group of json.result ?? []) {
+      for (const e of group.entries ?? []) {
+        if (typeof e.id === "string" && typeof e.text === "string" && !map.has(e.id)) map.set(e.id, e.text);
+      }
+    }
+    out.tradeTextZh = map;
+  }
+  if (extras?.appI18nZh) {
+    const cat = (JSON.parse(extras.appI18nZh) as { item_category?: unknown }).item_category;
+    if (cat && typeof cat === "object") {
+      const rec: Record<string, string> = {};
+      for (const [k, v] of Object.entries(cat)) if (typeof v === "string") rec[k] = v;
+      out.categoryZh = rec;
+    }
+  }
+  const req = requiresWords(extras?.clientStringsZh);
+  if (req) out.requiresZh = req;
+  return out;
 }
 
 /** 同 `buildDisplayZhData`,輸入是已解析的記錄(`@/assets/data` 記憶體裡的迭代器或 `parseNdjson`)。 */
@@ -124,6 +193,7 @@ export function buildDisplayZhDataFrom(
   enStats: Iterable<Stat>,
   zhStats: Iterable<Stat>,
   zhItems: Iterable<ZhItemRecord>,
+  extras?: DisplayZhExtras,
 ): DisplayZhData {
   const enByRef = new Map<string, Stat>();
   for (const s of enStats) {
@@ -156,7 +226,7 @@ export function buildDisplayZhDataFrom(
     if (!set) itemNames.set(key, (set = new Set()));
     set.add(r.name);
   }
-  return { statsByTradeId, statsByHash, itemNames };
+  return { statsByTradeId, statsByHash, itemNames, ...buildExtras(extras) };
 }
 
 /** stats / items ndjson 每一行都含的鍵(`ndjsonFindLines` 的搜尋字串;`"refName"` 不含 `"ref":`) */
@@ -179,23 +249,29 @@ export function loadDisplayZhData(ds: DataSource = source()): Promise<DisplayZhD
     const text = (rel: string) => ds.text(rel);
     const parsed = <T>(rel: string) => text(rel).then((t) => parseNdjson<T>(t));
     p = (async () => {
+      const extras = await loadExtras(ds);
       if (mem === "cmn-Hant") {
         const en = await parsed<Stat>("en/stats.ndjson");
-        return buildDisplayZhDataFrom(en, statsIt(STAT_LINE_KEY), itemsIt(ITEM_LINE_KEY) as Iterable<ZhItemRecord>);
+        return buildDisplayZhDataFrom(
+          en,
+          statsIt(STAT_LINE_KEY),
+          itemsIt(ITEM_LINE_KEY) as Iterable<ZhItemRecord>,
+          extras,
+        );
       }
       if (mem === "en") {
         const [zh, items] = await Promise.all([
           parsed<Stat>("cmn-Hant/stats.ndjson"),
           parsed<ZhItemRecord>("cmn-Hant/items.ndjson"),
         ]);
-        return buildDisplayZhDataFrom(statsIt(STAT_LINE_KEY), zh, items);
+        return buildDisplayZhDataFrom(statsIt(STAT_LINE_KEY), zh, items, extras);
       }
       const [en, zh, items] = await Promise.all([
         text("en/stats.ndjson"),
         text("cmn-Hant/stats.ndjson"),
         text("cmn-Hant/items.ndjson"),
       ]);
-      return buildDisplayZhData(en, zh, items);
+      return buildDisplayZhData(en, zh, items, extras);
     })().then((d) => {
       ready.set(ds, d);
       return d;
@@ -204,6 +280,31 @@ export function loadDisplayZhData(ds: DataSource = source()): Promise<DisplayZhD
     loaded.set(ds, p);
   }
   return p;
+}
+
+/** 補充來源各自讀;失敗只記錄,那部分維持英文(詞綴翻譯照常) */
+async function loadExtras(ds: DataSource): Promise<DisplayZhExtras> {
+  const soft = <T>(what: string, run: () => Promise<T>): Promise<T | undefined> =>
+    run().catch((e: unknown) => {
+      console.error(`[trade] 懸停浮窗繁中補充資料 ${what} 載入失敗,該部分維持英文:`, e);
+      return undefined;
+    });
+  let primary = false;
+  try {
+    primary = source() === ds;
+  } catch {
+    primary = false;
+  }
+  const [tradeStatsTw, appI18nZh, clientStringsZh] = await Promise.all([
+    soft("trade/tw/stats.json", () => ds.text("trade/tw/stats.json")),
+    soft("cmn-Hant/app_i18n.json", () => ds.text("cmn-Hant/app_i18n.json")),
+    soft("cmn-Hant/client_strings.js", async () =>
+      primary
+        ? await clientStringsFor("cmn-Hant")
+        : ((await ds.module("cmn-Hant/client_strings.js")) as TranslationDict),
+    ),
+  ]);
+  return { tradeStatsTw, appI18nZh, clientStringsZh };
 }
 
 /** 測試用:清掉某個 DataSource 的快取(模擬第一次查價) */
@@ -297,8 +398,12 @@ function fillTemplate(tpl: Template, values: string[]): string | undefined {
  *    同 negate、無 value、恰好一個 `#` 的繁中 matcher,代入行內數值(行內沒有數值就代 value 本身);
  *    選項型詞綴(`trade.option`,value 是選項 id 不是數值)不走這條。
  */
-function candidatesForPair(line: string, pair: StatPair): { out: Set<string>; enMatched: boolean } {
+function candidatesForPair(
+  line: string,
+  pair: StatPair,
+): { out: Set<string>; enMatched: boolean; valueSets: string[][] } {
   const out = new Set<string>();
+  const valueSets: string[][] = [];
   let enMatched = false;
   for (const enM of pair.en.matchers) {
     const values = matchTemplate(line, templateOf(enM));
@@ -320,12 +425,39 @@ function candidatesForPair(line: string, pair: StatPair): { out: Set<string>; en
       );
       zhValues = values.length ? values : [String(enM.value)];
     }
+    if (zhMatchers.length) valueSets.push(zhValues);
     for (const zhM of zhMatchers) {
       const filled = fillTemplate(templateOf(zhM), zhValues);
       if (filled != null) out.add(filled);
     }
   }
-  return { out, enMatched };
+  return { out, enMatched, valueSets };
+}
+
+/** 台服交易站文字 → 解析後模板(資料載入後不變) */
+const tradeTplCache = new Map<string, Template>();
+
+/**
+ * 同旗標多種繁中寫法時:台服交易站同一個 id 的文字代入同樣數值,恰好落在候選裡一個 → 採用它。
+ * 交易站文字只有正向寫法,減少(negate)的行代進去不會落在候選裡 → 維持不唯一、保留英文。
+ */
+function pickByTradeText(
+  results: Set<string>,
+  valueSets: string[][],
+  fullIds: string[],
+  data: DisplayZhData,
+): string | undefined {
+  if (!data.tradeTextZh) return undefined;
+  const text = fullIds.map((id) => data.tradeTextZh!.get(id)).find((t) => t != null);
+  if (text == null) return undefined;
+  let tpl = tradeTplCache.get(text);
+  if (!tpl) tradeTplCache.set(text, (tpl = parseTemplate(text)));
+  const picks = new Set<string>();
+  for (const values of valueSets) {
+    const filled = fillTemplate(tpl, values);
+    if (filled != null && results.has(filled)) picks.add(filled);
+  }
+  return picks.size === 1 ? [...picks][0] : undefined;
 }
 
 /** `stat.explicit.stat_1`(新格式)/ `explicit.stat_1|64921`(選項)→ 查表用的 id(依優先序)。 */
@@ -364,14 +496,19 @@ export function translateModLine(
   const line = normalizeText(enLine);
   let enMatched = false;
   const results = new Set<string>();
+  const valueSets: string[][] = [];
   for (const pair of pairs) {
     const cand = candidatesForPair(line, pair);
     if (cand.enMatched) enMatched = true;
     for (const c of cand.out) results.add(c);
+    valueSets.push(...cand.valueSets);
   }
   if (!enMatched) return { zh: undefined, reason: "no-en-match" };
   if (results.size === 0) return { zh: undefined, reason: "no-zh-variant" };
-  if (results.size > 1) return { zh: undefined, reason: "ambiguous" };
+  if (results.size > 1) {
+    const picked = pickByTradeText(results, valueSets, keys.full, data);
+    return picked != null ? { zh: picked, reason: "ok" } : { zh: undefined, reason: "ambiguous" };
+  }
   return { zh: [...results][0], reason: "ok" };
 }
 
@@ -410,6 +547,53 @@ function translateTitle(title: string[], item: ZhFetchItem, data: DisplayZhData)
   });
 }
 
+/** 物品類別行(`buildNameBlock` 把沒有數值的 `properties[0]` 原樣放在第一行)→ `app_i18n` `item_category`。 */
+function translateClassLine(
+  block: DisplayItem["nameBlock"],
+  item: ZhFetchItem,
+  data: DisplayZhData,
+): DisplayItem["nameBlock"] {
+  const first = block?.[0];
+  const prop = item.properties?.[0];
+  if (!block || !first || !prop || prop.values?.length || !data.categoryZh) return block;
+  const name = parseAffixStrings(prop.name);
+  if (first.text !== `${name} ` || first.value) return block;
+  const tradeId = CATEGORY_TO_TRADE_ID.get(name as ItemCategory);
+  const zh = tradeId ? data.categoryZh[tradeId.replace(/\./g, "_")] : undefined;
+  if (!zh) return block;
+  return [{ ...first, text: `${zh} ` }, ...block.slice(1)];
+}
+
+/** 需求行(`buildItemProps` 的最後一行)→ `需求: 等級 ` + `80, 67 力量, 67 敏捷`;任何一項對不上 → 原樣。 */
+function translateRequirements(
+  props: DisplayItem["itemProps"],
+  item: ZhFetchItem,
+  data: DisplayZhData,
+): DisplayItem["itemProps"] {
+  const reqs = item.requirements;
+  const words = data.requiresZh;
+  const last = props?.[props.length - 1];
+  if (!props || !last || !reqs?.length || !words) return props;
+  if (last.text !== `${parseAffixStrings(reqs[0].name)} `) return props;
+  let level: string | undefined;
+  const parts: string[] = [];
+  for (const [i, r] of reqs.entries()) {
+    const v = r.values?.[0]?.[0];
+    if (typeof v !== "string" && typeof v !== "number") return props;
+    if (r.type === 62) {
+      if (i !== 0) return props;
+      level = String(v);
+      continue;
+    }
+    const w = r.type != null ? words.attrs[r.type] : undefined;
+    if (!w) return props;
+    parts.push(`${v} ${w}`);
+  }
+  const text = words.label + (level != null ? `${words.level} ` : "");
+  const value = [...(level != null ? [level] : []), ...parts].join(", ");
+  return [...props.slice(0, -1), { ...last, text, value }];
+}
+
 /**
  * 回傳換成繁中的新 DisplayItem(輸入不變)與每一行的結果。
  * 只換 `text`;顏色、tier、順序、veiled 不動。對不上的行保留英文。
@@ -420,7 +604,12 @@ export function translateDisplayItem(
   data: DisplayZhData,
 ): { display: DisplayItem; lines: ZhLineReport[] } {
   const lines: ZhLineReport[] = [];
-  const out: DisplayItem = { ...display, title: translateTitle(display.title, item, data) };
+  const out: DisplayItem = {
+    ...display,
+    title: translateTitle(display.title, item, data),
+    nameBlock: translateClassLine(display.nameBlock, item, data),
+    itemProps: translateRequirements(display.itemProps, item, data),
+  };
   const target = out as unknown as Record<string, DisplayItemLine[] | undefined>;
 
   for (const type of ZH_MOD_TYPES) {

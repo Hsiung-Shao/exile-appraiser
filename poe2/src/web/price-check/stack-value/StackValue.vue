@@ -4,6 +4,7 @@
   exile-appraiser(第 24 步):只對 poe.ninja exchange 類顯示(與通貨價格區相同條件)。
   2026-10-14 B 改版:本檔呈現層已重寫 —— 模板改為 renderer `price-panel/StackCard.vue`(「你的這一疊」卡);
   數量 × poe.ninja 單價的算法與顯示條件不變(金額改傳數字 + 單位,由卡片格式化並配 PoE2 圖示)。
+  圖示由 `price-panel/currency-icon.ts` `currencyIcon('poe2', …)` 決定(`/images/poe2/`)。
 -->
 <template>
   <stack-card v-if="show" game="poe2" :stack="value" />

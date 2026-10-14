@@ -277,7 +277,7 @@ export interface RuneTradeSummary {
  * 前 `RUNE_TRADE_TAKE` 筆 → 中位數 / 最低 / 最高。
  * `toExalted` 有給(國際服有 poe.ninja 匯率)→ 換成崇高石,換不了的筆數記 `skipped`;一筆都換不了或沒給 → 原幣:
  * 取筆數最多的幣別(同數取先出現 = 較便宜那一端),其他幣別記 `skipped`。
- * 2026-10-14:演算法抽到 core `price/summary.ts` `summarizeConverted`(查價面板價格區共用),行為逐字不變。
+ * 2026-10-14:演算法抽到 core `price/summary.ts` `summarizeConverted`,行為逐字不變。
  */
 export function summarizeRuneTrade(
   listings: readonly RuneTradeListing[],

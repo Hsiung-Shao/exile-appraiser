@@ -1,16 +1,14 @@
 <!--
   移植自 Exiled Exchange 2(Kvan7,MIT)經繁中 fork Exiled-Exchange-2-zh-TW(Hsiung-Shao,MIT)`renderer/src/web/price-check/CheckedItem.vue`。
   2026-10-14 B 改版:本檔呈現層已重寫 —— 頂端價格區 = renderer `price-panel/PriceHero.vue`(通貨:PriceTrend 的「市價」卡 +
-  StackValue「你的這一疊」卡,移到篩選器上方;一般物品:交易站搜尋結果摘要「建議售價 / 最低 / 中位 / 符合」,
-  資料讀 TradeListing 的 `list` / `groupedResults` / `error`,換算 `price-hero-adapter.ts`,與結果列 normalizedPrice 同一條查價路徑)。
-  查詢組法、搜尋時機不變。
+  StackValue「你的這一疊」卡,移到篩選器上方)。一般物品的「建議售價」價格區使用者看過實機後移除(2026-10-14),
+  一般物品只看掛單卡(標題列「最低」)。查詢組法、搜尋時機不變。
 -->
 <template>
   <div v-if="noUniqueSelection" class="p-4 layout-column min-h-0">
     <filter-name :filters="itemFilters" :item="item" />
     <price-trend :item="item" :filters="itemFilters" />
     <stack-value :filters="itemFilters" :item="item" />
-    <price-hero v-if="itemHero" game="poe2" mode="item" :view="itemHero" />
     <filters-block
       ref="filtersComponent"
       :filters="itemFilters"
@@ -75,19 +73,6 @@ import { AppConfig } from "@/web/Config";
 import { FilterPreset } from "./filters/interfaces";
 import { PriceCheckWidget } from "@/web/overlay/interfaces";
 import { useLeagues } from "@/web/background/Leagues";
-// 2026-10-14 B 改版:價格區
-import PriceHero from "@/web/price-panel/PriceHero.vue";
-import { buildItemHero, type ItemHeroView } from "@/web/price-panel/price-hero";
-import { poe2HeroConverters } from "./price-hero-adapter";
-import type { PricingResult, SearchResult } from "./trade/pathofexile-trade";
-
-/** TradeListing.vue setup 回傳(經 template ref 讀;TradeBulk 沒有這些欄位) */
-interface TradeListingState {
-  execSearch(): void;
-  list?: SearchResult | null;
-  groupedResults?: Array<PricingResult | undefined>;
-  error?: string | null;
-}
 // exile-appraiser(第 24 步):PriceTrend(通貨價格區)/ StackValue 加回(價格源 = renderer 的 poe.ninja 價格表,web/background/Prices.ts 轉接;
 // 只對 exchange 類顯示,台服 / 沒有 ninja 價整塊不顯示)
 // exile-appraiser: 移除 PricePrediction(預測價)、Tip 與贊助區塊;
@@ -104,7 +89,6 @@ export default defineComponent({
     FilterName,
     PriceTrend,
     StackValue,
-    PriceHero,
   },
   props: {
     item: {
@@ -137,7 +121,7 @@ export default defineComponent({
     const tradeAPI = ref<"trade" | "bulk">("bulk");
 
     // TradeListing.vue OR TradeBulk.vue
-    const tradeService = ref<TradeListingState | null>(null);
+    const tradeService = ref<{ execSearch(): void } | null>(null);
     // FiltersBlock.vue
     const filtersComponent = ref<ComponentPublicInstance>(null!);
 
@@ -286,28 +270,10 @@ export default defineComponent({
       { deep: true },
     );
 
-    // 2026-10-14 B 改版:一般物品價格區(交易站搜尋結果 → 建議售價 / 最低 / 中位 / 符合)
-    const itemHero = computed<ItemHeroView | undefined>(() => {
-      if (tradeAPI.value !== "trade" || !doSearch.value) return undefined;
-      const svc = tradeService.value;
-      if (!svc || svc.error) return undefined;
-      const list = svc.list;
-      const { toBase, show } = poe2HeroConverters();
-      return buildItemHero({
-        listings: svc.groupedResults ?? [],
-        total: list?.total,
-        inexact: list?.inexact,
-        ready: list != null,
-        toBase,
-        show,
-      });
-    });
-
     const { t } = useI18n();
 
     return {
       t,
-      itemHero,
       itemFilters,
       itemStats,
       doSearch,

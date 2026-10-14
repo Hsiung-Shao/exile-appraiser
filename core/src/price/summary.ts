@@ -6,7 +6,7 @@
  *   → 取筆數最多的原幣別(同數取先出現 = 較便宜那一端)。
  *
  * 原本是 PoE2 符文塑形自動查市集的 `summarizeRuneTrade`(poe2/src/runeshape/trade-lookup.ts),抽出共用後
- * 符文改呼叫這裡,行為逐字不變(`poe2/test/runeshape/trade-lookup.test.ts`);查價面板的價格區(PriceHero)也用它。
+ * 符文改呼叫這裡,行為逐字不變(`poe2/test/runeshape/trade-lookup.test.ts`)。(查價面板一般物品的「建議售價」價格區曾共用它,2026-10-14 使用者看過實機後移除。)
  */
 
 export interface ListingSummary {

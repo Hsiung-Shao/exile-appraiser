@@ -106,9 +106,15 @@
 - 對接(語言無關鍵,不做位置對位):每行自己的 trade stat id(新格式 `mods[i].hash`,去掉 `stat.` 前綴;舊格式 `extended.hashes[type][i][0]`;選項型 `…|64921` 退回去掉選項;完整 id 查不到才用 `stat_N` 跨類別)→ 繁中條目的 `trade.ids` → 以 `ref` 配英文條目。英文行(`parseAffixStrings` 後、`
 ` 兩側空白正規化)必須**完整匹配**某個英文 matcher(`#` = 數值、其餘字面相同);繁中 matcher 以 `negate` / `value` 旗標挑(英文 value 單數形而繁中沒有對應變體時,退用同 negate、無 value、恰一個 `#` 的繁中 matcher;選項型詞綴不退)。數值依 `#` 順序原字串代入,模板字面 `+#` / `-#` 的正負號兩邊對齊。結果不唯一(同旗標多種寫法)→ 保留英文。
 - 物品名:傳奇 `name` → `UNIQUE::refName`;`typeLine === baseType` → `ITEM` / `GEM`;繁中名必須唯一。稀有隨機名、魔法物品 typeLine(帶詞綴名)保留英文。
-- 不動:tier 標籤、顏色、行數與順序、veiled、物品屬性 / 需求 / 標籤(`Quality`、`Level 65, 74 Str`、`Corrupted` 等仍是上游原樣)。
+- 不動:tier 標籤、顏色、行數與順序、veiled、物品屬性 / 標籤(`Quality`、`Corrupted` 等仍是上游原樣;類別行與需求行 2026-10-14 起翻,見下)。
 - 覆蓋率(錄製回應 `poe2/test/docs/fetchResponses*.json` + 符文塑形 fetch 錄製):92 / 104 行。保留英文 12 行:同旗標多種繁中寫法 6(`explicit.stat_3917489142` 物品稀有度、`2065500219` 怪物效用、`2777224821` 換界石數量、`1825943485` 精髓、`1276056105` 金幣、`1263695895` 照亮範圍);英文模板對不上 3(`791928121` ×2「Causes …Stun Buildup」:繁中條目 ref 是不帶 Causes 的另一條;`3793155082` 交易站文字少了「Map has」);資料沒有的 id 1(`explicit.stat_3076483222|64921` 最後通牒獻祭);回應沒有 hashes 2(Vase Relic)。清單與逐行結果在 `poe2/test/web/price-check/trade/__snapshots__/display-zh.test.ts.snap`。
 - 測試 `poe2/test/web/price-check/trade/display-zh.test.ts`(逐行快照、覆蓋率、tier 不變、刻意破壞、錯置 hashes、英文介面 / 台服不翻、`requestResults` 端到端);畫面以第 14 步同法(無頭 Chrome + 假 `window.host`)截圖比對繁中 / 英文介面。
+- **2026-10-14 補翻(使用者實機 Viper Coat 領主鎖甲:符文詞綴、類別行、需求行仍是英文)**:
+  - 根因:符文詞綴 `rune.stat_3523867985`「#% increased Armour, Evasion and Energy Shield」的繁中條目有兩種同旗標寫法(`增加#%護甲、閃避、和能量護盾` / `增加#%護甲值、閃避和能量護盾`)→ 判為不唯一保留英文(不是符文合計值的問題);類別行(`properties[0]`)與需求行原本就不在翻譯範圍。
+  - 同旗標多種寫法:另讀台服交易站快照 `data/poe2/trade/tw/stats.json`,同一個 trade stat id 的文字代入同樣數值後**恰好命中其中一個候選**才採用(只用來挑、不產生新字串;交易站只有正向寫法,reduced 行仍保留英文)。錄製回應覆蓋率 92 → 97 / 104(物品稀有度、怪物效用、換界石數量、精髓、照亮範圍解開;金幣 `1276056105` 仍不唯一)。
+  - 類別行:`properties[0]`(無數值)名稱 → `ItemCategory` → `CATEGORY_TO_TRADE_ID` → `cmn-Hant/app_i18n.json` `item_category`(`armour.chest` → `armour_chest` = 「身體護甲」;遊戲內寫法是「胸甲」,repo 沒有遊戲的物品種類對照,沿用 EE2 字串)。對不上(`Quarterstaff`、`Waystone`、`Relic`、`Tablet`…)保留英文。
+  - 需求行:依 `requirements[].type`(62 等級 / 63 力量 / 64 敏捷 / 65 智慧)取繁中 `client_strings` 的 `REQUIRES`(`需求: `)與 `REQUIRES_LINE` 裡的字 → `需求: 等級 ` + `80, 67 力量, 67 敏捷`;有未知 type 整行保留英文。
+  - 三份補充資料各自載入,失敗只記錄、該部分維持英文。測試 `poe2/test/web/price-check/trade/display-zh-props.test.ts`。
 
 ## 通貨價格區(2026-10-02 第 24 步,使用者要求 PoE1 / PoE2 都要有)
 - 元件:PoE2 `web/price-check/trends/PriceTrend.vue`、`stack-value/StackValue.vue`、`web/ui/CoreCurrencyImg.vue`(EE2 移植,檔頭 MIT 出處);PoE1 同名兩檔在 `poe1/src/web/price-check/{trends,expected-value}/`(APT 移植 + EE2 的成交量區塊)。兩代 `CheckedItem.vue` 把它們掛回原位(filter-name 之後 / 搜尋鈕與結果之後)。
@@ -137,6 +143,13 @@
 - 兩代 `FilterBtnLogical.vue` / `FilterBtnNumeric.vue`:外觀改膠囊(選用中 = 金色淡底),行為不變。
 - 新字串(只新增 `ppz.*`):`ppz.mod_cards.{mods,pseudo,count,from_n,switch}`、`ppz.fractured_toggle.{normal,group,title_normal}`。
 - 驗證:`renderer/test/mod-cards.test.ts`(分組純函式)、`renderer/test-vue/mod-cards-mount.test.ts`(兩代 FiltersBlock 真掛載:兩張卡 + 已選數、開關切換 `filter.disabled`、範圍膠囊、來自 N 條詞綴)、`renderer/test-vue/fractured-toggle-mount.test.ts`(二選一)。`test-vue/mini-dom.ts` 補了 no-op `addEventListener` 與 `<select>` 的 `options`(v-model 指令需要)。
+
+### 實機後調整(2026-10-14)
+- 一般物品頂端「建議售價」價格區(`PriceHero` `mode="item"`、`buildItemHero`、兩代 `price-hero-adapter.ts`、CheckedItem 讀 TradeListing ref 的接線)使用者看過實機後移除;一般物品只看掛單卡標題列「最低」。通貨市價卡 / 你的這一疊保留。
+- 掛單卡被壓扁:CheckedItem 是 `.layout-column`(height 100%),掛單根節點 / 卡片帶 `min-h-0` 被 flex 壓到 22px、內層 `overflow-y-auto` 再裁掉掛單 → 兩代 TradeListing / TradeBulk 改 `.listing-root` / `.listing-card` / `.listing-body`(`flex: none`、不另開捲動區),跟著面板捲動。
+- 金額 `fmtAmount(n, unit)`:div / exalted / mirror 保留一位小數(12.5 div 不再顯示 13)。
+- 市價卡補回「底材」標示(有價值的底材,原本 ItemQuickPrice `#item` 插槽的 `:base_item`;新字串 `ppz.hero.base_item`)。
+- 範圍膠囊「最小 / 最大」placeholder 與「–」改 `--ink-2`(placeholder 選擇器原本寫成 `:slotted(input::placeholder)`,編出來無效)。
 
 ## 未做 / 待辦
 - 預測價(PricePrediction)。

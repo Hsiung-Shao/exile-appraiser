@@ -1,8 +1,8 @@
 <!--
   移植自 Awakened PoE Trade(SnosMe,MIT)經繁中 fork awakened-poe-trade-zh-TW(Hsiung-Shao,MIT)`renderer/src/web/price-check/CheckedItem.vue`。
   2026-10-14 B 改版:本檔呈現層已重寫 —— 頂端價格區 = renderer `price-panel/PriceHero.vue`(通貨:PriceTrend 的「市價」卡 +
-  StackValue「你的這一疊」卡,移到篩選器上方;一般物品:交易站搜尋結果摘要「建議售價 / 最低 / 中位 / 符合」,
-  資料讀 TradeListing 的 `list` / `groupedResults` / `error`,換算 `price-hero-adapter.ts`)。查詢組法、搜尋時機不變。
+  StackValue「你的這一疊」卡,移到篩選器上方)。一般物品的「建議售價」價格區使用者看過實機後移除(2026-10-14),
+  一般物品只看掛單卡(標題列「最低」)。查詢組法、搜尋時機不變。
 -->
 <template>
   <div v-if="show" class="p-4 layout-column min-h-0">
@@ -13,7 +13,6 @@
       :item="item"
       :filters="itemFilters" />
     <stack-value :filters="itemFilters" :item="item"/>
-    <price-hero v-if="itemHero" game="poe1" mode="item" :view="itemHero" />
     <filters-block
       ref="filtersComponent"
       :filters="itemFilters"
@@ -72,20 +71,6 @@ import { AppConfig } from '@/web/Config'
 import { FilterPreset } from './filters/interfaces'
 import { PriceCheckWidget } from '@/web/overlay/interfaces'
 import { useLeagues } from '@/web/background/Leagues'
-// 2026-10-14 B 改版:價格區
-import { usePoeninja } from '@/web/background/Prices'
-import PriceHero from '@/web/price-panel/PriceHero.vue'
-import { buildItemHero, type ItemHeroView } from '@/web/price-panel/price-hero'
-import { poe1ToChaos } from './price-hero-adapter'
-import type { PricingResult, SearchResult } from './trade/pathofexile-trade'
-
-/** TradeListing.vue setup 回傳(經 template ref 讀;TradeBulk 沒有這些欄位) */
-interface TradeListingState {
-  execSearch(): void
-  list?: SearchResult | null
-  groupedResults?: Array<PricingResult | undefined>
-  error?: string | null
-}
 
 export default defineComponent({
   name: 'CheckedItem',
@@ -97,8 +82,7 @@ export default defineComponent({
     FilterName,
     DustValue,
     PriceTrend,
-    StackValue,
-    PriceHero
+    StackValue
   },
   props: {
     item: {
@@ -121,7 +105,7 @@ export default defineComponent({
     const tradeAPI = ref<'trade' | 'bulk'>('bulk')
 
     // TradeListing.vue OR TradeBulk.vue
-    const tradeService = ref<TradeListingState | null>(null)
+    const tradeService = ref<{ execSearch(): void } | null>(null)
     // FiltersBlock.vue
     const filtersComponent = ref<ComponentPublicInstance>(null!)
 
@@ -214,31 +198,10 @@ export default defineComponent({
       }
     }
 
-    // 2026-10-14 B 改版:一般物品價格區(交易站搜尋結果 → 建議售價 / 最低 / 中位 / 符合)
-    const ninja = usePoeninja()
-    const itemHero = computed<ItemHeroView | undefined>(() => {
-      if (tradeAPI.value !== 'trade' || !doSearch.value) return undefined
-      const svc = tradeService.value
-      if (!svc || svc.error) return undefined
-      const list = svc.list
-      return buildItemHero({
-        listings: svc.groupedResults ?? [],
-        total: list?.total,
-        inexact: list?.inexact,
-        ready: list != null,
-        toBase: poe1ToChaos(ninja.xchgRate.value, ref => ninja.findPriceByQuery({ ns: 'ITEM', name: ref })?.chaos),
-        show: (chaos) => {
-          const v = ninja.autoCurrency(chaos)
-          return { amount: v.min, unit: v.currency }
-        }
-      })
-    })
-
     const { t } = useI18n()
 
     return {
       t,
-      itemHero,
       itemFilters,
       itemStats,
       doSearch,

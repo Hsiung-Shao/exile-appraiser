@@ -32,28 +32,11 @@
   font-size: 0.85em;
   color: var(--ink-2);
 }
-.ph-mono {
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-}
 .ph-row {
   display: flex;
   align-items: center;
   gap: 0.9em;
   min-width: 0;
-}
-.ph-main {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15em;
-  min-width: 0;
-}
-.ph-label {
-  display: flex;
-  align-items: center;
-  gap: 0.5em;
-  font-size: 0.85em;
-  color: var(--ink-2);
 }
 .ph-big {
   display: flex;
@@ -78,31 +61,6 @@
   color: var(--ink-1);
   align-self: flex-end;
   padding-bottom: 0.2em;
-}
-.ph-grid {
-  display: grid;
-  grid-template-columns: auto auto;
-  column-gap: 0.9em;
-  row-gap: 0.15em;
-  margin: 0;
-  font-size: 0.92em;
-}
-.ph-grid dt {
-  color: var(--ink-2);
-}
-.ph-grid dd {
-  margin: 0;
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-  white-space: nowrap;
-}
-.ph-few {
-  padding: 0 0.45em;
-  border-radius: 999px;
-  font-size: 0.9em;
-  color: var(--warn);
-  background: color-mix(in srgb, var(--warn) 14%, transparent);
 }
 .ph-status {
   display: flex;
