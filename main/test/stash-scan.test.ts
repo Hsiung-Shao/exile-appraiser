@@ -90,7 +90,9 @@ function harness () {
     ocrRects: [] as Array<{ x: number, y: number, width: number, height: number }>,
     /** 擷取偏移(client → 影像);size 省略 = client 大小 */
     offset: { x: 0, y: 0 },
-    size: null as { w: number, h: number } | null
+    size: null as { w: number, h: number } | null,
+    /** OCR 進行中(await 期間)要發生的事,例如按暫停熱鍵 */
+    duringRecognize: null as (() => void) | null
   }
   const logs: string[] = []
   const events: StashScanEvent[] = []
@@ -111,6 +113,7 @@ function harness () {
         recognize: async (rect) => {
           state.ocrs++
           state.ocrRects.push({ ...rect })
+          state.duringRecognize?.()
           return { lines: state.lines.map(l => ({ ...l })), ms: 42 }
         },
         gray: (rect) => {
@@ -262,9 +265,9 @@ describe('S9c 擋下條件與收起', () => {
     expect(stashBlock(okCfg, okEnv, { ...ui0, picker: true })).toBe('ui-open')
     expect(stashBlock(okCfg, okEnv, ui0)).toBeNull()
   })
-  it('會清疊層的原因只有 disabled / not-poe1 / not-overlay / no-window', () => {
+  it('會清疊層的原因只有 disabled / not-poe1 / not-overlay / no-window / user-paused', () => {
     // 失焦也清 → 切出遊戲再回來疊層要重新 OCR 才出現
-    expect([...STASH_CLEARING_BLOCKS].sort()).toEqual(['disabled', 'no-window', 'not-overlay', 'not-poe1'])
+    expect([...STASH_CLEARING_BLOCKS].sort()).toEqual(['disabled', 'no-window', 'not-overlay', 'not-poe1', 'user-paused'])
   })
   it('顯示中改成停用 → blocked 並送 hide', async () => {
     const h = harness()
@@ -763,6 +766,17 @@ describe('S19 使用者暫停熱鍵(T21)', () => {
     expect(h.state.ocrs).toBe(1)
     expect(h.scan.showing).toBe(true)
     h.scan.stop()
+  })
+  it('OCR 進行中按暫停 → 那一輪不送 show、疊層不留著', async () => {
+    const h = harness()
+    h.state.duringRecognize = () => { h.scan.toggleUserPause() }
+    await h.scan.tick()
+    expect(h.events.map(e => e.reason)).not.toContain('show')
+    expect(h.scan.showing).toBe(false)
+    expect(h.showingCalls.every(c => !c.showing)).toBe(true)
+  })
+  it('user-paused 屬於會收掉疊層的擋下原因', () => {
+    expect(STASH_CLEARING_BLOCKS.has('user-paused')).toBe(true)
   })
   it('setUserPause 已是同狀態不重送事件', () => {
     const h = harness()

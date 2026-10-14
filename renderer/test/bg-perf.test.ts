@@ -1,8 +1,9 @@
 // B9:有背景圖時開設定卡頓的修正 —— 保留解碼後的來源圖、預覽縮圖不用原圖即時模糊;降解析度模糊評估後不採用。
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { nextTick } from 'vue'
 import fs from 'node:fs'
 import path from 'node:path'
-import { BG_PREVIEW_MAX_W, BG_SCALE, BgBaker, BgSourceCache, bgBakePlan, bgPreviewSize, type BgBakeInput } from '../src/web/bg-bake'
+import { BG_PREVIEW_MAX_W, BG_SCALE, BgBaker, BgSourceCache, bgBakePlan, bgPreviewCache, bgPreviewSize, makeBgPreview, useBgPreview, type BgBakeInput, type BgSource } from '../src/web/bg-bake'
 
 const root = path.resolve(__dirname, '../..')
 const read = (p: string) => fs.readFileSync(path.join(root, p), 'utf8')
@@ -119,5 +120,66 @@ describe('T19 降解析度模糊外觀不變(評估後不採用,見 docs/perf/ch
   it('來源圖保留 <img>,不轉 ImageBitmap(重取樣不同會改外觀)', () => {
     const src = read('renderer/src/web/bg-bake.ts')
     expect(src).not.toMatch(/createImageBitmap\(/)
+  })
+})
+
+describe('T20 預覽圖不把 4K 原圖留在來源快取', () => {
+  afterEach(() => { vi.unstubAllGlobals(); bgPreviewCache.clear() })
+  const stubDom = () => {
+    const ctx = { drawImage: () => {}, imageSmoothingQuality: '' }
+    const canvas = { width: 0, height: 0, getContext: () => ctx, toBlob: (cb: (b: Blob) => void) => cb(new Blob(['x'])) }
+    vi.stubGlobal('document', { createElement: () => canvas })
+    let n = 0
+    const revoked: string[] = []
+    vi.stubGlobal('URL', { createObjectURL: () => `blob:${++n}`, revokeObjectURL: (u: string) => { revoked.push(u) } })
+    return { revoked }
+  }
+  const mkSrc = () => ({ image: { removeAttribute: vi.fn() }, width: 3840, height: 2160 }) as unknown as BgSource & { image: { removeAttribute: ReturnType<typeof vi.fn> } }
+
+  it('背景沒顯示這張時:做完預覽 bgSourceCache 為空、每次都重載、來源被釋放', async () => {
+    stubDom()
+    const cache = new BgSourceCache<BgSource>(() => {})
+    const srcs: Array<ReturnType<typeof mkSrc>> = []
+    const load = vi.fn(async () => { const s = mkSrc(); srcs.push(s); return s })
+    await makeBgPreview('app://bg/a.png', { shownUrl: () => null, load, cache })
+    await makeBgPreview('app://bg/a.png', { shownUrl: () => null, load, cache })
+    expect(cache.size).toBe(0)
+    expect(load).toHaveBeenCalledTimes(2)
+    expect(srcs.every(s => s.image.removeAttribute.mock.calls.some(c => c[0] === 'src'))).toBe(true)
+  })
+
+  it('背景正顯示這張時:沿用快取、只載一次、不釋放', async () => {
+    stubDom()
+    const cache = new BgSourceCache<BgSource>(() => {})
+    const srcs: Array<ReturnType<typeof mkSrc>> = []
+    const load = vi.fn(async () => { const s = mkSrc(); srcs.push(s); return s })
+    await makeBgPreview('app://bg/a.png', { shownUrl: () => 'app://bg/a.png', load, cache })
+    await makeBgPreview('app://bg/a.png', { shownUrl: () => 'app://bg/a.png', load, cache })
+    expect(cache.size).toBe(1)
+    expect(load).toHaveBeenCalledTimes(1)
+    expect(srcs[0].image.removeAttribute).not.toHaveBeenCalled()
+  })
+
+  it('預覽快取被清掉後 useBgPreview 會重做、不指向已 revoke 的 blob', async () => {
+    const { revoked } = stubDom()
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    const OrigImage = (globalThis as { Image?: unknown }).Image
+    vi.stubGlobal('Image', class { crossOrigin = ''; decoding = ''; naturalWidth = 3840; naturalHeight = 2160; src = ''; async decode () {} removeAttribute () {} })
+    try {
+      const state = useBgPreview(() => 'app://bg/a.png')
+      for (let i = 0; i < 30; i++) await Promise.resolve()
+      await nextTick()
+      const first = state.value.preview?.src
+      expect(first).toBeTruthy()
+      bgPreviewCache.clear()
+      expect(revoked).toContain(first)
+      for (let i = 0; i < 30; i++) await Promise.resolve()
+      await nextTick()
+      for (let i = 0; i < 30; i++) await Promise.resolve()
+      expect(state.value.preview?.src).toBeTruthy()
+      expect(state.value.preview?.src).not.toBe(first)
+    } finally {
+      vi.stubGlobal('Image', OrigImage)
+    }
   })
 })

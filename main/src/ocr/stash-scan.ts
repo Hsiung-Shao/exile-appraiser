@@ -34,7 +34,7 @@ export interface StashScanConfig {
 export type StashBlock = 'disabled' | 'not-poe1' | 'user-paused' | 'not-overlay' | 'no-window' | 'game-inactive' | 'ui-open'
 
 /** 這幾種「停止」要收掉疊層;失焦 / UI 開著只是暫停(疊層留著) */
-export const STASH_CLEARING_BLOCKS: ReadonlySet<StashBlock> = new Set<StashBlock>(['disabled', 'not-poe1', 'not-overlay', 'no-window'])
+export const STASH_CLEARING_BLOCKS: ReadonlySet<StashBlock> = new Set<StashBlock>(['disabled', 'not-poe1', 'not-overlay', 'no-window', 'user-paused'])
 /** 功能本身停用 / 使用者暫停 → 連保底 tick 都不排,等 host-config 的 `poke()` / 繼續熱鍵 */
 const IDLE_STOP: ReadonlySet<StashBlock> = new Set<StashBlock>(['disabled', 'not-poe1', 'user-paused'])
 
@@ -363,6 +363,8 @@ export class StashScan {
       const sent = this.hide(client, ms)
       return { kind: 'ocr', found: true, subtab: null, held: false, sent, ms }
     }
+    // tick 進行中(await 期間)使用者按了暫停 → 不畫(下一輪被 user-paused 擋下並收掉)
+    if (this.userPaused) return { kind: 'blocked', block: 'user-paused' }
     const same = this.shown && this.shown.subtab === subtab && this.shown.yOffset === match.yOffset &&
       this.shown.clientW === client.w && this.shown.clientH === client.h
     if (same) return { kind: 'ocr', found: true, subtab, held: false, sent: null, ms }

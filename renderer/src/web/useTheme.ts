@@ -6,7 +6,7 @@
  * 本檔不 import Config(Config 反過來用這裡的常數與正規化函式),避免循環相依。
  */
 import { shallowRef, watch } from 'vue'
-import { BG_FITS, BG_LAYOUT_DEFAULT, BG_ZOOM_MAX, BG_ZOOM_MIN, bgBakeCache, bgPreviewCache, bgSourceCache, type BgBakeSpec, type BgFit, type BgLayout } from './bg-bake'
+import { BG_FITS, BG_LAYOUT_DEFAULT, BG_ZOOM_MAX, BG_ZOOM_MIN, bgBakeCache, bgPreviewCache, bgSourceCache, setBgShownProbe, type BgBakeSpec, type BgFit, type BgLayout } from './bg-bake'
 
 export const THEMES = ['slate', 'light', 'contrast', 'parchment'] as const
 export type Theme = (typeof THEMES)[number]
@@ -195,6 +195,7 @@ export function bgBakeSpec (bg: BgSettings, url: string | null): BgBakeSpec | nu
 export const bgBake = shallowRef<BgBakeSpec | null>(null)
 /** 第 26 步:目前顯示中的背景圖網址(沒有背景 = null;BgLayer 的 CSS 路徑在「縮放」模式要讀圖的原始大小) */
 export const bgShownUrl = shallowRef<string | null>(null)
+setBgShownProbe(() => bgShownUrl.value)
 /** 第 26 步:兩個容器各自的顯示位置與填滿方式(useBackground 寫、BgLayer.vue 依自己的 host 讀) */
 export const bgLayouts = shallowRef<BgLayouts>(normBg(undefined).layout)
 /** 第 26 步:兩個容器最後一次量到的大小(CSS px;BgLayer 寫、設定頁預覽框的長寬比讀;沒量過 = null) */

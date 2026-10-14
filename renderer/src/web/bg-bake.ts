@@ -395,7 +395,7 @@ export class BgSourceCache<Img> {
   private value: Img | null = null
   private gen = 0
 
-  constructor (private readonly release: (img: Img) => void) {}
+  constructor (private readonly release: (img: Img) => void, private readonly onClear?: () => void) {}
 
   get (url: string, load: (url: string) => Promise<Img>): Promise<Img> {
     if (this.entry?.url === url) return this.entry.p
@@ -415,6 +415,7 @@ export class BgSourceCache<Img> {
 
   clear (): void {
     this.gen++
+    this.onClear?.()
     this.entry = null
     const v = this.value
     this.value = null
@@ -472,10 +473,34 @@ export function bgPreviewSize (w: number, h: number): { w: number, h: number } {
 export interface BgPreview { url: string, src: string, width: number, height: number }
 
 /** 預覽圖快取(同一個背景圖網址只做一次;useTheme.ts 換圖 / 關閉時清) */
-export const bgPreviewCache = new BgSourceCache<BgPreview>((p) => { URL.revokeObjectURL(p.src) })
+export const bgPreviewCache = new BgSourceCache<BgPreview>((p) => { URL.revokeObjectURL(p.src) }, () => { bgPreviewGeneration.value++ })
 
-async function makeBgPreview (url: string): Promise<BgPreview> {
-  const src = await bgSourceCache.get(url, loadBgSource)
+/** 預覽快取被清掉(blob 已 revoke)的世代:`useBgPreview` 監看它,清了就重做 */
+export const bgPreviewGeneration = shallowRef(0)
+
+/** 目前顯示中的背景網址(useTheme.ts 注入;bg-bake 不能 import useTheme = 循環)。只有這張才走共用的 `bgSourceCache` */
+let bgShownProbe: () => string | null = () => null
+export function setBgShownProbe (fn: () => string | null): void { bgShownProbe = fn }
+
+export interface BgPreviewDeps {
+  shownUrl?: () => string | null
+  load?: (url: string) => Promise<BgSource>
+  cache?: BgSourceCache<BgSource>
+}
+
+/** 做預覽圖(匯出供測試)。背景沒在顯示這張時用一次性載入、做完立刻釋放,不讓 4K 解碼圖留在 `bgSourceCache` */
+export async function makeBgPreview (url: string, deps: BgPreviewDeps = {}): Promise<BgPreview> {
+  const load = deps.load ?? loadBgSource
+  const shared = (deps.shownUrl ?? bgShownProbe)() === url
+  const src = shared ? await (deps.cache ?? bgSourceCache).get(url, load) : await load(url)
+  try {
+    return await drawBgPreview(url, src)
+  } finally {
+    if (!shared) releaseBgSource(src)
+  }
+}
+
+async function drawBgPreview (url: string, src: BgSource): Promise<BgPreview> {
   await redecode(src)
   const size = bgPreviewSize(src.width, src.height)
   const c = document.createElement('canvas')
@@ -500,10 +525,14 @@ export interface BgPreviewState { preview: BgPreview | null, failed: boolean }
  */
 export function useBgPreview (url: () => string | null): ShallowRef<BgPreviewState> {
   const out = shallowRef<BgPreviewState>({ preview: null, failed: false })
-  watch(url, (u) => {
+  let lastGen = bgPreviewGeneration.value
+  watch([url, bgPreviewGeneration], ([u, g]) => {
+    // 快取被清掉 → 舊預覽的 blob 已 revoke,丟掉重做
+    const regen = g !== lastGen
+    lastGen = g
     if (!u) { out.value = { preview: null, failed: false }; return }
-    if (out.value.preview?.url !== u) out.value = { preview: null, failed: false }
-    bgPreviewCache.get(u, makeBgPreview)
+    if (regen || out.value.preview?.url !== u) out.value = { preview: null, failed: false }
+    bgPreviewCache.get(u, (x) => makeBgPreview(x))
       .then((p) => { if (url() === u) out.value = { preview: p, failed: false } })
       .catch(() => { if (url() === u) out.value = { preview: null, failed: true } })
   }, { immediate: true })
