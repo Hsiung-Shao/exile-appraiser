@@ -1,9 +1,9 @@
 <!--
   設定 › 自動辨識(第 39 步,原「熱鍵與視窗」分頁 PoE2 的三張卡片;2026-10-14 起 PoE1 也出現在選單:倉庫價格疊層):
   - 共用:辨識語言(`ocrLang`,褻瀆與符文塑形共用,第 25 步)、OCR 語言包狀態、隱私與 CPU 各一句(原本分散在兩張卡片 ×2–3 次)。
-  - 褻瀆詞綴 / 符文塑形:OcrScanSection.vue(啟用、狀態、掃描間隔、區域、最近耗時);暫停 / 框選熱鍵搬到「熱鍵」總表。
+  - 三張辨識卡片(褻瀆詞綴 / 符文塑形 / 倉庫價格)都是 OcrScanSection.vue(2026-10-14 統一樣板,差異在 scan-card-specs.ts);暫停 / 框選熱鍵在「熱鍵」總表。
   - 徽章外觀:BadgeStyleSection.vue(符文價格顏色的門檻 `runeshapeThresholds` 從符文卡片搬來,與三段顏色放在一起)。
-  - PoE1:共用卡片 + 倉庫價格(StashPricesSection.vue)+ 徽章外觀(門檻改用 `stashThresholds` 混沌石);褻瀆 / 符文兩張卡片只在 PoE2。
+  - PoE1:共用卡片 + 倉庫價格(`kind="stash"`;台服警告在 #top、顯示物品名稱在 #extra)+ 徽章外觀(門檻改用 `stashThresholds` 混沌石);褻瀆 / 符文兩張卡片只在 PoE2。
   所有辨識都只在 overlay 模式 → 設定不是 overlay 時整頁只顯示 OverlayGate。設定鍵 / 行為不變。
 -->
 <template>
@@ -36,7 +36,17 @@
     </section>
 
     <!-- PoE1 倉庫價格疊層(碎片頁;2026-10-14 從「倉庫與聊天」搬來) -->
-    <stash-prices-section v-if="config.game === 'poe1'" />
+    <ocr-scan-section v-if="config.game === 'poe1'" kind="stash">
+      <template #top>
+        <p v-if="config.realm === 'tw'" class="foot warn" data-setting="stash-tw">{{ t('ppz.stash.tw_no_source') }}</p>
+      </template>
+      <template #extra>
+        <div class="chk-row">
+          <label class="chk"><input v-model="config.stashShowNames" type="checkbox" data-setting="stash-show-names"><span>{{ t('ppz.stash.show_names') }}</span></label>
+          <help-tip id="stash-show-names" :text="t('ppz.stash.show_names_hint')" />
+        </div>
+      </template>
+    </ocr-scan-section>
 
     <!-- WP-S:靈魂之井褻瀆自動辨識 -->
     <ocr-scan-section v-if="config.game === 'poe2'" kind="reveal">
@@ -70,12 +80,11 @@ import { ocrWantsEnglish } from '@/web/ocr-lang'
 import { Host } from '@/web/background/IPC'
 import OcrScanSection from '../OcrScanSection.vue'
 import BadgeStyleSection from '../BadgeStyleSection.vue'
-import StashPricesSection from '../StashPricesSection.vue'
 import HelpTip from '../HelpTip.vue'
 import OverlayGate from '../OverlayGate.vue'
 
 export default defineComponent({
-  components: { OcrScanSection, BadgeStyleSection, StashPricesSection, HelpTip, OverlayGate },
+  components: { OcrScanSection, BadgeStyleSection, HelpTip, OverlayGate },
   setup () {
     const { t } = useI18n()
     const config = AppConfig()

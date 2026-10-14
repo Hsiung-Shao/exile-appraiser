@@ -37,7 +37,7 @@ describe('設定檔往返', () => {
   it('合法值保留、壞值回預設、超出夾回', () => {
     expect(_roundTripForTest('{"relatedItemsScale":150}').config.relatedItemsScale).toBe(150)
     expect(_roundTripForTest('{"relatedItemsScale":"big"}').config.relatedItemsScale).toBe(100)
-    expect(_roundTripForTest('{"relatedItemsScale":500}').config.relatedItemsScale).toBe(200)
+    expect(_roundTripForTest('{"relatedItemsScale":900}').config.relatedItemsScale).toBe(400)
   })
 })
 

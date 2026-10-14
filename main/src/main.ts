@@ -53,7 +53,7 @@ import { isAppNavigation, isExternalWebUrl } from './external-links'
 import { BG_DIR_NAME, SHEET_DIR_NAME, bgContentType, bgCorsHeaders, bgFileFromPath, normBgFile, resolveBgPath, storedBgName } from './backgrounds'
 import { createFontLister } from './system-fonts'
 import { AppLog, LogFileWriter, captureConsole, consoleMethodForLevel, type LogEntry } from './app-log'
-import { PerfMonitor, formatPerfSummary, isPerfFile, perfFileName, scanSnapshotOf, type ScenarioInput } from './perf/perf-monitor'
+import { PerfMonitor, RendererPerfAccumulator, bgActiveFromConfigText, formatPerfSummary, isPerfFile, perfFileName, perfSummarySections, scanSnapshotOf, stashSnapshotOf, type ScenarioInput } from './perf/perf-monitor'
 import {
   TOAST_FADE_MS, TOAST_VISIBLE_MS, isFirstRunAfterUpdate, parseLastRun, priceCheckHotkeyLabel, scanToastMessage, serializeLastRun,
   shouldShowGameAttachToast, shouldShowStartupToast, toastBounds, toastHtml, toastLang, toastMessage, toastWorkArea, type ScanToastKind, type ToastMessage
@@ -640,7 +640,7 @@ async function runToastSelftest (out: string): Promise<number> {
   // 第 16 步:`--toast-scan=reveal:on,rune:paused` → 辨識開關通知(一項 = 一行)
   const scanArg = argValue('--toast-scan=')
   const scanItems = (scanArg ?? '').split(',').map(x => x.trim().split(':'))
-    .filter(([k]) => k === 'reveal' || k === 'rune')
+    .filter(([k]) => k === 'reveal' || k === 'rune' || k === 'stash')
     .map(([k, v]) => ({ kind: k as ScanToastKind, paused: v === 'paused' }))
   const msg = scanArg != null ? scanToastMessage(toastLang(argValue('--toast-lang=')), scanItems) : toastMessage({
     lang: toastLang(argValue('--toast-lang=')),
@@ -976,9 +976,12 @@ if (!skipStartup) app.whenReady().then(() => {
     onOcrReveal: () => { notifyScan([{ kind: 'reveal', paused: revealScan.toggleUserPause() }]) },
     // WP-S2:框選 OCR 區域熱鍵 → renderer 開框選層(它自己呼叫 overlay-activate 取得焦點);
     // 2026-10-01:符文塑形的框選熱鍵帶 { target: 'runeshape' }(揭露面板不帶,形狀不變)
-    onOcrRegionPick: (target) => { if (target === 'runeshape') send('ocr-region-pick', { target }); else send('ocr-region-pick') },
+    // 2026-10-14:PoE1 倉庫 OCR 區域的框選熱鍵帶 { target: 'stash' }
+    onOcrRegionPick: (target) => { if (target === 'runeshape' || target === 'stash') send('ocr-region-pick', { target }); else send('ocr-region-pick') },
     // WP-R2:符文塑形自動查價暫停 / 繼續
     onRuneshapeToggle: () => { notifyScan([{ kind: 'rune', paused: runeshapeScan.toggleUserPause() }]) },
+    // 2026-10-14:PoE1 倉庫價格暫停 / 繼續(暫停 = 收掉疊層)
+    onStashToggle: () => { notifyScan([{ kind: 'stash', paused: stashScan.toggleUserPause() }]) },
     // 第 16 步:兩個暫停熱鍵相同 → 合併動作(只在兩者都符合註冊條件時才有;任一個在執行 → 全部暫停,全部暫停 → 全部繼續)
     onScanToggleBoth: () => {
       const target = nextScanPaused([revealScan.paused, runeshapeScan.paused])
@@ -1455,13 +1458,23 @@ if (!skipStartup) app.whenReady().then(() => {
     }
     perfWriter.write(line)
   }
-  /** 情境標記用:設定檔的背景圖開著且選了圖(只在效能診斷取樣時讀;讀不到 = null) */
-  const readBgActive = async (): Promise<boolean | null> => {
-    try {
-      const c = JSON.parse(await fs.readFile(CONFIG_PATH(), 'utf8')) as { bg?: { enabled?: unknown, file?: unknown } }
-      return c.bg?.enabled !== false && typeof c.bg?.file === 'string' && c.bg.file !== ''
-    } catch { return null }
+  /**
+   * 情境標記用:設定檔的背景圖開著且選了圖。B8:不再每筆取樣讀 config.json —— 第一次取樣讀一次,之後由 `config-save` 更新記憶體裡的值
+   * (`bgActiveFromConfigText`;讀不到 = null)。
+   */
+  let bgActive: boolean | null | undefined
+  const bgActiveNow = async (): Promise<boolean | null> => {
+    if (bgActive === undefined) {
+      let text = ''
+      try { text = await fs.readFile(CONFIG_PATH(), 'utf8') } catch { /* 沒有設定檔 */ }
+      if (bgActive === undefined) bgActive = text ? bgActiveFromConfigText(text) : null
+    }
+    return bgActive
   }
+  /** B8:renderer 回報的指標(IPC `perf-renderer`;只在效能診斷開著時收)累加到下一筆取樣 */
+  const rendererPerf = new RendererPerfAccumulator()
+  /** B8:開 / 關時通知 renderer 啟動 / 停止自己的收集(事件 `perf-state`,不進 PREVIEW_EVENTS) */
+  const announcePerf = () => { send('perf-state', { enabled: perf.enabled, sampleMs: perf.intervalMs }) }
   const perf = new PerfMonitor({
     metrics: () => app.getAppMetrics(),
     scenario: async (): Promise<ScenarioInput> => ({
@@ -1471,10 +1484,12 @@ if (!skipStartup) app.whenReady().then(() => {
       ui: windowMode === 'overlay' ? lastUiState : null,
       revealReason: scanSnapshotOf(revealScan).reason,
       runeReason: scanSnapshotOf(runeshapeScan).reason,
-      bg: await readBgActive(),
+      stashReason: stashSnapshotOf(stashScan).reason,
+      bg: await bgActiveNow(),
       windowVisible: !w.isDestroyed() && w.isVisible()
     }),
-    scans: () => ({ reveal: scanSnapshotOf(revealScan), rune: scanSnapshotOf(runeshapeScan) }),
+    scans: () => ({ reveal: scanSnapshotOf(revealScan), rune: scanSnapshotOf(runeshapeScan), stash: stashSnapshotOf(stashScan) }),
+    renderer: () => rendererPerf.drain(),
     uiohook: () => ({ running: uiohookGate.isRunning, holders: uiohookGate.holders }),
     hookEvents: { on: (fn) => { uIOhook.on('input', fn) }, off: (fn) => { uIOhook.off('input', fn) } },
     detector: () => ({ enums: detectorCounters.enums, processProbes: detectorCounters.processProbes, running: detector.running }),
@@ -1490,7 +1505,7 @@ if (!skipStartup) app.whenReady().then(() => {
       setting: perfSetting,
       sampleMs: perf.intervalMs,
       file: path.join(LOG_DIR(), perfFileName(Date.now())),
-      last: last ? { ts: last.ts, scenario: last.scenario, summary: formatPerfSummary(last) } : null
+      last: last ? { ts: last.ts, scenario: last.scenario, summary: formatPerfSummary(last), sections: perfSummarySections(last) } : null
     }
   }
   // 排在其他 will-quit 之前:「效能診斷停止」那行要在記錄檔關閉前寫進去
@@ -1580,6 +1595,7 @@ if (!skipStartup) app.whenReady().then(() => {
         if (typeof contents !== 'string') throw new Error('config-save: contents 不是字串')
         await fs.mkdir(path.dirname(CONFIG_PATH()), { recursive: true })
         await fs.writeFile(CONFIG_PATH(), contents)
+        bgActive = bgActiveFromConfigText(contents) // B8:效能診斷的情境標記用記憶體裡的值
         const ev: ConfigChangedEvent = { contents, source: ctx.source === 'preview' ? `preview:${ctx.clientId ?? ''}` : 'electron' }
         console.log(`[main] config-save from ${ev.source}(${contents.length} 字元)→ broadcast config-changed`)
         send('config-changed', ev)
@@ -1840,9 +1856,12 @@ if (!skipStartup) app.whenReady().then(() => {
         }
         if (want) perf.start()
         else perf.stop()
+        announcePerf()
         return perfState()
       }
     },
+    // B8:renderer 指標(longtask / 幀間隔 / 查價延遲 / 背景圖);不可信 payload 由 RendererPerfAccumulator 驗證,關著不收
+    'perf-renderer': { kind: 'send', preview: false, fn: (_ctx, r: unknown) => { if (perf.enabled) rendererPerf.add(r) } },
     'perf-open-file': {
       kind: 'invoke',
       preview: false,
@@ -1861,6 +1880,7 @@ if (!skipStartup) app.whenReady().then(() => {
   if (PERF_ARG || perfSetting) {
     console.log(`[perf] 啟動即開效能診斷(${PERF_ARG ? '--perf-log' : '設定開關'})`)
     perf.start()
+    announcePerf() // renderer 還沒載好時收不到;它啟動時會自己 perf-get 一次
   }
 
   if (PREVIEW_ON_START) {

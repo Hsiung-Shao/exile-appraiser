@@ -49,7 +49,8 @@ describe('接線守門', () => {
     expect(rune).toContain('overlayLayers.rune = false')
   })
   it('IPC 轉接', () => {
-    expect(read('../src/web/background/IPC.ts')).toContain('overlayContent (s: OverlayContentState): void { window.host?.overlayContent?.(s) }')
+    // B8:同時記下最近一次內容(效能診斷只在 overlay 有內容時量幀間隔)
+    expect(read('../src/web/background/IPC.ts')).toContain('overlayContent (s: OverlayContentState): void { this.lastOverlayContent = s; window.host?.overlayContent?.(s) }')
   })
   it('限流狀態鈕(RateLimiterState)只在查價面板可見時掛載(overlay 側邊與 window 底列)', () => {
     const tags = app.match(/<component :is="rateLimiterComponent"[^>]*>/g) ?? []

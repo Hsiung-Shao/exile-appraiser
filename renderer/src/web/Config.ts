@@ -46,7 +46,7 @@ export interface Config {
   theme: Theme
   /** 強調色 `#rrggbb`;空字串 = 跟主題。 */
   accent: string
-  /** 基準字級 px(11–18,`--fs-base`);舊設定檔的 `fontSize: 16` → 13。 */
+  /** 基準字級 px(11–40,`--fs-base`);舊設定檔的 `fontSize: 16` → 13。 */
   fsBase: number
   /** 2026-10-01:自訂背景圖(查價面板與設定視窗;useTheme.ts `BgSettings`)。 */
   bg: BgSettings
@@ -112,6 +112,10 @@ export interface Config {
   hotkeyRuneshapeToggle: string
   /** 2026-10-01:框選符文塑形面板區域的熱鍵(預設空 = 不註冊;overlay 模式 + PoE2 才註冊)。 */
   hotkeyRuneshapeRegion: string
+  /** 2026-10-14:PoE1 倉庫價格暫停 / 繼續熱鍵(預設空 = 不註冊;overlay 模式 + PoE1 + 倉庫價格開著才註冊)。 */
+  hotkeyStashToggle: string
+  /** 2026-10-14:框選倉庫 OCR 區域的熱鍵(預設空 = 不註冊;overlay 模式 + PoE1 才註冊)。 */
+  hotkeyStashRegion: string
   /** 自動更新(預設 true):安裝版背景下載、結束程式時靜默套用;false = 手動下載 / 安裝(main/src/updater-core.ts)。 */
   autoUpdate: boolean
   /** 啟動時短暫顯示「已在背景執行」提示(預設 true;main/src/startup-toast.ts)。 */
@@ -136,9 +140,9 @@ export interface Config {
    * null = 置中預設(寬 min(50rem, 92vw)、高 min(38rem, 88vh));顯示時夾進 overlay 可視範圍(settings/settings-window-geom.ts)。
    */
   settingsWindow: SettingsWindowRect | null
-  /** 第 21 步:設定視窗獨立字級(11–24 px);null = 跟隨全域 `fsBase`。只作用在設定視窗,查價面板不受影響。 */
+  /** 第 21 步:設定視窗獨立字級(11–48 px);null = 跟隨全域 `fsBase`。只作用在設定視窗,查價面板不受影響。 */
   settingsFontSize: number | null
-  /** 2026-10-06:查價面板旁「相關物品」的大小(70–200 %,100 = APT 原本大小;related-items-scale.ts)。 */
+  /** 2026-10-06:查價面板旁「相關物品」的大小(70–400 %,100 = APT 原本大小;related-items-scale.ts)。 */
   relatedItemsScale: number
   /** 第 33 步:正則書籤快速面板熱鍵(預設空 = 不註冊;只在 overlay 模式)。 */
   hotkeyRegexQuick: string
@@ -336,6 +340,8 @@ function createConfig (): Config {
     ocrBadgeStyle: defaultOcrBadgeStyle(),
     hotkeyRuneshapeToggle: '',
     hotkeyRuneshapeRegion: '',
+    hotkeyStashToggle: '',
+    hotkeyStashRegion: '',
     autoUpdate: true,
     startupToast: true,
     updateReminder: true,
@@ -410,6 +416,8 @@ function serialize (): string {
     ocrBadgeStyle: config.ocrBadgeStyle,
     hotkeyRuneshapeToggle: config.hotkeyRuneshapeToggle,
     hotkeyRuneshapeRegion: config.hotkeyRuneshapeRegion,
+    hotkeyStashToggle: config.hotkeyStashToggle,
+    hotkeyStashRegion: config.hotkeyStashRegion,
     autoUpdate: config.autoUpdate,
     startupToast: config.startupToast,
     updateReminder: config.updateReminder,
@@ -462,7 +470,7 @@ function applyLoaded (raw: string) {
   config.accent = normAccent(loaded.accent)
   // 自訂背景圖:舊設定檔沒有 → 預設(沒選圖);檔名不合法(含路徑字元 / 非 png·jpg·webp)→ 清成 ''
   config.bg = normBg(loaded.bg)
-  // 字級:新欄位 fsBase;舊欄位 fontSize(px,套在 #app)16 = 舊預設 → 13 = 新預設,其他夾到 11–18
+  // 字級:新欄位 fsBase;舊欄位 fontSize(px,套在 #app)16 = 舊預設 → 13 = 新預設,其他夾到 11–40
   if (typeof loaded.fsBase === 'number') {
     config.fsBase = clampFsBase(loaded.fsBase)
   } else if (typeof loaded.fontSize === 'number') {
@@ -517,6 +525,9 @@ function applyLoaded (raw: string) {
   config.hotkeyRuneshapeToggle = typeof loaded.hotkeyRuneshapeToggle === 'string' ? loaded.hotkeyRuneshapeToggle : fresh.hotkeyRuneshapeToggle
   // 2026-10-01:符文塑形框選熱鍵(舊設定檔沒有 → 空字串 = 不註冊)
   config.hotkeyRuneshapeRegion = typeof loaded.hotkeyRuneshapeRegion === 'string' ? loaded.hotkeyRuneshapeRegion : fresh.hotkeyRuneshapeRegion
+  // 2026-10-14:倉庫價格暫停 / 框選熱鍵(舊設定檔沒有 → 空字串 = 不註冊)
+  config.hotkeyStashToggle = typeof loaded.hotkeyStashToggle === 'string' ? loaded.hotkeyStashToggle : fresh.hotkeyStashToggle
+  config.hotkeyStashRegion = typeof loaded.hotkeyStashRegion === 'string' ? loaded.hotkeyStashRegion : fresh.hotkeyStashRegion
   // 自動更新:舊設定檔沒有 → 預設開;只有明確 false 才關
   config.autoUpdate = loaded.autoUpdate !== false
   // 啟動提示:舊設定檔沒有 → 預設開;只有明確 false 才關
@@ -602,6 +613,8 @@ export function hostConfigOf (c: Config, regexHotkeys: readonly RegexBookmarkHot
     runeshapeIntervalMs: c.runeshapeIntervalMs,
     hotkeyRuneshapeToggle: c.hotkeyRuneshapeToggle,
     hotkeyRuneshapeRegion: c.hotkeyRuneshapeRegion,
+    hotkeyStashToggle: c.hotkeyStashToggle,
+    hotkeyStashRegion: c.hotkeyStashRegion,
     stashPricesEnabled: c.stashPricesEnabled,
     stashPricesIntervalMs: c.stashPricesIntervalMs,
     stashRegion: c.stashRegion ? { ...c.stashRegion } : null,

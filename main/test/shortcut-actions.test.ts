@@ -229,3 +229,36 @@ describe('buildShortcutActions:正則書籤(第 33 步)', () => {
     expect(reservedShortcuts({ ...base, hotkeyRegexQuick: 'Ctrl + V', regexBookmarkHotkeys: rx })).toEqual(expect.arrayContaining(['Ctrl + V', 'Ctrl + F']))
   })
 })
+
+// 2026-10-14:PoE1 倉庫價格暫停 / 框選熱鍵(T20)
+describe('倉庫價格熱鍵', () => {
+  const p1 = { ...base, game: 'poe1' as const, hotkeyStashToggle: 'ctrl+shift+s', hotkeyStashRegion: 'Ctrl + Shift + G' }
+  it('overlay + PoE1 → 兩個都註冊(正規化、不保留修飾鍵);預設空 → 不註冊', () => {
+    const a = buildShortcutActions(p1, 'overlay')
+    // 漏註冊 / 字串沒正規化 → 熱鍵按了沒反應
+    expect(types(a)).toEqual(expect.arrayContaining(['Ctrl + Shift + S=stash-toggle', 'Ctrl + Shift + G=stash-region']))
+    expect(a.filter(x => x.action.type.startsWith('stash-t') || x.action.type === 'stash-region').every(x => !x.keepModKeys)).toBe(true)
+    expect(buildShortcutActions({ ...base, game: 'poe1' }, 'overlay').some(x => x.action.type === 'stash-toggle' || x.action.type === 'stash-region')).toBe(false)
+  })
+  it('倉庫價格關著 → 只註冊框選;PoE2 / window 模式 → 都不註冊', () => {
+    expect(types(buildShortcutActions({ ...p1, stashPricesEnabled: false }, 'overlay')).filter(s => s.includes('=stash-t') || s.includes('=stash-region')))
+      .toEqual(['Ctrl + Shift + G=stash-region'])
+    for (const a of [buildShortcutActions({ ...p1, game: 'poe2' }, 'overlay'), buildShortcutActions(p1, 'window')]) {
+      expect(a.some(x => x.action.type === 'stash-toggle' || x.action.type === 'stash-region')).toBe(false)
+    }
+  })
+  it('遊戲保留鍵不註冊並列入保留清單;與既有熱鍵重複時先到先得', () => {
+    const a = buildShortcutActions({ ...p1, hotkeyStashToggle: 'Ctrl + F', hotkeyStashRegion: 'Shift + Space' }, 'overlay')
+    expect(a.some(x => x.action.type === 'stash-toggle' || x.action.type === 'stash-region')).toBe(false)
+    expect(reservedShortcuts({ ...p1, hotkeyStashToggle: 'Ctrl + F' })).toContain('Ctrl + F')
+  })
+  it('Shortcuts.ts / main.ts 接線:暫停走 StashScan、框選帶 target stash', () => {
+    const fs = require('node:fs') as typeof import('node:fs')
+    const sc = fs.readFileSync(new URL('../src/Shortcuts.ts', import.meta.url), 'utf8')
+    expect(sc).toContain("this.opts.onStashToggle?.()")
+    expect(sc).toContain("entry.action.type === 'stash-region'")
+    const m = fs.readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8')
+    expect(m).toContain("onStashToggle: () => { notifyScan([{ kind: 'stash', paused: stashScan.toggleUserPause() }]) }")
+    expect(m).toMatch(/onOcrRegionPick: \(target\) => \{[^\n]*target === 'runeshape' \|\| target === 'stash'/)
+  })
+})

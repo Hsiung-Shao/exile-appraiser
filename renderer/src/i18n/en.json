@@ -40,6 +40,11 @@
       "god_kurgal": "Kurgal",
       "profile_guessed": "Base not in the table; estimated from the item class"
     },
+    "fractured_toggle": {
+      "label": "Fractured",
+      "title_off": "Search this as a fractured mod (only items where this mod is fractured)",
+      "title_on": "Searching the fractured mod; click again to search the regular mod"
+    },
     "bg": {
       "section": "Background",
       "none": "None",
@@ -78,6 +83,8 @@
       "slot_reveal_region": "Desecration: select area",
       "slot_rune_pause": "Runeshape: pause / resume",
       "slot_rune_region": "Runeshape: select area",
+      "slot_stash_pause": "Stash prices: pause / resume",
+      "slot_stash_region": "Stash prices: select area",
       "shared_with_rune": "Shared with rune detection: toggles both at once",
       "shared_with_reveal": "Shared with desecration detection: toggles both at once",
       "shared_section": "Shared settings",
@@ -316,7 +323,6 @@
     "panel_error_hint": "Details (with stack trace) were written to the log; search for [renderer-error]. Press Retry or check another item.",
     "rate_limited": "Rate limited, retrying in {seconds}s",
     "version": "Version",
-    "data_source": "{repo} {'@'} {commit}",
     "paste": "Paste another",
     "hotkey_locked": "Locked check hotkey",
     "overlay_key": "Settings menu",
@@ -410,15 +416,10 @@
     "switch_to_intl": "Use International",
     "switch_to_zh": "Client in Chinese",
     "rate_limit_state": "Rate limits",
-    "data_poe1": "PoE1 data",
-    "data_poe2": "PoE2 data",
-    "data_poe2_trade": "PoE2 trade snapshot",
-    "data_poe1_stash": "PoE1 stash layouts",
-    "data_regex": "Regex data",
-    "data_fetched": "fetched {date}",
     "about": {
       "tagline": "Path of Exile price checker (PoE1 / PoE2, International / Taiwan realms)",
-      "game_versions": "Supported game versions: PoE1 {poe1} · PoE2 {poe2} (both current latest versions)",
+      "game_versions_label": "Supported game versions (the latest versions of both games are supported)",
+      "supports": "Supports {game}",
       "section_update": "Updates",
       "section_links": "Links",
       "section_thanks": "Third-party credits",
@@ -493,7 +494,16 @@
       "sheet_empty_sub": "Save a Syndicate cheat sheet image from a website, then import it here",
       "sheet_import": "Import image…",
       "sheet_no_dialog": "The browser preview can't pick files; import it in the app window",
-      "sheet_failed": "Couldn't load the image; please import it again"
+      "sheet_failed": "Couldn't load the image; please import it again",
+      "goto_regex": "Open regex",
+      "toggles_poe1": "Auto recognition (PoE1)",
+      "toggles_poe2": "Auto recognition (PoE2)",
+      "tg_stash": "Stash prices",
+      "tg_names": "Cell names",
+      "tg_reveal": "Desecration",
+      "tg_rune": "Runeshape",
+      "on": "On",
+      "off": "Off"
     },
     "report": {
       "item": "Report this item",
@@ -782,7 +792,15 @@
       "off": "Not recording",
       "open_file": "Open perf log file",
       "open_failed": "Could not open the perf log file",
-      "set_failed": "Could not toggle performance diagnostics"
+      "set_failed": "Could not toggle performance diagnostics",
+      "scenario": "Scenario {key}",
+      "sec_proc": "Processes",
+      "sec_lag": "Main stalls",
+      "sec_renderer": "Renderer",
+      "sec_query": "Price check",
+      "sec_scan": "Recognition",
+      "sec_bg": "Background",
+      "sec_sys": "System"
     },
     "dust": {
       "per_chaos": "≈ {n} dust / chaos",
@@ -901,7 +919,6 @@
       "scan": "Auto recognition",
       "stash_chat": "Stash & chat",
       "regex": "Regex",
-      "chat_command": "Chat command",
       "stash_search": "Stash search",
       "regex_bookmark": "Bookmark"
     },
@@ -910,8 +927,7 @@
       "edit_in": "Edit in {page}",
       "unset": "Not set",
       "empty": "Nothing here.",
-      "empty_stash_chat": "No chat commands or stash searches yet.",
-      "chat_row": "Chat command: {text}",
+      "empty_stash_chat": "No stash searches yet.",
       "off_note": "The feature is off, so this hotkey is not registered.",
       "scan_note": "Pause / resume hotkeys only work while that feature is on; select-area hotkeys open the area picker in game; leave empty to not register.",
       "window_only": "Other hotkeys are only available in overlay mode."

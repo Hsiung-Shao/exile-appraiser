@@ -732,3 +732,43 @@ describe('S18b 自訂區域夾在按鈕可能出現的範圍內(R1)', () => {
     expect(h.state.ocrRects[1]).toEqual({ x: 0, y: s.y - 20, width: s.w - 10, height: s.h })
   })
 })
+
+describe('S19 使用者暫停熱鍵(T21)', () => {
+  it('顯示中暫停 → 立刻送 hide、之後 tick 被擋且不擷取、不排計時器', async () => {
+    const h = harness()
+    await showScarabs(h)
+    h.scan.start(1_000_000)
+    // 回傳暫停後的狀態(main 用來顯示通知)
+    expect(h.scan.toggleUserPause()).toBe(true)
+    expect(h.scan.paused).toBe(true)
+    // 沒收掉 → 暫停了徽章還留在畫面上
+    expect(h.events.map(e => e.reason)).toEqual(['show', 'hide'])
+    await h.clk.advance(1)
+    const caps = h.state.captures
+    expect(await h.scan.tick()).toEqual({ kind: 'blocked', block: 'user-paused' })
+    expect(h.state.captures).toBe(caps)
+    // 暫停中仍排保底 tick → 閒置也一直喚醒
+    expect(h.clk.pending()).toEqual([])
+    expect(h.scan.snapshot().block).toBe('user-paused')
+  })
+  it('繼續 → 立刻重看並恢復 OCR', async () => {
+    const h = harness()
+    h.scan.start(1_000_000)
+    h.scan.toggleUserPause()
+    await h.clk.advance(1)
+    expect(h.state.ocrs).toBe(0)
+    expect(h.scan.toggleUserPause()).toBe(false)
+    await h.clk.advance(1)
+    // 繼續後沒 poke → 要等很久才恢復
+    expect(h.state.ocrs).toBe(1)
+    expect(h.scan.showing).toBe(true)
+    h.scan.stop()
+  })
+  it('setUserPause 已是同狀態不重送事件', () => {
+    const h = harness()
+    expect(h.scan.setUserPause(false)).toBe(false)
+    expect(h.scan.setUserPause(true)).toBe(true)
+    expect(h.scan.setUserPause(true)).toBe(true)
+    expect(h.events).toEqual([])
+  })
+})

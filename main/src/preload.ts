@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { HostApi, HostFetchInit, HostConfigForMain, ItemTextEvent, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId, UpdaterInfo, SettingsTabId, LegacySettingsTabId, ConfigChangedEvent, OcrRegionPickTarget, RevealScanEvent, RuneshapeScanEvent, RuneshapeUiState, StashCursorEvent, StashScanEvent, ScanMaskReport, LogEntry, OverlayContentState, RegexBookmarkRunEvent, RegexPasteRequest, RegexShareRequest } from '@ipc/types'
+import type { HostApi, HostFetchInit, HostConfigForMain, ItemTextEvent, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId, UpdaterInfo, SettingsTabId, LegacySettingsTabId, ConfigChangedEvent, OcrRegionPickTarget, RevealScanEvent, RuneshapeScanEvent, RuneshapeUiState, StashCursorEvent, StashScanEvent, ScanMaskReport, LogEntry, OverlayContentState, RegexBookmarkRunEvent, RegexPasteRequest, RegexShareRequest, PerfRendererReport, PerfStateEvent } from '@ipc/types'
 
 function subscribe<T> (channel: string, cb: (e: T) => void): () => void {
   const listener = (_: unknown, e: T) => cb(e)
@@ -93,7 +93,10 @@ const api: HostApi = {
   // 第 29 步:設定 › 記錄 › 效能(只有 Electron 視窗)
   perfGet: () => ipcRenderer.invoke('perf-get'),
   perfSet: (on: boolean) => ipcRenderer.invoke('perf-set', on),
-  perfOpenFile: () => ipcRenderer.invoke('perf-open-file')
+  perfOpenFile: () => ipcRenderer.invoke('perf-open-file'),
+  // B8:renderer 指標(只有效能診斷開著才送)與開關事件
+  perfRenderer: (r: PerfRendererReport) => { ipcRenderer.send('perf-renderer', r) },
+  onPerfState: (cb: (e: PerfStateEvent) => void) => subscribe('perf-state', cb)
 }
 
 contextBridge.exposeInMainWorld('host', api)

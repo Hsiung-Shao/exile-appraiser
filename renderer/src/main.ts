@@ -17,6 +17,7 @@ import { usePoeninja } from './web/background/Prices'
 import { createPoe2PriceSource } from './web/background/poe2-price-source'
 import { installVueErrorHandler, installWindowErrorLogging } from './web/renderer-errors'
 import { ensureStateLoaded as ensureRegexStateLoaded } from './web/regex/store'
+import { initRendererPerf } from './web/perf/renderer-perf'
 
 // 未捕捉的例外 / Promise 一律帶堆疊寫進 main log(`[renderer-error]`;main 只收得到 console 的訊息字串)
 installWindowErrorLogging(window)
@@ -121,4 +122,22 @@ async function boot () {
   // Vue 錯誤(沒被查價面板的 ErrorBoundary 攔下的)帶元件路徑與堆疊寫進 main log;正式版預設只印 `console.error(err)`
   installVueErrorHandler(app)
   app.use(i18nPlugin).mount('#app')
+
+  // B8:效能診斷開著時才收 renderer 指標(longtask / 幀間隔 / 查價延遲 / 背景圖);關著 = 0 observer / 0 計時器
+  initRendererPerf(Host, {
+    PerformanceObserver: typeof PerformanceObserver === 'function' ? PerformanceObserver as never : undefined,
+    raf: (cb) => requestAnimationFrame(cb),
+    caf: (h) => { cancelAnimationFrame(h) },
+    setInterval: (fn, ms) => setInterval(fn, ms),
+    clearInterval: (h) => { clearInterval(h as ReturnType<typeof setInterval>) },
+    now: () => performance.now(),
+    framesWanted: () => {
+      if (document.visibilityState !== 'visible') return false
+      if (!Host.isOverlay) return true
+      const c = Host.lastOverlayContent
+      return c != null && Object.values(c).some(v => v === true)
+    },
+    onItemText: (cb) => Host.onItemText(() => { cb() }),
+    send: (r) => { Host.perfRenderer(r) }
+  })
 }

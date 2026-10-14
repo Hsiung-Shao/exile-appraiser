@@ -6,7 +6,7 @@
  * 本檔不 import Config(Config 反過來用這裡的常數與正規化函式),避免循環相依。
  */
 import { shallowRef, watch } from 'vue'
-import { BG_FITS, BG_LAYOUT_DEFAULT, BG_ZOOM_MAX, BG_ZOOM_MIN, bgBakeCache, type BgBakeSpec, type BgFit, type BgLayout } from './bg-bake'
+import { BG_FITS, BG_LAYOUT_DEFAULT, BG_ZOOM_MAX, BG_ZOOM_MIN, bgBakeCache, bgPreviewCache, bgSourceCache, type BgBakeSpec, type BgFit, type BgLayout } from './bg-bake'
 
 export const THEMES = ['slate', 'light', 'contrast', 'parchment'] as const
 export type Theme = (typeof THEMES)[number]
@@ -14,7 +14,7 @@ export type Theme = (typeof THEMES)[number]
 export const ACCENTS = ['#d8aa4b', '#5b9dff', '#4fbf7a', '#a77bff', '#e0645a', '#3fc1c9'] as const
 
 export const FS_BASE_MIN = 11
-export const FS_BASE_MAX = 18
+export const FS_BASE_MAX = 40
 export const DEFAULT_FS_BASE = 13
 
 export function normTheme (v: unknown): Theme {
@@ -227,7 +227,8 @@ export function useBackground (settings: () => BgSettings, url: (file: string) =
   }, ({ vars, bake, layout, shown }) => {
     applyBackground(vars)
     // 第 30.6 步:背景關閉 / 換圖 → 隱藏中容器保留的圖用不到了
-    if (bgShownUrl.value !== shown) { bgBakeCache.clear(); bgShownUrl.value = shown }
+    // B9:換圖 / 關閉時連同解碼後的來源圖與設定頁預覽圖一起清
+    if (bgShownUrl.value !== shown) { bgBakeCache.clear(); bgSourceCache.clear(); bgPreviewCache.clear(); bgShownUrl.value = shown }
     const cl = bgLayouts.value
     if (!BG_HOSTS.every(h => sameLayout(cl[h], layout[h]))) bgLayouts.value = layout
     const cur = bgBake.value

@@ -23,7 +23,7 @@ describe('正規化', () => {
     expect(normHexColor(' #12ab34 ')).toBe('#12ab34')
     for (const v of ['#abc', 'red', 'rgb(1,2,3)', '#12345g', '', null, 0, '#1234567']) expect(normHexColor(v)).toBeNull()
   })
-  it('字級夾到 10–32、四捨五入;null / 字串 / NaN → null(跟隨)', () => {
+  it('字級夾到 10–72、四捨五入;null / 字串 / NaN → null(跟隨)', () => {
     expect(normOcrBadgeStyle({ fontSize: 5 }).fontSize).toBe(BADGE_FONT_SIZE_MIN)
     expect(normOcrBadgeStyle({ fontSize: 99 }).fontSize).toBe(BADGE_FONT_SIZE_MAX)
     expect(normOcrBadgeStyle({ fontSize: 17.6 }).fontSize).toBe(18)

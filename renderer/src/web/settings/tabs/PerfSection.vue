@@ -1,5 +1,5 @@
 <!--
-  設定 › 記錄 › 效能(第 29 步,docs/perf/README.md):效能診斷開關 + 最近一筆摘要 + 開啟 perf 記錄檔。
+  設定 › 記錄 › 效能(第 29 步,docs/perf/README.md):效能診斷開關 + 最近一筆摘要(B8:依區塊逐列)+ 開啟 perf 記錄檔。
   - 資料:IPC `perf-get` / `perf-set` / `perf-open-file`(main/src/perf/perf-monitor.ts;只有 Electron 視窗,預覽端整塊不顯示)。
   - 開關存在 main 的 userData/perf.json(不進 config.json / host-config,關著時與改版前行為相同);`--perf-log` 啟動也會打開。
   - 開著時每個取樣間隔輪詢一次 `perf-get` 更新摘要(分頁關掉就停);關著不輪詢。
@@ -19,8 +19,15 @@
     <p v-if="state?.byArg" class="pf-hint">{{ t('ppz.perf.by_arg') }}</p>
     <p v-if="state?.enabled" class="pf-last" data-perf="last">
       <template v-if="state.last">
-        <span class="pf-time">{{ t('ppz.perf.last', { time: lastTime }) }}</span>
-        <span class="pf-sum" :title="state.last.summary">{{ state.last.summary }}</span>
+        <span class="pf-time">{{ t('ppz.perf.last', { time: lastTime }) }} · {{ t('ppz.perf.scenario', { key: state.last.scenario }) }}</span>
+        <!-- B8:摘要依區塊分列(行程 / main 卡頓 / renderer / 查價 / 辨識 / 背景圖 / 系統);舊 main 沒有 sections → 一行摘要 -->
+        <span v-if="state.last.sections?.length" class="pf-secs" :title="state.last.summary" data-perf="sections">
+          <template v-for="sec in state.last.sections" :key="sec.key">
+            <span class="pf-k">{{ t(`ppz.perf.sec_${sec.key}`) }}</span>
+            <span class="pf-v" :data-perf-sec="sec.key">{{ sec.text }}</span>
+          </template>
+        </span>
+        <span v-else class="pf-sum" :title="state.last.summary">{{ state.last.summary }}</span>
       </template>
       <span v-else class="pf-time">{{ t('ppz.perf.none', { sec }) }}</span>
     </p>
@@ -106,6 +113,9 @@ onBeforeUnmount(() => {
 .perf-sec .pf-last { margin: 0; display: flex; flex-direction: column; gap: 2px; font-size: var(--fs-xs); }
 .perf-sec .pf-time { color: var(--ink-2); }
 .perf-sec .pf-sum { font-family: var(--font-mono); color: var(--ink-1); white-space: normal; word-break: break-word; }
+.perf-sec .pf-secs { display: grid; grid-template-columns: max-content 1fr; column-gap: 8px; row-gap: 1px; }
+.perf-sec .pf-k { color: var(--ink-2); white-space: nowrap; }
+.perf-sec .pf-v { font-family: var(--font-mono); color: var(--ink-1); white-space: normal; word-break: break-word; }
 .perf-sec .pf-status { margin: 0; font-size: var(--fs-xs); }
 .perf-sec .pf-status.bad { color: var(--bad); }
 </style>

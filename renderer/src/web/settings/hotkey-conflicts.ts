@@ -1,6 +1,7 @@
 /**
  * 設定頁的熱鍵衝突表(純函式;`renderer/test/chat-commands.test.ts` 測)。
- * 與 main `shortcut-actions.ts` 同一套規則:依註冊順序先到先得(查價 → 鎖定 → overlay → 褻瀆暫停 / 褻瀆框選 / 符文暫停 / 符文框選 → 聊天指令 → 倉庫搜尋),
+ * 與 main `shortcut-actions.ts` 同一套規則:依註冊順序先到先得(查價 → 鎖定 → overlay → 褻瀆暫停 / 褻瀆框選 / 符文暫停 / 符文框選(PoE2)
+ * 或倉庫價格暫停 / 倉庫框選(PoE1,2026-10-14)→ 聊天指令 → 倉庫搜尋),
  * 重複的後者不註冊;遊戲保留鍵(`ipc/reserved-hotkeys.ts`)一律不註冊。熱鍵總表、倉庫與聊天分頁、正則書籤共用。
  * 例外(第 16 步):褻瀆暫停(`ocr`)與符文暫停(`runeshape`)相同 → main 合併成一個 `scan-toggle-both`,
  * 兩欄都標 `shared`(不是重複,設定頁顯示「與…共用,一次切換兩者」);只有兩欄都會註冊時才成立(條件同 `hotkeySlots`)。
@@ -24,7 +25,7 @@ export function normalizeHotkey (hotkey: string): string {
 }
 
 export interface HotkeySlot {
-  /** `quick` / `locked` / `overlay` / `ocr` / `region` / `runeshape` / `runeRegion` / `cmd:<i>` / `stash:<i>` / `regexQuick` / `rxbm:<書籤索引>` */
+  /** `quick` / `locked` / `overlay` / `ocr` / `region` / `runeshape` / `runeRegion` / `stashToggle` / `stashRegion` / `cmd:<i>` / `stash:<i>` / `regexQuick` / `rxbm:<書籤索引>` */
   id: string
   hotkey: string
 }
@@ -41,6 +42,11 @@ export interface HotkeyConfigLike {
   hotkeyRuneshapeRegion?: string
   revealAutoEnabled?: boolean
   runeshapeEnabled?: boolean
+  /** 2026-10-14:PoE1 倉庫價格暫停 / 繼續、框選倉庫 OCR 區域(預設空) */
+  hotkeyStashToggle?: string
+  hotkeyStashRegion?: string
+  /** 倉庫價格開著(省略 = 開;關著時暫停熱鍵不註冊) */
+  stashPricesEnabled?: boolean
   commands: Array<{ text: string, hotkey: string }>
   stashSearch: Array<{ text: string, hotkey: string }>
   /** 第 33 步:正則書籤快速面板熱鍵 */
@@ -50,7 +56,7 @@ export interface HotkeyConfigLike {
 }
 
 /**
- * 依 main 的註冊順序列出會註冊的熱鍵欄位(條件同 `buildShortcutActions`:PoE1 沒有 OCR / 符文那三個;
+ * 依 main 的註冊順序列出會註冊的熱鍵欄位(條件同 `buildShortcutActions`:PoE1 沒有 OCR / 符文那四個、改為倉庫價格兩個;
  * 褻瀆暫停鍵要自動辨識開著、符文暫停鍵要符文塑形開著;文字空白的指令不註冊,不列入)
  */
 export function hotkeySlots (c: HotkeyConfigLike): HotkeySlot[] {
@@ -64,6 +70,9 @@ export function hotkeySlots (c: HotkeyConfigLike): HotkeySlot[] {
     slots.push({ id: 'region', hotkey: c.hotkeyOcrRegion })
     if (c.runeshapeEnabled) slots.push({ id: 'runeshape', hotkey: c.hotkeyRuneshapeToggle })
     slots.push({ id: 'runeRegion', hotkey: c.hotkeyRuneshapeRegion ?? '' })
+  } else {
+    if (c.stashPricesEnabled !== false) slots.push({ id: 'stashToggle', hotkey: c.hotkeyStashToggle ?? '' })
+    slots.push({ id: 'stashRegion', hotkey: c.hotkeyStashRegion ?? '' })
   }
   c.commands.forEach((x, i) => { if (x.text.trim()) slots.push({ id: `cmd:${i}`, hotkey: x.hotkey }) })
   c.stashSearch.forEach((x, i) => { if (x.text.trim()) slots.push({ id: `stash:${i}`, hotkey: x.hotkey }) })

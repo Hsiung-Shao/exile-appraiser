@@ -185,7 +185,7 @@
 
     <!-- 2026-10-08:APT 式懸浮選單(overlayKey 叫出;設定 / 正則書籤 / 速查表。設定開著時仍在最上層) -->
     <float-menu v-if="isOverlay && floatMenuOpen" :settings-open="settingsVisible"
-      @close="closeFloatMenu" @settings="menuToggleSettings" @pasted="onMenuPasted" />
+      @close="closeFloatMenu" @settings="menuToggleSettings" @pasted="onMenuPasted" @open-tab="menuOpenTab" />
 
     <!-- WP-S:靈魂之井揭露面板 OCR 徽章(與查價面板並列,不受 panelShown 控制) -->
     <ocr-badges v-if="isOverlay" />
@@ -616,6 +616,8 @@ export default defineComponent({
       menuToggleSettings,
       /** 懸浮選單的書籤貼進遊戲了:焦點 main 已交還遊戲,選單收起 */
       onMenuPasted () { closeFloatMenu('pasted') },
+      /** 2026-10-14:懸浮選單「前往正則」等跳頁 */
+      menuOpenTab (tab: SettingsTabId) { openSettingsTo(tab, '懸浮選單') },
       regexBookmarkBar: computed(() => AppConfig().regexBookmarkBar),
       /** 書籤列沒有書籤時「前往正則」 */
       openRegexTab () { settingsTab.value = 'regex' },
@@ -790,9 +792,12 @@ input[type=number]::-webkit-outer-spin-button {
   border-left: 3px solid var(--gold);
 }
 .price-panel.is-overlay {
-  border-radius: var(--radius-m);
+  /* 2026-10-14:圓角 12px(--radius-l);左側金色邊條 3px 沿圓角收尖,overflow hidden 讓內容跟著裁圓 */
+  border-radius: var(--radius-l);
   box-shadow: var(--shadow-float);
   overflow: hidden;
+  /* 大字級(fsBase 到 40)時面板寬 28.75em × 1.23 可能超過螢幕:以視窗寬 96% 為上限 */
+  max-width: 96vw;
 }
 
 /* 標題列(PobTools TitleBar.svelte 的語彙,縮成面板寬) */
@@ -803,7 +808,7 @@ input[type=number]::-webkit-outer-spin-button {
   gap: 6px;
   /* 13px 時 34px,隨字級等比 */
   height: calc(var(--fs-base) + 21px);
-  padding: 0 6px 0 10px;
+  padding: 0 8px 0 14px;
   background: var(--surface-1);
   border-bottom: 1px solid var(--edge-0);
   user-select: none;
@@ -859,7 +864,7 @@ input[type=number]::-webkit-outer-spin-button {
   align-items: center;
   gap: 8px;
   min-height: 22px;
-  padding: 2px 10px;
+  padding: 2px 14px;
   font-size: var(--fs-2xs);
   color: var(--ink-2);
   background: var(--surface-2);
@@ -890,6 +895,9 @@ input[type=number]::-webkit-outer-spin-button {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  /* 2026-10-14:不貼邊。移植的 CheckedItem 自帶 p-4(= 1rem ≈ 13px),這裡再加 0.3em(≈ 4px)→ 內容離面板邊約 17px;
+     背景圖模式的 `> * > *` 0.6em 左右內距是區塊底色內的留白,在這層之內,不會重複計算 */
+  padding: 0.25em 0.3em;
 }
 
 /* 貼上框(視窗模式 / 沒有物品時) */

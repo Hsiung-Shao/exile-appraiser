@@ -83,6 +83,8 @@
         />
         <div style="width: calc(2*3rem + 1px)" />
       </div>
+      <!-- exile-appraiser: 破裂詞綴的「破裂」切換鈕(自寫 FilterModifierFractured.vue;不適用時不輸出任何元素) -->
+      <filter-modifier-fractured v-if="!miniFilter" class="ml-5 mt-1 self-start" :filter="filter" :item="item" />
     </div>
     <modifier-anointment class="self-center" :filter="filter" />
   </div>
@@ -98,6 +100,8 @@ import ItemModifierText from '@/web/ui/ItemModifierText.vue'
 import ModifierAnointment from './FilterModifierAnointment.vue'
 import FilterModifierOptions, { RollOption } from './FilterModifierOptions.vue'
 import FilterModifierTiers from './FilterModifierTiers.vue'
+// exile-appraiser: 破裂切換鈕(自寫)
+import FilterModifierFractured from './FilterModifierFractured.vue'
 import { AppConfig } from '@/web/Config'
 import { ItemCategory, ItemRarity, ParsedItem } from '@/parser'
 import { FilterTag, StatFilter, INTERNAL_TRADE_IDS, ItemHasEmptyModifier } from './interfaces'
@@ -105,7 +109,8 @@ import SourceInfo from './SourceInfo.vue'
 import { SearchMode as MercSearchMode } from './pseudo/mercenary.js'
 
 export default defineComponent({
-  components: { ItemModifierText, ModifierAnointment, FilterModifierOptions, FilterModifierTiers, SourceInfo, StatRollSlider, UiPopover },
+  // exile-appraiser: 多註冊 FilterModifierFractured
+  components: { ItemModifierText, ModifierAnointment, FilterModifierOptions, FilterModifierTiers, FilterModifierFractured, SourceInfo, StatRollSlider, UiPopover },
   emits: ['update:groupExpanded'],
   props: {
     filter: {

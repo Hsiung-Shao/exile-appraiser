@@ -1,23 +1,30 @@
 <!--
   設定 › 更新與關於(WP4;第 39 步整理:更新 → 設定資料夾 → 資料來源 → 連結 → 致謝):品牌 + 版本、更新狀態(main/src/AppUpdater.ts 經 Host.getUpdaterInfo / onUpdaterState)、
-  資料來源(data/MANIFEST.json 的 `sources["data/poe1" | "data/poe2" | "data/poe2/trade" | "data/regex"]`,依目前遊戲列出;
-  有 commit 顯示短碼,只有 fetchedAt(交易站快照)顯示抓取日期)、連結列、回報問題、第三方致謝(授權全文 modal)。
+  資料來源(2026-10-14 使用者要求只留 poe.ninja 價格表的更新時間;MANIFEST 的資料版本列已移除)、連結列、回報問題、第三方致謝(授權全文 modal)。
   更新字串沿用上游 `updates.*`,上游沒有的放 `ppz.update.*`。所有外連走 Host.openExternal。
   贊助連結一律純文字(Patreon 不可用任何標誌 / 圖示)。
   授權全文 = LICENSES/*.MIT 的複本,放在 renderer/public/licenses/(Vite 帶進 dist;正式版由 app:// 供應)。
-  2026-10-07:品牌卡片多一行「支援遊戲版本」(`settings/game-versions.ts`,遊戲改版 / 資料同步 / 發版時更新)。
+  2026-10-07:品牌卡片顯示「支援遊戲版本」(`settings/game-versions.ts`,遊戲改版 / 資料同步 / 發版時更新);
+  2026-10-14 改成品牌卡片右側兩個醒目的大字塊(設計稿:強調色邊框、大號等寬數字)。
   第 39 步:免安裝版不顯示「自動更新」開關(只對安裝版有效;狀態列已說明);「開啟設定資料夾」從連結卡片獨立成一張。
 -->
 <template>
   <section class="card about-brand">
-    <div class="brand-row">
-      <i class="brand-mark" />
-      <span class="brand-name">ExileAppraiser</span>
-      <span class="brand-zh">流亡鑑價</span>
-      <span class="chip soft" data-about="version">{{ version }}</span>
+    <div class="brand-main">
+      <div class="brand-row">
+        <i class="brand-mark" />
+        <span class="brand-name">ExileAppraiser</span>
+        <span class="brand-zh">流亡鑑價</span>
+        <span class="chip soft" data-about="version">{{ version }}</span>
+      </div>
+      <p class="tagline">{{ t('ppz.about.tagline') }}</p>
     </div>
-    <p class="tagline">{{ t('ppz.about.tagline') }}</p>
-    <p class="game-versions" data-about="game-versions">{{ t('ppz.about.game_versions', gameVersions) }}</p>
+    <div class="gv-row" data-about="game-versions" role="group" :aria-label="t('ppz.about.game_versions_label')" :title="t('ppz.about.game_versions_label')">
+      <div v-for="g in gameBlocks" :key="g.id" class="gv-block" :data-game="g.id">
+        <span class="gv-label">{{ t('ppz.about.supports', { game: g.name }) }}</span>
+        <span class="gv-num num">{{ g.version }}</span>
+      </div>
+    </div>
   </section>
 
   <section class="card" data-about="update">
@@ -54,15 +61,10 @@
 
   <section class="card">
     <span class="label">{{ t('ppz.section_data') }}</span>
-    <div v-for="row in rows" :key="row.prefix" class="srow" :data-source="row.prefix">
-      <span class="k">{{ t(row.key) }}</span>
-      <div class="ctl source-text">{{ row.text }}</div>
-    </div>
-    <div v-if="ninjaText" class="srow" data-source="poe.ninja">
+    <div class="srow" data-source="poe.ninja">
       <span class="k">{{ t('ppz.ninja.source') }}</span>
       <div class="ctl source-text" :title="ninjaError">{{ ninjaText }}</div>
     </div>
-    <p v-if="manifestError" class="err-line">{{ manifestError }}</p>
   </section>
 
   <section class="card" data-about="links">
@@ -123,26 +125,6 @@ import { usePoeninja } from '@/web/background/Prices'
 import HelpTip from '../HelpTip.vue'
 import { SUPPORTED_GAME_VERSIONS } from '../game-versions'
 
-interface ManifestSource {
-  repo?: string
-  commit?: string
-  fetchedAt?: string
-}
-
-/** 各遊戲要列的 MANIFEST 前綴(順序即顯示順序)。 */
-const PREFIXES: Record<'poe1' | 'poe2', Array<{ prefix: string, key: string }>> = {
-  poe1: [
-    { prefix: 'data/poe1', key: 'ppz.data_poe1' },
-    { prefix: 'data/poe1/stash', key: 'ppz.data_poe1_stash' },
-    { prefix: 'data/regex', key: 'ppz.data_regex' }
-  ],
-  poe2: [
-    { prefix: 'data/poe2', key: 'ppz.data_poe2' },
-    { prefix: 'data/poe2/trade', key: 'ppz.data_poe2_trade' },
-    { prefix: 'data/regex', key: 'ppz.data_regex' }
-  ]
-}
-
 const REPO = 'https://github.com/Hsiung-Shao/exile-appraiser'
 const RELEASES = `${REPO}/releases`
 
@@ -184,32 +166,23 @@ export default defineComponent({
   components: { HelpTip },
   setup () {
     const { t } = useI18n()
-    const sources = shallowRef<Record<string, ManifestSource>>({})
-    const manifestError = shallowRef('')
     const info = shallowRef<UpdaterInfo | null>(null)
     const license = shallowRef<{ name: string, text: string } | null>(null)
     let unsubscribe: (() => void) | null = null
     let pushed = false
 
-    onMounted(async () => {
+    onMounted(() => {
       unsubscribe = Host.onUpdaterState((next) => { pushed = true; info.value = next })
       // 推播比查詢先到就以推播為準
       Host.getUpdaterInfo()
         .then((v) => { if (!pushed) info.value = v })
         .catch((e) => { console.error('[about] getUpdaterInfo 失敗', e) })
-      try {
-        const m = await (await fetch('./data/MANIFEST.json')).json() as { sources?: Record<string, ManifestSource> }
-        sources.value = m.sources ?? {}
-      } catch (e) {
-        manifestError.value = `MANIFEST.json: ${(e as Error).message}`
-      }
     })
     onUnmounted(() => { unsubscribe?.() })
 
-    // poe.ninja 價格表(PoE1 查價元件用;Prices.ts 的快取時間)
+    // poe.ninja 價格表(Prices.ts 的快取時間;目標依目前遊戲,WP-R2 起 PoE2 也抓)
     const ninja = usePoeninja()
     const ninjaText = computed(() => {
-      if (AppConfig().game !== 'poe1') return ''
       if (AppConfig().realm !== 'intl') return t('ppz.ninja.tw_unavailable')
       const at = ninja.lastFetchedAt.value
       if (at) return t('ppz.ninja.updated', { time: new Date(at).toLocaleString(AppConfig().uiLanguage === 'en' ? 'en-US' : 'zh-TW') })
@@ -217,22 +190,6 @@ export default defineComponent({
       if (ninja.lastError.value) return t('ppz.ninja.error', { error: ninja.lastError.value })
       return t('ppz.ninja.never')
     })
-
-    const rows = computed(() => PREFIXES[AppConfig().game].map(({ prefix, key }) => {
-      const s = sources.value[prefix]
-      let text = '?'
-      if (s) {
-        const repo = s.repo ?? prefix
-        if (s.commit) {
-          text = t('ppz.data_source', { repo, commit: s.commit.slice(0, 7) })
-        } else if (s.fetchedAt) {
-          text = `${repo} · ${t('ppz.data_fetched', { date: s.fetchedAt.slice(0, 10) })}`
-        } else {
-          text = repo
-        }
-      }
-      return { prefix, key, text }
-    }))
 
     /** 安裝版 + main 已套用 autoUpdate:下載完成後「結束程式時自動套用」。 */
     const autoApply = computed(() => info.value?.reason === 'unsigned-build' && info.value.autoUpdate !== false)
@@ -287,8 +244,10 @@ export default defineComponent({
       autoApply,
       version: Host.version,
       gameVersions: SUPPORTED_GAME_VERSIONS,
-      rows,
-      manifestError,
+      gameBlocks: [
+        { id: 'poe1', name: 'PoE1', version: SUPPORTED_GAME_VERSIONS.poe1 },
+        { id: 'poe2', name: 'PoE2', version: SUPPORTED_GAME_VERSIONS.poe2 }
+      ],
       ninjaText,
       ninjaError: computed(() => ninja.lastError.value ?? undefined),
       info,
@@ -367,10 +326,45 @@ export default defineComponent({
   color: var(--ink-2);
   font-size: var(--fs-xs);
 }
-.about-brand .game-versions {
-  margin: 2px 0 0;
+.about-brand {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75em 1em;
+}
+.about-brand .brand-main {
+  flex: 1 1 14em;
+  min-width: 0;
+}
+/* 支援遊戲版本:兩個大字塊(強調色邊框、大號等寬數字;尺寸跟設定視窗字級 --fs-base) */
+.about-brand .gv-row {
+  display: flex;
+  gap: 0.6em;
+  flex: 0 0 auto;
+}
+.about-brand .gv-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15em;
+  min-width: 6.5em;
+  padding: 0.45em 0.8em 0.5em;
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-s);
+  background: color-mix(in srgb, var(--gold) 8%, transparent);
+}
+.about-brand .gv-label {
   color: var(--ink-2);
   font-size: var(--fs-xs);
+  white-space: nowrap;
+}
+.about-brand .gv-num {
+  color: var(--gold);
+  font-size: calc(var(--fs-base) * 1.85);
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
 }
 .settings-panel .btn-row {
   display: flex;

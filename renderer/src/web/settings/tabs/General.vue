@@ -75,9 +75,9 @@
       <help-tip id="bg" :text="t('ppz.bg.hint')" />
     </div>
     <div class="bg-row">
-      <div class="bg-thumb" :class="{ empty: !bgThumb }" data-setting="bg-thumb"
-        :style="bgThumb ? { backgroundImage: bgThumb, filter: `brightness(${config.bg.bright / 100}) blur(${config.bg.blur / 100 * 4}px)` } : undefined">
-        <span v-if="!bgThumb">{{ t('ppz.bg.none') }}</span>
+      <!-- B9:縮圖用共用的縮小預覽圖預先畫好亮度 + 模糊(bg-bake.ts useBgThumb),不再對原圖即時套 CSS blur -->
+      <div class="bg-thumb" :class="{ empty: !bgUrl }" data-setting="bg-thumb" :style="bgThumb ? { backgroundImage: bgThumb } : undefined">
+        <span v-if="!bgUrl">{{ t('ppz.bg.none') }}</span>
       </div>
       <div class="bg-actions">
         <div class="bg-file" data-setting="bg-file">{{ config.bg.file || t('ppz.bg.none') }}</div>
@@ -114,8 +114,8 @@
     <template v-if="bgUrl">
       <span class="sublabel">{{ t('ppz.bg.layout.section') }} <help-tip id="bg-layout" data-setting="bg-layout-hint" :text="t('ppz.bg.layout.hint')" /></span>
       <div class="bg-layouts" data-setting="bg-layouts">
-        <bg-layout-editor host="panel" :url="bgUrl" :bright="config.bg.bright" />
-        <bg-layout-editor host="settings" :url="bgUrl" :bright="config.bg.bright" />
+        <bg-layout-editor host="panel" :url="bgUrl" :preview="bgPreview" :bright="config.bg.bright" />
+        <bg-layout-editor host="settings" :url="bgUrl" :preview="bgPreview" :bright="config.bg.bright" />
       </div>
     </template>
     <p v-if="bgError" class="err" data-setting="bg-error">{{ bgError }}</p>
@@ -171,6 +171,7 @@ import type { Language } from '@exile-appraiser/core/realm'
 import { ACCENTS, THEMES, FS_BASE_MIN, FS_BASE_MAX, DEFAULT_FS_BASE, bgImageUrl, normAccent, normBgFile, type Theme } from '@/web/useTheme'
 import { SETTINGS_FS_MAX, SETTINGS_FS_MIN, normSettingsFontSize } from '../settings-window-geom'
 import BgLayoutEditor from '../BgLayoutEditor.vue'
+import { useBgPreview, useBgThumb } from '@/web/bg-bake'
 import HelpTip from '../HelpTip.vue'
 
 /** 主題縮圖:[底, 面板, 字, 強調](同 pob-zh-engine/ui/src/views/SettingsView.svelte 的 SWATCH)。 */
@@ -215,10 +216,9 @@ export default defineComponent({
     const bgBusy = shallowRef(false)
     const bgError = shallowRef<string | null>(null)
     const bgUrl = computed(() => bgImageUrl(config.bg.file, { electron: Host.isElectron, preview: Host.isPreview, baseURI: document.baseURI }))
-    const bgThumb = computed(() => {
-      const u = bgUrl.value
-      return u ? `url("${u.replace(/["\\]/g, '\\$&')}")` : null
-    })
+    // B9:設定頁的縮圖與兩個位置預覽框共用一張 ≤ 480 px 的預覽圖(與背景圖層共用解碼後的來源圖)
+    const bgPreview = useBgPreview(() => bgUrl.value)
+    const bgThumb = useBgThumb(bgPreview, () => ({ bright: config.bg.bright, blur: config.bg.blur }), () => bgUrl.value)
     async function pickBg () {
       bgBusy.value = true
       bgError.value = null
@@ -243,6 +243,7 @@ export default defineComponent({
       bgBusy,
       bgError,
       bgThumb,
+      bgPreview,
       bgUrl,
       pickBg,
       t,

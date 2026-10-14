@@ -111,6 +111,10 @@ export interface HostConfigForMain {
   stashRegion?: OcrRegion | null
   /** 2026-10-01:框選符文塑形面板區域的熱鍵(預設空 = 不註冊;註冊條件同 `hotkeyOcrRegion`:overlay + PoE2 + 遊戲前景)。 */
   hotkeyRuneshapeRegion?: string
+  /** 2026-10-14:PoE1 倉庫價格暫停 / 繼續熱鍵(預設空 = 不註冊;overlay + PoE1 + `stashPricesEnabled` 才註冊)。 */
+  hotkeyStashToggle?: string
+  /** 2026-10-14:框選倉庫 OCR 區域的熱鍵(預設空 = 不註冊;overlay + PoE1 才註冊)。 */
+  hotkeyStashRegion?: string
   /** 自動更新(預設 true):安裝版背景下載新版、結束程式時靜默套用;false = 手動(按下載 → 按安裝)。見 main/src/updater-core.ts。 */
   autoUpdate: boolean
   /** 啟動時在主螢幕右下角短暫顯示「已在背景執行」提示(預設 true;main/src/startup-toast.ts)。 */
@@ -368,7 +372,7 @@ export interface OcrRegion {
 }
 
 /** 框選熱鍵要框哪一種區域(事件 `ocr-region-pick` 的內容;省略 = 揭露面板) */
-export type OcrRegionPickTarget = 'reveal' | 'runeshape'
+export type OcrRegionPickTarget = 'reveal' | 'runeshape' | 'stash'
 
 /** 一行 OCR 文字;座標 = 遊戲 client 區的實體像素(左上原點)。 */
 export interface OcrRevealLine {
@@ -412,7 +416,7 @@ export interface ConfigChangedEvent {
  * 第 39 步(設定頁資訊架構整理)起分兩組:設定(一般 / 遊戲 / 查價 / 倉庫與聊天 / 自動辨識 / 熱鍵 / 更新與關於)、
  * 工具(正則 / 拆粉排行 / 記錄)。舊值 `chat` 仍可送(`LegacySettingsTabId`),renderer `resolveSettingsTab` 映射到新分頁。
  */
-export type SettingsTabId = 'general' | 'game' | 'price-check' | 'stash-chat' | 'recognition' | 'hotkeys' | 'about' | 'regex' | 'dust' | 'log'
+export type SettingsTabId = 'general' | 'game' | 'price-check' | 'stash-chat' | 'hotkeys' | 'about' | 'recognition' | 'regex' | 'dust' | 'log'
 /** 第 39 步前的分頁 id(只剩 `chat` 改名;其餘沿用) */
 export type LegacySettingsTabId = 'chat'
 
@@ -446,8 +450,36 @@ export interface PerfState {
   sampleMs: number
   /** 今天的效能記錄檔完整路徑(`userData/logs/perf-<日期>.log`,JSONL) */
   file: string
-  /** 最近一筆:時間、情境鍵、一行摘要(與 app-log 的 `[perf]` 行相同) */
-  last: { ts: number, scenario: string, summary: string } | null
+  /** 最近一筆:時間、情境鍵、一行摘要(與 app-log 的 `[perf]` 行相同)、依區塊分列的摘要(B8;設定頁逐列顯示) */
+  last: { ts: number, scenario: string, summary: string, sections?: PerfSummarySection[] } | null
+}
+
+/** B8:摘要的一個區塊(`key` 給設定頁換成兩語標籤;`text` 與 app-log 一行摘要裡的那段相同) */
+export interface PerfSummarySection {
+  key: 'proc' | 'lag' | 'renderer' | 'query' | 'scan' | 'bg' | 'sys'
+  text: string
+}
+
+/** B8:main 開 / 關效能診斷時廣播(事件 `perf-state`,不進 PREVIEW_EVENTS);renderer 據此啟動 / 停止自己的指標收集 */
+export interface PerfStateEvent {
+  enabled: boolean
+  sampleMs: number
+}
+
+/**
+ * B8:renderer 每個取樣間隔送一次的指標(IPC `perf-renderer`,send,`preview: false`;只有效能診斷開著才送)。
+ * 數值都是「這段時間內」的量;main `RendererPerfAccumulator` 驗證後累加到下一筆取樣(`renderer/src/web/perf/`)。
+ */
+export interface PerfRendererReport {
+  windowMs: number
+  /** PerformanceObserver('longtask'):次數 / 總時間 / 最長(ms) */
+  longTask: { n: number, totalMs: number, maxMs: number }
+  /** rAF 幀間隔(ms;只在視窗顯示且 overlay 上有東西時量):幀數 / p95 / 最長;n = 0 = 沒量 */
+  frames: { n: number, p95: number, max: number }
+  /** 查價延遲(ms,每次查價一筆):收到物品文字 → 第一個交易站請求送出(≈ 解析完成)/ → 第一筆交易站結果 */
+  query: { parseMs: number[], firstMs: number[] }
+  /** 背景圖預先處理:重畫張數、快取換上(adopt)次數、來源圖載入次數與各段耗時(ms) */
+  bg: { redraws: number, adopts: number, loads: number, loadMs: number[], drawMs: number[], encodeMs: number[], decodeMs: number[] }
 }
 
 /** 聊天指令(移植 APT `commands`):熱鍵 → 在遊戲聊天框輸入 `text`(`@last` 前綴 / 後綴規則見 main/src/text-box.ts);`send` = 直接送出。 */
@@ -601,6 +633,10 @@ export interface HostApi {
   perfSet?: (on: boolean) => Promise<PerfState>
   /** 第 29 步:用系統預設程式開今天的效能記錄檔(還沒有就開記錄資料夾) */
   perfOpenFile?: () => Promise<void>
+  /** B8:renderer 指標回報(只有效能診斷開著時送;預覽端沒有) */
+  perfRenderer?: (r: PerfRendererReport) => void
+  /** B8:效能診斷開 / 關(main 廣播 `perf-state`;預覽端收不到) */
+  onPerfState?: (cb: (e: PerfStateEvent) => void) => () => void
 }
 
 /**

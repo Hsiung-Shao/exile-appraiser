@@ -4,7 +4,7 @@
  *
  * - `SettingsWindowRect`(CSS px,相對 overlay 左上角)只在 overlay 模式套用;null = 現行置中預設。
  * - 夾回(`clampSettingsRect`)只影響顯示,不回寫設定:換解析度 / DPI 縮小後又放大時,原本記住的大小還在。
- * - 字級 `settingsFontSize`(11–24 px,null = 跟隨全域 fsBase)只作用在設定視窗根元素:
+ * - 字級 `settingsFontSize`(11–48 px,null = 跟隨全域 fsBase)只作用在設定視窗根元素:
  *   根元素重定義 `--fs-base` 與由它推導的 `--fs-*`(pobtools.css 的 `--fs-*` 在 :root 就算好了,
  *   只改 `--fs-base` 子元素拿到的 `--fs-xs` 等仍是全域值,所以要整組重定義,見 `settingsFsVars`)。
  */
@@ -26,7 +26,7 @@ export const SETTINGS_MIN_W = 480
 export const SETTINGS_MIN_H = 360
 
 export const SETTINGS_FS_MIN = 11
-export const SETTINGS_FS_MAX = 24
+export const SETTINGS_FS_MAX = 48
 
 const MIN: Size = { w: SETTINGS_MIN_W, h: SETTINGS_MIN_H }
 const finite = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v)
@@ -47,7 +47,7 @@ export function normSettingsWindow (v: unknown): SettingsWindowRect | null {
   }
 }
 
-/** 設定檔讀進來的字級 → 11–24 的整數或 null(跟隨) */
+/** 設定檔讀進來的字級 → 11–48 的整數或 null(跟隨) */
 export function normSettingsFontSize (v: unknown): number | null {
   if (!finite(v)) return null
   return Math.min(SETTINGS_FS_MAX, Math.max(SETTINGS_FS_MIN, Math.round(v)))
@@ -210,7 +210,7 @@ export function settingsFsClass (vars: Record<string, string> | null | undefined
   return vars != null ? 'fs-own' : undefined
 }
 
-/** 快速調整:+1 / −1(從目前有效字級起算,夾在 11–24);reset → null(跟隨) */
+/** 快速調整:+1 / −1(從目前有效字級起算,夾在 11–48);reset → null(跟隨) */
 export function stepSettingsFs (own: number | null, globalFs: number, action: 'inc' | 'dec' | 'reset'): number | null {
   if (action === 'reset') return null
   const cur = effectiveSettingsFs(own, globalFs)

@@ -230,7 +230,7 @@ export default defineComponent({
     const unsub: Array<() => void> = []
     onMounted(() => {
       // 2026-10-01:符文塑形的框選熱鍵帶 target = runeshape;揭露面板不帶
-      unsub.push(Host.onOcrRegionPick((target) => { openRegionPicker('hotkey', target === 'runeshape' ? 'runeshape' : 'reveal') }))
+      unsub.push(Host.onOcrRegionPick((target) => { openRegionPicker('hotkey', target === 'runeshape' || target === 'stash' ? target : 'reveal') }))
       // overlay 失焦(Esc / Ctrl+W / overlayKey / 點回遊戲)→ 取消;只看 overlay 旗標,Alt 隱藏(visibility 事件)不取消
       unsub.push(Host.onFocusChange((s) => { if (!s.overlay) cancel('overlay 失焦', false) }))
       window.addEventListener('keydown', onKey, true)

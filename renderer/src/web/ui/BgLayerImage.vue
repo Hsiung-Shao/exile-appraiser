@@ -23,8 +23,11 @@
 
 <script lang="ts">
 import { computed, defineComponent, onBeforeUnmount, onMounted, ref, watch, type PropType } from 'vue'
-import { BgBaker, bgBakeCache, bgBakePlan, bgCssLayout, createResizeSettle, type BgBakeInput } from '../bg-bake'
+import { BgBaker, bgBakeCache, bgBakePlan, bgCssLayout, bgSourceCache, createResizeSettle, loadBgSource, redecode, type BgBakeInput, type BgSource } from '../bg-bake'
 import { bgBake, bgHostSize, bgLayouts, bgShownUrl, type BgHost } from '../useTheme'
+import { perfHooks } from '../perf/renderer-perf'
+
+const ms = (t0: number) => Math.round((performance.now() - t0) * 10) / 10
 
 /** 畫好的圖:blob URL + 已解碼的 Image(留著參照,換上時不必再解碼、不閃爍) */
 interface Baked { url: string, img: HTMLImageElement }
@@ -70,11 +73,15 @@ export default defineComponent({
     let ro: ResizeObserver | null = null
     let mo: MutationObserver | null = null
 
-    const baker = new BgBaker<HTMLImageElement, Baked>({
-      load: async (url) => await decoded(url, true),
-      render: async (img, i) => {
+    // B9:來源圖由 bgSourceCache 保管(解碼一次;卸載 / 重畫不再重抓重解碼,換圖 / 背景關閉時 useTheme.ts 清)
+    const baker = new BgBaker<BgSource, Baked>({
+      load: async (url) => await bgSourceCache.get(url, loadBgSource),
+      render: async (src, i) => {
+        // B9:來源圖是之前解碼留著的 <img>,Blink 可能已丟掉解碼後的像素;先非同步 decode(),drawImage 才不會在主執行緒同步解碼(實測 ~55 ms longtask)
+        await redecode(src)
+        const t0 = performance.now()
         // 中間畫布:不加濾鏡畫「底色 + 圖(cover、置中)」= CSS .bgimg 套 filter 之前的樣子(解析度 = 框 × dpr × 1.04)
-        const p = bgBakePlan(i, img.naturalWidth, img.naturalHeight)
+        const p = bgBakePlan(i, src.width, src.height)
         const work = document.createElement('canvas')
         work.width = p.width
         work.height = p.height
@@ -87,22 +94,32 @@ export default defineComponent({
         wc.fillStyle = i.color
         wc.fillRect(0, 0, p.width, p.height)
         wc.imageSmoothingQuality = 'high'
-        wc.drawImage(img, p.rect.x, p.rect.y, p.rect.w, p.rect.h)
+        wc.drawImage(src.image, p.rect.x, p.rect.y, p.rect.w, p.rect.h)
         // 整張套同一串 filter(框外當透明,邊緣淡出與 CSS 相同)
         oc.filter = p.filter
         oc.drawImage(work, 0, 0)
         work.width = 0
         work.height = 0
+        const drawMs = ms(t0)
+        const t1 = performance.now()
         const blob = await new Promise<Blob>((resolve, reject) => out.toBlob(b => b ? resolve(b) : reject(new Error('toBlob failed')), 'image/png'))
         out.width = 0
         out.height = 0
+        const encodeMs = ms(t1)
+        const t2 = performance.now()
         const url = URL.createObjectURL(blob)
+        let res: Baked
         try {
-          return { url, img: await decoded(url, false) }
+          res = { url, img: await decoded(url, false) }
         } catch (e) {
           URL.revokeObjectURL(url)
           throw e
         }
+        const decodeMs = ms(t2)
+        // B8:每次重畫一行(不是每幀);效能診斷開著時另外計入 renderer 指標
+        console.log(`[bg] 重畫 ${props.instance ?? props.host} ${p.width}×${p.height} 霧面 ${i.blurPx}px:繪製 ${drawMs} / 編碼 ${encodeMs}(${Math.round(blob.size / 1024)} KB)/ 解碼 ${decodeMs} ms`)
+        perfHooks.bg?.({ kind: 'redraw', drawMs, encodeMs, decodeMs })
+        return res
       },
       show: (b) => {
         const el = imgEl.value
@@ -111,7 +128,7 @@ export default defineComponent({
         el.dataset.baked = '1'
       },
       discard: discardBaked,
-      release: (img) => { img.removeAttribute('src') },
+      release: () => { /* 來源圖歸 bgSourceCache 管 */ },
       clear: () => {
         const el = imgEl.value
         if (!el) return
@@ -136,9 +153,9 @@ export default defineComponent({
       const url = bgShownUrl.value
       if (l.fit === 'zoom' && l.zoom !== 100 && url && natural?.url !== url && naturalLoading !== url) {
         naturalLoading = url
-        void decoded(url, false).then((img) => {
-          if (naturalLoading === url) natural = { url, w: img.naturalWidth, h: img.naturalHeight }
-          img.removeAttribute('src')
+        // B9:原始大小取自共用的來源圖(不另外解碼一次原圖)
+        void bgSourceCache.get(url, loadBgSource).then((src) => {
+          if (naturalLoading === url) natural = { url, w: src.width, h: src.height }
         }).catch(() => {
           if (naturalLoading === url) natural = { url, w: 0, h: 0 } // 量不到:當 cover(倍率 100),不重試
         }).finally(() => {
@@ -179,7 +196,10 @@ export default defineComponent({
       if (!el) return
       // 第 30.6 步:上次隱藏前畫好的圖 → 第一幀就用它(ResizeObserver 量到大小後鍵相同就不重畫)
       const cached = bgBakeCache.take(props.instance ?? props.host)
-      if (cached && !baker.adopt(cached.key, cached.out as Baked)) cached.discard(cached.out)
+      if (cached) {
+        if (baker.adopt(cached.key, cached.out as Baked)) perfHooks.bg?.({ kind: 'adopt' })
+        else cached.discard(cached.out)
+      }
       ro = new ResizeObserver((entries) => {
         const e = entries[entries.length - 1]
         const dp = e.devicePixelContentBoxSize?.[0]

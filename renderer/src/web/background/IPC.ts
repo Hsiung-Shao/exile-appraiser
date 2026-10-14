@@ -10,12 +10,13 @@
  */
 import type { HostApi, HostFetchResult, ItemTextEvent, HostConfigForMain, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId } from '@ipc/types'
 import type { ConfigChangedEvent, HotkeyRegistration, OcrAvailability, OcrRegionPickTarget, RevealScanEvent, SettingsTabId, LegacySettingsTabId, UpdaterInfo } from '@ipc/types'
-import type { LogEntry, LogSnapshot, PerfState, RuneshapeScanEvent, RuneshapeStats, RuneshapeUiState, ScanMaskReport, OverlayContentState, StashCursorEvent, StashScanEvent, StashStats } from '@ipc/types'
+import type { LogEntry, LogSnapshot, PerfRendererReport, PerfState, PerfStateEvent, RuneshapeScanEvent, RuneshapeStats, RuneshapeUiState, ScanMaskReport, OverlayContentState, StashCursorEvent, StashScanEvent, StashStats } from '@ipc/types'
 import type { RegexBookmarkRunEvent, RegexPasteRequest, RegexPasteResult, RegexShareRequest } from '@ipc/types'
 import { shallowRef } from 'vue'
 import type { HttpFetch } from '@exile-appraiser/core/http'
 import { withRetryAfter } from '@exile-appraiser/core/http'
 import { fetchViaHost, type ProxyInit } from './host-fetch'
+import { perfHooks } from '../perf/renderer-perf'
 
 const LS_KEY = 'exile-appraiser.config'
 const LS_REGEX_KEY = 'exile-appraiser.regex_state'
@@ -48,8 +49,11 @@ class HostTransport {
     if (init?.method === 'POST' && init.body && /\/api\/trade2?\/(search|exchange)\//.test(url)) {
       try { this.lastTradeQuery.value = { url, body: JSON.parse(init.body), at: Date.now() } } catch {}
     }
-    if (window.host) return toResponse(await fetchViaHost(window.host, url, init))
-    return fetch(url, init)
+    // B8:查價延遲打點(效能診斷關著時 perfHooks.trade 是 null,只多一個 `?.`)
+    perfHooks.trade?.('request', url)
+    const res = window.host ? toResponse(await fetchViaHost(window.host, url, init)) : await fetch(url, init)
+    perfHooks.trade?.('response', url)
+    return res
   }
 
   /**
@@ -246,6 +250,12 @@ class HostTransport {
   async perfGet (): Promise<PerfState | null> { return this.canPerf ? ((await window.host?.perfGet?.()) ?? null) : null }
   async perfSet (on: boolean): Promise<PerfState | null> { return this.canPerf ? ((await window.host?.perfSet?.(on)) ?? null) : null }
   async perfOpenFile (): Promise<void> { if (this.canPerf) await window.host?.perfOpenFile?.() }
+  /** B8:renderer 指標回報(renderer/src/web/perf/renderer-perf.ts;只在效能診斷開著時送) */
+  perfRenderer (r: PerfRendererReport): void { if (this.canPerf) window.host?.perfRenderer?.(r) }
+  /** B8:效能診斷開 / 關(main 廣播;預覽端收不到) */
+  onPerfState (cb: (e: PerfStateEvent) => void): () => void {
+    return (this.canPerf ? window.host?.onPerfState?.(cb) : undefined) ?? (() => {})
+  }
 
   // ---- 靈魂之井揭露面板(褻瀆)自動辨識(main/src/ocr/reveal-scan.ts;只有 overlay 會收到事件) ----
   onRevealScanResult (cb: (e: RevealScanEvent) => void): () => void {
@@ -294,7 +304,9 @@ class HostTransport {
   runeshapeUiState (s: RuneshapeUiState): void { window.host?.runeshapeUiState?.(s) }
 
   /** 第五輪 30.4:overlay 上有沒有東西要畫(main 據此閒置隱藏 overlay 視窗;overlay/overlay-content.ts) */
-  overlayContent (s: OverlayContentState): void { window.host?.overlayContent?.(s) }
+  overlayContent (s: OverlayContentState): void { this.lastOverlayContent = s; window.host?.overlayContent?.(s) }
+  /** B8:最近一次回報的 overlay 內容(效能診斷只在 overlay 上有東西時量幀間隔;還沒回報 = null) */
+  lastOverlayContent: OverlayContentState | null = null
 
   // ---- 第 33 步:正則書籤快捷存取(main/src/regex-paste.ts) ----
   /** 能交給 main 複製 + 貼進遊戲(Electron 視窗;預覽 / 純瀏覽器沒有 → 呼叫端自己複製) */

@@ -7,7 +7,8 @@ import path from 'node:path'
 const root = path.resolve(__dirname, '../..')
 const read = (p: string) => fs.readFileSync(path.join(root, p), 'utf8')
 
-const KEYS = ['title', 'enable', 'hint', 'by_arg', 'last', 'none', 'off', 'open_file', 'open_failed', 'set_failed']
+const SECTION_KEYS = ['proc', 'lag', 'renderer', 'query', 'scan', 'bg', 'sys']
+const KEYS = ['title', 'enable', 'hint', 'by_arg', 'last', 'none', 'off', 'open_file', 'open_failed', 'set_failed', 'scenario', ...SECTION_KEYS.map(k => `sec_${k}`)]
 
 describe('效能區字串', () => {
   it('中英文 ppz.perf.* 都有,參數相同', () => {
@@ -53,5 +54,21 @@ describe('效能區接線', () => {
     const vue = read('renderer/src/web/settings/tabs/PerfSection.vue')
     expect(vue).toMatch(/if \(on\) poll = setInterval/)
     expect(vue).toMatch(/onBeforeUnmount\(\(\) => \{\s*stopPoll\(\)/)
+  })
+})
+
+describe('B8 摘要依區塊分列', () => {
+  it('最近一筆依 sections 逐列顯示(標籤 ppz.perf.sec_<key>),沒有 sections 時退回一行摘要', () => {
+    const vue = read('renderer/src/web/settings/tabs/PerfSection.vue')
+    expect(vue).toMatch(/v-for="sec in state\.last\.sections"/)
+    expect(vue).toContain("t(`ppz.perf.sec_${sec.key}`)")
+    expect(vue).toContain("t('ppz.perf.scenario', { key: state.last.scenario })")
+    expect(vue).toMatch(/v-else class="pf-sum"/)
+  })
+
+  it('區塊鍵與 main 的 PerfSummarySection 型別一致', () => {
+    const types = read('ipc/types.ts')
+    const m = /key: ((?:'[a-z]+' \| )*'[a-z]+')\n/.exec(/export interface PerfSummarySection \{[\s\S]*?\n\}/.exec(types)![0])!
+    expect(m[1].split(' | ').map(x => x.replace(/'/g, ''))).toEqual(SECTION_KEYS)
   })
 })

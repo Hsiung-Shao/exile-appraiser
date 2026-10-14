@@ -27,7 +27,7 @@ describe('Config:settingsWindow / settingsFontSize 往返與舊檔相容', () =>
     expect(JSON.parse(serialized).settingsWindow).toEqual({ w: 900, h: 700, x: -20, y: 36 })
     expect(JSON.parse(serialized).settingsFontSize).toBe(20)
   })
-  it('壞值 → null;太小拉到最小值;字級夾在 11–24', () => {
+  it('壞值 → null;太小拉到最小值;字級夾在 11–48', () => {
     for (const bad of ['"x"', '[]', '1', '{"w":800,"h":600,"x":10}', '{"w":"800","h":600,"x":0,"y":0}', '{"w":0,"h":600,"x":0,"y":0}',
       '{"w":800,"h":-5,"x":0,"y":0}', '{"w":800,"h":600,"x":1e9,"y":0}', 'null']) {
       expect(_roundTripForTest(`{"settingsWindow":${bad}}`).config.settingsWindow).toBeNull()
@@ -201,7 +201,7 @@ describe('獨立字級', () => {
       '--fs-base': '20px', '--fs-2xs': '17px', '--fs-xs': '18px', '--fs-sm': '19px', '--fs-md': '20px',
       '--fs-lg': '22px', '--fs-xl': '27px', '--app-fs-base': '13px'
     })
-    expect(settingsFsVars(99, 13)?.['--fs-base']).toBe('24px')
+    expect(settingsFsVars(99, 13)?.['--fs-base']).toBe('48px')
   })
   it('公式與 pobtools.css :root 的 --fs-* 一致(主題檔改了這裡要跟著改)', () => {
     const css = fs.readFileSync(new URL('../src/theme/pobtools.css', import.meta.url), 'utf8')

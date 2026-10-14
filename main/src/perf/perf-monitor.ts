@@ -6,7 +6,8 @@
  *   單核 100% 為基準 → 多核忙碌時可超過 100%;工作集 MB);
  * - 事件迴圈卡頓 p95 / 最長(`LagProbe`,每 `PERF_LAG_INTERVAL_MS` 一次 setTimeout);
  * - uiohook 每秒事件數(開著時才掛 `input` 監聽)、uiohookGate 是否持有;
- * - 兩個 PanelScan(褻瀆 reveal / 符文 rune)每秒擷取 / OCR 次數、被 scanBlock 擋下的原因統計;
+ * - 兩個 PanelScan(褻瀆 reveal / 符文 rune)與 PoE1 倉庫 StashScan(B8)每秒擷取 / OCR 次數、被擋下的原因統計;
+ * - B8:renderer 回報(IPC `perf-renderer`,`RendererPerfAccumulator`):longtask、rAF 幀間隔、查價延遲、背景圖預先處理耗時;
  * - GameDetector 視窗列舉 / PowerShell 確認次數;overlay 視窗是否 visible;WinOcr PowerShell 行程在不在(pid);
  * - **情境標記**(`deriveScenario`):遊戲在不在 / 前景、查價面板、設定視窗、褻瀆 / 符文 OCR、背景圖、overlay / window 模式。
  * 寫到 app-log 一行摘要(`[perf] …`)與 `userData/logs/perf-<YYYY-MM-DD>.log`(JSONL,一行一筆;
@@ -17,12 +18,13 @@
  */
 import { LagProbe, type LagSummary } from './lag-probe'
 import { dateStamp, timeStamp } from '../app-log'
+import type { PerfRendererReport, PerfSummarySection } from '@ipc/types'
 
 export const PERF_SAMPLE_MS = 5000
 /** 效能診斷的卡頓探針間隔(capture-bench 用 4 ms;常駐診斷取疏一點,探針本身的 CPU 才不會干擾量測) */
 export const PERF_LAG_INTERVAL_MS = 20
-/** JSONL 每筆的 schema 版本 */
-export const PERF_SCHEMA = 1
+/** JSONL 每筆的 schema 版本(2 = B8:加 `stash` / `renderer`、情境 `+stash`) */
+export const PERF_SCHEMA = 2
 
 // ---------------- 檔名 ----------------
 
@@ -150,6 +152,8 @@ export interface ScenarioInput {
   /** 兩個掃描目前被擋的原因(null = 正在掃描;'stopped' = 沒啟動) */
   revealReason: string | null
   runeReason: string | null
+  /** B8:PoE1 倉庫掃描目前被擋的原因(同上;省略 = 沒有這個掃描 = 關) */
+  stashReason?: string | null
   /** 設定檔的背景圖:開著且選了圖 = true;讀不到 = null */
   bg: boolean | null
   /** overlay / 備援視窗是否 visible */
@@ -165,18 +169,20 @@ export interface ScenarioTags {
   /** OCR 功能開著(啟用 + PoE2 + overlay + 沒被使用者暫停;遊戲失焦 / 面板開著的暫時停也算開) */
   revealOcr: boolean
   runeOcr: boolean
+  /** B8:PoE1 倉庫價格 OCR 開著(啟用 + PoE1 + overlay;暫時停也算開) */
+  stashOcr: boolean
   bg: boolean | null
   windowVisible: boolean
 }
 
 /** 這些原因 = OCR 功能關著(不是暫時停) */
-const OCR_OFF: ReadonlySet<string> = new Set(['disabled', 'not-poe2', 'not-overlay', 'user-paused', 'no-data', 'stopped'])
+const OCR_OFF: ReadonlySet<string> = new Set(['disabled', 'not-poe2', 'not-poe1', 'not-overlay', 'user-paused', 'no-data', 'stopped'])
 export const ocrOn = (reason: string | null) => !OCR_OFF.has(reason ?? '')
 
 /**
  * 純函式:目前狀態 → 情境標記與情境鍵。情境鍵 = 基本情境 + 附加:
  *   `window` / `no-game` / `game-bg` / `fg-idle` / `panel` / `settings` / `picker`
- *   + `+reveal`(褻瀆 OCR 開)+ `+rune`(符文 OCR 開)+ `+bg`(背景圖開且查價面板或設定開著;window 模式看視窗是否顯示)
+ *   + `+reveal`(褻瀆 OCR 開)+ `+rune`(符文 OCR 開)+ `+stash`(PoE1 倉庫價格 OCR 開,B8)+ `+bg`(背景圖開且查價面板或設定開著;window 模式看視窗是否顯示)
  * 與 `scripts/perf-scenario.mjs` 的情境清單 / `docs/perf/README.md`「情境定義」對應。
  */
 export function deriveScenario (s: ScenarioInput): { key: string, tags: ScenarioTags } {
@@ -191,6 +197,7 @@ export function deriveScenario (s: ScenarioInput): { key: string, tags: Scenario
     picker: s.ui ? s.ui.picker : null,
     revealOcr: ocrOn(s.revealReason),
     runeOcr: ocrOn(s.runeReason),
+    stashOcr: s.stashReason === undefined ? false : ocrOn(s.stashReason),
     bg: s.bg,
     windowVisible: s.windowVisible
   }
@@ -205,6 +212,7 @@ export function deriveScenario (s: ScenarioInput): { key: string, tags: Scenario
   let key = base
   if (tags.revealOcr) key += '+reveal'
   if (tags.runeOcr) key += '+rune'
+  if (tags.stashOcr) key += '+stash'
   const bgShown = s.mode === 'window' ? s.windowVisible : Boolean(tags.panel || tags.settings)
   if (tags.bg && bgShown) key += '+bg'
   return { key, tags }
@@ -228,8 +236,12 @@ export interface PerfSample {
   uiohook: { evPerSec: number, running: boolean, holders: number }
   reveal: ScanRates
   rune: ScanRates
+  /** B8:PoE1 倉庫價格掃描 */
+  stash: ScanRates
   detect: { enums: number, processProbes: number, running: boolean }
   winOcr: { running: boolean, pid?: number }
+  /** B8:這段時間 renderer 回報的指標(沒有回報 = null:預覽端 / renderer 還沒收到開關事件) */
+  renderer: RendererPerfSummary | null
 }
 
 /** JSONL 一行(保證沒有換行) */
@@ -241,14 +253,166 @@ const scanPart = (label: string, r: ScanRates) => r.state === 'active' || r.capP
   ? `${label} 擷取 ${r.capPerSec}/s OCR ${r.ocrPerSec}/s${r.state === 'active' ? '' : `(${r.state})`}`
   : `${label} ${r.state}`
 
+/**
+ * B8:摘要依區塊分列(設定 › 記錄 › 效能逐列顯示;一行摘要 = 情境 + 這些區塊以 ` | ` 串起):
+ * 行程 / main 卡頓(+ uiohook)/ renderer / 查價 / 辨識(PoE1 倉庫 + PoE2 褻瀆 / 符文)/ 背景圖 / 系統(列舉、視窗、WinOcr)
+ */
+export function perfSummarySections (s: PerfSample): PerfSummarySection[] {
+  const types = Object.entries(s.cpu.byType).map(([k, v]) => `${k} ${v}`).join(' ')
+  const r = s.renderer
+  const renderer = !r
+    ? '沒有回報'
+    : `longtask ${r.longTask.n} 次 ${r.longTask.totalMs} ms(最長 ${r.longTask.maxMs})· ` +
+      (r.frames.n > 0 ? `幀間隔 p95 ${r.frames.p95} / 最長 ${r.frames.max} ms` : '幀間隔 沒量(視窗隱藏 / 沒有內容)')
+  const query = !r || (r.query.n === 0 && r.query.parse.n === 0)
+    ? '沒有查價'
+    : `${r.query.n} 次 · 解析 p50 ${r.query.parse.p50} · 第一筆結果 p50 ${r.query.first.p50} / p95 ${r.query.first.p95} / 最長 ${r.query.first.max} ms`
+  const bg = !r || (r.bg.redraws === 0 && r.bg.adopts === 0 && r.bg.loads === 0)
+    ? '沒有重畫'
+    : `重畫 ${r.bg.redraws} · 快取換上 ${r.bg.adopts} · 載入 ${r.bg.loads}(${r.bg.load.max} ms)· ` +
+      `繪製 ${r.bg.draw.max} · 編碼 ${r.bg.encode.max} · 解碼 ${r.bg.decode.max} ms`
+  return [
+    { key: 'proc', text: `CPU ${s.cpu.total}%(${types})WS ${s.wsMB.total} MB` },
+    { key: 'lag', text: `卡頓 p95 ${s.lag.p95} / 最長 ${s.lag.max} ms · uiohook ${s.uiohook.evPerSec}/s${s.uiohook.running ? '(持有中)' : ''}` },
+    { key: 'renderer', text: renderer },
+    { key: 'query', text: query },
+    { key: 'scan', text: `${scanPart('倉庫', s.stash)} · ${scanPart('褻瀆', s.reveal)} · ${scanPart('符文', s.rune)}` },
+    { key: 'bg', text: bg },
+    {
+      key: 'sys',
+      text: `列舉 ${s.detect.enums}${s.detect.processProbes ? ` + PS ${s.detect.processProbes}` : ''} · 視窗 ${s.tags.windowVisible ? '顯示' : '隱藏'}` +
+        `${s.winOcr.running ? ` · WinOcr pid ${s.winOcr.pid ?? '?'}` : ''}`
+    }
+  ]
+}
+
 /** app-log 一行摘要(`[perf] ` 開頭) */
 export function formatPerfSummary (s: PerfSample): string {
-  const types = Object.entries(s.cpu.byType).map(([k, v]) => `${k} ${v}`).join(' ')
-  return `[perf] 情境 ${s.scenario} | CPU ${s.cpu.total}%(${types})WS ${s.wsMB.total} MB | ` +
-    `卡頓 p95 ${s.lag.p95} / 最長 ${s.lag.max} ms | uiohook ${s.uiohook.evPerSec}/s${s.uiohook.running ? '(持有中)' : ''} | ` +
-    `${scanPart('褻瀆', s.reveal)} | ${scanPart('符文', s.rune)} | 列舉 ${s.detect.enums}` +
-    `${s.detect.processProbes ? ` + PS ${s.detect.processProbes}` : ''} | 視窗 ${s.tags.windowVisible ? '顯示' : '隱藏'}` +
-    `${s.winOcr.running ? ` | WinOcr pid ${s.winOcr.pid ?? '?'}` : ''}`
+  return `[perf] 情境 ${s.scenario} | ` + perfSummarySections(s).map(x => x.text).join(' | ')
+}
+
+// ---------------- renderer 指標(B8) ----------------
+
+/** 一組耗時的分位數(ms,小數一位) */
+export interface Quantiles { n: number, p50: number, p95: number, max: number }
+type Q3 = Omit<Quantiles, 'n'>
+
+export interface RendererPerfSummary {
+  /** 這筆取樣收到幾份 renderer 回報 */
+  reports: number
+  longTask: { n: number, totalMs: number, maxMs: number }
+  /** 多份回報的 p95 取最大(保守),n 加總 */
+  frames: { n: number, p95: number, max: number }
+  /** n = 有第一筆結果的查價次數 */
+  query: { n: number, parse: Quantiles, first: Q3 }
+  bg: { redraws: number, adopts: number, loads: number, load: Q3, draw: Q3, encode: Q3, decode: Q3 }
+}
+
+/** 每個耗時陣列最多留幾筆(renderer 不可信:避免一次塞爆記憶體) */
+export const RENDERER_ARRAY_CAP = 500
+
+const nonNeg = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v) && v >= 0
+const numArr = (v: unknown): number[] | null => (Array.isArray(v) && v.every(nonNeg) ? (v as number[]).slice(-RENDERER_ARRAY_CAP) : null)
+
+/** 不可信的 payload → 合法的報告;任何欄位不合法 → null(整份丟掉) */
+export function validRendererReport (v: unknown): PerfRendererReport | null {
+  if (v == null || typeof v !== 'object') return null
+  const o = v as Record<string, any>
+  const lt = o.longTask
+  const fr = o.frames
+  const bg = o.bg
+  if (!nonNeg(o.windowMs) || !lt || !nonNeg(lt.n) || !nonNeg(lt.totalMs) || !nonNeg(lt.maxMs)) return null
+  if (!fr || !nonNeg(fr.n) || !nonNeg(fr.p95) || !nonNeg(fr.max)) return null
+  const parseMs = numArr(o.query?.parseMs)
+  const firstMs = numArr(o.query?.firstMs)
+  if (!parseMs || !firstMs) return null
+  if (!bg || !nonNeg(bg.redraws) || !nonNeg(bg.adopts) || !nonNeg(bg.loads)) return null
+  const loadMs = numArr(bg.loadMs)
+  const drawMs = numArr(bg.drawMs)
+  const encodeMs = numArr(bg.encodeMs)
+  const decodeMs = numArr(bg.decodeMs)
+  if (!loadMs || !drawMs || !encodeMs || !decodeMs) return null
+  return {
+    windowMs: o.windowMs,
+    longTask: { n: lt.n, totalMs: lt.totalMs, maxMs: lt.maxMs },
+    frames: { n: fr.n, p95: fr.p95, max: fr.max },
+    query: { parseMs, firstMs },
+    bg: { redraws: bg.redraws, adopts: bg.adopts, loads: bg.loads, loadMs, drawMs, encodeMs, decodeMs }
+  }
+}
+
+/** 純函式:耗時陣列 → p50 / p95 / 最長(nearest-rank;空 = 0) */
+export function quantiles (values: readonly number[]): Quantiles {
+  if (values.length === 0) return { n: 0, p50: 0, p95: 0, max: 0 }
+  const v = [...values].sort((a, b) => a - b)
+  const at = (p: number) => v[Math.min(v.length - 1, Math.max(0, Math.ceil(p * v.length) - 1))]
+  return { n: v.length, p50: r1(at(0.5)), p95: r1(at(0.95)), max: r1(v[v.length - 1]) }
+}
+const q3 = (values: readonly number[]): Q3 => { const { p50, p95, max } = quantiles(values); return { p50, p95, max } }
+
+/**
+ * main 端:renderer 回報(IPC `perf-renderer`)驗證後累加,取樣時 `drain()` 成摘要並清空。
+ * renderer 的回報週期與 main 取樣不同步,所以一筆取樣可能含 0 / 1 / 2 份;次數 / 總時間加總、耗時陣列串接(各 `RENDERER_ARRAY_CAP` 筆)。
+ */
+export class RendererPerfAccumulator {
+  private acc: PerfRendererReport | null = null
+  private reports = 0
+
+  add (v: unknown): void {
+    const r = validRendererReport(v)
+    if (!r) return
+    this.reports++
+    const a = this.acc
+    if (!a) { this.acc = r; return }
+    const cat = (x: number[], y: number[]) => x.concat(y).slice(-RENDERER_ARRAY_CAP)
+    this.acc = {
+      windowMs: a.windowMs + r.windowMs,
+      longTask: { n: a.longTask.n + r.longTask.n, totalMs: a.longTask.totalMs + r.longTask.totalMs, maxMs: Math.max(a.longTask.maxMs, r.longTask.maxMs) },
+      frames: { n: a.frames.n + r.frames.n, p95: Math.max(a.frames.p95, r.frames.p95), max: Math.max(a.frames.max, r.frames.max) },
+      query: { parseMs: cat(a.query.parseMs, r.query.parseMs), firstMs: cat(a.query.firstMs, r.query.firstMs) },
+      bg: {
+        redraws: a.bg.redraws + r.bg.redraws,
+        adopts: a.bg.adopts + r.bg.adopts,
+        loads: a.bg.loads + r.bg.loads,
+        loadMs: cat(a.bg.loadMs, r.bg.loadMs),
+        drawMs: cat(a.bg.drawMs, r.bg.drawMs),
+        encodeMs: cat(a.bg.encodeMs, r.bg.encodeMs),
+        decodeMs: cat(a.bg.decodeMs, r.bg.decodeMs)
+      }
+    }
+  }
+
+  /** 取出這段時間的摘要並清空;沒有任何回報 = null */
+  drain (): RendererPerfSummary | null {
+    const a = this.acc
+    const n = this.reports
+    this.acc = null
+    this.reports = 0
+    if (!a) return null
+    return {
+      reports: n,
+      longTask: { n: a.longTask.n, totalMs: r1(a.longTask.totalMs), maxMs: r1(a.longTask.maxMs) },
+      frames: { n: a.frames.n, p95: r1(a.frames.p95), max: r1(a.frames.max) },
+      query: { n: a.query.firstMs.length, parse: quantiles(a.query.parseMs), first: q3(a.query.firstMs) },
+      bg: {
+        redraws: a.bg.redraws,
+        adopts: a.bg.adopts,
+        loads: a.bg.loads,
+        load: q3(a.bg.loadMs),
+        draw: q3(a.bg.drawMs),
+        encode: q3(a.bg.encodeMs),
+        decode: q3(a.bg.decodeMs)
+      }
+    }
+  }
+}
+
+/** 設定檔文字 → 背景圖開著且選了圖(情境標記用;main 在啟動與 config-save 時更新記憶體裡的值,不再每筆取樣讀檔);壞 JSON = null */
+export function bgActiveFromConfigText (text: string): boolean | null {
+  try {
+    const c = JSON.parse(text) as { bg?: { enabled?: unknown, file?: unknown } } | null
+    return c?.bg?.enabled !== false && typeof c?.bg?.file === 'string' && c.bg.file !== ''
+  } catch { return null }
 }
 
 // ---------------- 監測器 ----------------
@@ -269,7 +433,10 @@ const REAL_TIMERS: PerfTimers = {
 export interface PerfMonitorDeps {
   metrics: () => readonly AppMetricLike[]
   scenario: () => ScenarioInput | Promise<ScenarioInput>
-  scans: () => { reveal: ScanSnapshot, rune: ScanSnapshot }
+  /** stash = B8 的 PoE1 倉庫掃描(省略 = 沒有,記 'stopped') */
+  scans: () => { reveal: ScanSnapshot, rune: ScanSnapshot, stash?: ScanSnapshot }
+  /** B8:取出這段時間 renderer 回報的摘要(`RendererPerfAccumulator.drain`);省略 = 不記 */
+  renderer?: () => RendererPerfSummary | null
   uiohook: () => { running: boolean, holders: number }
   /** 開著時掛、關掉時拔(uiohook `input` 事件);省略 = 不計 */
   hookEvents?: { on: (fn: () => void) => void, off: (fn: () => void) => void }
@@ -291,7 +458,7 @@ export class PerfMonitor {
   private busy = false
   private hookCount = 0
   private lastAt = 0
-  private prevScans: { reveal: ScanSnapshot, rune: ScanSnapshot } | null = null
+  private prevScans: { reveal: ScanSnapshot, rune: ScanSnapshot, stash?: ScanSnapshot } | null = null
   private prevDetect = { enums: 0, processProbes: 0 }
   private lastSample: PerfSample | null = null
   private readonly timers: PerfTimers
@@ -319,6 +486,7 @@ export class PerfMonitor {
     // 基準:之後每筆只算這段時間內的增量;getAppMetrics 第一次呼叫的 CPU% 沒有意義(Electron 從這次起算)
     try { this.d.metrics() } catch { /* 取不到下一筆再試 */ }
     this.prevScans = this.d.scans()
+    this.d.renderer?.() // 開始前累積的回報不算
     const det = this.d.detector()
     this.prevDetect = { enums: det.enums, processProbes: det.processProbes }
     this.d.hookEvents?.on(this.onHook)
@@ -376,12 +544,14 @@ export class PerfMonitor {
         uiohook: { evPerSec: r2(hooks / (windowMs / 1000)), running: hook.running, holders: hook.holders },
         reveal: scanRates(this.prevScans?.reveal ?? null, scans.reveal, windowMs),
         rune: scanRates(this.prevScans?.rune ?? null, scans.rune, windowMs),
+        stash: scanRates(this.prevScans?.stash ?? null, scans.stash ?? STOPPED_SNAPSHOT, windowMs),
         detect: {
           enums: Math.max(0, det.enums - this.prevDetect.enums),
           processProbes: Math.max(0, det.processProbes - this.prevDetect.processProbes),
           running: det.running
         },
-        winOcr: this.d.winOcr()
+        winOcr: this.d.winOcr(),
+        renderer: this.d.renderer?.() ?? null
       }
       this.prevScans = scans
       this.prevDetect = { enums: det.enums, processProbes: det.processProbes }
@@ -395,6 +565,32 @@ export class PerfMonitor {
     } finally {
       this.busy = false
     }
+  }
+}
+
+const STOPPED_SNAPSHOT: ScanSnapshot = Object.freeze({
+  reason: 'stopped', ticks: 0, captures: 0, ocrRuns: 0, locates: 0, skippedUnchanged: 0, skippedBusy: 0, blockCounts: Object.freeze({})
+}) as ScanSnapshot
+
+/** B8:PoE1 StashScan 的公開欄位 → ScanSnapshot(沒有整畫面定位 → locates 0;迴圈沒啟動 = 'stopped') */
+export function stashSnapshotOf (scan: {
+  isRunning: boolean
+  snapshot: () => { block: string | null }
+  counters: { ticks: number, captures: number, ocrRuns: number, skippedUnchanged: number, skippedBusy: number }
+  blockCounts: Readonly<Partial<Record<string, number>>>
+}): ScanSnapshot {
+  const blockCounts: Record<string, number> = {}
+  for (const [k, v] of Object.entries(scan.blockCounts)) if (typeof v === 'number') blockCounts[k] = v
+  const c = scan.counters
+  return {
+    reason: scan.isRunning ? scan.snapshot().block : 'stopped',
+    ticks: c.ticks,
+    captures: c.captures,
+    ocrRuns: c.ocrRuns,
+    locates: 0,
+    skippedUnchanged: c.skippedUnchanged,
+    skippedBusy: c.skippedBusy,
+    blockCounts
   }
 }
 

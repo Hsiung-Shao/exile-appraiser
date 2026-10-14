@@ -174,6 +174,10 @@ describe('scanToastMessage', () => {
     expect(scanToastMessage('en', [{ kind: 'reveal', paused: true }]).title).toBe('Desecration detection: paused')
     expect(scanToastMessage('en', [{ kind: 'rune', paused: false }]).title).toBe('Rune detection: on')
   })
+  it('倉庫價格(PoE1,2026-10-14)兩語', () => {
+    expect(scanToastMessage('cmn-Hant', [{ kind: 'stash', paused: true }]).title).toBe('倉庫價格:已暫停')
+    expect(scanToastMessage('en', [{ kind: 'stash', paused: false }]).title).toBe('Stash prices: on')
+  })
   it('兩行:褻瀆在上(不論傳入順序)', () => {
     const m = scanToastMessage('cmn-Hant', [{ kind: 'rune', paused: true }, { kind: 'reveal', paused: true }])
     expect([m.title, m.hint]).toEqual(['褻瀆辨識:已暫停', '符文辨識:已暫停'])

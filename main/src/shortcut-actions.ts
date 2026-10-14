@@ -13,6 +13,8 @@ export interface ShortcutAction {
   | { type: 'copy-item', focusOverlay: boolean } | { type: 'toggle-overlay' } | { type: 'ocr-reveal' } | { type: 'ocr-region' } | { type: 'runeshape-toggle' }
   /** 2026-10-01:框選符文塑形面板區域(renderer 開同一個框選層,target = runeshape) */
   | { type: 'runeshape-region' }
+  /** 2026-10-14:PoE1 倉庫價格暫停 / 繼續、框選倉庫 OCR 區域(renderer 開框選層,target = stash);兩者都不送按鍵 */
+  | { type: 'stash-toggle' } | { type: 'stash-region' }
   /** 2026-10-01(移植 APT):聊天指令 / 倉庫搜尋 —— 會對遊戲送出按鍵(main/src/text-box.ts) */
   | { type: 'paste-in-chat', text: string, send: boolean } | { type: 'stash-search', text: string }
   /** 第 16 步:`hotkeyOcrReveal` 與 `hotkeyRuneshapeToggle` 相同且兩者都會註冊 → 合併成一個動作,一次切換兩個辨識(`nextScanPaused`) */
@@ -41,7 +43,7 @@ export function normalizeHotkey (hotkey: string): string {
 
 type ActionCfg = Pick<HostConfigForMain, 'hotkey' | 'hotkeyHold' | 'hotkeyLocked' | 'overlayKey' | 'game' | 'hotkeyOcrReveal' | 'hotkeyOcrRegion'> &
   Partial<Pick<HostConfigForMain, 'runeshapeEnabled' | 'hotkeyRuneshapeToggle' | 'hotkeyRuneshapeRegion' | 'revealAutoEnabled' | 'commands' | 'stashSearch' |
-  'hotkeyRegexQuick' | 'regexBookmarkHotkeys'>>
+  'hotkeyRegexQuick' | 'regexBookmarkHotkeys' | 'hotkeyStashToggle' | 'hotkeyStashRegion' | 'stashPricesEnabled'>>
 
 /**
  * 依設定組出要註冊的熱鍵(先到先得;空字串 / 重複 / 遊戲保留的不註冊)。
@@ -58,6 +60,8 @@ type ActionCfg = Pick<HostConfigForMain, 'hotkey' | 'hotkeyHold' | 'hotkeyLocked
  * - 第 16 步:`ocr-reveal` 與 `runeshape-toggle` 兩者都成立且熱鍵正規化後相同 → 合併成一個 `scan-toggle-both`(放在 `ocr-reveal` 的位置,
  *   不算重複);只有一個成立時照舊是單一動作。與其他熱鍵重複的規則不變(先到先得)。
  *   「遊戲在前景才註冊」由 `Shortcuts` 的 active-change 處理(對所有動作一樣)。
+ * - 2026-10-14:PoE1 `stash-toggle`(倉庫價格暫停 / 繼續,`hotkeyStashToggle` 預設空;另外要 `stashPricesEnabled`,省略 = 開)、
+ *   `stash-region`(框選倉庫 OCR 區域,`hotkeyStashRegion` 預設空;不看是否啟用)只在 overlay + PoE1 註冊,位置同 PoE2 的辨識熱鍵。
  * - 第 33 步:倉庫搜尋之後是正則書籤快速面板(`hotkeyRegexQuick`,預設空)與書籤個別熱鍵(`regexBookmarkHotkeys`,只取 `game` = 目前遊戲的,
  *   依書籤順序);兩者**只在 overlay 模式**(同聊天指令:會對遊戲送鍵 / 要 overlay 才有面板可畫)。
  */
@@ -87,6 +91,14 @@ export function buildShortcutActions (cfg: ActionCfg, mode: WindowMode): Shortcu
       }
       if (cfg.hotkeyRuneshapeRegion) {
         actions.push({ shortcut: normalizeHotkey(cfg.hotkeyRuneshapeRegion), keepModKeys: false, action: { type: 'runeshape-region' } })
+      }
+    } else {
+      // 2026-10-14:PoE1 倉庫價格(暫停熱鍵只在功能開著時註冊;框選不看)
+      if (cfg.hotkeyStashToggle && cfg.stashPricesEnabled !== false) {
+        actions.push({ shortcut: normalizeHotkey(cfg.hotkeyStashToggle), keepModKeys: false, action: { type: 'stash-toggle' } })
+      }
+      if (cfg.hotkeyStashRegion) {
+        actions.push({ shortcut: normalizeHotkey(cfg.hotkeyStashRegion), keepModKeys: false, action: { type: 'stash-region' } })
       }
     }
     for (const c of (cfg.commands ?? []).slice(0, MAX_TEXT_ACTIONS)) {
@@ -130,7 +142,7 @@ export function regexBookmarkHotkeysFor (cfg: Pick<ActionCfg, 'game' | 'regexBoo
 export function reservedShortcuts (cfg: ActionCfg): string[] {
   const all = [
     mergeTwoHotkeys(normalizeHotkey(cfg.hotkeyHold), normalizeHotkey(cfg.hotkey)), cfg.hotkeyLocked, cfg.overlayKey, cfg.hotkeyOcrReveal, cfg.hotkeyOcrRegion,
-    cfg.hotkeyRuneshapeToggle ?? '', cfg.hotkeyRuneshapeRegion ?? '', ...(cfg.commands ?? []).map(c => c?.hotkey ?? ''), ...(cfg.stashSearch ?? []).map(s => s?.hotkey ?? ''),
+    cfg.hotkeyRuneshapeToggle ?? '', cfg.hotkeyRuneshapeRegion ?? '', cfg.hotkeyStashToggle ?? '', cfg.hotkeyStashRegion ?? '', ...(cfg.commands ?? []).map(c => c?.hotkey ?? ''), ...(cfg.stashSearch ?? []).map(s => s?.hotkey ?? ''),
     cfg.hotkeyRegexQuick ?? '', ...regexBookmarkHotkeysFor(cfg).map(b => b.hotkey)
   ]
   return [...new Set(all.filter(Boolean).map(k => normalizeHotkey(k)).filter(isGameReservedHotkey))]

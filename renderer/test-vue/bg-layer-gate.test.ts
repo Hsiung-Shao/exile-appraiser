@@ -9,7 +9,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { defineComponent, h, nextTick, shallowRef } from 'vue'
 import BgLayer from '../src/web/ui/BgLayer.vue'
 import { bgBake, bgShownUrl } from '../src/web/useTheme'
-import { bgBakeCache, bgBakeKey, BG_LAYOUT_DEFAULT } from '../src/web/bg-bake'
+import { bgBakeCache, bgBakeKey, bgSourceCache, BG_LAYOUT_DEFAULT } from '../src/web/bg-bake'
 import { mount, findAll, byClass, type MiniNode } from './mini-dom'
 
 interface Counters { roNew: number, roLive: number, moNew: number, moLive: number, images: string[] }
@@ -59,6 +59,7 @@ afterEach(() => {
   bgShownUrl.value = null
   bgBake.value = null
   bgBakeCache.clear()
+  bgSourceCache.clear() // B9:解碼後的來源圖是全域快取(換圖 / 關閉時 useBackground 清;這裡沒經過它)
 })
 
 const settle = async () => {

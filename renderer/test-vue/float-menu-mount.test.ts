@@ -7,7 +7,7 @@ import * as path from 'node:path'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { defineComponent, h, nextTick } from 'vue'
 import { createI18n } from 'vue-i18n'
-import { initConfig } from '../src/web/Config'
+import { AppConfig, initConfig } from '../src/web/Config'
 import { ensureStateLoaded, useRegexStore } from '../src/web/regex/store'
 import FloatMenu from '../src/web/overlay/FloatMenu.vue'
 import { floatMenuSection } from '../src/web/overlay/float-menu-state'
@@ -40,7 +40,8 @@ function render () {
     setup: () => () => h(FloatMenu, {
       settingsOpen: false,
       onClose: (r: string) => { events.push(`close:${r}`) },
-      onSettings: () => { events.push('settings') }
+      onSettings: () => { events.push('settings') },
+      onOpenTab: (tab: string) => { events.push(`open-tab:${tab}`) }
     })
   })
   const { container, app } = mount(Root, [i18nPlugin()], (a) => {
@@ -107,5 +108,59 @@ describe('FloatMenu 真掛載', () => {
     expect(String(img.attrs.src)).toMatch(/cheatsheets\/syndicate-3\.29\.webp$/)
     expect(findAll(container, byAttr('data-layer', 'sheet-zoom'))).toEqual([])
     app.unmount()
+  })
+
+  it('書籤區「前往正則」emit open-tab regex', async () => {
+    floatMenuSection.value = 'bookmarks'
+    const { container, errors, events, app } = render()
+    await settle()
+    expect(errors).toEqual([])
+    // 沒有按鈕 / emit 錯 → 從選單到不了正則頁
+    click(byAction(container, 'menu-goto-regex')[0])
+    expect(events).toEqual(['open-tab:regex'])
+    app.unmount()
+  })
+
+  it('開關列依目前遊戲:PoE2 褻瀆 / 符文、PoE1 倉庫價格 / 格子名稱;點了寫入設定、標開 / 關', async () => {
+    const config = AppConfig()
+    const saved = { game: config.game, reveal: config.revealAutoEnabled, rune: config.runeshapeEnabled, stash: config.stashPricesEnabled, names: config.stashShowNames }
+    try {
+      config.game = 'poe2'
+      config.runeshapeEnabled = false
+      floatMenuSection.value = ''
+      let r = render()
+      await settle()
+      let sw = findAll(r.container, byAttr('role', 'switch'))
+      expect(sw.map(n => n.attrs['data-toggle'])).toEqual(['revealAutoEnabled', 'runeshapeEnabled'])
+      expect(text(r.container)).toContain('自動辨識(PoE2)')
+      expect(sw[1].attrs['aria-checked']).toBe('false')
+      click(sw[1])
+      await settle()
+      // 沒寫進設定 → 開關沒作用
+      expect(config.runeshapeEnabled).toBe(true)
+      sw = findAll(r.container, byAttr('role', 'switch'))
+      expect(sw[1].attrs['aria-checked']).toBe('true')
+      expect(text(sw[1])).toContain('開')
+      r.app.unmount()
+
+      config.game = 'poe1'
+      config.stashShowNames = true
+      r = render()
+      await settle()
+      sw = findAll(r.container, byAttr('role', 'switch'))
+      expect(sw.map(n => n.attrs['data-toggle'])).toEqual(['stashPricesEnabled', 'stashShowNames'])
+      expect(text(r.container)).toContain('自動辨識(PoE1)')
+      click(sw[1])
+      await settle()
+      expect(config.stashShowNames).toBe(false)
+      expect(r.errors).toEqual([])
+      r.app.unmount()
+    } finally {
+      config.game = saved.game
+      config.revealAutoEnabled = saved.reveal
+      config.runeshapeEnabled = saved.rune
+      config.stashPricesEnabled = saved.stash
+      config.stashShowNames = saved.names
+    }
   })
 })

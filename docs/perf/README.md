@@ -22,11 +22,12 @@
 每 5 秒一筆,兩個出口:
 1. **app-log 一行摘要**(設定 › 記錄 看得到,也進 `exile-appraiser-<日期>.log`):
    ```
-   [perf] 情境 fg-idle+reveal | CPU 3.1%(Browser 1.2 GPU 0.4 Tab 1.5 Utility 0)WS 412.3 MB | 卡頓 p95 1.2 / 最長 9.8 ms | uiohook 0/s | 褻瀆 擷取 1/s OCR 0.2/s | 符文 disabled | 列舉 0 | 視窗 顯示 | WinOcr pid 12345
+   [perf] 情境 fg-idle+reveal | CPU 3.1%(Browser 1.2 GPU 0.4 Tab 1.5 Utility 0)WS 412.3 MB | 卡頓 p95 1.2 / 最長 9.8 ms · uiohook 0/s | longtask 1 次 62 ms(最長 62)· 幀間隔 p95 16.8 / 最長 33 ms | 沒有查價 | 倉庫 not-poe1 · 褻瀆 擷取 1/s OCR 0.2/s · 符文 disabled | 沒有重畫 | 列舉 0 · 視窗 顯示 · WinOcr pid 12345
    ```
+   B8 起摘要依區塊排(行程 | main 卡頓 | renderer | 查價 | 辨識 | 背景圖 | 系統);設定 › 記錄 › 效能逐列顯示同樣的區塊。
 2. **`userData/logs/perf-<YYYY-MM-DD>.log`**:JSONL(一行一筆 JSON),沿用 app-log 的 `LogFileWriter` —— 非同步寫、單檔 20 MB 換 `.1`、跨日換檔、保留 7 天(只刪 `perf-<日期>.log[.1]`)。
 
-JSONL 欄位(`v: 1`):
+JSONL 欄位(`v: 2`;B8 起多 `stash` / `renderer`、情境 `+stash`,`v: 1` 的舊檔沒有這兩欄):
 
 | 欄位 | 意思 |
 |---|---|
@@ -41,7 +42,9 @@ JSONL 欄位(`v: 1`):
 | `uiohook` | `evPerSec` = 全域掛鉤每秒事件數(滑鼠移動 / 按鍵 / 滾輪,掛鉤沒開 = 0)、`running` / `holders` = uiohookGate 是否持有 / 持有者數 |
 | `reveal` / `rune` | 褻瀆 / 符文 PanelScan:`state`(`active` 或被擋原因)、`ticks`、`capPerSec`(擷取請求,含 100 ms 內共用同一張)、`ocrPerSec`(區域 OCR)、`locates`(整畫面定位 OCR)、`skippedUnchanged` / `skippedBusy`、`blocked`(這段時間被 scanBlock 擋下的 tick 依原因) |
 | `detect` | GameDetector:`enums` = `desktopCapturer.getSources` 視窗列舉次數、`processProbes` = PowerShell 確認次數、`running` |
+| `stash` | B8:PoE1 倉庫價格 `StashScan`,欄位同 `reveal`(沒有整畫面定位 → `locates` 恆 0;迴圈沒啟動 = `stopped`) |
 | `winOcr` | WinOcr 常駐 PowerShell 是否在跑、pid |
+| `renderer` | B8:這段時間 renderer 回報的指標(沒收到 = `null`,例如 renderer 還沒載好):`reports` 份數、`longTask {n, totalMs, maxMs}`、`frames {n, p95, max}`(rAF 幀間隔 ms;只在視窗顯示且 overlay 上有東西時量,多份回報 p95 取大)、`query {n, parse, first}`(查價延遲 ms:收到物品文字 → 第一個交易站請求送出 ≈ 解析完成;→ 第一筆 `/fetch/` 或 `/exchange/` 回應;`n` = 查到結果的次數)、`bg {redraws, adopts, loads, load, draw, encode, decode}`(背景圖預先處理:重畫張數、快取換上次數、來源圖載入次數與各段 p50 / p95 / max) |
 
 快速統計(PowerShell):
 ```powershell
@@ -53,9 +56,14 @@ Get-Content "$env:APPDATA\exile-appraiser\logs\perf-2026-10-03.log" | ConvertFro
 
 ### 成本
 - **關著**:不開計時器、不掛 uiohook 監聽、不建寫檔器、不讀設定檔;只有各模組計數器的 `++`
-  (`GameDetector` `detectorCounters`、`PanelScan` `sched.captures` / `blockCounts`)與啟動時讀一次 `perf.json`。
-- **開著**:每 5 秒一次 getAppMetrics + 讀一次 `config.json`(背景圖旗標)+ 一行 log + 一行 JSONL;卡頓探針每 20 ms 一個 setTimeout;
-  uiohook 監聽只做 `++`。本身的負擔會算進 Browser 行程的 CPU —— 比較情境時全程開著,差值才公平。
+  (`GameDetector` `detectorCounters`、`PanelScan` `sched.captures` / `blockCounts`、B8 `StashScan` `counters` / `blockCounts`)與啟動時讀一次 `perf.json`。
+  renderer 端(B8,`renderer/src/web/perf/renderer-perf.ts`):0 個 PerformanceObserver / rAF / 計時器、不訂閱物品文字,
+  `perfHooks.trade` / `perfHooks.bg` 是 null(交易站請求與背景圖重畫只多一個 `?.`);只有啟動時一次 `perf-get`。
+- **開著**:每 5 秒一次 getAppMetrics + 一行 log + 一行 JSONL;卡頓探針每 20 ms 一個 setTimeout;uiohook 監聽只做 `++`。
+  背景圖旗標 B8 起用記憶體(第一筆讀一次 `config.json`,之後 `config-save` 時更新),不再每筆讀檔。
+  renderer:一個 longtask observer、一個取樣間隔的 setInterval(送 IPC `perf-renderer`)、視窗顯示且有內容時一條 rAF 迴圈。
+  本身的負擔會算進 Browser / Tab 行程的 CPU —— 比較情境時全程開著,差值才公平。
+- **背景圖 `[bg]` 記錄**(B8,不論 perf 開關):每次載入來源圖、每次重畫(不是每幀)各一行,含各段耗時,設定 › 記錄看得到。
 
 ## 外部腳本 `scripts/perf-scenario.mjs`
 
@@ -95,8 +103,8 @@ node scripts/perf-scenario.mjs --app electron ...                       # 開發
 
 ## 情境定義
 
-內建診斷的情境鍵 = 基本情境 + 附加旗標(`+reveal` 褻瀆 OCR 開、`+rune` 符文 OCR 開、`+bg` 背景圖開且查價面板 / 設定開著)。
-「OCR 開」= 啟用 + PoE2 + overlay + 沒被使用者暫停(遊戲失焦、面板開著造成的暫時停也算開);PoE1 一律關。
+內建診斷的情境鍵 = 基本情境 + 附加旗標(`+reveal` 褻瀆 OCR 開、`+rune` 符文 OCR 開、`+stash` PoE1 倉庫價格 OCR 開(B8)、`+bg` 背景圖開且查價面板 / 設定開著)。
+「OCR 開」= 啟用 + PoE2 + overlay + 沒被使用者暫停(遊戲失焦、面板開著造成的暫時停也算開)(褻瀆 / 符文;PoE1 一律關)。`+stash` = 倉庫價格啟用 + PoE1 + overlay(失焦 / UI 開著的暫停也算開)。
 
 | 腳本 id | 名稱 | 要擺成的狀態 | 內建診斷情境鍵 |
 |---|---|---|---|

@@ -1,6 +1,7 @@
 <!--
   設定 › 一般 › 背景:一個容器(查價面板 / 設定視窗)的「顯示位置與填滿方式」(第 26 步,2026-10-03,使用者需求)。
   - 預覽框:長寬比 = 該容器最後一次量到的實際大小(BgLayer.vue 寫 `bgHostSize`),沒量過用代表比例;
+    B9:背景用一般分頁共用的縮小預覽圖(`preview`,bg-bake.ts useBgPreview;≤ 480 px),不再自己解碼原圖、也不以 4K 原圖當背景即時縮放;
     畫法與 BgLayer 的 CSS 路徑同一條公式(`bgCssLayout`),只套亮度、不套霧面(看得清位置);
   - 在框上拖曳準心 = 焦點(圖上要保持可見的位置;圖上 x% 的點落在框的 x% 處),pointer events + setPointerCapture;
     方向鍵每次 1%(Shift 10%);
@@ -48,18 +49,20 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onBeforeUnmount, shallowRef, watch, type PropType } from 'vue'
+import { computed, defineComponent, shallowRef, type PropType } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { AppConfig } from '@/web/Config'
-import { BG_FITS, BG_ZOOM_MAX, BG_ZOOM_MIN, bgCssLayout, type BgLayout } from '@/web/bg-bake'
+import { BG_FITS, BG_ZOOM_MAX, BG_ZOOM_MIN, bgCssLayout, cssUrl, type BgLayout, type BgPreviewState } from '@/web/bg-bake'
 import { bgHostSize, normBgLayout, type BgHost } from '@/web/useTheme'
 import { BG_PREVIEW_FALLBACK_RATIO, bgLayoutKeyStep, isDefaultBgLayout, pointerToFocus, previewBoxEm } from './bg-layout-ui'
 
 export default defineComponent({
   props: {
     host: { type: String as PropType<BgHost>, required: true },
-    /** 預覽用的背景圖網址(未包 url()) */
+    /** 預覽用的背景圖網址(未包 url();預覽圖做不出來時才直接用) */
     url: { type: String, required: true },
+    /** B9:共用的縮小預覽圖(General.vue useBgPreview;同一個網址) */
+    preview: { type: Object as PropType<BgPreviewState>, required: true },
     /** 亮度 0–100(預覽套一樣的亮度) */
     bright: { type: Number, default: 100 }
   },
@@ -72,18 +75,17 @@ export default defineComponent({
     const shown = computed<BgLayout>(() => ({ ...saved.value, ...draft.value }))
     const dragging = shallowRef(false)
 
-    // 圖的原始大小(「縮放」預覽要換成百分比)
-    const natural = shallowRef<{ url: string, w: number, h: number } | null>(null)
-    let alive = true
-    watch(() => props.url, (url) => {
-      const img = new Image()
-      img.decoding = 'async'
-      img.src = url
-      img.decode().then(() => {
-        if (alive && props.url === url) natural.value = { url, w: img.naturalWidth, h: img.naturalHeight }
-      }).catch(() => {}).finally(() => { img.removeAttribute('src') })
-    }, { immediate: true })
-    onBeforeUnmount(() => { alive = false })
+    // 圖的原始大小(「縮放」預覽要換成百分比):預覽圖記著原圖寬高
+    const natural = computed(() => {
+      const p = props.preview.preview
+      return p && p.url === props.url ? { url: p.url, w: p.width, h: p.height } : null
+    })
+    // 背景:預覽圖好了用它;做不出來退回原圖網址;還沒好先空白
+    const preview = computed(() => {
+      const p = props.preview.preview
+      if (p && p.url === props.url) return cssUrl(p.src)
+      return props.preview.failed ? cssUrl(props.url) : null
+    })
 
     const ratio = computed(() => {
       const s = bgHostSize.value[props.host]
@@ -95,7 +97,7 @@ export default defineComponent({
       const n = natural.value?.url === props.url ? natural.value : null
       const css = bgCssLayout(shown.value, n, { w: boxEm.value.w * 100, h: boxEm.value.h * 100 }) ?? { pos: '50% 50%', size: 'cover' }
       return {
-        backgroundImage: `url("${props.url.replace(/["\\]/g, '\\$&')}")`,
+        backgroundImage: preview.value ?? 'none',
         backgroundPosition: css.pos,
         backgroundSize: css.size,
         filter: `brightness(${props.bright / 100})`

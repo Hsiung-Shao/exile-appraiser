@@ -7,6 +7,9 @@
   - 速查表:使用者自己匯入一張圖(`sheet-pick` → userData/cheatsheets,設定 `cheatSheet`);縮圖滑鼠移上去暫時放大(放大框點擊穿透),
     點一下釘住(✕ / Esc 關)。
   - 收起:✕、點選單外(App.vue 背景)、Esc / 再按 overlayKey(main 交還焦點 → focus-change)。
+  - 2026-10-14:書籤區頂端「前往正則 ↗」(emit `open-tab` 'regex' → App.vue `openSettingsTo`);按鈕列下方開關列
+    (依目前遊戲:PoE1 倉庫價格 / 格子名稱、PoE2 褻瀆 / 符文塑形,float-menu-geom.ts `FLOAT_MENU_TOGGLES`,直接寫設定)。
+    寬高上限 = 畫面減邊距(字級放大到 40 時 21em 約 840 px)。
   尺寸只用 em / --fs-*。新增會畫在 overlay 上的東西已接進 overlay-content(`menu`)。
 -->
 <template>
@@ -37,6 +40,19 @@
       </button>
     </div>
 
+    <!-- 2026-10-14:自動辨識開關(依目前遊戲) -->
+    <div class="fm-toggles" data-menu="toggles">
+      <span class="fm-toggles-label">{{ t(config.game === 'poe1' ? 'ppz.menu.toggles_poe1' : 'ppz.menu.toggles_poe2') }}</span>
+      <div class="fm-toggle-row">
+        <button v-for="s in toggles" :key="s.key" type="button" role="switch" class="fm-sw" :class="{ on: config[s.key] }"
+          :aria-checked="config[s.key] ? 'true' : 'false'" :data-toggle="s.key" @click="flip(s.key)">
+          <span class="fm-sw-track" aria-hidden="true"><span class="fm-sw-knob" /></span>
+          <span class="fm-sw-label">{{ t(s.label) }}</span>
+          <span class="fm-sw-state">{{ t(config[s.key] ? 'ppz.menu.on' : 'ppz.menu.off') }}</span>
+        </button>
+      </div>
+    </div>
+
     <!-- 正則書籤 -->
     <div v-if="section === 'bookmarks'" class="fm-sec" data-menu="bookmarks">
       <div class="fm-bm-top">
@@ -45,6 +61,7 @@
             :data-game="g" @click="listGame = g">{{ gameLabel(g) }}</button>
         </div>
         <span class="fm-hint">{{ t(action === 'paste' ? 'ppz.menu.bm_hint_paste' : 'ppz.menu.bm_hint_copy') }}</span>
+        <button type="button" class="btn ghost sm fm-goto" data-action="menu-goto-regex" @click="emit('open-tab', 'regex')">{{ t('ppz.menu.goto_regex') }} ↗</button>
       </div>
       <div v-if="grouped.groups.length" class="fm-bm-list" data-menu="bm-list">
         <template v-for="g in grouped.groups" :key="g.folder">
@@ -119,13 +136,14 @@
 import { computed, onMounted, onUnmounted, reactive, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { RegexGame } from '@exile-appraiser/regex'
+import type { SettingsTabId } from '@ipc/types'
 import { AppConfig } from '@/web/Config'
 import { Host } from '@/web/background/IPC'
 import { bgImageUrl, normBgFile } from '@/web/useTheme'
 import { bookmarkGroupsOf, gameLabel, setBookmarkFolderCollapsed, useRegexStore } from '@/web/regex/store'
 import { copyRegexBookmark, quickRunning, regexBookmarkPreview, runRegexBookmark } from '@/web/regex/quick'
 import { quickNoticeKey } from '@/web/regex/quick-geom'
-import { BUILTIN_CHEAT_SHEET, bookmarkActionFor, cheatSheetUrl, floatMenuPlace, floatMenuPosOf, sheetZoomRect } from './float-menu-geom'
+import { BUILTIN_CHEAT_SHEET, FLOAT_MENU_TOGGLES, bookmarkActionFor, cheatSheetUrl, floatMenuPlace, floatMenuPosOf, sheetZoomRect } from './float-menu-geom'
 import { floatMenuSection } from './float-menu-state'
 import { RESIZE_EDGES, clampSettingsRect, createRectDrag, edgeCursor, isInteractiveTarget, type DragEdge, type SettingsWindowRect } from '@/web/settings/settings-window-geom'
 
@@ -135,6 +153,8 @@ const emit = defineEmits<{
   (e: 'settings'): void
   (e: 'pasted'): void
   (e: 'zoom', on: boolean): void
+  /** 2026-10-14:跳到設定的某一頁(「前往正則」) */
+  (e: 'open-tab', tab: SettingsTabId): void
 }>()
 
 const { t } = useI18n()
@@ -143,6 +163,13 @@ const store = useRegexStore()
 const games: RegexGame[] = ['poe1', 'poe2']
 
 const overlayKey = computed(() => config.overlayKey)
+
+// ---- 開關列(依目前遊戲;直接寫設定,掃描開關立即送 main) ----
+const toggles = computed(() => FLOAT_MENU_TOGGLES[config.game])
+function flip (key: typeof FLOAT_MENU_TOGGLES.poe1[number]['key']) {
+  config[key] = !config[key]
+  console.log(`[menu] 開關 ${key} → ${config[key] ? '開' : '關'}`)
+}
 const section = floatMenuSection
 function toggleSection (s: 'bookmarks' | 'sheet') {
   section.value = section.value === s ? '' : s
@@ -344,7 +371,10 @@ onUnmounted(() => {
   position: absolute;
   z-index: 56; /* 設定暗幕(50)、快速面板(55)之上,框選層(60)之下 */
   width: 21em;
+  /* 2026-10-14:字級上限放寬(40 時 21em ≈ 840 px)→ 寬高都不超過畫面 */
+  max-width: min(21em, calc(100vw - 8px));
   max-height: calc(100vh - 8px);
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -440,6 +470,71 @@ onUnmounted(() => {
   font-size: var(--fs-xs);
 }
 .fm-bm-top .fm-hint { text-align: right; }
+.fm-goto { flex: none; white-space: nowrap; }
+/* 2026-10-14:開關列 */
+.fm-toggles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35em;
+  padding: 0 0.6em 0.6em;
+}
+.fm-toggles-label {
+  color: var(--ink-2);
+  font-size: var(--fs-xs);
+}
+.fm-toggle-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45em;
+}
+.fm-sw {
+  font: inherit;
+  font-size: var(--fs-sm);
+  display: flex;
+  align-items: center;
+  gap: 0.45em;
+  min-width: 0;
+  padding: 0.4em 0.55em;
+  color: var(--ink-1);
+  background: var(--surface-2);
+  border: 1px solid var(--edge-1);
+  border-radius: var(--radius-s);
+  cursor: pointer;
+  text-align: left;
+}
+.fm-sw:hover { background: var(--surface-hover); }
+.fm-sw:focus-visible { outline: 1px solid var(--gold); outline-offset: 1px; }
+.fm-sw-track {
+  position: relative;
+  flex: none;
+  width: 1.9em;
+  height: 1.05em;
+  border-radius: 999px;
+  background: var(--surface-1);
+  border: 1px solid var(--edge-1);
+}
+.fm-sw-knob {
+  position: absolute;
+  top: 50%;
+  left: 0.12em;
+  width: 0.75em;
+  height: 0.75em;
+  border-radius: 50%;
+  background: var(--ink-2);
+  transform: translateY(-50%);
+}
+.fm-sw.on { color: var(--ink-0); border-color: color-mix(in srgb, var(--gold) 60%, transparent); }
+.fm-sw.on .fm-sw-track { background: color-mix(in srgb, var(--gold) 35%, var(--surface-2)); border-color: var(--gold); }
+.fm-sw.on .fm-sw-knob { left: calc(100% - 0.87em); background: var(--gold); }
+.fm-sw-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fm-sw-state { flex: none; color: var(--ink-2); font-size: var(--fs-xs); }
+.fm-sw.on .fm-sw-state { color: var(--gold); }
 .fm-bm-list {
   overflow-y: auto;
   max-height: min(26em, 60vh);

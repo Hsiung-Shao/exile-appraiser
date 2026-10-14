@@ -40,6 +40,11 @@
       "god_kurgal": "柯戈",
       "profile_guessed": "底材不在資料表,依物品類別推定"
     },
+    "fractured_toggle": {
+      "label": "破裂",
+      "title_off": "改查破裂詞綴(交易站只找這條是破裂的物品)",
+      "title_on": "正在查破裂詞綴;再點一次改回一般詞綴"
+    },
     "bg": {
       "section": "背景",
       "none": "未選擇",
@@ -78,6 +83,8 @@
       "slot_reveal_region": "褻瀆辨識:框選區域",
       "slot_rune_pause": "符文塑形:暫停 / 繼續",
       "slot_rune_region": "符文塑形:框選區域",
+      "slot_stash_pause": "倉庫價格:暫停 / 繼續",
+      "slot_stash_region": "倉庫價格:框選區域",
       "shared_with_rune": "與符文辨識共用,一次切換兩者",
       "shared_with_reveal": "與褻瀆辨識共用,一次切換兩者",
       "shared_section": "共用設定",
@@ -316,7 +323,6 @@
     "panel_error_hint": "詳細內容(含堆疊)已寫入記錄檔,搜尋 [renderer-error]。可以按重試,或換一件物品。",
     "rate_limited": "限流中,{seconds} 秒後自動重試",
     "version": "版本",
-    "data_source": "{repo} {'@'} {commit}",
     "paste": "貼上另一件",
     "hotkey_locked": "鎖定查價熱鍵",
     "overlay_key": "設定選單",
@@ -410,15 +416,10 @@
     "switch_to_intl": "改用國際服",
     "switch_to_zh": "客戶端改為繁體中文",
     "rate_limit_state": "限流狀態",
-    "data_poe1": "PoE1 資料",
-    "data_poe2": "PoE2 資料",
-    "data_poe2_trade": "PoE2 交易站快照",
-    "data_poe1_stash": "PoE1 倉庫版面",
-    "data_regex": "正則資料",
-    "data_fetched": "抓取於 {date}",
     "about": {
       "tagline": "Path of Exile 查價工具(PoE1 / PoE2,國際服 / 台服)",
-      "game_versions": "支援遊戲版本:PoE1 {poe1} · PoE2 {poe2}(目前最新版本皆支援)",
+      "game_versions_label": "支援遊戲版本(目前最新版本皆支援)",
+      "supports": "支援 {game}",
       "section_update": "更新",
       "section_links": "連結",
       "section_thanks": "第三方致謝",
@@ -493,7 +494,16 @@
       "sheet_empty_sub": "從網站存一張密教速查表圖片,再匯入這裡",
       "sheet_import": "匯入圖片…",
       "sheet_no_dialog": "瀏覽器預覽不能選檔案,請在程式視窗裡匯入",
-      "sheet_failed": "圖片載入失敗,請重新匯入"
+      "sheet_failed": "圖片載入失敗,請重新匯入",
+      "goto_regex": "前往正則",
+      "toggles_poe1": "自動辨識(PoE1)",
+      "toggles_poe2": "自動辨識(PoE2)",
+      "tg_stash": "倉庫價格",
+      "tg_names": "格子名稱",
+      "tg_reveal": "褻瀆辨識",
+      "tg_rune": "符文塑形",
+      "on": "開",
+      "off": "關"
     },
     "report": {
       "item": "回報這件",
@@ -770,7 +780,15 @@
       "off": "未記錄",
       "open_file": "開啟效能記錄檔",
       "open_failed": "無法開啟效能記錄檔",
-      "set_failed": "切換效能診斷失敗"
+      "set_failed": "切換效能診斷失敗",
+      "scenario": "情境 {key}",
+      "sec_proc": "行程",
+      "sec_lag": "main 卡頓",
+      "sec_renderer": "畫面(renderer)",
+      "sec_query": "查價",
+      "sec_scan": "辨識",
+      "sec_bg": "背景圖",
+      "sec_sys": "系統"
     },
     "dust": {
       "per_chaos": "≈ {n} 粉塵 / 混沌石",
@@ -889,7 +907,6 @@
       "scan": "自動辨識",
       "stash_chat": "倉庫與聊天",
       "regex": "正則",
-      "chat_command": "聊天指令",
       "stash_search": "倉庫搜尋",
       "regex_bookmark": "書籤"
     },
@@ -898,8 +915,7 @@
       "edit_in": "到「{page}」編輯",
       "unset": "未設定",
       "empty": "沒有項目。",
-      "empty_stash_chat": "還沒有聊天指令或倉庫搜尋。",
-      "chat_row": "聊天指令:{text}",
+      "empty_stash_chat": "還沒有倉庫搜尋。",
       "off_note": "功能關閉中,這個熱鍵不會註冊。",
       "scan_note": "暫停 / 繼續熱鍵在該功能開著時才生效;框選區域熱鍵在遊戲中直接打開框選層;留空 = 不註冊。",
       "window_only": "其他熱鍵只在 overlay 模式提供。"

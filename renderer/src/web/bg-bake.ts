@@ -31,6 +31,9 @@
  * 與原本的 cover 置中逐像素相同。
  */
 
+import { computed, shallowRef, watch, type ComputedRef, type ShallowRef } from 'vue'
+import { perfHooks } from './perf/renderer-perf'
+
 /** 填滿方式:cover = 填滿(裁切)、contain = 完整顯示(留邊,空白處主題底色)、zoom = 在 cover 的基礎上再放大 `zoom`% */
 export type BgFit = 'cover' | 'contain' | 'zoom'
 export const BG_FITS: readonly BgFit[] = ['cover', 'contain', 'zoom']
@@ -136,7 +139,12 @@ export function bgBakeFilter (bright: number, blurPx: number, scale: number): st
  * 這時落點改在「框」上算(= CSS 的 background-position / size)再各軸換算到畫布,拉回去後與 CSS 版的矩形完全重合
  * (以前直接在畫布上算,圖會多 / 少 1 個畫布像素,霧面 0 不再模糊後看得出來)。兩軸比例相同時沿用原本的算法(逐位元不變)。
  */
-export function bgBakePlan (i: BgBakeInput, imgW: number, imgH: number): { width: number, height: number, rect: { x: number, y: number, w: number, h: number }, filter: string } {
+export function bgBakePlan (i: BgBakeInput, imgW: number, imgH: number): {
+  width: number
+  height: number
+  rect: { x: number, y: number, w: number, h: number }
+  filter: string
+} {
   const width = Math.max(1, Math.round(i.width * BG_SCALE))
   const height = Math.max(1, Math.round(i.height * BG_SCALE))
   const layout = i.layout ?? BG_LAYOUT_DEFAULT
@@ -151,6 +159,7 @@ export function bgBakePlan (i: BgBakeInput, imgW: number, imgH: number): { width
   }
   return { width, height, rect, filter: bgBakeFilter(i.bright, i.blurPx, i.dpr * BG_SCALE) }
 }
+
 
 /** code review 第 B 批:框大小停止變動多久後才重畫(拖曳設定視窗改大小時不每幀重畫 PNG) */
 export const BG_RESIZE_SETTLE_MS = 200
@@ -363,3 +372,213 @@ export class BgBakeCache<Out> {
 
 /** 全程式共用一份(BgLayerImage.vue 卸載時放、掛載時取;useTheme.ts 背景關閉 / 換圖時清) */
 export const bgBakeCache = new BgBakeCache<unknown>()
+
+// ---------------- B9:來源圖保留、設定頁預覽圖(2026-10-14) ----------------
+//
+// 量測(docs/perf/changes-round6.md):有背景圖時開設定,大宗是「來源圖重新載入 + 解碼」(BgLayerImage 卸載時 dispose 釋放原圖,
+// 設定視窗大小 / 主題 / dpr 一變就要整張重抓重解碼)與一般分頁的縮圖 / 兩個位置預覽框各自用原圖(4K 原圖即時縮放 + CSS blur)。
+// 修正:來源圖解碼一次留在 `bgSourceCache`(換圖 / 背景關閉時清);設定頁縮圖與預覽框共用一張 ≤ 480 px 的縮小預覽圖。
+
+/** 解碼後的來源圖:能直接 drawImage 的影像 + 原始寬高(落點一律用原始寬高算,縮小保存不影響構圖) */
+export interface BgSource {
+  image: CanvasImageSource
+  width: number
+  height: number
+}
+
+/**
+ * 一次只留一張來源圖(目前的背景圖網址):同一張只載一次,載入中的 Promise 共用;換圖 / `clear()` 釋放舊的。
+ * 載入失敗不快取(下次重試);清掉之後才載好的直接釋放(呼叫端拿到的影像可能已釋放 → 繪製失敗走 CSS,與原本的失敗路徑相同)。
+ */
+export class BgSourceCache<Img> {
+  private entry: { url: string, p: Promise<Img> } | null = null
+  private value: Img | null = null
+  private gen = 0
+
+  constructor (private readonly release: (img: Img) => void) {}
+
+  get (url: string, load: (url: string) => Promise<Img>): Promise<Img> {
+    if (this.entry?.url === url) return this.entry.p
+    this.clear()
+    const gen = this.gen
+    const p = load(url).then((img) => {
+      if (gen !== this.gen) { this.release(img); return img }
+      this.value = img
+      return img
+    }, (e: unknown) => {
+      if (gen === this.gen) this.entry = null
+      throw e
+    })
+    this.entry = { url, p }
+    return p
+  }
+
+  clear (): void {
+    this.gen++
+    this.entry = null
+    const v = this.value
+    this.value = null
+    if (v != null) this.release(v)
+  }
+
+  get size (): number { return this.value != null ? 1 : 0 }
+}
+
+function releaseBgSource (s: BgSource): void {
+  const img = s.image as { removeAttribute?: (n: string) => void }
+  img.removeAttribute?.('src')
+}
+
+/** 全程式共用一份(BgLayerImage 與設定頁預覽圖都從這裡拿;useTheme.ts 背景關閉 / 換圖時清) */
+export const bgSourceCache = new BgSourceCache<BgSource>(releaseBgSource)
+
+/** 載入並解碼來源圖(CORS:要畫進可輸出的 canvas,main 的 app://bg 回應帶 ACAO);解碼後的 <img> 由 `bgSourceCache` 保管 */
+export async function loadBgSource (url: string): Promise<BgSource> {
+  const t0 = performance.now()
+  const done = (src: BgSource): BgSource => {
+    const ms = Math.round((performance.now() - t0) * 10) / 10
+    console.log(`[bg] 載入來源圖 ${src.width}×${src.height}:${ms} ms`)
+    perfHooks.bg?.({ kind: 'load', ms })
+    return src
+  }
+  const img = new Image()
+  img.crossOrigin = 'anonymous'
+  img.decoding = 'async'
+  img.src = url
+  await img.decode()
+  // 刻意不轉 ImageBitmap:從 ImageBitmap 縮放與從 <img> 縮放的重取樣不同,霧面 0 時差到 14/255(超過第 10 步門檻)
+  return done({ image: img, width: img.naturalWidth, height: img.naturalHeight })
+}
+
+/**
+ * 留著的 <img> 可能已被 Blink 丟掉解碼後的像素:畫之前先非同步 `decode()`,drawImage 才不會在主執行緒同步解碼整張原圖
+ * (實測 dpr 1.5 開設定多一個約 55 ms 的 longtask)。已解碼時幾乎不花時間;失敗照畫(由繪製本身決定成敗)。
+ */
+export async function redecode (src: BgSource): Promise<void> {
+  const img = src.image as { decode?: () => Promise<void> }
+  if (typeof img.decode === 'function') await img.decode().catch(() => {})
+}
+
+/** 設定頁預覽圖的最大寬度(px;一般分頁縮圖 120 px、位置預覽框最寬 15em) */
+export const BG_PREVIEW_MAX_W = 480
+
+/** 預覽圖大小:長邊不超過 `BG_PREVIEW_MAX_W`,保持比例,小圖不放大 */
+export function bgPreviewSize (w: number, h: number): { w: number, h: number } {
+  const k = Math.min(1, BG_PREVIEW_MAX_W / Math.max(w, h))
+  return { w: Math.max(1, Math.round(w * k)), h: Math.max(1, Math.round(h * k)) }
+}
+
+/** 一張預覽圖:blob URL(JPEG)+ 原圖原始寬高(「縮放」預覽換算百分比用) */
+export interface BgPreview { url: string, src: string, width: number, height: number }
+
+/** 預覽圖快取(同一個背景圖網址只做一次;useTheme.ts 換圖 / 關閉時清) */
+export const bgPreviewCache = new BgSourceCache<BgPreview>((p) => { URL.revokeObjectURL(p.src) })
+
+async function makeBgPreview (url: string): Promise<BgPreview> {
+  const src = await bgSourceCache.get(url, loadBgSource)
+  await redecode(src)
+  const size = bgPreviewSize(src.width, src.height)
+  const c = document.createElement('canvas')
+  c.width = size.w
+  c.height = size.h
+  const ctx = c.getContext('2d')
+  if (!ctx) throw new Error('canvas 2d unavailable')
+  ctx.imageSmoothingQuality = 'high'
+  ctx.drawImage(src.image, 0, 0, size.w, size.h)
+  const blob = await new Promise<Blob>((resolve, reject) => c.toBlob(b => b ? resolve(b) : reject(new Error('toBlob failed')), 'image/jpeg', 0.9))
+  c.width = 0
+  c.height = 0
+  return { url, src: URL.createObjectURL(blob), width: src.width, height: src.height }
+}
+
+/** 預覽圖狀態:做好 = preview;做不出來(CORS / 解碼失敗)= failed(呼叫端退回原圖、不套模糊) */
+export interface BgPreviewState { preview: BgPreview | null, failed: boolean }
+
+/**
+ * 設定頁(一般分頁縮圖、位置預覽框)用的縮小預覽圖:網址變了才重做。
+ * 與 BgLayerImage 共用同一份解碼後的來源圖(`bgSourceCache`),不另外解碼原圖。
+ */
+export function useBgPreview (url: () => string | null): ShallowRef<BgPreviewState> {
+  const out = shallowRef<BgPreviewState>({ preview: null, failed: false })
+  watch(url, (u) => {
+    if (!u) { out.value = { preview: null, failed: false }; return }
+    if (out.value.preview?.url !== u) out.value = { preview: null, failed: false }
+    bgPreviewCache.get(u, makeBgPreview)
+      .then((p) => { if (url() === u) out.value = { preview: p, failed: false } })
+      .catch(() => { if (url() === u) out.value = { preview: null, failed: true } })
+  }, { immediate: true })
+  return out
+}
+
+/** CSS `url("…")`(跳脫引號 / 反斜線) */
+export const cssUrl = (u: string) => `url("${u.replace(/["\\]/g, '\\$&')}")`
+
+/** 縮圖畫布大小(CSS px;= General.vue `.bg-thumb`) */
+export const BG_THUMB_CSS = { w: 120, h: 68 } as const
+
+/**
+ * 一般分頁的縮圖:從預覽圖畫 cover 置中 + 亮度 + 模糊(與原本 CSS `filter: brightness() blur(霧面 / 100 × 4 px)` 同參數)→ data URL。
+ * 預覽圖只有 ≤ 480 px,每次調亮度 / 霧面重畫一張 120 × 68 × dpr 的小圖,不再對原圖即時套 CSS blur。
+ */
+export function bgThumbDataUrl (preview: BgPreview, img: CanvasImageSource, bright: number, blur: number, dpr: number, color: string): string | null {
+  const w = Math.round(BG_THUMB_CSS.w * dpr)
+  const h = Math.round(BG_THUMB_CSS.h * dpr)
+  const c = document.createElement('canvas')
+  c.width = w
+  c.height = h
+  const ctx = c.getContext('2d')
+  if (!ctx) return null
+  const work = document.createElement('canvas')
+  work.width = w
+  work.height = h
+  const wc = work.getContext('2d')
+  if (!wc) return null
+  wc.fillStyle = color
+  wc.fillRect(0, 0, w, h)
+  const r = bgLayoutRect(preview.width, preview.height, w, h)
+  wc.imageSmoothingQuality = 'high'
+  wc.drawImage(img, r.x, r.y, r.w, r.h)
+  ctx.filter = bgBakeFilter(bright / 100, (blur / 100) * 4, dpr)
+  ctx.drawImage(work, 0, 0)
+  const out = c.toDataURL('image/png')
+  c.width = 0
+  work.width = 0
+  return out
+}
+
+/**
+ * 一般分頁縮圖的 CSS 背景值:預覽圖好了 → 預先畫好亮度 + 模糊的小圖(`bgThumbDataUrl`);還沒好 → null(空白);
+ * 預覽圖做不出來 → `fallback()`(原圖網址,不套任何 filter)。
+ */
+export function useBgThumb (
+  state: ShallowRef<BgPreviewState>,
+  look: () => { bright: number, blur: number },
+  fallback: () => string | null
+): ComputedRef<string | null> {
+  const img = shallowRef<{ src: string, el: HTMLImageElement } | null>(null)
+  const failed = shallowRef(false)
+  watch(() => state.value.preview, (p) => {
+    img.value = null
+    failed.value = false
+    if (!p) return
+    const el = new Image()
+    el.decoding = 'async'
+    el.src = p.src
+    el.decode().then(() => { if (state.value.preview?.src === p.src) img.value = { src: p.src, el } }).catch(() => { failed.value = true })
+  }, { immediate: true })
+  return computed(() => {
+    const p = state.value.preview
+    const i = img.value
+    if (p && i && i.src === p.src) {
+      const { bright, blur } = look()
+      const color = getComputedStyle(document.documentElement).getPropertyValue('--surface-0-c').trim() || '#000'
+      const data = bgThumbDataUrl(p, i.el, bright, blur, window.devicePixelRatio || 1, color)
+      if (data) return cssUrl(data)
+    }
+    if (state.value.failed || failed.value) {
+      const f = fallback()
+      return f ? cssUrl(f) : null
+    }
+    return null
+  })
+}

@@ -10,6 +10,7 @@ import { _roundTripForTest } from '../src/web/Config'
 import { REGION_PICKER_SPECS, regionToSave } from '../src/web/overlay/ocr-reveal'
 import { defaultStripRegion } from '../../core/src/stash/detect'
 import { overlayContentKey, overlayContentOf, overlayLayers } from '../src/web/overlay/overlay-content'
+import { SCAN_SPECS, stashScanStatus } from '../src/web/settings/scan-card-specs'
 
 const read = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8')
 const FILE: StashLayoutFile = parseStashLayouts(JSON.parse(read('../../data/poe1/stash/layouts.json')))
@@ -196,10 +197,12 @@ describe('S18e 自訂倉庫 OCR 區域(設定 / 框選層)', () => {
     expect(spec.defaultRegion?.({ w: 2560, h: 1440 })).toEqual(defaultStripRegion(2560, 1440))
     expect(REGION_PICKER_SPECS.reveal.defaultRegion).toBeUndefined()
   })
-  it('設定卡片有區域列、框選鈕與還原預設', () => {
-    const card = readFileSync(fileURLToPath(new URL('../src/web/settings/StashPricesSection.vue', import.meta.url)), 'utf8')
-    expect(card).toContain("openRegionPicker('settings', 'stash')")
-    expect(card).toContain('config.stashRegion = null')
+  it('設定卡片(統一樣板)有區域列、框選鈕與還原預設', () => {
+    const card = read('../src/web/settings/OcrScanSection.vue')
+    expect(card).toContain("openRegionPicker('settings', props.kind)")
+    expect(card).toContain('config[spec.value.region] = null')
+    // 框選熱鍵(2026-10-14)帶 target stash → 框選層要開倉庫目標,不是褻瀆
+    expect(read('../src/web/overlay/OcrRegionPicker.vue')).toContain("target === 'runeshape' || target === 'stash' ? target : 'reveal'")
   })
 })
 
@@ -265,5 +268,46 @@ describe('S17 圖層接線守門', () => {
     const en = JSON.parse(read('../src/i18n/en.json')).ppz?.stash
     expect(keysOf(zh).length).toBeGreaterThan(0)
     expect(keysOf(zh).sort()).toEqual(keysOf(en).sort())
+  })
+})
+
+describe('S20 倉庫卡片走統一樣板(T4 / T5)', () => {
+  const tr = (k: string, a?: Record<string, unknown>) => a ? `${k}${JSON.stringify(a)}` : k
+  it('SPECS 的 stash:設定鍵、統計來源、框選目標、清除鈕 = 還原預設、data-setting 沿用舊名', () => {
+    const s = SCAN_SPECS.stash
+    // 鍵接錯 → 開關 / 間隔 / 區域改到別的功能
+    expect([s.game, s.enabled, s.interval, s.region, s.pauseHotkey, s.stats]).toEqual(['poe1', 'stashPricesEnabled', 'stashPricesIntervalMs', 'stashRegion', 'hotkeyStashToggle', 'stash'])
+    expect(s.i18n.clear).toBe('ppz.stash.region_reset')
+    expect(s.i18n.regionUnset).toBe('ppz.stash.region_default')
+    expect(s.pollMs).toBe(2000)
+    // 驗證腳本 / 文件用的錨點不變
+    expect(s.ds).toMatchObject({ section: 'stash-prices', enabled: 'stash-prices-enabled', status: 'stash-status', stats: 'stash-stats', interval: 'stash-interval',
+      intervalWarn: 'stash-interval-warn', regionStatus: 'stash-region-status', pick: 'stash-region-pick', clear: 'stash-region-reset',
+      pickNa: 'stash-region-pick-unavailable', regionHint: 'stash-region-hint', timing: 'stash-timing' })
+    // 褻瀆 / 符文不受影響
+    expect([SCAN_SPECS.reveal.game, SCAN_SPECS.reveal.stats, SCAN_SPECS.reveal.i18n.clear]).toEqual(['poe2', 'reveal', 'ppz.ocr.region.clear'])
+    expect([SCAN_SPECS.runeshape.game, SCAN_SPECS.runeshape.stats, SCAN_SPECS.runeshape.pollMs]).toEqual(['poe2', 'runeshape', undefined])
+  })
+  it('stashScanStatus:顯示中 / 暫停(帶熱鍵)/ 失焦 / UI 開著 / 閒置', () => {
+    expect(stashScanStatus(undefined, tr, '')).toBeNull()
+    expect(stashScanStatus({ block: null, showing: true, subtab: 'scarabs', lastOcrMs: 1, ocrCount: 1 }, tr, '')).toMatchObject({ code: 'showing', tone: 'ok' })
+    // 暫停沒標出來 → 使用者以為壞掉
+    expect(stashScanStatus({ block: 'user-paused', showing: false, subtab: null, lastOcrMs: null, ocrCount: 0 }, tr, 'F9'))
+      .toEqual({ code: 'paused', tone: 'warn', text: 'ppz.ocr.scan_status_paused{"hotkey":"F9"}' })
+    expect(stashScanStatus({ block: 'game-inactive', showing: false, subtab: null, lastOcrMs: null, ocrCount: 0 }, tr, '')?.code).toBe('game-inactive')
+    expect(stashScanStatus({ block: 'ui-open', showing: false, subtab: null, lastOcrMs: null, ocrCount: 0 }, tr, '')?.code).toBe('ui-open')
+    expect(stashScanStatus({ block: null, showing: false, subtab: null, lastOcrMs: null, ocrCount: 0 }, tr, '')?.code).toBe('idle')
+  })
+  it('卡片版面:標題列含狀態 / 重新整理 / 開關,專屬選項在虛線分隔後;stashShowNames 在 #extra、台服警告在 #top', () => {
+    const card = read('../src/web/settings/OcrScanSection.vue')
+    const head = card.slice(card.indexOf('<div class="card-head'), card.indexOf('</div>', card.indexOf('<div class="card-head')))
+    for (const k of [':data-setting="spec.ds.status"', ':data-action="spec.ds.stats"', ':data-setting="spec.ds.enabled"', 'role="switch"']) expect(head, k).toContain(k)
+    expect(card).toMatch(/class="scan-extra"[\s\S]*<slot name="extra" \/>/)
+    expect(card).toContain('t(spec.i18n.clear)')
+    const rec = read('../src/web/settings/tabs/Recognition.vue')
+    const stash = rec.slice(rec.indexOf('kind="stash"'), rec.indexOf('</ocr-scan-section>', rec.indexOf('kind="stash"')))
+    expect(stash).toContain('data-setting="stash-tw"')
+    expect(stash).toContain('<template #top>')
+    expect(stash).toMatch(/<template #extra>[\s\S]*v-model="config\.stashShowNames"[\s\S]*data-setting="stash-show-names"/)
   })
 })

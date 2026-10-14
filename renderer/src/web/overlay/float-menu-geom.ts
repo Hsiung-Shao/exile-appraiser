@@ -88,3 +88,21 @@ export function cheatSheetUrl (customUrl: string | null, baseURI: string): { url
 export function bookmarkActionFor (listGame: RegexGame, currentGame: RegexGame): 'paste' | 'copy' {
   return listGame === currentGame ? 'paste' : 'copy'
 }
+
+/** 選單開關列的設定鍵(只放 boolean 設定) */
+export type FloatMenuToggleKey = 'stashPricesEnabled' | 'stashShowNames' | 'revealAutoEnabled' | 'runeshapeEnabled'
+
+/**
+ * 2026-10-14 使用者要求:按鈕列下方的開關列,依目前遊戲顯示自動辨識的開關(+ 倉庫格子名稱)。
+ * 掃描開關都在 Config.ts `HOST_CONFIG_IMMEDIATE_KEYS`(立即送 main);格子名稱只在 renderer 用。
+ */
+export const FLOAT_MENU_TOGGLES: Readonly<Record<RegexGame, ReadonlyArray<{ key: FloatMenuToggleKey, label: string }>>> = {
+  poe1: [
+    { key: 'stashPricesEnabled', label: 'ppz.menu.tg_stash' },
+    { key: 'stashShowNames', label: 'ppz.menu.tg_names' }
+  ],
+  poe2: [
+    { key: 'revealAutoEnabled', label: 'ppz.menu.tg_reveal' },
+    { key: 'runeshapeEnabled', label: 'ppz.menu.tg_rune' }
+  ]
+}

@@ -5,8 +5,8 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { _roundTripForTest, hostConfigOf } from '../src/web/Config'
-import { bookmarkActionFor, floatMenuPlace, floatMenuPosOf, normFloatMenuPos, sheetZoomRect, FLOAT_MENU_MARGIN } from '../src/web/overlay/float-menu-geom'
+import { HOST_CONFIG_IMMEDIATE_KEYS, _roundTripForTest, hostConfigOf } from '../src/web/Config'
+import { FLOAT_MENU_TOGGLES, bookmarkActionFor, floatMenuPlace, floatMenuPosOf, normFloatMenuPos, sheetZoomRect, FLOAT_MENU_MARGIN } from '../src/web/overlay/float-menu-geom'
 import { bgImageUrl } from '../src/web/useTheme'
 import { QUICK_REASONS, quickNoticeKey } from '../src/web/regex/quick-geom'
 
@@ -187,5 +187,37 @@ describe('速查表放大框可調整(2026-10-08 使用者要求)', () => {
     expect(m).toMatch(/createRectDrag\(\(r\) => \{\s*config\.cheatSheetZoom = r/)
     expect(m).toContain('v-if="pinned && config.cheatSheetZoom"')
     expect(m).toContain('clampSettingsRect(config.cheatSheetZoom, view)')
+  })
+})
+
+describe('2026-10-14:前往正則與開關列(T6 / T7 / T8)', () => {
+  it('開關依遊戲:PoE1 = 倉庫價格 / 格子名稱,PoE2 = 褻瀆 / 符文塑形', () => {
+    // 鍵接錯 → 選單開關改到別的設定
+    expect(FLOAT_MENU_TOGGLES.poe1.map(x => x.key)).toEqual(['stashPricesEnabled', 'stashShowNames'])
+    expect(FLOAT_MENU_TOGGLES.poe2.map(x => x.key)).toEqual(['revealAutoEnabled', 'runeshapeEnabled'])
+  })
+  it('會影響 main 掃描的開關立即送 main(不等 300 ms 去抖);格子名稱只在 renderer 用', () => {
+    for (const k of ['stashPricesEnabled', 'revealAutoEnabled', 'runeshapeEnabled'] as const) expect(HOST_CONFIG_IMMEDIATE_KEYS).toContain(k)
+    expect(Object.keys(hostConfigOf(_roundTripForTest(null).config))).not.toContain('stashShowNames')
+  })
+  it('App.vue:選單 open-tab → openSettingsTo(tab, 懸浮選單)', () => {
+    const app = read('renderer/src/web/App.vue')
+    expect(app).toContain('@pasted="onMenuPasted" @open-tab="menuOpenTab"')
+    expect(app).toMatch(/menuOpenTab \(tab: SettingsTabId\) \{ openSettingsTo\(tab, '懸浮選單'\) \}/)
+  })
+  it('選單寬高有上限(大字級不超出畫面)', () => {
+    const m = read('renderer/src/web/overlay/FloatMenu.vue')
+    // 字級 40 時 21em ≈ 840px,沒上限 → 小螢幕超出
+    expect(m).toMatch(/\.fm \{[^}]*max-width: min\(21em, calc\(100vw - [^)]+\)\)/)
+    expect(m).toMatch(/\.fm \{[^}]*max-height: calc\(100vh - [^;]+;/)
+  })
+  it('字串兩語', () => {
+    for (const lang of ['cmn-Hant', 'en']) {
+      const j = JSON.parse(read(`renderer/src/i18n/${lang}.json`)).ppz.menu
+      for (const k of ['goto_regex', 'toggles_poe1', 'toggles_poe2', 'tg_stash', 'tg_names', 'tg_reveal', 'tg_rune', 'on', 'off']) {
+        expect(typeof j[k], `${lang} ${k}`).toBe('string')
+        expect(j[k], k).not.toMatch(/[|@$]/)
+      }
+    }
   })
 })

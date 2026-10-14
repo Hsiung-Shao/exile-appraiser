@@ -4,10 +4,10 @@
  * 移植的 RelatedItems.vue 內部用 rem(`text-base`、`w-8 h-8`…),rem = html 字級 = `--fs-base`(預設 13px),
  * APT 當時 html 是 16px → 整塊比 APT 小一號。不改移植檔的 class,改在外層套 CSS `zoom`:
  * 100% = APT 原本大小(× `LEGACY_FS_SCALE` 1.23,與 App.vue 面板寬同一個換算),並隨全域字級 `fsBase` 等比;
- * 設定 › 查價「相關物品大小」可再調 70–200%。
+ * 設定 › 查價「相關物品大小」可再調 70–400%。
  */
 export const RELATED_SCALE_MIN = 70
-export const RELATED_SCALE_MAX = 200
+export const RELATED_SCALE_MAX = 400
 export const RELATED_SCALE_DEFAULT = 100
 /** 舊字級 16px / 新預設 13px(App.vue `LEGACY_FS_SCALE` 同值) */
 export const RELATED_LEGACY_FS_SCALE = 1.23

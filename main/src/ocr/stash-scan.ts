@@ -30,16 +30,18 @@ export interface StashScanConfig {
   region?: OcrRegion | null
 }
 
-export type StashBlock = 'disabled' | 'not-poe1' | 'not-overlay' | 'no-window' | 'game-inactive' | 'ui-open'
+/** `user-paused` = 使用者按暫停熱鍵(2026-10-14;暫停當下 `toggleUserPause` 已收掉疊層) */
+export type StashBlock = 'disabled' | 'not-poe1' | 'user-paused' | 'not-overlay' | 'no-window' | 'game-inactive' | 'ui-open'
 
 /** 這幾種「停止」要收掉疊層;失焦 / UI 開著只是暫停(疊層留著) */
 export const STASH_CLEARING_BLOCKS: ReadonlySet<StashBlock> = new Set<StashBlock>(['disabled', 'not-poe1', 'not-overlay', 'no-window'])
-/** 功能本身停用 → 連保底 tick 都不排,等 host-config 的 `poke()` */
-const IDLE_STOP: ReadonlySet<StashBlock> = new Set<StashBlock>(['disabled', 'not-poe1'])
+/** 功能本身停用 / 使用者暫停 → 連保底 tick 都不排,等 host-config 的 `poke()` / 繼續熱鍵 */
+const IDLE_STOP: ReadonlySet<StashBlock> = new Set<StashBlock>(['disabled', 'not-poe1', 'user-paused'])
 
-export function stashBlock (cfg: StashScanConfig, env: ScanEnv, ui: RuneshapeUiState): StashBlock | null {
+export function stashBlock (cfg: StashScanConfig, env: ScanEnv, ui: RuneshapeUiState, userPaused = false): StashBlock | null {
   if (!cfg.enabled) return 'disabled'
   if (cfg.game !== 'poe1') return 'not-poe1'
+  if (userPaused) return 'user-paused'
   if (!env.overlay) return 'not-overlay'
   if (!env.bounds || !(env.bounds.width > 0 && env.bounds.height > 0)) return 'no-window'
   if (!env.gameActive) return 'game-inactive'
@@ -152,6 +154,11 @@ export class StashScan {
   private lastMissLogAt = -Infinity
   private lastClampLogKey: string | null = null
   private ocrCount = 0
+  private userPaused = false
+  /** 效能診斷(perf-monitor `stashSnapshotOf`)用的累計計數:只 `++`,關著零成本 */
+  readonly counters = { ticks: 0, captures: 0, ocrRuns: 0, skippedUnchanged: 0, skippedBusy: 0 }
+  /** 效能診斷:被 `stashBlock` 擋下的 tick 依原因累計 */
+  readonly blockCounts: Partial<Record<StashBlock, number>> = {}
 
   constructor (deps: StashScanDeps) {
     this.deps = deps
@@ -161,6 +168,8 @@ export class StashScan {
   /** 擷取 / OCR 進行中(共用 WinOcr 的其他掃描據此丟 tick) */
   get busy (): boolean { return this.inFlight }
   get showing (): boolean { return this.shown != null }
+  /** 掃描迴圈是否啟動(效能診斷:沒啟動 = 'stopped') */
+  get isRunning (): boolean { return this.running }
 
   start (firstDelayMs = 0): void {
     if (this.running) return
@@ -183,6 +192,25 @@ export class StashScan {
   /** 視窗事件:只在被擋下時才立刻重看 */
   wake (): void {
     if (this.idleBlocked) this.poke()
+  }
+
+  /** 使用者暫停中(暫停熱鍵) */
+  get paused (): boolean { return this.userPaused }
+
+  /** 暫停熱鍵(2026-10-14,語意同 PanelScan):暫停 = 立刻收掉疊層(送 hide)、不再掃描;繼續 = 立刻重看。回傳切換後的狀態 */
+  toggleUserPause (): boolean {
+    this.userPaused = !this.userPaused
+    this.baseline = null
+    this.deps.log?.(`[stash] 使用者${this.userPaused ? '暫停' : '繼續'}倉庫價格`)
+    if (this.userPaused && this.shown) this.hide({ w: this.shown.clientW, h: this.shown.clientH })
+    this.poke()
+    return this.userPaused
+  }
+
+  /** 設成指定的暫停狀態;已經是這個狀態就不動。回傳設定後的狀態 */
+  setUserPause (paused: boolean): boolean {
+    if (this.userPaused !== paused) this.toggleUserPause()
+    return this.userPaused
   }
 
   setUiState (s: RuneshapeUiState): void {
@@ -242,6 +270,7 @@ export class StashScan {
   async tick (): Promise<StashTickResult> {
     if (this.ticking) return { kind: 'overlap' }
     this.ticking = true
+    this.counters.ticks++
     try {
       return await this.runTick()
     } catch (e) {
@@ -257,13 +286,14 @@ export class StashScan {
   private async runTick (): Promise<StashTickResult> {
     const cfg = this.deps.config()
     const env = this.deps.env()
-    const block = stashBlock(cfg, env, this.ui)
+    const block = stashBlock(cfg, env, this.ui, this.userPaused)
     if (block !== this.lastBlock) {
       if (block) this.deps.log?.(`[stash] 暫停:${block}`)
       else if (this.lastBlock) this.deps.log?.('[stash] 繼續掃描')
     }
     this.lastBlock = block
     if (block) {
+      this.blockCounts[block] = (this.blockCounts[block] ?? 0) + 1
       // 停止 → 收掉疊層;暫停(失焦 / UI 開著)→ 留著,但差分基準作廢(回來時重看一次)
       this.baseline = null
       if (STASH_CLEARING_BLOCKS.has(block) && this.shown) {
@@ -271,9 +301,10 @@ export class StashScan {
       }
       return { kind: 'blocked', block }
     }
-    if (this.deps.ocrBusy()) return { kind: 'busy' }
+    if (this.deps.ocrBusy()) { this.counters.skippedBusy++; return { kind: 'busy' } }
 
     this.inFlight = true
+    this.counters.captures++
     const cap = await this.deps.capture(env.bounds!)
     const client = cap.client
     // 使用者框的區域優先,但夾在按鈕可能出現的範圍內(R1:框整個畫面 → 整張 ×3 OCR、也截到自己的徽章);交集為空 → 預設按鈕列
@@ -285,12 +316,14 @@ export class StashScan {
     const prev = this.baseline?.key === key ? this.baseline.fp : null
     // 畫面沒變:狀態不會變(子頁 / 開關都會改變按鈕列)
     if (prev && !isChanged(this.diff(prev, fp), DEFAULT_DIFF_THRESHOLDS) && !isLargeChange(prev, fp)) {
+      this.counters.skippedUnchanged++
       return { kind: 'unchanged' }
     }
-    if (this.deps.ocrBusy()) return { kind: 'busy' }
+    if (this.deps.ocrBusy()) { this.counters.skippedBusy++; return { kind: 'busy' } }
 
     const { lines, ms } = await cap.recognize(strip, 3)
     this.ocrCount++
+    this.counters.ocrRuns++
     this.lastOcrMs = ms
     const clientLines = lines.map((l: OcrTextLine) => ({ text: l.text, x: l.x + cap.offset.x, y: l.y + cap.offset.y, w: l.w, h: l.h }))
     const lang = this.deps.textLang?.() ?? 'zh'

@@ -13,7 +13,7 @@ export type BadgeTier = 'low' | 'mid' | 'high'
 export interface OcrBadgeStyle {
   /** 字體 family 名稱;'' = 跟隨介面(`--font-ui`) */
   fontFamily: string
-  /** 徽章主文字字級 px(10–32);null = 跟隨現狀(褻瀆 `--fs-base`、符文 `--fs-sm`) */
+  /** 徽章主文字字級 px(10–72);null = 跟隨現狀(褻瀆 `--fs-base`、符文 `--fs-sm`) */
   fontSize: number | null
   bold: boolean
   /** 符文價格三段顏色 `#rrggbb`;null = 主題預設(低 = 灰、中 = 一般字色 + 主題色左條、高 = 金) */
@@ -23,7 +23,7 @@ export interface OcrBadgeStyle {
 }
 
 export const BADGE_FONT_SIZE_MIN = 10
-export const BADGE_FONT_SIZE_MAX = 32
+export const BADGE_FONT_SIZE_MAX = 72
 /** 字體名上限(與 main `system-fonts.ts` 相同) */
 const MAX_FONT_NAME = 128
 /** 設定頁字體下拉的內建選項(出貨字型;`pobtools.css` 的 @font-face) */
@@ -48,7 +48,7 @@ export function normFontFamily (v: unknown): string {
   return s
 }
 
-/** 字級:有限數 → 四捨五入並夾到 10–32;null / 其他 → null(跟隨) */
+/** 字級:有限數 → 四捨五入並夾到 10–72;null / 其他 → null(跟隨) */
 export function normBadgeFontSize (v: unknown): number | null {
   if (typeof v !== 'number' || !Number.isFinite(v)) return null
   return Math.min(BADGE_FONT_SIZE_MAX, Math.max(BADGE_FONT_SIZE_MIN, Math.round(v)))

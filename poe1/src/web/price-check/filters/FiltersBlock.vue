@@ -93,7 +93,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, watch, shallowRef, shallowReactive, computed, PropType } from 'vue'
+// exile-appraiser: 多 import provide(破裂切換鈕要整份 stats)
+import { defineComponent, watch, shallowRef, shallowReactive, computed, PropType, provide } from 'vue'
 import { useI18n } from 'vue-i18n'
 import UiToggle from '@/web/ui/UiToggle.vue'
 import FilterModifier from './FilterModifier.vue'
@@ -104,6 +105,7 @@ import UnknownModifier from './UnknownModifier.vue'
 // exile-appraiser: 就地回報(2026-10-08):有未解析詞綴時在清單最上方顯示條數 +「回報問題」(沒有宿主注入時不畫)
 import ReportInline from '@/web/ui/ReportInline.vue'
 import { ItemFilters, FilterOrGroup } from './interfaces'
+import { FRACTURED_FILTERS_KEY } from './fractured-toggle'
 import { ParsedItem, ItemRarity, ItemCategory } from '@/parser'
 
 export default defineComponent({
@@ -137,6 +139,8 @@ export default defineComponent({
     }
   },
   setup (props, ctx) {
+    // exile-appraiser: 破裂切換鈕(FilterModifierFractured.vue)打開時取消勾選同 id 的隱藏孿生
+    provide(FRACTURED_FILTERS_KEY, () => props.stats)
     const statsVisibility = shallowReactive({ disabled: false })
     const showHidden = shallowRef(false)
     const showFilterSources = shallowRef(false)

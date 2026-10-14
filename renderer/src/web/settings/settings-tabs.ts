@@ -1,7 +1,8 @@
 /**
  * 第 39 步(設定頁資訊架構整理):設定視窗左選單的分頁表與舊分頁 id 的映射(純函式;`renderer/test/settings-ia.test.ts` 測)。
- * 左選單分兩組:「設定」(一般 / 遊戲 / 查價 / 倉庫與聊天 / 自動辨識 / 熱鍵 / 更新與關於)與「工具」(正則 / 拆粉排行 / 記錄)。
- * - 自動辨識只在 PoE2 出現在選單(兩個辨識功能都只有 PoE2);目前分頁是自動辨識但遊戲換成 PoE1 → 顯示「遊戲」。
+ * 左選單分兩組:「設定」(一般 / 遊戲 / 查價 / 倉庫與聊天 / 熱鍵 / 更新與關於)與「工具」(自動辨識 / 正則 / 拆粉排行 / 記錄;
+ *   2026-10-14 自動辨識移到工具組第一個)。
+ * - 自動辨識兩代都顯示(PoE1 = 倉庫價格、PoE2 = 褻瀆 / 符文);`poe2Only` 分頁在 PoE1 → 顯示「遊戲」。
  * - 舊值(第 39 步前):`chat`(聊天指令)→ `stash-chat`;其餘 id 沿用,但內容有搬:
  *   舊「熱鍵與視窗」(`hotkeys`)的視窗設定 → `game`、辨識卡片 → `recognition`、熱鍵 → `hotkeys`(總表)。
  *   OCR 框選由設定開啟時,結束後回 `recognition`(App.vue `returnsToSettings`)。
@@ -27,10 +28,10 @@ export const SETTINGS_TABS: readonly SettingsTabDef[] = [
   { id: 'game', key: 'ppz.tab_game', group: 'settings' },
   { id: 'price-check', key: 'ppz.tab_price_check', group: 'settings' },
   { id: 'stash-chat', key: 'ppz.tab_stash_chat', group: 'settings' },
-  // 2026-10-14 起 PoE1 也顯示(倉庫價格疊層);poe2Only 機制保留給之後只屬於 PoE2 的分頁
-  { id: 'recognition', key: 'ppz.tab_recognition', group: 'settings' },
   { id: 'hotkeys', key: 'ppz.tab_hotkeys', group: 'settings' },
   { id: 'about', key: 'ppz.tab_about', group: 'settings' },
+  // 2026-10-14 起 PoE1 也顯示(倉庫價格疊層),並移到工具組第一個(使用者裁定);poe2Only 機制保留給之後只屬於 PoE2 的分頁
+  { id: 'recognition', key: 'ppz.tab_recognition', group: 'tools' },
   { id: 'regex', key: 'ppz.tab_regex', group: 'tools' },
   { id: 'dust', key: 'ppz.tab_dust', group: 'tools', fill: true },
   { id: 'log', key: 'ppz.tab_log', group: 'tools', fill: true }

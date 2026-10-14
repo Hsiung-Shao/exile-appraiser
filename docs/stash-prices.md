@@ -54,16 +54,24 @@
 `renderer/src/web/overlay/StashPrices.vue` + `stash-view.ts`:徽章貼在格子下緣、格寬內置中;外觀沿用 `.rs-badge`、`config.ocrBadgeStyle`
 的 `--badge-*` 變數與三段價格色(`badgeStyleVars(…, 'stash')`);門檻 `stashThresholds`(混沌石,預設 5 / 50);≥ 1 神聖石改神聖石。
 價格單位:混沌石 **C**、神聖石 **D**(2026-10-14 使用者指定,兩語相同)。名稱那一行 = 辨識檢視(`stashShowNames`,預設開)。
-設定在 **設定 › 自動辨識**(2026-10-14 使用者回報放在「倉庫與聊天」找不到,搬過來;自動辨識頁 PoE1 起也顯示):PoE1 時只有共用卡片、
-「倉庫價格」卡片(版面照褻瀆 / 符文卡片:啟用、狀態、掃描間隔、最近耗時、顯示名稱;`StashPricesSection.vue`)與「徽章外觀」(字體 / 大小 / 外框與
-PoE2 共用 `ocrBadgeStyle`;價格門檻改綁 `stashThresholds`,單位 C,預覽顯示 C / D);褻瀆 / 符文卡片只在 PoE2。
+設定在 **設定 › 自動辨識**(2026-10-14 使用者回報放在「倉庫與聊天」找不到,搬過來;自動辨識頁 PoE1 起也顯示,同日移到左選單「工具」組第一個):PoE1 時只有共用卡片、
+「倉庫價格」卡片與「徽章外觀」(字體 / 大小 / 外框與 PoE2 共用 `ocrBadgeStyle`;價格門檻改綁 `stashThresholds`,單位 C,預覽顯示 C / D);褻瀆 / 符文卡片只在 PoE2。
+倉庫價格卡片與褻瀆 / 符文**同一個元件** `OcrScanSection.vue kind="stash"`(2026-10-14 統一樣板;差異在 `settings/scan-card-specs.ts` `SCAN_SPECS.stash`:
+統計 = `Host.stashStats` 每 2 秒輪詢、區域清除鈕 =「還原預設」、沒框過顯示預設按鈕列;台服警告在 `#top`、顯示物品名稱 `stashShowNames` 在 `#extra`;
+`stash-*` data-setting 錨點不變)。舊的 `StashPricesSection.vue` 已刪除。懸浮選單的開關列(PoE1)也可直接開關倉庫價格與格子名稱。
+
+## 熱鍵(2026-10-14 使用者補充)
+`hotkeyStashToggle`(暫停 / 繼續倉庫價格)與 `hotkeyStashRegion`(框選倉庫 OCR 區域),預設空,在「熱鍵」總表的「自動辨識」組(PoE1)編輯。
+路徑同符文塑形:Config → host-config → `shortcut-actions.ts`(`stash-toggle` / `stash-region`,只在 overlay + PoE1 註冊;暫停熱鍵另要 `stashPricesEnabled`;
+遊戲保留鍵不註冊)→ `Shortcuts.ts` → `StashScan.toggleUserPause()`(暫停 = 立刻送 `hide` 收掉疊層、block `user-paused` 不排計時器;繼續 = 立刻 `poke()`)
++ 右下角通知「倉庫價格:已暫停 / 已啟動」(`scanToastMessage` kind `stash`);框選熱鍵送 `ocr-region-pick { target: 'stash' }`。兩者都不送任何按鍵。
 
 ## 價格
 `usePoeninja().priceOf(refName)`;poe.ninja 類別 Scarab / Fragment 原本就有(曾為不滅之火補 `AllflameEmber`,刪除不滅之火時一併撤回)。層顯示時 `queuePricesFetch()`。
 
 ## 測試
 `core/test/stash-layout.test.ts`(S1–S4c)、`core/test/stash-detect.test.ts`(S5–S7,真實 OCR 快照 `core/test/stash/fixtures/ocr/`,
-`node scripts/ocr-fixture.mjs --set stash` 產生)、`main/test/stash-scan.test.ts`(S8–S12c、S9e–S9g)、`renderer/test/stash-prices.test.ts`(S13–S17,含 S14d 單位 C / D)、`renderer/test/settings-ia.test.ts`(自動辨識頁兩代顯示)。
+`node scripts/ocr-fixture.mjs --set stash` 產生)、`main/test/stash-scan.test.ts`(S8–S12c、S9e–S9g、S19 暫停熱鍵)、`main/test/shortcut-actions.test.ts`(倉庫價格熱鍵)、`renderer/test/stash-prices.test.ts`(S13–S17,含 S14d 單位 C / D;S20 統一樣板)、`renderer/test/settings-ia.test.ts`(自動辨識頁兩代顯示)。
 
 ## 實機確認
 - **已確認(2026-10-14,使用者 2560×1440、倉庫不在資料夾)**:繁中介面與英文介面的一般 / 聖甲蟲子頁都出現徽章與價格;滑鼠停格只留該格;倉庫頁在資料夾內;自訂 OCR 區域框選。

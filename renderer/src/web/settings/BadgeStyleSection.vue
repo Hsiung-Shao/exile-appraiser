@@ -4,7 +4,7 @@
   2026-10-14:PoE1 也顯示(倉庫價格疊層共用同一組外觀):門檻改綁 `stashThresholds`(混沌石,單位 C)、預覽顯示 C / D、不顯示褻瀆預覽。
   符文價格徽章與褻瀆徽章共用 `config.ocrBadgeStyle`(overlay/badge-style.ts):
   - 字體:系統已安裝字體(main IPC `list-fonts`,一次性 PowerShell、快取;失敗 = 只剩「跟隨介面」與內建 Noto Sans TC),上方篩選框;
-  - 大小:10–32 px 滑桿 +「跟隨」(null = 褻瀆跟 `--fs-base`、符文跟 `--fs-sm`);粗體;
+  - 大小:10–72 px 滑桿 +「跟隨」(null = 褻瀆跟 `--fs-base`、符文跟 `--fs-sm`);粗體;
   - 符文三段價格色(`<input type=color>` +「還原預設」;褻瀆的語意色不受影響);
   - 外框 / 陰影三選一。
   即時套用(沒有儲存 / 取消,照專案慣例);拖曳字級滑桿 / 色票選色中預覽用本地草稿即時更新,放開(change)才寫設定。下方預覽區用與 overlay 相同的 class(`.rs-badge` / `.ocr-badge`)與同一組 CSS 變數,

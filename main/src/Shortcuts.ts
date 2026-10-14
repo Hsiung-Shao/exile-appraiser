@@ -18,6 +18,8 @@
  * - WP-R2:`runeshape-toggle`(`hotkeyRuneshapeToggle`,預設空)= 符文塑形自動查價暫停 / 繼續;只呼叫 `onRuneshapeToggle`。
  *   第 16 步:兩個暫停熱鍵相同 → `scan-toggle-both`,呼叫 `onScanToggleBoth`(一次切換兩者;同樣不送按鍵)。
  *   2026-10-01:`runeshape-region`(`hotkeyRuneshapeRegion`,預設空)= 框選符文塑形面板,呼叫 `onOcrRegionPick('runeshape')`。
+ * - 2026-10-14:PoE1 `stash-toggle`(`hotkeyStashToggle`)= 倉庫價格暫停 / 繼續,呼叫 `onStashToggle`;`stash-region`(`hotkeyStashRegion`)
+ *   = 框選倉庫 OCR 區域,呼叫 `onOcrRegionPick('stash')`。兩者都不送也不放開任何按鍵。
  * - 2026-10-01(移植 APT `Shortcuts.ts` 的 paste-in-chat / stash-search 分支):聊天指令與倉庫搜尋。照 APT 先放開熱鍵本身的按鍵,
  *   再交給 `text-box.ts`(寫剪貼簿 + 送按鍵序列,包在 `HostClipboard.restoreShortly`);兩個遊戲都可用,只在 overlay 模式註冊。
  *   遊戲保留鍵(`ipc/reserved-hotkeys.ts`,含 PoE2 的 Ctrl+Alt+C)不註冊。
@@ -68,6 +70,8 @@ export class Shortcuts {
       onOcrRegionPick?: (target: OcrRegionPickTarget) => void
       /** WP-R2:符文塑形自動查價暫停 / 繼續(不送任何按鍵) */
       onRuneshapeToggle?: () => void
+      /** 2026-10-14:PoE1 倉庫價格暫停 / 繼續(不送任何按鍵) */
+      onStashToggle?: () => void
       /** 第 16 步:褻瀆 / 符文暫停熱鍵相同時的合併動作(不送任何按鍵) */
       onScanToggleBoth?: () => void
       /** 第 33 步:正則書籤快速面板熱鍵(熱鍵按鍵已放開) */
@@ -159,9 +163,14 @@ export class Shortcuts {
       this.opts.onOcrReveal?.()
       return
     }
-    if (entry.action.type === 'ocr-region' || entry.action.type === 'runeshape-region') {
+    if (entry.action.type === 'ocr-region' || entry.action.type === 'runeshape-region' || entry.action.type === 'stash-region') {
       // WP-S2:只請 renderer 開框選層(overlay 焦點由 renderer 的 overlay-activate 取得),不動鍵盤
-      this.opts.onOcrRegionPick?.(entry.action.type === 'runeshape-region' ? 'runeshape' : 'reveal')
+      this.opts.onOcrRegionPick?.(entry.action.type === 'runeshape-region' ? 'runeshape' : entry.action.type === 'stash-region' ? 'stash' : 'reveal')
+      return
+    }
+    if (entry.action.type === 'stash-toggle') {
+      // 2026-10-14:只切換倉庫掃描狀態,不動鍵盤
+      this.opts.onStashToggle?.()
       return
     }
     if (entry.action.type === 'runeshape-toggle') {

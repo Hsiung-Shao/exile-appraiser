@@ -142,11 +142,11 @@ export interface ToastMessage {
   kind?: 'startup' | 'scan'
 }
 
-export type ScanToastKind = 'reveal' | 'rune'
+export type ScanToastKind = 'reveal' | 'rune' | 'stash'
 
-const SCAN_TOAST_STRINGS: Readonly<Record<ToastLang, { reveal: string, rune: string, on: string, paused: string, sep: string }>> = {
-  'cmn-Hant': { reveal: '褻瀆辨識', rune: '符文辨識', on: '已啟動', paused: '已暫停', sep: ':' },
-  en: { reveal: 'Desecration detection', rune: 'Rune detection', on: 'on', paused: 'paused', sep: ': ' }
+const SCAN_TOAST_STRINGS: Readonly<Record<ToastLang, { reveal: string, rune: string, stash: string, on: string, paused: string, sep: string }>> = {
+  'cmn-Hant': { reveal: '褻瀆辨識', rune: '符文辨識', stash: '倉庫價格', on: '已啟動', paused: '已暫停', sep: ':' },
+  en: { reveal: 'Desecration detection', rune: 'Rune detection', stash: 'Stash prices', on: 'on', paused: 'paused', sep: ': ' }
 }
 
 /**
@@ -154,7 +154,7 @@ const SCAN_TOAST_STRINGS: Readonly<Record<ToastLang, { reveal: string, rune: str
  */
 export function scanToastMessage (lang: ToastLang, items: Array<{ kind: ScanToastKind, paused: boolean }>): ToastMessage {
   const S = SCAN_TOAST_STRINGS[lang]
-  const order: ScanToastKind[] = ['reveal', 'rune']
+  const order: ScanToastKind[] = ['reveal', 'rune', 'stash']
   const lines = [...items].sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind))
     .map(it => `${S[it.kind]}${S.sep}${it.paused ? S.paused : S.on}`)
   return { lang, kind: 'scan', title: lines[0] ?? '', hint: lines.slice(1).join(' / ') }

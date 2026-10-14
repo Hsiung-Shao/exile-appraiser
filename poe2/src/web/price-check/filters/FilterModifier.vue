@@ -124,6 +124,12 @@
             :filter="filter"
             v-if="tradeId === 'item.elemental_dps'"
           />
+          <!-- exile-appraiser: 破裂詞綴的「破裂」切換鈕(自寫 FilterModifierFractured.vue;不適用時不輸出任何元素) -->
+          <filter-modifier-fractured
+            class="self-start"
+            :filter="filter"
+            :item="item"
+          />
         </div>
 
         <stat-roll-slider
@@ -163,6 +169,8 @@ import {
 import { FilterTag, StatFilter, INTERNAL_TRADE_IDS } from "./interfaces";
 import SourceInfo from "./SourceInfo.vue";
 import FilterModifierItemIsElemental from "./FilterModifierItemIsElemental.vue";
+// exile-appraiser: 破裂切換鈕(自寫)
+import FilterModifierFractured from "./FilterModifierFractured.vue";
 import { CLIENT_STRINGS as _$ } from "@/assets/data";
 
 export default defineComponent({
@@ -175,6 +183,8 @@ export default defineComponent({
     StatRollSlider,
     UiPopover,
     FilterModifierItemIsElemental,
+    // exile-appraiser: 多註冊 FilterModifierFractured
+    FilterModifierFractured,
   },
   emits: ["submit"],
   props: {
