@@ -193,7 +193,7 @@ describe('速查表放大框可調整(2026-10-08 使用者要求)', () => {
 describe('2026-10-14:前往正則與開關列(T6 / T7 / T8)', () => {
   it('開關依遊戲:PoE1 = 倉庫價格 / 格子名稱,PoE2 = 褻瀆 / 符文塑形', () => {
     // 鍵接錯 → 選單開關改到別的設定
-    expect(FLOAT_MENU_TOGGLES.poe1.map(x => x.key)).toEqual(['stashPricesEnabled', 'stashShowNames'])
+    expect(FLOAT_MENU_TOGGLES.poe1.map(x => x.key)).toEqual(['stashPricesEnabled', 'stashReadQuantity', 'stashShowNames'])
     expect(FLOAT_MENU_TOGGLES.poe2.map(x => x.key)).toEqual(['revealAutoEnabled', 'runeshapeEnabled'])
   })
   it('會影響 main 掃描的開關立即送 main(不等 300 ms 去抖);格子名稱只在 renderer 用', () => {

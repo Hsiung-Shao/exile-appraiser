@@ -194,7 +194,7 @@ describe('F7 選單掛載(PoE2)', () => {
 
   it('辨識開關依目前遊戲:PoE2 褻瀆 / 符文、PoE1 倉庫價格 / 格子名稱;點了寫入設定、標開 / 關', async () => {
     const config = AppConfig()
-    const saved = { game: config.game, reveal: config.revealAutoEnabled, rune: config.runeshapeEnabled, stash: config.stashPricesEnabled, names: config.stashShowNames }
+    const saved = { game: config.game, reveal: config.revealAutoEnabled, rune: config.runeshapeEnabled, stash: config.stashPricesEnabled, names: config.stashShowNames, qty: config.stashReadQuantity }
     try {
       config.game = 'poe2'
       config.runeshapeEnabled = false
@@ -215,20 +215,25 @@ describe('F7 選單掛載(PoE2)', () => {
 
       config.game = 'poe1'
       config.stashShowNames = true
+      config.stashReadQuantity = true
       r = render()
       await settle()
       sw = findAll(r.container, byAttr('role', 'switch'))
-      expect(sw.map(n => n.attrs['data-toggle'])).toEqual(['stashPricesEnabled', 'stashShowNames'])
+      expect(sw.map(n => n.attrs['data-toggle'])).toEqual(['stashPricesEnabled', 'stashReadQuantity', 'stashShowNames'])
+      expect(text(sw[1])).toContain('倉庫價值')
       expect(text(r.container)).toContain('自動辨識 · PoE1')
       // PoE1 倉庫本頁價值:疊層沒有資料 → 佔位
       expect(text(one(r.container, 'data-menu', 'stash'))).toContain('打開倉庫碎片頁後顯示')
       click(sw[1])
       await settle()
+      expect(config.stashReadQuantity).toBe(false)
+      click(sw[2])
+      await settle()
       expect(config.stashShowNames).toBe(false)
       expect(r.errors).toEqual([])
       r.app.unmount()
     } finally {
-      Object.assign(config, { game: saved.game, revealAutoEnabled: saved.reveal, runeshapeEnabled: saved.rune, stashPricesEnabled: saved.stash, stashShowNames: saved.names })
+      Object.assign(config, { game: saved.game, revealAutoEnabled: saved.reveal, runeshapeEnabled: saved.rune, stashPricesEnabled: saved.stash, stashShowNames: saved.names, stashReadQuantity: saved.qty })
     }
   })
 })

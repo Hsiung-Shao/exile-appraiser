@@ -90,7 +90,7 @@ export function bookmarkActionFor (listGame: RegexGame, currentGame: RegexGame):
 }
 
 /** 選單開關列的設定鍵(只放 boolean 設定) */
-export type FloatMenuToggleKey = 'stashPricesEnabled' | 'stashShowNames' | 'revealAutoEnabled' | 'runeshapeEnabled'
+export type FloatMenuToggleKey = 'stashPricesEnabled' | 'stashReadQuantity' | 'stashShowNames' | 'revealAutoEnabled' | 'runeshapeEnabled'
 
 /**
  * 2026-10-14 使用者要求:按鈕列下方的開關列,依目前遊戲顯示自動辨識的開關(+ 倉庫格子名稱)。
@@ -99,6 +99,8 @@ export type FloatMenuToggleKey = 'stashPricesEnabled' | 'stashShowNames' | 'reve
 export const FLOAT_MENU_TOGGLES: Readonly<Record<RegexGame, ReadonlyArray<{ key: FloatMenuToggleKey, label: string }>>> = {
   poe1: [
     { key: 'stashPricesEnabled', label: 'ppz.menu.tg_stash' },
+    // 2026-10-15 使用者要求:倉庫價值(讀堆疊數量算小計 / 總價)開關也放在選單
+    { key: 'stashReadQuantity', label: 'ppz.menu.tg_value' },
     { key: 'stashShowNames', label: 'ppz.menu.tg_names' }
   ],
   poe2: [

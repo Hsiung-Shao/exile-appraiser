@@ -25,8 +25,8 @@ const GROUPS: GroupedBookmarks = {
 describe('F1 選單項目攤平分三類', () => {
   it('順序 = 辨識 → 書籤 → 工具;辨識依目前遊戲、書籤帶資料夾 / 熱鍵 / 索引', () => {
     const items = menuItemsOf({ game: 'poe1', bookmarks: GROUPS, t })
-    expect(items.map(i => i.kind)).toEqual(['scan', 'scan', 'bookmark', 'bookmark', 'bookmark', 'tool', 'tool', 'tool'])
-    expect(items.filter(i => i.kind === 'scan').map(i => i.toggle)).toEqual(['stashPricesEnabled', 'stashShowNames'])
+    expect(items.map(i => i.kind)).toEqual(['scan', 'scan', 'scan', 'bookmark', 'bookmark', 'bookmark', 'tool', 'tool', 'tool'])
+    expect(items.filter(i => i.kind === 'scan').map(i => i.toggle)).toEqual(['stashPricesEnabled', 'stashReadQuantity', 'stashShowNames'])
     expect(items[0].label).toBe('T(ppz.menu.tg_stash)')
     const b = items.filter(i => i.kind === 'bookmark')
     expect(b.map(i => [i.label, i.folder, i.index, i.hotkey ?? null, i.collapsed])).toEqual([
@@ -49,7 +49,7 @@ describe('F2 篩選膠囊與搜尋', () => {
   it('膠囊只留該類;全部 = 原清單', () => {
     expect(filterMenuItems(items, 'all', '')).toEqual(items)
     expect(filterMenuItems(items, 'bookmark', '').every(i => i.kind === 'bookmark')).toBe(true)
-    expect(filterMenuItems(items, 'scan', '')).toHaveLength(2)
+    expect(filterMenuItems(items, 'scan', '')).toHaveLength(3)
     expect(filterMenuItems(items, 'tool', '')).toHaveLength(3)
   })
   it('名稱 / 資料夾比對,大小寫與全形不影響', () => {
