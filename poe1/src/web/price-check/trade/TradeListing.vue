@@ -3,19 +3,46 @@
     <div v-if="item.info.exchangeable" :class="$style.legacyMessage">
       {{ t(':legacy_bulk_xchg_msg') }}
     </div>
-    <div class="mb-2 flex pl-2">
-      <div class="flex items-baseline text-gray-500 mr-2">
+    <div class="listing-card layout-column min-h-0" data-listing-kind="item">
+    <div class="listing-head">
+      <span class="listing-head-title">{{ t('ppz.listing.title') }}</span>
+      <span v-if="lowest" class="listing-head-sub" data-listing-lowest>{{ t('ppz.listing.lowest', { price: lowest }) }}</span>
+      <span class="flex items-baseline">
         <span class="mr-1">{{ t(':matched') }}</span>
         <span v-if="!list" class="text-gray-600">...</span>
-        <span v-else>{{ list.total }}{{ list.inexact ? '+' : '' }}</span>
-      </div>
+        <span v-else class="text-gray-400">{{ list.total }}{{ list.inexact ? '+' : '' }}</span>
+      </span>
       <online-filter v-if="list" :filters="filters" api="trade" />
-      <div class="flex-1"></div>
+      <span class="listing-spacer"></span>
+      <listing-layout-toggle :model-value="layout" @update:model-value="setLayout" />
       <trade-links v-if="list"
         :get-link="makeTradeLink" />
     </div>
     <div class="layout-column overflow-y-auto overflow-x-hidden">
-      <table class="table-stripped w-full">
+      <div v-if="layout === 'grid'" class="listing-grid" data-listing-layout="grid">
+        <template v-for="(result, idx) in groupedResults">
+          <div v-if="!result" :key="idx" class="listing-tile is-placeholder"></div>
+          <div v-else :key="result.id" class="listing-tile" data-listing="item">
+            <span class="listing-price"><span :class="{ 'line-through': result.priceCurrency === 'exalted' }">{{ result.priceAmount }} {{ result.priceCurrency }}</span></span>
+            <span v-if="result.listedTimes > 2" class="listing-badge"><span class="font-sans">×</span> {{ result.listedTimes }}</span>
+            <span v-else-if="!result.hasFee" :class="$style.stashListing">
+              <img :class="$style.stashIcon" src="/images/stash.png">
+              <i v-if="!result.hasNote" class="fas fa-question" />
+            </span>
+            <span v-if="item.stackSize" class="listing-meta">{{ t('ppz.listing.stock', { n: result.stackSize }) }}</span>
+            <span v-if="filters.itemLevel" class="listing-meta">{{ t('ppz.listing.ilvl', { n: result.itemLevel }) }}</span>
+            <span v-if="item.category === 'Gem'" class="listing-meta">{{ t('ppz.listing.gem_level', { n: result.level }) }}</span>
+            <span v-if="filters.quality || item.category === 'Gem'" class="listing-meta text-blue-400">{{ t('ppz.listing.quality', { n: result.quality }) }}</span>
+            <span class="listing-time">
+              <span :class="[$style.accountStatus, $style[result.accountStatus]]"></span>
+              <span class="font-sans">{{ result.relativeDate }}</span>
+            </span>
+            <span v-if="result.isMine" class="listing-badge">{{ t('You') }}</span>
+            <span v-else-if="showSeller" class="listing-meta font-sans text-xs">{{ showSeller === 'ign' ? result.ign : result.accountName }}</span>
+          </div>
+        </template>
+      </div>
+      <table v-else class="table-stripped w-full" data-listing-layout="list">
         <thead>
           <tr class="text-left">
             <th :class="$style.tableHeading">
@@ -77,6 +104,7 @@
         </tbody>
       </table>
     </div>
+    </div>
   </div>
   <ui-error-box v-else>
     <template #name>{{ t(':error') }}</template>
@@ -91,6 +119,8 @@
 </template>
 
 <script lang="ts">
+// exile-appraiser: 2026-10-14 B 改版:呈現層已重寫(掛單卡標題列 + 方塊 / 長條切換;方塊 = 兩欄小卡片,長條 = 原本的表格列;
+// 搜尋 / 分組 / 查詢組法不動。setup 回傳的 list / groupedResults / error 名稱與形狀維持,CheckedItem 的價格區會讀)
 // exile-appraiser: 交易層 request 函式改帶 TradeContext(activeTradeContext());requestResults 不再收 opts;交易站網址的 ?q= 改 encodeURIComponent
 import { defineComponent, computed, watch, PropType, inject, shallowReactive, shallowRef } from 'vue'
 import { useI18nNs } from '@/web/i18n'
@@ -106,6 +136,8 @@ import { ParsedItem } from '@/parser'
 import { artificialSlowdown } from './artificial-slowdown'
 import OnlineFilter from './OnlineFilter.vue'
 import TradeLinks from './TradeLinks.vue'
+import ListingLayoutToggle from '@/web/price-panel/ListingLayoutToggle.vue'
+import { useListingLayout } from '@/web/price-panel/useListingLayout'
 
 const slowdown = artificialSlowdown(900)
 
@@ -211,7 +243,7 @@ function useTradeApi () {
 }
 
 export default defineComponent({
-  components: { OnlineFilter, TradeLinks, UiErrorBox, ReportInline },
+  components: { OnlineFilter, TradeLinks, UiErrorBox, ReportInline, ListingLayoutToggle },
   emits: ['reset'],
   props: {
     filters: {
@@ -245,9 +277,16 @@ export default defineComponent({
     }
 
     const { t } = useI18nNs('trade_result')
+    const { layout, setLayout } = useListingLayout('item')
 
     return {
       t,
+      layout,
+      setLayout,
+      lowest: computed(() => {
+        const first = groupedResults.value[0]
+        return (slowdown.isReady.value && first) ? `${first.priceAmount} ${first.priceCurrency}` : null
+      }),
       list: searchResult,
       groupedResults: computed(() => {
         if (!slowdown.isReady.value) {

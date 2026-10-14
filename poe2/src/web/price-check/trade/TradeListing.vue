@@ -1,23 +1,57 @@
 <template>
   <div v-if="!error" class="layout-column min-h-0" style="height: auto">
-    <div class="mb-2 flex pl-2">
-      <div class="flex items-baseline text-gray-500 mr-2">
+    <div class="listing-card layout-column min-h-0" data-listing-kind="item">
+    <div class="listing-head">
+      <span class="listing-head-title">{{ t("ppz.listing.title") }}</span>
+      <span v-if="lowest" class="listing-head-sub" data-listing-lowest>{{
+        t("ppz.listing.lowest", { price: lowest })
+      }}</span>
+      <span class="flex items-baseline">
         <span class="mr-1">{{ t(":matched") }}</span>
         <span v-if="!list" class="text-gray-600">...</span>
-        <span v-else>{{ list.total }}{{ list.inexact ? "+" : "" }}</span>
-      </div>
+        <span v-else class="text-gray-400"
+          >{{ list.total }}{{ list.inexact ? "+" : "" }}</span
+        >
+      </span>
       <online-filter
         v-if="list"
         :by-time="true"
         :filters="filters"
         api="trade"
       />
-      <div class="flex-1"></div>
+      <span class="listing-spacer"></span>
+      <listing-layout-toggle
+        :model-value="layout"
+        @update:model-value="setLayout"
+      />
       <trade-links v-if="list" :get-link="makeTradeLink" />
     </div>
 
     <div class="layout-column overflow-y-auto overflow-x-hidden">
-      <table class="table-stripped w-full">
+      <div
+        v-if="layout === 'grid'"
+        class="listing-grid"
+        data-listing-layout="grid"
+      >
+        <template v-for="(result, idx) in groupedResults">
+          <div
+            v-if="!result"
+            :key="idx"
+            class="listing-tile is-placeholder"
+          ></div>
+          <trade-item
+            v-else
+            :key="'grid:' + result.id"
+            layout="grid"
+            :result="result"
+            :item="item"
+            :show-seller="showSeller"
+            :item-level="filters.itemLevel"
+            :quality="filters.quality"
+          />
+        </template>
+      </div>
+      <table v-else class="table-stripped w-full" data-listing-layout="list">
         <thead>
           <tr class="text-left">
             <th class="trade-table-heading">
@@ -112,6 +146,7 @@
         </div>
       </div> -->
     </div>
+    </div>
   </div>
   <ui-error-box v-else>
     <template #name>{{ t(":error") }}</template>
@@ -128,6 +163,8 @@
 </template>
 
 <script lang="ts">
+// exile-appraiser: 2026-10-14 B 改版:呈現層已重寫(掛單卡標題列 + 方塊 / 長條切換;方塊 = 兩欄小卡片(TradeItem layout="grid"),
+// 長條 = 原本的表格列。搜尋 / 分組 / 查詢組法不動;setup 回傳的 list / groupedResults / error 名稱與形狀維持,CheckedItem 的價格區會讀)
 import {
   defineComponent,
   computed,
@@ -158,6 +195,8 @@ import { useTradeApi } from "./trade-api";
 import { GEM, GRANTS_REAL_SKILL } from "@/parser/meta";
 import ItemSumPrice from "@/web/ui/ItemSumPrice.vue";
 import ExtractionValue from "./ExtractionValue.vue";
+import ListingLayoutToggle from "@/web/price-panel/ListingLayoutToggle.vue";
+import { useListingLayout } from "@/web/price-panel/useListingLayout";
 
 const slowdown = artificialSlowdown(900);
 
@@ -174,6 +213,7 @@ export default defineComponent({
     UiErrorBox,
     ReportInline,
     UiPopover,
+    ListingLayoutToggle,
   },
   props: {
     filters: {
@@ -236,8 +276,18 @@ export default defineComponent({
       window.removeEventListener("keyup", handleKeyUp);
     });
 
+    const { layout, setLayout } = useListingLayout("item");
+
     return {
       t,
+      layout,
+      setLayout,
+      lowest: computed(() => {
+        const first = groupedResults.value[0];
+        return slowdown.isReady.value && first
+          ? `${first.priceAmount} ${first.priceCurrency}`
+          : null;
+      }),
       list: searchResult,
       groupedResults: computed(() => {
         if (!slowdown.isReady.value) {

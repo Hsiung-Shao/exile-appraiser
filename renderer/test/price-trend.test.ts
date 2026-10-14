@@ -193,6 +193,17 @@ describe('接線守門', () => {
       expect(src, f).toMatch(/<stack-value\s/)
     }
   })
+  it('B 改版:市價卡走 PriceHero、你的這一疊走 StackCard,遊戲各帶自己的 game;一般物品價格區接在 CheckedItem', () => {
+    for (const [game, trend, stack, checked] of [
+      ['poe1', 'poe1/src/web/price-check/trends/PriceTrend.vue', 'poe1/src/web/price-check/expected-value/StackValue.vue', 'poe1/src/web/price-check/CheckedItem.vue'],
+      ['poe2', 'poe2/src/web/price-check/trends/PriceTrend.vue', 'poe2/src/web/price-check/stack-value/StackValue.vue', 'poe2/src/web/price-check/CheckedItem.vue']
+    ] as const) {
+      expect(read(trend), trend).toMatch(new RegExp(`<price-hero [^>]*game="${game}" mode="currency"`))
+      expect(read(stack), stack).toMatch(new RegExp(`<stack-card v-if="show" game="${game}"`))
+      expect(read(checked), checked).toMatch(new RegExp(`<price-hero v-if="itemHero" game="${game}" mode="item"`))
+      for (const f of [trend, stack, checked]) expect(read(f), f).toContain('2026-10-14 B 改版:本檔呈現層已重寫')
+    }
+  })
   it('PriceTrend / StackValue 只對 exchange 類顯示;不用 apexcharts;檔頭有 MIT 出處', () => {
     const files = {
       'poe1/src/web/price-check/trends/PriceTrend.vue': /if \(!trend\.exchange\) return/,

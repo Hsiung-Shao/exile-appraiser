@@ -1,0 +1,210 @@
+/* 2026-10-14 查價面板 B 改版:價格區 / 你的這一疊 共用樣式(設計稿 PricePanelB / PricePanelBCurrency)。
+   顏色全用主題 token(四主題 + 背景模式 .bg-host 會重算 --surface-*);尺寸用 em(跟查價面板字級走)。
+   類名一律 ph- 開頭(全域樣式,避免和移植檔的 class 撞名)。 */
+.ph-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6em;
+  padding: 0.8em 0.95em;
+  margin-bottom: 0.75em;
+  border-radius: var(--radius-l);
+  background: var(--surface-2);
+  border: 1px solid var(--edge-0);
+  color: var(--ink-0);
+}
+.ph-hero {
+  background: linear-gradient(180deg, var(--surface-3), var(--surface-2));
+}
+.ph-h {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  font-size: 0.92em;
+  font-weight: 700;
+  color: var(--ink-2);
+  letter-spacing: 0.04em;
+}
+.ph-h .ph-sub {
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.ph-sub {
+  font-size: 0.85em;
+  color: var(--ink-2);
+}
+.ph-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.ph-row {
+  display: flex;
+  align-items: center;
+  gap: 0.9em;
+  min-width: 0;
+}
+.ph-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15em;
+  min-width: 0;
+}
+.ph-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  font-size: 0.85em;
+  color: var(--ink-2);
+}
+.ph-big {
+  display: flex;
+  align-items: center;
+  gap: 0.2em;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 2.3em;
+  line-height: 1;
+  color: var(--ink-0);
+  white-space: nowrap;
+}
+.ph-big img {
+  width: 1em;
+  height: 1em;
+  object-fit: contain;
+}
+.ph-big .ph-unit {
+  font-size: 0.45em;
+  font-weight: 400;
+  color: var(--ink-1);
+  align-self: flex-end;
+  padding-bottom: 0.2em;
+}
+.ph-grid {
+  display: grid;
+  grid-template-columns: auto auto;
+  column-gap: 0.9em;
+  row-gap: 0.15em;
+  margin: 0;
+  font-size: 0.92em;
+}
+.ph-grid dt {
+  color: var(--ink-2);
+}
+.ph-grid dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+.ph-few {
+  padding: 0 0.45em;
+  border-radius: 999px;
+  font-size: 0.9em;
+  color: var(--warn);
+  background: color-mix(in srgb, var(--warn) 14%, transparent);
+}
+.ph-status {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  min-height: 2.6em;
+  color: var(--ink-2);
+}
+.ph-from {
+  display: flex;
+  align-items: center;
+  gap: 0.2em;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 1.38em;
+  color: var(--ink-1);
+  white-space: nowrap;
+}
+.ph-from img {
+  width: 1.65em;
+  height: 1.65em;
+  object-fit: contain;
+}
+.ph-arrow {
+  width: 1.4em;
+  height: 1.4em;
+  flex: none;
+  fill: none;
+  stroke: var(--ink-3);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.ph-change {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15em;
+  padding: 0.2em 0.3em;
+  margin: -0.2em -0.3em;
+  border: 0;
+  border-radius: var(--radius-m);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  --tone: var(--ink-3);
+}
+.ph-change:hover {
+  background: var(--surface-hover);
+}
+.ph-change[data-tone="up"] { --tone: var(--ok); }
+.ph-change[data-tone="down"] { --tone: var(--bad); }
+.ph-pct {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 1.08em;
+  color: var(--tone);
+  white-space: nowrap;
+}
+.ph-spark {
+  display: block;
+  width: 6.9em;
+  height: 2.3em;
+}
+.ph-stats {
+  display: grid;
+  gap: 0.45em;
+}
+.ph-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15em;
+  min-width: 0;
+  padding: 0.6em 0.75em;
+  border-radius: 0.7em;
+  background: var(--surface-1);
+  border: 1px solid var(--edge-0);
+}
+.ph-stat > span {
+  font-size: 0.85em;
+  color: var(--ink-2);
+}
+.ph-stat > b {
+  display: flex;
+  align-items: center;
+  gap: 0.3em;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 1.15em;
+  color: var(--ink-0);
+  white-space: nowrap;
+  overflow: hidden;
+}
+.ph-stat > b img {
+  width: 1.1em;
+  height: 1.1em;
+  object-fit: contain;
+}
+.ph-stat.ph-click {
+  cursor: pointer;
+}
+.ph-stat.ph-click:hover {
+  background: var(--surface-hover);
+}

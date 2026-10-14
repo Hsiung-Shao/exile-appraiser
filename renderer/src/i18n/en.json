@@ -28,6 +28,29 @@
   "Not recognized modifier": "Not recognized modifier",
   "Refresh": "Refresh",
   "ppz": {
+    "listing": {
+      "title": "Listings",
+      "lowest": "Lowest {price}",
+      "layout_group": "Listing layout",
+      "layout_grid": "Grid",
+      "layout_list": "List",
+      "conditions": "Exchange terms",
+      "pay_with": "Pay with",
+      "online_only": "Online only",
+      "stock": "Stock {n}",
+      "fulfill": "Fills {n}×",
+      "market_ratio": "Market ratio",
+      "ilvl": "iLv {n}",
+      "gem_level": "Lv {n}",
+      "quality": "Q {n}",
+      "sockets": "Sockets {n}",
+      "pay_with_title": "Pay with {name} ({n} listings)",
+      "currency": {
+        "exalted": "Exalted",
+        "chaos": "Chaos",
+        "divine": "Divine"
+      }
+    },
     "desecration": {
       "inferred": "est.",
       "inferred_title": "Estimated tier: a plain copy has no tier, so it is derived from PoB2 mod data and the value range (tiers from an advanced copy, Ctrl+Alt+C, come from the game)",
@@ -43,7 +66,17 @@
     "fractured_toggle": {
       "label": "Fractured",
       "title_off": "Search this as a fractured mod (only items where this mod is fractured)",
-      "title_on": "Searching the fractured mod; click again to search the regular mod"
+      "title_on": "Searching the fractured mod; click again to search the regular mod",
+      "normal": "Regular",
+      "group": "Search as",
+      "title_normal": "Search the regular mod (fractured or not)"
+    },
+    "mod_cards": {
+      "mods": "Mods",
+      "pseudo": "Pseudo (totals)",
+      "count": "{0} / {1} used",
+      "from_n": "From {0} mods",
+      "switch": "Use: {0}"
     },
     "bg": {
       "section": "Background",
@@ -315,6 +348,30 @@
     "related_items_scale": "Related items size",
     "related_items_scale_hint": "Text and icon size of the related fragments / rewards beside the price panel; 100% = original APT size, scales with the UI font size.",
     "highest_volume": "Highest volume:",
+    "hero": {
+      "suggested": "Suggested",
+      "min": "Lowest",
+      "median": "Median",
+      "matched": "Matched",
+      "loading": "Searching…",
+      "none": "No matching listings",
+      "few": "few",
+      "few_hint": "Fewer than 3 listings; suggested price uses the lowest",
+      "raw_currency": "No exchange rate; shown in listed currency",
+      "market": "Market",
+      "source_ninja": "poe.ninja",
+      "open_ninja": "Open on poe.ninja",
+      "graph_7d": "Last 7 days",
+      "change_up": "Up {0} over 7 days",
+      "change_down": "Down {0} over 7 days",
+      "change_flat": "Flat {0} over 7 days",
+      "vol_value": "Traded / hr",
+      "vol_items": "Items / hr",
+      "highest": "Highest volume",
+      "stack_title": "Your stack",
+      "stack_have": "Have × {0}",
+      "stack_max": "Full stack × {0}"
+    },
     "per_hour": "/hr",
     "unsupported_combo": "The Taiwan realm currently supports the Traditional Chinese client only.",
     "parse_error": "Could not parse item text",

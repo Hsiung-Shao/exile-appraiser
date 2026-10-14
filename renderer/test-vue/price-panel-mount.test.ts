@@ -129,6 +129,13 @@ describe('未鑑定傳奇珠寶(使用者回報 A / C)', () => {
       expect(query.query.type).toBe(base)
       expect(query.query.name).toMatch(/^[\x20-\x7e]+$/) // 國際服送英文名
       expect(query.query.filters.misc_filters.filters.identified).toEqual({ option: 'false' })
+      // 2026-10-14 B 改版:搜尋後頂端出現一般物品價格區(建議售價 / 狀態列),不得空白或拋錯
+      const hero = findAll(container, byAttr('data-price-hero', 'item'))
+      expect(hero, '一般物品價格區').toHaveLength(1)
+      // 錄製回應 10 筆、測試沒有 poe.ninja 價格表 → 以原幣別計
+      expect(hero[0].attrs['data-state']).toBe('ready')
+      expect(text(findAll(hero[0], byAttr('data-hero-total'))[0])).toBe('10')
+      expect(text(hero[0])).toContain('沒有匯率')
       expect(errors).toEqual([])
     expect(warnings, 'Vue 警告').toEqual([])
       expect(warnings, 'Vue 警告').toEqual([])

@@ -6,13 +6,12 @@
       </div>
     </div>
     <div class="flex flex-col min-w-0 flex-1">
-      <div class="flex items-baseline">
-        <div class="flex items-baseline min-w-0 mr-2">
-          <button :class="[$style.checkbox, { [$style.checked]: !isDisabled, [$style.uncheckedHint]: isDisabled && groupExpanded }]"
-            @click="toggleFilter" type="submit">
-            <i :class="isDisabled ? 'far fa-square' : 'fas fa-check-square'" />
-          </button>
-          <button :class="$style.labelBtn" @click="smartToggle" type="submit">
+      <div class="flex items-center">
+        <div class="flex items-center min-w-0 mr-2">
+          <mod-switch :on="!isDisabled" :label="t('ppz.mod_cards.switch', [text])"
+            :class="[$style.switch, { [$style.uncheckedHint]: isDisabled && groupExpanded }]"
+            @click="toggleFilter" type="submit" />
+          <button :class="[$style.labelBtn, { [$style.dim]: isDisabled }]" @click="smartToggle" type="submit">
             <img v-if="filter.mercenary?.icon"
               :src="filter.mercenary.icon">
             <span v-if="filter.not && miniFilter"
@@ -32,16 +31,16 @@
           :class="{ 'mr-4': Boolean(rollOptions) }" />
         <slot name="inputs">
           <div v-if="showInputs"
-            class="flex items-baseline gap-x-1 ml-auto">
+            class="flex items-center gap-x-1 ml-auto">
             <div v-if="showQ20Notice" :class="$style['qualityLabel']">{{ t('item.prop_quality', [calcQuality]) }}</div>
-            <div class="flex gap-x-px">
-              <input :class="$style['rollInput']" :placeholder="t('min')" :min="roll?.bounds?.min" :max="roll?.bounds?.max" :step="changeStep" type="number"
+            <mod-range>
+              <template #min><input :class="$style['rollInput']" :placeholder="t('min')" :aria-label="t('min')" :min="roll?.bounds?.min" :max="roll?.bounds?.max" :step="changeStep" type="number"
                 ref="inputMinEl"
-                v-model.number="inputMin" @focus="inputFocus($event, 'min')" @mousewheel.stop>
-              <input :class="$style['rollInput']" :placeholder="t('max')" :min="roll?.bounds?.min" :max="roll?.bounds?.max" :step="changeStep" type="number"
+                v-model.number="inputMin" @focus="inputFocus($event, 'min')" @mousewheel.stop></template>
+              <template #max><input :class="$style['rollInput']" :placeholder="t('max')" :aria-label="t('max')" :min="roll?.bounds?.min" :max="roll?.bounds?.max" :step="changeStep" type="number"
                 ref="inputMaxEl"
-                v-model.number="inputMax" @focus="inputFocus($event, 'max')" @mousewheel.stop>
-            </div>
+                v-model.number="inputMax" @focus="inputFocus($event, 'max')" @mousewheel.stop></template>
+            </mod-range>
           </div>
           <filter-modifier-options v-else-if="miniFilter && rollOptions"
             :class="$style.miniRollOptions"
@@ -50,8 +49,8 @@
             :filter="filter" />
         </slot>
       </div>
-      <div class="flex pt-px" v-if="!miniFilter">
-        <div class="w-5 flex items-start">
+      <div class="flex pt-px" :class="{ [$style.dim]: isDisabled }" v-if="!miniFilter">
+        <div :class="$style.lead" class="flex items-start">
           <ui-popover v-if="isHidden" tag-name="div" class="flex" placement="right-start" boundary="#price-window">
             <template #target>
               <span class="text-xs leading-none text-gray-600 cursor-pointer">
@@ -66,7 +65,8 @@
         <div class="flex-1 min-w-0 flex items-start gap-x-2">
           <span v-if="filter.not"
             :class="[$style['tag'], $style['tag-not']]">{{ t('filters.tag_not') }}</span>
-          <span v-if="showTag"
+          <span v-if="showTag && tag === 'pseudo'" :class="$style.sub">{{ t('ppz.mod_cards.from_n', [filter.sources.length]) }}</span>
+          <span v-else-if="showTag"
             :class="[$style['tag'], $style[`tag-${tag}`]]">{{ t(`filters.tag_${tag.replace('-', '_')}`) }}{{ (filter.sources.length > 1) ? ` x ${filter.sources.length}` : null }}</span>
           <filter-modifier-tiers :filter="filter" :item="item" />
           <filter-modifier-options v-if="rollOptions"
@@ -81,16 +81,18 @@
           :dp="roll.dp"
           :bounds="roll.bounds"
         />
-        <div style="width: calc(2*3rem + 1px)" />
+        <div :class="$style.rangeSpace" />
       </div>
-      <!-- exile-appraiser: 破裂詞綴的「破裂」切換鈕(自寫 FilterModifierFractured.vue;不適用時不輸出任何元素) -->
-      <filter-modifier-fractured v-if="!miniFilter" class="ml-5 mt-1 self-start" :filter="filter" :item="item" />
+      <!-- 破裂詞綴的「一般 / 破裂」二選一(自寫 FilterModifierFractured.vue;不適用時不輸出任何元素) -->
+      <filter-modifier-fractured v-if="!miniFilter" :class="$style.leadIndent" class="mt-1 self-start" :filter="filter" :item="item" />
     </div>
     <modifier-anointment class="self-center" :filter="filter" />
   </div>
 </template>
 
 <script lang="ts">
+// exile-appraiser: 2026-10-14 B 改版:本檔呈現層已重寫(勾選框 → 開關 ModSwitch、最小 / 最大 → 範圍膠囊 ModRange、
+// 偽屬性列「來自 N 條詞綴」、未選用列變淡;行為 / 資料不動),記錄在 docs/poe2-port-notes.md「查價面板 B 改版」。
 // exile-appraiser: ui/ 元件住在 renderer package,相對路徑 ../../ui 改成 @/web/ui alias
 import { defineComponent, PropType, computed, ref, nextTick, useCssModule, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -102,6 +104,8 @@ import FilterModifierOptions, { RollOption } from './FilterModifierOptions.vue'
 import FilterModifierTiers from './FilterModifierTiers.vue'
 // exile-appraiser: 破裂切換鈕(自寫)
 import FilterModifierFractured from './FilterModifierFractured.vue'
+import ModSwitch from '@/web/price-panel/ModSwitch.vue'
+import ModRange from '@/web/price-panel/ModRange.vue'
 import { AppConfig } from '@/web/Config'
 import { ItemCategory, ItemRarity, ParsedItem } from '@/parser'
 import { FilterTag, StatFilter, INTERNAL_TRADE_IDS, ItemHasEmptyModifier } from './interfaces'
@@ -110,7 +114,7 @@ import { SearchMode as MercSearchMode } from './pseudo/mercenary.js'
 
 export default defineComponent({
   // exile-appraiser: 多註冊 FilterModifierFractured
-  components: { ItemModifierText, ModifierAnointment, FilterModifierOptions, FilterModifierTiers, FilterModifierFractured, SourceInfo, StatRollSlider, UiPopover },
+  components: { ItemModifierText, ModifierAnointment, FilterModifierOptions, FilterModifierTiers, FilterModifierFractured, SourceInfo, StatRollSlider, UiPopover, ModSwitch, ModRange },
   emits: ['update:groupExpanded'],
   props: {
     filter: {
@@ -319,36 +323,50 @@ export default defineComponent({
 
 <style lang="postcss" module>
 .filter {
-  padding: theme('spacing.2') 0;
-  border-bottom: 1px solid theme('colors.gray.700');
+  padding: 0.4em 0;
+  min-height: 2.9em;
   display: flex;
-  align-items: baseline;
+  align-items: center;
   position: relative;
 }
 .filter.grouped {
-  padding-left: theme('spacing.5');
+  padding-left: 2.9em;
 }
 
-.checkbox {
-  display: flex;
-  min-width: theme('width.5');
-  margin-top: -99px; /* not allowed to extend baseline */
-
-  &:not(.checked) {
-    color: theme('colors.gray.500');
-  }
+/* B 改版:開關 + 間距 = 第二列 / 二選一的縮排寬度(.lead / .leadIndent) */
+.switch {
+  margin-right: 0.6em;
 
   &.uncheckedHint {
     animation: uncheckedHintAnim 0.5s ease-out infinite alternate;
   }
 }
+.lead {
+  width: 2.9em;
+  flex: none;
+}
+.leadIndent {
+  margin-left: 2.9em;
+}
+.rangeSpace {
+  width: 7em;
+  flex: none;
+}
+.dim {
+  opacity: 0.6;
+}
+.sub {
+  font-size: 0.85em;
+  color: var(--ink-2);
+  line-height: 1.2;
+}
 
 @keyframes uncheckedHintAnim {
   from {
-    color: theme('colors.gray.700');
+    background-color: var(--edge-1);
   }
   to {
-    color: theme('colors.gray.500');
+    background-color: var(--ink-3);
   }
 }
 
@@ -380,25 +398,12 @@ export default defineComponent({
 }
 
 .rollInput {
-  @apply bg-gray-900;
-  @apply text-gray-300;
-  @apply text-center;
-  @apply w-12;
-  @apply px-1;
-  @apply border border-transparent;
-
-  &:first-child { @apply rounded-l; }
-  &:last-child { @apply rounded-r; }
-
+  /* 外觀由 ModRange 的 :slotted(input) 決定 */
   &::placeholder {
-    @apply text-gray-700;
-    font-size: 0.8125rem;
+    font-size: 0.85em;
   }
 
-  /* &:not(:placeholder-shown) { @apply border-gray-600; } */
-
   &:focus {
-    @apply border-gray-500;
     cursor: none;
   }
 }

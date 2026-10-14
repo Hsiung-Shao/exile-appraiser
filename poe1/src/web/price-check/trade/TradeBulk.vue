@@ -3,30 +3,57 @@
     <div :class="$style.legacyMessage">
       {{ t(':legacy_bulk_xchg_msg') }}
     </div>
-    <!-- @TODO: fix "Matched" text jumping (min-height: 22px) -->
-    <div class="mb-2 flex pl-2 justify-between items-baseline" style="min-height: 1.375rem;">
-      <div class="flex items-center text-gray-500">
-        <span class="mr-1">{{ t(':matched') }}</span>
-        <span v-if="!result" class="text-gray-600">...</span>
-        <div v-else class="flex items-center">
-          <button class="btn flex items-center mr-1" :style="{ background: selectedCurr !== 'xchgChaos' ? 'transparent' : undefined }"
-            @click="selectedCurr = 'xchgChaos'">
-            <img src="/images/chaos.png" :class="$style.currencyIcon">
-            <span>{{ result.xchgChaos.listed.value?.total ?? '?' }}</span>
-          </button>
-          <button class="btn flex items-center mr-1" :style="{ background: selectedCurr !== 'xchgStable' ? 'transparent' : undefined }"
-            @click="selectedCurr = 'xchgStable'">
-            <img src="/images/divine.png" :class="$style.currencyIcon">
-            <span>{{ result.xchgStable.listed.value?.total ?? '?' }}</span>
-          </button>
-          <span class="ml-1"><online-filter :filters="filters" api="bulk" /></span>
-        </div>
+    <div class="listing-card mb-2" data-listing-conditions>
+      <div class="listing-head">
+        <span class="listing-head-title">{{ t('ppz.listing.conditions') }}</span>
+        <span class="listing-spacer"></span>
+        <listing-online-switch :model-value="!filters.trade.offline" @update:model-value="setOnlineOnly" />
+        <online-filter v-if="result" :filters="filters" api="bulk" />
       </div>
-      <trade-links v-if="result"
-        :get-link="makeTradeLink" />
+      <div class="flex flex-wrap items-center gap-x-2 gap-y-1" style="min-height: 2.2em;">
+        <span class="text-gray-500">{{ t('ppz.listing.pay_with') }}</span>
+        <span v-if="!result" class="text-gray-600">...</span>
+        <template v-else>
+          <listing-chip v-for="c in payWith" :key="c.key"
+            :icon="c.icon" :label="c.name" :count="c.count" :pressed="selectedCurr === c.key"
+            :title="t('ppz.listing.pay_with_title', { name: c.name, n: c.count })"
+            @select="selectedCurr = c.key" />
+        </template>
+        <span class="listing-spacer"></span>
+        <trade-links v-if="result"
+          :get-link="makeTradeLink" />
+      </div>
+    </div>
+    <div class="listing-card layout-column min-h-0" data-listing-kind="bulk">
+    <div class="listing-head">
+      <span class="listing-head-title">{{ t('ppz.listing.title') }}</span>
+      <span v-if="lowest" class="listing-head-sub" data-listing-lowest>{{ t('ppz.listing.lowest', { price: lowest }) }}</span>
+      <span class="listing-spacer"></span>
+      <listing-layout-toggle :model-value="layout" @update:model-value="setLayout" />
     </div>
     <div class="layout-column overflow-y-auto overflow-x-hidden">
-      <table class="table-stripped w-full">
+      <div v-if="layout === 'grid'" class="listing-grid" data-listing-layout="grid">
+        <template v-for="(result, idx) in selectedResults">
+          <div v-if="!result" :key="idx" class="listing-tile is-placeholder"></div>
+          <div v-else-if="'marketRatio' in result" :key="result.id" class="listing-tile is-market" data-listing="market-ratio">
+            <span class="listing-price">{{ Number((result.exchangeAmount / result.itemAmount).toFixed(4)) }}<img :src="selectedIcon" alt=""></span>
+            <span class="listing-meta">{{ t('ppz.listing.market_ratio') }}</span>
+          </div>
+          <div v-else :key="result.id" class="listing-tile" data-listing="bulk">
+            <span class="listing-price">{{ Number((result.exchangeAmount / result.itemAmount).toFixed(4)) }}<img :src="selectedIcon" alt=""></span>
+            <span class="listing-meta text-xs">{{ Number(result.exchangeAmount.toFixed(1)) }} / {{ Number(result.itemAmount.toFixed(1)) }}</span>
+            <span class="listing-meta">{{ t('ppz.listing.stock', { n: result.stock }) }}</span>
+            <span class="listing-meta"><i v-if="result.stock < result.itemAmount" class="fas fa-exclamation-triangle mr-1 text-gray-500"></i>{{ t('ppz.listing.fulfill', { n: Math.floor(result.stock / result.itemAmount) }) }}</span>
+            <span class="listing-time">
+              <span :class="[$style.accountStatus, $style[result.accountStatus]]"></span>
+              <span class="font-sans">{{ result.relativeDate }}</span>
+            </span>
+            <span v-if="result.isMine" class="listing-badge">{{ t('You') }}</span>
+            <span v-else-if="showSeller" class="listing-meta font-sans text-xs">{{ showSeller === 'ign' ? result.ign : result.accountName }}</span>
+          </div>
+        </template>
+      </div>
+      <table v-else class="table-stripped w-full" data-listing-layout="list">
         <thead>
           <tr class="text-left">
             <th :class="$style.tableHeading">
@@ -83,6 +110,7 @@
         </tbody>
       </table>
     </div>
+    </div>
   </div>
   <ui-error-box class="mb-2" v-else>
     <template #name>{{ t(':error') }}</template>
@@ -97,6 +125,8 @@
 </template>
 
 <script lang="ts">
+// exile-appraiser: 2026-10-14 B 改版:呈現層已重寫(「兌換條件」卡:用什麼買膠囊(沿用 selectedCurr 與筆數)+ 只看在線開關(= filters.trade.offline);
+// 掛單卡標題列 + 方塊 / 長條切換;方塊 = 兩欄小卡片,長條 = 原本的表格列。搜尋 / 市價比例 / 查詢組法不動)
 // exile-appraiser: execBulkSearch 改帶 TradeContext(activeTradeContext())、不再收 opts;交易站網址的 ?q= 改 encodeURIComponent
 import { defineComponent, PropType, computed, watch, ComputedRef, Ref, shallowRef, shallowReactive, inject, readonly } from 'vue'
 import { useI18nNs } from '@/web/i18n'
@@ -115,6 +145,10 @@ import { PriceCheckWidget } from '@/web/overlay/interfaces'
 import { artificialSlowdown } from './artificial-slowdown'
 import OnlineFilter from './OnlineFilter.vue'
 import TradeLinks from './TradeLinks.vue'
+import ListingLayoutToggle from '@/web/price-panel/ListingLayoutToggle.vue'
+import ListingChip from '@/web/price-panel/ListingChip.vue'
+import ListingOnlineSwitch from '@/web/price-panel/ListingOnlineSwitch.vue'
+import { useListingLayout } from '@/web/price-panel/useListingLayout'
 
 const slowdown = artificialSlowdown(900)
 
@@ -267,7 +301,7 @@ function useMarketRatioFinder () {
 }
 
 export default defineComponent({
-  components: { OnlineFilter, TradeLinks, UiErrorBox, ReportInline },
+  components: { OnlineFilter, TradeLinks, UiErrorBox, ReportInline, ListingLayoutToggle, ListingChip, ListingOnlineSwitch },
   emits: ['reset'],
   props: {
     filters: {
@@ -325,9 +359,35 @@ export default defineComponent({
     }
 
     const { t } = useI18nNs('trade_result')
+    const { layout, setLayout } = useListingLayout('bulk')
+
+    const CURR = {
+      xchgChaos: { icon: '/images/chaos.png', nameKey: 'ppz.listing.currency.chaos' },
+      xchgStable: { icon: '/images/divine.png', nameKey: 'ppz.listing.currency.divine' }
+    } as const
+    const payWith = computed(() => (['xchgChaos', 'xchgStable'] as const).map(key => ({
+      key,
+      icon: CURR[key].icon,
+      name: t(CURR[key].nameKey),
+      count: result.value?.[key].listed.value?.total ?? '?'
+    })))
 
     return {
       t,
+      layout,
+      setLayout,
+      payWith,
+      selectedIcon: computed(() => CURR[selectedCurr.value].icon),
+      lowest: computed(() => {
+        const first = selectedResults.value.find(r => r != null && !('marketRatio' in r))
+        return first
+          ? `${Number((first.exchangeAmount / first.itemAmount).toFixed(4))} ${t(CURR[selectedCurr.value].nameKey)}`
+          : null
+      }),
+      setOnlineOnly (online: boolean) {
+        // 與 OnlineFilterCore 的「離線」開關同一個狀態(bulk 不動 listed)
+        props.filters.trade.offline = !online
+      },
       error,
       result,
       selectedResults,

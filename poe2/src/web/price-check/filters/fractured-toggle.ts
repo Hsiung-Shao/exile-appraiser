@@ -148,3 +148,21 @@ export function revealFracturedRows(
     }
   }
 }
+
+// 2026-10-14 B 改版:切換鈕改成「一般 / 破裂」二選一(FilterModifierFractured.vue),以下兩個是呈現用的包裝,邏輯仍是 applyFracturedToggle。
+export type FracturedMode = "normal" | "fractured";
+
+/** 二選一目前選中的一邊 */
+export function fracturedMode(filter: StatFilter): FracturedMode {
+  return isFracturedOn(filter) ? "fractured" : "normal";
+}
+
+/** 選一邊;已經是那一邊就什麼都不做 */
+export function selectFracturedMode(
+  filters: readonly StatFilter[],
+  filter: StatFilter,
+  mode: FracturedMode,
+): void {
+  if (fracturedMode(filter) === mode) return;
+  applyFracturedToggle(filters, filter, mode === "fractured");
+}

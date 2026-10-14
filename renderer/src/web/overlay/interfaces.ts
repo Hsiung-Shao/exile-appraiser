@@ -3,6 +3,8 @@
  * 本專案沒有 overlay / WidgetManager,只留查價會用到的欄位;移植的元件仍以
  * `AppConfig<PriceCheckWidget>('price-check')` 取用。
  */
+import type { ListingLayout } from '../price-panel/listing-layout'
+
 export interface PriceCheckWidget {
   showRateLimitState: boolean
   apiLatencySeconds: number
@@ -28,4 +30,6 @@ export interface PriceCheckWidget {
   initialDelay: number
   /** 依物品類別預填的符文 / 魂核 refName(E 的物品編輯器「記住」功能;parser 經 host-options 讀取) */
   savedAugments: { [key: string]: Array<string | null> }
+  /** 查價面板 B 改版 P4(2026-10-14):掛單顯示方式,一般物品 / 通貨分開記(預設 item 方塊、bulk 長條) */
+  listingLayout: ListingLayout
 }

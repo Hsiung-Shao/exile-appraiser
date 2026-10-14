@@ -1,6 +1,8 @@
 <template>
   <!-- Render nothing directly, all behavior is applied to the element passed via ref -->
+  <!-- exile-appraiser: 長條 = 原本的表格列;方塊 = 兩欄小卡片(兩者都是 tippy 浮窗目標;換版面時 TradeListing 以 key 重建本元件) -->
   <tr
+    v-if="layout !== 'grid'"
     ref="target"
     @mouseenter="isHovered = true"
     @mouseleave="isHovered = false"
@@ -97,13 +99,79 @@
       >
     </td>
   </tr>
-  <div ref="content">
+  <div
+    v-else
+    ref="target"
+    class="listing-tile"
+    data-listing="item"
+    @mouseenter="isHovered = true"
+    @mouseleave="isHovered = false"
+  >
+    <span class="listing-price"
+      >{{ result.priceAmount }} {{ result.priceCurrency
+      }}{{
+        result.normalizedPriceCurrency &&
+        result.priceCurrency !== result.normalizedPriceCurrency.id &&
+        result.priceCurrency !== "divine" &&
+        result.normalizedPrice
+          ? ` (${result.normalizedPrice} ${result.normalizedPriceCurrency.abbrev})`
+          : ""
+      }}</span
+    >
+    <span v-if="result.listedTimes > 2" class="listing-badge"
+      ><span class="font-sans">×</span> {{ result.listedTimes }}</span
+    ><i v-else-if="!result.hasNote" class="fas fa-question text-gray-500" />
+    <span v-if="item.stackSize" class="listing-meta">{{
+      t("ppz.listing.stock", { n: result.stackSize })
+    }}</span>
+    <span v-if="itemLevel" class="listing-meta">{{
+      t("ppz.listing.ilvl", { n: result.itemLevel })
+    }}</span>
+    <span
+      v-if="isGem || item.category === ItemCategory.UncutGem"
+      class="listing-meta"
+      >{{ t("ppz.listing.gem_level", { n: result.level }) }}</span
+    >
+    <span v-if="isGem || grantsSkill" class="listing-meta">{{
+      t("ppz.listing.sockets", { n: result.gemSockets })
+    }}</span>
+    <span
+      v-if="(quality && !quality.disabled) || isGem"
+      class="listing-meta text-blue-400"
+      >{{ t("ppz.listing.quality", { n: result.quality }) }}</span
+    >
+    <span class="listing-time">
+      <span
+        class="account-status"
+        :class="result.isInstantBuyout ? 'instantBuyout' : result.accountStatus"
+      ></span>
+      <span class="font-sans">{{ result.relativeDate }}</span>
+    </span>
+    <span v-if="result.isMine" class="listing-badge">{{ t("You") }}</span>
+    <span v-else-if="showSeller" class="listing-meta font-sans text-xs">{{
+      showSeller === "ign" ? result.ign : result.accountName
+    }}</span>
+    <span v-if="result.inDemand" class="rounded px-1 bg-yellow-500 text-black">{{
+      t("in demand")
+    }}</span>
+    <span
+      v-if="result.gone"
+      class="rounded border px-1 border-red-500 text-red-500"
+      >{{ t("Gone") }}</span
+    >
+  </div>
+  <!-- exile-appraiser: 方塊版面在 grid 容器裡,浮窗內容的掛點不佔格子(display: contents) -->
+  <div
+    ref="content"
+    :style="layout === 'grid' ? { display: 'contents' } : undefined"
+  >
     <!-- isHovered is mostly used here to prevent tooltip from rendering on initial load, tooltip is kinda expensive to mount -->
     <tooltip-item :result="result" v-if="isHovered" />
   </div>
 </template>
 
 <script lang="ts">
+// exile-appraiser: 2026-10-14 B 改版:呈現層已重寫(新增 `layout` prop:list = 原本的表格列、grid = 掛單小卡片;tippy 浮窗設定不動)
 import {
   computed,
   defineComponent,
@@ -151,6 +219,11 @@ export default defineComponent({
     quality: {
       type: Object as PropType<FilterNumeric>,
       default: undefined,
+    },
+    // exile-appraiser: B 改版 —— 掛單顯示方式(TradeListing 傳 useListingLayout('item') 的值)
+    layout: {
+      type: String as PropType<"grid" | "list">,
+      default: "list",
     },
   },
 

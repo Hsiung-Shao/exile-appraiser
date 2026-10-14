@@ -2,39 +2,24 @@
   移植自 Exiled Exchange 2(Kvan7,MIT)經繁中 fork Exiled-Exchange-2-zh-TW(Hsiung-Shao,MIT)
   `renderer/src/web/price-check/stack-value/StackValue.vue`(fc7de73c)。授權見 NOTICE.md / LICENSES/。
   exile-appraiser(第 24 步):只對 poe.ninja exchange 類顯示(與通貨價格區相同條件)。
+  2026-10-14 B 改版:本檔呈現層已重寫 —— 模板改為 renderer `price-panel/StackCard.vue`(「你的這一疊」卡);
+  數量 × poe.ninja 單價的算法與顯示條件不變(金額改傳數字 + 單位,由卡片格式化並配 PoE2 圖示)。
 -->
 <template>
-  <div
-    v-if="show"
-    class="p-2 border-dashed border border-gray-600 rounded mt-2"
-    data-stack-value
-  >
-    <div class="flex text-gray-400 leading-none">
-      <div class="w-1/2">
-        {{ t("trade_result.you_have") }} <span class="font-sans">×</span>
-        {{ value.have.amount }}
-        <i class="fas fa-arrow-right text-gray-600 px-1 text-xs"></i>
-        {{ value.have.price }}
-      </div>
-      <div class="w-1/2 pl-2" v-if="value.oneStack">
-        {{ t("trade_result.stack") }} <span class="font-sans">×</span>
-        {{ value.oneStack.amount }}
-        <i class="fas fa-arrow-right text-gray-600 px-1 text-xs"></i>
-        {{ value.oneStack.price }}
-      </div>
-    </div>
-  </div>
+  <stack-card v-if="show" game="poe2" :stack="value" />
 </template>
 
 <script lang="ts">
 import { defineComponent, PropType, computed } from "vue";
-import { useI18n } from "vue-i18n";
-import { usePoeninja, displayRounding } from "@/web/background/Prices";
+import { usePoeninja } from "@/web/background/Prices";
 import { getDetailsId } from "../trends/getDetailsId";
 import { ParsedItem } from "@/parser";
 import { ItemFilters } from "../filters/interfaces";
+import StackCard from "@/web/price-panel/StackCard.vue";
+import type { Money, StackView } from "@/web/price-panel/price-hero";
 
 export default defineComponent({
+  components: { StackCard },
   props: {
     filters: {
       type: Object as PropType<ItemFilters>,
@@ -48,33 +33,30 @@ export default defineComponent({
   setup(props) {
     const { findPriceByQuery, autoCurrency } = usePoeninja();
 
-    function getPriceFor(n: number) {
+    function getPriceFor(n: number): Money {
       const one = findPriceByQuery(getDetailsId(props.item)!)!;
 
       const price = autoCurrency(n * one.primaryValue);
 
-      return `${displayRounding(price.min)} ${price.currency}`;
+      return { amount: price.min, unit: price.currency };
     }
 
-    const { t } = useI18n();
-
     return {
-      t,
       show: computed(() => {
         const id = getDetailsId(props.item);
         // exile-appraiser: 只對 exchange 類(cx)顯示,與 PriceTrend 的通貨價格區同條件
         return Boolean(props.filters.stackSize && id && findPriceByQuery(id)?.cx);
       }),
-      value: computed(() => {
+      value: computed<StackView>(() => {
         return {
           have: {
-            amount: props.filters.stackSize!.value,
-            price: getPriceFor(props.filters.stackSize!.value),
+            count: props.filters.stackSize!.value,
+            value: getPriceFor(props.filters.stackSize!.value),
           },
           oneStack: props.item.stackSize
             ? {
-                amount: props.item.stackSize.max,
-                price: getPriceFor(props.item.stackSize.max),
+                count: props.item.stackSize.max,
+                value: getPriceFor(props.item.stackSize.max),
               }
             : null,
         };

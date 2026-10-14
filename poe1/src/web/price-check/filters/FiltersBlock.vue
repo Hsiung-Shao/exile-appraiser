@@ -50,49 +50,65 @@
           : t('filters.selected_none')"
       />
     </div>
-    <div v-if="!statsVisibility.disabled && hasStats" class="mb-4" :class="(presets.length > 1) ? 'mt-1' : 'mt-4'">
-      <div class="flex" v-if="presets.length > 1">
-        <div class="w-5 border-b border-gray-700" />
-        <div class="flex divide-x border-gray-700 border-t border-l border-r rounded-t overflow-hidden">
-          <button v-for="preset in presets"
-            :class="[$style.presetBtn, { [$style.active]: preset.active }]"
-            @click="selectPreset(preset.id)"
-          >{{ t(preset.id) }}</button>
-        </div>
-        <div class="flex-1 border-b border-gray-700" />
+    <div v-if="!statsVisibility.disabled && hasStats" class="mb-4 mt-1">
+      <div v-if="presets.length > 1" :class="$style.presets" role="group">
+        <button v-for="preset in presets" type="button"
+          :class="[$style.presetBtn, { [$style.active]: preset.active }]"
+          :aria-pressed="preset.active ? 'true' : 'false'"
+          @click="selectPreset(preset.id)"
+        >{{ t(preset.id) }}</button>
       </div>
       <form @submit.prevent="handleStatsSubmit">
         <report-inline v-if="showUnknownMods" mode="summary" :count="item.unknownModifiers.length" />
-        <template v-for="filter of filteredStats">
-          <filter-group v-if="filter.group" :key="`group_${filter.meta.tag}_${filter.meta.text}`"
-            :group="filter"
-            :item="item" />
-          <filter-modifier v-else :key="`${filter.tag}_${filter.text}`"
-            :filter="filter"
-            :item="item"
-            :show-sources="showFilterSources" />
-        </template>
-        <div v-if="!filteredStats.length && !showUnknownMods"
-          class="border-b border-gray-700 py-2">{{ t('filters.empty') }}</div>
-        <template v-if="showUnknownMods">
-          <unknown-modifier v-for="stat of item.unknownModifiers" :key="stat.type + '/' + stat.text"
-            :stat="stat" />
-        </template>
+        <mod-card v-if="showModsCard" id="mods"
+          :title="t('ppz.mod_cards.mods')"
+          :count="t('ppz.mod_cards.count', [cards.mods.selected, cards.mods.rows.length])">
+          <template v-for="filter of cards.mods.rows">
+            <filter-group v-if="filter.group" :key="`group_${filter.meta.tag}_${filter.meta.text}`"
+              :group="filter"
+              :item="item" />
+            <filter-modifier v-else :key="`${filter.tag}_${filter.text}`"
+              :filter="filter"
+              :item="item"
+              :show-sources="showFilterSources" />
+          </template>
+          <div v-if="!filteredStats.length && !showUnknownMods"
+            class="py-2 text-ink-2">{{ t('filters.empty') }}</div>
+          <template v-if="showUnknownMods">
+            <unknown-modifier v-for="stat of item.unknownModifiers" :key="stat.type + '/' + stat.text"
+              :stat="stat" />
+          </template>
+        </mod-card>
+        <mod-card v-if="cards.pseudo.rows.length" id="pseudo"
+          :title="t('ppz.mod_cards.pseudo')"
+          :count="t('ppz.mod_cards.count', [cards.pseudo.selected, cards.pseudo.rows.length])">
+          <template v-for="filter of cards.pseudo.rows">
+            <filter-group v-if="filter.group" :key="`group_${filter.meta.tag}_${filter.meta.text}`"
+              :group="filter"
+              :item="item" />
+            <filter-modifier v-else :key="`${filter.tag}_${filter.text}`"
+              :filter="filter"
+              :item="item"
+              :show-sources="showFilterSources" />
+          </template>
+        </mod-card>
         <input type="submit" class="hidden" />
       </form>
-      <div class="flex gap-x-4">
-        <button @click="statsVisibility.disabled = !statsVisibility.disabled" class="bg-gray-700 px-2 py-1 text-gray-400 leading-none rounded-b w-40"
-          >{{ t('filters.collapse') }} <i class="fas fa-chevron-up pl-1 text-xs text-gray-600"></i></button>
+      <div class="flex items-center gap-x-4 mt-2">
+        <button type="button" @click="statsVisibility.disabled = !statsVisibility.disabled" :class="$style.footBtn"
+          >{{ t('filters.collapse') }} <i class="fas fa-chevron-up pl-1 text-xs"></i></button>
         <ui-toggle v-if="filteredStats.length !== stats.length"
-          v-model="showHidden" class="text-gray-400 pt-2">{{ t('filters.hidden_toggle') }}</ui-toggle>
+          v-model="showHidden" class="text-gray-400">{{ t('filters.hidden_toggle') }}</ui-toggle>
         <ui-toggle
-          v-model="showFilterSources" class="ml-auto text-gray-400 pt-2">{{ t('filters.mods_toggle') }}</ui-toggle>
+          v-model="showFilterSources" class="ml-auto text-gray-400">{{ t('filters.mods_toggle') }}</ui-toggle>
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
+// exile-appraiser: 2026-10-14 B 改版:本檔呈現層已重寫(可見詞綴依來源分「詞綴」/「偽屬性(總和)」兩張卡片 ModCard、
+// 預設組合改分段鈕、收合列改膠囊;隱藏 / 收合 / 詞綴來源切換、篩選資料不動),記錄在 docs/poe2-port-notes.md「查價面板 B 改版」。
 // exile-appraiser: 多 import provide(破裂切換鈕要整份 stats)
 import { defineComponent, watch, shallowRef, shallowReactive, computed, PropType, provide } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -104,6 +120,8 @@ import FilterBtnLogical from './FilterBtnLogical.vue'
 import UnknownModifier from './UnknownModifier.vue'
 // exile-appraiser: 就地回報(2026-10-08):有未解析詞綴時在清單最上方顯示條數 +「回報問題」(沒有宿主注入時不畫)
 import ReportInline from '@/web/ui/ReportInline.vue'
+import ModCard from '@/web/price-panel/ModCard.vue'
+import { splitModCards } from '@/web/price-panel/mod-cards'
 import { ItemFilters, FilterOrGroup } from './interfaces'
 import { FRACTURED_FILTERS_KEY } from './fractured-toggle'
 import { ParsedItem, ItemRarity, ItemCategory } from '@/parser'
@@ -118,6 +136,7 @@ export default defineComponent({
     FilterBtnLogical,
     UnknownModifier,
     ReportInline,
+    ModCard,
     UiToggle
   },
   props: {
@@ -158,6 +177,17 @@ export default defineComponent({
 
     const { t } = useI18n()
 
+    const filteredStats = computed(() => {
+      const show = showHidden.value
+      return props.stats.filter(s => {
+        if (s.group) {
+          return Boolean(s.meta.hidden) === show
+        }
+        return Boolean(s.hidden) === show
+      })
+    })
+    const cards = computed(() => splitModCards(filteredStats.value))
+
     return {
       t,
       statsVisibility,
@@ -171,15 +201,11 @@ export default defineComponent({
           return !stat.disabled
         }).length
       }),
-      filteredStats: computed(() => {
-        const show = showHidden.value
-        return props.stats.filter(s => {
-          if (s.group) {
-            return Boolean(s.meta.hidden) === show
-          }
-          return Boolean(s.hidden) === show
-        })
-      }),
+      filteredStats,
+      cards,
+      // 詞綴卡:有列、或要放未解析詞綴 / 空清單提示時才畫
+      showModsCard: computed(() =>
+        cards.value.mods.rows.length > 0 || Boolean(showUnknownMods.value) || !cards.value.pseudo.rows.length),
       searchSub: computed(() => {
         const { filters } = props
         const activeSearch = (filters.searchRelaxed && !filters.searchRelaxed.disabled)
@@ -216,17 +242,41 @@ export default defineComponent({
 </script>
 
 <style lang="postcss" module>
+.presets {
+  display: inline-flex;
+  margin-bottom: 0.5em;
+  border: 1px solid var(--edge-1);
+  border-radius: 0.8em;
+  overflow: hidden;
+}
+
 .presetBtn {
-  @apply border-gray-700 bg-gray-800;
-  @apply px-2;
   min-width: 3rem;
+  padding: 0.15em 0.8em;
+  color: var(--ink-2);
 
   &:hover {
-    @apply bg-gray-700;
+    color: var(--ink-1);
   }
 
   &.active {
-    background: linear-gradient(to bottom, theme('colors.gray.900'), theme('colors.gray.800'));
+    background: var(--surface-3);
+    color: var(--ink-0);
+    font-weight: 700;
+  }
+}
+
+.footBtn {
+  padding: 0.2em 0.9em;
+  border: 1px solid var(--edge-1);
+  border-radius: 999px;
+  background: var(--surface-1);
+  color: var(--ink-2);
+  line-height: 1.4;
+
+  &:hover {
+    color: var(--ink-1);
+    border-color: var(--edge-2);
   }
 }
 </style>

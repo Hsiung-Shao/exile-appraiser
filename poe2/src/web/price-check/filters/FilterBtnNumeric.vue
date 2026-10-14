@@ -32,6 +32,7 @@
 </template>
 
 <script lang="ts">
+// exile-appraiser: 2026-10-14 B 改版:本檔呈現層已重寫(外觀改成物品標頭膠囊;行為不動),記錄在 docs/poe2-port-notes.md「查價面板 B 改版」。
 import { defineComponent, PropType, computed, ref, watch } from "vue";
 import { FilterNumeric } from "./interfaces";
 
@@ -126,13 +127,21 @@ export default defineComponent({
 
 <style lang="postcss" module>
 .btn {
-  @apply bg-gray-900 rounded;
-  @apply border border-transparent;
-  @apply pr-1;
-  line-height: 1.25rem;
+  /* 2026-10-14 B 改版:物品標頭膠囊 */
+  display: flex;
+  align-items: center;
+  height: 1.85em;
+  padding-right: 0.45em;
+  border: 1px solid var(--edge-1);
+  border-radius: 999px;
+  background: var(--surface-1);
+  color: var(--ink-2);
+  overflow: hidden;
 
   &.active {
-    @apply border-gray-500;
+    border-color: var(--gold-dim);
+    background: var(--gold-soft);
+    color: var(--ink-0);
   }
 }
 
@@ -145,7 +154,6 @@ export default defineComponent({
   &:hover,
   &:focus {
     @apply bg-gray-700;
-    @apply -my-px border-t border-b border-gray-500;
   }
 
   &::placeholder {

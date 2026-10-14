@@ -15,12 +15,19 @@ export interface MiniNode {
   /** 元件直接改 inline 樣式 / dataset 時用(背景圖層 BgLayerImage.vue 的 --bg-pos / --bg-baked;第 30.6 步) */
   style: { props: Record<string, string>, setProperty: (k: string, v: string) => void, removeProperty: (k: string) => void }
   dataset: Record<string, string>
+  /** v-model 等指令在 created 掛原生監聽(2026-10-14 詞綴卡片掛載整個 FilterModifier 才需要);不派送事件 */
+  addEventListener: (type: string, fn: unknown) => void
+  removeEventListener: (type: string, fn: unknown) => void
 }
 
 function node (tag: string, text = ''): MiniNode {
   const props: Record<string, string> = {}
   const style = { props, setProperty: (k: string, v: string) => { props[k] = v }, removeProperty: (k: string) => { delete props[k] } }
-  return { tag, text, attrs: {}, children: [], parent: null, style, dataset: {} }
+  const noop = () => {}
+  const n: MiniNode = { tag, text, attrs: {}, children: [], parent: null, style, dataset: {}, addEventListener: noop, removeEventListener: noop }
+  // v-model 的 <select>(vModelSelect)讀 el.options
+  Object.defineProperty(n, 'options', { get: () => n.children.filter(c => c.tag === 'option'), enumerable: false })
+  return n
 }
 
 function detach (child: MiniNode) {

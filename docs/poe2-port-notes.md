@@ -126,6 +126,18 @@
 - 已知資料缺口(測試鎖數字):PoE1 2 筆(The Beachhead 系列傳奇地圖不在 items.ndjson)、PoE2 6 筆(`Techrod's Revenge`、`Zarokh's Reliquary Key: …`、`Sekhema's Resolve // Ring`、`Edyrns Tusks` 少撇號等)。
 - 驗證:`poe1/test/related-items.test.ts`、`poe2/test/related-items.test.ts`(真實資料 + ninja 錄製檔 / 假價格源、全量 id 對照)、`renderer/test-vue/related-items-mount.test.ts`(兩代真掛載 + App.vue 接線守門)。
 
+## 查價面板 B 改版(2026-10-14,設計稿 B,計畫 `cheerful-riding-pearl.md`)
+使用者裁定:為了差異化,查價面板**呈現層**可直接改移植檔(推翻守則 6「只切耦合點」在這一層的限制);資料 / 查詢邏輯不動(`createPresets`、filters 資料結構、trade / bulk API),golden-query 快照 0 差異。改到的移植檔檔頭加一段「2026-10-14 B 改版:本檔呈現層已重寫」,不再逐處加 `// exile-appraiser:`。
+
+### P3 詞綴卡片
+- 共用元件(renderer `web/price-panel/`,移植檔以 `@/web/price-panel/…` 引用):`mod-cards.ts`(純函式 `splitModCards` / `modCardOf`:pseudo → 「偽屬性(總和)」卡、其餘 → 「詞綴」卡,PoE1 群組列看 `meta`;順序不變、已選數 = 沒停用的列)、`ModCard.vue`(卡片標題 + 「N / M 選用」,`data-card` / `data-part` 錨點)、`ModSwitch.vue`(`role="switch"` 開關)、`ModRange.vue`(最小–最大範圍膠囊,輸入框以具名插槽放入)、`ModSeg.vue`(二選一分段鈕)。顏色全用主題 token(`--edge-*`、`--surface-*`、`--ink-*`、`--gold*`),尺寸用 em。
+- 兩代 `FiltersBlock.vue`:可見詞綴(`filteredStats`,含「顯示已隱藏」時)分兩張卡;詞綴卡另放未解析詞綴、空清單提示(PoE2 另有「無法判斷破裂詞綴」提示),只有偽屬性列時詞綴卡不畫;`report-inline mode="summary"` 掛點保留在卡片上方;預設組合改分段鈕、收合鈕改膠囊;隱藏 / 收合 / 詞綴來源切換照舊。物品標頭膠囊列(物品等級、品質、「已選 N 項」等 FilterBtn)維持在卡片上方。
+- 兩代 `FilterModifier.vue`:勾選框 → `ModSwitch`(同一個 `toggleFilter`、同 `type`:PoE1 `submit`、PoE2 `button`,行為等同勾選);最小 / 最大 → `ModRange`(ref / v-model / focus / 右鍵清除 / 滾輪不變);偽屬性列的「偽屬性 x N」標籤改「來自 N 條詞綴」;未選用列文字變淡;第二列縮排由 `w-5` 改成開關寬度(`.lead`)。PoE2 的勾選框原本與文字同一顆按鈕,改成開關 + 文字按鈕兩顆(都呼叫 `toggleFilter`)。PoE1 群組展開時的未勾選提示動畫改在開關底色上。
+- 兩代 `FilterModifierFractured.vue`(自寫):單一「破裂」切換鈕 → 「一般 / 破裂」二選一(`ModSeg`,`data-action="fractured-toggle"`、`data-choice`);邏輯仍是 `fractured-toggle.ts`,只新增呈現用包裝 `fracturedMode` / `selectFracturedMode`(選到目前那一邊不做事)。代表列 / 隱藏規則(`revealFracturedRows`)不變。
+- 兩代 `FilterBtnLogical.vue` / `FilterBtnNumeric.vue`:外觀改膠囊(選用中 = 金色淡底),行為不變。
+- 新字串(只新增 `ppz.*`):`ppz.mod_cards.{mods,pseudo,count,from_n,switch}`、`ppz.fractured_toggle.{normal,group,title_normal}`。
+- 驗證:`renderer/test/mod-cards.test.ts`(分組純函式)、`renderer/test-vue/mod-cards-mount.test.ts`(兩代 FiltersBlock 真掛載:兩張卡 + 已選數、開關切換 `filter.disabled`、範圍膠囊、來自 N 條詞綴)、`renderer/test-vue/fractured-toggle-mount.test.ts`(二選一)。`test-vue/mini-dom.ts` 補了 no-op `addEventListener` 與 `<select>` 的 `options`(v-model 指令需要)。
+
 ## 未做 / 待辦
 - 預測價(PricePrediction)。
 - GUI 實機(熱鍵 → overlay 附著 PoE2 視窗 → 台服真實掛單)由使用者實測。

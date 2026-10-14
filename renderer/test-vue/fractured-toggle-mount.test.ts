@@ -1,6 +1,6 @@
 /**
- * 查價面板「破裂」切換鈕(2026-10-14):兩代 FilterModifierFractured 真掛載(每條 filter 一個,與 FilterModifier 掛法相同)。
- * 破裂詞綴那列有按鈕,點了 aria-pressed / 高亮 class 變化、filter 改送 fractured id、隱藏孿生取消勾選;非破裂列不輸出按鈕。
+ * 查價面板「一般 / 破裂」二選一(2026-10-14;B 改版由單一切換鈕改成二選一):兩代 FilterModifierFractured 真掛載(每條 filter 一個,與 FilterModifier 掛法相同)。
+ * 破裂詞綴那列有二選一,選破裂 → aria-pressed 移到「破裂」、filter 改送 fractured id、隱藏孿生取消勾選;選一般 → 送回 explicit;非破裂列不輸出。
  * ⚠ 不掛整個 FilterModifier:數值輸入框的 v-model 要 addEventListener,mini-dom 沒有;接線改由最後一案的原始碼守門。
  */
 import * as fs from 'node:fs'
@@ -71,11 +71,12 @@ function renderRows (game: 'poe1' | 'poe2', comp: unknown, key: symbol, item: un
   return { container, app, errors, warnings }
 }
 
-const buttons = (c: MiniNode) => findAll(c, byAttr('data-action', 'fractured-toggle'))
-const classes = (n: MiniNode) => String(n.attrs.class ?? '').split(/\s+/)
+const groups = (c: MiniNode) => findAll(c, byAttr('data-action', 'fractured-toggle'))
+const choice = (g: MiniNode, v: 'normal' | 'fractured') => findAll(g, byAttr('data-choice', v))[0]
+const pressed = (g: MiniNode) => findAll(g, (n: MiniNode) => n.attrs['aria-pressed'] === 'true').map(n => n.attrs['data-choice'])
 
-describe('破裂切換鈕掛載', () => {
-  it('PoE1:破裂詞綴列有按鈕,點了高亮並改送 fractured id、孿生取消勾選,再點還原', async () => {
+describe('一般 / 破裂二選一掛載', () => {
+  it('PoE1:破裂詞綴列有二選一,選破裂改送 fractured id、孿生取消勾選,選一般還原', async () => {
     const item = poe1Parse(POE1_RING)._unsafeUnwrap()
     const { presets, active } = poe1CreatePresets(item, OPTS)
     const preset = presets.find(p => p.id === active)!
@@ -86,31 +87,33 @@ describe('破裂切換鈕掛載', () => {
     await nextTick()
     expect(errors).toEqual([])
     expect(warnings).toEqual([])
-    const btns = buttons(container)
-    expect(btns.length).toBe(1)
-    expect(text(btns[0])).toBe('破裂')
-    expect(btns[0].attrs['aria-pressed']).toBe('false')
-    const offClass = classes(btns[0])
+    const gs = groups(container)
+    expect(gs.length).toBe(1)
+    expect(gs[0].attrs.role).toBe('group')
+    expect(text(choice(gs[0], 'normal'))).toBe('一般')
+    expect(text(choice(gs[0], 'fractured'))).toBe('破裂')
+    expect(pressed(gs[0])).toEqual(['normal'])
     const row = stats.find(f => f.statRef === 'Adds # to # Physical Damage to Attacks' && f.tag === 'explicit')!
 
-    click(btns[0])
+    click(choice(gs[0], 'fractured'))
     await nextTick()
-    const on = buttons(container)[0]
-    expect(on.attrs['aria-pressed']).toBe('true')
-    expect(classes(on).length).toBe(offClass.length + 1)
+    expect(pressed(groups(container)[0])).toEqual(['fractured'])
     expect(row.tradeId).toEqual(['fractured.stat_3032590688'])
     expect(row.disabled).toBe(false)
     expect(twin.disabled).toBe(true)
 
-    click(on)
+    click(choice(groups(container)[0], 'fractured'))
     await nextTick()
-    expect(buttons(container)[0].attrs['aria-pressed']).toBe('false')
-    expect(classes(buttons(container)[0])).toEqual(offClass)
+    expect(row.tradeId).toEqual(['fractured.stat_3032590688'])
+
+    click(choice(groups(container)[0], 'normal'))
+    await nextTick()
+    expect(pressed(groups(container)[0])).toEqual(['normal'])
     expect(row.tradeId).toEqual(['explicit.stat_3032590688'])
     app.unmount()
   })
 
-  it('PoE2:破裂的 explicit 列與 pseudo 列各有按鈕,點了只切那一列', async () => {
+  it('PoE2:破裂的 explicit 列與 pseudo 列各有二選一,選了只切那一列', async () => {
     const parsed = Poe2.parseClipboard(POE2_HELMET)
     if (parsed.isErr()) throw new Error(String(parsed.error))
     const item = parsed.value
@@ -121,18 +124,18 @@ describe('破裂切換鈕掛載', () => {
     await nextTick()
     expect(errors).toEqual([])
     expect(warnings).toEqual([])
-    const btns = buttons(container)
-    expect(btns.length).toBe(2)
-    for (const b of btns) expect(b.attrs['aria-pressed']).toBe('false')
+    const gs = groups(container)
+    expect(gs.length).toBe(2)
+    for (const g of gs) expect(pressed(g)).toEqual(['normal'])
     const chaos = stats.find(f => f.statRef === '#% total to Chaos Resistance')!
     const chaosIdx = stats.indexOf(chaos)
-    const chaosBtn = buttons(findAll(container, byAttr('data-row', String(chaosIdx)))[0])[0]
+    const chaosGroup = () => groups(findAll(container, byAttr('data-row', String(chaosIdx)))[0])[0]
 
-    click(chaosBtn)
+    click(choice(chaosGroup(), 'fractured'))
     await nextTick()
-    expect(buttons(container).map(b => b.attrs['aria-pressed']).sort()).toEqual(['false', 'true'])
+    expect(groups(container).map(g => pressed(g)[0]).sort()).toEqual(['fractured', 'normal'])
     expect(chaos.tradeId.every((id: string) => id.startsWith('fractured.'))).toBe(true)
-    click(buttons(findAll(container, byAttr('data-row', String(chaosIdx)))[0])[0])
+    click(choice(chaosGroup(), 'normal'))
     await nextTick()
     expect(chaos.tradeId).toEqual(['pseudo.pseudo_total_chaos_resistance'])
     app.unmount()

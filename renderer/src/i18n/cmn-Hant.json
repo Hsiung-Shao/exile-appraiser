@@ -28,6 +28,29 @@
   "Not recognized modifier": "無法辨識的詞綴",
   "Refresh": "重新整理",
   "ppz": {
+    "listing": {
+      "title": "掛單",
+      "lowest": "最低 {price}",
+      "layout_group": "掛單顯示方式",
+      "layout_grid": "方塊",
+      "layout_list": "長條",
+      "conditions": "兌換條件",
+      "pay_with": "用什麼買",
+      "online_only": "只看在線",
+      "stock": "庫存 {n}",
+      "fulfill": "可成交 {n} 次",
+      "market_ratio": "市價比例",
+      "ilvl": "iLv {n}",
+      "gem_level": "等級 {n}",
+      "quality": "品質 {n}",
+      "sockets": "插槽 {n}",
+      "pay_with_title": "用{name}買({n} 筆)",
+      "currency": {
+        "exalted": "崇高石",
+        "chaos": "混沌石",
+        "divine": "神聖石"
+      }
+    },
     "desecration": {
       "inferred": "推定",
       "inferred_title": "推定階層:一般複製沒有階層,依 PoB2 詞綴資料與數值範圍推算(進階複製 Ctrl+Alt+C 的階層以遊戲為準)",
@@ -43,7 +66,17 @@
     "fractured_toggle": {
       "label": "破裂",
       "title_off": "改查破裂詞綴(交易站只找這條是破裂的物品)",
-      "title_on": "正在查破裂詞綴;再點一次改回一般詞綴"
+      "title_on": "正在查破裂詞綴;再點一次改回一般詞綴",
+      "normal": "一般",
+      "group": "查詢方式",
+      "title_normal": "查一般詞綴(不限是否破裂)"
+    },
+    "mod_cards": {
+      "mods": "詞綴",
+      "pseudo": "偽屬性(總和)",
+      "count": "{0} / {1} 選用",
+      "from_n": "來自 {0} 條詞綴",
+      "switch": "選用:{0}"
     },
     "bg": {
       "section": "背景",
@@ -315,6 +348,30 @@
     "related_items_scale": "相關物品大小",
     "related_items_scale_hint": "查價面板旁同組碎片與可換物品的字與圖示大小;100% = APT 原本大小,並隨介面字級縮放。",
     "highest_volume": "成交量最大:",
+    "hero": {
+      "suggested": "建議售價",
+      "min": "最低",
+      "median": "中位",
+      "matched": "符合",
+      "loading": "查詢中…",
+      "none": "沒有符合的掛單",
+      "few": "筆數少",
+      "few_hint": "掛單不到 3 筆,建議售價以最低價計",
+      "raw_currency": "沒有匯率,以原幣別計",
+      "market": "市價",
+      "source_ninja": "poe.ninja",
+      "open_ninja": "在 poe.ninja 查看",
+      "graph_7d": "最近 7 天",
+      "change_up": "最近 7 天上漲 {0}",
+      "change_down": "最近 7 天下跌 {0}",
+      "change_flat": "最近 7 天持平 {0}",
+      "vol_value": "每小時成交",
+      "vol_items": "每小時成交(件)",
+      "highest": "成交量最大",
+      "stack_title": "你的這一疊",
+      "stack_have": "庫存 × {0}",
+      "stack_max": "堆疊上限 × {0}"
+    },
     "per_hour": "/小時",
     "unsupported_combo": "台服目前只支援繁中客戶端。",
     "parse_error": "無法解析物品文字",

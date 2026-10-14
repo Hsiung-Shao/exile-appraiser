@@ -22,6 +22,8 @@
 import type { TradeContext } from "@exile-appraiser/core/games/adapter";
 import { parseRetryAfter, type HttpFetch } from "@exile-appraiser/core/http";
 import { tradeWebBase, useEnglishNames, type Language, type Realm } from "@exile-appraiser/core/realm";
+// 相對路徑:worktree 裡 @exile-appraiser/core 解析到主 checkout,新模組要用相對路徑(同 renderer 引用 core/src/stash)
+import { summarizeConverted } from "../../../core/src/price/summary";
 import type { ParsedItem } from "@/parser";
 import type { ItemFilters } from "@/web/price-check/filters/interfaces";
 import { requestResults, requestTradeResultList, type TradeRequest } from "@/web/price-check/trade/pathofexile-trade";
@@ -271,49 +273,21 @@ export interface RuneTradeSummary {
   skipped: number;
 }
 
-function median(xs: number[]): number {
-  const s = [...xs].sort((a, b) => a - b);
-  const m = Math.floor(s.length / 2);
-  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
-}
-
 /**
  * 前 `RUNE_TRADE_TAKE` 筆 → 中位數 / 最低 / 最高。
  * `toExalted` 有給(國際服有 poe.ninja 匯率)→ 換成崇高石,換不了的筆數記 `skipped`;一筆都換不了或沒給 → 原幣:
  * 取筆數最多的幣別(同數取先出現 = 較便宜那一端),其他幣別記 `skipped`。
+ * 2026-10-14:演算法抽到 core `price/summary.ts` `summarizeConverted`(查價面板價格區共用),行為逐字不變。
  */
 export function summarizeRuneTrade(
   listings: readonly RuneTradeListing[],
   toExalted?: (amount: number, currency: string) => number | undefined,
 ): RuneTradeSummary {
-  const top = listings.slice(0, RUNE_TRADE_TAKE);
-  let values: number[] = [];
-  let unit = "exalted";
-  let converted = false;
-  if (toExalted) {
-    for (const l of top) {
-      const v = toExalted(l.amount, l.currency);
-      if (v != null && Number.isFinite(v) && v > 0) values.push(v);
-    }
-    converted = values.length > 0;
-  }
-  if (!converted) {
-    const counts = new Map<string, number>();
-    for (const l of top) counts.set(l.currency, (counts.get(l.currency) ?? 0) + 1);
-    let best = "";
-    let n = 0;
-    for (const [c, k] of counts) if (k > n) { best = c; n = k; }
-    unit = best || "exalted";
-    values = top.filter((l) => l.currency === best).map((l) => l.amount);
-  }
-  const count = values.length;
-  const out: RuneTradeSummary = { unit, converted, count, few: count < RUNE_TRADE_MIN_FOR_MEDIAN, skipped: top.length - count };
-  if (count) {
-    out.min = Math.min(...values);
-    out.max = Math.max(...values);
-    if (count >= RUNE_TRADE_MIN_FOR_MEDIAN) out.median = median(values);
-  }
-  return out;
+  return summarizeConverted(listings, toExalted, {
+    unit: "exalted",
+    take: RUNE_TRADE_TAKE,
+    minForMedian: RUNE_TRADE_MIN_FOR_MEDIAN,
+  });
 }
 
 // ---------------- 自動查詢佇列(docs/runeshape.md「自動查市集」) ----------------

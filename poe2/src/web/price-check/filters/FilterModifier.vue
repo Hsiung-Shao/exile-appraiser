@@ -6,19 +6,20 @@
       </div>
     </div>
     <div class="flex flex-col min-w-0 flex-1">
-      <div class="pb-px flex items-baseline justify-between">
+      <div class="pb-px flex items-center justify-between">
+        <mod-switch
+          :class="$style.switch"
+          :on="!isDisabled"
+          :label="t('ppz.mod_cards.switch', [text])"
+          @click="toggleFilter"
+          type="button"
+        />
         <button
-          class="flex items-baseline text-left min-w-0"
+          class="flex items-baseline text-left min-w-0 mr-auto"
+          :class="{ [$style.dim]: isDisabled }"
           @click="toggleFilter"
           type="button"
         >
-          <i
-            class="w-5"
-            :class="{
-              'far fa-square text-gray-500': isDisabled,
-              'fas fa-check-square': !isDisabled,
-            }"
-          ></i>
           <div
             class="search-text flex-1 mr-1 relative flex min-w-0"
             style="line-height: 1rem"
@@ -33,7 +34,7 @@
             /></span>
           </div>
         </button>
-        <div class="flex items-baseline gap-x-1">
+        <div class="flex items-center gap-x-1">
           <div
             v-if="showAugmentNotice"
             :class="$style['qualityLabel']"
@@ -51,40 +52,42 @@
           <div v-if="showQ20Notice" :class="$style['qualityLabel']">
             {{ t("item.prop_quality", [calcQuality]) }}
           </div>
-          <div class="flex gap-x-px">
-            <input
-              :class="$style['rollInput']"
-              :placeholder="t('min')"
-              :min="roll?.bounds?.min"
-              :max="roll?.bounds?.max"
-              :step="changeStep"
-              type="number"
-              v-if="showInputs"
-              ref="inputMinEl"
-              v-model.number="inputMin"
-              @focus="inputFocus($event, 'min')"
-              @mousedown.right.prevent="clearInput($event, 'min')"
-              @mousewheel.stop
-            />
-            <input
-              :class="$style['rollInput']"
-              :placeholder="t('max')"
-              :min="roll?.bounds?.min"
-              :max="roll?.bounds?.max"
-              :step="changeStep"
-              type="number"
-              v-if="showInputs"
-              ref="inputMaxEl"
-              v-model.number="inputMax"
-              @focus="inputFocus($event, 'max')"
-              @mousedown.right.prevent="clearInput($event, 'max')"
-              @mousewheel.stop
-            />
-          </div>
+          <mod-range v-if="showInputs">
+            <template #min
+              ><input
+                :class="$style['rollInput']"
+                :placeholder="t('min')"
+                :aria-label="t('min')"
+                :min="roll?.bounds?.min"
+                :max="roll?.bounds?.max"
+                :step="changeStep"
+                type="number"
+                ref="inputMinEl"
+                v-model.number="inputMin"
+                @focus="inputFocus($event, 'min')"
+                @mousedown.right.prevent="clearInput($event, 'min')"
+                @mousewheel.stop
+            /></template>
+            <template #max
+              ><input
+                :class="$style['rollInput']"
+                :placeholder="t('max')"
+                :aria-label="t('max')"
+                :min="roll?.bounds?.min"
+                :max="roll?.bounds?.max"
+                :step="changeStep"
+                type="number"
+                ref="inputMaxEl"
+                v-model.number="inputMax"
+                @focus="inputFocus($event, 'max')"
+                @mousedown.right.prevent="clearInput($event, 'max')"
+                @mousewheel.stop
+            /></template>
+          </mod-range>
         </div>
       </div>
-      <div class="flex">
-        <div class="w-5 flex items-start">
+      <div class="flex" :class="{ [$style.dim]: isDisabled }">
+        <div :class="$style.lead" class="flex items-start">
           <ui-popover
             v-if="isHidden"
             tag-name="div"
@@ -108,7 +111,12 @@
 
         <div class="flex-1 flex flex-col gap-1">
           <div class="flex-1 flex items-start gap-x-2">
-            <span v-if="showTag" :class="[$style['tag'], $style[`tag-${tag}`]]"
+            <span v-if="showTag && tag === 'pseudo'" :class="$style.sub">{{
+              t("ppz.mod_cards.from_n", [filter.sources.length])
+            }}</span>
+            <span
+              v-else-if="showTag"
+              :class="[$style['tag'], $style[`tag-${tag}`]]"
               >{{ t(`filters.tag_${tag.replace("-", "_")}`)
               }}{{
                 filter.sources.length > 1 ? ` x ${filter.sources.length}` : null
@@ -124,7 +132,7 @@
             :filter="filter"
             v-if="tradeId === 'item.elemental_dps'"
           />
-          <!-- exile-appraiser: 破裂詞綴的「破裂」切換鈕(自寫 FilterModifierFractured.vue;不適用時不輸出任何元素) -->
+          <!-- 破裂詞綴的「一般 / 破裂」二選一(自寫 FilterModifierFractured.vue;不適用時不輸出任何元素) -->
           <filter-modifier-fractured
             class="self-start"
             :filter="filter"
@@ -141,7 +149,7 @@
           :dp="roll.dp"
           :bounds="roll.bounds"
         />
-        <div style="width: calc(2 * 3rem + 1px)" />
+        <div :class="$style.rangeSpace" />
       </div>
     </div>
     <div class="flex flex-col">
@@ -151,6 +159,8 @@
 </template>
 
 <script lang="ts">
+// exile-appraiser: 2026-10-14 B 改版:本檔呈現層已重寫(勾選框 → 開關 ModSwitch、最小 / 最大 → 範圍膠囊 ModRange、
+// 偽屬性列「來自 N 條詞綴」、未選用列變淡;行為 / 資料不動),記錄在 docs/poe2-port-notes.md「查價面板 B 改版」。
 import { defineComponent, PropType, computed, ref, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import UiPopover from "@/web/ui/Popover.vue";
@@ -171,6 +181,8 @@ import SourceInfo from "./SourceInfo.vue";
 import FilterModifierItemIsElemental from "./FilterModifierItemIsElemental.vue";
 // exile-appraiser: 破裂切換鈕(自寫)
 import FilterModifierFractured from "./FilterModifierFractured.vue";
+import ModSwitch from "@/web/price-panel/ModSwitch.vue";
+import ModRange from "@/web/price-panel/ModRange.vue";
 import { CLIENT_STRINGS as _$ } from "@/assets/data";
 
 export default defineComponent({
@@ -185,6 +197,8 @@ export default defineComponent({
     FilterModifierItemIsElemental,
     // exile-appraiser: 多註冊 FilterModifierFractured
     FilterModifierFractured,
+    ModSwitch,
+    ModRange,
   },
   emits: ["submit"],
   props: {
@@ -412,36 +426,40 @@ export default defineComponent({
 
 <style lang="postcss" module>
 .filter {
-  @apply py-2;
-  @apply border-b border-gray-700;
+  padding: 0.4em 0;
+  min-height: 2.9em;
   display: flex;
   position: relative;
 }
 
+/* B 改版:開關 + 間距 = 第二列縮排寬度(.lead) */
+.switch {
+  margin-right: 0.6em;
+}
+.lead {
+  width: 2.9em;
+  flex: none;
+}
+.rangeSpace {
+  width: 7em;
+  flex: none;
+}
+.dim {
+  opacity: 0.6;
+}
+.sub {
+  font-size: 0.85em;
+  color: var(--ink-2);
+  line-height: 1.2;
+}
+
 .rollInput {
-  @apply bg-gray-900;
-  @apply text-gray-300;
-  @apply text-center;
-  @apply w-12;
-  @apply px-1;
-  @apply border border-transparent;
-
-  &:first-child {
-    @apply rounded-l;
-  }
-  &:last-child {
-    @apply rounded-r;
-  }
-
+  /* 外觀由 ModRange 的 :slotted(input) 決定 */
   &::placeholder {
-    @apply text-gray-700;
-    font-size: 0.8125rem;
+    font-size: 0.85em;
   }
-
-  /* &:not(:placeholder-shown) { @apply border-gray-600; } */
 
   &:focus {
-    @apply border-gray-500;
     cursor: none;
   }
 }
