@@ -3,7 +3,7 @@
  * 不 import electron(main vitest 以假時鐘 / 假擷取測)。
  *
  * 物品身分**不靠 OCR**(格子裡只有圖示 + 數量):固定版面表(`data/poe1/stash/layouts.json`)依位置對應,renderer 畫每格徽章。
- * 這裡只看倉庫面板頂端的子頁按鈕列(`core/src/stash/detect.ts` `stripRect`,約 883 × 159 @1432):
+ * 這裡只看倉庫面板頂端的子頁按鈕列(`core/src/stash/detect.ts` `stripRect`;使用者自訂區域 `region` 夾在 `stripZone` 內):
  *   擷取 → 按鈕列灰階縮圖與上次 OCR 時比對,沒變就不 OCR → 有變化才 OCR(×3)→ `findSubtabButtons`(四顆按鈕文字至少 3 顆、
  *   由文字高度推資料夾偏移)→ 每顆按鈕文字 p99 亮度 → `activeSubtab`(目前子頁的文字較亮)→ 狀態變了才送 `stash-scan-result`。
  * 沒找到按鈕:游標停在已顯示子頁的格子上(遊戲說明框可能蓋住按鈕列,`holdOnMiss`)→ 維持原狀,但連續最多 `STASH_HOLD_LIMIT` 次;
@@ -14,7 +14,7 @@
  */
 import type { OcrRegion, RuneshapeUiState, StashScanEvent, StashStats } from '@ipc/types'
 import type { OcrTextLang, OcrTextLine } from '../../../poe2/src/desecration/ocr-text'
-import { activeSubtab, buttonRects, findSubtabButtons, percentile, stripRect, type Rect } from '../../../core/src/stash/detect'
+import { activeSubtab, buttonRects, findSubtabButtons, percentile, stripRect, stripZone, type Rect } from '../../../core/src/stash/detect'
 import type { StashSubtab } from '../../../core/src/stash/layout'
 import {
   BLOCKED_FALLBACK_MS, clampScanInterval, isChanged, isLargeChange, DEFAULT_DIFF_THRESHOLDS,
@@ -91,6 +91,47 @@ function toImage (r: Rect, offset: { x: number, y: number }): PhysRect {
   return { x: r.x - offset.x, y: r.y - offset.y, width: r.w, height: r.h }
 }
 
+function intersect (a: Rect, b: Rect): Rect | null {
+  const x0 = Math.max(a.x, b.x)
+  const y0 = Math.max(a.y, b.y)
+  const x1 = Math.min(a.x + a.w, b.x + b.w)
+  const y1 = Math.min(a.y + a.h, b.y + b.h)
+  return x1 > x0 && y1 > y0 ? { x: x0, y: y0, w: x1 - x0, h: y1 - y0 } : null
+}
+
+/**
+ * 這個 tick 要 OCR 的影像矩形:使用者框的區域(client 比例)換成 client 像素後與 `stripZone`(按鈕可能出現的範圍)取交集;
+ * 沒框 / 交集為空 → 預設 `stripRect`。最後減擷取偏移並夾在影像內。`clamped` = 使用者區域被縮小(交集 ≠ 原區域)。
+ */
+export function stashOcrRect (
+  size: { w: number, h: number },
+  region: OcrRegion | null | undefined,
+  client: { w: number, h: number },
+  offset: { x: number, y: number }
+): { rect: PhysRect, clamped: Rect | null, outside: boolean } {
+  let r: Rect = stripRect(client.h)
+  let clamped: Rect | null = null
+  let outside = false
+  // client 像素(regionSearchRect 以 client 當影像、偏移 0 → 規則與其他掃描相同)
+  const user = regionSearchRect(client, region, { client, offset: { x: 0, y: 0 } })
+  if (user) {
+    const u: Rect = { x: user.x, y: user.y, w: user.width, h: user.height }
+    const inZone = intersect(u, stripZone(client.w, client.h))
+    if (inZone) {
+      r = inZone
+      if (inZone.x !== u.x || inZone.y !== u.y || inZone.w !== u.w || inZone.h !== u.h) clamped = inZone
+    } else {
+      outside = true
+    }
+  }
+  const img = intersect(toImageRect(r, offset), { x: 0, y: 0, w: size.w, h: size.h }) ?? toImageRect(r, offset)
+  return { rect: { x: img.x, y: img.y, width: img.w, height: img.h }, clamped, outside }
+}
+
+function toImageRect (r: Rect, offset: { x: number, y: number }): Rect {
+  return { x: r.x - offset.x, y: r.y - offset.y, w: r.w, h: r.h }
+}
+
 export class StashScan {
   private readonly deps: StashScanDeps
   private readonly clock: ScanClock
@@ -109,6 +150,7 @@ export class StashScan {
   private lastOcrMs: number | null = null
   /** 「沒找到按鈕」診斷記錄的上次時間(節流) */
   private lastMissLogAt = -Infinity
+  private lastClampLogKey: string | null = null
   private ocrCount = 0
 
   constructor (deps: StashScanDeps) {
@@ -234,8 +276,10 @@ export class StashScan {
     this.inFlight = true
     const cap = await this.deps.capture(env.bounds!)
     const client = cap.client
-    // 使用者框的區域優先(換算失敗 / 落在影像外 → 預設按鈕列)
-    const strip = regionSearchRect(cap.size, cfg.region, { client, offset: cap.offset }) ?? toImage(stripRect(client.h), cap.offset)
+    // 使用者框的區域優先,但夾在按鈕可能出現的範圍內(R1:框整個畫面 → 整張 ×3 OCR、也截到自己的徽章);交集為空 → 預設按鈕列
+    const ocr = stashOcrRect(cap.size, cfg.region, client, cap.offset)
+    this.logRegionClamp(cfg.region, ocr)
+    const strip = ocr.rect
     const fp = cap.fingerprint(strip)
     const key = `${client.w}x${client.h}@${cap.offset.x},${cap.offset.y}|${strip.x},${strip.y},${strip.width},${strip.height}`
     const prev = this.baseline?.key === key ? this.baseline.fp : null
@@ -253,7 +297,7 @@ export class StashScan {
     const match = findSubtabButtons(clientLines, client.h, lang)
 
     if (!match.found) {
-      // 診斷:讀到 1–2 顆按鈕(像碎片頁但沒過門檻)時記下 OCR 文字,最多每 30 秒一次(實機回報「徽章沒出現」時查得到原因)
+      // 診斷:認到 ≥ 1 顆但判定失敗(像碎片頁但沒過門檻 / 偏移對不上)時記下 OCR 文字,最多每 30 秒一次(實機回報「徽章沒出現」時查得到原因)
       const now = this.clock.now()
       if (match.matched > 0 && now - this.lastMissLogAt >= STASH_MISS_LOG_MS) {
         this.lastMissLogAt = now
@@ -293,6 +337,20 @@ export class StashScan {
     this.deps.log?.(`[stash] 碎片頁:${subtab}${match.yOffset ? `(資料夾偏移 ${match.yOffset})` : ''},OCR ${ms} ms`)
     this.emit('show', client, ms)
     return { kind: 'ocr', found: true, subtab, held: false, sent: 'show', ms }
+  }
+
+  /** 自訂區域被縮小 / 完全在範圍外:同一個區域值只記一次 */
+  private logRegionClamp (region: OcrRegion | null | undefined, ocr: { clamped: Rect | null, outside: boolean }): void {
+    if (!region || (!ocr.clamped && !ocr.outside)) return
+    const key = `${region.x},${region.y},${region.w},${region.h}`
+    if (key === this.lastClampLogKey) return
+    this.lastClampLogKey = key
+    if (ocr.clamped) {
+      const c = ocr.clamped
+      this.deps.log?.(`[stash] 自訂 OCR 區域超出按鈕列範圍,已縮到 ${c.x},${c.y} ${c.w}×${c.h}(client px)`)
+    } else {
+      this.deps.log?.('[stash] 自訂 OCR 區域完全不在按鈕列範圍內,改用預設位置')
+    }
   }
 
   private diff (a: Fingerprint, b: Fingerprint): { mean: number, changedRatio: number } | null {

@@ -13,7 +13,7 @@ import {
   STASH_CLEARING_BLOCKS, STASH_HOLD_LIMIT, STASH_MISS_LIMIT, StashScan, stashBlock, type StashScanConfig
 } from '../src/ocr/stash-scan'
 import { STASH_CURSOR_INTERVAL_MS, StashCursor, stashPanelContains } from '../src/stash-cursor'
-import { buttonRects, stripRect, type TextLine } from '../../core/src/stash/detect'
+import { buttonRects, stripRect, stripZone, type TextLine } from '../../core/src/stash/detect'
 import { cellRects, parseStashLayouts, type StashLayoutFile } from '../../core/src/stash/layout'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -87,8 +87,12 @@ function harness () {
     captures: 0,
     ocrs: 0,
     grays: 0,
-    ocrRects: [] as Array<{ x: number, y: number, width: number, height: number }>
+    ocrRects: [] as Array<{ x: number, y: number, width: number, height: number }>,
+    /** 擷取偏移(client → 影像);size 省略 = client 大小 */
+    offset: { x: 0, y: 0 },
+    size: null as { w: number, h: number } | null
   }
+  const logs: string[] = []
   const events: StashScanEvent[] = []
   const showingCalls: Array<{ showing: boolean, st: { subtab: unknown, yOffset: number, clientH: number } }> = []
   const scan = new StashScan({
@@ -100,8 +104,8 @@ function harness () {
       state.captures++
       const client = { ...state.client }
       return {
-        size: { ...client },
-        offset: { x: 0, y: 0 },
+        size: state.size ? { ...state.size } : { ...client },
+        offset: { ...state.offset },
         client,
         fingerprint: () => state.frame,
         recognize: async (rect) => {
@@ -121,12 +125,12 @@ function harness () {
     textLang: () => 'zh',
     holdOnMiss: () => state.hold,
     onShowingChange: (showing, st) => { showingCalls.push({ showing, st: { ...st } }) },
-    log: () => {}
+    log: (m) => { logs.push(m) }
   })
   /** 換畫面(縮圖不同 → 一定重 OCR) */
   let frameV = 10
   const changeFrame = () => { frameV = (frameV + 37) % 250; state.frame = fp(frameV) }
-  return { scan, events, showingCalls, cfg, env, state, clk, changeFrame }
+  return { scan, events, showingCalls, cfg, env, state, clk, changeFrame, logs }
 }
 
 type Hn = ReturnType<typeof harness>
@@ -657,9 +661,9 @@ describe('S18 使用者框選的倉庫 OCR 區域', () => {
   it('框了區域 → OCR 使用者的區域(client 比例換成像素)', async () => {
     // 忽略 cfg.region → 使用者框了也沒用
     const h = harness()
-    h.cfg.region = { x: 0.1, y: 0.2, w: 0.3, h: 0.1 }
+    h.cfg.region = { x: 0.1, y: 0.1, w: 0.2, h: 0.05 }
     await h.scan.tick()
-    expect(h.state.ocrRects[0]).toEqual({ x: Math.round(0.1 * W), y: Math.round(0.2 * H), width: Math.round(0.3 * W), height: Math.round(0.1 * H) })
+    expect(h.state.ocrRects[0]).toEqual({ x: Math.round(0.1 * W), y: Math.round(0.1 * H), width: Math.round(0.2 * W), height: Math.round(0.05 * H) })
   })
   it('改了區域 → 縮圖相同也重新 OCR', async () => {
     // 差分基準沒綁區域 → 換區域後沿用舊結果、不重看
@@ -668,5 +672,50 @@ describe('S18 使用者框選的倉庫 OCR 區域', () => {
     h.cfg.region = { x: 0, y: 0.1, w: 0.4, h: 0.1 }
     await h.scan.tick()
     expect(h.state.ocrs).toBe(2)
+  })
+})
+
+describe('S18b 自訂區域夾在按鈕可能出現的範圍內(R1)', () => {
+  const zone = stripZone(W, H)
+  const asPhys = (r: { x: number, y: number, w: number, h: number }) => ({ x: r.x, y: r.y, width: r.w, height: r.h })
+  it('全畫面區域 → OCR 矩形 = stripZone,且只記一次 log', async () => {
+    const h = harness()
+    h.cfg.region = { x: 0, y: 0, w: 1, h: 1 }
+    await h.scan.tick()
+    // 沒上限 → 整張畫面 ×3 OCR
+    expect(h.state.ocrRects[0]).toEqual(asPhys(zone))
+    h.changeFrame()
+    await h.scan.tick()
+    expect(h.state.ocrRects[1]).toEqual(asPhys(zone))
+    expect(h.logs.filter(m => m.includes('自訂 OCR 區域超出按鈕列範圍'))).toHaveLength(1)
+  })
+  it('部分超出 → 取交集', async () => {
+    const h = harness()
+    h.cfg.region = { x: 0.1, y: 0.1, w: 0.5, h: 0.05 }
+    await h.scan.tick()
+    const x = Math.round(0.1 * W)
+    const y = Math.round(0.1 * H)
+    // 只夾一邊 / 沒夾 → 寬度超出倉庫面板
+    expect(h.state.ocrRects[0]).toEqual({ x, y, width: zone.x + zone.w - x, height: Math.round(0.05 * H) })
+  })
+  it('完全在範圍外 → 改用預設 stripRect', async () => {
+    const h = harness()
+    h.cfg.region = { x: 0.5, y: 0.5, w: 0.2, h: 0.2 }
+    await h.scan.tick()
+    // 交集為空仍 OCR 使用者區域 → 永遠找不到按鈕
+    expect(h.state.ocrRects[0]).toEqual(asPhys(stripRect(H)))
+  })
+  it('擷取偏移不為 0 → 自訂區域與預設都減掉偏移', async () => {
+    const h = harness()
+    h.state.offset = { x: 10, y: 20 }
+    h.state.size = { w: W - 10, h: H - 20 }
+    h.cfg.region = { x: 0.1, y: 0.1, w: 0.2, h: 0.05 }
+    await h.scan.tick()
+    // 交集後忘了換成影像座標 → 偏 10 / 20 px
+    expect(h.state.ocrRects[0]).toEqual({ x: Math.round(0.1 * W) - 10, y: Math.round(0.1 * H) - 20, width: Math.round(0.2 * W), height: Math.round(0.05 * H) })
+    h.cfg.region = null
+    await h.scan.tick()
+    const s = stripRect(H)
+    expect(h.state.ocrRects[1]).toEqual({ x: 0, y: s.y - 20, width: s.w - 10, height: s.h })
   })
 })

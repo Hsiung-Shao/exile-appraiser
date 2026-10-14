@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url'
 import sharp from 'sharp'
 import {
   BUTTON_SUBTABS, SUBTAB_LABELS, activeSubtab, buttonRects, findSubtabButtons,
-  defaultStripRegion, folderOffset, percentile, stripRect, type TextLine
+  defaultStripRegion, folderOffset, percentile, stripRect, stripZone, type TextLine
 } from '../src/stash/detect'
 import { cellRects, parseStashLayouts, type StashSubtab } from '../src/stash/layout'
 
@@ -99,6 +99,23 @@ describe('S7b 幾何輔助函式', () => {
     const cells = cellRects(layouts, 'scarabs', 1440)
     expect(cells[0].y + cells[0].h - 28).toBeGreaterThanOrEqual(strip.y + strip.h)
     expect(Math.min(...cells.map(c => c.y + c.h)) - 28).toBeGreaterThanOrEqual(strip.y + strip.h)
+  })
+  it('stripZone(1440) = 按鈕可能出現的範圍(含資料夾下移)', () => {
+    // 上限算錯 → 自訂區域被夾掉按鈕或夾不住整張畫面
+    expect(stripZone(2560, 1440)).toEqual({ x: 0, y: 120, w: 888, h: 268 + 47 - 120 })
+    const h = 1432
+    const y = Math.floor(120 / 1440 * h)
+    expect(stripZone(2546, h)).toEqual({ x: 0, y, w: Math.floor(h * 37 / 60), h: Math.floor(268 / 1440 * h) + folderOffset(h) - y })
+  })
+  it('stripZone 涵蓋預設掃描條與資料夾內的按鈕', () => {
+    const z = stripZone(2560, 1440)
+    const s = stripRect(1440)
+    expect(s.y).toBeGreaterThanOrEqual(z.y)
+    expect(s.y + s.h + folderOffset(1440)).toBeLessThanOrEqual(z.y + z.h)
+    for (const b of buttonRects(1440, folderOffset(1440))) expect(b.y + b.h).toBeLessThanOrEqual(z.y + z.h)
+  })
+  it('stripZone 寬度不超過 client 寬', () => {
+    expect(stripZone(500, 1440).w).toBe(500)
   })
   it('資料夾內按鈕文字仍在掃描條內', () => {
     // 掃描條太矮 → 資料夾內的按鈕被切掉

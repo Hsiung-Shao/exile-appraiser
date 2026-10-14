@@ -40,6 +40,15 @@ export function folderOffset (clientH: number): number {
   return at(47, clientH)
 }
 
+/**
+ * 子頁按鈕可能出現的範圍(client 像素):x 0 – h × 37/60、y 120 – 268 / 1440 再加資料夾下移。
+ * 使用者自訂 OCR 區域的上限(框太大 → 整張 ×3 OCR、也截到自己的徽章)。
+ */
+export function stripZone (clientW: number, clientH: number): Rect {
+  const y = at(120, clientH)
+  return { x: 0, y, w: Math.min(Math.max(0, clientW), Math.floor(clientH * 37 / 60)), h: at(268, clientH) + folderOffset(clientH) - y }
+}
+
 export function buttonRects (clientH: number, yOffset = 0): [Rect, Rect, Rect, Rect] {
   const y = at(186, clientH) + yOffset
   const w = at(152, clientH)
