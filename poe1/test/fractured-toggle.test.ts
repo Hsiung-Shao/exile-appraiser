@@ -10,17 +10,17 @@ import { FilterTag, type FilterPreset, type StatFilter } from '@/web/price-check
 import { applyFracturedToggle, canToggleFractured, isFracturedOn } from '@/web/price-check/filters/fractured-toggle'
 import { FIXTURES_DIR } from './helpers/fixture-harness'
 
-// 查價面板「破裂」切換鈕(T9–T11):破裂詞綴改送 fractured stat id,再點換回原本的 id。
+// 查價面板「破裂」切換鈕(T9–T11):破裂詞綴在 explicit ↔ fractured stat id 之間切換。
 const EN_DIR = path.join(FIXTURES_DIR, 'en')
 const read = (name: string) => fs.readFileSync(path.join(EN_DIR, `${name}.txt`), 'utf8')
 const OPTS = {
   league: 'Standard', realm: 'intl' as const, clientLanguage: 'en' as const, searchStatRange: 10,
   currency: null, collapseListings: 'api' as const, activateStockFilter: false, merchantOnly: false
 }
-// ring-rare-01 的破裂詞綴「+# to maximum Life」被 pseudo「+# total maximum Life」吃掉 → 切換鈕在 pseudo 列
+// ring-rare-01 的破裂詞綴「+# to maximum Life」被 pseudo「+# total maximum Life」吃掉 → 沒有 explicit 列,
+// 破裂孿生(tag = fractured、預設送 fractured id)改成可見並帶切換鈕
 const LIFE = '+# to maximum Life'
-const LIFE_PSEUDO = '+# total maximum Life'
-const LIFE_PSEUDO_ID = 'pseudo.pseudo_total_life'
+const LIFE_EXPLICIT = 'explicit.stat_3299347043'
 const LIFE_FRACTURED = 'fractured.stat_3299347043'
 // 破裂詞綴換成不會被 pseudo 吃掉的那種 → 切換鈕在 explicit 列
 const PHYS = 'Adds # to # Physical Damage to Attacks'
@@ -50,13 +50,13 @@ beforeAll(async () => {
 })
 
 describe('T9 破裂鈕只在破裂詞綴出現', () => {
-  it('破裂詞綴被 pseudo 吃掉時切換鈕在 pseudo 列', () => {
+  it('破裂詞綴被 pseudo 吃掉時切換鈕在可見的破裂孿生列(預設已是破裂 id)', () => {
     const item = parse(read('ring-rare-01'))
     expect(item.isFractured).toBe(true)
     const t = toggles(item, preset(item))
-    expect(t.map(f => f.statRef)).toEqual([LIFE_PSEUDO])
-    expect(t[0].tradeId).toEqual([LIFE_PSEUDO_ID])
-    expect(isFracturedOn(t[0])).toBe(false)
+    expect(t.map(f => [f.statRef, f.tag, f.hidden])).toEqual([[LIFE, FilterTag.Fractured, undefined]])
+    expect(t[0].tradeId).toEqual([LIFE_FRACTURED])
+    expect(isFracturedOn(t[0])).toBe(true)
   })
 
   it('沒被 pseudo 吃掉的破裂詞綴切換鈕在 explicit 列', () => {
@@ -66,15 +66,16 @@ describe('T9 破裂鈕只在破裂詞綴出現', () => {
     expect(t[0].tradeId).toEqual([PHYS_EXPLICIT])
   })
 
-  it('非破裂詞綴與隱藏的破裂孿生都沒有切換鈕', () => {
-    const item = parse(read('ring-rare-01'))
+  it('非破裂詞綴、pseudo 合計列與仍隱藏的破裂孿生都沒有切換鈕', () => {
+    const item = parse(ringPhys())
     const all = flat(preset(item))
-    for (const f of all.filter(f => f.statRef !== LIFE_PSEUDO)) {
-      expect(canToggleFractured(f, item), f.statRef).toBe(false)
+    for (const f of all.filter(f => !(f.statRef === PHYS && f.tag === FilterTag.Explicit))) {
+      expect(canToggleFractured(f, item), `${f.statRef}/${f.tag}`).toBe(false)
     }
-    // 隱藏孿生(tag = fractured)本來就送破裂 id
-    const twin = all.find(f => f.statRef === LIFE && f.tag === FilterTag.Fractured)
-    expect(twin).toBeDefined()
+    // 有 explicit 列時孿生維持隱藏
+    expect(all.find(f => f.statRef === PHYS && f.tag === FilterTag.Fractured)?.hidden).toBe('filters.hide_for_crafting')
+    const ring = parse(read('ring-rare-01'))
+    expect(flat(preset(ring)).filter(f => f.tag === FilterTag.Pseudo).some(f => canToggleFractured(f, ring))).toBe(false)
   })
 
   it('一般物品沒有切換鈕', () => {
@@ -96,8 +97,22 @@ describe('T9 破裂鈕只在破裂詞綴出現', () => {
 })
 
 describe('T10 點破裂改送破裂 id', () => {
+  it('破裂孿生列:關閉改送 explicit id,再打開與原查詢逐字相同', () => {
+    const item = parse(read('ring-rare-01'))
+    const p = preset(item)
+    const row = toggles(item, p)[0]
+    row.disabled = false // 使用者已勾選這條
+    const before = JSON.stringify(createTradeRequest(p))
+    applyFracturedToggle(p.stats, row, false)
+    expect(isFracturedOn(row)).toBe(false)
+    const off = enabledIds(createTradeRequest(p))
+    expect(off).toContain(LIFE_EXPLICIT)
+    expect(off).not.toContain(LIFE_FRACTURED)
+    applyFracturedToggle(p.stats, row, true)
+    expect(JSON.stringify(createTradeRequest(p))).toBe(before)
+  })
+
   for (const [label, text, rowRef, baseId, fracId] of [
-    ['pseudo 列', () => read('ring-rare-01'), LIFE_PSEUDO, LIFE_PSEUDO_ID, LIFE_FRACTURED],
     ['explicit 列', ringPhys, PHYS, PHYS_EXPLICIT, PHYS_FRACTURED]
   ] as const) {
     it(`${label}:切換後送 fractured id,再點換回與原查詢逐字相同`, () => {
@@ -143,7 +158,6 @@ describe('T10 點破裂改送破裂 id', () => {
 
 describe('T11 PoE1 孿生條件不重複', () => {
   for (const [label, text, rowRef, twinRef, fracId] of [
-    ['pseudo 列', () => read('ring-rare-01'), LIFE_PSEUDO, LIFE, LIFE_FRACTURED],
     ['explicit 列', ringPhys, PHYS, PHYS, PHYS_FRACTURED]
   ] as const) {
     it(`${label}:打開後隱藏孿生取消勾選,fractured id 只送一次`, () => {

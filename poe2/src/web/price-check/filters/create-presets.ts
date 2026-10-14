@@ -8,6 +8,8 @@ import { ItemCategory, ItemRarity, ParsedItem } from "@/parser";
 import type { FilterPreset } from "./interfaces";
 import { hasCraftingValue, likelyFinishedItem } from "./common";
 import { createUniquePresets, PRESET_UNIQUES } from "./create-unique-filters";
+// exile-appraiser: 破裂詞綴預設可見(自寫 fractured-toggle.ts)
+import { revealFracturedRows } from "./fractured-toggle";
 
 const ROMAN_NUMERALS = ["I", "II", "III", "IV", "V"];
 
@@ -81,6 +83,8 @@ export function createPresets(
     filters: createFilters(item, { ...opts, exact: false }),
     stats: initUiModFilters(item, opts),
   };
+  // exile-appraiser: 破裂詞綴每條留一列在可見清單(只改 hidden,查詢不變)
+  revealFracturedRows(pseudoPreset.stats, item);
 
   // Apply augments if we should
   // if (

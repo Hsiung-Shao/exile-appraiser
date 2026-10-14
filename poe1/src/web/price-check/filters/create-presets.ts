@@ -1,6 +1,8 @@
 import { createFilters, CreateOptions as CreateFiltersOptions } from './create-item-filters'
 import { createExactStatFilters, initUiModFilters } from './create-stat-filters'
 import { createMercenaryFilters } from './pseudo/mercenary'
+// exile-appraiser: 破裂詞綴預設可見(自寫 fractured-toggle.ts)
+import { revealFracturedRows } from './fractured-toggle'
 import { ModifierType, sumStatsByModType } from '@/parser/modifiers'
 import { ItemCategory, ItemRarity, ParsedItem } from '@/parser'
 import type { FilterPreset } from './interfaces'
@@ -93,6 +95,8 @@ export function createPresets (
     filters: createFilters(item, { ...opts, exact: false }),
     stats: initUiModFilters(item, opts)
   }
+  // exile-appraiser: 破裂詞綴每條留一列在可見清單(只改 hidden,查詢不變)
+  revealFracturedRows(pseudoPreset.stats, item)
 
   const likelyFinishedItem = (
     item.rarity === ItemRarity.Unique ||
