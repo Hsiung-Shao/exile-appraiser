@@ -415,6 +415,12 @@ export interface ScanCapture {
   masked?: number
   /** PoE1 倉庫價格疊層:影像某塊原解析度的灰階像素(列優先;夾在影像內)。省略 = 不支援(測試 / 舊擷取) */
   gray?: (rect: PhysRect) => Uint8Array
+  /**
+   * PoE1 倉庫堆疊數量:影像某塊原解析度的像素(BGRA,列優先;夾在影像內,`x` / `y` = 實際裁到的左上)。省略 = 不支援(測試 / 舊擷取)
+   */
+  pixels?: (rect: PhysRect) => { data: Uint8Array, width: number, height: number, channels: number, x: number, y: number }
+  /** 第 18 步遮罩(影像像素,已外擴);讀倉庫數量時判斷哪幾格被我們的徽章蓋住。省略 = 沒有 */
+  maskRects?: ReadonlyArray<{ x: number, y: number, w: number, h: number }>
 }
 
 export interface ScanClock {

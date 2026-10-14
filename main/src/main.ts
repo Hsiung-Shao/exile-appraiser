@@ -46,7 +46,7 @@ import {
 import { DEFAULT_SCAN_INTERVAL_MS, RuneshapeScan } from './ocr/runeshape-scan'
 import { StashScan } from './ocr/stash-scan'
 import { StashCursor } from './stash-cursor'
-import { loadStashLayouts } from './stash-layout-data'
+import { loadStashDigitTemplates, loadStashLayouts } from './stash-layout-data'
 import { SharedCapture, SharedLocateOcr } from './ocr/panel-scan'
 import { ScanMaskStore, sanitizeMaskReport } from './ocr/scan-mask'
 import { isAppNavigation, isExternalWebUrl } from './external-links'
@@ -74,6 +74,9 @@ const TOAST_SELFTEST = argAfter('--toast-selftest')
 // `--uiohook-selftest`:只註冊 / 解除全域掛鉤(start → stop → 1 秒後再 start → stop),印出載入的 .node 路徑後結束;
 // 不送任何輸入、不拿單一實例鎖、不建視窗/托盤/熱鍵。手動實機檢查用(scripts/uiohook-hookcheck.mjs),正式版也接受。
 const UIOHOOK_SELFTEST = process.argv.includes('--uiohook-selftest')
+// 2026-10-15 倉庫價值:`--stash-selftest <png> [--out <png>] [--stash-subtab=general|scarabs]`:無頭讀截圖每格的堆疊數量(ocr/stash-selftest.ts);
+// 不拿單一實例鎖、不送輸入、不擷取螢幕
+const STASH_SELFTEST = argAfter('--stash-selftest')
 // 效能修正第 17 步:`--capture-bench [--bench-*]`:量 overlay screenshot() 與 desktopCapturer 的耗時、像素 / OCR 一致性(ocr/capture-bench.ts);
 // 不拿單一實例鎖、不送輸入、不搶焦點、不寫影格檔。
 // code review 第 B 批:只在非 packaged 時接受(正式版忽略並正常啟動);量測程式碼動態 import(不在啟動路徑上執行)
@@ -111,7 +114,7 @@ console.log(uiohookPrebuildResult.message)
  * 無輸入的控制方式(自動驗證 / 腳本用),見 docs/release-flow.md「本機實測」。
  */
 const CONTROL_REQUEST = ['--quit', '--install-update'].find(f => process.argv.includes(f))
-let skipStartup = OCR_SELFTEST != null || TOAST_SELFTEST != null || CAPTURE_BENCH || UIOHOOK_SELFTEST
+let skipStartup = OCR_SELFTEST != null || TOAST_SELFTEST != null || CAPTURE_BENCH || UIOHOOK_SELFTEST || STASH_SELFTEST != null
 
 if (OCR_SELFTEST != null) {
   (RUNESHAPE_SELFTEST != null ? runRuneshapeSelftest(RUNESHAPE_SELFTEST, process.argv) : runOcrSelftest(OCR_SELFTEST, process.argv))
@@ -122,6 +125,11 @@ if (OCR_SELFTEST != null) {
     .then(async ({ runCaptureBench }) => await runCaptureBench(process.argv))
     .then((code) => { app.exit(code) })
     .catch((e) => { console.error('[capture-bench]', e); app.exit(1) })
+} else if (STASH_SELFTEST != null) {
+  import('./ocr/stash-selftest')
+    .then(async ({ runStashSelftest }) => await runStashSelftest(STASH_SELFTEST, process.argv))
+    .then((code) => { app.exit(code) })
+    .catch((e) => { console.error('[stash-selftest]', e); app.exit(1) })
 } else if (UIOHOOK_SELFTEST) {
   app.whenReady()
     .then(async () => await runUiohookSelftest())
@@ -934,7 +942,8 @@ if (!skipStartup) app.whenReady().then(() => {
       enabled: hostCfg != null && hostCfg.stashPricesEnabled !== false,
       game: hostCfg?.game ?? 'poe1',
       intervalMs: hostCfg?.stashPricesIntervalMs ?? DEFAULT_SCAN_INTERVAL_MS,
-      region: hostCfg?.stashRegion ?? null
+      region: hostCfg?.stashRegion ?? null,
+      readQuantity: hostCfg?.stashReadQuantity !== false
     }),
     env: scanEnv,
     textLang: ocrTextLang,
@@ -943,7 +952,14 @@ if (!skipStartup) app.whenReady().then(() => {
     holdOnMiss: () => stashCursor.onCell(),
     onShowingChange: (showing, st) => { stashCursor.setShown(showing && st.subtab ? { subtab: st.subtab, yOffset: st.yOffset, clientH: st.clientH } : null) },
     log: (msg) => { console.log(msg) },
-    send: (ev) => { send('stash-scan-result', ev) }
+    // 2026-10-15 倉庫價值:讀每格堆疊數量(版面 + 數字模板;游標停在格上不讀;每個事件等 renderer 回報遮罩才擷取下一張)
+    qty: { layouts: () => loadStashLayouts(), templates: () => loadStashDigitTemplates() },
+    qtyPaused: () => stashCursor.onCell(),
+    drawPending: () => scanMask.pending(Date.now()),
+    send: (ev) => {
+      scanMask.noteSent('stash', ev.seq, Date.now())
+      send('stash-scan-result', ev)
+    }
   })
   if (windowMode === 'overlay') {
     // 掃描同時開著時錯開起始,輪流使用 WinOcr(倉庫只在 PoE1、另兩個只在 PoE2,實際不會三個一起跑)
@@ -1840,8 +1856,11 @@ if (!skipStartup) app.whenReady().then(() => {
         scanMask.report(rep, Date.now())
         revealScan.drawSettled()
         runeshapeScan.drawSettled()
+        // 倉庫價值:peek(收起徽章)ack 到了 → 立刻用乾淨畫面重讀,不等下一個間隔
+        if (rep.source === 'stash') stashScan.poke()
         // code review 第 B 批:renderer 沒畫出最近的 rows(資料當時沒載好 / 世代改了)→ 該掃描下一 tick 重新 OCR 並照送
-        if (rep.resend) (rep.source === 'reveal' ? revealScan : runeshapeScan).resendRows()
+        // (倉庫層的資料不影響 main 送的內容 → 不處理 resend)
+        if (rep.resend && rep.source !== 'stash') (rep.source === 'reveal' ? revealScan : runeshapeScan).resendRows()
       }
     },
     // 設定頁顯示褻瀆自動辨識統計;預覽端不開放

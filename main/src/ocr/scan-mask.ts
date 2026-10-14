@@ -44,7 +44,7 @@ const finite = (v: unknown): v is number => typeof v === 'number' && Number.isFi
 export function sanitizeMaskReport (r: unknown): ScanMaskReport | null {
   if (!r || typeof r !== 'object') return null
   const o = r as Record<string, unknown>
-  if (o.source !== 'reveal' && o.source !== 'rune') return null
+  if (o.source !== 'reveal' && o.source !== 'rune' && o.source !== 'stash') return null
   const vp = o.viewport as Record<string, unknown> | undefined
   if (!vp || !finite(vp.w) || !finite(vp.h) || vp.w <= 0 || vp.h <= 0) return null
   const rects: MaskRect[] = []

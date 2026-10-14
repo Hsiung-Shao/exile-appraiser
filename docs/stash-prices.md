@@ -6,7 +6,7 @@
 ## 範圍
 - 碎片頁兩個子頁:**一般**(60 格)、**聖甲蟲**(115 格)。「不滅之火」(2026-10-14 使用者決定刪除)與「異能」子頁 → 不畫。
 - 只在 PoE1 + overlay 模式;國際服才有價格(台服沒有 poe.ninja → 只顯示名稱,提示一次)。
-- 第二段(未做):讀每格數量 → 堆疊總價、整頁總價。
+- 第二段(2026-10-15,倉庫價值):讀每格堆疊數量 → 徽章顯示小計、整頁總價,見下方「倉庫價值」。
 
 ## 為什麼物品身分不靠 OCR
 格子裡只有圖示 + 數量,名稱要滑鼠移上去才看得到。物品身分改用**固定版面**依位置對應:
@@ -69,7 +69,34 @@
 ## 價格
 `usePoeninja().priceOf(refName)`;poe.ninja 類別 Scarab / Fragment 原本就有(曾為不滅之火補 `AllflameEmber`,刪除不滅之火時一併撤回)。層顯示時 `queuePricesFetch()`。
 
+## 倉庫價值(2026-10-15,讀堆疊數量)
+設計稿 `StashValue`(https://claude.ai/artifact/8G1wDzZxwYDtEMv3KU7U81)。設定 › 自動辨識 › 倉庫價格「讀取堆疊數量並計算總價」`stashReadQuantity`(預設開;
+在 `HOST_CONFIG_IMMEDIATE_KEYS` 與 main `scanConfigKey`)。
+
+- **判讀(core `src/stash/quantity.ts`,純函式)**:不用 WinOCR(研究:拼圖法 57–77%)。裁切 x = 格 x − 3、寬 = 格寬 × 0.85,y = 格 y、高 = 格高 × 0.65 →
+  依 client 高把裁切區面積平均縮放到模板基準(1125)→ 白色程度 `max(0, min(R,G,B) − (max − min) − 100)` → 11×15 數字模板 NCC(積分影像算視窗平均 / 變異、
+  只算非 0 像素、模板交錯排列)≥ 0.5 候選、NMS → 最強者為錨同列 ±1 px、間距 7–12 px 串接最多 3 位 → 門檻:每位 ≥ 0.6、與次佳差 ≥ 0.05、開頭非 0、
+  漏讀檢查兩道(① 末位右側純白像素 ≥ 4;② 首位前 / 末位後一個字距的筆畫帶白色程度 ≥ 串接數字最少者 × 1.3 —— 縮放 / 模糊後 ① 抓不到「87 只讀到 8」)。
+  沒有候選 = 空格。寧缺勿錯:任何一項不過 → null(徽章只顯示單價 +「?」、不計入總價)。
+- **模板** `data/poe1/stash/digit-templates.json`:`node scripts/build-stash-digit-templates.mjs`(`--check` 只比對)由 `core/test/stash/fixtures/qty/`
+  (使用者 2000×1125 截圖裁左側 700 px + 人工判讀 `truth.json`)產生,數字連通元件數 = 真值位數的格才採樣;記來源截圖 sha256、逐位元組可重現;
+  MANIFEST 前綴 `data/poe1/stash/digit-templates.json`(不手改)。數字 9 只有 3 個樣本。補截圖:放進 fixture、補 truth、重跑腳本。
+- **準確度**(175 格 + 合成空格 14):全模板 正確 169、錯 0、不確定 6;留一驗證 正確 166、錯 1(19 → 10,信心 0.69)、不確定 8;放大到 1440 高 正確 170、錯 0、不確定 5;
+  空格 14 / 14;高斯 σ 0.6 錯 0、σ 1.0 錯 1(11 → 14,信心 0.72)。耗時:聖甲蟲 115 格(1440)Node 約 27 ms;Electron 暖機後 13 ms(一般)/ 28 ms(聖甲蟲)。
+  `npx electron main/dist/main.js --stash-selftest <png> [--out <png>] [--stash-subtab=…]` 印每格讀數 / 準確度(同資料夾有 `truth.json`)/ 耗時並輸出標註圖。
+- **掃描(main `StashScan`)**:判定子頁後在同一張擷取讀;第一次顯示讀全部格,之後每格以簽章(數字區 4 條直帶白色程度)比對,變了才重讀那一格;
+  游標停在格上(遊戲說明框 / 游標上的物品)不讀。事件 `stash-scan-result` 的 `show` 帶 `quantities`(0 = 空格、null = 讀不到)與 `qtyMs`;數量變了再送一次同子頁的 `show`。
+  計數 `qtyRuns / qtyCells / qtyPeeks / qtyCursorSkips / maskWaits` 只 `++`;`stash-stats` 多 `lastQtyMs`、`qtyCells`。
+- **我們的徽章蓋住數字**:擷取截得到 overlay。疊層走 `useScanLayer`(遮罩 source `stash`,每個事件 ack,main `drawPending` 等 ack 才擷取);
+  遮罩蓋到裁切區的格不讀、沿用舊值;蓋到的格露出部分變了 → 送 `peek` → renderer 暫時收起格子徽章 → ack 後乾淨畫面重讀 → 送不帶 peek 的 `show`
+  (最多等 `STASH_PEEK_LIMIT` = 3 tick)。切換子頁時畫面上還有舊子頁的徽章 → 同樣先 peek。
+- **呈現**:徽章 = 小計(三段色 / C・D 依小計);空格不畫(停格時畫);停格明細卡(單價 / 數量 / 小計);倉庫面板右側「本頁價值」卡(總計 C、≈ D、已讀 / 未讀格數,
+  不蓋格子);共用狀態 `renderer/src/web/overlay/stash-value.ts` → 懸浮選單「倉庫本頁價值」列。台服沒有價格 → 不顯示價值卡。
+- **待使用者實機確認**:2560×1440 一般 / 聖甲蟲的數量與總價、移動物品後更新(含 peek 時徽章短暫收起的觀感)、停格明細;準確度不足時請補原解析度 PNG 再調模板。
+
 ## 測試
+`core/test/stash-quantity.test.ts`(V1–V6)、`main/test/stash-quantity-scan.test.ts`(V7 / V8 / V13 / peek)、`renderer/test/stash-value.test.ts`(V9 / V10 / V13)、
+`renderer/test-vue/stash-prices-mount.test.ts`(V11)、`renderer/test-vue/float-menu-mount.test.ts`(V12);
 `core/test/stash-layout.test.ts`(S1–S4c)、`core/test/stash-detect.test.ts`(S5–S7,真實 OCR 快照 `core/test/stash/fixtures/ocr/`,
 `node scripts/ocr-fixture.mjs --set stash` 產生)、`main/test/stash-scan.test.ts`(S8–S12c、S9e–S9g、S19 暫停熱鍵)、`main/test/shortcut-actions.test.ts`(倉庫價格熱鍵)、`renderer/test/stash-prices.test.ts`(S13–S17,含 S14d 單位 C / D;S20 統一樣板)、`renderer/test/settings-ia.test.ts`(自動辨識頁兩代顯示)。
 

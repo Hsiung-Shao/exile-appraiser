@@ -174,8 +174,30 @@ export function toScanCapture (cap: { image: NativeImage, offset: { x: number, y
     fingerprint: rect => grayFingerprint(cap.image, rect, FINGERPRINT_WIDTH, m),
     recognize: rectRecognizer(cap.image, ocr, m),
     masked: m?.length ?? 0,
-    gray: rect => grayPixels(cap.image, rect)
+    gray: rect => grayPixels(cap.image, rect),
+    pixels: rect => rawPixels(cap.image, rect),
+    maskRects: m ?? []
   }
+}
+
+/**
+ * PoE1 倉庫堆疊數量:影像某塊原解析度的 BGRA 像素(夾在影像內;回傳實際裁到的位置)。不遮罩 —— 讀數量時以 `maskRects` 判斷哪幾格被
+ * 我們的徽章蓋住(core `quantity.ts`)。
+ */
+export function rawPixels (img: NativeImage, rect: PhysRect): { data: Uint8Array, width: number, height: number, channels: number, x: number, y: number } {
+  const size = img.getSize()
+  const x = Math.max(0, Math.min(size.width - 1, Math.round(rect.x)))
+  const y = Math.max(0, Math.min(size.height - 1, Math.round(rect.y)))
+  const r = {
+    x,
+    y,
+    width: Math.max(1, Math.min(size.width - x, Math.round(rect.width))),
+    height: Math.max(1, Math.min(size.height - y, Math.round(rect.height)))
+  }
+  const part = img.crop(r)
+  const s = part.getSize()
+  const bmp = part.toBitmap()
+  return { data: new Uint8Array(bmp.buffer, bmp.byteOffset, bmp.length), width: s.width, height: s.height, channels: 4, x, y }
 }
 
 /** PoE1 倉庫價格疊層:影像某塊原解析度灰階(按鈕文字亮度判定目前子頁;不縮放、不遮罩 —— 按鈕列不會有我們畫的徽章) */

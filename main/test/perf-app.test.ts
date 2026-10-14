@@ -77,7 +77,7 @@ describe('T14 perf 含倉庫掃描', () => {
     await h.scan.tick() // 擷取,畫面沒變
     h.st.busy = true
     await h.scan.tick() // WinOcr 忙碌,不擷取
-    expect(h.scan.counters).toEqual({ ticks: 5, captures: 2, ocrRuns: 1, skippedUnchanged: 1, skippedBusy: 1 })
+    expect(h.scan.counters).toEqual({ ticks: 5, captures: 2, ocrRuns: 1, skippedUnchanged: 1, skippedBusy: 1, qtyRuns: 0, qtyCells: 0, qtyPeeks: 0, qtyCursorSkips: 0, maskWaits: 0 })
   })
 
   it('stashSnapshotOf:沒啟動 = stopped;被擋原因;計數轉成 ScanSnapshot', async () => {

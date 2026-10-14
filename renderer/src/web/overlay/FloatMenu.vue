@@ -8,7 +8,7 @@
     429 Retry-After 倒數 `useRateLimitWait`;不嵌 RateLimiterState —— 它的彈出框往上會出畫面)、✕。
   - 搜尋框(onMounted 聚焦)+ 篩選膠囊 全部 / 書籤 / 辨識 / 工具;清單模型、篩選、鍵盤在 float-menu-items.ts
     (↑↓ / Home / End / Enter;1–9、← →、Tab 不攔;overlay 的 Esc 由 main 攔下 → 收起選單)。
-  - 分組:市況(market-rate.ts,**只讀 poe.ninja 既有快照,不觸發上網**)→ 倉庫本頁價值(PoE1 佔位、PoE2 淡化)→
+  - 分組:市況(market-rate.ts,**只讀 poe.ninja 既有快照,不觸發上網**)→ 倉庫本頁價值(PoE1 讀 stash-value.ts 共用狀態,沒資料顯示佔位;PoE2 淡化)→
     自動辨識開關(FLOAT_MENU_TOGGLES,直接寫設定)→ 正則書籤(PoE1 / PoE2 切換、資料夾收合與快速面板共用、字串預覽、熱鍵;
     目前遊戲 = 貼進遊戲 `runRegexBookmark(…, 'menu')`,另一代 = 只複製 `copyRegexBookmark`;「前往正則 ↗」)→
     工具(設定 / 速查表展開 / 拆粉排行 → open-tab 'dust')。底部鍵盤提示。
@@ -78,9 +78,11 @@
           </span>
           <span class="fm-main">
             <span>{{ t('ppz.menu.stash_title') }}</span>
-            <span class="fm-sub">{{ t(config.game === 'poe1' ? 'ppz.menu.stash_pending' : 'ppz.menu.stash_poe2') }}</span>
+            <span v-if="stashRow" class="fm-sub">{{ t('ppz.menu.stash_sub', { subtab: t(`ppz.stash.subtab_${stashRow.subtab}`), known: stashRow.known, unknown: stashRow.unknown }) }}</span>
+            <span v-else class="fm-sub">{{ t(config.game === 'poe1' ? 'ppz.menu.stash_none' : 'ppz.menu.stash_poe2') }}</span>
           </span>
-          <span class="fm-value num">—</span>
+          <span v-if="stashRow" class="fm-value num" data-menu="stash-value">{{ stashRow.chaos }} {{ t('ppz.stash.unit_c') }}<template v-if="stashRow.div"> ≈ {{ stashRow.div }} {{ t('ppz.stash.unit_div') }}</template></span>
+          <span v-else class="fm-value num">—</span>
         </div>
       </section>
 
@@ -230,6 +232,7 @@ import { BUILTIN_CHEAT_SHEET, bookmarkActionFor, cheatSheetUrl, floatMenuPlace, 
 import { MENU_CHIPS, filterMenuItems, menuItemsOf, menuKey, menuRows, rateDotOf, type MenuChip, type MenuItem, type MenuTool } from './float-menu-items'
 import { floatMenuChip, floatMenuQuery, floatMenuSection, floatMenuSel } from './float-menu-state'
 import { marketRateOf } from './market-rate'
+import { stashValue, stashValueText } from './stash-value'
 import { RESIZE_EDGES, clampSettingsRect, createRectDrag, edgeCursor, isInteractiveTarget, type DragEdge, type SettingsWindowRect } from '@/web/settings/settings-window-geom'
 
 defineProps<{ settingsOpen: boolean }>()
@@ -290,6 +293,12 @@ const marketTarget = computed(() => {
   return config.realm === 'intl' && l?.id && l.isPopular ? { game: config.game, league: l.id } : null
 })
 const market = computed(() => marketRateOf(ninja.snapshot.value as NinjaSnapshot | null, marketTarget.value))
+/** 倉庫本頁價值(2026-10-15):倉庫疊層算好的整頁價值(stash-value.ts);PoE1 且疊層顯示中有數量才有 */
+const stashRow = computed(() => {
+  const v = stashValue.value
+  if (config.game !== 'poe1' || !v) return null
+  return { subtab: v.subtab, known: v.known, unknown: v.unknown, ...stashValueText(v) }
+})
 function changeText (n: number): string {
   return `${n > 0 ? '+' : ''}${n.toFixed(1)}%`
 }

@@ -109,6 +109,8 @@ export interface HostConfigForMain {
   stashPricesIntervalMs?: number
   /** PoE1 倉庫價格疊層 OCR 區域(client 比例;null / 省略 = 預設碎片頁按鈕列) */
   stashRegion?: OcrRegion | null
+  /** 2026-10-15:倉庫價值 —— 讀每格堆疊數量算小計 / 整頁總價(預設開;舊 renderer 沒有這欄 = 開;main `StashScan` 依此決定讀不讀數量) */
+  stashReadQuantity?: boolean
   /** 2026-10-01:框選符文塑形面板區域的熱鍵(預設空 = 不註冊;註冊條件同 `hotkeyOcrRegion`:overlay + PoE2 + 遊戲前景)。 */
   hotkeyRuneshapeRegion?: string
   /** 2026-10-14:PoE1 倉庫價格暫停 / 繼續熱鍵(預設空 = 不註冊;overlay + PoE1 就註冊,功能關著時按下 = 啟動)。 */
@@ -269,6 +271,17 @@ export interface StashScanEvent {
   client: { w: number, h: number }
   /** OCR 耗時(ms;有跑 OCR 的那一次才有) */
   ocrMs?: number
+  /**
+   * 2026-10-15 倉庫價值:每格堆疊數量(與版面格順序一致;0 = 空格、null = 讀不到 / 還沒讀)。
+   * 只在 `show` 且開著「讀取堆疊數量」時有;數量變了 main 會再送一次同子頁的 `show`。省略 = 不讀數量(徽章回單價)。
+   */
+  quantities?: Array<number | null>
+  /** 這次讀數量的耗時(ms;有讀才有) */
+  qtyMs?: number
+  /**
+   * 格子數字被我們的徽章蓋住、需要重讀 → renderer 暫時收起格子徽章(回報遮罩 ack 後 main 用乾淨的畫面重讀,讀完再送一次不帶 peek 的 `show`)。
+   */
+  peek?: boolean
 }
 /** `stash-cursor`:游標停在哪一格(該格 refName;不在任何格 = null)。只在疊層顯示中 + 遊戲前景時輪詢、換格才送 */
 export interface StashCursorEvent {
@@ -283,6 +296,10 @@ export interface StashStats {
   /** 最近一次 OCR 的耗時(ms) */
   lastOcrMs: number | null
   ocrCount: number
+  /** 2026-10-15:最近一次讀數量的耗時(ms);沒讀過 = null(舊 main 沒有這欄) */
+  lastQtyMs?: number | null
+  /** 讀過幾格數量(累計) */
+  qtyCells?: number
 }
 
 /**
@@ -290,7 +307,7 @@ export interface StashStats {
  * main 擷取後把這些矩形填掉再 OCR、差分不比那幾格。`source` = 哪一層(褻瀆徽章層 / 符文徽章層),每層一份、新的取代舊的。
  */
 export interface ScanMaskReport {
-  source: 'reveal' | 'rune'
+  source: 'reveal' | 'rune' | 'stash'
   /** 這份反映到哪一個掃描事件為止(`PanelScanEvent.seq`,ack;main 送出 rows 後等它才擷取下一張);純外觀變動可省略 */
   seq?: number
   /** overlay 視窗的 CSS 大小(`innerWidth` / `innerHeight`;main 以 client.w / innerWidth 換算成 client 實體像素) */

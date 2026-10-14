@@ -9,13 +9,22 @@
  * 沒找到按鈕:游標停在已顯示子頁的格子上(遊戲說明框可能蓋住按鈕列,`holdOnMiss`)→ 維持原狀,但連續最多 `STASH_HOLD_LIMIT` 次;
  * 否則連續 2 次才送 `hide`。疊層顯示中沒找到按鈕時作廢差分基準(下一 tick 一定重 OCR,畫面靜止也收得掉);沒顯示時照常差分。
  *
+ * 2026-10-15 倉庫價值:顯示中且開著「讀取堆疊數量」(`readQuantity`)時,同一張擷取對版面每格讀左上角的堆疊數量
+ * (core `quantity.ts` 數字模板比對,不用 WinOCR):第一次顯示讀全部格;之後每格以便宜的簽章(數字區白色程度)比對,變了才重讀那一格;
+ * 游標停在格子上(遊戲說明框 / 游標上的物品可能蓋住格子)→ 這個 tick 不讀。我們自己的徽章會蓋住數字(擷取截得到 overlay):
+ * 蓋到的格不讀,沿用上次值;蓋到的格露出部分變了(數量可能改了)→ 送 `peek` 請 renderer 暫時收起格子徽章,ack 後用乾淨畫面重讀。
+ * 每個事件都等 renderer 回報遮罩(ack,`drawPending`)才擷取下一張。
+ *
  * 與褻瀆 / 符文塑形共用 WinOcr(別的掃描忙碌就丟這個 tick)與擷取(`SharedCapture`)。被擋下時的排程同 `panel-scan.ts`:
  * 停用 / 不是 PoE1 → 不排(等 `poke()`);其他原因 10 秒保底。不送任何鍵盤 / 滑鼠輸入。
  */
 import type { OcrRegion, RuneshapeUiState, StashScanEvent, StashStats } from '@ipc/types'
 import type { OcrTextLang, OcrTextLine } from '../../../poe2/src/desecration/ocr-text'
 import { activeSubtab, buttonRects, findSubtabButtons, percentile, stripRect, stripZone, type Rect } from '../../../core/src/stash/detect'
-import type { StashSubtab } from '../../../core/src/stash/layout'
+import { cellRects, type StashLayoutFile, type StashSubtab } from '../../../core/src/stash/layout'
+import {
+  qtyCellSignature, qtyCropRect, qtySignatureChanged, readCellQuantity, type DigitTemplates, type QtyRect
+} from '../../../core/src/stash/quantity'
 import {
   BLOCKED_FALLBACK_MS, clampScanInterval, isChanged, isLargeChange, DEFAULT_DIFF_THRESHOLDS,
   type Fingerprint, type ScanCapture, type ScanClock, type ScanEnv
@@ -28,6 +37,8 @@ export interface StashScanConfig {
   intervalMs: number
   /** 使用者框的 OCR 區域(client 比例;2026-10-14 使用者要求可自訂);null / 省略 = 預設按鈕列 `stripRect` */
   region?: OcrRegion | null
+  /** 2026-10-15:讀每格堆疊數量(倉庫價值);省略 = 開 */
+  readQuantity?: boolean
 }
 
 /** `user-paused` = 使用者按暫停熱鍵(2026-10-14;暫停當下 `toggleUserPause` 已收掉疊層) */
@@ -72,6 +83,36 @@ export interface StashScanDeps {
   /** 顯示狀態改變(main 依此開關游標輪詢) */
   onShowingChange?: (showing: boolean, state: { subtab: StashSubtab | null, yOffset: number, clientH: number }) => void
   log?: (msg: string) => void
+  /** 讀堆疊數量要的版面與數字模板(省略 / 任一回 null = 不讀數量) */
+  qty?: { layouts: () => StashLayoutFile | null, templates: () => DigitTemplates | null }
+  /** 游標停在格子上 → 這個 tick 不讀數量(遊戲說明框 / 游標上的物品可能蓋住格子);省略 = 否 */
+  qtyPaused?: () => boolean
+  /** 送出的事件還沒被 renderer 回報遮罩(ack)→ 這個 tick 不擷取(main `ScanMaskStore.pending`);省略 = 不等 */
+  drawPending?: () => boolean
+}
+
+/** peek 送出後最多等幾個 tick 讓徽章收起(遮罩一直沒清掉 → 放棄,沿用舊值) */
+export const STASH_PEEK_LIMIT = 3
+
+interface QtyCell {
+  /** 上次在沒被遮住時讀數量的簽章 */
+  clean?: number[]
+  /** 被遮住時最近一次的簽章 + 遮罩位置(遮罩位置變了 = 重設基準,不算數量變化) */
+  masked?: { sig: number[], key: string }
+}
+
+interface QtyState {
+  key: string
+  cells: QtyCell[]
+  values: Array<number | null>
+  /** 要讀(第一次 / 變了)但還沒讀的格 */
+  want: Set<number>
+  /** 已送 peek、等 renderer 收起徽章 */
+  peek: boolean
+  peekTries: number
+  /** 上次送出的(比對要不要再送) */
+  sentValues: Array<number | null> | null
+  sentPeek: boolean
 }
 
 export type StashTickResult =
@@ -79,6 +120,7 @@ export type StashTickResult =
   | { kind: 'blocked', block: StashBlock }
   | { kind: 'busy' }
   | { kind: 'unchanged' }
+  | { kind: 'mask-wait' }
   | { kind: 'ocr', found: boolean, subtab: StashSubtab | null, held: boolean, sent: StashScanEvent['reason'] | null, ms: number }
   | { kind: 'error', message: string }
 
@@ -155,8 +197,10 @@ export class StashScan {
   private lastClampLogKey: string | null = null
   private ocrCount = 0
   private userPaused = false
+  private qty: QtyState | null = null
+  private lastQtyMs: number | null = null
   /** 效能診斷(perf-monitor `stashSnapshotOf`)用的累計計數:只 `++`,關著零成本 */
-  readonly counters = { ticks: 0, captures: 0, ocrRuns: 0, skippedUnchanged: 0, skippedBusy: 0 }
+  readonly counters = { ticks: 0, captures: 0, ocrRuns: 0, skippedUnchanged: 0, skippedBusy: 0, qtyRuns: 0, qtyCells: 0, qtyPeeks: 0, qtyCursorSkips: 0, maskWaits: 0 }
   /** 效能診斷:被 `stashBlock` 擋下的 tick 依原因累計 */
   readonly blockCounts: Partial<Record<StashBlock, number>> = {}
 
@@ -224,7 +268,9 @@ export class StashScan {
       showing: this.shown != null,
       subtab: this.shown?.subtab ?? null,
       lastOcrMs: this.lastOcrMs,
-      ocrCount: this.ocrCount
+      ocrCount: this.ocrCount,
+      lastQtyMs: this.lastQtyMs,
+      qtyCells: this.counters.qtyCells
     }
   }
 
@@ -242,7 +288,7 @@ export class StashScan {
     }, ms)
   }
 
-  private emit (reason: StashScanEvent['reason'], client: { w: number, h: number }, ocrMs?: number): StashScanEvent {
+  private emit (reason: StashScanEvent['reason'], client: { w: number, h: number }, ocrMs?: number, opts: { qtyOnly?: boolean, qtyMs?: number } = {}): StashScanEvent {
     const ev: StashScanEvent = {
       seq: ++this.seq,
       ts: this.clock.now(),
@@ -252,14 +298,23 @@ export class StashScan {
       client,
       ...(ocrMs != null ? { ocrMs } : {})
     }
+    if (reason === 'show' && this.qty) {
+      ev.quantities = this.qty.values.slice()
+      if (opts.qtyMs != null) ev.qtyMs = opts.qtyMs
+      if (this.qty.peek) ev.peek = true
+      this.qty.sentValues = ev.quantities
+      this.qty.sentPeek = this.qty.peek
+    }
     this.deps.send(ev)
-    this.deps.onShowingChange?.(reason === 'show', { subtab: ev.subtab, yOffset: ev.yOffset, clientH: client.h })
+    // 只有數量變了(同子頁):顯示狀態沒變,不通知(游標輪詢不用重設)
+    if (!opts.qtyOnly) this.deps.onShowingChange?.(reason === 'show', { subtab: ev.subtab, yOffset: ev.yOffset, clientH: client.h })
     return ev
   }
 
   private hide (client: { w: number, h: number }, ocrMs?: number): StashScanEvent['reason'] | null {
     if (!this.shown) return null
     this.shown = null
+    this.qty = null
     this.missStreak = 0
     this.holdStreak = 0
     this.emit('hide', client, ocrMs)
@@ -302,6 +357,8 @@ export class StashScan {
     if (block) return this.blockedResult(block)
     if (this.lastBlock) { this.deps.log?.('[stash] 繼續掃描'); this.lastBlock = null }
     if (this.deps.ocrBusy()) { this.counters.skippedBusy++; return { kind: 'busy' } }
+    // renderer 還沒畫完上一個事件(遮罩沒 ack)→ 擷取可能截到還沒遮的徽章
+    if (this.deps.drawPending?.()) { this.counters.maskWaits++; return { kind: 'mask-wait' } }
 
     this.inFlight = true
     this.counters.captures++
@@ -317,6 +374,7 @@ export class StashScan {
     // 畫面沒變:狀態不會變(子頁 / 開關都會改變按鈕列)
     if (prev && !isChanged(this.diff(prev, fp), DEFAULT_DIFF_THRESHOLDS) && !isLargeChange(prev, fp)) {
       this.counters.skippedUnchanged++
+      if (this.shown) this.updateQuantities(cap)
       return { kind: 'unchanged' }
     }
     if (this.deps.ocrBusy()) { this.counters.skippedBusy++; return { kind: 'busy' } }
@@ -367,11 +425,110 @@ export class StashScan {
     if (this.userPaused) return this.blockedResult('user-paused')
     const same = this.shown && this.shown.subtab === subtab && this.shown.yOffset === match.yOffset &&
       this.shown.clientW === client.w && this.shown.clientH === client.h
-    if (same) return { kind: 'ocr', found: true, subtab, held: false, sent: null, ms }
+    if (same) {
+      this.updateQuantities(cap)
+      return { kind: 'ocr', found: true, subtab, held: false, sent: null, ms }
+    }
     this.shown = { subtab, yOffset: match.yOffset, clientW: client.w, clientH: client.h }
+    this.qty = null
     this.deps.log?.(`[stash] 碎片頁:${subtab}${match.yOffset ? `(資料夾偏移 ${match.yOffset})` : ''},OCR ${ms} ms`)
-    this.emit('show', client, ms)
+    const q = this.readQuantities(cap, true)
+    this.emit('show', client, ms, { qtyMs: q?.ms })
     return { kind: 'ocr', found: true, subtab, held: false, sent: 'show', ms }
+  }
+
+  /** 顯示中:讀數量(只讀變了的格);數量 / peek 狀態跟上次送的不同 → 再送一次同子頁的 show。開關關掉 → 送一次不帶數量的 show */
+  private updateQuantities (cap: ScanCapture): void {
+    if (!this.shown) return
+    const had = this.qty != null
+    const q = this.readQuantities(cap, false)
+    const client = { w: this.shown.clientW, h: this.shown.clientH }
+    if (!this.qty) {
+      if (had) this.emit('show', client, undefined, { qtyOnly: true })
+      return
+    }
+    const st = this.qty
+    const sent = st.sentValues
+    const changed = sent == null || st.peek !== st.sentPeek || st.values.some((v, i) => v !== sent[i])
+    if (changed) this.emit('show', client, undefined, { qtyOnly: true, qtyMs: q?.ms })
+  }
+
+  /**
+   * 讀這張擷取的格子數量,更新 `this.qty`。`fresh` = 剛切到這個子頁(全部要讀)。
+   * 不讀(關閉 / 沒有模板 / 擷取不支援)→ `this.qty = null`、回 null;游標停在格上 → 什麼都不動、回 null。
+   */
+  private readQuantities (cap: ScanCapture, fresh: boolean): { ms: number } | null {
+    const shown = this.shown
+    const cfg = this.deps.config()
+    const layouts = this.deps.qty?.layouts() ?? null
+    const templates = this.deps.qty?.templates() ?? null
+    if (!shown || cfg.readQuantity === false || !layouts || !templates || !cap.pixels) { this.qty = null; return null }
+    const key = `${shown.subtab}|${shown.yOffset}|${shown.clientW}x${shown.clientH}@${cap.offset.x},${cap.offset.y}`
+    const rects = cellRects(layouts, shown.subtab, shown.clientH, shown.yOffset)
+    if (fresh || this.qty?.key !== key) {
+      this.qty = { key, cells: rects.map(() => ({})), values: rects.map(() => null), want: new Set(rects.keys()), peek: false, peekTries: 0, sentValues: null, sentPeek: false }
+    }
+    const st = this.qty!
+    // 游標停在格上:遊戲說明框 / 游標上的物品可能蓋住格子 → 這次不讀也不更新基準(第一次顯示除外:打開倉庫的瞬間不會有說明框)
+    if (!fresh && this.deps.qtyPaused?.()) { this.counters.qtyCursorSkips++; return null }
+
+    const t0 = performance.now()
+    // 影像座標(client − 擷取偏移);一次取整個格子區的像素
+    const img = rects.map(r => ({ x: r.x - cap.offset.x, y: r.y - cap.offset.y, w: r.w, h: r.h }))
+    const crops = img.map(r => qtyCropRect(r, shown.clientH, templates.baseClientH))
+    const bx0 = Math.floor(Math.min(...crops.map(c => c.x))) - 2
+    const by0 = Math.floor(Math.min(...crops.map(c => c.y))) - 2
+    const bx1 = Math.ceil(Math.max(...crops.map(c => c.x + c.w))) + 2
+    const by1 = Math.ceil(Math.max(...crops.map(c => c.y + c.h))) + 2
+    const px = cap.pixels({ x: bx0, y: by0, width: bx1 - bx0, height: by1 - by0 })
+    const local = (r: QtyRect): QtyRect => ({ x: r.x - px.x, y: r.y - px.y, w: r.w, h: r.h })
+    const masks = (cap.maskRects ?? []).map(local)
+    let reads = 0
+    let needPeek = false
+    for (let i = 0; i < rects.length; i++) {
+      const cell = local(img[i])
+      const c = local(crops[i])
+      const hit = masks.filter(m => m.x < c.x + c.w && c.x < m.x + m.w && m.y < c.y + c.h && c.y < m.y + m.h)
+      const sig = qtyCellSignature(px, cell, shown.clientH, templates.baseClientH, hit)
+      const cs = st.cells[i]
+      if (hit.length) {
+        // 被我們的徽章蓋住:不讀。露出的部分跟上次(同一組遮罩)比有變 → 數量可能改了 → 要 peek 重讀
+        const mkey = hit.map(m => `${m.x},${m.y},${m.w},${m.h}`).join(';')
+        if (cs.masked && cs.masked.key === mkey && qtySignatureChanged(cs.masked.sig, sig)) st.want.add(i)
+        cs.masked = { sig, key: mkey }
+        if (st.want.has(i)) needPeek = true
+        continue
+      }
+      cs.masked = undefined
+      if (!st.want.has(i) && !qtySignatureChanged(cs.clean, sig)) continue
+      const r = readCellQuantity(px, cell, templates, { clientH: shown.clientH })
+      st.values[i] = r.reason === 'ok' ? r.qty : r.reason === 'empty' ? 0 : null
+      cs.clean = sig
+      st.want.delete(i)
+      reads++
+    }
+    const ms = Math.round((performance.now() - t0) * 10) / 10
+    if (needPeek) {
+      if (!st.peek) {
+        st.peek = true
+        st.peekTries = 0
+        this.counters.qtyPeeks++
+      } else if (++st.peekTries > STASH_PEEK_LIMIT) {
+        // 遮罩一直沒清掉(renderer 沒收起 / 沒回報)→ 放棄這次,沿用舊值
+        this.deps.log?.(`[stash] 徽章遮住的格子等不到收起,沿用舊數量(${st.want.size} 格)`)
+        st.want.clear()
+        st.peek = false
+      }
+    } else if (st.peek) {
+      st.peek = false
+    }
+    if (reads) {
+      this.counters.qtyRuns++
+      this.counters.qtyCells += reads
+      this.lastQtyMs = ms
+      if (fresh) this.deps.log?.(`[stash] 讀數量 ${reads} 格,${ms} ms`)
+    }
+    return { ms }
   }
 
   /** 自訂區域被縮小 / 完全在範圍外:同一個區域值只記一次 */

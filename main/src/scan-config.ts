@@ -3,12 +3,12 @@
 // 欄位集合對應 main.ts 各 Scan 的 readConfig:enabled / game / region / intervalMs(含 PoE1 倉庫價格疊層)。
 import type { HostConfigForMain } from '@ipc/types'
 
-type ScanCfg = Pick<HostConfigForMain, 'game' | 'revealAutoEnabled' | 'revealIntervalMs' | 'ocrRegion' | 'runeshapeEnabled' | 'runeshapeRegion' | 'runeshapeIntervalMs' | 'stashPricesEnabled' | 'stashPricesIntervalMs' | 'stashRegion'>
+type ScanCfg = Pick<HostConfigForMain, 'game' | 'revealAutoEnabled' | 'revealIntervalMs' | 'ocrRegion' | 'runeshapeEnabled' | 'runeshapeRegion' | 'runeshapeIntervalMs' | 'stashPricesEnabled' | 'stashPricesIntervalMs' | 'stashRegion' | 'stashReadQuantity'>
 
 export function scanConfigKey (cfg: ScanCfg): string {
   return JSON.stringify([
     cfg.game, cfg.revealAutoEnabled, cfg.revealIntervalMs, cfg.ocrRegion ?? null,
     cfg.runeshapeEnabled, cfg.runeshapeRegion ?? null, cfg.runeshapeIntervalMs,
-    cfg.stashPricesEnabled, cfg.stashPricesIntervalMs, cfg.stashRegion ?? null
+    cfg.stashPricesEnabled, cfg.stashPricesIntervalMs, cfg.stashRegion ?? null, cfg.stashReadQuantity !== false
   ])
 }

@@ -45,6 +45,10 @@
           <label class="chk"><input v-model="config.stashShowNames" type="checkbox" data-setting="stash-show-names"><span>{{ t('ppz.stash.show_names') }}</span></label>
           <help-tip id="stash-show-names" :text="t('ppz.stash.show_names_hint')" />
         </div>
+        <div class="chk-row">
+          <label class="chk"><input v-model="config.stashReadQuantity" type="checkbox" data-setting="stash-read-quantity"><span>{{ t('ppz.stash.read_quantity') }}</span></label>
+          <help-tip id="stash-read-quantity" :text="t('ppz.stash.read_quantity_hint')" />
+        </div>
       </template>
     </ocr-scan-section>
 

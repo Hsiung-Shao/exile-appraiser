@@ -109,7 +109,7 @@ describe('sameShortcutActions / scanConfigKey', () => {
   it('開關 / 間隔 / 區域 / 遊戲變更 → key 不同', () => {
     for (const patch of [
       { revealAutoEnabled: false }, { revealIntervalMs: 800 }, { ocrRegion: null }, { ocrRegion: { x: 9, y: 2, w: 3, h: 4 } },
-      { runeshapeEnabled: true }, { runeshapeRegion: { x: 1, y: 1, w: 1, h: 1 } }, { runeshapeIntervalMs: 900 }, { game: 'poe1' }
+      { runeshapeEnabled: true }, { runeshapeRegion: { x: 1, y: 1, w: 1, h: 1 } }, { runeshapeIntervalMs: 900 }, { game: 'poe1' }, { stashReadQuantity: false }
     ]) expect(scanConfigKey({ ...scan, ...patch })).not.toBe(scanConfigKey(scan))
   })
 })

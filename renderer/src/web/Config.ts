@@ -102,6 +102,8 @@ export interface Config {
   stashRegion: OcrRegion | null
   /** PoE1 倉庫價格疊層:徽章上顯示物品名稱(辨識檢視;預設開)。 */
   stashShowNames: boolean
+  /** 2026-10-15 倉庫價值:讀每格堆疊數量,徽章改顯示小計並算整頁總價(預設開;main 依此讀不讀數量)。 */
+  stashReadQuantity: boolean
   /** PoE1 倉庫價格疊層:徽章顏色門檻(混沌石):< low 暗色、≥ high 金色、之間一般(規則同符文塑形)。 */
   stashThresholds: RuneshapeThresholds
   /**
@@ -338,6 +340,7 @@ function createConfig (): Config {
     stashPricesIntervalMs: DEFAULT_RUNESHAPE_INTERVAL_MS,
     stashRegion: null as OcrRegion | null,
     stashShowNames: true,
+    stashReadQuantity: true,
     stashThresholds: { ...DEFAULT_STASH_THRESHOLDS },
     ocrBadgeStyle: defaultOcrBadgeStyle(),
     hotkeyRuneshapeToggle: '',
@@ -414,6 +417,7 @@ function serialize (): string {
     stashPricesIntervalMs: config.stashPricesIntervalMs,
     stashRegion: config.stashRegion,
     stashShowNames: config.stashShowNames,
+    stashReadQuantity: config.stashReadQuantity,
     stashThresholds: config.stashThresholds,
     ocrBadgeStyle: config.ocrBadgeStyle,
     hotkeyRuneshapeToggle: config.hotkeyRuneshapeToggle,
@@ -522,6 +526,7 @@ function applyLoaded (raw: string) {
   config.stashPricesIntervalMs = clampRuneshapeInterval(loaded.stashPricesIntervalMs)
   config.stashRegion = normOcrRegion(loaded.stashRegion)
   config.stashShowNames = loaded.stashShowNames !== false
+  config.stashReadQuantity = loaded.stashReadQuantity !== false
   config.stashThresholds = normRuneshapeThresholds(loaded.stashThresholds, DEFAULT_STASH_THRESHOLDS)
   // 第 11 步:徽章外觀(舊設定檔沒有 → 預設;壞值逐欄回預設)
   config.ocrBadgeStyle = normOcrBadgeStyle(loaded.ocrBadgeStyle)
@@ -621,6 +626,7 @@ export function hostConfigOf (c: Config, regexHotkeys: readonly RegexBookmarkHot
     stashPricesEnabled: c.stashPricesEnabled,
     stashPricesIntervalMs: c.stashPricesIntervalMs,
     stashRegion: c.stashRegion ? { ...c.stashRegion } : null,
+    stashReadQuantity: c.stashReadQuantity,
     autoUpdate: c.autoUpdate,
     startupToast: c.startupToast,
     updateReminder: c.updateReminder,
@@ -651,7 +657,7 @@ export const HOST_CONFIG_IMMEDIATE_KEYS: ReadonlyArray<keyof HostConfigForMain> 
   'game', 'overlayMode', 'ocrLang',
   'revealAutoEnabled', 'revealIntervalMs', 'ocrRegion',
   'runeshapeEnabled', 'runeshapeRegion', 'runeshapeIntervalMs',
-  'stashPricesEnabled', 'stashPricesIntervalMs', 'stashRegion'
+  'stashPricesEnabled', 'stashPricesIntervalMs', 'stashRegion', 'stashReadQuantity'
 ]
 
 /** 設定頁每改一個欄位 watch 都會觸發:相同內容不送、一般欄位 300 ms trailing debounce;第一次與 `HOST_CONFIG_IMMEDIATE_KEYS` 立刻送 */

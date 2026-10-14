@@ -16,6 +16,7 @@ import { useLeagues } from '../src/web/background/Leagues'
 import { ensureStateLoaded, useRegexStore } from '../src/web/regex/store'
 import FloatMenu from '../src/web/overlay/FloatMenu.vue'
 import { floatMenuChip, floatMenuQuery, floatMenuSection, floatMenuSel } from '../src/web/overlay/float-menu-state'
+import { stashValue } from '../src/web/overlay/stash-value'
 import { tradeSession } from '@poe1/trade/common'
 import { mount, text, findAll, byAttr, focusedNode, type MiniNode } from './mini-dom'
 const TEST_LEAGUE = 'Forbidden Rites'
@@ -219,8 +220,8 @@ describe('F7 選單掛載(PoE2)', () => {
       sw = findAll(r.container, byAttr('role', 'switch'))
       expect(sw.map(n => n.attrs['data-toggle'])).toEqual(['stashPricesEnabled', 'stashShowNames'])
       expect(text(r.container)).toContain('自動辨識 · PoE1')
-      // PoE1 倉庫本頁價值是佔位(讀數量功能還沒做)
-      expect(text(one(r.container, 'data-menu', 'stash'))).toContain('讀取數量功能完成後提供')
+      // PoE1 倉庫本頁價值:疊層沒有資料 → 佔位
+      expect(text(one(r.container, 'data-menu', 'stash'))).toContain('打開倉庫碎片頁後顯示')
       click(sw[1])
       await settle()
       expect(config.stashShowNames).toBe(false)
@@ -275,6 +276,39 @@ describe('F6 市況列', () => {
     expect(ninjaRequests().length).toBe(before)
     expect(errors).toEqual([])
     app.unmount()
+  })
+})
+
+describe('V12 倉庫本頁價值接上', () => {
+  it('PoE1 有資料:顯示子頁 / 已讀 / 未讀與總價 C ≈ D;清掉 → 佔位;PoE2 一律淡化說明', async () => {
+    const config = AppConfig()
+    const saved = config.game
+    try {
+      config.game = 'poe1'
+      stashValue.value = { subtab: 'scarabs', totalChaos: 1234.4, divineRate: 200, known: 100, unknown: 3 }
+      reset()
+      let r = render()
+      await settle()
+      const row = one(r.container, 'data-menu', 'stash')
+      expect(text(row)).toContain('聖甲蟲 · 100 格已讀 · 3 格未讀')
+      expect(text(one(r.container, 'data-menu', 'stash-value'))).toBe('1,234 C ≈ 6.2 D')
+      stashValue.value = null
+      await settle()
+      expect(text(one(r.container, 'data-menu', 'stash'))).toContain('打開倉庫碎片頁後顯示')
+      expect(findAll(r.container, byAttr('data-menu', 'stash-value'))).toEqual([])
+      r.app.unmount()
+      config.game = 'poe2'
+      stashValue.value = { subtab: 'scarabs', totalChaos: 10, divineRate: 200, known: 1, unknown: 0 }
+      r = render()
+      await settle()
+      expect(text(one(r.container, 'data-menu', 'stash'))).toContain('只在 PoE1 碎片頁可用')
+      expect(findAll(r.container, byAttr('data-menu', 'stash-value'))).toEqual([])
+      expect(r.errors).toEqual([])
+      r.app.unmount()
+    } finally {
+      config.game = saved
+      stashValue.value = null
+    }
   })
 })
 
