@@ -689,6 +689,19 @@ describe('S18b 自訂區域夾在按鈕可能出現的範圍內(R1)', () => {
     expect(h.state.ocrRects[1]).toEqual(asPhys(zone))
     expect(h.logs.filter(m => m.includes('自訂 OCR 區域超出按鈕列範圍'))).toHaveLength(1)
   })
+  it('還原預設後再框回同一個區域 → 再記一次 log', async () => {
+    const h = harness()
+    h.cfg.region = { x: 0, y: 0, w: 1, h: 1 }
+    await h.scan.tick()
+    h.cfg.region = null
+    h.changeFrame()
+    await h.scan.tick()
+    h.cfg.region = { x: 0, y: 0, w: 1, h: 1 }
+    h.changeFrame()
+    await h.scan.tick()
+    // 還原預設沒清記錄 → 使用者重新框同值看不到提示
+    expect(h.logs.filter(m => m.includes('自訂 OCR 區域超出按鈕列範圍'))).toHaveLength(2)
+  })
   it('部分超出 → 取交集', async () => {
     const h = harness()
     h.cfg.region = { x: 0.1, y: 0.1, w: 0.5, h: 0.05 }

@@ -341,7 +341,8 @@ export class StashScan {
 
   /** 自訂區域被縮小 / 完全在範圍外:同一個區域值只記一次 */
   private logRegionClamp (region: OcrRegion | null | undefined, ocr: { clamped: Rect | null, outside: boolean }): void {
-    if (!region || (!ocr.clamped && !ocr.outside)) return
+    if (!region) { this.lastClampLogKey = null; return }
+    if (!ocr.clamped && !ocr.outside) return
     const key = `${region.x},${region.y},${region.w},${region.h}`
     if (key === this.lastClampLogKey) return
     this.lastClampLogKey = key
