@@ -95,7 +95,7 @@ export function createPresets (
     filters: createFilters(item, { ...opts, exact: false }),
     stats: initUiModFilters(item, opts)
   }
-  // exile-appraiser: 破裂詞綴每條留一列在可見清單(只改 hidden,查詢不變)
+  // exile-appraiser: 破裂詞綴每條留一列在可見清單,以一般詞綴呈現(孿生當代表列時改送 explicit id)
   revealFracturedRows(pseudoPreset.stats, item)
 
   const likelyFinishedItem = (

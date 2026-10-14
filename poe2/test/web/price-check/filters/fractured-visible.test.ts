@@ -74,14 +74,15 @@ describe("PoE2 破裂詞綴預設可見", () => {
     expect(JSON.stringify(createTradeRequest(preset, item))).toBe(req);
   });
 
-  it("破裂詞綴被 pseudo 吃掉時,破裂孿生列可見、帶切換鈕、預設送破裂 id", () => {
+  it("破裂詞綴被 pseudo 吃掉時,代表列可見、以一般詞綴呈現、鈕預設不亮", () => {
     const { item, preset } = build(HELMET_MODIFIABLE);
     expect(item.isCorrupted).toBeFalsy();
     const t = preset.stats.filter((f) => canToggleFractured(f, item));
     const chaos = t.find((f) => f.statRef === "#% to Chaos Resistance")!;
-    expect(chaos.tag).toBe("fractured");
+    expect(chaos.tag).toBe("explicit");
+    expect(chaos.tradeId.every((id) => id.startsWith("explicit."))).toBe(true);
     expect(chaos.hidden).toBeUndefined();
-    expect(isFracturedOn(chaos)).toBe(true);
+    expect(isFracturedOn(chaos)).toBe(false);
     expect(t.some((f) => f.tag === "pseudo")).toBe(false);
   });
 });

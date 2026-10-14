@@ -2,7 +2,8 @@
 // 破裂詞綴在 initUiModFilters 先轉成 explicit 列(常再被 pseudo 合計吃掉,例如「+# total to Intelligence」);
 // 物品可再製作時另推一條 tag = fractured、送 fractured id 的孿生(hide_for_crafting 隱藏)。
 // - revealFracturedRows(create-presets 呼叫):每條破裂詞綴挑一列「代表列」顯示 —— 有 explicit 列就用它,
-//   沒有(被 pseudo 吃掉)就把孿生拿出來;其餘同一組 id 的列維持 / 改成隱藏。只動 hidden,查詢不變。
+//   沒有(被 pseudo 吃掉)就把孿生拿出來並改成一般詞綴(tag explicit、送 explicit id);其餘同一組 id 的列維持 / 改成隱藏。
+//   pseudo 合計列照上游原樣不動。孿生改送 explicit id 會改變查詢裡那條未勾選條件的 id(2026-10-14 使用者接受)。
 // - 切換鈕只在代表列(可見、來源全部是破裂詞綴、stat 同時有 explicit / fractured id);
 //   打開 = tradeId 換 fractured、勾選、其他送同一組 fractured id 的列取消勾選;關閉 = 換回 explicit。不改 tag。
 // - 例外:已汙染 / 已鏡像的物品沒有孿生,被 pseudo 吃掉的破裂詞綴就沒有自己的列 → 退而在 pseudo 列給鈕
@@ -87,9 +88,9 @@ export function applyFracturedToggle (filters: readonly FilterOrGroup[], filter:
 
 /**
  * 破裂物品:每條破裂詞綴讓一列在可見清單(2026-10-14 使用者回報破裂詞綴只在「已隱藏」裡)。
- * 代表列 = explicit 列(tag 不是 fractured),沒有就用孿生;同組其他列維持隱藏(原本可見的改 hide_for_crafting)。
+ * 代表列 = explicit 列(tag 不是 fractured),沒有就用孿生(改成一般詞綴:tag explicit、送 explicit id);同組其他列維持隱藏(原本可見的改 hide_for_crafting)。
  * 沒有孿生的物品,破裂詞綴只剩 pseudo 列可代表時把那列顯示出來(不隱藏其他 pseudo 合計)。
- * 只改 hidden,不動 tradeId / disabled → 送出的查詢與改前逐字相同。
+ * 孿生當代表列時 tradeId 由 fractured 改 explicit(孿生預設未勾選,但仍以 disabled 條件隨查詢送出)。
  */
 export function revealFracturedRows (filters: readonly FilterOrGroup[], item: ParsedItem): void {
   if (!item.isFractured) return
@@ -114,6 +115,11 @@ export function revealFracturedRows (filters: readonly FilterOrGroup[], item: Pa
   for (const rows of groups.values()) {
     const primary = rows.find(f => f.tag !== FilterTag.Fractured) ?? rows[0]
     primary.hidden = undefined
+    if (primary.tag === FilterTag.Fractured) {
+      // 孿生當代表列時以一般詞綴呈現(標籤、送 explicit id、鈕不亮),與有自己 explicit 列時起始狀態一致
+      primary.tag = FilterTag.Explicit
+      primary.tradeId = [...fracturedIds(primary)!.base]
+    }
     for (const other of rows) {
       if (other !== primary && other.hidden == null) other.hidden = 'filters.hide_for_crafting'
     }

@@ -18,7 +18,7 @@ const OPTS = {
   currency: null, collapseListings: 'api' as const, activateStockFilter: false, merchantOnly: false
 }
 // ring-rare-01 的破裂詞綴「+# to maximum Life」被 pseudo「+# total maximum Life」吃掉 → 沒有 explicit 列,
-// 破裂孿生(tag = fractured、預設送 fractured id)改成可見並帶切換鈕
+// 破裂孿生拿出來當代表列,以一般詞綴呈現(tag explicit、送 explicit id、鈕不亮),點鈕才送 fractured id
 const LIFE = '+# to maximum Life'
 const LIFE_EXPLICIT = 'explicit.stat_3299347043'
 const LIFE_FRACTURED = 'fractured.stat_3299347043'
@@ -50,13 +50,13 @@ beforeAll(async () => {
 })
 
 describe('T9 破裂鈕只在破裂詞綴出現', () => {
-  it('破裂詞綴被 pseudo 吃掉時切換鈕在可見的破裂孿生列(預設已是破裂 id)', () => {
+  it('破裂詞綴被 pseudo 吃掉時代表列以一般詞綴呈現、鈕預設不亮', () => {
     const item = parse(read('ring-rare-01'))
     expect(item.isFractured).toBe(true)
     const t = toggles(item, preset(item))
-    expect(t.map(f => [f.statRef, f.tag, f.hidden])).toEqual([[LIFE, FilterTag.Fractured, undefined]])
-    expect(t[0].tradeId).toEqual([LIFE_FRACTURED])
-    expect(isFracturedOn(t[0])).toBe(true)
+    expect(t.map(f => [f.statRef, f.tag, f.hidden])).toEqual([[LIFE, FilterTag.Explicit, undefined]])
+    expect(t[0].tradeId).toEqual([LIFE_EXPLICIT])
+    expect(isFracturedOn(t[0])).toBe(false)
   })
 
   it('沒被 pseudo 吃掉的破裂詞綴切換鈕在 explicit 列', () => {
@@ -97,18 +97,19 @@ describe('T9 破裂鈕只在破裂詞綴出現', () => {
 })
 
 describe('T10 點破裂改送破裂 id', () => {
-  it('破裂孿生列:關閉改送 explicit id,再打開與原查詢逐字相同', () => {
+  it('被 pseudo 吃掉的代表列:打開送 fractured id,再點換回與原查詢逐字相同', () => {
     const item = parse(read('ring-rare-01'))
     const p = preset(item)
     const row = toggles(item, p)[0]
     row.disabled = false // 使用者已勾選這條
     const before = JSON.stringify(createTradeRequest(p))
-    applyFracturedToggle(p.stats, row, false)
-    expect(isFracturedOn(row)).toBe(false)
-    const off = enabledIds(createTradeRequest(p))
-    expect(off).toContain(LIFE_EXPLICIT)
-    expect(off).not.toContain(LIFE_FRACTURED)
+    expect(enabledIds(createTradeRequest(p))).toContain(LIFE_EXPLICIT)
     applyFracturedToggle(p.stats, row, true)
+    expect(isFracturedOn(row)).toBe(true)
+    const on = enabledIds(createTradeRequest(p))
+    expect(on).toContain(LIFE_FRACTURED)
+    expect(on).not.toContain(LIFE_EXPLICIT)
+    applyFracturedToggle(p.stats, row, false)
     expect(JSON.stringify(createTradeRequest(p))).toBe(before)
   })
 
