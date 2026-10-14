@@ -1,16 +1,21 @@
 <!--
   2026-10-08:APT 式懸浮選單(使用者要求;設計稿 https://claude.ai/artifact/NWGyMPAi5f14ofJ3tA65Pp C 板)。
   overlay 模式按 overlayKey(沒有物品時)叫出,取代原本直接開設定;點「設定」才開設定視窗(設定開著時選單仍在最上層)。
-  - 標題列拖曳移動:pointer capture,拖曳中只改畫面,放開才寫設定 `floatMenu`(比例);顯示時夾回畫面(float-menu-geom.ts)。
-  - 正則書籤:PoE1 / PoE2 切換(預設目前遊戲),依資料夾分組可收合(與快速面板 / 管理頁共用收合狀態),每列顯示字串預覽;
-    目前遊戲 = 點一下貼進遊戲(`runRegexBookmark(…, 'menu')`,貼上了 = 選單收起),另一代 = 只複製(`copyRegexBookmark`)。
-  - 速查表:使用者自己匯入一張圖(`sheet-pick` → userData/cheatsheets,設定 `cheatSheet`);縮圖滑鼠移上去暫時放大(放大框點擊穿透),
-    點一下釘住(✕ / Esc 關)。
+  2026-10-15 改 A 版「指令面板」(設計稿 https://claude.ai/artifact/8G1wDzZxwYDtEMv3KU7U81 `FloatMenuA`,使用者採用;
+  最近查價與聊天指令已移除):
+  - 標題列:拖曳把手(pointer capture,放開才寫設定 `floatMenu` 比例;顯示時夾回畫面,float-menu-geom.ts)、名稱、
+    聯盟切換(useLeagues;換聯盟 → Prices.ts 讀新聯盟快取 → 市況自動重讀)、精簡限流點(PoE1 交易站限流規則有無排隊 +
+    429 Retry-After 倒數 `useRateLimitWait`;不嵌 RateLimiterState —— 它的彈出框往上會出畫面)、✕。
+  - 搜尋框(onMounted 聚焦)+ 篩選膠囊 全部 / 書籤 / 辨識 / 工具;清單模型、篩選、鍵盤在 float-menu-items.ts
+    (↑↓ / Home / End / Enter;1–9、← →、Tab 不攔;overlay 的 Esc 由 main 攔下 → 收起選單)。
+  - 分組:市況(market-rate.ts,**只讀 poe.ninja 既有快照,不觸發上網**)→ 倉庫本頁價值(PoE1 佔位、PoE2 淡化)→
+    自動辨識開關(FLOAT_MENU_TOGGLES,直接寫設定)→ 正則書籤(PoE1 / PoE2 切換、資料夾收合與快速面板共用、字串預覽、熱鍵;
+    目前遊戲 = 貼進遊戲 `runRegexBookmark(…, 'menu')`,另一代 = 只複製 `copyRegexBookmark`;「前往正則 ↗」)→
+    工具(設定 / 速查表展開 / 拆粉排行 → open-tab 'dust')。底部鍵盤提示。
+  - 速查表:內建一張或使用者匯入(`sheet-pick` → userData/cheatsheets,設定 `cheatSheet`);縮圖 hover 暫時放大(點擊穿透),
+    點一下釘住(✕ / Esc 關;釘住時可移動 / 調整大小,放開才寫 `cheatSheetZoom`)。
   - 收起:✕、點選單外(App.vue 背景)、Esc / 再按 overlayKey(main 交還焦點 → focus-change)。
-  - 2026-10-14:書籤區頂端「前往正則 ↗」(emit `open-tab` 'regex' → App.vue `openSettingsTo`);按鈕列下方開關列
-    (依目前遊戲:PoE1 倉庫價格 / 格子名稱、PoE2 褻瀆 / 符文塑形,float-menu-geom.ts `FLOAT_MENU_TOGGLES`,直接寫設定)。
-    寬高上限 = 畫面減邊距(字級放大到 40 時 21em 約 840 px)。
-  尺寸只用 em / --fs-*。新增會畫在 overlay 上的東西已接進 overlay-content(`menu`)。
+  寬高上限 = 畫面減邊距(大字級不超出畫面)。尺寸只用 em / --fs-*。overlay 圖層回報(`menu`)在 App.vue。
 -->
 <template>
   <div ref="root" class="fm" :class="{ dragging }" :style="placeStyle" data-layer="float-menu" @pointerdown.stop>
@@ -19,96 +24,165 @@
       <svg class="fm-grip" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h.01M16 6h.01M8 12h.01M16 12h.01M8 18h.01M16 18h.01" /></svg>
       <i class="mark" />
       <span class="fm-title">{{ t('ppz.menu.title') }}</span>
-      <span v-if="overlayKey" class="fm-key num">{{ overlayKey }}</span>
+      <select class="fm-league" data-menu="league" :value="leagueValue" :disabled="!leagueList.length"
+        :aria-label="t('ppz.menu.league')" :title="t('ppz.menu.league')" @change="onLeague(($event.target as HTMLSelectElement).value)">
+        <option v-if="!leagueList.length" :value="leagueValue">{{ leagueValue || t('ppz.menu.league_none') }}</option>
+        <option v-for="l in leagueList" :key="l.id" :value="l.id">{{ l.id }}</option>
+      </select>
+      <span class="fm-rate" data-menu="rate" :data-tone="rateDot.tone" :title="rateTitle" :aria-label="rateTitle">
+        <i class="fm-rate-dot" />
+        <span v-if="rateDot.text" class="num">{{ rateDot.text }}</span>
+      </span>
       <button type="button" class="fm-x" :aria-label="t('ppz.menu.close')" :title="t('ppz.menu.close')" data-action="menu-close" @click="emit('close', '✕')">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
       </button>
     </div>
 
-    <div class="fm-actions">
-      <button type="button" class="fm-act" :class="{ on: settingsOpen }" data-action="menu-settings" @click="emit('settings')">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1" /></svg>
-        <span>{{ t('ppz.menu.settings') }}</span>
-      </button>
-      <button type="button" class="fm-act" :class="{ on: section === 'bookmarks' }" :aria-expanded="section === 'bookmarks'" data-action="menu-bookmarks" @click="toggleSection('bookmarks')">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z" /></svg>
-        <span>{{ t('ppz.menu.bookmarks') }}</span>
-      </button>
-      <button type="button" class="fm-act" :class="{ on: section === 'sheet' }" :aria-expanded="section === 'sheet'" data-action="menu-sheet" @click="toggleSection('sheet')">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="9" cy="10" r="2" /><path d="m21 16-5-5-9 9" /></svg>
-        <span>{{ t('ppz.menu.sheet') }}</span>
-      </button>
-    </div>
-
-    <!-- 2026-10-14:自動辨識開關(依目前遊戲) -->
-    <div class="fm-toggles" data-menu="toggles">
-      <span class="fm-toggles-label">{{ t(config.game === 'poe1' ? 'ppz.menu.toggles_poe1' : 'ppz.menu.toggles_poe2') }}</span>
-      <div class="fm-toggle-row">
-        <button v-for="s in toggles" :key="s.key" type="button" role="switch" class="fm-sw" :class="{ on: config[s.key] }"
-          :aria-checked="config[s.key] ? 'true' : 'false'" :data-toggle="s.key" @click="flip(s.key)">
-          <span class="fm-sw-track" aria-hidden="true"><span class="fm-sw-knob" /></span>
-          <span class="fm-sw-label">{{ t(s.label) }}</span>
-          <span class="fm-sw-state">{{ t(config[s.key] ? 'ppz.menu.on' : 'ppz.menu.off') }}</span>
-        </button>
+    <div class="fm-top">
+      <label class="fm-search">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></svg>
+        <input ref="searchEl" type="search" data-menu="search" :value="query" :placeholder="t('ppz.menu.search_placeholder')"
+          :aria-label="t('ppz.menu.search')" spellcheck="false" autocomplete="off"
+          @input="onInput(($event.target as HTMLInputElement).value)" @keydown="onSearchKey">
+        <span v-if="overlayKey" class="fm-kbd num">{{ overlayKey }}</span>
+      </label>
+      <div class="fm-chips" role="group" :aria-label="t('ppz.menu.chips')">
+        <button v-for="c in MENU_CHIPS" :key="c" type="button" class="fm-chip" :class="{ on: chip === c }" :aria-pressed="chip === c ? 'true' : 'false'"
+          :data-chip="c" @click="setChip(c)">{{ t(CHIP_LABELS[c]) }}</button>
       </div>
     </div>
 
-    <!-- 正則書籤 -->
-    <div v-if="section === 'bookmarks'" class="fm-sec" data-menu="bookmarks">
-      <div class="fm-bm-top">
-        <div class="seg fm-seg" role="group">
-          <button v-for="g in games" :key="g" type="button" :class="{ on: listGame === g }" :aria-pressed="listGame === g"
-            :data-game="g" @click="listGame = g">{{ gameLabel(g) }}</button>
+    <div class="fm-list" data-menu="list">
+      <!-- 市況 / 倉庫本頁價值:資訊列,只在「全部」且沒搜尋時顯示 -->
+      <section v-if="showInfo" class="fm-group" data-group="market">
+        <div class="fm-grp">{{ t('ppz.menu.grp_market') }}</div>
+        <div class="fm-row fm-info" data-menu="market" :data-state="market ? 'ok' : 'none'">
+          <span class="fm-ic"><img :src="currencyIcon(config.game, 'divine')" alt=""></span>
+          <span v-if="market" class="fm-main">
+            <span class="fm-rate-line">1 {{ t('ppz.menu.cur_divine') }} = <b class="num">{{ market.text }}</b><img class="fm-cur" :src="currencyIcon(config.game, market.to)" alt="">{{ t(market.to === 'exa' ? 'ppz.menu.cur_exa' : 'ppz.menu.cur_chaos') }}</span>
+            <span class="fm-sub">{{ t('ppz.menu.market_sub') }} <span v-if="market.change != null" class="fm-delta" :data-tone="market.tone">{{ changeText(market.change) }}</span></span>
+          </span>
+          <span v-else class="fm-main">
+            <span>{{ t('ppz.menu.market_none') }}</span>
+            <span class="fm-sub">{{ t(config.realm === 'tw' ? 'ppz.menu.market_none_tw' : 'ppz.menu.market_none_sub') }}</span>
+          </span>
+          <span v-if="market && market.points.length" class="fm-spark">
+            <price-sparkline :points="market.points" :draw-min="market.drawMin" :draw-max="market.drawMax" :tone="market.tone" />
+          </span>
         </div>
-        <span class="fm-hint">{{ t(action === 'paste' ? 'ppz.menu.bm_hint_paste' : 'ppz.menu.bm_hint_copy') }}</span>
-        <button type="button" class="btn ghost sm fm-goto" data-action="menu-goto-regex" @click="emit('open-tab', 'regex')">{{ t('ppz.menu.goto_regex') }} ↗</button>
-      </div>
-      <div v-if="grouped.groups.length" class="fm-bm-list" data-menu="bm-list">
-        <template v-for="g in grouped.groups" :key="g.folder">
-          <button v-if="grouped.headers" type="button" class="fm-folder" :aria-expanded="!g.collapsed" data-menu="bm-folder" :data-folder="g.folder"
-            @click="toggleFolder(g.folder, !g.collapsed)">
-            <span class="fm-caret" aria-hidden="true">{{ g.collapsed ? '▸' : '▾' }}</span>
-            <span class="fm-folder-name">{{ g.folder || t('ppz.regex.fd_uncategorized') }}</span>
-            <span class="fm-count num">{{ g.items.length }}</span>
+      </section>
+      <section v-if="showInfo" class="fm-group" data-group="stash">
+        <div class="fm-row fm-info" :class="{ off: config.game !== 'poe1' }" data-menu="stash" :data-disabled="config.game !== 'poe1' ? 'true' : 'false'">
+          <span class="fm-ic">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M3 15h18M9 3v18M15 3v18" /></svg>
+          </span>
+          <span class="fm-main">
+            <span>{{ t('ppz.menu.stash_title') }}</span>
+            <span class="fm-sub">{{ t(config.game === 'poe1' ? 'ppz.menu.stash_pending' : 'ppz.menu.stash_poe2') }}</span>
+          </span>
+          <span class="fm-value num">—</span>
+        </div>
+      </section>
+
+      <!-- 自動辨識開關(依目前遊戲) -->
+      <section v-if="scanItems.length" class="fm-group" data-group="scan">
+        <div class="fm-grp">{{ t('ppz.menu.grp_scan', { game: gameLabel(config.game) }) }}</div>
+        <div class="fm-toggle-row">
+          <button v-for="s in scanItems" :key="s.id" type="button" role="switch" class="fm-sw" :class="{ on: config[s.toggle!], sel: selId === s.id }"
+            :aria-checked="config[s.toggle!] ? 'true' : 'false'" :data-toggle="s.toggle" :data-item="s.id" :data-sel="selId === s.id ? 'true' : undefined"
+            @click="flip(s.toggle!)">
+            <span class="fm-sw-track" aria-hidden="true"><span class="fm-sw-knob" /></span>
+            <span class="fm-sw-label">{{ s.label }}</span>
+            <span class="fm-sw-state">{{ t(config[s.toggle!] ? 'ppz.menu.on' : 'ppz.menu.off') }}</span>
           </button>
-          <template v-if="!grouped.headers || !g.collapsed">
-            <button v-for="it in g.items" :key="it.index" type="button" class="fm-bm" :class="{ nested: grouped.headers }"
-              :disabled="running" data-menu="bm-item" :data-bm="it.b.name" @click="runBookmark(it.index)">
-              <span class="fm-bm-line">
-                <span class="fm-bm-name">{{ it.b.name }}</span>
-                <span v-if="it.b.hotkey" class="fm-bm-key num">{{ it.b.hotkey }}</span>
-              </span>
-              <span class="fm-bm-query" :title="previews[previewKey(it.index)] || undefined">{{ previews[previewKey(it.index)] ?? '…' }}</span>
+        </div>
+      </section>
+
+      <!-- 正則書籤 -->
+      <section v-if="showBookmarks" class="fm-group" data-group="bookmarks">
+        <div class="fm-grp">
+          <span>{{ t('ppz.menu.bookmarks') }}</span>
+          <span class="fm-fill" />
+          <span class="fm-seg" role="group" :aria-label="t('ppz.menu.bm_game')">
+            <button v-for="g in games" :key="g" type="button" :class="{ on: listGame === g }" :aria-pressed="listGame === g ? 'true' : 'false'"
+              :data-game="g" @click="setListGame(g)">{{ gameLabel(g) }}</button>
+          </span>
+          <button type="button" class="fm-link" data-action="menu-goto-regex" @click="emit('open-tab', 'regex')">{{ t('ppz.menu.goto_regex') }} ↗</button>
+        </div>
+        <p class="fm-hint">{{ t(action === 'paste' ? 'ppz.menu.bm_hint_paste' : 'ppz.menu.bm_hint_copy') }}</p>
+        <template v-if="bmGroups.length">
+          <template v-for="g in bmGroups" :key="g.folder">
+            <button v-if="grouped.headers" type="button" class="fm-folder" :aria-expanded="!g.collapsed ? 'true' : 'false'" data-menu="bm-folder" :data-folder="g.folder"
+              @click="toggleFolder(g.folder, !g.collapsed)">
+              <span class="fm-caret" aria-hidden="true">{{ g.collapsed ? '▸' : '▾' }}</span>
+              <span class="fm-folder-name">{{ g.folder || t('ppz.regex.fd_uncategorized') }}</span>
+              <span class="fm-count num">{{ g.items.length }}</span>
             </button>
+            <template v-if="!g.collapsed">
+              <button v-for="it in g.items" :key="it.id" type="button" class="fm-row fm-bm" :class="{ sel: selId === it.id }"
+                :disabled="running" data-menu="bm-item" :data-bm="it.label" :data-item="it.id" :data-sel="selId === it.id ? 'true' : undefined"
+                @click="runBookmark(it.index!)">
+                <span class="fm-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z" /></svg></span>
+                <span class="fm-main">
+                  <span class="fm-ellipsis">{{ it.label }}</span>
+                  <span class="fm-q" :title="previews[previewKey(it.index!)] || undefined">{{ previews[previewKey(it.index!)] ?? '…' }}</span>
+                </span>
+                <span v-if="it.hotkey" class="fm-kbd num">{{ it.hotkey }}</span>
+              </button>
+            </template>
           </template>
         </template>
-      </div>
-      <p v-else class="fm-empty" data-menu="bm-empty">{{ t('ppz.menu.bm_empty', { game: gameLabel(listGame) }) }}</p>
-    </div>
+        <p v-else-if="!queryOn" class="fm-empty" data-menu="bm-empty">{{ t('ppz.menu.bm_empty', { game: gameLabel(listGame) }) }}</p>
+      </section>
 
-    <!-- 速查表 -->
-    <div v-if="section === 'sheet'" class="fm-sec fm-sheet" data-menu="sheet">
-      <template v-if="sheetUrl && !sheetBroken">
-        <button type="button" class="fm-thumb" :aria-label="t('ppz.menu.sheet_zoom')" data-action="sheet-pin"
-          @mouseenter="peek = true" @mouseleave="peek = false" @click="pinned = true">
-          <img :src="sheetUrl" alt="" @error="sheetBroken = true">
-        </button>
-        <p class="fm-hint">{{ t('ppz.menu.sheet_hover_hint') }}</p>
-        <div class="fm-sheet-row">
-          <span class="fm-sheet-name" data-menu="sheet-name">{{ sheet.builtin ? t('ppz.menu.sheet_builtin', { version: BUILTIN_CHEAT_SHEET.version }) : config.cheatSheet }}</span>
-          <button v-if="canPick" type="button" class="btn sm" data-action="sheet-change" @click="pickSheet">{{ t('ppz.menu.sheet_change') }}</button>
-          <button v-if="!sheet.builtin" type="button" class="btn ghost sm" data-action="sheet-remove" @click="removeSheet">{{ t('ppz.menu.sheet_remove') }}</button>
+      <!-- 工具 -->
+      <section v-if="toolItems.length" class="fm-group" data-group="tools">
+        <div class="fm-grp">{{ t('ppz.menu.grp_tools') }}</div>
+        <div class="fm-tools">
+          <button v-for="x in toolItems" :key="x.id" type="button" class="fm-tool" :class="{ on: toolOn(x.tool!), sel: selId === x.id }"
+            :aria-expanded="x.tool === 'sheet' ? (section === 'sheet' ? 'true' : 'false') : undefined"
+            :data-action="'menu-' + x.tool" :data-item="x.id" :data-sel="selId === x.id ? 'true' : undefined" @click="runTool(x.tool!)">
+            <svg v-if="x.tool === 'settings'" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1" /></svg>
+            <svg v-else-if="x.tool === 'sheet'" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="9" cy="10" r="2" /><path d="m21 16-5-5-9 9" /></svg>
+            <svg v-else viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M5 7h14M7 7l-3 7a3 3 0 0 0 6 0zM17 7l-3 7a3 3 0 0 0 6 0z" /></svg>
+            <span>{{ x.label }}</span>
+          </button>
         </div>
-      </template>
-      <div v-else class="fm-sheet-empty" data-menu="sheet-empty">
-        <div>{{ t('ppz.menu.sheet_failed') }}</div>
-        <div class="fm-hint">{{ t(canPick ? 'ppz.menu.sheet_empty_sub' : 'ppz.menu.sheet_no_dialog') }}</div>
-        <button v-if="canPick" type="button" class="btn sm primary" data-action="sheet-import" @click="pickSheet">{{ t('ppz.menu.sheet_import') }}</button>
-        <button v-if="!sheet.builtin" type="button" class="btn ghost sm" data-action="sheet-remove" @click="removeSheet">{{ t('ppz.menu.sheet_remove') }}</button>
-      </div>
+
+        <!-- 速查表(工具列展開) -->
+        <div v-if="section === 'sheet'" class="fm-sheet" data-menu="sheet">
+          <template v-if="sheetUrl && !sheetBroken">
+            <button type="button" class="fm-thumb" :aria-label="t('ppz.menu.sheet_zoom')" data-action="sheet-pin"
+              @mouseenter="peek = true" @mouseleave="peek = false" @click="pinned = true">
+              <img :src="sheetUrl" alt="" @error="sheetBroken = true">
+            </button>
+            <p class="fm-hint">{{ t('ppz.menu.sheet_hover_hint') }}</p>
+            <div class="fm-sheet-row">
+              <span class="fm-sheet-name" data-menu="sheet-name">{{ sheet.builtin ? t('ppz.menu.sheet_builtin', { version: BUILTIN_CHEAT_SHEET.version }) : config.cheatSheet }}</span>
+              <button v-if="canPick" type="button" class="btn sm" data-action="sheet-change" @click="pickSheet">{{ t('ppz.menu.sheet_change') }}</button>
+              <button v-if="!sheet.builtin" type="button" class="btn ghost sm" data-action="sheet-remove" @click="removeSheet">{{ t('ppz.menu.sheet_remove') }}</button>
+            </div>
+          </template>
+          <div v-else class="fm-sheet-empty" data-menu="sheet-empty">
+            <div>{{ t('ppz.menu.sheet_failed') }}</div>
+            <div class="fm-hint">{{ t(canPick ? 'ppz.menu.sheet_empty_sub' : 'ppz.menu.sheet_no_dialog') }}</div>
+            <button v-if="canPick" type="button" class="btn sm primary" data-action="sheet-import" @click="pickSheet">{{ t('ppz.menu.sheet_import') }}</button>
+            <button v-if="!sheet.builtin" type="button" class="btn ghost sm" data-action="sheet-remove" @click="removeSheet">{{ t('ppz.menu.sheet_remove') }}</button>
+          </div>
+        </div>
+      </section>
+
+      <p v-if="queryOn && !rows.length" class="fm-empty" data-menu="no-match">{{ t('ppz.menu.no_match', { q: query.trim() }) }}</p>
     </div>
 
     <p v-if="notice" class="fm-notice" data-menu="notice">{{ notice }}</p>
+
+    <div class="fm-foot">
+      <span><span class="fm-kbd">↑ ↓</span> {{ t('ppz.menu.foot_move') }}</span>
+      <span><span class="fm-kbd">Enter</span> {{ t('ppz.menu.foot_run') }}</span>
+      <span class="fm-fill" />
+      <span><span class="fm-kbd">Esc</span> {{ t('ppz.menu.foot_close') }}</span>
+    </div>
   </div>
 
   <!-- 速查表放大:hover = 暫時(點擊穿透),點縮圖 = 釘住(標題列 ✕);釘住時拖標題列移動、四邊 / 四角調整大小(放開才寫 cheatSheetZoom) -->
@@ -133,18 +207,29 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, reactive, ref, shallowRef, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, reactive, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { RegexGame } from '@exile-appraiser/regex'
+import type { NinjaSnapshot } from '@exile-appraiser/core/ninja'
+import type { RateLimiter } from '@exile-appraiser/core/http/RateLimiter'
 import type { SettingsTabId } from '@ipc/types'
+import { tradeSession as poe1TradeSession } from '@poe1/trade/common'
+import { poe2TradeSession } from '@poe2-entry'
 import { AppConfig } from '@/web/Config'
 import { Host } from '@/web/background/IPC'
+import { useLeagues } from '@/web/background/Leagues'
+import { usePoeninja } from '@/web/background/Prices'
+import { useRateLimitWait } from '@/web/background/rate-limit-wait'
+import { currencyIcon } from '@/web/price-panel/currency-icon'
+import PriceSparkline from '@/web/ui/PriceSparkline.vue'
 import { bgImageUrl, normBgFile } from '@/web/useTheme'
 import { bookmarkGroupsOf, gameLabel, setBookmarkFolderCollapsed, useRegexStore } from '@/web/regex/store'
 import { copyRegexBookmark, quickRunning, regexBookmarkPreview, runRegexBookmark } from '@/web/regex/quick'
 import { quickNoticeKey } from '@/web/regex/quick-geom'
-import { BUILTIN_CHEAT_SHEET, FLOAT_MENU_TOGGLES, bookmarkActionFor, cheatSheetUrl, floatMenuPlace, floatMenuPosOf, sheetZoomRect } from './float-menu-geom'
-import { floatMenuSection } from './float-menu-state'
+import { BUILTIN_CHEAT_SHEET, bookmarkActionFor, cheatSheetUrl, floatMenuPlace, floatMenuPosOf, sheetZoomRect, type FloatMenuToggleKey } from './float-menu-geom'
+import { MENU_CHIPS, filterMenuItems, menuItemsOf, menuKey, menuRows, rateDotOf, type MenuChip, type MenuItem, type MenuTool } from './float-menu-items'
+import { floatMenuChip, floatMenuQuery, floatMenuSection, floatMenuSel } from './float-menu-state'
+import { marketRateOf } from './market-rate'
 import { RESIZE_EDGES, clampSettingsRect, createRectDrag, edgeCursor, isInteractiveTarget, type DragEdge, type SettingsWindowRect } from '@/web/settings/settings-window-geom'
 
 defineProps<{ settingsOpen: boolean }>()
@@ -153,7 +238,7 @@ const emit = defineEmits<{
   (e: 'settings'): void
   (e: 'pasted'): void
   (e: 'zoom', on: boolean): void
-  /** 2026-10-14:跳到設定的某一頁(「前往正則」) */
+  /** 跳到設定的某一頁(「前往正則」2026-10-14、「拆粉排行」2026-10-15) */
   (e: 'open-tab', tab: SettingsTabId): void
 }>()
 
@@ -161,23 +246,130 @@ const { t } = useI18n()
 const config = AppConfig()
 const store = useRegexStore()
 const games: RegexGame[] = ['poe1', 'poe2']
+const CHIP_LABELS: Record<MenuChip, string> = { all: 'ppz.menu.chip_all', bookmark: 'ppz.menu.chip_bookmark', scan: 'ppz.menu.chip_scan', tool: 'ppz.menu.chip_tool' }
 
 const overlayKey = computed(() => config.overlayKey)
 
-// ---- 開關列(依目前遊戲;直接寫設定,掃描開關立即送 main) ----
-const toggles = computed(() => FLOAT_MENU_TOGGLES[config.game])
-function flip (key: typeof FLOAT_MENU_TOGGLES.poe1[number]['key']) {
+// ---- 標題列:聯盟 ----
+const leagues = useLeagues()
+const leagueList = computed(() => leagues.list.value)
+const leagueValue = computed(() => config.leagueId ?? '')
+function onLeague (id: string) {
+  if (!id || id === config.leagueId) return
+  leagues.selectedId.value = id
+  console.log(`[menu] 聯盟 → ${id}`)
+}
+
+// ---- 標題列:精簡限流點 ----
+// PoE1 交易站限流規則(core RateLimiter 沒有 Vue 響應式 → subscribe 推 tick;另每秒對齊一次,規則集合會被 adjustRateLimits 增刪)。
+// PoE2 經 @poe2-entry 的 poe2TradeSession(2026-10-15 補匯出)。
+const waitSeconds = useRateLimitWait()
+const rateTick = shallowRef(0)
+const rateSubs = new Map<RateLimiter, () => void>()
+function liveLimiters (): RateLimiter[] {
+  const l = config.game === 'poe2' ? poe2TradeSession(config.realm).limits : poe1TradeSession(config.realm).limits
+  return [...l.SEARCH, ...l.EXCHANGE, ...l.FETCH]
+}
+function syncRateSubs () {
+  const live = new Set(liveLimiters())
+  for (const [rl, off] of rateSubs) if (!live.has(rl)) { off(); rateSubs.delete(rl) }
+  for (const rl of live) if (!rateSubs.has(rl)) rateSubs.set(rl, rl.subscribe(() => { rateTick.value++ }))
+}
+watch(() => [config.game, config.realm], () => { syncRateSubs(); rateTick.value++ })
+const rateDot = computed(() => {
+  void rateTick.value
+  return rateDotOf(liveLimiters().map(rl => ({ active: rl.stack.length, max: rl.max, queue: rl.queue.value })), waitSeconds.value)
+})
+const rateTitle = computed(() => rateDot.value.tone === 'wait' ? t('ppz.menu.rate_wait', { seconds: waitSeconds.value }) : t('ppz.menu.rate'))
+let ratePoll: ReturnType<typeof setInterval> | null = null
+
+// ---- 市況(只讀既有快照;換聯盟 / 遊戲時 Prices.ts 自己讀新目標的快取) ----
+const ninja = usePoeninja()
+const marketTarget = computed(() => {
+  const l = leagues.selected.value
+  return config.realm === 'intl' && l?.id && l.isPopular ? { game: config.game, league: l.id } : null
+})
+const market = computed(() => marketRateOf(ninja.snapshot.value as NinjaSnapshot | null, marketTarget.value))
+function changeText (n: number): string {
+  return `${n > 0 ? '+' : ''}${n.toFixed(1)}%`
+}
+
+// ---- 清單模型 / 篩選 / 鍵盤 ----
+const chip = floatMenuChip
+const query = floatMenuQuery
+const selId = floatMenuSel
+const queryOn = computed(() => query.value.trim() !== '')
+const listGame = shallowRef<RegexGame>(config.game)
+const action = computed(() => bookmarkActionFor(listGame.value, config.game))
+const grouped = computed(() => bookmarkGroupsOf(listGame.value, true))
+const items = computed(() => menuItemsOf({ game: config.game, bookmarks: grouped.value, t }))
+const filtered = computed(() => filterMenuItems(items.value, chip.value, query.value))
+const rows = computed(() => menuRows(filtered.value, query.value))
+const scanItems = computed(() => filtered.value.filter(i => i.kind === 'scan'))
+const toolItems = computed(() => filtered.value.filter(i => i.kind === 'tool'))
+const showInfo = computed(() => chip.value === 'all' && !queryOn.value)
+const showBookmarks = computed(() => (chip.value === 'all' || chip.value === 'bookmark') && (!queryOn.value || filtered.value.some(i => i.kind === 'bookmark')))
+/** 書籤依資料夾分組(只留篩選後的);搜尋中一律展開 */
+const bmGroups = computed(() => {
+  const byId = new Map(filtered.value.filter(i => i.kind === 'bookmark').map(i => [i.id, i]))
+  return grouped.value.groups
+    .map(g => ({
+      folder: g.folder,
+      collapsed: grouped.value.headers && g.collapsed && !queryOn.value,
+      items: g.items.map(it => byId.get(`bm:${it.index}`)).filter((x): x is MenuItem => !!x)
+    }))
+    .filter(g => g.items.length)
+})
+
+function onInput (v: string) {
+  query.value = v
+  // 打字時預選第一列(Enter 直接執行最上面那個);清空 = 不選
+  selId.value = queryOn.value ? (rows.value[0]?.id ?? null) : null
+}
+function setChip (c: MenuChip) {
+  chip.value = c
+  if (selId.value && !rows.value.some(r => r.id === selId.value)) selId.value = null
+}
+function onSearchKey (e: KeyboardEvent) {
+  const list = rows.value
+  const r = menuKey(e, list.length, list.findIndex(x => x.id === selId.value))
+  if (!r) return
+  e.preventDefault()
+  const it = list[r.sel]
+  selId.value = it.id
+  if (r.run) { runItem(it); return }
+  void nextTick(() => {
+    const el = (root.value as (HTMLElement & { querySelector?: HTMLElement['querySelector'] }) | null)?.querySelector?.('[data-sel="true"]')
+    el?.scrollIntoView?.({ block: 'nearest' })
+  })
+}
+function runItem (it: MenuItem) {
+  if (it.kind === 'scan' && it.toggle) flip(it.toggle)
+  else if (it.kind === 'bookmark' && it.index != null) void runBookmark(it.index)
+  else if (it.kind === 'tool' && it.tool) runTool(it.tool)
+}
+
+// ---- 辨識開關(直接寫設定,掃描開關立即送 main) ----
+function flip (key: FloatMenuToggleKey) {
   config[key] = !config[key]
   console.log(`[menu] 開關 ${key} → ${config[key] ? '開' : '關'}`)
 }
+
+// ---- 工具 ----
 const section = floatMenuSection
-function toggleSection (s: 'bookmarks' | 'sheet') {
-  section.value = section.value === s ? '' : s
+function toolOn (tool: MenuTool): boolean {
+  return tool === 'sheet' && section.value === 'sheet'
+}
+function runTool (tool: MenuTool) {
   notice.value = ''
+  if (tool === 'settings') emit('settings')
+  else if (tool === 'dust') emit('open-tab', 'dust')
+  else section.value = section.value === 'sheet' ? '' : 'sheet'
 }
 
 // ---- 位置 / 拖曳 ----
 const root = ref<HTMLElement | null>(null)
+const searchEl = ref<HTMLInputElement | null>(null)
 const view = reactive({ w: window.innerWidth, h: window.innerHeight })
 const size = reactive({ w: 0, h: 0 })
 const draft = shallowRef<{ left: number, top: number } | null>(null)
@@ -188,7 +380,7 @@ const place = computed(() => draft.value ?? floatMenuPlace(config.floatMenu, vie
 const placeStyle = computed(() => ({ left: `${place.value.left}px`, top: `${place.value.top}px` }))
 
 function onDragStart (e: PointerEvent) {
-  if (e.button !== 0 || (e.target as HTMLElement).closest('button')) return
+  if (e.button !== 0 || (e.target as HTMLElement).closest('button, select')) return
   const p = place.value
   grab = { dx: e.clientX - p.left, dy: e.clientY - p.top, id: e.pointerId }
   dragging.value = true
@@ -210,9 +402,6 @@ let ro: ResizeObserver | null = null
 const onResize = () => { view.w = window.innerWidth; view.h = window.innerHeight }
 
 // ---- 正則書籤 ----
-const listGame = shallowRef<RegexGame>(config.game)
-const action = computed(() => bookmarkActionFor(listGame.value, config.game))
-const grouped = computed(() => bookmarkGroupsOf(listGame.value, true))
 const running = quickRunning
 const notice = shallowRef('')
 const previews = reactive<Record<string, string>>({})
@@ -221,24 +410,27 @@ const previewKey = (index: number) => {
   return b ? `${b.game}|${b.page}|${b.name}|${b.keys.join(',')}|${b.mode}|${b.lang}` : `#${index}`
 }
 
-/** 看得見的書籤逐筆算字串預覽(清單第一次用到才載;算過的快取在 previews) */
+/** 看得見的書籤逐筆算字串預覽(算過的快取在 previews) */
 let previewRun = 0
 async function loadPreviews () {
   const run = ++previewRun
-  for (const g of grouped.value.groups) {
-    if (grouped.value.headers && g.collapsed) continue
+  for (const g of bmGroups.value) {
+    if (g.collapsed) continue
     for (const it of g.items) {
-      const k = previewKey(it.index)
+      const k = previewKey(it.index!)
       if (k in previews) continue
-      const text = await regexBookmarkPreview(it.index)
+      const text = await regexBookmarkPreview(it.index!)
       if (run !== previewRun) return
       previews[k] = text
     }
   }
 }
-watch([section, grouped], () => { if (section.value === 'bookmarks') void loadPreviews() }, { immediate: true })
-watch(listGame, () => { notice.value = '' })
+watch(bmGroups, () => { void loadPreviews() }, { immediate: true })
 
+function setListGame (g: RegexGame) {
+  listGame.value = g
+  notice.value = ''
+}
 function toggleFolder (folder: string, collapse: boolean) {
   setBookmarkFolderCollapsed(listGame.value, folder, collapse)
 }
@@ -268,7 +460,7 @@ const sheetUrl = computed(() => sheet.value.url)
 watch(() => config.cheatSheet, () => { sheetBroken.value = false })
 const peek = shallowRef(false)
 const pinned = shallowRef(false)
-const zoomShown = computed(() => !!sheetUrl.value && !sheetBroken.value && section.value === 'sheet' && (peek.value || pinned.value))
+const zoomShown = computed(() => !!sheetUrl.value && !sheetBroken.value && section.value === 'sheet' && toolItems.value.some(x => x.tool === 'sheet') && (peek.value || pinned.value))
 watch(zoomShown, (on) => { emit('zoom', on) })
 // 放大框:拖曳中 = live;存過 = 記住的(夾回畫面);沒存 = 選單旁到畫面邊(sheetZoomRect)
 const zoomLive = shallowRef<SettingsWindowRect | null>(null)
@@ -354,13 +546,21 @@ onMounted(() => {
     })
     ro.observe(root.value)
   }
-  console.log(`[menu] 開啟懸浮選單(${section.value || '只有按鈕列'})`)
+  syncRateSubs()
+  ratePoll = setInterval(() => { syncRateSubs(); rateTick.value++ }, 1000)
+  // 叫出就能打字搜尋(上次的字整段選取,直接打 = 取代)
+  searchEl.value?.focus()
+  searchEl.value?.select?.()
+  console.log(`[menu] 開啟懸浮選單(${chip.value}${queryOn.value ? ` · 搜尋「${query.value.trim()}」` : ''})`)
 })
 onUnmounted(() => {
   window.removeEventListener('resize', onResize)
   window.removeEventListener('keydown', onKey, true)
   ro?.disconnect()
   zoomDetach?.()
+  if (ratePoll) clearInterval(ratePoll)
+  for (const off of rateSubs.values()) off()
+  rateSubs.clear()
   emit('zoom', false)
 })
 
@@ -370,9 +570,9 @@ onUnmounted(() => {
 .fm {
   position: absolute;
   z-index: 56; /* 設定暗幕(50)、快速面板(55)之上,框選層(60)之下 */
-  width: 21em;
-  /* 2026-10-14:字級上限放寬(40 時 21em ≈ 840 px)→ 寬高都不超過畫面 */
-  max-width: min(21em, calc(100vw - 8px));
+  width: 25em;
+  /* 字級上限放寬(40 時 25em ≈ 1000 px)→ 寬高都不超過畫面 */
+  max-width: min(25em, calc(100vw - 8px));
   max-height: calc(100vh - 8px);
   overflow: hidden;
   display: flex;
@@ -381,34 +581,72 @@ onUnmounted(() => {
   font-size: var(--fs-md);
   color: var(--ink-0);
   background: var(--surface-1);
-  border: 1px solid var(--edge-2);
-  border-radius: var(--radius-m);
+  border: 1px solid var(--edge-1);
+  border-radius: var(--radius-l);
   box-shadow: var(--shadow-float);
   pointer-events: auto;
   user-select: none;
 }
 .fm.dragging { opacity: 0.92; }
+.fm-fill { flex: 1; }
 .fm-head {
+  flex: none;
   display: flex;
   align-items: center;
-  gap: 0.5em;
-  padding: 0.35em 0.35em 0.35em 0.7em;
+  gap: 0.45em;
+  min-height: 2.9em;
+  padding: 0.3em 0.4em 0.3em 0.7em;
   border-bottom: 1px solid var(--edge-0);
   cursor: move;
   touch-action: none;
 }
-.fm-grip { width: 0.9em; height: 0.9em; fill: none; stroke: var(--ink-3); stroke-width: 3; stroke-linecap: round; }
+.fm-grip { flex: none; width: 0.9em; height: 0.9em; fill: none; stroke: var(--ink-3); stroke-width: 3; stroke-linecap: round; }
 .fm-head .mark {
+  flex: none;
   display: inline-block;
   width: 0.55em;
   height: 0.55em;
   background: var(--gold);
   transform: rotate(45deg);
 }
-.fm-title { flex: 1; font-weight: 700; }
-.fm-key { color: var(--ink-3); font-size: var(--fs-xs); }
+.fm-title { flex: 1; min-width: 0; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fm-league {
+  font: inherit;
+  font-size: var(--fs-xs);
+  min-width: 0;
+  max-width: 10em;
+  height: 2em;
+  padding: 0 0.6em;
+  color: var(--ink-1);
+  background: var(--surface-2);
+  border: 1px solid var(--edge-1);
+  border-radius: 999px;
+  cursor: pointer;
+  text-overflow: ellipsis;
+}
+.fm-league:disabled { cursor: default; opacity: 0.8; }
+.fm-league:focus-visible { outline: 1px solid var(--gold); outline-offset: 1px; }
+.fm-rate {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  height: 2em;
+  padding: 0 0.6em;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--ink-1);
+  font-size: var(--fs-xs);
+  font-family: var(--font-mono);
+  cursor: default;
+}
+.fm-rate-dot { width: 0.55em; height: 0.55em; border-radius: 50%; background: var(--ok); }
+.fm-rate[data-tone="busy"] .fm-rate-dot { background: var(--warn); }
+.fm-rate[data-tone="wait"] .fm-rate-dot { background: var(--bad); }
+.fm-rate[data-tone="wait"] { color: var(--bad); }
 .fm-x {
   font: inherit;
+  flex: none;
   width: 2em;
   height: 2em;
   display: flex;
@@ -422,180 +660,289 @@ onUnmounted(() => {
 }
 .fm-x:hover { background: var(--surface-hover); color: var(--ink-0); }
 .fm-x svg { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
-.fm-actions {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.45em;
-  padding: 0.6em;
-}
-.fm-act {
-  font: inherit;
-  font-size: var(--fs-sm);
+
+.fm-top {
+  flex: none;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 0.3em;
-  min-height: 4.2em;
-  padding: 0.6em 0.3em;
-  color: var(--ink-0);
-  background: var(--surface-2);
-  border: 1px solid var(--edge-1);
-  border-radius: var(--radius-s);
-  cursor: pointer;
+  gap: 0.6em;
+  padding: 0.75em 0.75em 0.5em;
 }
-.fm-act:hover { background: var(--surface-hover); }
-.fm-act.on {
-  color: var(--gold);
-  border-color: color-mix(in srgb, var(--gold) 60%, transparent);
-  background: color-mix(in srgb, var(--gold) 12%, var(--surface-1));
-}
-.fm-act svg { width: 1.35em; height: 1.35em; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.fm-sec {
-  border-top: 1px solid var(--edge-0);
-  padding: 0.6em 0;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-}
-.fm-bm-top {
+.fm-search {
   display: flex;
   align-items: center;
   gap: 0.6em;
-  padding: 0 0.7em 0.5em;
+  height: 2.9em;
+  padding: 0 0.75em;
+  border: 1px solid var(--edge-1);
+  border-radius: var(--radius-l);
+  background: var(--surface-0);
+  cursor: text;
 }
-.fm-hint {
+.fm-search:focus-within { border-color: var(--gold); box-shadow: 0 0 0 0.2em var(--gold-soft); }
+.fm-search svg { flex: none; width: 1.1em; height: 1.1em; fill: none; stroke: var(--ink-2); stroke-width: 2; stroke-linecap: round; }
+.fm-search input {
   flex: 1;
-  margin: 0;
-  color: var(--ink-2);
-  font-size: var(--fs-xs);
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--ink-0);
+  font: inherit;
+  user-select: text;
 }
-.fm-bm-top .fm-hint { text-align: right; }
-.fm-goto { flex: none; white-space: nowrap; }
-/* 2026-10-14:開關列 */
-.fm-toggles {
+.fm-search input::placeholder { color: var(--ink-3); }
+.fm-search input::-webkit-search-cancel-button { cursor: pointer; }
+.fm-kbd {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--ink-2);
+  border: 1px solid var(--edge-1);
+  border-radius: var(--radius-s);
+  padding: 0.05em 0.45em;
+  background: var(--surface-0);
+  white-space: nowrap;
+}
+.fm-chips { display: flex; flex-wrap: wrap; gap: 0.4em; }
+.fm-chip {
+  font: inherit;
+  font-size: var(--fs-sm);
+  height: 2em;
+  padding: 0 0.85em;
+  border: 1px solid var(--edge-1);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.fm-chip:hover { color: var(--ink-0); }
+.fm-chip.on { border-color: var(--gold); color: var(--ink-0); background: var(--gold-soft); }
+.fm-chip:focus-visible { outline: 1px solid var(--gold); outline-offset: 1px; }
+
+.fm-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 0.35em;
-  padding: 0 0.6em 0.6em;
+  padding: 0 0.5em 0.5em;
 }
-.fm-toggles-label {
-  color: var(--ink-2);
+.fm-group { display: flex; flex-direction: column; }
+.fm-grp {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  padding: 0.75em 0.45em 0.3em;
   font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--ink-2);
+  letter-spacing: 0.04em;
 }
+.fm-row {
+  font: inherit;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  min-height: 3.3em;
+  padding: 0.35em 0.75em;
+  border: 0;
+  border-radius: var(--radius-l);
+  background: transparent;
+  color: var(--ink-0);
+  text-align: left;
+}
+button.fm-row { cursor: pointer; }
+button.fm-row:hover:not(:disabled), .fm-row.sel { background: var(--surface-hover); }
+.fm-row.sel { box-shadow: inset 0 0 0 1px var(--gold); }
+.fm-row:disabled { opacity: 0.6; cursor: progress; }
+.fm-info { cursor: default; }
+.fm-info.off { opacity: 0.5; }
+.fm-ic {
+  flex: none;
+  width: 2.3em;
+  height: 2.3em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-m);
+  background: var(--surface-2);
+  color: var(--ink-1);
+}
+.fm-ic img { width: 1.8em; height: 1.8em; }
+.fm-ic svg, .fm-tool svg { width: 1.2em; height: 1.2em; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.fm-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.15em; }
+.fm-rate-line { display: flex; align-items: center; gap: 0.3em; white-space: nowrap; }
+.fm-rate-line b { font-family: var(--font-mono); }
+.fm-cur { width: 1.4em; height: 1.4em; }
+.fm-sub, .fm-q {
+  font-size: var(--fs-xs);
+  color: var(--ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fm-q { font-family: var(--font-mono); }
+.fm-delta[data-tone="up"] { color: var(--ok); }
+.fm-delta[data-tone="down"] { color: var(--bad); }
+.fm-spark { flex: none; width: 4.9em; height: 1.7em; }
+.fm-value { flex: none; font-weight: 700; color: var(--gold); font-family: var(--font-mono); }
+.fm-ellipsis { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* 自動辨識開關 */
 .fm-toggle-row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.45em;
+  padding: 0 0.15em;
 }
 .fm-sw {
   font: inherit;
-  font-size: var(--fs-sm);
   display: flex;
   align-items: center;
-  gap: 0.45em;
+  gap: 0.6em;
   min-width: 0;
-  padding: 0.4em 0.55em;
-  color: var(--ink-1);
+  min-height: 3.3em;
+  padding: 0 0.75em;
+  color: var(--ink-0);
   background: var(--surface-2);
-  border: 1px solid var(--edge-1);
-  border-radius: var(--radius-s);
+  border: 1px solid var(--edge-0);
+  border-radius: var(--radius-l);
   cursor: pointer;
   text-align: left;
 }
 .fm-sw:hover { background: var(--surface-hover); }
+.fm-sw.sel { box-shadow: inset 0 0 0 1px var(--gold); }
 .fm-sw:focus-visible { outline: 1px solid var(--gold); outline-offset: 1px; }
 .fm-sw-track {
   position: relative;
   flex: none;
-  width: 1.9em;
-  height: 1.05em;
+  width: 2.3em;
+  height: 1.4em;
   border-radius: 999px;
-  background: var(--surface-1);
-  border: 1px solid var(--edge-1);
+  background: var(--edge-2);
 }
 .fm-sw-knob {
   position: absolute;
   top: 50%;
-  left: 0.12em;
-  width: 0.75em;
-  height: 0.75em;
+  left: 0.15em;
+  width: 1.1em;
+  height: 1.1em;
   border-radius: 50%;
-  background: var(--ink-2);
+  background: var(--surface-0);
   transform: translateY(-50%);
 }
-.fm-sw.on { color: var(--ink-0); border-color: color-mix(in srgb, var(--gold) 60%, transparent); }
-.fm-sw.on .fm-sw-track { background: color-mix(in srgb, var(--gold) 35%, var(--surface-2)); border-color: var(--gold); }
-.fm-sw.on .fm-sw-knob { left: calc(100% - 0.87em); background: var(--gold); }
-.fm-sw-label {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.fm-sw.on .fm-sw-track { background: var(--gold); }
+.fm-sw.on .fm-sw-knob { left: calc(100% - 1.25em); }
+.fm-sw-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fm-sw-state { flex: none; color: var(--ink-3); font-size: var(--fs-xs); }
+.fm-sw.on .fm-sw-state { color: var(--gold); font-weight: 700; }
+
+/* 正則書籤 */
+.fm-seg { display: inline-flex; border: 1px solid var(--edge-1); border-radius: var(--radius-m); overflow: hidden; }
+.fm-seg button {
+  font: inherit;
+  font-weight: 700;
+  height: 1.7em;
+  padding: 0 0.75em;
+  border: 0;
+  background: var(--surface-2);
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.fm-seg button.on { background: var(--gold); color: var(--surface-0-c); }
+.fm-link {
+  font: inherit;
+  font-weight: 400;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--ink-1);
+  cursor: pointer;
   white-space: nowrap;
 }
-.fm-sw-state { flex: none; color: var(--ink-2); font-size: var(--fs-xs); }
-.fm-sw.on .fm-sw-state { color: var(--gold); }
-.fm-bm-list {
-  overflow-y: auto;
-  max-height: min(26em, 60vh);
-  display: flex;
-  flex-direction: column;
-}
-.fm-folder, .fm-bm {
-  font: inherit;
-  text-align: left;
-  background: transparent;
-  border: 0;
-  cursor: pointer;
-  color: var(--ink-0);
+.fm-link:hover { color: var(--ink-0); text-decoration: underline; }
+.fm-hint {
+  margin: 0;
+  padding: 0 0.45em 0.25em;
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
 }
 .fm-folder {
+  font: inherit;
   display: flex;
   align-items: center;
   gap: 0.45em;
-  padding: 0.4em 0.7em;
-  font-size: var(--fs-sm);
-  color: var(--ink-1);
+  min-height: 1.9em;
+  padding: 0 0.75em;
+  border: 0;
+  background: transparent;
+  color: var(--ink-2);
+  font-size: var(--fs-xs);
+  text-align: left;
+  cursor: pointer;
 }
 .fm-folder:hover { color: var(--ink-0); }
 .fm-caret { width: 0.8em; color: var(--ink-3); }
-.fm-folder-name { flex: 1; font-weight: 600; }
+.fm-folder-name { flex: 1; }
 .fm-count { color: var(--ink-3); }
-.fm-bm {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15em;
-  padding: 0.45em 0.7em;
-  min-height: 3em;
-}
-.fm-bm.nested { padding-left: 1.9em; }
-.fm-bm:hover:not(:disabled) { background: var(--surface-hover); }
-.fm-bm:disabled { opacity: 0.6; cursor: progress; }
-.fm-bm-line { display: flex; gap: 0.6em; width: 100%; }
-.fm-bm-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.fm-bm-key { color: var(--ink-3); font-size: var(--fs-xs); font-family: var(--font-mono); }
-.fm-bm-query {
-  width: 100%;
-  color: var(--ink-2);
-  font-size: var(--fs-xs);
-  font-family: var(--font-mono);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 .fm-empty, .fm-notice {
   margin: 0;
-  padding: 0.4em 0.7em;
+  padding: 0.4em 0.75em;
   font-size: var(--fs-sm);
   color: var(--ink-2);
 }
-.fm-notice { border-top: 1px solid var(--edge-0); color: var(--ok); }
-.fm-sheet { padding: 0.6em; gap: 0.45em; }
+.fm-notice { flex: none; border-top: 1px solid var(--edge-0); color: var(--ok); }
+
+/* 工具 */
+.fm-tools { display: flex; gap: 0.45em; padding: 0 0.15em; }
+.fm-tool {
+  font: inherit;
+  font-size: var(--fs-sm);
+  flex: 1;
+  min-width: 0;
+  min-height: 3.3em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45em;
+  padding: 0 0.4em;
+  border: 1px solid var(--edge-0);
+  border-radius: var(--radius-l);
+  background: var(--surface-2);
+  color: var(--ink-1);
+  cursor: pointer;
+}
+.fm-tool:hover { background: var(--surface-hover); color: var(--ink-0); }
+.fm-tool.on { color: var(--gold); border-color: color-mix(in srgb, var(--gold) 60%, transparent); background: var(--gold-soft); }
+.fm-tool.sel { box-shadow: inset 0 0 0 1px var(--gold); }
+.fm-tool span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.fm-foot {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 1em;
+  min-height: 2.7em;
+  padding: 0 1em;
+  border-top: 1px solid var(--edge-0);
+  background: var(--surface-0);
+  font-size: var(--fs-xs);
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+/* 速查表 */
+.fm-sheet { display: flex; flex-direction: column; gap: 0.45em; padding: 0.6em 0.15em 0; }
+.fm-sheet .fm-hint { padding: 0; }
 .fm-thumb {
   padding: 0;
   height: 9.5em;
   border: 1px solid var(--edge-1);
-  border-radius: var(--radius-s);
+  border-radius: var(--radius-m);
   background: var(--surface-0);
   overflow: hidden;
   cursor: zoom-in;
@@ -622,7 +969,6 @@ onUnmounted(() => {
   text-align: center;
   color: var(--ink-1);
 }
-.fm-sheet-empty .fm-hint { flex: none; }
 .fm-zoom {
   position: absolute;
   z-index: 57;
@@ -659,6 +1005,6 @@ onUnmounted(() => {
 .fm-rz.rz-ne { top: 0; right: 0; width: 12px; height: 12px; }
 .fm-rz.rz-sw { bottom: 0; left: 0; width: 12px; height: 12px; }
 .fm-rz.rz-se { bottom: 0; right: 0; width: 12px; height: 12px; }
-.fm-zoom-head .fm-hint { text-align: right; }
+.fm-zoom-head .fm-hint { flex: 1; text-align: right; padding: 0; }
 .fm-zoom-img { flex: 1; min-height: 0; width: 100%; object-fit: contain; }
 </style>

@@ -10,6 +10,9 @@ import { decodeFamilyFromSource as decodeMercenarySupports, SearchMode as MercSe
 import { RateLimiter } from './RateLimiter'
 import { ModifierType } from '@/parser/modifiers'
 import { Cache } from './Cache'
+// exile-appraiser(2026-10-15):查價結果懸停浮窗(PoE1 版,移植 EE2 MIT;只加 displayItem,不動查詢組法)
+import { parseFetchItem, type DisplayItem, type FetchItem } from './display-item'
+import { displayZhFor } from './display-zh'
 
 export const CATEGORY_TO_TRADE_ID = new Map([
   [ItemCategory.Map, 'map'],
@@ -227,17 +230,20 @@ export interface SearchResult {
 
 interface FetchResult {
   id: string
-  item: {
+  // exile-appraiser(2026-10-15):浮窗要用的其餘欄位見 display-item.ts 的 FetchItem
+  item: FetchItem & {
     ilvl?: number
     stackSize?: number
     corrupted?: boolean
     properties?: Array<{
+      name: string
       values: [[string, number]]
-      type:
+      type?:
       78 | // Corpse Level (Filled Coffin)
       30 | // Spawns a Level %0 Monster when Harvested
       6 | // Quality
-      5 // Level
+      5 | // Level
+      number
     }>
     note?: string
   }
@@ -269,6 +275,8 @@ export interface PricingResult {
   accountName: string
   accountStatus: 'offline' | 'online' | 'afk'
   ign: string
+  // exile-appraiser(2026-10-15):懸停浮窗的物品資料(國際服 + 介面繁中時已換成繁中,display-zh.ts)
+  displayItem?: DisplayItem
 }
 
 export function createTradeRequest (filters: ItemFilters, stats: FilterOrGroup[]) {
@@ -861,7 +869,17 @@ export async function requestResults (
     cache.set<FetchResult[]>([ctx.realm, resultIds], data, Cache.deriveTtl(...RATE_LIMIT_RULES.SEARCH, ...RATE_LIMIT_RULES.FETCH))
   }
 
+  // exile-appraiser(2026-10-15):國際服 + 介面語言繁中 + 浮窗不是「關閉」→ 浮窗文字換繁中(不 await;資料還沒載好這次英文)
+  const toZh = displayZhFor(ctx.realm)
+
   return data.map<PricingResult>(result => {
+    let displayItem: DisplayItem | undefined
+    try {
+      displayItem = parseFetchItem(result.item)
+      if (displayItem && toZh) displayItem = toZh(displayItem, result.item)
+    } catch (e) {
+      console.error('[trade] 懸停浮窗物品資料解析失敗:', e)
+    }
     return {
       id: result.id,
       itemLevel: result.item.properties?.find(prop => prop.type === 78)?.values[0][0] ?? String(result.item.ilvl),
@@ -881,7 +899,8 @@ export async function requestResults (
         ? 'online'
         : result.listing.account.online
           ? (result.listing.account.online.status === 'afk' ? 'afk' : 'online')
-          : 'offline'
+          : 'offline',
+      displayItem
     }
   })
 }

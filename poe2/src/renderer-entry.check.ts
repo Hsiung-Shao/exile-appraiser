@@ -27,4 +27,6 @@ export const conforms: {
   summarizeRuneTrade: typeof decl.summarizeRuneTrade
   createRuneTradeQueue: typeof decl.createRuneTradeQueue
   withRuneTrade429: typeof decl.withRuneTrade429
+  // 2026-10-15 懸浮選單限流點
+  poe2TradeSession: typeof decl.poe2TradeSession
 } = real

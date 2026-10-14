@@ -1,0 +1,701 @@
+{
+  "schema": 1,
+  "source": {
+    "tables": "itemclasses(Name)+ clientstrings(Text,白名單)",
+    "sha256": {
+      "itemclasses": "e6e2840fd3b77a403591ed0ae5ef0687e6f9c44dee42bfdc0d256aafc8c79348",
+      "clientstrings": "f6ed571c54a4ecf82386628883eaf4d70a04c6e16ea6749ea77a9fd82f319b9f"
+    },
+    "ggpkVersion": "3.29.0.1",
+    "extractedAt": "2026-08-22T03:25:47+00:00"
+  },
+  "classes": [
+    {
+      "id": "AbyssJewel",
+      "en": "Abyss Jewels",
+      "zh": "深淵珠寶"
+    },
+    {
+      "id": "Active Skill Gem",
+      "en": "Skill Gems",
+      "zh": "技能寶石"
+    },
+    {
+      "id": "Amulet",
+      "en": "Amulets",
+      "zh": "項鍊"
+    },
+    {
+      "id": "AnimalCharm",
+      "en": "Charms",
+      "zh": "咒語"
+    },
+    {
+      "id": "ArchnemesisMod",
+      "en": "Archnemesis Mods",
+      "zh": "宿敵詞綴"
+    },
+    {
+      "id": "AtlasRelic",
+      "en": "Idols",
+      "zh": "魔偶"
+    },
+    {
+      "id": "AtlasUpgradeItem",
+      "en": "Atlas Upgrade Items",
+      "zh": "輿圖升級道具"
+    },
+    {
+      "id": "Belt",
+      "en": "Belts",
+      "zh": "腰帶"
+    },
+    {
+      "id": "Body Armour",
+      "en": "Body Armours",
+      "zh": "胸甲"
+    },
+    {
+      "id": "Boots",
+      "en": "Boots",
+      "zh": "鞋子"
+    },
+    {
+      "id": "Bow",
+      "en": "Bows",
+      "zh": "弓"
+    },
+    {
+      "id": "Breachstone",
+      "en": "Breachstones",
+      "zh": "裂痕石"
+    },
+    {
+      "id": "BrequelFruit",
+      "en": "Wombgifts",
+      "zh": "胎贈"
+    },
+    {
+      "id": "Claw",
+      "en": "Claws",
+      "zh": "爪"
+    },
+    {
+      "id": "CocoonedItem",
+      "en": "Enshrouded Items",
+      "zh": "壟罩物品"
+    },
+    {
+      "id": "Currency",
+      "en": "Currency",
+      "zh": "通貨"
+    },
+    {
+      "id": "Dagger",
+      "en": "Daggers",
+      "zh": "匕首"
+    },
+    {
+      "id": "DeepwaterChart",
+      "en": "Chart",
+      "zh": "海圖"
+    },
+    {
+      "id": "DelveSocketableCurrency",
+      "en": "Delve Socketable Currency",
+      "zh": "掘獄插槽通貨"
+    },
+    {
+      "id": "DelveStackableSocketableCurrency",
+      "en": "Delve Stackable Socketable Currency",
+      "zh": "掘獄可堆疊有插槽通貨"
+    },
+    {
+      "id": "DivinationCard",
+      "en": "Divination Cards",
+      "zh": "命運卡"
+    },
+    {
+      "id": "ExpeditionLogbook",
+      "en": "Expedition Logbooks",
+      "zh": "探險日誌"
+    },
+    {
+      "id": "FishingRod",
+      "en": "Fishing Rods",
+      "zh": "魚竿"
+    },
+    {
+      "id": "Gloves",
+      "en": "Gloves",
+      "zh": "手套"
+    },
+    {
+      "id": "Gold",
+      "en": "Gold",
+      "zh": "金幣"
+    },
+    {
+      "id": "HeistBlueprint",
+      "en": "Blueprints",
+      "zh": "藍圖"
+    },
+    {
+      "id": "HeistContract",
+      "en": "Contracts",
+      "zh": "契約書"
+    },
+    {
+      "id": "HeistEquipmentReward",
+      "en": "Heist Brooches",
+      "zh": "劫盜胸針"
+    },
+    {
+      "id": "HeistEquipmentTool",
+      "en": "Heist Tools",
+      "zh": "劫盜工具"
+    },
+    {
+      "id": "HeistEquipmentUtility",
+      "en": "Heist Cloaks",
+      "zh": "劫盜披風"
+    },
+    {
+      "id": "HeistEquipmentWeapon",
+      "en": "Heist Gear",
+      "zh": "劫盜裝備"
+    },
+    {
+      "id": "HeistObjective",
+      "en": "Heist Targets",
+      "zh": "劫盜目標"
+    },
+    {
+      "id": "Helmet",
+      "en": "Helmets",
+      "zh": "頭部"
+    },
+    {
+      "id": "HiddenItem",
+      "en": "Hidden Items",
+      "zh": "隱藏道具"
+    },
+    {
+      "id": "HideoutDoodad",
+      "en": "Hideout Doodads",
+      "zh": "藏身處裝飾"
+    },
+    {
+      "id": "HybridFlask",
+      "en": "Hybrid Flasks",
+      "zh": "複合藥劑"
+    },
+    {
+      "id": "Incubator",
+      "en": "Incubators",
+      "zh": "培育器"
+    },
+    {
+      "id": "IncubatorStackable",
+      "en": "Incubators",
+      "zh": "培育器"
+    },
+    {
+      "id": "IncursionItem",
+      "en": "Incursion Items",
+      "zh": "穿越物品"
+    },
+    {
+      "id": "InstanceLocalItem",
+      "en": "Instance Local Items",
+      "zh": "地區物品"
+    },
+    {
+      "id": "ItemisedCorpse",
+      "en": "Corpses",
+      "zh": "屍體"
+    },
+    {
+      "id": "ItemisedSanctum",
+      "en": "Sanctum Research",
+      "zh": "聖域研究"
+    },
+    {
+      "id": "Jewel",
+      "en": "Jewels",
+      "zh": "珠寶"
+    },
+    {
+      "id": "LabyrinthItem",
+      "en": "Labyrinth Items",
+      "zh": "迷宮物品"
+    },
+    {
+      "id": "LabyrinthMapItem",
+      "en": "Labyrinth Map Items",
+      "zh": "異界迷宮物品"
+    },
+    {
+      "id": "LabyrinthTrinket",
+      "en": "Labyrinth Trinkets",
+      "zh": "迷宮飾品"
+    },
+    {
+      "id": "LargeRelic",
+      "en": "Large Relics",
+      "zh": "大型聖物"
+    },
+    {
+      "id": "Leaguestone",
+      "en": "Leaguestones",
+      "zh": "聯盟石"
+    },
+    {
+      "id": "LifeFlask",
+      "en": "Life Flasks",
+      "zh": "生命藥劑"
+    },
+    {
+      "id": "ManaFlask",
+      "en": "Mana Flasks",
+      "zh": "魔力藥劑"
+    },
+    {
+      "id": "Map",
+      "en": "Maps",
+      "zh": "異界地圖"
+    },
+    {
+      "id": "MapFragment",
+      "en": "Map Fragments",
+      "zh": "地圖碎片"
+    },
+    {
+      "id": "MapKey",
+      "en": "Maps",
+      "zh": "地圖"
+    },
+    {
+      "id": "MediumRelic",
+      "en": "Medium Relics",
+      "zh": "中型聖物"
+    },
+    {
+      "id": "MemoryLine",
+      "en": "Memories",
+      "zh": "記憶"
+    },
+    {
+      "id": "MetamorphosisDNA",
+      "en": "Metamorph Samples",
+      "zh": "鍊魔樣本"
+    },
+    {
+      "id": "Microtransaction",
+      "en": "Microtransactions",
+      "zh": "商城物品"
+    },
+    {
+      "id": "MiscMapItem",
+      "en": "Misc Map Items",
+      "zh": "其它"
+    },
+    {
+      "id": "NecropolisPack",
+      "en": "Embers of the Allflame",
+      "zh": "不滅之火餘燼"
+    },
+    {
+      "id": "One Hand Axe",
+      "en": "One Hand Axes",
+      "zh": "單手斧"
+    },
+    {
+      "id": "One Hand Mace",
+      "en": "One Hand Maces",
+      "zh": "單手錘"
+    },
+    {
+      "id": "One Hand Sword",
+      "en": "One Hand Swords",
+      "zh": "單手劍"
+    },
+    {
+      "id": "PantheonSoul",
+      "en": "Pantheon Souls",
+      "zh": "眾神之魂"
+    },
+    {
+      "id": "QuestItem",
+      "en": "Quest Items",
+      "zh": "任務物品"
+    },
+    {
+      "id": "Quiver",
+      "en": "Quivers",
+      "zh": "箭袋"
+    },
+    {
+      "id": "Relic",
+      "en": "Relics",
+      "zh": "聖物"
+    },
+    {
+      "id": "Ring",
+      "en": "Rings",
+      "zh": "戒指"
+    },
+    {
+      "id": "Rune Dagger",
+      "en": "Rune Daggers",
+      "zh": "符紋匕首"
+    },
+    {
+      "id": "SanctumSpecialRelic",
+      "en": "Sanctified Relics",
+      "zh": "神化聖物"
+    },
+    {
+      "id": "Sceptre",
+      "en": "Sceptres",
+      "zh": "權杖"
+    },
+    {
+      "id": "SentinelDrone",
+      "en": "Sentinels",
+      "zh": "守望號令"
+    },
+    {
+      "id": "Shield",
+      "en": "Shields",
+      "zh": "盾"
+    },
+    {
+      "id": "SmallRelic",
+      "en": "Small Relics",
+      "zh": "小型聖物"
+    },
+    {
+      "id": "StackableCurrency",
+      "en": "Stackable Currency",
+      "zh": "可堆疊通貨"
+    },
+    {
+      "id": "Staff",
+      "en": "Staves",
+      "zh": "長杖"
+    },
+    {
+      "id": "Support Skill Gem",
+      "en": "Support Gems",
+      "zh": "輔助寶石"
+    },
+    {
+      "id": "Thrusting One Hand Sword",
+      "en": "Thrusting One Hand Swords",
+      "zh": "細劍"
+    },
+    {
+      "id": "Tincture",
+      "en": "Tinctures",
+      "zh": "萃取物"
+    },
+    {
+      "id": "Trinket",
+      "en": "Trinkets",
+      "zh": "飾品"
+    },
+    {
+      "id": "Two Hand Axe",
+      "en": "Two Hand Axes",
+      "zh": "雙手斧"
+    },
+    {
+      "id": "Two Hand Mace",
+      "en": "Two Hand Maces",
+      "zh": "雙手錘"
+    },
+    {
+      "id": "Two Hand Sword",
+      "en": "Two Hand Swords",
+      "zh": "雙手劍"
+    },
+    {
+      "id": "UniqueFragment",
+      "en": "Pieces",
+      "zh": "碎片"
+    },
+    {
+      "id": "UniqueShard",
+      "en": "Shards",
+      "zh": "碎片"
+    },
+    {
+      "id": "UniqueShardBase",
+      "en": "Shard Hearts",
+      "zh": "碎片之心"
+    },
+    {
+      "id": "UtilityFlask",
+      "en": "Utility Flasks",
+      "zh": "功能藥劑"
+    },
+    {
+      "id": "UtilityFlaskCritical",
+      "en": "Critical Utility Flasks",
+      "zh": "暴擊藥劑"
+    },
+    {
+      "id": "VaultKey",
+      "en": "Vault Keys",
+      "zh": "遺鑰"
+    },
+    {
+      "id": "Wand",
+      "en": "Wands",
+      "zh": "法杖"
+    },
+    {
+      "id": "Warstaff",
+      "en": "Warstaves",
+      "zh": "征戰長杖"
+    }
+  ],
+  "strings": [
+    {
+      "id": "DexterityShort",
+      "en": "Dex",
+      "zh": "敏捷"
+    },
+    {
+      "id": "Experience",
+      "en": "Experience",
+      "zh": "經驗值"
+    },
+    {
+      "id": "IntelligenceShort",
+      "en": "Int",
+      "zh": "智慧"
+    },
+    {
+      "id": "ItemDisplayArmourArmour",
+      "en": "Armour",
+      "zh": "護甲"
+    },
+    {
+      "id": "ItemDisplayArmourEnergyShield",
+      "en": "Energy Shield",
+      "zh": "能量護盾"
+    },
+    {
+      "id": "ItemDisplayArmourEvasionRating",
+      "en": "Evasion Rating",
+      "zh": "閃避值"
+    },
+    {
+      "id": "ItemDisplayArmourWard",
+      "en": "Ward",
+      "zh": "保護"
+    },
+    {
+      "id": "ItemDisplayMapPackSizeIncrease",
+      "en": "Monster Pack Size",
+      "zh": "怪物群大小"
+    },
+    {
+      "id": "ItemDisplayMapQuantityIncrease",
+      "en": "Item Quantity",
+      "zh": "物品數量"
+    },
+    {
+      "id": "ItemDisplayMapRarityIncrease",
+      "en": "Item Rarity",
+      "zh": "物品稀有度"
+    },
+    {
+      "id": "ItemDisplayMapTier",
+      "en": "Map Tier",
+      "zh": "地圖階級"
+    },
+    {
+      "id": "ItemDisplayShieldBlockChance",
+      "en": "Chance to Block",
+      "zh": "格擋率"
+    },
+    {
+      "id": "ItemDisplaySkillGemCastTime",
+      "en": "Cast Time",
+      "zh": "施放時間"
+    },
+    {
+      "id": "ItemDisplaySkillGemCooldownTime",
+      "en": "Cooldown Time",
+      "zh": "冷卻時間"
+    },
+    {
+      "id": "ItemDisplaySkillGemCriticalStrikeChance",
+      "en": "Critical Strike Chance",
+      "zh": "暴擊率"
+    },
+    {
+      "id": "ItemDisplaySkillGemDamageEffectiveness",
+      "en": "Effectiveness of Added Damage",
+      "zh": "附加傷害效用"
+    },
+    {
+      "id": "ItemDisplaySkillGemManaCost",
+      "en": "Cost",
+      "zh": "消耗"
+    },
+    {
+      "id": "ItemDisplaySkillGemManaReserved",
+      "en": "Reservation",
+      "zh": "保留"
+    },
+    {
+      "id": "ItemDisplayStackSize",
+      "en": "Stack Size",
+      "zh": "堆疊數量"
+    },
+    {
+      "id": "ItemDisplayStringItemLevel",
+      "en": "Item Level",
+      "zh": "物品等級"
+    },
+    {
+      "id": "ItemDisplayStringSockets",
+      "en": "Sockets",
+      "zh": "插槽"
+    },
+    {
+      "id": "ItemDisplayWeaponAttacksPerSecond",
+      "en": "Attacks per Second",
+      "zh": "每秒攻擊次數"
+    },
+    {
+      "id": "ItemDisplayWeaponChaosDamage",
+      "en": "Chaos Damage",
+      "zh": "混沌傷害"
+    },
+    {
+      "id": "ItemDisplayWeaponCriticalStrikeChance",
+      "en": "Critical Strike Chance",
+      "zh": "暴擊率"
+    },
+    {
+      "id": "ItemDisplayWeaponElementalDamage",
+      "en": "Elemental Damage",
+      "zh": "元素傷害"
+    },
+    {
+      "id": "ItemDisplayWeaponPhysicalDamage",
+      "en": "Physical Damage",
+      "zh": "物理傷害"
+    },
+    {
+      "id": "ItemPopupCorrupted",
+      "en": "Corrupted",
+      "zh": "已汙染"
+    },
+    {
+      "id": "ItemPopupCrusaderItem",
+      "en": "Crusader Item",
+      "zh": "聖戰軍王物品"
+    },
+    {
+      "id": "ItemPopupEaterofWorldsItem",
+      "en": "Eater of Worlds Item",
+      "zh": "吞噬天地物品"
+    },
+    {
+      "id": "ItemPopupElderItem",
+      "en": "Elder Item",
+      "zh": "尊師之物"
+    },
+    {
+      "id": "ItemPopupFracturedItem",
+      "en": "Fractured Item",
+      "zh": "破裂之物"
+    },
+    {
+      "id": "ItemPopupHunterItem",
+      "en": "Hunter Item",
+      "zh": "狩獵者物品"
+    },
+    {
+      "id": "ItemPopupMirrored",
+      "en": "Mirrored",
+      "zh": "已複製"
+    },
+    {
+      "id": "ItemPopupRedeemerItem",
+      "en": "Redeemer Item",
+      "zh": "救贖者物品"
+    },
+    {
+      "id": "ItemPopupSearingExarchItem",
+      "en": "Searing Exarch Item",
+      "zh": "卓烙總督物品"
+    },
+    {
+      "id": "ItemPopupShaperItem",
+      "en": "Shaper Item",
+      "zh": "塑者之物"
+    },
+    {
+      "id": "ItemPopupSplit",
+      "en": "Split",
+      "zh": "分化"
+    },
+    {
+      "id": "ItemPopupSynthesisedItem",
+      "en": "Synthesised Item",
+      "zh": "追憶之物"
+    },
+    {
+      "id": "ItemPopupUnidentified",
+      "en": "Unidentified",
+      "zh": "未鑑定"
+    },
+    {
+      "id": "ItemPopupUnmodifiable",
+      "en": "Unmodifiable",
+      "zh": "不可調整的"
+    },
+    {
+      "id": "ItemPopupWarlordItem",
+      "en": "Warlord Item",
+      "zh": "總督軍物品"
+    },
+    {
+      "id": "ItemRequirementsLabel",
+      "en": "Requires",
+      "zh": "需求"
+    },
+    {
+      "id": "JewelItemLimit",
+      "en": "Limited to",
+      "zh": "僅限"
+    },
+    {
+      "id": "JewelRadiusLabel",
+      "en": "Radius",
+      "zh": "範圍"
+    },
+    {
+      "id": "Level",
+      "en": "Level",
+      "zh": "等級"
+    },
+    {
+      "id": "Quality",
+      "en": "Quality",
+      "zh": "品質"
+    },
+    {
+      "id": "StrengthShort",
+      "en": "Str",
+      "zh": "力量"
+    }
+  ]
+}

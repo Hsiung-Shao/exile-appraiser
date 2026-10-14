@@ -91,7 +91,7 @@
 - 上游缺交易 id 還缺 42 條,清單在 `ee2-patched/ee2-交易id缺口清單.md` 與 `poe2/test/zhTW/dataset-invariants.test.ts` 的 `KNOWN_STAT_GAPS`。
 
 ## 物品浮窗(結果列滑鼠懸停,2026-10-01 第 14 步)
-- 元件(`TradeItem.vue` / `TooltipItem.vue` / `UiDetailedItemImg.vue`、`pathofexile-trade.ts` `parseFetchResult` / `getTier`)原本就已移植;補的是設定頁選項(設定 › 查價,**只在 PoE2 顯示**,`renderer/src/web/settings/tabs/PriceCheck.vue` + `price-check-options.ts`;三選一 關閉 / SHIFT + 懸停 / 始終懸停顯示,預設 keybind,綁 `priceCheck.itemHoverTooltip`,字串 `ppz.item_hover*`)與上表第 14 項的掛點修正。
+- 元件(`TradeItem.vue` / `TooltipItem.vue` / `UiDetailedItemImg.vue`、`pathofexile-trade.ts` `parseFetchResult` / `getTier`)原本就已移植;補的是設定頁選項(設定 › 查價,**只在 PoE2 顯示**(2026-10-15 起 PoE1 也有浮窗、兩代都顯示,見下「PoE1 查價結果懸停浮窗」),`renderer/src/web/settings/tabs/PriceCheck.vue` + `price-check-options.ts`;三選一 關閉 / SHIFT + 懸停 / 始終懸停顯示,預設 keybind,綁 `priceCheck.itemHoverTooltip`,字串 `ppz.item_hover*`)與上表第 14 項的掛點修正。
 - 切換選項要重新查價(新結果列)才生效:tippy 在列 mounted 時依當時設定建立(與 EE2 相同)。
 - 資源:`/images/item-display/*.png` 24 張、`/images/augments/*` 皆在 `renderer/public/images/`;`item.*` 字串在 `data/poe2/<lang>/app_i18n.json`。上游缺 `item.duplicates`(繁中,會退回英文)與 `item.map_item_quantity`(程式裡已註解掉),資料單向同步不手補。物品圖示是 `web.poecdn.com` 外部圖。
 - 驗證:node 單元測試 `renderer/test/price-check-options.test.ts`;畫面以無頭 Chrome + 假 `window.host`(錄製的 `poe2/test/docs/fetchResponses*.json` 當 search / fetch 回應)驗過 overlay / window 模式、背景開關、淺色主題、三種選項。
@@ -116,6 +116,26 @@
   - 需求行:依 `requirements[].type`(62 等級 / 63 力量 / 64 敏捷 / 65 智慧)取繁中 `client_strings` 的 `REQUIRES`(`需求: `)與 `REQUIRES_LINE` 裡的字 → `需求: 等級 ` + `80, 67 力量, 67 敏捷`;有未知 type 整行保留英文。
   - 三份補充資料各自載入,失敗只記錄、該部分維持英文。測試 `poe2/test/web/price-check/trade/display-zh-props.test.ts`。
   - **啟動後預先載入(2026-10-15,使用者回報重啟後第一次查價浮窗全英文)**:`scheduleDisplayZhPreload(realm)`(`@poe2-entry` 匯出),renderer `main.ts` 在 PoE2 資料載好後與 遊戲 / 資料語言 / 伺服器 / 介面語言 / 浮窗設定 改變時呼叫;符合翻譯條件且還沒載才排到 `requestIdleCallback`(最多等 5 秒;沒有就 `setTimeout` 2 秒),不拖慢啟動。查價時的背景載入仍是後備。量測(Node,同一份資料):整份載入約 50 ms、常駐約 6 MB(客戶端繁中時重用記憶體裡的 stats / items,增加更少);翻 21 件約 9 ms(第一次編 RegExp)/ 2.4 ms —— 與使用者 log 的記憶體 560 MB → 1.1 GB、1.4 秒 longtask 不在同一量級,不是它造成。
+
+## PoE1 查價結果懸停浮窗(2026-10-15,計畫 `cheerful-riding-pearl.md`「二」)
+- PoE1 原本沒有浮窗;移植 EE2(MIT)的 `TooltipItem.vue` / `TradeItem.vue` tippy 設定與 `parseFetchResult` / `parseModBlock` / `getTier`,改寫成 PoE1 版:
+  `poe1/src/web/price-check/trade/display-item.ts`(`parseFetchItem`:PoE1 `frameType` → 稀有度、新格式詞綴依 `domain` 分到破裂 / 隨機 / 工藝區、舊格式字串以 `extended.hashes` 取 tier 與 trade id、
+  勢力 / 破裂 / 追憶 / 分化 / 汙染 / 複製 / 未鑑定 → 底部標籤、插槽 `B-G B`、多值屬性各自上色;每行帶語言無關的 `key` 與 `tradeId`)、
+  `TooltipItem.vue`(物品卡片;插槽以文字行顯示,不疊在圖示上 —— PoE1 插槽是顏色 + 連線,與 PoE2 `UiDetailedItemImg` 的符文插槽不同,故不共用)、
+  `TradeItem.vue`(一筆掛單:長條 `<tr>` / 方塊 `.listing-tile` 原本寫在 TradeListing,搬過來並持有 tippy;設定照 PoE2:interactive、left、`appendTo` body、flip 後備;
+  `itemHoverTooltip` off = 不建 tippy 也不畫掛點、keybind = 按住 Shift 才啟用、always)。合併掛單顯示 `groupedResults` 第一筆的物品。
+- `pathofexile-trade.ts`:`FetchResult.item` 加 `FetchItem` 型別、`PricingResult.displayItem`、`requestResults` 解析(try / catch,失敗只記錄);**查詢組法不動**(golden-query 0 差異)。
+- 繁中化 `poe1/.../trade/display-zh.ts`:演算法同上一節(PoE2 耦合點 15),改接 PoE1:`stats.ndjson` 有群組 → 攤平;
+  台服交易站快照 `data/poe1/trade/tw/stats.json`(`node scripts/fetch-poe1-trade-data.mjs`,2026-10-15 抓一次,2.6 MB / 17757 條)當同旗標多寫法的決勝;
+  類別行 / 屬性名 / 物品等級 / 插槽 / 需求行 / 底部標籤 → `data/poe1/item-classes/item-classes.json`(`node scripts/sync-poe1-item-classes.mjs --from ../Pob2/pob-zh-engine`:
+  PoE1 GGPK `itemclasses` + `clientstrings` 白名單,GGPK 3.29.0.1)。PoE1 client_strings 沒有 `REQUIRES`,需求行改用 GGPK `ItemRequirementsLabel` / `Level` / `StrengthShort`…;
+  依 `requirements[].type` 重組成 `需求 等級 68, 103 敏捷`。PoE1 `@/assets/data` 沒有 `LOADED_DATA` → 用 `ACTIVE_LANG` + `STATS_ITERATOR` / `ITEMS_ITERATOR` 重用目前繫結的語系。
+  宿主注入 `configureDisplayZh({ options, source })`(renderer `main.ts`;CLI / 測試不注入 = 不翻),idle 預載 `scheduleDisplayZhPreload` 同 PoE2(`main.ts` 的 watch 擴及 PoE1)。
+- 設定 › 查價「滑鼠懸停顯示物品」兩代都顯示(`hasItemHover` 一律 true)。
+- 錄製:`poe1/test/docs/fetchResponses.json`(`node scripts/record-poe1-fetch.mjs`,2026-10-15 國際服 Standard 實查 6 類 × 2 件:稀有戒指 / 傳奇金縷帽 / 電弧寶石 / 破裂手套 / 工藝弓 / 塑者胸甲;
+  已剝帳號名 / 角色名(→ sellerN)、whisper、倉庫、非標價備註)。覆蓋率:有 trade id 的詞綴 55 / 55 行全翻;寶石詞綴(回應沒有 hash)6 行保留英文、寶石標籤行與寶石屬性值(`20 (Max)`、`29 Mana`)保留英文。
+- 測試:`poe1/test/display-item.test.ts`(P1)、`poe1/test/display-zh.test.ts`(P3–P5)、`renderer/test-vue/poe1-item-tooltip-mount.test.ts`(P6)、`renderer/test/price-check-options.test.ts`(P7)。
+  **待使用者實機確認**:真實 overlay 浮窗位置、Shift 模式、繁中化結果與圖示載入。
 
 ## 通貨價格區(2026-10-02 第 24 步,使用者要求 PoE1 / PoE2 都要有)
 - 元件:PoE2 `web/price-check/trends/PriceTrend.vue`、`stack-value/StackValue.vue`、`web/ui/CoreCurrencyImg.vue`(EE2 移植,檔頭 MIT 出處);PoE1 同名兩檔在 `poe1/src/web/price-check/{trends,expected-value}/`(APT 移植 + EE2 的成交量區塊)。兩代 `CheckedItem.vue` 把它們掛回原位(filter-name 之後 / 搜尋鈕與結果之後)。

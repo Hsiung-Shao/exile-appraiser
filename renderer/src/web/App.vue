@@ -237,6 +237,7 @@ import { AppConfig } from './Config'
 import { Host } from './background/IPC'
 import { openTradeSite } from './trade-site'
 import { useLeagues } from './background/Leagues'
+import { useRateLimitWait } from './background/rate-limit-wait'
 import { REALMS, isSupportedCombination } from '@exile-appraiser/core/realm'
 import { reloadPhase, reloadError, retryReload } from './loadState'
 import { reportIssue, copyIssueReport, reportStatus, type ReportContext } from './report'
@@ -268,7 +269,8 @@ export default defineComponent({
     /** 2026-10-08:APT 式懸浮選單(overlay 限定;overlay/FloatMenu.vue) */
     const floatMenuOpen = shallowRef(false)
     const itemKey = shallowRef(0)
-    const rateLimitWait = shallowRef(0)
+    // 429 Retry-After:面板頂端 --warn 細條倒數;2026-10-15 提升成共用(懸浮選單標題列的限流點也用)
+    const rateLimitWait = useRateLimitWait()
     // ---- overlay 狀態(APT WidgetManager 的最小子集) ----
     const panelShown = shallowRef(false)
     const advancedCheck = shallowRef(false)
@@ -526,7 +528,6 @@ export default defineComponent({
       }
     }
 
-    let waitTimer: ReturnType<typeof setInterval> | null = null
     // WP-S2:開框選層(設定頁按鈕或熱鍵)→ 關掉設定 / 查價面板,整個遊戲畫面留給框選;
     // 由設定開的,使用者確認 / 取消 / 清除後回到設定的自動辨識分頁(失焦結束的不回)
     watch(regionPickerOpen, (open) => {
@@ -564,18 +565,6 @@ export default defineComponent({
     watch(loadedGame, (game) => {
       parsed.value = null
       console.log(`[app] 已切換到 ${game}`)
-    })
-
-    // 429 Retry-After:面板頂端 --warn 細條倒數(Host.rateLimitWait 每次等待換新物件)
-    watch(Host.rateLimitWait, ({ seconds: s }) => {
-      rateLimitWait.value = s
-      if (waitTimer) clearInterval(waitTimer)
-      if (s > 0) {
-        waitTimer = setInterval(() => {
-          rateLimitWait.value = Math.max(0, rateLimitWait.value - 1)
-          if (rateLimitWait.value === 0 && waitTimer) { clearInterval(waitTimer); waitTimer = null }
-        }, 1000)
-      }
     })
 
     watch(reportStatus, (s) => {

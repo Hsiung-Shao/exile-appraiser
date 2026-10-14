@@ -6,6 +6,7 @@ import { Host } from './web/background/IPC'
 import { useLeagues } from './web/background/Leagues'
 import { poe1Adapter, browserDataSource } from '@exile-appraiser/poe1'
 import { setTradeContextProvider } from '@/web/price-check/trade/common'
+import { configureDisplayZh as configurePoe1DisplayZh, scheduleDisplayZhPreload as schedulePoe1DisplayZhPreload } from '@/web/price-check/trade/display-zh'
 import * as Poe2 from '@poe2-entry'
 import type { Game, Language } from '@exile-appraiser/core/realm'
 import type { TradeContext } from '@exile-appraiser/core/games/adapter'
@@ -97,8 +98,17 @@ async function boot () {
   Poe2.setPriceSource(createPoe2PriceSource(() => usePoeninja()))
   // 2026-10-15:PoE2 查價結果懸停浮窗的繁中資料在資料載好後閒置時預先載入(原本第一次查價才背景載入 → 第一次全英文);
   // 換遊戲 / 客戶端語言(新的資料來源)/ 伺服器 / 介面語言 / 浮窗設定時重看,不符條件或已載好是 no-op
+  // 2026-10-15:PoE1 查價結果懸停浮窗也繁中化(poe1 display-zh.ts):注入設定與資料來源,預載同 PoE2
+  const poe1ZhSource = browserDataSource('./data/poe1')
+  configurePoe1DisplayZh({
+    options: () => ({ uiLanguage: AppConfig().uiLanguage, itemHoverTooltip: AppConfig().priceCheck.itemHoverTooltip }),
+    source: () => poe1ZhSource
+  })
   watch(() => [loadedGame.value, dataLanguage.value, AppConfig().realm, AppConfig().uiLanguage, AppConfig().priceCheck.itemHoverTooltip] as const,
-    ([game, , realm]) => { if (game === 'poe2') Poe2.scheduleDisplayZhPreload(realm) },
+    ([game, , realm]) => {
+      if (game === 'poe2') Poe2.scheduleDisplayZhPreload(realm)
+      else if (game === 'poe1') schedulePoe1DisplayZhPreload(realm)
+    },
     { immediate: true })
 
   // 切遊戲 / 客戶端語言:重載該遊戲的資料集(不必重啟);切遊戲或介面語言:重載 app_i18n。

@@ -22,24 +22,8 @@
       <div v-if="layout === 'grid'" class="listing-grid" data-listing-layout="grid">
         <template v-for="(result, idx) in groupedResults">
           <div v-if="!result" :key="idx" class="listing-tile is-placeholder"></div>
-          <div v-else :key="result.id" class="listing-tile" data-listing="item">
-            <span class="listing-price"><span :class="{ 'line-through': result.priceCurrency === 'exalted' }">{{ result.priceAmount }} {{ result.priceCurrency }}</span></span>
-            <span v-if="result.listedTimes > 2" class="listing-badge"><span class="font-sans">×</span> {{ result.listedTimes }}</span>
-            <span v-else-if="!result.hasFee" :class="$style.stashListing">
-              <img :class="$style.stashIcon" src="/images/stash.png">
-              <i v-if="!result.hasNote" class="fas fa-question" />
-            </span>
-            <span v-if="item.stackSize" class="listing-meta">{{ t('ppz.listing.stock', { n: result.stackSize }) }}</span>
-            <span v-if="filters.itemLevel" class="listing-meta">{{ t('ppz.listing.ilvl', { n: result.itemLevel }) }}</span>
-            <span v-if="item.category === 'Gem'" class="listing-meta">{{ t('ppz.listing.gem_level', { n: result.level }) }}</span>
-            <span v-if="filters.quality || item.category === 'Gem'" class="listing-meta text-blue-400">{{ t('ppz.listing.quality', { n: result.quality }) }}</span>
-            <span class="listing-time">
-              <span :class="[$style.accountStatus, $style[result.accountStatus]]"></span>
-              <span class="font-sans">{{ result.relativeDate }}</span>
-            </span>
-            <span v-if="result.isMine" class="listing-badge">{{ t('You') }}</span>
-            <span v-else-if="showSeller" class="listing-meta font-sans text-xs">{{ showSeller === 'ign' ? result.ign : result.accountName }}</span>
-          </div>
+          <!-- exile-appraiser(2026-10-15):一筆掛單抽成 TradeItem(持有懸停浮窗的 tippy) -->
+          <trade-item v-else :key="result.id" :result="result" :item="item" :filters="filters" :show-seller="showSeller" layout="grid" />
         </template>
       </div>
       <table v-else class="table-stripped w-full" data-listing-layout="list">
@@ -75,31 +59,7 @@
             <tr v-if="!result" :key="idx">
               <td colspan="100" class="text-transparent">***</td>
             </tr>
-            <tr v-else :key="result.id">
-              <td class="px-2 whitespace-nowrap">
-                <span :class="{ 'line-through': result.priceCurrency === 'exalted' }">{{ result.priceAmount }} {{ result.priceCurrency }}</span>
-                <span v-if="result.listedTimes > 2" class="rounded px-1 text-gray-800 bg-gray-400 ml-1 -mr-2"><span class="font-sans">×</span> {{ result.listedTimes }}</span>
-                <span v-else-if="!result.hasFee" :class="$style.stashListing">
-                  <img :class="$style.stashIcon" src="/images/stash.png">
-                  <i v-if="!result.hasNote" class="fas fa-question" />
-                </span>
-              </td>
-              <td v-if="item.stackSize" class="px-2 text-right">{{ result.stackSize }}</td>
-              <td v-if="filters.itemLevel" class="px-2 whitespace-nowrap text-right">{{ result.itemLevel }}</td>
-              <td v-if="item.category === 'Gem'" class="pl-2 whitespace-nowrap">{{ result.level }}</td>
-              <td v-if="filters.quality || item.category === 'Gem'" class="px-2 whitespace-nowrap text-blue-400 text-right">{{ result.quality }}</td>
-              <td class="pr-2 pl-4 whitespace-nowrap">
-                <div class="inline-flex items-center">
-                  <div :class="[$style.accountStatus, $style[result.accountStatus]]"></div>
-                  <div class="ml-1 font-sans text-xs">{{ result.relativeDate }}</div>
-                </div>
-                <span v-if="!showSeller && result.isMine" class="rounded px-1 text-gray-800 bg-gray-400 ml-1">{{ t('You') }}</span>
-              </td>
-              <td v-if="showSeller" class="px-2 whitespace-nowrap">
-                <span v-if="result.isMine" class="rounded px-1 text-gray-800 bg-gray-400">{{ t('You') }}</span>
-                <span v-else class="font-sans text-xs">{{ showSeller === 'ign' ? result.ign : result.accountName }}</span>
-              </td>
-            </tr>
+            <trade-item v-else :key="result.id" :result="result" :item="item" :filters="filters" :show-seller="showSeller" layout="list" />
           </template>
         </tbody>
       </table>
@@ -121,6 +81,7 @@
 <script lang="ts">
 // exile-appraiser: 2026-10-14 B 改版:呈現層已重寫(掛單卡標題列 + 方塊 / 長條切換;方塊 = 兩欄小卡片,長條 = 原本的表格列;
 // 搜尋 / 分組 / 查詢組法不動。setup 回傳的 list / groupedResults / error 名稱與形狀維持,CheckedItem 的價格區會讀)
+// exile-appraiser(2026-10-15):每筆掛單的長條列 / 方塊卡片搬到 TradeItem.vue(加懸停浮窗;合併掛單 = groupedResults 的第一筆)
 // exile-appraiser: 交易層 request 函式改帶 TradeContext(activeTradeContext());requestResults 不再收 opts;交易站網址的 ?q= 改 encodeURIComponent
 import { defineComponent, computed, watch, PropType, inject, shallowReactive, shallowRef } from 'vue'
 import { useI18nNs } from '@/web/i18n'
@@ -137,6 +98,7 @@ import { artificialSlowdown } from './artificial-slowdown'
 import OnlineFilter from './OnlineFilter.vue'
 import TradeLinks from './TradeLinks.vue'
 import ListingLayoutToggle from '@/web/price-panel/ListingLayoutToggle.vue'
+import TradeItem from './TradeItem.vue'
 import { useListingLayout } from '@/web/price-panel/useListingLayout'
 
 const slowdown = artificialSlowdown(900)
@@ -243,7 +205,7 @@ function useTradeApi () {
 }
 
 export default defineComponent({
-  components: { OnlineFilter, TradeLinks, UiErrorBox, ReportInline, ListingLayoutToggle },
+  components: { OnlineFilter, TradeLinks, UiErrorBox, ReportInline, ListingLayoutToggle, TradeItem },
   emits: ['reset'],
   props: {
     filters: {
@@ -323,39 +285,6 @@ export default defineComponent({
   & > div {
     @apply border-b border-gray-700;
   }
-}
-
-.accountStatus {
-  width: 0.375rem;
-  height: 0.375rem;
-  border-radius: 100%;
-
-  /* &.online {} */
-  &.offline { @apply bg-red-600; }
-  &.afk { @apply bg-orange-500; }
-}
-
-.stashListing {
-  position: relative;
-  display: inline-block;
-  @apply ml-1 -mr-1;
-
-  & > i {
-    position: absolute;
-    line-height: inherit;
-    left: 0;
-    right: 0;
-    text-align: center;
-    text-shadow: 1px 1px 1px black;
-  }
-}
-
-.stashIcon {
-  filter: grayscale(1) opacity(0.5);
-  display: inline-block;
-  max-width: none;
-  height: 1.25rem;
-  vertical-align: bottom;
 }
 
 .legacyMessage {

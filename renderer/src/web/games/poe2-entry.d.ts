@@ -10,6 +10,7 @@ import type { Result } from 'neverthrow'
 import type { DataSource, GameAdapter, PresetOptions, TradeContext } from '@exile-appraiser/core/games/adapter'
 import type { Language, Realm } from '@exile-appraiser/core/realm'
 import type { HttpFetch } from '@exile-appraiser/core/http'
+import type { RateLimiter } from '@exile-appraiser/core/http/RateLimiter'
 
 /** App.vue 只讀名稱做 log;其餘欄位原樣交給 poe2 的 CheckedItem.vue。 */
 export interface Poe2ParsedItem {
@@ -114,6 +115,8 @@ export declare function setHostOptionsProvider (next: (() => Partial<Poe2HostOpt
 export declare function setPriceSource (next: Poe2PriceSource | undefined): void
 /** 查價結果懸停浮窗繁中資料:符合條件(國際服 + 介面繁中 + 浮窗非關閉)且還沒載時排到閒置載入;回傳是否排了新的載入 */
 export declare function scheduleDisplayZhPreload (realm: string, later?: (fn: () => void) => void): boolean
+/** 2026-10-15:懸浮選單限流狀態點(poe2/src/web/price-check/trade/common.ts tradeSession 的子集) */
+export declare function poe2TradeSession (realm: Realm): { limits: { SEARCH: Set<RateLimiter>, EXCHANGE: Set<RateLimiter>, FETCH: Set<RateLimiter> } }
 export declare function parseClipboard (clipboard: string): Result<Poe2ParsedItem, string>
 export declare const CheckedItem: DefineComponent<{}, {}, any>
 /** 未鑑定傳奇:列出這個基底可能的傳奇(只有一個就自動選),選定後 emit `identify`(換好 `info` 的物品) */

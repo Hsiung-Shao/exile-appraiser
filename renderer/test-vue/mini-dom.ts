@@ -18,13 +18,19 @@ export interface MiniNode {
   /** v-model 等指令在 created 掛原生監聽(2026-10-14 詞綴卡片掛載整個 FilterModifier 才需要);不派送事件 */
   addEventListener: (type: string, fn: unknown) => void
   removeEventListener: (type: string, fn: unknown) => void
+  /** 2026-10-15 懸浮選單搜尋框 onMounted focus():記下最後被 focus 的節點(`focusedNode()`) */
+  focus: () => void
 }
+
+let focused: MiniNode | null = null
+/** 最後一個呼叫過 `focus()` 的節點 */
+export function focusedNode (): MiniNode | null { return focused }
 
 function node (tag: string, text = ''): MiniNode {
   const props: Record<string, string> = {}
   const style = { props, setProperty: (k: string, v: string) => { props[k] = v }, removeProperty: (k: string) => { delete props[k] } }
   const noop = () => {}
-  const n: MiniNode = { tag, text, attrs: {}, children: [], parent: null, style, dataset: {}, addEventListener: noop, removeEventListener: noop }
+  const n: MiniNode = { tag, text, attrs: {}, children: [], parent: null, style, dataset: {}, addEventListener: noop, removeEventListener: noop, focus: () => { focused = n } }
   // v-model 的 <select>(vModelSelect)讀 el.options
   Object.defineProperty(n, 'options', { get: () => n.children.filter(c => c.tag === 'option'), enumerable: false })
   return n

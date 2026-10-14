@@ -22,9 +22,12 @@ export const CURRENCY_VOLUME_OPTIONS: ReadonlyArray<{ value: CurrencyVolumeSetti
   { value: 'both', key: 'ppz.currency_volume_both' }
 ]
 
-/** 只有 PoE2 的結果列有物品浮窗元件(`TradeItem.vue`);PoE1 沒有,不顯示這個選項。 */
-export function hasItemHover (game: Game): boolean {
-  return game === 'poe2'
+/**
+ * 結果列的物品浮窗元件(`TradeItem.vue`):PoE2 移植自 EE2;PoE1 2026-10-15 起也有(`poe1/src/web/price-check/trade/TradeItem.vue`)。
+ * 兩代都顯示這個選項;保留函式讓之後若有遊戲沒有浮窗時可再隱藏。
+ */
+export function hasItemHover (_game: Game): boolean {
+  return true
 }
 
 /** 第 39 步:「預設價格通貨」只影響 PoE1 的初始搜尋(PoE2 的查價元件不讀這個設定)→ PoE2 不顯示。 */

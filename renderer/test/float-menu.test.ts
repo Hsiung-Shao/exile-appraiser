@@ -208,16 +208,66 @@ describe('2026-10-14:前往正則與開關列(T6 / T7 / T8)', () => {
   it('選單寬高有上限(大字級不超出畫面)', () => {
     const m = read('renderer/src/web/overlay/FloatMenu.vue')
     // 字級 40 時 21em ≈ 840px,沒上限 → 小螢幕超出
-    expect(m).toMatch(/\.fm \{[^}]*max-width: min\(21em, calc\(100vw - [^)]+\)\)/)
+    expect(m).toMatch(/\.fm \{[^}]*max-width: min\(\d+(\.\d+)?em, calc\(100vw - [^)]+\)\)/)
     expect(m).toMatch(/\.fm \{[^}]*max-height: calc\(100vh - [^;]+;/)
   })
   it('字串兩語', () => {
     for (const lang of ['cmn-Hant', 'en']) {
       const j = JSON.parse(read(`renderer/src/i18n/${lang}.json`)).ppz.menu
-      for (const k of ['goto_regex', 'toggles_poe1', 'toggles_poe2', 'tg_stash', 'tg_names', 'tg_reveal', 'tg_rune', 'on', 'off']) {
+      for (const k of ['goto_regex', 'grp_scan', 'tg_stash', 'tg_names', 'tg_reveal', 'tg_rune', 'on', 'off']) {
         expect(typeof j[k], `${lang} ${k}`).toBe('string')
         expect(j[k], k).not.toMatch(/[|@$]/)
       }
     }
+  })
+})
+
+describe('2026-10-15 A 版(指令面板)接線守門', () => {
+  const m = read('renderer/src/web/overlay/FloatMenu.vue')
+  it('市況只讀既有快照:不呼叫 queuePricesFetch、不強制重抓;重用 PriceSparkline / currencyIcon', () => {
+    // 呼叫了 → 開選單就上網抓 poe.ninja,第 30.8 步閒置降耗失效
+    expect(m).not.toContain('queuePricesFetch')
+    expect(m).not.toMatch(/\.load\(/)
+    expect(m).toContain('marketRateOf(ninja.snapshot.value')
+    expect(m).toContain("import PriceSparkline from '@/web/ui/PriceSparkline.vue'")
+    expect(m).toContain('currencyIcon(config.game')
+  })
+  it('限流點不嵌 RateLimiterState(彈出框往上會出畫面);429 倒數與 App.vue 共用同一份', () => {
+    expect(m).not.toMatch(/import [^\n]*RateLimiterState|<rate-limiter-state|<RateLimiterState/)
+    expect(m).toContain('useRateLimitWait()')
+    const app = read('renderer/src/web/App.vue')
+    expect(app).toContain('const rateLimitWait = useRateLimitWait()')
+    // App.vue 不再自己倒數(否則兩份計時器)
+    expect(app).not.toContain('watch(Host.rateLimitWait')
+  })
+  it('限流點兩代都讀交易站限流規則(PoE2 經 @poe2-entry 匯出)', () => {
+    expect(m).toContain("import { poe2TradeSession } from '@poe2-entry'")
+    expect(m).toMatch(/config\.game === 'poe2' \? poe2TradeSession\(config\.realm\)\.limits : poe1TradeSession\(config\.realm\)\.limits/)
+    expect(read('poe2/src/renderer-entry.ts')).toContain('tradeSession as poe2TradeSession')
+  })
+  it('拆粉排行 → open-tab dust;搜尋框 onMounted 聚焦', () => {
+    expect(m).toContain("emit('open-tab', 'dust')")
+    expect(m).toMatch(/onMounted\([\s\S]*searchEl\.value\?\.focus\(\)/)
+  })
+  it('新字串兩語都有', () => {
+    const keys = ['search', 'search_placeholder', 'chips', 'chip_all', 'chip_bookmark', 'chip_scan', 'chip_tool', 'grp_market', 'grp_scan', 'grp_tools',
+      'market_sub', 'market_none', 'market_none_sub', 'market_none_tw', 'cur_divine', 'cur_chaos', 'cur_exa', 'stash_title', 'stash_pending', 'stash_poe2',
+      'dust', 'bm_game', 'league', 'league_none', 'rate', 'rate_wait', 'no_match', 'foot_move', 'foot_run', 'foot_close']
+    for (const lang of ['cmn-Hant', 'en']) {
+      const j = JSON.parse(read(`renderer/src/i18n/${lang}.json`)).ppz.menu
+      for (const k of keys) {
+        expect(typeof j[k], `${lang} ${k}`).toBe('string')
+        expect(j[k], k).not.toMatch(/[|@$]/)
+      }
+      // 已移除的鍵不留
+      for (const k of ['pasted', 'toggles_poe1', 'toggles_poe2']) expect(k in j, `${lang} ${k}`).toBe(false)
+    }
+  })
+  it('用到的 ppz.menu.* 鍵都存在(繁中)', () => {
+    const zh = JSON.parse(read('renderer/src/i18n/cmn-Hant.json')).ppz.menu
+    const src = m + read('renderer/src/web/overlay/float-menu-items.ts') + read('renderer/src/web/overlay/float-menu-geom.ts')
+    const used = [...src.matchAll(/ppz\.menu\.([a-z0-9_]+)/g)].map(x => x[1])
+    expect(used.length).toBeGreaterThan(20)
+    for (const k of used) expect(typeof zh[k], k).toBe('string')
   })
 })

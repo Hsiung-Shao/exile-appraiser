@@ -12,11 +12,23 @@
       "commit": "384d1c5c5c751a954b97c002361a9c6370ab18f7",
       "generatedAt": "2026-10-08T13:10:18.039Z"
     },
+    "data/poe1/item-classes": {
+      "repo": "PoE1 GGPK itemclasses(Name 欄)+ clientstrings(Text 欄白名單);game_version 3.29.0.1;來源檔 sha256 itemclasses e6e2840fd3b77a403591ed0ae5ef0687e6f9c44dee42bfdc0d256aafc8c79348 / clientstrings f6ed571c54a4ecf82386628883eaf4d70a04c6e16ea6749ea77a9fd82f319b9f",
+      "path": "pob-zh-engine/tools/ggpk_zh/out/poe1/tables/{itemclasses,clientstrings}.json(維護者本機 GGPK 抽取,不進 git;scripts/sync-poe1-item-classes.mjs 產生)",
+      "fetchedAt": "2026-08-22T03:25:47.000Z",
+      "generatedAt": "2026-10-14T16:41:26.090Z"
+    },
     "data/poe1/stash": {
       "repo": "Lailloken/Exile-UI data/global/[stash-ninja] tabs.json",
       "path": "https://github.com/Lailloken/Exile-UI/blob/67d1a3637e97b791072129f0cf890e22f385b237/data/global/%5Bstash-ninja%5D%20tabs.json",
       "commit": "67d1a3637e97b791072129f0cf890e22f385b237",
       "generatedAt": "2026-10-13T23:18:38.600Z"
+    },
+    "data/poe1/trade": {
+      "repo": "GGG trade data API(pathofexile.tw,PoE1)",
+      "path": "/api/trade/data/stats",
+      "fetchedAt": "2026-10-14T16:36:55.064Z",
+      "generatedAt": "2026-10-14T16:36:55.396Z"
     },
     "data/poe2": {
       "repo": "ee2-patched (Hsiung-Shao/Exiled-Exchange-2-zh-TW)",
@@ -153,6 +165,10 @@
       "sha256": "99d3748587bf8f1b307bd9d111491c9b9b5157e2dcac92d296dd9b26984193a2",
       "bytes": 2570220
     },
+    "data/poe1/item-classes/item-classes.json": {
+      "sha256": "e976d48b0aa9a03311b30f7fa954e2aeccef5deb8a0d01d24489ef53e402a3af",
+      "bytes": 13762
+    },
     "data/poe1/item-drop.json": {
       "sha256": "cc4f415caeec781a291f3b1f36c5bacc74207b25aca599438ac520e905687ba8",
       "bytes": 40521
@@ -160,6 +176,10 @@
     "data/poe1/stash/layouts.json": {
       "sha256": "243d7952d635a2c657e84cd4a17dd2a18b6a0269b3f5c1e247bb8b1972967a25",
       "bytes": 10532
+    },
+    "data/poe1/trade/tw/stats.json": {
+      "sha256": "e2b28ea0ad0f6a5b96ac87773dc27a5a921cad76ebf1e9709f659e5962aeb8b2",
+      "bytes": 2661623
     },
     "data/poe2/cmn-Hant/app_i18n.json": {
       "sha256": "2cb73288b387a1fc8760aab18b3725cbfc652cd6823d5a8faee6d566d556fca3",

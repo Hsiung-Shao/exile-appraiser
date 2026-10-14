@@ -278,10 +278,10 @@ describe('熱鍵總表', () => {
 })
 
 describe('條件隱藏', () => {
-  it('純函式:預設價格通貨只 PoE1、成交量只國際服、懸停物品只 PoE2', () => {
+  it('純函式:預設價格通貨只 PoE1、成交量只國際服、懸停物品兩代都有', () => {
     expect([hasDefaultCurrency('poe1'), hasDefaultCurrency('poe2')]).toEqual([true, false])
     expect([hasCurrencyVolume('intl'), hasCurrencyVolume('tw')]).toEqual([true, false])
-    expect([hasItemHover('poe1'), hasItemHover('poe2')]).toEqual([false, true])
+    expect([hasItemHover('poe1'), hasItemHover('poe2')]).toEqual([true, true])
   })
   it('查價分頁:三個條件都是 v-if(不再只放說明),面板顯示卡片沒有任何一項整張不顯示', () => {
     const vue = read(`${SETTINGS}/tabs/PriceCheck.vue`)

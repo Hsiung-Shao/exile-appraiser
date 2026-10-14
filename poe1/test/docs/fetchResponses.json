@@ -1,0 +1,2688 @@
+{
+  "_source": "www.pathofexile.com /api/trade/{search,fetch}(PoE1,Standard);scripts/record-poe1-fetch.mjs 錄製,已剝帳號 / 角色名 / 密語 / 倉庫",
+  "recordedAt": "2026-10-14T16:39:07.597Z",
+  "cases": [
+    {
+      "case": "rare-ring",
+      "ids": [
+        "50371eddb8c6f2dce4c1981fb9dc3743de08dc36c127c2940defacae60b006fe",
+        "59464d8dacec071cf6f9d068cf57516c4151c90a2748a2c11a295c1537abd5de"
+      ]
+    },
+    {
+      "case": "unique-goldrim",
+      "ids": [
+        "35ce7bd272033d9ce6032c238e4216b7e5788aa0a95dc0753f3490f30b3d9fc7",
+        "bf259082c4ded1ef8ea1dbd32b49681356f8ab06e8e53fc160349f13c4097554"
+      ]
+    },
+    {
+      "case": "gem-arc",
+      "ids": [
+        "518e4a5a5f2acd4988e78c4097c6a67d2a74eee26d97e9145cbe37db3250474f",
+        "8ff276a89b7ffa946c786cf027f3f42f85a564eb91e1a20e1d0565b664f357fe"
+      ]
+    },
+    {
+      "case": "fractured-gloves",
+      "ids": [
+        "a7afe4c33e6540d0dce3b12823b84069ead0fab57294f40af5ffdfa3e314f751",
+        "5d1d30f5fc0a4d3a049e992b1419f61f19e10628517afdb8d4fbfab79984a239"
+      ]
+    },
+    {
+      "case": "crafted-bow",
+      "ids": [
+        "95632580ceffdc709005b52b0660f20863202ab39361a4c34c606c7114a51c8e",
+        "c8a478e0d916f0cb5b3e7ca1e5afa8b6dad8e04fb8fc6f25599f94d4317e762e"
+      ]
+    },
+    {
+      "case": "shaper-chest",
+      "ids": [
+        "d012db0aa4cda530f0c7b5a7f067c21c91d187670d66e4c168f747455decc7a2",
+        "7cb6650095055c3c6f492bf9a8c0125366b3cac39798b2e36fffc20431aa60e1"
+      ]
+    }
+  ],
+  "result": [
+    {
+      "id": "50371eddb8c6f2dce4c1981fb9dc3743de08dc36c127c2940defacae60b006fe",
+      "listing": {
+        "method": "psapi",
+        "indexed": "2026-10-13T15:39:41Z",
+        "price": {
+          "type": "~b/o",
+          "amount": 7,
+          "currency": "alch"
+        },
+        "account": {
+          "name": "seller1",
+          "lastCharacterName": "Seller1",
+          "online": {
+            "league": "Standard"
+          }
+        }
+      },
+      "item": {
+        "verified": true,
+        "w": 1,
+        "h": 1,
+        "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvUmluZ3MvU2FwcGhpcmVSdWJ5IiwidyI6MSwiaCI6MSwic2NhbGUiOjF9XQ/7df6d65dfd/SapphireRuby.png",
+        "league": "Standard",
+        "id": "50371eddb8c6f2dce4c1981fb9dc3743de08dc36c127c2940defacae60b006fe",
+        "name": "Sorrow Turn",
+        "typeLine": "Two-Stone Ring",
+        "baseType": "Two-Stone Ring",
+        "rarity": "Rare",
+        "ilvl": 77,
+        "identified": true,
+        "note": "~b/o 7 alch",
+        "requirements": [
+          {
+            "name": "Level",
+            "values": [
+              [
+                "35",
+                0
+              ]
+            ],
+            "displayMode": 0,
+            "type": 62
+          }
+        ],
+        "implicitMods": [
+          {
+            "description": "+14% to Fire and Cold Resistances",
+            "domain": "implicit",
+            "hash": "stat.implicit.stat_2915988346",
+            "mods": [
+              {
+                "level": 25,
+                "magnitudes": [
+                  {
+                    "min": "12",
+                    "max": "16"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "explicitMods": [
+          {
+            "description": "+14 to Dexterity",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_3261801346",
+            "mods": [
+              {
+                "name": "of the Lynx",
+                "tier": "S8",
+                "level": 11,
+                "magnitudes": [
+                  {
+                    "min": "13",
+                    "max": "17"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "Adds 1 to 22 Lightning Damage to Attacks",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_1754445556",
+            "mods": [
+              {
+                "name": "Snapping",
+                "tier": "P7",
+                "level": 22,
+                "magnitudes": [
+                  {
+                    "min": "1",
+                    "max": "2"
+                  },
+                  {
+                    "min": "22",
+                    "max": "23"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "9% increased Global Accuracy Rating",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_624954515",
+            "mods": [
+              {
+                "name": "of Shining",
+                "tier": "S3",
+                "level": 8,
+                "magnitudes": [
+                  {
+                    "min": "9",
+                    "max": "11"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "+74 to maximum Life",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_3299347043",
+            "mods": [
+              {
+                "name": "Virile",
+                "tier": "P1",
+                "level": 44,
+                "magnitudes": [
+                  {
+                    "min": "100",
+                    "max": "114"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "44% increased Mana Regeneration Rate",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_789117908",
+            "mods": [
+              {
+                "name": "of Bliss",
+                "tier": "S3",
+                "level": 42,
+                "magnitudes": [
+                  {
+                    "min": "40",
+                    "max": "49"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "5% increased Light Radius",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_1263695895",
+            "mods": [
+              {
+                "name": "of Shining",
+                "tier": "S3",
+                "level": 8,
+                "magnitudes": [
+                  {
+                    "min": "5",
+                    "max": "5"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "frameType": 2,
+        "frameTypeId": "Rare",
+        "extended": {
+          "hashes": {
+            "explicit": [
+              [
+                "explicit.stat_3261801346",
+                [
+                  2
+                ]
+              ],
+              [
+                "explicit.stat_1754445556",
+                [
+                  1
+                ]
+              ],
+              [
+                "explicit.stat_624954515",
+                [
+                  0
+                ]
+              ],
+              [
+                "explicit.stat_3299347043",
+                [
+                  3
+                ]
+              ],
+              [
+                "explicit.stat_789117908",
+                [
+                  4
+                ]
+              ],
+              [
+                "explicit.stat_1263695895",
+                [
+                  0
+                ]
+              ]
+            ],
+            "implicit": [
+              [
+                "implicit.stat_2915988346",
+                [
+                  0
+                ]
+              ]
+            ]
+          },
+          "text": "SXRlbSBDbGFzczogUmluZ3MNClJhcml0eTogUmFyZQ0KU29ycm93IFR1cm4NClR3by1TdG9uZSBSaW5nDQotLS0tLS0tLQ0KUmVxdWlyZW1lbnRzOg0KTGV2ZWw6IDM1DQotLS0tLS0tLQ0KSXRlbSBMZXZlbDogNzcNCi0tLS0tLS0tDQorMTQlIHRvIEZpcmUgYW5kIENvbGQgUmVzaXN0YW5jZXMNCi0tLS0tLS0tDQorMTQgdG8gRGV4dGVyaXR5DQpBZGRzIDEgdG8gMjIgTGlnaHRuaW5nIERhbWFnZSB0byBBdHRhY2tzDQo5JSBpbmNyZWFzZWQgR2xvYmFsIEFjY3VyYWN5IFJhdGluZw0KKzc0IHRvIG1heGltdW0gTGlmZQ0KNDQlIGluY3JlYXNlZCBNYW5hIFJlZ2VuZXJhdGlvbiBSYXRlDQo1JSBpbmNyZWFzZWQgTGlnaHQgUmFkaXVzDQotLS0tLS0tLQ0KTm90ZTogfmIvbyA3IGFsY2gNCg=="
+        }
+      }
+    },
+    {
+      "id": "59464d8dacec071cf6f9d068cf57516c4151c90a2748a2c11a295c1537abd5de",
+      "listing": {
+        "method": "psapi",
+        "indexed": "2026-03-05T17:26:38Z",
+        "price": {
+          "type": "~b/o",
+          "amount": 1,
+          "currency": "alt"
+        },
+        "account": {
+          "name": "seller2",
+          "lastCharacterName": "Seller2",
+          "online": {
+            "league": "Standard"
+          }
+        }
+      },
+      "item": {
+        "verified": true,
+        "w": 1,
+        "h": 1,
+        "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvUmluZ3MvRGlhbW9uZFJpbmciLCJ3IjoxLCJoIjoxLCJzY2FsZSI6MX1d/d07e3dfbb6/DiamondRing.png",
+        "league": "Standard",
+        "id": "59464d8dacec071cf6f9d068cf57516c4151c90a2748a2c11a295c1537abd5de",
+        "name": "Rapture Grip",
+        "typeLine": "Diamond Ring",
+        "baseType": "Diamond Ring",
+        "rarity": "Rare",
+        "ilvl": 77,
+        "identified": true,
+        "requirements": [
+          {
+            "name": "Level",
+            "values": [
+              [
+                "59",
+                0
+              ]
+            ],
+            "displayMode": 0,
+            "type": 62
+          }
+        ],
+        "implicitMods": [
+          {
+            "description": "30% increased Global Critical Strike Chance",
+            "domain": "implicit",
+            "hash": "stat.implicit.stat_587431675",
+            "mods": [
+              {
+                "level": 25,
+                "magnitudes": [
+                  {
+                    "min": "20",
+                    "max": "30"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "explicitMods": [
+          {
+            "description": "+49 to Intelligence",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_328541901",
+            "mods": [
+              {
+                "name": "of the Virtuoso",
+                "tier": "S2",
+                "level": 74,
+                "magnitudes": [
+                  {
+                    "min": "43",
+                    "max": "50"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "Adds 4 to 10 Physical Damage to Attacks",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_3032590688",
+            "mods": [
+              {
+                "name": "Honed",
+                "tier": "P3",
+                "level": 28,
+                "magnitudes": [
+                  {
+                    "min": "4",
+                    "max": "6"
+                  },
+                  {
+                    "min": "9",
+                    "max": "10"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "+45 to maximum Energy Shield",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_3489782002",
+            "mods": [
+              {
+                "name": "Resplendent",
+                "tier": "P1",
+                "level": 74,
+                "magnitudes": [
+                  {
+                    "min": "44",
+                    "max": "47"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "+45% to Cold Resistance",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_4220027924",
+            "mods": [
+              {
+                "name": "of the Ice",
+                "tier": "S2",
+                "level": 72,
+                "magnitudes": [
+                  {
+                    "min": "42",
+                    "max": "45"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "frameType": 2,
+        "frameTypeId": "Rare",
+        "extended": {
+          "hashes": {
+            "explicit": [
+              [
+                "explicit.stat_328541901",
+                [
+                  2
+                ]
+              ],
+              [
+                "explicit.stat_3032590688",
+                [
+                  3
+                ]
+              ],
+              [
+                "explicit.stat_3489782002",
+                [
+                  0
+                ]
+              ],
+              [
+                "explicit.stat_4220027924",
+                [
+                  1
+                ]
+              ]
+            ],
+            "implicit": [
+              [
+                "implicit.stat_587431675",
+                [
+                  0
+                ]
+              ]
+            ]
+          },
+          "text": "SXRlbSBDbGFzczogUmluZ3MNClJhcml0eTogUmFyZQ0KUmFwdHVyZSBHcmlwDQpEaWFtb25kIFJpbmcNCi0tLS0tLS0tDQpSZXF1aXJlbWVudHM6DQpMZXZlbDogNTkNCi0tLS0tLS0tDQpJdGVtIExldmVsOiA3Nw0KLS0tLS0tLS0NCjMwJSBpbmNyZWFzZWQgR2xvYmFsIENyaXRpY2FsIFN0cmlrZSBDaGFuY2UNCi0tLS0tLS0tDQorNDkgdG8gSW50ZWxsaWdlbmNlDQpBZGRzIDQgdG8gMTAgUGh5c2ljYWwgRGFtYWdlIHRvIEF0dGFja3MNCis0NSB0byBtYXhpbXVtIEVuZXJneSBTaGllbGQNCis0NSUgdG8gQ29sZCBSZXNpc3RhbmNlDQo="
+        }
+      }
+    },
+    {
+      "id": "35ce7bd272033d9ce6032c238e4216b7e5788aa0a95dc0753f3490f30b3d9fc7",
+      "listing": {
+        "method": "psapi",
+        "indexed": "2026-09-28T18:19:56Z",
+        "price": {
+          "type": "~price",
+          "amount": 2,
+          "currency": "chaos"
+        },
+        "account": {
+          "name": "seller3",
+          "lastCharacterName": "Seller3",
+          "online": {
+            "league": "Standard"
+          }
+        }
+      },
+      "item": {
+        "verified": true,
+        "w": 2,
+        "h": 2,
+        "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldERleFVuaXF1ZTIiLCJ3IjoyLCJoIjoyLCJzY2FsZSI6MX1d/7f4908ef2f/HelmetDexUnique2.png",
+        "league": "Standard",
+        "id": "35ce7bd272033d9ce6032c238e4216b7e5788aa0a95dc0753f3490f30b3d9fc7",
+        "sockets": [
+          {
+            "group": 0,
+            "attr": "G",
+            "sColour": "W"
+          }
+        ],
+        "name": "Goldrim",
+        "typeLine": "Leather Cap",
+        "baseType": "Leather Cap",
+        "rarity": "Unique",
+        "ilvl": 83,
+        "identified": true,
+        "note": "~price 2 chaos",
+        "properties": [
+          {
+            "name": "Evasion Rating",
+            "values": [
+              [
+                "55",
+                1
+              ]
+            ],
+            "displayMode": 0,
+            "type": 17
+          }
+        ],
+        "explicitMods": [
+          {
+            "description": "+32 to Evasion Rating",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_53045048",
+            "mods": [
+              {
+                "magnitudes": [
+                  {
+                    "min": "30",
+                    "max": "50"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "10% increased Rarity of Items found",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_3917489142",
+            "mods": [
+              {
+                "magnitudes": [
+                  {
+                    "min": "10",
+                    "max": "10"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "+40% to all Elemental Resistances",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_2901986750",
+            "mods": [
+              {
+                "magnitudes": [
+                  {
+                    "min": "30",
+                    "max": "40"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "Reflects 4 Physical Damage to Melee Attackers",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_3767873853",
+            "mods": [
+              {
+                "magnitudes": [
+                  {
+                    "min": "4",
+                    "max": "4"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "flavourText": [
+          "No metal slips as easily through the fingers as gold."
+        ],
+        "frameType": 3,
+        "frameTypeId": "Unique",
+        "extended": {
+          "base_defence_percentile": 50,
+          "ev": 66,
+          "ev_aug": true,
+          "hashes": {
+            "explicit": [
+              [
+                "explicit.stat_53045048",
+                [
+                  0
+                ]
+              ],
+              [
+                "explicit.stat_3917489142",
+                [
+                  3
+                ]
+              ],
+              [
+                "explicit.stat_2901986750",
+                [
+                  1
+                ]
+              ],
+              [
+                "explicit.stat_3767873853",
+                [
+                  2
+                ]
+              ]
+            ]
+          },
+          "text": "SXRlbSBDbGFzczogSGVsbWV0cw0KUmFyaXR5OiBVbmlxdWUNCkdvbGRyaW0NCkxlYXRoZXIgQ2FwDQotLS0tLS0tLQ0KRXZhc2lvbiBSYXRpbmc6IDU1IChhdWdtZW50ZWQpDQotLS0tLS0tLQ0KU29ja2V0czogVyANCi0tLS0tLS0tDQpJdGVtIExldmVsOiA4Mw0KLS0tLS0tLS0NCiszMiB0byBFdmFzaW9uIFJhdGluZw0KMTAlIGluY3JlYXNlZCBSYXJpdHkgb2YgSXRlbXMgZm91bmQNCis0MCUgdG8gYWxsIEVsZW1lbnRhbCBSZXNpc3RhbmNlcw0KUmVmbGVjdHMgNCBQaHlzaWNhbCBEYW1hZ2UgdG8gTWVsZWUgQXR0YWNrZXJzDQotLS0tLS0tLQ0KTm8gbWV0YWwgc2xpcHMgYXMgZWFzaWx5IHRocm91Z2ggdGhlIGZpbmdlcnMgYXMgZ29sZC4NCi0tLS0tLS0tDQpOb3RlOiB+cHJpY2UgMiBjaGFvcw0K"
+        }
+      }
+    },
+    {
+      "id": "bf259082c4ded1ef8ea1dbd32b49681356f8ab06e8e53fc160349f13c4097554",
+      "listing": {
+        "method": "psapi",
+        "indexed": "2026-09-03T03:53:45Z",
+        "price": {
+          "type": "~b/o",
+          "amount": 4,
+          "currency": "chaos"
+        },
+        "account": {
+          "name": "seller4",
+          "lastCharacterName": "Seller4",
+          "online": {
+            "league": "Standard"
+          }
+        }
+      },
+      "item": {
+        "verified": true,
+        "w": 2,
+        "h": 2,
+        "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldERleFVuaXF1ZTIiLCJ3IjoyLCJoIjoyLCJzY2FsZSI6MX1d/7f4908ef2f/HelmetDexUnique2.png",
+        "league": "Standard",
+        "id": "bf259082c4ded1ef8ea1dbd32b49681356f8ab06e8e53fc160349f13c4097554",
+        "sockets": [
+          {
+            "group": 0,
+            "attr": "G",
+            "sColour": "W"
+          },
+          {
+            "group": 0,
+            "attr": "G",
+            "sColour": "W"
+          }
+        ],
+        "name": "Goldrim",
+        "typeLine": "Leather Cap",
+        "baseType": "Leather Cap",
+        "rarity": "Unique",
+        "ilvl": 85,
+        "identified": true,
+        "note": "~b/o 4 chaos",
+        "properties": [
+          {
+            "name": "Evasion Rating",
+            "values": [
+              [
+                "62",
+                1
+              ]
+            ],
+            "displayMode": 0,
+            "type": 17
+          }
+        ],
+        "explicitMods": [
+          {
+            "description": "+40 to Evasion Rating",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_53045048",
+            "mods": [
+              {
+                "magnitudes": [
+                  {
+                    "min": "30",
+                    "max": "50"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "10% increased Rarity of Items found",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_3917489142",
+            "mods": [
+              {
+                "magnitudes": [
+                  {
+                    "min": "10",
+                    "max": "10"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "+39% to all Elemental Resistances",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_2901986750",
+            "mods": [
+              {
+                "magnitudes": [
+                  {
+                    "min": "30",
+                    "max": "40"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "Reflects 4 Physical Damage to Melee Attackers",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_3767873853",
+            "mods": [
+              {
+                "magnitudes": [
+                  {
+                    "min": "4",
+                    "max": "4"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "flavourText": [
+          "No metal slips as easily through the fingers as gold."
+        ],
+        "frameType": 3,
+        "frameTypeId": "Unique",
+        "extended": {
+          "base_defence_percentile": 38,
+          "ev": 74,
+          "ev_aug": true,
+          "hashes": {
+            "explicit": [
+              [
+                "explicit.stat_53045048",
+                [
+                  0
+                ]
+              ],
+              [
+                "explicit.stat_3917489142",
+                [
+                  3
+                ]
+              ],
+              [
+                "explicit.stat_2901986750",
+                [
+                  1
+                ]
+              ],
+              [
+                "explicit.stat_3767873853",
+                [
+                  2
+                ]
+              ]
+            ]
+          },
+          "text": "SXRlbSBDbGFzczogSGVsbWV0cw0KUmFyaXR5OiBVbmlxdWUNCkdvbGRyaW0NCkxlYXRoZXIgQ2FwDQotLS0tLS0tLQ0KRXZhc2lvbiBSYXRpbmc6IDYyIChhdWdtZW50ZWQpDQotLS0tLS0tLQ0KU29ja2V0czogVy1XIA0KLS0tLS0tLS0NCkl0ZW0gTGV2ZWw6IDg1DQotLS0tLS0tLQ0KKzQwIHRvIEV2YXNpb24gUmF0aW5nDQoxMCUgaW5jcmVhc2VkIFJhcml0eSBvZiBJdGVtcyBmb3VuZA0KKzM5JSB0byBhbGwgRWxlbWVudGFsIFJlc2lzdGFuY2VzDQpSZWZsZWN0cyA0IFBoeXNpY2FsIERhbWFnZSB0byBNZWxlZSBBdHRhY2tlcnMNCi0tLS0tLS0tDQpObyBtZXRhbCBzbGlwcyBhcyBlYXNpbHkgdGhyb3VnaCB0aGUgZmluZ2VycyBhcyBnb2xkLg0KLS0tLS0tLS0NCk5vdGU6IH5iL28gNCBjaGFvcw0K"
+        }
+      }
+    },
+    {
+      "id": "518e4a5a5f2acd4988e78c4097c6a67d2a74eee26d97e9145cbe37db3250474f",
+      "listing": {
+        "method": "psapi",
+        "indexed": "2026-09-27T09:27:13Z",
+        "price": {
+          "type": "~price",
+          "amount": 40,
+          "currency": "chaos"
+        },
+        "account": {
+          "name": "seller5",
+          "lastCharacterName": "Seller5",
+          "online": {
+            "league": "Standard",
+            "status": "afk"
+          }
+        }
+      },
+      "item": {
+        "verified": true,
+        "w": 1,
+        "h": 1,
+        "icon": "https://web.poecdn.com/gen/image/WzMwLDE0LHsiZiI6IjJESXRlbXMvR2Vtcy9BcmMiLCJ3IjoxLCJoIjoxLCJzY2FsZSI6MX1d/b906e66011/Arc.png",
+        "support": false,
+        "league": "Standard",
+        "id": "518e4a5a5f2acd4988e78c4097c6a67d2a74eee26d97e9145cbe37db3250474f",
+        "name": "",
+        "typeLine": "Arc",
+        "baseType": "Arc",
+        "ilvl": 0,
+        "identified": true,
+        "note": "~price 40 chaos",
+        "corrupted": true,
+        "properties": [
+          {
+            "name": "Spell, Chaining, Lightning",
+            "values": [],
+            "displayMode": 0
+          },
+          {
+            "name": "Level",
+            "values": [
+              [
+                "20 (Max)",
+                0
+              ]
+            ],
+            "displayMode": 0,
+            "type": 5
+          },
+          {
+            "name": "Cost",
+            "values": [
+              [
+                "29 Mana",
+                0
+              ]
+            ],
+            "displayMode": 0
+          },
+          {
+            "name": "Cast Time",
+            "values": [
+              [
+                "0.60 sec",
+                0
+              ]
+            ],
+            "displayMode": 0
+          },
+          {
+            "name": "Critical Strike Chance",
+            "values": [
+              [
+                "6.00%",
+                0
+              ]
+            ],
+            "displayMode": 0
+          },
+          {
+            "name": "Effectiveness of Added Damage",
+            "values": [
+              [
+                "120%",
+                0
+              ]
+            ],
+            "displayMode": 0
+          },
+          {
+            "name": "Quality",
+            "values": [
+              [
+                "+23%",
+                1
+              ]
+            ],
+            "displayMode": 0,
+            "type": 6
+          }
+        ],
+        "requirements": [
+          {
+            "name": "Level",
+            "values": [
+              [
+                "70",
+                0
+              ]
+            ],
+            "displayMode": 0,
+            "type": 62
+          },
+          {
+            "name": "Int",
+            "values": [
+              [
+                "155",
+                0
+              ]
+            ],
+            "displayMode": 1,
+            "type": 65
+          }
+        ],
+        "secDescrText": "An arc of lightning reaches from the caster to a targeted enemy and chains to other enemies, but not immediately back. Each time the arc chains, it will also chain a secondary arc to another enemy that the main arc has not already hit, which cannot chain further.",
+        "explicitMods": [
+          {
+            "description": "Deals 198 to 1122 Lightning Damage"
+          },
+          {
+            "description": "Chains +8 Times"
+          },
+          {
+            "description": "15% more Damage with Hits and Ailments for each remaining Chain"
+          }
+        ],
+        "descrText": "Place into an item socket to gain this skill. Right click to remove from a socket.",
+        "frameType": 4,
+        "frameTypeId": "Gem",
+        "extended": {
+          "text": "SXRlbSBDbGFzczogU2tpbGwgR2Vtcw0KUmFyaXR5OiBHZW0NCkFyYw0KLS0tLS0tLS0NClNwZWxsLCBDaGFpbmluZywgTGlnaHRuaW5nDQpMZXZlbDogMjAgKE1heCkNCkNvc3Q6IDI5IE1hbmENCkNhc3QgVGltZTogMC42MCBzZWMNCkNyaXRpY2FsIFN0cmlrZSBDaGFuY2U6IDYuMDAlDQpFZmZlY3RpdmVuZXNzIG9mIEFkZGVkIERhbWFnZTogMTIwJQ0KUXVhbGl0eTogKzIzJSAoYXVnbWVudGVkKQ0KLS0tLS0tLS0NClJlcXVpcmVtZW50czoNCkxldmVsOiA3MA0KSW50OiAxNTUNCi0tLS0tLS0tDQpBbiBhcmMgb2YgbGlnaHRuaW5nIHJlYWNoZXMgZnJvbSB0aGUgY2FzdGVyIHRvIGEgdGFyZ2V0ZWQgZW5lbXkgYW5kIGNoYWlucyB0byBvdGhlciBlbmVtaWVzLCBidXQgbm90IGltbWVkaWF0ZWx5IGJhY2suIEVhY2ggdGltZSB0aGUgYXJjIGNoYWlucywgaXQgd2lsbCBhbHNvIGNoYWluIGEgc2Vjb25kYXJ5IGFyYyB0byBhbm90aGVyIGVuZW15IHRoYXQgdGhlIG1haW4gYXJjIGhhcyBub3QgYWxyZWFkeSBoaXQsIHdoaWNoIGNhbm5vdCBjaGFpbiBmdXJ0aGVyLg0KLS0tLS0tLS0NCkRlYWxzIDE5OCB0byAxMTIyIExpZ2h0bmluZyBEYW1hZ2UNCkNoYWlucyArOCBUaW1lcw0KMTUlIG1vcmUgRGFtYWdlIHdpdGggSGl0cyBhbmQgQWlsbWVudHMgZm9yIGVhY2ggcmVtYWluaW5nIENoYWluDQotLS0tLS0tLQ0KUGxhY2UgaW50byBhbiBpdGVtIHNvY2tldCB0byBnYWluIHRoaXMgc2tpbGwuIFJpZ2h0IGNsaWNrIHRvIHJlbW92ZSBmcm9tIGEgc29ja2V0Lg0KLS0tLS0tLS0NCkNvcnJ1cHRlZA0KLS0tLS0tLS0NCk5vdGU6IH5wcmljZSA0MCBjaGFvcw0K"
+        }
+      }
+    },
+    {
+      "id": "8ff276a89b7ffa946c786cf027f3f42f85a564eb91e1a20e1d0565b664f357fe",
+      "listing": {
+        "method": "psapi",
+        "indexed": "2023-07-30T19:40:06Z",
+        "price": {
+          "type": "~price",
+          "amount": 50,
+          "currency": "chaos"
+        },
+        "account": {
+          "name": "seller6",
+          "lastCharacterName": "Seller6",
+          "online": {
+            "league": "Standard"
+          }
+        }
+      },
+      "item": {
+        "verified": true,
+        "w": 1,
+        "h": 1,
+        "icon": "https://web.poecdn.com/gen/image/WzMwLDE0LHsiZiI6IjJESXRlbXMvR2Vtcy9BcmMiLCJ3IjoxLCJoIjoxLCJzY2FsZSI6MX1d/b906e66011/Arc.png",
+        "support": false,
+        "league": "Standard",
+        "id": "8ff276a89b7ffa946c786cf027f3f42f85a564eb91e1a20e1d0565b664f357fe",
+        "name": "",
+        "typeLine": "Arc",
+        "baseType": "Arc",
+        "ilvl": 0,
+        "identified": true,
+        "note": "~price 50 chaos",
+        "corrupted": true,
+        "properties": [
+          {
+            "name": "Spell, Chaining, Lightning",
+            "values": [],
+            "displayMode": 0
+          },
+          {
+            "name": "Level",
+            "values": [
+              [
+                "20 (Max)",
+                0
+              ]
+            ],
+            "displayMode": 0,
+            "type": 5
+          },
+          {
+            "name": "Cost",
+            "values": [
+              [
+                "29 Mana",
+                0
+              ]
+            ],
+            "displayMode": 0
+          },
+          {
+            "name": "Cast Time",
+            "values": [
+              [
+                "0.60 sec",
+                0
+              ]
+            ],
+            "displayMode": 0
+          },
+          {
+            "name": "Critical Strike Chance",
+            "values": [
+              [
+                "6.00%",
+                0
+              ]
+            ],
+            "displayMode": 0
+          },
+          {
+            "name": "Effectiveness of Added Damage",
+            "values": [
+              [
+                "120%",
+                0
+              ]
+            ],
+            "displayMode": 0
+          },
+          {
+            "name": "Quality",
+            "values": [
+              [
+                "+23%",
+                1
+              ]
+            ],
+            "displayMode": 0,
+            "type": 6
+          }
+        ],
+        "requirements": [
+          {
+            "name": "Level",
+            "values": [
+              [
+                "70",
+                0
+              ]
+            ],
+            "displayMode": 0,
+            "type": 62
+          },
+          {
+            "name": "Int",
+            "values": [
+              [
+                "155",
+                0
+              ]
+            ],
+            "displayMode": 1,
+            "type": 65
+          }
+        ],
+        "secDescrText": "An arc of lightning reaches from the caster to a targeted enemy and chains to other enemies, but not immediately back. Each time the arc chains, it will also chain a secondary arc to another enemy that the main arc has not already hit, which cannot chain further.",
+        "explicitMods": [
+          {
+            "description": "Deals 198 to 1122 Lightning Damage"
+          },
+          {
+            "description": "Chains +8 Times"
+          },
+          {
+            "description": "15% more Damage with Hits and Ailments for each remaining Chain"
+          }
+        ],
+        "descrText": "Place into an item socket to gain this skill. Right click to remove from a socket.",
+        "frameType": 4,
+        "frameTypeId": "Gem",
+        "extended": {
+          "text": "SXRlbSBDbGFzczogU2tpbGwgR2Vtcw0KUmFyaXR5OiBHZW0NCkFyYw0KLS0tLS0tLS0NClNwZWxsLCBDaGFpbmluZywgTGlnaHRuaW5nDQpMZXZlbDogMjAgKE1heCkNCkNvc3Q6IDI5IE1hbmENCkNhc3QgVGltZTogMC42MCBzZWMNCkNyaXRpY2FsIFN0cmlrZSBDaGFuY2U6IDYuMDAlDQpFZmZlY3RpdmVuZXNzIG9mIEFkZGVkIERhbWFnZTogMTIwJQ0KUXVhbGl0eTogKzIzJSAoYXVnbWVudGVkKQ0KLS0tLS0tLS0NClJlcXVpcmVtZW50czoNCkxldmVsOiA3MA0KSW50OiAxNTUNCi0tLS0tLS0tDQpBbiBhcmMgb2YgbGlnaHRuaW5nIHJlYWNoZXMgZnJvbSB0aGUgY2FzdGVyIHRvIGEgdGFyZ2V0ZWQgZW5lbXkgYW5kIGNoYWlucyB0byBvdGhlciBlbmVtaWVzLCBidXQgbm90IGltbWVkaWF0ZWx5IGJhY2suIEVhY2ggdGltZSB0aGUgYXJjIGNoYWlucywgaXQgd2lsbCBhbHNvIGNoYWluIGEgc2Vjb25kYXJ5IGFyYyB0byBhbm90aGVyIGVuZW15IHRoYXQgdGhlIG1haW4gYXJjIGhhcyBub3QgYWxyZWFkeSBoaXQsIHdoaWNoIGNhbm5vdCBjaGFpbiBmdXJ0aGVyLg0KLS0tLS0tLS0NCkRlYWxzIDE5OCB0byAxMTIyIExpZ2h0bmluZyBEYW1hZ2UNCkNoYWlucyArOCBUaW1lcw0KMTUlIG1vcmUgRGFtYWdlIHdpdGggSGl0cyBhbmQgQWlsbWVudHMgZm9yIGVhY2ggcmVtYWluaW5nIENoYWluDQotLS0tLS0tLQ0KUGxhY2UgaW50byBhbiBpdGVtIHNvY2tldCB0byBnYWluIHRoaXMgc2tpbGwuIFJpZ2h0IGNsaWNrIHRvIHJlbW92ZSBmcm9tIGEgc29ja2V0Lg0KLS0tLS0tLS0NCkNvcnJ1cHRlZA0KLS0tLS0tLS0NCk5vdGU6IH5wcmljZSA1MCBjaGFvcw0K"
+        }
+      }
+    },
+    {
+      "id": "a7afe4c33e6540d0dce3b12823b84069ead0fab57294f40af5ffdfa3e314f751",
+      "listing": {
+        "method": "psapi",
+        "indexed": "2023-10-26T19:27:37Z",
+        "price": {
+          "type": "~price",
+          "amount": 1,
+          "currency": "chaos"
+        },
+        "account": {
+          "name": "seller7",
+          "lastCharacterName": "Seller7",
+          "online": {
+            "league": "Standard"
+          }
+        }
+      },
+      "item": {
+        "verified": true,
+        "w": 2,
+        "h": 2,
+        "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQXJtb3Vycy9HbG92ZXMvR2xvdmVzSW50NCIsInciOjIsImgiOjIsInNjYWxlIjoxLCJmcmFjdHVyZWQiOnRydWV9XQ/b44e9c4309/GlovesInt4.png",
+        "league": "Standard",
+        "id": "a7afe4c33e6540d0dce3b12823b84069ead0fab57294f40af5ffdfa3e314f751",
+        "fractured": true,
+        "sockets": [
+          {
+            "group": 0,
+            "attr": "I",
+            "sColour": "B"
+          },
+          {
+            "group": 1,
+            "attr": "D",
+            "sColour": "G"
+          }
+        ],
+        "name": "Brood Grip",
+        "typeLine": "Conjurer Gloves",
+        "baseType": "Conjurer Gloves",
+        "rarity": "Rare",
+        "ilvl": 84,
+        "identified": true,
+        "note": "~price 1 chaos",
+        "properties": [
+          {
+            "name": "Energy Shield",
+            "values": [
+              [
+                "38",
+                0
+              ]
+            ],
+            "displayMode": 0,
+            "type": 18
+          }
+        ],
+        "requirements": [
+          {
+            "name": "Level",
+            "values": [
+              [
+                "65",
+                0
+              ]
+            ],
+            "displayMode": 0,
+            "type": 62
+          },
+          {
+            "name": "Int",
+            "values": [
+              [
+                "79",
+                0
+              ]
+            ],
+            "displayMode": 1,
+            "type": 65
+          }
+        ],
+        "explicitMods": [
+          {
+            "description": "+55 to Dexterity",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_3261801346",
+            "mods": [
+              {
+                "name": "of the Wind",
+                "tier": "S2",
+                "level": 82,
+                "magnitudes": [
+                  {
+                    "min": "51",
+                    "max": "55"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "+35 to Intelligence",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_328541901",
+            "mods": [
+              {
+                "name": "of the Sage",
+                "tier": "S4",
+                "level": 55,
+                "magnitudes": [
+                  {
+                    "min": "33",
+                    "max": "37"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "+45 to maximum Mana",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_1050105434",
+            "mods": [
+              {
+                "name": "Opalescent",
+                "tier": "P6",
+                "level": 42,
+                "magnitudes": [
+                  {
+                    "min": "45",
+                    "max": "49"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "+44% to Cold Resistance",
+            "flags": {
+              "fractured": true
+            },
+            "domain": "fractured",
+            "hash": "stat.fractured.stat_4220027924",
+            "mods": [
+              {
+                "name": "of the Ice",
+                "tier": "S2",
+                "level": 72,
+                "magnitudes": [
+                  {
+                    "min": "42",
+                    "max": "45"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "frameType": 2,
+        "frameTypeId": "Rare",
+        "extended": {
+          "base_defence_percentile": 14,
+          "es": 46,
+          "es_aug": true,
+          "hashes": {
+            "explicit": [
+              [
+                "explicit.stat_3261801346",
+                [
+                  2
+                ]
+              ],
+              [
+                "explicit.stat_328541901",
+                [
+                  1
+                ]
+              ],
+              [
+                "explicit.stat_1050105434",
+                [
+                  0
+                ]
+              ]
+            ],
+            "fractured": [
+              [
+                "fractured.stat_4220027924",
+                [
+                  0
+                ]
+              ]
+            ]
+          },
+          "text": "SXRlbSBDbGFzczogR2xvdmVzDQpSYXJpdHk6IFJhcmUNCkJyb29kIEdyaXANCkNvbmp1cmVyIEdsb3Zlcw0KLS0tLS0tLS0NCkVuZXJneSBTaGllbGQ6IDM4DQotLS0tLS0tLQ0KUmVxdWlyZW1lbnRzOg0KTGV2ZWw6IDY1DQpJbnQ6IDc5DQotLS0tLS0tLQ0KU29ja2V0czogQiBHIA0KLS0tLS0tLS0NCkl0ZW0gTGV2ZWw6IDg0DQotLS0tLS0tLQ0KKzQ0JSB0byBDb2xkIFJlc2lzdGFuY2UNCis1NSB0byBEZXh0ZXJpdHkNCiszNSB0byBJbnRlbGxpZ2VuY2UNCis0NSB0byBtYXhpbXVtIE1hbmENCi0tLS0tLS0tDQpGcmFjdHVyZWQgSXRlbQ0KLS0tLS0tLS0NCk5vdGU6IH5wcmljZSAxIGNoYW9zDQo="
+        }
+      }
+    },
+    {
+      "id": "5d1d30f5fc0a4d3a049e992b1419f61f19e10628517afdb8d4fbfab79984a239",
+      "listing": {
+        "method": "psapi",
+        "indexed": "2023-12-15T03:42:26Z",
+        "price": {
+          "type": "~price",
+          "amount": 2,
+          "currency": "chaos"
+        },
+        "account": {
+          "name": "seller8",
+          "lastCharacterName": "Seller8",
+          "online": {
+            "league": "Standard",
+            "status": "afk"
+          }
+        }
+      },
+      "item": {
+        "verified": true,
+        "w": 2,
+        "h": 2,
+        "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQXJtb3Vycy9HbG92ZXMvR2xvdmVzSW50MyIsInciOjIsImgiOjIsInNjYWxlIjoxLCJmcmFjdHVyZWQiOnRydWV9XQ/decfb5c717/GlovesInt3.png",
+        "league": "Standard",
+        "id": "5d1d30f5fc0a4d3a049e992b1419f61f19e10628517afdb8d4fbfab79984a239",
+        "fractured": true,
+        "sockets": [
+          {
+            "group": 0,
+            "attr": "I",
+            "sColour": "B"
+          },
+          {
+            "group": 0,
+            "attr": "I",
+            "sColour": "B"
+          }
+        ],
+        "name": "Havoc Grasp",
+        "typeLine": "Samite Gloves",
+        "baseType": "Samite Gloves",
+        "rarity": "Rare",
+        "ilvl": 84,
+        "identified": true,
+        "note": "~price 2 chaos",
+        "properties": [
+          {
+            "name": "Energy Shield",
+            "values": [
+              [
+                "32",
+                0
+              ]
+            ],
+            "displayMode": 0,
+            "type": 18
+          }
+        ],
+        "requirements": [
+          {
+            "name": "Level",
+            "values": [
+              [
+                "47",
+                0
+              ]
+            ],
+            "displayMode": 0,
+            "type": 62
+          },
+          {
+            "name": "Int",
+            "values": [
+              [
+                "68",
+                0
+              ]
+            ],
+            "displayMode": 1,
+            "type": 65
+          }
+        ],
+        "explicitMods": [
+          {
+            "description": "+26 to Dexterity",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_3261801346",
+            "mods": [
+              {
+                "name": "of the Falcon",
+                "tier": "S7",
+                "level": 33,
+                "magnitudes": [
+                  {
+                    "min": "23",
+                    "max": "27"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "+35 to maximum Mana",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_1050105434",
+            "mods": [
+              {
+                "name": "Cerulean",
+                "tier": "P8",
+                "level": 29,
+                "magnitudes": [
+                  {
+                    "min": "35",
+                    "max": "39"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "+30% to Fire Resistance",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_3372524247",
+            "mods": [
+              {
+                "name": "of the Furnace",
+                "tier": "S4",
+                "level": 48,
+                "magnitudes": [
+                  {
+                    "min": "30",
+                    "max": "35"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "11% increased Attack Speed",
+            "flags": {
+              "fractured": true
+            },
+            "domain": "fractured",
+            "hash": "stat.fractured.stat_681332047",
+            "mods": [
+              {
+                "name": "of Mastery",
+                "tier": "S2",
+                "level": 22,
+                "magnitudes": [
+                  {
+                    "min": "11",
+                    "max": "13"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "frameType": 2,
+        "frameTypeId": "Rare",
+        "extended": {
+          "base_defence_percentile": 0,
+          "es": 38,
+          "es_aug": true,
+          "hashes": {
+            "explicit": [
+              [
+                "explicit.stat_3261801346",
+                [
+                  0
+                ]
+              ],
+              [
+                "explicit.stat_1050105434",
+                [
+                  1
+                ]
+              ],
+              [
+                "explicit.stat_3372524247",
+                [
+                  2
+                ]
+              ]
+            ],
+            "fractured": [
+              [
+                "fractured.stat_681332047",
+                [
+                  0
+                ]
+              ]
+            ]
+          },
+          "text": "SXRlbSBDbGFzczogR2xvdmVzDQpSYXJpdHk6IFJhcmUNCkhhdm9jIEdyYXNwDQpTYW1pdGUgR2xvdmVzDQotLS0tLS0tLQ0KRW5lcmd5IFNoaWVsZDogMzINCi0tLS0tLS0tDQpSZXF1aXJlbWVudHM6DQpMZXZlbDogNDcNCkludDogNjgNCi0tLS0tLS0tDQpTb2NrZXRzOiBCLUIgDQotLS0tLS0tLQ0KSXRlbSBMZXZlbDogODQNCi0tLS0tLS0tDQoxMSUgaW5jcmVhc2VkIEF0dGFjayBTcGVlZA0KKzI2IHRvIERleHRlcml0eQ0KKzM1IHRvIG1heGltdW0gTWFuYQ0KKzMwJSB0byBGaXJlIFJlc2lzdGFuY2UNCi0tLS0tLS0tDQpGcmFjdHVyZWQgSXRlbQ0KLS0tLS0tLS0NCk5vdGU6IH5wcmljZSAyIGNoYW9zDQo="
+        }
+      }
+    },
+    {
+      "id": "95632580ceffdc709005b52b0660f20863202ab39361a4c34c606c7114a51c8e",
+      "listing": {
+        "method": "psapi",
+        "indexed": "2025-11-05T09:20:32Z",
+        "price": {
+          "type": "~price",
+          "amount": 11,
+          "currency": "chaos"
+        },
+        "account": {
+          "name": "seller9",
+          "lastCharacterName": "Seller9",
+          "online": {
+            "league": "Standard"
+          }
+        }
+      },
+      "item": {
+        "verified": true,
+        "w": 2,
+        "h": 4,
+        "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvV2VhcG9ucy9Ud29IYW5kV2VhcG9ucy9Cb3dzL0JvdzgiLCJ3IjoyLCJoIjo0LCJzY2FsZSI6MX1d/8d079c60ed/Bow8.png",
+        "league": "Standard",
+        "id": "95632580ceffdc709005b52b0660f20863202ab39361a4c34c606c7114a51c8e",
+        "sockets": [
+          {
+            "group": 0,
+            "attr": "D",
+            "sColour": "G"
+          }
+        ],
+        "name": "Pain Reach",
+        "typeLine": "Harbinger Bow",
+        "baseType": "Harbinger Bow",
+        "rarity": "Rare",
+        "ilvl": 70,
+        "identified": true,
+        "note": "~price 11 chaos",
+        "properties": [
+          {
+            "name": "Bow",
+            "values": [],
+            "displayMode": 0
+          },
+          {
+            "name": "Physical Damage",
+            "values": [
+              [
+                "116-307",
+                1
+              ]
+            ],
+            "displayMode": 0,
+            "type": 9
+          },
+          {
+            "name": "Elemental Damage",
+            "values": [
+              [
+                "2-6",
+                5
+              ],
+              [
+                "16-323",
+                6
+              ]
+            ],
+            "displayMode": 0,
+            "type": 10
+          },
+          {
+            "name": "Critical Strike Chance",
+            "values": [
+              [
+                "7.25%",
+                1
+              ]
+            ],
+            "displayMode": 0,
+            "type": 12
+          },
+          {
+            "name": "Attacks per Second",
+            "values": [
+              [
+                "1.35",
+                1
+              ]
+            ],
+            "displayMode": 0,
+            "type": 13
+          }
+        ],
+        "requirements": [
+          {
+            "name": "Level",
+            "values": [
+              [
+                "68",
+                0
+              ]
+            ],
+            "displayMode": 0,
+            "type": 62
+          },
+          {
+            "name": "Dex",
+            "values": [
+              [
+                "212",
+                0
+              ]
+            ],
+            "displayMode": 1,
+            "type": 64
+          }
+        ],
+        "implicitMods": [
+          {
+            "description": "45% increased Critical Strike Chance",
+            "domain": "implicit",
+            "hash": "stat.implicit.stat_2375316951",
+            "mods": [
+              {
+                "magnitudes": [
+                  {
+                    "min": "30",
+                    "max": "50"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "explicitMods": [
+          {
+            "description": "131% increased Physical Damage",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_1509134228",
+            "mods": [
+              {
+                "name": "Chosen",
+                "tier": "P1",
+                "level": 60,
+                "magnitudes": [
+                  {
+                    "min": "120",
+                    "max": "139"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "Adds 2 to 6 Cold Damage",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_1037193709",
+            "mods": [
+              {
+                "name": "Frosted",
+                "tier": "P10",
+                "level": 2,
+                "magnitudes": [
+                  {
+                    "min": "2",
+                    "max": "3"
+                  },
+                  {
+                    "min": "6",
+                    "max": "7"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "Adds 16 to 323 Lightning Damage",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_3336890334",
+            "mods": [
+              {
+                "name": "Shocking",
+                "tier": "P4",
+                "level": 51,
+                "magnitudes": [
+                  {
+                    "min": "14",
+                    "max": "20"
+                  },
+                  {
+                    "min": "281",
+                    "max": "327"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "12% increased Attack Speed",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_210067635",
+            "mods": [
+              {
+                "name": "of Mastery",
+                "tier": "S3",
+                "level": 22,
+                "magnitudes": [
+                  {
+                    "min": "11",
+                    "max": "13"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "26% increased Projectile Speed",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_3759663284",
+            "mods": [
+              {
+                "name": "of Propulsion",
+                "tier": "S3",
+                "level": 41,
+                "magnitudes": [
+                  {
+                    "min": "26",
+                    "max": "33"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "25% chance to Blind Enemies on hit",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_2301191210",
+            "mods": [
+              {
+                "name": "Chosen",
+                "tier": "P1",
+                "level": 60,
+                "magnitudes": [
+                  {
+                    "min": "21",
+                    "max": "25"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "16% increased Lightning Damage",
+            "flags": {
+              "crafted": true
+            },
+            "domain": "crafted",
+            "hash": "stat.crafted.stat_2231156303",
+            "mods": [
+              {
+                "name": "of Craft",
+                "tier": "S0",
+                "level": 40,
+                "magnitudes": [
+                  {
+                    "min": "13",
+                    "max": "16"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "frameType": 2,
+        "frameTypeId": "Rare",
+        "extended": {
+          "dps": 577.13,
+          "pdps": 342.9,
+          "edps": 234.23,
+          "dps_aug": true,
+          "pdps_aug": true,
+          "hashes": {
+            "explicit": [
+              [
+                "explicit.stat_1509134228",
+                [
+                  0
+                ]
+              ],
+              [
+                "explicit.stat_1037193709",
+                [
+                  2
+                ]
+              ],
+              [
+                "explicit.stat_3336890334",
+                [
+                  4
+                ]
+              ],
+              [
+                "explicit.stat_210067635",
+                [
+                  3
+                ]
+              ],
+              [
+                "explicit.stat_3759663284",
+                [
+                  1
+                ]
+              ],
+              [
+                "explicit.stat_2301191210",
+                [
+                  0
+                ]
+              ]
+            ],
+            "implicit": [
+              [
+                "implicit.stat_2375316951",
+                [
+                  0
+                ]
+              ]
+            ],
+            "crafted": [
+              [
+                "crafted.stat_2231156303",
+                [
+                  0
+                ]
+              ]
+            ]
+          },
+          "text": "SXRlbSBDbGFzczogQm93cw0KUmFyaXR5OiBSYXJlDQpQYWluIFJlYWNoDQpIYXJiaW5nZXIgQm93DQotLS0tLS0tLQ0KQm93DQpQaHlzaWNhbCBEYW1hZ2U6IDExNi0zMDcgKGF1Z21lbnRlZCkNCkVsZW1lbnRhbCBEYW1hZ2U6IDItNiAoYXVnbWVudGVkKSwgMTYtMzIzIChhdWdtZW50ZWQpDQpDcml0aWNhbCBTdHJpa2UgQ2hhbmNlOiA3LjI1JSAoYXVnbWVudGVkKQ0KQXR0YWNrcyBwZXIgU2Vjb25kOiAxLjM1IChhdWdtZW50ZWQpDQotLS0tLS0tLQ0KUmVxdWlyZW1lbnRzOg0KTGV2ZWw6IDY4DQpEZXg6IDIxMg0KLS0tLS0tLS0NClNvY2tldHM6IEcgDQotLS0tLS0tLQ0KSXRlbSBMZXZlbDogNzANCi0tLS0tLS0tDQo0NSUgaW5jcmVhc2VkIENyaXRpY2FsIFN0cmlrZSBDaGFuY2UNCi0tLS0tLS0tDQoxMzElIGluY3JlYXNlZCBQaHlzaWNhbCBEYW1hZ2UNCkFkZHMgMiB0byA2IENvbGQgRGFtYWdlDQpBZGRzIDE2IHRvIDMyMyBMaWdodG5pbmcgRGFtYWdlDQoxMiUgaW5jcmVhc2VkIEF0dGFjayBTcGVlZA0KMjYlIGluY3JlYXNlZCBQcm9qZWN0aWxlIFNwZWVkDQoyNSUgY2hhbmNlIHRvIEJsaW5kIEVuZW1pZXMgb24gaGl0DQoxNiUgaW5jcmVhc2VkIExpZ2h0bmluZyBEYW1hZ2UNCi0tLS0tLS0tDQpOb3RlOiB+cHJpY2UgMTEgY2hhb3MNCg=="
+        }
+      }
+    },
+    {
+      "id": "c8a478e0d916f0cb5b3e7ca1e5afa8b6dad8e04fb8fc6f25599f94d4317e762e",
+      "listing": {
+        "method": "psapi",
+        "indexed": "2026-08-29T14:34:00Z",
+        "price": {
+          "type": "~price",
+          "amount": 15,
+          "currency": "chaos"
+        },
+        "account": {
+          "name": "seller10",
+          "lastCharacterName": "Seller10",
+          "online": {
+            "league": "Standard"
+          }
+        }
+      },
+      "item": {
+        "verified": true,
+        "w": 2,
+        "h": 3,
+        "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvV2VhcG9ucy9Ud29IYW5kV2VhcG9ucy9Cb3dzL0JvdzIiLCJ3IjoyLCJoIjozLCJzY2FsZSI6MX1d/0fcc51afcd/Bow2.png",
+        "league": "Standard",
+        "id": "c8a478e0d916f0cb5b3e7ca1e5afa8b6dad8e04fb8fc6f25599f94d4317e762e",
+        "sockets": [
+          {
+            "group": 0,
+            "attr": "D",
+            "sColour": "G"
+          }
+        ],
+        "name": "Miracle Song",
+        "typeLine": "Thicket Bow",
+        "baseType": "Thicket Bow",
+        "rarity": "Rare",
+        "ilvl": 79,
+        "identified": true,
+        "note": "~price 15 chaos",
+        "properties": [
+          {
+            "name": "Bow",
+            "values": [],
+            "displayMode": 0
+          },
+          {
+            "name": "Quality",
+            "values": [
+              [
+                "+20%",
+                1
+              ]
+            ],
+            "displayMode": 0,
+            "type": 6
+          },
+          {
+            "name": "Physical Damage",
+            "values": [
+              [
+                "79-238",
+                1
+              ]
+            ],
+            "displayMode": 0,
+            "type": 9
+          },
+          {
+            "name": "Elemental Damage",
+            "values": [
+              [
+                "166-260",
+                5
+              ],
+              [
+                "24-390",
+                6
+              ]
+            ],
+            "displayMode": 0,
+            "type": 10
+          },
+          {
+            "name": "Critical Strike Chance",
+            "values": [
+              [
+                "5.00%",
+                0
+              ]
+            ],
+            "displayMode": 0,
+            "type": 12
+          },
+          {
+            "name": "Attacks per Second",
+            "values": [
+              [
+                "1.62",
+                1
+              ]
+            ],
+            "displayMode": 0,
+            "type": 13
+          }
+        ],
+        "requirements": [
+          {
+            "name": "Level",
+            "values": [
+              [
+                "60",
+                0
+              ]
+            ],
+            "displayMode": 0,
+            "type": 62
+          },
+          {
+            "name": "Dex",
+            "values": [
+              [
+                "179",
+                0
+              ]
+            ],
+            "displayMode": 1,
+            "type": 64
+          }
+        ],
+        "explicitMods": [
+          {
+            "description": "+37 to Dexterity",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_3261801346",
+            "mods": [
+              {
+                "name": "of the Leopard",
+                "tier": "S4",
+                "level": 55,
+                "magnitudes": [
+                  {
+                    "min": "33",
+                    "max": "37"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "107% increased Physical Damage",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_1509134228",
+            "mods": [
+              {
+                "name": "Vicious",
+                "tier": "P5",
+                "level": 35,
+                "magnitudes": [
+                  {
+                    "min": "85",
+                    "max": "109"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "Adds 166 to 260 Cold Damage",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_1037193709",
+            "mods": [
+              {
+                "name": "Entombing",
+                "tier": "P2",
+                "level": 75,
+                "magnitudes": [
+                  {
+                    "min": "124",
+                    "max": "170"
+                  },
+                  {
+                    "min": "250",
+                    "max": "290"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "Adds 24 to 390 Lightning Damage",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_3336890334",
+            "mods": [
+              {
+                "name": "Discharging",
+                "tier": "P3",
+                "level": 63,
+                "magnitudes": [
+                  {
+                    "min": "19",
+                    "max": "25"
+                  },
+                  {
+                    "min": "366",
+                    "max": "425"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "+34% to Fire Resistance",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_3372524247",
+            "mods": [
+              {
+                "name": "of the Furnace",
+                "tier": "S0",
+                "level": 48,
+                "magnitudes": [
+                  {
+                    "min": "30",
+                    "max": "35"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "10% chance to Trigger Level 1 Blood Rage when you Kill an Enemy",
+            "flags": {
+              "crafted": true
+            },
+            "domain": "crafted",
+            "hash": "stat.crafted.stat_205619502",
+            "mods": [
+              {
+                "name": "of Craft",
+                "tier": "S0",
+                "level": 60,
+                "magnitudes": [
+                  {
+                    "min": "10",
+                    "max": "10"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "8% increased Attack Speed",
+            "flags": {
+              "crafted": true
+            },
+            "domain": "crafted",
+            "hash": "stat.crafted.stat_210067635",
+            "mods": [
+              {
+                "name": "of Craft",
+                "tier": "S0",
+                "level": 60,
+                "magnitudes": [
+                  {
+                    "min": "8",
+                    "max": "10"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "frameType": 2,
+        "frameTypeId": "Rare",
+        "extended": {
+          "dps": 937.17,
+          "pdps": 256.77,
+          "edps": 680.4,
+          "hashes": {
+            "explicit": [
+              [
+                "explicit.stat_3261801346",
+                [
+                  1
+                ]
+              ],
+              [
+                "explicit.stat_1509134228",
+                [
+                  0
+                ]
+              ],
+              [
+                "explicit.stat_1037193709",
+                [
+                  2
+                ]
+              ],
+              [
+                "explicit.stat_3336890334",
+                [
+                  4
+                ]
+              ],
+              [
+                "explicit.stat_3372524247",
+                [
+                  3
+                ]
+              ]
+            ],
+            "crafted": [
+              [
+                "crafted.stat_205619502",
+                [
+                  0
+                ]
+              ],
+              [
+                "crafted.stat_210067635",
+                [
+                  0
+                ]
+              ]
+            ]
+          },
+          "text": "SXRlbSBDbGFzczogQm93cw0KUmFyaXR5OiBSYXJlDQpNaXJhY2xlIFNvbmcNClRoaWNrZXQgQm93DQotLS0tLS0tLQ0KQm93DQpRdWFsaXR5OiArMjAlIChhdWdtZW50ZWQpDQpQaHlzaWNhbCBEYW1hZ2U6IDc5LTIzOCAoYXVnbWVudGVkKQ0KRWxlbWVudGFsIERhbWFnZTogMTY2LTI2MCAoYXVnbWVudGVkKSwgMjQtMzkwIChhdWdtZW50ZWQpDQpDcml0aWNhbCBTdHJpa2UgQ2hhbmNlOiA1LjAwJQ0KQXR0YWNrcyBwZXIgU2Vjb25kOiAxLjYyIChhdWdtZW50ZWQpDQotLS0tLS0tLQ0KUmVxdWlyZW1lbnRzOg0KTGV2ZWw6IDYwDQpEZXg6IDE3OQ0KLS0tLS0tLS0NClNvY2tldHM6IEcgDQotLS0tLS0tLQ0KSXRlbSBMZXZlbDogNzkNCi0tLS0tLS0tDQorMzcgdG8gRGV4dGVyaXR5DQoxMDclIGluY3JlYXNlZCBQaHlzaWNhbCBEYW1hZ2UNCkFkZHMgMTY2IHRvIDI2MCBDb2xkIERhbWFnZQ0KQWRkcyAyNCB0byAzOTAgTGlnaHRuaW5nIERhbWFnZQ0KKzM0JSB0byBGaXJlIFJlc2lzdGFuY2UNCjEwJSBjaGFuY2UgdG8gVHJpZ2dlciBMZXZlbCAxIEJsb29kIFJhZ2Ugd2hlbiB5b3UgS2lsbCBhbiBFbmVteQ0KOCUgaW5jcmVhc2VkIEF0dGFjayBTcGVlZA0KLS0tLS0tLS0NCk5vdGU6IH5wcmljZSAxNSBjaGFvcw0K"
+        }
+      }
+    },
+    {
+      "id": "d012db0aa4cda530f0c7b5a7f067c21c91d187670d66e4c168f747455decc7a2",
+      "listing": {
+        "method": "psapi",
+        "indexed": "2023-01-30T15:41:27Z",
+        "price": {
+          "type": "~price",
+          "amount": 3,
+          "currency": "chaos"
+        },
+        "account": {
+          "name": "seller11",
+          "lastCharacterName": "Seller11",
+          "online": {
+            "league": "Standard",
+            "status": "afk"
+          }
+        }
+      },
+      "item": {
+        "verified": true,
+        "w": 2,
+        "h": 3,
+        "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQXJtb3Vycy9Cb2R5QXJtb3Vycy9Cb2R5RGV4SW50MkMiLCJ3IjoyLCJoIjozLCJzY2FsZSI6MSwic2hhcGVyIjp0cnVlfV0/a02b30158a/BodyDexInt2C.png",
+        "league": "Standard",
+        "id": "d012db0aa4cda530f0c7b5a7f067c21c91d187670d66e4c168f747455decc7a2",
+        "influences": {
+          "shaper": true
+        },
+        "shaper": true,
+        "sockets": [
+          {
+            "group": 0,
+            "attr": "I",
+            "sColour": "B"
+          },
+          {
+            "group": 0,
+            "attr": "D",
+            "sColour": "G"
+          },
+          {
+            "group": 1,
+            "attr": "I",
+            "sColour": "B"
+          }
+        ],
+        "name": "Demon Sanctuary",
+        "typeLine": "Sadist Garb",
+        "baseType": "Sadist Garb",
+        "rarity": "Rare",
+        "ilvl": 86,
+        "identified": true,
+        "note": "~price 3 chaos",
+        "properties": [
+          {
+            "name": "Evasion Rating",
+            "values": [
+              [
+                "427",
+                0
+              ]
+            ],
+            "displayMode": 0,
+            "type": 17
+          },
+          {
+            "name": "Energy Shield",
+            "values": [
+              [
+                "93",
+                0
+              ]
+            ],
+            "displayMode": 0,
+            "type": 18
+          }
+        ],
+        "requirements": [
+          {
+            "name": "Level",
+            "values": [
+              [
+                "68",
+                0
+              ]
+            ],
+            "displayMode": 0,
+            "type": 62
+          },
+          {
+            "name": "Dex",
+            "values": [
+              [
+                "103",
+                0
+              ]
+            ],
+            "displayMode": 1,
+            "type": 64
+          },
+          {
+            "name": "Int",
+            "values": [
+              [
+                "109",
+                0
+              ]
+            ],
+            "displayMode": 1,
+            "type": 65
+          }
+        ],
+        "explicitMods": [
+          {
+            "description": "+48 to Intelligence",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_328541901",
+            "mods": [
+              {
+                "name": "of the Virtuoso",
+                "tier": "S2",
+                "level": 74,
+                "magnitudes": [
+                  {
+                    "min": "43",
+                    "max": "50"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "+14 to maximum Life",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_3299347043",
+            "mods": [
+              {
+                "name": "Healthy",
+                "tier": "P12",
+                "level": 5,
+                "magnitudes": [
+                  {
+                    "min": "10",
+                    "max": "24"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "+14% to Fire Resistance",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_3372524247",
+            "mods": [
+              {
+                "name": "of the Salamander",
+                "tier": "S7",
+                "level": 12,
+                "magnitudes": [
+                  {
+                    "min": "12",
+                    "max": "17"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "9% of Physical Damage from Hits taken as Cold Damage",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_1871056256",
+            "mods": [
+              {
+                "name": "The Shaper's",
+                "tier": "P2",
+                "level": 68,
+                "magnitudes": [
+                  {
+                    "min": "8",
+                    "max": "12"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "frameType": 2,
+        "frameTypeId": "Rare",
+        "extended": {
+          "base_defence_percentile": 0,
+          "ev": 512,
+          "ev_aug": true,
+          "es": 112,
+          "es_aug": true,
+          "hashes": {
+            "explicit": [
+              [
+                "explicit.stat_328541901",
+                [
+                  3
+                ]
+              ],
+              [
+                "explicit.stat_3299347043",
+                [
+                  1
+                ]
+              ],
+              [
+                "explicit.stat_3372524247",
+                [
+                  2
+                ]
+              ],
+              [
+                "explicit.stat_1871056256",
+                [
+                  0
+                ]
+              ]
+            ]
+          },
+          "text": "SXRlbSBDbGFzczogQm9keSBBcm1vdXJzDQpSYXJpdHk6IFJhcmUNCkRlbW9uIFNhbmN0dWFyeQ0KU2FkaXN0IEdhcmINCi0tLS0tLS0tDQpFdmFzaW9uIFJhdGluZzogNDI3DQpFbmVyZ3kgU2hpZWxkOiA5Mw0KLS0tLS0tLS0NClJlcXVpcmVtZW50czoNCkxldmVsOiA2OA0KRGV4OiAxMDMNCkludDogMTA5DQotLS0tLS0tLQ0KU29ja2V0czogQi1HIEIgDQotLS0tLS0tLQ0KSXRlbSBMZXZlbDogODYNCi0tLS0tLS0tDQorNDggdG8gSW50ZWxsaWdlbmNlDQorMTQgdG8gbWF4aW11bSBMaWZlDQorMTQlIHRvIEZpcmUgUmVzaXN0YW5jZQ0KOSUgb2YgUGh5c2ljYWwgRGFtYWdlIGZyb20gSGl0cyB0YWtlbiBhcyBDb2xkIERhbWFnZQ0KLS0tLS0tLS0NClNoYXBlciBJdGVtDQotLS0tLS0tLQ0KTm90ZTogfnByaWNlIDMgY2hhb3MNCg=="
+        }
+      }
+    },
+    {
+      "id": "7cb6650095055c3c6f492bf9a8c0125366b3cac39798b2e36fffc20431aa60e1",
+      "listing": {
+        "method": "psapi",
+        "indexed": "2023-01-30T15:41:27Z",
+        "price": {
+          "type": "~price",
+          "amount": 4,
+          "currency": "chaos"
+        },
+        "account": {
+          "name": "seller12",
+          "lastCharacterName": "Seller12",
+          "online": {
+            "league": "Standard",
+            "status": "afk"
+          }
+        }
+      },
+      "item": {
+        "verified": true,
+        "w": 2,
+        "h": 3,
+        "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQXJtb3Vycy9Cb2R5QXJtb3Vycy9Cb2R5RGV4SW50MUIiLCJ3IjoyLCJoIjozLCJzY2FsZSI6MSwic2hhcGVyIjp0cnVlfV0/f987426946/BodyDexInt1B.png",
+        "league": "Standard",
+        "id": "7cb6650095055c3c6f492bf9a8c0125366b3cac39798b2e36fffc20431aa60e1",
+        "influences": {
+          "shaper": true
+        },
+        "shaper": true,
+        "sockets": [
+          {
+            "group": 0,
+            "attr": "D",
+            "sColour": "G"
+          },
+          {
+            "group": 0,
+            "attr": "S",
+            "sColour": "R"
+          }
+        ],
+        "name": "Demon Suit",
+        "typeLine": "Sentinel Jacket",
+        "baseType": "Sentinel Jacket",
+        "rarity": "Rare",
+        "ilvl": 86,
+        "identified": true,
+        "note": "~price 4 chaos",
+        "properties": [
+          {
+            "name": "Evasion Rating",
+            "values": [
+              [
+                "535",
+                1
+              ]
+            ],
+            "displayMode": 0,
+            "type": 17
+          },
+          {
+            "name": "Energy Shield",
+            "values": [
+              [
+                "146",
+                1
+              ]
+            ],
+            "displayMode": 0,
+            "type": 18
+          }
+        ],
+        "requirements": [
+          {
+            "name": "Level",
+            "values": [
+              [
+                "68",
+                0
+              ]
+            ],
+            "displayMode": 0,
+            "type": 62
+          },
+          {
+            "name": "Dex",
+            "values": [
+              [
+                "86",
+                0
+              ]
+            ],
+            "displayMode": 1,
+            "type": 64
+          },
+          {
+            "name": "Int",
+            "values": [
+              [
+                "86",
+                0
+              ]
+            ],
+            "displayMode": 1,
+            "type": 65
+          }
+        ],
+        "explicitMods": [
+          {
+            "description": "Socketed Gems are Supported by Level 15 Item Rarity",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_3587013273",
+            "mods": [
+              {
+                "name": "of Shaping",
+                "tier": "S1",
+                "level": 85,
+                "magnitudes": [
+                  {
+                    "min": "15",
+                    "max": "15"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "+52 to Dexterity",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_3261801346",
+            "mods": [
+              {
+                "name": "of the Wind",
+                "tier": "S1",
+                "level": 82,
+                "magnitudes": [
+                  {
+                    "min": "51",
+                    "max": "55"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "62% increased Evasion and Energy Shield",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_1999113824",
+            "mods": [
+              {
+                "name": "Ephemeral",
+                "tier": "P5",
+                "level": 44,
+                "magnitudes": [
+                  {
+                    "min": "56",
+                    "max": "67"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "+23 to maximum Energy Shield",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_4052037485",
+            "mods": [
+              {
+                "name": "Priest's",
+                "tier": "P2",
+                "level": 62,
+                "magnitudes": [
+                  {
+                    "min": "16",
+                    "max": "25"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "+40 to maximum Life",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_3299347043",
+            "mods": [
+              {
+                "name": "Stout",
+                "tier": "P9",
+                "level": 24,
+                "magnitudes": [
+                  {
+                    "min": "55",
+                    "max": "69"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "+22 to maximum Mana",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_1050105434",
+            "mods": [
+              {
+                "name": "Priest's",
+                "tier": "P2",
+                "level": 62,
+                "magnitudes": [
+                  {
+                    "min": "20",
+                    "max": "22"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "Recover 5% of Energy Shield on Kill",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_2406605753",
+            "mods": [
+              {
+                "name": "of Shaping",
+                "tier": "S1",
+                "level": 75,
+                "magnitudes": [
+                  {
+                    "min": "5",
+                    "max": "6"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "13% increased Rarity of Items found from Slain Unique Enemies",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_121185030",
+            "mods": [
+              {
+                "name": "of Shaping",
+                "tier": "S1",
+                "level": 85,
+                "magnitudes": [
+                  {
+                    "min": "13",
+                    "max": "18"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "frameType": 2,
+        "frameTypeId": "Rare",
+        "extended": {
+          "base_defence_percentile": 0,
+          "ev": 642,
+          "ev_aug": true,
+          "es": 175,
+          "es_aug": true,
+          "hashes": {
+            "explicit": [
+              [
+                "explicit.stat_3587013273",
+                [
+                  3
+                ]
+              ],
+              [
+                "explicit.stat_3261801346",
+                [
+                  2
+                ]
+              ],
+              [
+                "explicit.stat_1999113824",
+                [
+                  4
+                ]
+              ],
+              [
+                "explicit.stat_4052037485",
+                [
+                  5
+                ]
+              ],
+              [
+                "explicit.stat_3299347043",
+                [
+                  1
+                ]
+              ],
+              [
+                "explicit.stat_1050105434",
+                [
+                  5
+                ]
+              ],
+              [
+                "explicit.stat_2406605753",
+                [
+                  0
+                ]
+              ],
+              [
+                "explicit.stat_121185030",
+                [
+                  3
+                ]
+              ]
+            ]
+          },
+          "text": "SXRlbSBDbGFzczogQm9keSBBcm1vdXJzDQpSYXJpdHk6IFJhcmUNCkRlbW9uIFN1aXQNClNlbnRpbmVsIEphY2tldA0KLS0tLS0tLS0NCkV2YXNpb24gUmF0aW5nOiA1MzUgKGF1Z21lbnRlZCkNCkVuZXJneSBTaGllbGQ6IDE0NiAoYXVnbWVudGVkKQ0KLS0tLS0tLS0NClJlcXVpcmVtZW50czoNCkxldmVsOiA2OA0KRGV4OiA4Ng0KSW50OiA4Ng0KLS0tLS0tLS0NClNvY2tldHM6IEctUiANCi0tLS0tLS0tDQpJdGVtIExldmVsOiA4Ng0KLS0tLS0tLS0NClNvY2tldGVkIEdlbXMgYXJlIFN1cHBvcnRlZCBieSBMZXZlbCAxNSBJdGVtIFJhcml0eQ0KKzUyIHRvIERleHRlcml0eQ0KNjIlIGluY3JlYXNlZCBFdmFzaW9uIGFuZCBFbmVyZ3kgU2hpZWxkDQorMjMgdG8gbWF4aW11bSBFbmVyZ3kgU2hpZWxkDQorNDAgdG8gbWF4aW11bSBMaWZlDQorMjIgdG8gbWF4aW11bSBNYW5hDQpSZWNvdmVyIDUlIG9mIEVuZXJneSBTaGllbGQgb24gS2lsbA0KMTMlIGluY3JlYXNlZCBSYXJpdHkgb2YgSXRlbXMgZm91bmQgZnJvbSBTbGFpbiBVbmlxdWUgRW5lbWllcw0KLS0tLS0tLS0NClNoYXBlciBJdGVtDQotLS0tLS0tLQ0KTm90ZTogfnByaWNlIDQgY2hhb3MNCg=="
+        }
+      }
+    }
+  ]
+}
