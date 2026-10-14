@@ -283,24 +283,24 @@ export class StashScan {
     }
   }
 
+  /** 被擋下:記錄狀態(lastBlock / log / 計數)、作廢差分基準;停止類原因收掉疊層(暫停類留著) */
+  private blockedResult (block: StashBlock): StashTickResult {
+    if (block !== this.lastBlock) this.deps.log?.(`[stash] 暫停:${block}`)
+    this.lastBlock = block
+    this.blockCounts[block] = (this.blockCounts[block] ?? 0) + 1
+    this.baseline = null
+    if (STASH_CLEARING_BLOCKS.has(block) && this.shown) {
+      this.hide({ w: this.shown.clientW, h: this.shown.clientH })
+    }
+    return { kind: 'blocked', block }
+  }
+
   private async runTick (): Promise<StashTickResult> {
     const cfg = this.deps.config()
     const env = this.deps.env()
     const block = stashBlock(cfg, env, this.ui, this.userPaused)
-    if (block !== this.lastBlock) {
-      if (block) this.deps.log?.(`[stash] 暫停:${block}`)
-      else if (this.lastBlock) this.deps.log?.('[stash] 繼續掃描')
-    }
-    this.lastBlock = block
-    if (block) {
-      this.blockCounts[block] = (this.blockCounts[block] ?? 0) + 1
-      // 停止 → 收掉疊層;暫停(失焦 / UI 開著)→ 留著,但差分基準作廢(回來時重看一次)
-      this.baseline = null
-      if (STASH_CLEARING_BLOCKS.has(block) && this.shown) {
-        this.hide({ w: this.shown.clientW, h: this.shown.clientH })
-      }
-      return { kind: 'blocked', block }
-    }
+    if (block) return this.blockedResult(block)
+    if (this.lastBlock) { this.deps.log?.('[stash] 繼續掃描'); this.lastBlock = null }
     if (this.deps.ocrBusy()) { this.counters.skippedBusy++; return { kind: 'busy' } }
 
     this.inFlight = true
@@ -364,7 +364,7 @@ export class StashScan {
       return { kind: 'ocr', found: true, subtab: null, held: false, sent, ms }
     }
     // tick 進行中(await 期間)使用者按了暫停 → 不畫(下一輪被 user-paused 擋下並收掉)
-    if (this.userPaused) return { kind: 'blocked', block: 'user-paused' }
+    if (this.userPaused) return this.blockedResult('user-paused')
     const same = this.shown && this.shown.subtab === subtab && this.shown.yOffset === match.yOffset &&
       this.shown.clientW === client.w && this.shown.clientH === client.h
     if (same) return { kind: 'ocr', found: true, subtab, held: false, sent: null, ms }

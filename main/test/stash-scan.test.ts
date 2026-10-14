@@ -774,6 +774,9 @@ describe('S19 使用者暫停熱鍵(T21)', () => {
     expect(h.events.map(e => e.reason)).not.toContain('show')
     expect(h.scan.showing).toBe(false)
     expect(h.showingCalls.every(c => !c.showing)).toBe(true)
+    expect(h.scan.snapshot().block).toBe('user-paused')
+    expect(h.scan.blockCounts['user-paused']).toBe(1)
+    expect(h.logs.some(l => l.includes('暫停:user-paused'))).toBe(true)
   })
   it('user-paused 屬於會收掉疊層的擋下原因', () => {
     expect(STASH_CLEARING_BLOCKS.has('user-paused')).toBe(true)
