@@ -6,10 +6,10 @@
  *   超出視窗下緣整體上移(`stackBadges`);一組多候選時預設只顯示最可能的一列 + 「+N」(設定「顯示全部候選」可全列)。
  * - 2026-10-01 起徽章跟著 main 的自動辨識事件(`reveal-scan-result`)持續更新:有列 → 重新比對;`empty` / `inactive` / 暫停 → 清除
  *   (沒有 15 秒自動消失、沒有「再按一次清除」)。`revealScanAction` 決定每個事件要做什麼。
- * 只做型別匯入(renderer vitest 沒有別名)。
+ * `@poe2-entry` 只做型別匯入(renderer vitest 沒有別名);core 的倉庫預設區域以相對路徑匯入實值。
  */
-import { defaultStripRegion } from '../../../../core/src/stash/detect'
 import { shallowRef } from 'vue'
+import { defaultStripRegion } from '../../../../core/src/stash/detect'
 import type { Poe2RevealCandidate, Poe2RevealResult } from '@poe2-entry'
 import type { OcrRegion, RevealScanEvent, RuneshapeStats } from '@ipc/types'
 import { displayOcrText } from '../ocr-lang'
@@ -320,6 +320,19 @@ export const REGION_PICKER_SPECS: Readonly<Record<RegionPickerTarget, RegionPick
     // viewport 與遊戲 client 同比例(overlay 蓋滿 client)→ 比例相同
     defaultRegion: (vp) => defaultStripRegion(vp.w, vp.h)
   }
+}
+
+/** 框沒拖動時與預設區域的容許誤差(client 比例;CSS px 換算的四捨五入) */
+const DEFAULT_REGION_EPS = 0.002
+
+/**
+ * 框選確認時要存的值:沒框過(`saved` null)、這個目標有預設區域,且框與預設相同(使用者沒拖動就按確認)→ null(維持「預設」,
+ * 換長寬比時跟著預設走);其他 → 框選的區域。
+ */
+export function regionToSave (saved: OcrRegion | null, picked: OcrRegion, defaultRegion: OcrRegion | undefined): OcrRegion | null {
+  if (saved == null && defaultRegion &&
+    (['x', 'y', 'w', 'h'] as const).every(k => Math.abs(picked[k] - defaultRegion[k]) <= DEFAULT_REGION_EPS)) return null
+  return picked
 }
 
 /** 目前(或最近一次)框選層框的是哪一種區域 */

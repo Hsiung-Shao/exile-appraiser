@@ -82,7 +82,7 @@
       "shared_with_reveal": "Shared with desecration detection: toggles both at once",
       "shared_section": "Shared settings",
       "privacy": "Screenshots are read locally with Windows OCR; nothing is saved, uploaded, or typed into the game.",
-      "cpu_help": "Desecration and Runeshape share one OCR engine and take turns when both are on; OCR only runs when the screen changed. Scanning pauses while settings or the area picker is open or the game is not in the foreground; Runeshape also pauses while the price panel is open. Each scan captures the screen, so raise the interval (e.g. 1500 ms) if CPU usage is too high."
+      "cpu_help": "Recognitions on this page share one OCR engine and take turns when several are on; OCR only runs when the screen changed. Scanning pauses while settings or the area picker is open or the game is not in the foreground; Runeshape and stash prices also pause while the price panel is open. Each scan captures the screen, so raise the interval (e.g. 1500 ms) if CPU usage is too high."
     },
     "ocr": {
       "section": "Desecrated modifiers",
@@ -115,7 +115,7 @@
       "lang_follow": "Follow client language",
       "lang_zh": "Traditional Chinese",
       "lang_en": "English",
-      "lang_hint": "Shared by Desecration and Rune Shaping. UI language, client language (price-check parsing) and recognition language are independent; the recognition language must match the language the game actually displays (e.g. Chinese UI, English game: pick English). The matching Windows OCR language pack must be installed; the OCR status below shows which one is in use.",
+      "lang_hint": "Shared by every recognition on this page (PoE2 Desecration / Rune Shaping, PoE1 stash prices). UI language, client language (price-check parsing) and recognition language are independent; the recognition language must match the language the game actually displays (e.g. Chinese UI, English game: pick English). The matching Windows OCR language pack must be installed; the OCR status below shows which one is in use.",
       "status": "OCR status",
       "status_ok": "Available ({lang})",
       "status_checking": "Checking…",
@@ -161,7 +161,7 @@
       "tw_no_source": "poe.ninja has no prices for the Taiwan realm: the stash overlay shows item names only.",
       "unit_c": "C",
       "unit_div": "D",
-      "help": "OCR only reads the sub-tab buttons at the top of the fragment tab (to know the stash is open and which sub-tab); each slot is mapped to its item by the fixed layout, so no region needs to be picked. Hovering a slot keeps only that badge so the game tooltip stays readable. Font, size and price colours are in \"Badge appearance\" below.",
+      "help": "OCR only reads the sub-tab buttons at the top of the fragment tab (to know the stash is open and which sub-tab); each slot is mapped to its item by the fixed layout. The OCR region is derived from the screen height by default; if it is off, frame it yourself under \"OCR region\" below. Hovering a slot keeps only that badge so the game tooltip stays readable. Font, size and price colours are in \"Badge appearance\" below.",
       "status_disabled": "Disabled",
       "status_game_inactive": "Game not in foreground (paused)",
       "status_ui_open": "Price panel / settings open (paused)",

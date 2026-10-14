@@ -55,7 +55,7 @@ import { AppConfig, normOcrRegion } from '../Config'
 import { Host } from '../background/IPC'
 import {
   closeRegionPicker, lastDetectedRegion, openRegionPicker, regionPickerOpen, regionPickerSource, regionPickerSpec, regionPickerTarget,
-  returnsToSettings, type RegionPickerOutcome
+  regionToSave, returnsToSettings, type RegionPickerOutcome
 } from './ocr-reveal'
 import {
   HANDLES, dragBox, finishNewBox, fromRegion, moveBox, nudgeBox, regionPercent, resizeBox, toRegion,
@@ -132,7 +132,10 @@ export default defineComponent({
         return
       }
       const s = spec.value
-      config[s.field] = region
+      // 沒框過、框也沒拖動(= 預設區域)→ 維持預設不存(倉庫:換長寬比時跟著預設走)
+      const saved = regionToSave(config[s.field], region, s.defaultRegion?.(vp()))
+      config[s.field] = saved
+      if (!saved) console.log(`[ocr-region] ${s.field} 框與預設相同 → 維持預設(不存)`)
       const back = backToSettings('confirm')
       closeRegionPicker('確認', 'confirm')
       if (back) {

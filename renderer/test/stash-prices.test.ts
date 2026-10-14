@@ -7,7 +7,7 @@ import { layoutStashBadges, shortStashName, stashPriceUnit, type StashLayoutInpu
 import type { PriceOfResult } from '../src/web/background/price-of'
 import { badgeStyleVars, defaultOcrBadgeStyle } from '../src/web/overlay/badge-style'
 import { _roundTripForTest } from '../src/web/Config'
-import { REGION_PICKER_SPECS } from '../src/web/overlay/ocr-reveal'
+import { REGION_PICKER_SPECS, regionToSave } from '../src/web/overlay/ocr-reveal'
 import { defaultStripRegion } from '../../core/src/stash/detect'
 import { overlayContentKey, overlayContentOf, overlayLayers } from '../src/web/overlay/overlay-content'
 
@@ -200,6 +200,22 @@ describe('S18e 自訂倉庫 OCR 區域(設定 / 框選層)', () => {
     const card = readFileSync(fileURLToPath(new URL('../src/web/settings/StashPricesSection.vue', import.meta.url)), 'utf8')
     expect(card).toContain("openRegionPicker('settings', 'stash')")
     expect(card).toContain('config.stashRegion = null')
+  })
+})
+
+describe('S18f 框沒動就確認不存預設', () => {
+  const def = { x: 0, y: 0.118, w: 0.347, h: 0.068 }
+  it('沒框過且框等於預設(含換算誤差)→ 仍為 null', () => {
+    // 直接存 → 預設被固化成固定比例,換長寬比後不再跟著預設走
+    expect(regionToSave(null, { ...def }, def)).toBeNull()
+    expect(regionToSave(null, { x: 0.0004, y: 0.1183, w: 0.3466, h: 0.0681 }, def)).toBeNull()
+  })
+  it('有拖動 / 已框過 / 沒有預設 → 存框選的區域', () => {
+    // 誤判成「沒動」→ 使用者真的調整過的框沒被存
+    const moved = { x: 0, y: 0.11, w: 0.347, h: 0.08 }
+    expect(regionToSave(null, moved, def)).toEqual(moved)
+    expect(regionToSave(def, { ...def }, def)).toEqual(def)
+    expect(regionToSave(null, { ...def }, undefined)).toEqual(def)
   })
 })
 
