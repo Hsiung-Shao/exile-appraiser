@@ -172,6 +172,14 @@
 - 市價卡補回「底材」標示(有價值的底材,原本 ItemQuickPrice `#item` 插槽的 `:base_item`;新字串 `ppz.hero.base_item`)。
 - 範圍膠囊「最小 / 最大」placeholder 與「–」改 `--ink-2`(placeholder 選擇器原本寫成 `:slotted(input::placeholder)`,編出來無效)。
 
+## 預設底材 preset(2026-10-15,使用者裁定,與 APT / EE2 不同)
+
+使用者回報 PoE1 查術士手套 / 螺旋戒指 / 動能魔杖時預設只查類別(「類別:戒指」)。APT / EE2 的規則:魔法 / 稀有且有工藝價值(PoE1 物等 ≥ 82、PoE2 物等 ≥ 該類上限 − 15,或有勢力 / 破裂 / 合成…)且不像成品時,多一個「底材」preset `filters.preset_base_item`,但預設停在 pseudo(查類別)。
+
+改法(兩代 `filters/create-presets.ts`,`// exile-appraiser:` 註解):有底材 preset **且** `trends/getDetailsId.ts` `isValuableBasetype(item)`(普通 / 魔法 / 稀有的武器 / 防具 / 飾品 / 箭袋)時 `active` = 底材 preset;珠寶、換界石、星團等維持 pseudo(避免改到與「底材」無關的物品)。preset 內容、順序、詞綴勾選方式照上游,使用者可切回 pseudo / 點 FilterName 改回類別。普通物品本來就是精確 preset 查 `type`,不受影響。
+
+影響:PoE2 golden-query `spear-rare-soaring-spear-01`(intl / tw)與 `en-spear-rare-soaring-spear-01.intl` 從「類別 + DPS + 詞綴(未勾)」變成底材 preset 的「`type: Flying Spear` + ilvl ≥ 82 + 基底詞綴」;PoE1 快照 0 變動。測試 `poe1/test/default-base-preset.test.ts`、`poe2/test/web/price-check/filters/default-base-preset.test.ts`;破裂切換 / DPS 隱藏列測試(驗 pseudo preset 的功能)改為固定取 pseudo preset。
+
 ## 未做 / 待辦
 - 預測價(PricePrediction)。
 - GUI 實機(熱鍵 → overlay 附著 PoE2 視窗 → 台服真實掛單)由使用者實測。

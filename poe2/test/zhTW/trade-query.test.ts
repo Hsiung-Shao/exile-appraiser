@@ -38,6 +38,8 @@ interface Built {
     disabled: boolean;
     value?: number;
   }>;
+  /** pseudo preset 的同一份資料(2026-10-15 起武器 / 防具 / 飾品有底材 preset 時預設是底材,pseudo 要另外取) */
+  pseudo: Pick<Built, "body" | "enabledStats" | "filters">;
 }
 
 const built = new Map<string, Built>();
@@ -62,6 +64,8 @@ beforeAll(async () => {
       defaultAllSelected: false,
     });
     const active = presets.presets.find((p) => p.id === presets.active)!;
+    const pseudo =
+      presets.presets.find((p) => p.id === "filters.preset_pseudo") ?? active;
     const api = apiToSatisfySearch(item, active.stats, active.filters);
     if (api === "bulk") {
       active.filters.trade.listingType = "online";
@@ -84,6 +88,19 @@ beforeAll(async () => {
         disabled: s.disabled,
         value: s.roll?.value,
       })),
+      pseudo: {
+        body: createTradeRequest(pseudo.filters, pseudo.stats, item),
+        enabledStats: pseudo.stats
+          .filter((s) => !s.disabled)
+          .map((s) => `${s.tradeId.join("+")} ${JSON.stringify(s.roll ?? null)}`),
+        filters: pseudo.stats.map((s) => ({
+          statRef: s.statRef,
+          tradeId: s.tradeId,
+          hidden: s.hidden,
+          disabled: s.disabled,
+          value: s.roll?.value,
+        })),
+      },
     });
 
     if (DUMP_DIR) {
@@ -172,7 +189,8 @@ describe("trade query for cmn-Hant fixtures (realm pc-ggg)", () => {
     // 上游把「增加物理傷害%」「附加 X 至 Y 傷害」「增加護甲/能量護盾%」吃進
     // DPS / 防禦值偽屬性後就從清單拿掉,T1 詞綴無法單獨搜尋。fork 改成保留為
     // hidden + 未勾選,並且預設查詢不得因此多送任何條件。
-    const spear = built.get("spear-rare-soaring-spear-01")!;
+    // 2026-10-15:矛預設是底材 preset,這裡驗的是 pseudo preset 的清單
+    const spear = built.get("spear-rare-soaring-spear-01")!.pseudo;
     const phys = spear.filters.find(
       (f) => f.statRef === "#% increased Physical Damage",
     );

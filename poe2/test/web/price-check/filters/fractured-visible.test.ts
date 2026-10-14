@@ -40,7 +40,11 @@ const HELMET_MODIFIABLE = fs
 function build(text = FracturedItem.rawText) {
   const item = parseClipboard(text)._unsafeUnwrap();
   const { presets, active } = createPresets(item, OPTS);
-  return { item, preset: presets.find((p) => p.id === active)! };
+  // 破裂可見是 pseudo preset 的功能;2026-10-15 起有底材 preset 的武器 / 防具預設是底材,這裡固定取 pseudo
+  const preset =
+    presets.find((p) => p.id === "filters.preset_pseudo") ??
+    presets.find((p) => p.id === active)!;
+  return { item, preset };
 }
 
 beforeAll(async () => {
