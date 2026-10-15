@@ -63,6 +63,10 @@
       "god_kurgal": "柯戈",
       "profile_guessed": "底材不在資料表,依物品類別推定"
     },
+    "crafted_filter": {
+      "exclude": "無工藝詞綴",
+      "title": "只找沒有工藝詞綴的掛單(避免工藝湊出來的便宜貨拉低價格)"
+    },
     "fractured_toggle": {
       "label": "破裂",
       "title_off": "改查破裂詞綴(交易站只找這條是破裂的物品)",

@@ -377,6 +377,11 @@ export function createFilters(
     filters.foil = { disabled: true };
   }
 
+  // exile-appraiser: 2026-10-16 排除工藝詞綴(使用者回報工藝貨拉低最低價);預設不排除 = 查詢不變
+  if (canExcludeCraftedMods(item)) {
+    filters.craftedMods = { disabled: true };
+  }
+
   if (item.influences.length && item.influences.length <= 2) {
     filters.influences = item.influences.map((influence) => ({
       value: influence,
@@ -727,5 +732,23 @@ function isMagicOrRareBase(item: ParsedItem): boolean {
     ARMOUR.has(item.category) ||
     WEAPON.has(item.category) ||
     item.category === ItemCategory.Quiver
+  );
+}
+
+// exile-appraiser: 2026-10-16 「排除工藝詞綴」只給可帶工藝詞綴的魔法 / 稀有物品,且物品本身沒有工藝詞綴
+function canExcludeCraftedMods(item: ParsedItem): boolean {
+  if (
+    !(item.rarity === ItemRarity.Magic || item.rarity === ItemRarity.Rare) ||
+    !item.category
+  )
+    return false;
+  if (item.newMods.some((mod) => mod.info.type === ModifierType.Crafted))
+    return false;
+  return (
+    isMagicOrRareBase(item) ||
+    item.category === ItemCategory.Jewel ||
+    item.category === ItemCategory.AbyssJewel ||
+    item.category === ItemCategory.Flask ||
+    item.category === ItemCategory.Charm
   );
 }

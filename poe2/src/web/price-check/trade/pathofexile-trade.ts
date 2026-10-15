@@ -815,6 +815,14 @@ export function createTradeRequest(
       String(false),
     );
   }
+  // exile-appraiser: 2026-10-16 排除工藝詞綴 = 工藝詞綴數上限 0
+  if (filters.craftedMods && !filters.craftedMods.disabled) {
+    query.stats[0].filters.push({
+      id: STAT_BY_REF("# Crafted Modifiers")!.trade.ids[ModifierType.Pseudo][0],
+      value: { max: 0 },
+      disabled: false,
+    });
+  }
 
   if (filters.mirrored) {
     if (filters.mirrored.disabled) {

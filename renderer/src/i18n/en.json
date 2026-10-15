@@ -63,6 +63,10 @@
       "god_kurgal": "Kurgal",
       "profile_guessed": "Base not in the table; estimated from the item class"
     },
+    "crafted_filter": {
+      "exclude": "No crafted mods",
+      "title": "Only listings without crafted mods (keeps cheap crafted items from dragging the price down)"
+    },
     "fractured_toggle": {
       "label": "Fractured",
       "title_off": "Search this as a fractured mod (only items where this mod is fractured)",
