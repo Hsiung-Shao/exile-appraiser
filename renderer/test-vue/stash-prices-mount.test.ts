@@ -18,7 +18,7 @@ import { usePoeninja } from '../src/web/background/Prices'
 import { loadedGame } from '../src/web/games/active'
 import StashPrices from '../src/web/overlay/StashPrices.vue'
 import { stashValue } from '../src/web/overlay/stash-value'
-import { parseStashLayouts } from '../../core/src/stash/layout'
+import { cellRects, parseStashLayouts } from '../../core/src/stash/layout'
 import { mount, text, findAll, byAttr, type MiniNode } from './mini-dom'
 
 const ROOT = path.resolve(__dirname, '../..')
@@ -192,7 +192,7 @@ describe('V11 倉庫價值疊層', () => {
     app.unmount()
   })
 
-  it('peek → 格子徽章收起(本頁價值卡留著);下一個不帶 peek 的 show → 回來', async () => {
+  it('peek → 格子徽章與本頁價值卡都收起;下一個不帶 peek 的 show → 回來', async () => {
     const { container, app } = render()
     await settle()
     show(qty)
@@ -201,11 +201,41 @@ describe('V11 倉庫價值疊層', () => {
     show(qty, true)
     await settle(40)
     expect(all(container, 'badge')).toHaveLength(0)
-    expect(all(container, 'value')).toHaveLength(1)
+    expect(all(container, 'value')).toHaveLength(0)
     show(qty)
     await settle(40)
     expect(all(container, 'badge').length).toBe(N - 1)
+    expect(all(container, 'value')).toHaveLength(1)
     app.unmount()
+  })
+
+  it('價值卡拖到格子數字帶上 → peek 時遮罩回報不含卡片,peek 結束卡片回來', async () => {
+    const config = AppConfig()
+    // 卡片左上角放在第 0 格的數字帶裡(viewport = client = 1280×900)
+    const c = cellRects(LAYOUTS, 'scarabs', 900, 0)[0]
+    const want = { x: Math.round(c.x + 2), y: Math.round(c.y + c.h * 0.3) }
+    config.stashValueCard = { x: want.x / 1280, y: want.y / 900 }
+    const { container, app } = render()
+    await settle()
+    show(qty)
+    await settle(40)
+    measurable(all(container, 'value')[0])
+    // 量得到外框後再送一次(遮罩回報才量得到卡片)
+    show(qty)
+    await settle(40)
+    const cardRect = { ...want, w: CARD_BOX.w, h: CARD_BOX.h }
+    expect(masks.filter(m => m.source === 'stash').at(-1)!.rects).toContainEqual(cardRect)
+    show(qty, true)
+    await settle(40)
+    expect(all(container, 'value')).toHaveLength(0)
+    const last = masks.filter(m => m.source === 'stash').at(-1)!
+    expect(last.seq).toBe(seq)
+    expect(last.rects).not.toContainEqual(cardRect)
+    show(qty)
+    await settle(40)
+    expect(all(container, 'value')).toHaveLength(1)
+    app.unmount()
+    config.stashValueCard = null
   })
 
   it('未計入總價的格子有標記(數量未讀「?」/ 無價)、明細卡寫原因、本頁價值卡有說明與未計入格數', async () => {

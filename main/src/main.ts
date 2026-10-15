@@ -1310,7 +1310,8 @@ if (!skipStartup) app.whenReady().then(() => {
       poe2: hostCfg ? windowTitleFor(hostCfg, 'poe2') : DEFAULT_WINDOW_TITLE.poe2
     }),
     isCurrentGameForeground: () => overlay != null && Boolean(poeWindow?.isActive),
-    isAttached: () => overlay != null && gameAttached,
+    // window 模式沒有 overlay 可附著 → 不傳(不診斷)
+    isAttached: overlay ? () => gameAttached : undefined,
     onSwitch: (game) => {
       if (overlay) {
         scheduleRelaunch(`自動偵測:${bound?.game}→${game}`, game)

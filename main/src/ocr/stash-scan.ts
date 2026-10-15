@@ -304,6 +304,8 @@ export class StashScan {
   private isArmed = false
   /** arm 之後連續沒偵測到倉庫的 tick 數 */
   private armMisses = 0
+  /** 上次看到的顯示模式(`syncTriggerMode`;改變 = 解除 armed) */
+  private lastTriggerMode: 'auto' | 'hotkey' | null = null
   private qty: QtyState | null = null
   private lastQtyMs: number | null = null
   /** 上次寫進記錄的未讀格摘要(含版面鍵;相同不重寫) */
@@ -342,6 +344,7 @@ export class StashScan {
 
   /** 狀態可能改變(host-config、前景、UI):立刻重看(tick 進行中不插隊) */
   poke (): void {
+    this.syncTriggerMode()
     if (!this.running || this.ticking) return
     this.schedule(0)
   }
@@ -468,6 +471,19 @@ export class StashScan {
 
   private hotkeyMode (): boolean { return this.deps.config().triggerMode === 'hotkey' }
 
+  /**
+   * 顯示模式改了(hotkey ↔ auto)→ 一律解除 armed:auto 模式的收起不解除,切回 hotkey 時殘留的 armed 會讓沒按熱鍵就擷取、
+   * 跳「沒有偵測到倉庫」(code review)。main host-config 變更(`scanConfigKey` 含模式)走 `poke()`,每個 tick 開頭也再看一次
+   */
+  private syncTriggerMode (): void {
+    const mode = this.deps.config().triggerMode === 'hotkey' ? 'hotkey' : 'auto'
+    if (this.lastTriggerMode != null && mode !== this.lastTriggerMode && this.isArmed) {
+      this.disarm()
+      this.deps.log?.(`[stash] 顯示模式改為 ${mode},解除熱鍵偵測`)
+    }
+    this.lastTriggerMode = mode
+  }
+
   /** 使用者暫停中(暫停熱鍵) */
   get paused (): boolean { return this.userPaused }
 
@@ -583,7 +599,8 @@ export class StashScan {
     return ev
   }
 
-  private hide (client: { w: number, h: number }, ocrMs?: number): StashScanEvent['reason'] | null {
+  /** `keepArmed`:暫時收起(判不出子頁),熱鍵模式不解除;沒顯示的 tick 由 `countArmMiss` 累計 */
+  private hide (client: { w: number, h: number }, ocrMs?: number, opts: { keepArmed?: boolean } = {}): StashScanEvent['reason'] | null {
     if (!this.shown) return null
     this.shown = null
     this.qty = null
@@ -591,7 +608,7 @@ export class StashScan {
     this.missStreak = 0
     this.holdStreak = 0
     // 熱鍵顯示模式:疊層收起(倉庫關掉 / 再按熱鍵 / 停止類原因)= 解除,下次要再按熱鍵
-    if (this.isArmed && this.hotkeyMode()) this.disarm()
+    if (this.isArmed && this.hotkeyMode() && opts.keepArmed !== true) this.disarm()
     this.emit('hide', client, ocrMs)
     return 'hide'
   }
@@ -644,6 +661,7 @@ export class StashScan {
   }
 
   private async runTick (): Promise<StashTickResult> {
+    this.syncTriggerMode()
     const cfg = this.deps.config()
     const env = this.deps.env()
     const block = stashBlock(cfg, env, this.ui, this.userPaused, this.isArmed)
@@ -713,8 +731,8 @@ export class StashScan {
       subtab = activeSubtab(p99)
     }
     if (!subtab) {
-      // 異能 / 判不出目前子頁 → 不畫
-      const sent = this.hide(client, ms)
+      // 異能 / 判不出目前子頁 → 不畫。熱鍵模式不解除(一個 tick 判不出就要使用者再按太嚴):比照沒偵測到倉庫由 countArmMiss 累計
+      const sent = this.hide(client, ms, { keepArmed: true })
       return { kind: 'ocr', found: true, subtab: null, held: false, sent, ms }
     }
     // tick 進行中(await 期間)使用者按了暫停 → 不畫(下一輪被 user-paused 擋下並收掉)

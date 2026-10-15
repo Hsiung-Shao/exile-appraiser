@@ -8,7 +8,7 @@
   - 整層 `pointer-events: none`(例外 H2:懸浮選單開著 = prop `interactive` 時,本頁價值卡可拖曳,放開寫設定 `stashValueCard`)。不送任何輸入。物品名稱只讀 repo 資料(版面上的 refName → cmn-Hant items.ndjson)。
   - 2026-10-15 倉庫價值:`show` 帶每格數量(main 讀格子左上角的堆疊數量)→ 徽章改顯示小計(單價 × 數量;三段色 / C・D 依小計),
     數量讀不到只顯示單價 +「?」;空格不畫;停格時明細卡(單價 / 數量 / 小計);倉庫面板底部「本頁價值」卡(總計 C、≈ D、已讀 / 未讀格數)
-    並寫進共用狀態 `stash-value.ts`(懸浮選單讀)。`peek` → 格子徽章暫時收起(main 用乾淨畫面重讀被徽章蓋住的數字)。
+    並寫進共用狀態 `stash-value.ts`(懸浮選單讀)。`peek` → 格子徽章與本頁價值卡暫時收起(main 用乾淨畫面重讀被蓋住的數字;卡片可能被拖到格子上)。
     沒算進總價的格(數量讀不到 / 有數量但沒價格)徽章左側加警示色標記「?」/「無價」+ 虛線框,停格明細卡寫原因;
     本頁價值卡另有「數量以畫面辨識,可能讀錯」說明與未計入格數(使用者 2026-10-15 要求)。
   - 擷取遮罩:main 讀格子數量時會截到這一層 → 走共用掃描層 `useScanLayer`(source `stash`):DOM 更新後回報徽章外框,
@@ -143,7 +143,8 @@ export default defineComponent({
         thresholds: config.stashThresholds,
         hover: hover.value,
         quantities: quantities.value,
-        peek: peek.value
+        peek: peek.value,
+        showNames: config.stashShowNames
       })
     })
 
@@ -167,6 +168,8 @@ export default defineComponent({
       const s = shown.value
       const data = stashData.value
       if (!v || !s || !data || config.realm === 'tw') return null
+      // peek(main 要用乾淨畫面重讀被蓋住的數字)→ 卡片也收起、不進遮罩回報;卡片被拖到格子上時那幾格才讀得到(拖曳中例外)
+      if (peek.value && !cardDragging.value) return null
       const def = stashValueCardPos({ file: data.file, subtab: s.subtab, yOffset: s.yOffset, client: s.client, viewport: viewport.value })
       if (!def) return null
       // 拖曳草稿 > 存的位置(顯示時夾回、不回寫)> 面板底部預設;草稿也算進來 → 遮罩回報跟著新位置(useScanLayer drawn 含 card)
@@ -294,7 +297,7 @@ export default defineComponent({
   overflow: hidden;
 }
 .st-layer .st-badge .st-name { max-width: 100%; overflow: hidden; text-overflow: clip; color: var(--ink-1); }
-/* H3-1 擺法(stash-view.ts `STASH_BADGE_PLACEMENT`;使用者 2026-10-15 選定 below):
+/* H3-1 擺法(stash-view.ts;使用者 2026-10-15 裁定:名稱關 = below、名稱開 = current(沒有 st-pl-* class = 格內底邊往上長)):
    fit = 限高(格高 × 0.33)、超過就縮字級、只留價格一行;below = 上緣放在數字帶下緣、往下長 */
 .st-layer .st-badge.st-pl-fit { justify-content: center; }
 .st-layer .st-badge.st-pl-fit,

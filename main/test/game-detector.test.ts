@@ -1,10 +1,12 @@
 // GameDetector:前景跳過列舉、否決沿用(10 秒下限一律沿用;之後視窗清單不變沿用到 60 秒)、清單變化重查、detach 失效、連續 2 次才切換。
 import { describe, expect, it, vi } from 'vitest'
+import fs from 'node:fs'
+import path from 'node:path'
 
 vi.mock('electron', () => ({ desktopCapturer: { getSources: vi.fn() } }))
 
 import {
-  ABSENT_BACKOFF_MAX_MS, GameDetector, INTERVAL_MS, REQUIRED_HITS, absentDelayMs, anyGamePresent, decideSwitch, namesSignature
+  ABSENT_BACKOFF_MAX_MS, GameDetector, INTERVAL_MS, REQUIRED_HITS, UNATTACHED_GRACE_MS, absentDelayMs, anyGamePresent, decideSwitch, namesSignature
 } from '../src/windowing/GameDetector'
 import type { GameId } from '@ipc/types'
 
@@ -353,5 +355,36 @@ describe('同名視窗未附著診斷', () => {
       const b = mk(['Other']); await b.d.tick()
       expect(countLogs(spy)).toBe(0)
     } finally { spy.mockRestore() }
+  })
+  it('G2 啟動後 10 秒內(overlay 還沒 attach)不記,過了才記', async () => {
+    const spy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    try {
+      let t = 1_000_000
+      const d = new GameDetector({
+        currentGame: () => 'poe1',
+        windowTitleBy: () => TITLES,
+        onSwitch: vi.fn(),
+        isAttached: () => false,
+        listWindowNames: async () => ['Path of Exile'],
+        processTitles: async () => null,
+        now: () => t,
+        setTimeout: () => 0,
+        clearTimeout: () => {}
+      })
+      d.start()
+      await d.tick()
+      t += UNATTACHED_GRACE_MS - 1
+      await d.tick()
+      expect(countLogs(spy)).toBe(0)
+      t += 1
+      await d.tick()
+      expect(countLogs(spy)).toBe(1)
+      d.stop()
+    } finally { spy.mockRestore() }
+  })
+  it('G3 接線:window 模式不傳 isAttached(不診斷)', () => {
+    const main = fs.readFileSync(path.resolve(__dirname, '../src/main.ts'), 'utf8')
+    expect(main).toContain('isAttached: overlay ? () => gameAttached : undefined')
+    expect(main).not.toContain('isAttached: () => overlay != null && gameAttached')
   })
 })

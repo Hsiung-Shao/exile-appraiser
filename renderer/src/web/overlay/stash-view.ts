@@ -79,7 +79,9 @@ export interface StashLayoutInput {
   quantities?: ReadonlyArray<number | null>
   /** main 要重讀被徽章蓋住的數字 → 格子徽章全部收起 */
   peek?: boolean
-  /** H3-1 擺法(省略 = `STASH_BADGE_PLACEMENT`,目前 = below) */
+  /** 徽章顯示名稱(設定 `stashShowNames`;兩行)。只用來決定預設擺法 */
+  showNames?: boolean
+  /** H3-1 擺法(省略 = 依 `showNames`:關 = `STASH_BADGE_PLACEMENT`(below)、開 = `STASH_BADGE_PLACEMENT_NAMED`(current)) */
   placement?: StashBadgePlacement
 }
 
@@ -109,7 +111,7 @@ export function layoutStashBadges (inp: StashLayoutInput): StashBadgeView[] {
       hovered
     }
     // H3-1 候選(停格的放大卡不套:它本來就放在格子外)
-    const placement = inp.placement ?? STASH_BADGE_PLACEMENT
+    const placement = inp.placement ?? (inp.showNames === true ? STASH_BADGE_PLACEMENT_NAMED : STASH_BADGE_PLACEMENT)
     if (!hovered && placement === 'fit') { b.placement = 'fit'; b.maxHeight = c.h * sy * STASH_BADGE_FIT_RATIO }
     if (!hovered && placement === 'below') { b.placement = 'below'; b.top = (c.y + c.h * STASH_QTY_BAND_RATIO + STASH_BAND_ROUND_PX) * sy + STASH_MASK_PAD_CSS_PX }
     if (qty !== undefined) {
@@ -208,14 +210,20 @@ export function stashValueCardPlace (
 }
 
 /**
- * 2026-10-15 H3-1 徽章不壓數字帶:使用者看過對照圖後選定 `below`(聖甲蟲頁要先收徽章再讀 115 → 0 格);其餘保留供比較:
+ * 2026-10-15 H3-1 徽章不壓數字帶。擺法依名稱開關(`layoutStashBadges` 省略 `placement` 時;使用者 2026-10-15 裁定):
+ * - 名稱關(單行,只有價格)= `STASH_BADGE_PLACEMENT`(`below`;聖甲蟲頁要先收徽章再讀 115 → 0 格、他格數字帶 12 格擦邊)。
+ * - 名稱開(兩行,約 31 px)= `current`:`below` 往下長會壓到下方格子的數字帶 93 格(測試鎖數字),改回格內底邊往上長、讀數量時照舊 peek。
+ * 三種擺法:
  * - `current`:徽章底邊貼格子下緣往上長(現況;原生 1440 聖甲蟲頁徽章高 > 格高 35% → 蓋進數字帶)。
  * - `fit`(候選 a):同一錨點,徽章最大高度 = 格高 × `STASH_BADGE_FIT_RATIO`(超過就縮字級、只留一行)。
  * - `below`(候選 b):徽章上緣 = 數字帶下緣(格高 × 0.65)+ 遮罩外擴(3 CSS px),往下長、部分超出格子下緣。
  * 數字帶 = core `quantity.ts` `qtyCropRect`(格子上方 `QTY_PARAMS.cropH` = 0.65 高;這裡只讀常數)。
  */
 export type StashBadgePlacement = 'current' | 'fit' | 'below'
+/** 單行徽章(名稱關)時的擺法 */
 export const STASH_BADGE_PLACEMENT: StashBadgePlacement = 'below'
+/** 兩行徽章(名稱開)時的擺法 */
+export const STASH_BADGE_PLACEMENT_NAMED: StashBadgePlacement = 'current'
 export const STASH_BADGE_FIT_RATIO = 0.33
 /** main `scan-mask.ts` `MASK_PAD_CSS_PX`(遮罩外擴;renderer 不能 import main,值對照由測試守門) */
 export const STASH_MASK_PAD_CSS_PX = 3

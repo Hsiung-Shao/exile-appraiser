@@ -17,6 +17,8 @@ const read = (p: string) => fs.readFileSync(path.join(ROOT, p), 'utf8')
 const VIEW = { w: 2560, h: 1440 }
 const DEF = { left: 24, top: 1066, maxWidth: 840, maxHeight: 80 }
 const BOX = { w: 300, h: 40 }
+/** 兩行徽章(31 px)擺 below 時蓋到他格數字帶的格數(2026-10-15 實測,鎖住當基準) */
+const TWO_LINE_BELOW_OTHERS = 93
 
 describe('D1 價值卡位置往返與夾回', () => {
   it('舊設定檔 / 壞值 → null;合法值往返;不進 host-config', () => {
@@ -115,6 +117,14 @@ describe('Q1 徽章不進數字帶(兩候選的幾何)', () => {
     expect((c.y + c.h * 0.65) - (b.y - pad)).toBeCloseTo(2.1, 5)
   })
 
+  it('兩行徽章(名稱開,約 31 px 高)時 below 蓋到他格數字帶的格數(鎖數字;不採用 below 的依據)', () => {
+    const { cells, badges } = setOf('scarabs')
+    const two = badges.map(b => ({ w: b.w, h: 31 }))
+    // 自己的數字帶仍 0 格,但往下長 31 px 會壓到下方格子的數字帶 93 格(單行徽章同擺法 12 格,見上一條)
+    expect(stashBadgeBandOverlaps(cells, two, 'below', pad)).toEqual({ own: 0, others: TWO_LINE_BELOW_OTHERS })
+    expect(TWO_LINE_BELOW_OTHERS).toBeGreaterThan(12)
+  })
+
   it('一般頁(格高 60)現況就不交疊,候選不讓它變差', () => {
     const { cells, badges } = setOf('general')
     for (const mode of ['current', 'fit', 'below'] as const) expect(stashBadgeBandOverlaps(cells, badges, mode)).toEqual({ own: 0, others: 0 })
@@ -137,5 +147,25 @@ describe('Q1 徽章不進數字帶(兩候選的幾何)', () => {
     const below = layoutStashBadges({ ...base, placement: 'below' })
     expect(below[0].placement).toBe('below')
     expect(below[0].top).toBeLessThan(cur[0].top)
+  })
+
+  it('省略擺法時依名稱開關:名稱關(單行)= below,名稱開(兩行)= current', () => {
+    const file = parseStashLayouts(JSON.parse(read('data/poe1/stash/layouts.json')))
+    const base = {
+      file, subtab: 'scarabs' as const, yOffset: 0, client: { w: 2560, h: 1440 }, viewport: { w: 2560, h: 1440 },
+      names: () => undefined, priceOf: () => ({ status: 'no-price' as const }), divineRate: undefined,
+      thresholds: { low: 1, high: 10 } as never, hover: null
+    }
+    const off = layoutStashBadges({ ...base, showNames: false })
+    expect(off.every(b => b.placement === 'below')).toBe(true)
+    const on = layoutStashBadges({ ...base, showNames: true })
+    expect(on).toEqual(layoutStashBadges({ ...base, placement: 'current' }))
+    expect(on.every(b => b.placement === undefined)).toBe(true)
+    // 明確指定擺法時不看名稱開關
+    expect(layoutStashBadges({ ...base, showNames: true, placement: 'below' })[0].placement).toBe('below')
+  })
+
+  it('接線:StashPrices.vue 把名稱開關傳給 layoutStashBadges', () => {
+    expect(read('renderer/src/web/overlay/StashPrices.vue')).toMatch(/showNames: config\.stashShowNames/)
   })
 })

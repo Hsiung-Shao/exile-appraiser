@@ -77,11 +77,12 @@
 - 設定走 Config → host-config(`HOST_CONFIG_IMMEDIATE_KEYS` 與 main `scanConfigKey` 都有這欄,守門 `renderer/test/host-config-sync.test.ts`)→ `StashScanConfig.triggerMode`。
 - `StashScan` 的 `armed`:hotkey 模式沒 armed → `stashBlock` 回 `not-armed`(判斷在 `user-paused` 之後;屬停止類 = 收疊層、不排 tick、0 擷取)。
 - `arm()`:armed、清差分基準與使用者暫停、立刻 `poke()`;armed 期間沒顯示也照設定間隔(不套閒置 3 秒下限)。
-- 解除:疊層收起(倉庫關掉 = 連續沒找到按鈕、或停止類原因)時自動解除;arm 後連續 `STASH_ARM_MISS_LIMIT`(3)個 tick 沒顯示(沒找到按鈕 / 畫面沒變 / 不是碎片頁)→ 解除 + `onArmMiss` → main 右下角提示「倉庫價格:沒有偵測到倉庫」(`stashArmMissToastMessage`,跟 `uiLanguage`)。
+- 解除:疊層收起(倉庫關掉 = 連續沒找到按鈕、再按熱鍵、或停止類原因)時自動解除;**判不出目前子頁的暫時收起不解除**(code review:一個 tick 判不出就要再按太嚴),比照沒偵測到倉庫由下述 miss 累計;
+  **顯示模式改變(hotkey ↔ auto)一律解除**(`syncTriggerMode`:host-config 的 `poke()` 與每個 tick 開頭;auto 的收起不解除,否則切回 hotkey 時殘留 armed 會沒按熱鍵就擷取並跳提示);arm 後連續 `STASH_ARM_MISS_LIMIT`(3)個 tick 沒顯示(沒找到按鈕 / 畫面沒變 / 不是碎片頁)→ 解除 + `onArmMiss` → main 右下角提示「倉庫價格:沒有偵測到倉庫」(`stashArmMissToastMessage`,跟 `uiLanguage`)。
 - 熱鍵(`main.ts` `onStashToggle` → `stashHotkeyAction(enabled, mode)`):auto = 暫停 / 繼續(不變);hotkey = `StashScan.hotkeyPress()`(沒顯示 = arm、顯示中 = 收起並解除,不另外通知);
   功能關著 = 照舊送 `stash-enable`,hotkey 模式另外先 `arm()`(設定送達前 `stashBlock` 仍是 `disabled`,armed 保留到 host-config 的 `poke()`)。
 - 狀態列:`not-armed` =「等待熱鍵(熱鍵)」;`capture-black` =「擷取全黑(獨占全螢幕)」。
-- 測試 `main/test/stash-hotkey-mode.test.ts`(K1–K6、K8)、`renderer/test/stash-trigger-mode.test.ts`(K7)。
+- 測試 `main/test/stash-hotkey-mode.test.ts`(K1–K6、K8、K9 模式切換 / 子頁判不出)、`renderer/test/stash-trigger-mode.test.ts`(K7)。
 
 ## 只支援國際服(2026-10-15 使用者裁定)
 台服(`realm` tw)時 main `StashScan` 完全不掃描(不讀按鈕、不讀數量):`stashBlock` 回 `not-intl`(收掉疊層、不排計時器);
@@ -150,8 +151,11 @@ host-config 帶 `realm`(`HOST_CONFIG_IMMEDIATE_KEYS`、main `scanConfigKey` 都�
   徽章左側警示色圓角標記「?」/「無價」(N/A)+ 虛線框(`.st-mark` / `.st-flagged`,顏色 `var(--badge-warn, var(--warn))`),停格明細卡寫「數量未讀取 / 沒有價格,未計入總價」;
   本頁價值卡加「數量以畫面辨識,可能讀錯…」說明與「未計入 N 格(數量未讀 a、無價 b)」(`stashPageValue().excluded` = unknown + noPrice)。
   **價值卡拖曳(2026-10-15)**:設定 `stashValueCard: {x,y} | null`(null = 上述預設帶);懸浮選單開著時(overlay 可互動)卡片出現把手可拖,放開才寫設定、顯示時夾回;選單價值列有「還原位置」。
-  **徽章擺法(2026-10-15,`STASH_BADGE_PLACEMENT` = `below`)**:原生 1440 聖甲蟲頁徽章高 > 格高 35%,原本(`current`,底邊貼格子下緣往上長)每格都蓋進數字帶 → 讀數量 115 / 115 格要 peek;
-  使用者看過近似對照圖後選 `below`:上緣 = 數字帶下緣 + 遮罩外擴 3 CSS px、往下長(最多超出格子下緣約 6 px,不蓋下一列數字)→ 0 / 115。`fit`(限高 0.33,仍 98 格擦邊)保留比較。
+  卡片可能被拖到格子上 → **`peek` 期間價值卡也收起**(不進遮罩回報,拖曳中例外),peek 結束再出現(code review;否則那幾格永遠讀不到數量)。
+  **徽章擺法(2026-10-15,依名稱開關;`layoutStashBadges` 省略 `placement` 時由 `showNames` 決定)**:原生 1440 聖甲蟲頁徽章高 > 格高 35%,`current`(底邊貼格子下緣往上長)每格都蓋進數字帶 → 讀數量 115 / 115 格要 peek。
+  - 名稱關(單行,只有價格)= `STASH_BADGE_PLACEMENT` = `below`:上緣 = 數字帶下緣 + 遮罩外擴 3 CSS px、往下長 → 自己的數字帶 0 / 115、他格數字帶下緣擦邊 12 格。
+  - 名稱開(兩行約 31 px)= `STASH_BADGE_PLACEMENT_NAMED` = `current`(使用者裁定):`below` 往下長會壓到下方格子的數字帶 93 格(`renderer/test/stash-value-card.test.ts` 鎖數字,不採用的依據),改回格內底邊往上長、讀數量時照舊 peek。
+  `fit`(限高 0.33,仍 98 格擦邊)保留比較。
 - **待使用者實機確認**:2560×1440 一般 / 聖甲蟲的數量與總價、移動物品後更新(含 peek 時徽章短暫收起的觀感)、停格明細;準確度不足時請補原解析度 PNG 再調模板。
 
 ## 除錯:存下擷取畫面(2026-10-15)
