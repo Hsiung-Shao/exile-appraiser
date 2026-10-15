@@ -43,8 +43,11 @@ export function anyGamePresent (names: readonly string[], titles: Record<GameId,
  */
 export const VETO_MIN_MS = 10_000
 export const VETO_MS = 60_000
-/** 「同名視窗但未附著」診斷:`start()` 後這段時間內不記(overlay 啟動時的第一次 attach 還在進行) */
-export const UNATTACHED_GRACE_MS = 10_000
+/**
+ * 「同名視窗但未附著」診斷:目前遊戲標題的視窗在清單裡、overlay 卻**持續**這麼久沒附著才記
+ * (使用者 2026-10-15 裁定 60 秒:遊戲剛啟動到 overlay 附著的空檔不算;背景同名視窗仍抓得到)
+ */
+export const UNATTACHED_LOG_AFTER_MS = 60_000
 /** 目前遊戲在前景而跳過列舉時,連續跳過這麼多次就強制完整列舉一次(防 focus 狀態殘留)。 */
 const MAX_FOREGROUND_SKIPS = 15
 
@@ -124,8 +127,8 @@ export class GameDetector {
   private fgSkips = 0
   /** 「同名視窗但未附著」診斷已記過(isAttached 變 true 後重設) */
   private unattachedLogged = false
-  /** 第一次 `start()` 的時間(診斷寬限期用;沒 start 過 = 不設寬限) */
-  private startedAt: number | null = null
+  /** 「同名視窗在、overlay 沒附著」開始的時間(附著 / 標題不在 → null) */
+  private unattachedSince: number | null = null
   /** 第 30.3 步:連續幾次列舉都沒有任何一款遊戲的視窗(退避用;有遊戲 / 前景跳過 / nudge 歸零) */
   private absentStreak = 0
   private readonly setT: (fn: () => void, ms: number) => unknown
@@ -147,7 +150,6 @@ export class GameDetector {
     if (this.started) return
     console.log(`[detect] 啟動遊戲視窗偵測(每 ${INTERVAL_MS / 1000} 秒,兩款都不在時退避到 ${ABSENT_BACKOFF_MAX_MS / 1000} 秒;連續 ${REQUIRED_HITS} 次才切換)`)
     this.started = true
-    if (this.startedAt == null) this.startedAt = (this.opts.now ?? Date.now)()
     this.fired = false
     this.absentStreak = 0
     this.schedule(INTERVAL_MS)
@@ -223,12 +225,15 @@ export class GameDetector {
       const names = await (this.opts.listWindowNames ?? listWindowNamesDefault)()
       const current = this.opts.currentGame()
       const titles = this.opts.windowTitleBy()
-      // 診斷:目前遊戲標題在清單裡、overlay 卻沒附著 → 可能是同名的其他視窗(只記一次;attach 後重設)
-      // 啟動後 UNATTACHED_GRACE_MS 內不記(overlay 第一次 attach 還在進行,會誤報一次)
+      // 診斷:目前遊戲標題在清單裡、overlay 卻持續 UNATTACHED_LOG_AFTER_MS 沒附著 → 可能是同名的其他視窗(只記一次;附著後重設)
       const attached = this.opts.isAttached?.()
-      const inGrace = this.startedAt != null && now() - this.startedAt < UNATTACHED_GRACE_MS
-      if (attached === true) this.unattachedLogged = false
-      else if (attached === false && !inGrace && !this.unattachedLogged && titles[current] !== '' && names.includes(titles[current])) {
+      const titlePresent = titles[current] !== '' && names.includes(titles[current])
+      if (attached !== false || !titlePresent) {
+        this.unattachedSince = null
+        if (attached === true) this.unattachedLogged = false
+      } else if (this.unattachedSince == null) {
+        this.unattachedSince = now()
+      } else if (!this.unattachedLogged && now() - this.unattachedSince >= UNATTACHED_LOG_AFTER_MS) {
         this.unattachedLogged = true
         console.log(`[detect] 找到標題「${titles[current]}」的視窗但 overlay 沒附著(可能是同名的其他視窗),偵測維持每 2 秒`)
       }

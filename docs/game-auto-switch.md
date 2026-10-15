@@ -49,3 +49,7 @@
 - [poe2-port-notes.md](poe2-port-notes.md)(PoE2 adapter 與 renderer 接線)
 - [phase2-summary.md](phase2-summary.md)(Phase 2 摘要)
 - 專案守則:[../CLAUDE.md](../CLAUDE.md)
+
+## 同名視窗未附著診斷(2026-10-15)
+目前遊戲標題的視窗出現在視窗清單、但 overlay 持續 60 秒(`UNATTACHED_LOG_AFTER_MS`)沒附著 → 記一次 `[detect] 找到標題「…」的視窗但 overlay 沒附著(可能是同名的其他視窗)`。
+這種情況下偵測器會認為遊戲在、不退避(每 2 秒列舉)。遊戲剛啟動到附著的空檔(數秒)不記;附著後重設;window 模式不做。只記錄、不改行為。

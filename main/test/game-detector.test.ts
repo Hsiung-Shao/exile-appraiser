@@ -6,7 +6,7 @@ import path from 'node:path'
 vi.mock('electron', () => ({ desktopCapturer: { getSources: vi.fn() } }))
 
 import {
-  ABSENT_BACKOFF_MAX_MS, GameDetector, INTERVAL_MS, REQUIRED_HITS, UNATTACHED_GRACE_MS, absentDelayMs, anyGamePresent, decideSwitch, namesSignature
+  ABSENT_BACKOFF_MAX_MS, GameDetector, INTERVAL_MS, REQUIRED_HITS, UNATTACHED_LOG_AFTER_MS, absentDelayMs, anyGamePresent, decideSwitch, namesSignature
 } from '../src/windowing/GameDetector'
 import type { GameId } from '@ipc/types'
 
@@ -319,67 +319,69 @@ describe('列舉退避(遊戲沒開)', () => {
 
 describe('同名視窗未附著診斷', () => {
   function mk (names: string[]) {
-    const st = { attached: false }
+    const st = { attached: false, t: 1_000_000, names }
     const d = new GameDetector({
       currentGame: () => 'poe1',
       windowTitleBy: () => TITLES,
       onSwitch: vi.fn(),
       isAttached: () => st.attached,
-      listWindowNames: async () => names,
+      listWindowNames: async () => st.names,
       processTitles: async () => null,
-      now: () => 1_000_000
+      now: () => st.t
     })
     return { st, d }
   }
   const countLogs = (spy: ReturnType<typeof vi.spyOn>) =>
     spy.mock.calls.filter(c => String(c[0]).includes('overlay 沒附著')).length
 
-  it('G1 標題存在但未附著時多次 tick 只記一次,attach 後可再記', async () => {
+  it('G1 同名視窗持續 60 秒沒附著才記一次,之後不重複', async () => {
     const spy = vi.spyOn(console, 'log').mockImplementation(() => {})
     try {
       const { st, d } = mk(['Path of Exile'])
-      await d.tick(); await d.tick(); await d.tick()
+      await d.tick()
+      st.t += UNATTACHED_LOG_AFTER_MS - 1
+      await d.tick()
+      expect(countLogs(spy)).toBe(0)
+      st.t += 1
+      await d.tick(); await d.tick()
       expect(countLogs(spy)).toBe(1)
-      st.attached = true
-      await d.tick()
-      st.attached = false
-      await d.tick()
-      expect(countLogs(spy)).toBe(2)
     } finally { spy.mockRestore() }
   })
   it('G1b 已附著或標題不在時不記', async () => {
     const spy = vi.spyOn(console, 'log').mockImplementation(() => {})
     try {
       const a = mk(['Path of Exile']); a.st.attached = true
-      await a.d.tick()
-      const b = mk(['Other']); await b.d.tick()
+      await a.d.tick(); a.st.t += UNATTACHED_LOG_AFTER_MS; await a.d.tick()
+      const b = mk(['Other'])
+      await b.d.tick(); b.st.t += UNATTACHED_LOG_AFTER_MS; await b.d.tick()
       expect(countLogs(spy)).toBe(0)
     } finally { spy.mockRestore() }
   })
-  it('G2 啟動後 10 秒內(overlay 還沒 attach)不記,過了才記', async () => {
+  it('G2 遊戲剛啟動的空檔(幾秒後就附著)不記;附著後再脫離要重新累計 60 秒', async () => {
     const spy = vi.spyOn(console, 'log').mockImplementation(() => {})
     try {
-      let t = 1_000_000
-      const d = new GameDetector({
-        currentGame: () => 'poe1',
-        windowTitleBy: () => TITLES,
-        onSwitch: vi.fn(),
-        isAttached: () => false,
-        listWindowNames: async () => ['Path of Exile'],
-        processTitles: async () => null,
-        now: () => t,
-        setTimeout: () => 0,
-        clearTimeout: () => {}
-      })
-      d.start()
+      const { st, d } = mk(['Path of Exile'])
       await d.tick()
-      t += UNATTACHED_GRACE_MS - 1
+      st.t += 5_000; st.attached = true
+      await d.tick()
+      st.t += UNATTACHED_LOG_AFTER_MS; st.attached = false
       await d.tick()
       expect(countLogs(spy)).toBe(0)
-      t += 1
+      st.t += UNATTACHED_LOG_AFTER_MS
       await d.tick()
       expect(countLogs(spy)).toBe(1)
-      d.stop()
+    } finally { spy.mockRestore() }
+  })
+  it('G2b 同名視窗消失就重新累計', async () => {
+    const spy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    try {
+      const { st, d } = mk(['Path of Exile'])
+      await d.tick()
+      st.t += 30_000; st.names = ['Other']
+      await d.tick()
+      st.t += 30_000; st.names = ['Path of Exile']
+      await d.tick()
+      expect(countLogs(spy)).toBe(0)
     } finally { spy.mockRestore() }
   })
   it('G3 接線:window 模式不傳 isAttached(不診斷)', () => {
