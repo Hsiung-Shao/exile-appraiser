@@ -173,20 +173,23 @@ describe('V3 低信心回未知', () => {
 })
 
 describe('V4 漏讀一位被擋', () => {
-  it('87 截掉 7 的右半 → null,不顯示 8', async () => {
+  it('87 從 7 的中線起塗黑(切點 17)→ null;切點 14–16 讀成 8 是已知錯讀(改前就有)', async () => {
     const img0 = await loadImage('scarabs')
     const rects = cellRects(LAYOUTS, 'scarabs', img0.height)
     for (const i of [46, 102]) {
       expect(TRUTH.scarabs[i]).toBe(87)
       const r = rects[i]
-      const full = readCellQuantity(img0, r, TEMPLATES, { clientH: img0.height })
-      // 7 的模板視窗左緣在裁切區 x = 12(裁切區左緣 = 格 x − 3;兩格相同);視窗中線(+5)起往右塗成黑 = 截掉右半。
-      // 切點固定(2026-10-15 描邊過濾):原本取自判讀結果的 7 位置,判讀一變切點就跟著移 → 多切一列成了另一個測試
-      const cutX = r.x - 3 + 12 + 5
-      const img = paint(img0, cutX, r.y, r.x + r.w - cutX, Math.round(r.h * 0.65))
-      const q = readCellQuantity(img, r, TEMPLATES, { clientH: img.height })
-      console.log(`[V4] #${i} 完整 ${full.qty}(${full.reason}),截斷 ${q.qty}(${q.reason} ${q.raw ?? ''})`)
-      expect(q.qty).toBeNull()
+      // 切點 = 裁切區座標(裁切區左緣 = 格 x − 3);7 的模板視窗左緣在 x = 11–12(依版本),17 = 視窗中線之後。
+      // 切點固定(2026-10-15 描邊過濾):原本取自判讀結果的 7 位置,判讀一變切點就跟著移 → 成了另一個測試
+      const read = (cut: number): QtyResult => {
+        const cutX = r.x - 3 + cut
+        return readCellQuantity(paint(img0, cutX, r.y, r.x + r.w - cutX, Math.round(r.h * 0.65)), r, TEMPLATES, { clientH: img0.height })
+      }
+      const res = [14, 15, 16, 17].map(c => read(c))
+      console.log(`[V4] #${i} 切點 14–17:${res.map(q => `${q.qty}(${q.reason} ${q.raw ?? ''} ${q.confidence})`).join(' / ')}`)
+      expect(res[3].qty).toBeNull()
+      // 已知錯讀(code review 2026-10-15,新舊版相同):只剩 7 左側 2–5 欄 → 鄰位筆畫量 < 1.3 倍、沒有純白殘留 → 讀成 8。改善後改成 toBeNull
+      for (const q of res.slice(0, 3)) expect(q.qty === null || q.qty === 8).toBe(true)
     }
   })
 })
@@ -335,16 +338,18 @@ describe('V19 原生 2560×1440 擷取(2026-10-15 使用者「存下倉庫擷取
   const NFIX = path.join(ROOT, 'core/test/stash/fixtures/qty-native')
   const NT = JSON.parse(fs.readFileSync(path.join(NFIX, 'truth.json'), 'utf8')) as {
     clientH: number
-    sets: Array<{ tab: StashSubtab, file: string, cells: Array<{ rect: { x: number, y: number, w: number, h: number }, truth: number }> }>
+    sets: Array<{ tab: StashSubtab, file: string, masks: Array<{ x: number, y: number, w: number, h: number }>, cells: Array<{ rect: { x: number, y: number, w: number, h: number }, truth: number }> }>
   }
-  async function readNative (templates: DigitTemplates): Promise<Tally> {
+  async function readNative (templates: DigitTemplates, withMask?: boolean): Promise<Tally>
+  async function readNative (templates: DigitTemplates, withMask: boolean, raw: true): Promise<QtyResult[]>
+  async function readNative (templates: DigitTemplates, withMask = false, raw = false): Promise<Tally | QtyResult[]> {
     const out: Array<{ id: string, truth: number, r: QtyResult }> = []
     for (const s of NT.sets) {
       const { data, info } = await sharp(path.join(NFIX, s.file)).removeAlpha().raw().toBuffer({ resolveWithObject: true })
       const img = { data, width: info.width, height: info.height, channels: info.channels }
-      s.cells.forEach((c, i) => out.push({ id: `${s.tab}#${i}`, truth: c.truth, r: readCellQuantity(img, c.rect, templates, { clientH: NT.clientH }) }))
+      s.cells.forEach((c, i) => out.push({ id: `${s.tab}#${i}`, truth: c.truth, r: readCellQuantity(img, c.rect, templates, { clientH: NT.clientH, mask: withMask ? s.masks : undefined }) }))
     }
-    return tally(out)
+    return raw ? out.map(o => o.r) : tally(out)
   }
 
   it('格數與版面一致(聖甲蟲 115、一般 60)', () => {
@@ -357,6 +362,16 @@ describe('V19 原生 2560×1440 擷取(2026-10-15 使用者「存下倉庫擷取
     expect(t.wrong).toEqual([])
     // 描邊過濾前 7 格(聖甲蟲 #5 49、#24 100、#34 39、#80 19、#100 7、#102 87,一般 #49 1);之後 #24 100、#102 87 讀得到
     expect(t.unknown.length).toBeLessThanOrEqual(5)
+  })
+
+  it('帶擷取當下的徽章遮罩:錯 0,蓋到數字帶的格回 masked(執行時改走 peek)', async () => {
+    const t = await readNative(TEMPLATES, true)
+    const res = await readNative(TEMPLATES, true, true)
+    const masked = res.filter(r => r.reason === 'masked').length
+    console.log(`[V19 原生 + 遮罩] 正確 ${t.ok}/175,錯 ${t.wrong.length},不確定 ${t.unknown.length}(masked ${masked})`)
+    expect(t.wrong).toEqual([])
+    // 聖甲蟲頁徽章緊貼數字帶 → 幾乎全部 masked;沒被蓋到的格與無遮罩時同樣最多 5 格不確定
+    expect(t.unknown.length - masked).toBeLessThanOrEqual(5)
   })
 })
 
