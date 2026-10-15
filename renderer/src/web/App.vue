@@ -191,8 +191,8 @@
     <ocr-badges v-if="isOverlay" />
     <!-- WP-R2:符文塑形面板自動查價徽章(同 OCR 徽章層級) -->
     <runeshape-prices v-if="isOverlay" />
-    <!-- PoE1 倉庫價格疊層(碎片頁:一般 / 聖甲蟲;呈現照符文徽章) -->
-    <stash-prices v-if="isOverlay" />
+    <!-- PoE1 倉庫價格疊層(碎片頁:一般 / 聖甲蟲;呈現照符文徽章)。懸浮選單開著 = overlay 可互動 → 本頁價值卡可拖曳(H2) -->
+    <stash-prices v-if="isOverlay" :interactive="floatMenuOpen" />
     <!-- WP-S2:在遊戲畫面上框選 OCR 區域(開著時忽略背景點擊) -->
     <ocr-region-picker v-if="isOverlay" />
   </div>

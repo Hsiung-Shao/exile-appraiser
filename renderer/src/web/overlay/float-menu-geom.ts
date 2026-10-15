@@ -19,30 +19,48 @@ export function normFloatMenuPos (v: unknown): FloatMenuPos | null {
   return ok(o.x) && ok(o.y) ? { x: o.x, y: o.y } : null
 }
 
+/**
+ * 通用名稱(2026-10-15 倉庫價值卡拖曳也用):overlay 內可拖曳物件的位置 = 左上角比例 0–1;null = 該物件自己的預設。
+ * 舊名 `FloatMenuPos` / `normFloatMenuPos` / `floatMenuPlace` / `floatMenuPosOf` 照舊匯出。
+ */
+export type OverlayPos = FloatMenuPos
+export const normOverlayPos = normFloatMenuPos
+
+/** 設定值 + 畫面 + 物件大小 → 實際 CSS px 左上角(夾進畫面,至少留 4 px;物件比畫面大 = 貼左上);pos null = `fallback`(一樣夾回) */
+export function overlayPlace (
+  pos: OverlayPos | null,
+  view: { w: number, h: number },
+  box: { w: number, h: number },
+  fallback: { left: number, top: number }
+): { left: number, top: number } {
+  const want = pos ? { left: pos.x * view.w, top: pos.y * view.h } : fallback
+  const pad = 4
+  const clamp = (v: number, size: number, max: number) => Math.round(Math.max(pad, Math.min(v, max - size - pad)))
+  return { left: clamp(want.left, box.w, view.w), top: clamp(want.top, box.h, view.h) }
+}
+
+/** 拖曳後的 CSS px 左上角 → 存檔用比例(先夾進畫面;小數 4 位) */
+export function overlayPosOf (
+  place: { left: number, top: number },
+  view: { w: number, h: number },
+  box: { w: number, h: number }
+): OverlayPos {
+  const p = overlayPlace({ x: place.left / Math.max(1, view.w), y: place.top / Math.max(1, view.h) }, view, box, place)
+  const r = (v: number) => Math.round(Math.max(0, Math.min(1, v)) * 10000) / 10000
+  return { x: r(p.left / Math.max(1, view.w)), y: r(p.top / Math.max(1, view.h)) }
+}
+
 /** 設定值 + 畫面 + 選單大小 → 實際 CSS px 左上角(夾進畫面,至少留 4 px;選單比畫面大 = 貼左上) */
 export function floatMenuPlace (
   pos: FloatMenuPos | null,
   view: { w: number, h: number },
   menu: { w: number, h: number }
 ): { left: number, top: number } {
-  const want = pos
-    ? { left: pos.x * view.w, top: pos.y * view.h }
-    : { left: FLOAT_MENU_MARGIN, top: FLOAT_MENU_MARGIN }
-  const pad = 4
-  const clamp = (v: number, size: number, max: number) => Math.round(Math.max(pad, Math.min(v, max - size - pad)))
-  return { left: clamp(want.left, menu.w, view.w), top: clamp(want.top, menu.h, view.h) }
+  return overlayPlace(pos, view, menu, { left: FLOAT_MENU_MARGIN, top: FLOAT_MENU_MARGIN })
 }
 
 /** 拖曳後的 CSS px 左上角 → 存檔用比例(先夾進畫面;小數 4 位) */
-export function floatMenuPosOf (
-  place: { left: number, top: number },
-  view: { w: number, h: number },
-  menu: { w: number, h: number }
-): FloatMenuPos {
-  const p = floatMenuPlace({ x: place.left / Math.max(1, view.w), y: place.top / Math.max(1, view.h) }, view, menu)
-  const r = (v: number) => Math.round(Math.max(0, Math.min(1, v)) * 10000) / 10000
-  return { x: r(p.left / Math.max(1, view.w)), y: r(p.top / Math.max(1, view.h)) }
-}
+export const floatMenuPosOf = overlayPosOf
 
 /**
  * 速查表放大框:選單右側(選單在畫面右半 = 左側)到畫面邊緣,上下留邊。

@@ -24,7 +24,7 @@ import { clampFsBase, normAccent, normBg, normBgFile, normTheme, DEFAULT_FS_BASE
 import { defaultOcrBadgeStyle, normOcrBadgeStyle, type OcrBadgeStyle } from './overlay/badge-style'
 import { normSettingsFontSize, normSettingsWindow, type SettingsWindowRect } from './settings/settings-window-geom'
 import { RELATED_SCALE_DEFAULT, normRelatedItemsScale } from './related-items-scale'
-import { normFloatMenuPos, type FloatMenuPos } from './overlay/float-menu-geom'
+import { normFloatMenuPos, normOverlayPos, type FloatMenuPos, type OverlayPos } from './overlay/float-menu-geom'
 import { defaultListingLayout, normListingLayout } from './price-panel/listing-layout'
 
 /** 介面字串語言(與客戶端語言 `language` 分開)。 */
@@ -162,6 +162,11 @@ export interface Config {
   cheatSheet: string
   /** 2026-10-08:速查表放大框釘住後調整的大小 / 位置(CSS px,同 settingsWindow 規則;放開才寫)。null = 選單旁到畫面邊的預設。 */
   cheatSheetZoom: SettingsWindowRect | null
+  /**
+   * 2026-10-15 H2:倉庫「本頁價值」卡的位置(overlay 內左上角比例 0–1;懸浮選單開著時拖曳、放開才寫)。
+   * null = 倉庫面板底部預設(stash-view.ts `stashValueCardPos`);顯示時夾回畫面內、不回寫。只在 renderer 用,不進 host-config。
+   */
+  stashValueCard: OverlayPos | null
   // ---- 相容上游元件的推導屬性 ----
   readonly useIntlSite: boolean
   /** 上游元件讀的字級;= `fsBase`(不進檔)。 */
@@ -365,7 +370,8 @@ function createConfig (): Config {
     regexBookmarkBar: true,
     floatMenu: null as FloatMenuPos | null,
     cheatSheet: '',
-    cheatSheetZoom: null as SettingsWindowRect | null
+    cheatSheetZoom: null as SettingsWindowRect | null,
+    stashValueCard: null as OverlayPos | null
   }
   return {
     ...base,
@@ -443,7 +449,8 @@ function serialize (): string {
     regexBookmarkBar: config.regexBookmarkBar,
     floatMenu: config.floatMenu,
     cheatSheet: config.cheatSheet,
-    cheatSheetZoom: config.cheatSheetZoom
+    cheatSheetZoom: config.cheatSheetZoom,
+    stashValueCard: config.stashValueCard
   }, null, 2)
 }
 
@@ -567,6 +574,8 @@ function applyLoaded (raw: string) {
   config.floatMenu = normFloatMenuPos(loaded.floatMenu)
   config.cheatSheet = normBgFile(loaded.cheatSheet)
   config.cheatSheetZoom = normSettingsWindow(loaded.cheatSheetZoom)
+  // 2026-10-15 H2:倉庫價值卡位置(舊設定檔沒有 / 壞值 → null = 面板底部預設)
+  config.stashValueCard = normOverlayPos(loaded.stashValueCard)
 }
 
 /** 測試用:套用一份設定檔內容後回傳序列化結果(`renderer/test/runeshape-config.test.ts`) */

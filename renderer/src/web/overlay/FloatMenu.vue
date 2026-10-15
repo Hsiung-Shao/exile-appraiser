@@ -84,6 +84,12 @@
           <span v-if="stashRow" class="fm-value num" data-menu="stash-value">{{ stashRow.chaos }} {{ t('ppz.stash.unit_c') }}<template v-if="stashRow.div"> ≈ {{ stashRow.div }} {{ t('ppz.stash.unit_div') }}</template></span>
           <span v-else class="fm-value num">—</span>
         </div>
+        <!-- H2(2026-10-15):選單開著 = overlay 可互動 → 倉庫上的本頁價值卡可拖曳;還原 = 面板底部預設 -->
+        <div v-if="!stashOff" class="fm-card-row">
+          <span class="fm-sub" data-menu="stash-card-hint">{{ t('ppz.menu.stash_card_hint') }}</span>
+          <button type="button" class="fm-link" data-action="menu-stash-card-reset" :disabled="!config.stashValueCard"
+            @click="config.stashValueCard = null">{{ t('ppz.menu.stash_card_reset') }}</button>
+        </div>
       </section>
 
       <!-- 自動辨識開關(依目前遊戲) -->
@@ -882,6 +888,10 @@ button.fm-row:hover:not(:disabled), .fm-row.sel { background: var(--surface-hove
   white-space: nowrap;
 }
 .fm-link:hover { color: var(--ink-0); text-decoration: underline; }
+.fm-link:disabled { opacity: 0.45; cursor: default; text-decoration: none; }
+/* H2:倉庫價值卡拖曳提示 + 還原位置(對齊上一列的文字欄) */
+.fm-card-row { display: flex; align-items: baseline; justify-content: space-between; gap: 0.75em; padding: 0 0.75em 0.35em 3.15em; }
+.fm-card-row .fm-sub { min-width: 0; }
 .fm-hint {
   margin: 0;
   padding: 0 0.45em 0.25em;

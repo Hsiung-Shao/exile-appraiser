@@ -229,6 +229,7 @@
       "no_price_excluded": "No price; not in the total",
       "mark_no_price": "N/A",
       "value_note": "Counts are read from the screen and may be wrong; slots marked \"?\" (count not read) or \"N/A\" (no price) are not in the total",
+      "value_drag": "Drag to move (position is remembered)",
       "value_excluded": "Not counted: {n} slots ({unknown} unread, {noPrice} no price)",
       "picker": {
         "help": "Frame the fragment tab sub-tab buttons (General / Scarab / Allflame / Eldritch)",
@@ -595,6 +596,8 @@
       "stash_none": "Open the fragment stash tab to see it",
       "stash_tw": "International realm only",
       "stash_sub": "{subtab} · {known} read · {unknown} unread",
+      "stash_card_hint": "Drag the value card while this menu is open",
+      "stash_card_reset": "Reset position",
       "dust": "Disenchant ranking",
       "bm_game": "Bookmark game",
       "league": "Switch league",

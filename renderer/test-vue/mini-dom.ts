@@ -34,7 +34,8 @@ function node (tag: string, text = ''): MiniNode {
   // v-model 的 <select>(vModelSelect)讀 el.options
   Object.defineProperty(n, 'options', { get: () => n.children.filter(c => c.tag === 'option'), enumerable: false })
   // 掃描層遮罩回報(useScanLayer)量子元素外框;沒有排版 → 全 0
-  Object.defineProperty(n, 'getBoundingClientRect', { value: () => ({ left: 0, top: 0, width: 0, height: 0, x: 0, y: 0, right: 0, bottom: 0 }), enumerable: false })
+  // (configurable:個別測試可以換成依 style 算的外框,例:倉庫價值卡拖曳後的遮罩 D3)
+  Object.defineProperty(n, 'getBoundingClientRect', { value: () => ({ left: 0, top: 0, width: 0, height: 0, x: 0, y: 0, right: 0, bottom: 0 }), enumerable: false, configurable: true })
   return n
 }
 

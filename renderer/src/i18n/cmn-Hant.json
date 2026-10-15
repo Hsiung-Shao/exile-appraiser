@@ -229,6 +229,7 @@
       "no_price_excluded": "沒有價格,未計入總價",
       "mark_no_price": "無價",
       "value_note": "數量以畫面辨識,可能讀錯;標「?」(數量未讀)與「無價」的格子未計入總價",
+      "value_drag": "拖曳移動(放開後記住位置)",
       "value_excluded": "未計入 {n} 格(數量未讀 {unknown}、無價 {noPrice})",
       "picker": {
         "help": "框住倉庫碎片頁的子頁按鈕列(一般 / 聖甲蟲 / 不滅之火 / 異能)",
@@ -595,6 +596,8 @@
       "stash_none": "打開倉庫碎片頁後顯示",
       "stash_tw": "只支援國際服",
       "stash_sub": "{subtab} · {known} 格已讀 · {unknown} 格未讀",
+      "stash_card_hint": "選單開著時可拖曳價值卡",
+      "stash_card_reset": "還原位置",
       "dust": "拆粉排行",
       "bm_game": "書籤遊戲",
       "league": "切換聯盟",

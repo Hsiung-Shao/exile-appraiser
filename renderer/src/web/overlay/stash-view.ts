@@ -8,7 +8,9 @@
  * 不計入總價;空格(0)不畫(停格時才畫);`peek`(main 要用乾淨畫面重讀被蓋住的數字)→ 格子徽章全部收起。整頁總價 `stashPageValue`。
  */
 import { cellRects, type StashLayoutFile, type StashSubtab } from '../../../../core/src/stash/layout'
+import { QTY_PARAMS } from '../../../../core/src/stash/quantity'
 import type { PriceOfResult } from '../background/price-of'
+import { overlayPlace, type OverlayPos } from './float-menu-geom'
 import { formatAmount, priceTier, type PriceTier, type RuneThresholds } from './runeshape-view'
 
 export type StashPriceUnit = 'c' | 'div'
@@ -42,6 +44,9 @@ export interface StashBadgeView {
   /** 有數量時的單價 / 小計(停格明細卡) */
   unitPrice?: { value: string, unit: StashPriceUnit }
   subtotal?: { value: string, unit: StashPriceUnit }
+  /** H3-1 候選擺法(現況 = 省略):`fit` → `maxHeight`(CSS px)限高;`below` → `top` = 數字帶下緣 + 遮罩外擴、往下長 */
+  placement?: 'fit' | 'below'
+  maxHeight?: number
 }
 
 /** 格內短名:去掉「聖甲蟲:」前綴;英文去掉 Scarab 字樣 */
@@ -74,6 +79,8 @@ export interface StashLayoutInput {
   quantities?: ReadonlyArray<number | null>
   /** main 要重讀被徽章蓋住的數字 → 格子徽章全部收起 */
   peek?: boolean
+  /** H3-1 候選擺法(省略 = `STASH_BADGE_PLACEMENT`,目前 = 現況) */
+  placement?: StashBadgePlacement
 }
 
 export function layoutStashBadges (inp: StashLayoutInput): StashBadgeView[] {
@@ -101,6 +108,10 @@ export function layoutStashBadges (inp: StashLayoutInput): StashBadgeView[] {
       status: p.status === 'ok' ? 'ok' : p.status === 'no-price' ? 'no-price' : p.status === 'loading' ? 'loading' : 'no-source',
       hovered
     }
+    // H3-1 候選(停格的放大卡不套:它本來就放在格子外)
+    const placement = inp.placement ?? STASH_BADGE_PLACEMENT
+    if (!hovered && placement === 'fit') { b.placement = 'fit'; b.maxHeight = c.h * sy * STASH_BADGE_FIT_RATIO }
+    if (!hovered && placement === 'below') { b.placement = 'below'; b.top = (c.y + c.h * STASH_QTY_BAND_RATIO + STASH_BAND_ROUND_PX) * sy + STASH_MASK_PAD_CSS_PX }
     if (qty !== undefined) {
       b.qty = qty
       if (qty === null) b.qtyUnknown = true
@@ -180,4 +191,78 @@ export function stashValueCardPos (inp: Pick<StashLayoutInput, 'file' | 'subtab'
   const left = Math.ceil(b.x0 * k)
   const right = Math.min(Math.floor(b.x1 * k), Math.floor(inp.client.h * 37 / 60))
   return { left: left * sx, top: top * sy, maxWidth: (right - left) * sx, maxHeight: (bottom - top) * sy }
+}
+
+/**
+ * 2026-10-15 H2 價值卡拖曳:設定 `stashValueCard`(overlay 內左上角比例;null = `stashValueCardPos` 的面板底部預設,**原樣**不夾)
+ * → 實際位置。有存位置 → 夾進畫面(`overlayPlace`,至少留 4 px;顯示時才夾、不回寫設定);大小上限沿用預設帶(卡片內容不變)。
+ */
+export function stashValueCardPlace (
+  def: { left: number, top: number, maxWidth: number, maxHeight: number },
+  pos: OverlayPos | null,
+  view: { w: number, h: number },
+  box: { w: number, h: number }
+): { left: number, top: number, maxWidth: number, maxHeight: number } {
+  if (!pos) return def
+  return { ...overlayPlace(pos, view, box, def), maxWidth: def.maxWidth, maxHeight: def.maxHeight }
+}
+
+/**
+ * 2026-10-15 H3-1 徽章不壓數字帶(候選,**等使用者選定**;預設 `current` = 現況,畫面不變):
+ * - `current`:徽章底邊貼格子下緣往上長(現況;原生 1440 聖甲蟲頁徽章高 > 格高 35% → 蓋進數字帶)。
+ * - `fit`(候選 a):同一錨點,徽章最大高度 = 格高 × `STASH_BADGE_FIT_RATIO`(超過就縮字級、只留一行)。
+ * - `below`(候選 b):徽章上緣 = 數字帶下緣(格高 × 0.65)+ 遮罩外擴(3 CSS px),往下長、部分超出格子下緣。
+ * 數字帶 = core `quantity.ts` `qtyCropRect`(格子上方 `QTY_PARAMS.cropH` = 0.65 高;這裡只讀常數)。
+ */
+export type StashBadgePlacement = 'current' | 'fit' | 'below'
+export const STASH_BADGE_PLACEMENT: StashBadgePlacement = 'current'
+export const STASH_BADGE_FIT_RATIO = 0.33
+/** main `scan-mask.ts` `MASK_PAD_CSS_PX`(遮罩外擴;renderer 不能 import main,值對照由測試守門) */
+export const STASH_MASK_PAD_CSS_PX = 3
+export const STASH_QTY_BAND_RATIO = QTY_PARAMS.cropH
+/**
+ * 數字帶取整餘量(client px):`qtyCropRect` 的高 = 在模板基準解析度取整再放大(1440 時 45 × 0.65 = 29.25 → 實際 29.44),
+ * 誤差 ≤ 半個基準像素 × k(1440 ≈ 0.64、4K ≈ 0.96)→ 候選 b 多留 1 px
+ */
+export const STASH_BAND_ROUND_PX = 1
+
+/** 格子(任意單位)+ 徽章原本大小 → 候選擺法下的徽章框(水平置中於格子);`fit` 只限高度 */
+export function stashBadgeBox (
+  cell: { x: number, y: number, w: number, h: number },
+  badge: { w: number, h: number },
+  mode: StashBadgePlacement,
+  pad = STASH_MASK_PAD_CSS_PX
+): { x: number, y: number, w: number, h: number } {
+  const x = cell.x + cell.w / 2 - badge.w / 2
+  if (mode === 'below') return { x, y: cell.y + cell.h * STASH_QTY_BAND_RATIO + STASH_BAND_ROUND_PX + pad, w: badge.w, h: badge.h }
+  const h = mode === 'fit' ? Math.min(badge.h, cell.h * STASH_BADGE_FIT_RATIO) : badge.h
+  return { x, y: cell.y + cell.h - h, w: badge.w, h }
+}
+
+/** 數字帶(格子上方 0.65 高;與 `qtyCropRect` 同口徑,忽略 cropDx 的 3 px 左移與取整) */
+export function stashQtyBand (cell: { x: number, y: number, w: number, h: number }): { x: number, y: number, w: number, h: number } {
+  return { x: cell.x, y: cell.y, w: cell.w, h: cell.h * STASH_QTY_BAND_RATIO }
+}
+
+/** 徽章框(可外擴 `pad`,= main 遮罩)與任一格的數字帶交疊的格數;`cells[i]` 的徽章大小 = `badges[i]` */
+export function stashBadgeBandOverlaps (
+  cells: ReadonlyArray<{ x: number, y: number, w: number, h: number }>,
+  badges: ReadonlyArray<{ w: number, h: number }>,
+  mode: StashBadgePlacement,
+  pad = 0
+): { own: number, others: number } {
+  const ov = (a: { x: number, y: number, w: number, h: number }, b: { x: number, y: number, w: number, h: number }) =>
+    a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h
+  const boxes = cells.map((c, i) => {
+    const b = stashBadgeBox(c, badges[i], mode)
+    return { x: b.x - pad, y: b.y - pad, w: b.w + pad * 2, h: b.h + pad * 2 }
+  })
+  const bands = cells.map(stashQtyBand)
+  let own = 0
+  const hitOthers = new Set<number>()
+  boxes.forEach((b, i) => {
+    if (ov(b, bands[i])) own++
+    bands.forEach((band, j) => { if (j !== i && ov(b, band)) hitOthers.add(j) })
+  })
+  return { own, others: hitOthers.size }
 }

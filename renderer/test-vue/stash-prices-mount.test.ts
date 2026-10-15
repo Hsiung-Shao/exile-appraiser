@@ -6,7 +6,7 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { defineComponent, h, nextTick } from 'vue'
+import { defineComponent, h, nextTick, shallowRef, type ShallowRef } from 'vue'
 import { createI18n } from 'vue-i18n'
 import { createNinjaClient, toSnapshot } from '@exile-appraiser/core/ninja'
 import type { HttpFetch, HttpResponse } from '@exile-appraiser/core/http'
@@ -82,6 +82,36 @@ function render () {
   const Root = defineComponent({ setup: () => () => h(StashPrices) })
   const { container, app } = mount(Root, [i18nPlugin()], (a) => { a.config.errorHandler = (err) => { errors.push(err) } })
   return { container, app, errors }
+}
+
+/** H2:帶 `interactive`(App.vue 傳懸浮選單開著)掛載 */
+function renderWith (interactive: ShallowRef<boolean>) {
+  const errors: unknown[] = []
+  const Root = defineComponent({ setup: () => () => h(StashPrices, { interactive: interactive.value }) })
+  const { container, app } = mount(Root, [i18nPlugin()], (a) => { a.config.errorHandler = (err) => { errors.push(err) } })
+  return { container, app, errors }
+}
+const styleOf = (n: MiniNode) => n.attrs.style as Record<string, string>
+/** 卡片量得到外框(mini-dom 沒有排版):左上 = inline style、大小固定 */
+const CARD_BOX = { w: 300, h: 40 }
+function measurable (n: MiniNode) {
+  Object.defineProperty(n, 'getBoundingClientRect', {
+    configurable: true,
+    value: () => {
+      const s = styleOf(n)
+      const left = parseFloat(s.left)
+      const top = parseFloat(s.top)
+      return { left, top, width: CARD_BOX.w, height: CARD_BOX.h, x: left, y: top, right: left + CARD_BOX.w, bottom: top + CARD_BOX.h }
+    }
+  })
+  ;(n as unknown as Record<string, unknown>).setPointerCapture = () => {}
+}
+function drag (n: MiniNode, from: { x: number, y: number }, to: { x: number, y: number }) {
+  const ev = (p: { x: number, y: number }) => ({ button: 0, pointerId: 1, clientX: p.x, clientY: p.y, currentTarget: n, target: n, preventDefault () {}, stopPropagation () {} })
+  for (const [k, p] of [['onPointerdown', from], ['onPointermove', to], ['onPointerup', to]] as const) {
+    const fn = n.attrs[k] as ((e: unknown) => void) | undefined
+    fn?.(ev(p))
+  }
 }
 
 let seq = 0
@@ -215,6 +245,95 @@ describe('V11 倉庫價值疊層', () => {
     cursorCb!({ refName: null })
     expect(errors).toEqual([])
     app.unmount()
+  })
+
+  it('D2 只有懸浮選單開著時可拖:關閉時穿透無把手;開著可拖、拖曳中只改畫面、放開才寫設定', async () => {
+    const config = AppConfig()
+    config.stashValueCard = null
+    const interactive = shallowRef(false)
+    const { container, app, errors } = renderWith(interactive)
+    await settle()
+    show(qty)
+    await settle(40)
+    let card = all(container, 'value')[0]
+    expect(card.attrs.class).not.toContain('movable')
+    expect(all(container, 'value-grip')).toHaveLength(0)
+    const left0 = parseFloat(styleOf(card).left)
+    const top0 = parseFloat(styleOf(card).top)
+    // 不可互動時按下去不會開始拖
+    drag(card, { x: left0 + 5, y: top0 + 5 }, { x: left0 + 205, y: top0 - 95 })
+    await settle()
+    expect(config.stashValueCard).toBeNull()
+    expect(parseFloat(styleOf(all(container, 'value')[0]).left)).toBe(left0)
+
+    interactive.value = true
+    await settle()
+    card = all(container, 'value')[0]
+    expect(card.attrs.class).toContain('movable')
+    expect(all(container, 'value-grip')).toHaveLength(1)
+    measurable(card)
+    const ev = (x: number, y: number) => ({ button: 0, pointerId: 7, clientX: x, clientY: y, currentTarget: card, target: card, preventDefault () {}, stopPropagation () {} })
+    ;(card.attrs.onPointerdown as (e: unknown) => void)(ev(left0 + 5, top0 + 5))
+    ;(card.attrs.onPointermove as (e: unknown) => void)(ev(left0 + 205, top0 - 95))
+    await settle()
+    card = all(container, 'value')[0]
+    expect(parseFloat(styleOf(card).left)).toBe(Math.round(left0 + 200))
+    expect(parseFloat(styleOf(card).top)).toBe(Math.round(top0 - 100))
+    // 拖曳中不寫設定
+    expect(config.stashValueCard).toBeNull()
+    ;(card.attrs.onPointerup as (e: unknown) => void)(ev(left0 + 205, top0 - 95))
+    await settle()
+    expect(config.stashValueCard).toEqual({ x: expect.closeTo((left0 + 200) / 1280, 3), y: expect.closeTo((top0 - 100) / 900, 3) })
+    card = all(container, 'value')[0]
+    expect(parseFloat(styleOf(card).left)).toBeCloseTo(left0 + 200, 0)
+    // 選單收起 → 回到穿透
+    interactive.value = false
+    await settle()
+    expect(all(container, 'value')[0].attrs.class).not.toContain('movable')
+    expect(errors).toEqual([])
+    app.unmount()
+    config.stashValueCard = null
+  })
+
+  it('D1 顯示時夾回畫面內、不回寫設定', async () => {
+    const config = AppConfig()
+    config.stashValueCard = { x: 0.99, y: 0.99 }
+    const { container, app } = renderWith(shallowRef(false))
+    await settle()
+    show(qty)
+    await settle(40)
+    const card = all(container, 'value')[0]
+    expect(parseFloat(styleOf(card).left)).toBeLessThanOrEqual(1280 - 4)
+    expect(parseFloat(styleOf(card).top)).toBeLessThanOrEqual(900 - 4)
+    expect(config.stashValueCard).toEqual({ x: 0.99, y: 0.99 })
+    app.unmount()
+    config.stashValueCard = null
+  })
+
+  it('D3 拖曳後遮罩回報的矩形 = 卡片新位置', async () => {
+    const config = AppConfig()
+    config.stashValueCard = null
+    const { container, app } = renderWith(shallowRef(true))
+    await settle()
+    show(qty)
+    await settle(40)
+    let card = all(container, 'value')[0]
+    measurable(card)
+    const left0 = parseFloat(styleOf(card).left)
+    const top0 = parseFloat(styleOf(card).top)
+    const ev = (x: number, y: number) => ({ button: 0, pointerId: 3, clientX: x, clientY: y, currentTarget: card, target: card, preventDefault () {}, stopPropagation () {} })
+    ;(card.attrs.onPointerdown as (e: unknown) => void)(ev(left0 + 1, top0 + 1))
+    ;(card.attrs.onPointermove as (e: unknown) => void)(ev(left0 + 101, top0 - 299))
+    await settle(40)
+    card = all(container, 'value')[0]
+    const want = { x: Math.round(left0 + 100), y: Math.round(top0 - 300), w: CARD_BOX.w, h: CARD_BOX.h }
+    // 拖曳中(草稿)遮罩就跟著
+    expect(masks.filter(m => m.source === 'stash').at(-1)!.rects).toContainEqual(want)
+    ;(card.attrs.onPointerup as (e: unknown) => void)(ev(left0 + 101, top0 - 299))
+    await settle(40)
+    expect(masks.filter(m => m.source === 'stash').at(-1)!.rects).toContainEqual(want)
+    app.unmount()
+    config.stashValueCard = null
   })
 
   it('沒有數量(關閉讀數量)→ 每格單價、沒有本頁價值卡', async () => {

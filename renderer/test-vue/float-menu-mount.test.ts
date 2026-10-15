@@ -315,6 +315,37 @@ describe('V12 倉庫本頁價值接上', () => {
       stashValue.value = null
     }
   })
+
+  it('H2 價值卡:PoE1 有「選單開著時可拖曳」提示與「還原位置」(沒存位置時停用、按下 = null);PoE2 沒有', async () => {
+    const config = AppConfig()
+    const saved = { game: config.game, card: config.stashValueCard }
+    try {
+      config.game = 'poe1'
+      config.stashValueCard = null
+      reset()
+      let r = render()
+      await settle()
+      expect(text(one(r.container, 'data-menu', 'stash-card-hint'))).toContain('選單開著時可拖曳價值卡')
+      const btn = () => one(r.container, 'data-action', 'menu-stash-card-reset')
+      expect(btn().attrs.disabled).toBeTruthy()
+      config.stashValueCard = { x: 0.3, y: 0.4 }
+      await settle()
+      expect(btn().attrs.disabled).toBeFalsy()
+      click(btn())
+      await settle()
+      expect(config.stashValueCard).toBeNull()
+      r.app.unmount()
+      config.game = 'poe2'
+      r = render()
+      await settle()
+      expect(findAll(r.container, byAttr('data-menu', 'stash-card-hint'))).toEqual([])
+      expect(r.errors).toEqual([])
+      r.app.unmount()
+    } finally {
+      config.game = saved.game
+      config.stashValueCard = saved.card
+    }
+  })
 })
 
 describe('F8 聯盟切換與限流點', () => {
