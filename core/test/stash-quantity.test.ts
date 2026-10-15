@@ -180,11 +180,9 @@ describe('V4 漏讀一位被擋', () => {
       expect(TRUTH.scarabs[i]).toBe(87)
       const r = rects[i]
       const full = readCellQuantity(img0, r, TEMPLATES, { clientH: img0.height })
-      // 7 的模板視窗左緣(裁切區座標,裁切區左緣 = 格 x − 3);視窗中線(+5)起往右塗成黑 = 截掉右半
-      const crop = qtyCrop(img0, r, img0.height, TEMPLATES.baseClientH)
-      const chain = (decodeQtyCrop(crop, TEMPLATES).chain ?? [])
-      const seven = chain.find(c => c.d === 7) ?? { x: 12 }
-      const cutX = r.x - 3 + seven.x + 5
+      // 7 的模板視窗左緣在裁切區 x = 12(裁切區左緣 = 格 x − 3;兩格相同);視窗中線(+5)起往右塗成黑 = 截掉右半。
+      // 切點固定(2026-10-15 描邊過濾):原本取自判讀結果的 7 位置,判讀一變切點就跟著移 → 多切一列成了另一個測試
+      const cutX = r.x - 3 + 12 + 5
       const img = paint(img0, cutX, r.y, r.x + r.w - cutX, Math.round(r.h * 0.65))
       const q = readCellQuantity(img, r, TEMPLATES, { clientH: img.height })
       console.log(`[V4] #${i} 完整 ${full.qty}(${full.reason}),截斷 ${q.qty}(${q.reason} ${q.raw ?? ''})`)
@@ -315,7 +313,7 @@ describe('V14 code review 修正(寧缺勿錯)', () => {
 })
 
 describe('V18 第二批截圖(2026-10-15,聖甲蟲頁、玩家移動過物品)', () => {
-  it('驗證用(不進訓練):115 格錯 0、不確定 ≤ 4;右側單獨欄 7 / 50 / 87 / 22 / 41 / 11 / 2 / 20 至少讀到 5 格', async () => {
+  it('驗證用(不進訓練):115 格錯 0、不確定 ≤ 3;右側單獨欄 7 / 50 / 87 / 22 / 41 / 11 / 2 / 20 至少讀到 5 格', async () => {
     const m = TRUTH.more[0]
     const { data, info } = await sharp(path.join(FIX, m.file)).removeAlpha().raw().toBuffer({ resolveWithObject: true })
     const img = { data, width: info.width, height: info.height, channels: info.channels }
@@ -325,8 +323,8 @@ describe('V18 第二批截圖(2026-10-15,聖甲蟲頁、玩家移動過物品)',
     const t = tally(out)
     console.log(`[V18 第二批] 正確 ${t.ok}/115,錯 ${t.wrong.length} ${t.wrong.join('; ')},不確定 ${t.unknown.length} ${t.unknown.join('; ')}`)
     expect(t.wrong).toEqual([])
-    // 不確定:#2 31(低分)、#100 7(灰白聖甲蟲圖示緊貼數字 → 漏讀檢查擋下)、#102 87(7 疊在圖示上 → 只剩 8 → 擋下)、#107 20(低分)
-    expect(t.unknown.length).toBeLessThanOrEqual(4)
+    // 不確定:#100 7(灰白聖甲蟲圖示緊貼數字 → 漏讀檢查擋下)、#102 87(7 疊在圖示上)、#107 20(低分);描邊過濾前另有 #2 31
+    expect(t.unknown.length).toBeLessThanOrEqual(3)
     const col = out.slice(100, 108)
     expect(col.map(o => o.truth)).toEqual([7, 50, 87, 22, 41, 11, 2, 20])
     expect(col.filter(o => o.r.qty === o.truth).length).toBeGreaterThanOrEqual(5)
@@ -353,12 +351,12 @@ describe('V19 原生 2560×1440 擷取(2026-10-15 使用者「存下倉庫擷取
     expect(NT.sets.map(s => [s.tab, s.cells.length])).toEqual([['scarabs', 115], ['general', 60]])
   })
 
-  it('175 格錯 0、不確定 ≤ 7', async () => {
+  it('175 格錯 0、不確定 ≤ 5', async () => {
     const t = await readNative(TEMPLATES)
     console.log(`[V19 原生] 正確 ${t.ok}/175,錯 ${t.wrong.length} ${t.wrong.join('; ')},不確定 ${t.unknown.length} ${t.unknown.join('; ')}`)
     expect(t.wrong).toEqual([])
-    // 改前基準:聖甲蟲 #5 49、#24 100、#34 39、#80 19、#100 7、#102 87,一般 #49 1(白色圖示干擾 / 低分)
-    expect(t.unknown.length).toBeLessThanOrEqual(7)
+    // 描邊過濾前 7 格(聖甲蟲 #5 49、#24 100、#34 39、#80 19、#100 7、#102 87,一般 #49 1);之後 #24 100、#102 87 讀得到
+    expect(t.unknown.length).toBeLessThanOrEqual(5)
   })
 })
 

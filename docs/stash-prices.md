@@ -79,20 +79,28 @@ host-config 帶 `realm`(`HOST_CONFIG_IMMEDIATE_KEYS`、main `scanConfigKey` 都�
 在 `HOST_CONFIG_IMMEDIATE_KEYS` 與 main `scanConfigKey`)。
 
 - **判讀(core `src/stash/quantity.ts`,純函式)**:不用 WinOCR(研究:拼圖法 57–77%)。裁切 x = 格 x − 3、寬 = 格寬 × 0.85,y = 格 y、高 = 格高 × 0.65 →
-  依 client 高把裁切區面積平均縮放到模板基準(1125)→ 白色程度 `max(0, min(R,G,B) − (max − min) − 100)` → 11×15 數字模板 NCC(積分影像算視窗平均 / 變異、
+  依 client 高把裁切區面積平均縮放到模板基準(1125)→ 白色程度 `max(0, min(R,G,B) − (max − min) − 100)` → **描邊過濾**(下述)→ 11×15 數字模板 NCC(積分影像算視窗平均 / 變異、
   只算非 0 像素、模板交錯排列)≥ 0.5 候選、NMS → 最強者為錨同列 ±1 px、間距 7–12 px 串接最多 3 位 → 門檻:每位 ≥ 0.6、與次佳差 ≥ 0.05、
   **低分(最低位 < 0.70)時次佳差須 ≥ 0.15**(使用者 2026-10-15 選「放寬一點」)、開頭非 0、**單獨的「0」→ null**(堆疊數不可能是 0)、
   漏讀檢查(① 末位右側純白像素 ≥ 4;② 首位前 / 末位後一個字距的筆畫帶白色程度 ≥ 串接數字最少者 × 1.3 —— 縮放 / 模糊後 ① 抓不到「87 只讀到 8」;
   ① 的檢查區超出裁切區(三位數頂到右緣)時改看往右多 8 基準像素的延伸裁切區,三位數另在延伸區做 ② 的右側檢查 → 4 位數堆疊回不確定;延伸區超出影像 = 不確定)。
   沒有候選 = 空格;**裁切區超出影像 = null(`outside`)**。寧缺勿錯:任何一項不過 → null(徽章只顯示單價 +「?」、不計入總價)。
   回傳數字帶 `band`(數字列 ± 2、左緣到末位右側再一位)給掃描判斷「徽章有沒有蓋到數字」。
+- **描邊過濾(2026-10-15,`outlineGate`)**:遊戲數字是白字 + 黑色描邊,聖甲蟲等圖示的白 / 銀色塊旁邊沒有接近黑的像素。白色像素周圍(基準像素)最亮通道的最小值 m
+  < 90 照舊、90–180 線性減弱、≥ 180 歸 0;比對用的白色程度看 3×3,RGB(漏讀檢查 ① 純白像素、訓練連通元件)看 5×5(粗筆畫中心離描邊 2 像素,3×3 會把真的漏讀位數濾掉);
+  漏讀檢查 ② 的筆畫量用過濾前的 `ink`。掃參數(舊截圖 + 原生擷取 + 糊化 σ 0.6 / 1.0 + 放大 1440,只用舊截圖訓練):全部情境錯 1 → 0、不確定 46 → 42、留一 0 錯;
+  **硬門檻**(m < 60 才算)在原生畫面最好,但糊化 σ 0.6 就 29 格錯(描邊變淺 → 筆畫被切斷),**不可改回硬門檻**;暗度 60–70、RGB 也用 3×3、不用 `ink` 都會多出高信心錯。
+  原生擷取加進訓練沒有好處(反而出現高信心錯),只當驗證 fixture(V19)。
 - **模板** `data/poe1/stash/digit-templates.json`:`node scripts/build-stash-digit-templates.mjs`(`--check` 只比對)由 `core/test/stash/fixtures/qty/`
   (使用者 2000×1125 截圖裁左側 700 px + 人工判讀 `truth.json`)產生,數字連通元件數 = 真值位數的格才採樣;記來源截圖 sha256、逐位元組可重現;
   MANIFEST 前綴 `data/poe1/stash/digit-templates.json`(不手改)。數字 9 只有 3 個樣本。補截圖:放進 fixture、補 truth、重跑腳本。
   第二批(2026-10-15,`truth.more`):`scarabs2-1125.png`(使用者全螢幕 webp 有損截圖裁左側 700 px,無徽章)**只當驗證 fixture**(`train: false`):
   加入訓練後 V1 不確定 7 → 9、V5 6 → 8、本張 4 → 5,且 V4「87 截掉 7 的右半」變成讀出 8(錯讀)→ 不採用;這張的 115 格數量與第一批逐格相同(沒有新的數字樣本)。
   要真的改善需要**原解析度(2560×1440)無損 PNG**整頁截圖。
-- **準確度**(175 格 + 合成空格 14;2026-10-15 低分門檻 < 0.70 且次佳差 < 0.15 後):全模板 正確 168、錯 0、不確定 7(改前 169 / 0 / 6);
+  第三批(2026-10-15,`core/test/stash/fixtures/qty-native/`):使用者以「存下倉庫擷取畫面」存的原生 2560×1440 格子區(聖甲蟲 115 + 一般 60,人工逐格確認),
+  **只當驗證**(V19):描邊過濾前 正確 168、錯 0、不確定 7;之後 170 / 0 / 5(剩聖甲蟲 49、39、19 —— 原生解析度的低分;7 —— 圖示緊貼的漏讀檢查;一般 1 —— 同)。
+- **準確度**(以下為描邊過濾前;之後 全模板 169 / 0 / 6、留一 167 / 0 / 8、1440 169 / 0 / 6、σ 0.6 錯 0 不確定 6、σ 1.0 錯 0 不確定 16、第二批 112 / 0 / 3)
+  (175 格 + 合成空格 14;2026-10-15 低分門檻 < 0.70 且次佳差 < 0.15 後):全模板 正確 168、錯 0、不確定 7(改前 169 / 0 / 6);
   留一驗證 正確 166、錯 0、不確定 9(改前 166 / 1(19 → 10 @0.693/0.123)/ 8);放大到 1440 高 正確 169、錯 0、不確定 6(改前 170 / 0 / 5);
   空格 14 / 14;高斯 σ 0.6 錯 0、不確定 8;σ 1.0 錯 1(11 → 14 @0.718/0.226,不標高信心;較嚴的 < 0.72 / 0.23 擋得到但不確定約翻倍,使用者選放寬)、不確定 14。
   第二批驗證 fixture:正確 111 / 115、錯 0、不確定 4(31 低分;右側單獨欄 7 / 87 —— 灰白聖甲蟲圖示緊貼 / 疊在數字上,漏讀檢查擋下;20 低分)。
@@ -135,7 +143,7 @@ host-config 帶 `realm`(`HOST_CONFIG_IMMEDIATE_KEYS`、main `scanConfigKey` 都�
 - 效能:沒按時只多 `dumpReq` 一個 null 判斷;測試 `main/test/stash-dump.test.ts`、`renderer/test/stash-dump.test.ts`。
 
 ## 測試
-`core/test/stash-quantity.test.ts`(V1–V6、V14 code review:4 位數 / 單獨 0 / 超出影像 / 已知錯讀)、`main/test/stash-quantity-scan.test.ts`(V7 / V8 / V13 / peek;code review:游標換格競態、peek 時序與放棄、陰影不算變化、數字帶)、`renderer/test/stash-value.test.ts`(V9 / V10 / V13)、
+`core/test/stash-quantity.test.ts`(V1–V6、V14 code review:4 位數 / 單獨 0 / 超出影像 / 已知錯讀;V18 第二批、V19 原生擷取)、`main/test/stash-quantity-scan.test.ts`(V7 / V8 / V13 / peek;code review:游標換格競態、peek 時序與放棄、陰影不算變化、數字帶)、`renderer/test/stash-value.test.ts`(V9 / V10 / V13)、
 `renderer/test-vue/stash-prices-mount.test.ts`(V11)、`renderer/test-vue/float-menu-mount.test.ts`(V12);
 `core/test/stash-layout.test.ts`(S1–S4c)、`core/test/stash-detect.test.ts`(S5–S7,真實 OCR 快照 `core/test/stash/fixtures/ocr/`,
 `node scripts/ocr-fixture.mjs --set stash` 產生)、`main/test/stash-scan.test.ts`(S8–S12c、S9e–S9g、S19 暫停熱鍵)、`main/test/shortcut-actions.test.ts`(倉庫價格熱鍵)、`renderer/test/stash-prices.test.ts`(S13–S17,含 S14d 單位 C / D;S20 統一樣板)、`renderer/test/settings-ia.test.ts`(自動辨識頁兩代顯示)。

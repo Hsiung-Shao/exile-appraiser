@@ -84,7 +84,17 @@ export const QTY_PARAMS = {
   neighborMass: 1.3,
   /** 訓練:數字連通元件(最暗通道 ≥ 170、色差 ≤ 50) */
   trainWhite: 170,
-  trainSat: 50
+  trainSat: 50,
+  /**
+   * 描邊過濾(`outlineGate`):白色像素 3×3 內最亮通道的最小值 < 90(數字的黑色描邊)照舊,90–180 線性減弱,≥ 180 不算筆畫。
+   * 2026-10-15 以舊截圖 + 原生擷取 + 糊化 σ 0.6 / 1.0 + 放大 1440 掃參數(只用舊截圖訓練):比對 3×3 + RGB 5×5、90 / 90 = 錯 1 → 0、不確定 46 → 42、留一 0 錯;
+   * RGB 也用 3×3 → 留一多錯 1 格;硬門檻 / 暗度 60–70 / 不用 `ink` 算筆畫量都會多出高信心錯。原生擷取加進訓練沒有好處(只當驗證)
+   */
+  outlineRadius: 1,
+  /** RGB(漏讀檢查 ① 的純白像素、訓練的連通元件)用的半徑:較粗筆畫的中心 3×3 碰不到描邊,用 1 會把真的漏讀位數也濾掉 */
+  outlineRgbRadius: 2,
+  outlineDark: 90,
+  outlineSoft: 90
 } as const
 
 /** 「高信心」:錯的讀數不得同時達到(測試守門) */
@@ -97,6 +107,8 @@ export interface QtyCrop {
   rgb: Float32Array
   white: Float32Array
   masked: Uint8Array | null
+  /** 描邊過濾前的白色程度(漏讀檢查 ② 的筆畫量用;比對用 `white`) */
+  ink: Float32Array
   /** 基準像素 → 影像像素 */
   x0: number
   y0: number
@@ -179,7 +191,52 @@ export function qtyCrop (img: QtyImage, cell: QtyRect, clientH: number, baseClie
     if (masked?.[i]) continue
     white[i] = whiteness(rgb[i * 3], rgb[i * 3 + 1], rgb[i * 3 + 2])
   }
-  return { w: bw, h: bh, rgb, white, masked, x0: c.x, y0: c.y, k }
+  const ink = white.slice()
+  outlineGate(bw, bh, rgb, white)
+  return { w: bw, h: bh, rgb, white, ink, masked, x0: c.x, y0: c.y, k }
+}
+
+/**
+ * 描邊過濾(2026-10-15,使用者原生擷取):遊戲的堆疊數字是「白字 + 黑色描邊」,聖甲蟲等圖示的白色 / 銀色區塊旁邊沒有接近黑的像素。
+ * 白色像素周圍(基準像素)最亮通道的最小值 m:m < `outlineDark` 照舊;之後線性減弱,m ≥ `outlineDark + outlineSoft` 歸 0。
+ * 白色程度(比對)用 3×3;RGB(漏讀檢查 ① 的純白像素、訓練的連通元件)用 5×5(`outlineRgbRadius`)同一條減弱曲線 —— 粗筆畫中心離描邊 2 像素。
+ * 漸進而不是硬門檻:畫面模糊 / 放大後描邊變淺,硬門檻會把數字筆畫切斷 → 高信心讀錯(實驗:σ 0.6 糊化 29 格錯)。
+ */
+function outlineGate (w: number, h: number, rgb: Float32Array, white: Float32Array): void {
+  const P = QTY_PARAMS
+  const mx = new Float32Array(w * h)
+  for (let i = 0; i < w * h; i++) mx[i] = Math.max(rgb[i * 3], rgb[i * 3 + 1], rgb[i * 3 + 2])
+  const mnW = minFilter(mx, w, h, P.outlineRadius)
+  const mnC = P.outlineRgbRadius === P.outlineRadius ? mnW : minFilter(mx, w, h, P.outlineRgbRadius)
+  const fac = (m: number): number => Math.max(0, Math.min(1, (P.outlineDark + P.outlineSoft - m) / P.outlineSoft))
+  for (let i = 0; i < w * h; i++) {
+    if (white[i] === 0) continue
+    const fw = fac(mnW[i])
+    if (fw < 1) white[i] *= fw
+    const fc = fac(mnC[i])
+    if (fc < 1) { rgb[i * 3] *= fc; rgb[i * 3 + 1] *= fc; rgb[i * 3 + 2] *= fc }
+  }
+}
+
+/** 方形最小值濾波(半徑 r,可分離:先橫向再縱向;框外略過) */
+function minFilter (v: Float32Array, w: number, h: number, r: number): Float32Array {
+  const row = new Float32Array(w * h)
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      let m = Infinity
+      for (let X = Math.max(0, x - r); X <= Math.min(w - 1, x + r); X++) m = Math.min(m, v[y * w + X])
+      row[y * w + x] = m
+    }
+  }
+  const out = new Float32Array(w * h)
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      let m = Infinity
+      for (let Y = Math.max(0, y - r); Y <= Math.min(h - 1, y + r); Y++) m = Math.min(m, row[Y * w + x])
+      out[y * w + x] = m
+    }
+  }
+  return out
 }
 
 export function whiteness (r: number, g: number, b: number): number {
@@ -213,11 +270,11 @@ function templatesOf (t: DigitTemplates): TemplatePack {
 }
 
 /** 候選:每個視窗(左上 px ∈ [−3, w − 11 + 3]、py ∈ [−2, h − 15 + 2],框外補 0)對每個模板的 NCC */
-/** 模板視窗(左上 x, y)中間筆畫帶(x + 3 ~ x + 8、y + 2 ~ y + 13)的白色程度總和 */
+/** 模板視窗(左上 x, y)中間筆畫帶(x + 3 ~ x + 8、y + 2 ~ y + 13)的白色程度總和(描邊過濾前的 `ink`:漏讀檢查不受描邊過濾影響) */
 function strokeMass (crop: QtyCrop, x0: number, y0: number): number {
   let s = 0
   for (let y = Math.max(0, y0 + 2); y < Math.min(crop.h, y0 + QTY_TEMPLATE_H - 2); y++) {
-    for (let x = Math.max(0, x0 + 3); x < Math.min(crop.w, x0 + 8); x++) s += crop.white[y * crop.w + x]
+    for (let x = Math.max(0, x0 + 3); x < Math.min(crop.w, x0 + 8); x++) s += crop.ink[y * crop.w + x]
   }
   return s
 }
