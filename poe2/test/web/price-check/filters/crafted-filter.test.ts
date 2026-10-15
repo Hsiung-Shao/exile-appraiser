@@ -90,6 +90,12 @@ function andFilters(query: any): any[] {
   const and = (query.stats as any[]).find((g) => g.type === "and");
   return and ? and.filters : [];
 }
+// 2026-10-16 上線實測:沒有工藝詞綴的掛單沒有這個偽屬性欄位,max 0 會一筆都不中 → 改 not 群組排除「工藝數 ≥ 1」
+function notFilters(query: any): any[] {
+  return (query.stats as any[])
+    .filter((g) => g.type === "not")
+    .flatMap((g) => g.filters);
+}
 const allStatIds = (query: any): string[] =>
   (query.stats as any[]).flatMap((g) => g.filters.map((f: any) => f.id));
 
@@ -113,14 +119,15 @@ describe("PoE2 排除工藝詞綴篩選", () => {
     expect(allStatIds(query)).not.toContain(CRAFTED_ID);
   });
 
-  it("C8 稀有靴子切成排除後查詢加上工藝數量上限 0", () => {
+  it("C8 稀有靴子切成排除後以 not 群組排除工藝數至少 1", () => {
     const { item, preset, filters } = build(BOOTS_RARE);
     expect(filters.craftedMods).toBeDefined();
     filters.craftedMods.disabled = false;
     const query = createTradeRequest(preset, item).query;
-    expect(andFilters(query)).toContainEqual(
-      expect.objectContaining({ id: CRAFTED_ID, value: { max: 0 } }),
+    expect(notFilters(query)).toContainEqual(
+      expect.objectContaining({ id: CRAFTED_ID, value: { min: 1 } }),
     );
+    expect(andFilters(query).map((f) => f.id)).not.toContain(CRAFTED_ID);
     expect(allStatIds(query).filter((id) => id === CRAFTED_ID)).toHaveLength(1);
   });
 
@@ -151,13 +158,14 @@ describe("PoE2 排除工藝詞綴篩選", () => {
     expect(build(fixture("tablet-delirium-magic-01")).filters.craftedMods).toBeUndefined();
   });
 
-  it("C9 台服切成排除後查詢帶相同工藝數量 id", () => {
+  it("C9 台服切成排除後 not 群組帶相同工藝數量 id", () => {
     const { item, preset, filters } = build(BOOTS_RARE, "tw");
     expect(filters.craftedMods).toEqual({ disabled: true });
     filters.craftedMods.disabled = false;
     const query = createTradeRequest(preset, item).query;
-    expect(andFilters(query)).toContainEqual(
-      expect.objectContaining({ id: CRAFTED_ID, value: { max: 0 } }),
+    expect(notFilters(query)).toContainEqual(
+      expect.objectContaining({ id: CRAFTED_ID, value: { min: 1 } }),
     );
+    expect(andFilters(query).map((f) => f.id)).not.toContain(CRAFTED_ID);
   });
 });
