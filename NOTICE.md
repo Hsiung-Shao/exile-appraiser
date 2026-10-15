@@ -17,3 +17,4 @@
 著作權屬原作者;該網站未標示授權條款。使用者可在懸浮選單改用自己匯入的圖片。
 
 Path of Exile、遊戲內名詞、物品與相關資料為 Grinding Gear Games 所有。本專案與 GGG 無關,亦未獲其背書。
+`renderer/public/images/poe2/` 的 PoE2 通貨圖示取自 GGG 官方圖片 CDN(web.poecdn.com,來源與雜湊見同資料夾 `SOURCE.json`)。
