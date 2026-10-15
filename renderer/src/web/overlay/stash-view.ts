@@ -79,7 +79,7 @@ export interface StashLayoutInput {
   quantities?: ReadonlyArray<number | null>
   /** main 要重讀被徽章蓋住的數字 → 格子徽章全部收起 */
   peek?: boolean
-  /** H3-1 候選擺法(省略 = `STASH_BADGE_PLACEMENT`,目前 = 現況) */
+  /** H3-1 擺法(省略 = `STASH_BADGE_PLACEMENT`,目前 = below) */
   placement?: StashBadgePlacement
 }
 
@@ -208,14 +208,14 @@ export function stashValueCardPlace (
 }
 
 /**
- * 2026-10-15 H3-1 徽章不壓數字帶(候選,**等使用者選定**;預設 `current` = 現況,畫面不變):
+ * 2026-10-15 H3-1 徽章不壓數字帶:使用者看過對照圖後選定 `below`(聖甲蟲頁要先收徽章再讀 115 → 0 格);其餘保留供比較:
  * - `current`:徽章底邊貼格子下緣往上長(現況;原生 1440 聖甲蟲頁徽章高 > 格高 35% → 蓋進數字帶)。
  * - `fit`(候選 a):同一錨點,徽章最大高度 = 格高 × `STASH_BADGE_FIT_RATIO`(超過就縮字級、只留一行)。
  * - `below`(候選 b):徽章上緣 = 數字帶下緣(格高 × 0.65)+ 遮罩外擴(3 CSS px),往下長、部分超出格子下緣。
  * 數字帶 = core `quantity.ts` `qtyCropRect`(格子上方 `QTY_PARAMS.cropH` = 0.65 高;這裡只讀常數)。
  */
 export type StashBadgePlacement = 'current' | 'fit' | 'below'
-export const STASH_BADGE_PLACEMENT: StashBadgePlacement = 'current'
+export const STASH_BADGE_PLACEMENT: StashBadgePlacement = 'below'
 export const STASH_BADGE_FIT_RATIO = 0.33
 /** main `scan-mask.ts` `MASK_PAD_CSS_PX`(遮罩外擴;renderer 不能 import main,值對照由測試守門) */
 export const STASH_MASK_PAD_CSS_PX = 3

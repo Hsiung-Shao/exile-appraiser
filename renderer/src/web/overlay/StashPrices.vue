@@ -294,7 +294,7 @@ export default defineComponent({
   overflow: hidden;
 }
 .st-layer .st-badge .st-name { max-width: 100%; overflow: hidden; text-overflow: clip; color: var(--ink-1); }
-/* H3-1 候選(stash-view.ts `STASH_BADGE_PLACEMENT`;預設 current = 這兩條不會套上):
+/* H3-1 擺法(stash-view.ts `STASH_BADGE_PLACEMENT`;使用者 2026-10-15 選定 below):
    fit = 限高(格高 × 0.33)、超過就縮字級、只留價格一行;below = 上緣放在數字帶下緣、往下長 */
 .st-layer .st-badge.st-pl-fit { justify-content: center; }
 .st-layer .st-badge.st-pl-fit,

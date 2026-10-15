@@ -91,8 +91,8 @@ describe('Q1 徽章不進數字帶(兩候選的幾何)', () => {
     expect(read('main/src/ocr/scan-mask.ts')).toMatch(new RegExp(`MASK_PAD_CSS_PX = ${STASH_MASK_PAD_CSS_PX}\\b`))
   })
 
-  it('預設維持現況(使用者選定前不改畫面)', () => {
-    expect(STASH_BADGE_PLACEMENT).toBe('current')
+  it('預設擺法為使用者選定的往下移(below)', () => {
+    expect(STASH_BADGE_PLACEMENT).toBe('below')
   })
 
   it('現況:聖甲蟲頁每格徽章都蓋進自己的數字帶;候選 a / b 徽章框 0 格', () => {
@@ -120,14 +120,15 @@ describe('Q1 徽章不進數字帶(兩候選的幾何)', () => {
     for (const mode of ['current', 'fit', 'below'] as const) expect(stashBadgeBandOverlaps(cells, badges, mode)).toEqual({ own: 0, others: 0 })
   })
 
-  it('layoutStashBadges:現況輸出不帶候選欄位;fit 帶 maxHeight、below 把 top 移到數字帶下緣', () => {
+  it('layoutStashBadges:current 不帶擺法欄位;fit 帶 maxHeight、below 把 top 移到數字帶下緣;省略 = below', () => {
     const file = parseStashLayouts(JSON.parse(read('data/poe1/stash/layouts.json')))
     const base = {
       file, subtab: 'scarabs' as const, yOffset: 0, client: { w: 2560, h: 1440 }, viewport: { w: 2560, h: 1440 },
       names: () => undefined, priceOf: () => ({ status: 'no-price' as const }), divineRate: undefined,
       thresholds: { low: 1, high: 10 } as never, hover: null
     }
-    const cur = layoutStashBadges(base)
+    const cur = layoutStashBadges({ ...base, placement: 'current' })
+    expect(layoutStashBadges(base)[0]).toEqual(layoutStashBadges({ ...base, placement: 'below' })[0])
     expect(cur.length).toBeGreaterThan(0)
     expect(cur.every(b => b.placement === undefined && b.maxHeight === undefined)).toBe(true)
     const fit = layoutStashBadges({ ...base, placement: 'fit' })

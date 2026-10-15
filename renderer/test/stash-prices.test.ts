@@ -36,7 +36,8 @@ function input (p: Partial<StashLayoutInput> = {}): StashLayoutInput {
 describe('S13 格子矩形換成 CSS 位置', () => {
   it('viewport 一半大小時第一格位置 = cellRects × 0.5', () => {
     const rects = cellRects(FILE, 'scarabs', 2012, 0)
-    const out = layoutStashBadges(input())
+    // 座標換算用現況錨點(格子下緣)驗;預設擺法 below 另見 stash-value-card.test.ts Q1
+    const out = layoutStashBadges({ ...input(), placement: 'current' })
     // 漏格 / 多格會讓數量不同
     expect(out).toHaveLength(rects.length)
     const r = rects[0]
@@ -48,10 +49,10 @@ describe('S13 格子矩形換成 CSS 位置', () => {
   })
   it('yOffset 47 時 top 跟著下移', () => {
     const r = cellRects(FILE, 'scarabs', 2012, 47)[0]
-    const out = layoutStashBadges(input({ yOffset: 47 }))
+    const out = layoutStashBadges({ ...input({ yOffset: 47 }), placement: 'current' })
     // 沒把偏移傳給 cellRects 會停在原位
     expect(out[0].top).toBeCloseTo((r.y + r.h) * 0.5, 6)
-    expect(out[0].top - layoutStashBadges(input())[0].top).toBeCloseTo(47 * 0.5, 6)
+    expect(out[0].top - layoutStashBadges({ ...input(), placement: 'current' })[0].top).toBeCloseTo(47 * 0.5, 6)
   })
   it('client 寬或高為 0 → 空陣列', () => {
     // 沒擋 0 會除以 0 產生 Infinity / NaN 位置
