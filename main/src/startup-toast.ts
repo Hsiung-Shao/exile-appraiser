@@ -160,6 +160,13 @@ export function scanToastMessage (lang: ToastLang, items: Array<{ kind: ScanToas
   return { lang, kind: 'scan', title: lines[0] ?? '', hint: lines.slice(1).join(' / ') }
 }
 
+/** 2026-10-15 倉庫價格熱鍵顯示模式:按熱鍵後連續幾次沒偵測到倉庫 → 已停止偵測(提示一次) */
+export function stashArmMissToastMessage (lang: ToastLang): ToastMessage {
+  return lang === 'en'
+    ? { lang, kind: 'scan', title: 'Stash prices: no stash detected', hint: '' }
+    : { lang, kind: 'scan', title: '倉庫價格:沒有偵測到倉庫', hint: '' }
+}
+
 export function toastLang (uiLanguage: string | undefined): ToastLang {
   return uiLanguage === 'en' ? 'en' : 'cmn-Hant'
 }

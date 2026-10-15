@@ -188,9 +188,65 @@ describe('V4 漏讀一位被擋', () => {
       const res = [14, 15, 16, 17].map(c => read(c))
       console.log(`[V4] #${i} 切點 14–17:${res.map(q => `${q.qty}(${q.reason} ${q.raw ?? ''} ${q.confidence})`).join(' / ')}`)
       expect(res[3].qty).toBeNull()
-      // 已知錯讀(code review 2026-10-15,新舊版相同):只剩 7 左側 2–5 欄 → 鄰位筆畫量 < 1.3 倍、沒有純白殘留 → 讀成 8。改善後改成 toBeNull
-      for (const q of res.slice(0, 3)) expect(q.qty === null || q.qty === 8).toBe(true)
+      // 已知錯讀(code review 2026-10-15,新舊版相同):只剩 7 左側 2–5 欄 → 鄰位筆畫量 < 1.3 倍、沒有純白殘留 → 讀成 8。
+      // 精確鎖住:改善後這裡會轉紅,屆時改成 toBeNull
+      for (const q of res.slice(0, 3)) expect(q.qty).toBe(8)
     }
+  })
+})
+
+describe('V20 裁切區邊緣的描邊過濾', () => {
+  // 補邊(四周多取 outlineRgbRadius 算完裁回)評估後不採用(V18、V19 各多 1 格不確定,docs/stash-prices.md):
+  // 鎖住現況 = 只有右緣 2 欄與延伸裁切區不同;日後採用補邊時差異變 0 → 這條轉紅,改成 toEqual([])
+  it('不補邊(已評估不採用):與往右延伸的裁切區只在右緣 2 欄有差異', async () => {
+    let edgeInk = 0
+    const diffs: string[] = []
+    let inner = 0
+    for (const tab of TABS) {
+      const img = await loadImage(tab)
+      cellRects(LAYOUTS, tab, img.height).forEach((r, n) => {
+        const a = qtyCrop(img, r, img.height, TEMPLATES.baseClientH)
+        const b = qtyCrop(img, r, img.height, TEMPLATES.baseClientH, undefined, 6)
+        for (let j = 0; j < a.h; j++) {
+          for (let i = 0; i < a.w; i++) {
+            const va = a.white[j * a.w + i]
+            if (i >= a.w - 2 && a.ink[j * a.w + i] > 0) edgeInk++
+            if (Math.abs(va - b.white[j * b.w + i]) <= 1e-3) continue
+            diffs.push(`${tab}#${n}(${i},${j})`)
+            if (i < a.w - 2) inner++
+          }
+        }
+      })
+    }
+    console.log(`[V20 邊緣] 右緣 2 欄有筆畫的像素 ${edgeInk},不一致 ${diffs.length} ${diffs.slice(0, 8).join(' ')}`)
+    // 右緣真的有筆畫(否則這條測不到東西)
+    expect(edgeInk).toBeGreaterThan(0)
+    expect(inner).toBe(0)
+    expect(diffs.length).toBeGreaterThan(0)
+  })
+
+  it('被遮罩的鄰居當成暗(描邊):旁邊被遮掉的筆畫像素不被削弱', async () => {
+    const img = await loadImage('scarabs')
+    const H = img.height
+    const rects = cellRects(LAYOUTS, 'scarabs', H)
+    // 找一個被描邊過濾削弱的筆畫像素,遮掉它左右任一鄰居
+    let hit: { n: number, i: number, j: number, ni: number } | null = null
+    for (let n = 0; n < rects.length && !hit; n++) {
+      const a = qtyCrop(img, rects[n], H, TEMPLATES.baseClientH)
+      for (let p = 0; p < a.w * a.h && !hit; p++) {
+        const i = p % a.w
+        if (i < 1 || i >= a.w - 1 || a.ink[p] < 50 || a.white[p] > a.ink[p] * 0.5) continue
+        hit = { n, i, j: Math.floor(p / a.w), ni: i + 1 }
+      }
+    }
+    expect(hit).not.toBeNull()
+    const { n, i, j, ni } = hit!
+    const a = qtyCrop(img, rects[n], H, TEMPLATES.baseClientH)
+    const m = qtyCrop(img, rects[n], H, TEMPLATES.baseClientH, [{ x: a.x0 + ni, y: a.y0 + j, w: 1, h: 1 }])
+    const p = j * a.w + i
+    console.log(`[V20 遮罩] 聖甲蟲 #${n} (${i},${j}) ink ${a.ink[p].toFixed(1)} 無遮罩 ${a.white[p].toFixed(1)} 遮右鄰 ${m.white[p].toFixed(1)}`)
+    expect(m.masked![j * a.w + ni]).toBe(1)
+    expect(m.white[p]).toBeCloseTo(a.ink[p], 3)
   })
 })
 
@@ -368,10 +424,19 @@ describe('V19 原生 2560×1440 擷取(2026-10-15 使用者「存下倉庫擷取
     const t = await readNative(TEMPLATES, true)
     const res = await readNative(TEMPLATES, true, true)
     const masked = res.filter(r => r.reason === 'masked').length
-    console.log(`[V19 原生 + 遮罩] 正確 ${t.ok}/175,錯 ${t.wrong.length},不確定 ${t.unknown.length}(masked ${masked})`)
+    // NT.sets 順序 = 聖甲蟲 115 格、一般 60 格(上一個 it 守住)
+    const maskedScarabs = res.slice(0, 115).filter(r => r.reason === 'masked').length
+    const general = res.slice(115)
+    const maskedGeneral = general.filter(r => r.reason === 'masked').length
+    const okGeneral = general.filter((r, i) => r.qty === NT.sets[1].cells[i].truth).length
+    console.log(`[V19 原生 + 遮罩] 正確 ${t.ok}/175,錯 ${t.wrong.length},不確定 ${t.unknown.length}(masked ${masked}:聖甲蟲 ${maskedScarabs}、一般 ${maskedGeneral};一般正確 ${okGeneral})`)
     expect(t.wrong).toEqual([])
     // 聖甲蟲頁徽章緊貼數字帶 → 幾乎全部 masked;沒被蓋到的格與無遮罩時同樣最多 5 格不確定
     expect(t.unknown.length - masked).toBeLessThanOrEqual(5)
+    // 上下限(H3):一般頁徽章不蓋數字帶 → 0 格 masked、讀到 ≥ 59 格;聖甲蟲頁 masked 不超過格數
+    expect(maskedGeneral).toBe(0)
+    expect(t.ok).toBeGreaterThanOrEqual(59)
+    expect(maskedScarabs).toBeLessThanOrEqual(115)
   })
 })
 

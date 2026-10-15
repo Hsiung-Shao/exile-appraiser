@@ -139,6 +139,9 @@ export function stashScanStatus (
   // 2026-10-15:台服 main 完全不掃描
   if (s.block === 'not-intl') return { code: 'not-intl', tone: 'warn', text: t('ppz.stash.status_not_intl') }
   if (s.showing && s.subtab) return { code: 'showing', tone: 'ok', text: t('ppz.stash.status_showing', { subtab: t(`ppz.stash.subtab_${s.subtab}`) }) }
+  // 2026-10-15:熱鍵顯示模式還沒按熱鍵 / overlay 擷取全黑(獨占全螢幕)
+  if (s.block === 'not-armed') return { code: 'not-armed', tone: 'dim', text: t('ppz.stash.status_not_armed', { hotkey: hotkey || '—' }) }
+  if (s.block === 'capture-black') return { code: 'capture-black', tone: 'warn', text: t('ppz.stash.status_capture_black') }
   if (s.block === 'game-inactive' || s.block === 'no-window') return { code: s.block, tone: 'dim', text: t('ppz.stash.status_game_inactive') }
   if (s.block === 'ui-open') return { code: 'ui-open', tone: 'dim', text: t('ppz.stash.status_ui_open') }
   return { code: 'idle', tone: 'dim', text: t('ppz.stash.status_idle') }

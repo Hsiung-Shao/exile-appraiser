@@ -192,7 +192,7 @@ export function qtyCrop (img: QtyImage, cell: QtyRect, clientH: number, baseClie
     white[i] = whiteness(rgb[i * 3], rgb[i * 3 + 1], rgb[i * 3 + 2])
   }
   const ink = white.slice()
-  outlineGate(bw, bh, rgb, white)
+  outlineGate(bw, bh, rgb, white, masked)
   return { w: bw, h: bh, rgb, white, ink, masked, x0: c.x, y0: c.y, k }
 }
 
@@ -201,11 +201,13 @@ export function qtyCrop (img: QtyImage, cell: QtyRect, clientH: number, baseClie
  * 白色像素周圍(基準像素)最亮通道的最小值 m:m < `outlineDark` 照舊;之後線性減弱,m ≥ `outlineDark + outlineSoft` 歸 0。
  * 白色程度(比對)用 3×3;RGB(漏讀檢查 ① 的純白像素、訓練的連通元件)用 5×5(`outlineRgbRadius`)同一條減弱曲線 —— 粗筆畫中心離描邊 2 像素。
  * 漸進而不是硬門檻:畫面模糊 / 放大後描邊變淺,硬門檻會把數字筆畫切斷 → 高信心讀錯(實驗:σ 0.6 糊化 29 格錯)。
+ * 被遮罩的像素(我們的徽章)當成暗 = 可能是描邊,不削弱旁邊的筆畫(2026-10-15 H3;V1–V19 數字不變)。
+ * 裁切區外不補邊(已評估:四周多取 `outlineRgbRadius` 算完裁回 → V18、V19 各多 1 格不確定,不採用,見 docs/stash-prices.md)。
  */
-function outlineGate (w: number, h: number, rgb: Float32Array, white: Float32Array): void {
+function outlineGate (w: number, h: number, rgb: Float32Array, white: Float32Array, masked: Uint8Array | null): void {
   const P = QTY_PARAMS
   const mx = new Float32Array(w * h)
-  for (let i = 0; i < w * h; i++) mx[i] = Math.max(rgb[i * 3], rgb[i * 3 + 1], rgb[i * 3 + 2])
+  for (let i = 0; i < w * h; i++) mx[i] = masked?.[i] ? 0 : Math.max(rgb[i * 3], rgb[i * 3 + 1], rgb[i * 3 + 2])
   const mnW = minFilter(mx, w, h, P.outlineRadius)
   const mnC = minFilter(mx, w, h, P.outlineRgbRadius)
   const fac = (m: number): number => Math.max(0, Math.min(1, (P.outlineDark + P.outlineSoft - m) / P.outlineSoft))

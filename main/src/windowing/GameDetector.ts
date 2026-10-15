@@ -62,6 +62,8 @@ export interface GameDetectorOpts {
    * 該 tick 跳過視窗列舉與 PowerShell。沒提供 / window 模式回 false。
    */
   isCurrentGameForeground?: () => boolean
+  /** overlay 是否已附著到遊戲視窗(診斷用:標題在清單裡但沒附著 → 記一次 log)。沒提供 = 不診斷。 */
+  isAttached?: () => boolean
   /** 測試注入:頂層視窗名稱 / 行程視窗標題 / 時鐘。 */
   listWindowNames?: () => Promise<string[]>
   processTitles?: () => Promise<string[] | null>
@@ -118,6 +120,8 @@ export class GameDetector {
   /** 最近一次「最小化否決」:當時的視窗清單簽章與時間。 */
   private veto: { sig: string, at: number } | null = null
   private fgSkips = 0
+  /** 「同名視窗但未附著」診斷已記過(isAttached 變 true 後重設) */
+  private unattachedLogged = false
   /** 第 30.3 步:連續幾次列舉都沒有任何一款遊戲的視窗(退避用;有遊戲 / 前景跳過 / nudge 歸零) */
   private absentStreak = 0
   private readonly setT: (fn: () => void, ms: number) => unknown
@@ -214,6 +218,13 @@ export class GameDetector {
       const names = await (this.opts.listWindowNames ?? listWindowNamesDefault)()
       const current = this.opts.currentGame()
       const titles = this.opts.windowTitleBy()
+      // 診斷:目前遊戲標題在清單裡、overlay 卻沒附著 → 可能是同名的其他視窗(只記一次;attach 後重設)
+      const attached = this.opts.isAttached?.()
+      if (attached === true) this.unattachedLogged = false
+      else if (attached === false && !this.unattachedLogged && titles[current] !== '' && names.includes(titles[current])) {
+        this.unattachedLogged = true
+        console.log(`[detect] 找到標題「${titles[current]}」的視窗但 overlay 沒附著(可能是同名的其他視窗),偵測維持每 2 秒`)
+      }
       // 第 30.3 步:兩款都不在 → 退避 2 → 5 → 10 秒;有任一款(含候選確認期)→ 每 2 秒
       if (anyGamePresent(names, titles)) {
         this.absentStreak = 0

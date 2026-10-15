@@ -57,7 +57,7 @@ import { AppLog, LogFileWriter, captureConsole, consoleMethodForLevel, type LogE
 import { PerfMonitor, RendererPerfAccumulator, bgActiveFromConfigText, formatPerfSummary, isPerfFile, perfFileName, perfSummarySections, scanSnapshotOf, stashSnapshotOf, type ScenarioInput } from './perf/perf-monitor'
 import {
   TOAST_FADE_MS, TOAST_VISIBLE_MS, isFirstRunAfterUpdate, parseLastRun, priceCheckHotkeyLabel, scanToastMessage, serializeLastRun,
-  shouldShowGameAttachToast, shouldShowStartupToast, toastBounds, toastHtml, toastLang, toastMessage, toastWorkArea, type ScanToastKind, type ToastMessage
+  shouldShowGameAttachToast, shouldShowStartupToast, stashArmMissToastMessage, toastBounds, toastHtml, toastLang, toastMessage, toastWorkArea, type ScanToastKind, type ToastMessage
 } from './startup-toast'
 
 // WP-S:`--ocr-selftest <png>`:無視窗跑 OCR(capture 以外的整條)後結束;不拿單一實例鎖、不建視窗/托盤/熱鍵。
@@ -948,6 +948,8 @@ if (!skipStartup) app.whenReady().then(() => {
     send: (e) => { send('stash-cursor', e); stashScan.cursorMoved() }
   })
   // PoE1 倉庫價格疊層:偵測碎片頁開著 / 目前子頁(只 OCR 子頁按鈕列;物品身分靠固定版面,不 OCR)
+  // 2026-10-15 顯示方式:auto = 一直偵測;hotkey = 按倉庫價格熱鍵才偵測(舊設定 / 壞值 = auto)
+  const stashTriggerMode = (): 'auto' | 'hotkey' => hostCfg?.stashTriggerMode === 'hotkey' ? 'hotkey' : 'auto'
   stashScan = new StashScan({
     config: () => ({
       enabled: hostCfg != null && hostCfg.stashPricesEnabled !== false,
@@ -955,8 +957,11 @@ if (!skipStartup) app.whenReady().then(() => {
       intervalMs: hostCfg?.stashPricesIntervalMs ?? DEFAULT_SCAN_INTERVAL_MS,
       region: hostCfg?.stashRegion ?? null,
       readQuantity: hostCfg?.stashReadQuantity !== false,
-      realm: hostCfg?.realm === 'tw' ? 'tw' : 'intl'
+      realm: hostCfg?.realm === 'tw' ? 'tw' : 'intl',
+      triggerMode: stashTriggerMode()
     }),
+    // 熱鍵顯示模式:按了熱鍵卻連續幾次沒偵測到倉庫 → 已停止偵測,提示一次
+    onArmMiss: () => { presentToast(stashArmMissToastMessage(toastLang(hostCfg?.uiLanguage)), gameToastArea()) },
     env: scanEnv,
     textLang: ocrTextLang,
     ocrBusy: () => revealScan.busy || runeshapeScan.busy,
@@ -1014,13 +1019,18 @@ if (!skipStartup) app.whenReady().then(() => {
     onRuneshapeToggle: () => { notifyScan([{ kind: 'rune', paused: runeshapeScan.toggleUserPause() }]) },
     // 2026-10-14:PoE1 倉庫價格暫停 / 繼續(暫停 = 收掉疊層)
     // 功能關著時按熱鍵 = 啟動:清掉使用者暫停、請 renderer 把 stashPricesEnabled 設成 true(host-config 會送回來啟動掃描)
+    // 2026-10-15 熱鍵顯示模式(stashTriggerMode = hotkey):沒顯示按下 = 開始偵測(arm)、顯示中按下 = 收起;關著時啟用後直接 arm
+    // (設定送達前 stashBlock 仍是 disabled,arm 狀態保留到 host-config 的 poke)
     onStashToggle: () => {
-      if (stashHotkeyAction(hostCfg?.stashPricesEnabled) === 'enable') {
+      const action = stashHotkeyAction(hostCfg?.stashPricesEnabled, stashTriggerMode())
+      if (action === 'enable') {
         stashScan.setUserPause(false)
+        if (stashTriggerMode() === 'hotkey') stashScan.arm()
         send('stash-enable')
         notifyScan([{ kind: 'stash', paused: false }])
         return
       }
+      if (action === 'show-hide') { stashScan.hotkeyPress(); return }
       notifyScan([{ kind: 'stash', paused: stashScan.toggleUserPause() }])
     },
     // 第 16 步:兩個暫停熱鍵相同 → 合併動作(只在兩者都符合註冊條件時才有;任一個在執行 → 全部暫停,全部暫停 → 全部繼續)
@@ -1300,6 +1310,7 @@ if (!skipStartup) app.whenReady().then(() => {
       poe2: hostCfg ? windowTitleFor(hostCfg, 'poe2') : DEFAULT_WINDOW_TITLE.poe2
     }),
     isCurrentGameForeground: () => overlay != null && Boolean(poeWindow?.isActive),
+    isAttached: () => overlay != null && gameAttached,
     onSwitch: (game) => {
       if (overlay) {
         scheduleRelaunch(`自動偵測:${bound?.game}→${game}`, game)

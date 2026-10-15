@@ -258,7 +258,7 @@ describe('倉庫價格熱鍵', () => {
     const main = fs.readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8')
     const i = main.indexOf('onStashToggle:')
     const block = main.slice(i, main.indexOf('onScanToggleBoth', i))
-    expect(block).toContain("stashHotkeyAction(hostCfg?.stashPricesEnabled)")
+    expect(block).toContain("stashHotkeyAction(hostCfg?.stashPricesEnabled, stashTriggerMode())")
     expect(block).toContain("send('stash-enable')")
     expect(block).toContain('setUserPause(false)')
     expect(block).toContain("kind: 'stash', paused: false")

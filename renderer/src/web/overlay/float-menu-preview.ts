@@ -19,7 +19,7 @@ export function previewCacheKey (b: PreviewBookmark, stateTag: string): string {
 export interface PreviewCache {
   /** 已算過的字串(沒有 = undefined),同步 */
   peek (index: number): string | undefined
-  /** 取得字串:命中直接回,沒有才呼叫 compute;空字串(失敗 / 找不到)不快取 */
+  /** 取得字串:命中直接回,沒有才呼叫 compute;空字串結果也快取;同鍵計算中共用同一個 Promise */
   ensure (index: number): Promise<string>
   /** 目前這筆書籤的快取鍵(沒有書籤 = null) */
   keyOf (index: number): string | null
@@ -36,6 +36,7 @@ export function createPreviewCache (opts: {
 }): PreviewCache {
   const limit = opts.limit ?? 200
   const map = new Map<string, string>()
+  const inflight = new Map<string, Promise<string>>()
   const keyOf = (index: number): string | null => {
     const b = opts.bookmarkAt(index)
     return b ? previewCacheKey(b, opts.stateTag(b)) : null
@@ -51,14 +52,23 @@ export function createPreviewCache (opts: {
         const hit = map.get(k)
         if (hit !== undefined) return hit
       }
-      const text = await opts.compute(index)
-      // 算的過程可能載入了資料(狀態標記改變)→ 以算完後的鍵存
-      const k2 = keyOf(index)
-      if (k2 !== null && text !== '') {
-        if (map.size >= limit) map.clear()
-        map.set(k2, text)
+      if (k !== null) {
+        const pending = inflight.get(k)
+        if (pending) return pending
       }
-      return text
+      const run = (async () => {
+        const text = await opts.compute(index)
+        // 算的過程可能載入了資料(狀態標記改變)→ 以算完後的鍵存
+        const k2 = keyOf(index)
+        if (k2 !== null) {
+          if (map.size >= limit) map.clear()
+          map.set(k2, text)
+        }
+        return text
+      })()
+      if (k === null) return run
+      inflight.set(k, run)
+      try { return await run } finally { if (inflight.get(k) === run) inflight.delete(k) }
     },
     keyOf,
     get size () { return map.size },

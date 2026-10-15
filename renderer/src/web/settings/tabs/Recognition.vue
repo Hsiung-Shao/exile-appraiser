@@ -41,6 +41,16 @@
         <p v-if="config.realm === 'tw'" class="foot warn" data-setting="stash-tw">{{ t('ppz.stash.tw_no_source') }}</p>
       </template>
       <template #extra>
+        <!-- 2026-10-15 顯示方式:自動偵測 / 按熱鍵顯示(`stashTriggerMode`;熱鍵 = 熱鍵總表的倉庫價格) -->
+        <div class="srow">
+          <span class="k">{{ t('ppz.stash.trigger_mode') }} <help-tip id="stash-trigger-mode" :text="t('ppz.stash.trigger_hint')" /></span>
+          <div class="ctl">
+            <div class="seg" data-setting="stash-trigger-mode">
+              <button :class="{ on: config.stashTriggerMode !== 'hotkey' }" data-value="auto" @click="config.stashTriggerMode = 'auto'">{{ t('ppz.stash.trigger_auto') }}</button>
+              <button :class="{ on: config.stashTriggerMode === 'hotkey' }" data-value="hotkey" @click="config.stashTriggerMode = 'hotkey'">{{ t('ppz.stash.trigger_hotkey') }}</button>
+            </div>
+          </div>
+        </div>
         <div class="chk-row">
           <label class="chk"><input v-model="config.stashShowNames" type="checkbox" data-setting="stash-show-names"><span>{{ t('ppz.stash.show_names') }}</span></label>
           <help-tip id="stash-show-names" :text="t('ppz.stash.show_names_hint')" />

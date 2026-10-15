@@ -65,9 +65,13 @@ type ActionCfg = Pick<HostConfigForMain, 'hotkey' | 'hotkeyHold' | 'hotkeyLocked
  * - 第 33 步:倉庫搜尋之後是正則書籤快速面板(`hotkeyRegexQuick`,預設空)與書籤個別熱鍵(`regexBookmarkHotkeys`,只取 `game` = 目前遊戲的,
  *   依書籤順序);兩者**只在 overlay 模式**(同聊天指令:會對遊戲送鍵 / 要 overlay 才有面板可畫)。
  */
-/** 倉庫價格熱鍵按下:功能關著(`stashPricesEnabled === false`)= 啟動(通知 renderer 開啟設定);否則 = 暫停 / 繼續切換 */
-export function stashHotkeyAction (enabled: boolean | undefined): 'enable' | 'toggle' {
-  return enabled === false ? 'enable' : 'toggle'
+/**
+ * 倉庫價格熱鍵按下:功能關著(`stashPricesEnabled === false`)= 啟動(通知 renderer 開啟設定;熱鍵顯示模式另外 arm);
+ * 開著:`auto`(省略)= 暫停 / 繼續切換,`hotkey`(2026-10-15 熱鍵顯示模式)= 顯示 / 收起(`StashScan.hotkeyPress`)
+ */
+export function stashHotkeyAction (enabled: boolean | undefined, mode: 'auto' | 'hotkey' = 'auto'): 'enable' | 'toggle' | 'show-hide' {
+  if (enabled === false) return 'enable'
+  return mode === 'hotkey' ? 'show-hide' : 'toggle'
 }
 
 export function buildShortcutActions (cfg: ActionCfg, mode: WindowMode): ShortcutAction[] {

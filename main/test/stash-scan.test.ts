@@ -265,9 +265,9 @@ describe('S9c 擋下條件與收起', () => {
     expect(stashBlock(okCfg, okEnv, { ...ui0, picker: true })).toBe('ui-open')
     expect(stashBlock(okCfg, okEnv, ui0)).toBeNull()
   })
-  it('會清疊層的原因只有 disabled / not-poe1 / not-intl / not-overlay / no-window / user-paused', () => {
-    // 失焦也清 → 切出遊戲再回來疊層要重新 OCR 才出現
-    expect([...STASH_CLEARING_BLOCKS].sort()).toEqual(['disabled', 'no-window', 'not-intl', 'not-overlay', 'not-poe1', 'user-paused'])
+  it('會清疊層的原因只有 disabled / not-poe1 / not-intl / not-overlay / no-window / user-paused / not-armed', () => {
+    // 失焦也清 → 切出遊戲再回來疊層要重新 OCR 才出現(not-armed = 2026-10-15 熱鍵顯示模式未觸發)
+    expect([...STASH_CLEARING_BLOCKS].sort()).toEqual(['disabled', 'no-window', 'not-armed', 'not-intl', 'not-overlay', 'not-poe1', 'user-paused'])
   })
   it('顯示中改成停用 → blocked 並送 hide', async () => {
     const h = harness()

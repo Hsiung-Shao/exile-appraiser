@@ -48,26 +48,34 @@ export interface StashScanConfig {
   readQuantity?: boolean
   /** 伺服器(省略 = 國際服) */
   realm?: 'intl' | 'tw'
+  /**
+   * 2026-10-15 顯示方式:`auto`(省略 / 預設)= 一直偵測倉庫;`hotkey` = 平常不擷取,按倉庫價格熱鍵(`arm()`)才開始掃描,
+   * 收起(倉庫關掉 / 再按一次)或連續 `STASH_ARM_MISS_LIMIT` 次沒偵測到倉庫就解除
+   */
+  triggerMode?: 'auto' | 'hotkey'
 }
 
 /**
+ * `not-armed` = 熱鍵顯示模式(`triggerMode: 'hotkey'`)還沒按熱鍵:停止類(不排 tick、不截圖,等 `arm()`)。
  * `user-paused` = 使用者按暫停熱鍵(2026-10-14;暫停當下 `toggleUserPause` 已收掉疊層)。
  * `capture-black` = overlay screenshot 「全黑」鎖存中(全螢幕獨占:overlay 畫不出來,擷取只能走每次卡 main 的 getSources)→ 不擷取;
  * 暫停類(疊層留著),鎖存期滿 / 遊戲 attach / 視窗位置大小改變後恢復(`captureBlackMs`)。
  */
-export type StashBlock = 'disabled' | 'not-poe1' | 'not-intl' | 'user-paused' | 'not-overlay' | 'no-window' | 'game-inactive' | 'ui-open' | 'capture-black'
+export type StashBlock = 'disabled' | 'not-poe1' | 'not-intl' | 'user-paused' | 'not-armed' | 'not-overlay' | 'no-window' | 'game-inactive' | 'ui-open' | 'capture-black'
 
 /** 這幾種「停止」要收掉疊層;失焦 / UI 開著只是暫停(疊層留著) */
-export const STASH_CLEARING_BLOCKS: ReadonlySet<StashBlock> = new Set<StashBlock>(['disabled', 'not-poe1', 'not-intl', 'not-overlay', 'no-window', 'user-paused'])
-/** 功能本身停用 / 台服 / 使用者暫停 → 連保底 tick 都不排,等 host-config 的 `poke()`(realm 在 `scanConfigKey` 裡)/ 繼續熱鍵 */
-const IDLE_STOP: ReadonlySet<StashBlock> = new Set<StashBlock>(['disabled', 'not-poe1', 'not-intl', 'user-paused'])
+export const STASH_CLEARING_BLOCKS: ReadonlySet<StashBlock> = new Set<StashBlock>(['disabled', 'not-poe1', 'not-intl', 'not-overlay', 'no-window', 'user-paused', 'not-armed'])
+/** 功能本身停用 / 台服 / 使用者暫停 / 熱鍵模式未觸發 → 連保底 tick 都不排,等 host-config 的 `poke()`(realm 在 `scanConfigKey` 裡)/ 繼續熱鍵 / `arm()` */
+const IDLE_STOP: ReadonlySet<StashBlock> = new Set<StashBlock>(['disabled', 'not-poe1', 'not-intl', 'user-paused', 'not-armed'])
 
-export function stashBlock (cfg: StashScanConfig, env: ScanEnv, ui: RuneshapeUiState, userPaused = false): StashBlock | null {
+/** `armed` = 熱鍵顯示模式已按熱鍵(auto 模式不看) */
+export function stashBlock (cfg: StashScanConfig, env: ScanEnv, ui: RuneshapeUiState, userPaused = false, armed = false): StashBlock | null {
   if (!cfg.enabled) return 'disabled'
   if (cfg.game !== 'poe1') return 'not-poe1'
   // 2026-10-15 使用者裁定:倉庫價格 / 倉庫價值只支援國際服(台服沒有 poe.ninja)→ 完全不掃描(不讀按鈕、不讀數量)
   if (cfg.realm === 'tw') return 'not-intl'
   if (userPaused) return 'user-paused'
+  if (cfg.triggerMode === 'hotkey' && !armed) return 'not-armed'
   if (!env.overlay) return 'not-overlay'
   if (!env.bounds || !(env.bounds.width > 0 && env.bounds.height > 0)) return 'no-window'
   if (!env.gameActive) return 'game-inactive'
@@ -80,6 +88,8 @@ export function stashBlock (cfg: StashScanConfig, env: ScanEnv, ui: RuneshapeUiS
  * 顯示中照設定間隔,偵測到倉庫的那個 tick 之後立刻回到設定間隔
  */
 export const STASH_IDLE_INTERVAL_MS = 3000
+/** 熱鍵顯示模式:按熱鍵後連續幾次沒偵測到倉庫(沒顯示的 tick)就解除並提示 */
+export const STASH_ARM_MISS_LIMIT = 3
 
 /** 「沒找到子頁按鈕」診斷記錄的最小間隔 */
 export const STASH_MISS_LOG_MS = 30_000
@@ -109,6 +119,8 @@ export interface StashScanDeps {
   /** 顯示狀態改變(main 依此開關游標輪詢) */
   onShowingChange?: (showing: boolean, state: { subtab: StashSubtab | null, yOffset: number, clientH: number }) => void
   log?: (msg: string) => void
+  /** 熱鍵顯示模式:按熱鍵後連續 `STASH_ARM_MISS_LIMIT` 次沒偵測到倉庫 → 已解除(main 顯示「沒有偵測到倉庫」提示) */
+  onArmMiss?: () => void
   /** 讀堆疊數量要的版面與數字模板(省略 / 任一回 null = 不讀數量) */
   qty?: { layouts: () => StashLayoutFile | null, templates: () => DigitTemplates | null }
   /** 游標停在格子上 → 這個 tick 不讀數量(遊戲說明框 / 游標上的物品可能蓋住格子);省略 = 否 */
@@ -288,6 +300,10 @@ export class StashScan {
   private lastClampLogKey: string | null = null
   private ocrCount = 0
   private userPaused = false
+  /** 熱鍵顯示模式:按了熱鍵(`arm()`)還沒解除 */
+  private isArmed = false
+  /** arm 之後連續沒偵測到倉庫的 tick 數 */
+  private armMisses = 0
   private qty: QtyState | null = null
   private lastQtyMs: number | null = null
   /** 上次寫進記錄的未讀格摘要(含版面鍵;相同不重寫) */
@@ -344,7 +360,7 @@ export class StashScan {
     if (this.dumpReq) return this.dumpReq.promise
     if (!this.deps.saveDump) return Promise.resolve({ ok: false, reason: 'unsupported' })
     const cfg = this.deps.config()
-    const block = stashBlock(cfg, this.deps.env(), this.ui, this.userPaused)
+    const block = stashBlock(cfg, this.deps.env(), this.ui, this.userPaused, this.isArmed)
     if (block && STASH_CLEARING_BLOCKS.has(block)) return Promise.resolve({ ok: false, reason: block })
     if (!this.shown) return Promise.resolve({ ok: false, reason: 'not-showing' })
     if (cfg.readQuantity === false) return Promise.resolve({ ok: false, reason: 'qty-off' })
@@ -418,6 +434,39 @@ export class StashScan {
       }
     )
   }
+
+  /** 熱鍵顯示模式已按熱鍵(等倉庫 / 顯示中) */
+  get armed (): boolean { return this.isArmed }
+
+  /** 熱鍵顯示模式:開始掃描(清差分基準、立刻重看;停用中也保留,啟用後的 `poke()` 就會掃描)。順便清掉使用者暫停 */
+  arm (): void {
+    this.isArmed = true
+    this.armMisses = 0
+    this.userPaused = false
+    this.baseline = null
+    this.deps.log?.('[stash] 熱鍵:開始偵測倉庫')
+    this.poke()
+  }
+
+  /** 解除(不收疊層;收疊層走 `hotkeyPress` / `hide`) */
+  disarm (): void {
+    this.isArmed = false
+    this.armMisses = 0
+  }
+
+  /** 熱鍵顯示模式按下熱鍵:顯示中 = 收起並解除;沒顯示 = `arm()` */
+  hotkeyPress (): 'armed' | 'hidden' {
+    if (this.shown) {
+      this.deps.log?.('[stash] 熱鍵:收起倉庫價格')
+      this.hide({ w: this.shown.clientW, h: this.shown.clientH })
+      this.disarm()
+      return 'hidden'
+    }
+    this.arm()
+    return 'armed'
+  }
+
+  private hotkeyMode (): boolean { return this.deps.config().triggerMode === 'hotkey' }
 
   /** 使用者暫停中(暫停熱鍵) */
   get paused (): boolean { return this.userPaused }
@@ -495,9 +544,18 @@ export class StashScan {
         const blocked = res.kind === 'blocked'
         this.idleBlocked = blocked
         if (blocked && IDLE_STOP.has(res.block)) return
+        // 熱鍵顯示模式這個 tick 剛解除(收起 / 沒偵測到倉庫)→ 同 not-armed,不再排(等下一次 arm)
+        const hotkey = this.hotkeyMode()
+        if (hotkey && !this.isArmed) {
+          this.idleBlocked = true
+          // 狀態列顯示「等待熱鍵」(不必再跑一次被擋的 tick)
+          if (this.lastBlock !== 'not-armed') { this.lastBlock = 'not-armed'; this.deps.log?.('[stash] 暫停:not-armed') }
+          return
+        }
         const blockedDelay = res.kind === 'blocked' && res.retryMs != null ? Math.min(BLOCKED_FALLBACK_MS, res.retryMs) : BLOCKED_FALLBACK_MS
         const interval = clampScanInterval(this.deps.config().intervalMs)
-        if (this.timer == null) this.schedule(blocked ? blockedDelay : this.shown ? interval : Math.max(interval, STASH_IDLE_INTERVAL_MS))
+        // 沒顯示時套閒置下限;熱鍵模式 armed(使用者剛按熱鍵在等倉庫)照設定間隔
+        if (this.timer == null) this.schedule(blocked ? blockedDelay : this.shown || hotkey ? interval : Math.max(interval, STASH_IDLE_INTERVAL_MS))
       })
     }, ms)
   }
@@ -532,6 +590,8 @@ export class StashScan {
     if (this.dumpReq) this.dumpReq.finish({ ok: false, reason: 'not-showing' })
     this.missStreak = 0
     this.holdStreak = 0
+    // 熱鍵顯示模式:疊層收起(倉庫關掉 / 再按熱鍵 / 停止類原因)= 解除,下次要再按熱鍵
+    if (this.isArmed && this.hotkeyMode()) this.disarm()
     this.emit('hide', client, ocrMs)
     return 'hide'
   }
@@ -542,7 +602,9 @@ export class StashScan {
     this.ticking = true
     this.counters.ticks++
     try {
-      return await this.runTick()
+      const res = await this.runTick()
+      this.countArmMiss(res)
+      return res
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e)
       this.deps.log?.(`[stash] 掃描失敗:${message}`)
@@ -551,6 +613,18 @@ export class StashScan {
       this.ticking = false
       this.inFlight = false
     }
+  }
+
+  /** 熱鍵顯示模式:armed 但這個 tick 結束時沒顯示(沒找到按鈕 / 畫面沒變 / 不是碎片頁)→ 累計;達上限解除並提示 */
+  private countArmMiss (res: StashTickResult): void {
+    if (!this.isArmed) return
+    if (this.shown) { this.armMisses = 0; return }
+    if (res.kind !== 'ocr' && res.kind !== 'unchanged') return
+    if (!this.hotkeyMode()) return
+    if (++this.armMisses < STASH_ARM_MISS_LIMIT) return
+    this.disarm()
+    this.deps.log?.(`[stash] 熱鍵:連續 ${STASH_ARM_MISS_LIMIT} 次沒有偵測到倉庫,停止偵測`)
+    this.deps.onArmMiss?.()
   }
 
   /** 被擋下:記錄狀態(lastBlock / log / 計數)、作廢差分基準;停止類原因收掉疊層(暫停類留著) */
@@ -572,7 +646,7 @@ export class StashScan {
   private async runTick (): Promise<StashTickResult> {
     const cfg = this.deps.config()
     const env = this.deps.env()
-    const block = stashBlock(cfg, env, this.ui, this.userPaused)
+    const block = stashBlock(cfg, env, this.ui, this.userPaused, this.isArmed)
     if (block) return this.blockedResult(block)
     // overlay screenshot 全黑鎖存(全螢幕獨占):overlay 畫不出來,擷取只會走每次卡 main 300–480 ms 的 getSources → 不擷取
     const blackMs = this.deps.captureBlackMs?.() ?? 0
@@ -645,6 +719,8 @@ export class StashScan {
     }
     // tick 進行中(await 期間)使用者按了暫停 → 不畫(下一輪被 user-paused 擋下並收掉)
     if (this.userPaused) return this.blockedResult('user-paused')
+    // 熱鍵顯示模式:await 期間收起 / 解除了 → 不畫
+    if (cfg.triggerMode === 'hotkey' && !this.isArmed) return this.blockedResult('not-armed')
     const same = this.shown && this.shown.subtab === subtab && this.shown.yOffset === match.yOffset &&
       this.shown.clientW === client.w && this.shown.clientH === client.h
     if (same) {

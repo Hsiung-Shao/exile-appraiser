@@ -72,6 +72,17 @@
 遊戲保留鍵不註冊)→ `Shortcuts.ts` → `StashScan.toggleUserPause()`(暫停 = 立刻送 `hide` 收掉疊層、block `user-paused` 不排計時器;繼續 = 立刻 `poke()`)
 + 右下角通知「倉庫價格:已暫停 / 已啟動」(`scanToastMessage` kind `stash`);框選熱鍵送 `ocr-region-pick { target: 'stash' }`。兩者都不送任何按鍵。
 
+### 熱鍵顯示模式(2026-10-15)
+設定 › 自動辨識 › 倉庫價格「顯示方式」= `stashTriggerMode`:`auto`(預設;舊設定檔 / 壞值也是 auto)= 上述一直偵測;`hotkey` = 平常**不擷取**,按 `hotkeyStashToggle` 才偵測。
+- 設定走 Config → host-config(`HOST_CONFIG_IMMEDIATE_KEYS` 與 main `scanConfigKey` 都有這欄,守門 `renderer/test/host-config-sync.test.ts`)→ `StashScanConfig.triggerMode`。
+- `StashScan` 的 `armed`:hotkey 模式沒 armed → `stashBlock` 回 `not-armed`(判斷在 `user-paused` 之後;屬停止類 = 收疊層、不排 tick、0 擷取)。
+- `arm()`:armed、清差分基準與使用者暫停、立刻 `poke()`;armed 期間沒顯示也照設定間隔(不套閒置 3 秒下限)。
+- 解除:疊層收起(倉庫關掉 = 連續沒找到按鈕、或停止類原因)時自動解除;arm 後連續 `STASH_ARM_MISS_LIMIT`(3)個 tick 沒顯示(沒找到按鈕 / 畫面沒變 / 不是碎片頁)→ 解除 + `onArmMiss` → main 右下角提示「倉庫價格:沒有偵測到倉庫」(`stashArmMissToastMessage`,跟 `uiLanguage`)。
+- 熱鍵(`main.ts` `onStashToggle` → `stashHotkeyAction(enabled, mode)`):auto = 暫停 / 繼續(不變);hotkey = `StashScan.hotkeyPress()`(沒顯示 = arm、顯示中 = 收起並解除,不另外通知);
+  功能關著 = 照舊送 `stash-enable`,hotkey 模式另外先 `arm()`(設定送達前 `stashBlock` 仍是 `disabled`,armed 保留到 host-config 的 `poke()`)。
+- 狀態列:`not-armed` =「等待熱鍵(熱鍵)」;`capture-black` =「擷取全黑(獨占全螢幕)」。
+- 測試 `main/test/stash-hotkey-mode.test.ts`(K1–K6、K8)、`renderer/test/stash-trigger-mode.test.ts`(K7)。
+
 ## 只支援國際服(2026-10-15 使用者裁定)
 台服(`realm` tw)時 main `StashScan` 完全不掃描(不讀按鈕、不讀數量):`stashBlock` 回 `not-intl`(收掉疊層、不排計時器);
 host-config 帶 `realm`(`HOST_CONFIG_IMMEDIATE_KEYS`、main `scanConfigKey` 都有 → 切換時立刻 poke)。設定 › 自動辨識 › 倉庫價格狀態「只支援國際服」(`ppz.stash.status_not_intl`),
@@ -97,6 +108,11 @@ host-config 帶 `realm`(`HOST_CONFIG_IMMEDIATE_KEYS`、main `scanConfigKey` 都�
   漏讀檢查 ② 的筆畫量用過濾前的 `ink`。掃參數(舊截圖 + 原生擷取 + 糊化 σ 0.6 / 1.0 + 放大 1440,只用舊截圖訓練):全部情境錯 1 → 0、不確定 46 → 42、留一 0 錯;
   **硬門檻**(m < 60 才算)在原生畫面最好,但糊化 σ 0.6 就 29 格錯(描邊變淺 → 筆畫被切斷),**不可改回硬門檻**;暗度 60–70、RGB 也用 3×3、不用 `ink` 都會多出高信心錯。
   原生擷取加進訓練沒有好處(反而出現高信心錯),只當驗證 fixture(V19)。
+  **被遮罩的像素當成暗**(2026-10-15 H3,採用):算 m 時我們徽章蓋住的像素 = 0(可能是描邊),不削弱旁邊的筆畫;遮罩蓋到數字帶的格本來就直接 `masked`,行為一致。
+  V1–V19 數字全部不變(模板逐位元組相同),測試 V20「被遮罩的鄰居當成暗」。
+  **裁切區邊緣補邊**(四周多取 `outlineRgbRadius` 基準像素算描邊再裁回):**已評估、不採用**。重產模板後 V1 全模板 169 / 0 / 6、留一 167 / 0 / 8、σ 0.6 / 1.0 錯 0 不確定 6 / 16、
+  1440 169 / 0 / 6 都不變,但 V18 112 / 0 / 3 → 111 / 0 / 4(多 #58 8)、V19 170 / 0 / 5 → 169 / 0 / 6(多聖甲蟲 #24 100)= 不確定合計多 2。
+  V20「不補邊」鎖住現況:與往右延伸裁切區的差異只在右緣(126 像素,全在最右 2 欄)。
 - **模板** `data/poe1/stash/digit-templates.json`:`node scripts/build-stash-digit-templates.mjs`(`--check` 只比對)由 `core/test/stash/fixtures/qty/`
   (使用者 2000×1125 截圖裁左側 700 px + 人工判讀 `truth.json`)產生,數字連通元件數 = 真值位數的格才採樣;記來源截圖 sha256、逐位元組可重現;
   MANIFEST 前綴 `data/poe1/stash/digit-templates.json`(不手改)。數字 9 只有 3 個樣本。補截圖:放進 fixture、補 truth、重跑腳本。

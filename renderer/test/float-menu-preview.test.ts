@@ -48,10 +48,25 @@ describe('懸浮選單書籤預覽快取', () => {
     await s.cache.ensure(0)
     expect(s.calls()).toBe(2)
   })
-  it('空字串結果不快取', async () => {
-    const cache = createPreviewCache({ bookmarkAt: () => ({ game: 'poe1' }), stateTag: () => 't', compute: async () => '' })
+  it('C1 空字串結果也快取,第二次不重算', async () => {
+    let n = 0
+    const cache = createPreviewCache({ bookmarkAt: () => ({ game: 'poe1' }), stateTag: () => 't', compute: async () => { n++; return '' } })
     await cache.ensure(0)
-    expect(cache.size).toBe(0)
+    await cache.ensure(0)
+    expect(n).toBe(1)
+    expect(cache.peek(0)).toBe('')
+  })
+  it('C2 同鍵計算中並發只算一次', async () => {
+    let n = 0
+    const cache = createPreviewCache({ bookmarkAt: () => ({ game: 'poe1' }), stateTag: () => 't', compute: async () => { n++; await Promise.resolve(); return 'x' } })
+    const [a, b] = await Promise.all([cache.ensure(0), cache.ensure(0)])
+    expect([a, b, n]).toEqual(['x', 'x', 1])
+  })
+  it('C2b 計算失敗後可重試', async () => {
+    let n = 0
+    const cache = createPreviewCache({ bookmarkAt: () => ({ game: 'poe1' }), stateTag: () => 't', compute: async () => { n++; if (n === 1) throw new Error('boom'); return 'ok' } })
+    await expect(cache.ensure(0)).rejects.toThrow('boom')
+    expect(await cache.ensure(0)).toBe('ok')
   })
   it('超過上限就清空重來', async () => {
     const bms = Array.from({ length: 5 }, (_, i) => ({ game: 'poe1', page: String(i) }))

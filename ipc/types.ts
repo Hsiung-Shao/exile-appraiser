@@ -111,6 +111,8 @@ export interface HostConfigForMain {
   stashRegion?: OcrRegion | null
   /** 2026-10-15:倉庫價值 —— 讀每格堆疊數量算小計 / 整頁總價(預設開;舊 renderer 沒有這欄 = 開;main `StashScan` 依此決定讀不讀數量) */
   stashReadQuantity?: boolean
+  /** 2026-10-15:倉庫價格顯示方式(`auto` 一直偵測 / `hotkey` 按 `hotkeyStashToggle` 才偵測;舊 renderer 沒有這欄 = auto) */
+  stashTriggerMode?: 'auto' | 'hotkey'
   /** 2026-10-15:伺服器(倉庫價格 / 倉庫價值只支援國際服,台服 main `StashScan` 完全不掃描;舊 renderer 沒有這欄 = 國際服) */
   realm?: 'intl' | 'tw'
   /** 2026-10-01:框選符文塑形面板區域的熱鍵(預設空 = 不註冊;註冊條件同 `hotkeyOcrRegion`:overlay + PoE2 + 遊戲前景)。 */
