@@ -207,7 +207,7 @@ function outlineGate (w: number, h: number, rgb: Float32Array, white: Float32Arr
   const mx = new Float32Array(w * h)
   for (let i = 0; i < w * h; i++) mx[i] = Math.max(rgb[i * 3], rgb[i * 3 + 1], rgb[i * 3 + 2])
   const mnW = minFilter(mx, w, h, P.outlineRadius)
-  const mnC = P.outlineRgbRadius === P.outlineRadius ? mnW : minFilter(mx, w, h, P.outlineRgbRadius)
+  const mnC = minFilter(mx, w, h, P.outlineRgbRadius)
   const fac = (m: number): number => Math.max(0, Math.min(1, (P.outlineDark + P.outlineSoft - m) / P.outlineSoft))
   for (let i = 0; i < w * h; i++) {
     if (white[i] === 0) continue
