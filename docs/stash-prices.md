@@ -45,6 +45,12 @@
    不用整個倉庫面板(`inPanel()`,含頁籤列)判定:點別的倉庫頁籤時游標在面板內,碎片頁徽章會錯畫在別頁上(code review B2)。
    副作用:說明框蓋住按鈕列且游標停在同一格超過約 5 次掃描,疊層會先收起,游標移開、按鈕列露出後再出現。
 6. host-config 還沒送到 main 前不掃描(`enabled: hostCfg != null && …`;否則 PoE2 使用者啟動空窗也會擷取 + OCR)。
+7. **沒顯示時放慢**(2026-10-15 使用者裁定):疊層沒顯示(不在倉庫 / 還沒認到按鈕列)時 tick 間隔 = max(設定間隔, `STASH_IDLE_INTERVAL_MS` 3000 ms);
+   顯示中照設定間隔,偵測到倉庫後下一個 tick 起立刻回到設定間隔(最壞開倉庫後約 3 秒才出現疊層)。
+8. **擷取全黑時不掃描**(2026-10-15 效能審查):overlay `screenshot()` 因「全黑」鎖存時(全螢幕獨占,overlay 本來就畫不出來;`overlay-shot.ts`)
+   擷取只會走每次卡 main 300–480 ms 的 getSources → 被擋原因 `capture-black`(暫停類,疊層不收;計入 `blockCounts`),不擷取;
+   保底重看不晚於鎖存剩餘時間(`blackLatchRemainingMs`),遊戲 attach(`clientCapture.reset()` 後 `poke()`)/ 視窗位置大小改變(`wake()`)/ 30 秒期滿後恢復。
+   進入 / 離開各記一行 `[stash] 暫停:capture-black…` / `[stash] 繼續掃描`。褻瀆 / 符文行為不變。
 
 ## 游標與說明框
 遊戲說明框畫在格子附近,overlay 在遊戲上層會蓋住它。`main/src/stash-cursor.ts`:只在「疊層顯示中 + 遊戲前景」時每 80 ms 讀

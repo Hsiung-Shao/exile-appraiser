@@ -131,6 +131,11 @@ export interface GameClientCapture<I> {
   stats: { overlay: number, fallback: Partial<Record<OverlayShotFallback, number>>, latched: number }
   /** 測試:目前是否鎖存(停用 overlay 路徑)中 */
   readonly isLatched: boolean
+  /**
+   * 「全黑」鎖存(全螢幕獨占:overlay 畫不出來)還剩幾毫秒才會再試;0 = 沒有全黑鎖存 / 原生 bounds 已改變 / 已期滿(下一次擷取會重試)。
+   * 只查詢、不改狀態(PoE1 倉庫掃描據此不擷取,`stash-scan.ts` `capture-black`)。
+   */
+  blackLatchRemainingMs: () => number
 }
 
 /** 同一原因連續失敗幾次就停用 overlay 路徑 */
@@ -215,5 +220,13 @@ export function createGameClientCapture<I extends CropImage<I>> (deps: OverlayCa
     latch = null
     streak = null
   }
-  return { capture, reset, stats, get isLatched () { return latch != null } }
+  const blackLatchRemainingMs = (): number => {
+    if (latch?.reason !== 'black') return 0
+    const sb = deps.shotBounds()
+    if (sb.width > 0 && sb.height > 0 && rectKey(sb) !== latch.key) return 0
+    const elapsed = now() - latch.at
+    if (elapsed < 0 || elapsed >= LATCH_RETRY_MS) return 0
+    return LATCH_RETRY_MS - elapsed
+  }
+  return { capture, reset, stats, blackLatchRemainingMs, get isLatched () { return latch != null } }
 }

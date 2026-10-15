@@ -50,8 +50,12 @@ export interface StashScanConfig {
   realm?: 'intl' | 'tw'
 }
 
-/** `user-paused` = 使用者按暫停熱鍵(2026-10-14;暫停當下 `toggleUserPause` 已收掉疊層) */
-export type StashBlock = 'disabled' | 'not-poe1' | 'not-intl' | 'user-paused' | 'not-overlay' | 'no-window' | 'game-inactive' | 'ui-open'
+/**
+ * `user-paused` = 使用者按暫停熱鍵(2026-10-14;暫停當下 `toggleUserPause` 已收掉疊層)。
+ * `capture-black` = overlay screenshot 「全黑」鎖存中(全螢幕獨占:overlay 畫不出來,擷取只能走每次卡 main 的 getSources)→ 不擷取;
+ * 暫停類(疊層留著),鎖存期滿 / 遊戲 attach / 視窗位置大小改變後恢復(`captureBlackMs`)。
+ */
+export type StashBlock = 'disabled' | 'not-poe1' | 'not-intl' | 'user-paused' | 'not-overlay' | 'no-window' | 'game-inactive' | 'ui-open' | 'capture-black'
 
 /** 這幾種「停止」要收掉疊層;失焦 / UI 開著只是暫停(疊層留著) */
 export const STASH_CLEARING_BLOCKS: ReadonlySet<StashBlock> = new Set<StashBlock>(['disabled', 'not-poe1', 'not-intl', 'not-overlay', 'no-window', 'user-paused'])
@@ -71,6 +75,12 @@ export function stashBlock (cfg: StashScanConfig, env: ScanEnv, ui: RuneshapeUiS
   return null
 }
 
+/**
+ * 疊層沒顯示(不在倉庫 / 還沒認到按鈕列)時的最短 tick 間隔(使用者 2026-10-15 裁定):間隔 = max(設定間隔, 這個值);
+ * 顯示中照設定間隔,偵測到倉庫的那個 tick 之後立刻回到設定間隔
+ */
+export const STASH_IDLE_INTERVAL_MS = 3000
+
 /** 「沒找到子頁按鈕」診斷記錄的最小間隔 */
 export const STASH_MISS_LOG_MS = 30_000
 
@@ -86,6 +96,11 @@ export interface StashScanDeps {
   /** 別的掃描正在用共用的 WinOcr */
   ocrBusy: () => boolean
   capture: (bounds: PhysRect) => Promise<ScanCapture>
+  /**
+   * overlay screenshot 「全黑」鎖存還剩幾毫秒(main `GameClientCapture.blackLatchRemainingMs`);> 0 → 這個 tick 不擷取(`capture-black`),
+   * 保底重看不晚於剩餘時間。省略 = 0(不擋)
+   */
+  captureBlackMs?: () => number
   send: (ev: StashScanEvent) => void
   /** OCR 語言(按鈕文字繁中 / 英文) */
   textLang?: () => OcrTextLang
@@ -193,7 +208,7 @@ interface QtyState {
 
 export type StashTickResult =
   | { kind: 'overlap' }
-  | { kind: 'blocked', block: StashBlock }
+  | { kind: 'blocked', block: StashBlock, retryMs?: number }
   | { kind: 'busy' }
   | { kind: 'unchanged' }
   | { kind: 'mask-wait' }
@@ -480,7 +495,9 @@ export class StashScan {
         const blocked = res.kind === 'blocked'
         this.idleBlocked = blocked
         if (blocked && IDLE_STOP.has(res.block)) return
-        if (this.timer == null) this.schedule(blocked ? BLOCKED_FALLBACK_MS : clampScanInterval(this.deps.config().intervalMs))
+        const blockedDelay = res.kind === 'blocked' && res.retryMs != null ? Math.min(BLOCKED_FALLBACK_MS, res.retryMs) : BLOCKED_FALLBACK_MS
+        const interval = clampScanInterval(this.deps.config().intervalMs)
+        if (this.timer == null) this.schedule(blocked ? blockedDelay : this.shown ? interval : Math.max(interval, STASH_IDLE_INTERVAL_MS))
       })
     }, ms)
   }
@@ -537,15 +554,19 @@ export class StashScan {
   }
 
   /** 被擋下:記錄狀態(lastBlock / log / 計數)、作廢差分基準;停止類原因收掉疊層(暫停類留著) */
-  private blockedResult (block: StashBlock): StashTickResult {
-    if (block !== this.lastBlock) this.deps.log?.(`[stash] 暫停:${block}`)
+  private blockedResult (block: StashBlock, retryMs?: number): StashTickResult {
+    if (block !== this.lastBlock) {
+      this.deps.log?.(block === 'capture-black'
+        ? '[stash] 暫停:capture-black(遊戲畫面擷取全黑,可能是全螢幕獨占;期滿 / 遊戲 attach / 視窗改變後再試)'
+        : `[stash] 暫停:${block}`)
+    }
     this.lastBlock = block
     this.blockCounts[block] = (this.blockCounts[block] ?? 0) + 1
     this.baseline = null
     if (STASH_CLEARING_BLOCKS.has(block) && this.shown) {
       this.hide({ w: this.shown.clientW, h: this.shown.clientH })
     }
-    return { kind: 'blocked', block }
+    return retryMs != null ? { kind: 'blocked', block, retryMs } : { kind: 'blocked', block }
   }
 
   private async runTick (): Promise<StashTickResult> {
@@ -553,6 +574,9 @@ export class StashScan {
     const env = this.deps.env()
     const block = stashBlock(cfg, env, this.ui, this.userPaused)
     if (block) return this.blockedResult(block)
+    // overlay screenshot 全黑鎖存(全螢幕獨占):overlay 畫不出來,擷取只會走每次卡 main 300–480 ms 的 getSources → 不擷取
+    const blackMs = this.deps.captureBlackMs?.() ?? 0
+    if (blackMs > 0) return this.blockedResult('capture-black', blackMs)
     if (this.lastBlock) { this.deps.log?.('[stash] 繼續掃描'); this.lastBlock = null }
     if (this.deps.ocrBusy()) { this.counters.skippedBusy++; return { kind: 'busy' } }
     // renderer 還沒畫完上一個事件(遮罩沒 ack)→ 擷取可能截到還沒遮的徽章

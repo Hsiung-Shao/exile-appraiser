@@ -226,7 +226,8 @@ import { currencyIcon } from '@/web/price-panel/currency-icon'
 import PriceSparkline from '@/web/ui/PriceSparkline.vue'
 import { bgImageUrl, normBgFile } from '@/web/useTheme'
 import { bookmarkGroupsOf, gameLabel, setBookmarkFolderCollapsed, useRegexStore } from '@/web/regex/store'
-import { copyRegexBookmark, quickRunning, regexBookmarkPreview, runRegexBookmark } from '@/web/regex/quick'
+import { copyRegexBookmark, quickRunning, runRegexBookmark } from '@/web/regex/quick'
+import { sharedPreviewCache } from './float-menu-preview-shared'
 import { quickNoticeKey } from '@/web/regex/quick-geom'
 import { BUILTIN_CHEAT_SHEET, bookmarkActionFor, cheatSheetUrl, floatMenuPlace, floatMenuPosOf, sheetZoomRect, type FloatMenuToggleKey } from './float-menu-geom'
 import { MENU_CHIPS, filterMenuItems, menuItemsOf, menuKey, menuRows, rateDotOf, type MenuChip, type MenuItem, type MenuTool } from './float-menu-items'
@@ -421,7 +422,8 @@ const previewKey = (index: number) => {
   return b ? `${b.game}|${b.page}|${b.name}|${b.keys.join(',')}|${b.mode}|${b.lang}` : `#${index}`
 }
 
-/** 看得見的書籤逐筆算字串預覽(算過的快取在 previews) */
+/** 看得見的書籤逐筆算字串預覽;算過的在模組層級快取(收起再叫出不重算),沒算過的每筆之間讓出主執行緒 */
+const previewCache = sharedPreviewCache()
 let previewRun = 0
 async function loadPreviews () {
   const run = ++previewRun
@@ -430,9 +432,13 @@ async function loadPreviews () {
     for (const it of g.items) {
       const k = previewKey(it.index!)
       if (k in previews) continue
-      const text = await regexBookmarkPreview(it.index!)
+      const hit = previewCache.peek(it.index!)
+      if (hit !== undefined) { previews[k] = hit; continue }
+      const text = await previewCache.ensure(it.index!)
       if (run !== previewRun) return
       previews[k] = text
+      await new Promise(r => setTimeout(r, 0))
+      if (run !== previewRun) return
     }
   }
 }

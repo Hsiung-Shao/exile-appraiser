@@ -961,6 +961,8 @@ if (!skipStartup) app.whenReady().then(() => {
     textLang: ocrTextLang,
     ocrBusy: () => revealScan.busy || runeshapeScan.busy,
     capture: scanCapture,
+    // overlay screenshot 全黑鎖存(全螢幕獨占)期間不擷取(否則每 tick 走 getSources 卡 main 300–480 ms)
+    captureBlackMs: () => clientCapture.blackLatchRemainingMs(),
     holdOnMiss: () => stashCursor.onCell(),
     onShowingChange: (showing, st) => { stashCursor.setShown(showing && st.subtab ? { subtab: st.subtab, yOffset: st.yOffset, clientH: st.clientH } : null) },
     log: (msg) => { console.log(msg) },
@@ -1351,6 +1353,7 @@ if (!skipStartup) app.whenReady().then(() => {
       regexShareGate.settle('遊戲 attach')
       // code review 第 B 批:重新 attach → overlay screenshot 的鎖存作廢,下一次擷取重新試原生路徑
       clientCapture.reset()
+      stashScan.poke() // 全黑鎖存解除 → 倉庫掃描(capture-black)立刻重看
       detector.nudge() // 第 30.3 步:綁定的遊戲出現了 → 退避中立刻重查(回到每 2 秒)
       const wasAttached = gameAttached
       gameAttached = true
