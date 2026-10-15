@@ -384,6 +384,31 @@ describe('同名視窗未附著診斷', () => {
       expect(countLogs(spy)).toBe(0)
     } finally { spy.mockRestore() }
   })
+  it('G2c 停止後重新啟動要重新累計 60 秒', async () => {
+    const spy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    try {
+      const st = { t: 1_000_000 }
+      const d = new GameDetector({
+        currentGame: () => 'poe1',
+        windowTitleBy: () => TITLES,
+        onSwitch: vi.fn(),
+        isAttached: () => false,
+        listWindowNames: async () => ['Path of Exile'],
+        processTitles: async () => null,
+        now: () => st.t,
+        setTimeout: () => 0,
+        clearTimeout: () => {}
+      })
+      d.start()
+      await d.tick()
+      d.stop()
+      st.t += UNATTACHED_LOG_AFTER_MS * 2
+      d.start()
+      await d.tick()
+      expect(countLogs(spy)).toBe(0)
+      d.stop()
+    } finally { spy.mockRestore() }
+  })
   it('G3 接線:window 模式不傳 isAttached(不診斷)', () => {
     const main = fs.readFileSync(path.resolve(__dirname, '../src/main.ts'), 'utf8')
     expect(main).toContain('isAttached: overlay ? () => gameAttached : undefined')

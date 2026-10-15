@@ -164,6 +164,7 @@ export class GameDetector {
     this.hits = 0
     this.fgSkips = 0
     this.absentStreak = 0
+    this.unattachedSince = null // 停止期間沒觀察到 → 重新啟動後重新累計 60 秒
     console.log('[detect] 停止遊戲視窗偵測')
   }
 
