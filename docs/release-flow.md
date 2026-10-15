@@ -148,6 +148,7 @@ Start-Process "$env:LOCALAPPDATA\Programs\ExileAppraiser\ExileAppraiser.exe" -Ar
 - **2026-09-30 實測結果**:步驟 2–5 全過(結束時自動套用、B 啟動後無新版、config.json 雜湊不變)。步驟 6 安裝成功(版本變 B),
   但安裝程式 `--force-run` 之後**沒有把 app 叫起來**;直接執行 `Setup.exe --updated /S --force-run` 也一樣 —— 在自動化 shell 裡
   NSIS `StdUtils.ExecShellAsUser` 沒啟動任何行程,**待使用者在一般桌面親測**「立即重啟並更新」是否會自動重新開啟。
+- **2026-10-15 重測(v0.2.5 分支合併 main 後,A 0.0.90 / B 0.0.91)**:步驟 2–5 全過(下載檔 SHA256 = B、`--quit` → Auto install update on quit → 0.0.91、B 啟動 not-available);步驟 6 `--install-update` → quitAndInstall(silent, run after)→ 版本變 0.0.91,自動化 shell 下同樣沒有重新開啟(與上次相同);步驟 7 裝回 0.2.5、app-update.yml 指回 GitHub、config.json SHA256 不變。⚠ worktree 沒有自己的 node_modules → 腳本要在主 checkout 執行(electron-builder 路徑寫死 `<ROOT>/node_modules`)。
 
 ### 單一實例控制參數(第二個行程轉交主行程,自己立刻結束;沒有主行程時什麼都不做)
 - `--quit`:主行程走與托盤「結束」相同的正常結束(exit code 0,會觸發結束時自動套用更新)。
