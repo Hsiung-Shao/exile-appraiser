@@ -333,6 +333,35 @@ describe('V18 第二批截圖(2026-10-15,聖甲蟲頁、玩家移動過物品)',
   })
 })
 
+describe('V19 原生 2560×1440 擷取(2026-10-15 使用者「存下倉庫擷取畫面」)', () => {
+  const NFIX = path.join(ROOT, 'core/test/stash/fixtures/qty-native')
+  const NT = JSON.parse(fs.readFileSync(path.join(NFIX, 'truth.json'), 'utf8')) as {
+    clientH: number
+    sets: Array<{ tab: StashSubtab, file: string, cells: Array<{ rect: { x: number, y: number, w: number, h: number }, truth: number }> }>
+  }
+  async function readNative (templates: DigitTemplates): Promise<Tally> {
+    const out: Array<{ id: string, truth: number, r: QtyResult }> = []
+    for (const s of NT.sets) {
+      const { data, info } = await sharp(path.join(NFIX, s.file)).removeAlpha().raw().toBuffer({ resolveWithObject: true })
+      const img = { data, width: info.width, height: info.height, channels: info.channels }
+      s.cells.forEach((c, i) => out.push({ id: `${s.tab}#${i}`, truth: c.truth, r: readCellQuantity(img, c.rect, templates, { clientH: NT.clientH }) }))
+    }
+    return tally(out)
+  }
+
+  it('格數與版面一致(聖甲蟲 115、一般 60)', () => {
+    expect(NT.sets.map(s => [s.tab, s.cells.length])).toEqual([['scarabs', 115], ['general', 60]])
+  })
+
+  it('175 格錯 0、不確定 ≤ 7', async () => {
+    const t = await readNative(TEMPLATES)
+    console.log(`[V19 原生] 正確 ${t.ok}/175,錯 ${t.wrong.length} ${t.wrong.join('; ')},不確定 ${t.unknown.length} ${t.unknown.join('; ')}`)
+    expect(t.wrong).toEqual([])
+    // 改前基準:聖甲蟲 #5 49、#24 100、#34 39、#80 19、#100 7、#102 87,一般 #49 1(白色圖示干擾 / 低分)
+    expect(t.unknown.length).toBeLessThanOrEqual(7)
+  })
+})
+
 describe('V6 模板資料可重現', () => {
   it('build 腳本重跑輸出逐位元組相同、MANIFEST 相符、記錄來源截圖 sha256', async () => {
     const mod = await import(/* @vite-ignore */ pathToFileURL(path.join(ROOT, 'scripts/build-stash-digit-templates.mjs')).href) as { buildTemplatesJson: () => Promise<string>, MANIFEST_PREFIX: string }
