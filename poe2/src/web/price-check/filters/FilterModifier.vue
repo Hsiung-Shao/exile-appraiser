@@ -138,6 +138,12 @@
             :filter="filter"
             :item="item"
           />
+          <!-- exile-appraiser: 2026-10-16 工藝詞綴的「一般 / 工藝」二選一(自寫 FilterModifierCrafted.vue;不適用時不輸出任何元素) -->
+          <filter-modifier-crafted
+            class="self-start"
+            :filter="filter"
+            :item="item"
+          />
         </div>
 
         <stat-roll-slider
@@ -181,6 +187,8 @@ import SourceInfo from "./SourceInfo.vue";
 import FilterModifierItemIsElemental from "./FilterModifierItemIsElemental.vue";
 // exile-appraiser: 破裂切換鈕(自寫)
 import FilterModifierFractured from "./FilterModifierFractured.vue";
+// exile-appraiser: 2026-10-16 工藝切換鈕(自寫)
+import FilterModifierCrafted from "./FilterModifierCrafted.vue";
 import ModSwitch from "@/web/price-panel/ModSwitch.vue";
 import ModRange from "@/web/price-panel/ModRange.vue";
 import { CLIENT_STRINGS as _$ } from "@/assets/data";
@@ -195,8 +203,9 @@ export default defineComponent({
     StatRollSlider,
     UiPopover,
     FilterModifierItemIsElemental,
-    // exile-appraiser: 多註冊 FilterModifierFractured
+    // exile-appraiser: 多註冊 FilterModifierFractured / FilterModifierCrafted
     FilterModifierFractured,
+    FilterModifierCrafted,
     ModSwitch,
     ModRange,
   },

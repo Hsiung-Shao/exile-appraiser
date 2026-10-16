@@ -33,6 +33,7 @@ import {
 } from "@/web/background/Prices";
 import { getCurrencyDetailsId } from "../trends/getDetailsId";
 import { areaLevelByAscendancyPoints } from "../filters/create-item-filters";
+import { craftedIds, craftedMode } from "../filters/crafted-toggle"; // exile-appraiser: 2026-10-16 工藝二選一
 
 export const CATEGORY_TO_TRADE_ID = new Map([
   [ItemCategory.Map, "map"],
@@ -1241,6 +1242,27 @@ export function createTradeRequest(
         filters: stat.tradeId.map((id) => tradeIdToQuery(id, stat)),
       });
     }
+  }
+
+  // exile-appraiser: 2026-10-16 工藝二選一選「一般」時排除這條的工藝版本
+  // (交易站 explicit id 也命中工藝詞綴,使用者實機回報;上線實測 9 → 2 筆)。
+  // 已有勾選中的列直接送同一組 crafted id(例如勾了隱藏孿生)時不加,免得條件互相矛盾
+  for (const stat of stats) {
+    if (stat.disabled || craftedMode(stat) !== "normal") continue;
+    const ids = craftedIds(stat);
+    if (!ids) continue;
+    const sendsCrafted = stats.some(
+      (other) =>
+        !other.disabled &&
+        other.tradeId.length === ids.crafted.length &&
+        other.tradeId.every((id, i) => id === ids.crafted[i]),
+    );
+    if (sendsCrafted) continue;
+    query.stats.push({
+      type: "not",
+      disabled: false,
+      filters: ids.crafted.map((id) => ({ id, disabled: false })),
+    });
   }
 
   if (filters.veiled && !filters.veiled.disabled) {
