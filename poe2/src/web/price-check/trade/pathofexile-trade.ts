@@ -1246,8 +1246,8 @@ export function createTradeRequest(
     }
   }
 
-  // exile-appraiser: 2026-10-16 機制選擇(mechanism-toggle.ts):勾選中、模式一般的列,其他機制(破裂 / 工藝 / 褻瀆 / 增幅)的
-  // ids 合併成一個 not 群組(交易站 explicit id 也命中工藝等詞綴,使用者實機回報);已被勾選列直接送出的 id 不放。
+  // exile-appraiser: 2026-10-16 機制選擇(mechanism-toggle.ts):勾選中、模式一般、來源本身是破裂 / 工藝 / 褻瀆的列,
+  // 該機制的 ids 合併成一個 not 群組(只排除來源本身的機制;符文 / 一般隨機不排除);已被勾選列直接送出的 id 不放。
   // 取代 v0.3.1 每列一組的工藝排除。
   const mechanismNot = mechanismNotIds(stats, item);
   if (mechanismNot.length) {

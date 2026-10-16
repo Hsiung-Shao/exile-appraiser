@@ -8,7 +8,8 @@ import { ModifierType } from '@/parser/modifiers'
 import { FilterTag, type FilterPreset, type StatFilter } from '@/web/price-check/filters/interfaces'
 import { createPresets, createTradeRequest } from '../src/index'
 
-// 查價面板「詞綴全部列出 + 統一機制選擇」(PoE1,計畫 rustling-shimmying-charm M5、M6–M9、M11)。
+// 查價面板「詞綴全部列出 + 統一機制選擇」(PoE1,計畫 rustling-shimmying-charm M5、M6–M11、M15)。
+// 2026-10-16 契約變更:「一般」只排除這列來源本身的機制(破裂 / 工藝),一般隨機列不排除。
 // PoE1 只考慮破裂 / 工藝。新模組 mechanism-toggle 用動態 import:還沒實作時呈現為斷言失敗。
 const MOD_PATH = '@/web/price-check/filters/mechanism-toggle'
 async function mech (): Promise<any> {
@@ -170,7 +171,7 @@ describe('PoE1 選機制與一般模式排除', () => {
     expect(life.disabled).toBe(false)
   })
 
-  it('M9 勾選一般的生命:一個 not 群組含破裂與工藝 id', async () => {
+  it('M9 勾選一般的破裂生命:not 群組恰好只含破裂 id', async () => {
     const m = await mech()
     const { preset, stats } = build(CRAFTED_RING)
     const life = row(stats, LIFE, ModifierType.Fractured, true)!
@@ -179,8 +180,35 @@ describe('PoE1 選機制與一般模式排除', () => {
     const groups = groupsOf(preset)
     expect(enabledIds(groups)).toContain(id('explicit', N.life))
     expect(notGroups(groups)).toHaveLength(1)
-    expect(notIds(groups)).toEqual(expect.arrayContaining([id('fractured', N.life), id('crafted', N.life)]))
-    expect(notIds(groups)).not.toContain(id('explicit', N.life))
+    expect(notIds(groups)).toEqual([id('fractured', N.life)])
+  })
+
+  it('M10 破裂生命與工藝冰冷抗性都勾選一般:合併成一個 not 群組、各只含自己的機制 id', async () => {
+    const m = await mech()
+    const { preset, stats } = build(CRAFTED_RING)
+    const life = row(stats, LIFE, ModifierType.Fractured, true)!
+    const cold = row(stats, COLD, ModifierType.Crafted)
+    expect(cold, '工藝冰冷抗性應有列').toBeDefined()
+    for (const f of [life, cold!]) {
+      m.selectMechanism(stats, f, 'normal')
+      f.disabled = false
+    }
+    const groups = groupsOf(preset)
+    expect(notGroups(groups)).toHaveLength(1)
+    expect(notIds(groups).sort()).toEqual([id('crafted', N.cold), id('fractured', N.life)].sort())
+  })
+
+  it('M15 勾選一般隨機的生命、火焰抗性:不加任何 not 群組', async () => {
+    await mech()
+    const { preset, stats } = build(RING)
+    for (const ref of [LIFE, FIRE]) {
+      const f = row(stats, ref, ModifierType.Explicit, true)
+      expect(f, `${ref} 應有可見列`).toBeDefined()
+      f!.disabled = false
+    }
+    const groups = groupsOf(preset)
+    expect(enabledIds(groups)).toEqual(expect.arrayContaining([id('explicit', N.life), id('explicit', N.fire)]))
+    expect(notGroups(groups)).toHaveLength(0)
   })
 
   it('M9 勾選但模式為工藝的列不產生 not 群組', async () => {

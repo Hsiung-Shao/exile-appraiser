@@ -11,7 +11,8 @@ import {
 } from "@/web/price-check/filters/interfaces";
 import { setupTests } from "../../../vitest.setup";
 
-// 查價面板「詞綴全部列出 + 統一機制選擇」(PoE2,計畫 rustling-shimmying-charm M1–M4、M6–M10)。
+// 查價面板「詞綴全部列出 + 統一機制選擇」(PoE2,計畫 rustling-shimmying-charm M1–M4、M6–M10、M15–M17)。
+// 2026-10-16 契約變更:「一般」只排除這列來源本身的機制(破裂 / 工藝 / 褻瀆),符文永不排除、一般隨機列不排除。
 // 取代 crafted-toggle.test.ts(K4 → M8 工藝、K10–K12 → M9)。
 // 新模組 mechanism-toggle 用動態 import:還沒實作時呈現為斷言失敗,不讓整檔載入失敗。
 const MOD_PATH = "@/web/price-check/filters/mechanism-toggle";
@@ -97,6 +98,34 @@ const JEWEL = `物品種類: 珠寶
 備註: ~b/o 28 chaos
 `;
 
+// 胸甲改造:冰冷抗性改褻瀆、閃電抗性改破裂(+ 破裂之物),三種機制來源各一列
+const CHEST_MIXED =
+  CHEST.replace('{ 後綴 "北極熊之"', '{ 已褻瀆 後綴 "北極熊之"').replace(
+    '{ 後綴 "電之"',
+    '{ 已破裂 後綴 "電之"',
+  ) + "--------\n破裂之物\n";
+
+// 魔法鞋:移動速度 + 閃電抗性 + 閃電抗性符文(魔法物品 base_item preset 預設全勾)
+const BOOTS_MAGIC = `物品種類: 鞋子
+稀有度: 魔法
+獵豹的 奢華便鞋 颱風之
+--------
+能量護盾: 120
+--------
+需求: 等級 70, 58 智慧
+--------
+插槽: S
+--------
+物品等級: 80
+--------
++18%閃電抗性 (rune)
+--------
+{ 前綴 "獵豹的"(階層：2) — 速度 }
+增加30%移動速度
+{ 後綴 "颱風之"(階層：3) — 元素,閃電,抗性 }
++35(31-35)%閃電抗性
+`;
+
 const LIFE = "# to maximum Life";
 const COLD = "#% to Cold Resistance";
 const LIGHTNING = "#% to Lightning Resistance";
@@ -115,7 +144,6 @@ const N = {
   fire: "3372524247",
   spellCrit: "274716455",
 };
-const OTHER_MECHS = ["fractured", "crafted", "desecrated", "rune"];
 
 function parse(text: string): ParsedItem {
   const r = parseClipboard(text);
@@ -420,8 +448,8 @@ describe("M8 選機制改送對應 id(PoE2)", () => {
   });
 });
 
-describe("M9 / M10 一般模式以 not 群組排除其他機制(PoE2)", () => {
-  it("M9 胸甲勾選一般的工藝火焰抗性:not 群組含該 stat 的破裂 / 工藝 / 褻瀆 / 增幅 id", async () => {
+describe("M9 / M10 / M15 / M16 一般模式只排除來源本身的機制(PoE2)", () => {
+  it("M9 胸甲勾選一般的工藝火焰抗性:not 群組恰好只含工藝 id", async () => {
     const m = await mech();
     const { item, preset, stats } = build(CHEST);
     const fire = row(stats, FIRE, ModifierType.Crafted, true);
@@ -433,12 +461,10 @@ describe("M9 / M10 一般模式以 not 群組排除其他機制(PoE2)", () => {
     const nots = notGroups(groups);
     expect(nots).toHaveLength(1);
     expect(nots[0].disabled).not.toBe(true);
-    const nIds = notIds(groups);
-    for (const x of OTHER_MECHS) expect(nIds).toContain(ids(x, N.fire));
-    expect(nIds).not.toContain(ids("explicit", N.fire));
+    expect(notIds(groups)).toEqual([ids("crafted", N.fire)]);
   });
 
-  it("M9 珠寶勾選一般的法術暴擊:not 群組排除破裂 / 工藝 / 褻瀆(原 K10)", async () => {
+  it("M9 珠寶勾選一般的工藝法術暴擊:not 群組恰好只含工藝 id(原 K10)", async () => {
     await mech();
     const { item, preset, stats } = build(JEWEL);
     const f = row(stats, SPELL_CRIT, ModifierType.Crafted, true)!;
@@ -446,9 +472,7 @@ describe("M9 / M10 一般模式以 not 群組排除其他機制(PoE2)", () => {
     const groups = queryGroups(item, preset);
     expect(enabledIds(groups)).toContain(ids("explicit", N.spellCrit));
     expect(notGroups(groups)).toHaveLength(1);
-    expect(notIds(groups).sort()).toEqual(
-      ["crafted", "desecrated", "fractured"].map((x) => ids(x, N.spellCrit)).sort(),
-    );
+    expect(notIds(groups)).toEqual([ids("crafted", N.spellCrit)]);
   });
 
   it("M9 預設沒有勾選隨機詞綴時不加 not 群組(原 K11)", async () => {
@@ -469,7 +493,7 @@ describe("M9 / M10 一般模式以 not 群組排除其他機制(PoE2)", () => {
     expect(notGroups(queryGroups(item, preset))).toHaveLength(0);
   });
 
-  it("M9 已有勾選列直接送出的 crafted id 不放進 not 群組", async () => {
+  it("M9 孿生已直接送出 crafted id 時一般列不再產生 not 群組", async () => {
     const m = await mech();
     const { item, preset, stats } = build(JEWEL);
     const f = row(stats, SPELL_CRIT, ModifierType.Crafted, true)!;
@@ -480,44 +504,96 @@ describe("M9 / M10 一般模式以 not 群組排除其他機制(PoE2)", () => {
     const groups = queryGroups(item, preset);
     expect(enabledIds(groups)).toContain(ids("crafted", N.spellCrit));
     expect(notIds(groups)).not.toContain(ids("crafted", N.spellCrit));
-    expect(notIds(groups)).toContain(ids("fractured", N.spellCrit));
+    expect(notGroups(groups)).toHaveLength(0);
   });
 
-  it("M10 珠寶四條一般詞綴都勾選:只有一個 not 群組且 id 不重複", async () => {
-    await mech();
-    const { item, preset, stats } = build(JEWEL);
-    const rows = stats.filter(
-      (f) => f.hidden == null && f.tag !== FilterTag.Pseudo,
-    );
-    expect(rows).toHaveLength(4);
-    for (const f of rows) f.disabled = false;
-    const groups = queryGroups(item, preset);
-    expect(notGroups(groups)).toHaveLength(1);
-    const nIds = notIds(groups);
-    expect(new Set(nIds).size).toBe(nIds.length);
-    expect(nIds).toEqual(
-      expect.arrayContaining([
-        ids("crafted", N.spellCrit),
-        ids("fractured", "3556824919"),
-        ids("rune", "3174700878"),
-        ids("desecrated", "3417711605"),
-      ]),
-    );
-  });
-
-  it("M10 胸甲勾選生命、冰冷、閃電三條一般:合併成一個 not 群組", async () => {
-    await mech();
-    const { item, preset, stats } = build(CHEST);
-    for (const ref of [LIFE, COLD, LIGHTNING]) {
-      const f = row(stats, ref);
-      expect(f, `${ref} 應有列`).toBeDefined();
-      f!.disabled = false;
+  it("M10 工藝、褻瀆、破裂三種來源各一列勾選一般:合併成一個 not 群組、各只含自己的機制 id", async () => {
+    const m = await mech();
+    const { item, preset, stats } = build(CHEST_MIXED);
+    const fire = row(stats, FIRE, ModifierType.Crafted, true);
+    const cold = row(stats, COLD, ModifierType.Desecrated, true);
+    const lightning = row(stats, LIGHTNING, ModifierType.Fractured, true);
+    expect(fire, "工藝火焰抗性應有可見列").toBeDefined();
+    expect(cold, "褻瀆冰冷抗性應有可見列").toBeDefined();
+    expect(lightning, "破裂閃電抗性應有可見列").toBeDefined();
+    for (const f of [fire!, cold!, lightning!]) {
+      m.selectMechanism(stats, f, "normal");
+      f.disabled = false;
     }
     const groups = queryGroups(item, preset);
     expect(notGroups(groups)).toHaveLength(1);
-    const nIds = notIds(groups);
-    expect(new Set(nIds).size).toBe(nIds.length);
-    for (const n of [N.life, N.cold, N.lightning])
-      for (const x of OTHER_MECHS) expect(nIds).toContain(ids(x, n));
+    expect(notIds(groups).sort()).toEqual(
+      [
+        ids("crafted", N.fire),
+        ids("desecrated", N.cold),
+        ids("fractured", N.lightning),
+      ].sort(),
+    );
+  });
+
+  it("M15 胸甲勾選一般隨機的生命與冰冷抗性:不加任何 not 群組", async () => {
+    await mech();
+    const { item, preset, stats } = build(CHEST);
+    for (const ref of [LIFE, COLD]) {
+      const f = row(stats, ref, ModifierType.Explicit, true);
+      expect(f, `${ref} 應有可見列`).toBeDefined();
+      f!.disabled = false;
+    }
+    const groups = queryGroups(item, preset);
+    expect(enabledIds(groups)).toEqual(
+      expect.arrayContaining([ids("explicit", N.life), ids("explicit", N.cold)]),
+    );
+    expect(notGroups(groups)).toHaveLength(0);
+  });
+
+  it("M15 珠寶三條一般隨機詞綴勾選:不加任何 not 群組", async () => {
+    await mech();
+    const { item, preset, stats } = build(JEWEL);
+    const rows = stats.filter(
+      (f) =>
+        f.hidden == null &&
+        f.tag !== FilterTag.Pseudo &&
+        f.sources.every((s) => s.modifier.info.type === ModifierType.Explicit),
+    );
+    expect(rows).toHaveLength(3);
+    for (const f of rows) f.disabled = false;
+    expect(notGroups(queryGroups(item, preset))).toHaveLength(0);
+  });
+
+  it("M16 符文列切回一般並勾選:不排除任何 rune id", async () => {
+    const m = await mech();
+    const { item, preset, stats } = build(CHEST);
+    const rune = row(stats, RUNE_STAT, ModifierType.Augment);
+    expect(rune).toBeDefined();
+    m.selectMechanism(stats, rune, "normal");
+    rune!.disabled = false;
+    const groups = queryGroups(item, preset);
+    expect(notIds(groups).filter((id) => id.startsWith("rune."))).toEqual([]);
+    expect(notGroups(groups)).toHaveLength(0);
+  });
+
+  it("M16 所有可見詞綴列都勾選一般:not 群組不含任何 rune id", async () => {
+    const m = await mech();
+    const { item, preset, stats } = build(CHEST_MIXED);
+    for (const f of stats.filter(
+      (f) => f.hidden == null && f.tag !== FilterTag.Pseudo && f.tag !== FilterTag.Property,
+    )) {
+      m.selectMechanism(stats, f, "normal");
+      f.disabled = false;
+    }
+    const nIds = notIds(queryGroups(item, preset));
+    expect(nIds.length).toBeGreaterThan(0);
+    expect(nIds.filter((id) => id.startsWith("rune."))).toEqual([]);
+  });
+});
+
+describe("M17 base_item preset 預設查詢", () => {
+  it("M17 魔法鞋(移動速度 + 閃電抗性 + 閃電抗性符文)各 preset 預設查詢都沒有 not 群組", () => {
+    const item = parse(BOOTS_MAGIC);
+    const { presets } = createPresets(item, OPTS);
+    expect(presets.map((p) => p.id)).toContain("filters.preset_base_item");
+    for (const p of presets) {
+      expect(notGroups(queryGroups(item, p)), `${p.id} 不應有 not 群組`).toHaveLength(0);
+    }
   });
 });

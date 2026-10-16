@@ -5,7 +5,8 @@
 //   id 一律取自 stat 資料 `trade.ids[ModifierType.X]`(語言無關鍵),不寫死字串。
 // - 目前模式由 tradeId 對應(PoE1 工藝台詞綴本來就送 crafted id → 預設「工藝」)。
 // - 選非一般 = tradeId 換成該機制 ids、勾選、其他送同一組 ids 的列(破裂孿生)取消勾選;選一般 = 換回 explicit(勾選不動)。
-// - 查詢(trade/pathofexile-trade.ts):勾選中、模式一般的列,其他機制的 ids 併進同一個 not 群組。
+// - 查詢(trade/pathofexile-trade.ts):勾選中、模式一般、來源本身是破裂 / 工藝的列,該機制的 ids 併進同一個 not 群組
+//   (一般隨機來源不排除)。
 // - 只對魔法 / 稀有物品(主對話 2026-10-16 裁定):傳奇 / 普通、地圖類不給選項。有物品時(元件)由 item 判斷;
 //   查詢端(createTradeRequest)沒有 item,改看 create-presets 在不適用物品的列標的 `noMechanism`。
 // PoE2 同名檔同規則(另有褻瀆 / 增幅)。
@@ -106,9 +107,17 @@ export function selectMechanism (filters: readonly StatFilter[], filter: StatFil
   }
 }
 
+/** 「一般」排除只看這幾種來源機制 */
+const EXCLUDABLE: ReadonlyArray<[MechanismMode, ModifierType]> = [
+  ['fractured', ModifierType.Fractured],
+  ['crafted', ModifierType.Crafted]
+]
+
 /**
- * 「一般」排除:勾選中、模式一般、有其他機制選項的列,把其他機制的 ids 合併(去重);
- * 已被勾選列直接送出的 id 不放(免得條件互相矛盾)。回 [] = 不排除。
+ * 「一般」排除(使用者 2026-10-16 裁定:只排除該列「來源本身」的機制):勾選中、模式一般、
+ * 來源全部是單一機制 X(破裂 / 工藝)的列,not 只放該列 X 的 ids;一般隨機來源不排除
+ * (not 群組是「整件物品含該 stat id 即排除」,排除隨機會誤殺工藝混合詞綴等正常掛單)。
+ * 多列合併、去重;已被勾選列直接送出的 id 不放。回 [] = 不排除。
  */
 export function mechanismNotIds (stats: readonly StatFilter[]): string[] {
   const sent = new Set(stats.filter(s => !s.disabled).flatMap(s => s.tradeId))
@@ -117,10 +126,10 @@ export function mechanismNotIds (stats: readonly StatFilter[]): string[] {
     if (stat.disabled) continue
     const ids = mechanismIds(stat)
     if (!ids || mechanismMode(stat) !== 'normal') continue
-    for (const [mode, v] of ids) {
-      if (mode === 'normal') continue
-      for (const id of v) if (!sent.has(id)) out.add(id)
-    }
+    const src = EXCLUDABLE.find(([, type]) => stat.sources.every(s => s.modifier.info.type === type))
+    const own = src && ids.get(src[0])
+    if (!own) continue
+    for (const id of own) if (!sent.has(id)) out.add(id)
   }
   return [...out]
 }

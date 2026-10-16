@@ -209,7 +209,7 @@ APT / EE2 規則:魔法 / 稀有走 pseudo preset,`searchRelaxed = { category, d
 - 選項:非 pseudo / property、來源全部是隨機詞綴(PoE1:explicit / fractured / crafted;PoE2 另加 desecrated / rune(符文)/ added-rune)、stat 有 explicit id 的列 → `normal` + 該 stat 有 id 的機制(PoE1:破裂 / 工藝;PoE2:破裂 / 工藝 / 褻瀆 / 增幅 = `rune`);只有一般不顯示;固定 / 附魔不列。id 一律取自 `trade.ids[ModifierType.X]`。
 - 只對魔法 / 稀有物品(主對話裁定):傳奇 / 普通、地圖類(PoE2 換界石 / 碑牌 / 地圖 / 地圖碎片;PoE1 地圖 / 異界地圖 / 邀請 / 探險日誌)不給選項。元件與 PoE2 查詢傳 item 判斷;兩代 `create-presets.ts` 另包一層 `markMechanismEligibility` 在不適用物品的列標 `noMechanism`(PoE1 `createTradeRequest` 沒有 item)。golden-query / en-client 0 差異。
 - 模式由 tradeId 對應(PoE1 工藝台詞綴送 crafted id → 預設「工藝」;PoE2 符文列 → 「增幅」)。選非一般 = 改送該機制 ids、勾選、送同一組 ids 的孿生取消勾選;選一般 = 換回 explicit(勾選不動)。
-- 「一般」排除:勾選中、模式一般、有選項的列,其他機制 ids 合併成**一個** `not` 群組(去重;已被勾選列直接送出的 id 不放)。PoE2 取代 v0.3.1 每列一組的工藝排除;PoE1 併進既有的 `qNot`。
+- 「一般」排除(使用者 2026-10-16 裁定,code review 後改):**只排除該列「來源本身」的機制** —— 勾選中、模式一般、來源全部是單一機制 X(PoE1 破裂 / 工藝;PoE2 破裂 / 工藝 / 褻瀆)的列,`not` 只放該列 X 的 ids;一般隨機來源與符文(增幅)列不排除。原因:交易站 `not` 群組是「整件物品含該 stat id 即排除」,符文與隨機詞綴可同 stat 並存、PoE1 工藝混合詞綴亦同,排除其他機制會誤殺正常掛單(且 base_item preset 預設查詢會帶 not)。多列合併成**一個** `not` 群組(去重;已被勾選列直接送出的 id 不放)。PoE2 取代 v0.3.1 每列一組的工藝排除;PoE1 併進既有的 `qNot`。
 
 測試:`poe{1,2}/test/**/mechanism-toggle.test.ts`、`renderer/test-vue/mechanism-mount.test.ts`、`renderer/test/mechanism-i18n.test.ts`;破裂既有測試不動。
 

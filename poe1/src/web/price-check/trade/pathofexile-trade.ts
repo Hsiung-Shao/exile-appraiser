@@ -611,8 +611,8 @@ export function createTradeRequest (filters: ItemFilters, stats: FilterOrGroup[]
     !INTERNAL_TRADE_IDS.includes(stat.tradeId[0]) &&
     // exile-appraiser: 2026-10-16 被合計吃掉、新列出的原始詞綴列(fromAggregate)未勾選時不送(避免條件數暴增)
     !(stat.fromAggregate && stat.disabled))
-  // exile-appraiser: 2026-10-16 機制選擇(mechanism-toggle.ts):勾選中、模式一般的列,其他機制(破裂 / 工藝)的 ids
-  // 併進同一個 not 群組(交易站 explicit id 也命中破裂 / 工藝詞綴);已被勾選列直接送出的 id 不放
+  // exile-appraiser: 2026-10-16 機制選擇(mechanism-toggle.ts):勾選中、模式一般、來源本身是破裂 / 工藝的列,
+  // 該機制的 ids 併進同一個 not 群組(只排除來源本身的機制);已被勾選列直接送出的 id 不放
   const mechanismNot = mechanismNotIds((realStats as StatFilter[]).filter(stat => !stat.not))
   if (filters.veiled) {
     for (const statRef of filters.veiled.statRefs) {
