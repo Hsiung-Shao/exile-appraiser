@@ -254,7 +254,13 @@ export function initUiModFilters(
     filterItemProp(ctx);
     // TODO: see if there are other options here, don't want to include trade site uniques with random augments
     if (item.rarity !== ItemRarity.Unique || !getMaxSockets(item)) {
+      // exile-appraiser: 2026-10-16 被偽屬性合計吃掉的詞綴不再丟掉,另列自己的列(fromAggregate)
+      const beforePseudo = ctx.statsByType;
       filterPseudo(ctx);
+      pushAggregatedRows(
+        ctx,
+        beforePseudo.filter((m) => !ctx.statsByType.includes(m)),
+      );
     }
     if (item.info.refName === "Emperor's Vigilance") {
       filterBasePercentile(ctx);
@@ -313,6 +319,35 @@ export function initUiModFilters(
   }
 
   return ctx.filters;
+}
+
+// exile-appraiser: 2026-10-16 詞綴全部列出(計畫 rustling-shimmying-charm A):被偽屬性合計吃掉的原始詞綴
+// 照常產生自己的列,可見、預設不勾、標 fromAggregate(未勾選時不送查詢)。可再製作的物品,
+// 破裂 / 褻瀆 / 工藝(沒有 explicit id 的)稍後會由 item.statsByType 推回自己的列,這裡略過避免重複。
+function pushAggregatedRows(
+  ctx: FiltersCreationContext,
+  eaten: StatCalculated[],
+) {
+  const modifiable = itemIsModifiable(ctx.item);
+  for (const calc of eaten) {
+    if (
+      modifiable &&
+      (calc.type === ModifierType.Fractured ||
+        calc.type === ModifierType.Desecrated ||
+        calc.type === ModifierType.Crafted)
+    )
+      continue;
+    const idType =
+      calc.type === ModifierType.AddedAugment
+        ? ModifierType.Augment
+        : calc.type;
+    if (!calc.stat.trade.ids[idType]?.length) continue;
+    const filter = calculatedStatToFilter(calc, ctx.searchInRange, ctx.item);
+    filter.disabled = true;
+    filter.revealed = true;
+    filter.fromAggregate = true;
+    ctx.filters.push(filter);
+  }
 }
 
 export function shortRollToFilter(
@@ -768,8 +803,9 @@ export function finalFilterTweaks(ctx: FiltersCreationContext) {
     item.rarity === ItemRarity.Unique ||
     item.category === ItemCategory.Relic
   ) {
+    // exile-appraiser: 2026-10-16 新列出的原始詞綴列(revealed)不計入
     const countVisible = ctx.filters.reduce(
-      (cnt, filter) => (filter.hidden ? cnt : cnt + 1),
+      (cnt, filter) => (filter.hidden || filter.revealed ? cnt : cnt + 1),
       0,
     );
     if (countVisible <= 3) {
@@ -840,8 +876,9 @@ function hideAllAugments(filters: StatFilter[]) {
         continue;
       }
 
-      // hide rest
-      filter.hidden = "filters.hide_const_roll";
+      // exile-appraiser: 2026-10-16 詞綴全部列出:符文 / 增幅詞綴不再藏起(原本 hide_const_roll),
+      // 改為可見、預設不勾(revealed:preset 自動勾選跳過、不計入可見列數)
+      filter.revealed = true;
     }
   }
 }
@@ -892,7 +929,8 @@ function showHasEmptyModifier(ctx: FiltersCreationContext):
 
 function enableAllFilters(filters: StatFilter[]) {
   for (const filter of filters) {
-    if (!filter.hidden) {
+    // exile-appraiser: 2026-10-16 新列出的原始詞綴列(revealed)預設不勾
+    if (!filter.hidden && !filter.revealed) {
       filter.disabled = false;
     }
   }
@@ -901,7 +939,7 @@ function enableAllFilters(filters: StatFilter[]) {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function enableGoodRolledFilters(filters: StatFilter[], abovePct: number) {
   for (const filter of filters) {
-    if (filter.hidden) continue;
+    if (filter.hidden || filter.revealed) continue; // exile-appraiser: 2026-10-16 revealed 預設不勾
     if (!filter.roll || filter.roll.goodness == null) {
       filter.disabled = false;
       continue;

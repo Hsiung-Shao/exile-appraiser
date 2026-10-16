@@ -10,10 +10,21 @@ import { hasCraftingValue, likelyFinishedItem } from "./common";
 import { createUniquePresets, PRESET_UNIQUES } from "./create-unique-filters";
 // exile-appraiser: 破裂詞綴預設可見(自寫 fractured-toggle.ts)
 import { revealFracturedRows } from "./fractured-toggle";
+// exile-appraiser: 2026-10-16 機制選擇只對魔法 / 稀有物品(自寫 mechanism-toggle.ts)
+import { markMechanismEligibility } from "./mechanism-toggle";
 
 const ROMAN_NUMERALS = ["I", "II", "III", "IV", "V"];
 
+// exile-appraiser: 2026-10-16 包一層:所有 preset 的列依物品標 noMechanism(機制選擇只對魔法 / 稀有)
 export function createPresets(
+  ...args: Parameters<typeof createPresetsUpstream>
+): ReturnType<typeof createPresetsUpstream> {
+  const result = createPresetsUpstream(...args);
+  for (const p of result.presets) markMechanismEligibility(p.stats, args[0]);
+  return result;
+}
+
+function createPresetsUpstream(
   item: ParsedItem,
   opts: {
     league: string;

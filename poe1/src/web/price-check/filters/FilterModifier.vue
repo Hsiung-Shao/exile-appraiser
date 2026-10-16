@@ -83,8 +83,10 @@
         />
         <div :class="$style.rangeSpace" />
       </div>
-      <!-- 破裂詞綴的「一般 / 破裂」二選一(自寫 FilterModifierFractured.vue;不適用時不輸出任何元素) -->
-      <filter-modifier-fractured v-if="!miniFilter" :class="$style.leadIndent" class="mt-1 self-start" :filter="filter" :item="item" />
+      <!-- exile-appraiser: 2026-10-16 隨機詞綴的機制選擇「一般 / 破裂 / 工藝」(自寫 FilterModifierMechanism.vue;不適用時不輸出任何元素) -->
+      <filter-modifier-mechanism v-if="!miniFilter" :class="$style.leadIndent" class="mt-1 self-start" :filter="filter" :item="item" />
+      <!-- 破裂的 pseudo 退路列(已汙染 / 已鏡像、破裂詞綴被偽屬性吃掉)仍用「一般 / 破裂」二選一(自寫 FilterModifierFractured.vue;不適用時不輸出任何元素) -->
+      <filter-modifier-fractured v-if="!miniFilter && filter.tag === 'pseudo'" :class="$style.leadIndent" class="mt-1 self-start" :filter="filter" :item="item" />
     </div>
     <modifier-anointment class="self-center" :filter="filter" />
   </div>
@@ -104,6 +106,8 @@ import FilterModifierOptions, { RollOption } from './FilterModifierOptions.vue'
 import FilterModifierTiers from './FilterModifierTiers.vue'
 // exile-appraiser: 破裂切換鈕(自寫)
 import FilterModifierFractured from './FilterModifierFractured.vue'
+// exile-appraiser: 2026-10-16 機制選擇(自寫)
+import FilterModifierMechanism from './FilterModifierMechanism.vue'
 import ModSwitch from '@/web/price-panel/ModSwitch.vue'
 import ModRange from '@/web/price-panel/ModRange.vue'
 import { AppConfig } from '@/web/Config'
@@ -113,8 +117,8 @@ import SourceInfo from './SourceInfo.vue'
 import { SearchMode as MercSearchMode } from './pseudo/mercenary.js'
 
 export default defineComponent({
-  // exile-appraiser: 多註冊 FilterModifierFractured
-  components: { ItemModifierText, ModifierAnointment, FilterModifierOptions, FilterModifierTiers, FilterModifierFractured, SourceInfo, StatRollSlider, UiPopover, ModSwitch, ModRange },
+  // exile-appraiser: 多註冊 FilterModifierFractured / FilterModifierMechanism
+  components: { ItemModifierText, ModifierAnointment, FilterModifierOptions, FilterModifierTiers, FilterModifierFractured, FilterModifierMechanism, SourceInfo, StatRollSlider, UiPopover, ModSwitch, ModRange },
   emits: ['update:groupExpanded'],
   props: {
     filter: {

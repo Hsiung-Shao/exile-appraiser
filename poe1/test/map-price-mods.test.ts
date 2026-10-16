@@ -186,13 +186,19 @@ const BOOTS_EXACT: Array<[string, string, string | undefined, boolean]> = [
   ['property', 'Base Percentile: #%', undefined, true]
 ]
 
+// 2026-10-16 詞綴全部列出:被防禦合計 / 偽屬性吃掉的原始詞綴另列(可見、未勾選、未勾選時不送查詢),勾選中的列不變
 const BOOTS_UI: Array<[string, string, string | undefined, boolean]> = [
   ['property', 'Armour: #', undefined, true],
   ['property', 'Evasion Rating: #', undefined, true],
+  ['explicit', '#% increased Armour and Evasion', undefined, true],
   ['pseudo', '+#% total Elemental Resistance', undefined, false],
   ['pseudo', '+#% total to Fire Resistance', 'filters.hide_ele_res', true],
   ['pseudo', '+# total maximum Life', undefined, false],
   ['pseudo', '#% increased Movement Speed', undefined, true],
+  ['explicit', '+# to maximum Life', undefined, true],
+  ['explicit', '#% increased Movement Speed', undefined, true],
+  ['explicit', '+#% to Fire Resistance', undefined, true],
+  ['explicit', '+#% to Cold Resistance', undefined, true],
   ['explicit', '#% increased Rarity of Items found', undefined, true]
 ]
 

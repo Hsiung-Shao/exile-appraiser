@@ -646,7 +646,9 @@ function removeUsedStats(ctx: FiltersCreationContext, stats: Set<string>) {
     if (!calc.stat.trade.ids[calc.type]?.length) continue;
     const filter = calculatedStatToFilter(calc, ctx.searchInRange, ctx.item);
     filter.disabled = true;
-    filter.hidden = "filters.hide_used_in_prop";
+    // exile-appraiser: 2026-10-16 詞綴全部列出:不再以 hide_used_in_prop 藏起,改為可見、預設不勾
+    // (revealed:preset 自動勾選跳過);查詢照舊以未勾選條件送出(golden-query 不變)
+    filter.revealed = true;
     ctx.filters.push(filter);
   }
 }

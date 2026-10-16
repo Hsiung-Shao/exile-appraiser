@@ -150,6 +150,13 @@ export interface StatFilter {
     emptyModifierInfo?: Record<ItemHasEmptyModifier, number>;
   };
   editorAdded?: BaseType;
+  // exile-appraiser: 2026-10-16 詞綴全部列出(mechanism-toggle.ts)。
+  // revealed = 本來被藏起 / 丟掉、現在列出的原始詞綴列:preset 的自動勾選跳過、不計入「可見列數」;
+  // fromAggregate = 被偽屬性合計吃掉的原始詞綴列:未勾選時不送進查詢(避免條件數暴增)。
+  revealed?: boolean;
+  fromAggregate?: boolean;
+  // noMechanism = 這件物品不給機制選擇(傳奇 / 普通、換界石 / 碑牌 / 地圖類;create-presets 標)
+  noMechanism?: boolean;
 }
 
 export const _INTERNAL_TRADE_IDS = [

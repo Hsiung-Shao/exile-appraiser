@@ -33,7 +33,7 @@ import {
 } from "@/web/background/Prices";
 import { getCurrencyDetailsId } from "../trends/getDetailsId";
 import { areaLevelByAscendancyPoints } from "../filters/create-item-filters";
-import { craftedIds, craftedMode } from "../filters/crafted-toggle"; // exile-appraiser: 2026-10-16 工藝二選一
+import { mechanismNotIds } from "../filters/mechanism-toggle"; // exile-appraiser: 2026-10-16 機制選擇「一般」排除
 
 export const CATEGORY_TO_TRADE_ID = new Map([
   [ItemCategory.Map, "map"],
@@ -1178,6 +1178,8 @@ export function createTradeRequest(
   }
 
   stats = stats.filter((stat) => !INTERNAL_TRADE_IDS.includes(stat.tradeId[0]));
+  // exile-appraiser: 2026-10-16 被偽屬性合計吃掉、新列出的原始詞綴列(fromAggregate)未勾選時不送(避免條件數暴增)
+  stats = stats.filter((stat) => !(stat.fromAggregate && stat.disabled));
 
   // if (filters.influences) {
   //   for (const influence of filters.influences) {
@@ -1244,24 +1246,15 @@ export function createTradeRequest(
     }
   }
 
-  // exile-appraiser: 2026-10-16 工藝二選一選「一般」時排除這條的工藝版本
-  // (交易站 explicit id 也命中工藝詞綴,使用者實機回報;上線實測 9 → 2 筆)。
-  // 已有勾選中的列直接送同一組 crafted id(例如勾了隱藏孿生)時不加,免得條件互相矛盾
-  for (const stat of stats) {
-    if (stat.disabled || craftedMode(stat) !== "normal") continue;
-    const ids = craftedIds(stat);
-    if (!ids) continue;
-    const sendsCrafted = stats.some(
-      (other) =>
-        !other.disabled &&
-        other.tradeId.length === ids.crafted.length &&
-        other.tradeId.every((id, i) => id === ids.crafted[i]),
-    );
-    if (sendsCrafted) continue;
+  // exile-appraiser: 2026-10-16 機制選擇(mechanism-toggle.ts):勾選中、模式一般、來源本身是破裂 / 工藝 / 褻瀆的列,
+  // 該機制的 ids 合併成一個 not 群組(只排除來源本身的機制;符文 / 一般隨機不排除);已被勾選列直接送出的 id 不放。
+  // 取代 v0.3.1 每列一組的工藝排除。
+  const mechanismNot = mechanismNotIds(stats, item);
+  if (mechanismNot.length) {
     query.stats.push({
       type: "not",
       disabled: false,
-      filters: ids.crafted.map((id) => ({ id, disabled: false })),
+      filters: mechanismNot.map((id) => ({ id, disabled: false })),
     });
   }
 

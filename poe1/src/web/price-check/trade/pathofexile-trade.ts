@@ -13,6 +13,7 @@ import { Cache } from './Cache'
 // exile-appraiser(2026-10-15):查價結果懸停浮窗(PoE1 版,移植 EE2 MIT;只加 displayItem,不動查詢組法)
 import { parseFetchItem, type DisplayItem, type FetchItem } from './display-item'
 import { displayZhFor } from './display-zh'
+import { mechanismNotIds } from '../filters/mechanism-toggle' // exile-appraiser: 2026-10-16 機制選擇「一般」排除
 
 export const CATEGORY_TO_TRADE_ID = new Map([
   [ItemCategory.Map, 'map'],
@@ -607,7 +608,12 @@ export function createTradeRequest (filters: ItemFilters, stats: FilterOrGroup[]
   type NoUiStatFilter = Pick<StatFilter, 'not' | keyof BareStatFilter>
   const realStats: NoUiStatFilter[] = stats.filter((stat): stat is StatFilter =>
     !stat.group &&
-    !INTERNAL_TRADE_IDS.includes(stat.tradeId[0]))
+    !INTERNAL_TRADE_IDS.includes(stat.tradeId[0]) &&
+    // exile-appraiser: 2026-10-16 被合計吃掉、新列出的原始詞綴列(fromAggregate)未勾選時不送(避免條件數暴增)
+    !(stat.fromAggregate && stat.disabled))
+  // exile-appraiser: 2026-10-16 機制選擇(mechanism-toggle.ts):勾選中、模式一般、來源本身是破裂 / 工藝的列,
+  // 該機制的 ids 併進同一個 not 群組(只排除來源本身的機制);已被勾選列直接送出的 id 不放
+  const mechanismNot = mechanismNotIds((realStats as StatFilter[]).filter(stat => !stat.not))
   if (filters.veiled) {
     for (const statRef of filters.veiled.statRefs) {
       const statOrGroup = STAT_BY_REF_V2(statRef)!
@@ -790,6 +796,11 @@ export function createTradeRequest (filters: ItemFilters, stats: FilterOrGroup[]
     } else {
       appendAndFilter(stat, qAnd, query.stats)
     }
+  }
+
+  // exile-appraiser: 2026-10-16 機制選擇「一般」排除(見上方 mechanismNot),去重後併進同一個 not 群組
+  for (const id of mechanismNot) {
+    if (!qNot.filters.some(f => f.id === id)) qNot.filters.push({ id, disabled: false })
   }
 
   if (qNot.filters.length) {

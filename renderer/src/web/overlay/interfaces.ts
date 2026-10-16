@@ -32,4 +32,6 @@ export interface PriceCheckWidget {
   savedAugments: { [key: string]: Array<string | null> }
   /** 查價面板 B 改版 P4(2026-10-14):掛單顯示方式,一般物品 / 通貨分開記(預設 item 方塊、bulk 長條) */
   listingLayout: ListingLayout
+  /** 2026-10-16:查價面板「機制」開關(預設關 = 只有非一般模式的列顯示機制按鈕) */
+  showMechanism: boolean
 }

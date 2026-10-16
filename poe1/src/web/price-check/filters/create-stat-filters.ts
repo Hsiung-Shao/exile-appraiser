@@ -184,13 +184,18 @@ export function initUiModFilters (
     })
   }
 
+  // exile-appraiser: 2026-10-16 被防禦 / DPS 合計與偽屬性合計吃掉的詞綴不再丟掉,另列自己的列(fromAggregate)
+  const beforeProps = ctx.statsByType
   filterEquipmentProps(ctx)
+  pushAggregatedRows(ctx, beforeProps.filter(m => !ctx.statsByType.includes(m)))
   if (item.rarity === ItemRarity.Unique) {
     filterBasePercentile(ctx)
   }
   filterMemoryStrands(ctx, 'hide_memory_strands')
   if (item.info.refName !== 'Split Personality') {
+    const beforePseudo = ctx.statsByType
     filterPseudo(ctx)
+    pushAggregatedRows(ctx, beforePseudo.filter(m => !ctx.statsByType.includes(m)))
   }
   if (item.uniqueBase?.refName === 'Timeless Jewel') {
     filterTimelessJewelKeystones(ctx)
@@ -216,6 +221,22 @@ export function initUiModFilters (
   finalFilterTweaks(ctx)
 
   return [...ctx.filters, ...ctx.groups]
+}
+
+// exile-appraiser: 2026-10-16 詞綴全部列出(計畫 rustling-shimmying-charm A):被合計吃掉的原始詞綴
+// 照常產生自己的列,可見、預設不勾、標 fromAggregate(未勾選時不送查詢)。未汙染 / 未鏡像的物品,
+// 破裂詞綴(沒有 explicit id 的)稍後會由 item.statsByType 推回自己的列,這裡略過避免重複。
+function pushAggregatedRows (ctx: FiltersCreationContext, eaten: StatCalculated[]) {
+  const hasTwins = !ctx.item.isCorrupted && !ctx.item.isMirrored
+  for (const calc of eaten) {
+    if (hasTwins && calc.type === ModifierType.Fractured) continue
+    if (!calc.stat.trade.ids[calc.type]?.length) continue
+    const filter = calculatedStatToFilter(calc, ctx.searchInRange, ctx.item)
+    filter.disabled = true
+    filter.revealed = true
+    filter.fromAggregate = true
+    ctx.filters.push(filter)
+  }
 }
 
 export function calculatedStatToFilter (
@@ -523,9 +544,10 @@ function finalFilterTweaks (ctx: FiltersCreationContext) {
         filter.disabled = true
       }
     } else if (
-      filter.tag === FilterTag.Foulborn ||
+      (filter.tag === FilterTag.Foulborn ||
       filter.tag === FilterTag.Vestigial ||
-      filter.tag === FilterTag.Variant
+      filter.tag === FilterTag.Variant) &&
+      !filter.revealed // exile-appraiser: 2026-10-16 新列出的原始詞綴列預設不勾
     ) {
       // 殘存詞綴與穢生詞綴同一類:是這件物品**額外被賦予**的東西,不是底材本來
       // 就有的。它決定值不值錢,所以預設勾選。
@@ -545,7 +567,8 @@ function finalFilterTweaks (ctx: FiltersCreationContext) {
   }
 
   if (item.rarity === ItemRarity.Unique) {
-    const countVisible = ctx.filters.reduce((cnt, filter) => filter.hidden ? cnt : cnt + 1, 0)
+    // exile-appraiser: 2026-10-16 新列出的原始詞綴列(revealed)不計入
+    const countVisible = ctx.filters.reduce((cnt, filter) => (filter.hidden || filter.revealed) ? cnt : cnt + 1, 0)
     if (countVisible <= 3) {
       enableAllFilters(ctx.filters)
     }
@@ -639,7 +662,8 @@ function showHasEmptyModifier (ctx: FiltersCreationContext): ItemHasEmptyModifie
 
 function enableAllFilters (filters: StatFilter[]) {
   for (const filter of filters) {
-    if (!filter.hidden) {
+    // exile-appraiser: 2026-10-16 新列出的原始詞綴列(revealed)預設不勾
+    if (!filter.hidden && !filter.revealed) {
       filter.disabled = false
     }
   }
@@ -647,7 +671,7 @@ function enableAllFilters (filters: StatFilter[]) {
 
 function enableGoodRolledFilters (filters: StatFilter[], abovePct: number) {
   for (const filter of filters) {
-    if (filter.hidden) continue
+    if (filter.hidden || filter.revealed) continue // exile-appraiser: 2026-10-16 revealed 預設不勾
     if (!filter.roll || filter.roll.goodness == null) {
       filter.disabled = false
       continue
