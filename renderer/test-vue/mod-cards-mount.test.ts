@@ -138,7 +138,8 @@ describe('詞綴卡片掛載', () => {
       const { container, app, stats } = renderBlock(game, comp, preset, item)
       await nextTick()
       const ranges = findAll(container, byAttr('data-part', 'range'))
-      const withRoll = stats.filter((s: any) => !s.group && !s.hidden && s.roll != null && !s.oils)
+      // 2026-10-16 原始詞綴卡預設收起
+      const withRoll = stats.filter((s: any) => !s.group && !s.hidden && s.roll != null && !s.oils && !s.revealed)
       expect(ranges.length).toBe(withRoll.length)
       for (const r of ranges) expect(findAll(r, n => n.tag === 'input').length).toBe(2)
       const pseudoRow = stats.find((s: any) => !s.group && !s.hidden && s.tag === 'pseudo')!

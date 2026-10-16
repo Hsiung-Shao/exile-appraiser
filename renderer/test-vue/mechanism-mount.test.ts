@@ -8,7 +8,7 @@ import * as path from 'node:path'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { defineComponent, h, nextTick, provide, reactive } from 'vue'
 import { createI18n } from 'vue-i18n'
-import { initConfig } from '../src/web/Config'
+import { initConfig, AppConfig } from '../src/web/Config'
 import { nodeDataSource as poe1DataSource } from '../../poe1/src/assets/data/node-source'
 import { poe1Adapter, createPresets as poe1CreatePresets } from '../../poe1/src/index'
 import { parseClipboard as poe1Parse } from '@/parser'
@@ -79,6 +79,8 @@ const POE2_CHEST = `物品種類: 胸甲
 
 beforeAll(async () => {
   await initConfig()
+  // 2026-10-16:機制按鈕改由「機制」開關控制(預設關),本檔測按鈕行為 → 先打開開關
+  ;(AppConfig('price-check') as any).showMechanism = true
   await poe1Adapter.loadData(poe1DataSource(path.join(ROOT, 'data/poe1')), 'en')
   await Poe2.poe2Adapter.loadData(poe2DataSource(path.join(ROOT, 'data/poe2')), 'cmn-Hant')
 }, 300_000)

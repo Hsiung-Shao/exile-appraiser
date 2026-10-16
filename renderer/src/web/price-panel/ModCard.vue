@@ -1,17 +1,26 @@
 <template>
-  <!-- 查價面板 B 改版(2026-10-14):詞綴 / 偽屬性(總和)卡片(標題 + 已選數) -->
+  <!-- 查價面板 B 改版(2026-10-14):詞綴 / 偽屬性(總和)卡片(標題 + 已選數);2026-10-16 可折疊(原始詞綴卡) -->
   <section class="mod-card" :data-card="id">
-    <div class="mod-card-h">
+    <button v-if="collapsible" type="button" class="mod-card-h toggle" data-part="card-toggle"
+      :aria-expanded="collapsed ? 'false' : 'true'"
+      @click="emit('update:collapsed', !collapsed)">
+      <i class="fas chev" :class="collapsed ? 'fa-chevron-right' : 'fa-chevron-down'" aria-hidden="true"></i>
+      <span data-part="card-title">{{ title }}</span>
+      <span class="grow" />
+      <span data-part="card-count" class="count">{{ count }}</span>
+    </button>
+    <div v-else class="mod-card-h">
       <span data-part="card-title">{{ title }}</span>
       <span class="grow" />
       <span data-part="card-count" class="count">{{ count }}</span>
     </div>
-    <slot />
+    <slot v-if="!collapsible || !collapsed" />
   </section>
 </template>
 
 <script setup lang="ts">
-defineProps<{ id: string, title: string, count: string }>()
+defineProps<{ id: string, title: string, count: string, collapsible?: boolean, collapsed?: boolean }>()
+const emit = defineEmits<{ (e: 'update:collapsed', value: boolean): void }>()
 </script>
 
 <style scoped>
@@ -35,6 +44,25 @@ defineProps<{ id: string, title: string, count: string }>()
   font-weight: 700;
   letter-spacing: 0.04em;
   color: var(--ink-2);
+}
+.mod-card-h.toggle {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+.mod-card-h.toggle:hover {
+  color: var(--ink-1);
+}
+.mod-card-h.toggle:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 0.4em;
+}
+.chev {
+  font-size: 0.8em;
+  width: 0.9em;
 }
 .grow {
   flex: 1;

@@ -64,13 +64,14 @@
       "profile_guessed": "Base not in the table; estimated from the item class"
     },
     "mechanism": {
+      "toggle": "Mechanism",
       "group": "Search as",
       "normal": "Regular",
       "fractured": "Fractured",
       "crafted": "Crafted",
       "desecrated": "Desecrated",
       "rune": "Augment",
-      "title_normal": "Only items where this is a regular random modifier (other mechanics excluded)"
+      "title_normal": "Regular (if this mod is crafted / fractured / desecrated, excludes items with that version)"
     },
     "fractured_toggle": {
       "label": "Fractured",
@@ -81,6 +82,7 @@
       "title_normal": "Search the regular mod (fractured or not)"
     },
     "mod_cards": {
+      "raw": "Raw mods",
       "mods": "Mods",
       "pseudo": "Pseudo (totals)",
       "count": "{0} / {1} used",

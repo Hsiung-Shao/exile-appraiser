@@ -14,10 +14,12 @@
 import { defineComponent, PropType, computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ModSeg from '@/web/price-panel/ModSeg.vue'
+// 2026-10-16:「機制」開關(關著時只有模式被改過、不是原本機制的列顯示)
+import { useShowMechanism } from '@/web/price-panel/useShowMechanism'
 import type { ParsedItem } from '@/parser'
 import type { FilterOrGroup, StatFilter } from './interfaces'
 import { FRACTURED_FILTERS_KEY } from './fractured-toggle'
-import { mechanismMode, mechanismOptions, selectMechanism, type MechanismMode } from './mechanism-toggle'
+import { mechanismDefault, mechanismMode, mechanismOptions, selectMechanism, type MechanismMode } from './mechanism-toggle'
 
 export default defineComponent({
   components: { ModSeg },
@@ -35,7 +37,8 @@ export default defineComponent({
     const allFilters = inject<() => readonly FilterOrGroup[]>(FRACTURED_FILTERS_KEY, () => [])
     const { t } = useI18n()
     const mode = computed(() => mechanismMode(props.filter))
-    const options = computed(() => (props.filter.hidden != null)
+    const { show } = useShowMechanism()
+    const options = computed(() => (props.filter.hidden != null || (!show.value && mode.value === mechanismDefault(props.filter)))
       ? []
       : mechanismOptions(props.filter, props.item).map(value => ({
         value,

@@ -270,6 +270,26 @@
             </div>
           </template>
         </mod-card>
+        <!-- exile-appraiser: 2026-10-16 原始詞綴卡(被合計吃掉 / 本來藏起、現在列出的詞綴):可折疊、預設收起、換物品回收起 -->
+        <mod-card
+          v-if="cards.raw.rows.length"
+          id="raw"
+          :title="t('ppz.mod_cards.raw')"
+          :count="
+            t('ppz.mod_cards.count', [cards.raw.selected, cards.raw.rows.length])
+          "
+          collapsible
+          v-model:collapsed="rawCollapsed"
+        >
+          <filter-modifier
+            v-for="filter of cards.raw.rows"
+            :key="filter.tag + '/' + filter.text"
+            :filter="filter"
+            :item="item"
+            :show-sources="showFilterSources"
+            @submit="handleStatsSubmit"
+          />
+        </mod-card>
         <mod-card
           v-if="cards.pseudo.rows.length"
           id="pseudo"
@@ -307,7 +327,15 @@
           class="text-gray-400"
           >{{ t(hiddenLabel) }}</ui-toggle
         >
-        <ui-toggle v-model="showFilterSources" class="ml-auto text-gray-400">{{
+        <!-- exile-appraiser: 2026-10-16「機制」開關(設定 showMechanism;關著時只有非一般模式的列顯示機制按鈕) -->
+        <ui-toggle
+          data-action="mechanism-visible"
+          :model-value="showMechanism"
+          @update:model-value="setShowMechanism"
+          class="ml-auto text-gray-400"
+          >{{ t("ppz.mechanism.toggle") }}</ui-toggle
+        >
+        <ui-toggle v-model="showFilterSources" class="text-gray-400">{{
           t("filters.mods_toggle")
         }}</ui-toggle>
       </div>
@@ -338,6 +366,8 @@ import UnknownModifier from "./UnknownModifier.vue";
 import ReportInline from "@/web/ui/ReportInline.vue";
 import ModCard from "@/web/price-panel/ModCard.vue";
 import { splitModCards } from "@/web/price-panel/mod-cards";
+// exile-appraiser: 2026-10-16「機制」開關
+import { useShowMechanism } from "@/web/price-panel/useShowMechanism";
 import { ItemFilters, StatFilter } from "./interfaces";
 // exile-appraiser: 破裂切換鈕要整份 stats
 import { FRACTURED_FILTERS_KEY } from "./fractured-toggle";
@@ -393,12 +423,17 @@ export default defineComponent({
     const statsVisibility = shallowReactive({ disabled: false });
     const showHidden = shallowRef(false);
     const showFilterSources = shallowRef(false);
+    // exile-appraiser: 2026-10-16 原始詞綴卡預設收起、換物品回收起;機制開關讀寫設定
+    const rawCollapsed = shallowRef(true);
+    const { show: showMechanism, setShow: setShowMechanism } =
+      useShowMechanism();
 
     watch(
       () => props.item,
       () => {
         showHidden.value = false;
         statsVisibility.disabled = false;
+        rawCollapsed.value = true;
       },
     );
 
@@ -485,6 +520,9 @@ export default defineComponent({
       statsVisibility,
       showHidden,
       showFilterSources,
+      rawCollapsed,
+      showMechanism,
+      setShowMechanism,
       totalSelectedMods: computed(() => {
         return props.stats.filter((stat) => !stat.disabled).length;
       }),

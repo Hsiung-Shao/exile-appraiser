@@ -121,6 +121,17 @@ export function mechanismMode(filter: StatFilter): MechanismMode {
 }
 
 /**
+ * 這列「原本」的機制(2026-10-16「機制」開關:關著時只有被改過的列顯示按鈕):
+ * 列的 tag 本身是某個機制(符文列 = 增幅)就是它,其他(含併成 explicit 的工藝 / 破裂列)為一般。
+ */
+export function mechanismDefault(filter: StatFilter): MechanismMode {
+  const tag =
+    filter.tag === FilterTag.AddedAugment ? FilterTag.Augment : filter.tag;
+  const opts = mechanismOptions(filter);
+  return (opts as string[]).includes(tag) ? (tag as MechanismMode) : "normal";
+}
+
+/**
  * 選一個機制。非一般:tradeId 換成該機制 ids、勾選、其他送同一組 ids 的列取消勾選;
  * 一般:換回 explicit(勾選狀態不動)。不適用或沒有這個選項時什麼都不做。
  */
