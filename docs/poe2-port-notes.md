@@ -184,6 +184,14 @@ APT / EE2 規則:魔法 / 稀有走 pseudo preset,`searchRelaxed = { category, d
 
 影響(golden-query 逐筆比對 8294d40,每份只有 `type_filters.filters.category` 移除 + `query.type` 新增):PoE1 `en/ring-rare-01.query.intl`(Opal Ring);PoE2 `boots-rare-luxurious-slippers-01`、`helmet-rare-kamasan-tiara-01`、`spear-rare-soaring-spear-01`、`wand-rare-dueling-wand-01` 各 intl / tw + `en-` intl(共 12 份)。測試 `poe1/test/default-base-preset.test.ts`、`poe2/test/web/price-check/filters/default-base-preset.test.ts`;`poe2/test/zhTW/trade-query.test.ts`「sends English names/types」的法杖 / 便鞋改為預期 `type`。
 
+## 工藝詞綴「一般 / 工藝」二選一(2026-10-16,使用者回報)
+
+回報:PoE2 稀有藍寶石「海怪 裂毀者」的「增加20%法術暴擊傷害加成」是**已工藝**後綴,面板卻標「隨機」、送 `explicit.stat_274716455`。原因:`filters/create-stat-filters.ts` 有 explicit id 時把工藝併成 explicit 列,另推隱藏的工藝孿生(`crafted.stat_…`、`hide_for_crafting`)—— 與破裂同構。
+
+做法(照「一般 / 破裂」):自寫 `filters/crafted-toggle.ts`(`craftedIds` / `canToggleCrafted` / `craftedMode` / `selectCraftedMode`)+ `FilterModifierCrafted.vue`(`ModSeg`,`ppz.crafted_toggle.*`),掛在 `FilterModifier.vue` 破裂二選一旁。只對可見、來源全部是工藝、同時有 explicit / crafted id 的非 pseudo 列;選工藝 = 改送 crafted id 並勾選、孿生取消勾選;選一般 = 換回 explicit。預設一般 = golden-query 0 差異。只做 PoE2(PoE1 工藝台詞綴本來就是獨立的工藝列);褻瀆同樣有隱藏孿生,可同法擴充。
+
+上線實測(Forbidden Rites,四條不帶數值):一般 9 筆(1–36 div,交易站 explicit id 也命中工藝貨)、工藝 7 筆(1–20 div)。同日先做過「無工藝詞綴」按鈕(整件物品排除工藝,條件須用 `not` 群組排除工藝數 ≥ 1,`max 0` 對無工藝掛單一筆都不中),使用者改採本做法後已 revert。測試 `poe2/test/web/price-check/filters/crafted-toggle.test.ts`、`renderer/test-vue/crafted-toggle-mount.test.ts`、`renderer/test/crafted-toggle-i18n.test.ts`。
+
 ## 未做 / 待辦
 - 預測價(PricePrediction)。
 - GUI 實機(熱鍵 → overlay 附著 PoE2 視窗 → 台服真實掛單)由使用者實測。

@@ -63,6 +63,13 @@
       "god_kurgal": "柯戈",
       "profile_guessed": "底材不在資料表,依物品類別推定"
     },
+    "crafted_toggle": {
+      "label": "工藝",
+      "normal": "一般",
+      "group": "查詢方式",
+      "title_normal": "查一般詞綴(交易站也會配到這條是工藝的物品)",
+      "title_on": "查工藝詞綴(只找這條是工藝的物品)"
+    },
     "fractured_toggle": {
       "label": "破裂",
       "title_off": "改查破裂詞綴(交易站只找這條是破裂的物品)",
