@@ -815,21 +815,12 @@ export function createTradeRequest(
       String(false),
     );
   }
-  // exile-appraiser: 2026-10-16 排除工藝詞綴 = not(工藝詞綴數 ≥ 1)。
-  // 不能用 max 0:上線實測沒有工藝詞綴的掛單沒有這個偽屬性欄位,max 0 一筆都不中
+  // exile-appraiser: 2026-10-16 排除工藝詞綴 = 工藝詞綴數上限 0
   if (filters.craftedMods && !filters.craftedMods.disabled) {
-    query.stats.push({
-      type: "not",
+    query.stats[0].filters.push({
+      id: STAT_BY_REF("# Crafted Modifiers")!.trade.ids[ModifierType.Pseudo][0],
+      value: { max: 0 },
       disabled: false,
-      filters: [
-        {
-          id: STAT_BY_REF("# Crafted Modifiers")!.trade.ids[
-            ModifierType.Pseudo
-          ][0],
-          value: { min: 1 },
-          disabled: false,
-        },
-      ],
     });
   }
 

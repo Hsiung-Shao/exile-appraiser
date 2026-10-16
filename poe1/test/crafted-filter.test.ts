@@ -73,10 +73,6 @@ function andFilters (query: any): any[] {
   const and = (query.stats as any[]).find(g => g.type === 'and')
   return and ? and.filters : []
 }
-// 2026-10-16 上線實測:沒有工藝詞綴的掛單沒有這個偽屬性欄位,max 0 會一筆都不中 → 改 not 群組排除「工藝數 ≥ 1」
-function notFilters (query: any): any[] {
-  return (query.stats as any[]).filter(g => g.type === 'not').flatMap(g => g.filters)
-}
 const allStatIds = (query: any): string[] => (query.stats as any[]).flatMap(g => g.filters.map((f: any) => f.id))
 
 beforeAll(async () => { await init('en') })
@@ -93,13 +89,12 @@ describe('PoE1 排除工藝詞綴篩選', () => {
     expect(allStatIds(query)).not.toContain(CRAFTED_ID)
   })
 
-  it('C3 切成排除後以 not 群組排除工藝數至少 1', () => {
+  it('C3 切成排除後查詢加上工藝數量上限 0', () => {
     const { preset, filters } = build(JEWEL_RARE)
     expect(filters.craftedMods).toBeDefined()
     filters.craftedMods.disabled = false
     const query = createTradeRequest(preset).query
-    expect(notFilters(query)).toContainEqual(expect.objectContaining({ id: CRAFTED_ID, value: { min: 1 } }))
-    expect(andFilters(query).map(f => f.id)).not.toContain(CRAFTED_ID)
+    expect(andFilters(query)).toContainEqual(expect.objectContaining({ id: CRAFTED_ID, value: { max: 0 } }))
     expect(allStatIds(query).filter(id => id === CRAFTED_ID)).toHaveLength(1)
   })
 
@@ -132,12 +127,11 @@ describe('PoE1 排除工藝詞綴篩選', () => {
     expect(build(fixture('map-rare-01')).filters.craftedMods).toBeUndefined()
   })
 
-  it('C9 台服切成排除後 not 群組帶相同工藝數量 id', () => {
+  it('C9 台服切成排除後查詢帶相同工藝數量 id', () => {
     const { preset, filters } = build(JEWEL_RARE, 'tw')
     expect(filters.craftedMods).toEqual({ disabled: true })
     filters.craftedMods.disabled = false
     const query = createTradeRequest(preset).query
-    expect(notFilters(query)).toContainEqual(expect.objectContaining({ id: CRAFTED_ID, value: { min: 1 } }))
-    expect(andFilters(query).map(f => f.id)).not.toContain(CRAFTED_ID)
+    expect(andFilters(query)).toContainEqual(expect.objectContaining({ id: CRAFTED_ID, value: { max: 0 } }))
   })
 })
