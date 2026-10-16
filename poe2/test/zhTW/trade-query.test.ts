@@ -167,7 +167,8 @@ describe("trade query for cmn-Hant fixtures (realm pc-ggg)", () => {
     expect(belt.body.query.stats.some((g) => g.type === "count")).toBe(true);
   });
 
-  it("keeps DPS/defence source mods as hidden, unticked filters", () => {
+  // 2026-10-16 詞綴全部列出:DPS / 防禦來源詞綴改為可見(不再 hide_used_in_prop),仍未勾選、預設查詢不多送
+  it("keeps DPS/defence source mods as visible, unticked filters", () => {
     // 上游把「增加物理傷害%」「附加 X 至 Y 傷害」「增加護甲/能量護盾%」吃進
     // DPS / 防禦值偽屬性後就從清單拿掉,T1 詞綴無法單獨搜尋。fork 改成保留為
     // hidden + 未勾選,並且預設查詢不得因此多送任何條件。
@@ -176,7 +177,7 @@ describe("trade query for cmn-Hant fixtures (realm pc-ggg)", () => {
       (f) => f.statRef === "#% increased Physical Damage",
     );
     expect(phys).toBeDefined();
-    expect(phys!.hidden).toBe("filters.hide_used_in_prop");
+    expect(phys!.hidden).toBeUndefined();
     expect(phys!.disabled).toBe(true);
     expect(phys!.value).toBe(176);
     expect(phys!.tradeId).toEqual(["explicit.stat_1509134228"]);
@@ -201,7 +202,7 @@ describe("trade query for cmn-Hant fixtures (realm pc-ggg)", () => {
     // (30 + 68 = 98,兩個來源),這裡沿用同一條規則,只是不再把它丟掉。
     expect(es).toHaveLength(1);
     expect(es[0].value).toBe(98);
-    expect(es[0].hidden).toBe("filters.hide_used_in_prop");
+    expect(es[0].hidden).toBeUndefined();
     expect(es[0].disabled).toBe(true);
   });
 

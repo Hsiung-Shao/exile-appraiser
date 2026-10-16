@@ -132,14 +132,11 @@
             :filter="filter"
             v-if="tradeId === 'item.elemental_dps'"
           />
-          <!-- 破裂詞綴的「一般 / 破裂」二選一(自寫 FilterModifierFractured.vue;不適用時不輸出任何元素) -->
+          <!-- exile-appraiser: 2026-10-16 隨機詞綴的機制選擇「一般 / 破裂 / 工藝 / 褻瀆 / 增幅」(自寫 FilterModifierMechanism.vue;不適用時不輸出任何元素) -->
+          <filter-modifier-mechanism class="self-start" :filter="filter" :item="item" />
+          <!-- 破裂的 pseudo 退路列(沒有孿生的物品、破裂詞綴被偽屬性吃掉)仍用「一般 / 破裂」二選一(自寫 FilterModifierFractured.vue;不適用時不輸出任何元素) -->
           <filter-modifier-fractured
-            class="self-start"
-            :filter="filter"
-            :item="item"
-          />
-          <!-- exile-appraiser: 2026-10-16 工藝詞綴的「一般 / 工藝」二選一(自寫 FilterModifierCrafted.vue;不適用時不輸出任何元素) -->
-          <filter-modifier-crafted
+            v-if="filter.tag === 'pseudo'"
             class="self-start"
             :filter="filter"
             :item="item"
@@ -187,8 +184,8 @@ import SourceInfo from "./SourceInfo.vue";
 import FilterModifierItemIsElemental from "./FilterModifierItemIsElemental.vue";
 // exile-appraiser: 破裂切換鈕(自寫)
 import FilterModifierFractured from "./FilterModifierFractured.vue";
-// exile-appraiser: 2026-10-16 工藝切換鈕(自寫)
-import FilterModifierCrafted from "./FilterModifierCrafted.vue";
+// exile-appraiser: 2026-10-16 機制選擇(自寫,取代工藝二選一)
+import FilterModifierMechanism from "./FilterModifierMechanism.vue";
 import ModSwitch from "@/web/price-panel/ModSwitch.vue";
 import ModRange from "@/web/price-panel/ModRange.vue";
 import { CLIENT_STRINGS as _$ } from "@/assets/data";
@@ -203,9 +200,9 @@ export default defineComponent({
     StatRollSlider,
     UiPopover,
     FilterModifierItemIsElemental,
-    // exile-appraiser: 多註冊 FilterModifierFractured / FilterModifierCrafted
+    // exile-appraiser: 多註冊 FilterModifierFractured / FilterModifierMechanism
     FilterModifierFractured,
-    FilterModifierCrafted,
+    FilterModifierMechanism,
     ModSwitch,
     ModRange,
   },

@@ -186,11 +186,32 @@ APT / EE2 規則:魔法 / 稀有走 pseudo preset,`searchRelaxed = { category, d
 
 ## 工藝詞綴「一般 / 工藝」二選一(2026-10-16,使用者回報)
 
+> **已被取代**(2026-10-16 同日):由下一段「詞綴全部列出 + 統一機制選擇」接手;`crafted-toggle.ts`、`FilterModifierCrafted.vue`、`ppz.crafted_toggle.*` 與三支測試已移除。以下保留當時的紀錄。
+
 回報:PoE2 稀有藍寶石「海怪 裂毀者」的「增加20%法術暴擊傷害加成」是**已工藝**後綴,面板卻標「隨機」、送 `explicit.stat_274716455`。原因:`filters/create-stat-filters.ts` 有 explicit id 時把工藝併成 explicit 列,另推隱藏的工藝孿生(`crafted.stat_…`、`hide_for_crafting`)—— 與破裂同構。
 
 做法(照「一般 / 破裂」):自寫 `filters/crafted-toggle.ts`(`craftedIds` / `canToggleCrafted` / `craftedMode` / `selectCraftedMode`)+ `FilterModifierCrafted.vue`(`ModSeg`,`ppz.crafted_toggle.*`),掛在 `FilterModifier.vue` 破裂二選一旁。只對可見、來源全部是工藝、同時有 explicit / crafted id 的非 pseudo 列;選工藝 = 改送 crafted id 並勾選、孿生取消勾選;選一般 = 換回 explicit。預設一般 = golden-query 0 差異。只做 PoE2(PoE1 工藝台詞綴本來就是獨立的工藝列);褻瀆同樣有隱藏孿生,可同法擴充。
 
 上線實測(Forbidden Rites,四條不帶數值):一般 9 筆(1–36 div,交易站 explicit id 也命中工藝貨)、工藝 7 筆(1–20 div)。使用者實機回報「一般仍出現工藝詞綴」→ 一般且勾選時,`trade/pathofexile-trade.ts` 另加 `not` 群組排除這條的 crafted id(已有勾選中的列直接送同一組 crafted id 時不加,避免矛盾),實測一般 2 筆(27、36 div)+ 工藝 7 筆 = 原本 9 筆。同日先做過「無工藝詞綴」按鈕(整件物品排除工藝,條件須用 `not` 群組排除工藝數 ≥ 1,`max 0` 對無工藝掛單一筆都不中),使用者改採本做法後已 revert。測試 `poe2/test/web/price-check/filters/crafted-toggle.test.ts`、`renderer/test-vue/crafted-toggle-mount.test.ts`、`renderer/test/crafted-toggle-i18n.test.ts`。
+
+## 詞綴全部列出 + 統一機制選擇(2026-10-16,計畫 `rustling-shimmying-charm.md`,PoE1 / PoE2)
+
+回報(PoE2 胸甲「末日的 真實之衛」):防禦詞綴被併進護甲 / 閃避合計(`hide_used_in_prop`)、抗性與生命被偽屬性合計**直接丟掉**、工藝火焰抗性只剩隱藏孿生、符文詞綴被藏起。
+
+**A 詞綴全部列出**(兩代 `filters/`):
+- 偽屬性吃掉的詞綴:`create-stat-filters.ts` `initUiModFilters` 在 `filterPseudo` 前後比對 `ctx.statsByType`,被拿掉的照常產生自己的列(`pushAggregatedRows`)—— 可見、`disabled: true`、`revealed` + `fromAggregate`。可再製作的物品,沒有 explicit id 的破裂 / 褻瀆 / 工藝稍後會被推回自己的列,這裡略過。PoE1 另把 `filterEquipmentProps` 用掉的(防禦 / DPS 合計)同樣列出並標 `fromAggregate`(上游原本直接丟掉)。
+- PoE2 防禦 / DPS 合計用掉的(`item-property.ts` `removeUsedStats`):不再設 `hide_used_in_prop`,改標 `revealed`(本來就以未勾選條件送出,查詢不變)。
+- PoE2 傳奇的符文 / 增幅詞綴(`hideAllAugments`):不再 `hide_const_roll`,改標 `revealed`、預設不勾。
+- `revealed` = preset 自動勾選(`enableAllFilters` / `enableGoodRolledFilters`、PoE1 Variant / Foulborn / Vestigial 預設勾選)跳過、傳奇「可見列 ≤ 3 全勾」不計入;`fromAggregate` = 未勾選時**不送進查詢**(兩代 `trade/pathofexile-trade.ts`,避免條件數暴增 / Query is too complex)。
+- 破裂:`fractured-toggle.ts` `revealFracturedRows` 不拿 `fromAggregate` 列當代表列(照舊孿生 / pseudo 退路);已有代表列的同一條 `fromAggregate` 列收成 `hide_for_crafting` 免得重複;`canToggleFractured` 對 `fromAggregate` 列回 false。
+
+**B 統一機制選擇**:兩代 `filters/mechanism-toggle.ts`(`mechanismOptions` / `mechanismMode` / `selectMechanism` / `mechanismNotIds`)+ `FilterModifierMechanism.vue`(`ModSeg`,`data-action="mechanism"`,`ppz.mechanism.*`),掛在 `FilterModifier.vue`,取代 PoE2「一般 / 工藝」二選一;一般列不再出現 `FilterModifierFractured`,只有 pseudo 退路列保留。
+- 選項:非 pseudo / property、來源全部是隨機詞綴(PoE1:explicit / fractured / crafted;PoE2 另加 desecrated / rune(符文)/ added-rune)、stat 有 explicit id 的列 → `normal` + 該 stat 有 id 的機制(PoE1:破裂 / 工藝;PoE2:破裂 / 工藝 / 褻瀆 / 增幅 = `rune`);只有一般不顯示;固定 / 附魔不列。id 一律取自 `trade.ids[ModifierType.X]`。
+- 只對魔法 / 稀有物品(主對話裁定):傳奇 / 普通、地圖類(PoE2 換界石 / 碑牌 / 地圖 / 地圖碎片;PoE1 地圖 / 異界地圖 / 邀請 / 探險日誌)不給選項。元件與 PoE2 查詢傳 item 判斷;兩代 `create-presets.ts` 另包一層 `markMechanismEligibility` 在不適用物品的列標 `noMechanism`(PoE1 `createTradeRequest` 沒有 item)。golden-query / en-client 0 差異。
+- 模式由 tradeId 對應(PoE1 工藝台詞綴送 crafted id → 預設「工藝」;PoE2 符文列 → 「增幅」)。選非一般 = 改送該機制 ids、勾選、送同一組 ids 的孿生取消勾選;選一般 = 換回 explicit(勾選不動)。
+- 「一般」排除:勾選中、模式一般、有選項的列,其他機制 ids 合併成**一個** `not` 群組(去重;已被勾選列直接送出的 id 不放)。PoE2 取代 v0.3.1 每列一組的工藝排除;PoE1 併進既有的 `qNot`。
+
+測試:`poe{1,2}/test/**/mechanism-toggle.test.ts`、`renderer/test-vue/mechanism-mount.test.ts`、`renderer/test/mechanism-i18n.test.ts`;破裂既有測試不動。
 
 ## 未做 / 待辦
 - 預測價(PricePrediction)。

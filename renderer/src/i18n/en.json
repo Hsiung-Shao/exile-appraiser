@@ -63,12 +63,14 @@
       "god_kurgal": "Kurgal",
       "profile_guessed": "Base not in the table; estimated from the item class"
     },
-    "crafted_toggle": {
-      "label": "Crafted",
-      "normal": "Regular",
+    "mechanism": {
       "group": "Search as",
-      "title_normal": "Search the regular mod (only items where this mod is not crafted)",
-      "title_on": "Search the crafted mod (only items where this mod is crafted)"
+      "normal": "Regular",
+      "fractured": "Fractured",
+      "crafted": "Crafted",
+      "desecrated": "Desecrated",
+      "rune": "Augment",
+      "title_normal": "Only items where this is a regular random modifier (other mechanics excluded)"
     },
     "fractured_toggle": {
       "label": "Fractured",

@@ -73,6 +73,8 @@ export function canToggleFractured(
 ): boolean {
   if (!item.isFractured || filter.hidden != null || fracturedIds(filter) == null)
     return false;
+  // 2026-10-16:被偽屬性合計吃掉、新列出的原始詞綴列(fromAggregate)由機制選擇(mechanism-toggle.ts)接手
+  if (filter.fromAggregate) return false;
   return filter.tag !== FilterTag.Pseudo || !hasTwins(item);
 }
 
@@ -118,11 +120,15 @@ export function revealFracturedRows(
   if (!item.isFractured) return;
   const groups = new Map<string, StatFilter[]>();
   const pseudo: Array<[string, StatFilter]> = [];
+  const aggregated: Array<[string, StatFilter]> = [];
   for (const f of filters) {
     const ids = fracturedIds(f);
     if (!ids) continue;
     const key = ids.fractured.join("|");
-    if (f.tag === FilterTag.Pseudo) {
+    if (f.fromAggregate) {
+      // 2026-10-16:被偽屬性合計吃掉、新列出的原始詞綴列不參與代表列挑選(照舊由孿生 / pseudo 代表),見下方
+      aggregated.push([key, f]);
+    } else if (f.tag === FilterTag.Pseudo) {
       pseudo.push([key, f]);
     } else {
       groups.set(key, [...(groups.get(key) ?? []), f]);
@@ -146,6 +152,10 @@ export function revealFracturedRows(
       if (other !== primary && other.hidden == null)
         other.hidden = "filters.hide_for_crafting";
     }
+  }
+  // 2026-10-16:已有代表列(孿生)的破裂詞綴,新列出的同一條原始詞綴列收起,避免同一條詞綴出現兩列
+  for (const [key, f] of aggregated) {
+    if (groups.has(key)) f.hidden = "filters.hide_for_crafting";
   }
 }
 

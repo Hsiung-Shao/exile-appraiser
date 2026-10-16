@@ -3,6 +3,8 @@ import { createExactStatFilters, initUiModFilters } from './create-stat-filters'
 import { createMercenaryFilters } from './pseudo/mercenary'
 // exile-appraiser: 破裂詞綴預設可見(自寫 fractured-toggle.ts)
 import { revealFracturedRows } from './fractured-toggle'
+// exile-appraiser: 2026-10-16 機制選擇只對魔法 / 稀有物品(自寫 mechanism-toggle.ts)
+import { markMechanismEligibility } from './mechanism-toggle'
 import { ModifierType, sumStatsByModType } from '@/parser/modifiers'
 import { ItemCategory, ItemRarity, ParsedItem } from '@/parser'
 import type { FilterPreset } from './interfaces'
@@ -13,7 +15,17 @@ type CreatePresetsOptions =
   & Omit<CreateFiltersOptions, 'exact'>
   & { searchStatRange: number }
 
+// exile-appraiser: 2026-10-16 包一層:所有 preset 的列依物品標 noMechanism(機制選擇只對魔法 / 稀有)
 export function createPresets (
+  item: ParsedItem,
+  opts: CreatePresetsOptions
+): { presets: FilterPreset[], active: string } {
+  const result = createPresetsUpstream(item, opts)
+  for (const p of result.presets) markMechanismEligibility(p.stats, item)
+  return result
+}
+
+function createPresetsUpstream (
   item: ParsedItem,
   opts: CreatePresetsOptions
 ): { presets: FilterPreset[], active: string } {
