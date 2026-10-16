@@ -55,10 +55,6 @@ export interface ItemFilters {
   foil?: {
     disabled: boolean;
   };
-  // exile-appraiser: 2026-10-16 排除工藝詞綴;disabled = 不排除(預設)
-  craftedMods?: {
-    disabled: boolean;
-  };
   influences?: Array<{
     value: ItemInfluence;
     disabled: boolean;

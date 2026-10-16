@@ -184,14 +184,6 @@ APT / EE2 規則:魔法 / 稀有走 pseudo preset,`searchRelaxed = { category, d
 
 影響(golden-query 逐筆比對 8294d40,每份只有 `type_filters.filters.category` 移除 + `query.type` 新增):PoE1 `en/ring-rare-01.query.intl`(Opal Ring);PoE2 `boots-rare-luxurious-slippers-01`、`helmet-rare-kamasan-tiara-01`、`spear-rare-soaring-spear-01`、`wand-rare-dueling-wand-01` 各 intl / tw + `en-` intl(共 12 份)。測試 `poe1/test/default-base-preset.test.ts`、`poe2/test/web/price-check/filters/default-base-preset.test.ts`;`poe2/test/zhTW/trade-query.test.ts`「sends English names/types」的法杖 / 便鞋改為預期 `type`。
 
-## 排除工藝詞綴(2026-10-16,使用者回報)
-
-回報:PoE2 稀有藍寶石珠寶(4 條隨機詞綴、行情 20 幾 D)查價最低價是情感工藝塗出來的 40c 便宜貨。這件的預設查詢四條都送 `explicit.*` id(`npm run check` 確認,不是偽屬性),工藝貨仍出現 → 推定交易站的 explicit id 也命中工藝詞綴(**待 `--online` / 實機確認**)。
-
-改法(兩代,`// exile-appraiser:` 註解):`filters/create-item-filters.ts` `canExcludeCraftedMods(item)` —— 魔法 / 稀有、物品本身沒有 `ModifierType.Crafted` 詞綴、類別是 `isMagicOrRareBase` 範圍 + 珠寶 / 深淵珠寶 / 藥劑(PoE1 另有星團、PoE2 另有護身符)→ `filters.craftedMods = { disabled: true }`(預設不排除 = 查詢逐字不變,golden-query 0 差異)。FiltersBlock 按鈕列多一顆 `FilterBtnLogical`「無工藝詞綴」(`ppz.crafted_filter.*`),點亮 → `trade/pathofexile-trade.ts` 在 and 群組加 `pseudo.pseudo_number_of_crafted_mods` `max 0`(id 由 `# Crafted Modifiers` 查,不寫死)。
-
-推翻條件:使用者覺得每次都要手動點 → 改「物品沒工藝時預設排除」(會改 golden-query);交易站的工藝計數不含情感工藝 → 改用 not 群組排除 `crafted.*` id。測試 `poe1/test/crafted-filter.test.ts`、`poe2/test/web/price-check/filters/crafted-filter.test.ts`、`renderer/test-vue/crafted-filter-mount.test.ts`、`renderer/test/crafted-filter-i18n.test.ts`。
-
 ## 未做 / 待辦
 - 預測價(PricePrediction)。
 - GUI 實機(熱鍵 → overlay 附著 PoE2 視窗 → 台服真實掛單)由使用者實測。

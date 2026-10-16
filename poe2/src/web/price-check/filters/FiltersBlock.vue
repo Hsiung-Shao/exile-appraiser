@@ -134,13 +134,6 @@
             t(filters.mirrored.disabled ? 'item.not_mirrored' : 'item.mirrored')
           "
         />
-        <!-- exile-appraiser: 2026-10-16 排除工藝詞綴(亮 = 只找沒有工藝詞綴的掛單) -->
-        <filter-btn-logical
-          v-if="filters.craftedMods"
-          :filter="filters.craftedMods"
-          :text="t('ppz.crafted_filter.exclude')"
-          :title="t('ppz.crafted_filter.title')"
-        />
         <filter-btn-logical
           v-if="filters.sanctified"
           active

@@ -353,14 +353,6 @@ export function createTradeRequest (filters: ItemFilters, stats: FilterOrGroup[]
   if (filters.fractured?.value === false) {
     propSet(query.filters, 'misc_filters.filters.fractured_item.option', String(false))
   }
-  // exile-appraiser: 2026-10-16 排除工藝詞綴 = 工藝詞綴數上限 0
-  if (filters.craftedMods && !filters.craftedMods.disabled) {
-    query.stats[0].filters.push({
-      id: pseudoStatByRef('# Crafted Modifiers')!.trade.ids[ModifierType.Pseudo][0],
-      value: { max: 0 },
-      disabled: false
-    })
-  }
   if (filters.imbuedGem?.disabled) {
     propSet(query.filters, 'misc_filters.filters.gem_imbued.option', String(false))
   }
