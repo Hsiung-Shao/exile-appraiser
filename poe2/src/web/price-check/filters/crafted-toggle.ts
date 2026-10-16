@@ -4,7 +4,8 @@
 // 送 crafted id 的孿生(hide_for_crafting 隱藏)。
 // - 切換只在可見、來源全部是工藝詞綴、stat 同時有 explicit / crafted id 的非 pseudo 列。
 // - 選工藝 = tradeId 換 crafted、勾選、其他送同一組 crafted id 的列(孿生)取消勾選;選一般 = 換回 explicit(勾選不動)。不改 tag。
-// - 預設一般 = 查詢與改版前逐字相同。整份 stats 共用 FiltersBlock 的 FRACTURED_FILTERS_KEY。
+// - 預設一般;勾選中的一般列在查詢另加 not 群組排除這條的工藝版本(trade/pathofexile-trade.ts),
+//   沒勾選時查詢與改版前逐字相同。整份 stats 共用 FiltersBlock 的 FRACTURED_FILTERS_KEY。
 import { ModifierType } from "@/parser/modifiers";
 import { FilterTag, type StatFilter } from "./interfaces";
 

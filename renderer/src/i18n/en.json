@@ -67,7 +67,7 @@
       "label": "Crafted",
       "normal": "Regular",
       "group": "Search as",
-      "title_normal": "Search the regular mod (the trade site also matches items where it is crafted)",
+      "title_normal": "Search the regular mod (only items where this mod is not crafted)",
       "title_on": "Search the crafted mod (only items where this mod is crafted)"
     },
     "fractured_toggle": {
