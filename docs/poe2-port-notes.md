@@ -190,7 +190,7 @@ APT / EE2 規則:魔法 / 稀有走 pseudo preset,`searchRelaxed = { category, d
 
 做法(照「一般 / 破裂」):自寫 `filters/crafted-toggle.ts`(`craftedIds` / `canToggleCrafted` / `craftedMode` / `selectCraftedMode`)+ `FilterModifierCrafted.vue`(`ModSeg`,`ppz.crafted_toggle.*`),掛在 `FilterModifier.vue` 破裂二選一旁。只對可見、來源全部是工藝、同時有 explicit / crafted id 的非 pseudo 列;選工藝 = 改送 crafted id 並勾選、孿生取消勾選;選一般 = 換回 explicit。預設一般 = golden-query 0 差異。只做 PoE2(PoE1 工藝台詞綴本來就是獨立的工藝列);褻瀆同樣有隱藏孿生,可同法擴充。
 
-上線實測(Forbidden Rites,四條不帶數值):一般 9 筆(1–36 div,交易站 explicit id 也命中工藝貨)、工藝 7 筆(1–20 div)。同日先做過「無工藝詞綴」按鈕(整件物品排除工藝,條件須用 `not` 群組排除工藝數 ≥ 1,`max 0` 對無工藝掛單一筆都不中),使用者改採本做法後已 revert。測試 `poe2/test/web/price-check/filters/crafted-toggle.test.ts`、`renderer/test-vue/crafted-toggle-mount.test.ts`、`renderer/test/crafted-toggle-i18n.test.ts`。
+上線實測(Forbidden Rites,四條不帶數值):一般 9 筆(1–36 div,交易站 explicit id 也命中工藝貨)、工藝 7 筆(1–20 div)。使用者實機回報「一般仍出現工藝詞綴」→ 一般且勾選時,`trade/pathofexile-trade.ts` 另加 `not` 群組排除這條的 crafted id(已有勾選中的列直接送同一組 crafted id 時不加,避免矛盾),實測一般 2 筆(27、36 div)+ 工藝 7 筆 = 原本 9 筆。同日先做過「無工藝詞綴」按鈕(整件物品排除工藝,條件須用 `not` 群組排除工藝數 ≥ 1,`max 0` 對無工藝掛單一筆都不中),使用者改採本做法後已 revert。測試 `poe2/test/web/price-check/filters/crafted-toggle.test.ts`、`renderer/test-vue/crafted-toggle-mount.test.ts`、`renderer/test/crafted-toggle-i18n.test.ts`。
 
 ## 未做 / 待辦
 - 預測價(PricePrediction)。

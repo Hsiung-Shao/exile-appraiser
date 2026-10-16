@@ -151,7 +151,11 @@ describe("PoE2 一般 / 工藝二選一", () => {
     m.selectCraftedMode(stats, spellCrit, "normal");
     expect(spellCrit.tradeId).toEqual([EXPLICIT_ID]);
     expect(m.craftedMode(spellCrit)).toBe("normal");
-    expect(sentFilters(item, preset).filter((f) => f.id === CRAFTED_ID && !f.disabled)).toHaveLength(0);
+    // 2026-10-16 一般會另加 not 群組排除工藝版本(K10),這裡只看 not 以外的群組
+    const positive = (createTradeRequest(preset, item).query.stats as any[])
+      .filter((g) => g.type !== "not")
+      .flatMap((g) => g.filters);
+    expect(positive.filter((f) => f.id === CRAFTED_ID && !f.disabled)).toHaveLength(0);
   });
 
   it("K6 已汙染物品沒有孿生,可見列仍可切換並改送 crafted id", async () => {
@@ -171,5 +175,62 @@ describe("PoE2 一般 / 工藝二選一", () => {
     expect(pseudo, "工藝火焰抗性應被可見的總元素抗性 pseudo 列吃掉").toBeDefined();
     expect(pseudo!.sources.every((s) => s.modifier.info.type === "crafted")).toBe(true);
     expect(m.canToggleCrafted(pseudo)).toBe(false);
+  });
+});
+
+// 使用者實機回報(PoE2 交易站 explicit id 也命中工藝):一般模式勾選時要以 not 群組排除這條的工藝版本
+const statGroups = (item: ParsedItem, preset: FilterPreset): any[] =>
+  createTradeRequest(preset, item).query.stats as any[];
+const notGroups = (groups: any[]) => groups.filter((g) => g.type === "not");
+const notCraftedGroups = (groups: any[]) =>
+  notGroups(groups).filter((g) => (g.filters as any[]).some((f) => f.id === CRAFTED_ID));
+
+describe("PoE2 一般模式排除工藝版本", () => {
+  it("K10 一般且勾選時以 not 群組排除這條的工藝版本", async () => {
+    const m = await toggleMod();
+    const { item, preset, spellCrit } = build(JEWEL);
+    expect(m.craftedMode(spellCrit)).toBe("normal");
+    spellCrit.disabled = false;
+    const groups = statGroups(item, preset);
+    const and = groups.find((g) => g.type === "and");
+    expect(and.filters).toContainEqual(expect.objectContaining({ id: EXPLICIT_ID }));
+    expect(and.filters.find((f: any) => f.id === EXPLICIT_ID).disabled).not.toBe(true);
+    const nots = notCraftedGroups(groups);
+    expect(nots).toHaveLength(1);
+    expect(nots[0].disabled).not.toBe(true);
+    expect(nots[0].filters).toEqual([expect.objectContaining({ id: CRAFTED_ID })]);
+    expect(nots[0].filters[0].disabled).not.toBe(true);
+  });
+
+  it("K11 一般但未勾選時不加 not 群組", async () => {
+    const m = await toggleMod();
+    const { item, preset, spellCrit } = build(JEWEL);
+    expect(m.craftedMode(spellCrit)).toBe("normal");
+    expect(spellCrit.disabled).toBe(true);
+    const groups = statGroups(item, preset);
+    expect(notCraftedGroups(groups)).toHaveLength(0);
+    const enabledCrafted = groups
+      .filter((g) => !g.disabled)
+      .flatMap((g) => g.filters)
+      .filter((f: any) => f.id === CRAFTED_ID && !f.disabled);
+    expect(enabledCrafted).toHaveLength(0);
+  });
+
+  it("K12 選工藝時不加排除工藝的 not 群組", async () => {
+    const m = await toggleMod();
+    const { item, preset, stats, spellCrit } = build(JEWEL);
+    m.selectCraftedMode(stats, spellCrit, "crafted");
+    expect(spellCrit.disabled).toBe(false);
+    expect(notCraftedGroups(statGroups(item, preset))).toHaveLength(0);
+  });
+
+  it("K13 隨機詞綴列勾選時不產生任何 not 群組", async () => {
+    await toggleMod();
+    const { item, preset, visible, spellCrit } = build(JEWEL);
+    const others = visible.filter((f) => f !== spellCrit && f.tag === FilterTag.Explicit);
+    expect(others).toHaveLength(3);
+    for (const f of others) f.disabled = false;
+    expect(spellCrit.disabled).toBe(true);
+    expect(notGroups(statGroups(item, preset))).toHaveLength(0);
   });
 });
