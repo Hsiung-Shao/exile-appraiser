@@ -112,12 +112,12 @@ describe('PoE1 詞綴全部列出', () => {
 })
 
 describe('PoE1 機制選項', () => {
-  it('M6 破裂生命列只列一般 / 破裂 / 工藝', async () => {
+  it('M6 破裂生命列只列不限 / 一般 / 破裂 / 工藝', async () => {
     const m = await mech()
     const { stats } = build(CRAFTED_RING)
     const life = row(stats, LIFE, ModifierType.Fractured, true)
     expect(life).toBeDefined()
-    expect(m.mechanismOptions(life)).toEqual(['normal', 'fractured', 'crafted'])
+    expect(m.mechanismOptions(life)).toEqual(['any', 'normal', 'fractured', 'crafted'])
   })
 
   it('M7 有固定 id 的生命不列 implicit,也沒有褻瀆 / 增幅', async () => {
@@ -144,13 +144,16 @@ describe('PoE1 機制選項', () => {
     expect(f, '工藝冰冷抗性應有列').toBeDefined()
     expect(f!.tradeId).toEqual([id('crafted', N.cold)])
     expect(m.mechanismMode(f)).toBe('crafted')
-    expect(m.mechanismOptions(f)).toEqual(['normal', 'fractured', 'crafted'])
+    expect(m.mechanismDefault(f)).toBe('crafted')
+    expect(m.mechanismOptions(f)).toEqual(['any', 'normal', 'fractured', 'crafted'])
   })
 
-  it('M6 破裂生命列(送 explicit id)預設為一般', async () => {
+  it('M18 破裂生命列(送 explicit id)預設為不限(2026-10-18)', async () => {
     const m = await mech()
     const { stats } = build(CRAFTED_RING)
-    expect(m.mechanismMode(row(stats, LIFE, ModifierType.Fractured, true))).toBe('normal')
+    const life = row(stats, LIFE, ModifierType.Fractured, true)!
+    expect(m.mechanismMode(life)).toBe('any')
+    expect(m.mechanismDefault(life)).toBe('any')
   })
 })
 
@@ -181,6 +184,24 @@ describe('PoE1 選機制與一般模式排除', () => {
     expect(enabledIds(groups)).toContain(id('explicit', N.life))
     expect(notGroups(groups)).toHaveLength(1)
     expect(notIds(groups)).toEqual([id('fractured', N.life)])
+  })
+
+  it('M18 勾選不限(預設)的破裂生命:沒有 not 群組;選一般再選回不限也一樣', async () => {
+    const m = await mech()
+    const { preset, stats } = build(CRAFTED_RING)
+    const life = row(stats, LIFE, ModifierType.Fractured, true)!
+    life.disabled = false
+    let groups = groupsOf(preset)
+    expect(enabledIds(groups)).toContain(id('explicit', N.life))
+    expect(notGroups(groups)).toHaveLength(0)
+    m.selectMechanism(stats, life, 'normal')
+    expect(m.mechanismMode(life)).toBe('normal')
+    expect(notGroups(groupsOf(preset))).toHaveLength(1)
+    m.selectMechanism(stats, life, 'any')
+    expect(m.mechanismMode(life)).toBe('any')
+    groups = groupsOf(preset)
+    expect(life.tradeId).toEqual([id('explicit', N.life)])
+    expect(notGroups(groups)).toHaveLength(0)
   })
 
   it('M10 破裂生命與工藝冰冷抗性都勾選一般:合併成一個 not 群組、各只含自己的機制 id', async () => {

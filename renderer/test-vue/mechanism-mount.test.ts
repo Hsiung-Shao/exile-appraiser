@@ -155,7 +155,7 @@ describe('機制分段按鈕掛載', () => {
     app.unmount()
   })
 
-  it('PoE1:破裂生命列有一般 / 破裂 / 工藝,點工藝改送 crafted id;偽屬性列不輸出', async () => {
+  it('PoE1:破裂生命列有不限 / 一般 / 破裂 / 工藝,點工藝改送 crafted id;偽屬性列不輸出', async () => {
     const item = poe1Parse(POE1_RING)._unsafeUnwrap()
     const { presets, active } = poe1CreatePresets(item, opts('en'))
     const preset = presets.find(p => p.id === active)!
@@ -175,8 +175,8 @@ describe('機制分段按鈕掛載', () => {
 
     const g = () => rowGroup(lifeIdx)!
     expect(rowGroup(lifeIdx), '生命列應有機制按鈕').toBeDefined()
-    expect(choices(g())).toEqual(['normal', 'fractured', 'crafted'])
-    expect(pressed(g())).toEqual(['normal'])
+    expect(choices(g())).toEqual(['any', 'normal', 'fractured', 'crafted'])
+    expect(pressed(g())).toEqual(['any'])
 
     click(choice(g(), 'crafted'))
     await nextTick()

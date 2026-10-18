@@ -319,12 +319,19 @@ describe("B 機制選項(PoE2)", () => {
     ]);
   });
 
-  it("M6 珠寶法術暴擊列有一般 / 破裂 / 工藝 / 褻瀆", async () => {
+  it("M6 珠寶法術暴擊列(工藝來源)有不限 / 一般 / 破裂 / 工藝 / 褻瀆", async () => {
     const m = await mech();
     const { stats } = build(JEWEL);
-    expect(
-      m.mechanismOptions(row(stats, SPELL_CRIT, ModifierType.Crafted, true)),
-    ).toEqual(["normal", "fractured", "crafted", "desecrated"]);
+    const f = row(stats, SPELL_CRIT, ModifierType.Crafted, true)!;
+    expect(m.mechanismOptions(f)).toEqual([
+      "any",
+      "normal",
+      "fractured",
+      "crafted",
+      "desecrated",
+    ]);
+    expect(m.mechanismMode(f)).toBe("any");
+    expect(m.mechanismDefault(f)).toBe("any");
   });
 
   it("M6 pseudo 列與只有 explicit id 的 stat 不給選項", async () => {
@@ -465,14 +472,38 @@ describe("M9 / M10 / M15 / M16 一般模式只排除來源本身的機制(PoE2)"
   });
 
   it("M9 珠寶勾選一般的工藝法術暴擊:not 群組恰好只含工藝 id(原 K10)", async () => {
-    await mech();
+    const m = await mech();
     const { item, preset, stats } = build(JEWEL);
     const f = row(stats, SPELL_CRIT, ModifierType.Crafted, true)!;
+    m.selectMechanism(stats, f, "normal");
     f.disabled = false;
     const groups = queryGroups(item, preset);
     expect(enabledIds(groups)).toContain(ids("explicit", N.spellCrit));
     expect(notGroups(groups)).toHaveLength(1);
     expect(notIds(groups)).toEqual([ids("crafted", N.spellCrit)]);
+  });
+
+  it("M18 勾選不限(預設)的工藝 / 褻瀆 / 破裂三列:不加 not 群組(2026-10-18)", async () => {
+    const m = await mech();
+    const { item, preset, stats } = build(CHEST_MIXED);
+    const rows = [
+      row(stats, FIRE, ModifierType.Crafted, true)!,
+      row(stats, COLD, ModifierType.Desecrated, true)!,
+      row(stats, LIGHTNING, ModifierType.Fractured, true)!,
+    ];
+    for (const f of rows) {
+      expect(m.mechanismMode(f)).toBe("any");
+      f.disabled = false;
+    }
+    let groups = queryGroups(item, preset);
+    expect(enabledIds(groups)).toContain(ids("explicit", N.fire));
+    expect(notGroups(groups)).toHaveLength(0);
+    m.selectMechanism(stats, rows[0], "normal");
+    expect(notIds(queryGroups(item, preset))).toEqual([ids("crafted", N.fire)]);
+    m.selectMechanism(stats, rows[0], "any");
+    groups = queryGroups(item, preset);
+    expect(rows[0].tradeId).toEqual([ids("explicit", N.fire)]);
+    expect(notGroups(groups)).toHaveLength(0);
   });
 
   it("M9 預設沒有勾選隨機詞綴時不加 not 群組(原 K11)", async () => {

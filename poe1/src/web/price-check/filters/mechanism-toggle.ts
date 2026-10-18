@@ -7,6 +7,8 @@
 // - 選非一般 = tradeId 換成該機制 ids、勾選、其他送同一組 ids 的列(破裂孿生)取消勾選;選一般 = 換回 explicit(勾選不動)。
 // - 查詢(trade/pathofexile-trade.ts):勾選中、模式一般、來源本身是破裂 / 工藝的列,該機制的 ids 併進同一個 not 群組
 //   (一般隨機來源不排除)。
+// - 2026-10-18「不限」(使用者回報:機制開關關著也帶 not):來源本身是破裂 / 工藝的列多一個「不限」
+//   (送 explicit、不排除)並為預設;「一般」改為使用者選了才排除(`mechanismExclude`)。
 // - 只對魔法 / 稀有物品(主對話 2026-10-16 裁定):傳奇 / 普通、地圖類不給選項。有物品時(元件)由 item 判斷;
 //   查詢端(createTradeRequest)沒有 item,改看 create-presets 在不適用物品的列標的 `noMechanism`。
 // PoE2 同名檔同規則(另有褻瀆 / 增幅)。
@@ -14,10 +16,10 @@ import { ItemCategory, ItemRarity, type ParsedItem } from '@/parser'
 import { ModifierType } from '@/parser/modifiers'
 import { FilterTag, type FilterOrGroup, type StatFilter } from './interfaces'
 
-export type MechanismMode = 'normal' | 'fractured' | 'crafted'
+export type MechanismMode = 'any' | 'normal' | 'fractured' | 'crafted'
 
 /** 一般以外的機制,依顯示順序 */
-const MECHANISMS: ReadonlyArray<[Exclude<MechanismMode, 'normal'>, ModifierType]> = [
+const MECHANISMS: ReadonlyArray<[Exclude<MechanismMode, 'any' | 'normal'>, ModifierType]> = [
   ['fractured', ModifierType.Fractured],
   ['crafted', ModifierType.Crafted]
 ]
@@ -55,6 +57,17 @@ export function markMechanismEligibility (stats: readonly FilterOrGroup[], item:
   }
 }
 
+/** 「一般」排除只看這幾種來源機制 */
+const EXCLUDABLE: ReadonlyArray<[MechanismMode, ModifierType]> = [
+  ['fractured', ModifierType.Fractured],
+  ['crafted', ModifierType.Crafted]
+]
+
+/** 來源全部是單一可排除機制(破裂 / 工藝)時回那個機制 */
+function excludableSource (filter: StatFilter): MechanismMode | undefined {
+  return EXCLUDABLE.find(([, type]) => filter.sources.every(s => s.modifier.info.type === type))?.[0]
+}
+
 function sameIds (a: readonly string[], b: readonly string[]): boolean {
   return a.length === b.length && a.every((id, i) => id === b[i])
 }
@@ -73,6 +86,9 @@ export function mechanismIds (filter: StatFilter, item?: ParsedItem): Map<Mechan
     if (mIds?.length) out.set(mode, mIds)
   }
   if (out.size < 2) return null
+  // 「不限」只在「一般」會排除東西時才有差別(來源本身是破裂 / 工藝且該機制有 id),放最前面
+  const src = excludableSource(filter)
+  if (src && out.has(src)) return new Map<MechanismMode, string[]>([['any', base], ...out])
   if (![...out.values()].some(v => sameIds(filter.tradeId, v))) return null
   return out
 }
@@ -87,28 +103,35 @@ export function mechanismOptions (filter: StatFilter, item?: ParsedItem): Mechan
 export function mechanismMode (filter: StatFilter): MechanismMode {
   const ids = mechanismIds(filter)
   if (!ids) return 'normal'
-  for (const [mode, v] of ids) if (sameIds(filter.tradeId, v)) return mode
+  for (const [mode, v] of ids) {
+    if (!sameIds(filter.tradeId, v)) continue
+    // 不限 / 一般送同一組 explicit ids,由使用者有沒有選「一般」區分
+    if (mode === 'any') return filter.mechanismExclude ? 'normal' : 'any'
+    return mode
+  }
   return 'normal'
 }
 
 /**
  * 這列「原本」的機制(2026-10-16「機制」開關:關著時只有被改過的列顯示按鈕):
- * 列的 tag 本身是某個機制(工藝台詞綴 = 工藝)就是它,其他(含併成 explicit 的破裂列)為一般。
+ * 列的 tag 本身是某個機制(工藝台詞綴 = 工藝)就是它;有「不限」的列(併成 explicit 的破裂 / 工藝列)為不限;其他為一般。
  */
 export function mechanismDefault (filter: StatFilter): MechanismMode {
   const opts: string[] = mechanismOptions(filter)
-  return opts.includes(filter.tag) ? filter.tag as MechanismMode : 'normal'
+  if (opts.includes(filter.tag)) return filter.tag as MechanismMode
+  return opts[0] === 'any' ? 'any' : 'normal'
 }
 
 /**
- * 選一個機制。非一般:tradeId 換成該機制 ids、勾選、其他送同一組 ids 的列取消勾選;
- * 一般:換回 explicit(勾選狀態不動)。不適用或沒有這個選項時什麼都不做。
+ * 選一個機制。破裂 / 工藝:tradeId 換成該機制 ids、勾選、其他送同一組 ids 的列取消勾選;
+ * 一般 / 不限:換回 explicit(勾選狀態不動),一般另標 `mechanismExclude`。不適用或沒有這個選項時什麼都不做。
  */
 export function selectMechanism (filters: readonly StatFilter[], filter: StatFilter, mode: MechanismMode): void {
   const ids = mechanismIds(filter)?.get(mode)
   if (!ids) return
   filter.tradeId = [...ids]
-  if (mode === 'normal') return
+  filter.mechanismExclude = mode === 'normal' || undefined
+  if (mode === 'normal' || mode === 'any') return
   filter.disabled = false
   for (const other of filters) {
     if (other === filter || other.group) continue
@@ -116,14 +139,9 @@ export function selectMechanism (filters: readonly StatFilter[], filter: StatFil
   }
 }
 
-/** 「一般」排除只看這幾種來源機制 */
-const EXCLUDABLE: ReadonlyArray<[MechanismMode, ModifierType]> = [
-  ['fractured', ModifierType.Fractured],
-  ['crafted', ModifierType.Crafted]
-]
-
 /**
- * 「一般」排除(使用者 2026-10-16 裁定:只排除該列「來源本身」的機制):勾選中、模式一般、
+ * 「一般」排除(使用者 2026-10-16 裁定:只排除該列「來源本身」的機制;2026-10-18 起預設「不限」= 不排除,
+ * 使用者選「一般」才排除):勾選中、模式一般、
  * 來源全部是單一機制 X(破裂 / 工藝)的列,not 只放該列 X 的 ids;一般隨機來源不排除
  * (not 群組是「整件物品含該 stat id 即排除」,排除隨機會誤殺工藝混合詞綴等正常掛單)。
  * 多列合併、去重;已被勾選列直接送出的 id 不放。回 [] = 不排除。
@@ -135,8 +153,8 @@ export function mechanismNotIds (stats: readonly StatFilter[]): string[] {
     if (stat.disabled) continue
     const ids = mechanismIds(stat)
     if (!ids || mechanismMode(stat) !== 'normal') continue
-    const src = EXCLUDABLE.find(([, type]) => stat.sources.every(s => s.modifier.info.type === type))
-    const own = src && ids.get(src[0])
+    const src = excludableSource(stat)
+    const own = src && ids.get(src)
     if (!own) continue
     for (const id of own) if (!sent.has(id)) out.add(id)
   }
