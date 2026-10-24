@@ -19,7 +19,7 @@
       >
         <div
           v-for="socket in sockets"
-          class="w-8 h-8 bg-no-repeat bg-center bg-[size:2rem]"
+          class="w-8 h-8 bg-no-repeat bg-center bg-size-[2rem]"
           :class="$style[`t-${socket.type}-${socket.item ?? 'empty'}`]"
         />
       </div>
@@ -57,6 +57,7 @@ export default defineComponent({
 </script>
 
 <style lang="postcss" module>
+@reference "../../../../renderer/src/theme/tailwind.css";
 .icon-w-1 {
   @apply w-12;
 }

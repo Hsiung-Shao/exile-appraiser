@@ -70,6 +70,7 @@ export default defineComponent({
 </script>
 
 <style lang="postcss" module>
+@reference "../../../../../renderer/src/theme/tailwind.css";
 .tier-1, .tier-2, .not-tier-1, .merc-gilded {
   @apply rounded px-1;
   white-space: nowrap;

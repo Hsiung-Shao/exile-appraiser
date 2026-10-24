@@ -166,7 +166,7 @@
       </div>
       <div
         v-if="showItemEditor !== 'none'"
-        class="flex items-center bg-gray-900 rounded border border-gray-500 justify-center shrink-0 w-8 h-8"
+        class="flex items-center bg-gray-900 rounded-sm border border-gray-500 justify-center shrink-0 w-8 h-8"
       >
         <popover :delay="[0, 500]" placement="right">
           <template #target>

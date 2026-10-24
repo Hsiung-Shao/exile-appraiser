@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="extractionProfits"
-    class="p-2 border-2 rounded mt-2 flex items-center gap-1"
+    class="p-2 border-2 rounded-sm mt-2 flex items-center gap-1"
     :class="{
       'border-red-500 border': extractionProfits,
       'border-gray-600 border-dashed': !extractionProfits,

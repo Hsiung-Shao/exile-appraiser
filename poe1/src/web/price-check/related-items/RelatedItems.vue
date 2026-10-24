@@ -2,7 +2,7 @@
   <div v-if="result" :class="[$style['wrapper'], $style[clickPosition]]" data-panel="related-items">
     <div v-if="'related' in result" class="flex-1 p-2 w-1/2">
       <div v-for="item in result.related" :key="item.name"
-        :class="{ 'bg-gray-700': item.highlight }" class="rounded px-1">
+        :class="{ 'bg-gray-700': item.highlight }" class="rounded-sm px-1">
         <item-quick-price currency-text fraction class="text-base"
           :price="item.price"
           :item-img="item.icon" />
@@ -81,6 +81,7 @@ export default defineComponent({
 </script>
 
 <style lang="postcss" module>
+@reference "../../../../../renderer/src/theme/tailwind.css";
 .wrapper {
   display: flex;
   @apply bg-gray-800 text-gray-400 mt-6;

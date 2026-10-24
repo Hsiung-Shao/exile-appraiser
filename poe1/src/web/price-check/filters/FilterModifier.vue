@@ -326,6 +326,7 @@ export default defineComponent({
 </script>
 
 <style lang="postcss" module>
+@reference "../../../../../renderer/src/theme/tailwind.css";
 .filter {
   padding: 0.4em 0;
   min-height: 2.9em;
@@ -534,6 +535,7 @@ export default defineComponent({
 </style>
 
 <style lang="postcss">
+@reference "../../../../../renderer/src/theme/tailwind.css";
 .search-text-full {
   position: absolute;
   left: 0px;

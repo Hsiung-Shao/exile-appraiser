@@ -12,7 +12,7 @@
         <template v-for="(section, index) in sections" :key="section.key">
           <div :data-section="section.key">
             <div v-for="(mod, j) in section.content" :key="j" class="flex items-center justify-between gap-1">
-              <span class="flex-grow text-center">
+              <span class="grow text-center">
                 <template v-if="mod.segments">
                   <span v-for="(sg, k) in mod.segments" :key="k" :class="sg.value ? $style[`c-${sg.color}`] : 'text-gray-400'">{{ sg.text }}</span>
                 </template>
@@ -101,6 +101,7 @@ export default defineComponent({
 </script>
 
 <style lang="postcss" module>
+@reference "../../../../../renderer/src/theme/tailwind.css";
 .i-w-1 { @apply w-12; }
 .i-w-2 { @apply w-24; }
 .i-w-3 { @apply w-36; }
@@ -146,5 +147,5 @@ export default defineComponent({
 .Magic-separator { background-image: url("/images/item-display/separator-magic.png"); }
 .Rare-separator { background-image: url("/images/item-display/separator-rare.png"); }
 .Unique-separator { background-image: url("/images/item-display/separator-unique.png"); }
-.plain-separator { @apply block h-[2px] bg-gradient-to-r from-transparent via-gray-400 to-transparent my-1; }
+.plain-separator { @apply block h-[2px] bg-linear-to-r/srgb from-transparent via-gray-400 to-transparent my-1; }
 </style>

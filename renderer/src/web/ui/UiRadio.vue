@@ -36,6 +36,7 @@ export default defineComponent({
 </script>
 
 <style lang="postcss" module>
+@reference "../../theme/tailwind.css";
 .radio {
   display: flex;
   @apply gap-x-1;

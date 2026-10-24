@@ -24,7 +24,7 @@
       >
       <span
         v-if="result.listedTimes > 2"
-        class="rounded px-1 text-gray-800 bg-gray-400 -mr-2"
+        class="rounded-sm px-1 text-gray-800 bg-gray-400 -mr-2"
         ><span class="font-sans">×</span> {{ result.listedTimes }}</span
       ><i v-else-if="!result.hasNote" class="fas fa-question" />
     </td>
@@ -64,24 +64,24 @@
       </div>
       <span
         v-if="!showSeller && result.isMine"
-        class="rounded px-1 text-gray-800 bg-gray-400 ml-1"
+        class="rounded-sm px-1 text-gray-800 bg-gray-400 ml-1"
         >{{ t("You") }}</span
       >
       <span
         v-if="!showSeller && result.inDemand"
-        class="rounded px-1 bg-yellow-500 text-black ml-1"
+        class="rounded-sm px-1 bg-yellow-500 text-black ml-1"
         >{{ t("in demand") }}</span
       >
       <span
         v-if="!showSeller && result.gone"
-        class="rounded border px-1 border-red-500 text-red-500 ml-1"
+        class="rounded-sm border px-1 border-red-500 text-red-500 ml-1"
         >{{ t("Gone") }}</span
       >
     </td>
     <td v-if="showSeller" class="px-2 whitespace-nowrap">
       <span
         v-if="result.isMine"
-        class="rounded px-1 text-gray-800 bg-gray-400"
+        class="rounded-sm px-1 text-gray-800 bg-gray-400"
         >{{ t("You") }}</span
       >
       <span v-else class="font-sans text-xs">{{
@@ -89,12 +89,12 @@
       }}</span>
       <span
         v-if="result.inDemand"
-        class="rounded px-1 bg-yellow-500 text-black ml-1"
+        class="rounded-sm px-1 bg-yellow-500 text-black ml-1"
         >{{ t("in demand") }}</span
       >
       <span
         v-if="!showSeller && result.gone"
-        class="rounded border-2 px-1 border-red-500 text-red-500 ml-1"
+        class="rounded-sm border-2 px-1 border-red-500 text-red-500 ml-1"
         >{{ t("Gone") }}</span
       >
     </td>
@@ -151,12 +151,12 @@
     <span v-else-if="showSeller" class="listing-meta font-sans text-xs">{{
       showSeller === "ign" ? result.ign : result.accountName
     }}</span>
-    <span v-if="result.inDemand" class="rounded px-1 bg-yellow-500 text-black">{{
+    <span v-if="result.inDemand" class="rounded-sm px-1 bg-yellow-500 text-black">{{
       t("in demand")
     }}</span>
     <span
       v-if="result.gone"
-      class="rounded border px-1 border-red-500 text-red-500"
+      class="rounded-sm border px-1 border-red-500 text-red-500"
       >{{ t("Gone") }}</span
     >
   </div>
@@ -317,6 +317,7 @@ export default defineComponent({
 </script>
 
 <style lang="postcss">
+@reference "../../../../../renderer/src/theme/tailwind.css";
 .tippy-box[data-theme~="item-tooltip"] {
   @apply w-fit h-fit;
   /* hiding box more */

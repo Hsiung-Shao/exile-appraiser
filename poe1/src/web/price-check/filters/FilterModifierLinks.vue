@@ -42,6 +42,7 @@ const gems = computed(() => {
 </script>
 
 <style lang="postcss" module>
+@reference "../../../../../renderer/src/theme/tailwind.css";
 .links {
   display: flex;
   gap: theme('spacing[2.5]');

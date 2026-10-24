@@ -5,7 +5,7 @@
         v-for="item in result.related"
         :key="item.name"
         :class="{ 'bg-gray-700': item.highlight }"
-        class="rounded px-1"
+        class="rounded-sm px-1"
       >
         <item-quick-price
           currency-text
@@ -111,6 +111,7 @@ export default defineComponent({
 </script>
 
 <style lang="postcss" module>
+@reference "../../../../../renderer/src/theme/tailwind.css";
 .wrapper {
   display: flex;
   @apply bg-gray-800 text-gray-400 mt-6;

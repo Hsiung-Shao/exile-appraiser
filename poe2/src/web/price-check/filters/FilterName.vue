@@ -1,7 +1,7 @@
 <template>
   <div class="filter-name">
     <button
-      class="px-2 rounded border overflow-hidden text-ellipsis"
+      class="px-2 rounded-sm border overflow-hidden text-ellipsis"
       :class="{
         'border-gray-500': showAsActive,
         'border-gray-900': !showAsActive,
@@ -101,6 +101,7 @@ export default defineComponent({
 </script>
 
 <style lang="postcss">
+@reference "../../../../../renderer/src/theme/tailwind.css";
 .filter-name {
   @apply bg-gray-900 mb-2 rounded;
   line-height: 1.25rem;

@@ -1,0 +1,49 @@
+/*
+  exile-appraiser:Tailwind 4 的 preflight(App.vue 第一段 <style>;2026-10-24 由 v3 升級)。
+  - theme 與 preflight 必須在同一個檔:preflight 用 `--theme(--default-font-family, …)`,沒有 theme 時不會被解析而殘留成無效宣告。
+  - preflight 明確放進 `layer(base)`(v4.3 的 preflight.css 本身不帶 @layer):最低優先,pobtools.css 與 utilities(都未分層)照舊蓋過它,
+    順序語意與 v3(preflight 最早)相同。
+  - 下方相容層必須同在 base layer(放在未分層會蓋過 pobtools / utilities;放在別的檔則順序不保證在 preflight 之後)。
+*/
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/preflight.css' layer(base);
+
+/*
+  v4 預設值變更的相容層(升級指南建議照 v3 外觀保留;值取自 v3 設定):
+  - 預設邊框色:v3 = theme('borderColor.DEFAULT') = gray.200 = var(--ink-0);v4 改成 currentColor。
+  - button 的游標:v3 preflight 是 pointer,v4 改成 default。
+  - placeholder 顏色:v3 = gray.400 = var(--ink-2);v4 改成 currentColor 的 50%(pobtools.css 另有 input::placeholder 會蓋過,維持原結果)。
+  - v4 preflight 對所有元素 padding: 0、表單控制項 background-color: transparent;v3 只重置特定元素,<th> / <td> 與 input / select / textarea 維持瀏覽器預設
+    (用 Electron 的 Chromium 逐元素比對計算樣式找出的差異;原生 <dialog> 的置中 margin 也被洗掉,但專案沒有用 <dialog>,不補)。
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--ink-0);
+  }
+
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--ink-2);
+  }
+
+  th,
+  td {
+    padding: 1px;
+  }
+
+  input,
+  select,
+  textarea,
+  optgroup {
+    background-color: revert-layer;
+  }
+}

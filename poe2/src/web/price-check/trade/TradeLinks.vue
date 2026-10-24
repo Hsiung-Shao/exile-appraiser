@@ -17,7 +17,7 @@
     <button
       v-else
       @click="open(true)"
-      class="bg-gray-700 text-gray-400 rounded px-2"
+      class="bg-gray-700 text-gray-400 rounded-sm px-2"
     >
       {{ t(text) }} <i class="fas fa-external-link-alt text-xs" />
     </button>

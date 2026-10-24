@@ -1,6 +1,6 @@
 <template>
   <div
-    class="hover:bg-gray-700 rounded flex items-center overflow-hidden px-1 cursor-pointer"
+    class="hover:bg-gray-700 rounded-sm flex items-center overflow-hidden px-1 cursor-pointer"
     :class="[selected ? ' bg-gray-900 border' : '']"
   >
     <div class="flex items-center justify-center shrink-0 w-8 h-8">
@@ -15,7 +15,7 @@
       <div class="text-left text-gray-500 whitespace-nowrap">
         {{ item.name }}
       </div>
-      <div class="text-left whitespace-pre-line text-wrap break-words">
+      <div class="text-left whitespace-pre-line text-wrap wrap-break-word">
         {{ item.displayString }}
       </div>
     </div>

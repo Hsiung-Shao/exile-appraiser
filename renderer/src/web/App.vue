@@ -722,14 +722,15 @@ export default defineComponent({
 
 <!--
   exile-appraiser: 三段 style 決定層疊順序:Tailwind preflight → 主題(pobtools.css,蓋過 preflight 的
-  html/body 字型、行高)→ Tailwind components/utilities(utility class 仍可蓋過 .btn 等主題元件)。
+  html/body 字型、行高)→ Tailwind utilities(utility class 仍可蓋過 .btn 等主題元件)。
   html/body 底色、捲軸、.btn/.input/.card/.tab/.seg/.chip 等全域規則都在 pobtools.css;overlay 透明背景(html.ppz-overlay)也在那裡。
+  Tailwind 4(2026-10-24):每段 <style> 各自編譯,不能再用 `@tailwind` 指令拆在三段;preflight 在第一段、utilities 在第三段(theme/tailwind.css)。
 -->
 <style lang="postcss">
-@import url('@fortawesome/fontawesome-free/css/all.min.css');
-@import url('animate.css/animate.css');
-@import url('../assets/font.css');
-@tailwind base;
+@import '@fortawesome/fontawesome-free/css/all.min.css';
+@import 'animate.css/animate.css';
+@import '../assets/font.css';
+@import '../theme/tailwind-preflight.css';
 </style>
 
 <style>
@@ -737,8 +738,7 @@ export default defineComponent({
 </style>
 
 <style lang="postcss">
-@tailwind components;
-@tailwind utilities;
+@import '../theme/tailwind.css';
 
 .table-stripped tbody tr:nth-child(odd) {
   background: var(--surface-2);

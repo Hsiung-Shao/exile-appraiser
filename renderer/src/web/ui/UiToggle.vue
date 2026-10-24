@@ -29,6 +29,7 @@ export default defineComponent({
 </script>
 
 <style lang="postcss" module>
+@reference "../../theme/tailwind.css";
 .toggle {
   display: flex;
   align-items: center;

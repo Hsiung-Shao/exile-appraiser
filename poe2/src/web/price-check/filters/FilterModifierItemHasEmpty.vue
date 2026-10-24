@@ -65,6 +65,7 @@ export default defineComponent({
 </script>
 
 <style lang="postcss" module>
+@reference "../../../../../renderer/src/theme/tailwind.css";
 .button {
   @apply bg-gray-700;
   @apply rounded;

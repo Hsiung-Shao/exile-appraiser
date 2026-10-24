@@ -1,5 +1,5 @@
 <template>
-  <div class="p-2 border-dashed border border-gray-600 rounded mt-2 text-gray-400 leading-none" data-dust-value>
+  <div class="p-2 border-dashed border border-gray-600 rounded-sm mt-2 text-gray-400 leading-none" data-dust-value>
     {{ t('item.disenchanting') }} <i class="fas fa-arrow-right text-gray-600 px-1 text-xs"></i> {{ item.dustEquivalent!.toLocaleString() }} <span class="font-sans">×</span> <img src="/images/dust.png" class="w-5 -my-5 inline-block" />
     <span v-if="perChaos != null" class="ml-3 whitespace-nowrap" data-dust-per-chaos :title="priceTitle">{{ t('ppz.dust.per_chaos', { n: perChaos.toLocaleString() }) }}<span v-if="price!.lowConfidence" class="ml-1 text-warn" data-dust-low-confidence :title="t('ppz.dust.low_confidence', { count: price!.count })">⚠</span></span>
   </div>

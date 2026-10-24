@@ -110,7 +110,7 @@
       <!-- LIKELY PRICE FIXED -->
       <div
         v-if="isLikelyPriceFixed"
-        class="p-2 border-2 border-gray-600 rounded mt-2"
+        class="p-2 border-2 border-gray-600 rounded-sm mt-2"
       >
         <div class="flex text-gray-400 leading-none">
           <div class="mt-1">
@@ -132,7 +132,7 @@
       <!-- ADDED AUGMENTS COST -->
       <!-- <div
         v-if="addedAugments && addedAugments.length"
-        class="p-2 border-2 border-gray-600 rounded mt-2 flex items-center"
+        class="p-2 border-2 border-gray-600 rounded-sm mt-2 flex items-center"
       >
         <div class="w-fit">{{ t(":added_augments") }}</div>
         <div class="flex px-2 items-center">
@@ -151,7 +151,7 @@
   <ui-error-box v-else>
     <template #name>{{ t(":error") }}</template>
     <p>Error: {{ error }}</p>
-    <div v-if="error && errorFix" class="border p-1 rounded">
+    <div v-if="error && errorFix" class="border p-1 rounded-sm">
       {{ errorFix }}
     </div>
     <template #actions>
@@ -364,6 +364,7 @@ export default defineComponent({
 </script>
 
 <style lang="postcss">
+@reference "../../../../../renderer/src/theme/tailwind.css";
 .trade-table-heading {
   @apply sticky top-0;
   @apply bg-gray-800;

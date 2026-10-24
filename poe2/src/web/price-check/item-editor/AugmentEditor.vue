@@ -8,7 +8,7 @@
           :key="`${index}+${augment?.refName}`"
         >
           <div
-            class="rounded-full bg-opacity-50 border-2 border-transparent"
+            class="rounded-full border-2 border-transparent"
             :class="{
               'hover:bg-gray-700 hover:border-gray-500 cursor-pointer':
                 selectedAugment && (augment === null || !augment.socketBound),
@@ -120,7 +120,7 @@
     <div class="flex flex-row justify-between">
       <div class="flex flex-row gap-1">
         <div>{{ t(":save_type") }}</div>
-        <select v-model="saveType" class="p-1 rounded bg-gray-700 w-28">
+        <select v-model="saveType" class="p-1 rounded-sm bg-gray-700 w-28">
           <option value="class">
             {{ item.category ?? "Unknown" }}
           </option>

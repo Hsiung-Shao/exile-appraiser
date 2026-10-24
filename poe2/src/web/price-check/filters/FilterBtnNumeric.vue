@@ -126,6 +126,7 @@ export default defineComponent({
 </script>
 
 <style lang="postcss" module>
+@reference "../../../../../renderer/src/theme/tailwind.css";
 .btn {
   /* 2026-10-14 B 改版:物品標頭膠囊 */
   display: flex;

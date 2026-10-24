@@ -35,7 +35,7 @@
               :key="mod.text"
               class="flex items-center justify-between gap-1"
             >
-              <span class="flex-grow text-center">
+              <span class="grow text-center">
                 <span
                   :class="
                     mod.value
@@ -72,7 +72,7 @@
             />
             <hr
               v-else
-              class="block h-[2px] bg-gradient-to-r from-transparent via-gray-400 to-transparent my-1 border-0 border-none"
+              class="block h-[2px] bg-linear-to-r/srgb from-transparent via-gray-400 to-transparent my-1 border-0 border-none"
             />
           </template>
         </template>
@@ -179,6 +179,7 @@ export default defineComponent({
 </script>
 
 <style lang="postcss" module>
+@reference "../../../../../renderer/src/theme/tailwind.css";
 .mod {
   @apply text-sm;
 }

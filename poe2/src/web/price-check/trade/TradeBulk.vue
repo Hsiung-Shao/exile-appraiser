@@ -170,14 +170,14 @@
                 </div>
                 <span
                   v-if="!showSeller && result.isMine"
-                  class="rounded px-1 text-gray-800 bg-gray-400 ml-1"
+                  class="rounded-sm px-1 text-gray-800 bg-gray-400 ml-1"
                   >{{ t("You") }}</span
                 >
               </td>
               <td v-if="showSeller" class="px-2 whitespace-nowrap">
                 <span
                   v-if="result.isMine"
-                  class="rounded px-1 text-gray-800 bg-gray-400"
+                  class="rounded-sm px-1 text-gray-800 bg-gray-400"
                   >{{ t("You") }}</span
                 >
                 <span v-else class="font-sans text-xs">{{
@@ -380,6 +380,7 @@ export default defineComponent({
 </script>
 
 <style lang="postcss">
+@reference "../../../../../renderer/src/theme/tailwind.css";
 .trade-bulk-currency-icon {
   width: 1.75rem;
   height: 1.75rem;
