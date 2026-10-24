@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node ../scripts/check-dist-css-urls.mjs dist",
     "typecheck": "vue-tsc --noEmit -p tsconfig.json",
     "test": "vitest run && vitest run -c vitest.vue.config.mts"
   },

@@ -46,4 +46,12 @@
   optgroup {
     background-color: revert-layer;
   }
+
+  /*
+    Font Awesome 7(2026-10-24 由 6 升級)的圖示預設等寬:`width: var(--fa-width, 1.25em)`;v6 是自然寬度,只有 `fa-fw` 才是 1.25em。
+    把根的 --fa-width 設成 auto 維持 v6 外觀;要等寬的元素自己加 `fa-fw`(元素上的自訂屬性蓋過繼承值)。守門 renderer/test/fa-width-compat.test.ts。
+  */
+  :root {
+    --fa-width: auto;
+  }
 }

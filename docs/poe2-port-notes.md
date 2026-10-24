@@ -228,7 +228,8 @@ Tailwind 3.4 → 4.3 的批次改名,poe1 / poe2 / renderer 共約 49 個 `.vue`
 | 含 `@apply` / `theme()` 的 `<style>` 區塊 | 區塊開頭加 `@reference "<相對路徑>/renderer/src/theme/tailwind.css"; /* exile-appraiser: … */`(38 處 / 35 檔) | v4 的 SFC 樣式是獨立編譯單位,不 `@reference` 就認不得 utility |
 | `RateLimiterState.vue`(兩代) | module CSS 的巢狀 `:global { animation: shakeX … }` → 另一個非 module `<style>` 的全域 class `ppz-limited-shake`,模板 `:class` 同時掛 `$style.limited` | v4 的處理順序把巢狀 `:global { 宣告 }` 靜默丟掉(按鈕不再搖),無錯誤訊息 |
 | `theme('spacing.2')`、`theme('borderRadius.DEFAULT')` 等 | **不改**(由 `tailwind.css` 的 `@config` 讀 `renderer/tailwind.config.cjs`,v4 相容層照常解析) | 省去 60 處改寫;日後完全移除 `@config` 時才需要換成 `var(--…)` |
-驗證方式(2026-10-24,Electron 的 Chromium 156 逐規則比對計算樣式):7 個情境(四主題、`.pob-dark`、`.bg-host`、token 覆寫)× v3 與 v4 的每條 CSS 規則,另做 preflight 的基礎元素逐元素比對,並以「v3 對 v3」當對照組(差異 0 = 量測本身穩定);已知且刻意保留的差異只有上表的預設值相容層(`renderer/src/theme/tailwind-preflight.css`)。**新增含 `@apply` 的區塊時別忘了 `@reference`**,漏掉的症狀是 build 報 `Cannot apply unknown utility class`。
+另外三個**不在移植檔內、但同一次升級必須處理**的項目(bug 審查與實測發現,commit 見下):① Font Awesome / animate.css / `assets/font.css` 的 `@import` 從 App.vue 搬到 `renderer/src/main.ts` 的 JS `import`(`@tailwindcss/postcss` 內嵌 `@import` 不重寫 `url()`,dist 有 18 個字型 `url()` 指向不存在的檔案,圖示與遊戲字型在正式版壞掉);② FA 7 圖示預設等寬(`width: var(--fa-width, 1.25em)`),相容層 `tailwind-preflight.css` 把根的 `--fa-width` 設 `auto` 維持 v6 外觀;③ `renderer` 的 `build` 接 `scripts/check-dist-css-urls.mjs`,dist CSS 的 `url()` 有缺檔就失敗。
+驗證方式(2026-10-24,Electron 的 Chromium 156 逐規則比對計算樣式;**這個方法只比規則、不查資源檔**,所以漏掉上面的字型遺失,資源檔另由 `check-dist-css-urls` 把關):7 個情境(四主題、`.pob-dark`、`.bg-host`、token 覆寫)× v3 與 v4 的每條 CSS 規則,另做 preflight 的基礎元素逐元素比對,並以「v3 對 v3」當對照組(差異 0 = 量測本身穩定);已知且刻意保留的差異只有上表的預設值相容層(`renderer/src/theme/tailwind-preflight.css`)。**新增含 `@apply` 的區塊時別忘了 `@reference`**,漏掉的症狀是 build 報 `Cannot apply unknown utility class`。
 
 ## 未做 / 待辦
 - 預測價(PricePrediction)。

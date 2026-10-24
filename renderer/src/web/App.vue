@@ -725,11 +725,10 @@ export default defineComponent({
   html/body 字型、行高)→ Tailwind utilities(utility class 仍可蓋過 .btn 等主題元件)。
   html/body 底色、捲軸、.btn/.input/.card/.tab/.seg/.chip 等全域規則都在 pobtools.css;overlay 透明背景(html.ppz-overlay)也在那裡。
   Tailwind 4(2026-10-24):每段 <style> 各自編譯,不能再用 `@tailwind` 指令拆在三段;preflight 在第一段、utilities 在第三段(theme/tailwind.css)。
+  含 url()(字型)的 CSS(Font Awesome、animate.css、assets/font.css)不能在這裡 `@import`:`@tailwindcss/postcss` 內嵌時不重寫相對 url(),
+  build 後字型檔找不到;它們改在 main.ts 以 JS `import`(守門 renderer/test/css-import-urls.test.ts)。
 -->
 <style lang="postcss">
-@import '@fortawesome/fontawesome-free/css/all.min.css';
-@import 'animate.css/animate.css';
-@import '../assets/font.css';
 @import '../theme/tailwind-preflight.css';
 </style>
 
