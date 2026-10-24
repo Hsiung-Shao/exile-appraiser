@@ -3,10 +3,10 @@ import fs from 'node:fs'
 import { defineConfig, type Plugin } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
-const ROOT = path.resolve(__dirname, '..')
+const ROOT = path.resolve(import.meta.dirname, '..')
 const POE1_SRC = path.resolve(ROOT, 'poe1/src')
 const POE2_SRC = path.resolve(ROOT, 'poe2/src')
-const RENDERER_SRC = path.resolve(__dirname, 'src')
+const RENDERER_SRC = path.resolve(import.meta.dirname, 'src')
 
 /**
  * `@/…` 的解析依「誰在 import」而定(Vite 的 resolve.alias 是全域的,做不到,所以用 pre 外掛):
@@ -67,7 +67,7 @@ function serveDataDir (): Plugin {
       })
     },
     closeBundle () {
-      const out = path.resolve(__dirname, 'dist/data')
+      const out = path.resolve(import.meta.dirname, 'dist/data')
       fs.rmSync(out, { recursive: true, force: true })
       fs.cpSync(DATA_DIR, out, { recursive: true })
     }
@@ -79,9 +79,6 @@ export default defineConfig({
   build: {
     target: 'esnext',
     assetsInlineLimit: 0
-  },
-  optimizeDeps: {
-    esbuildOptions: { target: 'esnext' }
   },
   plugins: [gameAwareAtAlias(), vue(), serveDataDir()],
   resolve: {
