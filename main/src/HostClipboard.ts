@@ -23,7 +23,8 @@ export interface ClipboardIO {
 
 /** 一次「複製物品文字」的工作階段:arm 讀 before 並清空,poll 輪詢到物品文字或逾時 */
 interface ReadSession {
-  textBefore: string
+  /** arm 讀到的原剪貼簿內容;undefined = 未知(沒有 arm 過),結束時不寫回,免得把使用者的剪貼簿蓋成空字串 */
+  textBefore: string | undefined
   /** 逾時時間點(`Date.now()` 毫秒);重按複製鍵會延長 */
   deadline: number
   armed: Promise<void>
@@ -34,6 +35,8 @@ const sleep = (ms: number) => new Promise<void>((resolve) => { setTimeout(resolv
 
 export class HostClipboard {
   private session?: ReadSession
+  /** 上一次查價正在把 before 寫回:下一次 arm 要等它完成,否則會讀到還沒寫回的物品文字 */
+  private pendingRestore?: Promise<void>
   private shouldRestore = false
 
   private isRestored = true
@@ -56,7 +59,7 @@ export class HostClipboard {
       existing.deadline = Date.now() + POLL_LIMIT
       return existing.armed
     }
-    const s: ReadSession = { textBefore: '', deadline: Date.now() + POLL_LIMIT, armed: Promise.resolve() }
+    const s: ReadSession = { textBefore: undefined, deadline: Date.now() + POLL_LIMIT, armed: Promise.resolve() }
     this.session = s
     s.armed = this.arm(s).catch((e: unknown) => {
       if (this.session === s) this.session = undefined
@@ -66,6 +69,8 @@ export class HostClipboard {
   }
 
   private async arm (s: ReadSession): Promise<void> {
+    // 上一次查價的寫回還沒完成就讀,會把還沒被換掉的物品文字當成 before(之後還原成空字串)
+    if (this.pendingRestore) await this.pendingRestore
     let textBefore = await this.io.readText()
     if (isPoeItem(textBefore)) {
       textBefore = ''
@@ -78,12 +83,12 @@ export class HostClipboard {
 
   /**
    * 等 arm 完成後輪詢(第 n 次讀取在 48×n ms),讀到物品文字回傳;逾時 reject。結束時依設定把 before 寫回。
-   * 沒有 arm 過(例如 arm 失敗後)就以空 before 盡力輪詢。
+   * 沒有 arm 過就盡力輪詢,但 before 未知(結束時不寫回)。
    */
   pollItemText (): Promise<string> {
     let s = this.session
     if (!s) {
-      s = { textBefore: '', deadline: Date.now() + POLL_LIMIT, armed: Promise.resolve() }
+      s = { textBefore: undefined, deadline: Date.now() + POLL_LIMIT, armed: Promise.resolve() }
       this.session = s
     }
     if (s.poll) return s.poll
@@ -99,11 +104,11 @@ export class HostClipboard {
         await sleep(POLL_DELAY)
         const textAfter = await this.io.readText()
         if (isPoeItem(textAfter)) {
-          await this.restoreBefore(s)
+          await this.finish(s)
           return textAfter
         }
         if (Date.now() >= s.deadline) {
-          await this.restoreBefore(s)
+          await this.finish(s)
           console.warn('[ClipboardPoller] No item text found.')
           throw new Error('Reading clipboard timed out')
         }
@@ -113,9 +118,24 @@ export class HostClipboard {
     }
   }
 
-  /** 還原失敗只記 log,不蓋掉讀到的物品文字或逾時的結果 */
+  /**
+   * 結果已定(讀到物品或逾時):**先**把工作階段摘掉(之後再按熱鍵開新的,不會沿用舊 poll 而拿到上一件物品),
+   * 再寫回 before;寫回期間登記為 `pendingRestore`,新的 arm 會等它完成。
+   */
+  private async finish (s: ReadSession): Promise<void> {
+    if (this.session === s) this.session = undefined
+    const p = this.restoreBefore(s)
+    this.pendingRestore = p
+    try {
+      await p
+    } finally {
+      if (this.pendingRestore === p) this.pendingRestore = undefined
+    }
+  }
+
+  /** 還原失敗只記 log,不蓋掉讀到的物品文字或逾時的結果;before 未知時不寫 */
   private async restoreBefore (s: ReadSession): Promise<void> {
-    if (!this.shouldRestore) return
+    if (!this.shouldRestore || s.textBefore === undefined) return
     try {
       await this.io.writeText(s.textBefore)
     } catch (e) {

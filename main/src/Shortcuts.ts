@@ -221,7 +221,7 @@ export class Shortcuts {
 
     const pressPosition = screen.getCursorScreenPoint()
     this.opts.beforeItemCopy?.()
-    void this.copyAndReadItem(action.focusOverlay, entry, pressPosition)
+    void this.copyAndReadItem(action.focusOverlay, entry, pressPosition).catch((e: unknown) => { console.warn('[shortcuts] 查價熱鍵失敗', e) })
   }
 
   /**
@@ -229,7 +229,17 @@ export class Shortcuts {
    * Electron 44 起清空是非同步,若先送鍵再清空,晚到的清空會蓋掉遊戲剛複製的物品文字。
    */
   private async copyAndReadItem (focusOverlay: boolean, entry: ShortcutAction, pressPosition: { x: number, y: number }): Promise<void> {
-    await this.clipboard.armItemRead().catch((e: unknown) => { console.warn('[shortcuts] 剪貼簿準備失敗,仍嘗試複製', e) })
+    const armStart = Date.now()
+    try {
+      await this.clipboard.armItemRead()
+    } catch (e) {
+      // 準備失敗就放棄這次查價:剪貼簿可能還是舊物品(會被當成新複製),before 未知也無法還原
+      console.warn('[shortcuts] 剪貼簿準備失敗,放棄這次查價', e)
+      return
+    }
+    // 準備期間(讀 / 清空剪貼簿)使用者若放開 hold 鍵,keepModKeys 送出的會只剩單獨的複製鍵;延遲偏大時留下紀錄供實機判斷
+    const armMs = Date.now() - armStart
+    if (armMs >= 20) console.warn(`[shortcuts] 剪貼簿準備花了 ${armMs} ms`)
 
     const combo = copyItemHotkey(this.game)
     console.log(`[shortcuts] 送出複製鍵 ${combo}(${this.game})`)

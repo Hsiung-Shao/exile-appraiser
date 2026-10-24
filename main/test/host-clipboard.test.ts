@@ -28,7 +28,7 @@ function makeIo (readImpl: (n: number) => string | Promise<string>, writeImpl?: 
     readText: () => readImpl(reads++),
     writeText: (t) => { writes.push(t); return writeImpl?.(t) }
   }
-  return { io, writes }
+  return { io, writes, reads: () => reads }
 }
 
 /** 推進假計時器,回傳 promise 的目前狀態(ok: null = 仍 pending);不 await 未完成的 promise,也不讓 reject 變成未處理 */
@@ -212,5 +212,53 @@ describe('HostClipboard 物品文字讀取', () => {
     const r = await settle(() => hc.readItemText(), 200)
     expect(r.ok).toBe(true)
     expect(writes[0]).toMatch(/^__PPZ_FORCE_EMPTY_/)
+  })
+})
+
+describe('審查修正(2026-10-24 bug 審查)', () => {
+  it('RB1 寫回 before 進行中再按熱鍵:新工作階段等還原完成才讀剪貼簿,不沿用舊的', async () => {
+    const gate = deferred()
+    let restoreWrites = 0
+    const { io, writes, reads } = makeIo(
+      (n) => (n === 0 ? 'old' : n === 1 ? ITEM : n === 2 ? 'old' : ITEM),
+      (t) => (t === 'old' && restoreWrites++ === 0 ? gate.promise : undefined)
+    )
+    const hc = new HostClipboard(io)
+    hc.updateOptions(true)
+    let first: string | undefined
+    void hc.readItemText().then((v) => { first = v })
+    await vi.advanceTimersByTimeAsync(48)
+    // 第一次輪詢讀到物品文字,正在寫回 before(寫入尚未完成)
+    expect(writes).toEqual(['old'])
+    expect(first).toBeUndefined()
+    expect(reads()).toBe(2)
+    const arm2 = hc.armItemRead()
+    await vi.advanceTimersByTimeAsync(10)
+    // 還原未完成就讀:會讀到還沒寫回的物品文字而把 before 誤存成空字串
+    expect(reads()).toBe(2)
+    gate.resolve()
+    await vi.advanceTimersByTimeAsync(0)
+    await arm2
+    expect(first).toBe(ITEM)
+    // 舊版在這段空窗沿用舊工作階段:不重新讀 before,第二次輪詢直接拿到第一件物品
+    expect(reads()).toBe(3)
+    let second: string | undefined
+    void hc.pollItemText().then((v) => { second = v })
+    await vi.advanceTimersByTimeAsync(48)
+    expect(second).toBe(ITEM)
+    expect(writes).toEqual(['old', 'old'])
+  })
+
+  it('RB3 沒有 arm 過就輪詢(before 未知):成功或逾時都不寫回,避免把使用者剪貼簿蓋成空字串', async () => {
+    const a = makeIo(() => ITEM)
+    const hcA = new HostClipboard(a.io)
+    hcA.updateOptions(true)
+    expect((await settle(() => hcA.pollItemText(), 200)).ok).toBe(true)
+    expect(a.writes).toEqual([])
+    const b = makeIo(() => 'x')
+    const hcB = new HostClipboard(b.io)
+    hcB.updateOptions(true)
+    expect((await settle(() => hcB.pollItemText(), 1000)).ok).toBe(false)
+    expect(b.writes).toEqual([])
   })
 })

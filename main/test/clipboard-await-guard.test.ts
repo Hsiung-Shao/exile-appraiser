@@ -32,7 +32,9 @@ function findBareClipboardCalls (src: string): Array<{ line: number, text: strin
       const idx = m.index ?? 0
       const before = line.slice(0, idx)
       const after = line.slice(idx)
-      const handledBefore = /\b(await|return|void)\b/.test(before) || before.includes('=>')
+      // 只看「緊鄰呼叫」的前綴(去掉呼叫對象如 this.io / clipboard):箭頭函式本體內的裸呼叫、同一行前面剛好有別的 await 都不算已處理
+      const prefix = before.replace(/[\w$.?!]*$/, '')
+      const handledBefore = /(\b(?:await|return|void)|=>)\s*$/.test(prefix)
       const handledAfter = /\.(catch|then)\(/.test(after)
       if (!handledBefore && !handledAfter) bad.push({ line: i + 1, text: raw.trim() })
     }
@@ -56,10 +58,13 @@ describe('G1 剪貼簿呼叫必須 await 的靜態守門', () => {
       'function f () {',
       "  clipboard.writeText('x')",
       '  const t = io.readText()',
+      '  setTimeout(() => { io.writeText(saved) }, 120)',
+      '  const t2 = await a(); io.writeText(b)',
       '}'
     ].join('\n')
     const found = findBareClipboardCalls(badSample)
-    expect(found.map(f => f.line)).toEqual([2, 3])
+    // 第 4、5 行是舊判斷(整行任意位置有 => / await 就放行)會漏掉的裸呼叫
+    expect(found.map(f => f.line)).toEqual([2, 3, 4, 5])
 
     const goodSample = [
       "  await a.writeText('x')",
@@ -88,5 +93,25 @@ describe('G1 剪貼簿呼叫必須 await 的靜態守門', () => {
       for (const b of findBareClipboardCalls(readFileSync(f, 'utf8'))) offenders.push(`${rel}:${b.line}  ${b.text}`)
     }
     expect(offenders).toEqual([])
+  })
+})
+
+describe('S2 Shortcuts 查價熱鍵的錯誤路徑守門(bug 審查 2026-10-24)', () => {
+  const shortcuts = readFileSync(fileURLToPath(new URL('../src/Shortcuts.ts', import.meta.url)), 'utf8')
+
+  it('fire-and-forget 的 copyAndReadItem 必須自己 catch(main 沒有 unhandledRejection 處理;舊版由尾端 .catch 吞掉)', () => {
+    const m = shortcuts.match(/void this\.copyAndReadItem\([^\n]*/)
+    expect(m).not.toBeNull()
+    // onItem / assertOverlayActive 丟例外會變成未處理 rejection
+    expect(m![0]).toMatch(/\.catch\(/)
+  })
+
+  it('arm(準備剪貼簿)失敗要放棄這次查價:arm 與送複製鍵之間必須 return', () => {
+    const arm = shortcuts.indexOf('this.clipboard.armItemRead()')
+    const press = shortcuts.indexOf('pressKeysToCopyItemText(', arm)
+    expect(arm).toBeGreaterThan(-1)
+    expect(press).toBeGreaterThan(arm)
+    // 準備失敗仍送鍵:剪貼簿可能還是舊物品(被當成新複製)或 before 未知(結束時被寫成空字串)
+    expect(shortcuts.slice(arm, press)).toMatch(/\breturn\b/)
   })
 })
