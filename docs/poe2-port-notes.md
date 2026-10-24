@@ -215,6 +215,21 @@ APT / EE2 規則:魔法 / 稀有走 pseudo preset,`searchRelaxed = { category, d
 
 測試:`poe{1,2}/test/**/mechanism-toggle.test.ts`、`renderer/test-vue/mechanism-mount.test.ts`、`renderer/test/mechanism-i18n.test.ts`;破裂既有測試不動。
 
+## Tailwind 4 升級耦合點(2026-10-24,計畫 `drifting-swimming-kay.md` 階段 5)
+Tailwind 3.4 → 4.3 的批次改名,poe1 / poe2 / renderer 共約 49 個 `.vue`;**不逐處加 `exile-appraiser:` 註解**(守則 6 例外),從 apt-patched / ee2-patched 重新同步移植檔後照下表重套。
+| 項目 | 改法 | 原因 |
+|---|---|---|
+| `rounded` | → `rounded-sm`(class 與 `@apply` 皆是;`rounded-full` / `rounded-lg` 等不動) | v4 把 v3 的 `rounded`(4 px)改名 `rounded-sm`,裸 `rounded` 變成 0.25rem 的新刻度,外觀不同 |
+| `flex-grow` / `break-words` / `outline-none` | → `grow` / `wrap-break-word` / `outline-hidden` | v4 改名 |
+| `bg-gradient-to-*` | → `bg-linear-to-*/srgb` | 改名 + v4 預設 oklab 內插,加 `/srgb` 維持 v3 色階 |
+| `bg-[size:2rem]` | → `bg-size-[2rem]` | v4 任意值語法 |
+| `bg-opacity-50`(poe2 `AugmentEditor.vue`) | 刪除 | v4 移除該 utility,且該元素本來就沒有背景色,沒有視覺差 |
+| `@apply … !important`(poe1 `TradeBulk.vue`) | → `@apply bg-gray-700!` | v4 的 important 寫法 |
+| 含 `@apply` / `theme()` 的 `<style>` 區塊 | 區塊開頭加 `@reference "<相對路徑>/renderer/src/theme/tailwind.css"; /* exile-appraiser: … */`(38 處 / 35 檔) | v4 的 SFC 樣式是獨立編譯單位,不 `@reference` 就認不得 utility |
+| `RateLimiterState.vue`(兩代) | module CSS 的巢狀 `:global { animation: shakeX … }` → 另一個非 module `<style>` 的全域 class `ppz-limited-shake`,模板 `:class` 同時掛 `$style.limited` | v4 的處理順序把巢狀 `:global { 宣告 }` 靜默丟掉(按鈕不再搖),無錯誤訊息 |
+| `theme('spacing.2')`、`theme('borderRadius.DEFAULT')` 等 | **不改**(由 `tailwind.css` 的 `@config` 讀 `renderer/tailwind.config.cjs`,v4 相容層照常解析) | 省去 60 處改寫;日後完全移除 `@config` 時才需要換成 `var(--…)` |
+驗證方式(2026-10-24,Electron 的 Chromium 156 逐規則比對計算樣式):7 個情境(四主題、`.pob-dark`、`.bg-host`、token 覆寫)× v3 與 v4 的每條 CSS 規則,另做 preflight 的基礎元素逐元素比對,並以「v3 對 v3」當對照組(差異 0 = 量測本身穩定);已知且刻意保留的差異只有上表的預設值相容層(`renderer/src/theme/tailwind-preflight.css`)。**新增含 `@apply` 的區塊時別忘了 `@reference`**,漏掉的症狀是 build 報 `Cannot apply unknown utility class`。
+
 ## 未做 / 待辦
 - 預測價(PricePrediction)。
 - GUI 實機(熱鍵 → overlay 附著 PoE2 視窗 → 台服真實掛單)由使用者實測。

@@ -101,7 +101,7 @@ export default defineComponent({
 </script>
 
 <style lang="postcss" module>
-@reference "../../../../../renderer/src/theme/tailwind.css";
+@reference "../../../../../renderer/src/theme/tailwind.css"; /* exile-appraiser: Tailwind 4 升級(2026-10-24),讓 @apply / theme() 認得 utility */
 .i-w-1 { @apply w-12; }
 .i-w-2 { @apply w-24; }
 .i-w-3 { @apply w-36; }

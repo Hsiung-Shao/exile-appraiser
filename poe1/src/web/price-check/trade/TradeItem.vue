@@ -168,7 +168,7 @@ export default defineComponent({
 </script>
 
 <style lang="postcss" module>
-@reference "../../../../../renderer/src/theme/tailwind.css";
+@reference "../../../../../renderer/src/theme/tailwind.css"; /* exile-appraiser: Tailwind 4 升級(2026-10-24),讓 @apply / theme() 認得 utility */
 .accountStatus {
   width: 0.375rem;
   height: 0.375rem;
@@ -204,7 +204,7 @@ export default defineComponent({
 </style>
 
 <style lang="postcss">
-@reference "../../../../../renderer/src/theme/tailwind.css";
+@reference "../../../../../renderer/src/theme/tailwind.css"; /* exile-appraiser: Tailwind 4 升級(2026-10-24),讓 @apply / theme() 認得 utility */
 /* 浮窗外框透明(與 PoE2 TradeItem.vue 同一組全域規則;PoE1 單獨載入時也要有) */
 .tippy-box[data-theme~="item-tooltip"] {
   @apply w-fit h-fit;

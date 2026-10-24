@@ -380,7 +380,7 @@ export default defineComponent({
 </script>
 
 <style lang="postcss">
-@reference "../../../../../renderer/src/theme/tailwind.css";
+@reference "../../../../../renderer/src/theme/tailwind.css"; /* exile-appraiser: Tailwind 4 升級(2026-10-24),讓 @apply / theme() 認得 utility */
 .trade-bulk-currency-icon {
   width: 1.75rem;
   height: 1.75rem;

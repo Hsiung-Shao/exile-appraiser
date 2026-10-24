@@ -24,7 +24,7 @@
     "check-user-agent": "node scripts/check-user-agent.mjs",
     "dev": "npm run dev --workspace renderer & npm run dev --workspace main",
     "dev:renderer": "npm run dev --workspace renderer",
-    "dev:main": "npm run dev --workspace main",
+    "dev:main": "npm run dev --workspace main --",
     "build": "npm run build --workspace renderer && npm run build --workspace main",
     "package": "npm run build && npm run package --workspace main"
   },

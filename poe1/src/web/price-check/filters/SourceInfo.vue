@@ -80,7 +80,7 @@ const stats = computed(() => {
 </script>
 
 <style lang="postcss" module>
-@reference "../../../../../renderer/src/theme/tailwind.css";
+@reference "../../../../../renderer/src/theme/tailwind.css"; /* exile-appraiser: Tailwind 4 升級(2026-10-24),讓 @apply / theme() 認得 utility */
 .modinfo {
   @apply text-gray-500;
   font-style: italic;
