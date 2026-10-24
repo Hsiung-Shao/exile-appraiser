@@ -27,12 +27,16 @@ describe('regexPasteBlock', () => {
   it('只有 empty / busy 不動剪貼簿', () => {
     expect(copiesOnBlock('empty')).toBe(false)
     expect(copiesOnBlock('busy')).toBe(false)
-    for (const r of ['window-mode', 'no-game', 'game-inactive', 'focus-timeout'] as const) expect(copiesOnBlock(r)).toBe(true)
+    for (const r of ['window-mode', 'no-game', 'game-inactive', 'focus-timeout', 'copy-failed'] as const) expect(copiesOnBlock(r)).toBe(true)
   })
 })
 
 /** 假環境:記錄所有副作用的順序;sleep 推進假時鐘並在指定時間讓遊戲取得前景 */
-function setup (o: { env?: Partial<RegexPasteEnv>, focusAfterMs?: number | null, loseFocusAt?: number } = {}) {
+function setup (o: {
+  env?: Partial<RegexPasteEnv>, focusAfterMs?: number | null, loseFocusAt?: number,
+  /** 取代預設的 writeClipboard(預設只記錄 clip 事件);回傳 promise 可延遲 / 失敗 */
+  writeClipboard?: (t: string, ev: string[]) => void | Promise<void>
+} = {}) {
   const ev: string[] = []
   let clock = 0
   let focused = o.env?.gameFocused ?? true
@@ -40,7 +44,10 @@ function setup (o: { env?: Partial<RegexPasteEnv>, focusAfterMs?: number | null,
   let focusRequestedAt: number | null = null
   const p = new RegexPaster({
     env: () => ({ mode: env.mode, attached: env.attached, gameFocused: focused, overlayInteractable: env.overlayInteractable }),
-    writeClipboard: (t) => { ev.push(`clip:${t}`) },
+    writeClipboard: async (t) => {
+      if (o.writeClipboard) return o.writeClipboard(t, ev)
+      ev.push(`clip:${t}`)
+    },
     tap: (k, m) => { ev.push(`tap:${[...m, k].join('+')}`) },
     focusGame: () => { ev.push('focusGame'); focusRequestedAt = clock },
     gameFocused: () => focused,
@@ -52,7 +59,7 @@ function setup (o: { env?: Partial<RegexPasteEnv>, focusAfterMs?: number | null,
       if (o.loseFocusAt != null && clock >= o.loseFocusAt) focused = false
     }
   })
-  return { p, ev, get clock () { return clock } }
+  return { p, ev, focus: (v: boolean) => { focused = v }, get clock () { return clock } }
 }
 
 describe('RegexPaster', () => {
@@ -119,13 +126,51 @@ describe('RegexPaster', () => {
   })
 })
 
+describe('RegexPaster 剪貼簿非同步寫入', () => {
+  const flush = () => new Promise<void>((resolve) => { setTimeout(resolve, 0) })
+
+  it('R1 寫入未完成前不送任何鍵,完成後才送 Ctrl+F → Ctrl+V → Enter', async () => {
+    let release!: () => void
+    const gate = new Promise<void>((resolve) => { release = resolve })
+    const s = setup({ writeClipboard: async (t, ev) => { ev.push(`clip:${t}`); await gate } })
+    const pr = s.p.paste('abc')
+    await flush()
+    expect(s.ev).toContain('clip:abc')
+    // 漏 await 會在寫入前就送 Ctrl+F / Ctrl+V,貼到舊內容
+    expect(s.ev.filter(e => e.startsWith('tap:'))).toEqual([])
+    release()
+    expect(await pr).toEqual({ pasted: true })
+    expect(s.ev.filter(e => e.startsWith('tap:'))).toEqual(['tap:Ctrl+F', 'tap:Ctrl+V', 'tap:Enter'])
+  })
+
+  it('R2 寫入失敗:回 copy-failed、不送任何鍵、busy 解除', async () => {
+    const s = setup({ writeClipboard: () => Promise.reject(new Error('clipboard denied')) })
+    const r = await s.p.paste('abc')
+    // 失敗卻回報 pasted、或 busy 不解除,都會讓之後的書籤全部失效
+    expect(r).toEqual({ pasted: false, copied: false, reason: 'copy-failed' })
+    expect(s.ev.filter(e => e.startsWith('tap:'))).toEqual([])
+    expect(s.p.isBusy).toBe(false)
+  })
+
+  it('R3 寫入期間遊戲失焦:不送鍵,只複製(focus-timeout)', async () => {
+    const s = setup({
+      writeClipboard: async (t, ev) => { ev.push(`clip:${t}`); s.focus(false) }
+    })
+    const r = await s.p.paste('abc')
+    // 寫入後沒再檢查前景,按鍵會送進別的視窗
+    expect(r).toEqual({ pasted: false, copied: true, reason: 'focus-timeout' })
+    expect(s.ev.filter(e => e.startsWith('tap:'))).toEqual([])
+    expect(s.ev).toContain('clip:abc')
+  })
+})
+
 describe('regexToastMessage', () => {
   it('兩語:第一行書籤名、第二行原因', () => {
     expect(regexToastMessage('cmn-Hant', '地圖', 'game-inactive')).toEqual({ lang: 'cmn-Hant', kind: 'scan', title: '正則書籤「地圖」', hint: '遊戲不在前景,已複製' })
     expect(regexToastMessage('en', 'Maps', 'missing').title).toBe('Regex bookmark "Maps"')
     for (const lang of ['cmn-Hant', 'en'] as const) {
-      for (const r of ['window-mode', 'no-game', 'game-inactive', 'focus-timeout', 'busy', 'empty', 'missing'] as const) {
-        expect(regexToastMessage(lang, 'x', r).hint.length).toBeGreaterThan(3)
+      for (const r of ['window-mode', 'no-game', 'game-inactive', 'focus-timeout', 'busy', 'empty', 'missing', 'copy-failed'] as const) {
+        expect(String(regexToastMessage(lang, 'x', r).hint ?? '').length).toBeGreaterThan(3)
       }
     }
   })

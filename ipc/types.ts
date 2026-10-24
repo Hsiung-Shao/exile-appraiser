@@ -199,9 +199,10 @@ export interface RegexPasteRequest {
 
 /**
  * 第 33 步:只複製、沒貼進遊戲的原因:`window-mode` 視窗模式、`no-game` 沒有附著的遊戲視窗、`game-inactive` 遊戲與 overlay 都不在前景、
- * `focus-timeout` 焦點交還遊戲後沒等到遊戲取得前景、`busy` 上一次還在送(不複製)、`empty` 搜尋字串是空的(不複製)
+ * `focus-timeout` 焦點交還遊戲後沒等到遊戲取得前景、`busy` 上一次還在送(不複製)、`empty` 搜尋字串是空的(不複製)、
+ * `copy-failed` 寫入系統剪貼簿失敗(Electron 44 起剪貼簿寫入是 Promise,可能 reject;不貼也沒複製成功)
  */
-export type RegexPasteReason = 'window-mode' | 'no-game' | 'game-inactive' | 'focus-timeout' | 'busy' | 'empty'
+export type RegexPasteReason = 'window-mode' | 'no-game' | 'game-inactive' | 'focus-timeout' | 'busy' | 'empty' | 'copy-failed'
 
 export type RegexPasteResult = { pasted: true } | { pasted: false, copied: boolean, reason: RegexPasteReason }
 

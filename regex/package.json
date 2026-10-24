@@ -14,7 +14,7 @@
     "cli": "tsx src/cli.ts"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
+    "@types/node": "^24.19.2",
     "tsx": "^4.19.0",
     "typescript": "5.6.x",
     "vitest": "^2.1.9"

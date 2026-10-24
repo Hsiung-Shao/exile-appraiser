@@ -52,9 +52,13 @@ export function copiesOnBlock (reason: RegexPasteReason): boolean {
   return reason !== 'empty' && reason !== 'busy'
 }
 
+/** 剪貼簿寫入失敗(Electron 44 起寫入是 Promise,可能 reject):不貼、也沒有複製成功 */
+const copyFailed = (): RegexPasteResult => ({ pasted: false, copied: false, reason: 'copy-failed' })
+
 export interface RegexPasteDeps {
   env: () => Omit<RegexPasteEnv, 'busy'>
-  writeClipboard: (text: string) => void
+  /** 寫入系統剪貼簿(可同步或回傳 Promise;reject = 寫入失敗) */
+  writeClipboard: (text: string) => void | Promise<void>
   tap: (key: TextBoxKey, mods: TextBoxKey[]) => void
   /** overlay → 遊戲(`OverlayWindow.assertGameActive`) */
   focusGame: () => void
@@ -84,7 +88,7 @@ export class RegexPaster {
     const block = regexPasteBlock({ ...this.deps.env(), busy: this.busy }, text)
     if (block) {
       const copied = copiesOnBlock(block)
-      if (copied) this.deps.writeClipboard(text)
+      if (copied && !(await this.writeSafely(text))) return copyFailed()
       this.log(`[regex-quick] 只${copied ? '複製' : '略過'}(${block})`)
       return { pasted: false, copied, reason: block }
     }
@@ -98,26 +102,42 @@ export class RegexPaster {
           waited += FOCUS_POLL_MS
         }
         if (!this.deps.gameFocused()) {
-          this.deps.writeClipboard(text)
+          if (!(await this.writeSafely(text))) return copyFailed()
           this.log(`[regex-quick] 等不到遊戲取得前景(${FOCUS_TIMEOUT_MS} ms),只複製`)
           return { pasted: false, copied: true, reason: 'focus-timeout' }
         }
         await this.sleep(SETTLE_MS)
         // 等待期間使用者切走了 → 不送(按鍵會進別的視窗)
         if (!this.deps.gameFocused()) {
-          this.deps.writeClipboard(text)
+          if (!(await this.writeSafely(text))) return copyFailed()
           return { pasted: false, copied: true, reason: 'focus-timeout' }
         }
       }
       this.deps.quietCtrl?.(true)
       const seq = stashSearchSequence(text, this.deps.platform)
-      this.deps.writeClipboard(seq.clipboard)
+      if (!(await this.writeSafely(seq.clipboard))) return copyFailed()
+      // 寫入期間遊戲可能失焦(原本同步寫入沒有這個空窗)→ 不送鍵(按鍵會進別的視窗),只複製
+      if (!this.deps.gameFocused()) {
+        this.log('[regex-quick] 寫入剪貼簿期間遊戲失去前景,只複製')
+        return { pasted: false, copied: true, reason: 'focus-timeout' }
+      }
       for (const k of seq.keys) this.deps.tap(k.key, k.mods)
       this.log(`[regex-quick] 已送 Ctrl+F → 貼上 → Enter(${[...text].length} 字)`)
       return { pasted: true }
     } finally {
       this.busy = false
       this.releaseQuiet()
+    }
+  }
+
+  /** 寫剪貼簿:失敗只記 log(不含內容)並回 false,不讓例外穿出去 */
+  private async writeSafely (text: string): Promise<boolean> {
+    try {
+      await this.deps.writeClipboard(text)
+      return true
+    } catch (e) {
+      this.log(`[regex-quick] 寫入剪貼簿失敗:${e instanceof Error ? e.message : String(e)}`)
+      return false
     }
   }
 
@@ -140,6 +160,7 @@ const REASON_TEXT: Readonly<Record<RegexToastLang, Record<RegexPasteReason | 'mi
     'no-game': '找不到遊戲視窗,已複製',
     'game-inactive': '遊戲不在前景,已複製',
     'focus-timeout': '遊戲沒有取得焦點,已複製',
+    'copy-failed': '寫入剪貼簿失敗',
     busy: '上一次還在輸入,略過',
     empty: '書籤沒有產生任何搜尋字串',
     missing: '書籤已不存在或清單載入失敗'
@@ -149,6 +170,7 @@ const REASON_TEXT: Readonly<Record<RegexToastLang, Record<RegexPasteReason | 'mi
     'no-game': 'Game window not found — copied',
     'game-inactive': 'Game is not in the foreground — copied',
     'focus-timeout': 'Game did not get focus — copied',
+    'copy-failed': 'Could not write to the clipboard',
     busy: 'Still typing the previous search — skipped',
     empty: 'This bookmark produces no search text',
     missing: 'Bookmark no longer exists or the lists failed to load'

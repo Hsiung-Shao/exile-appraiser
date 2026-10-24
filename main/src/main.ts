@@ -1576,7 +1576,7 @@ if (!skipStartup) app.whenReady().then(() => {
       gameFocused: Boolean(poeWindow?.targetHasFocus),
       overlayInteractable: Boolean(overlay?.isInteractable)
     }),
-    writeClipboard: (text) => { clipboard.writeText(text) },
+    writeClipboard: (text) => clipboard.writeText(text),
     tap: (key, mods) => { uIOhook.keyTap(UiohookKey[key], mods.map(m => UiohookKey[m])) },
     focusGame: () => { overlay?.assertGameActive() },
     gameFocused: () => Boolean(poeWindow?.targetHasFocus),
