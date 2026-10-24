@@ -15,7 +15,7 @@
   "dependencies": {
     "@exile-appraiser/core": "*",
     "@sindresorhus/fnv1a": "^3.0.0",
-    "dot-prop": "9.x.x",
+    "dot-prop": "^10.2.0",
     "luxon": "3.x.x",
     "neverthrow": "^8.0.0"
   },
