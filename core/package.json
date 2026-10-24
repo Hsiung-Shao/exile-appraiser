@@ -27,7 +27,8 @@
   "devDependencies": {
     "@types/node": "^24.19.2",
     "@types/object-hash": "^3.0.0",
-    "typescript": "5.6.x",
+    "@typescript/native": "npm:typescript@^7.0.2",
+    "typescript": "npm:@typescript/typescript6@^6.0.2",
     "vitest": "^5.0.5"
   }
 }
