@@ -66,12 +66,14 @@
     "mechanism": {
       "toggle": "Mechanism",
       "group": "Search as",
+      "any": "Any",
       "normal": "Regular",
       "fractured": "Fractured",
       "crafted": "Crafted",
       "desecrated": "Desecrated",
       "rune": "Augment",
-      "title_normal": "Regular (if this mod is crafted / fractured / desecrated, excludes items with that version)"
+      "title_normal": "Regular (only items where this mod is not crafted / fractured / desecrated; adds an exclusion)",
+      "title_any": "Any (matches this mod whether or not it is crafted / fractured / desecrated; no exclusion)"
     },
     "fractured_toggle": {
       "label": "Fractured",

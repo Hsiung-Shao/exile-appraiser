@@ -66,12 +66,14 @@
     "mechanism": {
       "toggle": "機制",
       "group": "查詢方式",
+      "any": "不限",
       "normal": "一般",
       "fractured": "破裂",
       "crafted": "工藝",
       "desecrated": "褻瀆",
       "rune": "增幅",
-      "title_normal": "一般(這條若本身是工藝 / 破裂 / 褻瀆,排除同機制的物品)"
+      "title_normal": "一般(只找這條不是工藝 / 破裂 / 褻瀆的物品,會加排除條件)",
+      "title_any": "不限(不管這條是不是工藝 / 破裂 / 褻瀆都找,不加排除)"
     },
     "fractured_toggle": {
       "label": "破裂",
