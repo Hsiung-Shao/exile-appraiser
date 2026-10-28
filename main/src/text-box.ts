@@ -22,8 +22,8 @@ export interface KeyTap {
 export interface TextBoxDeps {
   /** 送一次按鍵(含修飾鍵);main = `uIOhook.keyTap(UiohookKey[key], mods.map(...))` */
   tap: (key: TextBoxKey, mods: TextBoxKey[]) => void
-  /** `HostClipboard`(`restoreShortly` 120 ms 節流 + 之後還原) */
-  clipboard: { restoreShortly: (cb: (clipboard: { writeText: (text: string) => void }) => void) => void }
+  /** `HostClipboard`(`restoreShortly` 120 ms 節流 + 之後還原;Electron 44 起剪貼簿寫入是 Promise,cb 內必須 await 寫完才送鍵) */
+  clipboard: { restoreShortly: (cb: (clipboard: { writeText: (text: string) => void | Promise<void> }) => void | Promise<void>) => void | Promise<void> }
   platform?: string
 }
 
@@ -90,19 +90,19 @@ export function stashSearchSequence (text: string, platform: string = process.pl
   }
 }
 
-export function typeInChat (text: string, send: boolean, deps: TextBoxDeps): void {
-  deps.clipboard.restoreShortly((clipboard) => {
+export async function typeInChat (text: string, send: boolean, deps: TextBoxDeps): Promise<void> {
+  await deps.clipboard.restoreShortly(async (clipboard) => {
     const seq = chatKeySequence(text, send, deps.platform)
-    clipboard.writeText(seq.clipboard)
+    await clipboard.writeText(seq.clipboard)
     for (const k of seq.keys) deps.tap(k.key, k.mods)
   })
 }
 
-export function stashSearch (text: string, deps: TextBoxDeps & { assertGameActive?: () => void }): void {
-  deps.clipboard.restoreShortly((clipboard) => {
+export async function stashSearch (text: string, deps: TextBoxDeps & { assertGameActive?: () => void }): Promise<void> {
+  await deps.clipboard.restoreShortly(async (clipboard) => {
     deps.assertGameActive?.()
     const seq = stashSearchSequence(text, deps.platform)
-    clipboard.writeText(seq.clipboard)
+    await clipboard.writeText(seq.clipboard)
     for (const k of seq.keys) deps.tap(k.key, k.mods)
   })
 }

@@ -1,6 +1,6 @@
 {
   "name": "@exile-appraiser/regex",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "private": true,
   "type": "module",
   "description": "Poe Regex(遊戲搜尋列字串產生器)核心,移植自 PobTools pob-zh-engine host/regex_gen.cpp",
@@ -14,9 +14,10 @@
     "cli": "tsx src/cli.ts"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
+    "@types/node": "^24.19.2",
+    "@typescript/native": "npm:typescript@^7.0.2",
     "tsx": "^4.19.0",
-    "typescript": "5.6.x",
-    "vitest": "^2.1.9"
+    "typescript": "npm:@typescript/typescript6@^6.0.2",
+    "vitest": "^5.0.5"
   }
 }

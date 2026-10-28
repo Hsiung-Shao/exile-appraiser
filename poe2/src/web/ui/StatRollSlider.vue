@@ -1,6 +1,6 @@
 <template>
   <div
-    class="flex justify-between bg-gray-700 rounded relative p-0.5 items-center h-5"
+    class="flex justify-between bg-gray-700 rounded-sm relative p-0.5 items-center h-5"
     ref="rootEl"
     :class="$style[state.mode]"
     @mousedown="handleMousedown"
@@ -133,6 +133,7 @@ export default defineComponent({
 </script>
 
 <style lang="postcss" module>
+@reference "../../../../renderer/src/theme/tailwind.css"; /* exile-appraiser: Tailwind 4 升級(2026-10-24),讓 @apply / theme() 認得 utility */
 /* exile-appraiser: #000 遮罩 → --surface-0-c;.inclusive 黑字 → 同色(填滿色是 --ink-2,淺色主題下黑字讀不清) */
 .tick {
   position: absolute;

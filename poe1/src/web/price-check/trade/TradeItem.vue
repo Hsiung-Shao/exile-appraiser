@@ -9,7 +9,7 @@
   >
     <td class="px-2 whitespace-nowrap">
       <span :class="{ 'line-through': result.priceCurrency === 'exalted' }">{{ result.priceAmount }} {{ result.priceCurrency }}</span>
-      <span v-if="result.listedTimes > 2" class="rounded px-1 text-gray-800 bg-gray-400 ml-1 -mr-2"><span class="font-sans">×</span> {{ result.listedTimes }}</span>
+      <span v-if="result.listedTimes > 2" class="rounded-sm px-1 text-gray-800 bg-gray-400 ml-1 -mr-2"><span class="font-sans">×</span> {{ result.listedTimes }}</span>
       <span v-else-if="!result.hasFee" :class="$style.stashListing">
         <img :class="$style.stashIcon" src="/images/stash.png">
         <i v-if="!result.hasNote" class="fas fa-question" />
@@ -24,10 +24,10 @@
         <div :class="[$style.accountStatus, $style[result.accountStatus]]"></div>
         <div class="ml-1 font-sans text-xs">{{ result.relativeDate }}</div>
       </div>
-      <span v-if="!showSeller && result.isMine" class="rounded px-1 text-gray-800 bg-gray-400 ml-1">{{ t('You') }}</span>
+      <span v-if="!showSeller && result.isMine" class="rounded-sm px-1 text-gray-800 bg-gray-400 ml-1">{{ t('You') }}</span>
     </td>
     <td v-if="showSeller" class="px-2 whitespace-nowrap">
-      <span v-if="result.isMine" class="rounded px-1 text-gray-800 bg-gray-400">{{ t('You') }}</span>
+      <span v-if="result.isMine" class="rounded-sm px-1 text-gray-800 bg-gray-400">{{ t('You') }}</span>
       <span v-else class="font-sans text-xs">{{ showSeller === 'ign' ? result.ign : result.accountName }}</span>
     </td>
   </tr>
@@ -168,6 +168,7 @@ export default defineComponent({
 </script>
 
 <style lang="postcss" module>
+@reference "../../../../../renderer/src/theme/tailwind.css"; /* exile-appraiser: Tailwind 4 升級(2026-10-24),讓 @apply / theme() 認得 utility */
 .accountStatus {
   width: 0.375rem;
   height: 0.375rem;
@@ -203,6 +204,7 @@ export default defineComponent({
 </style>
 
 <style lang="postcss">
+@reference "../../../../../renderer/src/theme/tailwind.css"; /* exile-appraiser: Tailwind 4 升級(2026-10-24),讓 @apply / theme() 認得 utility */
 /* 浮窗外框透明(與 PoE2 TradeItem.vue 同一組全域規則;PoE1 單獨載入時也要有) */
 .tippy-box[data-theme~="item-tooltip"] {
   @apply w-fit h-fit;

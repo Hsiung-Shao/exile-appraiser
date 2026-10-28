@@ -98,10 +98,10 @@
                     <div :class="[$style.accountStatus, $style[result.accountStatus]]"></div>
                     <div class="ml-1 font-sans text-xs">{{ result.relativeDate }}</div>
                   </div>
-                  <span v-if="!showSeller && result.isMine" class="rounded px-1 text-gray-800 bg-gray-400 ml-1">{{ t('You') }}</span>
+                  <span v-if="!showSeller && result.isMine" class="rounded-sm px-1 text-gray-800 bg-gray-400 ml-1">{{ t('You') }}</span>
                 </td>
                 <td v-if="showSeller" class="px-2 whitespace-nowrap">
-                  <span v-if="result.isMine" class="rounded px-1 text-gray-800 bg-gray-400">{{ t('You') }}</span>
+                  <span v-if="result.isMine" class="rounded-sm px-1 text-gray-800 bg-gray-400">{{ t('You') }}</span>
                   <span v-else class="font-sans text-xs">{{ showSeller === 'ign' ? result.ign : result.accountName }}</span>
                 </td>
               </template>
@@ -408,6 +408,7 @@ export default defineComponent({
 </script>
 
 <style lang="postcss" module>
+@reference "../../../../../renderer/src/theme/tailwind.css"; /* exile-appraiser: Tailwind 4 升級(2026-10-24),讓 @apply / theme() 認得 utility */
 .tableHeading {
   @apply sticky top-0;
   @apply bg-gray-800;
@@ -445,7 +446,7 @@ export default defineComponent({
 }
 
 .marketRatioRow {
-  @apply bg-gray-700 !important;
+  @apply bg-gray-700!;
   outline: 1px solid theme('colors.gray.600');
   outline-offset: -1px;
 }

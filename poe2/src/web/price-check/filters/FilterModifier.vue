@@ -431,6 +431,7 @@ export default defineComponent({
 </script>
 
 <style lang="postcss" module>
+@reference "../../../../../renderer/src/theme/tailwind.css"; /* exile-appraiser: Tailwind 4 升級(2026-10-24),讓 @apply / theme() 認得 utility */
 .filter {
   padding: 0.4em 0;
   min-height: 2.9em;
@@ -614,6 +615,7 @@ export default defineComponent({
 </style>
 
 <style lang="postcss">
+@reference "../../../../../renderer/src/theme/tailwind.css"; /* exile-appraiser: Tailwind 4 升級(2026-10-24),讓 @apply / theme() 認得 utility */
 .search-text-full {
   position: absolute;
   left: 0px;

@@ -43,8 +43,8 @@ export default defineComponent({
       : mechanismOptions(props.filter, props.item).map(value => ({
         value,
         label: t(`ppz.mechanism.${value}`),
-        title: (value === 'normal') ? t('ppz.mechanism.title_normal') : undefined,
-        strong: value !== 'normal'
+        title: (value === 'normal' || value === 'any') ? t(`ppz.mechanism.title_${value}`) : undefined,
+        strong: value !== 'normal' && value !== 'any'
       })))
     function choose (value: string) {
       const stats = allFilters().filter((f): f is StatFilter => !f.group)

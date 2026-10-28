@@ -9,7 +9,6 @@
     "esModuleInterop": true,
     "allowJs": true,
     "noEmit": true,
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     },

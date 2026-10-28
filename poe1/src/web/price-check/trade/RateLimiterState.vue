@@ -1,6 +1,6 @@
 <template>
   <div :class="[$style.wrap, align === 'end' ? $style.alignEnd : $style.alignStart]" v-bind="$attrs">
-    <button class="btn ghost sm" :class="{ [$style.limited]: isLimited }"
+    <button class="btn ghost sm" :class="{ [$style.limited]: isLimited, 'ppz-limited-shake': isLimited }"
       @click="showRateLimitState = !showRateLimitState">{{ t('ppz.rate_limit_state') }}</button>
     <div v-if="showRateLimitState" class="card" :class="$style.panel">
       <div v-for="limit in limits" :key="limit.policy" :class="$style.policy">
@@ -160,11 +160,15 @@ export default defineComponent({
 .limited {
   color: var(--bad) !important;
   border-color: var(--bad) !important;
+}
+</style>
 
-  /* Animate.css */
-  :global {
-    animation: shakeX;
-    animation-duration: 1s;
-  }
+<!--
+  exile-appraiser: 2026-10-24 Tailwind 4:原本在 .limited 裡的巢狀 `:global { animation: shakeX }`(CSS Modules 的動畫名要靠 :global 才不會被改名)
+  在 v4 的處理順序下被靜默丟掉(按鈕不再搖),改成非 module 的全域 class;keyframes 來自全域的 animate.css。
+-->
+<style>
+.ppz-limited-shake {
+  animation: shakeX 1s;
 }
 </style>

@@ -6,14 +6,14 @@
 -->
 <template>
   <div v-if="show" class="layout-column">
-    <div class="m-4 py-1 px-2 bg-gray-900 rounded">
+    <div class="m-4 py-1 px-2 bg-gray-900 rounded-sm">
       {{ t("item.identification", [baseType]) }}
     </div>
     <div class="grid grid-cols-2 gap-2 overflow-auto pb-4 px-4">
       <div v-for="item in identifiedVariants" :key="item.name" class="flex">
         <button
           @click="select(item)"
-          class="bg-gray-700 rounded flex gap-x-3 items-center p-2 w-full"
+          class="bg-gray-700 rounded-sm flex gap-x-3 items-center p-2 w-full"
         >
           <img
             :src="

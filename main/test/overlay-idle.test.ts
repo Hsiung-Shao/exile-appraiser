@@ -227,8 +227,15 @@ describe('接線守門', () => {
     // 重新顯示照 electron-overlay-window 的做法(不搶焦點 + screen-saver 層級)
     expect(main).toMatch(/w\.showInactive\(\); w\.setAlwaysOnTop\(true, 'screen-saver'\)/)
     const shortcuts = read('../src/Shortcuts.ts')
-    expect(shortcuts.indexOf('this.opts.beforeItemCopy?.()')).toBeGreaterThan(-1)
-    expect(shortcuts.indexOf('this.opts.beforeItemCopy?.()')).toBeLessThan(shortcuts.indexOf('this.clipboard.readItemText()'))
+    // S1 查價熱鍵順序:beforeItemCopy → armItemRead → 送複製鍵;cursor 到 beforeItemCopy 之間不可 await
+    const before = shortcuts.indexOf('this.opts.beforeItemCopy?.()')
+    expect(before).toBeGreaterThan(-1)
+    const arm = shortcuts.indexOf('this.clipboard.armItemRead()')
+    expect(arm).toBeGreaterThan(before)
+    expect(shortcuts.indexOf('pressKeysToCopyItemText(', arm)).toBeGreaterThan(arm)
+    const cursor = shortcuts.lastIndexOf('screen.getCursorScreenPoint()', before)
+    expect(cursor).toBeGreaterThan(-1)
+    expect(shortcuts.slice(cursor, before)).not.toMatch(/\bawait\b/)
   })
 
   it('OverlayWindow:assertOverlayActive 先設可互動(→ 顯示)再 activateOverlay', () => {

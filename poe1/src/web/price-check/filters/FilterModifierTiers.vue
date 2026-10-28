@@ -70,6 +70,7 @@ export default defineComponent({
 </script>
 
 <style lang="postcss" module>
+@reference "../../../../../renderer/src/theme/tailwind.css"; /* exile-appraiser: Tailwind 4 升級(2026-10-24),讓 @apply / theme() 認得 utility */
 .tier-1, .tier-2, .not-tier-1, .merc-gilded {
   @apply rounded px-1;
   white-space: nowrap;

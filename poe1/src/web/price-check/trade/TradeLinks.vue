@@ -5,7 +5,7 @@
       <button @click="open(true)" class="bg-gray-700 text-gray-400 rounded-r px-2"><i class="fas fa-external-link-alt text-xs" /></button>
     </template>
     <button v-else
-      @click="open(true)" class="bg-gray-700 text-gray-400 rounded px-2">{{ t('Trade') }} <i class="fas fa-external-link-alt text-xs" /></button>
+      @click="open(true)" class="bg-gray-700 text-gray-400 rounded-sm px-2">{{ t('Trade') }} <i class="fas fa-external-link-alt text-xs" /></button>
   </div>
 </template>
 

@@ -1,3 +1,9 @@
+// exile-appraiser: 2026-10-24 Tailwind 4 升級:這三份含 url()(字型)的 CSS 原本在 App.vue 第一段 <style> 用 `@import`,
+// `@tailwindcss/postcss` 內嵌時不重寫 url() 的相對路徑,build 後字型檔找不到(圖示與遊戲字型壞掉)。
+// 改由 JS 進入點匯入,Vite 依各檔自己的位置解析並輸出到 assets/;順序維持在 App.vue 樣式之前。守門 renderer/test/css-import-urls.test.ts。
+import '@fortawesome/fontawesome-free/css/all.min.css'
+import 'animate.css/animate.css'
+import './assets/font.css'
 import { createApp, watch } from 'vue'
 import App from './web/App.vue'
 import * as I18n from './web/i18n'

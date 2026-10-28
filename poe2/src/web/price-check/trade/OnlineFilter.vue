@@ -6,7 +6,7 @@
   >
     <template #target>
       <button
-        class="rounded mr-1 px-2 truncate"
+        class="rounded-sm mr-1 px-2 truncate"
         :class="showWarning() ? 'text-orange-500' : 'text-gray-500'"
       >
         <span
@@ -172,6 +172,7 @@ export default defineComponent({
 </script>
 
 <style lang="postcss" module>
+@reference "../../../../../renderer/src/theme/tailwind.css"; /* exile-appraiser: Tailwind 4 升級(2026-10-24),讓 @apply / theme() 認得 utility */
 .input {
   @apply text-center;
   @apply bg-transparent;

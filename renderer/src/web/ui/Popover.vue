@@ -93,6 +93,7 @@ export default defineComponent({
 </script>
 
 <style lang="postcss">
+@reference "../../theme/tailwind.css"; /* exile-appraiser: Tailwind 4 升級(2026-10-24),讓 @apply / theme() 認得 utility */
 .tippy-box {
   @apply rounded;
 }

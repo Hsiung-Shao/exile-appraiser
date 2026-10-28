@@ -68,6 +68,7 @@ export default defineComponent({
 </script>
 
 <style lang="postcss" module>
+@reference "../../../../../renderer/src/theme/tailwind.css"; /* exile-appraiser: Tailwind 4 升級(2026-10-24),讓 @apply / theme() 認得 utility */
 .btn {
   @apply bg-gray-900 rounded;
   @apply border border-transparent;
@@ -83,6 +84,6 @@ export default defineComponent({
   @apply bg-gray-900;
   @apply text-gray-300;
   @apply rounded;
-  @apply focus:outline-none focus:ring-2 focus:ring-indigo-500;
+  @apply focus:outline-hidden focus:ring-2 focus:ring-indigo-500;
 }
 </style>

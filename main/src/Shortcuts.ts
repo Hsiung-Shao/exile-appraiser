@@ -208,27 +208,38 @@ export class Shortcuts {
     if (action.type === 'paste-in-chat') {
       // 只記指令是第幾類,不記內容(可能含玩家名)
       console.log(`[shortcuts] 聊天指令(${action.text.startsWith('@last') ? '@last 前綴' : action.text.endsWith('@last') ? '@last 後綴' : action.text[0] ?? ''}${action.send ? ',送出' : ''})`)
-      typeInChat(action.text, action.send, this.textBoxDeps())
+      // Electron 44 起剪貼簿是 Promise:main 沒有 unhandledRejection 處理,一律自己 catch
+      void typeInChat(action.text, action.send, this.textBoxDeps()).catch((e: unknown) => { console.warn('[shortcuts] 聊天指令失敗', e) })
       return
     }
     if (action.type === 'stash-search') {
       console.log('[shortcuts] 倉庫搜尋')
-      stashSearch(action.text, { ...this.textBoxDeps(), assertGameActive: () => { this.opts.overlay?.assertGameActive() } })
+      void stashSearch(action.text, { ...this.textBoxDeps(), assertGameActive: () => { this.opts.overlay?.assertGameActive() } })
+        .catch((e: unknown) => { console.warn('[shortcuts] 倉庫搜尋失敗', e) })
       return
     }
 
     const pressPosition = screen.getCursorScreenPoint()
     this.opts.beforeItemCopy?.()
-    this.clipboard.readItemText()
-      .then(clipboard => {
-        this.opts.areaTracker?.removeListeners()
-        console.log(`[shortcuts] 讀到物品文字 ${clipboard.length} 字元,focusOverlay=${action.focusOverlay},游標 ${pressPosition.x},${pressPosition.y}`)
-        this.opts.onItem({ clipboard, position: pressPosition, focusOverlay: action.focusOverlay })
-        const { overlay } = this.opts
-        if (action.focusOverlay && overlay?.wasUsedRecently) {
-          overlay.assertOverlayActive()
-        }
-      }).catch(() => { /* 逾時:游標下沒有物品 */ })
+    void this.copyAndReadItem(action.focusOverlay, entry, pressPosition).catch((e: unknown) => { console.warn('[shortcuts] 查價熱鍵失敗', e) })
+  }
+
+  /**
+   * 查價熱鍵:先 arm(讀剪貼簿 before 並清空)**完成**,才送複製鍵,最後輪詢物品文字。
+   * Electron 44 起清空是非同步,若先送鍵再清空,晚到的清空會蓋掉遊戲剛複製的物品文字。
+   */
+  private async copyAndReadItem (focusOverlay: boolean, entry: ShortcutAction, pressPosition: { x: number, y: number }): Promise<void> {
+    const armStart = Date.now()
+    try {
+      await this.clipboard.armItemRead()
+    } catch (e) {
+      // 準備失敗就放棄這次查價:剪貼簿可能還是舊物品(會被當成新複製),before 未知也無法還原
+      console.warn('[shortcuts] 剪貼簿準備失敗,放棄這次查價', e)
+      return
+    }
+    // 準備期間(讀 / 清空剪貼簿)使用者若放開 hold 鍵,keepModKeys 送出的會只剩單獨的複製鍵;延遲偏大時留下紀錄供實機判斷
+    const armMs = Date.now() - armStart
+    if (armMs >= 20) console.warn(`[shortcuts] 剪貼簿準備花了 ${armMs} ms`)
 
     const combo = copyItemHotkey(this.game)
     console.log(`[shortcuts] 送出複製鍵 ${combo}(${this.game})`)
@@ -236,6 +247,22 @@ export class Shortcuts {
       combo,
       entry.keepModKeys ? entry.shortcut.split(' + ').filter(key => isModKey(key)) : undefined
     )
+
+    let clipboard: string
+    try {
+      clipboard = await this.clipboard.pollItemText()
+    } catch (e) {
+      // 逾時 = 游標下沒有物品,靜默;其他錯誤(讀剪貼簿失敗)才記 log
+      if (!(e instanceof Error && e.message.includes('timed out'))) console.warn('[shortcuts] 讀剪貼簿失敗', e)
+      return
+    }
+    this.opts.areaTracker?.removeListeners()
+    console.log(`[shortcuts] 讀到物品文字 ${clipboard.length} 字元,focusOverlay=${focusOverlay},游標 ${pressPosition.x},${pressPosition.y}`)
+    this.opts.onItem({ clipboard, position: pressPosition, focusOverlay })
+    const { overlay } = this.opts
+    if (focusOverlay && overlay?.wasUsedRecently) {
+      overlay.assertOverlayActive()
+    }
   }
 }
 

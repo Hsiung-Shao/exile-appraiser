@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 // 查價面板統一「機制」分段按鈕的字串(計畫 M14):兩語系都要有、非空;舊的工藝二選一字串移除
 const ROOT = path.resolve(__dirname, '../..')
 const load = (lang: string) => JSON.parse(fs.readFileSync(path.join(ROOT, `renderer/src/i18n/${lang}.json`), 'utf8'))
-const KEYS = ['group', 'normal', 'fractured', 'crafted', 'desecrated', 'rune', 'title_normal']
+const KEYS = ['group', 'any', 'normal', 'fractured', 'crafted', 'desecrated', 'rune', 'title_normal', 'title_any']
 
 describe('機制字串', () => {
   for (const lang of ['cmn-Hant', 'en']) {

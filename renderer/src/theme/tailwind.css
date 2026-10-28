@@ -1,0 +1,18 @@
+/*
+  exile-appraiser:Tailwind 4 入口(2026-10-24 由 v3 升級;取代 App.vue 原本的 `@tailwind components / utilities`)。
+  只有兩種地方會用到這個檔:App.vue 第三段 <style>(真正輸出 utilities)與各元件 <style> 的 `@reference`(讓 `@apply` / `theme()` 認得 utility 與設定)。
+  preflight 與相容層在 tailwind-preflight.css(App.vue 第一段 <style>)。
+
+  - utilities **不放進 @layer**:v3 時 utility 靠「出現順序」(App.vue 第三段,在所有元件 CSS 之後)壓過同優先級的元件 / 主題 CSS;
+    放進 layer 會讓未分層的元件 CSS 與全域規則反過來壓過 utility。
+  - theme 沿用 tailwind.config.cjs(`@config`):色票是 `var(--ink-0)` 這類 token,JS 設定的值會原樣內嵌到 utility,
+    `.bg-host` / `.pob-dark` 在子層重新定義 token 時 utility 仍跟著變(與 v3 相同;不可改成 `@theme` 的 CSS 變數,那會在 :root 就求值)。
+  - `@source` 明列範圍(v4 預設會掃整個目錄):與 v3 的 `content`(renderer/src 的 ts / vue、兩個遊戲 package 的 vue)一致。
+*/
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' source(none);
+
+@config '../../tailwind.config.cjs';
+@source '../**/*.{ts,vue}';
+@source '../../../poe1/src/**/*.vue';
+@source '../../../poe2/src/**/*.vue';

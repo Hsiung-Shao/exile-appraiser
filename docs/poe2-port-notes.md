@@ -210,10 +210,27 @@ APT / EE2 規則:魔法 / 稀有走 pseudo preset,`searchRelaxed = { category, d
 - 只對魔法 / 稀有物品(主對話裁定):傳奇 / 普通、地圖類(PoE2 換界石 / 碑牌 / 地圖 / 地圖碎片;PoE1 地圖 / 異界地圖 / 邀請 / 探險日誌)不給選項。元件與 PoE2 查詢傳 item 判斷;兩代 `create-presets.ts` 另包一層 `markMechanismEligibility` 在不適用物品的列標 `noMechanism`(PoE1 `createTradeRequest` 沒有 item)。golden-query / en-client 0 差異。
 - 模式由 tradeId 對應(PoE1 工藝台詞綴送 crafted id → 預設「工藝」;PoE2 符文列 → 「增幅」)。選非一般 = 改送該機制 ids、勾選、送同一組 ids 的孿生取消勾選;選一般 = 換回 explicit(勾選不動)。
 - 「一般」排除(使用者 2026-10-16 裁定,code review 後改):**只排除該列「來源本身」的機制** —— 勾選中、模式一般、來源全部是單一機制 X(PoE1 破裂 / 工藝;PoE2 破裂 / 工藝 / 褻瀆)的列,`not` 只放該列 X 的 ids;一般隨機來源與符文(增幅)列不排除。原因:交易站 `not` 群組是「整件物品含該 stat id 即排除」,符文與隨機詞綴可同 stat 並存、PoE1 工藝混合詞綴亦同,排除其他機制會誤殺正常掛單(且 base_item preset 預設查詢會帶 not)。多列合併成**一個** `not` 群組(去重;已被勾選列直接送出的 id 不放)。PoE2 取代 v0.3.1 每列一組的工藝排除;PoE1 併進既有的 `qNot`。
+- **「不限」(2026-10-18,使用者回報:機制開關關著也帶 `not`;破裂 / 褻瀆在哪條詞綴因物品而異,排除會漏掉大部分同類掛單)**:來源本身是破裂 / 工藝(PoE2 另有褻瀆)且該機制有 id 的列,選項最前面多一個「不限」(`any`,送 explicit、不排除)並為**預設**;「一般」改成使用者選了才排除(`StatFilter.mechanismExclude`,`selectMechanism(…, 'normal')` 設、選其他清掉)。來源是一般隨機的列沒有「不限」(一般本來就不排除)。`mechanismDefault` 對這種列回 `any` → 機制開關關著時不顯示按鈕、也不帶 `not`。
 
 **呈現(使用者實機回饋:機制按鈕太佔畫面、新列出的詞綴要另一區折疊;純呈現層,查詢組法不變)**:`renderer/src/web/price-panel/mod-cards.ts` `splitModCards` 多分「原始詞綴」卡(`raw`:`revealed` 且非 pseudo,PoE1 群組看 meta),兩代 `FiltersBlock.vue` 放在詞綴卡與偽屬性卡之間、`ModCard` `collapsible`(標題列 `data-part="card-toggle"`)、預設收起、換物品回收起;底部「機制」開關(`data-action="mechanism-visible"`,設定 `priceCheck.showMechanism`,預設關,`mechanism-visibility.ts` / `useShowMechanism.ts`)—— 關著時只有模式被改過(不等於該列原本機制 `mechanismDefault`:tag 本身是機制就是它,例如符文列 = 增幅、PoE1 工藝台詞綴 = 工藝,其餘一般)的列顯示機制按鈕。測試 `renderer/test/raw-card.test.ts`、`renderer/test-vue/raw-card-mount.test.ts`。
 
 測試:`poe{1,2}/test/**/mechanism-toggle.test.ts`、`renderer/test-vue/mechanism-mount.test.ts`、`renderer/test/mechanism-i18n.test.ts`;破裂既有測試不動。
+
+## Tailwind 4 升級耦合點(2026-10-24,計畫 `drifting-swimming-kay.md` 階段 5)
+Tailwind 3.4 → 4.3 的批次改名,poe1 / poe2 / renderer 共約 49 個 `.vue`;**不逐處加 `exile-appraiser:` 註解**(守則 6 例外),從 apt-patched / ee2-patched 重新同步移植檔後照下表重套。
+| 項目 | 改法 | 原因 |
+|---|---|---|
+| `rounded` | → `rounded-sm`(class 與 `@apply` 皆是;`rounded-full` / `rounded-lg` 等不動) | v4 把 v3 的 `rounded`(4 px)改名 `rounded-sm`,裸 `rounded` 變成 0.25rem 的新刻度,外觀不同 |
+| `flex-grow` / `break-words` / `outline-none` | → `grow` / `wrap-break-word` / `outline-hidden` | v4 改名 |
+| `bg-gradient-to-*` | → `bg-linear-to-*/srgb` | 改名 + v4 預設 oklab 內插,加 `/srgb` 維持 v3 色階 |
+| `bg-[size:2rem]` | → `bg-size-[2rem]` | v4 任意值語法 |
+| `bg-opacity-50`(poe2 `AugmentEditor.vue`) | 刪除 | v4 移除該 utility,且該元素本來就沒有背景色,沒有視覺差 |
+| `@apply … !important`(poe1 `TradeBulk.vue`) | → `@apply bg-gray-700!` | v4 的 important 寫法 |
+| 含 `@apply` / `theme()` 的 `<style>` 區塊 | 區塊開頭加 `@reference "<相對路徑>/renderer/src/theme/tailwind.css"; /* exile-appraiser: … */`(38 處 / 35 檔) | v4 的 SFC 樣式是獨立編譯單位,不 `@reference` 就認不得 utility |
+| `RateLimiterState.vue`(兩代) | module CSS 的巢狀 `:global { animation: shakeX … }` → 另一個非 module `<style>` 的全域 class `ppz-limited-shake`,模板 `:class` 同時掛 `$style.limited` | v4 的處理順序把巢狀 `:global { 宣告 }` 靜默丟掉(按鈕不再搖),無錯誤訊息 |
+| `theme('spacing.2')`、`theme('borderRadius.DEFAULT')` 等 | **不改**(由 `tailwind.css` 的 `@config` 讀 `renderer/tailwind.config.cjs`,v4 相容層照常解析) | 省去 60 處改寫;日後完全移除 `@config` 時才需要換成 `var(--…)` |
+另外三個**不在移植檔內、但同一次升級必須處理**的項目(bug 審查與實測發現,commit 見下):① Font Awesome / animate.css / `assets/font.css` 的 `@import` 從 App.vue 搬到 `renderer/src/main.ts` 的 JS `import`(`@tailwindcss/postcss` 內嵌 `@import` 不重寫 `url()`,dist 有 18 個字型 `url()` 指向不存在的檔案,圖示與遊戲字型在正式版壞掉);② FA 7 圖示預設等寬(`width: var(--fa-width, 1.25em)`),相容層 `tailwind-preflight.css` 把根的 `--fa-width` 設 `auto` 維持 v6 外觀;③ `renderer` 的 `build` 接 `scripts/check-dist-css-urls.mjs`,dist CSS 的 `url()` 有缺檔就失敗。
+驗證方式(2026-10-24,Electron 的 Chromium 156 逐規則比對計算樣式;**這個方法只比規則、不查資源檔**,所以漏掉上面的字型遺失,資源檔另由 `check-dist-css-urls` 把關):7 個情境(四主題、`.pob-dark`、`.bg-host`、token 覆寫)× v3 與 v4 的每條 CSS 規則,另做 preflight 的基礎元素逐元素比對,並以「v3 對 v3」當對照組(差異 0 = 量測本身穩定);已知且刻意保留的差異只有上表的預設值相容層(`renderer/src/theme/tailwind-preflight.css`)。**新增含 `@apply` 的區塊時別忘了 `@reference`**,漏掉的症狀是 build 報 `Cannot apply unknown utility class`。
 
 ## 未做 / 待辦
 - 預測價(PricePrediction)。

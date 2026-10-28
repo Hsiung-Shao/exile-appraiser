@@ -154,6 +154,8 @@ export interface StatFilter {
   fromAggregate?: boolean
   // noMechanism = 這件物品不給機制選擇(傳奇 / 普通、地圖類;create-presets 標,查詢端沒有 item 時靠它)
   noMechanism?: boolean
+  // mechanismExclude = 使用者在機制選擇選了「一般」(預設「不限」= 不排除;2026-10-18)
+  mechanismExclude?: boolean
 }
 
 const _INTERNAL_TRADE_IDS = [
