@@ -9,6 +9,7 @@ import {
   applyPoe2Memory,
   defaultOnlineFilterMemory,
   normOnlineFilterMemory,
+  poe1CurrencySetting,
   rememberPoe1,
   rememberPoe2,
   type OnlineFilterMemory
@@ -18,7 +19,7 @@ const ROOT = path.resolve(__dirname, '../..')
 const read = (p: string) => fs.readFileSync(path.join(ROOT, p), 'utf8')
 
 /** 各代「沒記過」時 createFilters 給的 trade 預設 */
-const poe1Trade = () => ({ offline: false, listed: null as string | null })
+const poe1Trade = (currency: string | null = null) => ({ offline: false, listed: null as string | null, currency })
 const poe2Trade = () => ({ listingType: 'securable', listed: undefined as string | undefined, currency: undefined as string | undefined })
 const poe1Widget = () => ({ onlineFilterMemory: defaultOnlineFilterMemory(), merchantOnly: true, defaultCurrency: null as string | null })
 const poe2Widget = () => ({ onlineFilterMemory: defaultOnlineFilterMemory() })
@@ -29,7 +30,11 @@ describe('M1 沒記過', () => {
     expect(mem).toEqual({ poe1: {}, poe2: {} })
     const t1 = poe1Trade()
     applyPoe1Memory(t1, mem)
-    expect(t1).toEqual({ offline: false, listed: null })
+    expect(t1).toEqual({ offline: false, listed: null, currency: null })
+    // 上游對不可工藝物品強制的 chaos_divine 沒記過就不動
+    const t1b = poe1Trade('chaos_divine')
+    applyPoe1Memory(t1b, mem)
+    expect(t1b.currency).toBe('chaos_divine')
     for (const api of ['trade', 'bulk'] as const) {
       const t2 = poe2Trade()
       applyPoe2Memory(t2, api, mem)
@@ -66,8 +71,24 @@ describe('M2 PoE1 套用', () => {
   })
   it('PoE2 的記憶不會影響 PoE1 查詢', () => {
     const t = poe1Trade()
-    applyPoe1Memory(t, { poe1: {}, poe2: { listed: '1week', tradeListing: 'any' } })
-    expect(t).toEqual({ offline: false, listed: null })
+    applyPoe1Memory(t, { poe1: {}, poe2: { listed: '1week', tradeListing: 'any', currency: 'divine' } })
+    expect(t).toEqual({ offline: false, listed: null, currency: null })
+  })
+  it('PoE1 記住的通貨蓋過上游強制的 chaos_divine', () => {
+    const anyCur = poe1Trade('chaos_divine')
+    applyPoe1Memory(anyCur, { poe1: { currency: null }, poe2: {} })
+    expect(anyCur.currency).toBeNull()
+    const div = poe1Trade('chaos_divine')
+    applyPoe1Memory(div, { poe1: { currency: 'divine' }, poe2: {} })
+    expect(div.currency).toBe('divine')
+    const none = poe1Trade('chaos_divine')
+    applyPoe1Memory(none, { poe1: { offline: true }, poe2: {} })
+    expect(none.currency).toBe('chaos_divine')
+  })
+  it('只記通貨時離線與上架時間不動', () => {
+    const t = { offline: false, listed: '3days' as string | null, currency: null as string | null }
+    applyPoe1Memory(t, { poe1: { currency: 'chaos' }, poe2: {} })
+    expect(t).toEqual({ offline: false, listed: '3days', currency: 'chaos' })
   })
 })
 
@@ -89,7 +110,7 @@ describe('M3 PoE1 寫入', () => {
     rememberPoe1(w, { currency: 'divine' })
     expect(w.defaultCurrency).toBe('divine')
     expect(w.merchantOnly).toBe(false)
-    expect(w.onlineFilterMemory.poe1).toEqual({ offline: true, listed: '1week' })
+    expect(w.onlineFilterMemory.poe1).toEqual({ offline: true, listed: '1week', currency: 'divine' })
     expect(w.onlineFilterMemory.poe2).toEqual({})
   })
   it('patch 帶 null 代表選了「任何」,要存 null 而不是略過', () => {
@@ -97,7 +118,27 @@ describe('M3 PoE1 寫入', () => {
     rememberPoe1(w, { listed: '1week', currency: 'chaos' })
     rememberPoe1(w, { listed: null, currency: null })
     expect(w.onlineFilterMemory.poe1.listed).toBeNull()
+    expect(w.onlineFilterMemory.poe1.currency).toBeNull()
     expect(w.defaultCurrency).toBeNull()
+  })
+  it('PoE1 通貨同時寫進記憶與 defaultCurrency', () => {
+    const w = poe1Widget()
+    rememberPoe1(w, { currency: 'divine' })
+    expect(w.onlineFilterMemory.poe1.currency).toBe('divine')
+    expect(w.defaultCurrency).toBe('divine')
+    rememberPoe1(w, { currency: null })
+    expect(w.onlineFilterMemory.poe1.currency).toBeNull()
+    expect(w.defaultCurrency).toBeNull()
+    rememberPoe1(w, { currency: 'chaos_divine' })
+    expect(w.onlineFilterMemory.poe1.currency).toBe('chaos_divine')
+    expect(w.defaultCurrency).toBe('chaos_divine')
+  })
+  it('沒帶 currency 的 patch 不動記憶與 defaultCurrency 的通貨', () => {
+    const w = poe1Widget()
+    rememberPoe1(w, { currency: 'chaos' })
+    rememberPoe1(w, { offline: true })
+    expect(w.onlineFilterMemory.poe1.currency).toBe('chaos')
+    expect(w.defaultCurrency).toBe('chaos')
   })
   it('一次寫多欄', () => {
     const w = poe1Widget()
@@ -106,10 +147,10 @@ describe('M3 PoE1 寫入', () => {
   })
   it('寫入後套到新查詢得到同樣的值', () => {
     const w = poe1Widget()
-    rememberPoe1(w, { offline: true, listed: '2weeks' })
-    const t = poe1Trade()
+    rememberPoe1(w, { offline: true, listed: '2weeks', currency: 'divine' })
+    const t = poe1Trade('chaos_divine')
     applyPoe1Memory(t, w.onlineFilterMemory)
-    expect(t).toEqual({ offline: true, listed: '2weeks' })
+    expect(t).toEqual({ offline: true, listed: '2weeks', currency: 'divine' })
   })
 })
 
@@ -220,6 +261,16 @@ describe('M6 壞值逐欄丟棄', () => {
     expect(normOnlineFilterMemory({ poe2: { bulkListing: 'securable' } }).poe2).toEqual({})
     expect(normOnlineFilterMemory({ poe2: { bulkListing: 'available' } }).poe2).toEqual({})
   })
+  it('poe1.currency 只收 chaos / divine / chaos_divine / null', () => {
+    for (const currency of ['chaos', 'divine', 'chaos_divine', null]) {
+      expect(normOnlineFilterMemory({ poe1: { currency } }).poe1).toEqual({ currency })
+    }
+    for (const currency of ['exalted', 'mirror', 5, undefined, true]) {
+      const out = normOnlineFilterMemory({ poe1: { currency, offline: true } })
+      expect(out.poe1).not.toHaveProperty('currency')
+      expect(out.poe1.offline).toBe(true)
+    }
+  })
   it('非物件輸入回預設', () => {
     for (const v of [undefined, null, 'x', 3, true, []]) expect(normOnlineFilterMemory(v)).toEqual({ poe1: {}, poe2: {} })
   })
@@ -246,6 +297,16 @@ describe('M7 設定檔往返', () => {
       expect((config.priceCheck as any).onlineFilterMemory).toEqual({ poe1: {}, poe2: {} })
       expect(JSON.parse(serialized).priceCheck.onlineFilterMemory).toEqual({ poe1: {}, poe2: {} })
     }
+  })
+  it('poe1.currency 往返相同,壞值被濾掉', () => {
+    for (const currency of ['chaos', 'divine', 'chaos_divine', null]) {
+      const mem = { poe1: { offline: false, currency }, poe2: {} }
+      const { config, serialized } = _roundTripForTest(JSON.stringify({ priceCheck: { onlineFilterMemory: mem } }))
+      expect((config.priceCheck as any).onlineFilterMemory).toEqual(mem)
+      expect(JSON.parse(serialized).priceCheck.onlineFilterMemory).toEqual(mem)
+    }
+    const bad = _roundTripForTest(JSON.stringify({ priceCheck: { onlineFilterMemory: { poe1: { currency: 'exalted', listed: '1day' } } } }))
+    expect((bad.config.priceCheck as any).onlineFilterMemory).toEqual({ poe1: { listed: '1day' }, poe2: {} })
   })
   it('載入時壞值被濾掉', () => {
     const raw = JSON.stringify({ priceCheck: { onlineFilterMemory: { poe1: { listed: 'xx', offline: true }, poe2: { currency: 'mirror' } } } })
@@ -310,11 +371,63 @@ describe('M11 接線守門', () => {
     expect(p2).toMatch(importOf('applyPoe2Memory'))
     expect(p2).toMatch(/\bapplyPoe2Memory\(/)
   })
+  it('PoE1 離線開關的每一處寫入都帶上上架時間', () => {
+    // 一般與大宗的選單切離線,以及大宗卡片「只看在線」,都要把 listed 一起記(離線 → 2months,在線 → null)
+    const offlineWrites = (body: string) => body.match(/\{[^{}]*\boffline\b[^{}]*\}/g) ?? []
+    const core = read('poe1/src/web/price-check/trade/OnlineFilterCore.vue')
+    const start = core.indexOf('function onOfflineUpdate')
+    expect(start, '找得到 onOfflineUpdate').toBeGreaterThan(-1)
+    const coreBody = core.slice(start, core.indexOf('\nfunction ', start + 10))
+    const coreWrites = offlineWrites(coreBody).filter(w => !/filters\.offline/.test(w))
+    expect(coreWrites.length, 'onOfflineUpdate 有記離線').toBeGreaterThan(0)
+    for (const w of coreWrites) expect(w, 'onOfflineUpdate 的離線寫入要帶 listed').toMatch(/\blisted\b/)
+
+    const bulk = read('poe1/src/web/price-check/trade/TradeBulk.vue')
+    const bStart = bulk.indexOf('setOnlineOnly (')
+    expect(bStart, '找得到 setOnlineOnly').toBeGreaterThan(-1)
+    const bulkWrites = offlineWrites(bulk.slice(bStart, bStart + 700))
+    expect(bulkWrites.length, 'setOnlineOnly 有記離線').toBeGreaterThan(0)
+    for (const w of bulkWrites) expect(w, 'setOnlineOnly 的離線寫入要帶 listed').toMatch(/\blisted\b/)
+  })
   it('PoE2「只看崇高 + 神聖」一次性按鈕不呼叫寫入記憶', () => {
     const src = read('poe2/src/web/price-check/trade/TradeListing.vue')
     const m = /execFilterExaltDivine:\s*\(\)\s*=>\s*\{([^}]*)\}/.exec(src)
     expect(m, '找得到 execFilterExaltDivine').toBeTruthy()
     expect(m![1]).toContain('currency')
     expect(m![1]).not.toMatch(/remember/)
+  })
+})
+
+describe('M16 設定頁「預設價格通貨」', () => {
+  it('記憶有通貨鍵就顯示記憶值(含 null),沒鍵才用 defaultCurrency', () => {
+    const w = (poe1: OnlineFilterMemory['poe1'], defaultCurrency: string | null) => ({ onlineFilterMemory: { poe1, poe2: {} }, defaultCurrency })
+    expect(poe1CurrencySetting(w({ currency: 'divine' }, 'chaos'))).toBe('divine')
+    expect(poe1CurrencySetting(w({ currency: 'chaos_divine' }, null))).toBe('chaos_divine')
+    expect(poe1CurrencySetting(w({ currency: null }, 'chaos'))).toBeNull()
+    expect(poe1CurrencySetting(w({}, 'chaos'))).toBe('chaos')
+    expect(poe1CurrencySetting(w({ offline: true }, null))).toBeNull()
+  })
+  it('選單改通貨後設定頁看到同一個值', () => {
+    const w = poe1Widget()
+    for (const c of ['chaos', 'divine', 'chaos_divine', null]) {
+      rememberPoe1(w, { currency: c })
+      expect(poe1CurrencySetting(w)).toBe(c)
+    }
+  })
+  it('PriceCheck.vue 有混沌 + 神聖選項,改走 rememberPoe1 並用 poe1CurrencySetting 顯示', () => {
+    const src = read('renderer/src/web/settings/tabs/PriceCheck.vue')
+    expect(src).toContain("'chaos_divine'")
+    expect(src).toContain('ppz.currency_chaos_divine')
+    expect(src).toMatch(/\bpoe1CurrencySetting\b/)
+    expect(src).toMatch(/\brememberPoe1\(/)
+    expect(src, '不再直接寫 pc.defaultCurrency').not.toMatch(/pc\.defaultCurrency\s*=(?!=)/)
+    expect(src, '顯示不再直接讀 pc.defaultCurrency').not.toMatch(/pc\.defaultCurrency\s*===/)
+  })
+  it('兩語系都有 ppz.currency_chaos_divine', () => {
+    for (const lang of ['cmn-Hant', 'en']) {
+      const j = JSON.parse(read(`renderer/src/i18n/${lang}.json`))
+      expect(typeof j.ppz.currency_chaos_divine, lang).toBe('string')
+      expect(j.ppz.currency_chaos_divine.length, lang).toBeGreaterThan(0)
+    }
   })
 })

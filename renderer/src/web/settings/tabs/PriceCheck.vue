@@ -18,8 +18,8 @@
       <span class="k">{{ t('ppz.default_currency') }}</span>
       <div class="ctl">
         <div class="seg" data-setting="default-currency">
-          <button v-for="c in currencies" :key="String(c.value)" :class="{ on: pc.defaultCurrency === c.value }"
-            :data-value="String(c.value)" @click="pc.defaultCurrency = c.value">{{ t(c.key) }}</button>
+          <button v-for="c in currencies" :key="String(c.value)" :class="{ on: poe1CurrencySetting(pc) === c.value }"
+            :data-value="String(c.value)" @click="rememberPoe1(pc, { currency: c.value })">{{ t(c.key) }}</button>
         </div>
       </div>
     </div>
@@ -102,6 +102,7 @@ import { useI18n } from 'vue-i18n'
 import { AppConfig } from '@/web/Config'
 import { CURRENCY_VOLUME_OPTIONS, HOVER_OPTIONS, hasCurrencyVolume, hasDefaultCurrency, hasItemHover } from './price-check-options'
 import HelpTip from '../HelpTip.vue'
+import { poe1CurrencySetting, rememberPoe1 } from '../../price-panel/online-filter-memory'
 import { RELATED_SCALE_DEFAULT, RELATED_SCALE_MAX, RELATED_SCALE_MIN } from '../../related-items-scale'
 
 export default defineComponent({
@@ -113,11 +114,15 @@ export default defineComponent({
       t,
       config,
       pc: config.priceCheck,
-      // GGG 交易站 trade_filters.price.option 的值(null = 不指定)
+      // GGG 交易站 trade_filters.price.option 的值(null = 不指定);2026-10-29 起與掛單卡「線上」選單是同一個值
+      // (選單可選「混沌 + 神聖」,這裡也要有,否則選了之後三顆都不亮)
+      poe1CurrencySetting,
+      rememberPoe1,
       currencies: [
         { value: null, key: 'ppz.currency_any' },
         { value: 'chaos', key: 'ppz.currency_chaos' },
-        { value: 'divine', key: 'ppz.currency_divine' }
+        { value: 'divine', key: 'ppz.currency_divine' },
+        { value: 'chaos_divine', key: 'ppz.currency_chaos_divine' }
       ] as Array<{ value: string | null, key: string }>,
       sellers: [
         { value: false, key: 'ppz.show_seller_no' },

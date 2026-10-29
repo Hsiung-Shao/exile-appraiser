@@ -1,5 +1,5 @@
 /**
- * 查價掛單卡「線上」選單自動記住(2026-10-29 使用者要求)的掛載測試(M8–M10,另加 M12 / M13 大宗只看在線開關)。
+ * 查價掛單卡「線上」選單自動記住(2026-10-29 使用者要求)的掛載測試(M8–M10、M13–M15)。
  * 純函式與設定往返在 renderer/test/online-filter-memory.test.ts。
  * 交易站回應:PoE1 / 兩代 exchange 本檔包一層假回應,不連網(同 listing-layout-mount.test.ts)。
  */
@@ -71,6 +71,10 @@ beforeAll(async () => {
     if (/\/api\/trade2?\/exchange\//.test(url)) {
       const body = JSON.parse(String(init?.body ?? '{}'))
       return json(exchange(body.query.have))
+    }
+    if (/\/api\/trade\/search\//.test(url)) return json({ id: 'P1Q', result: ['p1-0'], total: 1 })
+    if (/\/api\/trade\/fetch\//.test(url)) {
+      return json({ result: [{ id: 'p1-0', item: { ilvl: 80 }, listing: { indexed: new Date().toISOString(), price: { amount: 1, currency: 'chaos', type: '~price' }, account: account(0) } }] })
     }
     return realFetch(input, init)
   }) as typeof fetch
@@ -188,12 +192,16 @@ describe('M8 PoE1 選單記住後換物品沿用', () => {
     await settle()
     expect(filters.trade.offline).toBe(true)
     expect(mem()?.poe1?.offline).toBe(true)
+    // 上游切離線會順便把上架時間改成「至多 2 個月」,記憶要一起記
+    expect(filters.trade.listed).toBe('2months')
+    expect(mem()?.poe1?.listed).toBe('2months')
     menu.app.unmount()
 
     const panel = render('poe1', Poe1CheckedItem, { item: ring, advancedCheck: true })
     await settle()
     expect(panel.errors).toEqual([])
     expect(panel.inst.value!.itemFilters.trade.offline).toBe(true)
+    expect(panel.inst.value!.itemFilters.trade.listed).toBe('2months')
     panel.app.unmount()
   })
 })
@@ -230,8 +238,56 @@ describe('M10 一次性按鈕不記', () => {
   })
 })
 
-describe('M12 / M13 大宗卡片「只看在線」開關寫入記憶', () => {
-  it('PoE1 大宗切只看在線會記住離線開關', async () => {
+describe('M15 PoE1 選「任何通貨」後換不可工藝物品', () => {
+  it('PoE1 在選單選「任何通貨」後換另一件地圖,通貨仍是任何', async () => {
+    const mapA = poe1Item('poe1/test/fixtures/en/map-rare-01.txt')
+    const mapB = poe1Item('poe1/test/fixtures/en/map-blighted-rare-01.txt')
+    const { filters } = poe1Preset(mapA)
+    expect(filters.trade.currency, '前提:不可工藝的非傳奇物品,上游強制 chaos_divine').toBe('chaos_divine')
+    expect(poe1Preset(mapB).filters.trade.currency, '前提:第二件也會被強制').toBe('chaos_divine')
+
+    const menu = render('poe1', Poe1OnlineFilterCore, { filters: filters.trade, api: 'trade' })
+    await settle()
+    expect(menu.errors).toEqual([])
+    click(buttonWith(menu.container, '任何通貨'))
+    await settle()
+    expect(filters.trade.currency).toBeNull()
+    expect(mem()?.poe1?.currency).toBeNull()
+    menu.app.unmount()
+
+    const item = shallowRef(mapA)
+    const panel = render('poe1', Poe1CheckedItem, () => ({ item: item.value, advancedCheck: true }))
+    await settle()
+    expect(panel.errors).toEqual([])
+    expect(panel.inst.value!.itemFilters.trade.currency).toBeNull()
+
+    item.value = mapB
+    await settle()
+    expect(panel.errors).toEqual([])
+    expect(panel.inst.value!.itemFilters.trade.currency).toBeNull()
+    panel.app.unmount()
+  })
+})
+
+describe('M14 PoE1 大宗切離線連同上架時間一起記', () => {
+  it('PoE1 大宗選單切離線再切回,記憶的離線與上架時間一起變', async () => {
+    const item = poe1Item('poe1/test/fixtures/en/currency-01.txt')
+    const { filters } = poe1Preset(item)
+    const menu = render('poe1', Poe1OnlineFilterCore, { filters: filters.trade, api: 'bulk' })
+    await settle()
+    expect(menu.errors).toEqual([])
+    click(buttonWith(menu.container, '離線與在線'))
+    await settle()
+    expect(filters.trade.offline).toBe(true)
+    expect(mem()?.poe1).toEqual({ offline: true, listed: '2months' })
+    click(buttonWith(menu.container, '離線與在線'))
+    await settle()
+    expect(filters.trade.offline).toBe(false)
+    expect(mem()?.poe1).toEqual({ offline: false, listed: null })
+    menu.app.unmount()
+  })
+
+  it('PoE1 大宗卡片只看在線切離線再切回,記憶的離線與上架時間一起變', async () => {
     const item = poe1Item('poe1/test/fixtures/en/currency-01.txt')
     const { filters } = poe1Preset(item)
     const r = render('poe1', Poe1Bulk, { filters, item })
@@ -242,15 +298,16 @@ describe('M12 / M13 大宗卡片「只看在線」開關寫入記憶', () => {
     click(onlineSwitch(r.container))
     await settle()
     expect(filters.trade.offline).toBe(true)
-    expect(mem()?.poe1?.offline).toBe(true)
+    expect(mem()?.poe1).toEqual({ offline: true, listed: '2months' })
     click(onlineSwitch(r.container))
     await settle()
     expect(filters.trade.offline).toBe(false)
-    expect(mem()?.poe1?.offline).toBe(false)
-    expect(mem()?.poe1).not.toHaveProperty('listed') // 大宗不動上架時間
+    expect(mem()?.poe1).toEqual({ offline: false, listed: null })
     r.app.unmount()
   })
+})
 
+describe('M13 PoE2 大宗卡片「只看在線」開關寫入記憶', () => {
   it('PoE2 大宗切只看在線只記大宗的掛單類型', async () => {
     const item = poe2Item('poe2/test/zhTW/fixtures/en/currency-01.txt')
     const { filters } = poe2Preset(item)

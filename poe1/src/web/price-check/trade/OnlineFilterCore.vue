@@ -73,8 +73,9 @@ function onOfflineUpdate (offline: boolean) {
   if (props.api === 'trade') {
     filters.listed = (offline) ? '2months' : null
   }
-  // exile-appraiser: 上游順帶改的上架時間一起記,與畫面一致
-  remember(props.api === 'trade' ? { offline, listed: filters.listed } : { offline })
+  // exile-appraiser: 離線開關一律連上架時間一起記(與上游一般查價切離線的規則相同:離線 = 至多 2 個月、在線 = 任何時間),
+  // 大宗也照這條記,避免一般查價套成「離線 + 任何時間」或殘留「至多 2 個月」(第 2 輪審查)
+  remember({ offline, listed: offline ? '2months' : null })
 }
 
 // exile-appraiser: 2026-10-29 使用者在選單改的值同時寫進設定檔(online-filter-memory.ts);程式自己改的值不經過這裡

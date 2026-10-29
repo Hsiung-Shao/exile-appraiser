@@ -388,8 +388,8 @@ export default defineComponent({
       setOnlineOnly (online: boolean) {
         // 與 OnlineFilterCore 的「離線」開關同一個狀態(bulk 不動 listed)
         props.filters.trade.offline = !online
-        // exile-appraiser: 2026-10-29 自動記住(online-filter-memory.ts)
-        rememberPoe1(AppConfig<PriceCheckWidget>('price-check'), { offline: !online })
+        // exile-appraiser: 2026-10-29 自動記住(online-filter-memory.ts);上架時間照上游一般選單切離線的規則一起記
+        rememberPoe1(AppConfig<PriceCheckWidget>('price-check'), { offline: !online, listed: online ? null : '2months' })
       },
       error,
       result,
