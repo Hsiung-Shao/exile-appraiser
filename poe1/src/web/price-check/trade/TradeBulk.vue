@@ -148,6 +148,7 @@ import TradeLinks from './TradeLinks.vue'
 import ListingLayoutToggle from '@/web/price-panel/ListingLayoutToggle.vue'
 import ListingChip from '@/web/price-panel/ListingChip.vue'
 import ListingOnlineSwitch from '@/web/price-panel/ListingOnlineSwitch.vue'
+import { rememberPoe1 } from '@/web/price-panel/online-filter-memory'
 import { useListingLayout } from '@/web/price-panel/useListingLayout'
 
 const slowdown = artificialSlowdown(900)
@@ -387,6 +388,8 @@ export default defineComponent({
       setOnlineOnly (online: boolean) {
         // 與 OnlineFilterCore 的「離線」開關同一個狀態(bulk 不動 listed)
         props.filters.trade.offline = !online
+        // exile-appraiser: 2026-10-29 自動記住(online-filter-memory.ts)
+        rememberPoe1(AppConfig<PriceCheckWidget>('price-check'), { offline: !online })
       },
       error,
       result,

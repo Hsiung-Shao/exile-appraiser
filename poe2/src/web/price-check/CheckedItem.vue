@@ -72,6 +72,7 @@ import {
 import { AppConfig } from "@/web/Config";
 import { FilterPreset } from "./filters/interfaces";
 import { PriceCheckWidget } from "@/web/overlay/interfaces";
+import { applyPoe2Memory } from "@/web/price-panel/online-filter-memory";
 import { useLeagues } from "@/web/background/Leagues";
 // exile-appraiser(第 24 步):PriceTrend(通貨價格區)/ StackValue 加回(價格源 = renderer 的 poe.ninja 價格表,web/background/Prices.ts 轉接;
 // 只對 exchange 類顯示,台服 / 沒有 ninja 價整塊不顯示)
@@ -180,6 +181,18 @@ export default defineComponent({
 
         if (tradeAPI.value === "bulk") {
           itemFilters.value.trade.listingType = "online";
+        }
+        // exile-appraiser: 2026-10-29 掛單卡「線上」選單記住的掛單類型 / 上架時間 / 通貨套到每個 preset
+        // (依各自的 api;放在上游「大宗預設 online」之後,記住的大宗設定才不會被蓋掉;online-filter-memory.ts)
+        const onlineMemory = widget.value.onlineFilterMemory;
+        if (onlineMemory) {
+          for (const p of presets.value.presets) {
+            applyPoe2Memory(
+              p.filters.trade,
+              apiToSatisfySearch(props.item, p.stats, p.filters),
+              onlineMemory,
+            );
+          }
         }
         performance.mark("checked-item-switch-item-end");
       },

@@ -28,55 +28,55 @@
       <div class="flex gap-x-8 p-2 bg-gray-800 text-gray-400">
         <div class="flex flex-col gap-y-1">
           <template v-if="api === 'trade'">
-            <ui-radio v-model="filters.trade.listingType" value="available">{{
+            <ui-radio :modelValue="filters.trade.listingType" @update:modelValue="onListingType" value="available">{{
               t("Instant or Online")
             }}</ui-radio>
-            <ui-radio v-model="filters.trade.listingType" value="securable">{{
+            <ui-radio :modelValue="filters.trade.listingType" @update:modelValue="onListingType" value="securable">{{
               t("Instant")
             }}</ui-radio>
-            <ui-radio v-model="filters.trade.listingType" value="online">{{
+            <ui-radio :modelValue="filters.trade.listingType" @update:modelValue="onListingType" value="online">{{
               t("Online")
             }}</ui-radio>
-            <ui-radio v-model="filters.trade.listingType" value="any">{{
+            <ui-radio :modelValue="filters.trade.listingType" @update:modelValue="onListingType" value="any">{{
               t(":offline_toggle")
             }}</ui-radio>
           </template>
           <template v-else>
             <ui-radio
-              v-model="filters.trade.listingType"
+              :modelValue="filters.trade.listingType" @update:modelValue="onListingType"
               value="onlineleague"
               >{{ t(":in_league_toggle") }}</ui-radio
             >
-            <ui-radio v-model="filters.trade.listingType" value="online">{{
+            <ui-radio :modelValue="filters.trade.listingType" @update:modelValue="onListingType" value="online">{{
               t("Online")
             }}</ui-radio>
-            <ui-radio v-model="filters.trade.listingType" value="any">{{
+            <ui-radio :modelValue="filters.trade.listingType" @update:modelValue="onListingType" value="any">{{
               t(":offline_toggle")
             }}</ui-radio>
           </template>
           <template v-if="byTime">
             <ui-radio
-              v-model="filters.trade.listed"
+              :modelValue="filters.trade.listed" @update:modelValue="onListed"
               :value="undefined"
               class="mt-3"
               >{{ t(":listed_any_time") }}</ui-radio
             >
-            <ui-radio v-model="filters.trade.listed" value="1day">{{
+            <ui-radio :modelValue="filters.trade.listed" @update:modelValue="onListed" value="1day">{{
               t(":listed_1day")
             }}</ui-radio>
-            <ui-radio v-model="filters.trade.listed" value="3days">{{
+            <ui-radio :modelValue="filters.trade.listed" @update:modelValue="onListed" value="3days">{{
               t(":listed_3days")
             }}</ui-radio>
-            <ui-radio v-model="filters.trade.listed" value="1week">{{
+            <ui-radio :modelValue="filters.trade.listed" @update:modelValue="onListed" value="1week">{{
               t(":listed_1week")
             }}</ui-radio>
-            <ui-radio v-model="filters.trade.listed" value="2weeks">{{
+            <ui-radio :modelValue="filters.trade.listed" @update:modelValue="onListed" value="2weeks">{{
               t(":listed_2weeks")
             }}</ui-radio>
-            <ui-radio v-model="filters.trade.listed" value="1month">{{
+            <ui-radio :modelValue="filters.trade.listed" @update:modelValue="onListed" value="1month">{{
               t(":listed_1month")
             }}</ui-radio>
-            <ui-radio v-model="filters.trade.listed" value="2months">{{
+            <ui-radio :modelValue="filters.trade.listed" @update:modelValue="onListed" value="2months">{{
               t(":listed_2months")
             }}</ui-radio>
           </template>
@@ -92,20 +92,20 @@
           <template v-if="byTime">
             <ui-radio
               class="mt-3"
-              v-model="filters.trade.currency"
+              :modelValue="filters.trade.currency" @update:modelValue="onCurrency"
               :value="undefined"
               >{{ t(":currency_any") }}</ui-radio
             >
-            <ui-radio v-model="filters.trade.currency" value="exalted">{{
+            <ui-radio :modelValue="filters.trade.currency" @update:modelValue="onCurrency" value="exalted">{{
               t(":currency_only_exalted")
             }}</ui-radio>
-            <ui-radio v-model="filters.trade.currency" value="chaos">{{
+            <ui-radio :modelValue="filters.trade.currency" @update:modelValue="onCurrency" value="chaos">{{
               t(":currency_only_chaos")
             }}</ui-radio>
-            <ui-radio v-model="filters.trade.currency" value="divine">{{
+            <ui-radio :modelValue="filters.trade.currency" @update:modelValue="onCurrency" value="divine">{{
               t(":currency_only_div")
             }}</ui-radio>
-            <ui-radio v-model="filters.trade.currency" value="exalted_divine">{{
+            <ui-radio :modelValue="filters.trade.currency" @update:modelValue="onCurrency" value="exalted_divine">{{
               t(":currency_exalted_div")
             }}</ui-radio>
           </template>
@@ -123,6 +123,10 @@ import UiToggle from "@/web/ui/UiToggle.vue";
 import UiPopover from "@/web/ui/Popover.vue";
 import type { ItemFilters } from "../filters/interfaces";
 import { useLeagues } from "@/web/background/Leagues";
+// exile-appraiser: 2026-10-29 選單裡改的掛單類型 / 上架時間 / 通貨自動記住(寫進設定檔;聯盟不記)
+import { AppConfig } from "@/web/Config";
+import type { PriceCheckWidget } from "@/web/overlay/interfaces";
+import { rememberPoe2, type Poe2Patch } from "@/web/price-panel/online-filter-memory";
 
 export default defineComponent({
   components: { UiRadio, UiToggle, UiPopover },
@@ -143,6 +147,10 @@ export default defineComponent({
   setup(props) {
     const leagues = useLeagues();
     const { t } = useI18nNs("online_filter");
+    // exile-appraiser: 使用者在選單改的值同時寫進設定檔(online-filter-memory.ts);查詢函式自己正規化的 listingType 不經過這裡
+    const remember = (patch: Poe2Patch) => {
+      rememberPoe2(AppConfig<PriceCheckWidget>("price-check"), props.api, patch);
+    };
 
     return {
       t,
@@ -155,6 +163,18 @@ export default defineComponent({
             ["1day", "3days", "1week"].includes(props.filters.trade.listed)) ||
             props.filters.trade.currency,
         ),
+      onListingType(listingType: ItemFilters["trade"]["listingType"]) {
+        props.filters.trade.listingType = listingType;
+        remember({ listingType });
+      },
+      onListed(listed: string | undefined) {
+        props.filters.trade.listed = listed;
+        remember({ listed });
+      },
+      onCurrency(currency: string | undefined) {
+        props.filters.trade.currency = currency;
+        remember({ currency });
+      },
       onOfflineUpdate(offline: boolean) {
         const { filters } = props;
         filters.trade.offline = offline;

@@ -231,6 +231,7 @@ import { useBulkApi } from "./bulk-api";
 import ListingLayoutToggle from "@/web/price-panel/ListingLayoutToggle.vue";
 import ListingChip from "@/web/price-panel/ListingChip.vue";
 import ListingOnlineSwitch from "@/web/price-panel/ListingOnlineSwitch.vue";
+import { rememberPoe2 } from "@/web/price-panel/online-filter-memory";
 import { useListingLayout } from "@/web/price-panel/useListingLayout";
 import { currencyIcon } from "@/web/price-panel/currency-icon";
 
@@ -357,6 +358,10 @@ export default defineComponent({
         const trade = props.filters.trade;
         if (!online) trade.listingType = "any";
         else if (trade.listingType === "any") trade.listingType = "online";
+        // exile-appraiser: 2026-10-29 自動記住大宗的掛單類型(online-filter-memory.ts)
+        rememberPoe2(AppConfig<PriceCheckWidget>("price-check"), "bulk", {
+          listingType: trade.listingType,
+        });
       },
       error,
       result,

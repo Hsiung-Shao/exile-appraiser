@@ -27,6 +27,7 @@ import { RELATED_SCALE_DEFAULT, normRelatedItemsScale } from './related-items-sc
 import { normFloatMenuPos, normOverlayPos, type FloatMenuPos, type OverlayPos } from './overlay/float-menu-geom'
 import { defaultListingLayout, normListingLayout } from './price-panel/listing-layout'
 import { DEFAULT_SHOW_MECHANISM, normShowMechanism } from './price-panel/mechanism-visibility'
+import { defaultOnlineFilterMemory, normOnlineFilterMemory } from './price-panel/online-filter-memory'
 
 /** 介面字串語言(與客戶端語言 `language` 分開)。 */
 export type UiLanguage = 'cmn-Hant' | 'en'
@@ -201,7 +202,8 @@ export function defaultPriceCheck (): PriceCheckWidget {
     initialDelay: 48,
     savedAugments: {},
     listingLayout: defaultListingLayout(), // 查價面板 B 改版 P4:掛單方塊 / 長條
-    showMechanism: DEFAULT_SHOW_MECHANISM // 2026-10-16:查價面板「機制」開關
+    showMechanism: DEFAULT_SHOW_MECHANISM, // 2026-10-16:查價面板「機制」開關
+    onlineFilterMemory: defaultOnlineFilterMemory() // 2026-10-29:掛單卡「線上」選單自動記住
   }
 }
 
@@ -505,6 +507,7 @@ function applyLoaded (raw: string) {
   config.priceCheck = { ...fresh.priceCheck, ...(loaded.priceCheck ?? {}) }
   config.priceCheck.listingLayout = normListingLayout(config.priceCheck.listingLayout) // 壞值逐欄回預設
   config.priceCheck.showMechanism = normShowMechanism(config.priceCheck.showMechanism) // 壞值回關
+  config.priceCheck.onlineFilterMemory = normOnlineFilterMemory(config.priceCheck.onlineFilterMemory) // 壞值逐欄丟棄
   // 視窗標題改成每遊戲一格;舊版單一 `windowTitle` 併入當時 game 那格(已有 windowTitleBy 的不動)
   const titles = { ...fresh.windowTitleBy }
   for (const g of ['poe1', 'poe2'] as const) {

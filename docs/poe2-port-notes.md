@@ -232,6 +232,12 @@ Tailwind 3.4 → 4.3 的批次改名,poe1 / poe2 / renderer 共約 49 個 `.vue`
 另外三個**不在移植檔內、但同一次升級必須處理**的項目(bug 審查與實測發現,commit 見下):① Font Awesome / animate.css / `assets/font.css` 的 `@import` 從 App.vue 搬到 `renderer/src/main.ts` 的 JS `import`(`@tailwindcss/postcss` 內嵌 `@import` 不重寫 `url()`,dist 有 18 個字型 `url()` 指向不存在的檔案,圖示與遊戲字型在正式版壞掉);② FA 7 圖示預設等寬(`width: var(--fa-width, 1.25em)`),相容層 `tailwind-preflight.css` 把根的 `--fa-width` 設 `auto` 維持 v6 外觀;③ `renderer` 的 `build` 接 `scripts/check-dist-css-urls.mjs`,dist CSS 的 `url()` 有缺檔就失敗。
 驗證方式(2026-10-24,Electron 的 Chromium 156 逐規則比對計算樣式;**這個方法只比規則、不查資源檔**,所以漏掉上面的字型遺失,資源檔另由 `check-dist-css-urls` 把關):7 個情境(四主題、`.pob-dark`、`.bg-host`、token 覆寫)× v3 與 v4 的每條 CSS 規則,另做 preflight 的基礎元素逐元素比對,並以「v3 對 v3」當對照組(差異 0 = 量測本身穩定);已知且刻意保留的差異只有上表的預設值相容層(`renderer/src/theme/tailwind-preflight.css`)。**新增含 `@apply` 的區塊時別忘了 `@reference`**,漏掉的症狀是 build 報 `Cannot apply unknown utility class`。
 
+## 掛單卡「線上」選單自動記住(2026-10-29,使用者要求,PoE1 / PoE2)
+選單裡改的設定寫進設定檔,之後查任何物品、重開程式都沿用;聯盟不記(以標題列為準)。純邏輯 `renderer/src/web/price-panel/online-filter-memory.ts`,設定 `priceCheck.onlineFilterMemory`(`{ poe1: { offline, listed }, poe2: { tradeListing, bulkListing, listed, currency } }`,沒有的鍵 = 沒記過,`null` = 任何時間 / 任何通貨;載入時 `normOnlineFilterMemory` 逐欄驗值);PoE1 的僅限商人 / 通貨沿用既有 `merchantOnly` / `defaultCurrency`(設定頁「預設價格通貨」同一個值)。
+- **只在使用者操作處寫入**(不監看 filters:PoE2 `pathofexile-bulk.ts` / `pathofexile-trade.ts` 會正規化 listingType,監看會誤存):PoE1 `OnlineFilterCore.vue`(離線 / 上架時間 / 僅限商人 / 通貨,`v-model` 改 `:modelValue` + handler;離線開關連上游順帶改的上架時間一起記)、PoE2 `OnlineFilter.vue`(掛單類型依 api 分一般 / 大宗、上架時間、通貨)、兩代 `TradeBulk.vue` `setOnlineOnly`。PoE2「價格疑似被操縱 → 只看崇高 + 神聖」按鈕是一次性動作,不記。
+- **套用**:PoE1 `CheckedItem.vue` 在 `createPresets` 後對每個 preset `applyPoe1Memory`;PoE2 在上游「大宗預設 listingType = online」之後,依各 preset 的 `apiToSatisfySearch` 套 `applyPoe2Memory`(放前面會被上游蓋掉)。PoE2 原有的 `rememberCurrency` / `rememberListingType`(只記在記憶體)保留不動。
+- 從上游重新同步這幾個檔時重套上述接線;測試 `renderer/test/online-filter-memory.test.ts`(純函式、設定往返、接線守門:選單不得再用裸 `v-model` 綁這四類欄位)、`renderer/test-vue/online-filter-memory-mount.test.ts`(掛載:選單 / 大宗開關寫入、換物品沿用、查詢正規化與一次性按鈕不寫入)。
+
 ## 未做 / 待辦
 - 預測價(PricePrediction)。
 - GUI 實機(熱鍵 → overlay 附著 PoE2 視窗 → 台服真實掛單)由使用者實測。
