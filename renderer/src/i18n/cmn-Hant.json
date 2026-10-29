@@ -490,6 +490,7 @@
     "currency_any": "不指定",
     "currency_chaos": "混沌石",
     "currency_divine": "神聖石",
+    "currency_chaos_divine": "混沌石 + 神聖石",
     "realm_intl_short": "國際服",
     "realm_tw_short": "台服",
     "reloading": "正在重新載入資料…",

@@ -58,6 +58,9 @@ const classList = { add: noop, remove: noop, toggle: noop, contains: () => false
 const element = () => ({ style: { setProperty: noop, removeProperty: noop }, classList, setAttribute: noop, removeAttribute: noop, appendChild: noop, addEventListener: noop, removeEventListener: noop })
 
 Object.assign(globalThis, {
+  // 文字輸入 v-model(vModelText)值改變時做 `el.getRootNode() instanceof Document / ShadowRoot`;mini-dom 的樹根兩者都不是
+  Document: class Document {},
+  ShadowRoot: class ShadowRoot {},
   localStorage: localStorageStub,
   window: Object.assign(globalThis, {
     innerWidth: 1280, innerHeight: 900, screenX: 0, screenY: 0, devicePixelRatio: 1,

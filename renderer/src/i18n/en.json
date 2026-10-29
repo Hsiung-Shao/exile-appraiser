@@ -490,6 +490,7 @@
     "currency_any": "Any",
     "currency_chaos": "Chaos",
     "currency_divine": "Divine",
+    "currency_chaos_divine": "Chaos + Divine",
     "realm_intl_short": "Intl",
     "realm_tw_short": "TW",
     "reloading": "Reloading data…",

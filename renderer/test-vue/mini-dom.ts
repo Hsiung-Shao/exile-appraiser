@@ -20,6 +20,8 @@ export interface MiniNode {
   removeEventListener: (type: string, fn: unknown) => void
   /** 2026-10-15 懸浮選單搜尋框 onMounted focus():記下最後被 focus 的節點(`focusedNode()`) */
   focus: () => void
+  /** 2026-10-29 文字輸入 v-model(vModelText)在值改變時呼叫;回樹根(不是 Document,Vue 只拿它做 instanceof 判斷) */
+  getRootNode: () => MiniNode
 }
 
 let focused: MiniNode | null = null
@@ -30,7 +32,11 @@ function node (tag: string, text = ''): MiniNode {
   const props: Record<string, string> = {}
   const style = { props, setProperty: (k: string, v: string) => { props[k] = v }, removeProperty: (k: string) => { delete props[k] } }
   const noop = () => {}
-  const n: MiniNode = { tag, text, attrs: {}, children: [], parent: null, style, dataset: {}, addEventListener: noop, removeEventListener: noop, focus: () => { focused = n } }
+  const n: MiniNode = {
+    tag, text, attrs: {}, children: [], parent: null, style, dataset: {}, addEventListener: noop, removeEventListener: noop,
+    focus: () => { focused = n },
+    getRootNode: () => { let r = n; while (r.parent) r = r.parent; return r }
+  }
   // v-model 的 <select>(vModelSelect)讀 el.options
   Object.defineProperty(n, 'options', { get: () => n.children.filter(c => c.tag === 'option'), enumerable: false })
   // 掃描層遮罩回報(useScanLayer)量子元素外框;沒有排版 → 全 0

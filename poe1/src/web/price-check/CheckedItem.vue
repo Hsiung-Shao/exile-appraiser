@@ -70,6 +70,7 @@ import { CATEGORY_TO_TRADE_ID, createTradeRequest } from './trade/pathofexile-tr
 import { AppConfig } from '@/web/Config'
 import { FilterPreset } from './filters/interfaces'
 import { PriceCheckWidget } from '@/web/overlay/interfaces'
+import { applyPoe1Memory } from '@/web/price-panel/online-filter-memory'
 import { useLeagues } from '@/web/background/Leagues'
 
 export default defineComponent({
@@ -124,6 +125,11 @@ export default defineComponent({
           item.info.refName === prevItem.info.refName
         ) ? prevCurrency : widget.value.defaultCurrency
       })
+      // exile-appraiser: 2026-10-29 掛單卡「線上」選單記住的離線 / 上架時間套到每個 preset(online-filter-memory.ts;商人 / 通貨已由上面的 opts 讀設定)
+      const onlineMemory = widget.value.onlineFilterMemory
+      if (onlineMemory) {
+        for (const p of presets.value.presets) applyPoe1Memory(p.filters.trade, onlineMemory)
+      }
 
       if ((!props.advancedCheck && !widget.value.smartInitialSearch) ||
           (props.advancedCheck && !widget.value.lockedInitialSearch)) {

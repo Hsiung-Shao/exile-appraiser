@@ -4,6 +4,7 @@
  * `AppConfig<PriceCheckWidget>('price-check')` 取用。
  */
 import type { ListingLayout } from '../price-panel/listing-layout'
+import type { OnlineFilterMemory } from '../price-panel/online-filter-memory'
 
 export interface PriceCheckWidget {
   showRateLimitState: boolean
@@ -34,4 +35,6 @@ export interface PriceCheckWidget {
   listingLayout: ListingLayout
   /** 2026-10-16:查價面板「機制」開關(預設關 = 只有非一般模式的列顯示機制按鈕) */
   showMechanism: boolean
+  /** 2026-10-29:掛單卡「線上」選單的離線 / 上架時間 / PoE2 掛單類型與通貨自動記住(PoE1 的商人 / 通貨在 merchantOnly / defaultCurrency) */
+  onlineFilterMemory: OnlineFilterMemory
 }
