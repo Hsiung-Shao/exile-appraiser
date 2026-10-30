@@ -23,6 +23,10 @@
  * - 需求行 → 依 `requirements[].type`(62 等級 / 63 力量 / 64 敏捷 / 65 智慧,語言無關)取繁中 `client_strings`
  *   的 `REQUIRES` 與 `REQUIRES_LINE` 裡的字;有任何一項對不上就整行保留英文。
  *
+ * 2026-10-30(PoE1 同類修正後的交叉審查):nameBlock 走 `buildNameBlock` 預設分支的屬性行(`Stack Size `、
+ * `Quality: {0}`、`Quality (Life Modifiers): {0}`…)→ GGPK 繁中(`item-classes.json` 的 `strings`:clientstrings 白名單 +
+ * 品質類型表,已剝顯示標記);`item.*` 介面字串鍵行(護甲、閃避…)本來就由介面語系翻,不動。
+ *
  * code review 第 B 批(載入不擋查價):
  * - 懸停浮窗設成「關閉」(`hostOptions().itemHoverTooltip === "off"`)→ 不載資料、不翻。
  * - `requestResults` 不 await 資料:已在記憶體就同步翻;還沒載 → 這次回英文、背景開始載,載好後下一次查價(含快取結果)就是繁中。
@@ -84,6 +88,8 @@ export interface DisplayZhData {
   tradeTextZh?: Map<string, string>;
   /** GGPK `ItemClasses` 的 Id 與英文名(`data/poe2/item-classes/item-classes.json`)→ 繁中名集合 */
   itemClassZh?: Map<string, Set<string>>;
+  /** 屬性名:同一檔的 `strings` 英文 → 繁中(同一英文對到多個不同繁中的不收) */
+  stringZh?: Map<string, string>;
   /** 需求行:`REQUIRES`(`需求: `)與各 requirement type 的字 */
   requiresZh?: { label: string; level: string; attrs: Record<number, string> };
 }
@@ -175,7 +181,10 @@ function buildExtras(extras: DisplayZhExtras | undefined): Partial<DisplayZhData
     out.tradeTextZh = map;
   }
   if (extras?.itemClasses) {
-    const json = JSON.parse(extras.itemClasses) as { classes?: Array<{ id?: unknown; en?: unknown; zh?: unknown }> };
+    const json = JSON.parse(extras.itemClasses) as {
+      classes?: Array<{ id?: unknown; en?: unknown; zh?: unknown }>;
+      strings?: Array<{ en?: unknown; zh?: unknown }>;
+    };
     const map = new Map<string, Set<string>>();
     const add = (key: string, zh: string) => {
       let set = map.get(key);
@@ -188,6 +197,15 @@ function buildExtras(extras: DisplayZhExtras | undefined): Partial<DisplayZhData
       if (typeof c.en === "string" && c.en !== c.id) add(c.en, c.zh);
     }
     out.itemClassZh = map;
+
+    const byEn = new Map<string, Set<string>>();
+    for (const s of json.strings ?? []) {
+      if (typeof s.en !== "string" || typeof s.zh !== "string" || !s.en || !s.zh) continue;
+      let set = byEn.get(s.en);
+      if (!set) byEn.set(s.en, (set = new Set()));
+      set.add(s.zh);
+    }
+    out.stringZh = new Map([...byEn].filter(([, set]) => set.size === 1).map(([en, set]) => [en, [...set][0]]));
   }
   const req = requiresWords(extras?.clientStringsZh);
   if (req) out.requiresZh = req;
@@ -616,6 +634,20 @@ function translateClassLine(
   return [{ ...first, text: `${zh} ` }, ...block.slice(1)];
 }
 
+/**
+ * nameBlock 屬性行(`buildNameBlock` 預設分支 `<英文> `、品質 `<英文>: {0}`)→ GGPK 繁中,保留後綴。
+ * `item.*` 介面字串鍵行沒有這兩種後綴、類別行由 `translateClassLine` 先處理,查不到的行一律不動。
+ */
+function translatePropLabels(block: DisplayItem["nameBlock"], data: DisplayZhData): DisplayItem["nameBlock"] {
+  const labels = data.stringZh;
+  if (!block || !labels?.size) return block;
+  return block.map((line) => {
+    const m = /^(.+?)(: \{0\}| )$/.exec(line.text);
+    const zh = m ? labels.get(m[1]) : undefined;
+    return zh && m ? { ...line, text: zh + m[2] } : line;
+  });
+}
+
 /** 需求行(`buildItemProps` 的最後一行)→ `需求: 等級 ` + `80, 67 力量, 67 敏捷`;任何一項對不上 → 原樣。 */
 function translateRequirements(
   props: DisplayItem["itemProps"],
@@ -659,7 +691,7 @@ export function translateDisplayItem(
   const out: DisplayItem = {
     ...display,
     title: translateTitle(display.title, item, data),
-    nameBlock: translateClassLine(display.nameBlock, item, data),
+    nameBlock: translatePropLabels(translateClassLine(display.nameBlock, item, data), data),
     itemProps: translateRequirements(display.itemProps, item, data),
   };
   const target = out as unknown as Record<string, DisplayItemLine[] | undefined>;

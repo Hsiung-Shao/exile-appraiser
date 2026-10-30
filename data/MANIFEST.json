@@ -49,10 +49,10 @@
       "generatedAt": "2026-10-02T14:09:02.973Z"
     },
     "data/poe2/item-classes": {
-      "repo": "PoE2 GGPK itemclasses(Name 欄;game_version 0.5.5.4.2;來源檔 sha256 2e43a23ad35fb8c569e675f9a32b78117532a5c7eda2a016bc3d53556ba96829)",
-      "path": "pob-zh-engine/tools/ggpk2_zh/out/poe2/tables/itemclasses.json(維護者本機 GGPK 抽取,不進 git;scripts/sync-poe2-item-classes.mjs 產生)",
-      "fetchedAt": "2026-10-13T22:56:18.000Z",
-      "generatedAt": "2026-10-14T16:10:09.808Z"
+      "repo": "PoE2 GGPK itemclasses(Name 欄)+ clientstrings(Text 欄白名單)+ alternatequalitytypes(Description 欄);game_version 0.5.5e;來源檔 sha256 itemclasses 2e43a23ad35fb8c569e675f9a32b78117532a5c7eda2a016bc3d53556ba96829 / clientstrings b429176229bef644c329258f13d00691506cffb92e031a7f00cfda5e9ba65e5e / alternatequalitytypes c03a988372e27ddde89ee95815694ed03d286e84d9c5bdd88ed080055573e91f",
+      "path": "pob-zh-engine/tools/ggpk2_zh/out/poe2/tables/{itemclasses,clientstrings,alternatequalitytypes}.json(維護者本機 GGPK 抽取,不進 git;scripts/sync-poe2-item-classes.mjs 產生)",
+      "fetchedAt": "2026-10-26T08:41:49.000Z",
+      "generatedAt": "2026-10-30T11:36:29.034Z"
     },
     "data/poe2/runeshape": {
       "repo": "PoE2 GGPK expedition2recipes(Description 欄;game_version 4.5.5.2;來源檔 sha256 9d33c0f326f59e1a4baeb8b72b7d467e88a6a6969bcb1a07388abd1712fd79e8)",
@@ -264,8 +264,8 @@
       "bytes": 897905
     },
     "data/poe2/item-classes/item-classes.json": {
-      "sha256": "5f2fcf8e7c3ed49fda88347beb1359bbe9bdfd1908bc93e538675b804aca7d21",
-      "bytes": 8891
+      "sha256": "2e204a721a1691a314d7078ffdaf509a90b694caf0bcd6206e1ce47022b51323",
+      "bytes": 13798
     },
     "data/poe2/item-drop.json": {
       "sha256": "14d9ac12b384322484661966e0009859e382e03d05ea601c877e45f19ebdab46",
