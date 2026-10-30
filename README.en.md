@@ -50,11 +50,11 @@ A price checker for Path of Exile 1 and 2: hover an item in game, press a hotkey
 
 **Price checking**
 
-- **PoE1 and PoE2 in one app**: switches automatically based on which game window is in front.
+- **PoE1 and PoE2 in one app**: switches automatically based on which game window is open.
 - **International and Taiwan realms**: both trade sites are supported; on the international realm the language (Chinese or English) is detected from the copied text, so switching the game language just works.
 - **In-game overlay price check**: the panel appears over the game next to your cursor; a standalone window mode is also available.
 - **Price panel**: mods and pseudo stats sit on two cards with switches and range pills; mods absorbed into totals are listed on a separate "Raw mods" card; each mod can be given a mechanism (Any / Regular / Fractured / Crafted, plus Desecrated / Augment in PoE2).
-- **Listings**: switch between grid and list views; hover a listing to see the whole item (mods shown in Traditional Chinese); choices in the listing card's "Online" menu (offline, merchant only, listed time, currency) are remembered.
+- **Listings**: switch between grid and list views; hover a listing to see the whole item (with the Chinese interface on the international realm, mods are shown in Traditional Chinese); choices in the listing card's "Online" menu (offline, merchant only, listed time, currency) are remembered.
 - **Currency price area**: when checking currency, the top of the panel shows the poe.ninja exchange rate, 7-day trend and hourly volume, and totals up your stack.
 - **Related items**: checking boss fragments and similar items lists the rest of the set and the uniques / divination cards they lead to, with prices (international realm).
 - **Unidentified uniques**: the possible uniques are listed for you to pick before searching.
@@ -69,7 +69,7 @@ A price checker for Path of Exile 1 and 2: hover an item in game, press a hotkey
 
 **Screen recognition (OCR, runs locally)**
 
-- **PoE1 stash prices and stash value**: on the "General" and "Scarabs" sub-tabs of the fragment stash tab, every cell gets a poe.ninja price, and stack sizes are read to total the tab (international realm).
+- **PoE1 stash prices and stash value**: on the "General" and "Scarab" sub-tabs of the fragment stash tab, every cell gets a poe.ninja price, and stack sizes are read to total the tab (international realm).
 - **PoE2 Well of Souls reveal OCR**: open the reveal panel and it is recognized automatically; each option is labelled with the tier, mod pool and value range of its desecrated mods.
 - **PoE2 runeshape auto price check**: while the runeshape panel is open, each row gets a reference price; rows without a poe.ninja price are looked up on the trade site automatically.
 
@@ -110,11 +110,11 @@ A price checker for Path of Exile 1 and 2: hover an item in game, press a hotkey
 
 ### 2. Basic settings
 
-<!-- Image to add: docs/images/settings-game.png (Settings › Game tab) -->
+![Settings › Game](docs/images/settings-game.png)
 
 In **Settings › Game**:
 
-1. **Game**: PoE1 / PoE2. By default the app switches automatically based on the game window in front ("Auto-switch PoE1 / PoE2" on the same tab).
+1. **Game**: PoE1 / PoE2. By default the app switches automatically based on which game window is open ("Auto-switch PoE1 / PoE2" on the same tab): it switches when the current game is not open but the other one is, and stays put when both are open.
 2. **Realm**: international (`pathofexile.com`) or Taiwan (`pathofexile.tw`). The Taiwan realm currently supports the Traditional Chinese client only.
 3. **Client language**: whether your **game** runs in Traditional Chinese or English. On **International**, price checks detect the language from the copied text automatically (switching the game to the other language just works, with the same results), so this setting is only the default; **Taiwan** always uses this setting (Taiwan supports Traditional Chinese only, and the wrong choice makes parsing fail). The OCR recognition language (stash / desecration / runeshape) also follows it by default.
 4. **League**: the league to price check in (you can also switch it from the price panel's title bar and the floating menu). If the list does not load, click "Open check window" under "Trade site check" on the same tab and complete the Cloudflare check once in the window that opens.
@@ -123,7 +123,7 @@ The app's own display language (繁體中文 / English) is "Interface language" 
 
 ### 3. Price checking
 
-<!-- Image to add: docs/images/settings-hotkeys.png (Settings › Hotkeys table; replaces the old image) -->
+![Settings › Hotkeys](docs/images/settings-hotkeys.png)
 
 Default hotkeys (all changeable in **Settings › Hotkeys**: click a field and press the new combination; `Esc` / `Backspace` clears it):
 
@@ -134,14 +134,14 @@ Default hotkeys (all changeable in **Settings › Hotkeys**: click a field and p
 | Settings menu | `Shift + Space` | With a price panel open, moves focus between the game and the overlay; with no price panel, shows / hides the [floating menu](#floating-menu). |
 | Desecration: pause / resume | `Ctrl + Shift + R` | Pauses and resumes PoE2 Well of Souls auto-recognition. |
 
-The other hotkeys (runeshape, stash prices, regex quick panel, individual bookmarks, stash search) are unset by default; assign them on the same tab when you need them. Unset hotkeys are shown in grey; red means a conflict or a key that could not be registered.
+The desecration select-area, runeshape, stash prices and regex quick panel hotkeys are unset by default; assign them on the same tab when you need them. Hotkeys for individual bookmarks and stash search are set on the Regex and Stash & chat tabs; this tab only lists them and jumps there when clicked. Unset hotkeys are shown in grey; red means a conflict or a key that could not be registered.
 
 Steps:
 
 1. With the game window in front, hover an item and press the price-check hotkey. The app sends the copy keys for you to read the item text:
    - **PoE1**: sends `Ctrl + C`.
    - **PoE2**: sends `Ctrl + Alt + C` (advanced copy), which is needed to get the desecrated mod tiers from the game. The game's default `Alt` is assumed as the "show advanced description" key; a remapped key is not supported yet.
-2. The panel lists the item's mod filters: **tick** the mods to include in the search and adjust value ranges (the default tolerance is in Settings › Price check).
+2. The panel lists the item's mod filters: **tick** the mods to include in the search and adjust value ranges (the default tolerance is in Settings › Price check). Magic / rare weapons, armour, jewellery and quivers search for the same base type by default; click the item name to widen it to the whole category.
 3. Uniques, currency and similar items are searched immediately; for other items, adjust the filters and click **Search**.
 4. To see the full results on the web, click **Trade** to open the same search in your system browser.
 
@@ -149,7 +149,7 @@ Steps:
 
 ### 4. Reading the price panel
 
-<!-- Image to add: docs/images/price-panel.png (price panel: mod cards + listings) -->
+![Price panel](docs/images/price-panel.png)
 
 - **Mod / pseudo cards**: a switch decides whether each mod is part of the search; the range pill sets the minimum and maximum.
 - **Raw mods card**: mods absorbed into pseudo stats or armour / evasion totals, and rune mods, are listed here, collapsed and unticked by default; expand and tick one when you want to search for it on its own.
@@ -165,15 +165,15 @@ Steps:
 
 **The listing card's "Online" menu**
 
-<!-- Image to add: docs/images/online-filter.png (the listing card's "Online" menu, opened) -->
+![The listing card's online menu](docs/images/online-filter.png)
 
-Click the button in the listing card's title bar that shows the current listing condition (for example "Online") to open the menu, where you can change:
+Hover the button in the listing card's title bar that shows the current listing condition (for example "Online" in PoE1, "Instant" in PoE2) to open the menu, where you can change:
 
-- **Offline & Online** and **Merchant Only** (PoE2 merges them into one listing-type choice, remembered separately for normal and bulk searches)
+- **Listing condition**: "Offline & Online" and "Merchant Only" in PoE1; in PoE2 a single listing type (Instant or Online / Instant / Online / Offline & Online), remembered separately for normal and bulk searches
 - **Listed time** (Listed: Any Time up to 2 Months Ago)
 - **Currency** (Any Currency / Chaos Orb / Divine Orb / Both Orbs; PoE2 also has Exalted Orbs)
 
-These choices are **remembered automatically**: the next item and the next app launch use your last choice (in PoE1 the currency is also synced to "Settings › Price check › Default price currency"). The league is not remembered; it always follows the title bar. If you pick "include offline" or a short listed time, it stays that way, so remember to change it back when you no longer need it.
+These choices are **remembered automatically**: the next item and the next app launch use your last choice (in PoE1 the currency is also synced to "Settings › Price check › Default price currency"). The league is not remembered; it always follows the title bar. If you pick "Offline & Online" or a short listed time, it stays that way, so remember to change it back when you no longer need it.
 
 More options in **Settings › Price check**: stat value tolerance, default price currency (PoE1 only), API latency compensation, currency volume per hour (international realm), related items size, show item on hover, show seller, account name (marks your own listings; optional), and restore clipboard after check.
 
@@ -181,7 +181,7 @@ More options in **Settings › Price check**: stat value tolerance, default pric
 
 ### Floating menu
 
-<!-- Image to add: docs/images/float-menu.png (the floating menu opened with Shift + Space) -->
+![Floating menu](docs/images/float-menu.png)
 
 In overlay mode, with no price panel open in game, press **`Shift + Space`** and the floating menu appears:
 
@@ -198,16 +198,16 @@ Close it with ✕, a click outside, `Esc` or `Shift + Space` again; it also clos
 
 ### Stash prices and stash value (PoE1)
 
-<!-- Image to add: docs/images/stash-prices.png (fragment tab price badges + tab value card) -->
+![Stash prices and tab value](docs/images/stash-prices.png)
 
-When the **fragment stash tab** is open on its "General" or "Scarabs" sub-tab, every cell gets a poe.ninja price (C = Chaos Orb, D = Divine Orb); hovering a cell enlarges just that one.
+When the **fragment stash tab** is open on its "General" or "Scarab" sub-tab, every cell gets a poe.ninja price (C = Chaos Orb, D = Divine Orb); hovering a cell enlarges just that one.
 
-**Requirements**: PoE1, overlay mode, international realm (poe.ninja has no Taiwan prices, so the Taiwan realm only shows item names). Settings are in **Settings › Auto recognition › Stash prices (PoE1 fragment tab)**; on by default.
+**Requirements**: PoE1, overlay mode, international realm (poe.ninja has no Taiwan prices, so stash prices are not shown there). Settings are in **Settings › Auto recognition › Stash prices (PoE1 fragment tab)**; on by default.
 
 - **Stash value**: stack sizes are read from each cell, badges show the subtotal, and a "Tab value" card shows the total. Cells whose count could not be read are marked "?" and cells without a price are marked "N/A"; neither counts toward the total. Counts come from screen recognition and can be wrong; the game is always right.
 - **Show prices**: "Detect automatically" (appears whenever the stash is open) or "On hotkey" (no screenshots at all until you press the "Stash prices: start / pause" hotkey; hides itself when the stash closes). Set the hotkey in Settings › Hotkeys.
 - **Show item names on badges**: lets you check that each cell was recognized as the right item; turn it off afterwards to keep only prices.
-- **OCR region**: cell positions follow a fixed layout; if they are off on non-16:9 or unusual resolutions, select the sub-tab button row on the game screen to calibrate, or "Reset to default".
+- **OCR region**: the app looks here for the row of sub-tab buttons ("General / Scarab …") to tell that the fragment tab is open and which sub-tab is showing; if badges do not appear (for example after moving the stash tab into a folder pushes the buttons down), select that button row on the game screen, or "Reset to default". Cell positions follow a fixed layout and are not affected by this.
 - Badge font, size and price-tier colours are under "Badge appearance" on the same tab.
 
 ### Well of Souls reveal OCR (PoE2)
@@ -271,7 +271,7 @@ One lookup at a time, at most one search plus one fetch per row, and the same fi
 
 ### Poe Regex search strings and bookmarks
 
-<!-- Image to add: docs/images/regex.png (Settings › Regex with the bookmarks card) -->
+![Settings › Regex](docs/images/regex.png)
 
 Found in **Settings › Regex**.
 
@@ -291,7 +291,7 @@ Found in **Settings › Regex**.
 
 **Regex bookmarks**:
 
-<!-- Image to add: docs/images/regex-bookmark-bar.png (bookmark bar next to Settings, or the quick panel) -->
+![Regex bookmarks and the bookmark bar](docs/images/regex-bookmarks.png)
 
 - Save a set of ticks you use often as a bookmark and load it later with one click; bookmarks are split into PoE1 / PoE2 tabs and can be grouped in folders and reordered by dragging.
 - **Paste into the game with one click**: a bookmark is copied and pasted into the game's search bar (`Ctrl + F` → paste → `Enter`); a stash or vendor window must be open. Use it from:
@@ -302,7 +302,7 @@ Found in **Settings › Regex**.
 
 ### Disenchant ranking (PoE1)
 
-<!-- Image to add: docs/images/dust-ranking.png (Settings › Disenchant ranking; replaces the old image) -->
+![Disenchant ranking](docs/images/dust-ranking.png)
 
 - When you price check a unique, the panel shows how much dust it disenchants into and, with a poe.ninja price, dust per chaos.
 - The **Disenchant ranking** is the "Disenchant ranking" tab of the Settings window (the ⚖ button in the price panel's title bar and the floating menu open it too). It lists every unique, sortable by dust / c, dust / total cost, dust / gold and dust / c / slot, and accounts for item level, quality, jewellery catalysts, gold fees and inherent influences.
@@ -334,7 +334,7 @@ All of these are in **Settings › Stash & chat**.
 - The overlay only works while the game window is in front. Check that "PoE1 / PoE2 game window title" in Settings › Game matches the game window title (defaults: `Path of Exile` / `Path of Exile 2`).
 - If another program already uses the hotkey, Settings › Hotkeys shows it in red; pick a different combination.
 - If you prefer not to use the overlay, untick "Overlay on the game" in Settings › Game to use a standalone window (the app restarts automatically).
-- If the game is started after the app, it can take up to about 12 seconds to be detected.
+- If you open the other game (one that needs an automatic switch), it can take up to about 12 seconds to switch; the game currently set is attached right away.
 </details>
 
 <details>
@@ -346,7 +346,7 @@ The trade site is protected by Cloudflare. In Settings › Game, click **"Open c
 </details>
 
 <details>
-<summary><b>Every price check includes offline listings, a listed time or a currency I don't want</b></summary>
+<summary><b>Every price check includes "Offline & Online", a listed time or a currency I don't want</b></summary>
 
 The listing card's "Online" menu remembers your last choice (see [Reading the price panel](#4-reading-the-price-panel)). Open the menu and change it back; the new choice is remembered from then on.
 </details>
@@ -359,14 +359,14 @@ The listing card's "Online" menu remembers your last choice (see [Reading the pr
 - Selecting an area around the panel is usually faster and more accurate; select again if the panel moves (resolution or UI scale changes).
 - Traditional Chinese and English game clients are supported; the OCR language pack is chosen by "Recognition language" in Settings › Auto recognition (follows the client language by default, or set Traditional Chinese / English manually to match what the game screen actually shows).
 - The runeshape "Uniques" tab lists only generic rewards (no `1x`-style prefix) and currently gets no badges (same for both languages).
-- If stash prices do not line up with the cells, select the OCR region in Settings › Auto recognition › Stash prices to calibrate. When reporting a stash recognition problem, click "Save stash capture" in Settings › Log to attach what the app actually saw.
+- If stash price badges do not appear, select the OCR region (the sub-tab button row) in Settings › Auto recognition › Stash prices, or reset it to default. When reporting a stash recognition problem, click "Save stash capture" in Settings › Log to attach what the app actually saw.
 </details>
 
 <details>
 <summary><b>What differs between the Taiwan and international realms?</b></summary>
 
 - The Taiwan realm queries `pathofexile.tw` and currently supports the Traditional Chinese client only.
-- poe.ninja has no Taiwan prices, so the Taiwan realm has no disenchant prices (dust amounts only), no currency price area, no related items, no exchange rates in the floating menu and no stash prices (item names only); runeshape badges have no reference price, and rows are looked up on the Taiwan trade site automatically instead (prices in the listed currency).
+- poe.ninja has no Taiwan prices, so the Taiwan realm has no disenchant prices (dust amounts only), no currency price area, no related items, no exchange rates in the floating menu and no stash prices; runeshape badges have no reference price, and rows are looked up on the Taiwan trade site automatically instead (prices in the listed currency).
 </details>
 
 <details>
