@@ -4,5 +4,5 @@
  */
 export const SUPPORTED_GAME_VERSIONS = {
   poe1: '3.29.3',
-  poe2: '0.5.5d'
+  poe2: '0.5.5e'
 } as const
