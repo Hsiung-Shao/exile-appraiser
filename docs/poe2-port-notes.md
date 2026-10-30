@@ -128,7 +128,9 @@
 - 繁中化 `poe1/.../trade/display-zh.ts`:演算法同上一節(PoE2 耦合點 15),改接 PoE1:`stats.ndjson` 有群組 → 攤平;
   台服交易站快照 `data/poe1/trade/tw/stats.json`(`node scripts/fetch-poe1-trade-data.mjs`,2026-10-15 抓一次,2.6 MB / 17757 條)當同旗標多寫法的決勝;
   類別行 / 屬性名 / 物品等級 / 插槽 / 需求行 / 底部標籤 → `data/poe1/item-classes/item-classes.json`(`node scripts/sync-poe1-item-classes.mjs --from ../Pob2/pob-zh-engine`:
-  PoE1 GGPK `itemclasses` + `clientstrings` 白名單,GGPK 3.29.0.1)。PoE1 client_strings 沒有 `REQUIRES`,需求行改用 GGPK `ItemRequirementsLabel` / `Level` / `StrengthShort`…;
+  PoE1 GGPK `itemclasses` + `clientstrings` 白名單,GGPK 3.29.0.1;2026-10-30 起改 3.29.3 並加讀 `alternatequalitytypes.Description`
+  (催化劑 / 地圖品質類型 `Quality (Attribute Modifiers)` 等 18 種)與 `keywordpopups.Term`(`Intangibility`)、白名單補 `ZanaInfluencedItem`
+  (`Memory Strands`),這些屬性名之前保留英文;資料檔裡非 clientstrings 的 id 帶 `表名:` 前綴)。PoE1 client_strings 沒有 `REQUIRES`,需求行改用 GGPK `ItemRequirementsLabel` / `Level` / `StrengthShort`…;
   依 `requirements[].type` 重組成 `需求 等級 68, 103 敏捷`。PoE1 `@/assets/data` 沒有 `LOADED_DATA` → 用 `ACTIVE_LANG` + `STATS_ITERATOR` / `ITEMS_ITERATOR` 重用目前繫結的語系。
   宿主注入 `configureDisplayZh({ options, source })`(renderer `main.ts`;CLI / 測試不注入 = 不翻),idle 預載 `scheduleDisplayZhPreload` 同 PoE2(`main.ts` 的 watch 擴及 PoE1)。
 - 設定 › 查價「滑鼠懸停顯示物品」兩代都顯示(`hasItemHover` 一律 true)。

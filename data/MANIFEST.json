@@ -13,10 +13,10 @@
       "generatedAt": "2026-10-08T13:10:18.039Z"
     },
     "data/poe1/item-classes": {
-      "repo": "PoE1 GGPK itemclasses(Name 欄)+ clientstrings(Text 欄白名單);game_version 3.29.0.1;來源檔 sha256 itemclasses e6e2840fd3b77a403591ed0ae5ef0687e6f9c44dee42bfdc0d256aafc8c79348 / clientstrings f6ed571c54a4ecf82386628883eaf4d70a04c6e16ea6749ea77a9fd82f319b9f",
-      "path": "pob-zh-engine/tools/ggpk_zh/out/poe1/tables/{itemclasses,clientstrings}.json(維護者本機 GGPK 抽取,不進 git;scripts/sync-poe1-item-classes.mjs 產生)",
-      "fetchedAt": "2026-08-22T03:25:47.000Z",
-      "generatedAt": "2026-10-14T16:41:26.090Z"
+      "repo": "PoE1 GGPK itemclasses(Name 欄)+ clientstrings(Text 欄白名單)+ alternatequalitytypes(Description 欄)+ keywordpopups(Term 欄白名單);game_version 3.29.3;來源檔 sha256 itemclasses ae5f620c8167bf60ddeb638ffe631616d6fe199c57dea97efde2b2ebd81858d3 / clientstrings 1a00ded04f9f1ce888bceae162fc60ef2aeedb8aeeb7222b97e8990cb0ae59ec / alternatequalitytypes efd5f26dbf3b4401a41b5e92121eb9944204a63e42da93d6d974a69130ce32f5 / keywordpopups 417507ab455ddda0ba6d5284a537f081d4c2e161212c6ce77ba88d57eb881555",
+      "path": "pob-zh-engine/tools/ggpk_zh/out/poe1/tables/{itemclasses,clientstrings,alternatequalitytypes,keywordpopups}.json(維護者本機 GGPK 抽取,不進 git;scripts/sync-poe1-item-classes.mjs 產生)",
+      "fetchedAt": "2026-10-23T22:55:35.000Z",
+      "generatedAt": "2026-10-30T10:50:26.164Z"
     },
     "data/poe1/stash": {
       "repo": "Lailloken/Exile-UI data/global/[stash-ninja] tabs.json",
@@ -172,8 +172,8 @@
       "bytes": 2570220
     },
     "data/poe1/item-classes/item-classes.json": {
-      "sha256": "e976d48b0aa9a03311b30f7fa954e2aeccef5deb8a0d01d24489ef53e402a3af",
-      "bytes": 13762
+      "sha256": "590944932aac9e73cc513bdedb85f0b3ba748732ab3fe77eaf229bac810898a5",
+      "bytes": 17047
     },
     "data/poe1/item-drop.json": {
       "sha256": "cc4f415caeec781a291f3b1f36c5bacc74207b25aca599438ac520e905687ba8",

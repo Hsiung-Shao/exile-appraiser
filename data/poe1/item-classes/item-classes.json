@@ -1,13 +1,15 @@
 {
   "schema": 1,
   "source": {
-    "tables": "itemclasses(Name)+ clientstrings(Text,白名單)",
+    "tables": "itemclasses(Name)+ clientstrings(Text,白名單)+ alternatequalitytypes(Description)+ keywordpopups(Term,白名單)",
     "sha256": {
-      "itemclasses": "e6e2840fd3b77a403591ed0ae5ef0687e6f9c44dee42bfdc0d256aafc8c79348",
-      "clientstrings": "f6ed571c54a4ecf82386628883eaf4d70a04c6e16ea6749ea77a9fd82f319b9f"
+      "itemclasses": "ae5f620c8167bf60ddeb638ffe631616d6fe199c57dea97efde2b2ebd81858d3",
+      "clientstrings": "1a00ded04f9f1ce888bceae162fc60ef2aeedb8aeeb7222b97e8990cb0ae59ec",
+      "alternatequalitytypes": "efd5f26dbf3b4401a41b5e92121eb9944204a63e42da93d6d974a69130ce32f5",
+      "keywordpopups": "417507ab455ddda0ba6d5284a537f081d4c2e161212c6ce77ba88d57eb881555"
     },
-    "ggpkVersion": "3.29.0.1",
-    "extractedAt": "2026-08-22T03:25:47+00:00"
+    "ggpkVersion": "3.29.3",
+    "extractedAt": "2026-10-23T22:55:35+00:00"
   },
   "classes": [
     {
@@ -89,6 +91,11 @@
       "id": "Currency",
       "en": "Currency",
       "zh": "通貨"
+    },
+    {
+      "id": "CursedDucat",
+      "en": "Cursed Ducat",
+      "zh": "詛咒達克特"
     },
     {
       "id": "Dagger",
@@ -696,6 +703,106 @@
       "id": "StrengthShort",
       "en": "Str",
       "zh": "力量"
+    },
+    {
+      "id": "ZanaInfluencedItem",
+      "en": "Memory Strands",
+      "zh": "記憶絲縷"
+    },
+    {
+      "id": "alternatequalitytypes:JewelleryAttackQuality",
+      "en": "Quality (Attack Modifiers)",
+      "zh": "品質 (攻擊詞綴)"
+    },
+    {
+      "id": "alternatequalitytypes:JewelleryAttributeQuality",
+      "en": "Quality (Attribute Modifiers)",
+      "zh": "品質 (能力值詞綴)"
+    },
+    {
+      "id": "alternatequalitytypes:JewelleryCasterQuality",
+      "en": "Quality (Caster Modifiers)",
+      "zh": "品質 (法術詞綴)"
+    },
+    {
+      "id": "alternatequalitytypes:JewelleryCriticalQuality",
+      "en": "Quality (Critical Modifiers)",
+      "zh": "品質 (暴擊詞綴)"
+    },
+    {
+      "id": "alternatequalitytypes:JewelleryDefensesQuality",
+      "en": "Quality (Defence Modifiers)",
+      "zh": "品質 (防禦詞綴)"
+    },
+    {
+      "id": "alternatequalitytypes:JewelleryElementalQuality",
+      "en": "Quality (Elemental Damage Modifiers)",
+      "zh": "品質 (元素傷害詞綴)"
+    },
+    {
+      "id": "alternatequalitytypes:JewelleryPhysicalChaosQuality",
+      "en": "Quality (Physical and Chaos Damage Modifiers)",
+      "zh": "品質 (物理和混沌傷害詞綴)"
+    },
+    {
+      "id": "alternatequalitytypes:JewelleryPrefixQuality",
+      "en": "Quality (Prefix Modifiers)",
+      "zh": "品質(前綴)"
+    },
+    {
+      "id": "alternatequalitytypes:JewelleryResistanceQuality",
+      "en": "Quality (Resistance Modifiers)",
+      "zh": "品質 (抗性詞綴)"
+    },
+    {
+      "id": "alternatequalitytypes:JewelleryResourceQuality",
+      "en": "Quality (Life and Mana Modifiers)",
+      "zh": "品質 (生命和魔力詞綴)"
+    },
+    {
+      "id": "alternatequalitytypes:JewellerySpeedQuality_",
+      "en": "Quality (Speed Modifiers)",
+      "zh": "品質 (速度詞綴)"
+    },
+    {
+      "id": "alternatequalitytypes:JewellerySufffixQuality",
+      "en": "Quality (Suffix Modifiers)",
+      "zh": "品質(後綴)"
+    },
+    {
+      "id": "alternatequalitytypes:MapCurrencyQuality",
+      "en": "Quality (Currency)",
+      "zh": "品質(通貨)"
+    },
+    {
+      "id": "alternatequalitytypes:MapDivinationCardQuality",
+      "en": "Quality (Divination Cards)",
+      "zh": "品質(命運卡)"
+    },
+    {
+      "id": "alternatequalitytypes:MapPackSizeQuality",
+      "en": "Quality (Pack Size)",
+      "zh": "品質(怪物群大小)"
+    },
+    {
+      "id": "alternatequalitytypes:MapQuantityQuality",
+      "en": "Quality (Quantity)",
+      "zh": "品質 (數量)"
+    },
+    {
+      "id": "alternatequalitytypes:MapRarityQuality",
+      "en": "Quality (Rarity)",
+      "zh": "品質(稀有度)"
+    },
+    {
+      "id": "alternatequalitytypes:MapScarabQuality",
+      "en": "Quality (Scarabs)",
+      "zh": "品質(聖甲蟲)"
+    },
+    {
+      "id": "keywordpopups:Intangibility",
+      "en": "Intangibility",
+      "zh": "無形性"
     }
   ]
 }
