@@ -4,8 +4,15 @@
     "table": "itemclasses",
     "column": "Name",
     "sha256": "2e43a23ad35fb8c569e675f9a32b78117532a5c7eda2a016bc3d53556ba96829",
-    "ggpkVersion": "0.5.5.4.2",
-    "extractedAt": "2026-10-13T22:56:18+00:00"
+    "strings": {
+      "tables": "clientstrings(Text,白名單)+ alternatequalitytypes(Description);已剝顯示標記",
+      "sha256": {
+        "clientstrings": "b429176229bef644c329258f13d00691506cffb92e031a7f00cfda5e9ba65e5e",
+        "alternatequalitytypes": "c03a988372e27ddde89ee95815694ed03d286e84d9c5bdd88ed080055573e91f"
+      }
+    },
+    "ggpkVersion": "0.5.5e",
+    "extractedAt": "2026-10-26T08:41:49+00:00"
   },
   "classes": [
     {
@@ -472,6 +479,163 @@
       "id": "Warstaff",
       "en": "Quarterstaves",
       "zh": "細杖"
+    }
+  ],
+  "strings": [
+    {
+      "id": "ItemDisplaySanctumFloors",
+      "en": "Number of Trials",
+      "zh": "試煉數量"
+    },
+    {
+      "id": "ItemDisplayStackSize",
+      "en": "Stack Size",
+      "zh": "堆疊數量"
+    },
+    {
+      "id": "Level",
+      "en": "Level",
+      "zh": "等級"
+    },
+    {
+      "id": "Quality",
+      "en": "Quality",
+      "zh": "品質"
+    },
+    {
+      "id": "UltimatumItemisedTrialLevel",
+      "en": "Area Level",
+      "zh": "區域等級"
+    },
+    {
+      "id": "alternatequalitytypes:CurrencyJewelQualityAttack",
+      "en": "Quality (Attack Modifiers)",
+      "zh": "品質（攻擊詞綴）"
+    },
+    {
+      "id": "alternatequalitytypes:CurrencyJewelQualityAttribute",
+      "en": "Quality (Attribute Modifiers)",
+      "zh": "品質（能力值詞綴）"
+    },
+    {
+      "id": "alternatequalitytypes:CurrencyJewelQualityCaster",
+      "en": "Quality (Caster Modifiers)",
+      "zh": "品質（法術詞綴）"
+    },
+    {
+      "id": "alternatequalitytypes:CurrencyJewelQualityChaos",
+      "en": "Quality (Chaos Modifiers)",
+      "zh": "品質（混沌詞綴）"
+    },
+    {
+      "id": "alternatequalitytypes:CurrencyJewelQualityCold",
+      "en": "Quality (Cold Modifiers)",
+      "zh": "品質（冰冷詞綴）"
+    },
+    {
+      "id": "alternatequalitytypes:CurrencyJewelQualityDefences",
+      "en": "Quality (Defence Modifiers)",
+      "zh": "品質（防禦詞綴）"
+    },
+    {
+      "id": "alternatequalitytypes:CurrencyJewelQualityFire",
+      "en": "Quality (Fire Modifiers)",
+      "zh": "品質（火焰詞綴）"
+    },
+    {
+      "id": "alternatequalitytypes:CurrencyJewelQualityLife",
+      "en": "Quality (Life Modifiers)",
+      "zh": "品質（生命詞綴）"
+    },
+    {
+      "id": "alternatequalitytypes:CurrencyJewelQualityLightning",
+      "en": "Quality (Lightning Modifiers)",
+      "zh": "品質（閃電詞綴）"
+    },
+    {
+      "id": "alternatequalitytypes:CurrencyJewelQualityMana",
+      "en": "Quality (Mana Modifiers)",
+      "zh": "品質（魔力詞綴）"
+    },
+    {
+      "id": "alternatequalitytypes:CurrencyJewelQualityMinion",
+      "en": "Quality (Minion Modifiers)",
+      "zh": "品質（召喚物詞綴）"
+    },
+    {
+      "id": "alternatequalitytypes:CurrencyJewelQualityPhysical",
+      "en": "Quality (Physical Modifiers)",
+      "zh": "品質（物理詞綴）"
+    },
+    {
+      "id": "alternatequalitytypes:CurrencyJewelQualitySpeed",
+      "en": "Quality (Speed Modifiers)",
+      "zh": "品質（速度詞綴）"
+    },
+    {
+      "id": "alternatequalitytypes:JewelleryQualityAttack",
+      "en": "Quality (Attack Modifiers)",
+      "zh": "品質（攻擊詞綴）"
+    },
+    {
+      "id": "alternatequalitytypes:JewelleryQualityAttribute",
+      "en": "Quality (Attribute Modifiers)",
+      "zh": "品質（能力值詞綴）"
+    },
+    {
+      "id": "alternatequalitytypes:JewelleryQualityCaster",
+      "en": "Quality (Caster Modifiers)",
+      "zh": "品質（法術詞綴）"
+    },
+    {
+      "id": "alternatequalitytypes:JewelleryQualityChaos",
+      "en": "Quality (Chaos Modifiers)",
+      "zh": "品質（混沌詞綴）"
+    },
+    {
+      "id": "alternatequalitytypes:JewelleryQualityCold",
+      "en": "Quality (Cold Modifiers)",
+      "zh": "品質（冰冷詞綴）"
+    },
+    {
+      "id": "alternatequalitytypes:JewelleryQualityDefence",
+      "en": "Quality (Defence Modifiers)",
+      "zh": "品質（防禦詞綴）"
+    },
+    {
+      "id": "alternatequalitytypes:JewelleryQualityFire",
+      "en": "Quality (Fire Modifiers)",
+      "zh": "品質（火焰詞綴）"
+    },
+    {
+      "id": "alternatequalitytypes:JewelleryQualityLife",
+      "en": "Quality (Life Modifiers)",
+      "zh": "品質（生命詞綴）"
+    },
+    {
+      "id": "alternatequalitytypes:JewelleryQualityLightning",
+      "en": "Quality (Lightning Modifiers)",
+      "zh": "品質（閃電詞綴）"
+    },
+    {
+      "id": "alternatequalitytypes:JewelleryQualityMana",
+      "en": "Quality (Mana Modifiers)",
+      "zh": "品質（魔力詞綴）"
+    },
+    {
+      "id": "alternatequalitytypes:JewelleryQualityMinion",
+      "en": "Quality (Minion Modifiers)",
+      "zh": "品質（召喚物詞綴）"
+    },
+    {
+      "id": "alternatequalitytypes:JewelleryQualityPhysical",
+      "en": "Quality (Physical Modifiers)",
+      "zh": "品質（物理詞綴）"
+    },
+    {
+      "id": "alternatequalitytypes:JewelleryQualitySpeed",
+      "en": "Quality (Speed Modifiers)",
+      "zh": "品質（速度詞綴）"
     }
   ]
 }

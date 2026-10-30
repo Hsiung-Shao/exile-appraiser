@@ -106,7 +106,7 @@
 - 對接(語言無關鍵,不做位置對位):每行自己的 trade stat id(新格式 `mods[i].hash`,去掉 `stat.` 前綴;舊格式 `extended.hashes[type][i][0]`;選項型 `…|64921` 退回去掉選項;完整 id 查不到才用 `stat_N` 跨類別)→ 繁中條目的 `trade.ids` → 以 `ref` 配英文條目。英文行(`parseAffixStrings` 後、`
 ` 兩側空白正規化)必須**完整匹配**某個英文 matcher(`#` = 數值、其餘字面相同);繁中 matcher 以 `negate` / `value` 旗標挑(英文 value 單數形而繁中沒有對應變體時,退用同 negate、無 value、恰一個 `#` 的繁中 matcher;選項型詞綴不退)。數值依 `#` 順序原字串代入,模板字面 `+#` / `-#` 的正負號兩邊對齊。結果不唯一(同旗標多種寫法)→ 保留英文。
 - 物品名:傳奇 `name` → `UNIQUE::refName`;`typeLine === baseType` → `ITEM` / `GEM`;繁中名必須唯一。稀有隨機名、魔法物品 typeLine(帶詞綴名)保留英文。
-- 不動:tier 標籤、顏色、行數與順序、veiled、物品屬性 / 標籤(`Quality`、`Corrupted` 等仍是上游原樣;類別行與需求行 2026-10-14 起翻,見下)。
+- 不動:tier 標籤、顏色、行數與順序、veiled、物品屬性 / 標籤(`Corrupted` 等仍是上游原樣;類別行與需求行 2026-10-14 起翻、預設分支的屬性名 2026-10-30 起翻,見下)。
 - 覆蓋率(錄製回應 `poe2/test/docs/fetchResponses*.json` + 符文塑形 fetch 錄製):92 / 104 行。保留英文 12 行:同旗標多種繁中寫法 6(`explicit.stat_3917489142` 物品稀有度、`2065500219` 怪物效用、`2777224821` 換界石數量、`1825943485` 精髓、`1276056105` 金幣、`1263695895` 照亮範圍);英文模板對不上 3(`791928121` ×2「Causes …Stun Buildup」:繁中條目 ref 是不帶 Causes 的另一條;`3793155082` 交易站文字少了「Map has」);資料沒有的 id 1(`explicit.stat_3076483222|64921` 最後通牒獻祭);回應沒有 hashes 2(Vase Relic)。清單與逐行結果在 `poe2/test/web/price-check/trade/__snapshots__/display-zh.test.ts.snap`。
 - 測試 `poe2/test/web/price-check/trade/display-zh.test.ts`(逐行快照、覆蓋率、tier 不變、刻意破壞、錯置 hashes、英文介面 / 台服不翻、`requestResults` 端到端);畫面以第 14 步同法(無頭 Chrome + 假 `window.host`)截圖比對繁中 / 英文介面。
 - **2026-10-14 補翻(使用者實機 Viper Coat 領主鎖甲:符文詞綴、類別行、需求行仍是英文)**:
@@ -116,6 +116,12 @@
   - 需求行:依 `requirements[].type`(62 等級 / 63 力量 / 64 敏捷 / 65 智慧)取繁中 `client_strings` 的 `REQUIRES`(`需求: `)與 `REQUIRES_LINE` 裡的字 → `需求: 等級 ` + `80, 67 力量, 67 敏捷`;有未知 type 整行保留英文。
   - 三份補充資料各自載入,失敗只記錄、該部分維持英文。測試 `poe2/test/web/price-check/trade/display-zh-props.test.ts`。
   - **啟動後預先載入(2026-10-15,使用者回報重啟後第一次查價浮窗全英文)**:`scheduleDisplayZhPreload(realm)`(`@poe2-entry` 匯出),renderer `main.ts` 在 PoE2 資料載好後與 遊戲 / 資料語言 / 伺服器 / 介面語言 / 浮窗設定 改變時呼叫;符合翻譯條件且還沒載才排到 `requestIdleCallback`(最多等 5 秒;沒有就 `setTimeout` 2 秒),不拖慢啟動。查價時的背景載入仍是後備。量測(Node,同一份資料):整份載入約 50 ms、常駐約 6 MB(客戶端繁中時重用記憶體裡的 stats / items,增加更少);翻 21 件約 9 ms(第一次編 RegExp)/ 2.4 ms —— 與使用者 log 的記憶體 560 MB → 1.1 GB、1.4 秒 longtask 不在同一量級,不是它造成。
+- **屬性名(2026-10-30,PoE1 同類修正後的交叉審查發現)**:`buildNameBlock` 的常見屬性(護甲、每秒攻擊次數、地圖階級…)本來就是 `item.*` 介面鍵、由 TooltipItem 翻;
+  走預設分支的屬性名是英文原樣 —— 文字是 `<英文> `,`Quality` 是 `<英文>: {0}`。`translatePropLabels` 只換這兩種形狀的英文部分、保留後綴與數值;`item.*` 鍵行、查不到的行不動。
+  資料:`item-classes.json` 新增 `strings`(`sync-poe2-item-classes.mjs` 加讀 GGPK `clientstrings` 白名單 `Quality` / `Level` / `ItemDisplayStackSize` / `UltimatumItemisedTrialLevel` / `ItemDisplaySanctumFloors`
+  + `alternatequalitytypes.Description` 整張(飾品 / 珠寶催化劑品質類型 13 種,例 `Quality (Life Modifiers)` → `品質（生命詞綴）`);PoE2 GGPK 字串帶顯示標記 `[Quality]` / `[Tag|文字]`,
+  同步時照 EE2 `parseAffixStrings` 剝掉;非 clientstrings 的 id 帶 `表名:` 前綴)。同一英文對到多個繁中就不收。品質類型的交易站寫法已用國際服唯讀查詢確認與 GGPK 英文相同。
+  帶佔位的屬性行(藥劑 / 護符 `Lasts {0} Seconds` 等)與寶石標籤行仍是英文(同 PoE1)。測試 `poe2/test/web/price-check/trade/display-zh-prop-names.test.ts`。
 
 ## PoE1 查價結果懸停浮窗(2026-10-15,計畫 `cheerful-riding-pearl.md`「二」)
 - PoE1 原本沒有浮窗;移植 EE2(MIT)的 `TooltipItem.vue` / `TradeItem.vue` tippy 設定與 `parseFetchResult` / `parseModBlock` / `getTier`,改寫成 PoE1 版:
