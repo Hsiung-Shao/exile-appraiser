@@ -1,6 +1,7 @@
 // @ts-check
 // PoE1 物品種類(ItemClasses)與物品浮窗用的介面字串繁中名單向同步:pob-zh-engine 的 PoE1 GGPK 抽取表
 //   `itemclasses`(Name 欄)+ `clientstrings`(Text 欄,只取下面 STRING_IDS 白名單)
+//   + EXTRA_STRING_TABLES(2026-10-30:品質類型 `alternatequalitytypes`、關鍵字 `keywordpopups` 的屬性名)
 // → data/poe1/item-classes/item-classes.json,然後重寫 MANIFEST 的 data/poe1/item-classes 前綴。
 //   node scripts/sync-poe1-item-classes.mjs --from ../Pob2/pob-zh-engine [--no-manifest]
 // 用途:PoE1 查價結果懸停浮窗(poe1/src/web/price-check/trade/display-zh.ts)的類別行(交易站 `properties[0]`,例 `Bow` → 弓)、
@@ -54,7 +55,20 @@ const STRING_IDS = [
   'ItemPopupCorrupted', 'ItemPopupMirrored', 'ItemPopupUnidentified', 'ItemPopupSplit', 'ItemPopupUnmodifiable',
   'ItemPopupFracturedItem', 'ItemPopupSynthesisedItem', 'ItemPopupShaperItem', 'ItemPopupElderItem',
   'ItemPopupCrusaderItem', 'ItemPopupRedeemerItem', 'ItemPopupHunterItem', 'ItemPopupWarlordItem',
-  'ItemPopupSearingExarchItem', 'ItemPopupEaterofWorldsItem'
+  'ItemPopupSearingExarchItem', 'ItemPopupEaterofWorldsItem',
+  // 屬性名(2026-10-30 使用者回報沒翻):記憶絲縷 `Memory Strands`
+  'ZanaInfluencedItem'
+]
+
+/**
+ * clientstrings 以外的屬性名來源(ids = null 取整張表;只取指定欄)。
+ * 寫進資料檔的 id 加 `表名:` 前綴,與 clientstrings 的 id 分開。
+ */
+const EXTRA_STRING_TABLES = [
+  // 催化劑 / 地圖的品質類型:交易站屬性名 `Quality (Attribute Modifiers)` 等,整張 18 列
+  { table: 'alternatequalitytypes', column: 'Description', ids: null },
+  // 不滅之火工藝的 `Intangibility`(同表另有 Definition 長說明欄,不取)
+  { table: 'keywordpopups', column: 'Term', ids: ['Intangibility'] }
 ]
 
 /** @param {string} table */
@@ -115,6 +129,19 @@ const strings = collect(clientstrings.rows, 'clientstrings', 'Text', new Set(STR
 for (const id of STRING_IDS) {
   if (!strings.some(s => s.id === id)) errors.push(`clientstrings#${id}:白名單的 id 在來源找不到`)
 }
+/** @type {Record<string, string>} */
+const extraSha = {}
+for (const { table, column, ids } of EXTRA_STRING_TABLES) {
+  const src = readTable(table)
+  extraSha[table] = src.sha256
+  const got = collect(src.rows.filter(r => r.column === column), table, column, ids && new Set(ids))
+  if (!got.length) errors.push(`${table}.${column}:沒有任何列`)
+  for (const id of ids ?? []) {
+    if (!got.some(s => s.id === id)) errors.push(`${table}#${id}:白名單的 id 在來源找不到`)
+  }
+  for (const s of got) strings.push({ ...s, id: `${table}:${s.id}` })
+}
+strings.sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0)
 if (errors.length) {
   console.error(`來源資料不符規則(${errors.length} 項),拒絕產生:\n  ` + errors.join('\n  '))
   process.exit(1)
@@ -122,8 +149,8 @@ if (errors.length) {
 
 /** @type {{ tables: string, sha256: Record<string, string>, ggpkVersion?: string, extractedAt?: string }} */
 const source = {
-  tables: 'itemclasses(Name)+ clientstrings(Text,白名單)',
-  sha256: { itemclasses: itemclasses.sha256, clientstrings: clientstrings.sha256 }
+  tables: 'itemclasses(Name)+ clientstrings(Text,白名單)+ alternatequalitytypes(Description)+ keywordpopups(Term,白名單)',
+  sha256: { itemclasses: itemclasses.sha256, clientstrings: clientstrings.sha256, ...extraSha }
 }
 if (meta?.game_version) source.ggpkVersion = meta.game_version
 if (meta?.generated_at) source.extractedAt = meta.generated_at
@@ -139,7 +166,7 @@ if (!args.includes('--no-manifest')) {
   execFileSync(process.execPath, [
     path.join(ROOT, 'scripts', 'verify-data-manifest.mjs'), '--write', '--prefix', PREFIX,
     '--fetched-at', fetchedAt,
-    '--source', `PoE1 GGPK itemclasses(Name 欄)+ clientstrings(Text 欄白名單)${source.ggpkVersion ? `;game_version ${source.ggpkVersion}` : ''};來源檔 sha256 itemclasses ${itemclasses.sha256} / clientstrings ${clientstrings.sha256}`,
-    '--path', `pob-zh-engine/${OUT_DIR_REL}/tables/{itemclasses,clientstrings}.json(維護者本機 GGPK 抽取,不進 git;scripts/sync-poe1-item-classes.mjs 產生)`
+    '--source', `PoE1 GGPK itemclasses(Name 欄)+ clientstrings(Text 欄白名單)+ alternatequalitytypes(Description 欄)+ keywordpopups(Term 欄白名單)${source.ggpkVersion ? `;game_version ${source.ggpkVersion}` : ''};來源檔 sha256 ${Object.entries(source.sha256).map(([t, h]) => `${t} ${h}`).join(' / ')}`,
+    '--path', `pob-zh-engine/${OUT_DIR_REL}/tables/{itemclasses,clientstrings,alternatequalitytypes,keywordpopups}.json(維護者本機 GGPK 抽取,不進 git;scripts/sync-poe1-item-classes.mjs 產生)`
   ], { stdio: 'inherit' })
 }
