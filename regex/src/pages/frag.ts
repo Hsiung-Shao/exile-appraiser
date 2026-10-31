@@ -115,19 +115,21 @@ export function wholeLine (labels: string[]): string | null {
 const SOCKET = '[rgbwa]'
 
 /**
- * n 個相連插槽:`\b[rgbwa](-[rgbwa]){n-1}\b`。只用插槽字母——原本的 `.` 會中到 `物理傷害: 10-20` 這類
- * 「x-y-z」文字(使用者遊戲內回報亮錯,2026-10-31);前後 `\b` 讓插槽字母不能黏在英文單字裡
- * (離線稽核:2 連曾中到物品名 `Transfer-attuned`)。
+ * n 個相連插槽:3 連以上 `(-[rgbwa]){n-1}`(插槽行裡的「-x-y」本身就是 3 連),2 連 `\b[rgbwa](-[rgbwa]){1}\b`。
+ * 只用插槽字母——原本的 `.` 會中到 `物理傷害: 10-20` 這類「x-y-z」文字(使用者遊戲內回報亮錯,2026-10-31)。
+ * 只有 2 連要 `\b`(離線稽核:曾中到物品名 `Transfer-attuned`);3 連以上不帶 `\b` 中英文都 0 誤中。
  */
 export function linkedSockets (n: number): string | null {
   if (!Number.isInteger(n) || n < 2 || n > 6) return null
-  return `\\b${SOCKET}(-${SOCKET}){${n - 1}}\\b`
+  if (n === 2) return `\\b${SOCKET}(-${SOCKET}){1}\\b`
+  return `(-${SOCKET}){${n - 1}}`
 }
 
-/** n 個相連且全是彩色(不含白)的插槽:`\b[rgb](-[rgb]){n-1}\b` */
+/** n 個相連且全是彩色(不含白)的插槽:`[rgb](-[rgb]){n-1}`(2 連加 `\b`);開頭的字元類不能省,否則 `W-R-G` 也算 3 連 */
 export function coloredLinks (n: number): string | null {
   if (!Number.isInteger(n) || n < 2 || n > 6) return null
-  return `\\b[rgb](-[rgb]){${n - 1}}\\b`
+  const f = `[rgb](-[rgb]){${n - 1}}`
+  return n === 2 ? `\\b${f}\\b` : f
 }
 
 /**
@@ -198,6 +200,8 @@ export function linkColors (choice: string): string | null {
     }
   }
   const t = renderTrie(root, true)
+  // 只有 2 色要 `\b`(`r-r` 會中 `of Hair-Raising`);3 色以上離線稽核不帶 `\b` 也 0 誤中
+  if (letters.length > 2) return t
   // 頂層有 `|` 才要括號,`\b` 才會套到每個分支(renderTrie 的頂層不加括號)
   let depth = 0
   let topBar = false

@@ -118,7 +118,7 @@ describe('插槽 / 連結片段', () => {
         }
       }
     }
-    expect(linkColors('rgb')).toBe('\\b(b-(g-r|r-g)|g-(b-r|r-b)|r-(b-g|g-b))\\b')
+    expect(linkColors('rgb')).toBe('b-(g-r|r-g)|g-(b-r|r-b)|r-(b-g|g-b)')
   })
   it('linkColors:斷開(空白)的不算相連', () => {
     expect(re(linkColors('rgb')!).test('Sockets: R-G B')).toBe(false)

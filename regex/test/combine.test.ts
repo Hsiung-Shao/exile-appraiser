@@ -72,7 +72,7 @@ describe('combine:地圖詞綴 3 條 + 階級 ≥16 + 物品數量 ≥80 + 6L', 
       const qty = lang === 'zh'
         ? '"物品數量: \\+?([89][0-9]|[1-9][0-9]{2,})%"'
         : '"Item Quantity: \\+?([89][0-9]|[1-9][0-9]{2,})%"'
-      const six = '\\b[rgbwa](-[rgbwa]){5}\\b'
+      const six = '(-[rgbwa]){5}'
       expect(r.query).toBe(`${single.query} ${tier} ${qty} ${six}`)
       expect(r.length).toBe(charCount(r.query))
       expect(r.ok).toBe(true)

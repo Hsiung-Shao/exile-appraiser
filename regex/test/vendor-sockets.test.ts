@@ -168,3 +168,41 @@ describe('V11 插槽顏色數與紅綠藍同組只看插槽行', () => {
     expect(h.slice(5), `socketColorCount(插槽,b,3) = ${socketColorCount('插槽', 'b', 3)}`).toEqual([true, true])
   })
 })
+
+describe('V12 3 連以上片段不帶 \\b', () => {
+  it('n=3..6:linkedSockets / coloredLinks 精確等於無詞界字串', () => {
+    for (let n = 3; n <= 6; n++) {
+      expect(linkedSockets(n), `linkedSockets(${n})`).toBe(`(-[rgbwa]){${n - 1}}`)
+      expect(coloredLinks(n), `coloredLinks(${n})`).toBe(`[rgb](-[rgb]){${n - 1}}`)
+    }
+  })
+  it("linkColors('rgb') 精確等於無詞界字串;rrg、rgbw 不含 \\b", () => {
+    expect(linkColors('rgb')).toBe('b-(g-r|r-g)|g-(b-r|r-b)|r-(b-g|g-b)')
+    expect(linkColors('rrg')!.includes('\\b'), `linkColors(rrg) = ${linkColors('rrg')}`).toBe(false)
+    expect(linkColors('rgbw')!.includes('\\b'), `linkColors(rgbw) = ${linkColors('rgbw')}`).toBe(false)
+  })
+})
+
+describe('V13 2 連 / 2 色保留 \\b', () => {
+  it('linkedSockets(2) / coloredLinks(2) 精確等於帶詞界字串', () => {
+    expect(linkedSockets(2)).toBe('\\b[rgbwa](-[rgbwa]){1}\\b')
+    expect(coloredLinks(2)).toBe('\\b[rgb](-[rgb]){1}\\b')
+  })
+  it("linkColors('rg') / ('rr') 精確等於帶詞界字串", () => {
+    expect(linkColors('rg')).toBe('\\b(g-r|r-g)\\b')
+    expect(linkColors('rr')).toBe('\\br-r\\b')
+  })
+})
+
+describe('V14 短版 n 連只中至少 n 連', () => {
+  it('linkedSockets(4):中 4 連與 5 連;不中 3 連與斷開的', () => {
+    const lines = ['插槽: R-G-B-W', 'Sockets: W-R-G-B-B', '插槽: R-G-B W', '插槽: R-G B-W', '插槽: R-G-B']
+    expect(hits(linkedSockets(4), lines)).toEqual([true, true, false, false, false])
+  })
+})
+
+describe('V15 全彩 3 連不把白插槽開頭算進去', () => {
+  it('coloredLinks(3):不中 W-R-G,中 W-R-G-B', () => {
+    expect(hits(coloredLinks(3), ['插槽: W-R-G', '插槽: W-R-G-B'])).toEqual([false, true])
+  })
+})
