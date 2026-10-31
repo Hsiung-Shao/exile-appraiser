@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest'
 import { combine } from '../src/combine'
 import { loadAllPagesFor } from '../src/node'
-import { coloredLinks, linkColors, linkedSockets, rgbGroup } from '../src/pages'
+import { coloredLinks, linkColors, linkedSockets, rgbGroup, socketColorCount } from '../src/pages'
 import { decodeShare, encodeShare, resolveState } from '../src/share'
 import type { RegexPage } from '../src/data'
 
@@ -65,7 +65,7 @@ describe('V5 紅綠藍同組不必相鄰', () => {
   it("rgbGroup('插槽'):中 R-B-B-G、R-G-B;不中 R-G B(藍在別組)、Bringer of Rain、物品等級", () => {
     const f = rgbGroup('插槽')
     expect(f, '片段不可為 null').not.toBeNull()
-    expect(f!.startsWith('插槽'), `片段 ${f}`).toBe(true)
+    expect(f!.replace(/^\^/, '').startsWith('插槽'), `片段 ${f}`).toBe(true)
     expect(f!.includes('(?='), `片段 ${f}`).toBe(true)
     expect(hits(f, ['插槽: R-B-B-G', '插槽: R-G B', '插槽: R-G-B', 'Bringer of Rain', '物品等級: 85'])).toEqual([true, false, true, false, false])
   })
@@ -133,5 +133,38 @@ describe('V9 連結片段不中英文連字號單字(插槽字母不可黏在單
       expect(h.slice(0, 2), `coloredLinks(${n})`).toEqual([false, false])
       if (n === 3) expect(h[3], 'coloredLinks(3) 中 Sockets: W-R-G-B').toBe(true)
     }
+  })
+})
+
+describe('V10 指定顏色片段不中英文連字號單字', () => {
+  const lines = ['of Hair-Raising', 'Lightning-Retaliation', 'Strong-Willed', 'Sockets: R-R', 'Sockets: G-R-B']
+  it('rr / rg / gw / rgb:前三行全不中', () => {
+    for (const c of ['rr', 'rg', 'gw', 'rgb']) {
+      expect(hits(linkColors(c), lines).slice(0, 3), `linkColors(${c}) = ${linkColors(c)}`).toEqual([false, false, false])
+    }
+  })
+  it('rr 中 Sockets: R-R;rgb、rg 中 Sockets: G-R-B', () => {
+    expect(hits(linkColors('rr'), lines)[3], `linkColors(rr) = ${linkColors('rr')}`).toBe(true)
+    expect(hits(linkColors('rgb'), lines)[4], `linkColors(rgb) = ${linkColors('rgb')}`).toBe(true)
+    expect(hits(linkColors('rg'), lines)[4], `linkColors(rg) = ${linkColors('rg')}`).toBe(true)
+  })
+})
+
+describe('V11 插槽顏色數與紅綠藍同組只看插槽行', () => {
+  const lines = ['All Sockets are Blue', 'All Sockets are Green', 'All Sockets are White', 'Sockets cannot be modified',
+    'Sockets: R-G-B-W', '插槽: B-B-B', '插槽：B-B-B']
+  it("socketColorCount('Sockets', r/g/b/w, 1) 與 rgbGroup('Sockets'):詞綴行全不中、Sockets: R-G-B-W 中", () => {
+    for (const c of ['r', 'g', 'b', 'w']) {
+      const h = hits(socketColorCount('Sockets', c, 1), lines)
+      expect(h.slice(0, 4), `socketColorCount(Sockets,${c},1) = ${socketColorCount('Sockets', c, 1)}`).toEqual([false, false, false, false])
+      expect(h[4], `socketColorCount(Sockets,${c},1) 應中 Sockets: R-G-B-W`).toBe(true)
+    }
+    const g = hits(rgbGroup('Sockets'), lines)
+    expect(g.slice(0, 4), `rgbGroup(Sockets) = ${rgbGroup('Sockets')}`).toEqual([false, false, false, false])
+    expect(g[4], 'rgbGroup(Sockets) 應中 Sockets: R-G-B-W').toBe(true)
+  })
+  it("socketColorCount('插槽','b',3):中半形與全形冒號的 B-B-B", () => {
+    const h = hits(socketColorCount('插槽', 'b', 3), lines)
+    expect(h.slice(5), `socketColorCount(插槽,b,3) = ${socketColorCount('插槽', 'b', 3)}`).toEqual([true, true])
   })
 })

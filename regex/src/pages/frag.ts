@@ -132,12 +132,13 @@ export function coloredLinks (n: number): string | null {
 
 /**
  * 紅綠藍在同一組連結(彩色石配方,不必相鄰):插槽標籤之後,某個不含空白的連續段同時有 r、g、b。
- * 以標籤開頭綁在插槽行上(英文物品名如 Bringer 也同時含 r、g、b)。用前瞻 `(?=`,遊戲支援與否待實測。
+ * 錨在插槽行行首(`^插槽[:：]`):英文物品名如 Bringer 也同時含 r、g、b,詞綴行也有「All Sockets are …」。
+ * 用前瞻 `(?=`,遊戲支援與否待實測。
  */
 export function rgbGroup (socketLabel: string): string | null {
   const base = labelBase(socketLabel)
   if (!base) return null
-  return `${base}.*(?=\\S*r)(?=\\S*g)(?=\\S*b)`
+  return `^${base}[:：].*(?=\\S*r)(?=\\S*g)(?=\\S*b)`
 }
 
 /** 多重集合的全部相異排列 */
@@ -180,8 +181,8 @@ function renderTrie (t: Trie, top: boolean): string {
 }
 
 /**
- * 相連插槽含指定顏色組合(任意順序、需連續相鄰):例如 "rgb" → `r-(g-b|b-g)|g-(r-b|b-r)|b-(r-g|g-r)`。
- * 顏色字母 r / g / b / w;`-` 相連。整個片段是一個 term 內的 `|`(遊戲語法:term 內 `|` = 任一)。
+ * 相連插槽含指定顏色組合(任意順序、需連續相鄰):例如 "rgb" → `\b(r-(g-b|b-g)|g-(r-b|b-r)|b-(r-g|g-r))\b`。
+ * 顏色字母 r / g / b / w;`-` 相連。前後 `\b` 讓字母不能黏在英文單字裡(離線稽核:`r-r` 曾中 `of Hair-Raising`)。
  */
 export function linkColors (choice: string): string | null {
   const letters = [...choice.toLowerCase()].filter(c => 'rgbw'.includes(c))
@@ -196,13 +197,22 @@ export function linkColors (choice: string): string | null {
       node = n
     }
   }
-  return renderTrie(root, true)
+  const t = renderTrie(root, true)
+  // 頂層有 `|` 才要括號,`\b` 才會套到每個分支(renderTrie 的頂層不加括號)
+  let depth = 0
+  let topBar = false
+  for (const ch of t) {
+    if (ch === '(' || ch === '[') depth++
+    else if (ch === ')' || ch === ']') depth--
+    else if (ch === '|' && depth === 0) topBar = true
+  }
+  return topBar ? `\\b(${t})\\b` : `\\b${t}\\b`
 }
 
-/** 插槽行裡某顏色至少 n 個:`插槽.*b.*b.*b` */
+/** 插槽行裡某顏色至少 n 個:`^插槽[:：].*b.*b.*b`(錨在行首:英文詞綴行也有「All Sockets are Blue」) */
 export function socketColorCount (label: string, color: string, n: number): string | null {
   const base = labelBase(label)
   const c = color.toLowerCase()
   if (!base || !'rgbw'.includes(c) || c.length !== 1 || !Number.isInteger(n) || n < 1 || n > 6) return null
-  return base + Array.from({ length: n }, () => `.*${c}`).join('')
+  return `^${base}[:：]` + Array.from({ length: n }, () => `.*${c}`).join('')
 }

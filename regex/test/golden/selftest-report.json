@@ -1,7 +1,7 @@
 {
   "_source": "pob-zh-engine dist/regex_selftest.txt(pob-zh.exe --regex-selftest);由 extract-from-report.mjs 產生,勿手改",
   "_cppPassFail": {
-    "pass": 1124,
+    "pass": 1131,
     "fail": 0
   },
   "synthetic": {
