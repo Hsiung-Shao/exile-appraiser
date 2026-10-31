@@ -111,10 +111,33 @@ export function wholeLine (labels: string[]): string | null {
   return xs.length === 1 ? `^${xs[0]}$` : `^(${xs.join('|')})$`
 }
 
-/** n 個相連插槽:`.-.-.-.-.-.`(插槽字元不假設是哪個字母;`-` = 相連、空白 = 斷開) */
+/** 插槽字母:紅綠藍白 + 深淵(A);`-` = 相連、空白 = 斷開 */
+const SOCKET = '[rgbwa]'
+
+/**
+ * n 個相連插槽:`\b[rgbwa](-[rgbwa]){n-1}\b`。只用插槽字母——原本的 `.` 會中到 `物理傷害: 10-20` 這類
+ * 「x-y-z」文字(使用者遊戲內回報亮錯,2026-10-31);前後 `\b` 讓插槽字母不能黏在英文單字裡
+ * (離線稽核:2 連曾中到物品名 `Transfer-attuned`)。
+ */
 export function linkedSockets (n: number): string | null {
   if (!Number.isInteger(n) || n < 2 || n > 6) return null
-  return Array.from({ length: n }, () => '.').join('-')
+  return `\\b${SOCKET}(-${SOCKET}){${n - 1}}\\b`
+}
+
+/** n 個相連且全是彩色(不含白)的插槽:`\b[rgb](-[rgb]){n-1}\b` */
+export function coloredLinks (n: number): string | null {
+  if (!Number.isInteger(n) || n < 2 || n > 6) return null
+  return `\\b[rgb](-[rgb]){${n - 1}}\\b`
+}
+
+/**
+ * 紅綠藍在同一組連結(彩色石配方,不必相鄰):插槽標籤之後,某個不含空白的連續段同時有 r、g、b。
+ * 以標籤開頭綁在插槽行上(英文物品名如 Bringer 也同時含 r、g、b)。用前瞻 `(?=`,遊戲支援與否待實測。
+ */
+export function rgbGroup (socketLabel: string): string | null {
+  const base = labelBase(socketLabel)
+  if (!base) return null
+  return `${base}.*(?=\\S*r)(?=\\S*g)(?=\\S*b)`
 }
 
 /** 多重集合的全部相異排列 */

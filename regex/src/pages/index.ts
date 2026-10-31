@@ -15,8 +15,8 @@ export {
 } from './item-mods'
 export type { ItemModCategory, ItemModData, ItemModEntryData, ItemModExcludeReason, ItemModFilter, ItemModForms, ModAnchor, ModIndex, StatLite } from './item-mods'
 export {
-  isTierNameLine, labelBase, linkColors, linkedSockets, mapTierFragment, propertyFragment, rarityFragment, socketColorCount, strictPropertyFragment,
-  wholeLine
+  coloredLinks, isTierNameLine, labelBase, linkColors, linkedSockets, mapTierFragment, propertyFragment, rarityFragment, rgbGroup,
+  socketColorCount, strictPropertyFragment, wholeLine
 } from './frag'
 
 /** 一個遊戲的全部演算法頁(數值頁在前、商店頁在後,再來是第 40 步的稀有度 / 汙染條件區);labels = null → 沒有 */

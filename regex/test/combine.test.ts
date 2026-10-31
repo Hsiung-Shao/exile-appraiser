@@ -72,7 +72,8 @@ describe('combine:地圖詞綴 3 條 + 階級 ≥16 + 物品數量 ≥80 + 6L', 
       const qty = lang === 'zh'
         ? '"物品數量: \\+?([89][0-9]|[1-9][0-9]{2,})%"'
         : '"Item Quantity: \\+?([89][0-9]|[1-9][0-9]{2,})%"'
-      expect(r.query).toBe(`${single.query} ${tier} ${qty} .-.-.-.-.-.`)
+      const six = '\\b[rgbwa](-[rgbwa]){5}\\b'
+      expect(r.query).toBe(`${single.query} ${tier} ${qty} ${six}`)
       expect(r.length).toBe(charCount(r.query))
       expect(r.ok).toBe(true)
       expect(r.conflicts).toEqual([])
@@ -81,9 +82,9 @@ describe('combine:地圖詞綴 3 條 + 階級 ≥16 + 物品數量 ≥80 + 6L', 
       // 每頁貢獻:語料頁 = token 字數 + 分隔;演算法頁 = term 字數 + 分隔
       expect(r.perPage[0].length).toBe(single.usedTokens.reduce((n, t) => n + charCount(t) + 1, 0))
       expect(r.perPage[1].length).toBe(charCount(tier) + 1 + charCount(qty) + 1)
-      expect(r.perPage[2].length).toBe(charCount('.-.-.-.-.-.') + 1)
+      expect(r.perPage[2].length).toBe(charCount(six) + 1)
       // 整串拿掉演算法 term(不經 Corpus,另以正則逐行檢查)= 送進 Verify 的那段;以測試端自組的聯集 corpus 再驗一次
-      const algoTerms = [tier, qty, '.-.-.-.-.-.']
+      const algoTerms = [tier, qty, six]
       let rest = r.query
       for (const t of algoTerms) rest = rest.replace(' ' + t, '')
       expect(rest).toBe(r.verifyQuery)

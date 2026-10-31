@@ -285,6 +285,8 @@ export function combine (input: CombineInput): CombineResult {
     const kind: PageKind = sel.page.kind ?? 'mods'
     if (isAlgoPage(sel.page)) {
       const frags: string[] = []
+      /** anyGroup → 它在 algoTerms / frags 的位置與已併入的片段 */
+      const groups = new Map<string, { term: number, frag: number, parts: string[] }>()
       let bad = 0
       for (const i of picks) {
         const e = sel.page.entries[i]
@@ -312,6 +314,22 @@ export function combine (input: CombineInput): CombineResult {
         if (!ts?.length) {
           bad++
           conflicts.push({ kind: 'invalid', page: sel.page.id, entry: e.id, text: e[lang][0] ?? e.id })
+          continue
+        }
+        if (e.anyGroup && !e.terms) {
+          // anyGroup:同頁同組併成一個 term(任一成立),放在該組第一個勾選的位置;衝突檢查仍逐片段
+          const f = ts[0]
+          const g = groups.get(e.anyGroup)
+          if (!g) {
+            groups.set(e.anyGroup, { term: algoTerms.length, frag: frags.length, parts: [f] })
+            frags.push(f)
+            algoTerms.push(quoteIfNeeded(f))
+          } else if (!g.parts.includes(f)) {
+            g.parts.push(f)
+            frags[g.frag] = g.parts.join('|')
+            algoTerms[g.term] = quoteIfNeeded(frags[g.frag])
+          }
+          algoFrags.push({ page: sel.page.id, entry: e.id, frag: f, own: e.ownLine })
           continue
         }
         for (const f of ts) {
