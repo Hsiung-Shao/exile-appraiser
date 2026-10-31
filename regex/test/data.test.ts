@@ -104,3 +104,37 @@ describe('parseRegexCatalogue load rules(regex_data.cpp:92–157)', () => {
     expect(() => parseRegexCatalogue({ pages: [{ id: 5, entries: [{ zh: ['a'] }] }] }, 'poe2')).toThrow(/id/)
   })
 })
+
+// 風味文字(GGPK FlavourText)與用途說明(CurrencyItems.Directions)也是遊戲搜尋會比對的物品文字:
+// 每個物品自己的進 hidden,整頁共用的進 ambient。
+describe('物品風味文字 / 用途說明收進資料', () => {
+  const poe1 = loadRegexCatalogueFile('poe1')
+  const page = (id: string) => poe1.pages.find(p => p.id === id)!
+
+  it('A1 聖甲蟲風味文字進入隱藏文字:ScarabTormentNew1 的 hiddenZh / hiddenEn 含該段風味文字', () => {
+    const e = page('scarabs').entries.find(x => x.id === 'Metadata/Items/Scarabs/ScarabTormentNew1')
+    expect(e, '找不到 ScarabTormentNew1').toBeDefined()
+    expect(e!.hiddenZh.some(s => s.includes('生前犯下的罪行將持續作祟到你死後。')), `hiddenZh=${JSON.stringify(e!.hiddenZh)}`).toBe(true)
+    expect(e!.hiddenEn.some(s => s.includes('Their crimes in life haunt you in death.')), `hiddenEn=${JSON.stringify(e!.hiddenEn)}`).toBe(true)
+  })
+
+  it('A2 聖甲蟲用途說明列為環境文字:scarabs 頁 ambientZh / ambientEn 含「可於個人的地圖裝置中使用…」', () => {
+    const p = page('scarabs')
+    expect(p.ambientZh.some(s => s.includes('可於個人的地圖裝置中使用，增加地圖的詞綴。')), `ambientZh=${JSON.stringify(p.ambientZh)}`).toBe(true)
+    expect(p.ambientEn.some(s => s.includes('Can be used in a personal Map Device to add modifiers to a Map.')), `ambientEn=${JSON.stringify(p.ambientEn)}`).toBe(true)
+  })
+
+  it('A4 紋身用途說明與寶石風味文字收齊:每個紋身的隱藏或環境文字有右鍵說明行、克塔什誓約的 hiddenZh 有風味文字', () => {
+    const t = page('tattoos')
+    // 同頁還有符文之結(說明不同),所以這行不是每件都有:收在各紋身自己的隱藏文字(或環境文字);
+    // 禁忌紋身(SpecialUnique,取代昇華天賦)在 GGPK 本來就沒有這行
+    const dir = '右鍵點擊這個物品，接著再左鍵點擊一個已分配的天賦。'
+    const inAmbient = t.ambientZh.some(s => s.startsWith(dir))
+    const tattoos = t.entries.filter(x => x.id.includes('AncestralTattoo') && !x.id.includes('SpecialUnique'))
+    expect(tattoos.length).toBeGreaterThan(0)
+    expect(tattoos.filter(x => !inAmbient && !x.hiddenZh.some(s => s.startsWith(dir))).map(x => x.zh[0])).toEqual([])
+    const g = page('gem_names').entries.find(x => x.zh[0] === '克塔什誓約')
+    expect(g, '找不到 克塔什誓約').toBeDefined()
+    expect(g!.hiddenZh.some(s => s.includes('釋放克塔什的憤怒，牠是仇恨的化身。')), `hiddenZh=${JSON.stringify(g!.hiddenZh)}`).toBe(true)
+  })
+})

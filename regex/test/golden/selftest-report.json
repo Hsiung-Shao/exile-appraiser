@@ -1,7 +1,7 @@
 {
   "_source": "pob-zh-engine dist/regex_selftest.txt(pob-zh.exe --regex-selftest);由 extract-from-report.mjs 產生,勿手改",
   "_cppPassFail": {
-    "pass": 1099,
+    "pass": 1111,
     "fail": 0
   },
   "synthetic": {
@@ -44,7 +44,7 @@
       "lang": "zh",
       "game": "poe1",
       "page": "scarabs",
-      "length": 20,
+      "length": 21,
       "plain": 82
     },
     {
@@ -65,7 +65,7 @@
       "lang": "zh",
       "game": "poe1",
       "page": "gem_names",
-      "length": 36,
+      "length": 37,
       "plain": 63
     },
     {
@@ -93,7 +93,7 @@
       "lang": "zh",
       "game": "poe1",
       "page": "vendor_bases",
-      "length": 33,
+      "length": 34,
       "plain": 53
     },
     {
@@ -163,7 +163,7 @@
       "lang": "en",
       "game": "poe1",
       "page": "scarabs",
-      "length": 34,
+      "length": 36,
       "plain": 260
     },
     {
@@ -184,7 +184,7 @@
       "lang": "en",
       "game": "poe1",
       "page": "gem_names",
-      "length": 64,
+      "length": 65,
       "plain": 204
     },
     {
@@ -212,7 +212,7 @@
       "lang": "en",
       "game": "poe1",
       "page": "vendor_bases",
-      "length": 53,
+      "length": 55,
       "plain": 163
     },
     {
@@ -295,7 +295,7 @@
       "game": "poe1",
       "page": "scarabs",
       "entries": 138,
-      "ambientLines": 7,
+      "ambientLines": 8,
       "findable": 138,
       "tried": 138,
       "stuckExamples": [],
@@ -545,7 +545,7 @@
       "game": "poe1",
       "page": "scarabs",
       "entries": 138,
-      "ambientLines": 7,
+      "ambientLines": 8,
       "findable": 138,
       "tried": 138,
       "stuckExamples": [],
