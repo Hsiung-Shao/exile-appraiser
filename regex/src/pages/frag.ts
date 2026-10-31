@@ -183,8 +183,8 @@ function renderTrie (t: Trie, top: boolean): string {
 }
 
 /**
- * 相連插槽含指定顏色組合(任意順序、需連續相鄰):例如 "rgb" → `\b(r-(g-b|b-g)|g-(r-b|b-r)|b-(r-g|g-r))\b`。
- * 顏色字母 r / g / b / w;`-` 相連。前後 `\b` 讓字母不能黏在英文單字裡(離線稽核:`r-r` 曾中 `of Hair-Raising`)。
+ * 相連插槽含指定顏色組合(任意順序、需連續相鄰):例如 "rgb" → `b-(g-r|r-g)|g-(b-r|r-b)|r-(b-g|g-b)`。
+ * 顏色字母 r / g / b / w;`-` 相連。只有 2 色加前後 `\b`,讓字母不能黏在英文單字裡(離線稽核:`r-r` 曾中 `of Hair-Raising`)。
  */
 export function linkColors (choice: string): string | null {
   const letters = [...choice.toLowerCase()].filter(c => 'rgbw'.includes(c))
