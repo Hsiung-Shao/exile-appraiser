@@ -127,10 +127,10 @@ describe('物品風味文字 / 用途說明收進資料', () => {
   it('A4 紋身用途說明與寶石風味文字收齊:每個紋身的隱藏或環境文字有右鍵說明行、克塔什誓約的 hiddenZh 有風味文字', () => {
     const t = page('tattoos')
     // 同頁還有符文之結(說明不同),所以這行不是每件都有:收在各紋身自己的隱藏文字(或環境文字);
-    // 禁忌紋身(SpecialUnique,取代昇華天賦)在 GGPK 本來就沒有這行
+    // 7 個禁忌紋身(SpecialUnique7<職業>,取代昇華天賦)在 GGPK 本來就沒有這行;其他 SpecialUnique 紋身有
     const dir = '右鍵點擊這個物品，接著再左鍵點擊一個已分配的天賦。'
     const inAmbient = t.ambientZh.some(s => s.startsWith(dir))
-    const tattoos = t.entries.filter(x => x.id.includes('AncestralTattoo') && !x.id.includes('SpecialUnique'))
+    const tattoos = t.entries.filter(x => x.id.includes('AncestralTattoo') && !x.id.includes('SpecialUnique7'))
     expect(tattoos.length).toBeGreaterThan(0)
     expect(tattoos.filter(x => !inAmbient && !x.hiddenZh.some(s => s.startsWith(dir))).map(x => x.zh[0])).toEqual([])
     const g = page('gem_names').entries.find(x => x.zh[0] === '克塔什誓約')
