@@ -22,7 +22,7 @@
 // (指向不存在資料夾的書籤 → 補資料夾、同遊戲書籤依資料夾順序排好)。舊版程式讀 schema 5 檔會忽略資料夾(書籤內容照讀)。
 
 import type { Mode } from './gen'
-import type { RegexEntry, RegexGame, RegexLang, RegexPage } from './data'
+import { normalizeLabel, type RegexEntry, type RegexGame, type RegexLang, type RegexPage } from './data'
 import type { AlgoValue } from './pages/types'
 import { SECTION_HOSTS, sectionHostOf, unionKeys } from './sections'
 import { normalizeFolders, type BookmarkFolder } from './folders'
@@ -327,6 +327,8 @@ export function serializeRegexState (s: RegexUiState): string {
 /**
  * regex_state.cpp:190 `RegexResolveKeys`:把存下的鍵還原成勾選。英文先、找不到才中文;
  * 回傳 `missed` = 兩邊都找不到的鍵數(書籤少了三條看起來跟存錯一樣,只能靠計數分辨)。
+ * 2026-10-30 前的資料有幾行英文帶 `[Key|Display]` 標記,用它存的分享碼與範本只有英文鍵:
+ * 全字比不到且鍵含 `[` 時,剝掉標記再全字比一次(regex_state.cpp 同步)。
  */
 export function resolveKeys (
   keys: readonly string[],
@@ -339,6 +341,7 @@ export function resolveKeys (
   for (let k = 0; k < keys.length; k++) {
     let hit = -1
     if (keys[k]) hit = entryKeys.indexOf(keys[k])
+    if (hit < 0 && keys[k] && keys[k].includes('[')) hit = entryKeys.indexOf(normalizeLabel(keys[k]))
     if (hit < 0 && k < alt.length && alt[k]) hit = entryAlt.indexOf(alt[k])
     if (hit >= 0) picked[hit] = true
     else missed++

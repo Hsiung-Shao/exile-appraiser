@@ -9,8 +9,8 @@ import path from 'node:path'
 // tablet_mods 78→81、expedition_relic_mods 內容異動是 PoE2 GGPK 4.5.5 快取更新(非產生器改動)。
 const EXPECTED = {
   poe1: {
-    map_mods: 125, logbook_mods: 62, scarabs: 138, flask_mods: 82, cluster_jewel: 388,
-    gem_names: 892, tattoos: 132, heist_equipment_mods: 141, heist_contracts: 107, vendor_bases: 1057
+    map_mods: 122, logbook_mods: 62, scarabs: 138, flask_mods: 82, cluster_jewel: 388,
+    gem_names: 891, tattoos: 132, heist_equipment_mods: 141, heist_contracts: 107, vendor_bases: 1057
   },
   poe2: {
     // tablet_mods 81 → 83:2026-10-09 GGPK 0.5.5.4.2 重抽補上探險「炸藥範圍」「瓦爾遺物」

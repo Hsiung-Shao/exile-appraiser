@@ -1,7 +1,7 @@
 {
   "_source": "pob-zh-engine dist/regex_selftest.txt(pob-zh.exe --regex-selftest);由 extract-from-report.mjs 產生,勿手改",
   "_cppPassFail": {
-    "pass": 1054,
+    "pass": 1080,
     "fail": 0
   },
   "synthetic": {
@@ -30,8 +30,8 @@
       "lang": "zh",
       "game": "poe1",
       "page": "map_mods",
-      "length": 30,
-      "plain": 146
+      "length": 34,
+      "plain": 124
     },
     {
       "lang": "zh",
@@ -66,7 +66,7 @@
       "game": "poe1",
       "page": "gem_names",
       "length": 36,
-      "plain": 71
+      "plain": 63
     },
     {
       "lang": "zh",
@@ -150,7 +150,7 @@
       "game": "poe1",
       "page": "map_mods",
       "length": 43,
-      "plain": 421
+      "plain": 410
     },
     {
       "lang": "en",
@@ -184,8 +184,8 @@
       "lang": "en",
       "game": "poe1",
       "page": "gem_names",
-      "length": 67,
-      "plain": 219
+      "length": 64,
+      "plain": 204
     },
     {
       "lang": "en",
@@ -270,10 +270,10 @@
       "lang": "zh",
       "game": "poe1",
       "page": "map_mods",
-      "entries": 125,
+      "entries": 122,
       "ambientLines": 337,
-      "findable": 125,
-      "tried": 125,
+      "findable": 122,
+      "tried": 122,
       "stuckExamples": [],
       "stuckByHidden": 0,
       "stuckByHiddenExamples": []
@@ -344,13 +344,11 @@
       "lang": "zh",
       "game": "poe1",
       "page": "gem_names",
-      "entries": 892,
+      "entries": 891,
       "ambientLines": 21,
-      "findable": 445,
+      "findable": 446,
       "tried": 446,
-      "stuckExamples": [
-        "..."
-      ],
+      "stuckExamples": [],
       "stuckByHidden": 0,
       "stuckByHiddenExamples": []
     },
@@ -512,10 +510,10 @@
       "lang": "en",
       "game": "poe1",
       "page": "map_mods",
-      "entries": 125,
+      "entries": 122,
       "ambientLines": 338,
-      "findable": 122,
-      "tried": 125,
+      "findable": 119,
+      "tried": 122,
       "stuckExamples": [
         "Unique Boss has #% increased Area of Effect",
         "Players have #% less Accuracy Rating",
@@ -596,21 +594,21 @@
       "lang": "en",
       "game": "poe1",
       "page": "gem_names",
-      "entries": 892,
+      "entries": 891,
       "ambientLines": 21,
-      "findable": 433,
+      "findable": 432,
       "tried": 446,
       "stuckExamples": [
-        "...",
-        "Wave of Conviction",
-        "Summon Skeletons",
-        "Detonate Dead",
-        "Animate Weapon"
+        "Glacial Hammer",
+        "Volcanic Fissure",
+        "Burning Arrow",
+        "Rain of Arrows",
+        "Caustic Arrow"
       ],
       "stuckByHidden": 2,
       "stuckByHiddenExamples": [
-        "Vaal Lightning Warp",
-        "Vaal Lightning Arrow"
+        "Awakened Elemental Damage with Attacks Support",
+        "Vaal Lightning Trap"
       ]
     },
     {
@@ -781,7 +779,7 @@
   ],
   "mapAilment": {
     "query": "\"免元\"",
-    "bareExtra": 12,
+    "bareExtra": 10,
     "bareAmbient": 0
   }
 }
