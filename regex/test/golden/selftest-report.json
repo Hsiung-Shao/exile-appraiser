@@ -1,7 +1,7 @@
 {
   "_source": "pob-zh-engine dist/regex_selftest.txt(pob-zh.exe --regex-selftest);由 extract-from-report.mjs 產生,勿手改",
   "_cppPassFail": {
-    "pass": 1080,
+    "pass": 1092,
     "fail": 0
   },
   "synthetic": {
@@ -21,7 +21,7 @@
     "T14 both picked": "\"元|家\"",
     "T14 all": "素異 家",
     "T15 past ambient": "\"加\"",
-    "T15 name seam": "\" \"",
+    "T15 name seam": "\"a\"",
     "T16 mid-way": "\"^a\"",
     "T16 fully anchored": "\"^abc$\""
   },
@@ -58,7 +58,7 @@
       "lang": "zh",
       "game": "poe1",
       "page": "cluster_jewel",
-      "length": 27,
+      "length": 28,
       "plain": 147
     },
     {
@@ -79,7 +79,7 @@
       "lang": "zh",
       "game": "poe1",
       "page": "heist_equipment_mods",
-      "length": 36,
+      "length": 33,
       "plain": 210
     },
     {
@@ -156,7 +156,7 @@
       "lang": "en",
       "game": "poe1",
       "page": "logbook_mods",
-      "length": 42,
+      "length": 43,
       "plain": 388
     },
     {
@@ -170,14 +170,14 @@
       "lang": "en",
       "game": "poe1",
       "page": "flask_mods",
-      "length": 48,
+      "length": 49,
       "plain": 437
     },
     {
       "lang": "en",
       "game": "poe1",
       "page": "cluster_jewel",
-      "length": 42,
+      "length": 43,
       "plain": 440
     },
     {
@@ -219,7 +219,7 @@
       "lang": "en",
       "game": "poe2",
       "page": "waystone_mods",
-      "length": 27,
+      "length": 29,
       "plain": 490
     },
     {
@@ -233,7 +233,7 @@
       "lang": "en",
       "game": "poe2",
       "page": "relic_mods",
-      "length": 35,
+      "length": 36,
       "plain": 431
     },
     {
@@ -261,7 +261,7 @@
       "lang": "en",
       "game": "poe2",
       "page": "vendor_bases",
-      "length": 56,
+      "length": 57,
       "plain": 190
     }
   ],
@@ -370,7 +370,7 @@
       "page": "heist_equipment_mods",
       "entries": 141,
       "ambientLines": 232,
-      "findable": 123,
+      "findable": 122,
       "tried": 141,
       "stuckExamples": [
         "增加 #% 暴擊率",
@@ -572,7 +572,7 @@
       "page": "cluster_jewel",
       "entries": 388,
       "ambientLines": 186,
-      "findable": 353,
+      "findable": 351,
       "tried": 388,
       "stuckExamples": [
         "Added Small Passive Skills also grant: Minions have #% increased Attack and Cast Speed",
@@ -581,13 +581,13 @@
         "Added Small Passive Skills also grant: # to Dexterity",
         "Added Small Passive Skills also grant: # to Intelligence"
       ],
-      "stuckByHidden": 13,
+      "stuckByHidden": 15,
       "stuckByHiddenExamples": [
+        "Added Small Passive Skills grant: #% chance to Suppress Spell Damage",
         "Added Small Passive Skills grant: #% Chance to Block Attack Damage",
         "Added Small Passive Skills grant: #% Chance to Block Spell Damage",
         "Added Small Passive Skills grant: Minions deal #% increased Damage while you are affected by a Herald",
-        "Added Small Passive Skills grant: #% increased Projectile Damage",
-        "Added Small Passive Skills grant: #% increased Cold Damage over Time"
+        "Added Small Passive Skills grant: #% increased Cold Damage"
       ]
     },
     {
@@ -605,11 +605,8 @@
         "Rain of Arrows",
         "Caustic Arrow"
       ],
-      "stuckByHidden": 2,
-      "stuckByHiddenExamples": [
-        "Awakened Elemental Damage with Attacks Support",
-        "Vaal Lightning Trap"
-      ]
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
     },
     {
       "lang": "en",
@@ -764,7 +761,7 @@
       "page": "vendor_bases",
       "entries": 1763,
       "ambientLines": 49,
-      "findable": 425,
+      "findable": 423,
       "tried": 441,
       "stuckExamples": [
         "Runeforged Armoured Vest",

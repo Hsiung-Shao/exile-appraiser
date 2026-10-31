@@ -296,7 +296,54 @@ describe('(port) edge cases', () => {
   it('All quotes a term that contains a space(:236)', () => {
     const c = make(['a b', 'a', 'b'])
     const r = c.build([0], 'all')
-    expect(r.query).toBe('" "')
+    // 2026-10-30 起片段頭尾不可是空白(遊戲會丟掉開頭空白),舊預期 `" "` 在遊戲裡等於空字串
+    expect(r.query).toBe('"a b"')
     expect(c.verify([0], r.query).ok).toBe(true)
+  })
+})
+
+/** 查詢字串 -> 片段:引號內為一個 term;去掉開頭 `!`,以 `|` 切,再去掉 `^` / `$` 錨點 */
+function fragments (q: string): string[] {
+  const terms: string[] = []
+  let cur = ''
+  let inQuote = false
+  for (const ch of q) {
+    if (ch === '"') { inQuote = !inQuote; continue }
+    if (ch === ' ' && !inQuote) {
+      if (cur) terms.push(cur)
+      cur = ''
+      continue
+    }
+    cur += ch
+  }
+  if (cur) terms.push(cur)
+  const out: string[] = []
+  for (let t of terms) {
+    if (t.startsWith('!')) t = t.slice(1)
+    for (let f of t.split('|')) {
+      if (f.startsWith('^')) f = f.slice(1)
+      if (f.endsWith('$')) f = f.slice(0, -1)
+      if (f) out.push(f)
+    }
+  }
+  return out
+}
+
+describe('片段頭尾空白(遊戲會丟掉引號內開頭的空白)', () => {
+  it('S1 片段不以空白開頭:["a mor","x amor"] 勾第 0 條,每段不以空白開頭且只命中第 0 條', () => {
+    const c = make(['a mor', 'x amor'])
+    const r = c.build([0], 'any')
+    expect(fragments(r.query).filter(f => f.startsWith(' ')), `query ${r.query}`).toEqual([])
+    expect(c.verify([0], r.query).ok, `query ${r.query}`).toBe(true)
+  })
+  it('S2 片段不以空白結尾:["ab c","abc","c b"] 勾第 0 條,頭尾都無空白且查詢為 "b c"', () => {
+    const c = make(['ab c', 'abc', 'c b'])
+    const r = c.build([0], 'any')
+    expect(fragments(r.query).filter(f => f.startsWith(' ') || f.endsWith(' ')), `query ${r.query}`).toEqual([])
+    expect(r.query).toBe('"b c"')
+  })
+  it('S3 中間空白照常可用:["a b","ab","b a"] 勾第 0 條,查詢為 "a b"', () => {
+    const c = make(['a b', 'ab', 'b a'])
+    expect(c.build([0], 'any').query).toBe('"a b"')
   })
 })

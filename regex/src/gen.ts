@@ -248,6 +248,7 @@ function mayMatch (p: Prepped, t: Token): boolean {
 
 /**
  * regex_gen.cpp:210 `ForEachToken`:每個片段內 1..maxChars 碼點的子字串,含 kMeta 的跳過;
+ * 頭或尾是空白的也跳過(遊戲會丟掉引號內字串開頭的空白,2026-10-30 遊戲內實測;中間的空白照用)。
  * anchors 時另給 `^body`(片段是行首且從 0 開始)、`body$`(片段是行尾且到結尾)、`^body$`。
  */
 function forEachToken (p: Prepped, maxChars: number, anchors: boolean, sink: (t: Token) => void): void {
@@ -262,6 +263,7 @@ function forEachToken (p: Prepped, maxChars: number, anchors: boolean, sink: (t:
         for (let b = a + 1; b <= nc && (b - a) <= maxChars; b++) {
           const body = f.slice(off[a], off[b])
           if (hasAnyOf(body, kMeta)) continue
+          if (body.startsWith(' ') || body.endsWith(' ')) continue
           sink({ body, head: false, tail: false })
           if (!anchors) continue
           const atStart = fi === 0 && a === 0
