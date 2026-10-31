@@ -138,3 +138,51 @@ describe('物品風味文字 / 用途說明收進資料', () => {
     expect(g!.hiddenZh.some(s => s.includes('釋放克塔什的憤怒，牠是仇恨的化身。')), `hiddenZh=${JSON.stringify(g!.hiddenZh)}`).toBe(true)
   })
 })
+
+// PoE2 語料:連結標記要剝成顯示字、基底的風味文字與詞綴行要收進來
+describe('PoE2 物品基底語料', () => {
+  const poe2 = loadRegexCatalogueFile('poe2')
+  const vendorBases = poe2.pages.find(p => p.id === 'vendor_bases')!
+  const entry = (id: string) => vendorBases.entries.find(x => x.id === id)
+
+  it('A5 PoE2 語料不留連結標記:所有頁與條目的任何字串都沒有 [Key|顯示] 或 [Key]', () => {
+    const raw = JSON.parse(readFileSync(path.join(defaultRegexDataDir(), 'regex_poe2.json'), 'utf8'))
+    const pipe = /\[[^\]|]+\|[^\]]+\]/
+    const bare = /\[[A-Za-z][A-Za-z0-9]*\]/
+    const bad: string[] = []
+    const walk = (v: unknown, where: string): void => {
+      if (typeof v === 'string') {
+        if (pipe.test(v) || bare.test(v)) bad.push(`${where}: ${v}`)
+      } else if (Array.isArray(v)) {
+        v.forEach((x, i) => walk(x, `${where}[${i}]`))
+      } else if (v && typeof v === 'object') {
+        for (const [k, x] of Object.entries(v)) walk(x, `${where}.${k}`)
+      }
+    }
+    for (const p of raw.pages) walk(p, p.id)
+    expect(raw.pages.length, '找不到任何頁').toBeGreaterThan(0)
+    expect(bad.length, `共 ${bad.length} 筆,前幾筆:\n${bad.slice(0, 5).join('\n')}`).toBe(0)
+  })
+
+  it('A6 PoE2 基底風味文字進語料:悼亡護身符 / 恆生之戒的 hidden 與 vendor_bases 頁 ambient 收齊', () => {
+    const amu = entry('Metadata/Items/Amulets/FourAmuletB1a')
+    const ring = entry('Metadata/Items/Rings/FourRingB1')
+    expect(amu, '找不到 FourAmuletB1a').toBeDefined()
+    expect(ring, '找不到 FourRingB1').toBeDefined()
+    // 各自的風味文字:該條目 hidden ∪ 整頁 ambient(不限定在哪一層)
+    const zhOf = (e: { hiddenZh: string[] }) => [...e.hiddenZh, ...vendorBases.ambientZh]
+    const enOf = (e: { hiddenEn: string[] }) => [...e.hiddenEn, ...vendorBases.ambientEn]
+    expect(zhOf(amu!).some(s => s.includes('我們尋覓那消逝的追憶……')), `悼亡護身符 hidden∪ambient 中文找不到`).toBe(true)
+    expect(enOf(amu!).some(s => s.includes('We search for the memories missing...')), `悼亡護身符 hidden∪ambient 英文找不到`).toBe(true)
+    expect(zhOf(ring!).some(s => s.includes('保其精髓，使其得以演化。')), `恆生之戒 hidden∪ambient 中文找不到`).toBe(true)
+    expect(enOf(ring!).some(s => s.includes('Preserve the essence, so that it may evolve.')), `恆生之戒 hidden∪ambient 英文找不到`).toBe(true)
+  })
+
+  it('A7 PoE2 基底詞綴行剝成顯示字:帝金護身符 hidden 有「增加#%找到的物品稀有度」,不留 ItemRarity', () => {
+    const e = entry('Metadata/Items/Amulets/FourAmulet10')
+    expect(e, '找不到 FourAmulet10').toBeDefined()
+    expect(e!.hiddenZh.some(s => s.includes('增加#%找到的物品稀有度')), `hiddenZh=${JSON.stringify(e!.hiddenZh)}`).toBe(true)
+    expect(e!.hiddenEn.some(s => s.includes('#% increased Rarity of Items found')), `hiddenEn=${JSON.stringify(e!.hiddenEn)}`).toBe(true)
+    expect([...e!.hiddenZh, ...e!.hiddenEn].filter(s => s.includes('ItemRarity'))).toEqual([])
+  })
+})
