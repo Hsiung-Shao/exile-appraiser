@@ -1,6 +1,6 @@
 // 資料 schema 斷言 + 載入規則(移植自 regex_data.cpp LoadOne:缺鍵為空、zh/en 皆空丟棄、g 越界歸 0)。
 import { describe, expect, it } from 'vitest'
-import { buildCorpus, parseRegexCatalogue, type RegexEntry, type RegexPage } from '../src/data'
+import { buildCorpus, entryLines, pageAmbient, parseRegexCatalogue, type RegexEntry, type RegexPage } from '../src/data'
 import { defaultRegexDataDir, loadRegexCatalogueFile } from '../src/node'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
@@ -11,8 +11,8 @@ const EXPECTED = {
   poe1: {
     map_mods: 122, logbook_mods: 62, scarabs: 138, flask_mods: 82, cluster_jewel: 388,
     gem_names: 891, tattoos: 132, heist_equipment_mods: 141, heist_contracts: 107, vendor_bases: 1057,
-    // 2026-11-04 對照 poe.re 補頁
-    beasts: 220, magic_affixes: 770
+    // 2026-11-04 對照 poe.re 補頁;詞綴名含藥劑 / 珠寶 / 深淵珠寶 / 藥酒,英文同名分列
+    beasts: 220, magic_affixes: 1185
   },
   poe2: {
     // tablet_mods 81 → 83:2026-10-09 GGPK 0.5.5.4.2 重抽補上探險「炸藥範圍」「瓦爾遺物」
@@ -213,6 +213,84 @@ describe('PoE1 野獸頁與詞綴名頁', () => {
       expect(v.ok, `${name} query=${r.query} extra=${v.extra.length} ambient=${v.ambient.length}`).toBe(true)
     }
   })
+})
+
+// 第二輪:英文同名的詞綴分兩列、更多物品類型的詞綴名、名稱接縫資料、解不出的列要有正當理由
+describe('PoE1 詞綴名頁第二輪', () => {
+  const poe1 = loadRegexCatalogueFile('poe1')
+  const affixes = poe1.pages.find(p => p.id === 'magic_affixes')
+  const byZh0 = (p: RegexPage | undefined, zh0: string) => p?.entries.find(x => x.zh[0] === zh0)
+  const hasEn = (e: RegexEntry | undefined, s: string) => !!e && e.en.some(l => l.includes(s))
+
+  it('M5 英文同名的詞綴分成兩列:低鳴的 / 雷電之 兩列 en[0] 都是 Humming,且整頁沒有任何條目帶 altZh', () => {
+    expect(affixes, '找不到 magic_affixes 頁').toBeDefined()
+    const a = byZh0(affixes, '低鳴的')
+    const b = byZh0(affixes, '雷電之')
+    expect(a, '找不到 zh[0]=低鳴的').toBeDefined()
+    expect(b, '找不到 zh[0]=雷電之').toBeDefined()
+    expect(a?.en[0]).toBe('Humming')
+    expect(b?.en[0]).toBe('Humming')
+    expect(a?.altZh ?? []).toEqual([])
+    expect(b?.altZh ?? []).toEqual([])
+    const withAlt = (affixes?.entries ?? []).filter(e => (e.altZh ?? []).length > 0)
+    expect(withAlt.map(e => e.id), '帶 altZh 的條目').toEqual([])
+  })
+
+  it('M6 收錄藥劑 / 藥酒 / 深淵珠寶 / 珠寶的詞綴名:山羊之 g=1、草藥的 g=0、健壯之 g=0、魯莽的 en 含 Brutal', () => {
+    expect(affixes, '找不到 magic_affixes 頁').toBeDefined()
+    const ibex = byZh0(affixes, '山羊之')
+    const herbal = byZh0(affixes, '草藥的')
+    const hale = byZh0(affixes, '健壯之')
+    const brutal = byZh0(affixes, '魯莽的')
+    expect(ibex, '找不到 山羊之').toBeDefined()
+    expect(hasEn(ibex, 'of the Ibex'), `en=${JSON.stringify(ibex?.en)}`).toBe(true)
+    expect(ibex?.g).toBe(1)
+    expect(herbal, '找不到 草藥的').toBeDefined()
+    expect(hasEn(herbal, 'Herbal'), `en=${JSON.stringify(herbal?.en)}`).toBe(true)
+    expect(herbal?.g).toBe(0)
+    expect(hale, '找不到 健壯之').toBeDefined()
+    expect(hasEn(hale, 'Hale'), `en=${JSON.stringify(hale?.en)}`).toBe(true)
+    expect(hale?.g).toBe(0)
+    expect(brutal, '找不到 魯莽的').toBeDefined()
+    expect(hasEn(brutal, 'Brutal'), `en=${JSON.stringify(brutal?.en)}`).toBe(true)
+  })
+
+  it('S1 名稱接縫資料:nameWords 前綴含 樂觀的 / Sanguine,後綴含 山貓之 與 " of the Lynx"(前有空白)', () => {
+    expect(affixes, '找不到 magic_affixes 頁').toBeDefined()
+    expect(affixes?.namePrefixZh ?? [], 'nameWordsZh.prefix').toContain('樂觀的')
+    expect(affixes?.nameSuffixZh ?? [], 'nameWordsZh.suffix').toContain('山貓之')
+    expect(affixes?.namePrefixEn ?? [], 'nameWordsEn.prefix').toContain('Sanguine')
+    expect(affixes?.nameSuffixEn ?? [], 'nameWordsEn.suffix').toContain(' of the Lynx')
+  })
+
+  // 單選解不出(片段為空)的列,必須是「它的每個名稱都整段被別處包含」才算正當
+  for (const id of ['beasts', 'magic_affixes']) {
+    for (const lang of ['zh', 'en'] as const) {
+      it(`U1 ${id} ${lang}:單選解不出的列,每個名稱都整段出現在另一列的名稱 / hidden 或頁面 ambient`, () => {
+        const page = poe1.pages.find(p => p.id === id)
+        expect(page, `找不到 ${id} 頁`).toBeDefined()
+        if (!page) return
+        const c = buildCorpus(page, lang)
+        const low = (s: string) => s.toLowerCase()
+        const hay = page.entries.map(e => {
+          const l = entryLines(e, lang)
+          return [...l.texts, ...l.hidden].map(low)
+        })
+        const amb = (pageAmbient(page, lang).lines ?? []).map(low)
+        const bad: string[] = []
+        page.entries.forEach((e, i) => {
+          if (c.build([i], 'any').query !== '') return
+          const names = entryLines(e, lang).texts
+          const contained = names.every(n => {
+            const x = low(n)
+            return amb.some(a => a.includes(x)) || hay.some((h, j) => j !== i && h.some(s => s.includes(x)))
+          })
+          if (!contained) bad.push(`${e.id}: ${names.join(' / ')}`)
+        })
+        expect(bad.length, `共 ${bad.length} 列,前 10 筆:\n${bad.slice(0, 10).join('\n')}`).toBe(0)
+      })
+    }
+  }
 })
 
 // PoE2 語料:連結標記要剝成顯示字、基底的風味文字與詞綴行要收進來

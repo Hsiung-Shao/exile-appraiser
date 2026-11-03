@@ -340,7 +340,15 @@ export function resolveKeys (
   let missed = 0
   for (let k = 0; k < keys.length; k++) {
     let hit = -1
-    if (keys[k]) hit = entryKeys.indexOf(keys[k])
+    // 兩列可能共用英文鍵(魔法詞綴名:Humming = 低鳴的 / 雷電之):有中文名就用它挑,否則取第一列
+    if (keys[k]) {
+      hit = entryKeys.indexOf(keys[k])
+      const a = k < alt.length ? alt[k] : ''
+      if (hit >= 0 && a) {
+        const exact = entryKeys.findIndex((key, i) => key === keys[k] && entryAlt[i] === a)
+        if (exact >= 0) hit = exact
+      }
+    }
     if (hit < 0 && keys[k] && keys[k].includes('[')) hit = entryKeys.indexOf(normalizeLabel(keys[k]))
     if (hit < 0 && k < alt.length && alt[k]) hit = entryAlt.indexOf(alt[k])
     if (hit >= 0) picked[hit] = true

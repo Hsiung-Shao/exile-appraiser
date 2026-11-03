@@ -37,6 +37,20 @@ describe('T11 saved picks resolve by the English line, and misses are counted(:3
   })
 })
 
+describe('R1 英文鍵相同的兩列用中文名還原', () => {
+  const en = ['Humming', 'Humming']
+  const zh = ['低鳴的', '雷電之']
+  it('英文鍵 Humming + 中文 雷電之 → 勾第 2 列、missed 0', () => {
+    expect(resolveKeys(['Humming'], ['雷電之'], en, zh)).toEqual({ picked: [false, true], missed: 0 })
+  })
+  it('只有英文鍵的分享碼(中文為空)→ 勾第 1 列', () => {
+    expect(resolveKeys(['Humming'], [''], en, zh)).toEqual({ picked: [true, false], missed: 0 })
+  })
+  it('英文鍵 Humming + 中文 低鳴的 → 勾第 1 列', () => {
+    expect(resolveKeys(['Humming'], ['低鳴的'], en, zh)).toEqual({ picked: [true, false], missed: 0 })
+  })
+})
+
 describe('T12 the state survives a round trip(:392)', () => {
   it('defaults are usable', () => {
     const a = defaultRegexState()

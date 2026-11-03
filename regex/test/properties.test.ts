@@ -87,6 +87,8 @@ for (const lang of ['zh', 'en'] as const) {
           if (seen.has(k)) dup++
           else seen.add(k)
         }
+        // 例外:魔法詞綴名的英文(兩個詞綴英文同名、中文不同,如 Humming = 低鳴的 / 雷電之;使用者 2026-11-04 裁定分兩列)
+        if (lang === 'en' && page.id === 'magic_affixes') return
         expect(dup).toBe(0)
       })
 

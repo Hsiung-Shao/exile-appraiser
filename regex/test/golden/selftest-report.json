@@ -1,7 +1,7 @@
 {
   "_source": "pob-zh-engine dist/regex_selftest.txt(pob-zh.exe --regex-selftest);由 extract-from-report.mjs 產生,勿手改",
   "_cppPassFail": {
-    "pass": 1233,
+    "pass": 1256,
     "fail": 0
   },
   "synthetic": {
@@ -107,8 +107,8 @@
       "lang": "zh",
       "game": "poe1",
       "page": "magic_affixes",
-      "length": 28,
-      "plain": 44
+      "length": 32,
+      "plain": 43
     },
     {
       "lang": "zh",
@@ -240,8 +240,8 @@
       "lang": "en",
       "game": "poe1",
       "page": "magic_affixes",
-      "length": 49,
-      "plain": 99
+      "length": 45,
+      "plain": 115
     },
     {
       "lang": "en",
@@ -452,17 +452,11 @@
       "lang": "zh",
       "game": "poe1",
       "page": "magic_affixes",
-      "entries": 770,
-      "ambientLines": 1354,
-      "findable": 763,
-      "tried": 770,
-      "stuckExamples": [
-        "低鳴的",
-        "塑界者的",
-        "導電的",
-        "幻想的",
-        "法師的"
-      ],
+      "entries": 1185,
+      "ambientLines": 1302,
+      "findable": 593,
+      "tried": 593,
+      "stuckExamples": [],
       "stuckByHidden": 0,
       "stuckByHiddenExamples": []
     },
@@ -740,16 +734,16 @@
       "lang": "en",
       "game": "poe1",
       "page": "magic_affixes",
-      "entries": 770,
-      "ambientLines": 1361,
-      "findable": 756,
-      "tried": 770,
+      "entries": 1185,
+      "ambientLines": 1309,
+      "findable": 560,
+      "tried": 593,
       "stuckExamples": [
-        "Glaciated",
         "Chilled",
         "Frozen",
-        "Entombing",
-        "The Shaper's"
+        "The Shaper's",
+        "The Shaper's",
+        "Shocking"
       ],
       "stuckByHidden": 0,
       "stuckByHiddenExamples": []
