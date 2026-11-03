@@ -1,7 +1,7 @@
 {
   "_source": "pob-zh-engine dist/regex_selftest.txt(pob-zh.exe --regex-selftest);由 extract-from-report.mjs 產生,勿手改",
   "_cppPassFail": {
-    "pass": 1158,
+    "pass": 1233,
     "fail": 0
   },
   "synthetic": {
@@ -95,6 +95,20 @@
       "page": "vendor_bases",
       "length": 34,
       "plain": 53
+    },
+    {
+      "lang": "zh",
+      "game": "poe1",
+      "page": "beasts",
+      "length": 32,
+      "plain": 59
+    },
+    {
+      "lang": "zh",
+      "game": "poe1",
+      "page": "magic_affixes",
+      "length": 28,
+      "plain": 44
     },
     {
       "lang": "zh",
@@ -214,6 +228,20 @@
       "page": "vendor_bases",
       "length": 55,
       "plain": 163
+    },
+    {
+      "lang": "en",
+      "game": "poe1",
+      "page": "beasts",
+      "length": 50,
+      "plain": 164
+    },
+    {
+      "lang": "en",
+      "game": "poe1",
+      "page": "magic_affixes",
+      "length": 49,
+      "plain": 99
     },
     {
       "lang": "en",
@@ -405,6 +433,36 @@
       "findable": 529,
       "tried": 529,
       "stuckExamples": [],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
+    },
+    {
+      "lang": "zh",
+      "game": "poe1",
+      "page": "beasts",
+      "entries": 220,
+      "ambientLines": 549,
+      "findable": 220,
+      "tried": 220,
+      "stuckExamples": [],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
+    },
+    {
+      "lang": "zh",
+      "game": "poe1",
+      "page": "magic_affixes",
+      "entries": 770,
+      "ambientLines": 1354,
+      "findable": 763,
+      "tried": 770,
+      "stuckExamples": [
+        "低鳴的",
+        "塑界者的",
+        "導電的",
+        "幻想的",
+        "法師的"
+      ],
       "stuckByHidden": 0,
       "stuckByHiddenExamples": []
     },
@@ -663,6 +721,36 @@
       "findable": 529,
       "tried": 529,
       "stuckExamples": [],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
+    },
+    {
+      "lang": "en",
+      "game": "poe1",
+      "page": "beasts",
+      "entries": 220,
+      "ambientLines": 543,
+      "findable": 220,
+      "tried": 220,
+      "stuckExamples": [],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
+    },
+    {
+      "lang": "en",
+      "game": "poe1",
+      "page": "magic_affixes",
+      "entries": 770,
+      "ambientLines": 1361,
+      "findable": 756,
+      "tried": 770,
+      "stuckExamples": [
+        "Glaciated",
+        "Chilled",
+        "Frozen",
+        "Entombing",
+        "The Shaper's"
+      ],
       "stuckByHidden": 0,
       "stuckByHiddenExamples": []
     },

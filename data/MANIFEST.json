@@ -69,8 +69,8 @@
     "data/regex": {
       "repo": "pob-zh-engine dist/Data (PobTools Poe Regex)",
       "path": "pob-zh-engine/dist/Data(git 追蹤於 pob-zh-engine/host/data)",
-      "commit": "dea38ba54f940f0b49bb8fc0ace48b10947b8cd0",
-      "generatedAt": "2026-10-31T19:38:23.000Z"
+      "commit": "e468917c7a109208ee4b3c1cc24c2255af2e2296",
+      "generatedAt": "2026-11-04T00:00:00.000Z"
     },
     "data/regex/item-mod-forms.json": {
       "repo": "poe2db.tw / poedb.tw 仲裁(regex/scripts/data/item-mod-forms-arb.json → regex/scripts/gen-item-mod-forms.mjs 產生;產出檔 arbSha256 = 原始結果檔雜湊)",
@@ -303,8 +303,8 @@
       "bytes": 2055
     },
     "data/regex/regex_poe1.json": {
-      "sha256": "1662165ce0a6635fc0fbefadc9bad1312c61e8ef484350c50d6b3d820249f886",
-      "bytes": 1853422
+      "sha256": "5f101b0c0440f4bae560994682b956ae4a9c88d37827442b4efe8f82029d6e8b",
+      "bytes": 2341107
     },
     "data/regex/regex_poe2.json": {
       "sha256": "b38dcce515ffb71f9d102ab4c73bd37607ba6d5a006ee47ddb8bf5cc2b760c09",

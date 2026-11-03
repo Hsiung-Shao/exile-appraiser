@@ -1,6 +1,6 @@
 // 資料 schema 斷言 + 載入規則(移植自 regex_data.cpp LoadOne:缺鍵為空、zh/en 皆空丟棄、g 越界歸 0)。
 import { describe, expect, it } from 'vitest'
-import { parseRegexCatalogue } from '../src/data'
+import { buildCorpus, parseRegexCatalogue, type RegexEntry, type RegexPage } from '../src/data'
 import { defaultRegexDataDir, loadRegexCatalogueFile } from '../src/node'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
@@ -10,7 +10,9 @@ import path from 'node:path'
 const EXPECTED = {
   poe1: {
     map_mods: 122, logbook_mods: 62, scarabs: 138, flask_mods: 82, cluster_jewel: 388,
-    gem_names: 891, tattoos: 132, heist_equipment_mods: 141, heist_contracts: 107, vendor_bases: 1057
+    gem_names: 891, tattoos: 132, heist_equipment_mods: 141, heist_contracts: 107, vendor_bases: 1057,
+    // 2026-11-04 對照 poe.re 補頁
+    beasts: 220, magic_affixes: 770
   },
   poe2: {
     // tablet_mods 81 → 83:2026-10-09 GGPK 0.5.5.4.2 重抽補上探險「炸藥範圍」「瓦爾遺物」
@@ -19,7 +21,7 @@ const EXPECTED = {
   }
 } as const
 const KIND: Record<string, 'mods' | 'names'> = {
-  scarabs: 'names', gem_names: 'names', tattoos: 'names', vendor_bases: 'names'
+  scarabs: 'names', gem_names: 'names', tattoos: 'names', vendor_bases: 'names', beasts: 'names', magic_affixes: 'names'
 }
 
 describe('shipped catalogues(data/regex)', () => {
@@ -136,6 +138,80 @@ describe('物品風味文字 / 用途說明收進資料', () => {
     const g = page('gem_names').entries.find(x => x.zh[0] === '克塔什誓約')
     expect(g, '找不到 克塔什誓約').toBeDefined()
     expect(g!.hiddenZh.some(s => s.includes('釋放克塔什的憤怒，牠是仇恨的化身。')), `hiddenZh=${JSON.stringify(g!.hiddenZh)}`).toBe(true)
+  })
+})
+
+// 可捕捉野獸頁(beasts)與詞綴名頁(magic_affixes):頁不存在時是明確的斷言失敗,不丟例外
+describe('PoE1 野獸頁與詞綴名頁', () => {
+  const poe1 = loadRegexCatalogueFile('poe1')
+  const beasts = poe1.pages.find(p => p.id === 'beasts')
+  const affixes = poe1.pages.find(p => p.id === 'magic_affixes')
+  const byZh0 = (p: RegexPage | undefined, zh0: string) => p?.entries.find(x => x.zh[0] === zh0)
+  const hasEn = (e: RegexEntry | undefined, s: string) => !!e && e.en.some(l => l.includes(s))
+  const cave = byZh0(beasts, '洞穴獸')
+  const optimistic = byZh0(affixes, '樂觀的')
+  const lynx = byZh0(affixes, '山貓之')
+
+  it('B1 野獸頁收錄可捕捉野獸:條目 200–280 筆,有洞穴獸與費爾羅猛虎幻獸', () => {
+    expect(beasts, '找不到 beasts 頁').toBeDefined()
+    const n = beasts?.entries.length ?? 0
+    expect(n >= 200 && n <= 280, `條目數 ${n}`).toBe(true)
+    expect(cave, '找不到 zh[0]=洞穴獸').toBeDefined()
+    expect(hasEn(cave, 'Cave Beast'), `en=${JSON.stringify(cave?.en)}`).toBe(true)
+    const tiger = byZh0(beasts, '費爾羅猛虎幻獸')
+    expect(tiger, '找不到 zh[0]=費爾羅猛虎幻獸').toBeDefined()
+    expect(hasEn(tiger, 'Farric Tiger Alpha'), `en=${JSON.stringify(tiger?.en)}`).toBe(true)
+  })
+
+  it('B2 野獸的種屬 / 群組 / 家族進 hidden:洞穴獸 hiddenZh 含巨人、熊類動物、獸性,hiddenEn 含 Gargantuans、Ursae、The Wilds', () => {
+    expect(cave, '找不到 zh[0]=洞穴獸').toBeDefined()
+    const hz = cave?.hiddenZh ?? []
+    const he = cave?.hiddenEn ?? []
+    for (const s of ['巨人', '熊類動物', '獸性']) expect(hz.some(l => l.includes(s)), `hiddenZh 缺 ${s}:${JSON.stringify(hz)}`).toBe(true)
+    for (const s of ['Gargantuans', 'Ursae', 'The Wilds']) expect(he.some(l => l.includes(s)), `hiddenEn 缺 ${s}:${JSON.stringify(he)}`).toBe(true)
+  })
+
+  it('B3 停用的野獸不收:beasts 頁沒有恐懼之狼 / Dire Wolf', () => {
+    expect(beasts, '找不到 beasts 頁').toBeDefined()
+    const bad = (beasts?.entries ?? []).filter(e => e.zh.some(s => s.includes('恐懼之狼')) || e.en.some(s => s.includes('Dire Wolf')))
+    expect(bad.map(e => e.id)).toEqual([])
+  })
+
+  it('M1 詞綴名分前後綴:groups 為 [前綴, 後綴]、樂觀的 g=0、山貓之 g=1、冷凍的只有一條且 en 含三個英文名', () => {
+    expect(affixes, '找不到 magic_affixes 頁').toBeDefined()
+    expect(affixes?.groups).toEqual(['前綴', '後綴'])
+    expect(optimistic, '找不到 zh[0]=樂觀的').toBeDefined()
+    expect(hasEn(optimistic, 'Sanguine'), `en=${JSON.stringify(optimistic?.en)}`).toBe(true)
+    expect(optimistic?.g).toBe(0)
+    expect(lynx, '找不到 zh[0]=山貓之').toBeDefined()
+    expect(hasEn(lynx, 'of the Lynx'), `en=${JSON.stringify(lynx?.en)}`).toBe(true)
+    expect(lynx?.g).toBe(1)
+    const frosted = (affixes?.entries ?? []).filter(e => e.zh[0] === '冷凍的')
+    expect(frosted.length, '冷凍的條目數').toBe(1)
+    for (const s of ['Frosted', 'Chilled', 'Freezing']) expect(hasEn(frosted[0], s), `en 缺 ${s}:${JSON.stringify(frosted[0]?.en)}`).toBe(true)
+  })
+
+  it('M2 詞綴行進 hidden:樂觀的 含「# 最大生命」/「# to maximum Life」、山貓之 含「# 敏捷」/「# to Dexterity」', () => {
+    expect(optimistic, '找不到 zh[0]=樂觀的').toBeDefined()
+    expect(lynx, '找不到 zh[0]=山貓之').toBeDefined()
+    const has = (v: string[] | undefined, s: string) => (v ?? []).some(l => l.includes(s))
+    expect(has(optimistic?.hiddenZh, '# 最大生命'), `hiddenZh=${JSON.stringify(optimistic?.hiddenZh)}`).toBe(true)
+    expect(has(optimistic?.hiddenEn, '# to maximum Life'), `hiddenEn=${JSON.stringify(optimistic?.hiddenEn)}`).toBe(true)
+    expect(has(lynx?.hiddenZh, '# 敏捷'), `hiddenZh=${JSON.stringify(lynx?.hiddenZh)}`).toBe(true)
+    expect(has(lynx?.hiddenEn, '# to Dexterity'), `hiddenEn=${JSON.stringify(lynx?.hiddenEn)}`).toBe(true)
+  })
+
+  it('M4 單選片段不中別的條目:洞穴獸、樂觀的各單選,片段非空且 verify ok', () => {
+    for (const [page, e, name] of [[beasts, cave, '洞穴獸'], [affixes, optimistic, '樂觀的']] as const) {
+      expect(page && e, `找不到 ${name} 或其頁`).toBeTruthy()
+      if (!page || !e) continue
+      const i = page.entries.indexOf(e)
+      const c = buildCorpus(page, 'zh')
+      const r = c.build([i], 'any')
+      expect(r.query, `${name} 單選片段為空`).not.toBe('')
+      const v = c.verify([i], r.query)
+      expect(v.ok, `${name} query=${r.query} extra=${v.extra.length} ambient=${v.ambient.length}`).toBe(true)
+    }
   })
 })
 
