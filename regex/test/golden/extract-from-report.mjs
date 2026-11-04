@@ -52,6 +52,7 @@ const PAGE_ORDER = [
   ['poe1', 'cluster_jewel', '星團珠寶詞綴'], ['poe1', 'gem_names', '技能寶石'],
   ['poe1', 'tattoos', '紋身與符文之結'], ['poe1', 'heist_equipment_mods', '劫盜裝備詞綴'],
   ['poe1', 'heist_contracts', '劫盜契約書詞綴'], ['poe1', 'vendor_bases', '物品基底'],
+  ['poe1', 'beasts', '野獸'], ['poe1', 'magic_affixes', '魔法物品詞綴名'],
   ['poe2', 'waystone_mods', '換界石詞綴'], ['poe2', 'tablet_mods', '碑牌詞綴'],
   ['poe2', 'relic_mods', '聖物詞綴'], ['poe2', 'expedition_relic_mods', '探險遺物詞綴'],
   ['poe2', 'flask_charm_mods', '藥劑與護符詞綴'], ['poe2', 'gem_names', '技能寶石'],

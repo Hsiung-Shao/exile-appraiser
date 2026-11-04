@@ -106,7 +106,8 @@ function withExtraLine (p: RegexPage, id: string, zh: string, en: string): Regex
 
 // ---- G ----
 describe('R10-G 合併只限同一物品組', () => {
-  const EQUIP = ['vendor_bases', 'vendor_items', 'vendor_items_poe2', 'item_mod_values', 'item_mod_values_poe2', 'flask_mods', 'flask_charm_mods', 'gem_names']
+  const EQUIP = ['vendor_bases', 'vendor_items', 'vendor_items_poe2', 'item_mod_values', 'item_mod_values_poe2', 'flask_mods', 'flask_charm_mods', 'gem_names',
+    'magic_affixes']
   it('G3 物品組對照完整:裝備組成員都是 equipment、section 歸宿主組、其餘頁自成一組', () => {
     for (const g of ['poe1', 'poe2'] as const) {
       const ids = [...pages[g].map(p => p.id), g === 'poe2' ? 'item_mod_values_poe2' : 'item_mod_values']
@@ -126,6 +127,11 @@ describe('R10-G 合併只限同一物品組', () => {
     expect(itemGroupOf('map_numeric')).toBe('map_mods')
     expect(itemGroupOf('tablet_mods_cond')).toBe('tablet_mods')
     expect(itemGroupOf('tablet_mods')).not.toBe(itemGroupOf('waystone_mods'))
+  })
+
+  it('M3 詞綴名頁和裝備頁同組、野獸頁自成一組:magic_affixes → equipment、beasts → beasts', () => {
+    expect(itemGroupOf('magic_affixes')).toBe('equipment')
+    expect(itemGroupOf('beasts')).toBe('beasts')
   })
 
   it('G1 碑牌頁合併不含換界石條件:只併碑牌與其條件區、回報 1 頁未併入', () => {

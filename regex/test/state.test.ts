@@ -25,6 +25,30 @@ describe('T11 saved picks resolve by the English line, and misses are counted(:3
     const r = resolveKeys(['Area is haunted', 'Gone', 'Monsters cannot be Leeched from'], ['區域鬧鬼', '沒了', '怪物不能被吸取'], enNow, zhNow)
     expect(r).toEqual({ picked: [true, false, true], missed: 1 })
   })
+  const enLink = ['Area is haunted', 'Rare Monsters have Elemental Thorns reflecting # Elemental Damage']
+  const zhLink = ['區域鬧鬼', '稀有怪物有元素荊棘反射#點元素傷害']
+  it('T6 舊版帶連結標記的英文鍵仍能還原到剝掉標記後的那一行', () => {
+    const r = resolveKeys(['Rare Monsters have [ElementalThorns|Elemental Thorns] reflecting # Elemental Damage'], [''], enLink, zhLink)
+    expect(r).toEqual({ picked: [false, true], missed: 0 })
+  })
+  it('T6b 剝標記後比對不會誤中別條:另一個詞綴的連結鍵找不到且不勾任何一行', () => {
+    const r = resolveKeys(['Rare Monsters have [PhysicalThorns|Physical Thorns] reflecting # Physical Damage'], [''], enLink, zhLink)
+    expect(r).toEqual({ picked: [false, false], missed: 1 })
+  })
+})
+
+describe('R1 英文鍵相同的兩列用中文名還原', () => {
+  const en = ['Humming', 'Humming']
+  const zh = ['低鳴的', '雷電之']
+  it('英文鍵 Humming + 中文 雷電之 → 勾第 2 列、missed 0', () => {
+    expect(resolveKeys(['Humming'], ['雷電之'], en, zh)).toEqual({ picked: [false, true], missed: 0 })
+  })
+  it('只有英文鍵的分享碼(中文為空)→ 勾第 1 列', () => {
+    expect(resolveKeys(['Humming'], [''], en, zh)).toEqual({ picked: [true, false], missed: 0 })
+  })
+  it('英文鍵 Humming + 中文 低鳴的 → 勾第 1 列', () => {
+    expect(resolveKeys(['Humming'], ['低鳴的'], en, zh)).toEqual({ picked: [true, false], missed: 0 })
+  })
 })
 
 describe('T12 the state survives a round trip(:392)', () => {

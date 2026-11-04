@@ -3,7 +3,7 @@
 // ⚠ 假設:繁中客戶端的插槽行顯示為 `R-G-B`(顏色字母與 `-` 不翻譯)。**尚未進遊戲實測**,這幾條標 `untested`,UI 顯示「待實測」。
 // 標籤文字(物品等級、品質、插槽、已汙染、勢力、等級)取自 clientstrings(labels);項目名稱(連結數等)是介面字串,不是遊戲文字。
 import type { RegexGame, RegexLabels } from '../data'
-import { labelBase, linkColors, linkedSockets, propertyFragment, socketColorCount, wholeLine } from './frag'
+import { coloredLinks, labelBase, linkColors, linkedSockets, propertyFragment, rgbGroup, socketColorCount, wholeLine } from './frag'
 import type { AlgoEntry, AlgoOption, AlgoPage } from './types'
 import { RARITY_LABEL_KEYS, rarityConditionEntry } from '../rarity'
 
@@ -46,29 +46,41 @@ export function vendorPages (game: RegexGame, labels: RegexLabels | null): AlgoP
 
   const sockets = L('ItemDisplayStringSockets')
   if (poe1) {
+    // 插槽與連結這一組:勾的項目任一成立就亮(anyGroup,併成一個 term);其餘條件仍同時成立
+    const LINK_OPTIONS: AlgoOption[] = ['6', '5', '4', '3', '2'].map(n => ({ id: n, zh: `${n}L`, en: `${n}L` }))
     entries.push({
       ...base('links', 0, '連結數(≥)', 'Linked sockets (≥)'),
       untested: true,
-      input: {
-        kind: 'select',
-        options: [
-          { id: '6', zh: '6L', en: '6L' }, { id: '5', zh: '5L', en: '5L' },
-          { id: '4', zh: '4L', en: '4L' }, { id: '3', zh: '3L', en: '3L' }
-        ],
-        def: { choice: '6' }
-      },
+      anyGroup: 'sockets',
+      input: { kind: 'select', options: LINK_OPTIONS, def: { choice: '6' } },
       fragment: v => linkedSockets(Number(v.choice))
+    })
+    entries.push({
+      ...base('colored_links', 0, '全彩連結數(≥,不含白)', 'Coloured links (≥, no white)'),
+      untested: true,
+      anyGroup: 'sockets',
+      input: { kind: 'select', options: LINK_OPTIONS, def: { choice: '3' } },
+      fragment: v => coloredLinks(Number(v.choice))
     })
     entries.push({
       ...base('link_colors', 0, '鏈接顏色(任意順序、相鄰)', 'Linked colours (any order, adjacent)'),
       untested: true,
+      anyGroup: 'sockets',
       input: { kind: 'colors', maxTotal: 6, def: { choice: 'rgb' } },
       fragment: v => linkColors(v.choice ?? '')
     })
     if (sockets) {
       entries.push({
+        ...base('rgb_group', 0, '紅綠藍同組(彩色石配方,不必相鄰)', 'R, G and B in one linked group (chromatic recipe)'),
+        untested: true,
+        anyGroup: 'sockets',
+        input: { kind: 'select', options: [{ id: 'rgb', zh: '紅綠藍', en: 'R G B' }], def: { choice: 'rgb' } },
+        fragment: (_v, lang) => rgbGroup(lang === 'zh' ? sockets.zh : sockets.en)
+      })
+      entries.push({
         ...base('socket_colors', 0, '插槽顏色數(≥)', 'Socket colour count (≥)'),
         untested: true,
+        anyGroup: 'sockets',
         input: { kind: 'count', options: COLOR_OPTIONS, lo: 1, hi: 6, def: { choice: 'b', min: 3 } },
         fragment: (v, lang) => socketColorCount(lang === 'zh' ? sockets.zh : sockets.en, v.choice ?? '', v.min ?? 0)
       })
@@ -129,7 +141,7 @@ export function vendorPages (game: RegexGame, labels: RegexLabels | null): AlgoP
     title: '商店 / 物品條件',
     titleEn: 'Vendor & item conditions',
     note: poe1
-      ? '連結、插槽顏色、物品等級、品質、已汙染、勢力。每條各自一個 term(同時成立)。插槽相關假設繁中客戶端顯示 R-G-B 不翻譯,待實測。'
+      ? '連結 / 插槽顏色:勾的項目任一成立就亮(併成一個 term);物品等級、品質、已汙染、勢力:每條各自一個 term(同時成立)。插槽相關假設繁中客戶端顯示 R-G-B 不翻譯;「紅綠藍同組」用前瞻寫法,待實測。'
       : '物品等級、品質、已汙染、寶石等級。每條各自一個 term(同時成立)。',
     limit: 250,
     groups: poe1 ? ['插槽與連結', '物品屬性', '勢力'] : ['插槽與連結', '物品屬性'],

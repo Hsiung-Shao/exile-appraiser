@@ -457,3 +457,65 @@ describe('③ 書籤 / 分享碼 / 合併', () => {
     expect(r.query).toContain('"^\\+?([89][0-9]|[1-9][0-9]{2,}) 最大生命($| \\()"')
   })
 })
+
+// ---- 片段頭尾空白(遊戲會丟掉引號內開頭的空白;結尾空白的行為未證實,一律避開) ----
+// 片段 = `^?` + p + 數值 + s + `$?`:沒有 `^` 時 p 不可空白開頭、沒有 `$` 時 s 不可空白結尾,整個片段頭尾也不可是空白。
+const isSpace = (ch: string | undefined): boolean => ch !== undefined && /\s/.test(ch)
+
+/** 錨點 + 其片段的頭尾空白違規;空陣列 = 合格 */
+function edgeSpaceViolations (a: ModAnchor): string[] {
+  const out: string[] = []
+  if (!a.caret && a.p && isSpace(a.p[0])) out.push(`p 以空白開頭: ${JSON.stringify(a.p)}`)
+  if (!a.dollar && a.s && isSpace(a.s[a.s.length - 1])) out.push(`s 以空白結尾: ${JSON.stringify(a.s)}`)
+  const frag = itemModFragment(a, { min: 1 })
+  if (frag) {
+    if (isSpace(frag[0])) out.push(`片段以空白開頭: ${JSON.stringify(frag)}`)
+    if (isSpace(frag[frag.length - 1])) out.push(`片段以空白結尾: ${JSON.stringify(frag)}`)
+  }
+  return out
+}
+
+describe('片段頭尾空白(物品詞綴數值頁)', () => {
+  const findEn = (pred: (en: string) => boolean): ItemModEntryData | undefined => DATA.poe1.entries.find(e => pred(e.en))
+
+  it('M1 前段不以空白開頭:PoE1 英文「Every 4 seconds, Regenerate …」(共兩條)逗號後的空白不可當片段開頭', () => {
+    const es = DATA.poe1.entries.filter(e => e.en.startsWith('Every 4 seconds, Regenerate'))
+    expect(es.length, '找不到以 Every 4 seconds, Regenerate 開頭的詞綴').toBeGreaterThan(0)
+    const bad: string[] = []
+    for (const e of es) {
+      const a = e.anchors.en
+      const frag = itemModFragment(a, { min: 1 })
+      expect(frag, `anchor ${JSON.stringify(a)}`).not.toBeNull()
+      if (!a.caret && isSpace(a.p[0])) bad.push(`${e.en} -> p=${JSON.stringify(a.p)}`)
+      if (isSpace(frag![0])) bad.push(`${e.en} -> 片段 ${JSON.stringify(frag)}`)
+    }
+    expect(bad, '開頭是空白的詞綴').toEqual([])
+  })
+
+  it('M2 後段不以空白結尾:PoE1 英文「… Memory Tears (Tier 16+)」的 `(` 前空白不可當片段結尾', () => {
+    const e = findEn(en => en === '#% increased chance for your Maps to contain Memory Tears (Tier 16+)')
+    expect(e, '找不到 Memory Tears (Tier 16+) 詞綴').toBeDefined()
+    const a = e!.anchors.en
+    const frag = itemModFragment(a, { min: 1 })
+    expect(frag, `anchor ${JSON.stringify(a)}`).not.toBeNull()
+    if (!a.dollar && a.s) expect(isSpace(a.s[a.s.length - 1]), `s=${JSON.stringify(a.s)}`).toBe(false)
+    expect(isSpace(frag![frag!.length - 1]), `片段 ${frag}`).toBe(false)
+  })
+
+  for (const game of GAMES) {
+    for (const lang of LANGS) {
+      it(`M3 ${game} ${lang}:全部物品詞綴錨點與片段頭尾都沒有空白`, () => {
+        let bad = 0
+        let first = ''
+        for (const e of DATA[game].entries) {
+          const v = edgeSpaceViolations(e.anchors[lang])
+          if (v.length) {
+            if (!bad) first = `${game}/${lang} 英文模板 ${JSON.stringify(e.en)} -- ${v.join('; ')}`
+            bad++
+          }
+        }
+        expect(bad, `違規 ${bad} 筆,第一筆: ${first}`).toBe(0)
+      })
+    }
+  }
+})

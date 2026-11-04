@@ -31,6 +31,7 @@ it('both games shipped, every page names a known game(:552–569)', () => {
   expect(pages.map(p => `${p.game}/${p.id}`)).toEqual([
     'poe1/map_mods', 'poe1/logbook_mods', 'poe1/scarabs', 'poe1/flask_mods', 'poe1/cluster_jewel',
     'poe1/gem_names', 'poe1/tattoos', 'poe1/heist_equipment_mods', 'poe1/heist_contracts', 'poe1/vendor_bases',
+    'poe1/beasts', 'poe1/magic_affixes',
     'poe2/waystone_mods', 'poe2/tablet_mods', 'poe2/relic_mods', 'poe2/expedition_relic_mods',
     'poe2/flask_charm_mods', 'poe2/gem_names', 'poe2/vendor_bases'])
 })
@@ -86,6 +87,8 @@ for (const lang of ['zh', 'en'] as const) {
           if (seen.has(k)) dup++
           else seen.add(k)
         }
+        // 例外:魔法詞綴名的英文(兩個詞綴英文同名、中文不同,如 Humming = 低鳴的 / 雷電之;使用者 2026-11-04 裁定分兩列)
+        if (lang === 'en' && page.id === 'magic_affixes') return
         expect(dup).toBe(0)
       })
 

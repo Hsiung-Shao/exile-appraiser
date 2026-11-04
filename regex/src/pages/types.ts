@@ -57,6 +57,11 @@ export interface AlgoEntry extends RegexEntry {
   /** 產生片段;輸入不成立(例如空區間)回 null */
   fragment: (v: AlgoValue, lang: RegexLang) => string | null
   /**
+   * 同一頁同一 anyGroup 的勾選併成**一個** term(`a|b`,任一成立);沒有 = 各自一個 AND term。
+   * 商店頁的連結 / 顏色類是 'sockets'(2026-10-31 使用者裁定:逛商店是「任一種好東西就亮」)
+   */
+  anyGroup?: string
+  /**
    * 一列輸出多個 term(第 40 步條件列:稀有度、汙染各一個);有它時 combine 逐 term 加入,`fragment` 只是顯示用(以空白相連)。
    * 沒有任何 term = null(與 fragment 相同,當成輸入不成立)
    */

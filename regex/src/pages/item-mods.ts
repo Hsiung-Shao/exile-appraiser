@@ -369,11 +369,15 @@ export function chooseAnchor (
   const shownB = shown.slice(0, at)
   const shownA = shown.slice(at + 1)
   // P 的起點 / S 的終點只能落在詞界(使用者 2026-10-04:寧可多幾個字也要好讀,不在詞中間截斷)
+  // 且不可落在空白上:遊戲會丟掉引號內開頭的空白(2026-10-30 實測),`, Regenerate` 不能從空白起頭、
+  // `Tears (Tier` 不能停在 `(` 前的空白;旁邊必有不帶空白的切點,不會少選擇
   const pStarts: number[] = [0]
-  for (let i = 1; i <= shownB.length; i++) if (isWordBreak(shownB[i - 1])) pStarts.push(i)
+  for (let i = 1; i <= shownB.length; i++) {
+    if (isWordBreak(shownB[i - 1]) && (i === shownB.length || !/\s/.test(shownB[i]))) pStarts.push(i)
+  }
   if (!pStarts.includes(shownB.length)) pStarts.push(shownB.length)
   const sEnds: number[] = []
-  for (let k = 0; k < shownA.length; k++) if (isWordBreak(shownA[k])) sEnds.push(k)
+  for (let k = 0; k < shownA.length; k++) if (isWordBreak(shownA[k]) && (k === 0 || !/\s/.test(shownA[k - 1]))) sEnds.push(k)
   sEnds.push(shownA.length)
 
   let best: ModAnchor | null = null

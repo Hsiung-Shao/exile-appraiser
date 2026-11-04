@@ -21,7 +21,7 @@ describe('visibleRows', () => {
     const only = visibleRows(mapMods, none, { ...all, t17: 'only' })
     const hide = visibleRows(mapMods, none, { ...all, t17: 'hide' })
     expect(only.length).toBe(mapMods.entries.filter(e => e.t17).length)
-    expect(only.length).toBe(35)
+    expect(only.length).toBe(32)
     expect(only.length + hide.length).toBe(mapMods.entries.length)
     expect(only.every(i => mapMods.entries[i].t17)).toBe(true)
     expect(hide.every(i => !mapMods.entries[i].t17)).toBe(true)

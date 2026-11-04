@@ -42,6 +42,8 @@ export interface RegexEntry {
   /** 同一條詞綴在別的 roll 值印的其他寫法(gen.ts `Entry.alts`);沒有就省略 */
   altZh?: string[]
   altEn?: string[]
+  /** en[0] 在頁內不唯一時的存檔鍵(魔法詞綴名:Humming = 低鳴的 / 雷電之);沒有就用 en[0] */
+  key?: string
 }
 
 export interface RegexPage {
@@ -155,6 +157,7 @@ export function parseRegexCatalogue (input: string | unknown, game: RegexGame): 
       const altEn = stringArray(e, 'altEn')
       if (altZh.length) d.altZh = altZh
       if (altEn.length) d.altEn = altEn
+      if (typeof e.key === 'string' && e.key) d.key = e.key
       if (d.zh.length === 0 && d.en.length === 0) continue
       if (d.g < 0 || d.g >= page.groups.length) d.g = 0
       page.entries.push(d)

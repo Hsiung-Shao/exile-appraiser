@@ -12,7 +12,7 @@
   <component :is="embedded ? 'div' : 'section'" class="rx-algo" :class="{ card: !embedded, embedded }"
     :data-regex="embedded ? 'section-list' : 'algo-list'" :data-page="page.id">
     <div class="rx-toolbar">
-      <span class="dim rx-algo-hint">{{ hint || t(embedded ? (condSection ? 'ppz.regex.section_hint_cond' : 'ppz.regex.section_hint') : 'ppz.regex.algo_hint') }}</span>
+      <span class="dim rx-algo-hint">{{ hint || t(embedded ? (condSection ? 'ppz.regex.section_hint_cond' : 'ppz.regex.section_hint') : (anyGroup ? 'ppz.regex.algo_hint_any' : 'ppz.regex.algo_hint')) }}</span>
       <span class="grow" />
       <button class="btn sm" :data-regex="embedded ? 'section-clear' : 'clear'" :disabled="!picked.length" :title="t('ppz.regex.clear_tip')"
         @click="clearPicksOn(page.id)">{{ t('ppz.regex.clear') }}</button>
@@ -188,6 +188,8 @@ export default defineComponent({
       toggleRarityIn,
       toggleCorruptionIn,
       condSection: computed(() => isConditionSectionId(props.page.id)),
+      // 商店頁的連結 / 顏色列(anyGroup)任一成立,說明要跟著講(PobTools regex_tool_ui.cpp drawAlgoPage 同步)
+      anyGroup: computed(() => props.page.entries.some(e => e.anyGroup)),
       colorCount,
       setColor,
       togglePickOn,

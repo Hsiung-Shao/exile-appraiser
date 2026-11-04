@@ -87,6 +87,37 @@ describe('分享碼', () => {
   })
 })
 
+describe('K3 分享碼往返不錯列(magic_affixes 英文首行重複的列)', () => {
+  const pages = loadAllPagesFor('poe1')
+  const page = pages.find(p => p.id === 'magic_affixes')
+  const idx = (zh0: string): number => page?.entries.findIndex(e => e.zh[0] === zh0) ?? -1
+  const roundTrip = async (picks: number[]): Promise<{ picked: number[], missed: number }> => {
+    const code = await encodeShare({
+      v: 2, game: 'poe1', mode: 'any',
+      pages: { magic_affixes: pageKeysOf(page!, picks).keys }, sections: {}, numeric: {}, custom: [], excludes: []
+    })
+    const d = await decodeShare(code)
+    const r = resolveState(d.state, pages)
+    return { picked: r.picks.magic_affixes ?? [], missed: r.missed }
+  }
+
+  it('只勾 雷電之 → 往返後勾到的是 雷電之、missed 0', async () => {
+    expect(page, '找不到 magic_affixes 頁').toBeDefined()
+    const t = idx('雷電之')
+    expect(t, '找不到 雷電之').toBeGreaterThanOrEqual(0)
+    expect(await roundTrip([t])).toEqual({ picked: [t], missed: 0 })
+  })
+
+  it('同時勾 低鳴的 與 雷電之 → 往返後兩列都勾、missed 0', async () => {
+    expect(page, '找不到 magic_affixes 頁').toBeDefined()
+    const a = idx('低鳴的')
+    const b = idx('雷電之')
+    expect(a, '找不到 低鳴的').toBeGreaterThanOrEqual(0)
+    expect(b, '找不到 雷電之').toBeGreaterThanOrEqual(0)
+    expect(await roundTrip([a, b])).toEqual({ picked: [a, b].sort((x, y) => x - y), missed: 0 })
+  })
+})
+
 describe('範本 data/regex/templates.json', () => {
   const templates = loadTemplatesFile()
   it('7 個範本、兩個遊戲都有、雙語名稱', () => {

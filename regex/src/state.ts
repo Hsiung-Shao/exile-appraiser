@@ -22,7 +22,7 @@
 // (指向不存在資料夾的書籤 → 補資料夾、同遊戲書籤依資料夾順序排好)。舊版程式讀 schema 5 檔會忽略資料夾(書籤內容照讀)。
 
 import type { Mode } from './gen'
-import type { RegexEntry, RegexGame, RegexLang, RegexPage } from './data'
+import { normalizeLabel, type RegexEntry, type RegexGame, type RegexLang, type RegexPage } from './data'
 import type { AlgoValue } from './pages/types'
 import { SECTION_HOSTS, sectionHostOf, unionKeys } from './sections'
 import { normalizeFolders, type BookmarkFolder } from './folders'
@@ -327,6 +327,8 @@ export function serializeRegexState (s: RegexUiState): string {
 /**
  * regex_state.cpp:190 `RegexResolveKeys`:把存下的鍵還原成勾選。英文先、找不到才中文;
  * 回傳 `missed` = 兩邊都找不到的鍵數(書籤少了三條看起來跟存錯一樣,只能靠計數分辨)。
+ * 2026-10-30 前的資料有幾行英文帶 `[Key|Display]` 標記,用它存的分享碼與範本只有英文鍵:
+ * 全字比不到且鍵含 `[` 時,剝掉標記再全字比一次(regex_state.cpp 同步)。
  */
 export function resolveKeys (
   keys: readonly string[],
@@ -338,7 +340,16 @@ export function resolveKeys (
   let missed = 0
   for (let k = 0; k < keys.length; k++) {
     let hit = -1
-    if (keys[k]) hit = entryKeys.indexOf(keys[k])
+    // 兩列可能共用英文鍵(魔法詞綴名:Humming = 低鳴的 / 雷電之):有中文名就用它挑,否則取第一列
+    if (keys[k]) {
+      hit = entryKeys.indexOf(keys[k])
+      const a = k < alt.length ? alt[k] : ''
+      if (hit >= 0 && a) {
+        const exact = entryKeys.findIndex((key, i) => key === keys[k] && entryAlt[i] === a)
+        if (exact >= 0) hit = exact
+      }
+    }
+    if (hit < 0 && keys[k] && keys[k].includes('[')) hit = entryKeys.indexOf(normalizeLabel(keys[k]))
     if (hit < 0 && k < alt.length && alt[k]) hit = entryAlt.indexOf(alt[k])
     if (hit >= 0) picked[hit] = true
     else missed++
@@ -348,9 +359,9 @@ export function resolveKeys (
 
 // ---- 頁面層:勾選 ↔ 鍵(regex_tool_ui.cpp `KeyOf` :95、`ZhLine` :60、`collectKeys` :378、`applyKeys` :364)----
 
-/** regex_tool_ui.cpp:95 `KeyOf`:英文第一行(沒有就空字串) */
+/** regex_tool_ui.cpp:95 `KeyOf`:資料有 `key`(英文第一行在頁內不唯一)就用它,否則英文第一行(沒有就空字串) */
 export function keyOf (d: RegexEntry): string {
-  return d.en[0] ?? ''
+  return d.key || (d.en[0] ?? '')
 }
 
 /** regex_tool_ui.cpp:60 `ZhLine`:中文第一行,沒有就英文第一行 */

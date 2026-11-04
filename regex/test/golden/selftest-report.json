@@ -1,7 +1,7 @@
 {
   "_source": "pob-zh-engine dist/regex_selftest.txt(pob-zh.exe --regex-selftest);由 extract-from-report.mjs 產生,勿手改",
   "_cppPassFail": {
-    "pass": 1054,
+    "pass": 1273,
     "fail": 0
   },
   "synthetic": {
@@ -21,7 +21,7 @@
     "T14 both picked": "\"元|家\"",
     "T14 all": "素異 家",
     "T15 past ambient": "\"加\"",
-    "T15 name seam": "\" \"",
+    "T15 name seam": "\"a\"",
     "T16 mid-way": "\"^a\"",
     "T16 fully anchored": "\"^abc$\""
   },
@@ -30,8 +30,8 @@
       "lang": "zh",
       "game": "poe1",
       "page": "map_mods",
-      "length": 30,
-      "plain": 146
+      "length": 34,
+      "plain": 124
     },
     {
       "lang": "zh",
@@ -44,7 +44,7 @@
       "lang": "zh",
       "game": "poe1",
       "page": "scarabs",
-      "length": 20,
+      "length": 21,
       "plain": 82
     },
     {
@@ -58,15 +58,15 @@
       "lang": "zh",
       "game": "poe1",
       "page": "cluster_jewel",
-      "length": 27,
+      "length": 28,
       "plain": 147
     },
     {
       "lang": "zh",
       "game": "poe1",
       "page": "gem_names",
-      "length": 36,
-      "plain": 71
+      "length": 37,
+      "plain": 63
     },
     {
       "lang": "zh",
@@ -79,7 +79,7 @@
       "lang": "zh",
       "game": "poe1",
       "page": "heist_equipment_mods",
-      "length": 36,
+      "length": 33,
       "plain": 210
     },
     {
@@ -93,8 +93,22 @@
       "lang": "zh",
       "game": "poe1",
       "page": "vendor_bases",
-      "length": 33,
+      "length": 34,
       "plain": 53
+    },
+    {
+      "lang": "zh",
+      "game": "poe1",
+      "page": "beasts",
+      "length": 32,
+      "plain": 59
+    },
+    {
+      "lang": "zh",
+      "game": "poe1",
+      "page": "magic_affixes",
+      "length": 32,
+      "plain": 43
     },
     {
       "lang": "zh",
@@ -150,42 +164,42 @@
       "game": "poe1",
       "page": "map_mods",
       "length": 43,
-      "plain": 421
+      "plain": 410
     },
     {
       "lang": "en",
       "game": "poe1",
       "page": "logbook_mods",
-      "length": 42,
+      "length": 43,
       "plain": 388
     },
     {
       "lang": "en",
       "game": "poe1",
       "page": "scarabs",
-      "length": 34,
+      "length": 36,
       "plain": 260
     },
     {
       "lang": "en",
       "game": "poe1",
       "page": "flask_mods",
-      "length": 48,
+      "length": 49,
       "plain": 437
     },
     {
       "lang": "en",
       "game": "poe1",
       "page": "cluster_jewel",
-      "length": 42,
+      "length": 43,
       "plain": 440
     },
     {
       "lang": "en",
       "game": "poe1",
       "page": "gem_names",
-      "length": 67,
-      "plain": 219
+      "length": 65,
+      "plain": 204
     },
     {
       "lang": "en",
@@ -212,14 +226,28 @@
       "lang": "en",
       "game": "poe1",
       "page": "vendor_bases",
-      "length": 53,
+      "length": 55,
       "plain": 163
+    },
+    {
+      "lang": "en",
+      "game": "poe1",
+      "page": "beasts",
+      "length": 50,
+      "plain": 164
+    },
+    {
+      "lang": "en",
+      "game": "poe1",
+      "page": "magic_affixes",
+      "length": 45,
+      "plain": 115
     },
     {
       "lang": "en",
       "game": "poe2",
       "page": "waystone_mods",
-      "length": 27,
+      "length": 29,
       "plain": 490
     },
     {
@@ -233,7 +261,7 @@
       "lang": "en",
       "game": "poe2",
       "page": "relic_mods",
-      "length": 35,
+      "length": 36,
       "plain": 431
     },
     {
@@ -261,7 +289,7 @@
       "lang": "en",
       "game": "poe2",
       "page": "vendor_bases",
-      "length": 56,
+      "length": 57,
       "plain": 190
     }
   ],
@@ -270,10 +298,10 @@
       "lang": "zh",
       "game": "poe1",
       "page": "map_mods",
-      "entries": 125,
+      "entries": 122,
       "ambientLines": 337,
-      "findable": 125,
-      "tried": 125,
+      "findable": 122,
+      "tried": 122,
       "stuckExamples": [],
       "stuckByHidden": 0,
       "stuckByHiddenExamples": []
@@ -295,7 +323,7 @@
       "game": "poe1",
       "page": "scarabs",
       "entries": 138,
-      "ambientLines": 7,
+      "ambientLines": 8,
       "findable": 138,
       "tried": 138,
       "stuckExamples": [],
@@ -344,13 +372,11 @@
       "lang": "zh",
       "game": "poe1",
       "page": "gem_names",
-      "entries": 892,
+      "entries": 891,
       "ambientLines": 21,
-      "findable": 445,
+      "findable": 446,
       "tried": 446,
-      "stuckExamples": [
-        "..."
-      ],
+      "stuckExamples": [],
       "stuckByHidden": 0,
       "stuckByHiddenExamples": []
     },
@@ -372,7 +398,7 @@
       "page": "heist_equipment_mods",
       "entries": 141,
       "ambientLines": 232,
-      "findable": 123,
+      "findable": 122,
       "tried": 141,
       "stuckExamples": [
         "增加 #% 暴擊率",
@@ -406,6 +432,30 @@
       "ambientLines": 52,
       "findable": 529,
       "tried": 529,
+      "stuckExamples": [],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
+    },
+    {
+      "lang": "zh",
+      "game": "poe1",
+      "page": "beasts",
+      "entries": 220,
+      "ambientLines": 549,
+      "findable": 220,
+      "tried": 220,
+      "stuckExamples": [],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
+    },
+    {
+      "lang": "zh",
+      "game": "poe1",
+      "page": "magic_affixes",
+      "entries": 1185,
+      "ambientLines": 1313,
+      "findable": 593,
+      "tried": 593,
       "stuckExamples": [],
       "stuckByHidden": 0,
       "stuckByHiddenExamples": []
@@ -512,10 +562,10 @@
       "lang": "en",
       "game": "poe1",
       "page": "map_mods",
-      "entries": 125,
+      "entries": 122,
       "ambientLines": 338,
-      "findable": 122,
-      "tried": 125,
+      "findable": 119,
+      "tried": 122,
       "stuckExamples": [
         "Unique Boss has #% increased Area of Effect",
         "Players have #% less Accuracy Rating",
@@ -547,7 +597,7 @@
       "game": "poe1",
       "page": "scarabs",
       "entries": 138,
-      "ambientLines": 7,
+      "ambientLines": 8,
       "findable": 138,
       "tried": 138,
       "stuckExamples": [],
@@ -574,7 +624,7 @@
       "page": "cluster_jewel",
       "entries": 388,
       "ambientLines": 186,
-      "findable": 353,
+      "findable": 351,
       "tried": 388,
       "stuckExamples": [
         "Added Small Passive Skills also grant: Minions have #% increased Attack and Cast Speed",
@@ -583,35 +633,32 @@
         "Added Small Passive Skills also grant: # to Dexterity",
         "Added Small Passive Skills also grant: # to Intelligence"
       ],
-      "stuckByHidden": 13,
+      "stuckByHidden": 15,
       "stuckByHiddenExamples": [
+        "Added Small Passive Skills grant: #% chance to Suppress Spell Damage",
         "Added Small Passive Skills grant: #% Chance to Block Attack Damage",
         "Added Small Passive Skills grant: #% Chance to Block Spell Damage",
         "Added Small Passive Skills grant: Minions deal #% increased Damage while you are affected by a Herald",
-        "Added Small Passive Skills grant: #% increased Projectile Damage",
-        "Added Small Passive Skills grant: #% increased Cold Damage over Time"
+        "Added Small Passive Skills grant: #% increased Cold Damage"
       ]
     },
     {
       "lang": "en",
       "game": "poe1",
       "page": "gem_names",
-      "entries": 892,
+      "entries": 891,
       "ambientLines": 21,
-      "findable": 433,
+      "findable": 432,
       "tried": 446,
       "stuckExamples": [
-        "...",
-        "Wave of Conviction",
-        "Summon Skeletons",
-        "Detonate Dead",
-        "Animate Weapon"
+        "Glacial Hammer",
+        "Volcanic Fissure",
+        "Burning Arrow",
+        "Rain of Arrows",
+        "Caustic Arrow"
       ],
-      "stuckByHidden": 2,
-      "stuckByHiddenExamples": [
-        "Vaal Lightning Warp",
-        "Vaal Lightning Arrow"
-      ]
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
     },
     {
       "lang": "en",
@@ -668,6 +715,36 @@
       "findable": 529,
       "tried": 529,
       "stuckExamples": [],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
+    },
+    {
+      "lang": "en",
+      "game": "poe1",
+      "page": "beasts",
+      "entries": 220,
+      "ambientLines": 543,
+      "findable": 220,
+      "tried": 220,
+      "stuckExamples": [],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
+    },
+    {
+      "lang": "en",
+      "game": "poe1",
+      "page": "magic_affixes",
+      "entries": 1185,
+      "ambientLines": 1320,
+      "findable": 560,
+      "tried": 593,
+      "stuckExamples": [
+        "Chilled",
+        "Frozen",
+        "The Shaper's",
+        "The Shaper's",
+        "Shocking"
+      ],
       "stuckByHidden": 0,
       "stuckByHiddenExamples": []
     },
@@ -766,7 +843,7 @@
       "page": "vendor_bases",
       "entries": 1763,
       "ambientLines": 49,
-      "findable": 425,
+      "findable": 423,
       "tried": 441,
       "stuckExamples": [
         "Runeforged Armoured Vest",
@@ -781,7 +858,7 @@
   ],
   "mapAilment": {
     "query": "\"免元\"",
-    "bareExtra": 12,
+    "bareExtra": 10,
     "bareAmbient": 0
   }
 }

@@ -111,10 +111,36 @@ export function wholeLine (labels: string[]): string | null {
   return xs.length === 1 ? `^${xs[0]}$` : `^(${xs.join('|')})$`
 }
 
-/** n 個相連插槽:`.-.-.-.-.-.`(插槽字元不假設是哪個字母;`-` = 相連、空白 = 斷開) */
+/** 插槽字母:紅綠藍白 + 深淵(A);`-` = 相連、空白 = 斷開 */
+const SOCKET = '[rgbwa]'
+
+/**
+ * n 個相連插槽:3 連以上 `(-[rgbwa]){n-1}`(插槽行裡的「-x-y」本身就是 3 連),2 連 `\b[rgbwa](-[rgbwa]){1}\b`。
+ * 只用插槽字母——原本的 `.` 會中到 `物理傷害: 10-20` 這類「x-y-z」文字(使用者遊戲內回報亮錯,2026-10-31)。
+ * 只有 2 連要 `\b`(離線稽核:曾中到物品名 `Transfer-attuned`);3 連以上不帶 `\b` 中英文都 0 誤中。
+ */
 export function linkedSockets (n: number): string | null {
   if (!Number.isInteger(n) || n < 2 || n > 6) return null
-  return Array.from({ length: n }, () => '.').join('-')
+  if (n === 2) return `\\b${SOCKET}(-${SOCKET}){1}\\b`
+  return `(-${SOCKET}){${n - 1}}`
+}
+
+/** n 個相連且全是彩色(不含白)的插槽:`[rgb](-[rgb]){n-1}`(2 連加 `\b`);開頭的字元類不能省,否則 `W-R-G` 也算 3 連 */
+export function coloredLinks (n: number): string | null {
+  if (!Number.isInteger(n) || n < 2 || n > 6) return null
+  const f = `[rgb](-[rgb]){${n - 1}}`
+  return n === 2 ? `\\b${f}\\b` : f
+}
+
+/**
+ * 紅綠藍在同一組連結(彩色石配方,不必相鄰):插槽標籤之後,某個不含空白的連續段同時有 r、g、b。
+ * 錨在插槽行行首(`^插槽[:：]`):英文物品名如 Bringer 也同時含 r、g、b,詞綴行也有「All Sockets are …」。
+ * 用前瞻 `(?=`,遊戲支援與否待實測。
+ */
+export function rgbGroup (socketLabel: string): string | null {
+  const base = labelBase(socketLabel)
+  if (!base) return null
+  return `^${base}[:：].*(?=\\S*r)(?=\\S*g)(?=\\S*b)`
 }
 
 /** 多重集合的全部相異排列 */
@@ -157,8 +183,8 @@ function renderTrie (t: Trie, top: boolean): string {
 }
 
 /**
- * 相連插槽含指定顏色組合(任意順序、需連續相鄰):例如 "rgb" → `r-(g-b|b-g)|g-(r-b|b-r)|b-(r-g|g-r)`。
- * 顏色字母 r / g / b / w;`-` 相連。整個片段是一個 term 內的 `|`(遊戲語法:term 內 `|` = 任一)。
+ * 相連插槽含指定顏色組合(任意順序、需連續相鄰):例如 "rgb" → `b-(g-r|r-g)|g-(b-r|r-b)|r-(b-g|g-b)`。
+ * 顏色字母 r / g / b / w;`-` 相連。只有 2 色加前後 `\b`,讓字母不能黏在英文單字裡(離線稽核:`r-r` 曾中 `of Hair-Raising`)。
  */
 export function linkColors (choice: string): string | null {
   const letters = [...choice.toLowerCase()].filter(c => 'rgbw'.includes(c))
@@ -173,13 +199,24 @@ export function linkColors (choice: string): string | null {
       node = n
     }
   }
-  return renderTrie(root, true)
+  const t = renderTrie(root, true)
+  // 只有 2 色要 `\b`(`r-r` 會中 `of Hair-Raising`);3 色以上離線稽核不帶 `\b` 也 0 誤中
+  if (letters.length > 2) return t
+  // 頂層有 `|` 才要括號,`\b` 才會套到每個分支(renderTrie 的頂層不加括號)
+  let depth = 0
+  let topBar = false
+  for (const ch of t) {
+    if (ch === '(' || ch === '[') depth++
+    else if (ch === ')' || ch === ']') depth--
+    else if (ch === '|' && depth === 0) topBar = true
+  }
+  return topBar ? `\\b(${t})\\b` : `\\b${t}\\b`
 }
 
-/** 插槽行裡某顏色至少 n 個:`插槽.*b.*b.*b` */
+/** 插槽行裡某顏色至少 n 個:`^插槽[:：].*b.*b.*b`(錨在行首:英文詞綴行也有「All Sockets are Blue」) */
 export function socketColorCount (label: string, color: string, n: number): string | null {
   const base = labelBase(label)
   const c = color.toLowerCase()
   if (!base || !'rgbw'.includes(c) || c.length !== 1 || !Number.isInteger(n) || n < 1 || n > 6) return null
-  return base + Array.from({ length: n }, () => `.*${c}`).join('')
+  return `^${base}[:：]` + Array.from({ length: n }, () => `.*${c}`).join('')
 }
