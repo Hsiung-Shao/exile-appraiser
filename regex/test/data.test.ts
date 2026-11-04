@@ -1,6 +1,7 @@
 // 資料 schema 斷言 + 載入規則(移植自 regex_data.cpp LoadOne:缺鍵為空、zh/en 皆空丟棄、g 越界歸 0)。
 import { describe, expect, it } from 'vitest'
 import { buildCorpus, entryLines, pageAmbient, parseRegexCatalogue, type RegexEntry, type RegexPage } from '../src/data'
+import { keyOf } from '../src/state'
 import { defaultRegexDataDir, loadRegexCatalogueFile } from '../src/node'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
@@ -291,6 +292,58 @@ describe('PoE1 詞綴名頁第二輪', () => {
       })
     }
   }
+})
+
+// 第三輪:英文首行重複的列帶唯一 key、取鍵函式優先用它、藥酒基底進詞綴名頁
+describe('PoE1 詞綴名頁第三輪', () => {
+  const raw = JSON.parse(readFileSync(path.join(defaultRegexDataDir(), 'regex_poe1.json'), 'utf8'))
+  const rawPage = (raw.pages as Array<{ id: string, entries: Array<Record<string, unknown>> }>).find(p => p.id === 'magic_affixes')
+  const rawRows = rawPage?.entries ?? []
+  const rawZh0 = (e: Record<string, unknown>): string => (e.zh as string[] | undefined)?.[0] ?? ''
+  const rawEn0 = (e: Record<string, unknown>): string => (e.en as string[] | undefined)?.[0] ?? ''
+  const rawKey = (e: Record<string, unknown> | undefined): string => (typeof e?.key === 'string' ? e.key : '')
+
+  it('K1 英文首行重複的列帶唯一鍵:重複列都有非空 key、全頁 key 互不相同、低鳴的 / 雷電之 以 Humming# 開頭且不同、樂觀的沒有 key', () => {
+    expect(rawPage, '找不到 magic_affixes 頁').toBeDefined()
+    const count = new Map<string, number>()
+    for (const e of rawRows) count.set(rawEn0(e), (count.get(rawEn0(e)) ?? 0) + 1)
+    const noKey = rawRows.filter(e => (count.get(rawEn0(e)) ?? 0) > 1 && rawKey(e) === '')
+    expect(noKey.slice(0, 10).map(e => `${rawZh0(e)} / ${rawEn0(e)}`), `en[0] 重複卻沒有 key 的列共 ${noKey.length}`).toEqual([])
+    const keys = rawRows.map(rawKey).filter(k => k !== '')
+    const dup = keys.filter((k, i) => keys.indexOf(k) !== i)
+    expect(keys.length, '全頁沒有任何 key').toBeGreaterThan(0)
+    expect(dup.slice(0, 10), 'key 重複').toEqual([])
+    const low = rawRows.find(e => rawZh0(e) === '低鳴的')
+    const thunder = rawRows.find(e => rawZh0(e) === '雷電之')
+    expect(rawKey(low)).toMatch(/^Humming#/)
+    expect(rawKey(thunder)).toMatch(/^Humming#/)
+    expect(rawKey(low)).not.toBe(rawKey(thunder))
+    const opt = rawRows.find(e => rawZh0(e) === '樂觀的')
+    expect(opt, '找不到 樂觀的').toBeDefined()
+    expect(opt !== undefined && 'key' in opt, '樂觀的 不該有 key 欄位').toBe(false)
+  })
+
+  it('K2 取鍵函式優先用 key:雷電之 的 keyOf 等於資料裡的 key,樂觀的 的 keyOf 是 Sanguine', () => {
+    const page = loadRegexCatalogueFile('poe1').pages.find(p => p.id === 'magic_affixes')
+    expect(page, '找不到 magic_affixes 頁').toBeDefined()
+    const thunder = page?.entries.find(e => e.zh[0] === '雷電之')
+    const opt = page?.entries.find(e => e.zh[0] === '樂觀的')
+    expect(thunder, '找不到 雷電之').toBeDefined()
+    expect(opt, '找不到 樂觀的').toBeDefined()
+    const want = rawKey(rawRows.find(e => rawZh0(e) === '雷電之'))
+    expect(want, '資料裡 雷電之 沒有 key').not.toBe('')
+    expect(thunder ? keyOf(thunder) : undefined).toBe(want)
+    expect(opt ? keyOf(opt) : undefined).toBe('Sanguine')
+  })
+
+  it('T1 藥酒基底進詞綴名頁:ambient 含 Ashbark Tincture / 灰樹皮萃取物,nameWords 前綴含英文、後綴含中文', () => {
+    const page = loadRegexCatalogueFile('poe1').pages.find(p => p.id === 'magic_affixes')
+    expect(page, '找不到 magic_affixes 頁').toBeDefined()
+    expect(page?.ambientEn.some(s => s.includes('Ashbark Tincture')), 'ambientEn 缺 Ashbark Tincture').toBe(true)
+    expect(page?.ambientZh.some(s => s.includes('灰樹皮萃取物')), 'ambientZh 缺 灰樹皮萃取物').toBe(true)
+    expect(page?.namePrefixEn ?? [], 'nameWordsEn.prefix').toContain('Ashbark Tincture')
+    expect(page?.nameSuffixZh ?? [], 'nameWordsZh.suffix').toContain('灰樹皮萃取物')
+  })
 })
 
 // PoE2 語料:連結標記要剝成顯示字、基底的風味文字與詞綴行要收進來

@@ -1,7 +1,7 @@
 {
   "_source": "pob-zh-engine dist/regex_selftest.txt(pob-zh.exe --regex-selftest);由 extract-from-report.mjs 產生,勿手改",
   "_cppPassFail": {
-    "pass": 1256,
+    "pass": 1273,
     "fail": 0
   },
   "synthetic": {
@@ -453,7 +453,7 @@
       "game": "poe1",
       "page": "magic_affixes",
       "entries": 1185,
-      "ambientLines": 1302,
+      "ambientLines": 1313,
       "findable": 593,
       "tried": 593,
       "stuckExamples": [],
@@ -735,7 +735,7 @@
       "game": "poe1",
       "page": "magic_affixes",
       "entries": 1185,
-      "ambientLines": 1309,
+      "ambientLines": 1320,
       "findable": 560,
       "tried": 593,
       "stuckExamples": [

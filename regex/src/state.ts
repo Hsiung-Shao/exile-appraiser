@@ -359,9 +359,9 @@ export function resolveKeys (
 
 // ---- 頁面層:勾選 ↔ 鍵(regex_tool_ui.cpp `KeyOf` :95、`ZhLine` :60、`collectKeys` :378、`applyKeys` :364)----
 
-/** regex_tool_ui.cpp:95 `KeyOf`:英文第一行(沒有就空字串) */
+/** regex_tool_ui.cpp:95 `KeyOf`:資料有 `key`(英文第一行在頁內不唯一)就用它,否則英文第一行(沒有就空字串) */
 export function keyOf (d: RegexEntry): string {
-  return d.en[0] ?? ''
+  return d.key || (d.en[0] ?? '')
 }
 
 /** regex_tool_ui.cpp:60 `ZhLine`:中文第一行,沒有就英文第一行 */
