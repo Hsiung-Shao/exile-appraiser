@@ -85,45 +85,45 @@ const SNAP_TOLERANCE = 12
 /**
  * 按鈕文字 → 碎片頁開著?(2026-11-07 放寬,為 3.30 拿掉聖甲蟲按鈕預作準備)
  * 每個標籤可落在四個按鈕槽任一個(x 容差 40/1440),命中的槽位要照標籤順序左到右遞增、至少 `MIN_BUTTONS` 顆;
- * 「一般」只能在最左那槽。文字高度推資料夾偏移(同前)。
+ * 「一般」只能在最左那槽。
+ * 不在資料夾(偏移 0)與資料夾內(`folderOffset`)**各算一輪**,每輪只收文字中心在該按鈕列高度 ± 12/1440 的行:
+ * 頁籤列(自訂區域框到的倉庫頁籤、資料夾內的資料夾頁籤 —— 後者正好與偏移 0 的按鈕列同高)若有同名文字(「一般」),
+ * 不會和真的按鈕混在一起配槽(code review 2026-11-07)。兩輪都找到取命中多的;都沒找到回報命中最多的那輪顆數。
  */
 export function findSubtabButtons (lines: readonly TextLine[], clientH: number, lang: StashTextLang): ButtonMatch {
   const labels = SUBTAB_LABELS[lang]
   const centersX = buttonRects(clientH, 0).map(r => r.x + r.w / 2)
   const xTol = X_TOLERANCE / BASE * clientH
   const tol = SNAP_TOLERANCE / BASE * clientH
-  const rowYs = [0, folderOffset(clientH)].map(off => TEXT_CENTER_Y / BASE * clientH + off)
-  const hits: Array<{ slot: number, cy: number, k: number }> = []
-  for (let k = 0; k < labels.length; k++) {
-    let best: { slot: number, cy: number, d: number } | null = null
-    for (const l of lines) {
-      // 不分大小寫:英文介面的按鈕是小型大寫字,OCR 讀成全大寫(GENERAL / ALLFLAME…;使用者實機截圖,2026-10-14)
-      if (l.text.replace(/\s+/g, '').toUpperCase() !== labels[k].toUpperCase()) continue
-      // 只收按鈕列高度(不在 / 在資料夾內)的文字:自訂區域可能框到頁籤列,同名頁籤(「一般」)不可搶走槽位(code review 2026-11-07)
-      const cy = l.y + l.h / 2
-      if (!rowYs.some(y => Math.abs(cy - y) <= tol)) continue
-      const cx = l.x + l.w / 2
-      for (let slot = 0; slot < BUTTON_SLOTS; slot++) {
-        const d = Math.abs(cx - centersX[slot])
-        if (d <= xTol && (!best || d < best.d)) best = { slot, cy: l.y + l.h / 2, d }
-      }
-    }
-    if (!best) continue
-    hits.push({ slot: best.slot, cy: best.cy, k })
-  }
-  const matched = hits.length
-  // 失敗也照實回報 matched:stash-scan 只在 matched > 0 時記「沒找到子頁按鈕」與 OCR 文字(3.30 實機回報查原因用)
-  const fail = { found: false, matched, yOffset: 0, slots: [] }
-  if (hits.some(h => h.k === 0 && h.slot !== GENERAL_SLOT)) return fail
-  if (matched < MIN_BUTTONS) return fail
-  for (let i = 1; i < matched; i++) if (hits[i].slot <= hits[i - 1].slot) return fail
-  const centers = hits.map(h => h.cy).sort((a, b) => a - b)
-  const median = matched % 2 ? centers[(matched - 1) / 2] : (centers[matched / 2 - 1] + centers[matched / 2]) / 2
-  const raw = median - TEXT_CENTER_Y / BASE * clientH
+  let best: ButtonMatch = { found: false, matched: 0, yOffset: 0, slots: [] }
   for (const snap of [0, folderOffset(clientH)]) {
-    if (Math.abs(raw - snap) <= tol) return { found: true, matched, yOffset: snap, slots: hits.map(h => h.slot) }
+    const rowY = TEXT_CENTER_Y / BASE * clientH + snap
+    const hits: Array<{ slot: number, k: number }> = []
+    for (let k = 0; k < labels.length; k++) {
+      let pick: { slot: number, d: number } | null = null
+      for (const l of lines) {
+        // 不分大小寫:英文介面的按鈕是小型大寫字,OCR 讀成全大寫(GENERAL / ALLFLAME…;使用者實機截圖,2026-10-14)
+        if (l.text.replace(/\s+/g, '').toUpperCase() !== labels[k].toUpperCase()) continue
+        if (Math.abs(l.y + l.h / 2 - rowY) > tol) continue
+        const cx = l.x + l.w / 2
+        for (let slot = 0; slot < BUTTON_SLOTS; slot++) {
+          const d = Math.abs(cx - centersX[slot])
+          if (d <= xTol && (!pick || d < pick.d)) pick = { slot, d }
+        }
+      }
+      if (pick) hits.push({ slot: pick.slot, k })
+    }
+    const matched = hits.length
+    const ok = matched >= MIN_BUTTONS &&
+      !hits.some(h => h.k === 0 && h.slot !== GENERAL_SLOT) &&
+      hits.every((h, i) => i === 0 || h.slot > hits[i - 1].slot)
+    // 失敗也照實回報 matched:stash-scan 只在 matched > 0 時記「沒找到子頁按鈕」與 OCR 文字(3.30 實機回報查原因用)
+    const res: ButtonMatch = ok
+      ? { found: true, matched, yOffset: snap, slots: hits.map(h => h.slot) }
+      : { found: false, matched, yOffset: 0, slots: [] }
+    if (res.found ? (!best.found || matched > best.matched) : (!best.found && matched > best.matched)) best = res
   }
-  return fail
+  return best
 }
 
 export function percentile (gray: Uint8Array, q: number): number {

@@ -284,6 +284,11 @@ describe('S6 至少兩顆按鈕、落在按鈕槽且順序左到右才算碎片�
       expect(findSubtabButtons([...clientLines('strip-allflame-1432.png'), stray('異能', 0)], H, 'zh'))
         .toEqual({ found: true, matched: 3, yOffset: 0, slots: [0, 2, 3] })
     })
+    it('資料夾內:資料夾頁籤列(與不在資料夾的按鈕同高)有「一般」也不搶槽位', () => {
+      // 兩種高度混在一起配槽 → 頁籤列的「一般」(2 號槽附近)被收進來 → 判成一般不在最左 → 疊層一直不出現
+      const lines = [...clientLines('strip-general-1440-folder.png'), { text: '一般', x: 547 - 15, y: 201 - 8, w: 30, h: 16 }]
+      expect(findSubtabButtons(lines, 1440, 'zh')).toEqual({ found: true, matched: 2, yOffset: folderOffset(1440), slots: [2, 3] })
+    })
     it('資料夾內(按鈕下移 folderOffset)也照樣排除頁籤列文字', () => {
       // 高度過濾只認 0 偏移 → 資料夾內按鈕全被濾掉
       const off = folderOffset(H)
