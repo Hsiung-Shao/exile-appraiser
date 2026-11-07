@@ -91,7 +91,7 @@ export function findSubtabButtons (lines: readonly TextLine[], clientH: number, 
   const labels = SUBTAB_LABELS[lang]
   const centersX = buttonRects(clientH, 0).map(r => r.x + r.w / 2)
   const xTol = X_TOLERANCE / BASE * clientH
-  const hits: Array<{ slot: number, cy: number }> = []
+  const hits: Array<{ slot: number, cy: number, k: number }> = []
   for (let k = 0; k < labels.length; k++) {
     let best: { slot: number, cy: number, d: number } | null = null
     for (const l of lines) {
@@ -104,11 +104,12 @@ export function findSubtabButtons (lines: readonly TextLine[], clientH: number, 
       }
     }
     if (!best) continue
-    if (k === 0 && best.slot !== GENERAL_SLOT) return { found: false, matched: 0, yOffset: 0, slots: [] }
-    hits.push({ slot: best.slot, cy: best.cy })
+    hits.push({ slot: best.slot, cy: best.cy, k })
   }
   const matched = hits.length
+  // 失敗也照實回報 matched:stash-scan 只在 matched > 0 時記「沒找到子頁按鈕」與 OCR 文字(3.30 實機回報查原因用)
   const fail = { found: false, matched, yOffset: 0, slots: [] }
+  if (hits.some(h => h.k === 0 && h.slot !== GENERAL_SLOT)) return fail
   if (matched < MIN_BUTTONS) return fail
   for (let i = 1; i < matched; i++) if (hits[i].slot <= hits[i - 1].slot) return fail
   const centers = hits.map(h => h.cy).sort((a, b) => a - b)

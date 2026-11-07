@@ -258,10 +258,10 @@ describe('S6 至少兩顆按鈕、落在按鈕槽且順序左到右才算碎片�
     })
     expect(findSubtabButtons(lines, H, 'zh').found).toBe(false)
   })
-  it('「一般」不在最左那槽找不到', () => {
-    // 一般可落任何槽 → 子頁亮度比錯槽
+  it('「一般」不在最左那槽找不到,但 matched 照實回報(診斷 log 才印得出 OCR 文字)', () => {
+    // 一般可落任何槽 → 子頁亮度比錯槽;matched 回 0 → stash-scan 的「沒找到子頁按鈕」log 被吞掉
     const lines = clientLines('strip-allflame-1432.png').map(l => l.text.replace(/\s+/g, '') === '一般' ? { ...l, x: l.x + dx(1) } : l)
-    expect(findSubtabButtons(lines, H, 'zh')).toEqual({ found: false, matched: 0, yOffset: 0, slots: [] })
+    expect(findSubtabButtons(lines, H, 'zh')).toEqual({ found: false, matched: 3, yOffset: 0, slots: [] })
   })
   for (const name of ['strip-tooltip-1432.png', 'neg-grid-1432.png']) {
     it(`${name} 找不到按鈕`, () => {
