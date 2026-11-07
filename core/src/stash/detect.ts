@@ -91,12 +91,17 @@ export function findSubtabButtons (lines: readonly TextLine[], clientH: number, 
   const labels = SUBTAB_LABELS[lang]
   const centersX = buttonRects(clientH, 0).map(r => r.x + r.w / 2)
   const xTol = X_TOLERANCE / BASE * clientH
+  const tol = SNAP_TOLERANCE / BASE * clientH
+  const rowYs = [0, folderOffset(clientH)].map(off => TEXT_CENTER_Y / BASE * clientH + off)
   const hits: Array<{ slot: number, cy: number, k: number }> = []
   for (let k = 0; k < labels.length; k++) {
     let best: { slot: number, cy: number, d: number } | null = null
     for (const l of lines) {
       // 不分大小寫:英文介面的按鈕是小型大寫字,OCR 讀成全大寫(GENERAL / ALLFLAME…;使用者實機截圖,2026-10-14)
       if (l.text.replace(/\s+/g, '').toUpperCase() !== labels[k].toUpperCase()) continue
+      // 只收按鈕列高度(不在 / 在資料夾內)的文字:自訂區域可能框到頁籤列,同名頁籤(「一般」)不可搶走槽位(code review 2026-11-07)
+      const cy = l.y + l.h / 2
+      if (!rowYs.some(y => Math.abs(cy - y) <= tol)) continue
       const cx = l.x + l.w / 2
       for (let slot = 0; slot < BUTTON_SLOTS; slot++) {
         const d = Math.abs(cx - centersX[slot])
@@ -115,7 +120,6 @@ export function findSubtabButtons (lines: readonly TextLine[], clientH: number, 
   const centers = hits.map(h => h.cy).sort((a, b) => a - b)
   const median = matched % 2 ? centers[(matched - 1) / 2] : (centers[matched / 2 - 1] + centers[matched / 2]) / 2
   const raw = median - TEXT_CENTER_Y / BASE * clientH
-  const tol = SNAP_TOLERANCE / BASE * clientH
   for (const snap of [0, folderOffset(clientH)]) {
     if (Math.abs(raw - snap) <= tol) return { found: true, matched, yOffset: snap, slots: hits.map(h => h.slot) }
   }

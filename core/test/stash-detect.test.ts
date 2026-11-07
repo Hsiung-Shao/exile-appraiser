@@ -263,6 +263,35 @@ describe('S6 至少兩顆按鈕、落在按鈕槽且順序左到右才算碎片�
     const lines = clientLines('strip-allflame-1432.png').map(l => l.text.replace(/\s+/g, '') === '一般' ? { ...l, x: l.x + dx(1) } : l)
     expect(findSubtabButtons(lines, H, 'zh')).toEqual({ found: false, matched: 3, yOffset: 0, slots: [] })
   })
+  describe('按鈕列以外的同名文字不搶槽位(例:倉庫頁籤叫「一般」、自訂區域框到頁籤列)', () => {
+    /** 放在 slot 號槽正上方、頁籤列高度(y 150/1440)的假文字 */
+    const stray = (text: string, slot: number): TextLine => {
+      const r = buttonRects(H, 0)[slot]
+      return { text, x: r.x + r.w / 2 - 15, y: 150 / 1440 * H - 8, w: 30, h: 16 }
+    }
+    it('「一般」在 1 號槽上方:仍找到、槽位不變', () => {
+      // 不看高度只看 x → 假「一般」比真的近 → 判成一般不在最左 → 疊層一直不出現
+      expect(findSubtabButtons([...clientLines('strip-allflame-1432.png'), stray('一般', 1)], H, 'zh'))
+        .toEqual({ found: true, matched: 3, yOffset: 0, slots: [0, 2, 3] })
+    })
+    it('真的「一般」漏讀時,頁籤列的「一般」不被當成按鈕', () => {
+      // 假文字被收進去 → 一般落在 1 號槽 → 找不到
+      expect(findSubtabButtons([...clientLines('strip-general-1440.png'), { ...stray('一般', 1), x: stray('一般', 1).x / H * 1440, y: 150 - 8 }], 1440, 'zh'))
+        .toEqual({ found: true, matched: 2, yOffset: 0, slots: [2, 3] })
+    })
+    it('「異能」在 0 號槽上方:不打亂左到右順序', () => {
+      // 假「異能」搶到 0 號槽 → 遞增檢查失敗
+      expect(findSubtabButtons([...clientLines('strip-allflame-1432.png'), stray('異能', 0)], H, 'zh'))
+        .toEqual({ found: true, matched: 3, yOffset: 0, slots: [0, 2, 3] })
+    })
+    it('資料夾內(按鈕下移 folderOffset)也照樣排除頁籤列文字', () => {
+      // 高度過濾只認 0 偏移 → 資料夾內按鈕全被濾掉
+      const off = folderOffset(H)
+      const lines = clientLines('strip-allflame-1432.png').map(l => ({ ...l, y: l.y + off }))
+      expect(findSubtabButtons([...lines, stray('一般', 1)], H, 'zh'))
+        .toEqual({ found: true, matched: 3, yOffset: off, slots: [0, 2, 3] })
+    })
+  })
   for (const name of ['strip-tooltip-1432.png', 'neg-grid-1432.png']) {
     it(`${name} 找不到按鈕`, () => {
       // 部分比對(包含即算)或門檻太低 → 誤判
