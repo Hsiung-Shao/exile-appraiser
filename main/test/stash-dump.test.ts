@@ -24,9 +24,10 @@ const W = 2000
 const OFF = { x: 7, y: 3 }
 
 function buttonLines (): TextLine[] {
-  return buttonRects(H, 0).map((r, k) => ({ text: SUBTAB_LABELS.zh[k], x: r.x + r.w / 2 - 20, y: Math.floor(201 / 1440 * H) - 8, w: 40, h: 16 }))
+  // 3.30 可能的按鈕列:一般 / 不滅之火 / 異能 依序在 0–2 號槽
+  return SUBTAB_LABELS.zh.map((text, k) => ({ r: buttonRects(H, 0)[k], text })).map(({ r, text }) => ({ text, x: r.x + r.w / 2 - 20, y: Math.floor(201 / 1440 * H) - 8, w: 40, h: 16 }))
 }
-const BRIGHT: Record<StashSubtab, number[]> = { general: [160, 140, 140, 140], scarabs: [140, 160, 140, 140] }
+const BRIGHT: Record<StashSubtab, number[]> = { general: [160, 140, 140, 140] }
 const FP: Fingerprint = { w: 64, h: 12, data: new Uint8Array(64 * 12).fill(10) }
 
 function harness (opts: { save?: boolean, cfg?: Partial<StashScanConfig> } = {}) {
@@ -60,7 +61,7 @@ function harness (opts: { save?: boolean, cfg?: Partial<StashScanConfig> } = {})
       recognize: async () => ({ lines: state.ocrFound ? buttonLines().map(l => ({ ...l, x: l.x - OFF.x, y: l.y - OFF.y })) : [], ms: 20 }),
       gray: (rect) => {
         const k = buttonRects(H, 0).findIndex(b => Math.abs(b.x - OFF.x - rect.x) <= 1)
-        return new Uint8Array(32).fill(k >= 0 ? BRIGHT.scarabs[k] : 0)
+        return new Uint8Array(32).fill(k >= 0 ? BRIGHT.general[k] : 0)
       },
       pixels: (rect) => {
         const x = Math.max(0, Math.round(rect.x))
@@ -92,26 +93,26 @@ async function showing (h: ReturnType<typeof harness>) {
 describe('檔名與清理', () => {
   it('檔名依本機時間 stash-capture-YYYYMMDD-HHmmss-子頁', () => {
     const ms = new Date(2026, 9, 5, 7, 8, 9).getTime()
-    expect(stashCaptureBaseName(ms, 'scarabs')).toBe('stash-capture-20261005-070809-scarabs')
+    expect(stashCaptureBaseName(ms, 'general')).toBe('stash-capture-20261005-070809-general')
   })
 
   it('isStashCaptureFile 只認 png / json 的擷取檔', () => {
-    expect(isStashCaptureFile('stash-capture-20261005-070809-scarabs.png')).toBe(true)
+    expect(isStashCaptureFile('stash-capture-20261005-070809-general.png')).toBe(true)
     expect(isStashCaptureFile('stash-capture-20261005-070809-general.json')).toBe(true)
     expect(isStashCaptureFile('exile-appraiser-2026-10-05.log')).toBe(false)
     expect(isStashCaptureFile('stash-capture-x.png')).toBe(false)
-    expect(isStashCaptureFile('stash-capture-20261005-070809-scarabs.txt')).toBe(false)
+    expect(isStashCaptureFile('stash-capture-20261005-070809-general.txt')).toBe(false)
   })
 
   it('記錄檔預設清理不會動擷取檔(檔名規則不符)', () => {
-    expect(parseLogFileDay('stash-capture-20261005-070809-scarabs.png')).toBeNull()
+    expect(parseLogFileDay('stash-capture-20261005-070809-general.png')).toBeNull()
   })
 
   it('以 isStashCaptureFile 清理:只刪超過 7 天的擷取檔', async () => {
     const now = new Date(2026, 9, 15).getTime()
     const files: Record<string, number> = {
-      'stash-capture-20261001-000000-scarabs.png': now - 8 * 86_400_000,
-      'stash-capture-20261001-000000-scarabs.json': now - 8 * 86_400_000,
+      'stash-capture-20261001-000000-general.png': now - 8 * 86_400_000,
+      'stash-capture-20261001-000000-general.json': now - 8 * 86_400_000,
       'stash-capture-20261014-000000-general.png': now - 86_400_000,
       'exile-appraiser-2026-10-01.log': now - 8 * 86_400_000
     }
@@ -125,7 +126,7 @@ describe('檔名與清理', () => {
       openAppend: async () => ({ write: async () => {}, close: async () => {} })
     }
     await new LogFileWriter({ dir: 'X', fs: fake, now: () => now, isOwnFile: isStashCaptureFile }).purgeOld()
-    expect(removed.sort()).toEqual(['stash-capture-20261001-000000-scarabs.json', 'stash-capture-20261001-000000-scarabs.png'])
+    expect(removed.sort()).toEqual(['stash-capture-20261001-000000-general.json', 'stash-capture-20261001-000000-general.png'])
   })
 })
 
@@ -193,8 +194,8 @@ describe('StashScan.requestDump', () => {
     const res = await p
     expect(h.saved).toHaveLength(1)
     const d = h.saved[0]
-    expect(d).toMatchObject({ subtab: 'scarabs', yOffset: 0, client: { w: W, h: H }, offset: OFF, baseClientH: TEMPLATES.baseClientH })
-    const rects = cellRects(LAYOUTS, 'scarabs', H, 0)
+    expect(d).toMatchObject({ subtab: 'general', yOffset: 0, client: { w: W, h: H }, offset: OFF, baseClientH: TEMPLATES.baseClientH })
+    const rects = cellRects(LAYOUTS, 'general', H, 0)
     expect(d.cells).toHaveLength(rects.length)
     // 格子矩形 = 像素區座標(client − 擷取偏移 − 像素區原點)
     expect(d.cells[0].rect).toEqual({ x: rects[0].x - OFF.x - d.origin.x, y: rects[0].y - OFF.y - d.origin.y, w: rects[0].w, h: rects[0].h })
@@ -202,8 +203,8 @@ describe('StashScan.requestDump', () => {
     expect(d.image.width * d.image.height * d.image.channels).toBe(d.image.data.length)
     // 影像右界含延伸裁切:涵蓋最右格的右緣
     expect(d.image.width).toBeGreaterThan(Math.max(...d.cells.map(c => c.crop.x + c.crop.w)))
-    expect(res).toEqual({ ok: true, file: expect.stringMatching(/stash-capture-\d{8}-\d{6}-scarabs\.png$/) })
-    expect(h.logs.some(l => /^\[stash\] 已存擷取畫面 stash-capture-\d{8}-\d{6}-scarabs\.png$/.test(l))).toBe(true)
+    expect(res).toEqual({ ok: true, file: expect.stringMatching(/stash-capture-\d{8}-\d{6}-general.png$/) })
+    expect(h.logs.some(l => /^\[stash\] 已存擷取畫面 stash-capture-\d{8}-\d{6}-general.png$/.test(l))).toBe(true)
     await h.scan.tick()
     expect(h.saved).toHaveLength(1)
   })

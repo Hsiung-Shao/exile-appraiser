@@ -33,7 +33,8 @@ function clientLines (name: string): TextLine[] {
   const s = snap.scale
   return snap.lines.map(l => ({ text: l.text, x: l.x / s + f.cropX, y: l.y / s + f.cropY, w: l.w / s, h: l.h / s }))
 }
-const SCARAB_LINES = clientLines('strip-scarabs-1432.png')
+// 3.29 碎片頁按鈕列(四顆按鈕都在;聖甲蟲子頁 2026-11-07 起不畫,這裡只用它的按鈕文字位置,亮度另給)
+const STRIP_LINES = clientLines('strip-scarabs-1432.png')
 const TOOLTIP_LINES = clientLines('strip-tooltip-1432.png')
 
 const LAYOUTS: StashLayoutFile = parseStashLayouts(JSON.parse(fs.readFileSync(path.join(ROOT, 'data/poe1/stash/layouts.json'), 'utf8')))
@@ -65,7 +66,7 @@ function fakeClock () {
 
 const fp = (v: number): Fingerprint => ({ w: 64, h: 12, data: new Uint8Array(64 * 12).fill(v) })
 
-/** 亮度:第 k 顆按鈕的 p99;[一般, 聖甲蟲, 不滅之火, 異能] */
+/** 亮度:第 k 顆按鈕的 p99;[一般, 聖甲蟲, 不滅之火, 異能](3.29 四顆;只有一般畫) */
 const BRIGHT = {
   general: [160, 140, 140, 140],
   scarabs: [140, 160, 140, 140],
@@ -81,8 +82,8 @@ function harness () {
     busy: false,
     hold: false,
     frame: fp(10),
-    lines: SCARAB_LINES as TextLine[],
-    bright: [...BRIGHT.scarabs] as number[],
+    lines: STRIP_LINES as TextLine[],
+    bright: [...BRIGHT.general] as number[],
     client: { w: W, h: H },
     captures: 0,
     ocrs: 0,
@@ -137,16 +138,16 @@ function harness () {
 }
 
 type Hn = ReturnType<typeof harness>
-async function showScarabs (h: Hn) {
+async function showGeneral (h: Hn) {
   const r = await h.scan.tick()
-  expect(r).toMatchObject({ kind: 'ocr', found: true, subtab: 'scarabs', sent: 'show' })
+  expect(r).toMatchObject({ kind: 'ocr', found: true, subtab: 'general', sent: 'show' })
   expect(h.scan.showing).toBe(true)
 }
 
 describe('S8 說明框遮住按鈕仍保留', () => {
   it('已顯示後連續 5 次沒找到按鈕且游標在面板內 → held、不送 hide', async () => {
     const h = harness()
-    await showScarabs(h)
+    await showGeneral(h)
     h.state.lines = TOOLTIP_LINES
     h.state.hold = true
     for (let i = 0; i < 5; i++) {
@@ -165,8 +166,8 @@ describe('S9 關倉庫後清除', () => {
   it(`游標不在面板內:第 1 次沒找到不送、第 ${STASH_MISS_LIMIT} 次送 hide`, async () => {
     expect(STASH_MISS_LIMIT).toBe(2)
     const h = harness()
-    await showScarabs(h)
-    expect(h.showingCalls.at(-1)).toEqual({ showing: true, st: { subtab: 'scarabs', yOffset: 0, clientH: H } })
+    await showGeneral(h)
+    expect(h.showingCalls.at(-1)).toEqual({ showing: true, st: { subtab: 'general', yOffset: 0, clientH: H } })
     h.state.lines = TOOLTIP_LINES
     h.state.hold = false
     h.changeFrame()
@@ -183,11 +184,11 @@ describe('S9 關倉庫後清除', () => {
   })
   it('沒找到後又找到 → 累計歸零', async () => {
     const h = harness()
-    await showScarabs(h)
+    await showGeneral(h)
     h.state.lines = TOOLTIP_LINES
     h.changeFrame()
     await h.scan.tick()
-    h.state.lines = SCARAB_LINES
+    h.state.lines = STRIP_LINES
     h.changeFrame()
     await h.scan.tick()
     h.state.lines = TOOLTIP_LINES
@@ -199,21 +200,26 @@ describe('S9 關倉庫後清除', () => {
 })
 
 describe('S9b 狀態轉換只送一次', () => {
-  it('同子頁不重送、換子頁送 show、異能送 hide、client 大小變了重送', async () => {
+  it('同子頁不重送、換到聖甲蟲 / 異能送 hide、回一般送 show、client 大小變了重送', async () => {
     const h = harness()
-    await showScarabs(h)
+    await showGeneral(h)
     const ev0 = h.events[0]
     // 事件內容錯(client / yOffset / ocrMs)→ renderer 疊層畫錯位置
-    expect(ev0).toMatchObject({ reason: 'show', subtab: 'scarabs', yOffset: 0, client: { w: W, h: H }, ocrMs: 42 })
+    expect(ev0).toMatchObject({ reason: 'show', subtab: 'general', yOffset: 0, client: { w: W, h: H }, ocrMs: 42 })
 
     h.changeFrame()
     // 每次 OCR 都重送 → renderer 疊層閃爍
-    expect(await h.scan.tick()).toMatchObject({ kind: 'ocr', found: true, subtab: 'scarabs', sent: null })
+    expect(await h.scan.tick()).toMatchObject({ kind: 'ocr', found: true, subtab: 'general', sent: null })
     expect(h.events).toHaveLength(1)
+
+    h.state.bright = [...BRIGHT.scarabs]
+    h.changeFrame()
+    // 3.29 聖甲蟲子頁(2026-11-07 刪除)仍畫 → 一般頁的格子價格疊在聖甲蟲上
+    expect(await h.scan.tick()).toMatchObject({ found: true, subtab: null, sent: 'hide' })
+    expect(h.showingCalls.at(-1)).toEqual({ showing: false, st: { subtab: null, yOffset: 0, clientH: H } })
 
     h.state.bright = [...BRIGHT.general]
     h.changeFrame()
-    // 只比 showing 不比子頁 → 換頁不更新
     expect(await h.scan.tick()).toMatchObject({ subtab: 'general', sent: 'show' })
     expect(h.events.at(-1)).toMatchObject({ reason: 'show', subtab: 'general' })
     expect(h.showingCalls.at(-1)).toEqual({ showing: true, st: { subtab: 'general', yOffset: 0, clientH: H } })
@@ -225,24 +231,24 @@ describe('S9b 狀態轉換只送一次', () => {
     expect(h.events.at(-1)?.reason).toBe('hide')
     expect(h.scan.showing).toBe(false)
 
-    h.state.bright = [...BRIGHT.scarabs]
+    h.state.bright = [...BRIGHT.general]
     h.changeFrame()
-    expect(await h.scan.tick()).toMatchObject({ subtab: 'scarabs', sent: 'show' })
+    expect(await h.scan.tick()).toMatchObject({ subtab: 'general', sent: 'show' })
     const n = h.events.length
 
     h.state.client = { w: W - 200, h: H }
     h.changeFrame()
     // 沒比 client 大小 → 遊戲改視窗大小後疊層仍用舊尺寸
-    expect(await h.scan.tick()).toMatchObject({ subtab: 'scarabs', sent: 'show' })
+    expect(await h.scan.tick()).toMatchObject({ subtab: 'general', sent: 'show' })
     expect(h.events).toHaveLength(n + 1)
     expect(h.events.at(-1)?.client).toEqual({ w: W - 200, h: H })
   })
   it('資料夾內(按鈕下移 folderOffset)→ show 帶 yOffset', async () => {
     const h = harness()
     const off = Math.floor(47 / 1440 * H)
-    h.state.lines = SCARAB_LINES.map(l => ({ ...l, y: l.y + off }))
+    h.state.lines = STRIP_LINES.map(l => ({ ...l, y: l.y + off }))
     // 沒把 yOffset 帶進事件 / 亮度取樣沒加偏移(這裡亮度依 x 對,所以只驗事件)→ 疊層差一列
-    expect(await h.scan.tick()).toMatchObject({ found: true, subtab: 'scarabs', sent: 'show' })
+    expect(await h.scan.tick()).toMatchObject({ found: true, subtab: 'general', sent: 'show' })
     expect(h.events[0].yOffset).toBe(off)
   })
 })
@@ -271,7 +277,7 @@ describe('S9c 擋下條件與收起', () => {
   })
   it('顯示中改成停用 → blocked 並送 hide', async () => {
     const h = harness()
-    await showScarabs(h)
+    await showGeneral(h)
     h.cfg.enabled = false
     expect(await h.scan.tick()).toEqual({ kind: 'blocked', block: 'disabled' })
     expect(h.events.map(e => e.reason)).toEqual(['show', 'hide'])
@@ -281,7 +287,7 @@ describe('S9c 擋下條件與收起', () => {
   })
   it('顯示中遊戲失焦 → blocked 但不送 hide、不擷取', async () => {
     const h = harness()
-    await showScarabs(h)
+    await showGeneral(h)
     const caps = h.state.captures
     h.env.gameActive = false
     expect(await h.scan.tick()).toEqual({ kind: 'blocked', block: 'game-inactive' })
@@ -300,7 +306,7 @@ describe('S9c 擋下條件與收起', () => {
 describe('S9d 畫面沒變不 OCR', () => {
   it('縮圖相同 → unchanged、只 OCR 一次;縮圖改變 → 再 OCR', async () => {
     const h = harness()
-    await showScarabs(h)
+    await showGeneral(h)
     // 沒做差分 → 每 500 ms 跑一次 OCR,CPU 浪費
     expect(await h.scan.tick()).toEqual({ kind: 'unchanged' })
     expect(h.state.ocrs).toBe(1)
@@ -310,7 +316,7 @@ describe('S9d 畫面沒變不 OCR', () => {
   })
   it('縮圖相同但 client 大小改變 → 仍重新 OCR', async () => {
     const h = harness()
-    await showScarabs(h)
+    await showGeneral(h)
     h.state.client = { w: W - 100, h: H }
     // 差分沒比 client → 換解析度後疊層停在舊尺寸
     expect(await h.scan.tick()).toMatchObject({ kind: 'ocr' })
@@ -404,7 +410,7 @@ describe('S12 游標換格才送事件', () => {
     const at = (cx: number, cy: number) => { st.cursor = { x: bounds.x + cx, y: bounds.y + cy } }
     return { clk, st, cur, sent, at, bounds }
   }
-  const cells = cellRects(LAYOUTS, 'scarabs', H, 0)
+  const cells = cellRects(LAYOUTS, 'general', H, 0)
 
   it('同一格內移動只送一次、換格再送、移到格外送 null', async () => {
     expect(STASH_CURSOR_INTERVAL_MS).toBe(80)
@@ -412,7 +418,7 @@ describe('S12 游標換格才送事件', () => {
     const a = cells[0]
     const b = cells.find(r => r.refName !== a.refName)!
     c.at(a.x + 2, a.y + 2)
-    c.cur.setShown({ subtab: 'scarabs', yOffset: 0, clientH: H })
+    c.cur.setShown({ subtab: 'general', yOffset: 0, clientH: H })
     expect(c.cur.polling).toBe(true)
     await c.clk.advance(STASH_CURSOR_INTERVAL_MS * 2)
     // 沒減 bounds 左上 / 版面換算錯 → refName 錯
@@ -437,7 +443,7 @@ describe('S12 游標換格才送事件', () => {
     const c = cursorHarness()
     const a = cells[0]
     c.at(a.x + 2, a.y + 2)
-    c.cur.setShown({ subtab: 'scarabs', yOffset: 0, clientH: H })
+    c.cur.setShown({ subtab: 'general', yOffset: 0, clientH: H })
     await c.clk.advance(STASH_CURSOR_INTERVAL_MS * 2)
     expect(c.sent).toEqual([{ refName: a.refName }])
     c.st.active = false
@@ -455,7 +461,7 @@ describe('S12 游標換格才送事件', () => {
   it('setShown(null) 後不再輪詢', async () => {
     const c = cursorHarness()
     const a = cells[0]
-    c.cur.setShown({ subtab: 'scarabs', yOffset: 0, clientH: H })
+    c.cur.setShown({ subtab: 'general', yOffset: 0, clientH: H })
     await c.clk.advance(STASH_CURSOR_INTERVAL_MS * 2)
     c.cur.setShown(null)
     expect(c.cur.polling).toBe(false)
@@ -468,16 +474,16 @@ describe('S12 游標換格才送事件', () => {
   it('遊戲不在前景時 setShown 不開始輪詢', () => {
     const c = cursorHarness()
     c.st.active = false
-    c.cur.setShown({ subtab: 'scarabs', yOffset: 0, clientH: H })
+    c.cur.setShown({ subtab: 'general', yOffset: 0, clientH: H })
     expect(c.cur.polling).toBe(false)
   })
   it('資料夾偏移:格子跟著 yOffset 下移', async () => {
     const c = cursorHarness()
     const off = Math.floor(47 / 1440 * H)
-    const shifted = cellRects(LAYOUTS, 'scarabs', H, off)
+    const shifted = cellRects(LAYOUTS, 'general', H, off)
     const a = shifted[0]
     c.at(a.x + 2, a.y + a.h - 2)
-    c.cur.setShown({ subtab: 'scarabs', yOffset: off, clientH: H })
+    c.cur.setShown({ subtab: 'general', yOffset: off, clientH: H })
     await c.clk.advance(STASH_CURSOR_INTERVAL_MS * 2)
     // 忘了加 yOffset → 對到格外或上一列
     expect(c.sent).toEqual([{ refName: a.refName }])
@@ -511,7 +517,7 @@ describe('S12b 面板範圍判定', () => {
       layouts: () => LAYOUTS,
       send: () => {}
     })
-    cur.setShown({ subtab: 'scarabs', yOffset: 0, clientH: H })
+    cur.setShown({ subtab: 'general', yOffset: 0, clientH: H })
     const xl = Math.floor(H * 37 / 60)
     // 沒減 bounds 左上 → 偏 100 / 50 px
     st.cursor = { x: 100 + xl - 1, y: 50 + 10 }
@@ -529,7 +535,7 @@ describe('S12b 面板範圍判定', () => {
 describe('S9e 沒找到按鈕後畫面靜止仍收起(B1)', () => {
   it('已顯示、沒找到按鈕後縮圖不再改變、游標不在格上 → 第 2 個 tick 送 hide', async () => {
     const h = harness()
-    await showScarabs(h)
+    await showGeneral(h)
     h.state.lines = TOOLTIP_LINES
     h.state.hold = false
     h.changeFrame()
@@ -544,7 +550,7 @@ describe('S8b 維持有上限(B2b)', () => {
   it(`連續 held ${STASH_HOLD_LIMIT} 次後照常累計,第 7 次送 hide`, async () => {
     expect(STASH_HOLD_LIMIT).toBe(5)
     const h = harness()
-    await showScarabs(h)
+    await showGeneral(h)
     h.state.lines = TOOLTIP_LINES
     h.state.hold = true
     for (let i = 0; i < STASH_HOLD_LIMIT; i++) {
@@ -560,14 +566,14 @@ describe('S8b 維持有上限(B2b)', () => {
   })
   it('找到按鈕後 held 次數歸零', async () => {
     const h = harness()
-    await showScarabs(h)
+    await showGeneral(h)
     h.state.hold = true
     for (let i = 0; i < STASH_HOLD_LIMIT - 1; i++) {
       h.state.lines = TOOLTIP_LINES
       h.changeFrame()
       await h.scan.tick()
     }
-    h.state.lines = SCARAB_LINES
+    h.state.lines = STRIP_LINES
     h.changeFrame()
     expect(await h.scan.tick()).toMatchObject({ found: true })
     h.state.lines = TOOLTIP_LINES
@@ -594,11 +600,11 @@ describe('S12c 游標在格上判定(B2a)', () => {
     const at = (cx: number, cy: number) => { st.cursor = { x: bounds.x + cx, y: bounds.y + cy } }
     return { cur, at }
   }
-  const cells = cellRects(LAYOUTS, 'scarabs', H, 0)
+  const cells = cellRects(LAYOUTS, 'general', H, 0)
 
   it('格上為真;頁籤列 / 格子之間為假(仍在面板內)', () => {
     const c = onCellHarness()
-    c.cur.setShown({ subtab: 'scarabs', yOffset: 0, clientH: H })
+    c.cur.setShown({ subtab: 'general', yOffset: 0, clientH: H })
     const a = cells[0]
     c.at(a.x + 2, a.y + 2)
     expect(c.cur.onCell()).toBe(true)
@@ -620,7 +626,7 @@ describe('S12c 游標在格上判定(B2a)', () => {
     const a = cells[0]
     c.at(a.x + 2, a.y + 2)
     expect(c.cur.onCell()).toBe(false)
-    c.cur.setShown({ subtab: 'scarabs', yOffset: 0, clientH: H })
+    c.cur.setShown({ subtab: 'general', yOffset: 0, clientH: H })
     expect(c.cur.onCell()).toBe(true)
     c.cur.setShown(null)
     expect(c.cur.onCell()).toBe(false)
@@ -739,7 +745,7 @@ describe('S18b 自訂區域夾在按鈕可能出現的範圍內(R1)', () => {
 describe('S19 使用者暫停熱鍵(T21)', () => {
   it('顯示中暫停 → 立刻送 hide、之後 tick 被擋且不擷取、不排計時器', async () => {
     const h = harness()
-    await showScarabs(h)
+    await showGeneral(h)
     h.scan.start(1_000_000)
     // 回傳暫停後的狀態(main 用來顯示通知)
     expect(h.scan.toggleUserPause()).toBe(true)
@@ -793,7 +799,7 @@ describe('S19 使用者暫停熱鍵(T21)', () => {
 describe('S21 只支援國際服(台服完全不掃描)', () => {
   it('台服:不擷取、擋下原因 not-intl、已顯示的疊層收掉、不排計時器', async () => {
     const h = harness()
-    await showScarabs(h)
+    await showGeneral(h)
     h.cfg.realm = 'tw'
     const caps = h.state.captures
     expect(await h.scan.tick()).toEqual({ kind: 'blocked', block: 'not-intl' })

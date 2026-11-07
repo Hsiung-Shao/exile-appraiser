@@ -3,10 +3,10 @@ import { describe, expect, it } from 'vitest'
 import { stashUnreadSummary } from '../src/ocr/stash-scan'
 
 const rects = [
-  { x: 0, y: 0, w: 10, h: 10, refName: 'Scarab A' },
-  { x: 0, y: 0, w: 10, h: 10, refName: 'Scarab B' },
-  { x: 0, y: 0, w: 10, h: 10, refName: 'Scarab C' },
-  { x: 0, y: 0, w: 10, h: 10, refName: 'Scarab D' }
+  { x: 0, y: 0, w: 10, h: 10, refName: 'Item A' },
+  { x: 0, y: 0, w: 10, h: 10, refName: 'Item B' },
+  { x: 0, y: 0, w: 10, h: 10, refName: 'Item C' },
+  { x: 0, y: 0, w: 10, h: 10, refName: 'Item D' }
 ]
 
 describe('stashUnreadSummary', () => {
@@ -21,13 +21,13 @@ describe('stashUnreadSummary', () => {
       {},
       { why: { reason: 'missed-digit', raw: '8', confidence: 0.81, margin: 0.3 } }
     ], new Set())
-    expect(s).toContain('#2 Scarab B 分數低(讀到 49,分數 0.68 / 差 0.12)')
-    expect(s).toContain('#4 Scarab D 疑似漏讀一位(讀到 8,分數 0.81 / 差 0.30)')
-    expect(s).not.toContain('Scarab A')
+    expect(s).toContain('#2 Item B 分數低(讀到 49,分數 0.68 / 差 0.12)')
+    expect(s).toContain('#4 Item D 疑似漏讀一位(讀到 8,分數 0.81 / 差 0.30)')
+    expect(s).not.toContain('Item A')
   })
 
   it('從沒讀到、正在等徽章收起的格標「被徽章遮住」', () => {
     const s = stashUnreadSummary(rects, [null, 2, 3, 4], [{}, {}, {}, {}], new Set([0]))
-    expect(s).toBe('#1 Scarab A 被徽章遮住,等待重讀')
+    expect(s).toBe('#1 Item A 被徽章遮住,等待重讀')
   })
 })

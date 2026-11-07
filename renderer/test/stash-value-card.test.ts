@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest'
 import { _roundTripForTest, hostConfigOf } from '../src/web/Config'
 import { floatMenuPlace, floatMenuPosOf, overlayPlace, overlayPosOf } from '../src/web/overlay/float-menu-geom'
 import {
-  STASH_BADGE_PLACEMENT, STASH_MASK_PAD_CSS_PX, layoutStashBadges, stashBadgeBandOverlaps, stashBadgeBox, stashValueCardPlace
+  STASH_BADGE_PLACEMENT, STASH_MASK_PAD_CSS_PX, layoutStashBadges, stashBadgeBandOverlaps, stashValueCardPlace
 } from '../src/web/overlay/stash-view'
 import { parseStashLayouts } from '../../core/src/stash/layout'
 
@@ -18,7 +18,6 @@ const VIEW = { w: 2560, h: 1440 }
 const DEF = { left: 24, top: 1066, maxWidth: 840, maxHeight: 80 }
 const BOX = { w: 300, h: 40 }
 /** 兩行徽章(31 px)擺 below 時蓋到他格數字帶的格數(2026-10-15 實測,鎖住當基準) */
-const TWO_LINE_BELOW_OTHERS = 93
 
 describe('D1 價值卡位置往返與夾回', () => {
   it('舊設定檔 / 壞值 → null;合法值往返;不進 host-config', () => {
@@ -97,43 +96,26 @@ describe('Q1 徽章不進數字帶(兩候選的幾何)', () => {
     expect(STASH_BADGE_PLACEMENT).toBe('below')
   })
 
-  it('現況:聖甲蟲頁每格徽章都蓋進自己的數字帶;候選 a / b 徽章框 0 格', () => {
-    const { cells, badges } = setOf('scarabs')
-    expect(stashBadgeBandOverlaps(cells, badges, 'current').own).toBe(115)
-    expect(stashBadgeBandOverlaps(cells, badges, 'fit').own).toBe(0)
-    expect(stashBadgeBandOverlaps(cells, badges, 'below').own).toBe(0)
-    // b 往下長:不蓋到其他格的數字帶
-    expect(stashBadgeBandOverlaps(cells, badges, 'below').others).toBe(0)
-  })
-
-  it('含遮罩外擴 3 px:b 自己的數字帶 0 格(擦到不規則排列的他格數字帶下緣 12 格,鎖數字);a(× 0.33)只剩約 2 px 擦邊', () => {
-    const { cells, badges } = setOf('scarabs')
-    expect(stashBadgeBandOverlaps(cells, badges, 'current', pad).own).toBe(115)
-    // 他格:聖甲蟲頁有錯位的列(y 161 / 188 / 193…),往下長的徽章碰到下方格子數字帶(0.65 高)的下緣;實際數字列(readCellQuantity band)0 格被蓋
-    expect(stashBadgeBandOverlaps(cells, badges, 'below', pad)).toEqual({ own: 0, others: 12 })
-    // a:框上緣 = 下緣 − 0.33 高;外擴後與數字帶(0.65 高)重疊 (0.33 + 0.65 − 1) × 45 + 3 ≈ 2.1 px(擦邊,落在數字列下方 2 px 留白)
-    const c = cells[0]
-    const b = stashBadgeBox(c, badges[0], 'fit')
-    expect((c.y + c.h * 0.65) - (b.y - pad)).toBeCloseTo(2.1, 5)
-  })
-
-  it('兩行徽章(名稱開,約 31 px 高)時 below 蓋到他格數字帶的格數(鎖數字;不採用 below 的依據)', () => {
-    const { cells, badges } = setOf('scarabs')
+  it('兩行徽章(名稱開,約 31 px 高)在一般頁:current 蓋到自己的數字帶 60 格、below 0 格(鎖數字)', () => {
+    // 2026-10-15 依聖甲蟲頁量測(below 壓到他格數字帶 93 格)定了「名稱開 = current」;聖甲蟲 2026-11-07 刪除後一般頁 below 不壓他格,擺法暫不改
+    const { cells, badges } = setOf('general')
     const two = badges.map(b => ({ w: b.w, h: 31 }))
-    // 自己的數字帶仍 0 格,但往下長 31 px 會壓到下方格子的數字帶 93 格(單行徽章同擺法 12 格,見上一條)
-    expect(stashBadgeBandOverlaps(cells, two, 'below', pad)).toEqual({ own: 0, others: TWO_LINE_BELOW_OTHERS })
-    expect(TWO_LINE_BELOW_OTHERS).toBeGreaterThan(12)
+    expect(stashBadgeBandOverlaps(cells, two, 'current', pad)).toEqual({ own: 60, others: 0 })
+    expect(stashBadgeBandOverlaps(cells, two, 'below', pad)).toEqual({ own: 0, others: 0 })
   })
 
   it('一般頁(格高 60)現況就不交疊,候選不讓它變差', () => {
     const { cells, badges } = setOf('general')
-    for (const mode of ['current', 'fit', 'below'] as const) expect(stashBadgeBandOverlaps(cells, badges, mode)).toEqual({ own: 0, others: 0 })
+    for (const mode of ['current', 'fit', 'below'] as const) {
+      expect(stashBadgeBandOverlaps(cells, badges, mode)).toEqual({ own: 0, others: 0 })
+      expect(stashBadgeBandOverlaps(cells, badges, mode, pad)).toEqual({ own: 0, others: 0 })
+    }
   })
 
   it('layoutStashBadges:current 不帶擺法欄位;fit 帶 maxHeight、below 把 top 移到數字帶下緣;省略 = below', () => {
     const file = parseStashLayouts(JSON.parse(read('data/poe1/stash/layouts.json')))
     const base = {
-      file, subtab: 'scarabs' as const, yOffset: 0, client: { w: 2560, h: 1440 }, viewport: { w: 2560, h: 1440 },
+      file, subtab: 'general' as const, yOffset: 0, client: { w: 2560, h: 1440 }, viewport: { w: 2560, h: 1440 },
       names: () => undefined, priceOf: () => ({ status: 'no-price' as const }), divineRate: undefined,
       thresholds: { low: 1, high: 10 } as never, hover: null
     }
@@ -152,7 +134,7 @@ describe('Q1 徽章不進數字帶(兩候選的幾何)', () => {
   it('省略擺法時依名稱開關:名稱關(單行)= below,名稱開(兩行)= current', () => {
     const file = parseStashLayouts(JSON.parse(read('data/poe1/stash/layouts.json')))
     const base = {
-      file, subtab: 'scarabs' as const, yOffset: 0, client: { w: 2560, h: 1440 }, viewport: { w: 2560, h: 1440 },
+      file, subtab: 'general' as const, yOffset: 0, client: { w: 2560, h: 1440 }, viewport: { w: 2560, h: 1440 },
       names: () => undefined, priceOf: () => ({ status: 'no-price' as const }), divineRate: undefined,
       thresholds: { low: 1, high: 10 } as never, hover: null
     }

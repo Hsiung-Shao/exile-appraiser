@@ -12,8 +12,8 @@ const params = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map(m => m[1]).sort(
 
 describe('結果文案', () => {
   it('存檔成功:顯示檔名、不是錯誤', () => {
-    expect(stashDumpMessage({ ok: true, file: 'C:\\u\\logs\\stash-capture-20261015-123456-scarabs.png' }))
-      .toEqual({ key: 'ppz.log.stash_dump_saved', params: { file: 'stash-capture-20261015-123456-scarabs.png' }, bad: false })
+    expect(stashDumpMessage({ ok: true, file: 'C:\\u\\logs\\stash-capture-20261015-123456-general.png' }))
+      .toEqual({ key: 'ppz.log.stash_dump_saved', params: { file: 'stash-capture-20261015-123456-general.png' }, bad: false })
   })
 
   it('疊層沒顯示 / 逾時 / 停用各有自己的字串,標成錯誤', () => {

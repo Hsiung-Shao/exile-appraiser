@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { cellRects, parseStashLayouts, type StashLayoutFile } from '../../core/src/stash/layout'
-import { layoutStashBadges, shortStashName, stashPriceUnit, type StashLayoutInput } from '../src/web/overlay/stash-view'
+import { layoutStashBadges, stashPriceUnit, type StashLayoutInput } from '../src/web/overlay/stash-view'
 import type { PriceOfResult } from '../src/web/background/price-of'
 import { badgeStyleVars, defaultOcrBadgeStyle } from '../src/web/overlay/badge-style'
 import { _roundTripForTest } from '../src/web/Config'
@@ -20,11 +20,11 @@ const okPrice = (chaos: number, lowConfidence = false): PriceOfResult => ({ stat
 function input (p: Partial<StashLayoutInput> = {}): StashLayoutInput {
   return {
     file: FILE,
-    subtab: 'scarabs',
+    subtab: 'general',
     yOffset: 0,
     client: { w: 1432, h: 2012 },
     viewport: { w: 716, h: 1006 },
-    names: r => `聖甲蟲：${r}`,
+    names: r => `名稱:${r}`,
     priceOf: () => okPrice(10),
     divineRate: undefined,
     thresholds: { low: 5, high: 50 },
@@ -35,7 +35,7 @@ function input (p: Partial<StashLayoutInput> = {}): StashLayoutInput {
 
 describe('S13 格子矩形換成 CSS 位置', () => {
   it('viewport 一半大小時第一格位置 = cellRects × 0.5', () => {
-    const rects = cellRects(FILE, 'scarabs', 2012, 0)
+    const rects = cellRects(FILE, 'general', 2012, 0)
     // 座標換算用現況錨點(格子下緣)驗;預設擺法 below 另見 stash-value-card.test.ts Q1
     const out = layoutStashBadges({ ...input(), placement: 'current' })
     // 漏格 / 多格會讓數量不同
@@ -48,7 +48,7 @@ describe('S13 格子矩形換成 CSS 位置', () => {
     expect(out[0].width).toBeCloseTo(r.w * 0.5, 6)
   })
   it('yOffset 47 時 top 跟著下移', () => {
-    const r = cellRects(FILE, 'scarabs', 2012, 47)[0]
+    const r = cellRects(FILE, 'general', 2012, 47)[0]
     const out = layoutStashBadges({ ...input({ yOffset: 47 }), placement: 'current' })
     // 沒把偏移傳給 cellRects 會停在原位
     expect(out[0].top).toBeCloseTo((r.y + r.h) * 0.5, 6)
@@ -62,30 +62,29 @@ describe('S13 格子矩形換成 CSS 位置', () => {
 })
 
 describe('S14 停在格上只留該格', () => {
-  const target = FILE.subtabs.scarabs[3].refName
-  it('hover 某格 → 只回一枚、hovered、全名', () => {
+  const target = FILE.subtabs.general[3].refName
+  it('hover 某格 → 只回一枚、hovered、名稱', () => {
     const out = layoutStashBadges(input({ hover: target }))
     // 沒過濾其他格會蓋住遊戲說明框
     expect(out).toHaveLength(1)
     expect(out[0].refName).toBe(target)
     expect(out[0].hovered).toBe(true)
-    // hover 時仍用短名就看不到完整名稱
-    expect(out[0].name).toBe(`聖甲蟲：${target}`)
+    expect(out[0].name).toBe(`名稱:${target}`)
   })
   it('hover 不存在的格 → 空陣列', () => {
     expect(layoutStashBadges(input({ hover: '不存在的物品' }))).toEqual([])
   })
-  it('hover null → 每格都有、都不是 hovered、用短名', () => {
+  it('hover null → 每格都有、都不是 hovered', () => {
     const out = layoutStashBadges(input())
-    expect(out.length).toBe(FILE.subtabs.scarabs.length)
+    expect(out.length).toBe(FILE.subtabs.general.length)
     for (const b of out) {
       expect(b.hovered).toBe(false)
-      expect(b.name).toBe(b.refName)
+      expect(b.name).toBe(`名稱:${b.refName}`)
     }
   })
   it('names 回 undefined → 用 refName', () => {
-    const out = layoutStashBadges(input({ names: () => undefined, subtab: 'general' }))
-    for (const b of out) expect(b.name).toBe(shortStashName(b.refName))
+    const out = layoutStashBadges(input({ names: () => undefined }))
+    for (const b of out) expect(b.name).toBe(b.refName)
     expect(out[0].name).toBe(FILE.subtabs.general[0].refName)
   })
 })
@@ -159,15 +158,6 @@ describe('S16 台服不顯示價格', () => {
     expect(src.slice(i, j)).not.toContain('queuePricesFetch')
     const k = src.indexOf('}', src.indexOf('queuePricesFetch', j))
     expect(src.slice(j, k)).toContain('queuePricesFetch()')
-  })
-})
-
-describe('S16b 名稱短名規則', () => {
-  it('去「聖甲蟲:」前綴與英文 Scarab 字樣;其他原樣', () => {
-    expect(shortStashName('聖甲蟲：落降深淵')).toBe('落降深淵')
-    expect(shortStashName('聖甲蟲:落降深淵')).toBe('落降深淵')
-    expect(shortStashName('Horned Scarab of Nemeses')).toBe('Horned Nemeses')
-    expect(shortStashName('黃昏的奉獻')).toBe('黃昏的奉獻')
   })
 })
 
@@ -291,7 +281,7 @@ describe('S20 倉庫卡片走統一樣板(T4 / T5)', () => {
   })
   it('stashScanStatus:顯示中 / 暫停(帶熱鍵)/ 失焦 / UI 開著 / 閒置', () => {
     expect(stashScanStatus(undefined, tr, '')).toBeNull()
-    expect(stashScanStatus({ block: null, showing: true, subtab: 'scarabs', lastOcrMs: 1, ocrCount: 1 }, tr, '')).toMatchObject({ code: 'showing', tone: 'ok' })
+    expect(stashScanStatus({ block: null, showing: true, subtab: 'general', lastOcrMs: 1, ocrCount: 1 }, tr, '')).toMatchObject({ code: 'showing', tone: 'ok' })
     // 暫停沒標出來 → 使用者以為壞掉
     expect(stashScanStatus({ block: 'user-paused', showing: false, subtab: null, lastOcrMs: null, ocrCount: 0 }, tr, 'F9'))
       .toEqual({ code: 'paused', tone: 'warn', text: 'ppz.ocr.scan_status_paused{"hotkey":"F9"}' })

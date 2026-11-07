@@ -75,7 +75,7 @@ const TOAST_SELFTEST = argAfter('--toast-selftest')
 // `--uiohook-selftest`:只註冊 / 解除全域掛鉤(start → stop → 1 秒後再 start → stop),印出載入的 .node 路徑後結束;
 // 不送任何輸入、不拿單一實例鎖、不建視窗/托盤/熱鍵。手動實機檢查用(scripts/uiohook-hookcheck.mjs),正式版也接受。
 const UIOHOOK_SELFTEST = process.argv.includes('--uiohook-selftest')
-// 2026-10-15 倉庫價值:`--stash-selftest <png> [--out <png>] [--stash-subtab=general|scarabs]`:無頭讀截圖每格的堆疊數量(ocr/stash-selftest.ts);
+// 2026-10-15 倉庫價值:`--stash-selftest <png> [--out <png>] [--stash-y-offset=N]`:無頭讀截圖每格的堆疊數量(ocr/stash-selftest.ts);
 // 不拿單一實例鎖、不送輸入、不擷取螢幕
 const STASH_SELFTEST = argAfter('--stash-selftest')
 // 效能修正第 17 步:`--capture-bench [--bench-*]`:量 overlay screenshot() 與 desktopCapturer 的耗時、像素 / OCR 一致性(ocr/capture-bench.ts);

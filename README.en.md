@@ -69,7 +69,7 @@ A price checker for Path of Exile 1 and 2: hover an item in game, press a hotkey
 
 **Screen recognition (OCR, runs locally)**
 
-- **PoE1 stash prices and stash value**: on the "General" and "Scarab" sub-tabs of the fragment stash tab, every cell gets a poe.ninja price, and stack sizes are read to total the tab (international realm).
+- **PoE1 stash prices and stash value**: on the "General" sub-tab of the fragment stash tab, every cell gets a poe.ninja price, and stack sizes are read to total the tab (international realm).
 - **PoE2 Well of Souls reveal OCR**: open the reveal panel and it is recognized automatically; each option is labelled with the tier, mod pool and value range of its desecrated mods.
 - **PoE2 runeshape auto price check**: while the runeshape panel is open, each row gets a reference price; rows without a poe.ninja price are looked up on the trade site automatically.
 
@@ -200,14 +200,14 @@ Close it with ✕, a click outside, `Esc` or `Shift + Space` again; it also clos
 
 ![Stash prices and tab value](docs/images/stash-prices.png)
 
-When the **fragment stash tab** is open on its "General" or "Scarab" sub-tab, every cell gets a poe.ninja price (C = Chaos Orb, D = Divine Orb); hovering a cell enlarges just that one.
+When the **fragment stash tab** is open on its "General" sub-tab, every cell gets a poe.ninja price (C = Chaos Orb, D = Divine Orb); hovering a cell enlarges just that one.
 
 **Requirements**: PoE1, overlay mode, international realm (poe.ninja has no Taiwan prices, so stash prices are not shown there). Settings are in **Settings › Auto recognition › Stash prices (PoE1 fragment tab)**; on by default.
 
 - **Stash value**: stack sizes are read from each cell, badges show the subtotal, and a "Tab value" card shows the total. Cells whose count could not be read are marked "?" and cells without a price are marked "N/A"; neither counts toward the total. Counts come from screen recognition and can be wrong; the game is always right.
 - **Show prices**: "Detect automatically" (appears whenever the stash is open) or "On hotkey" (no screenshots at all until you press the "Stash prices: start / pause" hotkey; hides itself when the stash closes). Set the hotkey in Settings › Hotkeys.
 - **Show item names on badges**: lets you check that each cell was recognized as the right item; turn it off afterwards to keep only prices.
-- **OCR region**: the app looks here for the row of sub-tab buttons ("General / Scarab …") to tell that the fragment tab is open and which sub-tab is showing; if badges do not appear (for example after you set a custom area and then move the stash tab into a folder, which pushes the buttons down; the default area follows them automatically), select that button row on the game screen again, or "Reset to default". Cell positions follow a fixed layout and are not affected by this.
+- **OCR region**: the app looks here for the row of sub-tab buttons ("General / Allflame / Eldritch") to tell that the fragment tab is open and which sub-tab is showing; if badges do not appear (for example after you set a custom area and then move the stash tab into a folder, which pushes the buttons down; the default area follows them automatically), select that button row on the game screen again, or "Reset to default". Cell positions follow a fixed layout and are not affected by this.
 - Badge font, size and price-tier colours are under "Badge appearance" on the same tab.
 
 ### Well of Souls reveal OCR (PoE2)
