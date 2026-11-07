@@ -2,6 +2,7 @@
  * 倉庫價值(2026-10-15):StashScan 讀每格堆疊數量 V7 / V8 / V13 + 徽章蓋住數字時的 peek。
  * 假時鐘不需要(直接呼叫 tick);擷取 = core/test/stash/fixtures/qty 的真實截圖(client 700×1125,倉庫不在資料夾),
  * 按鈕列 OCR 給合成行(按鈕位置照 core `buttonRects`)。不碰 Electron。
+ * 2026-11-07 聖甲蟲子頁刪除:只掃一般頁;一般頁截圖沒有三位數,三位數格從數字樣本 A(3.29 聖甲蟲頁截圖)的 #24「100」貼過來。
  */
 import { beforeAll, describe, expect, it } from 'vitest'
 import fs from 'node:fs'
@@ -18,7 +19,12 @@ import { parseDigitTemplates, qtyCropRect } from '../../core/src/stash/quantity'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const FIX = path.join(ROOT, 'core/test/stash/fixtures/qty')
-const TRUTH = JSON.parse(fs.readFileSync(path.join(FIX, 'truth.json'), 'utf8')) as Record<StashSubtab, number[]> & { files: Record<StashSubtab, string> }
+const TRUTH = JSON.parse(fs.readFileSync(path.join(FIX, 'truth.json'), 'utf8')) as {
+  general: number[]
+  files: { general: string }
+  samples: Array<{ name: string, file: string, values: number[], rectsAt: Record<string, Array<{ x: number, y: number, w: number, h: number }>> }>
+}
+const SA = TRUTH.samples.find(x => x.name === 'a')!
 const LAYOUTS = parseStashLayouts(JSON.parse(fs.readFileSync(path.join(ROOT, 'data/poe1/stash/layouts.json'), 'utf8')))
 const TEMPLATES = parseDigitTemplates(JSON.parse(fs.readFileSync(path.join(ROOT, 'data/poe1/stash/digit-templates.json'), 'utf8')))
 const BASE_H = 1125
@@ -26,21 +32,29 @@ const BASE_H = 1125
 interface Img { data: Uint8Array, width: number, height: number }
 const IMAGES: Record<string, Img> = {}
 beforeAll(async () => {
-  for (const tab of ['general', 'scarabs'] as const) {
-    for (const h of [BASE_H, 1440]) {
-      let s = sharp(path.join(FIX, TRUTH.files[tab])).removeAlpha()
-      if (h !== BASE_H) s = s.resize({ height: h, kernel: 'lanczos3' })
-      const { data, info } = await s.raw().toBuffer({ resolveWithObject: true })
-      IMAGES[`${tab}@${h}`] = { data: new Uint8Array(data), width: info.width, height: info.height }
-    }
+  for (const h of [BASE_H, 1440]) {
+    let s = sharp(path.join(FIX, TRUTH.files.general)).removeAlpha()
+    if (h !== BASE_H) s = s.resize({ height: h, kernel: 'lanczos3' })
+    const { data, info } = await s.raw().toBuffer({ resolveWithObject: true })
+    IMAGES[`general@${h}`] = { data: new Uint8Array(data), width: info.width, height: info.height }
   }
+  const { data, info } = await sharp(path.join(FIX, SA.file)).removeAlpha().raw().toBuffer({ resolveWithObject: true })
+  IMAGES[`a@${BASE_H}`] = { data: new Uint8Array(data), width: info.width, height: info.height }
 })
 
-/** 合成按鈕列 OCR 行(四顆都在、偏移 0) */
+/** 合成按鈕列 OCR 行(一般 / 不滅之火 / 異能 在 0–2 號槽、偏移 0) */
 function buttonLines (H: number): TextLine[] {
-  return buttonRects(H, 0).map((r, k) => ({ text: SUBTAB_LABELS.zh[k], x: r.x + r.w / 2 - 20, y: Math.floor(201 / 1440 * H) - 8, w: 40, h: 16 }))
+  return SUBTAB_LABELS.zh.map((text, k) => {
+    const r = buttonRects(H, 0)[k]
+    return { text, x: r.x + r.w / 2 - 20, y: Math.floor(201 / 1440 * H) - 8, w: 40, h: 16 }
+  })
 }
-const BRIGHT: Record<StashSubtab, number[]> = { general: [160, 140, 140, 140], scarabs: [140, 160, 140, 140] }
+const BRIGHT: Record<StashSubtab, number[]> = { general: [160, 140, 140, 140] }
+/** 一般頁 #0 = 10、#16 = 64(換數字用);數字樣本 A #24 = 100(三位數) */
+const Q0 = 10
+const Q16 = 64
+// 2026-11-07 一般頁實測 59 / 60(聖甲蟲頁刪除前這裡量的是聖甲蟲頁 109 / 115)
+const OK_GENERAL = 58
 const fp = (v: number): Fingerprint => ({ w: 64, h: 12, data: new Uint8Array(64 * 12).fill(v) })
 
 type R = { x: number, y: number, w: number, h: number }
@@ -49,7 +63,7 @@ type R = { x: number, y: number, w: number, h: number }
  * `store` 模式:遮罩走真的 `ScanMaskStore`(含 300 ms 保留期與 ack),renderer 由 `badgesOf(ev)` 模擬(viewport = client → CSS px = client px);
  * `autoAck` = 每個事件立刻回報遮罩(帶 seq)並通知 `maskReported`。
  */
-function harness (tab: StashSubtab = 'scarabs', opts: { H?: number, store?: boolean, autoAck?: boolean, badgesOf?: (ev: StashScanEvent) => R[], onEvent?: (ev: StashScanEvent) => void } = {}) {
+function harness (tab: StashSubtab = 'general', opts: { H?: number, store?: boolean, autoAck?: boolean, badgesOf?: (ev: StashScanEvent) => R[], onEvent?: (ev: StashScanEvent) => void } = {}) {
   const H = opts.H ?? BASE_H
   const base = IMAGES[`${tab}@${H}`]
   const W = base.width
@@ -134,6 +148,24 @@ function harness (tab: StashSubtab = 'scarabs', opts: { H?: number, store?: bool
       }
     }
   }
+  /** 把數字樣本 A #24「100」的數字區貼到 to 格(只在 1125 高) */
+  function pasteHundred (to: number) {
+    expect(H).toBe(BASE_H)
+    expect(SA.values[24]).toBe(100)
+    const src = IMAGES[`a@${BASE_H}`]
+    const a = qtyCropRect(SA.rectsAt[String(BASE_H)][24], H, TEMPLATES.baseClientH)
+    const b = qtyCropRect(rects()[to], H, TEMPLATES.baseClientH)
+    const w = Math.round(Math.min(a.w, b.w))
+    const hh = Math.round(Math.min(a.h, b.h))
+    const { img } = state
+    for (let j = 0; j < hh; j++) {
+      for (let i = 0; i < w; i++) {
+        const si = ((Math.round(a.y) + j) * src.width + Math.round(a.x) + i) * 3
+        const d = ((Math.round(b.y) + j) * img.width + Math.round(b.x) + i) * 3
+        img.data[d] = src.data[si]; img.data[d + 1] = src.data[si + 1]; img.data[d + 2] = src.data[si + 2]
+      }
+    }
+  }
   /** 畫面上畫一塊(模擬徽章:白底字塊) */
   function paint (r: R, v = 255) {
     const { img } = state
@@ -144,7 +176,7 @@ function harness (tab: StashSubtab = 'scarabs', opts: { H?: number, store?: bool
       }
     }
   }
-  return { scan, cfg, env, state, events, rects, copyDigits, paint, report, store, timers, H, W }
+  return { scan, cfg, env, state, events, rects, copyDigits, pasteHundred, paint, report, store, timers, H, W }
 }
 
 /** 徽章貼格下緣、格寬(StashPrices.vue:translate(-50%, -100%)、寬 = max(格寬, 28));h = 徽章高(CSS px = client px) */
@@ -157,24 +189,18 @@ const BADGE_NAMES = 30
 
 describe('V8 事件帶數量', () => {
   it('第一次顯示的 show 帶 quantities,長度 = 版面格數,絕大多數與人工判讀相同', async () => {
-    const h = harness('scarabs')
+    const h = harness()
     await h.scan.tick()
     const ev = h.events.at(-1)!
-    expect(ev).toMatchObject({ reason: 'show', subtab: 'scarabs' })
-    expect(ev.quantities).toHaveLength(LAYOUTS.subtabs.scarabs.length)
-    const ok = ev.quantities!.filter((q, i) => q === TRUTH.scarabs[i]).length
-    const wrong = ev.quantities!.filter((q, i) => q != null && q !== TRUTH.scarabs[i]).length
-    // 2026-10-15 放寬低分門檻後 109(改前 109)
-    expect(ok).toBeGreaterThanOrEqual(103)
+    expect(ev).toMatchObject({ reason: 'show', subtab: 'general' })
+    expect(ev.quantities).toHaveLength(LAYOUTS.subtabs.general.length)
+    const ok = ev.quantities!.filter((q, i) => q === TRUTH.general[i]).length
+    const wrong = ev.quantities!.filter((q, i) => q != null && q !== TRUTH.general[i]).length
+    console.log(`[V8 一般頁] 正確 ${ok}/60`)
+    expect(ok).toBeGreaterThanOrEqual(OK_GENERAL)
     expect(wrong).toBe(0)
     expect(typeof ev.qtyMs).toBe('number')
-    expect(h.scan.snapshot().qtyCells).toBe(115)
-  })
-
-  it('一般子頁同樣帶 60 格', async () => {
-    const h = harness('general')
-    await h.scan.tick()
-    expect(h.events.at(-1)?.quantities).toHaveLength(60)
+    expect(h.scan.snapshot().qtyCells).toBe(60)
   })
 })
 
@@ -193,13 +219,13 @@ describe('V7 只在變化時重讀', () => {
     const h = harness()
     await h.scan.tick()
     const n = h.scan.snapshot().qtyCells!
-    expect(TRUTH.scarabs[24]).toBe(100)
-    h.copyDigits(24, 0)
+    expect([TRUTH.general[0], TRUTH.general[16]]).toEqual([Q0, Q16])
+    h.copyDigits(16, 0)
     await h.scan.tick()
     expect(h.scan.snapshot().qtyCells).toBe(n + 1)
     const ev = h.events.at(-1)!
-    expect(ev).toMatchObject({ reason: 'show', subtab: 'scarabs' })
-    expect(ev.quantities![0]).not.toBe(44)
+    expect(ev).toMatchObject({ reason: 'show', subtab: 'general' })
+    expect(ev.quantities![0]).not.toBe(Q0)
     expect(ev.quantities!.slice(1)).toEqual(h.events[0].quantities!.slice(1))
   })
 
@@ -208,7 +234,7 @@ describe('V7 只在變化時重讀', () => {
     await h.scan.tick()
     const n = h.scan.snapshot().qtyCells!
     h.state.cursorOnCell = true
-    h.copyDigits(24, 0)
+    h.copyDigits(16, 0)
     await h.scan.tick()
     expect(h.scan.snapshot().qtyCells).toBe(n)
     h.state.cursorOnCell = false
@@ -230,7 +256,7 @@ describe('徽章蓋住數字(peek)', () => {
     await h.scan.tick()
     ev = h.events.at(-1)!
     expect(ev.peek).toBeFalsy()
-    expect(ev.quantities![0]).toBe(44)
+    expect(ev.quantities![0]).toBe(Q0)
   })
 
   it('徽章蓋住後,數字有變(露出的部分變了)→ peek;徽章一直在、畫面沒變 → 不 peek、不重讀', async () => {
@@ -245,7 +271,7 @@ describe('徽章蓋住數字(peek)', () => {
     await h.scan.tick()
     expect(h.events.length).toBe(evs)
     expect(h.scan.snapshot().qtyCells).toBe(n)
-    h.copyDigits(24, 0)
+    h.copyDigits(16, 0)
     await h.scan.tick()
     expect(h.events.at(-1)!.peek).toBe(true)
     // renderer 收起徽章並 ack
@@ -253,7 +279,7 @@ describe('徽章蓋住數字(peek)', () => {
     await h.scan.tick()
     const ev = h.events.at(-1)!
     expect(ev.peek).toBeFalsy()
-    expect(ev.quantities![0]).not.toBe(44)
+    expect(ev.quantities![0]).not.toBe(Q0)
   })
 
   it('renderer 還沒回報遮罩(ack)→ 這個 tick 不擷取', async () => {
@@ -270,7 +296,7 @@ const padded = (rs: R[], p = 3): R[] => rs.map(r => ({ x: r.x - p, y: r.y - p, w
 
 describe('code review:遮罩與 peek 時序', () => {
   it('游標離開格子後、倉庫遮罩報告前不讀數量(不把剛畫出的徽章字讀成數量)', async () => {
-    const h = harness('scarabs', { store: true, autoAck: true, badgesOf: () => bottomBadges(h.rects(), BADGE_1LINE) })
+    const h = harness('general', { store: true, autoAck: true, badgesOf: () => bottomBadges(h.rects(), BADGE_1LINE) })
     await h.scan.tick()
     const q0 = h.events.at(-1)!.quantities!.slice()
     const r0 = h.rects()[0]
@@ -294,23 +320,23 @@ describe('code review:遮罩與 peek 時序', () => {
     await h.scan.tick()
     expect(h.scan.snapshot().qtyCells).toBe(n)
     expect(h.events.length).toBe(evs)
-    expect(q0[0]).toBe(44)
+    expect(q0[0]).toBe(Q0)
   })
 
   it('游標離格後超過遮罩保留期仍沒有報告 → 恢復讀數量', async () => {
-    const h = harness('scarabs', { store: true, autoAck: true })
+    const h = harness('general', { store: true, autoAck: true })
     await h.scan.tick()
     const n = h.scan.snapshot().qtyCells!
     h.state.now += 500
     h.scan.cursorMoved()
-    h.copyDigits(24, 0)
+    h.copyDigits(16, 0)
     h.state.now += MASK_LINGER_MS + 1
     await h.scan.tick()
     expect(h.scan.snapshot().qtyCells).toBe(n + 1)
   })
 
   it('倉庫遮罩報告只在等 peek 時才排重看,且延後一個遮罩保留期', async () => {
-    const h = harness('scarabs', { store: true })
+    const h = harness('general', { store: true })
     const r0 = h.rects()[0]
     h.report([{ x: r0.x, y: r0.y, w: r0.w, h: r0.h }])
     h.scan.start(60_000)
@@ -336,13 +362,14 @@ describe('code review:遮罩與 peek 時序', () => {
   })
 
   it('peek ack 後遮罩保留期內的 tick 不算等待次數,保留期過後用乾淨畫面讀到新數量', async () => {
-    const h = harness('scarabs', { store: true, autoAck: true, badgesOf: () => bottomBadges(h.rects(), BADGE_1LINE) })
+    // 一般頁一行徽章不蓋數字 → 用顯示名稱的兩行徽章(會蓋到數字帶,才會 peek)
+    const h = harness('general', { store: true, autoAck: true, badgesOf: () => bottomBadges(h.rects(), BADGE_NAMES) })
     await h.scan.tick()
     h.state.now += 1000
     await h.scan.tick()
-    expect(h.events.at(-1)!.quantities![0]).toBe(44)
+    expect(h.events.at(-1)!.quantities![0]).toBe(Q0)
     h.state.now += 1000
-    h.copyDigits(24, 0)
+    h.copyDigits(16, 0)
     await h.scan.tick()
     expect(h.events.at(-1)!.peek).toBe(true)
     // ack 立刻到(徽章收起)→ 舊徽章外框還在保留期(300 ms)內;間隔很短時連續幾個 tick 都落在保留期內
@@ -351,7 +378,7 @@ describe('code review:遮罩與 peek 時序', () => {
     await h.scan.tick()
     const ev = h.events.at(-1)!
     expect(ev.peek).toBeFalsy()
-    expect(ev.quantities![0]).toBe(100)
+    expect(ev.quantities![0]).toBe(Q16)
   })
 
   it('peek 一直等不到徽章收起:以時間判斷,超過等待上限才放棄', async () => {
@@ -368,7 +395,7 @@ describe('code review:遮罩與 peek 時序', () => {
   })
 
   it('徽章陰影讓數字變暗(約 15%)不算數量變化,不會 peek', async () => {
-    const h = harness('scarabs', { store: true, autoAck: true, badgesOf: () => bottomBadges(h.rects(), BADGE_1LINE) })
+    const h = harness('general', { store: true, autoAck: true, badgesOf: () => bottomBadges(h.rects(), BADGE_1LINE) })
     await h.scan.tick()
     const evs = h.events.length
     // 徽章畫上後:陰影讓上方的數字變暗
@@ -393,7 +420,7 @@ describe('code review:遮罩與 peek 時序', () => {
     await h.scan.tick()
     const rs = h.rects()
     h.state.masks = rs.map(r => ({ x: r.x, y: r.y + Math.floor(r.h * 0.4), w: r.w, h: Math.ceil(r.h * 0.6) }))
-    h.copyDigits(24, 0)
+    h.copyDigits(16, 0)
     await h.scan.tick()
     expect(h.events.at(-1)!.peek).toBe(true)
   })
@@ -460,8 +487,7 @@ describe('code review 第 2 輪', () => {
     const rs = h.rects()
     const right = Math.max(...rs.map(r => r.x))
     const idx = rs.findIndex(r => r.x === right)
-    expect(TRUTH.scarabs[24]).toBe(100)
-    h.copyDigits(24, idx)
+    h.pasteHundred(idx)
     await h.scan.tick()
     expect(h.events.at(-1)!.quantities![idx]).toBe(100)
   })
@@ -470,7 +496,7 @@ describe('code review 第 2 輪', () => {
   it.each([[0.55, 10, 32], [0.9, 10, 32], [0.95, -6, 8]])('徽章陰影(不透明度 %f、往下 %ipx、模糊 %ipx)畫回後不會 peek 循環', async (alpha, offsetY, blur) => {
     const badges = () => bottomBadges(h.rects(), BADGE_1LINE)
     let clean = new Uint8Array(0)
-    const h = harness('scarabs', {
+    const h = harness('general', {
       store: true,
       autoAck: true,
       badgesOf: badges,
@@ -490,18 +516,18 @@ describe('code review 第 2 輪', () => {
     expect(peeks.reduce((a, b) => a + b, 0)).toBeLessThanOrEqual(1)
     expect(peeks.slice(4)).toEqual(Array(8).fill(0))
     // 數量仍與第一次讀到的相同
-    expect(h.events.at(-1)!.quantities![0]).toBe(44)
+    expect(h.events.at(-1)!.quantities![0]).toBe(Q0)
   })
 
   it('游標換格後即使先收到換格前就在路上的舊報告,也要等滿遮罩保留期才讀', async () => {
-    const h = harness('scarabs', { store: true, autoAck: true })
+    const h = harness('general', { store: true, autoAck: true })
     await h.scan.tick()
     const n = h.scan.snapshot().qtyCells!
     h.state.now += 1000
     h.scan.cursorMoved()
     // 換格前送出、換格後才到的報告(還是舊畫面)
     h.report([])
-    h.copyDigits(24, 0)
+    h.copyDigits(16, 0)
     h.state.now += 20
     await h.scan.tick()
     expect(h.scan.snapshot().qtyCells).toBe(n)
@@ -516,7 +542,7 @@ describe('V13 關閉讀數量', () => {
     const h = harness()
     h.cfg.readQuantity = false
     await h.scan.tick()
-    expect(h.events.at(-1)).toMatchObject({ reason: 'show', subtab: 'scarabs' })
+    expect(h.events.at(-1)).toMatchObject({ reason: 'show', subtab: 'general' })
     expect(h.events.at(-1)!.quantities).toBeUndefined()
     expect(h.scan.snapshot().qtyCells ?? 0).toBe(0)
   })
@@ -527,10 +553,10 @@ describe('V13 關閉讀數量', () => {
     expect(h.events.at(-1)!.quantities).toBeDefined()
     h.cfg.readQuantity = false
     await h.scan.tick()
-    expect(h.events.at(-1)).toMatchObject({ reason: 'show', subtab: 'scarabs' })
+    expect(h.events.at(-1)).toMatchObject({ reason: 'show', subtab: 'general' })
     expect(h.events.at(-1)!.quantities).toBeUndefined()
     h.cfg.readQuantity = true
     await h.scan.tick()
-    expect(h.events.at(-1)!.quantities).toHaveLength(115)
+    expect(h.events.at(-1)!.quantities).toHaveLength(60)
   })
 })

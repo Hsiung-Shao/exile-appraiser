@@ -21,7 +21,8 @@ function clientLines (name: string): TextLine[] {
   const snap = JSON.parse(fs.readFileSync(path.join(FIX_DIR, name.replace(/\.png$/, '.ocr.json')), 'utf8')) as { scale: number, lines: TextLine[] }
   return snap.lines.map(l => ({ text: l.text, x: l.x / snap.scale + f.cropX, y: l.y / snap.scale + f.cropY, w: l.w / snap.scale, h: l.h / snap.scale }))
 }
-const SCARAB_LINES = clientLines('strip-scarabs-1432.png')
+// 3.29 碎片頁按鈕列(四顆按鈕都在;聖甲蟲子頁 2026-11-07 起不畫,這裡只用它的按鈕文字位置,亮度另給)
+const STRIP_LINES = clientLines('strip-scarabs-1432.png')
 
 function fakeClock () {
   let t = 0
@@ -71,7 +72,7 @@ function harness (intervalMs: number) {
         recognize: async () => ({ lines: state.lines.map(l => ({ ...l })), ms: 5 }),
         gray: (rect) => {
           const k = buttonRects(client.h, 0).findIndex(b => Math.abs(b.x - rect.x) <= 1)
-          return new Uint8Array(32).fill(k === 1 ? 160 : 140)
+          return new Uint8Array(32).fill(k === 0 ? 160 : 140)
         }
       }
     },
@@ -98,7 +99,7 @@ describe('StashScan 沒顯示時放慢掃描', () => {
 
   it('偵測到倉庫後立刻回到設定間隔 1000 ms', async () => {
     const h = harness(1000)
-    h.state.lines = SCARAB_LINES
+    h.state.lines = STRIP_LINES
     h.scan.start(0)
     await h.clk.advance(5_000)
     h.scan.stop()

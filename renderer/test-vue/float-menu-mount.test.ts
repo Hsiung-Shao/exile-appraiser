@@ -290,12 +290,12 @@ describe('V12 倉庫本頁價值接上', () => {
     const saved = config.game
     try {
       config.game = 'poe1'
-      stashValue.value = { subtab: 'scarabs', totalChaos: 1234.4, divineRate: 200, known: 100, unknown: 3 }
+      stashValue.value = { subtab: 'general', totalChaos: 1234.4, divineRate: 200, known: 50, unknown: 3 }
       reset()
       let r = render()
       await settle()
       const row = one(r.container, 'data-menu', 'stash')
-      expect(text(row)).toContain('聖甲蟲 · 100 格已讀 · 3 格未讀')
+      expect(text(row)).toContain('一般 · 50 格已讀 · 3 格未讀')
       expect(text(one(r.container, 'data-menu', 'stash-value'))).toBe('1,234 C ≈ 6.2 D')
       stashValue.value = null
       await settle()
@@ -303,7 +303,7 @@ describe('V12 倉庫本頁價值接上', () => {
       expect(findAll(r.container, byAttr('data-menu', 'stash-value'))).toEqual([])
       r.app.unmount()
       config.game = 'poe2'
-      stashValue.value = { subtab: 'scarabs', totalChaos: 10, divineRate: 200, known: 1, unknown: 0 }
+      stashValue.value = { subtab: 'general', totalChaos: 10, divineRate: 200, known: 1, unknown: 0 }
       r = render()
       await settle()
       expect(text(one(r.container, 'data-menu', 'stash'))).toContain('只在 PoE1 碎片頁可用')

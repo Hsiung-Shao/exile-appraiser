@@ -29,7 +29,7 @@ export interface StashDumpCell {
 export interface StashDumpData {
   /** 擷取時間(clock) */
   ts: number
-  subtab: 'general' | 'scarabs'
+  subtab: 'general'
   yOffset: number
   client: { w: number, h: number }
   /** 擷取影像左上在 client 內的位置 */

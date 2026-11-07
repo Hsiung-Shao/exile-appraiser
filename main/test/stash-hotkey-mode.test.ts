@@ -30,7 +30,8 @@ function clientLines (name: string): TextLine[] {
   const s = snap.scale
   return snap.lines.map(l => ({ text: l.text, x: l.x / s + f.cropX, y: l.y / s + f.cropY, w: l.w / s, h: l.h / s }))
 }
-const SCARAB_LINES = clientLines('strip-scarabs-1432.png')
+// 3.29 碎片頁按鈕列(四顆按鈕都在;聖甲蟲子頁 2026-11-07 起不畫,這裡只用它的按鈕文字位置,亮度另給)
+const STRIP_LINES = clientLines('strip-scarabs-1432.png')
 
 function fakeClock () {
   let t = 0
@@ -58,13 +59,13 @@ function fakeClock () {
 }
 
 const fp = (v: number): Fingerprint => ({ w: 64, h: 12, data: new Uint8Array(64 * 12).fill(v) })
-const SCARAB_BRIGHT = [140, 160, 140, 140]
+const GENERAL_BRIGHT = [160, 140, 140, 140]
 
 function harness (mode: 'auto' | 'hotkey' = 'hotkey') {
   const clk = fakeClock()
   const cfg: StashScanConfig = { enabled: true, game: 'poe1', intervalMs: 500, triggerMode: mode }
   const env: ScanEnv = { overlay: true, gameActive: true, bounds: { x: 100, y: 50, width: W, height: H } }
-  const state = { lines: SCARAB_LINES as TextLine[], frame: fp(10), captures: 0, captureAt: [] as number[], ocrs: 0, dark: false }
+  const state = { lines: STRIP_LINES as TextLine[], frame: fp(10), captures: 0, captureAt: [] as number[], ocrs: 0, dark: false }
   const events: StashScanEvent[] = []
   const logs: string[] = []
   let armMiss = 0
@@ -85,7 +86,7 @@ function harness (mode: 'auto' | 'hotkey' = 'hotkey') {
         recognize: async () => { state.ocrs++; return { lines: state.lines.map(l => ({ ...l })), ms: 42 } },
         gray: (rect) => {
           const k = buttonRects(client.h, 0).findIndex(b => Math.abs(b.x - rect.x) <= 1)
-          return new Uint8Array(32).fill(!state.dark && k >= 0 ? SCARAB_BRIGHT[k] : 0)
+          return new Uint8Array(32).fill(!state.dark && k >= 0 ? GENERAL_BRIGHT[k] : 0)
         }
       }
     },
@@ -255,7 +256,7 @@ describe('K6 auto 模式行為不變', () => {
     expect(h.clk.pending()).toEqual([STASH_IDLE_INTERVAL_MS])
     await h.clk.advance(30_000)
     expect(h.armMiss()).toBe(0)
-    h.state.lines = SCARAB_LINES
+    h.state.lines = STRIP_LINES
     h.changeFrame()
     await h.clk.advance(STASH_IDLE_INTERVAL_MS)
     expect(h.scan.showing).toBe(true)

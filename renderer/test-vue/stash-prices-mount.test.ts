@@ -1,7 +1,7 @@
 /**
  * 倉庫價值(2026-10-15)疊層真掛載 V11:收 main 的 show(帶每格數量)→ 徽章顯示小計、讀不到的格單價 +「?」、空格不畫、
  * 右側「本頁價值」卡、停格明細卡(單價 / 數量 / 小計)、共用狀態寫進 stash-value.ts、peek 收起格子徽章、每個事件都回報遮罩 ack。
- * poe.ninja 價格 = core/test/recordings/ninja 的 Scarab / Currency 錄製檔(存進 Host 快取;不連網);PoE1 聯盟清單在這裡補一個假回應。
+ * poe.ninja 價格 = core/test/recordings/ninja 的 Fragment / Currency 錄製檔(一般頁 60 格有 59 格有價格)(存進 Host 快取;不連網);PoE1 聯盟清單在這裡補一個假回應。
  */
 import * as fs from 'node:fs'
 import * as path from 'node:path'
@@ -24,7 +24,7 @@ import { mount, text, findAll, byAttr, type MiniNode } from './mini-dom'
 const ROOT = path.resolve(__dirname, '../..')
 const LEAGUE = 'Allflame'
 const LAYOUTS = parseStashLayouts(JSON.parse(fs.readFileSync(path.join(ROOT, 'data/poe1/stash/layouts.json'), 'utf8')))
-const N = LAYOUTS.subtabs.scarabs.length
+const N = LAYOUTS.subtabs.general.length
 
 function i18nPlugin () {
   const load = (lang: string) => ({
@@ -63,7 +63,7 @@ beforeAll(async () => {
     const file = path.join(ROOT, 'core/test/recordings/ninja', 'exchange_' + new URL(url).searchParams.get('type') + '.json')
     return fs.existsSync(file) ? response(fs.readFileSync(file, 'utf8')) : { ...response('x'), ok: false, status: 404 }
   }
-  const snap = toSnapshot(await createNinjaClient({ http, game: 'poe1', league: LEAGUE, sleep: async () => {}, now: () => Date.now() }).fetchAll({ exchange: ['Currency', 'Scarab'], item: [] }))
+  const snap = toSnapshot(await createNinjaClient({ http, game: 'poe1', league: LEAGUE, sleep: async () => {}, now: () => Date.now() }).fetchAll({ exchange: ['Currency', 'Fragment'], item: [] }))
   await Host.ninjaCacheSave('poe1', LEAGUE, JSON.stringify(snap))
   await usePoeninja().load()
   // 掃描事件 / 游標 / 遮罩回報接到測試
@@ -115,13 +115,13 @@ function drag (n: MiniNode, from: { x: number, y: number }, to: { x: number, y: 
 }
 
 let seq = 0
-function show (quantities?: Array<number | null>, peek?: boolean, subtab: 'scarabs' | 'general' = 'scarabs') {
+function show (quantities?: Array<number | null>, peek?: boolean, subtab: 'general' = 'general') {
   scanCb!({ seq: ++seq, ts: 0, reason: 'show', subtab, yOffset: 0, client: { w: 1280, h: 900 }, quantities, ...(peek ? { peek } : {}) })
 }
 
 describe('V11 倉庫價值疊層', () => {
-  // 第 0 格 3 個、第 1 格讀不到、第 2 格空格,其餘各 1 個(三格都挑 poe.ninja 有價格的,錄製檔不是每種聖甲蟲都有)
-  const okIdx = () => LAYOUTS.subtabs.scarabs.map((c, i) => [c.refName, i] as const).filter(([r]) => usePoeninja().priceOf(r).status === 'ok').map(([, i]) => i)
+  // 第 0 格 3 個、第 1 格讀不到、第 2 格空格,其餘各 1 個(三格都挑 poe.ninja 有價格的,錄製檔不是每種碎片都有)
+  const okIdx = () => LAYOUTS.subtabs.general.map((c, i) => [c.refName, i] as const).filter(([r]) => usePoeninja().priceOf(r).status === 'ok').map(([, i]) => i)
   let idx: number[] = []
   let qty: Array<number | null> = []
   beforeAll(() => {
@@ -143,7 +143,7 @@ describe('V11 倉庫價值疊層', () => {
     // 空格沒藏 → N 枚
     expect(badges).toHaveLength(N - 1)
     const byRef = new Map(badges.map(b => [b.attrs['data-ref'], b]))
-    const [c0, c1, c2] = idx.map(i => LAYOUTS.subtabs.scarabs[i])
+    const [c0, c1, c2] = idx.map(i => LAYOUTS.subtabs.general[i])
     expect(byRef.get(c0.refName)!.attrs['data-qty']).toBe('3')
     expect(byRef.has(c2.refName)).toBe(false)
     expect(findAll(byRef.get(c1.refName)!, byAttr('data-stash', 'mark')).map(m => m.attrs['data-mark'])).toEqual(['qty-unknown'])
@@ -152,7 +152,7 @@ describe('V11 倉庫價值疊層', () => {
     expect(card).toBeTruthy()
     expect(text(card)).toContain('本頁價值')
     expect(text(card)).toContain(`${N - 2} 格已讀 · 1 格數量未讀`)
-    expect(stashValue.value).toMatchObject({ subtab: 'scarabs', known: N - 2, unknown: 1 })
+    expect(stashValue.value).toMatchObject({ subtab: 'general', known: N - 2, unknown: 1 })
     expect(stashValue.value!.totalChaos).toBeGreaterThan(0)
     // 每個事件處理完都回報遮罩並帶 seq(main 等 ack 才擷取下一張)
     expect(masks.filter(m => m.source === 'stash').map(m => m.seq)).toContain(seq)
@@ -167,7 +167,7 @@ describe('V11 倉庫價值疊層', () => {
     await settle()
     show(qty)
     await settle(40)
-    const target = LAYOUTS.subtabs.scarabs[idx[0]].refName
+    const target = LAYOUTS.subtabs.general[idx[0]].refName
     cursorCb!({ refName: target })
     await settle(40)
     const badges = all(container, 'badge')
@@ -185,7 +185,7 @@ describe('V11 倉庫價值疊層', () => {
     expect(sub).not.toContain('—')
     if (unit.endsWith('C') && sub.endsWith('C')) expect(num(sub)).toBeCloseTo(num(unit) * 3, 0)
     // 停在空格上也畫(看得到這格是什麼)
-    cursorCb!({ refName: LAYOUTS.subtabs.scarabs[idx[2]].refName })
+    cursorCb!({ refName: LAYOUTS.subtabs.general[idx[2]].refName })
     await settle(40)
     expect(all(container, 'badge')[0].attrs['data-qty']).toBe('0')
     expect(errors).toEqual([])
@@ -212,7 +212,7 @@ describe('V11 倉庫價值疊層', () => {
   it('價值卡拖到格子數字帶上 → peek 時遮罩回報不含卡片,peek 結束卡片回來', async () => {
     const config = AppConfig()
     // 卡片左上角放在第 0 格的數字帶裡(viewport = client = 1280×900)
-    const c = cellRects(LAYOUTS, 'scarabs', 900, 0)[0]
+    const c = cellRects(LAYOUTS, 'general', 900, 0)[0]
     const want = { x: Math.round(c.x + 2), y: Math.round(c.y + c.h * 0.3) }
     config.stashValueCard = { x: want.x / 1280, y: want.y / 900 }
     const { container, app } = render()
@@ -241,17 +241,17 @@ describe('V11 倉庫價值疊層', () => {
   it('未計入總價的格子有標記(數量未讀「?」/ 無價)、明細卡寫原因、本頁價值卡有說明與未計入格數', async () => {
     const { container, app, errors } = render()
     await settle()
-    // 聖甲蟲頁:一格數量讀不到(錄製檔聖甲蟲都有價格)
-    show(qty)
+    // 一格數量讀不到(挑的三格都有價格;錄製檔沒價格的格先當空格,下面另驗「無價」)
+    show(qty.map((q, i) => usePoeninja().priceOf(LAYOUTS.subtabs.general[i].refName).status === 'ok' ? q : 0))
     await settle(40)
     let byRef = new Map(all(container, 'badge').map(b => [b.attrs['data-ref'], b]))
     const markOf = (ref: string) => findAll(byRef.get(ref)!, byAttr('data-stash', 'mark'))
-    const unknownRef = LAYOUTS.subtabs.scarabs[idx[1]].refName
+    const unknownRef = LAYOUTS.subtabs.general[idx[1]].refName
     expect(markOf(unknownRef).map(m => m.attrs['data-mark'])).toEqual(['qty-unknown'])
     expect(text(markOf(unknownRef)[0])).toBe('?')
     expect(byRef.get(unknownRef)!.attrs.class).toContain('st-flagged')
     // 正常的格沒有標記
-    expect(markOf(LAYOUTS.subtabs.scarabs[idx[0]].refName)).toHaveLength(0)
+    expect(markOf(LAYOUTS.subtabs.general[idx[0]].refName)).toHaveLength(0)
     let card = all(container, 'value')[0]
     expect(text(all(card, 'value-note')[0])).toContain('可能讀錯')
     expect(text(all(card, 'value-excluded')[0])).toContain('未計入 1 格')
@@ -259,10 +259,11 @@ describe('V11 倉庫價值疊層', () => {
     await settle(40)
     expect(text(all(container, 'badge')[0])).toContain('數量未讀取,未計入總價')
     cursorCb!({ refName: null })
-    // 一般頁:錄製檔沒有碎片價格 → 有數量的格標「無價」
-    const noPriceRef = LAYOUTS.subtabs.general[0].refName
-    expect(usePoeninja().priceOf(noPriceRef).status).toBe('no-price')
-    show([2, ...Array(LAYOUTS.subtabs.general.length - 1).fill(0)], false, 'general')
+    // 錄製檔沒有價格的那一格 → 有數量時標「無價」
+    const noPriceIdx = LAYOUTS.subtabs.general.findIndex(c => usePoeninja().priceOf(c.refName).status === 'no-price')
+    expect(noPriceIdx).toBeGreaterThanOrEqual(0)
+    const noPriceRef = LAYOUTS.subtabs.general[noPriceIdx].refName
+    show(LAYOUTS.subtabs.general.map((_, i) => i === noPriceIdx ? 2 : 0))
     await settle(40)
     byRef = new Map(all(container, 'badge').map(b => [b.attrs['data-ref'], b]))
     expect(markOf(noPriceRef).map(m => m.attrs['data-mark'])).toEqual(['no-price'])

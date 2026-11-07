@@ -203,14 +203,13 @@
     },
     "stash": {
       "section": "Stash prices (PoE1 fragment tab)",
-      "hint": "When the stash fragment tab (General / Scarab) is open, each slot is labelled with its poe.ninja price (C = Chaos Orb, D = Divine Orb).",
+      "hint": "When the General sub-tab of the stash fragment tab is open, each slot is labelled with its poe.ninja price (C = Chaos Orb, D = Divine Orb).",
       "enabled": "Label prices automatically",
       "show_names": "Show item names on badges",
       "show_names_hint": "Use this to check that each slot is recognised correctly; turn it off afterwards to keep only prices.",
       "status_showing": "Fragment tab detected: {subtab}",
       "status_idle": "Waiting for the stash fragment tab",
       "subtab_general": "General",
-      "subtab_scarabs": "Scarab",
       "tw_no_source": "poe.ninja has no prices for the Taiwan realm: the stash overlay shows item names only.",
       "unit_c": "C",
       "unit_div": "D",
@@ -227,7 +226,7 @@
       "trigger_hint": "Detect automatically: keeps checking whether the stash is open. On hotkey: no screen capture until you press the hotkey on the Fragment tab; press again or close the stash to hide. Set the hotkey under Stash prices in the Hotkeys table.",
       "timing": "OCR {ms} ms ({count} total)",
       "region": "OCR region",
-      "region_hint": "OCR only reads this area to tell that the fragment tab is open and which sub-tab is shown; it should cover the General / Scarab / Allflame / Eldritch buttons without cutting through the stash tab names above. Not set = the default position derived from the screen height. Slot positions are not affected. Putting the stash tab into a folder moves the buttons down; pick the area again or reset to default.",
+      "region_hint": "OCR only reads this area to tell that the fragment tab is open and which sub-tab is shown; it should cover the General / Allflame / Eldritch buttons without cutting through the stash tab names above. Not set = the default position derived from the screen height. Slot positions are not affected. Putting the stash tab into a folder moves the buttons down; pick the area again or reset to default.",
       "region_default": "Default (fragment sub-tab buttons)",
       "region_reset": "Reset to default",
       "read_quantity": "Stash value (read stack sizes and total)",
@@ -245,7 +244,7 @@
       "value_drag": "Drag to move (position is remembered)",
       "value_excluded": "Not counted: {n} slots ({unknown} unread, {noPrice} no price)",
       "picker": {
-        "help": "Frame the fragment tab sub-tab buttons (General / Scarab / Allflame / Eldritch)",
+        "help": "Frame the fragment tab sub-tab buttons (General / Allflame / Eldritch)",
         "sub": "Do not cut through the stash tab names above; the dashed box is the area in use. A stash tab in a folder moves the buttons down: pick again or reset to default"
       }
     },
@@ -905,7 +904,7 @@
       "stash_dump_waiting": "Waiting for the next stash capture… (scanning pauses while settings are open; close settings and return to the stash)",
       "stash_dump_saved": "Saved: {file} (in the log folder)",
       "stash_dump_failed": "Save failed: {msg}",
-      "stash_dump_not_showing": "The stash price overlay isn't showing: open the fragment stash tab (General / Scarabs) in game first.",
+      "stash_dump_not_showing": "The stash price overlay isn't showing: open the General sub-tab of the fragment stash tab in game first.",
       "stash_dump_timeout": "No stash capture arrived (timed out): make sure the fragment stash tab is open and the game is in front, then try again.",
       "stash_dump_disabled": "Stash prices are disabled: turn them on under Recognition first.",
       "stash_dump_not_poe1": "Only the PoE1 stash is supported.",

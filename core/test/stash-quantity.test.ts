@@ -1,6 +1,7 @@
 /**
  * 倉庫碎片頁堆疊數量(數字模板比對,core/src/stash/quantity.ts)V1–V6。
- * 基準:core/test/stash/fixtures/qty/(使用者 2000×1125 截圖裁左側 700 px + 人工判讀 truth.json;一般 60 格、聖甲蟲 115 格、合成空格 14 個)。
+ * 基準:core/test/stash/fixtures/qty/(使用者 2000×1125 截圖裁左側 700 px + 人工判讀 truth.json;一般 60 格、數字樣本 A 115 格、合成空格 14 個)。
+ * 數字樣本 = 3.29 聖甲蟲頁截圖(2026-11-07 聖甲蟲子頁刪除;一般頁沒有 8、9,樣本留作訓練 / 驗證),格子框寫死在 truth.json `samples[].rectsAt`。
  * 模板(data/poe1/stash/digit-templates.json)由同一批截圖產生 → 用全模板讀同一批格子會偏樂觀;
  * V1 另做「留一驗證」(每格用其他 174 格的樣本重建模板)當作對沒看過的格子的準確度估計,兩者都要過門檻。
  */
@@ -14,26 +15,53 @@ import {
   QTY_HIGH_CONFIDENCE, buildDigitTemplates, decodeQtyCrop, digitSamples, parseDigitTemplates, qtyCrop, readCellQuantity,
   type DigitTemplates, type QtyImage, type QtyResult
 } from '../src/stash/quantity'
-import { cellRects, parseStashLayouts, type StashSubtab } from '../src/stash/layout'
+import { cellRects, parseStashLayouts } from '../src/stash/layout'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const FIX = path.join(ROOT, 'core/test/stash/fixtures/qty')
+type Rect = { x: number, y: number, w: number, h: number }
+interface SampleSet {
+  name: string
+  file: string
+  train: boolean
+  values: number[]
+  empties?: Array<{ x: number, y: number }>
+  /** client 高 → 格寬 */
+  box?: Record<string, number>
+  /** client 高 → 每格框 */
+  rectsAt: Record<string, Rect[]>
+}
 const TRUTH = JSON.parse(fs.readFileSync(path.join(FIX, 'truth.json'), 'utf8')) as {
   clientH: number
-  files: Record<StashSubtab, string>
+  files: { general: string }
   general: number[]
-  scarabs: number[]
-  empties: Record<StashSubtab, Array<{ x: number, y: number }>>
-  /** 第二批截圖(2026-10-15) */
-  more: Array<{ tab: StashSubtab, file: string, values: number[], train?: boolean }>
+  empties: { general: Array<{ x: number, y: number }> }
+  /** 數字樣本(3.29 聖甲蟲頁截圖):A = 第一批(進訓練)、B = 第二批 2026-10-15(只驗證) */
+  samples: SampleSet[]
+  /** 之後的一般頁截圖(版面切格) */
+  more: Array<{ tab: 'general', file: string, values: number[], train?: boolean }>
 }
+const SA = TRUTH.samples.find(x => x.name === 'a')!
+const SB = TRUTH.samples.find(x => x.name === 'b')!
 const LAYOUTS = parseStashLayouts(JSON.parse(fs.readFileSync(path.join(ROOT, 'data/poe1/stash/layouts.json'), 'utf8')))
 const TEMPLATE_FILE = path.join(ROOT, 'data/poe1/stash/digit-templates.json')
 const TEMPLATES = parseDigitTemplates(JSON.parse(fs.readFileSync(TEMPLATE_FILE, 'utf8')))
-const TABS: StashSubtab[] = ['general', 'scarabs']
+/** general = 一般頁(版面切格);a = 數字樣本 A(寫死的格子框) */
+type Page = 'general' | 'a'
+const TABS: Page[] = ['general', 'a']
+const fileOf = (tab: Page): string => tab === 'general' ? TRUTH.files.general : SA.file
+const valuesOf = (tab: Page): number[] => tab === 'general' ? TRUTH.general : SA.values
+function rectsOf (tab: Page, h: number): Rect[] {
+  if (tab === 'general') return cellRects(LAYOUTS, 'general', h)
+  const r = SA.rectsAt[h]
+  if (!r) throw new Error(`樣本 A 沒有 ${h} 高的格子框`)
+  return r
+}
+const emptiesOf = (tab: Page): Array<{ x: number, y: number }> => tab === 'general' ? TRUTH.empties.general : SA.empties!
+const boxOf = (tab: Page, h: number): number => tab === 'general' ? cellRects(LAYOUTS, 'general', h)[0].w : SA.box![h]
 
-async function loadImage (tab: StashSubtab, height?: number): Promise<QtyImage> {
-  let s = sharp(path.join(FIX, TRUTH.files[tab])).removeAlpha()
+async function loadImage (tab: Page, height?: number): Promise<QtyImage> {
+  let s = sharp(path.join(FIX, fileOf(tab))).removeAlpha()
   if (height) s = s.resize({ height, kernel: 'lanczos3' })
   const { data, info } = await s.raw().toBuffer({ resolveWithObject: true })
   return { data, width: info.width, height: info.height, channels: info.channels }
@@ -53,17 +81,17 @@ function tally (results: Array<{ id: string, truth: number, r: QtyResult }>): Ta
   return t
 }
 
-async function readAll (templates: (tab: StashSubtab, i: number) => DigitTemplates, height?: number): Promise<Tally> {
+async function readAll (templates: (tab: Page, i: number) => DigitTemplates, height?: number): Promise<Tally> {
   const out: Array<{ id: string, truth: number, r: QtyResult }> = []
   for (const tab of TABS) {
     const img = await loadImage(tab, height)
-    const rects = cellRects(LAYOUTS, tab, img.height)
-    rects.forEach((r, i) => out.push({ id: `${tab}#${i}`, truth: TRUTH[tab][i], r: readCellQuantity(img, r, templates(tab, i), { clientH: img.height }) }))
+    const rects = rectsOf(tab, img.height)
+    rects.forEach((r, i) => out.push({ id: `${tab}#${i}`, truth: valuesOf(tab)[i], r: readCellQuantity(img, r, templates(tab, i), { clientH: img.height }) }))
   }
   return tally(out)
 }
 
-describe('V1 兩張截圖逐格讀數量', () => {
+describe('V1 兩張截圖(一般頁 + 數字樣本 A)逐格讀數量', () => {
   it('全模板:175 格錯 0、不確定 ≤ 8', async () => {
     const t = await readAll(() => TEMPLATES)
     console.log(`[V1 全模板] 正確 ${t.ok}/175,錯 ${t.wrong.length} ${t.wrong.join('; ')},不確定 ${t.unknown.length} ${t.unknown.join('; ')}`)
@@ -78,7 +106,7 @@ describe('V1 兩張截圖逐格讀數量', () => {
     const per = new Map<string, Array<{ d: number, v: Float64Array }>>()
     for (const tab of TABS) {
       const img = await loadImage(tab)
-      cellRects(LAYOUTS, tab, H).forEach((r, i) => per.set(`${tab}#${i}`, digitSamples(qtyCrop(img, r, H, H), TRUTH[tab][i])))
+      rectsOf(tab, H).forEach((r, i) => per.set(`${tab}#${i}`, digitSamples(qtyCrop(img, r, H, H), valuesOf(tab)[i])))
     }
     const t = await readAll((tab, i) => {
       const self = `${tab}#${i}`
@@ -97,8 +125,8 @@ describe('V2 空格判空', () => {
     const got: string[] = []
     for (const tab of TABS) {
       const img = await loadImage(tab)
-      const box = cellRects(LAYOUTS, tab, img.height)[0].w
-      for (const e of TRUTH.empties[tab]) {
+      const box = boxOf(tab, img.height)
+      for (const e of emptiesOf(tab)) {
         const r = readCellQuantity(img, { x: e.x, y: e.y, w: box, h: box }, TEMPLATES, { clientH: img.height })
         got.push(`${r.qty}/${r.reason}`)
       }
@@ -125,12 +153,12 @@ describe('V3 低信心回未知', () => {
     const wrong: string[] = []
     let unknown = 0
     for (const tab of TABS) {
-      const { data, info } = await sharp(path.join(FIX, TRUTH.files[tab])).removeAlpha().blur(sigma).raw().toBuffer({ resolveWithObject: true })
+      const { data, info } = await sharp(path.join(FIX, fileOf(tab))).removeAlpha().blur(sigma).raw().toBuffer({ resolveWithObject: true })
       const img = { data, width: info.width, height: info.height, channels: info.channels }
-      cellRects(LAYOUTS, tab, img.height).forEach((r, i) => {
+      rectsOf(tab, img.height).forEach((r, i) => {
         const q = readCellQuantity(img, r, TEMPLATES, { clientH: img.height })
         if (q.qty == null) unknown++
-        else if (q.qty !== TRUTH[tab][i]) wrong.push(`${tab}#${i} ${TRUTH[tab][i]}→${q.qty}(${q.confidence})`)
+        else if (q.qty !== valuesOf(tab)[i]) wrong.push(`${tab}#${i} ${valuesOf(tab)[i]}→${q.qty}(${q.confidence})`)
       })
     }
     console.log(`[V3 糊化 σ ${sigma}] 錯 ${wrong.length} ${wrong.join('; ')}、不確定 ${unknown}`)
@@ -151,15 +179,15 @@ describe('V3 低信心回未知', () => {
   })
 
   it('數字下半截被截掉(塗黑)→ 不回錯數字', async () => {
-    const img0 = await loadImage('scarabs')
-    const rects = cellRects(LAYOUTS, 'scarabs', img0.height)
+    const img0 = await loadImage('a')
+    const rects = rectsOf('a', img0.height)
     const results: string[] = []
     for (const i of [0, 2, 8, 24, 45]) {
       const r = rects[i]
       const img = paint(img0, r.x - 3, r.y + 13, Math.round(r.w * 0.85), 10)
       const q = readCellQuantity(img, r, TEMPLATES, { clientH: img.height })
-      results.push(`${TRUTH.scarabs[i]}→${q.qty}`)
-      expect(q.qty === null || q.qty === TRUTH.scarabs[i]).toBe(true)
+      results.push(`${SA.values[i]}→${q.qty}`)
+      expect(q.qty === null || q.qty === SA.values[i]).toBe(true)
     }
     console.log(`[V3 截斷] ${results.join(' ')}`)
   })
@@ -174,10 +202,10 @@ describe('V3 低信心回未知', () => {
 
 describe('V4 漏讀一位被擋', () => {
   it('87 從 7 的中線起塗黑(切點 17)→ null;切點 14–16 讀成 8 是已知錯讀(改前就有)', async () => {
-    const img0 = await loadImage('scarabs')
-    const rects = cellRects(LAYOUTS, 'scarabs', img0.height)
+    const img0 = await loadImage('a')
+    const rects = rectsOf('a', img0.height)
     for (const i of [46, 102]) {
-      expect(TRUTH.scarabs[i]).toBe(87)
+      expect(SA.values[i]).toBe(87)
       const r = rects[i]
       // 切點 = 裁切區座標(裁切區左緣 = 格 x − 3);7 的模板視窗左緣在 x = 11–12(依版本),17 = 視窗中線之後。
       // 切點固定(2026-10-15 描邊過濾):原本取自判讀結果的 7 位置,判讀一變切點就跟著移 → 成了另一個測試
@@ -204,7 +232,7 @@ describe('V20 裁切區邊緣的描邊過濾', () => {
     let inner = 0
     for (const tab of TABS) {
       const img = await loadImage(tab)
-      cellRects(LAYOUTS, tab, img.height).forEach((r, n) => {
+      rectsOf(tab, img.height).forEach((r, n) => {
         const a = qtyCrop(img, r, img.height, TEMPLATES.baseClientH)
         const b = qtyCrop(img, r, img.height, TEMPLATES.baseClientH, undefined, 6)
         for (let j = 0; j < a.h; j++) {
@@ -226,9 +254,9 @@ describe('V20 裁切區邊緣的描邊過濾', () => {
   })
 
   it('被遮罩的鄰居當成暗(描邊):旁邊被遮掉的筆畫像素不被削弱', async () => {
-    const img = await loadImage('scarabs')
+    const img = await loadImage('a')
     const H = img.height
-    const rects = cellRects(LAYOUTS, 'scarabs', H)
+    const rects = rectsOf('a', H)
     // 找一個被描邊過濾削弱的筆畫像素,遮掉它左右任一鄰居
     let hit: { n: number, i: number, j: number, ni: number } | null = null
     for (let n = 0; n < rects.length && !hit; n++) {
@@ -244,7 +272,7 @@ describe('V20 裁切區邊緣的描邊過濾', () => {
     const a = qtyCrop(img, rects[n], H, TEMPLATES.baseClientH)
     const m = qtyCrop(img, rects[n], H, TEMPLATES.baseClientH, [{ x: a.x0 + ni, y: a.y0 + j, w: 1, h: 1 }])
     const p = j * a.w + i
-    console.log(`[V20 遮罩] 聖甲蟲 #${n} (${i},${j}) ink ${a.ink[p].toFixed(1)} 無遮罩 ${a.white[p].toFixed(1)} 遮右鄰 ${m.white[p].toFixed(1)}`)
+    console.log(`[V20 遮罩] 樣本 A #${n} (${i},${j}) ink ${a.ink[p].toFixed(1)} 無遮罩 ${a.white[p].toFixed(1)} 遮右鄰 ${m.white[p].toFixed(1)}`)
     expect(m.masked![j * a.w + ni]).toBe(1)
     expect(m.white[p]).toBeCloseTo(a.ink[p], 3)
   })
@@ -264,17 +292,17 @@ describe('V5 縮放到不同 client 高', () => {
     for (const tab of TABS) {
       const img = await loadImage(tab, 1440)
       const k = 1440 / TRUTH.clientH
-      const box = cellRects(LAYOUTS, tab, img.height)[0].w
-      for (const e of TRUTH.empties[tab]) {
+      const box = boxOf(tab, img.height)
+      for (const e of emptiesOf(tab)) {
         const r = readCellQuantity(img, { x: Math.round(e.x * k), y: Math.round(e.y * k), w: box, h: box }, TEMPLATES, { clientH: img.height })
         expect(`${r.qty}/${r.reason}`).toBe('null/empty')
       }
     }
   })
 
-  it('耗時:一頁(聖甲蟲 115 格)讀完 < 200 ms(只防退化;實測約 30 ms,負載下 50–70 ms)', async () => {
-    const img = await loadImage('scarabs', 1440)
-    const rects = cellRects(LAYOUTS, 'scarabs', img.height)
+  it('耗時:115 格(數字樣本 A)讀完 < 200 ms(只防退化;實測約 30 ms,負載下 50–70 ms)', async () => {
+    const img = await loadImage('a', 1440)
+    const rects = rectsOf('a', img.height)
     // 暖機後量 5 次取最快(避開 vitest 並行其他檔案時的排程雜訊)
     let ms = Infinity
     for (let rep = 0; rep < 6; rep++) {
@@ -282,13 +310,13 @@ describe('V5 縮放到不同 client 高', () => {
       for (const r of rects) readCellQuantity(img, r, TEMPLATES, { clientH: img.height })
       if (rep) ms = Math.min(ms, performance.now() - t0)
     }
-    console.log(`[V5 耗時] 聖甲蟲 1440 一頁 ${ms.toFixed(1)} ms`)
+    console.log(`[V5 耗時] 樣本 A 1440 115 格 ${ms.toFixed(1)} ms`)
     // 門檻寬鬆:一般負載(vitest 並行)下 50–70 ms 屬正常,不讓 npm test 隨機紅;只擋數量級的退化
     expect(ms).toBeLessThan(200)
   })
 })
 
-async function loadComposite (tab: StashSubtab, edit: (img: QtyImage) => QtyImage, height?: number): Promise<QtyImage> {
+async function loadComposite (tab: Page, edit: (img: QtyImage) => QtyImage, height?: number): Promise<QtyImage> {
   const img = edit(await loadImage(tab))
   if (!height) return img
   const { data, info } = await sharp(Buffer.from(img.data as Uint8Array), { raw: { width: img.width, height: img.height, channels: img.channels as 3 } })
@@ -312,9 +340,9 @@ function copyBlock (img: QtyImage, sx: number, sy: number, w: number, h: number,
 
 describe('V14 code review 修正(寧缺勿錯)', () => {
   it('4 位數堆疊(三位數後面再拼一位)不得讀成三位數 ok', async () => {
-    const img0 = await loadImage('scarabs')
-    const r = cellRects(LAYOUTS, 'scarabs', img0.height)[24]
-    expect(TRUTH.scarabs[24]).toBe(100)
+    const img0 = await loadImage('a')
+    const r = rectsOf('a', img0.height)[24]
+    expect(SA.values[24]).toBe(100)
     const chain = decodeQtyCrop(qtyCrop(img0, r, img0.height, TEMPLATES.baseClientH), TEMPLATES).chain!
     expect(chain.map(c => c.d).join('')).toBe('100')
     const last = chain[2]
@@ -322,8 +350,8 @@ describe('V14 code review 修正(寧缺勿錯)', () => {
     // 末位的模板視窗(裁切區座標,左緣 = 格 x − 3)往右複製一個字距 = 「1000」
     const four = (img: QtyImage) => copyBlock(img, r.x - 3 + last.x, r.y + last.y, 11, 15, r.x - 3 + last.x + adv, r.y + last.y)
     for (const height of [undefined, 1440]) {
-      const img = await loadComposite('scarabs', four, height)
-      const rr = cellRects(LAYOUTS, 'scarabs', img.height)[24]
+      const img = await loadComposite('a', four, height)
+      const rr = rectsOf('a', img.height)[24]
       const q = readCellQuantity(img, rr, TEMPLATES, { clientH: img.height })
       console.log(`[V14 4 位數] ${height ?? 1125}:${q.qty}(${q.reason} ${q.raw ?? ''})`)
       expect(q.reason === 'ok' && String(q.qty).length === 3).toBe(false)
@@ -354,16 +382,16 @@ describe('V14 code review 修正(寧缺勿錯)', () => {
 
   it('已知錯讀:留一 19→10 回不確定;σ 1.0 糊化 11→14(放寬門檻不擋)不標高信心', async () => {
     const H = TRUTH.clientH
-    const imgs = await loadImage('scarabs')
-    const rects = cellRects(LAYOUTS, 'scarabs', H)
-    expect([TRUTH.scarabs[80], TRUTH.scarabs[94]]).toEqual([19, 11])
+    const imgs = await loadImage('a')
+    const rects = rectsOf('a', H)
+    expect([SA.values[80], SA.values[94]]).toEqual([19, 11])
     const samples: Array<{ d: number, v: Float64Array }> = []
     for (const tab of TABS) {
-      const img = tab === 'scarabs' ? imgs : await loadImage(tab)
-      cellRects(LAYOUTS, tab, H).forEach((r, i) => { if (!(tab === 'scarabs' && i === 80)) samples.push(...digitSamples(qtyCrop(img, r, H, H), TRUTH[tab][i])) })
+      const img = tab === 'a' ? imgs : await loadImage(tab)
+      rectsOf(tab, H).forEach((r, i) => { if (!(tab === 'a' && i === 80)) samples.push(...digitSamples(qtyCrop(img, r, H, H), valuesOf(tab)[i])) })
     }
     const loo = readCellQuantity(imgs, rects[80], buildDigitTemplates(samples, H), { clientH: H })
-    const { data, info } = await sharp(path.join(FIX, TRUTH.files.scarabs)).removeAlpha().blur(1.0).raw().toBuffer({ resolveWithObject: true })
+    const { data, info } = await sharp(path.join(FIX, SA.file)).removeAlpha().blur(1.0).raw().toBuffer({ resolveWithObject: true })
     const blur = readCellQuantity({ data, width: info.width, height: info.height, channels: info.channels }, rects[94], TEMPLATES, { clientH: H })
     console.log(`[V14 已知錯讀] 留一 #80 ${loo.qty}(${loo.reason} ${loo.confidence}/${loo.margin}),σ 1.0 #94 ${blur.qty}(${blur.reason} ${blur.confidence}/${blur.margin})`)
     expect(loo.qty).toBeNull()
@@ -371,18 +399,19 @@ describe('V14 code review 修正(寧缺勿錯)', () => {
   })
 })
 
-describe('V18 第二批截圖(2026-10-15,聖甲蟲頁、玩家移動過物品)', () => {
+describe('V18 數字樣本 B(2026-10-15 第二批截圖,3.29 聖甲蟲頁、玩家移動過物品)', () => {
   it('驗證用(不進訓練):115 格錯 0、不確定 ≤ 3;右側單獨欄 7 / 50 / 87 / 22 / 41 / 11 / 2 / 20 至少讀到 5 格', async () => {
-    const m = TRUTH.more[0]
+    const m = SB
+    expect(m.train).toBe(false)
     const { data, info } = await sharp(path.join(FIX, m.file)).removeAlpha().raw().toBuffer({ resolveWithObject: true })
     const img = { data, width: info.width, height: info.height, channels: info.channels }
-    const rects = cellRects(LAYOUTS, m.tab, img.height)
+    const rects = m.rectsAt[img.height]
     expect(rects).toHaveLength(m.values.length)
     const out = rects.map((r, i) => ({ id: `${m.file}#${i}`, truth: m.values[i], r: readCellQuantity(img, r, TEMPLATES, { clientH: img.height }) }))
     const t = tally(out)
     console.log(`[V18 第二批] 正確 ${t.ok}/115,錯 ${t.wrong.length} ${t.wrong.join('; ')},不確定 ${t.unknown.length} ${t.unknown.join('; ')}`)
     expect(t.wrong).toEqual([])
-    // 不確定:#100 7(灰白聖甲蟲圖示緊貼數字 → 漏讀檢查擋下)、#102 87(7 疊在圖示上)、#107 20(低分);描邊過濾前另有 #2 31
+    // 不確定:#100 7(灰白圖示緊貼數字 → 漏讀檢查擋下)、#102 87(7 疊在圖示上)、#107 20(低分);描邊過濾前另有 #2 31
     expect(t.unknown.length).toBeLessThanOrEqual(3)
     const col = out.slice(100, 108)
     expect(col.map(o => o.truth)).toEqual([7, 50, 87, 22, 41, 11, 2, 20])
@@ -394,7 +423,7 @@ describe('V19 原生 2560×1440 擷取(2026-10-15 使用者「存下倉庫擷取
   const NFIX = path.join(ROOT, 'core/test/stash/fixtures/qty-native')
   const NT = JSON.parse(fs.readFileSync(path.join(NFIX, 'truth.json'), 'utf8')) as {
     clientH: number
-    sets: Array<{ tab: StashSubtab, file: string, masks: Array<{ x: number, y: number, w: number, h: number }>, cells: Array<{ rect: { x: number, y: number, w: number, h: number }, truth: number }> }>
+    sets: Array<{ tab: 'samples' | 'general', file: string, masks: Array<{ x: number, y: number, w: number, h: number }>, cells: Array<{ rect: { x: number, y: number, w: number, h: number }, truth: number }> }>
   }
   async function readNative (templates: DigitTemplates, withMask?: boolean): Promise<Tally>
   async function readNative (templates: DigitTemplates, withMask: boolean, raw: true): Promise<QtyResult[]>
@@ -408,15 +437,16 @@ describe('V19 原生 2560×1440 擷取(2026-10-15 使用者「存下倉庫擷取
     return raw ? out.map(o => o.r) : tally(out)
   }
 
-  it('格數與版面一致(聖甲蟲 115、一般 60)', () => {
-    expect(NT.sets.map(s => [s.tab, s.cells.length])).toEqual([['scarabs', 115], ['general', 60]])
+  it('格數:數字樣本 115(3.29 聖甲蟲頁)、一般 60(與版面一致)', () => {
+    expect(NT.sets.map(s => [s.tab, s.cells.length])).toEqual([['samples', 115], ['general', 60]])
+    expect(NT.sets[1].cells).toHaveLength(LAYOUTS.subtabs.general.length)
   })
 
   it('175 格錯 0、不確定 ≤ 5', async () => {
     const t = await readNative(TEMPLATES)
     console.log(`[V19 原生] 正確 ${t.ok}/175,錯 ${t.wrong.length} ${t.wrong.join('; ')},不確定 ${t.unknown.length} ${t.unknown.join('; ')}`)
     expect(t.wrong).toEqual([])
-    // 描邊過濾前 7 格(聖甲蟲 #5 49、#24 100、#34 39、#80 19、#100 7、#102 87,一般 #49 1);之後 #24 100、#102 87 讀得到
+    // 描邊過濾前 7 格(樣本 #5 49、#24 100、#34 39、#80 19、#100 7、#102 87,一般 #49 1);之後 #24 100、#102 87 讀得到
     expect(t.unknown.length).toBeLessThanOrEqual(5)
   })
 
@@ -424,19 +454,19 @@ describe('V19 原生 2560×1440 擷取(2026-10-15 使用者「存下倉庫擷取
     const t = await readNative(TEMPLATES, true)
     const res = await readNative(TEMPLATES, true, true)
     const masked = res.filter(r => r.reason === 'masked').length
-    // NT.sets 順序 = 聖甲蟲 115 格、一般 60 格(上一個 it 守住)
-    const maskedScarabs = res.slice(0, 115).filter(r => r.reason === 'masked').length
+    // NT.sets 順序 = 數字樣本 115 格、一般 60 格(上一個 it 守住)
+    const maskedSamples = res.slice(0, 115).filter(r => r.reason === 'masked').length
     const general = res.slice(115)
     const maskedGeneral = general.filter(r => r.reason === 'masked').length
     const okGeneral = general.filter((r, i) => r.qty === NT.sets[1].cells[i].truth).length
-    console.log(`[V19 原生 + 遮罩] 正確 ${t.ok}/175,錯 ${t.wrong.length},不確定 ${t.unknown.length}(masked ${masked}:聖甲蟲 ${maskedScarabs}、一般 ${maskedGeneral};一般正確 ${okGeneral})`)
+    console.log(`[V19 原生 + 遮罩] 正確 ${t.ok}/175,錯 ${t.wrong.length},不確定 ${t.unknown.length}(masked ${masked}:樣本 ${maskedSamples}、一般 ${maskedGeneral};一般正確 ${okGeneral})`)
     expect(t.wrong).toEqual([])
-    // 聖甲蟲頁徽章緊貼數字帶 → 幾乎全部 masked;沒被蓋到的格與無遮罩時同樣最多 5 格不確定
+    // 樣本(聖甲蟲頁)徽章緊貼數字帶 → 幾乎全部 masked;沒被蓋到的格與無遮罩時同樣最多 5 格不確定
     expect(t.unknown.length - masked).toBeLessThanOrEqual(5)
-    // 上下限(H3):一般頁徽章不蓋數字帶 → 0 格 masked、讀到 ≥ 59 格;聖甲蟲頁 masked 不超過格數
+    // 上下限(H3):一般頁徽章不蓋數字帶 → 0 格 masked、讀到 ≥ 59 格;樣本 masked 不超過格數
     expect(maskedGeneral).toBe(0)
     expect(t.ok).toBeGreaterThanOrEqual(59)
-    expect(maskedScarabs).toBeLessThanOrEqual(115)
+    expect(maskedSamples).toBeLessThanOrEqual(115)
   })
 })
 
@@ -452,8 +482,11 @@ describe('V6 模板資料可重現', () => {
     for (const s of TEMPLATES.sources ?? []) {
       expect(s.sha256).toBe(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, s.file))).digest('hex'))
     }
-    // 第一批兩張 + 第二批聖甲蟲一張(2026-10-15)
-    expect(TEMPLATES.sources).toHaveLength(2 + TRUTH.more.filter(m => m.train !== false).length)
+    // 一般頁 + 進訓練的數字樣本(A)+ 之後進訓練的一般頁截圖
+    expect(TEMPLATES.sources).toHaveLength(1 + TRUTH.samples.filter(m => m.train).length + TRUTH.more.filter(m => m.train !== false).length)
+    // 數字樣本保住 8、9(一般頁截圖沒有這兩個數字)
+    expect(TEMPLATES.digits[8]).not.toBeNull()
+    expect(TEMPLATES.digits[9]).not.toBeNull()
     expect(TEMPLATES.baseClientH).toBe(TRUTH.clientH)
     expect(TEMPLATES.counts.every(n => n > 0)).toBe(true)
   })

@@ -34,11 +34,11 @@ function itemNames (lang: 'en' | 'cmn-Hant'): Map<string, string> {
 }
 
 // ---- oracle:Exile-UI stash-ninja.ahk 原式 ----
-function oBox (s: StashSubtab, h: number): number {
-  return s === 'scarabs' ? Math.floor(h / 32) : s === 'general' ? Math.floor(h / 24) : Math.floor(h / 20)
+function oBox (_s: StashSubtab, h: number): number {
+  return Math.floor(h / 24)
 }
-function oGap (s: StashSubtab, h: number): number {
-  return s === 'scarabs' ? Math.floor(h / 160) : s === 'general' ? Math.round(h / 72) : Math.round(h / 80)
+function oGap (_s: StashSubtab, h: number): number {
+  return Math.round(h / 72)
 }
 function oRects (file: StashLayoutFile, s: StashSubtab, h: number, yOffset = 0): CellRect[] {
   const box = oBox(s, h)
@@ -58,14 +58,15 @@ function oRects (file: StashLayoutFile, s: StashSubtab, h: number, yOffset = 0):
 const layouts = (): StashLayoutFile => parseStashLayouts(RAW_LAYOUTS)
 
 describe('S1 版面資料', () => {
-  it('兩子頁每格 refName 在英繁 items.ndjson 都有、格數 60/115、子頁內不重複(不滅之火已移除)', () => {
+  it('只剩一般頁:60 格 refName 在英繁 items.ndjson 都有、不重複(不滅之火、聖甲蟲已移除)', () => {
     const file = layouts()
-    expect([...STASH_SUBTABS]).toEqual(['general', 'scarabs'])
-    // 不滅之火 2026-10-14 使用者決定不做:資料檔不該再帶這一組
-    expect(Object.keys(file.subtabs)).toEqual(['general', 'scarabs'])
+    expect([...STASH_SUBTABS]).toEqual(['general'])
+    // 不滅之火 2026-10-14 使用者決定不做、聖甲蟲 2026-11-07 因 3.30 移除:資料檔只剩一般頁
+    expect(Object.keys(file.subtabs)).toEqual(['general'])
+    expect(Object.keys(file.buttons)).toEqual(['general'])
     const en = itemNames('en')
     const zh = itemNames('cmn-Hant')
-    const counts = { general: 60, scarabs: 115 }
+    const counts = { general: 60 }
     for (const s of STASH_SUBTABS) {
       const cells = file.subtabs[s]
       expect(cells.length, s).toBe(counts[s])
@@ -76,8 +77,7 @@ describe('S1 版面資料', () => {
       expect(missEn, `${s} en 缺`).toEqual([])
       expect(missZh, `${s} cmn-Hant 缺`).toEqual([])
     }
-    expect(file.subtabs.scarabs.some(c => c.refName === 'Abyss Scarab of Descending')).toBe(true)
-    expect(zh.get('Abyss Scarab of Descending')).toBe('聖甲蟲：落降深淵')
+    expect(file.subtabs.general.some(c => /scarab/i.test(c.refName))).toBe(false)
   })
 })
 
@@ -107,7 +107,7 @@ describe('S3 換算與 Exile-UI 規則相同', () => {
     }
   })
 
-  it('四種高度 × 三子頁逐格與 oracle 完全相等', () => {
+  it('四種高度逐格與 oracle 完全相等', () => {
     const file = layouts()
     for (const h of HS) {
       for (const s of STASH_SUBTABS) {
@@ -176,10 +176,9 @@ describe('S4c parseStashLayouts 擋壞格式', () => {
   const good = (): any => ({
     schema: 1,
     base: 1440,
-    buttons: { general: { x: 1, y: 1 }, scarabs: { x: 2, y: 0 } },
+    buttons: { general: { x: 1, y: 1 } },
     subtabs: {
-      general: [{ x: 10, y: 10, refName: 'A' }, { x: 0, y: 0, refName: 'B' }],
-      scarabs: [{ x: 10, y: 10, refName: 'C' }]
+      general: [{ x: 10, y: 10, refName: 'A' }, { x: 0, y: 0, refName: 'B' }]
     }
   })
 
@@ -194,12 +193,12 @@ describe('S4c parseStashLayouts 擋壞格式', () => {
   })
 
   it('某子頁不是陣列時 throw', () => {
-    const f = good(); f.subtabs.scarabs = { x: 1 }
+    const f = good(); f.subtabs.general = { x: 1 }
     expect(() => parseStashLayouts(f)).toThrow()
   })
 
   it('第一格 x 為 0 時 throw', () => {
-    const f = good(); f.subtabs.scarabs[0].x = 0
+    const f = good(); f.subtabs.general[0].x = 0
     expect(() => parseStashLayouts(f)).toThrow()
   })
 

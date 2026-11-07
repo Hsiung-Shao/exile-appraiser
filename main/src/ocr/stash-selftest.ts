@@ -1,9 +1,9 @@
 /**
- * 倉庫價值(2026-10-15):`--stash-selftest <png> [--out <png>] [--stash-subtab=general|scarabs] [--stash-y-offset=N]`
+ * 倉庫價值(2026-10-15):`--stash-selftest <png> [--out <png>] [--stash-y-offset=N]`
  * 無頭跑「讀格子堆疊數量」:截圖當成整個遊戲 client(高 = 圖高、擷取偏移 0)→ 固定版面每格 → 與執行期同一條路(`rawPixels` 取格子區像素 →
  * core `readCellQuantity`),印每格數量、原因與耗時;同資料夾有 `truth.json`(core/test/stash/fixtures/qty 格式)就一併算準確度。
  * `--out` = 標註圖(每格數量疊在格上:綠 = 讀到、黃 = 讀不到、灰 = 空格;有真值時錯的標紅),用離屏視窗畫完 `capturePage()` 存 PNG。
- * 不拿單一實例鎖、不送任何輸入、不擷取螢幕。子頁省略 = 依檔名(含 scarab → 聖甲蟲,否則一般)。
+ * 不拿單一實例鎖、不送任何輸入、不擷取螢幕。版面一律是碎片頁「一般」(聖甲蟲 2026-11-07 刪除)。
  */
 import fs from 'node:fs'
 import path from 'node:path'
@@ -17,11 +17,11 @@ const argValue = (argv: string[], prefix: string) => argv.find(a => a.startsWith
 const argAfter = (argv: string[], flag: string) => { const i = argv.indexOf(flag); return i >= 0 ? argv[i + 1] : undefined }
 
 export async function runStashSelftest (png: string, argv: string[]): Promise<number> {
-  if (!png || !fs.existsSync(png)) { console.error('[stash-selftest] 用法:--stash-selftest <png> [--out <png>] [--stash-subtab=general|scarabs] [--stash-y-offset=N]'); return 2 }
+  if (!png || !fs.existsSync(png)) { console.error('[stash-selftest] 用法:--stash-selftest <png> [--out <png>] [--stash-y-offset=N]'); return 2 }
   const layouts = loadStashLayouts()
   const templates = loadStashDigitTemplates()
   if (!layouts || !templates) { console.error('[stash-selftest] 讀不到版面或數字模板'); return 1 }
-  const subtab: StashSubtab = (argValue(argv, '--stash-subtab=') as StashSubtab | undefined) ?? (/scarab/i.test(path.basename(png)) ? 'scarabs' : 'general')
+  const subtab: StashSubtab = 'general'
   const yOffset = Number(argValue(argv, '--stash-y-offset=') ?? 0) || 0
   const img = nativeImage.createFromPath(path.resolve(png))
   const size = img.getSize()

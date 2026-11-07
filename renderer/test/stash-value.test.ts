@@ -217,7 +217,7 @@ describe('V16 倉庫價格只支援國際服', () => {
 
 describe('V17 本頁價值卡放在倉庫面板底部', () => {
   it.each([
-    ['general', 1125, 0], ['scarabs', 1125, 0], ['general', 1440, 0], ['scarabs', 1440, 0], ['scarabs', 1440, 40], ['general', 2160, 0]
+    ['general', 1125, 0], ['general', 1440, 0], ['general', 1440, 40], ['general', 2160, 0]
   ] as const)('%s @%i 高(資料夾偏移 %i):卡片在格子區下方、面板內,不蓋右側頁籤清單', (subtab, h, yOffset) => {
     const client = { w: Math.round(h * 16 / 9), h }
     // 介面縮放 150%:CSS px = client px / 1.5

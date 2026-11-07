@@ -4,19 +4,19 @@
 (https://github.com/Lailloken/Exile-UI/wiki/Stash‐Ninja,MIT)。
 
 ## 範圍
-- 碎片頁兩個子頁:**一般**(60 格)、**聖甲蟲**(115 格)。「不滅之火」(2026-10-14 使用者決定刪除)與「異能」子頁 → 不畫。
+- 碎片頁只有**一般**子頁(60 格)。「不滅之火」(2026-10-14 使用者決定刪除)、「聖甲蟲」(115 格;2026-11-07 因 3.30 移除聖甲蟲而刪除)與「異能」子頁 → 不畫。
+  下文提到聖甲蟲頁的量測(掃描條下緣、徽章擺法、數字模板)都是刪除前在 3.29 量的,結論沿用。
 - 只在 PoE1 + overlay 模式;國際服才有價格(台服沒有 poe.ninja → 只顯示名稱,提示一次)。
 - 第二段(2026-10-15,倉庫價值):讀每格堆疊數量 → 徽章顯示小計、整頁總價,見下方「倉庫價值」。
 
 ## 為什麼物品身分不靠 OCR
 格子裡只有圖示 + 數量,名稱要滑鼠移上去才看得到。物品身分改用**固定版面**依位置對應:
 `data/poe1/stash/layouts.json` 由 `scripts/sync-stash-layouts.mjs --from <Exile-UI clone>` 從 Exile-UI
-`data/global/[stash-ninja] tabs.json` 轉出(fragments / scarabs 兩組;betrayal = 不滅之火不取)。
+`data/global/[stash-ninja] tabs.json` 轉出(只取 fragments;scarabs = 聖甲蟲、betrayal = 不滅之火不取)。
 
 - 座標:1440 基準;x 或 y 為 0 = 接續前一格。換算 `core/src/stash/layout.ts` `cellRects`,與 Exile-UI `stash-ninja.ahk` 逐格相同
-  (x 先 `Format("{:.10f}")` 取 10 位小數再乘、y 直接 Floor;box = h/32、h/24、h/20;gap = h//160、Round(h/72)、Round(h/80))。
-- 名稱:聖甲蟲 `of xxx` 接上一格前綴,以**英文全名**對 `data/poe1/en/items.ndjson` 的 refName;表的第 4 欄 ID(= tradeTag)有過期項
-  (`abyss-scarab-of-emptiness` → 實為 Abyss Scarab of Descending「落降深淵」),不拿來對接。
+  (x 先 `Format("{:.10f}")` 取 10 位小數再乘、y 直接 Floor;fragments box = h/24、gap = Round(h/72))。
+- 名稱:以**英文全名**對 `data/poe1/en/items.ndjson` 的 refName;表的第 4 欄 ID(= tradeTag)有過期項,不拿來對接。
 - 驗證:使用者錄影(client 2012×1432 / 1976×1432,倉庫不在資料夾)三子頁逐格對齊;13 格滑鼠說明框名稱與版面對照一致
   (`core/test/stash/annotations.json`);預測框比實際底框約偏右下 2–5 px(Exile-UI 原式,不另校正)。
 
@@ -36,10 +36,16 @@
    `[stash] 自訂 OCR 區域超出按鈕列範圍,已縮到 …`(同一個區域值只記一次;還原預設後再框回同值會再記)。最後減擷取偏移並夾在影像內。
    自訂區域**不會**自動跟著資料夾下移(預設掃描條會):倉庫頁放進資料夾後要重新框選或還原預設,設定頁與框選層字串有寫(R2)。
    區域只決定 OCR 讀哪一塊;按鈕位置判定、資料夾偏移、每格位置仍照固定版面。疊層顯示中沒找到按鈕時作廢基準 → 下一 tick 一定重 OCR(B1);沒顯示時照常記基準,畫面靜止不 OCR(N1)。
-2. OCR ×3 → `findSubtabButtons`:去空白後整行等於按鈕文字(**不分大小寫**:英文介面按鈕是小型大寫字,OCR 讀成 GENERAL / SCARAB…,實機截圖 fixture `strip-general-1440-en.png`)、水平位置對得上的才算;**4 顆至少 3 顆**(使用者錄影裡目前子頁的「一般」OCR 沒讀到)。
-   按鈕文字取自 GGPK clientstrings `FragmentStashSubTab{Other,Scarab,Betrayal,Eldritch}`:一般 / 聖甲蟲 / 不滅之火 / 異能、General / Scarab / Allflame / Eldritch。
-3. 由文字垂直中心推整體偏移,吸附到 0 或資料夾偏移 47/1440·h(誤差 12/1440·h 內),都不近 = 沒找到。
-4. 目前子頁:每顆按鈕的灰階 p99,最亮者比第二亮至少 8(錄影:目前子頁 158–162、其他 141–144);第 4 顆(異能)最亮或差距不足 → 不畫。
+2. OCR ×3 → `findSubtabButtons`:去空白後整行等於按鈕文字(**不分大小寫**:英文介面按鈕是小型大寫字,OCR 讀成 GENERAL / ALLFLAME…,實機截圖 fixture `strip-general-1440-en.png`)。
+   **2026-11-07 放寬(為 3.30 拿掉聖甲蟲按鈕預作準備,使用者裁定)**:只比對 一般 / 不滅之火 / 異能(GGPK clientstrings `FragmentStashSubTab{Other,Betrayal,Eldritch}`;
+   General / Allflame / Eldritch),聖甲蟲不再比對;每個標籤可落在四個按鈕槽(x = 116 + 168k / 1440,容差 40)任一個,命中槽位須照標籤順序左到右遞增、
+   **至少 2 顆**(目前子頁的「一般」OCR 常漏讀);「一般」只能在 0 號槽;只收按鈕列高度(文字中心 201 或資料夾內 248 / 1440,容差 12)的文字,
+   不在資料夾 / 資料夾內兩種高度各算一輪(資料夾頁籤列正好與不在資料夾的按鈕列同高);
+   自訂區域框到頁籤列、或資料夾頁籤剛好叫「一般」時,同名文字不會搶走槽位(code review 2026-11-07)。3.29 四顆 → 命中槽 0 / 2 / 3;3.30 若少一顆、其他左移 → 0 / 1 / 2 也認得。
+   **待 3.30 實機確認**:按鈕列實際樣子(若「一般」不在最左,或按鈕間距改變,需依截圖再調)。
+3. 資料夾偏移:不在資料夾(0)與資料夾內(47/1440·h)各算一輪,每輪只收文字中心在該按鈕列高度(201 或 248 / 1440)± 12/1440 的行;找到的那輪就是偏移,兩輪都沒找到 = 沒找到(2026-11-07 起;原本是全部文字取中位數再吸附)。
+4. 目前子頁:比 0 號槽(一般)與**其他有認到文字的槽**的灰階 p99(`compareSlots`;3.30 空著的槽不比),一般比其他每一顆都亮至少 8 才畫
+   (錄影:目前子頁 158–162、其他 141–144);其他子頁(3.29 聖甲蟲 / 不滅之火、異能)最亮或差距不足 → 不畫。
 5. 沒找到按鈕:游標停在已顯示子頁的**格子上**(`StashCursor.onCell()`;遊戲說明框只在游標停在物品格上才出現,常蓋住按鈕列)→ 維持,
    但連續最多 `STASH_HOLD_LIMIT` = 5 次,之後照常累計(游標停在格上按 Esc 關倉庫時不卡住);找到按鈕時歸零。否則連續 2 次才收起。
    不用整個倉庫面板(`inPanel()`,含頁籤列)判定:點別的倉庫頁籤時游標在面板內,碎片頁徽章會錯畫在別頁上(code review B2)。
@@ -156,7 +162,7 @@ host-config 帶 `realm`(`HOST_CONFIG_IMMEDIATE_KEYS`、main `scanConfigKey` 都�
   - 名稱關(單行,只有價格)= `STASH_BADGE_PLACEMENT` = `below`:上緣 = 數字帶下緣 + 遮罩外擴 3 CSS px、往下長 → 自己的數字帶 0 / 115、他格數字帶下緣擦邊 12 格。
   - 名稱開(兩行約 31 px)= `STASH_BADGE_PLACEMENT_NAMED` = `current`(使用者裁定):`below` 往下長會壓到下方格子的數字帶 93 格(`renderer/test/stash-value-card.test.ts` 鎖數字,不採用的依據),改回格內底邊往上長、讀數量時照舊 peek。
   `fit`(限高 0.33,仍 98 格擦邊)保留比較。
-- **待使用者實機確認**:2560×1440 一般 / 聖甲蟲的數量與總價、移動物品後更新(含 peek 時徽章短暫收起的觀感)、停格明細;準確度不足時請補原解析度 PNG 再調模板。
+- **待使用者實機確認**:2560×1440 一般頁的數量與總價、移動物品後更新(含 peek 時徽章短暫收起的觀感)、停格明細;準確度不足時請補原解析度 PNG 再調模板。
 
 ## 除錯:存下擷取畫面(2026-10-15)
 實機上有些格「讀到正確數字但信心不足」被標「?」時,用**程式實際擷取到的原解析度畫面**重訓數字模板(`core/src/stash/quantity.ts`、

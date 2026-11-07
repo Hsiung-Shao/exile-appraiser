@@ -1,10 +1,10 @@
-// PoE1 倉庫固定版面(碎片頁:一般 / 聖甲蟲;不滅之火 2026-10-14 使用者決定不做)的格子換算。
+// PoE1 倉庫固定版面(碎片頁「一般」;不滅之火 2026-10-14 使用者決定不做、聖甲蟲 2026-11-07 因 3.30 移除而刪除)的格子換算。
 // 版面資料 data/poe1/stash/layouts.json 由 scripts/sync-stash-layouts.mjs 從 Exile-UI(Lailloken,MIT)
 // `data/global/[stash-ninja] tabs.json` 同步;換算規則移植自 Exile-UI `modules/stash-ninja.ahk`(逐格相同)。
 // 零依賴:main(esbuild)以相對路徑 import。
 
-export type StashSubtab = 'general' | 'scarabs'
-export const STASH_SUBTABS: readonly StashSubtab[] = ['general', 'scarabs']
+export type StashSubtab = 'general'
+export const STASH_SUBTABS: readonly StashSubtab[] = ['general']
 
 /** 1440 基準座標;x 或 y 為 0 = 接續前一格(x:前一格 + box + gap;y:同前一格) */
 export interface StashLayoutCell { x: number, y: number, refName: string }
@@ -47,15 +47,13 @@ export function parseStashLayouts (json: unknown): StashLayoutFile {
   return o as StashLayoutFile
 }
 
-/** 格子邊長(Exile-UI:vars.client.h // tabs[tab].1) */
-export function cellBox (subtab: StashSubtab, clientH: number): number {
-  const div = subtab === 'scarabs' ? 32 : 24
-  return Math.floor(clientH / div)
+/** 格子邊長(Exile-UI:vars.client.h // tabs[tab].1;fragments = 24) */
+export function cellBox (_subtab: StashSubtab, clientH: number): number {
+  return Math.floor(clientH / 24)
 }
 
-/** 同一列相鄰格的間距(Exile-UI 預設 gap:scarabs h//160、fragments Round(h/72)) */
-export function cellGap (subtab: StashSubtab, clientH: number): number {
-  if (subtab === 'scarabs') return Math.floor(clientH / 160)
+/** 同一列相鄰格的間距(Exile-UI 預設 gap:fragments Round(h/72)) */
+export function cellGap (_subtab: StashSubtab, clientH: number): number {
   return Math.round(clientH / 72)
 }
 

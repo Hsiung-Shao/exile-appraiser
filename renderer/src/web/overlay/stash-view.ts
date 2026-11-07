@@ -49,13 +49,6 @@ export interface StashBadgeView {
   maxHeight?: number
 }
 
-/** 格內短名:去掉「聖甲蟲:」前綴;英文去掉 Scarab 字樣 */
-export function shortStashName (name: string): string {
-  const zh = name.replace(/^聖甲蟲[：:]/, '')
-  if (zh !== name) return zh
-  return name.replace(/ Scarab( of)?/, '').trim() || name
-}
-
 /** chaos → 顯示單位(PoE1:≥ 1 神聖石改神聖石,與查價面板 autoCurrency 同精神) */
 export function stashPriceUnit (chaos: number, divineRate: number | undefined): { value: string, unit: StashPriceUnit } {
   if (divineRate && divineRate > 0 && chaos / divineRate >= 1) return { value: formatAmount(chaos / divineRate), unit: 'div' }
@@ -103,7 +96,7 @@ export function layoutStashBadges (inp: StashLayoutInput): StashBadgeView[] {
     const b: StashBadgeView = {
       key: `${inp.subtab}|${c.refName}`,
       refName: c.refName,
-      name: hovered ? full : shortStashName(full),
+      name: full,
       left: (c.x + c.w / 2) * sx,
       top: (c.y + c.h) * sy,
       width: c.w * sx,
@@ -211,10 +204,10 @@ export function stashValueCardPlace (
 
 /**
  * 2026-10-15 H3-1 徽章不壓數字帶。擺法依名稱開關(`layoutStashBadges` 省略 `placement` 時;使用者 2026-10-15 裁定):
- * - 名稱關(單行,只有價格)= `STASH_BADGE_PLACEMENT`(`below`;聖甲蟲頁要先收徽章再讀 115 → 0 格、他格數字帶 12 格擦邊)。
+ * - 名稱關(單行,只有價格)= `STASH_BADGE_PLACEMENT`(`below`;2026-10-15 依當時聖甲蟲頁量測:要先收徽章再讀 115 → 0 格;聖甲蟲 2026-11-07 刪除後沿用)。
  * - 名稱開(兩行,約 31 px)= `current`:`below` 往下長會壓到下方格子的數字帶 93 格(測試鎖數字),改回格內底邊往上長、讀數量時照舊 peek。
  * 三種擺法:
- * - `current`:徽章底邊貼格子下緣往上長(現況;原生 1440 聖甲蟲頁徽章高 > 格高 35% → 蓋進數字帶)。
+ * - `current`:徽章底邊貼格子下緣往上長(徽章高超過格高 35% 時蓋進數字帶,2026-10-15 在原生 1440 聖甲蟲頁量到)。
  * - `fit`(候選 a):同一錨點,徽章最大高度 = 格高 × `STASH_BADGE_FIT_RATIO`(超過就縮字級、只留一行)。
  * - `below`(候選 b):徽章上緣 = 數字帶下緣(格高 × 0.65)+ 遮罩外擴(3 CSS px),往下長、部分超出格子下緣。
  * 數字帶 = core `quantity.ts` `qtyCropRect`(格子上方 `QTY_PARAMS.cropH` = 0.65 高;這裡只讀常數)。

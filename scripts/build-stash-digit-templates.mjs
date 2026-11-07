@@ -38,16 +38,22 @@ export async function buildTemplatesJson (fixDir = FIXTURE_DIR) {
   const samples = []
   /** @type {Array<{ file: string, sha256: string }>} */
   const sources = []
-  for (const tab of ['general', 'scarabs']) {
-    const file = truth.files[tab]
-    const buf = fs.readFileSync(path.join(fixDir, file))
-    sources.push({ file: `core/test/stash/fixtures/qty/${file}`, sha256: crypto.createHash('sha256').update(buf).digest('hex') })
+  // 一般頁照版面切格;數字樣本組(truth.samples,3.29 聖甲蟲頁截圖,2026-11-07 起不再有這個子頁)用寫死的格子框
+  /** @type {Array<{ file: string, rects: Array<{x:number,y:number,w:number,h:number}>, values: Array<number | null> }>} */
+  const sets = [{ file: truth.files.general, rects: cellRects(layouts, 'general', clientH), values: truth.general }]
+  for (const s of truth.samples ?? []) {
+    if (s.train === false) continue
+    sets.push({ file: s.file, rects: s.rectsAt[clientH], values: s.values })
+  }
+  for (const set of sets) {
+    const buf = fs.readFileSync(path.join(fixDir, set.file))
+    sources.push({ file: `core/test/stash/fixtures/qty/${set.file}`, sha256: crypto.createHash('sha256').update(buf).digest('hex') })
     const { data, info } = await sharp(buf).removeAlpha().raw().toBuffer({ resolveWithObject: true })
-    if (info.height !== clientH) throw new Error(`${file}:高 ${info.height} ≠ clientH ${clientH}`)
+    if (info.height !== clientH) throw new Error(`${set.file}:高 ${info.height} ≠ clientH ${clientH}`)
     const img = { data, width: info.width, height: info.height, channels: info.channels }
-    const rects = cellRects(layouts, tab, clientH)
-    rects.forEach((/** @type {{x:number,y:number,w:number,h:number}} */ r, /** @type {number} */ i) => {
-      const t = truth[tab][i]
+    if (!Array.isArray(set.rects) || set.rects.length !== set.values.length) throw new Error(`${set.file}:格子框數 ≠ 真值數`)
+    set.rects.forEach((r, i) => {
+      const t = set.values[i]
       if (typeof t !== 'number') return
       samples.push(...digitSamples(qtyCrop(img, r, clientH, clientH), t))
     })
