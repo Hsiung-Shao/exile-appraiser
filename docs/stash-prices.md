@@ -96,7 +96,7 @@ host-config 帶 `realm`(`HOST_CONFIG_IMMEDIATE_KEYS`、main `scanConfigKey` 都�
 懸浮選單倉庫列在台服停用並顯示同樣說明(`ppz.menu.stash_tw`)。測試 `main/test/stash-scan.test.ts` S21、`renderer/test/stash-value.test.ts` V16。
 
 ## 價格
-`usePoeninja().priceOf(refName)`;poe.ninja 類別 Scarab / Fragment 原本就有(曾為不滅之火補 `AllflameEmber`,刪除不滅之火時一併撤回)。層顯示時 `queuePricesFetch()`。
+`usePoeninja().priceOf(refName)`;poe.ninja 類別 Fragment 原本就有(Scarab 2026-11-08 因 3.30 移除而不抓)(曾為不滅之火補 `AllflameEmber`,刪除不滅之火時一併撤回)。層顯示時 `queuePricesFetch()`。
 
 ## 倉庫價值(2026-10-15,讀堆疊數量)
 設計稿 `StashValue`(https://claude.ai/artifact/8G1wDzZxwYDtEMv3KU7U81)。設定 › 自動辨識 › 倉庫價格「讀取堆疊數量並計算總價」`stashReadQuantity`(預設開;
