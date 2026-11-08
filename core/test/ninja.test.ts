@@ -79,14 +79,15 @@ describe('fetchAll(PoE1 錄製檔)', () => {
   let result!: NinjaFetchResult
   beforeAll(async () => { result = await client.fetchAll() })
 
-  it('照順序打 exchange 12 類 + item 8 類,每個請求之間等 300ms', () => {
+  it('照順序打 exchange 11 類 + item 8 類,每個請求之間等 300ms(Scarab 2026-11-08 因 3.30 移除而不抓)', () => {
     const expected = [
       ...NINJA_CATEGORIES.poe1.exchange.map(t => `https://poe.ninja/poe1/api/economy/exchange/current/overview?league=Allflame&type=${t}`),
       ...NINJA_CATEGORIES.poe1.item.map(t => `https://poe.ninja/poe1/api/economy/stash/current/item/overview?league=Allflame&type=${t}`)
     ]
     expect(urls).toEqual(expected)
     expect(calls).toEqual(new Array(expected.length - 1).fill(300))
-    expect(result.fetchedTypes).toHaveLength(20)
+    expect(result.fetchedTypes).toHaveLength(19)
+    expect(urls.some(u => u.endsWith('type=Scarab'))).toBe(false)
     expect(result.failedTypes).toEqual([])
     expect(result.fetchedAt).toBe(1_000_000)
   })
@@ -227,7 +228,7 @@ describe('解析規則(合成回應)', () => {
     const { http } = recordingHttp({ exchange_Oil: { status: 500, body: '' }, exchange_Fossil: { status: 200, body: 'not json' } })
     const r = await createNinjaClient({ http, game: 'poe1', league: LEAGUE, sleep: async () => {} }).fetchAll()
     expect(r.failedTypes.map(f => f.type)).toEqual(['Oil', 'Fossil'])
-    expect(r.fetchedTypes).toHaveLength(18)
+    expect(r.fetchedTypes).toHaveLength(17) // 19 類 − 失敗 2 類
     const allFail: HttpFetch = async () => response(503, '')
     await expect(createNinjaClient({ http: allFail, game: 'poe1', league: LEAGUE, sleep: async () => {} }).fetchAll())
       .rejects.toThrow(/全部類別都失敗/)

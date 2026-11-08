@@ -2,7 +2,7 @@
  * poe.ninja 價格表的鍵(語言無關:全部用英文名)。格式與 PobTools `host/warehouse_pricing.cpp` 的
  * `Ninja*Key` 逐字相同,兩邊的快取與價格表可以互相對照。
  *
- * - `currency|<name>`:exchange 各類(通貨、碎片、聖甲蟲、油、精髓、化石…);
+ * - `currency|<name>`:exchange 各類(通貨、碎片、油、精髓、化石…);
  * - `card|<name>`:命運卡(exchange `DivinationCard`);
  * - `gem|<name>|<lvl>|<q>[|c]`:技能寶石,等級/品質歸到 ninja 的級距(1/20/21、0/20/23);
  * - `unique|<name>|<baseType>[|6L]`:傳奇(含傳奇地圖,傳奇地圖不帶連結);
