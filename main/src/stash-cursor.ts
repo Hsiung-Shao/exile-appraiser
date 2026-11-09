@@ -12,7 +12,7 @@ import type { PhysRect } from './ocr/strategy'
 
 export const STASH_CURSOR_INTERVAL_MS = 80
 
-/** 倉庫面板範圍(client 像素;寬 = h × 37/60,與 Exile-UI 相同;下緣約 1040 / 1440) */
+/** 倉庫面板範圍(倉庫座標 = client 像素扣掉超寬黑邊 `stashLeft`;寬 = h × 37/60,與 Exile-UI 相同;下緣約 1040 / 1440) */
 export function stashPanelContains (clientH: number, x: number, y: number): boolean {
   return x >= 0 && y >= 0 && x < Math.floor(clientH * 37 / 60) && y < Math.floor(1040 / 1440 * clientH)
 }
@@ -77,7 +77,7 @@ export class StashCursor {
     this.refresh()
   }
 
-  /** 游標在倉庫面板內(client 座標;沒有遊戲視窗 = 否) */
+  /** 游標在倉庫面板內(倉庫座標;沒有遊戲視窗 = 否) */
   inPanel (): boolean {
     const p = this.clientPoint()
     return p != null && stashPanelContains(p.h, p.x, p.y)

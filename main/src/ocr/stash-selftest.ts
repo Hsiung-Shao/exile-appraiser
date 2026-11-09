@@ -8,7 +8,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { app, BrowserWindow, nativeImage } from 'electron'
-import { cellRects, type StashSubtab } from '../../../core/src/stash/layout'
+import { cellRects, stashLeft, type StashSubtab } from '../../../core/src/stash/layout'
 import { QTY_PARAMS, readCellQuantity, type QtyResult } from '../../../core/src/stash/quantity'
 import { loadStashDigitTemplates, loadStashLayouts } from '../stash-layout-data'
 import { rawPixels } from './capture'
@@ -27,7 +27,7 @@ export async function runStashSelftest (png: string, argv: string[]): Promise<nu
   const size = img.getSize()
   if (!size.width || !size.height) { console.error(`[stash-selftest] 讀不到圖片 ${png}`); return 1 }
   const clientH = size.height
-  const rects = cellRects(layouts, subtab, clientH, yOffset)
+  const rects = cellRects(layouts, subtab, clientH, yOffset, stashLeft(size.width, clientH))
   // 與 StashScan 相同:一次取整個格子區的像素,格子換成區域內座標
   const bx0 = Math.max(0, Math.min(...rects.map(r => r.x)) - 8)
   const by0 = Math.max(0, Math.min(...rects.map(r => r.y)) - 2)
