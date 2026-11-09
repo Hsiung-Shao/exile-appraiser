@@ -104,11 +104,11 @@ export default defineComponent({
     const groups = computed(() => hotkeyTable(
       { ...config, regexBookmarkHotkeys: regexBookmarkHotkeyList.value },
       { overlay: config.overlayMode, bookmarkFolders: regexBookmarkFolders.value }))
-    /** 該列目前的熱鍵(快速查價 = 按住鍵 + 主鍵,main 以合併後的字串註冊,被佔用的錯誤也是這個字串) */
     /** `needs` 指的功能關著(計時器 = 顯示時機設成關閉) */
     function featureOff (needs: NonNullable<Extract<HotkeyRow, { kind: 'edit' }>['needs']>): boolean {
       return needs === 'timerDisplay' ? config.timerDisplay === 'off' : !config[needs]
     }
+    /** 該列目前的熱鍵(快速查價 = 按住鍵 + 主鍵,main 以合併後的字串註冊,被佔用的錯誤也是這個字串) */
     function rowHotkey (r: HotkeyRow): string {
       if (r.kind === 'ref') return r.hotkey
       if (r.hold) return mergeTwoHotkeys(normalizeHotkey(config.hotkeyHold), normalizeHotkey(config.hotkey))
