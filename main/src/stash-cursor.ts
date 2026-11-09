@@ -6,7 +6,7 @@
  * → 掃描沒找到按鈕時維持原狀);`inPanel()`(整個倉庫面板,含頁籤列)保留但不拿來維持(點別的倉庫頁籤時會誤留)。
  */
 import type { StashCursorEvent } from '@ipc/types'
-import { cellRects, hitCell, type CellRect, type StashLayoutFile, type StashSubtab } from '../../core/src/stash/layout'
+import { cellRects, hitCell, stashLeft, type CellRect, type StashLayoutFile, type StashSubtab } from '../../core/src/stash/layout'
 import type { ScanClock } from './ocr/panel-scan'
 import type { PhysRect } from './ocr/strategy'
 
@@ -94,7 +94,8 @@ export class StashCursor {
     const b = this.deps.bounds()
     if (!b || !(b.width > 0 && b.height > 0)) return null
     const c = this.deps.cursor()
-    return { x: c.x - b.x, y: c.y - b.y, h: b.height }
+    // 倉庫座標(扣掉超寬螢幕左側黑邊;cells 以 x0 = 0 算)
+    return { x: c.x - b.x - stashLeft(b.width, b.height), y: c.y - b.y, h: b.height }
   }
 
   private loop (ms: number): void {

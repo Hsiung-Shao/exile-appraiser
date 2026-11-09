@@ -65,7 +65,15 @@ function scaleY (v: number, clientH: number): number {
   return Math.floor((v / BASE) * clientH)
 }
 
-export function cellRects (file: StashLayoutFile, subtab: StashSubtab, clientH: number, yOffset = 0): CellRect[] {
+/**
+ * 超寬螢幕左側黑邊寬(client 像素):遊戲畫面比 12:5 寬時 PoE 左右補黑,倉庫面板貼著遊戲畫面左緣 → 整體右移這麼多。
+ * Exile-UI screen-checks.ahk `oGamescreen` 同式(那邊是選項,這裡一律套用:使用者 2026-11-09 32:9 截圖遊戲畫面 ≈ 2.40:1)。
+ */
+export function stashLeft (clientW: number, clientH: number): number {
+  return Math.max(0, Math.round((clientW - clientH * 12 / 5) / 2))
+}
+
+export function cellRects (file: StashLayoutFile, subtab: StashSubtab, clientH: number, yOffset = 0, x0 = 0): CellRect[] {
   const box = cellBox(subtab, clientH)
   const gap = cellGap(subtab, clientH)
   const out: CellRect[] = []
@@ -74,7 +82,7 @@ export function cellRects (file: StashLayoutFile, subtab: StashSubtab, clientH: 
   for (const c of file.subtabs[subtab]) {
     x = c.x ? scaleX(c.x, clientH) : x + box + gap
     y = c.y ? scaleY(c.y, clientH) : y
-    out.push({ x, y: y + yOffset, w: box, h: box, refName: c.refName })
+    out.push({ x: x + x0, y: y + yOffset, w: box, h: box, refName: c.refName })
   }
   return out
 }
