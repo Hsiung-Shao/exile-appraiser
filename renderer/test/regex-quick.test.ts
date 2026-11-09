@@ -156,7 +156,8 @@ describe('熱鍵衝突(hotkey-conflicts.ts)', () => {
         { index: 2, name: 'c', game: 'poe2', hotkey: ' ' }
       ]
     })
-    expect(slots.slice(-3)).toEqual([{ id: 'stash:0', hotkey: 'F3' }, { id: 'regexQuick', hotkey: 'F4' }, { id: 'rxbm:0', hotkey: 'Ctrl + 1' }])
+    // 2026-11-09:書籤之後是計時器兩格(同 main 註冊順序)
+    expect(slots.slice(-5)).toEqual([{ id: 'stash:0', hotkey: 'F3' }, { id: 'regexQuick', hotkey: 'F4' }, { id: 'rxbm:0', hotkey: 'Ctrl + 1' }, { id: 'timerToggle', hotkey: '' }, { id: 'timerReset', hotkey: '' }])
   })
   it('重複 / 保留鍵標在後到的;快速面板與書籤撞鍵 → 標書籤', () => {
     const issues = hotkeyIssues(hotkeySlots({

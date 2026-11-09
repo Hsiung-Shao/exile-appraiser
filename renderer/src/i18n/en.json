@@ -1052,7 +1052,8 @@
       "stash_chat": "Stash & chat",
       "regex": "Regex",
       "stash_search": "Stash search",
-      "regex_bookmark": "Bookmark"
+      "regex_bookmark": "Bookmark",
+      "tools": "Tools"
     },
     "hk": {
       "menu_toggle": "Show / hide",
@@ -1062,7 +1063,26 @@
       "empty_stash_chat": "No stash searches yet.",
       "off_note": "The feature is off, so this hotkey is not registered.",
       "scan_note": "Pause / resume hotkeys only work while that feature is on; select-area hotkeys open the area picker in game; leave empty to not register.",
-      "window_only": "Other hotkeys are only available in overlay mode."
+      "window_only": "Other hotkeys are only available in overlay mode.",
+      "poedb": "Open item on poedb",
+      "timer_toggle": "Timer start / pause",
+      "timer_reset": "Timer reset"
+    },
+    "timer": {
+      "section": "Timer",
+      "lead": "A stopwatch on the game screen that you can drag or click while the floating menu is open.",
+      "display": "Show",
+      "display_active": "Only while timing",
+      "display_always": "Always",
+      "display_off": "Off",
+      "menu_toggle": "Timer start / pause",
+      "menu_reset": "Timer reset",
+      "paused": "Paused",
+      "start": "Start",
+      "pause": "Pause",
+      "reset": "Reset",
+      "drag": "Drag to move",
+      "reset_pos": "Reset position"
     }
   }
 }

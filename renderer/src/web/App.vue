@@ -193,6 +193,8 @@
     <runeshape-prices v-if="isOverlay" />
     <!-- PoE1 倉庫價格疊層(碎片頁「一般」;呈現照符文徽章)。懸浮選單開著 = overlay 可互動 → 本頁價值卡可拖曳(H2) -->
     <stash-prices v-if="isOverlay" :interactive="floatMenuOpen" />
+    <!-- 2026-11-09:計時器(移植 APT 碼表;懸浮選單開著時可拖曳、按按鈕) -->
+    <timer-widget v-if="isOverlay" :interactive="floatMenuOpen" />
     <!-- WP-S2:在遊戲畫面上框選 OCR 區域(開著時忽略背景點擊) -->
     <ocr-region-picker v-if="isOverlay" />
   </div>
@@ -214,6 +216,10 @@ import { relatedItemsZoom } from './related-items-scale'
 import * as Poe2 from '@poe2-entry'
 import { dataLanguage, loadedGame } from './games/active'
 import { poe1Adapter } from '@exile-appraiser/poe1'
+import { poedbUrl } from '@poe1/item-check/poedb'
+import { openItemOnPoedb } from './poedb-open'
+import { appTimer } from './overlay/timer-state'
+import TimerWidget from './overlay/TimerWidget.vue'
 import type { ItemTextLanguage } from '@exile-appraiser/core/games/adapter'
 import { TRADE_PATHS } from '@exile-appraiser/core/realm'
 import UiErrorBox from '@/web/ui/UiErrorBox.vue'
@@ -255,7 +261,7 @@ const PANEL_WIDTH_EM = 28.75
 const LEGACY_FS_SCALE = 1.23
 
 export default defineComponent({
-  components: { UiErrorBox, ErrorBoundary, BgLayer, SettingsWindow, OcrBadges, OcrRegionPicker, RuneshapePrices, StashPrices, RegexBookmarkBar, RegexQuickPanel, FloatMenu },
+  components: { UiErrorBox, ErrorBoundary, BgLayer, SettingsWindow, OcrBadges, OcrRegionPicker, RuneshapePrices, StashPrices, RegexBookmarkBar, RegexQuickPanel, FloatMenu, TimerWidget },
   setup () {
     const { t, te } = useI18n()
     const leagues = useLeagues()
@@ -333,7 +339,29 @@ export default defineComponent({
     /** 遊戲側欄寬(APT GameWindow.uiSidebarWidth:800x600 時 370px)。 */
     const gamePanel = computed(() => isOverlay ? Math.round(winHeight.value * 370 / 600) : 0)
 
+    /** 2026-11-09:poedb 熱鍵 → 依遊戲解析(先依文字語言換資料,refName 才對)→ 系統瀏覽器開 poedb / poe2db */
+    async function poedbUrlOf (text: string): Promise<string | null> {
+      const game = loadedGame.value
+      const adapter = game === 'poe2' ? Poe2.poe2Adapter : poe1Adapter
+      await adapter.prepareItemText(text, AppConfig().realm)
+      const lang = AppConfig().language
+      if (game === 'poe2') {
+        const p = Poe2.parseClipboard(text)
+        return p.isOk() ? Poe2.poe2dbUrl(p.value, lang) : null
+      }
+      const p = parseClipboard(text)
+      return p.isOk() ? poedbUrl(p.value, lang) : null
+    }
+
     function handleItemText (e: ItemTextEvent) {
+      if (e.target === 'poedb') {
+        void openItemOnPoedb(e.clipboard, {
+          resolveUrl: poedbUrlOf,
+          open: (url) => { console.log(`[poedb] 開啟 ${url}`); void Host.openExternal(url) },
+          log: (m) => { console.warn(m) }
+        })
+        return
+      }
       if (isOverlay && !e.focusOverlay) {
         // everything in CSS pixels(照 APT PriceCheckWindow.vue)
         const width = panelWidth.value
@@ -461,6 +489,8 @@ export default defineComponent({
         }))
         window.addEventListener('resize', onResize)
         // 第 33 步:快速面板熱鍵(main 已讓 overlay 取得焦點)→ 收起查價面板 / 設定,開面板
+        // 2026-11-09:計時器熱鍵(不搶焦點)
+        unsubscribers.push(Host.onTimerAction((a) => { if (a === 'toggle') appTimer.toggle(); else if (a === 'reset') appTimer.reset() }))
         unsubscribers.push(Host.onRegexQuickOpen(() => {
           floatMenuOpen.value = false
           showSettings.value = false

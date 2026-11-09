@@ -29,6 +29,8 @@ export interface ItemTextEvent {
   position: { x: number, y: number }
   /** 鎖定查價(`hotkeyLocked`):overlay 取得焦點、面板可點擊,不隨滑鼠移開消失。 */
   focusOverlay: boolean
+  /** 2026-11-09:`hotkeyPoedb` 複製的物品 → renderer 開 poedb / poe2db 頁,不開查價面板(省略 = 查價) */
+  target?: 'poedb'
 }
 
 /** APT `MAIN->OVERLAY::focus-change`。 */
@@ -145,6 +147,13 @@ export interface HostConfigForMain {
    * main 只註冊 `game` = 目前遊戲的(只在 overlay 模式);觸發時把 `{ index, name, game }` 送回 renderer 算出搜尋字串。
    */
   regexBookmarkHotkeys?: RegexBookmarkHotkey[]
+  /** 2026-11-09(移植 APT):游標下物品開 poedb / poe2db 頁的熱鍵(預設空 = 不註冊;兩種視窗模式都註冊) */
+  hotkeyPoedb?: string
+  /** 2026-11-09(移植 APT 碼表):計時器開始 / 暫停、歸零熱鍵(預設空;只在 overlay 且 `timerDisplay` 不是 off 時註冊,不送任何按鍵) */
+  hotkeyTimerToggle?: string
+  hotkeyTimerReset?: string
+  /** 計時器顯示時機(省略 = active:跑著或有時間才顯示;always 一直顯示;off 不顯示也不註冊熱鍵) */
+  timerDisplay?: 'active' | 'always' | 'off'
 }
 
 /** 第 33 步:一筆正則書籤熱鍵(`index` = 書籤在 `regex_state.json` `bookmarks` 的位置) */
@@ -358,6 +367,8 @@ export interface OverlayContentState {
   rune: boolean
   /** PoE1 倉庫價格疊層(舊 renderer 沒有這欄 = false) */
   stash?: boolean
+  /** 2026-11-09:計時器(舊 renderer 沒有這欄 = false) */
+  timer?: boolean
   /** 第 33 步:正則書籤快速面板(舊 renderer 沒有這欄 = false) */
   quick?: boolean
   /** 2026-10-08:APT 式懸浮選單(含速查表放大;舊 renderer 沒有這欄 = false) */
@@ -628,6 +639,8 @@ export interface HostApi {
   regexPaste?: (req: RegexPasteRequest) => Promise<RegexPasteResult>
   /** 第 33 步:快速面板熱鍵按下(main 已讓 overlay 取得焦點);只有 overlay 會收到 */
   onRegexQuickOpen?: (cb: () => void) => () => void
+  /** 2026-11-09:計時器熱鍵(main → renderer `timer-action`) */
+  onTimerAction?: (cb: (action: 'toggle' | 'reset') => void) => () => void
   /** 第 33 步:書籤熱鍵按下;renderer 算出字串後呼叫 `regexPaste`(source `hotkey`) */
   onRegexBookmarkRun?: (cb: (e: RegexBookmarkRunEvent) => void) => () => void
   /**

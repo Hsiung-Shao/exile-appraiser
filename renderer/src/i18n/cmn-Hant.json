@@ -1040,7 +1040,8 @@
       "stash_chat": "倉庫與聊天",
       "regex": "正則",
       "stash_search": "倉庫搜尋",
-      "regex_bookmark": "書籤"
+      "regex_bookmark": "書籤",
+      "tools": "工具"
     },
     "hk": {
       "menu_toggle": "叫出 / 收起",
@@ -1050,7 +1051,26 @@
       "empty_stash_chat": "還沒有倉庫搜尋。",
       "off_note": "功能關閉中,這個熱鍵不會註冊。",
       "scan_note": "暫停 / 繼續熱鍵在該功能開著時才生效;框選區域熱鍵在遊戲中直接打開框選層;留空 = 不註冊。",
-      "window_only": "其他熱鍵只在 overlay 模式提供。"
+      "window_only": "其他熱鍵只在 overlay 模式提供。",
+      "poedb": "在 poedb 開啟物品",
+      "timer_toggle": "計時器 開始 / 暫停",
+      "timer_reset": "計時器 歸零"
+    },
+    "timer": {
+      "section": "計時器",
+      "lead": "遊戲畫面上的碼表,懸浮選單開著時可以拖曳、按按鈕。",
+      "display": "顯示",
+      "display_active": "計時中才顯示",
+      "display_always": "一直顯示",
+      "display_off": "關閉",
+      "menu_toggle": "計時器 開始 / 暫停",
+      "menu_reset": "計時器 歸零",
+      "paused": "暫停",
+      "start": "開始",
+      "pause": "暫停",
+      "reset": "歸零",
+      "drag": "拖曳移動",
+      "reset_pos": "還原位置"
     }
   }
 }

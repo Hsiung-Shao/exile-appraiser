@@ -53,6 +53,11 @@ export interface HotkeyConfigLike {
   hotkeyRegexQuick?: string
   /** 第 33 步:書籤個別熱鍵(全部遊戲;這裡只取 `game` = 目前遊戲的) */
   regexBookmarkHotkeys?: Array<{ index: number, name: string, game: string, hotkey: string }>
+  /** 2026-11-09:物品開 poedb、計時器(計時器在 `timerDisplay` off 時 main 不註冊) */
+  hotkeyPoedb?: string
+  hotkeyTimerToggle?: string
+  hotkeyTimerReset?: string
+  timerDisplay?: string
 }
 
 /**
@@ -63,6 +68,7 @@ export function hotkeySlots (c: HotkeyConfigLike): HotkeySlot[] {
   const slots: HotkeySlot[] = [
     { id: 'quick', hotkey: mergeTwoHotkeys(normalizeHotkey(c.hotkeyHold), normalizeHotkey(c.hotkey)) },
     { id: 'locked', hotkey: c.hotkeyLocked },
+    { id: 'poedb', hotkey: c.hotkeyPoedb ?? '' },
     { id: 'overlay', hotkey: c.overlayKey }
   ]
   if (c.game === 'poe2') {
@@ -79,6 +85,10 @@ export function hotkeySlots (c: HotkeyConfigLike): HotkeySlot[] {
   slots.push({ id: 'regexQuick', hotkey: c.hotkeyRegexQuick ?? '' })
   for (const b of c.regexBookmarkHotkeys ?? []) {
     if (b.game === c.game && b.hotkey.trim()) slots.push({ id: `rxbm:${b.index}`, hotkey: b.hotkey })
+  }
+  if (c.timerDisplay !== 'off') {
+    slots.push({ id: 'timerToggle', hotkey: c.hotkeyTimerToggle ?? '' })
+    slots.push({ id: 'timerReset', hotkey: c.hotkeyTimerReset ?? '' })
   }
   return slots.map(s => ({ id: s.id, hotkey: s.hotkey ? normalizeHotkey(s.hotkey) : '' }))
 }

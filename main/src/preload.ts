@@ -75,6 +75,7 @@ const api: HostApi = {
   // 第 33 步:正則書籤快捷存取(複製 + 貼進遊戲、快速面板熱鍵、書籤個別熱鍵);預覽端都沒有
   regexPaste: (req: RegexPasteRequest) => ipcRenderer.invoke('regex-paste', req),
   onRegexQuickOpen: (cb: () => void) => subscribe('regex-quick-open', () => { cb() }),
+  onTimerAction: (cb: (action: 'toggle' | 'reset') => void) => subscribe('timer-action', (a) => { cb(a as 'toggle' | 'reset') }),
   onRegexBookmarkRun: (cb: (e: RegexBookmarkRunEvent) => void) => subscribe('regex-bookmark-run', cb),
   // 一鍵從 PobTools 送正則分享碼(main/src/regex-share.ts);預覽端都沒有
   regexShareTake: () => ipcRenderer.invoke('regex-share-take'),

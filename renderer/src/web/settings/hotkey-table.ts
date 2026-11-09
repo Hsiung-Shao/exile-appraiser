@@ -15,7 +15,8 @@ import type { HotkeyConfigLike } from './hotkey-conflicts'
 
 /** 總表直接編輯的設定鍵 */
 export type HotkeyField = 'hotkey' | 'hotkeyLocked' | 'overlayKey' | 'hotkeyOcrReveal' | 'hotkeyOcrRegion' |
-  'hotkeyRuneshapeToggle' | 'hotkeyRuneshapeRegion' | 'hotkeyRegexQuick' | 'hotkeyStashToggle' | 'hotkeyStashRegion'
+  'hotkeyRuneshapeToggle' | 'hotkeyRuneshapeRegion' | 'hotkeyRegexQuick' | 'hotkeyStashToggle' | 'hotkeyStashRegion' |
+  'hotkeyPoedb' | 'hotkeyTimerToggle' | 'hotkeyTimerReset'
 
 export type HotkeyRow =
   /** `optional` = 選填(預設不綁;第 36 步:空值「未設定」用灰字,不用錯誤紅字) */
@@ -24,7 +25,7 @@ export type HotkeyRow =
   | { kind: 'ref', id: string, label: string, text: string, hotkey: string, tab: SettingsTabId, folder?: string }
 
 export interface HotkeyGroup {
-  id: 'price' | 'menu' | 'scan' | 'regex' | 'stash-chat'
+  id: 'price' | 'menu' | 'scan' | 'regex' | 'stash-chat' | 'tools'
   /** 組標題(i18n 鍵) */
   title: string
   /** 「到 … 編輯」連結目標(唯讀列在那一頁改;沒有 → 無) */
@@ -40,7 +41,8 @@ export interface HotkeyTableOpts {
 }
 
 /** 選填熱鍵(Config 預設空 = 預設不綁;守門測試對照 Config 預設值) */
-export const OPTIONAL_HOTKEY_FIELDS: readonly HotkeyField[] = ['hotkeyOcrRegion', 'hotkeyRuneshapeToggle', 'hotkeyRuneshapeRegion', 'hotkeyRegexQuick', 'hotkeyStashToggle', 'hotkeyStashRegion']
+export const OPTIONAL_HOTKEY_FIELDS: readonly HotkeyField[] = ['hotkeyOcrRegion', 'hotkeyRuneshapeToggle', 'hotkeyRuneshapeRegion', 'hotkeyRegexQuick', 'hotkeyStashToggle', 'hotkeyStashRegion',
+  'hotkeyPoedb', 'hotkeyTimerToggle', 'hotkeyTimerReset']
 
 /** 總表的組與列(順序 = main 的註冊順序,先到先得) */
 export function hotkeyTable (c: HotkeyConfigLike, opts: HotkeyTableOpts): HotkeyGroup[] {
@@ -52,7 +54,12 @@ export function hotkeyTable (c: HotkeyConfigLike, opts: HotkeyTableOpts): Hotkey
       { kind: 'edit', id: 'locked', label: 'ppz.hotkey_locked', field: 'hotkeyLocked' }
     ]
   }]
-  if (!opts.overlay) return groups
+  // 2026-11-09:物品開 poedb(兩種模式都有)、計時器(只 overlay)
+  const poedbRow: HotkeyRow = { kind: 'edit', id: 'poedb', label: 'ppz.hk.poedb', field: 'hotkeyPoedb', optional: true }
+  if (!opts.overlay) {
+    groups.push({ id: 'tools', title: 'ppz.hk_group.tools', rows: [poedbRow] })
+    return groups
+  }
   groups.push({
     id: 'menu',
     title: 'ppz.hk_group.menu',
@@ -92,6 +99,15 @@ export function hotkeyTable (c: HotkeyConfigLike, opts: HotkeyTableOpts): Hotkey
     regexRows.push({ kind: 'ref', id: `rxbm:${b.index}`, label: 'ppz.hk_group.regex_bookmark', text: b.name, hotkey: b.hotkey, tab: 'regex', ...(folder ? { folder } : {}) })
   }
   groups.push({ id: 'regex', title: 'ppz.hk_group.regex', tab: 'regex', rows: regexRows })
+  groups.push({
+    id: 'tools',
+    title: 'ppz.hk_group.tools',
+    rows: [
+      poedbRow,
+      { kind: 'edit', id: 'timerToggle', label: 'ppz.hk.timer_toggle', field: 'hotkeyTimerToggle', optional: true },
+      { kind: 'edit', id: 'timerReset', label: 'ppz.hk.timer_reset', field: 'hotkeyTimerReset', optional: true }
+    ]
+  })
   return groups
 }
 

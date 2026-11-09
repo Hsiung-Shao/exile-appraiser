@@ -1006,6 +1006,8 @@ if (!skipStartup) app.whenReady().then(() => {
     beforeItemCopy: () => { overlayIdle?.wake('熱鍵查價') },
     onItem: (e: ItemTextEvent) => {
       send('item-text', e)
+      // 2026-11-09:poedb 熱鍵只開網頁,不叫出查價視窗
+      if (e.target) return
       if (windowMode === 'window') showNear(e.position)
     },
     // 2026-10-01:原本「按一次辨識一次」→ 暫停 / 繼續褻瀆自動辨識
@@ -1049,7 +1051,9 @@ if (!skipStartup) app.whenReady().then(() => {
       send('regex-quick-open')
     },
     // 第 33 步:書籤個別熱鍵 → renderer 算出搜尋字串後呼叫 `regex-paste`(遊戲本來就在前景,不搶焦點、不顯示 overlay)
-    onRegexBookmark: (e) => { send('regex-bookmark-run', e) }
+    onRegexBookmark: (e) => { send('regex-bookmark-run', e) },
+    // 2026-11-09:計時器熱鍵(遊戲本來就在前景,不搶焦點;overlay 閒置隱藏由 renderer 圖層回報喚醒)
+    onTimer: (action) => { send('timer-action', action) }
   })
   // uiohook 掛鉤不在啟動時開:只在 WidgetAreaTracker 追蹤查價面板期間開(uiohook-gate.ts;送鍵不需要掛鉤)。
   // 例外(第 15 步):倉庫頁籤捲動開著時,遊戲在前景期間也持有一份(要收 wheel 事件);關著時維持上述行為。

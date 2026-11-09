@@ -137,6 +137,22 @@
     </div>
   </section>
 
+  <!-- 2026-11-09:計時器(移植 APT 碼表;只在 overlay 模式) -->
+  <section v-if="config.overlayMode" class="card" data-setting="timer">
+    <span class="label">{{ t('ppz.timer.section') }}</span>
+    <p class="lead">{{ t('ppz.timer.lead') }}</p>
+    <div class="srow">
+      <span class="k">{{ t('ppz.timer.display') }}</span>
+      <div class="ctl">
+        <div class="seg" data-setting="timer-display">
+          <button v-for="d in timerDisplays" :key="d" :class="{ on: config.timerDisplay === d }" :data-value="d"
+            @click="config.timerDisplay = d">{{ timerDisplayLabel[d] }}</button>
+        </div>
+        <button v-if="config.timerPos" class="btn sm" data-action="timer-reset-pos" @click="config.timerPos = null">{{ t('ppz.timer.reset_pos') }}</button>
+      </div>
+    </div>
+  </section>
+
   <section v-if="hasHost" class="card" data-setting="browser-preview">
     <div class="card-head">
       <span class="label">{{ t('ppz.preview.section') }}</span>
@@ -173,6 +189,7 @@ import { SETTINGS_FS_MAX, SETTINGS_FS_MIN, normSettingsFontSize } from '../setti
 import BgLayoutEditor from '../BgLayoutEditor.vue'
 import { useBgPreview, useBgThumb } from '@/web/bg-bake'
 import HelpTip from '../HelpTip.vue'
+import { TIMER_DISPLAYS } from '@/web/overlay/timer-state'
 
 /** 主題縮圖:[底, 面板, 字, 強調](同 pob-zh-engine/ui/src/views/SettingsView.svelte 的 SWATCH)。 */
 const SWATCH: Record<Theme, [string, string, string, string]> = {
@@ -235,6 +252,8 @@ export default defineComponent({
       }
     }
     return {
+      timerDisplays: TIMER_DISPLAYS,
+      timerDisplayLabel: computed(() => ({ active: t('ppz.timer.display_active'), always: t('ppz.timer.display_always'), off: t('ppz.timer.display_off') })),
       hwAccelPending: computed(() => config.hardwareAcceleration !== hwAccelAtStart.value),
       canRelaunch: Host.canRelaunch,
       relaunching,

@@ -25,6 +25,7 @@ import { defaultOcrBadgeStyle, normOcrBadgeStyle, type OcrBadgeStyle } from './o
 import { normSettingsFontSize, normSettingsWindow, type SettingsWindowRect } from './settings/settings-window-geom'
 import { RELATED_SCALE_DEFAULT, normRelatedItemsScale } from './related-items-scale'
 import { normFloatMenuPos, normOverlayPos, type FloatMenuPos, type OverlayPos } from './overlay/float-menu-geom'
+import { TIMER_DISPLAYS, type TimerDisplay } from './overlay/timer-state'
 import { defaultListingLayout, normListingLayout } from './price-panel/listing-layout'
 import { DEFAULT_SHOW_MECHANISM, normShowMechanism } from './price-panel/mechanism-visibility'
 import { defaultOnlineFilterMemory, normOnlineFilterMemory } from './price-panel/online-filter-memory'
@@ -169,6 +170,15 @@ export interface Config {
    * null = 倉庫面板底部預設(stash-view.ts `stashValueCardPos`);顯示時夾回畫面內、不回寫。只在 renderer 用,不進 host-config。
    */
   stashValueCard: OverlayPos | null
+  /** 2026-11-09(移植 APT):游標下物品開 poedb / poe2db 頁的熱鍵(預設空 = 不註冊;兩種視窗模式都有) */
+  hotkeyPoedb: string
+  /** 2026-11-09(移植 APT 碼表):計時器開始 / 暫停、歸零熱鍵(預設空;只在 overlay 且 `timerDisplay` 不是 off) */
+  hotkeyTimerToggle: string
+  hotkeyTimerReset: string
+  /** 計時器顯示時機:active = 跑著或有時間才顯示(預設)、always = 一直顯示、off = 關閉(熱鍵也不註冊) */
+  timerDisplay: TimerDisplay
+  /** 計時器位置(overlay 內左上角比例 0–1;懸浮選單開著時拖曳、放開才寫)。null = 畫面上方中間 */
+  timerPos: OverlayPos | null
   // ---- 相容上游元件的推導屬性 ----
   readonly useIntlSite: boolean
   /** 上游元件讀的字級;= `fsBase`(不進檔)。 */
@@ -375,7 +385,12 @@ function createConfig (): Config {
     floatMenu: null as FloatMenuPos | null,
     cheatSheet: '',
     cheatSheetZoom: null as SettingsWindowRect | null,
-    stashValueCard: null as OverlayPos | null
+    stashValueCard: null as OverlayPos | null,
+    hotkeyPoedb: '',
+    hotkeyTimerToggle: '',
+    hotkeyTimerReset: '',
+    timerDisplay: 'active' as TimerDisplay,
+    timerPos: null as OverlayPos | null
   }
   return {
     ...base,
@@ -454,7 +469,12 @@ function serialize (): string {
     floatMenu: config.floatMenu,
     cheatSheet: config.cheatSheet,
     cheatSheetZoom: config.cheatSheetZoom,
-    stashValueCard: config.stashValueCard
+    stashValueCard: config.stashValueCard,
+    hotkeyPoedb: config.hotkeyPoedb,
+    hotkeyTimerToggle: config.hotkeyTimerToggle,
+    hotkeyTimerReset: config.hotkeyTimerReset,
+    timerDisplay: config.timerDisplay,
+    timerPos: config.timerPos
   }, null, 2)
 }
 
@@ -582,6 +602,12 @@ function applyLoaded (raw: string) {
   config.cheatSheetZoom = normSettingsWindow(loaded.cheatSheetZoom)
   // 2026-10-15 H2:倉庫價值卡位置(舊設定檔沒有 / 壞值 → null = 面板底部預設)
   config.stashValueCard = normOverlayPos(loaded.stashValueCard)
+  // 2026-11-09:poedb / 計時器(舊設定檔沒有 / 壞值 → 空熱鍵、active、null)
+  config.hotkeyPoedb = typeof loaded.hotkeyPoedb === 'string' ? loaded.hotkeyPoedb : fresh.hotkeyPoedb
+  config.hotkeyTimerToggle = typeof loaded.hotkeyTimerToggle === 'string' ? loaded.hotkeyTimerToggle : fresh.hotkeyTimerToggle
+  config.hotkeyTimerReset = typeof loaded.hotkeyTimerReset === 'string' ? loaded.hotkeyTimerReset : fresh.hotkeyTimerReset
+  config.timerDisplay = TIMER_DISPLAYS.includes(loaded.timerDisplay as TimerDisplay) ? loaded.timerDisplay as TimerDisplay : fresh.timerDisplay
+  config.timerPos = normOverlayPos(loaded.timerPos)
 }
 
 /** 測試用:套用一份設定檔內容後回傳序列化結果(`renderer/test/runeshape-config.test.ts`) */
@@ -658,6 +684,10 @@ export function hostConfigOf (c: Config, regexHotkeys: readonly RegexBookmarkHot
     stashSearch: c.stashSearch.map(s => ({ ...s })),
     stashScroll: c.stashScroll,
     hotkeyRegexQuick: c.hotkeyRegexQuick,
+    hotkeyPoedb: c.hotkeyPoedb,
+    hotkeyTimerToggle: c.hotkeyTimerToggle,
+    hotkeyTimerReset: c.hotkeyTimerReset,
+    timerDisplay: c.timerDisplay,
     // 第 33 步:書籤個別熱鍵存在 regex_state.json(regex/store.ts 讀檔後寫入這個 ref);main 只註冊目前遊戲的
     regexBookmarkHotkeys: regexHotkeys.map(b => ({ ...b }))
   }

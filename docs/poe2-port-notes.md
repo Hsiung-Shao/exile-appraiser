@@ -248,6 +248,11 @@ Tailwind 3.4 → 4.3 的批次改名,poe1 / poe2 / renderer 共約 49 個 `.vue`
 - **套用**:PoE1 `CheckedItem.vue` 在 `createPresets` 後對每個 preset `applyPoe1Memory`;PoE2 在上游「大宗預設 listingType = online」之後,依各 preset 的 `apiToSatisfySearch` 套 `applyPoe2Memory`(放前面會被上游蓋掉)。PoE2 原有的 `rememberCurrency` / `rememberListingType`(只記在記憶體)保留不動。
 - 從上游重新同步這幾個檔時重套上述接線;測試 `renderer/test/online-filter-memory.test.ts`(純函式、設定往返、接線守門:選單不得再用裸 `v-model` 綁這四類欄位)、`renderer/test-vue/online-filter-memory-mount.test.ts`(掛載:選單 / 大宗開關寫入、換物品沿用、查詢正規化與一次性按鈕不寫入)。
 
+## 物品開 poe2db(2026-11-09,移植 EE2 `item-check/hotkeyable-actions.ts`)
+- `poe2/src/web/item-check/poedb.ts` `poe2dbUrl`:`getPoe2dbPath` + `POE2DB_CONVERSIONS` 逐字;只留組網址,開啟走 renderer `poedb-open.ts`(系統瀏覽器)。
+- 耦合點:語言只對應本專案兩種(`en`→`us`、`cmn-Hant`→`tw`);沒有 category 時上游回 undefined(網址 `/undefined`),這裡退回 refName。
+- 經 `renderer-entry.ts` 匯出,`renderer/src/web/games/poe2-entry.d.ts` 手寫宣告。
+
 ## 未做 / 待辦
 - 預測價(PricePrediction)。
 - GUI 實機(熱鍵 → overlay 附著 PoE2 視窗 → 台服真實掛單)由使用者實測。

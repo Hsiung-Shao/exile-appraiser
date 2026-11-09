@@ -333,6 +333,11 @@ class HostTransport {
     return window.host?.onRegexQuickOpen?.(cb) ?? (() => {})
   }
 
+  /** 2026-11-09:計時器熱鍵(只有 overlay 會收到) */
+  onTimerAction (cb: (action: 'toggle' | 'reset') => void): () => void {
+    return window.host?.onTimerAction?.(cb) ?? (() => {})
+  }
+
   /** 書籤個別熱鍵 */
   onRegexBookmarkRun (cb: (e: RegexBookmarkRunEvent) => void): () => void {
     return window.host?.onRegexBookmarkRun?.(cb) ?? (() => {})

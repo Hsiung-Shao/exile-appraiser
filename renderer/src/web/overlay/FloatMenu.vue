@@ -152,6 +152,8 @@
             :data-action="'menu-' + x.tool" :data-item="x.id" :data-sel="selId === x.id ? 'true' : undefined" @click="runTool(x.tool!)">
             <svg v-if="x.tool === 'settings'" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1" /></svg>
             <svg v-else-if="x.tool === 'sheet'" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="9" cy="10" r="2" /><path d="m21 16-5-5-9 9" /></svg>
+            <svg v-else-if="x.tool === 'timer-toggle'" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8" /><path d="M12 9v4l2 2M10 2h4" /></svg>
+            <svg v-else-if="x.tool === 'timer-reset'" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8" /><path d="M3 3v5h5" /></svg>
             <svg v-else viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M5 7h14M7 7l-3 7a3 3 0 0 0 6 0zM17 7l-3 7a3 3 0 0 0 6 0z" /></svg>
             <span>{{ x.label }}</span>
           </button>
@@ -239,6 +241,7 @@ import { BUILTIN_CHEAT_SHEET, bookmarkActionFor, cheatSheetUrl, floatMenuPlace, 
 import { MENU_CHIPS, filterMenuItems, menuItemsOf, menuKey, menuRows, rateDotOf, type MenuChip, type MenuItem, type MenuTool } from './float-menu-items'
 import { floatMenuChip, floatMenuQuery, floatMenuSection, floatMenuSel } from './float-menu-state'
 import { marketRateOf } from './market-rate'
+import { appTimer } from './timer-state'
 import { stashValue, stashValueText } from './stash-value'
 import { RESIZE_EDGES, clampSettingsRect, createRectDrag, edgeCursor, isInteractiveTarget, type DragEdge, type SettingsWindowRect } from '@/web/settings/settings-window-geom'
 
@@ -320,7 +323,7 @@ const queryOn = computed(() => query.value.trim() !== '')
 const listGame = shallowRef<RegexGame>(config.game)
 const action = computed(() => bookmarkActionFor(listGame.value, config.game))
 const grouped = computed(() => bookmarkGroupsOf(listGame.value, true))
-const items = computed(() => menuItemsOf({ game: config.game, bookmarks: grouped.value, t }))
+const items = computed(() => menuItemsOf({ game: config.game, bookmarks: grouped.value, t, timer: config.timerDisplay !== 'off' }))
 const filtered = computed(() => filterMenuItems(items.value, chip.value, query.value))
 const rows = computed(() => menuRows(filtered.value, query.value))
 const scanItems = computed(() => filtered.value.filter(i => i.kind === 'scan'))
@@ -382,6 +385,8 @@ function runTool (tool: MenuTool) {
   notice.value = ''
   if (tool === 'settings') emit('settings')
   else if (tool === 'dust') emit('open-tab', 'dust')
+  else if (tool === 'timer-toggle') appTimer.toggle()
+  else if (tool === 'timer-reset') appTimer.reset()
   else section.value = section.value === 'sheet' ? '' : 'sheet'
 }
 
