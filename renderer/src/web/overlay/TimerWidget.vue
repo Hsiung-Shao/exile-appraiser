@@ -30,6 +30,7 @@ import { AppConfig } from '../Config'
 import { appTimer, formatHms, timerVisible } from './timer-state'
 import { overlayLayers } from './overlay-content'
 import { overlayPlace, overlayPosOf } from './float-menu-geom'
+import { Host } from '../background/IPC'
 
 const props = defineProps<{ interactive: boolean }>()
 const { t } = useI18n()
@@ -96,6 +97,19 @@ function onUp (e: PointerEvent) {
   }
   draft.value = null
 }
+// OCR 擷取會截到 overlay 自己:回報外框當遮罩(main 填掉、差分也不比 → 每秒換字不觸發 OCR)
+let maskKey = ''
+function reportMask () {
+  const r = visible.value ? el.value?.getBoundingClientRect?.() : undefined
+  const rects = r && r.width > 0 && r.height > 0 ? [{ x: r.left, y: r.top, w: r.width, h: r.height }] : []
+  const viewport = { w: view.value.w, h: view.value.h }
+  const key = JSON.stringify([viewport, rects])
+  if (key === maskKey) return
+  maskKey = key
+  Host.scanMask({ source: 'timer', viewport, rects })
+}
+watch([visible, place, size, view], reportMask, { flush: 'post', immediate: true })
+
 // 選單收起 → 中止拖曳、不寫設定
 watch(() => props.interactive, (on) => { if (!on) { dragging.value = false; draft.value = null } })
 
@@ -104,6 +118,7 @@ onUnmounted(() => {
   ro?.disconnect()
   window.removeEventListener('resize', onResize)
   overlayLayers.timer = false
+  if (maskKey) Host.scanMask({ source: 'timer', viewport: { w: view.value.w, h: view.value.h }, rects: [] })
 })
 </script>
 

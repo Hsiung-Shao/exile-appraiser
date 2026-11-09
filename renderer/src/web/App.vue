@@ -343,14 +343,26 @@ export default defineComponent({
     async function poedbUrlOf (text: string): Promise<string | null> {
       const game = loadedGame.value
       const adapter = game === 'poe2' ? Poe2.poe2Adapter : poe1Adapter
-      await adapter.prepareItemText(text, AppConfig().realm)
+      const seq = loadSeq
+      try {
+        await adapter.prepareItemText(text, AppConfig().realm)
+      } catch (e) {
+        console.error('[poedb] 換語系資料失敗,改用目前的資料集解析', e)
+      }
       const lang = AppConfig().language
+      let url: string | null
       if (game === 'poe2') {
         const p = Poe2.parseClipboard(text)
-        return p.isOk() ? Poe2.poe2dbUrl(p.value, lang) : null
+        url = p.isOk() ? Poe2.poe2dbUrl(p.value, lang) : null
+      } else {
+        const p = parseClipboard(text)
+        url = p.isOk() ? poedbUrl(p.value, lang) : null
       }
-      const p = parseClipboard(text)
-      return p.isOk() ? poedbUrl(p.value, lang) : null
+      // 換語系資料是全域的:面板上還開著另一語言的物品(中間沒有新的查價)→ 換回它的資料
+      if (seq === loadSeq && rawText.value && game === loadedGame.value) {
+        try { await adapter.prepareItemText(rawText.value, AppConfig().realm) } catch { /* load 會再處理 */ }
+      }
+      return url
     }
 
     function handleItemText (e: ItemTextEvent) {
@@ -488,9 +500,9 @@ export default defineComponent({
           }
         }))
         window.addEventListener('resize', onResize)
-        // 第 33 步:快速面板熱鍵(main 已讓 overlay 取得焦點)→ 收起查價面板 / 設定,開面板
         // 2026-11-09:計時器熱鍵(不搶焦點)
         unsubscribers.push(Host.onTimerAction((a) => { if (a === 'toggle') appTimer.toggle(); else if (a === 'reset') appTimer.reset() }))
+        // 第 33 步:快速面板熱鍵(main 已讓 overlay 取得焦點)→ 收起查價面板 / 設定,開面板
         unsubscribers.push(Host.onRegexQuickOpen(() => {
           floatMenuOpen.value = false
           showSettings.value = false

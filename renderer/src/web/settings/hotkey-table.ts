@@ -20,7 +20,7 @@ export type HotkeyField = 'hotkey' | 'hotkeyLocked' | 'overlayKey' | 'hotkeyOcrR
 
 export type HotkeyRow =
   /** `optional` = 選填(預設不綁;第 36 步:空值「未設定」用灰字,不用錯誤紅字) */
-  | { kind: 'edit', id: string, label: string, field: HotkeyField, hold?: boolean, needs?: 'revealAutoEnabled' | 'runeshapeEnabled' | 'stashPricesEnabled', optional?: boolean }
+  | { kind: 'edit', id: string, label: string, field: HotkeyField, hold?: boolean, needs?: 'revealAutoEnabled' | 'runeshapeEnabled' | 'stashPricesEnabled' | 'timerDisplay', optional?: boolean }
   /** `folder` = 第 36 步正則書籤所在資料夾(未分類 / 不是書籤 = 沒有) */
   | { kind: 'ref', id: string, label: string, text: string, hotkey: string, tab: SettingsTabId, folder?: string }
 
@@ -104,8 +104,8 @@ export function hotkeyTable (c: HotkeyConfigLike, opts: HotkeyTableOpts): Hotkey
     title: 'ppz.hk_group.tools',
     rows: [
       poedbRow,
-      { kind: 'edit', id: 'timerToggle', label: 'ppz.hk.timer_toggle', field: 'hotkeyTimerToggle', optional: true },
-      { kind: 'edit', id: 'timerReset', label: 'ppz.hk.timer_reset', field: 'hotkeyTimerReset', optional: true }
+      { kind: 'edit', id: 'timerToggle', label: 'ppz.hk.timer_toggle', field: 'hotkeyTimerToggle', needs: 'timerDisplay', optional: true },
+      { kind: 'edit', id: 'timerReset', label: 'ppz.hk.timer_reset', field: 'hotkeyTimerReset', needs: 'timerDisplay', optional: true }
     ]
   })
   return groups

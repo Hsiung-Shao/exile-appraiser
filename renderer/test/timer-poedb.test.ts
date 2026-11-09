@@ -281,3 +281,26 @@ describe('App.vue 接線守門(T7)', () => {
     expect(panel, '開面板的程式在 return 之後').toBeGreaterThan(ret)
   })
 })
+
+describe('審查修正(2026-11-09)', () => {
+  it('計時器回報遮罩外框(OCR 不會讀到計時器、每秒換字不觸發差分)', () => {
+    const src = read('renderer/src/web/overlay/TimerWidget.vue')
+    expect(src).toContain("Host.scanMask({ source: 'timer'")
+    expect(src).toMatch(/onUnmounted[\s\S]*source: 'timer'[\s\S]*rects: \[\]/)
+  })
+  it('poedb 事件不算查價(ninja 定期更新、效能查價延遲)', () => {
+    expect(read('renderer/src/web/background/Prices.ts')).toMatch(/if \(!e\.target\) queuePricesFetch\(\)/)
+    expect(read('renderer/src/main.ts')).toMatch(/onItemText\(\(e\) => \{ if \(!e\.target\) cb\(\) \}\)/)
+  })
+  it('poedb 換語系資料後換回面板上物品的資料', () => {
+    const src = read('renderer/src/web/App.vue')
+    const fn = src.slice(src.indexOf('async function poedbUrlOf'), src.indexOf('function handleItemText'))
+    expect(fn).toMatch(/seq === loadSeq && rawText\.value[\s\S]*prepareItemText\(rawText\.value/)
+  })
+  it('計時器顯示關閉時,熱鍵列標 needs(總表顯示「功能關閉中」)', () => {
+    const cfg = { hotkey: 'D', hotkeyHold: 'Ctrl', hotkeyLocked: '', overlayKey: '', game: 'poe1', hotkeyOcrReveal: '', hotkeyOcrRegion: '', hotkeyRuneshapeToggle: '', commands: [], stashSearch: [] } as unknown as HotkeyConfigLike
+    const g = hotkeyTable(cfg, { overlay: true }).find(x => x.id === 'tools')!
+    expect(g.rows.map(r => r.kind === 'edit' ? r.needs ?? null : null)).toEqual([null, 'timerDisplay', 'timerDisplay'])
+    expect(read('renderer/src/web/settings/tabs/Hotkeys.vue')).toContain("needs === 'timerDisplay' ? config.timerDisplay === 'off'")
+  })
+})

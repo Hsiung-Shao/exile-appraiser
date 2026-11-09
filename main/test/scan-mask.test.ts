@@ -420,3 +420,15 @@ describe('掃描迴圈 × 自己的徽章(假時鐘)', () => {
     w.scan.stop()
   })
 })
+
+describe('計時器遮罩來源(2026-11-09)', () => {
+  it('source timer 收下,且與其他來源一起遮', () => {
+    expect(sanitizeMaskReport({ source: 'timer', viewport: { w: 100, h: 100 }, rects: [{ x: 10, y: 10, w: 20, h: 10 }] })?.source).toBe('timer')
+    expect(sanitizeMaskReport({ source: 'bogus', viewport: { w: 100, h: 100 }, rects: [] })).toBeNull()
+    const s = new ScanMaskStore({ padCssPx: 0 })
+    s.report({ source: 'timer', viewport: { w: 100, h: 100 }, rects: [{ x: 10, y: 10, w: 20, h: 10 }] }, 0)
+    // 計時器沒有 seq:不會讓擷取等 ack
+    expect(s.pending(0)).toBe(false)
+    expect(s.clientRects({ w: 200, h: 200 }, 0)).toEqual([{ x: 20, y: 20, w: 40, h: 20 }])
+  })
+})

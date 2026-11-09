@@ -42,7 +42,7 @@
           </div>
           <span v-if="issueText(r.id, rowHotkey(r))" class="err" :data-issue="r.id">{{ issueText(r.id, rowHotkey(r)) }}</span>
           <span v-else-if="sharedText(r.id)" class="note" :data-shared="r.id">{{ sharedText(r.id) }}</span>
-          <span v-else-if="r.needs && !config[r.needs] && rowHotkey(r)" class="note" :data-hk-off="r.id">{{ t('ppz.hk.off_note') }}</span>
+          <span v-else-if="r.needs && featureOff(r.needs) && rowHotkey(r)" class="note" :data-hk-off="r.id">{{ t('ppz.hk.off_note') }}</span>
         </template>
         <template v-else>
           <span class="k hk-ref-k">{{ t(r.label) }}</span>
@@ -105,6 +105,10 @@ export default defineComponent({
       { ...config, regexBookmarkHotkeys: regexBookmarkHotkeyList.value },
       { overlay: config.overlayMode, bookmarkFolders: regexBookmarkFolders.value }))
     /** 該列目前的熱鍵(快速查價 = 按住鍵 + 主鍵,main 以合併後的字串註冊,被佔用的錯誤也是這個字串) */
+    /** `needs` 指的功能關著(計時器 = 顯示時機設成關閉) */
+    function featureOff (needs: NonNullable<Extract<HotkeyRow, { kind: 'edit' }>['needs']>): boolean {
+      return needs === 'timerDisplay' ? config.timerDisplay === 'off' : !config[needs]
+    }
     function rowHotkey (r: HotkeyRow): string {
       if (r.kind === 'ref') return r.hotkey
       if (r.hold) return mergeTwoHotkeys(normalizeHotkey(config.hotkeyHold), normalizeHotkey(config.hotkey))
@@ -116,6 +120,7 @@ export default defineComponent({
       groups,
       FIELD_DS,
       rowHotkey,
+      featureOff,
       issueText,
       sharedText,
       otherError,

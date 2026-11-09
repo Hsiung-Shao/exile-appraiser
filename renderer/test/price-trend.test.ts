@@ -224,7 +224,8 @@ describe('接線守門', () => {
   })
   it('剪貼簿查價兩代都算「有人在查價」(queuePricesFetch;節流與 20 分鐘閘門在 load 內)', () => {
     const src = read('renderer/src/web/background/Prices.ts')
-    expect(src).toMatch(/Host\.onItemText\(\(\) => \{\s*queuePricesFetch\(\)\s*\}\)/)
+    // 2026-11-09:poedb 熱鍵的事件(帶 target)不算查價
+    expect(src).toMatch(/Host\.onItemText\(\(e\) => \{[\s\S]*?if \(!e\.target\) queuePricesFetch\(\)\s*\}\)/)
     expect(src).toMatch(/if \(realm !== 'intl' \|\| !league\?\.id \|\| !league\.isPopular\) return null/)
   })
   it('快取讀取中又有人查價:先等快取讀完再判斷新鮮度(不因 snapshot 暫時為 null 就上網抓)', () => {

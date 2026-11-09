@@ -231,8 +231,9 @@ export const usePoeninja = createGlobalState(() => {
   // 剪貼簿查價 = 有人在查價(上游由 PriceCheckWindow 呼叫 queuePricesFetch)。
   // 第 24 步起 PoE2 也算(查價面板「通貨價格區」經 poe2-price-source.ts 讀這份價格表);台服 / 私人聯盟 target 為 null,load 直接 return。
   // 節流不變:只有快取時 15 分鐘 TTL、這次執行抓過後 31 分鐘、抓價中不重複。
-  Host.onItemText(() => {
-    queuePricesFetch()
+  Host.onItemText((e) => {
+    // 2026-11-09:poedb 熱鍵只開網頁,不算查價
+    if (!e.target) queuePricesFetch()
   })
 
   // 換區 / 換遊戲 / 換聯盟 → 清空,讀新目標的快取(有人在查價才上網)

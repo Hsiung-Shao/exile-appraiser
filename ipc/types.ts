@@ -327,7 +327,8 @@ export type StashDumpResult = { ok: true, file: string } | { ok: false, reason: 
  * main 擷取後把這些矩形填掉再 OCR、差分不比那幾格。`source` = 哪一層(褻瀆徽章層 / 符文徽章層),每層一份、新的取代舊的。
  */
 export interface ScanMaskReport {
-  source: 'reveal' | 'rune' | 'stash'
+  /** 2026-11-09:`timer` = 計時器(可拖到 OCR 區域上;只有外框,沒有 seq / ack) */
+  source: 'reveal' | 'rune' | 'stash' | 'timer'
   /** 這份反映到哪一個掃描事件為止(`PanelScanEvent.seq`,ack;main 送出 rows 後等它才擷取下一張);純外觀變動可省略 */
   seq?: number
   /** overlay 視窗的 CSS 大小(`innerWidth` / `innerHeight`;main 以 client.w / innerWidth 換算成 client 實體像素) */
