@@ -35,10 +35,10 @@ export const MENU_CHIPS: readonly MenuChip[] = ['all', 'bookmark', 'scan', 'tool
 export const MENU_TOOLS: ReadonlyArray<{ tool: MenuTool, label: string }> = [
   { tool: 'settings', label: 'ppz.menu.settings' },
   { tool: 'sheet', label: 'ppz.menu.sheet' },
-  // 2026-11-09:計時器(設定 `timerDisplay` 為 off 時不列;拆粉排行維持最後一個)
+  { tool: 'dust', label: 'ppz.menu.dust' },
+  // 2026-11-09:計時器(畫在工具第二排;設定 `timerDisplay` 為 off 時不列)
   { tool: 'timer-toggle', label: 'ppz.timer.menu_toggle' },
-  { tool: 'timer-reset', label: 'ppz.timer.menu_reset' },
-  { tool: 'dust', label: 'ppz.menu.dust' }
+  { tool: 'timer-reset', label: 'ppz.timer.menu_reset' }
 ]
 
 /**

@@ -147,14 +147,20 @@
       <section v-if="toolItems.length" class="fm-group" data-group="tools">
         <div class="fm-grp">{{ t('ppz.menu.grp_tools') }}</div>
         <div class="fm-tools">
-          <button v-for="x in toolItems" :key="x.id" type="button" class="fm-tool" :class="{ on: toolOn(x.tool!), sel: selId === x.id }"
+          <button v-for="x in toolRow1" :key="x.id" type="button" class="fm-tool" :class="{ on: toolOn(x.tool!), sel: selId === x.id }"
             :aria-expanded="x.tool === 'sheet' ? (section === 'sheet' ? 'true' : 'false') : undefined"
             :data-action="'menu-' + x.tool" :data-item="x.id" :data-sel="selId === x.id ? 'true' : undefined" @click="runTool(x.tool!)">
             <svg v-if="x.tool === 'settings'" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1" /></svg>
             <svg v-else-if="x.tool === 'sheet'" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="9" cy="10" r="2" /><path d="m21 16-5-5-9 9" /></svg>
-            <svg v-else-if="x.tool === 'timer-toggle'" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8" /><path d="M12 9v4l2 2M10 2h4" /></svg>
-            <svg v-else-if="x.tool === 'timer-reset'" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8" /><path d="M3 3v5h5" /></svg>
             <svg v-else viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M5 7h14M7 7l-3 7a3 3 0 0 0 6 0zM17 7l-3 7a3 3 0 0 0 6 0z" /></svg>
+            <span>{{ x.label }}</span>
+          </button>
+        </div>
+        <div v-if="toolRow2.length" class="fm-tools fm-tools-timer" data-menu="timer">
+          <button v-for="x in toolRow2" :key="x.id" type="button" class="fm-tool" :class="{ sel: selId === x.id }"
+            :data-action="'menu-' + x.tool" :data-item="x.id" :data-sel="selId === x.id ? 'true' : undefined" @click="runTool(x.tool!)">
+            <svg v-if="x.tool === 'timer-toggle'" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8" /><path d="M12 9v4l2 2M10 2h4" /></svg>
+            <svg v-else viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8" /><path d="M3 3v5h5" /></svg>
             <span>{{ x.label }}</span>
           </button>
         </div>
@@ -328,6 +334,9 @@ const filtered = computed(() => filterMenuItems(items.value, chip.value, query.v
 const rows = computed(() => menuRows(filtered.value, query.value))
 const scanItems = computed(() => filtered.value.filter(i => i.kind === 'scan'))
 const toolItems = computed(() => filtered.value.filter(i => i.kind === 'tool'))
+// 2026-11-09:計時器兩項畫在第二排(順序同 MENU_TOOLS = 鍵盤順序)
+const toolRow1 = computed(() => toolItems.value.filter(i => !i.tool!.startsWith('timer-')))
+const toolRow2 = computed(() => toolItems.value.filter(i => i.tool!.startsWith('timer-')))
 const showInfo = computed(() => chip.value === 'all' && !queryOn.value)
 const showBookmarks = computed(() => (chip.value === 'all' || chip.value === 'bookmark') && (!queryOn.value || filtered.value.some(i => i.kind === 'bookmark')))
 /** 書籤依資料夾分組(只留篩選後的);搜尋中一律展開 */
@@ -931,6 +940,7 @@ button.fm-row:hover:not(:disabled), .fm-row.sel { background: var(--surface-hove
 
 /* 工具 */
 .fm-tools { display: flex; gap: 0.45em; padding: 0 0.15em; }
+.fm-tools-timer { margin-top: 0.45em; }
 .fm-tool {
   font: inherit;
   font-size: var(--fs-sm);

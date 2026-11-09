@@ -138,7 +138,7 @@ describe('F7 選單掛載(PoE2)', () => {
     app.unmount()
   })
 
-  it('鍵盤:↓ 從第一列往下、End 到最後(拆粉排行)、Enter 執行', async () => {
+  it('鍵盤:↓ 從第一列往下、End 到最後(計時器歸零)、↑ 回拆粉排行、Enter 執行', async () => {
     reset()
     const { container, errors, events, app } = render()
     await settle()
@@ -149,6 +149,11 @@ describe('F7 選單掛載(PoE2)', () => {
     await settle()
     expect(selected(container)).toEqual(['scan:runeshapeEnabled'])
     key(container, 'End')
+    await settle()
+    // 2026-11-09:計時器兩項在工具第二排,鍵盤順序 = 畫面順序
+    expect(selected(container)).toEqual(['tool:timer-reset'])
+    key(container, 'ArrowUp')
+    key(container, 'ArrowUp')
     await settle()
     expect(selected(container)).toEqual(['tool:dust'])
     key(container, 'Enter')

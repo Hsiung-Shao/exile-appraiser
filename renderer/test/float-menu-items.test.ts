@@ -32,7 +32,7 @@ describe('F1 選單項目攤平分三類', () => {
     expect(b.map(i => [i.label, i.folder, i.index, i.hotkey ?? null, i.collapsed])).toEqual([
       ['T17 危險詞綴', '地圖', 0, 'Ctrl + 1', false], ['高數量 Map', '地圖', 2, null, false], ['6L 商店', '商店', 5, 'F6', true]
     ])
-    expect(items.filter(i => i.kind === 'tool').map(i => i.tool)).toEqual(['settings', 'sheet', 'timer-toggle', 'timer-reset', 'dust'])
+    expect(items.filter(i => i.kind === 'tool').map(i => i.tool)).toEqual(['settings', 'sheet', 'dust', 'timer-toggle', 'timer-reset'])
     // 2026-11-09:計時器關閉(timerDisplay off)→ 不列計時器兩項
     expect(menuItemsOf({ game: 'poe1', bookmarks: GROUPS, t, timer: false }).filter(i => i.kind === 'tool').map(i => i.tool)).toEqual(['settings', 'sheet', 'dust'])
     // id 不重複(v-for key / 選取都靠它)

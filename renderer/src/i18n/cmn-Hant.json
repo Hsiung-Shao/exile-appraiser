@@ -1071,6 +1071,9 @@
       "reset": "歸零",
       "drag": "拖曳移動",
       "reset_pos": "還原位置"
+    },
+    "filters": {
+      "expand": "展開詞綴"
     }
   }
 }

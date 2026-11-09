@@ -1083,6 +1083,9 @@
       "reset": "Reset",
       "drag": "Drag to move",
       "reset_pos": "Reset position"
+    },
+    "filters": {
+      "expand": "Show mods"
     }
   }
 }

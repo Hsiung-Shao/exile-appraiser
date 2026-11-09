@@ -96,3 +96,13 @@ describe('main.ts 接線守門', () => {
     expect(t).toBeLessThan(s)
   })
 })
+
+describe('poedb 開瀏覽器到前景(2026-11-09 使用者要求)', () => {
+  it('onItem 帶 target 時先讓 overlay 取得焦點(前景程式才能把瀏覽器帶到前景),且不呼叫 showNear', () => {
+    const src = fs.readFileSync(path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../src/main.ts'), 'utf8')
+    const start = src.indexOf('onItem: (e: ItemTextEvent) => {')
+    const block = src.slice(start, src.indexOf('\n    },', start))
+    const branch = block.slice(block.indexOf('if (e.target) {'))
+    expect(branch).toMatch(/^if \(e\.target\) \{\s*overlay\?\.assertOverlayActive\(\)\s*return\s*\}/)
+  })
+})

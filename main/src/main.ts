@@ -1006,8 +1006,13 @@ if (!skipStartup) app.whenReady().then(() => {
     beforeItemCopy: () => { overlayIdle?.wake('熱鍵查價') },
     onItem: (e: ItemTextEvent) => {
       send('item-text', e)
-      // 2026-11-09:poedb 熱鍵只開網頁,不叫出查價視窗
-      if (e.target) return
+      // 2026-11-09:poedb 熱鍵只開網頁,不叫出查價視窗。
+      // 使用者要求瀏覽器到前景:Windows 只讓「前景程式」開的視窗搶到前景 → 先讓 overlay 取得焦點(熱鍵剛按下,允許),
+      // 之後 renderer 送 open-external 時由我們這個前景程式開瀏覽器。視窗模式沒有 overlay,維持原狀。
+      if (e.target) {
+        overlay?.assertOverlayActive()
+        return
+      }
       if (windowMode === 'window') showNear(e.position)
     },
     // 2026-10-01:原本「按一次辨識一次」→ 暫停 / 繼續褻瀆自動辨識
