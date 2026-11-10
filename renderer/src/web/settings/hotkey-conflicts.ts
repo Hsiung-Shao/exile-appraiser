@@ -57,6 +57,9 @@ export interface HotkeyConfigLike {
   hotkeyPoedb?: string
   hotkeyTimerToggle?: string
   hotkeyTimerReset?: string
+  hotkeyTimerPause?: string
+  hotkeyTimerUndo?: string
+  hotkeyTimerSkip?: string
   timerDisplay?: string
 }
 
@@ -89,6 +92,9 @@ export function hotkeySlots (c: HotkeyConfigLike): HotkeySlot[] {
   if (c.timerDisplay !== 'off') {
     slots.push({ id: 'timerToggle', hotkey: c.hotkeyTimerToggle ?? '' })
     slots.push({ id: 'timerReset', hotkey: c.hotkeyTimerReset ?? '' })
+    slots.push({ id: 'timerPause', hotkey: c.hotkeyTimerPause ?? '' })
+    slots.push({ id: 'timerUndo', hotkey: c.hotkeyTimerUndo ?? '' })
+    slots.push({ id: 'timerSkip', hotkey: c.hotkeyTimerSkip ?? '' })
   }
   return slots.map(s => ({ id: s.id, hotkey: s.hotkey ? normalizeHotkey(s.hotkey) : '' }))
 }

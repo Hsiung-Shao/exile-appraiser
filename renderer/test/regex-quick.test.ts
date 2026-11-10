@@ -157,7 +157,8 @@ describe('熱鍵衝突(hotkey-conflicts.ts)', () => {
       ]
     })
     // 2026-11-09:書籤之後是計時器兩格(同 main 註冊順序)
-    expect(slots.slice(-5)).toEqual([{ id: 'stash:0', hotkey: 'F3' }, { id: 'regexQuick', hotkey: 'F4' }, { id: 'rxbm:0', hotkey: 'Ctrl + 1' }, { id: 'timerToggle', hotkey: '' }, { id: 'timerReset', hotkey: '' }])
+    expect(slots.slice(-8)).toEqual([{ id: 'stash:0', hotkey: 'F3' }, { id: 'regexQuick', hotkey: 'F4' }, { id: 'rxbm:0', hotkey: 'Ctrl + 1' },
+      { id: 'timerToggle', hotkey: '' }, { id: 'timerReset', hotkey: '' }, { id: 'timerPause', hotkey: '' }, { id: 'timerUndo', hotkey: '' }, { id: 'timerSkip', hotkey: '' }])
   })
   it('重複 / 保留鍵標在後到的;快速面板與書籤撞鍵 → 標書籤', () => {
     const issues = hotkeyIssues(hotkeySlots({

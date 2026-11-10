@@ -1,54 +1,56 @@
 /**
- * 計時器(2026-11-09,移植 APT `stopwatch/WidgetTimer.vue` 的計時規則,MIT):
- * 暫停期間不計時;停止時歸零 = 0;跑著時歸零 = 從 0 繼續跑。
- * 狀態放在物件欄位上,`reactive()` 包起來後 Vue 追得到 `running`(App 的單例 `appTimer`)。
+ * 計時器狀態(2026-11-09 移植 APT 碼表;2026-11-10 改成 speedrun 式:分段 / 個人最佳 / 金段 / Client.txt 自動分段)。
+ * 計時規則在 core `speedrun/run.ts`(一次跑的狀態機,直接改路線的 PB / 金段 / 嘗試次數 → 跟著設定檔存)。
+ * 熱鍵(main `timer-action`)、懸浮選單、計時器元件都經這裡;App 只有一個 run,綁目前遊戲的路線。
  */
-import { reactive } from 'vue'
+import { computed, reactive } from 'vue'
+import type { TimerAction } from '@ipc/types'
+import { AppConfig } from '../Config'
+import { createRun, type Run } from '../../../../core/src/speedrun/run'
+import { autoAction } from '../../../../core/src/speedrun/autosplit'
+import type { Route } from '../../../../core/src/speedrun/routes'
 
 export type TimerDisplay = 'active' | 'always' | 'off'
 export const TIMER_DISPLAYS: readonly TimerDisplay[] = ['active', 'always', 'off']
-
-export function createTimer (now: () => number) {
-  return {
-    running: false,
-    /** 上次暫停 / 歸零前累計的毫秒 */
-    acc: 0,
-    /** 這段開始跑的時間點 */
-    since: 0,
-    start () {
-      if (this.running) return
-      this.since = now()
-      this.running = true
-    },
-    stop () {
-      if (!this.running) return
-      this.acc += now() - this.since
-      this.running = false
-    },
-    toggle () {
-      if (this.running) this.stop()
-      else this.start()
-    },
-    reset () {
-      this.acc = 0
-      this.since = now()
-    },
-    elapsedMs (): number {
-      return this.acc + (this.running ? now() - this.since : 0)
-    }
-  }
-}
-
-export function formatHms (ms: number): string {
-  const s = Math.floor(Math.max(0, ms) / 1000)
-  const p = (n: number) => String(n).padStart(2, '0')
-  return `${p(Math.floor(s / 3600))}:${p(Math.floor(s / 60) % 60)}:${p(s % 60)}`
-}
 
 export function timerVisible (display: TimerDisplay, running: boolean, elapsedMs: number): boolean {
   if (display === 'off') return false
   return display === 'always' || running || elapsedMs > 0
 }
 
-/** App 唯一的計時器(熱鍵、懸浮選單、計時器元件共用) */
-export const appTimer = reactive(createTimer(() => Date.now()))
+/** 目前遊戲的路線(設定裡的 reactive 物件;run 直接改它的 PB / 金段 → 設定檔跟著存) */
+export function currentRoute (): Route {
+  const c = AppConfig()
+  return c.speedrun[c.game]
+}
+
+/** 換遊戲 / 換分段清單(路線物件換掉)才重建;同一條路線上的改動不重建 */
+export const appRun = computed<Run>(() => reactive(createRun(currentRoute(), () => Date.now())) as Run)
+
+export function timerAction (a: TimerAction): void {
+  const run = appRun.value
+  switch (a) {
+    case 'toggle':
+      // LiveSplit:沒在跑 = 開始、暫停中 = 繼續、跑著 = 分段;跑完要先重設
+      if (run.phase === 'idle') run.start()
+      else if (run.phase === 'paused') run.resume()
+      else if (run.phase === 'running') run.split()
+      break
+    case 'pause':
+      if (run.phase === 'running') run.pause()
+      else if (run.phase === 'paused') run.resume()
+      break
+    case 'reset': run.reset(); break
+    case 'undo': run.undo(); break
+    case 'skip': run.skip(); break
+  }
+}
+
+/** Client.txt 進入區域 → 自動開始 / 自動分段 */
+export function timerArea (area: string): void {
+  const run = appRun.value
+  const act = autoAction(run, currentRoute(), area)
+  if (act === 'start') run.start()
+  else if (act === 'split') run.split()
+  if (act) console.log(`[speedrun] 自動${act === 'start' ? '開始' : '分段'}:${area}`)
+}

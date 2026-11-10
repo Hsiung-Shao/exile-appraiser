@@ -25,6 +25,8 @@ export interface ShortcutAction {
   | { type: 'regex-bookmark', index: number, name: string, game: GameId }
   /** 2026-11-09(移植 APT 碼表):計時器開始 / 暫停、歸零(renderer `timer-action`;不送按鍵) */
   | { type: 'timer-toggle' } | { type: 'timer-reset' }
+  /** 2026-11-10 speedrun:暫停 / 撤銷分段 / 跳過分段 */
+  | { type: 'timer-pause' } | { type: 'timer-undo' } | { type: 'timer-skip' }
 }
 
 /** 聊天指令 / 倉庫搜尋最多各幾條(設定檔被手改成超大陣列時不註冊一大堆熱鍵) */
@@ -46,7 +48,7 @@ export function normalizeHotkey (hotkey: string): string {
 type ActionCfg = Pick<HostConfigForMain, 'hotkey' | 'hotkeyHold' | 'hotkeyLocked' | 'overlayKey' | 'game' | 'hotkeyOcrReveal' | 'hotkeyOcrRegion'> &
   Partial<Pick<HostConfigForMain, 'runeshapeEnabled' | 'hotkeyRuneshapeToggle' | 'hotkeyRuneshapeRegion' | 'revealAutoEnabled' | 'commands' | 'stashSearch' |
   'hotkeyRegexQuick' | 'regexBookmarkHotkeys' | 'hotkeyStashToggle' | 'hotkeyStashRegion' | 'stashPricesEnabled' |
-  'hotkeyPoedb' | 'hotkeyTimerToggle' | 'hotkeyTimerReset' | 'timerDisplay'>>
+  'hotkeyPoedb' | 'hotkeyTimerToggle' | 'hotkeyTimerReset' | 'timerDisplay' | 'hotkeyTimerPause' | 'hotkeyTimerUndo' | 'hotkeyTimerSkip'>>
 
 /**
  * 依設定組出要註冊的熱鍵(先到先得;空字串 / 重複 / 遊戲保留的不註冊)。
@@ -136,6 +138,9 @@ export function buildShortcutActions (cfg: ActionCfg, mode: WindowMode): Shortcu
     if (cfg.timerDisplay !== 'off') {
       if (cfg.hotkeyTimerToggle) actions.push({ shortcut: normalizeHotkey(cfg.hotkeyTimerToggle), keepModKeys: false, action: { type: 'timer-toggle' } })
       if (cfg.hotkeyTimerReset) actions.push({ shortcut: normalizeHotkey(cfg.hotkeyTimerReset), keepModKeys: false, action: { type: 'timer-reset' } })
+      if (cfg.hotkeyTimerPause) actions.push({ shortcut: normalizeHotkey(cfg.hotkeyTimerPause), keepModKeys: false, action: { type: 'timer-pause' } })
+      if (cfg.hotkeyTimerUndo) actions.push({ shortcut: normalizeHotkey(cfg.hotkeyTimerUndo), keepModKeys: false, action: { type: 'timer-undo' } })
+      if (cfg.hotkeyTimerSkip) actions.push({ shortcut: normalizeHotkey(cfg.hotkeyTimerSkip), keepModKeys: false, action: { type: 'timer-skip' } })
     }
   }
   const seen = new Set<string>()
@@ -164,7 +169,8 @@ export function reservedShortcuts (cfg: ActionCfg): string[] {
     mergeTwoHotkeys(normalizeHotkey(cfg.hotkeyHold), normalizeHotkey(cfg.hotkey)), cfg.hotkeyLocked, cfg.overlayKey, cfg.hotkeyOcrReveal, cfg.hotkeyOcrRegion,
     cfg.hotkeyRuneshapeToggle ?? '', cfg.hotkeyRuneshapeRegion ?? '', cfg.hotkeyStashToggle ?? '', cfg.hotkeyStashRegion ?? '', ...(cfg.commands ?? []).map(c => c?.hotkey ?? ''), ...(cfg.stashSearch ?? []).map(s => s?.hotkey ?? ''),
     cfg.hotkeyRegexQuick ?? '', ...regexBookmarkHotkeysFor(cfg).map(b => b.hotkey),
-    cfg.hotkeyPoedb ?? '', cfg.hotkeyTimerToggle ?? '', cfg.hotkeyTimerReset ?? ''
+    cfg.hotkeyPoedb ?? '', cfg.hotkeyTimerToggle ?? '', cfg.hotkeyTimerReset ?? '',
+    cfg.hotkeyTimerPause ?? '', cfg.hotkeyTimerUndo ?? '', cfg.hotkeyTimerSkip ?? ''
   ]
   return [...new Set(all.filter(Boolean).map(k => normalizeHotkey(k)).filter(isGameReservedHotkey))]
 }

@@ -11,7 +11,7 @@ import { FLOAT_MENU_TOGGLES, type FloatMenuToggleKey } from './float-menu-geom'
 export type MenuKind = 'bookmark' | 'scan' | 'tool'
 /** 篩選膠囊:全部 / 書籤 / 辨識 / 工具 */
 export type MenuChip = 'all' | MenuKind
-export type MenuTool = 'settings' | 'sheet' | 'dust' | 'timer-toggle' | 'timer-reset'
+export type MenuTool = 'settings' | 'sheet' | 'dust' | 'timer-toggle' | 'timer-pause' | 'timer-reset'
 
 export interface MenuItem {
   kind: MenuKind
@@ -38,6 +38,7 @@ export const MENU_TOOLS: ReadonlyArray<{ tool: MenuTool, label: string }> = [
   { tool: 'dust', label: 'ppz.menu.dust' },
   // 2026-11-09:計時器(畫在工具第二排;設定 `timerDisplay` 為 off 時不列)
   { tool: 'timer-toggle', label: 'ppz.timer.menu_toggle' },
+  { tool: 'timer-pause', label: 'ppz.timer.menu_pause' },
   { tool: 'timer-reset', label: 'ppz.timer.menu_reset' }
 ]
 

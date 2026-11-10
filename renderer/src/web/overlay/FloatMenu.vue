@@ -160,6 +160,7 @@
           <button v-for="x in toolRow2" :key="x.id" type="button" class="fm-tool" :class="{ sel: selId === x.id }"
             :data-action="'menu-' + x.tool" :data-item="x.id" :data-sel="selId === x.id ? 'true' : undefined" @click="runTool(x.tool!)">
             <svg v-if="x.tool === 'timer-toggle'" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8" /><path d="M12 9v4l2 2M10 2h4" /></svg>
+            <svg v-else-if="x.tool === 'timer-pause'" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5v14M15 5v14" /></svg>
             <svg v-else viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8" /><path d="M3 3v5h5" /></svg>
             <span>{{ x.label }}</span>
           </button>
@@ -247,7 +248,7 @@ import { BUILTIN_CHEAT_SHEET, bookmarkActionFor, cheatSheetUrl, floatMenuPlace, 
 import { MENU_CHIPS, filterMenuItems, menuItemsOf, menuKey, menuRows, rateDotOf, type MenuChip, type MenuItem, type MenuTool } from './float-menu-items'
 import { floatMenuChip, floatMenuQuery, floatMenuSection, floatMenuSel } from './float-menu-state'
 import { marketRateOf } from './market-rate'
-import { appTimer } from './timer-state'
+import { timerAction } from './timer-state'
 import { stashValue, stashValueText } from './stash-value'
 import { RESIZE_EDGES, clampSettingsRect, createRectDrag, edgeCursor, isInteractiveTarget, type DragEdge, type SettingsWindowRect } from '@/web/settings/settings-window-geom'
 
@@ -394,8 +395,9 @@ function runTool (tool: MenuTool) {
   notice.value = ''
   if (tool === 'settings') emit('settings')
   else if (tool === 'dust') emit('open-tab', 'dust')
-  else if (tool === 'timer-toggle') appTimer.toggle()
-  else if (tool === 'timer-reset') appTimer.reset()
+  else if (tool === 'timer-toggle') timerAction('toggle')
+  else if (tool === 'timer-pause') timerAction('pause')
+  else if (tool === 'timer-reset') timerAction('reset')
   else section.value = section.value === 'sheet' ? '' : 'sheet'
 }
 

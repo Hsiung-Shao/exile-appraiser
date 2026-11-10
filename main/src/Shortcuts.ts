@@ -29,7 +29,7 @@
 import { globalShortcut, screen } from 'electron'
 import { uIOhook, UiohookKey } from 'uiohook-napi'
 import { isModKey, KeyToElectron, mergeTwoHotkeys } from '@ipc/KeyToCode'
-import type { GameId, HostConfigForMain, HotkeyRegistration, ItemTextEvent, OcrRegionPickTarget, RegexBookmarkRunEvent } from '@ipc/types'
+import type { GameId, HostConfigForMain, HotkeyRegistration, ItemTextEvent, OcrRegionPickTarget, RegexBookmarkRunEvent, TimerAction } from '@ipc/types'
 import { HostClipboard } from './HostClipboard'
 import { buildShortcutActions, normalizeHotkey, reservedShortcuts, sameShortcutActions, type ShortcutAction } from './shortcut-actions'
 import { stashSearch, typeInChat, type TextBoxDeps } from './text-box'
@@ -77,7 +77,7 @@ export class Shortcuts {
       /** 第 33 步:正則書籤快速面板熱鍵(熱鍵按鍵已放開) */
       onRegexQuick?: () => void
       /** 2026-11-09:計時器熱鍵(不動鍵盤) */
-      onTimer?: (action: 'toggle' | 'reset') => void
+      onTimer?: (action: TimerAction) => void
       /** 第 33 步:正則書籤個別熱鍵(熱鍵按鍵已放開) */
       onRegexBookmark?: (e: RegexBookmarkRunEvent) => void
     }
@@ -180,9 +180,10 @@ export class Shortcuts {
       this.opts.onRuneshapeToggle?.()
       return
     }
-    if (entry.action.type === 'timer-toggle' || entry.action.type === 'timer-reset') {
-      // 2026-11-09:只通知 renderer,不動鍵盤
-      this.opts.onTimer?.(entry.action.type === 'timer-toggle' ? 'toggle' : 'reset')
+    if (entry.action.type === 'timer-toggle' || entry.action.type === 'timer-reset' || entry.action.type === 'timer-pause' ||
+      entry.action.type === 'timer-undo' || entry.action.type === 'timer-skip') {
+      // 2026-11-09:只通知 renderer,不動鍵盤(2026-11-10 起含 pause / undo / skip)
+      this.opts.onTimer?.(entry.action.type.slice('timer-'.length) as TimerAction)
       return
     }
     if (entry.action.type === 'scan-toggle-both') {

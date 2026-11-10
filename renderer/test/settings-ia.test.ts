@@ -171,7 +171,7 @@ describe('熱鍵總表', () => {
     expect(groups.find(g => g.id === 'stash-chat')!.tab).toBe('stash-chat')
     const fields = rows.flatMap(r => r.kind === 'edit' ? [r.field] : [])
     expect(new Set(fields).size).toBe(fields.length)
-    expect(fields.sort()).toEqual(['hotkey', 'hotkeyLocked', 'hotkeyOcrRegion', 'hotkeyOcrReveal', 'hotkeyPoedb', 'hotkeyRegexQuick', 'hotkeyRuneshapeRegion', 'hotkeyRuneshapeToggle', 'hotkeyTimerReset', 'hotkeyTimerToggle', 'overlayKey'])
+    expect(fields.sort()).toEqual(['hotkey', 'hotkeyLocked', 'hotkeyOcrRegion', 'hotkeyOcrReveal', 'hotkeyPoedb', 'hotkeyRegexQuick', 'hotkeyRuneshapeRegion', 'hotkeyRuneshapeToggle', 'hotkeyTimerPause', 'hotkeyTimerReset', 'hotkeyTimerSkip', 'hotkeyTimerToggle', 'hotkeyTimerUndo', 'overlayKey'])
     // 只列目前遊戲、熱鍵非空的書籤
     expect(rows.filter(r => r.id.startsWith('rxbm:')).map(r => r.id)).toEqual(['rxbm:1'])
   })
@@ -197,14 +197,14 @@ describe('熱鍵總表', () => {
     const { config } = _roundTripForTest(null)
     const rows = hotkeyTable(fullConfig('poe2'), { overlay: true }).flatMap(g => g.rows)
     const edits = rows.flatMap(r => r.kind === 'edit' ? [r] : [])
-    expect(edits.length).toBe(11)
+    expect(edits.length).toBe(14)
     for (const r of edits) {
       const def = (config as unknown as Record<string, unknown>)[r.field]
       expect(typeof def, r.field).toBe('string')
       expect(r.optional === true, r.field).toBe(def === '')
       expect(OPTIONAL_HOTKEY_FIELDS.includes(r.field), r.field).toBe(def === '')
     }
-    expect([...OPTIONAL_HOTKEY_FIELDS].sort()).toEqual(['hotkeyOcrRegion', 'hotkeyPoedb', 'hotkeyRegexQuick', 'hotkeyRuneshapeRegion', 'hotkeyRuneshapeToggle', 'hotkeyStashRegion', 'hotkeyStashToggle', 'hotkeyTimerReset', 'hotkeyTimerToggle'])
+    expect([...OPTIONAL_HOTKEY_FIELDS].sort()).toEqual(['hotkeyOcrRegion', 'hotkeyPoedb', 'hotkeyRegexQuick', 'hotkeyRuneshapeRegion', 'hotkeyRuneshapeToggle', 'hotkeyStashRegion', 'hotkeyStashToggle', 'hotkeyTimerPause', 'hotkeyTimerReset', 'hotkeyTimerSkip', 'hotkeyTimerToggle', 'hotkeyTimerUndo'])
     // PoE1 倉庫價格兩個熱鍵同樣預設空 = 選填
     const p1 = hotkeyTable(fullConfig('poe1'), { overlay: true }).flatMap(g => g.rows).flatMap(r => r.kind === 'edit' ? [r] : [])
     for (const r of p1) expect(r.optional === true, r.field).toBe((config as unknown as Record<string, unknown>)[r.field] === '')

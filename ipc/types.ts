@@ -154,6 +154,26 @@ export interface HostConfigForMain {
   hotkeyTimerReset?: string
   /** 計時器顯示時機(省略 = active:跑著或有時間才顯示;always 一直顯示;off 不顯示也不註冊熱鍵) */
   timerDisplay?: 'active' | 'always' | 'off'
+  /** 2026-11-10 speedrun 計時器:暫停 / 撤銷分段 / 跳過分段熱鍵(預設空;註冊條件同 hotkeyTimerToggle) */
+  hotkeyTimerPause?: string
+  hotkeyTimerUndo?: string
+  hotkeyTimerSkip?: string
+  /** 目前遊戲的路線開了自動開始或自動分段 → main 監看 Client.txt(overlay + timerDisplay 非 off 才看) */
+  speedrunAutoLog?: boolean
+  /** Client.txt 手動路徑(空 = 自動找) */
+  clientLogPath?: string
+}
+
+/** 2026-11-10 speedrun 計時器熱鍵(main → renderer `timer-action`) */
+export type TimerAction = 'toggle' | 'reset' | 'pause' | 'undo' | 'skip'
+/** Client.txt 進入區域(main → renderer `game-area`) */
+export interface GameAreaEvent { area: string, level: number }
+/** Client.txt 監看狀態(設定頁) */
+export interface ClientLogStatus {
+  /** 正在監看的檔案;沒有 = null */
+  path: string | null
+  /** off = 沒開自動開始 / 分段(或不是 overlay、計時器關閉);not-found = 找不到 Client.txt */
+  reason: 'ok' | 'off' | 'not-found'
 }
 
 /** 第 33 步:一筆正則書籤熱鍵(`index` = 書籤在 `regex_state.json` `bookmarks` 的位置) */
@@ -640,8 +660,14 @@ export interface HostApi {
   regexPaste?: (req: RegexPasteRequest) => Promise<RegexPasteResult>
   /** 第 33 步:快速面板熱鍵按下(main 已讓 overlay 取得焦點);只有 overlay 會收到 */
   onRegexQuickOpen?: (cb: () => void) => () => void
-  /** 2026-11-09:計時器熱鍵(main → renderer `timer-action`) */
-  onTimerAction?: (cb: (action: 'toggle' | 'reset') => void) => () => void
+  /** 2026-11-09:計時器熱鍵(main → renderer `timer-action`;2026-11-10 起含 pause / undo / skip) */
+  onTimerAction?: (cb: (action: TimerAction) => void) => () => void
+  /** 2026-11-10:Client.txt 進入區域(只有 overlay + 自動開始 / 分段開著時才有) */
+  onGameArea?: (cb: (e: GameAreaEvent) => void) => () => void
+  /** 2026-11-10:Client.txt 監看狀態;預覽端沒有 */
+  clientLogStatus?: () => Promise<ClientLogStatus>
+  /** 2026-11-10:檔案對話框選 Client.txt → 路徑(取消 = null);預覽端沒有 */
+  clientLogPick?: () => Promise<string | null>
   /** 第 33 步:書籤熱鍵按下;renderer 算出字串後呼叫 `regexPaste`(source `hotkey`) */
   onRegexBookmarkRun?: (cb: (e: RegexBookmarkRunEvent) => void) => () => void
   /**

@@ -151,6 +151,8 @@
         <button v-if="config.timerPos" class="btn sm" data-action="timer-reset-pos" @click="config.timerPos = null">{{ t('ppz.timer.reset_pos') }}</button>
       </div>
     </div>
+    <!-- 2026-11-10 speedrun:分段 / 自動分段 / 紀錄(計時器關閉時不顯示) -->
+    <speedrun-section v-if="config.timerDisplay !== 'off'" />
   </section>
 
   <section v-if="hasHost" class="card" data-setting="browser-preview">
@@ -189,6 +191,7 @@ import { SETTINGS_FS_MAX, SETTINGS_FS_MIN, normSettingsFontSize } from '../setti
 import BgLayoutEditor from '../BgLayoutEditor.vue'
 import { useBgPreview, useBgThumb } from '@/web/bg-bake'
 import HelpTip from '../HelpTip.vue'
+import SpeedrunSection from '../SpeedrunSection.vue'
 import { TIMER_DISPLAYS } from '@/web/overlay/timer-state'
 
 /** 主題縮圖:[底, 面板, 字, 強調](同 pob-zh-engine/ui/src/views/SettingsView.svelte 的 SWATCH)。 */
@@ -200,7 +203,7 @@ const SWATCH: Record<Theme, [string, string, string, string]> = {
 }
 
 export default defineComponent({
-  components: { BgLayoutEditor, HelpTip },
+  components: { BgLayoutEditor, HelpTip, SpeedrunSection },
   setup () {
     const { t } = useI18n()
     const config = AppConfig()

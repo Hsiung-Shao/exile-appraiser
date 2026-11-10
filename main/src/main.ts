@@ -11,7 +11,7 @@ import fsSync from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { format } from 'node:util'
-import type { ConfigChangedEvent, GameId, HostConfigForMain, HostFetchInit, HotkeyRegistration, ItemTextEvent, PerfState, RegexPasteResult, RuneshapeUiState, SettingsTabId, TrackAreaOpts, WindowMode } from '@ipc/types'
+import type { ClientLogStatus, ConfigChangedEvent, GameId, HostConfigForMain, HostFetchInit, HotkeyRegistration, ItemTextEvent, PerfState, RegexPasteResult, RuneshapeUiState, SettingsTabId, TrackAreaOpts, WindowMode } from '@ipc/types'
 import { abortHostFetch, abortKeyOf, hostFetch, installCookiePatch } from './http'
 import { Shortcuts, normalizeHotkey } from './Shortcuts'
 import { nextScanPaused, stashHotkeyAction } from './shortcut-actions'
@@ -45,6 +45,8 @@ import {
 } from './update-reminder'
 import { DEFAULT_SCAN_INTERVAL_MS, RuneshapeScan } from './ocr/runeshape-scan'
 import { StashScan } from './ocr/stash-scan'
+import { DEFAULT_CLIENT_LOGS, GameLogWatcher, resolveClientLogPath } from './game-log'
+import { execFile } from 'node:child_process'
 import { isStashCaptureFile, saveStashDump, type StashDumpData } from './ocr/stash-dump'
 import { StashCursor } from './stash-cursor'
 import { loadStashDigitTemplates, loadStashLayouts } from './stash-layout-data'
@@ -1410,10 +1412,64 @@ if (!skipStartup) app.whenReady().then(() => {
     })
   }
 
+  // ---- 2026-11-10 speedrun 計時器:監看 Client.txt(只讀;overlay + 計時器沒關 + 目前遊戲的路線開了自動開始 / 分段) ----
+  const gameLog = new GameLogWatcher({
+    open: async (p) => {
+      const h = await fs.open(p, 'r')
+      return {
+        size: async () => (await h.stat()).size,
+        read: async (buf, position) => (await h.read(buf, 0, buf.length, position)).bytesRead,
+        close: async () => { await h.close() }
+      }
+    },
+    watch: (p, intervalMs, onChange) => {
+      const listener = () => { onChange() }
+      fsSync.watchFile(p, { interval: intervalMs }, listener)
+      return () => { fsSync.unwatchFile(p, listener) }
+    },
+    onArea: (e) => {
+      console.log(`[speedrun] 進入區域 ${e.area}(等級 ${e.level})`)
+      send('game-area', e)
+    },
+    log: (m) => { console.log(m) }
+  })
+  let clientLogStatus: ClientLogStatus = { path: null, reason: 'off' }
+  /** 執行中遊戲程式的路徑(一次性 PowerShell,只讀);遊戲附著時重找 */
+  let gameExes: string[] | null = null
+  const findGameExes = (game: GameId): Promise<string[]> => new Promise((resolve) => {
+    execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command',
+      "Get-Process -Name 'PathOfExile*' -ErrorAction SilentlyContinue | ForEach-Object { $_.Path }"],
+    { timeout: 5000, windowsHide: true }, (err, stdout) => {
+      if (err) { resolve([]); return }
+      const all = String(stdout).split(/\r?\n/).map(s => s.trim()).filter(Boolean)
+      resolve(all.filter(p => /Path of Exile 2/i.test(p) === (game === 'poe2')))
+    })
+  })
+  let gameLogQueue: Promise<void> = Promise.resolve()
+  const syncGameLog = (refreshExes = false): void => {
+    gameLogQueue = gameLogQueue.then(async () => {
+      const cfg = hostCfg
+      const want = windowMode === 'overlay' && cfg != null && cfg.timerDisplay !== 'off' && cfg.speedrunAutoLog === true
+      if (!want || !cfg) {
+        clientLogStatus = { path: null, reason: 'off' }
+        await gameLog.setTarget(null)
+        return
+      }
+      if (refreshExes || gameExes == null) gameExes = await findGameExes(cfg.game)
+      const target = resolveClientLogPath({ manual: cfg.clientLogPath ?? '', processExes: gameExes, exists: p => fsSync.existsSync(p), defaults: DEFAULT_CLIENT_LOGS[cfg.game] })
+      if (!target && clientLogStatus.reason !== 'not-found') console.log('[speedrun] 找不到 Client.txt(遊戲沒開或安裝在其他位置;可在設定手動選擇)')
+      await gameLog.setTarget(target)
+      clientLogStatus = gameLog.watching ? { path: gameLog.path, reason: 'ok' } : { path: null, reason: 'not-found' }
+    }).catch((e: unknown) => { console.warn('[speedrun] 監看 Client.txt 失敗', e) })
+  }
+  poeWindow?.onAttach(() => { syncGameLog(true) })
+  app.on('will-quit', () => { void gameLog.dispose() })
+
   let lastScanKey: string | null = null
   const onHostConfig = (ctx: HandlerCtx, cfg: HostConfigForMain): HotkeyRegistration => {
     const result = shortcuts.updateActions(cfg)
     hostCfg = cfg
+    syncGameLog()
     // 第 15 步:倉庫頁籤捲動(舊 renderer / 缺欄位 → 開;只在 overlay 模式有物件)
     stashScroll?.setEnabled(cfg.stashScroll !== false)
     // 第 22 步:客戶端語言改了 → OCR 語言包跟著換(WinOcr 重啟),兩個掃描丟掉舊語言的定位快取 / 基準,立刻重看
@@ -1799,6 +1855,17 @@ if (!skipStartup) app.whenReady().then(() => {
     // 自訂背景圖:檔案對話框選圖(只列 png / jpg / webp)→ 複製到 userData/backgrounds → 回傳檔名(取消 / 失敗回 null)。
     // 只複製選到的那一個檔;成功後刪掉資料夾裡其他舊的背景圖(只刪合法檔名的檔)。預覽端不開放(對話框在桌面上)
     'bg-pick': { kind: 'invoke', preview: false, fn: () => pickImageInto(BG_DIR(), 'bg', 'Background image') },
+    // 2026-11-10 speedrun:Client.txt 監看狀態 / 手動選檔(只回路徑,設定由 renderer 寫;預覽端不開放)
+    'client-log-status': { kind: 'invoke', preview: false, fn: async () => { await gameLogQueue; return clientLogStatus } },
+    'client-log-pick': {
+      kind: 'invoke',
+      preview: false,
+      fn: async () => {
+        const opts = { title: 'Client.txt', properties: ['openFile' as const], filters: [{ name: 'Client.txt', extensions: ['txt'] }] }
+        const res = win && !win.isDestroyed() ? await dialog.showOpenDialog(win, opts) : await dialog.showOpenDialog(opts)
+        return res.canceled || !res.filePaths[0] ? null : res.filePaths[0]
+      }
+    },
     // 懸浮選單的速查表圖片(2026-10-08):流程與背景圖相同,存 userData/cheatsheets(另開資料夾,bg-pick 會清自己的資料夾)
     'sheet-pick': { kind: 'invoke', preview: false, fn: () => pickImageInto(SHEET_DIR(), 'sheet', 'Cheat sheet image') },
     // 第 28 步:設定 › 記錄。log-get 回快照({ entries, lastSeq },帶 sinceSeq 只回較新的;預覽端可用 = 輪詢);

@@ -8,7 +8,7 @@
  * - 瀏覽器預覽(main 的 preview-server,docs/browser-preview.md):boot script 造的 `window.host` shim(`isPreview: true`),
  *   方法經 RPC 到 main,與 Electron 內行為相同(設定寫同一份 config.json);視窗控制類是 no-op。
  */
-import type { HostApi, HostFetchResult, ItemTextEvent, HostConfigForMain, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId } from '@ipc/types'
+import type { HostApi, HostFetchResult, ItemTextEvent, HostConfigForMain, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId, ClientLogStatus, GameAreaEvent, TimerAction } from '@ipc/types'
 import type { ConfigChangedEvent, HotkeyRegistration, OcrAvailability, OcrRegionPickTarget, RevealScanEvent, SettingsTabId, LegacySettingsTabId, UpdaterInfo } from '@ipc/types'
 import type { LogEntry, LogSnapshot, PerfRendererReport, PerfState, PerfStateEvent, RuneshapeScanEvent, RuneshapeStats, RuneshapeUiState, ScanMaskReport, OverlayContentState, StashCursorEvent, StashDumpResult, StashScanEvent, StashStats } from '@ipc/types'
 import type { RegexBookmarkRunEvent, RegexPasteRequest, RegexPasteResult, RegexShareRequest } from '@ipc/types'
@@ -333,10 +333,24 @@ class HostTransport {
     return window.host?.onRegexQuickOpen?.(cb) ?? (() => {})
   }
 
-  /** 2026-11-09:計時器熱鍵(只有 overlay 會收到) */
-  onTimerAction (cb: (action: 'toggle' | 'reset') => void): () => void {
+  /** 2026-11-09:計時器熱鍵(只有 overlay 會收到;2026-11-10 起含 pause / undo / skip) */
+  onTimerAction (cb: (action: TimerAction) => void): () => void {
     return window.host?.onTimerAction?.(cb) ?? (() => {})
   }
+
+  /** 2026-11-10 speedrun:Client.txt 進入區域(只有 overlay + 自動開始 / 分段開著時) */
+  onGameArea (cb: (e: GameAreaEvent) => void): () => void {
+    return window.host?.onGameArea?.(cb) ?? (() => {})
+  }
+
+  /** Client.txt 監看狀態(設定頁);預覽 / 純瀏覽器沒有 → null */
+  async clientLogStatus (): Promise<ClientLogStatus | null> {
+    return (await window.host?.clientLogStatus?.()) ?? null
+  }
+
+  get canPickClientLog (): boolean { return !this.isPreview && typeof window.host?.clientLogPick === 'function' }
+  /** 檔案對話框選 Client.txt → 路徑;取消 / 不支援 → null */
+  async clientLogPick (): Promise<string | null> { return this.canPickClientLog ? (await window.host?.clientLogPick?.()) ?? null : null }
 
   /** 書籤個別熱鍵 */
   onRegexBookmarkRun (cb: (e: RegexBookmarkRunEvent) => void): () => void {

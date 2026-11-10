@@ -26,6 +26,7 @@ import { normSettingsFontSize, normSettingsWindow, type SettingsWindowRect } fro
 import { RELATED_SCALE_DEFAULT, normRelatedItemsScale } from './related-items-scale'
 import { normFloatMenuPos, normOverlayPos, type FloatMenuPos, type OverlayPos } from './overlay/float-menu-geom'
 import { TIMER_DISPLAYS, type TimerDisplay } from './overlay/timer-state'
+import { normRoute, presetRoute, type Route } from '../../../core/src/speedrun/routes'
 import { defaultListingLayout, normListingLayout } from './price-panel/listing-layout'
 import { DEFAULT_SHOW_MECHANISM, normShowMechanism } from './price-panel/mechanism-visibility'
 import { defaultOnlineFilterMemory, normOnlineFilterMemory } from './price-panel/online-filter-memory'
@@ -179,6 +180,16 @@ export interface Config {
   timerDisplay: TimerDisplay
   /** 計時器位置(overlay 內左上角比例 0–1;懸浮選單開著時拖曳、放開才寫)。null = 畫面上方中間 */
   timerPos: OverlayPos | null
+  /** 2026-11-10 speedrun 計時器:暫停 / 撤銷分段 / 跳過分段熱鍵(預設空) */
+  hotkeyTimerPause: string
+  hotkeyTimerUndo: string
+  hotkeyTimerSkip: string
+  /** 兩代各一條路線(分段 / PB / 金段 / 嘗試次數 / 自動開始與分段;core/src/speedrun/routes.ts) */
+  speedrun: { poe1: Route, poe2: Route }
+  /** Client.txt 手動路徑(空 = 自動找:執行中的遊戲目錄 → 預設安裝位置) */
+  clientLogPath: string
+  /** 計時器顯示的分段列數(1–20) */
+  speedrunRows: number
   // ---- 相容上游元件的推導屬性 ----
   readonly useIntlSite: boolean
   /** 上游元件讀的字級;= `fsBase`(不進檔)。 */
@@ -390,7 +401,13 @@ function createConfig (): Config {
     hotkeyTimerToggle: '',
     hotkeyTimerReset: '',
     timerDisplay: 'active' as TimerDisplay,
-    timerPos: null as OverlayPos | null
+    timerPos: null as OverlayPos | null,
+    hotkeyTimerPause: '',
+    hotkeyTimerUndo: '',
+    hotkeyTimerSkip: '',
+    speedrun: { poe1: presetRoute('poe1', 'cmn-Hant'), poe2: presetRoute('poe2', 'cmn-Hant') },
+    clientLogPath: '',
+    speedrunRows: 5
   }
   return {
     ...base,
@@ -474,7 +491,13 @@ function serialize (): string {
     hotkeyTimerToggle: config.hotkeyTimerToggle,
     hotkeyTimerReset: config.hotkeyTimerReset,
     timerDisplay: config.timerDisplay,
-    timerPos: config.timerPos
+    timerPos: config.timerPos,
+    hotkeyTimerPause: config.hotkeyTimerPause,
+    hotkeyTimerUndo: config.hotkeyTimerUndo,
+    hotkeyTimerSkip: config.hotkeyTimerSkip,
+    speedrun: config.speedrun,
+    clientLogPath: config.clientLogPath,
+    speedrunRows: config.speedrunRows
   }, null, 2)
 }
 
@@ -608,6 +631,17 @@ function applyLoaded (raw: string) {
   config.hotkeyTimerReset = typeof loaded.hotkeyTimerReset === 'string' ? loaded.hotkeyTimerReset : fresh.hotkeyTimerReset
   config.timerDisplay = TIMER_DISPLAYS.includes(loaded.timerDisplay as TimerDisplay) ? loaded.timerDisplay as TimerDisplay : fresh.timerDisplay
   config.timerPos = normOverlayPos(loaded.timerPos)
+  // 2026-11-10 speedrun(舊設定檔沒有 → 內建路線;壞值見 normRoute)
+  config.hotkeyTimerPause = typeof loaded.hotkeyTimerPause === 'string' ? loaded.hotkeyTimerPause : fresh.hotkeyTimerPause
+  config.hotkeyTimerUndo = typeof loaded.hotkeyTimerUndo === 'string' ? loaded.hotkeyTimerUndo : fresh.hotkeyTimerUndo
+  config.hotkeyTimerSkip = typeof loaded.hotkeyTimerSkip === 'string' ? loaded.hotkeyTimerSkip : fresh.hotkeyTimerSkip
+  const sr = (loaded.speedrun && typeof loaded.speedrun === 'object' ? loaded.speedrun : {}) as Record<string, unknown>
+  const routeLang = config.uiLanguage === 'en' ? 'en' : 'cmn-Hant'
+  config.speedrun = { poe1: normRoute(sr.poe1, 'poe1', routeLang), poe2: normRoute(sr.poe2, 'poe2', routeLang) }
+  config.clientLogPath = typeof loaded.clientLogPath === 'string' ? loaded.clientLogPath : ''
+  config.speedrunRows = typeof loaded.speedrunRows === 'number' && Number.isFinite(loaded.speedrunRows)
+    ? Math.min(20, Math.max(1, Math.round(loaded.speedrunRows)))
+    : fresh.speedrunRows
 }
 
 /** 測試用:套用一份設定檔內容後回傳序列化結果(`renderer/test/runeshape-config.test.ts`) */
@@ -688,6 +722,11 @@ export function hostConfigOf (c: Config, regexHotkeys: readonly RegexBookmarkHot
     hotkeyTimerToggle: c.hotkeyTimerToggle,
     hotkeyTimerReset: c.hotkeyTimerReset,
     timerDisplay: c.timerDisplay,
+    hotkeyTimerPause: c.hotkeyTimerPause,
+    hotkeyTimerUndo: c.hotkeyTimerUndo,
+    hotkeyTimerSkip: c.hotkeyTimerSkip,
+    speedrunAutoLog: c.speedrun[c.game].autoStart || c.speedrun[c.game].autoSplit,
+    clientLogPath: c.clientLogPath,
     // 第 33 步:書籤個別熱鍵存在 regex_state.json(regex/store.ts 讀檔後寫入這個 ref);main 只註冊目前遊戲的
     regexBookmarkHotkeys: regexHotkeys.map(b => ({ ...b }))
   }

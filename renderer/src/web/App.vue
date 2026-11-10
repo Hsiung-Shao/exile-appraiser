@@ -218,7 +218,7 @@ import { dataLanguage, loadedGame } from './games/active'
 import { poe1Adapter } from '@exile-appraiser/poe1'
 import { poedbUrl } from '@poe1/item-check/poedb'
 import { openItemOnPoedb } from './poedb-open'
-import { appTimer } from './overlay/timer-state'
+import { timerAction, timerArea } from './overlay/timer-state'
 import TimerWidget from './overlay/TimerWidget.vue'
 import type { ItemTextLanguage } from '@exile-appraiser/core/games/adapter'
 import { TRADE_PATHS } from '@exile-appraiser/core/realm'
@@ -501,7 +501,9 @@ export default defineComponent({
         }))
         window.addEventListener('resize', onResize)
         // 2026-11-09:計時器熱鍵(不搶焦點)
-        unsubscribers.push(Host.onTimerAction((a) => { if (a === 'toggle') appTimer.toggle(); else if (a === 'reset') appTimer.reset() }))
+        unsubscribers.push(Host.onTimerAction(timerAction))
+        // 2026-11-10 speedrun:Client.txt 進入區域 → 自動開始 / 分段
+        unsubscribers.push(Host.onGameArea((e) => { timerArea(e.area) }))
         // 第 33 步:快速面板熱鍵(main 已讓 overlay 取得焦點)→ 收起查價面板 / 設定,開面板
         unsubscribers.push(Host.onRegexQuickOpen(() => {
           floatMenuOpen.value = false

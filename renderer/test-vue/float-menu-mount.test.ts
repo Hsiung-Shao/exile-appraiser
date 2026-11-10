@@ -154,6 +154,7 @@ describe('F7 選單掛載(PoE2)', () => {
     expect(selected(container)).toEqual(['tool:timer-reset'])
     key(container, 'ArrowUp')
     key(container, 'ArrowUp')
+    key(container, 'ArrowUp')
     await settle()
     expect(selected(container)).toEqual(['tool:dust'])
     key(container, 'Enter')

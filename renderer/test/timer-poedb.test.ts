@@ -4,7 +4,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it, vi } from 'vitest'
 import { openItemOnPoedb } from '../src/web/poedb-open'
-import { createTimer, formatHms, timerVisible } from '../src/web/overlay/timer-state'
+import { timerVisible } from '../src/web/overlay/timer-state'
 import { _roundTripForTest } from '../src/web/Config'
 import { OPTIONAL_HOTKEY_FIELDS, hotkeyTable } from '../src/web/settings/hotkey-table'
 import { hotkeySlots, type HotkeyConfigLike } from '../src/web/settings/hotkey-conflicts'
@@ -51,86 +51,7 @@ describe('openItemOnPoedb', () => {
   })
 })
 
-describe('createTimer', () => {
-  const clock = () => {
-    let t = 1_000_000
-    return { now: () => t, advance: (ms: number) => { t += ms } }
-  }
-
-  it('T9 暫停期間不計時:跑 5 秒 → 停 3 秒 → 再跑 2 秒 = 7000 ms', () => {
-    const c = clock()
-    const timer = createTimer(c.now)
-    timer.start()
-    c.advance(5000)
-    timer.stop()
-    expect(timer.elapsedMs()).toBe(5000)
-    c.advance(3000)
-    expect(timer.elapsedMs()).toBe(5000)
-    timer.start()
-    c.advance(2000)
-    expect(timer.elapsedMs()).toBe(7000)
-    expect(formatHms(timer.elapsedMs())).toBe('00:00:07')
-  })
-
-  it('T9 toggle 在開始與暫停間切換,running 跟著變', () => {
-    const c = clock()
-    const timer = createTimer(c.now)
-    expect(timer.running).toBe(false)
-    expect(timer.elapsedMs()).toBe(0)
-    timer.toggle()
-    expect(timer.running).toBe(true)
-    c.advance(1500)
-    timer.toggle()
-    expect(timer.running).toBe(false)
-    expect(timer.elapsedMs()).toBe(1500)
-  })
-
-  it('T9 跑著時重複 start 不會重置已累計的時間', () => {
-    const c = clock()
-    const timer = createTimer(c.now)
-    timer.start()
-    c.advance(4000)
-    timer.start()
-    c.advance(1000)
-    expect(timer.elapsedMs()).toBe(5000)
-  })
-
-  it('T10 跑著時 reset → 歸零後從 0 繼續跑(仍在 running)', () => {
-    const c = clock()
-    const timer = createTimer(c.now)
-    timer.start()
-    c.advance(10_000)
-    timer.reset()
-    expect(timer.running).toBe(true)
-    expect(timer.elapsedMs()).toBe(0)
-    c.advance(4000)
-    expect(timer.elapsedMs()).toBe(4000)
-  })
-
-  it('T10 停止時 reset → 歸零且維持停止,之後不會自己長', () => {
-    const c = clock()
-    const timer = createTimer(c.now)
-    timer.start()
-    c.advance(3000)
-    timer.stop()
-    timer.reset()
-    expect(timer.running).toBe(false)
-    expect(timer.elapsedMs()).toBe(0)
-    c.advance(5000)
-    expect(timer.elapsedMs()).toBe(0)
-  })
-})
-
-describe('formatHms', () => {
-  it('T9 兩位補零,秒無條件捨去', () => {
-    expect(formatHms(0)).toBe('00:00:00')
-    expect(formatHms(7_999)).toBe('00:00:07')
-    expect(formatHms(59_999)).toBe('00:00:59')
-    expect(formatHms(60_000)).toBe('00:01:00')
-    expect(formatHms(3_661_000)).toBe('01:01:01')
-  })
-})
-
+// 2026-11-10:單純碼表(createTimer / formatHms)換成 speedrun 狀態機,計時規則改由 core/test/speedrun.test.ts S3–S5、S17 涵蓋
 describe('timerVisible', () => {
   it('T11 顯示時機矩陣:active = 跑著或有累計;always 永遠;off 永遠不', () => {
     const cases: Array<['active' | 'always' | 'off', boolean, number, boolean]> = [
@@ -205,7 +126,11 @@ describe('熱鍵總表與衝突檢查(T13)', () => {
       expect(g!.rows.map(r => r.kind === 'edit' ? [r.id, r.field, r.optional === true] : r.id)).toEqual([
         ['poedb', 'hotkeyPoedb', true],
         ['timerToggle', 'hotkeyTimerToggle', true],
-        ['timerReset', 'hotkeyTimerReset', true]
+        ['timerReset', 'hotkeyTimerReset', true],
+        // 2026-11-10 speedrun:暫停 / 撤銷 / 跳過
+        ['timerPause', 'hotkeyTimerPause', true],
+        ['timerUndo', 'hotkeyTimerUndo', true],
+        ['timerSkip', 'hotkeyTimerSkip', true]
       ])
     }
   })
@@ -300,7 +225,7 @@ describe('審查修正(2026-11-09)', () => {
   it('計時器顯示關閉時,熱鍵列標 needs(總表顯示「功能關閉中」)', () => {
     const cfg = { hotkey: 'D', hotkeyHold: 'Ctrl', hotkeyLocked: '', overlayKey: '', game: 'poe1', hotkeyOcrReveal: '', hotkeyOcrRegion: '', hotkeyRuneshapeToggle: '', commands: [], stashSearch: [] } as unknown as HotkeyConfigLike
     const g = hotkeyTable(cfg, { overlay: true }).find(x => x.id === 'tools')!
-    expect(g.rows.map(r => r.kind === 'edit' ? r.needs ?? null : null)).toEqual([null, 'timerDisplay', 'timerDisplay'])
+    expect(g.rows.map(r => r.kind === 'edit' ? r.needs ?? null : null)).toEqual([null, 'timerDisplay', 'timerDisplay', 'timerDisplay', 'timerDisplay', 'timerDisplay'])
     expect(read('renderer/src/web/settings/tabs/Hotkeys.vue')).toContain("needs === 'timerDisplay' ? config.timerDisplay === 'off'")
   })
 })

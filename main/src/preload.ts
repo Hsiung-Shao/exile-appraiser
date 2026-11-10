@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { HostApi, HostFetchInit, HostConfigForMain, ItemTextEvent, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId, UpdaterInfo, SettingsTabId, LegacySettingsTabId, ConfigChangedEvent, OcrRegionPickTarget, RevealScanEvent, RuneshapeScanEvent, RuneshapeUiState, StashCursorEvent, StashScanEvent, ScanMaskReport, LogEntry, OverlayContentState, RegexBookmarkRunEvent, RegexPasteRequest, RegexShareRequest, PerfRendererReport, PerfStateEvent } from '@ipc/types'
+import type { HostApi, HostFetchInit, HostConfigForMain, ItemTextEvent, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId, UpdaterInfo, SettingsTabId, LegacySettingsTabId, ConfigChangedEvent, OcrRegionPickTarget, RevealScanEvent, RuneshapeScanEvent, RuneshapeUiState, StashCursorEvent, StashScanEvent, ScanMaskReport, LogEntry, OverlayContentState, RegexBookmarkRunEvent, RegexPasteRequest, RegexShareRequest, PerfRendererReport, PerfStateEvent, GameAreaEvent, TimerAction } from '@ipc/types'
 
 function subscribe<T> (channel: string, cb: (e: T) => void): () => void {
   const listener = (_: unknown, e: T) => cb(e)
@@ -75,7 +75,10 @@ const api: HostApi = {
   // 第 33 步:正則書籤快捷存取(複製 + 貼進遊戲、快速面板熱鍵、書籤個別熱鍵);預覽端都沒有
   regexPaste: (req: RegexPasteRequest) => ipcRenderer.invoke('regex-paste', req),
   onRegexQuickOpen: (cb: () => void) => subscribe('regex-quick-open', () => { cb() }),
-  onTimerAction: (cb: (action: 'toggle' | 'reset') => void) => subscribe('timer-action', (a) => { cb(a as 'toggle' | 'reset') }),
+  onTimerAction: (cb: (action: TimerAction) => void) => subscribe('timer-action', (a) => { cb(a as TimerAction) }),
+  onGameArea: (cb: (e: GameAreaEvent) => void) => subscribe('game-area', cb),
+  clientLogStatus: () => ipcRenderer.invoke('client-log-status'),
+  clientLogPick: () => ipcRenderer.invoke('client-log-pick'),
   onRegexBookmarkRun: (cb: (e: RegexBookmarkRunEvent) => void) => subscribe('regex-bookmark-run', cb),
   // 一鍵從 PobTools 送正則分享碼(main/src/regex-share.ts);預覽端都沒有
   regexShareTake: () => ipcRenderer.invoke('regex-share-take'),

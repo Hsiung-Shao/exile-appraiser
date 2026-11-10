@@ -16,7 +16,7 @@ import type { HotkeyConfigLike } from './hotkey-conflicts'
 /** 總表直接編輯的設定鍵 */
 export type HotkeyField = 'hotkey' | 'hotkeyLocked' | 'overlayKey' | 'hotkeyOcrReveal' | 'hotkeyOcrRegion' |
   'hotkeyRuneshapeToggle' | 'hotkeyRuneshapeRegion' | 'hotkeyRegexQuick' | 'hotkeyStashToggle' | 'hotkeyStashRegion' |
-  'hotkeyPoedb' | 'hotkeyTimerToggle' | 'hotkeyTimerReset'
+  'hotkeyPoedb' | 'hotkeyTimerToggle' | 'hotkeyTimerReset' | 'hotkeyTimerPause' | 'hotkeyTimerUndo' | 'hotkeyTimerSkip'
 
 export type HotkeyRow =
   /** `optional` = 選填(預設不綁;第 36 步:空值「未設定」用灰字,不用錯誤紅字) */
@@ -42,7 +42,7 @@ export interface HotkeyTableOpts {
 
 /** 選填熱鍵(Config 預設空 = 預設不綁;守門測試對照 Config 預設值) */
 export const OPTIONAL_HOTKEY_FIELDS: readonly HotkeyField[] = ['hotkeyOcrRegion', 'hotkeyRuneshapeToggle', 'hotkeyRuneshapeRegion', 'hotkeyRegexQuick', 'hotkeyStashToggle', 'hotkeyStashRegion',
-  'hotkeyPoedb', 'hotkeyTimerToggle', 'hotkeyTimerReset']
+  'hotkeyPoedb', 'hotkeyTimerToggle', 'hotkeyTimerReset', 'hotkeyTimerPause', 'hotkeyTimerUndo', 'hotkeyTimerSkip']
 
 /** 總表的組與列(順序 = main 的註冊順序,先到先得) */
 export function hotkeyTable (c: HotkeyConfigLike, opts: HotkeyTableOpts): HotkeyGroup[] {
@@ -105,7 +105,10 @@ export function hotkeyTable (c: HotkeyConfigLike, opts: HotkeyTableOpts): Hotkey
     rows: [
       poedbRow,
       { kind: 'edit', id: 'timerToggle', label: 'ppz.hk.timer_toggle', field: 'hotkeyTimerToggle', needs: 'timerDisplay', optional: true },
-      { kind: 'edit', id: 'timerReset', label: 'ppz.hk.timer_reset', field: 'hotkeyTimerReset', needs: 'timerDisplay', optional: true }
+      { kind: 'edit', id: 'timerReset', label: 'ppz.hk.timer_reset', field: 'hotkeyTimerReset', needs: 'timerDisplay', optional: true },
+      { kind: 'edit', id: 'timerPause', label: 'ppz.hk.timer_pause', field: 'hotkeyTimerPause', needs: 'timerDisplay', optional: true },
+      { kind: 'edit', id: 'timerUndo', label: 'ppz.hk.timer_undo', field: 'hotkeyTimerUndo', needs: 'timerDisplay', optional: true },
+      { kind: 'edit', id: 'timerSkip', label: 'ppz.hk.timer_skip', field: 'hotkeyTimerSkip', needs: 'timerDisplay', optional: true }
     ]
   })
   return groups

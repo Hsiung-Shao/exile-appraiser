@@ -91,7 +91,10 @@ const FIELD_DS: Record<HotkeyField, string> = {
   hotkeyStashRegion: 'hotkey-stash-region',
   hotkeyPoedb: 'hotkey-poedb',
   hotkeyTimerToggle: 'hotkey-timer-toggle',
-  hotkeyTimerReset: 'hotkey-timer-reset'
+  hotkeyTimerReset: 'hotkey-timer-reset',
+  hotkeyTimerPause: 'hotkey-timer-pause',
+  hotkeyTimerUndo: 'hotkey-timer-undo',
+  hotkeyTimerSkip: 'hotkey-timer-skip'
 }
 
 export default defineComponent({
