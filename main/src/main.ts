@@ -1441,7 +1441,8 @@ if (!skipStartup) app.whenReady().then(() => {
    */
   let gameExes: string[] | null = null
   const runPs = (command: string, env: Record<string, string> = {}): Promise<string[]> => new Promise((resolve) => {
-    execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', command],
+    // 輸出改 UTF-8(同 GameDetector):遊戲裝在中文路徑時,PowerShell 5.1 預設以系統字碼頁輸出,Node 讀回會是亂碼(審查 2026-11-10 第 4 輪)
+    execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', '[Console]::OutputEncoding = [Text.Encoding]::UTF8; ' + command],
       { timeout: 5000, windowsHide: true, env: { ...process.env, ...env } }, (err, stdout) => {
         resolve(err ? [] : String(stdout).split(/\r?\n/).map(s => s.trim()).filter(Boolean))
       })

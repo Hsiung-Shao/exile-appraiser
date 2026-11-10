@@ -1104,7 +1104,7 @@
       "rows": "顯示幾段",
       "segment": "本段",
       "prev_segment": "上一段",
-      "start_hint": "按「開始 / 分段」熱鍵或進入第一張圖開始",
+      "start_hint": "按「開始 / 分段」熱鍵或懸浮選單的「計時器 開始 / 分段」開始",
       "finished": "完成",
       "route_poe1": "PoE1 章節",
       "route_poe2": "PoE2 章節",

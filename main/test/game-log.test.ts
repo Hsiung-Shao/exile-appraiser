@@ -246,4 +246,7 @@ describe('main.ts 接線(使用者 2026-11-10 裁定)', () => {
     expect(src).toMatch(/MainWindowTitle -eq \$env:PPZ_GAME_TITLE/)
     expect(src).toMatch(/PPZ_GAME_TITLE: windowTitleFor\(cfg, cfg\.game\)/)
   })
+  it('PowerShell 輸出設成 UTF-8(遊戲裝在中文路徑時路徑才不會變亂碼)', () => {
+    expect(src).toMatch(/'-Command', '\[Console\]::OutputEncoding = \[Text\.Encoding\]::UTF8; ' \+ command/)
+  })
 })
