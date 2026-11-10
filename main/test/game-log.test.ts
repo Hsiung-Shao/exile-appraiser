@@ -1,4 +1,7 @@
 // Client.txt 監看(只讀新增內容、半行補完)與路徑推測。假記憶體檔 + 假 watch(手動觸發),不碰真檔案、不啟動 Electron。
+import fs from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { describe, expect, it, vi } from 'vitest'
 import { GameLogWatcher, resolveClientLogPath, type LogFile } from '../src/game-log'
 
@@ -229,5 +232,18 @@ describe('審查修正(2026-11-10)', () => {
     expect(open).toHaveBeenCalledTimes(1)
     await w.setTarget('C:\\log\\Client.txt', undefined, true)
     expect(open).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('main.ts 接線(使用者 2026-11-10 裁定)', () => {
+  const src = fs.readFileSync(path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../src/main.ts'), 'utf8')
+  const block = src.slice(src.indexOf('const syncGameLog'), src.indexOf("app.on('will-quit', () => { void gameLog.dispose() })"))
+  it('遊戲沒附著就停止監看(狀態 no-game),遊戲關掉時重新判斷', () => {
+    expect(block).toMatch(/if \(!gameAttached\) \{[\s\S]*?reason: 'no-game'[\s\S]*?setTarget\(null\)/)
+    expect(block).toMatch(/poeWindow\?\.onDetach\(\(\) => \{ syncGameLog\(\) \}\)/)
+  })
+  it('先用 overlay 綁定的視窗標題找遊戲程式,標題經環境變數傳、不拼進指令', () => {
+    expect(src).toMatch(/MainWindowTitle -eq \$env:PPZ_GAME_TITLE/)
+    expect(src).toMatch(/PPZ_GAME_TITLE: windowTitleFor\(cfg, cfg\.game\)/)
   })
 })

@@ -1107,7 +1107,9 @@
       "start_hint": "按「開始 / 分段」熱鍵或進入第一張圖開始",
       "finished": "完成",
       "route_poe1": "PoE1 章節",
-      "route_poe2": "PoE2 章節"
+      "route_poe2": "PoE2 章節",
+      "run_reset_by_change": "進行中的計時已重設。",
+      "client_log_no_game": "遊戲沒開,開遊戲後開始監看"
     },
     "filters": {
       "expand": "展開詞綴"

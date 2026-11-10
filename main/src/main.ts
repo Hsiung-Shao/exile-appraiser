@@ -1434,17 +1434,25 @@ if (!skipStartup) app.whenReady().then(() => {
     log: (m) => { console.log(m) }
   })
   let clientLogStatus: ClientLogStatus = { path: null, reason: 'off' }
-  /** 執行中遊戲程式的路徑(一次性 PowerShell,只讀);遊戲附著時重找 */
+  /**
+   * 執行中遊戲程式的路徑(一次性 PowerShell,只讀);遊戲附著時重找。
+   * 先找視窗標題 = overlay 綁定標題的程式(不管裝在哪個資料夾;標題經環境變數傳,不拼進指令),
+   * 找不到才退回依程式名 + 資料夾名分代(審查 2026-11-10)
+   */
   let gameExes: string[] | null = null
-  const findGameExes = (game: GameId): Promise<string[]> => new Promise((resolve) => {
-    execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command',
-      "Get-Process -Name 'PathOfExile*' -ErrorAction SilentlyContinue | ForEach-Object { $_.Path }"],
-    { timeout: 5000, windowsHide: true }, (err, stdout) => {
-      if (err) { resolve([]); return }
-      const all = String(stdout).split(/\r?\n/).map(s => s.trim()).filter(Boolean)
-      resolve(all.filter(p => /Path of Exile 2/i.test(p) === (game === 'poe2')))
-    })
+  const runPs = (command: string, env: Record<string, string> = {}): Promise<string[]> => new Promise((resolve) => {
+    execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', command],
+      { timeout: 5000, windowsHide: true, env: { ...process.env, ...env } }, (err, stdout) => {
+        resolve(err ? [] : String(stdout).split(/\r?\n/).map(s => s.trim()).filter(Boolean))
+      })
   })
+  const findGameExes = async (cfg: HostConfigForMain): Promise<string[]> => {
+    const byTitle = await runPs("Get-Process | Where-Object { $_.MainWindowTitle -eq $env:PPZ_GAME_TITLE } | ForEach-Object { $_.Path }",
+      { PPZ_GAME_TITLE: windowTitleFor(cfg, cfg.game) })
+    if (byTitle.length) return byTitle
+    const all = await runPs("Get-Process -Name 'PathOfExile*' -ErrorAction SilentlyContinue | ForEach-Object { $_.Path }")
+    return all.filter(p => /Path of Exile 2/i.test(p) === (cfg.game === 'poe2'))
+  }
   let gameLogQueue: Promise<void> = Promise.resolve()
   const syncGameLog = (refreshExes = false): void => {
     gameLogQueue = gameLogQueue.then(async () => {
@@ -1455,14 +1463,21 @@ if (!skipStartup) app.whenReady().then(() => {
         await gameLog.setTarget(null)
         return
       }
-      if (refreshExes || gameExes == null) gameExes = await findGameExes(cfg.game)
+      if (!gameAttached) {
+        clientLogStatus = { path: null, reason: 'no-game' }
+        await gameLog.setTarget(null)
+        return
+      }
+      if (refreshExes || gameExes == null) gameExes = await findGameExes(cfg)
       const target = resolveClientLogPath({ manual: cfg.clientLogPath ?? '', processExes: gameExes, exists: p => fsSync.existsSync(p), defaults: DEFAULT_CLIENT_LOGS[cfg.game] })
       if (!target && clientLogStatus.reason !== 'not-found') console.log('[speedrun] 找不到 Client.txt(遊戲沒開或安裝在其他位置;可在設定手動選擇)')
       await gameLog.setTarget(target, undefined, refreshExes)
       clientLogStatus = gameLog.watching ? { path: gameLog.path, reason: 'ok' } : { path: null, reason: 'not-found' }
     }).catch((e: unknown) => { console.warn('[speedrun] 監看 Client.txt 失敗', e) })
   }
+  // gameAttached 由上面的 attach / detach 處理先更新(先註冊先執行);沒附著 = 遊戲沒開 → 不監看
   poeWindow?.onAttach(() => { syncGameLog(true) })
+  poeWindow?.onDetach(() => { syncGameLog() })
   app.on('will-quit', () => { void gameLog.dispose() })
 
   let lastScanKey: string | null = null

@@ -74,8 +74,9 @@ export function presetRoute (game: SpeedrunGame, lang: 'cmn-Hant' | 'en'): Route
     pb: null,
     golds: src.map(() => null),
     attempts: 0,
-    autoStart: true,
-    autoSplit: true
+    // 使用者 2026-11-10 裁定:預設關閉(沒用計時器的人不會被自動開始,也不監看 Client.txt)
+    autoStart: false,
+    autoSplit: false
   }
 }
 
@@ -110,9 +111,12 @@ export function normRoute (v: unknown, game: SpeedrunGame, lang: 'cmn-Hant' | 'e
   }
 }
 
-/** 換分段清單:段數或任一段 area 改變 → PB / 金段作廢(比較會錯位);只改名保留 */
-export function replaceSplits (route: Route, splits: SplitDef[]): Route {
-  const same = splits.length === route.splits.length && splits.every((s, i) => s.area === route.splits[i].area)
+/**
+ * 換分段清單:段數或任一段 area 改變 → PB / 金段作廢(比較會錯位);只改名保留。
+ * `keepRecords` false = 一律作廢(調順序:兩段區域相同時互換也會錯位;使用者 2026-11-10 裁定)
+ */
+export function replaceSplits (route: Route, splits: SplitDef[], keepRecords = true): Route {
+  const same = keepRecords && splits.length === route.splits.length && splits.every((s, i) => s.area === route.splits[i].area)
   return {
     ...route,
     splits: splits.map(s => ({ ...s })),

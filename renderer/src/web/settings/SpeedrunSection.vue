@@ -96,12 +96,17 @@ const sobText = computed(() => { const v = sumOfBest(route.value); return v == n
 const notice = shallowRef('')
 const confirming = shallowRef(false)
 const customOpen = shallowRef<number | null>(null)
-function setSplits (splits: SplitDef[]) {
+function setSplits (splits: SplitDef[], keepRecords = true) {
   const before = route.value
   const had = before.pb != null || before.golds.some(g => g != null)
-  const next = replaceSplits(before, splits)
+  const running = appRun.value.phase !== 'idle'
+  const next = replaceSplits(before, splits, keepRecords)
   config.speedrun[config.game] = next
-  notice.value = had && next.pb == null && next.golds.every(g => g == null) ? t('ppz.timer.records_cleared_by_change') : ''
+  const cleared = had && next.pb == null && next.golds.every(g => g == null)
+  const shape = (r: typeof before) => r.splits.map(s => s.area ?? '').join('|') + `#${r.splits.length}`
+  // timer-state 的 watch 會在段數 / 區域改了或紀錄被清掉時重設進行中的計時 → 這裡告訴使用者
+  const resets = running && (cleared || shape(before) !== shape(next))
+  notice.value = [cleared ? t('ppz.timer.records_cleared_by_change') : '', resets ? t('ppz.timer.run_reset_by_change') : ''].filter(Boolean).join(' ')
 }
 const copy = () => route.value.splits.map(s => ({ ...s }))
 function areaChoice (area: string | null): string {
@@ -122,7 +127,8 @@ function move (i: number, d: number) {
   const s = copy()
   const [x] = s.splice(i, 1)
   s.splice(i + d, 0, x)
-  setSplits(s)
+  // 調順序一律清紀錄(兩段區域相同時互換,舊紀錄會對到錯的段)
+  setSplits(s, false)
 }
 function remove (i: number) {
   const s = copy()
@@ -155,7 +161,7 @@ const logText = computed(() => {
   const s = status.value
   if (!s) return '—'
   if (s.reason === 'ok') return `${t('ppz.timer.client_log_ok')}:${s.path}`
-  return t(s.reason === 'off' ? 'ppz.timer.client_log_off' : 'ppz.timer.client_log_none')
+  return t(s.reason === 'off' ? 'ppz.timer.client_log_off' : s.reason === 'no-game' ? 'ppz.timer.client_log_no_game' : 'ppz.timer.client_log_none')
 })
 let alive = true
 async function refreshStatus () {

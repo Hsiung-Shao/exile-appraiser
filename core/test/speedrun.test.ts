@@ -76,8 +76,9 @@ describe('內建路線', () => {
   it('S2 預設值:自動開始 / 分段開、attempts 0、無 PB、金段全 null、段名非空', () => {
     for (const game of ['poe1', 'poe2'] as const) {
       const r = presetRoute(game, 'cmn-Hant')
-      expect(r.autoStart).toBe(true)
-      expect(r.autoSplit).toBe(true)
+      // 使用者 2026-11-10 裁定:預設關閉
+      expect(r.autoStart).toBe(false)
+      expect(r.autoSplit).toBe(false)
       expect(r.attempts).toBe(0)
       expect(r.pb).toBeNull()
       expect(r.golds).toEqual(r.splits.map(() => null))
@@ -342,7 +343,7 @@ describe('PB 與金段', () => {
 
 describe('自動開始 / 分段', () => {
   it('S9 idle + autoStart + 進 startArea → start;不是 startArea → null', () => {
-    const route = presetRoute('poe1', 'en')
+    const route = { ...presetRoute('poe1', 'en'), autoStart: true }
     const run = createRun(route, clock().now)
     expect(autoAction(run, route, '1_1_1')).toBe('start')
     expect(autoAction(run, route, '1_2_town')).toBeNull()
@@ -356,7 +357,7 @@ describe('自動開始 / 分段', () => {
 
   it('S10 PoE1 跑第 3 段時:進 1_2_town(前面的城)→ null;進 1_4_town → split', () => {
     const c = clock()
-    const route = presetRoute('poe1', 'en')
+    const route = { ...presetRoute('poe1', 'en'), autoSplit: true }
     const run = createRun(route, c.now)
     run.start()
     run.split()
@@ -502,5 +503,18 @@ describe('審查修正(2026-11-10):撤銷、結算時機、跑完後撤銷', () 
     expect(route.pb).toEqual([61_000, 61_100])
     run.undo()
     expect(route.pb).toEqual([60_000, 100_000])
+  })
+})
+
+describe('使用者裁定(2026-11-10)', () => {
+  it('調順序(keepRecords false):區域相同的兩段互換也清空紀錄', () => {
+    const route = { ...presetRoute('poe1', 'en'), pb: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], golds: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1] }
+    route.splits[0].area = null
+    route.splits[1].area = null
+    const swapped = [route.splits[1], route.splits[0], ...route.splits.slice(2)]
+    expect(replaceSplits(route, swapped).pb).not.toBeNull()
+    const r = replaceSplits(route, swapped, false)
+    expect(r.pb).toBeNull()
+    expect(r.golds.every(g => g == null)).toBe(true)
   })
 })

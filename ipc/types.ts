@@ -172,8 +172,8 @@ export interface GameAreaEvent { area: string, level: number }
 export interface ClientLogStatus {
   /** 正在監看的檔案;沒有 = null */
   path: string | null
-  /** off = 沒開自動開始 / 分段(或不是 overlay、計時器關閉);not-found = 找不到 Client.txt */
-  reason: 'ok' | 'off' | 'not-found'
+  /** off = 沒開自動開始 / 分段(或不是 overlay、計時器關閉);no-game = 遊戲沒開(不監看);not-found = 找不到 Client.txt */
+  reason: 'ok' | 'off' | 'no-game' | 'not-found'
 }
 
 /** 第 33 步:一筆正則書籤熱鍵(`index` = 書籤在 `regex_state.json` `bookmarks` 的位置) */

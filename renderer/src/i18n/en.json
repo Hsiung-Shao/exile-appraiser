@@ -1119,7 +1119,9 @@
       "start_hint": "Press the start / split hotkey or enter the first area",
       "finished": "Done",
       "route_poe1": "PoE1 acts",
-      "route_poe2": "PoE2 acts"
+      "route_poe2": "PoE2 acts",
+      "run_reset_by_change": "The running timer was reset.",
+      "client_log_no_game": "The game is not running; watching starts when it does"
     },
     "filters": {
       "expand": "Show mods"

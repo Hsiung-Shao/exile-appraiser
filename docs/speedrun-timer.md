@@ -23,13 +23,14 @@
 - 區域 id 來自使用者本機 Client.txt 實測(兩代)與 PoE2 GGPK `worldareas`。
 - PoE1:第 1–10 章,分段觸發 = 進下一章城鎮 `1_2_town` … `1_5_town`、`2_6_town` … `2_10_town`,第 10 章 = 打完基塔弗進 `2_11_endgame_town`;起跑區 `1_1_1`。
 - PoE2:第 1–4 章 + 間章 1–3:`G2_town`、`G3_town`、`G4_town`、`P1_Town`、`P2_Town`、`P3_Town`、`G_Endgame_Town`;起跑區 `G1_1`。**間章順序是依名稱推定,待使用者實機確認**。
-- 設定頁可改名(直接改,不重設進行中的計時)、改觸發區域(內建城鎮 / 只能手動 / 自訂 id)、增刪、排序、還原內建。段數或任一段區域改了 → PB 與金段清空並提示(`replaceSplits`)。
+- **自動開始 / 自動分段預設關閉**(使用者 2026-11-10 裁定:沒用計時器的人不會被自動開始,也不監看 Client.txt)。
+- 設定頁可改名(直接改,不重設進行中的計時)、改觸發區域(內建城鎮 / 只能手動 / 自訂 id)、增刪、排序、還原內建。段數或任一段區域改了 → PB 與金段清空並提示(`replaceSplits`);**調順序一律清空**(兩段區域相同時互換也會錯位)。計時中改結構會重設進行中的計時,設定頁顯示提示。
 - 設定檔壞值由 `normRoute` 收斂:路線壞 → 內建;pb / golds 長度或值不對 → 清空。
 
 ## Client.txt(`main/src/game-log.ts`,移植 APT GameLogWatcher,MIT)
 - 行格式:`… [DEBUG Client N] Generating level <lv> area "<id>" with seed <n>`(與語言無關)。
-- 只在 overlay + 計時器不是關閉 + 目前遊戲的路線開了自動開始或自動分段時監看(host-config `speedrunAutoLog`);`fs.watchFile` 每 250 ms,從檔尾開始、只讀新增,半行等補完。
-- 路徑:設定 `clientLogPath`(手動)> 執行中 `PathOfExile*.exe` 目錄的 `logs\Client.txt`(一次性 PowerShell `Get-Process`,只讀;遊戲附著時重找)> 預設安裝位置。設定頁顯示狀態(IPC `client-log-status`)與「選擇檔案…」(`client-log-pick`)。
+- 只在 overlay + 計時器不是關閉 + 目前遊戲的路線開了自動開始或自動分段 + **遊戲視窗附著中**時監看(host-config `speedrunAutoLog`;遊戲關掉就停,狀態 `no-game`);`fs.watchFile` 每 250 ms,從檔尾開始、只讀新增,半行等補完。
+- 路徑:設定 `clientLogPath`(手動)> 執行中遊戲程式目錄的 `logs\Client.txt`(一次性 PowerShell,只讀;先比對 overlay 綁定的視窗標題,標題經環境變數傳,找不到再依 `PathOfExile*.exe` + 資料夾名分代;遊戲附著時重找)> 預設安裝位置。設定頁顯示狀態(IPC `client-log-status`)與「選擇檔案…」(`client-log-pick`)。
 - 實跑(2026-11-10):scratchpad 複本 + 真 `fs.watchFile`:舊行不送、新行約 255 ms 送出、半行等補完。
 
 ## 熱鍵(設定 › 熱鍵 › 工具,預設全空,只在 overlay 且計時器不是關閉)
