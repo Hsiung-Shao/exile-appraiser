@@ -47,7 +47,7 @@ import { appRun, currentRoute, timerAction, timerVisible } from './timer-state'
 import { overlayLayers } from './overlay-content'
 import { overlayPlace, overlayPosOf } from './float-menu-geom'
 import { Host } from '../background/IPC'
-import { deltaAt, formatDelta, formatRunTime, isGoldSegment, segmentTime } from '../../../../core/src/speedrun/run'
+import { comparison, deltaAt, formatDelta, formatRunTime, isGoldSegment, segmentTime } from '../../../../core/src/speedrun/run'
 
 const props = defineProps<{ interactive: boolean }>()
 const { t } = useI18n()
@@ -76,7 +76,7 @@ const segmentNow = computed(() => run.value.phase === 'finished' ? 0 : Math.max(
 /** 上一段比個人最佳那一段快多少(負 = 快) */
 const prevSegDelta = computed(() => {
   const i = run.value.index - 1
-  const pb = route.value.pb
+  const pb = comparison(run.value, route.value).pb
   if (i < 0 || !pb) return null
   const seg = segmentTime(run.value, i)
   const pbSeg = pb[i] == null ? null : i === 0 ? pb[0] : pb[i - 1] == null ? null : pb[i]! - pb[i - 1]!
@@ -98,15 +98,15 @@ const rows = computed(() => {
     let deltaTone = ''
     if (done) {
       const d = deltaAt(r, rt, i)
-      // 金段 / PB 在重設時才結算 → 這裡跟路線上的舊紀錄比
+      // 跟開始時的快照比(紀錄已隨分段寫進路線)
       const gold = isGoldSegment(r, rt, i)
       if (d != null) { delta = formatDelta(d); deltaTone = gold ? 'gold' : d <= 0 ? 'ok' : 'bad' } else if (gold) { delta = '★'; deltaTone = 'gold' }
     } else if (current) {
       // 跑著的段:比個人最佳慢了才顯示即時差值
-      const pb = rt.pb?.[i]
+      const pb = comparison(r, rt).pb?.[i]
       if (pb != null && elapsed.value > pb) { delta = formatDelta(elapsed.value - pb); deltaTone = 'bad' }
     }
-    const t0 = done ? r.splitTimes[i] : rt.pb?.[i] ?? null
+    const t0 = done ? r.splitTimes[i] : comparison(r, rt).pb?.[i] ?? null
     return { i, name: s.name, done, current, delta, deltaTone, time: t0 == null ? '—' : formatRunTime(t0) }
   })
 })
@@ -114,7 +114,7 @@ const rows = computed(() => {
 const mainTone = computed(() => {
   const r = run.value
   if (r.phase === 'idle' || r.phase === 'paused') return 'muted'
-  const pb = route.value.pb
+  const pb = comparison(r, route.value).pb
   if (r.phase === 'finished') {
     const total = r.splitTimes[r.splitTimes.length - 1]
     const pbTotal = pb?.[pb.length - 1]

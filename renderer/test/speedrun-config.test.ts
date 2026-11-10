@@ -187,6 +187,6 @@ describe('審查修正(2026-11-10)', () => {
     expect(src).toMatch(/JSON\.stringify\(old\) === JSON\.stringify\(next\) \? old : next/)
   })
   it('全新安裝的內建章節名跟系統介面語言(英文系統不是中文名)', () => {
-    expect(src).toMatch(/presetRoute\('poe1', systemUiLanguage\(\) === 'en' \? 'en' : 'cmn-Hant'\)/)
+    expect(src).toMatch(/speedrun: speedrunPresets\(systemUiLanguage\(\) === 'en' \? 'en' : 'cmn-Hant'\)/)
   })
 })

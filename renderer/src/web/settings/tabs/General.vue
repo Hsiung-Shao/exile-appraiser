@@ -192,7 +192,7 @@ import BgLayoutEditor from '../BgLayoutEditor.vue'
 import { useBgPreview, useBgThumb } from '@/web/bg-bake'
 import HelpTip from '../HelpTip.vue'
 import SpeedrunSection from '../SpeedrunSection.vue'
-import { TIMER_DISPLAYS } from '@/web/overlay/timer-state'
+import { TIMER_DISPLAYS } from '@/web/overlay/timer-display'
 
 /** 主題縮圖:[底, 面板, 字, 強調](同 pob-zh-engine/ui/src/views/SettingsView.svelte 的 SWATCH)。 */
 const SWATCH: Record<Theme, [string, string, string, string]> = {

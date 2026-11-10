@@ -228,9 +228,6 @@ describe('PB 與金段', () => {
     run.split()
     c.advance(70_000)
     run.split()
-    // 2026-11-10 審查:金段在重設時才結算(撤銷誤按不會污染)
-    expect(route.golds).toEqual([60_000, 60_000])
-    run.reset()
     expect(route.golds).toEqual([55_000, 60_000])
   })
 
@@ -241,7 +238,6 @@ describe('PB 與金段', () => {
     run.start()
     c.advance(40_000)
     run.split()
-    run.reset()
     expect(route.golds).toEqual([40_000, null])
   })
 
@@ -253,7 +249,6 @@ describe('PB 與金段', () => {
     run.skip()
     c.advance(50_000)
     run.split()
-    run.reset()
     expect(route.golds).toEqual([null, null, null])
   })
 
@@ -272,11 +267,10 @@ describe('PB 與金段', () => {
     fast.split()
     c.advance(70_000)
     fast.split()
-    // 跑完當下仍跟舊 PB 比(差值看得到快了多少),重設時才換
-    expect(route.pb).toEqual([60_000, 130_000])
+    // 紀錄立刻寫進路線,但畫面仍跟開始時的快照(舊 PB)比 → 看得到快了多少(審查 2026-11-10)
+    expect(route.pb).toEqual([50_000, 120_000])
     expect(deltaAt(fast, route, 1)).toBe(-10_000)
     fast.reset()
-    expect(route.pb).toEqual([50_000, 120_000])
 
     const slow = createRun(route, c.now)
     slow.start()
@@ -284,7 +278,6 @@ describe('PB 與金段', () => {
     slow.split()
     c.advance(80_000)
     slow.split()
-    slow.reset()
     expect(route.pb).toEqual([50_000, 120_000])
   })
 
@@ -297,7 +290,6 @@ describe('PB 與金段', () => {
     run.split()
     c.advance(30_000)
     run.split()
-    run.reset()
     expect(route.pb).toEqual([30_000, 60_000])
   })
 
@@ -310,14 +302,15 @@ describe('PB 與金段', () => {
     run.split()
     c.advance(30_000)
     run.split()
+    // PB 不是 splitTimes 本身(否則重跑時會跟著被改)
+    expect(route.pb).not.toBe(run.splitTimes)
     run.reset()
-    const saved = route.pb
     expect(route.pb).toEqual([30_000, 60_000])
     run.start()
     c.advance(10_000)
     run.split()
-    expect(route.pb).toBe(saved)
-    expect(saved).toEqual([30_000, 60_000])
+    // 重跑還沒跑完:PB 的值不變(每次分段會重算成新陣列,所以比值不比身分)
+    expect(route.pb).toEqual([30_000, 60_000])
   })
 
   it('S8 沒跑完就 reset:PB 不動、已更新的金段保留、回到 idle', () => {
@@ -497,17 +490,17 @@ describe('審查修正(2026-11-10):撤銷、結算時機、跑完後撤銷', () 
     expect(route.pb).toEqual([60_000, 100_000])
   })
 
-  it('settle 同一次只結算一次;重設後 attempts 不重複加', () => {
+  it('撤銷會連同紀錄一起還原:最後一段誤按寫進的 PB 在撤銷後回到開始時的 PB', () => {
     const c = clock()
-    const route = mk(['a'], { golds: [null] })
+    const route = mk(['a', 'b'], { pb: [60_000, 100_000] })
     const run = createRun(route, c.now)
     run.start()
-    c.advance(5_000)
+    c.advance(61_000)
     run.split()
-    run.settle()
-    route.golds[0] = 9_999_999
-    run.settle()
-    expect(route.golds[0]).toBe(9_999_999)
-    expect(route.attempts).toBe(1)
+    c.advance(100)
+    run.split()
+    expect(route.pb).toEqual([61_000, 61_100])
+    run.undo()
+    expect(route.pb).toEqual([60_000, 100_000])
   })
 })

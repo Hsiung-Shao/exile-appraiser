@@ -3,20 +3,14 @@
  * 計時規則在 core `speedrun/run.ts`(一次跑的狀態機,直接改路線的 PB / 金段 / 嘗試次數 → 跟著設定檔存)。
  * 熱鍵(main `timer-action`)、懸浮選單、計時器元件都經這裡;App 只有一個 run,綁目前遊戲的路線。
  */
-import { computed, reactive } from 'vue'
+import { computed, reactive, watch } from 'vue'
 import type { TimerAction } from '@ipc/types'
-import { AppConfig, flushConfigSave } from '../Config'
+import { AppConfig } from '../Config'
 import { createRun, type Run } from '../../../../core/src/speedrun/run'
 import { autoAction } from '../../../../core/src/speedrun/autosplit'
 import type { Route } from '../../../../core/src/speedrun/routes'
 
-export type TimerDisplay = 'active' | 'always' | 'off'
-export const TIMER_DISPLAYS: readonly TimerDisplay[] = ['active', 'always', 'off']
-
-export function timerVisible (display: TimerDisplay, running: boolean, elapsedMs: number): boolean {
-  if (display === 'off') return false
-  return display === 'always' || running || elapsedMs > 0
-}
+export { TIMER_DISPLAYS, timerVisible, type TimerDisplay } from './timer-display'
 
 /** 目前遊戲的路線(設定裡的 reactive 物件;run 直接改它的 PB / 金段 → 設定檔跟著存) */
 export function currentRoute (): Route {
@@ -24,8 +18,23 @@ export function currentRoute (): Route {
   return c.speedrun[c.game]
 }
 
-/** 換遊戲 / 換分段清單(路線物件換掉)才重建;同一條路線上的改動不重建 */
-export const appRun = computed<Run>(() => reactive(createRun(currentRoute(), () => Date.now())) as Run)
+/**
+ * 每個遊戲一個 run,建立後不再換:run 每次操作才取目前的路線,不綁路線物件身分
+ * (設定檔被瀏覽器預覽重新套用、設定頁改分段時路線物件會換掉,不能因此重設進行中的計時;審查 2026-11-10)
+ */
+const runs = new Map<string, Run>()
+export const appRun = computed<Run>(() => {
+  const game = AppConfig().game
+  let run = runs.get(game)
+  if (!run) {
+    run = reactive(createRun(() => AppConfig().speedrun[game], () => Date.now())) as Run
+    runs.set(game, run)
+  }
+  return run
+})
+
+// 分段數改了(設定頁增刪段 / 還原內建):進行中的這次對不上新清單 → 重設(紀錄已隨分段寫進路線,不會丟)
+watch(() => currentRoute().splits.length, () => { appRun.value.reset() })
 
 export function timerAction (a: TimerAction): void {
   const run = appRun.value
@@ -45,14 +54,6 @@ export function timerAction (a: TimerAction): void {
     case 'skip': run.skip(); break
   }
 }
-
-// 關閉程式 / 重新整理前結算這次的金段 / PB(LiveSplit 關閉時也會問要不要存)
-if (typeof window !== 'undefined') window.addEventListener('beforeunload', () => {
-  const r = appRun.value
-  if (r.phase === 'idle') return
-  r.settle()
-  flushConfigSave()
-})
 
 /** Client.txt 進入區域 → 自動開始 / 自動分段 */
 export function timerArea (area: string): void {

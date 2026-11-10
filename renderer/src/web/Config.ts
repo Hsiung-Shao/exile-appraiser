@@ -25,7 +25,7 @@ import { defaultOcrBadgeStyle, normOcrBadgeStyle, type OcrBadgeStyle } from './o
 import { normSettingsFontSize, normSettingsWindow, type SettingsWindowRect } from './settings/settings-window-geom'
 import { RELATED_SCALE_DEFAULT, normRelatedItemsScale } from './related-items-scale'
 import { normFloatMenuPos, normOverlayPos, type FloatMenuPos, type OverlayPos } from './overlay/float-menu-geom'
-import { TIMER_DISPLAYS, type TimerDisplay } from './overlay/timer-state'
+import { TIMER_DISPLAYS, type TimerDisplay } from './overlay/timer-display'
 import { normRoute, presetRoute, type Route } from '../../../core/src/speedrun/routes'
 import { defaultListingLayout, normListingLayout } from './price-panel/listing-layout'
 import { DEFAULT_SHOW_MECHANISM, normShowMechanism } from './price-panel/mechanism-visibility'
@@ -405,7 +405,7 @@ function createConfig (): Config {
     hotkeyTimerPause: '',
     hotkeyTimerUndo: '',
     hotkeyTimerSkip: '',
-    speedrun: { poe1: presetRoute('poe1', systemUiLanguage() === 'en' ? 'en' : 'cmn-Hant'), poe2: presetRoute('poe2', systemUiLanguage() === 'en' ? 'en' : 'cmn-Hant') },
+    speedrun: speedrunPresets(systemUiLanguage() === 'en' ? 'en' : 'cmn-Hant'),
     clientLogPath: '',
     speedrunRows: 5
   }
@@ -499,6 +499,11 @@ function serialize (): string {
     clientLogPath: config.clientLogPath,
     speedrunRows: config.speedrunRows
   }, null, 2)
+}
+
+/** 兩代的內建路線(章節名依介面語言) */
+function speedrunPresets (lang: 'cmn-Hant' | 'en'): { poe1: Route, poe2: Route } {
+  return { poe1: presetRoute('poe1', lang), poe2: presetRoute('poe2', lang) }
 }
 
 function applyLoaded (raw: string) {
@@ -668,13 +673,6 @@ let appliedExternal: string | null = null
  * 第五輪 30.5:設定頁「重新啟動」用:取消等待中的存檔(300 ms debounce),回傳目前整份設定 —— main `app-relaunch` 直接寫檔再重新啟動,
  * debounce 內的變更(例如剛切的硬體加速)不會遺失。
  */
-/** 2026-11-10:關閉前立刻存(不等 300 ms debounce;計時器關閉時結算的金段 / PB 才不會丟) */
-export function flushConfigSave (): void {
-  if (saveTimer) { clearTimeout(saveTimer); saveTimer = null }
-  const contents = serialize()
-  if (contents !== appliedExternal) void Host.saveConfig(contents)
-}
-
 export function configContentsForRelaunch (): string {
   if (saveTimer) { clearTimeout(saveTimer); saveTimer = null }
   return serialize()

@@ -79,6 +79,7 @@ import { AppConfig, hostConfigSettled } from '@/web/Config'
 import { Host } from '@/web/background/IPC'
 import { PRESET_TOWN_AREAS, presetRoute, replaceSplits, type SplitDef } from '../../../../core/src/speedrun/routes'
 import { formatRunTime, sumOfBest } from '../../../../core/src/speedrun/run'
+import { appRun } from '@/web/overlay/timer-state'
 
 const { t, locale } = useI18n()
 const config = AppConfig()
@@ -137,6 +138,8 @@ function restore () {
   route.value.startArea = presetRoute(config.game, lang).startArea
 }
 function clearRecords () {
+  // 進行中的計時先重設:否則下一次分段會用開始時的快照把紀錄寫回去
+  appRun.value.reset()
   const r = route.value
   r.pb = null
   r.golds = r.splits.map(() => null)

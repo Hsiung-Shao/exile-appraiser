@@ -90,3 +90,39 @@ describe('審查修正(2026-11-10)', () => {
     c.speedrunRows = 5
   })
 })
+
+describe('審查修正第 2 輪(2026-11-10):run 不綁路線物件', () => {
+  it('設定被重新套用(整個 speedrun 換成內容相同的新物件)→ 進行中的計時照跑、紀錄寫進新的路線物件', async () => {
+    vi.spyOn(Date, 'now').mockImplementation(() => now)
+    const c = AppConfig()
+    c.game = 'poe1'
+    c.speedrun.poe1 = presetRoute('poe1', 'cmn-Hant')
+    await settle()
+    timerAction('toggle')
+    now += 30_000; timerAction('toggle')
+    const before = appRun.value
+    expect(before.index).toBe(1)
+    // 模擬瀏覽器預覽存檔 → applyLoaded 換掉整個 speedrun(也包含改名這種內容不同的情況)
+    const clone = JSON.parse(JSON.stringify(c.speedrun))
+    clone.poe1.splits[0].name = '改名'
+    c.speedrun = clone
+    await settle()
+    expect(appRun.value).toBe(before)
+    expect(appRun.value.phase).toBe('running')
+    expect(appRun.value.index).toBe(1)
+    now += 20_000; timerAction('toggle')
+    expect(c.speedrun.poe1.golds[1]).toBe(20_000)
+  })
+
+  it('分段數改了 → 進行中的計時重設(對不上新清單)', async () => {
+    vi.spyOn(Date, 'now').mockImplementation(() => now)
+    const c = AppConfig()
+    c.game = 'poe1'
+    timerAction('toggle')
+    now += 10_000
+    expect(appRun.value.phase).toBe('running')
+    c.speedrun.poe1 = { ...c.speedrun.poe1, splits: c.speedrun.poe1.splits.slice(0, 3), golds: [null, null, null], pb: null }
+    await settle()
+    expect(appRun.value.phase).toBe('idle')
+  })
+})
