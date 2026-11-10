@@ -46,7 +46,11 @@ const routeShape = () => {
 }
 watch(routeShape, (now, before) => {
   if (now.game !== before.game) return
-  if (now.areas !== before.areas || (now.cleared && !before.cleared)) appRun.value.reset()
+  // 紀錄被清空只在「開始時的快照本來有紀錄」才算外部清除:快照本來就空時(第一次跑),
+  // 撤銷第一段會讓路線回到全空,那是 apply 的正確結果,不能重設(審查 2026-11-10 第 4 輪)
+  const run = appRun.value
+  const baseHad = run.base.pb != null || run.base.golds.some(g => g != null)
+  if (now.areas !== before.areas || (now.cleared && !before.cleared && baseHad)) run.reset()
 })
 
 export function timerAction (a: TimerAction): void {

@@ -165,3 +165,20 @@ describe('審查修正第 3 輪(2026-11-10):作廢的紀錄不被快照寫回', 
     expect(appRun.value.phase).toBe('idle')
   })
 })
+
+describe('審查修正第 4 輪(2026-11-10)', () => {
+  it('還沒有任何紀錄時:分段後撤銷第一段,計時繼續(不被當成外部清除紀錄而重設)', async () => {
+    vi.spyOn(Date, 'now').mockImplementation(() => now)
+    const c = AppConfig()
+    c.game = 'poe1'
+    c.speedrun.poe1 = presetRoute('poe1', 'cmn-Hant')
+    await settle()
+    timerAction('toggle')
+    now += 200; timerAction('toggle')
+    await settle()
+    timerAction('undo')
+    await settle()
+    expect(appRun.value.phase).toBe('running')
+    expect(appRun.value.index).toBe(0)
+  })
+})
