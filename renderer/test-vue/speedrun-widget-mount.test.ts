@@ -126,3 +126,42 @@ describe('審查修正第 2 輪(2026-11-10):run 不綁路線物件', () => {
     expect(appRun.value.phase).toBe('idle')
   })
 })
+
+describe('審查修正第 3 輪(2026-11-10):作廢的紀錄不被快照寫回', () => {
+  it('進行中改了某段的觸發區域(段數不變)→ 重設,下一次分段不把舊紀錄寫回', async () => {
+    vi.spyOn(Date, 'now').mockImplementation(() => now)
+    const c = AppConfig()
+    c.game = 'poe1'
+    const r = presetRoute('poe1', 'cmn-Hant')
+    r.pb = r.splits.map((_, i) => (i + 1) * 10_000)
+    r.golds = r.splits.map(() => 10_000)
+    c.speedrun.poe1 = r
+    await settle()
+    timerAction('toggle')
+    now += 10_000; timerAction('toggle')
+    const next = c.speedrun.poe1.splits.map(s => ({ ...s }))
+    next[1].area = null
+    c.speedrun.poe1 = { ...c.speedrun.poe1, splits: next, pb: null, golds: next.map(() => null) }
+    await settle()
+    expect(appRun.value.phase).toBe('idle')
+    timerAction('toggle')
+    now += 5_000; timerAction('toggle')
+    expect(c.speedrun.poe1.pb).toBeNull()
+    expect(c.speedrun.poe1.golds.slice(1).every(g => g == null)).toBe(true)
+  })
+
+  it('另一端清除紀錄(紀錄變全空)→ 重設;下一次分段不寫回舊紀錄', async () => {
+    vi.spyOn(Date, 'now').mockImplementation(() => now)
+    const c = AppConfig()
+    c.game = 'poe1'
+    const r = presetRoute('poe1', 'cmn-Hant')
+    r.golds = r.splits.map(() => 10_000)
+    c.speedrun.poe1 = r
+    await settle()
+    timerAction('toggle')
+    now += 20_000; timerAction('toggle')
+    c.speedrun.poe1 = { ...c.speedrun.poe1, pb: null, golds: c.speedrun.poe1.splits.map(() => null) }
+    await settle()
+    expect(appRun.value.phase).toBe('idle')
+  })
+})

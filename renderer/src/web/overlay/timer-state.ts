@@ -1,7 +1,7 @@
 /**
  * 計時器狀態(2026-11-09 移植 APT 碼表;2026-11-10 改成 speedrun 式:分段 / 個人最佳 / 金段 / Client.txt 自動分段)。
  * 計時規則在 core `speedrun/run.ts`(一次跑的狀態機,直接改路線的 PB / 金段 / 嘗試次數 → 跟著設定檔存)。
- * 熱鍵(main `timer-action`)、懸浮選單、計時器元件都經這裡;App 只有一個 run,綁目前遊戲的路線。
+ * 熱鍵(main `timer-action`)、懸浮選單、計時器元件都經這裡;每個遊戲一個 run,不綁路線物件(每次操作才取目前的路線)。
  */
 import { computed, reactive, watch } from 'vue'
 import type { TimerAction } from '@ipc/types'
@@ -33,8 +33,21 @@ export const appRun = computed<Run>(() => {
   return run
 })
 
-// 分段數改了(設定頁增刪段 / 還原內建):進行中的這次對不上新清單 → 重設(紀錄已隨分段寫進路線,不會丟)
-watch(() => currentRoute().splits.length, () => { appRun.value.reset() })
+/**
+ * 進行中的這次要重設的情況(紀錄已隨分段寫進路線,重設不會丟):
+ * - 分段數或任一段觸發區域改了(設定頁增刪 / 改區域 / 還原內建):對不上新清單,且路線紀錄已被 `replaceSplits` 清掉
+ * - 紀錄從「有」變成「全空」(另一端按了清除紀錄):不重設的話,下一次分段會用開始時的快照把紀錄寫回去(審查 2026-11-10 第 3 輪)
+ * 換遊戲不算(那是另一個 run)。
+ */
+const routeShape = () => {
+  const c = AppConfig()
+  const r = c.speedrun[c.game]
+  return { game: c.game, areas: r.splits.map(s => s.area ?? '').join('|') + `#${r.splits.length}`, cleared: r.pb == null && r.golds.every(g => g == null) }
+}
+watch(routeShape, (now, before) => {
+  if (now.game !== before.game) return
+  if (now.areas !== before.areas || (now.cleared && !before.cleared)) appRun.value.reset()
+})
 
 export function timerAction (a: TimerAction): void {
   const run = appRun.value
