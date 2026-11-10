@@ -32,8 +32,9 @@ export class GameLogWatcher {
   get watching (): boolean { return this.state != null }
   get path (): string | null { return this.state?.path ?? null }
 
-  async setTarget (target: string | null, intervalMs = GAME_LOG_INTERVAL_MS): Promise<void> {
-    if (target === this.state?.path) return
+  /** `force` = 同一路徑也重開(遊戲附著時:Client.txt 可能被刪掉重建,舊 handle 讀不到新檔;審查 2026-11-10) */
+  async setTarget (target: string | null, intervalMs = GAME_LOG_INTERVAL_MS, force = false): Promise<void> {
+    if (!force && target === this.state?.path) return
     await this.stop()
     if (!target) return
     const gen = this.gen
@@ -73,6 +74,14 @@ export class GameLogWatcher {
     try {
       do {
         st.again = false
+        // 檔案被清空 / 截斷(比讀到的位置還小)→ 從頭讀(審查 2026-11-10)
+        const size = await st.file.size()
+        if (gen !== this.gen) return
+        if (size < st.offset) {
+          this.deps.log?.(`[speedrun] Client.txt 變小(${st.offset} → ${size}),從頭讀`)
+          st.offset = 0
+          st.rest = Buffer.alloc(0)
+        }
         for (;;) {
           const n = await st.file.read(this.buf, st.offset)
           if (gen !== this.gen) return

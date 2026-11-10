@@ -179,3 +179,14 @@ describe('字串兩語(S18)', () => {
     })
   }
 })
+
+describe('審查修正(2026-11-10)', () => {
+  const src = fs.readFileSync(path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../src/web/Config.ts'), 'utf8')
+  it('重新套用設定(預覽端存檔)時路線內容相同就沿用原物件,進行中的計時不被重設', () => {
+    expect(src).toMatch(/keepRoute\(config\.speedrun\?\.poe1, normRoute\(sr\.poe1/)
+    expect(src).toMatch(/JSON\.stringify\(old\) === JSON\.stringify\(next\) \? old : next/)
+  })
+  it('全新安裝的內建章節名跟系統介面語言(英文系統不是中文名)', () => {
+    expect(src).toMatch(/presetRoute\('poe1', systemUiLanguage\(\) === 'en' \? 'en' : 'cmn-Hant'\)/)
+  })
+})

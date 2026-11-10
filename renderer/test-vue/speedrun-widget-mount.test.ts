@@ -65,3 +65,28 @@ describe('speedrun 計時器元件', () => {
     app.unmount()
   })
 })
+
+describe('審查修正(2026-11-10)', () => {
+  it('顯示幾段 = 1:那一列是目前這段(不是下一段)', async () => {
+    vi.spyOn(Date, 'now').mockImplementation(() => now)
+    const c = AppConfig()
+    c.game = 'poe1'
+    c.timerDisplay = 'active'
+    c.speedrunRows = 1
+    c.speedrun.poe1 = presetRoute('poe1', 'cmn-Hant')
+    await settle()
+    timerAction('toggle')
+    now += 10_000; timerAction('toggle')
+    now += 10_000; timerAction('toggle')
+    now += 5_000
+    expect(appRun.value.index).toBe(2)
+    const Root = defineComponent({ setup: () => () => h(TimerWidget, { interactive: false }) })
+    const { container, app } = mount(Root, [i18n()])
+    await settle()
+    const rows = findAll(container, byAttr('data-split'))
+    expect(rows.map(r => r.attrs['data-split'])).toEqual([2])
+    expect(String(rows[0].attrs.class)).toContain('cur')
+    app.unmount()
+    c.speedrunRows = 5
+  })
+})

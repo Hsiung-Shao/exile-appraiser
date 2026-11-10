@@ -405,7 +405,7 @@ function createConfig (): Config {
     hotkeyTimerPause: '',
     hotkeyTimerUndo: '',
     hotkeyTimerSkip: '',
-    speedrun: { poe1: presetRoute('poe1', 'cmn-Hant'), poe2: presetRoute('poe2', 'cmn-Hant') },
+    speedrun: { poe1: presetRoute('poe1', systemUiLanguage() === 'en' ? 'en' : 'cmn-Hant'), poe2: presetRoute('poe2', systemUiLanguage() === 'en' ? 'en' : 'cmn-Hant') },
     clientLogPath: '',
     speedrunRows: 5
   }
@@ -637,7 +637,12 @@ function applyLoaded (raw: string) {
   config.hotkeyTimerSkip = typeof loaded.hotkeyTimerSkip === 'string' ? loaded.hotkeyTimerSkip : fresh.hotkeyTimerSkip
   const sr = (loaded.speedrun && typeof loaded.speedrun === 'object' ? loaded.speedrun : {}) as Record<string, unknown>
   const routeLang = config.uiLanguage === 'en' ? 'en' : 'cmn-Hant'
-  config.speedrun = { poe1: normRoute(sr.poe1, 'poe1', routeLang), poe2: normRoute(sr.poe2, 'poe2', routeLang) }
+  // 內容相同就沿用原本的路線物件:計時器綁路線物件,換掉會重設進行中的計時(審查 2026-11-10:預覽端存任何設定都會觸發重新套用)
+  const keepRoute = (old: Route | undefined, next: Route): Route => old && JSON.stringify(old) === JSON.stringify(next) ? old : next
+  config.speedrun = {
+    poe1: keepRoute(config.speedrun?.poe1, normRoute(sr.poe1, 'poe1', routeLang)),
+    poe2: keepRoute(config.speedrun?.poe2, normRoute(sr.poe2, 'poe2', routeLang))
+  }
   config.clientLogPath = typeof loaded.clientLogPath === 'string' ? loaded.clientLogPath : ''
   config.speedrunRows = typeof loaded.speedrunRows === 'number' && Number.isFinite(loaded.speedrunRows)
     ? Math.min(20, Math.max(1, Math.round(loaded.speedrunRows)))
@@ -663,6 +668,13 @@ let appliedExternal: string | null = null
  * 第五輪 30.5:設定頁「重新啟動」用:取消等待中的存檔(300 ms debounce),回傳目前整份設定 —— main `app-relaunch` 直接寫檔再重新啟動,
  * debounce 內的變更(例如剛切的硬體加速)不會遺失。
  */
+/** 2026-11-10:關閉前立刻存(不等 300 ms debounce;計時器關閉時結算的金段 / PB 才不會丟) */
+export function flushConfigSave (): void {
+  if (saveTimer) { clearTimeout(saveTimer); saveTimer = null }
+  const contents = serialize()
+  if (contents !== appliedExternal) void Host.saveConfig(contents)
+}
+
 export function configContentsForRelaunch (): string {
   if (saveTimer) { clearTimeout(saveTimer); saveTimer = null }
   return serialize()

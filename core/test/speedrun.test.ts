@@ -228,6 +228,9 @@ describe('PB 與金段', () => {
     run.split()
     c.advance(70_000)
     run.split()
+    // 2026-11-10 審查:金段在重設時才結算(撤銷誤按不會污染)
+    expect(route.golds).toEqual([60_000, 60_000])
+    run.reset()
     expect(route.golds).toEqual([55_000, 60_000])
   })
 
@@ -238,6 +241,7 @@ describe('PB 與金段', () => {
     run.start()
     c.advance(40_000)
     run.split()
+    run.reset()
     expect(route.golds).toEqual([40_000, null])
   })
 
@@ -249,6 +253,7 @@ describe('PB 與金段', () => {
     run.skip()
     c.advance(50_000)
     run.split()
+    run.reset()
     expect(route.golds).toEqual([null, null, null])
   })
 
@@ -267,6 +272,10 @@ describe('PB 與金段', () => {
     fast.split()
     c.advance(70_000)
     fast.split()
+    // 跑完當下仍跟舊 PB 比(差值看得到快了多少),重設時才換
+    expect(route.pb).toEqual([60_000, 130_000])
+    expect(deltaAt(fast, route, 1)).toBe(-10_000)
+    fast.reset()
     expect(route.pb).toEqual([50_000, 120_000])
 
     const slow = createRun(route, c.now)
@@ -275,6 +284,7 @@ describe('PB 與金段', () => {
     slow.split()
     c.advance(80_000)
     slow.split()
+    slow.reset()
     expect(route.pb).toEqual([50_000, 120_000])
   })
 
@@ -287,6 +297,7 @@ describe('PB 與金段', () => {
     run.split()
     c.advance(30_000)
     run.split()
+    run.reset()
     expect(route.pb).toEqual([30_000, 60_000])
   })
 
@@ -299,11 +310,14 @@ describe('PB 與金段', () => {
     run.split()
     c.advance(30_000)
     run.split()
-    const saved = route.pb
     run.reset()
+    const saved = route.pb
     expect(route.pb).toEqual([30_000, 60_000])
+    run.start()
+    c.advance(10_000)
+    run.split()
     expect(route.pb).toBe(saved)
-    expect(run.splitTimes).toEqual([null, null])
+    expect(saved).toEqual([30_000, 60_000])
   })
 
   it('S8 沒跑完就 reset:PB 不動、已更新的金段保留、回到 idle', () => {
@@ -442,5 +456,58 @@ describe('時間格式', () => {
     expect(formatDelta(1_999)).toBe('+1.9')
     expect(formatDelta(-1_999)).toBe('−1.9')
     expect(formatDelta(-800).charCodeAt(0)).toBe(0x2212)
+  })
+})
+
+describe('審查修正(2026-11-10):撤銷、結算時機、跑完後撤銷', () => {
+  it('誤按分段後撤銷,金段不被誤按的極短時間污染', () => {
+    const c = clock()
+    const route = mk(['a', 'b'], { golds: [60_000, 30_000] })
+    const run = createRun(route, c.now)
+    run.start()
+    c.advance(200)
+    run.split()
+    run.undo()
+    c.advance(59_800)
+    run.split()
+    c.advance(31_000)
+    run.split()
+    run.reset()
+    expect(route.golds).toEqual([60_000, 30_000])
+  })
+
+  it('最後一段誤按後撤銷,PB 不變成誤按那次;跑完到撤銷之間的時間照算', () => {
+    const c = clock()
+    const route = mk(['a', 'b'], { pb: [60_000, 100_000] })
+    const run = createRun(route, c.now)
+    run.start()
+    c.advance(61_000)
+    run.split()
+    c.advance(100)
+    run.split()
+    expect(run.phase).toBe('finished')
+    c.advance(8_900)
+    run.undo()
+    expect(run.phase).toBe('running')
+    expect(run.elapsed()).toBe(70_000)
+    c.advance(30_000)
+    run.split()
+    run.reset()
+    // 真正終點 100000 不比 PB 快 → PB 維持原本
+    expect(route.pb).toEqual([60_000, 100_000])
+  })
+
+  it('settle 同一次只結算一次;重設後 attempts 不重複加', () => {
+    const c = clock()
+    const route = mk(['a'], { golds: [null] })
+    const run = createRun(route, c.now)
+    run.start()
+    c.advance(5_000)
+    run.split()
+    run.settle()
+    route.golds[0] = 9_999_999
+    run.settle()
+    expect(route.golds[0]).toBe(9_999_999)
+    expect(route.attempts).toBe(1)
   })
 })

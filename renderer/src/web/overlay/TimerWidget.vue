@@ -47,7 +47,7 @@ import { appRun, currentRoute, timerAction, timerVisible } from './timer-state'
 import { overlayLayers } from './overlay-content'
 import { overlayPlace, overlayPosOf } from './float-menu-geom'
 import { Host } from '../background/IPC'
-import { deltaAt, formatDelta, formatRunTime, segmentTime } from '../../../../core/src/speedrun/run'
+import { deltaAt, formatDelta, formatRunTime, isGoldSegment, segmentTime } from '../../../../core/src/speedrun/run'
 
 const props = defineProps<{ interactive: boolean }>()
 const { t } = useI18n()
@@ -89,7 +89,7 @@ const rows = computed(() => {
   const n = rt.splits.length
   const want = Math.min(n, config.speedrunRows)
   // 目前段放在倒數第二列(LiveSplit 慣例,看得到下一段)
-  const first = Math.max(0, Math.min(n - want, r.index - (want - 2)))
+  const first = Math.max(0, Math.min(n - want, r.index - Math.max(0, want - 2)))
   return rt.splits.slice(first, first + want).map((s, k) => {
     const i = first + k
     const done = i < r.index
@@ -98,8 +98,8 @@ const rows = computed(() => {
     let deltaTone = ''
     if (done) {
       const d = deltaAt(r, rt, i)
-      const seg = segmentTime(r, i)
-      const gold = seg != null && rt.golds[i] === seg
+      // 金段 / PB 在重設時才結算 → 這裡跟路線上的舊紀錄比
+      const gold = isGoldSegment(r, rt, i)
       if (d != null) { delta = formatDelta(d); deltaTone = gold ? 'gold' : d <= 0 ? 'ok' : 'bad' } else if (gold) { delta = '★'; deltaTone = 'gold' }
     } else if (current) {
       // 跑著的段:比個人最佳慢了才顯示即時差值
@@ -117,7 +117,9 @@ const mainTone = computed(() => {
   const pb = route.value.pb
   if (r.phase === 'finished') {
     const total = r.splitTimes[r.splitTimes.length - 1]
-    return total != null && pb && pb[pb.length - 1] === total ? 'gold' : total != null && pb?.[pb.length - 1] != null && total > pb[pb.length - 1]! ? 'bad' : 'ok'
+    const pbTotal = pb?.[pb.length - 1]
+    // 新個人最佳(比舊 PB 快或還沒有 PB)金色;慢了紅色
+    return total == null ? 'ok' : pbTotal == null || total < pbTotal ? 'gold' : total > pbTotal ? 'bad' : 'ok'
   }
   const target = pb?.[r.index]
   return target != null && elapsed.value > target ? 'bad' : 'ok'

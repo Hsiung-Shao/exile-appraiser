@@ -5,7 +5,7 @@
  */
 import { computed, reactive } from 'vue'
 import type { TimerAction } from '@ipc/types'
-import { AppConfig } from '../Config'
+import { AppConfig, flushConfigSave } from '../Config'
 import { createRun, type Run } from '../../../../core/src/speedrun/run'
 import { autoAction } from '../../../../core/src/speedrun/autosplit'
 import type { Route } from '../../../../core/src/speedrun/routes'
@@ -45,6 +45,14 @@ export function timerAction (a: TimerAction): void {
     case 'skip': run.skip(); break
   }
 }
+
+// 關閉程式 / 重新整理前結算這次的金段 / PB(LiveSplit 關閉時也會問要不要存)
+if (typeof window !== 'undefined') window.addEventListener('beforeunload', () => {
+  const r = appRun.value
+  if (r.phase === 'idle') return
+  r.settle()
+  flushConfigSave()
+})
 
 /** Client.txt 進入區域 → 自動開始 / 自動分段 */
 export function timerArea (area: string): void {

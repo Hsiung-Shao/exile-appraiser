@@ -196,3 +196,38 @@ describe('resolveClientLogPath', () => {
     expect(resolveClientLogPath({ manual: '', processExes: [], exists: () => false, defaults: [] })).toBeNull()
   })
 })
+
+describe('審查修正(2026-11-10)', () => {
+  it('Client.txt 被清空後再寫入:從頭讀,新區域行照送', async () => {
+    let data = Buffer.from(AREA('1_1_town') + '\n' + AREA('1_2_town') + '\n', 'utf8')
+    const file: LogFile = {
+      size: async () => data.length,
+      read: async (buf, position) => {
+        if (position >= data.length) return 0
+        const n = Math.min(buf.length, data.length - position)
+        data.copy(buf, 0, position, position + n)
+        return n
+      },
+      close: async () => {}
+    }
+    const events: Array<{ area: string, level: number }> = []
+    let onChange = () => {}
+    const w = new GameLogWatcher({ open: async () => file, watch: (_p, _i, cb) => { onChange = cb; return () => {} }, onArea: e => events.push(e) })
+    await w.setTarget('C:\\log\\Client.txt')
+    data = Buffer.from(AREA('G2_town', 12) + '\n', 'utf8')
+    onChange()
+    await new Promise(r => setTimeout(r, 0))
+    await new Promise(r => setTimeout(r, 0))
+    expect(events).toEqual([{ area: 'G2_town', level: 12 }])
+  })
+
+  it('force:同一路徑也重開(遊戲附著時舊 handle 可能指向已刪掉的檔)', async () => {
+    const open = vi.fn(async () => ({ size: async () => 0, read: async () => 0, close: async () => {} }) as LogFile)
+    const w = new GameLogWatcher({ open, watch: () => () => {}, onArea: () => {} })
+    await w.setTarget('C:\\log\\Client.txt')
+    await w.setTarget('C:\\log\\Client.txt')
+    expect(open).toHaveBeenCalledTimes(1)
+    await w.setTarget('C:\\log\\Client.txt', undefined, true)
+    expect(open).toHaveBeenCalledTimes(2)
+  })
+})

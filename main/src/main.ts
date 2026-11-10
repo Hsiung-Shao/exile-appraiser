@@ -1458,7 +1458,7 @@ if (!skipStartup) app.whenReady().then(() => {
       if (refreshExes || gameExes == null) gameExes = await findGameExes(cfg.game)
       const target = resolveClientLogPath({ manual: cfg.clientLogPath ?? '', processExes: gameExes, exists: p => fsSync.existsSync(p), defaults: DEFAULT_CLIENT_LOGS[cfg.game] })
       if (!target && clientLogStatus.reason !== 'not-found') console.log('[speedrun] 找不到 Client.txt(遊戲沒開或安裝在其他位置;可在設定手動選擇)')
-      await gameLog.setTarget(target)
+      await gameLog.setTarget(target, undefined, refreshExes)
       clientLogStatus = gameLog.watching ? { path: gameLog.path, reason: 'ok' } : { path: null, reason: 'not-found' }
     }).catch((e: unknown) => { console.warn('[speedrun] 監看 Client.txt 失敗', e) })
   }
