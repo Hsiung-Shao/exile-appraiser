@@ -62,6 +62,8 @@ describe('speedrun 計時器元件', () => {
     const main = findAll(container, byAttr('data-timer', 'main'))[0]
     expect(text(main)).toBe('3:10.00')
     expect(String(main.attrs.class)).toContain('bad')
+    // 大字是全程累計,旁邊標「總時間」
+    expect(text(findAll(container, byAttr('data-timer', 'total-label'))[0])).toBe('總時間')
     app.unmount()
   })
 })

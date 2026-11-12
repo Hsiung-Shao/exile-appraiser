@@ -1116,6 +1116,7 @@
       "remove": "刪除",
       "records_cleared_by_change": "分段的段數或區域改了,個人最佳與最佳段已清除。",
       "rows": "顯示幾段",
+      "total": "總時間",
       "segment": "本段",
       "prev_segment": "上一段",
       "start_hint": "按「開始 / 分段」熱鍵或懸浮選單的「計時器 開始 / 分段」開始",

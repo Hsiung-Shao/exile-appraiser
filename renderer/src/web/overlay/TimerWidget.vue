@@ -1,6 +1,6 @@
 <!--
   計時器(2026-11-09 移植 APT 碼表;2026-11-10 改成 speedrun 式,版面參考 LiveSplit):
-  路線名 + 嘗試次數 → 分段列(名稱 | 與個人最佳差值 | 累計時間;沒跑到的段顯示 PB 時間)→ 大字主計時 → 本段 / 上一段差值。
+  路線名 + 嘗試次數 → 分段列(名稱 | 與個人最佳差值 | 累計時間;沒跑到的段顯示 PB 時間)→「總時間」標籤 + 大字主計時(全程累計)→ 本段 / 上一段差值。
   顏色:領先綠(--ok)、落後紅(--bad)、金段 / 新個人最佳金色(--gold)、暫停 / 尚未開始灰。
   - 平常點擊穿透,只顯示;懸浮選單開著(prop `interactive`)時可拖曳、出現 開始 / 分段、暫停、重設 按鈕。
   - 位置 `timerPos`(overlay 比例;放開才寫);null = 畫面上方中間。顯示時機 `timerDisplay`(`timerVisible`)。
@@ -22,6 +22,8 @@
         <span class="tm-time num">{{ r.time }}</span>
       </li>
     </ol>
+    <!-- 標籤自己一行:超過一小時的總時間(H:MM:SS.cc)已接近整個寬度,放同一行會擠出去 -->
+    <div class="tm-total-label" data-timer="total-label">{{ t('ppz.timer.total') }}</div>
     <div class="tm-main num" :class="mainTone" data-timer="main">{{ formatRunTime(elapsed) }}</div>
     <div class="tm-sub">
       <span>{{ t('ppz.timer.segment') }} <b class="num">{{ formatRunTime(segmentNow) }}</b></span>
@@ -226,7 +228,8 @@ onUnmounted(() => {
 .tm-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tm-time { text-align: right; }
 .tm-delta { text-align: right; min-width: 3.4em; }
-.tm-main { font-size: 2.6em; line-height: 1.1; text-align: right; font-weight: 700; margin-top: 0.15em; text-shadow: 0 1px 3px rgb(0 0 0); }
+.tm-total-label { margin-top: 0.3em; opacity: 0.85; font-size: 0.92em; }
+.tm-main { font-size: 2.6em; line-height: 1.1; text-align: right; font-weight: 700; text-shadow: 0 1px 3px rgb(0 0 0); }
 .tm-sub { display: flex; justify-content: space-between; gap: 0.6em; opacity: 0.85; font-size: 0.92em; }
 .tm-hint { margin-top: 0.3em; font-size: 0.85em; opacity: 0.7; }
 .ok { color: var(--ok, #4fbf6a); }

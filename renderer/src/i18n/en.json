@@ -1128,6 +1128,7 @@
       "remove": "Remove",
       "records_cleared_by_change": "The number or areas of splits changed, so the personal best and best segments were cleared.",
       "rows": "Splits shown",
+      "total": "Total",
       "segment": "Segment",
       "prev_segment": "Previous segment",
       "start_hint": "Start with the start / split hotkey or the floating menu",
