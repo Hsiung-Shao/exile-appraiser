@@ -31,7 +31,7 @@ import type { OverlayContentState } from '@ipc/types'
 export const OVERLAY_IDLE_HIDE_DELAY_MS = 500
 
 /** 第 33 步加 `quick`(正則書籤快速面板)、2026-10-08 加 `menu`(懸浮選單);舊 renderer 不送 = false */
-const CONTENT_KEYS = ['panel', 'settings', 'picker', 'reveal', 'rune', 'quick', 'menu', 'stash'] as const
+const CONTENT_KEYS = ['panel', 'settings', 'picker', 'reveal', 'rune', 'quick', 'menu', 'stash', 'timer'] as const
 
 /** renderer 回報的內容有沒有要畫的東西(null = 還沒回報 → 當成有,保守不藏) */
 export function overlayContentWanted (c: OverlayContentState | null): boolean {
@@ -63,7 +63,8 @@ export function sanitizeOverlayContent (v: unknown): OverlayContentState | null 
     rune: o.rune === true,
     quick: o.quick === true,
     menu: o.menu === true,
-    stash: o.stash === true
+    stash: o.stash === true,
+    timer: o.timer === true
   }
 }
 

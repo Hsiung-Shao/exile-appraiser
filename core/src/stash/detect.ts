@@ -1,7 +1,7 @@
 // PoE1 倉庫碎片頁的偵測純函式:OCR 子頁按鈕列 → 是不是碎片頁、整體上下偏移(倉庫頁放在資料夾內時下移);
 // 按鈕亮度 → 目前在哪個子頁。版面位置以 1440 基準等比換算(與 layout.ts 同一套,Exile-UI stash-ninja 的規則)。
 // 零依賴:main(esbuild)以相對路徑 import。
-import type { StashSubtab } from './layout'
+import { stashLeft, type StashSubtab } from './layout'
 
 export type StashTextLang = 'zh' | 'en'
 export interface Rect { x: number, y: number, w: number, h: number }
@@ -32,14 +32,14 @@ const at = (v: number, h: number) => Math.floor(v / BASE * h)
  * Windows OCR 排版錯亂、按鈕只讀到 0–1 顆,使用者 2560×1440 實機截圖重現,2026-10-14):按鈕文字中心 201、資料夾內 +47 = 248
  * (文字下緣約 260 仍在內);下緣 268 不再往下(2026-10-14 依當時聖甲蟲頁第一列徽章頂端約 269 定的,維持不動)。
  */
-export function stripRect (clientH: number): Rect {
+export function stripRect (clientH: number, x0 = 0): Rect {
   const y = at(170, clientH)
-  return { x: 0, y, w: Math.floor(clientH * 37 / 60), h: at(268, clientH) - y }
+  return { x: x0, y, w: Math.floor(clientH * 37 / 60), h: at(268, clientH) - y }
 }
 
 /** 預設掃描條換成 client 比例(設定頁 / 框選層顯示「目前區域」用;使用者沒框過時 main 用的就是這一塊) */
 export function defaultStripRegion (clientW: number, clientH: number): { x: number, y: number, w: number, h: number } {
-  const s = stripRect(clientH)
+  const s = stripRect(clientH, stashLeft(clientW, clientH))
   return { x: s.x / clientW, y: s.y / clientH, w: s.w / clientW, h: s.h / clientH }
 }
 
@@ -49,21 +49,22 @@ export function folderOffset (clientH: number): number {
 }
 
 /**
- * 子頁按鈕可能出現的範圍(client 像素):x 0 – h × 37/60、y 120 – 268 / 1440。
+ * 子頁按鈕可能出現的範圍(client 像素):x 黑邊寬 `stashLeft` 起 h × 37/60 寬、y 120 – 268 / 1440。
  * 使用者自訂 OCR 區域的上限(框太大 → 整張 ×3 OCR、也截到自己的徽章)。下緣不加資料夾偏移:資料夾內按鈕文字下緣約 260 仍在內,
  * 再往下是格子區(實機截圖:122–268 繁中 / 資料夾 / 英文都認到 ≥ 3 顆)。
  */
 export function stripZone (clientW: number, clientH: number): Rect {
   const y = at(120, clientH)
-  return { x: 0, y, w: Math.min(Math.max(0, clientW), Math.floor(clientH * 37 / 60)), h: at(268, clientH) - y }
+  const x0 = stashLeft(clientW, clientH)
+  return { x: x0, y, w: Math.min(Math.max(0, clientW - x0), Math.floor(clientH * 37 / 60)), h: at(268, clientH) - y }
 }
 
 /** 四個按鈕槽(左到右;3.30 少一顆時最右那槽是空的) */
-export function buttonRects (clientH: number, yOffset = 0): [Rect, Rect, Rect, Rect] {
+export function buttonRects (clientH: number, yOffset = 0, x0 = 0): [Rect, Rect, Rect, Rect] {
   const y = at(186, clientH) + yOffset
   const w = at(152, clientH)
   const h = at(36, clientH)
-  const r = (k: number): Rect => ({ x: at(116 + 168 * k, clientH), y, w, h })
+  const r = (k: number): Rect => ({ x: x0 + at(116 + 168 * k, clientH), y, w, h })
   return [r(0), r(1), r(2), r(3)]
 }
 
@@ -90,9 +91,9 @@ const SNAP_TOLERANCE = 12
  * 頁籤列(自訂區域框到的倉庫頁籤、資料夾內的資料夾頁籤 —— 後者正好與偏移 0 的按鈕列同高)若有同名文字(「一般」),
  * 不會和真的按鈕混在一起配槽(code review 2026-11-07)。兩輪都找到取命中多的;都沒找到回報命中最多的那輪顆數。
  */
-export function findSubtabButtons (lines: readonly TextLine[], clientH: number, lang: StashTextLang): ButtonMatch {
+export function findSubtabButtons (lines: readonly TextLine[], clientH: number, lang: StashTextLang, x0 = 0): ButtonMatch {
   const labels = SUBTAB_LABELS[lang]
-  const centersX = buttonRects(clientH, 0).map(r => r.x + r.w / 2)
+  const centersX = buttonRects(clientH, 0, x0).map(r => r.x + r.w / 2)
   const xTol = X_TOLERANCE / BASE * clientH
   const tol = SNAP_TOLERANCE / BASE * clientH
   let best: ButtonMatch = { found: false, matched: 0, yOffset: 0, slots: [] }

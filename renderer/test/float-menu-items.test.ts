@@ -25,14 +25,16 @@ const GROUPS: GroupedBookmarks = {
 describe('F1 選單項目攤平分三類', () => {
   it('順序 = 辨識 → 書籤 → 工具;辨識依目前遊戲、書籤帶資料夾 / 熱鍵 / 索引', () => {
     const items = menuItemsOf({ game: 'poe1', bookmarks: GROUPS, t })
-    expect(items.map(i => i.kind)).toEqual(['scan', 'scan', 'scan', 'bookmark', 'bookmark', 'bookmark', 'tool', 'tool', 'tool'])
+    expect(items.map(i => i.kind)).toEqual(['scan', 'scan', 'scan', 'bookmark', 'bookmark', 'bookmark', 'tool', 'tool', 'tool', 'tool', 'tool', 'tool'])
     expect(items.filter(i => i.kind === 'scan').map(i => i.toggle)).toEqual(['stashPricesEnabled', 'stashReadQuantity', 'stashShowNames'])
     expect(items[0].label).toBe('T(ppz.menu.tg_stash)')
     const b = items.filter(i => i.kind === 'bookmark')
     expect(b.map(i => [i.label, i.folder, i.index, i.hotkey ?? null, i.collapsed])).toEqual([
       ['T17 危險詞綴', '地圖', 0, 'Ctrl + 1', false], ['高數量 Map', '地圖', 2, null, false], ['6L 商店', '商店', 5, 'F6', true]
     ])
-    expect(items.filter(i => i.kind === 'tool').map(i => i.tool)).toEqual(['settings', 'sheet', 'dust'])
+    expect(items.filter(i => i.kind === 'tool').map(i => i.tool)).toEqual(['settings', 'sheet', 'dust', 'timer-toggle', 'timer-pause', 'timer-reset'])
+    // 2026-11-09:計時器關閉(timerDisplay off)→ 不列計時器兩項
+    expect(menuItemsOf({ game: 'poe1', bookmarks: GROUPS, t, timer: false }).filter(i => i.kind === 'tool').map(i => i.tool)).toEqual(['settings', 'sheet', 'dust'])
     // id 不重複(v-for key / 選取都靠它)
     expect(new Set(items.map(i => i.id)).size).toBe(items.length)
   })
@@ -50,7 +52,7 @@ describe('F2 篩選膠囊與搜尋', () => {
     expect(filterMenuItems(items, 'all', '')).toEqual(items)
     expect(filterMenuItems(items, 'bookmark', '').every(i => i.kind === 'bookmark')).toBe(true)
     expect(filterMenuItems(items, 'scan', '')).toHaveLength(3)
-    expect(filterMenuItems(items, 'tool', '')).toHaveLength(3)
+    expect(filterMenuItems(items, 'tool', '')).toHaveLength(6)
   })
   it('名稱 / 資料夾比對,大小寫與全形不影響', () => {
     expect(labels(filterMenuItems(items, 'all', 'map'))).toEqual(['高數量 Map'])

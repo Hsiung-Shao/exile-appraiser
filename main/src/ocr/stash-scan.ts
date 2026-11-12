@@ -24,7 +24,7 @@
 import type { OcrRegion, RuneshapeUiState, StashScanEvent, StashStats } from '@ipc/types'
 import type { OcrTextLang, OcrTextLine } from '../../../poe2/src/desecration/ocr-text'
 import { activeSubtab, buttonRects, compareSlots, findSubtabButtons, percentile, stripRect, stripZone, type Rect } from '../../../core/src/stash/detect'
-import { cellRects, type StashLayoutFile, type StashSubtab } from '../../../core/src/stash/layout'
+import { cellRects, stashLeft, type StashLayoutFile, type StashSubtab } from '../../../core/src/stash/layout'
 import {
   QTY_PARAMS, qtyCropRect, qtyMapSignature, qtyShapeChanged, qtySignatureChanged, qtyWhiteMap, readCellQuantity,
   type DigitTemplates, type QtyRect, type QtyWhiteMap
@@ -256,7 +256,7 @@ export function stashOcrRect (
   client: { w: number, h: number },
   offset: { x: number, y: number }
 ): { rect: PhysRect, clamped: Rect | null, outside: boolean } {
-  let r: Rect = stripRect(client.h)
+  let r: Rect = stripRect(client.h, stashLeft(client.w, client.h))
   let clamped: Rect | null = null
   let outside = false
   // client 像素(regionSearchRect 以 client 當影像、偏移 0 → 規則與其他掃描相同)
@@ -699,7 +699,7 @@ export class StashScan {
     this.lastOcrMs = ms
     const clientLines = lines.map((l: OcrTextLine) => ({ text: l.text, x: l.x + cap.offset.x, y: l.y + cap.offset.y, w: l.w, h: l.h }))
     const lang = this.deps.textLang?.() ?? 'zh'
-    const match = findSubtabButtons(clientLines, client.h, lang)
+    const match = findSubtabButtons(clientLines, client.h, lang, stashLeft(client.w, client.h))
 
     if (!match.found) {
       // 診斷:認到 ≥ 1 顆但判定失敗(像碎片頁但沒過門檻 / 偏移對不上)時記下 OCR 文字,最多每 30 秒一次(實機回報「徽章沒出現」時查得到原因)
@@ -727,7 +727,7 @@ export class StashScan {
 
     let subtab: StashSubtab | null = null
     if (cap.gray) {
-      const rects = buttonRects(client.h, match.yOffset)
+      const rects = buttonRects(client.h, match.yOffset, stashLeft(client.w, client.h))
       const p99 = compareSlots(match).map(k => percentile(cap.gray!(toImage(rects[k], cap.offset)), 0.99))
       subtab = activeSubtab(p99)
     }
@@ -785,7 +785,7 @@ export class StashScan {
       return null
     }
     const key = `${shown.subtab}|${shown.yOffset}|${shown.clientW}x${shown.clientH}@${cap.offset.x},${cap.offset.y}`
-    const rects = cellRects(layouts, shown.subtab, shown.clientH, shown.yOffset)
+    const rects = cellRects(layouts, shown.subtab, shown.clientH, shown.yOffset, stashLeft(shown.clientW, shown.clientH))
     if (fresh || this.qty?.key !== key) {
       this.qty = {
         key, cells: rects.map(() => ({})), values: rects.map(() => null), want: new Set(rects.keys()),

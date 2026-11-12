@@ -29,7 +29,7 @@
 import { globalShortcut, screen } from 'electron'
 import { uIOhook, UiohookKey } from 'uiohook-napi'
 import { isModKey, KeyToElectron, mergeTwoHotkeys } from '@ipc/KeyToCode'
-import type { GameId, HostConfigForMain, HotkeyRegistration, ItemTextEvent, OcrRegionPickTarget, RegexBookmarkRunEvent } from '@ipc/types'
+import type { GameId, HostConfigForMain, HotkeyRegistration, ItemTextEvent, OcrRegionPickTarget, RegexBookmarkRunEvent, TimerAction } from '@ipc/types'
 import { HostClipboard } from './HostClipboard'
 import { buildShortcutActions, normalizeHotkey, reservedShortcuts, sameShortcutActions, type ShortcutAction } from './shortcut-actions'
 import { stashSearch, typeInChat, type TextBoxDeps } from './text-box'
@@ -76,6 +76,8 @@ export class Shortcuts {
       onScanToggleBoth?: () => void
       /** 第 33 步:正則書籤快速面板熱鍵(熱鍵按鍵已放開) */
       onRegexQuick?: () => void
+      /** 2026-11-09:計時器熱鍵(不動鍵盤) */
+      onTimer?: (action: TimerAction) => void
       /** 第 33 步:正則書籤個別熱鍵(熱鍵按鍵已放開) */
       onRegexBookmark?: (e: RegexBookmarkRunEvent) => void
     }
@@ -178,6 +180,12 @@ export class Shortcuts {
       this.opts.onRuneshapeToggle?.()
       return
     }
+    if (entry.action.type === 'timer-toggle' || entry.action.type === 'timer-reset' || entry.action.type === 'timer-pause' ||
+      entry.action.type === 'timer-undo' || entry.action.type === 'timer-skip') {
+      // 2026-11-09:只通知 renderer,不動鍵盤(2026-11-10 起含 pause / undo / skip)
+      this.opts.onTimer?.(entry.action.type.slice('timer-'.length) as TimerAction)
+      return
+    }
     if (entry.action.type === 'scan-toggle-both') {
       // 第 16 步:只切換兩個掃描的狀態,不動鍵盤
       this.opts.onScanToggleBoth?.()
@@ -221,14 +229,14 @@ export class Shortcuts {
 
     const pressPosition = screen.getCursorScreenPoint()
     this.opts.beforeItemCopy?.()
-    void this.copyAndReadItem(action.focusOverlay, entry, pressPosition).catch((e: unknown) => { console.warn('[shortcuts] 查價熱鍵失敗', e) })
+    void this.copyAndReadItem(action.focusOverlay, entry, pressPosition, action.target).catch((e: unknown) => { console.warn('[shortcuts] 查價熱鍵失敗', e) })
   }
 
   /**
    * 查價熱鍵:先 arm(讀剪貼簿 before 並清空)**完成**,才送複製鍵,最後輪詢物品文字。
    * Electron 44 起清空是非同步,若先送鍵再清空,晚到的清空會蓋掉遊戲剛複製的物品文字。
    */
-  private async copyAndReadItem (focusOverlay: boolean, entry: ShortcutAction, pressPosition: { x: number, y: number }): Promise<void> {
+  private async copyAndReadItem (focusOverlay: boolean, entry: ShortcutAction, pressPosition: { x: number, y: number }, target?: 'poedb'): Promise<void> {
     const armStart = Date.now()
     try {
       await this.clipboard.armItemRead()
@@ -258,7 +266,7 @@ export class Shortcuts {
     }
     this.opts.areaTracker?.removeListeners()
     console.log(`[shortcuts] 讀到物品文字 ${clipboard.length} 字元,focusOverlay=${focusOverlay},游標 ${pressPosition.x},${pressPosition.y}`)
-    this.opts.onItem({ clipboard, position: pressPosition, focusOverlay })
+    this.opts.onItem(target ? { clipboard, position: pressPosition, focusOverlay, target } : { clipboard, position: pressPosition, focusOverlay })
     const { overlay } = this.opts
     if (focusOverlay && overlay?.wasUsedRecently) {
       overlay.assertOverlayActive()

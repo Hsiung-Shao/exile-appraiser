@@ -14,7 +14,7 @@ import {
 } from '../src/ocr/stash-scan'
 import { STASH_CURSOR_INTERVAL_MS, StashCursor, stashPanelContains } from '../src/stash-cursor'
 import { buttonRects, stripRect, stripZone, type TextLine } from '../../core/src/stash/detect'
-import { cellRects, parseStashLayouts, type StashLayoutFile } from '../../core/src/stash/layout'
+import { cellRects, parseStashLayouts, stashLeft, type StashLayoutFile } from '../../core/src/stash/layout'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(HERE, '../..')
@@ -119,8 +119,9 @@ function harness () {
         },
         gray: (rect) => {
           state.grays++
-          // 依 x 對到第幾顆按鈕(yOffset 只影響 y)
-          const k = buttonRects(client.h, 0).findIndex(b => Math.abs(b.x - rect.x) <= 1)
+          // 依 x 對到第幾顆按鈕(yOffset 只影響 y;超寬螢幕要扣左側黑邊)
+          const x0 = stashLeft(client.w, client.h)
+          const k = buttonRects(client.h, 0).findIndex(b => Math.abs(b.x + x0 - rect.x) <= 1)
           return new Uint8Array(32).fill(k >= 0 ? state.bright[k] : 0)
         }
       }
@@ -832,5 +833,40 @@ describe('S21 只支援國際服(台服完全不掃描)', () => {
     const { scanConfigKey } = await import('../src/scan-config')
     const base = { game: 'poe1' as const, stashPricesEnabled: true }
     expect(scanConfigKey({ ...base, realm: 'intl' })).not.toBe(scanConfigKey({ ...base, realm: 'tw' }))
+  })
+})
+
+describe('S22 超寬螢幕黑邊(遊戲畫面 2.4:1、左右補黑)', () => {
+  const WIDE = 5120
+  const X0 = stashLeft(WIDE, H)
+
+  it('按鈕文字右移黑邊寬時仍找到一般頁,OCR 區域從黑邊右側開始', async () => {
+    const h = harness()
+    h.state.client = { w: WIDE, h: H }
+    h.env.bounds = { x: 0, y: 0, width: WIDE, height: H }
+    h.state.lines = STRIP_LINES.map(l => ({ ...l, x: l.x + X0 }))
+    // 沒套黑邊 → 掃描條在黑邊上、按鈕比對不到
+    await showGeneral(h)
+    expect(h.state.ocrRects[0].x).toBe(X0)
+  })
+
+  it('游標判定扣掉黑邊:停在右移後的格子上送該格', async () => {
+    const clk = fakeClock()
+    const bounds = { x: 0, y: 0, width: WIDE, height: H }
+    const cell = cellRects(LAYOUTS, 'general', H, 0)[0]
+    const sent: Array<{ refName: string | null }> = []
+    const cur = new StashCursor({
+      clock: clk.clock,
+      cursor: () => ({ x: cell.x + X0 + 2, y: cell.y + 2 }),
+      bounds: () => bounds,
+      active: () => true,
+      layouts: () => LAYOUTS,
+      send: (e) => { sent.push(e) }
+    })
+    cur.setShown({ subtab: 'general', yOffset: 0, clientH: H })
+    await clk.advance(STASH_CURSOR_INTERVAL_MS * 2)
+    expect(sent).toEqual([{ refName: cell.refName }])
+    expect(cur.inPanel()).toBe(true)
+    cur.stop()
   })
 })

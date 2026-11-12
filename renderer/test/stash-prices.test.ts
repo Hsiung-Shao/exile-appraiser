@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { cellRects, parseStashLayouts, type StashLayoutFile } from '../../core/src/stash/layout'
-import { layoutStashBadges, stashPriceUnit, type StashLayoutInput } from '../src/web/overlay/stash-view'
+import { layoutStashBadges, stashPriceUnit, stashValueCardPos, type StashLayoutInput } from '../src/web/overlay/stash-view'
 import type { PriceOfResult } from '../src/web/background/price-of'
 import { badgeStyleVars, defaultOcrBadgeStyle } from '../src/web/overlay/badge-style'
 import { _roundTripForTest } from '../src/web/Config'
@@ -300,5 +300,19 @@ describe('S20 倉庫卡片走統一樣板(T4 / T5)', () => {
     expect(stash).toContain('data-setting="stash-tw"')
     expect(stash).toContain('<template #top>')
     expect(stash).toMatch(/<template #extra>[\s\S]*v-model="config\.stashShowNames"[\s\S]*data-setting="stash-show-names"/)
+  })
+})
+
+describe('S22 超寬螢幕黑邊', () => {
+  it('徽章與價值卡跟著倉庫右移黑邊寬(client 5120×1440、viewport 一半)', () => {
+    const x0 = 832
+    const wide = { client: { w: 5120, h: 1440 }, viewport: { w: 2560, h: 720 } }
+    const narrow = { client: { w: 2560, h: 1440 }, viewport: { w: 1280, h: 720 } }
+    const a = layoutStashBadges({ ...input(narrow), placement: 'current' })
+    const b = layoutStashBadges({ ...input(wide), placement: 'current' })
+    expect(b.map(v => v.left)).toEqual(a.map(v => v.left + x0 * 0.5))
+    const ca = stashValueCardPos(input(narrow))!
+    const cb = stashValueCardPos(input(wide))!
+    expect(cb).toEqual({ ...ca, left: ca.left + x0 * 0.5 })
   })
 })
