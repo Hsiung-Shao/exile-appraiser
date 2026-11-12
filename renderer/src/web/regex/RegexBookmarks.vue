@@ -12,6 +12,8 @@
   - 書籤移到資料夾:每列下拉選單 + 拖曳(握把 ⠿,pointer events + setPointerCapture;放在書籤上 = 插到它前 / 後並進它的資料夾,
     放在資料夾標題 / 空資料夾 = 移到該資料夾最後)。資料夾排序:拖曳標題的握把。鍵盤替代:書籤與資料夾都有上移 / 下移按鈕。
   - 熱鍵衝突提示(`rxbm:<索引>`)只算目前遊戲(main 只註冊目前遊戲的書籤熱鍵),另一代的書籤不顯示衝突。
+  2026-11-12 自訂字串書籤(`isCustomBookmark`:保留頁 `@custom`,字串在 `keys[0]`):標題列「自訂書籤」/ 輸出區「存成自訂書籤」(store `customBookmarkDraft`)
+  開同一個對話框;該列沒有「載入」「更新」,改「編輯」。其餘(熱鍵、資料夾、排序、改名、刪除)與一般書籤相同。docs/regex-port.md「自訂字串書籤」。
   第 40 步:PobTools 送來的書籤加入後(store `bookmarkReveal`)→ 分頁切到那一代、捲到這張卡片、新書籤短暫醒目(`.revealed`)。
 -->
 <template>
@@ -26,6 +28,7 @@
       </div>
       <span class="grow" />
       <button class="btn sm ghost" data-regex="bm-folder-add" @click="openFolderAdd">{{ t('ppz.regex.fd_add') }}</button>
+      <button class="btn sm ghost" data-regex="bm-custom-add" :title="t('ppz.regex.bm_custom_tip', { game: gameLabel(tab) })" @click="openCustom(-1)">{{ t('ppz.regex.bm_custom_add') }}</button>
       <button class="btn sm" data-regex="bm-save" :disabled="!pickedTotal"
         :title="pickedTotal ? t('ppz.regex.bm_save_tip', { game: gameLabel(selGame) }) : t('ppz.regex.bm_save_need')" @click="openSave">{{ t('ppz.regex.bm_save') }}</button>
     </div>
@@ -61,7 +64,10 @@
               data-regex="bm-grip" @pointerdown="onGripDown($event, { kind: 'bm', index: x.index })">⠿</span>
             <div class="rx-bm-text">
               <div class="rx-bm-name">{{ x.b.name }}</div>
-              <div class="rx-bm-meta">{{ t('ppz.regex.bm_meta', {
+              <div v-if="isCustom(x.b)" class="rx-bm-meta rx-bm-custom" :title="x.b.keys[0]" data-regex="bm-custom-meta">
+                {{ t('ppz.regex.bm_meta_custom', { n: charCount(x.b.keys[0] ?? '') }) }} · <code>{{ x.b.keys[0] }}</code>
+              </div>
+              <div v-else class="rx-bm-meta">{{ t('ppz.regex.bm_meta', {
                 page: pageTitle(x.b.page), mode: t(`ppz.regex.mode_${x.b.mode}`),
                 lang: x.b.lang === 'en' ? 'English' : t('ppz.regex.lang_zh_short'), n: x.b.keys.length + (x.b.num?.length ?? 0)
               }) }}</div>
@@ -78,11 +84,15 @@
                 :title="t('ppz.regex.bm_up')" @click="moveBookmarkStep(x.index, -1)">↑</button>
               <button class="btn sm ghost rx-bm-icon" data-regex="bm-down" :disabled="k >= g.items.length - 1" :aria-label="t('ppz.regex.bm_down')"
                 :title="t('ppz.regex.bm_down')" @click="moveBookmarkStep(x.index, 1)">↓</button>
-              <button class="btn sm" data-regex="bm-load" :title="x.b.game !== selGame ? t('ppz.regex.bm_load_other', { game: gameLabel(x.b.game) }) : ''"
-                @click="loadBookmark(x.index)">{{ t('ppz.regex.bm_load') }}</button>
-              <button class="btn sm" data-regex="bm-update" :disabled="x.b.game !== selGame"
-                :title="x.b.game !== selGame ? t('ppz.regex.bm_update_other', { game: gameLabel(x.b.game) }) : t('ppz.regex.bm_update_tip')"
-                @click="updateBookmark(x.index)">{{ t('ppz.regex.bm_update') }}</button>
+              <!-- 自訂字串書籤沒有勾選可載入 / 更新 → 編輯名稱與字串 -->
+              <button v-if="isCustom(x.b)" class="btn sm" data-regex="bm-edit" @click="openCustom(x.index)">{{ t('ppz.regex.bm_edit') }}</button>
+              <template v-else>
+                <button class="btn sm" data-regex="bm-load" :title="x.b.game !== selGame ? t('ppz.regex.bm_load_other', { game: gameLabel(x.b.game) }) : ''"
+                  @click="loadBookmark(x.index)">{{ t('ppz.regex.bm_load') }}</button>
+                <button class="btn sm" data-regex="bm-update" :disabled="x.b.game !== selGame"
+                  :title="x.b.game !== selGame ? t('ppz.regex.bm_update_other', { game: gameLabel(x.b.game) }) : t('ppz.regex.bm_update_tip')"
+                  @click="updateBookmark(x.index)">{{ t('ppz.regex.bm_update') }}</button>
+              </template>
               <button class="btn sm" data-regex="bm-rename" @click="openRename(x.index)">{{ t('ppz.regex.bm_rename') }}</button>
               <button class="btn sm danger" data-regex="bm-delete" @click="delIdx = x.index">{{ t('ppz.regex.bm_delete') }}</button>
             </div>
@@ -108,6 +118,30 @@
           <div class="rx-dialog-btns">
             <button class="btn primary" data-regex="bm-name-ok" :disabled="!nameModal.name.trim()" @click="commitName">{{ t('ppz.regex.ok') }}</button>
             <button class="btn" @click="nameModal = null">{{ t('ppz.regex.cancel') }}</button>
+          </div>
+        </div>
+      </div>
+      <div v-if="customModal" class="modal rx-modal" :class="fsClass" :style="fsStyle" @mousedown.self="customModal = null">
+        <div class="rx-dialog" role="dialog" aria-modal="true" data-regex="bm-custom-dialog">
+          <div class="rx-dialog-title">{{ t(customModal.index < 0 ? 'ppz.regex.bm_custom_title_add' : 'ppz.regex.bm_custom_title_edit', { game: gameLabel(customModal.game) }) }}</div>
+          <label class="rx-dialog-field">
+            <span class="dim">{{ t('ppz.regex.bm_name') }}</span>
+            <input ref="customNameInput" v-model="customModal.name" class="input" data-regex="bm-custom-name"
+              @keydown.enter="onCustomEnter" @keydown.esc="customModal = null">
+          </label>
+          <label class="rx-dialog-field">
+            <span class="dim">{{ t('ppz.regex.bm_custom_text') }}</span>
+            <textarea v-model="customModal.text" class="input rx-query selectable" rows="4" spellcheck="false" data-regex="bm-custom-text"
+              @keydown.enter.prevent="onCustomEnter" @keydown.esc="customModal = null" />
+          </label>
+          <p class="rx-bm-custom-len">
+            <span class="num rx-len" :class="{ bad: customLen > CUSTOM_BOOKMARK_LIMIT }" data-regex="bm-custom-length">{{ t('ppz.regex.length', { len: customLen, limit: CUSTOM_BOOKMARK_LIMIT }) }}</span>
+            <span v-if="customLen > CUSTOM_BOOKMARK_LIMIT" class="rx-bad" data-regex="bm-custom-over">{{ t('ppz.regex.bm_custom_over') }}</span>
+          </p>
+          <p class="dim">{{ t('ppz.regex.custom_unverified') }}</p>
+          <div class="rx-dialog-btns">
+            <button class="btn primary" data-regex="bm-custom-ok" :disabled="!customLen || !customModal.name.trim()" @click="commitCustom">{{ t('ppz.regex.ok') }}</button>
+            <button class="btn" @click="customModal = null">{{ t('ppz.regex.cancel') }}</button>
           </div>
         </div>
       </div>
@@ -155,7 +189,7 @@
 <script lang="ts">
 import { computed, defineComponent, nextTick, onUnmounted, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { FOLDER_NAME_MAX, folderCounts, type RegexGame } from '@exile-appraiser/regex'
+import { CUSTOM_BOOKMARK_LIMIT, FOLDER_NAME_MAX, charCount, customBookmark, folderCounts, isCustomBookmark, type RegexGame } from '@exile-appraiser/regex'
 import { AppConfig } from '@/web/Config'
 import { useSettingsFs } from '@/web/settings/settings-fs'
 import HotkeyInput from '@/web/settings/HotkeyInput.vue'
@@ -163,7 +197,7 @@ import { useHotkeyIssues } from '@/web/settings/useHotkeyIssues'
 import {
   GAMES, addBookmarkFolder, bookmarkGroupsOf, deleteBookmark, deleteBookmarkFolder, gameLabel, loadBookmark, moveBookmarkFolder,
   moveBookmarkStep, moveBookmarkToFolder, pagePickCount, renameBookmark, renameBookmarkFolder, saveBookmark, setBookmarkFolderCollapsed,
-  setBookmarkHotkey, updateBookmark, useRegexStore, bookmarkReveal
+  setBookmarkHotkey, updateBookmark, useRegexStore, bookmarkReveal, customBookmarkDraft, saveCustomBookmark, updateCustomBookmark
 } from './store'
 import type { RegexBookmark } from '@exile-appraiser/regex'
 
@@ -210,6 +244,35 @@ export default defineComponent({
       el.value?.focus()
       el.value?.select()
     }
+
+    // ---- 自訂字串書籤(2026-11-12):新增(index < 0)與編輯共用一個對話框 ----
+    const customModal = ref<{ index: number, game: RegexGame, name: string, text: string } | null>(null)
+    const customNameInput = ref<HTMLInputElement | null>(null)
+    /** 清理後(與存下的相同)的字數 */
+    const customLen = computed(() => {
+      const m = customModal.value
+      return m ? charCount(customBookmark(m.game, 'x', m.text)?.keys[0] ?? '') : 0
+    })
+    function openCustom (index: number, text = '') {
+      const b = index >= 0 ? store.ui.bookmarks[index] : null
+      customModal.value = b
+        ? { index, game: b.game || tab.value, name: b.name, text: b.keys[0] ?? '' }
+        : { index: -1, game: tab.value, name: '', text }
+      void focusInput(customNameInput)
+    }
+    function commitCustom () {
+      const m = customModal.value
+      if (!m) return
+      const ok = m.index < 0 ? saveCustomBookmark(m.game, m.name, m.text) : updateCustomBookmark(m.index, m.name, m.text)
+      if (ok) customModal.value = null
+    }
+    // 輸出區「存成自訂書籤」:切到那一代並帶入字串
+    watch(customBookmarkDraft, (d) => {
+      if (!d) return
+      customBookmarkDraft.value = null
+      tab.value = d.game
+      openCustom(-1, d.text)
+    })
 
     // ---- 拖曳(pointer events;只有握把能開始)----
     const drag = shallowRef<{ src: DragSrc, x: number, y: number, active: boolean, pointerId: number, el: Element } | null>(null)
@@ -343,6 +406,16 @@ export default defineComponent({
     const { issueText } = useHotkeyIssues()
     return {
       rootEl,
+      isCustom: isCustomBookmark,
+      charCount,
+      CUSTOM_BOOKMARK_LIMIT,
+      customModal,
+      customNameInput,
+      customLen,
+      openCustom,
+      commitCustom,
+      // 中文輸入法選字的 Enter 不算送出
+      onCustomEnter (e: KeyboardEvent) { if (!e.isComposing) commitCustom() },
       isRevealed,
       issueText,
       setBookmarkHotkey,
@@ -605,6 +678,22 @@ export default defineComponent({
 .rx-bm-meta {
   font-size: var(--fs-2xs);
   color: var(--ink-3);
+}
+.rx-bm-custom {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rx-dialog[data-regex="bm-custom-dialog"] {
+  width: min(34em, calc(100vw - 32px));
+}
+.rx-dialog-field + .rx-dialog-field {
+  margin-top: 8px;
+}
+.rx-bm-custom-len {
+  display: flex;
+  gap: 0.8em;
+  margin-top: 4px !important;
 }
 .rx-bm-actions {
   display: flex;

@@ -40,7 +40,9 @@ export {
 export type { RegexTemplate, ResolvedState, ShareState } from './share'
 export { bookmarkApplyOf, bookmarkBodyOf, combineSels, mergeSels, resolvedValues, savedPicksOf, shareStateOf, valuesOfPage } from './embed'
 export type { BookmarkApply, PicksMap, ValuesMap } from './embed'
-export { bookmarkHotkeys, bookmarkQuery, findBookmark, quickBookmarks } from './quick'
+export {
+  CUSTOM_BOOKMARK_LIMIT, CUSTOM_BOOKMARK_PAGE, bookmarkHotkeys, bookmarkQuery, customBookmark, findBookmark, isCustomBookmark, quickBookmarks
+} from './quick'
 export {
   BOOKMARK_PACK_KIND, BOOKMARK_PACK_VERSION, bookmarkMissed, canonicalBookmarkPackJson, decodeBookmarks, encodeBookmarks, mergeBookmarks,
   normalizeBookmarkPack

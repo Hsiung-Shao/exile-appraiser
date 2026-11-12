@@ -7,6 +7,7 @@
 // - `quickBookmarks`:某遊戲可用的書籤(依 `ui.bookmarks` 順序;沒有遊戲的孤兒書籤不列)。
 import type { RegexGame, RegexPage } from './data'
 import { combine } from './combine'
+import { charCount } from './gen'
 import { bookmarkApplyOf, combineSels } from './embed'
 import type { RegexBookmark } from './state'
 
@@ -19,16 +20,37 @@ export interface BookmarkQuery {
   limit: number
   /** 還原不到的鍵數(賽季改了詞綴) */
   missed: number
-  /** 書籤指向的清單頁(數值區書籤 = 宿主頁) */
-  page: RegexPage
+  /** 書籤指向的清單頁(數值區書籤 = 宿主頁);自訂字串書籤沒有 */
+  page?: RegexPage
 }
 
-/** 書籤 → 搜尋字串;頁不存在(另一遊戲的清單沒載 / 資料改版刪了頁)= null */
+/** 書籤 → 搜尋字串;頁不存在(另一遊戲的清單沒載 / 資料改版刪了頁)= null。自訂字串書籤原樣輸出,不需要清單 */
 export function bookmarkQuery (pages: readonly RegexPage[], b: RegexBookmark): BookmarkQuery | null {
+  if (isCustomBookmark(b)) {
+    const query = b.keys[0] ?? ''
+    return { query, length: charCount(query), limit: CUSTOM_BOOKMARK_LIMIT, missed: 0 }
+  }
   const a = bookmarkApplyOf(pages, b)
   if (!a) return null
   const r = combine({ lang: b.lang, mode: b.mode, pages: combineSels(pages, a.picks, a.values, a.page.id) })
   return { query: r.query, length: r.length, limit: r.limit, missed: a.missed, page: a.page }
+}
+
+/** 自訂字串書籤的保留頁 id(字串放 `keys[0]`;存檔格式不變) */
+export const CUSTOM_BOOKMARK_PAGE = '@custom'
+/** 遊戲搜尋列上限(各頁 `limit` 都是 250) */
+export const CUSTOM_BOOKMARK_LIMIT = 250
+
+export function isCustomBookmark (b: RegexBookmark): boolean {
+  return b.page === CUSTOM_BOOKMARK_PAGE
+}
+
+/** 自訂字串書籤;遊戲搜尋列是單行 → 換行 / Tab 轉一個空白。名稱或字串為空 = null。字串不驗證、不跳脫 */
+export function customBookmark (game: RegexGame, name: string, text: string): RegexBookmark | null {
+  const n = name.trim()
+  const q = text.replace(/[\r\n\t]+/g, ' ').trim()
+  if (!n || !q) return null
+  return { name: n, page: CUSTOM_BOOKMARK_PAGE, game, mode: 'any', lang: 'zh', keys: [q], alt: [] }
 }
 
 /** main 註冊用的一筆書籤熱鍵 */

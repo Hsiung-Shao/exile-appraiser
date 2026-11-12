@@ -551,6 +551,18 @@ PoE1 地圖詞綴 3 條 + 階級 ≥16 + 物品數量 ≥80 + 6L → `"成凋| �
 - 與 R10 的交互:R10 合併只併同一物品組(`sections.ts planMerge`),碑牌頁與換界石頁不同組,所以「已選(合併)」以碑牌為目前頁時一定只有碑牌語料 → 會加 class-term。R10 條件縮短的防護語料(`combine.ts mergeConditions`)也收 `altZh` / `altEn`(`merge-group.test.ts` M4)。
 - PobTools 端已移植(PobTools 46d1ae2 / 829c19d;C++ golden 已由本分支重產,`--regex-selftest` 1056 / 0)。
 
+## 自訂字串書籤(2026-11-12)
+
+使用者需求:會自己寫正則的人要能把字串直接存成書籤,並享有書籤原有的全部功能。
+
+- **資料模型**(`regex/src/quick.ts`):自訂書籤仍是 `RegexBookmark`,`page` = 保留值 `@custom`(`CUSTOM_BOOKMARK_PAGE`)、字串放 `keys[0]`、`alt` 空、`mode: 'any'`、`lang: 'zh'`。存檔格式不變(schema 5),所以資料夾、排序、改名、刪除、個別熱鍵、熱鍵總表、書籤列、快速面板、懸浮選單(預覽快取鍵本來就含 `keys`)都不必改。判斷一律走 `isCustomBookmark`,建立走 `customBookmark`(去頭尾空白、換行 / Tab 轉一個空白;名稱或字串為空 = 不建立)。
+- **字串**:`bookmarkQuery` 對自訂書籤直接回 `keys[0]`,不需要清單(renderer `quick.ts` `queryOf` 因此不呼叫 `catalogueFor`,清單載入失敗也能貼)。**原樣貼進遊戲、不驗證、不跳脫**;超過 250 字(`CUSTOM_BOOKMARK_LIMIT`)只標紅,不擋存檔。
+- **介面**(`RegexBookmarks.vue`):標題列「自訂書籤」→ 對話框(名稱 + 字串 + 字數),加到目前管理的那一代(未分類)。自訂書籤那一列沒有「載入」「更新」(沒有勾選可放回清單),改成「編輯」開同一個對話框;store `updateBookmark` 另擋一次,避免被目前勾選覆寫成一般書籤。
+- **存目前輸出**(`RegexPanel.vue` 輸出區「存成自訂書籤」):把目前輸出字串(含多頁合併、自訂文字、排除詞)帶進同一個對話框(store `customBookmarkDraft`)。存下的是固定字串,之後資料更新**不會重算**。
+- **推翻條件**:自訂書籤需要 `keys[0]` 放不下的欄位(多段字串、備註)時,改加專屬欄位並升 schema。
+- PobTools 不同步:書籤包格式不變,PobTools 不會產生 `@custom` 書籤;包裡若有,照樣加入、`bookmarkMissed` 算 0。
+- 測試:`regex/test/custom-bookmark.test.ts`、`renderer/test/regex-custom-bookmark.test.ts`。**待使用者實機確認**:自訂書籤由書籤列 / 快速面板 / 個別熱鍵貼進遊戲。
+
 ## 相關文件
 - [regex-share-cli.md](regex-share-cli.md)(從命令列 / PobTools 送分享碼:`--regex-share`、確認對話框、找 exe)
 - [phase2-summary.md](phase2-summary.md)(WP5 摘要與待辦:逐字 golden)
