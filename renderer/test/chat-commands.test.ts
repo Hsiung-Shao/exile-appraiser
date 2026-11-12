@@ -74,7 +74,7 @@ describe('熱鍵衝突表(與 main 註冊規則相同)', () => {
   it('符文塑形框選熱鍵也在表內(PoE2;不看是否啟用),與其他熱鍵重複標 duplicate', () => {
     const c: HotkeyConfigLike = { ...cfg, hotkeyOcrRegion: 'Ctrl + Shift + T', hotkeyRuneshapeRegion: 'ctrl+shift+t' }
     const slots = hotkeySlots(c).map(s => s.id)
-    expect(slots.slice(0, 6)).toEqual(['quick', 'locked', 'overlay', 'ocr', 'region', 'runeRegion'])
+    expect(slots.slice(0, 7)).toEqual(['quick', 'locked', 'poedb', 'overlay', 'ocr', 'region', 'runeRegion'])
     expect(hotkeyIssues(hotkeySlots(c)).get('runeRegion')).toEqual({ kind: 'duplicate', key: 'Ctrl + Shift + T', with: 'region' })
     expect(hotkeySlots({ ...c, game: 'poe1' }).some(s => s.id === 'runeRegion')).toBe(false)
   })

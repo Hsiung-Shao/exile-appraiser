@@ -163,6 +163,17 @@
               : t('filters.selected_none')
           "
         />
+        <!-- exile-appraiser: 2026-11-09 收合後明顯的「展開」鈕(使用者要求;膠囊內的小箭頭不顯眼) -->
+        <button
+          v-if="hasStats && statsVisibility.disabled"
+          type="button"
+          data-action="stats-expand"
+          :class="$style.footBtn"
+          @click="statsVisibility.disabled = false"
+        >
+          {{ t("ppz.filters.expand") }}
+          <i class="fas fa-chevron-down pl-1 text-xs"></i>
+        </button>
       </div>
       <div
         v-if="showItemEditor !== 'none'"

@@ -118,6 +118,8 @@ export declare function scheduleDisplayZhPreload (realm: string, later?: (fn: ()
 /** 2026-10-15:懸浮選單限流狀態點(poe2/src/web/price-check/trade/common.ts tradeSession 的子集) */
 export declare function poe2TradeSession (realm: Realm): { limits: { SEARCH: Set<RateLimiter>, EXCHANGE: Set<RateLimiter>, FETCH: Set<RateLimiter> } }
 export declare function parseClipboard (clipboard: string): Result<Poe2ParsedItem, string>
+/** 2026-11-09:物品 → poe2db.tw 頁(EE2 `getPoe2dbPath`;poe2/src/web/item-check/poedb.ts) */
+export declare function poe2dbUrl (item: Poe2ParsedItem, language: 'en' | 'cmn-Hant'): string
 export declare const CheckedItem: DefineComponent<{}, {}, any>
 /** 未鑑定傳奇:列出這個基底可能的傳奇(只有一個就自動選),選定後 emit `identify`(換好 `info` 的物品) */
 export declare const UnidentifiedResolver: DefineComponent<{}, {}, any>

@@ -158,7 +158,7 @@ async function boot () {
       const c = Host.lastOverlayContent
       return c != null && Object.values(c).some(v => v === true)
     },
-    onItemText: (cb) => Host.onItemText(() => { cb() }),
+    onItemText: (cb) => Host.onItemText((e) => { if (!e.target) cb() }), // poedb 熱鍵不算查價延遲
     send: (r) => { Host.perfRenderer(r) }
   })
 }

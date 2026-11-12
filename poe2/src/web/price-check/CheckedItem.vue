@@ -112,6 +112,23 @@ export default defineComponent({
           (preset) => preset.id === presets.value.active,
         )!.filters,
     );
+    // exile-appraiser: 2026-11-09 標題列聯盟 ↔ 掛單「線上」選單的聯盟同步(使用者回報兩處不同步);
+    // 標題列改 → 這件物品所有 preset 跟著改;選單改 → 寫回標題列(全域聯盟)
+    watch(
+      () => leagues.selectedId.value,
+      (id) => {
+        if (!id || !presets.value) return;
+        for (const p of presets.value.presets) {
+          if (p.filters.trade.league !== id) p.filters.trade.league = id;
+        }
+      },
+    );
+    watch(
+      () => (presets.value ? itemFilters.value.trade.league : undefined),
+      (id) => {
+        if (id && leagues.selectedId.value !== id) leagues.selectedId.value = id;
+      },
+    );
     const itemStats = computed(
       () =>
         presets.value.presets.find(

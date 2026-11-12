@@ -38,7 +38,7 @@ export async function buildTemplatesJson (fixDir = FIXTURE_DIR) {
   const samples = []
   /** @type {Array<{ file: string, sha256: string }>} */
   const sources = []
-  // 一般頁照版面切格;數字樣本組(truth.samples,3.29 聖甲蟲頁截圖,2026-11-07 起不再有這個子頁)用寫死的格子框
+  // 一般頁照版面切格(cellRects 不帶黑邊偏移 → 截圖須 ≤ 2.4:1,超寬截圖要先裁掉左側黑邊);數字樣本組(truth.samples,3.29 聖甲蟲頁截圖,2026-11-07 起不再有這個子頁)用寫死的格子框
   /** @type {Array<{ file: string, rects: Array<{x:number,y:number,w:number,h:number}>, values: Array<number | null> }>} */
   const sets = [{ file: truth.files.general, rects: cellRects(layouts, 'general', clientH), values: truth.general }]
   for (const s of truth.samples ?? []) {

@@ -10,7 +10,7 @@ const read = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.met
 describe('overlayContentOf / overlayContentKey', () => {
   it('App 狀態 + 徽章層合成回報;鍵逐欄不同', () => {
     const c = overlayContentOf({ panel: true, settings: false, picker: false }, { reveal: false, rune: true })
-    expect(c).toEqual({ panel: true, settings: false, picker: false, reveal: false, rune: true, stash: false, quick: false, menu: false })
+    expect(c).toEqual({ panel: true, settings: false, picker: false, reveal: false, rune: true, stash: false, quick: false, menu: false, timer: false })
     // PoE1 倉庫價格疊層
     expect(overlayContentOf({ panel: false, settings: false, picker: false }, { reveal: false, rune: false, stash: true }).stash).toBe(true)
     // 第 33 步:快速面板
@@ -18,13 +18,13 @@ describe('overlayContentOf / overlayContentKey', () => {
     // 2026-10-08:懸浮選單
     expect(overlayContentOf({ panel: false, settings: false, picker: false, menu: true }, { reveal: false, rune: false }).menu).toBe(true)
     const keys = new Set<string>()
-    for (let i = 0; i < 256; i++) {
-      keys.add(overlayContentKey({ panel: !!(i & 1), settings: !!(i & 2), picker: !!(i & 4), reveal: !!(i & 8), rune: !!(i & 16), quick: !!(i & 32), menu: !!(i & 64), stash: !!(i & 128) }))
+    for (let i = 0; i < 512; i++) {
+      keys.add(overlayContentKey({ panel: !!(i & 1), settings: !!(i & 2), picker: !!(i & 4), reveal: !!(i & 8), rune: !!(i & 16), quick: !!(i & 32), menu: !!(i & 64), stash: !!(i & 128), timer: !!(i & 256) }))
     }
-    expect(keys.size).toBe(256)
+    expect(keys.size).toBe(512)
   })
   it('徽章層狀態預設 false', () => {
-    expect({ ...overlayLayers }).toEqual({ reveal: false, rune: false, stash: false })
+    expect({ ...overlayLayers }).toEqual({ reveal: false, rune: false, stash: false, timer: false })
   })
 })
 

@@ -7,7 +7,7 @@
  * 2026-10-15 倉庫價值:有每格數量(main 讀堆疊數量)時徽章改顯示小計 = 單價 × 數量(三段色 / C・D 依小計);數量讀不到 → 只顯示單價 +「?」、
  * 不計入總價;空格(0)不畫(停格時才畫);`peek`(main 要用乾淨畫面重讀被蓋住的數字)→ 格子徽章全部收起。整頁總價 `stashPageValue`。
  */
-import { cellRects, type StashLayoutFile, type StashSubtab } from '../../../../core/src/stash/layout'
+import { cellRects, stashLeft, type StashLayoutFile, type StashSubtab } from '../../../../core/src/stash/layout'
 import { QTY_PARAMS } from '../../../../core/src/stash/quantity'
 import type { PriceOfResult } from '../background/price-of'
 import { overlayPlace, type OverlayPos } from './float-menu-geom'
@@ -85,7 +85,7 @@ export function layoutStashBadges (inp: StashLayoutInput): StashBadgeView[] {
   if (inp.peek) return []
   const out: StashBadgeView[] = []
   const q = inp.quantities
-  cellRects(inp.file, inp.subtab, inp.client.h, inp.yOffset).forEach((c, i) => {
+  cellRects(inp.file, inp.subtab, inp.client.h, inp.yOffset, stashLeft(inp.client.w, inp.client.h)).forEach((c, i) => {
     const hovered = inp.hover === c.refName
     if (inp.hover != null && !hovered) return
     const qty = q ? (q[i] ?? null) : undefined
@@ -183,8 +183,9 @@ export function stashValueCardPos (inp: Pick<StashLayoutInput, 'file' | 'subtab'
   const b = STASH_VALUE_BAND_1440
   const top = Math.ceil(b.y0 * k) + inp.yOffset
   const bottom = Math.floor(b.y1 * k) + inp.yOffset
-  const left = Math.ceil(b.x0 * k)
-  const right = Math.min(Math.floor(b.x1 * k), Math.floor(inp.client.h * 37 / 60))
+  const x0 = stashLeft(inp.client.w, inp.client.h)
+  const left = Math.ceil(b.x0 * k) + x0
+  const right = Math.min(Math.floor(b.x1 * k), Math.floor(inp.client.h * 37 / 60)) + x0
   return { left: left * sx, top: top * sy, maxWidth: (right - left) * sx, maxHeight: (bottom - top) * sy }
 }
 

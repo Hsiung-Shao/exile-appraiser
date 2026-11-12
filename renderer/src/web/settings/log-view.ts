@@ -25,7 +25,8 @@ export function isErrorLine (e: Pick<LogEntry, 'level' | 'text'>): boolean {
  */
 const OCR_TAGS = ['[ocr', '[reveal-scan]', '[runeshape]', '[capture]', '[scan-mask]', '[desecration]', '[stash]']
 const TRADE_TAGS = ['[app] 解析', '[trade', '[ninja]', '[http]', '[poe1]', '[poe2]']
-const HOTKEY_TAGS = ['[shortcuts]', '[uiohook']
+// 2026-11-10:speedrun 計時器(熱鍵 / Client.txt 自動分段)歸在熱鍵篩選
+const HOTKEY_TAGS = ['[shortcuts]', '[uiohook', '[speedrun]', '[timer]']
 
 const hasAny = (text: string, tags: readonly string[]) => tags.some(t => text.includes(t))
 

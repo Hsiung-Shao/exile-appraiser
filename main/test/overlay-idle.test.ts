@@ -7,7 +7,7 @@ import {
   OVERLAY_IDLE_HIDE_DELAY_MS, OverlayIdleHider, describeOverlayContent, overlayContentWanted, overlayWanted, sanitizeOverlayContent
 } from '../src/windowing/overlay-idle'
 
-const NONE: OverlayContentState = { panel: false, settings: false, picker: false, reveal: false, rune: false, quick: false, menu: false, stash: false }
+const NONE: OverlayContentState = { panel: false, settings: false, picker: false, reveal: false, rune: false, quick: false, menu: false, stash: false, timer: false }
 const withC = (k: keyof OverlayContentState): OverlayContentState => ({ ...NONE, [k]: true })
 const read = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8')
 
@@ -59,6 +59,9 @@ describe('純函式', () => {
     // PoE1 倉庫價格疊層:有徽章 = 要顯示(沒接進 CONTENT_KEYS → 遊戲前景時 overlay 被藏起來)
     expect(sanitizeOverlayContent({ stash: true })).toEqual({ ...NONE, stash: true })
     expect(overlayContentWanted({ ...NONE, stash: true })).toBe(true)
+    // 2026-11-09:計時器顯示中也不能閒置隱藏
+    expect(sanitizeOverlayContent({ timer: true })).toEqual({ ...NONE, timer: true })
+    expect(overlayContentWanted({ ...NONE, timer: true })).toBe(true)
   })
 })
 

@@ -25,6 +25,8 @@ import { defaultOcrBadgeStyle, normOcrBadgeStyle, type OcrBadgeStyle } from './o
 import { normSettingsFontSize, normSettingsWindow, type SettingsWindowRect } from './settings/settings-window-geom'
 import { RELATED_SCALE_DEFAULT, normRelatedItemsScale } from './related-items-scale'
 import { normFloatMenuPos, normOverlayPos, type FloatMenuPos, type OverlayPos } from './overlay/float-menu-geom'
+import { TIMER_DISPLAYS, type TimerDisplay } from './overlay/timer-display'
+import { normRoute, presetRoute, type Route } from '../../../core/src/speedrun/routes'
 import { defaultListingLayout, normListingLayout } from './price-panel/listing-layout'
 import { DEFAULT_SHOW_MECHANISM, normShowMechanism } from './price-panel/mechanism-visibility'
 import { defaultOnlineFilterMemory, normOnlineFilterMemory } from './price-panel/online-filter-memory'
@@ -169,6 +171,25 @@ export interface Config {
    * null = 倉庫面板底部預設(stash-view.ts `stashValueCardPos`);顯示時夾回畫面內、不回寫。只在 renderer 用,不進 host-config。
    */
   stashValueCard: OverlayPos | null
+  /** 2026-11-09(移植 APT):游標下物品開 poedb / poe2db 頁的熱鍵(預設空 = 不註冊;兩種視窗模式都有) */
+  hotkeyPoedb: string
+  /** 2026-11-09(移植 APT 碼表):計時器開始 / 暫停、歸零熱鍵(預設空;只在 overlay 且 `timerDisplay` 不是 off) */
+  hotkeyTimerToggle: string
+  hotkeyTimerReset: string
+  /** 計時器顯示時機:active = 跑著或有時間才顯示(預設)、always = 一直顯示、off = 關閉(熱鍵也不註冊) */
+  timerDisplay: TimerDisplay
+  /** 計時器位置(overlay 內左上角比例 0–1;懸浮選單開著時拖曳、放開才寫)。null = 畫面上方中間 */
+  timerPos: OverlayPos | null
+  /** 2026-11-10 speedrun 計時器:暫停 / 撤銷分段 / 跳過分段熱鍵(預設空) */
+  hotkeyTimerPause: string
+  hotkeyTimerUndo: string
+  hotkeyTimerSkip: string
+  /** 兩代各一條路線(分段 / PB / 金段 / 嘗試次數 / 自動開始與分段;core/src/speedrun/routes.ts) */
+  speedrun: { poe1: Route, poe2: Route }
+  /** Client.txt 手動路徑(空 = 自動找:執行中的遊戲目錄 → 預設安裝位置) */
+  clientLogPath: string
+  /** 計時器顯示的分段列數(1–20) */
+  speedrunRows: number
   // ---- 相容上游元件的推導屬性 ----
   readonly useIntlSite: boolean
   /** 上游元件讀的字級;= `fsBase`(不進檔)。 */
@@ -375,7 +396,18 @@ function createConfig (): Config {
     floatMenu: null as FloatMenuPos | null,
     cheatSheet: '',
     cheatSheetZoom: null as SettingsWindowRect | null,
-    stashValueCard: null as OverlayPos | null
+    stashValueCard: null as OverlayPos | null,
+    hotkeyPoedb: '',
+    hotkeyTimerToggle: '',
+    hotkeyTimerReset: '',
+    timerDisplay: 'active' as TimerDisplay,
+    timerPos: null as OverlayPos | null,
+    hotkeyTimerPause: '',
+    hotkeyTimerUndo: '',
+    hotkeyTimerSkip: '',
+    speedrun: speedrunPresets(systemUiLanguage() === 'en' ? 'en' : 'cmn-Hant'),
+    clientLogPath: '',
+    speedrunRows: 5
   }
   return {
     ...base,
@@ -454,8 +486,24 @@ function serialize (): string {
     floatMenu: config.floatMenu,
     cheatSheet: config.cheatSheet,
     cheatSheetZoom: config.cheatSheetZoom,
-    stashValueCard: config.stashValueCard
+    stashValueCard: config.stashValueCard,
+    hotkeyPoedb: config.hotkeyPoedb,
+    hotkeyTimerToggle: config.hotkeyTimerToggle,
+    hotkeyTimerReset: config.hotkeyTimerReset,
+    timerDisplay: config.timerDisplay,
+    timerPos: config.timerPos,
+    hotkeyTimerPause: config.hotkeyTimerPause,
+    hotkeyTimerUndo: config.hotkeyTimerUndo,
+    hotkeyTimerSkip: config.hotkeyTimerSkip,
+    speedrun: config.speedrun,
+    clientLogPath: config.clientLogPath,
+    speedrunRows: config.speedrunRows
   }, null, 2)
+}
+
+/** 兩代的內建路線(章節名依介面語言) */
+function speedrunPresets (lang: 'cmn-Hant' | 'en'): { poe1: Route, poe2: Route } {
+  return { poe1: presetRoute('poe1', lang), poe2: presetRoute('poe2', lang) }
 }
 
 function applyLoaded (raw: string) {
@@ -582,6 +630,28 @@ function applyLoaded (raw: string) {
   config.cheatSheetZoom = normSettingsWindow(loaded.cheatSheetZoom)
   // 2026-10-15 H2:倉庫價值卡位置(舊設定檔沒有 / 壞值 → null = 面板底部預設)
   config.stashValueCard = normOverlayPos(loaded.stashValueCard)
+  // 2026-11-09:poedb / 計時器(舊設定檔沒有 / 壞值 → 空熱鍵、active、null)
+  config.hotkeyPoedb = typeof loaded.hotkeyPoedb === 'string' ? loaded.hotkeyPoedb : fresh.hotkeyPoedb
+  config.hotkeyTimerToggle = typeof loaded.hotkeyTimerToggle === 'string' ? loaded.hotkeyTimerToggle : fresh.hotkeyTimerToggle
+  config.hotkeyTimerReset = typeof loaded.hotkeyTimerReset === 'string' ? loaded.hotkeyTimerReset : fresh.hotkeyTimerReset
+  config.timerDisplay = TIMER_DISPLAYS.includes(loaded.timerDisplay as TimerDisplay) ? loaded.timerDisplay as TimerDisplay : fresh.timerDisplay
+  config.timerPos = normOverlayPos(loaded.timerPos)
+  // 2026-11-10 speedrun(舊設定檔沒有 → 內建路線;壞值見 normRoute)
+  config.hotkeyTimerPause = typeof loaded.hotkeyTimerPause === 'string' ? loaded.hotkeyTimerPause : fresh.hotkeyTimerPause
+  config.hotkeyTimerUndo = typeof loaded.hotkeyTimerUndo === 'string' ? loaded.hotkeyTimerUndo : fresh.hotkeyTimerUndo
+  config.hotkeyTimerSkip = typeof loaded.hotkeyTimerSkip === 'string' ? loaded.hotkeyTimerSkip : fresh.hotkeyTimerSkip
+  const sr = (loaded.speedrun && typeof loaded.speedrun === 'object' ? loaded.speedrun : {}) as Record<string, unknown>
+  const routeLang = config.uiLanguage === 'en' ? 'en' : 'cmn-Hant'
+  // 內容相同就沿用原本的路線物件:計時器綁路線物件,換掉會重設進行中的計時(審查 2026-11-10:預覽端存任何設定都會觸發重新套用)
+  const keepRoute = (old: Route | undefined, next: Route): Route => old && JSON.stringify(old) === JSON.stringify(next) ? old : next
+  config.speedrun = {
+    poe1: keepRoute(config.speedrun?.poe1, normRoute(sr.poe1, 'poe1', routeLang)),
+    poe2: keepRoute(config.speedrun?.poe2, normRoute(sr.poe2, 'poe2', routeLang))
+  }
+  config.clientLogPath = typeof loaded.clientLogPath === 'string' ? loaded.clientLogPath : ''
+  config.speedrunRows = typeof loaded.speedrunRows === 'number' && Number.isFinite(loaded.speedrunRows)
+    ? Math.min(20, Math.max(1, Math.round(loaded.speedrunRows)))
+    : fresh.speedrunRows
 }
 
 /** 測試用:套用一份設定檔內容後回傳序列化結果(`renderer/test/runeshape-config.test.ts`) */
@@ -658,6 +728,15 @@ export function hostConfigOf (c: Config, regexHotkeys: readonly RegexBookmarkHot
     stashSearch: c.stashSearch.map(s => ({ ...s })),
     stashScroll: c.stashScroll,
     hotkeyRegexQuick: c.hotkeyRegexQuick,
+    hotkeyPoedb: c.hotkeyPoedb,
+    hotkeyTimerToggle: c.hotkeyTimerToggle,
+    hotkeyTimerReset: c.hotkeyTimerReset,
+    timerDisplay: c.timerDisplay,
+    hotkeyTimerPause: c.hotkeyTimerPause,
+    hotkeyTimerUndo: c.hotkeyTimerUndo,
+    hotkeyTimerSkip: c.hotkeyTimerSkip,
+    speedrunAutoLog: c.speedrun[c.game].autoStart || c.speedrun[c.game].autoSplit,
+    clientLogPath: c.clientLogPath,
     // 第 33 步:書籤個別熱鍵存在 regex_state.json(regex/store.ts 讀檔後寫入這個 ref);main 只註冊目前遊戲的
     regexBookmarkHotkeys: regexHotkeys.map(b => ({ ...b }))
   }

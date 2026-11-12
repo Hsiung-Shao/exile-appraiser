@@ -11,7 +11,7 @@ import fsSync from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { format } from 'node:util'
-import type { ConfigChangedEvent, GameId, HostConfigForMain, HostFetchInit, HotkeyRegistration, ItemTextEvent, PerfState, RegexPasteResult, RuneshapeUiState, SettingsTabId, TrackAreaOpts, WindowMode } from '@ipc/types'
+import type { ClientLogStatus, ConfigChangedEvent, GameId, HostConfigForMain, HostFetchInit, HotkeyRegistration, ItemTextEvent, PerfState, RegexPasteResult, RuneshapeUiState, SettingsTabId, TrackAreaOpts, WindowMode } from '@ipc/types'
 import { abortHostFetch, abortKeyOf, hostFetch, installCookiePatch } from './http'
 import { Shortcuts, normalizeHotkey } from './Shortcuts'
 import { nextScanPaused, stashHotkeyAction } from './shortcut-actions'
@@ -45,6 +45,8 @@ import {
 } from './update-reminder'
 import { DEFAULT_SCAN_INTERVAL_MS, RuneshapeScan } from './ocr/runeshape-scan'
 import { StashScan } from './ocr/stash-scan'
+import { DEFAULT_CLIENT_LOGS, GameLogWatcher, resolveClientLogPath } from './game-log'
+import { execFile } from 'node:child_process'
 import { isStashCaptureFile, saveStashDump, type StashDumpData } from './ocr/stash-dump'
 import { StashCursor } from './stash-cursor'
 import { loadStashDigitTemplates, loadStashLayouts } from './stash-layout-data'
@@ -1006,6 +1008,13 @@ if (!skipStartup) app.whenReady().then(() => {
     beforeItemCopy: () => { overlayIdle?.wake('熱鍵查價') },
     onItem: (e: ItemTextEvent) => {
       send('item-text', e)
+      // 2026-11-09:poedb 熱鍵只開網頁,不叫出查價視窗。
+      // 使用者要求瀏覽器到前景:Windows 只讓「前景程式」開的視窗搶到前景 → 先讓 overlay 取得焦點(熱鍵剛按下,允許),
+      // 之後 renderer 送 open-external 時由我們這個前景程式開瀏覽器。視窗模式沒有 overlay,維持原狀。
+      if (e.target) {
+        overlay?.assertOverlayActive()
+        return
+      }
       if (windowMode === 'window') showNear(e.position)
     },
     // 2026-10-01:原本「按一次辨識一次」→ 暫停 / 繼續褻瀆自動辨識
@@ -1049,7 +1058,9 @@ if (!skipStartup) app.whenReady().then(() => {
       send('regex-quick-open')
     },
     // 第 33 步:書籤個別熱鍵 → renderer 算出搜尋字串後呼叫 `regex-paste`(遊戲本來就在前景,不搶焦點、不顯示 overlay)
-    onRegexBookmark: (e) => { send('regex-bookmark-run', e) }
+    onRegexBookmark: (e) => { send('regex-bookmark-run', e) },
+    // 2026-11-09:計時器熱鍵(遊戲本來就在前景,不搶焦點;overlay 閒置隱藏由 renderer 圖層回報喚醒)
+    onTimer: (action) => { send('timer-action', action) }
   })
   // uiohook 掛鉤不在啟動時開:只在 WidgetAreaTracker 追蹤查價面板期間開(uiohook-gate.ts;送鍵不需要掛鉤)。
   // 例外(第 15 步):倉庫頁籤捲動開著時,遊戲在前景期間也持有一份(要收 wheel 事件);關著時維持上述行為。
@@ -1401,10 +1412,80 @@ if (!skipStartup) app.whenReady().then(() => {
     })
   }
 
+  // ---- 2026-11-10 speedrun 計時器:監看 Client.txt(只讀;overlay + 計時器沒關 + 目前遊戲的路線開了自動開始 / 分段) ----
+  const gameLog = new GameLogWatcher({
+    open: async (p) => {
+      const h = await fs.open(p, 'r')
+      return {
+        size: async () => (await h.stat()).size,
+        read: async (buf, position) => (await h.read(buf, 0, buf.length, position)).bytesRead,
+        close: async () => { await h.close() }
+      }
+    },
+    watch: (p, intervalMs, onChange) => {
+      const listener = () => { onChange() }
+      fsSync.watchFile(p, { interval: intervalMs }, listener)
+      return () => { fsSync.unwatchFile(p, listener) }
+    },
+    onArea: (e) => {
+      console.log(`[speedrun] 進入區域 ${e.area}(等級 ${e.level})`)
+      send('game-area', e)
+    },
+    log: (m) => { console.log(m) }
+  })
+  let clientLogStatus: ClientLogStatus = { path: null, reason: 'off' }
+  /**
+   * 執行中遊戲程式的路徑(一次性 PowerShell,只讀);遊戲附著時重找。
+   * 先找視窗標題 = overlay 綁定標題的程式(不管裝在哪個資料夾;標題經環境變數傳,不拼進指令),
+   * 找不到才退回依程式名 + 資料夾名分代(審查 2026-11-10)
+   */
+  let gameExes: string[] | null = null
+  const runPs = (command: string, env: Record<string, string> = {}): Promise<string[]> => new Promise((resolve) => {
+    // 輸出改 UTF-8(同 GameDetector):遊戲裝在中文路徑時,PowerShell 5.1 預設以系統字碼頁輸出,Node 讀回會是亂碼(審查 2026-11-10 第 4 輪)
+    execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', '[Console]::OutputEncoding = [Text.Encoding]::UTF8; ' + command],
+      { timeout: 5000, windowsHide: true, env: { ...process.env, ...env } }, (err, stdout) => {
+        resolve(err ? [] : String(stdout).split(/\r?\n/).map(s => s.trim()).filter(Boolean))
+      })
+  })
+  const findGameExes = async (cfg: HostConfigForMain): Promise<string[]> => {
+    const byTitle = await runPs("Get-Process | Where-Object { $_.MainWindowTitle -eq $env:PPZ_GAME_TITLE } | ForEach-Object { $_.Path }",
+      { PPZ_GAME_TITLE: windowTitleFor(cfg, cfg.game) })
+    if (byTitle.length) return byTitle
+    const all = await runPs("Get-Process -Name 'PathOfExile*' -ErrorAction SilentlyContinue | ForEach-Object { $_.Path }")
+    return all.filter(p => /Path of Exile 2/i.test(p) === (cfg.game === 'poe2'))
+  }
+  let gameLogQueue: Promise<void> = Promise.resolve()
+  const syncGameLog = (refreshExes = false): void => {
+    gameLogQueue = gameLogQueue.then(async () => {
+      const cfg = hostCfg
+      const want = windowMode === 'overlay' && cfg != null && cfg.timerDisplay !== 'off' && cfg.speedrunAutoLog === true
+      if (!want || !cfg) {
+        clientLogStatus = { path: null, reason: 'off' }
+        await gameLog.setTarget(null)
+        return
+      }
+      if (!gameAttached) {
+        clientLogStatus = { path: null, reason: 'no-game' }
+        await gameLog.setTarget(null)
+        return
+      }
+      if (refreshExes || gameExes == null) gameExes = await findGameExes(cfg)
+      const target = resolveClientLogPath({ manual: cfg.clientLogPath ?? '', processExes: gameExes, exists: p => fsSync.existsSync(p), defaults: DEFAULT_CLIENT_LOGS[cfg.game] })
+      if (!target && clientLogStatus.reason !== 'not-found') console.log('[speedrun] 找不到 Client.txt(遊戲沒開或安裝在其他位置;可在設定手動選擇)')
+      await gameLog.setTarget(target, undefined, refreshExes)
+      clientLogStatus = gameLog.watching ? { path: gameLog.path, reason: 'ok' } : { path: null, reason: 'not-found' }
+    }).catch((e: unknown) => { console.warn('[speedrun] 監看 Client.txt 失敗', e) })
+  }
+  // gameAttached 由上面的 attach / detach 處理先更新(先註冊先執行);沒附著 = 遊戲沒開 → 不監看
+  poeWindow?.onAttach(() => { syncGameLog(true) })
+  poeWindow?.onDetach(() => { syncGameLog() })
+  app.on('will-quit', () => { void gameLog.dispose() })
+
   let lastScanKey: string | null = null
   const onHostConfig = (ctx: HandlerCtx, cfg: HostConfigForMain): HotkeyRegistration => {
     const result = shortcuts.updateActions(cfg)
     hostCfg = cfg
+    syncGameLog()
     // 第 15 步:倉庫頁籤捲動(舊 renderer / 缺欄位 → 開;只在 overlay 模式有物件)
     stashScroll?.setEnabled(cfg.stashScroll !== false)
     // 第 22 步:客戶端語言改了 → OCR 語言包跟著換(WinOcr 重啟),兩個掃描丟掉舊語言的定位快取 / 基準,立刻重看
@@ -1790,6 +1871,17 @@ if (!skipStartup) app.whenReady().then(() => {
     // 自訂背景圖:檔案對話框選圖(只列 png / jpg / webp)→ 複製到 userData/backgrounds → 回傳檔名(取消 / 失敗回 null)。
     // 只複製選到的那一個檔;成功後刪掉資料夾裡其他舊的背景圖(只刪合法檔名的檔)。預覽端不開放(對話框在桌面上)
     'bg-pick': { kind: 'invoke', preview: false, fn: () => pickImageInto(BG_DIR(), 'bg', 'Background image') },
+    // 2026-11-10 speedrun:Client.txt 監看狀態 / 手動選檔(只回路徑,設定由 renderer 寫;預覽端不開放)
+    'client-log-status': { kind: 'invoke', preview: false, fn: async () => { await gameLogQueue; return clientLogStatus } },
+    'client-log-pick': {
+      kind: 'invoke',
+      preview: false,
+      fn: async () => {
+        const opts = { title: 'Client.txt', properties: ['openFile' as const], filters: [{ name: 'Client.txt', extensions: ['txt'] }] }
+        const res = win && !win.isDestroyed() ? await dialog.showOpenDialog(win, opts) : await dialog.showOpenDialog(opts)
+        return res.canceled || !res.filePaths[0] ? null : res.filePaths[0]
+      }
+    },
     // 懸浮選單的速查表圖片(2026-10-08):流程與背景圖相同,存 userData/cheatsheets(另開資料夾,bg-pick 會清自己的資料夾)
     'sheet-pick': { kind: 'invoke', preview: false, fn: () => pickImageInto(SHEET_DIR(), 'sheet', 'Cheat sheet image') },
     // 第 28 步:設定 › 記錄。log-get 回快照({ entries, lastSeq },帶 sinceSeq 只回較新的;預覽端可用 = 輪詢);

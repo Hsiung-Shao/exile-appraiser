@@ -11,7 +11,7 @@ import { FLOAT_MENU_TOGGLES, type FloatMenuToggleKey } from './float-menu-geom'
 export type MenuKind = 'bookmark' | 'scan' | 'tool'
 /** 篩選膠囊:全部 / 書籤 / 辨識 / 工具 */
 export type MenuChip = 'all' | MenuKind
-export type MenuTool = 'settings' | 'sheet' | 'dust'
+export type MenuTool = 'settings' | 'sheet' | 'dust' | 'timer-toggle' | 'timer-pause' | 'timer-reset'
 
 export interface MenuItem {
   kind: MenuKind
@@ -35,13 +35,17 @@ export const MENU_CHIPS: readonly MenuChip[] = ['all', 'bookmark', 'scan', 'tool
 export const MENU_TOOLS: ReadonlyArray<{ tool: MenuTool, label: string }> = [
   { tool: 'settings', label: 'ppz.menu.settings' },
   { tool: 'sheet', label: 'ppz.menu.sheet' },
-  { tool: 'dust', label: 'ppz.menu.dust' }
+  { tool: 'dust', label: 'ppz.menu.dust' },
+  // 2026-11-09:計時器(畫在工具第二排;設定 `timerDisplay` 為 off 時不列)
+  { tool: 'timer-toggle', label: 'ppz.timer.menu_toggle' },
+  { tool: 'timer-pause', label: 'ppz.timer.menu_pause' },
+  { tool: 'timer-reset', label: 'ppz.timer.menu_reset' }
 ]
 
 /**
  * 三類攤平。`game` = 目前遊戲(辨識開關依它);`bookmarks` = `bookmarkGroupsOf(書籤清單遊戲, true)`。
  */
-export function menuItemsOf (input: { game: RegexGame, bookmarks: GroupedBookmarks, t: (key: string) => string }): MenuItem[] {
+export function menuItemsOf (input: { game: RegexGame, bookmarks: GroupedBookmarks, t: (key: string) => string, timer?: boolean }): MenuItem[] {
   const out: MenuItem[] = []
   for (const s of FLOAT_MENU_TOGGLES[input.game]) {
     out.push({ kind: 'scan', id: `scan:${s.key}`, label: input.t(s.label), toggle: s.key })
@@ -54,7 +58,7 @@ export function menuItemsOf (input: { game: RegexGame, bookmarks: GroupedBookmar
       out.push(item)
     }
   }
-  for (const x of MENU_TOOLS) out.push({ kind: 'tool', id: `tool:${x.tool}`, label: input.t(x.label), tool: x.tool })
+  for (const x of MENU_TOOLS) if (input.timer !== false || !x.tool.startsWith('timer-')) out.push({ kind: 'tool', id: `tool:${x.tool}`, label: input.t(x.label), tool: x.tool })
   return out
 }
 
