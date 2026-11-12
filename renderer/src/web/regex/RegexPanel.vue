@@ -93,7 +93,7 @@
             class="rx-parts" data-regex="parts">
             {{ partsText }}
           </span>
-          <span v-if="lenLevel === 'bad'" class="rx-bad" data-regex="over-limit">{{ t('ppz.regex.over_limit') }}</span>
+          <span v-if="lenLevel === 'bad'" class="rx-bad" data-regex="over-limit">{{ t(manual === null ? 'ppz.regex.over_limit' : 'ppz.regex.bm_custom_over') }}</span>
           <span class="grow" />
           <button class="btn primary sm rx-copy" data-regex="copy" :disabled="!shown" @click="copy">
             {{ copyState === 'ok' ? t('ppz.regex.copied') : copyState === 'fail' ? t('ppz.regex.copy_failed') : t('ppz.regex.copy') }}
@@ -121,19 +121,20 @@
           <button class="btn ghost sm" @click="dismissNotice">{{ t('ppz.regex.dismiss') }}</button>
         </div>
         <p v-if="saveError" class="rx-bad">{{ t('ppz.regex.save_failed', { error: saveError }) }}</p>
+        <!-- 以下幾行描述的是勾選產生的字串;手動輸入中(manual 有值)不顯示,免得和框裡的字串對不上 -->
         <!-- R10:稀有度 / 汙染條件互相矛盾 → 不出字串;合併只併目前頁的物品組 -->
-        <p v-if="!out.query && conditionClash" class="rx-bad rx-conflict-line" data-regex="condition-clash">{{ t('ppz.regex.condition_clash_out') }}</p>
-        <p v-if="scope === 'combined' && mergeSkipped > 0" class="dim rx-conflict-line" data-regex="merge-skipped">
+        <p v-if="manual === null && !out.query && conditionClash" class="rx-bad rx-conflict-line" data-regex="condition-clash">{{ t('ppz.regex.condition_clash_out') }}</p>
+        <p v-if="manual === null && scope === 'combined' && mergeSkipped > 0" class="dim rx-conflict-line" data-regex="merge-skipped">
           {{ t('ppz.regex.merge_skipped', { n: mergeSkipped }) }}
         </p>
-        <p v-if="scope === 'combined' && out.conflicts.length" class="rx-warn rx-conflict-line" data-regex="conflict-count">
+        <p v-if="manual === null && scope === 'combined' && out.conflicts.length" class="rx-warn rx-conflict-line" data-regex="conflict-count">
           {{ t('ppz.regex.conflicts', { n: out.conflicts.length }) }}
           <a v-if="panelView !== 'combined'" href="#" @click.prevent="setPanelView('combined')">{{ t('ppz.regex.see_combined') }}</a>
         </p>
-        <p v-if="scope === 'combined' && out.custom.length" class="dim rx-conflict-line">{{ t('ppz.regex.custom_unverified') }}</p>
+        <p v-if="manual === null && scope === 'combined' && out.custom.length" class="dim rx-conflict-line">{{ t('ppz.regex.custom_unverified') }}</p>
         <!-- 2026-10-09:物品類型條件(regex/src/class-term.ts;目前只有碑牌頁) -->
-        <p v-if="out.classTerm" class="dim rx-conflict-line" data-regex="class-term">{{ t('ppz.regex.class_term', { term: out.classTerm }) }}</p>
-        <template v-if="scope === 'page' && result">
+        <p v-if="manual === null && out.classTerm" class="dim rx-conflict-line" data-regex="class-term">{{ t('ppz.regex.class_term', { term: out.classTerm }) }}</p>
+        <template v-if="manual === null && scope === 'page' && result">
           <details v-if="result.unresolved.length" class="rx-details" data-regex="unresolved">
             <summary class="rx-warn">{{ t('ppz.regex.unresolved', { n: result.unresolved.length }) }}</summary>
             <ul>
