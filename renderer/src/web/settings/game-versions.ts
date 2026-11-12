@@ -3,6 +3,6 @@
  * 遊戲改版、資料同步(`npm run sync-data`、PoE2 交易站快照)或發版時確認仍是最新版本,不是就更新這裡。
  */
 export const SUPPORTED_GAME_VERSIONS = {
-  poe1: '3.29.3',
+  poe1: '3.30.0',
   poe2: '0.5.5e'
 } as const
