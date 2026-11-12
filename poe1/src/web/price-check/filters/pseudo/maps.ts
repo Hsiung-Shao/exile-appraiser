@@ -6,8 +6,8 @@ import { noSourcePseudoToFilter, propToFilter } from './item-property'
 import { findAndResolveByRef, statToNotFilter } from './utils'
 
 const PSEUDO = {
-  MORE_SCARABS: stat('More Scarabs: #%'),
   MORE_MAPS: stat('More Maps: #%'),
+  // exile-appraiser: MORE_SCARABS 2026-11-08 移除(3.30 拿掉聖甲蟲)
   MORE_DIVINATION_CARDS: stat('More Divination Cards: #%'),
   MORE_CURRENCY: stat('More Currency: #%'),
   EXPLICIT_MODIFIERS: stat('# Modifiers')
@@ -59,7 +59,8 @@ export function mapProps (bulk: boolean, ctx: FiltersCreationContext): void {
   if (!bulk) {
     // 本 fork:更多地圖也算「更多掉落」。這張圖賣的是掉落量,稀有度拿來當條件只會把
     // 結果篩掉(使用者截圖:數量與群大小有勾、稀有度沒勾)。上游把更多地圖排除在外。
-    const hasValuableDrops = Boolean(item.mapMoreMaps || item.mapMoreScarabs || item.mapMoreCurrency || item.mapMoreDivCards)
+    // exile-appraiser: 2026-11-08 更多聖甲蟲不算更多掉落、也不送 pseudo(3.30 移除聖甲蟲;parser 仍解析 mapMoreScarabs)
+    const hasValuableDrops = Boolean(item.mapMoreMaps || item.mapMoreCurrency || item.mapMoreDivCards)
 
     areaProps({
       disabled: {
@@ -74,13 +75,6 @@ export function mapProps (bulk: boolean, ctx: FiltersCreationContext): void {
         pseudo: pseudoStatByRef(PSEUDO.MORE_MAPS)!,
         roll: { min: 0, max: Number.MAX_SAFE_INTEGER, value: item.mapMoreMaps },
         // 本 fork:更多地圖與其他三種 more-drops 同類,預設一律勾選(回歸網 map-price-mods)
-        disabled: false
-      }, ctx))
-    }
-    if (item.mapMoreScarabs) {
-      ctx.filters.push(noSourcePseudoToFilter({
-        pseudo: pseudoStatByRef(PSEUDO.MORE_SCARABS)!,
-        roll: { min: 0, max: Number.MAX_SAFE_INTEGER, value: item.mapMoreScarabs },
         disabled: false
       }, ctx))
     }

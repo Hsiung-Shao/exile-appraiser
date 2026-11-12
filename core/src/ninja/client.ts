@@ -44,7 +44,8 @@ export interface NinjaCategories {
  */
 export const NINJA_CATEGORIES: Record<NinjaGame, NinjaCategories> = {
   poe1: {
-    exchange: ['Currency', 'Fragment', 'Scarab', 'Oil', 'Essence', 'Fossil', 'Resonator', 'DeliriumOrb',
+    // Scarab 2026-11-08 移除(3.30 拿掉聖甲蟲)
+    exchange: ['Currency', 'Fragment', 'Oil', 'Essence', 'Fossil', 'Resonator', 'DeliriumOrb',
       'Tattoo', 'Omen', 'Runegraft', 'DivinationCard'],
     item: ['SkillGem', 'Map', 'UniqueMap', 'UniqueWeapon', 'UniqueArmour', 'UniqueAccessory', 'UniqueJewel', 'UniqueFlask']
   },
