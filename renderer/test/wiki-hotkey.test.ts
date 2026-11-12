@@ -103,6 +103,26 @@ describe('wiki 事件開網頁(W9)', () => {
     expect(app).toContain('poe2wikiUrl')
   })
 
+  // 審查 2026-11-13:拿掉 wiki 判斷時事件會掉進查價流程(開面板、打交易站)
+  it('W9 handleItemText:target 為 wiki 時在開查價面板前 return', () => {
+    const app = read('renderer/src/web/App.vue')
+    const start = app.indexOf('function handleItemText')
+    const body = app.slice(start, app.indexOf('\n    function hidePanel', start))
+    const m = /target === ['"]wiki['"]/.exec(body)
+    expect(m, 'handleItemText 要判斷 target === wiki').not.toBeNull()
+    const after = body.slice(m!.index)
+    const ret = after.search(/\breturn\b/)
+    expect(ret).toBeGreaterThan(after.indexOf('openItemOnPoedb('))
+    expect(after.indexOf('panelShown.value = true'), '開面板的程式在 return 之後').toBeGreaterThan(ret)
+  })
+
+  // 審查 2026-11-13:三元式寫反時兩個熱鍵會開錯網站
+  it('W9 目標是 wiki 才用 wiki 網址函式,否則用 poedb 的(兩代)', () => {
+    const app = read('renderer/src/web/App.vue')
+    expect(app).toContain("site === 'wiki' ? wikiUrl(p.value) : poedbUrl(p.value, lang)")
+    expect(app).toContain("site === 'wiki' ? Poe2.poe2wikiUrl(p.value) : Poe2.poe2dbUrl(p.value, lang)")
+  })
+
   it('W9 ppz.hk.wiki 兩語都是非空字串', () => {
     for (const file of ['cmn-Hant', 'en']) {
       const v = JSON.parse(read(`renderer/src/i18n/${file}.json`)).ppz?.hk?.wiki
