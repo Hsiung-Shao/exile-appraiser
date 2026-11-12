@@ -80,27 +80,30 @@
             <button :class="{ on: scope === 'page' }" data-value="page" @click="setOutScope('page')">{{ t('ppz.regex.scope_page') }}</button>
           </div>
         </div>
-        <textarea class="input rx-query selectable" readonly rows="3" spellcheck="false" data-regex="query"
-          :value="out.query" @focus="($event.target as HTMLTextAreaElement).select()" />
+        <!-- 2026-11-12:輸出框可直接改 / 自己寫(原樣使用、不經驗證);「還原」回到勾選產生的字串 -->
+        <textarea class="input rx-query selectable" rows="3" spellcheck="false" data-regex="query"
+          :value="shown" :placeholder="t('ppz.regex.query_placeholder')"
+          @input="onQueryInput" @keydown.enter.prevent
+          @focus="manual === null && ($event.target as HTMLTextAreaElement).select()" />
         <div class="rx-out-row">
-          <span class="num rx-len" :class="lenLevel" data-regex="length" :data-level="lenLevel" :data-len="out.length">
-            {{ t('ppz.regex.length', { len: out.length, limit: out.limit }) }}
+          <span class="num rx-len" :class="lenLevel" data-regex="length" :data-level="lenLevel" :data-len="shownLen">
+            {{ t('ppz.regex.length', { len: shownLen, limit: shownLimit }) }}
           </span>
-          <span v-if="scope === 'combined' && out.perPage.length + (out.custom.length ? 1 : 0) + (out.excludes.length ? 1 : 0) > 1"
+          <span v-if="manual === null && scope === 'combined' && out.perPage.length + (out.custom.length ? 1 : 0) + (out.excludes.length ? 1 : 0) > 1"
             class="rx-parts" data-regex="parts">
             {{ partsText }}
           </span>
-          <span v-if="lenLevel === 'bad'" class="rx-bad" data-regex="over-limit">{{ t('ppz.regex.over_limit') }}</span>
+          <span v-if="lenLevel === 'bad'" class="rx-bad" data-regex="over-limit">{{ t(manual === null ? 'ppz.regex.over_limit' : 'ppz.regex.bm_custom_over') }}</span>
           <span class="grow" />
-          <button class="btn primary sm rx-copy" data-regex="copy" :disabled="!out.query" @click="copy">
+          <button class="btn primary sm rx-copy" data-regex="copy" :disabled="!shown" @click="copy">
             {{ copyState === 'ok' ? t('ppz.regex.copied') : copyState === 'fail' ? t('ppz.regex.copy_failed') : t('ppz.regex.copy') }}
           </button>
           <!-- 2026-10-01:把目前字串加到「倉庫與聊天 › 倉庫搜尋」(熱鍵在那一頁設;第 39 步前分頁叫「聊天指令」) -->
-          <button class="btn ghost sm" data-regex="add-stash" :disabled="!out.query || out.query.length > 250" :title="t('ppz.regex.add_stash_tip')" @click="addStash">
+          <button class="btn ghost sm" data-regex="add-stash" :disabled="!shown || shown.length > 250" :title="t('ppz.regex.add_stash_tip')" @click="addStash">
             {{ stashState === 'ok' ? t('ppz.regex.add_stash_done') : stashState === 'dup' ? t('ppz.regex.add_stash_dup') : t('ppz.regex.add_stash') }}
           </button>
           <!-- 2026-11-12:把目前字串存成自訂字串書籤(固定字串;對話框在 RegexBookmarks.vue) -->
-          <button class="btn ghost sm" data-regex="save-custom" :disabled="!out.query" :title="t('ppz.regex.bm_save_output_tip')" @click="saveCustom">
+          <button class="btn ghost sm" data-regex="save-custom" :disabled="!shown" :title="t('ppz.regex.bm_save_output_tip')" @click="saveCustom">
             {{ t('ppz.regex.bm_save_output') }}
           </button>
           <select class="select sm" data-regex="lang" :value="ui.lang" :title="t('ppz.regex.lang_tip')"
@@ -109,24 +112,29 @@
             <option value="en">{{ t('ppz.regex.out_en') }}</option>
           </select>
         </div>
+        <p v-if="manual !== null" class="dim rx-conflict-line" data-regex="manual-hint">
+          {{ t('ppz.regex.manual_hint') }}
+          <a href="#" data-regex="manual-reset" @click.prevent="resetManual">{{ t('ppz.regex.manual_reset') }}</a>
+        </p>
         <div v-if="notice" class="rx-notice" data-regex="notice">
           <span>{{ t(notice.key, notice.params ?? {}) }}</span>
           <button class="btn ghost sm" @click="dismissNotice">{{ t('ppz.regex.dismiss') }}</button>
         </div>
         <p v-if="saveError" class="rx-bad">{{ t('ppz.regex.save_failed', { error: saveError }) }}</p>
+        <!-- 以下幾行描述的是勾選產生的字串;手動輸入中(manual 有值)不顯示,免得和框裡的字串對不上 -->
         <!-- R10:稀有度 / 汙染條件互相矛盾 → 不出字串;合併只併目前頁的物品組 -->
-        <p v-if="!out.query && conditionClash" class="rx-bad rx-conflict-line" data-regex="condition-clash">{{ t('ppz.regex.condition_clash_out') }}</p>
-        <p v-if="scope === 'combined' && mergeSkipped > 0" class="dim rx-conflict-line" data-regex="merge-skipped">
+        <p v-if="manual === null && !out.query && conditionClash" class="rx-bad rx-conflict-line" data-regex="condition-clash">{{ t('ppz.regex.condition_clash_out') }}</p>
+        <p v-if="manual === null && scope === 'combined' && mergeSkipped > 0" class="dim rx-conflict-line" data-regex="merge-skipped">
           {{ t('ppz.regex.merge_skipped', { n: mergeSkipped }) }}
         </p>
-        <p v-if="scope === 'combined' && out.conflicts.length" class="rx-warn rx-conflict-line" data-regex="conflict-count">
+        <p v-if="manual === null && scope === 'combined' && out.conflicts.length" class="rx-warn rx-conflict-line" data-regex="conflict-count">
           {{ t('ppz.regex.conflicts', { n: out.conflicts.length }) }}
           <a v-if="panelView !== 'combined'" href="#" @click.prevent="setPanelView('combined')">{{ t('ppz.regex.see_combined') }}</a>
         </p>
-        <p v-if="scope === 'combined' && out.custom.length" class="dim rx-conflict-line">{{ t('ppz.regex.custom_unverified') }}</p>
+        <p v-if="manual === null && scope === 'combined' && out.custom.length" class="dim rx-conflict-line">{{ t('ppz.regex.custom_unverified') }}</p>
         <!-- 2026-10-09:物品類型條件(regex/src/class-term.ts;目前只有碑牌頁) -->
-        <p v-if="out.classTerm" class="dim rx-conflict-line" data-regex="class-term">{{ t('ppz.regex.class_term', { term: out.classTerm }) }}</p>
-        <template v-if="scope === 'page' && result">
+        <p v-if="manual === null && out.classTerm" class="dim rx-conflict-line" data-regex="class-term">{{ t('ppz.regex.class_term', { term: out.classTerm }) }}</p>
+        <template v-if="manual === null && scope === 'page' && result">
           <details v-if="result.unresolved.length" class="rx-details" data-regex="unresolved">
             <summary class="rx-warn">{{ t('ppz.regex.unresolved', { n: result.unresolved.length }) }}</summary>
             <ul>
@@ -242,7 +250,7 @@
 <script lang="ts">
 import { computed, defineComponent, onBeforeUnmount, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { isAlgoPage, isItemModPageId, lengthLevel, lineIn, type Mode, type RegexPage, type RegexTemplate } from '@exile-appraiser/regex'
+import { CUSTOM_BOOKMARK_LIMIT, charCount, isAlgoPage, isItemModPageId, lengthLevel, lineIn, type Mode, type RegexPage, type RegexTemplate } from '@exile-appraiser/regex'
 import { AppConfig, addStashSearchEntry } from '@/web/Config'
 import { useSettingsFs } from '@/web/settings/settings-fs'
 import RegexList from './RegexList.vue'
@@ -294,7 +302,12 @@ export default defineComponent({
     // 字串變了,「已複製」「已加入」就不再成立
     const stashState = shallowRef<'' | 'ok' | 'dup'>('')
     let stashTimer: ReturnType<typeof setTimeout> | undefined
-    watch(() => out.value?.query, () => { copyState.value = ''; stashState.value = '' })
+    // 2026-11-12:輸出框可直接輸入;null = 顯示勾選產生的字串,有值 = 使用者手動改過(到按「還原」為止)
+    const manual = shallowRef<string | null>(null)
+    const shown = computed(() => manual.value ?? out.value?.query ?? '')
+    const shownLen = computed(() => manual.value === null ? out.value?.length ?? 0 : charCount(manual.value))
+    const shownLimit = computed(() => manual.value === null ? out.value?.limit ?? CUSTOM_BOOKMARK_LIMIT : CUSTOM_BOOKMARK_LIMIT)
+    watch(shown, () => { copyState.value = ''; stashState.value = '' })
     onBeforeUnmount(() => {
       clearTimeout(copyTimer)
       clearTimeout(stashTimer)
@@ -350,10 +363,18 @@ export default defineComponent({
       },
       confirmIncoming () { incomingShare.confirm() },
       cancelIncoming () { incomingShare.cancel() },
-      lenLevel: computed(() => {
-        const r = out.value
-        return r ? lengthLevel(r.length, r.limit) : 'ok'
-      }),
+      manual,
+      shown,
+      shownLen,
+      shownLimit,
+      onQueryInput (e: Event) {
+        const el = e.target as HTMLTextAreaElement
+        const v = el.value.replace(/[\r\n]+/g, ' ') // 遊戲搜尋列是單行(貼上多行文字時)
+        if (v !== el.value) el.value = v
+        manual.value = v === (out.value?.query ?? '') ? null : v
+      },
+      resetManual () { manual.value = null },
+      lenLevel: computed(() => lengthLevel(shownLen.value, shownLimit.value)),
       /** 每頁貢獻:「地圖詞綴 38 · 地圖數值條件 55 · 自訂 9」 */
       partsText: computed(() => {
         const r = out.value
@@ -425,19 +446,19 @@ export default defineComponent({
       },
       stashState,
       saveCustom () {
-        if (out.value?.query) customBookmarkDraft.value = { game: store.selGame.value, text: out.value.query }
+        if (shown.value.trim()) customBookmarkDraft.value = { game: store.selGame.value, text: shown.value }
       },
       /** 加到倉庫搜尋一鍵輸入(聊天指令分頁;熱鍵空白,使用者自己設);同一字串已在清單就不重複加 */
       addStash () {
-        const r = addStashSearchEntry(config.stashSearch, out.value?.query ?? '')
+        const r = addStashSearchEntry(config.stashSearch, shown.value)
         if (r === 'invalid') return
-        if (r === 'added') config.stashSearch = [...config.stashSearch, { text: (out.value?.query ?? '').trim(), hotkey: '' }]
+        if (r === 'added') config.stashSearch = [...config.stashSearch, { text: shown.value.trim(), hotkey: '' }]
         stashState.value = r === 'added' ? 'ok' : 'dup'
         clearTimeout(stashTimer)
         stashTimer = setTimeout(() => { stashState.value = '' }, 1600)
       },
       async copy () {
-        const q = out.value?.query
+        const q = shown.value
         if (!q) return
         clearTimeout(copyTimer)
         try {

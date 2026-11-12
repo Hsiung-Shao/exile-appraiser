@@ -6,7 +6,8 @@
 - 自訂書籤那一列:「編輯」取代「載入」「更新」;改名 / 刪除 / 上下移 / 熱鍵欄照常
 - 設定視窗上方的書籤列出現這筆書籤
 - 存檔往返(純瀏覽器 = `localStorage` 的 `exile-appraiser.regex_state`,`page: "@custom"`、`keys: [字串]`)
-- 輸出區「存成自訂書籤」把目前輸出字串帶進同一個對話框(本旅程不斷言,手動看一次即可)
+- 輸出區「存成自訂書籤」把目前輸出字串帶進同一個對話框
+- 輸出框可直接輸入自訂字串(`[data-regex="query"]`,`form_input` 填值)→ 出現 `manual-hint` → 「存成自訂書籤」→ 填名稱 → 確定 → `manual-reset` 還原;三步的 DOM 讀回存成 `state-typed.json` / `state-saved.json` / `state-reset.json`,跑 `node .claude/skills/verify/check-output-box.mjs <證據目錄>`
 
 ## How to get to it (user POV)
 

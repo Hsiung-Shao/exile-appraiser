@@ -50,4 +50,26 @@ describe('自訂書籤接線', () => {
       }
     }
   })
+
+  it('輸出框可直接輸入,複製與存書籤用畫面上的字串', () => {
+    const panel = read('../src/web/regex/RegexPanel.vue')
+    const box = panel.match(/<textarea[^>]*data-regex="query"[^>]*\/>/s)?.[0] ?? ''
+    expect(box).toContain(':value="shown"')
+    expect(box).toContain('@input="onQueryInput"')
+    expect(box).not.toMatch(/\breadonly\b/)
+    expect(panel).toContain('data-regex="manual-reset"')
+    // 三個按鈕都不能再只讀產生的字串(否則手動輸入的內容存不到)
+    expect(panel).not.toMatch(/out\.value\?\.query\) customBookmarkDraft|writeClipboard\(out|addStashSearchEntry\(config\.stashSearch, out/)
+    expect(panel).toMatch(/customBookmarkDraft\.value = \{[^}]*text: shown\.value/)
+    expect(panel).toMatch(/async copy \(\) \{\s*const q = shown\.value/)
+    // 沒勾選時手動打的字也要能複製 / 加到倉庫搜尋 / 存書籤
+    for (const btn of ['copy', 'add-stash', 'save-custom']) expect(panel).toMatch(new RegExp(`data-regex="${btn}" :disabled="!shown\\b`))
+    // 手動輸入時不顯示描述「產生的字串」的提示(條件矛盾 / 物品類型條件)
+    expect(panel).toContain('v-if="manual === null && !out.query && conditionClash"')
+    expect(panel).toContain('v-if="manual === null && out.classTerm"')
+    for (const file of ['../src/i18n/cmn-Hant.json', '../src/i18n/en.json']) {
+      const regex = JSON.parse(read(file)).ppz.regex
+      for (const k of ['query_placeholder', 'manual_hint', 'manual_reset']) expect(regex[k]?.trim(), `${file} ${k}`).toBeTruthy()
+    }
+  })
 })
