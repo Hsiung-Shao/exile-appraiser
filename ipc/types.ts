@@ -29,8 +29,8 @@ export interface ItemTextEvent {
   position: { x: number, y: number }
   /** 鎖定查價(`hotkeyLocked`):overlay 取得焦點、面板可點擊,不隨滑鼠移開消失。 */
   focusOverlay: boolean
-  /** 2026-11-09:`hotkeyPoedb` 複製的物品 → renderer 開 poedb / poe2db 頁,不開查價面板(省略 = 查價) */
-  target?: 'poedb'
+  /** 2026-11-09:`hotkeyPoedb` / 2026-11-13 `hotkeyWiki` 複製的物品 → renderer 開 poedb / wiki 頁,不開查價面板(省略 = 查價) */
+  target?: 'poedb' | 'wiki'
 }
 
 /** APT `MAIN->OVERLAY::focus-change`。 */
@@ -149,6 +149,8 @@ export interface HostConfigForMain {
   regexBookmarkHotkeys?: RegexBookmarkHotkey[]
   /** 2026-11-09(移植 APT):游標下物品開 poedb / poe2db 頁的熱鍵(預設空 = 不註冊;兩種視窗模式都註冊) */
   hotkeyPoedb?: string
+  /** 2026-11-13(移植 APT / EE2 `openWiki`):游標下物品開 poewiki / poe2wiki 頁的熱鍵(註冊條件同 `hotkeyPoedb`) */
+  hotkeyWiki?: string
   /** 2026-11-09(移植 APT 碼表):計時器開始 / 暫停、歸零熱鍵(預設空;只在 overlay 且 `timerDisplay` 不是 off 時註冊,不送任何按鍵) */
   hotkeyTimerToggle?: string
   hotkeyTimerReset?: string

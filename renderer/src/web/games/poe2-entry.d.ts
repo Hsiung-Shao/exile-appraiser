@@ -120,6 +120,8 @@ export declare function poe2TradeSession (realm: Realm): { limits: { SEARCH: Set
 export declare function parseClipboard (clipboard: string): Result<Poe2ParsedItem, string>
 /** 2026-11-09:物品 → poe2db.tw 頁(EE2 `getPoe2dbPath`;poe2/src/web/item-check/poedb.ts) */
 export declare function poe2dbUrl (item: Poe2ParsedItem, language: 'en' | 'cmn-Hant'): string
+/** 2026-11-13:物品 → poe2wiki.net 頁(EE2 `openWiki`;只有英文) */
+export declare function poe2wikiUrl (item: Poe2ParsedItem): string
 export declare const CheckedItem: DefineComponent<{}, {}, any>
 /** 未鑑定傳奇:列出這個基底可能的傳奇(只有一個就自動選),選定後 emit `identify`(換好 `info` 的物品) */
 export declare const UnidentifiedResolver: DefineComponent<{}, {}, any>

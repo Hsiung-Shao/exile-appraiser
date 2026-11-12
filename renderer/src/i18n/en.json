@@ -1079,6 +1079,7 @@
       "scan_note": "Pause / resume hotkeys only work while that feature is on; select-area hotkeys open the area picker in game; leave empty to not register.",
       "window_only": "Other hotkeys are only available in overlay mode.",
       "poedb": "Open item on poedb",
+      "wiki": "Open item on the wiki",
       "timer_toggle": "Timer start / split",
       "timer_reset": "Timer reset",
       "timer_pause": "Timer pause / resume",

@@ -55,6 +55,7 @@ export interface HotkeyConfigLike {
   regexBookmarkHotkeys?: Array<{ index: number, name: string, game: string, hotkey: string }>
   /** 2026-11-09:物品開 poedb、計時器(計時器在 `timerDisplay` off 時 main 不註冊) */
   hotkeyPoedb?: string
+  hotkeyWiki?: string
   hotkeyTimerToggle?: string
   hotkeyTimerReset?: string
   hotkeyTimerPause?: string
@@ -72,6 +73,7 @@ export function hotkeySlots (c: HotkeyConfigLike): HotkeySlot[] {
     { id: 'quick', hotkey: mergeTwoHotkeys(normalizeHotkey(c.hotkeyHold), normalizeHotkey(c.hotkey)) },
     { id: 'locked', hotkey: c.hotkeyLocked },
     { id: 'poedb', hotkey: c.hotkeyPoedb ?? '' },
+    { id: 'wiki', hotkey: c.hotkeyWiki ?? '' },
     { id: 'overlay', hotkey: c.overlayKey }
   ]
   if (c.game === 'poe2') {

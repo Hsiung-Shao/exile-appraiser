@@ -1067,6 +1067,7 @@
       "scan_note": "暫停 / 繼續熱鍵在該功能開著時才生效;框選區域熱鍵在遊戲中直接打開框選層;留空 = 不註冊。",
       "window_only": "其他熱鍵只在 overlay 模式提供。",
       "poedb": "在 poedb 開啟物品",
+      "wiki": "在 wiki 開啟物品",
       "timer_toggle": "計時器 開始 / 分段",
       "timer_reset": "計時器 歸零",
       "timer_pause": "計時器 暫停 / 繼續",

@@ -173,6 +173,8 @@ export interface Config {
   stashValueCard: OverlayPos | null
   /** 2026-11-09(移植 APT):游標下物品開 poedb / poe2db 頁的熱鍵(預設空 = 不註冊;兩種視窗模式都有) */
   hotkeyPoedb: string
+  /** 2026-11-13(移植 APT / EE2 `openWiki`):游標下物品開 poewiki / poe2wiki 頁的熱鍵(預設空;註冊條件同 poedb) */
+  hotkeyWiki: string
   /** 2026-11-09(移植 APT 碼表):計時器開始 / 暫停、歸零熱鍵(預設空;只在 overlay 且 `timerDisplay` 不是 off) */
   hotkeyTimerToggle: string
   hotkeyTimerReset: string
@@ -398,6 +400,7 @@ function createConfig (): Config {
     cheatSheetZoom: null as SettingsWindowRect | null,
     stashValueCard: null as OverlayPos | null,
     hotkeyPoedb: '',
+    hotkeyWiki: '',
     hotkeyTimerToggle: '',
     hotkeyTimerReset: '',
     timerDisplay: 'active' as TimerDisplay,
@@ -488,6 +491,7 @@ function serialize (): string {
     cheatSheetZoom: config.cheatSheetZoom,
     stashValueCard: config.stashValueCard,
     hotkeyPoedb: config.hotkeyPoedb,
+    hotkeyWiki: config.hotkeyWiki,
     hotkeyTimerToggle: config.hotkeyTimerToggle,
     hotkeyTimerReset: config.hotkeyTimerReset,
     timerDisplay: config.timerDisplay,
@@ -632,6 +636,7 @@ function applyLoaded (raw: string) {
   config.stashValueCard = normOverlayPos(loaded.stashValueCard)
   // 2026-11-09:poedb / 計時器(舊設定檔沒有 / 壞值 → 空熱鍵、active、null)
   config.hotkeyPoedb = typeof loaded.hotkeyPoedb === 'string' ? loaded.hotkeyPoedb : fresh.hotkeyPoedb
+  config.hotkeyWiki = typeof loaded.hotkeyWiki === 'string' ? loaded.hotkeyWiki : fresh.hotkeyWiki
   config.hotkeyTimerToggle = typeof loaded.hotkeyTimerToggle === 'string' ? loaded.hotkeyTimerToggle : fresh.hotkeyTimerToggle
   config.hotkeyTimerReset = typeof loaded.hotkeyTimerReset === 'string' ? loaded.hotkeyTimerReset : fresh.hotkeyTimerReset
   config.timerDisplay = TIMER_DISPLAYS.includes(loaded.timerDisplay as TimerDisplay) ? loaded.timerDisplay as TimerDisplay : fresh.timerDisplay
@@ -729,6 +734,7 @@ export function hostConfigOf (c: Config, regexHotkeys: readonly RegexBookmarkHot
     stashScroll: c.stashScroll,
     hotkeyRegexQuick: c.hotkeyRegexQuick,
     hotkeyPoedb: c.hotkeyPoedb,
+    hotkeyWiki: c.hotkeyWiki,
     hotkeyTimerToggle: c.hotkeyTimerToggle,
     hotkeyTimerReset: c.hotkeyTimerReset,
     timerDisplay: c.timerDisplay,
