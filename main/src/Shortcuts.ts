@@ -236,7 +236,7 @@ export class Shortcuts {
    * 查價熱鍵:先 arm(讀剪貼簿 before 並清空)**完成**,才送複製鍵,最後輪詢物品文字。
    * Electron 44 起清空是非同步,若先送鍵再清空,晚到的清空會蓋掉遊戲剛複製的物品文字。
    */
-  private async copyAndReadItem (focusOverlay: boolean, entry: ShortcutAction, pressPosition: { x: number, y: number }, target?: 'poedb'): Promise<void> {
+  private async copyAndReadItem (focusOverlay: boolean, entry: ShortcutAction, pressPosition: { x: number, y: number }, target?: 'poedb' | 'wiki'): Promise<void> {
     const armStart = Date.now()
     try {
       await this.clipboard.armItemRead()

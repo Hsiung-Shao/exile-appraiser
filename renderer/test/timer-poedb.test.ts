@@ -125,6 +125,8 @@ describe('熱鍵總表與衝突檢查(T13)', () => {
       expect(g, game).toBeDefined()
       expect(g!.rows.map(r => r.kind === 'edit' ? [r.id, r.field, r.optional === true] : r.id)).toEqual([
         ['poedb', 'hotkeyPoedb', true],
+        // 2026-11-13:物品開 wiki
+        ['wiki', 'hotkeyWiki', true],
         ['timerToggle', 'hotkeyTimerToggle', true],
         ['timerReset', 'hotkeyTimerReset', true],
         // 2026-11-10 speedrun:暫停 / 撤銷 / 跳過
@@ -135,10 +137,10 @@ describe('熱鍵總表與衝突檢查(T13)', () => {
     }
   })
 
-  it('T13 window 模式:tools 群組只有 poedb', () => {
+  it('T13 window 模式:tools 群組只有 poedb 與 wiki', () => {
     for (const game of ['poe1', 'poe2'] as const) {
       const g = hotkeyTable(fullConfig(game), { overlay: false }).find(x => x.id === 'tools')
-      expect(g?.rows.map(r => r.id), game).toEqual(['poedb'])
+      expect(g?.rows.map(r => r.id), game).toEqual(['poedb', 'wiki'])
     }
   })
 
@@ -219,13 +221,13 @@ describe('審查修正(2026-11-09)', () => {
   })
   it('poedb 換語系資料後換回面板上物品的資料', () => {
     const src = read('renderer/src/web/App.vue')
-    const fn = src.slice(src.indexOf('async function poedbUrlOf'), src.indexOf('function handleItemText'))
+    const fn = src.slice(src.indexOf('async function itemUrlOf'), src.indexOf('function handleItemText'))
     expect(fn).toMatch(/seq === loadSeq && rawText\.value[\s\S]*prepareItemText\(rawText\.value/)
   })
   it('計時器顯示關閉時,熱鍵列標 needs(總表顯示「功能關閉中」)', () => {
     const cfg = { hotkey: 'D', hotkeyHold: 'Ctrl', hotkeyLocked: '', overlayKey: '', game: 'poe1', hotkeyOcrReveal: '', hotkeyOcrRegion: '', hotkeyRuneshapeToggle: '', commands: [], stashSearch: [] } as unknown as HotkeyConfigLike
     const g = hotkeyTable(cfg, { overlay: true }).find(x => x.id === 'tools')!
-    expect(g.rows.map(r => r.kind === 'edit' ? r.needs ?? null : null)).toEqual([null, 'timerDisplay', 'timerDisplay', 'timerDisplay', 'timerDisplay', 'timerDisplay'])
+    expect(g.rows.map(r => r.kind === 'edit' ? r.needs ?? null : null)).toEqual([null, null, 'timerDisplay', 'timerDisplay', 'timerDisplay', 'timerDisplay', 'timerDisplay'])
     expect(read('renderer/src/web/settings/tabs/Hotkeys.vue')).toContain("needs === 'timerDisplay' ? config.timerDisplay === 'off'")
   })
 })

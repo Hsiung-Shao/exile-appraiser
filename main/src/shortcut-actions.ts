@@ -10,7 +10,7 @@ export interface ShortcutAction {
   shortcut: string
   keepModKeys: boolean
   action:
-  | { type: 'copy-item', focusOverlay: boolean, target?: 'poedb' } | { type: 'toggle-overlay' } | { type: 'ocr-reveal' } | { type: 'ocr-region' } | { type: 'runeshape-toggle' }
+  | { type: 'copy-item', focusOverlay: boolean, target?: 'poedb' | 'wiki' } | { type: 'toggle-overlay' } | { type: 'ocr-reveal' } | { type: 'ocr-region' } | { type: 'runeshape-toggle' }
   /** 2026-10-01:框選符文塑形面板區域(renderer 開同一個框選層,target = runeshape) */
   | { type: 'runeshape-region' }
   /** 2026-10-14:PoE1 倉庫價格暫停 / 繼續、框選倉庫 OCR 區域(renderer 開框選層,target = stash);兩者都不送按鍵 */
@@ -48,7 +48,7 @@ export function normalizeHotkey (hotkey: string): string {
 type ActionCfg = Pick<HostConfigForMain, 'hotkey' | 'hotkeyHold' | 'hotkeyLocked' | 'overlayKey' | 'game' | 'hotkeyOcrReveal' | 'hotkeyOcrRegion'> &
   Partial<Pick<HostConfigForMain, 'runeshapeEnabled' | 'hotkeyRuneshapeToggle' | 'hotkeyRuneshapeRegion' | 'revealAutoEnabled' | 'commands' | 'stashSearch' |
   'hotkeyRegexQuick' | 'regexBookmarkHotkeys' | 'hotkeyStashToggle' | 'hotkeyStashRegion' | 'stashPricesEnabled' |
-  'hotkeyPoedb' | 'hotkeyTimerToggle' | 'hotkeyTimerReset' | 'timerDisplay' | 'hotkeyTimerPause' | 'hotkeyTimerUndo' | 'hotkeyTimerSkip'>>
+  'hotkeyPoedb' | 'hotkeyWiki' | 'hotkeyTimerToggle' | 'hotkeyTimerReset' | 'timerDisplay' | 'hotkeyTimerPause' | 'hotkeyTimerUndo' | 'hotkeyTimerSkip'>>
 
 /**
  * 依設定組出要註冊的熱鍵(先到先得;空字串 / 重複 / 遊戲保留的不註冊)。
@@ -90,6 +90,10 @@ export function buildShortcutActions (cfg: ActionCfg, mode: WindowMode): Shortcu
   // 2026-11-09:物品開 poedb(走查價同一條複製路徑,renderer 依 target 改開網頁)
   if (cfg.hotkeyPoedb) {
     actions.push({ shortcut: normalizeHotkey(cfg.hotkeyPoedb), keepModKeys: false, action: { type: 'copy-item', focusOverlay: false, target: 'poedb' } })
+  }
+  // 2026-11-13:物品開 wiki(同一條路,target 不同)
+  if (cfg.hotkeyWiki) {
+    actions.push({ shortcut: normalizeHotkey(cfg.hotkeyWiki), keepModKeys: false, action: { type: 'copy-item', focusOverlay: false, target: 'wiki' } })
   }
   if (mode === 'overlay') {
     actions.push({ shortcut: overlayKey, keepModKeys: false, action: { type: 'toggle-overlay' } })
@@ -169,7 +173,7 @@ export function reservedShortcuts (cfg: ActionCfg): string[] {
     mergeTwoHotkeys(normalizeHotkey(cfg.hotkeyHold), normalizeHotkey(cfg.hotkey)), cfg.hotkeyLocked, cfg.overlayKey, cfg.hotkeyOcrReveal, cfg.hotkeyOcrRegion,
     cfg.hotkeyRuneshapeToggle ?? '', cfg.hotkeyRuneshapeRegion ?? '', cfg.hotkeyStashToggle ?? '', cfg.hotkeyStashRegion ?? '', ...(cfg.commands ?? []).map(c => c?.hotkey ?? ''), ...(cfg.stashSearch ?? []).map(s => s?.hotkey ?? ''),
     cfg.hotkeyRegexQuick ?? '', ...regexBookmarkHotkeysFor(cfg).map(b => b.hotkey),
-    cfg.hotkeyPoedb ?? '', cfg.hotkeyTimerToggle ?? '', cfg.hotkeyTimerReset ?? '',
+    cfg.hotkeyPoedb ?? '', cfg.hotkeyWiki ?? '', cfg.hotkeyTimerToggle ?? '', cfg.hotkeyTimerReset ?? '',
     cfg.hotkeyTimerPause ?? '', cfg.hotkeyTimerUndo ?? '', cfg.hotkeyTimerSkip ?? ''
   ]
   return [...new Set(all.filter(Boolean).map(k => normalizeHotkey(k)).filter(isGameReservedHotkey))]

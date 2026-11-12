@@ -117,3 +117,8 @@ function getPoe2dbPath (item: ParsedItem): string {
 export function poe2dbUrl (item: ParsedItem, language: keyof typeof POEDB_LANGS): string {
   return `https://poe2db.tw/${POEDB_LANGS[language]}/${getPoe2dbPath(item)}`
 }
+
+/** 2026-11-13(移植 EE2 `openWiki`,MIT):物品 → poe2wiki.net 頁(只有英文,頁名用 refName) */
+export function poe2wikiUrl (item: ParsedItem): string {
+  return `https://www.poe2wiki.net/wiki/${encodeURIComponent(item.info.refName.replaceAll(' ', '_'))}`
+}

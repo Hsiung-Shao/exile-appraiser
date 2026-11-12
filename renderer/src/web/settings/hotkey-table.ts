@@ -16,7 +16,7 @@ import type { HotkeyConfigLike } from './hotkey-conflicts'
 /** 總表直接編輯的設定鍵 */
 export type HotkeyField = 'hotkey' | 'hotkeyLocked' | 'overlayKey' | 'hotkeyOcrReveal' | 'hotkeyOcrRegion' |
   'hotkeyRuneshapeToggle' | 'hotkeyRuneshapeRegion' | 'hotkeyRegexQuick' | 'hotkeyStashToggle' | 'hotkeyStashRegion' |
-  'hotkeyPoedb' | 'hotkeyTimerToggle' | 'hotkeyTimerReset' | 'hotkeyTimerPause' | 'hotkeyTimerUndo' | 'hotkeyTimerSkip'
+  'hotkeyPoedb' | 'hotkeyWiki' | 'hotkeyTimerToggle' | 'hotkeyTimerReset' | 'hotkeyTimerPause' | 'hotkeyTimerUndo' | 'hotkeyTimerSkip'
 
 export type HotkeyRow =
   /** `optional` = 選填(預設不綁;第 36 步:空值「未設定」用灰字,不用錯誤紅字) */
@@ -42,7 +42,7 @@ export interface HotkeyTableOpts {
 
 /** 選填熱鍵(Config 預設空 = 預設不綁;守門測試對照 Config 預設值) */
 export const OPTIONAL_HOTKEY_FIELDS: readonly HotkeyField[] = ['hotkeyOcrRegion', 'hotkeyRuneshapeToggle', 'hotkeyRuneshapeRegion', 'hotkeyRegexQuick', 'hotkeyStashToggle', 'hotkeyStashRegion',
-  'hotkeyPoedb', 'hotkeyTimerToggle', 'hotkeyTimerReset', 'hotkeyTimerPause', 'hotkeyTimerUndo', 'hotkeyTimerSkip']
+  'hotkeyPoedb', 'hotkeyWiki', 'hotkeyTimerToggle', 'hotkeyTimerReset', 'hotkeyTimerPause', 'hotkeyTimerUndo', 'hotkeyTimerSkip']
 
 /** 總表的組與列(順序 = main 的註冊順序,先到先得) */
 export function hotkeyTable (c: HotkeyConfigLike, opts: HotkeyTableOpts): HotkeyGroup[] {
@@ -56,8 +56,9 @@ export function hotkeyTable (c: HotkeyConfigLike, opts: HotkeyTableOpts): Hotkey
   }]
   // 2026-11-09:物品開 poedb(兩種模式都有)、計時器(只 overlay)
   const poedbRow: HotkeyRow = { kind: 'edit', id: 'poedb', label: 'ppz.hk.poedb', field: 'hotkeyPoedb', optional: true }
+  const wikiRow: HotkeyRow = { kind: 'edit', id: 'wiki', label: 'ppz.hk.wiki', field: 'hotkeyWiki', optional: true }
   if (!opts.overlay) {
-    groups.push({ id: 'tools', title: 'ppz.hk_group.tools', rows: [poedbRow] })
+    groups.push({ id: 'tools', title: 'ppz.hk_group.tools', rows: [poedbRow, wikiRow] })
     return groups
   }
   groups.push({
@@ -104,6 +105,7 @@ export function hotkeyTable (c: HotkeyConfigLike, opts: HotkeyTableOpts): Hotkey
     title: 'ppz.hk_group.tools',
     rows: [
       poedbRow,
+      wikiRow,
       { kind: 'edit', id: 'timerToggle', label: 'ppz.hk.timer_toggle', field: 'hotkeyTimerToggle', needs: 'timerDisplay', optional: true },
       { kind: 'edit', id: 'timerReset', label: 'ppz.hk.timer_reset', field: 'hotkeyTimerReset', needs: 'timerDisplay', optional: true },
       { kind: 'edit', id: 'timerPause', label: 'ppz.hk.timer_pause', field: 'hotkeyTimerPause', needs: 'timerDisplay', optional: true },

@@ -90,6 +90,7 @@ const FIELD_DS: Record<HotkeyField, string> = {
   hotkeyStashToggle: 'hotkey-stash-toggle',
   hotkeyStashRegion: 'hotkey-stash-region',
   hotkeyPoedb: 'hotkey-poedb',
+  hotkeyWiki: 'hotkey-wiki',
   hotkeyTimerToggle: 'hotkey-timer-toggle',
   hotkeyTimerReset: 'hotkey-timer-reset',
   hotkeyTimerPause: 'hotkey-timer-pause',

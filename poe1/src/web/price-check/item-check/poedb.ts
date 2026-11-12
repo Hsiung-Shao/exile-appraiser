@@ -8,3 +8,8 @@ export function poedbUrl (item: ParsedItem, language: keyof typeof POEDB_LANGS):
   const slug = encodeURIComponent(item.info.refName.replaceAll("'", '').replaceAll(' ', '_'))
   return `https://poedb.tw/${POEDB_LANGS[language]}/${slug}`
 }
+
+/** 2026-11-13(移植 APT `openWiki`,MIT):物品 → poewiki.net 頁(只有英文,頁名用 refName) */
+export function wikiUrl (item: ParsedItem): string {
+  return `https://www.poewiki.net/wiki/${encodeURIComponent(item.info.refName.replaceAll(' ', '_'))}`
+}
