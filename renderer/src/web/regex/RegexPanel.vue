@@ -99,6 +99,10 @@
           <button class="btn ghost sm" data-regex="add-stash" :disabled="!out.query || out.query.length > 250" :title="t('ppz.regex.add_stash_tip')" @click="addStash">
             {{ stashState === 'ok' ? t('ppz.regex.add_stash_done') : stashState === 'dup' ? t('ppz.regex.add_stash_dup') : t('ppz.regex.add_stash') }}
           </button>
+          <!-- 2026-11-12:把目前字串存成自訂字串書籤(固定字串;對話框在 RegexBookmarks.vue) -->
+          <button class="btn ghost sm" data-regex="save-custom" :disabled="!out.query" :title="t('ppz.regex.bm_save_output_tip')" @click="saveCustom">
+            {{ t('ppz.regex.bm_save_output') }}
+          </button>
           <select class="select sm" data-regex="lang" :value="ui.lang" :title="t('ppz.regex.lang_tip')"
             @change="onLang">
             <option value="zh">{{ t('ppz.regex.out_zh') }}</option>
@@ -248,7 +252,7 @@ import RegexCombined from './RegexCombined.vue'
 import RegexBookmarks from './RegexBookmarks.vue'
 import RegexNumericSection from './RegexNumericSection.vue'
 import {
-  GAMES, applyShareCode, applyTemplate, dismissNotice, ensureStarted, flushSave, gameLabel, hasPendingSave, makeShareCode,
+  GAMES, applyShareCode, applyTemplate, customBookmarkDraft, dismissNotice, ensureStarted, flushSave, gameLabel, hasPendingSave, makeShareCode,
   pagePickCount, retryCatalogue, setBilingual, setLang, setMode, setOutScope, setPanelView, switchGame, switchPage, useRegexStore
 } from './store'
 import { incomingShare } from './incoming'
@@ -420,6 +424,9 @@ export default defineComponent({
         }
       },
       stashState,
+      saveCustom () {
+        if (out.value?.query) customBookmarkDraft.value = { game: store.selGame.value, text: out.value.query }
+      },
       /** 加到倉庫搜尋一鍵輸入(聊天指令分頁;熱鍵空白,使用者自己設);同一字串已在清單就不重複加 */
       addStash () {
         const r = addStashSearchEntry(config.stashSearch, out.value?.query ?? '')

@@ -39,7 +39,8 @@ import {
   type FolderResult, type GroupedBookmarks,
   type AlgoEntry, type AlgoPage, type AlgoValue, type CombineResult, type Mode, type RegexBookmark, type RegexCatalogue,
   type RegexGame, type RegexLabels, type RegexLang, type RegexPage, type RegexTemplate, type Result, type ShareState, type T17Filter,
-  type RegexUiState, type ResolvedState, type BookmarkPack, type MergeResult, bookmarkMissed, mergeBookmarks
+  type RegexUiState, type ResolvedState, type BookmarkPack, type MergeResult, bookmarkMissed, mergeBookmarks,
+  customBookmark, isCustomBookmark
 } from '@exile-appraiser/regex'
 import type { CurrentCombo } from './incoming-share'
 import { Host } from '@/web/background/IPC'
@@ -827,10 +828,36 @@ export function saveBookmark (name: string): boolean {
   return true
 }
 
+/** 輸出區「存成自訂書籤」→ 書籤卡片開對話框並帶入這個字串(RegexBookmarks.vue 監看,取走後清空) */
+export const customBookmarkDraft = shallowRef<{ game: RegexGame, text: string } | null>(null)
+
+/** 自訂字串書籤(2026-11-12;`customBookmark`):加到該遊戲的未分類。名稱或字串為空 = false */
+export function saveCustomBookmark (game: RegexGame, name: string, text: string): boolean {
+  const b = customBookmark(game, name, text)
+  if (!b) return false
+  ui.bookmarks.push(b)
+  notice.value = { key: 'ppz.regex.notice_saved', params: { name: b.name } }
+  scheduleSave()
+  return true
+}
+
+/** 編輯自訂字串書籤的名稱與字串(熱鍵、資料夾不動) */
+export function updateCustomBookmark (index: number, name: string, text: string): boolean {
+  const b = ui.bookmarks[index]
+  const next = b && isCustomBookmark(b) && b.game ? customBookmark(b.game, name, text) : null
+  if (!b || !next) return false
+  b.name = next.name
+  b.keys = next.keys
+  notice.value = { key: 'ppz.regex.notice_custom_updated', params: { name: b.name } }
+  scheduleSave()
+  return true
+}
+
 /** 用目前的清單、模式、輸出語言與勾選覆寫;一項都沒勾就不動(要清空請刪除) */
 export function updateBookmark (index: number): void {
   const b = ui.bookmarks[index]
-  if (!b) return
+  // 自訂字串書籤沒有勾選可覆寫(覆寫會變成一般書籤、字串就沒了)→ 由「編輯」改
+  if (!b || isCustomBookmark(b)) return
   const body = currentBookmarkBody()
   if (!body) {
     notice.value = { key: 'ppz.regex.notice_update_empty' }

@@ -62,7 +62,7 @@ describe('bookmarkQuery:與「載入書籤後的單頁輸出」逐字相同', ()
           expect(got.length).toBe(want.length)
           expect(got.limit).toBe(want.limit)
           expect(got.missed).toBe(0)
-          expect(got.page.id).toBe(page.id)
+          expect(got.page?.id).toBe(page.id)
           checked++
         }
       }

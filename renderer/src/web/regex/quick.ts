@@ -9,7 +9,7 @@
  * - 一次一個(`running`):執行中再點 / 再按 = 忽略(main 另有同樣的保護)。
  */
 import { shallowRef } from 'vue'
-import { bookmarkQuery, findBookmark } from '@exile-appraiser/regex'
+import { bookmarkQuery, findBookmark, isCustomBookmark } from '@exile-appraiser/regex'
 import type { RegexBookmarkRunEvent, RegexPasteSource } from '@ipc/types'
 import { Host } from '@/web/background/IPC'
 import { catalogueFor, ensureStateLoaded, useRegexStore } from './store'
@@ -33,10 +33,11 @@ async function queryOf (index: number): Promise<{ text: string, name: string } |
   const store = useRegexStore()
   const b = store.ui.bookmarks[index]
   if (!b || !b.game) return null
+  // 自訂字串書籤不需要清單(清單載入失敗也能貼)
   // 第 37 步:物品詞綴數值頁的書籤要先載入那一頁(第一次用到才讀 stats.ndjson)
-  const cat = await catalogueFor(b.game, b.page)
-  if (!cat) return null
-  const q = bookmarkQuery(cat.pages, b)
+  const pages = isCustomBookmark(b) ? [] : (await catalogueFor(b.game, b.page))?.pages
+  if (!pages) return null
+  const q = bookmarkQuery(pages, b)
   if (!q) return null
   if (q.missed > 0) console.warn(`[regex-quick] 書籤「${b.name}」有 ${q.missed} 個鍵還原不到(賽季資料改了)`)
   return { text: q.query, name: b.name }

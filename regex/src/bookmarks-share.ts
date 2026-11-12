@@ -14,6 +14,7 @@
 import type { RegexGame, RegexPage } from './data'
 import { bookmarkApplyOf } from './embed'
 import { normalizeFolderName, normalizeFolders, type BookmarkFolder } from './folders'
+import { isCustomBookmark } from './quick'
 import { gunzipBase64url, gzipBase64url } from './share'
 import { parseBookmark, type RegexBookmark, type RegexUiState } from './state'
 
@@ -176,6 +177,7 @@ export function mergeBookmarks (s: RegexUiState, pack: BookmarkPack): MergeResul
 
 /** 這筆書籤在目前清單上還原不到的鍵數(頁不存在 = 全部鍵數);確認對話框標示「找不到 N 項」 */
 export function bookmarkMissed (pages: readonly RegexPage[], b: RegexBookmark): number {
+  if (isCustomBookmark(b)) return 0
   const a = bookmarkApplyOf(pages, b)
   return a ? a.missed : b.keys.length + (b.num?.length ?? 0)
 }
