@@ -50,4 +50,20 @@ describe('自訂書籤接線', () => {
       }
     }
   })
+
+  it('輸出框可直接輸入,複製與存書籤用畫面上的字串', () => {
+    const panel = read('../src/web/regex/RegexPanel.vue')
+    const box = panel.match(/<textarea[^>]*data-regex="query"[^>]*\/>/s)?.[0] ?? ''
+    expect(box).toContain(':value="shown"')
+    expect(box).toContain('@input="onQueryInput"')
+    expect(box).not.toMatch(/\breadonly\b/)
+    expect(panel).toContain('data-regex="manual-reset"')
+    // 三個按鈕都不能再只讀產生的字串(否則手動輸入的內容存不到)
+    expect(panel).not.toMatch(/out\.value\?\.query\) customBookmarkDraft|writeClipboard\(out|addStashSearchEntry\(config\.stashSearch, out/)
+    expect(panel).toMatch(/customBookmarkDraft\.value = \{[^}]*text: shown\.value/)
+    for (const file of ['../src/i18n/cmn-Hant.json', '../src/i18n/en.json']) {
+      const regex = JSON.parse(read(file)).ppz.regex
+      for (const k of ['query_placeholder', 'manual_hint', 'manual_reset']) expect(regex[k]?.trim(), `${file} ${k}`).toBeTruthy()
+    }
+  })
 })
