@@ -80,6 +80,7 @@ if (args.includes('--write')) {
   // 不帶 --dirty 的正常同步會清掉上一次留下的這兩欄。
   delete prev.dirty
   delete prev.dirtyFiles
+  if (!commit) delete prev.commit // 來源改記 fetchedAt 時,舊 commit 已不代表內容
   const dirty = args.includes('--dirty')
   const dirtyFiles = flag('--dirty-files')
   manifest.sources[prefix] = {
