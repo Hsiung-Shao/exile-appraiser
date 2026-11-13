@@ -27,6 +27,7 @@ if (mods) {
   const at = ids.indexOf('tincture_mods')
   check('頁面選單有「萃取物詞綴」', at >= 0 && mods.pages[at].title.startsWith('萃取物詞綴'), ids.join(','))
   check('排在藥劑詞綴後面', at > 0 && ids[at - 1] === 'flask_mods', ids.join(','))
+  check('頁面選單沒有「聖甲蟲」(2026-11-13 整頁刪除)', ids.length > 0 && !ids.includes('scarabs'), ids.join(','))
   check('目前頁是萃取物詞綴', mods.page === 'tincture_mods', mods.page)
   check('分類有前綴 / 後綴', ['前綴', '後綴'].every(g => mods.groups.includes(g)), mods.groups.join(','))
   check('清單共 17 列、已勾 2 列', /^已勾選 2 \/ 17$/.test(mods.count), mods.count)
