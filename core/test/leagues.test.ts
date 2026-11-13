@@ -91,6 +91,18 @@ describe('pickLeagueOnLoad:新賽季第一次出現就切過去', () => {
     expect(pickLeagueOnLoad(ids(['Standard', 'Hardcore']), 'Allflame', 'Allflame')).toEqual({ id: 'Standard', seen: 'Allflame' })
   })
 
+  it('已經選了新賽季的專家模式 → 不被切到一般模式(升級後第一次載入也一樣)', () => {
+    expect(pickLeagueOnLoad(COVENS, 'Hardcore Covens', undefined)).toEqual({ id: 'Hardcore Covens', seen: 'Covens' })
+    const poe2 = ids(['Forbidden Rites', 'HC Forbidden Rites', 'Standard', 'Hardcore'])
+    expect(pickLeagueOnLoad(poe2, 'HC Forbidden Rites', undefined, 'poe2')).toEqual({ id: 'HC Forbidden Rites', seen: 'Forbidden Rites' })
+  })
+
+  it('上個賽季玩專家模式 → 新賽季切到專家模式那個', () => {
+    expect(pickLeagueOnLoad(COVENS, 'Hardcore Allflame', 'Allflame')).toEqual({ id: 'Hardcore Covens', seen: 'Covens' })
+    expect(pickLeagueOnLoad(ids(['專家模式', '標準模式', '新賽季', '專家模式 新賽季']), '專家模式 舊賽季', '舊賽季', 'poe2'))
+      .toEqual({ id: '專家模式 新賽季', seen: '新賽季' })
+  })
+
   it('PoE2 清單新舊賽季並列:新賽季排第一個時切過去', () => {
     const list = ids(['New League', 'HC New League', 'Forbidden Rites', 'Standard'])
     expect(pickLeagueOnLoad(list, 'Forbidden Rites', 'Forbidden Rites', 'poe2')).toEqual({ id: 'New League', seen: 'New League' })

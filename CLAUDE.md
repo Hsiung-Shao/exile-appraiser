@@ -65,7 +65,7 @@ Path of Exile 查價工具(Electron + TypeScript)。把 `apt-patched`(Awakened P
 2. **語言無關鍵對接**:詞綴送 trade stat id、物品名送 `refName`(intl)或 `name`(tw)。`items` 端點沒有 id,**禁止位置對位**。
 3. **realm 模型**:`intl` = `www.pathofexile.com` + 英文名;`tw` = `pathofexile.tw`(裸 host)+ 繁中名。`useIntlSite` 由 realm+language 推導,不是開關。
    `TradeClient` 狀態(限流、快取)每個 realm 各一套(`tradeSession(realm)`)。
-   **聯盟自動跟上新賽季(2026-11-14,使用者回報 3.30 開季後停在 Standard)**:載入清單時走 core `pickLeagueOnLoad(list, current, seen)` —— 清單第一個賽季軟核聯盟與設定 `leagueSeenBy[game][realm]` 不同 = 新賽季 → 切過去(私人聯盟除外),同一個賽季裡使用者改選的照舊沿用;
+   **聯盟自動跟上新賽季(2026-11-14,使用者回報 3.30 開季後停在 Standard)**:載入清單時走 core `pickLeagueOnLoad(list, current, seen)` —— 清單第一個賽季軟核聯盟與設定 `leagueSeenBy[game][realm]` 不同 = 新賽季 → 切過去(私人聯盟除外;已選這個賽季的專家模式不動,上一季選專家模式的換到這一季的專家模式),同一個賽季裡使用者改選的照舊沿用;
    清單除了啟動 / 切區 / 切遊戲,查價時(`queuePricesFetch` → `useLeagues().loadIfStale()`)超過 1 小時也會重抓(失敗 1 分鐘後才再試,已有清單時失敗不擋畫面);不另開計時器。測試 `core/test/leagues.test.ts`、`renderer/test/league-auto-switch.test.ts`。
 4. **版號與 User-Agent**:版號用 `0.x.y` 語意版號(v0.1.0 起),root、`main/` 與各 workspace 的 `version` 保持一致。
    Electron 把 `exile-appraiser/<version>` 寫進 User-Agent;GGG 的 Cloudflare 擋過舊版 Awakened PoE Trade 的產品名+版號

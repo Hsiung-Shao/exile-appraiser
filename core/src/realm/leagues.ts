@@ -67,9 +67,14 @@ export function isPrivateLeague (id: string): boolean {
  * 是否為「賽季(挑戰)聯盟的軟核交易聯盟」:排除永久聯盟(Standard / Hardcore 與台服繁中名)、
  * `HC ` / `Hardcore` / `專家模式` 開頭的 HC 變體、SSF(含 `Solo Self-Found`)與 Ruthless 變體。
  */
+/** id 是專家模式(永久的或賽季的變體):`HC ` / `Hardcore` / `專家模式` 開頭 */
+export function isHardcoreLeague (id: string): boolean {
+  return id.startsWith('HC ') || id.startsWith('Hardcore') || PERMANENT_HC.some(hc => id.startsWith(hc))
+}
+
 export function isChallengeSoftcoreLeague (id: string): boolean {
   if (PERMANENT_SC.includes(id) || PERMANENT_HC.includes(id)) return false
-  if (id.startsWith('HC ') || id.startsWith('Hardcore') || PERMANENT_HC.some(hc => id.startsWith(hc))) return false
+  if (isHardcoreLeague(id)) return false
   if (/\bSSF\b|Solo Self-Found|Ruthless/.test(id)) return false
   return true
 }
@@ -107,8 +112,15 @@ export function pickLeagueOnLoad (
   list: League[], current: string | undefined, seen: string | undefined, game: Game = 'poe1'
 ): { id: string | undefined, seen: string | undefined } {
   const challenge = list.find(l => isChallengeSoftcoreLeague(l.id))?.id
-  if (challenge && challenge !== seen && !(current && isPrivateLeague(current))) return { id: challenge, seen: challenge }
-  return { id: pickLeague(list, current, game), seen: challenge ?? seen }
+  if (!challenge || challenge === seen || (current && isPrivateLeague(current))) {
+    return { id: pickLeague(list, current, game), seen: challenge ?? seen }
+  }
+  // 新賽季。專家模式的人不能被切到一般模式(查價與 ninja 價格表都會換一套):
+  // 已經選了這個賽季的變體(Hardcore Covens / HC Forbidden Rites)→ 不動;上一季選專家模式 → 換到這一季的專家模式。
+  const variants = list.filter(l => l.id !== challenge && l.id.includes(challenge)).map(l => l.id)
+  if (current && variants.includes(current)) return { id: current, seen: challenge }
+  const hardcore = current && isHardcoreLeague(current) ? variants.find(isHardcoreLeague) : undefined
+  return { id: hardcore ?? challenge, seen: challenge }
 }
 
 export async function fetchLeagues (http: HttpFetch, realm: Realm, game: Game = 'poe1'): Promise<League[]> {
