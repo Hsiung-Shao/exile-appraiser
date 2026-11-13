@@ -12,6 +12,10 @@
 
 長度相同不代表字串相同。資料頁的 **Build().query 本身**報告沒有印,所以真實資料上還沒有逐字 golden。
 
+> 2026-11-13:PobTools 已移除正則功能(C++ 端與 `--regex-selftest` 不存在了),資料產生器搬進本專案 `regex/gen/`。
+> `selftest-report.json` 既有的列仍是當時的 C++ 基準;之後新增 / 變動的頁(`tincture_mods`、`vendor_bases`)由 TS 實作算出後手動更新。
+> 下面這節是當時的構想,已不適用,留作紀錄。
+
 ## 要完整 golden:PobTools 端要加匯出旗標(另開 PobTools 任務)
 
 建議在 `host/regex_selftest.cpp` 加 `--regex-golden <out.json>`(不影響 `--regex-selftest`):
