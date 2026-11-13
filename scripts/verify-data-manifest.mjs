@@ -72,7 +72,7 @@ if (args.includes('--write')) {
   }
   const manifest = readManifest()
   const defaults = {
-    'data/poe1': { repo: 'apt-patched (Hsiung-Shao/awakened-poe-trade-zh-TW)', path: 'renderer/public/data' },
+    'data/poe1': { repo: 'ExileAppraiser 自己維護(scripts/poe1-season/update.mjs)', path: 'data/poe1' },
     'data/poe2': { repo: 'ee2-patched (Hsiung-Shao/Exiled-Exchange-2-zh-TW)', path: 'renderer/public/data' }
   }
   const prev = { ...(manifest.sources[prefix] ?? {}) }

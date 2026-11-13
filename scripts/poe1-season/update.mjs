@@ -60,7 +60,7 @@ const rows = (/** @type {string} */ t) => t.split(/\r?\n/).filter(l => l.trim())
 // ---- 計畫:改字(A)→ 套進記憶體 → 改字補漏(B)→ 失效 id → 新詞綴 → 物品 ----
 const ruleA = planStatText({ enStats: rows(text['en/stats']), zhStats: rows(text['cmn-Hant/stats']), ggpkOld: ggpk.stats.old, ggpkNew: ggpk.stats.new })
 const afterA = Object.fromEntries(LANGS.map(lang => [lang, rows(applyStatPlan(text[`${lang}/stats`], lang, { adds: ruleA.adds }))]))
-const ruleB = planTradeText({ enStats: afterA.en, zhStats: afterA['cmn-Hant'], tradeStats, ggpkNew: ggpk.stats.new })
+const ruleB = planTradeText({ enStats: afterA.en, zhStats: afterA['cmn-Hant'], tradeStats, ggpkNew: ggpk.stats.new, ggpkOld: ggpk.stats.old })
 const adds = [...ruleA.adds, ...ruleB.adds]
 const afterB = rows(applyStatPlan(text['en/stats'], 'en', { adds }))
 const dead = planDeadIds({ enStats: afterB, tradeStats })

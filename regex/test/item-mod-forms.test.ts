@@ -290,8 +290,8 @@ describe('多種寫法仲裁(item-mod-forms.json)', () => {
     // 2026-10-10 仲裁後(舊值:poe2 entries 1198 / multi_form 135;poe1 entries 4785 / multi_form 87)
     expect(DATA.poe2.entries.length).toBe(1294)
     expect(DATA.poe2.excluded.multi_form).toBe(33)
-    expect(DATA.poe1.entries.length).toBe(4766) // 2026-11-14 資料更新到 3.30(見 item-mods.test.ts 的說明)
-    expect(DATA.poe1.excluded.multi_form).toBe(23)
+    expect(DATA.poe1.entries.length).toBe(4763) // 2026-11-14 資料更新到 3.30(見 item-mods.test.ts 的說明)
+    expect(DATA.poe1.excluded.multi_form).toBe(26)
     for (const g of GAMES) {
       const d = DATA[g]
       const ex = Object.values(d.excluded).reduce((a, b) => a + b, 0)
@@ -300,7 +300,7 @@ describe('多種寫法仲裁(item-mod-forms.json)', () => {
   })
 
   it('T10 沒有仲裁參數時行為同舊版', () => {
-    const old: Record<Game, { entries: number, multi: number }> = { poe2: { entries: 1198, multi: 135 }, poe1: { entries: 4699, multi: 95 } }
+    const old: Record<Game, { entries: number, multi: number }> = { poe2: { entries: 1198, multi: 135 }, poe1: { entries: 4696, multi: 98 } }
     for (const g of GAMES) {
       const d = (buildItemModData as any)(g, STATS[`${g}.zh`], STATS[`${g}.en`]) as ItemModData
       expect(d.entries.length, `${g} entries`).toBe(old[g].entries)

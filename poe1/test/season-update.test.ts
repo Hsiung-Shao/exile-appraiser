@@ -135,6 +135,28 @@ describe('planStatText / applyStatPlan', () => {
       { string: '#% to Item Rarity' }])
   })
 
+  it('組合句只差大小寫:子句在 GGPK 改了大小寫才補交易站那句', () => {
+    const REF = 'While a Boss is in your Presence, Bleeding you inflict deals Damage #% faster'
+    const enStats = [stat(REF, [{ string: REF }], { implicit: ['implicit.stat_1'] })]
+    const tradeStats = [{ id: 'implicit.stat_1', text: REF.replace('faster', 'Faster'), type: 'implicit' }]
+    const ggpkOld = [{ key: 'c', en: 'Bleeding you inflict deals Damage {0}% faster', zh: null }]
+    const ggpkNew = [{ key: 'c', en: 'Bleeding you inflict deals Damage {0}% [DamageFaster|Faster]', zh: null }]
+    const plan = planTradeText({ enStats, zhStats: [], tradeStats, ggpkNew, ggpkOld })
+    expect(parseRows(applyStatPlan(toFile(enStats), 'en', { adds: plan.adds }))[0].matchers).toEqual([
+      { string: REF, superseded: true }, { string: REF.replace('faster', 'Faster') }])
+    // 沒有 GGPK 子句改字的證據(交易站自己的大小寫習慣)→ 不動
+    expect(planTradeText({ enStats, zhStats: [], tradeStats, ggpkNew: ggpkOld, ggpkOld }).adds).toEqual([])
+  })
+
+  it('舊句搬到新鍵仍存在時不標成被取代', () => {
+    const enStats = [stat('Foo', [{ string: '#% increased Foo in Area' }])]
+    const old = [{ key: 'a', en: '{0}% increased Foo in Area', zh: null }]
+    const nw = [{ key: 'a', en: '{0}% increased Foo', zh: null }, { key: 'b', en: '{0}% increased Foo in Area', zh: null }]
+    const plan = planStatText({ enStats, zhStats: [], ggpkOld: old, ggpkNew: nw })
+    expect(parseRows(applyStatPlan(toFile(enStats), 'en', { adds: plan.adds }))[0].matchers).toEqual([
+      { string: '#% increased Foo in Area' }, { string: '#% increased Foo' }])
+  })
+
   it('舊句在別的鍵仍沿用時不標成被取代', () => {
     const enStats = [stat('Foo', [{ string: '#% increased Foo' }])]
     const old = [{ key: 'a', en: '{0}% increased Foo', zh: null }, { key: 'b', en: '{0}% increased Foo', zh: null }]

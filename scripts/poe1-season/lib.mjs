@@ -70,6 +70,8 @@ function groupBy (list, keyOf) {
  */
 export function planStatText ({ enStats, zhStats, ggpkOld, ggpkNew }) {
   const newByKey = new Map(ggpkNew.map(r => [r.key, r]))
+  const newEn = new Set(ggpkNew.map(r => exactKey(r.en)))
+  const newZh = new Set(ggpkNew.map(r => exactKey(r.zh)))
   const oldByEn = groupBy(ggpkOld.filter(r => newByKey.has(r.key)), r => cmpKey(r.en))
   const enRefs = refsByMatcher(enStats)
   const zhRefs = refsByMatcher(zhStats)
@@ -107,10 +109,12 @@ export function planStatText ({ enStats, zhStats, ggpkOld, ggpkNew }) {
         if (c.was && direction(c.was) * direction(c.text) === -1) { reject('direction'); continue }
         const others = [...((c.lang === 'en' ? enRefs : zhRefs).get(nk) ?? [])].filter(r => !allowed.has(r))
         if (others.length) { reject('collision'); continue }
-        // 舊句在新版每個鍵都改掉了(沒有任何鍵還保留舊句)才算被取代;被取代的舊 matcher 套用時標 superseded
+        // 舊句在新版每個鍵都改掉了、而且新版沒有任何一列(含搬到新鍵的)還是這句,才算被取代;套用時標 superseded
         const dead = olds.every(o => {
           const n = newByKey.get(o.key)
-          return c.lang === 'en' ? exactKey(n.en) !== exactKey(o.en) : Boolean(n.zh) && exactKey(n.zh) !== exactKey(o.zh)
+          return c.lang === 'en'
+            ? exactKey(n.en) !== exactKey(o.en) && !newEn.has(exactKey(o.en))
+            : Boolean(n.zh) && exactKey(n.zh) !== exactKey(o.zh) && !newZh.has(exactKey(o.zh))
         })
         adds.push({
           lang: c.lang,
@@ -129,8 +133,16 @@ export function planStatText ({ enStats, zhStats, ggpkOld, ggpkNew }) {
  * 規則 B:專案引用的 id 在交易站的現行文字(同一個 id 可能有好幾句,例:地圖上的「Area contains …」與天賦樹的
  * 「Your Maps contain …」)**沒有任何一句**是它的 en matcher,而且 GGPK 新版確實有那句(= 遊戲內文字)→ 加上。
  * 已經對得上其中一句的 id 不動(另一句是別的情境的寫法)。減少型(需要 negate)的不猜,放進 rejects。
+ * @param {{ enStats: any[], zhStats: any[], tradeStats: any[], ggpkNew: any[], ggpkOld?: any[] }} input
  */
-export function planTradeText ({ enStats, zhStats, tradeStats, ggpkNew }) {
+export function planTradeText ({ enStats, zhStats, tradeStats, ggpkNew, ggpkOld = [] }) {
+  // GGPK 裡只改大小寫的句子(舊, 新):給「前綴 + 子句」的組合句用 —— 整句不在 GGPK(例:頭目在場時 … #% faster),
+  // 但子句在新版改了大小寫、交易站整句也跟著改,就補上交易站那句。
+  // 不看鍵(子句可能換了鍵):舊版有、新版已沒有的句子,新版有一句只差大小寫的
+  const newTexts = new Set(ggpkNew.map(r => exactKey(r.en)))
+  const newByLower = groupBy([...newTexts], t => t.toLowerCase())
+  const casePairs = [...new Set(ggpkOld.map(r => exactKey(r.en)))].filter(o => !newTexts.has(o))
+    .flatMap(o => (newByLower.get(o.toLowerCase()) ?? []).map(n => [o, n]))
   /** @type {Map<string, Set<string>>} id → 逐字的現行文字 */
   const textsById = new Map()
   for (const e of tradeStats) {
@@ -157,8 +169,16 @@ export function planTradeText ({ enStats, zhStats, tradeStats, ggpkNew }) {
       if (texts.some(t => have.has(t))) continue // 這個 id 已經有一句對得上
       for (const text of texts) {
         const rows = ggpkByEn.get(text)
-        if (!rows || seen.has(stat.ref + '\n' + text)) continue
+        if (seen.has(stat.ref + '\n' + text)) continue
         seen.add(stat.ref + '\n' + text)
+        if (!rows) {
+          const m = stat.matchers.find(m => m.string.trim().toLowerCase() === text.toLowerCase())
+          if (m && casePairs.some(([o, n]) => m.string.includes(o) && text.includes(n))) {
+            const flags = { ...(m.negate ? { negate: true } : {}), ...(m.value !== undefined ? { value: m.value } : {}) }
+            adds.push({ lang: 'en', ref: stat.ref, matcher: { string: text, ...flags }, after: m.string, supersedes: m.string })
+          }
+          continue
+        }
         const reject = (reason, lang = 'en', to = text) => rejects.push({ ref: stat.ref, lang, reason, id, to })
         if (direction(text) === -1 && stat.matchers.some(m => !m.negate && direction(m.string) === 1)) { reject('direction'); continue }
         if ([...(enRefs.get(cmpKey(text)) ?? [])].some(r => r !== stat.ref)) { reject('collision'); continue }
