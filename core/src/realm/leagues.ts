@@ -63,15 +63,15 @@ export function isPrivateLeague (id: string): boolean {
   return /\(PL\d+\)$/.test(id)
 }
 
-/**
- * 是否為「賽季(挑戰)聯盟的軟核交易聯盟」:排除永久聯盟(Standard / Hardcore 與台服繁中名)、
- * `HC ` / `Hardcore` / `專家模式` 開頭的 HC 變體、SSF(含 `Solo Self-Found`)與 Ruthless 變體。
- */
 /** id 是專家模式(永久的或賽季的變體):`HC ` / `Hardcore` / `專家模式` 開頭 */
 export function isHardcoreLeague (id: string): boolean {
   return id.startsWith('HC ') || id.startsWith('Hardcore') || PERMANENT_HC.some(hc => id.startsWith(hc))
 }
 
+/**
+ * 是否為「賽季(挑戰)聯盟的軟核交易聯盟」:排除永久聯盟(Standard / Hardcore 與台服繁中名)、
+ * `HC ` / `Hardcore` / `專家模式` 開頭的 HC 變體、SSF(含 `Solo Self-Found`)與 Ruthless 變體。
+ */
 export function isChallengeSoftcoreLeague (id: string): boolean {
   if (PERMANENT_SC.includes(id) || PERMANENT_HC.includes(id)) return false
   if (isHardcoreLeague(id)) return false
