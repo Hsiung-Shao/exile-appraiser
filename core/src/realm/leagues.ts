@@ -94,6 +94,23 @@ export function pickLeague (list: League[], current: string | undefined, game: G
   return list[0]?.id
 }
 
+/**
+ * 載入清單時用的選擇規則 = `pickLeague` + 「新賽季聯盟第一次出現就切過去」。
+ * `seen` = 上次載入時清單裡的賽季軟核聯盟(呼叫端存檔)。
+ *
+ * 為什麼需要:賽季之間 `pickLeague` 會退到 Standard 並存檔;新賽季開了以後 Standard 仍在清單裡,
+ * 單看「既有選擇還在不在」分不出「使用者選的」與「當時沒得選」,就永遠停在 Standard(2026-11-14 3.30 開季使用者回報)。
+ * 規則:清單第一個賽季軟核聯盟與 `seen` 不同 = 新賽季 → 切過去(私人聯盟除外);同一個賽季裡使用者改選的照舊沿用。
+ * 賽季之間不清掉 `seen`。
+ */
+export function pickLeagueOnLoad (
+  list: League[], current: string | undefined, seen: string | undefined, game: Game = 'poe1'
+): { id: string | undefined, seen: string | undefined } {
+  const challenge = list.find(l => isChallengeSoftcoreLeague(l.id))?.id
+  if (challenge && challenge !== seen && !(current && isPrivateLeague(current))) return { id: challenge, seen: challenge }
+  return { id: pickLeague(list, current, game), seen: challenge ?? seen }
+}
+
 export async function fetchLeagues (http: HttpFetch, realm: Realm, game: Game = 'poe1'): Promise<League[]> {
   const response = await http(leaguesUrl(realm, game), { headers: { Accept: 'application/json' } })
   if (!response.ok) {

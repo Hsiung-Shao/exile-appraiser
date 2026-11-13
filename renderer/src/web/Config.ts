@@ -57,6 +57,8 @@ export interface Config {
   bg: BgSettings
   /** 聯盟選擇,依遊戲再依伺服器區分開存(舊版 `leagueByRealm` 讀檔時併入 `poe1`)。 */
   leagueBy: Record<Game, Partial<Record<Realm, string>>>
+  /** 上次載入聯盟清單時看到的賽季聯盟(同樣依遊戲 / 伺服器區分);清單出現不同的賽季聯盟 = 新賽季 → 自動切過去(core `pickLeagueOnLoad`)。 */
+  leagueSeenBy: Record<Game, Partial<Record<Realm, string>>>
   accountName: string
   restoreClipboard: boolean
   /** 快速查價主鍵(APT 語意:不含修飾鍵,如 `D`);實際熱鍵 = hotkeyHold + hotkey。 */
@@ -348,6 +350,7 @@ function createConfig (): Config {
     fsBase: DEFAULT_FS_BASE,
     bg: normBg(undefined), // 第 26 步:layout 是巢狀物件,不能淺拷貝 BG_DEFAULT(會共用、改到常數)
     leagueBy: { poe1: {}, poe2: {} } as Record<Game, Partial<Record<Realm, string>>>,
+    leagueSeenBy: { poe1: {}, poe2: {} } as Record<Game, Partial<Record<Realm, string>>>,
     accountName: '',
     restoreClipboard: false,
     hotkey: 'D',
@@ -449,7 +452,7 @@ function serialize (): string {
   const { configVersion, game, realm, language, uiLanguage, theme, accent, fsBase, leagueBy, accountName, restoreClipboard, priceCheck } = config
   const { hotkey, hotkeyHold, hotkeyLocked, overlayKey, windowTitleBy, autoSwitchGame, overlayMode, overlayBackgroundClose } = config
   return JSON.stringify({
-    configVersion, game, realm, language, uiLanguage, theme, accent, fsBase, bg: config.bg, leagueBy, accountName, restoreClipboard,
+    configVersion, game, realm, language, uiLanguage, theme, accent, fsBase, bg: config.bg, leagueBy, leagueSeenBy: config.leagueSeenBy, accountName, restoreClipboard,
     hotkey, hotkeyHold, hotkeyLocked, overlayKey, windowTitleBy, autoSwitchGame, overlayMode, overlayBackgroundClose,
     priceCheck,
     ocrLang: config.ocrLang,
@@ -556,6 +559,7 @@ function applyLoaded (raw: string) {
     poe1: { ...(loaded.leagueByRealm ?? {}), ...(loaded.leagueBy?.poe1 ?? {}) },
     poe2: { ...(loaded.leagueBy?.poe2 ?? {}) }
   }
+  config.leagueSeenBy = { poe1: { ...(loaded.leagueSeenBy?.poe1 ?? {}) }, poe2: { ...(loaded.leagueSeenBy?.poe2 ?? {}) } }
   config.priceCheck = { ...fresh.priceCheck, ...(loaded.priceCheck ?? {}) }
   config.priceCheck.listingLayout = normListingLayout(config.priceCheck.listingLayout) // 壞值逐欄回預設
   config.priceCheck.showMechanism = normShowMechanism(config.priceCheck.showMechanism) // 壞值回關
