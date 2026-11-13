@@ -1,6 +1,6 @@
 // @ts-check
 // 從 fork 單向同步資料檔(逐位元組複製,保留原行尾),然後重寫 MANIFEST 中該遊戲的部分。
-//   node scripts/sync-data-from-apt.mjs --from ../過時專案/apt-patched                 → data/poe1(PoE1,apt-patched)
+// 只剩 PoE2:PoE1 資料 2026-11-14 起由本專案維護(scripts/poe1-season/update.mjs),不再從 apt-patched 同步。
 //   node scripts/sync-data-from-apt.mjs --game poe2 --from ../過時專案/ee2-patched     → data/poe2(PoE2,ee2-patched)
 // 資料只在 fork 端產生(apt `npm run regen-data`、ee2 的 tools-local),本專案不改資料內容。
 // PoE2 的 `*.index.bin` 在 ee2-patched 是 gitignore 的,這裡同步後用 make-index-files --game poe2 重產
@@ -17,12 +17,13 @@ const flag = (name) => {
   const i = args.indexOf(name)
   return i === -1 ? undefined : args[i + 1]
 }
-const GAME = flag('--game') ?? 'poe1'
-if (GAME !== 'poe1' && GAME !== 'poe2') {
-  console.error(`--game 只接受 poe1 / poe2(收到 ${GAME})`)
+const GAME = flag('--game')
+if (GAME !== 'poe2') {
+  // 2026-11-14 起 PoE1 資料由本專案自己維護;從 apt-patched 複製會把資料蓋回 3.29。
+  console.error('只支援 --game poe2。PoE1 資料改用 node scripts/poe1-season/update.mjs 更新(不再從 apt-patched 同步)')
   process.exit(2)
 }
-const FROM = path.resolve(ROOT, flag('--from') ?? (GAME === 'poe2' ? '../過時專案/ee2-patched' : '../過時專案/apt-patched'))
+const FROM = path.resolve(ROOT, flag('--from') ?? '../過時專案/ee2-patched')
 const SRC = path.join(FROM, 'renderer', 'public', 'data')
 const DST = path.join(ROOT, 'data', GAME)
 const LANGS = ['cmn-Hant', 'en']
@@ -49,20 +50,10 @@ function copyFile (src, dst) {
   copied++
 }
 
-if (GAME === 'poe1') {
-  copyFile(path.join(SRC, 'item-drop.json'), path.join(DST, 'item-drop.json'))
-  for (const lang of LANGS) {
-    const dir = path.join(SRC, lang)
-    for (const name of fs.readdirSync(dir)) {
-      copyFile(path.join(dir, name), path.join(DST, lang, name))
-    }
-  }
-} else {
-  for (const name of POE2_ROOT_FILES) copyFile(path.join(SRC, name), path.join(DST, name))
-  for (const lang of LANGS) {
-    for (const name of POE2_LANG_FILES) copyFile(path.join(SRC, lang, name), path.join(DST, lang, name))
-  }
-  execFileSync(process.execPath, [path.join(ROOT, 'scripts', 'make-index-files.mjs'), '--game', 'poe2'], { stdio: 'inherit' })
+for (const name of POE2_ROOT_FILES) copyFile(path.join(SRC, name), path.join(DST, name))
+for (const lang of LANGS) {
+  for (const name of POE2_LANG_FILES) copyFile(path.join(SRC, lang, name), path.join(DST, lang, name))
 }
+execFileSync(process.execPath, [path.join(ROOT, 'scripts', 'make-index-files.mjs'), '--game', 'poe2'], { stdio: 'inherit' })
 console.log(`複製 ${copied} 個檔案(來源 ${FROM} @ ${commit})`)
 execFileSync(process.execPath, [path.join(ROOT, 'scripts', 'verify-data-manifest.mjs'), '--write', '--prefix', `data/${GAME}`, '--commit', commit], { stdio: 'inherit' })

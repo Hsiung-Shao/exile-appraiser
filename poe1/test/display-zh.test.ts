@@ -93,9 +93,13 @@ describe('P3 PoE1 詞綴繁中', () => {
     const reports: ZhLineReport[] = []
     for (const r of REC.result) reports.push(...translateDisplayItem(parseFetchItem(r.item)!, r.item, data).lines)
     const withId = reports.filter(l => l.tradeId)
-    expect(withId.filter(l => l.reason === 'ok').length).toBe(55)
+    // 錄製檔是 3.29 的回應:其中 explicit.stat_3587013273 在 3.30 被交易站移除
+    // (資料已換成 explicit.indexable_support_57,現在的回應會帶新 id),所以這一行留英文。
+    expect(withId.filter(l => l.reason === 'ok').length).toBe(54)
     expect(withId.length).toBe(55)
-    expect(withId.filter(l => l.reason !== 'ok').map(l => `${l.reason} ${l.en}`)).toEqual([])
+    expect(withId.filter(l => l.reason !== 'ok').map(l => `${l.reason} ${l.en}`)).toEqual([
+      'unknown-id Socketed Gems are Supported by Level 15 Item Rarity'
+    ])
   })
 
   it('輸入不被修改', () => {

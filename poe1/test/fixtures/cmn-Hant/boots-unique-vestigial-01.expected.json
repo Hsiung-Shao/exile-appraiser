@@ -190,11 +190,15 @@
             "better": 1,
             "matchers": [
               {
-                "string": "增加 #% 物品稀有度"
+                "string": "增加 #% 物品稀有度",
+                "superseded": true
               },
               {
                 "negate": true,
                 "string": "減少 #% 物品稀有度"
+              },
+              {
+                "string": "#%物品稀有度"
               }
             ],
             "ref": "#% increased Rarity of Items found",
@@ -219,7 +223,8 @@
             }
           },
           "translation": {
-            "string": "增加 #% 物品稀有度"
+            "string": "增加 #% 物品稀有度",
+            "superseded": true
           }
         }
       ]
@@ -710,11 +715,15 @@
                   "better": 1,
                   "matchers": [
                     {
-                      "string": "增加 #% 物品稀有度"
+                      "string": "增加 #% 物品稀有度",
+                      "superseded": true
                     },
                     {
                       "negate": true,
                       "string": "減少 #% 物品稀有度"
+                    },
+                    {
+                      "string": "#%物品稀有度"
                     }
                   ],
                   "ref": "#% increased Rarity of Items found",
@@ -739,7 +748,8 @@
                   }
                 },
                 "translation": {
-                  "string": "增加 #% 物品稀有度"
+                  "string": "增加 #% 物品稀有度",
+                  "superseded": true
                 }
               }
             ]
@@ -756,11 +766,15 @@
               "better": 1,
               "matchers": [
                 {
-                  "string": "增加 #% 物品稀有度"
+                  "string": "增加 #% 物品稀有度",
+                  "superseded": true
                 },
                 {
                   "negate": true,
                   "string": "減少 #% 物品稀有度"
+                },
+                {
+                  "string": "#%物品稀有度"
                 }
               ],
               "ref": "#% increased Rarity of Items found",
@@ -785,7 +799,8 @@
               }
             },
             "translation": {
-              "string": "增加 #% 物品稀有度"
+              "string": "增加 #% 物品稀有度",
+              "superseded": true
             }
           }
         }
@@ -794,11 +809,15 @@
         "better": 1,
         "matchers": [
           {
-            "string": "增加 #% 物品稀有度"
+            "string": "增加 #% 物品稀有度",
+            "superseded": true
           },
           {
             "negate": true,
             "string": "減少 #% 物品稀有度"
+          },
+          {
+            "string": "#%物品稀有度"
           }
         ],
         "ref": "#% increased Rarity of Items found",

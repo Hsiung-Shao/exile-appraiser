@@ -18,17 +18,11 @@
    "stat_1217583941|Buffs on Players expire #% faster": [
     "玩家身上的增益效果加速 #% 失效"
    ],
-   "stat_1259656520|Immortal Syndicate Members in your Maps are #% more\nlikely to offer to Bargain for Items": [
-    "你地圖中的永生密教成員\n有 #% 更多機率交涉物品"
-   ],
    "stat_144887967|#% chance to gain Phasing for # seconds when your Trap is triggered by an Enemy": [
     "陷阱被敵人觸發時有 #% 機率獲得 3 秒迷蹤效果"
    ],
    "stat_1493325653|Prevent +#% of Suppressed Spell Damage while on Full Energy Shield": [
     "滿能量護盾時，防止 #% 壓抑法術傷害"
-   ],
-   "stat_1505882627|Harvest Crops in your Maps have #% increased chance to contain a Tier 4 Plant": [
-    "你地圖中收割作物增加 #% 機率成長至階級 4 的作物"
    ],
    "stat_1539368271|#% increased Explosive Placement Range in your Maps": [
     "增加 #% 你地圖中爆裂物的放置距離"
@@ -99,18 +93,12 @@
    "stat_3454830051|#% increased Main Hand Critical Strike Chance per\nMurderous Eye Jewel affecting you, up to a maximum of 200%": [
     "每顆影響你的殺戮之眼珠寶，增加 #% 主手暴擊率，最多 200%"
    ],
-   "stat_3550168289|Area is inhabited by an additional Rogue Exile": [
-    "區域含有額外#位盜賊流亡者"
-   ],
    "stat_405988579|Delirium Bosses in your Maps drop #% increased Simulacrum Splinters": [
     "你地圖中的譫妄頭目增加掉落 #% 幻像斷片"
    ],
    "stat_4116705863|Prevent +#% of Suppressed Spell Damage": [
     "#% 防止壓抑法術傷害的總量",
     "阻止 #% 的壓抑法術傷害"
-   ],
-   "stat_4219583418|#% increased quantity of Artifacts dropped by Monsters": [
-    "增加 #% 怪物掉落文物的數量"
    ],
    "stat_461663422|#% increased Effect of Jewel Socket Passive Skills containing Corrupted Magic Jewels": [
     "增加#%天賦樹插槽內的已汙染魔法珠寶效果"
@@ -143,9 +131,6 @@
    ],
    "stat_1217583941|Buffs on Players expire #% faster": [
     "Buffs on Players expire #% faster"
-   ],
-   "stat_1259656520|Immortal Syndicate Members in your Maps are #% more\nlikely to offer to Bargain for Items": [
-    "Immortal Syndicate Members in your Maps are #% more\nlikely to offer to Bargain for Items"
    ],
    "stat_144887967|#% chance to gain Phasing for # seconds when your Trap is triggered by an Enemy": [
     "#% chance to gain Phasing for 3 seconds when your Trap is triggered by an Enemy"
@@ -327,9 +312,6 @@
    ],
    "stat_4202723071|Wither on Hit with this weapon against Enemies with at least # Poison on them": [
     "Wither on Hit with this weapon against Enemies with at least # Poisons on them"
-   ],
-   "stat_4219583418|#% increased quantity of Artifacts dropped by Monsters": [
-    "#% increased quantity of Artifacts dropped by Monsters"
    ],
    "stat_4231915769|Gain Adrenaline for # second when Ward Breaks": [
     "Gain Adrenaline for # seconds when Ward Breaks"

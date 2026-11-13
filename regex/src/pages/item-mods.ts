@@ -112,7 +112,8 @@ function liteOf (s: Json): StatLite | null {
     if (!isObj(m) || typeof m.string !== 'string') continue
     strings.push(m.string)
     if (m.negate !== true) same.push(m.string)
-    if (m.negate !== true && m.value === undefined) plain.push(m.string)
+    // superseded = 舊版遊戲的寫法(scripts/poe1-season 標的),現行客戶端不會出現 → 不當模板
+    if (m.negate !== true && m.value === undefined && m.superseded !== true) plain.push(m.string)
   }
   let statId: string | null = null
   const ids = isObj(s.trade) && isObj(s.trade.ids) ? s.trade.ids : {}
