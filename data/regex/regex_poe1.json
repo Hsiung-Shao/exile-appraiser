@@ -11384,6 +11384,854 @@
    }
   },
   {
+   "id": "tincture_mods",
+   "kind": "mods",
+   "title": "萃取物詞綴",
+   "titleEn": "Tincture modifiers",
+   "note": "萃取物的前綴與後綴。產生的片段會避開這份清單裡的其他詞綴、詞綴名稱、萃取物名稱與基底固有詞綴。只差在數字兩側文字的詞綴（增加／減少 #% 效果等）無法單獨指定，請改用「物品詞綴數值」頁。",
+   "limit": 250,
+   "groups": [
+    "前綴",
+    "後綴"
+   ],
+   "groupsEn": [
+    "Prefix",
+    "Suffix"
+   ],
+   "entries": [
+    {
+     "id": "TinctureCooldownRecovery1",
+     "zh": [
+      "增加 #% 冷卻時間恢復率"
+     ],
+     "en": [
+      "#% increased Cooldown Recovery Rate"
+     ],
+     "g": 0,
+     "affixZh": "清醒的、敏銳的、洞察的、精明的",
+     "hiddenZh": [
+      "前綴 \"清醒的\"(階層：#)",
+      "前綴 \"敏銳的\"(階層：#)",
+      "前綴 \"洞察的\"(階層：#)",
+      "前綴 \"精明的\"(階層：#)"
+     ],
+     "hiddenEn": [
+      "Prefix Modifier \"Lucid\" (Tier: #)",
+      "Prefix Modifier \"Perceptive\" (Tier: #)",
+      "Prefix Modifier \"Insightful\" (Tier: #)",
+      "Prefix Modifier \"Astute\" (Tier: #)"
+     ]
+    },
+    {
+     "id": "TinctureEffect1",
+     "zh": [
+      "增加 #% 效果"
+     ],
+     "en": [
+      "#% increased effect"
+     ],
+     "g": 0,
+     "affixZh": "草藥的、天然的、藥用的、園藝的",
+     "hiddenZh": [
+      "前綴 \"草藥的\"(階層：#)",
+      "前綴 \"天然的\"(階層：#)",
+      "前綴 \"藥用的\"(階層：#)",
+      "前綴 \"園藝的\"(階層：#)",
+      "前綴 \"有力的\"(階層：#)",
+      "前綴 \"集中的\"(階層：#)",
+      "前綴 \"豐富的\"(階層：#)"
+     ],
+     "hiddenEn": [
+      "Prefix Modifier \"Herbal\" (Tier: #)",
+      "Prefix Modifier \"Natural\" (Tier: #)",
+      "Prefix Modifier \"Medicinal\" (Tier: #)",
+      "Prefix Modifier \"Horticultural\" (Tier: #)",
+      "Prefix Modifier \"Potent\" (Tier: #)",
+      "Prefix Modifier \"Concentrated\" (Tier: #)",
+      "Prefix Modifier \"Enriched\" (Tier: #)"
+     ]
+    },
+    {
+     "id": "TinctureEffectFasterToxicity1",
+     "zh": [
+      "增加 #% 魔力灼燒速度"
+     ],
+     "en": [
+      "#% increased Mana Burn rate"
+     ],
+     "g": 0,
+     "affixZh": "有力的、集中的、豐富的",
+     "hiddenZh": [
+      "前綴 \"有力的\"(階層：#)",
+      "前綴 \"集中的\"(階層：#)",
+      "前綴 \"豐富的\"(階層：#)"
+     ],
+     "hiddenEn": [
+      "Prefix Modifier \"Potent\" (Tier: #)",
+      "Prefix Modifier \"Concentrated\" (Tier: #)",
+      "Prefix Modifier \"Enriched\" (Tier: #)"
+     ]
+    },
+    {
+     "id": "TinctureEffectSlowerToxicity1",
+     "zh": [
+      "減少 #% 效果"
+     ],
+     "en": [
+      "#% reduced effect"
+     ],
+     "g": 0,
+     "affixZh": "單薄的、稀薄的、實測的",
+     "hiddenZh": [
+      "前綴 \"單薄的\"(階層：#)",
+      "前綴 \"稀薄的\"(階層：#)",
+      "前綴 \"實測的\"(階層：#)"
+     ],
+     "hiddenEn": [
+      "Prefix Modifier \"Thin\" (Tier: #)",
+      "Prefix Modifier \"Diluted\" (Tier: #)",
+      "Prefix Modifier \"Measured\" (Tier: #)"
+     ]
+    },
+    {
+     "id": "TinctureEffectSlowerToxicity1",
+     "zh": [
+      "減少 #% 魔力灼燒速度"
+     ],
+     "en": [
+      "#% reduced Mana Burn rate"
+     ],
+     "g": 0,
+     "affixZh": "經久的、頑強的、執著的、不懈的",
+     "hiddenZh": [
+      "前綴 \"經久的\"(階層：#)",
+      "前綴 \"頑強的\"(階層：#)",
+      "前綴 \"執著的\"(階層：#)",
+      "前綴 \"不懈的\"(階層：#)",
+      "前綴 \"單薄的\"(階層：#)",
+      "前綴 \"稀薄的\"(階層：#)",
+      "前綴 \"實測的\"(階層：#)"
+     ],
+     "hiddenEn": [
+      "Prefix Modifier \"Sustained\" (Tier: #)",
+      "Prefix Modifier \"Tenacious\" (Tier: #)",
+      "Prefix Modifier \"Persistent\" (Tier: #)",
+      "Prefix Modifier \"Persevering\" (Tier: #)",
+      "Prefix Modifier \"Thin\" (Tier: #)",
+      "Prefix Modifier \"Diluted\" (Tier: #)",
+      "Prefix Modifier \"Measured\" (Tier: #)"
+     ]
+    },
+    {
+     "id": "TinctureDamageOverTimeMultiplier1",
+     "zh": [
+      "#% 近戰武器攻擊的持續傷害加成"
+     ],
+     "en": [
+      "#% to Damage over Time Multiplier with Melee Weapon Attacks"
+     ],
+     "g": 1,
+     "affixZh": "毒辣之、散布之、液化之、溶化之",
+     "hiddenZh": [
+      "後綴 \"毒辣之\"(階層：#)",
+      "傷害",
+      "攻擊",
+      "傷害,攻擊",
+      "傷害, 攻擊",
+      "後綴 \"散布之\"(階層：#)",
+      "後綴 \"液化之\"(階層：#)",
+      "後綴 \"溶化之\"(階層：#)",
+      "後綴 \"溶解之\"(階層：#)"
+     ],
+     "hiddenEn": [
+      "Suffix Modifier \"of Acrimony\" (Tier: #)",
+      "Damage",
+      "Attack",
+      "Damage,Attack",
+      "Damage, Attack",
+      "Suffix Modifier \"of Dispersion\" (Tier: #)",
+      "Suffix Modifier \"of Liquefaction\" (Tier: #)",
+      "Suffix Modifier \"of Melting\" (Tier: #)",
+      "Suffix Modifier \"of Dissolution\" (Tier: #)"
+     ]
+    },
+    {
+     "id": "TinctureCriticalStrikeMultiplier1",
+     "zh": [
+      "#% 近戰武器暴擊加成"
+     ],
+     "en": [
+      "#% to Melee Weapon Critical Strike Multiplier"
+     ],
+     "g": 1,
+     "affixZh": "怒火之、憤怒之、盛怒之、狂怒之",
+     "hiddenZh": [
+      "後綴 \"怒火之\"(階層：#)",
+      "傷害",
+      "攻擊",
+      "暴擊",
+      "傷害,攻擊,暴擊",
+      "傷害, 攻擊, 暴擊",
+      "後綴 \"憤怒之\"(階層：#)",
+      "後綴 \"盛怒之\"(階層：#)",
+      "後綴 \"狂怒之\"(階層：#)",
+      "後綴 \"兇猛之\"(階層：#)"
+     ],
+     "hiddenEn": [
+      "Suffix Modifier \"of Ire\" (Tier: #)",
+      "Damage",
+      "Attack",
+      "Critical",
+      "Damage,Attack,Critical",
+      "Damage, Attack, Critical",
+      "Suffix Modifier \"of Anger\" (Tier: #)",
+      "Suffix Modifier \"of Rage\" (Tier: #)",
+      "Suffix Modifier \"of Fury\" (Tier: #)",
+      "Suffix Modifier \"of Ferocity\" (Tier: #)"
+     ]
+    },
+    {
+     "id": "TinctureFlaskChargeIncrease1",
+     "zh": [
+      "增加 #% 來自近戰武器擊殺的藥劑充能"
+     ],
+     "en": [
+      "#% increased Flask Charges gained from Kills with Melee Weapons"
+     ],
+     "g": 1,
+     "affixZh": "補貨之、補充之、澆注之、滿溢之",
+     "hiddenZh": [
+      "後綴 \"補貨之\"(階層：#)",
+      "後綴 \"補充之\"(階層：#)",
+      "後綴 \"澆注之\"(階層：#)",
+      "後綴 \"滿溢之\"(階層：#)"
+     ],
+     "hiddenEn": [
+      "Suffix Modifier \"of Restocking\" (Tier: #)",
+      "Suffix Modifier \"of Replenishing\" (Tier: #)",
+      "Suffix Modifier \"of Pouring\" (Tier: #)",
+      "Suffix Modifier \"of Overflowing\" (Tier: #)"
+     ]
+    },
+    {
+     "id": "TinctureIncreasedAilmentDuration1",
+     "zh": [
+      "增加 #% 來自近戰武器攻擊的元素異常狀態持續時間"
+     ],
+     "en": [
+      "#% increased Duration of Elemental Ailments from Melee Weapon Attacks"
+     ],
+     "g": 1,
+     "affixZh": "荒野之、狂野之、野蠻之、野獸之",
+     "hiddenZh": [
+      "後綴 \"荒野之\"(階層：#)",
+      "元素",
+      "攻擊",
+      "異常狀態",
+      "元素,攻擊,異常狀態",
+      "元素, 攻擊, 異常狀態",
+      "（元素異常狀態包含點燃、焦灼、冰緩、冰凍、易碎、感電和殘喘）",
+      "後綴 \"狂野之\"(階層：#)",
+      "後綴 \"野蠻之\"(階層：#)",
+      "後綴 \"野獸之\"(階層：#)"
+     ],
+     "hiddenEn": [
+      "Suffix Modifier \"of the Wild\" (Tier: #)",
+      "Elemental",
+      "Attack",
+      "Ailment",
+      "Elemental,Attack,Ailment",
+      "Elemental, Attack, Ailment",
+      "(Elemental Ailments are Ignited, Scorched, Chilled, Frozen, Brittle, Shocked, and Sapped)",
+      "Suffix Modifier \"of the Untamed\" (Tier: #)",
+      "Suffix Modifier \"of the Savage\" (Tier: #)",
+      "Suffix Modifier \"of the Beast\" (Tier: #)"
+     ]
+    },
+    {
+     "id": "TinctureIncreasedAttackSpeed1",
+     "zh": [
+      "增加 #% 近戰武器攻擊速度"
+     ],
+     "en": [
+      "#% increased Melee Weapon Attack Speed"
+     ],
+     "g": 1,
+     "affixZh": "技巧之、輕鬆之、成熟之",
+     "hiddenZh": [
+      "後綴 \"技巧之\"(階層：#)",
+      "攻擊",
+      "速度",
+      "攻擊,速度",
+      "攻擊, 速度",
+      "後綴 \"輕鬆之\"(階層：#)",
+      "後綴 \"成熟之\"(階層：#)"
+     ],
+     "hiddenEn": [
+      "Suffix Modifier \"of Skill\" (Tier: #)",
+      "Attack",
+      "Speed",
+      "Attack,Speed",
+      "Attack, Speed",
+      "Suffix Modifier \"of Ease\" (Tier: #)",
+      "Suffix Modifier \"of Mastery\" (Tier: #)"
+     ]
+    },
+    {
+     "id": "TinctureDamageAgainstLowLife1",
+     "zh": [
+      "對貧血的敵人，增加 #% 近戰武器傷害"
+     ],
+     "en": [
+      "#% increased Melee Weapon Damage against Enemies that are on Low Life"
+     ],
+     "g": 1,
+     "affixZh": "行刑之、殲滅之、終結之、消滅之",
+     "hiddenZh": [
+      "後綴 \"行刑之\"(階層：#)",
+      "傷害",
+      "攻擊",
+      "傷害,攻擊",
+      "傷害, 攻擊",
+      "（血量低於50%時為貧血狀態）",
+      "後綴 \"殲滅之\"(階層：#)",
+      "後綴 \"終結之\"(階層：#)",
+      "後綴 \"消滅之\"(階層：#)",
+      "後綴 \"暗殺之\"(階層：#)"
+     ],
+     "hiddenEn": [
+      "Suffix Modifier \"of Execution\" (Tier: #)",
+      "Damage",
+      "Attack",
+      "Damage,Attack",
+      "Damage, Attack",
+      "(You are on Low Life if you have 50% of your Maximum Life or less)",
+      "Suffix Modifier \"of Elimination\" (Tier: #)",
+      "Suffix Modifier \"of Termination\" (Tier: #)",
+      "Suffix Modifier \"of Extermination\" (Tier: #)",
+      "Suffix Modifier \"of Assassination\" (Tier: #)"
+     ]
+    },
+    {
+     "id": "TinctureLifeGainPerTarget1",
+     "zh": [
+      "每用近戰武器擊中一個敵人，獲得 # 生命"
+     ],
+     "en": [
+      "Gain # Life per Enemy Hit with Melee Weapons"
+     ],
+     "g": 1,
+     "affixZh": "回春之、治癒之、生長之",
+     "hiddenZh": [
+      "後綴 \"回春之\"(階層：#)",
+      "生命",
+      "攻擊",
+      "生命,攻擊",
+      "生命, 攻擊",
+      "後綴 \"治癒之\"(階層：#)",
+      "後綴 \"生長之\"(階層：#)"
+     ],
+     "hiddenEn": [
+      "Suffix Modifier \"of Rejuvenation\" (Tier: #)",
+      "Life",
+      "Attack",
+      "Life,Attack",
+      "Life, Attack",
+      "Suffix Modifier \"of Restoration\" (Tier: #)",
+      "Suffix Modifier \"of Regrowth\" (Tier: #)"
+     ]
+    },
+    {
+     "id": "TinctureManaGainPerTarget1",
+     "zh": [
+      "每用近戰武器擊中一個敵人，獲得 # 魔力"
+     ],
+     "en": [
+      "Gain # Mana per Enemy Hit with Melee Weapons"
+     ],
+     "g": 1,
+     "affixZh": "包覆之、吸取之、吞噬之",
+     "hiddenZh": [
+      "後綴 \"包覆之\"(階層：#)",
+      "魔力",
+      "攻擊",
+      "魔力,攻擊",
+      "魔力, 攻擊",
+      "後綴 \"吸取之\"(階層：#)",
+      "後綴 \"吞噬之\"(階層：#)"
+     ],
+     "hiddenEn": [
+      "Suffix Modifier \"of Enveloping\" (Tier: #)",
+      "Mana",
+      "Attack",
+      "Mana,Attack",
+      "Mana, Attack",
+      "Suffix Modifier \"of Siphoning\" (Tier: #)",
+      "Suffix Modifier \"of Devouring\" (Tier: #)"
+     ]
+    },
+    {
+     "id": "TinctureLifeGainedFromEnemyDeath1",
+     "zh": [
+      "每用近戰武器殺死一個敵人，獲得 # 生命"
+     ],
+     "en": [
+      "Gain # Life per Enemy Killed with Melee Weapons"
+     ],
+     "g": 1,
+     "affixZh": "成功之、勝利之、凱旋之、征服之",
+     "hiddenZh": [
+      "後綴 \"成功之\"(階層：#)",
+      "生命",
+      "攻擊",
+      "生命,攻擊",
+      "生命, 攻擊",
+      "後綴 \"勝利之\"(階層：#)",
+      "後綴 \"凱旋之\"(階層：#)",
+      "後綴 \"征服之\"(階層：#)"
+     ],
+     "hiddenEn": [
+      "Suffix Modifier \"of Success\" (Tier: #)",
+      "Life",
+      "Attack",
+      "Life,Attack",
+      "Life, Attack",
+      "Suffix Modifier \"of Victory\" (Tier: #)",
+      "Suffix Modifier \"of Triumph\" (Tier: #)",
+      "Suffix Modifier \"of Conquest\" (Tier: #)"
+     ]
+    },
+    {
+     "id": "TinctureManaGainedFromEnemyDeath1",
+     "zh": [
+      "每用近戰武器殺死一個敵人，獲得 # 魔力"
+     ],
+     "en": [
+      "Gain # Mana per Enemy Killed with Melee Weapons"
+     ],
+     "g": 1,
+     "affixZh": "吸收之、逆滲透之、消耗之、同化之",
+     "hiddenZh": [
+      "後綴 \"吸收之\"(階層：#)",
+      "後綴 \"逆滲透之\"(階層：#)",
+      "後綴 \"消耗之\"(階層：#)",
+      "後綴 \"同化之\"(階層：#)"
+     ],
+     "hiddenEn": [
+      "Suffix Modifier \"of Absorption\" (Tier: #)",
+      "Suffix Modifier \"of Osmosis\" (Tier: #)",
+      "Suffix Modifier \"of Consumption\" (Tier: #)",
+      "Suffix Modifier \"of Assimilation\" (Tier: #)"
+     ]
+    },
+    {
+     "id": "TinctureElementalPenetration1",
+     "zh": [
+      "近戰武器傷害穿透 #% 元素抗性"
+     ],
+     "en": [
+      "Melee Weapon Damage Penetrates #% Elemental Resistances"
+     ],
+     "g": 1,
+     "affixZh": "催化之、灌注之、強化之、釋放之",
+     "hiddenZh": [
+      "後綴 \"催化之\"(階層：#)",
+      "傷害",
+      "元素",
+      "攻擊",
+      "傷害,元素,攻擊",
+      "傷害, 元素, 攻擊",
+      "後綴 \"灌注之\"(階層：#)",
+      "後綴 \"強化之\"(階層：#)",
+      "後綴 \"釋放之\"(階層：#)",
+      "後綴 \"強盛之\"(階層：#)"
+     ],
+     "hiddenEn": [
+      "Suffix Modifier \"of Catalysing\" (Tier: #)",
+      "Damage",
+      "Elemental",
+      "Attack",
+      "Damage,Elemental,Attack",
+      "Damage, Elemental, Attack",
+      "Suffix Modifier \"of Infusing\" (Tier: #)",
+      "Suffix Modifier \"of Empowering\" (Tier: #)",
+      "Suffix Modifier \"of the Unleashed\" (Tier: #)",
+      "Suffix Modifier \"of Overpowering\" (Tier: #)"
+     ]
+    },
+    {
+     "id": "TinctureIgnorePhysDR1",
+     "zh": [
+      "近戰武器擊中有 #% 機率無視敵人的物理傷害減免"
+     ],
+     "en": [
+      "Melee Weapon Hits have #% chance to ignore Enemy Physical Damage Reduction"
+     ],
+     "g": 1,
+     "affixZh": "衝擊之、粉碎之、壓倒性之",
+     "hiddenZh": [
+      "後綴 \"衝擊之\"(階層：#)",
+      "傷害",
+      "物理",
+      "攻擊",
+      "傷害,物理,攻擊",
+      "傷害, 物理, 攻擊",
+      "後綴 \"粉碎之\"(階層：#)",
+      "後綴 \"壓倒性之\"(階層：#)"
+     ],
+     "hiddenEn": [
+      "Suffix Modifier \"of Battering\" (Tier: #)",
+      "Damage",
+      "Physical",
+      "Attack",
+      "Damage,Physical,Attack",
+      "Damage, Physical, Attack",
+      "Suffix Modifier \"of Crushing\" (Tier: #)",
+      "Suffix Modifier \"of Overwhelming\" (Tier: #)"
+     ]
+    }
+   ],
+   "ambientZh": [
+    "物品等級：#",
+    "已汙染",
+    "未鑑定",
+    "已複製",
+    "分化",
+    "破裂之物",
+    "追憶之物",
+    "塑者之物",
+    "尊師之物",
+    "聖戰軍王物品",
+    "救贖者物品",
+    "狩獵者物品",
+    "總督軍物品",
+    "卓烙總督物品",
+    "吞噬天地物品",
+    "(階層：#)",
+    "固定詞綴",
+    "傳奇詞綴",
+    "前綴",
+    "後綴",
+    "稀有度",
+    "需求",
+    "品質",
+    "等級",
+    "插槽",
+    "每 # 秒造成魔力灼燒",
+    "解除時有 # 秒冷卻時間",
+    "用滑鼠右鍵點擊啟用。每次只能啟動一種腰帶裡的萃取物。每層魔力灼燒會使你每秒失去 1% 最大魔力。可以手動停用，或當魔力降至 0 時自動停用。",
+    "萃取物",
+    "三相萃取物",
+    "孢子花萃取物",
+    "橡木枝萃取物",
+    "毒莓果萃取物",
+    "灰樹皮萃取物",
+    "玫瑰刺萃取物",
+    "針葉木萃取物",
+    "鐵木林萃取物",
+    "電熔岩萃取物",
+    "鮮血液萃取物",
+    "近戰武器增加 #% 元素傷害",
+    "使用近戰武器擊中時有 #% 機率致盲敵人",
+    "近戰武器造成的致盲增加 #% 效果",
+    "近戰武器擊中時獲得 # 層盛怒",
+    "近戰武器有 #% 機率造成中毒",
+    "近戰武器造成的中毒增加 #% 傷害",
+    "近戰武器有 #% 機率造成點燃",
+    "近戰武器造成的點燃增加 #% 傷害",
+    "增加 #% 近戰武器暴擊率",
+    "近戰武器有 #% 機率造成冰凍",
+    "近戰武器造成的冰緩增加 #% 效果",
+    "使用近戰武器時增加 #% 暈眩持續時間",
+    "使用近戰武器時減少 #% 敵人暈眩門檻",
+    "近戰武器有 #% 機率造成感電",
+    "近戰武器造成的感電增加 #% 效果",
+    "使用近戰武器時有 #% 機率造成流血",
+    "近戰武器造成的流血增加 #% 傷害"
+   ],
+   "ambientEn": [
+    "Item Level: #",
+    "Corrupted",
+    "Unidentified",
+    "Mirrored",
+    "Split",
+    "Fractured Item",
+    "Synthesised Item",
+    "Shaper Item",
+    "Elder Item",
+    "Crusader Item",
+    "Redeemer Item",
+    "Hunter Item",
+    "Warlord Item",
+    "Searing Exarch Item",
+    "Eater of Worlds Item",
+    "(Tier: #)",
+    "Implicit Modifier",
+    "Unique Modifier",
+    "Prefix",
+    "Suffix",
+    "Rarity",
+    "Requirements",
+    "Quality",
+    "Level",
+    "Sockets",
+    "Inflicts Mana Burn every # Second",
+    "Inflicts Mana Burn every # Seconds",
+    "# Second Cooldown when Deactivated",
+    "Right click to activate. Only one Tincture in your belt can be active at a time. Mana Burn causes you to lose 1% of your maximum Mana per stack per second. Can be deactivated manually, or will automatically deactivate when you reach 0 Mana.",
+    "Tinctures",
+    "Prismatic Tincture",
+    "Sporebloom Tincture",
+    "Oakbranch Tincture",
+    "Poisonberry Tincture",
+    "Ashbark Tincture",
+    "Rosethorn Tincture",
+    "Borealwood Tincture",
+    "Ironwood Tincture",
+    "Fulgurite Tincture",
+    "Blood Sap Tincture",
+    "#% increased Elemental Damage with Melee Weapons",
+    "#% chance to Blind Enemies on Hit with Melee Weapons",
+    "#% increased Effect of Blind from Melee Weapons",
+    "Gain # Rage on Melee Weapon Hit",
+    "#% chance to Poison with Melee Weapons",
+    "#% increased Damage with Poison from Melee Weapons",
+    "#% chance to Ignite with Melee Weapons",
+    "#% increased Damage with Ignite from Melee Weapons",
+    "#% increased Critical Strike Chance with Melee Weapons",
+    "#% chance to Freeze with Melee Weapons",
+    "#% increased Effect of Chill from Melee Weapons",
+    "#% increased Stun Duration with Melee Weapons",
+    "#% reduced Enemy Stun Threshold with Melee Weapons",
+    "#% chance to Shock with Melee Weapons",
+    "#% increased Effect of Shock from Melee Weapons",
+    "#% chance to cause Bleeding with Melee Weapons",
+    "#% increased Damage with Bleeding from Melee Weapons"
+   ],
+   "nameWordsZh": {
+    "prefix": [
+     "草藥的",
+     "天然的",
+     "藥用的",
+     "園藝的",
+     "經久的",
+     "頑強的",
+     "執著的",
+     "不懈的",
+     "清醒的",
+     "敏銳的",
+     "洞察的",
+     "精明的",
+     "有力的",
+     "集中的",
+     "豐富的",
+     "單薄的",
+     "稀薄的",
+     "實測的",
+     "荒野之",
+     "狂野之",
+     "野蠻之",
+     "野獸之",
+     "毒辣之",
+     "散布之",
+     "液化之",
+     "溶化之",
+     "溶解之",
+     "催化之",
+     "灌注之",
+     "強化之",
+     "釋放之",
+     "強盛之",
+     "怒火之",
+     "憤怒之",
+     "盛怒之",
+     "狂怒之",
+     "兇猛之",
+     "技巧之",
+     "輕鬆之",
+     "成熟之",
+     "行刑之",
+     "殲滅之",
+     "終結之",
+     "消滅之",
+     "暗殺之",
+     "成功之",
+     "勝利之",
+     "凱旋之",
+     "征服之",
+     "吸收之",
+     "逆滲透之",
+     "消耗之",
+     "同化之",
+     "回春之",
+     "治癒之",
+     "生長之",
+     "包覆之",
+     "吸取之",
+     "吞噬之",
+     "補貨之",
+     "補充之",
+     "澆注之",
+     "滿溢之",
+     "衝擊之",
+     "粉碎之",
+     "壓倒性之"
+    ],
+    "suffix": [
+     "荒野之",
+     "狂野之",
+     "野蠻之",
+     "野獸之",
+     "毒辣之",
+     "散布之",
+     "液化之",
+     "溶化之",
+     "溶解之",
+     "催化之",
+     "灌注之",
+     "強化之",
+     "釋放之",
+     "強盛之",
+     "怒火之",
+     "憤怒之",
+     "盛怒之",
+     "狂怒之",
+     "兇猛之",
+     "技巧之",
+     "輕鬆之",
+     "成熟之",
+     "行刑之",
+     "殲滅之",
+     "終結之",
+     "消滅之",
+     "暗殺之",
+     "成功之",
+     "勝利之",
+     "凱旋之",
+     "征服之",
+     "吸收之",
+     "逆滲透之",
+     "消耗之",
+     "同化之",
+     "回春之",
+     "治癒之",
+     "生長之",
+     "包覆之",
+     "吸取之",
+     "吞噬之",
+     "補貨之",
+     "補充之",
+     "澆注之",
+     "滿溢之",
+     "衝擊之",
+     "粉碎之",
+     "壓倒性之",
+     "三相萃取物",
+     "孢子花萃取物",
+     "橡木枝萃取物",
+     "毒莓果萃取物",
+     "灰樹皮萃取物",
+     "玫瑰刺萃取物",
+     "針葉木萃取物",
+     "鐵木林萃取物",
+     "電熔岩萃取物",
+     "鮮血液萃取物"
+    ]
+   },
+   "nameWordsEn": {
+    "prefix": [
+     "Herbal",
+     "Natural",
+     "Medicinal",
+     "Horticultural",
+     "Sustained",
+     "Tenacious",
+     "Persistent",
+     "Persevering",
+     "Lucid",
+     "Perceptive",
+     "Insightful",
+     "Astute",
+     "Potent",
+     "Concentrated",
+     "Enriched",
+     "Thin",
+     "Diluted",
+     "Measured",
+     "Prismatic Tincture",
+     "Sporebloom Tincture",
+     "Oakbranch Tincture",
+     "Poisonberry Tincture",
+     "Ashbark Tincture",
+     "Rosethorn Tincture",
+     "Borealwood Tincture",
+     "Ironwood Tincture",
+     "Fulgurite Tincture",
+     "Blood Sap Tincture"
+    ],
+    "suffix": [
+     " of the Wild",
+     " of the Untamed",
+     " of the Savage",
+     " of the Beast",
+     " of Acrimony",
+     " of Dispersion",
+     " of Liquefaction",
+     " of Melting",
+     " of Dissolution",
+     " of Catalysing",
+     " of Infusing",
+     " of Empowering",
+     " of the Unleashed",
+     " of Overpowering",
+     " of Ire",
+     " of Anger",
+     " of Rage",
+     " of Fury",
+     " of Ferocity",
+     " of Skill",
+     " of Ease",
+     " of Mastery",
+     " of Execution",
+     " of Elimination",
+     " of Termination",
+     " of Extermination",
+     " of Assassination",
+     " of Success",
+     " of Victory",
+     " of Triumph",
+     " of Conquest",
+     " of Absorption",
+     " of Osmosis",
+     " of Consumption",
+     " of Assimilation",
+     " of Rejuvenation",
+     " of Restoration",
+     " of Regrowth",
+     " of Enveloping",
+     " of Siphoning",
+     " of Devouring",
+     " of Restocking",
+     " of Replenishing",
+     " of Pouring",
+     " of Overflowing",
+     " of Battering",
+     " of Crushing",
+     " of Overwhelming",
+     " Prismatic Tincture",
+     " Sporebloom Tincture",
+     " Oakbranch Tincture",
+     " Poisonberry Tincture",
+     " Ashbark Tincture",
+     " Rosethorn Tincture",
+     " Borealwood Tincture",
+     " Ironwood Tincture",
+     " Fulgurite Tincture",
+     " Blood Sap Tincture"
+    ]
+   }
+  },
+  {
    "id": "cluster_jewel",
    "kind": "mods",
    "title": "星團珠寶詞綴",
@@ -50142,6 +50990,7 @@
     "盾",
     "長杖",
     "細劍",
+    "萃取物",
     "雙手斧",
     "雙手錘",
     "雙手劍",
@@ -50175,6 +51024,7 @@
     "Shields",
     "Staves",
     "Thrusting One Hand Swords",
+    "Tinctures",
     "Two Hand Axes",
     "Two Hand Maces",
     "Two Hand Swords",
@@ -63084,6 +63934,180 @@
      ]
     },
     {
+     "id": "Metadata/Items/Tinctures/Tincture1",
+     "zh": [
+      "三相萃取物"
+     ],
+     "en": [
+      "Prismatic Tincture"
+     ],
+     "g": 25,
+     "hiddenZh": [
+      "近戰武器增加 #% 元素傷害"
+     ],
+     "hiddenEn": [
+      "#% increased Elemental Damage with Melee Weapons"
+     ]
+    },
+    {
+     "id": "Metadata/Items/Tinctures/Tincture10",
+     "zh": [
+      "孢子花萃取物"
+     ],
+     "en": [
+      "Sporebloom Tincture"
+     ],
+     "g": 25,
+     "hiddenZh": [
+      "使用近戰武器擊中時有 #% 機率致盲敵人",
+      "近戰武器造成的致盲增加 #% 效果"
+     ],
+     "hiddenEn": [
+      "#% chance to Blind Enemies on Hit with Melee Weapons",
+      "#% increased Effect of Blind from Melee Weapons"
+     ]
+    },
+    {
+     "id": "Metadata/Items/Tinctures/Tincture9",
+     "zh": [
+      "橡木枝萃取物"
+     ],
+     "en": [
+      "Oakbranch Tincture"
+     ],
+     "g": 25,
+     "hiddenZh": [
+      "近戰武器擊中時獲得 # 層盛怒"
+     ],
+     "hiddenEn": [
+      "Gain # Rage on Melee Weapon Hit"
+     ]
+    },
+    {
+     "id": "Metadata/Items/Tinctures/Tincture7",
+     "zh": [
+      "毒莓果萃取物"
+     ],
+     "en": [
+      "Poisonberry Tincture"
+     ],
+     "g": 25,
+     "hiddenZh": [
+      "近戰武器有 #% 機率造成中毒",
+      "近戰武器造成的中毒增加 #% 傷害"
+     ],
+     "hiddenEn": [
+      "#% chance to Poison with Melee Weapons",
+      "#% increased Damage with Poison from Melee Weapons"
+     ]
+    },
+    {
+     "id": "Metadata/Items/Tinctures/Tincture4",
+     "zh": [
+      "灰樹皮萃取物"
+     ],
+     "en": [
+      "Ashbark Tincture"
+     ],
+     "g": 25,
+     "hiddenZh": [
+      "近戰武器有 #% 機率造成點燃",
+      "近戰武器造成的點燃增加 #% 傷害"
+     ],
+     "hiddenEn": [
+      "#% chance to Ignite with Melee Weapons",
+      "#% increased Damage with Ignite from Melee Weapons"
+     ]
+    },
+    {
+     "id": "Metadata/Items/Tinctures/Tincture2",
+     "zh": [
+      "玫瑰刺萃取物"
+     ],
+     "en": [
+      "Rosethorn Tincture"
+     ],
+     "g": 25,
+     "hiddenZh": [
+      "增加 #% 近戰武器暴擊率"
+     ],
+     "hiddenEn": [
+      "#% increased Critical Strike Chance with Melee Weapons"
+     ]
+    },
+    {
+     "id": "Metadata/Items/Tinctures/Tincture5",
+     "zh": [
+      "針葉木萃取物"
+     ],
+     "en": [
+      "Borealwood Tincture"
+     ],
+     "g": 25,
+     "hiddenZh": [
+      "近戰武器有 #% 機率造成冰凍",
+      "近戰武器造成的冰緩增加 #% 效果"
+     ],
+     "hiddenEn": [
+      "#% chance to Freeze with Melee Weapons",
+      "#% increased Effect of Chill from Melee Weapons"
+     ]
+    },
+    {
+     "id": "Metadata/Items/Tinctures/Tincture3",
+     "zh": [
+      "鐵木林萃取物"
+     ],
+     "en": [
+      "Ironwood Tincture"
+     ],
+     "g": 25,
+     "hiddenZh": [
+      "使用近戰武器時增加 #% 暈眩持續時間",
+      "使用近戰武器時減少 #% 敵人暈眩門檻"
+     ],
+     "hiddenEn": [
+      "#% increased Stun Duration with Melee Weapons",
+      "#% reduced Enemy Stun Threshold with Melee Weapons"
+     ]
+    },
+    {
+     "id": "Metadata/Items/Tinctures/Tincture6",
+     "zh": [
+      "電熔岩萃取物"
+     ],
+     "en": [
+      "Fulgurite Tincture"
+     ],
+     "g": 25,
+     "hiddenZh": [
+      "近戰武器有 #% 機率造成感電",
+      "近戰武器造成的感電增加 #% 效果"
+     ],
+     "hiddenEn": [
+      "#% chance to Shock with Melee Weapons",
+      "#% increased Effect of Shock from Melee Weapons"
+     ]
+    },
+    {
+     "id": "Metadata/Items/Tinctures/Tincture8",
+     "zh": [
+      "鮮血液萃取物"
+     ],
+     "en": [
+      "Blood Sap Tincture"
+     ],
+     "g": 25,
+     "hiddenZh": [
+      "使用近戰武器時有 #% 機率造成流血",
+      "近戰武器造成的流血增加 #% 傷害"
+     ],
+     "hiddenEn": [
+      "#% chance to cause Bleeding with Melee Weapons",
+      "#% increased Damage with Bleeding from Melee Weapons"
+     ]
+    },
+    {
      "id": "Metadata/Items/Weapons/TwoHandWeapons/TwoHandAxes/TwoHandAxeM1",
      "zh": [
       "匕斧"
@@ -63091,7 +64115,7 @@
      "en": [
       "Dagger Axe"
      ],
-     "g": 25,
+     "g": 26,
      "hiddenZh": [
       "增加 #% 暴擊率"
      ],
@@ -63107,7 +64131,7 @@
      "en": [
       "Karui Chopper"
      ],
-     "g": 25
+     "g": 26
     },
     {
      "id": "Metadata/Items/Weapons/TwoHandWeapons/TwoHandAxes/TwoHandAxeE1",
@@ -63117,7 +64141,7 @@
      "en": [
       "Prime Cleaver"
      ],
-     "g": 25,
+     "g": 26,
      "hiddenZh": [
       "此武器擊中時有 #% 機率無視敵人的物理傷害減免"
      ],
@@ -63133,7 +64157,7 @@
      "en": [
       "Apex Cleaver"
      ],
-     "g": 25,
+     "g": 26,
      "hiddenZh": [
       "此武器擊中時無視敵人的物理傷害減免"
      ],
@@ -63149,7 +64173,7 @@
      "en": [
       "Poleaxe"
      ],
-     "g": 25
+     "g": 26
     },
     {
      "id": "Metadata/Items/Weapons/TwoHandWeapons/TwoHandAxes/TwoHandAxe7",
@@ -63159,7 +64183,7 @@
      "en": [
       "Shadow Axe"
      ],
-     "g": 25
+     "g": 26
     },
     {
      "id": "Metadata/Items/Weapons/TwoHandWeapons/TwoHandAxes/TwoHandAxe3",
@@ -63169,7 +64193,7 @@
      "en": [
       "Woodsplitter"
      ],
-     "g": 25
+     "g": 26
     },
     {
      "id": "Metadata/Items/Weapons/TwoHandWeapons/TwoHandAxes/TwoHandAxe12",
@@ -63179,7 +64203,7 @@
      "en": [
       "Noble Axe"
      ],
-     "g": 25
+     "g": 26
     },
     {
      "id": "Metadata/Items/Weapons/TwoHandWeapons/TwoHandAxes/TwoHandAxe13",
@@ -63189,7 +64213,7 @@
      "en": [
       "Abyssal Axe"
      ],
-     "g": 25
+     "g": 26
     },
     {
      "id": "Metadata/Items/Weapons/TwoHandWeapons/TwoHandAxes/TwoHandAxeM2",
@@ -63199,7 +64223,7 @@
      "en": [
       "Talon Axe"
      ],
-     "g": 25,
+     "g": 26,
      "hiddenZh": [
       "增加 #% 暴擊率"
      ],
@@ -63215,7 +64239,7 @@
      "en": [
       "Honed Cleaver"
      ],
-     "g": 25,
+     "g": 26,
      "hiddenZh": [
       "此武器擊中時有 #% 機率無視敵人的物理傷害減免"
      ],
@@ -63231,7 +64255,7 @@
      "en": [
       "Vaal Axe"
      ],
-     "g": 25,
+     "g": 26,
      "hiddenZh": [
       "擊中時有 #% 機率造成癱瘓"
      ],
@@ -63247,7 +64271,7 @@
      "en": [
       "Stone Axe"
      ],
-     "g": 25
+     "g": 26
     },
     {
      "id": "Metadata/Items/Weapons/TwoHandWeapons/TwoHandAxes/TwoHandAxe2",
@@ -63257,7 +64281,7 @@
      "en": [
       "Jade Chopper"
      ],
-     "g": 25
+     "g": 26
     },
     {
      "id": "Metadata/Items/Weapons/TwoHandWeapons/TwoHandAxes/TwoHandAxe16",
@@ -63267,7 +64291,7 @@
      "en": [
       "Ezomyte Axe"
      ],
-     "g": 25
+     "g": 26
     },
     {
      "id": "Metadata/Items/Weapons/TwoHandWeapons/TwoHandAxes/TwoHandAxe19",
@@ -63277,7 +64301,7 @@
      "en": [
       "Void Axe"
      ],
-     "g": 25
+     "g": 26
     },
     {
      "id": "Metadata/Items/Weapons/TwoHandWeapons/TwoHandAxes/TwoHandAxe10",
@@ -63287,7 +64311,7 @@
      "en": [
       "Headsman Axe"
      ],
-     "g": 25
+     "g": 26
     },
     {
      "id": "Metadata/Items/Weapons/TwoHandWeapons/TwoHandAxes/TwoHandAxe9",
@@ -63297,7 +64321,7 @@
      "en": [
       "Timber Axe"
      ],
-     "g": 25
+     "g": 26
     },
     {
      "id": "Metadata/Items/Weapons/TwoHandWeapons/TwoHandAxes/TwoHandAxe15",
@@ -63307,7 +64331,7 @@
      "en": [
       "Sundering Axe"
      ],
-     "g": 25,
+     "g": 26,
      "hiddenZh": [
       "流血 #% 持續傷害加成"
      ],
@@ -63323,7 +64347,7 @@
      "en": [
       "Fleshripper"
      ],
-     "g": 25,
+     "g": 26,
      "hiddenZh": [
       "增加 #% 暴擊率"
      ],
@@ -63339,7 +64363,7 @@
      "en": [
       "Gilded Axe"
      ],
-     "g": 25
+     "g": 26
     },
     {
      "id": "Metadata/Items/Weapons/TwoHandWeapons/TwoHandAxes/TwoHandAxe5",
@@ -63349,7 +64373,7 @@
      "en": [
       "Double Axe"
      ],
-     "g": 25
+     "g": 26
     },
     {
      "id": "Metadata/Items/Weapons/TwoHandWeapons/TwoHandAxes/TwoHandAxe11",
@@ -63359,7 +64383,7 @@
      "en": [
       "Labrys"
      ],
-     "g": 25
+     "g": 26
     },
     {
      "id": "Metadata/Items/Weapons/TwoHandWeapons/TwoHandAxes/TwoHandAxe18",
@@ -63369,7 +64393,7 @@
      "en": [
       "Despot Axe"
      ],
-     "g": 25
+     "g": 26
     },
     {
      "id": "Metadata/Items/Weapons/TwoHandWeapons/TwoHandAxes/TwoHandAxe8",
@@ -63379,7 +64403,7 @@
      "en": [
       "Jasper Chopper"
      ],
-     "g": 25
+     "g": 26
     },
     {
      "id": "Metadata/Items/Weapons/TwoHandWeapons/TwoHandMaces/TwoHandMace4",
@@ -63389,7 +64413,7 @@
      "en": [
       "Sledgehammer"
      ],
-     "g": 26,
+     "g": 27,
      "hiddenZh": [
       "增加 #% 敵人暈眩時間"
      ],
@@ -63405,7 +64429,7 @@
      "en": [
       "Spiny Maul"
      ],
-     "g": 26,
+     "g": 27,
      "hiddenZh": [
       "增加 #% 敵人暈眩時間"
      ],
@@ -63421,7 +64445,7 @@
      "en": [
       "Great Mallet"
      ],
-     "g": 26,
+     "g": 27,
      "hiddenZh": [
       "增加 #% 敵人暈眩時間"
      ],
@@ -63437,7 +64461,7 @@
      "en": [
       "Mallet"
      ],
-     "g": 26,
+     "g": 27,
      "hiddenZh": [
       "增加 #% 敵人暈眩時間"
      ],
@@ -63453,7 +64477,7 @@
      "en": [
       "Karui Maul"
      ],
-     "g": 26,
+     "g": 27,
      "hiddenZh": [
       "增加 #% 敵人暈眩時間"
      ],
@@ -63469,7 +64493,7 @@
      "en": [
       "Totemic Maul"
      ],
-     "g": 26,
+     "g": 27,
      "hiddenZh": [
       "增加 #% 敵人暈眩時間"
      ],
@@ -63485,7 +64509,7 @@
      "en": [
       "Dread Maul"
      ],
-     "g": 26,
+     "g": 27,
      "hiddenZh": [
       "增加 #% 敵人暈眩時間"
      ],
@@ -63501,7 +64525,7 @@
      "en": [
       "Colossus Mallet"
      ],
-     "g": 26,
+     "g": 27,
      "hiddenZh": [
       "增加 #% 範圍傷害"
      ],
@@ -63517,7 +64541,7 @@
      "en": [
       "Imperial Maul"
      ],
-     "g": 26,
+     "g": 27,
      "hiddenZh": [
       "增加 #% 力量"
      ],
@@ -63533,7 +64557,7 @@
      "en": [
       "Fright Maul"
      ],
-     "g": 26,
+     "g": 27,
      "hiddenZh": [
       "增加 #% 敵人暈眩時間"
      ],
@@ -63549,7 +64573,7 @@
      "en": [
       "Terror Maul"
      ],
-     "g": 26,
+     "g": 27,
      "hiddenZh": [
       "有 #% 機率增加暈眩時間 1 倍"
      ],
@@ -63565,7 +64589,7 @@
      "en": [
       "Meatgrinder"
      ],
-     "g": 26,
+     "g": 27,
      "hiddenZh": [
       "#% 機率造成兩倍傷害"
      ],
@@ -63581,7 +64605,7 @@
      "en": [
       "Piledriver"
      ],
-     "g": 26,
+     "g": 27,
      "hiddenZh": [
       "減少 #% 敵人暈眩門檻"
      ],
@@ -63597,7 +64621,7 @@
      "en": [
       "Solar Maul"
      ],
-     "g": 26,
+     "g": 27,
      "hiddenZh": [
       "增加 #% 範圍效果"
      ],
@@ -63613,7 +64637,7 @@
      "en": [
       "Morning Star"
      ],
-     "g": 26,
+     "g": 27,
      "hiddenZh": [
       "增加 #% 範圍效果"
      ],
@@ -63629,7 +64653,7 @@
      "en": [
       "Driftwood Maul"
      ],
-     "g": 26,
+     "g": 27,
      "hiddenZh": [
       "增加 #% 敵人暈眩時間"
      ],
@@ -63645,7 +64669,7 @@
      "en": [
       "Steelhead"
      ],
-     "g": 26,
+     "g": 27,
      "hiddenZh": [
       "增加 #% 敵人暈眩時間"
      ],
@@ -63661,7 +64685,7 @@
      "en": [
       "Jagged Maul"
      ],
-     "g": 26,
+     "g": 27,
      "hiddenZh": [
       "增加 #% 敵人暈眩時間"
      ],
@@ -63677,7 +64701,7 @@
      "en": [
       "Tribal Maul"
      ],
-     "g": 26,
+     "g": 27,
      "hiddenZh": [
       "增加 #% 敵人暈眩時間"
      ],
@@ -63693,7 +64717,7 @@
      "en": [
       "Crushing Force Magnifier"
      ],
-     "g": 26,
+     "g": 27,
      "hiddenZh": [
       "戰吼竭盡 # 次額外攻擊"
      ],
@@ -63709,7 +64733,7 @@
      "en": [
       "Coronal Maul"
      ],
-     "g": 26,
+     "g": 27,
      "hiddenZh": [
       "增加 #% 範圍效果"
      ],
@@ -63725,7 +64749,7 @@
      "en": [
       "Plated Maul"
      ],
-     "g": 26,
+     "g": 27,
      "hiddenZh": [
       "增加 #% 敵人暈眩時間"
      ],
@@ -63741,7 +64765,7 @@
      "en": [
       "Impact Force Propagator"
      ],
-     "g": 26,
+     "g": 27,
      "hiddenZh": [
       "戰吼竭盡 # 次額外攻擊"
      ],
@@ -63757,7 +64781,7 @@
      "en": [
       "Blunt Force Condenser"
      ],
-     "g": 26,
+     "g": 27,
      "hiddenZh": [
       "戰吼竭盡 # 次額外攻擊"
      ],
@@ -63773,7 +64797,7 @@
      "en": [
       "Brass Maul"
      ],
-     "g": 26,
+     "g": 27,
      "hiddenZh": [
       "增加 #% 敵人暈眩時間"
      ],
@@ -63789,7 +64813,7 @@
      "en": [
       "Wraith Sword"
      ],
-     "g": 27,
+     "g": 28,
      "hiddenZh": [
       "增加 #% 全域命中值"
      ],
@@ -63805,7 +64829,7 @@
      "en": [
       "Ornate Sword"
      ],
-     "g": 27,
+     "g": 28,
      "hiddenZh": [
       "# 命中值"
      ],
@@ -63821,7 +64845,7 @@
      "en": [
       "Footman Sword"
      ],
-     "g": 27,
+     "g": 28,
      "hiddenZh": [
       "增加 #% 全域命中值"
      ],
@@ -63837,7 +64861,7 @@
      "en": [
       "Longsword"
      ],
-     "g": 27,
+     "g": 28,
      "hiddenZh": [
       "# 命中值"
      ],
@@ -63853,7 +64877,7 @@
      "en": [
       "Keyblade"
      ],
-     "g": 27,
+     "g": 28,
      "hiddenZh": [
       "數千把無人領取的封測金鑰鍛造而成"
      ],
@@ -63869,7 +64893,7 @@
      "en": [
       "Spectral Sword"
      ],
-     "g": 27,
+     "g": 28,
      "hiddenZh": [
       "增加 #% 全域命中值"
      ],
@@ -63885,7 +64909,7 @@
      "en": [
       "Curved Blade"
      ],
-     "g": 27,
+     "g": 28,
      "hiddenZh": [
       "#% 全域暴擊加成"
      ],
@@ -63901,7 +64925,7 @@
      "en": [
       "Banishing Blade"
      ],
-     "g": 27,
+     "g": 28,
      "hiddenZh": [
       "攻擊暴擊無視敵人怪物元素抗性"
      ],
@@ -63917,7 +64941,7 @@
      "en": [
       "Reaver Sword"
      ],
-     "g": 27,
+     "g": 28,
      "hiddenZh": [
       "增加 #% 全域命中值"
      ],
@@ -63933,7 +64957,7 @@
      "en": [
       "Butcher Sword"
      ],
-     "g": 27,
+     "g": 28,
      "hiddenZh": [
       "# 命中值"
      ],
@@ -63949,7 +64973,7 @@
      "en": [
       "Blasting Blade"
      ],
-     "g": 27,
+     "g": 28,
      "hiddenZh": [
       "攻擊暴擊無視敵人怪物元素抗性"
      ],
@@ -63965,7 +64989,7 @@
      "en": [
       "Infernal Sword"
      ],
-     "g": 27,
+     "g": 28,
      "hiddenZh": [
       "攻擊技能增加 #% 元素傷害"
      ],
@@ -63981,7 +65005,7 @@
      "en": [
       "Lion Sword"
      ],
-     "g": 27,
+     "g": 28,
      "hiddenZh": [
       "# 力量和敏捷"
      ],
@@ -63997,7 +65021,7 @@
      "en": [
       "Vaal Greatsword"
      ],
-     "g": 27,
+     "g": 28,
      "hiddenZh": [
       "# 命中值"
      ],
@@ -64013,7 +65037,7 @@
      "en": [
       "Engraved Greatsword"
      ],
-     "g": 27,
+     "g": 28,
      "hiddenZh": [
       "增加 #% 全域命中值"
      ],
@@ -64029,7 +65053,7 @@
      "en": [
       "Exquisite Blade"
      ],
-     "g": 27,
+     "g": 28,
      "hiddenZh": [
       "#% 全域暴擊加成"
      ],
@@ -64045,7 +65069,7 @@
      "en": [
       "Lithe Blade"
      ],
-     "g": 27,
+     "g": 28,
      "hiddenZh": [
       "#% 全域暴擊加成"
      ],
@@ -64061,7 +65085,7 @@
      "en": [
       "Ezomyte Blade"
      ],
-     "g": 27,
+     "g": 28,
      "hiddenZh": [
       "#% 全域暴擊加成"
      ],
@@ -64077,7 +65101,7 @@
      "en": [
       "Tiger Sword"
      ],
-     "g": 27,
+     "g": 28,
      "hiddenZh": [
       "# 命中值"
      ],
@@ -64093,7 +65117,7 @@
      "en": [
       "Headman's Sword"
      ],
-     "g": 27,
+     "g": 28,
      "hiddenZh": [
       "# 命中值"
      ],
@@ -64109,7 +65133,7 @@
      "en": [
       "Etched Greatsword"
      ],
-     "g": 27,
+     "g": 28,
      "hiddenZh": [
       "增加 #% 全域命中值"
      ],
@@ -64125,7 +65149,7 @@
      "en": [
       "Bastard Sword"
      ],
-     "g": 27,
+     "g": 28,
      "hiddenZh": [
       "增加 #% 全域命中值"
      ],
@@ -64141,7 +65165,7 @@
      "en": [
       "Corroded Blade"
      ],
-     "g": 27,
+     "g": 28,
      "hiddenZh": [
       "增加 #% 全域命中值"
      ],
@@ -64157,7 +65181,7 @@
      "en": [
       "Two-Handed Sword"
      ],
-     "g": 27,
+     "g": 28,
      "hiddenZh": [
       "# 命中值"
      ],
@@ -64173,7 +65197,7 @@
      "en": [
       "Rebuking Blade"
      ],
-     "g": 27,
+     "g": 28,
      "hiddenZh": [
       "攻擊暴擊無視敵人怪物元素抗性"
      ],
@@ -64189,7 +65213,7 @@
      "en": [
       "Highland Blade"
      ],
-     "g": 27,
+     "g": 28,
      "hiddenZh": [
       "# 命中值"
      ],
@@ -64205,7 +65229,7 @@
      "en": [
       "Granite Flask"
      ],
-     "g": 28
+     "g": 29
     },
     {
      "id": "Metadata/Items/Flasks/FlaskUtility1",
@@ -64215,7 +65239,7 @@
      "en": [
       "Diamond Flask"
      ],
-     "g": 28
+     "g": 29
     },
     {
      "id": "Metadata/Items/Flasks/FlaskUtility6",
@@ -64225,7 +65249,7 @@
      "en": [
       "Quicksilver Flask"
      ],
-     "g": 28
+     "g": 29
     },
     {
      "id": "Metadata/Items/Flasks/FlaskUtility11",
@@ -64235,7 +65259,7 @@
      "en": [
       "Aquamarine Flask"
      ],
-     "g": 28,
+     "g": 29,
      "hiddenZh": [
       "使用時製造冰緩地面"
      ],
@@ -64251,7 +65275,7 @@
      "en": [
       "Bismuth Flask"
      ],
-     "g": 28
+     "g": 29
     },
     {
      "id": "Metadata/Items/Flasks/FlaskUtility14",
@@ -64261,7 +65285,7 @@
      "en": [
       "Silver Flask"
      ],
-     "g": 28
+     "g": 29
     },
     {
      "id": "Metadata/Items/Flasks/FlaskUtility10",
@@ -64271,7 +65295,7 @@
      "en": [
       "Basalt Flask"
      ],
-     "g": 28,
+     "g": 29,
      "hiddenZh": [
       "使用時嘲諷附近敵人"
      ],
@@ -64287,7 +65311,7 @@
      "en": [
       "Quartz Flask"
      ],
-     "g": 28
+     "g": 29
     },
     {
      "id": "Metadata/Items/Flasks/FlaskUtility13",
@@ -64297,7 +65321,7 @@
      "en": [
       "Sulphur Flask"
      ],
-     "g": 28,
+     "g": 29,
      "hiddenZh": [
       "使用時製造奉獻地面"
      ],
@@ -64313,7 +65337,7 @@
      "en": [
       "Ruby Flask"
      ],
-     "g": 28
+     "g": 29
     },
     {
      "id": "Metadata/Items/Flasks/FlaskUtility7",
@@ -64323,7 +65347,7 @@
      "en": [
       "Amethyst Flask"
      ],
-     "g": 28
+     "g": 29
     },
     {
      "id": "Metadata/Items/Flasks/FlaskUtility9",
@@ -64333,7 +65357,7 @@
      "en": [
       "Jade Flask"
      ],
-     "g": 28
+     "g": 29
     },
     {
      "id": "Metadata/Items/Flasks/FlaskUtility3",
@@ -64343,7 +65367,7 @@
      "en": [
       "Sapphire Flask"
      ],
-     "g": 28
+     "g": 29
     },
     {
      "id": "Metadata/Items/Flasks/FlaskUtility12",
@@ -64353,7 +65377,7 @@
      "en": [
       "Stibnite Flask"
      ],
-     "g": 28,
+     "g": 29,
      "hiddenZh": [
       "使用時製造一團煙霧"
      ],
@@ -64369,7 +65393,7 @@
      "en": [
       "Corundum Flask"
      ],
-     "g": 28
+     "g": 29
     },
     {
      "id": "Metadata/Items/Flasks/FlaskUtility18",
@@ -64379,7 +65403,7 @@
      "en": [
       "Iron Flask"
      ],
-     "g": 28,
+     "g": 29,
      "hiddenZh": [
       "使用時回復保護"
      ],
@@ -64395,7 +65419,7 @@
      "en": [
       "Topaz Flask"
      ],
-     "g": 28
+     "g": 29
     },
     {
      "id": "Metadata/Items/Flasks/FlaskUtility16",
@@ -64405,7 +65429,7 @@
      "en": [
       "Gold Flask"
      ],
-     "g": 28
+     "g": 29
     },
     {
      "id": "Metadata/Items/Weapons/OneHandWeapons/Wands/WandK3",
@@ -64415,7 +65439,7 @@
      "en": [
       "Kinetic Wand"
      ],
-     "g": 29,
+     "g": 30,
      "hiddenZh": [
       "不能骰出法術詞綴"
      ],
@@ -64431,7 +65455,7 @@
      "en": [
       "Congregator Wand"
      ],
-     "g": 29,
+     "g": 30,
      "hiddenZh": [
       "每 6 秒獲得 1 顆耐力、狂怒或暴擊球"
      ],
@@ -64447,7 +65471,7 @@
      "en": [
       "Convoking Wand"
      ],
-     "g": 29,
+     "g": 30,
      "hiddenZh": [
       "增加 #% 召喚物所造成的傷害"
      ],
@@ -64463,7 +65487,7 @@
      "en": [
       "Convening Wand"
      ],
-     "g": 29,
+     "g": 30,
      "hiddenZh": [
       "增加 #% 召喚物所造成的傷害"
      ],
@@ -64479,7 +65503,7 @@
      "en": [
       "Calling Wand"
      ],
-     "g": 29,
+     "g": 30,
      "hiddenZh": [
       "增加 #% 召喚物所造成的傷害"
      ],
@@ -64495,7 +65519,7 @@
      "en": [
       "Assembler Wand"
      ],
-     "g": 29,
+     "g": 30,
      "hiddenZh": [
       "每 6 秒獲得 1 顆耐力、狂怒或暴擊球"
      ],
@@ -64511,7 +65535,7 @@
      "en": [
       "Driftwood Wand"
      ],
-     "g": 29,
+     "g": 30,
      "hiddenZh": [
       "增加 #% 法術傷害"
      ],
@@ -64527,7 +65551,7 @@
      "en": [
       "Crystal Wand"
      ],
-     "g": 29,
+     "g": 30,
      "hiddenZh": [
       "攻擊和法術附加 # 至 # 冰冷傷害"
      ],
@@ -64543,7 +65567,7 @@
      "en": [
       "Blasting Wand"
      ],
-     "g": 29,
+     "g": 30,
      "hiddenZh": [
       "不能骰出法術詞綴"
      ],
@@ -64559,7 +65583,7 @@
      "en": [
       "Tornado Wand"
      ],
-     "g": 29,
+     "g": 30,
      "hiddenZh": [
       "增加 #% 法術傷害"
      ],
@@ -64575,7 +65599,7 @@
      "en": [
       "Faun's Horn"
      ],
-     "g": 29,
+     "g": 30,
      "hiddenZh": [
       "攻擊和法術附加 # 至 # 火焰傷害"
      ],
@@ -64591,7 +65615,7 @@
      "en": [
       "Heathen Wand"
      ],
-     "g": 29,
+     "g": 30,
      "hiddenZh": [
       "增加 #% 施放速度"
      ],
@@ -64607,7 +65631,7 @@
      "en": [
       "Pagan Wand"
      ],
-     "g": 29,
+     "g": 30,
      "hiddenZh": [
       "增加 #% 施放速度"
      ],
@@ -64623,7 +65647,7 @@
      "en": [
       "Quartz Wand"
      ],
-     "g": 29,
+     "g": 30,
      "hiddenZh": [
       "攻擊和法術附加 # 至 # 冰冷傷害"
      ],
@@ -64639,7 +65663,7 @@
      "en": [
       "Engraved Wand"
      ],
-     "g": 29,
+     "g": 30,
      "hiddenZh": [
       "增加 #% 法術傷害"
      ],
@@ -64655,7 +65679,7 @@
      "en": [
       "Prophecy Wand"
      ],
-     "g": 29,
+     "g": 30,
      "hiddenZh": [
       "增加 #% 法術傷害"
      ],
@@ -64671,7 +65695,7 @@
      "en": [
       "Carved Wand"
      ],
-     "g": 29,
+     "g": 30,
      "hiddenZh": [
       "增加 #% 法術傷害"
      ],
@@ -64687,7 +65711,7 @@
      "en": [
       "Coiled Wand"
      ],
-     "g": 29,
+     "g": 30,
      "hiddenZh": [
       "攻擊和法術附加 # 至 # 閃電傷害"
      ],
@@ -64703,7 +65727,7 @@
      "en": [
       "Goat's Horn"
      ],
-     "g": 29,
+     "g": 30,
      "hiddenZh": [
       "攻擊和法術附加 # 至 # 火焰傷害"
      ],
@@ -64719,7 +65743,7 @@
      "en": [
       "Accumulator Wand"
      ],
-     "g": 29,
+     "g": 30,
      "hiddenZh": [
       "每 6 秒獲得 # 顆耐力、狂怒或暴擊球"
      ],
@@ -64735,7 +65759,7 @@
      "en": [
       "Spiraled Wand"
      ],
-     "g": 29,
+     "g": 30,
      "hiddenZh": [
       "攻擊和法術附加 # 至 # 閃電傷害"
      ],
@@ -64751,7 +65775,7 @@
      "en": [
       "Profane Wand"
      ],
-     "g": 29,
+     "g": 30,
      "hiddenZh": [
       "增加 #% 施放速度"
      ],
@@ -64767,7 +65791,7 @@
      "en": [
       "Sage Wand"
      ],
-     "g": 29,
+     "g": 30,
      "hiddenZh": [
       "增加 #% 法術傷害"
      ],
@@ -64783,7 +65807,7 @@
      "en": [
       "Somatic Wand"
      ],
-     "g": 29,
+     "g": 30,
      "hiddenZh": [
       "不能骰出法術詞綴"
      ],
@@ -64799,7 +65823,7 @@
      "en": [
       "Omen Wand"
      ],
-     "g": 29,
+     "g": 30,
      "hiddenZh": [
       "增加 #% 法術傷害"
      ],
@@ -64815,7 +65839,7 @@
      "en": [
       "Opal Wand"
      ],
-     "g": 29,
+     "g": 30,
      "hiddenZh": [
       "增加 #% 法術傷害"
      ],
@@ -64831,7 +65855,7 @@
      "en": [
       "Imbued Wand"
      ],
-     "g": 29,
+     "g": 30,
      "hiddenZh": [
       "增加 #% 法術傷害"
      ],
@@ -64847,7 +65871,7 @@
      "en": [
       "Demon's Horn"
      ],
-     "g": 29,
+     "g": 30,
      "hiddenZh": [
       "增加 #% 法術傷害"
      ],
@@ -64863,7 +65887,7 @@
      "en": [
       "Judgement Staff"
      ],
-     "g": 30,
+     "g": 31,
      "hiddenZh": [
       "#% 攻擊傷害格擋率"
      ],
@@ -64879,7 +65903,7 @@
      "en": [
       "Coiled Staff"
      ],
-     "g": 30,
+     "g": 31,
      "hiddenZh": [
       "#% 攻擊傷害格擋率"
      ],
@@ -64895,7 +65919,7 @@
      "en": [
       "Foul Staff"
      ],
-     "g": 30,
+     "g": 31,
      "hiddenZh": [
       "#% 攻擊傷害格擋率"
      ],
@@ -64911,7 +65935,7 @@
      "en": [
       "Capacity Rod"
      ],
-     "g": 30,
+     "g": 31,
      "hiddenZh": [
       "# 最大暴擊球和耐力球數量"
      ],
@@ -64927,7 +65951,7 @@
      "en": [
       "Vile Staff"
      ],
-     "g": 30,
+     "g": 31,
      "hiddenZh": [
       "#% 攻擊傷害格擋率"
      ],
@@ -64943,7 +65967,7 @@
      "en": [
       "Potentiality Rod"
      ],
-     "g": 30,
+     "g": 31,
      "hiddenZh": [
       "# 最大暴擊球和耐力球數量"
      ],
@@ -64959,7 +65983,7 @@
      "en": [
       "Ezomyte Staff"
      ],
-     "g": 30,
+     "g": 31,
      "hiddenZh": [
       "#% 攻擊傷害格擋率"
      ],
@@ -64975,7 +65999,7 @@
      "en": [
       "Eventuality Rod"
      ],
-     "g": 30,
+     "g": 31,
      "hiddenZh": [
       "# 最大暴擊球和耐力球數量"
      ],
@@ -64991,7 +66015,7 @@
      "en": [
       "Serpentine Staff"
      ],
-     "g": 30,
+     "g": 31,
      "hiddenZh": [
       "#% 攻擊傷害格擋率"
      ],
@@ -65007,7 +66031,7 @@
      "en": [
       "Military Staff"
      ],
-     "g": 30,
+     "g": 31,
      "hiddenZh": [
       "#% 攻擊傷害格擋率"
      ],
@@ -65023,7 +66047,7 @@
      "en": [
       "Iron Staff"
      ],
-     "g": 30,
+     "g": 31,
      "hiddenZh": [
       "#% 攻擊傷害格擋率"
      ],
@@ -65039,7 +66063,7 @@
      "en": [
       "Maelström Staff"
      ],
-     "g": 30,
+     "g": 31,
      "hiddenZh": [
       "#% 攻擊傷害格擋率"
      ],
@@ -65100,7 +66124,8 @@
     "功能藥劑",
     "箭袋",
     "珠寶",
-    "深淵珠寶"
+    "深淵珠寶",
+    "萃取物"
    ],
    "ambientEn": [
     "Item Level: #",
@@ -65159,7 +66184,8 @@
     "Utility Flasks",
     "Quivers",
     "Jewels",
-    "Abyss Jewels"
+    "Abyss Jewels",
+    "Tinctures"
    ],
    "nameWordsZh": {
     "prefix": [],

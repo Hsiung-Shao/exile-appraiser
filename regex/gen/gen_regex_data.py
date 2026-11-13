@@ -178,6 +178,7 @@ LABEL_IDS = [
 
 # ModDomains: the column stores the enumerator index + 1.
 DOMAIN_ITEM, DOMAIN_FLASK, DOMAIN_AREA = 1, 2, 5
+DOMAIN_TINCTURE = 34   # exile-appraiser 2026-11-13: 萃取物
 DOMAIN_AFFLICTION_JEWEL, DOMAIN_HEIST_AREA, DOMAIN_HEIST_NPC, DOMAIN_HEIST_TRINKET = 21, 22, 23, 24
 # ModGenerationType, same +1 convention.
 GEN_ENCHANT, GEN_ENKINDLING, GEN_INSTILLING = 10, 21, 22
@@ -800,10 +801,7 @@ def build_magic_affixes(ctx):
     for e in entries:
         if shared[e["en"][0]] > 1:
             e["key"] = f"{e['en'][0]}#{e['id']}"
-    # Tinctures carry magic names too (domain 34) but no vendor sells them, so their
-    # folder is not a vendor_bases folder.
-    bases, class_lines, _groups = build_vendor_bases(
-        ctx, tuple("Metadata/Items/" + f for f in VENDOR_FOLDERS + ("Tinctures/",)), files)
+    bases, class_lines, _groups = build_vendor_bases(ctx, POE1_BASE_FOLDERS, files)
     amb = list(class_lines)
     for e in bases:
         amb += _pairs(e["zh"], e["en"]) + _pairs(e.get("hiddenZh", []), e.get("hiddenEn", []))
@@ -928,6 +926,33 @@ def build_flask_mods(ctx):
     return entries, bases, None
 
 
+# ---- tinctures (exile-appraiser 2026-11-13) ----------------------------------------
+# PoE1 的基底資料夾:vendor_bases 與 magic_affixes 共用。萃取物商店不賣,但使用者要在
+# 物品基底頁找得到(2026-11-13 裁定),所以也收。PoE2 沒有萃取物,VENDOR_FOLDERS 不動。
+# 萃取物的詞綴文字在自己的描述檔(stat_descriptions.txt 查不到 → 整頁空白)
+TINCTURE_FILES = ["tincture_stat_descriptions.txt", "stat_descriptions.txt"]
+POE1_BASE_FOLDERS = tuple("Metadata/Items/" + f for f in VENDOR_FOLDERS + ("Tinctures/",))
+
+
+def group_tincture(gens, _tags, _mods):
+    assert len(gens) == 1, f"tincture line is both prefix and suffix: {gens}"
+    return 0 if gens == {GEN_PREFIX} else 1
+
+
+def build_tincture_mods(ctx):
+    """Tincture prefixes / suffixes (Mods.Domain 34). Ambient: the class line, every
+    tincture base name and each base's implicit lines -- a token inside one of those
+    would light up every tincture of that base."""
+    bases, class_lines, _groups = build_vendor_bases(
+        ctx, ("Metadata/Items/Tinctures/",), TINCTURE_FILES)
+    names = [(z, e) for b in bases for z, e in _pairs(b["zh"], b["en"])]
+    entries = mod_page_with_seam(ctx, "tincture_mods", names)
+    amb = list(class_lines) + names
+    for b in bases:
+        amb += _pairs(b.get("hiddenZh", []), b.get("hiddenEn", []))
+    return entries, amb, None
+
+
 # --- page declarations --------------------------------------------------------
 # A modifier page is: which modifiers (domain, generation types, spawn tags),
 # which wording (statdescription file priority), which stats are really
@@ -1019,6 +1044,27 @@ PAGES: list[dict] = [
             "ItemDisplayFlaskBuffDuration1Second", "ItemDisplayFlaskBuffDurationNSeconds",
             "ItemDisplayChargesConsumptionOnUse1Charge", "ItemDisplayChargesConsumptionOnUseNCharges",
             "ItemDisplayChargesNCharges", "ItemDisplayChargesCurrentOfMaxN"],
+    },
+    {
+        # exile-appraiser 2026-11-13: 萃取物詞綴(使用者回報正則缺萃取物資料)
+        "id": "tincture_mods",
+        "kind": "mods",
+        "title": "萃取物詞綴",
+        "titleEn": "Tincture modifiers",
+        "note": "萃取物的前綴與後綴。"
+                "產生的片段會避開這份清單裡的其他詞綴、詞綴名稱、萃取物名稱與基底固有詞綴。"
+                "只差在數字兩側文字的詞綴（增加／減少 #% 效果等）無法單獨指定，請改用「物品詞綴數值」頁。",
+        "groups": ["前綴", "後綴"],
+        "groupsEn": ["Prefix", "Suffix"],
+        "sources": [{"domain": DOMAIN_TINCTURE, "gens": (GEN_PREFIX, GEN_SUFFIX)}],
+        "accept": lambda live: True,
+        "files": TINCTURE_FILES,
+        "group": group_tincture,
+        "build": build_tincture_mods,
+        "ambient_ids": AMBIENT_ITEM_IDS + [
+            "ItemDisplayTinctureToxicity1Second", "ItemDisplayTinctureToxicityNSeconds",
+            "ItemDisplayTinctureCooldown1Second", "ItemDisplayTinctureCooldownNSeconds",
+            "ItemDescriptionTincture"],
     },
     {
         "id": "cluster_jewel",
@@ -1138,7 +1184,8 @@ PAGES: list[dict] = [
                 "產生的片段會避開其他基底名、種類名與基底內建詞綴。",
         "groups": [], "groupsEn": [],          # one per item class, from the data
         "build": lambda ctx: build_vendor_bases(
-            ctx, tuple("Metadata/Items/" + f for f in VENDOR_FOLDERS), ["stat_descriptions.txt"]),
+            # 萃取物基底的固有詞綴只有萃取物描述檔有文字;排在後面當後援,其他基底不受影響
+            ctx, POE1_BASE_FOLDERS, ["stat_descriptions.txt", "tincture_stat_descriptions.txt"]),
         "ambient_ids": AMBIENT_ITEM_IDS + ["ItemDisplayStringClass"],
     },
     {

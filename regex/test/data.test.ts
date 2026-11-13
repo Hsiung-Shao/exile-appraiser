@@ -10,8 +10,8 @@ import path from 'node:path'
 // tablet_mods 78→81、expedition_relic_mods 內容異動是 PoE2 GGPK 4.5.5 快取更新(非產生器改動)。
 const EXPECTED = {
   poe1: {
-    map_mods: 122, logbook_mods: 62, scarabs: 138, flask_mods: 82, cluster_jewel: 388,
-    gem_names: 891, tattoos: 132, heist_equipment_mods: 141, heist_contracts: 107, vendor_bases: 1057,
+    map_mods: 122, logbook_mods: 62, scarabs: 138, flask_mods: 82, tincture_mods: 17, cluster_jewel: 388,
+    gem_names: 891, tattoos: 132, heist_equipment_mods: 141, heist_contracts: 107, vendor_bases: 1067, // 2026-11-13 萃取物:新頁 17 列、基底 +10
     // 2026-11-04 對照 poe.re 補頁;詞綴名含藥劑 / 珠寶 / 深淵珠寶 / 藥酒,英文同名分列
     beasts: 220, magic_affixes: 1185
   },

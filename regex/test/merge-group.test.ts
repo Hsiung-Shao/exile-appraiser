@@ -106,7 +106,7 @@ function withExtraLine (p: RegexPage, id: string, zh: string, en: string): Regex
 
 // ---- G ----
 describe('R10-G 合併只限同一物品組', () => {
-  const EQUIP = ['vendor_bases', 'vendor_items', 'vendor_items_poe2', 'item_mod_values', 'item_mod_values_poe2', 'flask_mods', 'flask_charm_mods', 'gem_names',
+  const EQUIP = ['vendor_bases', 'vendor_items', 'vendor_items_poe2', 'item_mod_values', 'item_mod_values_poe2', 'flask_mods', 'tincture_mods', 'flask_charm_mods', 'gem_names',
     'magic_affixes']
   it('G3 物品組對照完整:裝備組成員都是 equipment、section 歸宿主組、其餘頁自成一組', () => {
     for (const g of ['poe1', 'poe2'] as const) {
