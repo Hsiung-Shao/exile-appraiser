@@ -49,7 +49,6 @@ Sources, in the order the project's data rules put them:
     variants also carry the reminder-text ids the game attaches to the line.
   * tools/ggpk_zh/out/poe1/tables/{remindertext,clientstrings,baseitemtypes,
     expeditionfactions,worldareas}.json for the hidden and ambient text.
-  * host/data/scarabs_poe1.json (gen_scarabs.py) for the scarab page.
 
 Run:  python tools/gen_regex_data.py              writes host/data/regex_poe1.json (schema 2)
       python tools/gen_regex_data.py --schema 1   the old two-page file, byte for byte
@@ -111,7 +110,6 @@ DATA_EN = TOOLS / "ggpk_zh" / "cache" / "data_all" / "data"
 DATA_TC = DATA_EN / "traditional chinese"
 STATS_JSON = TOOLS / "ggpk_zh" / "out" / "poe1" / "stats.json"
 TABLES_DIR = TOOLS / "ggpk_zh" / "out" / "poe1" / "tables"
-SCARABS_JSON = HERE / "input" / "scarabs_poe1.json"   # exile-appraiser: 輸入快照收在本專案
 OUT_PATH = ROOT / "data" / "regex" / "regex_poe1.json"
 
 # Client strings every map item prints (property labels, popup badges, the
@@ -396,48 +394,6 @@ def mod_page_with_seam(ctx, page_id: str, bases: list[tuple[str, str]], **over) 
     entries = build_mod_page(ctx.mr, ctx.blocks, page, ctx.counts, ctx.ex, ctx.wording)
     ctx.seam[page_id] = seam_words(page["affix_sink"], bases)
     return entries
-
-
-# ---- scarabs -----------------------------------------------------------------
-
-def build_scarabs(ctx):
-    """Scarab names + their effect text, from host/data/scarabs_poe1.json
-    (gen_scarabs.py: Scarabs.dat is the list, CurrencyItems.Description the
-    text). The effect lines are printed on the item and are what a player
-    usually remembers, so they are part of the entry's own text, not hidden.
-
-    descZh / descEn are independent lists (their line counts can differ --
-    see gen_scarabs.py), so they are never zipped: each language keeps its
-    own lines."""
-    data = json.loads(SCARABS_JSON.read_text(encoding="utf-8"))["scarabs"]
-    types: dict[str, list[dict]] = {}
-    for s in data:
-        types.setdefault(s["type"], []).append(s)
-    groups_zh, groups_en, gidx = [], [], {}
-    for t, members in types.items():
-        # The type's label: the shortest Chinese name with the 聖甲蟲： head
-        # removed (聖甲蟲：深淵 -> 深淵); English keeps the type id. A label,
-        # not an identity -- the entries carry the real names.
-        shortest = min(members, key=lambda m: (m["tier"], len(m["zh"])))
-        label = shortest["zh"].split("：", 1)[-1] if "：" in shortest["zh"] else shortest["zh"]
-        gidx[t] = len(groups_zh)
-        groups_zh.append(label)
-        groups_en.append(re.sub(r"(?<=[a-z])(?=[A-Z])", " ", t))
-    entries = []
-    seen_zh, seen_en = set(), set()
-    for s in data:
-        zh_lines = [s["zh"]] + [l for d in s.get("descZh", []) for l in clean_desc(d)]
-        en_lines = [s["en"]] + [l for d in s.get("descEn", []) for l in clean_desc(d)]
-        if s["zh"] in seen_zh or s["en"] in seen_en:
-            continue
-        seen_zh.add(s["zh"])
-        seen_en.add(s["en"])
-        e = {"id": s["id"], "zh": [], "en": [], "g": gidx[s["type"]]}
-        add_unique(e["zh"], zh_lines)
-        add_unique(e["en"], en_lines)
-        entries.append(e)
-    entries.sort(key=lambda e: (e["g"], e["zh"][0]))
-    return entries, [], (groups_zh, groups_en)
 
 
 # ---- cluster jewels ------------------------------------------------------------
@@ -1006,19 +962,6 @@ PAGES: list[dict] = [
         "words_tag": "expedition_logbook",
     },
     {
-        "id": "scarabs",
-        "kind": "names",
-        "title": "聖甲蟲",
-        "titleEn": "Scarabs",
-        "note": "聖甲蟲名稱與效果文字，依種類分組。"
-                "產生的片段會避開清單裡其他聖甲蟲的名稱與效果。",
-        "groups": [], "groupsEn": [],          # one per scarab type, from the data
-        "build": build_scarabs,
-        "ambient_ids": ["ItemDisplayStackSize", "ItemDisplayLimit", "ItemDescriptionMapFragment",
-                        "ItemPopupCorrupted", "ItemPopupMirrored", "ItemPopupSplit",
-                        "ItemDisplayStringCurrency"],
-    },
-    {
         "id": "flask_mods",
         "kind": "mods",
         "title": "藥劑詞綴",
@@ -1337,7 +1280,7 @@ def main() -> int:
     }
     if args.schema >= 2:
         doc["source"] = ("GGPK Mods/Stats/Tags/Words/BaseItemTypes/SkillGems/... + "
-                         "tools/ggpk_zh/out/poe1/{stats,tables} + host/data/scarabs_poe1.json")
+                         "tools/ggpk_zh/out/poe1/{stats,tables}")
         doc["labels"] = labels_doc(ctx.ex.cs, LABEL_IDS)
     doc["pages"] = pages
     write_doc(args.out, doc)

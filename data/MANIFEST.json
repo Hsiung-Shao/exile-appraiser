@@ -68,8 +68,8 @@
     },
     "data/regex": {
       "repo": "regex/gen/gen_regex_data{,2}.py 產生(GGPK 抽取:poe1 game_version 3.29.3(build 3.29.3.3,stats.json sha256 5dbb988b5aa949d118ae44e2a48f705e618a6310a2a0dc2a484183d4b19ad067);poe2 game_version 0.5.5e(build 0.5.5.4.2,stats.json sha256 5babaab12e62c813f0103eec9b727e514d89f54284e647119a79457c4ca72531))",
-      "path": "pob-zh-engine/tools/{ggpk_zh,ggpk2_zh}(維護者本機 GGPK 抽取,不進 git)+ regex/gen/input/scarabs_poe1.json;scripts/gen-regex-data.mjs 產生",
-      "generatedAt": "2026-11-13T08:29:32.107Z",
+      "path": "pob-zh-engine/tools/{ggpk_zh,ggpk2_zh}(維護者本機 GGPK 抽取,不進 git);scripts/gen-regex-data.mjs 產生",
+      "generatedAt": "2026-11-13T10:08:40.852Z",
       "fetchedAt": "2026-10-26T08:41:49.000Z"
     },
     "data/regex/item-mod-forms.json": {
@@ -303,8 +303,8 @@
       "bytes": 2055
     },
     "data/regex/regex_poe1.json": {
-      "sha256": "80e316914c3224c956957888f18b0897c741738c941718a107a268ccce4644fa",
-      "bytes": 2689117
+      "sha256": "915be656c91bcd1bd51cacc6d83d60718b6dc258055eea63f932f62a856f7d56",
+      "bytes": 2611184
     },
     "data/regex/regex_poe2.json": {
       "sha256": "b38dcce515ffb71f9d102ab4c73bd37607ba6d5a006ee47ddb8bf5cc2b760c09",

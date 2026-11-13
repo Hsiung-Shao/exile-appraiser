@@ -5,7 +5,6 @@
 // 輸入:
 //   * <from>/tools/{ggpk_zh,ggpk2_zh}/{cache,schema,out} —— 維護者本機的 GGPK 抽取,不進 git
 //     → MANIFEST 記抽取時間 fetchedAt + 兩代 game_version + stats.json sha256,不記 commit。
-//   * regex/gen/input/scarabs_poe1.json —— 收在本專案的輸入快照。
 // 產出不含時間戳,同樣輸入逐位元組可重現。
 import fs from 'node:fs'
 import path from 'node:path'
@@ -53,5 +52,5 @@ execFileSync(process.execPath, [
   path.join(ROOT, 'scripts', 'verify-data-manifest.mjs'), '--write', '--prefix', 'data/regex',
   '--fetched-at', fetchedAt,
   '--source', `regex/gen/gen_regex_data{,2}.py 產生(GGPK 抽取:${versions.join(';')})`,
-  '--path', 'pob-zh-engine/tools/{ggpk_zh,ggpk2_zh}(維護者本機 GGPK 抽取,不進 git)+ regex/gen/input/scarabs_poe1.json;scripts/gen-regex-data.mjs 產生'
+  '--path', 'pob-zh-engine/tools/{ggpk_zh,ggpk2_zh}(維護者本機 GGPK 抽取,不進 git);scripts/gen-regex-data.mjs 產生'
 ], { stdio: 'inherit' })

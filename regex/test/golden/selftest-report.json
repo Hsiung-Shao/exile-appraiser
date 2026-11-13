@@ -43,13 +43,6 @@
     {
       "lang": "zh",
       "game": "poe1",
-      "page": "scarabs",
-      "length": 21,
-      "plain": 82
-    },
-    {
-      "lang": "zh",
-      "game": "poe1",
       "page": "flask_mods",
       "length": 29,
       "plain": 163
@@ -179,13 +172,6 @@
       "page": "logbook_mods",
       "length": 43,
       "plain": 388
-    },
-    {
-      "lang": "en",
-      "game": "poe1",
-      "page": "scarabs",
-      "length": 36,
-      "plain": 260
     },
     {
       "lang": "en",
@@ -328,18 +314,6 @@
       "ambientLines": 107,
       "findable": 62,
       "tried": 62,
-      "stuckExamples": [],
-      "stuckByHidden": 0,
-      "stuckByHiddenExamples": []
-    },
-    {
-      "lang": "zh",
-      "game": "poe1",
-      "page": "scarabs",
-      "entries": 138,
-      "ambientLines": 8,
-      "findable": 138,
-      "tried": 138,
       "stuckExamples": [],
       "stuckByHidden": 0,
       "stuckByHiddenExamples": []
@@ -623,18 +597,6 @@
       "stuckByHiddenExamples": [
         "Players have #% less Accuracy Rating"
       ]
-    },
-    {
-      "lang": "en",
-      "game": "poe1",
-      "page": "scarabs",
-      "entries": 138,
-      "ambientLines": 8,
-      "findable": 138,
-      "tried": 138,
-      "stuckExamples": [],
-      "stuckByHidden": 0,
-      "stuckByHiddenExamples": []
     },
     {
       "lang": "en",

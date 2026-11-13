@@ -29,7 +29,7 @@ it('both games shipped, every page names a known game(:552–569)', () => {
   expect(pages.some(p => p.game === 'poe1')).toBe(true)
   expect(pages.some(p => p.game === 'poe2')).toBe(true)
   expect(pages.map(p => `${p.game}/${p.id}`)).toEqual([
-    'poe1/map_mods', 'poe1/logbook_mods', 'poe1/scarabs', 'poe1/flask_mods', 'poe1/tincture_mods', 'poe1/cluster_jewel',
+    'poe1/map_mods', 'poe1/logbook_mods', 'poe1/flask_mods', 'poe1/tincture_mods', 'poe1/cluster_jewel',
     'poe1/gem_names', 'poe1/tattoos', 'poe1/heist_equipment_mods', 'poe1/heist_contracts', 'poe1/vendor_bases',
     'poe1/beasts', 'poe1/magic_affixes',
     'poe2/waystone_mods', 'poe2/tablet_mods', 'poe2/relic_mods', 'poe2/expedition_relic_mods',

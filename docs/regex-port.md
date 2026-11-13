@@ -110,7 +110,8 @@ PobTools 已移除正則功能(使用者 2026-11-13 裁定),資料產生器搬�
 - 產生器:`regex/gen/gen_regex_data.py`(PoE1)、`gen_regex_data2.py`(PoE2)、`regex_common.py`、`datzh.py`,自 `pob-zh-engine/tools/`
   (該目錄 gitignore、從未進版控)原樣搬入,只改路徑常數;搬入時重產的兩個資料檔與當時版控版本逐位元組相同。檔案是 CRLF,修改時保留。
 - 輸入:`<pob-zh-engine>/tools/ggpk_zh/{cache,schema,out/poe1}`、`tools/ggpk2_zh/…`(維護者本機的 GGPK 抽取,約 3.8 GB,**不在任何版控**;
-  被清掉就要重抽 GGPK)、`regex/gen/input/scarabs_poe1.json`(本專案的輸入快照,138 列,取自 PobTools git `be58e6f^`)。
+  被清掉就要重抽 GGPK)。聖甲蟲頁 2026-11-13 整頁刪除(3.30 移除聖甲蟲,使用者裁定),輸入檔 `regex/gen/input/scarabs_poe1.json` 一併刪除;
+  舊書籤 / 分享碼指向 `scarabs` 頁 → 既有的「找不到頁」提示(`bookmarkApplyOf` 回 null、`resolveState` 的 `unknownPages`)。
 - 步驟:
   1. 重抽 GGPK(PobTools 的 `tools/ggpk_zh` / `ggpk2_zh`,新賽季才需要)。
   2. `node scripts/gen-regex-data.mjs --from <pob-zh-engine 路徑>`(需要 Python 3.12;在 worktree 裡給絕對路徑)→ 寫
@@ -587,7 +588,7 @@ PoE1 地圖詞綴 3 條 + 階級 ≥16 + 物品數量 ≥80 + 6L → `"成凋| �
   片段不能跨數字 → 「無法單獨指定」(英文 4 列)。頁說明導去「物品詞綴數值」頁(整行 `^…[0-9]+…$`,交易站詞綴資料有這些行)。
   `properties.test.ts` 的「卡住 ≤ 25 %」對這頁繁中放寬。
 - 沒做:傳奇萃取物的詞綴(比照藥劑頁只收前後綴);`magic_affixes` 裡萃取物詞綴名的 hidden 行仍是空的(該頁只讀 `stat_descriptions.txt`,
-  改了會動到既有輸出);聖甲蟲頁維持 138 列。
+  改了會動到既有輸出)。
 - 測試:`regex/test/tincture.test.ts`;實跑旅程 `.claude/skills/verify/features/regex-tincture-page.md`。
 - **待使用者實機確認**:產生的字串貼進倉庫搜尋的命中結果(避讓語料只依 GGPK 字串,沒有真實剪貼簿樣本)。
 
