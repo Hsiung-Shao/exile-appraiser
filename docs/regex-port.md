@@ -103,15 +103,23 @@ PobTools 語彙(`.card .seg .chk .select .input .btn .pulse`):
   「只因 hidden/ambient 卡住」數與名稱、繁中地圖「常」回歸、19 個合成逐字 query。**全部差 0**。
 - 突變檢查(手動,2026-09-28):拿掉 `safe()` 的 hiddenIndex 否決 → 46 項紅;把平手的碼點序反過來 → 13 項紅。
 
-## 資料同步(新賽季)
+## 資料產生(新賽季;2026-11-13 起在本專案)
 
-1. PobTools 端(維護者本機)重跑 `tools/gen_regex_data.py` / `gen_regex_data2.py` → commit `host/data/regex_poe*.json` →
-   建置部署到 `pob-zh-engine/dist/Data/` → 跑 `pob-zh.exe --regex-selftest` 更新 `dist/regex_selftest.txt`。
-2. 本 repo:`node scripts/sync-regex-data.mjs --from ../Pob2/pob-zh-engine`
-   - 守門:`dist/Data` 與 git 追蹤的 `host/data` 兩份必須逐位元組相同,且 `host/data/regex_*.json` 不得有未提交變更。
-   - 逐位元組複製到 `data/regex/`,以 `verify-data-manifest.mjs --write --prefix data/regex --commit <HEAD>` 重寫 MANIFEST 該前綴。
-3. `node regex/test/golden/extract-from-report.mjs ../Pob2/pob-zh-engine/dist/regex_selftest.txt` 更新基準 → `npm test`。
-   數量類斷言(data.test.ts 的 `EXPECTED`)也要跟著改;任何差異都要能用資料變更解釋。
+PobTools 已移除正則功能(使用者 2026-11-13 裁定),資料產生器搬進本專案 `regex/gen/`,原本的「PobTools 產生 → 單向同步」作廢。
+
+- 產生器:`regex/gen/gen_regex_data.py`(PoE1)、`gen_regex_data2.py`(PoE2)、`regex_common.py`、`datzh.py`,自 `pob-zh-engine/tools/`
+  (該目錄 gitignore、從未進版控)原樣搬入,只改路徑常數;搬入時重產的兩個資料檔與當時版控版本逐位元組相同。檔案是 CRLF,修改時保留。
+- 輸入:`<pob-zh-engine>/tools/ggpk_zh/{cache,schema,out/poe1}`、`tools/ggpk2_zh/…`(維護者本機的 GGPK 抽取,約 3.8 GB,**不在任何版控**;
+  被清掉就要重抽 GGPK)。聖甲蟲頁 2026-11-13 整頁刪除(3.30 移除聖甲蟲,使用者裁定),輸入檔 `regex/gen/input/scarabs_poe1.json` 一併刪除;
+  舊書籤 / 分享碼指向 `scarabs` 頁 → 既有的「找不到頁」提示(`bookmarkApplyOf` 回 null、`resolveState` 的 `unknownPages`)。
+- 步驟:
+  1. 重抽 GGPK(PobTools 的 `tools/ggpk_zh` / `ggpk2_zh`,新賽季才需要)。
+  2. `node scripts/gen-regex-data.mjs --from <pob-zh-engine 路徑>`(需要 Python 3.12;在 worktree 裡給絕對路徑)→ 寫
+     `data/regex/regex_poe{1,2}.json`、重寫 MANIFEST `data/regex`(`fetchedAt` + 兩代 `game_version` + `stats.json` sha256)。
+     只想看不想寫:`POB_ZH_ENGINE=<路徑> python regex/gen/gen_regex_data.py --report`(或 `--diag --only <頁 id>` 看哪些詞綴被丟掉、為什麼)。
+  3. `npm test`。數量類斷言(`data.test.ts` 的 `EXPECTED`)跟著改;`golden/selftest-report.json` 原本抽自 C++ 報告,現在該頁的列
+     由 TS 實作算出後手動更新;`golden/perf-equivalence.json` 用 `PERF_EQ_WRITE=1` 重產並逐鍵確認只有預期的頁變動。任何差異都要能用資料變更解釋。
+- 加頁 / 改語料:改 `PAGES`(宣告式,見檔頭註解)再重產;不手改 JSON。
 
 ## WP-C:演算法頁 / 合併 / 分享碼 / 範本(2026-09-29)
 
@@ -563,6 +571,26 @@ PoE1 地圖詞綴 3 條 + 階級 ≥16 + 物品數量 ≥80 + 6L → `"成凋| �
 - **推翻條件**:自訂書籤需要 `keys[0]` 放不下的欄位(多段字串、備註)時,改加專屬欄位並升 schema。
 - PobTools 不同步:書籤包格式不變,PobTools 不會產生 `@custom` 書籤;包裡若有,照樣加入、`bookmarkMissed` 算 0。
 - 測試:`regex/test/custom-bookmark.test.ts`、`renderer/test/regex-custom-bookmark.test.ts`。**待使用者實機確認**:自訂書籤由書籤列 / 快速面板 / 個別熱鍵貼進遊戲。
+
+## 萃取物詞綴頁與基底(2026-11-13)
+
+使用者回報正則缺萃取物(Tincture)資料:原本只有 `magic_affixes` 收了 36 個萃取物詞綴名,詞綴行與基底名都沒有。
+
+- 新頁 `tincture_mods`「萃取物詞綴」(排在 `flask_mods` 後):Mods.Domain 34 的前綴 / 後綴,17 列(前綴 5、後綴 12;同一行由多個詞綴印出就併一列)。
+  文字要讀 `tincture_stat_descriptions.txt`(`TINCTURE_FILES`,`stat_descriptions.txt` 查不到 → 66 條全部 `no_wording`、整頁空白)。
+  ambient = 共用物品字串 + 「每 # 秒造成魔力灼燒」「解除時有 # 秒冷卻時間」+ 萃取物說明文字 + 種類名 + 10 個基底名 + 各基底固有詞綴行
+  (片段落在其中任何一條裡都會讓那個基底的每一瓶亮起來)。
+- `vendor_bases` 加 `Tinctures/` 資料夾(`POE1_BASE_FOLDERS`,與 `magic_affixes` 共用)→ 多「萃取物」組 10 列(1057 → 1067);
+  描述檔多帶萃取物那份當後援,既有基底列內容不變,只有英文組名排在 Tinctures 之後的 6 組(雙手斧 / 錘 / 劍、功能藥劑、法杖、征戰長杖)組索引 +1。
+  存檔 / 書籤 / 分享碼都以鍵記錄,不受組索引影響。
+- `regex/src/sections.ts`:`tincture_mods` 歸 `equipment` 組(可與物品基底、魔法物品詞綴名、物品詞綴數值合併)。
+- **已知限制**:繁中 17 列有 8 列成對只差在數字兩側(增加 / 減少 #% 效果、增加 / 減少 #% 魔力灼燒速度、擊中 / 殺死 × 生命 / 魔力),
+  片段不能跨數字 → 「無法單獨指定」(英文 4 列)。頁說明導去「物品詞綴數值」頁(整行 `^…[0-9]+…$`,交易站詞綴資料有這些行)。
+  `properties.test.ts` 的「卡住 ≤ 25 %」對這頁繁中放寬。
+- 沒做:傳奇萃取物的詞綴(比照藥劑頁只收前後綴);`magic_affixes` 裡萃取物詞綴名的 hidden 行仍是空的(該頁只讀 `stat_descriptions.txt`,
+  改了會動到既有輸出)。
+- 測試:`regex/test/tincture.test.ts`;實跑旅程 `.claude/skills/verify/features/regex-tincture-page.md`。
+- **待使用者實機確認**:產生的字串貼進倉庫搜尋的命中結果(避讓語料只依 GGPK 字串,沒有真實剪貼簿樣本)。
 
 ## 相關文件
 - [regex-share-cli.md](regex-share-cli.md)(從命令列 / PobTools 送分享碼:`--regex-share`、確認對話框、找 exe)

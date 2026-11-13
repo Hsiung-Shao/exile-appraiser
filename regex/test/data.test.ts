@@ -2,6 +2,8 @@
 import { describe, expect, it } from 'vitest'
 import { buildCorpus, entryLines, pageAmbient, parseRegexCatalogue, type RegexEntry, type RegexPage } from '../src/data'
 import { keyOf } from '../src/state'
+import { bookmarkApplyOf } from '../src/embed'
+import { resolveState } from '../src/share'
 import { defaultRegexDataDir, loadRegexCatalogueFile } from '../src/node'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
@@ -10,8 +12,9 @@ import path from 'node:path'
 // tablet_mods 78→81、expedition_relic_mods 內容異動是 PoE2 GGPK 4.5.5 快取更新(非產生器改動)。
 const EXPECTED = {
   poe1: {
-    map_mods: 122, logbook_mods: 62, scarabs: 138, flask_mods: 82, cluster_jewel: 388,
-    gem_names: 891, tattoos: 132, heist_equipment_mods: 141, heist_contracts: 107, vendor_bases: 1057,
+    // 2026-11-13 聖甲蟲頁整頁刪除(3.30 移除聖甲蟲,使用者裁定)
+    map_mods: 122, logbook_mods: 62, flask_mods: 82, tincture_mods: 17, cluster_jewel: 388,
+    gem_names: 891, tattoos: 132, heist_equipment_mods: 141, heist_contracts: 107, vendor_bases: 1067, // 2026-11-13 萃取物:新頁 17 列、基底 +10
     // 2026-11-04 對照 poe.re 補頁;詞綴名含藥劑 / 珠寶 / 深淵珠寶 / 藥酒,英文同名分列
     beasts: 220, magic_affixes: 1185
   },
@@ -22,7 +25,7 @@ const EXPECTED = {
   }
 } as const
 const KIND: Record<string, 'mods' | 'names'> = {
-  scarabs: 'names', gem_names: 'names', tattoos: 'names', vendor_bases: 'names', beasts: 'names', magic_affixes: 'names'
+  gem_names: 'names', tattoos: 'names', vendor_bases: 'names', beasts: 'names', magic_affixes: 'names'
 }
 
 describe('shipped catalogues(data/regex)', () => {
@@ -114,17 +117,14 @@ describe('物品風味文字 / 用途說明收進資料', () => {
   const poe1 = loadRegexCatalogueFile('poe1')
   const page = (id: string) => poe1.pages.find(p => p.id === id)!
 
-  it('A1 聖甲蟲風味文字進入隱藏文字:ScarabTormentNew1 的 hiddenZh / hiddenEn 含該段風味文字', () => {
-    const e = page('scarabs').entries.find(x => x.id === 'Metadata/Items/Scarabs/ScarabTormentNew1')
-    expect(e, '找不到 ScarabTormentNew1').toBeDefined()
-    expect(e!.hiddenZh.some(s => s.includes('生前犯下的罪行將持續作祟到你死後。')), `hiddenZh=${JSON.stringify(e!.hiddenZh)}`).toBe(true)
-    expect(e!.hiddenEn.some(s => s.includes('Their crimes in life haunt you in death.')), `hiddenEn=${JSON.stringify(e!.hiddenEn)}`).toBe(true)
-  })
-
-  it('A2 聖甲蟲用途說明列為環境文字:scarabs 頁 ambientZh / ambientEn 含「可於個人的地圖裝置中使用…」', () => {
-    const p = page('scarabs')
-    expect(p.ambientZh.some(s => s.includes('可於個人的地圖裝置中使用，增加地圖的詞綴。')), `ambientZh=${JSON.stringify(p.ambientZh)}`).toBe(true)
-    expect(p.ambientEn.some(s => s.includes('Can be used in a personal Map Device to add modifiers to a Map.')), `ambientEn=${JSON.stringify(p.ambientEn)}`).toBe(true)
+  // A1 / A2(聖甲蟲風味文字、用途說明)隨聖甲蟲頁 2026-11-13 刪除。
+  it('聖甲蟲頁已刪除:舊書籤與舊分享碼指向它時回報找不到頁,不丟例外', () => {
+    expect(poe1.pages.some(p => p.id === 'scarabs')).toBe(false)
+    const old = { name: '舊', page: 'scarabs', game: 'poe1' as const, mode: 'any' as const, lang: 'zh' as const, keys: ['Metadata/Items/Scarabs/ScarabTormentNew1'], alt: [] }
+    expect(bookmarkApplyOf(poe1.pages, old)).toBeNull()
+    const r = resolveState({ v: 2, game: 'poe1', mode: 'any', pages: { scarabs: old.keys }, sections: {}, numeric: {}, custom: [], excludes: [] }, poe1.pages)
+    expect(r.unknownPages).toEqual(['scarabs'])
+    expect(r.missed).toBe(1)
   })
 
   it('A4 紋身用途說明與寶石風味文字收齊:每個紋身的隱藏或環境文字有右鍵說明行、克塔什誓約的 hiddenZh 有風味文字', () => {

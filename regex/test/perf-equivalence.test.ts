@@ -13,6 +13,10 @@
 // (zh all × all / r3x40 / r4x120;en any / all / none × all / r4x120)、multi waystone_mods+tablet_mods en 三模式 3;tablet_mods_cond 不變。
 // 2026-11-08 地圖數值區拿掉「更多聖甲蟲」列(3.30 移除聖甲蟲)後重產:只有 poe1|map_numeric 36 鍵變(兩語 × 三模式 × 六組勾選),
 // multi(數值頁勾 [0,1] = 階級 / 數量)與其他鍵不變。
+// 2026-11-13 萃取物(新頁 tincture_mods + vendor_bases 加萃取物組)後重產:1062 → 1098 鍵;新增 poe1|tincture_mods 36、
+// 變動 poe1|vendor_bases 30(列數 1057 → 1067,隨機勾選與避讓語料都變);multi 相鄰頁配對因頁序位移換了 24 鍵(其餘 12 鍵值不變);其他鍵 0 變動。
+// 2026-11-13 聖甲蟲頁整頁刪除後重產:1098 → 1062 鍵;移除 poe1|scarabs 36 + multi scarabs+flask_mods 6,
+// multi 相鄰頁配對因頁序位移換了 24 → 30 鍵(舊配對全刪、新配對全新增);既有鍵值 0 變動。
 // 重生(僅在演算法有意改動時):`PERF_EQ_WRITE=1 npx vitest run test/perf-equivalence.test.ts`
 import { createHash } from 'node:crypto'
 import fs from 'node:fs'

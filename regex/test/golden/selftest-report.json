@@ -1,5 +1,5 @@
 {
-  "_source": "pob-zh-engine dist/regex_selftest.txt(pob-zh.exe --regex-selftest);由 extract-from-report.mjs 產生,勿手改",
+  "_source": "pob-zh-engine dist/regex_selftest.txt(pob-zh.exe --regex-selftest);由 extract-from-report.mjs 產生,勿手改;2026-11-13 起 poe1 tincture_mods(新頁)與 vendor_bases(加萃取物組)的列由本專案 TS 實作算出(PobTools 已移除正則)",
   "_cppPassFail": {
     "pass": 1273,
     "fail": 0
@@ -43,16 +43,16 @@
     {
       "lang": "zh",
       "game": "poe1",
-      "page": "scarabs",
-      "length": 21,
-      "plain": 82
+      "page": "flask_mods",
+      "length": 29,
+      "plain": 163
     },
     {
       "lang": "zh",
       "game": "poe1",
-      "page": "flask_mods",
-      "length": 29,
-      "plain": 163
+      "page": "tincture_mods",
+      "length": 21,
+      "plain": 188
     },
     {
       "lang": "zh",
@@ -93,8 +93,8 @@
       "lang": "zh",
       "game": "poe1",
       "page": "vendor_bases",
-      "length": 34,
-      "plain": 53
+      "length": 33,
+      "plain": 51
     },
     {
       "lang": "zh",
@@ -176,16 +176,16 @@
     {
       "lang": "en",
       "game": "poe1",
-      "page": "scarabs",
-      "length": 36,
-      "plain": 260
+      "page": "flask_mods",
+      "length": 49,
+      "plain": 437
     },
     {
       "lang": "en",
       "game": "poe1",
-      "page": "flask_mods",
-      "length": 49,
-      "plain": 437
+      "page": "tincture_mods",
+      "length": 38,
+      "plain": 500
     },
     {
       "lang": "en",
@@ -226,8 +226,8 @@
       "lang": "en",
       "game": "poe1",
       "page": "vendor_bases",
-      "length": 55,
-      "plain": 163
+      "length": 52,
+      "plain": 128
     },
     {
       "lang": "en",
@@ -321,18 +321,6 @@
     {
       "lang": "zh",
       "game": "poe1",
-      "page": "scarabs",
-      "entries": 138,
-      "ambientLines": 8,
-      "findable": 138,
-      "tried": 138,
-      "stuckExamples": [],
-      "stuckByHidden": 0,
-      "stuckByHiddenExamples": []
-    },
-    {
-      "lang": "zh",
-      "game": "poe1",
       "page": "flask_mods",
       "entries": 82,
       "ambientLines": 82,
@@ -344,6 +332,24 @@
         "減少 #% 恢復率",
         "減少 #% 恢復量",
         "減少 #% 持續時間"
+      ],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
+    },
+    {
+      "lang": "zh",
+      "game": "poe1",
+      "page": "tincture_mods",
+      "entries": 17,
+      "ambientLines": 56,
+      "findable": 9,
+      "tried": 17,
+      "stuckExamples": [
+        "增加 #% 效果",
+        "增加 #% 魔力灼燒速度",
+        "減少 #% 效果",
+        "減少 #% 魔力灼燒速度",
+        "每用近戰武器擊中一個敵人，獲得 # 生命"
       ],
       "stuckByHidden": 0,
       "stuckByHiddenExamples": []
@@ -428,10 +434,10 @@
       "lang": "zh",
       "game": "poe1",
       "page": "vendor_bases",
-      "entries": 1057,
-      "ambientLines": 52,
-      "findable": 529,
-      "tried": 529,
+      "entries": 1067,
+      "ambientLines": 53,
+      "findable": 534,
+      "tried": 534,
       "stuckExamples": [],
       "stuckByHidden": 0,
       "stuckByHiddenExamples": []
@@ -595,18 +601,6 @@
     {
       "lang": "en",
       "game": "poe1",
-      "page": "scarabs",
-      "entries": 138,
-      "ambientLines": 8,
-      "findable": 138,
-      "tried": 138,
-      "stuckExamples": [],
-      "stuckByHidden": 0,
-      "stuckByHiddenExamples": []
-    },
-    {
-      "lang": "en",
-      "game": "poe1",
       "page": "flask_mods",
       "entries": 82,
       "ambientLines": 83,
@@ -614,6 +608,23 @@
       "tried": 82,
       "stuckExamples": [
         "Hinders nearby Enemies with #% reduced Movement Speed if used while not on Full Life"
+      ],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
+    },
+    {
+      "lang": "en",
+      "game": "poe1",
+      "page": "tincture_mods",
+      "entries": 17,
+      "ambientLines": 57,
+      "findable": 13,
+      "tried": 17,
+      "stuckExamples": [
+        "Gain # Life per Enemy Hit with Melee Weapons",
+        "Gain # Mana per Enemy Hit with Melee Weapons",
+        "Gain # Life per Enemy Killed with Melee Weapons",
+        "Gain # Mana per Enemy Killed with Melee Weapons"
       ],
       "stuckByHidden": 0,
       "stuckByHiddenExamples": []
@@ -710,10 +721,10 @@
       "lang": "en",
       "game": "poe1",
       "page": "vendor_bases",
-      "entries": 1057,
-      "ambientLines": 57,
-      "findable": 529,
-      "tried": 529,
+      "entries": 1067,
+      "ambientLines": 58,
+      "findable": 534,
+      "tried": 534,
       "stuckExamples": [],
       "stuckByHidden": 0,
       "stuckByHiddenExamples": []

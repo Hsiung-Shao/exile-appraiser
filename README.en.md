@@ -275,7 +275,7 @@ One lookup at a time, at most one search plus one fetch per row, and the same fi
 
 Found in **Settings › Regex**.
 
-1. At the top, pick the game and a list (PoE1: maps, expedition logbooks, scarabs, flasks, cluster jewels, skill gems, tattoos and runegrafts, heist equipment, heist contracts, item bases; PoE2: waystones, tablets, relics, expedition relics, flasks and charms, skill gems, item bases; both games also have "Item mod values" and "Vendor & item conditions").
+1. At the top, pick the game and a list (PoE1: maps, expedition logbooks, flasks, tinctures, cluster jewels, skill gems, tattoos and runegrafts, heist equipment, heist contracts, item bases; PoE2: waystones, tablets, relics, expedition relics, flasks and charms, skill gems, item bases; both games also have "Item mod values" and "Vendor & item conditions").
 2. Tick the mods / names you want; numeric conditions can be set as "≥ / ≤ / range":
    - the map / waystone mod pages have a value section at the top (map tier, item quantity, etc.) that is merged into the same string;
    - the "Item mod values" page lets you search a mod and set a value, e.g. maximum Life ≥ 80 (single-value mods only);
