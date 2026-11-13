@@ -5,6 +5,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { init, loadForLang } from '@/assets/data'
 import { parseClipboard } from '@/parser'
 import type { ParsedItem } from '@/parser/ParsedItem'
+import { statSourcesTotal, translateStatWithRoll } from '@/parser/modifiers'
 
 /**
  * 3.30 賽季資料回歸:用真實 `data/poe1` 驗證詞綴新舊寫法都解析得到、
@@ -67,6 +68,13 @@ describe('3.30 詞綴寫法(en)', () => {
     const item = parse(ringText('en', [['15% increased Rarity of Items found', '+68 to maximum Life']]))
     expect(unknownOf(item)).toEqual([])
     expect(refsOf(item)).toContain(RARITY_REF)
+  })
+
+  it('D7 篩選列顯示現行寫法,不顯示被取代的舊寫法', () => {
+    const item = parse(ringText('en', [['+15% to Item Rarity', '+68 to maximum Life']]))
+    const calc = item.statsByType.find(s => s.stat.ref === RARITY_REF)!
+    const shown = translateStatWithRoll(calc, statSourcesTotal(calc.sources, 'sum'))
+    expect(shown.string).toBe('#% to Item Rarity')
   })
 })
 

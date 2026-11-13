@@ -79,6 +79,13 @@ describe('P3 PoE1 詞綴繁中', () => {
     expect(texts(gem.explicitMods)).toEqual(texts(parseFetchItem(raw('gem-arc'))!.explicitMods))
   })
 
+  it('繁中有新舊兩種寫法時用現行寫法,不用被取代的', () => {
+    const r = translateModLine('+15% to Item Rarity', 'explicit.stat_3917489142', data)
+    expect(r.reason).toBe('ok')
+    expect(r.zh).toContain('物品稀有度')
+    expect(r.zh).not.toContain('增加')
+  })
+
   it('減少寫法挑 negate 變體', () => {
     expect(translateModLine('10% reduced Attack Speed', 'explicit.stat_681332047', data)).toEqual({ zh: '減少 10% 攻擊速度', reason: 'ok' })
   })

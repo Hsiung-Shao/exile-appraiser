@@ -5,6 +5,8 @@ export interface StatMatcher {
   advanced?: string
   negate?: true
   value?: number
+  // exile-appraiser: 被新版遊戲寫法取代的舊寫法(scripts/poe1-season 標的)。解析照常比對,只有顯示時排在現行寫法後面。
+  superseded?: true
 }
 
 export enum StatBetter {

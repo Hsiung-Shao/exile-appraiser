@@ -403,6 +403,9 @@ function candidatesForPair (line: string, pair: StatPair): { out: Set<string>, e
       zhMatchers = pair.zh.matchers.filter(m => !!m.negate === !!enM.negate && m.value == null && templateOf(m).parts.length === 2)
       zhValues = values.length ? values : [String(enM.value)]
     }
+    // 有現行寫法就不拿被取代的舊寫法當候選(scripts/poe1-season 標的 superseded)
+    const current = zhMatchers.filter(m => !m.superseded)
+    if (current.length) zhMatchers = current
     if (zhMatchers.length) valueSets.push(zhValues)
     for (const zhM of zhMatchers) {
       const filled = fillTemplate(templateOf(zhM), zhValues)
