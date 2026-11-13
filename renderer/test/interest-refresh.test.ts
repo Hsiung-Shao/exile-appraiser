@@ -138,7 +138,7 @@ describe('Prices.ts 接線', () => {
   it('不再常駐 setInterval;queuePricesFetch 先記查價時間、touch 定期更新,再立即 load()', () => {
     expect(src).not.toMatch(/\bsetInterval\(/)
     expect(src).toMatch(/createInterestRefresh\(\{\s*intervalMs: RETRY_INTERVAL_MS,\s*spanMs: INTEREST_SPAN_MS,/)
-    expect(src).toMatch(/function queuePricesFetch \(\) \{\s*lastInterestTime = Date\.now\(\)\s*periodic\.touch\(lastInterestTime\)\s*void load\(\)\s*\}/)
+    expect(src).toMatch(/function queuePricesFetch \(\) \{\s*lastInterestTime = Date\.now\(\)\s*periodic\.touch\(lastInterestTime\)\s*void load\(\)\s*leagues\.loadIfStale\(\)[^\n]*\s*\}/) // 2026-11-14:查價時順便看聯盟清單是否過期
   })
   it('節流常數不變:定期 4 分鐘、更新 31 分鐘、查價興趣 20 分鐘', () => {
     expect(src).toMatch(/const RETRY_INTERVAL_MS = 4 \* 60 \* 1000/)

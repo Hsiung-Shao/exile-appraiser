@@ -96,13 +96,15 @@ describe('排除統計(資料同步後數字變了要看過再改)', () => {
   it('PoE1 / PoE2 可選詞綴數與排除原因', () => {
     const summary = (d: ItemModData) => ({ itemStats: d.itemStats, entries: d.entries.length, merged: d.merged, excluded: d.excluded })
     expect(summary(DATA.poe1)).toEqual({
-      itemStats: 7550,
+      // 2026-11-14:資料更新到 3.30(scripts/poe1-season,docs/poe1-season/3.30-report.md):交易站移除 id 的詞綴不再是物品詞綴(7550 → 7444;之後交易站陸續開放 3.30 新詞綴,補進後 7471),
+      // 被取代的舊寫法(superseded)不當模板;同一句分成多句或交易站另有現行寫法的列入 multi_form(12 → 26)
+      itemStats: 7471,
       // 2026-10-08:假掰(The Adorned)補上遊戲內寫法 → 該條有兩種繁中寫法,改列 multi_form(4786 → 4785、86 → 87)
       // 2026-10-10:多種寫法改查 poe2db / poedb 仲裁檔 data/regex/item-mod-forms.json(4785 → 4854、multi_form 87 → 12;
       // 原卡在 multi_form 的條目往下走,改由 multiline +2、too_long +4 排除)
-      entries: 4854,
-      merged: 47,
-      excluded: { decimal: 149, multi_value: 2129, multi_form: 12, multiline: 144, missing_lang: 0, no_unique: 2, too_long: 213 }
+      entries: 4771,
+      merged: 34,
+      excluded: { decimal: 149, multi_value: 2120, multi_form: 26, multiline: 150, missing_lang: 0, no_unique: 2, too_long: 219 }
     })
     expect(summary(DATA.poe2)).toEqual({
       itemStats: 1847,

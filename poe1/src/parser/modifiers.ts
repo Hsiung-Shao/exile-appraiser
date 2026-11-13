@@ -89,7 +89,9 @@ export function translateStatWithRoll (
   calc: StatCalculated,
   roll: StatRoll | undefined
 ) {
-  const { matchers } = calc.stat
+  // exile-appraiser: 顯示用現行寫法 —— 被取代的舊寫法排到後面(只有舊寫法時照舊用它)
+  const all = calc.stat.matchers
+  const matchers = [...all.filter(m => !m.superseded), ...all.filter(m => m.superseded)]
   let translation: StatMatcher | undefined
   if (!roll) {
     translation = matchers.find(m => m.value == null) ?? matchers[0]

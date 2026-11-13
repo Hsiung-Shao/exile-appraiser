@@ -18,17 +18,11 @@
    "stat_1217583941|Buffs on Players expire #% faster": [
     "玩家身上的增益效果加速 #% 失效"
    ],
-   "stat_1259656520|Immortal Syndicate Members in your Maps are #% more\nlikely to offer to Bargain for Items": [
-    "你地圖中的永生密教成員\n有 #% 更多機率交涉物品"
-   ],
    "stat_144887967|#% chance to gain Phasing for # seconds when your Trap is triggered by an Enemy": [
     "陷阱被敵人觸發時有 #% 機率獲得 3 秒迷蹤效果"
    ],
    "stat_1493325653|Prevent +#% of Suppressed Spell Damage while on Full Energy Shield": [
     "滿能量護盾時，防止 #% 壓抑法術傷害"
-   ],
-   "stat_1505882627|Harvest Crops in your Maps have #% increased chance to contain a Tier 4 Plant": [
-    "你地圖中收割作物增加 #% 機率成長至階級 4 的作物"
    ],
    "stat_1539368271|#% increased Explosive Placement Range in your Maps": [
     "增加 #% 你地圖中爆裂物的放置距離"
@@ -132,9 +126,6 @@
    "stat_1031404836|Skills Fire # additional Projectile for 4 seconds after\nyou consume a total of 8 Steel Shards": [
     "Skills Fire # additional Projectiles for 4 seconds after\nyou consume a total of 8 Steel Shards"
    ],
-   "stat_1083387327|#% increased Quantity of Expedition Logbooks dropped by Runic Monsters in your Maps": [
-    "#% increased Quantity of Expedition Logbooks dropped by Runic Monsters in your Maps"
-   ],
    "stat_1122693835|#% increased Effect of Non-Damaging Ailments you inflict during Effect": [
     "#% increased Effect of Non-Damaging Ailments you inflict during Effect"
    ],
@@ -143,9 +134,6 @@
    ],
    "stat_1217583941|Buffs on Players expire #% faster": [
     "Buffs on Players expire #% faster"
-   ],
-   "stat_1259656520|Immortal Syndicate Members in your Maps are #% more\nlikely to offer to Bargain for Items": [
-    "Immortal Syndicate Members in your Maps are #% more\nlikely to offer to Bargain for Items"
    ],
    "stat_144887967|#% chance to gain Phasing for # seconds when your Trap is triggered by an Enemy": [
     "#% chance to gain Phasing for 3 seconds when your Trap is triggered by an Enemy"

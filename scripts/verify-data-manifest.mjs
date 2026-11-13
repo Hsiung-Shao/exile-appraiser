@@ -6,7 +6,7 @@
 //     [--dirty [--dirty-files '{"檔名":"sha256"}']]   → 另註記來源 repo 有未提交變更(commit 不等於內容)與來源檔雜湊
 //
 // 來源(sources 的鍵):
-//   data/poe1        ← apt-patched `renderer/public/data`(sync-data --game poe1)
+//   data/poe1        ← 本專案自己維護(底 = apt-patched 384d1c5;scripts/poe1-season/update.mjs 以 GGPK + 交易站更新)
 //   data/poe2        ← ee2-patched `renderer/public/data`(sync-data --game poe2;*.index.bin 由 make-index-files --game poe2 產生)
 //   data/poe2/trade  ← GGG `/api/trade2/data/{stats,items}` 快照(fetch-poe2-trade-data;記抓取時間)
 import fs from 'node:fs'
@@ -72,7 +72,7 @@ if (args.includes('--write')) {
   }
   const manifest = readManifest()
   const defaults = {
-    'data/poe1': { repo: 'apt-patched (Hsiung-Shao/awakened-poe-trade-zh-TW)', path: 'renderer/public/data' },
+    'data/poe1': { repo: 'ExileAppraiser 自己維護(scripts/poe1-season/update.mjs)', path: 'data/poe1' },
     'data/poe2': { repo: 'ee2-patched (Hsiung-Shao/Exiled-Exchange-2-zh-TW)', path: 'renderer/public/data' }
   }
   const prev = { ...(manifest.sources[prefix] ?? {}) }

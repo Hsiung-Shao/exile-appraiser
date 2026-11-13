@@ -190,11 +190,15 @@
             "better": 1,
             "matchers": [
               {
-                "string": "#% increased Rarity of Items found"
+                "string": "#% increased Rarity of Items found",
+                "superseded": true
               },
               {
                 "negate": true,
                 "string": "#% reduced Rarity of Items found"
+              },
+              {
+                "string": "#% to Item Rarity"
               }
             ],
             "ref": "#% increased Rarity of Items found",
@@ -219,7 +223,8 @@
             }
           },
           "translation": {
-            "string": "#% increased Rarity of Items found"
+            "string": "#% increased Rarity of Items found",
+            "superseded": true
           }
         }
       ]
@@ -710,11 +715,15 @@
                   "better": 1,
                   "matchers": [
                     {
-                      "string": "#% increased Rarity of Items found"
+                      "string": "#% increased Rarity of Items found",
+                      "superseded": true
                     },
                     {
                       "negate": true,
                       "string": "#% reduced Rarity of Items found"
+                    },
+                    {
+                      "string": "#% to Item Rarity"
                     }
                   ],
                   "ref": "#% increased Rarity of Items found",
@@ -739,7 +748,8 @@
                   }
                 },
                 "translation": {
-                  "string": "#% increased Rarity of Items found"
+                  "string": "#% increased Rarity of Items found",
+                  "superseded": true
                 }
               }
             ]
@@ -756,11 +766,15 @@
               "better": 1,
               "matchers": [
                 {
-                  "string": "#% increased Rarity of Items found"
+                  "string": "#% increased Rarity of Items found",
+                  "superseded": true
                 },
                 {
                   "negate": true,
                   "string": "#% reduced Rarity of Items found"
+                },
+                {
+                  "string": "#% to Item Rarity"
                 }
               ],
               "ref": "#% increased Rarity of Items found",
@@ -785,7 +799,8 @@
               }
             },
             "translation": {
-              "string": "#% increased Rarity of Items found"
+              "string": "#% increased Rarity of Items found",
+              "superseded": true
             }
           }
         }
@@ -794,11 +809,15 @@
         "better": 1,
         "matchers": [
           {
-            "string": "#% increased Rarity of Items found"
+            "string": "#% increased Rarity of Items found",
+            "superseded": true
           },
           {
             "negate": true,
             "string": "#% reduced Rarity of Items found"
+          },
+          {
+            "string": "#% to Item Rarity"
           }
         ],
         "ref": "#% increased Rarity of Items found",

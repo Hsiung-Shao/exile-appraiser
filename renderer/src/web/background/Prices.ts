@@ -188,6 +188,7 @@ export const usePoeninja = createGlobalState(() => {
     lastInterestTime = Date.now()
     periodic.touch(lastInterestTime)
     void load()
+    leagues.loadIfStale() // 常駐時跟上新賽季(每小時最多重抓一次聯盟清單)
   }
 
   function findPriceByQuery (query: DbQuery): NinjaPriceHit | null {

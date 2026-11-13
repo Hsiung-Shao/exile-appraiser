@@ -65,6 +65,7 @@ python C:\Users\jerry\.claude\scripts\evidence_gate.py <證據目錄> --source-r
 | `check-custom-bookmark.mjs` | 自訂字串書籤旅程的斷言,寫 `run.log` 與 `exit_code.txt` | `node .claude/skills/verify/check-custom-bookmark.mjs <證據目錄>` |
 | `dump-regex-page.js` | 讀正則面板目前頁的頁面選單 / 分類 / 勾選數 / 清單列 / 輸出字串 | 內容貼進 `javascript_tool` |
 | `check-tincture-page.mjs` | 萃取物詞綴頁 + 物品基底萃取物分類旅程的斷言 | `node .claude/skills/verify/check-tincture-page.mjs <證據目錄>` |
+| `check-season-data.mjs` | PoE1 賽季資料更新旅程(`features/poe1-season-data.md`)的斷言:正則頁新寫法 + 無頭查價 | `node .claude/skills/verify/check-season-data.mjs <證據目錄>` |
 
 ## 破壞對照(新旅程第一次建立時要做)
 

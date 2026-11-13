@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { filterTradeLeagues, isChallengeSoftcoreLeague, mapTrade2Leagues, pickLeague, type ApiLeague } from '../src/realm/leagues'
+import { filterTradeLeagues, isChallengeSoftcoreLeague, mapTrade2Leagues, pickLeague, pickLeagueOnLoad, type ApiLeague } from '../src/realm/leagues'
 
 const ids = (list: string[]) => list.map(id => ({ id, isPopular: true }))
 
@@ -64,6 +64,48 @@ describe('pickLeague:PoE1', () => {
 
   it('只剩永久聯盟 → Standard', () => {
     expect(pickLeague(filterTradeLeagues(POE1_INTL.slice(0, 8)), undefined)).toBe('Standard')
+  })
+})
+
+describe('pickLeagueOnLoad:新賽季第一次出現就切過去', () => {
+  // 2026-11-14 實測 /api/leagues 過濾後(3.30 Covens 開季);使用者設定檔當時存的是 Standard
+  const COVENS = ids(['Standard', 'Covens', 'Hardcore Covens'])
+
+  it('賽季間退回 Standard 後新賽季開了 → 切到新賽季', () => {
+    expect(pickLeagueOnLoad(COVENS, 'Standard', 'Allflame')).toEqual({ id: 'Covens', seen: 'Covens' })
+  })
+
+  it('升級後第一次載入(還沒記過)也切到目前賽季', () => {
+    expect(pickLeagueOnLoad(COVENS, 'Standard', undefined)).toEqual({ id: 'Covens', seen: 'Covens' })
+  })
+
+  it('同一個賽季裡使用者改選 Standard → 之後維持 Standard', () => {
+    expect(pickLeagueOnLoad(COVENS, 'Standard', 'Covens')).toEqual({ id: 'Standard', seen: 'Covens' })
+  })
+
+  it('私人聯盟不被新賽季切走', () => {
+    expect(pickLeagueOnLoad(COVENS, 'My League (PL12345)', 'Allflame')).toEqual({ id: 'My League (PL12345)', seen: 'Covens' })
+  })
+
+  it('賽季之間(清單沒有賽季聯盟)退 Standard,記住的賽季不清掉', () => {
+    expect(pickLeagueOnLoad(ids(['Standard', 'Hardcore']), 'Allflame', 'Allflame')).toEqual({ id: 'Standard', seen: 'Allflame' })
+  })
+
+  it('已經選了新賽季的專家模式 → 不被切到一般模式(升級後第一次載入也一樣)', () => {
+    expect(pickLeagueOnLoad(COVENS, 'Hardcore Covens', undefined)).toEqual({ id: 'Hardcore Covens', seen: 'Covens' })
+    const poe2 = ids(['Forbidden Rites', 'HC Forbidden Rites', 'Standard', 'Hardcore'])
+    expect(pickLeagueOnLoad(poe2, 'HC Forbidden Rites', undefined, 'poe2')).toEqual({ id: 'HC Forbidden Rites', seen: 'Forbidden Rites' })
+  })
+
+  it('上個賽季玩專家模式 → 新賽季切到專家模式那個', () => {
+    expect(pickLeagueOnLoad(COVENS, 'Hardcore Allflame', 'Allflame')).toEqual({ id: 'Hardcore Covens', seen: 'Covens' })
+    expect(pickLeagueOnLoad(ids(['專家模式', '標準模式', '新賽季', '專家模式 新賽季']), '專家模式 舊賽季', '舊賽季', 'poe2'))
+      .toEqual({ id: '專家模式 新賽季', seen: '新賽季' })
+  })
+
+  it('PoE2 清單新舊賽季並列:新賽季排第一個時切過去', () => {
+    const list = ids(['New League', 'HC New League', 'Forbidden Rites', 'Standard'])
+    expect(pickLeagueOnLoad(list, 'Forbidden Rites', 'Forbidden Rites', 'poe2')).toEqual({ id: 'New League', seen: 'New League' })
   })
 })
 

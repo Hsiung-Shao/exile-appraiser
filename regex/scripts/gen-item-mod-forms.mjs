@@ -30,8 +30,11 @@ function statsOf (game, lang) {
       if (Array.isArray(v) && typeof v[0] === 'string') { const d = v[0].indexOf('.'); statId = d >= 0 ? v[0].slice(d + 1) : v[0]; break }
     }
     if (!statId) continue
-    const plain = s.matchers.filter(m => m.negate !== true && m.value === undefined && typeof m.string === 'string').map(m => m.string.trim())
-    map.set(s.ref, { key: `${statId}|${s.ref}`, plain })
+    // superseded = 舊版遊戲寫法(scripts/poe1-season 標的):不當模板,仲裁到它的也不收(與 item-mods.ts 相同)
+    const usable = s.matchers.filter(m => m.negate !== true && m.value === undefined && typeof m.string === 'string')
+    const plain = usable.filter(m => m.superseded !== true).map(m => m.string.trim())
+    const old = new Set(usable.filter(m => m.superseded === true).map(m => m.string.trim()))
+    map.set(s.ref, { key: `${statId}|${s.ref}`, plain, old })
   }
   return map
 }
@@ -47,7 +50,7 @@ for (const r of arb.rows) {
   const stats = (cache[`${r.game}/${r.lang}`] ??= statsOf(r.game, r.lang))
   const s = stats.get(r.ref)
   if (!s) { missing++; console.warn(`找不到 stat:${r.game} ${r.lang} ${r.ref}`); continue }
-  const found = r.forms.filter(f => f.found).map(f => f.text)
+  const found = r.forms.filter(f => f.found && !s.old.has(f.text)).map(f => f.text)
   if (!found.length) continue
   const forms = s.plain.filter(t => found.includes(t))
   if (forms.length !== found.length) { missing++; console.warn(`寫法對不上 stats.ndjson:${r.game} ${r.lang} ${r.ref}`); continue }

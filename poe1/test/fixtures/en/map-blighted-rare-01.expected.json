@@ -65,10 +65,19 @@
             "fromAreaMods": "yes",
             "matchers": [
               {
-                "string": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 50% value\nCan be Anointed up to # times"
+                "string": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 50% value\nCan be Anointed up to # times",
+                "superseded": true
               },
               {
                 "string": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 25% value\nCan be Anointed up to 3 times",
+                "superseded": true,
+                "value": 1
+              },
+              {
+                "string": "Area is infested with Fungal Growths\nCan be Anointed up to # times"
+              },
+              {
+                "string": "Area is infested with Fungal Growths\nCan be Anointed up to 3 times",
                 "value": 1
               }
             ],
@@ -83,6 +92,7 @@
           },
           "translation": {
             "string": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 25% value\nCan be Anointed up to 3 times",
+            "superseded": true,
             "value": 1
           }
         }
@@ -338,10 +348,19 @@
                   "fromAreaMods": "yes",
                   "matchers": [
                     {
-                      "string": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 50% value\nCan be Anointed up to # times"
+                      "string": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 50% value\nCan be Anointed up to # times",
+                      "superseded": true
                     },
                     {
                       "string": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 25% value\nCan be Anointed up to 3 times",
+                      "superseded": true,
+                      "value": 1
+                    },
+                    {
+                      "string": "Area is infested with Fungal Growths\nCan be Anointed up to # times"
+                    },
+                    {
+                      "string": "Area is infested with Fungal Growths\nCan be Anointed up to 3 times",
                       "value": 1
                     }
                   ],
@@ -356,6 +375,7 @@
                 },
                 "translation": {
                   "string": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 25% value\nCan be Anointed up to 3 times",
+                  "superseded": true,
                   "value": 1
                 }
               }
@@ -374,10 +394,19 @@
               "fromAreaMods": "yes",
               "matchers": [
                 {
-                  "string": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 50% value\nCan be Anointed up to # times"
+                  "string": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 50% value\nCan be Anointed up to # times",
+                  "superseded": true
                 },
                 {
                   "string": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 25% value\nCan be Anointed up to 3 times",
+                  "superseded": true,
+                  "value": 1
+                },
+                {
+                  "string": "Area is infested with Fungal Growths\nCan be Anointed up to # times"
+                },
+                {
+                  "string": "Area is infested with Fungal Growths\nCan be Anointed up to 3 times",
                   "value": 1
                 }
               ],
@@ -392,6 +421,7 @@
             },
             "translation": {
               "string": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 25% value\nCan be Anointed up to 3 times",
+              "superseded": true,
               "value": 1
             }
           }
@@ -402,10 +432,19 @@
         "fromAreaMods": "yes",
         "matchers": [
           {
-            "string": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 50% value\nCan be Anointed up to # times"
+            "string": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 50% value\nCan be Anointed up to # times",
+            "superseded": true
           },
           {
             "string": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 25% value\nCan be Anointed up to 3 times",
+            "superseded": true,
+            "value": 1
+          },
+          {
+            "string": "Area is infested with Fungal Growths\nCan be Anointed up to # times"
+          },
+          {
+            "string": "Area is infested with Fungal Growths\nCan be Anointed up to 3 times",
             "value": 1
           }
         ],
