@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toMatcherText, planStatText, planDeadIds, planItems, applyStatPlan, applyItemPlan } from '../../scripts/poe1-season/lib.mjs'
+import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan } from '../../scripts/poe1-season/lib.mjs'
 
 /**
  * 賽季更新腳本的純函式測試(合成輸入,不讀 data/)。
@@ -95,6 +95,44 @@ describe('planStatText / applyStatPlan', () => {
     expect(ms.slice(0, 2)).toEqual(enStats[0].matchers.map((m: any) => ({ ...m, superseded: true })))
     expect(ms[2]).toEqual({ string: '#% increased Foo Amount' })
     expect(ms[3]).toEqual({ string: '#% reduced Foo Amount', negate: true })
+  })
+
+  it('只改大小寫也要加上新寫法(解析器逐字比對)', () => {
+    const enStats = [stat('Foo', [{ string: 'Deal damage #% faster' }])]
+    const old = [{ key: 'a', en: 'Deal damage {0}% faster', zh: null }]
+    const nw = [{ key: 'a', en: 'Deal damage {0}% [DamageFaster|Faster]', zh: null }]
+    const plan = planStatText({ enStats, zhStats: [], ggpkOld: old, ggpkNew: nw })
+    const file = applyStatPlan(toFile(enStats), 'en', { adds: plan.adds })
+    expect(parseRows(file)[0].matchers).toEqual([
+      { string: 'Deal damage #% faster', superseded: true }, { string: 'Deal damage #% Faster' }])
+    // 再跑一次不重複加
+    const again = planStatText({ enStats: parseRows(file), zhStats: [], ggpkOld: old, ggpkNew: nw })
+    expect(again.adds).toEqual([])
+  })
+
+  it('交易站同一個 id 有兩句文字、已對上其中一句時不再加另一句', () => {
+    const enStats = [stat('Area contains an additional Abyss', [{ string: 'Area contains an additional Abyss' }])]
+    const tradeStats = [
+      { id: 'explicit.stat_1', text: 'Area contains an additional Abyss', type: 'explicit' },
+      { id: 'explicit.stat_1', text: 'Your Maps contain an additional Abyss', type: 'explicit' }
+    ]
+    const ggpkNew = [
+      { key: 'a', en: 'Area contains an additional Abyss', zh: '區域含有 1 個額外深淵' },
+      { key: 'b', en: 'Your Maps contain an additional Abyss', zh: '你的地圖含有 1 個額外深淵' }
+    ]
+    expect(planTradeText({ enStats, zhStats: [], tradeStats, ggpkNew }).adds).toEqual([])
+  })
+
+  it('id 的現行文字完全對不上時補上,並把舊的可當模板寫法標成被取代', () => {
+    const enStats = [stat('#% increased Rarity of Items found', [
+      { string: '#% increased Rarity of Items found' }, { string: '#% reduced Rarity of Items found', negate: true }])]
+    const tradeStats = [{ id: 'explicit.stat_1', text: '+#% to Item Rarity', type: 'explicit' }]
+    const ggpkNew = [{ key: 'n', en: '{0:+d}% to [PlayerItemRarity|Item Rarity]', zh: null }]
+    const plan = planTradeText({ enStats, zhStats: [], tradeStats, ggpkNew })
+    expect(parseRows(applyStatPlan(toFile(enStats), 'en', { adds: plan.adds }))[0].matchers).toEqual([
+      { string: '#% increased Rarity of Items found', superseded: true },
+      { string: '#% reduced Rarity of Items found', negate: true },
+      { string: '#% to Item Rarity' }])
   })
 
   it('舊句在別的鍵仍沿用時不標成被取代', () => {

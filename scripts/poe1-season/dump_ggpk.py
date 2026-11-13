@@ -17,7 +17,8 @@ def main():
     c = sqlite3.connect(f'file:{db}?mode=ro', uri=True)
     vers = [r[0] for r in c.execute('select id from version where complete = 1 order by id')]
     new = int(opt.get('--new', vers[-1]))
-    old = int(opt.get('--old', vers[-2] if len(vers) > 1 else new))
+    older = [v for v in vers if v < new]
+    old = int(opt.get('--old', older[-1] if older else new))
 
     def meta(v):
         r = c.execute('select id, game_version, ggpk_build, taken_at from version where id = ?', (v,)).fetchone()

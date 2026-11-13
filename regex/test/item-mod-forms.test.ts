@@ -238,7 +238,7 @@ describe('多種寫法仲裁(item-mod-forms.json)', () => {
     }
     expect(fails.slice(0, 30)).toEqual([])
     // 確認真的有檢查到(舊版仲裁鍵幾乎全是 multi_form → 0 筆);2026-10-10 實作後鎖收錄數(資料或仲裁檔變了要看過再改)
-    const EXPECT_CHECKED: Record<string, number> = { 'poe1.zh': 32, 'poe1.en': 64, 'poe2.zh': 92, 'poe2.en': 36 }
+    const EXPECT_CHECKED: Record<string, number> = { 'poe1.zh': 33, 'poe1.en': 64, 'poe2.zh': 92, 'poe2.en': 36 }
     for (const g of GAMES) for (const l of LANGS) {
       const total = Object.keys(FORMS[g][l]).length
       expect(checked[`${g}.${l}`], `${g}.${l} 收錄的仲裁鍵 / 全部 ${total}`).toBe(EXPECT_CHECKED[`${g}.${l}`])
@@ -290,8 +290,8 @@ describe('多種寫法仲裁(item-mod-forms.json)', () => {
     // 2026-10-10 仲裁後(舊值:poe2 entries 1198 / multi_form 135;poe1 entries 4785 / multi_form 87)
     expect(DATA.poe2.entries.length).toBe(1294)
     expect(DATA.poe2.excluded.multi_form).toBe(33)
-    expect(DATA.poe1.entries.length).toBe(4758) // 2026-11-14 資料更新到 3.30(見 item-mods.test.ts 的說明)
-    expect(DATA.poe1.excluded.multi_form).toBe(22)
+    expect(DATA.poe1.entries.length).toBe(4766) // 2026-11-14 資料更新到 3.30(見 item-mods.test.ts 的說明)
+    expect(DATA.poe1.excluded.multi_form).toBe(23)
     for (const g of GAMES) {
       const d = DATA[g]
       const ex = Object.values(d.excluded).reduce((a, b) => a + b, 0)
@@ -300,7 +300,7 @@ describe('多種寫法仲裁(item-mod-forms.json)', () => {
   })
 
   it('T10 沒有仲裁參數時行為同舊版', () => {
-    const old: Record<Game, { entries: number, multi: number }> = { poe2: { entries: 1198, multi: 135 }, poe1: { entries: 4692, multi: 93 } }
+    const old: Record<Game, { entries: number, multi: number }> = { poe2: { entries: 1198, multi: 135 }, poe1: { entries: 4699, multi: 95 } }
     for (const g of GAMES) {
       const d = (buildItemModData as any)(g, STATS[`${g}.zh`], STATS[`${g}.en`]) as ItemModData
       expect(d.entries.length, `${g} entries`).toBe(old[g].entries)

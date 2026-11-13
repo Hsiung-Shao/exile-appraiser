@@ -220,11 +220,7 @@
             "fromAreaMods": "yes",
             "matchers": [
               {
-                "string": "Unique Boss deals #% increased Damage",
-                "superseded": true
-              },
-              {
-                "string": "Map Bosses deal #% increased Damage"
+                "string": "Unique Boss deals #% increased Damage"
               }
             ],
             "ref": "Unique Boss deals #% increased Damage",
@@ -243,8 +239,7 @@
             }
           },
           "translation": {
-            "string": "Unique Boss deals #% increased Damage",
-            "superseded": true
+            "string": "Unique Boss deals #% increased Damage"
           }
         },
         {
@@ -722,11 +717,7 @@
                   "fromAreaMods": "yes",
                   "matchers": [
                     {
-                      "string": "Unique Boss deals #% increased Damage",
-                      "superseded": true
-                    },
-                    {
-                      "string": "Map Bosses deal #% increased Damage"
+                      "string": "Unique Boss deals #% increased Damage"
                     }
                   ],
                   "ref": "Unique Boss deals #% increased Damage",
@@ -745,8 +736,7 @@
                   }
                 },
                 "translation": {
-                  "string": "Unique Boss deals #% increased Damage",
-                  "superseded": true
+                  "string": "Unique Boss deals #% increased Damage"
                 }
               },
               {
@@ -796,11 +786,7 @@
               "fromAreaMods": "yes",
               "matchers": [
                 {
-                  "string": "Unique Boss deals #% increased Damage",
-                  "superseded": true
-                },
-                {
-                  "string": "Map Bosses deal #% increased Damage"
+                  "string": "Unique Boss deals #% increased Damage"
                 }
               ],
               "ref": "Unique Boss deals #% increased Damage",
@@ -819,8 +805,7 @@
               }
             },
             "translation": {
-              "string": "Unique Boss deals #% increased Damage",
-              "superseded": true
+              "string": "Unique Boss deals #% increased Damage"
             }
           }
         }
@@ -830,11 +815,7 @@
         "fromAreaMods": "yes",
         "matchers": [
           {
-            "string": "Unique Boss deals #% increased Damage",
-            "superseded": true
-          },
-          {
-            "string": "Map Bosses deal #% increased Damage"
+            "string": "Unique Boss deals #% increased Damage"
           }
         ],
         "ref": "Unique Boss deals #% increased Damage",
@@ -888,11 +869,7 @@
                   "fromAreaMods": "yes",
                   "matchers": [
                     {
-                      "string": "Unique Boss deals #% increased Damage",
-                      "superseded": true
-                    },
-                    {
-                      "string": "Map Bosses deal #% increased Damage"
+                      "string": "Unique Boss deals #% increased Damage"
                     }
                   ],
                   "ref": "Unique Boss deals #% increased Damage",
@@ -911,8 +888,7 @@
                   }
                 },
                 "translation": {
-                  "string": "Unique Boss deals #% increased Damage",
-                  "superseded": true
+                  "string": "Unique Boss deals #% increased Damage"
                 }
               },
               {

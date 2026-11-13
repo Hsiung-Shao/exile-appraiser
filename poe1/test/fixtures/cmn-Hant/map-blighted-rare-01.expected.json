@@ -220,11 +220,7 @@
             "fromAreaMods": "yes",
             "matchers": [
               {
-                "string": "傳奇頭目增加 #% 傷害",
-                "superseded": true
-              },
-              {
-                "string": "地圖頭目增加 #% 傷害"
+                "string": "傳奇頭目增加 #% 傷害"
               }
             ],
             "ref": "Unique Boss deals #% increased Damage",
@@ -243,8 +239,7 @@
             }
           },
           "translation": {
-            "string": "傳奇頭目增加 #% 傷害",
-            "superseded": true
+            "string": "傳奇頭目增加 #% 傷害"
           }
         },
         {
@@ -722,11 +717,7 @@
                   "fromAreaMods": "yes",
                   "matchers": [
                     {
-                      "string": "傳奇頭目增加 #% 傷害",
-                      "superseded": true
-                    },
-                    {
-                      "string": "地圖頭目增加 #% 傷害"
+                      "string": "傳奇頭目增加 #% 傷害"
                     }
                   ],
                   "ref": "Unique Boss deals #% increased Damage",
@@ -745,8 +736,7 @@
                   }
                 },
                 "translation": {
-                  "string": "傳奇頭目增加 #% 傷害",
-                  "superseded": true
+                  "string": "傳奇頭目增加 #% 傷害"
                 }
               },
               {
@@ -796,11 +786,7 @@
               "fromAreaMods": "yes",
               "matchers": [
                 {
-                  "string": "傳奇頭目增加 #% 傷害",
-                  "superseded": true
-                },
-                {
-                  "string": "地圖頭目增加 #% 傷害"
+                  "string": "傳奇頭目增加 #% 傷害"
                 }
               ],
               "ref": "Unique Boss deals #% increased Damage",
@@ -819,8 +805,7 @@
               }
             },
             "translation": {
-              "string": "傳奇頭目增加 #% 傷害",
-              "superseded": true
+              "string": "傳奇頭目增加 #% 傷害"
             }
           }
         }
@@ -830,11 +815,7 @@
         "fromAreaMods": "yes",
         "matchers": [
           {
-            "string": "傳奇頭目增加 #% 傷害",
-            "superseded": true
-          },
-          {
-            "string": "地圖頭目增加 #% 傷害"
+            "string": "傳奇頭目增加 #% 傷害"
           }
         ],
         "ref": "Unique Boss deals #% increased Damage",
@@ -888,11 +869,7 @@
                   "fromAreaMods": "yes",
                   "matchers": [
                     {
-                      "string": "傳奇頭目增加 #% 傷害",
-                      "superseded": true
-                    },
-                    {
-                      "string": "地圖頭目增加 #% 傷害"
+                      "string": "傳奇頭目增加 #% 傷害"
                     }
                   ],
                   "ref": "Unique Boss deals #% increased Damage",
@@ -911,8 +888,7 @@
                   }
                 },
                 "translation": {
-                  "string": "傳奇頭目增加 #% 傷害",
-                  "superseded": true
+                  "string": "傳奇頭目增加 #% 傷害"
                 }
               },
               {

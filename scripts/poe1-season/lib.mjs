@@ -12,10 +12,16 @@ export function toMatcherText (text) {
     .replace(/[+\-−]#/g, '#')
 }
 
-/** 比對用的鍵:不分大小寫、空白收斂、去掉交易站的 (Local) 尾綴 */
+/** 寬鬆鍵(找對應、查碰撞用):不分大小寫、空白收斂 */
 export function cmpKey (text) {
-  return toMatcherText(text ?? '').replace(/\s+\(Local\)$/i, '').replace(/[ \t]+/g, ' ').trim().toLowerCase()
+  return toMatcherText(text ?? '').replace(/[ \t]+/g, ' ').trim().toLowerCase()
 }
+
+/** 逐字鍵(判斷「有沒有改字 / 已經有了沒」用):解析器逐字比對 matcher,只差大小寫也算不同 */
+const exactKey = (text) => toMatcherText(text ?? '').trim()
+/** 交易站文字去掉 (Local) 尾綴(遊戲內文字沒有它) */
+const noLocal = (text) => (text ?? '').replace(/\s+\(Local\)$/i, '')
+const matcherExact = (stat) => new Set(stat.matchers.map(m => m.string.trim()))
 
 /** 文字的方向:+1 增加 / 更多,-1 減少 / 更少,0 看不出來 */
 function direction (text) {
@@ -73,7 +79,7 @@ export function planStatText ({ enStats, zhStats, ggpkOld, ggpkNew }) {
   const seen = new Set()
 
   for (const stat of eachStat(enStats)) {
-    const have = { en: matcherKeys(stat), 'cmn-Hant': new Set((zhByRef.get(stat.ref) ?? []).flatMap(s => [...matcherKeys(s)])) }
+    const have = { en: matcherExact(stat), 'cmn-Hant': new Set((zhByRef.get(stat.ref) ?? []).flatMap(s => [...matcherExact(s)])) }
     for (const m of [...stat.matchers]) {
       const k = cmpKey(m.string)
       const olds = oldByEn.get(k)
@@ -88,14 +94,14 @@ export function planStatText ({ enStats, zhStats, ggpkOld, ggpkNew }) {
           rejects.push({ ref: stat.ref, lang: 'en', reason: 'direction', from: m.string, to: toMatcherText(n.en) })
           continue
         }
-        if (cmpKey(n.en) !== k) cands.push({ lang: 'en', text: n.en, was: o.en })
-        if (n.zh && cmpKey(n.zh) !== cmpKey(o.zh) && cmpKey(n.zh) !== cmpKey(n.en)) cands.push({ lang: 'cmn-Hant', text: n.zh, was: o.zh })
+        if (exactKey(n.en) !== exactKey(o.en)) cands.push({ lang: 'en', text: n.en, was: o.en })
+        if (n.zh && exactKey(n.zh) !== exactKey(o.zh) && cmpKey(n.zh) !== cmpKey(n.en)) cands.push({ lang: 'cmn-Hant', text: n.zh, was: o.zh })
       }
       // 同一句舊文字在新版分成多句(例:「附近」→ 3 公尺 / 6 公尺,原本就共用這個 stat)→ 全部加上
       for (const c of cands) {
         const nk = cmpKey(c.text)
-        const id = `${c.lang}\n${stat.ref}\n${nk}\n${JSON.stringify(flags)}`
-        if (have[c.lang].has(nk) || seen.has(id)) continue
+        const id = `${c.lang}\n${stat.ref}\n${exactKey(c.text)}\n${JSON.stringify(flags)}`
+        if (have[c.lang].has(exactKey(c.text)) || seen.has(id)) continue
         seen.add(id)
         const reject = (reason) => rejects.push({ ref: stat.ref, lang: c.lang, reason, from: m.string, to: toMatcherText(c.text) })
         if (c.was && direction(c.was) * direction(c.text) === -1) { reject('direction'); continue }
@@ -104,7 +110,7 @@ export function planStatText ({ enStats, zhStats, ggpkOld, ggpkNew }) {
         // 舊句在新版每個鍵都改掉了(沒有任何鍵還保留舊句)才算被取代;被取代的舊 matcher 套用時標 superseded
         const dead = olds.every(o => {
           const n = newByKey.get(o.key)
-          return c.lang === 'en' ? cmpKey(n.en) !== k : Boolean(n.zh) && cmpKey(n.zh) !== cmpKey(o.zh)
+          return c.lang === 'en' ? exactKey(n.en) !== exactKey(o.en) : Boolean(n.zh) && exactKey(n.zh) !== exactKey(o.zh)
         })
         adds.push({
           lang: c.lang,
@@ -120,14 +126,20 @@ export function planStatText ({ enStats, zhStats, ggpkOld, ggpkNew }) {
 }
 
 /**
- * 規則 B:專案引用的 id 在交易站的現行文字不在 en matcher 裡,而且 GGPK 新版確實有這句(= 遊戲內文字)→ 加上。
- * 減少型(需要 negate)的不猜,放進 rejects。
+ * 規則 B:專案引用的 id 在交易站的現行文字(同一個 id 可能有好幾句,例:地圖上的「Area contains …」與天賦樹的
+ * 「Your Maps contain …」)**沒有任何一句**是它的 en matcher,而且 GGPK 新版確實有那句(= 遊戲內文字)→ 加上。
+ * 已經對得上其中一句的 id 不動(另一句是別的情境的寫法)。減少型(需要 negate)的不猜,放進 rejects。
  */
 export function planTradeText ({ enStats, zhStats, tradeStats, ggpkNew }) {
-  const textById = new Map(tradeStats.map(e => [e.id, e.text]))
-  const ggpkByEn = groupBy(ggpkNew, r => cmpKey(r.en))
+  /** @type {Map<string, Set<string>>} id → 逐字的現行文字 */
+  const textsById = new Map()
+  for (const e of tradeStats) {
+    if (!textsById.has(e.id)) textsById.set(e.id, new Set())
+    textsById.get(e.id).add(exactKey(noLocal(e.text)))
+  }
+  const ggpkByEn = groupBy(ggpkNew, r => exactKey(r.en))
   // 這條 stat 補上現行寫法時,其他「可當模板(非 negate、非固定值)且不是任何一個 id 現行文字」的舊寫法標成被取代
-  const gone = (matchers, current) => [...new Set(matchers.filter(m => !m.negate && m.value === undefined && !current.has(cmpKey(m.string))).map(m => m.string))]
+  const gone = (matchers, current) => [...new Set(matchers.filter(m => !m.negate && m.value === undefined && !current.has(m.string.trim())).map(m => m.string))]
   const enRefs = refsByMatcher(enStats)
   const zhRefs = refsByMatcher(zhStats)
   const zhByRef = groupBy([...eachStat(zhStats)], s => s.ref)
@@ -135,26 +147,28 @@ export function planTradeText ({ enStats, zhStats, tradeStats, ggpkNew }) {
   const rejects = []
   const seen = new Set()
   for (const stat of eachStat(enStats)) {
-    const have = matcherKeys(stat)
-    const haveZh = new Set((zhByRef.get(stat.ref) ?? []).flatMap(s => [...matcherKeys(s)]))
-    const current = new Set(allIds(stat).filter(id => !id.startsWith('pseudo.') && textById.has(id)).map(id => cmpKey(textById.get(id))))
-    const currentZh = new Set([...current].flatMap(k => (ggpkByEn.get(k) ?? []).map(r => cmpKey(r.zh))))
-    for (const id of allIds(stat)) {
-      const text = textById.get(id)
-      if (!text || id.startsWith('pseudo.')) continue
-      const k = cmpKey(text)
-      const rows = ggpkByEn.get(k)
-      if (have.has(k) || k === cmpKey(stat.ref) || !rows || seen.has(stat.ref + '\n' + k)) continue
-      seen.add(stat.ref + '\n' + k)
-      const reject = (reason, lang = 'en', to = toMatcherText(text)) => rejects.push({ ref: stat.ref, lang, reason, id, to })
-      if (direction(text) === -1 && stat.matchers.some(m => !m.negate && direction(m.string) === 1)) { reject('direction'); continue }
-      if ([...(enRefs.get(k) ?? [])].some(r => r !== stat.ref)) { reject('collision'); continue }
-      adds.push({ lang: 'en', ref: stat.ref, matcher: { string: toMatcherText(text).replace(/\s+\(Local\)$/i, '') }, supersedes: gone(stat.matchers, current) })
-      const zhs = [...new Set(rows.filter(r => r.zh && cmpKey(r.zh) !== k).map(r => toMatcherText(r.zh)))]
-      if (zhs.length !== 1) { if (zhs.length) reject('ambiguous', 'cmn-Hant', zhs.join(' / ')); continue }
-      if (haveZh.has(cmpKey(zhs[0]))) continue
-      if ([...(zhRefs.get(cmpKey(zhs[0])) ?? [])].some(r => r !== stat.ref)) { reject('collision', 'cmn-Hant', zhs[0]); continue }
-      adds.push({ lang: 'cmn-Hant', ref: stat.ref, matcher: { string: zhs[0] }, supersedes: gone((zhByRef.get(stat.ref) ?? []).flatMap(s => s.matchers), currentZh) })
+    const have = matcherExact(stat)
+    const haveZh = new Set((zhByRef.get(stat.ref) ?? []).flatMap(s => [...matcherExact(s)]))
+    const ids = allIds(stat).filter(id => !id.startsWith('pseudo.') && textsById.has(id))
+    const current = new Set(ids.flatMap(id => [...textsById.get(id)]))
+    const currentZh = new Set([...current].flatMap(t => (ggpkByEn.get(t) ?? []).map(r => exactKey(r.zh))))
+    for (const id of ids) {
+      const texts = [...textsById.get(id)]
+      if (texts.some(t => have.has(t))) continue // 這個 id 已經有一句對得上
+      for (const text of texts) {
+        const rows = ggpkByEn.get(text)
+        if (!rows || seen.has(stat.ref + '\n' + text)) continue
+        seen.add(stat.ref + '\n' + text)
+        const reject = (reason, lang = 'en', to = text) => rejects.push({ ref: stat.ref, lang, reason, id, to })
+        if (direction(text) === -1 && stat.matchers.some(m => !m.negate && direction(m.string) === 1)) { reject('direction'); continue }
+        if ([...(enRefs.get(cmpKey(text)) ?? [])].some(r => r !== stat.ref)) { reject('collision'); continue }
+        adds.push({ lang: 'en', ref: stat.ref, matcher: { string: text }, supersedes: gone(stat.matchers, current) })
+        const zhs = [...new Set(rows.filter(r => r.zh && cmpKey(r.zh) !== cmpKey(text)).map(r => exactKey(r.zh)))]
+        if (zhs.length !== 1) { if (zhs.length) reject('ambiguous', 'cmn-Hant', zhs.join(' / ')); continue }
+        if (haveZh.has(zhs[0])) continue
+        if ([...(zhRefs.get(cmpKey(zhs[0])) ?? [])].some(r => r !== stat.ref)) { reject('collision', 'cmn-Hant', zhs[0]); continue }
+        adds.push({ lang: 'cmn-Hant', ref: stat.ref, matcher: { string: zhs[0] }, supersedes: gone((zhByRef.get(stat.ref) ?? []).flatMap(s => s.matchers), currentZh) })
+      }
     }
   }
   return { adds, rejects }
@@ -204,7 +218,7 @@ export function planDeadIds ({ enStats, tradeStats }) {
  */
 export function planNewStats ({ enStats, ggpkOld, ggpkNew, tradeStats }) {
   const oldKeys = new Set(ggpkOld.map(r => r.key))
-  const tradeByText = groupBy(tradeStats.filter(e => !e.id.startsWith('pseudo.')), e => cmpKey(e.text))
+  const tradeByText = groupBy(tradeStats.filter(e => !e.id.startsWith('pseudo.')), e => cmpKey(noLocal(e.text)))
   const known = new Set()
   const usedIds = new Set()
   for (const stat of eachStat(enStats)) {
@@ -285,10 +299,11 @@ export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove
     existingRefs.add(stat.ref)
     for (const a of addsByRef.get(stat.ref) ?? []) {
       const keys = matcherKeys(stat)
-      if (keys.has(cmpKey(a.matcher.string)) || (a.after !== undefined && !keys.has(cmpKey(a.after)))) continue
-      if (Array.isArray(a.supersedes)) { // 規則 B:列出的舊句不分旗標全部標記
-        const old = new Set(a.supersedes.map(cmpKey))
-        for (const m of stat.matchers) if (old.has(cmpKey(m.string))) m.superseded = true
+      // 已經有了沒 = 逐字比(解析器逐字比對,只差大小寫的新寫法也要加)
+      if (matcherExact(stat).has(a.matcher.string.trim()) || (a.after !== undefined && !keys.has(cmpKey(a.after)))) continue
+      if (Array.isArray(a.supersedes)) { // 規則 B:列出的舊句(逐字)全部標記
+        const old = new Set(a.supersedes.map(t => t.trim()))
+        for (const m of stat.matchers) if (old.has(m.string.trim())) m.superseded = true
       } else if (a.supersedes !== undefined) {
         // 被取代的舊寫法留著(舊樣本仍可解析),只加標記;正則「物品詞綴數值」頁不拿它當模板。
         // 繁中資料若是台服用詞(對不上 GGPK 舊句):同旗標的舊 matcher 恰好一條時就是它。
