@@ -272,8 +272,11 @@ export function planDeadIds ({ enStats, tradeStats }) {
  * 規則 4:GGPK 新版新增、交易站有同文字 id、專案沒有 → 新增一列。
  * @returns {{ ref: string, better: number, en: any[], zh: any[], ids: Record<string, string[]> }[]}
  */
-export function planNewStats ({ enStats, ggpkOld, ggpkNew, tradeStats }) {
+export function planNewStats ({ enStats, zhStats = /** @type {any[]} */ ([]), ggpkOld, ggpkNew, tradeStats }) {
   const oldKeys = new Set(ggpkOld.map(r => r.key))
+  // 繁中新句把數字換成 # 後若與既有 matcher 同形(「獲得 1 層盛怒」對「獲得 # 層盛怒」),會搶走既有詞綴的比對 → 不加
+  const shape = (text) => text.replace(/\d+(?:\.\d+)?/g, '#')
+  const zhShapes = new Set([...eachStat(zhStats)].flatMap(s => s.matchers.map(m => shape(m.string))))
   const tradeByText = groupBy(tradeStats.filter(e => !e.id.startsWith('pseudo.')), e => cmpKey(noLocal(e.text)))
   const known = new Set()
   const usedIds = new Set()
@@ -291,6 +294,7 @@ export function planNewStats ({ enStats, ggpkOld, ggpkNew, tradeStats }) {
     // 舊版就有的 stat:只收交易站只列為固定詞綴的(3.30 臟器的詞綴多半是舊 stat、這季才給 implicit id);
     // 其餘類型的舊缺口數量大、沒有樣本,不自動加
     if (oldKeys.has(row.key) && !entries.every(e => e.id.startsWith('implicit.'))) continue
+    if (row.zh && zhShapes.has(shape(toMatcherText(row.zh)))) continue
     if (!out.has(k)) {
       /** @type {Record<string, string[]>} */
       const ids = {}

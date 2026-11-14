@@ -385,6 +385,14 @@ describe('planNewStats', () => {
     ])
     expect(out[0].zh).toEqual([{ string: '獲得 # 甲' }])
   })
+
+  it('繁中新句把數字換成 # 後與既有 matcher 同形的不加(會搶走既有詞綴的比對)', () => {
+    const fixed = [row('new_fixed', 'Gain 1 Foo on Hit', '擊中時獲得 1 甲')]
+    const zhStats = [{ ref: 'Gain # Foo when Hit', matchers: [{ string: '擊中時獲得 # 甲' }] }]
+    const trade = [{ id: 'implicit.stat_9', text: 'Gain 1 Foo on Hit' }]
+    expect(planNewStats({ enStats: [], zhStats, ggpkOld: [], ggpkNew: fixed, tradeStats: trade })).toEqual([])
+    expect(planNewStats({ enStats: [], ggpkOld: [], ggpkNew: fixed, tradeStats: trade })).toHaveLength(1)
+  })
 })
 
 describe('planGems / applyItemPlan', () => {

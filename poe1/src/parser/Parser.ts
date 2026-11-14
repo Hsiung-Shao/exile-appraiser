@@ -957,10 +957,10 @@ function parseModifiers (section: string[], item: ParsedItem) {
     item.rarity !== ItemRarity.Rare &&
     item.rarity !== ItemRarity.Unique
   ) {
-    // exile-appraiser: 3.30 臟器沒有稀有度行,但進階複製有「{ 固定詞綴 }」區;上游一律跳過 → 詞綴被靜默丟掉
-    if (item.rarity !== undefined || !section.some(isModInfoLine)) {
-      return item.rarity === undefined ? 'SECTION_SKIPPED' : 'PARSER_SKIPPED'
-    }
+    // exile-appraiser: 3.30 臟器沒有稀有度也沒有類別,但進階複製有「{ 固定詞綴 }」區;上游一律跳過 → 詞綴被靜默丟掉。
+    // 通貨 / 寶石 / 命運卡等有類別的照舊跳過
+    if (item.category !== undefined) return 'PARSER_SKIPPED'
+    if (!section.some(isModInfoLine)) return 'SECTION_SKIPPED'
   }
 
   const recognizedLine = section.find(line =>
