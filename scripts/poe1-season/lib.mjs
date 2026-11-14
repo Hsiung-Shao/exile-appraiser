@@ -194,6 +194,33 @@ export function planTradeText ({ enStats, zhStats, tradeStats, ggpkNew, ggpkOld 
   return { adds, rejects }
 }
 
+/**
+ * 規則 8:「插槽中的寶石被等級 # 的 X 輔助」(ref 結尾 `(Random Support Gem)` 的列)。
+ * 3.30 起遊戲把 {1} 填成寶石全名(施放迴響 → 施放迴響輔助;使用者 2026-11-14 實機剪貼簿),
+ * 新句 = GGPK 的句型(`local_random_support_gem_level …`)+ baseitemtypes 的寶石名(以英文 `<X> Support` 對接)。
+ * 舊句標 superseded(舊資料的寶石名與 GGPK 不同時,該列唯一的舊句就是它;留著兩種寫法正則物品詞綴數值頁會把它當多種寫法而排除)。英文沒有實機樣本,是由同一個句型推出來的。
+ */
+export function planSupportGemNames ({ enStats, zhStats, ggpkNew, baseNew }) {
+  const tpl = ggpkNew.find(r => r.key.startsWith('local_random_support_gem_level local_random_support_gem_index|'))
+  const gems = groupBy(baseNew.filter(r => r.path.startsWith('Metadata/Items/Gems/')), r => r.en)
+  const adds = []
+  const rejects = []
+  if (!tpl) return { adds, rejects }
+  const fill = (text, name) => toMatcherText(text.replace('{1}', name))
+  const zhByRef = groupBy([...eachStat(zhStats)], s => s.ref)
+  const has = (stats, text) => stats.some(s => s.matchers.some(x => x.string === text))
+  for (const stat of eachStat(enStats)) {
+    const m = /^Socketed Gems are Supported by Level # (.+) \(Random Support Gem\)$/.exec(stat.ref)
+    if (!m) continue
+    const zh = [...new Set((gems.get(`${m[1]} Support`) ?? []).map(r => r.zh))]
+    if (zh.length !== 1) { rejects.push({ reason: 'GGPK 沒有唯一的輔助寶石名', ref: stat.ref, candidates: zh }); continue }
+    const en = fill(tpl.en, `${m[1]} Support`)
+    if (!has([stat], en)) adds.push({ lang: 'en', ref: stat.ref, matcher: { string: en }, supersedes: fill(tpl.en, m[1]) })
+    if (!has(zhByRef.get(stat.ref) ?? [], fill(tpl.zh, zh[0]))) adds.push({ lang: 'cmn-Hant', ref: stat.ref, matcher: { string: fill(tpl.zh, zh[0]) }, supersedes: fill(tpl.zh, zh[0].replace(/輔助$/, '')) })
+  }
+  return { adds, rejects }
+}
+
 /** 交易站 id 是否仍有效(`X|n` 形式:X 是選項型 stat 且有選項 n 也算) */
 export function liveIdTest (tradeStats) {
   const ids = new Set(tradeStats.map(e => e.id))

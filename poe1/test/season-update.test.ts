@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases } from '../../scripts/poe1-season/lib.mjs'
+import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames } from '../../scripts/poe1-season/lib.mjs'
 
 /**
  * 賽季更新腳本的純函式測試(合成輸入,不讀 data/)。
@@ -363,5 +363,24 @@ describe('planTradeBases / applyItemPlan', () => {
     ])
     const enOut = parseRows(applyItemPlan(toFile(enRows()), 'en', { bases: p.adds }))
     expect(planTradeBases({ enItems: enOut, baseOld, baseNew, tradeItems }).adds).toEqual([])
+  })
+})
+
+describe('planSupportGemNames / applyStatPlan', () => {
+  const REF = 'Socketed Gems are Supported by Level # Spell Echo (Random Support Gem)'
+  const en = () => [{ ref: REF, matchers: [{ string: 'Socketed Gems are Supported by Level # Spell Echo' }] },
+    { ref: 'Socketed Gems are Supported by Level # No Such (Random Support Gem)', matchers: [{ string: 'x' }] }]
+  const zh = () => [{ ref: REF, matchers: [{ string: '插槽中的寶石被等級 # 的 施放迴響 輔助' }] }]
+  const ggpkNew = [{ key: 'local_random_support_gem_level local_random_support_gem_index|# #|stat_descriptions.txt|0', en: 'Socketed Gems are Supported by Level {0} {1}', zh: '插槽中的寶石被等級 {0} 的 {1} 輔助' }]
+  const baseNew = [{ path: 'Metadata/Items/Gems/SupportGemMulticast', en: 'Spell Echo Support', zh: '施放迴響輔助' }]
+
+  it('寶石全名的新句加進去,舊句標 superseded;重跑計畫為空', () => {
+    const p = planSupportGemNames({ enStats: en(), zhStats: zh(), ggpkNew, baseNew })
+    expect(p.rejects.map((r: any) => r.ref)).toEqual(['Socketed Gems are Supported by Level # No Such (Random Support Gem)'])
+    const enOut = parseRows(applyStatPlan(toFile(en()), 'en', { adds: p.adds }))
+    const zhOut = parseRows(applyStatPlan(toFile(zh()), 'cmn-Hant', { adds: p.adds }))
+    expect(enOut[0].matchers).toEqual([{ string: 'Socketed Gems are Supported by Level # Spell Echo', superseded: true }, { string: 'Socketed Gems are Supported by Level # Spell Echo Support' }])
+    expect(zhOut[0].matchers).toEqual([{ string: '插槽中的寶石被等級 # 的 施放迴響 輔助', superseded: true }, { string: '插槽中的寶石被等級 # 的 施放迴響輔助 輔助' }])
+    expect(planSupportGemNames({ enStats: enOut, zhStats: zhOut, ggpkNew, baseNew }).adds).toEqual([])
   })
 })

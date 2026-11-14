@@ -5628,3 +5628,4 @@
 {"name":"蜘蛛步足","refName":"Arachnid Leg","namespace":"ITEM"}
 {"name":"駭人巨口","refName":"Terrifying Maw","namespace":"ITEM"}
 {"name":"腐敗之種","refName":"Putrid Seed","namespace":"UNIQUE","unique":{"base":"Mycelium Core"}}
+{"name":"恐慌化身．頭顱","refName":"Incarnation of Dread's Head","namespace":"ITEM"}

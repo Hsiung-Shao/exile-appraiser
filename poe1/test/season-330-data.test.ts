@@ -118,6 +118,14 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(seed.info.refName).toBe('Putrid Seed')
     expect(seed.info.unique?.base).toBe('Mycelium Core')
   })
+
+  it('D10 「插槽中的寶石被等級 # 的 X輔助 輔助」3.30 寫法(使用者 2026-11-14 回報的混響)沒有未解析詞綴', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-reverberation-rod.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(item)).toEqual([])
+    for (const gem of ['Spell Echo', 'Controlled Destruction', 'Arcane Surge']) {
+      expect(refsOf(item)).toContain(`Socketed Gems are Supported by Level # ${gem} (Random Support Gem)`)
+    }
+  })
 })
 
 function readNdjson (lang: string, file: string): any[] {

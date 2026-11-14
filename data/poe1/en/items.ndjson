@@ -5623,3 +5623,4 @@
 {"name":"Arachnid Leg","refName":"Arachnid Leg","namespace":"ITEM"}
 {"name":"Terrifying Maw","refName":"Terrifying Maw","namespace":"ITEM"}
 {"name":"Putrid Seed","refName":"Putrid Seed","namespace":"UNIQUE","unique":{"base":"Mycelium Core"}}
+{"name":"Incarnation of Dread's Head","refName":"Incarnation of Dread's Head","namespace":"ITEM"}
