@@ -94,6 +94,27 @@
             "superseded": true,
             "value": 1
           }
+        },
+        {
+          "stat": {
+            "better": 0,
+            "matchers": [
+              {
+                "string": "此區域原生怪物被移除"
+              }
+            ],
+            "ref": "Natural inhabitants of this area have been removed",
+            "trade": {
+              "ids": {
+                "implicit": [
+                  "implicit.stat_2656027173"
+                ]
+              }
+            }
+          },
+          "translation": {
+            "string": "此區域原生怪物被移除"
+          }
         }
       ]
     },
@@ -294,6 +315,27 @@
                   "superseded": true,
                   "value": 1
                 }
+              },
+              {
+                "stat": {
+                  "better": 0,
+                  "matchers": [
+                    {
+                      "string": "此區域原生怪物被移除"
+                    }
+                  ],
+                  "ref": "Natural inhabitants of this area have been removed",
+                  "trade": {
+                    "ids": {
+                      "implicit": [
+                        "implicit.stat_2656027173"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "此區域原生怪物被移除"
+                }
               }
             ]
           },
@@ -369,6 +411,123 @@
           "ids": {
             "implicit": [
               "implicit.stat_299373046"
+            ]
+          }
+        }
+      },
+      "type": "implicit"
+    },
+    {
+      "sources": [
+        {
+          "modifier": {
+            "info": {
+              "tags": [],
+              "type": "implicit"
+            },
+            "stats": [
+              {
+                "roll": {
+                  "dp": false,
+                  "max": 1,
+                  "min": 1,
+                  "unscalable": true,
+                  "value": 1
+                },
+                "stat": {
+                  "better": 1,
+                  "fromAreaMods": "yes",
+                  "matchers": [
+                    {
+                      "string": "區域被毒菌滋長蔓延\n地圖物品數量詞綴同時以 40% 的值影響凋落保險箱\n最多可以抹油 # 次",
+                      "superseded": true
+                    },
+                    {
+                      "string": "區域被毒菌滋長蔓延\n地圖物品數量詞綴同時以 20% 的值影響凋落保險箱\n最多可以抹油 3 次",
+                      "superseded": true,
+                      "value": 1
+                    },
+                    {
+                      "string": "區域被凋落菌絲侵擾\n可以被塗抹至多#次"
+                    },
+                    {
+                      "string": "區域被凋落菌絲侵擾\n可以被塗抹至多3次",
+                      "value": 1
+                    }
+                  ],
+                  "ref": "Area is infested with Fungal Growths\nMap's Item Quantity Modifiers also affect Blight Chest count at 25% value\nCan be Anointed up to 3 times",
+                  "trade": {
+                    "ids": {
+                      "implicit": [
+                        "implicit.stat_299373046"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "區域被毒菌滋長蔓延\n地圖物品數量詞綴同時以 20% 的值影響凋落保險箱\n最多可以抹油 3 次",
+                  "superseded": true,
+                  "value": 1
+                }
+              },
+              {
+                "stat": {
+                  "better": 0,
+                  "matchers": [
+                    {
+                      "string": "此區域原生怪物被移除"
+                    }
+                  ],
+                  "ref": "Natural inhabitants of this area have been removed",
+                  "trade": {
+                    "ids": {
+                      "implicit": [
+                        "implicit.stat_2656027173"
+                      ]
+                    }
+                  }
+                },
+                "translation": {
+                  "string": "此區域原生怪物被移除"
+                }
+              }
+            ]
+          },
+          "stat": {
+            "stat": {
+              "better": 0,
+              "matchers": [
+                {
+                  "string": "此區域原生怪物被移除"
+                }
+              ],
+              "ref": "Natural inhabitants of this area have been removed",
+              "trade": {
+                "ids": {
+                  "implicit": [
+                    "implicit.stat_2656027173"
+                  ]
+                }
+              }
+            },
+            "translation": {
+              "string": "此區域原生怪物被移除"
+            }
+          }
+        }
+      ],
+      "stat": {
+        "better": 0,
+        "matchers": [
+          {
+            "string": "此區域原生怪物被移除"
+          }
+        ],
+        "ref": "Natural inhabitants of this area have been removed",
+        "trade": {
+          "ids": {
+            "implicit": [
+              "implicit.stat_2656027173"
             ]
           }
         }
@@ -816,10 +975,5 @@
       "type": "explicit"
     }
   ],
-  "unknownModifiers": [
-    {
-      "text": "此區域原生怪物被移除 — 無法使用的值",
-      "type": "implicit"
-    }
-  ]
+  "unknownModifiers": []
 }

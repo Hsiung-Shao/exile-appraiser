@@ -104,7 +104,10 @@ describe('PoE1 英文客戶端(en 剪貼簿 → intl 查詢)', () => {
     for (const name of pairs) {
       const en = enBuilt.get(name)!.item.unknownModifiers.length
       const zh = zhBuilt.get(name)!.item.unknownModifiers.length
-      expect(en, `${name} 英文認不出的詞綴數(zh=${zh})`).toBe(zh)
+      // 2026-11-15:繁中補上「此區域原生怪物被移除」(交易站 implicit.stat_2656027173);英文樣本寫的是
+      // "Natives of the Area are Removed",遊戲檔與交易站都是 "Natural inhabitants…",對不上 → 英文仍多 1 條
+      const enOnly = name === 'map-blighted-rare-01' ? 1 : 0
+      expect(en, `${name} 英文認不出的詞綴數(zh=${zh})`).toBe(zh + enOnly)
     }
     // 英文獨有的三件必須全部認得
     for (const name of ['ring-rare-01', 'currency-01', 'jewel-rare-01']) {

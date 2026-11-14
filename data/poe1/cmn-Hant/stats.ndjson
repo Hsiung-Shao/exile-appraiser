@@ -9271,3 +9271,65 @@
 {"ref":"Area is Tormented","better":0,"matchers":[{"string":"區域會是魂纏區域"}],"trade":{"ids":{"enchant":["enchant.stat_1527404187"]}}}
 {"ref":"Skills deal #% increased Projectile damage per Projectile created","better":1,"matchers":[{"string":"技能每創造一個投射物，即增加#%投射物傷害"}],"trade":{"ids":{"implicit":["implicit.stat_2101631651"]}}}
 {"ref":"Travel Skills have #% chance to not consume a Cooldown on use","better":1,"matchers":[{"string":"快行技能有#%機率不會於使用時消耗冷卻次數"}],"trade":{"ids":{"implicit":["implicit.stat_1607193320"]}}}
+{"ref":"#% chance to gain an Endurance Charge on Hit","better":1,"matchers":[{"string":"擊中時有 #% 機率獲得 1 顆耐力球"}],"trade":{"ids":{"implicit":["implicit.stat_2087475423"]}}}
+{"ref":"#% reduced Area Damage taken from Hits","better":0,"matchers":[{"string":"減少承受 #% 擊中範圍傷害"}],"trade":{"ids":{"implicit":["implicit.stat_3001376862"]}}}
+{"ref":"#% reduced Mana Cost of Attacks","better":0,"matchers":[{"string":"減少 #% 攻擊的魔力消耗"}],"trade":{"ids":{"implicit":["implicit.stat_2859471749"]}}}
+{"ref":"#% chance to avoid Corrupted Blood","better":1,"matchers":[{"string":"#% 機率避免腐化之血"}],"trade":{"ids":{"implicit":["implicit.stat_434725481"]}}}
+{"ref":"Causes Bleeding on Melee Critical Strike","better":0,"matchers":[{"string":"近戰暴擊造成流血效果"}],"trade":{"ids":{"implicit":["implicit.stat_3262991862"]}}}
+{"ref":"#% increased bonuses gained from Equipped Boots","better":1,"matchers":[{"string":"從已裝備長靴獲得的加成增加 #%"}],"trade":{"ids":{"implicit":["implicit.stat_1590183647"]}}}
+{"ref":"#% increased Burning Damage taken","better":1,"matchers":[{"string":"增加 #% 承受的燃燒傷害"}],"trade":{"ids":{"implicit":["implicit.stat_928477193"]}}}
+{"ref":"You cannot be Stunned if you've been Stunned or Blocked\na Stunning Hit in the past 2 seconds","better":0,"matchers":[{"string":"若過去 2 秒你被暈眩或是格擋暈眩一擊，你將不能再被暈眩"}],"trade":{"ids":{"implicit":["implicit.stat_2755326667"]}}}
+{"ref":"#% increased Cast Speed per 20 Dexterity","better":1,"matchers":[{"string":"每20敏捷增加#%施法速度"}],"trade":{"ids":{"implicit":["implicit.stat_1334577255"]}}}
+{"ref":"#% increased Cooldown Recovery Rate for each Green Skill Gem you have socketed","better":1,"matchers":[{"string":"你每鑲嵌一枚綠色技能寶石，增加#%冷卻時間恢復率"}],"trade":{"ids":{"implicit":["implicit.stat_162292333"]}}}
+{"ref":"#% increased Damage with Skills that Cost Life","better":1,"matchers":[{"string":"消耗生命的技能增加 #% 傷害"}],"trade":{"ids":{"implicit":["implicit.stat_367782342"]}}}
+{"ref":"#% increased Damage while Dead","better":1,"matchers":[{"string":"死亡時增加 #% 傷害"}],"trade":{"ids":{"implicit":["implicit.stat_3582580206"]}}}
+{"ref":"#% increased Damage while in Blood Stance","better":1,"matchers":[{"string":"血腥姿態時增加 #% 傷害"}],"trade":{"ids":{"implicit":["implicit.stat_1313678015"]}}}
+{"ref":"Strike Skills which target additional Enemies can do so from #% further away","better":1,"matchers":[{"string":"瞄準額外敵人的打擊技能可以從 #% 更遠的地方進行"}],"trade":{"ids":{"implicit":["implicit.stat_2783093471"]}}}
+{"ref":"Fire Exposure you inflict applies an extra +#% to Fire Resistance","better":1,"matchers":[{"string":"你造成的火焰曝曬套用額外 #% 火焰抗性"}],"trade":{"ids":{"implicit":["implicit.stat_2356684802"]}}}
+{"ref":"#% chance to gain Elusive on Kill","better":1,"matchers":[{"string":"擊殺時有 #% 機率獲得靈巧"}],"trade":{"ids":{"implicit":["implicit.stat_922882178"]}}}
+{"ref":"#% chance to gain an Endurance Charge when you Stun an Enemy with a Melee Hit","better":1,"matchers":[{"string":"當你使用近戰擊中暈眩敵人時，有 #% 機率獲得 1 顆耐力球"}],"trade":{"ids":{"implicit":["implicit.stat_4067960074"]}}}
+{"ref":"+# to Global Evasion Rating while moving","better":1,"matchers":[{"string":"移動時 # 全域閃避值"}],"trade":{"ids":{"implicit":["implicit.stat_3825877290"]}}}
+{"ref":"Gain 1 Rage on Hit with Attacks","better":0,"matchers":[{"string":"攻擊擊中時獲得 1 層盛怒"}],"trade":{"ids":{"implicit":["implicit.stat_2802161115"]}}}
+{"ref":"#% increased bonuses gained from Equipped Gloves","better":1,"matchers":[{"string":"從已裝備手套獲得的加成增加 #%"}],"trade":{"ids":{"implicit":["implicit.stat_3971521684"]}}}
+{"ref":"Immune to Hinder","better":0,"matchers":[{"string":"免疫阻礙"}],"trade":{"ids":{"implicit":["implicit.stat_3660138886"]}}}
+{"ref":"#% increased total Recovery per second from Life Leech for each Corrupted Item Equipped","better":1,"matchers":[{"string":"每件裝備的已汙染物品，增加 #% 生命偷取的每秒總恢復"}],"trade":{"ids":{"implicit":["implicit.stat_3815042054"]}}}
+{"ref":"Map Crafting options for this Map have no cost","better":0,"matchers":[{"string":"此地圖的地圖工藝選項無消耗"}],"trade":{"ids":{"implicit":["implicit.stat_4149961555"]}}}
+{"ref":"Grants Level # Elemental Weakness","better":1,"matchers":[{"string":"獲得等級 # 的元素要害技能"}],"trade":{"ids":{"implicit":["implicit.stat_3792821911"]}}}
+{"ref":"Item sells for much more to vendors","better":0,"matchers":[{"string":"物品販售給商人更有價值"}],"trade":{"ids":{"implicit":["implicit.stat_3513534186"]}}}
+{"ref":"#% increased total Recovery per second from Mana Leech for each Corrupted Item Equipped","better":1,"matchers":[{"string":"每件裝備的已汙染物品，增加 #% 魔力偷取的每秒總恢復"}],"trade":{"ids":{"implicit":["implicit.stat_2679819855"]}}}
+{"ref":"Area contains a Breach","better":0,"matchers":[{"string":"區域內含有一道裂痕"},{"string":"區域含有 1 個裂痕"}],"trade":{"ids":{"implicit":["implicit.stat_392469782"]}}}
+{"ref":"Contains a Forge that can Combine Crucible Passive Skill Trees","better":0,"matchers":[{"string":"含有 1 個額外鍛造，可以融合熔火天賦樹"}],"trade":{"ids":{"implicit":["implicit.stat_3001853534"]}}}
+{"ref":"Contains a Forge that can Combine Crucible Passive Skill Trees, including on Unique and Corrupted Items","better":0,"matchers":[{"string":"含有 1 個額外鍛造，可以融合熔火天賦樹，包括傳奇和已汙染物品"}],"trade":{"ids":{"implicit":["implicit.stat_422450559"]}}}
+{"ref":"Area contains # additional Afarud Commander Monster Marker","better":1,"matchers":[{"string":"區域內包含#個額外阿法魯德指揮官怪物標記"}],"trade":{"ids":{"implicit":["implicit.stat_1669429179"]}}}
+{"ref":"Area contains # additional Afarud Monster Markers","better":1,"matchers":[{"string":"區域內包含#個額外阿法魯德怪物標記"}],"trade":{"ids":{"implicit":["implicit.stat_3936576079"]}}}
+{"ref":"Area contains an Invasion Boss","better":0,"matchers":[{"string":"區域含有 1 個侵略頭目"}],"trade":{"ids":{"implicit":["implicit.stat_3849207804"]}}}
+{"ref":"Area contains up to 1 Monster imprisoned by Essences","better":0,"matchers":[{"string":"區域含有 1 個受精髓禁錮的怪物"}],"trade":{"ids":{"implicit":["implicit.stat_1050286373"]}}}
+{"ref":"Area contains a Perandus Chest","better":0,"matchers":[{"string":"此區域含有 1 個普蘭德斯保險箱"}],"trade":{"ids":{"implicit":["implicit.stat_49787903"]}}}
+{"ref":"Area contains a Silver Coin","better":0,"matchers":[{"string":"區域含有 1 枚銀幣"}],"trade":{"ids":{"implicit":["implicit.stat_585159631"]}}}
+{"ref":"Area contains a Rogue Exile","better":0,"matchers":[{"string":"區域含有 1 位盜賊流亡者"}],"trade":{"ids":{"implicit":["implicit.stat_548865797"]}}}
+{"ref":"Area contains up to 1 Shrine","better":0,"matchers":[{"string":"區域含有 1 座神殿"}],"trade":{"ids":{"implicit":["implicit.stat_2878321598"]}}}
+{"ref":"Area contains a Strongbox","better":0,"matchers":[{"string":"區域含有 1 個保險箱"}],"trade":{"ids":{"implicit":["implicit.stat_2570943032"]}}}
+{"ref":"Area contains a Monster possessed by an Ancient Talisman","better":0,"matchers":[{"string":"區域含有 1 個受魔符附身的怪物"}],"trade":{"ids":{"implicit":["implicit.stat_1900164129"]}}}
+{"ref":"Area contains a Tormented Spirit","better":0,"matchers":[{"string":"區域含有 1 個罪魂"}],"trade":{"ids":{"implicit":["implicit.stat_2949489150"]}}}
+{"ref":"Area contains at least 1 Warband Pack","better":0,"matchers":[{"string":"區域含有至少 1 個軍團"}],"trade":{"ids":{"implicit":["implicit.stat_3907094951"]}}}
+{"ref":"Natural inhabitants of this area have been removed","better":0,"matchers":[{"string":"此區域原生怪物被移除"}],"trade":{"ids":{"implicit":["implicit.stat_2656027173"]}}}
+{"ref":"Quality applies to Pack Size instead of Item Quantity","better":0,"matchers":[{"string":"品質套用在怪物群大小，而不是物品數量"}],"trade":{"ids":{"implicit":["implicit.stat_3036505016"]}}}
+{"ref":"#% increased Melee Damage per 20 Intelligence","better":1,"matchers":[{"string":"每20智慧增加#%近戰傷害"}],"trade":{"ids":{"implicit":["implicit.stat_2645167381"]}}}
+{"ref":"+# to Minimum Rage","better":1,"matchers":[{"string":"最小盛怒 #"}],"trade":{"ids":{"implicit":["implicit.stat_2428638878"]}}}
+{"ref":"Minions created Recently have #% increased Attack and Cast Speed","better":1,"matchers":[{"string":"近期製造的召喚物增加 #% 攻擊和施放速度"}],"trade":{"ids":{"implicit":["implicit.stat_2510300854"]}}}
+{"ref":"Minions take #% reduced Reflected Damage","better":0,"matchers":[{"string":"召喚物減少承受 #% 反射傷害"}],"trade":{"ids":{"implicit":["implicit.stat_3056045252"]}}}
+{"ref":"#% increased Movement Speed while on Burning Ground","better":1,"matchers":[{"string":"在燃燒地面上時增加 #% 移動速度"}],"trade":{"ids":{"implicit":["implicit.stat_59612558"]}}}
+{"ref":"#% increased Effect of Non-Damaging Ailments for each Blue Skill Gem you have socketed","better":1,"matchers":[{"string":"每一鑲嵌的藍色技能寶石使你增加#%非傷害性異常狀態效果"}],"trade":{"ids":{"implicit":["implicit.stat_2324668473"]}}}
+{"ref":"+# Physical Damage taken from Hits per Level","better":1,"matchers":[{"string":"每等級擊中 # 承受物理傷害"}],"trade":{"ids":{"implicit":["implicit.stat_3652380199"]}}}
+{"ref":"Melee Critical Strikes have #% chance to Poison the Enemy","better":1,"matchers":[{"string":"近戰暴擊 #% 機率使敵人中毒"}],"trade":{"ids":{"implicit":["implicit.stat_2635385320"]}}}
+{"ref":"Poisons you inflict on non-Poisoned Enemies deal #% increased Damage","better":1,"matchers":[{"string":"你對非中毒的敵人造成中毒，增加 #% 傷害"}],"trade":{"ids":{"implicit":["implicit.stat_3750544543"]}}}
+{"ref":"#% increased Projectile Speed per 20 Strength","better":1,"matchers":[{"string":"每20力量增加#%投射物速度"}],"trade":{"ids":{"implicit":["implicit.stat_1998937909"]}}}
+{"ref":"#% increased Skill Effect Duration for each Red Skill Gem you have socketed","better":1,"matchers":[{"string":"每一鑲嵌的紅色技能寶石使你增加#%技能持續時間"}],"trade":{"ids":{"implicit":["implicit.stat_1430991954"]}}}
+{"ref":"Spell Skills have #% increased Area of Effect","better":1,"matchers":[{"string":"法術技能增加 #% 範圍效果"}],"trade":{"ids":{"implicit":["implicit.stat_1967040409"]}}}
+{"ref":"+#% chance to Suppress Spell Damage while moving","better":1,"matchers":[{"string":"移動時，#% 壓抑法術傷害率"}],"trade":{"ids":{"implicit":["implicit.stat_2907896585"]}}}
+{"ref":"Ignites you inflict spread to other Enemies within a Radius of 1.5 metres","better":0,"matchers":[{"string":"你造成的點燃擴散至 1.5 米內的其它敵人"}],"trade":{"ids":{"implicit":["implicit.stat_192371942"]}}}
+{"ref":"#% increased Stun Duration against Enemies that are on Full Life","better":1,"matchers":[{"string":"對滿血的敵人增加 #% 暈眩時間"}],"trade":{"ids":{"implicit":["implicit.stat_1710381148"]}}}
+{"ref":"Stun Threshold is increased by Overcapped Fire Resistance","better":0,"matchers":[{"string":"暈眩門檻被超過上限的火焰抗性增加"}],"trade":{"ids":{"implicit":["implicit.stat_2898944747"]}}}
+{"ref":"#% chance to take 20% less Area Damage from Hits per 2% Overcapped Cold Resistance","better":0,"matchers":[{"string":"每2%超過上限的冰冷抗性，增加#%機率承受20%更少範圍擊中傷害"}],"trade":{"ids":{"implicit":["implicit.stat_1469603435"]}}}
+{"ref":"Bleeding inflicted with Melee Weapons on non-Bleeding Enemies deals #% more Damage","better":1,"matchers":[{"string":"用近戰武器對未流血敵人造成的流血，傷害增加 #%"}],"trade":{"ids":{"implicit":["implicit.stat_1652997002"]}}}
+{"ref":"#% reduced Enemy Chance to Block Sword Attacks","better":0,"matchers":[{"string":"減少 #% 敵人劍類攻擊格擋率"}],"trade":{"ids":{"implicit":["implicit.stat_2846448337"]}}}

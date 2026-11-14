@@ -145,7 +145,25 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(refsOf(item)).toContain('Maximum number of Raised Spectres is Doubled\nCannot have Minions other than Raised Spectres')
   })
 
-  it('D10 「插槽中的寶石被等級 # 的 X輔助 輔助」3.30 寫法(使用者 2026-11-14 回報的混響)沒有未解析詞綴', () => {
+  it('D15 臟器的固定詞綴(使用者 2026-11-15 回報的五件)解析成帶交易站 implicit id 的詞綴', () => {
+    const items = fs.readFileSync(path.join(HERE, 'docs/3.30-viscera.cmn-Hant.txt'), 'utf8').split(/\r?\n====\r?\n/).map(parse)
+    const want: Array<[string, string, string, number]> = [
+      ["Noble's Head", '#% more Damage against Undead Monsters', 'implicit.stat_2844915624', 8],
+      ['Crescent Blade', '#% of Physical Damage from Hits taken as Cold Damage', 'implicit.stat_1871056256', 6],
+      ["Overseer's Whip", "Minions have #% increased Movement Speed if you've used a Minion Skill Recently", 'implicit.stat_1371407912', 32],
+      ['Hollowed Skull', '+# Physical Damage taken from Hits per Level', 'implicit.stat_3652380199', -1],
+      ["Gladiator's Heart", 'Gain # Rage on Melee Hit', 'implicit.stat_2709367754', 2]
+    ]
+    expect(items.map(i => i.info.refName)).toEqual(want.map(w => w[0]))
+    items.forEach((item, i) => {
+      expect(unknownOf(item), want[i][0]).toEqual([])
+      expect(item.statsByType.map(s => [s.type, s.stat.ref]), want[i][0]).toEqual([['implicit', want[i][1]]])
+      expect(item.statsByType[0].stat.trade.ids.implicit, want[i][0]).toContain(want[i][2])
+      expect(item.statsByType[0].sources[0].stat.roll?.value, want[i][0]).toBe(want[i][3])
+    })
+  })
+
+  it('D10「插槽中的寶石被等級 # 的 X輔助 輔助」3.30 寫法(使用者 2026-11-14 回報的混響)沒有未解析詞綴', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-reverberation-rod.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
     for (const gem of ['Spell Echo', 'Controlled Destruction', 'Arcane Surge']) {

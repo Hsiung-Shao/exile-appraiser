@@ -285,9 +285,12 @@ export function planNewStats ({ enStats, ggpkOld, ggpkNew, tradeStats }) {
   const out = new Map()
   for (const row of ggpkNew) {
     const k = cmpKey(row.en)
-    if (oldKeys.has(row.key) || known.has(k) || !/[a-z]/.test(k)) continue
+    if (known.has(k) || !/[a-z]/.test(k)) continue
     const entries = (tradeByText.get(k) ?? []).filter(e => !usedIds.has(e.id))
     if (!entries.length) continue
+    // 舊版就有的 stat:只收交易站只列為固定詞綴的(3.30 臟器的詞綴多半是舊 stat、這季才給 implicit id);
+    // 其餘類型的舊缺口數量大、沒有樣本,不自動加
+    if (oldKeys.has(row.key) && !entries.every(e => e.id.startsWith('implicit.'))) continue
     if (!out.has(k)) {
       /** @type {Record<string, string[]>} */
       const ids = {}

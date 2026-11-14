@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, betterOf } from '../../scripts/poe1-season/lib.mjs'
+import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planNewStats, betterOf } from '../../scripts/poe1-season/lib.mjs'
 
 /**
  * 賽季更新腳本的純函式測試(合成輸入,不讀 data/)。
@@ -363,6 +363,27 @@ describe('planTradeBases / applyItemPlan', () => {
     ])
     const enOut = parseRows(applyItemPlan(toFile(enRows()), 'en', { bases: p.adds }))
     expect(planTradeBases({ enItems: enOut, baseOld, baseNew, tradeItems }).adds).toEqual([])
+  })
+})
+
+describe('planNewStats', () => {
+  const row = (key: string, en: string, zh: string) => ({ key, en, zh })
+  const ggpkOld = [row('old_imp', 'Gain {0} Foo', '獲得 {0} 甲'), row('old_exp', '{0}% more Bar', '{0}% 更多乙'), row('old_mix', 'Baz {0}', '丙 {0}')]
+  const ggpkNew = [...ggpkOld, row('new_exp', 'Brand new {0}', '全新 {0}')]
+  const tradeStats = [
+    { id: 'implicit.stat_1', text: 'Gain # Foo' },
+    { id: 'explicit.stat_2', text: '#% more Bar' },
+    { id: 'implicit.stat_3', text: 'Baz #' }, { id: 'explicit.stat_3', text: 'Baz #' },
+    { id: 'explicit.stat_4', text: 'Brand new #' }
+  ]
+
+  it('這季新增的 stat 照收;舊 stat 只收交易站只列為固定詞綴的', () => {
+    const out = planNewStats({ enStats: [], ggpkOld, ggpkNew, tradeStats })
+    expect(out.map((s: any) => [s.ref, s.ids])).toEqual([
+      ['Gain # Foo', { implicit: ['implicit.stat_1'] }],
+      ['Brand new #', { explicit: ['explicit.stat_4'] }]
+    ])
+    expect(out[0].zh).toEqual([{ string: '獲得 # 甲' }])
   })
 })
 
