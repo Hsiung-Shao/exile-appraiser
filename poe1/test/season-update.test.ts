@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planNewStats, betterOf } from '../../scripts/poe1-season/lib.mjs'
+import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planNewStats, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
 
 /**
  * 賽季更新腳本的純函式測試(合成輸入,不讀 data/)。
@@ -363,6 +363,17 @@ describe('planTradeBases / applyItemPlan', () => {
     ])
     const enOut = parseRows(applyItemPlan(toFile(enRows()), 'en', { bases: p.adds }))
     expect(planTradeBases({ enItems: enOut, baseOld, baseNew, tradeItems }).adds).toEqual([])
+  })
+})
+
+describe('方向校正(BETTER_OVERRIDES)', () => {
+  it('指定的詞綴:新增時用指定方向,既有資料列也會被改;沒指定的不動;重跑不再變', () => {
+    expect(betterOf('#% reduced Mana Cost of Attacks')).toBe(1)
+    expect(betterOf('+# Physical Damage taken from Hits per Level')).toBe(-1)
+    const rows = [stat('+# Physical Damage taken from Hits per Level', [{ string: 'x' }]), stat('#% reduced Something', [{ string: 'y' }])]
+    const once = applyStatPlan(toFile(rows), 'en', { better: BETTER_OVERRIDES })
+    expect(parseRows(once).map((r: any) => r.better)).toEqual([-1, 1])
+    expect(applyStatPlan(once, 'en', { better: BETTER_OVERRIDES })).toBe(once)
   })
 })
 

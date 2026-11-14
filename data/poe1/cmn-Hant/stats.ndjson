@@ -9224,7 +9224,7 @@
 {"ref":"#% of Damage from Hits is taken from your Damagable Minions' Life before you","better":1,"matchers":[{"string":"你所承受#%的擊中傷害會先由你可傷害召喚物的生命扣除，而不是你"}],"trade":{"ids":{"implicit":["implicit.stat_474853513"]}}}
 {"ref":"Enemies you Blind while in Sand Stance take #% increased Damage","better":1,"matchers":[{"string":"被你在沙戮姿態下致盲的敵人會增加#%承受傷害"}],"trade":{"ids":{"implicit":["implicit.stat_1846105968"]}}}
 {"ref":"Enemies Cursed by you cannot deal Critical Strikes","better":0,"matchers":[{"string":"被你祖咒的敵人無法造成暴擊"}],"trade":{"ids":{"implicit":["implicit.stat_3723063276"]}}}
-{"ref":"Enemies within 6 metres of corpses you spawned Recently\nhave #% reduced Life Regeneration Rate","better":0,"matchers":[{"string":"位於你近期召喚的屍體6公尺範圍內的敵人\n會減少#%生命回復率"}],"trade":{"ids":{"implicit":["implicit.stat_1666645630"]}}}
+{"ref":"Enemies within 6 metres of corpses you spawned Recently\nhave #% reduced Life Regeneration Rate","better":1,"matchers":[{"string":"位於你近期召喚的屍體6公尺範圍內的敵人\n會減少#%生命回復率"}],"trade":{"ids":{"implicit":["implicit.stat_1666645630"]}}}
 {"ref":"#% increased Evasion Rating from Equipped Helmet, Body Armour Gloves and Boots","better":1,"matchers":[{"string":"增加#%來自裝備頭盔、胸甲、手套、和鞋子的閃避值"}],"trade":{"ids":{"implicit":["implicit.stat_3482421817"]}}}
 {"ref":"Every second, inflict Withered on Enemies within 6 metres for # seconds","better":1,"matchers":[{"string":"每秒對6公尺範圍內的敵人施加凋零，持續#秒"}],"trade":{"ids":{"implicit":["implicit.stat_1417918566"]}}}
 {"ref":"+#% to Fire Damage over Time Multiplier while Ignited","better":1,"matchers":[{"string":"點燃時#%火焰持續傷害加成"}],"trade":{"ids":{"implicit":["implicit.stat_420435377"]}}}
@@ -9256,7 +9256,7 @@
 {"ref":"When you Poison a non-Poisoned target, also inflict # Withered debuffs, lasting 2 seconds","better":1,"matchers":[{"string":"當你使一名未中毒的目標中毒時，同時施加#層凋零減益，持續2秒"}],"trade":{"ids":{"implicit":["implicit.stat_2751374419"]}}}
 {"ref":"Chance to Block Projectile Attack Damage is Lucky","better":0,"matchers":[{"string":"格擋投射物攻擊傷害的機率很幸運"}],"trade":{"ids":{"implicit":["implicit.stat_3307066983"]}}}
 {"ref":"Skills that Cost Life have #% chance to deal Double Damage","better":1,"matchers":[{"string":"擁有生命消耗的技能有#%機率造成兩倍傷害"}],"trade":{"ids":{"implicit":["implicit.stat_1183036145"]}}}
-{"ref":"Enemies Taunted by your Warcries have #% increased Action Speed","better":1,"matchers":[{"string":"受到你戰吼嘲諷的敵人會增加#%行動速度"}],"trade":{"ids":{"implicit":["implicit.stat_759530725"]}}}
+{"ref":"Enemies Taunted by your Warcries have #% increased Action Speed","better":-1,"matchers":[{"string":"受到你戰吼嘲諷的敵人會增加#%行動速度"}],"trade":{"ids":{"implicit":["implicit.stat_759530725"]}}}
 {"ref":"Trigger Level 20 Goreblossom after spending #% of your Maximum Life on Spells","better":1,"matchers":[{"string":"於法術消耗#%最大生命後，觸發等級20的湛血盛放"}],"trade":{"ids":{"explicit":["explicit.stat_4034618287"]}}}
 {"ref":"Curse Enemies with Frostbite on Hit if 5 Redeemer Items are Equipped","better":0,"matchers":[{"string":"若裝備 5 種救贖者之物，擊中敵人時施加凍傷"}],"trade":{"ids":{"implicit":["implicit.stat_1012433600"]}}}
 {"ref":"Ruby Flasks applied to you have #% increased Effect","better":1,"matchers":[{"string":"增加#%作用於你的紅玉藥劑效果"}],"trade":{"ids":{"explicit":["explicit.stat_758685542"]}}}
@@ -9272,8 +9272,8 @@
 {"ref":"Skills deal #% increased Projectile damage per Projectile created","better":1,"matchers":[{"string":"技能每創造一個投射物，即增加#%投射物傷害"}],"trade":{"ids":{"implicit":["implicit.stat_2101631651"]}}}
 {"ref":"Travel Skills have #% chance to not consume a Cooldown on use","better":1,"matchers":[{"string":"快行技能有#%機率不會於使用時消耗冷卻次數"}],"trade":{"ids":{"implicit":["implicit.stat_1607193320"]}}}
 {"ref":"#% chance to gain an Endurance Charge on Hit","better":1,"matchers":[{"string":"擊中時有 #% 機率獲得 1 顆耐力球"}],"trade":{"ids":{"implicit":["implicit.stat_2087475423"]}}}
-{"ref":"#% reduced Area Damage taken from Hits","better":0,"matchers":[{"string":"減少承受 #% 擊中範圍傷害"}],"trade":{"ids":{"implicit":["implicit.stat_3001376862"]}}}
-{"ref":"#% reduced Mana Cost of Attacks","better":0,"matchers":[{"string":"減少 #% 攻擊的魔力消耗"}],"trade":{"ids":{"implicit":["implicit.stat_2859471749"]}}}
+{"ref":"#% reduced Area Damage taken from Hits","better":1,"matchers":[{"string":"減少承受 #% 擊中範圍傷害"}],"trade":{"ids":{"implicit":["implicit.stat_3001376862"]}}}
+{"ref":"#% reduced Mana Cost of Attacks","better":1,"matchers":[{"string":"減少 #% 攻擊的魔力消耗"}],"trade":{"ids":{"implicit":["implicit.stat_2859471749"]}}}
 {"ref":"#% chance to avoid Corrupted Blood","better":1,"matchers":[{"string":"#% 機率避免腐化之血"}],"trade":{"ids":{"implicit":["implicit.stat_434725481"]}}}
 {"ref":"Causes Bleeding on Melee Critical Strike","better":0,"matchers":[{"string":"近戰暴擊造成流血效果"}],"trade":{"ids":{"implicit":["implicit.stat_3262991862"]}}}
 {"ref":"#% increased bonuses gained from Equipped Boots","better":1,"matchers":[{"string":"從已裝備長靴獲得的加成增加 #%"}],"trade":{"ids":{"implicit":["implicit.stat_1590183647"]}}}
@@ -9285,7 +9285,7 @@
 {"ref":"#% increased Damage while Dead","better":1,"matchers":[{"string":"死亡時增加 #% 傷害"}],"trade":{"ids":{"implicit":["implicit.stat_3582580206"]}}}
 {"ref":"#% increased Damage while in Blood Stance","better":1,"matchers":[{"string":"血腥姿態時增加 #% 傷害"}],"trade":{"ids":{"implicit":["implicit.stat_1313678015"]}}}
 {"ref":"Strike Skills which target additional Enemies can do so from #% further away","better":1,"matchers":[{"string":"瞄準額外敵人的打擊技能可以從 #% 更遠的地方進行"}],"trade":{"ids":{"implicit":["implicit.stat_2783093471"]}}}
-{"ref":"Fire Exposure you inflict applies an extra +#% to Fire Resistance","better":1,"matchers":[{"string":"你造成的火焰曝曬套用額外 #% 火焰抗性"}],"trade":{"ids":{"implicit":["implicit.stat_2356684802"]}}}
+{"ref":"Fire Exposure you inflict applies an extra +#% to Fire Resistance","better":-1,"matchers":[{"string":"你造成的火焰曝曬套用額外 #% 火焰抗性"}],"trade":{"ids":{"implicit":["implicit.stat_2356684802"]}}}
 {"ref":"#% chance to gain Elusive on Kill","better":1,"matchers":[{"string":"擊殺時有 #% 機率獲得靈巧"}],"trade":{"ids":{"implicit":["implicit.stat_922882178"]}}}
 {"ref":"#% chance to gain an Endurance Charge when you Stun an Enemy with a Melee Hit","better":1,"matchers":[{"string":"當你使用近戰擊中暈眩敵人時，有 #% 機率獲得 1 顆耐力球"}],"trade":{"ids":{"implicit":["implicit.stat_4067960074"]}}}
 {"ref":"+# to Global Evasion Rating while moving","better":1,"matchers":[{"string":"移動時 # 全域閃避值"}],"trade":{"ids":{"implicit":["implicit.stat_3825877290"]}}}
@@ -9316,10 +9316,10 @@
 {"ref":"#% increased Melee Damage per 20 Intelligence","better":1,"matchers":[{"string":"每20智慧增加#%近戰傷害"}],"trade":{"ids":{"implicit":["implicit.stat_2645167381"]}}}
 {"ref":"+# to Minimum Rage","better":1,"matchers":[{"string":"最小盛怒 #"}],"trade":{"ids":{"implicit":["implicit.stat_2428638878"]}}}
 {"ref":"Minions created Recently have #% increased Attack and Cast Speed","better":1,"matchers":[{"string":"近期製造的召喚物增加 #% 攻擊和施放速度"}],"trade":{"ids":{"implicit":["implicit.stat_2510300854"]}}}
-{"ref":"Minions take #% reduced Reflected Damage","better":0,"matchers":[{"string":"召喚物減少承受 #% 反射傷害"}],"trade":{"ids":{"implicit":["implicit.stat_3056045252"]}}}
+{"ref":"Minions take #% reduced Reflected Damage","better":1,"matchers":[{"string":"召喚物減少承受 #% 反射傷害"}],"trade":{"ids":{"implicit":["implicit.stat_3056045252"]}}}
 {"ref":"#% increased Movement Speed while on Burning Ground","better":1,"matchers":[{"string":"在燃燒地面上時增加 #% 移動速度"}],"trade":{"ids":{"implicit":["implicit.stat_59612558"]}}}
 {"ref":"#% increased Effect of Non-Damaging Ailments for each Blue Skill Gem you have socketed","better":1,"matchers":[{"string":"每一鑲嵌的藍色技能寶石使你增加#%非傷害性異常狀態效果"}],"trade":{"ids":{"implicit":["implicit.stat_2324668473"]}}}
-{"ref":"+# Physical Damage taken from Hits per Level","better":1,"matchers":[{"string":"每等級擊中 # 承受物理傷害"}],"trade":{"ids":{"implicit":["implicit.stat_3652380199"]}}}
+{"ref":"+# Physical Damage taken from Hits per Level","better":-1,"matchers":[{"string":"每等級擊中 # 承受物理傷害"}],"trade":{"ids":{"implicit":["implicit.stat_3652380199"]}}}
 {"ref":"Melee Critical Strikes have #% chance to Poison the Enemy","better":1,"matchers":[{"string":"近戰暴擊 #% 機率使敵人中毒"}],"trade":{"ids":{"implicit":["implicit.stat_2635385320"]}}}
 {"ref":"Poisons you inflict on non-Poisoned Enemies deal #% increased Damage","better":1,"matchers":[{"string":"你對非中毒的敵人造成中毒，增加 #% 傷害"}],"trade":{"ids":{"implicit":["implicit.stat_3750544543"]}}}
 {"ref":"#% increased Projectile Speed per 20 Strength","better":1,"matchers":[{"string":"每20力量增加#%投射物速度"}],"trade":{"ids":{"implicit":["implicit.stat_1998937909"]}}}
@@ -9328,8 +9328,8 @@
 {"ref":"+#% chance to Suppress Spell Damage while moving","better":1,"matchers":[{"string":"移動時，#% 壓抑法術傷害率"}],"trade":{"ids":{"implicit":["implicit.stat_2907896585"]}}}
 {"ref":"#% increased Stun Duration against Enemies that are on Full Life","better":1,"matchers":[{"string":"對滿血的敵人增加 #% 暈眩時間"}],"trade":{"ids":{"implicit":["implicit.stat_1710381148"]}}}
 {"ref":"Stun Threshold is increased by Overcapped Fire Resistance","better":0,"matchers":[{"string":"暈眩門檻被超過上限的火焰抗性增加"}],"trade":{"ids":{"implicit":["implicit.stat_2898944747"]}}}
-{"ref":"#% chance to take 20% less Area Damage from Hits per 2% Overcapped Cold Resistance","better":0,"matchers":[{"string":"每2%超過上限的冰冷抗性，增加#%機率承受20%更少範圍擊中傷害"}],"trade":{"ids":{"implicit":["implicit.stat_1469603435"]}}}
+{"ref":"#% chance to take 20% less Area Damage from Hits per 2% Overcapped Cold Resistance","better":1,"matchers":[{"string":"每2%超過上限的冰冷抗性，增加#%機率承受20%更少範圍擊中傷害"}],"trade":{"ids":{"implicit":["implicit.stat_1469603435"]}}}
 {"ref":"Bleeding inflicted with Melee Weapons on non-Bleeding Enemies deals #% more Damage","better":1,"matchers":[{"string":"用近戰武器對未流血敵人造成的流血，傷害增加 #%"}],"trade":{"ids":{"implicit":["implicit.stat_1652997002"]}}}
-{"ref":"#% reduced Enemy Chance to Block Sword Attacks","better":0,"matchers":[{"string":"減少 #% 敵人劍類攻擊格擋率"}],"trade":{"ids":{"implicit":["implicit.stat_2846448337"]}}}
+{"ref":"#% reduced Enemy Chance to Block Sword Attacks","better":1,"matchers":[{"string":"減少 #% 敵人劍類攻擊格擋率"}],"trade":{"ids":{"implicit":["implicit.stat_2846448337"]}}}
 {"ref":"Area Skills have #% chance to deal Double Damage","better":1,"matchers":[{"string":"範圍效果擁有#%機率造成兩倍傷害"}],"trade":{"ids":{"implicit":["implicit.stat_683595855"]}}}
 {"ref":"# Monster Packs in Area are substituted with Packs that\nconvert dropped Equipment to Gold","better":1,"matchers":[{"string":"區域內的#群怪物會被替換為將\n掉落裝備轉換為金幣的怪物群"}],"trade":{"ids":{"enchant":["enchant.stat_4093253847"]}}}

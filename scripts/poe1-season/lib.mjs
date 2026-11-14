@@ -31,11 +31,29 @@ function direction (text) {
 }
 
 /**
+ * 句型判不準的詞綴,方向逐條指定(1 = 越高越好、-1 = 越低越好);新增時與每次更新都會套到資料列。
+ * 「減少 …」而數值越大越好的 → 1;數值是負的或屬於壞處的 → -1(同類既有資料:Cold Exposure … 是 -1)。
+ * @type {Record<string, number>}
+ */
+export const BETTER_OVERRIDES = {
+  '#% reduced Area Damage taken from Hits': 1,
+  '#% reduced Mana Cost of Attacks': 1,
+  'Minions take #% reduced Reflected Damage': 1,
+  '#% reduced Enemy Chance to Block Sword Attacks': 1,
+  '#% chance to take 20% less Area Damage from Hits per 2% Overcapped Cold Resistance': 1,
+  'Enemies within 6 metres of corpses you spawned Recently\nhave #% reduced Life Regeneration Rate': 1,
+  'Fire Exposure you inflict applies an extra +#% to Fire Resistance': -1,
+  '+# Physical Damage taken from Hits per Level': -1,
+  'Enemies Taunted by your Warcries have #% increased Action Speed': -1
+}
+
+/**
  * 新詞綴的 better:帶數值且不是「減少 / 更少」→ 1(查價用「至少這個值」);其他 → 0(完全相同才算)。
  * 既有資料帶數值的詞綴 97% 是 1;標 0 會讓預設查詢只找數值一模一樣的掛單(2026-11-14 范迪戈之革)。
  * shortcut: 少數「越低越好」的句子(承受傷害、消耗)會被標成 1,遇到再個別改資料列。
  */
 export function betterOf (ref) {
+  if (ref in BETTER_OVERRIDES) return BETTER_OVERRIDES[ref]
   return ref.includes('#') && direction(ref) >= 0 && !/Grants Level \d+ #/.test(ref) ? 1 : 0
 }
 
@@ -449,15 +467,19 @@ function rewriteLines (fileText, edit, appended = []) {
  * 套用詞綴計畫(adds / replace / remove / newStats)到一份 stats.ndjson 文字
  * @param {string} fileText
  * @param {'en' | 'cmn-Hant'} lang
- * @param {{ adds?: any[], replace?: Record<string, string>, remove?: string[], newStats?: any[] }} [plan]
+ * @param {{ adds?: any[], replace?: Record<string, string>, remove?: string[], newStats?: any[], better?: Record<string, number> }} [plan]
  */
-export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove = [], newStats = [] } = {}) {
+export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove = [], newStats = [], better = {} } = {}) {
   const addsByRef = groupBy(adds.filter(a => a.lang === lang), a => a.ref)
   const gone = new Set(remove)
   const existingRefs = new Set()
   const editStat = (stat) => {
     let changed = false
     existingRefs.add(stat.ref)
+    if (stat.ref in better && stat.better !== better[stat.ref]) {
+      stat.better = better[stat.ref]
+      changed = true
+    }
     for (const a of addsByRef.get(stat.ref) ?? []) {
       const keys = matcherKeys(stat)
       // 已經有了沒 = 逐字比(解析器逐字比對,只差大小寫的新寫法也要加)
