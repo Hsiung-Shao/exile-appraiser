@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques } from '../../scripts/poe1-season/lib.mjs'
+import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases } from '../../scripts/poe1-season/lib.mjs'
 
 /**
  * 賽季更新腳本的純函式測試(合成輸入,不讀 data/)。
@@ -338,5 +338,30 @@ describe('planUniques / applyItemPlan', () => {
     expect(zhOut.at(-2)).toEqual({ name: '新傳奇', refName: 'New Unique', namespace: 'UNIQUE', unique: { base: 'Basalt Flask' } })
     // 重跑不重複加
     expect(planUniques({ enItems: enOut, tradeItems, words }).adds).toEqual([])
+  })
+})
+
+describe('planTradeBases / applyItemPlan', () => {
+  const enRows = () => [{ name: 'Cobalt Jewel', refName: 'Cobalt Jewel', namespace: 'ITEM', craftable: { category: 'Jewel' } }]
+  const baseOld = [{ path: 'j1', en: 'Cobalt Jewel', zh: '鈷藍珠寶' }, { path: 'old', en: 'Old Missing', zh: '舊缺口' }]
+  const baseNew = [...baseOld, { path: 'j2', en: 'Mycelium Core', zh: '菌潮核心' }, { path: 'v1', en: "Gladiator's Heart", zh: '角鬥士之心' },
+    { path: 'a1', en: 'New Plate', zh: '新鎧甲' }, { path: 'x1', en: 'Not On Trade', zh: '交易站沒有' }]
+  const tradeItems = [
+    { type: 'Cobalt Jewel', group: 'jewel' }, { type: 'Mycelium Core', group: 'jewel' },
+    { type: 'Mycelium Core', name: 'Putrid Seed', flags: { unique: true }, group: 'jewel' },
+    { type: "Gladiator's Heart", group: 'viscera' }, { type: 'New Plate', group: 'armour' }, { type: 'Old Missing', group: 'jewel' }
+  ]
+
+  it('GGPK 新增且交易站列出的底材才加;珠寶帶類別、臟器不帶;沒規則的群組拒收', () => {
+    const p = planTradeBases({ enItems: enRows(), baseOld, baseNew, tradeItems })
+    expect(p.adds).toEqual([{ refName: 'Mycelium Core', zh: '菌潮核心', category: 'Jewel' }, { refName: "Gladiator's Heart", zh: '角鬥士之心', category: null }])
+    expect(p.rejects.map((r: any) => r.id)).toEqual(['New Plate'])
+    const zhOut = parseRows(applyItemPlan(toFile(enRows()), 'cmn-Hant', { bases: p.adds }))
+    expect(zhOut.slice(-2)).toEqual([
+      { name: '菌潮核心', refName: 'Mycelium Core', namespace: 'ITEM', craftable: { category: 'Jewel' } },
+      { name: '角鬥士之心', refName: "Gladiator's Heart", namespace: 'ITEM' }
+    ])
+    const enOut = parseRows(applyItemPlan(toFile(enRows()), 'en', { bases: p.adds }))
+    expect(planTradeBases({ enItems: enOut, baseOld, baseNew, tradeItems }).adds).toEqual([])
   })
 })

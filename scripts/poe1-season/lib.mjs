@@ -315,6 +315,31 @@ export function planUniques ({ enItems, tradeItems, words }) {
   return { adds, rejects }
 }
 
+/** 交易站 items 群組 → 新底材那一列要帶的 craftable 類別(null = 不帶);沒列的群組不自動加(拒收) */
+export const TRADE_BASE_GROUPS = { jewel: 'Jewel', viscera: null }
+
+/**
+ * 規則 7:GGPK 新版新增、且交易站 items 清單列為底材的物品(3.30:臟器、菌潮核心)。
+ * 要先於規則 6 跑(新傳奇的底材可能是這裡加的)。
+ * @returns {{ adds: any[], rejects: any[] }}
+ */
+export function planTradeBases ({ enItems, baseOld, baseNew, tradeItems }) {
+  const have = new Set(enItems.map(i => i.refName))
+  const oldPaths = new Set(baseOld.map(r => r.path))
+  const fresh = groupBy(baseNew.filter(r => !oldPaths.has(r.path)), r => r.en)
+  const adds = []
+  const rejects = []
+  for (const e of tradeItems) {
+    if (e.flags?.unique || have.has(e.type) || !fresh.has(e.type)) continue
+    have.add(e.type)
+    const zh = [...new Set(fresh.get(e.type).map(r => r.zh))]
+    if (!(e.group in TRADE_BASE_GROUPS)) rejects.push({ reason: '這個交易站群組沒有新增規則', id: e.type, to: e.group })
+    else if (zh.length !== 1) rejects.push({ reason: 'GGPK 沒有唯一的繁中名', id: e.type, candidates: zh })
+    else adds.push({ refName: e.type, zh: zh[0], category: TRADE_BASE_GROUPS[e.group] })
+  }
+  return { adds, rejects }
+}
+
 /** 逐列改寫 ndjson:只重寫有變動的列,保留原行尾 */
 function rewriteLines (fileText, edit, appended = []) {
   const eol = fileText.includes('\r\n') ? '\r\n' : '\n'
@@ -378,9 +403,9 @@ export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove
  * 套用物品計畫(renames / adds)到一份 items.ndjson 文字
  * @param {string} fileText
  * @param {'en' | 'cmn-Hant'} lang
- * @param {{ renames?: any[], adds?: any[], uniques?: any[] }} [plan]
+ * @param {{ renames?: any[], adds?: any[], uniques?: any[], bases?: any[] }} [plan]
  */
-export function applyItemPlan (fileText, lang, { renames = [], adds = [], uniques = [] } = {}) {
+export function applyItemPlan (fileText, lang, { renames = [], adds = [], uniques = [], bases = [] } = {}) {
   const byFrom = new Map(renames.map(r => [r.from, r]))
   const have = new Set()
   const nameOf = (en, zh) => (lang === 'en' ? en : (zh ?? en))
@@ -397,6 +422,9 @@ export function applyItemPlan (fileText, lang, { renames = [], adds = [], unique
   const fresh = adds.filter(a => !have.has(a.refName)).map(a => ({
     name: nameOf(a.refName, a.zh), refName: a.refName, namespace: 'ITEM', tradeTag: a.tradeTag, exchangeable: true, icon: a.icon
   }))
+  for (const b of bases) {
+    if (!have.has(b.refName)) fresh.push({ name: nameOf(b.refName, b.zh), refName: b.refName, namespace: 'ITEM', ...(b.category ? { craftable: { category: b.category } } : {}) })
+  }
   for (const u of uniques) {
     if (!have.has(u.refName)) fresh.push({ name: nameOf(u.refName, u.zh), refName: u.refName, namespace: 'UNIQUE', unique: { base: u.base } })
   }

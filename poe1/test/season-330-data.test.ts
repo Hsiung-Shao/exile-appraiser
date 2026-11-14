@@ -109,6 +109,15 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(item.info.unique?.base).toBe('Basalt Flask')
     expect(refsOf(item)).toContain('Gain # Charge when you are Hit by an Enemy')
   })
+
+  it('D9 3.30 臟器與新珠寶底材的傳奇(使用者 2026-11-14 回報的實機剪貼簿)解析得到', () => {
+    const organ = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-gladiators-heart.cmn-Hant.txt'), 'utf8'))
+    expect(organ.info.refName).toBe("Gladiator's Heart")
+    expect(parse(fs.readFileSync(path.join(HERE, 'docs/3.30-despots-fist.cmn-Hant.txt'), 'utf8')).info.refName).toBe("Despot's Fist")
+    const seed = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-putrid-seed.cmn-Hant.txt'), 'utf8'))
+    expect(seed.info.refName).toBe('Putrid Seed')
+    expect(seed.info.unique?.base).toBe('Mycelium Core')
+  })
 })
 
 function readNdjson (lang: string, file: string): any[] {
