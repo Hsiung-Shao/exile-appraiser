@@ -14,7 +14,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
-import { applyItemPlan, applyStatPlan, planDeadIds, planGems, planItems, planNewStats, planStatText, planSupportGemNames, planTradeBases, planTradeText, planUniques } from './lib.mjs'
+import { applyItemPlan, applyStatPlan, planDeadIds, planGems, planItems, planMinionDoubled, planNewStats, planStatText, planSupportGemNames, planTradeBases, planTradeText, planUniques } from './lib.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(HERE, '../..')
@@ -63,7 +63,8 @@ const ruleA = planStatText({ enStats: rows(text['en/stats']), zhStats: rows(text
 const afterA = Object.fromEntries(LANGS.map(lang => [lang, rows(applyStatPlan(text[`${lang}/stats`], lang, { adds: ruleA.adds }))]))
 const ruleB = planTradeText({ enStats: afterA.en, zhStats: afterA['cmn-Hant'], tradeStats, ggpkNew: ggpk.stats.new, ggpkOld: ggpk.stats.old })
 const gemNames = planSupportGemNames({ enStats: afterA.en, zhStats: afterA['cmn-Hant'], ggpkNew: ggpk.stats.new, baseNew: ggpk.base.new })
-const adds = [...ruleA.adds, ...ruleB.adds, ...gemNames.adds]
+const minions = planMinionDoubled({ enStats: afterA.en, zhStats: afterA['cmn-Hant'], ggpkNew: ggpk.stats.new })
+const adds = [...ruleA.adds, ...ruleB.adds, ...gemNames.adds, ...minions.adds]
 const afterB = rows(applyStatPlan(text['en/stats'], 'en', { adds }))
 const dead = planDeadIds({ enStats: afterB, tradeStats })
 const newStats = planNewStats({ enStats: afterB, ggpkOld: ggpk.stats.old, ggpkNew: ggpk.stats.new, tradeStats })

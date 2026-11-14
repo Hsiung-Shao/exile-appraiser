@@ -5640,3 +5640,6 @@
 {"name":"Bane of the Apostate","refName":"Bane of the Apostate","namespace":"UNIQUE","unique":{"base":"Judgement Staff"}}
 {"name":"The Covetous Dark","refName":"The Covetous Dark","namespace":"UNIQUE","unique":{"base":"Eye Gouger"}}
 {"name":"Fireball of Radiation","refName":"Fireball of Radiation","namespace":"GEM","tradeDisc":"alt_x","icon":"https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvR2Vtcy9GaXJlYmFsbCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/8f374db219/Fireball.png","gem":{"transfigured":true,"normalVariant":"Fireball","maxLevel":20}}
+{"name":"Incarnation of Fear's Head","refName":"Incarnation of Fear's Head","namespace":"ITEM"}
+{"name":"Nightmarish Head of Uhtred","refName":"Nightmarish Head of Uhtred","namespace":"ITEM"}
+{"name":"Searing Exarch's Descry","refName":"Searing Exarch's Descry","namespace":"ITEM"}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, betterOf } from '../../scripts/poe1-season/lib.mjs'
+import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, betterOf } from '../../scripts/poe1-season/lib.mjs'
 
 /**
  * 賽季更新腳本的純函式測試(合成輸入,不讀 data/)。
@@ -390,6 +390,27 @@ describe('planGems / applyItemPlan', () => {
     expect(zhOut.at(-1)).toEqual({ name: '火球．輻射', refName: 'Fireball of Radiation', namespace: 'GEM', tradeDisc: 'alt_x', icon: 'zh-i', gem: { transfigured: true, normalVariant: 'Fireball', maxLevel: 20 } })
     const enOut = parseRows(applyItemPlan(toFile(enRows()), 'en', { gems: p.adds }))
     expect(planGems({ enItems: enOut, tradeItems, gems }).adds).toEqual([])
+  })
+})
+
+describe('planMinionDoubled / applyStatPlan', () => {
+  const REF = 'Maximum number of Raised Spectres is Doubled\nCannot have Minions other than Raised Spectres'
+  const zh = () => [{ ref: REF, matchers: [{ string: '喚醒幽魂的最大數量加倍\n無法擁有喚醒幽魂以外的召喚物', advanced: '喚醒幽魂（幻化武器-神聖軍備）的最大數量加倍\n無法擁有喚醒幽魂（幻化武器-神聖軍備）以外的召喚物' }] },
+    { ref: 'other', matchers: [{ string: '別的詞綴', advanced: '別的詞綴(1-2)' }] }]
+  const en = () => [{ ref: REF, matchers: [{ string: REF, advanced: 'old' }] }]
+  const ggpkNew = [{ key: 'maximum_number_of_X_minion_type_doubled|#|stat_descriptions.txt|0', en: 'Maximum number of {0} is Doubled\\\nCannot have Minions other than {0}', zh: '{0}的最大數量加倍\\\n無法擁有{0}以外的召喚物' }]
+
+  it('多一個「(...)」進階寫法、舊的標 superseded、其他詞綴不動;重跑計畫為空', () => {
+    const p = planMinionDoubled({ enStats: en(), zhStats: zh(), ggpkNew })
+    const out = parseRows(applyStatPlan(toFile(zh()), 'cmn-Hant', { adds: p.adds }))
+    expect(out[0].matchers).toEqual([
+      { ...zh()[0].matchers[0], superseded: true },
+      { string: '喚醒幽魂的最大數量加倍\n無法擁有喚醒幽魂以外的召喚物', advanced: '喚醒幽魂(...)的最大數量加倍\n無法擁有喚醒幽魂(...)以外的召喚物' }
+    ])
+    expect(out[1]).toEqual(zh()[1])
+    const enOut = parseRows(applyStatPlan(toFile(en()), 'en', { adds: p.adds }))
+    expect(enOut[0].matchers[1].advanced).toBe('Maximum number of Raised Spectres (...) is Doubled\nCannot have Minions other than Raised Spectres (...)')
+    expect(planMinionDoubled({ enStats: enOut, zhStats: out, ggpkNew }).adds).toEqual([])
   })
 })
 

@@ -5645,3 +5645,6 @@
 {"name":"叛教者之禍","refName":"Bane of the Apostate","namespace":"UNIQUE","unique":{"base":"Judgement Staff"}}
 {"name":"貪婪之暗","refName":"The Covetous Dark","namespace":"UNIQUE","unique":{"base":"Eye Gouger"}}
 {"name":"火球．輻射","refName":"Fireball of Radiation","namespace":"GEM","tradeDisc":"alt_x","icon":"https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvR2Vtcy9GaXJlYmFsbCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/8f374db219/Fireball.png","gem":{"transfigured":true,"normalVariant":"Fireball","maxLevel":20}}
+{"name":"恐懼化身．頭顱","refName":"Incarnation of Fear's Head","namespace":"ITEM"}
+{"name":"夢魘．烏特雷之首","refName":"Nightmarish Head of Uhtred","namespace":"ITEM"}
+{"name":"灼烙總督．眼界","refName":"Searing Exarch's Descry","namespace":"ITEM"}

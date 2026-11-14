@@ -398,6 +398,33 @@ export function planGems ({ enItems, tradeItems, gems }) {
   return { adds, rejects }
 }
 
+/**
+ * 規則 10:「X 的最大數量加倍 / 無法擁有 X 以外的召喚物」3.30 改成帶入名稱的句型,
+ * 進階複製的範圍由「（幻化武器-神聖軍備）」變成「(...)」。同一句只多一個進階寫法,舊的標 superseded。
+ * 繁中寫法來自實機樣本(黑暗君主);英文沒有樣本,照舊寫法的空白推出。
+ * @returns {{ adds: any[] }}
+ */
+export function planMinionDoubled ({ enStats, zhStats, ggpkNew }) {
+  const tpl = ggpkNew.find(r => r.key.startsWith('maximum_number_of_X_minion_type_doubled|') && r.en.includes('{0}'))
+  const adds = []
+  if (!tpl) return { adds }
+  const plan = (stats, lang, text, mark) => {
+    const [head, ...rest] = toMatcherText(text).split('#')
+    for (const stat of eachStat(stats)) {
+      for (const m of stat.matchers) {
+        if (!m.advanced || m.superseded || !m.string.startsWith(head)) continue
+        const name = m.string.slice(head.length).split(rest[0])[0]
+        const advanced = toMatcherText(text).replaceAll('#', name + mark)
+        if (m.string !== toMatcherText(text).replaceAll('#', name) || stat.matchers.some(x => x.advanced === advanced)) continue
+        adds.push({ lang, ref: stat.ref, matcher: { string: m.string, advanced }, supersedes: [m.string] })
+      }
+    }
+  }
+  plan(enStats, 'en', tpl.en, ' (...)')
+  plan(zhStats, 'cmn-Hant', tpl.zh, '(...)')
+  return { adds }
+}
+
 /** 逐列改寫 ndjson:只重寫有變動的列,保留原行尾 */
 function rewriteLines (fileText, edit, appended = []) {
   const eol = fileText.includes('\r\n') ? '\r\n' : '\n'
@@ -427,7 +454,7 @@ export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove
     for (const a of addsByRef.get(stat.ref) ?? []) {
       const keys = matcherKeys(stat)
       // 已經有了沒 = 逐字比(解析器逐字比對,只差大小寫的新寫法也要加)
-      if (matcherExact(stat).has(a.matcher.string.trim()) || (a.after !== undefined && !keys.has(cmpKey(a.after)))) continue
+      if ((a.matcher.advanced ? stat.matchers.some(m => m.advanced === a.matcher.advanced) : matcherExact(stat).has(a.matcher.string.trim())) || (a.after !== undefined && !keys.has(cmpKey(a.after)))) continue
       if (Array.isArray(a.supersedes)) { // 規則 B:列出的舊句(逐字)全部標記
         const old = new Set(a.supersedes.map(t => t.trim()))
         for (const m of stat.matchers) if (old.has(m.string.trim())) m.superseded = true

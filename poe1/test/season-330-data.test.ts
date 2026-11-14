@@ -139,6 +139,12 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(item.info.gem).toMatchObject({ transfigured: true, normalVariant: 'Fireball' })
   })
 
+  it('D14 黑暗君主(使用者 2026-11-15 回報):「喚醒幽魂(...)的最大數量加倍」3.30 進階寫法解析得到', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-the-dark-monarch.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(item)).toEqual([])
+    expect(refsOf(item)).toContain('Maximum number of Raised Spectres is Doubled\nCannot have Minions other than Raised Spectres')
+  })
+
   it('D10 「插槽中的寶石被等級 # 的 X輔助 輔助」3.30 寫法(使用者 2026-11-14 回報的混響)沒有未解析詞綴', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-reverberation-rod.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
