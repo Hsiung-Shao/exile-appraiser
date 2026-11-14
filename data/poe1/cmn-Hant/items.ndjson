@@ -5463,3 +5463,21 @@
 {"name":"戰亂綢帶","refName":"Legion Thread","namespace":"ITEM","tradeTag":"legion-thread","exchangeable":true,"icon":"https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvVGhyZWFkcy9MZWdpb25UaHJlYWQiLCJzY2FsZSI6MX1d/819bd1a22b/LegionThread.png"}
 {"name":"祭祀綢帶","refName":"Ritual Thread","namespace":"ITEM","tradeTag":"ritual-thread","exchangeable":true,"icon":"https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvVGhyZWFkcy9SaXR1YWxUaHJlYWQiLCJzY2FsZSI6MX1d/ec35a48af4/RitualThread.png"}
 {"name":"通牒綢帶","refName":"Ultimatum Thread","namespace":"ITEM","tradeTag":"ultimatum-thread","exchangeable":true,"icon":"https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvVGhyZWFkcy9VbHRpbWF0dW1UaHJlYWQiLCJzY2FsZSI6MX1d/74155b9b4e/UltimatumThread.png"}
+{"name":"沸血","refName":"Bloodboil","namespace":"UNIQUE","unique":{"base":"Coral Ring"}}
+{"name":"不情願的擁抱","refName":"Unwilling Embrace","namespace":"UNIQUE","unique":{"base":"Bone Ring"}}
+{"name":"迪虛瑞特的巨力腕甲","refName":"Deshret's Vise","namespace":"UNIQUE","unique":{"base":"Steel Gauntlets"}}
+{"name":"喚獄","refName":"Hellbringer","namespace":"UNIQUE","unique":{"base":"Conjurer Gloves"}}
+{"name":"范迪戈之革","refName":"Hide of the Vendigo","namespace":"UNIQUE","unique":{"base":"Exquisite Leather"}}
+{"name":"鐵石心腸","refName":"Iron Heart","namespace":"UNIQUE","unique":{"base":"Crusader Plate"}}
+{"name":"夢縈之袍","refName":"Mantle of Dreams","namespace":"UNIQUE","unique":{"base":"Twilight Regalia"}}
+{"name":"既定命運","refName":"Ordered Fate","namespace":"UNIQUE","unique":{"base":"Walnut Spirit Shield"}}
+{"name":"提圖庫斯堅盾","refName":"Titucus Span","namespace":"UNIQUE","unique":{"base":"Reinforced Tower Shield"}}
+{"name":"恐懼仕女的聖禮","refName":"Dreadmaidens' Sacrament","namespace":"UNIQUE","unique":{"base":"Basalt Flask"}}
+{"name":"神域之殿．煉獄","refName":"Infused Beachhead","namespace":"UNIQUE","unique":{"base":"Map"}}
+{"name":"神諭之殿","refName":"The Beachhead","namespace":"UNIQUE","unique":{"base":"Map"}}
+{"name":"磨難之塔","refName":"The Tower of Ordeals","namespace":"UNIQUE","unique":{"base":"Map"}}
+{"name":"純淨樂園","refName":"Untainted Paradise","namespace":"UNIQUE","unique":{"base":"Map"}}
+{"name":"雷霆聖杖","refName":"Agnerod","namespace":"UNIQUE","unique":{"base":"Imperial Staff"}}
+{"name":"屍綻血玫","refName":"Corpse Rose","namespace":"UNIQUE","unique":{"base":"Imbued Wand"}}
+{"name":"萬世之劍","refName":"The Sword of Ages","namespace":"UNIQUE","unique":{"base":"Exquisite Blade"}}
+{"name":"幽冥之祭","refName":"Tipua Kaikohuru","namespace":"UNIQUE","unique":{"base":"Whalebone Rapier"}}

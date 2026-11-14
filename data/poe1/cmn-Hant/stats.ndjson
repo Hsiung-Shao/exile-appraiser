@@ -9195,3 +9195,66 @@
 {"ref":"Sapphire Flasks applied to you have #% increased Effect","better":0,"matchers":[{"string":"增加#%作用於你的藍玉藥劑效果"}],"trade":{"ids":{"explicit":["explicit.stat_1982347220"]}}}
 {"ref":"Grants Level 20 Summon Shaper Memory\nGrants Level 20 #, which will be used by Shaper Memory","better":0,"matchers":[{"string":"賦予等級 20 召喚塑界者的記憶\n賦予等級 20 #， 供塑界者的記憶使用"},{"string":"賦予等級 20 召喚塑界者的記憶\n賦予等級 20 #，供塑界者的記憶使用"}],"trade":{"ids":{"explicit":["explicit.stat_367775264"]}}}
 {"ref":"Topaz Flasks applied to you have #% increased Effect","better":0,"matchers":[{"string":"增加#%作用於你的黃玉藥劑效果"}],"trade":{"ids":{"explicit":["explicit.stat_806147232"]}}}
+{"ref":"Debilitate Enemies you Hit that are on Full Life for 4 seconds","better":0,"matchers":[{"string":"你擊中滿血敵人時施加虛弱，持續4秒"}],"trade":{"ids":{"implicit":["implicit.stat_1373673887"]}}}
+{"ref":"#% increased Armour from Equipped Body Armour","better":0,"matchers":[{"string":"增加#%來自裝備胸甲的護甲值"}],"trade":{"ids":{"implicit":["implicit.stat_2840285057"]}}}
+{"ref":"#% increased Armour from Equipped Helmet","better":0,"matchers":[{"string":"增加#%來自裝備頭盔的護甲"}],"trade":{"ids":{"implicit":["implicit.stat_1633157811"]}}}
+{"ref":"#% increased Armour from Equipped Helmet, Body Armour, Gloves, and Boots","better":0,"matchers":[{"string":"增加#%來自裝備頭盔、胸甲、手套、和鞋子的護甲"}],"trade":{"ids":{"implicit":["implicit.stat_3209419976"]}}}
+{"ref":"Attacks have #% increased Ignite Duration","better":0,"matchers":[{"string":"增加#%攻擊點燃持續時間"}],"trade":{"ids":{"implicit":["implicit.stat_280530196"]}}}
+{"ref":"# to # Added Cold Damage with Unarmed Attacks","better":0,"matchers":[{"string":"空手攻擊附加#至#冰冷傷害"}],"trade":{"ids":{"explicit":["explicit.stat_2644626772"]}}}
+{"ref":"#% increased Attack Speed if you've used an Attack Movement Skill Recently","better":0,"matchers":[{"string":"若你近期使用過一個攻擊快行技能，增加#%攻擊速度"}],"trade":{"ids":{"explicit":["explicit.stat_3267026680"]}}}
+{"ref":"Enemies near your Banner take #% increased Cold Damage","better":0,"matchers":[{"string":"位於你鬥旗周遭的敵人會增加#%承受冰冷傷害"}],"trade":{"ids":{"implicit":["implicit.stat_947144250"]}}}
+{"ref":"Enemies near your Banner take #% increased Fire Damage","better":0,"matchers":[{"string":"位於你鬥旗周遭的敵人會增加#%承受火焰傷害"}],"trade":{"ids":{"implicit":["implicit.stat_4163360392"]}}}
+{"ref":"Banners also grant #% of Physical Damage gained as Extra Cold Damage to you and Allies","better":0,"matchers":[{"string":"鬥旗同時會賦予你和友軍等同於#%物理傷害的額外冰冷傷害"}],"trade":{"ids":{"implicit":["implicit.stat_4268284087"]}}}
+{"ref":"#% chance to gain Phasing on Hit","better":0,"matchers":[{"string":"擊中時有#%機率獲得迷蹤"}],"trade":{"ids":{"implicit":["implicit.stat_62884658"]}}}
+{"ref":"Life Leech from Critical Strikes is instant","better":0,"matchers":[{"string":"來自暴擊的偷取為立即"}],"trade":{"ids":{"explicit":["explicit.stat_771469730"]}}}
+{"ref":"#% of Physical Damage over Time taken as Chaos Damage","better":0,"matchers":[{"string":"承受#%的物理持續傷害改為混沌傷害"}],"trade":{"ids":{"implicit":["implicit.stat_1640937241"]}}}
+{"ref":"Goreblossom has +# maximum Bloom","better":0,"matchers":[{"string":"湛血盛放擁有#最大盛放"}],"trade":{"ids":{"explicit":["explicit.stat_1597503116"]}}}
+{"ref":"Skills socketed in Equipped Boots have #% increased Mana Cost Efficiency","better":0,"matchers":[{"string":"鑲嵌於裝備中鞋子的技能增加#%魔力消耗效用"}],"trade":{"ids":{"implicit":["implicit.stat_2059097830"]}}}
+{"ref":"Can Attack as though using a Claw while main hand is empty","better":0,"matchers":[{"string":"可以在主手為空時視同使用爪攻擊"}],"trade":{"ids":{"explicit":["explicit.stat_2264031073"]}}}
+{"ref":"+#% to Chaos Damage over Time Multiplier while Poisoned","better":0,"matchers":[{"string":"中毒時#%混沌持續傷害加成"}],"trade":{"ids":{"implicit":["implicit.stat_3313028660"]}}}
+{"ref":"+#% to Maximum Effect of Chill","better":0,"matchers":[{"string":"#%最大冰緩效果"}],"trade":{"ids":{"implicit":["implicit.stat_1400414838"]}}}
+{"ref":"Every 3 seconds, Consume a Corpse within 5 metres to Recover #% of Mana","better":0,"matchers":[{"string":"每 3 秒，消耗一具位於 5 公尺內的屍體以恢復#%魔力"}],"trade":{"ids":{"implicit":["implicit.stat_1645957840"]}}}
+{"ref":"Every sixth time you cast each Spell, All Hits are Critically Strikes\nThese effects do not apply to Reservation, Duration or Channelling Spells","better":0,"matchers":[{"string":"你每第六次施放各個法術時，所有擊中都會造成暴擊\n這些效果不會套用至保留、持續、或引導法術"}],"trade":{"ids":{"explicit":["explicit.stat_4031934041"]}}}
+{"ref":"Curse Enemies with Conductivity on Hit if 5 Crusader Items are Equipped","better":0,"matchers":[{"string":"若裝備 5 種聖戰軍王之物，擊中敵人時施加感電"}],"trade":{"ids":{"implicit":["implicit.stat_1289472451"]}}}
+{"ref":"Curse Enemies with Despair on Hit if 5 Hunter Items are Equipped","better":0,"matchers":[{"string":"若裝備 5 種狩獵者之物，擊中敵人時施加絕望"}],"trade":{"ids":{"implicit":["implicit.stat_3931566161"]}}}
+{"ref":"Curse Enemies with Flammability on Hit if 5 Warlord Items are Equipped","better":0,"matchers":[{"string":"若裝備 5 種總督軍之物，擊中敵人時施加易燃"}],"trade":{"ids":{"implicit":["implicit.stat_3966765615"]}}}
+{"ref":"#% increased Damage per Minion, up to a maximum of 40%","better":0,"matchers":[{"string":"你每有一名召喚物，即增加#%傷害，至多40%"}],"trade":{"ids":{"implicit":["implicit.stat_683892962"]}}}
+{"ref":"#% increased Damage while Bleeding","better":0,"matchers":[{"string":"流血時增加#%傷害"}],"trade":{"ids":{"implicit":["implicit.stat_546701346"]}}}
+{"ref":"#% increased Damage while Blind","better":0,"matchers":[{"string":"致盲時增加#%傷害"}],"trade":{"ids":{"implicit":["implicit.stat_396291184"]}}}
+{"ref":"#% of Damage from Hits is taken from your Damagable Minions' Life before you","better":0,"matchers":[{"string":"你所承受#%的擊中傷害會先由你可傷害召喚物的生命扣除，而不是你"}],"trade":{"ids":{"implicit":["implicit.stat_474853513"]}}}
+{"ref":"Enemies you Blind while in Sand Stance take #% increased Damage","better":0,"matchers":[{"string":"被你在沙戮姿態下致盲的敵人會增加#%承受傷害"}],"trade":{"ids":{"implicit":["implicit.stat_1846105968"]}}}
+{"ref":"Enemies Cursed by you cannot deal Critical Strikes","better":0,"matchers":[{"string":"被你祖咒的敵人無法造成暴擊"}],"trade":{"ids":{"implicit":["implicit.stat_3723063276"]}}}
+{"ref":"Enemies within 6 metres of corpses you spawned Recently\nhave #% reduced Life Regeneration Rate","better":0,"matchers":[{"string":"位於你近期召喚的屍體6公尺範圍內的敵人\n會減少#%生命回復率"}],"trade":{"ids":{"implicit":["implicit.stat_1666645630"]}}}
+{"ref":"#% increased Evasion Rating from Equipped Helmet, Body Armour Gloves and Boots","better":0,"matchers":[{"string":"增加#%來自裝備頭盔、胸甲、手套、和鞋子的閃避值"}],"trade":{"ids":{"implicit":["implicit.stat_3482421817"]}}}
+{"ref":"Every second, inflict Withered on Enemies within 6 metres for # seconds","better":0,"matchers":[{"string":"每秒對6公尺範圍內的敵人施加凋零，持續#秒"}],"trade":{"ids":{"implicit":["implicit.stat_1417918566"]}}}
+{"ref":"+#% to Fire Damage over Time Multiplier while Ignited","better":0,"matchers":[{"string":"點燃時#%火焰持續傷害加成"}],"trade":{"ids":{"implicit":["implicit.stat_420435377"]}}}
+{"ref":"Gain Added Spell Damage equal to #% of Damage of Equipped Dagger\nIf two Daggers are Equipped, each contributes 60% as much Added Damage","better":0,"matchers":[{"string":"獲得等同於裝備匕首#%傷害的附加法術傷害\n若裝備了兩把匕首，則各自貢獻等同於其60%傷害的附加傷害"}],"trade":{"ids":{"explicit":["explicit.stat_3481254135"]}}}
+{"ref":"Gain Added Spell Damage equal to #% of Damage of Equipped Wand\nIf two Wands are Equipped, each contributes half as much Added Damage","better":0,"matchers":[{"string":"獲得等同於裝備法杖#%傷害的附加法術傷害\n若裝備了兩把法杖，則各自貢獻等同於其一半傷害的附加傷害"}],"trade":{"ids":{"explicit":["explicit.stat_1274429432"]}}}
+{"ref":"Every second time you cast each Spell, gain Mana equal to its Upfront Cost","better":0,"matchers":[{"string":"你每第四次施放各個法術時，獲得等同於其前期消耗的魔力"}],"trade":{"ids":{"explicit":["explicit.stat_3334947764"]}}}
+{"ref":"Granite Flasks applied to you have #% increased Effect","better":0,"matchers":[{"string":"增加#%作用於你的堅岩藥劑效果"}],"trade":{"ids":{"explicit":["explicit.stat_1478637533"]}}}
+{"ref":"Killing Blows Consume corpses to Recover #% of Mana","better":0,"matchers":[{"string":"致命一擊會消耗屍體以恢復#%魔力"}],"trade":{"ids":{"implicit":["implicit.stat_822106893"]}}}
+{"ref":"#% increased Life Recovery rate per 5% missing Unreserved Life","better":0,"matchers":[{"string":"每損失5%未保留生命，增加#%生命回復率"}],"trade":{"ids":{"implicit":["implicit.stat_3193713651"]}}}
+{"ref":"#% increased Life Recovery rate while Recouping Life","better":0,"matchers":[{"string":"補償生命時，增加#%生命恢復率"}],"trade":{"ids":{"implicit":["implicit.stat_738897289"]}}}
+{"ref":"Increases and Reductions to Light Radius also apply to Life Regeneration Rate at #% value","better":0,"matchers":[{"string":"對照明範圍的增減同時會以#%的數值套用至生命回復率"}],"trade":{"ids":{"implicit":["implicit.stat_3708520172"]}}}
+{"ref":"Trigger Level 20 Lesser Raise Spiders on Kill","better":0,"matchers":[{"string":"擊殺時觸發等級20的低階異蛛復甦"}],"trade":{"ids":{"implicit":["implicit.stat_32458272"]}}}
+{"ref":"Trigger level 20 Temporal Mirage on using a Movement Attack","better":0,"matchers":[{"string":"在使用快行攻擊後，觸發等級20的瞬時幻影"}],"trade":{"ids":{"explicit":["explicit.stat_3500769326"]}}}
+{"ref":"Every fourth time you cast each Spell, Damage of its Hits is Lucky","better":0,"matchers":[{"string":"你每第四次施放各個法術時，其擊中傷害會很幸運"}],"trade":{"ids":{"explicit":["explicit.stat_2100268747"]}}}
+{"ref":"Increases and Reductions to Mana Regeneration Rate also apply to Energy Shield Recharge Rate","better":0,"matchers":[{"string":"對魔力回復率的增減同時會以套用至能量護盾充能率"}],"trade":{"ids":{"implicit":["implicit.stat_1916233589"]}}}
+{"ref":"Deified","better":0,"matchers":[{"string":"神化"}],"trade":{"ids":{"enchant":["enchant.stat_2987875489"]}}}
+{"ref":"# Monster Packs in Area are substituted with Syndicate Members\nPack Monsters revive after Final Map Boss has been slain","better":0,"matchers":[{"string":"區域內的#群怪物會被替換為永生密教成員\n怪物群中的怪物會於最終地圖頭目被擊殺時復活"}],"trade":{"ids":{"enchant":["enchant.stat_434437344"]}}}
+{"ref":"# Monster Packs in Area are substituted with a single meaty Monster","better":0,"matchers":[{"string":"區域內的#群怪物會被替換為一名皮糙肉厚的怪物"}],"trade":{"ids":{"enchant":["enchant.stat_1776086971"]}}}
+{"ref":"# Monster Packs in Area are substituted with Fungal Shamans\nPack Monsters that die when Rare spread Modifiers to other Rare Monsters in Area","better":0,"matchers":[{"string":"區域內的#群怪物會被替換為真菌薩滿\n死亡的稀有怪物會將其詞綴傳播至區域內的其他稀有怪物"}],"trade":{"ids":{"enchant":["enchant.stat_1240937795"]}}}
+{"ref":"Rare monsters that are natural inhabitants are Calcified","better":0,"matchers":[{"string":"原生的稀有怪物會被鈣化"}],"trade":{"ids":{"enchant":["enchant.stat_3661377675"]}}}
+{"ref":"#% more Maximum Lightning Damage","better":0,"matchers":[{"string":"#%更多最大閃電傷害"}],"trade":{"ids":{"implicit":["implicit.stat_261712318"]}}}
+{"ref":"Minions are Aggressive if you've used a Minion Skill Recently","better":0,"matchers":[{"string":"若你近期使用過召喚物技能，你的召喚物會有侵略性"}],"trade":{"ids":{"implicit":["implicit.stat_3262016885"]}}}
+{"ref":"Minions created Recently have Onslaught","better":0,"matchers":[{"string":"近期創造的召喚物擁有猛攻"}],"trade":{"ids":{"implicit":["implicit.stat_2414462207"]}}}
+{"ref":"+# to Level of all Movement Skill Gems","better":0,"matchers":[{"string":"#全部快行技能寶石等即"}],"trade":{"ids":{"explicit":["explicit.stat_2378187488"]}}}
+{"ref":"You cannot Regenerate or Recoup Life","better":0,"matchers":[{"string":"你無法回復或補償生命"}],"trade":{"ids":{"explicit":["explicit.stat_301822628"]}}}
+{"ref":"Offerings you create also grant #% increased Damage","better":0,"matchers":[{"string":"你所創造的奉獻同時會賦予增加#%傷害"}],"trade":{"ids":{"implicit":["implicit.stat_4246915004"]}}}
+{"ref":"Petrification on you expires #% faster","better":0,"matchers":[{"string":"作用於你身上的石化消逝的速度加快#%"}],"trade":{"ids":{"implicit":["implicit.stat_2221035608"]}}}
+{"ref":"+#% to Physical Damage over Time Multiplier while Bleeding","better":0,"matchers":[{"string":"流血時#%物理持續傷害加成"}],"trade":{"ids":{"implicit":["implicit.stat_2390518055"]}}}
+{"ref":"When you Poison a non-Poisoned target, also inflict # Withered debuffs, lasting 2 seconds","better":0,"matchers":[{"string":"當你使一名未中毒的目標中毒時，同時施加#層凋零減益，持續2秒"}],"trade":{"ids":{"implicit":["implicit.stat_2751374419"]}}}
+{"ref":"Chance to Block Projectile Attack Damage is Lucky","better":0,"matchers":[{"string":"格擋投射物攻擊傷害的機率很幸運"}],"trade":{"ids":{"implicit":["implicit.stat_3307066983"]}}}
+{"ref":"Skills that Cost Life have #% chance to deal Double Damage","better":0,"matchers":[{"string":"擁有生命消耗的技能有#%機率造成兩倍傷害"}],"trade":{"ids":{"implicit":["implicit.stat_1183036145"]}}}
+{"ref":"Enemies Taunted by your Warcries have #% increased Action Speed","better":0,"matchers":[{"string":"受到你戰吼嘲諷的敵人會增加#%行動速度"}],"trade":{"ids":{"implicit":["implicit.stat_759530725"]}}}
+{"ref":"Trigger Level 20 Goreblossom after spending #% of your Maximum Life on Spells","better":0,"matchers":[{"string":"於法術消耗#%最大生命後，觸發等級20的湛血盛放"}],"trade":{"ids":{"explicit":["explicit.stat_4034618287"]}}}

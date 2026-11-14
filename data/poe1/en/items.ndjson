@@ -5458,3 +5458,21 @@
 {"name":"Legion Thread","refName":"Legion Thread","namespace":"ITEM","tradeTag":"legion-thread","exchangeable":true,"icon":"https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvVGhyZWFkcy9MZWdpb25UaHJlYWQiLCJzY2FsZSI6MX1d/819bd1a22b/LegionThread.png"}
 {"name":"Ritual Thread","refName":"Ritual Thread","namespace":"ITEM","tradeTag":"ritual-thread","exchangeable":true,"icon":"https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvVGhyZWFkcy9SaXR1YWxUaHJlYWQiLCJzY2FsZSI6MX1d/ec35a48af4/RitualThread.png"}
 {"name":"Ultimatum Thread","refName":"Ultimatum Thread","namespace":"ITEM","tradeTag":"ultimatum-thread","exchangeable":true,"icon":"https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvVGhyZWFkcy9VbHRpbWF0dW1UaHJlYWQiLCJzY2FsZSI6MX1d/74155b9b4e/UltimatumThread.png"}
+{"name":"Bloodboil","refName":"Bloodboil","namespace":"UNIQUE","unique":{"base":"Coral Ring"}}
+{"name":"Unwilling Embrace","refName":"Unwilling Embrace","namespace":"UNIQUE","unique":{"base":"Bone Ring"}}
+{"name":"Deshret's Vise","refName":"Deshret's Vise","namespace":"UNIQUE","unique":{"base":"Steel Gauntlets"}}
+{"name":"Hellbringer","refName":"Hellbringer","namespace":"UNIQUE","unique":{"base":"Conjurer Gloves"}}
+{"name":"Hide of the Vendigo","refName":"Hide of the Vendigo","namespace":"UNIQUE","unique":{"base":"Exquisite Leather"}}
+{"name":"Iron Heart","refName":"Iron Heart","namespace":"UNIQUE","unique":{"base":"Crusader Plate"}}
+{"name":"Mantle of Dreams","refName":"Mantle of Dreams","namespace":"UNIQUE","unique":{"base":"Twilight Regalia"}}
+{"name":"Ordered Fate","refName":"Ordered Fate","namespace":"UNIQUE","unique":{"base":"Walnut Spirit Shield"}}
+{"name":"Titucus Span","refName":"Titucus Span","namespace":"UNIQUE","unique":{"base":"Reinforced Tower Shield"}}
+{"name":"Dreadmaidens' Sacrament","refName":"Dreadmaidens' Sacrament","namespace":"UNIQUE","unique":{"base":"Basalt Flask"}}
+{"name":"Infused Beachhead","refName":"Infused Beachhead","namespace":"UNIQUE","unique":{"base":"Map"}}
+{"name":"The Beachhead","refName":"The Beachhead","namespace":"UNIQUE","unique":{"base":"Map"}}
+{"name":"The Tower of Ordeals","refName":"The Tower of Ordeals","namespace":"UNIQUE","unique":{"base":"Map"}}
+{"name":"Untainted Paradise","refName":"Untainted Paradise","namespace":"UNIQUE","unique":{"base":"Map"}}
+{"name":"Agnerod","refName":"Agnerod","namespace":"UNIQUE","unique":{"base":"Imperial Staff"}}
+{"name":"Corpse Rose","refName":"Corpse Rose","namespace":"UNIQUE","unique":{"base":"Imbued Wand"}}
+{"name":"The Sword of Ages","refName":"The Sword of Ages","namespace":"UNIQUE","unique":{"base":"Exquisite Blade"}}
+{"name":"Tipua Kaikohuru","refName":"Tipua Kaikohuru","namespace":"UNIQUE","unique":{"base":"Whalebone Rapier"}}

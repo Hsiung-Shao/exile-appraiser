@@ -99,8 +99,7 @@ describe('PoE1 真實資料', () => {
     const all = new Set(ITEM_DROP.flatMap(e => [...e.query, ...e.items]))
     const missing = [...all].filter(id => !findRelatedItem(deps().itemByRef, id))
     expect(ITEM_DROP.length).toBe(130)
-    // 已知缺口:The Beachhead 系列傳奇地圖不在 items.ndjson(APT 遇到會整塊顯示 Can't find;這裡只略過這兩件)
-    expect(missing).toEqual(['UNIQUE::The Beachhead // T15', 'UNIQUE::Infused Beachhead // T16'])
+    expect(missing).toEqual([])
   })
 
   it('剪貼簿物品 → getDetailsId → 對上 item-drop 組(與 RelatedItems.vue 同一條路)', () => {

@@ -34,7 +34,12 @@ def main():
             "select ident, en, zh_tw from cell where version_id = ? and tbl = 'baseitemtypes' and col = 'Name' "
             'and ident is not null order by ident, row', (v,))]
 
-    data = {'old': meta(old), 'new': meta(new),
+    # 傳奇名稱(words 表沒有 Id 欄,英文名就是鍵)
+    words = [{'en': en, 'zh': zh} for en, zh in c.execute(
+        "select distinct en, zh_tw from cell where version_id = ? and tbl = 'words' and col = 'Text2' "
+        'and same_as_en = 0 order by en, zh_tw', (new,))]
+
+    data = {'old': meta(old), 'new': meta(new), 'words': words,
             'stats': {'old': stats(old), 'new': stats(new)},
             'base': {'old': base(old), 'new': base(new)}}
     with open(out, 'w', encoding='utf-8', newline='\n') as f:

@@ -291,6 +291,28 @@ export function planItems ({ enItems, baseOld, baseNew, tradeStatic }) {
   return { renames, adds }
 }
 
+/**
+ * 規則 6:交易站新上架的傳奇(名稱專案完全沒有的才加;同名換底材的舊版變體不處理)。
+ * 繁中名取 GGPK words(英文名對到恰好一個繁中名),底材必須已在資料裡;否則拒收。
+ * @returns {{ adds: any[], rejects: any[] }}
+ */
+export function planUniques ({ enItems, tradeItems, words }) {
+  const have = new Set(enItems.filter(i => i.namespace === 'UNIQUE').map(i => i.refName))
+  const bases = new Set(enItems.filter(i => i.namespace === 'ITEM').map(i => i.refName))
+  const zhOf = groupBy(words, w => w.en)
+  const adds = []
+  const rejects = []
+  for (const e of tradeItems) {
+    if (!e.flags?.unique || !e.name || have.has(e.name)) continue
+    have.add(e.name)
+    const zh = [...new Set((zhOf.get(e.name) ?? []).map(w => w.zh))]
+    if (!bases.has(e.type)) rejects.push({ reason: '底材不在資料裡', id: e.name, to: e.type })
+    else if (zh.length !== 1) rejects.push({ reason: 'GGPK 沒有唯一的繁中名', id: e.name, candidates: zh })
+    else adds.push({ refName: e.name, zh: zh[0], base: e.type })
+  }
+  return { adds, rejects }
+}
+
 /** 逐列改寫 ndjson:只重寫有變動的列,保留原行尾 */
 function rewriteLines (fileText, edit, appended = []) {
   const eol = fileText.includes('\r\n') ? '\r\n' : '\n'
@@ -354,9 +376,9 @@ export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove
  * 套用物品計畫(renames / adds)到一份 items.ndjson 文字
  * @param {string} fileText
  * @param {'en' | 'cmn-Hant'} lang
- * @param {{ renames?: any[], adds?: any[] }} [plan]
+ * @param {{ renames?: any[], adds?: any[], uniques?: any[] }} [plan]
  */
-export function applyItemPlan (fileText, lang, { renames = [], adds = [] } = {}) {
+export function applyItemPlan (fileText, lang, { renames = [], adds = [], uniques = [] } = {}) {
   const byFrom = new Map(renames.map(r => [r.from, r]))
   const have = new Set()
   const nameOf = (en, zh) => (lang === 'en' ? en : (zh ?? en))
@@ -373,5 +395,8 @@ export function applyItemPlan (fileText, lang, { renames = [], adds = [] } = {})
   const fresh = adds.filter(a => !have.has(a.refName)).map(a => ({
     name: nameOf(a.refName, a.zh), refName: a.refName, namespace: 'ITEM', tradeTag: a.tradeTag, exchangeable: true, icon: a.icon
   }))
+  for (const u of uniques) {
+    if (!have.has(u.refName)) fresh.push({ name: nameOf(u.refName, u.zh), refName: u.refName, namespace: 'UNIQUE', unique: { base: u.base } })
+  }
   return fresh.length ? rewriteLines(text, () => false, fresh) : text
 }

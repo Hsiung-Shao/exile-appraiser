@@ -102,6 +102,13 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(unknownOf(item)).toEqual([])
     expect(refsOf(item)).toContain(RARITY_REF)
   })
+
+  it('D8 3.30 新傳奇藥劑(使用者 2026-11-14 回報的實機剪貼簿)解析得到', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-dreadmaidens-sacrament.cmn-Hant.txt'), 'utf8'))
+    expect(item.info.refName).toBe("Dreadmaidens' Sacrament")
+    expect(item.info.unique?.base).toBe('Basalt Flask')
+    expect(refsOf(item)).toContain('Gain # Charge when you are Hit by an Enemy')
+  })
 })
 
 function readNdjson (lang: string, file: string): any[] {
