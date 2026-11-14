@@ -119,6 +119,14 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(seed.info.unique?.base).toBe('Mycelium Core')
   })
 
+  it('D11 3.30 新傳奇胸甲(使用者 2026-11-14 回報的范迪戈之革):沒有未解析詞綴,新詞綴不是只找相同數值', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-hide-of-the-vendigo.cmn-Hant.txt'), 'utf8'))
+    expect(item.info.refName).toBe('Hide of the Vendigo')
+    expect(unknownOf(item)).toEqual([])
+    const speed = item.statsByType.find(s => s.stat.ref === "#% increased Attack Speed if you've used an Attack Movement Skill Recently")
+    expect(speed?.stat.better).toBe(1)
+  })
+
   it('D10 「插槽中的寶石被等級 # 的 X輔助 輔助」3.30 寫法(使用者 2026-11-14 回報的混響)沒有未解析詞綴', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-reverberation-rod.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])

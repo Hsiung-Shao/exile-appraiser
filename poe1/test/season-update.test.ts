@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames } from '../../scripts/poe1-season/lib.mjs'
+import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, betterOf } from '../../scripts/poe1-season/lib.mjs'
 
 /**
  * 賽季更新腳本的純函式測試(合成輸入,不讀 data/)。
@@ -382,5 +382,15 @@ describe('planSupportGemNames / applyStatPlan', () => {
     expect(enOut[0].matchers).toEqual([{ string: 'Socketed Gems are Supported by Level # Spell Echo', superseded: true }, { string: 'Socketed Gems are Supported by Level # Spell Echo Support' }])
     expect(zhOut[0].matchers).toEqual([{ string: '插槽中的寶石被等級 # 的 施放迴響 輔助', superseded: true }, { string: '插槽中的寶石被等級 # 的 施放迴響輔助 輔助' }])
     expect(planSupportGemNames({ enStats: enOut, zhStats: zhOut, ggpkNew, baseNew }).adds).toEqual([])
+  })
+})
+
+describe('betterOf', () => {
+  it('帶數值且不是減少 → 1;減少、沒有數值、技能索引 → 0', () => {
+    expect(betterOf("#% increased Attack Speed if you've used an Attack Movement Skill Recently")).toBe(1)
+    expect(betterOf('# to # Added Cold Damage with Unarmed Attacks')).toBe(1)
+    expect(betterOf('Enemies have #% reduced Life Regeneration Rate')).toBe(0)
+    expect(betterOf('Can Attack as though using a Claw while main hand is empty')).toBe(0)
+    expect(betterOf('Grants Level 20 #, which will be used by Shaper Memory')).toBe(0)
   })
 })

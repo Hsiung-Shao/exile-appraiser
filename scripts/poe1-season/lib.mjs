@@ -30,6 +30,15 @@ function direction (text) {
   return up === down ? 0 : (up ? 1 : -1)
 }
 
+/**
+ * 新詞綴的 better:帶數值且不是「減少 / 更少」→ 1(查價用「至少這個值」);其他 → 0(完全相同才算)。
+ * 既有資料帶數值的詞綴 97% 是 1;標 0 會讓預設查詢只找數值一模一樣的掛單(2026-11-14 范迪戈之革)。
+ * shortcut: 少數「越低越好」的句子(承受傷害、消耗)會被標成 1,遇到再個別改資料列。
+ */
+export function betterOf (ref) {
+  return ref.includes('#') && direction(ref) >= 0 && !/Grants Level \d+ #/.test(ref) ? 1 : 0
+}
+
 /** 展開群組列,回傳每個一般 stat 物件 */
 export function * eachStat (rows) {
   for (const row of rows) {
@@ -283,8 +292,8 @@ export function planNewStats ({ enStats, ggpkOld, ggpkNew, tradeStats }) {
       /** @type {Record<string, string[]>} */
       const ids = {}
       for (const e of entries) (ids[e.id.slice(0, e.id.indexOf('.'))] ??= []).push(e.id)
-      // better 0 = 不比較大小(不知道這條是越高越好還是越低越好,不猜)
-      out.set(k, { ref: entries[0].text.replace(/\s+\(Local\)$/i, ''), better: 0, en: [{ string: toMatcherText(row.en) }], zh: [], ids })
+      const ref = entries[0].text.replace(/\s+\(Local\)$/i, '')
+      out.set(k, { ref, better: betterOf(ref), en: [{ string: toMatcherText(row.en) }], zh: [], ids })
     }
     const zh = row.zh && cmpKey(row.zh) !== k ? toMatcherText(row.zh) : null
     if (zh && !out.get(k).zh.some(m => m.string === zh)) out.get(k).zh.push({ string: zh })
