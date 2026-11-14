@@ -14,7 +14,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
-import { applyItemPlan, applyStatPlan, planDeadIds, planItems, planNewStats, planStatText, planSupportGemNames, planTradeBases, planTradeText, planUniques } from './lib.mjs'
+import { applyItemPlan, applyStatPlan, planDeadIds, planGems, planItems, planNewStats, planStatText, planSupportGemNames, planTradeBases, planTradeText, planUniques } from './lib.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(HERE, '../..')
@@ -70,9 +70,10 @@ const newStats = planNewStats({ enStats: afterB, ggpkOld: ggpk.stats.old, ggpkNe
 const items = planItems({ enItems: rows(text['en/items']), baseOld: ggpk.base.old, baseNew: ggpk.base.new, tradeStatic })
 const bases = planTradeBases({ enItems: rows(text['en/items']), baseOld: ggpk.base.old, baseNew: ggpk.base.new, tradeItems })
 const uniques = planUniques({ enItems: rows(applyItemPlan(text['en/items'], 'en', { bases: bases.adds })), tradeItems, words: ggpk.words })
-const itemPlan = { ...items, bases: bases.adds, uniques: uniques.adds }
+const gems = planGems({ enItems: rows(text['en/items']), tradeItems, gems: ggpk.gems })
+const itemPlan = { ...items, bases: bases.adds, uniques: uniques.adds, gems: gems.adds }
 const statPlan = { adds, replace: dead.replace, remove: dead.remove, newStats }
-const rejects = [...ruleA.rejects.map(r => ({ rule: '改字 A', ...r })), ...ruleB.rejects.map(r => ({ rule: '改字 B', ...r })), ...dead.rejects.map(r => ({ rule: '失效 id', ...r })), ...gemNames.rejects.map(r => ({ rule: '輔助寶石名', ...r })), ...bases.rejects.map(r => ({ rule: '新底材', ...r })), ...uniques.rejects.map(r => ({ rule: '新傳奇', ...r }))]
+const rejects = [...ruleA.rejects.map(r => ({ rule: '改字 A', ...r })), ...ruleB.rejects.map(r => ({ rule: '改字 B', ...r })), ...dead.rejects.map(r => ({ rule: '失效 id', ...r })), ...gemNames.rejects.map(r => ({ rule: '輔助寶石名', ...r })), ...bases.rejects.map(r => ({ rule: '新底材', ...r })), ...uniques.rejects.map(r => ({ rule: '新傳奇', ...r })), ...gems.rejects.map(r => ({ rule: '新變異寶石', ...r }))]
 
 const count = (list, lang) => list.filter(a => a.lang === lang).length
 const summary = [
@@ -82,7 +83,7 @@ const summary = [
   `輔助寶石名(規則 8):en +${count(gemNames.adds, 'en')} / 繁中 +${count(gemNames.adds, 'cmn-Hant')} 個 matcher`,
   `失效 id:替換 ${Object.keys(dead.replace).length}、移除 ${dead.remove.length}`,
   `新詞綴:${newStats.length} 列`,
-  `物品:改名 ${items.renames.length}、新增 ${items.adds.length}、新底材 ${bases.adds.length}、新傳奇 ${uniques.adds.length}`,
+  `物品:改名 ${items.renames.length}、新增 ${items.adds.length}、新底材 ${bases.adds.length}、新傳奇 ${uniques.adds.length}、新變異寶石 ${gems.adds.length}`,
   `拒收(沒改資料):${rejects.length}`
 ]
 console.log(summary.join('\n'))
@@ -97,6 +98,7 @@ if (flag('--report')) {
     '## 物品新增', table(['英文', '繁中', 'tradeTag'], items.adds.map(r => [r.refName, r.zh, r.tradeTag])), '',
     '## 新底材', table(['英文', '繁中', '類別'], bases.adds.map(r => [r.refName, r.zh, r.category])), '',
     '## 新傳奇', table(['英文', '繁中', '底材'], uniques.adds.map(r => [r.refName, r.zh, r.base])), '',
+    '## 新變異寶石', table(['英文', '繁中', '原版', '分支'], gems.adds.map(r => [r.refName, r.zh, r.normal, r.disc])), '',
     '## 新詞綴', table(['ref', '繁中', 'id'], newStats.map(s => [s.ref, s.zh.map(m => m.string).join(' / '), Object.values(s.ids).flat().join(' ')])), '',
     '## 失效 id:替換', table(['舊 id', '新 id'], Object.entries(dead.replace)), '',
     '## 失效 id:移除', dead.remove.length ? dead.remove.map(i => `\`${i}\``).join(' ') : '(無)', '',

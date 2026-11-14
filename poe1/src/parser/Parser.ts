@@ -45,6 +45,7 @@ const parsers: Array<
   parseUnidentified,
   { virtual: parseSuperior },
   { virtual: parseFoulborn },
+  { virtual: parseVisceraTier },
   { virtual: parseVestigial },
   parseSynthesised,
   parseCategoryByHelpText,
@@ -1106,6 +1107,12 @@ function parseSuperior (item: ParserState) {
       item.name = _$.ITEM_SUPERIOR.exec(item.name)![1]
     }
   }
+}
+
+// exile-appraiser: 3.30 臟器名稱可帶「高階 / 低階」前綴(clientstrings GreaterViscera / LesserViscera),底材名不含
+function parseVisceraTier (item: ParserState) {
+  const m = _$.VISCERA_TIER.exec(item.name)
+  if (m && !ITEM_BY_TRANSLATED('ITEM', item.name)?.length && ITEM_BY_TRANSLATED('ITEM', m[1])?.length) item.name = m[1]
 }
 
 function parseFoulborn (item: ParserState) {

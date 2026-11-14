@@ -9262,3 +9262,8 @@
 {"ref":"Ruby Flasks applied to you have #% increased Effect","better":1,"matchers":[{"string":"增加#%作用於你的紅玉藥劑效果"}],"trade":{"ids":{"explicit":["explicit.stat_758685542"]}}}
 {"ref":"Gain Bitterblood equal to Life spent","better":0,"matchers":[{"string":"獲得等同於消耗生命的苦澀之血"}],"trade":{"ids":{"explicit":["explicit.stat_3945412713"]}}}
 {"ref":"Maximum Bitterblood is equal to your Maximum Life","better":0,"matchers":[{"string":"最大苦澀之血等同於你的最大生命"}],"trade":{"ids":{"explicit":["explicit.stat_3664562804"]}}}
+{"ref":"#% increased Damage against Beasts","better":1,"matchers":[{"string":"增加#%對野獸造成的傷害"}],"trade":{"ids":{"implicit":["implicit.stat_4276479762"]}}}
+{"ref":"Enemies you Kill have a #% chance to Explode, dealing a tenth of their maximum Life as Damage of a Random Element","better":1,"matchers":[{"string":"你所擊殺的敵人有#%機率爆炸，造成等同於其最大生命十分之一的隨機元素傷害"}],"trade":{"ids":{"implicit":["implicit.stat_2360921519"]}}}
+{"ref":"Blinding a non-Blinded Pinnacle Atlas Boss with this Weapon will\nsteal a Modifier for this item (# Modifier remaining)","better":1,"matchers":[{"string":"以此武器致盲一名未致盲的輿圖巔峰頭目時會\n為此物品偷取一條詞綴(剩餘#條詞綴)"}],"trade":{"ids":{"explicit":["explicit.stat_699502241"]}}}
+{"ref":"Blind you inflict is permanent","better":0,"matchers":[{"string":"你所施加的致盲為永久"}],"trade":{"ids":{"explicit":["explicit.stat_1823668305"]}}}
+{"ref":"Hits have #% chance to treat Enemy Monster Lightning Resistance values as inverted","better":1,"matchers":[{"string":"擊中有#%機率會將敵方怪物的閃電抗性數值視為顛倒"}],"trade":{"ids":{"implicit":["implicit.stat_2705969278"]}}}

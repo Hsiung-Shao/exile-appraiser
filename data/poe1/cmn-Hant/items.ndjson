@@ -5629,3 +5629,19 @@
 {"name":"駭人巨口","refName":"Terrifying Maw","namespace":"ITEM"}
 {"name":"腐敗之種","refName":"Putrid Seed","namespace":"UNIQUE","unique":{"base":"Mycelium Core"}}
 {"name":"恐慌化身．頭顱","refName":"Incarnation of Dread's Head","namespace":"ITEM"}
+{"name":"巫會之后冠","refName":"Coven Queen's Crown","namespace":"ITEM"}
+{"name":"吞噬天地．頭顱","refName":"Eater of Worlds' Head","namespace":"ITEM"}
+{"name":"異界尊師．頭顱","refName":"Elder's Head","namespace":"ITEM"}
+{"name":"漠視化身．方塊","refName":"Incarnation of Neglect's Cube","namespace":"ITEM"}
+{"name":"釋界．天體儀","refName":"Maven's Orrery","namespace":"ITEM"}
+{"name":"夢魘．卡塔莉娜之翼","refName":"Nightmarish Wings of Catarina","namespace":"ITEM"}
+{"name":"夢魘．墮落之書","refName":"Nightmarish Book of Depravity","namespace":"ITEM"}
+{"name":"夢魘．利西亞之翼","refName":"Nightmarish Wings of Lycia","namespace":"ITEM"}
+{"name":"夢魘．不滅之核","refName":"Nightmarish Core of the Unbreakable","namespace":"ITEM"}
+{"name":"塑界者．頭顱","refName":"Shaper's Head","namespace":"ITEM"}
+{"name":"賽勒斯．頭顱","refName":"Sirus' Head","namespace":"ITEM"}
+{"name":"維那利斯．經典","refName":"Venarius' Scripture","namespace":"ITEM"}
+{"name":"血肉帷幕","refName":"Veil of Flesh","namespace":"UNIQUE","unique":{"base":"Callous Mask"}}
+{"name":"叛教者之禍","refName":"Bane of the Apostate","namespace":"UNIQUE","unique":{"base":"Judgement Staff"}}
+{"name":"貪婪之暗","refName":"The Covetous Dark","namespace":"UNIQUE","unique":{"base":"Eye Gouger"}}
+{"name":"火球．輻射","refName":"Fireball of Radiation","namespace":"GEM","tradeDisc":"alt_x","icon":"https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvR2Vtcy9GaXJlYmFsbCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/8f374db219/Fireball.png","gem":{"transfigured":true,"normalVariant":"Fireball","maxLevel":20}}

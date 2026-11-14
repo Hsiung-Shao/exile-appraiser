@@ -39,7 +39,12 @@ def main():
         "select distinct en, zh_tw from cell where version_id = ? and tbl = 'words' and col = 'Text2' "
         'and same_as_en = 0 order by en, zh_tw', (new,))]
 
-    data = {'old': meta(old), 'new': meta(new), 'words': words,
+    # 寶石顯示名(變異寶石的名字不在 baseitemtypes)
+    gems = [{'en': en, 'zh': zh} for en, zh in c.execute(
+        "select distinct en, zh_tw from cell where version_id = ? and tbl = 'gemeffects' and col = 'Name' "
+        'and same_as_en = 0 order by en, zh_tw', (new,))]
+
+    data = {'old': meta(old), 'new': meta(new), 'words': words, 'gems': gems,
             'stats': {'old': stats(old), 'new': stats(new)},
             'base': {'old': base(old), 'new': base(new)}}
     with open(out, 'w', encoding='utf-8', newline='\n') as f:

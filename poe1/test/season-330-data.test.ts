@@ -127,6 +127,18 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(speed?.stat.better).toBe(1)
   })
 
+  it('D12 臟器名稱帶「高階」前綴(使用者 2026-11-14 回報)解析成原臟器', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-greater-hollowed-skull.cmn-Hant.txt'), 'utf8'))
+    expect(item.info.refName).toBe('Hollowed Skull')
+  })
+
+  it('D13 3.30 新變異寶石 火球．輻射(使用者 2026-11-14 回報)解析得到,帶交易站分支', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-fireball-of-radiation.cmn-Hant.txt'), 'utf8'))
+    expect(item.info.refName).toBe('Fireball of Radiation')
+    expect(item.info.tradeDisc).toBe('alt_x')
+    expect(item.info.gem).toMatchObject({ transfigured: true, normalVariant: 'Fireball' })
+  })
+
   it('D10 「插槽中的寶石被等級 # 的 X輔助 輔助」3.30 寫法(使用者 2026-11-14 回報的混響)沒有未解析詞綴', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-reverberation-rod.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])

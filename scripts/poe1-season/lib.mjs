@@ -376,6 +376,27 @@ export function planTradeBases ({ enItems, baseOld, baseNew, tradeItems }) {
   return { adds, rejects }
 }
 
+/**
+ * 規則 9:交易站 gem 群組新上架的變異寶石(帶 `disc`;瓦爾版「Vaal X (…)」不算)。
+ * 繁中名取 GGPK gemeffects,等級上限與圖示照原版寶石那一列。
+ * @returns {{ adds: any[], rejects: any[] }}
+ */
+export function planGems ({ enItems, tradeItems, gems }) {
+  const byRef = new Map(enItems.filter(i => i.namespace === 'GEM').map(i => [i.refName, i]))
+  const zhOf = groupBy(gems, g => g.en)
+  const adds = []
+  const rejects = []
+  for (const e of tradeItems) {
+    if (e.group !== 'gem' || !e.disc || !e.text || e.text.startsWith('Vaal ') || byRef.has(e.text)) continue
+    const normal = byRef.get(e.type)
+    const zh = [...new Set((zhOf.get(e.text) ?? []).map(g => g.zh))]
+    if (!normal) rejects.push({ reason: '原版寶石不在資料裡', id: e.text, to: e.type })
+    else if (zh.length !== 1) rejects.push({ reason: 'GGPK 沒有唯一的繁中名', id: e.text, candidates: zh })
+    else adds.push({ refName: e.text, zh: zh[0], disc: e.disc, normal: e.type, maxLevel: normal.gem?.maxLevel, icon: normal.icon })
+  }
+  return { adds, rejects }
+}
+
 /** 逐列改寫 ndjson:只重寫有變動的列,保留原行尾 */
 function rewriteLines (fileText, edit, appended = []) {
   const eol = fileText.includes('\r\n') ? '\r\n' : '\n'
@@ -439,9 +460,9 @@ export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove
  * 套用物品計畫(renames / adds)到一份 items.ndjson 文字
  * @param {string} fileText
  * @param {'en' | 'cmn-Hant'} lang
- * @param {{ renames?: any[], adds?: any[], uniques?: any[], bases?: any[] }} [plan]
+ * @param {{ renames?: any[], adds?: any[], uniques?: any[], bases?: any[], gems?: any[] }} [plan]
  */
-export function applyItemPlan (fileText, lang, { renames = [], adds = [], uniques = [], bases = [] } = {}) {
+export function applyItemPlan (fileText, lang, { renames = [], adds = [], uniques = [], bases = [], gems = [] } = {}) {
   const byFrom = new Map(renames.map(r => [r.from, r]))
   const have = new Set()
   const nameOf = (en, zh) => (lang === 'en' ? en : (zh ?? en))
@@ -463,6 +484,9 @@ export function applyItemPlan (fileText, lang, { renames = [], adds = [], unique
   }
   for (const u of uniques) {
     if (!have.has(u.refName)) fresh.push({ name: nameOf(u.refName, u.zh), refName: u.refName, namespace: 'UNIQUE', unique: { base: u.base } })
+  }
+  for (const g of gems) {
+    if (!have.has(g.refName)) fresh.push({ name: nameOf(g.refName, g.zh), refName: g.refName, namespace: 'GEM', tradeDisc: g.disc, icon: g.icon, gem: { transfigured: true, normalVariant: g.normal, maxLevel: g.maxLevel } })
   }
   return fresh.length ? rewriteLines(text, () => false, fresh) : text
 }

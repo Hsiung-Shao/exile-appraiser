@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, betterOf } from '../../scripts/poe1-season/lib.mjs'
+import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, betterOf } from '../../scripts/poe1-season/lib.mjs'
 
 /**
  * 賽季更新腳本的純函式測試(合成輸入,不讀 data/)。
@@ -363,6 +363,31 @@ describe('planTradeBases / applyItemPlan', () => {
     ])
     const enOut = parseRows(applyItemPlan(toFile(enRows()), 'en', { bases: p.adds }))
     expect(planTradeBases({ enItems: enOut, baseOld, baseNew, tradeItems }).adds).toEqual([])
+  })
+})
+
+describe('planGems / applyItemPlan', () => {
+  const enRows = () => [{ name: 'Fireball', refName: 'Fireball', namespace: 'GEM', icon: 'i', gem: { maxLevel: 20 } },
+    { name: 'Vaal Arc', refName: 'Vaal Arc', namespace: 'GEM', gem: { vaal: true, maxLevel: 20 } },
+    { name: 'Fireball', refName: 'Fireball', namespace: 'ITEM' }]
+  const gems = [{ en: 'Fireball of Radiation', zh: '火球．輻射' }, { en: 'Two Names', zh: '甲' }, { en: 'Two Names', zh: '乙' }]
+  const tradeItems = [
+    { type: 'Fireball', group: 'gem' },
+    { type: 'Fireball', text: 'Fireball of Radiation', disc: 'alt_x', group: 'gem' },
+    { type: 'Vaal Arc', text: 'Vaal Arc (Arc of Oscillating)', disc: 'alt_y', group: 'gem' },
+    { type: 'Fireball', text: 'Two Names', disc: 'alt_y', group: 'gem' },
+    { type: 'No Base', text: 'No Base of X', disc: 'alt_x', group: 'gem' },
+    { type: 'Fireball', text: 'Not A Gem', disc: 'alt_x', group: 'map' }
+  ]
+
+  it('交易站新變異寶石加一列(分支、原版、等級上限、圖示照原版);判不準的拒收;重跑為空', () => {
+    const p = planGems({ enItems: enRows(), tradeItems, gems })
+    expect(p.adds).toEqual([{ refName: 'Fireball of Radiation', zh: '火球．輻射', disc: 'alt_x', normal: 'Fireball', maxLevel: 20, icon: 'i' }])
+    expect(p.rejects.map((r: any) => r.id)).toEqual(['Two Names', 'No Base of X'])
+    const zhOut = parseRows(applyItemPlan(toFile(enRows()), 'cmn-Hant', { gems: p.adds }))
+    expect(zhOut.at(-1)).toEqual({ name: '火球．輻射', refName: 'Fireball of Radiation', namespace: 'GEM', tradeDisc: 'alt_x', icon: 'i', gem: { transfigured: true, normalVariant: 'Fireball', maxLevel: 20 } })
+    const enOut = parseRows(applyItemPlan(toFile(enRows()), 'en', { gems: p.adds }))
+    expect(planGems({ enItems: enOut, tradeItems, gems }).adds).toEqual([])
   })
 })
 

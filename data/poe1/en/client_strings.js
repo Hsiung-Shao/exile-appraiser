@@ -124,6 +124,7 @@ export default {
   FOIL_UNIQUE: 'Foil Unique',
   UNMODIFIABLE: 'Unmodifiable',
   FOULBORN_NAME: /^Foulborn (.*)$/,
+  VISCERA_TIER: /^(?:Greater|Lesser) (.*)$/,
   FOULBORN_MODIFIER: 'Foulborn Unique Modifier',
   // 3.29「殘存」(Legion)。GGPK clientstrings ident:DivergentItem / ModDescriptionLineDivergentImplicit
   VESTIGIAL_NAME: /^Vestigial (.*)$/,

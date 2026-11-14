@@ -5624,3 +5624,19 @@
 {"name":"Terrifying Maw","refName":"Terrifying Maw","namespace":"ITEM"}
 {"name":"Putrid Seed","refName":"Putrid Seed","namespace":"UNIQUE","unique":{"base":"Mycelium Core"}}
 {"name":"Incarnation of Dread's Head","refName":"Incarnation of Dread's Head","namespace":"ITEM"}
+{"name":"Coven Queen's Crown","refName":"Coven Queen's Crown","namespace":"ITEM"}
+{"name":"Eater of Worlds' Head","refName":"Eater of Worlds' Head","namespace":"ITEM"}
+{"name":"Elder's Head","refName":"Elder's Head","namespace":"ITEM"}
+{"name":"Incarnation of Neglect's Cube","refName":"Incarnation of Neglect's Cube","namespace":"ITEM"}
+{"name":"Maven's Orrery","refName":"Maven's Orrery","namespace":"ITEM"}
+{"name":"Nightmarish Wings of Catarina","refName":"Nightmarish Wings of Catarina","namespace":"ITEM"}
+{"name":"Nightmarish Book of Depravity","refName":"Nightmarish Book of Depravity","namespace":"ITEM"}
+{"name":"Nightmarish Wings of Lycia","refName":"Nightmarish Wings of Lycia","namespace":"ITEM"}
+{"name":"Nightmarish Core of the Unbreakable","refName":"Nightmarish Core of the Unbreakable","namespace":"ITEM"}
+{"name":"Shaper's Head","refName":"Shaper's Head","namespace":"ITEM"}
+{"name":"Sirus' Head","refName":"Sirus' Head","namespace":"ITEM"}
+{"name":"Venarius' Scripture","refName":"Venarius' Scripture","namespace":"ITEM"}
+{"name":"Veil of Flesh","refName":"Veil of Flesh","namespace":"UNIQUE","unique":{"base":"Callous Mask"}}
+{"name":"Bane of the Apostate","refName":"Bane of the Apostate","namespace":"UNIQUE","unique":{"base":"Judgement Staff"}}
+{"name":"The Covetous Dark","refName":"The Covetous Dark","namespace":"UNIQUE","unique":{"base":"Eye Gouger"}}
+{"name":"Fireball of Radiation","refName":"Fireball of Radiation","namespace":"GEM","tradeDisc":"alt_x","icon":"https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvR2Vtcy9GaXJlYmFsbCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/8f374db219/Fireball.png","gem":{"transfigured":true,"normalVariant":"Fireball","maxLevel":20}}
