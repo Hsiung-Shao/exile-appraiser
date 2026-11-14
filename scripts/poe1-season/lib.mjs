@@ -388,6 +388,7 @@ export function planGems ({ enItems, tradeItems, gems }) {
   const rejects = []
   for (const e of tradeItems) {
     if (e.group !== 'gem' || !e.disc || !e.text || e.text.startsWith('Vaal ') || byRef.has(e.text)) continue
+    byRef.set(e.text, e)
     const normal = byRef.get(e.type)
     const zh = [...new Set((zhOf.get(e.text) ?? []).map(g => g.zh))]
     if (!normal) rejects.push({ reason: '原版寶石不在資料裡', id: e.text, to: e.type })
@@ -465,6 +466,7 @@ export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove
 export function applyItemPlan (fileText, lang, { renames = [], adds = [], uniques = [], bases = [], gems = [] } = {}) {
   const byFrom = new Map(renames.map(r => [r.from, r]))
   const have = new Set()
+  const gemIcon = new Map() // 圖示取同語系原版那一列(繁中檔用台服 CDN)
   const nameOf = (en, zh) => (lang === 'en' ? en : (zh ?? en))
   const text = rewriteLines(fileText, (item) => {
     const r = byFrom.get(item.refName)
@@ -474,6 +476,7 @@ export function applyItemPlan (fileText, lang, { renames = [], adds = [], unique
       item.tradeTag = r.tradeTag
     }
     have.add(item.refName)
+    if (item.namespace === 'GEM') gemIcon.set(item.refName, item.icon)
     return Boolean(r)
   })
   const fresh = adds.filter(a => !have.has(a.refName)).map(a => ({
@@ -486,7 +489,7 @@ export function applyItemPlan (fileText, lang, { renames = [], adds = [], unique
     if (!have.has(u.refName)) fresh.push({ name: nameOf(u.refName, u.zh), refName: u.refName, namespace: 'UNIQUE', unique: { base: u.base } })
   }
   for (const g of gems) {
-    if (!have.has(g.refName)) fresh.push({ name: nameOf(g.refName, g.zh), refName: g.refName, namespace: 'GEM', tradeDisc: g.disc, icon: g.icon, gem: { transfigured: true, normalVariant: g.normal, maxLevel: g.maxLevel } })
+    if (!have.has(g.refName)) fresh.push({ name: nameOf(g.refName, g.zh), refName: g.refName, namespace: 'GEM', tradeDisc: g.disc, icon: gemIcon.get(g.normal) ?? g.icon, gem: { transfigured: true, normalVariant: g.normal, maxLevel: g.maxLevel } })
   }
   return fresh.length ? rewriteLines(text, () => false, fresh) : text
 }

@@ -374,6 +374,7 @@ describe('planGems / applyItemPlan', () => {
   const tradeItems = [
     { type: 'Fireball', group: 'gem' },
     { type: 'Fireball', text: 'Fireball of Radiation', disc: 'alt_x', group: 'gem' },
+    { type: 'Fireball', text: 'Fireball of Radiation', disc: 'alt_x', group: 'gem' },
     { type: 'Vaal Arc', text: 'Vaal Arc (Arc of Oscillating)', disc: 'alt_y', group: 'gem' },
     { type: 'Fireball', text: 'Two Names', disc: 'alt_y', group: 'gem' },
     { type: 'No Base', text: 'No Base of X', disc: 'alt_x', group: 'gem' },
@@ -384,8 +385,9 @@ describe('planGems / applyItemPlan', () => {
     const p = planGems({ enItems: enRows(), tradeItems, gems })
     expect(p.adds).toEqual([{ refName: 'Fireball of Radiation', zh: '火球．輻射', disc: 'alt_x', normal: 'Fireball', maxLevel: 20, icon: 'i' }])
     expect(p.rejects.map((r: any) => r.id)).toEqual(['Two Names', 'No Base of X'])
-    const zhOut = parseRows(applyItemPlan(toFile(enRows()), 'cmn-Hant', { gems: p.adds }))
-    expect(zhOut.at(-1)).toEqual({ name: '火球．輻射', refName: 'Fireball of Radiation', namespace: 'GEM', tradeDisc: 'alt_x', icon: 'i', gem: { transfigured: true, normalVariant: 'Fireball', maxLevel: 20 } })
+    const zhRows = enRows().map(r => (r.icon ? { ...r, icon: 'zh-i' } : r))
+    const zhOut = parseRows(applyItemPlan(toFile(zhRows), 'cmn-Hant', { gems: p.adds }))
+    expect(zhOut.at(-1)).toEqual({ name: '火球．輻射', refName: 'Fireball of Radiation', namespace: 'GEM', tradeDisc: 'alt_x', icon: 'zh-i', gem: { transfigured: true, normalVariant: 'Fireball', maxLevel: 20 } })
     const enOut = parseRows(applyItemPlan(toFile(enRows()), 'en', { gems: p.adds }))
     expect(planGems({ enItems: enOut, tradeItems, gems }).adds).toEqual([])
   })
