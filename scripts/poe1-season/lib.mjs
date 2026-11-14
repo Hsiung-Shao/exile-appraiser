@@ -302,9 +302,11 @@ export function planUniques ({ enItems, tradeItems, words }) {
   const zhOf = groupBy(words, w => w.en)
   const adds = []
   const rejects = []
+  const done = new Set()
   for (const e of tradeItems) {
-    if (!e.flags?.unique || !e.name || have.has(e.name)) continue
-    have.add(e.name)
+    // 新名稱的每種底材各一列(解析器以底材比對,漏一種那種底材就 item.unknown)
+    if (!e.flags?.unique || !e.name || have.has(e.name) || done.has(`${e.name}|${e.type}`)) continue
+    done.add(`${e.name}|${e.type}`)
     const zh = [...new Set((zhOf.get(e.name) ?? []).map(w => w.zh))]
     if (!bases.has(e.type)) rejects.push({ reason: '底材不在資料裡', id: e.name, to: e.type })
     else if (zh.length !== 1) rejects.push({ reason: 'GGPK 沒有唯一的繁中名', id: e.name, candidates: zh })
