@@ -30,6 +30,15 @@ function direction (text) {
   return up === down ? 0 : (up ? 1 : -1)
 }
 
+/**
+ * 新詞綴的 better:帶數值且不是「減少 / 更少」→ 1(查價用「至少這個值」);其他 → 0(完全相同才算)。
+ * 既有資料帶數值的詞綴 97% 是 1;標 0 會讓預設查詢只找數值一模一樣的掛單(2026-11-14 范迪戈之革)。
+ * shortcut: 少數「越低越好」的句子(承受傷害、消耗)會被標成 1,遇到再個別改資料列。
+ */
+export function betterOf (ref) {
+  return ref.includes('#') && direction(ref) >= 0 && !/Grants Level \d+ #/.test(ref) ? 1 : 0
+}
+
 /** 展開群組列,回傳每個一般 stat 物件 */
 export function * eachStat (rows) {
   for (const row of rows) {
@@ -194,6 +203,33 @@ export function planTradeText ({ enStats, zhStats, tradeStats, ggpkNew, ggpkOld 
   return { adds, rejects }
 }
 
+/**
+ * 規則 8:「插槽中的寶石被等級 # 的 X 輔助」(ref 結尾 `(Random Support Gem)` 的列)。
+ * 3.30 起遊戲把 {1} 填成寶石全名(施放迴響 → 施放迴響輔助;使用者 2026-11-14 實機剪貼簿),
+ * 新句 = GGPK 的句型(`local_random_support_gem_level …`)+ baseitemtypes 的寶石名(以英文 `<X> Support` 對接)。
+ * 舊句標 superseded(舊資料的寶石名與 GGPK 不同時,該列唯一的舊句就是它;留著兩種寫法正則物品詞綴數值頁會把它當多種寫法而排除)。英文沒有實機樣本,是由同一個句型推出來的。
+ */
+export function planSupportGemNames ({ enStats, zhStats, ggpkNew, baseNew }) {
+  const tpl = ggpkNew.find(r => r.key.startsWith('local_random_support_gem_level local_random_support_gem_index|'))
+  const gems = groupBy(baseNew.filter(r => r.path.startsWith('Metadata/Items/Gems/')), r => r.en)
+  const adds = []
+  const rejects = []
+  if (!tpl) return { adds, rejects }
+  const fill = (text, name) => toMatcherText(text.replace('{1}', name))
+  const zhByRef = groupBy([...eachStat(zhStats)], s => s.ref)
+  const has = (stats, text) => stats.some(s => s.matchers.some(x => x.string === text))
+  for (const stat of eachStat(enStats)) {
+    const m = /^Socketed Gems are Supported by Level # (.+) \(Random Support Gem\)$/.exec(stat.ref)
+    if (!m) continue
+    const zh = [...new Set((gems.get(`${m[1]} Support`) ?? []).map(r => r.zh))]
+    if (zh.length !== 1) { rejects.push({ reason: 'GGPK 沒有唯一的輔助寶石名', ref: stat.ref, candidates: zh }); continue }
+    const en = fill(tpl.en, `${m[1]} Support`)
+    if (!has([stat], en)) adds.push({ lang: 'en', ref: stat.ref, matcher: { string: en }, supersedes: fill(tpl.en, m[1]) })
+    if (!has(zhByRef.get(stat.ref) ?? [], fill(tpl.zh, zh[0]))) adds.push({ lang: 'cmn-Hant', ref: stat.ref, matcher: { string: fill(tpl.zh, zh[0]) }, supersedes: fill(tpl.zh, zh[0].replace(/輔助$/, '')) })
+  }
+  return { adds, rejects }
+}
+
 /** 交易站 id 是否仍有效(`X|n` 形式:X 是選項型 stat 且有選項 n 也算) */
 export function liveIdTest (tradeStats) {
   const ids = new Set(tradeStats.map(e => e.id))
@@ -256,8 +292,8 @@ export function planNewStats ({ enStats, ggpkOld, ggpkNew, tradeStats }) {
       /** @type {Record<string, string[]>} */
       const ids = {}
       for (const e of entries) (ids[e.id.slice(0, e.id.indexOf('.'))] ??= []).push(e.id)
-      // better 0 = 不比較大小(不知道這條是越高越好還是越低越好,不猜)
-      out.set(k, { ref: entries[0].text.replace(/\s+\(Local\)$/i, ''), better: 0, en: [{ string: toMatcherText(row.en) }], zh: [], ids })
+      const ref = entries[0].text.replace(/\s+\(Local\)$/i, '')
+      out.set(k, { ref, better: betterOf(ref), en: [{ string: toMatcherText(row.en) }], zh: [], ids })
     }
     const zh = row.zh && cmpKey(row.zh) !== k ? toMatcherText(row.zh) : null
     if (zh && !out.get(k).zh.some(m => m.string === zh)) out.get(k).zh.push({ string: zh })
@@ -289,6 +325,55 @@ export function planItems ({ enItems, baseOld, baseNew, tradeStatic }) {
     done.add(row.en)
   }
   return { renames, adds }
+}
+
+/**
+ * 規則 6:交易站新上架的傳奇(名稱專案完全沒有的才加;同名換底材的舊版變體不處理)。
+ * 繁中名取 GGPK words(英文名對到恰好一個繁中名),底材必須已在資料裡;否則拒收。
+ * @returns {{ adds: any[], rejects: any[] }}
+ */
+export function planUniques ({ enItems, tradeItems, words }) {
+  const have = new Set(enItems.filter(i => i.namespace === 'UNIQUE').map(i => i.refName))
+  const bases = new Set(enItems.filter(i => i.namespace === 'ITEM').map(i => i.refName))
+  const zhOf = groupBy(words, w => w.en)
+  const adds = []
+  const rejects = []
+  const done = new Set()
+  for (const e of tradeItems) {
+    // 新名稱的每種底材各一列(解析器以底材比對,漏一種那種底材就 item.unknown)
+    if (!e.flags?.unique || !e.name || have.has(e.name) || done.has(`${e.name}|${e.type}`)) continue
+    done.add(`${e.name}|${e.type}`)
+    const zh = [...new Set((zhOf.get(e.name) ?? []).map(w => w.zh))]
+    if (!bases.has(e.type)) rejects.push({ reason: '底材不在資料裡', id: e.name, to: e.type })
+    else if (zh.length !== 1) rejects.push({ reason: 'GGPK 沒有唯一的繁中名', id: e.name, candidates: zh })
+    else adds.push({ refName: e.name, zh: zh[0], base: e.type })
+  }
+  return { adds, rejects }
+}
+
+/** 交易站 items 群組 → 新底材那一列要帶的 craftable 類別(null = 不帶);沒列的群組不自動加(拒收) */
+export const TRADE_BASE_GROUPS = { jewel: 'Jewel', viscera: null }
+
+/**
+ * 規則 7:GGPK 新版新增、且交易站 items 清單列為底材的物品(3.30:臟器、菌潮核心)。
+ * 要先於規則 6 跑(新傳奇的底材可能是這裡加的)。
+ * @returns {{ adds: any[], rejects: any[] }}
+ */
+export function planTradeBases ({ enItems, baseOld, baseNew, tradeItems }) {
+  const have = new Set(enItems.map(i => i.refName))
+  const oldPaths = new Set(baseOld.map(r => r.path))
+  const fresh = groupBy(baseNew.filter(r => !oldPaths.has(r.path)), r => r.en)
+  const adds = []
+  const rejects = []
+  for (const e of tradeItems) {
+    if (e.flags?.unique || have.has(e.type) || !fresh.has(e.type)) continue
+    have.add(e.type)
+    const zh = [...new Set(fresh.get(e.type).map(r => r.zh))]
+    if (!(e.group in TRADE_BASE_GROUPS)) rejects.push({ reason: '這個交易站群組沒有新增規則', id: e.type, to: e.group })
+    else if (zh.length !== 1) rejects.push({ reason: 'GGPK 沒有唯一的繁中名', id: e.type, candidates: zh })
+    else adds.push({ refName: e.type, zh: zh[0], category: TRADE_BASE_GROUPS[e.group] })
+  }
+  return { adds, rejects }
 }
 
 /** 逐列改寫 ndjson:只重寫有變動的列,保留原行尾 */
@@ -354,9 +439,9 @@ export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove
  * 套用物品計畫(renames / adds)到一份 items.ndjson 文字
  * @param {string} fileText
  * @param {'en' | 'cmn-Hant'} lang
- * @param {{ renames?: any[], adds?: any[] }} [plan]
+ * @param {{ renames?: any[], adds?: any[], uniques?: any[], bases?: any[] }} [plan]
  */
-export function applyItemPlan (fileText, lang, { renames = [], adds = [] } = {}) {
+export function applyItemPlan (fileText, lang, { renames = [], adds = [], uniques = [], bases = [] } = {}) {
   const byFrom = new Map(renames.map(r => [r.from, r]))
   const have = new Set()
   const nameOf = (en, zh) => (lang === 'en' ? en : (zh ?? en))
@@ -373,5 +458,11 @@ export function applyItemPlan (fileText, lang, { renames = [], adds = [] } = {})
   const fresh = adds.filter(a => !have.has(a.refName)).map(a => ({
     name: nameOf(a.refName, a.zh), refName: a.refName, namespace: 'ITEM', tradeTag: a.tradeTag, exchangeable: true, icon: a.icon
   }))
+  for (const b of bases) {
+    if (!have.has(b.refName)) fresh.push({ name: nameOf(b.refName, b.zh), refName: b.refName, namespace: 'ITEM', ...(b.category ? { craftable: { category: b.category } } : {}) })
+  }
+  for (const u of uniques) {
+    if (!have.has(u.refName)) fresh.push({ name: nameOf(u.refName, u.zh), refName: u.refName, namespace: 'UNIQUE', unique: { base: u.base } })
+  }
   return fresh.length ? rewriteLines(text, () => false, fresh) : text
 }

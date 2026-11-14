@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan } from '../../scripts/poe1-season/lib.mjs'
+import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, betterOf } from '../../scripts/poe1-season/lib.mjs'
 
 /**
  * 賽季更新腳本的純函式測試(合成輸入,不讀 data/)。
@@ -305,5 +305,92 @@ describe('寫檔行尾', () => {
   it('沒有變動時整份檔案逐字相同', () => {
     const text = toFile([stat('a', [{ string: 'a' }])])
     expect(applyStatPlan(text, 'en', {})).toBe(text)
+  })
+})
+
+describe('planUniques / applyItemPlan', () => {
+  const enRows = () => [
+    { name: 'Basalt Flask', refName: 'Basalt Flask', namespace: 'ITEM' },
+    { name: 'Old Unique', refName: 'Old Unique', namespace: 'UNIQUE', unique: { base: 'Basalt Flask' } }
+  ]
+  const zhRows = () => [
+    { name: '石化藥劑', refName: 'Basalt Flask', namespace: 'ITEM' },
+    { name: '舊傳奇', refName: 'Old Unique', namespace: 'UNIQUE', unique: { base: 'Basalt Flask' } }
+  ]
+  const tradeItems = [
+    { name: 'New Unique', type: 'Basalt Flask', flags: { unique: true } },
+    { name: 'Two Base Unique', type: 'Missing Base', flags: { unique: true } },
+    { name: 'Two Base Unique', type: 'Basalt Flask', flags: { unique: true } },
+    { name: 'Old Unique', type: 'Other Base', flags: { unique: true }, disc: 'legacy' },
+    { name: 'No Base Unique', type: 'Missing Base', flags: { unique: true } },
+    { name: 'No Zh Unique', type: 'Basalt Flask', flags: { unique: true } },
+    { type: 'Basalt Flask' }
+  ]
+  const words = [{ en: 'New Unique', zh: '新傳奇' }, { en: 'Two Base Unique', zh: '雙底材' }, { en: 'No Base Unique', zh: '沒底材' }]
+
+  it('交易站新傳奇加到檔尾;已有的名稱、缺底材、缺繁中名不加並列入拒收', () => {
+    const p = planUniques({ enItems: enRows(), tradeItems, words })
+    expect(p.adds).toEqual([{ refName: 'New Unique', zh: '新傳奇', base: 'Basalt Flask' }, { refName: 'Two Base Unique', zh: '雙底材', base: 'Basalt Flask' }])
+    expect(p.rejects.map((r: any) => r.id)).toEqual(['Two Base Unique', 'No Base Unique', 'No Zh Unique'])
+    const enOut = parseRows(applyItemPlan(toFile(enRows()), 'en', { uniques: p.adds }))
+    const zhOut = parseRows(applyItemPlan(toFile(zhRows()), 'cmn-Hant', { uniques: p.adds }))
+    expect(enOut.at(-2)).toEqual({ name: 'New Unique', refName: 'New Unique', namespace: 'UNIQUE', unique: { base: 'Basalt Flask' } })
+    expect(zhOut.at(-2)).toEqual({ name: '新傳奇', refName: 'New Unique', namespace: 'UNIQUE', unique: { base: 'Basalt Flask' } })
+    // 重跑不重複加
+    expect(planUniques({ enItems: enOut, tradeItems, words }).adds).toEqual([])
+  })
+})
+
+describe('planTradeBases / applyItemPlan', () => {
+  const enRows = () => [{ name: 'Cobalt Jewel', refName: 'Cobalt Jewel', namespace: 'ITEM', craftable: { category: 'Jewel' } }]
+  const baseOld = [{ path: 'j1', en: 'Cobalt Jewel', zh: '鈷藍珠寶' }, { path: 'old', en: 'Old Missing', zh: '舊缺口' }]
+  const baseNew = [...baseOld, { path: 'j2', en: 'Mycelium Core', zh: '菌潮核心' }, { path: 'v1', en: "Gladiator's Heart", zh: '角鬥士之心' },
+    { path: 'a1', en: 'New Plate', zh: '新鎧甲' }, { path: 'x1', en: 'Not On Trade', zh: '交易站沒有' }]
+  const tradeItems = [
+    { type: 'Cobalt Jewel', group: 'jewel' }, { type: 'Mycelium Core', group: 'jewel' },
+    { type: 'Mycelium Core', name: 'Putrid Seed', flags: { unique: true }, group: 'jewel' },
+    { type: "Gladiator's Heart", group: 'viscera' }, { type: 'New Plate', group: 'armour' }, { type: 'Old Missing', group: 'jewel' }
+  ]
+
+  it('GGPK 新增且交易站列出的底材才加;珠寶帶類別、臟器不帶;沒規則的群組拒收', () => {
+    const p = planTradeBases({ enItems: enRows(), baseOld, baseNew, tradeItems })
+    expect(p.adds).toEqual([{ refName: 'Mycelium Core', zh: '菌潮核心', category: 'Jewel' }, { refName: "Gladiator's Heart", zh: '角鬥士之心', category: null }])
+    expect(p.rejects.map((r: any) => r.id)).toEqual(['New Plate'])
+    const zhOut = parseRows(applyItemPlan(toFile(enRows()), 'cmn-Hant', { bases: p.adds }))
+    expect(zhOut.slice(-2)).toEqual([
+      { name: '菌潮核心', refName: 'Mycelium Core', namespace: 'ITEM', craftable: { category: 'Jewel' } },
+      { name: '角鬥士之心', refName: "Gladiator's Heart", namespace: 'ITEM' }
+    ])
+    const enOut = parseRows(applyItemPlan(toFile(enRows()), 'en', { bases: p.adds }))
+    expect(planTradeBases({ enItems: enOut, baseOld, baseNew, tradeItems }).adds).toEqual([])
+  })
+})
+
+describe('planSupportGemNames / applyStatPlan', () => {
+  const REF = 'Socketed Gems are Supported by Level # Spell Echo (Random Support Gem)'
+  const en = () => [{ ref: REF, matchers: [{ string: 'Socketed Gems are Supported by Level # Spell Echo' }] },
+    { ref: 'Socketed Gems are Supported by Level # No Such (Random Support Gem)', matchers: [{ string: 'x' }] }]
+  const zh = () => [{ ref: REF, matchers: [{ string: '插槽中的寶石被等級 # 的 施放迴響 輔助' }] }]
+  const ggpkNew = [{ key: 'local_random_support_gem_level local_random_support_gem_index|# #|stat_descriptions.txt|0', en: 'Socketed Gems are Supported by Level {0} {1}', zh: '插槽中的寶石被等級 {0} 的 {1} 輔助' }]
+  const baseNew = [{ path: 'Metadata/Items/Gems/SupportGemMulticast', en: 'Spell Echo Support', zh: '施放迴響輔助' }]
+
+  it('寶石全名的新句加進去,舊句標 superseded;重跑計畫為空', () => {
+    const p = planSupportGemNames({ enStats: en(), zhStats: zh(), ggpkNew, baseNew })
+    expect(p.rejects.map((r: any) => r.ref)).toEqual(['Socketed Gems are Supported by Level # No Such (Random Support Gem)'])
+    const enOut = parseRows(applyStatPlan(toFile(en()), 'en', { adds: p.adds }))
+    const zhOut = parseRows(applyStatPlan(toFile(zh()), 'cmn-Hant', { adds: p.adds }))
+    expect(enOut[0].matchers).toEqual([{ string: 'Socketed Gems are Supported by Level # Spell Echo', superseded: true }, { string: 'Socketed Gems are Supported by Level # Spell Echo Support' }])
+    expect(zhOut[0].matchers).toEqual([{ string: '插槽中的寶石被等級 # 的 施放迴響 輔助', superseded: true }, { string: '插槽中的寶石被等級 # 的 施放迴響輔助 輔助' }])
+    expect(planSupportGemNames({ enStats: enOut, zhStats: zhOut, ggpkNew, baseNew }).adds).toEqual([])
+  })
+})
+
+describe('betterOf', () => {
+  it('帶數值且不是減少 → 1;減少、沒有數值、技能索引 → 0', () => {
+    expect(betterOf("#% increased Attack Speed if you've used an Attack Movement Skill Recently")).toBe(1)
+    expect(betterOf('# to # Added Cold Damage with Unarmed Attacks')).toBe(1)
+    expect(betterOf('Enemies have #% reduced Life Regeneration Rate')).toBe(0)
+    expect(betterOf('Can Attack as though using a Claw while main hand is empty')).toBe(0)
+    expect(betterOf('Grants Level 20 #, which will be used by Shaper Memory')).toBe(0)
   })
 })

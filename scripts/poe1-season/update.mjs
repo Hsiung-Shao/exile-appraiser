@@ -5,7 +5,7 @@
 //   node scripts/poe1-season/update.mjs --from <pob-zh-engine 絕對路徑>            → 只印摘要(不寫任何檔)
 //   node scripts/poe1-season/update.mjs --from <...> --report docs/poe1-season/3.30-report.md
 //   node scripts/poe1-season/update.mjs --from <...> --write                        → 寫資料 + 重建索引 + 重寫 MANIFEST data/poe1
-//     [--trade-dir <dir>]  改讀已存檔的 stats.json / static.json(離線重跑;省略 = 連線抓國際服)
+//     [--trade-dir <dir>]  改讀已存檔的 stats.json / static.json / items.json(離線重跑;省略 = 連線抓國際服)
 //     [--old N --new N]    指定 GGPK 快照(省略 = 最新兩個完整快照)   [--python python]
 //
 // 輸入的 GGPK 資料庫是維護者本機檔(<from>/tools/ggpk_zh/db/ggpk_zh.sqlite,不在任何版控)。只讀、不送任何使用者資料。
@@ -14,7 +14,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
-import { applyItemPlan, applyStatPlan, planDeadIds, planItems, planNewStats, planStatText, planTradeText } from './lib.mjs'
+import { applyItemPlan, applyStatPlan, planDeadIds, planItems, planNewStats, planStatText, planSupportGemNames, planTradeBases, planTradeText, planUniques } from './lib.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(HERE, '../..')
@@ -51,6 +51,7 @@ async function trade (/** @type {string} */ name) {
 }
 const tradeStats = (await trade('stats')).flatMap(g => g.entries)
 const tradeStatic = (await trade('static')).flatMap(g => g.entries)
+const tradeItems = (await trade('items')).flatMap(g => g.entries.map(e => ({ ...e, group: g.id })))
 const fetchedAt = new Date().toISOString()
 
 const file = (lang, name) => path.join(ROOT, 'data/poe1', lang, `${name}.ndjson`)
@@ -61,22 +62,27 @@ const rows = (/** @type {string} */ t) => t.split(/\r?\n/).filter(l => l.trim())
 const ruleA = planStatText({ enStats: rows(text['en/stats']), zhStats: rows(text['cmn-Hant/stats']), ggpkOld: ggpk.stats.old, ggpkNew: ggpk.stats.new })
 const afterA = Object.fromEntries(LANGS.map(lang => [lang, rows(applyStatPlan(text[`${lang}/stats`], lang, { adds: ruleA.adds }))]))
 const ruleB = planTradeText({ enStats: afterA.en, zhStats: afterA['cmn-Hant'], tradeStats, ggpkNew: ggpk.stats.new, ggpkOld: ggpk.stats.old })
-const adds = [...ruleA.adds, ...ruleB.adds]
+const gemNames = planSupportGemNames({ enStats: afterA.en, zhStats: afterA['cmn-Hant'], ggpkNew: ggpk.stats.new, baseNew: ggpk.base.new })
+const adds = [...ruleA.adds, ...ruleB.adds, ...gemNames.adds]
 const afterB = rows(applyStatPlan(text['en/stats'], 'en', { adds }))
 const dead = planDeadIds({ enStats: afterB, tradeStats })
 const newStats = planNewStats({ enStats: afterB, ggpkOld: ggpk.stats.old, ggpkNew: ggpk.stats.new, tradeStats })
 const items = planItems({ enItems: rows(text['en/items']), baseOld: ggpk.base.old, baseNew: ggpk.base.new, tradeStatic })
+const bases = planTradeBases({ enItems: rows(text['en/items']), baseOld: ggpk.base.old, baseNew: ggpk.base.new, tradeItems })
+const uniques = planUniques({ enItems: rows(applyItemPlan(text['en/items'], 'en', { bases: bases.adds })), tradeItems, words: ggpk.words })
+const itemPlan = { ...items, bases: bases.adds, uniques: uniques.adds }
 const statPlan = { adds, replace: dead.replace, remove: dead.remove, newStats }
-const rejects = [...ruleA.rejects.map(r => ({ rule: '改字 A', ...r })), ...ruleB.rejects.map(r => ({ rule: '改字 B', ...r })), ...dead.rejects.map(r => ({ rule: '失效 id', ...r }))]
+const rejects = [...ruleA.rejects.map(r => ({ rule: '改字 A', ...r })), ...ruleB.rejects.map(r => ({ rule: '改字 B', ...r })), ...dead.rejects.map(r => ({ rule: '失效 id', ...r })), ...gemNames.rejects.map(r => ({ rule: '輔助寶石名', ...r })), ...bases.rejects.map(r => ({ rule: '新底材', ...r })), ...uniques.rejects.map(r => ({ rule: '新傳奇', ...r }))]
 
 const count = (list, lang) => list.filter(a => a.lang === lang).length
 const summary = [
   `GGPK ${ggpk.old.gameVersion}(v${ggpk.old.id})→ ${ggpk.new.gameVersion}(v${ggpk.new.id},build ${ggpk.new.ggpkBuild});交易站 ${flag('--trade-dir') ? '讀存檔' : fetchedAt}`,
   `改字 A(GGPK 鍵):en +${count(ruleA.adds, 'en')} / 繁中 +${count(ruleA.adds, 'cmn-Hant')} 個 matcher,涉及 ${new Set(ruleA.adds.map(a => a.ref)).size} 條詞綴`,
   `改字 B(交易站現行文字):en +${count(ruleB.adds, 'en')} / 繁中 +${count(ruleB.adds, 'cmn-Hant')} 個 matcher`,
+  `輔助寶石名(規則 8):en +${count(gemNames.adds, 'en')} / 繁中 +${count(gemNames.adds, 'cmn-Hant')} 個 matcher`,
   `失效 id:替換 ${Object.keys(dead.replace).length}、移除 ${dead.remove.length}`,
   `新詞綴:${newStats.length} 列`,
-  `物品:改名 ${items.renames.length}、新增 ${items.adds.length}`,
+  `物品:改名 ${items.renames.length}、新增 ${items.adds.length}、新底材 ${bases.adds.length}、新傳奇 ${uniques.adds.length}`,
   `拒收(沒改資料):${rejects.length}`
 ]
 console.log(summary.join('\n'))
@@ -89,6 +95,8 @@ if (flag('--report')) {
     '> 由 `scripts/poe1-season/update.mjs --report` 產生,勿手改。', '', ...summary.map(s => `- ${s}`), '',
     '## 物品改名', table(['舊名', '新名', '繁中', 'tradeTag'], items.renames.map(r => [r.from, r.to, r.zh, r.tradeTag])), '',
     '## 物品新增', table(['英文', '繁中', 'tradeTag'], items.adds.map(r => [r.refName, r.zh, r.tradeTag])), '',
+    '## 新底材', table(['英文', '繁中', '類別'], bases.adds.map(r => [r.refName, r.zh, r.category])), '',
+    '## 新傳奇', table(['英文', '繁中', '底材'], uniques.adds.map(r => [r.refName, r.zh, r.base])), '',
     '## 新詞綴', table(['ref', '繁中', 'id'], newStats.map(s => [s.ref, s.zh.map(m => m.string).join(' / '), Object.values(s.ids).flat().join(' ')])), '',
     '## 失效 id:替換', table(['舊 id', '新 id'], Object.entries(dead.replace)), '',
     '## 失效 id:移除', dead.remove.length ? dead.remove.map(i => `\`${i}\``).join(' ') : '(無)', '',
@@ -107,7 +115,7 @@ if (!args.includes('--write')) {
 }
 for (const lang of LANGS) {
   fs.writeFileSync(file(lang, 'stats'), applyStatPlan(text[`${lang}/stats`], lang, statPlan))
-  fs.writeFileSync(file(lang, 'items'), applyItemPlan(text[`${lang}/items`], lang, items))
+  fs.writeFileSync(file(lang, 'items'), applyItemPlan(text[`${lang}/items`], lang, itemPlan))
 }
 const node = (/** @type {string[]} */ a) => execFileSync(process.execPath, a, { cwd: ROOT, stdio: 'inherit' })
 node(['scripts/make-index-files.mjs'])

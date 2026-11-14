@@ -5458,3 +5458,169 @@
 {"name":"Legion Thread","refName":"Legion Thread","namespace":"ITEM","tradeTag":"legion-thread","exchangeable":true,"icon":"https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvVGhyZWFkcy9MZWdpb25UaHJlYWQiLCJzY2FsZSI6MX1d/819bd1a22b/LegionThread.png"}
 {"name":"Ritual Thread","refName":"Ritual Thread","namespace":"ITEM","tradeTag":"ritual-thread","exchangeable":true,"icon":"https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvVGhyZWFkcy9SaXR1YWxUaHJlYWQiLCJzY2FsZSI6MX1d/ec35a48af4/RitualThread.png"}
 {"name":"Ultimatum Thread","refName":"Ultimatum Thread","namespace":"ITEM","tradeTag":"ultimatum-thread","exchangeable":true,"icon":"https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvVGhyZWFkcy9VbHRpbWF0dW1UaHJlYWQiLCJzY2FsZSI6MX1d/74155b9b4e/UltimatumThread.png"}
+{"name":"Bloodboil","refName":"Bloodboil","namespace":"UNIQUE","unique":{"base":"Coral Ring"}}
+{"name":"Unwilling Embrace","refName":"Unwilling Embrace","namespace":"UNIQUE","unique":{"base":"Bone Ring"}}
+{"name":"Deshret's Vise","refName":"Deshret's Vise","namespace":"UNIQUE","unique":{"base":"Steel Gauntlets"}}
+{"name":"Hellbringer","refName":"Hellbringer","namespace":"UNIQUE","unique":{"base":"Conjurer Gloves"}}
+{"name":"Hide of the Vendigo","refName":"Hide of the Vendigo","namespace":"UNIQUE","unique":{"base":"Exquisite Leather"}}
+{"name":"Iron Heart","refName":"Iron Heart","namespace":"UNIQUE","unique":{"base":"Crusader Plate"}}
+{"name":"Mantle of Dreams","refName":"Mantle of Dreams","namespace":"UNIQUE","unique":{"base":"Twilight Regalia"}}
+{"name":"Ordered Fate","refName":"Ordered Fate","namespace":"UNIQUE","unique":{"base":"Walnut Spirit Shield"}}
+{"name":"Titucus Span","refName":"Titucus Span","namespace":"UNIQUE","unique":{"base":"Reinforced Tower Shield"}}
+{"name":"Dreadmaidens' Sacrament","refName":"Dreadmaidens' Sacrament","namespace":"UNIQUE","unique":{"base":"Basalt Flask"}}
+{"name":"Infused Beachhead","refName":"Infused Beachhead","namespace":"UNIQUE","unique":{"base":"Map"}}
+{"name":"The Beachhead","refName":"The Beachhead","namespace":"UNIQUE","unique":{"base":"Map"}}
+{"name":"The Tower of Ordeals","refName":"The Tower of Ordeals","namespace":"UNIQUE","unique":{"base":"Map"}}
+{"name":"Untainted Paradise","refName":"Untainted Paradise","namespace":"UNIQUE","unique":{"base":"Map"}}
+{"name":"Agnerod","refName":"Agnerod","namespace":"UNIQUE","unique":{"base":"Imperial Staff"}}
+{"name":"Corpse Rose","refName":"Corpse Rose","namespace":"UNIQUE","unique":{"base":"Imbued Wand"}}
+{"name":"The Sword of Ages","refName":"The Sword of Ages","namespace":"UNIQUE","unique":{"base":"Exquisite Blade"}}
+{"name":"Tipua Kaikohuru","refName":"Tipua Kaikohuru","namespace":"UNIQUE","unique":{"base":"Whalebone Rapier"}}
+{"name":"Mycelium Core","refName":"Mycelium Core","namespace":"ITEM","craftable":{"category":"Jewel"}}
+{"name":"Flaming Goat Hoof","refName":"Flaming Goat Hoof","namespace":"ITEM"}
+{"name":"Primate Foot","refName":"Primate Foot","namespace":"ITEM"}
+{"name":"Al-Hezmin's Head","refName":"Al-Hezmin's Head","namespace":"ITEM"}
+{"name":"Bandit Witch's Head","refName":"Bandit Witch's Head","namespace":"ITEM"}
+{"name":"Galvanic Tentacle","refName":"Galvanic Tentacle","namespace":"ITEM"}
+{"name":"Bear Head","refName":"Bear Head","namespace":"ITEM"}
+{"name":"Boar Head","refName":"Boar Head","namespace":"ITEM"}
+{"name":"Stag Head","refName":"Stag Head","namespace":"ITEM"}
+{"name":"Spider Queen's Head","refName":"Spider Queen's Head","namespace":"ITEM"}
+{"name":"Templar Skull","refName":"Templar Skull","namespace":"ITEM"}
+{"name":"Bloodied Arm","refName":"Bloodied Arm","namespace":"ITEM"}
+{"name":"Prosthetic Leg","refName":"Prosthetic Leg","namespace":"ITEM"}
+{"name":"Champion's Banner","refName":"Champion's Banner","namespace":"ITEM"}
+{"name":"Baran's Head","refName":"Baran's Head","namespace":"ITEM"}
+{"name":"Gladiator's Heart","refName":"Gladiator's Heart","namespace":"ITEM"}
+{"name":"Chimeral Eye","refName":"Chimeral Eye","namespace":"ITEM"}
+{"name":"Arachnid Fangs","refName":"Arachnid Fangs","namespace":"ITEM"}
+{"name":"Osseous Scythe","refName":"Osseous Scythe","namespace":"ITEM"}
+{"name":"Chitinous Leg","refName":"Chitinous Leg","namespace":"ITEM"}
+{"name":"Necromancer's Mask","refName":"Necromancer's Mask","namespace":"ITEM"}
+{"name":"Bonestalker's Ribcage","refName":"Bonestalker's Ribcage","namespace":"ITEM"}
+{"name":"Lithic Haunches","refName":"Lithic Haunches","namespace":"ITEM"}
+{"name":"Hollowed Skull","refName":"Hollowed Skull","namespace":"ITEM"}
+{"name":"Pit Fighter's Helm","refName":"Pit Fighter's Helm","namespace":"ITEM"}
+{"name":"Sea Witch's Tentacle","refName":"Sea Witch's Tentacle","namespace":"ITEM"}
+{"name":"Warden's Arm","refName":"Warden's Arm","namespace":"ITEM"}
+{"name":"Calcified Leg","refName":"Calcified Leg","namespace":"ITEM"}
+{"name":"Cutthroat's Head","refName":"Cutthroat's Head","namespace":"ITEM"}
+{"name":"Aristocrat's Torso","refName":"Aristocrat's Torso","namespace":"ITEM"}
+{"name":"Soldier's Head","refName":"Soldier's Head","namespace":"ITEM"}
+{"name":"Heretical Tome","refName":"Heretical Tome","namespace":"ITEM"}
+{"name":"Skeletal Warrior's Leg","refName":"Skeletal Warrior's Leg","namespace":"ITEM"}
+{"name":"Gelid Fangs","refName":"Gelid Fangs","namespace":"ITEM"}
+{"name":"Chimera's Head","refName":"Chimera's Head","namespace":"ITEM"}
+{"name":"Coagulated Essence","refName":"Coagulated Essence","namespace":"ITEM"}
+{"name":"Constrictor's Head","refName":"Constrictor's Head","namespace":"ITEM"}
+{"name":"Swordmaster's Blade","refName":"Swordmaster's Blade","namespace":"ITEM"}
+{"name":"Hag's Head","refName":"Hag's Head","namespace":"ITEM"}
+{"name":"Inquisitor's Head","refName":"Inquisitor's Head","namespace":"ITEM"}
+{"name":"Witch's Head","refName":"Witch's Head","namespace":"ITEM"}
+{"name":"Scout's Bow","refName":"Scout's Bow","namespace":"ITEM"}
+{"name":"Hag's Stomach","refName":"Hag's Stomach","namespace":"ITEM"}
+{"name":"Despot's Fist","refName":"Despot's Fist","namespace":"ITEM"}
+{"name":"Flayed Arm","refName":"Flayed Arm","namespace":"ITEM"}
+{"name":"Drox's Head","refName":"Drox's Head","namespace":"ITEM"}
+{"name":"Crustacean's Claw","refName":"Crustacean's Claw","namespace":"ITEM"}
+{"name":"Scarecrow's Pitchfork","refName":"Scarecrow's Pitchfork","namespace":"ITEM"}
+{"name":"Enslaver's Head","refName":"Enslaver's Head","namespace":"ITEM"}
+{"name":"Eradicator's Head","refName":"Eradicator's Head","namespace":"ITEM"}
+{"name":"Mariner's Tricorne","refName":"Mariner's Tricorne","namespace":"ITEM"}
+{"name":"Severed Stinger","refName":"Severed Stinger","namespace":"ITEM"}
+{"name":"Scorched Arm","refName":"Scorched Arm","namespace":"ITEM"}
+{"name":"Skeleton Wheel","refName":"Skeleton Wheel","namespace":"ITEM"}
+{"name":"Desert Queen's Crown","refName":"Desert Queen's Crown","namespace":"ITEM"}
+{"name":"Gemling Torso","refName":"Gemling Torso","namespace":"ITEM"}
+{"name":"Voltaic Skull","refName":"Voltaic Skull","namespace":"ITEM"}
+{"name":"General's Head","refName":"General's Head","namespace":"ITEM"}
+{"name":"Golemic Stone","refName":"Golemic Stone","namespace":"ITEM"}
+{"name":"Scholar's Leg","refName":"Scholar's Leg","namespace":"ITEM"}
+{"name":"Voltaic Apparatus","refName":"Voltaic Apparatus","namespace":"ITEM"}
+{"name":"Gargantuan Claws","refName":"Gargantuan Claws","namespace":"ITEM"}
+{"name":"Ornate Torso","refName":"Ornate Torso","namespace":"ITEM"}
+{"name":"Blackened Lungs","refName":"Blackened Lungs","namespace":"ITEM"}
+{"name":"Captain's Leg","refName":"Captain's Leg","namespace":"ITEM"}
+{"name":"Pocked Arm","refName":"Pocked Arm","namespace":"ITEM"}
+{"name":"Lunar Bow","refName":"Lunar Bow","namespace":"ITEM"}
+{"name":"Resplendent Sceptre","refName":"Resplendent Sceptre","namespace":"ITEM"}
+{"name":"Molten Core","refName":"Molten Core","namespace":"ITEM"}
+{"name":"Armoured Leg","refName":"Armoured Leg","namespace":"ITEM"}
+{"name":"Infested Torso","refName":"Infested Torso","namespace":"ITEM"}
+{"name":"Vulture's Gut","refName":"Vulture's Gut","namespace":"ITEM"}
+{"name":"Hydra's Head","refName":"Hydra's Head","namespace":"ITEM"}
+{"name":"Skeletal Archer's Arm","refName":"Skeletal Archer's Arm","namespace":"ITEM"}
+{"name":"Justicar's Helm","refName":"Justicar's Helm","namespace":"ITEM"}
+{"name":"Blazing Skull","refName":"Blazing Skull","namespace":"ITEM"}
+{"name":"Ravenous Skull","refName":"Ravenous Skull","namespace":"ITEM"}
+{"name":"Brute's Arm","refName":"Brute's Arm","namespace":"ITEM"}
+{"name":"Bandit Rogue's Head","refName":"Bandit Rogue's Head","namespace":"ITEM"}
+{"name":"Totemic Visage","refName":"Totemic Visage","namespace":"ITEM"}
+{"name":"Broken Bust","refName":"Broken Bust","namespace":"ITEM"}
+{"name":"Crescent Blade","refName":"Crescent Blade","namespace":"ITEM"}
+{"name":"Corrupted Carapace","refName":"Corrupted Carapace","namespace":"ITEM"}
+{"name":"Inquisitor's Claw","refName":"Inquisitor's Claw","namespace":"ITEM"}
+{"name":"Defaced Bust","refName":"Defaced Bust","namespace":"ITEM"}
+{"name":"Flaming Furnace","refName":"Flaming Furnace","namespace":"ITEM"}
+{"name":"Siren's Tentacle","refName":"Siren's Tentacle","namespace":"ITEM"}
+{"name":"Desert Sword","refName":"Desert Sword","namespace":"ITEM"}
+{"name":"Minotaur's Head","refName":"Minotaur's Head","namespace":"ITEM"}
+{"name":"Chaos Golem's Core","refName":"Chaos Golem's Core","namespace":"ITEM"}
+{"name":"Blackguard's Leg","refName":"Blackguard's Leg","namespace":"ITEM"}
+{"name":"Bandit Warrior's Head","refName":"Bandit Warrior's Head","namespace":"ITEM"}
+{"name":"Ghostly Claw","refName":"Ghostly Claw","namespace":"ITEM"}
+{"name":"Severed Rhoa Head","refName":"Severed Rhoa Head","namespace":"ITEM"}
+{"name":"Overseer's Whip","refName":"Overseer's Whip","namespace":"ITEM"}
+{"name":"Spined Claws","refName":"Spined Claws","namespace":"ITEM"}
+{"name":"Phoenix's Head","refName":"Phoenix's Head","namespace":"ITEM"}
+{"name":"Thaumaturge's Head","refName":"Thaumaturge's Head","namespace":"ITEM"}
+{"name":"Engorged Eye","refName":"Engorged Eye","namespace":"ITEM"}
+{"name":"Pocked Leg","refName":"Pocked Leg","namespace":"ITEM"}
+{"name":"Infected Leg","refName":"Infected Leg","namespace":"ITEM"}
+{"name":"Diseased Wing","refName":"Diseased Wing","namespace":"ITEM"}
+{"name":"Adherent's Crown","refName":"Adherent's Crown","namespace":"ITEM"}
+{"name":"Purifier's Head","refName":"Purifier's Head","namespace":"ITEM"}
+{"name":"Ursine Flesh","refName":"Ursine Flesh","namespace":"ITEM"}
+{"name":"Conjoined Hound Head","refName":"Conjoined Hound Head","namespace":"ITEM"}
+{"name":"Charred Leg","refName":"Charred Leg","namespace":"ITEM"}
+{"name":"Noble's Head","refName":"Noble's Head","namespace":"ITEM"}
+{"name":"Arachnid Egg Sac","refName":"Arachnid Egg Sac","namespace":"ITEM"}
+{"name":"Cobra Tail","refName":"Cobra Tail","namespace":"ITEM"}
+{"name":"Scorpion Stinger","refName":"Scorpion Stinger","namespace":"ITEM"}
+{"name":"Flayed Visage","refName":"Flayed Visage","namespace":"ITEM"}
+{"name":"Lion's Claws","refName":"Lion's Claws","namespace":"ITEM"}
+{"name":"Bat's Wings","refName":"Bat's Wings","namespace":"ITEM"}
+{"name":"Skeletal Tail","refName":"Skeletal Tail","namespace":"ITEM"}
+{"name":"Osseous Talon","refName":"Osseous Talon","namespace":"ITEM"}
+{"name":"Solar Shield","refName":"Solar Shield","namespace":"ITEM"}
+{"name":"Elemental Essence","refName":"Elemental Essence","namespace":"ITEM"}
+{"name":"Sun-bleached Breastplate","refName":"Sun-bleached Breastplate","namespace":"ITEM"}
+{"name":"Poacher's Leg","refName":"Poacher's Leg","namespace":"ITEM"}
+{"name":"Flesh-fused Lantern","refName":"Flesh-fused Lantern","namespace":"ITEM"}
+{"name":"Spectral Hood","refName":"Spectral Hood","namespace":"ITEM"}
+{"name":"Statue Leg","refName":"Statue Leg","namespace":"ITEM"}
+{"name":"Flaming Ribbon","refName":"Flaming Ribbon","namespace":"ITEM"}
+{"name":"Voidbearer's Leg","refName":"Voidbearer's Leg","namespace":"ITEM"}
+{"name":"Vendigo Claws","refName":"Vendigo Claws","namespace":"ITEM"}
+{"name":"Golden Ankh","refName":"Golden Ankh","namespace":"ITEM"}
+{"name":"Carved Haunches","refName":"Carved Haunches","namespace":"ITEM"}
+{"name":"Dessicated Head","refName":"Dessicated Head","namespace":"ITEM"}
+{"name":"Scholar's Arm","refName":"Scholar's Arm","namespace":"ITEM"}
+{"name":"King Crab's Claw","refName":"King Crab's Claw","namespace":"ITEM"}
+{"name":"Ancestor's Club","refName":"Ancestor's Club","namespace":"ITEM"}
+{"name":"Devourer's Antenna","refName":"Devourer's Antenna","namespace":"ITEM"}
+{"name":"Skeletal Beast Leg","refName":"Skeletal Beast Leg","namespace":"ITEM"}
+{"name":"Distended Stomach","refName":"Distended Stomach","namespace":"ITEM"}
+{"name":"Goatman's Horn","refName":"Goatman's Horn","namespace":"ITEM"}
+{"name":"Vaal Appendage","refName":"Vaal Appendage","namespace":"ITEM"}
+{"name":"Artificial Appendage","refName":"Artificial Appendage","namespace":"ITEM"}
+{"name":"Construct's Head","refName":"Construct's Head","namespace":"ITEM"}
+{"name":"Veritania's Head","refName":"Veritania's Head","namespace":"ITEM"}
+{"name":"Smouldering Leg","refName":"Smouldering Leg","namespace":"ITEM"}
+{"name":"Templar Banner","refName":"Templar Banner","namespace":"ITEM"}
+{"name":"Wraith Claws","refName":"Wraith Claws","namespace":"ITEM"}
+{"name":"Smuggler's Hand","refName":"Smuggler's Hand","namespace":"ITEM"}
+{"name":"Arachnid Leg","refName":"Arachnid Leg","namespace":"ITEM"}
+{"name":"Terrifying Maw","refName":"Terrifying Maw","namespace":"ITEM"}
+{"name":"Putrid Seed","refName":"Putrid Seed","namespace":"UNIQUE","unique":{"base":"Mycelium Core"}}
+{"name":"Incarnation of Dread's Head","refName":"Incarnation of Dread's Head","namespace":"ITEM"}
