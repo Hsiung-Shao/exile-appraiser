@@ -398,7 +398,7 @@ describe('planMinionDoubled / applyStatPlan', () => {
   const zh = () => [{ ref: REF, matchers: [{ string: '喚醒幽魂的最大數量加倍\n無法擁有喚醒幽魂以外的召喚物', advanced: '喚醒幽魂（幻化武器-神聖軍備）的最大數量加倍\n無法擁有喚醒幽魂（幻化武器-神聖軍備）以外的召喚物' }] },
     { ref: 'other', matchers: [{ string: '別的詞綴', advanced: '別的詞綴(1-2)' }] }]
   const en = () => [{ ref: REF, matchers: [{ string: REF, advanced: 'old' }] }]
-  const ggpkNew = [{ key: 'maximum_number_of_X_minion_type_doubled|#|stat_descriptions.txt|0', en: 'Maximum number of {0} is Doubled\\\nCannot have Minions other than {0}', zh: '{0}的最大數量加倍\\\n無法擁有{0}以外的召喚物' }]
+  const ggpkNew = [{ key: 'maximum_number_of_X_minion_type_doubled|#|stat_descriptions.txt|0', en: 'Maximum number of {0} is Doubled\\nCannot have Minions other than {0}', zh: '{0}的最大數量加倍\\n無法擁有{0}以外的召喚物' }]
 
   it('多一個「(...)」進階寫法、舊的標 superseded、其他詞綴不動;重跑計畫為空', () => {
     const p = planMinionDoubled({ enStats: en(), zhStats: zh(), ggpkNew })
