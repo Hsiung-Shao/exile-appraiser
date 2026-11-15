@@ -17,7 +17,7 @@ import { TOAST_FADE_MS, TOAST_MARGIN, compareVersions, escapeHtml, type ToastLan
 /** 兩次提醒的間隔(「稍後」與自動淡出都從關閉時起算)。 */
 export const UPDATE_REMINDER_INTERVAL_MS = 10 * 60_000
 /** 提醒在畫面上停留多久開始淡出(滑鼠停在上面時暫停計時)。 */
-export const UPDATE_REMINDER_VISIBLE_MS = 8000
+export const UPDATE_REMINDER_VISIBLE_MS = 5000
 /** 畫面上有其他提示時,隔多久再試一次。 */
 export const UPDATE_REMINDER_RETRY_MS = 1500
 /** 提醒視窗大小(DIP;比一般提示高,多一列按鈕)。英文最長一行不截斷(`--toast-selftest --toast-update=…` 截圖驗過)。 */

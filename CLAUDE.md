@@ -109,7 +109,7 @@ Path of Exile 查價工具(Electron + TypeScript)。把 `apt-patched`(Awakened P
     所有提示共用一個視窗(`presentToast`,畫面上已有就換內容重新計時)。兩個暫停熱鍵相同 → `shortcut-actions.ts` 合併成 `scan-toggle-both`
     (`nextScanPaused`:任一在執行 → 全停,全停 → 全開),設定頁 `hotkey-conflicts.ts` 標 `shared` 不標重複(docs/reveal-ocr.md)。
     **更新提醒(第 34 步,2026-10-04)**:`main/src/update-reminder.ts`(純邏輯)+ `main.ts` `showUpdateReminder`:有新版(`downloaded` → 安裝;`available` 安裝版 → 開關於並下載;
-    `available` portable → Releases 頁;版號取自 updater 回報)時右下角立刻一次、之後每 10 分鐘(「稍後」/ 約 8 秒淡出,滑鼠停住暫停淡出),「略過此版本」存設定 `updateSkippedVersion`
+    `available` portable → Releases 頁;版號取自 updater 回報)時右下角立刻一次、之後每 10 分鐘(「稍後」/ 約 5 秒淡出,滑鼠停住暫停淡出),「略過此版本」存設定 `updateSkippedVersion`
     (main 送 `update-reminder-skip` → renderer 寫檔,不在 `PREVIEW_EVENTS`);**沒有新版絕不彈**;設定 › 關於 `updateReminder`(預設開)、`--preview` / selftest / 安裝中不彈。
     提醒是**可點擊**的獨立視窗(`focusable: false` + `showInactive`,不搶焦點,不經 overlay → 不受 30.4 閒置隱藏影響);頁面無腳本,按鈕 = `https://ppz-reminder.invalid/<動作>` 連結,
     main `will-navigate` 攔下判斷(⚠ 不可改回 `#` 錨點:data: 頁面不發 `did-navigate-in-page`)。與一般提示同位置:一般提示優先(提醒收回、稍後再出),提醒等其他提示結束才出現。
