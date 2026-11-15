@@ -20,6 +20,8 @@ import { SECTION_HOSTS } from './sections'
 
 export const RARITY_LABEL_KEY = 'ItemDisplayStringRarity'
 export const CORRUPTED_LABEL_KEY = 'ItemPopupCorrupted'
+/** 3.30「二次汙染 / Twice Corrupted」:有這個標籤的遊戲(PoE1),汙染條件兩種寫法都要算已汙染(2026-11-15 使用者要求) */
+export const TWICE_CORRUPTED_LABEL_KEY = 'ItemPopupDoubleCorrupted'
 export const RARITY_OPTIONS: ReadonlyArray<{ id: string, letter: string, key: string }> = [
   { id: 'normal', letter: 'n', key: 'ItemDisplayStringNormal' },
   { id: 'magic', letter: 'm', key: 'ItemDisplayStringMagic' },
@@ -73,6 +75,8 @@ interface ConditionLabels {
   label: { zh: string, en: string }
   rarity: AlgoOption[]
   corrupted: { zh: string, en: string }
+  /** 二次汙染的行;沒有這個標籤 = undefined(行為同改版前) */
+  twice?: { zh: string, en: string }
 }
 
 function conditionLabels (labels: RegexLabels | null): ConditionLabels | null {
@@ -89,7 +93,9 @@ function conditionLabels (labels: RegexLabels | null): ConditionLabels | null {
     if (oz && oe) rarity.push({ id: o.id, zh: oz, en: oe })
   }
   if (!rarity.length) return null
-  return { label: { zh, en }, rarity, corrupted: { zh: cz, en: ce } }
+  const tz = labels.zh[TWICE_CORRUPTED_LABEL_KEY]
+  const te = labels.en[TWICE_CORRUPTED_LABEL_KEY]
+  return { label: { zh, en }, rarity, corrupted: { zh: cz, en: ce }, ...(tz && te ? { twice: { zh: tz, en: te } } : {}) }
 }
 
 // ---- R10(2026-10-09;PobTools regex_algo_pages.cpp ShortRarity / ShortCorrupted / ConditionTermsFor)----
@@ -154,9 +160,11 @@ function conditionTermsFor (l: ConditionLabels, c: RarityChoice, lang: RegexLang
   }
   if (c.corruption) {
     const label = lang === 'zh' ? l.corrupted.zh : l.corrupted.en
+    const twice = l.twice && (lang === 'zh' ? l.twice.zh : l.twice.en)
     let f: string | null = null
-    if (g?.itemText) f = shortCorrupted(label, g)
-    if (f === null) f = wholeLine([label])
+    // 有二次汙染的寫法時,「已汙」這種前綴中不了「二次汙染」→ 不縮短,整行比對兩種寫法
+    if (g?.itemText && !twice) f = shortCorrupted(label, g)
+    if (f === null) f = wholeLine(twice ? [label, twice] : [label])
     if (f) out.push(c.corruption === 'uncorrupted' ? `!${f}` : f)
   }
   return out.length ? out : null
@@ -199,7 +207,7 @@ export function rarityConditionEntry (labels: RegexLabels | null, id: string, de
     condTerms: (c, lang, g) => conditionTermsFor(l, c, lang, g),
     fragment: (v, lang) => conditionTerms(l, v, lang)?.join(' ') ?? null,
     // 汙染 term 整行比對「已汙染」:語料裡這一行本身(ambient / 隱藏行)就是要比對的對象
-    ownLine: line => line === l.corrupted.zh || line === l.corrupted.en
+    ownLine: line => line === l.corrupted.zh || line === l.corrupted.en || line === l.twice?.zh || line === l.twice?.en
   }
 }
 

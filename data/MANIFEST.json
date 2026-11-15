@@ -79,16 +79,16 @@
       "generatedAt": "2026-11-13T21:49:31.827Z"
     },
     "data/regex/labels.poe1.json": {
-      "repo": "clientstrings(pob-zh-engine tools/ggpk_zh/out/poe1/tables/clientstrings.json(clientstrings,欄 Text;meta game_version 3.29.0.1);regex/scripts/gen-labels.mjs 產生)",
-      "path": "../pob-zh-engine/tools/ggpk_zh/out/poe1/tables/clientstrings.json",
-      "fetchedAt": "2026-08-22T03:25:46.343Z",
-      "generatedAt": "2026-10-04T10:20:45.582Z"
+      "repo": "clientstrings(pob-zh-engine tools/ggpk_zh/out/poe1/tables/clientstrings.json(clientstrings,欄 Text;meta game_version 3.30.0);regex/scripts/gen-labels.mjs 產生)",
+      "path": "../../../../Pob2/pob-zh-engine/tools/ggpk_zh/out/poe1/tables/clientstrings.json",
+      "fetchedAt": "2026-11-13T18:24:21.828Z",
+      "generatedAt": "2026-11-15T10:30:08.833Z"
     },
     "data/regex/labels.poe2.json": {
-      "repo": "clientstrings(pob-zh-engine tools/ggpk2_zh/out/poe2/tables/clientstrings.json(clientstrings,欄 Text;meta game_version 4.5.5.2);regex/scripts/gen-labels.mjs 產生)",
-      "path": "../pob-zh-engine/tools/ggpk2_zh/out/poe2/tables/clientstrings.json",
-      "fetchedAt": "2026-09-14T17:02:59.512Z",
-      "generatedAt": "2026-10-04T10:20:45.724Z"
+      "repo": "clientstrings(pob-zh-engine tools/ggpk2_zh/out/poe2/tables/clientstrings.json(clientstrings,欄 Text;meta game_version 0.5.5e);regex/scripts/gen-labels.mjs 產生)",
+      "path": "../../../../Pob2/pob-zh-engine/tools/ggpk2_zh/out/poe2/tables/clientstrings.json",
+      "fetchedAt": "2026-10-26T08:41:47.935Z",
+      "generatedAt": "2026-11-15T10:30:08.925Z"
     },
     "data/regex/templates.json": {
       "repo": "exile-appraiser 內建範本(手寫,鍵對應 data/regex/regex_poe*.json 與 regex/src/pages/)",
@@ -295,12 +295,12 @@
       "bytes": 45951
     },
     "data/regex/labels.poe1.json": {
-      "sha256": "66d912693c2f3349f12ed384390b0383f0bdcfef8c65e120b543b49ac9a86ceb",
-      "bytes": 2676
+      "sha256": "c12a543ab1199ecc184dfeacfc61e7a8da81ae949ed82a1c51c43603118a8f3c",
+      "bytes": 2771
     },
     "data/regex/labels.poe2.json": {
-      "sha256": "8906adf8022b293f87c9a21aae9b8030c8cc582588cbf49f5bf7a5ea3714343e",
-      "bytes": 2055
+      "sha256": "2062feb18377905e85942bcb1e5c803edc65d0f014e75cfbee1a2c4c0eb34d27",
+      "bytes": 2054
     },
     "data/regex/regex_poe1.json": {
       "sha256": "915be656c91bcd1bd51cacc6d83d60718b6dc258055eea63f932f62a856f7d56",

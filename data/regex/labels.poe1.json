@@ -1,7 +1,7 @@
 {
  "schema": 1,
  "game": "poe1",
- "source": "pob-zh-engine tools/ggpk_zh/out/poe1/tables/clientstrings.json(clientstrings,欄 Text;meta game_version 3.29.0.1)",
+ "source": "pob-zh-engine tools/ggpk_zh/out/poe1/tables/clientstrings.json(clientstrings,欄 Text;meta game_version 3.30.0)",
  "note": "暫代檔:PobTools regex_poe*.json 升到 schema 2 自帶 labels 後,regex/src/data.ts 優先讀資料檔內的 labels。{0} 已換成 #。",
  "labels": {
   "zh": {
@@ -17,6 +17,7 @@
    "Quality": "品質",
    "ItemDisplayStringSockets": "插槽",
    "ItemPopupCorrupted": "已汙染",
+   "ItemPopupDoubleCorrupted": "二次汙染",
    "Level": "等級",
    "ItemPopupShaperItem": "塑者之物",
    "ItemPopupElderItem": "尊師之物",
@@ -45,6 +46,7 @@
    "Quality": "Quality",
    "ItemDisplayStringSockets": "Sockets",
    "ItemPopupCorrupted": "Corrupted",
+   "ItemPopupDoubleCorrupted": "Twice Corrupted",
    "Level": "Level",
    "ItemPopupShaperItem": "Shaper Item",
    "ItemPopupElderItem": "Elder Item",
