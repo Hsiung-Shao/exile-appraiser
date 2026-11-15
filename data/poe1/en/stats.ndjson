@@ -10816,3 +10816,4 @@
 {"ref":"1 Added Passive Skill is Purity of Flesh","better":1,"matchers":[{"string":"1 Added Passive Skill is Purity of Flesh"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|58218"]}}}
 {"ref":"1 Added Passive Skill is Lightning Walker","better":1,"matchers":[{"string":"1 Added Passive Skill is Lightning Walker"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|30225"]}}}
 {"ref":"1 Added Passive Skill is Vigour","better":1,"matchers":[{"string":"1 Added Passive Skill is Vigour"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|4833"]}}}
+{"ref":"# Prefix Modifier cannot be changed","better":1,"matchers":[{"string":"# Prefix Modifier cannot be changed"}],"trade":{"ids":{"explicit":["explicit.stat_181387736"],"crafted":["crafted.stat_181387736"]}}}

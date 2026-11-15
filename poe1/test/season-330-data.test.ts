@@ -191,6 +191,14 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(refsOf(jewel)).toContain('+#% to Critical Strike Multiplier with One Handed Melee Weapons')
   })
 
+  it('D17c GGPK 比對補的繁中寫法(2026-11-15):新舊寫法都解析成同一條,減少的寫法是反向', () => {
+    const item = parse(ringText('cmn-Hant', [['+30% 弓暴擊加成', '持弓時 +30% 暴擊加成', '擊中時有 10% 機率致盲敵人', '減少 12% 拆除陷阱速度']]))
+    expect(unknownOf(item)).toEqual([])
+    expect(refsOf(item)).toEqual(expect.arrayContaining([
+      '+#% to Critical Strike Multiplier with Bows', '#% chance to Blind Enemies on hit', '#% increased Trap Disarmament speed'
+    ]))
+  })
+
   it('D18 破裂的「+#%物品稀有度」(使用者 2026-11-15 貼的實機手套)解析成原詞綴並帶破裂 id', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-fractured-rarity-gloves.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
