@@ -149,6 +149,11 @@ export default defineComponent({
   gap: 0.25rem;
   min-width: 0;
 }
+/* 基底名稱很長時讓按鈕縮短、以 … 截斷,不撐出面板(flex 子項目預設 min-width: auto) */
+.filter-name-seg > button {
+  min-width: 0;
+  flex: 0 1 auto;
+}
 .filter-name-idle {
   color: var(--ink-2);
 }
