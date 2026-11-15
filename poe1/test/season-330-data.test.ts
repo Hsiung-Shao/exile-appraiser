@@ -163,6 +163,23 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     })
   })
 
+  it('D16 帶入名稱前的零寬空白 U+200B(GitHub issue #4 / #7 的實機文字)不影響解析', () => {
+    const text = fs.readFileSync(path.join(HERE, 'docs/3.30-reverberation-rod.cmn-Hant.txt'), 'utf8')
+    const real = text.replace(/的 (?=\S+輔助 輔助)/g, '的 ​')
+    expect(real).not.toBe(text)
+    const item = parse(real)
+    expect(unknownOf(item)).toEqual([])
+    expect(refsOf(item)).toContain('Socketed Gems are Supported by Level # Spell Echo (Random Support Gem)')
+  })
+
+  it('D17 GitHub issue #8 / #9 的實機物品:傳奇繁中改名(馬拉凱的輪迴)與「+# 點命中」寫法', () => {
+    const loop = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-malachais-loop.cmn-Hant.txt'), 'utf8'))
+    expect(loop.info.refName).toBe("Malachai's Loop")
+    const gloves = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-warlock-gloves-accuracy.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(gloves)).toEqual([])
+    expect(refsOf(gloves)).toContain('+# to Accuracy Rating')
+  })
+
   it('D10「插槽中的寶石被等級 # 的 X輔助 輔助」3.30 寫法(使用者 2026-11-14 回報的混響)沒有未解析詞綴', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-reverberation-rod.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])

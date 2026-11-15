@@ -109,7 +109,9 @@ const VALUE_AUGMENTED = ' (augmented)'
 
 export function parseClipboard (clipboard: string): Result<ParsedItem, string> {
   try {
-    let sections = itemTextToSections(normalizeLabelPunctuation(clipboard))
+    // exile-appraiser: 3.30 遊戲在帶入的名稱前插一個零寬空白 U+200B(「被等級 20 的 ​集中效應輔助 輔助」,
+    // GitHub issue #4 / #7 / #11 的實機文字);資料裡沒有這個字元,逐字比對會全部落空 → 解析前去掉
+    let sections = itemTextToSections(normalizeLabelPunctuation(clipboard.replace(/​/g, '')))
 
     if (sections[0][2] === _$.CANNOT_USE_ITEM) {
       sections[0].pop() // remove CANNOT_USE_ITEM line

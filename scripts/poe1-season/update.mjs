@@ -14,7 +14,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
-import { BETTER_OVERRIDES, eachStat, applyItemPlan, applyStatPlan, planDeadIds, planGems, planItems, planMinionDoubled, planNewStats, planStatText, planSupportGemNames, planTradeBases, planTradeText, planUniques } from './lib.mjs'
+import { BETTER_OVERRIDES, eachStat, applyItemPlan, applyStatPlan, planDeadIds, planGems, planItems, planExtraZh, planMinionDoubled, planUniqueZhNames, planNewStats, planStatText, planSupportGemNames, planTradeBases, planTradeText, planUniques } from './lib.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(HERE, '../..')
@@ -64,7 +64,8 @@ const afterA = Object.fromEntries(LANGS.map(lang => [lang, rows(applyStatPlan(te
 const ruleB = planTradeText({ enStats: afterA.en, zhStats: afterA['cmn-Hant'], tradeStats, ggpkNew: ggpk.stats.new, ggpkOld: ggpk.stats.old })
 const gemNames = planSupportGemNames({ enStats: afterA.en, zhStats: afterA['cmn-Hant'], ggpkNew: ggpk.stats.new, baseNew: ggpk.base.new })
 const minions = planMinionDoubled({ enStats: afterA.en, zhStats: afterA['cmn-Hant'], ggpkNew: ggpk.stats.new })
-const adds = [...ruleA.adds, ...ruleB.adds, ...gemNames.adds, ...minions.adds]
+const extraZh = planExtraZh({ zhStats: afterA['cmn-Hant'], ggpkNew: ggpk.stats.new })
+const adds = [...ruleA.adds, ...ruleB.adds, ...gemNames.adds, ...minions.adds, ...extraZh.adds]
 const afterB = rows(applyStatPlan(text['en/stats'], 'en', { adds }))
 const dead = planDeadIds({ enStats: afterB, tradeStats })
 const newStats = planNewStats({ enStats: afterB, zhStats: afterA['cmn-Hant'], ggpkOld: ggpk.stats.old, ggpkNew: ggpk.stats.new, tradeStats })
@@ -72,7 +73,8 @@ const items = planItems({ enItems: rows(text['en/items']), baseOld: ggpk.base.ol
 const bases = planTradeBases({ enItems: rows(text['en/items']), baseOld: ggpk.base.old, baseNew: ggpk.base.new, tradeItems })
 const uniques = planUniques({ enItems: rows(applyItemPlan(text['en/items'], 'en', { bases: bases.adds })), tradeItems, words: ggpk.words })
 const gems = planGems({ enItems: rows(text['en/items']), tradeItems, gems: ggpk.gems })
-const itemPlan = { ...items, bases: bases.adds, uniques: uniques.adds, gems: gems.adds }
+const zhNames = planUniqueZhNames({ zhItems: rows(text['cmn-Hant/items']), words: ggpk.words })
+const itemPlan = { ...items, bases: bases.adds, uniques: uniques.adds, gems: gems.adds, zhNames }
 const betterFix = [...eachStat(afterB)].filter(s => s.ref in BETTER_OVERRIDES && s.better !== BETTER_OVERRIDES[s.ref]).length
 const statPlan = { adds, replace: dead.replace, remove: dead.remove, newStats, better: BETTER_OVERRIDES }
 const rejects = [...ruleA.rejects.map(r => ({ rule: '改字 A', ...r })), ...ruleB.rejects.map(r => ({ rule: '改字 B', ...r })), ...dead.rejects.map(r => ({ rule: '失效 id', ...r })), ...gemNames.rejects.map(r => ({ rule: '輔助寶石名', ...r })), ...bases.rejects.map(r => ({ rule: '新底材', ...r })), ...uniques.rejects.map(r => ({ rule: '新傳奇', ...r })), ...gems.rejects.map(r => ({ rule: '新變異寶石', ...r }))]
@@ -85,7 +87,7 @@ const summary = [
   `輔助寶石名(規則 8):en +${count(gemNames.adds, 'en')} / 繁中 +${count(gemNames.adds, 'cmn-Hant')} 個 matcher`,
   `失效 id:替換 ${Object.keys(dead.replace).length}、移除 ${dead.remove.length}`,
   `新詞綴:${newStats.length} 列;方向校正 ${betterFix} 條`,
-  `物品:改名 ${items.renames.length}、新增 ${items.adds.length}、新底材 ${bases.adds.length}、新傳奇 ${uniques.adds.length}、新變異寶石 ${gems.adds.length}`,
+  `物品:改名 ${items.renames.length}、新增 ${items.adds.length}、新底材 ${bases.adds.length}、新傳奇 ${uniques.adds.length}、新變異寶石 ${gems.adds.length}、傳奇繁中改名 ${zhNames.length}`,
   `拒收(沒改資料):${rejects.length}`
 ]
 console.log(summary.join('\n'))

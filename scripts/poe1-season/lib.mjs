@@ -450,6 +450,45 @@ export function planMinionDoubled ({ enStats, zhStats, ggpkNew }) {
   return { adds }
 }
 
+/**
+ * 同一條詞綴在遊戲裡的另一種繁中寫法(遊戲檔別的描述檔的句子)。只收有實機樣本的,逐條列在這裡;
+ * 寫入前仍要在 GGPK 新版找得到這句(英文相同),找不到就不加。
+ * - `# 點命中`:3.30 手套後綴「獅眼之」顯示「+587 點命中」(GitHub issue #9),資料只有「# 命中值」
+ */
+export const EXTRA_ZH_MATCHERS = [{ ref: '+# to Accuracy Rating', zh: '# 點命中' }]
+
+/** 規則 11:`EXTRA_ZH_MATCHERS` → 繁中多一個 matcher @returns {{ adds: any[] }} */
+export function planExtraZh ({ zhStats, ggpkNew }) {
+  const inGgpk = new Set(ggpkNew.map(r => `${cmpKey(r.en)}|${toMatcherText(r.zh ?? '')}`))
+  const adds = []
+  for (const x of EXTRA_ZH_MATCHERS) {
+    const have = [...eachStat(zhStats)].filter(s => s.ref === x.ref)
+    if (!have.length || have.every(s => s.matchers.some(m => m.string === x.zh)) || !inGgpk.has(`${cmpKey(x.ref)}|${x.zh}`)) continue
+    // superseded:解析器照樣比對,正則「物品詞綴數值」頁不拿它當模板(否則這條變成多種寫法而被排除)
+    adds.push({ lang: 'cmn-Hant', ref: x.ref, matcher: { string: x.zh, superseded: true } })
+  }
+  return { adds }
+}
+
+/**
+ * 規則 12:傳奇的繁中名改了(3.30「輪迴」→「馬拉凱的輪迴」,GitHub issue #8)。GGPK 新版對這個英文名只有一個繁中名、
+ * 且和資料不同 → 改成新名(台服交易站用的也是新名;舊名的剪貼簿不再認得)。
+ * @returns {{ refName: string, from: string, zh: string }[]}
+ */
+export function planUniqueZhNames ({ zhItems, words }) {
+  const zhOf = groupBy(words, w => w.en)
+  const out = []
+  const seen = new Set()
+  for (const item of zhItems) {
+    if (item.namespace !== 'UNIQUE' || seen.has(item.refName)) continue
+    seen.add(item.refName)
+    const zh = [...new Set((zhOf.get(item.refName) ?? []).map(w => w.zh))]
+    const mine = new Set(zhItems.filter(i => i.namespace === 'UNIQUE' && i.refName === item.refName).map(i => i.name))
+    if (zh.length === 1 && !mine.has(zh[0])) out.push({ refName: item.refName, from: item.name, zh: zh[0] })
+  }
+  return out
+}
+
 /** 逐列改寫 ndjson:只重寫有變動的列,保留原行尾 */
 function rewriteLines (fileText, edit, appended = []) {
   const eol = fileText.includes('\r\n') ? '\r\n' : '\n'
@@ -517,9 +556,10 @@ export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove
  * 套用物品計畫(renames / adds)到一份 items.ndjson 文字
  * @param {string} fileText
  * @param {'en' | 'cmn-Hant'} lang
- * @param {{ renames?: any[], adds?: any[], uniques?: any[], bases?: any[], gems?: any[] }} [plan]
+ * @param {{ renames?: any[], adds?: any[], uniques?: any[], bases?: any[], gems?: any[], zhNames?: any[] }} [plan]
  */
-export function applyItemPlan (fileText, lang, { renames = [], adds = [], uniques = [], bases = [], gems = [] } = {}) {
+export function applyItemPlan (fileText, lang, { renames = [], adds = [], uniques = [], bases = [], gems = [], zhNames = [] } = {}) {
+  const zhName = new Map(lang === 'cmn-Hant' ? zhNames.map(z => [z.refName, z.zh]) : [])
   const byFrom = new Map(renames.map(r => [r.from, r]))
   const have = new Set()
   const gemIcon = new Map() // 圖示取同語系原版那一列(繁中檔用台服 CDN)
@@ -533,6 +573,11 @@ export function applyItemPlan (fileText, lang, { renames = [], adds = [], unique
     }
     have.add(item.refName)
     if (item.namespace === 'GEM') gemIcon.set(item.refName, item.icon)
+    const z = item.namespace === 'UNIQUE' ? zhName.get(item.refName) : undefined
+    if (z && item.name !== z) {
+      item.name = z
+      return true
+    }
     return Boolean(r)
   })
   const fresh = adds.filter(a => !have.has(a.refName)).map(a => ({
