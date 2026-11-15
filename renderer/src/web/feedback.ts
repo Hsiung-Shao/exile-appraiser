@@ -59,7 +59,7 @@ export interface ReportInput {
 export interface Report {
   title: string
   body: string
-  /** 網址放不下整份時依序改用的精簡版內文(先拿掉查詢 JSON,再拿掉解析摘要;剪貼簿原文與錯誤留著) */
+  /** 網址放不下整份時依序改用的精簡版內文(先拿掉查詢 JSON,再拿掉解析摘要,再把物品原文從尾端一段段截短;錯誤與版本留著) */
   shorter?: string[]
   /** 不含剪貼簿原文與查詢的摘要:連精簡版都放不下、改走剪貼簿時,網址至少帶上它(使用者常常沒貼上) */
   summary?: string
@@ -139,7 +139,8 @@ function oneLine (s: string, max: number): string {
 
 export function buildReport (input: ReportInput): Report {
   const item = summarizeItem(input.item)
-  const scope = `[${input.game}/${input.realm}]`
+  // 版號放進標題:就算內文沒帶到(走剪貼簿而使用者沒貼),也知道是哪一版回報的
+  const scope = `[${input.game}/${input.realm} ${input.version}]`
   const itemLabel = item && (item.name ?? item.refName)
     ? (item.name && item.refName && item.name !== item.refName ? `${item.name}(${item.refName})` : (item.name ?? item.refName)!)
     : undefined
@@ -147,7 +148,7 @@ export function buildReport (input: ReportInput): Report {
   const title = oneLine(itemLabel ? `${scope} ${itemLabel} — ${what}` : `${scope} ${input.error ? what : 'feedback'}`, 200)
 
   // level:0 完整、1 去查詢 JSON、2 再去解析摘要、3 只留環境 / 錯誤 / 解析摘要(走剪貼簿時放進網址)
-  const body = (level: 0 | 1 | 2 | 3): string => {
+  const body = (level: 0 | 1 | 2 | 3, clip = input.clipboard): string => {
   const lines: string[] = []
   lines.push('<!-- 請在上方簡述發生了什麼、你預期的結果。 / Describe what happened and what you expected above. -->', '')
   lines.push('### Environment')
@@ -177,8 +178,8 @@ export function buildReport (input: ReportInput): Report {
     }
   }
 
-  if (input.clipboard && level < 3) {
-    lines.push('', '### Clipboard', fence(input.clipboard))
+  if (clip && level < 3) {
+    lines.push('', clip === input.clipboard ? '### Clipboard' : '### Clipboard (截短 / truncated)', fence(clip))
   }
 
   if (input.request !== undefined && level < 1) {
@@ -191,7 +192,10 @@ export function buildReport (input: ReportInput): Report {
   }
 
   const full = body(0)
-  return { title, body: full, shorter: [body(1), body(2)].filter((b, i, a) => b !== full && a.indexOf(b) === i), summary: body(3) }
+  // 物品原文還是放不下:從尾端一段一段拿掉(說明文字、備註、背景故事在後面;名稱與詞綴區在前面)
+  const sections = (input.clipboard ?? '').split(/\r?\n-{8}\r?\n/)
+  const trimmed = sections.slice(1).map((_, i) => body(2, sections.slice(0, sections.length - 1 - i).join('\n--------\n')))
+  return { title, body: full, shorter: [body(1), body(2), ...trimmed].filter((b, i, a) => b !== full && a.indexOf(b) === i), summary: body(3) }
 }
 
 export function issueUrl (title: string, body?: string): string {

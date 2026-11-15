@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import {
   buildReport, openIssue, copyReport, sanitize, summarizeUserAgent,
@@ -60,10 +61,10 @@ function recorder () {
 }
 
 describe('buildReport', () => {
-  it('標題 = [game/realm] 名稱(refName) — 錯誤或 price check issue', () => {
-    expect(buildReport(input()).title).toBe('[poe1/tw] 奇異之刃(Exquisite Blade) — price check issue')
-    expect(buildReport(input({ error: 'HTTP 400: Invalid query' })).title).toBe('[poe1/tw] 奇異之刃(Exquisite Blade) — HTTP 400: Invalid query')
-    expect(buildReport(input({ item: undefined, error: undefined, game: 'poe2', realm: 'intl' })).title).toBe('[poe2/intl] feedback')
+  it('標題 = [game/realm 版號] 名稱(refName) — 錯誤或 price check issue', () => {
+    expect(buildReport(input()).title).toBe('[poe1/tw 3.29.0] 奇異之刃(Exquisite Blade) — price check issue')
+    expect(buildReport(input({ error: 'HTTP 400: Invalid query' })).title).toBe('[poe1/tw 3.29.0] 奇異之刃(Exquisite Blade) — HTTP 400: Invalid query')
+    expect(buildReport(input({ item: undefined, error: undefined, game: 'poe2', realm: 'intl' })).title).toBe('[poe2/intl 3.29.0] feedback')
   })
 
   it('內文含版本 / 遊戲 / 區 / 語言 / OS / 剪貼簿原文 / 解析摘要 / 查詢 JSON / 錯誤', () => {
@@ -139,6 +140,21 @@ describe('openIssue', () => {
     expect(body).toContain(zh.trim()) // 剪貼簿原文留著
     expect(body).not.toContain('### Trade query') // 先拿掉查詢 JSON
     expect(report.shorter).toContain(body)
+  })
+
+  it('實機稀有手套(GitHub issue #9):整份放不下時物品原文從尾端截短,名稱、詞綴區與版號都還在網址裡', async () => {
+    const clip = readFileSync(new URL('../../poe1/test/docs/3.30-warlock-gloves-accuracy.cmn-Hant.txt', import.meta.url), 'utf8')
+    const r = recorder()
+    const report = buildReport(input({ clipboard: clip, error: '未解析詞綴 / Unrecognized modifier: +587(481-600) 點命中' }))
+    const res = await openIssue(report, r.deps)
+    expect(res.path).toBe('url')
+    expect(issueUrlCost(res.url)).toBeLessThanOrEqual(MAX_ISSUE_URL_LENGTH)
+    const u = new URL(res.url)
+    expect(u.searchParams.get('title')).toContain(input().version)
+    const body = u.searchParams.get('body')!
+    expect(body).toContain('- Version: ')
+    expect(body).toContain('術士手套')
+    expect(body).toContain('+587(481-600) 點命中')
   })
 
   it('精簡後仍放不下:網址帶提示 + 不含原文的摘要(錯誤、未解析詞綴),全文進剪貼簿', async () => {
