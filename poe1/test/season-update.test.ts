@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planNewStats, planGrantsSkill, planFillIds, planEffectStats, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
+import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
 
 /**
  * 賽季更新腳本的純函式測試(合成輸入,不讀 data/)。
@@ -459,6 +459,41 @@ describe('planEffectStats(規則 15)', () => {
       { lang: 'cmn-Hant', ref: 'Grants Summon Bar Skill', matcher: { string: '賦予 召喚乙' }, supersedes: '獲得召喚乙技能' }
     ])
     expect(plan.rejects.map((r: any) => r.id)).toEqual(['explicit.effect_4'])
+  })
+})
+
+describe('planTypeIds(規則 16)', () => {
+  const tradeStats = [
+    { id: 'explicit.stat_1', text: '#% increased Foo' }, { id: 'implicit.stat_1', text: '#% increased Foo' },
+    { id: 'fractured.stat_2', text: 'Bar #' },
+    { id: 'crafted.stat_3', text: 'Twin #' },
+    { id: 'explicit.stat_4|7', text: 'Option Seven' },
+    { id: 'enchant.stat_1', text: '#% increased Foo' },
+    { id: 'implicit.stat_5', text: 'In Group #' },
+    { id: 'implicit.stat_6', text: 'Nowhere #' }, { id: 'explicit.stat_8', text: '#% increased Foo' }
+  ]
+  const rows = [
+    stat('#% increased Foo', [{ string: '#% increased Foo' }]),
+    stat('Bar Old', [{ string: 'Bar Old #', superseded: true }, { string: 'Bar #' }], { explicit: ['explicit.stat_2'] }),
+    stat('Twin A', [{ string: 'Twin #' }], { explicit: ['explicit.stat_30'] }),
+    stat('Twin B', [{ string: 'Twin #' }], { explicit: ['explicit.stat_31'] }),
+    stat('Option Seven', [{ string: 'Option Seven' }], { implicit: ['implicit.stat_4|7'] }),
+    { resolve: { strat: 'trivial-merge' }, stats: [stat('In Group #', [{ string: 'In Group #' }], { explicit: ['explicit.stat_5'] })] }
+  ]
+
+  it('交易站有、資料沒掛上的 id 加到文字相同且唯一的那條詞綴;多條同文字、選項 id、合併群組、同類型已有別的 id、其他類型不動', () => {
+    const plan = planTypeIds({ enStats: rows, tradeStats })
+    expect(plan.extra).toEqual({ '#% increased Foo': { implicit: ['implicit.stat_1'] }, 'Bar Old': { fractured: ['fractured.stat_2'] } })
+    expect(plan.rejects.map((r: any) => [r.id, r.reason])).toEqual([
+      ['crafted.stat_3', '同文字的詞綴不只一條'],
+      ['explicit.stat_4|7', '選項型 id'],
+      ['implicit.stat_5', '在合併群組裡'],
+      ['explicit.stat_8', '該類型已有別的 id']
+    ])
+    const out = parseRows(applyStatPlan(toFile(rows), 'en', { extra: plan.extra }))
+    expect(out[0].trade.ids).toEqual({ explicit: ['explicit.stat_1'], implicit: ['implicit.stat_1'] })
+    expect(out[1].trade.ids).toEqual({ explicit: ['explicit.stat_2'], fractured: ['fractured.stat_2'] })
+    expect(planTypeIds({ enStats: out, tradeStats }).extra).toEqual({})
   })
 })
 

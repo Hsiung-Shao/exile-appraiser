@@ -356,6 +356,53 @@ export function planEffectStats ({ enStats, zhStats, tradeStats, skills, support
   return { newStats: [...newStats.values()], adds, rejects }
 }
 
+/**
+ * 規則 16:交易站有、專案沒有任何詞綴引用的 id(隨機 / 固定 / 破裂 / 工藝),而專案裡有文字相同的詞綴 → 把 id 掛上去
+ * (逐條比對 `audit-trade-ids.mjs` 的「沒引用 A / B」:同一條詞綴少掛了某個類型的 id)。
+ * 只收文字(ref 或現行英文 matcher,寬鬆鍵)相同且唯一的那一條;同文字不只一條、選項型 id(`X|n`)、
+ * 在合併群組裡的詞綴(類型會影響群組內選哪一條)都拒收。
+ * @returns {{ extra: Record<string, Record<string, string[]>>, rejects: any[] }}
+ */
+export const TYPE_ID_GROUPS = ['explicit', 'implicit', 'fractured', 'crafted']
+export function planTypeIds ({ enStats, tradeStats }) {
+  const used = new Set()
+  const grouped = new Set()
+  const typed = new Set()
+  /** @type {Map<string, Set<string>>} */
+  const refsByText = new Map()
+  for (const row of enStats) {
+    for (const stat of row.stats ?? [row]) {
+      if (!stat.matchers) continue
+      if (row.stats) grouped.add(stat.ref)
+      for (const id of allIds(stat)) used.add(id)
+      for (const [type, ids] of Object.entries(stat.trade?.ids ?? {})) if (ids.length) typed.add(`${type}
+${stat.ref}`)
+      for (const k of [cmpKey(stat.ref), ...stat.matchers.filter(m => !m.superseded).map(m => cmpKey(m.string))]) {
+        if (!refsByText.has(k)) refsByText.set(k, new Set())
+        refsByText.get(k).add(stat.ref)
+      }
+    }
+  }
+  /** @type {Record<string, Record<string, string[]>>} */
+  const extra = {}
+  const rejects = []
+  for (const e of tradeStats) {
+    const type = e.id.slice(0, e.id.indexOf('.'))
+    if (!TYPE_ID_GROUPS.includes(type) || used.has(e.id)) continue
+    const refs = [...(refsByText.get(cmpKey(noLocal(e.text))) ?? [])]
+    if (!refs.length) continue // 資料完全沒有這條詞綴(逐條比對的 C 類),不在這條規則的範圍
+    const reject = (reason) => rejects.push({ reason, id: e.id, to: e.text, candidates: refs })
+    if (refs.length > 1) reject('同文字的詞綴不只一條')
+    else if (e.id.includes('|')) reject('選項型 id')
+    else if (grouped.has(refs[0])) reject('在合併群組裡')
+    // 同類型已有別的 id = 交易站把同一句話給了兩個不同的 stat(例:地圖的「#% more Monster Life」),不確定是不是同一條,不併送
+    else if (typed.has(`${type}
+${refs[0]}`)) reject('該類型已有別的 id')
+    else if (!((extra[refs[0]] ??= {})[type] ??= []).includes(e.id)) extra[refs[0]][type].push(e.id)
+  }
+  return { extra, rejects }
+}
+
 /** 交易站 id 是否仍有效(`X|n` 形式:X 是選項型 stat 且有選項 n 也算) */
 export function liveIdTest (tradeStats) {
   const ids = new Set(tradeStats.map(e => e.id))
@@ -614,9 +661,9 @@ function rewriteLines (fileText, edit, appended = []) {
  * 套用詞綴計畫(adds / replace / remove / newStats)到一份 stats.ndjson 文字
  * @param {string} fileText
  * @param {'en' | 'cmn-Hant'} lang
- * @param {{ adds?: any[], replace?: Record<string, string>, remove?: string[], newStats?: any[], better?: Record<string, number>, fill?: Record<string, Record<string, string[]>> }} [plan]
+ * @param {{ adds?: any[], replace?: Record<string, string>, remove?: string[], newStats?: any[], better?: Record<string, number>, fill?: Record<string, Record<string, string[]>>, extra?: Record<string, Record<string, string[]>> }} [plan]
  */
-export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove = [], newStats = [], better = {}, fill = {} } = {}) {
+export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove = [], newStats = [], better = {}, fill = {}, extra = {} } = {}) {
   const addsByRef = groupBy(adds.filter(a => a.lang === lang), a => a.ref)
   const gone = new Set(remove)
   const existingRefs = new Set()
@@ -656,6 +703,15 @@ export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove
       for (const [type, ids] of Object.entries(fill[stat.ref])) {
         for (const id of ids) {
           if (hasIds && !id.includes('.effect_')) continue
+          if ((stat.trade.ids[type] ??= []).includes(id)) continue
+          stat.trade.ids[type].push(id)
+          changed = true
+        }
+      }
+    }
+    if (extra[stat.ref] && stat.trade) {
+      for (const [type, ids] of Object.entries(extra[stat.ref])) {
+        for (const id of ids) {
           if ((stat.trade.ids[type] ??= []).includes(id)) continue
           stat.trade.ids[type].push(id)
           changed = true

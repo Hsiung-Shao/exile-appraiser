@@ -14,7 +14,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
-import { BETTER_OVERRIDES, eachStat, applyItemPlan, applyStatPlan, planDeadIds, planGems, planItems, planExtraZh, planEffectStats, planFillIds, planGrantsSkill, planMinionDoubled, planUniqueZhNames, planNewStats, planStatText, planSupportGemNames, planTradeBases, planTradeText, planUniques } from './lib.mjs'
+import { BETTER_OVERRIDES, eachStat, applyItemPlan, applyStatPlan, planDeadIds, planGems, planItems, planExtraZh, planEffectStats, planFillIds, planGrantsSkill, planMinionDoubled, planUniqueZhNames, planNewStats, planStatText, planSupportGemNames, planTypeIds, planTradeBases, planTradeText, planUniques } from './lib.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(HERE, '../..')
@@ -80,8 +80,9 @@ const zhNames = planUniqueZhNames({ zhItems: rows(text['cmn-Hant/items']), words
 const itemPlan = { ...items, bases: bases.adds, uniques: uniques.adds, gems: gems.adds, zhNames }
 const betterFix = [...eachStat(afterB)].filter(s => s.ref in BETTER_OVERRIDES && s.better !== BETTER_OVERRIDES[s.ref]).length
 const fill = planFillIds({ enStats: afterB, tradeStats })
-const statPlan = { adds, replace: dead.replace, remove: dead.remove, newStats, better: BETTER_OVERRIDES, fill }
-const rejects = [...ruleA.rejects.map(r => ({ rule: '改字 A', ...r })), ...ruleB.rejects.map(r => ({ rule: '改字 B', ...r })), ...dead.rejects.map(r => ({ rule: '失效 id', ...r })), ...gemNames.rejects.map(r => ({ rule: '輔助寶石名', ...r })), ...grants.rejects.map(r => ({ rule: '賦予技能', ...r })), ...effects.rejects.map(r => ({ rule: 'effect 新 id', ...r })), ...bases.rejects.map(r => ({ rule: '新底材', ...r })), ...uniques.rejects.map(r => ({ rule: '新傳奇', ...r })), ...gems.rejects.map(r => ({ rule: '新變異寶石', ...r }))]
+const typeIds = planTypeIds({ enStats: afterB, tradeStats })
+const statPlan = { adds, replace: dead.replace, remove: dead.remove, newStats, better: BETTER_OVERRIDES, fill, extra: typeIds.extra }
+const rejects = [...ruleA.rejects.map(r => ({ rule: '改字 A', ...r })), ...ruleB.rejects.map(r => ({ rule: '改字 B', ...r })), ...dead.rejects.map(r => ({ rule: '失效 id', ...r })), ...gemNames.rejects.map(r => ({ rule: '輔助寶石名', ...r })), ...grants.rejects.map(r => ({ rule: '賦予技能', ...r })), ...effects.rejects.map(r => ({ rule: 'effect 新 id', ...r })), ...typeIds.rejects.map(r => ({ rule: '掛上缺的類型 id', ...r })), ...bases.rejects.map(r => ({ rule: '新底材', ...r })), ...uniques.rejects.map(r => ({ rule: '新傳奇', ...r })), ...gems.rejects.map(r => ({ rule: '新變異寶石', ...r }))]
 
 const count = (list, lang) => list.filter(a => a.lang === lang).length
 const summary = [
@@ -90,6 +91,7 @@ const summary = [
   `改字 B(交易站現行文字):en +${count(ruleB.adds, 'en')} / 繁中 +${count(ruleB.adds, 'cmn-Hant')} 個 matcher`,
   `賦予技能(規則 13):en +${count(grants.adds, 'en')} / 繁中 +${count(grants.adds, 'cmn-Hant')} 個 matcher`,
   `effect 新 id(規則 15):新增 ${effects.newStats.length} 列、舊詞綴加新寫法 ${new Set(effects.adds.map(a => a.ref)).size} 條、拒收 ${effects.rejects.length}`,
+  `掛上缺的類型 id(規則 16):${Object.values(typeIds.extra).flatMap(x => Object.values(x)).flat().length} 個 id、${Object.keys(typeIds.extra).length} 條詞綴、拒收 ${typeIds.rejects.length}`,
   `輔助寶石名(規則 8):en +${count(gemNames.adds, 'en')} / 繁中 +${count(gemNames.adds, 'cmn-Hant')} 個 matcher`,
   `失效 id:替換 ${Object.keys(dead.replace).length}、移除 ${dead.remove.length}`,
   `新詞綴:${newStats.length} 列;方向校正 ${betterFix} 條;補交易站 id ${Object.keys(fill).length} 條`,
