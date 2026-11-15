@@ -123,3 +123,28 @@ describe('魔法 / 稀有底材預設查該底材(preset 不變)', () => {
     expect(category(r.query)).toBe('jewel')
   })
 })
+
+// 2026-11-15 審查:新增詞綴若 better 標 0(不可比較),會被當成「預設勾選、數值要一模一樣」的條件
+describe('新增的「減少 …」詞綴不會變成預設勾選的精確條件', () => {
+  it('稀有項鍊帶「Anger has 15% reduced Reservation」:這條預設不勾', () => {
+    const { query } = build(`Item Class: Amulets
+Rarity: Rare
+Doom Collar
+Onyx Amulet
+--------
+Requirements:
+Level: 60
+--------
+Item Level: 84
+--------
++12 to all Attributes (implicit)
+--------
++68 to maximum Life
+Anger has 15% reduced Reservation
+`)
+    const filters = query.stats.flatMap((g: any) => g.filters)
+    const anger = filters.filter((f: any) => f.id === 'explicit.stat_2003753577')
+    expect(anger.length).toBeGreaterThan(0) // 解析得到、有送出(停用狀態)
+    expect(anger.every((f: any) => f.disabled === true)).toBe(true)
+  })
+})

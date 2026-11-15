@@ -244,6 +244,19 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(hit?.stat.trade.ids.explicit).toEqual(['explicit.stat_1123294660'])
   })
 
+  it('D27 傳奇珠寶「腐敗之種」(使用者 2026-11-15 貼的實機文字):洗出的四個塗油天賦解析成附魔詞綴、帶選項型 id', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-putrid-seed.cmn-Hant.txt'), 'utf8'))
+    expect(item.info.refName).toBe('Putrid Seed')
+    expect(unknownOf(item)).toEqual([])
+    const grown = item.statsByType.filter(s => s.stat.ref.startsWith('1 Added Passive Skill is '))
+    expect(grown.map(s => [s.stat.ref, s.type, s.stat.trade.ids.enchant])).toEqual([
+      ['1 Added Passive Skill is Careful Counterattack', 'enchant', ['enchant.stat_3599615742|59976']],
+      ['1 Added Passive Skill is Flow of Battle', 'enchant', ['enchant.stat_3599615742|56330']],
+      ['1 Added Passive Skill is Indiscriminate Revenge', 'enchant', ['enchant.stat_3599615742|4918']],
+      ['1 Added Passive Skill is Practised Reapplication', 'enchant', ['enchant.stat_3599615742|37425']]
+    ])
+  })
+
   it('D10「插槽中的寶石被等級 # 的 X輔助 輔助」3.30 寫法(使用者 2026-11-14 回報的混響)沒有未解析詞綴', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-reverberation-rod.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])

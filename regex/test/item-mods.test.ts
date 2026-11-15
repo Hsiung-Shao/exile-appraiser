@@ -98,13 +98,13 @@ describe('排除統計(資料同步後數字變了要看過再改)', () => {
     expect(summary(DATA.poe1)).toEqual({
       // 2026-11-14:資料更新到 3.30(scripts/poe1-season,docs/poe1-season/3.30-report.md):交易站移除 id 的詞綴不再是物品詞綴(7550 → 7444;之後交易站陸續開放 3.30 新詞綴,補進後 7471;同日再跑一次又開放 63 條 → 7529、再 4 條 → 7533、晚上再 5 條 → 7538、11-15 再 3 條 → 7541、補臟器等舊 stat 的固定詞綴 → 7602、交易站再開 12 條 → 7614、補交易站 id 等 → 7663),
       // 被取代的舊寫法(superseded)不當模板;同一句分成多句或交易站另有現行寫法的列入 multi_form(12 → 26)
-      itemStats: 8493, // 2026-11-15 再補主描述檔的物品詞綴 267 條(GitHub issue #16) // 2026-11-15 補地圖 / 輿圖詞綴 653 條(規則 4 例外)後 +491; 規則 16 掛上缺的類型 id 後 +4; 2026-11-15:交易站新開放 1 條;effect_ 新 id 逐條比對後新增 56 條、12 條舊詞綴拿到 id(規則 15)
+      itemStats: 8495, // 2026-11-15 再補主描述檔的物品詞綴 267 條(GitHub issue #16) // 2026-11-15 補地圖 / 輿圖詞綴 653 條(規則 4 例外)後 +491; 規則 16 掛上缺的類型 id 後 +4; 2026-11-15:交易站新開放 1 條;effect_ 新 id 逐條比對後新增 56 條、12 條舊詞綴拿到 id(規則 15)
       // 2026-10-08:假掰(The Adorned)補上遊戲內寫法 → 該條有兩種繁中寫法,改列 multi_form(4786 → 4785、86 → 87)
       // 2026-10-10:多種寫法改查 poe2db / poedb 仲裁檔 data/regex/item-mod-forms.json(4785 → 4854、multi_form 87 → 12;
       // 原卡在 multi_form 的條目往下走,改由 multiline +2、too_long +4 排除)
-      entries: 5414,
+      entries: 5413,
       merged: 34,
-      excluded: { decimal: 149, multi_value: 2463, multi_form: 29, multiline: 165, missing_lang: 0, no_unique: 2, too_long: 237 }
+      excluded: { decimal: 149, multi_value: 2465, multi_form: 30, multiline: 165, missing_lang: 0, no_unique: 2, too_long: 237 }
     })
     expect(summary(DATA.poe2)).toEqual({
       itemStats: 1847,

@@ -44,17 +44,24 @@ export const BETTER_OVERRIDES = {
   'Enemies within 6 metres of corpses you spawned Recently\nhave #% reduced Life Regeneration Rate': 1,
   'Fire Exposure you inflict applies an extra +#% to Fire Resistance': -1,
   '+# Physical Damage taken from Hits per Level': -1,
-  'Enemies Taunted by your Warcries have #% increased Action Speed': -1
+  'Enemies Taunted by your Warcries have #% increased Action Speed': -1,
+  // 2026-11-15:「減少」而數值越大越不利的(其餘「減少 …」預設 1,見 betterOf)
+  '#% reduced Spark Duration': -1,
+  'Curses have #% reduced effect on Monsters': -1
 }
 
 /**
- * 新詞綴的 better:帶數值且不是「減少 / 更少」→ 1(查價用「至少這個值」);其他 → 0(完全相同才算)。
- * 既有資料帶數值的詞綴 97% 是 1;標 0 會讓預設查詢只找數值一模一樣的掛單(2026-11-14 范迪戈之革)。
- * shortcut: 少數「越低越好」的句子(承受傷害、消耗)會被標成 1,遇到再個別改資料列。
+ * 新詞綴的 better:帶數值 → 1(查價用「至少這個值」);沒有數值 → 0(完全相同才算)。
+ * 既有資料帶數值的詞綴 97% 是 1;標 0 會讓這條在物品上**預設勾選、只找數值一模一樣的掛單**(2026-11-14 范迪戈之革;
+ * 2026-11-15 審查:「減少 …」原本標 0,32 條新增的「X 減少 #% 保留 / 承受傷害 / 消耗」會讓預設查詢多一條精確條件)。
+ * 「減少 / 更少」的句子在物品上多半是好處(保留、承受傷害、消耗、敵人格擋)→ 也給 1;「失去 …」→ -1;
+ * 判不準的逐條列在 BETTER_OVERRIDES。
+ * shortcut: 少數「越低越好」的句子會被標成 1(使用者勾選時範圍方向相反,可自己改),遇到再加進 BETTER_OVERRIDES。
  */
 export function betterOf (ref) {
   if (ref in BETTER_OVERRIDES) return BETTER_OVERRIDES[ref]
-  return ref.includes('#') && direction(ref) >= 0 && !/Grants Level \d+ #/.test(ref) ? 1 : 0
+  if (!ref.includes('#') || /Grants Level \d+ #/.test(ref)) return 0
+  return /\blose\b/i.test(ref) ? -1 : 1
 }
 
 /** 展開群組列,回傳每個一般 stat 物件 */
@@ -407,6 +414,46 @@ export function planTypeIds ({ enStats, tradeStats }) {
   return { extra, rejects }
 }
 
+/**
+ * 規則 18:3.30 傳奇珠寶「腐敗之種」塗抹後洗出的天賦(使用者 2026-11-15 實機:「1 個附加的天賦為謹慎反擊 (enchant)」)。
+ * 交易站是選項型附魔 `enchant.stat_3599615742|<n>`「1 added passive skill is X」,472 個選項的編號與名稱和既有塗油詞綴
+ * `enchant.stat_2954116742|<n>`「Allocates X」一一對應 → 以同編號且同名的「Allocates X」取繁中名(「配置 X」去掉前綴),
+ * 句型照星團珠寶既有的「1 Added Passive Skill is X」/「1 個附加的天賦為 X」。對不上的不猜。
+ * 專案已有同一句的詞綴(星團珠寶的同名天賦)→ 只把 id 掛上去。
+ * @returns {{ newStats: any[], extra: Record<string, Record<string, string[]>>, rejects: any[] }}
+ */
+const GROWN_PASSIVE_ID = 'enchant.stat_3599615742|'
+const ANOINT_ID = 'enchant.stat_2954116742|'
+export function planGrownPassives ({ enStats, zhStats, tradeStats }) {
+  const used = new Set()
+  const byMatcher = new Map()
+  const anoint = new Map()
+  for (const stat of eachStat(enStats)) {
+    for (const id of allIds(stat)) used.add(id)
+    for (const m of stat.matchers) if (!byMatcher.has(m.string)) byMatcher.set(m.string, stat)
+    for (const id of stat.trade?.ids?.enchant ?? []) if (id.startsWith(ANOINT_ID) && stat.ref.startsWith('Allocates ')) anoint.set(id.slice(ANOINT_ID.length), stat.ref)
+  }
+  const zhByRef = groupBy([...eachStat(zhStats)], s => s.ref)
+  const newStats = []
+  /** @type {Record<string, Record<string, string[]>>} */
+  const extra = {}
+  const rejects = []
+  for (const e of tradeStats) {
+    if (!e.id.startsWith(GROWN_PASSIVE_ID) || used.has(e.id)) continue
+    const name = /^1 added passive skill is (.+)$/i.exec(e.text)?.[1]
+    const ref = anoint.get(e.id.slice(GROWN_PASSIVE_ID.length))
+    const zhName = ref && name && ref === `Allocates ${name}`
+      ? (zhByRef.get(ref) ?? []).flatMap(s => s.matchers).map(m => /^配置 (.+)$/.exec(m.string)?.[1]).find(Boolean)
+      : undefined
+    if (!zhName) { rejects.push({ reason: '沒有同編號同名的塗油詞綴', id: e.id, to: e.text }); continue }
+    const en = `1 Added Passive Skill is ${name}`
+    const have = byMatcher.get(en)
+    if (have) (extra[have.ref] ??= { enchant: [] }).enchant.push(e.id)
+    else newStats.push({ ref: en, better: 1, en: [{ string: en }], zh: [{ string: `1 個附加的天賦為${zhName}` }], ids: { enchant: [e.id] } })
+  }
+  return { newStats, extra, rejects }
+}
+
 /** 交易站 id 是否仍有效(`X|n` 形式:X 是選項型 stat 且有選項 n 也算) */
 export function liveIdTest (tradeStats) {
   const ids = new Set(tradeStats.map(e => e.id))
@@ -476,6 +523,7 @@ export function planNewStats ({ enStats, zhStats = /** @type {any[]} */ ([]), gg
     for (const id of allIds(stat)) usedIds.add(id)
   }
   const out = new Map()
+  const byZh = new Map()
   for (const row of ggpkNew) {
     const k = cmpKey(row.en)
     if (known.has(k) || !/[a-z]/.test(k) || NEW_STAT_SKIP.has(k)) continue
@@ -490,17 +538,27 @@ export function planNewStats ({ enStats, zhStats = /** @type {any[]} */ ([]), gg
     if (oldKeys.has(row.key) && !entries.every(e => e.id.startsWith('implicit.')) && !(isAreaStatKey(row.key) && !generalTexts.has(k)) && !itemMod) continue
     if (row.zh && zhShapes.has(shape(toMatcherText(row.zh)))) continue
     if (enShapes.has(shape(toMatcherText(row.en)))) continue
+    const zh = row.zh && cmpKey(row.zh) !== k ? toMatcherText(row.zh) : null
     if (!out.has(k)) {
       /** @type {Record<string, string[]>} */
       const ids = {}
       for (const e of entries) (ids[e.id.slice(0, e.id.indexOf('.'))] ??= []).push(e.id)
+      // 繁中與另一條新詞綴是同一句(督軍印記:交易站有 Warlords's / Warlord's 兩種拼法、兩個 id)→ 併進那一列:
+      // 繁中 matcher 一個字串只能指向一列,分成兩列的話繁中客戶端永遠只配到其中一個 id
+      const twin = zh ? byZh.get(zh) : undefined
+      if (twin) {
+        twin.en.push({ string: toMatcherText(row.en) })
+        for (const [type, list] of Object.entries(ids)) for (const id of list) if (!(twin.ids[type] ??= []).includes(id)) twin.ids[type].push(id)
+        out.set(k, twin)
+        continue
+      }
       const ref = entries[0].text.replace(/\s+\(Local\)$/i, '')
       out.set(k, { ref, better: betterOf(ref), en: [{ string: toMatcherText(row.en) }], zh: [], ids })
+      if (zh) byZh.set(zh, out.get(k))
     }
-    const zh = row.zh && cmpKey(row.zh) !== k ? toMatcherText(row.zh) : null
     if (zh && !out.get(k).zh.some(m => m.string === zh)) out.get(k).zh.push({ string: zh })
   }
-  return [...out.values()]
+  return [...new Set(out.values())]
 }
 
 /**
