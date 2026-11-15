@@ -237,6 +237,13 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(brine?.stat.trade.ids.implicit).toContain('implicit.stat_3682839745')
   })
 
+  it('D26 鈷藍珠寶「增加 #% 殘酷的效果」(GitHub issue #16;舊版就有的物品詞綴,交易站有隨機 / 破裂 id)解析得到', () => {
+    const item = parse(ringText('cmn-Hant', [LIFE_ZH, ['{ 後綴 "殘酷之"(階層：1) }', '增加 6(6-10)% 殘酷的效果']]))
+    expect(unknownOf(item)).toEqual([])
+    const hit = item.statsByType.find(s => s.stat.ref === '#% increased Effect of Cruelty')
+    expect(hit?.stat.trade.ids.explicit).toEqual(['explicit.stat_1123294660'])
+  })
+
   it('D10「插槽中的寶石被等級 # 的 X輔助 輔助」3.30 寫法(使用者 2026-11-14 回報的混響)沒有未解析詞綴', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-reverberation-rod.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])

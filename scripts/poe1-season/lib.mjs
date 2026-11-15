@@ -484,7 +484,10 @@ export function planNewStats ({ enStats, zhStats = /** @type {any[]} */ ([]), gg
     // 舊版就有的 stat:只收交易站只列為固定詞綴的(3.30 臟器的詞綴多半是舊 stat、這季才給 implicit id);
     // 其餘類型的舊缺口數量大、沒有樣本,不自動加
     // 例外:地圖 / 輿圖詞綴(使用者 2026-11-15 要求;3.30 地圖改版後稀有地圖上會出現)
-    if (oldKeys.has(row.key) && !entries.every(e => e.id.startsWith('implicit.')) && !(isAreaStatKey(row.key) && !generalTexts.has(k))) continue
+    // 例外 2(2026-11-15,GitHub issue #16 鈷藍珠寶「增加 #% 殘酷的效果」):主描述檔 stat_descriptions.txt 的句子,
+    // 交易站列為隨機 / 固定 / 破裂 / 工藝詞綴(= 會出現在物品上、可以查)也收
+    const itemMod = row.key.split('|').includes('stat_descriptions.txt') && entries.some(e => /^(explicit|implicit|fractured|crafted)\.stat_/.test(e.id))
+    if (oldKeys.has(row.key) && !entries.every(e => e.id.startsWith('implicit.')) && !(isAreaStatKey(row.key) && !generalTexts.has(k)) && !itemMod) continue
     if (row.zh && zhShapes.has(shape(toMatcherText(row.zh)))) continue
     if (enShapes.has(shape(toMatcherText(row.en)))) continue
     if (!out.has(k)) {

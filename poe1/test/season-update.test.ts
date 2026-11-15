@@ -542,10 +542,10 @@ describe('planNewStats', () => {
     const old = [
       row('map_monsters_foo_+%|#|stat_descriptions.txt|0', 'Monsters have {0}% more Foo', '怪物有 {0}% 更多甲'),
       row('breach_bar|#|atlas_stat_descriptions.txt|0', 'Breaches in your Maps have {0} Bar', '你地圖中的裂痕有 {0} 乙'),
-      row('local_baz_+%|#|stat_descriptions.txt|0', '{0}% increased Baz', '增加 {0}% 丙'),
+      row('local_baz_+%|#|skill_stat_descriptions.txt|0', '{0}% increased Baz', '增加 {0}% 丙'),
       row('map_one map_two|#|map_stat_descriptions.txt|0', 'Area has {0} One', '區域有 {0} 丁'),
       row('map_fixed|#|stat_descriptions.txt|0', 'Area has 2 Qux', '區域有 2 戊'),
-      // 同一句話一般描述檔也有 → 交易站的 id 可能是裝備那條,不收
+      // 同一句話一般描述檔也有 → 不當地圖詞綴收(下面由物品詞綴的例外收)
       row('atlas_minion|#|atlas_stat_descriptions.txt|0', 'Minions have {0}% Dup', '召喚物有 {0}% 己'), row('minion_dup|#|stat_descriptions.txt|0', 'Minions have {0}% Dup', '召喚物有 {0}% 己')
     ]
     const trade = [
@@ -554,8 +554,24 @@ describe('planNewStats', () => {
     ]
     const enStats = [{ ref: 'Area has # Qux', matchers: [{ string: 'Area has # Qux' }], trade: { ids: {} } }]
     const out = planNewStats({ enStats, ggpkOld: old, ggpkNew: old, tradeStats: trade })
-    // 非地圖的舊詞綴不收;英文把數字換成 # 後與既有 matcher 同形的不收
-    expect(out.map((s: any) => s.ref)).toEqual(['Monsters have #% more Foo', 'Breaches in your Maps have # Bar', 'Area has # One'])
+    // 技能描述檔等非物品詞綴的舊句不收;英文把數字換成 # 後與既有 matcher 同形的不收
+    // 「Minions have #% Dup」不算地圖詞綴(一般描述檔也有這句),但它是主描述檔的物品詞綴、交易站列為隨機詞綴 → 由例外 2 收進來
+    expect(out.map((s: any) => s.ref)).toEqual(['Monsters have #% more Foo', 'Breaches in your Maps have # Bar', 'Area has # One', 'Minions have #% Dup'])
+  })
+
+  it('舊版就有、主描述檔的物品詞綴(交易站列為隨機 / 固定 / 破裂 / 工藝)也收;只列為附魔等其他類型的不收(GitHub issue #16 殘酷的效果)', () => {
+    const old = [
+      row('cruelty_effect_+%|1|#|stat_descriptions.txt|0', '{0}% increased Effect of Cruelty', '增加 {0}% 殘酷的效果'),
+      row('only_enchant|#|stat_descriptions.txt|0', '{0}% increased Lab Thing', '增加 {0}% 迷宮')
+    ]
+    const trade = [
+      { id: 'explicit.stat_1', text: '#% increased Effect of Cruelty' }, { id: 'fractured.stat_1', text: '#% increased Effect of Cruelty' },
+      { id: 'enchant.stat_2', text: '#% increased Lab Thing' }
+    ]
+    const out = planNewStats({ enStats: [], ggpkOld: old, ggpkNew: old, tradeStats: trade })
+    expect(out.map((s: any) => [s.ref, s.ids, s.zh])).toEqual([
+      ['#% increased Effect of Cruelty', { explicit: ['explicit.stat_1'], fractured: ['fractured.stat_1'] }, [{ string: '增加 #% 殘酷的效果' }]]
+    ])
   })
 
   it('繁中新句把數字換成 # 後與既有 matcher 同形的不加(會搶走既有詞綴的比對)', () => {
