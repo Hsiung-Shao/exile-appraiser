@@ -693,42 +693,33 @@ export function planMinionDoubled ({ enStats, zhStats, ggpkNew }) {
 }
 
 /**
- * 同一條詞綴在遊戲裡的另一種繁中寫法(遊戲檔別的描述檔的句子)。只收有實機樣本的,逐條列在這裡;
- * 寫入前仍要在 GGPK 新版找得到這句(英文相同),找不到就不加。
- * - `# 點命中`:3.30 手套後綴「獅眼之」顯示「+587 點命中」(GitHub issue #9),資料只有「# 命中值」
- */
-/**
- * 同一條詞綴的另一種繁中寫法。前兩條有實機樣本;其餘是 2026-11-15 GGPK 3.30 比對補的
- * (專案原寫法在 GGPK stat_descriptions.txt 完全找不到、GGPK 寫法沒被別的詞綴用掉;使用者裁定沒有實機樣本也補)。
+ * 同一條詞綴在遊戲裡的另一種繁中寫法。寫入前仍要在 GGPK 新版找得到這句(英文相同),找不到就不加。
+ * - 沒有 `current`:兩種寫法遊戲裡都有(另一句在別的描述檔)→ 新句標 superseded(正則頁不拿它當模板)。
+ *   `# 點命中`:3.30 手套後綴「獅眼之」顯示「+587 點命中」(GitHub issue #9),資料只有「# 命中值」。
+ * - `current: true`:專案原句在 GGPK 任何描述檔都找不到(APT 留下的舊句 / 錯字 / 沒翻)→ 新句是現行寫法,舊句標 superseded。
+ *   單手近戰武器暴擊加成有實機樣本(2026-11-15 翠綠珠寶);其餘是同日 GGPK 3.30 比對補的(使用者裁定沒有實機樣本也補)。
+ * 加新條目前先確認新句在 GGPK 屬於同一個 stat(同一句英文可能對到好幾個 stat,繁中各不相同)。
  */
 export const EXTRA_ZH_MATCHERS = [
   { ref: '+# to Accuracy Rating', zh: '# 點命中' },
-  { ref: '+#% to Critical Strike Multiplier with One Handed Melee Weapons', zh: '#% 單手近戰武器暴擊加成' }, // 2026-11-15 翠綠珠寶實機樣本
-  { ref: '+#% to Critical Strike Multiplier with Axes', zh: '#% 斧暴擊加成' },
-  { ref: '+#% to Critical Strike Multiplier with Bows', zh: '#% 弓暴擊加成' },
-  { ref: '+#% to Critical Strike Multiplier with Claws', zh: '#% 爪暴擊加成' },
-  { ref: '+#% to Critical Strike Multiplier with Daggers', zh: '#% 匕首暴擊加成' },
-  { ref: '+#% to Critical Strike Multiplier with Maces or Sceptres', zh: '#% 錘和權杖暴擊加成' },
-  { ref: '+#% to Critical Strike Multiplier with Staves', zh: '#% 長杖暴擊加成' },
-  { ref: '+#% to Critical Strike Multiplier with Swords', zh: '#% 劍暴擊加成' },
-  { ref: '+#% to Critical Strike Multiplier with Wands', zh: '#% 法杖暴擊加成' },
+  { ref: '+#% to Critical Strike Multiplier with One Handed Melee Weapons', zh: '#% 單手近戰武器暴擊加成', current: true },
+  { ref: '+#% to Critical Strike Multiplier with Axes', zh: '#% 斧暴擊加成', current: true },
+  { ref: '+#% to Critical Strike Multiplier with Bows', zh: '#% 弓暴擊加成', current: true },
+  { ref: '+#% to Critical Strike Multiplier with Claws', zh: '#% 爪暴擊加成', current: true },
+  { ref: '+#% to Critical Strike Multiplier with Daggers', zh: '#% 匕首暴擊加成', current: true },
+  { ref: '+#% to Critical Strike Multiplier with Maces or Sceptres', zh: '#% 錘和權杖暴擊加成', current: true },
+  { ref: '+#% to Critical Strike Multiplier with Staves', zh: '#% 長杖暴擊加成', current: true },
+  { ref: '+#% to Critical Strike Multiplier with Swords', zh: '#% 劍暴擊加成', current: true },
+  { ref: '+#% to Critical Strike Multiplier with Wands', zh: '#% 法杖暴擊加成', current: true },
+  { ref: '#% chance to Trigger Explosive Toad when you kill an Enemy', zh: '當你擊殺一名敵人時有 #% 機率觸發爆炸蟾蜍', current: true },
+  { ref: '#% chance to Trigger Level 20 Shade Form when you Use a Socketed Skill', zh: '當你使用插槽中的技能時，有 #% 機率觸發等級 20 的暗影姿態', current: true },
+  { ref: '+#% chance to Suppress Spell Damage per Power Charge', zh: '每顆暴擊球 #% 壓抑法術傷害率', current: true },
+  { ref: 'Monsters cannot steal or remove your Power, Frenzy or Endurance charges on Hit', zh: '怪物擊中時無法偷取或移除你的暴擊、狂怒、或耐力球', current: true },
+  { ref: 'You can have an additional Tincture active', zh: '你可以啟用額外一個萃取物', current: true },
   { ref: '#% chance to Blind Enemies on hit', zh: '擊中時有 #% 機率致盲敵人' },
-  { ref: '#% chance to Trigger Explosive Toad when you kill an Enemy', zh: '當你擊殺一名敵人時有 #% 機率觸發爆炸蟾蜍' },
-  { ref: '#% chance to Trigger Level 20 Shade Form when you Use a Socketed Skill', zh: '當你使用插槽中的技能時，有 #% 機率觸發等級 20 的暗影姿態' },
   { ref: '#% increased chance of Ritual Altars with Special Rewards', zh: '增加 #% 祭祀神壇出現特殊獎勵的機率' },
   { ref: '#% increased chance of Ritual Altars with Special Rewards', zh: '減少 #% 祭祀神壇出現特殊獎勵的機率', negate: true },
-  { ref: '#% increased time before Lockdown', zh: '封鎖前增加 #% 時間' },
-  { ref: '#% increased time before Lockdown', zh: '封鎖前減少 #% 時間', negate: true },
-  { ref: '#% increased Trap Disarmament speed', zh: '增加 #% 拆除陷阱速度' },
-  { ref: '#% increased Trap Disarmament speed', zh: '減少 #% 拆除陷阱速度', negate: true },
-  { ref: '+# to Trap Disarmament Level for Heists', zh: '為劫盜 # 拆除陷阱等級' },
-  { ref: '+# to maximum number of Summoned Searing Bond Totems', zh: '#最大召喚灼熱連結圖騰數量' },
-  { ref: '+#% chance to Suppress Spell Damage per Power Charge', zh: '每顆暴擊球 #% 壓抑法術傷害率' },
-  { ref: 'Map Bosses have #% chance to be surrounded by Tormented Spirits', zh: '地圖頭目有 #% 機率受罪魂包圍' },
-  { ref: 'Monsters cannot steal or remove your Power, Frenzy or Endurance charges on Hit', zh: '怪物擊中時無法偷取或移除你的暴擊、狂怒、或耐力球' },
-  { ref: 'Monsters take #% increased Damage', zh: '怪物增加 #% 傷害' },
-  { ref: 'Monsters take #% increased Damage', zh: '怪物減少 #% 傷害', negate: true },
-  { ref: 'You can have an additional Tincture active', zh: '你可以啟用額外一個萃取物' }
+  { ref: 'Map Bosses have #% chance to be surrounded by Tormented Spirits', zh: '地圖頭目有 #% 機率受罪魂包圍' }
 ]
 
 /** 規則 11:`EXTRA_ZH_MATCHERS` → 繁中多一個 matcher @returns {{ adds: any[] }} */
@@ -740,7 +731,10 @@ export function planExtraZh ({ zhStats, ggpkNew }) {
     // negate 的那一句在 GGPK 的英文是 reduced
     if (!have.length || have.every(s => s.matchers.some(m => m.string === x.zh)) || !inGgpk.has(`${cmpKey(x.negate ? x.ref.replace('increased', 'reduced') : x.ref)}|${x.zh}`)) continue
     // superseded:解析器照樣比對,正則「物品詞綴數值」頁不拿它當模板(否則這條變成多種寫法而被排除)
-    adds.push({ lang: 'cmn-Hant', ref: x.ref, matcher: { string: x.zh, ...(x.negate ? { negate: true } : {}), superseded: true } })
+    // supersedes: ''(逐字對不到任何舊句)→ applyStatPlan 在同旗標的舊 matcher 恰好一條時把它標 superseded
+    adds.push(x.current
+      ? { lang: 'cmn-Hant', ref: x.ref, matcher: { string: x.zh }, supersedes: '' }
+      : { lang: 'cmn-Hant', ref: x.ref, matcher: { string: x.zh, ...(x.negate ? { negate: true } : {}), superseded: true } })
   }
   return { adds }
 }

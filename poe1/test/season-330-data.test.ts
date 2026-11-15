@@ -191,12 +191,12 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(refsOf(jewel)).toContain('+#% to Critical Strike Multiplier with One Handed Melee Weapons')
   })
 
-  it('D17c GGPK 比對補的繁中寫法(2026-11-15):新舊寫法都解析成同一條,減少的寫法是反向', () => {
-    const item = parse(ringText('cmn-Hant', [['+30% 弓暴擊加成', '持弓時 +30% 暴擊加成', '擊中時有 10% 機率致盲敵人', '減少 12% 拆除陷阱速度']]))
+  it('D17c GGPK 比對補的繁中寫法(2026-11-15):新舊寫法都解析成同一條,減少的寫法數值為負', () => {
+    const item = parse(ringText('cmn-Hant', [['+30% 弓暴擊加成', '持弓時 +30% 暴擊加成', '減少 12% 祭祀神壇出現特殊獎勵的機率']]))
     expect(unknownOf(item)).toEqual([])
-    expect(refsOf(item)).toEqual(expect.arrayContaining([
-      '+#% to Critical Strike Multiplier with Bows', '#% chance to Blind Enemies on hit', '#% increased Trap Disarmament speed'
-    ]))
+    expect(refsOf(item)).toContain('+#% to Critical Strike Multiplier with Bows')
+    const ritual = item.statsByType.find(s => s.stat.ref === '#% increased chance of Ritual Altars with Special Rewards')
+    expect(ritual?.sources[0].stat.roll?.value).toBe(-12)
   })
 
   it('D18 破裂的「+#%物品稀有度」(使用者 2026-11-15 貼的實機手套)解析成原詞綴並帶破裂 id', () => {
