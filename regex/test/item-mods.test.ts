@@ -277,6 +277,10 @@ const COMMON: Array<{ ref: string, m: number, zh: string, en: string }> = [
 
 // T6(2026-10-09):行尾可接「空白 + 括號標記」(破裂 / 固定 / 符文…),原本以 `$` 結尾的片段改以 `($| \()` 結尾
 describe('PoE1 常用 10 條', () => {
+  it('繁中模板用現行寫法,不用標 superseded 的舊句(單手近戰武器暴擊加成)', () => {
+    expect(DATA.poe1.entries.find(e => e.id === 'stat_670153687')?.zh).toBe('#% 單手近戰武器暴擊加成')
+  })
+
   const find = (ref: string): ItemModEntryData => {
     const e = DATA.poe1.entries.find(x => x.ref === ref)
     if (!e) throw new Error(`沒有 ${ref}`)

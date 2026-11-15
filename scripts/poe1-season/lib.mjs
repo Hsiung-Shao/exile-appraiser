@@ -697,6 +697,7 @@ export function planMinionDoubled ({ enStats, zhStats, ggpkNew }) {
  * - 沒有 `current`:兩種寫法遊戲裡都有(另一句在別的描述檔)→ 新句標 superseded(正則頁不拿它當模板)。
  *   `# 點命中`:3.30 手套後綴「獅眼之」顯示「+587 點命中」(GitHub issue #9),資料只有「# 命中值」。
  * - `current: true`:專案原句在 GGPK 任何描述檔都找不到(APT 留下的舊句 / 錯字 / 沒翻)→ 新句是現行寫法,舊句標 superseded。
+ *   同旗標的舊 matcher 不只一條時用 `old` 指名要標的那一句(祭祀神壇:另一句「你地圖中的…」是輿圖天賦的現行寫法)。
  *   單手近戰武器暴擊加成有實機樣本(2026-11-15 翠綠珠寶);其餘是同日 GGPK 3.30 比對補的(使用者裁定沒有實機樣本也補)。
  * 加新條目前先確認新句在 GGPK 屬於同一個 stat(同一句英文可能對到好幾個 stat,繁中各不相同)。
  */
@@ -717,8 +718,8 @@ export const EXTRA_ZH_MATCHERS = [
   { ref: 'Monsters cannot steal or remove your Power, Frenzy or Endurance charges on Hit', zh: '怪物擊中時無法偷取或移除你的暴擊、狂怒、或耐力球', current: true },
   { ref: 'You can have an additional Tincture active', zh: '你可以啟用額外一個萃取物', current: true },
   { ref: '#% chance to Blind Enemies on hit', zh: '擊中時有 #% 機率致盲敵人' },
-  { ref: '#% increased chance of Ritual Altars with Special Rewards', zh: '增加 #% 祭祀神壇出現特殊獎勵的機率' },
-  { ref: '#% increased chance of Ritual Altars with Special Rewards', zh: '減少 #% 祭祀神壇出現特殊獎勵的機率', negate: true },
+  { ref: '#% increased chance of Ritual Altars with Special Rewards', zh: '增加 #% 祭祀神壇出現特殊獎勵的機率', current: true, old: '增加 #% 特殊獎勵出現於祭祀神壇的機率' },
+  { ref: '#% increased chance of Ritual Altars with Special Rewards', zh: '減少 #% 祭祀神壇出現特殊獎勵的機率', negate: true, current: true, old: '減少 #% 特殊獎勵出現於祭祀神壇的機率' },
   { ref: 'Map Bosses have #% chance to be surrounded by Tormented Spirits', zh: '地圖頭目有 #% 機率受罪魂包圍' }
 ]
 
@@ -731,9 +732,9 @@ export function planExtraZh ({ zhStats, ggpkNew }) {
     // negate 的那一句在 GGPK 的英文是 reduced
     if (!have.length || have.every(s => s.matchers.some(m => m.string === x.zh)) || !inGgpk.has(`${cmpKey(x.negate ? x.ref.replace('increased', 'reduced') : x.ref)}|${x.zh}`)) continue
     // superseded:解析器照樣比對,正則「物品詞綴數值」頁不拿它當模板(否則這條變成多種寫法而被排除)
-    // supersedes: ''(逐字對不到任何舊句)→ applyStatPlan 在同旗標的舊 matcher 恰好一條時把它標 superseded
+    // supersedes:有 old 就標那一句;''(逐字對不到任何舊句)→ applyStatPlan 在同旗標的舊 matcher 恰好一條時標它
     adds.push(x.current
-      ? { lang: 'cmn-Hant', ref: x.ref, matcher: { string: x.zh }, supersedes: '' }
+      ? { lang: 'cmn-Hant', ref: x.ref, matcher: { string: x.zh, ...(x.negate ? { negate: true } : {}) }, supersedes: x.old ?? '' }
       : { lang: 'cmn-Hant', ref: x.ref, matcher: { string: x.zh, ...(x.negate ? { negate: true } : {}), superseded: true } })
   }
   return { adds }
