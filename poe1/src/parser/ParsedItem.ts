@@ -38,6 +38,8 @@ export interface ParsedItem {
   mapArea?: BaseType
   areaLevel?: number
   areaItemQuantity?: number
+  // exile-appraiser: 3.30「輿圖掉落物」
+  areaAtlasDrops?: number
   areaItemRarity?: number
   areaPackSize?: number
   mapCompletionReward?: BaseType

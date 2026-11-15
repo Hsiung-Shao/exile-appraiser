@@ -145,10 +145,14 @@ export interface TranslationDict {
   RARITY_QUEST: string
   MAP_TIER: RegExp
   MAP_ITEM_QUANTITY: string
+  // exile-appraiser: 3.30 新屬性行「輿圖掉落物」
+  MAP_ATLAS_DROPS: string
   MAP_ITEM_RARITY: string
   MAP_MONSTER_PACK_SIZE: string
   MAP_MORE_MAPS: string
   MAP_MORE_SCARABS: string
+  // exile-appraiser: 3.30 聖甲蟲改名綢帶,「更多聖甲蟲」行變成「更多 綢帶」
+  MAP_MORE_THREADS: string
   MAP_MORE_CURRENCY: string
   MAP_MORE_DIVINATION_CARDS: string
   MAP_COMPLETION_REWARD: RegExp

@@ -367,6 +367,10 @@ function parseAreaPropNested (line: string, item: ParsedItem): boolean {
   if (line.startsWith(_$.MAP_ITEM_QUANTITY)) {
     item.areaItemQuantity = parseInt(line.slice(_$.MAP_ITEM_QUANTITY.length), 10)
     return true
+  } else if (line.startsWith(_$.MAP_ATLAS_DROPS)) {
+    // exile-appraiser: 3.30「輿圖掉落物: +49%」
+    item.areaAtlasDrops = parseInt(line.slice(_$.MAP_ATLAS_DROPS.length), 10)
+    return true
   } else if (line.startsWith(_$.MAP_ITEM_RARITY)) {
     item.areaItemRarity = parseInt(line.slice(_$.MAP_ITEM_RARITY.length), 10)
     return true
@@ -390,6 +394,10 @@ function parseMap (section: string[], item: ParsedItem) {
       isParsed = 'SECTION_PARSED'
     } else if (line.startsWith(_$.MAP_MORE_SCARABS)) {
       item.mapMoreScarabs = parseInt(line.slice(_$.MAP_MORE_SCARABS.length), 10)
+      isParsed = 'SECTION_PARSED'
+    } else if (line.startsWith(_$.MAP_MORE_THREADS)) {
+      // exile-appraiser: 3.30 聖甲蟲改名綢帶,同一個數值(交易站條件仍是 More Scarabs)
+      item.mapMoreScarabs = parseInt(line.slice(_$.MAP_MORE_THREADS.length), 10)
       isParsed = 'SECTION_PARSED'
     } else if (line.startsWith(_$.MAP_MORE_CURRENCY)) {
       item.mapMoreCurrency = parseInt(line.slice(_$.MAP_MORE_CURRENCY.length), 10)
