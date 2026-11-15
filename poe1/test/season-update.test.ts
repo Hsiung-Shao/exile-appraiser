@@ -525,6 +525,26 @@ describe('planNewStats', () => {
     expect(out[0].zh).toEqual([{ string: '獲得 # 甲' }])
   })
 
+  it('舊版就有的地圖 / 輿圖詞綴(stat id 全部 map_ 開頭,或出自地圖 / 輿圖描述檔)交易站有 id 也收(使用者 2026-11-15 要求)', () => {
+    const old = [
+      row('map_monsters_foo_+%|#|stat_descriptions.txt|0', 'Monsters have {0}% more Foo', '怪物有 {0}% 更多甲'),
+      row('breach_bar|#|atlas_stat_descriptions.txt|0', 'Breaches in your Maps have {0} Bar', '你地圖中的裂痕有 {0} 乙'),
+      row('local_baz_+%|#|stat_descriptions.txt|0', '{0}% increased Baz', '增加 {0}% 丙'),
+      row('map_one map_two|#|map_stat_descriptions.txt|0', 'Area has {0} One', '區域有 {0} 丁'),
+      row('map_fixed|#|stat_descriptions.txt|0', 'Area has 2 Qux', '區域有 2 戊'),
+      // 同一句話一般描述檔也有 → 交易站的 id 可能是裝備那條,不收
+      row('atlas_minion|#|atlas_stat_descriptions.txt|0', 'Minions have {0}% Dup', '召喚物有 {0}% 己'), row('minion_dup|#|stat_descriptions.txt|0', 'Minions have {0}% Dup', '召喚物有 {0}% 己')
+    ]
+    const trade = [
+      { id: 'explicit.stat_1', text: 'Monsters have #% more Foo' }, { id: 'explicit.stat_2', text: 'Breaches in your Maps have # Bar' },
+      { id: 'explicit.stat_3', text: '#% increased Baz' }, { id: 'explicit.stat_4', text: 'Area has # One' }, { id: 'explicit.stat_5', text: 'Area has 2 Qux' }, { id: 'explicit.stat_6', text: 'Minions have #% Dup' }
+    ]
+    const enStats = [{ ref: 'Area has # Qux', matchers: [{ string: 'Area has # Qux' }], trade: { ids: {} } }]
+    const out = planNewStats({ enStats, ggpkOld: old, ggpkNew: old, tradeStats: trade })
+    // 非地圖的舊詞綴不收;英文把數字換成 # 後與既有 matcher 同形的不收
+    expect(out.map((s: any) => s.ref)).toEqual(['Monsters have #% more Foo', 'Breaches in your Maps have # Bar', 'Area has # One'])
+  })
+
   it('繁中新句把數字換成 # 後與既有 matcher 同形的不加(會搶走既有詞綴的比對)', () => {
     const fixed = [row('new_fixed', 'Gain 1 Foo on Hit', '擊中時獲得 1 甲')]
     const zhStats = [{ ref: 'Gain # Foo when Hit', matchers: [{ string: '擊中時獲得 # 甲' }] }]
