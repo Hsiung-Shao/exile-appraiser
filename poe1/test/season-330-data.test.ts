@@ -201,11 +201,13 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(hit?.stat.trade.ids.explicit).toEqual(['explicit.indexable_support_115', 'explicit.effect_3024539694'])
   })
 
-  it('D21 使用者 2026-11-15 貼的兩張 3.30 實機地圖沒有未解析詞綴(0.3.9「區域內含有一座蜃景」沒掛隨機 id)', () => {
+  it('D21 使用者 2026-11-15 貼的四張 3.30 實機地圖沒有未解析詞綴(0.3.9「區域內含有一座蜃景」沒掛隨機 id)', () => {
     const mirage = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-map-mirage.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(mirage)).toEqual([])
     expect(mirage.statsByType.find(s => s.stat.ref === 'Area contains an Empowered Mirage which covers the entire Map')?.stat.trade.ids.explicit).toContain('explicit.stat_2436559047')
-    expect(unknownOf(parse(fs.readFileSync(path.join(HERE, 'docs/3.30-map-buried-sentinel.cmn-Hant.txt'), 'utf8')))).toEqual([])
+    for (const f of ['buried-sentinel', 'katash-summoner', 'always-ignite']) {
+      expect(unknownOf(parse(fs.readFileSync(path.join(HERE, `docs/3.30-map-${f}.cmn-Hant.txt`), 'utf8'))), f).toEqual([])
+    }
   })
 
   it('D10「插槽中的寶石被等級 # 的 X輔助 輔助」3.30 寫法(使用者 2026-11-14 回報的混響)沒有未解析詞綴', () => {
