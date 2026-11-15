@@ -862,11 +862,17 @@ async function dropIdsUnknownToRealm (ctx: TradeContext, body: TradeRequest): Pr
   // 選項型 id(`X|n`)清單裡可能只有 `X`
   const ok = (id: string) => known.has(id) || known.has(id.split('|')[0])
   const dropped: string[] = []
-  const stats = body.query.stats.flatMap(g => {
-    const kept = g.filters.filter(f => ok(f.id) || (dropped.push(f.id), false))
+  const stats = body.query.stats.flatMap((g, i) => {
+    const kept = g.filters.filter(f => ok(f.id))
     if (kept.length === g.filters.length) return [g]
-    // count 群組一個都不剩 = 這個條件台服表達不了,整組拿掉(留著空群組會變成「至少 1 個」永遠不成立)
-    return kept.length || g.type !== 'count' ? [{ ...g, filters: kept }] : []
+    // 可以只拿掉一部分的:and / not(各條件獨立)與「count、只有 min 1」(同一條詞綴的新舊 id,任一成立)。
+    // 其他帶數量的群組(count 有 max 或 min > 1、傭兵加權…)少了一個 id 語意就變了、甚至湊不到 min → 整組拿掉
+    const partial = g.type === 'and' || g.type === 'not' ||
+      (g.type === 'count' && g.value?.min === 1 && g.value.max === undefined)
+    const next = partial ? kept : []
+    dropped.push(...g.filters.filter(f => !next.includes(f)).map(f => f.id))
+    // 第一個 and 群組是固定有的(可以是空的);其餘清空就不送
+    return next.length || (i === 0 && g.type === 'and') ? [{ ...g, filters: next }] : []
   })
   if (!dropped.length) return body
   console.warn(`[trade] 台服交易站清單沒有這些 id,已從查詢拿掉:${dropped.join(', ')}`)
