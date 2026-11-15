@@ -228,6 +228,15 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(item.statsByType.flatMap(s => s.stat.trade.ids.explicit ?? [])).toContain('explicit.effect_3161048706')
   })
 
+  it('D25 臟器「巫會之后冠」(使用者 2026-11-15 貼的實機文字):三條固定詞綴都解析得到(0.3.9 海洋球那條沒掛固定 id)', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-coven-queens-crown.cmn-Hant.txt'), 'utf8'))
+    expect(item.info.refName).toBe("Coven Queen's Crown")
+    expect(unknownOf(item)).toEqual([])
+    const brine = item.statsByType.find(s => s.stat.ref === '#% chance to gain a Brine Charge instead of an Endurance Charge')
+    expect(brine?.type).toBe('implicit')
+    expect(brine?.stat.trade.ids.implicit).toContain('implicit.stat_3682839745')
+  })
+
   it('D10「插槽中的寶石被等級 # 的 X輔助 輔助」3.30 寫法(使用者 2026-11-14 回報的混響)沒有未解析詞綴', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-reverberation-rod.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
