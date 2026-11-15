@@ -180,6 +180,14 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(refsOf(gloves)).toContain('+# to Accuracy Rating')
   })
 
+  it('D18 破裂的「+#%物品稀有度」(使用者 2026-11-15 貼的實機手套)解析成原詞綴並帶破裂 id', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-fractured-rarity-gloves.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(item)).toEqual([])
+    const hit = item.statsByType.find(s => s.stat.ref === RARITY_REF)
+    expect(hit?.type).toBe('fractured')
+    expect(hit?.stat.trade.ids.fractured).toContain('fractured.stat_3917489142')
+  })
+
   it('D10「插槽中的寶石被等級 # 的 X輔助 輔助」3.30 寫法(使用者 2026-11-14 回報的混響)沒有未解析詞綴', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-reverberation-rod.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
