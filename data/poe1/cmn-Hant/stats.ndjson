@@ -10057,3 +10057,4 @@
 {"ref":"Rare Monsters in your Maps have #% chance to drop an additional Rare Jewellery Item","better":1,"matchers":[{"string":"你地圖中的稀有怪物有 #% 機率掉落 1 個額外稀有飾品"}],"trade":{"ids":{"explicit":["explicit.stat_4028855406"]}}}
 {"ref":"Rare Monsters in your Maps have #% chance to drop an additional Rare Weapon","better":1,"matchers":[{"string":"你地圖中的稀有怪物有 #% 機率掉落 1 個額外稀有武器"}],"trade":{"ids":{"explicit":["explicit.stat_2737229970"]}}}
 {"ref":"# uses remaining","better":1,"matchers":[{"string":"剩 # 次使用"}],"trade":{"ids":{"explicit":["explicit.stat_1479533453"],"enchant":["enchant.stat_290368246"]}}}
+{"ref":"#% increased Action Speed while Ignited","better":1,"matchers":[{"string":"點燃時增加#%行動速度"}],"trade":{"ids":{"implicit":["implicit.stat_3548404923"]}}}

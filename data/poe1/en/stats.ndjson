@@ -10074,3 +10074,4 @@
 {"ref":"Rare Monsters in your Maps have #% chance to drop an additional Rare Jewellery Item","better":1,"matchers":[{"string":"Rare Monsters in your Maps have #% chance to drop an additional Rare Jewellery Item"}],"trade":{"ids":{"explicit":["explicit.stat_4028855406"]}}}
 {"ref":"Rare Monsters in your Maps have #% chance to drop an additional Rare Weapon","better":1,"matchers":[{"string":"Rare Monsters in your Maps have #% chance to drop an additional Rare Weapon"}],"trade":{"ids":{"explicit":["explicit.stat_2737229970"]}}}
 {"ref":"# uses remaining","better":1,"matchers":[{"string":"# uses remaining"}],"trade":{"ids":{"explicit":["explicit.stat_1479533453"],"enchant":["enchant.stat_290368246"]}}}
+{"ref":"#% increased Action Speed while Ignited","better":1,"matchers":[{"string":"#% increased Action Speed while Ignited"}],"trade":{"ids":{"implicit":["implicit.stat_3548404923"]}}}

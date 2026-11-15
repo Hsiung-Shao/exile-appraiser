@@ -48,6 +48,11 @@ describe('3.30 詞綴寫法(en)', () => {
     await loadForLang('en')
   })
 
+  it('D23 en:Twice Corrupted 視為已汙染', () => {
+    expect(parse(ringText('en', [LIFE_EN, ['Twice Corrupted']])).isCorrupted).toBe(true)
+    expect(parse(ringText('en', [LIFE_EN, ['Corrupted']])).isCorrupted).toBe(true)
+  })
+
   it('D1 新稀有度寫法 "+15% to Item Rarity" 解析成原詞綴', () => {
     const item = parse(ringText('en', [['+15% to Item Rarity', '+68 to maximum Life']]))
     expect(unknownOf(item)).toEqual([])
@@ -208,6 +213,13 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     for (const f of ['buried-sentinel', 'katash-summoner', 'always-ignite']) {
       expect(unknownOf(parse(fs.readFileSync(path.join(HERE, `docs/3.30-map-${f}.cmn-Hant.txt`), 'utf8'))), f).toEqual([])
     }
+  })
+
+  it('D23「二次汙染」(3.30 新狀態,clientstrings ItemPopupDoubleCorrupted;使用者 2026-11-15 回報預設成未汙染)視為已汙染', () => {
+    expect(parse(ringText('cmn-Hant', [LIFE_ZH, ['二次汙染']])).isCorrupted).toBe(true)
+    expect(parse(ringText('cmn-Hant', [LIFE_ZH, ['已汙染']])).isCorrupted).toBe(true)
+    expect(parse(ringText('cmn-Hant', [LIFE_ZH])).isCorrupted).toBe(false)
+    expect(parse(fs.readFileSync(path.join(HERE, 'docs/3.30-map-mirage.cmn-Hant.txt'), 'utf8')).isCorrupted).toBe(true)
   })
 
   it('D10「插槽中的寶石被等級 # 的 X輔助 輔助」3.30 寫法(使用者 2026-11-14 回報的混響)沒有未解析詞綴', () => {

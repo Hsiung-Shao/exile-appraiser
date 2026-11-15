@@ -38,6 +38,7 @@ export default {
   TAG_WARD: '保護: ',
   BLOCK_CHANCE: '格擋率: ',
   CORRUPTED: '已汙染',
+  CORRUPTED_TWICE: '二次汙染',
   UNIDENTIFIED: '未鑑定',
   ITEM_SUPERIOR: /^精良的 (.*)$/,
   MAP_BLIGHTED: /^凋落的 (.*)$/,
