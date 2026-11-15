@@ -303,11 +303,15 @@ export function _resolveTranslation (
     return stats.find(stat =>
       stat.matchers.some(m => m.string === matchStr || m.advanced === matchStr))
   } else if (resolve.strat === 'flag-merge') {
-    if (roll === undefined) return undefined
+    // exile-appraiser: 句子裡沒有數字(繁中「箭矢穿透一個額外目標」)時 roll 是 undefined,
+    // 改取命中那句 matcher 自帶的 value;上游直接放棄 → 整條變成無法辨識
+    const rollOrFixed = roll ?? stats.flatMap(stat => stat.matchers)
+      .find(m => (m.string === matchStr || m.advanced === matchStr) && m.value !== undefined)?.value
+    if (rollOrFixed === undefined) return undefined
     const valStat = stats[resolve.kind.indexOf('value')]
     const flagStat = stats[resolve.kind.indexOf('flag')]
     const flagRoll = flagStat.matchers[0].value!
-    if (roll === flagRoll) {
+    if (rollOrFixed === flagRoll) {
       _mergeTradeIdsInto(valStat, flagStat, '{empty}')
     }
     return valStat

@@ -199,6 +199,14 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(ritual?.sources[0].stat.roll?.value).toBe(-12)
   })
 
+  it('D17d 箭袋固定詞綴「箭矢穿透一個額外目標」(句子沒有數字,使用者 2026-11-16 實機箭袋)解析得到並帶兩個固定詞綴 id', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-penetrating-quiver.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(item)).toEqual([])
+    const hit = item.statsByType.find(s => s.stat.ref === 'Arrows Pierce an additional Target')
+    expect(hit?.type).toBe('implicit')
+    expect(hit?.stat.trade.ids.implicit).toEqual(['implicit.stat_3423006863', '{empty}implicit.stat_3492025235'])
+  })
+
   it('D18 破裂的「+#%物品稀有度」(使用者 2026-11-15 貼的實機手套)解析成原詞綴並帶破裂 id', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-fractured-rarity-gloves.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
