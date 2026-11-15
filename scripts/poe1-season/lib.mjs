@@ -319,8 +319,9 @@ export function planFillIds ({ enStats, tradeStats }) {
  * 專案已有同一個技能的舊句(ref = 交易站文字[ + ` Skill`])→ 只加新寫法、舊句標 superseded,id 下一輪由規則 14 補;否則新增一列。
  * @returns {{ newStats: any[], adds: any[], rejects: any[] }}
  */
-export function planEffectStats ({ enStats, zhStats, tradeStats, skills, supports, strings = {} }) {
-  const used = new Set()
+export function planEffectStats ({ enStats, zhStats, tradeStats, skills, supports, strings = {}, taken = /** @type {string[]} */ ([]) }) {
+  // taken:同一輪規則 14 會掛到既有詞綴上的 id(不先扣掉會替同一個 id 另外新增一列)
+  const used = new Set(taken)
   for (const stat of eachStat(enStats)) for (const id of allIds(stat)) used.add(id)
   const byRef = groupBy([...eachStat(enStats)], s => s.ref)
   const zhByRef = groupBy([...eachStat(zhStats)], s => s.ref)
@@ -344,7 +345,9 @@ export function planEffectStats ({ enStats, zhStats, tradeStats, skills, support
     if (!kind || zhNames.length !== 1) { rejects.push({ reason: 'GGPK 沒有唯一的技能 / 寶石繁中名', id: e.id, to: e.text, candidates: zhNames }); continue }
     const en = fill(kind.tpl.en, name)
     const zh = fill(kind.tpl.zh, zhNames[0])
-    const old = (byRef.get(e.text) ?? byRef.get(`${e.text} Skill`) ?? [])[0]
+    // 舊列 ref 沒有「 Support」的寫法只認還沒有任何 id 的(有 id 的那種與「(Random Support Gem)」列並存,新 id 由規則 14 掛到後者)
+    const bare = (byRef.get(e.text.replace(/ Support$/, '')) ?? []).filter(x => !allIds(x).length)
+    const old = (byRef.get(e.text) ?? byRef.get(`${e.text} Skill`) ?? bare)[0]
     const oldZh = old && (zhByRef.get(old.ref) ?? [])[0]
     if (old && oldZh) {
       if (live(old).length === 1 && !old.matchers.some(m => m.string === en)) adds.push({ lang: 'en', ref: old.ref, matcher: { string: en }, supersedes: live(old)[0].string })
@@ -360,14 +363,16 @@ export function planEffectStats ({ enStats, zhStats, tradeStats, skills, support
  * 規則 16:交易站有、專案沒有任何詞綴引用的 id(隨機 / 固定 / 破裂 / 工藝),而專案裡有文字相同的詞綴 → 把 id 掛上去
  * (逐條比對 `audit-trade-ids.mjs` 的「沒引用 A / B」:同一條詞綴少掛了某個類型的 id)。
  * 只收文字(ref 或現行英文 matcher,寬鬆鍵)相同且唯一的那一條;同文字不只一條、選項型 id(`X|n`)、
- * 在合併群組裡的詞綴(類型會影響群組內選哪一條)都拒收。
+ * 在合併群組裡的詞綴(類型會影響群組內選哪一條)、雜湊與該詞綴既有 id 不同的都拒收。
  * @returns {{ extra: Record<string, Record<string, string[]>>, rejects: any[] }}
  */
 export const TYPE_ID_GROUPS = ['explicit', 'implicit', 'fractured', 'crafted']
 export function planTypeIds ({ enStats, tradeStats }) {
   const used = new Set()
   const grouped = new Set()
-  const typed = new Set()
+  const hashOf = (id) => id.slice(id.indexOf('.') + 1)
+  /** @type {Map<string, Set<string>>} */
+  const hashes = new Map()
   /** @type {Map<string, Set<string>>} */
   const refsByText = new Map()
   for (const row of enStats) {
@@ -375,8 +380,7 @@ export function planTypeIds ({ enStats, tradeStats }) {
       if (!stat.matchers) continue
       if (row.stats) grouped.add(stat.ref)
       for (const id of allIds(stat)) used.add(id)
-      for (const [type, ids] of Object.entries(stat.trade?.ids ?? {})) if (ids.length) typed.add(`${type}
-${stat.ref}`)
+      for (const id of allIds(stat)) (hashes.get(stat.ref) ?? hashes.set(stat.ref, new Set()).get(stat.ref)).add(hashOf(id))
       for (const k of [cmpKey(stat.ref), ...stat.matchers.filter(m => !m.superseded).map(m => cmpKey(m.string))]) {
         if (!refsByText.has(k)) refsByText.set(k, new Set())
         refsByText.get(k).add(stat.ref)
@@ -395,9 +399,9 @@ ${stat.ref}`)
     if (refs.length > 1) reject('同文字的詞綴不只一條')
     else if (e.id.includes('|')) reject('選項型 id')
     else if (grouped.has(refs[0])) reject('在合併群組裡')
-    // 同類型已有別的 id = 交易站把同一句話給了兩個不同的 stat(例:地圖的「#% more Monster Life」),不確定是不是同一條,不併送
-    else if (typed.has(`${type}
-${refs[0]}`)) reject('該類型已有別的 id')
+    // 交易站會把同一句話給兩個不同的 stat(例:地圖的「#% more Monster Life」);只收與該詞綴既有 id 同一個雜湊的(= 同一個 stat 少掛了某個類型),
+    // 雜湊不同就不確定是不是同一條,任何類型都不掛(審查 2026-11-15:只擋同類型會讓破裂 / 固定掛到另一個 stat)
+    else if (!hashes.get(refs[0])?.has(hashOf(e.id))) reject('與既有 id 不是同一個 stat')
     else if (!((extra[refs[0]] ??= {})[type] ??= []).includes(e.id)) extra[refs[0]][type].push(e.id)
   }
   return { extra, rejects }

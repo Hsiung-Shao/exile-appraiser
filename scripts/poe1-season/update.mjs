@@ -67,7 +67,7 @@ const minions = planMinionDoubled({ enStats: afterA.en, zhStats: afterA['cmn-Han
 const grants = planGrantsSkill({ enStats: afterA.en, zhStats: afterA['cmn-Hant'], skills: ggpk.skills, template: ggpk.strings?.ModGrantsEffectWithLevel })
 const extraZh = planExtraZh({ zhStats: afterA['cmn-Hant'], ggpkNew: ggpk.stats.new })
 const adds = [...ruleA.adds, ...ruleB.adds, ...gemNames.adds, ...minions.adds, ...extraZh.adds, ...grants.adds]
-const effects = planEffectStats({ enStats: rows(applyStatPlan(text['en/stats'], 'en', { adds })), zhStats: afterA['cmn-Hant'], tradeStats, skills: ggpk.skills, supports: ggpk.supports ?? [], strings: ggpk.strings })
+const effects = planEffectStats({ enStats: rows(applyStatPlan(text['en/stats'], 'en', { adds })), zhStats: rows(applyStatPlan(text['cmn-Hant/stats'], 'cmn-Hant', { adds })), tradeStats, skills: ggpk.skills, supports: ggpk.supports ?? [], strings: ggpk.strings, taken: Object.values(planFillIds({ enStats: rows(applyStatPlan(text['en/stats'], 'en', { adds })), tradeStats })).flatMap(t => Object.values(t).flat()) })
 adds.push(...effects.adds)
 const afterB = rows(applyStatPlan(text['en/stats'], 'en', { adds }))
 const dead = planDeadIds({ enStats: afterB, tradeStats })
