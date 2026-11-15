@@ -131,6 +131,10 @@
       <label class="chk"><input v-model="config.hardwareAcceleration" type="checkbox" data-setting="hardware-acceleration"><span>{{ t('ppz.hw_accel.label') }}</span></label>
       <help-tip id="hardware-acceleration" data-setting="hardware-acceleration-note" :text="t('ppz.hw_accel.note')" />
     </div>
+    <div v-if="hwAccelPending" class="hw-restart" data-setting="hardware-acceleration-restart">
+      <span class="warn-text">{{ t('ppz.hw_accel.restart_needed') }}</span>
+      <button v-if="canRelaunch" class="btn sm" data-action="relaunch" :disabled="relaunching" @click="relaunch">{{ t('ppz.hw_accel.restart_now') }}</button>
+    </div>
     <!-- 2026-11-16:建立桌面捷徑(只有 Electron 視窗;釘選到工作列只能由使用者在捷徑上按右鍵) -->
     <div v-if="canCreateShortcut" class="srow" data-setting="desktop-shortcut">
       <span class="k">{{ t('ppz.desktop_shortcut.label') }}</span>
@@ -140,10 +144,6 @@
       </div>
     </div>
     <p v-if="canCreateShortcut" class="lead" data-setting="desktop-shortcut-hint">{{ t('ppz.desktop_shortcut.hint') }}</p>
-    <div v-if="hwAccelPending" class="hw-restart" data-setting="hardware-acceleration-restart">
-      <span class="warn-text">{{ t('ppz.hw_accel.restart_needed') }}</span>
-      <button v-if="canRelaunch" class="btn sm" data-action="relaunch" :disabled="relaunching" @click="relaunch">{{ t('ppz.hw_accel.restart_now') }}</button>
-    </div>
   </section>
 
   <!-- 2026-11-09:計時器(移植 APT 碼表;只在 overlay 模式) -->
@@ -240,6 +240,7 @@ export default defineComponent({
     const shortcutState = shallowRef<'' | 'done' | 'dev' | 'failed'>('')
     async function createShortcut () {
       shortcutBusy.value = true
+      shortcutState.value = '' // 先清掉,連按兩次也看得到結果重新出現
       shortcutState.value = await Host.createDesktopShortcut()
       shortcutBusy.value = false
     }

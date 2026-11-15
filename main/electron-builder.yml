@@ -34,7 +34,7 @@ nsis:
   # 檔名固定(無空白):latest.yml 的 path/url 指向它,GitHub Release 的資產名必須一致
   artifactName: "${productName}-Setup-${version}.${ext}"
   allowToChangeInstallationDirectory: true
-  # 預設只在第一次安裝建立桌面捷徑;使用者刪掉後重裝 / 升級也要補回
+  # 預設只在第一次安裝建立桌面捷徑;always = 手動再跑安裝檔時補回(自動更新帶 --updated,不會補;那時用設定 › 一般的按鈕)
   createDesktopShortcut: always
   createStartMenuShortcut: true
 win:

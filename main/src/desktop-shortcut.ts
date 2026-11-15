@@ -2,7 +2,7 @@
 // 釘選到工作列 Windows 不讓程式自己做,只能由使用者在捷徑上按右鍵。
 import path from 'node:path'
 
-/** 與安裝檔建立的捷徑同名(electron-builder 用 productName),按了不會多出第二個 */
+/** 與安裝檔建立的捷徑同名(electron-builder 用 productName),按了不會多出第二個(安裝時選「所有使用者」除外:那個在公用桌面) */
 export const DESKTOP_SHORTCUT_NAME = 'ExileAppraiser.lnk'
 /** = electron-builder.yml 的 appId;捷徑與執行中的視窗用同一個,釘選後才會歸成同一個工作列圖示 */
 export const APP_USER_MODEL_ID = 'com.hsiungshao.exile-appraiser'
