@@ -14,7 +14,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
-import { BETTER_OVERRIDES, eachStat, applyItemPlan, applyStatPlan, planDeadIds, planGems, planItems, planExtraZh, planEffectStats, planFillIds, planGrantsSkill, planMinionDoubled, planUniqueZhNames, planNewStats, planStatText, planSupportGemNames, planGrownPassives, planRoomNames, planTypeIds, planTradeBases, planTradeText, planUniques } from './lib.mjs'
+import { BETTER_OVERRIDES, eachStat, applyItemPlan, applyStatPlan, planDeadIds, planGems, planItems, planExtraZh, planEffectStats, planFillIds, planGrantsSkill, planMinionDoubled, planCitadel, planUniqueZhNames, planNewStats, planStatText, planSupportGemNames, planGrownPassives, planRoomNames, planTypeIds, planTradeBases, planTradeText, planUniques } from './lib.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(HERE, '../..')
@@ -65,9 +65,10 @@ const ruleB = planTradeText({ enStats: afterA.en, zhStats: afterA['cmn-Hant'], t
 const gemNames = planSupportGemNames({ enStats: afterA.en, zhStats: afterA['cmn-Hant'], ggpkNew: ggpk.stats.new, baseNew: ggpk.base.new })
 const minions = planMinionDoubled({ enStats: afterA.en, zhStats: afterA['cmn-Hant'], ggpkNew: ggpk.stats.new })
 const grants = planGrantsSkill({ enStats: afterA.en, zhStats: afterA['cmn-Hant'], skills: ggpk.skills, template: ggpk.strings?.ModGrantsEffectWithLevel })
+const citadels = planCitadel({ enStats: afterA.en, zhStats: afterA['cmn-Hant'], ggpkNew: ggpk.stats.new })
 const extraZh = planExtraZh({ zhStats: afterA['cmn-Hant'], ggpkNew: ggpk.stats.new })
 const roomNames = planRoomNames({ zhStats: afterA['cmn-Hant'], rooms: ggpk.rooms ?? [] })
-const adds = [...ruleA.adds, ...ruleB.adds, ...gemNames.adds, ...minions.adds, ...extraZh.adds, ...grants.adds, ...roomNames.adds]
+const adds = [...ruleA.adds, ...ruleB.adds, ...gemNames.adds, ...minions.adds, ...citadels.adds, ...extraZh.adds, ...grants.adds, ...roomNames.adds]
 const effects = planEffectStats({ enStats: rows(applyStatPlan(text['en/stats'], 'en', { adds })), zhStats: rows(applyStatPlan(text['cmn-Hant/stats'], 'cmn-Hant', { adds })), tradeStats, skills: ggpk.skills, supports: ggpk.supports ?? [], strings: ggpk.strings, taken: Object.values(planFillIds({ enStats: rows(applyStatPlan(text['en/stats'], 'en', { adds })), tradeStats })).flatMap(t => Object.values(t).flat()) })
 adds.push(...effects.adds)
 const afterB = rows(applyStatPlan(text['en/stats'], 'en', { adds }))
@@ -99,6 +100,7 @@ const summary = [
   `掛上缺的類型 id(規則 16):${Object.values(typeIds.extra).flatMap(x => Object.values(x)).flat().length} 個 id、${Object.keys(typeIds.extra).length} 條詞綴、拒收 ${typeIds.rejects.length}`,
   `洗出的塗油天賦(規則 18):新增 ${grown.newStats.length} 列、掛到既有詞綴 ${Object.keys(grown.extra).length} 條、拒收 ${grown.rejects.length}`,
   `史記房間名(規則 17):繁中 +${roomNames.adds.length} 個 matcher`,
+  `壁壘地圖(規則 19):en +${count(citadels.adds, 'en')} / 繁中 +${count(citadels.adds, 'cmn-Hant')} 個 matcher`,
   `輔助寶石名(規則 8):en +${count(gemNames.adds, 'en')} / 繁中 +${count(gemNames.adds, 'cmn-Hant')} 個 matcher`,
   `失效 id:替換 ${Object.keys(dead.replace).length}、移除 ${dead.remove.length}`,
   `新詞綴:${newStats.length} 列;方向校正 ${betterFix} 條;補交易站 id ${Object.keys(fill).length} 條`,

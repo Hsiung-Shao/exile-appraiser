@@ -693,6 +693,32 @@ export function planMinionDoubled ({ enStats, zhStats, ggpkNew }) {
 }
 
 /**
+ * 規則 19:「地圖含有 X 的壁壘」3.30 改成句型「Map contains {0}」:第二行(物品數量增加獎勵)拿掉,
+ * 進階複製在名稱後加「(...)」(GitHub 回報 2026-11-16 的實機地圖:「地圖含有巴倫的壁壘(...) — 無法使用的值」)。
+ * 多一個單行寫法 + 進階寫法,舊的兩行句標 superseded。英文沒有樣本,空白照規則 10 推出。
+ * @returns {{ adds: any[] }}
+ */
+export function planCitadel ({ enStats, zhStats, ggpkNew }) {
+  const tpl = ggpkNew.find(r => r.key.startsWith('map_contains_citadel|') && r.en.includes('{0}'))
+  const adds = []
+  if (!tpl) return { adds }
+  const plan = (stats, lang, text, mark) => {
+    const head = toMatcherText(text).split('#')[0]
+    for (const stat of eachStat(stats)) {
+      if (!/^Map contains .+ Citadel\n/.test(stat.ref)) continue
+      for (const m of stat.matchers) {
+        const string = m.string.split('\n')[0]
+        if (m.superseded || !m.string.includes('\n') || !string.startsWith(head) || stat.matchers.some(x => x.string === string)) continue
+        adds.push({ lang, ref: stat.ref, matcher: { string, advanced: string + mark }, supersedes: [m.string] })
+      }
+    }
+  }
+  plan(enStats, 'en', tpl.en, ' (...)')
+  plan(zhStats, 'cmn-Hant', tpl.zh, '(...)')
+  return { adds }
+}
+
+/**
  * 同一條詞綴在遊戲裡的另一種繁中寫法。寫入前仍要在 GGPK 新版找得到這句(英文相同),找不到就不加。
  * - 沒有 `current`:兩種寫法遊戲裡都有(另一句在別的描述檔)→ 新句標 superseded(正則頁不拿它當模板)。
  *   `# 點命中`:3.30 手套後綴「獅眼之」顯示「+587 點命中」(GitHub issue #9),資料只有「# 命中值」。

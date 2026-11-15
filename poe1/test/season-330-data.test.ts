@@ -207,6 +207,15 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(hit?.stat.trade.ids.implicit).toEqual(['implicit.stat_3423006863', '{empty}implicit.stat_3492025235'])
   })
 
+  it('D17e 3.30 壁壘地圖的固定詞綴(進階複製「地圖含有巴倫的壁壘(...)」,2026-11-16 回報的實機地圖)解析得到並帶選項 id', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-map-baran-citadel.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(item)).toEqual([])
+    const hit = item.statsByType.find(s => s.stat.ref.startsWith("Map contains Baran's Citadel"))
+    expect(hit?.type).toBe('implicit')
+    expect(hit?.stat.trade.ids.implicit).toEqual(['implicit.stat_2563183002|1'])
+    expect(item.areaAtlasDrops).toBe(81)
+  })
+
   it('D18 破裂的「+#%物品稀有度」(使用者 2026-11-15 貼的實機手套)解析成原詞綴並帶破裂 id', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-fractured-rarity-gloves.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
