@@ -4,7 +4,7 @@
     <div v-if="choices" class="filter-name-seg" role="radiogroup" :aria-label="t('ppz.search_scope')">
       <button v-for="c in choices" :key="c.id" role="radio" :aria-checked="c.active" :data-scope="c.id"
         class="px-2 rounded-sm border overflow-hidden text-ellipsis"
-        :class="c.active ? 'border-gray-500' : 'border-gray-900 filter-name-idle'"
+        :class="c.active ? 'border-gray-500' : 'border-gray-600 filter-name-idle'"
         @click="pick(c.id)">{{ c.label }}</button>
     </div>
     <button v-else class="px-2 rounded-sm border overflow-hidden text-ellipsis"
