@@ -130,6 +130,7 @@ export function chartProps (bulk: boolean, ctx: FiltersCreationContext): void {
   areaProps({
     disabled: {
       itemQuantity: false,
+      atlasDrops: false,
       itemRarity: false,
       packSize: false
     }

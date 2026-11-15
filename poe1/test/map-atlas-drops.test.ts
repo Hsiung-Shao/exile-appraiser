@@ -83,6 +83,8 @@ describe('3.30 地圖:輿圖掉落物與更多 綢帶', () => {
     const text = fs.readFileSync(FIXTURE, 'utf8')
       .replace(/^更多地圖: .*\r?\n/m, '').replace(/^更多通貨: .*\r?\n/m, '')
     const only = parse(text)
+    expect(only.mapMoreMaps).toBeUndefined()
+    expect(only.mapMoreCurrency).toBeUndefined()
     expect(only.mapMoreScarabs).toBe(35)
     const fs2 = createExactStatFilters(only, only.statsByType, { searchStatRange: 10 })
     expect(shape(fs2)).toContainEqual(['property', 'Item Rarity: +#%', true])
