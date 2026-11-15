@@ -95,10 +95,10 @@ describe('search → fetch', () => {
     expect(results[0].priceAmount).toBe(5)
   })
 
-  it('台服:同一條詞綴的新舊 id(count 群組)只送台服交易站清單有的 id(台服不認得的 id 會讓整個查詢回 Invalid query,2026-11-15 實測)', async () => {
+  it('台服:每個群組只送台服交易站清單有的 id(台服不認得的 id 會讓整個查詢回 Invalid query,2026-11-15 實測);選項型 id 以 | 前的部分比對', async () => {
     const group = { type: 'count' as const, value: { min: 1 }, filters: [{ id: 'explicit.indexable_support_1' }, { id: 'explicit.effect_9' }] }
-    const body = (): any => ({ query: { status: { option: 'available' }, stats: [{ type: 'and', filters: [{ id: 'explicit.stat_1' }] }, group] }, sort: { price: 'asc' } })
-    const twStats = { result: [{ id: 'explicit', entries: [{ id: 'explicit.indexable_support_1', text: 'a' }, { id: 'explicit.stat_1', text: 'b' }] }] }
+    const body = (): any => ({ query: { status: { option: 'available' }, stats: [{ type: 'and', filters: [{ id: 'explicit.stat_1' }, { id: 'implicit.stat_404' }, { id: 'enchant.stat_7|49' }] }, group, { type: 'not', filters: [{ id: 'fractured.stat_404' }] }, { type: 'count', value: { min: 1 }, filters: [{ id: 'explicit.stat_404' }] }] }, sort: { price: 'asc' } })
+    const twStats = { result: [{ id: 'explicit', entries: [{ id: 'explicit.indexable_support_1', text: 'a' }, { id: 'explicit.stat_1', text: 'b' }] }, { id: 'enchant', entries: [{ id: 'enchant.stat_7', text: 'c' }] }] }
     const sent = (log: Recorded[]) => log.filter(r => r.url.includes('/search/')).map(r => JSON.parse(r.init.body).query.stats[1].filters.map((f: any) => f.id))
 
     const log: Recorded[] = []
@@ -108,6 +108,12 @@ describe('search → fetch', () => {
     await requestTradeResultList(twCtx, { ...body(), sort: { price: 'desc' } }, 'Standard')
     expect(sent(log)).toEqual([['explicit.indexable_support_1'], ['explicit.indexable_support_1']])
     expect(log.filter(r => r.url === 'https://pathofexile.tw/api/trade/data/stats')).toHaveLength(1) // 清單每個 session 只抓一次
+    // and 群組拿掉台服沒有的、選項型 id 留著;not 群組清空;一個都不剩的 count 群組整組拿掉
+    expect(JSON.parse(log.find(r => r.url.includes('/search/'))!.init.body).query.stats).toEqual([
+      { type: 'and', filters: [{ id: 'explicit.stat_1' }, { id: 'enchant.stat_7|49' }] },
+      { type: 'count', value: { min: 1 }, filters: [{ id: 'explicit.indexable_support_1' }] },
+      { type: 'not', filters: [] }
+    ])
 
     // 國際服不抓清單、原樣送
     const log2: Recorded[] = []
@@ -130,14 +136,16 @@ describe('search → fetch', () => {
 
     const request = createTradeRequest(presetFor('tw'))
     await requestTradeResultList(twCtx, request, 'Standard')
-    expect(log[0].url).toBe('https://pathofexile.tw/api/trade/search/Standard')
+    // 台服會先抓一次交易站 id 清單(這個假回應不是清單 → 視為抓不到、原樣送);以下只看 search 請求
+    const searches = () => log.filter(r => r.url.includes('/search/'))
+    expect(searches()[0].url).toBe('https://pathofexile.tw/api/trade/search/Standard')
 
     // 同 body 再查 tw 命中快取(不再發請求);查 intl 則必須真的發
     await requestTradeResultList(twCtx, request, 'Standard')
-    expect(log.length).toBe(1)
+    expect(searches().length).toBe(1)
     await requestTradeResultList(intlCtx, request, 'Standard')
-    expect(log.length).toBe(2)
-    expect(log[1].url).toBe('https://www.pathofexile.com/api/trade/search/Standard')
+    expect(searches().length).toBe(2)
+    expect(searches()[1].url).toBe('https://www.pathofexile.com/api/trade/search/Standard')
 
     expect(tradeSession('tw').limits.SEARCH).not.toBe(tradeSession('intl').limits.SEARCH)
   })

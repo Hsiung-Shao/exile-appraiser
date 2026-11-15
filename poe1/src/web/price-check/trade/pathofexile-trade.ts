@@ -821,17 +821,23 @@ export function fetchUrl (ctx: Pick<TradeContext, 'realm'>, resultIds: string[],
 }
 
 // exile-appraiser: 台服交易站遇到它清單裡沒有的 stat id,整個查詢回「Invalid query」(2026-11-15 實測)。
-// 3.30 的 `effect_*` 新 id 台服是陸續開放的,而同一條詞綴我們新舊 id 一起送(count 群組 min 1)→ 台服只留它認得的 id。
-// 清單(`/api/trade/data/stats`)每個 session 只抓一次、只在查詢帶這種群組時才抓;抓不到或一個都不認得就原樣送。
-const knownStatIds = new Map<string, Promise<Set<string> | null>>()
+// 台服的清單比國際服少(3.30 的 `effect_*` 新 id 陸續開放;一部分固定 / 破裂 / 附魔 id 台服沒有),資料是兩區共用的,
+// 所以台服送出前用台服自己的清單(`/api/trade/data/stats`)過濾每個群組:不認得的 id 拿掉(地圖的附魔 / 固定詞綴預設就勾,
+// 不拿掉會一查價就失敗);count 群組(同一條詞綴的新舊 id)因此只留認得的。拿掉了什麼記一行 log。
+// 清單成功後 6 小時重抓(台服中途開放新 id);抓不到就原樣送,1 分鐘內不再試。
+const KNOWN_IDS_TTL_MS = 6 * 60 * 60 * 1000
+const KNOWN_IDS_RETRY_MS = 60 * 1000
+interface KnownStatIds { owner: unknown, at: number, ids: Promise<Set<string> | null>, failed?: boolean }
+const knownStatIds = new Map<string, KnownStatIds>()
 
-function loadKnownStatIds (ctx: TradeContext): Promise<Set<string> | null> {
-  const session = tradeSession(ctx.realm)
-  const key = ctx.realm
-  let p = knownStatIds.get(key)
-  // resetTradeSessions(測試)會換掉 session 物件;跟著重抓
-  if (!p || knownStatIdsOwner.get(key) !== session) {
-    p = (async () => {
+function loadKnownStatIds (ctx: TradeContext, now = Date.now()): Promise<Set<string> | null> {
+  const session = tradeSession(ctx.realm) // resetTradeSessions(測試)會換掉 session 物件;跟著重抓
+  const have = knownStatIds.get(ctx.realm)
+  if (have && have.owner === session && now - have.at < (have.failed ? KNOWN_IDS_RETRY_MS : KNOWN_IDS_TTL_MS)) return have.ids
+  const entry: KnownStatIds = {
+    owner: session,
+    at: now,
+    ids: (async () => {
       try {
         const response = await ctx.http(`${apiBase(ctx.realm)}/api/trade/data/stats`, { method: 'GET', headers: { Accept: 'application/json' } })
         if (!response.ok) return null
@@ -843,33 +849,28 @@ function loadKnownStatIds (ctx: TradeContext): Promise<Set<string> | null> {
         return null
       }
     })()
-    knownStatIds.set(key, p)
-    knownStatIdsOwner.set(key, session)
-    // 失敗不留著:下一次查詢再試
-    void p.then(ids => { if (!ids && knownStatIds.get(key) === p) knownStatIds.delete(key) })
   }
-  return p
+  knownStatIds.set(ctx.realm, entry)
+  void entry.ids.then(ids => { if (!ids) entry.failed = true })
+  return entry.ids
 }
-const knownStatIdsOwner = new Map<string, unknown>()
 
 async function dropIdsUnknownToRealm (ctx: TradeContext, body: TradeRequest): Promise<TradeRequest> {
-  if (ctx.realm !== 'tw') return body
-  const mixed = (g: TradeRequest['query']['stats'][number]) =>
-    g.type === 'count' && g.value?.min === 1 && g.filters.length > 1 && g.filters.some(f => f.id.includes('.effect_'))
-  if (!body.query.stats.some(mixed)) return body
+  if (ctx.realm !== 'tw' || !body.query.stats.some(g => g.filters.length)) return body
   const known = await loadKnownStatIds(ctx)
   if (!known) return body
-  return {
-    ...body,
-    query: {
-      ...body.query,
-      stats: body.query.stats.map(g => {
-        if (!mixed(g)) return g
-        const kept = g.filters.filter(f => known.has(f.id))
-        return kept.length && kept.length < g.filters.length ? { ...g, filters: kept } : g
-      })
-    }
-  }
+  // 選項型 id(`X|n`)清單裡可能只有 `X`
+  const ok = (id: string) => known.has(id) || known.has(id.split('|')[0])
+  const dropped: string[] = []
+  const stats = body.query.stats.flatMap(g => {
+    const kept = g.filters.filter(f => ok(f.id) || (dropped.push(f.id), false))
+    if (kept.length === g.filters.length) return [g]
+    // count 群組一個都不剩 = 這個條件台服表達不了,整組拿掉(留著空群組會變成「至少 1 個」永遠不成立)
+    return kept.length || g.type !== 'count' ? [{ ...g, filters: kept }] : []
+  })
+  if (!dropped.length) return body
+  console.warn(`[trade] 台服交易站清單沒有這些 id,已從查詢拿掉:${dropped.join(', ')}`)
+  return { ...body, query: { ...body.query, stats } }
 }
 
 export async function requestTradeResultList (ctx: TradeContext, body: TradeRequest, leagueId: string): Promise<SearchResult> {
