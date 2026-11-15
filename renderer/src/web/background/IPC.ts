@@ -249,6 +249,14 @@ class HostTransport {
   /** 開設定資料夾:只有 Electron 視窗(預覽 / 純瀏覽器沒有) */
   get canOpenConfigFolder (): boolean { return !this.isPreview && typeof window.host?.openConfigFolder === 'function' }
   async openConfigFolder (): Promise<void> { if (this.canOpenConfigFolder) await window.host?.openConfigFolder?.() }
+  get canCreateDesktopShortcut (): boolean { return !this.isPreview && typeof window.host?.createDesktopShortcut === 'function' }
+  /** 回 'done' | 'dev' | 'failed' */
+  async createDesktopShortcut (): Promise<'done' | 'dev' | 'failed'> {
+    try {
+      const r = await window.host?.createDesktopShortcut?.()
+      return r?.ok ? 'done' : (r?.reason ?? 'failed')
+    } catch { return 'failed' }
+  }
 
   // ---- 第 29 步:設定 › 記錄 › 效能(main/src/perf/perf-monitor.ts;只有 Electron 視窗) ----
   get canPerf (): boolean { return !this.isPreview && typeof window.host?.perfGet === 'function' }
