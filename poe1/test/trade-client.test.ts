@@ -95,6 +95,33 @@ describe('search → fetch', () => {
     expect(results[0].priceAmount).toBe(5)
   })
 
+  it('台服:同一條詞綴的新舊 id(count 群組)只送台服交易站清單有的 id(台服不認得的 id 會讓整個查詢回 Invalid query,2026-11-15 實測)', async () => {
+    const group = { type: 'count' as const, value: { min: 1 }, filters: [{ id: 'explicit.indexable_support_1' }, { id: 'explicit.effect_9' }] }
+    const body = (): any => ({ query: { status: { option: 'available' }, stats: [{ type: 'and', filters: [{ id: 'explicit.stat_1' }] }, group] }, sort: { price: 'asc' } })
+    const twStats = { result: [{ id: 'explicit', entries: [{ id: 'explicit.indexable_support_1', text: 'a' }, { id: 'explicit.stat_1', text: 'b' }] }] }
+    const sent = (log: Recorded[]) => log.filter(r => r.url.includes('/search/')).map(r => JSON.parse(r.init.body).query.stats[1].filters.map((f: any) => f.id))
+
+    const log: Recorded[] = []
+    const http = fakeHttp(url => url.endsWith('/api/trade/data/stats') ? response(200, twStats) : response(200, { id: 'x', result: [], total: 0 }, RATE_HEADERS), log)
+    const twCtx = { http, realm: 'tw' as const, latencySeconds: 0, accountName: '' }
+    await requestTradeResultList(twCtx, body(), 'Standard')
+    await requestTradeResultList(twCtx, { ...body(), sort: { price: 'desc' } }, 'Standard')
+    expect(sent(log)).toEqual([['explicit.indexable_support_1'], ['explicit.indexable_support_1']])
+    expect(log.filter(r => r.url === 'https://pathofexile.tw/api/trade/data/stats')).toHaveLength(1) // 清單每個 session 只抓一次
+
+    // 國際服不抓清單、原樣送
+    const log2: Recorded[] = []
+    await requestTradeResultList({ ...twCtx, http: fakeHttp(() => response(200, { id: 'y', result: [], total: 0 }, RATE_HEADERS), log2), realm: 'intl' as const }, body(), 'Standard')
+    expect(log2.map(r => r.url)).toEqual(['https://www.pathofexile.com/api/trade/search/Standard'])
+    expect(sent(log2)).toEqual([['explicit.indexable_support_1', 'explicit.effect_9']])
+
+    // 清單抓不到(或台服兩個都沒有)→ 原樣送
+    resetTradeSessions()
+    const log3: Recorded[] = []
+    await requestTradeResultList({ ...twCtx, http: fakeHttp(url => url.endsWith('/data/stats') ? response(500, {}) : response(200, { id: 'z', result: [], total: 0 }, RATE_HEADERS), log3) }, body(), 'Standard')
+    expect(sent(log3)).toEqual([['explicit.indexable_support_1', 'explicit.effect_9']])
+  })
+
   it('台服 realm 打 pathofexile.tw,且與國際服的限流/快取互不影響', async () => {
     const log: Recorded[] = []
     const http = fakeHttp(() => response(200, { id: 'tw1', result: [], total: 0 }, RATE_HEADERS), log)

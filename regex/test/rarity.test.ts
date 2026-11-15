@@ -147,7 +147,7 @@ describe('舊值相容與往返', () => {
       const picks = { [page.id]: [0], [sec.id]: [0] }
       const values = { [page.id]: { [e0]: { min: 7 }, item_rarity_class: ch(['rare'], 'uncorrupted') } }
       const want = combine({ lang: 'en', mode: 'any', pages: combineSels(all, picks, values, page.id) }).query
-      expect(want.endsWith(' "y: r" "!^Corrupted$"') || want.endsWith(' "y: r" "!^(Corrupted|Twice Corrupted)$"'), want).toBe(true) // R10 短稀有度 term;PoE1 含二次汙染
+      expect(want.endsWith(g === 'poe1' ? ' "y: r" "!^(Corrupted|Twice Corrupted)$"' : ' "y: r" "!^Corrupted$"'), want).toBe(true) // R10 短稀有度 term;PoE1 含二次汙染
       // 書籤
       const body = bookmarkBodyOf(all, page, picks, values, { game: g, mode: 'any', lang: 'en' })!
       expect(body.numeric).toEqual(values[page.id])

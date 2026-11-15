@@ -222,6 +222,12 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(parse(fs.readFileSync(path.join(HERE, 'docs/3.30-map-mirage.cmn-Hant.txt'), 'utf8')).isCorrupted).toBe(true)
   })
 
+  it('D24 軍閥行軍(GitHub issue #15,台服 0.3.9 的實機文字)「插槽中的寶石被等級 25 的 神聖祝福輔助 輔助」解析得到並帶 effect_ id', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-march-of-the-legion.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(item)).toEqual([])
+    expect(item.statsByType.flatMap(s => s.stat.trade.ids.explicit ?? [])).toContain('explicit.effect_3161048706')
+  })
+
   it('D10「插槽中的寶石被等級 # 的 X輔助 輔助」3.30 寫法(使用者 2026-11-14 回報的混響)沒有未解析詞綴', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-reverberation-rod.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])

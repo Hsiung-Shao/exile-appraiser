@@ -820,7 +820,60 @@ export function fetchUrl (ctx: Pick<TradeContext, 'realm'>, resultIds: string[],
   return `${apiBase(ctx.realm)}/api/trade/fetch/${resultIds.join(',')}?query=${queryId}`
 }
 
+// exile-appraiser: 台服交易站遇到它清單裡沒有的 stat id,整個查詢回「Invalid query」(2026-11-15 實測)。
+// 3.30 的 `effect_*` 新 id 台服是陸續開放的,而同一條詞綴我們新舊 id 一起送(count 群組 min 1)→ 台服只留它認得的 id。
+// 清單(`/api/trade/data/stats`)每個 session 只抓一次、只在查詢帶這種群組時才抓;抓不到或一個都不認得就原樣送。
+const knownStatIds = new Map<string, Promise<Set<string> | null>>()
+
+function loadKnownStatIds (ctx: TradeContext): Promise<Set<string> | null> {
+  const session = tradeSession(ctx.realm)
+  const key = ctx.realm
+  let p = knownStatIds.get(key)
+  // resetTradeSessions(測試)會換掉 session 物件;跟著重抓
+  if (!p || knownStatIdsOwner.get(key) !== session) {
+    p = (async () => {
+      try {
+        const response = await ctx.http(`${apiBase(ctx.realm)}/api/trade/data/stats`, { method: 'GET', headers: { Accept: 'application/json' } })
+        if (!response.ok) return null
+        const data = await response.json() as { result?: Array<{ entries?: Array<{ id?: unknown }> }> }
+        const ids = new Set<string>()
+        for (const group of data.result ?? []) for (const e of group.entries ?? []) if (typeof e.id === 'string') ids.add(e.id)
+        return ids.size ? ids : null
+      } catch {
+        return null
+      }
+    })()
+    knownStatIds.set(key, p)
+    knownStatIdsOwner.set(key, session)
+    // 失敗不留著:下一次查詢再試
+    void p.then(ids => { if (!ids && knownStatIds.get(key) === p) knownStatIds.delete(key) })
+  }
+  return p
+}
+const knownStatIdsOwner = new Map<string, unknown>()
+
+async function dropIdsUnknownToRealm (ctx: TradeContext, body: TradeRequest): Promise<TradeRequest> {
+  if (ctx.realm !== 'tw') return body
+  const mixed = (g: TradeRequest['query']['stats'][number]) =>
+    g.type === 'count' && g.value?.min === 1 && g.filters.length > 1 && g.filters.some(f => f.id.includes('.effect_'))
+  if (!body.query.stats.some(mixed)) return body
+  const known = await loadKnownStatIds(ctx)
+  if (!known) return body
+  return {
+    ...body,
+    query: {
+      ...body.query,
+      stats: body.query.stats.map(g => {
+        if (!mixed(g)) return g
+        const kept = g.filters.filter(f => known.has(f.id))
+        return kept.length && kept.length < g.filters.length ? { ...g, filters: kept } : g
+      })
+    }
+  }
+}
+
 export async function requestTradeResultList (ctx: TradeContext, body: TradeRequest, leagueId: string): Promise<SearchResult> {
+  body = await dropIdsUnknownToRealm(ctx, body)
   const { limits: RATE_LIMIT_RULES, cache } = tradeSession(ctx.realm)
   let data = cache.get<SearchResult>([ctx.realm, body, leagueId])
 
