@@ -12,8 +12,17 @@
  */
 
 export const ISSUE_NEW_URL = 'https://github.com/Hsiung-Shao/exile-appraiser/issues/new'
-/** 預填網址超過這個長度(字元)就改走剪貼簿:瀏覽器 / GitHub 對過長網址會截斷或 414。 */
-export const MAX_ISSUE_URL_LENGTH = 6000
+/**
+ * 預填網址的長度上限,量的是**沒登入 GitHub 時被導去的登入網址**(`login?return_to=<整個網址再編碼一次>`):
+ * 那個網址超過約 7000 字元 GitHub 回 500(「Whoops, something went wrong」;2026-11-15 實測 6793 可、7103 不可)。
+ * 中文每個字在預填網址佔 9 個字元、再編碼後 15 個,所以不能只看預填網址本身的長度。
+ */
+export const MAX_ISSUE_URL_LENGTH = 6500
+const LOGIN_PREFIX = 'https://github.com/login?return_to='
+/** 沒登入時實際會打開的網址長度 */
+export function issueUrlCost (url: string): number {
+  return LOGIN_PREFIX.length + encodeURIComponent(url).length
+}
 /** 走剪貼簿時,網址內文只放這段提示(雙語,不依賴介面語言)。 */
 export const CLIPBOARD_HINT = '內容已複製到剪貼簿,請貼上。\nThe full report was copied to your clipboard — please paste it here.'
 
@@ -50,6 +59,10 @@ export interface ReportInput {
 export interface Report {
   title: string
   body: string
+  /** 網址放不下整份時依序改用的精簡版內文(先拿掉查詢 JSON,再拿掉解析摘要;剪貼簿原文與錯誤留著) */
+  shorter?: string[]
+  /** 不含剪貼簿原文與查詢的摘要:連精簡版都放不下、改走剪貼簿時,網址至少帶上它(使用者常常沒貼上) */
+  summary?: string
 }
 
 export type OpenIssuePath = 'url' | 'clipboard'
@@ -133,6 +146,8 @@ export function buildReport (input: ReportInput): Report {
   const what = input.error ? oneLine(input.error, 120) : 'price check issue'
   const title = oneLine(itemLabel ? `${scope} ${itemLabel} — ${what}` : `${scope} ${input.error ? what : 'feedback'}`, 200)
 
+  // level:0 完整、1 去查詢 JSON、2 再去解析摘要、3 只留環境 / 錯誤 / 解析摘要(走剪貼簿時放進網址)
+  const body = (level: 0 | 1 | 2 | 3): string => {
   const lines: string[] = []
   lines.push('<!-- 請在上方簡述發生了什麼、你預期的結果。 / Describe what happened and what you expected above. -->', '')
   lines.push('### Environment')
@@ -147,7 +162,7 @@ export function buildReport (input: ReportInput): Report {
     lines.push('', '### Error', fence(input.error))
   }
 
-  if (item) {
+  if (item && level !== 2) {
     lines.push('', '### Parsed item')
     lines.push(`- Name: ${item.name ?? '-'}`)
     lines.push(`- refName: ${item.refName ?? '-'}`)
@@ -162,17 +177,21 @@ export function buildReport (input: ReportInput): Report {
     }
   }
 
-  if (input.clipboard) {
+  if (input.clipboard && level < 3) {
     lines.push('', '### Clipboard', fence(input.clipboard))
   }
 
-  if (input.request !== undefined) {
+  if (input.request !== undefined && level < 1) {
     lines.push('', '### Trade query')
     if (input.requestNote) lines.push(`_${input.requestNote}_`, '')
     lines.push(fence(JSON.stringify(sanitize(input.request), null, 2), 'json'))
   }
 
-  return { title, body: lines.join('\n') + '\n' }
+    return lines.join('\n') + '\n'
+  }
+
+  const full = body(0)
+  return { title, body: full, shorter: [body(1), body(2)].filter((b, i, a) => b !== full && a.indexOf(b) === i), summary: body(3) }
 }
 
 export function issueUrl (title: string, body?: string): string {
@@ -181,17 +200,20 @@ export function issueUrl (title: string, body?: string): string {
 }
 
 /**
- * 開預填好的 issue 頁面。網址 ≤ 6000 字元 → 整份報告放在網址;否則網址只帶標題 + 「已複製到剪貼簿」提示,
+ * 開預填好的 issue 頁面。放得下 → 整份報告放在網址;放不下先試精簡版(`shorter`);還是不行才網址只帶標題 + 「已複製到剪貼簿」提示,
  * 全文寫進剪貼簿。回傳採用的路徑(UI 依它顯示提示)。
  */
 export async function openIssue (report: Report, deps: ReportDeps): Promise<OpenIssueResult> {
-  const full = issueUrl(report.title, report.body)
-  if (full.length <= MAX_ISSUE_URL_LENGTH) {
-    await deps.openExternal(full)
-    return { path: 'url', url: full }
+  for (const body of [report.body, ...(report.shorter ?? [])]) {
+    const url = issueUrl(report.title, body)
+    if (issueUrlCost(url) <= MAX_ISSUE_URL_LENGTH) {
+      await deps.openExternal(url)
+      return { path: 'url', url }
+    }
   }
   await deps.writeClipboard(report.body)
-  const short = issueUrl(report.title, CLIPBOARD_HINT)
+  const withSummary = issueUrl(report.title, `${CLIPBOARD_HINT}\n\n${report.summary ?? ''}`)
+  const short = report.summary && issueUrlCost(withSummary) <= MAX_ISSUE_URL_LENGTH ? withSummary : issueUrl(report.title, CLIPBOARD_HINT)
   await deps.openExternal(short)
   return { path: 'clipboard', url: short }
 }
