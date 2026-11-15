@@ -28,6 +28,7 @@
   "Not recognized modifier": "無法辨識的詞綴",
   "Refresh": "重新整理",
   "ppz": {
+    "search_scope": "搜尋範圍",
     "listing": {
       "title": "掛單",
       "lowest": "最低 {price}",

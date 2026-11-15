@@ -214,12 +214,8 @@ export function createFilters(
       ) {
         disabled = false;
       }
-      // exile-appraiser: 使用者 2026-10-15 裁定(與 EE2 不同,與 PoE1 一致):魔法 / 稀有的武器 / 防具 / 飾品 / 箭袋
-      // (= trends `isValuableBasetype` 的範圍,不看物等)預設查該底材 type、不查類別,避免結果混進其他底材;
-      // preset 與詞綴勾選照上游(仍是 pseudo),FilterName 可切回類別
-      if (isMagicOrRareBase(item)) {
-        disabled = true;
-      }
+      // exile-appraiser: 2026-10-15「魔法 / 稀有底材預設查 type」於 2026-11-15 由使用者推翻:預設查物品類型(同 EE2),
+      // 基底名稱在 FilterName 以並排選項顯示,點一下改查該基底
       filters.searchRelaxed = {
         category: item.category,
         disabled,
@@ -713,19 +709,4 @@ function ceilToBracket(value: number, brackets: readonly number[]) {
     }
   }
   return prev;
-}
-
-// exile-appraiser: 2026-10-15 魔法 / 稀有底材預設查 type(範圍同 trends/getDetailsId.ts `isValuableBasetype`;不 import 它以免循環引用)
-function isMagicOrRareBase(item: ParsedItem): boolean {
-  if (
-    !(item.rarity === ItemRarity.Magic || item.rarity === ItemRarity.Rare) ||
-    !item.category
-  )
-    return false;
-  return (
-    ACCESSORY.has(item.category) ||
-    ARMOUR.has(item.category) ||
-    WEAPON.has(item.category) ||
-    item.category === ItemCategory.Quiver
-  );
 }

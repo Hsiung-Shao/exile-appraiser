@@ -82,20 +82,32 @@ beforeAll(async () => { await init('en') })
 
 const category = (q: any) => q.filters.type_filters?.filters.category?.option
 
-describe('魔法 / 稀有底材預設查該底材(preset 不變)', () => {
-  it('稀有術士手套物等 86 預設 pseudo、查 type 不查類別', () => {
+// 2026-11-15 使用者推翻 2026-10-15 的「預設查底材」:預設查物品類型,基底在名稱列以並排選項顯示、點一下改查該基底
+describe('魔法 / 稀有底材預設查物品類型,可切到基底(preset 不變)', () => {
+  /** 名稱列點「基底」= searchRelaxed.disabled = true */
+  function pickBase (r: ReturnType<typeof build>) {
+    const preset = r.presets.find(p => p.id === r.active)!
+    preset.filters.searchRelaxed!.disabled = true
+    return createTradeRequest(preset).query
+  }
+
+  it('稀有術士手套物等 86 預設 pseudo、查類別不查 type;切到基底改查 Warlock Gloves', () => {
     const r = build(GLOVES(86))
     expect(r.presets.map(p => p.id)).toEqual(['filters.preset_pseudo', 'filters.preset_base_item'])
     expect(r.active).toBe('filters.preset_pseudo')
-    expect(r.query.type).toBe('Warlock Gloves')
-    expect(category(r.query)).toBeUndefined()
+    expect(r.query.type).toBeUndefined()
+    expect(category(r.query)).toBe('armour.gloves')
+    const q = pickBase(r)
+    expect(q.type).toBe('Warlock Gloves')
+    expect(category(q)).toBeUndefined()
   })
 
-  it('魔法螺旋戒指預設 pseudo、查 type 不查類別', () => {
+  it('魔法螺旋戒指預設 pseudo、查類別;切到基底改查 Helical Ring', () => {
     const r = build(RING_MAGIC)
     expect(r.active).toBe('filters.preset_pseudo')
-    expect(r.query.type).toBe('Helical Ring')
-    expect(category(r.query)).toBeUndefined()
+    expect(r.query.type).toBeUndefined()
+    expect(category(r.query)).toBe('accessory.ring')
+    expect(pickBase(r).type).toBe('Helical Ring')
   })
 
   it('普通動能魔杖維持精確 preset 查 type', () => {
@@ -104,17 +116,18 @@ describe('魔法 / 稀有底材預設查該底材(preset 不變)', () => {
     expect(r.query.type).toBe('Kinetic Wand')
   })
 
-  it('物等 < 82 的稀有手套同樣查 type(不看物等)', () => {
+  it('物等 < 82 的稀有手套同樣預設查類別(不看物等)', () => {
     const r = build(GLOVES(75))
     expect(r.presets.map(p => p.id)).toEqual(['filters.preset_pseudo'])
-    expect(r.query.type).toBe('Warlock Gloves')
-    expect(category(r.query)).toBeUndefined()
+    expect(r.query.type).toBeUndefined()
+    expect(category(r.query)).toBe('armour.gloves')
   })
 
-  it('已汙染(成品)手套維持 pseudo、同樣查 type', () => {
+  it('已汙染(成品)手套維持 pseudo、同樣預設查類別', () => {
     const r = build(GLOVES(86, '--------\nCorrupted\n'))
     expect(r.presets.map(p => p.id)).toEqual(['filters.preset_pseudo'])
-    expect(r.query.type).toBe('Warlock Gloves')
+    expect(r.query.type).toBeUndefined()
+    expect(category(r.query)).toBe('armour.gloves')
   })
 
   it('稀有珠寶不動、維持查類別', () => {

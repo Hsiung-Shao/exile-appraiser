@@ -1,6 +1,13 @@
 <template>
   <div class="filter-name">
-    <button class="px-2 rounded-sm border overflow-hidden text-ellipsis"
+    <!-- exile-appraiser(2026-11-15,使用者要求):類別與基底改成兩個並排的選項(預設查物品類型,基底名稱看得到、點一下改查這個基底) -->
+    <div v-if="choices" class="filter-name-seg" role="radiogroup" :aria-label="t('ppz.search_scope')">
+      <button v-for="c in choices" :key="c.id" role="radio" :aria-checked="c.active" :data-scope="c.id"
+        class="px-2 rounded-sm border overflow-hidden text-ellipsis"
+        :class="c.active ? 'border-gray-500' : 'border-gray-900 filter-name-idle'"
+        @click="pick(c.id)">{{ c.label }}</button>
+    </div>
+    <button v-else class="px-2 rounded-sm border overflow-hidden text-ellipsis"
       :class="{ 'border-gray-500': showAsActive, 'border-gray-900': !showAsActive }"
       @click="toggleAccuracy">{{ label }}</button>
     <button v-if="filters.corrupted" class="px-2" @click="corrupted = !corrupted">
@@ -52,6 +59,22 @@ export default defineComponent({
       return '??? Report if you see this text'
     })
 
+    // exile-appraiser(2026-11-15,使用者要求):類別與基底改成兩個並排的選項(預設查物品類型,基底名稱看得到、點一下改查這個基底)
+    const choices = computed(() => {
+      const { searchRelaxed, searchExact } = props.filters
+      const base = searchExact.name ?? searchExact.baseType
+      const tradeId = searchRelaxed?.category && CATEGORY_TO_TRADE_ID.get(searchRelaxed.category)
+      if (!searchRelaxed || !tradeId || !base) return null
+      return [
+        { id: 'category', label: t('item_category.prop', [t(`item_category.${tradeId.replace('.', '_')}`)]), active: !searchRelaxed.disabled },
+        { id: 'base', label: base, active: Boolean(searchRelaxed.disabled) }
+      ]
+    })
+
+    function pick (id: string) {
+      if (props.filters.searchRelaxed) props.filters.searchRelaxed.disabled = (id === 'base')
+    }
+
     const showAsActive = computed(() => {
       const { filters } = props
 
@@ -79,6 +102,8 @@ export default defineComponent({
     return {
       t,
       label,
+      choices,
+      pick,
       showAsActive,
       toggleAccuracy,
       corrupted
@@ -95,5 +120,13 @@ export default defineComponent({
   display: flex;
   justify-content: space-between;
   white-space: nowrap;
+}
+.filter-name-seg {
+  display: flex;
+  gap: 0.25rem;
+  min-width: 0;
+}
+.filter-name-idle {
+  color: var(--ink-2);
 }
 </style>

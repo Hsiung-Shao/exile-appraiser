@@ -117,22 +117,22 @@ describe("trade query for cmn-Hant fixtures (realm pc-ggg)", () => {
     expect(ring.body.query.type).toBe("Ruby Ring");
     expect(ring.enabledStats.length).toBeGreaterThan(0);
 
-    // 稀有法杖:上游以分類搜尋(filters.searchRelaxed);2026-10-15 使用者裁定魔法 / 稀有底材改查英文底材 type、不送分類
+    // 稀有法杖:以分類搜尋(filters.searchRelaxed,同上游);2026-11-15 使用者推翻 2026-10-15 的「預設查底材」
     const wand = built.get("wand-rare-dueling-wand-01")!;
-    expect(wand.body.query.type).toBe("Dueling Wand");
+    expect(wand.body.query.type).toBeUndefined();
     expect(
       wand.body.query.filters.type_filters?.filters.category,
-    ).toBeUndefined();
+    ).toBeDefined();
     // 這支法杖預設只開「賦予技能」一條,而且必須以 `skill.` 群組 id 送出。
     expect(wand.enabledStats.map((s) => s.split(" ")[0])).toEqual([
       "skill.spellslinger_invocation",
     ]);
 
     const boots = built.get("boots-rare-luxurious-slippers-01")!;
-    expect(boots.body.query.type).toBe("Luxurious Slippers");
+    expect(boots.body.query.type).toBeUndefined();
     expect(
       boots.body.query.filters.type_filters?.filters.category,
-    ).toBeUndefined();
+    ).toBeDefined();
     expect(boots.body.query.filters.equipment_filters?.filters.es?.min).toBe(
       170,
     );
