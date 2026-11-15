@@ -304,9 +304,56 @@ export function planFillIds ({ enStats, tradeStats }) {
         if (!used.has(e.id) && !(ids[type] ?? []).includes(e.id)) (ids[type] ??= []).push(e.id)
       }
     }
-    if (Object.keys(ids).length) out[stat.ref] = ids
+    if (Object.keys(ids).length) {
+      out[stat.ref] = ids
+      for (const id of Object.values(ids).flat()) used.add(id) // 同一個 id 不給第二條詞綴
+    }
   }
   return out
+}
+
+/**
+ * 規則 15:交易站有 `effect_*` id、專案沒有任何詞綴引用它(逐條比對 2026-11-15:77 個)。
+ * 3.30 這類詞綴由 clientstrings 句型 + 名稱組成:`ModGrantsEffect`(賦予 {0})、`ModGrantsEffectWithLevel`、
+ * `ModGrantsSupportEffectWithLevel`;名稱取 GGPK(技能 = activeskills,輔助寶石 = baseitemtypes / gemeffects),不唯一就拒收。
+ * 專案已有同一個技能的舊句(ref = 交易站文字[ + ` Skill`])→ 只加新寫法、舊句標 superseded,id 下一輪由規則 14 補;否則新增一列。
+ * @returns {{ newStats: any[], adds: any[], rejects: any[] }}
+ */
+export function planEffectStats ({ enStats, zhStats, tradeStats, skills, supports, strings = {} }) {
+  const used = new Set()
+  for (const stat of eachStat(enStats)) for (const id of allIds(stat)) used.add(id)
+  const byRef = groupBy([...eachStat(enStats)], s => s.ref)
+  const zhByRef = groupBy([...eachStat(zhStats)], s => s.ref)
+  const kinds = [
+    { re: /^Socketed Gems are Supported by Level # (.+ Support)$/, tpl: strings.ModGrantsSupportEffectWithLevel, names: groupBy(supports, s => s.en) },
+    { re: /^Grants Level # (.+)$/, tpl: strings.ModGrantsEffectWithLevel, names: groupBy(skills, s => s.en) },
+    { re: /^Grants (.+)$/, tpl: strings.ModGrantsEffect, names: groupBy(skills, s => s.en) }
+  ]
+  const fill = (text, name) => text.replace('{1}', '#').replace('{0}', name)
+  const live = (stat) => stat.matchers.filter(m => !m.superseded)
+  const newStats = new Map()
+  const adds = []
+  const rejects = []
+  for (const e of tradeStats) {
+    if (!e.id.includes('.effect_') || used.has(e.id)) continue
+    if (newStats.has(e.text)) { (newStats.get(e.text).ids[e.id.slice(0, e.id.indexOf('.'))] ??= []).push(e.id); continue }
+    const kind = kinds.find(k => k.tpl && k.re.test(e.text))
+    const name = kind?.re.exec(e.text)?.[1]
+    // 瓦爾版的英文顯示名有時與原版相同(同規則 13)
+    const zhNames = [...new Set((kind?.names.get(name) ?? []).map(s => s.zh))].filter((z, _, a) => a.length === 1 || name.startsWith('Vaal ') || !z.startsWith('瓦爾．'))
+    if (!kind || zhNames.length !== 1) { rejects.push({ reason: 'GGPK 沒有唯一的技能 / 寶石繁中名', id: e.id, to: e.text, candidates: zhNames }); continue }
+    const en = fill(kind.tpl.en, name)
+    const zh = fill(kind.tpl.zh, zhNames[0])
+    const old = (byRef.get(e.text) ?? byRef.get(`${e.text} Skill`) ?? [])[0]
+    const oldZh = old && (zhByRef.get(old.ref) ?? [])[0]
+    if (old && oldZh) {
+      if (live(old).length === 1 && !old.matchers.some(m => m.string === en)) adds.push({ lang: 'en', ref: old.ref, matcher: { string: en }, supersedes: live(old)[0].string })
+      if (live(oldZh).length === 1 && !oldZh.matchers.some(m => m.string === zh)) adds.push({ lang: 'cmn-Hant', ref: old.ref, matcher: { string: zh }, supersedes: live(oldZh)[0].string })
+      continue
+    }
+    newStats.set(e.text, { ref: e.text, better: betterOf(e.text), en: [{ string: en }], zh: [{ string: zh }], ids: { [e.id.slice(0, e.id.indexOf('.'))]: [e.id] } })
+  }
+  return { newStats: [...newStats.values()], adds, rejects }
 }
 
 /** 交易站 id 是否仍有效(`X|n` 形式:X 是選項型 stat 且有選項 n 也算) */
@@ -605,8 +652,10 @@ export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove
       changed = true
     }
     if (fill[stat.ref] && stat.trade) {
+      const hasIds = allIds(stat).length > 0 // 同 ref 有多份時各自判斷:已有 id 的只收 effect_ 新 id
       for (const [type, ids] of Object.entries(fill[stat.ref])) {
         for (const id of ids) {
+          if (hasIds && !id.includes('.effect_')) continue
           if ((stat.trade.ids[type] ??= []).includes(id)) continue
           stat.trade.ids[type].push(id)
           changed = true

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planNewStats, planGrantsSkill, planFillIds, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
+import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planNewStats, planGrantsSkill, planFillIds, planEffectStats, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
 
 /**
  * 賽季更新腳本的純函式測試(合成輸入,不讀 data/)。
@@ -423,6 +423,42 @@ describe('planFillIds / applyStatPlan', () => {
     expect(out[0].trade.ids).toEqual(fill['Grants Level # Foo Skill'])
     expect(out[1].trade.ids).toEqual({ explicit: ['explicit.stat_1', 'explicit.effect_2'] })
     expect(planFillIds({ enStats: out, tradeStats })).toEqual({})
+  })
+})
+
+describe('planEffectStats(規則 15)', () => {
+  const strings = {
+    ModGrantsEffect: { en: 'Grants {0}', zh: '賦予 {0}' },
+    ModGrantsEffectWithLevel: { en: 'Grants Level {1} {0}', zh: '賦予等級 {1} 的 {0}' },
+    ModGrantsSupportEffectWithLevel: { en: 'Socketed Gems are Supported by Level {1} {0}', zh: '插槽中的寶石被等級 {1} 的 {0} 輔助' }
+  }
+  const skills = [{ en: 'Foo', zh: '甲' }, { en: 'Summon Bar', zh: '召喚乙' }, { en: 'Twin', zh: '丙' }, { en: 'Twin', zh: '丁' }]
+  const supports = [{ en: 'Awakened Baz Support', zh: '覺醒．戊輔助' }]
+  const tradeStats = [
+    { id: 'explicit.effect_1', text: 'Grants Level # Foo' }, { id: 'implicit.effect_1', text: 'Grants Level # Foo' },
+    { id: 'explicit.effect_2', text: 'Grants Summon Bar' },
+    { id: 'explicit.effect_3', text: 'Socketed Gems are Supported by Level # Awakened Baz Support' },
+    { id: 'explicit.effect_4', text: 'Grants Level # Twin' },
+    { id: 'explicit.effect_5', text: 'Grants Level # Used' },
+    { id: 'explicit.stat_9', text: 'Grants Level # Other' }
+  ]
+
+  it('資料沒有的 effect_ 詞綴由句型 + 技能 / 寶石名新增;已有舊句的詞綴只加新寫法;名稱不唯一拒收', () => {
+    const enStats = [
+      stat('Grants Summon Bar Skill', [{ string: 'Grants Summon Bar Skill' }]),
+      stat('Used', [{ string: 'Grants Level # Used' }], { explicit: ['explicit.effect_5'] })
+    ]
+    const zhStats = [stat('Grants Summon Bar Skill', [{ string: '獲得召喚乙技能' }]), stat('Used', [{ string: 'x' }])]
+    const plan = planEffectStats({ enStats, zhStats, tradeStats, skills, supports, strings })
+    expect(plan.newStats.map((s: any) => [s.ref, s.ids, s.en[0].string, s.zh[0].string])).toEqual([
+      ['Grants Level # Foo', { explicit: ['explicit.effect_1'], implicit: ['implicit.effect_1'] }, 'Grants Level # Foo', '賦予等級 # 的 甲'],
+      ['Socketed Gems are Supported by Level # Awakened Baz Support', { explicit: ['explicit.effect_3'] }, 'Socketed Gems are Supported by Level # Awakened Baz Support', '插槽中的寶石被等級 # 的 覺醒．戊輔助 輔助']
+    ])
+    expect(plan.adds).toEqual([
+      { lang: 'en', ref: 'Grants Summon Bar Skill', matcher: { string: 'Grants Summon Bar' }, supersedes: 'Grants Summon Bar Skill' },
+      { lang: 'cmn-Hant', ref: 'Grants Summon Bar Skill', matcher: { string: '賦予 召喚乙' }, supersedes: '獲得召喚乙技能' }
+    ])
+    expect(plan.rejects.map((r: any) => r.id)).toEqual(['explicit.effect_4'])
   })
 })
 

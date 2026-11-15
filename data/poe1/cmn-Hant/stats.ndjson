@@ -4988,18 +4988,18 @@
 {"ref":"Grants Level 20 Summon Bestial Ursa Skill","better":0,"matchers":[{"string":"獲得等級 20 的召喚兇猛之爪技能"}],"trade":{"ids":{}}}
 {"ref":"Grants Malachai's Endurance, Frenzy and Power for 6 seconds each, in sequence","better":1,"matchers":[{"string":"每 6 秒依序獲得瑪拉凱之耐力、瑪拉凱之狂怒和瑪拉凱之暴擊"}],"trade":{"ids":{"explicit":["explicit.stat_2918150296"],"implicit":["implicit.stat_2918150296"]}}}
 {"ref":"Grants Perfect Agony during effect","better":1,"matchers":[{"string":"效果持續時間內獲得絕對受難"}],"trade":{"ids":{"explicit":["explicit.stat_3741365813"]}}}
-{"ref":"Grants Summon Greater Harbinger of Brutality Skill","better":0,"matchers":[{"string":"獲得召喚高階殘暴神諭技能"}],"trade":{"ids":{}}}
-{"ref":"Grants Summon Greater Harbinger of Directions Skill","better":0,"matchers":[{"string":"獲得召喚高階方位神諭技能"}],"trade":{"ids":{}}}
-{"ref":"Grants Summon Greater Harbinger of Focus Skill","better":0,"matchers":[{"string":"獲得召喚高階專注神諭技能"}],"trade":{"ids":{}}}
-{"ref":"Grants Summon Greater Harbinger of Storms Skill","better":0,"matchers":[{"string":"獲得召喚高階風暴神諭技能"}],"trade":{"ids":{}}}
-{"ref":"Grants Summon Greater Harbinger of the Arcane Skill","better":0,"matchers":[{"string":"獲得召喚高階秘能神諭技能"}],"trade":{"ids":{}}}
-{"ref":"Grants Summon Greater Harbinger of Time Skill","better":0,"matchers":[{"string":"獲得召喚高階時間神諭技能"}],"trade":{"ids":{}}}
-{"ref":"Grants Summon Harbinger of Brutality Skill","better":0,"matchers":[{"string":"獲得召喚殘暴神諭技能"}],"trade":{"ids":{}}}
-{"ref":"Grants Summon Harbinger of Directions Skill","better":0,"matchers":[{"string":"獲得召喚方位神諭技能"}],"trade":{"ids":{}}}
-{"ref":"Grants Summon Harbinger of Focus Skill","better":0,"matchers":[{"string":"獲得召喚專注神諭技能"}],"trade":{"ids":{}}}
-{"ref":"Grants Summon Harbinger of Storms Skill","better":0,"matchers":[{"string":"獲得召喚風暴神諭技能"}],"trade":{"ids":{}}}
-{"ref":"Grants Summon Harbinger of the Arcane Skill","better":0,"matchers":[{"string":"獲得召喚秘能神諭技能"}],"trade":{"ids":{}}}
-{"ref":"Grants Summon Harbinger of Time Skill","better":0,"matchers":[{"string":"獲得召喚時間神諭技能"}],"trade":{"ids":{}}}
+{"ref":"Grants Summon Greater Harbinger of Brutality Skill","better":0,"matchers":[{"string":"獲得召喚高階殘暴神諭技能","superseded":true},{"string":"賦予 召喚高階暴虐神諭"}],"trade":{"ids":{"explicit":["explicit.effect_3184099572"]}}}
+{"ref":"Grants Summon Greater Harbinger of Directions Skill","better":0,"matchers":[{"string":"獲得召喚高階方位神諭技能","superseded":true},{"string":"賦予 召喚高階象限神諭"}],"trade":{"ids":{"explicit":["explicit.effect_603152644"]}}}
+{"ref":"Grants Summon Greater Harbinger of Focus Skill","better":0,"matchers":[{"string":"獲得召喚高階專注神諭技能","superseded":true},{"string":"賦予 召喚高階專注神諭"}],"trade":{"ids":{"explicit":["explicit.effect_1795027869"],"implicit":["implicit.effect_1795027869"]}}}
+{"ref":"Grants Summon Greater Harbinger of Storms Skill","better":0,"matchers":[{"string":"獲得召喚高階風暴神諭技能","superseded":true},{"string":"賦予 召喚高階風暴神諭"}],"trade":{"ids":{"explicit":["explicit.effect_3850673820"],"implicit":["implicit.effect_3850673820"]}}}
+{"ref":"Grants Summon Greater Harbinger of the Arcane Skill","better":0,"matchers":[{"string":"獲得召喚高階秘能神諭技能","superseded":true},{"string":"賦予 召喚高階奧術神諭"}],"trade":{"ids":{"explicit":["explicit.effect_293985888"]}}}
+{"ref":"Grants Summon Greater Harbinger of Time Skill","better":0,"matchers":[{"string":"獲得召喚高階時間神諭技能","superseded":true},{"string":"賦予 召喚高階時空神諭"}],"trade":{"ids":{"explicit":["explicit.effect_1633788232"]}}}
+{"ref":"Grants Summon Harbinger of Brutality Skill","better":0,"matchers":[{"string":"獲得召喚殘暴神諭技能","superseded":true},{"string":"賦予 召喚暴虐神諭"}],"trade":{"ids":{"explicit":["explicit.effect_1659734482"]}}}
+{"ref":"Grants Summon Harbinger of Directions Skill","better":0,"matchers":[{"string":"獲得召喚方位神諭技能","superseded":true},{"string":"賦予 召喚象限神諭"}],"trade":{"ids":{"explicit":["explicit.effect_2959432267"]}}}
+{"ref":"Grants Summon Harbinger of Focus Skill","better":0,"matchers":[{"string":"獲得召喚專注神諭技能","superseded":true},{"string":"賦予 召喚專注神諭"}],"trade":{"ids":{"explicit":["explicit.effect_4121000032"],"implicit":["implicit.effect_4121000032"]}}}
+{"ref":"Grants Summon Harbinger of Storms Skill","better":0,"matchers":[{"string":"獲得召喚風暴神諭技能","superseded":true},{"string":"賦予 召喚風暴神諭"}],"trade":{"ids":{"explicit":["explicit.effect_668260863"]}}}
+{"ref":"Grants Summon Harbinger of the Arcane Skill","better":0,"matchers":[{"string":"獲得召喚秘能神諭技能","superseded":true},{"string":"賦予 召喚奧術神諭"}],"trade":{"ids":{"explicit":["explicit.effect_1954139129"]}}}
+{"ref":"Grants Summon Harbinger of Time Skill","better":0,"matchers":[{"string":"獲得召喚時間神諭技能","superseded":true},{"string":"賦予 召喚時空神諭"}],"trade":{"ids":{"explicit":["explicit.effect_1315696378"]}}}
 {"ref":"Gravicius' Veiled","better":0,"matchers":[{"string":"格拉維奇的隱匿"}],"trade":{"ids":{"veiled":["veiled.mod_38872"]}}}
 {"ref":"Greater Added Chaos","better":1,"modFamily":["Lesser Added Chaos","Added Chaos","Greater Added Chaos"],"mercenary":{"tier":3,"canonical":"Added Chaos"},"matchers":[{"string":"高階附加混沌","advanced":"高階附加混沌(階層：3)"}],"trade":{"ids":{"pseudo":["mercenary.support_11914"]}}}
 {"ref":"Greater Added Cold","better":1,"modFamily":["Lesser Added Cold","Added Cold","Greater Added Cold"],"mercenary":{"tier":3,"canonical":"Added Cold"},"matchers":[{"string":"高階附加冰冷","advanced":"高階附加冰冷(階層：3)"}],"trade":{"ids":{"pseudo":["mercenary.support_60094"]}}}
@@ -9351,3 +9351,59 @@
 {"ref":"Hits have #% chance to treat Enemy Monster Fire Resistance values as inverted","better":1,"matchers":[{"string":"擊中有#%機率會將敵方怪物的火焰抗性數值視為顛倒"}],"trade":{"ids":{"implicit":["implicit.stat_560643297"]}}}
 {"ref":"Attacks with this Weapon have #% chance to deal Triple Damage","better":1,"matchers":[{"string":"此武器擊中時有#%機率造成三倍傷害"}],"trade":{"ids":{"explicit":["explicit.stat_1930039303"]}}}
 {"ref":"# Monster Packs in Area are substituted with Packs that do not drop items\nPack Monsters grant increased Item Rarity when slain, up to 400%, decaying over time","better":1,"matchers":[{"string":"區域內的#群怪物會被替換為不會掉落物品的怪物群\n怪物群中的怪物會於被擊殺時賦予物品稀有度，至多400%，並隨時間衰減"}],"trade":{"ids":{"enchant":["enchant.stat_4224467226"]}}}
+{"ref":"Socketed Gems are Supported by Level # Snipe Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 狙擊輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_2282649307"]}}}
+{"ref":"Grants Level # Aspect of Solaris","better":1,"matchers":[{"string":"賦予等級 # 的 日耀祝福"}],"trade":{"ids":{"explicit":["explicit.effect_3654111757"]}}}
+{"ref":"Grants Level # Aspect of Arakaali","better":1,"matchers":[{"string":"賦予等級 # 的 艾爾卡莉祝福"}],"trade":{"ids":{"explicit":["explicit.effect_3676299820"]}}}
+{"ref":"Socketed Gems are Supported by Level # Awakened Multistrike Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 覺醒．多重打擊輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_115345895"]}}}
+{"ref":"Socketed Gems are Supported by Level # Awakened Melee Physical Damage Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 覺醒．近戰物理傷害輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_2260732373"]}}}
+{"ref":"Socketed Gems are Supported by Level # Awakened Brutality Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 覺醒．殘虐輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_2367771894"]}}}
+{"ref":"Socketed Gems are Supported by Level # Awakened Elemental Damage with Attacks Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 覺醒．元素攻擊傷害輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_786034009"]}}}
+{"ref":"Socketed Gems are Supported by Level # Divine Blessing Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 神聖祝福輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_3161048706"]}}}
+{"ref":"Socketed Gems are Supported by Level # Awakened Vicious Projectiles Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 覺醒．猛毒投射物輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_482188560"]}}}
+{"ref":"Socketed Gems are Supported by Level # Awakened Lightning Penetration Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 覺醒．閃電穿透輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_3874278368"]}}}
+{"ref":"Socketed Gems are Supported by Level # Awakened Void Manipulation Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 覺醒．虛空操縱輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_2653498431"]}}}
+{"ref":"Socketed Gems are Supported by Level # Enlighten Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 啟蒙輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_1979264894"]}}}
+{"ref":"Socketed Gems are Supported by Level # Elemental Penetration Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 元素穿透輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_3232631539"],"implicit":["implicit.effect_3232631539"]}}}
+{"ref":"Socketed Gems are Supported by Level # Awakened Swift Affliction Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 覺醒．極速苦痛輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_3745700985"]}}}
+{"ref":"Socketed Gems are Supported by Level # Awakened Burning Damage Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 覺醒．燃燒傷害輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_4028786187"]}}}
+{"ref":"Grants Level # Summon Bestial Rhoa","better":1,"matchers":[{"string":"賦予等級 # 的 召喚兇猛恐喙鳥"}],"trade":{"ids":{"explicit":["explicit.effect_4195991223"],"implicit":["implicit.effect_4195991223"]}}}
+{"ref":"Grants Level # Aspect of Lunaris","better":1,"matchers":[{"string":"賦予等級 # 的 月影祝福"}],"trade":{"ids":{"explicit":["explicit.effect_4273541898"]}}}
+{"ref":"Socketed Gems are Supported by Level # Awakened Increased Area of Effect Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 覺醒．增加範圍效果輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_3002947169"]}}}
+{"ref":"Socketed Gems are Supported by Level # Greater Spell Echo Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 高階施放迴響輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_3544093007"]}}}
+{"ref":"Socketed Gems are Supported by Level # Greater Multistrike Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 高階多重打擊輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_907088360"]}}}
+{"ref":"Socketed Gems are Supported by Level # Block Chance Reduction Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 減少格擋率輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_155410994"]}}}
+{"ref":"Socketed Gems are Supported by Level # Awakened Spell Echo Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 覺醒．施放迴響輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_2307564778"]}}}
+{"ref":"Socketed Gems are Supported by Level # Awakened Empower Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 覺醒．賦予輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_3059751250"]}}}
+{"ref":"Grants Embrace Madness","better":0,"matchers":[{"string":"賦予 擁抱瘋魔"}],"trade":{"ids":{"explicit":["explicit.effect_2338856567"]}}}
+{"ref":"Socketed Gems are Supported by Level # Awakened Deadly Ailments Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 覺醒．致命異常輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_3879545743"]}}}
+{"ref":"Socketed Gems are Supported by Level # Awakened Blasphemy Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 覺醒．詛咒光環輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_3257625635"]}}}
+{"ref":"Socketed Gems are Supported by Level # Awakened Elemental Focus Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 覺醒．元素集中輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_2513678384"]}}}
+{"ref":"Socketed Gems are Supported by Level # Cast on Ward Break Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 保護破碎時施放輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_2594535436"]}}}
+{"ref":"Socketed Gems are Supported by Level # Eclipse Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 朔望輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_3959464467"]}}}
+{"ref":"Socketed Gems are Supported by Level # Awakened Added Chaos Damage Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 覺醒．附加混沌傷害輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_2052193809"]}}}
+{"ref":"Socketed Gems are Supported by Level # Item Quantity Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 物品數量增幅輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_1733367133"]}}}
+{"ref":"Socketed Gems are Supported by Level # Awakened Chain Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 覺醒．連鎖輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_1311270539"]}}}
+{"ref":"Socketed Gems are Supported by Level # Awakened Unbound Ailments Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 覺醒．無邊異能輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_1134484173"]}}}
+{"ref":"Socketed Gems are Supported by Level # Earthbreaker Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 地破輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_3947742455"]}}}
+{"ref":"Socketed Gems are Supported by Level # Awakened Added Cold Damage Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 覺醒．附加冰冷傷害輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_2912209560"]}}}
+{"ref":"Socketed Gems are Supported by Level # Greater Spell Cascade Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 高階秘能爆發輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_1865320540"]}}}
+{"ref":"Socketed Gems are Supported by Level # Empower Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 賦予輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_360069007"]}}}
+{"ref":"Grants Level # Summon Bestial Snake","better":1,"matchers":[{"string":"賦予等級 # 的 召喚兇猛蟒蛇"}],"trade":{"ids":{"explicit":["explicit.effect_2377502094"],"implicit":["implicit.effect_2377502094"]}}}
+{"ref":"Grants Level # Summon Bestial Ursa","better":1,"matchers":[{"string":"賦予等級 # 的 召喚兇猛之爪"}],"trade":{"ids":{"explicit":["explicit.effect_2092916684"],"implicit":["implicit.effect_2092916684"]}}}
+{"ref":"Grants Level # Witchhunter's Pyre","better":1,"matchers":[{"string":"賦予等級 # 的 獵巫者的薪柴"}],"trade":{"ids":{"explicit":["explicit.effect_1825763431"]}}}
+{"ref":"Grants Level # Aspect of the Brine King","better":1,"matchers":[{"string":"賦予等級 # 的 海洋王祝福"}],"trade":{"ids":{"explicit":["explicit.effect_3963374775"]}}}
+{"ref":"Socketed Gems are Supported by Level # Enhance Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 增幅輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_3006785117"]}}}
+{"ref":"Socketed Gems are Supported by Level # Invert the Rules Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 規則逆反輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_3121158131"]}}}
+{"ref":"Socketed Gems are Supported by Level # Awakened Fork Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 覺醒．分裂輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_1899953379"]}}}
+{"ref":"Socketed Gems are Supported by Level # Awakened Melee Splash Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 覺醒．近戰傷害擴散輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_672697655"]}}}
+{"ref":"Socketed Gems are Supported by Level # Awakened Added Lightning Damage Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 覺醒．附加閃電傷害輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_3311634296"]}}}
+{"ref":"Socketed Gems are Supported by Level # Awakened Minion Damage Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 覺醒．召喚物傷害輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_1380260970"]}}}
+{"ref":"Socketed Gems are Supported by Level # Awakened Greater Multiple Projectiles Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 覺醒．高階多重投射輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_3960686014"]}}}
+{"ref":"Grants Level # Flammability","better":1,"matchers":[{"string":"賦予等級 # 的 易燃"}],"trade":{"ids":{"implicit":["implicit.effect_479399165"]}}}
+{"ref":"Grants Level # Sniper's Mark","better":1,"matchers":[{"string":"賦予等級 # 的 狙擊者印記"}],"trade":{"ids":{"implicit":["implicit.effect_2890244883"],"scourge":["scourge.effect_2890244883"]}}}
+{"ref":"Grants Level # Vulnerability","better":1,"matchers":[{"string":"賦予等級 # 的 脆弱"}],"trade":{"ids":{"implicit":["implicit.effect_120392055"]}}}
+{"ref":"Grants Level # Despair","better":1,"matchers":[{"string":"賦予等級 # 的 絕望"}],"trade":{"ids":{"implicit":["implicit.effect_2765861847"]}}}
+{"ref":"Grants Level # Conductivity","better":1,"matchers":[{"string":"賦予等級 # 的 導電"}],"trade":{"ids":{"implicit":["implicit.effect_2867330025"]}}}
+{"ref":"Grants Level # Assassin's Mark","better":1,"matchers":[{"string":"賦予等級 # 的 刺客印記"}],"trade":{"ids":{"implicit":["implicit.effect_1576376285"]}}}
+{"ref":"Grants Level # Herald of Agony","better":1,"matchers":[{"string":"賦予等級 # 的 苦痛之捷"}],"trade":{"ids":{"scourge":["scourge.effect_237745710"]}}}
+{"ref":"Grants Level # Herald of Purity","better":1,"matchers":[{"string":"賦予等級 # 的 純淨之捷"}],"trade":{"ids":{"scourge":["scourge.effect_2054781369"]}}}
