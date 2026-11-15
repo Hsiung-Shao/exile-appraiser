@@ -438,18 +438,25 @@ export function planGrownPassives ({ enStats, zhStats, tradeStats }) {
   /** @type {Record<string, Record<string, string[]>>} */
   const extra = {}
   const rejects = []
+  // 兩個不同天賦的繁中名相同(復仇 = Vengeance / Retaliation、堅定不移 = Adamant / Unfaltering):繁中 matcher 一個字串只能指向一列,
+  // 給了會把其中一個配成另一個天賦的 id → 這種的不給繁中寫法(繁中客戶端顯示未解析,看得出來)
+  const zhNameOf = (ref) => (zhByRef.get(ref) ?? []).flatMap(s => s.matchers).map(m => /^配置 (.+)$/.exec(m.string)?.[1]).find(Boolean)
+  const zhCount = new Map()
+  for (const ref of new Set(anoint.values())) { const z = zhNameOf(ref); if (z) zhCount.set(z, (zhCount.get(z) ?? 0) + 1) }
   for (const e of tradeStats) {
     if (!e.id.startsWith(GROWN_PASSIVE_ID) || used.has(e.id)) continue
     const name = /^1 added passive skill is (.+)$/i.exec(e.text)?.[1]
     const ref = anoint.get(e.id.slice(GROWN_PASSIVE_ID.length))
-    const zhName = ref && name && ref === `Allocates ${name}`
-      ? (zhByRef.get(ref) ?? []).flatMap(s => s.matchers).map(m => /^配置 (.+)$/.exec(m.string)?.[1]).find(Boolean)
-      : undefined
+    const zhName = ref && name && ref === `Allocates ${name}` ? zhNameOf(ref) : undefined
     if (!zhName) { rejects.push({ reason: '沒有同編號同名的塗油詞綴', id: e.id, to: e.text }); continue }
     const en = `1 Added Passive Skill is ${name}`
     const have = byMatcher.get(en)
     if (have) (extra[have.ref] ??= { enchant: [] }).enchant.push(e.id)
-    else newStats.push({ ref: en, better: 1, en: [{ string: en }], zh: [{ string: `1 個附加的天賦為${zhName}` }], ids: { enchant: [e.id] } })
+    else {
+      const shared = (zhCount.get(zhName) ?? 0) > 1
+      if (shared) rejects.push({ reason: '繁中名與另一個天賦相同', id: e.id, to: e.text, candidates: [zhName] })
+      newStats.push({ ref: en, better: 1, en: [{ string: en }], zh: shared ? [] : [{ string: `1 個附加的天賦為${zhName}` }], ids: { enchant: [e.id] } })
+    }
   }
   return { newStats, extra, rejects }
 }

@@ -699,3 +699,21 @@ describe('planGrownPassives(規則 18)', () => {
     expect([again.newStats, again.extra]).toEqual([[], {}])
   })
 })
+
+describe('planGrownPassives:繁中同名', () => {
+  it('兩個不同天賦的繁中名相同(復仇 = Vengeance / Retaliation)→ 兩條都不給繁中寫法(繁中客戶端顯示未解析,不會配到別的天賦)並列入拒收', () => {
+    const allocates = (name: string, zh: string, n: number) => ({ ref: `Allocates ${name}`, better: 0, matchers: [{ string: zh }], trade: { ids: { enchant: [`enchant.stat_2954116742|${n}`] } } })
+    const enStats = [allocates('Vengeance', 'Allocates Vengeance', 1), allocates('Retaliation', 'Allocates Retaliation', 2), allocates('Solo', 'Allocates Solo', 3)]
+    const zhStats = [allocates('Vengeance', '配置 復仇', 1), allocates('Retaliation', '配置 復仇', 2), allocates('Solo', '配置 獨', 3)]
+    const tradeStats = [1, 2, 3].map(n => ({ id: `enchant.stat_3599615742|${n}`, text: `1 added passive skill is ${['Vengeance', 'Retaliation', 'Solo'][n - 1]}` }))
+    const plan = planGrownPassives({ enStats, zhStats, tradeStats })
+    expect(plan.newStats.map((s: any) => [s.ref, s.zh])).toEqual([
+      ['1 Added Passive Skill is Vengeance', []],
+      ['1 Added Passive Skill is Retaliation', []],
+      ['1 Added Passive Skill is Solo', [{ string: '1 個附加的天賦為獨' }]]
+    ])
+    expect(plan.rejects.map((r: any) => [r.id, r.reason])).toEqual([
+      ['enchant.stat_3599615742|1', '繁中名與另一個天賦相同'], ['enchant.stat_3599615742|2', '繁中名與另一個天賦相同']
+    ])
+  })
+})
