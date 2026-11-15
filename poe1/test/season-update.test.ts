@@ -401,7 +401,7 @@ describe('planGrantsSkill / applyStatPlan', () => {
 })
 
 describe('planFillIds / applyStatPlan', () => {
-  it('完全沒有 id 的詞綴才補;別的詞綴用掉的 id、被取代的舊句不算;重跑為空', () => {
+  it('沒有 id 的詞綴補同文字的 id;已有 id 的只加 effect_ 新 id(舊 id 留著);用掉的 id、被取代的舊句不算;重跑為空', () => {
     const rows = [
       stat('Grants Level # Foo Skill', [{ string: 'Grants Level # Foo Skill', superseded: true }, { string: 'Grants Level # Foo' }], {}),
       stat('Has Ids', [{ string: 'Grants Level # Bar' }]),
@@ -414,10 +414,14 @@ describe('planFillIds / applyStatPlan', () => {
       { id: 'explicit.stat_9', text: 'Used Text' }, { id: 'pseudo.x', text: 'Grants Level # Foo' }
     ]
     const fill = planFillIds({ enStats: rows, tradeStats })
-    expect(fill).toEqual({ 'Grants Level # Foo Skill': { explicit: ['explicit.stat_7', 'explicit.effect_1'], implicit: ['implicit.effect_1'] } })
+    // 2026-11-15 苦夢:3.30 物品的輔助寶石詞綴只索引在 effect_ 新 id,舊 id 搜尋 0 筆 → 兩個都送
+    expect(fill).toEqual({
+      'Grants Level # Foo Skill': { explicit: ['explicit.stat_7', 'explicit.effect_1'], implicit: ['implicit.effect_1'] },
+      'Has Ids': { explicit: ['explicit.effect_2'] }
+    })
     const out = parseRows(applyStatPlan(toFile(rows), 'en', { fill }))
     expect(out[0].trade.ids).toEqual(fill['Grants Level # Foo Skill'])
-    expect(out[1].trade.ids).toEqual({ explicit: ['explicit.stat_1'] })
+    expect(out[1].trade.ids).toEqual({ explicit: ['explicit.stat_1', 'explicit.effect_2'] })
     expect(planFillIds({ enStats: out, tradeStats })).toEqual({})
   })
 })

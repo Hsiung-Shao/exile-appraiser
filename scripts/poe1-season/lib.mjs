@@ -291,13 +291,16 @@ export function planFillIds ({ enStats, tradeStats }) {
   /** @type {Record<string, Record<string, string[]>>} */
   const out = {}
   for (const stat of eachStat(enStats)) {
-    if (allIds(stat).length || stat.ref in out) continue
+    if (stat.ref in out) continue
+    // 已有 id 的詞綴只加 effect_ 新 id:3.30 物品的輔助寶石 / 賦予技能詞綴索引在新 id,舊 id 可能搜尋 0 筆,兩個都送(count 群組)
+    const hasIds = allIds(stat).length > 0
     const keys = new Set([cmpKey(stat.ref), ...stat.matchers.filter(m => !m.superseded).map(m => cmpKey(m.string))])
     /** @type {Record<string, string[]>} */
     const ids = {}
     for (const k of keys) {
       for (const e of byText.get(k) ?? []) {
         const type = e.id.slice(0, e.id.indexOf('.'))
+        if (hasIds && !e.id.includes('.effect_')) continue
         if (!used.has(e.id) && !(ids[type] ?? []).includes(e.id)) (ids[type] ??= []).push(e.id)
       }
     }
@@ -601,9 +604,14 @@ export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove
       else delete stat.trade.ids[type]
       changed = true
     }
-    if (fill[stat.ref] && stat.trade && !allIds(stat).length) {
-      stat.trade.ids = fill[stat.ref]
-      changed = true
+    if (fill[stat.ref] && stat.trade) {
+      for (const [type, ids] of Object.entries(fill[stat.ref])) {
+        for (const id of ids) {
+          if ((stat.trade.ids[type] ??= []).includes(id)) continue
+          stat.trade.ids[type].push(id)
+          changed = true
+        }
+      }
     }
     return changed
   }

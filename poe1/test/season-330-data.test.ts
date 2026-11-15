@@ -195,6 +195,12 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(refsOf(item)).toContain('Grants Level # Thirst for Blood Skill')
   })
 
+  it('D20 輔助寶石詞綴同時帶舊 id 與 effect_ 新 id(苦夢:交易站用舊 id 搜尋 0 筆、新 id 2919 筆,2026-11-15 實測)', () => {
+    const item = parse(ringText('cmn-Hant', [['插槽中的寶石被等級 15 的 ​寒冰刺骨輔助 輔助', '+68 最大生命']]))
+    const hit = item.statsByType.find(s => s.stat.ref === 'Socketed Gems are Supported by Level # Bonechill (Random Support Gem)')
+    expect(hit?.stat.trade.ids.explicit).toEqual(['explicit.indexable_support_115', 'explicit.effect_3024539694'])
+  })
+
   it('D10「插槽中的寶石被等級 # 的 X輔助 輔助」3.30 寫法(使用者 2026-11-14 回報的混響)沒有未解析詞綴', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-reverberation-rod.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])

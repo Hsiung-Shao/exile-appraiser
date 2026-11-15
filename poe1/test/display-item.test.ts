@@ -142,6 +142,11 @@ describe('P1 PoE1 解析物品資料', () => {
     expect(lines[1].values).toBeUndefined()
   })
 
+  it('displayMode 3 的 {N} 佔位符(3.30 武器範圍,交易站 2026-11-15 實際回傳)代入數值', () => {
+    const d = parseFetchItem({ properties: [{ name: 'Weapon Range: {0} metres', values: [['1.1', 0]], displayMode: 3 }] } as FetchItem)!
+    expect(d.nameBlock![0].text).toBe('Weapon Range: 1.1 metres')
+  })
+
   it('displayMode 3 的佔位符比數值多時不留 %N', () => {
     const d = parseFetchItem({ properties: [{ name: 'Lasts %0 Seconds, %1', values: [['4.00', 1]], displayMode: 3 }] } as FetchItem)!
     expect(d.nameBlock![0].text).toBe('Lasts 4.00 Seconds, ')
