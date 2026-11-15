@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planNewStats, planGrantsSkill, planFillIds, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
+import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, planRoomNames, planGrownPassives, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
 
 /**
  * 賽季更新腳本的純函式測試(合成輸入,不讀 data/)。
@@ -401,7 +401,7 @@ describe('planGrantsSkill / applyStatPlan', () => {
 })
 
 describe('planFillIds / applyStatPlan', () => {
-  it('完全沒有 id 的詞綴才補;別的詞綴用掉的 id、被取代的舊句不算;重跑為空', () => {
+  it('沒有 id 的詞綴補同文字的 id;已有 id 的只加 effect_ 新 id(舊 id 留著);用掉的 id、被取代的舊句不算;重跑為空', () => {
     const rows = [
       stat('Grants Level # Foo Skill', [{ string: 'Grants Level # Foo Skill', superseded: true }, { string: 'Grants Level # Foo' }], {}),
       stat('Has Ids', [{ string: 'Grants Level # Bar' }]),
@@ -414,11 +414,107 @@ describe('planFillIds / applyStatPlan', () => {
       { id: 'explicit.stat_9', text: 'Used Text' }, { id: 'pseudo.x', text: 'Grants Level # Foo' }
     ]
     const fill = planFillIds({ enStats: rows, tradeStats })
-    expect(fill).toEqual({ 'Grants Level # Foo Skill': { explicit: ['explicit.stat_7', 'explicit.effect_1'], implicit: ['implicit.effect_1'] } })
+    // 2026-11-15 苦夢:3.30 物品的輔助寶石詞綴只索引在 effect_ 新 id,舊 id 搜尋 0 筆 → 兩個都送
+    expect(fill).toEqual({
+      'Grants Level # Foo Skill': { explicit: ['explicit.stat_7', 'explicit.effect_1'], implicit: ['implicit.effect_1'] },
+      'Has Ids': { explicit: ['explicit.effect_2'] }
+    })
     const out = parseRows(applyStatPlan(toFile(rows), 'en', { fill }))
     expect(out[0].trade.ids).toEqual(fill['Grants Level # Foo Skill'])
-    expect(out[1].trade.ids).toEqual({ explicit: ['explicit.stat_1'] })
+    expect(out[1].trade.ids).toEqual({ explicit: ['explicit.stat_1', 'explicit.effect_2'] })
     expect(planFillIds({ enStats: out, tradeStats })).toEqual({})
+  })
+})
+
+describe('planEffectStats(規則 15)', () => {
+  const strings = {
+    ModGrantsEffect: { en: 'Grants {0}', zh: '賦予 {0}' },
+    ModGrantsEffectWithLevel: { en: 'Grants Level {1} {0}', zh: '賦予等級 {1} 的 {0}' },
+    ModGrantsSupportEffectWithLevel: { en: 'Socketed Gems are Supported by Level {1} {0}', zh: '插槽中的寶石被等級 {1} 的 {0} 輔助' }
+  }
+  const skills = [{ en: 'Foo', zh: '甲' }, { en: 'Summon Bar', zh: '召喚乙' }, { en: 'Twin', zh: '丙' }, { en: 'Twin', zh: '丁' }]
+  const supports = [{ en: 'Awakened Baz Support', zh: '覺醒．戊輔助' }, { en: 'Old Qux Support', zh: '己輔助' }]
+  const tradeStats = [
+    { id: 'explicit.effect_1', text: 'Grants Level # Foo' }, { id: 'implicit.effect_1', text: 'Grants Level # Foo' },
+    { id: 'explicit.effect_2', text: 'Grants Summon Bar' },
+    { id: 'explicit.effect_3', text: 'Socketed Gems are Supported by Level # Awakened Baz Support' },
+    { id: 'explicit.effect_4', text: 'Grants Level # Twin' },
+    { id: 'explicit.effect_5', text: 'Grants Level # Used' },
+    { id: 'explicit.effect_6', text: 'Socketed Gems are Supported by Level # Old Qux Support' },
+    { id: 'explicit.stat_9', text: 'Grants Level # Other' }
+  ]
+
+  it('資料沒有的 effect_ 詞綴由句型 + 技能 / 寶石名新增;已有舊句的詞綴只加新寫法;名稱不唯一拒收', () => {
+    const enStats = [
+      stat('Grants Summon Bar Skill', [{ string: 'Grants Summon Bar Skill' }]),
+      stat('Used', [{ string: 'Grants Level # Used' }], { explicit: ['explicit.effect_5'] }),
+      stat('Socketed Gems are Supported by Level # Old Qux', [{ string: 'Socketed Gems are Supported by Level # Old Qux' }], {})
+    ]
+    const zhStats = [stat('Grants Summon Bar Skill', [{ string: '獲得召喚乙技能' }]), stat('Used', [{ string: 'x' }]), stat('Socketed Gems are Supported by Level # Old Qux', [{ string: '插槽中寶石被等級 # 的己輔助' }], {})]
+    const plan = planEffectStats({ enStats, zhStats, tradeStats, skills, supports, strings })
+    expect(plan.newStats.map((s: any) => [s.ref, s.ids, s.en[0].string, s.zh[0].string])).toEqual([
+      ['Grants Level # Foo', { explicit: ['explicit.effect_1'], implicit: ['implicit.effect_1'] }, 'Grants Level # Foo', '賦予等級 # 的 甲'],
+      ['Socketed Gems are Supported by Level # Awakened Baz Support', { explicit: ['explicit.effect_3'] }, 'Socketed Gems are Supported by Level # Awakened Baz Support', '插槽中的寶石被等級 # 的 覺醒．戊輔助 輔助']
+    ])
+    expect(plan.adds).toEqual([
+      { lang: 'en', ref: 'Grants Summon Bar Skill', matcher: { string: 'Grants Summon Bar' }, supersedes: 'Grants Summon Bar Skill' },
+      { lang: 'cmn-Hant', ref: 'Grants Summon Bar Skill', matcher: { string: '賦予 召喚乙' }, supersedes: '獲得召喚乙技能' },
+      // 舊列的 ref 沒有「 Support」(審查 2026-11-15:不認得會多出重複列)
+      { lang: 'en', ref: 'Socketed Gems are Supported by Level # Old Qux', matcher: { string: 'Socketed Gems are Supported by Level # Old Qux Support' }, supersedes: 'Socketed Gems are Supported by Level # Old Qux' },
+      { lang: 'cmn-Hant', ref: 'Socketed Gems are Supported by Level # Old Qux', matcher: { string: '插槽中的寶石被等級 # 的 己輔助 輔助' }, supersedes: '插槽中寶石被等級 # 的己輔助' }
+    ])
+    expect(plan.rejects.map((r: any) => r.id)).toEqual(['explicit.effect_4'])
+    // 同一輪規則 14 會掛走的 id 不再另外新增一列
+    expect(planEffectStats({ enStats, zhStats, tradeStats, skills, supports, strings, taken: ['explicit.effect_1', 'implicit.effect_1'] }).newStats.map((s: any) => s.ref)).toEqual(['Socketed Gems are Supported by Level # Awakened Baz Support'])
+  })
+})
+
+describe('planTypeIds(規則 16)', () => {
+  const tradeStats = [
+    { id: 'explicit.stat_1', text: '#% increased Foo' }, { id: 'implicit.stat_1', text: '#% increased Foo' },
+    { id: 'fractured.stat_2', text: 'Bar #' },
+    { id: 'crafted.stat_3', text: 'Twin #' },
+    { id: 'explicit.stat_4|7', text: 'Option Seven' },
+    { id: 'enchant.stat_1', text: '#% increased Foo' },
+    { id: 'implicit.stat_5', text: 'In Group #' },
+    { id: 'implicit.stat_6', text: 'Nowhere #' }, { id: 'explicit.stat_8', text: '#% increased Foo' }, { id: 'fractured.stat_8', text: '#% increased Foo' }
+  ]
+  const rows = [
+    stat('#% increased Foo', [{ string: '#% increased Foo' }]),
+    stat('Bar Old', [{ string: 'Bar Old #', superseded: true }, { string: 'Bar #' }], { explicit: ['explicit.stat_2'] }),
+    stat('Twin A', [{ string: 'Twin #' }], { explicit: ['explicit.stat_30'] }),
+    stat('Twin B', [{ string: 'Twin #' }], { explicit: ['explicit.stat_31'] }),
+    stat('Option Seven', [{ string: 'Option Seven' }], { implicit: ['implicit.stat_4|7'] }),
+    { resolve: { strat: 'trivial-merge' }, stats: [stat('In Group #', [{ string: 'In Group #' }], { explicit: ['explicit.stat_5'] })] }
+  ]
+
+  it('交易站有、資料沒掛上的 id 加到文字相同且唯一的那條詞綴;多條同文字、選項 id、合併群組、雜湊與既有 id 不同(任何類型)、其他類型不動', () => {
+    const plan = planTypeIds({ enStats: rows, tradeStats })
+    expect(plan.extra).toEqual({ '#% increased Foo': { implicit: ['implicit.stat_1'] }, 'Bar Old': { fractured: ['fractured.stat_2'] } })
+    expect(plan.rejects.map((r: any) => [r.id, r.reason])).toEqual([
+      ['crafted.stat_3', '同文字的詞綴不只一條'],
+      ['explicit.stat_4|7', '選項型 id'],
+      ['implicit.stat_5', '在合併群組裡'],
+      ['explicit.stat_8', '與既有 id 不是同一個 stat'],
+      ['fractured.stat_8', '與既有 id 不是同一個 stat']
+    ])
+    const out = parseRows(applyStatPlan(toFile(rows), 'en', { extra: plan.extra }))
+    expect(out[0].trade.ids).toEqual({ explicit: ['explicit.stat_1'], implicit: ['implicit.stat_1'] })
+    expect(out[1].trade.ids).toEqual({ explicit: ['explicit.stat_2'], fractured: ['fractured.stat_2'] })
+    expect(planTypeIds({ enStats: out, tradeStats }).extra).toEqual({})
+  })
+})
+
+describe('planRoomNames(規則 17)', () => {
+  it('史記房間的繁中名與 GGPK 不同就加上 GGPK 的寫法、舊名標 superseded(GitHub issue #14 保險箱之殿);名稱不唯一或相同不動', () => {
+    const room = (ref: string, zh: string) => ({ ref, better: 0, matchers: [{ string: zh }], trade: { ids: { pseudo: ['pseudo.x'] }, option: true } })
+    const zhStats = [room('Has Room: Strongbox Chamber (Tier 1)', '寶箱之殿 (階級 1)'), room('Has Room: Vault (Tier 1)', '金庫 (階級 1)'), room('Has Room: Twin (Tier 2)', '舊 (階級 2)')]
+    const rooms = [{ en: 'Strongbox Chamber', zh: '保險箱之殿' }, { en: 'Vault', zh: '金庫' }, { en: 'Twin', zh: '甲' }, { en: 'Twin', zh: '乙' }]
+    const plan = planRoomNames({ zhStats, rooms })
+    expect(plan.adds).toEqual([{ lang: 'cmn-Hant', ref: 'Has Room: Strongbox Chamber (Tier 1)', matcher: { string: '保險箱之殿 (階級 1)' }, supersedes: '寶箱之殿 (階級 1)' }])
+    const out = parseRows(applyStatPlan(toFile(zhStats), 'cmn-Hant', { adds: plan.adds }))
+    expect(out[0].matchers).toEqual([{ string: '寶箱之殿 (階級 1)', superseded: true }, { string: '保險箱之殿 (階級 1)' }])
+    expect(planRoomNames({ zhStats: out, rooms }).adds).toEqual([])
   })
 })
 
@@ -440,6 +536,52 @@ describe('planNewStats', () => {
       ['Brand new #', { explicit: ['explicit.stat_4'] }]
     ])
     expect(out[0].zh).toEqual([{ string: '獲得 # 甲' }])
+  })
+
+  it('舊版就有的地圖 / 輿圖詞綴(stat id 全部 map_ 開頭,或出自地圖 / 輿圖描述檔)交易站有 id 也收(使用者 2026-11-15 要求)', () => {
+    const old = [
+      row('map_monsters_foo_+%|#|stat_descriptions.txt|0', 'Monsters have {0}% more Foo', '怪物有 {0}% 更多甲'),
+      row('breach_bar|#|atlas_stat_descriptions.txt|0', 'Breaches in your Maps have {0} Bar', '你地圖中的裂痕有 {0} 乙'),
+      row('local_baz_+%|#|skill_stat_descriptions.txt|0', '{0}% increased Baz', '增加 {0}% 丙'),
+      row('map_one map_two|#|map_stat_descriptions.txt|0', 'Area has {0} One', '區域有 {0} 丁'),
+      row('map_fixed|#|stat_descriptions.txt|0', 'Area has 2 Qux', '區域有 2 戊'),
+      // 同一句話一般描述檔也有 → 不當地圖詞綴收(下面由物品詞綴的例外收)
+      row('atlas_minion|#|atlas_stat_descriptions.txt|0', 'Minions have {0}% Dup', '召喚物有 {0}% 己'), row('minion_dup|#|stat_descriptions.txt|0', 'Minions have {0}% Dup', '召喚物有 {0}% 己')
+    ]
+    const trade = [
+      { id: 'explicit.stat_1', text: 'Monsters have #% more Foo' }, { id: 'explicit.stat_2', text: 'Breaches in your Maps have # Bar' },
+      { id: 'explicit.stat_3', text: '#% increased Baz' }, { id: 'explicit.stat_4', text: 'Area has # One' }, { id: 'explicit.stat_5', text: 'Area has 2 Qux' }, { id: 'explicit.stat_6', text: 'Minions have #% Dup' }
+    ]
+    const enStats = [{ ref: 'Area has # Qux', matchers: [{ string: 'Area has # Qux' }], trade: { ids: {} } }]
+    const out = planNewStats({ enStats, ggpkOld: old, ggpkNew: old, tradeStats: trade })
+    // 技能描述檔等非物品詞綴的舊句不收;英文把數字換成 # 後與既有 matcher 同形的不收
+    // 「Minions have #% Dup」不算地圖詞綴(一般描述檔也有這句),但它是主描述檔的物品詞綴、交易站列為隨機詞綴 → 由例外 2 收進來
+    expect(out.map((s: any) => s.ref)).toEqual(['Monsters have #% more Foo', 'Breaches in your Maps have # Bar', 'Area has # One', 'Minions have #% Dup'])
+  })
+
+  it('舊版就有、主描述檔的物品詞綴(交易站列為隨機 / 固定 / 破裂 / 工藝)也收;只列為附魔等其他類型的不收(GitHub issue #16 殘酷的效果)', () => {
+    const old = [
+      row('cruelty_effect_+%|1|#|stat_descriptions.txt|0', '{0}% increased Effect of Cruelty', '增加 {0}% 殘酷的效果'),
+      row('only_enchant|#|stat_descriptions.txt|0', '{0}% increased Lab Thing', '增加 {0}% 迷宮')
+    ]
+    const trade = [
+      { id: 'explicit.stat_1', text: '#% increased Effect of Cruelty' }, { id: 'fractured.stat_1', text: '#% increased Effect of Cruelty' },
+      { id: 'enchant.stat_2', text: '#% increased Lab Thing' }
+    ]
+    const out = planNewStats({ enStats: [], ggpkOld: old, ggpkNew: old, tradeStats: trade })
+    expect(out.map((s: any) => [s.ref, s.ids, s.zh])).toEqual([
+      ['#% increased Effect of Cruelty', { explicit: ['explicit.stat_1'], fractured: ['fractured.stat_1'] }, [{ string: '增加 #% 殘酷的效果' }]]
+    ])
+  })
+
+  it('兩個交易站文字的繁中是同一句(督軍印記:Warlords 與 Warlord 拼法不同、id 不同)→ 併成一列,兩個英文寫法與兩個 id 都留', () => {
+    const rows2 = [row('a|#|stat_descriptions.txt|0', "Trigger {0} Warlords's Mark", '觸發 {0} 督軍印記'), row('b|#|stat_descriptions.txt|0', "Trigger {0} Warlord's Mark", '觸發 {0} 督軍印記')]
+    const trade = [{ id: 'explicit.stat_1', text: "Trigger # Warlords's Mark" }, { id: 'explicit.stat_2', text: "Trigger # Warlord's Mark" }]
+    const out = planNewStats({ enStats: [], ggpkOld: rows2, ggpkNew: rows2, tradeStats: trade })
+    expect(out).toHaveLength(1)
+    expect(out[0].en.map((m: any) => m.string)).toEqual(["Trigger # Warlords's Mark", "Trigger # Warlord's Mark"])
+    expect(out[0].zh).toEqual([{ string: '觸發 # 督軍印記' }])
+    expect(out[0].ids).toEqual({ explicit: ['explicit.stat_1', 'explicit.stat_2'] })
   })
 
   it('繁中新句把數字換成 # 後與既有 matcher 同形的不加(會搶走既有詞綴的比對)', () => {
@@ -519,11 +661,59 @@ describe('planSupportGemNames / applyStatPlan', () => {
 })
 
 describe('betterOf', () => {
-  it('帶數值且不是減少 → 1;減少、沒有數值、技能索引 → 0', () => {
+  it('帶數值 → 1(含「減少 / 更少」:標 0 會讓這條在物品上預設勾選、只找數值一模一樣的掛單;審查 2026-11-15);逐條指定的照指定;沒有數值、技能索引 → 0', () => {
     expect(betterOf("#% increased Attack Speed if you've used an Attack Movement Skill Recently")).toBe(1)
     expect(betterOf('# to # Added Cold Damage with Unarmed Attacks')).toBe(1)
-    expect(betterOf('Enemies have #% reduced Life Regeneration Rate')).toBe(0)
+    expect(betterOf('Enemies have #% reduced Life Regeneration Rate')).toBe(1)
+    expect(betterOf('Anger has #% reduced Reservation')).toBe(1)
+    expect(betterOf('#% reduced Spark Duration')).toBe(-1)
+    expect(betterOf('#% chance to lose an Endurance Charge on Kill')).toBe(-1)
     expect(betterOf('Can Attack as though using a Claw while main hand is empty')).toBe(0)
     expect(betterOf('Grants Level 20 #, which will be used by Shaper Memory')).toBe(0)
+  })
+})
+
+describe('planGrownPassives(規則 18)', () => {
+  it('交易站「1 added passive skill is X」(腐敗之種洗出的塗油天賦)= 既有「Allocates X」同編號 → 新增一列,繁中取「配置 X」的名字;已有同句的詞綴只掛 id', () => {
+    const allocates = (name: string, zh: string, n: number) => ({ ref: `Allocates ${name}`, better: 0, matchers: [{ string: zh }], trade: { ids: { enchant: [`enchant.stat_2954116742|${n}`] } } })
+    const enStats = [
+      { ...allocates('Foo', 'Allocates Foo', 11) }, { ...allocates('Bar', 'Allocates Bar', 22) }, { ...allocates('Other', 'Allocates Other', 33) },
+      stat('1 Added Passive Skill is Bar', [{ string: '1 Added Passive Skill is Bar' }])
+    ]
+    const zhStats = [allocates('Foo', '配置 甲', 11), allocates('Bar', '配置 乙', 22), allocates('Other', '配置 丙', 33), stat('1 Added Passive Skill is Bar', [{ string: '1 個附加的天賦為乙' }])]
+    const tradeStats = [
+      { id: 'enchant.stat_3599615742|11', text: '1 added passive skill is Foo' },
+      { id: 'enchant.stat_3599615742|22', text: '1 added passive skill is Bar' },
+      { id: 'enchant.stat_3599615742|33', text: '1 added passive skill is Renamed' }, // 同編號不同名 → 不猜
+      { id: 'enchant.stat_3599615742|44', text: '1 added passive skill is Nobody' }
+    ]
+    const plan = planGrownPassives({ enStats, zhStats, tradeStats })
+    expect(plan.newStats).toEqual([{
+      ref: '1 Added Passive Skill is Foo', better: 1, en: [{ string: '1 Added Passive Skill is Foo' }], zh: [{ string: '1 個附加的天賦為甲' }],
+      ids: { enchant: ['enchant.stat_3599615742|11'] }
+    }])
+    expect(plan.extra).toEqual({ '1 Added Passive Skill is Bar': { enchant: ['enchant.stat_3599615742|22'] } })
+    expect(plan.rejects.map((r: any) => r.id)).toEqual(['enchant.stat_3599615742|33', 'enchant.stat_3599615742|44'])
+    const out = parseRows(applyStatPlan(toFile(enStats), 'en', { newStats: plan.newStats, extra: plan.extra }))
+    const again = planGrownPassives({ enStats: out, zhStats, tradeStats })
+    expect([again.newStats, again.extra]).toEqual([[], {}])
+  })
+})
+
+describe('planGrownPassives:繁中同名', () => {
+  it('兩個不同天賦的繁中名相同(復仇 = Vengeance / Retaliation)→ 兩條都不給繁中寫法(繁中客戶端顯示未解析,不會配到別的天賦)並列入拒收', () => {
+    const allocates = (name: string, zh: string, n: number) => ({ ref: `Allocates ${name}`, better: 0, matchers: [{ string: zh }], trade: { ids: { enchant: [`enchant.stat_2954116742|${n}`] } } })
+    const enStats = [allocates('Vengeance', 'Allocates Vengeance', 1), allocates('Retaliation', 'Allocates Retaliation', 2), allocates('Solo', 'Allocates Solo', 3)]
+    const zhStats = [allocates('Vengeance', '配置 復仇', 1), allocates('Retaliation', '配置 復仇', 2), allocates('Solo', '配置 獨', 3)]
+    const tradeStats = [1, 2, 3].map(n => ({ id: `enchant.stat_3599615742|${n}`, text: `1 added passive skill is ${['Vengeance', 'Retaliation', 'Solo'][n - 1]}` }))
+    const plan = planGrownPassives({ enStats, zhStats, tradeStats })
+    expect(plan.newStats.map((s: any) => [s.ref, s.zh])).toEqual([
+      ['1 Added Passive Skill is Vengeance', []],
+      ['1 Added Passive Skill is Retaliation', []],
+      ['1 Added Passive Skill is Solo', [{ string: '1 個附加的天賦為獨' }]]
+    ])
+    expect(plan.rejects.map((r: any) => [r.id, r.reason])).toEqual([
+      ['enchant.stat_3599615742|1', '繁中名與另一個天賦相同'], ['enchant.stat_3599615742|2', '繁中名與另一個天賦相同']
+    ])
   })
 })

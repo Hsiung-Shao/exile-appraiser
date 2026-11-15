@@ -85,6 +85,9 @@
         },
         "type_filters": {
           "filters": {
+            "category": {
+              "option": "armour.boots"
+            },
             "rarity": {
               "option": "nonunique"
             }
@@ -110,8 +113,7 @@
             }
           }
         }
-      },
-      "type": "Luxurious Slippers"
+      }
     },
     "sort": {
       "price": "asc"

@@ -48,6 +48,11 @@ describe('3.30 詞綴寫法(en)', () => {
     await loadForLang('en')
   })
 
+  it('D23 en:Twice Corrupted 視為已汙染', () => {
+    expect(parse(ringText('en', [LIFE_EN, ['Twice Corrupted']])).isCorrupted).toBe(true)
+    expect(parse(ringText('en', [LIFE_EN, ['Corrupted']])).isCorrupted).toBe(true)
+  })
+
   it('D1 新稀有度寫法 "+15% to Item Rarity" 解析成原詞綴', () => {
     const item = parse(ringText('en', [['+15% to Item Rarity', '+68 to maximum Life']]))
     expect(unknownOf(item)).toEqual([])
@@ -195,6 +200,63 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(refsOf(item)).toContain('Grants Level # Thirst for Blood Skill')
   })
 
+  it('D20 輔助寶石詞綴同時帶舊 id 與 effect_ 新 id(苦夢:交易站用舊 id 搜尋 0 筆、新 id 2919 筆,2026-11-15 實測)', () => {
+    const item = parse(ringText('cmn-Hant', [['插槽中的寶石被等級 15 的 ​寒冰刺骨輔助 輔助', '+68 最大生命']]))
+    const hit = item.statsByType.find(s => s.stat.ref === 'Socketed Gems are Supported by Level # Bonechill (Random Support Gem)')
+    expect(hit?.stat.trade.ids.explicit).toEqual(['explicit.indexable_support_115', 'explicit.effect_3024539694'])
+  })
+
+  it('D21 使用者 2026-11-15 貼的四張 3.30 實機地圖沒有未解析詞綴(0.3.9「區域內含有一座蜃景」沒掛隨機 id)', () => {
+    const mirage = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-map-mirage.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(mirage)).toEqual([])
+    expect(mirage.statsByType.find(s => s.stat.ref === 'Area contains an Empowered Mirage which covers the entire Map')?.stat.trade.ids.explicit).toContain('explicit.stat_2436559047')
+    for (const f of ['buried-sentinel', 'katash-summoner', 'always-ignite']) {
+      expect(unknownOf(parse(fs.readFileSync(path.join(HERE, `docs/3.30-map-${f}.cmn-Hant.txt`), 'utf8'))), f).toEqual([])
+    }
+  })
+
+  it('D23「二次汙染」(3.30 新狀態,clientstrings ItemPopupDoubleCorrupted;使用者 2026-11-15 回報預設成未汙染)視為已汙染', () => {
+    expect(parse(ringText('cmn-Hant', [LIFE_ZH, ['二次汙染']])).isCorrupted).toBe(true)
+    expect(parse(ringText('cmn-Hant', [LIFE_ZH, ['已汙染']])).isCorrupted).toBe(true)
+    expect(parse(ringText('cmn-Hant', [LIFE_ZH])).isCorrupted).toBe(false)
+    expect(parse(fs.readFileSync(path.join(HERE, 'docs/3.30-map-mirage.cmn-Hant.txt'), 'utf8')).isCorrupted).toBe(true)
+  })
+
+  it('D24 軍閥行軍(GitHub issue #15,台服 0.3.9 的實機文字)「插槽中的寶石被等級 25 的 神聖祝福輔助 輔助」解析得到並帶 effect_ id', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-march-of-the-legion.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(item)).toEqual([])
+    expect(item.statsByType.flatMap(s => s.stat.trade.ids.explicit ?? [])).toContain('explicit.effect_3161048706')
+  })
+
+  it('D25 臟器「巫會之后冠」(使用者 2026-11-15 貼的實機文字):三條固定詞綴都解析得到(0.3.9 海洋球那條沒掛固定 id)', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-coven-queens-crown.cmn-Hant.txt'), 'utf8'))
+    expect(item.info.refName).toBe("Coven Queen's Crown")
+    expect(unknownOf(item)).toEqual([])
+    const brine = item.statsByType.find(s => s.stat.ref === '#% chance to gain a Brine Charge instead of an Endurance Charge')
+    expect(brine?.type).toBe('implicit')
+    expect(brine?.stat.trade.ids.implicit).toContain('implicit.stat_3682839745')
+  })
+
+  it('D26 鈷藍珠寶「增加 #% 殘酷的效果」(GitHub issue #16;舊版就有的物品詞綴,交易站有隨機 / 破裂 id)解析得到', () => {
+    const item = parse(ringText('cmn-Hant', [LIFE_ZH, ['{ 後綴 "殘酷之"(階層：1) }', '增加 6(6-10)% 殘酷的效果']]))
+    expect(unknownOf(item)).toEqual([])
+    const hit = item.statsByType.find(s => s.stat.ref === '#% increased Effect of Cruelty')
+    expect(hit?.stat.trade.ids.explicit).toEqual(['explicit.stat_1123294660'])
+  })
+
+  it('D27 傳奇珠寶「腐敗之種」(使用者 2026-11-15 貼的實機文字):洗出的四個塗油天賦解析成附魔詞綴、帶選項型 id', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-putrid-seed.cmn-Hant.txt'), 'utf8'))
+    expect(item.info.refName).toBe('Putrid Seed')
+    expect(unknownOf(item)).toEqual([])
+    const grown = item.statsByType.filter(s => s.stat.ref.startsWith('1 Added Passive Skill is '))
+    expect(grown.map(s => [s.stat.ref, s.type, s.stat.trade.ids.enchant])).toEqual([
+      ['1 Added Passive Skill is Careful Counterattack', 'enchant', ['enchant.stat_3599615742|59976']],
+      ['1 Added Passive Skill is Flow of Battle', 'enchant', ['enchant.stat_3599615742|56330']],
+      ['1 Added Passive Skill is Indiscriminate Revenge', 'enchant', ['enchant.stat_3599615742|4918']],
+      ['1 Added Passive Skill is Practised Reapplication', 'enchant', ['enchant.stat_3599615742|37425']]
+    ])
+  })
+
   it('D10「插槽中的寶石被等級 # 的 X輔助 輔助」3.30 寫法(使用者 2026-11-14 回報的混響)沒有未解析詞綴', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-reverberation-rod.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
@@ -210,6 +272,12 @@ function readNdjson (lang: string, file: string): any[] {
 }
 
 describe('3.30 資料檔', () => {
+  it('D22 阿茲瓦特史記的「保險箱之殿 (階級 1)」(GitHub issue #14,遊戲檔的房間名)對得到 Strongbox Chamber', () => {
+    const room = readNdjson('cmn-Hant', 'stats.ndjson').flatMap(r => r.stats ?? [r]).find(s => s.ref === 'Has Room: Strongbox Chamber (Tier 1)')
+    expect(room.matchers.filter((m: any) => !m.superseded).map((m: any) => m.string)).toEqual(['保險箱之殿 (階級 1)'])
+    expect(room.matchers.map((m: any) => m.string)).toContain('寶箱之殿 (階級 1)')
+  })
+
   it('D4 stats.ndjson 不再引用交易站已移除的 id', () => {
     const snap = JSON.parse(fs.readFileSync(TRADE_IDS_FILE, 'utf8')) as { ids: string[], options: Record<string, string[]> }
     const valid = new Set(snap.ids)

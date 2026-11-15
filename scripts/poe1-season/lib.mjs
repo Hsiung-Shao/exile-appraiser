@@ -44,17 +44,24 @@ export const BETTER_OVERRIDES = {
   'Enemies within 6 metres of corpses you spawned Recently\nhave #% reduced Life Regeneration Rate': 1,
   'Fire Exposure you inflict applies an extra +#% to Fire Resistance': -1,
   '+# Physical Damage taken from Hits per Level': -1,
-  'Enemies Taunted by your Warcries have #% increased Action Speed': -1
+  'Enemies Taunted by your Warcries have #% increased Action Speed': -1,
+  // 2026-11-15:「減少」而數值越大越不利的(其餘「減少 …」預設 1,見 betterOf)
+  '#% reduced Spark Duration': -1,
+  'Curses have #% reduced effect on Monsters': -1
 }
 
 /**
- * 新詞綴的 better:帶數值且不是「減少 / 更少」→ 1(查價用「至少這個值」);其他 → 0(完全相同才算)。
- * 既有資料帶數值的詞綴 97% 是 1;標 0 會讓預設查詢只找數值一模一樣的掛單(2026-11-14 范迪戈之革)。
- * shortcut: 少數「越低越好」的句子(承受傷害、消耗)會被標成 1,遇到再個別改資料列。
+ * 新詞綴的 better:帶數值 → 1(查價用「至少這個值」);沒有數值 → 0(完全相同才算)。
+ * 既有資料帶數值的詞綴 97% 是 1;標 0 會讓這條在物品上**預設勾選、只找數值一模一樣的掛單**(2026-11-14 范迪戈之革;
+ * 2026-11-15 審查:「減少 …」原本標 0,32 條新增的「X 減少 #% 保留 / 承受傷害 / 消耗」會讓預設查詢多一條精確條件)。
+ * 「減少 / 更少」的句子在物品上多半是好處(保留、承受傷害、消耗、敵人格擋)→ 也給 1;「失去 …」→ -1;
+ * 判不準的逐條列在 BETTER_OVERRIDES。
+ * shortcut: 少數「越低越好」的句子會被標成 1(使用者勾選時範圍方向相反,可自己改),遇到再加進 BETTER_OVERRIDES。
  */
 export function betterOf (ref) {
   if (ref in BETTER_OVERRIDES) return BETTER_OVERRIDES[ref]
-  return ref.includes('#') && direction(ref) >= 0 && !/Grants Level \d+ #/.test(ref) ? 1 : 0
+  if (!ref.includes('#') || /Grants Level \d+ #/.test(ref)) return 0
+  return /\blose\b/i.test(ref) ? -1 : 1
 }
 
 /** 展開群組列,回傳每個一般 stat 物件 */
@@ -291,19 +298,167 @@ export function planFillIds ({ enStats, tradeStats }) {
   /** @type {Record<string, Record<string, string[]>>} */
   const out = {}
   for (const stat of eachStat(enStats)) {
-    if (allIds(stat).length || stat.ref in out) continue
+    if (stat.ref in out) continue
+    // 已有 id 的詞綴只加 effect_ 新 id:3.30 物品的輔助寶石 / 賦予技能詞綴索引在新 id,舊 id 可能搜尋 0 筆,兩個都送(count 群組)
+    const hasIds = allIds(stat).length > 0
     const keys = new Set([cmpKey(stat.ref), ...stat.matchers.filter(m => !m.superseded).map(m => cmpKey(m.string))])
     /** @type {Record<string, string[]>} */
     const ids = {}
     for (const k of keys) {
       for (const e of byText.get(k) ?? []) {
         const type = e.id.slice(0, e.id.indexOf('.'))
+        if (hasIds && !e.id.includes('.effect_')) continue
         if (!used.has(e.id) && !(ids[type] ?? []).includes(e.id)) (ids[type] ??= []).push(e.id)
       }
     }
-    if (Object.keys(ids).length) out[stat.ref] = ids
+    if (Object.keys(ids).length) {
+      out[stat.ref] = ids
+      for (const id of Object.values(ids).flat()) used.add(id) // 同一個 id 不給第二條詞綴
+    }
   }
   return out
+}
+
+/**
+ * 規則 15:交易站有 `effect_*` id、專案沒有任何詞綴引用它(逐條比對 2026-11-15:77 個)。
+ * 3.30 這類詞綴由 clientstrings 句型 + 名稱組成:`ModGrantsEffect`(賦予 {0})、`ModGrantsEffectWithLevel`、
+ * `ModGrantsSupportEffectWithLevel`;名稱取 GGPK(技能 = activeskills,輔助寶石 = baseitemtypes / gemeffects),不唯一就拒收。
+ * 專案已有同一個技能的舊句(ref = 交易站文字[ + ` Skill`])→ 只加新寫法、舊句標 superseded,id 下一輪由規則 14 補;否則新增一列。
+ * @returns {{ newStats: any[], adds: any[], rejects: any[] }}
+ */
+export function planEffectStats ({ enStats, zhStats, tradeStats, skills, supports, strings = {}, taken = /** @type {string[]} */ ([]) }) {
+  // taken:同一輪規則 14 會掛到既有詞綴上的 id(不先扣掉會替同一個 id 另外新增一列)
+  const used = new Set(taken)
+  for (const stat of eachStat(enStats)) for (const id of allIds(stat)) used.add(id)
+  const byRef = groupBy([...eachStat(enStats)], s => s.ref)
+  const zhByRef = groupBy([...eachStat(zhStats)], s => s.ref)
+  const kinds = [
+    { re: /^Socketed Gems are Supported by Level # (.+ Support)$/, tpl: strings.ModGrantsSupportEffectWithLevel, names: groupBy(supports, s => s.en) },
+    { re: /^Grants Level # (.+)$/, tpl: strings.ModGrantsEffectWithLevel, names: groupBy(skills, s => s.en) },
+    { re: /^Grants (.+)$/, tpl: strings.ModGrantsEffect, names: groupBy(skills, s => s.en) }
+  ]
+  const fill = (text, name) => text.replace('{1}', '#').replace('{0}', name)
+  const live = (stat) => stat.matchers.filter(m => !m.superseded)
+  const newStats = new Map()
+  const adds = []
+  const rejects = []
+  for (const e of tradeStats) {
+    if (!e.id.includes('.effect_') || used.has(e.id)) continue
+    if (newStats.has(e.text)) { (newStats.get(e.text).ids[e.id.slice(0, e.id.indexOf('.'))] ??= []).push(e.id); continue }
+    const kind = kinds.find(k => k.tpl && k.re.test(e.text))
+    const name = kind?.re.exec(e.text)?.[1]
+    // 瓦爾版的英文顯示名有時與原版相同(同規則 13)
+    const zhNames = [...new Set((kind?.names.get(name) ?? []).map(s => s.zh))].filter((z, _, a) => a.length === 1 || name.startsWith('Vaal ') || !z.startsWith('瓦爾．'))
+    if (!kind || zhNames.length !== 1) { rejects.push({ reason: 'GGPK 沒有唯一的技能 / 寶石繁中名', id: e.id, to: e.text, candidates: zhNames }); continue }
+    const en = fill(kind.tpl.en, name)
+    const zh = fill(kind.tpl.zh, zhNames[0])
+    // 舊列 ref 沒有「 Support」的寫法只認還沒有任何 id 的(有 id 的那種與「(Random Support Gem)」列並存,新 id 由規則 14 掛到後者)
+    const bare = (byRef.get(e.text.replace(/ Support$/, '')) ?? []).filter(x => !allIds(x).length)
+    const old = (byRef.get(e.text) ?? byRef.get(`${e.text} Skill`) ?? bare)[0]
+    const oldZh = old && (zhByRef.get(old.ref) ?? [])[0]
+    if (old && oldZh) {
+      if (live(old).length === 1 && !old.matchers.some(m => m.string === en)) adds.push({ lang: 'en', ref: old.ref, matcher: { string: en }, supersedes: live(old)[0].string })
+      if (live(oldZh).length === 1 && !oldZh.matchers.some(m => m.string === zh)) adds.push({ lang: 'cmn-Hant', ref: old.ref, matcher: { string: zh }, supersedes: live(oldZh)[0].string })
+      continue
+    }
+    newStats.set(e.text, { ref: e.text, better: betterOf(e.text), en: [{ string: en }], zh: [{ string: zh }], ids: { [e.id.slice(0, e.id.indexOf('.'))]: [e.id] } })
+  }
+  return { newStats: [...newStats.values()], adds, rejects }
+}
+
+/**
+ * 規則 16:交易站有、專案沒有任何詞綴引用的 id(隨機 / 固定 / 破裂 / 工藝),而專案裡有文字相同的詞綴 → 把 id 掛上去
+ * (逐條比對 `audit-trade-ids.mjs` 的「沒引用 A / B」:同一條詞綴少掛了某個類型的 id)。
+ * 只收文字(ref 或現行英文 matcher,寬鬆鍵)相同且唯一的那一條;同文字不只一條、選項型 id(`X|n`)、
+ * 在合併群組裡的詞綴(類型會影響群組內選哪一條)、雜湊與該詞綴既有 id 不同的都拒收。
+ * @returns {{ extra: Record<string, Record<string, string[]>>, rejects: any[] }}
+ */
+export const TYPE_ID_GROUPS = ['explicit', 'implicit', 'fractured', 'crafted']
+export function planTypeIds ({ enStats, tradeStats }) {
+  const used = new Set()
+  const grouped = new Set()
+  const hashOf = (id) => id.slice(id.indexOf('.') + 1)
+  /** @type {Map<string, Set<string>>} */
+  const hashes = new Map()
+  /** @type {Map<string, Set<string>>} */
+  const refsByText = new Map()
+  for (const row of enStats) {
+    for (const stat of row.stats ?? [row]) {
+      if (!stat.matchers) continue
+      if (row.stats) grouped.add(stat.ref)
+      for (const id of allIds(stat)) used.add(id)
+      for (const id of allIds(stat)) (hashes.get(stat.ref) ?? hashes.set(stat.ref, new Set()).get(stat.ref)).add(hashOf(id))
+      for (const k of [cmpKey(stat.ref), ...stat.matchers.filter(m => !m.superseded).map(m => cmpKey(m.string))]) {
+        if (!refsByText.has(k)) refsByText.set(k, new Set())
+        refsByText.get(k).add(stat.ref)
+      }
+    }
+  }
+  /** @type {Record<string, Record<string, string[]>>} */
+  const extra = {}
+  const rejects = []
+  for (const e of tradeStats) {
+    const type = e.id.slice(0, e.id.indexOf('.'))
+    if (!TYPE_ID_GROUPS.includes(type) || used.has(e.id)) continue
+    const refs = [...(refsByText.get(cmpKey(noLocal(e.text))) ?? [])]
+    if (!refs.length) continue // 資料完全沒有這條詞綴(逐條比對的 C 類),不在這條規則的範圍
+    const reject = (reason) => rejects.push({ reason, id: e.id, to: e.text, candidates: refs })
+    if (refs.length > 1) reject('同文字的詞綴不只一條')
+    else if (e.id.includes('|')) reject('選項型 id')
+    else if (grouped.has(refs[0])) reject('在合併群組裡')
+    // 交易站會把同一句話給兩個不同的 stat(例:地圖的「#% more Monster Life」);只收與該詞綴既有 id 同一個雜湊的(= 同一個 stat 少掛了某個類型),
+    // 雜湊不同就不確定是不是同一條,任何類型都不掛(審查 2026-11-15:只擋同類型會讓破裂 / 固定掛到另一個 stat)
+    else if (!hashes.get(refs[0])?.has(hashOf(e.id))) reject('與既有 id 不是同一個 stat')
+    else if (!((extra[refs[0]] ??= {})[type] ??= []).includes(e.id)) extra[refs[0]][type].push(e.id)
+  }
+  return { extra, rejects }
+}
+
+/**
+ * 規則 18:3.30 傳奇珠寶「腐敗之種」塗抹後洗出的天賦(使用者 2026-11-15 實機:「1 個附加的天賦為謹慎反擊 (enchant)」)。
+ * 交易站是選項型附魔 `enchant.stat_3599615742|<n>`「1 added passive skill is X」,472 個選項的編號與名稱和既有塗油詞綴
+ * `enchant.stat_2954116742|<n>`「Allocates X」一一對應 → 以同編號且同名的「Allocates X」取繁中名(「配置 X」去掉前綴),
+ * 句型照星團珠寶既有的「1 Added Passive Skill is X」/「1 個附加的天賦為 X」。對不上的不猜。
+ * 專案已有同一句的詞綴(星團珠寶的同名天賦)→ 只把 id 掛上去。
+ * @returns {{ newStats: any[], extra: Record<string, Record<string, string[]>>, rejects: any[] }}
+ */
+const GROWN_PASSIVE_ID = 'enchant.stat_3599615742|'
+const ANOINT_ID = 'enchant.stat_2954116742|'
+export function planGrownPassives ({ enStats, zhStats, tradeStats }) {
+  const used = new Set()
+  const byMatcher = new Map()
+  const anoint = new Map()
+  for (const stat of eachStat(enStats)) {
+    for (const id of allIds(stat)) used.add(id)
+    for (const m of stat.matchers) if (!byMatcher.has(m.string)) byMatcher.set(m.string, stat)
+    for (const id of stat.trade?.ids?.enchant ?? []) if (id.startsWith(ANOINT_ID) && stat.ref.startsWith('Allocates ')) anoint.set(id.slice(ANOINT_ID.length), stat.ref)
+  }
+  const zhByRef = groupBy([...eachStat(zhStats)], s => s.ref)
+  const newStats = []
+  /** @type {Record<string, Record<string, string[]>>} */
+  const extra = {}
+  const rejects = []
+  // 兩個不同天賦的繁中名相同(復仇 = Vengeance / Retaliation、堅定不移 = Adamant / Unfaltering):繁中 matcher 一個字串只能指向一列,
+  // 給了會把其中一個配成另一個天賦的 id → 這種的不給繁中寫法(繁中客戶端顯示未解析,看得出來)
+  const zhNameOf = (ref) => (zhByRef.get(ref) ?? []).flatMap(s => s.matchers).map(m => /^配置 (.+)$/.exec(m.string)?.[1]).find(Boolean)
+  const zhCount = new Map()
+  for (const ref of new Set(anoint.values())) { const z = zhNameOf(ref); if (z) zhCount.set(z, (zhCount.get(z) ?? 0) + 1) }
+  for (const e of tradeStats) {
+    if (!e.id.startsWith(GROWN_PASSIVE_ID) || used.has(e.id)) continue
+    const name = /^1 added passive skill is (.+)$/i.exec(e.text)?.[1]
+    const ref = anoint.get(e.id.slice(GROWN_PASSIVE_ID.length))
+    const zhName = ref && name && ref === `Allocates ${name}` ? zhNameOf(ref) : undefined
+    if (!zhName) { rejects.push({ reason: '沒有同編號同名的塗油詞綴', id: e.id, to: e.text }); continue }
+    const en = `1 Added Passive Skill is ${name}`
+    const have = byMatcher.get(en)
+    if (have) (extra[have.ref] ??= { enchant: [] }).enchant.push(e.id)
+    else {
+      const shared = (zhCount.get(zhName) ?? 0) > 1
+      if (shared) rejects.push({ reason: '繁中名與另一個天賦相同', id: e.id, to: e.text, candidates: [zhName] })
+      newStats.push({ ref: en, better: 1, en: [{ string: en }], zh: shared ? [] : [{ string: `1 個附加的天賦為${zhName}` }], ids: { enchant: [e.id] } })
+    }
+  }
+  return { newStats, extra, rejects }
 }
 
 /** 交易站 id 是否仍有效(`X|n` 形式:X 是選項型 stat 且有選項 n 也算) */
@@ -344,6 +499,16 @@ export function planDeadIds ({ enStats, tradeStats }) {
   return { replace, remove: [...remove], rejects }
 }
 
+/** GGPK stat 鍵(`ids|cond|src_file|dup`)是不是地圖 / 輿圖詞綴:stat id 全部 `map_` 開頭,或出自地圖 / 輿圖描述檔 */
+export const AREA_STAT_FILES = ['map_stat_descriptions.txt', 'atlas_stat_descriptions.txt', 'atlas_variant_stat_descriptions.txt', 'mirage_stat_descriptions.txt']
+export function isAreaStatKey (key) {
+  const parts = key.split('|')
+  return parts[0].split(' ').every(id => id.startsWith('map_')) || parts.some(p => AREA_STAT_FILES.includes(p))
+}
+
+/** 不當成詞綴新增的句子:地圖的「怪物等級:83」是屬性行,收進來英文客戶端會多一條固定詞綴(繁中是全形冒號、對不上),兩語查詢不一致 */
+const NEW_STAT_SKIP = new Set(['monster level: #'].map(t => cmpKey(t)))
+
 /**
  * 規則 4:GGPK 新版新增、交易站有同文字 id、專案沒有 → 新增一列。
  * @returns {{ ref: string, better: number, en: any[], zh: any[], ids: Record<string, string[]> }[]}
@@ -353,7 +518,10 @@ export function planNewStats ({ enStats, zhStats = /** @type {any[]} */ ([]), gg
   // 繁中新句把數字換成 # 後若與既有 matcher 同形(「獲得 1 層盛怒」對「獲得 # 層盛怒」),會搶走既有詞綴的比對 → 不加
   const shape = (text) => text.replace(/\d+(?:\.\d+)?/g, '#')
   const zhShapes = new Set([...eachStat(zhStats)].flatMap(s => s.matchers.map(m => shape(m.string))))
+  const enShapes = new Set([...eachStat(enStats)].flatMap(s => s.matchers.map(m => shape(m.string))))
   const tradeByText = groupBy(tradeStats.filter(e => !e.id.startsWith('pseudo.')), e => cmpKey(noLocal(e.text)))
+  // 同一句話在一般描述檔也有(例:輿圖天賦與裝備都有「召喚物有 #% 機率造成雙倍傷害」)→ 交易站的 id 可能是裝備那條,不算地圖詞綴
+  const generalTexts = new Set(ggpkNew.filter(r => !isAreaStatKey(r.key)).map(r => cmpKey(r.en)))
   const known = new Set()
   const usedIds = new Set()
   for (const stat of eachStat(enStats)) {
@@ -362,26 +530,42 @@ export function planNewStats ({ enStats, zhStats = /** @type {any[]} */ ([]), gg
     for (const id of allIds(stat)) usedIds.add(id)
   }
   const out = new Map()
+  const byZh = new Map()
   for (const row of ggpkNew) {
     const k = cmpKey(row.en)
-    if (known.has(k) || !/[a-z]/.test(k)) continue
+    if (known.has(k) || !/[a-z]/.test(k) || NEW_STAT_SKIP.has(k)) continue
     const entries = (tradeByText.get(k) ?? []).filter(e => !usedIds.has(e.id))
     if (!entries.length) continue
     // 舊版就有的 stat:只收交易站只列為固定詞綴的(3.30 臟器的詞綴多半是舊 stat、這季才給 implicit id);
     // 其餘類型的舊缺口數量大、沒有樣本,不自動加
-    if (oldKeys.has(row.key) && !entries.every(e => e.id.startsWith('implicit.'))) continue
+    // 例外:地圖 / 輿圖詞綴(使用者 2026-11-15 要求;3.30 地圖改版後稀有地圖上會出現)
+    // 例外 2(2026-11-15,GitHub issue #16 鈷藍珠寶「增加 #% 殘酷的效果」):主描述檔 stat_descriptions.txt 的句子,
+    // 交易站列為隨機 / 固定 / 破裂 / 工藝詞綴(= 會出現在物品上、可以查)也收
+    const itemMod = row.key.split('|').includes('stat_descriptions.txt') && entries.some(e => /^(explicit|implicit|fractured|crafted)\.stat_/.test(e.id))
+    if (oldKeys.has(row.key) && !entries.every(e => e.id.startsWith('implicit.')) && !(isAreaStatKey(row.key) && !generalTexts.has(k)) && !itemMod) continue
     if (row.zh && zhShapes.has(shape(toMatcherText(row.zh)))) continue
+    if (enShapes.has(shape(toMatcherText(row.en)))) continue
+    const zh = row.zh && cmpKey(row.zh) !== k ? toMatcherText(row.zh) : null
     if (!out.has(k)) {
       /** @type {Record<string, string[]>} */
       const ids = {}
       for (const e of entries) (ids[e.id.slice(0, e.id.indexOf('.'))] ??= []).push(e.id)
+      // 繁中與另一條新詞綴是同一句(督軍印記:交易站有 Warlords's / Warlord's 兩種拼法、兩個 id)→ 併進那一列:
+      // 繁中 matcher 一個字串只能指向一列,分成兩列的話繁中客戶端永遠只配到其中一個 id
+      const twin = zh ? byZh.get(zh) : undefined
+      if (twin) {
+        twin.en.push({ string: toMatcherText(row.en) })
+        for (const [type, list] of Object.entries(ids)) for (const id of list) if (!(twin.ids[type] ??= []).includes(id)) twin.ids[type].push(id)
+        out.set(k, twin)
+        continue
+      }
       const ref = entries[0].text.replace(/\s+\(Local\)$/i, '')
       out.set(k, { ref, better: betterOf(ref), en: [{ string: toMatcherText(row.en) }], zh: [], ids })
+      if (zh) byZh.set(zh, out.get(k))
     }
-    const zh = row.zh && cmpKey(row.zh) !== k ? toMatcherText(row.zh) : null
     if (zh && !out.get(k).zh.some(m => m.string === zh)) out.get(k).zh.push({ string: zh })
   }
-  return [...out.values()]
+  return [...new Set(out.values())]
 }
 
 /**
@@ -529,6 +713,27 @@ export function planExtraZh ({ zhStats, ggpkNew }) {
 }
 
 /**
+ * 規則 17:阿茲瓦特史記的房間(ref `Has Room: X (Tier N)`)繁中名與 GGPK `incursionrooms` 不同 → 加上 GGPK 的寫法、舊名標 superseded
+ * (GitHub issue #14:遊戲顯示「保險箱之殿 (階級 1)」,資料是「寶箱之殿」)。GGPK 名稱不唯一就不動。
+ * @returns {{ adds: any[] }}
+ */
+export function planRoomNames ({ zhStats, rooms }) {
+  const zhOf = groupBy(rooms, r => r.en)
+  const adds = []
+  for (const stat of eachStat(zhStats)) {
+    const m = /^Has Room: (.+) \(Tier \d+\)$/.exec(stat.ref)
+    const names = m ? [...new Set((zhOf.get(m[1]) ?? []).map(r => r.zh))] : []
+    if (names.length !== 1) continue
+    for (const old of stat.matchers.filter(x => !x.superseded)) {
+      const cut = old.string.indexOf(' (')
+      const next = cut === -1 ? null : names[0] + old.string.slice(cut)
+      if (next && next !== old.string && !stat.matchers.some(x => x.string === next)) adds.push({ lang: 'cmn-Hant', ref: stat.ref, matcher: { string: next }, supersedes: old.string })
+    }
+  }
+  return { adds }
+}
+
+/**
  * 規則 12:傳奇的繁中名改了(3.30「輪迴」→「馬拉凱的輪迴」,GitHub issue #8)。GGPK 新版對這個英文名只有一個繁中名、
  * 且和資料不同 → 改成新名(台服交易站用的也是新名;舊名的剪貼簿不再認得)。
  * @returns {{ refName: string, from: string, zh: string }[]}
@@ -564,9 +769,9 @@ function rewriteLines (fileText, edit, appended = []) {
  * 套用詞綴計畫(adds / replace / remove / newStats)到一份 stats.ndjson 文字
  * @param {string} fileText
  * @param {'en' | 'cmn-Hant'} lang
- * @param {{ adds?: any[], replace?: Record<string, string>, remove?: string[], newStats?: any[], better?: Record<string, number>, fill?: Record<string, Record<string, string[]>> }} [plan]
+ * @param {{ adds?: any[], replace?: Record<string, string>, remove?: string[], newStats?: any[], better?: Record<string, number>, fill?: Record<string, Record<string, string[]>>, extra?: Record<string, Record<string, string[]>> }} [plan]
  */
-export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove = [], newStats = [], better = {}, fill = {} } = {}) {
+export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove = [], newStats = [], better = {}, fill = {}, extra = {} } = {}) {
   const addsByRef = groupBy(adds.filter(a => a.lang === lang), a => a.ref)
   const gone = new Set(remove)
   const existingRefs = new Set()
@@ -601,9 +806,25 @@ export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove
       else delete stat.trade.ids[type]
       changed = true
     }
-    if (fill[stat.ref] && stat.trade && !allIds(stat).length) {
-      stat.trade.ids = fill[stat.ref]
-      changed = true
+    if (fill[stat.ref] && stat.trade) {
+      const hasIds = allIds(stat).length > 0 // 同 ref 有多份時各自判斷:已有 id 的只收 effect_ 新 id
+      for (const [type, ids] of Object.entries(fill[stat.ref])) {
+        for (const id of ids) {
+          if (hasIds && !id.includes('.effect_')) continue
+          if ((stat.trade.ids[type] ??= []).includes(id)) continue
+          stat.trade.ids[type].push(id)
+          changed = true
+        }
+      }
+    }
+    if (extra[stat.ref] && stat.trade) {
+      for (const [type, ids] of Object.entries(extra[stat.ref])) {
+        for (const id of ids) {
+          if ((stat.trade.ids[type] ??= []).includes(id)) continue
+          stat.trade.ids[type].push(id)
+          changed = true
+        }
+      }
     }
     return changed
   }

@@ -56,7 +56,7 @@ function build(text: string) {
   const { presets, active } = createPresets(item, OPTS);
   const preset = presets.find((p) => p.id === active)!;
   const query = createTradeRequest(preset, item).query;
-  return { presets, active, query };
+  return { presets, active, query, item };
 }
 
 beforeAll(async () => {
@@ -70,36 +70,49 @@ const JEWEL_RARE = fs
   .join("");
 const category = (q: any) => q.filters.type_filters?.filters.category?.option;
 
-describe("PoE2 魔法 / 稀有底材預設查該底材(preset 不變)", () => {
-  it("稀有奢華便鞋物等 80 預設 pseudo、查 type 不查類別", () => {
+// 2026-11-15 使用者推翻 2026-10-15 的「預設查底材」:預設查物品類型,基底在名稱列以並排選項顯示、點一下改查該基底
+describe("PoE2 魔法 / 稀有底材預設查物品類型,可切到基底(preset 不變)", () => {
+  /** 名稱列點「基底」= searchRelaxed.disabled = true */
+  function pickBase(r: ReturnType<typeof build>) {
+    const preset = r.presets.find((p) => p.id === r.active)!;
+    preset.filters.searchRelaxed!.disabled = true;
+    return createTradeRequest(preset, r.item).query;
+  }
+
+  it("稀有奢華便鞋物等 80 預設 pseudo、查類別不查 type;切到基底改查 Luxurious Slippers", () => {
     const r = build(BOOTS(80));
     expect(r.presets.map((p) => p.id)).toEqual([
       "filters.preset_pseudo",
       "filters.preset_base_item",
     ]);
     expect(r.active).toBe("filters.preset_pseudo");
-    expect(r.query.type).toBe("Luxurious Slippers");
-    expect(category(r.query)).toBeUndefined();
+    expect(r.query.type).toBeUndefined();
+    expect(category(r.query)).toBeDefined();
+    const q = pickBase(r);
+    expect(q.type).toBe("Luxurious Slippers");
+    expect(category(q)).toBeUndefined();
   });
 
-  it("魔法藍玉戒指預設 pseudo、查 type 不查類別", () => {
+  it("魔法藍玉戒指預設 pseudo、查類別;切到基底改查 Sapphire Ring", () => {
     const r = build(RING_MAGIC);
     expect(r.active).toBe("filters.preset_pseudo");
-    expect(r.query.type).toBe("Sapphire Ring");
-    expect(category(r.query)).toBeUndefined();
+    expect(r.query.type).toBeUndefined();
+    expect(category(r.query)).toBeDefined();
+    expect(pickBase(r).type).toBe("Sapphire Ring");
   });
 
-  it("物等過低的稀有便鞋同樣查 type(不看物等)", () => {
+  it("物等過低的稀有便鞋同樣預設查類別(不看物等)", () => {
     const r = build(BOOTS(40));
     expect(r.presets.map((p) => p.id)).toEqual(["filters.preset_pseudo"]);
-    expect(r.query.type).toBe("Luxurious Slippers");
-    expect(category(r.query)).toBeUndefined();
+    expect(r.query.type).toBeUndefined();
+    expect(category(r.query)).toBeDefined();
   });
 
-  it("已汙染(成品)便鞋維持 pseudo、同樣查 type", () => {
+  it("已汙染(成品)便鞋維持 pseudo、同樣預設查類別", () => {
     const r = build(BOOTS(80, "--------\nCorrupted\n"));
     expect(r.presets.map((p) => p.id)).toEqual(["filters.preset_pseudo"]);
-    expect(r.query.type).toBe("Luxurious Slippers");
+    expect(r.query.type).toBeUndefined();
+    expect(category(r.query)).toBeDefined();
   });
 
   it("稀有珠寶不動、維持查類別", () => {

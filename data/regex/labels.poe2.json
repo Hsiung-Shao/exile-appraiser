@@ -1,7 +1,7 @@
 {
  "schema": 1,
  "game": "poe2",
- "source": "pob-zh-engine tools/ggpk2_zh/out/poe2/tables/clientstrings.json(clientstrings,欄 Text;meta game_version 4.5.5.2)",
+ "source": "pob-zh-engine tools/ggpk2_zh/out/poe2/tables/clientstrings.json(clientstrings,欄 Text;meta game_version 0.5.5e)",
  "note": "暫代檔:PobTools regex_poe*.json 升到 schema 2 自帶 labels 後,regex/src/data.ts 優先讀資料檔內的 labels。{0} 已換成 #。",
  "labels": {
   "zh": {

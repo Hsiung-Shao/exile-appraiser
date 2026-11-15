@@ -599,7 +599,8 @@ function parseInfluence (section: string[], item: ParsedItem) {
 }
 
 function parseCorrupted (section: string[], item: ParsedItem) {
-  if (section[0] === _$.CORRUPTED) {
+  // exile-appraiser: 3.30「二次汙染」(clientstrings ItemPopupDoubleCorrupted)也是已汙染;交易站沒有另外的篩選
+  if (section[0] === _$.CORRUPTED || section[0] === _$.CORRUPTED_TWICE) {
     item.isCorrupted = true
     return 'SECTION_PARSED'
   } else if (section[0] === _$.UNMODIFIABLE) {

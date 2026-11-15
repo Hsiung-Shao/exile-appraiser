@@ -239,13 +239,13 @@ function buildNameBlock (item: FetchItem, rarity: DisplayRarity): DisplayLine[] 
   return props.map((p, i) => {
     const name = stripMarkup(p.name ?? '')
     const values = valuesOf(p)
-    if (p.displayMode === 3 && /%\d/.test(name)) {
-      // displayMode 3:`%N` 換成 values[N](各自保留數值顏色),不加冒號;對不上的佔位符以空字串代入,不讓 `%N` 留在畫面
+    if (p.displayMode === 3 && /%\d|\{\d+\}/.test(name)) {
+      // displayMode 3:`%N` / `{N}`(3.30 的 `Weapon Range: {0} metres`)換成 values[N](各自保留數值顏色),不加冒號;對不上的佔位符以空字串代入,不讓 `%N` 留在畫面
       const segments: Array<{ text: string, color: number, value?: boolean }> = []
       let last = 0
-      for (const m of name.matchAll(/%(\d+)/g)) {
+      for (const m of name.matchAll(/%(\d+)|\{(\d+)\}/g)) {
         if (m.index! > last) segments.push({ text: name.slice(last, m.index), color: TradeNumberColors.White })
-        const v = values[Number(m[1])]
+        const v = values[Number(m[1] ?? m[2])]
         if (v) segments.push({ text: v.text, color: v.color, value: true })
         last = m.index! + m[0].length
       }

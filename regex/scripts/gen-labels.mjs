@@ -29,7 +29,7 @@ const KEYS = {
     'ItemDisplayMapTier', 'ItemDisplayMapQuantityIncrease', 'ItemDisplayMapRarityIncrease', 'ItemDisplayMapPackSizeIncrease',
     'ItemDisplayMapScarabDropBonus', 'ItemDisplayMapCurrencyDropBonus', 'ItemDisplayMapMapDropBonus',
     'ItemDisplayMapDivinationCardDropBonus',
-    'ItemLevelPopup', 'Quality', 'ItemDisplayStringSockets', 'ItemPopupCorrupted', 'Level',
+    'ItemLevelPopup', 'Quality', 'ItemDisplayStringSockets', 'ItemPopupCorrupted', 'ItemPopupDoubleCorrupted', 'Level',
     'ItemPopupShaperItem', 'ItemPopupElderItem', 'ItemPopupCrusaderItem', 'ItemPopupRedeemerItem',
     'ItemPopupHunterItem', 'ItemPopupWarlordItem', 'ItemPopupSearingExarchItem', 'ItemPopupEaterofWorldsItem',
     'ItemDisplayStringRarity', 'ItemDisplayStringNormal', 'ItemDisplayStringMagic', 'ItemDisplayStringRare', 'ItemDisplayStringUnique'
@@ -89,6 +89,11 @@ for (const game of /** @type {const} */ (['poe1', 'poe2'])) {
   }
   // 交叉比對:regex_poe*.json 的 ambient 行
   const cat = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'regex', `regex_${game}.json`), 'utf8'))
+  // 資料檔自己有的鍵沿用資料檔的值:regex_poe*.json 還停在舊版 GGPK 時,clientstrings 已改字的標籤(3.30「更多聖甲蟲」→「更多 綢帶」)
+  // 不讓暫代檔超前(執行期本來就以資料檔為準);這裡只補資料檔沒有的鍵
+  for (const lang of /** @type {const} */ (['zh', 'en'])) {
+    for (const [k, v] of Object.entries(cat.labels?.[lang] ?? {})) if (k in (lang === 'zh' ? zh : en)) (lang === 'zh' ? zh : en)[k] = v
+  }
   const ambZh = new Set(cat.pages.flatMap(p => p.ambientZh ?? []))
   const ambEn = new Set(cat.pages.flatMap(p => p.ambientEn ?? []))
   const confirmed = []

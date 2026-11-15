@@ -95,6 +95,72 @@ describe('search → fetch', () => {
     expect(results[0].priceAmount).toBe(5)
   })
 
+  it('台服:每個群組只送台服交易站清單有的 id(台服不認得的 id 會讓整個查詢回 Invalid query,2026-11-15 實測);選項型 id 以 | 前的部分比對', async () => {
+    const group = { type: 'count' as const, value: { min: 1 }, filters: [{ id: 'explicit.indexable_support_1' }, { id: 'explicit.effect_9' }] }
+    const body = (): any => ({ query: { status: { option: 'available' }, stats: [{ type: 'and', filters: [{ id: 'explicit.stat_1' }, { id: 'implicit.stat_404' }, { id: 'enchant.stat_7|49' }] }, group, { type: 'not', filters: [{ id: 'fractured.stat_404' }] }, { type: 'count', value: { min: 1 }, filters: [{ id: 'explicit.stat_404' }] }, { type: 'count', value: { min: 1, max: 1 }, filters: [{ id: 'explicit.stat_1' }, { id: 'explicit.stat_404' }] }, { type: 'mercenary', value: { min: 3 }, filters: [{ id: 'explicit.stat_1' }, { id: 'explicit.stat_404' }] }] }, sort: { price: 'asc' } })
+    const twStats = { result: [{ id: 'explicit', entries: [{ id: 'explicit.indexable_support_1', text: 'a' }, { id: 'explicit.stat_1', text: 'b' }] }, { id: 'enchant', entries: [{ id: 'enchant.stat_7', text: 'c' }] }] }
+    const sent = (log: Recorded[]) => log.filter(r => r.url.includes('/search/')).map(r => JSON.parse(r.init.body).query.stats[1].filters.map((f: any) => f.id))
+
+    const log: Recorded[] = []
+    const http = fakeHttp(url => url.endsWith('/api/trade/data/stats') ? response(200, twStats) : response(200, { id: 'x', result: [], total: 0 }, RATE_HEADERS), log)
+    const twCtx = { http, realm: 'tw' as const, latencySeconds: 0, accountName: '' }
+    await requestTradeResultList(twCtx, body(), 'Standard')
+    await requestTradeResultList(twCtx, { ...body(), sort: { price: 'desc' } }, 'Standard')
+    expect(sent(log)).toEqual([['explicit.indexable_support_1'], ['explicit.indexable_support_1']])
+    expect(log.filter(r => r.url === 'https://pathofexile.tw/api/trade/data/stats')).toHaveLength(1) // 清單每個 session 只抓一次
+    // and 群組拿掉台服沒有的、選項型 id 留著;清空的 not、一個都不剩的 count 整組拿掉;
+    // 帶數量的群組(count 有 max、傭兵加權)少一個 id 語意就變了 → 整組拿掉
+    expect(JSON.parse(log.find(r => r.url.includes('/search/'))!.init.body).query.stats).toEqual([
+      { type: 'and', filters: [{ id: 'explicit.stat_1' }, { id: 'enchant.stat_7|49' }] },
+      { type: 'count', value: { min: 1 }, filters: [{ id: 'explicit.indexable_support_1' }] }
+    ])
+
+    // 國際服不抓清單、原樣送
+    const log2: Recorded[] = []
+    await requestTradeResultList({ ...twCtx, http: fakeHttp(() => response(200, { id: 'y', result: [], total: 0 }, RATE_HEADERS), log2), realm: 'intl' as const }, body(), 'Standard')
+    expect(log2.map(r => r.url)).toEqual(['https://www.pathofexile.com/api/trade/search/Standard'])
+    expect(sent(log2)).toEqual([['explicit.indexable_support_1', 'explicit.effect_9']])
+
+    // 清單抓不到(或台服兩個都沒有)→ 原樣送
+    resetTradeSessions()
+    const log3: Recorded[] = []
+    await requestTradeResultList({ ...twCtx, http: fakeHttp(url => url.endsWith('/data/stats') ? response(500, {}) : response(200, { id: 'z', result: [], total: 0 }, RATE_HEADERS), log3) }, body(), 'Standard')
+    expect(sent(log3)).toEqual([['explicit.indexable_support_1', 'explicit.effect_9']])
+  })
+
+  it('台服清單:並行只抓一次;抓不到 1 分鐘內不再試、之後重抓;成功後 6 小時重抓', async () => {
+    const body = (n: number): any => ({ query: { status: { option: 'available' }, stats: [{ type: 'and', filters: [{ id: 'explicit.stat_1' }] }] }, sort: { price: 'asc' }, n })
+    let ok = false
+    const log: Recorded[] = []
+    const http = fakeHttp(url => url.endsWith('/data/stats')
+      ? (ok ? response(200, { result: [{ entries: [{ id: 'explicit.stat_1' }] }] }) : response(500, {}))
+      : response(200, { id: 'x', result: [], total: 0 }, RATE_HEADERS), log)
+    const ctx = { http, realm: 'tw' as const, latencySeconds: 0, accountName: '' }
+    const lists = () => log.filter(r => r.url.endsWith('/data/stats')).length
+    const real = Date.now
+    let now = 1_000_000
+    Date.now = () => now
+    try {
+      await Promise.all([requestTradeResultList(ctx, body(1), 'Standard'), requestTradeResultList(ctx, body(2), 'Standard')])
+      expect(lists()).toBe(1)
+      now += 30_000
+      await requestTradeResultList(ctx, body(3), 'Standard')
+      expect(lists()).toBe(1)
+      ok = true
+      now += 31_000
+      await requestTradeResultList(ctx, body(4), 'Standard')
+      expect(lists()).toBe(2)
+      now += 5 * 60 * 60 * 1000
+      await requestTradeResultList(ctx, body(5), 'Standard')
+      expect(lists()).toBe(2)
+      now += 61 * 60 * 1000
+      await requestTradeResultList(ctx, body(6), 'Standard')
+      expect(lists()).toBe(3)
+    } finally {
+      Date.now = real
+    }
+  })
+
   it('台服 realm 打 pathofexile.tw,且與國際服的限流/快取互不影響', async () => {
     const log: Recorded[] = []
     const http = fakeHttp(() => response(200, { id: 'tw1', result: [], total: 0 }, RATE_HEADERS), log)
@@ -103,14 +169,16 @@ describe('search → fetch', () => {
 
     const request = createTradeRequest(presetFor('tw'))
     await requestTradeResultList(twCtx, request, 'Standard')
-    expect(log[0].url).toBe('https://pathofexile.tw/api/trade/search/Standard')
+    // 台服會先抓一次交易站 id 清單(這個假回應不是清單 → 視為抓不到、原樣送);以下只看 search 請求
+    const searches = () => log.filter(r => r.url.includes('/search/'))
+    expect(searches()[0].url).toBe('https://pathofexile.tw/api/trade/search/Standard')
 
     // 同 body 再查 tw 命中快取(不再發請求);查 intl 則必須真的發
     await requestTradeResultList(twCtx, request, 'Standard')
-    expect(log.length).toBe(1)
+    expect(searches().length).toBe(1)
     await requestTradeResultList(intlCtx, request, 'Standard')
-    expect(log.length).toBe(2)
-    expect(log[1].url).toBe('https://www.pathofexile.com/api/trade/search/Standard')
+    expect(searches().length).toBe(2)
+    expect(searches()[1].url).toBe('https://www.pathofexile.com/api/trade/search/Standard')
 
     expect(tradeSession('tw').limits.SEARCH).not.toBe(tradeSession('intl').limits.SEARCH)
   })

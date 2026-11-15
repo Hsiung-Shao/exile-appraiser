@@ -28,6 +28,7 @@
   "Not recognized modifier": "Not recognized modifier",
   "Refresh": "Refresh",
   "ppz": {
+    "search_scope": "Search by",
     "listing": {
       "title": "Listings",
       "lowest": "Lowest {price}",

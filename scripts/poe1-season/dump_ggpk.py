@@ -50,9 +50,18 @@ def main():
         'and same_as_en = 0 order by en, zh_tw', (new,))]
     strings = {i: {'en': en, 'zh': zh} for i, en, zh in c.execute(
         "select ident, en, zh_tw from cell where version_id = ? and tbl = 'clientstrings' and col = 'Text' "
-        "and ident in ('ModGrantsEffectWithLevel')", (new,))}
+        "and ident in ('ModGrantsEffect', 'ModGrantsEffectWithLevel', 'ModGrantsSupportEffectWithLevel')", (new,))}
+    # 輔助寶石顯示名(規則 15;有些輔助不是物品,名字只在 gemeffects.SupportName)
+    supports = [{'en': en, 'zh': zh} for en, zh in c.execute(
+        "select distinct en, zh_tw from cell where version_id = ? and same_as_en = 0 and en like '% Support' and "
+        "((tbl = 'baseitemtypes' and col = 'Name') or (tbl = 'gemeffects' and col = 'SupportName')) order by en, zh_tw", (new,))]
 
-    data = {'old': meta(old), 'new': meta(new), 'words': words, 'gems': gems, 'skills': skills, 'strings': strings,
+    # 阿茲瓦特史記的房間名(規則 17)
+    rooms = [{'en': en, 'zh': zh} for en, zh in c.execute(
+        "select distinct en, zh_tw from cell where version_id = ? and tbl = 'incursionrooms' and col = 'Name' "
+        'and same_as_en = 0 order by en, zh_tw', (new,))]
+
+    data = {'old': meta(old), 'new': meta(new), 'words': words, 'gems': gems, 'skills': skills, 'supports': supports, 'rooms': rooms, 'strings': strings,
             'stats': {'old': stats(old), 'new': stats(new)},
             'base': {'old': base(old), 'new': base(new)}}
     with open(out, 'w', encoding='utf-8', newline='\n') as f:

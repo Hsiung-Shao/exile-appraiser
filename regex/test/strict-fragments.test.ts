@@ -178,7 +178,7 @@ describe('③ 稀有度 | 汙染條件列(第 35 步稀有度列;第 40 步起�
       expect(inp.def).toEqual({ choice: 'rare' })
       expect(e.terms!(choiceOf([]), 'zh')).toBeNull()
       expect(e.terms!(choiceOf(['normal', 'magic', 'rare', 'unique']), 'zh')).toBeNull()
-      expect(e.terms!(choiceOf(['normal', 'magic', 'rare', 'unique'], 'uncorrupted'), 'zh')).toEqual(['!^已汙染$'])
+      expect(e.terms!(choiceOf(['normal', 'magic', 'rare', 'unique'], 'uncorrupted'), 'zh')).toEqual([game === 'poe1' ? '!^(已汙染|二次汙染)$' : '!^已汙染$'])
     })
     it(`${game}:每個稀有度組合 × 分隔寫法只中選到的;物品稀有度 / 怪物稀有度 0–999 都不中`, () => {
       const e = rowOf(game)
@@ -214,10 +214,10 @@ describe('③ 稀有度 | 汙染條件列(第 35 步稀有度列;第 40 步起�
     expect(e.fragment({ choice: 'rare' }, 'zh')).toBe('度: 稀')
     expect(e.fragment({ choice: 'normal' }, 'zh')).toBe('度: 普')
     expect(e.fragment({ choice: 'unique' }, 'en')).toBe('y: u')
-    expect(e.terms!(choiceOf(['rare', 'magic'], 'uncorrupted'), 'zh')).toEqual(['度: [魔稀]', '!^已汙染$'])
-    expect(e.terms!(choiceOf(['unique', 'normal', 'rare'], 'corrupted'), 'en')).toEqual(['y: [nru]', '^Corrupted$'])
+    expect(e.terms!(choiceOf(['rare', 'magic'], 'uncorrupted'), 'zh')).toEqual(['度: [魔稀]', '!^(已汙染|二次汙染)$'])
+    expect(e.terms!(choiceOf(['unique', 'normal', 'rare'], 'corrupted'), 'en')).toEqual(['y: [nru]', '^(Corrupted|Twice Corrupted)$'])
     expect(rowOf('poe2').terms!(choiceOf(['normal', 'magic']), 'zh')).toEqual(['度: [中魔]'])
-    expect(e.fragment(choiceOf(['magic'], 'corrupted'), 'zh')).toBe('度: 魔 ^已汙染$')
+    expect(e.fragment(choiceOf(['magic'], 'corrupted'), 'zh')).toBe('度: 魔 ^(已汙染|二次汙染)$')
   })
   it('choice 編解碼:新格式、舊單字、壞值;按鈕切換', () => {
     expect(parseRarityChoice('mr|u')).toEqual({ rarity: ['magic', 'rare'], corruption: 'uncorrupted' })

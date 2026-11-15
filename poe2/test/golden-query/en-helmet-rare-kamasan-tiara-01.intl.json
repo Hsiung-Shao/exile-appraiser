@@ -127,6 +127,9 @@
         },
         "type_filters": {
           "filters": {
+            "category": {
+              "option": "armour.helmet"
+            },
             "rarity": {
               "option": "nonunique"
             }
@@ -149,8 +152,7 @@
             }
           }
         }
-      },
-      "type": "Runeforged Kamasan Tiara"
+      }
     },
     "sort": {
       "price": "asc"

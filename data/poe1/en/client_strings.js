@@ -38,6 +38,7 @@ export default {
   TAG_WARD: 'Ward: ',
   BLOCK_CHANCE: 'Chance to Block: ',
   CORRUPTED: 'Corrupted',
+  CORRUPTED_TWICE: 'Twice Corrupted',
   UNIDENTIFIED: 'Unidentified',
   ITEM_SUPERIOR: /^Superior (.*)$/,
   MAP_BLIGHTED: /^Blighted (.*)$/,

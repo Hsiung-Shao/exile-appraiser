@@ -54,9 +54,10 @@ describe('條件區接線', () => {
       expect([e.input.kind, e.input.def]).toEqual(['rarity', { choice: '|c' }])
       // 舊書籤 / 分享碼的商店頁 numeric 沒有 corrupted 的值(舊列沒有輸入)→ 用預設
       const q = combine({ lang: 'zh', mode: 'any', pages: combineSels(pages[g], { [id]: [idx(p, 'corrupted')] }, {}, id) })
-      expect(q.query).toBe('^已汙染$')
+      // 2026-11-15:PoE1 3.30 有「二次汙染」行,兩種寫法都算已汙染;PoE2 沒有這個標籤,輸出不變
+      expect(q.query).toBe(g === 'poe1' ? '^(已汙染|二次汙染)$' : '^已汙染$')
       const q2 = combine({ lang: 'en', mode: 'any', pages: combineSels(pages[g], { [id]: [idx(p, 'corrupted')] }, { [id]: { corrupted: ch(['rare'], 'uncorrupted') } }, id) })
-      expect(q2.query).toBe('"y: r" "!^Corrupted$"') // R10 短稀有度 term
+      expect(q2.query).toBe(g === 'poe1' ? '"y: r" "!^(Corrupted|Twice Corrupted)$"' : '"y: r" "!^Corrupted$"') // R10 短稀有度 term
     }
   })
 })
@@ -81,11 +82,27 @@ describe('combine:一列兩個 term', () => {
       expect(r.conflicts, mode).toEqual([])
     }
   })
+  it('PoE1 3.30 二次汙染:已汙染條件中「已汙染」與「二次汙染 / Twice Corrupted」兩種行,未汙染條件兩種都排除(使用者 2026-11-15 要求)', () => {
+    const p = byId('poe1', 'vendor_items') as AlgoPage
+    const e = p.entries.find(x => x.id === 'corrupted')!
+    const hit = (term: string, line: string) => (term.startsWith('!') ? !new RegExp(term.slice(1), 'i').test(line) : new RegExp(term, 'i').test(line))
+    for (const [lang, lines, other] of [['zh', ['已汙染', '二次汙染'], '已汙染物品機率 +5%'], ['en', ['Corrupted', 'Twice Corrupted'], 'Corrupted Blood']] as const) {
+      const [on] = e.terms!({ choice: '|c' }, lang)!
+      const [off] = e.terms!({ choice: '|u' }, lang)!
+      for (const line of lines) {
+        expect(hit(on, line), `${on} ${line}`).toBe(true)
+        expect(hit(off, line), `${off} ${line}`).toBe(false)
+      }
+      expect(hit(on, other), `${on} ${other}`).toBe(false)
+      expect(hit(off, other), `${off} ${other}`).toBe(true)
+    }
+  })
+
   it('已汙染 term 對有「已汙染」行的語料頁不算誤中(ownLine)', () => {
     for (const g of GAMES) {
       const sec = sectionPageOf(pages[g], 'vendor_bases')!
       const r = combine({ lang: 'zh', mode: 'any', pages: combineSels(pages[g], { vendor_bases: [0, 1], [sec.id]: [0] }, { vendor_bases: { item_rarity_class: ch([], 'corrupted') } }, 'vendor_bases') })
-      expect(r.query.endsWith(' ^已汙染$'), r.query).toBe(true)
+      expect(r.query.endsWith(g === 'poe1' ? ' ^(已汙染|二次汙染)$' : ' ^已汙染$'), r.query).toBe(true)
       expect(r.conflicts.filter(c => c.kind === 'fragment'), g).toEqual([])
     }
   })
@@ -117,7 +134,7 @@ describe('舊值相容與往返', () => {
     expect(body.num).toEqual(['item_rarity_class'])
     expect(body.numeric).toEqual({ item_rarity_class: ch(['normal'], 'uncorrupted') })
     const want = combine({ lang: 'zh', mode: 'any', pages: combineSels(pages[g], picks, values, 'vendor_bases') }).query
-    expect(want).toContain('"度: 普" "!^已汙染$"')
+    expect(want).toContain(g === 'poe1' ? '"度: 普" "!^(已汙染|二次汙染)$"' : '"度: 普" "!^已汙染$"')
     expect(bookmarkQuery(pages[g], { name: 'x', ...body })!.query).toBe(want)
   })
   it('物品詞綴數值頁:宿主自己的數值與條件區共用存放鍵 → 書籤 / 分享碼兩邊都保留', async () => {
@@ -130,7 +147,7 @@ describe('舊值相容與往返', () => {
       const picks = { [page.id]: [0], [sec.id]: [0] }
       const values = { [page.id]: { [e0]: { min: 7 }, item_rarity_class: ch(['rare'], 'uncorrupted') } }
       const want = combine({ lang: 'en', mode: 'any', pages: combineSels(all, picks, values, page.id) }).query
-      expect(want.endsWith(' "y: r" "!^Corrupted$"'), want).toBe(true) // R10 短稀有度 term
+      expect(want.endsWith(g === 'poe1' ? ' "y: r" "!^(Corrupted|Twice Corrupted)$"' : ' "y: r" "!^Corrupted$"'), want).toBe(true) // R10 短稀有度 term;PoE1 含二次汙染
       // 書籤
       const body = bookmarkBodyOf(all, page, picks, values, { game: g, mode: 'any', lang: 'en' })!
       expect(body.numeric).toEqual(values[page.id])

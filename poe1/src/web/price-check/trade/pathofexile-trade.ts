@@ -820,7 +820,67 @@ export function fetchUrl (ctx: Pick<TradeContext, 'realm'>, resultIds: string[],
   return `${apiBase(ctx.realm)}/api/trade/fetch/${resultIds.join(',')}?query=${queryId}`
 }
 
+// exile-appraiser: 台服交易站遇到它清單裡沒有的 stat id,整個查詢回「Invalid query」(2026-11-15 實測)。
+// 台服的清單比國際服少(3.30 的 `effect_*` 新 id 陸續開放;一部分固定 / 破裂 / 附魔 id 台服沒有),資料是兩區共用的,
+// 所以台服送出前用台服自己的清單(`/api/trade/data/stats`)過濾每個群組:不認得的 id 拿掉(地圖的附魔 / 固定詞綴預設就勾,
+// 不拿掉會一查價就失敗);count 群組(同一條詞綴的新舊 id)因此只留認得的。拿掉了什麼記一行 log。
+// 清單成功後 6 小時重抓(台服中途開放新 id);抓不到就原樣送,1 分鐘內不再試。
+const KNOWN_IDS_TTL_MS = 6 * 60 * 60 * 1000
+const KNOWN_IDS_RETRY_MS = 60 * 1000
+interface KnownStatIds { owner: unknown, at: number, ids: Promise<Set<string> | null>, failed?: boolean }
+const knownStatIds = new Map<string, KnownStatIds>()
+
+function loadKnownStatIds (ctx: TradeContext, now = Date.now()): Promise<Set<string> | null> {
+  const session = tradeSession(ctx.realm) // resetTradeSessions(測試)會換掉 session 物件;跟著重抓
+  const have = knownStatIds.get(ctx.realm)
+  if (have && have.owner === session && now - have.at < (have.failed ? KNOWN_IDS_RETRY_MS : KNOWN_IDS_TTL_MS)) return have.ids
+  const entry: KnownStatIds = {
+    owner: session,
+    at: now,
+    ids: (async () => {
+      try {
+        const response = await ctx.http(`${apiBase(ctx.realm)}/api/trade/data/stats`, { method: 'GET', headers: { Accept: 'application/json' } })
+        if (!response.ok) return null
+        const data = await response.json() as { result?: Array<{ entries?: Array<{ id?: unknown }> }> }
+        const ids = new Set<string>()
+        for (const group of data.result ?? []) for (const e of group.entries ?? []) if (typeof e.id === 'string') ids.add(e.id)
+        return ids.size ? ids : null
+      } catch {
+        return null
+      }
+    })()
+  }
+  knownStatIds.set(ctx.realm, entry)
+  void entry.ids.then(ids => { if (!ids) entry.failed = true })
+  return entry.ids
+}
+
+async function dropIdsUnknownToRealm (ctx: TradeContext, body: TradeRequest): Promise<TradeRequest> {
+  if (ctx.realm !== 'tw' || !body.query.stats.some(g => g.filters.length)) return body
+  const known = await loadKnownStatIds(ctx)
+  if (!known) return body
+  // 選項型 id(`X|n`)清單裡可能只有 `X`
+  const ok = (id: string) => known.has(id) || known.has(id.split('|')[0])
+  const dropped: string[] = []
+  const stats = body.query.stats.flatMap((g, i) => {
+    const kept = g.filters.filter(f => ok(f.id))
+    if (kept.length === g.filters.length) return [g]
+    // 可以只拿掉一部分的:and / not(各條件獨立)與「count、只有 min 1」(同一條詞綴的新舊 id,任一成立)。
+    // 其他帶數量的群組(count 有 max 或 min > 1、傭兵加權…)少了一個 id 語意就變了、甚至湊不到 min → 整組拿掉
+    const partial = g.type === 'and' || g.type === 'not' ||
+      (g.type === 'count' && g.value?.min === 1 && g.value.max === undefined)
+    const next = partial ? kept : []
+    dropped.push(...g.filters.filter(f => !next.includes(f)).map(f => f.id))
+    // 第一個 and 群組是固定有的(可以是空的);其餘清空就不送
+    return next.length || (i === 0 && g.type === 'and') ? [{ ...g, filters: next }] : []
+  })
+  if (!dropped.length) return body
+  console.warn(`[trade] 台服交易站清單沒有這些 id,已從查詢拿掉:${dropped.join(', ')}`)
+  return { ...body, query: { ...body.query, stats } }
+}
+
 export async function requestTradeResultList (ctx: TradeContext, body: TradeRequest, leagueId: string): Promise<SearchResult> {
+  body = await dropIdsUnknownToRealm(ctx, body)
   const { limits: RATE_LIMIT_RULES, cache } = tradeSession(ctx.realm)
   let data = cache.get<SearchResult>([ctx.realm, body, leagueId])
 

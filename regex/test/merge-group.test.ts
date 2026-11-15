@@ -307,7 +307,7 @@ describe('R10-F 條件片段縮短(PoE2 / PoE1 皆「標籤: 值」)', () => {
     const fake = withExtraLine(waystone, 'r10_fake_corrupted_prefix', '已汙染的地圖掉落機率 #%', 'Corrupted Maps drop chance #%')
     expect(sectionTerms(fake, wn, wR, choice([], 'corrupted'), 'zh')).toEqual(['^已汙染$'])
     expect(sectionTerms(fake, wn, wR, choice([], 'uncorrupted'), 'zh')).toEqual(['!^已汙染$'])
-    expect(sectionTerms(maps, mn, mR, choice([], 'corrupted'), 'zh')).toEqual(['^已汙染$'])
+    expect(sectionTerms(maps, mn, mR, choice([], 'corrupted'), 'zh')).toEqual(['^(已汙染|二次汙染)$']) // PoE1 3.30 含二次汙染
   })
   it('F6b 沒有詞綴類語料參與(只有條件區)→ 汙染用整行 ^已汙染$', () => {
     const vc = byId('poe2', 'vendor_bases_cond') as AlgoPage

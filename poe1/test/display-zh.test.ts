@@ -86,6 +86,12 @@ describe('P3 PoE1 詞綴繁中', () => {
     expect(r.zh).not.toContain('增加')
   })
 
+  it('3.30 輔助寶石 / 賦予技能的 effect_ 新 id(苦夢,交易站 2026-11-15 實際回傳)翻成繁中', () => {
+    expect(translateModLine('Socketed Gems are Supported by Level 15 Bonechill Support', 'explicit.effect_3024539694', data))
+      .toEqual({ zh: '插槽中的寶石被等級 15 的 寒冰刺骨輔助 輔助', reason: 'ok' })
+    expect(translateModLine('Grants Level 5 Frostbite', 'explicit.effect_2455845502', data).reason).toBe('ok')
+  })
+
   it('減少寫法挑 negate 變體', () => {
     expect(translateModLine('10% reduced Attack Speed', 'explicit.stat_681332047', data)).toEqual({ zh: '減少 10% 攻擊速度', reason: 'ok' })
   })
