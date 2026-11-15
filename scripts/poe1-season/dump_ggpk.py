@@ -44,7 +44,15 @@ def main():
         "select distinct en, zh_tw from cell where version_id = ? and tbl = 'gemeffects' and col = 'Name' "
         'and same_as_en = 0 order by en, zh_tw', (new,))]
 
-    data = {'old': meta(old), 'new': meta(new), 'words': words, 'gems': gems,
+    # 主動技能顯示名與「賦予等級 {1} 的 {0}」句型(3.30 起「賦予技能」詞綴由句型 + 技能名組成)
+    skills = [{'en': en, 'zh': zh} for en, zh in c.execute(
+        "select distinct en, zh_tw from cell where version_id = ? and tbl = 'activeskills' and col = 'DisplayedName' "
+        'and same_as_en = 0 order by en, zh_tw', (new,))]
+    strings = {i: {'en': en, 'zh': zh} for i, en, zh in c.execute(
+        "select ident, en, zh_tw from cell where version_id = ? and tbl = 'clientstrings' and col = 'Text' "
+        "and ident in ('ModGrantsEffectWithLevel')", (new,))}
+
+    data = {'old': meta(old), 'new': meta(new), 'words': words, 'gems': gems, 'skills': skills, 'strings': strings,
             'stats': {'old': stats(old), 'new': stats(new)},
             'base': {'old': base(old), 'new': base(new)}}
     with open(out, 'w', encoding='utf-8', newline='\n') as f:

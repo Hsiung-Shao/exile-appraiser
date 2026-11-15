@@ -248,6 +248,64 @@ export function planSupportGemNames ({ enStats, zhStats, ggpkNew, baseNew }) {
   return { adds, rejects }
 }
 
+/**
+ * 規則 13:「獲得等級 # 的 X 技能」3.30 起改由句型 clientstrings `ModGrantsEffectWithLevel`
+ * (`Grants Level {1} {0}` /「賦予等級 {1} 的 {0}」)+ 技能顯示名組成(GitHub issue #10 #11 的實機文字:
+ * 「賦予等級 20 的 嗜血」;名稱前的零寬空白由解析器去掉)。只處理單行的 `Grants Level # X[ Skill]`;
+ * 技能繁中名取 GGPK activeskills,不唯一就拒收。舊句標 superseded。
+ * @returns {{ adds: any[], rejects: any[] }}
+ */
+export function planGrantsSkill ({ enStats, zhStats, skills, template }) {
+  const adds = []
+  const rejects = []
+  if (!template) return { adds, rejects }
+  const fill = (text, name) => text.replace('{1}', '#').replace('{0}', name)
+  const zhOf = groupBy(skills, s => s.en)
+  const zhByRef = groupBy([...eachStat(zhStats)], s => s.ref)
+  const live = (stat) => stat.matchers.filter(m => !m.superseded)
+  for (const stat of eachStat(enStats)) {
+    const m = /^Grants Level # ([^\n]+?)(?: Skill)?$/.exec(stat.ref)
+    if (!m) continue
+    const en = fill(template.en, m[1])
+    // 瓦爾版技能的英文顯示名有時與原版相同(Determination → 堅定 / 瓦爾．堅定);英文沒寫 Vaal 就不是瓦爾版
+    const zhNames = [...new Set((zhOf.get(m[1]) ?? []).map(s => s.zh))].filter((z, _, a) => a.length === 1 || m[1].startsWith('Vaal ') || !z.startsWith('瓦爾．'))
+    const zhStat = (zhByRef.get(stat.ref) ?? [])[0]
+    if (zhNames.length !== 1 || !zhStat) { rejects.push({ reason: 'GGPK 沒有唯一的技能繁中名', ref: stat.ref, candidates: zhNames }); continue }
+    const zh = fill(template.zh, zhNames[0])
+    if (live(stat).length === 1 && !stat.matchers.some(x => x.string === en)) adds.push({ lang: 'en', ref: stat.ref, matcher: { string: en }, supersedes: live(stat)[0].string })
+    if (live(zhStat).length === 1 && !zhStat.matchers.some(x => x.string === zh)) adds.push({ lang: 'cmn-Hant', ref: stat.ref, matcher: { string: zh }, supersedes: live(zhStat)[0].string })
+  }
+  return { adds, rejects }
+}
+
+/**
+ * 規則 14:專案裡完全沒有交易站 id 的詞綴(解析器會把它當未解析),交易站現在有同文字、還沒被別的詞綴用的 id → 補上。
+ * 3.30「賦予技能」改發 `explicit.effect_*`(GitHub issue #10:劊子手．傑克的「賦予等級 20 的 嗜血」)。
+ * 文字比對用 ref 與現行的英文 matcher(寬鬆鍵)。
+ * @returns {Record<string, Record<string, string[]>>} ref → ids
+ */
+export function planFillIds ({ enStats, tradeStats }) {
+  const used = new Set()
+  for (const stat of eachStat(enStats)) for (const id of allIds(stat)) used.add(id)
+  const byText = groupBy(tradeStats.filter(e => !e.id.startsWith('pseudo.')), e => cmpKey(noLocal(e.text)))
+  /** @type {Record<string, Record<string, string[]>>} */
+  const out = {}
+  for (const stat of eachStat(enStats)) {
+    if (allIds(stat).length || stat.ref in out) continue
+    const keys = new Set([cmpKey(stat.ref), ...stat.matchers.filter(m => !m.superseded).map(m => cmpKey(m.string))])
+    /** @type {Record<string, string[]>} */
+    const ids = {}
+    for (const k of keys) {
+      for (const e of byText.get(k) ?? []) {
+        const type = e.id.slice(0, e.id.indexOf('.'))
+        if (!used.has(e.id) && !(ids[type] ?? []).includes(e.id)) (ids[type] ??= []).push(e.id)
+      }
+    }
+    if (Object.keys(ids).length) out[stat.ref] = ids
+  }
+  return out
+}
+
 /** 交易站 id 是否仍有效(`X|n` 形式:X 是選項型 stat 且有選項 n 也算) */
 export function liveIdTest (tradeStats) {
   const ids = new Set(tradeStats.map(e => e.id))
@@ -506,9 +564,9 @@ function rewriteLines (fileText, edit, appended = []) {
  * 套用詞綴計畫(adds / replace / remove / newStats)到一份 stats.ndjson 文字
  * @param {string} fileText
  * @param {'en' | 'cmn-Hant'} lang
- * @param {{ adds?: any[], replace?: Record<string, string>, remove?: string[], newStats?: any[], better?: Record<string, number> }} [plan]
+ * @param {{ adds?: any[], replace?: Record<string, string>, remove?: string[], newStats?: any[], better?: Record<string, number>, fill?: Record<string, Record<string, string[]>> }} [plan]
  */
-export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove = [], newStats = [], better = {} } = {}) {
+export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove = [], newStats = [], better = {}, fill = {} } = {}) {
   const addsByRef = groupBy(adds.filter(a => a.lang === lang), a => a.ref)
   const gone = new Set(remove)
   const existingRefs = new Set()
@@ -541,6 +599,10 @@ export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove
       if (next.length === ids.length && next.every((id, i) => id === ids[i])) continue
       if (next.length) stat.trade.ids[type] = next
       else delete stat.trade.ids[type]
+      changed = true
+    }
+    if (fill[stat.ref] && stat.trade && !allIds(stat).length) {
+      stat.trade.ids = fill[stat.ref]
       changed = true
     }
     return changed

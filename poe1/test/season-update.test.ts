@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planNewStats, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
+import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planNewStats, planGrantsSkill, planFillIds, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
 
 /**
  * 賽季更新腳本的純函式測試(合成輸入,不讀 data/)。
@@ -374,6 +374,51 @@ describe('方向校正(BETTER_OVERRIDES)', () => {
     const once = applyStatPlan(toFile(rows), 'en', { better: BETTER_OVERRIDES })
     expect(parseRows(once).map((r: any) => r.better)).toEqual([-1, 1])
     expect(applyStatPlan(once, 'en', { better: BETTER_OVERRIDES })).toBe(once)
+  })
+})
+
+describe('planGrantsSkill / applyStatPlan', () => {
+  const REF = 'Grants Level # Thirst for Blood Skill'
+  const en = () => [stat(REF, [{ string: REF }], {}), stat('Grants Level # Determination Skill', [{ string: 'Grants Level # Determination Skill' }]),
+    stat('Grants Level # No Such Skill', [{ string: 'x' }]), stat('Grants Level # A Skill\nSecond line', [{ string: 'y' }])]
+  const zh = () => [stat(REF, [{ string: '獲得等級 # 的嗜血技能' }], {}), stat('Grants Level # Determination Skill', [{ string: '獲得等級 # 的堅定技能' }]),
+    stat('Grants Level # No Such Skill', [{ string: 'x' }])]
+  const skills = [{ en: 'Thirst for Blood', zh: '嗜血' }, { en: 'Determination', zh: '堅定' }, { en: 'Determination', zh: '瓦爾．堅定' }, { en: 'A', zh: '甲' }]
+  const template = { en: 'Grants Level {1} {0}', zh: '賦予等級 {1} 的 {0}' }
+
+  it('句型 + 技能名的新句加進去、舊句標 superseded;瓦爾同名取原版;找不到名字拒收;多行不處理;重跑為空', () => {
+    const p = planGrantsSkill({ enStats: en(), zhStats: zh(), skills, template })
+    expect(p.rejects.map((r: any) => r.ref)).toEqual(['Grants Level # No Such Skill'])
+    const zhOut = parseRows(applyStatPlan(toFile(zh()), 'cmn-Hant', { adds: p.adds }))
+    expect(zhOut[0].matchers).toEqual([{ string: '獲得等級 # 的嗜血技能', superseded: true }, { string: '賦予等級 # 的 嗜血' }])
+    expect(zhOut[1].matchers[1]).toEqual({ string: '賦予等級 # 的 堅定' })
+    const enOut = parseRows(applyStatPlan(toFile(en()), 'en', { adds: p.adds }))
+    expect(enOut[0].matchers).toEqual([{ string: REF, superseded: true }, { string: 'Grants Level # Thirst for Blood' }])
+    expect(enOut[3].matchers).toEqual([{ string: 'y' }])
+    expect(planGrantsSkill({ enStats: enOut, zhStats: zhOut, skills, template }).adds).toEqual([])
+    expect(planGrantsSkill({ enStats: en(), zhStats: zh(), skills, template: undefined }).adds).toEqual([])
+  })
+})
+
+describe('planFillIds / applyStatPlan', () => {
+  it('完全沒有 id 的詞綴才補;別的詞綴用掉的 id、被取代的舊句不算;重跑為空', () => {
+    const rows = [
+      stat('Grants Level # Foo Skill', [{ string: 'Grants Level # Foo Skill', superseded: true }, { string: 'Grants Level # Foo' }], {}),
+      stat('Has Ids', [{ string: 'Grants Level # Bar' }]),
+      stat('Taken', [{ string: 'Used Text' }], {}),
+      stat('Owner', [{ string: 'z' }], { explicit: ['explicit.stat_9'] })
+    ]
+    const tradeStats = [
+      { id: 'explicit.effect_1', text: 'Grants Level # Foo' }, { id: 'implicit.effect_1', text: 'Grants Level # Foo' },
+      { id: 'explicit.stat_7', text: 'Grants Level # Foo Skill' }, { id: 'explicit.effect_2', text: 'Grants Level # Bar' },
+      { id: 'explicit.stat_9', text: 'Used Text' }, { id: 'pseudo.x', text: 'Grants Level # Foo' }
+    ]
+    const fill = planFillIds({ enStats: rows, tradeStats })
+    expect(fill).toEqual({ 'Grants Level # Foo Skill': { explicit: ['explicit.stat_7', 'explicit.effect_1'], implicit: ['implicit.effect_1'] } })
+    const out = parseRows(applyStatPlan(toFile(rows), 'en', { fill }))
+    expect(out[0].trade.ids).toEqual(fill['Grants Level # Foo Skill'])
+    expect(out[1].trade.ids).toEqual({ explicit: ['explicit.stat_1'] })
+    expect(planFillIds({ enStats: out, tradeStats })).toEqual({})
   })
 })
 

@@ -188,6 +188,13 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(hit?.stat.trade.ids.fractured).toContain('fractured.stat_3917489142')
   })
 
+  it('D19「賦予等級 # 的 技能」3.30 寫法(GitHub issue #10 #11 的實機文字,名稱前有零寬空白)解析得到', () => {
+    const item = parse(ringText('cmn-Hant', [['賦予等級 5 的 ​凍傷 — 無法使用的值', '賦予等級 20 的 ​嗜血 — 無法使用的值', '+68 最大生命']]))
+    expect(unknownOf(item)).toEqual([])
+    expect(refsOf(item)).toContain('Grants Level # Frostbite Skill')
+    expect(refsOf(item)).toContain('Grants Level # Thirst for Blood Skill')
+  })
+
   it('D10「插槽中的寶石被等級 # 的 X輔助 輔助」3.30 寫法(使用者 2026-11-14 回報的混響)沒有未解析詞綴', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-reverberation-rod.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
