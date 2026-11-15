@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, betterOf } from '../../scripts/poe1-season/lib.mjs'
+import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planNewStats, planGrantsSkill, planFillIds, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
 
 /**
  * 賽季更新腳本的純函式測試(合成輸入,不讀 data/)。
@@ -363,6 +363,139 @@ describe('planTradeBases / applyItemPlan', () => {
     ])
     const enOut = parseRows(applyItemPlan(toFile(enRows()), 'en', { bases: p.adds }))
     expect(planTradeBases({ enItems: enOut, baseOld, baseNew, tradeItems }).adds).toEqual([])
+  })
+})
+
+describe('方向校正(BETTER_OVERRIDES)', () => {
+  it('指定的詞綴:新增時用指定方向,既有資料列也會被改;沒指定的不動;重跑不再變', () => {
+    expect(betterOf('#% reduced Mana Cost of Attacks')).toBe(1)
+    expect(betterOf('+# Physical Damage taken from Hits per Level')).toBe(-1)
+    const rows = [stat('+# Physical Damage taken from Hits per Level', [{ string: 'x' }]), stat('#% reduced Something', [{ string: 'y' }])]
+    const once = applyStatPlan(toFile(rows), 'en', { better: BETTER_OVERRIDES })
+    expect(parseRows(once).map((r: any) => r.better)).toEqual([-1, 1])
+    expect(applyStatPlan(once, 'en', { better: BETTER_OVERRIDES })).toBe(once)
+  })
+})
+
+describe('planGrantsSkill / applyStatPlan', () => {
+  const REF = 'Grants Level # Thirst for Blood Skill'
+  const en = () => [stat(REF, [{ string: REF }], {}), stat('Grants Level # Determination Skill', [{ string: 'Grants Level # Determination Skill' }]),
+    stat('Grants Level # No Such Skill', [{ string: 'x' }]), stat('Grants Level # A Skill\nSecond line', [{ string: 'y' }])]
+  const zh = () => [stat(REF, [{ string: '獲得等級 # 的嗜血技能' }], {}), stat('Grants Level # Determination Skill', [{ string: '獲得等級 # 的堅定技能' }]),
+    stat('Grants Level # No Such Skill', [{ string: 'x' }])]
+  const skills = [{ en: 'Thirst for Blood', zh: '嗜血' }, { en: 'Determination', zh: '堅定' }, { en: 'Determination', zh: '瓦爾．堅定' }, { en: 'A', zh: '甲' }]
+  const template = { en: 'Grants Level {1} {0}', zh: '賦予等級 {1} 的 {0}' }
+
+  it('句型 + 技能名的新句加進去、舊句標 superseded;瓦爾同名取原版;找不到名字拒收;多行不處理;重跑為空', () => {
+    const p = planGrantsSkill({ enStats: en(), zhStats: zh(), skills, template })
+    expect(p.rejects.map((r: any) => r.ref)).toEqual(['Grants Level # No Such Skill'])
+    const zhOut = parseRows(applyStatPlan(toFile(zh()), 'cmn-Hant', { adds: p.adds }))
+    expect(zhOut[0].matchers).toEqual([{ string: '獲得等級 # 的嗜血技能', superseded: true }, { string: '賦予等級 # 的 嗜血' }])
+    expect(zhOut[1].matchers[1]).toEqual({ string: '賦予等級 # 的 堅定' })
+    const enOut = parseRows(applyStatPlan(toFile(en()), 'en', { adds: p.adds }))
+    expect(enOut[0].matchers).toEqual([{ string: REF, superseded: true }, { string: 'Grants Level # Thirst for Blood' }])
+    expect(enOut[3].matchers).toEqual([{ string: 'y' }])
+    expect(planGrantsSkill({ enStats: enOut, zhStats: zhOut, skills, template }).adds).toEqual([])
+    expect(planGrantsSkill({ enStats: en(), zhStats: zh(), skills, template: undefined }).adds).toEqual([])
+  })
+})
+
+describe('planFillIds / applyStatPlan', () => {
+  it('完全沒有 id 的詞綴才補;別的詞綴用掉的 id、被取代的舊句不算;重跑為空', () => {
+    const rows = [
+      stat('Grants Level # Foo Skill', [{ string: 'Grants Level # Foo Skill', superseded: true }, { string: 'Grants Level # Foo' }], {}),
+      stat('Has Ids', [{ string: 'Grants Level # Bar' }]),
+      stat('Taken', [{ string: 'Used Text' }], {}),
+      stat('Owner', [{ string: 'z' }], { explicit: ['explicit.stat_9'] })
+    ]
+    const tradeStats = [
+      { id: 'explicit.effect_1', text: 'Grants Level # Foo' }, { id: 'implicit.effect_1', text: 'Grants Level # Foo' },
+      { id: 'explicit.stat_7', text: 'Grants Level # Foo Skill' }, { id: 'explicit.effect_2', text: 'Grants Level # Bar' },
+      { id: 'explicit.stat_9', text: 'Used Text' }, { id: 'pseudo.x', text: 'Grants Level # Foo' }
+    ]
+    const fill = planFillIds({ enStats: rows, tradeStats })
+    expect(fill).toEqual({ 'Grants Level # Foo Skill': { explicit: ['explicit.stat_7', 'explicit.effect_1'], implicit: ['implicit.effect_1'] } })
+    const out = parseRows(applyStatPlan(toFile(rows), 'en', { fill }))
+    expect(out[0].trade.ids).toEqual(fill['Grants Level # Foo Skill'])
+    expect(out[1].trade.ids).toEqual({ explicit: ['explicit.stat_1'] })
+    expect(planFillIds({ enStats: out, tradeStats })).toEqual({})
+  })
+})
+
+describe('planNewStats', () => {
+  const row = (key: string, en: string, zh: string) => ({ key, en, zh })
+  const ggpkOld = [row('old_imp', 'Gain {0} Foo', '獲得 {0} 甲'), row('old_exp', '{0}% more Bar', '{0}% 更多乙'), row('old_mix', 'Baz {0}', '丙 {0}')]
+  const ggpkNew = [...ggpkOld, row('new_exp', 'Brand new {0}', '全新 {0}')]
+  const tradeStats = [
+    { id: 'implicit.stat_1', text: 'Gain # Foo' },
+    { id: 'explicit.stat_2', text: '#% more Bar' },
+    { id: 'implicit.stat_3', text: 'Baz #' }, { id: 'explicit.stat_3', text: 'Baz #' },
+    { id: 'explicit.stat_4', text: 'Brand new #' }
+  ]
+
+  it('這季新增的 stat 照收;舊 stat 只收交易站只列為固定詞綴的', () => {
+    const out = planNewStats({ enStats: [], ggpkOld, ggpkNew, tradeStats })
+    expect(out.map((s: any) => [s.ref, s.ids])).toEqual([
+      ['Gain # Foo', { implicit: ['implicit.stat_1'] }],
+      ['Brand new #', { explicit: ['explicit.stat_4'] }]
+    ])
+    expect(out[0].zh).toEqual([{ string: '獲得 # 甲' }])
+  })
+
+  it('繁中新句把數字換成 # 後與既有 matcher 同形的不加(會搶走既有詞綴的比對)', () => {
+    const fixed = [row('new_fixed', 'Gain 1 Foo on Hit', '擊中時獲得 1 甲')]
+    const zhStats = [{ ref: 'Gain # Foo when Hit', matchers: [{ string: '擊中時獲得 # 甲' }] }]
+    const trade = [{ id: 'implicit.stat_9', text: 'Gain 1 Foo on Hit' }]
+    expect(planNewStats({ enStats: [], zhStats, ggpkOld: [], ggpkNew: fixed, tradeStats: trade })).toEqual([])
+    expect(planNewStats({ enStats: [], ggpkOld: [], ggpkNew: fixed, tradeStats: trade })).toHaveLength(1)
+  })
+})
+
+describe('planGems / applyItemPlan', () => {
+  const enRows = () => [{ name: 'Fireball', refName: 'Fireball', namespace: 'GEM', icon: 'i', gem: { maxLevel: 20 } },
+    { name: 'Vaal Arc', refName: 'Vaal Arc', namespace: 'GEM', gem: { vaal: true, maxLevel: 20 } },
+    { name: 'Fireball', refName: 'Fireball', namespace: 'ITEM' }]
+  const gems = [{ en: 'Fireball of Radiation', zh: '火球．輻射' }, { en: 'Two Names', zh: '甲' }, { en: 'Two Names', zh: '乙' }]
+  const tradeItems = [
+    { type: 'Fireball', group: 'gem' },
+    { type: 'Fireball', text: 'Fireball of Radiation', disc: 'alt_x', group: 'gem' },
+    { type: 'Fireball', text: 'Fireball of Radiation', disc: 'alt_x', group: 'gem' },
+    { type: 'Vaal Arc', text: 'Vaal Arc (Arc of Oscillating)', disc: 'alt_y', group: 'gem' },
+    { type: 'Fireball', text: 'Two Names', disc: 'alt_y', group: 'gem' },
+    { type: 'No Base', text: 'No Base of X', disc: 'alt_x', group: 'gem' },
+    { type: 'Fireball', text: 'Not A Gem', disc: 'alt_x', group: 'map' }
+  ]
+
+  it('交易站新變異寶石加一列(分支、原版、等級上限、圖示照原版);判不準的拒收;重跑為空', () => {
+    const p = planGems({ enItems: enRows(), tradeItems, gems })
+    expect(p.adds).toEqual([{ refName: 'Fireball of Radiation', zh: '火球．輻射', disc: 'alt_x', normal: 'Fireball', maxLevel: 20, icon: 'i' }])
+    expect(p.rejects.map((r: any) => r.id)).toEqual(['Two Names', 'No Base of X'])
+    const zhRows = enRows().map(r => (r.icon ? { ...r, icon: 'zh-i' } : r))
+    const zhOut = parseRows(applyItemPlan(toFile(zhRows), 'cmn-Hant', { gems: p.adds }))
+    expect(zhOut.at(-1)).toEqual({ name: '火球．輻射', refName: 'Fireball of Radiation', namespace: 'GEM', tradeDisc: 'alt_x', icon: 'zh-i', gem: { transfigured: true, normalVariant: 'Fireball', maxLevel: 20 } })
+    const enOut = parseRows(applyItemPlan(toFile(enRows()), 'en', { gems: p.adds }))
+    expect(planGems({ enItems: enOut, tradeItems, gems }).adds).toEqual([])
+  })
+})
+
+describe('planMinionDoubled / applyStatPlan', () => {
+  const REF = 'Maximum number of Raised Spectres is Doubled\nCannot have Minions other than Raised Spectres'
+  const zh = () => [{ ref: REF, matchers: [{ string: '喚醒幽魂的最大數量加倍\n無法擁有喚醒幽魂以外的召喚物', advanced: '喚醒幽魂（幻化武器-神聖軍備）的最大數量加倍\n無法擁有喚醒幽魂（幻化武器-神聖軍備）以外的召喚物' }] },
+    { ref: 'other', matchers: [{ string: '別的詞綴', advanced: '別的詞綴(1-2)' }] }]
+  const en = () => [{ ref: REF, matchers: [{ string: REF, advanced: 'old' }] }]
+  const ggpkNew = [{ key: 'maximum_number_of_X_minion_type_doubled|#|stat_descriptions.txt|0', en: 'Maximum number of {0} is Doubled\\nCannot have Minions other than {0}', zh: '{0}的最大數量加倍\\n無法擁有{0}以外的召喚物' }]
+
+  it('多一個「(...)」進階寫法、舊的標 superseded、其他詞綴不動;重跑計畫為空', () => {
+    const p = planMinionDoubled({ enStats: en(), zhStats: zh(), ggpkNew })
+    const out = parseRows(applyStatPlan(toFile(zh()), 'cmn-Hant', { adds: p.adds }))
+    expect(out[0].matchers).toEqual([
+      { ...zh()[0].matchers[0], superseded: true },
+      { string: '喚醒幽魂的最大數量加倍\n無法擁有喚醒幽魂以外的召喚物', advanced: '喚醒幽魂(...)的最大數量加倍\n無法擁有喚醒幽魂(...)以外的召喚物' }
+    ])
+    expect(out[1]).toEqual(zh()[1])
+    const enOut = parseRows(applyStatPlan(toFile(en()), 'en', { adds: p.adds }))
+    expect(enOut[0].matchers[1].advanced).toBe('Maximum number of Raised Spectres (...) is Doubled\nCannot have Minions other than Raised Spectres (...)')
+    expect(planMinionDoubled({ enStats: enOut, zhStats: out, ggpkNew }).adds).toEqual([])
   })
 })
 

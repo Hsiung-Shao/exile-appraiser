@@ -127,7 +127,75 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(speed?.stat.better).toBe(1)
   })
 
-  it('D10 「插槽中的寶石被等級 # 的 X輔助 輔助」3.30 寫法(使用者 2026-11-14 回報的混響)沒有未解析詞綴', () => {
+  it('D12 臟器名稱帶「高階」前綴(使用者 2026-11-14 回報)解析成原臟器', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-greater-hollowed-skull.cmn-Hant.txt'), 'utf8'))
+    expect(item.info.refName).toBe('Hollowed Skull')
+  })
+
+  it('D13 3.30 新變異寶石 火球．輻射(使用者 2026-11-14 回報)解析得到,帶交易站分支', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-fireball-of-radiation.cmn-Hant.txt'), 'utf8'))
+    expect(item.info.refName).toBe('Fireball of Radiation')
+    expect(item.info.tradeDisc).toBe('alt_x')
+    expect(item.info.gem).toMatchObject({ transfigured: true, normalVariant: 'Fireball' })
+  })
+
+  it('D14 黑暗君主(使用者 2026-11-15 回報):「喚醒幽魂(...)的最大數量加倍」3.30 進階寫法解析得到', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-the-dark-monarch.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(item)).toEqual([])
+    expect(refsOf(item)).toContain('Maximum number of Raised Spectres is Doubled\nCannot have Minions other than Raised Spectres')
+  })
+
+  it('D15 臟器的固定詞綴(使用者 2026-11-15 回報的五件)解析成帶交易站 implicit id 的詞綴', () => {
+    const items = fs.readFileSync(path.join(HERE, 'docs/3.30-viscera.cmn-Hant.txt'), 'utf8').split(/\r?\n====\r?\n/).map(parse)
+    const want: Array<[string, string, string, number]> = [
+      ["Noble's Head", '#% more Damage against Undead Monsters', 'implicit.stat_2844915624', 8],
+      ['Crescent Blade', '#% of Physical Damage from Hits taken as Cold Damage', 'implicit.stat_1871056256', 6],
+      ["Overseer's Whip", "Minions have #% increased Movement Speed if you've used a Minion Skill Recently", 'implicit.stat_1371407912', 32],
+      ['Hollowed Skull', '+# Physical Damage taken from Hits per Level', 'implicit.stat_3652380199', -1],
+      ["Gladiator's Heart", 'Gain # Rage on Melee Hit', 'implicit.stat_2709367754', 2]
+    ]
+    expect(items.map(i => i.info.refName)).toEqual(want.map(w => w[0]))
+    items.forEach((item, i) => {
+      expect(unknownOf(item), want[i][0]).toEqual([])
+      expect(item.statsByType.map(s => [s.type, s.stat.ref]), want[i][0]).toEqual([['implicit', want[i][1]]])
+      expect(item.statsByType[0].stat.trade.ids.implicit, want[i][0]).toContain(want[i][2])
+      expect(item.statsByType[0].sources[0].stat.roll?.value, want[i][0]).toBe(want[i][3])
+    })
+  })
+
+  it('D16 帶入名稱前的零寬空白 U+200B(GitHub issue #4 / #7 的實機文字)不影響解析', () => {
+    const text = fs.readFileSync(path.join(HERE, 'docs/3.30-reverberation-rod.cmn-Hant.txt'), 'utf8')
+    const real = text.replace(/的 (?=\S+輔助 輔助)/g, '的 ​')
+    expect(real).not.toBe(text)
+    const item = parse(real)
+    expect(unknownOf(item)).toEqual([])
+    expect(refsOf(item)).toContain('Socketed Gems are Supported by Level # Spell Echo (Random Support Gem)')
+  })
+
+  it('D17 GitHub issue #8 / #9 的實機物品:傳奇繁中改名(馬拉凱的輪迴)與「+# 點命中」寫法', () => {
+    const loop = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-malachais-loop.cmn-Hant.txt'), 'utf8'))
+    expect(loop.info.refName).toBe("Malachai's Loop")
+    const gloves = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-warlock-gloves-accuracy.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(gloves)).toEqual([])
+    expect(refsOf(gloves)).toContain('+# to Accuracy Rating')
+  })
+
+  it('D18 破裂的「+#%物品稀有度」(使用者 2026-11-15 貼的實機手套)解析成原詞綴並帶破裂 id', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-fractured-rarity-gloves.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(item)).toEqual([])
+    const hit = item.statsByType.find(s => s.stat.ref === RARITY_REF)
+    expect(hit?.type).toBe('fractured')
+    expect(hit?.stat.trade.ids.fractured).toContain('fractured.stat_3917489142')
+  })
+
+  it('D19「賦予等級 # 的 技能」3.30 寫法(GitHub issue #10 #11 的實機文字,名稱前有零寬空白)解析得到', () => {
+    const item = parse(ringText('cmn-Hant', [['賦予等級 5 的 ​凍傷 — 無法使用的值', '賦予等級 20 的 ​嗜血 — 無法使用的值', '+68 最大生命']]))
+    expect(unknownOf(item)).toEqual([])
+    expect(refsOf(item)).toContain('Grants Level # Frostbite Skill')
+    expect(refsOf(item)).toContain('Grants Level # Thirst for Blood Skill')
+  })
+
+  it('D10「插槽中的寶石被等級 # 的 X輔助 輔助」3.30 寫法(使用者 2026-11-14 回報的混響)沒有未解析詞綴', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-reverberation-rod.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
     for (const gem of ['Spell Echo', 'Controlled Destruction', 'Arcane Surge']) {

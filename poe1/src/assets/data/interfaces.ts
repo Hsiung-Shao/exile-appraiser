@@ -268,6 +268,7 @@ export interface TranslationDict {
   FOIL_UNIQUE: string
   UNMODIFIABLE: string
   FOULBORN_NAME: RegExp
+  VISCERA_TIER: RegExp
   FOULBORN_MODIFIER: string
   /**
    * 3.29 軍團機制「殘存」(Vestigial):籠罩晶石作用於傳奇護甲後,底材名前面多一個

@@ -128,6 +128,7 @@ export default {
   FOIL_UNIQUE: '貼模傳奇',
   UNMODIFIABLE: '不可調整的',
   FOULBORN_NAME: /^穢生 (.*)$/,
+  VISCERA_TIER: /^(?:高階|低階) (.*)$/,
   FOULBORN_MODIFIER: 'Foulborn Unique Modifier',
   // 3.29「殘存」(Legion)。GGPK clientstrings ident:DivergentItem / ModDescriptionLineDivergentImplicit
   VESTIGIAL_NAME: /^殘存 (.*)$/,

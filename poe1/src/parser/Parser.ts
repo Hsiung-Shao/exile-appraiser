@@ -45,6 +45,7 @@ const parsers: Array<
   parseUnidentified,
   { virtual: parseSuperior },
   { virtual: parseFoulborn },
+  { virtual: parseVisceraTier },
   { virtual: parseVestigial },
   parseSynthesised,
   parseCategoryByHelpText,
@@ -108,7 +109,9 @@ const VALUE_AUGMENTED = ' (augmented)'
 
 export function parseClipboard (clipboard: string): Result<ParsedItem, string> {
   try {
-    let sections = itemTextToSections(normalizeLabelPunctuation(clipboard))
+    // exile-appraiser: 3.30 遊戲在帶入的名稱前插一個零寬空白 U+200B(「被等級 20 的 ​集中效應輔助 輔助」,
+    // GitHub issue #4 / #7 / #11 的實機文字);資料裡沒有這個字元,逐字比對會全部落空 → 解析前去掉
+    let sections = itemTextToSections(normalizeLabelPunctuation(clipboard.replace(/​/g, '')))
 
     if (sections[0][2] === _$.CANNOT_USE_ITEM) {
       sections[0].pop() // remove CANNOT_USE_ITEM line
@@ -956,7 +959,10 @@ function parseModifiers (section: string[], item: ParsedItem) {
     item.rarity !== ItemRarity.Rare &&
     item.rarity !== ItemRarity.Unique
   ) {
-    return 'PARSER_SKIPPED'
+    // exile-appraiser: 3.30 臟器沒有稀有度也沒有類別,但進階複製有「{ 固定詞綴 }」區;上游一律跳過 → 詞綴被靜默丟掉。
+    // 通貨 / 寶石 / 命運卡等有類別的照舊跳過
+    if (item.category !== undefined) return 'PARSER_SKIPPED'
+    if (!section.some(isModInfoLine)) return 'SECTION_SKIPPED'
   }
 
   const recognizedLine = section.find(line =>
@@ -1106,6 +1112,12 @@ function parseSuperior (item: ParserState) {
       item.name = _$.ITEM_SUPERIOR.exec(item.name)![1]
     }
   }
+}
+
+// exile-appraiser: 3.30 臟器名稱可帶「高階 / 低階」前綴(clientstrings GreaterViscera / LesserViscera),底材名不含
+function parseVisceraTier (item: ParserState) {
+  const m = _$.VISCERA_TIER.exec(item.name)
+  if (m && !ITEM_BY_TRANSLATED('ITEM', item.name)?.length && ITEM_BY_TRANSLATED('ITEM', m[1])?.length) item.name = m[1]
 }
 
 function parseFoulborn (item: ParserState) {

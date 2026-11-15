@@ -3900,7 +3900,7 @@
 {"name":"骨融","refName":"Bonemeld","namespace":"UNIQUE","unique":{"base":"Marble Amulet","disenchantValue":17.3},"icon":"https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQW11bGV0cy9EZWF0aHdhcmQiLCJ3IjoxLCJoIjoxLCJzY2FsZSI6MX1d/8ba22f2bdd/Deathward.png"}
 {"name":"烏勒爾之骨","refName":"Bones of Ullr","namespace":"UNIQUE","unique":{"base":"Silk Slippers","disenchantValue":1.86},"icon":"https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQXJtb3Vycy9Cb290cy9ib290dW5pcXVlIiwidyI6MiwiaCI6Miwic2NhbGUiOjF9XQ/1dfabe3358/bootunique.png"}
 {"name":"瓶中信仰","refName":"Bottled Faith","namespace":"UNIQUE","unique":{"base":"Sulphur Flask","disenchantValue":12.94},"icon":"https://webtw.poecdn.com/gen/image/WzksMTQseyJmIjoiMkRJdGVtcy9GbGFza3MvQm90dGxlZFB1cml0eSIsInciOjEsImgiOjIsInNjYWxlIjoxLCJsZXZlbCI6MX1d/b2ef237bf3/BottledPurity.png"}
-{"name":"被命運束縛","refName":"Bound By Destiny","namespace":"UNIQUE","unique":{"base":"Prismatic Jewel","fixedStats":[],"disenchantValue":60},"icon":"https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvSmV3ZWxzL0JvdW5kQnlEZXN0aW55IiwidyI6MSwiaCI6MSwic2NhbGUiOjF9XQ/93b1c79b20/BoundByDestiny.png"}
+{"name":"命運束縛","refName":"Bound By Destiny","namespace":"UNIQUE","unique":{"base":"Prismatic Jewel","fixedStats":[],"disenchantValue":60},"icon":"https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvSmV3ZWxzL0JvdW5kQnlEZXN0aW55IiwidyI6MSwiaCI6MSwic2NhbGUiOjF9XQ/93b1c79b20/BoundByDestiny.png"}
 {"name":"命運繫帶","refName":"Bound Fate","namespace":"UNIQUE","unique":{"base":"Cloth Belt","disenchantValue":8.26},"icon":"https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQmVsdHMvSGluZWtvcmFCZWx0IiwidyI6MiwiaCI6MSwic2NhbGUiOjF9XQ/0ffa60853d/HinekoraBelt.png"}
 {"name":"腦亂者","refName":"Brain Rattler","namespace":"UNIQUE","unique":{"base":"Meatgrinder","disenchantValue":18.91},"icon":"https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvV2VhcG9ucy9Ud29IYW5kV2VhcG9ucy9Ud29IYW5kTWFjZXMvQnJhaW5TY3JhbWJsZXIiLCJ3IjoyLCJoIjo0LCJzY2FsZSI6MX1d/0749c07fa6/BrainScrambler.png"}
 {"name":"刺棘寶甲","refName":"Bramblejack","namespace":"UNIQUE","unique":{"base":"Plate Vest","disenchantValue":1.25},"icon":"https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQXJtb3Vycy9Cb2R5QXJtb3Vycy9CcmFtYmxlamFjayIsInciOjIsImgiOjMsInNjYWxlIjoxfV0/d2e07d1ed8/Bramblejack.png"}
@@ -4314,7 +4314,7 @@
 {"name":"堅毅之蝕","refName":"Magna Eclipsis","namespace":"UNIQUE","unique":{"base":"Pinnacle Tower Shield","disenchantValue":46.12},"icon":"https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQXJtb3Vycy9TaGllbGRzL01hZ25pc0VjbGlwc2lzIiwidyI6MiwiaCI6NCwic2NhbGUiOjF9XQ/1e76b68e1a/MagnisEclipsis.png"}
 {"name":"瑪哈薩多的陰謀","refName":"Mahuxotl's Machination","namespace":"UNIQUE","unique":{"base":"Steel Kite Shield","disenchantValue":22.69},"icon":"https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQXJtb3Vycy9TaGllbGRzL01haHV4b3RsU2hpZWxkIiwidyI6MiwiaCI6Mywic2NhbGUiOjF9XQ/b39b6fe011/MahuxotlShield.png"}
 {"name":"瑪拉凱的巧技","refName":"Malachai's Artifice","namespace":"UNIQUE","unique":{"base":"Unset Ring","disenchantValue":4.59},"icon":"https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvUmluZ3MvTWFsYWNoYWlzQXJ0aWZpY2UiLCJ3IjoxLCJoIjoxLCJzY2FsZSI6MX1d/dfbb52ebfe/MalachaisArtifice.png"}
-{"name":"輪迴","refName":"Malachai's Loop","namespace":"UNIQUE","unique":{"base":"Harmonic Spirit Shield","disenchantValue":8.29},"icon":"https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQXJtb3Vycy9TaGllbGRzL01hbGFjaGFpTG9vcCIsInciOjIsImgiOjIsInNjYWxlIjoxfV0/8c38fb6a4e/MalachaiLoop.png"}
+{"name":"馬拉凱的輪迴","refName":"Malachai's Loop","namespace":"UNIQUE","unique":{"base":"Harmonic Spirit Shield","disenchantValue":8.29},"icon":"https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQXJtb3Vycy9TaGllbGRzL01hbGFjaGFpTG9vcCIsInciOjIsImgiOjIsInNjYWxlIjoxfV0/8c38fb6a4e/MalachaiLoop.png"}
 {"name":"瑪拉凱之面","refName":"Malachai's Mark","namespace":"UNIQUE","unique":{"base":"Murder Mitts","disenchantValue":175.87},"icon":"https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQXJtb3Vycy9HbG92ZXMvTWFsYWNoYWlzTWFyayIsInciOjIsImgiOjIsInNjYWxlIjoxfV0/2f2a8c0dff/MalachaisMark.png"}
 {"name":"瑪拉凱的祭具","refName":"Malachai's Simula","namespace":"UNIQUE","unique":{"base":"Iron Mask","disenchantValue":2.01},"icon":"https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQXJtb3Vycy9IZWxtZXRzL01hbGFjaGFpc1NpbXVsYSIsInciOjIsImgiOjIsInNjYWxlIjoxfV0/8bf83455f4/MalachaisSimula.png"}
 {"name":"瑪拉凱的遠見","refName":"Malachai's Vision","namespace":"UNIQUE","unique":{"base":"Praetor Crown","disenchantValue":14.49},"icon":"https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQXJtb3Vycy9IZWxtZXRzL01hbGFjaGFpc1Zpc2lvbiIsInciOjIsImgiOjIsInNjYWxlIjoxfV0/bbdd9c241f/MalachaisVision.png"}
@@ -4733,7 +4733,7 @@
 {"name":"行刑之刃","refName":"Terminus Est","namespace":"UNIQUE","unique":{"base":"Tiger Sword","disenchantValue":4.38},"icon":"https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvV2VhcG9ucy9Ud29IYW5kV2VhcG9ucy9Ud29IYW5kU3dvcmRzL1R3b0hhbmRTd29yZFVuaXF1ZTIiLCJ3IjoyLCJoIjo0LCJzY2FsZSI6MX1d/c5d5843861/TwoHandSwordUnique2.png"}
 {"name":"霸佔","refName":"That Which Was Taken","namespace":"UNIQUE","unique":{"base":"Crimson Jewel","fixedStats":[],"disenchantValue":3.51},"icon":"https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvSmV3ZWxzL0FmZmxpY3Rpb25KZXdlbCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/0794886e1c/AfflictionJewel.png"}
 {"name":"上將","refName":"The Admiral","namespace":"UNIQUE","unique":{"base":"Varnished Coat","disenchantValue":36.41},"icon":"https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQXJtb3Vycy9Cb2R5QXJtb3Vycy9IZWFydG9mdGhlRWxlbWVudHMiLCJ3IjoyLCJoIjozLCJzY2FsZSI6MX1d/f211c99b10/HeartoftheElements.png"}
-{"name":"假掰","refName":"The Adorned","namespace":"UNIQUE","unique":{"base":"Crimson Jewel","disenchantValue":10.52},"icon":"https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvSmV3ZWxzL1RyaWFsbWFzdGVySmV3IiwidyI6MSwiaCI6MSwic2NhbGUiOjF9XQ/f04386d454/TrialmasterJew.png"}
+{"name":"朝氣之靈","refName":"The Adorned","namespace":"UNIQUE","unique":{"base":"Crimson Jewel","disenchantValue":10.52},"icon":"https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvSmV3ZWxzL1RyaWFsbWFzdGVySmV3IiwidyI6MSwiaCI6MSwic2NhbGUiOjF9XQ/f04386d454/TrialmasterJew.png"}
 {"name":"聚魂石","refName":"The Anima Stone","namespace":"UNIQUE","unique":{"base":"Prismatic Jewel","disenchantValue":6},"icon":"https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvSmV3ZWxzL0dvbGVtQ2hhb3MiLCJ3IjoxLCJoIjoxLCJzY2FsZSI6MX1d/2daa0c1149/GolemChaos.png"}
 {"name":"毀滅白光","refName":"The Annihilating Light","namespace":"UNIQUE","unique":{"base":"Quarterstaff","disenchantValue":4.59},"icon":"https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvV2VhcG9ucy9Ud29IYW5kV2VhcG9ucy9TdGF2ZXMvSW50cmVwaWR1c0RvbG9yZW0iLCJ3IjoyLCJoIjo0LCJzY2FsZSI6MX1d/8244c5f079/IntrepidusDolorem.png"}
 {"name":"懸念","refName":"The Anticipation","namespace":"UNIQUE","unique":{"base":"Ezomyte Tower Shield","disenchantValue":12.88},"icon":"https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQXJtb3Vycy9TaGllbGRzL0xvbmdpbmcxIiwidyI6MiwiaCI6NCwic2NhbGUiOjF9XQ/50fbf4d6ba/Longing1.png"}
@@ -5629,3 +5629,22 @@
 {"name":"駭人巨口","refName":"Terrifying Maw","namespace":"ITEM"}
 {"name":"腐敗之種","refName":"Putrid Seed","namespace":"UNIQUE","unique":{"base":"Mycelium Core"}}
 {"name":"恐慌化身．頭顱","refName":"Incarnation of Dread's Head","namespace":"ITEM"}
+{"name":"巫會之后冠","refName":"Coven Queen's Crown","namespace":"ITEM"}
+{"name":"吞噬天地．頭顱","refName":"Eater of Worlds' Head","namespace":"ITEM"}
+{"name":"異界尊師．頭顱","refName":"Elder's Head","namespace":"ITEM"}
+{"name":"漠視化身．方塊","refName":"Incarnation of Neglect's Cube","namespace":"ITEM"}
+{"name":"釋界．天體儀","refName":"Maven's Orrery","namespace":"ITEM"}
+{"name":"夢魘．卡塔莉娜之翼","refName":"Nightmarish Wings of Catarina","namespace":"ITEM"}
+{"name":"夢魘．墮落之書","refName":"Nightmarish Book of Depravity","namespace":"ITEM"}
+{"name":"夢魘．利西亞之翼","refName":"Nightmarish Wings of Lycia","namespace":"ITEM"}
+{"name":"夢魘．不滅之核","refName":"Nightmarish Core of the Unbreakable","namespace":"ITEM"}
+{"name":"塑界者．頭顱","refName":"Shaper's Head","namespace":"ITEM"}
+{"name":"賽勒斯．頭顱","refName":"Sirus' Head","namespace":"ITEM"}
+{"name":"維那利斯．經典","refName":"Venarius' Scripture","namespace":"ITEM"}
+{"name":"血肉帷幕","refName":"Veil of Flesh","namespace":"UNIQUE","unique":{"base":"Callous Mask"}}
+{"name":"叛教者之禍","refName":"Bane of the Apostate","namespace":"UNIQUE","unique":{"base":"Judgement Staff"}}
+{"name":"貪婪之暗","refName":"The Covetous Dark","namespace":"UNIQUE","unique":{"base":"Eye Gouger"}}
+{"name":"火球．輻射","refName":"Fireball of Radiation","namespace":"GEM","tradeDisc":"alt_x","icon":"https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvR2Vtcy9GaXJlYmFsbCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/8f374db219/Fireball.png","gem":{"transfigured":true,"normalVariant":"Fireball","maxLevel":20}}
+{"name":"恐懼化身．頭顱","refName":"Incarnation of Fear's Head","namespace":"ITEM"}
+{"name":"夢魘．烏特雷之首","refName":"Nightmarish Head of Uhtred","namespace":"ITEM"}
+{"name":"灼烙總督．眼界","refName":"Searing Exarch's Descry","namespace":"ITEM"}
