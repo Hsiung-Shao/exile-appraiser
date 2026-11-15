@@ -697,7 +697,10 @@ export function planMinionDoubled ({ enStats, zhStats, ggpkNew }) {
  * 寫入前仍要在 GGPK 新版找得到這句(英文相同),找不到就不加。
  * - `# 點命中`:3.30 手套後綴「獅眼之」顯示「+587 點命中」(GitHub issue #9),資料只有「# 命中值」
  */
-export const EXTRA_ZH_MATCHERS = [{ ref: '+# to Accuracy Rating', zh: '# 點命中' }]
+export const EXTRA_ZH_MATCHERS = [
+  { ref: '+# to Accuracy Rating', zh: '# 點命中' },
+  { ref: '+#% to Critical Strike Multiplier with One Handed Melee Weapons', zh: '#% 單手近戰武器暴擊加成' } // 2026-11-15 翠綠珠寶實機樣本
+]
 
 /** 規則 11:`EXTRA_ZH_MATCHERS` → 繁中多一個 matcher @returns {{ adds: any[] }} */
 export function planExtraZh ({ zhStats, ggpkNew }) {

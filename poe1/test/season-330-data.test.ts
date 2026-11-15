@@ -185,6 +185,12 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(refsOf(gloves)).toContain('+# to Accuracy Rating')
   })
 
+  it('D17b 珠寶「+#% 單手近戰武器暴擊加成」寫法(使用者 2026-11-15 實機珠寶)解析得到', () => {
+    const jewel = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-viridian-jewel-1h-crit-multi.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(jewel)).toEqual([])
+    expect(refsOf(jewel)).toContain('+#% to Critical Strike Multiplier with One Handed Melee Weapons')
+  })
+
   it('D18 破裂的「+#%物品稀有度」(使用者 2026-11-15 貼的實機手套)解析成原詞綴並帶破裂 id', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-fractured-rarity-gloves.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])

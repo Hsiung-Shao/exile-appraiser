@@ -2297,7 +2297,7 @@
 {"ref":"+#% to Critical Strike Multiplier with Fire Skills","better":1,"matchers":[{"string":"#% 火焰技能暴擊加成"}],"trade":{"ids":{"explicit":["explicit.stat_2307547323"],"fractured":["fractured.stat_2307547323"]}}}
 {"ref":"+#% to Critical Strike Multiplier with Lightning Skills","better":1,"matchers":[{"string":"#% 閃電技能暴擊加成"}],"trade":{"ids":{"explicit":["explicit.stat_2441475928"],"fractured":["fractured.stat_2441475928"]}}}
 {"ref":"+#% to Critical Strike Multiplier with Maces or Sceptres","better":1,"matchers":[{"string":"錘和權杖 #% 暴擊加成"}],"trade":{"ids":{"implicit":["implicit.stat_458899422"]}}}
-{"ref":"+#% to Critical Strike Multiplier with One Handed Melee Weapons","better":1,"matchers":[{"string":"持單手近戰武器時 #% 暴擊加成"}],"trade":{"ids":{"explicit":["explicit.stat_670153687"],"fractured":["fractured.stat_670153687"]}}}
+{"ref":"+#% to Critical Strike Multiplier with One Handed Melee Weapons","better":1,"matchers":[{"string":"持單手近戰武器時 #% 暴擊加成"},{"string":"#% 單手近戰武器暴擊加成","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_670153687"],"fractured":["fractured.stat_670153687"]}}}
 {"ref":"+#% to Critical Strike Multiplier with Staves","better":1,"matchers":[{"string":"持長杖時 #% 暴擊加成"}],"trade":{"ids":{"implicit":["implicit.stat_1474913037"]}}}
 {"ref":"+#% to Critical Strike Multiplier with Swords","better":1,"matchers":[{"string":"持劍時 #% 暴擊加成"}],"trade":{"ids":{"implicit":["implicit.stat_3114492047"]}}}
 {"ref":"+#% to Critical Strike Multiplier with Two Handed Melee Weapons","better":1,"matchers":[{"string":"使用雙手近戰武器時 #% 暴擊加成"}],"trade":{"ids":{"explicit":["explicit.stat_252507949"],"fractured":["fractured.stat_252507949"]}}}
@@ -4029,7 +4029,7 @@
 {"ref":"Bow Attacks fire # additional Arrows","better":1,"matchers":[{"string":"弓攻擊發射 # 個額外箭矢"},{"string":"弓攻擊發射 1 個額外箭矢","value":1}],"trade":{"ids":{"explicit":["explicit.stat_3885405204"],"implicit":["implicit.stat_3885405204"],"fractured":["fractured.stat_3885405204"]}}}
 {"ref":"Bow Attacks fire # additional Arrows if you haven't Cast Dash recently","better":1,"matchers":[{"string":"若你近期沒有施放幻步，弓攻擊發射 # 支額外箭矢"}],"trade":{"ids":{"explicit":["explicit.stat_2482927318"]}}}
 {"ref":"Bow Attacks have Culling Strike","better":1,"matchers":[{"string":"弓攻擊有撲殺"}],"trade":{"ids":{"explicit":["explicit.stat_4217693429"]}}}
-{"ref":"Bow Attacks Sacrifice a random Damageable Minion to fire # additional Arrow","better":1,"matchers":[{"string":"弓的攻擊會犧牲一個隨機可傷害召喚物，並射出 # 支額外箭矢"}],"trade":{"ids":{"explicit":["explicit.stat_151300265"]}}}
+{"ref":"Bow Attacks Sacrifice a random Damageable Minion to fire # additional Arrow","better":1,"matchers":[{"string":"弓的攻擊會犧牲一個隨機可傷害召喚物，並射出 # 支額外箭矢"}],"trade":{"ids":{"explicit":["explicit.stat_151300265"],"implicit":["implicit.stat_151300265"]}}}
 {"ref":"Bow Knockback at Close Range","better":1,"matchers":[{"string":"近距離時弓擊退敵人"}],"trade":{"ids":{"explicit":["explicit.stat_3261557635"]}}}
 {"ref":"Brand Skills have #% increased Duration","better":1,"matchers":[{"string":"烙印技能增加 #% 持續時間"},{"string":"烙印技能減少 #% 持續時間","negate":true}],"trade":{"ids":{"explicit":["explicit.stat_3089482869"]}}}
 {"ref":"Brittle Chance","better":1,"mercenary":{"tier":3},"matchers":[{"string":"易碎機率","advanced":"易碎機率(階層：3)"}],"trade":{"ids":{"pseudo":["mercenary.support_54837"]}}}
