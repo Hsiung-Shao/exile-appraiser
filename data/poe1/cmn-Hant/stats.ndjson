@@ -5196,7 +5196,7 @@
 {"ref":"Has Room: Splinter Research Lab (Tier 1)","better":1,"matchers":[{"string":"有房間：裂界研究室（階級 1） "}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_breach_room_1"]}}}
 {"ref":"Has Room: Storage Room (Tier 1)","better":0,"matchers":[{"string":"儲物室 (階級 1)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_chests_1"]},"option":true}}
 {"ref":"Has Room: Storm of Corruption (Tier 3)","better":0,"matchers":[{"string":"腐敗風暴 (階級 3)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_storm_room_3"]},"option":true}}
-{"ref":"Has Room: Strongbox Chamber (Tier 1)","better":0,"matchers":[{"string":"寶箱之殿 (階級 1)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_strongbox_1"]},"option":true}}
+{"ref":"Has Room: Strongbox Chamber (Tier 1)","better":0,"matchers":[{"string":"寶箱之殿 (階級 1)","superseded":true},{"string":"保險箱之殿 (階級 1)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_strongbox_1"]},"option":true}}
 {"ref":"Has Room: Surveyor's Study (Tier 1)","better":0,"matchers":[{"string":"研究書房 (階級 1)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_cartography_room_1"]},"option":true}}
 {"ref":"Has Room: Tempest Generator (Tier 1)","better":0,"matchers":[{"string":"暴雷發電室 (階級 1)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_storm_room_1"]},"option":true}}
 {"ref":"Has Room: Temple Defense Workshop (Tier 2)","better":0,"matchers":[{"string":"神殿禦防室 (階級 2)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_trap_room_2"]},"option":true}}

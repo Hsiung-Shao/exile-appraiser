@@ -645,6 +645,27 @@ export function planExtraZh ({ zhStats, ggpkNew }) {
 }
 
 /**
+ * 規則 17:阿茲瓦特史記的房間(ref `Has Room: X (Tier N)`)繁中名與 GGPK `incursionrooms` 不同 → 加上 GGPK 的寫法、舊名標 superseded
+ * (GitHub issue #14:遊戲顯示「保險箱之殿 (階級 1)」,資料是「寶箱之殿」)。GGPK 名稱不唯一就不動。
+ * @returns {{ adds: any[] }}
+ */
+export function planRoomNames ({ zhStats, rooms }) {
+  const zhOf = groupBy(rooms, r => r.en)
+  const adds = []
+  for (const stat of eachStat(zhStats)) {
+    const m = /^Has Room: (.+) \(Tier \d+\)$/.exec(stat.ref)
+    const names = m ? [...new Set((zhOf.get(m[1]) ?? []).map(r => r.zh))] : []
+    if (names.length !== 1) continue
+    for (const old of stat.matchers.filter(x => !x.superseded)) {
+      const cut = old.string.indexOf(' (')
+      const next = cut === -1 ? null : names[0] + old.string.slice(cut)
+      if (next && next !== old.string && !stat.matchers.some(x => x.string === next)) adds.push({ lang: 'cmn-Hant', ref: stat.ref, matcher: { string: next }, supersedes: old.string })
+    }
+  }
+  return { adds }
+}
+
+/**
  * 規則 12:傳奇的繁中名改了(3.30「輪迴」→「馬拉凱的輪迴」,GitHub issue #8)。GGPK 新版對這個英文名只有一個繁中名、
  * 且和資料不同 → 改成新名(台服交易站用的也是新名;舊名的剪貼簿不再認得)。
  * @returns {{ refName: string, from: string, zh: string }[]}

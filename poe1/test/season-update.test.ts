@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
+import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, planRoomNames, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
 
 /**
  * 賽季更新腳本的純函式測試(合成輸入,不讀 data/)。
@@ -502,6 +502,19 @@ describe('planTypeIds(規則 16)', () => {
     expect(out[0].trade.ids).toEqual({ explicit: ['explicit.stat_1'], implicit: ['implicit.stat_1'] })
     expect(out[1].trade.ids).toEqual({ explicit: ['explicit.stat_2'], fractured: ['fractured.stat_2'] })
     expect(planTypeIds({ enStats: out, tradeStats }).extra).toEqual({})
+  })
+})
+
+describe('planRoomNames(規則 17)', () => {
+  it('史記房間的繁中名與 GGPK 不同就加上 GGPK 的寫法、舊名標 superseded(GitHub issue #14 保險箱之殿);名稱不唯一或相同不動', () => {
+    const room = (ref: string, zh: string) => ({ ref, better: 0, matchers: [{ string: zh }], trade: { ids: { pseudo: ['pseudo.x'] }, option: true } })
+    const zhStats = [room('Has Room: Strongbox Chamber (Tier 1)', '寶箱之殿 (階級 1)'), room('Has Room: Vault (Tier 1)', '金庫 (階級 1)'), room('Has Room: Twin (Tier 2)', '舊 (階級 2)')]
+    const rooms = [{ en: 'Strongbox Chamber', zh: '保險箱之殿' }, { en: 'Vault', zh: '金庫' }, { en: 'Twin', zh: '甲' }, { en: 'Twin', zh: '乙' }]
+    const plan = planRoomNames({ zhStats, rooms })
+    expect(plan.adds).toEqual([{ lang: 'cmn-Hant', ref: 'Has Room: Strongbox Chamber (Tier 1)', matcher: { string: '保險箱之殿 (階級 1)' }, supersedes: '寶箱之殿 (階級 1)' }])
+    const out = parseRows(applyStatPlan(toFile(zhStats), 'cmn-Hant', { adds: plan.adds }))
+    expect(out[0].matchers).toEqual([{ string: '寶箱之殿 (階級 1)', superseded: true }, { string: '保險箱之殿 (階級 1)' }])
+    expect(planRoomNames({ zhStats: out, rooms }).adds).toEqual([])
   })
 })
 

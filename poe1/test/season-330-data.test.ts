@@ -225,6 +225,12 @@ function readNdjson (lang: string, file: string): any[] {
 }
 
 describe('3.30 資料檔', () => {
+  it('D22 阿茲瓦特史記的「保險箱之殿 (階級 1)」(GitHub issue #14,遊戲檔的房間名)對得到 Strongbox Chamber', () => {
+    const room = readNdjson('cmn-Hant', 'stats.ndjson').flatMap(r => r.stats ?? [r]).find(s => s.ref === 'Has Room: Strongbox Chamber (Tier 1)')
+    expect(room.matchers.filter((m: any) => !m.superseded).map((m: any) => m.string)).toEqual(['保險箱之殿 (階級 1)'])
+    expect(room.matchers.map((m: any) => m.string)).toContain('寶箱之殿 (階級 1)')
+  })
+
   it('D4 stats.ndjson 不再引用交易站已移除的 id', () => {
     const snap = JSON.parse(fs.readFileSync(TRADE_IDS_FILE, 'utf8')) as { ids: string[], options: Record<string, string[]> }
     const valid = new Set(snap.ids)
