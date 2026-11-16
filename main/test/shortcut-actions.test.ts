@@ -1,7 +1,7 @@
 // exile-appraiser(WP-S2):熱鍵動作表(`src/shortcut-actions.ts`)的註冊條件。不啟動 Electron、不送任何按鍵。
 import { describe, expect, it } from 'vitest'
 import { GAME_RESERVED_HOTKEYS } from '@ipc/reserved-hotkeys'
-import { buildShortcutActions, nextScanPaused, normalizeHotkey, reservedShortcuts, sameShortcutActions, stashHotkeyAction } from '../src/shortcut-actions'
+import { buildShortcutActions, matchCopyHotkey, nextScanPaused, normalizeHotkey, reservedShortcuts, sameShortcutActions, stashHotkeyAction } from '../src/shortcut-actions'
 
 const base = {
   hotkey: 'D',
@@ -279,5 +279,27 @@ describe('倉庫價格熱鍵', () => {
     const m = fs.readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8')
     expect(m).toContain("notifyScan([{ kind: 'stash', paused: stashScan.toggleUserPause() }])")
     expect(m).toMatch(/onOcrRegionPick: \(target\) => \{[^\n]*target === 'runeshape' \|\| target === 'stash'/)
+  })
+})
+
+describe('matchCopyHotkey(熱鍵沒觸發的診斷)', () => {
+  const actions = [
+    { shortcut: 'Ctrl + D', keepModKeys: true, action: { type: 'copy-item' as const, focusOverlay: false } },
+    { shortcut: 'Ctrl + Alt + D', keepModKeys: false, action: { type: 'copy-item' as const, focusOverlay: true } },
+    { shortcut: 'F5', keepModKeys: false, action: { type: 'paste-in-chat' as const, text: '/hideout', send: true } }
+  ]
+  const codeOf = (k: string) => ({ D: 32, F5: 63 } as Record<string, number>)[k]
+  const ev = (keycode: number, mods: string) => ({ keycode, ctrlKey: mods.includes('C'), altKey: mods.includes('A'), shiftKey: mods.includes('S'), metaKey: mods.includes('M') })
+
+  it('修飾鍵相符時回該熱鍵、沒有多按少按', () => {
+    expect(matchCopyHotkey(actions, ev(32, 'C'), codeOf)).toEqual({ shortcut: 'Ctrl + D', extra: [], missing: [] })
+    expect(matchCopyHotkey(actions, ev(32, 'CA'), codeOf)).toEqual({ shortcut: 'Ctrl + Alt + D', extra: [], missing: [] })
+  })
+  it('多了卡住的 Shift 時指出多按 Shift', () => {
+    expect(matchCopyHotkey(actions, ev(32, 'CS'), codeOf)).toEqual({ shortcut: 'Ctrl + D', extra: ['Shift'], missing: [] })
+  })
+  it('不是查價熱鍵的主鍵(含聊天指令熱鍵)回 null', () => {
+    expect(matchCopyHotkey(actions, ev(63, ''), codeOf)).toBeNull()
+    expect(matchCopyHotkey(actions, ev(31, 'C'), codeOf)).toBeNull()
   })
 })
