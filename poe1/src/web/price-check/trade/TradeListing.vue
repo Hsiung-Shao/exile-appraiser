@@ -13,10 +13,12 @@
         <span v-else class="text-gray-400">{{ list.total }}{{ list.inexact ? '+' : '' }}</span>
       </span>
       <online-filter v-if="list" :filters="filters" api="trade" />
-      <span class="listing-spacer"></span>
-      <listing-layout-toggle :model-value="layout" @update:model-value="setLayout" />
-      <trade-links v-if="list"
-        :get-link="makeTradeLink" />
+      <!-- 交易鈕固定在第 2 行(使用者 2026-11-16) -->
+      <div class="listing-head-row2">
+        <listing-layout-toggle :model-value="layout" @update:model-value="setLayout" />
+        <trade-links v-if="list"
+          :get-link="makeTradeLink" />
+      </div>
     </div>
     <div class="listing-body">
       <div v-if="layout === 'grid'" class="listing-grid" data-listing-layout="grid">
