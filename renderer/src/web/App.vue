@@ -77,6 +77,13 @@
           <span class="grow">{{ reportMessage.text }}</span>
         </div>
 
+        <!-- 神聖石匯率(使用者 2026-11-16 要求:查價時看得到 D:C;只讀 poe.ninja 快照,同懸浮選單市況) -->
+        <div v-if="parsed?.isOk() && divineRate" class="strip" data-strip="divine-rate">
+          <span class="grow" />
+          <img class="strip-cur" :src="currencyIcon(divineRate.game, `divine`)" :alt="t(`ppz.menu.cur_divine`)">1 =
+          <b>{{ divineRate.text }}</b><img class="strip-cur" :src="currencyIcon(divineRate.game, divineRate.to)" :alt="t(divineRate.to === `exa` ? `ppz.menu.cur_exa` : `ppz.menu.cur_chaos`)">
+        </div>
+
         <div class="price-body grow min-h-0" data-layout="price-body">
           <main class="price-main relative">
             <ui-error-box v-if="leagues.error.value" class="m-3">
@@ -244,6 +251,10 @@ import { Host } from './background/IPC'
 import { openTradeSite } from './trade-site'
 import { useLeagues } from './background/Leagues'
 import { useRateLimitWait } from './background/rate-limit-wait'
+import { usePoeninja } from './background/Prices'
+import { marketRateOf } from './overlay/market-rate'
+import { currencyIcon } from './price-panel/currency-icon'
+import type { NinjaSnapshot } from '@exile-appraiser/core/ninja'
 import { REALMS, isSupportedCombination } from '@exile-appraiser/core/realm'
 import { reloadPhase, reloadError, retryReload } from './loadState'
 import { reportIssue, copyIssueReport, reportStatus, type ReportContext } from './report'
@@ -277,6 +288,12 @@ export default defineComponent({
     const itemKey = shallowRef(0)
     // 429 Retry-After:面板頂端 --warn 細條倒數;2026-10-15 提升成共用(懸浮選單標題列的限流點也用)
     const rateLimitWait = useRateLimitWait()
+    const ninja = usePoeninja()
+    const divineRate = computed(() => {
+      const l = leagues.selected.value
+      return marketRateOf(ninja.snapshot.value as NinjaSnapshot | null,
+        AppConfig().realm === 'intl' && l?.id && l.isPopular ? { game: AppConfig().game, league: l.id } : null)
+    })
     // ---- overlay 狀態(APT WidgetManager 的最小子集) ----
     const panelShown = shallowRef(false)
     const advancedCheck = shallowRef(false)
@@ -676,6 +693,8 @@ export default defineComponent({
       },
       itemKey,
       rateLimitWait,
+      divineRate,
+      currencyIcon,
       checkedItemComponent: computed(() => loadedGame.value === 'poe2' ? Poe2.CheckedItem : CheckedItem),
       // 未鑑定傳奇的選擇列(PoE2 = EE2、PoE1 = APT 的 UnidentifiedResolver;2026-10-08 補上 PoE1)
       unidentifiedResolverComponent: computed(() => loadedGame.value === 'poe2' ? Poe2.UnidentifiedResolver : Poe1UnidentifiedResolver),
@@ -903,6 +922,10 @@ input[type=number]::-webkit-outer-spin-button {
   color: var(--ink-2);
   background: var(--surface-2);
   border-bottom: 1px solid var(--edge-0);
+}
+.strip-cur {
+  width: 1.4em;
+  height: 1.4em;
 }
 .strip .grow {
   flex: 1;
