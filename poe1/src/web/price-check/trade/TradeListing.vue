@@ -14,8 +14,9 @@
       </span>
       <online-filter v-if="list" :filters="filters" api="trade" />
       <!-- 交易鈕固定在第 2 行(使用者 2026-11-16) -->
+      <span class="listing-spacer"></span>
+      <listing-layout-toggle :model-value="layout" @update:model-value="setLayout" />
       <div class="listing-head-row2">
-        <listing-layout-toggle :model-value="layout" @update:model-value="setLayout" />
         <trade-links v-if="list"
           :get-link="makeTradeLink" />
       </div>

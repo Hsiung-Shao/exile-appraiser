@@ -75,11 +75,10 @@ function pick (mode: ListingLayoutMode) {
   font-family: var(--font-mono);
 }
 .listing-spacer { flex: 1; }
-/* 掛單標題列第 2 行:版面切換 + 交易鈕,靠右(使用者 2026-11-16:交易鈕固定在第 2 行) */
+/* 掛單標題列第 2 行:只放交易鈕,靠左(使用者 2026-11-16) */
 .listing-head-row2 {
   flex-basis: 100%;
   display: flex;
-  justify-content: flex-end;
   align-items: center;
   gap: 0.5em;
 }
@@ -87,8 +86,6 @@ function pick (mode: ListingLayoutMode) {
 .trade-link-btn {
   background: var(--gold);
   color: var(--on-gold);
-  font-weight: 700;
-  text-shadow: none;
 }
 
 .listing-seg {
