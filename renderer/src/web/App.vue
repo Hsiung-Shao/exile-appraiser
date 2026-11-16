@@ -927,9 +927,9 @@ input[type=number]::-webkit-outer-spin-button {
   flex: none;
   margin: 0.75rem 1rem 0;
 }
-/* 底色用較亮的表面色(使用者 2026-11-16:背景圖模式下預設補的底色太暗);背景圖模式下 --surface-3 已帶可讀性地板值 */
+/* 底色用較亮的表面色(使用者 2026-11-16:背景圖模式下預設補的底色太暗、再要求更不透明):不跟面板不透明度,固定 90% */
 .rate-row > div {
-  background: var(--surface-3);
+  background: color-mix(in srgb, var(--surface-3-c) 90%, transparent);
 }
 /* window 模式:CheckedItem(height 100% + min-h-0)會被後面的相關物品擠扁、內容溢出後被相關物品蓋住 → 照內容高度排 */
 .price-panel.is-window .price-main > .layout-column {
