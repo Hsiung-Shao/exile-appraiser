@@ -309,6 +309,28 @@ describe('3.30 資料檔', () => {
     expect(room.matchers.map((m: any) => m.string)).toContain('寶箱之殿 (階級 1)')
   })
 
+  it('D22b 3.30 史記房間改名:新名為唯一有效寫法、舊名仍保留(兩個語系)', () => {
+    const table: Array<[string, string, string, string, string]> = [
+      ['Has Room: Royal Meeting Room (Tier 1)', '王室宴客室 (階級 1)', '創造之搖籃 (階級 1)', 'Royal Meeting Room (Tier 1)', 'Cradle of Creation (Tier 1)'],
+      ['Has Room: Hall of Lords (Tier 2)', '權貴殿堂 (階級 2)', '創造之搖籃 (階級 2)', 'Hall of Lords (Tier 2)', 'Cradle of Creation (Tier 2)'],
+      ['Has Room: Throne of Atziri (Tier 3)', '阿茲里宴殿 (階級 3)', '創造之搖籃 (階級 3)', 'Throne of Atziri (Tier 3)', 'Cradle of Creation (Tier 3)'],
+      ['Has Room: Omnitect Forge (Tier 2)', '全能冶煉室 (階級 2)', '皇家熔爐 (階級 2)', 'Omnitect Forge (Tier 2)', 'Royal Forge (Tier 2)'],
+      ['Has Room: Omnitect Reactor Plant (Tier 2)', '全能反應廠 (階級 2)', '宏偉反應爐 (階級 2)', 'Omnitect Reactor Plant (Tier 2)', 'Grand Reactor (Tier 2)']
+    ]
+    const stats = {
+      'cmn-Hant': readNdjson('cmn-Hant', 'stats.ndjson').flatMap(r => r.stats ?? [r]),
+      en: readNdjson('en', 'stats.ndjson').flatMap(r => r.stats ?? [r])
+    }
+    for (const [ref, zhOld, zhNew, enOld, enNew] of table) {
+      for (const [lang, oldName, newName] of [['cmn-Hant', zhOld, zhNew], ['en', enOld, enNew]] as const) {
+        const row = stats[lang].find(s => s.ref === ref)
+        expect(row, `${lang} ${ref}`).toBeDefined()
+        expect(row.matchers.filter((m: any) => !m.superseded).map((m: any) => m.string), `${lang} ${ref}`).toEqual([newName])
+        expect(row.matchers.map((m: any) => m.string), `${lang} ${ref}`).toContain(oldName)
+      }
+    }
+  })
+
   it('D4 stats.ndjson 不再引用交易站已移除的 id', () => {
     const snap = JSON.parse(fs.readFileSync(TRADE_IDS_FILE, 'utf8')) as { ids: string[], options: Record<string, string[]> }
     const valid = new Set(snap.ids)

@@ -1062,7 +1062,7 @@
 {"ref":"#% increased Light Radius during Effect","better":1,"matchers":[{"string":"效果持續時間內，增加 #% 照亮範圍"}],"trade":{"ids":{"explicit":["explicit.stat_2745936267"]}}}
 {"ref":"#% increased Lightning Damage","better":1,"matchers":[{"string":"增加 #% 閃電傷害"},{"string":"減少 #% 閃電傷害","negate":true}],"trade":{"ids":{"pseudo":["pseudo.pseudo_increased_lightning_damage"],"explicit":["explicit.stat_2231156303"],"implicit":["implicit.stat_2231156303"],"fractured":["fractured.stat_2231156303"],"enchant":["enchant.stat_2231156303"],"crafted":["crafted.stat_2231156303"]}}}
 {"ref":"#% increased Lightning Damage per 1% Lightning Resistance above 75%","better":1,"matchers":[{"string":"每 1% 點超過 75% 的閃電抗性，增加 #% 閃電傷害"}],"trade":{"ids":{"explicit":["explicit.stat_2642525868"]}}}
-{"ref":"#% increased Lightning Damage per 10 Intelligence","better":1,"matchers":[{"string":"每 10 智慧增加 #% 閃電傷害"},{"string":"每 10 智慧減少 #% 閃電傷害","negate":true}],"trade":{"ids":{"explicit":["explicit.stat_990219738"]}}}
+{"ref":"#% increased Lightning Damage per 10 Intelligence","better":1,"matchers":[{"string":"每 10 智慧增加 #% 閃電傷害"},{"string":"每 10 智慧減少 #% 閃電傷害","negate":true}],"trade":{"ids":{"explicit":["explicit.stat_990219738"],"implicit":["implicit.stat_990219738"]}}}
 {"ref":"#% increased Lightning Damage per Frenzy Charge","better":1,"matchers":[{"string":"每個狂怒球增加 #% 閃電傷害"},{"string":"每個狂怒球減少 #% 閃電傷害","negate":true}],"trade":{"ids":{"explicit":["explicit.stat_3693130674"]}}}
 {"ref":"#% increased Lightning Damage while affected by Herald of Thunder","better":1,"matchers":[{"string":"被閃電之捷影響時，增加 #% 閃電傷害"},{"string":"被閃電之捷影響時，減少 #% 閃電傷害","negate":true}],"trade":{"ids":{"explicit":["explicit.stat_536957"]}}}
 {"ref":"#% increased Lightning Damage while affected by Wrath","better":1,"matchers":[{"string":"被雷霆影響時，增加 #% 閃電傷害"},{"string":"被雷霆影響時，減少 #% 閃電傷害","negate":true}],"trade":{"ids":{"explicit":["explicit.stat_418293304"]}}}
@@ -3862,7 +3862,7 @@
 {"ref":"Arrow Nova","better":1,"mercenary":{"tier":3},"matchers":[{"string":"箭矢新星","advanced":"箭矢新星(階層：3)"}],"trade":{"ids":{"pseudo":["mercenary.support_58429"]}}}
 {"ref":"Arrows Chain +# times","better":1,"matchers":[{"string":"箭矢連鎖 # 次"}],"trade":{"ids":{"implicit":["implicit.stat_1001077145"]}}}
 {"ref":"Arrows deal # to # Added Fire Damage for each time they've Pierced","better":1,"matchers":[{"string":"箭矢每次穿透時，附加 # 至 # 火焰傷害"}],"trade":{"ids":{"explicit":["explicit.stat_3726936056"]}}}
-{"ref":"Arrows deal #% increased Damage with Hits and Ailments to Targets they Pierce","better":1,"matchers":[{"string":"箭矢對穿透的目標增加 #% 擊中和異常狀態傷害"},{"string":"箭矢對穿透的目標減少 #% 擊中和異常狀態傷害","negate":true}],"trade":{"ids":{"explicit":["explicit.stat_1019891080"]}}}
+{"ref":"Arrows deal #% increased Damage with Hits and Ailments to Targets they Pierce","better":1,"matchers":[{"string":"箭矢對穿透的目標增加 #% 擊中和異常狀態傷害"},{"string":"箭矢對穿透的目標減少 #% 擊中和異常狀態傷害","negate":true}],"trade":{"ids":{"explicit":["explicit.stat_1019891080"],"implicit":["implicit.stat_1019891080"]}}}
 {"ref":"Arrows fired from the first firing points always Pierce","better":1,"matchers":[{"string":"從初始發射位置發射的箭矢一定穿透"}],"trade":{"ids":{"explicit":["explicit.stat_2168987271"]}}}
 {"ref":"Arrows fired from the fourth firing points Chain +# time","better":1,"matchers":[{"string":"從第 4 個發射點發射的箭矢 # 次連鎖"}],"trade":{"ids":{"explicit":["explicit.stat_226515115"]}}}
 {"ref":"Arrows fired from the second firing points Fork","better":1,"matchers":[{"string":"從第 2 個發射點發射的箭矢會分裂"}],"trade":{"ids":{"explicit":["explicit.stat_3290081052"]}}}
@@ -5163,7 +5163,7 @@
 {"ref":"Has Room: Hall of Heroes (Tier 2)","better":0,"matchers":[{"string":"英雄之殿 (階級 2)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_legion_2"]},"option":true}}
 {"ref":"Has Room: Hall of Legends (Tier 3)","better":0,"matchers":[{"string":"神話之殿 (階級 3)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_legion_3"]},"option":true}}
 {"ref":"Has Room: Hall of Locks (Tier 2)","better":0,"matchers":[{"string":"千鎖殿堂 (階級 2)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_strongbox_2"]},"option":true}}
-{"ref":"Has Room: Hall of Lords (Tier 2)","better":0,"matchers":[{"string":"權貴殿堂 (階級 2)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_queens_chambers_2"]},"option":true}}
+{"ref":"Has Room: Hall of Lords (Tier 2)","better":0,"matchers":[{"string":"權貴殿堂 (階級 2)","superseded":true},{"string":"創造之搖籃 (階級 2)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_queens_chambers_2"]},"option":true}}
 {"ref":"Has Room: Hall of Mettle (Tier 1)","better":0,"matchers":[{"string":"勇氣之殿 (階級 1)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_legion_1"]},"option":true}}
 {"ref":"Has Room: Hall of Offerings (Tier 2)","better":0,"matchers":[{"string":"獻祭殿堂 (階級 2)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_sacrifice_room_2"]},"option":true}}
 {"ref":"Has Room: Hall of War (Tier 3)","better":0,"matchers":[{"string":"戰爭聖殿 (階級 3)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_breeding_room_3"]},"option":true}}
@@ -5178,13 +5178,13 @@
 {"ref":"Has Room: Locus of Corruption (Tier 3)","better":0,"matchers":[{"string":"腐敗之地 (階級 3)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_corruption_room_3"]},"option":true}}
 {"ref":"Has Room: Museum of Artefacts (Tier 3)","better":0,"matchers":[{"string":"文物展館 (階級 3)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_chests_3"]},"option":true}}
 {"ref":"Has Room: Office of Cartography (Tier 2)","better":0,"matchers":[{"string":"製圖研製室 (階級 2)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_cartography_room_2"]},"option":true}}
-{"ref":"Has Room: Omnitect Forge (Tier 2)","better":0,"matchers":[{"string":"全能冶煉室 (階級 2)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_boss_fire_2"]},"option":true}}
-{"ref":"Has Room: Omnitect Reactor Plant (Tier 2)","better":0,"matchers":[{"string":"全能反應廠 (階級 2)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_boss_lightning_2"]},"option":true}}
+{"ref":"Has Room: Omnitect Forge (Tier 2)","better":0,"matchers":[{"string":"全能冶煉室 (階級 2)","superseded":true},{"string":"皇家熔爐 (階級 2)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_boss_fire_2"]},"option":true}}
+{"ref":"Has Room: Omnitect Reactor Plant (Tier 2)","better":0,"matchers":[{"string":"全能反應廠 (階級 2)","superseded":true},{"string":"宏偉反應爐 (階級 2)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_boss_lightning_2"]},"option":true}}
 {"ref":"Has Room: Passageways","better":0,"matchers":[{"string":"神殿通道"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_passageways"]},"option":true}}
 {"ref":"Has Room: Pits","better":0,"matchers":[{"string":"神殿舊窖"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_the_pits"]},"option":true}}
 {"ref":"Has Room: Poison Garden (Tier 1)","better":0,"matchers":[{"string":"監獄花園 (階級 1)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_poison_room_1"]},"option":true}}
 {"ref":"Has Room: Pools of Restoration (Tier 1)","better":0,"matchers":[{"string":"治癒之泉 (階級 1)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_healing_room_1"]},"option":true}}
-{"ref":"Has Room: Royal Meeting Room (Tier 1)","better":0,"matchers":[{"string":"王室宴客室 (階級 1)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_queens_chambers_1"]},"option":true}}
+{"ref":"Has Room: Royal Meeting Room (Tier 1)","better":0,"matchers":[{"string":"王室宴客室 (階級 1)","superseded":true},{"string":"創造之搖籃 (階級 1)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_queens_chambers_1"]},"option":true}}
 {"ref":"Has Room: Sacrificial Chamber (Tier 1)","better":0,"matchers":[{"string":"獻祭之室 (階級 1)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_sacrifice_room_1"]},"option":true}}
 {"ref":"Has Room: Sadist's Den (Tier 3)","better":0,"matchers":[{"string":"虐狂之巢 (階級 3)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_torment_3"]},"option":true}}
 {"ref":"Has Room: Sanctum of Immortality (Tier 3)","better":0,"matchers":[{"string":"不朽聖殿 (階級 3)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_healing_room_3"]},"option":true}}
@@ -5201,7 +5201,7 @@
 {"ref":"Has Room: Tempest Generator (Tier 1)","better":0,"matchers":[{"string":"暴雷發電室 (階級 1)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_storm_room_1"]},"option":true}}
 {"ref":"Has Room: Temple Defense Workshop (Tier 2)","better":0,"matchers":[{"string":"神殿禦防室 (階級 2)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_trap_room_2"]},"option":true}}
 {"ref":"Has Room: Temple Nexus (Tier 3)","better":0,"matchers":[{"string":"死神靈殿 (階級 3)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_empowering_room_3"]},"option":true}}
-{"ref":"Has Room: Throne of Atziri (Tier 3)","better":0,"matchers":[{"string":"阿茲里宴殿 (階級 3)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_queens_chambers_3"]},"option":true}}
+{"ref":"Has Room: Throne of Atziri (Tier 3)","better":0,"matchers":[{"string":"阿茲里宴殿 (階級 3)","superseded":true},{"string":"創造之搖籃 (階級 3)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_queens_chambers_3"]},"option":true}}
 {"ref":"Has Room: Tombs","better":0,"matchers":[{"string":"神殿陵寢"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_tombs"]},"option":true}}
 {"ref":"Has Room: Torment Cells (Tier 1)","better":0,"matchers":[{"string":"磨難牢房 (階級 1)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_torment_1"]},"option":true}}
 {"ref":"Has Room: Torture Cages (Tier 2)","better":0,"matchers":[{"string":"拷刑大牢 (階級 2)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_torment_2"]},"option":true}}
@@ -10802,3 +10802,4 @@
 {"ref":"# Prefix Modifier cannot be changed","better":1,"matchers":[{"string":"#條前綴詞綴無法被變更"}],"trade":{"ids":{"explicit":["explicit.stat_181387736"],"crafted":["crafted.stat_181387736"]}}}
 {"ref":"# Monster Packs in Area are substituted with Packs led by a Pantheon-Touched Rare Monster","better":1,"matchers":[{"string":"區域內的#群怪物會被替換為由一名受眾神之觸的稀有怪物所引領的怪物群"}],"trade":{"ids":{"enchant":["enchant.stat_429929284"]}}}
 {"ref":"# Monster Packs in Area are substituted with Packs that\ncannot drop Equipment, Flasks or Tinctures","better":1,"matchers":[{"string":"區域內的#群怪物會被替換為無法掉落\n裝備、藥劑、或萃取物的怪物群"}],"trade":{"ids":{"enchant":["enchant.stat_228481227"]}}}
+{"ref":"Kill Undead Enemies that have 15% or lower Life when Hit by your Skills","better":0,"matchers":[{"string":"你的技能會於擊中時擊殺低於15%生命的不死敵人"}],"trade":{"ids":{"implicit":["implicit.stat_4052113003"]}}}

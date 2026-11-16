@@ -769,11 +769,26 @@ export function planExtraZh ({ zhStats, ggpkNew }) {
 /**
  * 規則 17:阿茲瓦特史記的房間(ref `Has Room: X (Tier N)`)繁中名與 GGPK `incursionrooms` 不同 → 加上 GGPK 的寫法、舊名標 superseded
  * (GitHub issue #14:遊戲顯示「保險箱之殿 (階級 1)」,資料是「寶箱之殿」)。GGPK 名稱不唯一就不動。
+ * @param {{ zhStats: any[], enStats?: any[], rooms: any[], renames?: any[] }} input
  * @returns {{ adds: any[] }}
  */
-export function planRoomNames ({ zhStats, rooms }) {
+export function planRoomNames ({ zhStats, enStats = [], rooms, renames = [] }) {
   const zhOf = groupBy(rooms, r => r.en)
   const adds = []
+  // 英文名也改了(3.30:阿茲里宴殿等三階 → 創造之搖籃 Cradle of Creation):ref 不動(語言無關鍵),兩語各加新名、舊名標 superseded
+  const renameOf = groupBy(renames, r => r.from)
+  for (const [lang, stats] of [['cmn-Hant', zhStats], ['en', enStats]]) {
+    for (const stat of eachStat(stats)) {
+      const m = /^Has Room: (.+) \(Tier \d+\)$/.exec(stat.ref)
+      const to = m ? [...new Set((renameOf.get(m[1]) ?? []).map(r => lang === 'en' ? r.en : r.zh))] : []
+      if (to.length !== 1) continue
+      for (const old of stat.matchers.filter(x => !x.superseded)) {
+        const cut = old.string.indexOf(' (')
+        const next = cut === -1 ? null : to[0] + old.string.slice(cut)
+        if (next && next !== old.string && !stat.matchers.some(x => x.string === next)) adds.push({ lang, ref: stat.ref, matcher: { string: next }, supersedes: old.string })
+      }
+    }
+  }
   for (const stat of eachStat(zhStats)) {
     const m = /^Has Room: (.+) \(Tier \d+\)$/.exec(stat.ref)
     const names = m ? [...new Set((zhOf.get(m[1]) ?? []).map(r => r.zh))] : []

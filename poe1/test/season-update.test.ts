@@ -516,6 +516,23 @@ describe('planRoomNames(規則 17)', () => {
     expect(out[0].matchers).toEqual([{ string: '寶箱之殿 (階級 1)', superseded: true }, { string: '保險箱之殿 (階級 1)' }])
     expect(planRoomNames({ zhStats: out, rooms }).adds).toEqual([])
   })
+
+  it('3.30 房間改名:依改名表同時補繁中與英文新名、舊名標 superseded、改名目標不唯一或沒改名不動、重跑為空', () => {
+    const room = (ref: string, name: string) => ({ ref, better: 0, matchers: [{ string: name }], trade: { ids: { pseudo: ['pseudo.x'] }, option: true } })
+    const zhStats = [room('Has Room: Throne of Atziri (Tier 3)', '阿茲里宴殿 (階級 3)'), room('Has Room: Vault (Tier 1)', '金庫 (階級 1)'), room('Has Room: Twin (Tier 2)', '舊 (階級 2)')]
+    const enStats = [room('Has Room: Throne of Atziri (Tier 3)', 'Throne of Atziri (Tier 3)'), room('Has Room: Vault (Tier 1)', 'Vault (Tier 1)'), room('Has Room: Twin (Tier 2)', 'Twin (Tier 2)')]
+    const renames = [{ from: 'Throne of Atziri', en: 'Cradle of Creation', zh: '創造之搖籃' }, { from: 'Twin', en: 'A', zh: '甲' }, { from: 'Twin', en: 'B', zh: '乙' }]
+    const plan = planRoomNames({ zhStats, enStats, rooms: [], renames })
+    expect(plan.adds).toEqual([
+      { lang: 'cmn-Hant', ref: 'Has Room: Throne of Atziri (Tier 3)', matcher: { string: '創造之搖籃 (階級 3)' }, supersedes: '阿茲里宴殿 (階級 3)' },
+      { lang: 'en', ref: 'Has Room: Throne of Atziri (Tier 3)', matcher: { string: 'Cradle of Creation (Tier 3)' }, supersedes: 'Throne of Atziri (Tier 3)' }
+    ])
+    const zhOut = parseRows(applyStatPlan(toFile(zhStats), 'cmn-Hant', { adds: plan.adds }))
+    const enOut = parseRows(applyStatPlan(toFile(enStats), 'en', { adds: plan.adds }))
+    expect(zhOut[0].matchers).toEqual([{ string: '阿茲里宴殿 (階級 3)', superseded: true }, { string: '創造之搖籃 (階級 3)' }])
+    expect(enOut[0].matchers).toEqual([{ string: 'Throne of Atziri (Tier 3)', superseded: true }, { string: 'Cradle of Creation (Tier 3)' }])
+    expect(planRoomNames({ zhStats: zhOut, enStats: enOut, rooms: [], renames }).adds).toEqual([])
+  })
 })
 
 describe('planNewStats', () => {

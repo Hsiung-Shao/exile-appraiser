@@ -67,7 +67,7 @@ const minions = planMinionDoubled({ enStats: afterA.en, zhStats: afterA['cmn-Han
 const grants = planGrantsSkill({ enStats: afterA.en, zhStats: afterA['cmn-Hant'], skills: ggpk.skills, template: ggpk.strings?.ModGrantsEffectWithLevel })
 const citadels = planCitadel({ enStats: afterA.en, zhStats: afterA['cmn-Hant'], ggpkNew: ggpk.stats.new })
 const extraZh = planExtraZh({ zhStats: afterA['cmn-Hant'], ggpkNew: ggpk.stats.new })
-const roomNames = planRoomNames({ zhStats: afterA['cmn-Hant'], rooms: ggpk.rooms ?? [] })
+const roomNames = planRoomNames({ zhStats: afterA['cmn-Hant'], enStats: afterA.en, rooms: ggpk.rooms ?? [], renames: ggpk.renames ?? [] })
 const adds = [...ruleA.adds, ...ruleB.adds, ...gemNames.adds, ...minions.adds, ...citadels.adds, ...extraZh.adds, ...grants.adds, ...roomNames.adds]
 const effects = planEffectStats({ enStats: rows(applyStatPlan(text['en/stats'], 'en', { adds })), zhStats: rows(applyStatPlan(text['cmn-Hant/stats'], 'cmn-Hant', { adds })), tradeStats, skills: ggpk.skills, supports: ggpk.supports ?? [], strings: ggpk.strings, taken: Object.values(planFillIds({ enStats: rows(applyStatPlan(text['en/stats'], 'en', { adds })), tradeStats })).flatMap(t => Object.values(t).flat()) })
 adds.push(...effects.adds)
@@ -99,7 +99,7 @@ const summary = [
   `effect 新 id(規則 15):新增 ${effects.newStats.length} 列、舊詞綴加新寫法 ${new Set(effects.adds.map(a => a.ref)).size} 條、拒收 ${effects.rejects.length}`,
   `掛上缺的類型 id(規則 16):${Object.values(typeIds.extra).flatMap(x => Object.values(x)).flat().length} 個 id、${Object.keys(typeIds.extra).length} 條詞綴、拒收 ${typeIds.rejects.length}`,
   `洗出的塗油天賦(規則 18):新增 ${grown.newStats.length} 列、掛到既有詞綴 ${Object.keys(grown.extra).length} 條、拒收 ${grown.rejects.length}`,
-  `史記房間名(規則 17):繁中 +${roomNames.adds.length} 個 matcher`,
+  `史記房間名(規則 17,含改名):+${roomNames.adds.length} 個 matcher`,
   `壁壘地圖(規則 19):en +${count(citadels.adds, 'en')} / 繁中 +${count(citadels.adds, 'cmn-Hant')} 個 matcher`,
   `輔助寶石名(規則 8):en +${count(gemNames.adds, 'en')} / 繁中 +${count(gemNames.adds, 'cmn-Hant')} 個 matcher`,
   `失效 id:替換 ${Object.keys(dead.replace).length}、移除 ${dead.remove.length}`,
