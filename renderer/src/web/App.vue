@@ -113,7 +113,7 @@
               <!-- 外層多包一層:背景圖模式的可讀性規則套在 .price-main > * > *(補底色 + 左右內距),虛線框要落在那一層(同拆粉列),
                    否則規則會套到箭頭 / 圖示上,圖示被內距擠成破圖、文字沒有底色 -->
               <div v-if="divineRate" class="rate-row"><div class="p-2 border-dashed border border-gray-600 rounded-sm text-gray-400 leading-none" data-divine-rate>
-                {{ t(`ppz.menu.cur_divine`) }} <i class="fas fa-arrow-right text-gray-600 px-1 text-xs" /> {{ divineRate.text }} <span class="font-sans">×</span> <img :src="currencyIcon(divineRate.game, divineRate.to)" class="w-5 -my-5 inline-block" :alt="t(divineRate.to === `exa` ? `ppz.menu.cur_exa` : `ppz.menu.cur_chaos`)">
+                <img :src="currencyIcon(divineRate.game, `divine`)" class="w-5 -my-5 inline-block" :alt="t(`ppz.menu.cur_divine`)"> <i class="fas fa-arrow-right text-gray-600 px-1 text-xs" /> {{ divineRate.text }} <span class="font-sans">×</span> <img :src="currencyIcon(divineRate.game, divineRate.to)" class="w-5 -my-5 inline-block" :alt="t(divineRate.to === `exa` ? `ppz.menu.cur_exa` : `ppz.menu.cur_chaos`)">
               </div></div>
               <!-- 未鑑定傳奇:先選是哪個傳奇(兩代上游 PriceCheckWindow.vue 同位置;只有一個就自動選) -->
               <component :is="unidentifiedResolverComponent" v-if="unidentifiedResolverComponent"
@@ -926,6 +926,10 @@ input[type=number]::-webkit-outer-spin-button {
 .rate-row {
   flex: none;
   margin: 0.75rem 1rem 0;
+}
+/* 底色用較亮的表面色(使用者 2026-11-16:背景圖模式下預設補的底色太暗);背景圖模式下 --surface-3 已帶可讀性地板值 */
+.rate-row > div {
+  background: var(--surface-3);
 }
 /* window 模式:CheckedItem(height 100% + min-h-0)會被後面的相關物品擠扁、內容溢出後被相關物品蓋住 → 照內容高度排 */
 .price-panel.is-window .price-main > .layout-column {
