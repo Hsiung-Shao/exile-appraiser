@@ -14,7 +14,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
-import { BETTER_OVERRIDES, eachStat, applyItemPlan, applyStatPlan, planDeadIds, planGems, planItems, planExtraZh, planEffectStats, planFillIds, planGrantsSkill, planMinionDoubled, planCitadel, planUniqueZhNames, planNewStats, planStatText, planSupportGemNames, planGrownPassives, planRoomNames, planTypeIds, planTradeBases, planTradeText, planUniques } from './lib.mjs'
+import { BETTER_OVERRIDES, eachStat, applyItemPlan, applyStatPlan, planDeadIds, planGems, planItems, planExtraZh, planEffectStats, planFillIds, planGrantsSkill, planMinionDoubled, planRandomSkillGem, planCitadel, planUniqueZhNames, planNewStats, planStatText, planSupportGemNames, planGrownPassives, planRoomNames, planTypeIds, planTradeBases, planTradeText, planUniques } from './lib.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(HERE, '../..')
@@ -64,11 +64,12 @@ const afterA = Object.fromEntries(LANGS.map(lang => [lang, rows(applyStatPlan(te
 const ruleB = planTradeText({ enStats: afterA.en, zhStats: afterA['cmn-Hant'], tradeStats, ggpkNew: ggpk.stats.new, ggpkOld: ggpk.stats.old })
 const gemNames = planSupportGemNames({ enStats: afterA.en, zhStats: afterA['cmn-Hant'], ggpkNew: ggpk.stats.new, baseNew: ggpk.base.new })
 const minions = planMinionDoubled({ enStats: afterA.en, zhStats: afterA['cmn-Hant'], ggpkNew: ggpk.stats.new })
+const skillGems = planRandomSkillGem({ enStats: afterA.en, zhStats: afterA['cmn-Hant'] })
 const grants = planGrantsSkill({ enStats: afterA.en, zhStats: afterA['cmn-Hant'], skills: ggpk.skills, template: ggpk.strings?.ModGrantsEffectWithLevel })
 const citadels = planCitadel({ enStats: afterA.en, zhStats: afterA['cmn-Hant'], ggpkNew: ggpk.stats.new })
 const extraZh = planExtraZh({ zhStats: afterA['cmn-Hant'], ggpkNew: ggpk.stats.new })
 const roomNames = planRoomNames({ zhStats: afterA['cmn-Hant'], enStats: afterA.en, rooms: ggpk.rooms ?? [], renames: ggpk.renames ?? [] })
-const adds = [...ruleA.adds, ...ruleB.adds, ...gemNames.adds, ...minions.adds, ...citadels.adds, ...extraZh.adds, ...grants.adds, ...roomNames.adds]
+const adds = [...ruleA.adds, ...ruleB.adds, ...gemNames.adds, ...minions.adds, ...skillGems.adds, ...citadels.adds, ...extraZh.adds, ...grants.adds, ...roomNames.adds]
 const effects = planEffectStats({ enStats: rows(applyStatPlan(text['en/stats'], 'en', { adds })), zhStats: rows(applyStatPlan(text['cmn-Hant/stats'], 'cmn-Hant', { adds })), tradeStats, skills: ggpk.skills, supports: ggpk.supports ?? [], strings: ggpk.strings, taken: Object.values(planFillIds({ enStats: rows(applyStatPlan(text['en/stats'], 'en', { adds })), tradeStats })).flatMap(t => Object.values(t).flat()) })
 adds.push(...effects.adds)
 const afterB = rows(applyStatPlan(text['en/stats'], 'en', { adds }))
@@ -77,7 +78,7 @@ const newStats = [...planNewStats({ enStats: afterB, zhStats: afterA['cmn-Hant']
 const items = planItems({ enItems: rows(text['en/items']), baseOld: ggpk.base.old, baseNew: ggpk.base.new, tradeStatic })
 const bases = planTradeBases({ enItems: rows(text['en/items']), baseOld: ggpk.base.old, baseNew: ggpk.base.new, tradeItems })
 const uniques = planUniques({ enItems: rows(applyItemPlan(text['en/items'], 'en', { bases: bases.adds })), tradeItems, words: ggpk.words })
-const gems = planGems({ enItems: rows(text['en/items']), tradeItems, gems: ggpk.gems })
+const gems = planGems({ enItems: rows(text['en/items']), tradeItems, gems: ggpk.gems, skills: ggpk.skills })
 const zhNames = planUniqueZhNames({ zhItems: rows(text['cmn-Hant/items']), words: ggpk.words })
 const itemPlan = { ...items, bases: bases.adds, uniques: uniques.adds, gems: gems.adds, zhNames }
 const betterFix = [...eachStat(afterB)].filter(s => s.ref in BETTER_OVERRIDES && s.better !== BETTER_OVERRIDES[s.ref]).length

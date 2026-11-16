@@ -5645,3 +5645,4 @@
 {"name":"Searing Exarch's Descry","refName":"Searing Exarch's Descry","namespace":"ITEM"}
 {"name":"Severed Scythe-hand","refName":"Severed Scythe-hand","namespace":"ITEM"}
 {"name":"Spiked Carapace","refName":"Spiked Carapace","namespace":"ITEM"}
+{"name":"Arcane Link","refName":"Arcane Link","namespace":"GEM","gem":{"maxLevel":20}}

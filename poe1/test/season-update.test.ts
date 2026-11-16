@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, planRoomNames, planGrownPassives, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
+import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planRandomSkillGem, planExtraZh, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, planRoomNames, planGrownPassives, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
 
 /**
  * 賽季更新腳本的純函式測試(合成輸入,不讀 data/)。
@@ -659,6 +659,41 @@ describe('planGems / applyItemPlan', () => {
     expect(zhOut.at(-1)).toEqual({ name: '火球．輻射', refName: 'Fireball of Radiation', namespace: 'GEM', tradeDisc: 'alt_x', icon: 'zh-i', gem: { transfigured: true, normalVariant: 'Fireball', maxLevel: 20 } })
     const enOut = parseRows(applyItemPlan(toFile(enRows()), 'en', { gems: p.adds }))
     expect(planGems({ enItems: enOut, tradeItems, gems }).adds).toEqual([])
+  })
+})
+
+describe('新的一般寶石、隨機技能寶石進階寫法、verified 補寫法(issue #18–#23)', () => {
+  it('新的一般寶石只收列出等級上限的,其餘拒收;寫出的列沒有變異欄位', () => {
+    const enItems = [{ name: 'Fireball', refName: 'Fireball', namespace: 'GEM', gem: { maxLevel: 20 } }]
+    const tradeItems = [{ type: 'Fireball', group: 'gem' }, { type: 'Arcane Link', group: 'gem' }, { type: 'Unknown Gem', group: 'gem' }, { type: 'Vaal New', group: 'gem' }]
+    const p = planGems({ enItems, tradeItems, gems: [], skills: [{ en: 'Arcane Link', zh: '連結：秘能' }] })
+    expect(p.adds).toEqual([{ refName: 'Arcane Link', zh: '連結：秘能', maxLevel: 20 }])
+    expect(p.rejects.map((r: any) => r.id)).toEqual(['Unknown Gem'])
+    const out = parseRows(applyItemPlan(toFile(enItems), 'cmn-Hant', { gems: p.adds }))
+    expect(out.at(-1)).toEqual({ name: '連結：秘能', refName: 'Arcane Link', namespace: 'GEM', gem: { maxLevel: 20 } })
+  })
+
+  it('「全部 X 寶石等級 #」多一個「(...)」進階寫法、舊的標 superseded;別的詞綴不動;重跑為空', () => {
+    const REF = '+# to Level of all Summon Reaper Gems (Random Skill Gem)'
+    const zh = () => [{ ref: REF, matchers: [{ string: '全部 召喚奪魂鐮 寶石等級 #', advanced: '全部 召喚奪魂鐮(火球-魔能長杖) 寶石等級 #' }] },
+      { ref: 'other', matchers: [{ string: '別的', advanced: '別的(1-2) 寶石等級 #' }] }]
+    const en = () => [{ ref: REF, matchers: [{ string: '# to Level of all Summon Reaper Gems', advanced: '# to Level of all Summon Reaper(Fireball-Mana-Infused Staff) Gems' }] }]
+    const p = planRandomSkillGem({ enStats: en(), zhStats: zh() })
+    const out = parseRows(applyStatPlan(toFile(zh()), 'cmn-Hant', { adds: p.adds }))
+    expect(out[0].matchers).toEqual([{ ...zh()[0].matchers[0], superseded: true }, { string: '全部 召喚奪魂鐮 寶石等級 #', advanced: '全部 召喚奪魂鐮(...) 寶石等級 #' }])
+    expect(out[1]).toEqual(zh()[1])
+    const enOut = parseRows(applyStatPlan(toFile(en()), 'en', { adds: p.adds }))
+    expect(enOut[0].matchers[1].advanced).toBe('# to Level of all Summon Reaper(...) Gems')
+    expect(planRandomSkillGem({ enStats: enOut, zhStats: out }).adds).toEqual([])
+  })
+
+  it('verified 的補寫法不查 GGPK、帶進階寫法並標舊句;沒標 verified 的仍要 GGPK 佐證', () => {
+    const zh = [{ ref: 'Increased Area of Effect', matchers: [{ string: '增加效果範圍', advanced: '增加效果範圍(階層：2)' }] },
+      { ref: '+# to Accuracy Rating', matchers: [{ string: '# 命中' }] }]
+    const p = planExtraZh({ zhStats: zh, ggpkNew: [] })
+    expect(p.adds.map((a: any) => a.ref)).toEqual(['Increased Area of Effect'])
+    const out = parseRows(applyStatPlan(toFile(zh), 'cmn-Hant', { adds: p.adds }))
+    expect(out[0].matchers).toEqual([{ string: '增加效果範圍', advanced: '增加效果範圍(階層：2)', superseded: true }, { string: '增加範圍效果', advanced: '增加範圍效果(階層：2)' }])
   })
 })
 

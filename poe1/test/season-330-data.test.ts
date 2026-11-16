@@ -224,6 +224,21 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(item.statsByType.find(s => s.stat.ref === 'Has Room: Splinter Research Lab (Tier 1)')?.stat.trade).toMatchObject({ ids: { pseudo: ['pseudo.pseudo_temple_breach_room_1'] }, option: true })
   })
 
+  it('D17g GitHub issue #18–#23 的實機文字(0.3.11 仍未解析):隨機技能寶石「(...)」、新寶石 連結：秘能、希望之絃、傭兵輔助改名', () => {
+    const read = (n: number): ParsedItem => parse(fs.readFileSync(path.join(HERE, `docs/3.30-issue-${n}.cmn-Hant.txt`), 'utf8'))
+    const amulet = read(18)
+    expect(unknownOf(amulet)).toEqual([])
+    expect(amulet.statsByType.find(s => s.stat.ref === '+# to Level of all Summon Reaper Gems (Random Skill Gem)')?.stat.trade.ids.explicit).toEqual(['explicit.indexable_skill_246'])
+    expect(read(19).info.refName).toBe('Arcane Link')
+    const thread = read(20)
+    expect(unknownOf(thread)).toEqual([])
+    expect(thread.statsByType.find(s => s.stat.ref === 'Only affects Passives in Massive Ring')?.stat.trade.ids.explicit).toEqual(['explicit.stat_3642528642|5'])
+    expect(refsOf(thread)).toContain('+#% to all Elemental Resistances')
+    const warrant = read(23)
+    expect(unknownOf(warrant)).toEqual([])
+    expect(warrant.mercenarySkills!.filter(g => g.some(s => s.stat.ref === 'Increased Area of Effect'))).toHaveLength(3)
+  })
+
   it('D18 破裂的「+#%物品稀有度」(使用者 2026-11-15 貼的實機手套)解析成原詞綴並帶破裂 id', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-fractured-rarity-gloves.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
