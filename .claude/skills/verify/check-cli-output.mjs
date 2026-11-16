@@ -8,8 +8,9 @@ import { join } from 'node:path'
 const [dir, name, ...musts] = process.argv.slice(2)
 if (!dir || !name || !musts.length) { console.error('用法:node check-cli-output.mjs <證據目錄> <輸出檔名> <必含字串>...'); process.exit(2) }
 
-const text = readFileSync(join(dir, name), 'utf8')
-const lines = [
+const file = join(dir, name)
+const text = existsSync(file) ? readFileSync(file, 'utf8') : null
+const lines = text === null ? [`FAIL ${name} 讀不到輸出檔`] : [
   ...musts.map(m => `${text.includes(m) ? 'PASS' : 'FAIL'} ${name} 含「${m}」`),
   `${/⚠/.test(text) ? 'FAIL' : 'PASS'} ${name} 沒有未解析詞綴警告`
 ]

@@ -25,7 +25,7 @@
         :model-value="layout"
         @update:model-value="setLayout"
       />
-      <div class="listing-head-row2">
+      <div v-if="list" class="listing-head-row2">
         <trade-links v-if="list" :get-link="makeTradeLink" />
       </div>
     </div>

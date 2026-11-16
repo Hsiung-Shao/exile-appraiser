@@ -250,6 +250,8 @@ export const usePoeninja = createGlobalState(() => {
     lastFetchedAt: readonly(lastFetchedAt),
     lastError: readonly(lastError),
     snapshot: readonly(snapshot),
+    /** 目前的價格表目標(匯率列 / 懸浮選單市況共用這一份條件) */
+    target,
     load,
     queuePricesFetch,
     findPriceByQuery,

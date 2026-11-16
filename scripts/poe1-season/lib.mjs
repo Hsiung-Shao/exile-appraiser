@@ -788,7 +788,8 @@ export function planRoomNames ({ zhStats, enStats = [], rooms, renames = [] }) {
   const nameOf = (ref) => { const m = /^Has Room: (.+) \(Tier \d+\)$/.exec(ref); return m ? (liveEn.get(ref) ?? m[1]) : null }
   for (const [lang, stats] of [['cmn-Hant', zhStats], ['en', enStats]]) {
     for (const stat of eachStat(stats)) {
-      const to = [...new Set((renameOf.get(nameOf(stat.ref)) ?? []).map(r => lang === 'en' ? r.en : r.zh))]
+      // zh 可能是 null(GGPK 還沒翻譯的列)→ 不當成名稱,那個語言不動
+      const to = [...new Set((renameOf.get(nameOf(stat.ref)) ?? []).map(r => lang === 'en' ? r.en : r.zh).filter(Boolean))]
       if (to.length !== 1) continue
       for (const old of stat.matchers.filter(x => !x.superseded)) {
         const cut = old.string.indexOf(' (')

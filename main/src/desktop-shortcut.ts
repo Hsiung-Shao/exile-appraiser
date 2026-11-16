@@ -33,7 +33,8 @@ export function createDesktopShortcut (deps: ShortcutDeps): ShortcutResult {
       target, cwd: path.win32.dirname(target), description: 'ExileAppraiser', appUserModelId: APP_USER_MODEL_ID
     })
     return ok ? { ok: true, path: file } : { ok: false, reason: 'failed' }
-  } catch {
+  } catch (e) {
+    console.warn('[shortcut] 建立桌面捷徑失敗', e)
     return { ok: false, reason: 'failed' }
   }
 }

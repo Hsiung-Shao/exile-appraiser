@@ -2,7 +2,7 @@
  * exile-appraiser(WP-S2):熱鍵 → 動作表(純函式,不 import electron / uiohook;`main/test/shortcut-actions.test.ts` 測)。
  * 原本在 `Shortcuts.ts` 的 `updateActions` 內;`Shortcuts` 仍負責 globalShortcut 註冊與觸發。
  */
-import { hotkeyToString, mergeTwoHotkeys } from '@ipc/KeyToCode'
+import { hotkeyToString, isModKey, mergeTwoHotkeys } from '@ipc/KeyToCode'
 import { isGameReservedHotkey } from '@ipc/reserved-hotkeys'
 import type { GameId, HostConfigForMain, WindowMode } from '@ipc/types'
 
@@ -200,7 +200,7 @@ export interface HookKeyState { keycode: number, ctrlKey: boolean, altKey: boole
 /**
  * 診斷(2026-11-16,使用者回報「有時按了熱鍵沒有彈出查價視窗」):全域掛鉤看到的按鍵是不是某個查價熱鍵的主鍵。
  * 是 → 回那個熱鍵與「多按 / 少按」的修飾鍵(全域熱鍵要修飾鍵完全相符才會觸發;多出來的多半是卡住的修飾鍵)。
- * 修飾鍵相符的優先;都不相符回少差最少的那個。`codeOf` = 鍵名 → uiohook keycode。
+ * 少按修飾鍵的不算(那只是打字 / 移動時按到主鍵);修飾鍵相符的優先,否則回多按最少的那個。`codeOf` = 鍵名 → uiohook keycode。
  */
 export function matchCopyHotkey (actions: ShortcutAction[], e: HookKeyState, codeOf: (key: string) => number | undefined): { shortcut: string, extra: string[], missing: string[] } | null {
   const held = [e.ctrlKey && 'Ctrl', e.altKey && 'Alt', e.shiftKey && 'Shift', e.metaKey && 'Meta'].filter(Boolean) as string[]
@@ -208,11 +208,11 @@ export function matchCopyHotkey (actions: ShortcutAction[], e: HookKeyState, cod
   for (const a of actions) {
     if (a.action.type !== 'copy-item') continue
     const keys = a.shortcut.split(' + ')
-    const mods: string[] = keys.filter(k => k === 'Ctrl' || k === 'Alt' || k === 'Shift')
+    const mods: string[] = keys.filter(isModKey)
     const main = keys.find(k => !mods.includes(k))
-    if (main == null || codeOf(main) !== e.keycode) continue
-    const hit = { shortcut: a.shortcut, extra: held.filter(k => !mods.includes(k)), missing: mods.filter(k => !held.includes(k)) }
-    if (!best || hit.extra.length + hit.missing.length < best.extra.length + best.missing.length) best = hit
+    if (main == null || codeOf(main) !== e.keycode || mods.some(k => !held.includes(k))) continue
+    const hit = { shortcut: a.shortcut, extra: held.filter(k => !mods.includes(k)), missing: [] }
+    if (!best || hit.extra.length < best.extra.length) best = hit
   }
   return best
 }

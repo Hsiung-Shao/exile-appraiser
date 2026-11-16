@@ -10,6 +10,7 @@
 </template>
 
 <script lang="ts">
+// exile-appraiser: 2026-11-16 按鈕 class 改 trade-link-btn(強調色,樣式在 renderer ListingLayoutToggle.vue)
 // exile-appraiser: 外部開啟改走 Host.openExternal(Electron shell.openExternal;瀏覽器模式退回 window.open)
 import { defineComponent, PropType, inject, computed } from 'vue'
 import { useI18n } from 'vue-i18n'

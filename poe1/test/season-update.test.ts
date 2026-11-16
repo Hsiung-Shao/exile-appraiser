@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, planRoomNames, planGrownPassives, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
+import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, planRoomNames, planCitadel, planExtraZh, EXTRA_ZH_MATCHERS, planGrownPassives, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
 
 /**
  * 賽季更新腳本的純函式測試(合成輸入,不讀 data/)。
@@ -505,7 +505,46 @@ describe('planTypeIds(規則 16)', () => {
   })
 })
 
+describe('planCitadel(規則 19)', () => {
+  it('兩行壁壘句補單行 + 進階寫法、舊句標 superseded,重跑為空', () => {
+    const ref = "Map contains Baran's Citadel\nItem Quantity increases amount of Rewards Baran drops by 20% of its value"
+    const enStats = [{ ref, better: 1, matchers: [{ string: ref }], trade: { ids: { implicit: ['implicit.x|1'] } } }]
+    const zhStats = [{ ref, better: 1, matchers: [{ string: '地圖含有巴倫的壁壘\n物品數量以 20% 它的值增加巴倫掉落獎勵的總量' }], trade: { ids: { implicit: ['implicit.x|1'] } } }]
+    const ggpkNew = [{ key: 'map_contains_citadel|#|stat_descriptions.txt|0', en: 'Map contains {0}', zh: '地圖含有{0}' }]
+    const plan = planCitadel({ enStats, zhStats, ggpkNew })
+    const en = parseRows(applyStatPlan(toFile(enStats), 'en', plan))
+    const zh = parseRows(applyStatPlan(toFile(zhStats), 'cmn-Hant', plan))
+    expect(en[0].matchers).toEqual([{ string: ref, superseded: true }, { string: "Map contains Baran's Citadel", advanced: "Map contains Baran's Citadel (...)" }])
+    expect(zh[0].matchers.at(-1)).toEqual({ string: '地圖含有巴倫的壁壘', advanced: '地圖含有巴倫的壁壘(...)' })
+    expect(zh[0].matchers[0].superseded).toBe(true)
+    expect(planCitadel({ enStats: en, zhStats: zh, ggpkNew }).adds).toEqual([])
+  })
+})
+
+describe('planExtraZh(規則 11)', () => {
+  const x = EXTRA_ZH_MATCHERS.find(e => e.negate)!
+  const ggpkNew = [{ key: 'k', en: x.ref.replace('increased', 'reduced'), zh: x.zh }]
+  it('negate 的現行寫法:帶 negate、只標指名的舊句,重跑為空', () => {
+    const zhStats = [{ ref: x.ref, better: 1, matchers: [{ string: '別句' }, { string: x.old, negate: true }, { string: '另一句減少', negate: true }], trade: { ids: { explicit: ['explicit.x'] } } }]
+    const plan = planExtraZh({ zhStats, ggpkNew })
+    expect(plan.adds).toEqual([{ lang: 'cmn-Hant', ref: x.ref, matcher: { string: x.zh, negate: true }, supersedes: x.old }])
+    const out = parseRows(applyStatPlan(toFile(zhStats), 'cmn-Hant', plan))
+    expect(out[0].matchers).toEqual([{ string: '別句' }, { string: x.old, negate: true, superseded: true }, { string: '另一句減少', negate: true }, { string: x.zh, negate: true }])
+    expect(planExtraZh({ zhStats: out, ggpkNew }).adds).toEqual([])
+  })
+  it('GGPK 新版沒有這句就不加', () => {
+    const zhStats = [{ ref: x.ref, better: 1, matchers: [{ string: x.old, negate: true }], trade: { ids: {} } }]
+    expect(planExtraZh({ zhStats, ggpkNew: [] }).adds).toEqual([])
+  })
+})
+
 describe('planRoomNames(規則 17)', () => {
+  it('改名的房間繁中還沒翻譯(zh 為 null)時不動繁中、英文照補', () => {
+    const room = (ref: string, name: string) => ({ ref, better: 0, matchers: [{ string: name }], trade: { ids: { pseudo: ['pseudo.x'] }, option: true } })
+    const plan = planRoomNames({ zhStats: [room('Has Room: Vault (Tier 1)', '金庫 (階級 1)')], enStats: [room('Has Room: Vault (Tier 1)', 'Vault (Tier 1)')], rooms: [], renames: [{ from: 'Vault', en: 'Treasury', zh: null }] })
+    expect(plan.adds.map(a => [a.lang, a.matcher.string])).toEqual([['en', 'Treasury (Tier 1)']])
+  })
+
   it('壞掉的裂痕房間列(交易站叫法、matcher 帶前綴、沒有 option)補上遊戲內寫法並標成選項型,重跑為空', () => {
     const ref = 'Has Room: Splinter Research Lab (Tier 1)'
     const row = (s: string) => [{ ref, better: 1, matchers: [{ string: s }], trade: { ids: { pseudo: ['pseudo.x'] } } }]
