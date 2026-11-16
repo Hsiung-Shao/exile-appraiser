@@ -658,10 +658,12 @@ export function planGems ({ enItems, tradeItems, gems, skills = [] }) {
   const skillZh = groupBy(skills, g => g.en)
   const adds = []
   const rejects = []
+  const seenNew = new Set() // 不放進 byRef:否則排在後面的變異版會把這筆交易站項目當成「原版那一列」
   for (const e of tradeItems) {
     // 新的一般技能寶石(沒有 disc):等級上限資料來源沒有,只收 NEW_GEM_MAX_LEVEL 列出的;繁中名取 GGPK activeskills
     if (e.group === 'gem' && !e.disc && !e.text && e.type && !e.type.startsWith('Vaal ') && !byRef.has(e.type)) {
-      byRef.set(e.type, e)
+      if (seenNew.has(e.type)) continue
+      seenNew.add(e.type)
       const zh = [...new Set((skillZh.get(e.type) ?? []).map(g => g.zh))]
       if (!(e.type in NEW_GEM_MAX_LEVEL)) rejects.push({ reason: '新的一般寶石:等級上限未確認(補進 NEW_GEM_MAX_LEVEL)', id: e.type })
       else if (zh.length !== 1) rejects.push({ reason: 'GGPK 沒有唯一的繁中名', id: e.type, candidates: zh })

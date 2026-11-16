@@ -665,10 +665,12 @@ describe('planGems / applyItemPlan', () => {
 describe('新的一般寶石、隨機技能寶石進階寫法、verified 補寫法(issue #18–#23)', () => {
   it('新的一般寶石只收列出等級上限的,其餘拒收;寫出的列沒有變異欄位', () => {
     const enItems = [{ name: 'Fireball', refName: 'Fireball', namespace: 'GEM', gem: { maxLevel: 20 } }]
-    const tradeItems = [{ type: 'Fireball', group: 'gem' }, { type: 'Arcane Link', group: 'gem' }, { type: 'Unknown Gem', group: 'gem' }, { type: 'Vaal New', group: 'gem' }]
+    const tradeItems = [{ type: 'Fireball', group: 'gem' }, { type: 'Arcane Link', group: 'gem' }, { type: 'Arcane Link', group: 'gem' }, { type: 'Unknown Gem', group: 'gem' }, { type: 'Vaal New', group: 'gem' },
+      { type: 'Unknown Gem', text: 'Unknown Gem of X', disc: 'alt_x', group: 'gem' }]
     const p = planGems({ enItems, tradeItems, gems: [], skills: [{ en: 'Arcane Link', zh: '連結：秘能' }] })
     expect(p.adds).toEqual([{ refName: 'Arcane Link', zh: '連結：秘能', maxLevel: 20 }])
-    expect(p.rejects.map((r: any) => r.id)).toEqual(['Unknown Gem'])
+    // 新寶石的變異版:原版還不在資料裡 → 拒收,不能拿交易站項目當原版
+    expect(p.rejects.map((r: any) => r.id)).toEqual(['Unknown Gem', 'Unknown Gem of X'])
     const out = parseRows(applyItemPlan(toFile(enItems), 'cmn-Hant', { gems: p.adds }))
     expect(out.at(-1)).toEqual({ name: '連結：秘能', refName: 'Arcane Link', namespace: 'GEM', gem: { maxLevel: 20 } })
   })
