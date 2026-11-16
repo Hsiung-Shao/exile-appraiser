@@ -110,9 +110,11 @@
             <!-- 元件出錯時改畫錯誤框(寫進 main log)而不是整塊空白;換物品自動清除 -->
             <error-boundary v-else-if="parsed?.isOk() && leagueId && supported" :reset-key="itemKey" where="price-check">
               <!-- 神聖石匯率(使用者 2026-11-16:查價時看得到 D:C;外觀同拆粉列、靠左、放最上方;只讀 poe.ninja 快照) -->
-              <div v-if="divineRate" class="rate-box p-2 border-dashed border border-gray-600 rounded-sm text-gray-400 leading-none" data-divine-rate>
+              <!-- 外層多包一層:背景圖模式的可讀性規則套在 .price-main > * > *(補底色 + 左右內距),虛線框要落在那一層(同拆粉列),
+                   否則規則會套到箭頭 / 圖示上,圖示被內距擠成破圖、文字沒有底色 -->
+              <div v-if="divineRate" class="rate-row"><div class="p-2 border-dashed border border-gray-600 rounded-sm text-gray-400 leading-none" data-divine-rate>
                 {{ t(`ppz.menu.cur_divine`) }} <i class="fas fa-arrow-right text-gray-600 px-1 text-xs" /> {{ divineRate.text }} <span class="font-sans">×</span> <img :src="currencyIcon(divineRate.game, divineRate.to)" class="w-5 -my-5 inline-block" :alt="t(divineRate.to === `exa` ? `ppz.menu.cur_exa` : `ppz.menu.cur_chaos`)">
-              </div>
+              </div></div>
               <!-- 未鑑定傳奇:先選是哪個傳奇(兩代上游 PriceCheckWindow.vue 同位置;只有一個就自動選) -->
               <component :is="unidentifiedResolverComponent" v-if="unidentifiedResolverComponent"
                 :key="`u${itemKey}`" :item="parsed.value" @identify="onIdentify" />
@@ -921,7 +923,7 @@ input[type=number]::-webkit-outer-spin-button {
   border-bottom: 1px solid var(--edge-0);
 }
 /* 神聖石匯率列:左右對齊 CheckedItem 的 p-4 */
-.rate-box {
+.rate-row {
   flex: none;
   margin: 0.75rem 1rem 0;
 }
