@@ -77,13 +77,6 @@
           <span class="grow">{{ reportMessage.text }}</span>
         </div>
 
-        <!-- 神聖石匯率(使用者 2026-11-16 要求:查價時看得到 D:C;只讀 poe.ninja 快照,同懸浮選單市況) -->
-        <div v-if="parsed?.isOk() && divineRate" class="strip" data-strip="divine-rate">
-          <span class="grow" />
-          <img class="strip-cur" :src="currencyIcon(divineRate.game, `divine`)" :alt="t(`ppz.menu.cur_divine`)">1 =
-          <b>{{ divineRate.text }}</b><img class="strip-cur" :src="currencyIcon(divineRate.game, divineRate.to)" :alt="t(divineRate.to === `exa` ? `ppz.menu.cur_exa` : `ppz.menu.cur_chaos`)">
-        </div>
-
         <div class="price-body grow min-h-0" data-layout="price-body">
           <main class="price-main relative">
             <ui-error-box v-if="leagues.error.value" class="m-3">
@@ -116,6 +109,10 @@
             </template>
             <!-- 元件出錯時改畫錯誤框(寫進 main log)而不是整塊空白;換物品自動清除 -->
             <error-boundary v-else-if="parsed?.isOk() && leagueId && supported" :reset-key="itemKey" where="price-check">
+              <!-- 神聖石匯率(使用者 2026-11-16:查價時看得到 D:C;外觀同拆粉列、靠左、放最上方;只讀 poe.ninja 快照) -->
+              <div v-if="divineRate" class="rate-box p-2 border-dashed border border-gray-600 rounded-sm text-gray-400 leading-none" data-divine-rate>
+                {{ t(`ppz.menu.cur_divine`) }} <i class="fas fa-arrow-right text-gray-600 px-1 text-xs" /> {{ divineRate.text }} <span class="font-sans">×</span> <img :src="currencyIcon(divineRate.game, divineRate.to)" class="w-5 -my-5 inline-block" :alt="t(divineRate.to === `exa` ? `ppz.menu.cur_exa` : `ppz.menu.cur_chaos`)">
+              </div>
               <!-- 未鑑定傳奇:先選是哪個傳奇(兩代上游 PriceCheckWindow.vue 同位置;只有一個就自動選) -->
               <component :is="unidentifiedResolverComponent" v-if="unidentifiedResolverComponent"
                 :key="`u${itemKey}`" :item="parsed.value" @identify="onIdentify" />
@@ -923,9 +920,15 @@ input[type=number]::-webkit-outer-spin-button {
   background: var(--surface-2);
   border-bottom: 1px solid var(--edge-0);
 }
-.strip-cur {
-  width: 1.4em;
-  height: 1.4em;
+/* 神聖石匯率列:左右對齊 CheckedItem 的 p-4 */
+.rate-box {
+  flex: none;
+  margin: 0.75rem 1rem 0;
+}
+/* window 模式:CheckedItem(height 100% + min-h-0)會被後面的相關物品擠扁、內容溢出後被相關物品蓋住 → 照內容高度排 */
+.price-panel.is-window .price-main > .layout-column {
+  height: auto;
+  flex: none;
 }
 .strip .grow {
   flex: 1;
