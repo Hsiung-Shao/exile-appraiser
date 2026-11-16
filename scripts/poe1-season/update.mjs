@@ -87,7 +87,7 @@ const grown = planGrownPassives({ enStats: afterB, zhStats: afterA['cmn-Hant'], 
 newStats.push(...grown.newStats)
 const extraIds = { ...typeIds.extra }
 for (const [ref, ids] of Object.entries(grown.extra)) for (const [type, list] of Object.entries(ids)) ((extraIds[ref] ??= {})[type] ??= []).push(...list)
-const statPlan = { adds, replace: dead.replace, remove: dead.remove, newStats, better: BETTER_OVERRIDES, fill, extra: extraIds }
+const statPlan = { adds, replace: dead.replace, remove: dead.remove, newStats, better: BETTER_OVERRIDES, fill, extra: extraIds, option: roomNames.option }
 const rejects = [...ruleA.rejects.map(r => ({ rule: '改字 A', ...r })), ...ruleB.rejects.map(r => ({ rule: '改字 B', ...r })), ...dead.rejects.map(r => ({ rule: '失效 id', ...r })), ...gemNames.rejects.map(r => ({ rule: '輔助寶石名', ...r })), ...grants.rejects.map(r => ({ rule: '賦予技能', ...r })), ...effects.rejects.map(r => ({ rule: 'effect 新 id', ...r })), ...typeIds.rejects.map(r => ({ rule: '掛上缺的類型 id', ...r })), ...grown.rejects.map(r => ({ rule: '洗出的塗油天賦', ...r })), ...bases.rejects.map(r => ({ rule: '新底材', ...r })), ...uniques.rejects.map(r => ({ rule: '新傳奇', ...r })), ...gems.rejects.map(r => ({ rule: '新變異寶石', ...r }))]
 
 const count = (list, lang) => list.filter(a => a.lang === lang).length
@@ -99,7 +99,7 @@ const summary = [
   `effect 新 id(規則 15):新增 ${effects.newStats.length} 列、舊詞綴加新寫法 ${new Set(effects.adds.map(a => a.ref)).size} 條、拒收 ${effects.rejects.length}`,
   `掛上缺的類型 id(規則 16):${Object.values(typeIds.extra).flatMap(x => Object.values(x)).flat().length} 個 id、${Object.keys(typeIds.extra).length} 條詞綴、拒收 ${typeIds.rejects.length}`,
   `洗出的塗油天賦(規則 18):新增 ${grown.newStats.length} 列、掛到既有詞綴 ${Object.keys(grown.extra).length} 條、拒收 ${grown.rejects.length}`,
-  `史記房間名(規則 17,含改名):+${roomNames.adds.length} 個 matcher`,
+  `史記房間名(規則 17,含改名):+${roomNames.adds.length} 個 matcher、標成選項型 ${roomNames.option.length} 列`,
   `壁壘地圖(規則 19):en +${count(citadels.adds, 'en')} / 繁中 +${count(citadels.adds, 'cmn-Hant')} 個 matcher`,
   `輔助寶石名(規則 8):en +${count(gemNames.adds, 'en')} / 繁中 +${count(gemNames.adds, 'cmn-Hant')} 個 matcher`,
   `失效 id:替換 ${Object.keys(dead.replace).length}、移除 ${dead.remove.length}`,

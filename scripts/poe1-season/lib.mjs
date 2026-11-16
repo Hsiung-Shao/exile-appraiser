@@ -770,8 +770,14 @@ export function planExtraZh ({ zhStats, ggpkNew }) {
  * 規則 17:阿茲瓦特史記的房間(ref `Has Room: X (Tier N)`)繁中名與 GGPK `incursionrooms` 不同 → 加上 GGPK 的寫法、舊名標 superseded
  * (GitHub issue #14:遊戲顯示「保險箱之殿 (階級 1)」,資料是「寶箱之殿」)。GGPK 名稱不唯一就不動。
  * @param {{ zhStats: any[], enStats?: any[], rooms: any[], renames?: any[] }} input
- * @returns {{ adds: any[] }}
+ * @returns {{ adds: any[], option: string[] }}
  */
+/**
+ * 交易站的叫法 ≠ 遊戲內名稱、而且上游那一列是壞的(matcher 帶「Has Room: 」前綴、沒有 option → 遊戲文字永遠對不到):
+ * ref → 遊戲內英文名(GGPK incursionrooms;2026-11-16 逐列比對 87 個房間只有這一列)
+ */
+export const ROOM_GAME_NAMES = { 'Has Room: Splinter Research Lab (Tier 1)': 'Anomaly Research Lab' }
+
 export function planRoomNames ({ zhStats, enStats = [], rooms, renames = [] }) {
   const zhOf = groupBy(rooms, r => r.en)
   const adds = []
@@ -800,7 +806,20 @@ export function planRoomNames ({ zhStats, enStats = [], rooms, renames = [] }) {
       if (next && next !== old.string && !stat.matchers.some(x => x.string === next)) adds.push({ lang: 'cmn-Hant', ref: stat.ref, matcher: { string: next }, supersedes: old.string })
     }
   }
-  return { adds }
+  // 壞掉的列(ROOM_GAME_NAMES):兩語補上遊戲內寫法,並標成選項型(開啟 / 受阻)
+  const option = []
+  for (const [ref, en] of Object.entries(ROOM_GAME_NAMES)) {
+    const zh = [...new Set((zhOf.get(en) ?? []).map(r => r.zh))]
+    const tier = / \(Tier (\d+)\)$/.exec(ref)?.[1]
+    if (zh.length !== 1 || !tier) continue
+    for (const [lang, stats, text] of [['cmn-Hant', zhStats, `${zh[0]} (階級 ${tier})`], ['en', enStats, `${en} (Tier ${tier})`]]) {
+      const stat = [...eachStat(stats)].find(s => s.ref === ref)
+      if (!stat) continue
+      if (!stat.matchers.some(x => x.string === text)) adds.push({ lang, ref, matcher: { string: text }, supersedes: stat.matchers.find(x => !x.superseded)?.string ?? '' })
+      if (!stat.trade?.option && !option.includes(ref)) option.push(ref)
+    }
+  }
+  return { adds, option }
 }
 
 /**
@@ -839,9 +858,9 @@ function rewriteLines (fileText, edit, appended = []) {
  * 套用詞綴計畫(adds / replace / remove / newStats)到一份 stats.ndjson 文字
  * @param {string} fileText
  * @param {'en' | 'cmn-Hant'} lang
- * @param {{ adds?: any[], replace?: Record<string, string>, remove?: string[], newStats?: any[], better?: Record<string, number>, fill?: Record<string, Record<string, string[]>>, extra?: Record<string, Record<string, string[]>> }} [plan]
+ * @param {{ adds?: any[], replace?: Record<string, string>, remove?: string[], newStats?: any[], better?: Record<string, number>, fill?: Record<string, Record<string, string[]>>, extra?: Record<string, Record<string, string[]>>, option?: string[] }} [plan]
  */
-export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove = [], newStats = [], better = {}, fill = {}, extra = {} } = {}) {
+export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove = [], newStats = [], better = {}, fill = {}, extra = {}, option = [] } = {}) {
   const addsByRef = groupBy(adds.filter(a => a.lang === lang), a => a.ref)
   const gone = new Set(remove)
   const existingRefs = new Set()
@@ -850,6 +869,10 @@ export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove
     existingRefs.add(stat.ref)
     if (stat.ref in better && stat.better !== better[stat.ref]) {
       stat.better = better[stat.ref]
+      changed = true
+    }
+    if (option.includes(stat.ref) && stat.trade && !stat.trade.option) {
+      stat.trade.option = true
       changed = true
     }
     for (const a of addsByRef.get(stat.ref) ?? []) {

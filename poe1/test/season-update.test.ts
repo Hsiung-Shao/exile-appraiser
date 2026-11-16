@@ -506,6 +506,23 @@ describe('planTypeIds(規則 16)', () => {
 })
 
 describe('planRoomNames(規則 17)', () => {
+  it('壞掉的裂痕房間列(交易站叫法、matcher 帶前綴、沒有 option)補上遊戲內寫法並標成選項型,重跑為空', () => {
+    const ref = 'Has Room: Splinter Research Lab (Tier 1)'
+    const row = (s: string) => [{ ref, better: 1, matchers: [{ string: s }], trade: { ids: { pseudo: ['pseudo.x'] } } }]
+    const enStats = row('Has Room: Splinter Research Lab (Tier 1) ')
+    const zhStats = row('有房間：裂界研究室（階級 1） ')
+    const rooms = [{ en: 'Anomaly Research Lab', zh: '異常研究所' }]
+    const plan = planRoomNames({ zhStats, enStats, rooms })
+    expect(plan.adds.map(a => [a.lang, a.matcher.string])).toEqual([['cmn-Hant', '異常研究所 (階級 1)'], ['en', 'Anomaly Research Lab (Tier 1)']])
+    expect(plan.option).toEqual([ref])
+    const en = parseRows(applyStatPlan(toFile(enStats), 'en', plan))
+    const zh = parseRows(applyStatPlan(toFile(zhStats), 'cmn-Hant', plan))
+    expect(en[0].matchers).toEqual([{ string: 'Has Room: Splinter Research Lab (Tier 1) ', superseded: true }, { string: 'Anomaly Research Lab (Tier 1)' }])
+    expect(zh[0].matchers.at(-1)).toEqual({ string: '異常研究所 (階級 1)' })
+    expect(zh[0].trade.option).toBe(true)
+    expect(planRoomNames({ zhStats: zh, enStats: en, rooms })).toEqual({ adds: [], option: [] })
+  })
+
   it('改過名的房間以英文現行名對照:再改名、只改繁中名都補得到', () => {
     const row = (ms: any[]) => [{ ref: 'Has Room: Throne of Atziri (Tier 3)', better: 0, matchers: ms, trade: { ids: { pseudo: ['pseudo.x'] }, option: true } }]
     const enStats = row([{ string: 'Throne of Atziri (Tier 3)', superseded: true }, { string: 'Cradle of Creation (Tier 3)' }])

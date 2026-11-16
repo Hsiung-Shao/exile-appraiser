@@ -5200,7 +5200,7 @@
 {"ref":"Has Room: Shrine of Empowerment (Tier 1)","better":0,"matchers":[{"string":"Shrine of Empowerment (Tier 1)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_empowering_room_1"]},"option":true}}
 {"ref":"Has Room: Shrine of Unmaking (Tier 3)","better":0,"matchers":[{"string":"Shrine of Unmaking (Tier 3)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_explosives_room_3"]},"option":true}}
 {"ref":"Has Room: Sparring Room (Tier 1)","better":0,"matchers":[{"string":"Sparring Room (Tier 1)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_weapon_room_1"]},"option":true}}
-{"ref":"Has Room: Splinter Research Lab (Tier 1)","better":1,"matchers":[{"string":"Has Room: Splinter Research Lab (Tier 1) "}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_breach_room_1"]}}}
+{"ref":"Has Room: Splinter Research Lab (Tier 1)","better":1,"matchers":[{"string":"Has Room: Splinter Research Lab (Tier 1) ","superseded":true},{"string":"Anomaly Research Lab (Tier 1)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_breach_room_1"]},"option":true}}
 {"ref":"Has Room: Storage Room (Tier 1)","better":0,"matchers":[{"string":"Storage Room (Tier 1)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_chests_1"]},"option":true}}
 {"ref":"Has Room: Storm of Corruption (Tier 3)","better":0,"matchers":[{"string":"Storm of Corruption (Tier 3)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_storm_room_3"]},"option":true}}
 {"ref":"Has Room: Strongbox Chamber (Tier 1)","better":0,"matchers":[{"string":"Strongbox Chamber (Tier 1)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_strongbox_1"]},"option":true}}
