@@ -198,7 +198,7 @@
 {"ref":"#% chance to Avoid Resolve loss from Enemy Hits if you've been Hit recently","better":1,"matchers":[{"string":"若你近期有被擊中，有 #% 機率被敵人擊中時避免失去決心"}],"trade":{"ids":{"explicit":["sanctum.stat_2284543592"]}}}
 {"ref":"#% chance to be inflicted with Bleeding when Hit by an Attack","better":1,"matchers":[{"string":"被攻擊擊中時有 #% 機率進入流血狀態"}],"trade":{"ids":{"explicit":["explicit.stat_2155467472"]}}}
 {"ref":"#% chance to Blind Enemies on Critical Strike","better":1,"matchers":[{"string":"暴擊有 #% 機率致盲敵人"}],"trade":{"ids":{"explicit":["explicit.stat_3983981705"]}}}
-{"ref":"#% chance to Blind Enemies on hit","better":1,"matchers":[{"string":"擊中時 #% 機率致盲敵人"}],"trade":{"ids":{"explicit":["explicit.stat_2301191210"],"fractured":["fractured.stat_2301191210"],"crafted":["crafted.stat_2301191210"]}}}
+{"ref":"#% chance to Blind Enemies on hit","better":1,"matchers":[{"string":"擊中時 #% 機率致盲敵人"},{"string":"擊中時有 #% 機率致盲敵人","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_2301191210"],"fractured":["fractured.stat_2301191210"],"crafted":["crafted.stat_2301191210"]}}}
 {"ref":"#% chance to Blind Enemies on Hit with Attacks","better":1,"matchers":[{"string":"攻擊擊中時有 #% 機率造成致盲"},{"string":"攻擊擊中時造成致盲","value":100}],"trade":{"ids":{"explicit":["explicit.stat_318953428"],"implicit":["implicit.stat_318953428"],"fractured":["fractured.stat_318953428"],"enchant":["enchant.stat_318953428"]}}}
 {"ref":"#% chance to Blind Enemies on Hit with Melee Weapons","better":1,"matchers":[{"string":"使用近戰武器擊中時有 #% 機率致盲敵人"}],"trade":{"ids":{"implicit":["implicit.stat_2795267150"]}}}
 {"ref":"#% chance to Blind Enemies on Hit with Spells","better":1,"matchers":[{"string":"法術擊中時有 #% 機率致盲敵人"}],"trade":{"ids":{"enchant":["enchant.stat_1012291104"]}}}
@@ -412,7 +412,7 @@
 {"ref":"#% chance to Trigger a Socketed Spell when you Attack with this Weapon, with a 0.25 second Cooldown","better":1,"matchers":[{"string":"當你使用此武器攻擊時，有 #% 機率觸發 1 個插槽中的法術，有 0.25 秒冷卻時間"},{"string":"當你使用此武器攻擊時，觸發 1 個插槽中的法術，有 0.25 秒冷卻時間","value":100}],"trade":{"ids":{"explicit":["explicit.stat_209056835"]}}}
 {"ref":"#% chance to Trigger a Socketed Warcry Skill when you lose Endurance Charges, with a 0.25 second Cooldown","better":1,"matchers":[{"string":"當你失去耐力球時有 #% 機率觸發插槽中 1 個戰吼技能，有 0.25 秒冷卻時間"},{"string":"當你失去耐力球時觸發插槽中 1 個戰吼技能，有 0.25 秒冷卻時間","value":100}],"trade":{"ids":{"explicit":["explicit.stat_1112135314"]}}}
 {"ref":"#% chance to Trigger Commandment of Inferno on Critical Strike","better":1,"matchers":[{"string":"暴擊時有 #% 機率觸發煉獄之誡"},{"string":"暴擊時觸發煉獄之誡","value":100}],"trade":{"ids":{"explicit":["explicit.stat_3251948367"],"implicit":["implicit.stat_3251948367"]}}}
-{"ref":"#% chance to Trigger Explosive Toad when you kill an Enemy","better":1,"matchers":[{"string":"你擊殺一名敵人時有 #% 機率觸發爆炸蟾蜍"}],"trade":{"ids":{"explicit":["explicit.stat_764329137"]}}}
+{"ref":"#% chance to Trigger Explosive Toad when you kill an Enemy","better":1,"matchers":[{"string":"你擊殺一名敵人時有 #% 機率觸發爆炸蟾蜍","superseded":true},{"string":"當你擊殺一名敵人時有 #% 機率觸發爆炸蟾蜍"}],"trade":{"ids":{"explicit":["explicit.stat_764329137"]}}}
 {"ref":"#% chance to Trigger Level 1 Blood Rage when you Kill an Enemy","better":1,"matchers":[{"string":"當你擊殺敵人時，有 #% 機率觸發等級 1 的鮮血狂怒"},{"string":"當你擊殺敵人時觸發等級 1 的鮮血狂怒","value":100}],"trade":{"ids":{"explicit":["explicit.stat_205619502"],"fractured":["fractured.stat_205619502"],"crafted":["crafted.stat_205619502"]}}}
 {"ref":"#% chance to Trigger Level 1 Create Lesser Shrine when you Kill an Enemy","better":1,"matchers":[{"string":"擊殺敵人時有 #% 機率觸發等級 1 的創造低階神殿"},{"string":"擊殺敵人時觸發等級 1 的創造低階神殿","value":100},{"string":"擊殺敵人時觸發等級 20 的創造低階神殿","value":2000}],"trade":{"ids":{"explicit":["explicit.stat_1010340836"]}}}
 {"ref":"#% chance to Trigger Level 10 Summon Raging Spirit on Kill","better":1,"matchers":[{"string":"擊殺時有 #% 機率觸發等級 8 的召喚憤怒狂靈"},{"string":"擊殺時觸發等級 8 的召喚憤怒狂靈","value":100}],"trade":{"ids":{"explicit":["explicit.stat_3751996449"],"enchant":["enchant.stat_3751996449"]}}}
@@ -422,7 +422,7 @@
 {"ref":"#% chance to Trigger Level 20 Animate Weapon on Kill","better":1,"matchers":[{"string":"擊殺時有 #% 機率觸發等級 20 的幻化武器"}],"trade":{"ids":{"explicit":["explicit.stat_1973890509"]}}}
 {"ref":"#% chance to Trigger Level 20 Arcane Wake after Spending a total of 200 Mana","better":1,"matchers":[{"string":"消耗總計 200 魔力時，有 #% 機率觸發等級  20 的秘能喚醒"},{"string":"消耗總計 200 魔力時觸發等級  20 的秘能喚醒","value":100}],"trade":{"ids":{"explicit":["explicit.stat_3344568504"]}}}
 {"ref":"#% chance to Trigger Level 20 Glimpse of Eternity when Hit","better":1,"matchers":[{"string":"被擊中時有 #% 機率觸發等級 20 的永恆閃光"},{"string":"被擊中時觸發等級 20 的永恆閃光","value":100}],"trade":{"ids":{"explicit":["explicit.stat_3141831683"],"implicit":["implicit.stat_3141831683"]}}}
-{"ref":"#% chance to Trigger Level 20 Shade Form when you Use a Socketed Skill","better":1,"matchers":[{"string":"當你使用物品上的技能時，有 #% 機率觸發等級 20 的暗影姿態"}],"trade":{"ids":{"explicit":["explicit.stat_3308936917"]}}}
+{"ref":"#% chance to Trigger Level 20 Shade Form when you Use a Socketed Skill","better":1,"matchers":[{"string":"當你使用物品上的技能時，有 #% 機率觸發等級 20 的暗影姿態","superseded":true},{"string":"當你使用插槽中的技能時，有 #% 機率觸發等級 20 的暗影姿態"}],"trade":{"ids":{"explicit":["explicit.stat_3308936917"]}}}
 {"ref":"#% chance to Trigger Level 20 Starfall on Melee Critical Strike","better":1,"matchers":[{"string":"近戰暴擊時有 #% 機率觸發等級 20 的星空殞落"},{"string":"近戰暴擊時觸發等級 20 的星空殞落","value":100}],"trade":{"ids":{"explicit":["explicit.stat_1505174316"]}}}
 {"ref":"#% chance to Trigger Level 20 Summon Volatile Anomaly on Kill","better":1,"matchers":[{"string":"擊殺時有 #% 機率觸發等級 20 的召喚極凍天體"}],"trade":{"ids":{"explicit":["explicit.stat_2143990571"]}}}
 {"ref":"#% chance to Trigger Level 20 Tentacle Whip on Kill","better":1,"matchers":[{"string":"擊殺時有 #% 機率觸發等級 20 的觸手鞭擊"}],"trade":{"ids":{"explicit":["explicit.stat_1350938937"]}}}
@@ -630,7 +630,7 @@
 {"ref":"#% increased chance for Ore Deposits found in your Maps to be Petrified Amber","better":1,"matchers":[{"string":"你地圖中發現的礦床為石化琥珀的機率增加 #%"},{"string":"你地圖中發現的礦床為石化琥珀的機率減少 #%","negate":true}],"trade":{"ids":{"explicit":["explicit.stat_2162292810"]}}}
 {"ref":"#% increased chance for Ore Deposits found in your Maps to be Verisium","better":1,"matchers":[{"string":"你地圖中發現的礦床為維里西姆的機率增加 #%"},{"string":"你地圖中發現的礦床為維里西姆的機率減少 #%","negate":true}],"trade":{"ids":{"explicit":["explicit.stat_236923923"]}}}
 {"ref":"#% increased chance for your Maps to contain Memory Tears (Tier 16+)","better":1,"matchers":[{"string":"你的地圖中含有記憶裂口（階級 16 以上）的機率增加 #%"},{"string":"你的地圖中含有記憶裂口（階級 16 以上）的機率減少 #%","negate":true}],"trade":{"ids":{"explicit":["explicit.stat_4016588303"]}}}
-{"ref":"#% increased chance of Ritual Altars with Special Rewards","better":1,"matchers":[{"string":"增加 #% 特殊獎勵出現於祭祀神壇的機率"},{"string":"減少 #% 特殊獎勵出現於祭祀神壇的機率","negate":true},{"string":"增加#%你地圖中的祭祀神壇出現特殊獎勵的機率"},{"string":"減少#%你地圖中的祭祀神壇出現特殊獎勵的機率","negate":true}],"trade":{"ids":{"explicit":["explicit.stat_2172921782"]}}}
+{"ref":"#% increased chance of Ritual Altars with Special Rewards","better":1,"matchers":[{"string":"增加 #% 特殊獎勵出現於祭祀神壇的機率","superseded":true},{"string":"減少 #% 特殊獎勵出現於祭祀神壇的機率","negate":true,"superseded":true},{"string":"增加#%你地圖中的祭祀神壇出現特殊獎勵的機率"},{"string":"減少#%你地圖中的祭祀神壇出現特殊獎勵的機率","negate":true},{"string":"增加 #% 祭祀神壇出現特殊獎勵的機率"},{"string":"減少 #% 祭祀神壇出現特殊獎勵的機率","negate":true}],"trade":{"ids":{"explicit":["explicit.stat_2172921782"]}}}
 {"ref":"#% increased chance to Avoid Resolve Loss from Enemy Melee Hits","better":1,"matchers":[{"string":"增加 #% 被敵人近戰擊中時避免失去決心的機率"},{"string":"減少 #% 被敵人近戰擊中時避免失去決心的機率","negate":true}],"trade":{"ids":{"explicit":["sanctum.stat_3134588943"]}}}
 {"ref":"#% increased chance to Avoid Resolve Loss from Enemy Projectile Hits","better":1,"matchers":[{"string":"增加 #% 被敵人投射物擊中時避免失去決心的機率"},{"string":"減少 #% 被敵人投射物擊中時避免失去決心的機率","negate":true}],"trade":{"ids":{"explicit":["sanctum.stat_1798691236"]}}}
 {"ref":"#% increased Chance to Block","better":1,"matchers":[{"string":"增加 #% 格擋率"},{"string":"減少 #% 格擋率","negate":true}],"trade":{"ids":{"explicit":["explicit.stat_2481353198"],"implicit":["implicit.stat_2481353198"],"fractured":["fractured.stat_2481353198"],"crafted":["crafted.stat_2481353198"]}}}
@@ -1062,7 +1062,7 @@
 {"ref":"#% increased Light Radius during Effect","better":1,"matchers":[{"string":"效果持續時間內，增加 #% 照亮範圍"}],"trade":{"ids":{"explicit":["explicit.stat_2745936267"]}}}
 {"ref":"#% increased Lightning Damage","better":1,"matchers":[{"string":"增加 #% 閃電傷害"},{"string":"減少 #% 閃電傷害","negate":true}],"trade":{"ids":{"pseudo":["pseudo.pseudo_increased_lightning_damage"],"explicit":["explicit.stat_2231156303"],"implicit":["implicit.stat_2231156303"],"fractured":["fractured.stat_2231156303"],"enchant":["enchant.stat_2231156303"],"crafted":["crafted.stat_2231156303"]}}}
 {"ref":"#% increased Lightning Damage per 1% Lightning Resistance above 75%","better":1,"matchers":[{"string":"每 1% 點超過 75% 的閃電抗性，增加 #% 閃電傷害"}],"trade":{"ids":{"explicit":["explicit.stat_2642525868"]}}}
-{"ref":"#% increased Lightning Damage per 10 Intelligence","better":1,"matchers":[{"string":"每 10 智慧增加 #% 閃電傷害"},{"string":"每 10 智慧減少 #% 閃電傷害","negate":true}],"trade":{"ids":{"explicit":["explicit.stat_990219738"]}}}
+{"ref":"#% increased Lightning Damage per 10 Intelligence","better":1,"matchers":[{"string":"每 10 智慧增加 #% 閃電傷害"},{"string":"每 10 智慧減少 #% 閃電傷害","negate":true}],"trade":{"ids":{"explicit":["explicit.stat_990219738"],"implicit":["implicit.stat_990219738"]}}}
 {"ref":"#% increased Lightning Damage per Frenzy Charge","better":1,"matchers":[{"string":"每個狂怒球增加 #% 閃電傷害"},{"string":"每個狂怒球減少 #% 閃電傷害","negate":true}],"trade":{"ids":{"explicit":["explicit.stat_3693130674"]}}}
 {"ref":"#% increased Lightning Damage while affected by Herald of Thunder","better":1,"matchers":[{"string":"被閃電之捷影響時，增加 #% 閃電傷害"},{"string":"被閃電之捷影響時，減少 #% 閃電傷害","negate":true}],"trade":{"ids":{"explicit":["explicit.stat_536957"]}}}
 {"ref":"#% increased Lightning Damage while affected by Wrath","better":1,"matchers":[{"string":"被雷霆影響時，增加 #% 閃電傷害"},{"string":"被雷霆影響時，減少 #% 閃電傷害","negate":true}],"trade":{"ids":{"explicit":["explicit.stat_418293304"]}}}
@@ -2197,7 +2197,7 @@
 {"ref":"+#% chance to Suppress Spell Damage per Endurance Charge","better":1,"matchers":[{"string":"每顆耐力球 #% 壓抑法術傷害率"}],"trade":{"ids":{"explicit":["explicit.stat_161741084"]}}}
 {"ref":"+#% chance to Suppress Spell Damage per Fortification","better":1,"matchers":[{"string":"每層護體有 #% 壓抑法術傷害率"}],"trade":{"ids":{"explicit":["explicit.stat_2731261141"]}}}
 {"ref":"+#% chance to Suppress Spell Damage per Frenzy Charge","better":1,"matchers":[{"string":"每顆狂怒球有 #% 壓抑法術傷害率"}],"trade":{"ids":{"explicit":["explicit.stat_482967934"]}}}
-{"ref":"+#% chance to Suppress Spell Damage per Power Charge","better":1,"matchers":[{"string":"每顆報擊球 #% 壓抑法術傷害率"}],"trade":{"ids":{"explicit":["explicit.stat_1309947938"]}}}
+{"ref":"+#% chance to Suppress Spell Damage per Power Charge","better":1,"matchers":[{"string":"每顆報擊球 #% 壓抑法術傷害率","superseded":true},{"string":"每顆暴擊球 #% 壓抑法術傷害率"}],"trade":{"ids":{"explicit":["explicit.stat_1309947938"]}}}
 {"ref":"+#% chance to Suppress Spell Damage while affected by Grace","better":1,"matchers":[{"string":"被優雅影響時，#% 壓抑法術傷害率"}],"trade":{"ids":{"explicit":["explicit.stat_4071658793"]}}}
 {"ref":"+#% chance to Suppress Spell Damage while affected by Haste","better":1,"matchers":[{"string":"被迅捷影響時，#% 壓抑法術傷害率"}],"trade":{"ids":{"explicit":["explicit.stat_2170859717"]}}}
 {"ref":"+#% chance to Suppress Spell Damage while Channelling","better":1,"matchers":[{"string":"引導時 #% 壓抑法術傷害率"}],"trade":{"ids":{"explicit":["explicit.stat_4108186648"],"implicit":["implicit.stat_4108186648"]}}}
@@ -2288,21 +2288,21 @@
 {"ref":"+#% to Critical Strike Multiplier while affected by Precision","better":1,"matchers":[{"string":"被精準影響時，#% 暴擊加成"}],"trade":{"ids":{"explicit":["explicit.stat_1817023621"]}}}
 {"ref":"+#% to Critical Strike Multiplier while area is not in Lockdown\nPlayers have +#% to Critical Strike Multiplier while area is not in Lockdown","better":1,"matchers":[{"string":"區域沒有被封鎖時，#% 暴擊加成\n玩家在區域沒有被封鎖時 #% 暴擊加成"}],"trade":{"ids":{"explicit":["explicit.stat_3128272024"],"fractured":["fractured.stat_3128272024"]}}}
 {"ref":"+#% to Critical Strike Multiplier while Dual Wielding","better":1,"matchers":[{"string":"雙持時 #% 暴擊加成"}],"trade":{"ids":{"explicit":["explicit.stat_2546185479"],"fractured":["fractured.stat_2546185479"]}}}
-{"ref":"+#% to Critical Strike Multiplier with Axes","better":1,"matchers":[{"string":"持斧時 #% 暴擊加成"}],"trade":{"ids":{"implicit":["implicit.stat_4219746989"]}}}
-{"ref":"+#% to Critical Strike Multiplier with Bows","better":1,"matchers":[{"string":"持弓時 #% 暴擊加成"}],"trade":{"ids":{"explicit":["explicit.stat_1712221299"],"implicit":["implicit.stat_1712221299"],"fractured":["fractured.stat_1712221299"]}}}
-{"ref":"+#% to Critical Strike Multiplier with Claws","better":1,"matchers":[{"string":"持爪時 #% 暴擊加成"}],"trade":{"ids":{"implicit":["implicit.stat_2811834828"]}}}
+{"ref":"+#% to Critical Strike Multiplier with Axes","better":1,"matchers":[{"string":"持斧時 #% 暴擊加成","superseded":true},{"string":"#% 斧暴擊加成"}],"trade":{"ids":{"implicit":["implicit.stat_4219746989"]}}}
+{"ref":"+#% to Critical Strike Multiplier with Bows","better":1,"matchers":[{"string":"持弓時 #% 暴擊加成","superseded":true},{"string":"#% 弓暴擊加成"}],"trade":{"ids":{"explicit":["explicit.stat_1712221299"],"implicit":["implicit.stat_1712221299"],"fractured":["fractured.stat_1712221299"]}}}
+{"ref":"+#% to Critical Strike Multiplier with Claws","better":1,"matchers":[{"string":"持爪時 #% 暴擊加成","superseded":true},{"string":"#% 爪暴擊加成"}],"trade":{"ids":{"implicit":["implicit.stat_2811834828"]}}}
 {"ref":"+#% to Critical Strike Multiplier with Cold Skills","better":1,"matchers":[{"string":"#% 冰冷技能暴擊加成"}],"trade":{"ids":{"explicit":["explicit.stat_915908446"],"fractured":["fractured.stat_915908446"]}}}
-{"ref":"+#% to Critical Strike Multiplier with Daggers","better":1,"matchers":[{"string":"持匕首時 #% 暴擊加成"}],"trade":{"ids":{"implicit":["implicit.stat_3998601568"]}}}
+{"ref":"+#% to Critical Strike Multiplier with Daggers","better":1,"matchers":[{"string":"持匕首時 #% 暴擊加成","superseded":true},{"string":"#% 匕首暴擊加成"}],"trade":{"ids":{"implicit":["implicit.stat_3998601568"]}}}
 {"ref":"+#% to Critical Strike Multiplier with Elemental Skills","better":1,"matchers":[{"string":"#% 元素技能暴擊加成"}],"trade":{"ids":{"explicit":["explicit.stat_1569407745"],"fractured":["fractured.stat_1569407745"]}}}
 {"ref":"+#% to Critical Strike Multiplier with Fire Skills","better":1,"matchers":[{"string":"#% 火焰技能暴擊加成"}],"trade":{"ids":{"explicit":["explicit.stat_2307547323"],"fractured":["fractured.stat_2307547323"]}}}
 {"ref":"+#% to Critical Strike Multiplier with Lightning Skills","better":1,"matchers":[{"string":"#% 閃電技能暴擊加成"}],"trade":{"ids":{"explicit":["explicit.stat_2441475928"],"fractured":["fractured.stat_2441475928"]}}}
-{"ref":"+#% to Critical Strike Multiplier with Maces or Sceptres","better":1,"matchers":[{"string":"錘和權杖 #% 暴擊加成"}],"trade":{"ids":{"implicit":["implicit.stat_458899422"]}}}
-{"ref":"+#% to Critical Strike Multiplier with One Handed Melee Weapons","better":1,"matchers":[{"string":"持單手近戰武器時 #% 暴擊加成"}],"trade":{"ids":{"explicit":["explicit.stat_670153687"],"fractured":["fractured.stat_670153687"]}}}
-{"ref":"+#% to Critical Strike Multiplier with Staves","better":1,"matchers":[{"string":"持長杖時 #% 暴擊加成"}],"trade":{"ids":{"implicit":["implicit.stat_1474913037"]}}}
-{"ref":"+#% to Critical Strike Multiplier with Swords","better":1,"matchers":[{"string":"持劍時 #% 暴擊加成"}],"trade":{"ids":{"implicit":["implicit.stat_3114492047"]}}}
+{"ref":"+#% to Critical Strike Multiplier with Maces or Sceptres","better":1,"matchers":[{"string":"錘和權杖 #% 暴擊加成","superseded":true},{"string":"#% 錘和權杖暴擊加成"}],"trade":{"ids":{"implicit":["implicit.stat_458899422"]}}}
+{"ref":"+#% to Critical Strike Multiplier with One Handed Melee Weapons","better":1,"matchers":[{"string":"持單手近戰武器時 #% 暴擊加成","superseded":true},{"string":"#% 單手近戰武器暴擊加成"}],"trade":{"ids":{"explicit":["explicit.stat_670153687"],"fractured":["fractured.stat_670153687"]}}}
+{"ref":"+#% to Critical Strike Multiplier with Staves","better":1,"matchers":[{"string":"持長杖時 #% 暴擊加成","superseded":true},{"string":"#% 長杖暴擊加成"}],"trade":{"ids":{"implicit":["implicit.stat_1474913037"]}}}
+{"ref":"+#% to Critical Strike Multiplier with Swords","better":1,"matchers":[{"string":"持劍時 #% 暴擊加成","superseded":true},{"string":"#% 劍暴擊加成"}],"trade":{"ids":{"implicit":["implicit.stat_3114492047"]}}}
 {"ref":"+#% to Critical Strike Multiplier with Two Handed Melee Weapons","better":1,"matchers":[{"string":"使用雙手近戰武器時 #% 暴擊加成"}],"trade":{"ids":{"explicit":["explicit.stat_252507949"],"fractured":["fractured.stat_252507949"]}}}
 {"ref":"+#% to Critical Strike Multiplier with Unarmed Melee Attacks","better":1,"matchers":[{"string":"空手近戰攻擊 #% 暴擊加成"}],"trade":{"ids":{"explicit":["explicit.stat_468580269"]}}}
-{"ref":"+#% to Critical Strike Multiplier with Wands","better":1,"matchers":[{"string":"持法杖時 #% 暴擊加成"}],"trade":{"ids":{"implicit":["implicit.stat_1241396104"]}}}
+{"ref":"+#% to Critical Strike Multiplier with Wands","better":1,"matchers":[{"string":"持法杖時 #% 暴擊加成","superseded":true},{"string":"#% 法杖暴擊加成"}],"trade":{"ids":{"implicit":["implicit.stat_1241396104"]}}}
 {"ref":"+#% to Damage over Time Multiplier","better":1,"matchers":[{"string":"#% 持續傷害加成"}],"trade":{"ids":{"explicit":["explicit.stat_3988349707"],"implicit":["implicit.stat_3988349707"],"fractured":["fractured.stat_3988349707"],"enchant":["enchant.stat_3988349707"]}}}
 {"ref":"+#% to Damage over Time Multiplier for Ailments from Critical Strikes","better":1,"matchers":[{"string":"來自暴擊的異常狀態 #% 持續傷害加成"}],"trade":{"ids":{"enchant":["enchant.stat_1781630546"]}}}
 {"ref":"+#% to Damage over Time Multiplier for Ailments per Elder Item Equipped","better":1,"matchers":[{"string":"每件裝備的的尊師之物 #% 異常狀態持續傷害加成"}],"trade":{"ids":{"explicit":["explicit.stat_2212731469"],"implicit":["implicit.stat_2212731469"]}}}
@@ -2844,7 +2844,7 @@
 {"ref":"Adds # to # Cold Damage in Off Hand","better":1,"matchers":[{"string":"副手附加 # 至 # 冰冷傷害"}],"trade":{"ids":{"explicit":["explicit.stat_2109066258"]}}}
 {"ref":"Adds # to # Cold Damage to Attacks","better":1,"matchers":[{"string":"攻擊附加 # 至 # 冰冷傷害"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_adds_cold_damage_to_attacks"],"explicit":["explicit.stat_4067062424"],"implicit":["implicit.stat_4067062424"],"fractured":["fractured.stat_4067062424"],"crafted":["crafted.stat_4067062424"]}}}
 {"ref":"Adds # to # Cold Damage to Attacks against you","better":1,"matchers":[{"string":"對你的攻擊附加 # 至 # 冰冷傷害"}],"trade":{"ids":{"explicit":["explicit.stat_617462123"],"fractured":["fractured.stat_617462123"],"crafted":["crafted.stat_617462123"]}}}
-{"ref":"Adds # to # Cold Damage to Attacks per 10 Dexterity","better":1,"matchers":[{"string":"每 10 點敏捷攻擊附加 # 至 # 冰冷傷害"}],"trade":{"ids":{"explicit":["explicit.stat_769783486"],"fractured":["fractured.stat_769783486"]}}}
+{"ref":"Adds # to # Cold Damage to Attacks per 10 Dexterity","better":1,"matchers":[{"string":"每 10 點敏捷攻擊附加 # 至 # 冰冷傷害"}],"trade":{"ids":{"explicit":["explicit.stat_769783486"],"fractured":["fractured.stat_769783486"],"implicit":["implicit.stat_769783486"]}}}
 {"ref":"Adds # to # Cold Damage to Attacks with this Weapon per 10 Dexterity","better":1,"matchers":[{"string":"每 10 點敏捷，使用此武器攻擊附加 # 至 # 冰冷傷害"}],"trade":{"ids":{"explicit":["explicit.stat_149574107"],"implicit":["implicit.stat_149574107"],"fractured":["fractured.stat_149574107"]}}}
 {"ref":"Adds # to # Cold Damage to Hits against you","better":1,"matchers":[{"string":"對你的擊中附加 # 至 # 冰冷傷害"}],"trade":{"ids":{"explicit":["explicit.stat_3482587079"],"fractured":["fractured.stat_3482587079"],"crafted":["crafted.stat_3482587079"]}}}
 {"ref":"Adds # to # Cold Damage to Hits against you per Frenzy Charge","better":1,"matchers":[{"string":"對你的擊中根據每顆狂怒球附加 # 至 # 冰冷傷害"}],"trade":{"ids":{"explicit":["explicit.stat_178386603"],"fractured":["fractured.stat_178386603"]}}}
@@ -3862,7 +3862,7 @@
 {"ref":"Arrow Nova","better":1,"mercenary":{"tier":3},"matchers":[{"string":"箭矢新星","advanced":"箭矢新星(階層：3)"}],"trade":{"ids":{"pseudo":["mercenary.support_58429"]}}}
 {"ref":"Arrows Chain +# times","better":1,"matchers":[{"string":"箭矢連鎖 # 次"}],"trade":{"ids":{"implicit":["implicit.stat_1001077145"]}}}
 {"ref":"Arrows deal # to # Added Fire Damage for each time they've Pierced","better":1,"matchers":[{"string":"箭矢每次穿透時，附加 # 至 # 火焰傷害"}],"trade":{"ids":{"explicit":["explicit.stat_3726936056"]}}}
-{"ref":"Arrows deal #% increased Damage with Hits and Ailments to Targets they Pierce","better":1,"matchers":[{"string":"箭矢對穿透的目標增加 #% 擊中和異常狀態傷害"},{"string":"箭矢對穿透的目標減少 #% 擊中和異常狀態傷害","negate":true}],"trade":{"ids":{"explicit":["explicit.stat_1019891080"]}}}
+{"ref":"Arrows deal #% increased Damage with Hits and Ailments to Targets they Pierce","better":1,"matchers":[{"string":"箭矢對穿透的目標增加 #% 擊中和異常狀態傷害"},{"string":"箭矢對穿透的目標減少 #% 擊中和異常狀態傷害","negate":true}],"trade":{"ids":{"explicit":["explicit.stat_1019891080"],"implicit":["implicit.stat_1019891080"]}}}
 {"ref":"Arrows fired from the first firing points always Pierce","better":1,"matchers":[{"string":"從初始發射位置發射的箭矢一定穿透"}],"trade":{"ids":{"explicit":["explicit.stat_2168987271"]}}}
 {"ref":"Arrows fired from the fourth firing points Chain +# time","better":1,"matchers":[{"string":"從第 4 個發射點發射的箭矢 # 次連鎖"}],"trade":{"ids":{"explicit":["explicit.stat_226515115"]}}}
 {"ref":"Arrows fired from the second firing points Fork","better":1,"matchers":[{"string":"從第 2 個發射點發射的箭矢會分裂"}],"trade":{"ids":{"explicit":["explicit.stat_3290081052"]}}}
@@ -4029,7 +4029,7 @@
 {"ref":"Bow Attacks fire # additional Arrows","better":1,"matchers":[{"string":"弓攻擊發射 # 個額外箭矢"},{"string":"弓攻擊發射 1 個額外箭矢","value":1}],"trade":{"ids":{"explicit":["explicit.stat_3885405204"],"implicit":["implicit.stat_3885405204"],"fractured":["fractured.stat_3885405204"]}}}
 {"ref":"Bow Attacks fire # additional Arrows if you haven't Cast Dash recently","better":1,"matchers":[{"string":"若你近期沒有施放幻步，弓攻擊發射 # 支額外箭矢"}],"trade":{"ids":{"explicit":["explicit.stat_2482927318"]}}}
 {"ref":"Bow Attacks have Culling Strike","better":1,"matchers":[{"string":"弓攻擊有撲殺"}],"trade":{"ids":{"explicit":["explicit.stat_4217693429"]}}}
-{"ref":"Bow Attacks Sacrifice a random Damageable Minion to fire # additional Arrow","better":1,"matchers":[{"string":"弓的攻擊會犧牲一個隨機可傷害召喚物，並射出 # 支額外箭矢"}],"trade":{"ids":{"explicit":["explicit.stat_151300265"]}}}
+{"ref":"Bow Attacks Sacrifice a random Damageable Minion to fire # additional Arrow","better":1,"matchers":[{"string":"弓的攻擊會犧牲一個隨機可傷害召喚物，並射出 # 支額外箭矢"}],"trade":{"ids":{"explicit":["explicit.stat_151300265"],"implicit":["implicit.stat_151300265"]}}}
 {"ref":"Bow Knockback at Close Range","better":1,"matchers":[{"string":"近距離時弓擊退敵人"}],"trade":{"ids":{"explicit":["explicit.stat_3261557635"]}}}
 {"ref":"Brand Skills have #% increased Duration","better":1,"matchers":[{"string":"烙印技能增加 #% 持續時間"},{"string":"烙印技能減少 #% 持續時間","negate":true}],"trade":{"ids":{"explicit":["explicit.stat_3089482869"]}}}
 {"ref":"Brittle Chance","better":1,"mercenary":{"tier":3},"matchers":[{"string":"易碎機率","advanced":"易碎機率(階層：3)"}],"trade":{"ids":{"pseudo":["mercenary.support_54837"]}}}
@@ -5163,7 +5163,7 @@
 {"ref":"Has Room: Hall of Heroes (Tier 2)","better":0,"matchers":[{"string":"英雄之殿 (階級 2)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_legion_2"]},"option":true}}
 {"ref":"Has Room: Hall of Legends (Tier 3)","better":0,"matchers":[{"string":"神話之殿 (階級 3)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_legion_3"]},"option":true}}
 {"ref":"Has Room: Hall of Locks (Tier 2)","better":0,"matchers":[{"string":"千鎖殿堂 (階級 2)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_strongbox_2"]},"option":true}}
-{"ref":"Has Room: Hall of Lords (Tier 2)","better":0,"matchers":[{"string":"權貴殿堂 (階級 2)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_queens_chambers_2"]},"option":true}}
+{"ref":"Has Room: Hall of Lords (Tier 2)","better":0,"matchers":[{"string":"權貴殿堂 (階級 2)","superseded":true},{"string":"創造之搖籃 (階級 2)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_queens_chambers_2"]},"option":true}}
 {"ref":"Has Room: Hall of Mettle (Tier 1)","better":0,"matchers":[{"string":"勇氣之殿 (階級 1)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_legion_1"]},"option":true}}
 {"ref":"Has Room: Hall of Offerings (Tier 2)","better":0,"matchers":[{"string":"獻祭殿堂 (階級 2)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_sacrifice_room_2"]},"option":true}}
 {"ref":"Has Room: Hall of War (Tier 3)","better":0,"matchers":[{"string":"戰爭聖殿 (階級 3)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_breeding_room_3"]},"option":true}}
@@ -5178,13 +5178,13 @@
 {"ref":"Has Room: Locus of Corruption (Tier 3)","better":0,"matchers":[{"string":"腐敗之地 (階級 3)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_corruption_room_3"]},"option":true}}
 {"ref":"Has Room: Museum of Artefacts (Tier 3)","better":0,"matchers":[{"string":"文物展館 (階級 3)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_chests_3"]},"option":true}}
 {"ref":"Has Room: Office of Cartography (Tier 2)","better":0,"matchers":[{"string":"製圖研製室 (階級 2)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_cartography_room_2"]},"option":true}}
-{"ref":"Has Room: Omnitect Forge (Tier 2)","better":0,"matchers":[{"string":"全能冶煉室 (階級 2)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_boss_fire_2"]},"option":true}}
-{"ref":"Has Room: Omnitect Reactor Plant (Tier 2)","better":0,"matchers":[{"string":"全能反應廠 (階級 2)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_boss_lightning_2"]},"option":true}}
+{"ref":"Has Room: Omnitect Forge (Tier 2)","better":0,"matchers":[{"string":"全能冶煉室 (階級 2)","superseded":true},{"string":"皇家熔爐 (階級 2)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_boss_fire_2"]},"option":true}}
+{"ref":"Has Room: Omnitect Reactor Plant (Tier 2)","better":0,"matchers":[{"string":"全能反應廠 (階級 2)","superseded":true},{"string":"宏偉反應爐 (階級 2)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_boss_lightning_2"]},"option":true}}
 {"ref":"Has Room: Passageways","better":0,"matchers":[{"string":"神殿通道"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_passageways"]},"option":true}}
 {"ref":"Has Room: Pits","better":0,"matchers":[{"string":"神殿舊窖"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_the_pits"]},"option":true}}
 {"ref":"Has Room: Poison Garden (Tier 1)","better":0,"matchers":[{"string":"監獄花園 (階級 1)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_poison_room_1"]},"option":true}}
 {"ref":"Has Room: Pools of Restoration (Tier 1)","better":0,"matchers":[{"string":"治癒之泉 (階級 1)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_healing_room_1"]},"option":true}}
-{"ref":"Has Room: Royal Meeting Room (Tier 1)","better":0,"matchers":[{"string":"王室宴客室 (階級 1)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_queens_chambers_1"]},"option":true}}
+{"ref":"Has Room: Royal Meeting Room (Tier 1)","better":0,"matchers":[{"string":"王室宴客室 (階級 1)","superseded":true},{"string":"創造之搖籃 (階級 1)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_queens_chambers_1"]},"option":true}}
 {"ref":"Has Room: Sacrificial Chamber (Tier 1)","better":0,"matchers":[{"string":"獻祭之室 (階級 1)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_sacrifice_room_1"]},"option":true}}
 {"ref":"Has Room: Sadist's Den (Tier 3)","better":0,"matchers":[{"string":"虐狂之巢 (階級 3)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_torment_3"]},"option":true}}
 {"ref":"Has Room: Sanctum of Immortality (Tier 3)","better":0,"matchers":[{"string":"不朽聖殿 (階級 3)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_healing_room_3"]},"option":true}}
@@ -5193,7 +5193,7 @@
 {"ref":"Has Room: Shrine of Empowerment (Tier 1)","better":0,"matchers":[{"string":"恩賜神殿 (階級 1)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_empowering_room_1"]},"option":true}}
 {"ref":"Has Room: Shrine of Unmaking (Tier 3)","better":0,"matchers":[{"string":"毀滅神殿 (階級 3)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_explosives_room_3"]},"option":true}}
 {"ref":"Has Room: Sparring Room (Tier 1)","better":0,"matchers":[{"string":"格鬥場 (階級 1)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_weapon_room_1"]},"option":true}}
-{"ref":"Has Room: Splinter Research Lab (Tier 1)","better":1,"matchers":[{"string":"有房間：裂界研究室（階級 1） "}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_breach_room_1"]}}}
+{"ref":"Has Room: Splinter Research Lab (Tier 1)","better":1,"matchers":[{"string":"有房間：裂界研究室（階級 1） ","superseded":true},{"string":"異常研究所 (階級 1)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_breach_room_1"]},"option":true}}
 {"ref":"Has Room: Storage Room (Tier 1)","better":0,"matchers":[{"string":"儲物室 (階級 1)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_chests_1"]},"option":true}}
 {"ref":"Has Room: Storm of Corruption (Tier 3)","better":0,"matchers":[{"string":"腐敗風暴 (階級 3)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_storm_room_3"]},"option":true}}
 {"ref":"Has Room: Strongbox Chamber (Tier 1)","better":0,"matchers":[{"string":"寶箱之殿 (階級 1)","superseded":true},{"string":"保險箱之殿 (階級 1)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_strongbox_1"]},"option":true}}
@@ -5201,7 +5201,7 @@
 {"ref":"Has Room: Tempest Generator (Tier 1)","better":0,"matchers":[{"string":"暴雷發電室 (階級 1)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_storm_room_1"]},"option":true}}
 {"ref":"Has Room: Temple Defense Workshop (Tier 2)","better":0,"matchers":[{"string":"神殿禦防室 (階級 2)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_trap_room_2"]},"option":true}}
 {"ref":"Has Room: Temple Nexus (Tier 3)","better":0,"matchers":[{"string":"死神靈殿 (階級 3)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_empowering_room_3"]},"option":true}}
-{"ref":"Has Room: Throne of Atziri (Tier 3)","better":0,"matchers":[{"string":"阿茲里宴殿 (階級 3)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_queens_chambers_3"]},"option":true}}
+{"ref":"Has Room: Throne of Atziri (Tier 3)","better":0,"matchers":[{"string":"阿茲里宴殿 (階級 3)","superseded":true},{"string":"創造之搖籃 (階級 3)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_queens_chambers_3"]},"option":true}}
 {"ref":"Has Room: Tombs","better":0,"matchers":[{"string":"神殿陵寢"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_tombs"]},"option":true}}
 {"ref":"Has Room: Torment Cells (Tier 1)","better":0,"matchers":[{"string":"磨難牢房 (階級 1)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_torment_1"]},"option":true}}
 {"ref":"Has Room: Torture Cages (Tier 2)","better":0,"matchers":[{"string":"拷刑大牢 (階級 2)"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_temple_torment_2"]},"option":true}}
@@ -5649,12 +5649,12 @@
 {"ref":"Map Boss is accompanied by a Synthesis Boss","better":1,"fromAreaMods":"yes","matchers":[{"string":"地圖頭目伴隨著 1 個追憶頭目"}],"trade":{"ids":{"explicit":["explicit.stat_4150353141"],"fractured":["fractured.stat_4150353141"]}}}
 {"ref":"Map Boss is surrounded by Tormented Spirits","better":1,"matchers":[{"string":"地圖頭目被罪魂包圍"}],"trade":{"ids":{"enchant":["enchant.stat_3750528071"]}}}
 {"ref":"Map Bosses have #% chance to be accompanied by two Rogue Exile Bodyguards","better":1,"matchers":[{"string":"地圖頭目有 #% 機率伴隨 2 名盜賊流亡者保鑣"}],"trade":{"ids":{"explicit":["explicit.stat_472880157"]}}}
-{"ref":"Map Bosses have #% chance to be surrounded by Tormented Spirits","better":1,"matchers":[{"string":"地圖頭目有 #% 機率被罪魂圍繞"}],"trade":{"ids":{"explicit":["explicit.stat_906368454"]}}}
+{"ref":"Map Bosses have #% chance to be surrounded by Tormented Spirits","better":1,"matchers":[{"string":"地圖頭目有 #% 機率被罪魂圍繞"},{"string":"地圖頭目有 #% 機率受罪魂包圍","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_906368454"]}}}
 {"ref":"Map Bosses have #% increased chance to drop a Conqueror Map","better":1,"matchers":[{"string":"地圖頭目增加 #% 機率掉落 1 張征服者地圖"}],"trade":{"ids":{"explicit":["explicit.stat_1554844434"]}}}
-{"ref":"Map contains Al-Hezmin's Citadel\nItem Quantity increases amount of Rewards Al-Hezmin drops by 20% of its value","better":0,"matchers":[{"string":"地圖含有奧赫茲明的壁壘\n物品數量以 20% 它的值增加奧赫茲明掉落獎勵的總量"}],"trade":{"ids":{"implicit":["implicit.stat_2563183002|3"]}}}
-{"ref":"Map contains Baran's Citadel\nItem Quantity increases amount of Rewards Baran drops by 20% of its value","better":0,"matchers":[{"string":"地圖含有巴倫的壁壘\n物品數量以 20% 它的值增加巴倫掉落獎勵的總量"}],"trade":{"ids":{"implicit":["implicit.stat_2563183002|1"]}}}
-{"ref":"Map contains Drox's Citadel\nItem Quantity increases amount of Rewards Drox drops by 20% of its value","better":0,"matchers":[{"string":"地圖含有圖拉克斯的壁壘\n物品數量以 20% 它的值增加圖拉克斯掉落獎勵的總量"}],"trade":{"ids":{"implicit":["implicit.stat_2563183002|4"]}}}
-{"ref":"Map contains Veritania's Citadel\nItem Quantity increases amount of Rewards Veritania drops by 20% of its value","better":0,"matchers":[{"string":"地圖含有維羅提尼亞的壁壘\n物品數量以 20% 它的值增加維羅提尼亞掉落獎勵的總量"}],"trade":{"ids":{"implicit":["implicit.stat_2563183002|2"]}}}
+{"ref":"Map contains Al-Hezmin's Citadel\nItem Quantity increases amount of Rewards Al-Hezmin drops by 20% of its value","better":0,"matchers":[{"string":"地圖含有奧赫茲明的壁壘\n物品數量以 20% 它的值增加奧赫茲明掉落獎勵的總量","superseded":true},{"string":"地圖含有奧赫茲明的壁壘","advanced":"地圖含有奧赫茲明的壁壘(...)"}],"trade":{"ids":{"implicit":["implicit.stat_2563183002|3"]}}}
+{"ref":"Map contains Baran's Citadel\nItem Quantity increases amount of Rewards Baran drops by 20% of its value","better":0,"matchers":[{"string":"地圖含有巴倫的壁壘\n物品數量以 20% 它的值增加巴倫掉落獎勵的總量","superseded":true},{"string":"地圖含有巴倫的壁壘","advanced":"地圖含有巴倫的壁壘(...)"}],"trade":{"ids":{"implicit":["implicit.stat_2563183002|1"]}}}
+{"ref":"Map contains Drox's Citadel\nItem Quantity increases amount of Rewards Drox drops by 20% of its value","better":0,"matchers":[{"string":"地圖含有圖拉克斯的壁壘\n物品數量以 20% 它的值增加圖拉克斯掉落獎勵的總量","superseded":true},{"string":"地圖含有圖拉克斯的壁壘","advanced":"地圖含有圖拉克斯的壁壘(...)"}],"trade":{"ids":{"implicit":["implicit.stat_2563183002|4"]}}}
+{"ref":"Map contains Veritania's Citadel\nItem Quantity increases amount of Rewards Veritania drops by 20% of its value","better":0,"matchers":[{"string":"地圖含有維羅提尼亞的壁壘\n物品數量以 20% 它的值增加維羅提尼亞掉落獎勵的總量","superseded":true},{"string":"地圖含有維羅提尼亞的壁壘","advanced":"地圖含有維羅提尼亞的壁壘(...)"}],"trade":{"ids":{"implicit":["implicit.stat_2563183002|2"]}}}
 {"ref":"Map Device has #% chance not to consume Scarabs","better":1,"matchers":[{"string":"地圖裝置有 #% 機率不消耗聖甲蟲","superseded":true},{"string":"地圖裝置有#%機率不會消耗綢帶"}],"trade":{"ids":{"explicit":["explicit.stat_4140427516"]}}}
 {"ref":"Map has # additional random Modifier","better":1,"matchers":[{"string":"地圖有 # 個額外詞綴"}],"trade":{"ids":{"explicit":["explicit.stat_4003278965"]}}}
 {"ref":"Map has # additional Synthesis Global Modifier","better":1,"matchers":[{"string":"地圖有 # 個額外追憶全域詞綴"}],"trade":{"ids":{"explicit":["explicit.stat_2132807290"]}}}
@@ -5867,7 +5867,7 @@
 {"ref":"Monsters cannot be Stunned","better":1,"fromAreaMods":"yes","matchers":[{"string":"怪物不會被暈眩"}],"trade":{"ids":{"explicit":["explicit.stat_1041951480"],"fractured":["fractured.stat_1041951480"]}}}
 {"ref":"Monsters cannot be Taunted","better":1,"fromAreaMods":"yes","matchers":[{"string":"怪物不能被嘲諷"}],"trade":{"ids":{"explicit":["explicit.stat_1106651798"],"fractured":["fractured.stat_1106651798"]}}}
 {"ref":"Monsters cannot Block your Attacks","better":1,"matchers":[{"string":"怪物不能格擋你的攻擊"}],"trade":{"ids":{"explicit":["explicit.stat_4136294199"]}}}
-{"ref":"Monsters cannot steal or remove your Power, Frenzy or Endurance charges on Hit","better":1,"matchers":[{"string":"Monsters cannot steal or remove your Power, Frenzy or Endurance charges on Hit"}],"trade":{"ids":{"explicit":["explicit.stat_1455353008"]}}}
+{"ref":"Monsters cannot steal or remove your Power, Frenzy or Endurance charges on Hit","better":1,"matchers":[{"string":"Monsters cannot steal or remove your Power, Frenzy or Endurance charges on Hit","superseded":true},{"string":"怪物擊中時無法偷取或移除你的暴擊、狂怒、或耐力球"}],"trade":{"ids":{"explicit":["explicit.stat_1455353008"]}}}
 {"ref":"Monsters cannot Suppress your Spells","better":1,"matchers":[{"string":"怪物無法壓抑你的法術"}],"trade":{"ids":{"explicit":["explicit.stat_870219767"]}}}
 {"ref":"Monsters deal #% extra Physical Damage as Cold","better":1,"fromAreaMods":"yes","matchers":[{"string":"怪物造成 #% 額外物理傷害視為冰冷"}],"trade":{"ids":{"explicit":["explicit.stat_3448216135"],"fractured":["fractured.stat_3448216135"]}}}
 {"ref":"Monsters deal #% extra Physical Damage as Fire","better":1,"fromAreaMods":"yes","matchers":[{"string":"怪物造成 #% 額外物理傷害視為火焰"}],"trade":{"ids":{"explicit":["explicit.stat_1497673356"],"fractured":["fractured.stat_1497673356"]}}}
@@ -8849,7 +8849,7 @@
 {"ref":"You can Cast an additional Brand","better":1,"matchers":[{"string":"你可以施放 # 個額外烙印"},{"string":"你可以施放 1 個額外烙印","value":1}],"trade":{"ids":{"explicit":["explicit.stat_708630863"]}}}
 {"ref":"You can catch Corrupted Fish","better":1,"matchers":[{"string":"你可以捕獲汙染魚"}],"trade":{"ids":{"implicit":["implicit.stat_2451060005"]}}}
 {"ref":"You can catch Exotic Fish","better":1,"matchers":[{"string":"你可以捕獲外來魚種"}],"trade":{"ids":{"explicit":["explicit.stat_1471580517"]}}}
-{"ref":"You can have an additional Tincture active","better":1,"matchers":[{"string":"你可以額外啟用 1 個萃取物"}],"trade":{"ids":{"explicit":["explicit.stat_3806798486"]}}}
+{"ref":"You can have an additional Tincture active","better":1,"matchers":[{"string":"你可以額外啟用 1 個萃取物","superseded":true},{"string":"你可以啟用額外一個萃取物"}],"trade":{"ids":{"explicit":["explicit.stat_3806798486"]}}}
 {"ref":"You can have an Offering of each type","better":1,"matchers":[{"string":"你可以擁有每種奉獻效果"}],"trade":{"ids":{"explicit":["explicit.stat_230941555"]}}}
 {"ref":"You can have two Offerings of different types","better":1,"matchers":[{"string":"你可擁有兩種不同種類的奉獻"}],"trade":{"ids":{"explicit":["explicit.stat_3639765866"]}}}
 {"ref":"You can inflict an additional Ignite on each Enemy","better":1,"matchers":[{"string":"你可以對敵人造成額外 # 個點燃效果"},{"string":"你可以對敵人造成額外 1 個點燃效果","value":1}],"trade":{"ids":{"explicit":["explicit.stat_2837603657"]}}}
@@ -9177,7 +9177,7 @@
 {"ref":"Socketed Gems deal #% more damage per Socketed Skill Gem","better":1,"matchers":[{"string":"Socketed Gems deal #% more damage per Socketed Skill Gem"}],"trade":{"ids":{"explicit":["explicit.stat_2876425796"]}}}
 {"ref":"Socketed Support Gems have no effect","better":0,"matchers":[{"string":"插槽中的輔助寶石沒有效果"}],"trade":{"ids":{"explicit":["explicit.stat_1521791684"]}}}
 {"ref":"#% chance for a damaging Retaliation skill to\nbecome usable for every 100 life removed this way","better":1,"matchers":[{"string":"你每以此方式移除100生命，\n反擊技能即有#%機率變為可用"}],"trade":{"ids":{"explicit":["explicit.stat_86321750"]}}}
-{"ref":"Area contains the Viridian Wildwood","better":0,"matchers":[{"string":"區域內含有翠綠荒林"}],"trade":{"ids":{"explicit":["explicit.stat_1975119765"]}}}
+{"ref":"Area contains the Viridian Wildwood","better":0,"matchers":[{"string":"區域內含有翠綠荒林"}],"trade":{"ids":{"explicit":["explicit.stat_1975119765"],"fractured":["fractured.stat_1975119765"]}}}
 {"ref":"Area contains an Evocator of K'Tash","better":0,"matchers":[{"string":"區域內含有一名克塔什召喚者"}],"trade":{"ids":{"explicit":["explicit.stat_2896557935"]}}}
 {"ref":"Area contains an Evocator of Ghorr","better":0,"matchers":[{"string":"區域內含有一名戈沃召喚者"}],"trade":{"ids":{"explicit":["explicit.stat_1290924623"]}}}
 {"ref":"Area contains an Evocator of Beidat","better":0,"matchers":[{"string":"區域內含有一名貝達特召喚者"}],"trade":{"ids":{"explicit":["explicit.stat_260515856"]}}}
@@ -9337,7 +9337,7 @@
 {"ref":"#% chance for a Coin Shower on Kill","better":1,"matchers":[{"string":"擊殺時有#%機率迎來金幣雨"}],"trade":{"ids":{"implicit":["implicit.stat_2450413567"]}}}
 {"ref":"Gain a random Shrine Buff for # seconds when you Blind a\nnon-Blinded Rare or Unique Enemy","better":1,"matchers":[{"string":"當你致盲一名未致盲的稀有或傳奇敵人時，\n獲得一個隨機神殿增益效果，持續#秒"}],"trade":{"ids":{"explicit":["explicit.stat_3653779134"]}}}
 {"ref":"#% chance to Eat a Soul when you Consume the corpse of a Rare Monster","better":1,"matchers":[{"string":"當你消耗一具稀有怪物的屍體時，有#%機率會吞噬一個靈魂"}],"trade":{"ids":{"implicit":["implicit.stat_59033544"]}}}
-{"ref":"# Suffix Modifier cannot be changed","better":1,"matchers":[{"string":"#條後綴詞綴無法被變更"}],"trade":{"ids":{"explicit":["explicit.stat_2390914662"],"crafted":["crafted.stat_2390914662"]}}}
+{"ref":"# Suffix Modifier cannot be changed","better":1,"matchers":[{"string":"#條後綴詞綴無法被變更"}],"trade":{"ids":{"explicit":["explicit.stat_2390914662"],"crafted":["crafted.stat_2390914662"],"fractured":["fractured.stat_2390914662"]}}}
 {"ref":"#% chance to Trigger Level 20 Moonfall on Melee Critical Strike","better":1,"matchers":[{"string":"近戰暴擊時有 #% 機率觸發等級 20 的月隕"}],"trade":{"ids":{"explicit":["explicit.stat_2746497881"]}}}
 {"ref":"# Monster Packs in Area are substituted with Difficult and Rewarding Packs\nwhich drop 300% increased Maps","better":1,"matchers":[{"string":"區域內的#群怪物會被替換為更加困難但獎勵也更豐厚的怪物\n其會增加300%掉落的地圖數量"}],"trade":{"ids":{"enchant":["enchant.stat_3552182293"]}}}
 {"ref":"# Monster Packs in Area are substituted with Doedre's Devoted","better":1,"matchers":[{"string":"區域內的#群怪物會被替換為德瑞的信徒"}],"trade":{"ids":{"enchant":["enchant.stat_4151275322"]}}}
@@ -10799,3 +10799,7 @@
 {"ref":"1 Added Passive Skill is Purity of Flesh","better":1,"matchers":[{"string":"1 個附加的天賦為肉體之純潔"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|58218"]}}}
 {"ref":"1 Added Passive Skill is Lightning Walker","better":1,"matchers":[{"string":"1 個附加的天賦為雷靈之道"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|30225"]}}}
 {"ref":"1 Added Passive Skill is Vigour","better":1,"matchers":[{"string":"1 個附加的天賦為活力之源"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|4833"]}}}
+{"ref":"# Prefix Modifier cannot be changed","better":1,"matchers":[{"string":"#條前綴詞綴無法被變更"}],"trade":{"ids":{"explicit":["explicit.stat_181387736"],"crafted":["crafted.stat_181387736"]}}}
+{"ref":"# Monster Packs in Area are substituted with Packs led by a Pantheon-Touched Rare Monster","better":1,"matchers":[{"string":"區域內的#群怪物會被替換為由一名受眾神之觸的稀有怪物所引領的怪物群"}],"trade":{"ids":{"enchant":["enchant.stat_429929284"]}}}
+{"ref":"# Monster Packs in Area are substituted with Packs that\ncannot drop Equipment, Flasks or Tinctures","better":1,"matchers":[{"string":"區域內的#群怪物會被替換為無法掉落\n裝備、藥劑、或萃取物的怪物群"}],"trade":{"ids":{"enchant":["enchant.stat_228481227"]}}}
+{"ref":"Kill Undead Enemies that have 15% or lower Life when Hit by your Skills","better":0,"matchers":[{"string":"你的技能會於擊中時擊殺低於15%生命的不死敵人"}],"trade":{"ids":{"implicit":["implicit.stat_4052113003"]}}}

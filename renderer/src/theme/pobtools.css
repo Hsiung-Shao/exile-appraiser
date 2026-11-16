@@ -288,7 +288,7 @@
   text-shadow: inherit;
 }
 /* 光暈例外:實色底的強調元件(金底按鈕 / 徽章)與彈出層、深色島(永遠實色,不需要) */
-:root[data-bg] .bg-host :is(.btn.primary, .chip:not(.soft), .pob-dark, .modal, .float, .drop, .menu, [role="menu"], [role="listbox"]) {
+:root[data-bg] .bg-host :is(.btn.primary, .trade-link-btn, .chip:not(.soft), .pob-dark, .modal, .float, .drop, .menu, [role="menu"], [role="listbox"]) {
   text-shadow: none;
 }
 .bgimg,

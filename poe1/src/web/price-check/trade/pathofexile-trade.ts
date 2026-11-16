@@ -536,6 +536,11 @@ export function createTradeRequest (filters: ItemFilters, stats: FilterOrGroup[]
         propSet(query.filters, 'map_filters.filters.map_iiq.min', typeof input.min === 'number' ? input.min : undefined)
         propSet(query.filters, 'map_filters.filters.map_iiq.max', typeof input.max === 'number' ? input.max : undefined)
         break
+      // exile-appraiser: 3.30 輿圖掉落物 = 交易站地圖篩選器 map_bonus(Atlas Drops)
+      case 'item.map_atlas_drops':
+        propSet(query.filters, 'map_filters.filters.map_bonus.min', typeof input.min === 'number' ? input.min : undefined)
+        propSet(query.filters, 'map_filters.filters.map_bonus.max', typeof input.max === 'number' ? input.max : undefined)
+        break
       case 'item.map_item_rarity':
         propSet(query.filters, 'map_filters.filters.map_iir.min', typeof input.min === 'number' ? input.min : undefined)
         propSet(query.filters, 'map_filters.filters.map_iir.max', typeof input.max === 'number' ? input.max : undefined)

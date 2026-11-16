@@ -75,6 +75,18 @@ function pick (mode: ListingLayoutMode) {
   font-family: var(--font-mono);
 }
 .listing-spacer { flex: 1; }
+/* 掛單標題列第 2 行:只放交易鈕,靠左(使用者 2026-11-16) */
+.listing-head-row2 {
+  flex-basis: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+/* 交易鈕用強調色(使用者 2026-11-16:顏色要明顯) */
+.trade-link-btn {
+  background: var(--gold);
+  color: var(--on-gold);
+}
 
 .listing-seg {
   display: inline-flex;

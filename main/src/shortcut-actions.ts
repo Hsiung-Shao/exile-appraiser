@@ -193,3 +193,26 @@ export function nextScanPaused (paused: boolean[]): boolean | null {
   if (paused.length === 0) return null
   return !paused.every(Boolean)
 }
+
+/** uiohook 鍵盤事件裡診斷用得到的欄位 */
+export interface HookKeyState { keycode: number, ctrlKey: boolean, altKey: boolean, shiftKey: boolean, metaKey: boolean }
+
+/**
+ * 診斷(2026-11-16,使用者回報「有時按了熱鍵沒有彈出查價視窗」):全域掛鉤看到的按鍵是不是某個查價熱鍵的主鍵。
+ * 是 → 回那個熱鍵與「多按 / 少按」的修飾鍵(全域熱鍵要修飾鍵完全相符才會觸發;多出來的多半是卡住的修飾鍵)。
+ * 修飾鍵相符的優先;都不相符回少差最少的那個。`codeOf` = 鍵名 → uiohook keycode。
+ */
+export function matchCopyHotkey (actions: ShortcutAction[], e: HookKeyState, codeOf: (key: string) => number | undefined): { shortcut: string, extra: string[], missing: string[] } | null {
+  const held = [e.ctrlKey && 'Ctrl', e.altKey && 'Alt', e.shiftKey && 'Shift', e.metaKey && 'Meta'].filter(Boolean) as string[]
+  let best: { shortcut: string, extra: string[], missing: string[] } | null = null
+  for (const a of actions) {
+    if (a.action.type !== 'copy-item') continue
+    const keys = a.shortcut.split(' + ')
+    const mods: string[] = keys.filter(k => k === 'Ctrl' || k === 'Alt' || k === 'Shift')
+    const main = keys.find(k => !mods.includes(k))
+    if (main == null || codeOf(main) !== e.keycode) continue
+    const hit = { shortcut: a.shortcut, extra: held.filter(k => !mods.includes(k)), missing: mods.filter(k => !held.includes(k)) }
+    if (!best || hit.extra.length + hit.missing.length < best.extra.length + best.missing.length) best = hit
+  }
+  return best
+}

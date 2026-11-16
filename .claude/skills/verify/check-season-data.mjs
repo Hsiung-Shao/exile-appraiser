@@ -6,7 +6,8 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
-const dir = process.argv[2]
+// 第 2 個參數起可換成別條詞綴:<交易站 stat 數字> <列顯示的寫法> <搜尋字串要含的字> <無頭查價要出現的 ref>
+const [dir, num = '3917489142', label = '#%物品稀有度', word = '物品稀有度', ref = '#% increased Rarity of Items found'] = process.argv.slice(2)
 if (!dir) { console.error('用法:node check-season-data.mjs <證據目錄>'); process.exit(2) }
 
 const lines = []
@@ -22,16 +23,16 @@ const read = (name) => {
 const stateText = read('state-item-rarity.json')
 if (stateText) {
   const s = JSON.parse(stateText)
-  check('正則頁找得到物品稀有度主詞綴(explicit.stat_3917489142)', s.found === true)
-  check('該列顯示 3.30 寫法「#%物品稀有度」', s.label === '#%物品稀有度', String(s.label))
+  check(`正則頁找得到詞綴(explicit.stat_${num})`, s.found === true)
+  check(`該列顯示現行寫法「${label}」`, s.label === label, String(s.label))
   check('勾選後計數是 1 / N', /^已勾選 1 \/ \d+$/.test(s.count ?? ''), String(s.count))
-  check('輸出一條加引號、含「物品稀有度」的搜尋字串', /^".*物品稀有度.*"$/.test(s.query ?? ''), String(s.query))
+  check(`輸出一條加引號、含「${word}」的搜尋字串`, /^".*"$/.test(s.query ?? '') && s.query.includes(word), String(s.query))
 }
 
 const cli = read('check-cli.txt')
 if (cli) {
-  check('無頭查價把「+14% to Item Rarity」解析成原詞綴', cli.includes('#% increased Rarity of Items found'))
-  check('送出的條件帶 explicit.stat_3917489142', cli.includes('explicit.stat_3917489142'))
+  check(`無頭查價解析出 ${ref}`, cli.includes(ref) || cli.includes(label))
+  check(`送出的條件帶 explicit.stat_${num}`, cli.includes(`explicit.stat_${num}`))
   check('沒有未解析詞綴警告', !/⚠/.test(cli))
 }
 

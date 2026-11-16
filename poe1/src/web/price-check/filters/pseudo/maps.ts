@@ -7,7 +7,8 @@ import { findAndResolveByRef, statToNotFilter } from './utils'
 
 const PSEUDO = {
   MORE_MAPS: stat('More Maps: #%'),
-  // exile-appraiser: MORE_SCARABS 2026-11-08 移除(3.30 拿掉聖甲蟲)
+  // exile-appraiser: 2026-11-16 恢復(3.30 聖甲蟲改名綢帶,地圖仍有這一行;交易站條件 id 沒變)
+  MORE_SCARABS: stat('More Scarabs: #%'),
   MORE_DIVINATION_CARDS: stat('More Divination Cards: #%'),
   MORE_CURRENCY: stat('More Currency: #%'),
   EXPLICIT_MODIFIERS: stat('# Modifiers')
@@ -18,7 +19,7 @@ const VALDO_LETHAL_STATS = [
 ]
 
 function areaProps (
-  { disabled }: { disabled: { itemQuantity?: boolean, itemRarity?: boolean, packSize?: boolean } },
+  { disabled }: { disabled: { itemQuantity?: boolean, atlasDrops?: boolean, itemRarity?: boolean, packSize?: boolean } },
   ctx: FiltersCreationContext
 ): void {
   const { item } = ctx
@@ -30,6 +31,16 @@ function areaProps (
       roll: { min: 0, max: Number.MAX_SAFE_INTEGER, value: item.areaItemQuantity },
       sources: [],
       disabled: disabled.itemQuantity
+    }, ctx))
+  }
+  // exile-appraiser: 3.30 輿圖掉落物(地圖上取代物品數量的位置)
+  if (item.areaAtlasDrops) {
+    ctx.filters.push(propToFilter({
+      ref: 'Atlas Drops: +#%',
+      tradeId: 'item.map_atlas_drops',
+      roll: { min: 0, max: Number.MAX_SAFE_INTEGER, value: item.areaAtlasDrops },
+      sources: [],
+      disabled: disabled.atlasDrops
     }, ctx))
   }
   if (item.areaItemRarity) {
@@ -59,12 +70,13 @@ export function mapProps (bulk: boolean, ctx: FiltersCreationContext): void {
   if (!bulk) {
     // 本 fork:更多地圖也算「更多掉落」。這張圖賣的是掉落量,稀有度拿來當條件只會把
     // 結果篩掉(使用者截圖:數量與群大小有勾、稀有度沒勾)。上游把更多地圖排除在外。
-    // exile-appraiser: 2026-11-08 更多聖甲蟲不算更多掉落、也不送 pseudo(3.30 移除聖甲蟲;parser 仍解析 mapMoreScarabs)
-    const hasValuableDrops = Boolean(item.mapMoreMaps || item.mapMoreCurrency || item.mapMoreDivCards)
+    // exile-appraiser: 更多聖甲蟲(3.30 起顯示「更多 綢帶」)2026-11-08 一度不送,2026-11-16 恢復
+    const hasValuableDrops = Boolean(item.mapMoreMaps || item.mapMoreScarabs || item.mapMoreCurrency || item.mapMoreDivCards)
 
     areaProps({
       disabled: {
         itemQuantity: false,
+        atlasDrops: false,
         itemRarity: hasValuableDrops,
         packSize: false
       }
@@ -75,6 +87,13 @@ export function mapProps (bulk: boolean, ctx: FiltersCreationContext): void {
         pseudo: pseudoStatByRef(PSEUDO.MORE_MAPS)!,
         roll: { min: 0, max: Number.MAX_SAFE_INTEGER, value: item.mapMoreMaps },
         // 本 fork:更多地圖與其他三種 more-drops 同類,預設一律勾選(回歸網 map-price-mods)
+        disabled: false
+      }, ctx))
+    }
+    if (item.mapMoreScarabs) {
+      ctx.filters.push(noSourcePseudoToFilter({
+        pseudo: pseudoStatByRef(PSEUDO.MORE_SCARABS)!,
+        roll: { min: 0, max: Number.MAX_SAFE_INTEGER, value: item.mapMoreScarabs },
         disabled: false
       }, ctx))
     }
@@ -111,6 +130,7 @@ export function chartProps (bulk: boolean, ctx: FiltersCreationContext): void {
   areaProps({
     disabled: {
       itemQuantity: false,
+      atlasDrops: false,
       itemRarity: false,
       packSize: false
     }

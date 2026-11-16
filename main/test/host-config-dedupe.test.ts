@@ -8,7 +8,7 @@ vi.mock('electron', () => ({
   clipboard: {},
   app: {}
 }))
-vi.mock('uiohook-napi', () => ({ uIOhook: {}, UiohookKey: {} }))
+vi.mock('uiohook-napi', () => ({ uIOhook: { on: () => {} }, UiohookKey: {} }))
 
 import { Shortcuts } from '../src/Shortcuts'
 import { scanConfigKey } from '../src/scan-config'

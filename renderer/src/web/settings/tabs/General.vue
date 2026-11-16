@@ -135,6 +135,15 @@
       <span class="warn-text">{{ t('ppz.hw_accel.restart_needed') }}</span>
       <button v-if="canRelaunch" class="btn sm" data-action="relaunch" :disabled="relaunching" @click="relaunch">{{ t('ppz.hw_accel.restart_now') }}</button>
     </div>
+    <!-- 2026-11-16:建立桌面捷徑(只有 Electron 視窗;釘選到工作列只能由使用者在捷徑上按右鍵) -->
+    <div v-if="canCreateShortcut" class="srow" data-setting="desktop-shortcut">
+      <span class="k">{{ t('ppz.desktop_shortcut.label') }}</span>
+      <div class="ctl">
+        <button class="btn sm" data-action="desktop-shortcut-create" :disabled="shortcutBusy" @click="createShortcut">{{ t('ppz.desktop_shortcut.button') }}</button>
+        <span v-if="shortcutState" :class="shortcutState === 'done' ? 'note' : 'warn-text'" data-setting="desktop-shortcut-result" role="status">{{ shortcutText }}</span>
+      </div>
+    </div>
+    <p v-if="canCreateShortcut" class="lead" data-setting="desktop-shortcut-hint">{{ t('ppz.desktop_shortcut.hint') }}</p>
   </section>
 
   <!-- 2026-11-09:計時器(移植 APT 碼表;只在 overlay 模式) -->
@@ -227,6 +236,14 @@ export default defineComponent({
         if (typeof v === 'boolean') hwAccelAtStart.value = v
       } catch {}
     })
+    const shortcutBusy = shallowRef(false)
+    const shortcutState = shallowRef<'' | 'done' | 'dev' | 'failed'>('')
+    async function createShortcut () {
+      shortcutBusy.value = true
+      shortcutState.value = '' // 先清掉,連按兩次也看得到結果重新出現
+      shortcutState.value = await Host.createDesktopShortcut()
+      shortcutBusy.value = false
+    }
     async function relaunch () {
       relaunching.value = true
       try { await Host.appRelaunch(configContentsForRelaunch()) } catch { relaunching.value = false }
@@ -259,6 +276,12 @@ export default defineComponent({
       timerDisplayLabel: computed(() => ({ active: t('ppz.timer.display_active'), always: t('ppz.timer.display_always'), off: t('ppz.timer.display_off') })),
       hwAccelPending: computed(() => config.hardwareAcceleration !== hwAccelAtStart.value),
       canRelaunch: Host.canRelaunch,
+      canCreateShortcut: Host.canCreateDesktopShortcut,
+      shortcutBusy,
+      shortcutState,
+      // 鍵寫成字面值:settings-ia 測試靜態掃 t('ppz.…') 檢查兩語都有
+      shortcutText: computed(() => ({ '': '', done: t('ppz.desktop_shortcut.done'), dev: t('ppz.desktop_shortcut.dev'), failed: t('ppz.desktop_shortcut.failed') })[shortcutState.value]),
+      createShortcut,
       relaunching,
       relaunch,
       canPickBg: Host.canPickBg,

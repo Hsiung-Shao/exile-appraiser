@@ -3,13 +3,13 @@
     <template v-if="builtin">
       <button
         @click="open(false)"
-        class="bg-gray-700 text-gray-400 rounded-l px-2"
+        class="trade-link-btn rounded-l px-2"
       >
         {{ t(text) }}
       </button>
       <button
         @click="open(true)"
-        class="bg-gray-700 text-gray-400 rounded-r px-2"
+        class="trade-link-btn rounded-r px-2"
       >
         <i class="fas fa-external-link-alt text-xs" />
       </button>
@@ -17,7 +17,7 @@
     <button
       v-else
       @click="open(true)"
-      class="bg-gray-700 text-gray-400 rounded-sm px-2"
+      class="trade-link-btn rounded-sm px-2"
     >
       {{ t(text) }} <i class="fas fa-external-link-alt text-xs" />
     </button>

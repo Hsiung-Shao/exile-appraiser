@@ -54,6 +54,7 @@
     "crit": "暴擊機率：{0}%",
     "aps": "每秒攻擊速度：{0}",
     "map_item_quantity": "物品數量：{0}%",
+    "map_atlas_drops": "輿圖掉落物：{0}%",
     "map_item_rarity": "物品稀有度：{0}%",
     "map_pack_size": "怪物群大小：{0}%",
     "has_empty_modifier": "1 條空白或工藝詞綴",

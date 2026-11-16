@@ -471,6 +471,14 @@
       "font_help": "Inside the settings window you can also use Ctrl + wheel or Ctrl + = / Ctrl + - to adjust it, and Ctrl + 0 to follow the global size again (settings window only; unrelated to in-game stash tab scrolling)."
     },
     "startup_toast": "Show a \"running in the background\" notice at startup",
+    "desktop_shortcut": {
+      "label": "Desktop shortcut",
+      "button": "Create desktop shortcut",
+      "done": "Created on the desktop",
+      "failed": "Could not create it; see Log for details",
+      "dev": "Not available in development mode",
+      "hint": "To keep it on the taskbar: right-click the desktop shortcut → Pin to taskbar (on Windows 11, choose \"Show more options\" first)."
+    },
     "hw_accel": {
       "label": "Hardware acceleration (GPU)",
       "note": "Off by default (same as before; drawn on the CPU). When on, drawing uses the GPU: scrolling and background images may be smoother, but the GPU is shared with the game. Turn it off again if anything looks wrong.",

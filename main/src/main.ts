@@ -43,6 +43,7 @@ import {
   HoverPausedCountdown, UPDATE_REMINDER_VISIBLE_MS, UpdateReminderScheduler, pointInBounds, reminderBounds, reminderButtonFromUrl, reminderHtml,
   reminderMessage, type ReminderAction, type ReminderButton, type ReminderMessage, type ReminderTarget
 } from './update-reminder'
+import { APP_USER_MODEL_ID, createDesktopShortcut } from './desktop-shortcut'
 import { DEFAULT_SCAN_INTERVAL_MS, RuneshapeScan } from './ocr/runeshape-scan'
 import { StashScan } from './ocr/stash-scan'
 import { DEFAULT_CLIENT_LOGS, GameLogWatcher, resolveClientLogPath } from './game-log'
@@ -783,6 +784,8 @@ app.on('will-quit', () => {
 })
 
 if (!skipStartup) app.whenReady().then(() => {
+  // 釘選到工作列的捷徑與執行中的視窗要同一個 AppUserModelID,否則工作列會出現兩個圖示
+  if (app.isPackaged) app.setAppUserModelId(APP_USER_MODEL_ID)
   installCookiePatch()
   // 正式版供應 renderer/dist;自訂背景圖 app://bg/ 兩種模式都要
   installAppProtocol(!DEV_URL)
@@ -1905,6 +1908,23 @@ if (!skipStartup) app.whenReady().then(() => {
       fn: async () => {
         const err = await shell.openPath(app.getPath('userData'))
         if (err) throw new Error(err)
+      }
+    },
+    // 2026-11-16:設定 › 一般 › 建立桌面捷徑(會在使用者桌面寫檔 → 預覽端不開放)
+    'desktop-shortcut-create': {
+      kind: 'invoke',
+      preview: false,
+      fn: () => {
+        const r = createDesktopShortcut({
+          isPackaged: app.isPackaged,
+          env: process.env,
+          execPath: process.execPath,
+          desktopDir: app.getPath('desktop'),
+          exists: p => fsSync.existsSync(p),
+          write: (p, op, o) => shell.writeShortcutLink(p, op, o)
+        })
+        console.log(`[shortcut] 建立桌面捷徑:${r.ok ? r.path : r.reason}`)
+        return r
       }
     },
     'preview-open':{ kind: 'invoke', fn: () => openPreviewInBrowser() },

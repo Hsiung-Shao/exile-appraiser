@@ -11,7 +11,8 @@ import type { StatFilter } from '@/web/price-check/filters/interfaces'
  * 地圖查價面板「該顯示哪幾條」的回歸網。
  *
  * 為什麼需要它:地圖的定價只看少數幾條 —— 物品數量/稀有度/怪物群大小(property)、
- * 更多地圖/通貨/命運卡(pseudo;更多聖甲蟲 2026-11-08 因 3.30 移除而不送)、以及固定詞綴(implicit,例如「區域受到
+ * 更多地圖/聖甲蟲(3.30 改名「綢帶」)/通貨/命運卡(pseudo;2026-11-08 曾因 3.30 移除聖甲蟲而不送,
+ * 2026-11-16 因改名綢帶而恢復)、輿圖掉落物(property,3.30 新增)、以及固定詞綴(implicit,例如「區域受到
  * 開創者的記憶影響」)。稀有地圖同時還帶 5-9 條隨機詞綴,它們占滿版面卻沒有一條
  * 是勾選的,使用者得先略過一長串才找得到真正在看的那幾條。
  *
@@ -76,8 +77,9 @@ const MAPS: Record<string, MapExpectation> = {
       ['property', 'Item Rarity: +#%', true],
       ['property', 'Monster Pack Size: +#%', false],
       ['pseudo', 'More Maps: #%', false],
+      ['pseudo', 'More Scarabs: #%', false],
       ['pseudo', 'More Currency: #%', false],
-      // 使用者列的清單沒提命運卡,但它與更多地圖/通貨是同一類 more-drops
+      // 使用者列的清單沒提命運卡,但它與更多地圖/聖甲蟲/通貨是同一類 more-drops
       // pseudo,漏掉會讓同類東西行為不一致
       ['pseudo', 'More Divination Cards: #%', false],
       // 固定詞綴 = 玩家口中的 T16.5 高難度地圖
@@ -104,10 +106,11 @@ const MAPS: Record<string, MapExpectation> = {
       ['property', 'Item Quantity: +#%', false],
       ['property', 'Item Rarity: +#%', true],
       ['property', 'Monster Pack Size: +#%', false],
+      ['pseudo', 'More Scarabs: #%', false],
       ['pseudo', 'More Currency: #%', false]
     ],
     hidden: 9,
-    why: '更多聖甲蟲(2026-11-08 起不送)+ 更多通貨'
+    why: '更多聖甲蟲 + 更多通貨'
   },
   'map-t16-corrupted': {
     visible: [
@@ -134,12 +137,28 @@ const MAPS: Record<string, MapExpectation> = {
   'map-t17-nightmare': {
     visible: [
       ['property', 'Item Quantity: +#%', false],
-      // 2026-11-08 起更多聖甲蟲不算更多掉落(3.30 移除聖甲蟲)→ 只有更多聖甲蟲的圖稀有度照常勾選
-      ['property', 'Item Rarity: +#%', false],
-      ['property', 'Monster Pack Size: +#%', false]
+      // 更多聖甲蟲算更多掉落 → 只有更多聖甲蟲的圖稀有度也不勾
+      ['property', 'Item Rarity: +#%', true],
+      ['property', 'Monster Pack Size: +#%', false],
+      ['pseudo', 'More Scarabs: #%', false]
     ],
     hidden: 6,
     why: '玩家口中的 T17 夢魘地圖'
+  },
+  // 3.30 實機文字:新增「輿圖掉落物」,「更多聖甲蟲」改名「更多 綢帶」(2026-11-16)
+  'map-t16-330-atlas-drops': {
+    visible: [
+      ['property', 'Atlas Drops: +#%', false],
+      // 有更多掉落(地圖 / 綢帶 / 通貨)→ 稀有度預設不勾
+      ['property', 'Item Rarity: +#%', true],
+      ['property', 'Monster Pack Size: +#%', false],
+      ['pseudo', 'More Maps: #%', false],
+      ['pseudo', 'More Scarabs: #%', false],
+      ['pseudo', 'More Currency: #%', false],
+      ['implicit', "Area is Influenced by the Originator's Memories", false]
+    ],
+    hidden: 6,
+    why: '3.30 地圖:輿圖掉落物排最前、更多 綢帶 照舊聖甲蟲的位置'
   },
   'map-t16-eater-occupied': {
     visible: [

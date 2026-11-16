@@ -109,6 +109,12 @@
             </template>
             <!-- 元件出錯時改畫錯誤框(寫進 main log)而不是整塊空白;換物品自動清除 -->
             <error-boundary v-else-if="parsed?.isOk() && leagueId && supported" :reset-key="itemKey" where="price-check">
+              <!-- 神聖石匯率(使用者 2026-11-16:查價時看得到 D:C;外觀同拆粉列、靠左、放最上方;只讀 poe.ninja 快照) -->
+              <!-- 外層多包一層:背景圖模式的可讀性規則套在 .price-main > * > *(補底色 + 左右內距),虛線框要落在那一層(同拆粉列),
+                   否則規則會套到箭頭 / 圖示上,圖示被內距擠成破圖、文字沒有底色 -->
+              <div v-if="divineRate" class="rate-row"><div class="p-2 border-dashed border border-gray-600 rounded-sm text-gray-400 leading-none" data-divine-rate>
+                <img :src="currencyIcon(divineRate.game, `divine`)" class="w-5 -my-5 inline-block" :alt="t(`ppz.menu.cur_divine`)"> <i class="fas fa-arrow-right text-gray-600 px-1 text-xs" /> {{ divineRate.text }} <span class="font-sans">×</span> <img :src="currencyIcon(divineRate.game, divineRate.to)" class="w-5 -my-5 inline-block" :alt="t(divineRate.to === `exa` ? `ppz.menu.cur_exa` : `ppz.menu.cur_chaos`)">
+              </div></div>
               <!-- 未鑑定傳奇:先選是哪個傳奇(兩代上游 PriceCheckWindow.vue 同位置;只有一個就自動選) -->
               <component :is="unidentifiedResolverComponent" v-if="unidentifiedResolverComponent"
                 :key="`u${itemKey}`" :item="parsed.value" @identify="onIdentify" />
@@ -244,6 +250,10 @@ import { Host } from './background/IPC'
 import { openTradeSite } from './trade-site'
 import { useLeagues } from './background/Leagues'
 import { useRateLimitWait } from './background/rate-limit-wait'
+import { usePoeninja } from './background/Prices'
+import { marketRateOf } from './overlay/market-rate'
+import { currencyIcon } from './price-panel/currency-icon'
+import type { NinjaSnapshot } from '@exile-appraiser/core/ninja'
 import { REALMS, isSupportedCombination } from '@exile-appraiser/core/realm'
 import { reloadPhase, reloadError, retryReload } from './loadState'
 import { reportIssue, copyIssueReport, reportStatus, type ReportContext } from './report'
@@ -277,6 +287,12 @@ export default defineComponent({
     const itemKey = shallowRef(0)
     // 429 Retry-After:面板頂端 --warn 細條倒數;2026-10-15 提升成共用(懸浮選單標題列的限流點也用)
     const rateLimitWait = useRateLimitWait()
+    const ninja = usePoeninja()
+    const divineRate = computed(() => {
+      const l = leagues.selected.value
+      return marketRateOf(ninja.snapshot.value as NinjaSnapshot | null,
+        AppConfig().realm === 'intl' && l?.id && l.isPopular ? { game: AppConfig().game, league: l.id } : null)
+    })
     // ---- overlay 狀態(APT WidgetManager 的最小子集) ----
     const panelShown = shallowRef(false)
     const advancedCheck = shallowRef(false)
@@ -676,6 +692,8 @@ export default defineComponent({
       },
       itemKey,
       rateLimitWait,
+      divineRate,
+      currencyIcon,
       checkedItemComponent: computed(() => loadedGame.value === 'poe2' ? Poe2.CheckedItem : CheckedItem),
       // 未鑑定傳奇的選擇列(PoE2 = EE2、PoE1 = APT 的 UnidentifiedResolver;2026-10-08 補上 PoE1)
       unidentifiedResolverComponent: computed(() => loadedGame.value === 'poe2' ? Poe2.UnidentifiedResolver : Poe1UnidentifiedResolver),
@@ -903,6 +921,20 @@ input[type=number]::-webkit-outer-spin-button {
   color: var(--ink-2);
   background: var(--surface-2);
   border-bottom: 1px solid var(--edge-0);
+}
+/* 神聖石匯率列:左右對齊 CheckedItem 的 p-4 */
+.rate-row {
+  flex: none;
+  margin: 0.75rem 1rem 0;
+}
+/* 底色用較亮的表面色(使用者 2026-11-16:背景圖模式下預設補的底色太暗、再要求更不透明):不跟面板不透明度,固定 90% */
+.rate-row > div {
+  background: color-mix(in srgb, var(--surface-3-c) 90%, transparent);
+}
+/* window 模式:CheckedItem(height 100% + min-h-0)會被後面的相關物品擠扁、內容溢出後被相關物品蓋住 → 照內容高度排 */
+.price-panel.is-window .price-main > .layout-column {
+  height: auto;
+  flex: none;
 }
 .strip .grow {
   flex: 1;

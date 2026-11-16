@@ -693,11 +693,61 @@ export function planMinionDoubled ({ enStats, zhStats, ggpkNew }) {
 }
 
 /**
- * 同一條詞綴在遊戲裡的另一種繁中寫法(遊戲檔別的描述檔的句子)。只收有實機樣本的,逐條列在這裡;
- * 寫入前仍要在 GGPK 新版找得到這句(英文相同),找不到就不加。
- * - `# 點命中`:3.30 手套後綴「獅眼之」顯示「+587 點命中」(GitHub issue #9),資料只有「# 命中值」
+ * 規則 19:「地圖含有 X 的壁壘」3.30 改成句型「Map contains {0}」:第二行(物品數量增加獎勵)拿掉,
+ * 進階複製在名稱後加「(...)」(GitHub 回報 2026-11-16 的實機地圖:「地圖含有巴倫的壁壘(...) — 無法使用的值」)。
+ * 多一個單行寫法 + 進階寫法,舊的兩行句標 superseded。英文沒有樣本,空白照規則 10 推出。
+ * @returns {{ adds: any[] }}
  */
-export const EXTRA_ZH_MATCHERS = [{ ref: '+# to Accuracy Rating', zh: '# 點命中' }]
+export function planCitadel ({ enStats, zhStats, ggpkNew }) {
+  const tpl = ggpkNew.find(r => r.key.startsWith('map_contains_citadel|') && r.en.includes('{0}'))
+  const adds = []
+  if (!tpl) return { adds }
+  const plan = (stats, lang, text, mark) => {
+    const head = toMatcherText(text).split('#')[0]
+    for (const stat of eachStat(stats)) {
+      if (!/^Map contains .+ Citadel\n/.test(stat.ref)) continue
+      for (const m of stat.matchers) {
+        const string = m.string.split('\n')[0]
+        if (m.superseded || !m.string.includes('\n') || !string.startsWith(head) || stat.matchers.some(x => x.string === string)) continue
+        adds.push({ lang, ref: stat.ref, matcher: { string, advanced: string + mark }, supersedes: [m.string] })
+      }
+    }
+  }
+  plan(enStats, 'en', tpl.en, ' (...)')
+  plan(zhStats, 'cmn-Hant', tpl.zh, '(...)')
+  return { adds }
+}
+
+/**
+ * 同一條詞綴在遊戲裡的另一種繁中寫法。寫入前仍要在 GGPK 新版找得到這句(英文相同),找不到就不加。
+ * - 沒有 `current`:兩種寫法遊戲裡都有(另一句在別的描述檔)→ 新句標 superseded(正則頁不拿它當模板)。
+ *   `# 點命中`:3.30 手套後綴「獅眼之」顯示「+587 點命中」(GitHub issue #9),資料只有「# 命中值」。
+ * - `current: true`:專案原句在 GGPK 任何描述檔都找不到(APT 留下的舊句 / 錯字 / 沒翻)→ 新句是現行寫法,舊句標 superseded。
+ *   同旗標的舊 matcher 不只一條時用 `old` 指名要標的那一句(祭祀神壇:另一句「你地圖中的…」是輿圖天賦的現行寫法)。
+ *   單手近戰武器暴擊加成有實機樣本(2026-11-15 翠綠珠寶);其餘是同日 GGPK 3.30 比對補的(使用者裁定沒有實機樣本也補)。
+ * 加新條目前先確認新句在 GGPK 屬於同一個 stat(同一句英文可能對到好幾個 stat,繁中各不相同)。
+ */
+export const EXTRA_ZH_MATCHERS = [
+  { ref: '+# to Accuracy Rating', zh: '# 點命中' },
+  { ref: '+#% to Critical Strike Multiplier with One Handed Melee Weapons', zh: '#% 單手近戰武器暴擊加成', current: true },
+  { ref: '+#% to Critical Strike Multiplier with Axes', zh: '#% 斧暴擊加成', current: true },
+  { ref: '+#% to Critical Strike Multiplier with Bows', zh: '#% 弓暴擊加成', current: true },
+  { ref: '+#% to Critical Strike Multiplier with Claws', zh: '#% 爪暴擊加成', current: true },
+  { ref: '+#% to Critical Strike Multiplier with Daggers', zh: '#% 匕首暴擊加成', current: true },
+  { ref: '+#% to Critical Strike Multiplier with Maces or Sceptres', zh: '#% 錘和權杖暴擊加成', current: true },
+  { ref: '+#% to Critical Strike Multiplier with Staves', zh: '#% 長杖暴擊加成', current: true },
+  { ref: '+#% to Critical Strike Multiplier with Swords', zh: '#% 劍暴擊加成', current: true },
+  { ref: '+#% to Critical Strike Multiplier with Wands', zh: '#% 法杖暴擊加成', current: true },
+  { ref: '#% chance to Trigger Explosive Toad when you kill an Enemy', zh: '當你擊殺一名敵人時有 #% 機率觸發爆炸蟾蜍', current: true },
+  { ref: '#% chance to Trigger Level 20 Shade Form when you Use a Socketed Skill', zh: '當你使用插槽中的技能時，有 #% 機率觸發等級 20 的暗影姿態', current: true },
+  { ref: '+#% chance to Suppress Spell Damage per Power Charge', zh: '每顆暴擊球 #% 壓抑法術傷害率', current: true },
+  { ref: 'Monsters cannot steal or remove your Power, Frenzy or Endurance charges on Hit', zh: '怪物擊中時無法偷取或移除你的暴擊、狂怒、或耐力球', current: true },
+  { ref: 'You can have an additional Tincture active', zh: '你可以啟用額外一個萃取物', current: true },
+  { ref: '#% chance to Blind Enemies on hit', zh: '擊中時有 #% 機率致盲敵人' },
+  { ref: '#% increased chance of Ritual Altars with Special Rewards', zh: '增加 #% 祭祀神壇出現特殊獎勵的機率', current: true, old: '增加 #% 特殊獎勵出現於祭祀神壇的機率' },
+  { ref: '#% increased chance of Ritual Altars with Special Rewards', zh: '減少 #% 祭祀神壇出現特殊獎勵的機率', negate: true, current: true, old: '減少 #% 特殊獎勵出現於祭祀神壇的機率' },
+  { ref: 'Map Bosses have #% chance to be surrounded by Tormented Spirits', zh: '地圖頭目有 #% 機率受罪魂包圍' }
+]
 
 /** 規則 11:`EXTRA_ZH_MATCHERS` → 繁中多一個 matcher @returns {{ adds: any[] }} */
 export function planExtraZh ({ zhStats, ggpkNew }) {
@@ -705,24 +755,50 @@ export function planExtraZh ({ zhStats, ggpkNew }) {
   const adds = []
   for (const x of EXTRA_ZH_MATCHERS) {
     const have = [...eachStat(zhStats)].filter(s => s.ref === x.ref)
-    if (!have.length || have.every(s => s.matchers.some(m => m.string === x.zh)) || !inGgpk.has(`${cmpKey(x.ref)}|${x.zh}`)) continue
+    // negate 的那一句在 GGPK 的英文是 reduced
+    if (!have.length || have.every(s => s.matchers.some(m => m.string === x.zh)) || !inGgpk.has(`${cmpKey(x.negate ? x.ref.replace('increased', 'reduced') : x.ref)}|${x.zh}`)) continue
     // superseded:解析器照樣比對,正則「物品詞綴數值」頁不拿它當模板(否則這條變成多種寫法而被排除)
-    adds.push({ lang: 'cmn-Hant', ref: x.ref, matcher: { string: x.zh, superseded: true } })
+    // supersedes:有 old 就標那一句;''(逐字對不到任何舊句)→ applyStatPlan 在同旗標的舊 matcher 恰好一條時標它
+    adds.push(x.current
+      ? { lang: 'cmn-Hant', ref: x.ref, matcher: { string: x.zh, ...(x.negate ? { negate: true } : {}) }, supersedes: x.old ?? '' }
+      : { lang: 'cmn-Hant', ref: x.ref, matcher: { string: x.zh, ...(x.negate ? { negate: true } : {}), superseded: true } })
   }
   return { adds }
 }
 
 /**
+ * 交易站的叫法 ≠ 遊戲內名稱、而且上游那一列是壞的(matcher 帶「Has Room: 」前綴、沒有 option → 遊戲文字永遠對不到):
+ * ref → 遊戲內英文名(GGPK incursionrooms;2026-11-16 逐列比對 87 個房間只有這一列)
+ */
+export const ROOM_GAME_NAMES = { 'Has Room: Splinter Research Lab (Tier 1)': 'Anomaly Research Lab' }
+
+/**
  * 規則 17:阿茲瓦特史記的房間(ref `Has Room: X (Tier N)`)繁中名與 GGPK `incursionrooms` 不同 → 加上 GGPK 的寫法、舊名標 superseded
  * (GitHub issue #14:遊戲顯示「保險箱之殿 (階級 1)」,資料是「寶箱之殿」)。GGPK 名稱不唯一就不動。
- * @returns {{ adds: any[] }}
+ * @param {{ zhStats: any[], enStats?: any[], rooms: any[], renames?: any[] }} input
+ * @returns {{ adds: any[], option: string[] }}
  */
-export function planRoomNames ({ zhStats, rooms }) {
+export function planRoomNames ({ zhStats, enStats = [], rooms, renames = [] }) {
   const zhOf = groupBy(rooms, r => r.en)
   const adds = []
+  // 英文名也改了(3.30:阿茲里宴殿等三階 → 創造之搖籃 Cradle of Creation):ref 不動(語言無關鍵),兩語各加新名、舊名標 superseded
+  const renameOf = groupBy(renames, r => r.from)
+  // 房間目前的英文名:ref 停在舊名,改過名的要看英文現行 matcher(否則下一季再改名 / 只改繁中名都對不到)
+  const liveEn = new Map([...eachStat(enStats)].map(s => [s.ref, s.matchers.find(x => !x.superseded)?.string.split(' (')[0]]))
+  const nameOf = (ref) => { const m = /^Has Room: (.+) \(Tier \d+\)$/.exec(ref); return m ? (liveEn.get(ref) ?? m[1]) : null }
+  for (const [lang, stats] of [['cmn-Hant', zhStats], ['en', enStats]]) {
+    for (const stat of eachStat(stats)) {
+      const to = [...new Set((renameOf.get(nameOf(stat.ref)) ?? []).map(r => lang === 'en' ? r.en : r.zh))]
+      if (to.length !== 1) continue
+      for (const old of stat.matchers.filter(x => !x.superseded)) {
+        const cut = old.string.indexOf(' (')
+        const next = cut === -1 ? null : to[0] + old.string.slice(cut)
+        if (next && next !== old.string && !stat.matchers.some(x => x.string === next)) adds.push({ lang, ref: stat.ref, matcher: { string: next }, supersedes: old.string })
+      }
+    }
+  }
   for (const stat of eachStat(zhStats)) {
-    const m = /^Has Room: (.+) \(Tier \d+\)$/.exec(stat.ref)
-    const names = m ? [...new Set((zhOf.get(m[1]) ?? []).map(r => r.zh))] : []
+    const names = [...new Set((zhOf.get(nameOf(stat.ref)) ?? []).map(r => r.zh))]
     if (names.length !== 1) continue
     for (const old of stat.matchers.filter(x => !x.superseded)) {
       const cut = old.string.indexOf(' (')
@@ -730,7 +806,20 @@ export function planRoomNames ({ zhStats, rooms }) {
       if (next && next !== old.string && !stat.matchers.some(x => x.string === next)) adds.push({ lang: 'cmn-Hant', ref: stat.ref, matcher: { string: next }, supersedes: old.string })
     }
   }
-  return { adds }
+  // 壞掉的列(ROOM_GAME_NAMES):兩語補上遊戲內寫法,並標成選項型(開啟 / 受阻)
+  const option = []
+  for (const [ref, en] of Object.entries(ROOM_GAME_NAMES)) {
+    const zh = [...new Set((zhOf.get(en) ?? []).map(r => r.zh))]
+    const tier = / \(Tier (\d+)\)$/.exec(ref)?.[1]
+    if (zh.length !== 1 || !tier) continue
+    for (const [lang, stats, text] of [['cmn-Hant', zhStats, `${zh[0]} (階級 ${tier})`], ['en', enStats, `${en} (Tier ${tier})`]]) {
+      const stat = [...eachStat(stats)].find(s => s.ref === ref)
+      if (!stat) continue
+      if (!stat.matchers.some(x => x.string === text)) adds.push({ lang, ref, matcher: { string: text }, supersedes: stat.matchers.find(x => !x.superseded)?.string ?? '' })
+      if (!stat.trade?.option && !option.includes(ref)) option.push(ref)
+    }
+  }
+  return { adds, option }
 }
 
 /**
@@ -769,9 +858,9 @@ function rewriteLines (fileText, edit, appended = []) {
  * 套用詞綴計畫(adds / replace / remove / newStats)到一份 stats.ndjson 文字
  * @param {string} fileText
  * @param {'en' | 'cmn-Hant'} lang
- * @param {{ adds?: any[], replace?: Record<string, string>, remove?: string[], newStats?: any[], better?: Record<string, number>, fill?: Record<string, Record<string, string[]>>, extra?: Record<string, Record<string, string[]>> }} [plan]
+ * @param {{ adds?: any[], replace?: Record<string, string>, remove?: string[], newStats?: any[], better?: Record<string, number>, fill?: Record<string, Record<string, string[]>>, extra?: Record<string, Record<string, string[]>>, option?: string[] }} [plan]
  */
-export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove = [], newStats = [], better = {}, fill = {}, extra = {} } = {}) {
+export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove = [], newStats = [], better = {}, fill = {}, extra = {}, option = [] } = {}) {
   const addsByRef = groupBy(adds.filter(a => a.lang === lang), a => a.ref)
   const gone = new Set(remove)
   const existingRefs = new Set()
@@ -780,6 +869,10 @@ export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove
     existingRefs.add(stat.ref)
     if (stat.ref in better && stat.better !== better[stat.ref]) {
       stat.better = better[stat.ref]
+      changed = true
+    }
+    if (option.includes(stat.ref) && stat.trade && !stat.trade.option) {
+      stat.trade.option = true
       changed = true
     }
     for (const a of addsByRef.get(stat.ref) ?? []) {

@@ -31,7 +31,7 @@ import { uIOhook, UiohookKey } from 'uiohook-napi'
 import { isModKey, KeyToElectron, mergeTwoHotkeys } from '@ipc/KeyToCode'
 import type { GameId, HostConfigForMain, HotkeyRegistration, ItemTextEvent, OcrRegionPickTarget, RegexBookmarkRunEvent, TimerAction } from '@ipc/types'
 import { HostClipboard } from './HostClipboard'
-import { buildShortcutActions, normalizeHotkey, reservedShortcuts, sameShortcutActions, type ShortcutAction } from './shortcut-actions'
+import { buildShortcutActions, matchCopyHotkey, normalizeHotkey, reservedShortcuts, sameShortcutActions, type ShortcutAction } from './shortcut-actions'
 import { stashSearch, typeInChat, type TextBoxDeps } from './text-box'
 import type { OverlayWindow } from './windowing/OverlayWindow'
 import type { GameWindow } from './windowing/GameWindow'
@@ -54,6 +54,9 @@ export class Shortcuts {
   /** 上一次 updateActions 的回傳(動作清單沒變時直接沿用,熱鍵註冊結果不變) */
   private lastResult: HotkeyRegistration | null = null
   readonly clipboard = new HostClipboard()
+  /** 診斷:最近一次任何熱鍵觸發的時間、是否已有一筆「按了沒觸發」在等 */
+  private lastTriggerAt = 0
+  private missPending = false
 
   constructor (
     private opts: {
@@ -83,6 +86,22 @@ export class Shortcuts {
     }
   ) {
     const { poeWindow } = opts
+    // 診斷(不改行為):全域掛鉤開著時(倉庫頁籤捲動:遊戲前景 + 按住 Ctrl;查價面板追蹤期間)看到查價熱鍵的主鍵被按下,
+    // 但 300 ms 內全域熱鍵沒觸發 → 記一行當時的修飾鍵狀態。掛鉤沒開就收不到事件,不另外持有掛鉤。
+    if (opts.mode === 'overlay') {
+      uIOhook.on('keydown', (e) => {
+        if (!this.isRegistered || this.missPending) return
+        const hit = matchCopyHotkey(this.actions, e, key => UiohookKey[key as UiohookKeyT])
+        if (!hit) return
+        const at = Date.now()
+        this.missPending = true
+        setTimeout(() => {
+          this.missPending = false
+          if (this.lastTriggerAt >= at - 50 || !this.isRegistered) return
+          console.warn(`[shortcuts] 按了 ${hit.shortcut} 的按鍵但全域熱鍵沒觸發:多按 ${hit.extra.join('+') || '無'}、少按 ${hit.missing.join('+') || '無'}(遊戲前景 ${String(poeWindow?.isActive)})`)
+        }, 300)
+      })
+    }
     if (opts.mode === 'overlay' && poeWindow) {
       poeWindow.on('active-change', (isActive) => {
         process.nextTick(() => {
@@ -159,6 +178,7 @@ export class Shortcuts {
   }
 
   private trigger (entry: ShortcutAction) {
+    this.lastTriggerAt = Date.now()
     console.log(`[shortcuts] 觸發 ${entry.shortcut} (${entry.action.type})`)
     if (entry.action.type === 'ocr-reveal') {
       // WP-S:只截圖 + OCR,不動鍵盤(不放開修飾鍵、不送複製鍵)

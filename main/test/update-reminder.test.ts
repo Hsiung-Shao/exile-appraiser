@@ -241,13 +241,13 @@ describe('UpdateReminderScheduler', () => {
 })
 
 describe('淡出計時(滑鼠停在上面時暫停)', () => {
-  it('約 8 秒開始淡出,淡出完才關;hover 期間不前進', () => {
-    expect(UPDATE_REMINDER_VISIBLE_MS).toBe(8000)
+  it('約 5 秒開始淡出,淡出完才關;hover 期間不前進', () => {
+    expect(UPDATE_REMINDER_VISIBLE_MS).toBe(5000)
     const c = new HoverPausedCountdown()
-    expect(c.advance(5000, false)).toBe(false)
+    expect(c.advance(3000, false)).toBe(false)
     expect(c.advance(60_000, true)).toBe(false)
-    expect(c.elapsedMs).toBe(5000)
-    expect(c.advance(3000 + TOAST_FADE_MS - 1, false)).toBe(false)
+    expect(c.elapsedMs).toBe(3000)
+    expect(c.advance(2000 + TOAST_FADE_MS - 1, false)).toBe(false)
     expect(c.advance(1, false)).toBe(true)
   })
   it('pointInBounds', () => {

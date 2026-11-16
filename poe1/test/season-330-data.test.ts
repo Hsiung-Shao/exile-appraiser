@@ -185,6 +185,45 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(refsOf(gloves)).toContain('+# to Accuracy Rating')
   })
 
+  it('D17b 珠寶「+#% 單手近戰武器暴擊加成」寫法(使用者 2026-11-15 實機珠寶)解析得到', () => {
+    const jewel = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-viridian-jewel-1h-crit-multi.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(jewel)).toEqual([])
+    expect(refsOf(jewel)).toContain('+#% to Critical Strike Multiplier with One Handed Melee Weapons')
+  })
+
+  it('D17c GGPK 比對補的繁中寫法(2026-11-15):新舊寫法都解析成同一條,減少的寫法數值為負', () => {
+    const item = parse(ringText('cmn-Hant', [['+30% 弓暴擊加成', '持弓時 +30% 暴擊加成', '減少 12% 祭祀神壇出現特殊獎勵的機率']]))
+    expect(unknownOf(item)).toEqual([])
+    expect(refsOf(item)).toContain('+#% to Critical Strike Multiplier with Bows')
+    const ritual = item.statsByType.find(s => s.stat.ref === '#% increased chance of Ritual Altars with Special Rewards')
+    expect(ritual?.sources[0].stat.roll?.value).toBe(-12)
+  })
+
+  it('D17d 箭袋固定詞綴「箭矢穿透一個額外目標」(句子沒有數字,使用者 2026-11-16 實機箭袋)解析得到並帶兩個固定詞綴 id', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-penetrating-quiver.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(item)).toEqual([])
+    const hit = item.statsByType.find(s => s.stat.ref === 'Arrows Pierce an additional Target')
+    expect(hit?.type).toBe('implicit')
+    expect(hit?.stat.trade.ids.implicit).toEqual(['implicit.stat_3423006863', '{empty}implicit.stat_3492025235'])
+  })
+
+  it('D17e 3.30 壁壘地圖的固定詞綴(進階複製「地圖含有巴倫的壁壘(...)」,2026-11-16 回報的實機地圖)解析得到並帶選項 id', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-map-baran-citadel.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(item)).toEqual([])
+    const hit = item.statsByType.find(s => s.stat.ref.startsWith("Map contains Baran's Citadel"))
+    expect(hit?.type).toBe('implicit')
+    expect(hit?.stat.trade.ids.implicit).toEqual(['implicit.stat_2563183002|1'])
+    expect(item.areaAtlasDrops).toBe(81)
+  })
+
+  it('D17f 3.30 史記的改名房間「創造之搖籃 (階級 3)」(2026-11-16 回報;文字依截圖重組,不是實機剪貼簿)解析得到', () => {
+    const item = parse(['物品種類: 雜項地圖物品', '稀有度: 普通', '阿茲瓦特史記', '--------', '區域等級: 80', '--------', '物品等級: 80', '--------', '開啟房間：', '祭祀之巔 (階級 3)', '神話之殿 (階級 3)', '阿茲瓦特之巔', '創造之搖籃 (階級 3)', '異常研究所 (階級 1)', '--------', '可在阿茲瓦特神殿使用。'].join('\n') + '\n')
+    expect(unknownOf(item)).toEqual([])
+    expect(item.statsByType.find(s => s.stat.ref === 'Has Room: Throne of Atziri (Tier 3)')?.stat.trade.ids.pseudo).toEqual(['pseudo.pseudo_temple_queens_chambers_3'])
+    // 裂痕房間階級 1:遊戲內叫「異常研究所」(交易站叫 Splinter Research Lab;上游那一列是壞的)
+    expect(item.statsByType.find(s => s.stat.ref === 'Has Room: Splinter Research Lab (Tier 1)')?.stat.trade).toMatchObject({ ids: { pseudo: ['pseudo.pseudo_temple_breach_room_1'] }, option: true })
+  })
+
   it('D18 破裂的「+#%物品稀有度」(使用者 2026-11-15 貼的實機手套)解析成原詞綴並帶破裂 id', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-fractured-rarity-gloves.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
@@ -276,6 +315,28 @@ describe('3.30 資料檔', () => {
     const room = readNdjson('cmn-Hant', 'stats.ndjson').flatMap(r => r.stats ?? [r]).find(s => s.ref === 'Has Room: Strongbox Chamber (Tier 1)')
     expect(room.matchers.filter((m: any) => !m.superseded).map((m: any) => m.string)).toEqual(['保險箱之殿 (階級 1)'])
     expect(room.matchers.map((m: any) => m.string)).toContain('寶箱之殿 (階級 1)')
+  })
+
+  it('D22b 3.30 史記房間改名:新名為唯一有效寫法、舊名仍保留(兩個語系)', () => {
+    const table: Array<[string, string, string, string, string]> = [
+      ['Has Room: Royal Meeting Room (Tier 1)', '王室宴客室 (階級 1)', '創造之搖籃 (階級 1)', 'Royal Meeting Room (Tier 1)', 'Cradle of Creation (Tier 1)'],
+      ['Has Room: Hall of Lords (Tier 2)', '權貴殿堂 (階級 2)', '創造之搖籃 (階級 2)', 'Hall of Lords (Tier 2)', 'Cradle of Creation (Tier 2)'],
+      ['Has Room: Throne of Atziri (Tier 3)', '阿茲里宴殿 (階級 3)', '創造之搖籃 (階級 3)', 'Throne of Atziri (Tier 3)', 'Cradle of Creation (Tier 3)'],
+      ['Has Room: Omnitect Forge (Tier 2)', '全能冶煉室 (階級 2)', '皇家熔爐 (階級 2)', 'Omnitect Forge (Tier 2)', 'Royal Forge (Tier 2)'],
+      ['Has Room: Omnitect Reactor Plant (Tier 2)', '全能反應廠 (階級 2)', '宏偉反應爐 (階級 2)', 'Omnitect Reactor Plant (Tier 2)', 'Grand Reactor (Tier 2)']
+    ]
+    const stats = {
+      'cmn-Hant': readNdjson('cmn-Hant', 'stats.ndjson').flatMap(r => r.stats ?? [r]),
+      en: readNdjson('en', 'stats.ndjson').flatMap(r => r.stats ?? [r])
+    }
+    for (const [ref, zhOld, zhNew, enOld, enNew] of table) {
+      for (const [lang, oldName, newName] of [['cmn-Hant', zhOld, zhNew], ['en', enOld, enNew]] as const) {
+        const row = stats[lang].find(s => s.ref === ref)
+        expect(row, `${lang} ${ref}`).toBeDefined()
+        expect(row.matchers.filter((m: any) => !m.superseded).map((m: any) => m.string), `${lang} ${ref}`).toEqual([newName])
+        expect(row.matchers.map((m: any) => m.string), `${lang} ${ref}`).toContain(oldName)
+      }
+    }
   })
 
   it('D4 stats.ndjson 不再引用交易站已移除的 id', () => {

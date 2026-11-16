@@ -701,6 +701,8 @@ export interface HostApi {
   openLogFolder?: () => Promise<void>
   /** 步 38:開啟設定資料夾(userData,內含 config.json)。托盤選單已移除該項,改由設定 › 關於提供;預覽 shim 沒有(`preview: false`)。 */
   openConfigFolder?: () => Promise<void>
+  /** 設定 › 一般 › 建立桌面捷徑(只有 Electron 視窗;dev = 開發模式不建立) */
+  createDesktopShortcut?: () => Promise<{ ok: true, path: string } | { ok: false, reason: 'dev' | 'failed' }>
   /** 第 29 步:效能診斷狀態。瀏覽器預覽 shim 沒有這三個方法(`preview: false`)。 */
   perfGet?: () => Promise<PerfState>
   /** 第 29 步:開 / 關效能診斷(存進 userData/perf.json,立即生效);回傳新狀態 */
