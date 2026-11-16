@@ -767,17 +767,17 @@ export function planExtraZh ({ zhStats, ggpkNew }) {
 }
 
 /**
- * 規則 17:阿茲瓦特史記的房間(ref `Has Room: X (Tier N)`)繁中名與 GGPK `incursionrooms` 不同 → 加上 GGPK 的寫法、舊名標 superseded
- * (GitHub issue #14:遊戲顯示「保險箱之殿 (階級 1)」,資料是「寶箱之殿」)。GGPK 名稱不唯一就不動。
- * @param {{ zhStats: any[], enStats?: any[], rooms: any[], renames?: any[] }} input
- * @returns {{ adds: any[], option: string[] }}
- */
-/**
  * 交易站的叫法 ≠ 遊戲內名稱、而且上游那一列是壞的(matcher 帶「Has Room: 」前綴、沒有 option → 遊戲文字永遠對不到):
  * ref → 遊戲內英文名(GGPK incursionrooms;2026-11-16 逐列比對 87 個房間只有這一列)
  */
 export const ROOM_GAME_NAMES = { 'Has Room: Splinter Research Lab (Tier 1)': 'Anomaly Research Lab' }
 
+/**
+ * 規則 17:阿茲瓦特史記的房間(ref `Has Room: X (Tier N)`)繁中名與 GGPK `incursionrooms` 不同 → 加上 GGPK 的寫法、舊名標 superseded
+ * (GitHub issue #14:遊戲顯示「保險箱之殿 (階級 1)」,資料是「寶箱之殿」)。GGPK 名稱不唯一就不動。
+ * @param {{ zhStats: any[], enStats?: any[], rooms: any[], renames?: any[] }} input
+ * @returns {{ adds: any[], option: string[] }}
+ */
 export function planRoomNames ({ zhStats, enStats = [], rooms, renames = [] }) {
   const zhOf = groupBy(rooms, r => r.en)
   const adds = []
