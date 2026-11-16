@@ -216,6 +216,12 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(item.areaAtlasDrops).toBe(81)
   })
 
+  it('D17f 3.30 史記的改名房間「創造之搖籃 (階級 3)」(2026-11-16 回報;文字依截圖重組,不是實機剪貼簿)解析得到', () => {
+    const item = parse(['物品種類: 雜項地圖物品', '稀有度: 普通', '阿茲瓦特史記', '--------', '區域等級: 80', '--------', '物品等級: 80', '--------', '開啟房間：', '祭祀之巔 (階級 3)', '神話之殿 (階級 3)', '阿茲瓦特之巔', '創造之搖籃 (階級 3)', '--------', '可在阿茲瓦特神殿使用。'].join('\n') + '\n')
+    expect(unknownOf(item)).toEqual([])
+    expect(item.statsByType.find(s => s.stat.ref === 'Has Room: Throne of Atziri (Tier 3)')?.stat.trade.ids.pseudo).toEqual(['pseudo.pseudo_temple_queens_chambers_3'])
+  })
+
   it('D18 破裂的「+#%物品稀有度」(使用者 2026-11-15 貼的實機手套)解析成原詞綴並帶破裂 id', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-fractured-rarity-gloves.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])

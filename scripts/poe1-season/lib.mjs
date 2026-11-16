@@ -777,10 +777,12 @@ export function planRoomNames ({ zhStats, enStats = [], rooms, renames = [] }) {
   const adds = []
   // 英文名也改了(3.30:阿茲里宴殿等三階 → 創造之搖籃 Cradle of Creation):ref 不動(語言無關鍵),兩語各加新名、舊名標 superseded
   const renameOf = groupBy(renames, r => r.from)
+  // 房間目前的英文名:ref 停在舊名,改過名的要看英文現行 matcher(否則下一季再改名 / 只改繁中名都對不到)
+  const liveEn = new Map([...eachStat(enStats)].map(s => [s.ref, s.matchers.find(x => !x.superseded)?.string.split(' (')[0]]))
+  const nameOf = (ref) => { const m = /^Has Room: (.+) \(Tier \d+\)$/.exec(ref); return m ? (liveEn.get(ref) ?? m[1]) : null }
   for (const [lang, stats] of [['cmn-Hant', zhStats], ['en', enStats]]) {
     for (const stat of eachStat(stats)) {
-      const m = /^Has Room: (.+) \(Tier \d+\)$/.exec(stat.ref)
-      const to = m ? [...new Set((renameOf.get(m[1]) ?? []).map(r => lang === 'en' ? r.en : r.zh))] : []
+      const to = [...new Set((renameOf.get(nameOf(stat.ref)) ?? []).map(r => lang === 'en' ? r.en : r.zh))]
       if (to.length !== 1) continue
       for (const old of stat.matchers.filter(x => !x.superseded)) {
         const cut = old.string.indexOf(' (')
@@ -790,8 +792,7 @@ export function planRoomNames ({ zhStats, enStats = [], rooms, renames = [] }) {
     }
   }
   for (const stat of eachStat(zhStats)) {
-    const m = /^Has Room: (.+) \(Tier \d+\)$/.exec(stat.ref)
-    const names = m ? [...new Set((zhOf.get(m[1]) ?? []).map(r => r.zh))] : []
+    const names = [...new Set((zhOf.get(nameOf(stat.ref)) ?? []).map(r => r.zh))]
     if (names.length !== 1) continue
     for (const old of stat.matchers.filter(x => !x.superseded)) {
       const cut = old.string.indexOf(' (')

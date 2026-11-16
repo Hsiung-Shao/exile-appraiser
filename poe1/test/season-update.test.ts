@@ -506,6 +506,14 @@ describe('planTypeIds(規則 16)', () => {
 })
 
 describe('planRoomNames(規則 17)', () => {
+  it('改過名的房間以英文現行名對照:再改名、只改繁中名都補得到', () => {
+    const row = (ms: any[]) => [{ ref: 'Has Room: Throne of Atziri (Tier 3)', better: 0, matchers: ms, trade: { ids: { pseudo: ['pseudo.x'] }, option: true } }]
+    const enStats = row([{ string: 'Throne of Atziri (Tier 3)', superseded: true }, { string: 'Cradle of Creation (Tier 3)' }])
+    const zhStats = row([{ string: '阿茲里宴殿 (階級 3)', superseded: true }, { string: '創造之搖籃 (階級 3)' }])
+    expect(planRoomNames({ zhStats, enStats, rooms: [], renames: [{ from: 'Cradle of Creation', en: 'Nest', zh: '巢' }] }).adds.map(a => a.matcher.string)).toEqual(['巢 (階級 3)', 'Nest (Tier 3)'])
+    expect(planRoomNames({ zhStats, enStats, rooms: [{ en: 'Cradle of Creation', zh: '創世搖籃' }] }).adds).toEqual([{ lang: 'cmn-Hant', ref: 'Has Room: Throne of Atziri (Tier 3)', matcher: { string: '創世搖籃 (階級 3)' }, supersedes: '創造之搖籃 (階級 3)' }])
+  })
+
   it('史記房間的繁中名與 GGPK 不同就加上 GGPK 的寫法、舊名標 superseded(GitHub issue #14 保險箱之殿);名稱不唯一或相同不動', () => {
     const room = (ref: string, zh: string) => ({ ref, better: 0, matchers: [{ string: zh }], trade: { ids: { pseudo: ['pseudo.x'] }, option: true } })
     const zhStats = [room('Has Room: Strongbox Chamber (Tier 1)', '寶箱之殿 (階級 1)'), room('Has Room: Vault (Tier 1)', '金庫 (階級 1)'), room('Has Room: Twin (Tier 2)', '舊 (階級 2)')]
