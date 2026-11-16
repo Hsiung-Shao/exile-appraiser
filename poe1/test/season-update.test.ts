@@ -527,10 +527,18 @@ describe('planExtraZh(規則 11)', () => {
   it('negate 的現行寫法:帶 negate、只標指名的舊句,重跑為空', () => {
     const zhStats = [{ ref: x.ref, better: 1, matchers: [{ string: '別句' }, { string: x.old, negate: true }, { string: '另一句減少', negate: true }], trade: { ids: { explicit: ['explicit.x'] } } }]
     const plan = planExtraZh({ zhStats, ggpkNew })
-    expect(plan.adds).toEqual([{ lang: 'cmn-Hant', ref: x.ref, matcher: { string: x.zh, negate: true }, supersedes: x.old }])
+    expect(plan.adds).toEqual([{ lang: 'cmn-Hant', ref: x.ref, matcher: { string: x.zh, negate: true }, supersedes: x.old, revive: true }])
     const out = parseRows(applyStatPlan(toFile(zhStats), 'cmn-Hant', plan))
     expect(out[0].matchers).toEqual([{ string: '別句' }, { string: x.old, negate: true, superseded: true }, { string: '另一句減少', negate: true }, { string: x.zh, negate: true }])
     expect(planExtraZh({ zhStats: out, ggpkNew }).adds).toEqual([])
+  })
+  it('之前標反的(新句被標 superseded)換回來:新句現行、舊句標記,重跑為空', () => {
+    const b = EXTRA_ZH_MATCHERS.find(e => e.ref === '#% chance to Blind Enemies on hit')!
+    const zhStats = [{ ref: b.ref, better: 1, matchers: [{ string: b.old }, { string: b.zh, superseded: true }], trade: { ids: {} } }]
+    const g = [{ key: 'k', en: b.ref, zh: b.zh }]
+    const out = parseRows(applyStatPlan(toFile(zhStats), 'cmn-Hant', planExtraZh({ zhStats, ggpkNew: g })))
+    expect(out[0].matchers).toEqual([{ string: b.old, superseded: true }, { string: b.zh }])
+    expect(planExtraZh({ zhStats: out, ggpkNew: g }).adds).toEqual([])
   })
   it('GGPK 新版沒有這句就不加', () => {
     const zhStats = [{ ref: x.ref, better: 1, matchers: [{ string: x.old, negate: true }], trade: { ids: {} } }]

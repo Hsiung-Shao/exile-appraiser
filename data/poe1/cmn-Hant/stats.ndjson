@@ -198,7 +198,7 @@
 {"ref":"#% chance to Avoid Resolve loss from Enemy Hits if you've been Hit recently","better":1,"matchers":[{"string":"若你近期有被擊中，有 #% 機率被敵人擊中時避免失去決心"}],"trade":{"ids":{"explicit":["sanctum.stat_2284543592"]}}}
 {"ref":"#% chance to be inflicted with Bleeding when Hit by an Attack","better":1,"matchers":[{"string":"被攻擊擊中時有 #% 機率進入流血狀態"}],"trade":{"ids":{"explicit":["explicit.stat_2155467472"]}}}
 {"ref":"#% chance to Blind Enemies on Critical Strike","better":1,"matchers":[{"string":"暴擊有 #% 機率致盲敵人"}],"trade":{"ids":{"explicit":["explicit.stat_3983981705"]}}}
-{"ref":"#% chance to Blind Enemies on hit","better":1,"matchers":[{"string":"擊中時 #% 機率致盲敵人"},{"string":"擊中時有 #% 機率致盲敵人","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_2301191210"],"fractured":["fractured.stat_2301191210"],"crafted":["crafted.stat_2301191210"]}}}
+{"ref":"#% chance to Blind Enemies on hit","better":1,"matchers":[{"string":"擊中時 #% 機率致盲敵人","superseded":true},{"string":"擊中時有 #% 機率致盲敵人"}],"trade":{"ids":{"explicit":["explicit.stat_2301191210"],"fractured":["fractured.stat_2301191210"],"crafted":["crafted.stat_2301191210"]}}}
 {"ref":"#% chance to Blind Enemies on Hit with Attacks","better":1,"matchers":[{"string":"攻擊擊中時有 #% 機率造成致盲"},{"string":"攻擊擊中時造成致盲","value":100}],"trade":{"ids":{"explicit":["explicit.stat_318953428"],"implicit":["implicit.stat_318953428"],"fractured":["fractured.stat_318953428"],"enchant":["enchant.stat_318953428"]}}}
 {"ref":"#% chance to Blind Enemies on Hit with Melee Weapons","better":1,"matchers":[{"string":"使用近戰武器擊中時有 #% 機率致盲敵人"}],"trade":{"ids":{"implicit":["implicit.stat_2795267150"]}}}
 {"ref":"#% chance to Blind Enemies on Hit with Spells","better":1,"matchers":[{"string":"法術擊中時有 #% 機率致盲敵人"}],"trade":{"ids":{"enchant":["enchant.stat_1012291104"]}}}
@@ -545,7 +545,7 @@
 {"ref":"#% increased Attack Speed if you haven't Cast Dash recently","better":1,"matchers":[{"string":"若你近期沒有施放幻步，增加 #% 攻擊速度"},{"string":"若你近期沒有施放幻步，減少 #% 攻擊速度","negate":true}],"trade":{"ids":{"explicit":["explicit.stat_1003608257"]}}}
 {"ref":"#% increased Attack Speed if you haven't gained a Frenzy Charge Recently","better":1,"matchers":[{"string":"若你近期沒有獲得狂怒球，增加 #% 攻擊速度"},{"string":"若你近期沒有獲得狂怒球，減少 #% 攻擊速度","negate":true}],"trade":{"ids":{"explicit":["explicit.stat_749465463"]}}}
 {"ref":"#% increased Attack Speed if you've been Hit Recently","better":1,"matchers":[{"string":"若你近期有被擊中，增加 #% 攻擊速度"},{"string":"若你近期有被擊中，減少 #% 攻擊速度","negate":true}],"trade":{"ids":{"explicit":["explicit.stat_4137521191"],"fractured":["fractured.stat_4137521191"]}}}
-{"ref":"#% increased Attack Speed if you've changed Stance Recently","better":1,"matchers":[{"string":"若你近期有切換姿態，增加 #% 攻擊速度"},{"string":"若你近期有切換姿態，減少 #% 攻擊速度","negate":true}],"trade":{"ids":{"explicit":["explicit.stat_2188905761"]}}}
+{"ref":"#% increased Attack Speed if you've changed Stance Recently","better":1,"matchers":[{"string":"若你近期有切換姿態，增加 #% 攻擊速度"},{"string":"若你近期有切換姿態，減少 #% 攻擊速度","negate":true}],"trade":{"ids":{"explicit":["explicit.stat_2188905761"],"implicit":["implicit.stat_2188905761"]}}}
 {"ref":"#% increased Attack Speed if you've dealt a Critical Strike Recently","better":1,"matchers":[{"string":"若近期有造成暴擊，增加 #% 攻擊速度"},{"string":"若近期有造成暴擊，減少 #% 攻擊速度","negate":true}],"trade":{"ids":{"explicit":["explicit.stat_1585344030"],"fractured":["fractured.stat_1585344030"]}}}
 {"ref":"#% increased Attack Speed if you've Killed Recently","better":1,"matchers":[{"string":"若你近期有擊殺，增加 #% 攻擊速度"},{"string":"若你近期有擊殺，減少 #% 攻擊速度","negate":true}],"trade":{"ids":{"explicit":["explicit.stat_1507059769"],"fractured":["fractured.stat_1507059769"]}}}
 {"ref":"#% increased Attack Speed if you've taken a Savage Hit Recently","better":1,"matchers":[{"string":"近期內你若受到了殘暴打擊，增加 #% 攻擊速度"}],"trade":{"ids":{"explicit":["explicit.stat_3842406602"]}}}
@@ -2885,7 +2885,7 @@
 {"ref":"Adds # to # Lightning Damage to Attacks","better":1,"matchers":[{"string":"攻擊附加 # 至 # 閃電傷害"}],"trade":{"ids":{"pseudo":["pseudo.pseudo_adds_lightning_damage_to_attacks"],"explicit":["explicit.stat_1754445556"],"implicit":["implicit.stat_1754445556"],"fractured":["fractured.stat_1754445556"],"crafted":["crafted.stat_1754445556"]}}}
 {"ref":"Adds # to # Lightning Damage to Attacks against you","better":1,"matchers":[{"string":"對你的攻擊附加 # 至 # 閃電傷害"}],"trade":{"ids":{"explicit":["explicit.stat_2491363440"],"fractured":["fractured.stat_2491363440"],"crafted":["crafted.stat_2491363440"]}}}
 {"ref":"Adds # to # Lightning Damage to Attacks during Effect","better":1,"matchers":[{"string":"效果持續時間內，攻擊附加 # 至 # 閃電傷害"}],"trade":{"ids":{"explicit":["explicit.stat_4292531291"]}}}
-{"ref":"Adds # to # Lightning Damage to Attacks per 10 Intelligence","better":1,"matchers":[{"string":"每 10 點智慧攻擊附加 # 至 # 閃電傷害"}],"trade":{"ids":{"explicit":["explicit.stat_3168149399"],"fractured":["fractured.stat_3168149399"]}}}
+{"ref":"Adds # to # Lightning Damage to Attacks per 10 Intelligence","better":1,"matchers":[{"string":"每 10 點智慧攻擊附加 # 至 # 閃電傷害"}],"trade":{"ids":{"explicit":["explicit.stat_3168149399"],"fractured":["fractured.stat_3168149399"],"implicit":["implicit.stat_3168149399"]}}}
 {"ref":"Adds # to # Lightning Damage to Attacks with this Weapon per 10 Dexterity","better":1,"matchers":[{"string":"使用此武器攻擊，每 10 點敏捷附加 # 至 # 閃電傷害"}],"trade":{"ids":{"explicit":["explicit.stat_817611267"]}}}
 {"ref":"Adds # to # Lightning Damage to Attacks with this Weapon per 10 Intelligence","better":1,"matchers":[{"string":"使用此武器攻擊，每 10 點智慧附加 # 至 # 閃電傷害"}],"trade":{"ids":{"explicit":["explicit.stat_3390848861"],"implicit":["implicit.stat_3390848861"],"fractured":["fractured.stat_3390848861"]}}}
 {"ref":"Adds # to # Lightning Damage to Hits against Ignited Enemies","better":1,"matchers":[{"string":"對點燃的敵人攻擊時附加 # 至 # 閃電傷害"}],"trade":{"ids":{"explicit":["explicit.stat_2870108850"]}}}
@@ -5649,7 +5649,7 @@
 {"ref":"Map Boss is accompanied by a Synthesis Boss","better":1,"fromAreaMods":"yes","matchers":[{"string":"地圖頭目伴隨著 1 個追憶頭目"}],"trade":{"ids":{"explicit":["explicit.stat_4150353141"],"fractured":["fractured.stat_4150353141"]}}}
 {"ref":"Map Boss is surrounded by Tormented Spirits","better":1,"matchers":[{"string":"地圖頭目被罪魂包圍"}],"trade":{"ids":{"enchant":["enchant.stat_3750528071"]}}}
 {"ref":"Map Bosses have #% chance to be accompanied by two Rogue Exile Bodyguards","better":1,"matchers":[{"string":"地圖頭目有 #% 機率伴隨 2 名盜賊流亡者保鑣"}],"trade":{"ids":{"explicit":["explicit.stat_472880157"]}}}
-{"ref":"Map Bosses have #% chance to be surrounded by Tormented Spirits","better":1,"matchers":[{"string":"地圖頭目有 #% 機率被罪魂圍繞"},{"string":"地圖頭目有 #% 機率受罪魂包圍","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_906368454"]}}}
+{"ref":"Map Bosses have #% chance to be surrounded by Tormented Spirits","better":1,"matchers":[{"string":"地圖頭目有 #% 機率被罪魂圍繞","superseded":true},{"string":"地圖頭目有 #% 機率受罪魂包圍"}],"trade":{"ids":{"explicit":["explicit.stat_906368454"]}}}
 {"ref":"Map Bosses have #% increased chance to drop a Conqueror Map","better":1,"matchers":[{"string":"地圖頭目增加 #% 機率掉落 1 張征服者地圖"}],"trade":{"ids":{"explicit":["explicit.stat_1554844434"]}}}
 {"ref":"Map contains Al-Hezmin's Citadel\nItem Quantity increases amount of Rewards Al-Hezmin drops by 20% of its value","better":0,"matchers":[{"string":"地圖含有奧赫茲明的壁壘\n物品數量以 20% 它的值增加奧赫茲明掉落獎勵的總量","superseded":true},{"string":"地圖含有奧赫茲明的壁壘","advanced":"地圖含有奧赫茲明的壁壘(...)"}],"trade":{"ids":{"implicit":["implicit.stat_2563183002|3"]}}}
 {"ref":"Map contains Baran's Citadel\nItem Quantity increases amount of Rewards Baran drops by 20% of its value","better":0,"matchers":[{"string":"地圖含有巴倫的壁壘\n物品數量以 20% 它的值增加巴倫掉落獎勵的總量","superseded":true},{"string":"地圖含有巴倫的壁壘","advanced":"地圖含有巴倫的壁壘(...)"}],"trade":{"ids":{"implicit":["implicit.stat_2563183002|1"]}}}
@@ -9201,7 +9201,7 @@
 {"ref":"#% increased Armour from Equipped Helmet, Body Armour, Gloves, and Boots","better":1,"matchers":[{"string":"增加#%來自裝備頭盔、胸甲、手套、和鞋子的護甲"}],"trade":{"ids":{"implicit":["implicit.stat_3209419976"]}}}
 {"ref":"Attacks have #% increased Ignite Duration","better":1,"matchers":[{"string":"增加#%攻擊點燃持續時間"}],"trade":{"ids":{"implicit":["implicit.stat_280530196"]}}}
 {"ref":"# to # Added Cold Damage with Unarmed Attacks","better":1,"matchers":[{"string":"空手攻擊附加#至#冰冷傷害"}],"trade":{"ids":{"explicit":["explicit.stat_2644626772"]}}}
-{"ref":"#% increased Attack Speed if you've used an Attack Movement Skill Recently","better":1,"matchers":[{"string":"若你近期使用過一個攻擊快行技能，增加#%攻擊速度"}],"trade":{"ids":{"explicit":["explicit.stat_3267026680"]}}}
+{"ref":"#% increased Attack Speed if you've used an Attack Movement Skill Recently","better":1,"matchers":[{"string":"若你近期使用過一個攻擊快行技能，增加#%攻擊速度"}],"trade":{"ids":{"explicit":["explicit.stat_3267026680"],"implicit":["implicit.stat_3267026680"]}}}
 {"ref":"Enemies near your Banner take #% increased Cold Damage","better":1,"matchers":[{"string":"位於你鬥旗周遭的敵人會增加#%承受冰冷傷害"}],"trade":{"ids":{"implicit":["implicit.stat_947144250"]}}}
 {"ref":"Enemies near your Banner take #% increased Fire Damage","better":1,"matchers":[{"string":"位於你鬥旗周遭的敵人會增加#%承受火焰傷害"}],"trade":{"ids":{"implicit":["implicit.stat_4163360392"]}}}
 {"ref":"Banners also grant #% of Physical Damage gained as Extra Cold Damage to you and Allies","better":1,"matchers":[{"string":"鬥旗同時會賦予你和友軍等同於#%物理傷害的額外冰冷傷害"}],"trade":{"ids":{"implicit":["implicit.stat_4268284087"]}}}
@@ -9230,7 +9230,7 @@
 {"ref":"+#% to Fire Damage over Time Multiplier while Ignited","better":1,"matchers":[{"string":"點燃時#%火焰持續傷害加成"}],"trade":{"ids":{"implicit":["implicit.stat_420435377"]}}}
 {"ref":"Gain Added Spell Damage equal to #% of Damage of Equipped Dagger\nIf two Daggers are Equipped, each contributes 60% as much Added Damage","better":1,"matchers":[{"string":"獲得等同於裝備匕首#%傷害的附加法術傷害\n若裝備了兩把匕首，則各自貢獻等同於其60%傷害的附加傷害"}],"trade":{"ids":{"explicit":["explicit.stat_3481254135"]}}}
 {"ref":"Gain Added Spell Damage equal to #% of Damage of Equipped Wand\nIf two Wands are Equipped, each contributes half as much Added Damage","better":1,"matchers":[{"string":"獲得等同於裝備法杖#%傷害的附加法術傷害\n若裝備了兩把法杖，則各自貢獻等同於其一半傷害的附加傷害"}],"trade":{"ids":{"explicit":["explicit.stat_1274429432"]}}}
-{"ref":"Every second time you cast each Spell, gain Mana equal to its Upfront Cost","better":0,"matchers":[{"string":"你每第四次施放各個法術時，獲得等同於其前期消耗的魔力"}],"trade":{"ids":{"explicit":["explicit.stat_3334947764"]}}}
+{"ref":"Every second time you cast each Spell, gain Mana equal to its Upfront Cost","better":0,"matchers":[{"string":"你每第四次施放各個法術時，獲得等同於其前期消耗的魔力"}],"trade":{"ids":{"explicit":["explicit.stat_3334947764"],"implicit":["implicit.stat_3334947764"]}}}
 {"ref":"Granite Flasks applied to you have #% increased Effect","better":1,"matchers":[{"string":"增加#%作用於你的堅岩藥劑效果"}],"trade":{"ids":{"explicit":["explicit.stat_1478637533"]}}}
 {"ref":"Killing Blows Consume corpses to Recover #% of Mana","better":1,"matchers":[{"string":"致命一擊會消耗屍體以恢復#%魔力"}],"trade":{"ids":{"implicit":["implicit.stat_822106893"]}}}
 {"ref":"#% increased Life Recovery rate per 5% missing Unreserved Life","better":1,"matchers":[{"string":"每損失5%未保留生命，增加#%生命回復率"}],"trade":{"ids":{"implicit":["implicit.stat_3193713651"]}}}
@@ -9353,7 +9353,7 @@
 {"ref":"+# to Accuracy Rating per 2 Dexterity","better":1,"matchers":[{"string":"每 2 點敏捷 # 命中值"}],"trade":{"ids":{"explicit":["explicit.stat_773731062"],"fractured":["fractured.stat_773731062"]}}}
 {"ref":"#% increased Action Speed while Ignited","better":1,"matchers":[{"string":"點燃時增加#%行動速度"}],"trade":{"ids":{"implicit":["implicit.stat_3548404923"]}}}
 {"ref":"#% chance to gain a Frenzy Charge when Hit","better":1,"matchers":[{"string":"被擊中時 #% 機率獲得 1 顆狂怒球"}],"trade":{"ids":{"explicit":["explicit.stat_881914531"]}}}
-{"ref":"+#% to Critical Strike Chance","better":1,"matchers":[{"string":"#% 暴擊率"}],"trade":{"ids":{"explicit":["explicit.stat_1909401378"]}}}
+{"ref":"+#% to Critical Strike Chance","better":1,"matchers":[{"string":"#% 暴擊率"}],"trade":{"ids":{"explicit":["explicit.stat_1909401378"],"implicit":["implicit.stat_1909401378"]}}}
 {"ref":"+#% to Off Hand Critical Strike Chance while Dual Wielding","better":1,"matchers":[{"string":"雙持時 #% 副手暴擊率"}],"trade":{"ids":{"explicit":["explicit.stat_3547436813"],"fractured":["fractured.stat_3547436813"]}}}
 {"ref":"#% additional Physical Damage Reduction if you weren't Damaged by a Hit Recently","better":1,"matchers":[{"string":"若近期沒有被擊中傷害，減少 #% 額外物理傷害"}],"trade":{"ids":{"explicit":["explicit.stat_3603666270"],"fractured":["fractured.stat_3603666270"]}}}
 {"ref":"+#% Chance to Block Spell Damage if you have not Blocked Recently","better":1,"matchers":[{"string":"若你近期沒有格擋，#% 法術傷害格擋率"}],"trade":{"ids":{"explicit":["explicit.stat_3771323968"]}}}
@@ -10803,3 +10803,5 @@
 {"ref":"# Monster Packs in Area are substituted with Packs led by a Pantheon-Touched Rare Monster","better":1,"matchers":[{"string":"區域內的#群怪物會被替換為由一名受眾神之觸的稀有怪物所引領的怪物群"}],"trade":{"ids":{"enchant":["enchant.stat_429929284"]}}}
 {"ref":"# Monster Packs in Area are substituted with Packs that\ncannot drop Equipment, Flasks or Tinctures","better":1,"matchers":[{"string":"區域內的#群怪物會被替換為無法掉落\n裝備、藥劑、或萃取物的怪物群"}],"trade":{"ids":{"enchant":["enchant.stat_228481227"]}}}
 {"ref":"Kill Undead Enemies that have 15% or lower Life when Hit by your Skills","better":0,"matchers":[{"string":"你的技能會於擊中時擊殺低於15%生命的不死敵人"}],"trade":{"ids":{"implicit":["implicit.stat_4052113003"]}}}
+{"ref":"Damage with Hits is Lucky while your Offhand is Magic","better":0,"matchers":[{"string":"若你的副手物品為魔法，則擊中傷害很幸運"}],"trade":{"ids":{"explicit":["explicit.stat_1609344921"]}}}
+{"ref":"# Monster Packs in Area are substituted with harmless Toads","better":1,"matchers":[{"string":"區域內的#群怪物會被替換為無害的蟾蜍"}],"trade":{"ids":{"enchant":["enchant.stat_2844829788"]}}}
