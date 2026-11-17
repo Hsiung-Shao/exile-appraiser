@@ -863,10 +863,13 @@ export function planZhForms ({ enStats, zhStats, ggpkNew }) {
   return { adds, rejects }
 }
 
-/** 沒有 # 的寫法代表的固定值(`N`、`A|#` 取 A、`#|B` 取 B) */
+/**
+ * 沒有 # 的寫法代表的固定值:確切的數(`N`)或「至少 A」(`100|#` = 必定)。
+ * `#|B`(任意負值都顯示同一句,例:劫盜寶箱「含有更有價值的傳奇物品」)沒有固定值,不取
+ */
 function condValue (token) {
   if (/^-?\d+(\.\d+)?$/.test(token)) return Number(token)
-  const m = /^(-?[\d.]+)\|#$/.exec(token) ?? /^#\|(-?[\d.]+)$/.exec(token)
+  const m = /^([\d.]+)\|#$/.exec(token)
   return m ? Number(m[1]) : undefined
 }
 
@@ -920,7 +923,8 @@ export function planCondForms ({ enStats, zhStats, ggpkNew }) {
             const single = !base.ids.includes(' ')
             if (!single && (m.value !== undefined || !newUsed.size || [...newUsed].join() !== [...baseUsed].join())) { reject('兩個 stat 以上、用到的數值不同'); continue }
             if (!base.handlers || !r.handlers) { reject('GGPK 沒有 handlers'); continue }
-            const neg = (row, i) => row.handlers.some(h => h[0] === 'negate' && h[1] === i + 1)
+            // 那一句沒有這個數字時,上面的 negate 沒有東西可取負號(「Always Sap」[negate 1])→ 當成沒有
+            const neg = (row, i) => used(textOf(row)).has(i) && row.handlers.some(h => h[0] === 'negate' && h[1] === i + 1)
             const at = single ? [0] : [...newUsed]
             // 條件只有負值、沒有 negate、數字也不是 {i:+d} → 照字面遊戲會印「少 -3 個」:這一列的 handlers 不可信(地雷 fewer)
             const odd = (row) => at.some(i => /^(#\|-|-)[\d.]+$/.test(row.conds[i] ?? '') && !neg(row, i) && !new RegExp(`\\{${i}:\\+d\\}`).test(textOf(row)) && used(textOf(row)).has(i))
@@ -938,6 +942,8 @@ export function planCondForms ({ enStats, zhStats, ggpkNew }) {
               const toRef = neg(base, 0) !== Boolean(m.negate) ? -1 : 1
               value = condValue(r.conds[0])
               if (!value || baseUsed.size === 0) { reject('沒有數字的寫法對不到固定值'); continue }
+              // 除以十、毫秒轉秒等換算:條件是換算前的值,value 對不準
+              if ([...base.handlers, ...r.handlers].some(h => h[0] !== 'negate')) { reject('數值有換算,固定值對不準'); continue }
               value *= toRef
             }
             if (shapes.has(shape(text))) { reject('與既有寫法同形'); continue }

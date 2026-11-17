@@ -978,12 +978,31 @@ describe('planCondForms(規則 21:同一條詞綴依數值的其他寫法)', () 
   })
 
   it('基準是帶 value 的寫法(No Y = -100)→ 補的「減少」帶 negate(審查 1-c)', () => {
-    const enStats = [stat('#% increased Y', [{ string: '#% increased Y' }, { string: 'No Y', value: -100 }])]
     const ggpkNew = [row(g('y_+%', '-100'), 'No Y', ''), row(g('y_+%', '#|-1'), '{0}% reduced Y, sometimes', '', NEG)]
     expect(planCondForms({ enStats: [stat('#% increased Y', [{ string: 'No Y', value: -100 }])], zhStats: [], ggpkNew }).adds.map((a: any) => a.matcher)).toEqual([
       { string: '#% reduced Y, sometimes', negate: true, superseded: true }
     ])
-    expect(enStats).toBeTruthy()
+  })
+
+  it('沒有 # 的基準句帶 negate handler(沒有數字可取負號,無意義)→ 不拿來翻轉(審查 4 輪 3-b)', () => {
+    const ggpkNew = [row(g('sap', '100|#'), 'Always Sap', '', NEG), row(g('sap', '1|99'), '{0}% chance to Sap', '')]
+    expect(planCondForms({ enStats: [stat('#% chance to Sap', [{ string: 'Always Sap', value: 100 }])], zhStats: [], ggpkNew }).adds.map((a: any) => a.matcher)).toEqual([
+      { string: '#% chance to Sap', superseded: true }
+    ])
+  })
+
+  it('沒有 # 的寫法條件是開放的負區間(#|-1:任意負值都顯示同一句)→ 沒有固定值,不補(劫盜寶箱)', () => {
+    const ggpkNew = [row(g('heist', '1|#'), 'Chests have a {0}% chance for Uniques', ''), row(g('heist', '#|-1'), 'Chests contain Uniques', '', NEG)]
+    const plan = planCondForms({ enStats: [stat('Chests have a #% chance for Uniques', [{ string: 'Chests have a #% chance for Uniques' }])], zhStats: [], ggpkNew })
+    expect(plan.adds).toEqual([])
+    expect(plan.rejects.map((r: any) => r.reason)).toEqual(['沒有數字的寫法對不到固定值'])
+  })
+
+  it('有換算類 handler(除以十等)的組不補沒有 # 的寫法(value 不會跟著換算;審查 4 輪 3-a)', () => {
+    const ggpkNew = [row(g('y_permyriad', '1|999'), '{0}% chance to Y', '', [['divide_by_ten_1dp_if_required', 1]]), row(g('y_permyriad', '1000|#'), 'Always Y', '')]
+    const plan = planCondForms({ enStats: [stat('#% chance to Y', [{ string: '#% chance to Y' }])], zhStats: [], ggpkNew })
+    expect(plan.adds).toEqual([])
+    expect(plan.rejects.map((r: any) => r.reason)).toEqual(['數值有換算,固定值對不準'])
   })
 
   it('兩個 stat 的詞綴(惡鬼轉世):第二個 stat 只是條件(沒有出現在句中)→ 補還沒吞噬時的寫法;沒有數字的「已吞噬 1 顆」不補', () => {
