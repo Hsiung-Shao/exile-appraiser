@@ -88,6 +88,24 @@ function refsByMatcher (rows) {
   return map
 }
 
+/** 交易站 id 的類型(explicit / implicit / enchant …) */
+const typeOf = (id) => id.slice(0, id.indexOf('.'))
+const uniq = (list) => Array.from(new Set(list))
+/** 沒被取代的 matcher */
+const liveOf = (stat) => stat.matchers.filter(m => !m.superseded)
+const flagsOf = (m) => ({ ...(m.negate ? { negate: true } : {}), ...(m.value !== undefined ? { value: m.value } : {}) })
+const statsByRef = (rows) => groupBy([...eachStat(rows)], s => s.ref)
+/** 資料已引用的交易站 id */
+function usedIds (rows, seed = /** @type {string[]} */ ([])) {
+  const used = new Set(seed)
+  for (const stat of eachStat(rows)) for (const id of allIds(stat)) used.add(id)
+  return used
+}
+/** clientstrings 句型({1} = 等級、{0} = 名稱)→ matcher 文字 */
+const fillTpl = (text, name) => text.replace('{1}', '#').replace('{0}', name)
+/** 英文名 → 繁中名(去重);瓦爾版的英文顯示名有時與原版相同(Determination → 堅定 / 瓦爾．堅定),英文沒寫 Vaal 就不是瓦爾版 */
+const zhNamesOf = (names, en) => uniq((names.get(en) ?? []).map(s => s.zh)).filter((z, _, a) => a.length === 1 || en.startsWith('Vaal ') || !z.startsWith('瓦爾．'))
+
 function groupBy (list, keyOf) {
   const map = new Map()
   for (const x of list) {
@@ -109,7 +127,7 @@ export function planStatText ({ enStats, zhStats, ggpkOld, ggpkNew }) {
   const oldByEn = groupBy(ggpkOld.filter(r => newByKey.has(r.key)), r => cmpKey(r.en))
   const enRefs = refsByMatcher(enStats)
   const zhRefs = refsByMatcher(zhStats)
-  const zhByRef = groupBy([...eachStat(zhStats)], s => s.ref)
+  const zhByRef = statsByRef(zhStats)
   const adds = []
   const rejects = []
   const seen = new Set()
@@ -121,7 +139,7 @@ export function planStatText ({ enStats, zhStats, ggpkOld, ggpkNew }) {
       const olds = oldByEn.get(k)
       if (!olds) continue
       const allowed = enRefs.get(k) // 原本就共用這句舊文字的 ref,新文字可以繼續共用
-      const flags = { ...(m.negate ? { negate: true } : {}), ...(m.value !== undefined ? { value: m.value } : {}) }
+      const flags = flagsOf(m)
       /** @type {{ lang: 'en' | 'cmn-Hant', text: string, was: string | null }[]} */
       const cands = []
       for (const o of olds) {
@@ -175,7 +193,7 @@ export function planTradeText ({ enStats, zhStats, tradeStats, ggpkNew, ggpkOld 
   // 不看鍵(子句可能換了鍵):舊版有、新版已沒有的句子,新版有一句只差大小寫的
   const newTexts = new Set(ggpkNew.map(r => exactKey(r.en)))
   const newByLower = groupBy([...newTexts], t => t.toLowerCase())
-  const casePairs = [...new Set(ggpkOld.map(r => exactKey(r.en)))].filter(o => !newTexts.has(o))
+  const casePairs = uniq(ggpkOld.map(r => exactKey(r.en))).filter(o => !newTexts.has(o))
     .flatMap(o => (newByLower.get(o.toLowerCase()) ?? []).map(n => [o, n]))
   /** @type {Map<string, Set<string>>} id → 逐字的現行文字 */
   const textsById = new Map()
@@ -188,7 +206,7 @@ export function planTradeText ({ enStats, zhStats, tradeStats, ggpkNew, ggpkOld 
   const gone = (matchers, current) => [...new Set(matchers.filter(m => !m.negate && m.value === undefined && !current.has(m.string.trim())).map(m => m.string))]
   const enRefs = refsByMatcher(enStats)
   const zhRefs = refsByMatcher(zhStats)
-  const zhByRef = groupBy([...eachStat(zhStats)], s => s.ref)
+  const zhByRef = statsByRef(zhStats)
   const adds = []
   const rejects = []
   const seen = new Set()
@@ -208,7 +226,7 @@ export function planTradeText ({ enStats, zhStats, tradeStats, ggpkNew, ggpkOld 
         if (!rows) {
           const m = stat.matchers.find(m => m.string.trim().toLowerCase() === text.toLowerCase())
           if (m && casePairs.some(([o, n]) => m.string.includes(o) && text.includes(n))) {
-            const flags = { ...(m.negate ? { negate: true } : {}), ...(m.value !== undefined ? { value: m.value } : {}) }
+            const flags = flagsOf(m)
             adds.push({ lang: 'en', ref: stat.ref, matcher: { string: text, ...flags }, after: m.string, supersedes: m.string })
           }
           continue
@@ -217,7 +235,7 @@ export function planTradeText ({ enStats, zhStats, tradeStats, ggpkNew, ggpkOld 
         if (direction(text) === -1 && stat.matchers.some(m => !m.negate && direction(m.string) === 1)) { reject('direction'); continue }
         if ([...(enRefs.get(cmpKey(text)) ?? [])].some(r => r !== stat.ref)) { reject('collision'); continue }
         adds.push({ lang: 'en', ref: stat.ref, matcher: { string: text }, supersedes: gone(stat.matchers, current) })
-        const zhs = [...new Set(rows.filter(r => r.zh && cmpKey(r.zh) !== cmpKey(text)).map(r => exactKey(r.zh)))]
+        const zhs = uniq(rows.filter(r => r.zh && cmpKey(r.zh) !== cmpKey(text)).map(r => exactKey(r.zh)))
         if (zhs.length !== 1) { if (zhs.length) reject('ambiguous', 'cmn-Hant', zhs.join(' / ')); continue }
         if (haveZh.has(zhs[0])) continue
         if ([...(zhRefs.get(cmpKey(zhs[0])) ?? [])].some(r => r !== stat.ref)) { reject('collision', 'cmn-Hant', zhs[0]); continue }
@@ -241,12 +259,12 @@ export function planSupportGemNames ({ enStats, zhStats, ggpkNew, baseNew }) {
   const rejects = []
   if (!tpl) return { adds, rejects }
   const fill = (text, name) => toMatcherText(text.replace('{1}', name))
-  const zhByRef = groupBy([...eachStat(zhStats)], s => s.ref)
+  const zhByRef = statsByRef(zhStats)
   const has = (stats, text) => stats.some(s => s.matchers.some(x => x.string === text))
   for (const stat of eachStat(enStats)) {
     const m = /^Socketed Gems are Supported by Level # (.+) \(Random Support Gem\)$/.exec(stat.ref)
     if (!m) continue
-    const zh = [...new Set((gems.get(`${m[1]} Support`) ?? []).map(r => r.zh))]
+    const zh = uniq((gems.get(`${m[1]} Support`) ?? []).map(r => r.zh))
     if (zh.length !== 1) { rejects.push({ reason: 'GGPK 沒有唯一的輔助寶石名', ref: stat.ref, candidates: zh }); continue }
     const en = fill(tpl.en, `${m[1]} Support`)
     if (!has([stat], en)) adds.push({ lang: 'en', ref: stat.ref, matcher: { string: en }, supersedes: fill(tpl.en, m[1]) })
@@ -266,21 +284,18 @@ export function planGrantsSkill ({ enStats, zhStats, skills, template }) {
   const adds = []
   const rejects = []
   if (!template) return { adds, rejects }
-  const fill = (text, name) => text.replace('{1}', '#').replace('{0}', name)
   const zhOf = groupBy(skills, s => s.en)
-  const zhByRef = groupBy([...eachStat(zhStats)], s => s.ref)
-  const live = (stat) => stat.matchers.filter(m => !m.superseded)
+  const zhByRef = statsByRef(zhStats)
   for (const stat of eachStat(enStats)) {
     const m = /^Grants Level # ([^\n]+?)(?: Skill)?$/.exec(stat.ref)
     if (!m) continue
-    const en = fill(template.en, m[1])
-    // 瓦爾版技能的英文顯示名有時與原版相同(Determination → 堅定 / 瓦爾．堅定);英文沒寫 Vaal 就不是瓦爾版
-    const zhNames = [...new Set((zhOf.get(m[1]) ?? []).map(s => s.zh))].filter((z, _, a) => a.length === 1 || m[1].startsWith('Vaal ') || !z.startsWith('瓦爾．'))
+    const en = fillTpl(template.en, m[1])
+    const zhNames = zhNamesOf(zhOf, m[1])
     const zhStat = (zhByRef.get(stat.ref) ?? [])[0]
     if (zhNames.length !== 1 || !zhStat) { rejects.push({ reason: 'GGPK 沒有唯一的技能繁中名', ref: stat.ref, candidates: zhNames }); continue }
-    const zh = fill(template.zh, zhNames[0])
-    if (live(stat).length === 1 && !stat.matchers.some(x => x.string === en)) adds.push({ lang: 'en', ref: stat.ref, matcher: { string: en }, supersedes: live(stat)[0].string })
-    if (live(zhStat).length === 1 && !zhStat.matchers.some(x => x.string === zh)) adds.push({ lang: 'cmn-Hant', ref: stat.ref, matcher: { string: zh }, supersedes: live(zhStat)[0].string })
+    const zh = fillTpl(template.zh, zhNames[0])
+    if (liveOf(stat).length === 1 && !stat.matchers.some(x => x.string === en)) adds.push({ lang: 'en', ref: stat.ref, matcher: { string: en }, supersedes: liveOf(stat)[0].string })
+    if (liveOf(zhStat).length === 1 && !zhStat.matchers.some(x => x.string === zh)) adds.push({ lang: 'cmn-Hant', ref: stat.ref, matcher: { string: zh }, supersedes: liveOf(zhStat)[0].string })
   }
   return { adds, rejects }
 }
@@ -292,8 +307,7 @@ export function planGrantsSkill ({ enStats, zhStats, skills, template }) {
  * @returns {Record<string, Record<string, string[]>>} ref → ids
  */
 export function planFillIds ({ enStats, tradeStats }) {
-  const used = new Set()
-  for (const stat of eachStat(enStats)) for (const id of allIds(stat)) used.add(id)
+  const used = usedIds(enStats)
   const byText = groupBy(tradeStats.filter(e => !e.id.startsWith('pseudo.')), e => cmpKey(noLocal(e.text)))
   /** @type {Record<string, Record<string, string[]>>} */
   const out = {}
@@ -301,12 +315,12 @@ export function planFillIds ({ enStats, tradeStats }) {
     if (stat.ref in out) continue
     // 已有 id 的詞綴只加 effect_ 新 id:3.30 物品的輔助寶石 / 賦予技能詞綴索引在新 id,舊 id 可能搜尋 0 筆,兩個都送(count 群組)
     const hasIds = allIds(stat).length > 0
-    const keys = new Set([cmpKey(stat.ref), ...stat.matchers.filter(m => !m.superseded).map(m => cmpKey(m.string))])
+    const keys = new Set([cmpKey(stat.ref), ...liveOf(stat).map(m => cmpKey(m.string))])
     /** @type {Record<string, string[]>} */
     const ids = {}
     for (const k of keys) {
       for (const e of byText.get(k) ?? []) {
-        const type = e.id.slice(0, e.id.indexOf('.'))
+        const type = typeOf(e.id)
         if (hasIds && !e.id.includes('.effect_')) continue
         if (!used.has(e.id) && !(ids[type] ?? []).includes(e.id)) (ids[type] ??= []).push(e.id)
       }
@@ -328,40 +342,36 @@ export function planFillIds ({ enStats, tradeStats }) {
  */
 export function planEffectStats ({ enStats, zhStats, tradeStats, skills, supports, strings = {}, taken = /** @type {string[]} */ ([]) }) {
   // taken:同一輪規則 14 會掛到既有詞綴上的 id(不先扣掉會替同一個 id 另外新增一列)
-  const used = new Set(taken)
-  for (const stat of eachStat(enStats)) for (const id of allIds(stat)) used.add(id)
-  const byRef = groupBy([...eachStat(enStats)], s => s.ref)
-  const zhByRef = groupBy([...eachStat(zhStats)], s => s.ref)
+  const used = usedIds(enStats, taken)
+  const byRef = statsByRef(enStats)
+  const zhByRef = statsByRef(zhStats)
   const kinds = [
     { re: /^Socketed Gems are Supported by Level # (.+ Support)$/, tpl: strings.ModGrantsSupportEffectWithLevel, names: groupBy(supports, s => s.en) },
     { re: /^Grants Level # (.+)$/, tpl: strings.ModGrantsEffectWithLevel, names: groupBy(skills, s => s.en) },
     { re: /^Grants (.+)$/, tpl: strings.ModGrantsEffect, names: groupBy(skills, s => s.en) }
   ]
-  const fill = (text, name) => text.replace('{1}', '#').replace('{0}', name)
-  const live = (stat) => stat.matchers.filter(m => !m.superseded)
   const newStats = new Map()
   const adds = []
   const rejects = []
   for (const e of tradeStats) {
     if (!e.id.includes('.effect_') || used.has(e.id)) continue
-    if (newStats.has(e.text)) { (newStats.get(e.text).ids[e.id.slice(0, e.id.indexOf('.'))] ??= []).push(e.id); continue }
+    if (newStats.has(e.text)) { (newStats.get(e.text).ids[typeOf(e.id)] ??= []).push(e.id); continue }
     const kind = kinds.find(k => k.tpl && k.re.test(e.text))
     const name = kind?.re.exec(e.text)?.[1]
-    // 瓦爾版的英文顯示名有時與原版相同(同規則 13)
-    const zhNames = [...new Set((kind?.names.get(name) ?? []).map(s => s.zh))].filter((z, _, a) => a.length === 1 || name.startsWith('Vaal ') || !z.startsWith('瓦爾．'))
+    const zhNames = kind ? zhNamesOf(kind.names, name) : []
     if (!kind || zhNames.length !== 1) { rejects.push({ reason: 'GGPK 沒有唯一的技能 / 寶石繁中名', id: e.id, to: e.text, candidates: zhNames }); continue }
-    const en = fill(kind.tpl.en, name)
-    const zh = fill(kind.tpl.zh, zhNames[0])
+    const en = fillTpl(kind.tpl.en, name)
+    const zh = fillTpl(kind.tpl.zh, zhNames[0])
     // 舊列 ref 沒有「 Support」的寫法只認還沒有任何 id 的(有 id 的那種與「(Random Support Gem)」列並存,新 id 由規則 14 掛到後者)
     const bare = (byRef.get(e.text.replace(/ Support$/, '')) ?? []).filter(x => !allIds(x).length)
     const old = (byRef.get(e.text) ?? byRef.get(`${e.text} Skill`) ?? bare)[0]
     const oldZh = old && (zhByRef.get(old.ref) ?? [])[0]
     if (old && oldZh) {
-      if (live(old).length === 1 && !old.matchers.some(m => m.string === en)) adds.push({ lang: 'en', ref: old.ref, matcher: { string: en }, supersedes: live(old)[0].string })
-      if (live(oldZh).length === 1 && !oldZh.matchers.some(m => m.string === zh)) adds.push({ lang: 'cmn-Hant', ref: old.ref, matcher: { string: zh }, supersedes: live(oldZh)[0].string })
+      if (liveOf(old).length === 1 && !old.matchers.some(m => m.string === en)) adds.push({ lang: 'en', ref: old.ref, matcher: { string: en }, supersedes: liveOf(old)[0].string })
+      if (liveOf(oldZh).length === 1 && !oldZh.matchers.some(m => m.string === zh)) adds.push({ lang: 'cmn-Hant', ref: old.ref, matcher: { string: zh }, supersedes: liveOf(oldZh)[0].string })
       continue
     }
-    newStats.set(e.text, { ref: e.text, better: betterOf(e.text), en: [{ string: en }], zh: [{ string: zh }], ids: { [e.id.slice(0, e.id.indexOf('.'))]: [e.id] } })
+    newStats.set(e.text, { ref: e.text, better: betterOf(e.text), en: [{ string: en }], zh: [{ string: zh }], ids: { [typeOf(e.id)]: [e.id] } })
   }
   return { newStats: [...newStats.values()], adds, rejects }
 }
@@ -388,7 +398,7 @@ export function planTypeIds ({ enStats, tradeStats }) {
       if (row.stats) grouped.add(stat.ref)
       for (const id of allIds(stat)) used.add(id)
       for (const id of allIds(stat)) (hashes.get(stat.ref) ?? hashes.set(stat.ref, new Set()).get(stat.ref)).add(hashOf(id))
-      for (const k of [cmpKey(stat.ref), ...stat.matchers.filter(m => !m.superseded).map(m => cmpKey(m.string))]) {
+      for (const k of [cmpKey(stat.ref), ...liveOf(stat).map(m => cmpKey(m.string))]) {
         if (!refsByText.has(k)) refsByText.set(k, new Set())
         refsByText.get(k).add(stat.ref)
       }
@@ -398,7 +408,7 @@ export function planTypeIds ({ enStats, tradeStats }) {
   const extra = {}
   const rejects = []
   for (const e of tradeStats) {
-    const type = e.id.slice(0, e.id.indexOf('.'))
+    const type = typeOf(e.id)
     if (!TYPE_ID_GROUPS.includes(type) || used.has(e.id)) continue
     const refs = [...(refsByText.get(cmpKey(noLocal(e.text))) ?? [])]
     if (!refs.length) continue // 資料完全沒有這條詞綴(逐條比對的 C 類),不在這條規則的範圍
@@ -433,7 +443,7 @@ export function planGrownPassives ({ enStats, zhStats, tradeStats }) {
     for (const m of stat.matchers) if (!byMatcher.has(m.string)) byMatcher.set(m.string, stat)
     for (const id of stat.trade?.ids?.enchant ?? []) if (id.startsWith(ANOINT_ID) && stat.ref.startsWith('Allocates ')) anoint.set(id.slice(ANOINT_ID.length), stat.ref)
   }
-  const zhByRef = groupBy([...eachStat(zhStats)], s => s.ref)
+  const zhByRef = statsByRef(zhStats)
   const newStats = []
   /** @type {Record<string, Record<string, string[]>>} */
   const extra = {}
@@ -478,7 +488,7 @@ export function liveIdTest (tradeStats) {
  */
 export function planDeadIds ({ enStats, tradeStats }) {
   const live = liveIdTest(tradeStats)
-  const byTypeText = groupBy(tradeStats, e => `${e.id.slice(0, e.id.indexOf('.'))}\n${cmpKey(e.text)}`)
+  const byTypeText = groupBy(tradeStats, e => `${typeOf(e.id)}\n${cmpKey(e.text)}`)
   /** @type {Record<string, string>} */
   const replace = {}
   const remove = new Set()
@@ -487,8 +497,8 @@ export function planDeadIds ({ enStats, tradeStats }) {
     const texts = new Set([cmpKey(stat.ref), ...matcherKeys(stat)])
     for (const id of allIds(stat)) {
       if (live(id) || id in replace || remove.has(id)) continue
-      const type = id.slice(0, id.indexOf('.'))
-      const cands = [...new Set([...texts].flatMap(t => byTypeText.get(`${type}\n${t}`) ?? []).map(e => e.id))]
+      const type = typeOf(id)
+      const cands = uniq([...texts].flatMap(t => byTypeText.get(`${type}\n${t}`) ?? []).map(e => e.id))
       if (cands.length === 1) replace[id] = cands[0]
       else {
         remove.add(id)
@@ -549,7 +559,7 @@ export function planNewStats ({ enStats, zhStats = /** @type {any[]} */ ([]), gg
     if (!out.has(k)) {
       /** @type {Record<string, string[]>} */
       const ids = {}
-      for (const e of entries) (ids[e.id.slice(0, e.id.indexOf('.'))] ??= []).push(e.id)
+      for (const e of entries) (ids[typeOf(e.id)] ??= []).push(e.id)
       // 繁中與另一條新詞綴是同一句(督軍印記:交易站有 Warlords's / Warlord's 兩種拼法、兩個 id)→ 併進那一列:
       // 繁中 matcher 一個字串只能指向一列,分成兩列的話繁中客戶端永遠只配到其中一個 id
       const twin = zh ? byZh.get(zh) : undefined
@@ -565,7 +575,7 @@ export function planNewStats ({ enStats, zhStats = /** @type {any[]} */ ([]), gg
     }
     if (zh && !out.get(k).zh.some(m => m.string === zh)) out.get(k).zh.push({ string: zh })
   }
-  return [...new Set(out.values())]
+  return uniq(out.values())
 }
 
 /**
@@ -610,7 +620,7 @@ export function planUniques ({ enItems, tradeItems, words }) {
     // 新名稱的每種底材各一列(解析器以底材比對,漏一種那種底材就 item.unknown)
     if (!e.flags?.unique || !e.name || have.has(e.name) || done.has(`${e.name}|${e.type}`)) continue
     done.add(`${e.name}|${e.type}`)
-    const zh = [...new Set((zhOf.get(e.name) ?? []).map(w => w.zh))]
+    const zh = uniq((zhOf.get(e.name) ?? []).map(w => w.zh))
     if (!bases.has(e.type)) rejects.push({ reason: '底材不在資料裡', id: e.name, to: e.type })
     else if (zh.length !== 1) rejects.push({ reason: 'GGPK 沒有唯一的繁中名', id: e.name, candidates: zh })
     else adds.push({ refName: e.name, zh: zh[0], base: e.type })
@@ -635,7 +645,7 @@ export function planTradeBases ({ enItems, baseOld, baseNew, tradeItems }) {
   for (const e of tradeItems) {
     if (e.flags?.unique || have.has(e.type) || !fresh.has(e.type)) continue
     have.add(e.type)
-    const zh = [...new Set(fresh.get(e.type).map(r => r.zh))]
+    const zh = uniq(fresh.get(e.type).map(r => r.zh))
     if (!(e.group in TRADE_BASE_GROUPS)) rejects.push({ reason: '這個交易站群組沒有新增規則', id: e.type, to: e.group })
     else if (zh.length !== 1) rejects.push({ reason: 'GGPK 沒有唯一的繁中名', id: e.type, candidates: zh })
     else adds.push({ refName: e.type, zh: zh[0], category: TRADE_BASE_GROUPS[e.group] })
@@ -664,7 +674,7 @@ export function planGems ({ enItems, tradeItems, gems, skills = [] }) {
     if (e.group === 'gem' && !e.disc && !e.text && e.type && !e.type.startsWith('Vaal ') && !byRef.has(e.type)) {
       if (seenNew.has(e.type)) continue
       seenNew.add(e.type)
-      const zh = [...new Set((skillZh.get(e.type) ?? []).map(g => g.zh))]
+      const zh = uniq((skillZh.get(e.type) ?? []).map(g => g.zh))
       if (!(e.type in NEW_GEM_MAX_LEVEL)) rejects.push({ reason: '新的一般寶石:等級上限未確認(補進 NEW_GEM_MAX_LEVEL)', id: e.type })
       else if (zh.length !== 1) rejects.push({ reason: 'GGPK 沒有唯一的繁中名', id: e.type, candidates: zh })
       else adds.push({ refName: e.type, zh: zh[0], maxLevel: NEW_GEM_MAX_LEVEL[e.type] })
@@ -673,7 +683,7 @@ export function planGems ({ enItems, tradeItems, gems, skills = [] }) {
     if (e.group !== 'gem' || !e.disc || !e.text || e.text.startsWith('Vaal ') || byRef.has(e.text)) continue
     byRef.set(e.text, e)
     const normal = byRef.get(e.type)
-    const zh = [...new Set((zhOf.get(e.text) ?? []).map(g => g.zh))]
+    const zh = uniq((zhOf.get(e.text) ?? []).map(g => g.zh))
     if (!normal) rejects.push({ reason: '原版寶石不在資料裡', id: e.text, to: e.type })
     else if (zh.length !== 1) rejects.push({ reason: 'GGPK 沒有唯一的繁中名', id: e.text, candidates: zh })
     else adds.push({ refName: e.text, zh: zh[0], disc: e.disc, normal: e.type, maxLevel: normal.gem?.maxLevel, icon: normal.icon })
@@ -833,31 +843,24 @@ export function planRoomNames ({ zhStats, enStats = [], rooms, renames = [] }) {
   // 房間目前的英文名:ref 停在舊名,改過名的要看英文現行 matcher(否則下一季再改名 / 只改繁中名都對不到)
   const liveEn = new Map([...eachStat(enStats)].map(s => [s.ref, s.matchers.find(x => !x.superseded)?.string.split(' (')[0]]))
   const nameOf = (ref) => { const m = /^Has Room: (.+) \(Tier \d+\)$/.exec(ref); return m ? (liveEn.get(ref) ?? m[1]) : null }
-  for (const [lang, stats] of [['cmn-Hant', zhStats], ['en', enStats]]) {
-    for (const stat of eachStat(stats)) {
-      // zh 可能是 null(GGPK 還沒翻譯的列)→ 不當成名稱,那個語言不動
-      const to = [...new Set((renameOf.get(nameOf(stat.ref)) ?? []).map(r => lang === 'en' ? r.en : r.zh).filter(Boolean))]
-      if (to.length !== 1) continue
-      for (const old of stat.matchers.filter(x => !x.superseded)) {
-        const cut = old.string.indexOf(' (')
-        const next = cut === -1 ? null : to[0] + old.string.slice(cut)
-        if (next && next !== old.string && !stat.matchers.some(x => x.string === next)) adds.push({ lang, ref: stat.ref, matcher: { string: next }, supersedes: old.string })
-      }
-    }
-  }
-  for (const stat of eachStat(zhStats)) {
-    const names = [...new Set((zhOf.get(nameOf(stat.ref)) ?? []).map(r => r.zh))]
-    if (names.length !== 1) continue
-    for (const old of stat.matchers.filter(x => !x.superseded)) {
+  // 名稱恰好一個才換:現行寫法的名稱換成它(「 (階級 N)」後綴照留),舊名標 superseded
+  const rename = (lang, stat, names) => {
+    if (names.length !== 1) return
+    for (const old of liveOf(stat)) {
       const cut = old.string.indexOf(' (')
       const next = cut === -1 ? null : names[0] + old.string.slice(cut)
-      if (next && next !== old.string && !stat.matchers.some(x => x.string === next)) adds.push({ lang: 'cmn-Hant', ref: stat.ref, matcher: { string: next }, supersedes: old.string })
+      if (next && next !== old.string && !stat.matchers.some(x => x.string === next)) adds.push({ lang, ref: stat.ref, matcher: { string: next }, supersedes: old.string })
     }
   }
+  for (const [lang, stats] of [['cmn-Hant', zhStats], ['en', enStats]]) {
+    // zh 可能是 null(GGPK 還沒翻譯的列)→ 不當成名稱,那個語言不動
+    for (const stat of eachStat(stats)) rename(lang, stat, uniq((renameOf.get(nameOf(stat.ref)) ?? []).map(r => lang === 'en' ? r.en : r.zh).filter(Boolean)))
+  }
+  for (const stat of eachStat(zhStats)) rename('cmn-Hant', stat, uniq((zhOf.get(nameOf(stat.ref)) ?? []).map(r => r.zh)))
   // 壞掉的列(ROOM_GAME_NAMES):兩語補上遊戲內寫法,並標成選項型(開啟 / 受阻)
   const option = []
   for (const [ref, en] of Object.entries(ROOM_GAME_NAMES)) {
-    const zh = [...new Set((zhOf.get(en) ?? []).map(r => r.zh))]
+    const zh = uniq((zhOf.get(en) ?? []).map(r => r.zh))
     const tier = / \(Tier (\d+)\)$/.exec(ref)?.[1]
     if (zh.length !== 1 || !tier) continue
     for (const [lang, stats, text] of [['cmn-Hant', zhStats, `${zh[0]} (階級 ${tier})`], ['en', enStats, `${en} (Tier ${tier})`]]) {
@@ -882,7 +885,7 @@ export function planUniqueZhNames ({ zhItems, words }) {
   for (const item of zhItems) {
     if (item.namespace !== 'UNIQUE' || seen.has(item.refName)) continue
     seen.add(item.refName)
-    const zh = [...new Set((zhOf.get(item.refName) ?? []).map(w => w.zh))]
+    const zh = uniq((zhOf.get(item.refName) ?? []).map(w => w.zh))
     const mine = new Set(zhItems.filter(i => i.namespace === 'UNIQUE' && i.refName === item.refName).map(i => i.name))
     if (zh.length === 1 && !mine.has(zh[0])) out.push({ refName: item.refName, from: item.name, zh: zh[0] })
   }
@@ -949,32 +952,26 @@ export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove
       changed = true
     }
     for (const [type, ids] of Object.entries(stat.trade?.ids ?? {})) {
-      const next = [...new Set(ids.filter(id => !gone.has(id)).map(id => replace[id] ?? id))]
+      const next = uniq(ids.filter(id => !gone.has(id)).map(id => replace[id] ?? id))
       if (next.length === ids.length && next.every((id, i) => id === ids[i])) continue
       if (next.length) stat.trade.ids[type] = next
       else delete stat.trade.ids[type]
       changed = true
     }
+    const attach = (byType, accept = (/** @type {string} */ _id) => true) => {
+      for (const [type, ids] of Object.entries(byType)) {
+        for (const id of ids) {
+          if (!accept(id) || (stat.trade.ids[type] ??= []).includes(id)) continue
+          stat.trade.ids[type].push(id)
+          changed = true
+        }
+      }
+    }
     if (fill[stat.ref] && stat.trade) {
       const hasIds = allIds(stat).length > 0 // 同 ref 有多份時各自判斷:已有 id 的只收 effect_ 新 id
-      for (const [type, ids] of Object.entries(fill[stat.ref])) {
-        for (const id of ids) {
-          if (hasIds && !id.includes('.effect_')) continue
-          if ((stat.trade.ids[type] ??= []).includes(id)) continue
-          stat.trade.ids[type].push(id)
-          changed = true
-        }
-      }
+      attach(fill[stat.ref], id => !hasIds || id.includes('.effect_'))
     }
-    if (extra[stat.ref] && stat.trade) {
-      for (const [type, ids] of Object.entries(extra[stat.ref])) {
-        for (const id of ids) {
-          if ((stat.trade.ids[type] ??= []).includes(id)) continue
-          stat.trade.ids[type].push(id)
-          changed = true
-        }
-      }
-    }
+    if (extra[stat.ref] && stat.trade) attach(extra[stat.ref])
     return changed
   }
   const text = rewriteLines(fileText, (row) => (row.stats ?? [row]).filter(s => s.matchers).map(editStat).some(Boolean))
