@@ -2,7 +2,7 @@
   exile-appraiser:移植自 Awakened PoE Trade `renderer/src/web/map-check/MapCheck.vue`(MIT,© Alexander Drozdov)。
   耦合點:
   - 2026-11-18 起依正則書籤上色(使用者裁定):標題列的設定檔 I / II / III 換成正則書籤下拉(`bookmarks` / `bookmark` /
-    `update:bookmark`),每列的紅 / 綠由 renderer 傳入的 `markOf(stat)` 決定;過時提示拿掉(書籤自己會標「找不到幾項」)。
+    `update:bookmark`;選項值 = 清單索引),每列的紅 / 綠由 renderer 傳入的 `markOf(stat)` 決定;過時提示拿掉(書籤自己會標「找不到幾項」)。
   - MapStatButton 的 key 改用 stat ref。
   - 拿掉地圖截圖(FullscreenImage):資料裡只有 14 張地圖有截圖,而且是 imgur 外部網址(overlay 不連外部圖庫)。
   - 外框 / 底色改用主題 token(bg-surface / border),不寫死 gray-800,背景圖模式與淺色主題才看得清楚。
@@ -13,10 +13,10 @@
     style="min-width: 20rem; max-width: min(100vw - var(--game-panel), 30rem);">
     <div class="map-check-head py-1 px-8 flex items-baseline gap-2">
       <div class="flex-1 text-center">{{ mapName }}</div>
-      <select v-if="bookmarks.length" class="select sm" :value="bookmark ?? ''" :aria-label="t('ppz.map_check.bookmark')"
-        @change="emit('update:bookmark', ($event.target as HTMLSelectElement).value)">
-        <option v-if="!bookmark" value="" disabled>{{ t('ppz.map_check.pick_bookmark') }}</option>
-        <option v-for="name in bookmarks" :key="name" :value="name">{{ name }}</option>
+      <select v-if="bookmarks.length" class="select sm" :value="String(bookmark)" :aria-label="t('ppz.map_check.bookmark')"
+        @change="emit('update:bookmark', Number(($event.target as HTMLSelectElement).value))">
+        <option v-if="bookmark < 0" value="-1" disabled>{{ t('ppz.map_check.pick_bookmark') }}</option>
+        <option v-for="(label, i) in bookmarks" :key="i" :value="String(i)">{{ label }}</option>
       </select>
     </div>
     <div v-if="!bookmarks.length" class="py-2 px-8 map-check-outdated" data-hint="no-bookmark">{{ t('ppz.map_check.no_bookmark') }}</div>
@@ -53,12 +53,14 @@ import MapStatButton from './MapStatButton.vue'
 
 const props = defineProps<{
   item: ParsedItem,
+  /** 下拉文字(同名書籤已加資料夾區分) */
   bookmarks: string[],
-  bookmark: string | null,
+  /** 目前書籤在 `bookmarks` 的索引;-1 = 沒選 */
+  bookmark: number,
   markOf: (stat: Stat) => 'bad' | 'good' | null
 }>()
 
-const emit = defineEmits<{ 'update:bookmark': [name: string] }>()
+const emit = defineEmits<{ 'update:bookmark': [index: number] }>()
 
 const { t } = useI18n()
 

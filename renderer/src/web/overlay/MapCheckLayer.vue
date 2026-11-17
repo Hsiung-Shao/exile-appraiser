@@ -11,7 +11,7 @@
     data-layer="map-check">
     <div class="pointer-events-auto max-h-full overflow-y-auto">
       <error-boundary :reset-key="itemKey" where="map-check">
-        <map-check :item="item" :bookmarks="names" :bookmark="current?.name ?? null" :mark-of="markOf"
+        <map-check :item="item" :bookmarks="labels" :bookmark="current ? list.indexOf(current) : -1" :mark-of="markOf"
           @update:bookmark="select" />
       </error-boundary>
     </div>
@@ -27,7 +27,7 @@ import MapCheck from '@poe1/map-check/MapCheck.vue'
 import ErrorBoundary from '../ui/ErrorBoundary.vue'
 import { AppConfig } from '../Config'
 import { catalogueFor, ensureStateLoaded, useRegexStore } from '../regex/store'
-import { bookmarkMarks, mapCheckBookmarks, markOfStat } from '../map-check-bookmark'
+import { bookmarkLabels, bookmarkMarks, findMapCheckBookmark, mapCheckBookmarks, mapCheckRefOf, markOfStat } from '../map-check-bookmark'
 
 export default defineComponent({
   components: { MapCheck, ErrorBoundary },
@@ -43,15 +43,18 @@ export default defineComponent({
     void ensureStateLoaded()
     void catalogueFor('poe1').then(c => { pages.value = c?.pages ?? [] })
     const list = computed(() => mapCheckBookmarks(ui.bookmarks))
-    const current = computed(() => list.value.find(b => b.name === config.mapCheckBookmark))
+    const current = computed(() => findMapCheckBookmark(list.value, config.mapCheckBookmark))
     const marks = computed(() => bookmarkMarks(pages.value, current.value))
     return {
-      names: computed(() => list.value.map(b => b.name)),
+      list,
+      labels: computed(() => bookmarkLabels(list.value)),
       current,
       markOf: (stat: Stat) => markOfStat(marks.value, stat.matchers),
-      select (name: string) {
-        config.mapCheckBookmark = name
-        console.log(`[map-check] 換書籤 ${name}`)
+      select (i: number) {
+        const b = list.value[i]
+        if (!b) return
+        config.mapCheckBookmark = mapCheckRefOf(b)
+        console.log(`[map-check] 換書籤 ${b.folder ? `${b.folder} / ` : ''}${b.name}`)
       }
     }
   }

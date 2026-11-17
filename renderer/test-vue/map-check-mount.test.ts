@@ -45,13 +45,13 @@ function bookmark (name: string, mode: RegexBookmark['mode'], ids: string[]): Re
 function mountMap (item: ParsedItem, b: RegexBookmark | null, names: string[] = b ? [b.name] : []) {
   const errors: unknown[] = []
   const warns: string[] = []
-  const picked: string[] = []
+  const picked: number[] = []
   const marks = bookmarkMarks(pages, b ?? undefined)
   const Root = defineComponent({
     setup: () => () => h(MapCheck, {
-      item, bookmarks: names, bookmark: b?.name ?? null,
+      item, bookmarks: names, bookmark: b ? names.indexOf(b.name) : -1,
       markOf: (stat: { matchers: Array<{ string: string }> }) => markOfStat(marks, stat.matchers),
-      'onUpdate:bookmark': (n: string) => { picked.push(n) }
+      'onUpdate:bookmark': (i: number) => { picked.push(i) }
     })
   })
   const m = mount(Root, [i18nPlugin()], (a) => { a.config.errorHandler = (e) => { errors.push(e) }; a.config.warnHandler = (msg) => { warns.push(msg) } })
@@ -124,14 +124,14 @@ describe('3.30 新舊寫法(R3)', () => {
 })
 
 describe('換書籤與沒有書籤(R5)', () => {
-  it('選單列出書籤,選了就往外送名稱', async () => {
+  it('選單列出書籤,選了就往外送清單索引', async () => {
     const m = mountMap(parse(MAP_RARE), bookmark('危險', 'none', ['MapPoisoningMapWorlds']), ['危險', '想要'])
     await nextTick()
     const sel = findAll(m.container, (n: MiniNode) => n.tag === 'select')
     expect(sel.length).toBe(1)
     expect(findAll(sel[0], (n: MiniNode) => n.tag === 'option').map(text)).toEqual(['危險', '想要'])
-    ;(sel[0].attrs.onChange as (e: unknown) => void)({ target: { value: '想要' } })
-    expect(m.picked).toEqual(['想要'])
+    ;(sel[0].attrs.onChange as (e: unknown) => void)({ target: { value: '1' } })
+    expect(m.picked).toEqual([1])
     m.app.unmount()
   })
 

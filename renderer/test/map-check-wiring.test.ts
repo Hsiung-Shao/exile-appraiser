@@ -88,14 +88,14 @@ describe('正則頁的預設書籤與圖層接線(R5、R8)', () => {
   it('設定 › 正則 書籤卡片(PoE1 分頁)有「地圖檢查書籤」下拉,寫 mapCheckBookmark', () => {
     const v = read('renderer/src/web/regex/RegexBookmarks.vue')
     expect(v).toMatch(/v-if="tab === 'poe1'" class="srow" data-regex="bm-map-check"/)
-    expect(v).toContain('setMapCheckBookmark (v: string) { config.mapCheckBookmark = v || null }')
+    expect(v).toContain('config.mapCheckBookmark = b ? mapCheckRefOf(b) : null')
     expect(v).toContain('mapCheckBookmarks(store.ui.bookmarks)')
   })
 
   it('圖層用正則書籤上色,視窗裡換書籤寫回同一個設定', () => {
     const v = read('renderer/src/web/overlay/MapCheckLayer.vue')
     expect(v).toContain('bookmarkMarks(pages.value, current.value)')
-    expect(v).toContain('config.mapCheckBookmark = name')
+    expect(v).toContain('config.mapCheckBookmark = mapCheckRefOf(b)')
     expect(v).toMatch(/@update:bookmark="select"/)
   })
 })

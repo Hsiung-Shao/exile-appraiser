@@ -4,7 +4,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { pageKeysOf, parseRegexCatalogue, type RegexBookmark } from '@exile-appraiser/regex'
-import { bookmarkMarks, mapCheckBookmarks, markOfStat, normMapCheckBookmark } from '../src/web/map-check-bookmark'
+import { bookmarkLabels, bookmarkMarks, findMapCheckBookmark, mapCheckBookmarks, mapCheckRefOf, markOfStat, normMapCheckBookmark } from '../src/web/map-check-bookmark'
 import { _roundTripForTest } from '../src/web/Config'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
@@ -57,14 +57,39 @@ describe('書籤選單(R4)', () => {
   })
 })
 
+describe('同名書籤(審查第 3 輪)', () => {
+  const a = { ...bookmark('危險', 'map_mods', 'none', ['MapPoisoningMapWorlds']), folder: 'T16' }
+  const b = { ...bookmark('危險', 'map_mods', 'none', ['MapMonsterMultipleProjectilesWorlds']), folder: '契約' }
+  const c = bookmark('想要', 'map_mods', 'any', ['MapPoisoningMapWorlds'])
+  const list = [a, b, c]
+
+  it('識別 = 資料夾 + 名稱,兩個同名書籤各自選得到', () => {
+    expect(findMapCheckBookmark(list, mapCheckRefOf(a))).toBe(a)
+    expect(findMapCheckBookmark(list, mapCheckRefOf(b))).toBe(b)
+    expect(findMapCheckBookmark(list, null)).toBeUndefined()
+  })
+
+  it('資料夾對不上(書籤被移到別的資料夾)退回第一個同名', () => {
+    expect(findMapCheckBookmark(list, { folder: '已刪的資料夾', name: '危險' })).toBe(a)
+    expect(findMapCheckBookmark(list, { folder: '', name: '沒有這個' })).toBeUndefined()
+  })
+
+  it('下拉文字:同名的加資料夾區分,其他只顯示名稱;不重複', () => {
+    const labels = bookmarkLabels(list)
+    expect(labels).toEqual(['T16 / 危險', '契約 / 危險', '想要'])
+    expect(new Set(labels).size).toBe(labels.length)
+  })
+})
+
 describe('設定讀寫(R6)', () => {
-  it('沒有 / 壞值 → null;名稱字串原樣讀回', () => {
-    for (const bad of [undefined, null, '', '   ', 3, {}]) expect(normMapCheckBookmark(bad), JSON.stringify(bad)).toBeNull()
-    expect(normMapCheckBookmark('危險詞綴')).toBe('危險詞綴')
+  it('沒有 / 壞值 → null;{ folder, name } 原樣讀回', () => {
+    for (const bad of [undefined, null, '', '   ', 3, {}, { name: '' }, { folder: 1, name: 'x' }]) expect(normMapCheckBookmark(bad), JSON.stringify(bad)).toBeNull()
+    expect(normMapCheckBookmark({ name: '危險' })).toEqual({ folder: '', name: '危險' })
     expect((_roundTripForTest('{"game":"poe1"}').config as any).mapCheckBookmark).toBeNull()
-    const { config, serialized } = _roundTripForTest(JSON.stringify({ mapCheckBookmark: '危險詞綴' }))
-    expect((config as any).mapCheckBookmark).toBe('危險詞綴')
-    expect(JSON.parse(serialized).mapCheckBookmark).toBe('危險詞綴')
+    const v = { folder: 'T16', name: '危險詞綴' }
+    const { config, serialized } = _roundTripForTest(JSON.stringify({ mapCheckBookmark: v }))
+    expect((config as any).mapCheckBookmark).toEqual(v)
+    expect(JSON.parse(serialized).mapCheckBookmark).toEqual(v)
     // 舊版獨立標記的設定不再讀寫
     expect(JSON.parse(serialized).mapCheck).toBeUndefined()
   })

@@ -40,7 +40,7 @@
         <select class="select sm" :value="mapCheckValue" :aria-label="t('ppz.map_check.default_label')"
           @change="setMapCheckBookmark(($event.target as HTMLSelectElement).value)">
           <option value="">{{ t('ppz.map_check.default_none') }}</option>
-          <option v-for="b in mapCheckList" :key="b.name" :value="b.name">{{ b.name }}</option>
+          <option v-for="(label, i) in mapCheckLabels" :key="i" :value="String(i)">{{ label }}</option>
         </select>
       </div>
     </div>
@@ -212,7 +212,7 @@ import {
   setBookmarkHotkey, updateBookmark, useRegexStore, bookmarkReveal, customBookmarkDraft, saveCustomBookmark, updateCustomBookmark
 } from './store'
 import type { RegexBookmark } from '@exile-appraiser/regex'
-import { mapCheckBookmarks } from '../map-check-bookmark'
+import { bookmarkLabels, findMapCheckBookmark, mapCheckBookmarks, mapCheckRefOf } from '../map-check-bookmark'
 
 /** 拖曳來源 */
 type DragSrc = { kind: 'bm', index: number } | { kind: 'folder', name: string }
@@ -440,10 +440,17 @@ export default defineComponent({
       games: GAMES,
       FOLDER_NAME_MAX,
       ui: store.ui,
-      mapCheckList: computed(() => mapCheckBookmarks(store.ui.bookmarks)),
-      /** 設定的書籤已刪掉 / 改名 → 顯示「不上色」 */
-      mapCheckValue: computed(() => mapCheckBookmarks(store.ui.bookmarks).some(b => b.name === config.mapCheckBookmark) ? config.mapCheckBookmark! : ''),
-      setMapCheckBookmark (v: string) { config.mapCheckBookmark = v || null },
+      mapCheckLabels: computed(() => bookmarkLabels(mapCheckBookmarks(store.ui.bookmarks))),
+      /** 選項值 = 清單索引;設定的書籤已刪掉 / 改名 → 顯示「不上色」 */
+      mapCheckValue: computed(() => {
+        const list = mapCheckBookmarks(store.ui.bookmarks)
+        const b = findMapCheckBookmark(list, config.mapCheckBookmark)
+        return b ? String(list.indexOf(b)) : ''
+      }),
+      setMapCheckBookmark (v: string) {
+        const b = v === '' ? undefined : mapCheckBookmarks(store.ui.bookmarks)[Number(v)]
+        config.mapCheckBookmark = b ? mapCheckRefOf(b) : null
+      },
       selGame: store.selGame,
       currentGame: computed(() => config.game),
       tab,
