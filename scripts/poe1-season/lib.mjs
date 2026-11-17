@@ -643,17 +643,33 @@ export function planTradeBases ({ enItems, baseOld, baseNew, tradeItems }) {
   return { adds, rejects }
 }
 
+/** 新的一般技能寶石的等級上限(人工確認;GitHub issue #19「連結：秘能」查價整件認不出來)@type {Record<string, number>} */
+export const NEW_GEM_MAX_LEVEL = { 'Arcane Link': 20 }
+
 /**
  * 規則 9:交易站 gem 群組新上架的變異寶石(帶 `disc`;瓦爾版「Vaal X (…)」不算)。
  * 繁中名取 GGPK gemeffects,等級上限與圖示照原版寶石那一列。
+ * @param {{ enItems: any[], tradeItems: any[], gems: any[], skills?: any[] }} input
  * @returns {{ adds: any[], rejects: any[] }}
  */
-export function planGems ({ enItems, tradeItems, gems }) {
+export function planGems ({ enItems, tradeItems, gems, skills = [] }) {
   const byRef = new Map(enItems.filter(i => i.namespace === 'GEM').map(i => [i.refName, i]))
   const zhOf = groupBy(gems, g => g.en)
+  const skillZh = groupBy(skills, g => g.en)
   const adds = []
   const rejects = []
+  const seenNew = new Set() // 不放進 byRef:否則排在後面的變異版會把這筆交易站項目當成「原版那一列」
   for (const e of tradeItems) {
+    // 新的一般技能寶石(沒有 disc):等級上限資料來源沒有,只收 NEW_GEM_MAX_LEVEL 列出的;繁中名取 GGPK activeskills
+    if (e.group === 'gem' && !e.disc && !e.text && e.type && !e.type.startsWith('Vaal ') && !byRef.has(e.type)) {
+      if (seenNew.has(e.type)) continue
+      seenNew.add(e.type)
+      const zh = [...new Set((skillZh.get(e.type) ?? []).map(g => g.zh))]
+      if (!(e.type in NEW_GEM_MAX_LEVEL)) rejects.push({ reason: '新的一般寶石:等級上限未確認(補進 NEW_GEM_MAX_LEVEL)', id: e.type })
+      else if (zh.length !== 1) rejects.push({ reason: 'GGPK 沒有唯一的繁中名', id: e.type, candidates: zh })
+      else adds.push({ refName: e.type, zh: zh[0], maxLevel: NEW_GEM_MAX_LEVEL[e.type] })
+      continue
+    }
     if (e.group !== 'gem' || !e.disc || !e.text || e.text.startsWith('Vaal ') || byRef.has(e.text)) continue
     byRef.set(e.text, e)
     const normal = byRef.get(e.type)
@@ -689,6 +705,26 @@ export function planMinionDoubled ({ enStats, zhStats, ggpkNew }) {
   }
   plan(enStats, 'en', tpl.en, ' (...)')
   plan(zhStats, 'cmn-Hant', tpl.zh, '(...)')
+  return { adds }
+}
+
+/**
+ * 「全部 X 寶石等級 #」(ref 結尾 `(Random Skill Gem)`)3.30 進階複製的範圍由「(火球-魔能長杖)」變成「(...)」
+ * (GitHub issue #18 贗品．龍牙翱翔)。同一句只多一個進階寫法,舊的標 superseded;英文沒有樣本,照舊寫法推出。
+ * @returns {{ adds: any[] }}
+ */
+export function planRandomSkillGem ({ enStats, zhStats }) {
+  const adds = []
+  for (const [lang, stats] of [['en', enStats], ['cmn-Hant', zhStats]]) {
+    for (const stat of eachStat(stats)) {
+      if (!stat.ref.endsWith('(Random Skill Gem)')) continue
+      for (const m of stat.matchers) {
+        const advanced = m.advanced?.replace(/\([^()]*\)(?= 寶石等級| Gems)/, '(...)')
+        if (!advanced || m.superseded || advanced === m.advanced || stat.matchers.some(x => x.advanced === advanced)) continue
+        adds.push({ lang, ref: stat.ref, matcher: { string: m.string, advanced }, supersedes: [m.string] })
+      }
+    }
+  }
   return { adds }
 }
 
@@ -748,7 +784,15 @@ export const EXTRA_ZH_MATCHERS = [
   { ref: '#% chance to Blind Enemies on hit', zh: '擊中時有 #% 機率致盲敵人', current: true, old: '擊中時 #% 機率致盲敵人' },
   { ref: '#% increased chance of Ritual Altars with Special Rewards', zh: '增加 #% 祭祀神壇出現特殊獎勵的機率', current: true, old: '增加 #% 特殊獎勵出現於祭祀神壇的機率' },
   { ref: '#% increased chance of Ritual Altars with Special Rewards', zh: '減少 #% 祭祀神壇出現特殊獎勵的機率', negate: true, current: true, old: '減少 #% 特殊獎勵出現於祭祀神壇的機率' },
-  { ref: 'Map Bosses have #% chance to be surrounded by Tormented Spirits', zh: '地圖頭目有 #% 機率受罪魂包圍', current: true, old: '地圖頭目有 #% 機率被罪魂圍繞' }
+  { ref: 'Map Bosses have #% chance to be surrounded by Tormented Spirits', zh: '地圖頭目有 #% 機率受罪魂包圍', current: true, old: '地圖頭目有 #% 機率被罪魂圍繞' },
+  // 希望之絃(GitHub issue #20):抗性是傳奇自己的合併 stat,繁中沒有空白、「全」不是「全部」(GGPK `{1:+d}%全元素抗性`)
+  { ref: '+#% to all Elemental Resistances', zh: '#%全元素抗性', verified: 'GGPK unique_thread_of_hope_base_resist_all_elements_% + issue #20' },
+  // 範圍名稱是 clientstrings JewelRadiusMassive「巨大」,專案原句「極大」對不到
+  { ref: 'Only affects Passives in Massive Ring', zh: '只會影響巨大範圍內的天賦', advanced: '只會影響巨大範圍內的天賦', current: true, old: '只會影響極大範圍內的天賦', verified: 'GGPK clientstrings JewelRadiusMassive + issue #20' },
+  // 傭兵輔助 3.30 改名(GGPK mercenarysupports;issue #21–23 只有階層 2 的實機樣本)
+  { ref: 'Lesser Increased Area of Effect', zh: '低階增加範圍效果', advanced: '低階增加範圍效果(階層：1)', current: true, old: '低階增加效果範圍', verified: 'GGPK mercenarysupports' },
+  { ref: 'Increased Area of Effect', zh: '增加範圍效果', advanced: '增加範圍效果(階層：2)', current: true, old: '增加效果範圍', verified: 'GGPK mercenarysupports + issue #21' },
+  { ref: 'Greater Area of Effect', zh: '高階範圍效果', advanced: '高階範圍效果(階層：3)', current: true, old: '高階效果範圍', verified: 'GGPK mercenarysupports' }
 ]
 
 /** 規則 11:`EXTRA_ZH_MATCHERS` → 繁中多一個 matcher @returns {{ adds: any[] }} */
@@ -758,11 +802,12 @@ export function planExtraZh ({ zhStats, ggpkNew }) {
   for (const x of EXTRA_ZH_MATCHERS) {
     const have = [...eachStat(zhStats)].filter(s => s.ref === x.ref)
     // negate 的那一句在 GGPK 的英文是 reduced
-    if (!have.length || have.every(s => s.matchers.some(m => m.string === x.zh && !(x.current && m.superseded))) || !inGgpk.has(`${cmpKey(x.negate ? x.ref.replace('increased', 'reduced') : x.ref)}|${x.zh}`)) continue
+    // verified:句子不在 stat 描述檔的同一個 stat 鍵底下(別張表 / 合併 stat),來源已人工查過 → 不做 GGPK 逐字檢查
+    if (!have.length || have.every(s => s.matchers.some(m => m.string === x.zh && !(x.current && m.superseded))) || (!x.verified && !inGgpk.has(`${cmpKey(x.negate ? x.ref.replace('increased', 'reduced') : x.ref)}|${x.zh}`))) continue
     // superseded:解析器照樣比對,正則「物品詞綴數值」頁不拿它當模板(否則這條變成多種寫法而被排除)
     // supersedes:有 old 就標那一句;''(逐字對不到任何舊句)→ applyStatPlan 在同旗標的舊 matcher 恰好一條時標它
     adds.push(x.current
-      ? { lang: 'cmn-Hant', ref: x.ref, matcher: { string: x.zh, ...(x.negate ? { negate: true } : {}) }, supersedes: x.old ?? '', revive: true }
+      ? { lang: 'cmn-Hant', ref: x.ref, matcher: { string: x.zh, ...(x.advanced ? { advanced: x.advanced } : {}), ...(x.negate ? { negate: true } : {}) }, supersedes: x.old ?? '', revive: true }
       : { lang: 'cmn-Hant', ref: x.ref, matcher: { string: x.zh, ...(x.negate ? { negate: true } : {}), superseded: true } })
   }
   return { adds }
@@ -977,7 +1022,10 @@ export function applyItemPlan (fileText, lang, { renames = [], adds = [], unique
     if (!have.has(u.refName)) fresh.push({ name: nameOf(u.refName, u.zh), refName: u.refName, namespace: 'UNIQUE', unique: { base: u.base } })
   }
   for (const g of gems) {
-    if (!have.has(g.refName)) fresh.push({ name: nameOf(g.refName, g.zh), refName: g.refName, namespace: 'GEM', tradeDisc: g.disc, icon: gemIcon.get(g.normal) ?? g.icon, gem: { transfigured: true, normalVariant: g.normal, maxLevel: g.maxLevel } })
+    if (have.has(g.refName)) continue
+    fresh.push(g.normal
+      ? { name: nameOf(g.refName, g.zh), refName: g.refName, namespace: 'GEM', tradeDisc: g.disc, icon: gemIcon.get(g.normal) ?? g.icon, gem: { transfigured: true, normalVariant: g.normal, maxLevel: g.maxLevel } }
+      : { name: nameOf(g.refName, g.zh), refName: g.refName, namespace: 'GEM', gem: { maxLevel: g.maxLevel } })
   }
   return fresh.length ? rewriteLines(text, () => false, fresh) : text
 }

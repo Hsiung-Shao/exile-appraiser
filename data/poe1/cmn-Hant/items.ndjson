@@ -5650,3 +5650,5 @@
 {"name":"灼烙總督．眼界","refName":"Searing Exarch's Descry","namespace":"ITEM"}
 {"name":"鐮斬斷手","refName":"Severed Scythe-hand","namespace":"ITEM"}
 {"name":"尖刺甲殼","refName":"Spiked Carapace","namespace":"ITEM"}
+{"name":"連結：秘能","refName":"Arcane Link","namespace":"GEM","gem":{"maxLevel":20}}
+{"name":"神聖視界","refName":"Hallowed Descry","namespace":"ITEM"}
