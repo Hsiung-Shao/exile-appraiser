@@ -4,8 +4,8 @@
 //   node scripts/sync-stash-layouts.mjs --from <Exile-UI clone> [--allow-dirty]
 // 來源:https://github.com/Lailloken/Exile-UI(MIT)。
 // 規則:
-//   * 只取碎片頁「一般」子頁 fragments(2026-10-14 使用者決定不做不滅之火 betrayal;2026-11-07 3.30 移除聖甲蟲,scarabs 一併刪除);
-//     tab_* 三列 = 子頁按鈕位置(只留一般的)。
+//   * 取碎片頁「一般」fragments 與 3.30 新增的「綢帶」threads 兩個子頁;tab_* 兩列 = 子頁按鈕位置(兩個子頁必須相同)。
+//   * `FIXES`:Exile-UI 寫錯、以 GGPK 為準的格子(逐條註明依據);來源沒有該名稱就失敗,免得上游改了還默默套用。
 //   * 座標維持 1440 基準與「0 = 接續前一格」的寫法(換算規則在 core/src/stash/layout.ts,與 Exile-UI 逐格相同)。
 //   * 名稱:以英文全名對 data/poe1/en/items.ndjson 的 refName(不分大小寫)→ 寫標準寫法;對不到 → 失敗(表的第 4 欄 ID 可能過期,不拿來對接)。
 //   * 授權:LICENSE.md 複製到 LICENSES/exile-ui.MIT 與 renderer/public/licenses/(關於頁「授權全文」)。
@@ -51,10 +51,16 @@ for (const line of fs.readFileSync(path.join(ROOT, 'data', 'poe1', 'en', 'items.
   if (o.namespace === 'ITEM') refNames.set(String(o.refName).toLowerCase(), o.refName)
 }
 
-/** Exile-UI 鍵 → 本專案子頁 id(碎片頁「一般」) */
-const SUBTABS = /** @type {const} */ ([['general', 'fragments']])
-/** 子頁按鈕(`tab_scarabs` 聖甲蟲、`tab_betrayal` 不滅之火,不做 → 略過) */
-const BUTTONS = /** @type {const} */ ({ tab_fragments: 'general', tab_scarabs: null, tab_betrayal: null })
+/** Exile-UI 鍵 → 本專案子頁 id */
+const SUBTABS = /** @type {const} */ ([['general', 'fragments'], ['threads', 'threads']])
+/** 子頁按鈕 */
+const BUTTONS = /** @type {const} */ ({ tab_fragments: 'general', tab_threads: 'threads' })
+/**
+ * 子頁 → { Exile-UI 名稱(小寫): 改成的英文名 }。
+ * fragments (154,676):GGPK 3.30 `FragmentStashTabLayout` 在這個位置新增 `CurrencyFaridunBossKey`(The Black Barya),
+ * 使用者 3.30 截圖該格圖示也是 Black Barya(Exile-UI 2026-11-14 版仍寫 divine vessel)。
+ */
+const FIXES = /** @type {Record<string, Record<string, string>>} */ ({ general: { 'divine vessel': 'The Black Barya' } })
 
 const src = JSON.parse(fs.readFileSync(SRC, 'utf8'))
 const num = (/** @type {unknown} */ v, /** @type {string} */ where) => {
@@ -65,6 +71,7 @@ const num = (/** @type {unknown} */ v, /** @type {string} */ where) => {
 
 /** @type {Record<string, {x: number, y: number}> | null} */
 let buttons = null
+const fixedUsed = new Set()
 /** @type {Record<string, Array<{x: number, y: number, refName: string}>>} */
 const subtabs = {}
 for (const [id, key] of SUBTABS) {
@@ -82,11 +89,16 @@ for (const [id, key] of SUBTABS) {
     if (name.startsWith('tab_')) {
       if (!(name in BUTTONS)) throw new Error(`${where}:未知子頁按鈕 ${name}`)
       const b = BUTTONS[/** @type {keyof typeof BUTTONS} */ (name)]
-      if (b) btn[b] = { x, y }
+      // y 0 = 與前一顆同高(Exile-UI 寫法),寫出時展開成實際值
+      const prev = Object.values(btn).at(-1)
+      if (!y && !prev) throw new Error(`${where}:第一顆按鈕必須有完整座標`)
+      btn[b] = { x, y: y || /** @type {{y: number}} */ (prev).y }
       continue
     }
     if (cells.length === 0 && (x === 0 || y === 0)) throw new Error(`${where}:第一格必須有完整座標`)
-    const refName = refNames.get(name.toLowerCase())
+    const fixed = FIXES[id]?.[name.toLowerCase()]
+    if (fixed) fixedUsed.add(`${id}|${name.toLowerCase()}`)
+    const refName = refNames.get((fixed ?? name).toLowerCase())
     if (!refName) throw new Error(`${where}:「${name}」在 data/poe1/en/items.ndjson 找不到`)
     cells.push({ x, y, refName })
   }
@@ -94,6 +106,10 @@ for (const [id, key] of SUBTABS) {
   if (buttons && JSON.stringify(buttons) !== JSON.stringify(btn)) throw new Error(`${key}:子頁按鈕位置與其他子頁不同`)
   buttons = btn
   subtabs[id] = cells
+}
+
+for (const [id, m] of Object.entries(FIXES)) {
+  for (const k of Object.keys(m)) if (!fixedUsed.has(`${id}|${k}`)) throw new Error(`FIXES ${id}「${k}」來源已經沒有,請重新確認`)
 }
 
 const out = {

@@ -915,7 +915,7 @@
       "stash_dump_waiting": "等待下一次倉庫擷取…(設定視窗開著時掃描暫停,請關閉設定回到倉庫)",
       "stash_dump_saved": "已存:{file}(在記錄資料夾)",
       "stash_dump_failed": "存檔失敗:{msg}",
-      "stash_dump_not_showing": "倉庫價格疊層沒有顯示:請先在遊戲裡打開倉庫碎片頁的「一般」子頁。",
+      "stash_dump_not_showing": "倉庫價格疊層沒有顯示:請先在遊戲裡打開倉庫碎片頁的「一般」或「綢帶」子頁。",
       "stash_dump_timeout": "等不到倉庫擷取(逾時):請確認倉庫碎片頁開著、遊戲在前景,再按一次。",
       "stash_dump_disabled": "倉庫價格已停用:請先在「自動辨識」開啟。",
       "stash_dump_not_poe1": "只支援 PoE1 倉庫。",

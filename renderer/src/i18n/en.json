@@ -927,7 +927,7 @@
       "stash_dump_waiting": "Waiting for the next stash capture… (scanning pauses while settings are open; close settings and return to the stash)",
       "stash_dump_saved": "Saved: {file} (in the log folder)",
       "stash_dump_failed": "Save failed: {msg}",
-      "stash_dump_not_showing": "The stash price overlay isn't showing: open the General sub-tab of the fragment stash tab in game first.",
+      "stash_dump_not_showing": "The stash price overlay isn't showing: open the General or Threads sub-tab of the fragment stash tab in game first.",
       "stash_dump_timeout": "No stash capture arrived (timed out): make sure the fragment stash tab is open and the game is in front, then try again.",
       "stash_dump_disabled": "Stash prices are disabled: turn them on under Recognition first.",
       "stash_dump_not_poe1": "Only the PoE1 stash is supported.",

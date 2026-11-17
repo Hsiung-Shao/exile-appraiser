@@ -14,7 +14,8 @@ import type { Fingerprint, ScanCapture, ScanClock, ScanEnv } from '../src/ocr/pa
 import { MASK_LINGER_MS, ScanMaskStore } from '../src/ocr/scan-mask'
 import { STASH_PEEK_TIMEOUT_MS, StashScan, type StashScanConfig } from '../src/ocr/stash-scan'
 import { SUBTAB_LABELS, buttonRects, type TextLine } from '../../core/src/stash/detect'
-import { cellRects, parseStashLayouts, type StashSubtab } from '../../core/src/stash/layout'
+import { cellRects, type StashSubtab } from '../../core/src/stash/layout'
+import { layout329 } from '../../core/test/stash/layout-329'
 import { parseDigitTemplates, qtyCropRect } from '../../core/src/stash/quantity'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
@@ -25,7 +26,8 @@ const TRUTH = JSON.parse(fs.readFileSync(path.join(FIX, 'truth.json'), 'utf8')) 
   samples: Array<{ name: string, file: string, values: number[], rectsAt: Record<string, Array<{ x: number, y: number, w: number, h: number }>> }>
 }
 const SA = TRUTH.samples.find(x => x.name === 'a')!
-const LAYOUTS = parseStashLayouts(JSON.parse(fs.readFileSync(path.join(ROOT, 'data/poe1/stash/layouts.json'), 'utf8')))
+// fixture 截圖是 3.29 拍的 → 凍結的 3.29 一般頁版面
+const LAYOUTS = layout329()
 const TEMPLATES = parseDigitTemplates(JSON.parse(fs.readFileSync(path.join(ROOT, 'data/poe1/stash/digit-templates.json'), 'utf8')))
 const BASE_H = 1125
 
