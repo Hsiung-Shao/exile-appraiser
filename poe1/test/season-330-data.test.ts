@@ -313,6 +313,15 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(item.statsByType.find(s => s.stat.ref === '+#% to all Elemental Resistances')?.sources[0].stat.roll?.value).toBe(-12)
   })
 
+  it('D17r 希望之絃「只會影響巨大(...)範圍內的天賦」與 issue #20 的無括號寫法都解析成巨大範圍(大範圍有「(...)」的實機截圖,巨大是同理推論)', () => {
+    const text = fs.readFileSync(path.join(HERE, 'docs/3.30-issue-20.cmn-Hant.txt'), 'utf8')
+    for (const t of [text, text.replace('只會影響巨大範圍內的天賦', '只會影響巨大(...)範圍內的天賦')]) {
+      const item = parse(t)
+      expect(unknownOf(item)).toEqual([])
+      expect(item.statsByType.find(s => s.stat.ref === 'Only affects Passives in Massive Ring')?.stat.trade.ids.explicit).toEqual(['explicit.stat_3642528642|5'])
+    }
+  })
+
   it('D17n GitHub issue #29 的實機文字:永恆珠寶「授銜7260個硬幣以紀念卡斯皮羅(...)」(3.30 句型)解析得到、帶交易站 id、數值 7260', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-29.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])

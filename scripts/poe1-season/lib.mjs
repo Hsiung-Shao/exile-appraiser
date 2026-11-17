@@ -829,6 +829,8 @@ export const EXTRA_ZH_MATCHERS = [
   { ref: '+#% to all Elemental Resistances', zh: '#%全元素抗性', verified: 'GGPK unique_thread_of_hope_base_resist_all_elements_% + issue #20' },
   // 範圍名稱是 clientstrings JewelRadiusMassive「巨大」,專案原句「極大」對不到
   { ref: 'Only affects Passives in Massive Ring', zh: '只會影響巨大範圍內的天賦', advanced: '只會影響巨大範圍內的天賦', current: true, old: '只會影響極大範圍內的天賦', verified: 'GGPK clientstrings JewelRadiusMassive + issue #20' },
+  // 進階複製的「巨大(...)」:大範圍有實機截圖(2026-11-18「只會影響大(...)範圍內的天賦」),巨大是同理推論;英文由規則 22 補了
+  { ref: 'Only affects Passives in Massive Ring', zh: '只會影響巨大範圍內的天賦', advanced: '只會影響巨大(...)範圍內的天賦', verified: '2026-11-18 截圖「大(...)」同理' },
   // 傭兵輔助 3.30 改名(GGPK mercenarysupports;issue #21–23 只有階層 2 的實機樣本)
   { ref: 'Lesser Increased Area of Effect', zh: '低階增加範圍效果', advanced: '低階增加範圍效果(階層：1)', current: true, old: '低階增加效果範圍', verified: 'GGPK mercenarysupports' },
   { ref: 'Increased Area of Effect', zh: '增加範圍效果', advanced: '增加範圍效果(階層：2)', current: true, old: '增加效果範圍', verified: 'GGPK mercenarysupports + issue #21' },
@@ -843,12 +845,13 @@ export function planExtraZh ({ zhStats, ggpkNew }) {
     const have = [...eachStat(zhStats)].filter(s => s.ref === x.ref)
     // negate 的那一句在 GGPK 的英文是 reduced
     // verified:句子不在 stat 描述檔的同一個 stat 鍵底下(別張表 / 合併 stat),來源已人工查過 → 不做 GGPK 逐字檢查
-    if (!have.length || have.every(s => s.matchers.some(m => m.string === x.zh && !(x.current && m.superseded))) || (!x.verified && !inGgpk.has(`${cmpKey(x.negate ? x.ref.replace('increased', 'reduced') : x.ref)}|${x.zh}`))) continue
+    // 有 advanced 的條目連進階句一起比(同一句、不同進階寫法也要補)
+    if (!have.length || have.every(s => s.matchers.some(m => m.string === x.zh && (x.advanced === undefined || m.advanced === x.advanced) && !(x.current && m.superseded))) || (!x.verified && !inGgpk.has(`${cmpKey(x.negate ? x.ref.replace('increased', 'reduced') : x.ref)}|${x.zh}`))) continue
     // superseded:解析器照樣比對,正則「物品詞綴數值」頁不拿它當模板(否則這條變成多種寫法而被排除)
     // supersedes:有 old 就標那一句;''(逐字對不到任何舊句)→ applyStatPlan 在同旗標的舊 matcher 恰好一條時標它
     adds.push(x.current
       ? { lang: 'cmn-Hant', ref: x.ref, matcher: { string: x.zh, ...(x.advanced ? { advanced: x.advanced } : {}), ...(x.negate ? { negate: true } : {}) }, supersedes: x.old ?? '', revive: true }
-      : { lang: 'cmn-Hant', ref: x.ref, matcher: { string: x.zh, ...(x.negate ? { negate: true } : {}), superseded: true } })
+      : { lang: 'cmn-Hant', ref: x.ref, matcher: { string: x.zh, ...(x.advanced ? { advanced: x.advanced } : {}), ...(x.negate ? { negate: true } : {}), superseded: true } })
   }
   return { adds }
 }
