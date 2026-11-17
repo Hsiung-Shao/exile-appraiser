@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planRandomSkillGem, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, planRoomNames, planCitadel, planExtraZh, planZhForms, planCondForms, planMercenaryBuilds, planNamedSlots, EXTRA_ZH_MATCHERS, planGrownPassives, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
+import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planRandomSkillGem, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, planRoomNames, planCitadel, planExtraZh, planZhForms, planCondForms, planMercenaryBuilds, planNamedSlots, planMercenarySkills, EXTRA_ZH_MATCHERS, planGrownPassives, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
 
 /**
  * 賽季更新腳本的純函式測試(合成輸入,不讀 data/)。
@@ -1195,5 +1195,36 @@ describe('planNamedSlots(規則 22:名稱從寫死變成帶入的句型)', () =>
     const zh = parseRows(applyStatPlan(toFile(zhStats), 'cmn-Hant', plan))
     expect(zh[0].matchers.map((m: any) => [m.string, Boolean(m.superseded)])).toEqual([['授銜 # 個硬幣以紀念卡斯皮羅\n臣服於不朽帝國', true], ['授銜#個硬幣以紀念卡斯皮羅\n臣服於不朽帝國', false]])
     expect(planNamedSlots({ enStats: en, zhStats: zh, ggpkOld, ggpkNew }).adds).toEqual([])
+  })
+})
+
+describe('planMercenarySkills(規則 24:交易站有、資料沒有的傭兵技能)', () => {
+  const merc = (ref: string, id: string) => ({ ref, better: 0, mercenary: { icon: 'x.png' }, matchers: [{ string: ref }], trade: { ids: { pseudo: [id] } } })
+  const enStats = [merc('Herald of Ash', 'mercenary.skill_1')]
+  const tradeStats = [
+    { id: 'mercenary.skill_1', text: 'Herald of Ash' },
+    { id: 'mercenary.skill_2', text: 'Herald of Ash' },
+    { id: 'mercenary.skill_3', text: 'Abyssal Spray' },
+    { id: 'mercenary.skill_4', text: 'Nobody Knows' },
+    { id: 'mercenary.support_9', text: 'Some Support' }
+  ]
+  const skills = [{ en: 'Herald of Ash', zh: '灰燼之捷' }, { en: 'Abyssal Spray', zh: '深淵噴濺' }]
+
+  it('同名技能已在資料 → 掛上新 id;全新的照 GGPK 傭兵技能表的繁中名新增(帶 mercenary 欄);GGPK 沒有名稱的拒收;輔助不處理', () => {
+    const plan = planMercenarySkills({ enStats, tradeStats, skills })
+    expect(plan.extra).toEqual({ 'Herald of Ash': { pseudo: ['mercenary.skill_2'] } })
+    expect(plan.newStats).toEqual([{ ref: 'Abyssal Spray', better: 0, en: [{ string: 'Abyssal Spray' }], zh: [{ string: '深淵噴濺' }], ids: { pseudo: ['mercenary.skill_3'] }, mercenary: {} }])
+    expect(plan.rejects.map((r: any) => r.id)).toEqual(['mercenary.skill_4'])
+  })
+
+  it('套用:新列帶 mercenary 欄、欄位順序同既有傭兵列;重跑為空', () => {
+    const plan = planMercenarySkills({ enStats, tradeStats, skills })
+    const zh = parseRows(applyStatPlan(toFile([merc('Herald of Ash', 'mercenary.skill_1')].map(s => ({ ...s, matchers: [{ string: '灰燼之捷' }] }))), 'cmn-Hant', { newStats: plan.newStats, extra: plan.extra }))
+    expect(zh[1]).toEqual({ ref: 'Abyssal Spray', better: 0, mercenary: {}, matchers: [{ string: '深淵噴濺' }], trade: { ids: { pseudo: ['mercenary.skill_3'] } } })
+    expect(Object.keys(zh[1])).toEqual(['ref', 'better', 'mercenary', 'matchers', 'trade'])
+    expect(zh[0].trade.ids.pseudo).toEqual(['mercenary.skill_1', 'mercenary.skill_2'])
+    const en = parseRows(applyStatPlan(toFile(enStats), 'en', { newStats: plan.newStats, extra: plan.extra }))
+    const again = planMercenarySkills({ enStats: en, tradeStats, skills })
+    expect([again.newStats, again.extra]).toEqual([[], {}])
   })
 })

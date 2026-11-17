@@ -683,6 +683,33 @@ export function planMercenaryBuilds ({ enItems, builds, tradeItems }) {
   return { adds, rejects }
 }
 
+/**
+ * 規則 24:交易站傭兵群組(`mercenary.skill_*`)有、資料沒有的傭兵技能(使用者 2026-11-18 貼的淵井之軍契約書:
+ * 3.30 的深淵噴濺、深淵噴濺．引爆、淵底之力…資料沒有 → 解析器整段丟掉,查價少了這些技能)。
+ * 資料已有同名技能(ref = 交易站文字)→ 把 id 掛上去;全新的照 GGPK `mercenaryskills` 的繁中名新增一列(帶 `mercenary: {}`,
+ * 可用輔助清單沒有資料來源 → 不給,篩選不會有 6 連結那組);名稱不唯一或 GGPK 沒有的拒收。輔助(`mercenary.support_*`)不處理。
+ * @returns {{ newStats: any[], extra: Record<string, Record<string, string[]>>, rejects: any[] }}
+ */
+export function planMercenarySkills ({ enStats, tradeStats, skills }) {
+  const used = usedIds(enStats)
+  const refs = new Set([...eachStat(enStats)].map(s => s.ref))
+  const zhOf = groupBy(skills, s => s.en)
+  /** @type {Record<string, Record<string, string[]>>} */
+  const extra = {}
+  const fresh = new Map()
+  const rejects = []
+  for (const e of tradeStats) {
+    if (!e.id.startsWith('mercenary.skill_') || used.has(e.id)) continue
+    used.add(e.id)
+    if (refs.has(e.text)) { ((extra[e.text] ??= {}).pseudo ??= []).push(e.id); continue }
+    if (fresh.has(e.text)) { fresh.get(e.text).ids.pseudo.push(e.id); continue }
+    const zh = uniq((zhOf.get(e.text) ?? []).map(s => s.zh))
+    if (zh.length !== 1) { rejects.push({ reason: 'GGPK 傭兵技能表沒有唯一的繁中名', id: e.id, to: e.text, candidates: zh }); continue }
+    fresh.set(e.text, { ref: e.text, better: 0, en: [{ string: e.text }], zh: [{ string: zh[0] }], ids: { pseudo: [e.id] }, mercenary: {} })
+  }
+  return { newStats: [...fresh.values()], extra, rejects }
+}
+
 /** 新的一般技能寶石的等級上限(人工確認;GitHub issue #19「連結：秘能」查價整件認不出來)@type {Record<string, number>} */
 export const NEW_GEM_MAX_LEVEL = { 'Arcane Link': 20 }
 
@@ -1245,7 +1272,7 @@ export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove
   }
   const text = rewriteLines(fileText, (row) => (row.stats ?? [row]).filter(s => s.matchers).map(editStat).some(Boolean))
   const fresh = newStats.filter(s => !existingRefs.has(s.ref)).map(s => ({
-    ref: s.ref, better: s.better, matchers: lang === 'en' || !s.zh.length ? s.en : s.zh, trade: { ids: s.ids }
+    ref: s.ref, better: s.better, ...(s.mercenary ? { mercenary: s.mercenary } : {}), matchers: lang === 'en' || !s.zh.length ? s.en : s.zh, trade: { ids: s.ids }
   }))
   return fresh.length ? rewriteLines(text, () => false, fresh) : text
 }

@@ -322,6 +322,17 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     }
   })
 
+  it('D17s 淵井之軍契約書(使用者 2026-11-18 貼的實機文字):3.30 的新傭兵技能(深淵噴濺、深淵噴濺．引爆、淵底之力、瓦爾．雷鳴重擊)都解析得到', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-warrant-chaplain-2.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(item)).toEqual([])
+    expect(item.mercenarySkills?.map(g => g[0].stat.ref)).toEqual(['Abyssal Spray', 'Abyssal Spray Detonation', 'Power of the Depths', 'Vaal Smite', 'Envy', 'Flame Dash'])
+  })
+
+  it('D17t 傭兵契約書裡認不得的技能整段列為未解析,不再靜默丟掉(規則 7)', () => {
+    const text = fs.readFileSync(path.join(HERE, 'docs/3.30-warrant-chaplain-2.cmn-Hant.txt'), 'utf8').replace('烈焰衝刺', '不存在的技能').replace('忌妒', '另一個不存在的技能')
+    expect(unknownOf(parse(text))).toEqual(expect.arrayContaining(['不存在的技能', '高階快速施放(階層：3) [不存在的技能]', '另一個不存在的技能']))
+  })
+
   it('D17n GitHub issue #29 的實機文字:永恆珠寶「授銜7260個硬幣以紀念卡斯皮羅(...)」(3.30 句型)解析得到、帶交易站 id、數值 7260', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-29.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])

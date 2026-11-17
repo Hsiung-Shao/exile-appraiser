@@ -73,7 +73,12 @@ def main():
         "select ident, en, zh_tw from cell where version_id = ? and tbl = 'mercenarybuilds' and col = 'Name' "
         'and ident is not null order by ident', (new,))]
 
-    data = {'old': meta(old), 'new': meta(new), 'builds': builds, 'words': words, 'gems': gems, 'skills': skills, 'supports': supports, 'rooms': rooms, 'renames': renames, 'strings': strings,
+    # 傭兵技能名(規則 24;有些技能只在這張表,不在 activeskills,例如 3.30 的深淵噴濺)
+    merc_skills = [{'en': en, 'zh': zh} for en, zh in c.execute(
+        "select distinct en, zh_tw from cell where version_id = ? and tbl = 'mercenaryskills' and col = 'Name' "
+        'and zh_tw is not null order by en, zh_tw', (new,))]
+
+    data = {'old': meta(old), 'new': meta(new), 'builds': builds, 'mercSkills': merc_skills, 'words': words, 'gems': gems, 'skills': skills, 'supports': supports, 'rooms': rooms, 'renames': renames, 'strings': strings,
             'stats': {'old': stats(old), 'new': stats(new)},
             'base': {'old': base(old), 'new': base(new)}}
     with open(out, 'w', encoding='utf-8', newline='\n') as f:

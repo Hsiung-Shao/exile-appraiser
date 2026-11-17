@@ -5252,7 +5252,7 @@
 {"ref":"Heist Targets are always Thieves' Trinkets","better":1,"matchers":[{"string":"劫盜目標總是盜賊飾品"}],"trade":{"ids":{"enchant":["enchant.stat_1123534836"]}}}
 {"ref":"Herald of Agony has #% increased Buff Effect","better":1,"matchers":[{"string":"苦痛之捷增加 #% 增益效果"},{"string":"苦痛之捷減少 #% 增益效果","negate":true}],"trade":{"ids":{"explicit":["explicit.stat_2572910724"],"implicit":["implicit.stat_2572910724"]}}}
 {"ref":"Herald of Agony has #% increased Mana Reservation Efficiency","better":1,"matchers":[{"string":"苦痛之捷增加 #% 魔力保留效用"},{"string":"苦痛之捷減少 #% 魔力保留效用","negate":true}],"trade":{"ids":{"explicit":["explicit.stat_1133703802"],"enchant":["enchant.stat_1133703802"]}}}
-{"ref":"Herald of Ash","better":0,"mercenary":{"icon":"https://webtw.poecdn.com/gen/image/WzIxLDE0LHsiayI6IjJEQXJ0L1NraWxsSWNvbnMvSGVyYWxkb2ZBc2gifV0/e45c26e088/HeraldofAsh.png"},"matchers":[{"string":"灰燼之捷"}],"trade":{"ids":{"pseudo":["mercenary.skill_44334"]}}}
+{"ref":"Herald of Ash","better":0,"mercenary":{"icon":"https://webtw.poecdn.com/gen/image/WzIxLDE0LHsiayI6IjJEQXJ0L1NraWxsSWNvbnMvSGVyYWxkb2ZBc2gifV0/e45c26e088/HeraldofAsh.png"},"matchers":[{"string":"灰燼之捷"}],"trade":{"ids":{"pseudo":["mercenary.skill_44334","mercenary.skill_31201"]}}}
 {"ref":"Herald of Ash has #% increased Buff Effect","better":1,"matchers":[{"string":"灰燼之捷增加 #% 增益效果"},{"string":"灰燼之捷減少 #% 增益效果","negate":true}],"trade":{"ids":{"explicit":["explicit.stat_2154349925"],"implicit":["implicit.stat_2154349925"]}}}
 {"ref":"Herald of Ash has #% increased Mana Reservation Efficiency","better":1,"matchers":[{"string":"灰燼之捷增加 #% 魔力保留效用"},{"string":"灰燼之捷減少 #% 魔力保留效用","negate":true}],"trade":{"ids":{"explicit":["explicit.stat_2500442851"],"enchant":["enchant.stat_2500442851"]}}}
 {"ref":"Herald of Ice","better":0,"mercenary":{"icon":"https://webtw.poecdn.com/gen/image/WzIxLDE0LHsiayI6IjJEQXJ0L1NraWxsSWNvbnMvSGVyYWxkb2ZJY2UifV0/84eddd1d15/HeraldofIce.png"},"matchers":[{"string":"冰霜之捷"}],"trade":{"ids":{"pseudo":["mercenary.skill_32807"]}}}
@@ -10805,3 +10805,9 @@
 {"ref":"Kill Undead Enemies that have 15% or lower Life when Hit by your Skills","better":0,"matchers":[{"string":"你的技能會於擊中時擊殺低於15%生命的不死敵人"}],"trade":{"ids":{"implicit":["implicit.stat_4052113003"]}}}
 {"ref":"Damage with Hits is Lucky while your Offhand is Magic","better":0,"matchers":[{"string":"若你的副手物品為魔法，則擊中傷害很幸運"}],"trade":{"ids":{"explicit":["explicit.stat_1609344921"]}}}
 {"ref":"# Monster Packs in Area are substituted with harmless Toads","better":1,"matchers":[{"string":"區域內的#群怪物會被替換為無害的蟾蜍"}],"trade":{"ids":{"enchant":["enchant.stat_2844829788"]}}}
+{"ref":"Charged Dash of the Arcane","better":0,"mercenary":{},"matchers":[{"string":"雷霆衝鋒．秘術"}],"trade":{"ids":{"pseudo":["mercenary.skill_5673"]}}}
+{"ref":"Power Siphon","better":0,"mercenary":{},"matchers":[{"string":"力量抽取"}],"trade":{"ids":{"pseudo":["mercenary.skill_26705"]}}}
+{"ref":"Abyssal Spray","better":0,"mercenary":{},"matchers":[{"string":"深淵噴濺"}],"trade":{"ids":{"pseudo":["mercenary.skill_50122"]}}}
+{"ref":"Abyssal Spray Detonation","better":0,"mercenary":{},"matchers":[{"string":"深淵噴濺．引爆"}],"trade":{"ids":{"pseudo":["mercenary.skill_41822"]}}}
+{"ref":"Power of the Depths","better":0,"mercenary":{},"matchers":[{"string":"淵底之力"}],"trade":{"ids":{"pseudo":["mercenary.skill_54593"]}}}
+{"ref":"Vaal Smite","better":0,"mercenary":{},"matchers":[{"string":"瓦爾．雷鳴重擊"}],"trade":{"ids":{"pseudo":["mercenary.skill_40606"]}}}
