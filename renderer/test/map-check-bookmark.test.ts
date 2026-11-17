@@ -64,14 +64,26 @@ describe('同名書籤(審查第 3 輪)', () => {
   const list = [a, b, c]
 
   it('識別 = 資料夾 + 名稱,兩個同名書籤各自選得到', () => {
-    expect(findMapCheckBookmark(list, mapCheckRefOf(a))).toBe(a)
-    expect(findMapCheckBookmark(list, mapCheckRefOf(b))).toBe(b)
+    expect(findMapCheckBookmark(list, mapCheckRefOf(a, list))).toBe(a)
+    expect(findMapCheckBookmark(list, mapCheckRefOf(b, list))).toBe(b)
     expect(findMapCheckBookmark(list, null)).toBeUndefined()
   })
 
   it('資料夾對不上(書籤被移到別的資料夾)退回第一個同名', () => {
     expect(findMapCheckBookmark(list, { folder: '已刪的資料夾', name: '危險' })).toBe(a)
     expect(findMapCheckBookmark(list, { folder: '', name: '沒有這個' })).toBeUndefined()
+  })
+
+  it('同資料夾(都在未分類)的同名書籤:第二個也選得到,下拉文字加序號(審查第 4 輪)', () => {
+    const x = bookmark('T16', 'map_mods', 'none', ['MapPoisoningMapWorlds'])
+    const y = bookmark('T16', 'map_mods', 'any', ['MapMonsterMultipleProjectilesWorlds'])
+    const two = [x, y]
+    expect(mapCheckRefOf(y, two)).toEqual({ folder: '', name: 'T16', nth: 1 })
+    expect(findMapCheckBookmark(two, mapCheckRefOf(x, two))).toBe(x)
+    expect(findMapCheckBookmark(two, mapCheckRefOf(y, two))).toBe(y)
+    expect(bookmarkLabels(two)).toEqual(['T16', 'T16 (2)'])
+    // 第二個被刪掉 → 退回第一個同名
+    expect(findMapCheckBookmark([x], { folder: '', name: 'T16', nth: 1 })).toBe(x)
   })
 
   it('下拉文字:同名的加資料夾區分,其他只顯示名稱;不重複', () => {

@@ -37,29 +37,41 @@ export function markOfStat (m: BookmarkMarks | null, matchers: ReadonlyArray<{ s
 }
 
 /**
- * 設定 `mapCheckBookmark` 的書籤識別:資料夾 + 名稱(正則書籤允許同名,只用名稱會選不到第二個;審查第 3 輪)。
- * 找不到同資料夾的(書籤被移到別的資料夾)退回第一個同名(同 `quick.ts` `findBookmark` 的退路)。
+ * 設定 `mapCheckBookmark` 的書籤識別:資料夾 + 名稱 + 同資料夾同名中的第幾個(`nth`,0 起算;正則書籤允許同名,
+ * 「存成書籤」一律進未分類、不檢查重名;審查第 3、4 輪)。找不到時退回第一個同資料夾同名、再退回第一個同名
+ * (書籤被刪 / 移到別的資料夾;同 `quick.ts` `findBookmark` 的退路)。
  */
-export interface MapCheckRef { folder: string, name: string }
+export interface MapCheckRef { folder: string, name: string, nth?: number }
 
-export function mapCheckRefOf (b: RegexBookmark): MapCheckRef {
-  return { folder: b.folder ?? '', name: b.name }
+const sameSlot = (a: RegexBookmark, folder: string, name: string) => a.name === name && (a.folder ?? '') === folder
+
+export function mapCheckRefOf (b: RegexBookmark, list: readonly RegexBookmark[]): MapCheckRef {
+  const folder = b.folder ?? ''
+  const nth = list.filter(x => sameSlot(x, folder, b.name)).indexOf(b)
+  return nth > 0 ? { folder, name: b.name, nth } : { folder, name: b.name }
 }
 
 export function findMapCheckBookmark (list: readonly RegexBookmark[], ref: MapCheckRef | null): RegexBookmark | undefined {
   if (!ref) return undefined
-  return list.find(b => b.name === ref.name && (b.folder ?? '') === ref.folder) ?? list.find(b => b.name === ref.name)
+  const same = list.filter(b => sameSlot(b, ref.folder, ref.name))
+  return same[ref.nth ?? 0] ?? same[0] ?? list.find(b => b.name === ref.name)
 }
 
-/** 下拉文字:同名的前面加資料夾(未分類就只有名稱) */
+/** 下拉文字:同名的前面加資料夾(未分類就只有名稱),同資料夾同名的第二個起加「 (2)」… */
 export function bookmarkLabels (list: readonly RegexBookmark[]): string[] {
-  return list.map(b => list.filter(x => x.name === b.name).length > 1 && b.folder ? `${b.folder} / ${b.name}` : b.name)
+  return list.map(b => {
+    if (list.filter(x => x.name === b.name).length < 2) return b.name
+    const nth = list.filter(x => sameSlot(x, b.folder ?? '', b.name)).indexOf(b)
+    return `${b.folder ? `${b.folder} / ` : ''}${b.name}${nth > 0 ? ` (${nth + 1})` : ''}`
+  })
 }
 
-/** 讀設定:`{ folder, name }`;沒有 / 壞值 / 名稱空白 = null */
+/** 讀設定:`{ folder, name, nth? }`;沒有 / 壞值 / 名稱空白 = null */
 export function normMapCheckBookmark (v: unknown): MapCheckRef | null {
   const o = (v && typeof v === 'object' ? v : {}) as Record<string, unknown>
   if (typeof o.name !== 'string' || !o.name.trim()) return null
   if (o.folder !== undefined && typeof o.folder !== 'string') return null
-  return { folder: (o.folder as string | undefined) ?? '', name: o.name }
+  const ref: MapCheckRef = { folder: (o.folder as string | undefined) ?? '', name: o.name }
+  if (Number.isInteger(o.nth) && (o.nth as number) > 0) ref.nth = o.nth as number
+  return ref
 }

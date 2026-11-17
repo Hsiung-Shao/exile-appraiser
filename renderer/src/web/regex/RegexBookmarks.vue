@@ -448,8 +448,9 @@ export default defineComponent({
         return b ? String(list.indexOf(b)) : ''
       }),
       setMapCheckBookmark (v: string) {
-        const b = v === '' ? undefined : mapCheckBookmarks(store.ui.bookmarks)[Number(v)]
-        config.mapCheckBookmark = b ? mapCheckRefOf(b) : null
+        const list = mapCheckBookmarks(store.ui.bookmarks)
+        const b = v === '' ? undefined : list[Number(v)]
+        config.mapCheckBookmark = b ? mapCheckRefOf(b, list) : null
       },
       selGame: store.selGame,
       currentGame: computed(() => config.game),
