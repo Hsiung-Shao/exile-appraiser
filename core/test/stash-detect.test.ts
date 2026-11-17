@@ -1,50 +1,29 @@
 /**
  * 倉庫碎片頁按鈕列偵測:OCR 找子頁按鈕、資料夾偏移、目前子頁(灰階 p99)。
- * 基準:core/test/stash/fixtures/ocr/(使用者錄影裁圖,client 高 1432)+ 真實 Windows OCR 快照。
+ * 基準:core/test/stash/fixtures/ocr/(使用者 3.29 錄影裁圖,client 高 1432)+ 真實 Windows OCR 快照。
+ * 3.30 按鈕改成「一般 / 綢帶 / 異能」三顆、位置不同 → `clientLines`(stash/ocr-330.ts)把快照裡的按鈕行搬到 3.30 槽位,
+ * 其他行(雜訊、頁籤)原樣保留;3.29 按鈕像素的子頁判定(原 S7 實圖)已刪,改由合成 p99 與 stash-330 / stash-threads-scan 測。
  * 不讀 core/src/stash/detect.ts 實作。
  */
 import { describe, expect, it } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import sharp from 'sharp'
 import {
-  SUBTAB_LABELS, activeSubtab, buttonRects, compareSlots, findSubtabButtons,
-  defaultStripRegion, folderOffset, percentile, stripRect, stripZone, type ButtonMatch, type TextLine
+  SUBTAB_LABELS, activeSubtab, buttonRects, findSubtabButtons,
+  defaultStripRegion, folderOffset, percentile, stripRect, stripZone, type TextLine
 } from '../src/stash/detect'
-import { cellRects, parseStashLayouts, type StashSubtab } from '../src/stash/layout'
+import { cellRects, parseStashLayouts } from '../src/stash/layout'
+import { FIX_DIR, clientLines } from './stash/ocr-330'
 
-const FIX_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'stash/fixtures/ocr')
-
-interface FixtureEntry { file: string, clientH: number, cropX: number, cropY: number, subtab: StashSubtab | null }
-interface OcrSnap { scale: number, lines: Array<{ text: string, x: number, y: number, w: number, h: number }> }
-
-const INDEX = JSON.parse(fs.readFileSync(path.join(FIX_DIR, 'index.json'), 'utf8')) as { fixtures: FixtureEntry[] }
 const H = 1432
 
-function fixture (name: string): FixtureEntry {
-  const f = INDEX.fixtures.find(x => x.file === name)
-  if (!f) throw new Error(`找不到 fixture ${name}`)
-  return f
-}
-
-/** OCR 快照 → client 座標的行 */
-function clientLines (name: string): TextLine[] {
-  const f = fixture(name)
-  const snap = JSON.parse(fs.readFileSync(path.join(FIX_DIR, name.replace(/\.png$/, '.ocr.json')), 'utf8')) as OcrSnap
-  const s = snap.scale
-  return snap.lines.map(l => ({ text: l.text, x: l.x / s + f.cropX, y: l.y / s + f.cropY, w: l.w / s, h: l.h / s }))
-}
-
 const STRIPS = ['strip-scarabs-1432.png', 'strip-general-1432.png', 'strip-allflame-1432.png'] as const
-/** 偵測用的三個標籤(聖甲蟲 2026-11-07 起不比對) */
-const ZH_LABELS = ['一般', '不滅之火', '異能']
-const EN_LABELS = ['General', 'Allflame', 'Eldritch']
-/** 3.29 實機畫面上的四顆按鈕文字(含聖甲蟲;換成英文 / 錯字用) */
-const ZH_ALL = ['一般', '聖甲蟲', '不滅之火', '異能']
-const EN_ALL = ['General', 'Scarab', 'Allflame', 'Eldritch']
+/** 3.30 偵測標籤(GGPK clientstrings FragmentStashSubTab{Other,Threads,Eldritch}) */
+const ZH_LABELS = ['一般', '綢帶', '異能']
+const EN_LABELS = ['General', 'Threads', 'Eldritch']
 const isButtonLine = (l: TextLine): boolean => ZH_LABELS.includes(l.text.replace(/\s+/g, ''))
-const dx = (slots: number): number => slots * 168 / 1440 * H
+const dx = (slots: number): number => slots * 166 / 1440 * H
 
 describe('S6b 實機 2560×1440 截圖(使用者回報徽章沒出現)', () => {
   it('掃描條上緣不切到倉庫頁籤列(頁籤字下緣 170 / 1440)', () => {
@@ -53,8 +32,8 @@ describe('S6b 實機 2560×1440 截圖(使用者回報徽章沒出現)', () => {
   })
   it('實機截圖(不在資料夾)找到按鈕、偏移 0', () => {
     const m = findSubtabButtons(clientLines('strip-general-1440.png'), 1440, 'zh')
-    // 一般(目前子頁)漏讀,不滅之火 / 異能 在 2、3 號槽
-    expect(m).toEqual({ found: true, matched: 2, yOffset: 0, slots: [2, 3] })
+    // 一般(目前子頁)漏讀,綢帶 / 異能 在 1、2 號槽
+    expect(m).toEqual({ found: true, matched: 2, yOffset: 0, slots: [1, 2] })
   })
   it('實機截圖下移 47(資料夾內)找到按鈕、偏移 = folderOffset', () => {
     const m = findSubtabButtons(clientLines('strip-general-1440-folder.png'), 1440, 'zh')
@@ -64,13 +43,10 @@ describe('S6b 實機 2560×1440 截圖(使用者回報徽章沒出現)', () => {
 })
 
 describe('S6c 實機英文介面(按鈕是小型大寫字)', () => {
-  it('OCR 讀成全大寫(GENERAL / ALLFLAME…)仍算命中', () => {
+  it('OCR 讀成全大寫(GENERAL / THREADS…)仍算命中', () => {
     // 區分大小寫比對 'General' → 全對不上、英文介面永遠不出現徽章(使用者實機回報)
     const m = findSubtabButtons(clientLines('strip-general-1440-en.png'), 1440, 'en')
-    expect(m).toEqual({ found: true, matched: 3, yOffset: 0, slots: [0, 2, 3] })
-  })
-  it('英文截圖的目前子頁(一般)由像素判定', async () => {
-    expect(activeSubtab(await buttonP99('strip-general-1440-en.png', 'en'))).toBe('general')
+    expect(m).toEqual({ found: true, matched: 3, yOffset: 0, slots: [0, 1, 2] })
   })
 })
 
@@ -142,17 +118,17 @@ describe('S7b 幾何輔助函式', () => {
     expect(textBottom).toBeLessThanOrEqual(strip.y + strip.h)
     expect(buttonRects(1440, 0)[0].y).toBeGreaterThanOrEqual(strip.y)
   })
-  it('buttonRects(1440,0) 第 2 顆為 284,186,152,36', () => {
-    // 按鈕間距 168 或起點 116 錯 → 失敗
-    expect(buttonRects(1440, 0)[1]).toEqual({ x: 284, y: 186, w: 152, h: 36 })
+  it('buttonRects(1440,0) 第 2 顆為 368,186,152,36', () => {
+    // 按鈕間距 166 或起點 202 錯 → 失敗
+    expect(buttonRects(1440, 0)[1]).toEqual({ x: 368, y: 186, w: 152, h: 36 })
   })
-  it('buttonRects 四顆依序排列且 yOffset 只加在 y', () => {
+  it('buttonRects 三顆依序排列且 yOffset 只加在 y', () => {
     // 漏加 yOffset、或 yOffset 誤加到 x / h → 失敗
     const a = buttonRects(1440, 0)
     const b = buttonRects(1440, 47)
-    expect(a).toHaveLength(4)
-    expect(a.map(r => r.x)).toEqual([116, 284, 452, 620])
-    for (let k = 0; k < 4; k++) expect(b[k]).toEqual({ ...a[k], y: a[k].y + 47 })
+    expect(a).toHaveLength(3)
+    expect(a.map(r => r.x)).toEqual([202, 368, 534])
+    for (let k = 0; k < 3; k++) expect(b[k]).toEqual({ ...a[k], y: a[k].y + 47 })
     expect(buttonRects(1440)).toEqual(a)
   })
   it('folderOffset(1440) = 47、1432 取 floor', () => {
@@ -169,8 +145,8 @@ describe('S7b 幾何輔助函式', () => {
     expect(percentile(g, 0.99)).toBe(40) // floor(0.99·4) = 3
     expect(percentile(new Uint8Array(0), 0.99)).toBe(0)
   })
-  it('偵測標籤不含聖甲蟲、順序左到右', () => {
-    // 順序錯 → 遞增檢查判錯;還比對聖甲蟲 → 3.30 沒有這顆時白白少一顆
+  it('偵測標籤 = 一般 / 綢帶 / 異能、順序左到右', () => {
+    // 順序錯 → 遞增檢查判錯;還是不滅之火 → 3.30 少一顆
     expect([...SUBTAB_LABELS.zh]).toEqual(ZH_LABELS)
     expect([...SUBTAB_LABELS.en]).toEqual(EN_LABELS)
   })
@@ -209,19 +185,12 @@ describe('S6 至少兩顆按鈕、落在按鈕槽且順序左到右才算碎片�
       expect(r.found).toBe(true)
     })
   }
-  it('3.29 聖甲蟲 / 不滅之火子頁三顆偵測標籤全命中,槽位 0 / 2 / 3', () => {
+  it('三顆偵測標籤全命中,槽位 0 / 1 / 2', () => {
     // 同一顆多行處理錯、或槽位中心算錯 → 失敗
     for (const name of ['strip-scarabs-1432.png', 'strip-allflame-1432.png']) {
       const r = findSubtabButtons(clientLines(name), H, 'zh')
-      expect(r, name).toEqual({ found: true, matched: 3, yOffset: 0, slots: [0, 2, 3] })
+      expect(r, name).toEqual({ found: true, matched: 3, yOffset: 0, slots: [0, 1, 2] })
     }
-  })
-  it('3.30 拿掉聖甲蟲、其他按鈕左移一槽也認得', () => {
-    // 還用固定槽位對標籤 → 左移後一顆都對不上
-    const lines = clientLines('strip-scarabs-1432.png')
-      .filter(l => l.text.replace(/\s+/g, '') !== '聖甲蟲')
-      .map(l => ['不滅之火', '異能'].includes(l.text.replace(/\s+/g, '')) ? { ...l, x: l.x - dx(1) } : l)
-    expect(findSubtabButtons(lines, H, 'zh')).toEqual({ found: true, matched: 3, yOffset: 0, slots: [0, 1, 2] })
   })
   it('只保留任兩顆偵測標籤也找得到', () => {
     // 門檻寫成 ≥ 3 → 一般(目前子頁)漏讀再漏一顆就失效
@@ -248,11 +217,11 @@ describe('S6 至少兩顆按鈕、落在按鈕槽且順序左到右才算碎片�
       }
     }
   })
-  it('順序顛倒(異能在不滅之火左邊)找不到', () => {
+  it('順序顛倒(異能在綢帶左邊)找不到', () => {
     // 不檢查左到右遞增 → 誤判
     const lines = clientLines('strip-allflame-1432.png').map(l => {
       const t = l.text.replace(/\s+/g, '')
-      if (t === '不滅之火') return { ...l, x: l.x + dx(1) }
+      if (t === '綢帶') return { ...l, x: l.x + dx(1) }
       if (t === '異能') return { ...l, x: l.x - dx(1) }
       return t === '一般' ? { ...l, text: '' } : l
     })
@@ -272,29 +241,29 @@ describe('S6 至少兩顆按鈕、落在按鈕槽且順序左到右才算碎片�
     it('「一般」在 1 號槽上方:仍找到、槽位不變', () => {
       // 不看高度只看 x → 假「一般」比真的近 → 判成一般不在最左 → 疊層一直不出現
       expect(findSubtabButtons([...clientLines('strip-allflame-1432.png'), stray('一般', 1)], H, 'zh'))
-        .toEqual({ found: true, matched: 3, yOffset: 0, slots: [0, 2, 3] })
+        .toEqual({ found: true, matched: 3, yOffset: 0, slots: [0, 1, 2] })
     })
     it('真的「一般」漏讀時,頁籤列的「一般」不被當成按鈕', () => {
       // 假文字被收進去 → 一般落在 1 號槽 → 找不到
       expect(findSubtabButtons([...clientLines('strip-general-1440.png'), { ...stray('一般', 1), x: stray('一般', 1).x / H * 1440, y: 150 - 8 }], 1440, 'zh'))
-        .toEqual({ found: true, matched: 2, yOffset: 0, slots: [2, 3] })
+        .toEqual({ found: true, matched: 2, yOffset: 0, slots: [1, 2] })
     })
     it('「異能」在 0 號槽上方:不打亂左到右順序', () => {
       // 假「異能」搶到 0 號槽 → 遞增檢查失敗
       expect(findSubtabButtons([...clientLines('strip-allflame-1432.png'), stray('異能', 0)], H, 'zh'))
-        .toEqual({ found: true, matched: 3, yOffset: 0, slots: [0, 2, 3] })
+        .toEqual({ found: true, matched: 3, yOffset: 0, slots: [0, 1, 2] })
     })
     it('資料夾內:資料夾頁籤列(與不在資料夾的按鈕同高)有「一般」也不搶槽位', () => {
-      // 兩種高度混在一起配槽 → 頁籤列的「一般」(2 號槽附近)被收進來 → 判成一般不在最左 → 疊層一直不出現
-      const lines = [...clientLines('strip-general-1440-folder.png'), { text: '一般', x: 547 - 15, y: 201 - 8, w: 30, h: 16 }]
-      expect(findSubtabButtons(lines, 1440, 'zh')).toEqual({ found: true, matched: 2, yOffset: folderOffset(1440), slots: [2, 3] })
+      // 兩種高度混在一起配槽 → 頁籤列的「一般」(1 號槽中心 368 + 76)被收進來 → 判成一般不在最左 → 疊層一直不出現
+      const lines = [...clientLines('strip-general-1440-folder.png'), { text: '一般', x: 444 - 15, y: 201 - 8, w: 30, h: 16 }]
+      expect(findSubtabButtons(lines, 1440, 'zh')).toEqual({ found: true, matched: 2, yOffset: folderOffset(1440), slots: [1, 2] })
     })
     it('資料夾內(按鈕下移 folderOffset)也照樣排除頁籤列文字', () => {
       // 高度過濾只認 0 偏移 → 資料夾內按鈕全被濾掉
       const off = folderOffset(H)
       const lines = clientLines('strip-allflame-1432.png').map(l => ({ ...l, y: l.y + off }))
       expect(findSubtabButtons([...lines, stray('一般', 1)], H, 'zh'))
-        .toEqual({ found: true, matched: 3, yOffset: off, slots: [0, 2, 3] })
+        .toEqual({ found: true, matched: 3, yOffset: off, slots: [0, 1, 2] })
     })
   })
   for (const name of ['strip-tooltip-1432.png', 'neg-grid-1432.png']) {
@@ -317,8 +286,8 @@ describe('S6 至少兩顆按鈕、落在按鈕槽且順序左到右才算碎片�
     // 英文標籤表錯、或 lang 沒用到 → 失敗
     for (const name of STRIPS) {
       const lines = clientLines(name).map(l => {
-        const k = ZH_ALL.indexOf(l.text.replace(/\s+/g, ''))
-        return k >= 0 ? { ...l, text: EN_ALL[k] } : l
+        const k = ZH_LABELS.indexOf(l.text.replace(/\s+/g, ''))
+        return k >= 0 ? { ...l, text: EN_LABELS[k] } : l
       })
       const r = findSubtabButtons(lines, H, 'en')
       expect(r.found, name).toBe(true)
@@ -327,19 +296,19 @@ describe('S6 至少兩顆按鈕、落在按鈕槽且順序左到右才算碎片�
       expect(findSubtabButtons(lines, H, 'zh').found, name).toBe(false)
     }
   })
-  it('英文標籤去空白後比對(OCR 拆字的 "Al lflame")', () => {
+  it('英文標籤去空白後比對(OCR 拆字的 "Thr eads")', () => {
     // 規格:行文字去掉所有空白後 === label;沒去空白 → 失敗
     const lines = clientLines('strip-allflame-1432.png').map(l => {
-      const k = ZH_ALL.indexOf(l.text.replace(/\s+/g, ''))
-      return k >= 0 ? { ...l, text: ['Gen eral', 'Sca rab', 'Al lflame', 'Eld ritch'][k] } : l
+      const k = ZH_LABELS.indexOf(l.text.replace(/\s+/g, ''))
+      return k >= 0 ? { ...l, text: ['Gen eral', 'Thr eads', 'Eld ritch'][k] } : l
     })
     expect(findSubtabButtons(lines, H, 'en').found).toBe(true)
   })
   it('英文標籤有錯字不算', () => {
     // 模糊比對或包含即算 → 失敗
     const lines = clientLines('strip-allflame-1432.png').map(l => {
-      const k = ZH_ALL.indexOf(l.text.replace(/\s+/g, ''))
-      return k >= 0 ? { ...l, text: ['Genera1', 'Scarab', 'Alflame', 'Eldritch!'][k] } : l
+      const k = ZH_LABELS.indexOf(l.text.replace(/\s+/g, ''))
+      return k >= 0 ? { ...l, text: ['Genera1', 'Thread', 'Eldritch!'][k] } : l
     })
     expect(findSubtabButtons(lines, H, 'en').found).toBe(false)
   })
@@ -349,45 +318,12 @@ describe('S6 至少兩顆按鈕、落在按鈕槽且順序左到右才算碎片�
   })
 })
 
-/** 依 `compareSlots` 取按鈕槽的 p99(與 main stash-scan 同一條路) */
-async function buttonP99 (name: string, lang: 'zh' | 'en' = 'zh'): Promise<number[]> {
-  const f = fixture(name)
-  const match: ButtonMatch = findSubtabButtons(clientLines(name), f.clientH, lang)
-  expect(match.found, name).toBe(true)
-  const { data, info } = await sharp(path.join(FIX_DIR, name)).greyscale().raw().toBuffer({ resolveWithObject: true })
-  const ch = info.channels
-  const rects = buttonRects(f.clientH, 0)
-  return compareSlots(match).map(k => {
-    const r = rects[k]
-    const x0 = r.x - f.cropX
-    const y0 = r.y - f.cropY
-    const px = new Uint8Array(r.w * r.h)
-    let n = 0
-    for (let y = y0; y < y0 + r.h; y++) {
-      for (let x = x0; x < x0 + r.w; x++) px[n++] = data[(y * info.width + x) * ch]
-    }
-    return percentile(px, 0.99)
-  })
-}
-
-describe('S7 子頁判定:只有一般畫,3.29 聖甲蟲 / 不滅之火不畫', () => {
-  for (const name of STRIPS) {
-    it(`${name} 由像素判定 = index.json 的子頁`, async () => {
-      // 按鈕框錯位、p99 算錯、或比到錯的槽 → 失敗
-      expect(activeSubtab(await buttonP99(name))).toBe(fixture(name).subtab)
-    })
-  }
-  it('compareSlots:一般那槽在前,其他只取有認到文字的槽', () => {
-    // 把 3.30 空著的槽也拿來比 → 空槽太亮時一般頁不畫
-    expect(compareSlots({ found: true, matched: 3, yOffset: 0, slots: [0, 1, 2] })).toEqual([0, 1, 2])
-    expect(compareSlots({ found: true, matched: 2, yOffset: 0, slots: [2, 3] })).toEqual([0, 2, 3])
-  })
-  it('其他有文字的槽比一般亮 → null', () => {
-    // 不比其他槽、一般一律畫 → 聖甲蟲 / 不滅之火子頁也畫
-    expect(activeSubtab([140, 160, 143])).toBeNull()
+describe('S7 子頁判定:一般 / 綢帶最亮才畫,異能不畫', () => {
+  it('異能最亮 → null', () => {
+    // 異能也對到某個版面 → 沒有版面的子頁也畫
     expect(activeSubtab([140, 141, 160])).toBeNull()
   })
-  it('一般最亮但差距不足 8 → null', () => {
+  it('最亮但差距不足 8 → null', () => {
     // 不檢查差距 → 失敗
     expect(activeSubtab([150, 150, 149])).toBeNull()
     expect(activeSubtab([157, 150, 149])).toBeNull()

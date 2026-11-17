@@ -15,7 +15,8 @@ import {
   QTY_HIGH_CONFIDENCE, buildDigitTemplates, decodeQtyCrop, digitSamples, parseDigitTemplates, qtyCrop, readCellQuantity,
   type DigitTemplates, type QtyImage, type QtyResult
 } from '../src/stash/quantity'
-import { cellRects, parseStashLayouts } from '../src/stash/layout'
+import { cellRects } from '../src/stash/layout'
+import { layout329 } from './stash/layout-329'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const FIX = path.join(ROOT, 'core/test/stash/fixtures/qty')
@@ -43,7 +44,8 @@ const TRUTH = JSON.parse(fs.readFileSync(path.join(FIX, 'truth.json'), 'utf8')) 
 }
 const SA = TRUTH.samples.find(x => x.name === 'a')!
 const SB = TRUTH.samples.find(x => x.name === 'b')!
-const LAYOUTS = parseStashLayouts(JSON.parse(fs.readFileSync(path.join(ROOT, 'data/poe1/stash/layouts.json'), 'utf8')))
+// fixture 都是 3.29 拍的 → 凍結的 3.29 一般頁版面
+const LAYOUTS = layout329()
 const TEMPLATE_FILE = path.join(ROOT, 'data/poe1/stash/digit-templates.json')
 const TEMPLATES = parseDigitTemplates(JSON.parse(fs.readFileSync(TEMPLATE_FILE, 'utf8')))
 /** general = 一般頁(版面切格);a = 數字樣本 A(寫死的格子框) */
@@ -437,7 +439,7 @@ describe('V19 原生 2560×1440 擷取(2026-10-15 使用者「存下倉庫擷取
     return raw ? out.map(o => o.r) : tally(out)
   }
 
-  it('格數:數字樣本 115(3.29 聖甲蟲頁)、一般 60(與版面一致)', () => {
+  it('格數:數字樣本 115(3.29 聖甲蟲頁)、一般 60(與 3.29 版面一致)', () => {
     expect(NT.sets.map(s => [s.tab, s.cells.length])).toEqual([['samples', 115], ['general', 60]])
     expect(NT.sets[1].cells).toHaveLength(LAYOUTS.subtabs.general.length)
   })

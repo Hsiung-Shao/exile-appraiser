@@ -15,10 +15,11 @@ import type { NinjaFetchResult, NinjaGame } from './client'
 
 /**
  * 1 = 初版;2 = WP-R2 多存 `exaltedRate`(PoE2 以崇高石計價);
- * 3 = 第 24 步每列多存走勢 `s` / `sc`、成交量 `v`、`mv`(查價面板「通貨價格區」)。
+ * 3 = 第 24 步每列多存走勢 `s` / `sc`、成交量 `v`、`mv`(查價面板「通貨價格區」);
+ * 4 = 2026-11-18 PoE1 多抓 `Thread`(3.30 綢帶,倉庫疊層綢帶子頁)。
  * 舊 schema 的快照一律丟棄重抓(`parseSnapshot` 回 null)。
  */
-export const NINJA_SNAPSHOT_SCHEMA = 3
+export const NINJA_SNAPSHOT_SCHEMA = 4
 export const NINJA_CACHE_TTL_MS = 15 * 60 * 1000
 export const NINJA_CACHE_PRUNE_DAYS = 30
 

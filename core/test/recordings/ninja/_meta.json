@@ -82,6 +82,13 @@
       "bytes": 26331,
       "lines": 48
     },
+    "exchange_Thread.json": {
+      "url": "https://poe.ninja/poe1/api/economy/exchange/current/overview?league=Covens&type=Thread",
+      "status": 200,
+      "bytes": 4958,
+      "lines": 10,
+      "note": "2026-11-18 另錄(3.30 Covens,綢帶;其他檔仍是 Allflame)"
+    },
     "item_Map.json": {
       "url": "https://poe.ninja/poe1/api/economy/stash/current/item/overview?league=Allflame&type=Map",
       "status": 200,

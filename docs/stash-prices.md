@@ -4,15 +4,21 @@
 (https://github.com/Lailloken/Exile-UI/wiki/Stash‐Ninja,MIT)。
 
 ## 範圍
-- 碎片頁只有**一般**子頁(60 格)。「不滅之火」(2026-10-14 使用者決定刪除)、「聖甲蟲」(115 格;2026-11-07 因 3.30 移除聖甲蟲而刪除)與「異能」子頁 → 不畫。
-  下文提到聖甲蟲頁的量測(掃描條下緣、徽章擺法、數字模板)都是刪除前在 3.29 量的,結論沿用。
+- **3.30(2026-11-18 起)**:碎片頁子頁按鈕 = 一般 / 綢帶 / 異能。畫**一般**(52 格)與**綢帶**(10 格,2 列 × 5);「異能」不畫。
+  3.29 的「不滅之火」(2026-10-14 使用者決定不做)、「聖甲蟲」(2026-11-07 因 3.30 移除)已不存在。
+  下文提到聖甲蟲頁 / 3.29 一般頁 60 格的量測(掃描條下緣、徽章擺法、數字模板)都是 3.29 量的,結論沿用;
+  3.29 截圖 / 錄影類 fixture 用凍結的 3.29 版面 `core/test/stash/fixtures/layout-3.29.json`(`core/test/stash/layout-329.ts`;數字模板腳本也讀它)。
 - 只在 PoE1 + overlay 模式;國際服才有價格(台服沒有 poe.ninja → 只顯示名稱,提示一次)。
 - 第二段(2026-10-15,倉庫價值):讀每格堆疊數量 → 徽章顯示小計、整頁總價,見下方「倉庫價值」。
 
 ## 為什麼物品身分不靠 OCR
 格子裡只有圖示 + 數量,名稱要滑鼠移上去才看得到。物品身分改用**固定版面**依位置對應:
 `data/poe1/stash/layouts.json` 由 `scripts/sync-stash-layouts.mjs --from <Exile-UI clone>` 從 Exile-UI
-`data/global/[stash-ninja] tabs.json` 轉出(只取 fragments;scarabs = 聖甲蟲、betrayal = 不滅之火不取)。
+`data/global/[stash-ninja] tabs.json` 轉出(取 fragments 與 threads;3.30 版 = Exile-UI 2026-11-14 commit)。
+
+- **Exile-UI 寫錯的格子以 GGPK 為準**(腳本 `FIXES`,來源沒有該名稱就失敗):3.30 一般頁 (154,676) Exile-UI 寫 Divine Vessel,
+  GGPK `FragmentStashTabLayout` 在同一位置新增 `CurrencyFaridunBossKey`(**The Black Barya**),使用者 3.30 截圖該格圖示也是 Black Barya。
+- 綢帶頁格子邊長 h/20(一般 h/24)、間距同 Round(h/72)(Exile-UI `tabs.threads`)。物品順序與使用者錄影的說明框名稱對過 8 格(第 1 列 通牒 / 祭祀 / 戰亂 / 穿越 / 探險;第 2 列 裂痕 / 凋落 / 深淵 —— 第 3、4 格反叛 / 獸獵錄影沒停到)。
 
 - 座標:1440 基準;x 或 y 為 0 = 接續前一格。換算 `core/src/stash/layout.ts` `cellRects`,與 Exile-UI `stash-ninja.ahk` 逐格相同
   (x 先 `Format("{:.10f}")` 取 10 位小數再乘、y 直接 Floor;fragments box = h/24、gap = Round(h/72))。
@@ -36,7 +42,10 @@
    `[stash] 自訂 OCR 區域超出按鈕列範圍,已縮到 …`(同一個區域值只記一次;還原預設後再框回同值會再記)。最後減擷取偏移並夾在影像內。
    自訂區域**不會**自動跟著資料夾下移(預設掃描條會):倉庫頁放進資料夾後要重新框選或還原預設,設定頁與框選層字串有寫(R2)。
    區域只決定 OCR 讀哪一塊;按鈕位置判定、資料夾偏移、每格位置仍照固定版面。疊層顯示中沒找到按鈕時作廢基準 → 下一 tick 一定重 OCR(B1);沒顯示時照常記基準,畫面靜止不 OCR(N1)。
-2. OCR ×3 → `findSubtabButtons`:去空白後整行等於按鈕文字(**不分大小寫**:英文介面按鈕是小型大寫字,OCR 讀成 GENERAL / ALLFLAME…,實機截圖 fixture `strip-general-1440-en.png`)。
+2. OCR ×3 → `findSubtabButtons`:去空白後整行等於按鈕文字(**不分大小寫**:英文介面按鈕是小型大寫字,OCR 讀成 GENERAL / THREADS…,實機截圖 fixture `strip-general-1440-en.png`)。
+   **3.30(2026-11-18)**:標籤 一般 / 綢帶 / 異能(GGPK clientstrings `FragmentStashSubTab{Other,Threads,Eldritch}`;General / Threads / Eldritch),
+   **三個按鈕槽** x = 202 + 166k / 1440(前兩顆 = Exile-UI `tab_fragments` / `tab_threads`,第三顆照同間距推);其餘規則(至少 2 顆、左到右、一般在 0 號槽、兩種高度各算一輪)不變。
+   沒有 3.30 的實機 OCR 快照:測試把 3.29 快照的按鈕行搬到新槽位(`core/test/stash/ocr-330.ts`),雜訊 / 頁籤行原樣保留。以下 2026-11-07 的四槽描述已不適用。
    **2026-11-07 放寬(為 3.30 拿掉聖甲蟲按鈕預作準備,使用者裁定)**:只比對 一般 / 不滅之火 / 異能(GGPK clientstrings `FragmentStashSubTab{Other,Betrayal,Eldritch}`;
    General / Allflame / Eldritch),聖甲蟲不再比對;每個標籤可落在四個按鈕槽(x = 116 + 168k / 1440,容差 40)任一個,命中槽位須照標籤順序左到右遞增、
    **至少 2 顆**(目前子頁的「一般」OCR 常漏讀);「一般」只能在 0 號槽;只收按鈕列高度(文字中心 201 或資料夾內 248 / 1440,容差 12)的文字,
@@ -44,8 +53,8 @@
    自訂區域框到頁籤列、或資料夾頁籤剛好叫「一般」時,同名文字不會搶走槽位(code review 2026-11-07)。3.29 四顆 → 命中槽 0 / 2 / 3;3.30 若少一顆、其他左移 → 0 / 1 / 2 也認得。
    **待 3.30 實機確認**:按鈕列實際樣子(若「一般」不在最左,或按鈕間距改變,需依截圖再調)。
 3. 資料夾偏移:不在資料夾(0)與資料夾內(47/1440·h)各算一輪,每輪只收文字中心在該按鈕列高度(201 或 248 / 1440)± 12/1440 的行;找到的那輪就是偏移,兩輪都沒找到 = 沒找到(2026-11-07 起;原本是全部文字取中位數再吸附)。
-4. 目前子頁:比 0 號槽(一般)與**其他有認到文字的槽**的灰階 p99(`compareSlots`;3.30 空著的槽不比),一般比其他每一顆都亮至少 8 才畫
-   (錄影:目前子頁 158–162、其他 141–144);其他子頁(3.29 聖甲蟲 / 不滅之火、異能)最亮或差距不足 → 不畫。
+4. 目前子頁:**三顆按鈕都比**灰階 p99(目前子頁的文字常被 OCR 漏讀,不能只比有文字的槽;`compareSlots` 已刪),最亮那顆比其他每一顆都亮至少 8
+   (3.29 錄影:目前子頁 158–162、其他 141–144)→ 0 號 = 一般、1 號 = 綢帶;異能最亮或差距不足 → 不畫。
 5. 沒找到按鈕:游標停在已顯示子頁的**格子上**(`StashCursor.onCell()`;遊戲說明框只在游標停在物品格上才出現,常蓋住按鈕列)→ 維持,
    但連續最多 `STASH_HOLD_LIMIT` = 5 次,之後照常累計(游標停在格上按 Esc 關倉庫時不卡住);找到按鈕時歸零。否則連續 2 次才收起。
    不用整個倉庫面板(`inPanel()`,含頁籤列)判定:點別的倉庫頁籤時游標在面板內,碎片頁徽章會錯畫在別頁上(code review B2)。
@@ -96,7 +105,7 @@ host-config 帶 `realm`(`HOST_CONFIG_IMMEDIATE_KEYS`、main `scanConfigKey` 都�
 懸浮選單倉庫列在台服停用並顯示同樣說明(`ppz.menu.stash_tw`)。測試 `main/test/stash-scan.test.ts` S21、`renderer/test/stash-value.test.ts` V16。
 
 ## 價格
-`usePoeninja().priceOf(refName)`;poe.ninja 類別 Fragment 原本就有(Scarab 2026-11-08 因 3.30 移除而不抓)(曾為不滅之火補 `AllflameEmber`,刪除不滅之火時一併撤回)。層顯示時 `queuePricesFetch()`。
+`usePoeninja().priceOf(refName)`;poe.ninja 類別 Fragment 原本就有,綢帶在 3.30 新類別 **`Thread`**(2026-11-18 加進 `NINJA_CATEGORIES`,錄製檔 `core/test/recordings/ninja/exchange_Thread.json`,Covens 聯盟)(Scarab 2026-11-08 因 3.30 移除而不抓)(曾為不滅之火補 `AllflameEmber`,刪除不滅之火時一併撤回)。層顯示時 `queuePricesFetch()`。
 
 ## 倉庫價值(2026-10-15,讀堆疊數量)
 設計稿 `StashValue`(https://claude.ai/artifact/8G1wDzZxwYDtEMv3KU7U81)。設定 › 自動辨識 › 倉庫價格「讀取堆疊數量並計算總價」`stashReadQuantity`(預設開;
@@ -178,6 +187,7 @@ host-config 帶 `realm`(`HOST_CONFIG_IMMEDIATE_KEYS`、main `scanConfigKey` 都�
 - 效能:沒按時只多 `dumpReq` 一個 null 判斷;測試 `main/test/stash-dump.test.ts`、`renderer/test/stash-dump.test.ts`。
 
 ## 測試
+3.30(2026-11-18):`core/test/stash-330.test.ts`(T1–T3 版面、T5–T8 按鈕與子頁)、`core/test/ninja-thread.test.ts`(T10)、`main/test/stash-threads-scan.test.ts`(T9)、`renderer/test-vue/stash-threads-mount.test.ts`(T11)。
 `core/test/stash-quantity.test.ts`(V1–V6、V14 code review:4 位數 / 單獨 0 / 超出影像 / 已知錯讀;V18 第二批、V19 原生擷取)、`main/test/stash-quantity-scan.test.ts`(V7 / V8 / V13 / peek;code review:游標換格競態、peek 時序與放棄、陰影不算變化、數字帶)、`renderer/test/stash-value.test.ts`(V9 / V10 / V13)、
 `renderer/test-vue/stash-prices-mount.test.ts`(V11)、`renderer/test-vue/float-menu-mount.test.ts`(V12);
 `core/test/stash-layout.test.ts`(S1–S4c)、`core/test/stash-detect.test.ts`(S5–S7,真實 OCR 快照 `core/test/stash/fixtures/ocr/`,
@@ -190,4 +200,6 @@ host-config 帶 `realm`(`HOST_CONFIG_IMMEDIATE_KEYS`、main `scanConfigKey` 都�
   `core/src/stash/layout.ts` `stashLeft(w, h)` = max(0, round((w − h × 2.4) / 2))(Exile-UI `oGamescreen` 同式,那邊是選項、這裡一律套用),
   按鈕列 / 掃描範圍 / 每格 / 游標 / 價值卡全部右移這麼多;≤ 2.4:1(16:9、21:9)為 0 = 行為不變。依據:使用者 32:9 縮圖遊戲畫面 ≈ 2.40:1;
   **待使用者實機確認**。測試 `core/test/stash-ultrawide.test.ts`、`main/test/stash-scan.test.ts` S22、`renderer/test/stash-prices.test.ts` S22。
+- **3.30 待使用者實機確認(2026-11-18)**:一般頁 52 格與綢帶頁 10 格的徽章位置、一般 ↔ 綢帶切換時疊層跟著換、一般頁第 6 列第 1 格是「黑帆船」、
+  綢帶頁的堆疊數量(數字模板是用碎片格大小訓練的,綢帶格較大,推論照比例縮放可用,未驗)、第三顆按鈕「異能」位置(照間距推)。
 - **待確認**:其他解析度 / 非 16:9(使用者可用自訂 OCR 區域自行校正)。說明框遮住按鈕:使用者判斷以目前辨識速度幾乎不會發生,不另處理(保留維持上限 5 次的保護)。

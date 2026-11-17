@@ -6,19 +6,15 @@ import { describe, expect, it } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { buttonRects, defaultStripRegion, findSubtabButtons, stripRect, stripZone, type TextLine } from '../src/stash/detect'
+import { SUBTAB_LABELS, buttonRects, defaultStripRegion, findSubtabButtons, stripRect, stripZone, type TextLine } from '../src/stash/detect'
 import { cellRects, parseStashLayouts, stashLeft } from '../src/stash/layout'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
-const FIX_DIR = path.join(HERE, 'stash/fixtures/ocr')
 const LAYOUTS = parseStashLayouts(JSON.parse(fs.readFileSync(path.resolve(HERE, '../../data/poe1/stash/layouts.json'), 'utf8')))
-const INDEX = JSON.parse(fs.readFileSync(path.join(FIX_DIR, 'index.json'), 'utf8')) as { fixtures: Array<{ file: string, cropX: number, cropY: number }> }
 
-function clientLines (name: string): TextLine[] {
-  const f = INDEX.fixtures.find(x => x.file === name)!
-  const snap = JSON.parse(fs.readFileSync(path.join(FIX_DIR, name.replace(/\.png$/, '.ocr.json')), 'utf8')) as { scale: number, lines: TextLine[] }
-  const s = snap.scale
-  return snap.lines.map(l => ({ text: l.text, x: l.x / s + f.cropX, y: l.y / s + f.cropY, w: l.w / s, h: l.h / s }))
+/** 3.30 三顆按鈕文字放在各槽中心、文字中心 y 201/1440(不帶黑邊) */
+function buttonLines (h: number): TextLine[] {
+  return buttonRects(h).map((r, k) => ({ text: SUBTAB_LABELS.zh[k], x: r.x + r.w / 2 - 15, y: 201 / 1440 * h - 8, w: 30, h: 16 }))
 }
 
 const H = 1432
@@ -55,7 +51,7 @@ describe('版面與按鈕列跟著黑邊右移', () => {
     expect(d.x * W).toBeCloseTo(X0, 6)
   })
   it('按鈕文字右移 x0:帶 x0 找得到、不帶找不到', () => {
-    const lines = clientLines('strip-general-1432.png').map(l => ({ ...l, x: l.x + X0 }))
+    const lines = buttonLines(H).map(l => ({ ...l, x: l.x + X0 }))
     expect(findSubtabButtons(lines, H, 'zh').found).toBe(false)
     expect(findSubtabButtons(lines, H, 'zh', X0).found).toBe(true)
   })

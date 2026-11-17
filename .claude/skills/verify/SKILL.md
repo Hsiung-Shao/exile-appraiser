@@ -67,6 +67,7 @@ python C:\Users\jerry\.claude\scripts\evidence_gate.py <證據目錄> --source-r
 | `check-tincture-page.mjs` | 萃取物詞綴頁 + 物品基底萃取物分類旅程的斷言 | `node .claude/skills/verify/check-tincture-page.mjs <證據目錄>` |
 | `check-cli-output.mjs` | 無頭查價輸出的斷言(必含字串、沒有 ⚠);純瀏覽器拿不到聯盟清單(CORS)→ 貼物品文字後查價面板是空的,查價條件改用這個留證據 | `npm run check -- <物品> --realm both > <證據目錄>/x.txt` 後 `node .claude/skills/verify/check-cli-output.mjs <證據目錄> x.txt <字串>...` |
 | `check-season-data.mjs` | PoE1 賽季資料更新旅程(`features/poe1-season-data.md`)的斷言:正則頁新寫法 + 無頭查價 | `node .claude/skills/verify/check-season-data.mjs <證據目錄>` |
+| `check-stash-330.mjs` | PoE1 3.30 碎片倉庫頁(一般 / 綢帶)疊層:使用者截圖貼回 2560×1440 → 真 WinOcr 走 runtime 同一條子頁偵測 → 每格讀數量對人工判讀,輸出標註圖;不開遊戲、不送輸入。破壞點:`detect.ts` `buttonRects` 起點改回 116 + 168k | `node .claude/skills/verify/check-stash-330.mjs <證據目錄> --general <一般頁截圖> --threads <綢帶頁截圖>` |
 
 ## 破壞對照(新旅程第一次建立時要做)
 
