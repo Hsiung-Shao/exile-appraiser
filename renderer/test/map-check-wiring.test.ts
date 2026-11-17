@@ -96,4 +96,13 @@ describe('overlay 閒置回報與 App.vue 接線(T8)', () => {
     expect(app).toMatch(/<map-check-layer[^>]*v-if="isOverlay && mapCheckItem"/)
     expect(app).toMatch(/map: mapCheckItem\.value !== null/)
   })
+
+  it('不是地圖類 / 不是 PoE1 → 一律把焦點還給遊戲(熱鍵已讓 overlay 取得焦點;快速查價面板開著也一樣)', () => {
+    const app = read('renderer/src/web/App.vue')
+    const fn = app.slice(app.indexOf('async function openMapCheck'), app.indexOf('hidePanel(\'地圖詞綴檢查\')'))
+    const returns = fn.split('return').slice(0, -1)
+    expect(returns.length).toBe(2)
+    for (const before of returns) expect(before.trimEnd().split('\n').pop()).toMatch(/Host\.focusGame\(\);?$/)
+    expect(fn).not.toMatch(/if \(!panelShown\.value\) Host\.focusGame/)
+  })
 })

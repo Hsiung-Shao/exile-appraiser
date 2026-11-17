@@ -299,7 +299,8 @@ export default defineComponent({
     }
     /** 地圖詞綴檢查熱鍵:只在 PoE1;不是地圖類物品什麼都不做(使用者 2026-11-18 裁定) */
     async function openMapCheck (e: ItemTextEvent) {
-      if (loadedGame.value !== 'poe1') return
+      // 熱鍵已讓 overlay 取得焦點;不顯示就一律還給遊戲(快速查價面板開著也一樣:它本來就沒有焦點,main 也已移除它的滑鼠追蹤)
+      if (loadedGame.value !== 'poe1') { Host.focusGame(); return }
       try {
         await poe1Adapter.prepareItemText(e.clipboard, AppConfig().realm)
       } catch (err) {
@@ -308,8 +309,7 @@ export default defineComponent({
       const p = parseClipboard(e.clipboard)
       if (!p.isOk() || !isMapLike(p.value)) {
         console.log(`[map-check] 不是地圖類物品,不顯示(${p.isOk() ? p.value.category ?? p.value.info.refName : p.error})`)
-        // 熱鍵讓 overlay 取得了焦點;沒東西可顯示 → 還給遊戲(面板開著時維持原狀)
-        if (!panelShown.value) Host.focusGame()
+        Host.focusGame()
         return
       }
       hidePanel('地圖詞綴檢查')
