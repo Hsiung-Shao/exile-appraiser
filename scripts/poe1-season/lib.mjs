@@ -1178,9 +1178,9 @@ function rewriteLines (fileText, edit, appended = []) {
  * 套用詞綴計畫(adds / replace / remove / newStats)到一份 stats.ndjson 文字
  * @param {string} fileText
  * @param {'en' | 'cmn-Hant'} lang
- * @param {{ adds?: any[], replace?: Record<string, string>, remove?: string[], newStats?: any[], better?: Record<string, number>, fill?: Record<string, Record<string, string[]>>, extra?: Record<string, Record<string, string[]>>, option?: string[], areaMods?: Record<string, string> }} [plan]
+ * @param {{ adds?: any[], replace?: Record<string, string>, remove?: string[], newStats?: any[], better?: Record<string, number>, fill?: Record<string, Record<string, string[]>>, extra?: Record<string, Record<string, string[]>>, option?: string[] }} [plan]
  */
-export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove = [], newStats = [], better = {}, fill = {}, extra = {}, option = [], areaMods = {} } = {}) {
+export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove = [], newStats = [], better = {}, fill = {}, extra = {}, option = [] } = {}) {
   const addsByRef = groupBy(adds.filter(a => a.lang === lang), a => a.ref)
   const gone = new Set(remove)
   const existingRefs = new Set()
@@ -1189,10 +1189,6 @@ export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove
     existingRefs.add(stat.ref)
     if (stat.ref in better && stat.better !== better[stat.ref]) {
       stat.better = better[stat.ref]
-      changed = true
-    }
-    if (areaMods[stat.ref] && !stat.fromAreaMods) {
-      stat.fromAreaMods = areaMods[stat.ref]
       changed = true
     }
     if (option.includes(stat.ref) && stat.trade && !stat.trade.option) {
@@ -1322,33 +1318,4 @@ function insertAfterLast (fileText, isAnchor, rows) {
   lines.forEach((l, i) => { if (isAnchor(l)) at = i })
   lines.splice(at + 1, 0, ...rows.map(r => JSON.stringify(r)))
   return lines.join(eol)
-}
-
-/**
- * 規則 24(2026-11-18,地圖詞綴檢查):設定頁只列帶 `fromAreaMods` 的詞綴,3.30 新增的地圖詞綴沒有這個標記。
- * 判斷依 GGPK Mods.dat 的 domain(`dump_area_mods.py`):AREA / HEIST_AREA 的前後綴詞綴的 stat 涵蓋某條描述句 →
- * 那條句子是地圖詞綴。描述檔名不能用(輿圖天賦、聖甲蟲也在 map_ / atlas 描述檔,試算會多出 800 多條)。
- * 有隨機詞綴 id、還沒標記的才補;只出現在 HEIST_AREA 的標 `heist_exclusive`,其餘 `yes`。已有的標記不動。
- * @param {{ enStats: any[], ggpkNew: { key: string, en: string }[], areaMods: { stats: string[], heist: boolean }[] }} p
- * @returns {Record<string, 'yes' | 'heist_exclusive'>} ref → 標記
- */
-export function planAreaMods ({ enStats, ggpkNew, areaMods }) {
-  const mods = areaMods.map(m => ({ stats: new Set(m.stats), heist: m.heist }))
-  /** @type {Map<string, 'yes' | 'heist_exclusive'>} */
-  const tagOf = new Map()
-  for (const row of ggpkNew) {
-    const ids = row.key.split('|')[0].split(' ')
-    const hits = mods.filter(m => ids.every(id => m.stats.has(id)))
-    if (!hits.length) continue
-    const k = cmpKey(toMatcherText(row.en))
-    if (tagOf.get(k) !== 'yes') tagOf.set(k, hits.every(m => m.heist) ? 'heist_exclusive' : 'yes')
-  }
-  /** @type {Record<string, 'yes' | 'heist_exclusive'>} */
-  const out = {}
-  for (const stat of eachStat(enStats)) {
-    if (stat.fromAreaMods || !stat.trade?.ids?.explicit?.length || stat.ref in out) continue
-    const tags = [cmpKey(stat.ref), ...matcherKeys(stat)].map(k => tagOf.get(k)).filter(Boolean)
-    if (tags.length) out[stat.ref] = tags.includes('yes') ? 'yes' : 'heist_exclusive'
-  }
-  return out
 }

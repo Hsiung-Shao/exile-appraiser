@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planRandomSkillGem, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, planRoomNames, planCitadel, planExtraZh, planZhForms, planCondForms, planMercenaryBuilds, planNamedSlots, EXTRA_ZH_MATCHERS, planGrownPassives, planAreaMods, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
+import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planRandomSkillGem, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, planRoomNames, planCitadel, planExtraZh, planZhForms, planCondForms, planMercenaryBuilds, planNamedSlots, EXTRA_ZH_MATCHERS, planGrownPassives, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
 
 /**
  * 賽季更新腳本的純函式測試(合成輸入,不讀 data/)。
@@ -1195,48 +1195,5 @@ describe('planNamedSlots(規則 22:名稱從寫死變成帶入的句型)', () =>
     const zh = parseRows(applyStatPlan(toFile(zhStats), 'cmn-Hant', plan))
     expect(zh[0].matchers.map((m: any) => [m.string, Boolean(m.superseded)])).toEqual([['授銜 # 個硬幣以紀念卡斯皮羅\n臣服於不朽帝國', true], ['授銜#個硬幣以紀念卡斯皮羅\n臣服於不朽帝國', false]])
     expect(planNamedSlots({ enStats: en, zhStats: zh, ggpkOld, ggpkNew }).adds).toEqual([])
-  })
-})
-
-describe('planAreaMods(規則 24:地圖詞綴檢查清單)', () => {
-  const row = (key: string, en: string) => ({ key, en })
-  const ggpkNew = [
-    row('map_foo|#|stat_descriptions.txt|0', 'Area contains {0} Foo'),
-    row('map_bar map_bar2|#|stat_descriptions.txt|0', 'Monsters have {0}% more Bar'),
-    row('heist_baz|#|stat_descriptions.txt|0', 'Guards take {0}% increased Baz'),
-    row('atlas_qux|#|atlas_stat_descriptions.txt|0', 'Your Maps have {0}% more Qux')
-  ]
-  // Mods.dat:domain AREA 的前後綴詞綴與其 stat;HEIST_AREA 另標
-  const areaMods = [
-    { stats: ['map_drop_scaling_+%', 'map_foo'], heist: false },
-    { stats: ['map_bar', 'map_bar2'], heist: false },
-    { stats: ['heist_baz'], heist: true }
-  ]
-  const enStats = [
-    stat('Area contains # Foo', [{ string: 'Area contains # Foo' }]),
-    stat('Monsters have #% more Bar', [{ string: 'Monsters have #% more Bar' }]),
-    stat('Guards take #% increased Baz', [{ string: 'Guards take #% increased Baz' }]),
-    stat('Your Maps have #% more Qux', [{ string: 'Your Maps have #% more Qux' }]),
-    { ...stat('Area has old', [{ string: 'Area has old' }]), fromAreaMods: 'ubermap_exclusive' }
-  ]
-
-  it('地圖區域詞綴(Mods.dat domain)的 stat 才補;輿圖天賦等描述檔同類但不是地圖詞綴的不補', () => {
-    expect(planAreaMods({ enStats, ggpkNew, areaMods })).toEqual({
-      'Area contains # Foo': 'yes', 'Monsters have #% more Bar': 'yes', 'Guards take #% increased Baz': 'heist_exclusive'
-    })
-  })
-
-  it('寫入後兩語都補上、既有標記不動,重跑沒有變動', () => {
-    const zhStats = enStats.map(s => ({ ...s, matchers: [{ string: '中文' }] }))
-    const plan = { areaMods: planAreaMods({ enStats, ggpkNew, areaMods }) }
-    const en = flat(parseRows(applyStatPlan(toFile(enStats), 'en', plan)))
-    const zh = flat(parseRows(applyStatPlan(toFile(zhStats), 'cmn-Hant', plan)))
-    for (const out of [en, zh]) expect(out.map((s: any) => s.fromAreaMods)).toEqual(['yes', 'yes', 'heist_exclusive', undefined, 'ubermap_exclusive'])
-    expect(planAreaMods({ enStats: en, ggpkNew, areaMods })).toEqual({})
-  })
-
-  it('沒有隨機詞綴 id 的不補(地圖檢查只列隨機詞綴)', () => {
-    const only = [stat('Area contains # Foo', [{ string: 'Area contains # Foo' }], { enchant: ['enchant.stat_9'] })]
-    expect(planAreaMods({ enStats: only, ggpkNew, areaMods })).toEqual({})
   })
 })

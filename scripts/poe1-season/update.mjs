@@ -15,7 +15,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
-import { BETTER_OVERRIDES, eachStat, applyItemPlan, applyStatPlan, planDeadIds, planGems, planItems, planMercenaryBuilds, planExtraZh, planNamedSlots, planZhForms, planCondForms, planEffectStats, planFillIds, planGrantsSkill, planMinionDoubled, planRandomSkillGem, planCitadel, planUniqueZhNames, planNewStats, planStatText, planSupportGemNames, planGrownPassives, planRoomNames, planTypeIds, planTradeBases, planTradeText, planUniques, planAreaMods } from './lib.mjs'
+import { BETTER_OVERRIDES, eachStat, applyItemPlan, applyStatPlan, planDeadIds, planGems, planItems, planMercenaryBuilds, planExtraZh, planNamedSlots, planZhForms, planCondForms, planEffectStats, planFillIds, planGrantsSkill, planMinionDoubled, planRandomSkillGem, planCitadel, planUniqueZhNames, planNewStats, planStatText, planSupportGemNames, planGrownPassives, planRoomNames, planTypeIds, planTradeBases, planTradeText, planUniques } from './lib.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(HERE, '../..')
@@ -102,15 +102,7 @@ const grown = planGrownPassives({ enStats: afterB, zhStats: afterA['cmn-Hant'], 
 newStats.push(...grown.newStats)
 const extraIds = { ...typeIds.extra }
 for (const [ref, ids] of Object.entries(grown.extra)) for (const [type, list] of Object.entries(ids)) ((extraIds[ref] ??= {})[type] ??= []).push(...list)
-// 規則 24:地圖區域詞綴(GGPK Mods.dat domain)。cache 只有最新一次抽取 → 版本不是 GGPK 新版就跳過這條規則
-const areaTmp = path.join(os.tmpdir(), `poe1-area-mods-${process.pid}.json`)
-execFileSync(flag('--python') ?? 'python', [path.join(HERE, 'dump_area_mods.py'), path.join(FROM, 'tools/ggpk_zh'), areaTmp], { stdio: 'inherit' })
-const areaDump = JSON.parse(fs.readFileSync(areaTmp, 'utf8'))
-fs.rmSync(areaTmp)
-const areaOk = areaDump.gameVersion === ggpk.new.gameVersion
-if (!areaOk) console.warn(`[area-mods] GGPK 抽取是 ${areaDump.gameVersion},不是 ${ggpk.new.gameVersion} → 規則 24 跳過`)
-const areaMods = areaOk ? planAreaMods({ enStats: afterB, ggpkNew: ggpk.stats.new, areaMods: areaDump.mods }) : {}
-const statPlan = { adds, replace: dead.replace, remove: dead.remove, newStats, better: BETTER_OVERRIDES, fill, extra: extraIds, option: roomNames.option, areaMods }
+const statPlan = { adds, replace: dead.replace, remove: dead.remove, newStats, better: BETTER_OVERRIDES, fill, extra: extraIds, option: roomNames.option }
 const rejects = [...ruleA.rejects.map(r => ({ rule: '改字 A', ...r })), ...ruleB.rejects.map(r => ({ rule: '改字 B', ...r })), ...dead.rejects.map(r => ({ rule: '失效 id', ...r })), ...gemNames.rejects.map(r => ({ rule: '輔助寶石名', ...r })), ...grants.rejects.map(r => ({ rule: '賦予技能', ...r })), ...zhForms.rejects.map(r => ({ rule: 'GGPK 繁中句子', ...r })), ...namedSlots.rejects.map(r => ({ rule: '帶入名稱的句型', ...r })), ...condForms.rejects.map(r => ({ rule: 'GGPK 數值寫法', ...r })), ...effects.rejects.map(r => ({ rule: 'effect 新 id', ...r })), ...typeIds.rejects.map(r => ({ rule: '掛上缺的類型 id', ...r })), ...grown.rejects.map(r => ({ rule: '洗出的塗油天賦', ...r })), ...bases.rejects.map(r => ({ rule: '新底材', ...r })), ...uniques.rejects.map(r => ({ rule: '新傳奇', ...r })), ...gems.rejects.map(r => ({ rule: '新變異寶石', ...r })), ...builds.rejects.map(r => ({ rule: '傭兵流派', ...r }))]
 
 const count = (list, lang) => list.filter(a => a.lang === lang).length
@@ -129,7 +121,6 @@ const summary = [
   `GGPK 數值寫法(規則 21):en +${count(condForms.adds, 'en')} / 繁中 +${count(condForms.adds, 'cmn-Hant')} 個 matcher、拒收 ${condForms.rejects.length}`,
   `GGPK 繁中句子(規則 20):+${zhForms.adds.length} 個 matcher、拒收 ${zhForms.rejects.length}`,
   `失效 id:替換 ${Object.keys(dead.replace).length}、移除 ${dead.remove.length}`,
-  `地圖詞綴檢查清單(規則 24):補 fromAreaMods ${Object.keys(areaMods).length} 條${areaOk ? '' : '(GGPK 抽取版本不符,跳過)'}`,
   `新詞綴:${newStats.length} 列;方向校正 ${betterFix} 條;補交易站 id ${Object.keys(fill).length} 條`,
   `物品:改名 ${items.renames.length}、新增 ${items.adds.length}、新底材 ${bases.adds.length}、新傳奇 ${uniques.adds.length}、新變異寶石 ${gems.adds.length}、傭兵流派 ${builds.adds.length}、傳奇繁中改名 ${zhNames.length}`,
   `拒收(沒改資料):${rejects.length}`
