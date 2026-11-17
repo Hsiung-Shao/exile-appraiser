@@ -9991,7 +9991,7 @@
 {"ref":"Monsters Reflect Hexes","better":0,"matchers":[{"string":"怪物反射咒術"}],"trade":{"ids":{"explicit":["explicit.stat_1341845920"]}}}
 {"ref":"Monsters have #% increased Effect of Shock","better":1,"matchers":[{"string":"怪物增加 #% 感電效果"},{"string":"怪物減少 #% 感電效果","negate":true,"superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_2029018782"]}}}
 {"ref":"Monsters initially carrying a Talisman drop an additional Rare Item","better":0,"matchers":[{"string":"起初就受魔符附身的怪物將會掉落額外 1 個稀有物品"}],"trade":{"ids":{"explicit":["explicit.stat_1819739544"]}}}
-{"ref":"Monsters prevent +#% of Suppressed Spell Damage","better":1,"matchers":[{"string":"怪物防止 #% 壓抑法術傷害"},{"string":"怪物 #% 防止壓抑法術傷害的總量","negate":true,"superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_1260060682"]}}}
+{"ref":"Monsters prevent +#% of Suppressed Spell Damage","better":1,"matchers":[{"string":"怪物防止 #% 壓抑法術傷害"},{"string":"怪物 #% 防止壓抑法術傷害的總量","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_1260060682"]}}}
 {"ref":"Monsters with Silver Coins drop an additional Silver Coin","better":0,"matchers":[{"string":"持有銀幣的怪物額外掉落 1 枚銀幣"}],"trade":{"ids":{"explicit":["explicit.stat_3679287686"]}}}
 {"ref":"Monsters are Unaffected by Curses","better":0,"matchers":[{"string":"怪物不被詛咒影響"}],"trade":{"ids":{"explicit":["explicit.stat_1472832594"]}}}
 {"ref":"Monsters with Silver Coins drop an additional Basic Currency Item","better":0,"matchers":[{"string":"有銀幣的怪物掉落 1 個額外基礎通貨"}],"trade":{"ids":{"explicit":["explicit.stat_1183247801"]}}}
@@ -10008,13 +10008,13 @@
 {"ref":"Area contains an additional Gloom Shrine","better":0,"matchers":[{"string":"區域含有 1 個額外漆黑神殿"}],"trade":{"ids":{"enchant":["enchant.stat_1992047981"]}}}
 {"ref":"Your Maps contain an additional Resonating Shrine","better":0,"matchers":[{"string":"你的地圖含有 1 個額外共振神殿"}],"trade":{"ids":{"enchant":["enchant.stat_1274634881"]}}}
 {"ref":"Area contains an additional Resonating Shrine","better":0,"matchers":[{"string":"區域含有 1 個額外共振神殿"}],"trade":{"ids":{"enchant":["enchant.stat_1274634881"]}}}
-{"ref":"Player Skills which Throw Mines throw up to # fewer Mines","better":1,"matchers":[{"string":"玩家投擲地雷的技能可以投擲的數量減少最多 # 顆地雷"},{"string":"玩家投擲地雷的技能可以投擲的數量減少 1 顆地雷","value":1,"superseded":true},{"string":"玩家技能投擲 1 個額外的地雷","negate":true,"value":1,"superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_3633247582"],"fractured":["fractured.stat_3633247582"]}}}
+{"ref":"Player Skills which Throw Mines throw up to # fewer Mines","better":1,"matchers":[{"string":"玩家投擲地雷的技能可以投擲的數量減少最多 # 顆地雷"}],"trade":{"ids":{"explicit":["explicit.stat_3633247582"],"fractured":["fractured.stat_3633247582"]}}}
 {"ref":"Your Maps have an additional random Modifier","better":0,"matchers":[{"string":"你的地圖會額外擁有一條隨機詞綴"}],"trade":{"ids":{"explicit":["explicit.stat_588512487"]}}}
 {"ref":"Area has # additional random Modifier","better":1,"matchers":[{"string":"區域有 # 個額外隨機詞綴"}],"trade":{"ids":{"explicit":["explicit.stat_588512487"]}}}
 {"ref":"Map has # additional random Prefix","better":1,"matchers":[{"string":"地圖有 # 個額外隨機前綴"}],"trade":{"ids":{"explicit":["explicit.stat_23537505"]}}}
 {"ref":"Map has # additional random Suffix","better":1,"matchers":[{"string":"地圖有 # 個額外隨機後綴"}],"trade":{"ids":{"explicit":["explicit.stat_1153966848"]}}}
 {"ref":"Players have +# to maximum number of Summoned Totems","better":1,"matchers":[{"string":"玩家有最多 # 個召喚圖騰"}],"trade":{"ids":{"explicit":["explicit.stat_2912613786"],"fractured":["fractured.stat_2912613786"]}}}
-{"ref":"Player Skills which Throw Traps throw up to # fewer Traps","better":1,"matchers":[{"string":"玩家投擲陷阱的技能可以投擲的數量減少最多 # 個陷阱"},{"string":"玩家投擲陷阱的技能額外投擲 1 個陷阱","negate":true,"value":1,"superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_3693062339"],"fractured":["fractured.stat_3693062339"]}}}
+{"ref":"Player Skills which Throw Traps throw up to # fewer Traps","better":1,"matchers":[{"string":"玩家投擲陷阱的技能可以投擲的數量減少最多 # 個陷阱"}],"trade":{"ids":{"explicit":["explicit.stat_3693062339"],"fractured":["fractured.stat_3693062339"]}}}
 {"ref":"An additional Conqueror Map drops on Completing your Maps (Tier 14+)","better":0,"matchers":[{"string":"完成你的地圖 (階級 14+) 時，掉落 1 個額外征服者地圖"}],"trade":{"ids":{"enchant":["enchant.stat_3903190985"]}}}
 {"ref":"An additional Conqueror Map drops on Completing Area (Tier 14+)","better":0,"matchers":[{"string":"完成區域 (階級 14+) 時，掉落 1 張額外征服者地圖"}],"trade":{"ids":{"enchant":["enchant.stat_3903190985"]}}}
 {"ref":"An additional Elder Guardian Map drops on Completing your Maps (Tier 14+)","better":0,"matchers":[{"string":"完成你的地圖 (階級 14+) 時，掉落 1 個額外尊師守護者地圖"}],"trade":{"ids":{"enchant":["enchant.stat_3844573517"]}}}
@@ -10083,7 +10083,7 @@
 {"ref":"Players cannot gain Frenzy Charges","better":0,"matchers":[{"string":"玩家不能獲得狂怒球"}],"trade":{"ids":{"explicit":["explicit.stat_620879593"],"fractured":["fractured.stat_620879593"]}}}
 {"ref":"Players cannot gain Power Charges","better":0,"matchers":[{"string":"玩家不能獲得暴擊球"}],"trade":{"ids":{"explicit":["explicit.stat_1282233725"],"fractured":["fractured.stat_1282233725"]}}}
 {"ref":"Players and their Minions cannot take Reflected Damage","better":0,"matchers":[{"string":"玩家和他們的召喚物不能承受反射傷害"}],"trade":{"ids":{"enchant":["enchant.stat_3151377452"]}}}
-{"ref":"Players have #% increased Cost of Skills for each Skill they've used Recently","better":1,"matchers":[{"string":"近期玩家使用的每個技能，增加 #% 技能消耗"},{"string":"近期玩家使用的每個技能，減少 #% 技能消耗","negate":true,"superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_4039124672"]}}}
+{"ref":"Players have #% increased Cost of Skills for each Skill they've used Recently","better":1,"matchers":[{"string":"近期玩家使用的每個技能，增加 #% 技能消耗"}],"trade":{"ids":{"explicit":["explicit.stat_4039124672"]}}}
 {"ref":"Players deal #% more Damage per Equipped Item","better":1,"matchers":[{"string":"每個裝備中的物品，玩家造成 #% 更多傷害"},{"string":"每個裝備中的物品，玩家造成 #% 更少傷害","negate":true,"superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_802316710"]}}}
 {"ref":"Players have a #% chance when they Kill a Rare Monster to gain 1 of its Modifiers for 20 seconds","better":1,"matchers":[{"string":"當玩家擊殺稀有怪物時，有 #% 機率獲得它其中 1 個詞綴，持續 20 秒"},{"string":"當玩家擊殺稀有怪物時，獲得它其中 1 個詞綴，持續 20 秒","value":100,"superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_3941376120"]}}}
 {"ref":"Players gain Instability on Kill\nUnstable Players eventually detonate","better":0,"matchers":[{"string":"玩家擊殺時獲得不穩定\n不穩定的玩家最終會爆炸"}],"trade":{"ids":{"explicit":["explicit.stat_2886495370"]}}}
@@ -10147,7 +10147,7 @@
 {"ref":"Your Maps contain a Mirror of Delirium","better":0,"matchers":[{"string":"你的地圖有 1 個譫妄之鏡"}],"trade":{"ids":{"explicit":["explicit.stat_2398157267"]}}}
 {"ref":"Unique Monsters from Beyond have a #% chance to Summon\nanother Unique Monster from Beyond when Slain","better":1,"matchers":[{"string":"超越頭目死後有 #% 機率召喚超越頭目"},{"string":"超越頭目死後召喚超越頭目","value":100,"superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_531937370"]}}}
 {"ref":"Tempest Effects have #% increased Area of Effect","better":1,"matchers":[{"string":"風暴效果增加 #% 範圍效果"}],"trade":{"ids":{"explicit":["explicit.stat_3643076184"]}}}
-{"ref":"Strongbox Monsters have #% increased Item Quantity","better":1,"matchers":[{"string":"保險箱怪物增加 #% 掉落物品數量"}],"trade":{"ids":{"enchant":["enchant.stat_1854137416"]}}}
+{"ref":"Strongbox Monsters have #% increased Item Quantity","better":1,"matchers":[{"string":"保險箱怪物增加 #% 掉落物品數量"},{"string":"保險箱怪物減少 #% 掉落物品數量","negate":true,"superseded":true}],"trade":{"ids":{"enchant":["enchant.stat_1854137416"]}}}
 {"ref":"Strongboxes in your Maps have #% increased chance to be a Gemcutter's Strongbox","better":1,"matchers":[{"string":"你地圖中的保險箱增加 #% 機率為珠寶匠的保險箱"}],"trade":{"ids":{"explicit":["explicit.stat_773912026"]}}}
 {"ref":"Strongboxes in your Maps have #% increased chance to be Rare","better":1,"matchers":[{"string":"你地圖中的保險箱增加 #% 機率為稀有"}],"trade":{"ids":{"explicit":["explicit.stat_1753206712"]}}}
 {"ref":"#% increased chance for Strongboxes in your Maps to be Unique","better":1,"matchers":[{"string":"你地圖中的保險箱增加 #% 機率為傳奇"}],"trade":{"ids":{"explicit":["explicit.stat_2731689292"]}}}

@@ -278,6 +278,13 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(roll('#% chance to Blind Enemies on hit')).toBe(100)
   })
 
+  it('D17l 規則 21 的負值寫法沒有 negate handler({0:+d},遊戲直接印負號)→ 數值照原樣為負,不被翻成正(審查 2026-11-17)', () => {
+    const text = fs.readFileSync(path.join(HERE, 'docs/3.30-issue-17.cmn-Hant.txt'), 'utf8').replace('增加怪物 100% 範圍效果', '怪物 -5% 防止壓抑法術傷害的總量')
+    const item = parse(text)
+    expect(unknownOf(item)).toEqual([])
+    expect(item.statsByType.find(s => s.stat.ref === 'Monsters prevent +#% of Suppressed Spell Damage')?.sources[0].stat.roll?.value).toBe(-5)
+  })
+
   it('D18 破裂的「+#%物品稀有度」(使用者 2026-11-15 貼的實機手套)解析成原詞綴並帶破裂 id', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-fractured-rarity-gloves.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])

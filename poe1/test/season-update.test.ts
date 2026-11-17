@@ -917,7 +917,9 @@ describe('planZhForms(規則 20:GGPK 物品描述檔的繁中句子資料沒有)
 
 describe('planCondForms(規則 21:同一條詞綴依數值的其他寫法)', () => {
   const stat = (ref: string, matchers: any[], ids: any = { explicit: ['explicit.stat_1'] }) => ({ ref, better: 1, matchers, trade: { ids } })
-  const row = (key: string, en: string, zh: string) => ({ key, en, zh })
+  // handlers 照 GGPK:「減少」那類負值句帶 [['negate', 1]](遊戲取負號後顯示)
+  const NEG = [['negate', 1]]
+  const row = (key: string, en: string, zh: string, handlers: any[] = []) => ({ key, en, zh, handlers })
   const g = (ids: string, cond: string) => `${ids}|${cond}|stat_descriptions.txt|0`
 
   it('只有「增加」→ 補「減少」並帶 negate;100% 的寫法帶 value;兩語各自比對', () => {
@@ -925,7 +927,7 @@ describe('planCondForms(規則 21:同一條詞綴依數值的其他寫法)', () 
     const zhStats = [stat('#% increased Speed', [{ string: '增加 #% 速度' }]), stat('#% chance to Impale', [{ string: '#% 機率穿刺' }])]
     const ggpkNew = [
       row(g('speed_+%', '1|#'), '{0}% increased Speed', '增加 {0}% 速度'),
-      row(g('speed_+%', '#|-1'), '{0}% reduced Speed', '減少 {0}% 速度'),
+      row(g('speed_+%', '#|-1'), '{0}% reduced Speed', '減少 {0}% 速度', NEG),
       row(g('impale_%', '1|99'), '{0}% chance to Impale', '{0}% 機率穿刺'),
       row(g('impale_%', '100|#'), 'Always [Impale::{0}|Impale]', '必定穿刺')
     ]
@@ -938,12 +940,50 @@ describe('planCondForms(規則 21:同一條詞綴依數值的其他寫法)', () 
     ])
   })
 
-  it('資料是 negate 的「減少」那句 → 補的「增加」不帶 negate', () => {
+  it('資料的「減少」那句沒有 negate(stat 本身是減少)→ 補的「增加」帶 negate;已有就不補', () => {
     const enStats = [stat('#% reduced Cost', [{ string: '#% reduced Cost' }])]
-    const ggpkNew = [row(g('cost_-%', '1|#'), '{0}% reduced Cost', '減少 {0}% 消耗'), row(g('cost_-%', '#|-1'), '{0}% increased Cost', '增加 {0}% 消耗')]
+    const ggpkNew = [row(g('cost_-%', '1|#'), '{0}% reduced Cost', '減少 {0}% 消耗'), row(g('cost_-%', '#|-1'), '{0}% increased Cost', '增加 {0}% 消耗', NEG)]
     expect(planCondForms({ enStats, zhStats: [], ggpkNew }).adds).toEqual([{ lang: 'en', ref: '#% reduced Cost', matcher: { string: '#% increased Cost', negate: true, superseded: true } }])
     const negStats = [stat('#% reduced Cost', [{ string: '#% reduced Cost' }, { string: '#% increased Cost', negate: true }])]
     expect(planCondForms({ enStats: negStats, zhStats: [], ggpkNew }).adds).toEqual([])
+  })
+
+  it('負值那句沒有 negate handler({0:+d},遊戲直接印負號)→ 不帶 negate(審查 1-b)', () => {
+    const enStats = [stat('Monsters prevent +#% of Suppressed', [{ string: 'Monsters prevent #% of Suppressed' }])]
+    const ggpkNew = [row(g('supp', '1|#'), 'Monsters prevent {0:+d}% of Suppressed', ''), row(g('supp', '#|-1'), 'Monsters have {0:+d}% to Suppressed Prevented', '')]
+    expect(planCondForms({ enStats, zhStats: [], ggpkNew }).adds).toEqual([{ lang: 'en', ref: 'Monsters prevent +#% of Suppressed', matcher: { string: 'Monsters have #% to Suppressed Prevented', superseded: true } }])
+  })
+
+  it('沒有數字的寫法:value 帶正負號(換算到 ref 的方向)、不加 negate(審查 1-a)', () => {
+    const enStats = [stat('Throw up to # fewer Mines', [{ string: 'Throw up to # fewer Mines' }])]
+    const ggpkNew = [
+      row(g('mines', '#|-2'), 'Throw up to {0} fewer Mines', '', NEG),
+      row(g('mines', '-1'), 'Throw 1 fewer Mine', '', NEG),
+      row(g('mines', '1'), 'Throw an additional Mine', ''),
+      row(g('mines', '2|#'), 'Throw {0} additional Mines', '')
+    ]
+    expect(planCondForms({ enStats, zhStats: [], ggpkNew }).adds.map((a: any) => a.matcher)).toEqual([
+      { string: 'Throw 1 fewer Mine', value: 1, superseded: true },
+      { string: 'Throw an additional Mine', value: -1, superseded: true },
+      { string: 'Throw # additional Mines', negate: true, superseded: true }
+    ])
+  })
+
+  it('數值條件只有負值、沒有 negate handler、也不是 {0:+d} → GGPK 的 handlers 不可信,整組拒收(地雷 fewer)', () => {
+    const enStats = [stat('Throw up to # fewer Mines', [{ string: 'Throw up to # fewer Mines' }])]
+    const ggpkNew = [row(g('mines', '#|-2'), 'Throw up to {0} fewer Mines', ''), row(g('mines', '2|#'), 'Throw {0} additional Mines', '')]
+    const plan = planCondForms({ enStats, zhStats: [], ggpkNew })
+    expect(plan.adds).toEqual([])
+    expect(plan.rejects.map((r: any) => r.reason)).toEqual(['handlers 與數值條件矛盾'])
+  })
+
+  it('基準是帶 value 的寫法(No Y = -100)→ 補的「減少」帶 negate(審查 1-c)', () => {
+    const enStats = [stat('#% increased Y', [{ string: '#% increased Y' }, { string: 'No Y', value: -100 }])]
+    const ggpkNew = [row(g('y_+%', '-100'), 'No Y', ''), row(g('y_+%', '#|-1'), '{0}% reduced Y, sometimes', '', NEG)]
+    expect(planCondForms({ enStats: [stat('#% increased Y', [{ string: 'No Y', value: -100 }])], zhStats: [], ggpkNew }).adds.map((a: any) => a.matcher)).toEqual([
+      { string: '#% reduced Y, sometimes', negate: true, superseded: true }
+    ])
+    expect(enStats).toBeTruthy()
   })
 
   it('兩個 stat 的詞綴(惡鬼轉世):第二個 stat 只是條件(沒有出現在句中)→ 補還沒吞噬時的寫法;沒有數字的「已吞噬 1 顆」不補', () => {
@@ -960,7 +1000,7 @@ describe('planCondForms(規則 21:同一條詞綴依數值的其他寫法)', () 
     ])
   })
 
-  it('判不準的不加並列入拒收:正負不明、句子已屬於別條、與既有寫法同形、沒有物品 id', () => {
+  it('判不準的不加並列入拒收:GGPK 沒有 handlers、句子已屬於別條、與既有寫法同形、沒有物品 id', () => {
     const enStats = [
       stat('# to A', [{ string: '# to A' }]),
       stat('B #', [{ string: 'B #' }]), stat('Other', [{ string: 'Other' }]),
@@ -968,20 +1008,20 @@ describe('planCondForms(規則 21:同一條詞綴依數值的其他寫法)', () 
       stat('Tree #', [{ string: 'Tree #' }], { pseudo: ['pseudo.x'] })
     ]
     const ggpkNew = [
-      row(g('a', '#'), '{0} to A', ''), row(g('a', '#|-1'), '{0} from A', ''),
-      row(g('b', '1|#'), 'B {0}', ''), row(g('b', '#|-1'), 'Other', ''),
-      row(g('c', '1|#'), 'C {0}', ''), row(g('c', '#|-1'), 'D {0}', ''),
-      row(g('t', '1|#'), 'Tree {0}', ''), row(g('t', '#|-1'), 'Bush {0}', '')
+      row(g('a', '1|#'), '{0} to A', ''), { key: g('a', '#|-1'), en: '{0} from A', zh: '' },
+      row(g('b', '1|#'), 'B {0}', ''), row(g('b', '#|-1'), 'Other', '', NEG),
+      row(g('c', '1|#'), 'C {0}', ''), row(g('c', '#|-1'), 'D {0}', '', NEG),
+      row(g('t', '1|#'), 'Tree {0}', ''), row(g('t', '#|-1'), 'Bush {0}', '', NEG)
     ]
     const plan = planCondForms({ enStats, zhStats: [], ggpkNew })
     expect(plan.adds).toEqual([])
-    expect(plan.rejects.map((r: any) => [r.reason, r.to])).toEqual([['數值正負判斷不出來', '# from A'], ['與既有寫法同形', 'D #']])
+    expect(plan.rejects.map((r: any) => [r.reason, r.to])).toEqual([['GGPK 沒有 handlers', '# from A'], ['與既有寫法同形', 'D #']])
   })
 
   it('句子的增加 / 減少與推出的 negate 矛盾、交易站詞綴沒有數值卻補帶 # 的寫法 → 拒收', () => {
     const enStats = [stat('#% increased effect', [{ string: '#% increased effect' }]), stat('Area has Encounter', [{ string: 'Area has Encounter' }])]
     const ggpkNew = [
-      row(g('eff', '1|#'), '{0}% increased effect', ''), row(g('eff', '#|-1'), '{0}% increased effect, decaying', ''),
+      row(g('eff', '1|#'), '{0}% increased effect', ''), row(g('eff', '#|-1'), '{0}% increased effect, decaying', '', NEG),
       row(g('enc', '100|#'), 'Area has Encounter', ''), row(g('enc', '1|99'), 'Area has {0}% chance for Encounter', '')
     ]
     const plan = planCondForms({ enStats, zhStats: [], ggpkNew })
@@ -1001,7 +1041,7 @@ describe('planCondForms(規則 21:同一條詞綴依數值的其他寫法)', () 
 
   it('套用後重跑為空', () => {
     const enStats = [stat('#% increased Speed', [{ string: '#% increased Speed' }])]
-    const ggpkNew = [row(g('speed_+%', '1|#'), '{0}% increased Speed', ''), row(g('speed_+%', '#|-1'), '{0}% reduced Speed', '')]
+    const ggpkNew = [row(g('speed_+%', '1|#'), '{0}% increased Speed', ''), row(g('speed_+%', '#|-1'), '{0}% reduced Speed', '', NEG)]
     const out = parseRows(applyStatPlan(toFile(enStats), 'en', planCondForms({ enStats, zhStats: [], ggpkNew })))
     expect(out[0].matchers).toEqual([{ string: '#% increased Speed' }, { string: '#% reduced Speed', negate: true, superseded: true }])
     expect(planCondForms({ enStats: out, zhStats: [], ggpkNew }).adds).toEqual([])

@@ -863,15 +863,6 @@ export function planZhForms ({ enStats, zhStats, ggpkNew }) {
   return { adds, rejects }
 }
 
-/** GGPK 數值條件的一格(`#` / `N` / `A|B` / `!N`)→ 正負:1 正、-1 負、0 都可能 */
-function condSign (token) {
-  if (/^-?\d+(\.\d+)?$/.test(token)) return Math.sign(Number(token))
-  const m = /^(#|-?[\d.]+)\|(#|-?[\d.]+)$/.exec(token ?? '')
-  if (!m) return 0
-  const lo = m[1] === '#' ? -Infinity : Number(m[1])
-  const hi = m[2] === '#' ? Infinity : Number(m[2])
-  return lo > 0 ? 1 : hi < 0 ? -1 : 0
-}
 /** 沒有 # 的寫法代表的固定值(`N`、`A|#` 取 A、`#|B` 取 B) */
 function condValue (token) {
   if (/^-?\d+(\.\d+)?$/.test(token)) return Number(token)
@@ -882,10 +873,11 @@ function condValue (token) {
 /**
  * 規則 21(GGPK 全量自我檢查):同一條詞綴在 GGPK 依數值有好幾種寫法(增加 / 減少、#% 機率 / 100% 時的「必定」、單複數、
  * 惡鬼轉世吞噬前後),資料只收了其中幾種 → 補上其他寫法(使用者 2026-11-17 回報的惡鬼轉世「可以吞噬 4 顆…/尚未吞噬任何寶石」)。
- * 同一組 = GGPK 鍵的 stat_ids + 描述檔相同;資料的現行寫法要逐字等於組裡某一句,才拿那一句的數值條件當基準:
- * - 新句與基準的正負相反 → negate 與基準 matcher 相反;正負判斷不出來的拒收
- * - 新句沒有 #(單一 stat):數值條件的固定值當 value
- * - 兩個 stat 以上的組:新句用到的 stat 必須與基準相同,而且只看那些 stat 的正負
+ * 同一組 = GGPK 鍵的 stat_ids + 描述檔相同;資料的現行寫法要逐字等於組裡某一句,才拿那一句當基準:
+ * - 正負看 GGPK 的 handlers:兩句一句有 negate(遊戲取負號後顯示)、一句沒有 → negate 與基準 matcher 相反
+ *   (不能看數值條件的正負:`{0:+d}` 的負值句沒有 negate,遊戲直接印負號,解析器會連負號一起讀;審查 2026-11-17)
+ * - 新句沒有 #(單一 stat):數值條件的固定值換算到 ref 的方向後當 value,不帶 negate(解析器不對 value 套 negate)
+ * - 兩個 stat 以上的組:新句用到的 stat 必須與基準相同,而且只看那些 stat 的 handlers
  * 新句一律標 superseded(篩選列與正則頁不變)、只補物品上會出現的詞綴;句子已屬於別條詞綴、與既有寫法同形的不補。
  * 沒有實機樣本(惡鬼轉世除外):句子與條件都取自 GGPK。
  * @returns {{ adds: any[], rejects: any[] }}
@@ -927,14 +919,14 @@ export function planCondForms ({ enStats, zhStats, ggpkNew }) {
             const newUsed = used(textOf(r))
             const single = !base.ids.includes(' ')
             if (!single && (m.value !== undefined || !newUsed.size || [...newUsed].join() !== [...baseUsed].join())) { reject('兩個 stat 以上、用到的數值不同'); continue }
+            if (!base.handlers || !r.handlers) { reject('GGPK 沒有 handlers'); continue }
+            const neg = (row, i) => row.handlers.some(h => h[0] === 'negate' && h[1] === i + 1)
             const at = single ? [0] : [...newUsed]
-            const diff = at.map(i => {
-              const a = condSign(base.conds[i]); const b = condSign(r.conds[i])
-              if (a === b) return false
-              if (a === 0 || b === 0) return (a || b) === 1 ? false : null
-              return true
-            })
-            if (diff.some(d => d === null) || new Set(diff).size > 1) { reject('數值正負判斷不出來'); continue }
+            // 條件只有負值、沒有 negate、數字也不是 {i:+d} → 照字面遊戲會印「少 -3 個」:這一列的 handlers 不可信(地雷 fewer)
+            const odd = (row) => at.some(i => /^(#\|-|-)[\d.]+$/.test(row.conds[i] ?? '') && !neg(row, i) && !new RegExp(`\\{${i}:\\+d\\}`).test(textOf(row)) && used(textOf(row)).has(i))
+            if (odd(base) || odd(r)) { reject('handlers 與數值條件矛盾'); continue }
+            const diff = at.map(i => neg(base, i) !== neg(r, i))
+            if (new Set(diff).size > 1) { reject('數值正負判斷不出來'); continue }
             // 兩句都看得出增加 / 減少時,方向不同才該相反(GGPK 有「增加 #% 效果。使用時 -1% 此數值」這種條件帶負號、字面仍是增加的)
             const da = direction(m.string); const db = direction(text)
             if (da && db && (da !== db) !== diff[0]) { reject('增加 / 減少與數值條件矛盾'); continue }
@@ -942,13 +934,15 @@ export function planCondForms ({ enStats, zhStats, ggpkNew }) {
             if (!en.ref.includes('#') && newUsed.size) { reject('交易站的詞綴沒有數值'); continue }
             let value
             if (!newUsed.size) {
+              // stat 值 → ref 方向:基準句顯示前取負號與基準 matcher 的 negate 各翻一次
+              const toRef = neg(base, 0) !== Boolean(m.negate) ? -1 : 1
               value = condValue(r.conds[0])
-              if (value === undefined || baseUsed.size === 0) { reject('沒有數字的寫法對不到固定值'); continue }
-              value = Math.abs(value)
+              if (!value || baseUsed.size === 0) { reject('沒有數字的寫法對不到固定值'); continue }
+              value *= toRef
             }
             if (shapes.has(shape(text))) { reject('與既有寫法同形'); continue }
             shapes.add(shape(text))
-            const negate = Boolean(m.negate) !== diff[0]
+            const negate = value === undefined && Boolean(m.negate) !== diff[0]
             adds.push({ lang, ref: stat.ref, matcher: { string: text, ...(negate ? { negate: true } : {}), ...(value !== undefined ? { value } : {}), superseded: true } })
           }
         }

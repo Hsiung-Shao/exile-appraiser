@@ -25,8 +25,9 @@ def main():
         return dict(zip(('id', 'gameVersion', 'ggpkBuild', 'takenAt'), r))
 
     def stats(v):
-        return [{'key': f'{i}|{cond}|{f}|{d}', 'en': en, 'zh': zh} for i, cond, f, d, en, zh in c.execute(
-            'select stat_ids, cond, src_file, dup_ix, en, zh_tw from stat where version_id = ? '
+        # handlers:遊戲顯示數值前的換算([["negate", 1]] = 第 1 個 stat 取負號後顯示);規則 21 用它判斷兩句的正負是否相反
+        return [{'key': f'{i}|{cond}|{f}|{d}', 'en': en, 'zh': zh, 'handlers': json.loads(h or '[]')} for i, cond, f, d, en, zh, h in c.execute(
+            'select stat_ids, cond, src_file, dup_ix, en, zh_tw, handlers from stat where version_id = ? '
             'order by stat_ids, cond, src_file, dup_ix', (v,))]
 
     def base(v):
