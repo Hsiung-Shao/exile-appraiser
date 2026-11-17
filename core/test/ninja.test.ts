@@ -144,7 +144,7 @@ describe('fetchAll(PoE1 錄製檔)', () => {
 
   it('快照:toSnapshot → JSON → parseSnapshot 往返', () => {
     const snap = toSnapshot(result)
-    expect(snap.schema).toBe(3)
+    expect(snap.schema).toBe(4)
     // WP-R2:PoE1 沒有 exalted 匯率
     expect(result.exaltedRate).toBeUndefined()
     expect(snap.exaltedRate).toBeNull()
@@ -249,7 +249,7 @@ describe('解析規則(合成回應)', () => {
 })
 
 describe('快取與 TTL', () => {
-  const snap: NinjaSnapshot = { schema: 3, game: 'poe1', league: 'Hardcore Allflame', fetchedAt: 1_000_000, divineRate: 300, exaltedRate: null, prices: { 'currency|Divine Orb': { c: 300, n: 0, lc: false, t: 'Currency' } } }
+  const snap: NinjaSnapshot = { schema: 4, game: 'poe1', league: 'Hardcore Allflame', fetchedAt: 1_000_000, divineRate: 300, exaltedRate: null, prices: { 'currency|Divine Orb': { c: 300, n: 0, lc: false, t: 'Currency' } } }
 
   it('isFresh:15 分鐘內為新鮮', () => {
     expect(NINJA_CACHE_TTL_MS).toBe(15 * 60 * 1000)
@@ -266,10 +266,11 @@ describe('快取與 TTL', () => {
     expect(await cache.load('poe1', 'Hardcore Allflame')).toEqual(snap)
     expect(await cache.load('poe2', 'Hardcore Allflame')).toBeNull()
     expect(await cache.load('poe1', 'Allflame')).toBeNull()
-    // WP-R2:schema 1(沒有 exaltedRate 的舊快取)、第 24 步之前的 schema 2(沒有走勢 / 成交量)與未來的 schema 4 一律丟棄
+    // WP-R2:schema 1(沒有 exaltedRate 的舊快取)、第 24 步之前的 schema 2(沒有走勢 / 成交量)、2026-11-18 之前的 schema 3(沒有綢帶)與未來的 schema 5 一律丟棄
     expect(parseSnapshot(JSON.stringify({ ...snap, schema: 1 }), 'poe1', 'Hardcore Allflame')).toBeNull()
     expect(parseSnapshot(JSON.stringify({ ...snap, schema: 2 }), 'poe1', 'Hardcore Allflame')).toBeNull()
-    expect(parseSnapshot(JSON.stringify({ ...snap, schema: 4 }), 'poe1', 'Hardcore Allflame')).toBeNull()
+    expect(parseSnapshot(JSON.stringify({ ...snap, schema: 3 }), 'poe1', 'Hardcore Allflame')).toBeNull()
+    expect(parseSnapshot(JSON.stringify({ ...snap, schema: 5 }), 'poe1', 'Hardcore Allflame')).toBeNull()
     // 使用者 userData 裡 WP-R2 之前寫的真實舊快取格式(schema 1、沒有 exaltedRate)
     const legacy = '{"schema":1,"game":"poe2","league":"Forbidden Rites","fetchedAt":1790668051310,"divineRate":8.18,"prices":{"currency|Exalted Orb":{"c":0.01590192,"n":0,"lc":false,"t":"Currency","id":"exalted-orb"}}}'
     expect(parseSnapshot(legacy, 'poe2', 'Forbidden Rites')).toBeNull()
@@ -388,7 +389,7 @@ describe('PoE2 exchange 錄製檔', () => {
     expect(r.prices.get('currency|Exalted Orb')!.chaos / r.exaltedRate!).toBeCloseTo(1, 3)
     expect(r.prices.get('currency|Chaos Orb')).toMatchObject({ chaos: 1 })
     const snap = toSnapshot(r)
-    expect(snap).toMatchObject({ schema: 3, game: 'poe2', league: LEAGUE2, divineRate: RATE_CHAOS })
+    expect(snap).toMatchObject({ schema: 4, game: 'poe2', league: LEAGUE2, divineRate: RATE_CHAOS })
     expect(snap.exaltedRate).toBeCloseTo(RATE_CHAOS / RATE_EXALTED, 12)
     expect(parseSnapshot(JSON.stringify(snap), 'poe2', LEAGUE2)).toEqual(snap)
     expect(lookupPrice(snap, { ns: 'ITEM', name: "Aldur's Legacy" })?.entry.c).toBeCloseTo(385.3 * RATE_CHAOS, 10)
@@ -479,7 +480,7 @@ describe('走勢與成交量(第 24 步)', () => {
     const r = await createNinjaClient({ http, game: 'poe2', league: 'Forbidden Rites', sleep: async () => {}, now: () => 7 })
       .fetchAll({ exchange: ['Runes', 'Currency'], item: [] })
     const snap = toSnapshot(r)
-    expect(snap.schema).toBe(3)
+    expect(snap.schema).toBe(4)
     expect(snap.prices["currency|Aldur's Legacy"]).toEqual({
       c: 385.3 * RATE_CHAOS2, n: 0, lc: false, id: 'aldurs-legacy', t: 'Runes',
       s: [17.25, 19.04, 19, 18.89, 17.68, 14.87, 15.12], sc: 15.12, v: Math.round(13228 * RATE_CHAOS2 * 1000) / 1000, mv: 'divine'
