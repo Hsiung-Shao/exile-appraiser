@@ -997,7 +997,6 @@ export function planCondForms ({ enStats, zhStats, ggpkNew }) {
  * 新句已屬於別條詞綴的拒收。英文也照同樣方式推出(英文沒有樣本)。
  * @returns {{ adds: any[], rejects: any[] }}
  */
-const NO_ANNOTATE_HANDLERS = ['passive_jewel_radius']
 export function planNamedSlots ({ enStats, zhStats, ggpkOld, ggpkNew }) {
   const ADV = 'advanced_mod_stat_descriptions.txt'
   const split = (r) => {
@@ -1054,9 +1053,10 @@ export function planNamedSlots ({ enStats, zhStats, ggpkOld, ggpkNew }) {
         slots.forEach((n, i) => { if (!SLOT.test(m[i + 1]) && !/^-?[\d.]+$/.test(m[i + 1])) names[n] = m[i + 1].replace(/\([^()]*-[^()]*\)$/, '') })
         if (!Object.keys(names).length) continue
         // 3.30 進階複製在「會變的名稱」後面加「(...)」(卡斯皮羅、塑界者的毀滅、壁壘、召喚物、隨機寶石的實機樣本);
-        // 條件是固定值的(永恆珠寶的陣營名)不加;天賦範圍名條件會變卻沒有加(issue #20 實機:「只會影響巨大範圍內的天賦」)
+        // 條件是固定值的(永恆珠寶的陣營名)不加。天賦範圍名兩種都見過(issue #20「巨大」沒有、2026-11-18 截圖「大(...)」有)
+        // → 照規則加;無括號的舊寫法標 superseded 仍會被解析,兩種都認得
         const conds = r2.cond.split(' ')
-        const annotated = (n) => !/^-?\d+$/.test(conds[n] ?? '') && !r2.handlers?.some(h => h[1] === Number(n) + 1 && NO_ANNOTATE_HANDLERS.includes(h[0]))
+        const annotated = (n) => !/^-?\d+$/.test(conds[n] ?? '')
         const advNames = Object.fromEntries(Object.entries(names).map(([n, v]) => [n, annotated(n) ? `${v}(...)` : v]))
         const entry = { string: toMatcherText(fill(textOf(r2), names)), advanced: toMatcherText(fill(textOf(adv2) ?? textOf(r2), advNames)), cond: r1.cond }
         ;(byOld.get(toMatcherText(t1)) ?? byOld.set(toMatcherText(t1), []).get(toMatcherText(t1))).push(entry)

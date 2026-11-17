@@ -1156,7 +1156,7 @@ describe('planNamedSlots(規則 22:名稱從寫死變成帶入的句型)', () =>
     ])
   })
 
-  it('天賦範圍名(passive_jewel_radius,issue #20 實機進階複製沒有「(...)」)不加「(...)」;舊句裡名稱自帶的「(甲-乙)」要去掉', () => {
+  it('天賦範圍名也加「(...)」(使用者 2026-11-18 截圖:「只會影響大(...)範圍內的天賦」;無括號的舊寫法留著,issue #20 的「巨大」照樣認得);舊句裡名稱自帶的「(甲-乙)」要去掉', () => {
     const R = 'radius'
     const old = [
       row(k(R, '3'), 'Only affects Passives in Large Ring', '只會影響大範圍內的天賦'),
@@ -1175,7 +1175,7 @@ describe('planNamedSlots(規則 22:名稱從寫死變成帶入的句型)', () =>
     // 不帶的話「同一句已經有了」套不進去、重跑永遠還要加
     const plan = planNamedSlots({ enStats: [], zhStats: zh, ggpkOld: old, ggpkNew: neu })
     expect(plan.adds.map((a: any) => a.matcher)).toEqual([
-      { string: '只會影響大範圍內的天賦', advanced: '只會影響大範圍內的天賦' },
+      { string: '只會影響大範圍內的天賦', advanced: '只會影響大(...)範圍內的天賦' },
       { string: '緬懷由#位梅德偉血脈', advanced: '緬懷由#位梅德偉(...)血脈' }
     ])
     const out = parseRows(applyStatPlan(toFile(zh), 'cmn-Hant', plan))

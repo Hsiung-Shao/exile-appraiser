@@ -306,6 +306,13 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(item.statsByType.find(s => s.stat.ref.startsWith("Map contains Al-Hezmin's Citadel"))?.stat.trade.ids.implicit).toEqual(['implicit.stat_2563183002|3'])
   })
 
+  it('D17q 希望之絃「只會影響大(...)範圍內的天賦」(使用者 2026-11-18 截圖;文字照截圖改寫 issue #20 的實機樣本)解析成大範圍', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-thread-of-hope-large.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(item)).toEqual([])
+    expect(item.statsByType.find(s => s.stat.ref === 'Only affects Passives in Large Ring')?.stat.trade.ids.explicit).toEqual(['explicit.stat_3642528642|3'])
+    expect(item.statsByType.find(s => s.stat.ref === '+#% to all Elemental Resistances')?.sources[0].stat.roll?.value).toBe(-12)
+  })
+
   it('D17n GitHub issue #29 的實機文字:永恆珠寶「授銜7260個硬幣以紀念卡斯皮羅(...)」(3.30 句型)解析得到、帶交易站 id、數值 7260', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-29.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
