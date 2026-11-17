@@ -15,7 +15,7 @@ if (s) {
   check('目前分頁是正則', s.activeTab === '#tab=regex', s.activeTab)
   check('書籤卡片 PoE1 分頁有「地圖檢查書籤」列', s.rowFound === true)
   check('下拉只列 PoE1 地圖詞綴頁的書籤(藥劑頁不列)', JSON.stringify(s.options) === JSON.stringify(['(不上色)', '驗證-地圖危險']), JSON.stringify(s.options))
-  check('選了以後存檔 mapCheckBookmark = 書籤名稱', s.value === '驗證-地圖危險' && s.saved === '驗證-地圖危險', `${s.value} / ${s.saved}`)
+  check('選了以後存檔 mapCheckBookmark = { folder, name }', s.selectedLabel === '驗證-地圖危險' && s.saved?.name === '驗證-地圖危險' && s.saved?.folder === '', `${s.selectedLabel} / ${JSON.stringify(s.saved)}`)
   check('舊的獨立標記設定 mapCheck 不再寫出', s.hasOldMapCheck === false)
   check('說明一句用卡片的說明樣式', s.leadClass === 'rx-bm-other', s.leadClass)
 }
