@@ -91,6 +91,8 @@ function refsByMatcher (rows) {
 /** 交易站 id 的類型(explicit / implicit / enchant …) */
 const typeOf = (id) => id.slice(0, id.indexOf('.'))
 const uniq = (list) => Array.from(new Set(list))
+/** 數字換成 #:新句與既有 matcher 同形(「獲得 1 層盛怒」對「獲得 # 層盛怒」)會搶走既有詞綴的比對 */
+const shape = (text) => text.replace(/\d+(?:\.\d+)?/g, '#')
 /** 沒被取代的 matcher */
 const liveOf = (stat) => stat.matchers.filter(m => !m.superseded)
 const flagsOf = (m) => ({ ...(m.negate ? { negate: true } : {}), ...(m.value !== undefined ? { value: m.value } : {}) })
@@ -525,8 +527,7 @@ const NEW_STAT_SKIP = new Set(['monster level: #'].map(t => cmpKey(t)))
  */
 export function planNewStats ({ enStats, zhStats = /** @type {any[]} */ ([]), ggpkOld, ggpkNew, tradeStats }) {
   const oldKeys = new Set(ggpkOld.map(r => r.key))
-  // 繁中新句把數字換成 # 後若與既有 matcher 同形(「獲得 1 層盛怒」對「獲得 # 層盛怒」),會搶走既有詞綴的比對 → 不加
-  const shape = (text) => text.replace(/\d+(?:\.\d+)?/g, '#')
+  // 繁中新句與既有 matcher 同形(shape)→ 不加
   const zhShapes = new Set([...eachStat(zhStats)].flatMap(s => s.matchers.map(m => shape(m.string))))
   const enShapes = new Set([...eachStat(enStats)].flatMap(s => s.matchers.map(m => shape(m.string))))
   const tradeByText = groupBy(tradeStats.filter(e => !e.id.startsWith('pseudo.')), e => cmpKey(noLocal(e.text)))
@@ -821,6 +822,40 @@ export function planExtraZh ({ zhStats, ggpkNew }) {
       : { lang: 'cmn-Hant', ref: x.ref, matcher: { string: x.zh, ...(x.negate ? { negate: true } : {}), superseded: true } })
   }
   return { adds }
+}
+
+/** 物品上的詞綴句子所在的描述檔 */
+export const ITEM_STAT_FILES = ['stat_descriptions.txt', 'map_stat_descriptions.txt']
+
+/**
+ * 規則 20(GGPK 全量自我檢查):資料裡會出現在物品上的詞綴(有隨機 / 固定 / 破裂 / 工藝 / 附魔 id),它現行的英文寫法在
+ * GGPK 新版物品描述檔對到的繁中句子,繁中資料**任何一條詞綴都沒有**(= 繁中客戶端遇到會是未解析)→ 加上。
+ * 同一句英文在 GGPK 可能對到好幾個 stat、繁中各不相同(不能被中毒 / 不會中毒),每一句都收。
+ * 旗標(negate / value)照那個英文 matcher;一律標 superseded:原句仍是篩選列顯示的現行寫法、正則頁的模板不變。
+ * 別條詞綴已經有的句子不管(解析得到,只是配到那一條);數字換成 # 後與既有寫法同形的拒收(會搶走既有詞綴的比對)。
+ * 沒有實機樣本:句子由 GGPK 推出(使用者 2026-11-15 裁定沒有樣本也收)。
+ * @returns {{ adds: any[], rejects: any[] }}
+ */
+export function planZhForms ({ enStats, zhStats, ggpkNew }) {
+  const byEn = groupBy(ggpkNew.filter(r => r.zh && r.key.split('|').some(p => ITEM_STAT_FILES.includes(p))), r => exactKey(r.en))
+  const zhByRef = statsByRef(zhStats)
+  const zhTexts = new Set([...eachStat(zhStats)].flatMap(s => [...matcherExact(s)]))
+  const zhShapes = new Set([...zhTexts].map(shape))
+  const adds = []
+  const rejects = []
+  for (const stat of eachStat(enStats)) {
+    if (!zhByRef.has(stat.ref) || !allIds(stat).some(id => TYPE_ID_GROUPS.includes(typeOf(id)) || id.startsWith('enchant.'))) continue
+    for (const m of liveOf(stat)) {
+      for (const r of byEn.get(m.string.trim()) ?? []) {
+        const zh = exactKey(r.zh)
+        if (cmpKey(zh) === cmpKey(r.en) || zhTexts.has(zh)) continue
+        zhTexts.add(zh)
+        if (zhShapes.has(shape(zh))) { rejects.push({ reason: '與既有寫法同形', ref: stat.ref, lang: 'cmn-Hant', to: zh }); continue }
+        adds.push({ lang: 'cmn-Hant', ref: stat.ref, matcher: { string: zh, ...flagsOf(m), superseded: true } })
+      }
+    }
+  }
+  return { adds, rejects }
 }
 
 /**

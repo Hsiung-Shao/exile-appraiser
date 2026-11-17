@@ -252,6 +252,15 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(map.statsByType.find(s => s.stat.ref.startsWith("Map contains Al-Hezmin's Citadel"))?.stat.trade.ids.implicit).toEqual(['implicit.stat_2563183002|3'])
   })
 
+  it('D17i GGPK 3.30 物品描述檔的另一種繁中句子(規則 20,沒有實機樣本)解析成原詞綴', () => {
+    const item = parse(ringText('cmn-Hant', [['不能被中毒', '插槽中寶石等級 +2', '貧血時 +10% 法術傷害格擋率', '非暴擊獲得 1 顆暴擊球', '增加 12% 拆除陷阱速度']]))
+    expect(unknownOf(item)).toEqual([])
+    expect(refsOf(item)).toEqual(expect.arrayContaining([
+      'Cannot be Poisoned', '+# to Level of Socketed Gems', '+#% Chance to Block Spell Damage while on Low Life',
+      'Gain a Power Charge on Non-Critical Strike', '#% increased Trap Disarmament speed'
+    ]))
+  })
+
   it('D18 破裂的「+#%物品稀有度」(使用者 2026-11-15 貼的實機手套)解析成原詞綴並帶破裂 id', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-fractured-rarity-gloves.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])

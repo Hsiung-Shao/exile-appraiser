@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planRandomSkillGem, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, planRoomNames, planCitadel, planExtraZh, EXTRA_ZH_MATCHERS, planGrownPassives, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
+import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planRandomSkillGem, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, planRoomNames, planCitadel, planExtraZh, planZhForms, EXTRA_ZH_MATCHERS, planGrownPassives, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
 
 /**
  * 賽季更新腳本的純函式測試(合成輸入,不讀 data/)。
@@ -841,5 +841,61 @@ describe('planGrownPassives:繁中同名', () => {
     expect(plan.rejects.map((r: any) => [r.id, r.reason])).toEqual([
       ['enchant.stat_3599615742|1', '繁中名與另一個天賦相同'], ['enchant.stat_3599615742|2', '繁中名與另一個天賦相同']
     ])
+  })
+})
+
+describe('planZhForms(規則 20:GGPK 物品描述檔的繁中句子資料沒有)', () => {
+  const stat = (ref: string, matchers: any[], ids: any = { explicit: ['explicit.stat_1'] }) => ({ ref, better: 1, matchers, trade: { ids } })
+  const enStats = [
+    stat('Cannot be Poisoned', [{ string: 'Cannot be Poisoned' }]),
+    stat('#% increased Speed', [{ string: '#% increased Speed' }, { string: '#% reduced Speed', negate: true }]),
+    stat('Gain a Charge', [{ string: 'Gain a Charge', value: 100 }]),
+    stat('Tree only', [{ string: 'Tree only' }], { pseudo: ['pseudo.x'] }),
+    stat('Other', [{ string: 'Other' }])
+  ]
+  const zhStats = [
+    stat('Cannot be Poisoned', [{ string: '不會中毒' }]),
+    stat('#% increased Speed', [{ string: '增加 #% 速度' }, { string: '減少 #% 速度', negate: true }]),
+    stat('Gain a Charge', [{ string: '獲得 1 顆球', value: 100 }]),
+    stat('Tree only', [{ string: '樹' }], { pseudo: ['pseudo.x'] }),
+    stat('Other', [{ string: '別條的句子' }])
+  ]
+  const row = (key: string, en: string, zh: string) => ({ key, en, zh })
+  const ggpkNew = [
+    row('a|#|stat_descriptions.txt|0', 'Cannot be Poisoned', '不能被中毒'),
+    row('b|#|-1|stat_descriptions.txt|0', '{0}% reduced Speed', '減少 {0}% 快慢'),
+    row('c|100|#|stat_descriptions.txt|0', 'Gain a Charge', '獲得球'),
+    row('d|#|stat_descriptions.txt|0', 'Tree only', '樹上'),
+    row('e|#|skill_stat_descriptions.txt|0', 'Cannot be Poisoned', '技能說明的句子'),
+    row('f|#|stat_descriptions.txt|0', 'Cannot be Poisoned', '別條的句子'),
+    row('g|#|stat_descriptions.txt|0', 'Cannot be Poisoned', 'Cannot be Poisoned')
+  ]
+
+  it('現行英文寫法在 GGPK 的繁中句子資料沒有 → 加上(旗標照英文 matcher,標 superseded 不當模板)', () => {
+    const plan = planZhForms({ enStats, zhStats, ggpkNew })
+    expect(plan.adds).toEqual([
+      { lang: 'cmn-Hant', ref: 'Cannot be Poisoned', matcher: { string: '不能被中毒', superseded: true } },
+      { lang: 'cmn-Hant', ref: '#% increased Speed', matcher: { string: '減少 #% 快慢', negate: true, superseded: true } },
+      { lang: 'cmn-Hant', ref: 'Gain a Charge', matcher: { string: '獲得球', value: 100, superseded: true } }
+    ])
+  })
+
+  it('別條詞綴已經有那一句(解析得到,只是配到那一條)、沒有物品 id、不是物品描述檔、沒翻譯的都不管', () => {
+    const plan = planZhForms({ enStats, zhStats, ggpkNew })
+    expect(plan.adds.map((x: any) => x.matcher.string)).not.toContain('別條的句子')
+    expect(plan.rejects).toEqual([])
+  })
+
+  it('套用後舊句仍是現行寫法、新句解析得到;重跑為空', () => {
+    const out = parseRows(applyStatPlan(toFile(zhStats), 'cmn-Hant', planZhForms({ enStats, zhStats, ggpkNew })))
+    expect(out[0].matchers).toEqual([{ string: '不會中毒' }, { string: '不能被中毒', superseded: true }])
+    expect(planZhForms({ enStats, zhStats: out, ggpkNew }).adds).toEqual([])
+  })
+
+  it('新句把數字換成 # 後與既有寫法同形 → 不加(會搶走既有詞綴的比對)', () => {
+    const g = [row('h|1|stat_descriptions.txt|0', 'Gain a Charge', '增加 5% 速度')]
+    const plan = planZhForms({ enStats, zhStats, ggpkNew: g })
+    expect(plan.adds).toEqual([])
+    expect(plan.rejects.map((r: any) => r.reason)).toEqual(['與既有寫法同形'])
   })
 })
