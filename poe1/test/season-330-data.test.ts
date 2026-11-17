@@ -239,6 +239,19 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(warrant.mercenarySkills!.filter(g => g.some(s => s.stat.ref === 'Increased Area of Effect'))).toHaveLength(3)
   })
 
+  it('D17h GitHub issue #2 #6 #13 #17 的原始樣本(先前沒有測試守住)沒有未解析詞綴', () => {
+    // #2、#13 的回報只有標題,用標題那一行;#6、#17 是回報裡的實機剪貼簿
+    const lines = parse(ringText('cmn-Hant', [['增加 21(20-21)% 生命回復率', '賦予等級 30 的 ​精準 — 無法使用的值']]))
+    expect(unknownOf(lines)).toEqual([])
+    expect(refsOf(lines)).toContain('Grants Level # Precision Skill')
+    const organ = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-6.cmn-Hant.txt'), 'utf8'))
+    expect(organ.info.refName).toBe('Prosthetic Leg')
+    expect(unknownOf(organ)).toEqual([])
+    const map = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-17.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(map)).toEqual([])
+    expect(map.statsByType.find(s => s.stat.ref.startsWith("Map contains Al-Hezmin's Citadel"))?.stat.trade.ids.implicit).toEqual(['implicit.stat_2563183002|3'])
+  })
+
   it('D18 破裂的「+#%物品稀有度」(使用者 2026-11-15 貼的實機手套)解析成原詞綴並帶破裂 id', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-fractured-rarity-gloves.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
