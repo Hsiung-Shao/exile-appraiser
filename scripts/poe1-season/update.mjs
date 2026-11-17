@@ -6,6 +6,7 @@
 //   node scripts/poe1-season/update.mjs --from <...> --report docs/poe1-season/3.30-report.md
 //   node scripts/poe1-season/update.mjs --from <...> --write                        → 寫資料 + 重建索引 + 重寫 MANIFEST data/poe1
 //     [--trade-dir <dir>]  改讀已存檔的 stats.json / static.json / items.json(離線重跑;省略 = 連線抓國際服)
+//     [--save-trade <dir>] 連線抓到的三個回應原樣存到 <dir>(之後給 --trade-dir 用)
 //     [--old N --new N]    指定 GGPK 快照(省略 = 最新兩個完整快照)   [--python python]
 //
 // 輸入的 GGPK 資料庫是維護者本機檔(<from>/tools/ggpk_zh/db/ggpk_zh.sqlite,不在任何版控)。只讀、不送任何使用者資料。
@@ -47,7 +48,12 @@ async function trade (/** @type {string} */ name) {
   if (dir) return JSON.parse(fs.readFileSync(path.join(dir, `${name}.json`), 'utf8')).result
   const res = await fetch(TRADE + name, { headers: { 'User-Agent': UA } })
   if (!res.ok) throw new Error(`交易站 ${name} 回 ${res.status}`)
-  return (await res.json()).result
+  const body = await res.json()
+  if (flag('--save-trade')) {
+    fs.mkdirSync(String(flag('--save-trade')), { recursive: true })
+    fs.writeFileSync(path.join(String(flag('--save-trade')), `${name}.json`), JSON.stringify(body))
+  }
+  return body.result
 }
 const tradeStats = (await trade('stats')).flatMap(g => g.entries)
 const tradeStatic = (await trade('static')).flatMap(g => g.entries)
