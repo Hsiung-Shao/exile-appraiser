@@ -278,6 +278,10 @@
             "matchers": [
               {
                 "string": "怪物發射 # 額外投射物"
+              },
+              {
+                "string": "玩家與怪物發射 # 額外投射物",
+                "superseded": true
               }
             ],
             "ref": "Monsters fire # additional Projectiles",
@@ -1052,6 +1056,10 @@
                   "matchers": [
                     {
                       "string": "怪物發射 # 額外投射物"
+                    },
+                    {
+                      "string": "玩家與怪物發射 # 額外投射物",
+                      "superseded": true
                     }
                   ],
                   "ref": "Monsters fire # additional Projectiles",
@@ -1203,6 +1211,10 @@
                   "matchers": [
                     {
                       "string": "怪物發射 # 額外投射物"
+                    },
+                    {
+                      "string": "玩家與怪物發射 # 額外投射物",
+                      "superseded": true
                     }
                   ],
                   "ref": "Monsters fire # additional Projectiles",
@@ -1237,6 +1249,10 @@
               "matchers": [
                 {
                   "string": "怪物發射 # 額外投射物"
+                },
+                {
+                  "string": "玩家與怪物發射 # 額外投射物",
+                  "superseded": true
                 }
               ],
               "ref": "Monsters fire # additional Projectiles",
@@ -1263,6 +1279,10 @@
         "matchers": [
           {
             "string": "怪物發射 # 額外投射物"
+          },
+          {
+            "string": "玩家與怪物發射 # 額外投射物",
+            "superseded": true
           }
         ],
         "ref": "Monsters fire # additional Projectiles",

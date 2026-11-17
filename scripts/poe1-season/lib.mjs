@@ -863,6 +863,101 @@ export function planZhForms ({ enStats, zhStats, ggpkNew }) {
   return { adds, rejects }
 }
 
+/** GGPK 數值條件的一格(`#` / `N` / `A|B` / `!N`)→ 正負:1 正、-1 負、0 都可能 */
+function condSign (token) {
+  if (/^-?\d+(\.\d+)?$/.test(token)) return Math.sign(Number(token))
+  const m = /^(#|-?[\d.]+)\|(#|-?[\d.]+)$/.exec(token ?? '')
+  if (!m) return 0
+  const lo = m[1] === '#' ? -Infinity : Number(m[1])
+  const hi = m[2] === '#' ? Infinity : Number(m[2])
+  return lo > 0 ? 1 : hi < 0 ? -1 : 0
+}
+/** 沒有 # 的寫法代表的固定值(`N`、`A|#` 取 A、`#|B` 取 B) */
+function condValue (token) {
+  if (/^-?\d+(\.\d+)?$/.test(token)) return Number(token)
+  const m = /^(-?[\d.]+)\|#$/.exec(token) ?? /^#\|(-?[\d.]+)$/.exec(token)
+  return m ? Number(m[1]) : undefined
+}
+
+/**
+ * 規則 21(GGPK 全量自我檢查):同一條詞綴在 GGPK 依數值有好幾種寫法(增加 / 減少、#% 機率 / 100% 時的「必定」、單複數、
+ * 惡鬼轉世吞噬前後),資料只收了其中幾種 → 補上其他寫法(使用者 2026-11-17 回報的惡鬼轉世「可以吞噬 4 顆…/尚未吞噬任何寶石」)。
+ * 同一組 = GGPK 鍵的 stat_ids + 描述檔相同;資料的現行寫法要逐字等於組裡某一句,才拿那一句的數值條件當基準:
+ * - 新句與基準的正負相反 → negate 與基準 matcher 相反;正負判斷不出來的拒收
+ * - 新句沒有 #(單一 stat):數值條件的固定值當 value
+ * - 兩個 stat 以上的組:新句用到的 stat 必須與基準相同,而且只看那些 stat 的正負
+ * 新句一律標 superseded(篩選列與正則頁不變)、只補物品上會出現的詞綴;句子已屬於別條詞綴、與既有寫法同形的不補。
+ * 沒有實機樣本(惡鬼轉世除外):句子與條件都取自 GGPK。
+ * @returns {{ adds: any[], rejects: any[] }}
+ */
+export function planCondForms ({ enStats, zhStats, ggpkNew }) {
+  const groups = groupBy(ggpkNew.filter(r => r.key.split('|').some(p => ITEM_STAT_FILES.includes(p))).map(r => {
+    const parts = r.key.split('|')
+    const file = parts.findIndex(p => p.endsWith('.txt'))
+    return { ...r, ids: parts[0], conds: parts.slice(1, file).join('|').split(' '), group: `${parts[0]}|${parts[file]}` }
+  }), r => r.group)
+  // 連結標記 [TentacleSmash::{0}|Tentacle Whip] 裡的 {0} 不是數值,先換成顯示文字
+  const used = (text) => new Set([...text.replace(/\[[^\]|]*\|([^\]]*)\]/g, '$1').matchAll(/\{(\d*)(?::[^}]*)?\}/g)].map((m, i) => Number(m[1] === '' ? i : m[1])))
+  const adds = []
+  const rejects = []
+  for (const [lang, stats] of /** @type {const} */ ([['en', enStats], ['cmn-Hant', zhStats]])) {
+    const textOf = (r) => lang === 'en' ? r.en : r.zh
+    const byText = new Map()
+    for (const rows of groups.values()) for (const r of rows) if (textOf(r)) (byText.get(exactKey(textOf(r))) ?? byText.set(exactKey(textOf(r)), []).get(exactKey(textOf(r)))).push(r)
+    const texts = new Set([...eachStat(stats)].flatMap(s => [...matcherExact(s)]))
+    const shapes = new Set([...texts].map(shape))
+    const refs = refsByMatcher(stats)
+    const idOf = statsByRef(enStats)
+    for (const stat of eachStat(stats)) {
+      const en = (idOf.get(stat.ref) ?? [])[0]
+      if (!en || !allIds(en).some(id => TYPE_ID_GROUPS.includes(typeOf(id)) || id.startsWith('enchant.'))) continue
+      for (const m of liveOf(stat)) {
+        if ((refs.get(cmpKey(m.string))?.size ?? 0) > 1) continue // 同一句是好幾條詞綴的寫法,不知道新句該掛哪一條
+        const bases = byText.get(m.string.trim()) ?? []
+        // 同一句在 GGPK 屬於好幾組(通用的「全元素抗性」也是希望之絃專屬 stat 的一句)→ 不知道是哪一組,不拿來當基準
+        if (new Set(bases.map(b => b.group)).size > 1) continue
+        for (const base of bases) {
+          for (const r of groups.get(base.group)) {
+            if (!textOf(r)) continue
+            const text = exactKey(textOf(r))
+            if (texts.has(text) || cmpKey(text) === cmpKey(r.en) !== (lang === 'en')) continue
+            texts.add(text)
+            const reject = (reason) => rejects.push({ reason, ref: stat.ref, lang, to: text })
+            const baseUsed = used(textOf(base))
+            const newUsed = used(textOf(r))
+            const single = !base.ids.includes(' ')
+            if (!single && (m.value !== undefined || !newUsed.size || [...newUsed].join() !== [...baseUsed].join())) { reject('兩個 stat 以上、用到的數值不同'); continue }
+            const at = single ? [0] : [...newUsed]
+            const diff = at.map(i => {
+              const a = condSign(base.conds[i]); const b = condSign(r.conds[i])
+              if (a === b) return false
+              if (a === 0 || b === 0) return (a || b) === 1 ? false : null
+              return true
+            })
+            if (diff.some(d => d === null) || new Set(diff).size > 1) { reject('數值正負判斷不出來'); continue }
+            // 兩句都看得出增加 / 減少時,方向不同才該相反(GGPK 有「增加 #% 效果。使用時 -1% 此數值」這種條件帶負號、字面仍是增加的)
+            const da = direction(m.string); const db = direction(text)
+            if (da && db && (da !== db) !== diff[0]) { reject('增加 / 減少與數值條件矛盾'); continue }
+            // 交易站那條詞綴沒有數值(ref 不含 #)→ 補帶 # 的寫法會讓查詢多送一個交易站不認的數值
+            if (!en.ref.includes('#') && newUsed.size) { reject('交易站的詞綴沒有數值'); continue }
+            let value
+            if (!newUsed.size) {
+              value = condValue(r.conds[0])
+              if (value === undefined || baseUsed.size === 0) { reject('沒有數字的寫法對不到固定值'); continue }
+              value = Math.abs(value)
+            }
+            if (shapes.has(shape(text))) { reject('與既有寫法同形'); continue }
+            shapes.add(shape(text))
+            const negate = Boolean(m.negate) !== diff[0]
+            adds.push({ lang, ref: stat.ref, matcher: { string: text, ...(negate ? { negate: true } : {}), ...(value !== undefined ? { value } : {}), superseded: true } })
+          }
+        }
+      }
+    }
+  }
+  return { adds, rejects }
+}
+
 /**
  * 交易站的叫法 ≠ 遊戲內名稱、而且上游那一列是壞的(matcher 帶「Has Room: 」前綴、沒有 option → 遊戲文字永遠對不到):
  * ref → 遊戲內英文名(GGPK incursionrooms;2026-11-16 逐列比對 87 個房間只有這一列)

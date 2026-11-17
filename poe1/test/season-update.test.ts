@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planRandomSkillGem, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, planRoomNames, planCitadel, planExtraZh, planZhForms, EXTRA_ZH_MATCHERS, planGrownPassives, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
+import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planRandomSkillGem, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, planRoomNames, planCitadel, planExtraZh, planZhForms, planCondForms, EXTRA_ZH_MATCHERS, planGrownPassives, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
 
 /**
  * 賽季更新腳本的純函式測試(合成輸入,不讀 data/)。
@@ -912,5 +912,98 @@ describe('planZhForms(規則 20:GGPK 物品描述檔的繁中句子資料沒有)
     const plan = planZhForms({ enStats: en2, zhStats: zh2, ggpkNew: [ggpkNew[0]] })
     expect(plan.adds).toEqual([])
     expect(plan.rejects.map((r: any) => [r.reason, r.to])).toEqual([['英文寫法被多條詞綴共用', '不能被中毒']])
+  })
+})
+
+describe('planCondForms(規則 21:同一條詞綴依數值的其他寫法)', () => {
+  const stat = (ref: string, matchers: any[], ids: any = { explicit: ['explicit.stat_1'] }) => ({ ref, better: 1, matchers, trade: { ids } })
+  const row = (key: string, en: string, zh: string) => ({ key, en, zh })
+  const g = (ids: string, cond: string) => `${ids}|${cond}|stat_descriptions.txt|0`
+
+  it('只有「增加」→ 補「減少」並帶 negate;100% 的寫法帶 value;兩語各自比對', () => {
+    const enStats = [stat('#% increased Speed', [{ string: '#% increased Speed' }]), stat('#% chance to Impale', [{ string: '#% chance to Impale' }])]
+    const zhStats = [stat('#% increased Speed', [{ string: '增加 #% 速度' }]), stat('#% chance to Impale', [{ string: '#% 機率穿刺' }])]
+    const ggpkNew = [
+      row(g('speed_+%', '1|#'), '{0}% increased Speed', '增加 {0}% 速度'),
+      row(g('speed_+%', '#|-1'), '{0}% reduced Speed', '減少 {0}% 速度'),
+      row(g('impale_%', '1|99'), '{0}% chance to Impale', '{0}% 機率穿刺'),
+      row(g('impale_%', '100|#'), 'Always [Impale::{0}|Impale]', '必定穿刺')
+    ]
+    const plan = planCondForms({ enStats, zhStats, ggpkNew })
+    expect(plan.adds).toEqual([
+      { lang: 'en', ref: '#% increased Speed', matcher: { string: '#% reduced Speed', negate: true, superseded: true } },
+      { lang: 'en', ref: '#% chance to Impale', matcher: { string: 'Always Impale', value: 100, superseded: true } },
+      { lang: 'cmn-Hant', ref: '#% increased Speed', matcher: { string: '減少 #% 速度', negate: true, superseded: true } },
+      { lang: 'cmn-Hant', ref: '#% chance to Impale', matcher: { string: '必定穿刺', value: 100, superseded: true } }
+    ])
+  })
+
+  it('資料是 negate 的「減少」那句 → 補的「增加」不帶 negate', () => {
+    const enStats = [stat('#% reduced Cost', [{ string: '#% reduced Cost' }])]
+    const ggpkNew = [row(g('cost_-%', '1|#'), '{0}% reduced Cost', '減少 {0}% 消耗'), row(g('cost_-%', '#|-1'), '{0}% increased Cost', '增加 {0}% 消耗')]
+    expect(planCondForms({ enStats, zhStats: [], ggpkNew }).adds).toEqual([{ lang: 'en', ref: '#% reduced Cost', matcher: { string: '#% increased Cost', negate: true, superseded: true } }])
+    const negStats = [stat('#% reduced Cost', [{ string: '#% reduced Cost' }, { string: '#% increased Cost', negate: true }])]
+    expect(planCondForms({ enStats: negStats, zhStats: [], ggpkNew }).adds).toEqual([])
+  })
+
+  it('兩個 stat 的詞綴(惡鬼轉世):第二個 stat 只是條件(沒有出現在句中)→ 補還沒吞噬時的寫法;沒有數字的「已吞噬 1 顆」不補', () => {
+    const ids = 'gems_to_consume has_consumed_gem'
+    const zh0 = '當插槽內未汙染的輔助寶石達到最大等級時吞噬該寶石\n可以再吞噬 # 顆額外未汙染的輔助寶石'
+    const zhStats = [stat('Consumes #', [{ string: zh0 }])]
+    const ggpkNew = [
+      row(g(ids, '2|# #'), 'Consumes\\nCan Consume {0} additional Gems', '當插槽內未汙染的輔助寶石達到最大等級時吞噬該寶石\\n可以再吞噬 {0} 顆額外未汙染的輔助寶石'),
+      row(g(ids, '2|# 0'), 'Consumes\\nCan Consume {0} Gems\\nHas not Consumed any Gems', '當插槽內未汙染的輔助寶石達到最大等級時吞噬該寶石\\n可以吞噬 {0} 顆未汙染的輔助寶石\\n尚未吞噬任何寶石'),
+      row(g(ids, '-1 1'), 'Has Consumed 1 Gem', '已吞噬 1 顆寶石')
+    ]
+    expect(planCondForms({ enStats: [stat('Consumes #', [{ string: 'Consumes\nCan Consume # additional Gems' }])], zhStats, ggpkNew }).adds.filter((a: any) => a.lang === 'cmn-Hant')).toEqual([
+      { lang: 'cmn-Hant', ref: 'Consumes #', matcher: { string: '當插槽內未汙染的輔助寶石達到最大等級時吞噬該寶石\n可以吞噬 # 顆未汙染的輔助寶石\n尚未吞噬任何寶石', superseded: true } }
+    ])
+  })
+
+  it('判不準的不加並列入拒收:正負不明、句子已屬於別條、與既有寫法同形、沒有物品 id', () => {
+    const enStats = [
+      stat('# to A', [{ string: '# to A' }]),
+      stat('B #', [{ string: 'B #' }]), stat('Other', [{ string: 'Other' }]),
+      stat('C #', [{ string: 'C #' }]), stat('D #', [{ string: 'D 5' }]),
+      stat('Tree #', [{ string: 'Tree #' }], { pseudo: ['pseudo.x'] })
+    ]
+    const ggpkNew = [
+      row(g('a', '#'), '{0} to A', ''), row(g('a', '#|-1'), '{0} from A', ''),
+      row(g('b', '1|#'), 'B {0}', ''), row(g('b', '#|-1'), 'Other', ''),
+      row(g('c', '1|#'), 'C {0}', ''), row(g('c', '#|-1'), 'D {0}', ''),
+      row(g('t', '1|#'), 'Tree {0}', ''), row(g('t', '#|-1'), 'Bush {0}', '')
+    ]
+    const plan = planCondForms({ enStats, zhStats: [], ggpkNew })
+    expect(plan.adds).toEqual([])
+    expect(plan.rejects.map((r: any) => [r.reason, r.to])).toEqual([['數值正負判斷不出來', '# from A'], ['與既有寫法同形', 'D #']])
+  })
+
+  it('句子的增加 / 減少與推出的 negate 矛盾、交易站詞綴沒有數值卻補帶 # 的寫法 → 拒收', () => {
+    const enStats = [stat('#% increased effect', [{ string: '#% increased effect' }]), stat('Area has Encounter', [{ string: 'Area has Encounter' }])]
+    const ggpkNew = [
+      row(g('eff', '1|#'), '{0}% increased effect', ''), row(g('eff', '#|-1'), '{0}% increased effect, decaying', ''),
+      row(g('enc', '100|#'), 'Area has Encounter', ''), row(g('enc', '1|99'), 'Area has {0}% chance for Encounter', '')
+    ]
+    const plan = planCondForms({ enStats, zhStats: [], ggpkNew })
+    expect(plan.adds).toEqual([])
+    expect(plan.rejects.map((r: any) => r.reason)).toEqual(['增加 / 減少與數值條件矛盾', '交易站的詞綴沒有數值'])
+  })
+
+  it('資料的寫法在 GGPK 屬於好幾組(通用抗性也是希望之絃專屬 stat 的一句)→ 不補那些組的其他句子', () => {
+    const enStats = [stat('+#% to all Elemental Resistances', [{ string: '#% to all Elemental Resistances' }])]
+    const ggpkNew = [
+      row(g('resist_all', '1|#'), '{0:+d}% to all Elemental Resistances', ''),
+      row(g('thread_resist', '1|#'), '{0:+d}% to all Elemental Resistances', ''),
+      row(g('thread_resist', '1|#'), 'Passive Skills in Radius can be Allocated\\n{0:+d}% to all Elemental Resistances', '')
+    ]
+    expect(planCondForms({ enStats, zhStats: [], ggpkNew }).adds).toEqual([])
+  })
+
+  it('套用後重跑為空', () => {
+    const enStats = [stat('#% increased Speed', [{ string: '#% increased Speed' }])]
+    const ggpkNew = [row(g('speed_+%', '1|#'), '{0}% increased Speed', ''), row(g('speed_+%', '#|-1'), '{0}% reduced Speed', '')]
+    const out = parseRows(applyStatPlan(toFile(enStats), 'en', planCondForms({ enStats, zhStats: [], ggpkNew })))
+    expect(out[0].matchers).toEqual([{ string: '#% increased Speed' }, { string: '#% reduced Speed', negate: true, superseded: true }])
+    expect(planCondForms({ enStats: out, zhStats: [], ggpkNew }).adds).toEqual([])
   })
 })

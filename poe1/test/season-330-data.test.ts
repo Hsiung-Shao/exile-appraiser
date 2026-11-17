@@ -261,6 +261,23 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     ]))
   })
 
+  it('D17j 惡鬼轉世還沒吞噬寶石的寫法(使用者 2026-11-17 貼的實機文字;規則 21)解析成原詞綴、數值 4', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-reborn-hunger.cmn-Hant.txt'), 'utf8'))
+    expect(item.info.refName).toBe('The Hungry Loop')
+    expect(unknownOf(item)).toEqual([])
+    const hit = item.statsByType.find(s => s.stat.ref.startsWith('Consumes Socketed Uncorrupted Support Gems'))
+    expect(hit?.stat.trade.ids.explicit).toEqual(['explicit.stat_3221550523'])
+    expect(hit?.sources[0].stat.roll?.value).toBe(4)
+  })
+
+  it('D17k 同一條詞綴依數值的其他寫法(規則 21,沒有實機樣本):減少的數值為負、100% 的寫法數值 100', () => {
+    const item = parse(ringText('cmn-Hant', [['若近期沒有擊殺，減少 12% 命中值', '擊中時致盲敵人', '+68 最大生命']]))
+    expect(unknownOf(item)).toEqual([])
+    const roll = (ref: string) => item.statsByType.find(s => s.stat.ref === ref)?.sources[0].stat.roll?.value
+    expect(roll("#% increased Accuracy Rating if you haven't Killed Recently")).toBe(-12)
+    expect(roll('#% chance to Blind Enemies on hit')).toBe(100)
+  })
+
   it('D18 破裂的「+#%物品稀有度」(使用者 2026-11-15 貼的實機手套)解析成原詞綴並帶破裂 id', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-fractured-rarity-gloves.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
