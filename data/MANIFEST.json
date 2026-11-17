@@ -37,10 +37,10 @@
       "generatedAt": "2026-10-14T16:36:55.396Z"
     },
     "data/poe2": {
-      "repo": "ee2-patched (Hsiung-Shao/Exiled-Exchange-2-zh-TW)",
-      "path": "renderer/public/data",
-      "commit": "fc7de73c04b5bae6b0f80cf6e6417553b313b762",
-      "generatedAt": "2026-09-28T12:46:01.999Z"
+      "repo": "ExileAppraiser 自己維護(底 = ee2-patched fc7de73;scripts/poe2-season/update.mjs 依實機樣本更新)",
+      "path": "data/poe2",
+      "generatedAt": "2026-11-17T16:16:34.346Z",
+      "fetchedAt": "2026-11-17T16:16:34.253Z"
     },
     "data/poe2/desecration": {
       "repo": "PoB2 0.23.1 Data/*.lua + stats.ndjson",
@@ -207,16 +207,16 @@
       "bytes": 1658918
     },
     "data/poe2/cmn-Hant/stats-matcher.index.bin": {
-      "sha256": "4a170db7e0b0265281a9fcffe96f659bba3273232ded6b16ac8370e8cded7d0d",
-      "bytes": 39032
+      "sha256": "ec32a13311175f4a06e43cb306803356f14815d79444fa26029fb67d37a280da",
+      "bytes": 39144
     },
     "data/poe2/cmn-Hant/stats-ref.index.bin": {
-      "sha256": "3f7107d8f4a3517bd388000e823ade79528ca3e3b4fd33807cece3a9411378d0",
+      "sha256": "24115c08d4372e2d5f7934dc8f74670365588c8c8f7f4fbc172ed2b5e8af592a",
       "bytes": 20192
     },
     "data/poe2/cmn-Hant/stats.ndjson": {
-      "sha256": "9aa5101f985b88cb572a56ed9d0341d083c2c48f98a4414c7c73d63ca9b48590",
-      "bytes": 866912
+      "sha256": "0fcd146875dd5dc5fd5b4adb3f8e3d1693da40d592d0195e7a499fce72b76893",
+      "bytes": 867797
     },
     "data/poe2/desecration/base_profiles.json": {
       "sha256": "10ab08180ffe7ee324eb2402fff57885412793d1716322f5060b3449d65e29e5",
