@@ -669,10 +669,16 @@ export function planMercenaryBuilds ({ enItems, builds, tradeItems }) {
   const rejects = []
   for (const e of tradeItems) {
     if (e.disc !== 'mercenary_warrant' || have.has(e.type)) continue
-    have.add(e.type)
     const b = byIdent.get(e.type)
-    if (!b?.zh) rejects.push({ reason: e.type.endsWith('Noble') ? '萬惡版流派(原版還沒有)' : 'GGPK 沒有這個流派', id: e.type, to: e.text })
-    else adds.push({ refName: b.en, zh: b.zh, tradeType: e.type })
+    // 萬惡版(…Noble)照既有資料的寫法指向原版流派(解析器依字串轉到原版);原版不在資料裡就拒收
+    const baseType = e.type.endsWith('Noble') ? e.type.slice(0, -'Noble'.length) : undefined
+    const base = baseType !== undefined ? byIdent.get(baseType) : undefined
+    if (!b?.zh) rejects.push({ reason: 'GGPK 沒有這個流派', id: e.type, to: e.text })
+    else if (baseType !== undefined && !(have.has(baseType) && base)) rejects.push({ reason: '萬惡版流派(原版不在資料裡)', id: e.type, to: e.text })
+    else {
+      have.add(e.type)
+      adds.push({ refName: b.en, zh: b.zh, tradeType: e.type, ...(base ? { base: base.en } : {}) })
+    }
   }
   return { adds, rejects }
 }
@@ -1008,11 +1014,11 @@ export function planNamedSlots ({ enStats, zhStats, ggpkOld, ggpkNew }) {
   const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
   const SLOT = /^\{(\d+)(?::[^}]*)?\}$/
   /** 句型 → 正則:{n} 變成擷取、空白可有可無 */
-  const toRegex = (tpl) => {
+  const toRegex = (tpl, greedy = false) => {
     const slots = []
     const src = unlink(tpl).split(/(\{\d+(?::[^}]*)?\})/).map(part => {
       const m = SLOT.exec(part)
-      if (m) { slots.push(Number(m[1])); return '\\s*(.+?)\\s*' }
+      if (m) { slots.push(Number(m[1])); return greedy ? '\\s*(.+)\\s*' : '\\s*(.+?)\\s*' }
       return esc(part).replace(/ +/g, '\\s*')
     }).join('')
     return { re: new RegExp(`^${src}$`, 's'), slots }
@@ -1031,15 +1037,21 @@ export function planNamedSlots ({ enStats, zhStats, ggpkOld, ggpkNew }) {
     for (const r2 of news) {
       if (!ITEM_STAT_FILES.includes(r2.file) || !textOf(r2) || !/\{\d/.test(textOf(r2))) continue
       const { re, slots } = toRegex(textOf(r2))
+      const greedy = toRegex(textOf(r2), true).re
       const adv2 = newAdv.get(`${r2.ids}|${r2.cond}`) ?? r2
       for (const r1 of oldByGroup.get(`${r2.ids}|${r2.file}`) ?? []) {
         const t1 = textOf(r1)
         if (!t1 || newTexts.has(toMatcherText(t1))) continue // 舊句新版還在,不是這種改動
         const m = re.exec(unlink(t1))
         if (!m) continue
+        // 兩個位置相鄰時切法不唯一(「level {2} {1}」配「level # #」)→ 非貪婪 / 貪婪切出來不同就不收
+        const g = greedy.exec(unlink(t1))
+        if (!g || g.slice(1).map(v => v.trim()).join('\u0000') !== m.slice(1).map(v => v.trim()).join('\u0000')) continue
+        if (m.slice(1).some(v => !SLOT.test(v) && /[{}]/.test(v))) continue
         const names = {}
-        // 舊句有時把進階的「(甲-乙)」也寫進一般句(卡葛爾:「梅德偉(沃拉娜-梅德偉)」)→ 去掉
-        slots.forEach((n, i) => { if (!SLOT.test(m[i + 1])) names[n] = m[i + 1].replace(/\([^()]*-[^()]*\)$/, '') })
+        // 舊句有時把進階的「(甲-乙)」也寫進一般句(卡葛爾:「梅德偉(沃拉娜-梅德偉)」)→ 去掉;
+        // 抓到的是純數字(舊句寫死的等級)就不是名稱
+        slots.forEach((n, i) => { if (!SLOT.test(m[i + 1]) && !/^-?[\d.]+$/.test(m[i + 1])) names[n] = m[i + 1].replace(/\([^()]*-[^()]*\)$/, '') })
         if (!Object.keys(names).length) continue
         // 3.30 進階複製在「會變的名稱」後面加「(...)」(卡斯皮羅、塑界者的毀滅、壁壘、召喚物、隨機寶石的實機樣本);
         // 條件是固定值的(永恆珠寶的陣營名)不加;天賦範圍名條件會變卻沒有加(issue #20 實機:「只會影響巨大範圍內的天賦」)
@@ -1061,7 +1073,7 @@ export function planNamedSlots ({ enStats, zhStats, ggpkOld, ggpkNew }) {
           const id = `${stat.ref}\n${e.string}\n${e.advanced}`
           if (done.has(id)) continue
           done.add(id)
-          if (e.string !== m.string && (refs.get(cmpKey(e.string)) ?? new Set()).size) { rejects.push({ reason: '新句已屬於別條詞綴', ref: stat.ref, lang, to: e.string }); continue }
+          if (e.string !== m.string && [...(refs.get(cmpKey(e.string)) ?? [])].some(r => r !== stat.ref)) { rejects.push({ reason: '新句已屬於別條詞綴', ref: stat.ref, lang, to: e.string }); continue }
           adds.push({ lang, ref: stat.ref, matcher: { string: e.string, ...advOrNot(e, m), ...flagsOf(m) }, supersedes: [m.string] })
         }
         if (m.value !== undefined) continue
@@ -1285,7 +1297,7 @@ export function applyItemPlan (fileText, lang, { renames = [], adds = [], unique
   for (const b of builds) {
     if (!warrant || warrantTypes.has(b.tradeType)) continue
     warrants.push({ ...warrant, disc: { ...warrant.disc, sectionText: nameOf(b.refName, b.zh) }, tradeType: b.tradeType })
-    if (!have.has(b.refName)) fresh.push({ name: nameOf(b.refName, b.zh), refName: b.refName, namespace: 'MERCENARY_BUILD', icon: '', mercenaryBuild: { skills: [] } })
+    if (!have.has(b.refName)) fresh.push({ name: nameOf(b.refName, b.zh), refName: b.refName, namespace: 'MERCENARY_BUILD', icon: '', mercenaryBuild: b.base ?? { skills: [] } })
   }
   const out = fresh.length ? rewriteLines(text, () => false, fresh) : text
   // 最後一列契約書是沒有條件的通用列(disc 空):挑變體時對什麼都成立 → 新流派排在最後一列帶 tradeType 的契約書後面

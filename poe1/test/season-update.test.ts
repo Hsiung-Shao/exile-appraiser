@@ -1074,17 +1074,19 @@ describe('planMercenaryBuilds(規則 23:新的傭兵流派)', () => {
   const generic = (lang: string) => ({ name: lang === 'en' ? 'Mercenary Warrant' : '傭兵契約書', refName: 'Mercenary Warrant', namespace: 'ITEM', icon: 'x.png', disc: {} })
   const enItems = [warrant('en', 'Manyshot', 'EleBowRangerClones'), generic('en'), build('Manyshot', 'Manyshot')]
   const zhItems = [warrant('cmn-Hant', '暴射者', 'EleBowRangerClones'), generic('cmn-Hant'), build('暴射者', 'Manyshot')]
-  const builds = [{ ident: 'EleBowRangerClones', en: 'Manyshot', zh: '暴射者' }, { ident: 'AbyssalTemplar', en: 'Chaplain of the Well', zh: '淵井之軍' }, { ident: 'NotTraded', en: 'Nobody', zh: '無人' }]
+  const builds = [{ ident: 'EleBowRangerClones', en: 'Manyshot', zh: '暴射者' }, { ident: 'AbyssalTemplar', en: 'Chaplain of the Well', zh: '淵井之軍' }, { ident: 'NotTraded', en: 'Nobody', zh: '無人' }, { ident: 'AbyssalTemplarNoble', en: 'Infamous Chaplain of the Well', zh: '萬惡淵井之軍' }, { ident: 'GhostNoble', en: 'Infamous Ghost', zh: '萬惡幽魂' }]
   const tradeItems = [
     { type: 'EleBowRangerClones', text: 'Mercenary Warrant (Manyshot)', disc: 'mercenary_warrant', group: 'map' },
     { type: 'AbyssalTemplar', text: 'Mercenary Warrant (Chaplain of the Well)', disc: 'mercenary_warrant', group: 'map' },
-    { type: 'AbyssalTemplarNoble', text: 'Mercenary Warrant (Infamous Chaplain of the Well)', disc: 'mercenary_warrant', group: 'map' }
+    { type: 'AbyssalTemplarNoble', text: 'Mercenary Warrant (Infamous Chaplain of the Well)', disc: 'mercenary_warrant', group: 'map' },
+    { type: 'GhostNoble', text: 'Mercenary Warrant (Infamous Ghost)', disc: 'mercenary_warrant', group: 'map' }
   ]
+  const noble = { refName: 'Infamous Chaplain of the Well', zh: '萬惡淵井之軍', tradeType: 'AbyssalTemplarNoble', base: 'Chaplain of the Well' }
 
-  it('交易站有、資料沒有的契約書類型 → 補流派列與契約書列(技能清單沒有資料來源,留空);萬惡版與 GGPK 沒有的拒收', () => {
+  it('交易站有、資料沒有的契約書類型 → 補流派列與契約書列(技能清單沒有資料來源,留空);萬惡版指向原版(審查第 5 輪 2-a),原版沒有的拒收', () => {
     const plan = planMercenaryBuilds({ enItems, builds, tradeItems })
-    expect(plan.adds).toEqual([{ refName: 'Chaplain of the Well', zh: '淵井之軍', tradeType: 'AbyssalTemplar' }])
-    expect(plan.rejects.map((r: any) => r.id)).toEqual(['AbyssalTemplarNoble'])
+    expect(plan.adds).toEqual([{ refName: 'Chaplain of the Well', zh: '淵井之軍', tradeType: 'AbyssalTemplar' }, noble])
+    expect(plan.rejects.map((r: any) => r.id)).toEqual(['GhostNoble'])
   })
 
   it('套用:兩語各加一列流派、一列契約書(照既有契約書列抄欄位,disc 是該語系的流派名);契約書列緊接在既有契約書列後面;重跑為空', () => {
@@ -1093,12 +1095,14 @@ describe('planMercenaryBuilds(規則 23:新的傭兵流派)', () => {
     const zh = parseRows(applyItemPlan(toFile(zhItems), 'cmn-Hant', { builds: plan.adds }))
     // 名稱索引對同名同 refName 的列只收第一列,其餘變體靠相鄰讀到 → 新契約書必須插在既有契約書列後面,不能放檔尾
     expect(en).toEqual([
-      enItems[0], warrant('en', 'Chaplain of the Well', 'AbyssalTemplar'), enItems[1], enItems[2],
-      { name: 'Chaplain of the Well', refName: 'Chaplain of the Well', namespace: 'MERCENARY_BUILD', icon: '', mercenaryBuild: { skills: [] } }
+      enItems[0], warrant('en', 'Chaplain of the Well', 'AbyssalTemplar'), warrant('en', 'Infamous Chaplain of the Well', 'AbyssalTemplarNoble'), enItems[1], enItems[2],
+      { name: 'Chaplain of the Well', refName: 'Chaplain of the Well', namespace: 'MERCENARY_BUILD', icon: '', mercenaryBuild: { skills: [] } },
+      { name: 'Infamous Chaplain of the Well', refName: 'Infamous Chaplain of the Well', namespace: 'MERCENARY_BUILD', icon: '', mercenaryBuild: 'Chaplain of the Well' }
     ])
     expect(zh).toEqual([
-      zhItems[0], warrant('cmn-Hant', '淵井之軍', 'AbyssalTemplar'), zhItems[1], zhItems[2],
-      { name: '淵井之軍', refName: 'Chaplain of the Well', namespace: 'MERCENARY_BUILD', icon: '', mercenaryBuild: { skills: [] } }
+      zhItems[0], warrant('cmn-Hant', '淵井之軍', 'AbyssalTemplar'), warrant('cmn-Hant', '萬惡淵井之軍', 'AbyssalTemplarNoble'), zhItems[1], zhItems[2],
+      { name: '淵井之軍', refName: 'Chaplain of the Well', namespace: 'MERCENARY_BUILD', icon: '', mercenaryBuild: { skills: [] } },
+      { name: '萬惡淵井之軍', refName: 'Infamous Chaplain of the Well', namespace: 'MERCENARY_BUILD', icon: '', mercenaryBuild: 'Chaplain of the Well' }
     ])
     expect(planMercenaryBuilds({ enItems: en, builds, tradeItems }).adds).toEqual([])
   })
@@ -1176,6 +1180,13 @@ describe('planNamedSlots(規則 22:名稱從寫死變成帶入的句型)', () =>
     ])
     const out = parseRows(applyStatPlan(toFile(zh), 'cmn-Hant', plan))
     expect(planNamedSlots({ enStats: [], zhStats: out, ggpkOld: old, ggpkNew: neu }).adds).toEqual([])
+  })
+
+  it('名稱位置相鄰時切法不唯一、抓到的名稱是純數字或含 { } → 不當名稱(審查第 5 輪 1-a / 1-b)', () => {
+    const old = [row(k('pearl', '1'), 'Supported by level {2} {1}', ''), row(k('pure', '1'), 'Grants Level 20 Purity', ''), row(k('wield', '1'), 'Wields Shaper Blade', '')]
+    const neu = [row(k('pearl', '#'), 'Supported by {0} level {2} {1}', ''), row(k('pure', '#'), 'Grants Level {0} Purity', ''), row(k('wield', '#'), 'Wields {0} {1}', '')]
+    const en = [stat('Supported by level # #', [{ string: 'Supported by level # #' }]), stat('Grants Level 20 Purity', [{ string: 'Grants Level 20 Purity' }]), stat('Wields Shaper Blade', [{ string: 'Wields Shaper Blade' }])]
+    expect(planNamedSlots({ enStats: en, zhStats: [], ggpkOld: old, ggpkNew: neu }).adds).toEqual([])
   })
 
   it('套用後重跑為空', () => {
