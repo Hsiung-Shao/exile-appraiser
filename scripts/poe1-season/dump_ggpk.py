@@ -25,8 +25,9 @@ def main():
         return dict(zip(('id', 'gameVersion', 'ggpkBuild', 'takenAt'), r))
 
     def stats(v):
-        return [{'key': f'{i}|{cond}|{f}|{d}', 'en': en, 'zh': zh} for i, cond, f, d, en, zh in c.execute(
-            'select stat_ids, cond, src_file, dup_ix, en, zh_tw from stat where version_id = ? '
+        # handlers:遊戲顯示數值前的換算([["negate", 1]] = 第 1 個 stat 取負號後顯示);規則 21 用它判斷兩句的正負是否相反
+        return [{'key': f'{i}|{cond}|{f}|{d}', 'en': en, 'zh': zh, 'handlers': json.loads(h or '[]')} for i, cond, f, d, en, zh, h in c.execute(
+            'select stat_ids, cond, src_file, dup_ix, en, zh_tw, handlers from stat where version_id = ? '
             'order by stat_ids, cond, src_file, dup_ix', (v,))]
 
     def base(v):
@@ -67,7 +68,17 @@ def main():
         "where o.version_id = ? and n.version_id = ? and o.tbl = 'incursionrooms' and o.col = 'Name' and o.en <> n.en "
         'order by o.en, n.en', (old, new))]
 
-    data = {'old': meta(old), 'new': meta(new), 'words': words, 'gems': gems, 'skills': skills, 'supports': supports, 'rooms': rooms, 'renames': renames, 'strings': strings,
+    # 傭兵流派名(規則 23;ident = 交易站契約書的 type)
+    builds = [{'ident': i, 'en': en, 'zh': zh} for i, en, zh in c.execute(
+        "select ident, en, zh_tw from cell where version_id = ? and tbl = 'mercenarybuilds' and col = 'Name' "
+        'and ident is not null order by ident', (new,))]
+
+    # 傭兵技能名(規則 24;有些技能只在這張表,不在 activeskills,例如 3.30 的深淵噴濺)
+    merc_skills = [{'en': en, 'zh': zh} for en, zh in c.execute(
+        "select distinct en, zh_tw from cell where version_id = ? and tbl = 'mercenaryskills' and col = 'Name' "
+        'and zh_tw is not null order by en, zh_tw', (new,))]
+
+    data = {'old': meta(old), 'new': meta(new), 'builds': builds, 'mercSkills': merc_skills, 'words': words, 'gems': gems, 'skills': skills, 'supports': supports, 'rooms': rooms, 'renames': renames, 'strings': strings,
             'stats': {'old': stats(old), 'new': stats(new)},
             'base': {'old': base(old), 'new': base(new)}}
     with open(out, 'w', encoding='utf-8', newline='\n') as f:

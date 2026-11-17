@@ -1,4 +1,4 @@
-// 設定 › 一般「建立桌面捷徑」:純邏輯(main/src/desktop-shortcut.ts)+ IPC / preload / 安裝檔設定接線守門
+// 設定 › 一般「建立桌面捷徑」:純邏輯(main/src/desktop-shortcut.ts)+ IPC / preload 接線守門
 import fs from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -133,12 +133,3 @@ describe('S8 IPC 接線', () => {
   })
 })
 
-describe('S9 安裝檔設定', () => {
-  it('nsis 區塊每次安裝都建立桌面與開始功能表捷徑', () => {
-    const yml = read('../electron-builder.yml')
-    const nsis = /^nsis:\s*\n((?:[ \t]+.*\n|[ \t]*\n)*)/m.exec(yml)?.[1] ?? ''
-    expect(nsis).not.toBe('')
-    expect(nsis).toMatch(/^\s+createDesktopShortcut:\s*always\s*$/m)
-    expect(nsis).toMatch(/^\s+createStartMenuShortcut:\s*true\s*$/m)
-  })
-})

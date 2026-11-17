@@ -298,6 +298,10 @@ describe('matchCopyHotkey(熱鍵沒觸發的診斷)', () => {
   it('多了卡住的 Shift 時指出多按 Shift', () => {
     expect(matchCopyHotkey(actions, ev(32, 'CS'), codeOf)).toEqual({ shortcut: 'Ctrl + D', extra: ['Shift'], missing: [] })
   })
+  it('少按修飾鍵(只按主鍵打字 / 移動)不算按了熱鍵,回 null', () => {
+    expect(matchCopyHotkey(actions, ev(32, ''), codeOf)).toBeNull()
+    expect(matchCopyHotkey(actions, ev(32, 'S'), codeOf)).toBeNull()
+  })
   it('不是查價熱鍵的主鍵(含聊天指令熱鍵)回 null', () => {
     expect(matchCopyHotkey(actions, ev(63, ''), codeOf)).toBeNull()
     expect(matchCopyHotkey(actions, ev(31, 'C'), codeOf)).toBeNull()

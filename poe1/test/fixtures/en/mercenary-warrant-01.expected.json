@@ -717,6 +717,17 @@
       "tradeType": "NonEleBowRangerPhys"
     },
     {
+      "disc": {
+        "sectionText": "Chaplain of the Well"
+      },
+      "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "Mercenary Warrant",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "AbyssalTemplar"
+    },
+    {
       "disc": {},
       "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
       "name": "Mercenary Warrant",

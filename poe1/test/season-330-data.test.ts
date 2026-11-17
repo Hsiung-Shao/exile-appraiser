@@ -6,6 +6,8 @@ import { init, loadForLang } from '@/assets/data'
 import { parseClipboard } from '@/parser'
 import type { ParsedItem } from '@/parser/ParsedItem'
 import { statSourcesTotal, translateStatWithRoll } from '@/parser/modifiers'
+import { createPresets } from '@/web/price-check/filters/create-presets'
+import { createTradeRequest } from '@/web/price-check/trade/pathofexile-trade'
 
 /**
  * 3.30 賽季資料回歸:用真實 `data/poe1` 驗證詞綴新舊寫法都解析得到、
@@ -222,6 +224,129 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(item.statsByType.find(s => s.stat.ref === 'Has Room: Throne of Atziri (Tier 3)')?.stat.trade.ids.pseudo).toEqual(['pseudo.pseudo_temple_queens_chambers_3'])
     // 裂痕房間階級 1:遊戲內叫「異常研究所」(交易站叫 Splinter Research Lab;上游那一列是壞的)
     expect(item.statsByType.find(s => s.stat.ref === 'Has Room: Splinter Research Lab (Tier 1)')?.stat.trade).toMatchObject({ ids: { pseudo: ['pseudo.pseudo_temple_breach_room_1'] }, option: true })
+  })
+
+  it('D17g GitHub issue #18–#23 的實機文字(0.3.11 仍未解析):隨機技能寶石「(...)」、新寶石 連結：秘能、希望之絃、傭兵輔助改名', () => {
+    const read = (n: number): ParsedItem => parse(fs.readFileSync(path.join(HERE, `docs/3.30-issue-${n}.cmn-Hant.txt`), 'utf8'))
+    const amulet = read(18)
+    expect(unknownOf(amulet)).toEqual([])
+    expect(amulet.statsByType.find(s => s.stat.ref === '+# to Level of all Summon Reaper Gems (Random Skill Gem)')?.stat.trade.ids.explicit).toEqual(['explicit.indexable_skill_246'])
+    expect(read(19).info.refName).toBe('Arcane Link')
+    const thread = read(20)
+    expect(unknownOf(thread)).toEqual([])
+    expect(thread.statsByType.find(s => s.stat.ref === 'Only affects Passives in Massive Ring')?.stat.trade.ids.explicit).toEqual(['explicit.stat_3642528642|5'])
+    expect(refsOf(thread)).toContain('+#% to all Elemental Resistances')
+    const warrant = read(23)
+    expect(unknownOf(warrant)).toEqual([])
+    expect(warrant.mercenarySkills!.filter(g => g.some(s => s.stat.ref === 'Increased Area of Effect'))).toHaveLength(3)
+  })
+
+  it('D17h GitHub issue #2 #6 #13 #17 的原始樣本(先前沒有測試守住)沒有未解析詞綴', () => {
+    // #2、#13 的回報只有標題,用標題那一行;#6、#17 是回報裡的實機剪貼簿
+    const lines = parse(ringText('cmn-Hant', [['增加 21(20-21)% 生命回復率', '賦予等級 30 的 ​精準 — 無法使用的值']]))
+    expect(unknownOf(lines)).toEqual([])
+    expect(refsOf(lines)).toContain('Grants Level # Precision Skill')
+    const organ = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-6.cmn-Hant.txt'), 'utf8'))
+    expect(organ.info.refName).toBe('Prosthetic Leg')
+    expect(unknownOf(organ)).toEqual([])
+    const map = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-17.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(map)).toEqual([])
+    expect(map.statsByType.find(s => s.stat.ref.startsWith("Map contains Al-Hezmin's Citadel"))?.stat.trade.ids.implicit).toEqual(['implicit.stat_2563183002|3'])
+  })
+
+  it('D17i GGPK 3.30 物品描述檔的另一種繁中句子(規則 20,沒有實機樣本)解析成原詞綴', () => {
+    const item = parse(ringText('cmn-Hant', [['不能被中毒', '插槽中寶石等級 +2', '貧血時 +10% 法術傷害格擋率', '非暴擊獲得 1 顆暴擊球', '增加 12% 拆除陷阱速度']]))
+    expect(unknownOf(item)).toEqual([])
+    expect(refsOf(item)).toEqual(expect.arrayContaining([
+      'Cannot be Poisoned', '+# to Level of Socketed Gems', '+#% Chance to Block Spell Damage while on Low Life',
+      'Gain a Power Charge on Non-Critical Strike', '#% increased Trap Disarmament speed'
+    ]))
+  })
+
+  it('D17j 惡鬼轉世還沒吞噬寶石的寫法(使用者 2026-11-17 貼的實機文字;規則 21)解析成原詞綴、數值 4', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-reborn-hunger.cmn-Hant.txt'), 'utf8'))
+    expect(item.info.refName).toBe('The Hungry Loop')
+    expect(unknownOf(item)).toEqual([])
+    const hit = item.statsByType.find(s => s.stat.ref.startsWith('Consumes Socketed Uncorrupted Support Gems'))
+    expect(hit?.stat.trade.ids.explicit).toEqual(['explicit.stat_3221550523'])
+    expect(hit?.sources[0].stat.roll?.value).toBe(4)
+  })
+
+  it('D17k 同一條詞綴依數值的其他寫法(規則 21,沒有實機樣本):減少的數值為負、100% 的寫法數值 100', () => {
+    const item = parse(ringText('cmn-Hant', [['若近期沒有擊殺，減少 12% 命中值', '擊中時致盲敵人', '+68 最大生命']]))
+    expect(unknownOf(item)).toEqual([])
+    const roll = (ref: string) => item.statsByType.find(s => s.stat.ref === ref)?.sources[0].stat.roll?.value
+    expect(roll("#% increased Accuracy Rating if you haven't Killed Recently")).toBe(-12)
+    expect(roll('#% chance to Blind Enemies on hit')).toBe(100)
+  })
+
+  it('D17l 規則 21 的負值寫法沒有 negate handler({0:+d},遊戲直接印負號)→ 數值照原樣為負,不被翻成正(審查 2026-11-17)', () => {
+    const text = fs.readFileSync(path.join(HERE, 'docs/3.30-issue-17.cmn-Hant.txt'), 'utf8').replace('增加怪物 100% 範圍效果', '怪物 -5% 防止壓抑法術傷害的總量')
+    const item = parse(text)
+    expect(unknownOf(item)).toEqual([])
+    expect(item.statsByType.find(s => s.stat.ref === 'Monsters prevent +#% of Suppressed Spell Damage')?.sources[0].stat.roll?.value).toBe(-5)
+  })
+
+  it('D17m GitHub issue #26 的實機文字:3.30 新流派「淵井之軍」的契約書解析得到、篩選建得出來、查詢帶這個流派的類型', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-26.cmn-Hant.txt'), 'utf8'))
+    expect(item.mercenaryBuild?.refName).toBe('Chaplain of the Well')
+    expect(unknownOf(item)).toEqual([])
+    const preset = createPresets(item, { league: 'Standard', currency: null, collapseListings: 'api', activateStockFilter: false, searchStatRange: 10, useEn: false, merchantOnly: false }).presets[0]
+    expect(preset.stats.filter(s => 'group' in s && s.group === 'mercenary').length + preset.stats.filter(s => !('group' in s)).length).toBeGreaterThan(0)
+    expect(JSON.stringify(createTradeRequest(preset.filters, preset.stats).query)).toContain('AbyssalTemplar')
+  })
+
+  it('D17p GitHub issue #17 留言「未鑑定時也是」:未鑑定的壁壘地圖(依 #17 實機文字拿掉隨機詞綴)也解析得到壁壘固定詞綴', () => {
+    const text = ['物品種類: 地圖', '稀有度: 稀有', '地圖（階級 16）', '--------', '物品等級: 83', '--------', '怪物等級：83', '--------',
+      '{ 固定詞綴 }', '地圖含有奧赫茲明的壁壘(...) — 無法使用的值', '--------', '未鑑定', '--------',
+      '透過個人的地圖裝置來使用這張地圖以前往這個階級或更低的該地圖。每張地圖只能被使用一次。'].join('\n') + '\n'
+    const item = parse(text)
+    expect(item.isUnidentified).toBe(true)
+    expect(unknownOf(item)).toEqual([])
+    expect(item.statsByType.find(s => s.stat.ref.startsWith("Map contains Al-Hezmin's Citadel"))?.stat.trade.ids.implicit).toEqual(['implicit.stat_2563183002|3'])
+  })
+
+  it('D17q 希望之絃「只會影響大(...)範圍內的天賦」(使用者 2026-11-18 截圖;文字照截圖改寫 issue #20 的實機樣本)解析成大範圍', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-thread-of-hope-large.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(item)).toEqual([])
+    expect(item.statsByType.find(s => s.stat.ref === 'Only affects Passives in Large Ring')?.stat.trade.ids.explicit).toEqual(['explicit.stat_3642528642|3'])
+    expect(item.statsByType.find(s => s.stat.ref === '+#% to all Elemental Resistances')?.sources[0].stat.roll?.value).toBe(-12)
+  })
+
+  it('D17r 希望之絃「只會影響巨大(...)範圍內的天賦」與 issue #20 的無括號寫法都解析成巨大範圍(大範圍有「(...)」的實機截圖,巨大是同理推論)', () => {
+    const text = fs.readFileSync(path.join(HERE, 'docs/3.30-issue-20.cmn-Hant.txt'), 'utf8')
+    for (const t of [text, text.replace('只會影響巨大範圍內的天賦', '只會影響巨大(...)範圍內的天賦')]) {
+      const item = parse(t)
+      expect(unknownOf(item)).toEqual([])
+      expect(item.statsByType.find(s => s.stat.ref === 'Only affects Passives in Massive Ring')?.stat.trade.ids.explicit).toEqual(['explicit.stat_3642528642|5'])
+    }
+  })
+
+  it('D17s 淵井之軍契約書(使用者 2026-11-18 貼的實機文字):3.30 的新傭兵技能(深淵噴濺、深淵噴濺．引爆、淵底之力、瓦爾．雷鳴重擊)都解析得到', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-warrant-chaplain-2.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(item)).toEqual([])
+    expect(item.mercenarySkills?.map(g => g[0].stat.ref)).toEqual(['Abyssal Spray', 'Abyssal Spray Detonation', 'Power of the Depths', 'Vaal Smite', 'Envy', 'Flame Dash'])
+  })
+
+  it('D17t 傭兵契約書裡認不得的技能整段列為未解析,不再靜默丟掉(規則 7)', () => {
+    const text = fs.readFileSync(path.join(HERE, 'docs/3.30-warrant-chaplain-2.cmn-Hant.txt'), 'utf8').replace('烈焰衝刺', '不存在的技能').replace('忌妒', '另一個不存在的技能')
+    expect(unknownOf(parse(text))).toEqual(expect.arrayContaining(['不存在的技能', '高階快速施放(階層：3) [不存在的技能]', '另一個不存在的技能']))
+  })
+
+  it('D17n GitHub issue #29 的實機文字:永恆珠寶「授銜7260個硬幣以紀念卡斯皮羅(...)」(3.30 句型)解析得到、帶交易站 id、數值 7260', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-29.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(item)).toEqual([])
+    const hit = item.statsByType.find(s => s.stat.ref === 'Commissioned # coins to commemorate Caspiro')
+    expect(hit?.stat.trade.ids.explicit).toEqual(['explicit.pseudo_timeless_jewel_caspiro'])
+    expect(hit?.sources[0].stat.roll?.value).toBe(7260)
+  })
+
+  it('D17o GitHub issue #28 玫瑰的傳承(只有截圖,照截圖的兩行組進階格式):塑界者的毀滅解析成交易站的第 1 個選項', () => {
+    const item = parse(ringText('cmn-Hant', [['{ 傳奇詞綴 }', '賦予等級 20 召喚塑界者的記憶', '賦予等級 20 塑界者的毀滅(...)， 供塑界者的記憶使用 — 無法使用的值']]))
+    expect(unknownOf(item)).toEqual([])
+    const hit = item.statsByType.find(s => s.stat.ref.startsWith('Grants Level 20 Summon Shaper Memory'))
+    expect(hit?.stat.trade.ids.explicit).toEqual(['explicit.stat_367775264'])
+    expect(hit?.sources[0].stat.roll?.value).toBe(1)
   })
 
   it('D18 破裂的「+#%物品稀有度」(使用者 2026-11-15 貼的實機手套)解析成原詞綴並帶破裂 id', () => {

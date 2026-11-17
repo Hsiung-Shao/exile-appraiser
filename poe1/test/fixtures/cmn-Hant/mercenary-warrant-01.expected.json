@@ -717,6 +717,17 @@
       "tradeType": "EleBowRangerLightning"
     },
     {
+      "disc": {
+        "sectionText": "淵井之軍"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "AbyssalTemplar"
+    },
+    {
       "disc": {},
       "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
       "name": "傭兵契約書",
@@ -830,7 +841,12 @@
           "matchers": [
             {
               "advanced": "增加效果範圍(階層：2)",
-              "string": "增加效果範圍"
+              "string": "增加效果範圍",
+              "superseded": true
+            },
+            {
+              "advanced": "增加範圍效果(階層：2)",
+              "string": "增加範圍效果"
             }
           ],
           "mercenary": {
@@ -853,7 +869,8 @@
         },
         "translation": {
           "advanced": "增加效果範圍(階層：2)",
-          "string": "增加效果範圍"
+          "string": "增加效果範圍",
+          "superseded": true
         }
       },
       {
@@ -920,7 +937,12 @@
           "matchers": [
             {
               "advanced": "增加效果範圍(階層：2)",
-              "string": "增加效果範圍"
+              "string": "增加效果範圍",
+              "superseded": true
+            },
+            {
+              "advanced": "增加範圍效果(階層：2)",
+              "string": "增加範圍效果"
             }
           ],
           "mercenary": {
@@ -943,7 +965,8 @@
         },
         "translation": {
           "advanced": "增加效果範圍(階層：2)",
-          "string": "增加效果範圍"
+          "string": "增加效果範圍",
+          "superseded": true
         }
       },
       {

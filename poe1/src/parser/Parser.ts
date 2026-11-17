@@ -932,11 +932,26 @@ function parseMercenary (section: string[], item: ParsedItem) {
   return 'SECTION_SKIPPED'
 }
 
+// exile-appraiser: 傭兵輔助行的階層標記(繁中「(階層：2)」、英文「(Tier: 2)」)
+const MERCENARY_TIER = /\((?:階層|Tier)[:：]\s*\d+\)$/
+
 function parseMercenaryGems (section: string[], item: ParsedItem) {
   if (item.info.refName !== 'Mercenary Warrant') return 'PARSER_SKIPPED'
 
   const skill = tryParseTranslation({ string: section[0], unscalable: true }, ModifierType.Pseudo, ItemCategory.MercenaryWarrant)
-  if (!skill) return 'SECTION_SKIPPED'
+  if (!skill) {
+    // exile-appraiser: 上游認不得技能就跳過整段 → 新技能(3.30 深淵噴濺等)連同輔助被靜默丟掉、查價少條件(規則 7:未解析不丟棄)。
+    // 看起來是技能段(在「流派:」那行之後,而且有「(階層:N)」的輔助行或只有一行)就整段列為未解析;
+    // 流派之前的單行是傭兵名字、多行是說明文字,照舊跳過
+    const afterBuild = item.rawText.indexOf(_$.MERCENARY_BUILD) < item.rawText.indexOf(section[0])
+    if (afterBuild && (section.length === 1 || section.slice(1).some(line => MERCENARY_TIER.test(line)))) {
+      for (const line of section) {
+        item.unknownModifiers.push({ text: line === section[0] ? line : `${line} [${section[0]}]`, type: ModifierType.Pseudo })
+      }
+      return 'SECTION_PARSED'
+    }
+    return 'SECTION_SKIPPED'
+  }
 
   const group: ParsedStat[] = [skill]
 

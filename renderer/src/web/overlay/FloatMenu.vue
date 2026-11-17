@@ -305,11 +305,7 @@ let ratePoll: ReturnType<typeof setInterval> | null = null
 
 // ---- 市況(只讀既有快照;換聯盟 / 遊戲時 Prices.ts 自己讀新目標的快取) ----
 const ninja = usePoeninja()
-const marketTarget = computed(() => {
-  const l = leagues.selected.value
-  return config.realm === 'intl' && l?.id && l.isPopular ? { game: config.game, league: l.id } : null
-})
-const market = computed(() => marketRateOf(ninja.snapshot.value as NinjaSnapshot | null, marketTarget.value))
+const market = computed(() => marketRateOf(ninja.snapshot.value as NinjaSnapshot | null, ninja.target.value))
 /** 倉庫本頁價值(2026-10-15):倉庫疊層算好的整頁價值(stash-value.ts);PoE1 且疊層顯示中有數量才有 */
 /** 倉庫列停用:不是 PoE1,或台服(倉庫價格只支援國際服,main 不掃描) */
 const stashOff = computed(() => config.game !== 'poe1' || config.realm === 'tw')

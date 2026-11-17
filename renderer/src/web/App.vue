@@ -288,11 +288,7 @@ export default defineComponent({
     // 429 Retry-After:面板頂端 --warn 細條倒數;2026-10-15 提升成共用(懸浮選單標題列的限流點也用)
     const rateLimitWait = useRateLimitWait()
     const ninja = usePoeninja()
-    const divineRate = computed(() => {
-      const l = leagues.selected.value
-      return marketRateOf(ninja.snapshot.value as NinjaSnapshot | null,
-        AppConfig().realm === 'intl' && l?.id && l.isPopular ? { game: AppConfig().game, league: l.id } : null)
-    })
+    const divineRate = computed(() => marketRateOf(ninja.snapshot.value as NinjaSnapshot | null, ninja.target.value))
     // ---- overlay 狀態(APT WidgetManager 的最小子集) ----
     const panelShown = shallowRef(false)
     const advancedCheck = shallowRef(false)

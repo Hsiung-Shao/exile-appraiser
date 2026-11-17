@@ -2764,6 +2764,7 @@
 {"name":"傭兵契約書","refName":"Mercenary Warrant","namespace":"ITEM","tradeDisc":"mercenary_warrant","icon":"https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png","disc":{"sectionText":"毒師"},"tradeType":"NonEleBowRangerChaos"}
 {"name":"傭兵契約書","refName":"Mercenary Warrant","namespace":"ITEM","tradeDisc":"mercenary_warrant","icon":"https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png","disc":{"sectionText":"堅堡"},"tradeType":"PhysicalDuelistShields"}
 {"name":"傭兵契約書","refName":"Mercenary Warrant","namespace":"ITEM","tradeDisc":"mercenary_warrant","icon":"https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png","disc":{"sectionText":"雷鏃"},"tradeType":"EleBowRangerLightning"}
+{"name":"傭兵契約書","refName":"Mercenary Warrant","namespace":"ITEM","tradeDisc":"mercenary_warrant","icon":"https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png","disc":{"sectionText":"淵井之軍"},"tradeType":"AbyssalTemplar"}
 {"name":"傭兵契約書","refName":"Mercenary Warrant","namespace":"ITEM","tradeDisc":"mercenary_warrant","icon":"https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png","disc":{}}
 {"name":"莫里克的達克特","refName":"Merrick's Ducat","namespace":"ITEM","tradeTag":"merricks-ducat","exchangeable":true,"icon":"https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvRGVlcHdhdGVyL0R1Y2F0QWJ5c3NhbCIsInNjYWxlIjoxfV0/fba53bdbf2/DucatAbyssal.png"}
 {"name":"網眼長靴","refName":"Mesh Boots","namespace":"ITEM","craftable":{"category":"Boots"},"armour":{"ar":[51,64],"es":[11,14]},"icon":"https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQXJtb3Vycy9Cb290cy9Cb290c1N0ckludDMiLCJ3IjoyLCJoIjoyLCJzY2FsZSI6MX1d/e75ade3184/BootsStrInt3.png","w":2,"h":2}
@@ -5650,3 +5651,6 @@
 {"name":"灼烙總督．眼界","refName":"Searing Exarch's Descry","namespace":"ITEM"}
 {"name":"鐮斬斷手","refName":"Severed Scythe-hand","namespace":"ITEM"}
 {"name":"尖刺甲殼","refName":"Spiked Carapace","namespace":"ITEM"}
+{"name":"連結：秘能","refName":"Arcane Link","namespace":"GEM","gem":{"maxLevel":20}}
+{"name":"神聖視界","refName":"Hallowed Descry","namespace":"ITEM"}
+{"name":"淵井之軍","refName":"Chaplain of the Well","namespace":"MERCENARY_BUILD","icon":"","mercenaryBuild":{"skills":[]}}

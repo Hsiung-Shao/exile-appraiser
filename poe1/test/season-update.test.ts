@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, planRoomNames, planGrownPassives, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
+import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planRandomSkillGem, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, planRoomNames, planCitadel, planExtraZh, planZhForms, planCondForms, planMercenaryBuilds, planNamedSlots, planMercenarySkills, EXTRA_ZH_MATCHERS, planGrownPassives, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
 
 /**
  * 賽季更新腳本的純函式測試(合成輸入,不讀 data/)。
@@ -505,7 +505,54 @@ describe('planTypeIds(規則 16)', () => {
   })
 })
 
+describe('planCitadel(規則 19)', () => {
+  it('兩行壁壘句補單行 + 進階寫法、舊句標 superseded,重跑為空', () => {
+    const ref = "Map contains Baran's Citadel\nItem Quantity increases amount of Rewards Baran drops by 20% of its value"
+    const enStats = [{ ref, better: 1, matchers: [{ string: ref }], trade: { ids: { implicit: ['implicit.x|1'] } } }]
+    const zhStats = [{ ref, better: 1, matchers: [{ string: '地圖含有巴倫的壁壘\n物品數量以 20% 它的值增加巴倫掉落獎勵的總量' }], trade: { ids: { implicit: ['implicit.x|1'] } } }]
+    const ggpkNew = [{ key: 'map_contains_citadel|#|stat_descriptions.txt|0', en: 'Map contains {0}', zh: '地圖含有{0}' }]
+    const plan = planCitadel({ enStats, zhStats, ggpkNew })
+    const en = parseRows(applyStatPlan(toFile(enStats), 'en', plan))
+    const zh = parseRows(applyStatPlan(toFile(zhStats), 'cmn-Hant', plan))
+    expect(en[0].matchers).toEqual([{ string: ref, superseded: true }, { string: "Map contains Baran's Citadel", advanced: "Map contains Baran's Citadel (...)" }])
+    expect(zh[0].matchers.at(-1)).toEqual({ string: '地圖含有巴倫的壁壘', advanced: '地圖含有巴倫的壁壘(...)' })
+    expect(zh[0].matchers[0].superseded).toBe(true)
+    expect(planCitadel({ enStats: en, zhStats: zh, ggpkNew }).adds).toEqual([])
+  })
+})
+
+describe('planExtraZh(規則 11)', () => {
+  const x = EXTRA_ZH_MATCHERS.find(e => e.negate)!
+  const ggpkNew = [{ key: 'k', en: x.ref.replace('increased', 'reduced'), zh: x.zh }]
+  it('negate 的現行寫法:帶 negate、只標指名的舊句,重跑為空', () => {
+    const zhStats = [{ ref: x.ref, better: 1, matchers: [{ string: '別句' }, { string: x.old, negate: true }, { string: '另一句減少', negate: true }], trade: { ids: { explicit: ['explicit.x'] } } }]
+    const plan = planExtraZh({ zhStats, ggpkNew })
+    expect(plan.adds).toEqual([{ lang: 'cmn-Hant', ref: x.ref, matcher: { string: x.zh, negate: true }, supersedes: x.old, revive: true }])
+    const out = parseRows(applyStatPlan(toFile(zhStats), 'cmn-Hant', plan))
+    expect(out[0].matchers).toEqual([{ string: '別句' }, { string: x.old, negate: true, superseded: true }, { string: '另一句減少', negate: true }, { string: x.zh, negate: true }])
+    expect(planExtraZh({ zhStats: out, ggpkNew }).adds).toEqual([])
+  })
+  it('之前標反的(新句被標 superseded)換回來:新句現行、舊句標記,重跑為空', () => {
+    const b = EXTRA_ZH_MATCHERS.find(e => e.ref === '#% chance to Blind Enemies on hit')!
+    const zhStats = [{ ref: b.ref, better: 1, matchers: [{ string: b.old }, { string: b.zh, superseded: true }], trade: { ids: {} } }]
+    const g = [{ key: 'k', en: b.ref, zh: b.zh }]
+    const out = parseRows(applyStatPlan(toFile(zhStats), 'cmn-Hant', planExtraZh({ zhStats, ggpkNew: g })))
+    expect(out[0].matchers).toEqual([{ string: b.old, superseded: true }, { string: b.zh }])
+    expect(planExtraZh({ zhStats: out, ggpkNew: g }).adds).toEqual([])
+  })
+  it('GGPK 新版沒有這句就不加', () => {
+    const zhStats = [{ ref: x.ref, better: 1, matchers: [{ string: x.old, negate: true }], trade: { ids: {} } }]
+    expect(planExtraZh({ zhStats, ggpkNew: [] }).adds).toEqual([])
+  })
+})
+
 describe('planRoomNames(規則 17)', () => {
+  it('改名的房間繁中還沒翻譯(zh 為 null)時不動繁中、英文照補', () => {
+    const room = (ref: string, name: string) => ({ ref, better: 0, matchers: [{ string: name }], trade: { ids: { pseudo: ['pseudo.x'] }, option: true } })
+    const plan = planRoomNames({ zhStats: [room('Has Room: Vault (Tier 1)', '金庫 (階級 1)')], enStats: [room('Has Room: Vault (Tier 1)', 'Vault (Tier 1)')], rooms: [], renames: [{ from: 'Vault', en: 'Treasury', zh: null }] })
+    expect(plan.adds.map(a => [a.lang, a.matcher.string])).toEqual([['en', 'Treasury (Tier 1)']])
+  })
+
   it('壞掉的裂痕房間列(交易站叫法、matcher 帶前綴、沒有 option)補上遊戲內寫法並標成選項型,重跑為空', () => {
     const ref = 'Has Room: Splinter Research Lab (Tier 1)'
     const row = (s: string) => [{ ref, better: 1, matchers: [{ string: s }], trade: { ids: { pseudo: ['pseudo.x'] } } }]
@@ -662,6 +709,43 @@ describe('planGems / applyItemPlan', () => {
   })
 })
 
+describe('新的一般寶石、隨機技能寶石進階寫法、verified 補寫法(issue #18–#23)', () => {
+  it('新的一般寶石只收列出等級上限的,其餘拒收;寫出的列沒有變異欄位', () => {
+    const enItems = [{ name: 'Fireball', refName: 'Fireball', namespace: 'GEM', gem: { maxLevel: 20 } }]
+    const tradeItems = [{ type: 'Fireball', group: 'gem' }, { type: 'Arcane Link', group: 'gem' }, { type: 'Arcane Link', group: 'gem' }, { type: 'Unknown Gem', group: 'gem' }, { type: 'Vaal New', group: 'gem' },
+      { type: 'Unknown Gem', text: 'Unknown Gem of X', disc: 'alt_x', group: 'gem' }]
+    const p = planGems({ enItems, tradeItems, gems: [], skills: [{ en: 'Arcane Link', zh: '連結：秘能' }] })
+    expect(p.adds).toEqual([{ refName: 'Arcane Link', zh: '連結：秘能', maxLevel: 20 }])
+    // 新寶石的變異版:原版還不在資料裡 → 拒收,不能拿交易站項目當原版
+    expect(p.rejects.map((r: any) => r.id)).toEqual(['Unknown Gem', 'Unknown Gem of X'])
+    const out = parseRows(applyItemPlan(toFile(enItems), 'cmn-Hant', { gems: p.adds }))
+    expect(out.at(-1)).toEqual({ name: '連結：秘能', refName: 'Arcane Link', namespace: 'GEM', gem: { maxLevel: 20 } })
+  })
+
+  it('「全部 X 寶石等級 #」多一個「(...)」進階寫法、舊的標 superseded;別的詞綴不動;重跑為空', () => {
+    const REF = '+# to Level of all Summon Reaper Gems (Random Skill Gem)'
+    const zh = () => [{ ref: REF, matchers: [{ string: '全部 召喚奪魂鐮 寶石等級 #', advanced: '全部 召喚奪魂鐮(火球-魔能長杖) 寶石等級 #' }] },
+      { ref: 'other', matchers: [{ string: '別的', advanced: '別的(1-2) 寶石等級 #' }] }]
+    const en = () => [{ ref: REF, matchers: [{ string: '# to Level of all Summon Reaper Gems', advanced: '# to Level of all Summon Reaper(Fireball-Mana-Infused Staff) Gems' }] }]
+    const p = planRandomSkillGem({ enStats: en(), zhStats: zh() })
+    const out = parseRows(applyStatPlan(toFile(zh()), 'cmn-Hant', { adds: p.adds }))
+    expect(out[0].matchers).toEqual([{ ...zh()[0].matchers[0], superseded: true }, { string: '全部 召喚奪魂鐮 寶石等級 #', advanced: '全部 召喚奪魂鐮(...) 寶石等級 #' }])
+    expect(out[1]).toEqual(zh()[1])
+    const enOut = parseRows(applyStatPlan(toFile(en()), 'en', { adds: p.adds }))
+    expect(enOut[0].matchers[1].advanced).toBe('# to Level of all Summon Reaper(...) Gems')
+    expect(planRandomSkillGem({ enStats: enOut, zhStats: out }).adds).toEqual([])
+  })
+
+  it('verified 的補寫法不查 GGPK、帶進階寫法並標舊句;沒標 verified 的仍要 GGPK 佐證', () => {
+    const zh = [{ ref: 'Increased Area of Effect', matchers: [{ string: '增加效果範圍', advanced: '增加效果範圍(階層：2)' }] },
+      { ref: '+# to Accuracy Rating', matchers: [{ string: '# 命中' }] }]
+    const p = planExtraZh({ zhStats: zh, ggpkNew: [] })
+    expect(p.adds.map((a: any) => a.ref)).toEqual(['Increased Area of Effect'])
+    const out = parseRows(applyStatPlan(toFile(zh), 'cmn-Hant', { adds: p.adds }))
+    expect(out[0].matchers).toEqual([{ string: '增加效果範圍', advanced: '增加效果範圍(階層：2)', superseded: true }, { string: '增加範圍效果', advanced: '增加範圍效果(階層：2)' }])
+  })
+})
+
 describe('planMinionDoubled / applyStatPlan', () => {
   const REF = 'Maximum number of Raised Spectres is Doubled\nCannot have Minions other than Raised Spectres'
   const zh = () => [{ ref: REF, matchers: [{ string: '喚醒幽魂的最大數量加倍\n無法擁有喚醒幽魂以外的召喚物', advanced: '喚醒幽魂（幻化武器-神聖軍備）的最大數量加倍\n無法擁有喚醒幽魂（幻化武器-神聖軍備）以外的召喚物' }] },
@@ -757,5 +841,390 @@ describe('planGrownPassives:繁中同名', () => {
     expect(plan.rejects.map((r: any) => [r.id, r.reason])).toEqual([
       ['enchant.stat_3599615742|1', '繁中名與另一個天賦相同'], ['enchant.stat_3599615742|2', '繁中名與另一個天賦相同']
     ])
+  })
+})
+
+describe('planZhForms(規則 20:GGPK 物品描述檔的繁中句子資料沒有)', () => {
+  const stat = (ref: string, matchers: any[], ids: any = { explicit: ['explicit.stat_1'] }) => ({ ref, better: 1, matchers, trade: { ids } })
+  const enStats = [
+    stat('Cannot be Poisoned', [{ string: 'Cannot be Poisoned' }]),
+    stat('#% increased Speed', [{ string: '#% increased Speed' }, { string: '#% reduced Speed', negate: true }]),
+    stat('Gain a Charge', [{ string: 'Gain a Charge', value: 100 }]),
+    stat('Tree only', [{ string: 'Tree only' }], { pseudo: ['pseudo.x'] }),
+    stat('Other', [{ string: 'Other' }])
+  ]
+  const zhStats = [
+    stat('Cannot be Poisoned', [{ string: '不會中毒' }]),
+    stat('#% increased Speed', [{ string: '增加 #% 速度' }, { string: '減少 #% 速度', negate: true }]),
+    stat('Gain a Charge', [{ string: '獲得 1 顆球', value: 100 }]),
+    stat('Tree only', [{ string: '樹' }], { pseudo: ['pseudo.x'] }),
+    stat('Other', [{ string: '別條的句子' }])
+  ]
+  const row = (key: string, en: string, zh: string) => ({ key, en, zh })
+  const ggpkNew = [
+    row('a|#|stat_descriptions.txt|0', 'Cannot be Poisoned', '不能被中毒'),
+    row('b|#|-1|stat_descriptions.txt|0', '{0}% reduced Speed', '減少 {0}% 快慢'),
+    row('c|100|#|stat_descriptions.txt|0', 'Gain a Charge', '獲得球'),
+    row('d|#|stat_descriptions.txt|0', 'Tree only', '樹上'),
+    row('e|#|skill_stat_descriptions.txt|0', 'Cannot be Poisoned', '技能說明的句子'),
+    row('f|#|stat_descriptions.txt|0', 'Cannot be Poisoned', '別條的句子'),
+    row('g|#|stat_descriptions.txt|0', 'Cannot be Poisoned', 'Cannot be Poisoned')
+  ]
+
+  it('現行英文寫法在 GGPK 的繁中句子資料沒有 → 加上(旗標照英文 matcher,標 superseded 不當模板)', () => {
+    const plan = planZhForms({ enStats, zhStats, ggpkNew })
+    expect(plan.adds).toEqual([
+      { lang: 'cmn-Hant', ref: 'Cannot be Poisoned', matcher: { string: '不能被中毒', superseded: true } },
+      { lang: 'cmn-Hant', ref: '#% increased Speed', matcher: { string: '減少 #% 快慢', negate: true, superseded: true } },
+      { lang: 'cmn-Hant', ref: 'Gain a Charge', matcher: { string: '獲得球', value: 100, superseded: true } }
+    ])
+  })
+
+  it('別條詞綴已經有那一句(解析得到,只是配到那一條)、沒有物品 id、不是物品描述檔、沒翻譯的都不管', () => {
+    const plan = planZhForms({ enStats, zhStats, ggpkNew })
+    expect(plan.adds.map((x: any) => x.matcher.string)).not.toContain('別條的句子')
+    expect(plan.rejects).toEqual([])
+  })
+
+  it('套用後舊句仍是現行寫法、新句解析得到;重跑為空', () => {
+    const out = parseRows(applyStatPlan(toFile(zhStats), 'cmn-Hant', planZhForms({ enStats, zhStats, ggpkNew })))
+    expect(out[0].matchers).toEqual([{ string: '不會中毒' }, { string: '不能被中毒', superseded: true }])
+    expect(planZhForms({ enStats, zhStats: out, ggpkNew }).adds).toEqual([])
+  })
+
+  it('新句把數字換成 # 後與既有寫法同形 → 不加(會搶走既有詞綴的比對)', () => {
+    const g = [row('h|1|stat_descriptions.txt|0', 'Gain a Charge', '增加 5% 速度')]
+    const plan = planZhForms({ enStats, zhStats, ggpkNew: g })
+    expect(plan.adds).toEqual([])
+    expect(plan.rejects.map((r: any) => r.reason)).toEqual(['與既有寫法同形'])
+  })
+
+  it('同一輪新加的兩句同形 → 只收第一句', () => {
+    const g = [row('i|#|stat_descriptions.txt|0', 'Cannot be Poisoned', '得到 {0} 顆球'), row('j|1|stat_descriptions.txt|0', 'Gain a Charge', '得到 1 顆球')]
+    const plan = planZhForms({ enStats, zhStats, ggpkNew: g })
+    expect(plan.adds.map((a: any) => a.matcher.string)).toEqual(['得到 # 顆球'])
+    expect(plan.rejects.map((r: any) => r.reason)).toEqual(['與既有寫法同形'])
+  })
+
+  it('英文寫法被兩條詞綴共用 → 不知道繁中該掛哪一條,不加並列入拒收', () => {
+    const en2 = [...enStats, stat('Cannot be Poisoned (Local)', [{ string: 'Cannot be Poisoned' }])]
+    const zh2 = [...zhStats, stat('Cannot be Poisoned (Local)', [{ string: '本體不會中毒' }])]
+    const plan = planZhForms({ enStats: en2, zhStats: zh2, ggpkNew: [ggpkNew[0]] })
+    expect(plan.adds).toEqual([])
+    expect(plan.rejects.map((r: any) => [r.reason, r.to])).toEqual([['英文寫法被多條詞綴共用', '不能被中毒']])
+  })
+})
+
+describe('planCondForms(規則 21:同一條詞綴依數值的其他寫法)', () => {
+  const stat = (ref: string, matchers: any[], ids: any = { explicit: ['explicit.stat_1'] }) => ({ ref, better: 1, matchers, trade: { ids } })
+  // handlers 照 GGPK:「減少」那類負值句帶 [['negate', 1]](遊戲取負號後顯示)
+  const NEG = [['negate', 1]]
+  const row = (key: string, en: string, zh: string, handlers: any[] = []) => ({ key, en, zh, handlers })
+  const g = (ids: string, cond: string) => `${ids}|${cond}|stat_descriptions.txt|0`
+
+  it('只有「增加」→ 補「減少」並帶 negate;100% 的寫法帶 value;兩語各自比對', () => {
+    const enStats = [stat('#% increased Speed', [{ string: '#% increased Speed' }]), stat('#% chance to Impale', [{ string: '#% chance to Impale' }])]
+    const zhStats = [stat('#% increased Speed', [{ string: '增加 #% 速度' }]), stat('#% chance to Impale', [{ string: '#% 機率穿刺' }])]
+    const ggpkNew = [
+      row(g('speed_+%', '1|#'), '{0}% increased Speed', '增加 {0}% 速度'),
+      row(g('speed_+%', '#|-1'), '{0}% reduced Speed', '減少 {0}% 速度', NEG),
+      row(g('impale_%', '1|99'), '{0}% chance to Impale', '{0}% 機率穿刺'),
+      row(g('impale_%', '100|#'), 'Always [Impale::{0}|Impale]', '必定穿刺')
+    ]
+    const plan = planCondForms({ enStats, zhStats, ggpkNew })
+    expect(plan.adds).toEqual([
+      { lang: 'en', ref: '#% increased Speed', matcher: { string: '#% reduced Speed', negate: true, superseded: true } },
+      { lang: 'en', ref: '#% chance to Impale', matcher: { string: 'Always Impale', value: 100, superseded: true } },
+      { lang: 'cmn-Hant', ref: '#% increased Speed', matcher: { string: '減少 #% 速度', negate: true, superseded: true } },
+      { lang: 'cmn-Hant', ref: '#% chance to Impale', matcher: { string: '必定穿刺', value: 100, superseded: true } }
+    ])
+  })
+
+  it('資料的「減少」那句沒有 negate(stat 本身是減少)→ 補的「增加」帶 negate;已有就不補', () => {
+    const enStats = [stat('#% reduced Cost', [{ string: '#% reduced Cost' }])]
+    const ggpkNew = [row(g('cost_-%', '1|#'), '{0}% reduced Cost', '減少 {0}% 消耗'), row(g('cost_-%', '#|-1'), '{0}% increased Cost', '增加 {0}% 消耗', NEG)]
+    expect(planCondForms({ enStats, zhStats: [], ggpkNew }).adds).toEqual([{ lang: 'en', ref: '#% reduced Cost', matcher: { string: '#% increased Cost', negate: true, superseded: true } }])
+    const negStats = [stat('#% reduced Cost', [{ string: '#% reduced Cost' }, { string: '#% increased Cost', negate: true }])]
+    expect(planCondForms({ enStats: negStats, zhStats: [], ggpkNew }).adds).toEqual([])
+  })
+
+  it('負值那句沒有 negate handler({0:+d},遊戲直接印負號)→ 不帶 negate(審查 1-b)', () => {
+    const enStats = [stat('Monsters prevent +#% of Suppressed', [{ string: 'Monsters prevent #% of Suppressed' }])]
+    const ggpkNew = [row(g('supp', '1|#'), 'Monsters prevent {0:+d}% of Suppressed', ''), row(g('supp', '#|-1'), 'Monsters have {0:+d}% to Suppressed Prevented', '')]
+    expect(planCondForms({ enStats, zhStats: [], ggpkNew }).adds).toEqual([{ lang: 'en', ref: 'Monsters prevent +#% of Suppressed', matcher: { string: 'Monsters have #% to Suppressed Prevented', superseded: true } }])
+  })
+
+  it('沒有數字的寫法:value 帶正負號(換算到 ref 的方向)、不加 negate(審查 1-a)', () => {
+    const enStats = [stat('Throw up to # fewer Mines', [{ string: 'Throw up to # fewer Mines' }])]
+    const ggpkNew = [
+      row(g('mines', '#|-2'), 'Throw up to {0} fewer Mines', '', NEG),
+      row(g('mines', '-1'), 'Throw 1 fewer Mine', '', NEG),
+      row(g('mines', '1'), 'Throw an additional Mine', ''),
+      row(g('mines', '2|#'), 'Throw {0} additional Mines', '')
+    ]
+    expect(planCondForms({ enStats, zhStats: [], ggpkNew }).adds.map((a: any) => a.matcher)).toEqual([
+      { string: 'Throw 1 fewer Mine', value: 1, superseded: true },
+      { string: 'Throw an additional Mine', value: -1, superseded: true },
+      { string: 'Throw # additional Mines', negate: true, superseded: true }
+    ])
+  })
+
+  it('數值條件只有負值、沒有 negate handler、也不是 {0:+d} → GGPK 的 handlers 不可信,整組拒收(地雷 fewer)', () => {
+    const enStats = [stat('Throw up to # fewer Mines', [{ string: 'Throw up to # fewer Mines' }])]
+    const ggpkNew = [row(g('mines', '#|-2'), 'Throw up to {0} fewer Mines', ''), row(g('mines', '2|#'), 'Throw {0} additional Mines', '')]
+    const plan = planCondForms({ enStats, zhStats: [], ggpkNew })
+    expect(plan.adds).toEqual([])
+    expect(plan.rejects.map((r: any) => r.reason)).toEqual(['handlers 與數值條件矛盾'])
+  })
+
+  it('基準是帶 value 的寫法(No Y = -100)→ 補的「減少」帶 negate(審查 1-c)', () => {
+    const ggpkNew = [row(g('y_+%', '-100'), 'No Y', ''), row(g('y_+%', '#|-1'), '{0}% reduced Y, sometimes', '', NEG)]
+    expect(planCondForms({ enStats: [stat('#% increased Y', [{ string: 'No Y', value: -100 }])], zhStats: [], ggpkNew }).adds.map((a: any) => a.matcher)).toEqual([
+      { string: '#% reduced Y, sometimes', negate: true, superseded: true }
+    ])
+  })
+
+  it('沒有 # 的基準句帶 negate handler(沒有數字可取負號,無意義)→ 不拿來翻轉(審查 4 輪 3-b)', () => {
+    const ggpkNew = [row(g('sap', '100|#'), 'Always Sap', '', NEG), row(g('sap', '1|99'), '{0}% chance to Sap', '')]
+    expect(planCondForms({ enStats: [stat('#% chance to Sap', [{ string: 'Always Sap', value: 100 }])], zhStats: [], ggpkNew }).adds.map((a: any) => a.matcher)).toEqual([
+      { string: '#% chance to Sap', superseded: true }
+    ])
+  })
+
+  it('沒有 # 的寫法條件是開放的負區間(#|-1:任意負值都顯示同一句)→ 沒有固定值,不補(劫盜寶箱)', () => {
+    const ggpkNew = [row(g('heist', '1|#'), 'Chests have a {0}% chance for Uniques', ''), row(g('heist', '#|-1'), 'Chests contain Uniques', '', NEG)]
+    const plan = planCondForms({ enStats: [stat('Chests have a #% chance for Uniques', [{ string: 'Chests have a #% chance for Uniques' }])], zhStats: [], ggpkNew })
+    expect(plan.adds).toEqual([])
+    expect(plan.rejects.map((r: any) => r.reason)).toEqual(['沒有數字的寫法對不到固定值'])
+  })
+
+  it('有換算類 handler(除以十等)的組不補沒有 # 的寫法(value 不會跟著換算;審查 4 輪 3-a)', () => {
+    const ggpkNew = [row(g('y_permyriad', '1|999'), '{0}% chance to Y', '', [['divide_by_ten_1dp_if_required', 1]]), row(g('y_permyriad', '1000|#'), 'Always Y', '')]
+    const plan = planCondForms({ enStats: [stat('#% chance to Y', [{ string: '#% chance to Y' }])], zhStats: [], ggpkNew })
+    expect(plan.adds).toEqual([])
+    expect(plan.rejects.map((r: any) => r.reason)).toEqual(['數值有換算,固定值對不準'])
+  })
+
+  it('兩個 stat 的詞綴(惡鬼轉世):第二個 stat 只是條件(沒有出現在句中)→ 補還沒吞噬時的寫法;沒有數字的「已吞噬 1 顆」不補', () => {
+    const ids = 'gems_to_consume has_consumed_gem'
+    const zh0 = '當插槽內未汙染的輔助寶石達到最大等級時吞噬該寶石\n可以再吞噬 # 顆額外未汙染的輔助寶石'
+    const zhStats = [stat('Consumes #', [{ string: zh0 }])]
+    const ggpkNew = [
+      row(g(ids, '2|# #'), 'Consumes\\nCan Consume {0} additional Gems', '當插槽內未汙染的輔助寶石達到最大等級時吞噬該寶石\\n可以再吞噬 {0} 顆額外未汙染的輔助寶石'),
+      row(g(ids, '2|# 0'), 'Consumes\\nCan Consume {0} Gems\\nHas not Consumed any Gems', '當插槽內未汙染的輔助寶石達到最大等級時吞噬該寶石\\n可以吞噬 {0} 顆未汙染的輔助寶石\\n尚未吞噬任何寶石'),
+      row(g(ids, '-1 1'), 'Has Consumed 1 Gem', '已吞噬 1 顆寶石')
+    ]
+    expect(planCondForms({ enStats: [stat('Consumes #', [{ string: 'Consumes\nCan Consume # additional Gems' }])], zhStats, ggpkNew }).adds.filter((a: any) => a.lang === 'cmn-Hant')).toEqual([
+      { lang: 'cmn-Hant', ref: 'Consumes #', matcher: { string: '當插槽內未汙染的輔助寶石達到最大等級時吞噬該寶石\n可以吞噬 # 顆未汙染的輔助寶石\n尚未吞噬任何寶石', superseded: true } }
+    ])
+  })
+
+  it('判不準的不加並列入拒收:GGPK 沒有 handlers、句子已屬於別條、與既有寫法同形、沒有物品 id', () => {
+    const enStats = [
+      stat('# to A', [{ string: '# to A' }]),
+      stat('B #', [{ string: 'B #' }]), stat('Other', [{ string: 'Other' }]),
+      stat('C #', [{ string: 'C #' }]), stat('D #', [{ string: 'D 5' }]),
+      stat('Tree #', [{ string: 'Tree #' }], { pseudo: ['pseudo.x'] })
+    ]
+    const ggpkNew = [
+      row(g('a', '1|#'), '{0} to A', ''), { key: g('a', '#|-1'), en: '{0} from A', zh: '' },
+      row(g('b', '1|#'), 'B {0}', ''), row(g('b', '#|-1'), 'Other', '', NEG),
+      row(g('c', '1|#'), 'C {0}', ''), row(g('c', '#|-1'), 'D {0}', '', NEG),
+      row(g('t', '1|#'), 'Tree {0}', ''), row(g('t', '#|-1'), 'Bush {0}', '', NEG)
+    ]
+    const plan = planCondForms({ enStats, zhStats: [], ggpkNew })
+    expect(plan.adds).toEqual([])
+    expect(plan.rejects.map((r: any) => [r.reason, r.to])).toEqual([['GGPK 沒有 handlers', '# from A'], ['與既有寫法同形', 'D #']])
+  })
+
+  it('句子的增加 / 減少與推出的 negate 矛盾、交易站詞綴沒有數值卻補帶 # 的寫法 → 拒收', () => {
+    const enStats = [stat('#% increased effect', [{ string: '#% increased effect' }]), stat('Area has Encounter', [{ string: 'Area has Encounter' }])]
+    const ggpkNew = [
+      row(g('eff', '1|#'), '{0}% increased effect', ''), row(g('eff', '#|-1'), '{0}% increased effect, decaying', '', NEG),
+      row(g('enc', '100|#'), 'Area has Encounter', ''), row(g('enc', '1|99'), 'Area has {0}% chance for Encounter', '')
+    ]
+    const plan = planCondForms({ enStats, zhStats: [], ggpkNew })
+    expect(plan.adds).toEqual([])
+    expect(plan.rejects.map((r: any) => r.reason)).toEqual(['增加 / 減少與數值條件矛盾', '交易站的詞綴沒有數值'])
+  })
+
+  it('資料的寫法在 GGPK 屬於好幾組(通用抗性也是希望之絃專屬 stat 的一句)→ 不補那些組的其他句子', () => {
+    const enStats = [stat('+#% to all Elemental Resistances', [{ string: '#% to all Elemental Resistances' }])]
+    const ggpkNew = [
+      row(g('resist_all', '1|#'), '{0:+d}% to all Elemental Resistances', ''),
+      row(g('thread_resist', '1|#'), '{0:+d}% to all Elemental Resistances', ''),
+      row(g('thread_resist', '1|#'), 'Passive Skills in Radius can be Allocated\\n{0:+d}% to all Elemental Resistances', '')
+    ]
+    expect(planCondForms({ enStats, zhStats: [], ggpkNew }).adds).toEqual([])
+  })
+
+  it('套用後重跑為空', () => {
+    const enStats = [stat('#% increased Speed', [{ string: '#% increased Speed' }])]
+    const ggpkNew = [row(g('speed_+%', '1|#'), '{0}% increased Speed', ''), row(g('speed_+%', '#|-1'), '{0}% reduced Speed', '', NEG)]
+    const out = parseRows(applyStatPlan(toFile(enStats), 'en', planCondForms({ enStats, zhStats: [], ggpkNew })))
+    expect(out[0].matchers).toEqual([{ string: '#% increased Speed' }, { string: '#% reduced Speed', negate: true, superseded: true }])
+    expect(planCondForms({ enStats: out, zhStats: [], ggpkNew }).adds).toEqual([])
+  })
+})
+
+describe('planMercenaryBuilds(規則 23:新的傭兵流派)', () => {
+  const warrant = (lang: string, section: string, type: string) => ({ name: lang === 'en' ? 'Mercenary Warrant' : '傭兵契約書', refName: 'Mercenary Warrant', namespace: 'ITEM', tradeDisc: 'mercenary_warrant', icon: 'x.png', disc: { sectionText: section }, tradeType: type })
+  const build = (name: string, ref: string) => ({ name, refName: ref, namespace: 'MERCENARY_BUILD', icon: '', mercenaryBuild: { skills: [{ type: 'primary', name: 'Ice Shot' }] } })
+  // 最後一列是沒有條件的通用契約書(disc 空、沒有 tradeType):挑變體時對什麼都成立,新流派要排在它前面
+  const generic = (lang: string) => ({ name: lang === 'en' ? 'Mercenary Warrant' : '傭兵契約書', refName: 'Mercenary Warrant', namespace: 'ITEM', icon: 'x.png', disc: {} })
+  const enItems = [warrant('en', 'Manyshot', 'EleBowRangerClones'), generic('en'), build('Manyshot', 'Manyshot')]
+  const zhItems = [warrant('cmn-Hant', '暴射者', 'EleBowRangerClones'), generic('cmn-Hant'), build('暴射者', 'Manyshot')]
+  const builds = [{ ident: 'EleBowRangerClones', en: 'Manyshot', zh: '暴射者' }, { ident: 'AbyssalTemplar', en: 'Chaplain of the Well', zh: '淵井之軍' }, { ident: 'NotTraded', en: 'Nobody', zh: '無人' }, { ident: 'AbyssalTemplarNoble', en: 'Infamous Chaplain of the Well', zh: '萬惡淵井之軍' }, { ident: 'GhostNoble', en: 'Infamous Ghost', zh: '萬惡幽魂' }]
+  const tradeItems = [
+    { type: 'EleBowRangerClones', text: 'Mercenary Warrant (Manyshot)', disc: 'mercenary_warrant', group: 'map' },
+    { type: 'AbyssalTemplar', text: 'Mercenary Warrant (Chaplain of the Well)', disc: 'mercenary_warrant', group: 'map' },
+    { type: 'AbyssalTemplarNoble', text: 'Mercenary Warrant (Infamous Chaplain of the Well)', disc: 'mercenary_warrant', group: 'map' },
+    { type: 'GhostNoble', text: 'Mercenary Warrant (Infamous Ghost)', disc: 'mercenary_warrant', group: 'map' }
+  ]
+  const noble = { refName: 'Infamous Chaplain of the Well', zh: '萬惡淵井之軍', tradeType: 'AbyssalTemplarNoble', base: 'Chaplain of the Well' }
+
+  it('交易站有、資料沒有的契約書類型 → 補流派列與契約書列(技能清單沒有資料來源,留空);萬惡版指向原版(審查第 5 輪 2-a),原版沒有的拒收', () => {
+    const plan = planMercenaryBuilds({ enItems, builds, tradeItems })
+    expect(plan.adds).toEqual([{ refName: 'Chaplain of the Well', zh: '淵井之軍', tradeType: 'AbyssalTemplar' }, noble])
+    expect(plan.rejects.map((r: any) => r.id)).toEqual(['GhostNoble'])
+  })
+
+  it('套用:兩語各加一列流派、一列契約書(照既有契約書列抄欄位,disc 是該語系的流派名);契約書列緊接在既有契約書列後面;重跑為空', () => {
+    const plan = planMercenaryBuilds({ enItems, builds, tradeItems })
+    const en = parseRows(applyItemPlan(toFile(enItems), 'en', { builds: plan.adds }))
+    const zh = parseRows(applyItemPlan(toFile(zhItems), 'cmn-Hant', { builds: plan.adds }))
+    // 名稱索引對同名同 refName 的列只收第一列,其餘變體靠相鄰讀到 → 新契約書必須插在既有契約書列後面,不能放檔尾
+    expect(en).toEqual([
+      enItems[0], warrant('en', 'Chaplain of the Well', 'AbyssalTemplar'), warrant('en', 'Infamous Chaplain of the Well', 'AbyssalTemplarNoble'), enItems[1], enItems[2],
+      { name: 'Chaplain of the Well', refName: 'Chaplain of the Well', namespace: 'MERCENARY_BUILD', icon: '', mercenaryBuild: { skills: [] } },
+      { name: 'Infamous Chaplain of the Well', refName: 'Infamous Chaplain of the Well', namespace: 'MERCENARY_BUILD', icon: '', mercenaryBuild: 'Chaplain of the Well' }
+    ])
+    expect(zh).toEqual([
+      zhItems[0], warrant('cmn-Hant', '淵井之軍', 'AbyssalTemplar'), warrant('cmn-Hant', '萬惡淵井之軍', 'AbyssalTemplarNoble'), zhItems[1], zhItems[2],
+      { name: '淵井之軍', refName: 'Chaplain of the Well', namespace: 'MERCENARY_BUILD', icon: '', mercenaryBuild: { skills: [] } },
+      { name: '萬惡淵井之軍', refName: 'Infamous Chaplain of the Well', namespace: 'MERCENARY_BUILD', icon: '', mercenaryBuild: 'Chaplain of the Well' }
+    ])
+    expect(planMercenaryBuilds({ enItems: en, builds, tradeItems }).adds).toEqual([])
+  })
+})
+
+describe('planNamedSlots(規則 22:名稱從寫死變成帶入的句型)', () => {
+  const stat = (ref: string, matchers: any[]) => ({ ref, better: 0, matchers, trade: { ids: { explicit: ['explicit.stat_1'] } } })
+  const row = (key: string, en: string, zh: string) => ({ key, en, zh, handlers: [] })
+  const T = 'timeless_version timeless_seed timeless_keystone'
+  const SH = 'shaper_apparition_ability'
+  const k = (ids: string, cond: string, file = 'stat_descriptions.txt') => `${ids}|${cond}|${file}|0`
+  const ggpkOld = [
+    row(k(T, '5 # 3'), 'Commissioned {1} coins to commemorate Caspiro\\nConquered by the Eternal Empire', '授銜 {1} 個硬幣以紀念卡斯皮羅\\n臣服於不朽帝國'),
+    row(k(T, '5 # 3', 'advanced_mod_stat_descriptions.txt'), 'Commissioned {1} coins to commemorate Caspiro(Cadiro-Victario)\\nConquered by the Eternal Empire', '授銜 {1} 個硬幣以紀念卡斯皮羅(卡迪羅-維多里奧)\\n臣服於不朽帝國'),
+    row(k(SH, '1'), 'Grants Summon Memory\\nGrants Devastation, used by Memory', '賦予召喚記憶\\n賦予毀滅，供記憶使用'),
+    row(k(SH, '1', 'advanced_mod_stat_descriptions.txt'), 'Grants Summon Memory\\nGrants Devastation(Devastation-Ire), used by Memory', '賦予召喚記憶\\n賦予毀滅(毀滅-憤怒)， 供記憶使用'),
+    row(k(SH, '2'), 'Grants Summon Memory\\nGrants Ire, used by Memory', '賦予召喚記憶\\n賦予憤怒，供記憶使用'),
+    row(k(SH, '2', 'advanced_mod_stat_descriptions.txt'), 'Grants Summon Memory\\nGrants Ire(Devastation-Ire), used by Memory', '賦予召喚記憶\\n賦予憤怒(毀滅-憤怒)， 供記憶使用')
+  ]
+  const ggpkNew = [
+    row(k(T, '5 # #'), 'Commissioned {1} coins to commemorate {2}\\nConquered by the {0}', '授銜{1}個硬幣以紀念{2}\\n臣服於{0}'),
+    row(k(T, '5 # #', 'advanced_mod_stat_descriptions.txt'), 'Commissioned {1} coins to commemorate {2}\\nConquered by the {0}', '授銜{1}個硬幣以紀念{2}\\n臣服於{0}'),
+    row(k(SH, '#'), 'Grants [Summon::20|Summon Memory]\\nGrants {0}, used by Memory', '賦予[Summon::20|召喚記憶]\\n賦予{0}，供記憶使用'),
+    row(k(SH, '#', 'advanced_mod_stat_descriptions.txt'), 'Grants [Summon::20|Summon Memory]\\nGrants {0}, used by Memory', '賦予[Summon::20|召喚記憶]\\n賦予{0}， 供記憶使用')
+  ]
+  const enStats = [
+    stat('Commissioned # coins to commemorate Caspiro', [{ string: 'Commissioned # coins to commemorate Caspiro\nConquered by the Eternal Empire', advanced: 'Commissioned # coins to commemorate Caspiro(Cadiro-Victario)\nConquered by the Eternal Empire' }]),
+    stat('Grants Summon Memory\nGrants #, used by Memory', [{ string: 'Grants Summon Memory\nGrants #, used by Memory' }])
+  ]
+  const zhStats = [
+    stat('Commissioned # coins to commemorate Caspiro', [{ string: '授銜 # 個硬幣以紀念卡斯皮羅\n臣服於不朽帝國', advanced: '授銜 # 個硬幣以紀念卡斯皮羅(卡迪羅-維多里奧)\n臣服於不朽帝國' }]),
+    stat('Grants Summon Memory\nGrants #, used by Memory', [{ string: '賦予召喚記憶\n賦予#，供記憶使用' }])
+  ]
+
+  it('永恆珠寶(#29):舊寫法補成新句型(名稱照舊、數字是 #),進階寫法名稱後是「(...)」;舊句標 superseded', () => {
+    const adds = planNamedSlots({ enStats, zhStats, ggpkOld, ggpkNew }).adds.filter((a: any) => a.ref.startsWith('Commissioned'))
+    expect(adds).toEqual([
+      { lang: 'en', ref: 'Commissioned # coins to commemorate Caspiro', matcher: { string: 'Commissioned # coins to commemorate Caspiro\nConquered by the Eternal Empire', advanced: 'Commissioned # coins to commemorate Caspiro(...)\nConquered by the Eternal Empire' }, supersedes: ['Commissioned # coins to commemorate Caspiro\nConquered by the Eternal Empire'] },
+      { lang: 'cmn-Hant', ref: 'Commissioned # coins to commemorate Caspiro', matcher: { string: '授銜#個硬幣以紀念卡斯皮羅\n臣服於不朽帝國', advanced: '授銜#個硬幣以紀念卡斯皮羅(...)\n臣服於不朽帝國' }, supersedes: ['授銜 # 個硬幣以紀念卡斯皮羅\n臣服於不朽帝國'] }
+    ])
+  })
+
+  it('塑界者的記憶(#28):資料只有帶 # 的句型 → 每個技能名補一個帶 value 的寫法(進階寫法名稱後是「(...)」),標 superseded', () => {
+    const adds = planNamedSlots({ enStats, zhStats, ggpkOld, ggpkNew }).adds.filter((a: any) => a.ref.startsWith('Grants'))
+    expect(adds.filter((a: any) => a.lang === 'cmn-Hant')).toEqual([
+      { lang: 'cmn-Hant', ref: 'Grants Summon Memory\nGrants #, used by Memory', matcher: { string: '賦予召喚記憶\n賦予毀滅，供記憶使用', advanced: '賦予召喚記憶\n賦予毀滅(...)， 供記憶使用', value: 1, superseded: true } },
+      { lang: 'cmn-Hant', ref: 'Grants Summon Memory\nGrants #, used by Memory', matcher: { string: '賦予召喚記憶\n賦予憤怒，供記憶使用', advanced: '賦予召喚記憶\n賦予憤怒(...)， 供記憶使用', value: 2, superseded: true } }
+    ])
+    expect(adds.filter((a: any) => a.lang === 'en').map((a: any) => [a.matcher.string, a.matcher.value])).toEqual([
+      ['Grants Summon Memory\nGrants Devastation, used by Memory', 1], ['Grants Summon Memory\nGrants Ire, used by Memory', 2]
+    ])
+  })
+
+  it('天賦範圍名也加「(...)」(使用者 2026-11-18 截圖:「只會影響大(...)範圍內的天賦」;無括號的舊寫法留著,issue #20 的「巨大」照樣認得);舊句裡名稱自帶的「(甲-乙)」要去掉', () => {
+    const R = 'radius'
+    const old = [
+      row(k(R, '3'), 'Only affects Passives in Large Ring', '只會影響大範圍內的天賦'),
+      row(k(R, '3', 'advanced_mod_stat_descriptions.txt'), 'Only affects Passives in Large Ring(Small-Huge)', '只會影響大範圍內的天賦(小範圍-非常大範圍)'),
+      row(k('kal', '6 # 1'), 'Remembrancing {1} deeds by the line of Medved(Vorana-Medved)', '緬懷由 {1} 位梅德偉(沃拉娜-梅德偉)血脈')
+    ]
+    const neu = [
+      { ...row(k(R, '#'), 'Only affects Passives in {0} Ring', '只會影響{0}範圍內的天賦'), handlers: [['passive_jewel_radius', 1]] },
+      row(k('kal', '6 # #'), 'Remembrancing {1} deeds by the line of {2}', '緬懷由{1}位{2}血脈')
+    ]
+    const zh = [
+      stat('Only affects Passives in Large Ring', [{ string: '只會影響大範圍內的天賦', advanced: '只會影響大範圍內的天賦(小範圍-非常大範圍)' }]),
+      stat('Remembrancing # deeds by the line of Medved', [{ string: '緬懷由 # 位梅德偉(沃拉娜-梅德偉)血脈' }])
+    ]
+    // 舊寫法有進階句時新寫法也要帶(和一般句相同):PoE1 索引對有進階句的寫法只收進階那句,
+    // 不帶的話「同一句已經有了」套不進去、重跑永遠還要加
+    const plan = planNamedSlots({ enStats: [], zhStats: zh, ggpkOld: old, ggpkNew: neu })
+    expect(plan.adds.map((a: any) => a.matcher)).toEqual([
+      { string: '只會影響大範圍內的天賦', advanced: '只會影響大(...)範圍內的天賦' },
+      { string: '緬懷由#位梅德偉血脈', advanced: '緬懷由#位梅德偉(...)血脈' }
+    ])
+    const out = parseRows(applyStatPlan(toFile(zh), 'cmn-Hant', plan))
+    expect(planNamedSlots({ enStats: [], zhStats: out, ggpkOld: old, ggpkNew: neu }).adds).toEqual([])
+  })
+
+  it('名稱位置相鄰時切法不唯一、抓到的名稱是純數字或含 { } → 不當名稱(審查第 5 輪 1-a / 1-b)', () => {
+    const old = [row(k('pearl', '1'), 'Supported by level {2} {1}', ''), row(k('pure', '1'), 'Grants Level 20 Purity', ''), row(k('wield', '1'), 'Wields Shaper Blade', '')]
+    const neu = [row(k('pearl', '#'), 'Supported by {0} level {2} {1}', ''), row(k('pure', '#'), 'Grants Level {0} Purity', ''), row(k('wield', '#'), 'Wields {0} {1}', '')]
+    const en = [stat('Supported by level # #', [{ string: 'Supported by level # #' }]), stat('Grants Level 20 Purity', [{ string: 'Grants Level 20 Purity' }]), stat('Wields Shaper Blade', [{ string: 'Wields Shaper Blade' }])]
+    expect(planNamedSlots({ enStats: en, zhStats: [], ggpkOld: old, ggpkNew: neu }).adds).toEqual([])
+  })
+
+  it('套用後重跑為空', () => {
+    const plan = planNamedSlots({ enStats, zhStats, ggpkOld, ggpkNew })
+    const en = parseRows(applyStatPlan(toFile(enStats), 'en', plan))
+    const zh = parseRows(applyStatPlan(toFile(zhStats), 'cmn-Hant', plan))
+    expect(zh[0].matchers.map((m: any) => [m.string, Boolean(m.superseded)])).toEqual([['授銜 # 個硬幣以紀念卡斯皮羅\n臣服於不朽帝國', true], ['授銜#個硬幣以紀念卡斯皮羅\n臣服於不朽帝國', false]])
+    expect(planNamedSlots({ enStats: en, zhStats: zh, ggpkOld, ggpkNew }).adds).toEqual([])
+  })
+})
+
+describe('planMercenarySkills(規則 24:交易站有、資料沒有的傭兵技能)', () => {
+  const merc = (ref: string, id: string) => ({ ref, better: 0, mercenary: { icon: 'x.png' }, matchers: [{ string: ref }], trade: { ids: { pseudo: [id] } } })
+  const enStats = [merc('Herald of Ash', 'mercenary.skill_1')]
+  const tradeStats = [
+    { id: 'mercenary.skill_1', text: 'Herald of Ash' },
+    { id: 'mercenary.skill_2', text: 'Herald of Ash' },
+    { id: 'mercenary.skill_3', text: 'Abyssal Spray' },
+    { id: 'mercenary.skill_4', text: 'Nobody Knows' },
+    { id: 'mercenary.support_9', text: 'Some Support' }
+  ]
+  const skills = [{ en: 'Herald of Ash', zh: '灰燼之捷' }, { en: 'Abyssal Spray', zh: '深淵噴濺' }]
+
+  it('同名技能已在資料 → 掛上新 id;全新的照 GGPK 傭兵技能表的繁中名新增(帶 mercenary 欄);GGPK 沒有名稱的拒收;輔助不處理', () => {
+    const plan = planMercenarySkills({ enStats, tradeStats, skills })
+    expect(plan.extra).toEqual({ 'Herald of Ash': { pseudo: ['mercenary.skill_2'] } })
+    expect(plan.newStats).toEqual([{ ref: 'Abyssal Spray', better: 0, en: [{ string: 'Abyssal Spray' }], zh: [{ string: '深淵噴濺' }], ids: { pseudo: ['mercenary.skill_3'] }, mercenary: {} }])
+    expect(plan.rejects.map((r: any) => r.id)).toEqual(['mercenary.skill_4'])
+  })
+
+  it('套用:新列帶 mercenary 欄、欄位順序同既有傭兵列;重跑為空', () => {
+    const plan = planMercenarySkills({ enStats, tradeStats, skills })
+    const zh = parseRows(applyStatPlan(toFile([merc('Herald of Ash', 'mercenary.skill_1')].map(s => ({ ...s, matchers: [{ string: '灰燼之捷' }] }))), 'cmn-Hant', { newStats: plan.newStats, extra: plan.extra }))
+    expect(zh[1]).toEqual({ ref: 'Abyssal Spray', better: 0, mercenary: {}, matchers: [{ string: '深淵噴濺' }], trade: { ids: { pseudo: ['mercenary.skill_3'] } } })
+    expect(Object.keys(zh[1])).toEqual(['ref', 'better', 'mercenary', 'matchers', 'trade'])
+    expect(zh[0].trade.ids.pseudo).toEqual(['mercenary.skill_1', 'mercenary.skill_2'])
+    const en = parseRows(applyStatPlan(toFile(enStats), 'en', { newStats: plan.newStats, extra: plan.extra }))
+    const again = planMercenarySkills({ enStats: en, tradeStats, skills })
+    expect([again.newStats, again.extra]).toEqual([[], {}])
   })
 })
