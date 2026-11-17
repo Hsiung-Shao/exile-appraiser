@@ -841,6 +841,7 @@ export function planZhForms ({ enStats, zhStats, ggpkNew }) {
   const zhByRef = statsByRef(zhStats)
   const zhTexts = new Set([...eachStat(zhStats)].flatMap(s => [...matcherExact(s)]))
   const zhShapes = new Set([...zhTexts].map(shape))
+  const enRefs = refsByMatcher(enStats)
   const adds = []
   const rejects = []
   for (const stat of eachStat(enStats)) {
@@ -850,7 +851,11 @@ export function planZhForms ({ enStats, zhStats, ggpkNew }) {
         const zh = exactKey(r.zh)
         if (cmpKey(zh) === cmpKey(r.en) || zhTexts.has(zh)) continue
         zhTexts.add(zh)
-        if (zhShapes.has(shape(zh))) { rejects.push({ reason: '與既有寫法同形', ref: stat.ref, lang: 'cmn-Hant', to: zh }); continue }
+        const reject = (reason) => rejects.push({ reason, ref: stat.ref, lang: 'cmn-Hant', to: zh })
+        // 同一句英文是好幾條詞綴的寫法(X 與 X (Local))→ 繁中該掛哪一條看不出來,掛錯會配到別條
+        if ((enRefs.get(cmpKey(m.string))?.size ?? 0) > 1) { reject('英文寫法被多條詞綴共用'); continue }
+        if (zhShapes.has(shape(zh))) { reject('與既有寫法同形'); continue }
+        zhShapes.add(shape(zh)) // 同一輪後面的新句也不能與它同形
         adds.push({ lang: 'cmn-Hant', ref: stat.ref, matcher: { string: zh, ...flagsOf(m), superseded: true } })
       }
     }

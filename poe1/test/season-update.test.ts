@@ -898,4 +898,19 @@ describe('planZhForms(規則 20:GGPK 物品描述檔的繁中句子資料沒有)
     expect(plan.adds).toEqual([])
     expect(plan.rejects.map((r: any) => r.reason)).toEqual(['與既有寫法同形'])
   })
+
+  it('同一輪新加的兩句同形 → 只收第一句', () => {
+    const g = [row('i|#|stat_descriptions.txt|0', 'Cannot be Poisoned', '得到 {0} 顆球'), row('j|1|stat_descriptions.txt|0', 'Gain a Charge', '得到 1 顆球')]
+    const plan = planZhForms({ enStats, zhStats, ggpkNew: g })
+    expect(plan.adds.map((a: any) => a.matcher.string)).toEqual(['得到 # 顆球'])
+    expect(plan.rejects.map((r: any) => r.reason)).toEqual(['與既有寫法同形'])
+  })
+
+  it('英文寫法被兩條詞綴共用 → 不知道繁中該掛哪一條,不加並列入拒收', () => {
+    const en2 = [...enStats, stat('Cannot be Poisoned (Local)', [{ string: 'Cannot be Poisoned' }])]
+    const zh2 = [...zhStats, stat('Cannot be Poisoned (Local)', [{ string: '本體不會中毒' }])]
+    const plan = planZhForms({ enStats: en2, zhStats: zh2, ggpkNew: [ggpkNew[0]] })
+    expect(plan.adds).toEqual([])
+    expect(plan.rejects.map((r: any) => [r.reason, r.to])).toEqual([['英文寫法被多條詞綴共用', '不能被中毒']])
+  })
 })

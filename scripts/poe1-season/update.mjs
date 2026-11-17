@@ -74,11 +74,13 @@ const skillGems = planRandomSkillGem({ enStats: afterA.en, zhStats: afterA['cmn-
 const grants = planGrantsSkill({ enStats: afterA.en, zhStats: afterA['cmn-Hant'], skills: ggpk.skills, template: ggpk.strings?.ModGrantsEffectWithLevel })
 const citadels = planCitadel({ enStats: afterA.en, zhStats: afterA['cmn-Hant'], ggpkNew: ggpk.stats.new })
 const extraZh = planExtraZh({ zhStats: afterA['cmn-Hant'], ggpkNew: ggpk.stats.new })
-const zhForms = planZhForms({ enStats: afterA.en, zhStats: afterA['cmn-Hant'], ggpkNew: ggpk.stats.new })
 const roomNames = planRoomNames({ zhStats: afterA['cmn-Hant'], enStats: afterA.en, rooms: ggpk.rooms ?? [], renames: ggpk.renames ?? [] })
-const adds = [...ruleA.adds, ...ruleB.adds, ...gemNames.adds, ...minions.adds, ...skillGems.adds, ...citadels.adds, ...extraZh.adds, ...zhForms.adds, ...grants.adds, ...roomNames.adds]
+const adds = [...ruleA.adds, ...ruleB.adds, ...gemNames.adds, ...minions.adds, ...skillGems.adds, ...citadels.adds, ...extraZh.adds, ...grants.adds, ...roomNames.adds]
 const effects = planEffectStats({ enStats: rows(applyStatPlan(text['en/stats'], 'en', { adds })), zhStats: rows(applyStatPlan(text['cmn-Hant/stats'], 'cmn-Hant', { adds })), tradeStats, skills: ggpk.skills, supports: ggpk.supports ?? [], strings: ggpk.strings, taken: Object.values(planFillIds({ enStats: rows(applyStatPlan(text['en/stats'], 'en', { adds })), tradeStats })).flatMap(t => Object.values(t).flat()) })
 adds.push(...effects.adds)
+// 規則 20 排最後、看得到這一輪其他規則加的句子:它加的句子一律標 superseded,排前面會讓後面想把同一句當現行的規則被「已經有了」擋掉
+const zhForms = planZhForms({ enStats: rows(applyStatPlan(text['en/stats'], 'en', { adds })), zhStats: rows(applyStatPlan(text['cmn-Hant/stats'], 'cmn-Hant', { adds })), ggpkNew: ggpk.stats.new })
+adds.push(...zhForms.adds)
 const afterB = rows(applyStatPlan(text['en/stats'], 'en', { adds }))
 const dead = planDeadIds({ enStats: afterB, tradeStats })
 const newStats = [...planNewStats({ enStats: afterB, zhStats: afterA['cmn-Hant'], ggpkOld: ggpk.stats.old, ggpkNew: ggpk.stats.new, tradeStats }), ...effects.newStats]
