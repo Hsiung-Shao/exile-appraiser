@@ -22,7 +22,6 @@
 import { computed, defineComponent, shallowRef, type PropType } from 'vue'
 import type { RegexPage } from '@exile-appraiser/regex'
 import type { ParsedItem } from '@/parser'
-import type { Stat } from '@/assets/data'
 import MapCheck from '@poe1/map-check/MapCheck.vue'
 import ErrorBoundary from '../ui/ErrorBoundary.vue'
 import { AppConfig } from '../Config'
@@ -49,7 +48,7 @@ export default defineComponent({
       list,
       labels: computed(() => bookmarkLabels(list.value)),
       current,
-      markOf: (stat: Stat) => markOfStat(marks.value, stat.matchers),
+      markOf: (matchers: ReadonlyArray<{ string: string }>) => markOfStat(marks.value, matchers),
       select (i: number) {
         const b = list.value[i]
         if (!b) return

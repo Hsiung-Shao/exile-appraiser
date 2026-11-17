@@ -2,7 +2,8 @@
   exile-appraiser:移植自 Awakened PoE Trade `renderer/src/web/map-check/MapCheck.vue`(MIT,© Alexander Drozdov)。
   耦合點:
   - 2026-11-18 起依正則書籤上色(使用者裁定):標題列的設定檔 I / II / III 換成正則書籤下拉(`bookmarks` / `bookmark` /
-    `update:bookmark`;選項值 = 清單索引),每列的紅 / 綠由 renderer 傳入的 `markOf(stat)` 決定;過時提示拿掉(書籤自己會標「找不到幾項」)。
+    `update:bookmark`;選項值 = 清單索引),每列的紅 / 綠由 renderer 傳入的 `markOf(matchers)` 決定;
+    劫盜契約的「需要 X(等級 N)」不是詞綴(解析器存在 `heistContract`),清單最上面多一列,以英文寫法 `Requires <Job> (Level #)` 對書籤;過時提示拿掉(書籤自己會標「找不到幾項」)。
   - MapStatButton 的 key 改用 stat ref。
   - 拿掉地圖截圖(FullscreenImage):資料裡只有 14 張地圖有截圖,而且是 imgur 外部網址(overlay 不連外部圖庫)。
   - 外框 / 底色改用主題 token(bg-surface / border),不寫死 gray-800,背景圖模式與淺色主題才看得清楚。
@@ -26,11 +27,11 @@
         <img src="/images/maven-witness.png" class="w-8">
         <span>{{ t('map_check.maven_reminder') }}</span>
       </div>
-      <div v-if="!mapStats.length && !unknownModifiers.length" class="px-8">
+      <div v-if="!rows.length && !unknownModifiers.length" class="px-8">
         {{ t('map_check.no_mods') }}
       </div>
       <div v-else class="flex flex-col">
-        <MapStatButton v-for="stat in mapStats" :key="stat.ref"
+        <MapStatButton v-for="stat in rows" :key="stat.ref"
           :stat="stat" :mark="stat.mark" />
         <div v-for="stat of unknownModifiers" :key="stat.type + '/' + stat.text"
           class="py-1 px-8">
@@ -46,7 +47,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ParsedItem } from '@/parser'
 import { ModifierType } from '@/parser/modifiers'
-import type { Stat } from '@/assets/data'
+import { CLIENT_STRINGS } from '@/assets/data'
 import { prepareMapStat } from './prepare-map-stats'
 
 import MapStatButton from './MapStatButton.vue'
@@ -57,7 +58,8 @@ const props = defineProps<{
   bookmarks: string[],
   /** 目前書籤在 `bookmarks` 的索引;-1 = 沒選 */
   bookmark: number,
-  markOf: (stat: Stat) => 'bad' | 'good' | null
+  /** 一條詞綴的全部寫法(matcher)→ 紅 / 綠 / 不上色 */
+  markOf: (matchers: ReadonlyArray<{ string: string }>) => 'bad' | 'good' | null
 }>()
 
 const emit = defineEmits<{ 'update:bookmark': [index: number] }>()
@@ -80,7 +82,22 @@ const mapName = computed(() => {
 
 const mapStats = computed(() => props.item.statsByType
   .filter(calc => calc.type === ModifierType.Explicit)
-  .map(calc => ({ ...prepareMapStat(calc), mark: props.markOf(calc.stat) })))
+  .map(calc => ({ ...prepareMapStat(calc), mark: props.markOf(calc.stat.matchers) })))
+
+// exile-appraiser: 劫盜契約的職業需求列(文字取物品原文那一行;對書籤用正則頁同一個英文寫法)
+const jobRow = computed(() => {
+  const c = props.item.heistContract
+  if (!c?.requiredJob) return null
+  const line = props.item.rawText.split(/\r?\n/).find(l => CLIENT_STRINGS.HEIST_CONTRACT_JOB.test(l))
+  return {
+    ref: 'heist-job',
+    matcher: line ?? `${c.requiredJob} (${c.jobLevel ?? '?'})`,
+    roll: undefined,
+    mark: props.markOf([{ string: `Requires ${c.requiredJob} (Level #)` }])
+  }
+})
+
+const rows = computed(() => jobRow.value ? [jobRow.value, ...mapStats.value] : mapStats.value)
 
 const unknownModifiers = computed(() => props.item.unknownModifiers
   .filter(mod => mod.type === ModifierType.Explicit))

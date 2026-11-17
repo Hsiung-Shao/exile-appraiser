@@ -156,3 +156,14 @@ describe('設定讀寫(R6)', () => {
     expect(JSON.parse(serialized).mapCheck).toBeUndefined()
   })
 })
+
+describe('劫盜契約需求行對得到正則頁', () => {
+  it('解析器的 9 種職業名組成的英文寫法,都對得到 heist_contracts 頁的「需要 X(等級 #)」', () => {
+    const p = pages.find(x => x.id === 'heist_contracts')!
+    const ids = p.entries.filter(e => e.id.startsWith('HeistJob:')).map(e => e.id)
+    expect(ids.length).toBe(9)
+    const m = bookmarkMarks(pages, { name: 'x', page: 'heist_contracts', game: 'poe1', mode: 'none', lang: 'zh', ...pageKeysOf(p, ids.map(id => p.entries.findIndex(e => e.id === id))) })
+    const jobs = ['Lockpicking', 'Brute Force', 'Perception', 'Demolition', 'Counter-Thaumaturgy', 'Trap Disarmament', 'Agility', 'Deception', 'Engineering']
+    for (const j of jobs) expect(markOfStat(m, [{ string: `Requires ${j} (Level #)` }]), j).toBe('bad')
+  })
+})

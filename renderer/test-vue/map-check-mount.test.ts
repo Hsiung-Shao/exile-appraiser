@@ -37,9 +37,9 @@ const mapWith = (lines: string[]) => [
 ].join('\n')
 const parse = (t: string) => parseClipboard(t)._unsafeUnwrap()
 
-function bookmark (name: string, mode: RegexBookmark['mode'], ids: string[]): RegexBookmark {
-  const p = pages.find(x => x.id === 'map_mods')!
-  return { name, page: 'map_mods', game: 'poe1', mode, lang: 'zh', ...pageKeysOf(p, ids.map(id => p.entries.findIndex(e => e.id === id))) }
+function bookmark (name: string, mode: RegexBookmark['mode'], ids: string[], page = 'map_mods'): RegexBookmark {
+  const p = pages.find(x => x.id === page)!
+  return { name, page, game: 'poe1', mode, lang: 'zh', ...pageKeysOf(p, ids.map(id => p.entries.findIndex(e => e.id === id))) }
 }
 
 function mountMap (item: ParsedItem, b: RegexBookmark | null, names: string[] = b ? [b.name] : []) {
@@ -50,7 +50,7 @@ function mountMap (item: ParsedItem, b: RegexBookmark | null, names: string[] = 
   const Root = defineComponent({
     setup: () => () => h(MapCheck, {
       item, bookmarks: names, bookmark: b ? names.indexOf(b.name) : -1,
-      markOf: (stat: { matchers: Array<{ string: string }> }) => markOfStat(marks, stat.matchers),
+      markOf: (matchers: Array<{ string: string }>) => markOfStat(marks, matchers),
       'onUpdate:bookmark': (i: number) => { picked.push(i) }
     })
   })
@@ -120,6 +120,36 @@ describe('3.30 新舊寫法(R3)', () => {
       expect(rows(m.container).map(x => x.attrs['data-mark']), line).toEqual(['bad'])
       m.app.unmount()
     }
+  })
+})
+
+describe('劫盜契約的需求行(使用者要求)', () => {
+  // shortcut: 本機沒有真實契約剪貼簿樣本 → 用真實地圖的解析結果補上 heistContract 與原文那一行;有實機樣本後換成真的
+  const contract = () => {
+    const item = parse(MAP_RARE)
+    item.heistContract = { requiredJob: 'Brute Force', jobLevel: 4 }
+    item.rawText = item.rawText + '\n需要 蠻力 (等級 4)'
+    return item
+  }
+
+  it('書籤勾了「需要 蠻力」→ 清單最上面的需求列標紅,文字是物品原文', async () => {
+    const m = mountMap(contract(), bookmark('避開蠻力', 'none', ['HeistJob:BruteForce'], 'heist_contracts'))
+    await nextTick()
+    const r = rows(m.container)
+    expect(text(r[0])).toContain('需要 蠻力 (等級 4)')
+    expect(r[0].attrs['data-mark']).toBe('bad')
+    m.app.unmount()
+  })
+
+  it('沒勾這個職業 → 需求列照列、不上色;不是契約 → 沒有需求列', async () => {
+    const m = mountMap(contract(), bookmark('避開開鎖', 'none', ['HeistJob:Lockpicking'], 'heist_contracts'))
+    await nextTick()
+    expect(rows(m.container)[0].attrs['data-mark']).toBe('')
+    m.app.unmount()
+    const n = mountMap(parse(MAP_RARE), null)
+    await nextTick()
+    expect(text(n.container)).not.toContain('需要')
+    n.app.unmount()
   })
 })
 
