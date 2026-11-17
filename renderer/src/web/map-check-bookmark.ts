@@ -51,7 +51,7 @@ export function mapCheckRefOf (b: RegexBookmark, list: readonly RegexBookmark[])
   return nth > 0 ? { folder, name: b.name, nth } : { folder, name: b.name }
 }
 
-export function findMapCheckBookmark (list: readonly RegexBookmark[], ref: MapCheckRef | null): RegexBookmark | undefined {
+export function findMapCheckBookmark (list: readonly RegexBookmark[], ref: MapCheckRef | null | false): RegexBookmark | undefined {
   if (!ref) return undefined
   const same = list.filter(b => sameSlot(b, ref.folder, ref.name))
   return same[ref.nth ?? 0] ?? same[0] ?? list.find(b => b.name === ref.name)
@@ -66,8 +66,9 @@ export function bookmarkLabels (list: readonly RegexBookmark[]): string[] {
   })
 }
 
-/** 讀設定:`{ folder, name, nth? }`;沒有 / 壞值 / 名稱空白 = null */
-export function normMapCheckBookmark (v: unknown): MapCheckRef | null {
+/** 讀設定:`{ folder, name, nth? }`;`false` = 明確選「不上色」;沒有 / 壞值 / 名稱空白 = null(沒選過) */
+export function normMapCheckBookmark (v: unknown): MapCheckRef | null | false {
+  if (v === false) return false
   const o = (v && typeof v === 'object' ? v : {}) as Record<string, unknown>
   if (typeof o.name !== 'string' || !o.name.trim()) return null
   if (o.folder !== undefined && typeof o.folder !== 'string') return null
@@ -80,10 +81,20 @@ export function normMapCheckBookmark (v: unknown): MapCheckRef | null {
  * 正則書籤改名(`bookmarks[index]` → `name`)後,地圖檢查設定要寫成什麼(使用者要求:改名時一起更新)。
  * 先找出改名前選中的書籤,改名後重算它的識別;沒選 / 選中的找不到 / 識別沒變 = undefined(不動設定)。
  */
-export function mapCheckRefAfterRename (bookmarks: readonly RegexBookmark[], ref: MapCheckRef | null, index: number, name: string): MapCheckRef | undefined {
+export function mapCheckRefAfterRename (bookmarks: readonly RegexBookmark[], ref: MapCheckRef | null | false, index: number, name: string): MapCheckRef | undefined {
   const picked = findMapCheckBookmark(mapCheckBookmarks(bookmarks), ref)
   if (!picked || !bookmarks[index]) return undefined
   const after = bookmarks.map((b, i) => i === index ? { ...b, name } : b)
   const next = mapCheckRefOf(after[bookmarks.indexOf(picked)], mapCheckBookmarks(after))
-  return next.name === ref!.name && next.folder === ref!.folder && (next.nth ?? 0) === (ref!.nth ?? 0) ? undefined : next
+  const r = ref as MapCheckRef
+  return next.name === r.name && next.folder === r.folder && (next.nth ?? 0) === (r.nth ?? 0) ? undefined : next
+}
+
+/**
+ * 地圖檢查實際用的書籤:選過的照選過的;沒選過(null)或選的已不在,而清單只有一個 → 用它(使用者要求);
+ * 明確選「不上色」(false)→ 不用任何書籤。
+ */
+export function pickMapCheckBookmark (list: readonly RegexBookmark[], ref: MapCheckRef | null | false): RegexBookmark | undefined {
+  if (ref === false) return undefined
+  return findMapCheckBookmark(list, ref) ?? (list.length === 1 ? list[0] : undefined)
 }

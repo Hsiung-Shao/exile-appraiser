@@ -4,7 +4,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { pageKeysOf, parseRegexCatalogue, type RegexBookmark } from '@exile-appraiser/regex'
-import { bookmarkLabels, bookmarkMarks, findMapCheckBookmark, mapCheckBookmarks, mapCheckRefAfterRename, mapCheckRefOf, markOfStat, normMapCheckBookmark } from '../src/web/map-check-bookmark'
+import { bookmarkLabels, bookmarkMarks, findMapCheckBookmark, mapCheckBookmarks, mapCheckRefAfterRename, mapCheckRefOf, markOfStat, normMapCheckBookmark, pickMapCheckBookmark } from '../src/web/map-check-bookmark'
 import { _roundTripForTest } from '../src/web/Config'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
@@ -119,6 +119,27 @@ describe('正則書籤改名時一起更新(使用者要求)', () => {
   it('非地圖頁的書籤改名不影響', () => {
     const list = [mk('危險'), { name: '藥劑', page: 'flask_mods', game: 'poe1' as const, mode: 'any' as const, lang: 'zh' as const, keys: [], alt: [] }]
     expect(mapCheckRefAfterRename(list, { folder: '', name: '危險' }, 1, '危險')).toBeUndefined()
+  })
+})
+
+describe('只有一個地圖書籤時自動選它(使用者要求)', () => {
+  const one = bookmark('唯一', 'map_mods', 'none', ['MapPoisoningMapWorlds'])
+  const two = bookmark('第二', 'map_mods', 'any', ['MapPoisoningMapWorlds'])
+  it('沒選過(null)且只有一個 → 用它;兩個以上不猜', () => {
+    expect(pickMapCheckBookmark([one], null)).toBe(one)
+    expect(pickMapCheckBookmark([one, two], null)).toBeUndefined()
+  })
+  it('明確選「不上色」(false)→ 不自動選', () => {
+    expect(pickMapCheckBookmark([one], false)).toBeUndefined()
+  })
+  it('選過的照選過的;選的已刪掉 → 也退回唯一那個', () => {
+    expect(pickMapCheckBookmark([one, two], { folder: '', name: '第二' })).toBe(two)
+    expect(pickMapCheckBookmark([one], { folder: '', name: '已刪' })).toBe(one)
+  })
+  it('設定讀寫:false 原樣保留', () => {
+    expect(normMapCheckBookmark(false)).toBe(false)
+    const { serialized } = _roundTripForTest(JSON.stringify({ mapCheckBookmark: false }))
+    expect(JSON.parse(serialized).mapCheckBookmark).toBe(false)
   })
 })
 

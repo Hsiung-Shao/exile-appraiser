@@ -27,7 +27,7 @@ import MapCheck from '@poe1/map-check/MapCheck.vue'
 import ErrorBoundary from '../ui/ErrorBoundary.vue'
 import { AppConfig } from '../Config'
 import { catalogueFor, ensureStateLoaded, useRegexStore } from '../regex/store'
-import { bookmarkLabels, bookmarkMarks, findMapCheckBookmark, mapCheckBookmarks, mapCheckRefOf, markOfStat } from '../map-check-bookmark'
+import { bookmarkLabels, bookmarkMarks, mapCheckBookmarks, mapCheckRefOf, markOfStat, pickMapCheckBookmark } from '../map-check-bookmark'
 
 export default defineComponent({
   components: { MapCheck, ErrorBoundary },
@@ -43,7 +43,7 @@ export default defineComponent({
     void ensureStateLoaded()
     void catalogueFor('poe1').then(c => { pages.value = c?.pages ?? [] })
     const list = computed(() => mapCheckBookmarks(ui.bookmarks))
-    const current = computed(() => findMapCheckBookmark(list.value, config.mapCheckBookmark))
+    const current = computed(() => pickMapCheckBookmark(list.value, config.mapCheckBookmark))
     const marks = computed(() => bookmarkMarks(pages.value, current.value))
     return {
       list,

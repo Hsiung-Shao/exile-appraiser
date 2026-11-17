@@ -212,7 +212,7 @@ import {
   setBookmarkHotkey, updateBookmark, useRegexStore, bookmarkReveal, customBookmarkDraft, saveCustomBookmark, updateCustomBookmark
 } from './store'
 import type { RegexBookmark } from '@exile-appraiser/regex'
-import { bookmarkLabels, findMapCheckBookmark, mapCheckBookmarks, mapCheckRefOf } from '../map-check-bookmark'
+import { bookmarkLabels, mapCheckBookmarks, mapCheckRefOf, pickMapCheckBookmark } from '../map-check-bookmark'
 
 /** 拖曳來源 */
 type DragSrc = { kind: 'bm', index: number } | { kind: 'folder', name: string }
@@ -441,16 +441,16 @@ export default defineComponent({
       FOLDER_NAME_MAX,
       ui: store.ui,
       mapCheckLabels: computed(() => bookmarkLabels(mapCheckBookmarks(store.ui.bookmarks))),
-      /** 選項值 = 清單索引;設定的書籤已刪掉 / 改名 → 顯示「不上色」 */
+      /** 選項值 = 清單索引;沒選過且只有一個 → 顯示那一個(自動選);選「不上色」存 false */
       mapCheckValue: computed(() => {
         const list = mapCheckBookmarks(store.ui.bookmarks)
-        const b = findMapCheckBookmark(list, config.mapCheckBookmark)
+        const b = pickMapCheckBookmark(list, config.mapCheckBookmark)
         return b ? String(list.indexOf(b)) : ''
       }),
       setMapCheckBookmark (v: string) {
         const list = mapCheckBookmarks(store.ui.bookmarks)
         const b = v === '' ? undefined : list[Number(v)]
-        config.mapCheckBookmark = b ? mapCheckRefOf(b, list) : null
+        config.mapCheckBookmark = b ? mapCheckRefOf(b, list) : false
       },
       selGame: store.selGame,
       currentGame: computed(() => config.game),

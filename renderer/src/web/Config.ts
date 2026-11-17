@@ -180,8 +180,8 @@ export interface Config {
   hotkeyWiki: string
   /** 2026-11-18(移植 APT map-check):PoE1 游標下地圖的詞綴檢查熱鍵(預設空;只在 overlay + PoE1) */
   hotkeyMapCheck: string
-  /** 地圖詞綴檢查用的正則書籤(資料夾 + 名稱;PoE1;null = 不上色)。檢查視窗裡換書籤也寫這裡。只在 renderer 用,不進 host-config */
-  mapCheckBookmark: MapCheckRef | null
+  /** 地圖詞綴檢查用的正則書籤(資料夾 + 名稱;PoE1;null = 沒選過 → 只有一個地圖書籤時自動用它;false = 明確選不上色)。檢查視窗裡換書籤也寫這裡。只在 renderer 用,不進 host-config */
+  mapCheckBookmark: MapCheckRef | null | false
   /** 2026-11-09(移植 APT 碼表):計時器開始 / 暫停、歸零熱鍵(預設空;只在 overlay 且 `timerDisplay` 不是 off) */
   hotkeyTimerToggle: string
   hotkeyTimerReset: string
@@ -410,7 +410,7 @@ function createConfig (): Config {
     hotkeyPoedb: '',
     hotkeyWiki: '',
     hotkeyMapCheck: '',
-    mapCheckBookmark: null as MapCheckRef | null,
+    mapCheckBookmark: null as MapCheckRef | null | false,
     hotkeyTimerToggle: '',
     hotkeyTimerReset: '',
     timerDisplay: 'active' as TimerDisplay,
