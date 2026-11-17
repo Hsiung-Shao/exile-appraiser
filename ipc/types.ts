@@ -30,8 +30,11 @@ export interface ItemTextEvent {
   /** 鎖定查價(`hotkeyLocked`):overlay 取得焦點、面板可點擊,不隨滑鼠移開消失。 */
   focusOverlay: boolean
   /** 2026-11-09:`hotkeyPoedb` / 2026-11-13 `hotkeyWiki` 複製的物品 → renderer 開 poedb / wiki 頁,不開查價面板(省略 = 查價) */
-  target?: 'poedb' | 'wiki'
+  target?: ItemTextTarget
 }
+
+/** 2026-11-18:`map-check` = PoE1 地圖詞綴檢查(`hotkeyMapCheck`,overlay 取得焦點、不查價) */
+export type ItemTextTarget = 'poedb' | 'wiki' | 'map-check'
 
 /** APT `MAIN->OVERLAY::focus-change`。 */
 export interface FocusChangeEvent {
@@ -151,6 +154,8 @@ export interface HostConfigForMain {
   hotkeyPoedb?: string
   /** 2026-11-13(移植 APT / EE2 `openWiki`):游標下物品開 poewiki / poe2wiki 頁的熱鍵(註冊條件同 `hotkeyPoedb`) */
   hotkeyWiki?: string
+  /** 2026-11-18(移植 APT map-check):PoE1 地圖詞綴檢查熱鍵(預設空;只在 overlay + PoE1 註冊) */
+  hotkeyMapCheck?: string
   /** 2026-11-09(移植 APT 碼表):計時器開始 / 暫停、歸零熱鍵(預設空;只在 overlay 且 `timerDisplay` 不是 off 時註冊,不送任何按鍵) */
   hotkeyTimerToggle?: string
   hotkeyTimerReset?: string
@@ -396,6 +401,8 @@ export interface OverlayContentState {
   quick?: boolean
   /** 2026-10-08:APT 式懸浮選單(含速查表放大;舊 renderer 沒有這欄 = false) */
   menu?: boolean
+  /** 2026-11-18:PoE1 地圖詞綴檢查(舊 renderer 沒有這欄 = false) */
+  map?: boolean
 }
 
 /** WP-R2:設定頁顯示的掃描統計(`runeshape-stats`)。 */
@@ -478,7 +485,7 @@ export interface ConfigChangedEvent {
  * 第 39 步(設定頁資訊架構整理)起分兩組:設定(一般 / 遊戲 / 查價 / 倉庫與聊天 / 自動辨識 / 熱鍵 / 更新與關於)、
  * 工具(正則 / 拆粉排行 / 記錄)。舊值 `chat` 仍可送(`LegacySettingsTabId`),renderer `resolveSettingsTab` 映射到新分頁。
  */
-export type SettingsTabId = 'general' | 'game' | 'price-check' | 'stash-chat' | 'hotkeys' | 'about' | 'recognition' | 'regex' | 'dust' | 'log'
+export type SettingsTabId = 'general' | 'game' | 'price-check' | 'stash-chat' | 'hotkeys' | 'about' | 'recognition' | 'regex' | 'dust' | 'map-check' | 'log'
 /** 第 39 步前的分頁 id(只剩 `chat` 改名;其餘沿用) */
 export type LegacySettingsTabId = 'chat'
 

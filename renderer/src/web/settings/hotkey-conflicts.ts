@@ -56,6 +56,8 @@ export interface HotkeyConfigLike {
   /** 2026-11-09:物品開 poedb、計時器(計時器在 `timerDisplay` off 時 main 不註冊) */
   hotkeyPoedb?: string
   hotkeyWiki?: string
+  /** 2026-11-18:PoE1 地圖詞綴檢查(只在 overlay + PoE1) */
+  hotkeyMapCheck?: string
   hotkeyTimerToggle?: string
   hotkeyTimerReset?: string
   hotkeyTimerPause?: string
@@ -82,6 +84,7 @@ export function hotkeySlots (c: HotkeyConfigLike): HotkeySlot[] {
     if (c.runeshapeEnabled) slots.push({ id: 'runeshape', hotkey: c.hotkeyRuneshapeToggle })
     slots.push({ id: 'runeRegion', hotkey: c.hotkeyRuneshapeRegion ?? '' })
   } else {
+    slots.push({ id: 'map-check', hotkey: c.hotkeyMapCheck ?? '' })
     slots.push({ id: 'stashToggle', hotkey: c.hotkeyStashToggle ?? '' })
     slots.push({ id: 'stashRegion', hotkey: c.hotkeyStashRegion ?? '' })
   }

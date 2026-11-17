@@ -22,7 +22,7 @@ const SETTINGS_FILES = [...TAB_FILES, ...['SettingsWindow.vue', 'OcrScanSection.
 const OLD_IDS = ['general', 'price-check', 'hotkeys', 'chat', 'regex', 'dust', 'log', 'about']
 
 describe('分頁表與舊 id 映射', () => {
-  it('分頁 id 與 ipc/types.ts 的 SettingsTabId 一致、不重複;兩組依序 = 設定 6 頁 + 工具 4 頁(自動辨識在工具組第一個)', () => {
+  it('分頁 id 與 ipc/types.ts 的 SettingsTabId 一致、不重複;兩組依序 = 設定 6 頁 + 工具 5 頁(自動辨識在工具組第一個;地圖詞綴只在 PoE1)', () => {
     const m = /export type SettingsTabId = ([^\n]+)/.exec(read('ipc/types.ts'))!
     const union = [...m[1].matchAll(/'([a-z-]+)'/g)].map(x => x[1])
     expect(SETTINGS_TABS.map(t => t.id)).toEqual(union)
@@ -30,7 +30,7 @@ describe('分頁表與舊 id 映射', () => {
     expect(SETTINGS_TAB_GROUPS.map(g => g.id)).toEqual(['settings', 'tools'])
     expect(SETTINGS_TABS.filter(t => t.group === 'settings').map(t => t.id)).toEqual(['general', 'game', 'price-check', 'stash-chat', 'hotkeys', 'about'])
     // 2026-10-14 使用者裁定:自動辨識移到「工具」組第一個
-    expect(SETTINGS_TABS.filter(t => t.group === 'tools').map(t => t.id)).toEqual(['recognition', 'regex', 'dust', 'log'])
+    expect(SETTINGS_TABS.filter(t => t.group === 'tools').map(t => t.id)).toEqual(['recognition', 'regex', 'dust', 'map-check', 'log'])
     expect(SETTINGS_TABS.filter(t => t.fill).map(t => t.id)).toEqual(['dust', 'log'])
   })
   it('舊值:chat → 倉庫與聊天;其餘舊 id 沿用;兩個遊戲都對得到看得見的分頁', () => {
@@ -204,7 +204,7 @@ describe('熱鍵總表', () => {
       expect(r.optional === true, r.field).toBe(def === '')
       expect(OPTIONAL_HOTKEY_FIELDS.includes(r.field), r.field).toBe(def === '')
     }
-    expect([...OPTIONAL_HOTKEY_FIELDS].sort()).toEqual(['hotkeyOcrRegion', 'hotkeyPoedb', 'hotkeyRegexQuick', 'hotkeyRuneshapeRegion', 'hotkeyRuneshapeToggle', 'hotkeyStashRegion', 'hotkeyStashToggle', 'hotkeyTimerPause', 'hotkeyTimerReset', 'hotkeyTimerSkip', 'hotkeyTimerToggle', 'hotkeyTimerUndo', 'hotkeyWiki'])
+    expect([...OPTIONAL_HOTKEY_FIELDS].sort()).toEqual(['hotkeyMapCheck', 'hotkeyOcrRegion', 'hotkeyPoedb', 'hotkeyRegexQuick', 'hotkeyRuneshapeRegion', 'hotkeyRuneshapeToggle', 'hotkeyStashRegion', 'hotkeyStashToggle', 'hotkeyTimerPause', 'hotkeyTimerReset', 'hotkeyTimerSkip', 'hotkeyTimerToggle', 'hotkeyTimerUndo', 'hotkeyWiki'])
     // PoE1 倉庫價格兩個熱鍵同樣預設空 = 選填
     const p1 = hotkeyTable(fullConfig('poe1'), { overlay: true }).flatMap(g => g.rows).flatMap(r => r.kind === 'edit' ? [r] : [])
     for (const r of p1) expect(r.optional === true, r.field).toBe((config as unknown as Record<string, unknown>)[r.field] === '')

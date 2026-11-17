@@ -127,6 +127,8 @@ describe('熱鍵總表與衝突檢查(T13)', () => {
         ['poedb', 'hotkeyPoedb', true],
         // 2026-11-13:物品開 wiki
         ['wiki', 'hotkeyWiki', true],
+        // 2026-11-18:PoE1 地圖詞綴檢查
+        ...(game === 'poe1' ? [['map-check', 'hotkeyMapCheck', true]] : []),
         ['timerToggle', 'hotkeyTimerToggle', true],
         ['timerReset', 'hotkeyTimerReset', true],
         // 2026-11-10 speedrun:暫停 / 撤銷 / 跳過
@@ -227,7 +229,7 @@ describe('審查修正(2026-11-09)', () => {
   it('計時器顯示關閉時,熱鍵列標 needs(總表顯示「功能關閉中」)', () => {
     const cfg = { hotkey: 'D', hotkeyHold: 'Ctrl', hotkeyLocked: '', overlayKey: '', game: 'poe1', hotkeyOcrReveal: '', hotkeyOcrRegion: '', hotkeyRuneshapeToggle: '', commands: [], stashSearch: [] } as unknown as HotkeyConfigLike
     const g = hotkeyTable(cfg, { overlay: true }).find(x => x.id === 'tools')!
-    expect(g.rows.map(r => r.kind === 'edit' ? r.needs ?? null : null)).toEqual([null, null, 'timerDisplay', 'timerDisplay', 'timerDisplay', 'timerDisplay', 'timerDisplay'])
+    expect(g.rows.map(r => r.kind === 'edit' ? r.needs ?? null : null)).toEqual([null, null, null, 'timerDisplay', 'timerDisplay', 'timerDisplay', 'timerDisplay', 'timerDisplay'])
     expect(read('renderer/src/web/settings/tabs/Hotkeys.vue')).toContain("needs === 'timerDisplay' ? config.timerDisplay === 'off'")
   })
 })

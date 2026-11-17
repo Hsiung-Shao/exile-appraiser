@@ -448,6 +448,13 @@
     },
     "tab_regex": "正則",
     "tab_dust": "拆粉排行",
+    "tab_map_check": "地圖詞綴",
+    "map_check": {
+      "lead": "先替地圖詞綴標上危險 / 警告 / 好(點右邊的圈),在遊戲裡對地圖按「地圖詞綴檢查」熱鍵時會依標記上色;在那個視窗點詞綴也能直接切換。",
+      "tag_heist": "劫盜",
+      "tag_uber": "換界",
+      "tag_outdated": "過時"
+    },
     "tab_log": "記錄",
     "tab_about": "更新與關於",
     "quit_app": "結束程式",
@@ -1077,6 +1084,7 @@
       "window_only": "其他熱鍵只在 overlay 模式提供。",
       "poedb": "在 poedb 開啟物品",
       "wiki": "在 wiki 開啟物品",
+      "map_check": "地圖詞綴檢查",
       "timer_toggle": "計時器 開始 / 分段",
       "timer_reset": "計時器 歸零",
       "timer_pause": "計時器 暫停 / 繼續",
