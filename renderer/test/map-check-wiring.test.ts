@@ -99,3 +99,11 @@ describe('正則頁的預設書籤與圖層接線(R5、R8)', () => {
     expect(v).toMatch(/@update:bookmark="select"/)
   })
 })
+
+describe('正則書籤改名接線', () => {
+  it('store.renameBookmark 改名前算好、改名後寫回 mapCheckBookmark', () => {
+    const v = read('renderer/src/web/regex/store.ts')
+    const fn = v.slice(v.indexOf('export function renameBookmark'), v.indexOf('export function setBookmarkHotkey'))
+    expect(fn).toMatch(/mapCheckRefAfterRename\(ui\.bookmarks, cfg\.mapCheckBookmark, index, name\)[\s\S]*b\.name = name[\s\S]*cfg\.mapCheckBookmark = mapRef/)
+  })
+})

@@ -45,6 +45,7 @@ import {
 import type { CurrentCombo } from './incoming-share'
 import { Host } from '@/web/background/IPC'
 import { AppConfig } from '@/web/Config'
+import { mapCheckRefAfterRename } from '../map-check-bookmark'
 import { regexBookmarkFolders, regexBookmarkHotkeyList } from './bookmark-hotkeys'
 import { mergeKeptKeys, type KeyList } from './item-mod-keep'
 
@@ -873,7 +874,11 @@ export function updateBookmark (index: number): void {
 export function renameBookmark (index: number, name: string): void {
   const b = ui.bookmarks[index]
   if (!b || !name) return
+  // 2026-11-18:地圖詞綴檢查選的是這個書籤(或同名順位因此改變)→ 設定一起更新
+  const cfg = AppConfig()
+  const mapRef = mapCheckRefAfterRename(ui.bookmarks, cfg.mapCheckBookmark, index, name)
   b.name = name
+  if (mapRef) cfg.mapCheckBookmark = mapRef
   notice.value = { key: 'ppz.regex.notice_renamed', params: { name } }
   scheduleSave()
 }

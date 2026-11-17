@@ -75,3 +75,15 @@ export function normMapCheckBookmark (v: unknown): MapCheckRef | null {
   if (Number.isInteger(o.nth) && (o.nth as number) > 0) ref.nth = o.nth as number
   return ref
 }
+
+/**
+ * 正則書籤改名(`bookmarks[index]` → `name`)後,地圖檢查設定要寫成什麼(使用者要求:改名時一起更新)。
+ * 先找出改名前選中的書籤,改名後重算它的識別;沒選 / 選中的找不到 / 識別沒變 = undefined(不動設定)。
+ */
+export function mapCheckRefAfterRename (bookmarks: readonly RegexBookmark[], ref: MapCheckRef | null, index: number, name: string): MapCheckRef | undefined {
+  const picked = findMapCheckBookmark(mapCheckBookmarks(bookmarks), ref)
+  if (!picked || !bookmarks[index]) return undefined
+  const after = bookmarks.map((b, i) => i === index ? { ...b, name } : b)
+  const next = mapCheckRefOf(after[bookmarks.indexOf(picked)], mapCheckBookmarks(after))
+  return next.name === ref!.name && next.folder === ref!.folder && (next.nth ?? 0) === (ref!.nth ?? 0) ? undefined : next
+}

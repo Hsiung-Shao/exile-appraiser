@@ -4,7 +4,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { pageKeysOf, parseRegexCatalogue, type RegexBookmark } from '@exile-appraiser/regex'
-import { bookmarkLabels, bookmarkMarks, findMapCheckBookmark, mapCheckBookmarks, mapCheckRefOf, markOfStat, normMapCheckBookmark } from '../src/web/map-check-bookmark'
+import { bookmarkLabels, bookmarkMarks, findMapCheckBookmark, mapCheckBookmarks, mapCheckRefAfterRename, mapCheckRefOf, markOfStat, normMapCheckBookmark } from '../src/web/map-check-bookmark'
 import { _roundTripForTest } from '../src/web/Config'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
@@ -90,6 +90,35 @@ describe('同名書籤(審查第 3 輪)', () => {
     const labels = bookmarkLabels(list)
     expect(labels).toEqual(['T16 / 危險', '契約 / 危險', '想要'])
     expect(new Set(labels).size).toBe(labels.length)
+  })
+})
+
+describe('正則書籤改名時一起更新(使用者要求)', () => {
+  const mk = (name: string, folder?: string) => ({ ...bookmark(name, 'map_mods', 'none', ['MapPoisoningMapWorlds']), ...(folder ? { folder } : {}) })
+
+  it('改名的是地圖檢查選中的書籤 → 設定跟著換名字', () => {
+    const list = [mk('危險'), mk('想要')]
+    expect(mapCheckRefAfterRename(list, { folder: '', name: '危險' }, 0, 'T16 危險')).toEqual({ folder: '', name: 'T16 危險' })
+  })
+
+  it('改的是別的書籤 → 不動設定(回 undefined)', () => {
+    const list = [mk('危險'), mk('想要')]
+    expect(mapCheckRefAfterRename(list, { folder: '', name: '危險' }, 1, '別的')).toBeUndefined()
+    expect(mapCheckRefAfterRename(list, null, 0, '別的')).toBeUndefined()
+  })
+
+  it('同資料夾同名:改掉前一個,選中的第二個仍對得到;別的書籤改成同名搶到前面也還是原本那個', () => {
+    const list = [mk('T16'), mk('T16')]
+    // 選第二個(nth 1),把第一個改名 → 第二個變成唯一的 T16(nth 0)
+    expect(mapCheckRefAfterRename(list, { folder: '', name: 'T16', nth: 1 }, 0, 'X')).toEqual({ folder: '', name: 'T16' })
+    const three = [mk('A'), mk('T16')]
+    // 選 T16(index 1),把 index 0 改成 T16 → 原本那個變成同名第二個
+    expect(mapCheckRefAfterRename(three, { folder: '', name: 'T16' }, 0, 'T16')).toEqual({ folder: '', name: 'T16', nth: 1 })
+  })
+
+  it('非地圖頁的書籤改名不影響', () => {
+    const list = [mk('危險'), { name: '藥劑', page: 'flask_mods', game: 'poe1' as const, mode: 'any' as const, lang: 'zh' as const, keys: [], alt: [] }]
+    expect(mapCheckRefAfterRename(list, { folder: '', name: '危險' }, 1, '危險')).toBeUndefined()
   })
 })
 
