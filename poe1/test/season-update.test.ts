@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planRandomSkillGem, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, planRoomNames, planCitadel, planExtraZh, planZhForms, planCondForms, planMercenaryBuilds, EXTRA_ZH_MATCHERS, planGrownPassives, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
+import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planRandomSkillGem, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, planRoomNames, planCitadel, planExtraZh, planZhForms, planCondForms, planMercenaryBuilds, planNamedSlots, EXTRA_ZH_MATCHERS, planGrownPassives, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
 
 /**
  * 賽季更新腳本的純函式測試(合成輸入,不讀 data/)。
@@ -1101,5 +1101,88 @@ describe('planMercenaryBuilds(規則 23:新的傭兵流派)', () => {
       { name: '淵井之軍', refName: 'Chaplain of the Well', namespace: 'MERCENARY_BUILD', icon: '', mercenaryBuild: { skills: [] } }
     ])
     expect(planMercenaryBuilds({ enItems: en, builds, tradeItems }).adds).toEqual([])
+  })
+})
+
+describe('planNamedSlots(規則 22:名稱從寫死變成帶入的句型)', () => {
+  const stat = (ref: string, matchers: any[]) => ({ ref, better: 0, matchers, trade: { ids: { explicit: ['explicit.stat_1'] } } })
+  const row = (key: string, en: string, zh: string) => ({ key, en, zh, handlers: [] })
+  const T = 'timeless_version timeless_seed timeless_keystone'
+  const SH = 'shaper_apparition_ability'
+  const k = (ids: string, cond: string, file = 'stat_descriptions.txt') => `${ids}|${cond}|${file}|0`
+  const ggpkOld = [
+    row(k(T, '5 # 3'), 'Commissioned {1} coins to commemorate Caspiro\\nConquered by the Eternal Empire', '授銜 {1} 個硬幣以紀念卡斯皮羅\\n臣服於不朽帝國'),
+    row(k(T, '5 # 3', 'advanced_mod_stat_descriptions.txt'), 'Commissioned {1} coins to commemorate Caspiro(Cadiro-Victario)\\nConquered by the Eternal Empire', '授銜 {1} 個硬幣以紀念卡斯皮羅(卡迪羅-維多里奧)\\n臣服於不朽帝國'),
+    row(k(SH, '1'), 'Grants Summon Memory\\nGrants Devastation, used by Memory', '賦予召喚記憶\\n賦予毀滅，供記憶使用'),
+    row(k(SH, '1', 'advanced_mod_stat_descriptions.txt'), 'Grants Summon Memory\\nGrants Devastation(Devastation-Ire), used by Memory', '賦予召喚記憶\\n賦予毀滅(毀滅-憤怒)， 供記憶使用'),
+    row(k(SH, '2'), 'Grants Summon Memory\\nGrants Ire, used by Memory', '賦予召喚記憶\\n賦予憤怒，供記憶使用'),
+    row(k(SH, '2', 'advanced_mod_stat_descriptions.txt'), 'Grants Summon Memory\\nGrants Ire(Devastation-Ire), used by Memory', '賦予召喚記憶\\n賦予憤怒(毀滅-憤怒)， 供記憶使用')
+  ]
+  const ggpkNew = [
+    row(k(T, '5 # #'), 'Commissioned {1} coins to commemorate {2}\\nConquered by the {0}', '授銜{1}個硬幣以紀念{2}\\n臣服於{0}'),
+    row(k(T, '5 # #', 'advanced_mod_stat_descriptions.txt'), 'Commissioned {1} coins to commemorate {2}\\nConquered by the {0}', '授銜{1}個硬幣以紀念{2}\\n臣服於{0}'),
+    row(k(SH, '#'), 'Grants [Summon::20|Summon Memory]\\nGrants {0}, used by Memory', '賦予[Summon::20|召喚記憶]\\n賦予{0}，供記憶使用'),
+    row(k(SH, '#', 'advanced_mod_stat_descriptions.txt'), 'Grants [Summon::20|Summon Memory]\\nGrants {0}, used by Memory', '賦予[Summon::20|召喚記憶]\\n賦予{0}， 供記憶使用')
+  ]
+  const enStats = [
+    stat('Commissioned # coins to commemorate Caspiro', [{ string: 'Commissioned # coins to commemorate Caspiro\nConquered by the Eternal Empire', advanced: 'Commissioned # coins to commemorate Caspiro(Cadiro-Victario)\nConquered by the Eternal Empire' }]),
+    stat('Grants Summon Memory\nGrants #, used by Memory', [{ string: 'Grants Summon Memory\nGrants #, used by Memory' }])
+  ]
+  const zhStats = [
+    stat('Commissioned # coins to commemorate Caspiro', [{ string: '授銜 # 個硬幣以紀念卡斯皮羅\n臣服於不朽帝國', advanced: '授銜 # 個硬幣以紀念卡斯皮羅(卡迪羅-維多里奧)\n臣服於不朽帝國' }]),
+    stat('Grants Summon Memory\nGrants #, used by Memory', [{ string: '賦予召喚記憶\n賦予#，供記憶使用' }])
+  ]
+
+  it('永恆珠寶(#29):舊寫法補成新句型(名稱照舊、數字是 #),進階寫法名稱後是「(...)」;舊句標 superseded', () => {
+    const adds = planNamedSlots({ enStats, zhStats, ggpkOld, ggpkNew }).adds.filter((a: any) => a.ref.startsWith('Commissioned'))
+    expect(adds).toEqual([
+      { lang: 'en', ref: 'Commissioned # coins to commemorate Caspiro', matcher: { string: 'Commissioned # coins to commemorate Caspiro\nConquered by the Eternal Empire', advanced: 'Commissioned # coins to commemorate Caspiro(...)\nConquered by the Eternal Empire' }, supersedes: ['Commissioned # coins to commemorate Caspiro\nConquered by the Eternal Empire'] },
+      { lang: 'cmn-Hant', ref: 'Commissioned # coins to commemorate Caspiro', matcher: { string: '授銜#個硬幣以紀念卡斯皮羅\n臣服於不朽帝國', advanced: '授銜#個硬幣以紀念卡斯皮羅(...)\n臣服於不朽帝國' }, supersedes: ['授銜 # 個硬幣以紀念卡斯皮羅\n臣服於不朽帝國'] }
+    ])
+  })
+
+  it('塑界者的記憶(#28):資料只有帶 # 的句型 → 每個技能名補一個帶 value 的寫法(進階寫法名稱後是「(...)」),標 superseded', () => {
+    const adds = planNamedSlots({ enStats, zhStats, ggpkOld, ggpkNew }).adds.filter((a: any) => a.ref.startsWith('Grants'))
+    expect(adds.filter((a: any) => a.lang === 'cmn-Hant')).toEqual([
+      { lang: 'cmn-Hant', ref: 'Grants Summon Memory\nGrants #, used by Memory', matcher: { string: '賦予召喚記憶\n賦予毀滅，供記憶使用', advanced: '賦予召喚記憶\n賦予毀滅(...)， 供記憶使用', value: 1, superseded: true } },
+      { lang: 'cmn-Hant', ref: 'Grants Summon Memory\nGrants #, used by Memory', matcher: { string: '賦予召喚記憶\n賦予憤怒，供記憶使用', advanced: '賦予召喚記憶\n賦予憤怒(...)， 供記憶使用', value: 2, superseded: true } }
+    ])
+    expect(adds.filter((a: any) => a.lang === 'en').map((a: any) => [a.matcher.string, a.matcher.value])).toEqual([
+      ['Grants Summon Memory\nGrants Devastation, used by Memory', 1], ['Grants Summon Memory\nGrants Ire, used by Memory', 2]
+    ])
+  })
+
+  it('天賦範圍名(passive_jewel_radius,issue #20 實機進階複製沒有「(...)」)不加「(...)」;舊句裡名稱自帶的「(甲-乙)」要去掉', () => {
+    const R = 'radius'
+    const old = [
+      row(k(R, '3'), 'Only affects Passives in Large Ring', '只會影響大範圍內的天賦'),
+      row(k(R, '3', 'advanced_mod_stat_descriptions.txt'), 'Only affects Passives in Large Ring(Small-Huge)', '只會影響大範圍內的天賦(小範圍-非常大範圍)'),
+      row(k('kal', '6 # 1'), 'Remembrancing {1} deeds by the line of Medved(Vorana-Medved)', '緬懷由 {1} 位梅德偉(沃拉娜-梅德偉)血脈')
+    ]
+    const neu = [
+      { ...row(k(R, '#'), 'Only affects Passives in {0} Ring', '只會影響{0}範圍內的天賦'), handlers: [['passive_jewel_radius', 1]] },
+      row(k('kal', '6 # #'), 'Remembrancing {1} deeds by the line of {2}', '緬懷由{1}位{2}血脈')
+    ]
+    const zh = [
+      stat('Only affects Passives in Large Ring', [{ string: '只會影響大範圍內的天賦', advanced: '只會影響大範圍內的天賦(小範圍-非常大範圍)' }]),
+      stat('Remembrancing # deeds by the line of Medved', [{ string: '緬懷由 # 位梅德偉(沃拉娜-梅德偉)血脈' }])
+    ]
+    // 舊寫法有進階句時新寫法也要帶(和一般句相同):PoE1 索引對有進階句的寫法只收進階那句,
+    // 不帶的話「同一句已經有了」套不進去、重跑永遠還要加
+    const plan = planNamedSlots({ enStats: [], zhStats: zh, ggpkOld: old, ggpkNew: neu })
+    expect(plan.adds.map((a: any) => a.matcher)).toEqual([
+      { string: '只會影響大範圍內的天賦', advanced: '只會影響大範圍內的天賦' },
+      { string: '緬懷由#位梅德偉血脈', advanced: '緬懷由#位梅德偉(...)血脈' }
+    ])
+    const out = parseRows(applyStatPlan(toFile(zh), 'cmn-Hant', plan))
+    expect(planNamedSlots({ enStats: [], zhStats: out, ggpkOld: old, ggpkNew: neu }).adds).toEqual([])
+  })
+
+  it('套用後重跑為空', () => {
+    const plan = planNamedSlots({ enStats, zhStats, ggpkOld, ggpkNew })
+    const en = parseRows(applyStatPlan(toFile(enStats), 'en', plan))
+    const zh = parseRows(applyStatPlan(toFile(zhStats), 'cmn-Hant', plan))
+    expect(zh[0].matchers.map((m: any) => [m.string, Boolean(m.superseded)])).toEqual([['授銜 # 個硬幣以紀念卡斯皮羅\n臣服於不朽帝國', true], ['授銜#個硬幣以紀念卡斯皮羅\n臣服於不朽帝國', false]])
+    expect(planNamedSlots({ enStats: en, zhStats: zh, ggpkOld, ggpkNew }).adds).toEqual([])
   })
 })

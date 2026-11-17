@@ -982,6 +982,102 @@ export function planCondForms ({ enStats, zhStats, ggpkNew }) {
 }
 
 /**
+ * 規則 22:3.30 把寫死名稱的句子改成帶入名稱的句型(GitHub issue #28 玫瑰的傳承「賦予等級 20 塑界者的毀滅…」、
+ * #29 優雅的高傲「授銜7260個硬幣以紀念卡斯皮羅(...)」)。GGPK 鍵的條件也跟著改了(`5 # 3 1|#` → `5 # # #`),改字規則對不上。
+ * 新版句型(`{n}` 帶入)拿去比對舊版同一個 stat(stat_ids + 描述檔相同)的句子,把名稱抓回來填進新句型;
+ * 舊句裡仍是 `{n}` 的位置當數字(#)。進階寫法:舊進階句裡名稱後面有「(甲-乙)」的,新的進階寫法改成「名稱(...)」。
+ * - 資料的現行寫法逐字等於舊句 → 補新寫法,舊的標 superseded(#29)
+ * - 資料只有帶 # 的新句型(交易站的 # 其實是 1/2/3 的編號,遊戲顯示名稱)→ 每個舊句補一個帶 value(舊句的條件值)的寫法,標 superseded(#28)
+ * 新句已屬於別條詞綴的拒收。英文也照同樣方式推出(英文沒有樣本)。
+ * @returns {{ adds: any[], rejects: any[] }}
+ */
+const NO_ANNOTATE_HANDLERS = ['passive_jewel_radius']
+export function planNamedSlots ({ enStats, zhStats, ggpkOld, ggpkNew }) {
+  const ADV = 'advanced_mod_stat_descriptions.txt'
+  const split = (r) => {
+    const p = r.key.split('|')
+    const fi = p.findIndex(x => x.endsWith('.txt'))
+    return { ...r, ids: p[0], cond: p.slice(1, fi).join('|'), file: p[fi] }
+  }
+  const olds = ggpkOld.map(split)
+  const news = ggpkNew.map(split)
+  const advOf = (rows) => new Map(rows.filter(r => r.file === ADV).map(r => [`${r.ids}|${r.cond}`, r]))
+  const newAdv = advOf(news)
+  const oldByGroup = groupBy(olds.filter(r => ITEM_STAT_FILES.includes(r.file)), r => `${r.ids}|${r.file}`)
+  const unlink = (t) => t.replace(/\\n/g, '\n').replace(/\[[^\]|]*\|([^\]]*)\]/g, '$1')
+  const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const SLOT = /^\{(\d+)(?::[^}]*)?\}$/
+  /** 句型 → 正則:{n} 變成擷取、空白可有可無 */
+  const toRegex = (tpl) => {
+    const slots = []
+    const src = unlink(tpl).split(/(\{\d+(?::[^}]*)?\})/).map(part => {
+      const m = SLOT.exec(part)
+      if (m) { slots.push(Number(m[1])); return '\\s*(.+?)\\s*' }
+      return esc(part).replace(/ +/g, '\\s*')
+    }).join('')
+    return { re: new RegExp(`^${src}$`, 's'), slots }
+  }
+  const fill = (tpl, vals) => unlink(tpl).replace(/\{(\d+)(?::[^}]*)?\}/g, (s, n) => vals[n] ?? s)
+  const adds = []
+  const rejects = []
+  for (const [lang, stats] of /** @type {const} */ ([['en', enStats], ['cmn-Hant', zhStats]])) {
+    const textOf = (r) => lang === 'en' ? r.en : r.zh
+    const newTexts = new Set(news.map(r => textOf(r) && toMatcherText(textOf(r))).filter(Boolean))
+    const texts = new Set([...eachStat(stats)].flatMap(s => [...matcherExact(s)]))
+    const refs = refsByMatcher(stats)
+    /** 舊句的現行寫法 / 新句型(# 版)→ [{ 新句, 新進階句, 舊條件 }] */
+    const byOld = new Map()
+    const byTemplate = new Map()
+    for (const r2 of news) {
+      if (!ITEM_STAT_FILES.includes(r2.file) || !textOf(r2) || !/\{\d/.test(textOf(r2))) continue
+      const { re, slots } = toRegex(textOf(r2))
+      const adv2 = newAdv.get(`${r2.ids}|${r2.cond}`) ?? r2
+      for (const r1 of oldByGroup.get(`${r2.ids}|${r2.file}`) ?? []) {
+        const t1 = textOf(r1)
+        if (!t1 || newTexts.has(toMatcherText(t1))) continue // 舊句新版還在,不是這種改動
+        const m = re.exec(unlink(t1))
+        if (!m) continue
+        const names = {}
+        // 舊句有時把進階的「(甲-乙)」也寫進一般句(卡葛爾:「梅德偉(沃拉娜-梅德偉)」)→ 去掉
+        slots.forEach((n, i) => { if (!SLOT.test(m[i + 1])) names[n] = m[i + 1].replace(/\([^()]*-[^()]*\)$/, '') })
+        if (!Object.keys(names).length) continue
+        // 3.30 進階複製在「會變的名稱」後面加「(...)」(卡斯皮羅、塑界者的毀滅、壁壘、召喚物、隨機寶石的實機樣本);
+        // 條件是固定值的(永恆珠寶的陣營名)不加;天賦範圍名條件會變卻沒有加(issue #20 實機:「只會影響巨大範圍內的天賦」)
+        const conds = r2.cond.split(' ')
+        const annotated = (n) => !/^-?\d+$/.test(conds[n] ?? '') && !r2.handlers?.some(h => h[1] === Number(n) + 1 && NO_ANNOTATE_HANDLERS.includes(h[0]))
+        const advNames = Object.fromEntries(Object.entries(names).map(([n, v]) => [n, annotated(n) ? `${v}(...)` : v]))
+        const entry = { string: toMatcherText(fill(textOf(r2), names)), advanced: toMatcherText(fill(textOf(adv2) ?? textOf(r2), advNames)), cond: r1.cond }
+        ;(byOld.get(toMatcherText(t1)) ?? byOld.set(toMatcherText(t1), []).get(toMatcherText(t1))).push(entry)
+        ;(byTemplate.get(toMatcherText(textOf(r2))) ?? byTemplate.set(toMatcherText(textOf(r2)), []).get(toMatcherText(textOf(r2)))).push(entry)
+      }
+    }
+    // 舊寫法有進階句時新寫法也帶(即使和一般句相同):PoE1 索引對有進階句的寫法只收進階那句
+    const advOrNot = (e, m = {}) => e.advanced !== e.string || m.advanced !== undefined ? { advanced: e.advanced } : {}
+    const done = new Set() // 同一句可能由好幾個舊列(不同條件)推出
+    for (const stat of eachStat(stats)) {
+      for (const m of liveOf(stat)) {
+        for (const e of byOld.get(m.string.trim()) ?? []) {
+          if (e.string === m.string && (e.advanced === (m.advanced ?? m.string))) continue
+          const id = `${stat.ref}\n${e.string}\n${e.advanced}`
+          if (done.has(id)) continue
+          done.add(id)
+          if (e.string !== m.string && (refs.get(cmpKey(e.string)) ?? new Set()).size) { rejects.push({ reason: '新句已屬於別條詞綴', ref: stat.ref, lang, to: e.string }); continue }
+          adds.push({ lang, ref: stat.ref, matcher: { string: e.string, ...advOrNot(e, m), ...flagsOf(m) }, supersedes: [m.string] })
+        }
+        if (m.value !== undefined) continue
+        for (const e of byTemplate.get(m.string.trim()) ?? []) {
+          const value = /^-?\d+$/.test(e.cond) ? Number(e.cond) : undefined
+          if (value === undefined || texts.has(e.string)) continue
+          texts.add(e.string)
+          adds.push({ lang, ref: stat.ref, matcher: { string: e.string, ...advOrNot(e), value, superseded: true } })
+        }
+      }
+    }
+  }
+  return { adds, rejects }
+}
+
+/**
  * 交易站的叫法 ≠ 遊戲內名稱、而且上游那一列是壞的(matcher 帶「Has Room: 」前綴、沒有 option → 遊戲文字永遠對不到):
  * ref → 遊戲內英文名(GGPK incursionrooms;2026-11-16 逐列比對 87 個房間只有這一列)
  */

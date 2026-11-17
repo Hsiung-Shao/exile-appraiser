@@ -296,6 +296,22 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(JSON.stringify(createTradeRequest(preset.filters, preset.stats).query)).toContain('AbyssalTemplar')
   })
 
+  it('D17n GitHub issue #29 的實機文字:永恆珠寶「授銜7260個硬幣以紀念卡斯皮羅(...)」(3.30 句型)解析得到、帶交易站 id、數值 7260', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-29.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(item)).toEqual([])
+    const hit = item.statsByType.find(s => s.stat.ref === 'Commissioned # coins to commemorate Caspiro')
+    expect(hit?.stat.trade.ids.explicit).toEqual(['explicit.pseudo_timeless_jewel_caspiro'])
+    expect(hit?.sources[0].stat.roll?.value).toBe(7260)
+  })
+
+  it('D17o GitHub issue #28 玫瑰的傳承(只有截圖,照截圖的兩行組進階格式):塑界者的毀滅解析成交易站的第 1 個選項', () => {
+    const item = parse(ringText('cmn-Hant', [['{ 傳奇詞綴 }', '賦予等級 20 召喚塑界者的記憶', '賦予等級 20 塑界者的毀滅(...)， 供塑界者的記憶使用 — 無法使用的值']]))
+    expect(unknownOf(item)).toEqual([])
+    const hit = item.statsByType.find(s => s.stat.ref.startsWith('Grants Level 20 Summon Shaper Memory'))
+    expect(hit?.stat.trade.ids.explicit).toEqual(['explicit.stat_367775264'])
+    expect(hit?.sources[0].stat.roll?.value).toBe(1)
+  })
+
   it('D18 破裂的「+#%物品稀有度」(使用者 2026-11-15 貼的實機手套)解析成原詞綴並帶破裂 id', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-fractured-rarity-gloves.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
