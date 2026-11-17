@@ -448,12 +448,13 @@
     },
     "tab_regex": "Regex",
     "tab_dust": "Disenchant ranking",
-    "tab_map_check": "Map mods",
     "map_check": {
-      "lead": "Mark map mods as dangerous / warning / good (click the circles on the right). The map check hotkey colours a map's mods by these marks; clicking a mod in that window cycles its mark too.",
-      "tag_heist": "Heist",
-      "tag_uber": "Uber",
-      "tag_outdated": "Outdated"
+      "bookmark": "Regex bookmark for map check",
+      "pick_bookmark": "Pick a bookmark…",
+      "no_bookmark": "No map mod bookmark yet: tick mods on the Map mods / Heist contracts / Logbook page in Settings › Regex and save a bookmark (exclude mode = red, include = green).",
+      "default_label": "Map check bookmark",
+      "default_none": "(no colours)",
+      "default_lead": "The map check hotkey colours a map's mods with this bookmark: ticked mods are red in exclude mode, green in include mode. You can switch it in the check window too."
     },
     "tab_log": "Log",
     "tab_about": "Updates & about",

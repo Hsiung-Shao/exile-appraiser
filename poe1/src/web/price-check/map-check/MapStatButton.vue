@@ -1,87 +1,45 @@
 <!--
   exile-appraiser:移植自 Awakened PoE Trade `renderer/src/web/map-check/MapStatButton.vue`(MIT,© Alexander Drozdov)。
-  耦合點:標記以 stat ref 為鍵(上游 matcher 字串);ItemModifierText 改用 `@/web/ui/…`(renderer);Tailwind 4 `@reference` 與 class 改名。
+  2026-11-18 起依正則書籤上色:不再點擊循環標記、沒有「已看過」鈕;`mark`(bad = 排除書籤命中 / good = 包含書籤命中)決定底色與圖示。
+  ItemModifierText 改用 `@/web/ui/…`(renderer);Tailwind 4 `@reference`。
 -->
 <template>
-  <div class="flex">
-    <button @click="handleClick" :class="[$style.cycleBtn, btnStyle().bg]">
+  <div class="flex" :data-mark="mark ?? ''">
+    <div :class="[$style.row, btnStyle().bg]">
       <i class="text-center w-4 shrink-0"
         :class="btnStyle().icon" />
       <ItemModifierText class="truncate"
         :text="stat.matcher" :roll="stat.roll" />
-    </button>
-    <button @click="toggleSeenStatus" :class="$style.seenBtn">
-      <i v-if="newStatIconVisible()" class="fas fa-eye-slash"></i>
-    </button>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, useCssModule } from 'vue'
+import { useCssModule } from 'vue'
 import { PreparedStat } from './prepare-map-stats'
-import { nextDecision, decisionCreate, type MapCheckConfig } from './common.js'
 
 import ItemModifierText from '@/web/ui/ItemModifierText.vue'
 
 const props = defineProps<{
   stat: PreparedStat,
-  config: MapCheckConfig
+  mark: 'bad' | 'good' | null
 }>()
 
 const $style = useCssModule()
 
-const entry = computed(() => props.config.selectedStats
-  .find(({ ref }) => ref === props.stat.ref))
-
-const decision = computed<string>({
-  get () {
-    if (!entry.value) return '-'
-    return entry.value.decision[props.config.profile - 1]
-  },
-  set (value) {
-    const newSet = decisionCreate(value, props.config.profile, entry.value?.decision)
-    if (!entry.value) {
-      props.config.selectedStats.push({
-        ref: props.stat.ref,
-        decision: newSet
-      })
-    } else {
-      entry.value.decision = newSet
-    }
-  }
-})
-
-function newStatIconVisible (): boolean {
-  if (props.config.showNewStats) {
-    return (decision.value === '-')
-  }
-  return false
-}
-
-function toggleSeenStatus () {
-  if (props.config.showNewStats) {
-    decision.value = (decision.value === '-') ? 's' : '-'
-  }
-}
-
 function btnStyle () {
-  switch (decision.value) {
-    case 'd': return { bg: $style.danger, icon: 'fas fa-skull-crossbones' }
-    case 'w': return { bg: $style.warn, icon: 'fas fa-exclamation-triangle' }
-    case 'g': return { bg: $style.good, icon: 'fas fa-check' }
+  switch (props.mark) {
+    case 'bad': return { bg: $style.danger, icon: 'fas fa-skull-crossbones' }
+    case 'good': return { bg: $style.good, icon: 'fas fa-check' }
   }
-  return { bg: $style.normal, icon: undefined }
-}
-
-function handleClick () {
-  decision.value = nextDecision(decision.value)
+  return { bg: undefined, icon: undefined }
 }
 </script>
 
 <style lang="postcss" module>
 @reference "../../../../../renderer/src/theme/tailwind.css"; /* exile-appraiser: Tailwind 4,讓 @apply / theme() 認得 utility */
 
-.cycleBtn {
+.row {
   @apply p-2;
   display: flex;
   align-items: center;
@@ -92,21 +50,6 @@ function handleClick () {
   flex: 1;
 
   &.danger { @apply bg-red-700; }
-  &.warn { @apply bg-orange-600; }
   &.good { @apply bg-green-700; }
-
-  &.normal:hover {
-    @apply bg-gray-700;
-  }
-}
-
-.seenBtn {
-  @apply w-8;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  @apply text-gray-600;
-  text-align: center;
-  line-height: 1;
 }
 </style>

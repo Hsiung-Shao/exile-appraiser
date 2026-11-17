@@ -1,10 +1,14 @@
-# 旅程:設定 › 地圖詞綴(PoE1)
+# 旅程:地圖詞綴檢查的書籤設定(PoE1;設定 › 正則 書籤卡片)
 
-1. `preview_start renderer` → 點「設定」→ 左選單「地圖詞綴」(純瀏覽器預設 PoE1 + overlay)。
-2. 找到「地圖含有兩個傳奇頭目」那一列,點第二個圈(危險)。等 1.5 秒(存檔去抖)。
-3. `javascript_tool` 讀 nav / `location.hash` / 「屬性(找到 N 條)」/ `localStorage['exile-appraiser.config'].mapCheck` → 存 `state-after-click.json`。
+2026-11-18 起地圖詞綴檢查依正則書籤上色,設定入口在正則頁,沒有獨立分頁。
+
+1. `preview_start renderer`。`javascript_tool` 往 `localStorage['exile-appraiser.regex_state'].bookmarks` 推兩個書籤後 reload:
+   `{name:'驗證-地圖危險',page:'map_mods',game:'poe1',mode:'none',lang:'zh',keys:['Monsters Poison on Hit'],alt:['被怪物擊中時中毒']}`、
+   `{name:'驗證-藥劑',page:'flask_mods',game:'poe1',mode:'any',lang:'zh',keys:[],alt:[]}`。
+2. 點「設定」→ 左選單「正則」→ 書籤卡片(`[data-regex="bookmarks"]`)PoE1 分頁的 `[data-regex="bm-map-check"] select` 設為「驗證-地圖危險」並送 `change`。等 1.5 秒。
+3. 讀 nav / `location.hash` / 下拉選項與值 / `localStorage['exile-appraiser.config']` 的 `mapCheckBookmark` 與有沒有 `mapCheck` / 說明列 class → 存 `state-after-select.json`。
 4. `node .claude/skills/verify/check-map-check.mjs <證據目錄>`。
 
-收尾:把那一列改回「好」(第三個圈)或清 `localStorage`。
-破壞點建議:`settings-tabs.ts` 拿掉 `map-check` 列 → 斷言「左選單有地圖詞綴」必須 FAIL。
-不涵蓋:熱鍵叫出的 overlay 地圖檢查視窗(要真的 overlay + 遊戲;由 `renderer/test-vue/map-check-mount.test.ts` 掛載測試涵蓋畫面邏輯)。
+收尾:從 regex_state 刪掉兩個「驗證-」書籤、`mapCheckBookmark` 設回 null。
+破壞點建議:`RegexBookmarks.vue` 把 `data-regex="bm-map-check"` 那列的 `v-if` 改成 `false` → 斷言「有地圖檢查書籤列」必須 FAIL。
+不涵蓋:熱鍵叫出的 overlay 地圖檢查視窗(要真的 overlay + 遊戲;`renderer/test-vue/map-check-mount.test.ts` 掛載測試涵蓋畫面邏輯)。

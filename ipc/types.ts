@@ -485,7 +485,7 @@ export interface ConfigChangedEvent {
  * 第 39 步(設定頁資訊架構整理)起分兩組:設定(一般 / 遊戲 / 查價 / 倉庫與聊天 / 自動辨識 / 熱鍵 / 更新與關於)、
  * 工具(正則 / 拆粉排行 / 記錄)。舊值 `chat` 仍可送(`LegacySettingsTabId`),renderer `resolveSettingsTab` 映射到新分頁。
  */
-export type SettingsTabId = 'general' | 'game' | 'price-check' | 'stash-chat' | 'hotkeys' | 'about' | 'recognition' | 'regex' | 'dust' | 'map-check' | 'log'
+export type SettingsTabId = 'general' | 'game' | 'price-check' | 'stash-chat' | 'hotkeys' | 'about' | 'recognition' | 'regex' | 'dust' | 'log'
 /** 第 39 步前的分頁 id(只剩 `chat` 改名;其餘沿用) */
 export type LegacySettingsTabId = 'chat'
 

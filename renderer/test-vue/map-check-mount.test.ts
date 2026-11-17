@@ -1,23 +1,24 @@
 /**
- * PoE1 地圖詞綴檢查(移植 APT map-check,MIT):標記規則、以 ref 為鍵、適用物品、詞綴清單、過時提示、設定頁清單。
- * 真實 data/poe1(繁中)+ 真實地圖剪貼簿;不連網、不送輸入。
+ * PoE1 地圖詞綴檢查(移植 APT map-check,MIT;2026-11-18 起依正則書籤上色):
+ * 適用物品、只列隨機詞綴、書籤命中的上色、新舊寫法、換書籤、沒有書籤的提示。真實 data/poe1(繁中)+ data/regex;不連網、不送輸入。
  */
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { beforeAll, describe, expect, it } from 'vitest'
-import { defineComponent, h, nextTick, reactive } from 'vue'
+import { defineComponent, h, nextTick } from 'vue'
 import { createI18n } from 'vue-i18n'
+import { pageKeysOf, parseRegexCatalogue, type RegexBookmark } from '@exile-appraiser/regex'
 import { nodeDataSource as poe1DataSource } from '../../poe1/src/assets/data/node-source'
 import { poe1Adapter } from '../../poe1/src/index'
 import { ItemCategory, ItemRarity, parseClipboard, type ParsedItem } from '@/parser'
 import { ModifierType } from '@/parser/modifiers'
-import { areaModRows, decisionCreate, decisionHasColor, filterAreaMods, isMapLike, isOutdated, nextDecision, StatTag, type MapCheckConfig } from '@poe1/map-check/common'
-import { prepareMapStat } from '@poe1/map-check/prepare-map-stats'
+import { isMapLike } from '@poe1/map-check/common'
 import MapCheck from '@poe1/map-check/MapCheck.vue'
-import SettingsMaps from '@poe1/map-check/settings-maps.vue'
+import { bookmarkMarks, markOfStat } from '../src/web/map-check-bookmark'
 import { mount, text, findAll, type MiniNode } from './mini-dom'
 
 const ROOT = path.resolve(__dirname, '../..')
+const pages = parseRegexCatalogue(fs.readFileSync(path.join(ROOT, 'data/regex/regex_poe1.json'), 'utf8'), 'poe1').pages
 
 function i18nPlugin () {
   const load = (lang: string) => ({
@@ -35,55 +36,35 @@ const mapWith = (lines: string[]) => [
   '透過個人的地圖裝置來使用這張地圖以前往這個階級或更低的該地圖。每張地圖只能被使用一次。'
 ].join('\n')
 const parse = (t: string) => parseClipboard(t)._unsafeUnwrap()
-const config = (selectedStats: MapCheckConfig['selectedStats'] = []): MapCheckConfig => reactive({ profile: 1, showNewStats: false, selectedStats })
 
-function mountMap (item: ParsedItem, cfg: MapCheckConfig) {
+function bookmark (name: string, mode: RegexBookmark['mode'], ids: string[]): RegexBookmark {
+  const p = pages.find(x => x.id === 'map_mods')!
+  return { name, page: 'map_mods', game: 'poe1', mode, lang: 'zh', ...pageKeysOf(p, ids.map(id => p.entries.findIndex(e => e.id === id))) }
+}
+
+function mountMap (item: ParsedItem, b: RegexBookmark | null, names: string[] = b ? [b.name] : []) {
   const errors: unknown[] = []
   const warns: string[] = []
-  const Root = defineComponent({ setup: () => () => h(MapCheck, { item, config: cfg }) })
+  const picked: string[] = []
+  const marks = bookmarkMarks(pages, b ?? undefined)
+  const Root = defineComponent({
+    setup: () => () => h(MapCheck, {
+      item, bookmarks: names, bookmark: b?.name ?? null,
+      markOf: (stat: { matchers: Array<{ string: string }> }) => markOfStat(marks, stat.matchers),
+      'onUpdate:bookmark': (n: string) => { picked.push(n) }
+    })
+  })
   const m = mount(Root, [i18nPlugin()], (a) => { a.config.errorHandler = (e) => { errors.push(e) }; a.config.warnHandler = (msg) => { warns.push(msg) } })
-  return { ...m, errors, warns }
+  return { ...m, errors, warns, picked }
 }
-const statButtons = (n: MiniNode) => findAll(n, (x: MiniNode) => x.tag === 'button' && findAll(x, (y: MiniNode) => y.tag === 'span').length > 0)
+const byIcon = (cls: string) => (n: MiniNode) => typeof n.attrs.class === 'string' && n.attrs.class.includes(cls)
+const rows = (n: MiniNode) => findAll(n, (x: MiniNode) => x.attrs['data-mark'] !== undefined)
 
 beforeAll(async () => {
   await poe1Adapter.loadData(poe1DataSource(path.join(ROOT, 'data/poe1')), 'cmn-Hant')
 }, 300_000)
 
-describe('標記規則(T1)', () => {
-  it('點一下依序 無 → 危險 → 警告 → 好 → 已看過 → 危險', () => {
-    const seq = ['-']
-    for (let i = 0; i < 5; i++) seq.push(nextDecision(seq[seq.length - 1]))
-    expect(seq).toEqual(['-', 'd', 'w', 'g', 's', 'd'])
-  })
-  it('三組設定檔各存一格,改 II 不動 I', () => {
-    expect(decisionCreate('w', 2, 'd--')).toBe('dw-')
-    expect(decisionCreate('g', 1)).toBe('g--')
-    expect(decisionHasColor('dws', 1)).toBe(true)
-    expect(decisionHasColor('dws', 3)).toBe(false)
-    expect(decisionHasColor('---', 1)).toBe(false)
-  })
-})
-
-describe('以 ref 為鍵(T2)', () => {
-  it('3.30 新舊兩種繁中寫法 → 同一個 ref、同一個標記', async () => {
-    const refs = ['區域會包含一座含有整張地圖的強化蜃景', '區域內含有一座蜃景'].map(line => {
-      const calc = parse(mapWith([line])).statsByType.filter(c => c.type === ModifierType.Explicit)
-      expect(calc.length, line).toBe(1)
-      return prepareMapStat(calc[0]).ref
-    })
-    expect(refs[0]).toBe('Area contains an Empowered Mirage which covers the entire Map')
-    expect(refs[1]).toBe(refs[0])
-    for (const line of ['區域會包含一座含有整張地圖的強化蜃景', '區域內含有一座蜃景']) {
-      const m = mountMap(parse(mapWith([line])), config([{ ref: refs[0], decision: 'd--' }]))
-      await nextTick()
-      expect(findAll(m.container, (n: MiniNode) => typeof n.attrs.class === 'string' && n.attrs.class.includes('fa-skull-crossbones')).length, line).toBe(1)
-      m.app.unmount()
-    }
-  })
-})
-
-describe('適用物品(T3)', () => {
+describe('適用物品', () => {
   const fake = (category: ItemCategory | undefined, rarity: ItemRarity, refName = 'X') => ({ category, rarity, info: { refName } }) as unknown as ParsedItem
   it('非傳奇地圖、契約、藍圖、邀請、探險日誌 → 是;傳奇地圖、裝備 → 不是', () => {
     expect(isMapLike(parse(MAP_RARE))).toBe(true)
@@ -96,29 +77,31 @@ describe('適用物品(T3)', () => {
   })
 })
 
-describe('詞綴清單(T4、T9)', () => {
-  it('只列隨機詞綴,點一下寫進目前設定檔', async () => {
+describe('依書籤上色(R1、R2)', () => {
+  it('排除書籤勾到的那一列標紅,其餘不上色;只列隨機詞綴', async () => {
     const item = parse(MAP_RARE)
-    const cfg = config()
-    const m = mountMap(item, cfg)
+    const m = mountMap(item, bookmark('危險', 'none', ['MapMonsterMultipleProjectilesWorlds']))
     await nextTick()
     expect(m.errors).toEqual([])
     expect(m.warns).toEqual([])
-    const s = text(m.container)
-    expect(s).toContain('核息')
-    expect(s).not.toContain('開創者的記憶')
-    const buttons = statButtons(m.container)
-    const explicit = item.statsByType.filter(c => c.type === ModifierType.Explicit)
-    expect(buttons.length).toBe(explicit.length)
-    ;(buttons[0].attrs.onClick as () => void)()
-    expect(cfg.selectedStats).toEqual([{ ref: prepareMapStat(explicit[0]).ref, decision: 'd--' }])
-    ;(buttons[0].attrs.onClick as () => void)()
-    expect(cfg.selectedStats[0].decision).toBe('w--')
+    expect(text(m.container)).not.toContain('開創者的記憶')
+    const r = rows(m.container)
+    expect(r.length).toBe(item.statsByType.filter(c => c.type === ModifierType.Explicit).length)
+    expect(r.filter(x => x.attrs['data-mark'] === 'bad').map(text)).toEqual([expect.stringContaining('額外投射物')])
+    expect(r.filter(x => x.attrs['data-mark'] === 'good')).toEqual([])
+    expect(findAll(m.container, byIcon('fa-skull-crossbones')).length).toBe(1)
+    m.app.unmount()
+  })
+
+  it('包含書籤勾到的標綠', async () => {
+    const m = mountMap(parse(MAP_RARE), bookmark('想要', 'any', ['MapMonsterMultipleProjectilesWorlds']))
+    await nextTick()
+    expect(rows(m.container).filter(x => x.attrs['data-mark'] === 'good').length).toBe(1)
     m.app.unmount()
   })
 
   it('認不出的隨機詞綴照列', async () => {
-    const m = mountMap(parse(mapWith(['區域內含有不穩定的惡魔觸手', '這一行不是任何詞綴 123'])), config())
+    const m = mountMap(parse(mapWith(['區域內含有不穩定的惡魔觸手', '這一行不是任何詞綴 123'])), null)
     await nextTick()
     expect(text(m.container)).toContain('這一行不是任何詞綴 123')
     expect(text(m.container)).toContain('無法辨識的詞綴')
@@ -126,50 +109,38 @@ describe('詞綴清單(T4、T9)', () => {
   })
 })
 
-describe('過時提示(T5)', () => {
-  it('有顏色的標記對不到資料才算過時;已看過不算', () => {
-    expect(isOutdated(1, { ref: 'No such stat #', decision: 'd--' })).toBe(true)
-    expect(isOutdated(1, { ref: 'No such stat #', decision: 's--' })).toBe(false)
-    expect(isOutdated(1, { ref: 'Monsters reflect #% of Physical Damage', decision: 'd--' })).toBe(false)
-  })
-  it('畫面出現過時提示', async () => {
-    const m = mountMap(parse(MAP_RARE), config([{ ref: 'No such stat #', decision: 'd--' }]))
-    await nextTick()
-    expect(text(m.container)).toContain('有些屬性的敘述已經改過')
-    m.app.unmount()
+describe('3.30 新舊寫法(R3)', () => {
+  it('現行與 superseded 兩種繁中寫法的地圖都被同一個書籤標紅', async () => {
+    const b = bookmark('危險', 'none', ['MapPoisoningMapWorlds'])
+    for (const line of ['被怪物擊中時中毒', '怪物擊中時造成中毒']) {
+      const item = parse(mapWith([line]))
+      expect(item.statsByType.filter(c => c.type === ModifierType.Explicit).length, line).toBe(1)
+      const m = mountMap(item, b)
+      await nextTick()
+      expect(rows(m.container).map(x => x.attrs['data-mark']), line).toEqual(['bad'])
+      m.app.unmount()
+    }
   })
 })
 
-describe('設定頁清單(T10、T12)', () => {
-  it('一個 ref 一列;3.30 新地圖詞綴與劫盜詞綴在清單上', () => {
-    const rows = areaModRows()
-    expect(new Set(rows.map(r => r.ref)).size).toBe(rows.length)
-    expect(rows.find(r => r.ref === "Area contains an Evocator of K'Tash")).toBeDefined()
-    expect(rows.find(r => r.ref === 'Monsters gain # Endurance Charge every 20 seconds')).toBeDefined()
-    expect(rows.some(r => r.tag === StatTag.HeistExclusive)).toBe(true)
-    // 繁中資料:顯示第一個沒被取代的寫法
-    expect(rows.find(r => r.ref === 'Area contains an Empowered Mirage which covers the entire Map')?.matchStr).toBe('區域內含有一座蜃景')
-  })
-
-  it('搜尋(空白分隔都要命中)與只看已標記', () => {
-    const rows = areaModRows()
-    const hit = filterAreaMods(rows, '反射 物理', false, new Set())
-    expect(hit.length).toBeGreaterThan(0)
-    expect(hit.every(r => r.matchStr.includes('反射') && r.matchStr.includes('物理'))).toBe(true)
-    const marked = new Set(["Area contains an Evocator of K'Tash"])
-    expect(filterAreaMods(rows, '', true, marked).map(r => r.ref)).toEqual(["Area contains an Evocator of K'Tash"])
-  })
-
-  it('設定頁掛上:過時的標記排最上面,沒有錯誤', async () => {
-    const cfg = config([{ ref: 'No such stat #', decision: 'd--' }])
-    const errors: unknown[] = []
-    const Root = defineComponent({ setup: () => () => h(SettingsMaps, { config: cfg }) })
-    const m = mount(Root, [i18nPlugin()], (a) => { a.config.errorHandler = (e) => { errors.push(e) } })
+describe('換書籤與沒有書籤(R5)', () => {
+  it('選單列出書籤,選了就往外送名稱', async () => {
+    const m = mountMap(parse(MAP_RARE), bookmark('危險', 'none', ['MapPoisoningMapWorlds']), ['危險', '想要'])
     await nextTick()
-    expect(errors).toEqual([])
-    const s = text(m.container)
-    expect(s).toContain('No such stat #')
-    expect(s.indexOf('No such stat #')).toBeLessThan(s.indexOf('核息'))
+    const sel = findAll(m.container, (n: MiniNode) => n.tag === 'select')
+    expect(sel.length).toBe(1)
+    expect(findAll(sel[0], (n: MiniNode) => n.tag === 'option').map(text)).toEqual(['危險', '想要'])
+    ;(sel[0].attrs.onChange as (e: unknown) => void)({ target: { value: '想要' } })
+    expect(m.picked).toEqual(['想要'])
+    m.app.unmount()
+  })
+
+  it('沒有可用書籤 → 提示到正則存書籤,詞綴照列不上色', async () => {
+    const m = mountMap(parse(MAP_RARE), null, [])
+    await nextTick()
+    expect(m.errors).toEqual([])
+    expect(text(m.container)).toContain('正則')
+    expect(rows(m.container).every(x => x.attrs['data-mark'] === '')).toBe(true)
     m.app.unmount()
   })
 })

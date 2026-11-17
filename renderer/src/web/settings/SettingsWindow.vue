@@ -89,7 +89,6 @@ import RecognitionTab from './tabs/Recognition.vue'
 import HotkeysTab from './tabs/Hotkeys.vue'
 import RegexTab from './tabs/Regex.vue'
 import DustTab from './tabs/Dust.vue'
-import MapCheckTab from './tabs/MapCheck.vue'
 import LogTab from './tabs/Log.vue'
 import AboutTab from './tabs/About.vue'
 import { settingsTab as lastTab, settingsBack, type TabId } from './tabState'
@@ -127,7 +126,6 @@ export default defineComponent({
       about: AboutTab,
       regex: RegexTab,
       dust: DustTab,
-      'map-check': MapCheckTab,
       log: LogTab
     }
     /** 選單:依組(設定 / 工具),目前遊戲看不到的分頁不列(自動辨識只在 PoE2) */

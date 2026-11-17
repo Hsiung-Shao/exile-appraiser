@@ -30,7 +30,7 @@ import { normRoute, presetRoute, type Route } from '../../../core/src/speedrun/r
 import { defaultListingLayout, normListingLayout } from './price-panel/listing-layout'
 import { DEFAULT_SHOW_MECHANISM, normShowMechanism } from './price-panel/mechanism-visibility'
 import { defaultOnlineFilterMemory, normOnlineFilterMemory } from './price-panel/online-filter-memory'
-import { normMapCheck, type MapCheckSettings } from './map-check-config'
+import { normMapCheckBookmark } from './map-check-bookmark'
 
 /** 介面字串語言(與客戶端語言 `language` 分開)。 */
 export type UiLanguage = 'cmn-Hant' | 'en'
@@ -180,8 +180,8 @@ export interface Config {
   hotkeyWiki: string
   /** 2026-11-18(移植 APT map-check):PoE1 游標下地圖的詞綴檢查熱鍵(預設空;只在 overlay + PoE1) */
   hotkeyMapCheck: string
-  /** 地圖詞綴檢查的標記(三組設定檔;鍵 = stat ref)。只在 renderer 用,不進 host-config */
-  mapCheck: MapCheckSettings
+  /** 地圖詞綴檢查用的正則書籤名稱(PoE1;null = 不上色)。檢查視窗裡換書籤也寫這裡。只在 renderer 用,不進 host-config */
+  mapCheckBookmark: string | null
   /** 2026-11-09(移植 APT 碼表):計時器開始 / 暫停、歸零熱鍵(預設空;只在 overlay 且 `timerDisplay` 不是 off) */
   hotkeyTimerToggle: string
   hotkeyTimerReset: string
@@ -410,7 +410,7 @@ function createConfig (): Config {
     hotkeyPoedb: '',
     hotkeyWiki: '',
     hotkeyMapCheck: '',
-    mapCheck: normMapCheck(undefined),
+    mapCheckBookmark: null as string | null,
     hotkeyTimerToggle: '',
     hotkeyTimerReset: '',
     timerDisplay: 'active' as TimerDisplay,
@@ -503,7 +503,7 @@ function serialize (): string {
     hotkeyPoedb: config.hotkeyPoedb,
     hotkeyWiki: config.hotkeyWiki,
     hotkeyMapCheck: config.hotkeyMapCheck,
-    mapCheck: config.mapCheck,
+    mapCheckBookmark: config.mapCheckBookmark,
     hotkeyTimerToggle: config.hotkeyTimerToggle,
     hotkeyTimerReset: config.hotkeyTimerReset,
     timerDisplay: config.timerDisplay,
@@ -651,7 +651,7 @@ function applyLoaded (raw: string) {
   config.hotkeyPoedb = typeof loaded.hotkeyPoedb === 'string' ? loaded.hotkeyPoedb : fresh.hotkeyPoedb
   config.hotkeyWiki = typeof loaded.hotkeyWiki === 'string' ? loaded.hotkeyWiki : fresh.hotkeyWiki
   config.hotkeyMapCheck = typeof loaded.hotkeyMapCheck === 'string' ? loaded.hotkeyMapCheck : fresh.hotkeyMapCheck
-  config.mapCheck = normMapCheck(loaded.mapCheck)
+  config.mapCheckBookmark = normMapCheckBookmark(loaded.mapCheckBookmark)
   config.hotkeyTimerToggle = typeof loaded.hotkeyTimerToggle === 'string' ? loaded.hotkeyTimerToggle : fresh.hotkeyTimerToggle
   config.hotkeyTimerReset = typeof loaded.hotkeyTimerReset === 'string' ? loaded.hotkeyTimerReset : fresh.hotkeyTimerReset
   config.timerDisplay = TIMER_DISPLAYS.includes(loaded.timerDisplay as TimerDisplay) ? loaded.timerDisplay as TimerDisplay : fresh.timerDisplay

@@ -1,42 +1,22 @@
-// 地圖詞綴檢查(PoE1,移植 APT map-check):設定讀寫、熱鍵總表 / 衝突、設定分頁、overlay 閒置回報、App.vue 接線。純函式 / 讀原始碼,不送輸入。
+// 地圖詞綴檢查(PoE1,移植 APT map-check;2026-11-18 起依正則書籤上色):熱鍵讀寫 / 總表 / 衝突、正則頁預設書籤、overlay 閒置回報、App.vue 接線。純函式 / 讀原始碼,不送輸入。
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { _roundTripForTest } from '../src/web/Config'
-import { MAP_CHECK_DEFAULT_STATS } from '../src/web/map-check-config'
 import { OPTIONAL_HOTKEY_FIELDS, hotkeyTable } from '../src/web/settings/hotkey-table'
 import { hotkeySlots, type HotkeyConfigLike } from '../src/web/settings/hotkey-conflicts'
-import { isTabVisible, resolveSettingsTab, SETTINGS_TABS } from '../src/web/settings/settings-tabs'
+import { SETTINGS_TABS } from '../src/web/settings/settings-tabs'
 import { overlayContentKey, overlayContentOf } from '../src/web/overlay/overlay-content'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const read = (p: string) => fs.readFileSync(path.join(root, p), 'utf8')
 
-describe('設定讀寫(T6)', () => {
-  it('全新與舊設定檔 → 熱鍵空、設定檔 I、APT 預設四條(以 ref 為鍵)', () => {
-    for (const raw of [null, '{"game":"poe1"}']) {
-      const { config, serialized } = _roundTripForTest(raw)
-      expect((config as any).hotkeyMapCheck).toBe('')
-      expect((config as any).mapCheck).toEqual({ profile: 1, showNewStats: false, selectedStats: MAP_CHECK_DEFAULT_STATS })
-      expect(JSON.parse(serialized).mapCheck.selectedStats).toEqual(MAP_CHECK_DEFAULT_STATS)
-    }
-    expect(MAP_CHECK_DEFAULT_STATS).toEqual([
-      { ref: 'Players have #% to all maximum Resistances', decision: 'w--' },
-      { ref: 'Monsters reflect #% of Physical Damage', decision: 'd--' },
-      { ref: 'Monsters reflect #% of Elemental Damage', decision: 'd--' },
-      { ref: 'Area contains two Unique Bosses', decision: 'g--' }
-    ])
-  })
-
-  it('壞的標記丟掉、其他保留;設定檔超出 1–3 回 1', () => {
-    const { config, serialized } = _roundTripForTest(JSON.stringify({
-      hotkeyMapCheck: 'Alt + D',
-      mapCheck: { profile: 7, showNewStats: true, selectedStats: [{ ref: 'A', decision: 'd-s' }, { ref: 'B', decision: 'xx' }, { matcher: 'C', decision: 'd--' }, null, { ref: 'A', decision: 'g--' }] }
-    }))
-    expect((config as any).hotkeyMapCheck).toBe('Alt + D')
-    expect((config as any).mapCheck).toEqual({ profile: 1, showNewStats: true, selectedStats: [{ ref: 'A', decision: 'd-s' }] })
-    expect(_roundTripForTest(serialized).config).toMatchObject({ mapCheck: { selectedStats: [{ ref: 'A', decision: 'd-s' }] } })
+describe('熱鍵設定讀寫', () => {
+  it('全新與舊設定檔 → 熱鍵空;設過的值讀得回來', () => {
+    for (const raw of [null, '{"game":"poe1"}']) expect((_roundTripForTest(raw).config as any).hotkeyMapCheck).toBe('')
+    const { serialized } = _roundTripForTest(JSON.stringify({ hotkeyMapCheck: 'Alt + D' }))
+    expect((_roundTripForTest(serialized).config as any).hotkeyMapCheck).toBe('Alt + D')
   })
 })
 
@@ -60,17 +40,14 @@ describe('熱鍵總表、衝突與設定分頁(T7)', () => {
     expect(hotkeySlots(cfg('poe1')).find(s => s.id === 'map-check')?.hotkey).toBe('Alt + D')
   })
 
-  it('設定分頁「地圖詞綴」在工具組、只在 PoE1 顯示', () => {
-    expect(SETTINGS_TABS.find(t => t.id === 'map-check')).toMatchObject({ group: 'tools' })
-    expect(isTabVisible('map-check', 'poe1')).toBe(true)
-    expect(isTabVisible('map-check', 'poe2')).toBe(false)
-    expect(resolveSettingsTab('map-check', 'poe2')).toBe('game')
+  it('沒有獨立的「地圖詞綴」設定分頁(2026-11-18 改用正則書籤)', () => {
+    expect(SETTINGS_TABS.some(t => (t.id as string) === 'map-check')).toBe(false)
   })
 
   it('字串兩語都有', () => {
     for (const lang of ['cmn-Hant', 'en']) {
       const j = JSON.parse(read(`renderer/src/i18n/${lang}.json`))
-      for (const k of ['tab_map_check', 'hk.map_check', 'map_check.tag_heist', 'map_check.tag_uber', 'map_check.tag_outdated', 'map_check.lead']) {
+      for (const k of ['hk.map_check', 'map_check.bookmark', 'map_check.pick_bookmark', 'map_check.no_bookmark', 'map_check.default_label', 'map_check.default_none', 'map_check.default_lead']) {
         expect(k.split('.').reduce((o: any, p) => o?.[p], j.ppz), `${lang} ppz.${k}`).toBeTruthy()
       }
     }
@@ -104,5 +81,21 @@ describe('overlay 閒置回報與 App.vue 接線(T8)', () => {
     expect(returns.length).toBe(2)
     for (const before of returns) expect(before.trimEnd().split('\n').pop()).toMatch(/Host\.focusGame\(\);?$/)
     expect(fn).not.toMatch(/if \(!panelShown\.value\) Host\.focusGame/)
+  })
+})
+
+describe('正則頁的預設書籤與圖層接線(R5、R8)', () => {
+  it('設定 › 正則 書籤卡片(PoE1 分頁)有「地圖檢查書籤」下拉,寫 mapCheckBookmark', () => {
+    const v = read('renderer/src/web/regex/RegexBookmarks.vue')
+    expect(v).toMatch(/v-if="tab === 'poe1'" class="srow" data-regex="bm-map-check"/)
+    expect(v).toContain('setMapCheckBookmark (v: string) { config.mapCheckBookmark = v || null }')
+    expect(v).toContain('mapCheckBookmarks(store.ui.bookmarks)')
+  })
+
+  it('圖層用正則書籤上色,視窗裡換書籤寫回同一個設定', () => {
+    const v = read('renderer/src/web/overlay/MapCheckLayer.vue')
+    expect(v).toContain('bookmarkMarks(pages.value, current.value)')
+    expect(v).toContain('config.mapCheckBookmark = name')
+    expect(v).toMatch(/@update:bookmark="select"/)
   })
 })

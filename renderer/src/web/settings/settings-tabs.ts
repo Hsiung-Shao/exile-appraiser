@@ -19,8 +19,6 @@ export interface SettingsTabDef {
   group: SettingsTabGroup
   /** 只在 PoE2 出現在選單 */
   poe2Only?: boolean
-  /** 只在 PoE1 出現在選單(2026-11-18 地圖詞綴檢查) */
-  poe1Only?: boolean
   /** 內容區不捲動、子元素撐滿(表格 / 清單自己虛擬捲動) */
   fill?: boolean
 }
@@ -36,7 +34,6 @@ export const SETTINGS_TABS: readonly SettingsTabDef[] = [
   { id: 'recognition', key: 'ppz.tab_recognition', group: 'tools' },
   { id: 'regex', key: 'ppz.tab_regex', group: 'tools' },
   { id: 'dust', key: 'ppz.tab_dust', group: 'tools', fill: true },
-  { id: 'map-check', key: 'ppz.tab_map_check', group: 'tools', poe1Only: true },
   { id: 'log', key: 'ppz.tab_log', group: 'tools', fill: true }
 ]
 
@@ -56,7 +53,7 @@ const IDS = new Set<string>(SETTINGS_TABS.map(t => t.id))
 /** 這一頁在目前遊戲會不會出現在選單 */
 export function isTabVisible (id: SettingsTabId, game: 'poe1' | 'poe2'): boolean {
   const def = SETTINGS_TABS.find(t => t.id === id)
-  return !!def && (!def.poe2Only || game === 'poe2') && (!def.poe1Only || game === 'poe1')
+  return !!def && (!def.poe2Only || game === 'poe2')
 }
 
 /** 目前遊戲在選單上的分頁(依組、依順序) */
