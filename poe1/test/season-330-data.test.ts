@@ -296,6 +296,16 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(JSON.stringify(createTradeRequest(preset.filters, preset.stats).query)).toContain('AbyssalTemplar')
   })
 
+  it('D17p GitHub issue #17 留言「未鑑定時也是」:未鑑定的壁壘地圖(依 #17 實機文字拿掉隨機詞綴)也解析得到壁壘固定詞綴', () => {
+    const text = ['物品種類: 地圖', '稀有度: 稀有', '地圖（階級 16）', '--------', '物品等級: 83', '--------', '怪物等級：83', '--------',
+      '{ 固定詞綴 }', '地圖含有奧赫茲明的壁壘(...) — 無法使用的值', '--------', '未鑑定', '--------',
+      '透過個人的地圖裝置來使用這張地圖以前往這個階級或更低的該地圖。每張地圖只能被使用一次。'].join('\n') + '\n'
+    const item = parse(text)
+    expect(item.isUnidentified).toBe(true)
+    expect(unknownOf(item)).toEqual([])
+    expect(item.statsByType.find(s => s.stat.ref.startsWith("Map contains Al-Hezmin's Citadel"))?.stat.trade.ids.implicit).toEqual(['implicit.stat_2563183002|3'])
+  })
+
   it('D17n GitHub issue #29 的實機文字:永恆珠寶「授銜7260個硬幣以紀念卡斯皮羅(...)」(3.30 句型)解析得到、帶交易站 id、數值 7260', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-29.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
