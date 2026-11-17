@@ -5,7 +5,7 @@
 1. `preview_start renderer`。`javascript_tool` 往 `localStorage['exile-appraiser.regex_state'].bookmarks` 推兩個書籤後 reload:
    `{name:'驗證-地圖危險',page:'map_mods',game:'poe1',mode:'none',lang:'zh',keys:['Monsters Poison on Hit'],alt:['被怪物擊中時中毒']}`、
    `{name:'驗證-藥劑',page:'flask_mods',game:'poe1',mode:'any',lang:'zh',keys:[],alt:[]}`。
-2. 點「設定」→ 左選單「正則」→ 書籤卡片(`[data-regex="bookmarks"]`)PoE1 分頁的 `[data-regex="bm-map-check"] select` 選「驗證-地圖危險」那個選項(值 = 清單索引)並送 `change`。等 1.5 秒。
+2. 點「設定」→ 左選單「正則」→ 先記下 `[data-regex="bm-map-check"] select` 目前選中的文字(`autoBefore`;沒選過 + 只有一個地圖書籤 = 自動選)→ 書籤卡片(`[data-regex="bookmarks"]`)PoE1 分頁的 `[data-regex="bm-map-check"] select` 選「驗證-地圖危險」那個選項(值 = 清單索引)並送 `change`。等 1.5 秒。
 3. 讀 nav / `location.hash` / 下拉選項與選中文字(`selectedLabel`) / `localStorage['exile-appraiser.config']` 的 `mapCheckBookmark`(`{ folder, name }`)與有沒有 `mapCheck` / 說明列 class → 存 `state-after-select.json`。
 4. `node .claude/skills/verify/check-map-check.mjs <證據目錄>`。
 
