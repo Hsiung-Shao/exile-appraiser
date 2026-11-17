@@ -654,6 +654,29 @@ export function planTradeBases ({ enItems, baseOld, baseNew, tradeItems }) {
   return { adds, rejects }
 }
 
+/**
+ * 規則 23:新的傭兵流派(GitHub issue #26:3.30「淵井之軍」→ 解析器丟「Unknown Mercenary Build.」、整件解析失敗)。
+ * 交易站 items 有 `disc: mercenary_warrant`、資料沒有這個 tradeType 的契約書類型,而 GGPK `mercenarybuilds` 有同 ident 的流派名
+ * → 兩語各補一列流派(MERCENARY_BUILD)與一列契約書(ITEM,欄位照既有契約書列)。
+ * 流派的技能清單(主要 / 次要 / 輔助)沒有資料來源 → 留空;篩選遇到清單外的技能用預設類型(mercenary.ts)。
+ * 萬惡版(`…Noble`)要指到原版流派,原版還沒有就拒收。
+ * @returns {{ adds: { refName: string, zh: string, tradeType: string }[], rejects: any[] }}
+ */
+export function planMercenaryBuilds ({ enItems, builds, tradeItems }) {
+  const have = new Set(enItems.filter(i => i.refName === 'Mercenary Warrant').map(i => i.tradeType))
+  const byIdent = new Map(builds.map(b => [b.ident, b]))
+  const adds = []
+  const rejects = []
+  for (const e of tradeItems) {
+    if (e.disc !== 'mercenary_warrant' || have.has(e.type)) continue
+    have.add(e.type)
+    const b = byIdent.get(e.type)
+    if (!b?.zh) rejects.push({ reason: e.type.endsWith('Noble') ? '萬惡版流派(原版還沒有)' : 'GGPK 沒有這個流派', id: e.type, to: e.text })
+    else adds.push({ refName: b.en, zh: b.zh, tradeType: e.type })
+  }
+  return { adds, rejects }
+}
+
 /** 新的一般技能寶石的等級上限(人工確認;GitHub issue #19「連結：秘能」查價整件認不出來)@type {Record<string, number>} */
 export const NEW_GEM_MAX_LEVEL = { 'Arcane Link': 20 }
 
@@ -1120,9 +1143,11 @@ export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove
  * 套用物品計畫(renames / adds)到一份 items.ndjson 文字
  * @param {string} fileText
  * @param {'en' | 'cmn-Hant'} lang
- * @param {{ renames?: any[], adds?: any[], uniques?: any[], bases?: any[], gems?: any[], zhNames?: any[] }} [plan]
+ * @param {{ renames?: any[], adds?: any[], uniques?: any[], bases?: any[], gems?: any[], zhNames?: any[], builds?: any[] }} [plan]
  */
-export function applyItemPlan (fileText, lang, { renames = [], adds = [], uniques = [], bases = [], gems = [], zhNames = [] } = {}) {
+export function applyItemPlan (fileText, lang, { renames = [], adds = [], uniques = [], bases = [], gems = [], zhNames = [], builds = [] } = {}) {
+  let warrant // 既有的契約書列,新流派的契約書照它抄欄位
+  const warrantTypes = new Set()
   const zhName = new Map(lang === 'cmn-Hant' ? zhNames.map(z => [z.refName, z.zh]) : [])
   const byFrom = new Map(renames.map(r => [r.from, r]))
   const have = new Set()
@@ -1136,6 +1161,7 @@ export function applyItemPlan (fileText, lang, { renames = [], adds = [], unique
       item.tradeTag = r.tradeTag
     }
     have.add(item.refName)
+    if (item.refName === 'Mercenary Warrant') { warrant ??= item; warrantTypes.add(item.tradeType) }
     if (item.namespace === 'GEM') gemIcon.set(item.refName, item.icon)
     const z = item.namespace === 'UNIQUE' ? zhName.get(item.refName) : undefined
     if (z && item.name !== z) {
@@ -1159,5 +1185,26 @@ export function applyItemPlan (fileText, lang, { renames = [], adds = [], unique
       ? { name: nameOf(g.refName, g.zh), refName: g.refName, namespace: 'GEM', tradeDisc: g.disc, icon: gemIcon.get(g.normal) ?? g.icon, gem: { transfigured: true, normalVariant: g.normal, maxLevel: g.maxLevel } }
       : { name: nameOf(g.refName, g.zh), refName: g.refName, namespace: 'GEM', gem: { maxLevel: g.maxLevel } })
   }
-  return fresh.length ? rewriteLines(text, () => false, fresh) : text
+  const warrants = []
+  for (const b of builds) {
+    if (!warrant || warrantTypes.has(b.tradeType)) continue
+    warrants.push({ ...warrant, disc: { ...warrant.disc, sectionText: nameOf(b.refName, b.zh) }, tradeType: b.tradeType })
+    if (!have.has(b.refName)) fresh.push({ name: nameOf(b.refName, b.zh), refName: b.refName, namespace: 'MERCENARY_BUILD', icon: '', mercenaryBuild: { skills: [] } })
+  }
+  const out = fresh.length ? rewriteLines(text, () => false, fresh) : text
+  // 最後一列契約書是沒有條件的通用列(disc 空):挑變體時對什麼都成立 → 新流派排在最後一列帶 tradeType 的契約書後面
+  return warrants.length ? insertAfterLast(out, l => l.includes('"refName":"Mercenary Warrant"') && l.includes('"tradeType":'), warrants) : out
+}
+
+/**
+ * 在最後一列符合 isAnchor 的列後面插入新列。名稱索引對同名同 refName 的列只收第一列,
+ * 其餘變體(契約書的各流派)靠相鄰列讀到 → 新變體不能放檔尾。
+ */
+function insertAfterLast (fileText, isAnchor, rows) {
+  const eol = fileText.includes('\r\n') ? '\r\n' : '\n'
+  const lines = fileText.split(eol)
+  let at = -1
+  lines.forEach((l, i) => { if (isAnchor(l)) at = i })
+  lines.splice(at + 1, 0, ...rows.map(r => JSON.stringify(r)))
+  return lines.join(eol)
 }

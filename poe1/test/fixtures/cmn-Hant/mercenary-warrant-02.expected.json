@@ -717,6 +717,17 @@
       "tradeType": "EleBowRangerLightning"
     },
     {
+      "disc": {
+        "sectionText": "淵井之軍"
+      },
+      "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
+      "name": "傭兵契約書",
+      "namespace": "ITEM",
+      "refName": "Mercenary Warrant",
+      "tradeDisc": "mercenary_warrant",
+      "tradeType": "AbyssalTemplar"
+    },
+    {
       "disc": {},
       "icon": "https://webtw.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWVyY2VuYXJ5V2FycmFudCIsInciOjEsImgiOjEsInNjYWxlIjoxfV0/5cf435d2d3/MercenaryWarrant.png",
       "name": "傭兵契約書",

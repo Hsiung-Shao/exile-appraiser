@@ -68,7 +68,12 @@ def main():
         "where o.version_id = ? and n.version_id = ? and o.tbl = 'incursionrooms' and o.col = 'Name' and o.en <> n.en "
         'order by o.en, n.en', (old, new))]
 
-    data = {'old': meta(old), 'new': meta(new), 'words': words, 'gems': gems, 'skills': skills, 'supports': supports, 'rooms': rooms, 'renames': renames, 'strings': strings,
+    # 傭兵流派名(規則 23;ident = 交易站契約書的 type)
+    builds = [{'ident': i, 'en': en, 'zh': zh} for i, en, zh in c.execute(
+        "select ident, en, zh_tw from cell where version_id = ? and tbl = 'mercenarybuilds' and col = 'Name' "
+        'and ident is not null order by ident', (new,))]
+
+    data = {'old': meta(old), 'new': meta(new), 'builds': builds, 'words': words, 'gems': gems, 'skills': skills, 'supports': supports, 'rooms': rooms, 'renames': renames, 'strings': strings,
             'stats': {'old': stats(old), 'new': stats(new)},
             'base': {'old': base(old), 'new': base(new)}}
     with open(out, 'w', encoding='utf-8', newline='\n') as f:

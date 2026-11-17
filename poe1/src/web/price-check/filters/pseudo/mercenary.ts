@@ -34,8 +34,10 @@ export function createMercenaryFilters (item: ParsedItem): FilterOrGroup[] {
     supports = rawSupports.filter(support =>
       !support.stat.mercenary!.syntheticFamily || support.stat.mercenary!.tier === 3)
 
+    // exile-appraiser: 新流派(3.30 淵井之軍,GitHub issue #26)的技能清單沒有資料來源、留空;
+    // 上游假設一定找得到 → 篩選整個出錯。找不到就當次要技能(不影響查詢條件,只影響標籤)
     const skillType = mercenaryBuild.skills.find(buildSkill =>
-      buildSkill.name === skill.stat.ref)!.type
+      buildSkill.name === skill.stat.ref)?.type ?? 'secondary'
     const skillFilter = skillToFilter({
       stat: skill.stat,
       type: skillType,

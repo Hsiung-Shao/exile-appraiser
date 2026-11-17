@@ -15,7 +15,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
-import { BETTER_OVERRIDES, eachStat, applyItemPlan, applyStatPlan, planDeadIds, planGems, planItems, planExtraZh, planZhForms, planCondForms, planEffectStats, planFillIds, planGrantsSkill, planMinionDoubled, planRandomSkillGem, planCitadel, planUniqueZhNames, planNewStats, planStatText, planSupportGemNames, planGrownPassives, planRoomNames, planTypeIds, planTradeBases, planTradeText, planUniques } from './lib.mjs'
+import { BETTER_OVERRIDES, eachStat, applyItemPlan, applyStatPlan, planDeadIds, planGems, planItems, planMercenaryBuilds, planExtraZh, planZhForms, planCondForms, planEffectStats, planFillIds, planGrantsSkill, planMinionDoubled, planRandomSkillGem, planCitadel, planUniqueZhNames, planNewStats, planStatText, planSupportGemNames, planGrownPassives, planRoomNames, planTypeIds, planTradeBases, planTradeText, planUniques } from './lib.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(HERE, '../..')
@@ -91,8 +91,9 @@ const items = planItems({ enItems: rows(text['en/items']), baseOld: ggpk.base.ol
 const bases = planTradeBases({ enItems: rows(text['en/items']), baseOld: ggpk.base.old, baseNew: ggpk.base.new, tradeItems })
 const uniques = planUniques({ enItems: rows(applyItemPlan(text['en/items'], 'en', { bases: bases.adds })), tradeItems, words: ggpk.words })
 const gems = planGems({ enItems: rows(text['en/items']), tradeItems, gems: ggpk.gems, skills: ggpk.skills })
+const builds = planMercenaryBuilds({ enItems: rows(text['en/items']), builds: ggpk.builds ?? [], tradeItems })
 const zhNames = planUniqueZhNames({ zhItems: rows(text['cmn-Hant/items']), words: ggpk.words })
-const itemPlan = { ...items, bases: bases.adds, uniques: uniques.adds, gems: gems.adds, zhNames }
+const itemPlan = { ...items, bases: bases.adds, uniques: uniques.adds, gems: gems.adds, zhNames, builds: builds.adds }
 const betterFix = [...eachStat(afterB)].filter(s => s.ref in BETTER_OVERRIDES && s.better !== BETTER_OVERRIDES[s.ref]).length
 const fill = planFillIds({ enStats: afterB, tradeStats })
 const typeIds = planTypeIds({ enStats: afterB, tradeStats })
@@ -101,7 +102,7 @@ newStats.push(...grown.newStats)
 const extraIds = { ...typeIds.extra }
 for (const [ref, ids] of Object.entries(grown.extra)) for (const [type, list] of Object.entries(ids)) ((extraIds[ref] ??= {})[type] ??= []).push(...list)
 const statPlan = { adds, replace: dead.replace, remove: dead.remove, newStats, better: BETTER_OVERRIDES, fill, extra: extraIds, option: roomNames.option }
-const rejects = [...ruleA.rejects.map(r => ({ rule: '改字 A', ...r })), ...ruleB.rejects.map(r => ({ rule: '改字 B', ...r })), ...dead.rejects.map(r => ({ rule: '失效 id', ...r })), ...gemNames.rejects.map(r => ({ rule: '輔助寶石名', ...r })), ...grants.rejects.map(r => ({ rule: '賦予技能', ...r })), ...zhForms.rejects.map(r => ({ rule: 'GGPK 繁中句子', ...r })), ...condForms.rejects.map(r => ({ rule: 'GGPK 數值寫法', ...r })), ...effects.rejects.map(r => ({ rule: 'effect 新 id', ...r })), ...typeIds.rejects.map(r => ({ rule: '掛上缺的類型 id', ...r })), ...grown.rejects.map(r => ({ rule: '洗出的塗油天賦', ...r })), ...bases.rejects.map(r => ({ rule: '新底材', ...r })), ...uniques.rejects.map(r => ({ rule: '新傳奇', ...r })), ...gems.rejects.map(r => ({ rule: '新變異寶石', ...r }))]
+const rejects = [...ruleA.rejects.map(r => ({ rule: '改字 A', ...r })), ...ruleB.rejects.map(r => ({ rule: '改字 B', ...r })), ...dead.rejects.map(r => ({ rule: '失效 id', ...r })), ...gemNames.rejects.map(r => ({ rule: '輔助寶石名', ...r })), ...grants.rejects.map(r => ({ rule: '賦予技能', ...r })), ...zhForms.rejects.map(r => ({ rule: 'GGPK 繁中句子', ...r })), ...condForms.rejects.map(r => ({ rule: 'GGPK 數值寫法', ...r })), ...effects.rejects.map(r => ({ rule: 'effect 新 id', ...r })), ...typeIds.rejects.map(r => ({ rule: '掛上缺的類型 id', ...r })), ...grown.rejects.map(r => ({ rule: '洗出的塗油天賦', ...r })), ...bases.rejects.map(r => ({ rule: '新底材', ...r })), ...uniques.rejects.map(r => ({ rule: '新傳奇', ...r })), ...gems.rejects.map(r => ({ rule: '新變異寶石', ...r })), ...builds.rejects.map(r => ({ rule: '傭兵流派', ...r }))]
 
 const count = (list, lang) => list.filter(a => a.lang === lang).length
 const summary = [
@@ -119,7 +120,7 @@ const summary = [
   `GGPK 繁中句子(規則 20):+${zhForms.adds.length} 個 matcher、拒收 ${zhForms.rejects.length}`,
   `失效 id:替換 ${Object.keys(dead.replace).length}、移除 ${dead.remove.length}`,
   `新詞綴:${newStats.length} 列;方向校正 ${betterFix} 條;補交易站 id ${Object.keys(fill).length} 條`,
-  `物品:改名 ${items.renames.length}、新增 ${items.adds.length}、新底材 ${bases.adds.length}、新傳奇 ${uniques.adds.length}、新變異寶石 ${gems.adds.length}、傳奇繁中改名 ${zhNames.length}`,
+  `物品:改名 ${items.renames.length}、新增 ${items.adds.length}、新底材 ${bases.adds.length}、新傳奇 ${uniques.adds.length}、新變異寶石 ${gems.adds.length}、傭兵流派 ${builds.adds.length}、傳奇繁中改名 ${zhNames.length}`,
   `拒收(沒改資料):${rejects.length}`
 ]
 console.log(summary.join('\n'))

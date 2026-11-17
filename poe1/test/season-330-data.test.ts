@@ -6,6 +6,8 @@ import { init, loadForLang } from '@/assets/data'
 import { parseClipboard } from '@/parser'
 import type { ParsedItem } from '@/parser/ParsedItem'
 import { statSourcesTotal, translateStatWithRoll } from '@/parser/modifiers'
+import { createPresets } from '@/web/price-check/filters/create-presets'
+import { createTradeRequest } from '@/web/price-check/trade/pathofexile-trade'
 
 /**
  * 3.30 賽季資料回歸:用真實 `data/poe1` 驗證詞綴新舊寫法都解析得到、
@@ -283,6 +285,15 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     const item = parse(text)
     expect(unknownOf(item)).toEqual([])
     expect(item.statsByType.find(s => s.stat.ref === 'Monsters prevent +#% of Suppressed Spell Damage')?.sources[0].stat.roll?.value).toBe(-5)
+  })
+
+  it('D17m GitHub issue #26 的實機文字:3.30 新流派「淵井之軍」的契約書解析得到、篩選建得出來、查詢帶這個流派的類型', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-26.cmn-Hant.txt'), 'utf8'))
+    expect(item.mercenaryBuild?.refName).toBe('Chaplain of the Well')
+    expect(unknownOf(item)).toEqual([])
+    const preset = createPresets(item, { league: 'Standard', currency: null, collapseListings: 'api', activateStockFilter: false, searchStatRange: 10, useEn: false, merchantOnly: false }).presets[0]
+    expect(preset.stats.filter(s => 'group' in s && s.group === 'mercenary').length + preset.stats.filter(s => !('group' in s)).length).toBeGreaterThan(0)
+    expect(JSON.stringify(createTradeRequest(preset.filters, preset.stats).query)).toContain('AbyssalTemplar')
   })
 
   it('D18 破裂的「+#%物品稀有度」(使用者 2026-11-15 貼的實機手套)解析成原詞綴並帶破裂 id', () => {
