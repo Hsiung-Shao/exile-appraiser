@@ -9,20 +9,8 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { AppConfig, hotkeyRegistration } from '@/web/Config'
-import { hotkeyIssues, hotkeySlots, normalizeHotkey } from './hotkey-conflicts'
+import { SLOT_LABEL, hotkeyIssues, hotkeySlots, normalizeHotkey } from './hotkey-conflicts'
 import { regexBookmarkHotkeyList } from '@/web/regex/bookmark-hotkeys'
-
-/** 衝突對象的顯示名稱(i18n 鍵) */
-const SLOT_LABEL: Record<string, string> = {
-  quick: 'ppz.hotkey',
-  locked: 'ppz.hotkey_locked',
-  overlay: 'ppz.overlay_key',
-  ocr: 'ppz.scan.slot_reveal_pause',
-  region: 'ppz.scan.slot_reveal_region',
-  runeshape: 'ppz.scan.slot_rune_pause',
-  runeRegion: 'ppz.scan.slot_rune_region',
-  regexQuick: 'ppz.regex.quick_hotkey'
-}
 
 export function useHotkeyIssues () {
   const { t } = useI18n()

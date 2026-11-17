@@ -127,3 +127,28 @@ export function hotkeyIssues (slots: HotkeySlot[]): Map<string, HotkeyIssue> {
   }
   return out
 }
+
+/**
+ * 衝突對象的顯示名稱(i18n 鍵;`useHotkeyIssues` 的「與「X」重複」)。每個固定 slot id 都要有(守門 `renderer/test/hotkey-slot-labels.test.ts`);
+ * 動態列(`cmd:` / `stash:` / `rxbm:`)顯示指令 / 書籤文字。文字與熱鍵總表(`hotkey-table.ts`)同一組鍵。
+ */
+export const SLOT_LABEL: Readonly<Record<string, string>> = {
+  quick: 'ppz.hotkey',
+  locked: 'ppz.hotkey_locked',
+  overlay: 'ppz.overlay_key',
+  ocr: 'ppz.scan.slot_reveal_pause',
+  region: 'ppz.scan.slot_reveal_region',
+  runeshape: 'ppz.scan.slot_rune_pause',
+  runeRegion: 'ppz.scan.slot_rune_region',
+  stashToggle: 'ppz.scan.slot_stash_pause',
+  stashRegion: 'ppz.scan.slot_stash_region',
+  regexQuick: 'ppz.regex.quick_hotkey',
+  poedb: 'ppz.hk.poedb',
+  wiki: 'ppz.hk.wiki',
+  'map-check': 'ppz.hk.map_check',
+  timerToggle: 'ppz.hk.timer_toggle',
+  timerReset: 'ppz.hk.timer_reset',
+  timerPause: 'ppz.hk.timer_pause',
+  timerUndo: 'ppz.hk.timer_undo',
+  timerSkip: 'ppz.hk.timer_skip'
+}
