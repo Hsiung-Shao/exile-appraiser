@@ -67,4 +67,16 @@ describe('武器 / 防具的品質條件', () => {
       expect(quality(createTradeRequest(p).query), p.id).toEqual({ min: 30 })
     }
   }, 180_000)
+
+  // 使用者 2026-11-18 裁定:傳奇品質 > 20 也預設勾品質;失敗代表傳奇被排除
+  it('Q5 品質 28 的傳奇頭盔同樣預設勾品質、送 quality.min = 28', async () => {
+    await init('en')
+    const text = ['Item Class: Helmets', 'Rarity: Unique', 'Goldrim', 'Leather Cap', '--------', 'Quality: +28% (augmented)',
+      'Evasion Rating: 40 (augmented)', '--------', 'Item Level: 70', '--------', '+38(30-50) to Evasion Rating',
+      '10% increased Rarity of Items found', '+36(30-40)% to all Elemental Resistances', 'Reflects 4 Physical Damage to Melee Attackers'].join('\n') + '\n'
+    const { presets, active } = createPresets(parse(text), { ...OPTS, clientLanguage: 'en' as const })
+    const preset = presets.find(p => p.id === active)!
+    expect(preset.filters.quality).toEqual({ value: 28, disabled: false })
+    expect(quality(createTradeRequest(preset).query)).toEqual({ min: 28 })
+  }, 180_000)
 })
