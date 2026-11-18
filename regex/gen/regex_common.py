@@ -110,6 +110,19 @@ def read_i32_array(t: datzh.Table, row: int, off: int) -> list[int]:
     return [struct.unpack_from("<i", t.var, ptr + i * 4)[0] for i in range(cnt)]
 
 
+# 列寬與 schema 不同、但本產生器讀的欄位都在改動點之前(位置不變)的表:(schema 列寬, 實際列寬)。
+# 只有逐欄驗證過的才放行,其他漂移照舊拒絕。驗證方法:3.29.3.3 與 3.30.0.1 的 .datc64 以 Id 對齊共有列,逐欄比對同位置的值。
+# - Mods 654 → 692:0–653 每個數值欄位位置相同、陣列元素數一致(40221 條)→ 38 bytes 全在表尾(本機 Supabase ggpk_row_table 也記 654 / 692)。
+# - BaseItemTypes 374 → 373:0–292 位置相同(5461 條),293 起整體前移 1 byte;本產生器只讀 Id / ItemClassesKey / Name / FlavourTextKey / Implicit_ModsKeys(0–83)。
+# - PassiveSkills 354 → 409:0–353 每個數值欄位位置相同(5706 條)→ 55 bytes 全在表尾;本產生器只讀 Id / Name / Stats。
+# - GrantedEffects 235 → 259:0–234 位置相同(12829 條)→ 24 bytes 全在表尾;讀 Id / IsSupport / ActiveSkill(0–114)。
+# - WorldAreas 662 → 646:數值欄位到 526 都相同(1922 條);讀 Id / Name / SpawnWeight_*(0–227)。
+VERIFIED_DRIFT: dict[str, tuple[int, int]] = {
+    "mods": (654, 692), "baseitemtypes": (374, 373), "passiveskills": (354, 409),
+    "grantedeffects": (235, 259), "worldareas": (662, 646),
+}
+
+
 class SchemaTables:
     """Tables read through the community schema, with the row size checked
     before any numeric column is trusted (agent-data
@@ -127,9 +140,13 @@ class SchemaTables:
     def table(self, name: str, tc: bool = False, strict: bool = True) -> datzh.Table:
         key = (name.lower(), tc)
         if key not in self._cache:
-            t = datzh.Table((self.data_tc if tc else self.data_en) / f"{name.lower()}.datc64")
+            path = (self.data_tc if tc else self.data_en) / f"{name.lower()}.datc64"
+            # 3.30 GGPK 起沒有文字的表不再附繁中檔(pob-zh-engine 抽取與 Supabase ggpk_row_table 都記為「以英文檔代入,視同 tc_identical」)
+            if tc and not path.exists():
+                path = self.data_en / f"{name.lower()}.datc64"
+            t = datzh.Table(path)
             want = datzh.schema_row_size(self.idx[name.lower()])
-            if strict and t.row_size != want:
+            if strict and t.row_size != want and VERIFIED_DRIFT.get(name.lower()) != (want, t.row_size):
                 raise SystemExit(f"{name}: row size {t.row_size} != schema {want} "
                                  "(schema drift; numeric columns past the drift point are wrong)")
             self._cache[key] = t
