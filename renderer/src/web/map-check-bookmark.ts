@@ -6,14 +6,40 @@
 import { applyPageKeys, isCustomBookmark, type RegexBookmark, type RegexPage } from '@exile-appraiser/regex'
 
 export type MapMark = 'bad' | 'good'
-export interface BookmarkMarks { kind: MapMark, texts: ReadonlySet<string> }
+/** 地圖詞綴頁的書籤:勾到的詞綴文字;自訂字串書籤:搜尋列字串拆成的段(`terms`) */
+export type BookmarkMarks =
+  | { kind: MapMark, texts: ReadonlySet<string> }
+  | { terms: ReadonlyArray<{ neg: boolean, re: RegExp }> }
 
 /** 地圖檢查適用的正則頁(地圖 / 劫盜契約 / 探險日誌 = 上游 map-check 的適用物品) */
 export const MAP_CHECK_PAGES: readonly string[] = ['map_mods', 'heist_contracts', 'logbook_mods']
 
-/** 選單列的書籤:PoE1、適用頁;自訂字串書籤沒有詞綴清單 → 不列 */
+/** 選單列的書籤:PoE1 的適用頁書籤 + 自訂字串書籤(使用者 2026-11-18:自己寫的地圖詞綴正則也要能用) */
 export function mapCheckBookmarks (bookmarks: readonly RegexBookmark[]): RegexBookmark[] {
-  return bookmarks.filter(b => b.game === 'poe1' && !isCustomBookmark(b) && MAP_CHECK_PAGES.includes(b.page))
+  return bookmarks.filter(b => b.game === 'poe1' && (isCustomBookmark(b) || MAP_CHECK_PAGES.includes(b.page)))
+}
+
+/**
+ * 遊戲搜尋列字串 → 段:空白分隔(雙引號內不切、引號丟掉),每段是不分大小寫的正則,「!」開頭 = 排除。
+ * 寫錯的正則當一般文字。shortcut: 遊戲對整件物品文字比對,這裡逐行比(為了給每行上色)。
+ */
+export function searchTerms (query: string): Array<{ neg: boolean, re: RegExp }> {
+  const parts: string[] = []
+  let cur = ''
+  let quoted = false
+  for (const c of query) {
+    if (c === '"') { quoted = !quoted; continue }
+    if (c === ' ' && !quoted) { if (cur) parts.push(cur); cur = ''; continue }
+    cur += c
+  }
+  if (cur) parts.push(cur)
+  return parts.map(t => {
+    const neg = t.startsWith('!')
+    const body = neg ? t.slice(1) : t
+    let re: RegExp
+    try { re = new RegExp(body, 'i') } catch { re = new RegExp(body.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i') }
+    return { neg, re }
+  }).filter(t => t.re.source !== '(?:)')
 }
 
 /** 比對用:數字佔位(含正負號)統一成 #、去空白、小寫 */
@@ -22,6 +48,7 @@ export function normModText (s: string): string {
 }
 
 export function bookmarkMarks (pages: readonly RegexPage[], b: RegexBookmark | undefined): BookmarkMarks | null {
+  if (b && isCustomBookmark(b)) return { terms: searchTerms(b.keys[0] ?? '') }
   const page = b && pages.find(p => p.id === b.page)
   if (!b || !page) return null
   const texts = new Set<string>()
@@ -32,8 +59,13 @@ export function bookmarkMarks (pages: readonly RegexPage[], b: RegexBookmark | u
   return { kind: b.mode === 'none' ? 'bad' : 'good', texts }
 }
 
-export function markOfStat (m: BookmarkMarks | null, matchers: ReadonlyArray<{ string: string }>): MapMark | null {
-  return m && matchers.some(x => m.texts.has(normModText(x.string))) ? m.kind : null
+/** `text` = 代入數值後的那一行(自訂字串的數值條件要比它);地圖詞綴頁書籤只看 matcher */
+export function markOfStat (m: BookmarkMarks | null, matchers: ReadonlyArray<{ string: string }>, text?: string): MapMark | null {
+  if (!m) return null
+  if ('texts' in m) return matchers.some(x => m.texts.has(normModText(x.string))) ? m.kind : null
+  const lines = [...matchers.map(x => x.string), ...(text ? [text] : [])]
+  const hit = m.terms.filter(t => lines.some(l => t.re.test(l)))
+  return hit.some(t => t.neg) ? 'bad' : hit.length ? 'good' : null
 }
 
 /**

@@ -44,7 +44,7 @@ describe('上色規則(R1、R2)', () => {
 // R3(3.30 新舊寫法)在 renderer/test-vue/map-check-mount.test.ts:兩份剪貼簿解析出同一條詞綴,整條詞綴的 matcher 拿去比對
 
 describe('書籤選單(R4)', () => {
-  it('只列 PoE1、地圖 / 劫盜契約 / 探險日誌頁的書籤;自訂字串書籤與其他頁不列', () => {
+  it('只列 PoE1 的地圖 / 劫盜契約 / 探險日誌頁書籤與自訂字串書籤;其他頁與 PoE2 不列(使用者 2026-11-18)', () => {
     const list: RegexBookmark[] = [
       bookmark('地圖', 'map_mods', 'none', ['MapPoisoningMapWorlds']),
       { name: '契約', page: 'heist_contracts', game: 'poe1', mode: 'any', lang: 'zh', keys: [], alt: [] },
@@ -53,7 +53,32 @@ describe('書籤選單(R4)', () => {
       { name: '自訂', page: '@custom', game: 'poe1', mode: 'any', lang: 'zh', keys: ['"x"'], alt: [] },
       { name: '二代', page: 'map_mods', game: 'poe2', mode: 'any', lang: 'zh', keys: [], alt: [] }
     ]
-    expect(mapCheckBookmarks(list).map(b => b.name)).toEqual(['地圖', '契約', '日誌'])
+    expect(mapCheckBookmarks(list).map(b => b.name)).toEqual(['地圖', '契約', '日誌', '自訂'])
+  })
+})
+
+describe('自訂字串書籤:照遊戲搜尋規則逐行比對(使用者 2026-11-18)', () => {
+  const custom = (q: string): RegexBookmark => ({ name: 'c', page: '@custom', game: 'poe1', mode: 'any', lang: 'zh', keys: [q], alt: [] })
+  const lines = (...s: string[]) => s.map(x => ({ string: x }))
+
+  it('「!」開頭的段命中 → 紅;其他段命中 → 綠;都沒命中 → 不上色', () => {
+    const m = bookmarkMarks(pages, custom('"!反射|中毒" 物品數量'))!
+    expect(markOfStat(m, lines('怪物反射 #% 物理傷害'))).toBe('bad')
+    expect(markOfStat(m, lines('被怪物擊中時中毒'))).toBe('bad')
+    expect(markOfStat(m, lines('#% 物品數量'))).toBe('good')
+    expect(markOfStat(m, lines('怪物發射 # 額外投射物'))).toBeNull()
+  })
+
+  it('每段是正則、不分大小寫;寫錯的正則當一般文字;同時命中排除與包含 → 紅', () => {
+    expect(markOfStat(bookmarkMarks(pages, custom('reflect.*damage'))!, lines('Monsters reflect #% of Physical Damage'))).toBe('good')
+    expect(markOfStat(bookmarkMarks(pages, custom('[abc'))!, lines('x [abc y'))).toBe('good')
+    expect(markOfStat(bookmarkMarks(pages, custom('!反射 怪物'))!, lines('怪物反射 #% 物理傷害'))).toBe('bad')
+  })
+
+  it('有數值的行:代入數值後的文字也拿來比(玩家常寫數值條件的正則)', () => {
+    const m = bookmarkMarks(pages, custom('"物品數量: \\+?[89]\\d"'))!
+    expect(markOfStat(m, lines('物品數量: +#%'), '物品數量: +84%')).toBe('good')
+    expect(markOfStat(m, lines('物品數量: +#%'), '物品數量: +12%')).toBeNull()
   })
 })
 

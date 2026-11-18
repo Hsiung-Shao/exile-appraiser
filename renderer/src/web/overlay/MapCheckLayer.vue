@@ -48,7 +48,7 @@ export default defineComponent({
       list,
       labels: computed(() => bookmarkLabels(list.value)),
       current,
-      markOf: (matchers: ReadonlyArray<{ string: string }>) => markOfStat(marks.value, matchers),
+      markOf: (matchers: ReadonlyArray<{ string: string }>, text?: string) => markOfStat(marks.value, matchers, text),
       select (i: number) {
         const b = list.value[i]
         if (!b) return

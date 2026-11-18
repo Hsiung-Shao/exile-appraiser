@@ -58,8 +58,8 @@ const props = defineProps<{
   bookmarks: string[],
   /** 目前書籤在 `bookmarks` 的索引;-1 = 沒選 */
   bookmark: number,
-  /** 一條詞綴的全部寫法(matcher)→ 紅 / 綠 / 不上色 */
-  markOf: (matchers: ReadonlyArray<{ string: string }>) => 'bad' | 'good' | null
+  /** 一條詞綴的全部寫法(matcher)+ 代入數值後的那一行 → 紅 / 綠 / 不上色 */
+  markOf: (matchers: ReadonlyArray<{ string: string }>, text?: string) => 'bad' | 'good' | null
 }>()
 
 const emit = defineEmits<{ 'update:bookmark': [index: number] }>()
@@ -82,7 +82,10 @@ const mapName = computed(() => {
 
 const mapStats = computed(() => props.item.statsByType
   .filter(calc => calc.type === ModifierType.Explicit)
-  .map(calc => ({ ...prepareMapStat(calc), mark: props.markOf(calc.stat.matchers) })))
+  .map(calc => {
+    const s = prepareMapStat(calc)
+    return { ...s, mark: props.markOf(calc.stat.matchers, s.roll == null ? s.matcher : s.matcher.replace('#', String(s.roll))) }
+  }))
 
 // exile-appraiser: 劫盜契約的職業需求列(文字取物品原文那一行;對書籤用正則頁同一個英文寫法)
 const jobRow = computed(() => {
@@ -93,7 +96,7 @@ const jobRow = computed(() => {
     ref: 'heist-job',
     matcher: line ?? `${c.requiredJob} (${c.jobLevel ?? '?'})`,
     roll: undefined,
-    mark: props.markOf([{ string: `Requires ${c.requiredJob} (Level #)` }])
+    mark: props.markOf([{ string: `Requires ${c.requiredJob} (Level #)` }], line)
   }
 })
 
