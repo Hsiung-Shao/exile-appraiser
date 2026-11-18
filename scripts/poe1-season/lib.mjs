@@ -249,6 +249,50 @@ export function planTradeText ({ enStats, zhStats, tradeStats, ggpkNew, ggpkOld 
 }
 
 /**
+ * 規則 27(類型掃描 2026-11-18 找到):交易站同一個 id 有好幾句(地圖物品上的「… in Area」與輿圖天賦的「… in your Maps」),
+ * 資料只收了其中一句(規則 B 對「已經對得上一句」的 id 不動)→ 另一句出現在物品上時是未解析。
+ * 另一句在 GGPK 新版找得到、資料任何一條詞綴都沒有 → 加上並標 superseded(同一個 id,查詢不變;現行寫法與正則頁不變)。
+ * 旗標照已經對得上的那個 matcher;# 的個數不同(另一句把數字寫死或多一個數字)、方向相反、已是別條詞綴寫法的拒收。
+ * 繁中取 GGPK 同一句英文唯一的繁中。沒有實機樣本。
+ * @returns {{ adds: any[], rejects: any[] }}
+ */
+export function planOtherTradeTexts ({ enStats, zhStats, tradeStats, ggpkNew }) {
+  const textsById = groupBy(tradeStats.filter(e => !e.id.startsWith('pseudo.')), e => e.id)
+  const ggpkByEn = groupBy(ggpkNew.filter(r => r.zh), r => exactKey(r.en))
+  const enRefs = refsByMatcher(enStats)
+  const zhRefs = refsByMatcher(zhStats)
+  const zhByRef = statsByRef(zhStats)
+  const hashes = (t) => (t.match(/#/g) ?? []).length
+  const adds = []
+  const rejects = []
+  const seen = new Set()
+  for (const stat of eachStat(enStats)) {
+    const have = matcherExact(stat)
+    const haveZh = new Set((zhByRef.get(stat.ref) ?? []).flatMap(s => [...matcherExact(s)]))
+    for (const id of allIds(stat)) {
+      const texts = uniq((textsById.get(id) ?? []).map(e => exactKey(noLocal(e.text))))
+      const base = stat.matchers.find(m => texts.includes(m.string.trim()))
+      if (!base) continue // 一句都對不上的歸規則 B
+      for (const text of texts) {
+        if (have.has(text) || seen.has(stat.ref + '\n' + text) || !ggpkByEn.has(text)) continue
+        seen.add(stat.ref + '\n' + text)
+        const reject = (reason, lang = 'en', to = text) => rejects.push({ ref: stat.ref, lang, reason, id, to })
+        if (hashes(text) !== hashes(base.string)) { reject('數字個數不同'); continue }
+        if (direction(text) && direction(base.string) && direction(text) !== direction(base.string)) { reject('方向相反'); continue }
+        if (enRefs.has(cmpKey(text))) { reject('已是別條詞綴的寫法'); continue }
+        adds.push({ lang: 'en', ref: stat.ref, matcher: { string: text, ...flagsOf(base), superseded: true } })
+        const zhs = uniq(ggpkByEn.get(text).map(r => exactKey(r.zh)).filter(z => cmpKey(z) !== cmpKey(text)))
+        if (zhs.length !== 1) { if (zhs.length) reject('繁中不只一句', 'cmn-Hant', zhs.join(' / ')); continue }
+        if (haveZh.has(zhs[0])) continue
+        if (zhRefs.has(cmpKey(zhs[0]))) { reject('已是別條詞綴的寫法', 'cmn-Hant', zhs[0]); continue }
+        adds.push({ lang: 'cmn-Hant', ref: stat.ref, matcher: { string: zhs[0], ...flagsOf(base), superseded: true } })
+      }
+    }
+  }
+  return { adds, rejects }
+}
+
+/**
  * 規則 8:「插槽中的寶石被等級 # 的 X 輔助」(ref 結尾 `(Random Support Gem)` 的列)。
  * 3.30 起遊戲把 {1} 填成寶石全名(施放迴響 → 施放迴響輔助;使用者 2026-11-14 實機剪貼簿),
  * 新句 = GGPK 的句型(`local_random_support_gem_level …`)+ baseitemtypes 的寶石名(以英文 `<X> Support` 對接)。

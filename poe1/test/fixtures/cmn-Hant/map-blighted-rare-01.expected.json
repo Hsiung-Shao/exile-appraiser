@@ -242,6 +242,10 @@
             "matchers": [
               {
                 "string": "傳奇頭目增加 #% 傷害"
+              },
+              {
+                "string": "地圖頭目增加 #% 傷害",
+                "superseded": true
               }
             ],
             "ref": "Unique Boss deals #% increased Damage",
@@ -877,6 +881,10 @@
                   "matchers": [
                     {
                       "string": "傳奇頭目增加 #% 傷害"
+                    },
+                    {
+                      "string": "地圖頭目增加 #% 傷害",
+                      "superseded": true
                     }
                   ],
                   "ref": "Unique Boss deals #% increased Damage",
@@ -946,6 +954,10 @@
               "matchers": [
                 {
                   "string": "傳奇頭目增加 #% 傷害"
+                },
+                {
+                  "string": "地圖頭目增加 #% 傷害",
+                  "superseded": true
                 }
               ],
               "ref": "Unique Boss deals #% increased Damage",
@@ -975,6 +987,10 @@
         "matchers": [
           {
             "string": "傳奇頭目增加 #% 傷害"
+          },
+          {
+            "string": "地圖頭目增加 #% 傷害",
+            "superseded": true
           }
         ],
         "ref": "Unique Boss deals #% increased Damage",
@@ -1029,6 +1045,10 @@
                   "matchers": [
                     {
                       "string": "傳奇頭目增加 #% 傷害"
+                    },
+                    {
+                      "string": "地圖頭目增加 #% 傷害",
+                      "superseded": true
                     }
                   ],
                   "ref": "Unique Boss deals #% increased Damage",

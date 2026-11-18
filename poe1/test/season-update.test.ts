@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planRandomSkillGem, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, planRoomNames, planCitadel, planExtraZh, planZhForms, planCondForms, planMercenaryBuilds, planNamedSlots, planMercenarySkills, EXTRA_ZH_MATCHERS, planGrownPassives, planPassiveRenames, planForbiddenNotables, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
+import { toMatcherText, planStatText, planTradeText, planOtherTradeTexts, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planRandomSkillGem, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, planRoomNames, planCitadel, planExtraZh, planZhForms, planCondForms, planMercenaryBuilds, planNamedSlots, planMercenarySkills, EXTRA_ZH_MATCHERS, planGrownPassives, planPassiveRenames, planForbiddenNotables, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
 
 /**
  * 賽季更新腳本的純函式測試(合成輸入,不讀 data/)。
@@ -1290,5 +1290,54 @@ describe('planForbiddenNotables(規則 26:禁忌珠寶新天賦)', () => {
     const plan = planForbiddenNotables({ enStats, zhStats, tradeStats, passives: [{ en: 'Twin', zh: '雙' }, { en: 'Twin', zh: '對' }] })
     expect(plan.newStats).toEqual([])
     expect(plan.rejects.map((r: any) => r.id)).toEqual(['explicit.stat_2460506030|5'])
+  })
+})
+
+describe('planOtherTradeTexts(規則 27:交易站同一個 id 的另一句資料沒有)', () => {
+  const stat = (ref: string, matchers: any[], ids: any = { explicit: ['explicit.stat_1'] }) => ({ ref, better: 1, matchers, trade: { ids } })
+  const enStats = [
+    stat('Slaying in your Maps #%', [{ string: 'Slaying in your Maps #% increased' }, { string: 'Slaying in your Maps #% reduced', negate: true }]),
+    stat('Area contains a Box', [{ string: 'Area contains a Box' }], { explicit: ['explicit.stat_2'] }),
+    stat('Fast #%', [{ string: 'Fast #%' }], { explicit: ['explicit.stat_3'] }),
+    stat('Fast in Maps #%', [{ string: 'Fast in Maps #%' }], { explicit: ['explicit.stat_3'] })
+  ]
+  const zhStats = [
+    stat('Slaying in your Maps #%', [{ string: '你地圖中擊殺增加 #%' }, { string: '你地圖中擊殺減少 #%', negate: true }]),
+    stat('Area contains a Box', [{ string: '區域含有箱子' }], { explicit: ['explicit.stat_2'] }),
+    stat('Fast #%', [{ string: '快 #%' }], { explicit: ['explicit.stat_3'] }),
+    stat('Fast in Maps #%', [{ string: '地圖中快 #%' }], { explicit: ['explicit.stat_3'] })
+  ]
+  const tradeStats = [
+    { id: 'explicit.stat_1', text: 'Slaying in your Maps #% increased' },
+    { id: 'explicit.stat_1', text: 'Slaying #% increased' },
+    { id: 'explicit.stat_2', text: 'Area contains a Box' },
+    { id: 'explicit.stat_2', text: 'Your Maps contain # Boxes' },
+    { id: 'explicit.stat_3', text: 'Fast #%' },
+    { id: 'explicit.stat_3', text: 'Fast in Maps #%' }
+  ]
+  const ggpkNew = [
+    { key: 'a|1|#|stat_descriptions.txt|0', en: 'Slaying {0}% increased', zh: '擊殺增加 {0}%' },
+    { key: 'b|#|stat_descriptions.txt|0', en: 'Your Maps contain {0} Boxes', zh: '你的地圖含有 {0} 個箱子' }
+  ]
+
+  it('另一句在 GGPK 找得到、資料沒有 → 中英都加上,旗標照對得上的那句,標 superseded', () => {
+    const plan = planOtherTradeTexts({ enStats, zhStats, tradeStats, ggpkNew })
+    expect(plan.adds).toEqual([
+      { lang: 'en', ref: 'Slaying in your Maps #%', matcher: { string: 'Slaying #% increased', superseded: true } },
+      { lang: 'cmn-Hant', ref: 'Slaying in your Maps #%', matcher: { string: '擊殺增加 #%', superseded: true } }
+    ])
+  })
+
+  it('數字個數不同的拒收;另一句已是別條詞綴寫法的不加', () => {
+    const plan = planOtherTradeTexts({ enStats, zhStats, tradeStats, ggpkNew: [...ggpkNew, { key: 'c|#|stat_descriptions.txt|0', en: 'Fast in Maps {0}%', zh: '地圖中快 {0}%' }] })
+    expect(plan.rejects.map((r: any) => [r.ref, r.reason])).toEqual([['Area contains a Box', '數字個數不同'], ['Fast #%', '已是別條詞綴的寫法']])
+    expect(plan.adds.map((a: any) => a.ref)).toEqual(['Slaying in your Maps #%', 'Slaying in your Maps #%'])
+  })
+
+  it('套用後重跑為空', () => {
+    const plan = planOtherTradeTexts({ enStats, zhStats, tradeStats, ggpkNew })
+    const en = parseRows(applyStatPlan(toFile(enStats), 'en', plan))
+    const zh = parseRows(applyStatPlan(toFile(zhStats), 'cmn-Hant', plan))
+    expect(planOtherTradeTexts({ enStats: en, zhStats: zh, tradeStats, ggpkNew }).adds).toEqual([])
   })
 })

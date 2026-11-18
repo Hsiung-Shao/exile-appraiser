@@ -221,6 +221,10 @@
             "matchers": [
               {
                 "string": "Unique Boss deals #% increased Damage"
+              },
+              {
+                "string": "Map Bosses deal #% increased Damage",
+                "superseded": true
               }
             ],
             "ref": "Unique Boss deals #% increased Damage",
@@ -718,6 +722,10 @@
                   "matchers": [
                     {
                       "string": "Unique Boss deals #% increased Damage"
+                    },
+                    {
+                      "string": "Map Bosses deal #% increased Damage",
+                      "superseded": true
                     }
                   ],
                   "ref": "Unique Boss deals #% increased Damage",
@@ -787,6 +795,10 @@
               "matchers": [
                 {
                   "string": "Unique Boss deals #% increased Damage"
+                },
+                {
+                  "string": "Map Bosses deal #% increased Damage",
+                  "superseded": true
                 }
               ],
               "ref": "Unique Boss deals #% increased Damage",
@@ -816,6 +828,10 @@
         "matchers": [
           {
             "string": "Unique Boss deals #% increased Damage"
+          },
+          {
+            "string": "Map Bosses deal #% increased Damage",
+            "superseded": true
           }
         ],
         "ref": "Unique Boss deals #% increased Damage",
@@ -870,6 +886,10 @@
                   "matchers": [
                     {
                       "string": "Unique Boss deals #% increased Damage"
+                    },
+                    {
+                      "string": "Map Bosses deal #% increased Damage",
+                      "superseded": true
                     }
                   ],
                   "ref": "Unique Boss deals #% increased Damage",

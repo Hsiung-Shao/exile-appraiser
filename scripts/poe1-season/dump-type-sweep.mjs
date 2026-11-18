@@ -85,13 +85,18 @@ function linesOfMod (/** @type {string} */ modId, /** @type {string} */ domain) 
   for (const pick of ['min', 'max']) {
     const val = new Map(stats.map(s => [s.stat_id, Number(s[pick])]))
     for (const s of stats) {
+      // 「區域內找到更多地圖 / 通貨 / 綢帶」在地圖上印成屬性行(更多地圖: +N%),不是詞綴行(推論:實機地圖樣本都是屬性行)
+      if (s.stat_id.endsWith('_final_from_uber_mod')) continue
       const mine = blocksOf.get(s.stat_id)?.map(r => r.b) ?? []
       const b = files.map(f => mine.find(x => x.file === f)).find(Boolean)
       if (!b) continue
       const vals = b.ids.map((/** @type {string} */ id) => val.get(id) ?? 0)
       if (vals.every((/** @type {number} */ v) => v === 0)) continue
-      const row = b.rows.find((/** @type {any} */ r) => r.cond.split(' ').every((/** @type {string} */ t, /** @type {number} */ i) => condOk(t, vals[i])))
-      if (!row?.en || !row.zh) continue
+      const ok = b.rows.filter((/** @type {any} */ r) => r.cond.split(' ').every((/** @type {string} */ t, /** @type {number} */ i) => condOk(t, vals[i])))
+      // 同一個條件在描述檔出現兩次(舊句 + 新句)時後面那句生效(流血「Cannot / cannot be inflicted」)
+      const row = ok.findLast((/** @type {any} */ r) => r.cond === ok[0].cond)
+      // 沒有字的句子(釣竿的「{0}」)不是詞綴行
+      if (!row?.en || !row.zh || !/\p{L}/u.test(row.en)) continue
       // 顯示前取負號的數值(handlers 的 negate,第幾個從 1 起算)
       const shown = vals.map((/** @type {number} */ v, /** @type {number} */ i) => (row.handlers ?? []).some((/** @type {any[]} */ h) => h[0] === 'negate' && Number(h[1]) === i + 1) ? -v : v)
       const line = { en: fill(row.en, shown), zh: fill(row.zh, shown) }
