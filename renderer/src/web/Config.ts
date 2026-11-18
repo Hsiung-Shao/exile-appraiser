@@ -345,7 +345,8 @@ export function normRuneshapeThresholds (v: unknown, def: Readonly<RuneshapeThre
 
 function createConfig (): Config {
   const base = {
-    configVersion: 1,
+    // 2 = 2026-11-18 章節自動分段預設開(舊檔遷移見 applyLoaded)
+    configVersion: 2,
     game: 'poe1' as Game,
     realm: 'intl' as Realm,
     language: 'cmn-Hant' as Language,
@@ -668,6 +669,12 @@ function applyLoaded (raw: string) {
     poe1: keepRoute(config.speedrun?.poe1, normRoute(sr.poe1, 'poe1', routeLang)),
     poe2: keepRoute(config.speedrun?.poe2, normRoute(sr.poe2, 'poe2', routeLang))
   }
+  // 2026-11-18 使用者裁定章節自動分段預設開:舊檔存的 false 是舊預設,打開一次;之後使用者關掉照記住
+  if (!(typeof loaded.configVersion === 'number' && loaded.configVersion >= 2)) {
+    config.speedrun.poe1.autoSplit = true
+    config.speedrun.poe2.autoSplit = true
+  }
+  config.configVersion = 2
   config.clientLogPath = typeof loaded.clientLogPath === 'string' ? loaded.clientLogPath : ''
   config.speedrunRows = typeof loaded.speedrunRows === 'number' && Number.isFinite(loaded.speedrunRows)
     ? Math.min(20, Math.max(1, Math.round(loaded.speedrunRows)))

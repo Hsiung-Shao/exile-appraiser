@@ -74,9 +74,9 @@ export function presetRoute (game: SpeedrunGame, lang: 'cmn-Hant' | 'en'): Route
     pb: null,
     golds: src.map(() => null),
     attempts: 0,
-    // 使用者 2026-11-10 裁定:預設關閉(沒用計時器的人不會被自動開始,也不監看 Client.txt)
+    // 使用者裁定:自動開始預設關(2026-11-10);章節自動分段預設開(2026-11-18,推翻 11-10 的預設關)
     autoStart: false,
-    autoSplit: false
+    autoSplit: true
   }
 }
 
