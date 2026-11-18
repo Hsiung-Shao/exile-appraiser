@@ -76,7 +76,8 @@ function queryIds (request: any) {
   for (const g of request.query.stats as any[]) {
     for (const f of g.filters) {
       all.push(f.value?.option !== undefined ? `${f.id}|${f.value.option}` : f.id)
-      if (!g.disabled && !f.disabled) on.add(f.id)
+      // 「以下皆無」群組裡的 id 是排除,不算送出
+      if (g.type !== 'not' && !g.disabled && !f.disabled) on.add(f.id)
     }
   }
   return { all, on }
@@ -137,6 +138,10 @@ function queryProbe (item: ParsedItem, refs: Set<string>, type: ModType, lang: L
     // 被合計吃掉的列勾選後也要真的送出,沒送一樣是缺口
     if (!out.ownIds.every(id => on.has(id))) out.query = 'not-sent'
     else if (!out.query) out.query = 'sent'
+    // 一句解析成多條詞綴時,每條都要有自己的列或被別的列吃掉
+    const rowless = [...refs].filter(ref => !own.some(f => f.statRef === ref) &&
+      !rowsOf(preset.stats).some(f => !own.includes(f) && f.sources.some(s => s.stat.stat.ref === ref)))
+    if (rowless.length) out.query = 'no-row'
     const bad = out.ownIds.filter(id => id.split('.')[0] !== type)
     if (bad.length) out.badType = bad
   }
