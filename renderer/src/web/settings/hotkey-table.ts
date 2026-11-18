@@ -3,11 +3,12 @@
  * - 依功能分組:查價 / 設定選單 / 自動辨識(PoE1 倉庫價格、PoE2 褻瀆 / 符文)/ 倉庫搜尋 / 正則。
  * - `edit` 列在總表直接編輯(綁 `field` 設定鍵);`ref` 列唯讀,點了跳到 `tab` 那一頁編輯
  *   (倉庫搜尋、個別正則書籤的熱鍵與項目綁在一起,留在各自頁面)。
- * - 聊天指令熱鍵**不列在總表**(2026-10-14 使用者裁定,推翻 2026-10-05 的 `cmd` 列):只在「倉庫與聊天」頁編輯;
+ * - 聊天指令熱鍵**不列在總表**(2026-10-14 使用者裁定,推翻 2026-10-05 的 `cmd` 列):只在「聊天指令」頁編輯;
  *   衝突檢查(`hotkey-conflicts.ts` `hotkeySlots`)仍涵蓋聊天指令。
  * - 條件同 main `buildShortcutActions`:只有查價兩個熱鍵在 window 模式也會註冊;其餘只在 overlay 模式,
  *   自動辨識組:PoE2 = 褻瀆 / 符文四個,PoE1 = 倉庫價格暫停 / 框選兩個(2026-10-14)。
  * - 列 id 與 `hotkey-conflicts.ts` 的 slot id 相同,衝突 / 保留鍵 / 被佔用提示直接用 `useHotkeyIssues().issueText(id, hotkey)`。
+ * - 2026-11-18 設定重整:組的 `tab` = 該功能頁(總表組標題旁「到 … ›」;功能頁頂端另有唯讀的「這頁的熱鍵」,PageHotkeys.vue)。
  * 相對路徑匯入(renderer vitest 不載別名)。
  */
 import type { SettingsTabId } from '../../../../ipc/types'
@@ -25,7 +26,7 @@ export type HotkeyRow =
   | { kind: 'ref', id: string, label: string, text: string, hotkey: string, tab: SettingsTabId, folder?: string }
 
 export interface HotkeyGroup {
-  id: 'price' | 'menu' | 'scan' | 'regex' | 'stash-chat' | 'tools'
+  id: 'price' | 'menu' | 'scan' | 'regex' | 'stash' | 'tools' | 'timer'
   /** 組標題(i18n 鍵) */
   title: string
   /** 「到 … 編輯」連結目標(唯讀列在那一頁改;沒有 → 無) */
@@ -70,6 +71,7 @@ export function hotkeyTable (c: HotkeyConfigLike, opts: HotkeyTableOpts): Hotkey
     groups.push({
       id: 'scan',
       title: 'ppz.hk_group.scan',
+      tab: 'recognition',
       rows: [
         { kind: 'edit', id: 'ocr', label: 'ppz.scan.slot_reveal_pause', field: 'hotkeyOcrReveal', needs: 'revealAutoEnabled' },
         { kind: 'edit', id: 'region', label: 'ppz.scan.slot_reveal_region', field: 'hotkeyOcrRegion', optional: true },
@@ -80,7 +82,8 @@ export function hotkeyTable (c: HotkeyConfigLike, opts: HotkeyTableOpts): Hotkey
   } else {
     groups.push({
       id: 'scan',
-      title: 'ppz.hk_group.scan',
+      title: 'ppz.hk_group.stash_prices',
+      tab: 'stash',
       rows: [
         { kind: 'edit', id: 'stashToggle', label: 'ppz.scan.slot_stash_pause', field: 'hotkeyStashToggle', optional: true },
         { kind: 'edit', id: 'stashRegion', label: 'ppz.scan.slot_stash_region', field: 'hotkeyStashRegion', optional: true }
@@ -89,9 +92,9 @@ export function hotkeyTable (c: HotkeyConfigLike, opts: HotkeyTableOpts): Hotkey
   }
   const chatRows: HotkeyRow[] = []
   c.stashSearch.forEach((x, i) => {
-    if (x.text.trim()) chatRows.push({ kind: 'ref', id: `stash:${i}`, label: 'ppz.hk_group.stash_search', text: x.text.trim(), hotkey: x.hotkey, tab: 'stash-chat' })
+    if (x.text.trim()) chatRows.push({ kind: 'ref', id: `stash:${i}`, label: 'ppz.hk_group.stash_search', text: x.text.trim(), hotkey: x.hotkey, tab: 'stash' })
   })
-  groups.push({ id: 'stash-chat', title: 'ppz.hk_group.stash_search', tab: 'stash-chat', rows: chatRows })
+  groups.push({ id: 'stash', title: 'ppz.hk_group.stash_search', tab: 'stash', rows: chatRows })
   const regexRows: HotkeyRow[] = [{ kind: 'edit', id: 'regexQuick', label: 'ppz.regex.quick_hotkey', field: 'hotkeyRegexQuick', optional: true }]
   // 書籤列順序 = 書籤順序(第 36 步起同遊戲書籤永遠依資料夾排好 → 同資料夾的列相鄰)= main 註冊順序
   for (const b of c.regexBookmarkHotkeys ?? []) {
@@ -107,7 +110,15 @@ export function hotkeyTable (c: HotkeyConfigLike, opts: HotkeyTableOpts): Hotkey
       poedbRow,
       wikiRow,
       // 2026-11-18:PoE1 地圖詞綴檢查(main 只在 overlay + PoE1 註冊)
-      ...(c.game === 'poe1' ? [{ kind: 'edit', id: 'map-check', label: 'ppz.hk.map_check', field: 'hotkeyMapCheck', optional: true } as HotkeyRow] : []),
+      ...(c.game === 'poe1' ? [{ kind: 'edit', id: 'map-check', label: 'ppz.hk.map_check', field: 'hotkeyMapCheck', optional: true } as HotkeyRow] : [])
+    ]
+  })
+  // 2026-11-18 設定重整:計時器自成一組(順序不變 = main 註冊順序)
+  groups.push({
+    id: 'timer',
+    title: 'ppz.hk_group.timer',
+    tab: 'timer',
+    rows: [
       { kind: 'edit', id: 'timerToggle', label: 'ppz.hk.timer_toggle', field: 'hotkeyTimerToggle', needs: 'timerDisplay', optional: true },
       { kind: 'edit', id: 'timerReset', label: 'ppz.hk.timer_reset', field: 'hotkeyTimerReset', needs: 'timerDisplay', optional: true },
       { kind: 'edit', id: 'timerPause', label: 'ppz.hk.timer_pause', field: 'hotkeyTimerPause', needs: 'timerDisplay', optional: true },

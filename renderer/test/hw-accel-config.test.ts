@@ -36,8 +36,8 @@ describe('hardwareAcceleration 設定檔往返', () => {
 })
 
 describe('設定頁接線與字串', () => {
-  it('一般分頁:開關 + 說明 + 與啟動值不同時「重新啟動後生效」+ 可重新啟動時才有按鈕', () => {
-    const g = read('../src/web/settings/tabs/General.vue')
+  it('啟動與更新分頁:開關 + 說明 + 與啟動值不同時「重新啟動後生效」+ 可重新啟動時才有按鈕', () => {
+    const g = read('../src/web/settings/tabs/Startup.vue')
     expect(g).toContain('v-model="config.hardwareAcceleration"')
     expect(g).toContain("hwAccelPending: computed(() => config.hardwareAcceleration !== hwAccelAtStart.value)")
     expect(g).toMatch(/v-if="canRelaunch"[^>]*@click="relaunch"/)

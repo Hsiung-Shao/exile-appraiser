@@ -247,7 +247,9 @@
       "picker": {
         "help": "框住倉庫碎片頁的子頁按鈕列(一般 / 不滅之火 / 異能)",
         "sub": "不要切到上方倉庫頁籤的字;虛線框是目前使用的區域;倉庫頁放進資料夾後按鈕會下移,請重新框選或還原預設"
-      }
+      },
+      "trigger_auto_desc": "打開倉庫就顯示價格",
+      "trigger_hotkey_desc": "平常不截圖,按倉庫價格的熱鍵才掃描"
     },
     "runeshape": {
       "section": "符文塑形",
@@ -454,10 +456,11 @@
       "no_bookmark": "還沒有地圖詞綴書籤:到 設定 › 正則 的地圖詞綴 / 劫盜契約 / 探險日誌頁勾好詞綴存成書籤(排除模式 = 標紅,包含 = 標綠)。",
       "default_label": "地圖檢查書籤",
       "default_none": "(不上色)",
-      "default_lead": "對地圖按「地圖詞綴檢查」熱鍵時用這個書籤上色:排除模式勾到的標紅、包含模式勾到的標綠;檢查視窗裡也能換。"
+      "default_lead": "對地圖按「地圖詞綴檢查」熱鍵時用這個書籤上色:排除模式勾到的標紅、包含模式勾到的標綠;檢查視窗裡也能換。",
+      "card_title": "地圖詞綴檢查"
     },
-    "tab_log": "記錄",
-    "tab_about": "更新與關於",
+    "tab_log": "記錄與效能",
+    "tab_about": "關於",
     "quit_app": "結束程式",
     "coming_soon": "即將推出",
     "section_interface": "介面",
@@ -896,7 +899,9 @@
       "incoming_err_file-read": "讀不到分享碼檔案:{detail}。",
       "incoming_err_file-too-large": "分享碼檔案太大:{detail}。",
       "incoming_err_decode": "分享碼無法套用:{detail}",
-      "incoming_err_not-loaded": "{detail} 的清單載入失敗,無法套用。"
+      "incoming_err_not-loaded": "{detail} 的清單載入失敗,無法套用。",
+      "view_generator": "產生器",
+      "view_bookmarks": "書籤與快捷"
     },
     "log": {
       "filter": "篩選",
@@ -1048,8 +1053,7 @@
       "tw_unavailable": "poe.ninja 沒有台服價格",
       "error": "poe.ninja 抓取失敗:{error}"
     },
-    "tab_game": "遊戲",
-    "tab_stash_chat": "倉庫與聊天",
+    "tab_game": "遊戲與視窗",
     "tab_recognition": "自動辨識",
     "nav_group_settings": "設定",
     "nav_group_tools": "工具",
@@ -1068,11 +1072,12 @@
       "price": "查價",
       "menu": "設定選單",
       "scan": "自動辨識",
-      "stash_chat": "倉庫與聊天",
       "regex": "正則",
       "stash_search": "倉庫搜尋",
       "regex_bookmark": "書籤",
-      "tools": "工具"
+      "tools": "工具",
+      "timer": "計時器",
+      "stash_prices": "倉庫價格"
     },
     "hk": {
       "menu_toggle": "叫出 / 收起",
@@ -1090,7 +1095,8 @@
       "timer_reset": "計時器 歸零",
       "timer_pause": "計時器 暫停 / 繼續",
       "timer_undo": "計時器 撤銷分段",
-      "timer_skip": "計時器 跳過分段"
+      "timer_skip": "計時器 跳過分段",
+      "goto_page": "{page} ›"
     },
     "timer": {
       "section": "計時器",
@@ -1147,6 +1153,31 @@
     },
     "filters": {
       "expand": "展開詞綴"
+    },
+    "tab_startup": "啟動與更新",
+    "tab_stash": "倉庫",
+    "tab_chat": "聊天指令",
+    "tab_timer": "計時器",
+    "nav_group_features": "功能",
+    "section_files": "檔案與預覽",
+    "tab_lead": {
+      "general": "介面外觀與背景圖,改了立即套用",
+      "game": "查哪一款遊戲、哪一區,以及怎麼疊在遊戲上",
+      "hotkeys": "依功能分組;組名旁的連結會跳到該功能的設定頁",
+      "startup": "程式怎麼啟動、怎麼更新",
+      "price_check": "搜尋條件怎麼組、結果面板顯示什麼",
+      "stash": "倉庫價格、頁籤捲動、倉庫搜尋集中在這",
+      "chat": "按熱鍵把指令打進遊戲聊天框,只在疊在遊戲上時有作用",
+      "recognition": "截圖後在本機辨識褻瀆詞綴與符文塑形面板",
+      "timer": "練等分段計時,讀遊戲記錄自動分段",
+      "regex": "產生貼進遊戲搜尋框的字串,存成書籤一鍵貼上",
+      "dust": "哪些傳奇拆成精華粉最划算,價格來自 poe.ninja",
+      "log": "只存在這台電腦,回報問題時自己複製貼上",
+      "about": "版本、資料來源、社群與致謝"
+    },
+    "page_hotkeys": {
+      "label": "這頁的熱鍵",
+      "edit": "在熱鍵總表修改 ›"
     }
   }
 }

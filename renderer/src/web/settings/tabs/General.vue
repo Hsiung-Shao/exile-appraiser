@@ -1,13 +1,14 @@
 <!--
-  設定 › 一般(第 39 步整理):介面(語言、主題、強調色、字級、設定視窗字級)、背景(自訂背景圖,2026-10-01)、
-  啟動(啟動提示、硬體加速)、瀏覽器預覽。遊戲 / 伺服器 / 客戶端語言 / 聯盟 / 交易站驗證搬到「遊戲」分頁(Game.vue)。
+  設定 › 一般(第 39 步整理;2026-11-18 設定重整後只剩外觀):介面(語言、主題、強調色、字級、設定視窗字級)、背景(自訂背景圖,2026-10-01)。
+  啟動 / 瀏覽器預覽搬到「啟動與更新」(Startup.vue)、計時器搬到「計時器」(Timer.vue);遊戲 / 伺服器等在「遊戲與視窗」(Game.vue)。
+  介面語言列:中文介面多一行英文小字(Interface language),讓看不懂中文的人找得到;英文介面只顯示英文。
   長說明收在「?」(HelpTip.vue),畫面上每項最多一句。
 -->
 <template>
   <section class="card">
     <span class="label">{{ t('ppz.section_interface') }}</span>
     <div class="srow">
-      <span class="k">{{ t('ppz.ui_language') }}</span>
+      <span class="k">{{ t('ppz.ui_language') }}<small v-if="config.uiLanguage !== 'en'" class="k-en" lang="en">Interface language</small></span>
       <div class="ctl">
         <div class="seg" data-setting="ui-language">
           <button v-for="l in languages" :key="l" :class="{ on: config.uiLanguage === l }" :data-value="l"
@@ -120,79 +121,12 @@
     </template>
     <p v-if="bgError" class="err" data-setting="bg-error">{{ bgError }}</p>
   </section>
-
-  <section class="card" data-setting="startup">
-    <span class="label">{{ t('ppz.section_startup') }}</span>
-    <div class="chk-row">
-      <label class="chk"><input v-model="config.startupToast" type="checkbox" data-setting="startup-toast"><span>{{ t('ppz.startup_toast') }}</span></label>
-    </div>
-    <!-- 第五輪 30.5:硬體加速(預設關 = 改版前;main 在啟動時讀設定檔,改了要重新啟動才生效) -->
-    <div class="chk-row">
-      <label class="chk"><input v-model="config.hardwareAcceleration" type="checkbox" data-setting="hardware-acceleration"><span>{{ t('ppz.hw_accel.label') }}</span></label>
-      <help-tip id="hardware-acceleration" data-setting="hardware-acceleration-note" :text="t('ppz.hw_accel.note')" />
-    </div>
-    <div v-if="hwAccelPending" class="hw-restart" data-setting="hardware-acceleration-restart">
-      <span class="warn-text">{{ t('ppz.hw_accel.restart_needed') }}</span>
-      <button v-if="canRelaunch" class="btn sm" data-action="relaunch" :disabled="relaunching" @click="relaunch">{{ t('ppz.hw_accel.restart_now') }}</button>
-    </div>
-    <!-- 2026-11-16:建立桌面捷徑(只有 Electron 視窗;釘選到工作列只能由使用者在捷徑上按右鍵) -->
-    <div v-if="canCreateShortcut" class="srow" data-setting="desktop-shortcut">
-      <span class="k">{{ t('ppz.desktop_shortcut.label') }}</span>
-      <div class="ctl">
-        <button class="btn sm" data-action="desktop-shortcut-create" :disabled="shortcutBusy" @click="createShortcut">{{ t('ppz.desktop_shortcut.button') }}</button>
-        <span v-if="shortcutState" :class="shortcutState === 'done' ? 'note' : 'warn-text'" data-setting="desktop-shortcut-result" role="status">{{ shortcutText }}</span>
-      </div>
-    </div>
-    <p v-if="canCreateShortcut" class="lead" data-setting="desktop-shortcut-hint">{{ t('ppz.desktop_shortcut.hint') }}</p>
-  </section>
-
-  <!-- 2026-11-09:計時器(移植 APT 碼表;只在 overlay 模式) -->
-  <section v-if="config.overlayMode" class="card" data-setting="timer">
-    <span class="label">{{ t('ppz.timer.section') }}</span>
-    <p class="lead">{{ t('ppz.timer.lead') }}</p>
-    <div class="srow">
-      <span class="k">{{ t('ppz.timer.display') }}</span>
-      <div class="ctl">
-        <div class="seg" data-setting="timer-display">
-          <button v-for="d in timerDisplays" :key="d" :class="{ on: config.timerDisplay === d }" :data-value="d"
-            @click="config.timerDisplay = d">{{ timerDisplayLabel[d] }}</button>
-        </div>
-        <button v-if="config.timerPos" class="btn sm" data-action="timer-reset-pos" @click="config.timerPos = null">{{ t('ppz.timer.reset_pos') }}</button>
-      </div>
-    </div>
-    <!-- 2026-11-10 speedrun:分段 / 自動分段 / 紀錄(計時器關閉時不顯示) -->
-    <speedrun-section v-if="config.timerDisplay !== 'off'" />
-  </section>
-
-  <section v-if="hasHost" class="card" data-setting="browser-preview">
-    <div class="card-head">
-      <span class="label">{{ t('ppz.preview.section') }}</span>
-      <help-tip v-if="!isPreview" id="browser-preview" :text="t('ppz.preview.hint')" />
-    </div>
-    <template v-if="isPreview">
-      <p class="preview-note" data-preview="active">{{ t('ppz.preview.active') }}</p>
-      <p v-if="needsRestart" class="preview-note warn" data-preview="needs-restart">{{ t('ppz.preview.needs_restart') }}</p>
-    </template>
-    <template v-else>
-      <p class="lead">{{ t('ppz.preview.lead') }}</p>
-      <div class="btn-row">
-        <button class="btn sm" :disabled="previewBusy" data-action="open-preview" @click="openPreview">{{ t('ppz.preview.open') }}</button>
-      </div>
-      <div v-if="previewUrl" class="srow stack">
-        <div class="ctl preview-url">
-          <input class="input sm" readonly :value="previewUrl" :aria-label="t('ppz.preview.url')" @focus="($event.target as HTMLInputElement).select()">
-          <button class="btn ghost sm" data-action="copy-preview-url" @click="copyPreviewUrl">{{ copied ? t('ppz.preview.copied') : t('ppz.preview.copy') }}</button>
-        </div>
-      </div>
-      <p v-if="previewError" class="err">{{ t('ppz.preview.failed', { error: previewError }) }}</p>
-    </template>
-  </section>
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onMounted, shallowRef } from 'vue'
+import { computed, defineComponent, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { AppConfig, configContentsForRelaunch, hotkeyRegistration } from '@/web/Config'
+import { AppConfig } from '@/web/Config'
 import { Host } from '@/web/background/IPC'
 import type { Language } from '@exile-appraiser/core/realm'
 import { ACCENTS, THEMES, FS_BASE_MIN, FS_BASE_MAX, DEFAULT_FS_BASE, bgImageUrl, normAccent, normBgFile, type Theme } from '@/web/useTheme'
@@ -200,8 +134,6 @@ import { SETTINGS_FS_MAX, SETTINGS_FS_MIN, normSettingsFontSize } from '../setti
 import BgLayoutEditor from '../BgLayoutEditor.vue'
 import { useBgPreview, useBgThumb } from '@/web/bg-bake'
 import HelpTip from '../HelpTip.vue'
-import SpeedrunSection from '../SpeedrunSection.vue'
-import { TIMER_DISPLAYS } from '@/web/overlay/timer-display'
 
 /** 主題縮圖:[底, 面板, 字, 強調](同 pob-zh-engine/ui/src/views/SettingsView.svelte 的 SWATCH)。 */
 const SWATCH: Record<Theme, [string, string, string, string]> = {
@@ -212,42 +144,10 @@ const SWATCH: Record<Theme, [string, string, string, string]> = {
 }
 
 export default defineComponent({
-  components: { BgLayoutEditor, HelpTip, SpeedrunSection },
+  components: { BgLayoutEditor, HelpTip },
   setup () {
     const { t } = useI18n()
     const config = AppConfig()
-
-    // ---- 瀏覽器預覽(main 的 preview-server;docs/browser-preview.md) ----
-    const previewUrl = shallowRef<string | null>(null)
-    const previewBusy = shallowRef(false)
-    const previewError = shallowRef<string | null>(null)
-    const copied = shallowRef(false)
-    onMounted(async () => {
-      if (!Host.isElectron || Host.isPreview) return
-      try { previewUrl.value = await Host.getPreviewUrl() } catch {}
-    })
-
-    // ---- 第五輪 30.5:硬體加速(啟動時套用的值;拿不到(預覽 / 純瀏覽器)= 開設定頁時的值)----
-    const hwAccelAtStart = shallowRef<boolean>(config.hardwareAcceleration)
-    const relaunching = shallowRef(false)
-    onMounted(async () => {
-      try {
-        const v = await Host.hwAccelActive()
-        if (typeof v === 'boolean') hwAccelAtStart.value = v
-      } catch {}
-    })
-    const shortcutBusy = shallowRef(false)
-    const shortcutState = shallowRef<'' | 'done' | 'dev' | 'failed'>('')
-    async function createShortcut () {
-      shortcutBusy.value = true
-      shortcutState.value = '' // 先清掉,連按兩次也看得到結果重新出現
-      shortcutState.value = await Host.createDesktopShortcut()
-      shortcutBusy.value = false
-    }
-    async function relaunch () {
-      relaunching.value = true
-      try { await Host.appRelaunch(configContentsForRelaunch()) } catch { relaunching.value = false }
-    }
 
     // ---- 自訂背景圖 ----
     const bgBusy = shallowRef(false)
@@ -272,18 +172,6 @@ export default defineComponent({
       }
     }
     return {
-      timerDisplays: TIMER_DISPLAYS,
-      timerDisplayLabel: computed(() => ({ active: t('ppz.timer.display_active'), always: t('ppz.timer.display_always'), off: t('ppz.timer.display_off') })),
-      hwAccelPending: computed(() => config.hardwareAcceleration !== hwAccelAtStart.value),
-      canRelaunch: Host.canRelaunch,
-      canCreateShortcut: Host.canCreateDesktopShortcut,
-      shortcutBusy,
-      shortcutState,
-      // 鍵寫成字面值:settings-ia 測試靜態掃 t('ppz.…') 檢查兩語都有
-      shortcutText: computed(() => ({ '': '', done: t('ppz.desktop_shortcut.done'), dev: t('ppz.desktop_shortcut.dev'), failed: t('ppz.desktop_shortcut.failed') })[shortcutState.value]),
-      createShortcut,
-      relaunching,
-      relaunch,
       canPickBg: Host.canPickBg,
       bgBusy,
       bgError,
@@ -311,35 +199,6 @@ export default defineComponent({
       isCustomAccent: computed(() => !!config.accent && !(ACCENTS as readonly string[]).includes(config.accent)),
       setCustomAccent (e: Event) {
         config.accent = normAccent((e.target as HTMLInputElement).value)
-      },
-      hasHost: Host.isElectron,
-      isPreview: Host.isPreview,
-      needsRestart: computed(() => hotkeyRegistration.value?.needsRestart === true),
-      previewUrl,
-      previewBusy,
-      previewError,
-      copied,
-      async openPreview () {
-        previewBusy.value = true
-        previewError.value = null
-        try {
-          const r = await Host.openPreview()
-          if (r) previewUrl.value = r.url
-        } catch (e) {
-          previewError.value = e instanceof Error ? e.message : String(e)
-        } finally {
-          previewBusy.value = false
-        }
-      },
-      async copyPreviewUrl () {
-        if (!previewUrl.value) return
-        try {
-          await navigator.clipboard.writeText(previewUrl.value)
-          copied.value = true
-          setTimeout(() => { copied.value = false }, 1500)
-        } catch (e) {
-          previewError.value = e instanceof Error ? e.message : String(e)
-        }
       }
     }
   }
@@ -347,34 +206,6 @@ export default defineComponent({
 </script>
 
 <style>
-/* 第五輪 30.5:硬體加速「重新啟動後生效」列(尺寸用 em / --fs-*,跟設定視窗獨立字級) */
-.settings-panel .hw-restart {
-  display: flex;
-  align-items: center;
-  gap: 0.6em;
-  margin-top: 4px;
-  font-size: var(--fs-xs);
-}
-.settings-panel .hw-restart .warn-text {
-  color: var(--warn, var(--gold));
-}
-.settings-panel .preview-note {
-  margin: 0;
-  color: var(--ink-2);
-  font-size: var(--fs-xs);
-}
-.settings-panel .preview-note.warn {
-  color: var(--warn, var(--gold));
-}
-.settings-panel .preview-url {
-  gap: 6px;
-}
-.settings-panel .preview-url input {
-  flex: 1;
-  min-width: 0;
-  font-family: ui-monospace, Consolas, monospace;
-  font-size: var(--fs-2xs);
-}
 .settings-panel .srow.stack {
   grid-template-columns: minmax(0, 1fr);
 }
@@ -532,5 +363,10 @@ export default defineComponent({
 }
 .settings-panel .slider.follow {
   opacity: 0.55;
+}
+.settings-panel .srow > .k .k-en {
+  display: block;
+  font-size: var(--fs-2xs);
+  color: var(--ink-3);
 }
 </style>

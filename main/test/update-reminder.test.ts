@@ -441,7 +441,7 @@ describe('接線守門', () => {
     const i = main.indexOf('const runReminderAction')
     const block = main.slice(i, main.indexOf('const devAuto', i))
     expect(block).toMatch(/reminder\.stop\(\)\s+updater\.install\(\)/)
-    expect(block).toContain("openSettings('about')")
+    expect(block).toContain("openSettings('startup')")
     expect(block).toContain('void updater.download()')
     expect(block).toContain('openExternalSafe(t.url')
   })

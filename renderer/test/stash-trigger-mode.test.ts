@@ -26,14 +26,15 @@ describe('K7 stashTriggerMode 設定往返與同步守門', () => {
     expect(key.slice(key.indexOf('function scanConfigKey'))).toContain('cfg.stashTriggerMode')
     expect(read('../../main/src/main.ts')).toContain("hostCfg?.stashTriggerMode === 'hotkey' ? 'hotkey' : 'auto'")
   })
-  it('設定 › 自動辨識 › 倉庫價格卡 #extra 有「顯示方式」兩選一 + 說明;兩語字串', () => {
-    const rec = read('../src/web/settings/tabs/Recognition.vue')
-    expect(rec).toMatch(/kind="stash">[\s\S]*<template #extra>[\s\S]*data-setting="stash-trigger-mode"[\s\S]*<\/ocr-scan-section>/)
-    expect(rec).toContain("config.stashTriggerMode = 'auto'")
-    expect(rec).toContain("config.stashTriggerMode = 'hotkey'")
+  it('設定 › 倉庫 › 倉庫價格卡頂端有「顯示方式」兩張選項卡(各附一句說明);兩語字串', () => {
+    const rec = read('../src/web/settings/tabs/Stash.vue')
+    expect(rec).toMatch(/kind="stash">[\s\S]*<template #top>[\s\S]*role="radiogroup"[^>]*data-setting="stash-trigger-mode"[\s\S]*<\/ocr-scan-section>/)
+    expect(rec).toContain('@change="config.stashTriggerMode = m.id"')
+    expect(rec).toContain("id: 'auto' as const, on: config.stashTriggerMode !== 'hotkey'")
+    expect(rec).toContain("id: 'hotkey' as const, on: config.stashTriggerMode === 'hotkey'")
     for (const lang of ['cmn-Hant', 'en']) {
       const j = JSON.parse(read(`../src/i18n/${lang}.json`))
-      for (const k of ['trigger_mode', 'trigger_auto', 'trigger_hotkey', 'trigger_hint', 'status_not_armed', 'status_capture_black']) {
+      for (const k of ['trigger_mode', 'trigger_auto', 'trigger_hotkey', 'trigger_auto_desc', 'trigger_hotkey_desc', 'status_not_armed', 'status_capture_black']) {
         expect(j.ppz.stash[k], `${lang} ${k}`).toBeTruthy()
       }
     }

@@ -481,13 +481,13 @@ export interface ConfigChangedEvent {
 }
 
 /**
- * 設定面板的分頁(`open-settings` 指定要開哪頁,如更新提醒開「關於」;查價標題列 ⚖ 開 `dust`)。
- * 第 39 步(設定頁資訊架構整理)起分兩組:設定(一般 / 遊戲 / 查價 / 倉庫與聊天 / 自動辨識 / 熱鍵 / 更新與關於)、
- * 工具(正則 / 拆粉排行 / 記錄)。舊值 `chat` 仍可送(`LegacySettingsTabId`),renderer `resolveSettingsTab` 映射到新分頁。
+ * 設定面板的分頁(`open-settings` 指定要開哪頁,如更新提醒開「啟動與更新」;查價標題列 ⚖ 開 `dust`)。
+ * 2026-11-18 重整成三組:設定(一般 / 遊戲與視窗 / 熱鍵 / 啟動與更新)、功能(查價 / 倉庫 / 聊天指令 / 自動辨識 / 計時器)、
+ * 工具(正則 / 拆粉排行 / 記錄與效能 / 關於)。舊值 `stash-chat` 仍可送(`LegacySettingsTabId`),renderer `resolveSettingsTab` 映射到新分頁。
  */
-export type SettingsTabId = 'general' | 'game' | 'price-check' | 'stash-chat' | 'hotkeys' | 'about' | 'recognition' | 'regex' | 'dust' | 'log'
-/** 第 39 步前的分頁 id(只剩 `chat` 改名;其餘沿用) */
-export type LegacySettingsTabId = 'chat'
+export type SettingsTabId = 'general' | 'game' | 'hotkeys' | 'startup' | 'price-check' | 'stash' | 'chat' | 'recognition' | 'timer' | 'regex' | 'dust' | 'log' | 'about'
+/** 已不存在的分頁 id(`stash-chat` 拆成倉庫 / 聊天指令) */
+export type LegacySettingsTabId = 'stash-chat'
 
 /** 第 28 步:設定 › 記錄。main 常駐環形緩衝(最近約 3000 行)的一筆;`seq` 遞增,renderer 以它去重 / 補洞。 */
 export type LogLevel = 'info' | 'warn' | 'error'

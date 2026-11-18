@@ -85,9 +85,10 @@ describe('overlay 閒置回報與 App.vue 接線(T8)', () => {
 })
 
 describe('正則頁的預設書籤與圖層接線(R5、R8)', () => {
-  it('設定 › 正則 書籤卡片(PoE1 分頁)有「地圖檢查書籤」下拉,寫 mapCheckBookmark', () => {
-    const v = read('renderer/src/web/regex/RegexBookmarks.vue')
-    expect(v).toMatch(/v-if="tab === 'poe1'" class="srow" data-regex="bm-map-check"/)
+  it('設定 › 正則 › 書籤與快捷有「地圖詞綴檢查」卡片(PoE1)的書籤下拉,寫 mapCheckBookmark', () => {
+    const v = read('renderer/src/web/regex/MapCheckCard.vue')
+    expect(v).toContain('<section class="card" data-regex="bm-map-check">')
+    expect(read('renderer/src/web/settings/tabs/Regex.vue')).toContain(`<map-check-card v-if="config.game === 'poe1'" />`)
     expect(v).toContain('config.mapCheckBookmark = b ? mapCheckRefOf(b, list) : false')
     expect(v).toContain('mapCheckBookmarks(store.ui.bookmarks)')
   })

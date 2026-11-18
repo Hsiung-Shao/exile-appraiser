@@ -247,7 +247,9 @@
       "picker": {
         "help": "Frame the fragment tab sub-tab buttons (General / Allflame / Eldritch)",
         "sub": "Do not cut through the stash tab names above; the dashed box is the area in use. A stash tab in a folder moves the buttons down: pick again or reset to default"
-      }
+      },
+      "trigger_auto_desc": "Shows prices whenever the stash is open",
+      "trigger_hotkey_desc": "No capture until you press the stash prices hotkey"
     },
     "runeshape": {
       "section": "Runeshape",
@@ -454,10 +456,11 @@
       "no_bookmark": "No map mod bookmark yet: tick mods on the Map mods / Heist contracts / Logbook page in Settings › Regex and save a bookmark (exclude mode = red, include = green).",
       "default_label": "Map check bookmark",
       "default_none": "(no colours)",
-      "default_lead": "The map check hotkey colours a map's mods with this bookmark: ticked mods are red in exclude mode, green in include mode. You can switch it in the check window too."
+      "default_lead": "The map check hotkey colours a map's mods with this bookmark: ticked mods are red in exclude mode, green in include mode. You can switch it in the check window too.",
+      "card_title": "Map mod check"
     },
-    "tab_log": "Log",
-    "tab_about": "Updates & about",
+    "tab_log": "Log & performance",
+    "tab_about": "About",
     "quit_app": "Quit",
     "coming_soon": "Coming soon",
     "section_interface": "Interface",
@@ -908,7 +911,9 @@
       "incoming_err_file-read": "Cannot read the share code file: {detail}.",
       "incoming_err_file-too-large": "The share code file is too large: {detail}.",
       "incoming_err_decode": "Cannot apply the share code: {detail}",
-      "incoming_err_not-loaded": "The {detail} lists failed to load; cannot apply."
+      "incoming_err_not-loaded": "The {detail} lists failed to load; cannot apply.",
+      "view_generator": "Generator",
+      "view_bookmarks": "Bookmarks & shortcuts"
     },
     "log": {
       "filter": "Filter",
@@ -1060,8 +1065,7 @@
       "tw_unavailable": "poe.ninja has no Taiwan realm prices",
       "error": "poe.ninja fetch failed: {error}"
     },
-    "tab_game": "Game",
-    "tab_stash_chat": "Stash & chat",
+    "tab_game": "Game & window",
     "tab_recognition": "Auto recognition",
     "nav_group_settings": "Settings",
     "nav_group_tools": "Tools",
@@ -1080,11 +1084,12 @@
       "price": "Price check",
       "menu": "Settings menu",
       "scan": "Auto recognition",
-      "stash_chat": "Stash & chat",
       "regex": "Regex",
       "stash_search": "Stash search",
       "regex_bookmark": "Bookmark",
-      "tools": "Tools"
+      "tools": "Tools",
+      "timer": "Timer",
+      "stash_prices": "Stash prices"
     },
     "hk": {
       "menu_toggle": "Show / hide",
@@ -1102,7 +1107,8 @@
       "timer_reset": "Timer reset",
       "timer_pause": "Timer pause / resume",
       "timer_undo": "Timer undo split",
-      "timer_skip": "Timer skip split"
+      "timer_skip": "Timer skip split",
+      "goto_page": "{page} ›"
     },
     "timer": {
       "section": "Timer",
@@ -1159,6 +1165,31 @@
     },
     "filters": {
       "expand": "Show mods"
+    },
+    "tab_startup": "Startup & updates",
+    "tab_stash": "Stash",
+    "tab_chat": "Chat commands",
+    "tab_timer": "Timer",
+    "nav_group_features": "Features",
+    "section_files": "Files & preview",
+    "tab_lead": {
+      "general": "Appearance and background image, applied right away",
+      "game": "Which game and realm to check, and how to sit on top of the game",
+      "hotkeys": "Grouped by feature; the link next to a group opens that feature's page",
+      "startup": "How the app starts and updates",
+      "price_check": "How searches are built and what the result panel shows",
+      "stash": "Stash prices, tab scrolling and stash search in one place",
+      "chat": "Type commands into the game chat with a hotkey (overlay mode only)",
+      "recognition": "Reads desecration and runeshaping panels from screen captures on this PC",
+      "timer": "Split timer for levelling, auto-split from the game log",
+      "regex": "Build search strings for the game and paste bookmarks with one key",
+      "dust": "Which uniques are worth disenchanting, priced by poe.ninja",
+      "log": "Kept on this PC only; copy and paste it yourself when reporting a problem",
+      "about": "Version, data sources, community and credits"
+    },
+    "page_hotkeys": {
+      "label": "Hotkeys on this page",
+      "edit": "Change in the hotkey table ›"
     }
   }
 }

@@ -2,30 +2,28 @@
   設定 › 熱鍵(第 39 步:熱鍵總表;原「熱鍵與視窗」分頁的視窗設定搬到「遊戲」、辨識卡片搬到「自動辨識」)。
   - 列由 ../hotkey-table.ts `hotkeyTable()` 產生,依功能分組(查價 / 設定選單 / 自動辨識 / 倉庫搜尋 / 正則),順序 = main 註冊順序。
   - `edit` 列直接在這裡編輯(HotkeyInput,按鍵擷取,Esc / Backspace 清除;快速查價 = 按住鍵 + 主鍵);
-    聊天指令熱鍵不列在這裡(2026-10-14 使用者裁定,推翻 2026-10-05 的總表直接編輯):只在「倉庫與聊天」頁編輯,衝突檢查仍涵蓋;
+    聊天指令熱鍵不列在這裡(2026-10-14 使用者裁定,推翻 2026-10-05 的總表直接編輯):只在「聊天指令」頁編輯,衝突檢查仍涵蓋;
     `ref` 列(倉庫搜尋、個別正則書籤:熱鍵與項目綁在一起)唯讀,點「到 … 編輯」跳到該頁
     (`jumpToTab`:那一頁頂端出現「← 回到熱鍵」,返回捲回原位置;預覽的瀏覽器上一頁也回得來,settings-nav.ts)。
   - 衝突 / 遊戲保留鍵 / 被其他程式佔用 / 褻瀆與符文暫停鍵共用:useHotkeyIssues(與 main 註冊規則相同,涵蓋全部熱鍵),即時顯示在該列下方;
     main 回報對不回任何欄位的錯誤顯示在頁底。
   - 只在 overlay 模式註冊的組(設定選單、自動辨識、倉庫搜尋、正則)在設定不是 overlay 時不列,改顯示一句說明。
   - 自動辨識的暫停 / 繼續熱鍵只在該功能開著時註冊 → 功能關著時列下方標「功能關閉中」。
+  - 2026-11-18 設定重整:每組一張卡片、兩欄(容器窄時一欄),組標題旁「到 … ›」跳到該功能頁;熱鍵輸入框畫成鍵帽。
   - 第 36 步:選填熱鍵(預設不綁的框選 / 暫停 / 快速面板)沒設時「未設定」用灰字(HotkeyInput `optional`),紅字只留給衝突 / 註冊失敗;
     正則書籤的唯讀列標資料夾名(`資料夾 › 書籤`)。
 -->
 <template>
-  <section class="card hk-table" data-setting="hotkey-table">
-    <div class="card-head">
-      <span class="label">{{ t('ppz.section_hotkeys') }}</span>
-    </div>
-    <p class="lead">{{ t('ppz.hotkey_capture_hint') }}</p>
-    <div v-for="g in groups" :key="g.id" class="hk-group" :data-hk-group="g.id">
+  <p class="lead hk-lead">{{ t('ppz.hotkey_capture_hint') }}</p>
+  <div class="hk-table" data-setting="hotkey-table">
+    <section v-for="g in groups" :key="g.id" class="card hk-group" :data-hk-group="g.id">
       <div class="hk-group-head">
-        <span class="sublabel">{{ t(g.title) }}</span>
+        <span class="label">{{ t(g.title) }}</span>
         <help-tip v-if="g.id === 'scan'" id="hk-scan" :text="t('ppz.hk.scan_note')" />
         <span class="grow" />
-        <button v-if="g.tab" class="btn ghost sm hk-goto" :data-goto="g.tab" @click="goto(g.tab, $event)">{{ t('ppz.hk.edit_in', { page: tabName(g.tab) }) }}</button>
+        <button v-if="g.tab" class="hk-link hk-goto" :data-goto="g.tab" @click="goto(g.tab, $event)">{{ t('ppz.hk.goto_page', { page: tabName(g.tab) }) }}</button>
       </div>
-      <p v-if="!g.rows.length" class="foot" :data-hk-empty="g.id">{{ t(g.id === 'stash-chat' ? 'ppz.hk.empty_stash_chat' : 'ppz.hk.empty') }}</p>
+      <p v-if="!g.rows.length" class="foot" :data-hk-empty="g.id">{{ t(g.id === 'stash' ? 'ppz.hk.empty_stash_chat' : 'ppz.hk.empty') }}</p>
       <div v-for="r in g.rows" :key="r.id" class="srow" :class="{ ref: r.kind === 'ref' }" :data-hk-row="r.id">
         <template v-if="r.kind === 'edit'">
           <span class="k">{{ t(r.label) }}<template v-if="r.id === 'regexQuick'"> <help-tip id="hk-regex-quick" :text="t('ppz.regex.quick_hotkey_hint')" /></template></span>
@@ -56,10 +54,10 @@
           <span v-if="r.hotkey && issueText(r.id, r.hotkey)" class="err" :data-issue="r.id">{{ issueText(r.id, r.hotkey) }}</span>
         </template>
       </div>
-    </div>
-    <p v-if="!config.overlayMode" class="foot" data-setting="hk-window-only">{{ t('ppz.hk.window_only') }}</p>
-    <p v-if="otherError" class="err-line">{{ t('ppz.hotkey_error', { error: otherError }) }}</p>
-  </section>
+    </section>
+  </div>
+  <p v-if="!config.overlayMode" class="foot" data-setting="hk-window-only">{{ t('ppz.hk.window_only') }}</p>
+  <p v-if="otherError" class="err-line">{{ t('ppz.hotkey_error', { error: otherError }) }}</p>
 </template>
 
 <script lang="ts">
@@ -75,7 +73,7 @@ import { hotkeyTable, type HotkeyField, type HotkeyRow } from '../hotkey-table'
 import { useHotkeyIssues } from '../useHotkeyIssues'
 import { regexBookmarkFolders, regexBookmarkHotkeyList } from '@/web/regex/bookmark-hotkeys'
 import { SETTINGS_TABS } from '../settings-tabs'
-import { jumpToTab } from '../tabState'
+import { jumpToTab, regexView } from '../tabState'
 
 /** 熱鍵欄位的 data-setting(沿用改版前各卡片的名稱,驗證腳本與文件照舊可用) */
 const FIELD_DS: Record<HotkeyField, string> = {
@@ -136,6 +134,8 @@ export default defineComponent({
       /** 跳到該頁編輯;那一頁頂端出現「← 回到熱鍵」,返回時捲回這裡(2026-10-05) */
       goto (id: SettingsTabId, e?: Event) {
         const body = (e?.currentTarget as HTMLElement | null)?.closest('.settings-body')
+        // 正則組 / 書籤列 → 正則的「書籤與快捷」子分頁(快速面板與書籤熱鍵都在那裡)
+        if (id === 'regex') regexView.value = 'bookmarks'
         jumpToTab('hotkeys', id, body?.scrollTop ?? 0)
         console.log(`[settings] 熱鍵總表 → ${id}`)
       }
@@ -155,19 +155,47 @@ export default defineComponent({
 }
 .settings-panel .err-line.ok { color: var(--good, var(--ink-1)); }
 .settings-panel .err-line.warn { color: var(--warn); }
-.settings-panel .hk-group + .hk-group {
-  margin-top: 0.5em;
-  padding-top: 0.35em;
-  border-top: 1px solid var(--edge-0);
+.settings-panel .hk-table {
+  column-count: 2;
+  column-gap: 12px;
+}
+.settings-panel .hk-table > .hk-group {
+  break-inside: avoid;
+  margin-bottom: 12px;
+}
+@container settings-window (max-width: 820px) {
+  .settings-panel .hk-table { column-count: 1; }
+}
+.settings-panel .hk-lead {
+  flex-shrink: 0;
+  margin: 0;
 }
 .settings-panel .hk-group-head {
   display: flex;
   align-items: center;
   gap: 0.5em;
   min-height: 2em;
+  margin-bottom: 0.3em;
 }
-.settings-panel .hk-group-head .sublabel {
+.settings-panel .hk-group-head .label {
   margin: 0;
+}
+.settings-panel .hk-goto {
+  font-size: var(--fs-xs);
+}
+/* 熱鍵輸入框畫成鍵帽(設定重整的招牌細節) */
+.settings-panel .hk-table .hotkey-input {
+  font-family: ui-monospace, Consolas, monospace;
+  border-bottom-width: 2px;
+}
+.settings-panel .hk-table .srow {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+.settings-panel .hk-table .srow > .ctl {
+  justify-content: flex-end;
+}
+.settings-panel .hk-table .srow > :is(.note, .err) {
+  grid-column: 1 / -1;
 }
 .settings-panel .hk-group-head .grow {
   flex: 1;

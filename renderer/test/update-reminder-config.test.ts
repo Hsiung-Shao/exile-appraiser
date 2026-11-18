@@ -49,10 +49,10 @@ describe('updateReminder / updateSkippedVersion 設定檔往返', () => {
 })
 
 describe('關於頁與字串', () => {
-  const about = read('../src/web/settings/tabs/About.vue')
+  const about = read('../src/web/settings/tabs/Startup.vue')
   const zh = JSON.parse(read('../src/i18n/cmn-Hant.json'))
   const en = JSON.parse(read('../src/i18n/en.json'))
-  it('設定 › 關於有「有新版本時定期提醒」開關', () => {
+  it('設定 › 啟動與更新有「有新版本時定期提醒」開關', () => {
     expect(about).toContain('v-model="config.updateReminder"')
     expect(about).toContain("t('ppz.update.reminder')")
     expect(about).toContain("t('ppz.update.reminder_hint')")

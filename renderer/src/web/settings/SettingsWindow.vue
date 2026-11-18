@@ -1,8 +1,10 @@
 <!--
   設定視窗(取代 WP2 的查價側欄內細長面板):照 APT `SettingsWindow.vue` 的版面 + PobTools 配色。
   - 版面:標題列(「設定」+ 遊戲/區服徽章 + ✕)→ 左側選單(active 用 --gold 左邊條,底部「結束程式」)+ 右側可捲動內容。
-    第 39 步(設定頁資訊架構整理):選單分兩組 ——「設定」一般 / 遊戲 / 查價 / 倉庫與聊天 / 自動辨識(只在 PoE2)/ 熱鍵(總表)/ 更新與關於,
-    「工具」正則 / 拆粉排行 / 記錄;組標題小字、組間分隔線(分頁表與舊 id 映射在 ./settings-tabs.ts)。
+    2026-11-18 設定重整(方案 B,設計稿 https://claude.ai/artifact/KApC4XJhMQFnm1dHotpecK):選單分三組 ——
+    「設定」一般 / 遊戲與視窗 / 熱鍵 / 啟動與更新、「功能」查價 / 倉庫 / 聊天指令 / 自動辨識(只在 PoE2)/ 計時器、
+    「工具」正則 / 拆粉排行 / 記錄與效能 / 關於;每項前面一個線條圖示,組標題小字(分頁表、圖示與舊 id 映射在 ./settings-tabs.ts)。
+    內容區頂端是頁首(頁名 + 一句說明,settings-tabs.ts `lead`)。
     容器寬 < 640px(container query)時左選單收成上方分頁:組標題藏起、兩組之間留一條直線分隔。
   - 拆粉排行分頁(tabs/Dust.vue,2026-09-30 起;原本停靠在查價下方):內容區加 .fill = 不捲動、子元素撐滿,
     表格自己虛擬捲動。查價標題列的 ⚖ 直接開到這一頁。
@@ -55,7 +57,10 @@
           <span v-if="grp.id !== 'settings'" class="sw-nav-sep" role="separator" />
           <span class="sw-nav-group" :data-nav-group="grp.id" aria-hidden="true">{{ t(grp.key) }}</span>
           <button v-for="tb in grp.tabs" :key="tb.id" class="sw-nav-item" :class="{ on: tab === tb.id }" role="tab"
-            :aria-selected="tab === tb.id" :data-tab="tb.id" :data-group="grp.id" @click="selectTab(tb.id)">{{ t(tb.key) }}</button>
+            :aria-selected="tab === tb.id" :data-tab="tb.id" :data-group="grp.id" @click="selectTab(tb.id)">
+            <svg class="sw-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path :d="tb.icon" /></svg>
+            <span class="sw-nav-text">{{ t(tb.key) }}</span>
+          </button>
         </template>
         <span class="sw-nav-fill" />
         <button v-if="canQuit" class="sw-quit" data-action="app-quit" @click="quit">{{ t('ppz.quit_app') }}</button>
@@ -66,6 +71,10 @@
           <button class="sw-back" data-action="settings-back" :data-back-to="backTo.from" @click="goBack">
             <span aria-hidden="true">←</span> {{ t('ppz.settings_back', { page: tabName(backTo.from) }) }}
           </button>
+        </div>
+        <div class="sw-page-head" data-settings="page-head">
+          <h2 class="sw-page-title">{{ tabName(tab) }}</h2>
+          <p class="sw-page-lead">{{ t(tabLead) }}</p>
         </div>
         <component :is="tabComponent" />
       </div>
@@ -83,10 +92,13 @@ import { computed, defineComponent, nextTick, onBeforeUnmount, onMounted, provid
 import { useI18n } from 'vue-i18n'
 import GeneralTab from './tabs/General.vue'
 import GameTab from './tabs/Game.vue'
-import PriceCheckTab from './tabs/PriceCheck.vue'
-import StashChatTab from './tabs/StashChat.vue'
-import RecognitionTab from './tabs/Recognition.vue'
 import HotkeysTab from './tabs/Hotkeys.vue'
+import StartupTab from './tabs/Startup.vue'
+import PriceCheckTab from './tabs/PriceCheck.vue'
+import StashTab from './tabs/Stash.vue'
+import ChatTab from './tabs/Chat.vue'
+import RecognitionTab from './tabs/Recognition.vue'
+import TimerTab from './tabs/Timer.vue'
 import RegexTab from './tabs/Regex.vue'
 import DustTab from './tabs/Dust.vue'
 import LogTab from './tabs/Log.vue'
@@ -119,16 +131,19 @@ export default defineComponent({
     const components: Record<TabId, Component> = {
       general: GeneralTab,
       game: GameTab,
-      'price-check': PriceCheckTab,
-      'stash-chat': StashChatTab,
-      recognition: RecognitionTab,
       hotkeys: HotkeysTab,
-      about: AboutTab,
+      startup: StartupTab,
+      'price-check': PriceCheckTab,
+      stash: StashTab,
+      chat: ChatTab,
+      recognition: RecognitionTab,
+      timer: TimerTab,
       regex: RegexTab,
       dust: DustTab,
-      log: LogTab
+      log: LogTab,
+      about: AboutTab
     }
-    /** 選單:依組(設定 / 工具),目前遊戲看不到的分頁不列(自動辨識只在 PoE2) */
+    /** 選單:依組(設定 / 功能 / 工具),目前遊戲看不到的分頁不列(自動辨識只在 PoE2) */
     const navGroups = computed(() => {
       const shown = visibleTabs(config.game)
       return SETTINGS_TAB_GROUPS.map(g => ({ ...g, tabs: shown.filter(x => x.group === g.id) }))
@@ -331,6 +346,7 @@ export default defineComponent({
         return def ? t(def.key) : id
       },
       isFill: computed(() => SETTINGS_TABS.find(x => x.id === tab.value)?.fill === true),
+      tabLead: computed(() => SETTINGS_TABS.find(x => x.id === tab.value)?.lead ?? ''),
       bodyEl,
       tabComponent: computed(() => components[tab.value]),
       /** window 模式(Electron、非預覽)的標題列可拖曳視窗 */
@@ -472,29 +488,47 @@ export default defineComponent({
 }
 .sw-nav {
   flex: 0 0 auto;
-  width: calc(var(--fs-base) * 12.3); /* APT min-width 10rem */
+  width: calc(var(--fs-base) * 13.5);
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 8px 0;
+  padding: 6px 8px 8px;
   background: var(--surface-1);
   border-right: 1px solid var(--edge-0);
   overflow-y: auto;
 }
 .sw-nav-item {
   appearance: none;
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
   border: 0;
-  border-left: 3px solid transparent;
+  border-radius: var(--radius-m);
   background: none;
-  padding: 7px 12px 7px 13px;
+  min-height: calc(var(--fs-base) + 15px);
+  padding: 0 10px;
   text-align: left;
-  color: var(--ink-2);
+  color: var(--ink-1);
   font-size: var(--fs-sm);
-  letter-spacing: 0.02em;
   white-space: nowrap;
+  cursor: pointer;
+}
+.sw-nav-text {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  cursor: pointer;
+}
+/* 線條圖示(lucide 風格;選中時用強調色) */
+.sw-nav-icon {
+  flex: 0 0 auto;
+  width: 1.15em;
+  height: 1.15em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  color: var(--ink-2);
 }
 .sw-nav-item:hover {
   color: var(--ink-0);
@@ -502,8 +536,11 @@ export default defineComponent({
 }
 .sw-nav-item.on {
   color: var(--ink-0);
-  border-left-color: var(--gold);
-  background: var(--gold-soft);
+  background: var(--surface-3);
+  box-shadow: inset 0 0 0 1px var(--edge-0);
+}
+.sw-nav-item.on .sw-nav-icon {
+  color: var(--gold);
 }
 .sw-nav-item:focus-visible,
 .sw-quit:focus-visible {
@@ -513,29 +550,42 @@ export default defineComponent({
 .sw-nav-fill {
   flex: 1;
 }
-/* 第 39 步:選單分組(組標題小字 + 組間分隔線) */
+/* 選單分組(組標題小字;組與組之間留白,不畫分隔線) */
 .sw-nav-group {
-  padding: 6px 12px 2px 16px;
-  color: var(--ink-3);
+  padding: 4px 10px 4px;
+  color: var(--ink-2);
   font-size: var(--fs-2xs);
-  font-weight: 600;
-  letter-spacing: 0.12em;
   white-space: nowrap;
   user-select: none;
 }
 .sw-nav-sep {
   flex-shrink: 0;
-  height: 1px;
-  margin: 6px 12px 2px;
-  background: var(--edge-0);
+  height: 12px;
+}
+/* 頁首:頁名 + 一句說明 */
+.sw-page-head {
+  flex-shrink: 0;
+  margin: 2px 0 2px;
+}
+.sw-page-title {
+  margin: 0;
+  font-size: var(--fs-lg);
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--ink-0);
+}
+.sw-page-lead {
+  margin: 2px 0 0;
+  font-size: var(--fs-xs);
+  color: var(--ink-2);
 }
 .sw-quit {
   appearance: none;
   border: 0;
-  border-top: 1px solid var(--edge-0);
+  border-radius: var(--radius-m);
   background: none;
-  margin: 6px 0 -8px;
-  padding: 9px 12px 9px 16px;
+  margin: 6px 0 0;
+  padding: 8px 10px;
   text-align: left;
   color: var(--ink-2);
   font-size: var(--fs-xs);
@@ -551,10 +601,10 @@ export default defineComponent({
   min-width: 0;
   min-height: 0;
   overflow-y: auto;
-  padding: 12px 16px 18px;
+  padding: 16px 20px 20px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 /* 返回連結(從熱鍵總表跳過來時;內容區頂端、不佔卡片樣式) */
 .sw-back-row {
@@ -601,11 +651,14 @@ export default defineComponent({
   }
   .sw-nav-item {
     flex-shrink: 0;
-    border-left: 0;
+    border-radius: 0;
     border-bottom: 2px solid transparent;
     margin-bottom: -1px;
     padding: 6px 10px 5px;
     overflow: visible;
+  }
+  .sw-nav-icon {
+    display: none;
   }
   .sw-nav-item:hover {
     background: none;
@@ -618,10 +671,12 @@ export default defineComponent({
     width: 1px;
     height: auto;
     margin: 6px 4px;
+    background: var(--edge-0);
   }
   .sw-nav-item.on {
     border-bottom-color: var(--gold);
     background: none;
+    box-shadow: none;
   }
   .sw-quit {
     flex-shrink: 0;

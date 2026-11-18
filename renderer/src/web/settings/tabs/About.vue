@@ -1,5 +1,5 @@
 <!--
-  設定 › 更新與關於(WP4;第 39 步整理:更新 → 設定資料夾 → 資料來源 → 連結 → 致謝):品牌 + 版本、更新狀態(main/src/AppUpdater.ts 經 Host.getUpdaterInfo / onUpdaterState)、
+  設定 › 關於(WP4;2026-11-18 設定重整:更新與設定資料夾搬到「啟動與更新」(Startup.vue),這頁只剩品牌 → 資料來源 → 連結與贊助 → 致謝):品牌 + 版本、
   資料來源(2026-10-14 使用者要求只留 poe.ninja 價格表的更新時間;MANIFEST 的資料版本列已移除)、連結列、回報問題、第三方致謝(授權全文 modal)。
   更新字串沿用上游 `updates.*`,上游沒有的放 `ppz.update.*`。所有外連走 Host.openExternal。
   贊助連結一律純文字(Patreon 不可用任何標誌 / 圖示)。
@@ -25,38 +25,6 @@
         <span class="gv-game">{{ g.name }}</span>
         <span class="gv-num num">{{ g.version }}</span>
       </span>
-    </div>
-  </section>
-
-  <section class="card" data-about="update">
-    <span class="label">{{ t('ppz.about.section_update') }}</span>
-    <span class="update-status" :class="updateTone" :data-update-state="info?.state" :title="updateText">{{ updateText }}</span>
-    <p v-if="lastChecked" class="update-meta">{{ lastChecked }}</p>
-    <div class="btn-row">
-      <button class="btn sm" data-action="update-check" :disabled="!canCheck" @click="check">{{ t('ppz.update.check') }}</button>
-      <button v-if="showDownload" class="btn sm primary" data-action="update-download" @click="download">{{ t('ppz.update.download') }}</button>
-      <button v-if="showReleases" class="btn sm" data-action="update-releases" @click="open(releasesUrl)">{{ t('ppz.update.releases') }} ↗</button>
-      <button v-if="info?.state === 'downloaded'" class="btn sm primary" data-action="update-install" @click="install">{{ autoApply ? t('ppz.update.restart_now') : t('ppz.update.restart_install') }}</button>
-    </div>
-    <template v-if="info?.reason !== 'not-supported'">
-      <div class="chk-row">
-        <label class="chk"><input v-model="config.autoUpdate" type="checkbox" data-setting="auto-update"><span>{{ t('ppz.update.auto') }}</span></label>
-        <help-tip id="auto-update" data-about="auto-update-hint" :text="t('ppz.update.auto_hint')" />
-      </div>
-    </template>
-    <!-- 第 34 步:有新版本時每 10 分鐘在右下角提醒(main/src/update-reminder.ts) -->
-    <div class="chk-row">
-      <label class="chk"><input v-model="config.updateReminder" type="checkbox" data-setting="update-reminder"><span>{{ t('ppz.update.reminder') }}</span></label>
-      <help-tip id="update-reminder" data-about="update-reminder-hint" :text="t('ppz.update.reminder_hint')" />
-    </div>
-  </section>
-
-  <section v-if="canOpenConfigFolder" class="card" data-about="config-folder">
-    <div class="srow">
-      <span class="k">{{ t('ppz.about.config_folder') }}</span>
-      <div class="ctl">
-        <button class="btn ghost sm" data-action="config-open-folder" @click="openConfigFolder">{{ t('ppz.about.config_folder_open') }}</button>
-      </div>
     </div>
   </section>
 
@@ -116,14 +84,12 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onMounted, onUnmounted, shallowRef } from 'vue'
+import { computed, defineComponent, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
-import type { UpdaterInfo } from '@ipc/types'
 import { AppConfig } from '@/web/Config'
 import { Host } from '@/web/background/IPC'
 import { reportIssue, copyIssueReport, reportStatus } from '@/web/report'
 import { usePoeninja } from '@/web/background/Prices'
-import HelpTip from '../HelpTip.vue'
 import { SUPPORTED_GAME_VERSIONS } from '../game-versions'
 
 const REPO = 'https://github.com/Hsiung-Shao/exile-appraiser'
@@ -164,23 +130,9 @@ const THANKS: Credit[] = [
 ]
 
 export default defineComponent({
-  components: { HelpTip },
   setup () {
     const { t } = useI18n()
-    const info = shallowRef<UpdaterInfo | null>(null)
     const license = shallowRef<{ name: string, text: string } | null>(null)
-    let unsubscribe: (() => void) | null = null
-    let pushed = false
-
-    onMounted(() => {
-      unsubscribe = Host.onUpdaterState((next) => { pushed = true; info.value = next })
-      // 推播比查詢先到就以推播為準
-      Host.getUpdaterInfo()
-        .then((v) => { if (!pushed) info.value = v })
-        .catch((e) => { console.error('[about] getUpdaterInfo 失敗', e) })
-    })
-    onUnmounted(() => { unsubscribe?.() })
-
     // poe.ninja 價格表(Prices.ts 的快取時間;目標依目前遊戲,WP-R2 起 PoE2 也抓)
     const ninja = usePoeninja()
     const ninjaText = computed(() => {
@@ -190,42 +142,6 @@ export default defineComponent({
       if (ninja.isLoading.value) return t('ppz.ninja.loading')
       if (ninja.lastError.value) return t('ppz.ninja.error', { error: ninja.lastError.value })
       return t('ppz.ninja.never')
-    })
-
-    /** 安裝版 + main 已套用 autoUpdate:下載完成後「結束程式時自動套用」。 */
-    const autoApply = computed(() => info.value?.reason === 'unsigned-build' && info.value.autoUpdate !== false)
-
-    const updateText = computed(() => {
-      const i = info.value
-      if (!i) return t('ppz.loading')
-      if (i.reason === 'disabled-by-flag') return t('ppz.update.disabled')
-      switch (i.state) {
-        case 'initial': return t('ppz.update.initial')
-        case 'checking': return t('updates.checking')
-        case 'available':
-          return i.reason === 'not-supported'
-            ? `${t('updates.available', [i.version ?? '?'])} — ${t('ppz.update.not_supported')}`
-            : t('updates.available', [i.version ?? '?'])
-        case 'not-available': return t('updates.latest')
-        case 'downloading': return t('updates.downloading')
-        case 'downloaded':
-          return autoApply.value
-            ? t('ppz.update.downloaded_auto', { version: i.version ?? '?' })
-            : t('ppz.update.downloaded', { version: i.version ?? '?' })
-        case 'error':
-          return i.errorKind === 'not-found'
-            ? t('ppz.update.not_found')
-            : t('ppz.update.error', { error: (i.error ?? '').split('\n')[0] })
-        default: return ''
-      }
-    })
-
-    const updateTone = computed(() => {
-      const s = info.value?.state
-      if (s === 'available' || s === 'downloaded') return 'good'
-      if (s === 'error' && info.value?.errorKind !== 'not-found') return 'bad'
-      if (s === 'checking' || s === 'downloading') return 'pulse'
-      return ''
     })
 
     const reportMessage = computed(() => {
@@ -242,7 +158,6 @@ export default defineComponent({
     return {
       t,
       config: AppConfig(),
-      autoApply,
       version: Host.version,
       gameVersions: SUPPORTED_GAME_VERSIONS,
       gameBlocks: [
@@ -251,26 +166,7 @@ export default defineComponent({
       ],
       ninjaText,
       ninjaError: computed(() => ninja.lastError.value ?? undefined),
-      info,
-      updateText,
-      updateTone,
-      lastChecked: computed(() => {
-        const at = info.value?.checkedAt
-        return at ? t('updates.last_checked', [new Date(at).toLocaleString(AppConfig().uiLanguage === 'en' ? 'en-US' : 'zh-TW')]) : ''
-      }),
-      canCheck: computed(() => {
-        const i = info.value
-        return i != null && i.reason !== 'disabled-by-flag' && i.state !== 'checking' && i.state !== 'downloading'
-      }),
-      showDownload: computed(() => info.value?.state === 'available' && info.value.reason === 'unsigned-build'),
-      showReleases: computed(() => info.value?.state === 'available' && info.value.reason === 'not-supported'),
-      releasesUrl: computed(() => info.value?.releaseNotesUrl ?? RELEASES),
-      check () { void Host.checkForUpdate() },
-      download () { void Host.downloadUpdate() },
-      install () { void Host.installUpdate() },
       open,
-      canOpenConfigFolder: Host.canOpenConfigFolder,
-      openConfigFolder () { void Host.openConfigFolder() },
       links: LINKS,
       support: SUPPORT,
       thanks: THANKS,

@@ -1152,7 +1152,7 @@ if (!skipStartup) app.whenReady().then(() => {
 
   // ---- 第 34 步:有新版本時每 10 分鐘提醒(update-reminder.ts;docs/release-flow.md「更新提醒」) ----
   // 預覽啟動(`--preview`)不彈;還沒收到 Electron 視窗的 host-config 前擋住(設定 / 介面語言未知)。selftest 不會走到這裡。
-  /** 「立即更新」:已下載 → 安裝(autoUpdate 開 = quitAndInstall(true, true));可下載 → 開設定 › 關於並開始下載;portable → Releases 頁 */
+  /** 「立即更新」:已下載 → 安裝(autoUpdate 開 = quitAndInstall(true, true));可下載 → 開設定 › 啟動與更新並開始下載;portable → Releases 頁 */
   const runReminderAction = (t: ReminderTarget) => {
     console.log(`[update-reminder] 立即更新 v${t.version}(${t.action})`)
     if (t.action === 'install') {
@@ -1162,7 +1162,7 @@ if (!skipStartup) app.whenReady().then(() => {
     }
     reminder.closed('action')
     if (t.action === 'download') {
-      openSettings('about')
+      openSettings('startup')
       void updater.download()
     } else {
       openExternalSafe(t.url, '更新提醒').catch(() => {})

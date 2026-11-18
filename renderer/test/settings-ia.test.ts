@@ -1,5 +1,6 @@
-// 第 39 步(設定頁資訊架構整理)守門:分頁表與舊 id 映射、熱鍵總表涵蓋 hotkey-conflicts.ts 的全部熱鍵、
-// 自動辨識頁兩代都顯示(PoE1 = 倉庫價格)、條件隱藏、功能頁不再放全域熱鍵、說明一句 + 「?」、i18n 兩語齊全。
+// 第 39 步(設定頁資訊架構整理)守門;2026-11-18 設定重整(方案 B:設定 / 功能 / 工具三組):分頁表與舊 id 映射、熱鍵總表涵蓋
+// hotkey-conflicts.ts 的全部熱鍵、自動辨識只在 PoE2(PoE1 倉庫價格在倉庫頁)、條件隱藏、功能頁不放全域熱鍵欄位(只唯讀列出)、
+// 說明一句 + 「?」、i18n 兩語齊全。
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -16,56 +17,65 @@ const zh = JSON.parse(read('renderer/src/i18n/cmn-Hant.json')).ppz
 const en = JSON.parse(read('renderer/src/i18n/en.json')).ppz
 const get = (o: any, k: string) => k.split('.').reduce((a, p) => a?.[p], o)
 const SETTINGS = 'renderer/src/web/settings'
-const TAB_FILES = ['General', 'Game', 'PriceCheck', 'StashChat', 'Recognition', 'Hotkeys', 'About', 'Regex', 'Dust', 'Log'].map(f => `${SETTINGS}/tabs/${f}.vue`)
-const SETTINGS_FILES = [...TAB_FILES, ...['SettingsWindow.vue', 'OcrScanSection.vue', 'BadgeStyleSection.vue', 'HelpTip.vue', 'OverlayGate.vue', 'hotkey-table.ts', 'settings-tabs.ts', 'useHotkeyIssues.ts'].map(f => `${SETTINGS}/${f}`)]
-/** 第 39 步前的分頁 id(SettingsTabId 舊值) */
-const OLD_IDS = ['general', 'price-check', 'hotkeys', 'chat', 'regex', 'dust', 'log', 'about']
+const TAB_FILES = ['General', 'Game', 'Hotkeys', 'Startup', 'PriceCheck', 'Stash', 'Chat', 'Recognition', 'Timer', 'Regex', 'Dust', 'Log', 'About'].map(f => `${SETTINGS}/tabs/${f}.vue`)
+const SETTINGS_FILES = [...TAB_FILES, ...['SettingsWindow.vue', 'OcrScanSection.vue', 'OcrSharedSection.vue', 'PageHotkeys.vue', 'BadgeStyleSection.vue', 'HelpTip.vue', 'OverlayGate.vue', 'hotkey-table.ts', 'settings-tabs.ts', 'useHotkeyIssues.ts'].map(f => `${SETTINGS}/${f}`), 'renderer/src/web/regex/MapCheckCard.vue']
+/** 以前出現過、現在仍存在的分頁 id(托盤 / 預覽網址可能送來) */
+const OLD_IDS = ['general', 'game', 'price-check', 'hotkeys', 'chat', 'regex', 'dust', 'log', 'about']
 
 describe('分頁表與舊 id 映射', () => {
-  it('分頁 id 與 ipc/types.ts 的 SettingsTabId 一致、不重複;兩組依序 = 設定 6 頁 + 工具 4 頁(自動辨識在工具組第一個)', () => {
+  it('分頁 id 與 ipc/types.ts 的 SettingsTabId 一致、不重複;三組依序 = 設定 4 頁 + 功能 5 頁 + 工具 4 頁', () => {
     const m = /export type SettingsTabId = ([^\n]+)/.exec(read('ipc/types.ts'))!
     const union = [...m[1].matchAll(/'([a-z-]+)'/g)].map(x => x[1])
     expect(SETTINGS_TABS.map(t => t.id)).toEqual(union)
     expect(new Set(union).size).toBe(union.length)
-    expect(SETTINGS_TAB_GROUPS.map(g => g.id)).toEqual(['settings', 'tools'])
-    expect(SETTINGS_TABS.filter(t => t.group === 'settings').map(t => t.id)).toEqual(['general', 'game', 'price-check', 'stash-chat', 'hotkeys', 'about'])
-    // 2026-10-14 使用者裁定:自動辨識移到「工具」組第一個
-    expect(SETTINGS_TABS.filter(t => t.group === 'tools').map(t => t.id)).toEqual(['recognition', 'regex', 'dust', 'log'])
+    expect(SETTINGS_TAB_GROUPS.map(g => g.id)).toEqual(['settings', 'features', 'tools'])
+    expect(SETTINGS_TABS.filter(t => t.group === 'settings').map(t => t.id)).toEqual(['general', 'game', 'hotkeys', 'startup'])
+    expect(SETTINGS_TABS.filter(t => t.group === 'features').map(t => t.id)).toEqual(['price-check', 'stash', 'chat', 'recognition', 'timer'])
+    expect(SETTINGS_TABS.filter(t => t.group === 'tools').map(t => t.id)).toEqual(['regex', 'dust', 'log', 'about'])
+    // 每頁都有圖示與頁首說明
+    for (const t of SETTINGS_TABS) {
+      expect(t.icon, t.id).toMatch(/^M/)
+      expect(typeof get(zh, t.lead.slice(4)), `zh ${t.lead}`).toBe('string')
+      expect(typeof get(en, t.lead.slice(4)), `en ${t.lead}`).toBe('string')
+    }
     expect(SETTINGS_TABS.filter(t => t.fill).map(t => t.id)).toEqual(['dust', 'log'])
   })
-  it('舊值:chat → 倉庫與聊天;其餘舊 id 沿用;兩個遊戲都對得到看得見的分頁', () => {
-    expect(LEGACY_SETTINGS_TABS).toEqual({ chat: 'stash-chat' })
+  it('舊值:stash-chat → 倉庫;其餘舊 id 沿用(chat = 聊天指令頁);兩個遊戲都對得到看得見的分頁', () => {
+    expect(LEGACY_SETTINGS_TABS).toEqual({ 'stash-chat': 'stash' })
     for (const game of ['poe1', 'poe2'] as const) {
-      expect(resolveSettingsTab('chat', game)).toBe('stash-chat')
+      expect(resolveSettingsTab('stash-chat', game)).toBe('stash')
       for (const id of OLD_IDS) {
         const r = resolveSettingsTab(id, game)
         expect(isTabVisible(r, game), `${game} ${id} → ${r}`).toBe(true)
-        if (id !== 'chat') expect(r).toBe(id)
+        expect(r).toBe(id)
       }
       expect(resolveSettingsTab('nonsense', game)).toBe('general')
       expect(resolveSettingsTab(undefined, game)).toBe('general')
       expect(resolveSettingsTab('__proto__', game)).toBe('general')
     }
   })
-  it('自動辨識頁兩代都顯示;三張辨識卡片都是 ocr-scan-section(PoE1 = 倉庫、PoE2 = 褻瀆 / 符文)', () => {
-    // 使用者回報「倉庫價格放在倉庫與聊天不知道去哪找」→ 搬到自動辨識,PoE1 也要看得到
-    expect(visibleTabs('poe1').map(t => t.id)).toContain('recognition')
+  it('自動辨識只在 PoE2;PoE1 的倉庫價格卡片在倉庫頁(三張辨識卡片都是 ocr-scan-section)', () => {
+    expect(visibleTabs('poe1').map(t => t.id)).not.toContain('recognition')
     expect(visibleTabs('poe2').map(t => t.id)).toContain('recognition')
-    expect(resolveSettingsTab('recognition', 'poe1')).toBe('recognition')
+    // OCR 框選結束 / 托盤送 recognition:PoE1 → 倉庫頁(倉庫價格的框選從那裡開)
+    expect(resolveSettingsTab('recognition', 'poe1')).toBe('stash')
     expect(resolveSettingsTab('recognition', 'poe2')).toBe('recognition')
     const rec = read('renderer/src/web/settings/tabs/Recognition.vue')
-    expect(rec).toContain(`<ocr-scan-section v-if="config.game === 'poe1'" kind="stash">`)
-    expect(rec).not.toContain('stash-prices-section')
-    // 舊的獨立卡片元件已刪除(統一樣板)
+    const stash = read('renderer/src/web/settings/tabs/Stash.vue')
+    expect(stash).toContain(`<ocr-scan-section v-if="config.game === 'poe1'" kind="stash">`)
+    expect(stash).toContain(`<ocr-shared-section v-if="config.game === 'poe1'" />`)
+    expect(stash).toContain(`<badge-style-section v-if="config.game === 'poe1'" />`)
+    expect(rec).not.toContain('kind="stash"')
     expect(fs.existsSync(path.join(root, `${SETTINGS}/StashPricesSection.vue`))).toBe(false)
+    expect(fs.existsSync(path.join(root, `${SETTINGS}/tabs/StashChat.vue`))).toBe(false)
     expect(rec).toContain(`<ocr-scan-section v-if="config.game === 'poe2'" kind="reveal">`)
     expect(rec).toContain(`<ocr-scan-section v-if="config.game === 'poe2'" kind="runeshape">`)
-    expect(read('renderer/src/web/settings/tabs/StashChat.vue')).not.toContain('stash-prices-section')
+    expect(rec).toContain('<ocr-shared-section />')
     // 徽章外觀:PoE1 門檻綁 stashThresholds(混沌石)
     const badge = read('renderer/src/web/settings/BadgeStyleSection.vue')
     expect(badge).toContain('config.stashThresholds = normRuneshapeThresholds(v, DEFAULT_STASH_THRESHOLDS)')
   })
-  it('跳轉呼叫:托盤 / 預覽網址經 resolveSettingsTab;OCR 框選回自動辨識;⚖ 拆粉排行;書籤列「前往正則」', () => {
+  it('跳轉呼叫:托盤 / 預覽網址經 resolveSettingsTab;OCR 框選回自動辨識(PoE1 → 倉庫);⚖ 拆粉排行;書籤列「前往正則」', () => {
     const app = read('renderer/src/web/App.vue')
     expect(app).toMatch(/function openSettingsTo \(requested: SettingsTabId \| LegacySettingsTabId, reason: string\) \{\s*const tab = resolveSettingsTab\(requested, AppConfig\(\)\.game\)\s*settingsTab\.value = tab/)
     expect(app).toContain("Host.onOpenSettings(({ tab }) => { openSettingsTo(tab, '托盤') })")
@@ -73,9 +83,9 @@ describe('分頁表與舊 id 映射', () => {
     expect(app).not.toContain("openSettingsTo('hotkeys'")
     expect(app).toContain("openSettingsTo('dust', '⚖')")
     expect(app).toContain("openRegexTab () { settingsTab.value = 'regex' }")
-    // 托盤「關於」照舊送 about
-    expect(read('main/src/main.ts')).toContain("openSettings('about')")
-    // 預覽網址 #tab= 接受的 id = 新的全部 + 舊的 chat
+    // 更新提醒「立即更新」(可下載)開到啟動與更新(更新卡片在那裡)
+    expect(read('main/src/main.ts')).toContain("openSettings('startup')")
+    // 預覽網址 #tab= 接受的 id = 新的全部 + 舊的 stash-chat
     const tabs = /var TABS=\[([^\]]+)\]/.exec(read('main/src/preview-server.ts'))![1].split(',').map(s => s.replace(/'/g, ''))
     expect(new Set(tabs)).toEqual(new Set([...SETTINGS_TABS.map(t => t.id), ...Object.keys(LEGACY_SETTINGS_TABS)]))
   })
@@ -138,14 +148,18 @@ describe('熱鍵總表', () => {
     const rows = hotkeyTable(fullConfig('poe2', { revealAutoEnabled: false, runeshapeEnabled: false }), { overlay: true }).find(g => g.id === 'scan')!.rows
     expect(rows.map(r => r.id)).toEqual(['ocr', 'region', 'runeshape', 'runeRegion'])
     expect(rows.filter(r => r.kind === 'edit' && r.needs).map(r => r.id)).toEqual(['ocr', 'runeshape'])
-    expect(hotkeyTable(fullConfig('poe1'), { overlay: true }).map(g => g.id)).toEqual(['price', 'menu', 'scan', 'stash-chat', 'regex', 'tools'])
+    expect(hotkeyTable(fullConfig('poe1'), { overlay: true }).map(g => g.id)).toEqual(['price', 'menu', 'scan', 'stash', 'regex', 'tools', 'timer'])
     const p1 = hotkeyTable(fullConfig('poe1', { stashPricesEnabled: false }), { overlay: true }).find(g => g.id === 'scan')!.rows
     // 少列 / 欄位接錯 → 使用者在總表找不到倉庫價格熱鍵
     expect(p1.map(r => r.kind === 'edit' ? [r.id, r.field, r.needs ?? null, r.optional === true] : r.id)).toEqual([
       ['stashToggle', 'hotkeyStashToggle', null, true],
       ['stashRegion', 'hotkeyStashRegion', null, true]
     ])
-    expect(hotkeyTable(fullConfig('poe2'), { overlay: true }).map(g => g.id)).toEqual(['price', 'menu', 'scan', 'stash-chat', 'regex', 'tools'])
+    expect(hotkeyTable(fullConfig('poe2'), { overlay: true }).map(g => g.id)).toEqual(['price', 'menu', 'scan', 'stash', 'regex', 'tools', 'timer'])
+    // 組旁「到 … ›」:自動辨識組依遊戲連到該功能頁、計時器組連到計時器頁
+    expect(hotkeyTable(fullConfig('poe2'), { overlay: true }).find(g => g.id === 'scan')!.tab).toBe('recognition')
+    expect(hotkeyTable(fullConfig('poe1'), { overlay: true }).find(g => g.id === 'scan')!.tab).toBe('stash')
+    expect(hotkeyTable(fullConfig('poe1'), { overlay: true }).find(g => g.id === 'timer')!.tab).toBe('timer')
   })
   it('window 模式只列查價兩個(其餘只在 overlay 註冊,同 main buildShortcutActions)', () => {
     for (const game of ['poe1', 'poe2'] as const) {
@@ -163,12 +177,12 @@ describe('熱鍵總表', () => {
     const rows = groups.flatMap(g => g.rows)
     for (const r of rows) {
       expect(r.id, r.id).not.toMatch(/^cmd:/)
-      if (/^stash:/.test(r.id)) expect(r).toMatchObject({ kind: 'ref', tab: 'stash-chat' })
+      if (/^stash:/.test(r.id)) expect(r).toMatchObject({ kind: 'ref', tab: 'stash' })
       else if (/^rxbm:/.test(r.id)) expect(r).toMatchObject({ kind: 'ref', tab: 'regex' })
       else expect(r.kind, r.id).toBe('edit')
     }
     // 倉庫搜尋組的「到 … 編輯」保留
-    expect(groups.find(g => g.id === 'stash-chat')!.tab).toBe('stash-chat')
+    expect(groups.find(g => g.id === 'stash')!.tab).toBe('stash')
     const fields = rows.flatMap(r => r.kind === 'edit' ? [r.field] : [])
     expect(new Set(fields).size).toBe(fields.length)
     expect(fields.sort()).toEqual(['hotkey', 'hotkeyLocked', 'hotkeyOcrRegion', 'hotkeyOcrReveal', 'hotkeyPoedb', 'hotkeyRegexQuick', 'hotkeyRuneshapeRegion', 'hotkeyRuneshapeToggle', 'hotkeyTimerPause', 'hotkeyTimerReset', 'hotkeyTimerSkip', 'hotkeyTimerToggle', 'hotkeyTimerUndo', 'hotkeyWiki', 'overlayKey'])
@@ -183,14 +197,28 @@ describe('熱鍵總表', () => {
     expect(vue).toContain('issueText(r.id, rowHotkey(r))')
     expect(vue).toContain('sharedText(r.id)')
     expect(vue).toMatch(/<hotkey-input v-else v-model="config\[r\.field\]"/)
-    for (const f of ['General', 'Game', 'PriceCheck', 'Recognition', 'About', 'Regex']) {
+    for (const f of ['General', 'Game', 'Startup', 'PriceCheck', 'Recognition', 'Timer', 'About', 'Regex']) {
       expect(read(`${SETTINGS}/tabs/${f}.vue`), f).not.toMatch(/<hotkey-input/)
     }
-    expect(read(`${SETTINGS}/OcrScanSection.vue`)).not.toMatch(/<hotkey-input|HotkeyInput/)
+    for (const f of ['OcrScanSection.vue', 'OcrSharedSection.vue', 'PageHotkeys.vue']) expect(read(`${SETTINGS}/${f}`), f).not.toMatch(/<hotkey-input|HotkeyInput/)
+    // 功能頁頂端「這頁的熱鍵」只唯讀列出(列取自熱鍵總表),連結跳回總表
+    const ph = read(`${SETTINGS}/PageHotkeys.vue`)
+    expect(ph).toContain("jumpToTab(settingsTab.value, 'hotkeys'")
+    expect(ph).toContain('hotkeyTable({ ...config, regexBookmarkHotkeys: [] }, { overlay: config.overlayMode })')
+    const strips: Array<[string, string]> = [
+      ['PriceCheck', "['quick', 'locked']"],
+      ['Stash', "['stashToggle', 'stashRegion']"],
+      ['Recognition', "['ocr', 'region', 'runeshape', 'runeRegion']"],
+      ['Timer', "['timerToggle', 'timerReset', 'timerPause', 'timerUndo', 'timerSkip']"],
+      ['Regex', "['regexQuick', 'map-check']"]
+    ]
+    for (const [f, ids] of strips) expect(read(`${SETTINGS}/tabs/${f}.vue`), f).toContain(`<page-hotkeys :ids="${ids}" />`)
+    // 列 id 都在總表裡(打錯字 → 整列不見)
+    const allIds = [...hotkeyTableIds(fullConfig('poe1'), { overlay: true }), ...hotkeyTableIds(fullConfig('poe2'), { overlay: true })]
+    for (const id of strips.flatMap(([, ids]) => [...ids.matchAll(/'([a-zA-Z-]+)'/g)].map(m => m[1]))) expect(allIds, id).toContain(id)
     // 與項目綁在一起的熱鍵留在各自頁面
-    const sc = read(`${SETTINGS}/tabs/StashChat.vue`)
-    expect(sc).toContain('<hotkey-input v-model="c.hotkey"')
-    expect(sc).toContain('<hotkey-input v-model="s.hotkey"')
+    expect(read(`${SETTINGS}/tabs/Chat.vue`)).toContain('<hotkey-input v-model="c.hotkey"')
+    expect(read(`${SETTINGS}/tabs/Stash.vue`)).toContain('<hotkey-input v-model="s.hotkey"')
     expect(read('renderer/src/web/regex/RegexBookmarks.vue')).toContain('<hotkey-input')
   })
   it('第 36 步:選填熱鍵(Config 預設空)標 optional →「未設定」灰字;有預設值的維持紅字', () => {
@@ -218,8 +246,7 @@ describe('熱鍵總表', () => {
     expect(bm).toMatch(/<hotkey-input [^>]*\boptional\b/)
     expect(bm).not.toContain('.rx-bm-hotkey.is-empty::placeholder')
     // 聊天指令 / 倉庫搜尋熱鍵也是選填(APT 預設六條裡四條沒綁)→ 每一個 hotkey-input 都帶 optional
-    const sc = read(`${SETTINGS}/tabs/StashChat.vue`)
-    const scInputs = sc.match(/<hotkey-input [^>]*>/g) ?? []
+    const scInputs = [...(read(`${SETTINGS}/tabs/Chat.vue`).match(/<hotkey-input [^>]*>/g) ?? []), ...(read(`${SETTINGS}/tabs/Stash.vue`).match(/<hotkey-input [^>]*>/g) ?? [])]
     expect(scInputs).toHaveLength(2)
     for (const tag of scInputs) expect(tag).toMatch(/\boptional\b/)
     // 衝突 / 註冊失敗仍是紅字(.err)
@@ -239,25 +266,24 @@ describe('熱鍵總表', () => {
     expect(withF.map(r => r.kind === 'ref' ? r.folder ?? '' : '?')).toEqual(['地圖', ''])
     expect(read(`${SETTINGS}/tabs/Hotkeys.vue`)).toContain('<span v-if="r.folder" class="hk-ref-folder" data-hk-folder>{{ r.folder }} ›</span>')
   })
-  it('2026-10-14:聊天指令熱鍵只留在倉庫與聊天頁;總表倉庫搜尋組只有唯讀列,衝突檢查仍涵蓋聊天指令', () => {
+  it('2026-10-14:聊天指令熱鍵只留在聊天指令頁;總表倉庫搜尋組只有唯讀列,衝突檢查仍涵蓋聊天指令', () => {
     const c = fullConfig('poe2', {
       commands: [{ text: '/hideout', hotkey: 'F5' }, { text: '/exit', hotkey: 'F10' }]
     })
-    const g = hotkeyTable(c, { overlay: true }).find(x => x.id === 'stash-chat')!
+    const g = hotkeyTable(c, { overlay: true }).find(x => x.id === 'stash')!
     // 又產生 cmd 列 → 同一個熱鍵兩處可編輯(使用者裁定移除)
     expect(g.rows.map(r => r.kind)).toEqual(['ref'])
     expect(g.title).toBe('ppz.hk_group.stash_search')
-    expect(g.tab).toBe('stash-chat')
+    expect(g.tab).toBe('stash')
     // 衝突檢查:聊天指令與倉庫搜尋同鍵仍標重複
     expect(hotkeySlots(c).map(s => s.id)).toContain('cmd:1')
     const vue = read(`${SETTINGS}/tabs/Hotkeys.vue`)
     expect(vue).not.toContain("r.kind === 'cmd'")
     expect(vue).not.toContain('config.commands')
     expect(vue.match(/<span v-if="issueText\(r\.id, rowHotkey\(r\)\)" class="err" :data-issue="r\.id">/g)).toHaveLength(1)
-    // 倉庫與聊天頁仍可編輯兩種熱鍵(都是選填)
-    const sc = read(`${SETTINGS}/tabs/StashChat.vue`)
-    expect(sc).toContain('<hotkey-input v-model="c.hotkey" optional')
-    expect(sc).toContain('<hotkey-input v-model="s.hotkey" optional')
+    // 聊天指令頁 / 倉庫頁仍可編輯兩種熱鍵(都是選填)
+    expect(read(`${SETTINGS}/tabs/Chat.vue`)).toContain('<hotkey-input v-model="c.hotkey" optional')
+    expect(read(`${SETTINGS}/tabs/Stash.vue`)).toContain('<hotkey-input v-model="s.hotkey" optional')
     // 不再使用的字串清掉
     for (const k of ['hk.chat_row', 'hk_group.chat_command']) {
       expect(get(zh, k), k).toBeUndefined()
@@ -290,16 +316,18 @@ describe('條件隱藏', () => {
     expect(vue).toContain('<section v-if="showVolume || showItemHover" class="card" data-setting="panel-section">')
     expect(vue).not.toContain('default_currency_hint')
   })
-  it('只在 overlay 有作用的:倉庫與聊天 / 自動辨識整頁換成 OverlayGate、點面板外關閉、正則快速面板熱鍵', () => {
-    for (const f of ['StashChat', 'Recognition']) {
+  it('只在 overlay 有作用的:倉庫 / 聊天指令 / 自動辨識 / 計時器整頁換成 OverlayGate、點面板外關閉、正則快速面板熱鍵', () => {
+    for (const f of ['Stash', 'Chat', 'Recognition', 'Timer']) {
       expect(read(`${SETTINGS}/tabs/${f}.vue`), f).toMatch(/<overlay-gate v-if="!config\.overlayMode" \/>\s*<template v-else>/)
     }
     expect(read(`${SETTINGS}/tabs/Game.vue`)).toMatch(/<div v-if="config\.overlayMode" class="chk-row">\s*<label class="chk"><input v-model="config\.overlayBackgroundClose"/)
-    expect(read(`${SETTINGS}/tabs/Regex.vue`)).toMatch(/<div v-if="config\.overlayMode" class="srow">\s*<span class="k">\{\{ t\('ppz\.regex\.quick_hotkey'\) \}\}/)
+    // 快速面板熱鍵:頁頂唯讀列(PageHotkeys 依 overlayMode 取總表列,window 模式總表沒有這列 = 不畫)
+    expect(read(`${SETTINGS}/tabs/Regex.vue`)).toContain(`<page-hotkeys :ids="['regexQuick', 'map-check']" />`)
+    expect(hotkeyTableIds(fullConfig('poe2'), { overlay: false })).not.toContain('regexQuick')
     expect(read(`${SETTINGS}/OverlayGate.vue`)).toContain("settingsTab.value = 'game'")
   })
   it('免安裝版不顯示自動更新開關;舊的「只在 overlay 有效」警告全部移除', () => {
-    expect(read(`${SETTINGS}/tabs/About.vue`)).toMatch(/<template v-if="info\?\.reason !== 'not-supported'">\s*<div class="chk-row">\s*<label class="chk"><input v-model="config\.autoUpdate"/)
+    expect(read(`${SETTINGS}/tabs/Startup.vue`)).toMatch(/<template v-if="info\?\.reason !== 'not-supported'">\s*<div class="chk-row">\s*<label class="chk"><input v-model="config\.autoUpdate"/)
     for (const f of SETTINGS_FILES) {
       const s = read(f)
       for (const gone of ['chat-overlay-only', 'regex-quick-overlay-only', 'scan-hotkeys-moved', 'chat.overlay_only', 'quick_overlay_only', 'hotkeys_moved']) {
@@ -336,7 +364,7 @@ describe('文字:一句說明 + 「?」、刪重複、i18n', () => {
     const all = sources.map(([, s]) => s).join('\n')
     expect(all.match(/'ppz\.scan\.privacy'/g)).toHaveLength(1)
     expect(all.match(/'ppz\.scan\.cpu_help'/g)).toHaveLength(1)
-    for (const k of ['ocr.privacy', 'ocr.cpu_hint', 'runeshape.cpu_hint', 'scan.hotkeys_moved', 'chat.overlay_only', 'regex.quick_overlay_only', 'default_currency_hint', 'tab_chat']) {
+    for (const k of ['ocr.privacy', 'ocr.cpu_hint', 'runeshape.cpu_hint', 'scan.hotkeys_moved', 'chat.overlay_only', 'regex.quick_overlay_only', 'default_currency_hint', 'tab_stash_chat']) {
       expect(get(zh, k), k).toBeUndefined()
       expect(get(en, k), k).toBeUndefined()
     }
@@ -349,7 +377,7 @@ describe('文字:一句說明 + 「?」、刪重複、i18n', () => {
     expect(zhUsed.filter(v => /不送任何按鍵|不送按鍵/.test(v))).toHaveLength(1)
   })
   it('標籤與按鈕不同字:瀏覽器預覽沒有同字標籤列、交易站驗證有標籤', () => {
-    const g = read(`${SETTINGS}/tabs/General.vue`)
+    const g = read(`${SETTINGS}/tabs/Startup.vue`)
     expect(g).not.toMatch(/<span class="k">\{\{ t\('ppz\.preview\.open'\) \}\}<\/span>/)
     expect(g.match(/'ppz\.preview\.open'/g)).toHaveLength(1)
     const game = read(`${SETTINGS}/tabs/Game.vue`)
