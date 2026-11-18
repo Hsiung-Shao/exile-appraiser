@@ -55,6 +55,9 @@ function itemText (lang: Lang, cls: string, klass: string, base: string, type: M
   if (cls === 'HeistBlueprint') L.push('--------', zh ? '地區等級: 83' : 'Area Level: 83', zh ? '已揭露側廂: 1/4' : 'Wings Revealed: 1/4')
   if (type === 'implicit') L.push('--------', zh ? '{ 固定詞綴 }' : '{ Implicit Modifier }', line)
   if (type === 'explicit') L.push('--------', zh ? '{ 前綴 "測試的"(階層：1) }' : '{ Prefix Modifier "Testing" (Tier: 1) }', line)
+  // 探險日誌一定有區域段(區域名 / 陣營 / 帶「 (implicit)」的區域詞綴,`parseLogbookArea` 要 ≥ 3 行),沒有的話組查詢會拋錯;
+  // 第 3 行是對不到任何詞綴的湊數行(被略過),區域段只剩陣營
+  if (cls === 'ExpeditionLogbook') L.push('--------', 'Testing Grounds', zh ? '豔陽騎士' : 'Knights of the Sun', 'Testing Grounds (implicit)')
   return L.join('\n') + '\n'
 }
 
