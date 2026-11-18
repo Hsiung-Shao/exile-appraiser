@@ -50,7 +50,8 @@
         "exalted": "Exalted",
         "chaos": "Chaos",
         "divine": "Divine"
-      }
+      },
+      "too_complex": "{0} conditions, more than the roughly {1} the trade site accepts; it may reject the search (Query is too complex). Uncheck some support gems or turn off 6-link."
     },
     "desecration": {
       "inferred": "est.",
