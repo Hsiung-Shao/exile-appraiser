@@ -219,6 +219,11 @@ export function tryParseTranslation (
         : undefined
     }
   }
+
+  // exile-appraiser: 3.30 進階複製在帶入的名稱後加不帶資訊的「(...)」,位置與前面有沒有空白各句不同;
+  // 逐字比對不到時去掉它再比一次(資料端 make-index-files 讓這類寫法的無標記句也進索引)
+  const bare = stat.string.replace(/ ?\(\.\.\.\)/g, '')
+  if (bare !== stat.string) return tryParseTranslation({ ...stat, string: bare }, modType, itemCategory)
 }
 
 export function getRollOrMinmaxAvg (values: number[]): number {

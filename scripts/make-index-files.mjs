@@ -30,6 +30,8 @@ function makePoe1IndexFiles (DATA_DIR) {
 
     {
       const ndjson = fs.readFileSync(path.join(DATA_DIR, `${lang}/stats.ndjson`), { encoding: 'utf-8' })
+      /** @type{Array<{ hash: number, start: number }>} */
+      const bare = []
       let start = 0
       while (start !== ndjson.length) {
         const end = ndjson.indexOf('\n', start)
@@ -41,6 +43,8 @@ function makePoe1IndexFiles (DATA_DIR) {
           for (const matcher of stat.matchers) {
             if (matcher.advanced) {
               lineStarts.matchers.push({ start, hash: Number(fnv1a(matcher.advanced, { size: 32 })) })
+              // 進階寫法只多了「(...)」的句子,無標記句也進索引(解析器去掉標記後重比);已被別列佔用的句子不搶
+              if (matcher.advanced.includes('(...)')) bare.push({ start, hash: Number(fnv1a(matcher.string, { size: 32 })) })
             } else {
               lineStarts.matchers.push({ start, hash: Number(fnv1a(matcher.string, { size: 32 })) })
             }
@@ -48,6 +52,8 @@ function makePoe1IndexFiles (DATA_DIR) {
         }
         start = (end + 1)
       }
+      const taken = new Set(lineStarts.matchers.map(m => m.hash))
+      for (const m of bare) if (!taken.has(m.hash)) { taken.add(m.hash); lineStarts.matchers.push(m) }
     }
 
     {
