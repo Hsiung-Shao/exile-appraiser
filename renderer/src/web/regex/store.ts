@@ -832,6 +832,9 @@ export function saveBookmark (name: string): boolean {
 /** 輸出區「存成自訂書籤」→ 書籤卡片開對話框並帶入這個字串(RegexBookmarks.vue 監看,取走後清空) */
 export const customBookmarkDraft = shallowRef<{ game: RegexGame, text: string } | null>(null)
 
+/** 2026-11-18 設定重整:產生器子分頁的「存成書籤」(依目前勾選)→ 遞增;RegexBookmarks.vue 看到就開命名對話框(對話框 Teleport 到 body,書籤卡片藏著也開得起來) */
+export const bookmarkSaveRequest = shallowRef(0)
+
 /** 自訂字串書籤(2026-11-12;`customBookmark`):加到該遊戲的未分類。名稱或字串為空 = false */
 export function saveCustomBookmark (game: RegexGame, name: string, text: string): boolean {
   const b = customBookmark(game, name, text)

@@ -407,3 +407,20 @@ describe('文字:一句說明 + 「?」、刪重複、i18n', () => {
     }
   })
 })
+
+describe('2026-11-18 正則子分頁(產生器 / 書籤與快捷)', () => {
+  it('兩邊都掛著只切 v-show;產生器有「存成書籤」並由書籤元件開命名對話框;PobTools 送來書籤切到書籤子分頁', () => {
+    const panel = read('renderer/src/web/regex/RegexPanel.vue')
+    expect(panel).toContain(`<RegexBookmarks v-show="part !== 'generator'" />`)
+    expect(panel).toContain(`<div v-show="part !== 'bookmarks'" class="rx-gen">`)
+    // 產生器子分頁看不到書籤卡片 → 輸出卡片自己有「存成書籤」(少了 = 勾完要切子分頁才能存)
+    expect(panel).toContain('data-regex="save-picks"')
+    expect(panel).toContain('@click="bookmarkSaveRequest++"')
+    expect(read('renderer/src/web/regex/RegexBookmarks.vue')).toContain('watch(bookmarkSaveRequest, () => { openSave() })')
+    const tab = read(`${SETTINGS}/tabs/Regex.vue`)
+    expect(tab).toContain('<RegexPanel :part="regexView" />')
+    expect(tab).toContain("watch(bookmarkReveal, (r) => { if (r) regexView.value = 'bookmarks' })")
+    // 熱鍵總表點正則組 / 書籤列 → 書籤子分頁
+    expect(read(`${SETTINGS}/tabs/Hotkeys.vue`)).toContain("if (id === 'regex') regexView.value = 'bookmarks'")
+  })
+})

@@ -105,6 +105,10 @@
             <button class="btn ghost sm" data-regex="add-stash" :disabled="!shown || shown.length > 250" :title="t('ppz.regex.add_stash_tip')" @click="addStash">
               {{ stashState === 'ok' ? t('ppz.regex.add_stash_done') : stashState === 'dup' ? t('ppz.regex.add_stash_dup') : t('ppz.regex.add_stash') }}
             </button>
+            <!-- 2026-11-18:依目前勾選存成書籤(同書籤卡片的「存成書籤」;產生器子分頁看不到書籤卡片,在這裡也放一顆) -->
+            <button class="btn ghost sm" data-regex="save-picks" :disabled="!page || !pagePickCount(page)" :title="t('ppz.regex.bm_save_need')" @click="bookmarkSaveRequest++">
+              {{ t('ppz.regex.bm_save') }}
+            </button>
             <!-- 2026-11-12:把目前字串存成自訂字串書籤(固定字串;對話框在 RegexBookmarks.vue) -->
             <button class="btn ghost sm" data-regex="save-custom" :disabled="!shown" :title="t('ppz.regex.bm_save_output_tip')" @click="saveCustom">
               {{ t('ppz.regex.bm_save_output') }}
@@ -265,7 +269,7 @@ import RegexCombined from './RegexCombined.vue'
 import RegexBookmarks from './RegexBookmarks.vue'
 import RegexNumericSection from './RegexNumericSection.vue'
 import {
-  GAMES, applyShareCode, applyTemplate, customBookmarkDraft, dismissNotice, ensureStarted, flushSave, gameLabel, hasPendingSave, makeShareCode,
+  GAMES, applyShareCode, applyTemplate, bookmarkSaveRequest, customBookmarkDraft, dismissNotice, ensureStarted, flushSave, gameLabel, hasPendingSave, makeShareCode,
   pagePickCount, retryCatalogue, setBilingual, setLang, setMode, setOutScope, setPanelView, switchGame, switchPage, useRegexStore
 } from './store'
 import { incomingShare } from './incoming'
@@ -343,6 +347,7 @@ export default defineComponent({
       listed: store.listed,
       section: store.section,
       pagePickCount,
+      bookmarkSaveRequest,
       page: store.page,
       picked: store.picked,
       pickedPages: store.pickedPages,

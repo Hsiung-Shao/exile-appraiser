@@ -198,7 +198,7 @@ import { useHotkeyIssues } from '@/web/settings/useHotkeyIssues'
 import {
   GAMES, addBookmarkFolder, bookmarkGroupsOf, deleteBookmark, deleteBookmarkFolder, gameLabel, loadBookmark, moveBookmarkFolder,
   moveBookmarkStep, moveBookmarkToFolder, pagePickCount, renameBookmark, renameBookmarkFolder, saveBookmark, setBookmarkFolderCollapsed,
-  setBookmarkHotkey, updateBookmark, useRegexStore, bookmarkReveal, customBookmarkDraft, saveCustomBookmark, updateCustomBookmark
+  setBookmarkHotkey, updateBookmark, useRegexStore, bookmarkReveal, bookmarkSaveRequest, customBookmarkDraft, saveCustomBookmark, updateCustomBookmark
 } from './store'
 import type { RegexBookmark } from '@exile-appraiser/regex'
 
@@ -268,6 +268,13 @@ export default defineComponent({
       if (ok) customModal.value = null
     }
     // 輸出區「存成自訂書籤」:切到那一代並帶入字串
+    function openSave () {
+      const p = store.page.value
+      if (!p) return
+      nameModal.value = { index: -1, name: t('ppz.regex.bm_default_name', { page: pageTitle(p.id), n: pagePickCount(p) }) }
+      void focusInput(nameInput)
+    }
+    watch(bookmarkSaveRequest, () => { openSave() })
     watch(customBookmarkDraft, (d) => {
       if (!d) return
       customBookmarkDraft.value = null
@@ -457,12 +464,7 @@ export default defineComponent({
       onFolderSelect (index: number, e: Event) {
         moveBookmarkToFolder(index, (e.target as HTMLSelectElement).value)
       },
-      openSave () {
-        const p = store.page.value
-        if (!p) return
-        nameModal.value = { index: -1, name: t('ppz.regex.bm_default_name', { page: pageTitle(p.id), n: pagePickCount(p) }) }
-        void focusInput(nameInput)
-      },
+      openSave,
       openRename (index: number) {
         nameModal.value = { index, name: store.ui.bookmarks[index]?.name ?? '' }
         void focusInput(nameInput)
