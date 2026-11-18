@@ -1,47 +1,65 @@
 <!--
-  設定 › 正則:Poe Regex 面板(WP5,renderer/src/web/regex/)+ 書籤快捷存取(第 33 步;第 39 步從「熱鍵與視窗」搬來)。
-  快捷存取卡片:設定視窗旁的書籤列開關(兩種模式都有:overlay 浮在設定視窗旁、window 模式排在內容區)與快速面板熱鍵(唯讀,
-  在「熱鍵」總表編輯;熱鍵只在 overlay 模式註冊 → 不是 overlay 時不列)。個別書籤的熱鍵在書籤列表(RegexBookmarks.vue)。
+  設定 › 正則(2026-11-18 設定重整:分成兩個子分頁)。
+  - 「產生器」:Poe Regex 面板(WP5,renderer/src/web/regex/RegexPanel.vue `part="generator"`)。
+  - 「書籤與快捷」:地圖詞綴檢查用的書籤(MapCheckCard.vue,PoE1)、書籤列開關、書籤清單(RegexBookmarks.vue,由 RegexPanel `part="bookmarks"` 畫)。
+    頁頂「這頁的熱鍵」唯讀列出快速面板與地圖詞綴檢查熱鍵(在熱鍵總表編輯;只在 overlay 模式註冊 → 不是 overlay 時不列)。
+  子分頁狀態在 ../tabState.ts `regexView`(熱鍵總表點書籤列、PobTools 送來書籤時切到「書籤與快捷」)。
+  RegexPanel 兩個子分頁都掛著(只切 v-show),書籤對話框(Teleport)從產生器的「存成自訂書籤」也開得起來。
 -->
 <template>
-  <RegexPanel />
-  <section class="card" data-setting="regex-quick">
-    <div class="card-head">
-      <span class="label">{{ t('ppz.regex.quick_section') }}</span>
-      <help-tip id="regex-quick" :text="t('ppz.regex.quick_section_hint')" />
-    </div>
-    <div class="chk-row">
-      <label class="chk"><input v-model="config.regexBookmarkBar" type="checkbox" data-setting="regex-bookmark-bar"><span>{{ t('ppz.regex.quick_bar_toggle') }}</span></label>
-    </div>
-    <div v-if="config.overlayMode" class="srow">
-      <span class="k">{{ t('ppz.regex.quick_hotkey') }}</span>
-      <div class="ctl">
-        <button class="hk-ref" data-goto="hotkeys" data-setting="regex-quick-hotkey-ref" @click="gotoHotkeys">
-          <span class="hk-ref-key num" :class="{ unset: !config.hotkeyRegexQuick }">{{ config.hotkeyRegexQuick || t('ppz.hk.unset') }}</span>
-          <span class="hk-ref-text">{{ t('ppz.hk.edit_in', { page: t('ppz.tab_hotkeys') }) }}</span>
-        </button>
+  <div class="seg sub-tabs" role="tablist" data-setting="regex-view">
+    <button v-for="v in views" :key="v.id" type="button" role="tab" :class="{ on: regexView === v.id }" :aria-selected="regexView === v.id"
+      :data-value="v.id" @click="regexView = v.id">{{ v.label }}</button>
+  </div>
+  <template v-if="regexView === 'bookmarks'">
+    <page-hotkeys :ids="['regexQuick', 'map-check']" />
+    <map-check-card v-if="config.game === 'poe1'" />
+    <section class="card" data-setting="regex-quick">
+      <div class="card-head">
+        <span class="label">{{ t('ppz.regex.quick_section') }}</span>
+        <help-tip id="regex-quick" :text="t('ppz.regex.quick_section_hint')" />
       </div>
-    </div>
-  </section>
+      <div class="chk-row">
+        <label class="chk"><input v-model="config.regexBookmarkBar" type="checkbox" data-setting="regex-bookmark-bar"><span>{{ t('ppz.regex.quick_bar_toggle') }}</span></label>
+      </div>
+    </section>
+  </template>
+  <RegexPanel :part="regexView" />
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { computed, defineComponent, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import RegexPanel from '@/web/regex/RegexPanel.vue'
+import MapCheckCard from '@/web/regex/MapCheckCard.vue'
+import { bookmarkReveal } from '@/web/regex/store'
 import { AppConfig } from '@/web/Config'
 import HelpTip from '../HelpTip.vue'
-import { settingsTab } from '../tabState'
+import PageHotkeys from '../PageHotkeys.vue'
+import { regexView } from '../tabState'
 
 export default defineComponent({
-  components: { RegexPanel, HelpTip },
+  components: { RegexPanel, MapCheckCard, HelpTip, PageHotkeys },
   setup () {
     const { t } = useI18n()
+    // PobTools 送來的書籤加入後(store `bookmarkReveal`)→ 切到書籤子分頁再讓書籤卡片捲過去
+    watch(bookmarkReveal, (r) => { if (r) regexView.value = 'bookmarks' })
     return {
       t,
       config: AppConfig(),
-      gotoHotkeys () { settingsTab.value = 'hotkeys' }
+      regexView,
+      views: computed(() => [
+        { id: 'generator' as const, label: t('ppz.regex.view_generator') },
+        { id: 'bookmarks' as const, label: t('ppz.regex.view_bookmarks') }
+      ])
     }
   }
 })
 </script>
+
+<style>
+.settings-panel .sub-tabs {
+  align-self: flex-start;
+  flex-shrink: 0;
+}
+</style>

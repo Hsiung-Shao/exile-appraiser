@@ -1,0 +1,21 @@
+Item Class: Jewels
+Rarity: Unique
+Forbidden Flame
+Crimson Jewel
+--------
+Limited to: 1
+--------
+Requirements:
+Class:: Templar
+--------
+Item Level: 87
+--------
+{ Unique Modifier }
+Allocates Instruments of Justice if you have the matching modifier on Forbidden Flesh — Unscalable Value
+--------
+The minds of those studied utterly by the Cleansing Fire
+continue to think and dream and beg for silence...
+--------
+Place into an allocated Jewel Socket on the Passive Skill Tree. Right click to remove from the Socket.
+--------
+Corrupted

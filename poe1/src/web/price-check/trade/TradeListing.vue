@@ -44,7 +44,7 @@
             <th v-if="item.category === 'Gem'" :class="$style.tableHeading">
               <div class="px-2">{{ t(':gem_level') }}</div>
             </th>
-            <th v-if="filters.quality || item.category === 'Gem'" :class="$style.tableHeading">
+            <th v-if="(filters.quality && !filters.quality.disabled) || item.category === 'Gem'" :class="$style.tableHeading">
               <div class="px-2">{{ t(':quality') }}</div>
             </th>
             <th :class="[$style.tableHeading, { 'w-full': !showSeller }]">

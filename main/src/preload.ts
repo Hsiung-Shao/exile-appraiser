@@ -95,9 +95,9 @@ const api: HostApi = {
   logSubscribe: (on: boolean) => { ipcRenderer.send('log-subscribe', on) },
   onLogLines: (cb: (entries: LogEntry[]) => void) => subscribe('log-lines', cb),
   openLogFolder: () => ipcRenderer.invoke('log-open-folder'),
-  // 步 38:設定 › 關於 › 開啟設定資料夾(userData;只有 Electron 視窗)
+  // 步 38:設定 › 啟動與更新 › 開啟設定資料夾(userData;只有 Electron 視窗)
   openConfigFolder: () => ipcRenderer.invoke('config-open-folder'),
-  // 設定 › 一般 › 建立桌面捷徑(只有 Electron 視窗)
+  // 設定 › 啟動與更新 › 建立桌面捷徑(只有 Electron 視窗)
   createDesktopShortcut: () => ipcRenderer.invoke('desktop-shortcut-create'),
   // 第 29 步:設定 › 記錄 › 效能(只有 Electron 視窗)
   perfGet: () => ipcRenderer.invoke('perf-get'),

@@ -14,6 +14,7 @@
   - 熱鍵衝突提示(`rxbm:<索引>`)只算目前遊戲(main 只註冊目前遊戲的書籤熱鍵),另一代的書籤不顯示衝突。
   2026-11-12 自訂字串書籤(`isCustomBookmark`:保留頁 `@custom`,字串在 `keys[0]`):標題列「自訂書籤」/ 輸出區「存成自訂書籤」(store `customBookmarkDraft`)
   開同一個對話框;該列沒有「載入」「更新」,改「編輯」。其餘(熱鍵、資料夾、排序、改名、刪除)與一般書籤相同。docs/regex-port.md「自訂字串書籤」。
+  2026-11-18:「地圖檢查書籤」下拉(設定 `mapCheckBookmark`)設定重整時搬到正則 › 書籤與快捷的獨立卡片(MapCheckCard.vue)。
   第 40 步:PobTools 送來的書籤加入後(store `bookmarkReveal`)→ 分頁切到那一代、捲到這張卡片、新書籤短暫醒目(`.revealed`)。
 -->
 <template>
@@ -88,7 +89,7 @@
               <button v-if="isCustom(x.b)" class="btn sm" data-regex="bm-edit" @click="openCustom(x.index)">{{ t('ppz.regex.bm_edit') }}</button>
               <template v-else>
                 <button class="btn sm" data-regex="bm-load" :title="x.b.game !== selGame ? t('ppz.regex.bm_load_other', { game: gameLabel(x.b.game) }) : ''"
-                  @click="loadBookmark(x.index)">{{ t('ppz.regex.bm_load') }}</button>
+                  @click="loadAndShow(x.index)">{{ t('ppz.regex.bm_load') }}</button>
                 <button class="btn sm" data-regex="bm-update" :disabled="x.b.game !== selGame"
                   :title="x.b.game !== selGame ? t('ppz.regex.bm_update_other', { game: gameLabel(x.b.game) }) : t('ppz.regex.bm_update_tip')"
                   @click="updateBookmark(x.index)">{{ t('ppz.regex.bm_update') }}</button>
@@ -192,12 +193,13 @@ import { useI18n } from 'vue-i18n'
 import { CUSTOM_BOOKMARK_LIMIT, FOLDER_NAME_MAX, charCount, customBookmark, folderCounts, isCustomBookmark, type RegexGame } from '@exile-appraiser/regex'
 import { AppConfig } from '@/web/Config'
 import { useSettingsFs } from '@/web/settings/settings-fs'
+import { regexView } from '@/web/settings/tabState'
 import HotkeyInput from '@/web/settings/HotkeyInput.vue'
 import { useHotkeyIssues } from '@/web/settings/useHotkeyIssues'
 import {
   GAMES, addBookmarkFolder, bookmarkGroupsOf, deleteBookmark, deleteBookmarkFolder, gameLabel, loadBookmark, moveBookmarkFolder,
   moveBookmarkStep, moveBookmarkToFolder, pagePickCount, renameBookmark, renameBookmarkFolder, saveBookmark, setBookmarkFolderCollapsed,
-  setBookmarkHotkey, updateBookmark, useRegexStore, bookmarkReveal, customBookmarkDraft, saveCustomBookmark, updateCustomBookmark
+  setBookmarkHotkey, updateBookmark, useRegexStore, bookmarkReveal, bookmarkSaveRequest, customBookmarkDraft, saveCustomBookmark, updateCustomBookmark
 } from './store'
 import type { RegexBookmark } from '@exile-appraiser/regex'
 
@@ -266,6 +268,14 @@ export default defineComponent({
       const ok = m.index < 0 ? saveCustomBookmark(m.game, m.name, m.text) : updateCustomBookmark(m.index, m.name, m.text)
       if (ok) customModal.value = null
     }
+    /** 依目前勾選存成書籤(書籤卡片的按鈕,與產生器的「存成書籤」經 bookmarkSaveRequest) */
+    function openSave () {
+      const p = store.page.value
+      if (!p) return
+      nameModal.value = { index: -1, name: t('ppz.regex.bm_default_name', { page: pageTitle(p.id), n: pagePickCount(p) }) }
+      void focusInput(nameInput)
+    }
+    watch(bookmarkSaveRequest, () => { openSave() })
     // 輸出區「存成自訂書籤」:切到那一代並帶入字串
     watch(customBookmarkDraft, (d) => {
       if (!d) return
@@ -447,7 +457,11 @@ export default defineComponent({
       isDrop,
       onGripDown,
       pageTitle,
-      loadBookmark,
+      /** 2026-11-18 設定重整:載入後切回「產生器」子分頁(勾選與輸出在那裡;書籤子分頁看不到載入結果) */
+      loadAndShow (index: number) {
+        loadBookmark(index)
+        regexView.value = 'generator'
+      },
       updateBookmark,
       moveBookmarkStep,
       folderCount: (g: RegexGame, name: string) => folderCounts(store.ui, g).get(name) ?? 0,
@@ -456,12 +470,7 @@ export default defineComponent({
       onFolderSelect (index: number, e: Event) {
         moveBookmarkToFolder(index, (e.target as HTMLSelectElement).value)
       },
-      openSave () {
-        const p = store.page.value
-        if (!p) return
-        nameModal.value = { index: -1, name: t('ppz.regex.bm_default_name', { page: pageTitle(p.id), n: pagePickCount(p) }) }
-        void focusInput(nameInput)
-      },
+      openSave,
       openRename (index: number) {
         nameModal.value = { index, name: store.ui.bookmarks[index]?.name ?? '' }
         void focusInput(nameInput)

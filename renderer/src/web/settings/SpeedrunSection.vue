@@ -1,5 +1,5 @@
 <!--
-  設定 › 一般 › 計時器(2026-11-10 speedrun):目前遊戲的路線。
+  設定 › 計時器(2026-11-10 speedrun;2026-11-18 起自成一頁 Timer.vue):目前遊戲的路線。
   自動開始 / 自動分段(讀 Client.txt)+ 監看狀態、顯示幾段、分段清單編輯、個人最佳 / 最佳段總和 / 嘗試次數 / 清除紀錄。
   改名直接改路線(不重設進行中的計時);增刪段 / 改觸發區域走 core `replaceSplits`(段數或區域變了 → PB / 金段作廢並提示)。
   尺寸只用 em / --fs-*(設定視窗獨立字級)。
@@ -12,10 +12,14 @@
     <div class="chk-row">
       <label class="chk"><input v-model="route.autoSplit" type="checkbox" data-setting="speedrun-auto-split"><span>{{ t('ppz.timer.auto_split') }}</span></label>
     </div>
-    <div class="srow">
-      <span class="k">{{ t('ppz.timer.client_log') }}</span>
-      <div class="ctl sr-log">
-        <span class="note" data-setting="client-log-status">{{ logText }}</span>
+    <!-- 2026-11-18 設定重整:路徑獨立一整列(長路徑省略前段、滑鼠停住看全文),狀態在標題旁 -->
+    <div class="sr-log-block">
+      <div class="sr-log-head">
+        <span class="k">{{ t('ppz.timer.client_log') }}</span>
+        <span class="note" :class="{ ok: status?.reason === 'ok' }" data-setting="client-log-status">{{ logText }}</span>
+      </div>
+      <div class="sr-log">
+        <span v-if="logPath" class="sr-log-path num" :title="logPath" data-setting="client-log-path"><bdi>{{ logPath }}</bdi></span>
         <button v-if="canPick" class="btn ghost sm" data-action="client-log-pick" @click="pickLog">{{ t('ppz.timer.client_log_pick') }}</button>
         <button v-if="config.clientLogPath" class="btn ghost sm" data-action="client-log-auto" @click="config.clientLogPath = ''">{{ t('ppz.timer.client_log_auto') }}</button>
       </div>
@@ -160,9 +164,11 @@ const status = shallowRef<ClientLogStatus | null>(null)
 const logText = computed(() => {
   const s = status.value
   if (!s) return '—'
-  if (s.reason === 'ok') return `${t('ppz.timer.client_log_ok')}:${s.path}`
+  if (s.reason === 'ok') return t('ppz.timer.client_log_ok')
   return t(s.reason === 'off' ? 'ppz.timer.client_log_off' : s.reason === 'no-game' ? 'ppz.timer.client_log_no_game' : 'ppz.timer.client_log_none')
 })
+/** 讀到的 Client.txt 完整路徑(狀態 ok 才有) */
+const logPath = computed(() => status.value?.reason === 'ok' ? status.value.path : '')
 let alive = true
 async function refreshStatus () {
   await hostConfigSettled()
@@ -180,8 +186,13 @@ watch(() => [config.clientLogPath, route.value.autoStart, route.value.autoSplit,
 
 <style scoped>
 .sr { display: flex; flex-direction: column; gap: 0.4em; }
-.sr-log { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4em; }
-.sr-log .note { word-break: break-all; }
+.sr-log-block { display: flex; flex-direction: column; gap: 0.35em; padding: 0.3em 0; }
+.sr-log-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.3em 0.8em; }
+.sr-log-head .k { font-size: var(--fs-xs); color: var(--ink-2); }
+.sr-log-head .note.ok { color: var(--good, var(--ink-1)); }
+.sr-log { display: flex; align-items: center; gap: 0.4em; min-width: 0; }
+/* 長路徑:靠右對齊 + rtl 省略 = 省略前段、保留檔名(bdi 讓路徑本身仍是左到右) */
+.sr-log-path { flex: 1; min-width: 0; padding: 0.25em 0.6em; border: 1px solid var(--edge-1); border-radius: var(--radius-s); background: var(--surface-2); font-size: var(--fs-2xs); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; direction: rtl; text-align: left; }
 .sr-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 0.5em; margin-top: 0.4em; }
 .sr-stats b { font-weight: 600; }
 .sr-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.3em; }

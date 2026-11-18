@@ -71,6 +71,12 @@ describe('3.30 詞綴寫法(en)', () => {
     expect(refsOf(newItem)).toContain(ALLIES_REF)
   })
 
+  it('D17v GitHub issue #32 的實機文字:禁忌烈焰「Allocates Instruments of Justice」(交易站 3.30 新給 id)解析得到、帶交易站 id', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-32.en.txt'), 'utf8'))
+    expect(unknownOf(item)).toEqual([])
+    expect(item.statsByType[0].stat.trade.ids.explicit).toEqual(['explicit.stat_1190333629|3154'])
+  })
+
   it('D3 舊稀有度寫法仍可解析', () => {
     const item = parse(ringText('en', [['15% increased Rarity of Items found', '+68 to maximum Life']]))
     expect(unknownOf(item)).toEqual([])
@@ -331,6 +337,19 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
   it('D17t 傭兵契約書裡認不得的技能整段列為未解析,不再靜默丟掉(規則 7)', () => {
     const text = fs.readFileSync(path.join(HERE, 'docs/3.30-warrant-chaplain-2.cmn-Hant.txt'), 'utf8').replace('烈焰衝刺', '不存在的技能').replace('忌妒', '另一個不存在的技能')
     expect(unknownOf(parse(text))).toEqual(expect.arrayContaining(['不存在的技能', '高階快速施放(階層：3) [不存在的技能]', '另一個不存在的技能']))
+  })
+
+  it('D17u GitHub issue #34 的實機文字:禁忌血肉「配置 荒野化身」(3.30 天賦繁中改名,舊名獸性化身)解析得到、帶交易站 id', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-34.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(item)).toEqual([])
+    expect(item.statsByType[0].stat.ref).toBe('Allocates Avatar of the Wilds if you have the matching modifier on Forbidden Flame')
+    expect(item.statsByType[0].stat.trade.ids.explicit).toEqual(['explicit.stat_2460506030|55509'])
+  })
+
+  it('D17w GitHub issue #35 的實機文字:禁忌烈焰「配置 無端暴力」(3.30 改名,舊名免費暴力)解析得到、帶交易站 id', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-35.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(item)).toEqual([])
+    expect(item.statsByType[0].stat.trade.ids.explicit).toEqual(['explicit.stat_1190333629|27864'])
   })
 
   it('D17n GitHub issue #29 的實機文字:永恆珠寶「授銜7260個硬幣以紀念卡斯皮羅(...)」(3.30 句型)解析得到、帶交易站 id、數值 7260', () => {

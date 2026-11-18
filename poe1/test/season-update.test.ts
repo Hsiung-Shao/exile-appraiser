@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planRandomSkillGem, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, planRoomNames, planCitadel, planExtraZh, planZhForms, planCondForms, planMercenaryBuilds, planNamedSlots, planMercenarySkills, EXTRA_ZH_MATCHERS, planGrownPassives, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
+import { toMatcherText, planStatText, planTradeText, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planRandomSkillGem, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, planRoomNames, planCitadel, planExtraZh, planZhForms, planCondForms, planMercenaryBuilds, planNamedSlots, planMercenarySkills, EXTRA_ZH_MATCHERS, planGrownPassives, planPassiveRenames, planForbiddenNotables, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
 
 /**
  * 賽季更新腳本的純函式測試(合成輸入,不讀 data/)。
@@ -1226,5 +1226,69 @@ describe('planMercenarySkills(規則 24:交易站有、資料沒有的傭兵技�
     const en = parseRows(applyStatPlan(toFile(enStats), 'en', { newStats: plan.newStats, extra: plan.extra }))
     const again = planMercenarySkills({ enStats: en, tradeStats, skills })
     expect([again.newStats, again.extra]).toEqual([[], {}])
+  })
+})
+
+describe('planPassiveRenames(規則 25:天賦繁中改名)', () => {
+  // GitHub issue #34:3.30 Avatar of the Wilds 繁中「獸性化身」→「荒野化身」
+  it('名字在「配置 X」結尾的寫法補新名、舊的標 superseded;再跑一次不重複', () => {
+    const zhStats = [
+      stat('Allocates Avatar of the Wilds if you have the matching modifier on Forbidden Flame', [{ string: '若禁忌烈焰上有符合的詞綴，配置 獸性化身' }]),
+      stat('Allocates Avatar of the Wilds', [{ string: '配置 獸性化身' }]),
+      stat('Other', [{ string: '獸性化身之力' }])
+    ]
+    const renames = [{ en: 'Avatar of the Wilds', from: '獸性化身', zh: '荒野化身' }]
+    const plan = planPassiveRenames({ zhStats, renames })
+    expect(plan.adds).toEqual([
+      { lang: 'cmn-Hant', ref: zhStats[0].ref, matcher: { string: '若禁忌烈焰上有符合的詞綴，配置 荒野化身' }, supersedes: ['若禁忌烈焰上有符合的詞綴，配置 獸性化身'] },
+      { lang: 'cmn-Hant', ref: 'Allocates Avatar of the Wilds', matcher: { string: '配置 荒野化身' }, supersedes: ['配置 獸性化身'] }
+    ])
+    const out = parseRows(applyStatPlan(toFile(zhStats), 'cmn-Hant', { adds: plan.adds }))
+    expect(planPassiveRenames({ zhStats: out, renames }).adds).toEqual([])
+  })
+
+  // 審查第 2 輪:星團「1 個附加天賦為 X」是寫死名稱(GGPK 3.30 仍是舊名),不能跟著改
+  it('星團珠寶「1 Added Passive Skill is X」不改名', () => {
+    const zhStats = [stat('1 Added Passive Skill is Advance Guard', [{ string: '1 個附加天賦為進階守衛' }])]
+    expect(planPassiveRenames({ zhStats, renames: [{ en: 'Advance Guard', from: '進階守衛', zh: '先鋒部隊' }] }).adds).toEqual([])
+  })
+
+  it('只換英文名相符的天賦:另一個天賦共用舊繁中名但沒改名 → 不動;同一個天賦兩種改名 → 拒收', () => {
+    const zhStats = [stat('Allocates A', [{ string: '配置 甲' }]), stat('Allocates B', [{ string: '配置 甲' }]), stat('Allocates C', [{ string: '配置 丁' }])]
+    const plan = planPassiveRenames({ zhStats, renames: [{ en: 'A', from: '甲', zh: '乙' }, { en: 'C', from: '丁', zh: '戊' }, { en: 'C', from: '丁', zh: '己' }] })
+    expect(plan.adds.map((a: any) => [a.ref, a.matcher.string])).toEqual([['Allocates A', '配置 乙']])
+    expect(plan.rejects.map((r: any) => r.en)).toEqual(['C'])
+  })
+})
+
+describe('planForbiddenNotables(規則 26:禁忌珠寶新天賦)', () => {
+  // GitHub issue #32:交易站 3.30 新給 Instruments of Justice 的禁忌烈焰 / 血肉 id
+  const forbidden = (name: string, zh: string, which: 'Flame' | 'Flesh', id: string) =>
+    ({ ref: `Allocates ${name} if you have the matching modifier on Forbidden ${which}`, better: 0, matchers: [{ string: zh }], trade: { ids: { explicit: [id] } } })
+  const enStats = [forbidden('Foo', 'Allocates Foo if you have the matching modifier on Forbidden Flame', 'Flame', 'explicit.stat_2460506030|1'),
+    forbidden('Foo', 'Allocates Foo if you have the matching modifier on Forbidden Flesh', 'Flesh', 'explicit.stat_1190333629|1')]
+  const zhStats = [forbidden('Foo', '若禁忌烈焰上有符合的詞綴，配置 甲', 'Flame', 'explicit.stat_2460506030|1'),
+    forbidden('Foo', '若禁忌血肉上有符合的詞綴，配置 甲', 'Flesh', 'explicit.stat_1190333629|1')]
+
+  it('交易站有、資料沒有的天賦 → 新增一列,繁中句型取同一種禁忌珠寶的既有寫法、名字取 GGPK 天賦名;再跑一次為空', () => {
+    const tradeStats = [
+      { id: 'explicit.stat_2460506030|1', text: 'Allocates Foo if you have the matching modifier on Forbidden Flame' },
+      { id: 'explicit.stat_1190333629|3154', text: 'Allocates Instruments of Justice if you have the matching modifier on Forbidden Flesh' },
+      { id: 'explicit.stat_2460506030|9', text: 'Allocates Nobody if you have the matching modifier on Forbidden Flame' }
+    ]
+    const passives = [{ en: 'Instruments of Justice', zh: '正義之儀' }]
+    const plan = planForbiddenNotables({ enStats, zhStats, tradeStats, passives })
+    const ref = 'Allocates Instruments of Justice if you have the matching modifier on Forbidden Flesh'
+    expect(plan.newStats).toEqual([{ ref, better: 0, en: [{ string: ref }], zh: [{ string: '若禁忌血肉上有符合的詞綴，配置 正義之儀' }], ids: { explicit: ['explicit.stat_1190333629|3154'] } }])
+    expect(plan.rejects.map((r: any) => r.id)).toEqual(['explicit.stat_2460506030|9'])
+    const out = parseRows(applyStatPlan(toFile(enStats), 'en', { newStats: plan.newStats }))
+    expect(planForbiddenNotables({ enStats: out, zhStats, tradeStats, passives }).newStats).toEqual([])
+  })
+
+  it('天賦英文名對到兩個繁中名 → 拒收', () => {
+    const tradeStats = [{ id: 'explicit.stat_2460506030|5', text: 'Allocates Twin if you have the matching modifier on Forbidden Flame' }]
+    const plan = planForbiddenNotables({ enStats, zhStats, tradeStats, passives: [{ en: 'Twin', zh: '雙' }, { en: 'Twin', zh: '對' }] })
+    expect(plan.newStats).toEqual([])
+    expect(plan.rejects.map((r: any) => r.id)).toEqual(['explicit.stat_2460506030|5'])
   })
 })

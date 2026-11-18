@@ -14,14 +14,14 @@ export const overlayLayers = reactive({ reveal: false, rune: false, stash: false
 
 /** App.vue 的狀態 + 徽章層 → 回報內容(純函式) */
 export function overlayContentOf (
-  app: { panel: boolean, settings: boolean, picker: boolean, quick?: boolean, menu?: boolean },
+  app: { panel: boolean, settings: boolean, picker: boolean, quick?: boolean, menu?: boolean, map?: boolean },
   layers: { reveal: boolean, rune: boolean, stash?: boolean, timer?: boolean }
 ): OverlayContentState {
   // 第 33 步:正則書籤快速面板(`quick`);2026-10-08:懸浮選單(`menu`,含速查表放大)
-  return { panel: app.panel, settings: app.settings, picker: app.picker, reveal: layers.reveal, rune: layers.rune, stash: layers.stash === true, quick: app.quick === true, menu: app.menu === true, timer: layers.timer === true }
+  return { panel: app.panel, settings: app.settings, picker: app.picker, reveal: layers.reveal, rune: layers.rune, stash: layers.stash === true, quick: app.quick === true, menu: app.menu === true, timer: layers.timer === true, map: app.map === true }
 }
 
 /** 內容相同不重送用的鍵 */
 export function overlayContentKey (c: OverlayContentState): string {
-  return `${+c.panel}${+c.settings}${+c.picker}${+c.reveal}${+c.rune}${+(c.quick === true)}${+(c.menu === true)}${+(c.stash === true)}${+(c.timer === true)}`
+  return `${+c.panel}${+c.settings}${+c.picker}${+c.reveal}${+c.rune}${+(c.quick === true)}${+(c.menu === true)}${+(c.stash === true)}${+(c.timer === true)}${+(c.map === true)}`
 }

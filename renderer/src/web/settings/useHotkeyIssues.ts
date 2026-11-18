@@ -1,5 +1,5 @@
 /**
- * 設定頁熱鍵欄位下方的問題文字(熱鍵總表、倉庫與聊天分頁、正則書籤共用)。
+ * 設定頁熱鍵欄位下方的問題文字(熱鍵總表、倉庫 / 聊天指令分頁、正則書籤共用)。
  * 三種來源,依序:遊戲保留鍵 / 與前面的熱鍵重複(`hotkey-conflicts.ts`,與 main 註冊規則相同,涵蓋**全部**熱鍵欄位)
  * → main 回報被其他程式佔用(`hotkeyRegistration` 錯誤字串裡引號內的鍵)。
  * 對不回任何欄位的 main 錯誤由 `otherError` 給熱鍵卡片底部顯示。
@@ -9,20 +9,8 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { AppConfig, hotkeyRegistration } from '@/web/Config'
-import { hotkeyIssues, hotkeySlots, normalizeHotkey } from './hotkey-conflicts'
+import { SLOT_LABEL, hotkeyIssues, hotkeySlots, normalizeHotkey } from './hotkey-conflicts'
 import { regexBookmarkHotkeyList } from '@/web/regex/bookmark-hotkeys'
-
-/** 衝突對象的顯示名稱(i18n 鍵) */
-const SLOT_LABEL: Record<string, string> = {
-  quick: 'ppz.hotkey',
-  locked: 'ppz.hotkey_locked',
-  overlay: 'ppz.overlay_key',
-  ocr: 'ppz.scan.slot_reveal_pause',
-  region: 'ppz.scan.slot_reveal_region',
-  runeshape: 'ppz.scan.slot_rune_pause',
-  runeRegion: 'ppz.scan.slot_rune_region',
-  regexQuick: 'ppz.regex.quick_hotkey'
-}
 
 export function useHotkeyIssues () {
   const { t } = useI18n()

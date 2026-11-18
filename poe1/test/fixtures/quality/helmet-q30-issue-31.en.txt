@@ -1,0 +1,25 @@
+Item Class: Helmets
+Rarity: Rare
+Demon Keep
+Solaris Circlet
+--------
+Quality: +30% (augmented)
+Energy Shield: 117 (augmented)
+--------
+Requirements:
+Level: 59
+Int: 122
+--------
+Sockets: B W 
+--------
+Item Level: 82
+--------
+{ Prefix Modifier "Athlete's" (Tier: 2) — Life }
++117(115-129) to maximum Life
+{ Prefix Modifier "Naga's" (Tier: 3) — Defences, Energy Shield }
+32(27-32)% increased Energy Shield
+13(12-13)% increased Stun and Block Recovery
+{ Suffix Modifier "of Steadiness" (Tier: 6) — Attack }
++50(50-100) to Accuracy Rating
+{ Suffix Modifier "of the Tempest" (Tier: 4) — Elemental, Lightning, Resistance }
++35(30-35)% to Lightning Resistance

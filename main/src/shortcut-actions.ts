@@ -4,13 +4,13 @@
  */
 import { hotkeyToString, isModKey, mergeTwoHotkeys } from '@ipc/KeyToCode'
 import { isGameReservedHotkey } from '@ipc/reserved-hotkeys'
-import type { GameId, HostConfigForMain, WindowMode } from '@ipc/types'
+import type { GameId, HostConfigForMain, ItemTextTarget, WindowMode } from '@ipc/types'
 
 export interface ShortcutAction {
   shortcut: string
   keepModKeys: boolean
   action:
-  | { type: 'copy-item', focusOverlay: boolean, target?: 'poedb' | 'wiki' } | { type: 'toggle-overlay' } | { type: 'ocr-reveal' } | { type: 'ocr-region' } | { type: 'runeshape-toggle' }
+  | { type: 'copy-item', focusOverlay: boolean, target?: ItemTextTarget } | { type: 'toggle-overlay' } | { type: 'ocr-reveal' } | { type: 'ocr-region' } | { type: 'runeshape-toggle' }
   /** 2026-10-01:框選符文塑形面板區域(renderer 開同一個框選層,target = runeshape) */
   | { type: 'runeshape-region' }
   /** 2026-10-14:PoE1 倉庫價格暫停 / 繼續、框選倉庫 OCR 區域(renderer 開框選層,target = stash);兩者都不送按鍵 */
@@ -48,7 +48,7 @@ export function normalizeHotkey (hotkey: string): string {
 type ActionCfg = Pick<HostConfigForMain, 'hotkey' | 'hotkeyHold' | 'hotkeyLocked' | 'overlayKey' | 'game' | 'hotkeyOcrReveal' | 'hotkeyOcrRegion'> &
   Partial<Pick<HostConfigForMain, 'runeshapeEnabled' | 'hotkeyRuneshapeToggle' | 'hotkeyRuneshapeRegion' | 'revealAutoEnabled' | 'commands' | 'stashSearch' |
   'hotkeyRegexQuick' | 'regexBookmarkHotkeys' | 'hotkeyStashToggle' | 'hotkeyStashRegion' | 'stashPricesEnabled' |
-  'hotkeyPoedb' | 'hotkeyWiki' | 'hotkeyTimerToggle' | 'hotkeyTimerReset' | 'timerDisplay' | 'hotkeyTimerPause' | 'hotkeyTimerUndo' | 'hotkeyTimerSkip'>>
+  'hotkeyPoedb' | 'hotkeyWiki' | 'hotkeyMapCheck' | 'hotkeyTimerToggle' | 'hotkeyTimerReset' | 'timerDisplay' | 'hotkeyTimerPause' | 'hotkeyTimerUndo' | 'hotkeyTimerSkip'>>
 
 /**
  * 依設定組出要註冊的熱鍵(先到先得;空字串 / 重複 / 遊戲保留的不註冊)。
@@ -97,6 +97,10 @@ export function buildShortcutActions (cfg: ActionCfg, mode: WindowMode): Shortcu
   }
   if (mode === 'overlay') {
     actions.push({ shortcut: overlayKey, keepModKeys: false, action: { type: 'toggle-overlay' } })
+    // 2026-11-18(移植 APT map-check):PoE1 地圖詞綴檢查;overlay 取得焦點(要點詞綴改標記)
+    if (cfg.game === 'poe1' && cfg.hotkeyMapCheck) {
+      actions.push({ shortcut: normalizeHotkey(cfg.hotkeyMapCheck), keepModKeys: false, action: { type: 'copy-item', focusOverlay: true, target: 'map-check' } })
+    }
     if (cfg.game === 'poe2') {
       const revealOn = Boolean(cfg.hotkeyOcrReveal) && cfg.revealAutoEnabled !== false
       const runeOn = Boolean(cfg.runeshapeEnabled && cfg.hotkeyRuneshapeToggle)
@@ -173,7 +177,7 @@ export function reservedShortcuts (cfg: ActionCfg): string[] {
     mergeTwoHotkeys(normalizeHotkey(cfg.hotkeyHold), normalizeHotkey(cfg.hotkey)), cfg.hotkeyLocked, cfg.overlayKey, cfg.hotkeyOcrReveal, cfg.hotkeyOcrRegion,
     cfg.hotkeyRuneshapeToggle ?? '', cfg.hotkeyRuneshapeRegion ?? '', cfg.hotkeyStashToggle ?? '', cfg.hotkeyStashRegion ?? '', ...(cfg.commands ?? []).map(c => c?.hotkey ?? ''), ...(cfg.stashSearch ?? []).map(s => s?.hotkey ?? ''),
     cfg.hotkeyRegexQuick ?? '', ...regexBookmarkHotkeysFor(cfg).map(b => b.hotkey),
-    cfg.hotkeyPoedb ?? '', cfg.hotkeyWiki ?? '', cfg.hotkeyTimerToggle ?? '', cfg.hotkeyTimerReset ?? '',
+    cfg.hotkeyPoedb ?? '', cfg.hotkeyWiki ?? '', cfg.hotkeyMapCheck ?? '', cfg.hotkeyTimerToggle ?? '', cfg.hotkeyTimerReset ?? '',
     cfg.hotkeyTimerPause ?? '', cfg.hotkeyTimerUndo ?? '', cfg.hotkeyTimerSkip ?? ''
   ]
   return [...new Set(all.filter(Boolean).map(k => normalizeHotkey(k)).filter(isGameReservedHotkey))]

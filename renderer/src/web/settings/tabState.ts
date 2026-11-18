@@ -13,6 +13,9 @@ export const settingsTab = shallowRef<TabId>('general')
 
 export const settingsBack = shallowRef<SettingsBack | null>(null)
 
+/** 設定 › 正則的子分頁(2026-11-18 設定重整):產生器 / 書籤與快捷 */
+export const regexView = shallowRef<'generator' | 'bookmarks'>('generator')
+
 /** 跳到別頁並在那一頁頂端顯示「← 回到 {from}」;`scroll` = 返回時要捲回的位置 */
 export function jumpToTab (from: TabId, to: TabId, scroll = 0): void {
   settingsBack.value = from === to ? null : { from, target: to, scroll }

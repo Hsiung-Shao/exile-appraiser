@@ -45,6 +45,11 @@
       <i class="fas fa-info-circle" />
       {{ t('item.complexity_hint') }}
     </p>
+    <!-- exile-appraiser: 2026-11-18 傭兵契約書條件超過交易站大約能接受的條數時提醒(使用者要求) -->
+    <p v-if="tooComplexCount" :class="[$style.complexityHint, $style.complexityWarn]" data-hint="query-too-complex">
+      <i class="fas fa-exclamation-triangle" />
+      {{ t('ppz.listing.too_complex', [tooComplexCount, QUERY_FILTER_LIMIT]) }}
+    </p>
     <dust-value v-if="item.dustEquivalent" :item="item"/>
   </div>
 </template>
@@ -67,6 +72,7 @@ import DustValue from './expected-value/DustValue.vue'
 import PriceTrend from './trends/PriceTrend.vue'
 import StackValue from './expected-value/StackValue.vue'
 import { CATEGORY_TO_TRADE_ID, createTradeRequest } from './trade/pathofexile-trade'
+import { countQueryFilters, QUERY_FILTER_LIMIT } from './trade/query-complexity'
 import { AppConfig } from '@/web/Config'
 import { FilterPreset } from './filters/interfaces'
 import { PriceCheckWidget } from '@/web/overlay/interfaces'
@@ -227,6 +233,12 @@ export default defineComponent({
       handleSearchMouseenter,
       showComplexityHint: computed(() => !widget.value.builtinBrowser && !doSearch.value &&
         props.item.info.refName === 'Mercenary Warrant'),
+      QUERY_FILTER_LIMIT,
+      tooComplexCount: computed(() => {
+        if (props.item.info.refName !== 'Mercenary Warrant') return 0
+        const n = countQueryFilters(createTradeRequest(itemFilters.value, itemStats.value).query)
+        return n > QUERY_FILTER_LIMIT ? n : 0
+      }),
       presets: computed(() => presets.value.presets.map(preset =>
         ({ id: preset.id, active: (preset.id === presets.value.active) }))),
       selectPreset (id: string) {
@@ -257,6 +269,15 @@ export default defineComponent({
 
   & > i {
     color: theme('colors.gray.600');
+  }
+}
+
+.complexityWarn {
+  margin-top: theme('spacing.2');
+  color: var(--warn);
+
+  & > i {
+    color: inherit;
   }
 }
 </style>

@@ -2,7 +2,7 @@
  * 第五輪 30.5:硬體加速設定(`config.json` 的 `hardwareAcceleration`,預設 false = 改版前一律 `app.disableHardwareAcceleration()`)。
  *
  * `disableHardwareAcceleration()` 只能在 app ready 之前呼叫,所以 main 在模組頂層**同步**讀設定檔(與 `resolveWindowMode` 同一個檔),
- * 改了要重新啟動才生效(設定 › 一般「重新啟動」鈕 = IPC `app-relaunch`,先把 renderer 目前的設定寫檔再 `relaunchSelf`)。
+ * 改了要重新啟動才生效(設定 › 啟動與更新「重新啟動」鈕 = IPC `app-relaunch`,先把 renderer 目前的設定寫檔再 `relaunchSelf`)。
  * 純函式,不 import electron(測試 `main/test/hw-accel.test.ts`)。
  */
 

@@ -50,7 +50,8 @@
         "exalted": "崇高石",
         "chaos": "混沌石",
         "divine": "神聖石"
-      }
+      },
+      "too_complex": "條件共 {0} 條,超過交易站大約能接受的 {1} 條,可能會被拒絕(Query is too complex)。請減少勾選的輔助寶石,或關掉 6 連結。"
     },
     "desecration": {
       "inferred": "推定",
@@ -225,7 +226,6 @@
       "trigger_mode": "顯示方式",
       "trigger_auto": "自動偵測",
       "trigger_hotkey": "按熱鍵顯示",
-      "trigger_hint": "自動偵測:一直看倉庫有沒有打開。按熱鍵顯示:平常不擷取畫面,在倉庫碎片頁按熱鍵才顯示價格,再按一次或關掉倉庫就收起;熱鍵在「熱鍵」總表的「倉庫價格」設定。",
       "timing": "OCR {ms} ms(共 {count} 次)",
       "region": "OCR 區域",
       "region_hint": "OCR 只讀這一塊來判斷碎片頁開著、在哪個子頁;要框住「一般 / 不滅之火 / 異能」那排按鈕,不要切到上方的倉庫頁籤字。沒框過 = 依畫面高度自動算的預設位置。每格物品的位置不受這裡影響。倉庫頁放進資料夾後按鈕會下移,請重新框選或還原預設。",
@@ -248,7 +248,9 @@
       "picker": {
         "help": "框住倉庫碎片頁的子頁按鈕列(一般 / 不滅之火 / 異能)",
         "sub": "不要切到上方倉庫頁籤的字;虛線框是目前使用的區域;倉庫頁放進資料夾後按鈕會下移,請重新框選或還原預設"
-      }
+      },
+      "trigger_auto_desc": "打開倉庫就顯示價格",
+      "trigger_hotkey_desc": "平常不截圖,按倉庫價格的熱鍵才掃描"
     },
     "runeshape": {
       "section": "符文塑形",
@@ -449,15 +451,23 @@
     },
     "tab_regex": "正則",
     "tab_dust": "拆粉排行",
-    "tab_log": "記錄",
-    "tab_about": "更新與關於",
+    "map_check": {
+      "bookmark": "地圖檢查用的正則書籤",
+      "pick_bookmark": "選一個書籤…",
+      "no_bookmark": "還沒有地圖詞綴書籤:到 設定 › 正則 的地圖詞綴 / 劫盜契約 / 探險日誌頁勾好詞綴存成書籤(排除模式 = 標紅,包含 = 標綠)。",
+      "default_label": "地圖檢查書籤",
+      "default_none": "(不上色)",
+      "default_lead": "對地圖按「地圖詞綴檢查」熱鍵時用這個書籤上色:排除模式勾到的標紅、包含模式勾到的標綠;檢查視窗裡也能換。",
+      "card_title": "地圖詞綴檢查"
+    },
+    "tab_log": "記錄與效能",
+    "tab_about": "關於",
     "quit_app": "結束程式",
     "coming_soon": "即將推出",
     "section_interface": "介面",
     "section_game": "遊戲與伺服器",
     "section_search": "搜尋條件",
     "section_listing": "掛單與剪貼簿",
-    "section_hotkeys": "熱鍵",
     "section_window": "遊戲視窗與 overlay",
     "section_version": "版本",
     "section_data": "資料來源",
@@ -679,7 +689,7 @@
       "add_stash": "加到倉庫搜尋",
       "add_stash_done": "已加入",
       "add_stash_dup": "已在清單",
-      "add_stash_tip": "把這個字串加到「設定 › 倉庫與聊天 › 倉庫搜尋」,再到那裡設熱鍵(倉庫搜尋框最多 250 字)",
+      "add_stash_tip": "把這個字串加到「設定 › 倉庫 › 倉庫搜尋」,再到那裡設熱鍵(倉庫搜尋框最多 250 字)",
       "out_zh": "輸出:繁體中文",
       "out_en": "輸出:English",
       "lang_tip": "要貼進哪一種語言的遊戲客戶端。兩邊產生的片段完全不同,不能互換使用。",
@@ -889,7 +899,9 @@
       "incoming_err_file-read": "讀不到分享碼檔案:{detail}。",
       "incoming_err_file-too-large": "分享碼檔案太大:{detail}。",
       "incoming_err_decode": "分享碼無法套用:{detail}",
-      "incoming_err_not-loaded": "{detail} 的清單載入失敗,無法套用。"
+      "incoming_err_not-loaded": "{detail} 的清單載入失敗,無法套用。",
+      "view_generator": "產生器",
+      "view_bookmarks": "書籤與快捷"
     },
     "log": {
       "filter": "篩選",
@@ -918,7 +930,7 @@
       "stash_dump_failed": "存檔失敗:{msg}",
       "stash_dump_not_showing": "倉庫價格疊層沒有顯示:請先在遊戲裡打開倉庫碎片頁的「一般」或「綢帶」子頁。",
       "stash_dump_timeout": "等不到倉庫擷取(逾時):請確認倉庫碎片頁開著、遊戲在前景,再按一次。",
-      "stash_dump_disabled": "倉庫價格已停用:請先在「自動辨識」開啟。",
+      "stash_dump_disabled": "倉庫價格已停用:請先在「倉庫」頁開啟。",
       "stash_dump_not_poe1": "只支援 PoE1 倉庫。",
       "stash_dump_not_intl": "倉庫價格只支援國際服。",
       "stash_dump_paused": "倉庫價格已暫停(暫停熱鍵):請先繼續。",
@@ -1041,8 +1053,7 @@
       "tw_unavailable": "poe.ninja 沒有台服價格",
       "error": "poe.ninja 抓取失敗:{error}"
     },
-    "tab_game": "遊戲",
-    "tab_stash_chat": "倉庫與聊天",
+    "tab_game": "遊戲與視窗",
     "tab_recognition": "自動辨識",
     "nav_group_settings": "設定",
     "nav_group_tools": "工具",
@@ -1054,22 +1065,22 @@
     "trade_captcha_help": "查價被 Cloudflare 驗證擋下時,在這裡開啟交易站完成驗證。",
     "item_hover_help": "overlay 模式顯示在面板左側,視窗模式顯示在該列上下方。",
     "overlay_gate": "這一頁的功能只在 overlay(疊加在遊戲上)模式提供。",
-    "overlay_gate_go": "前往「遊戲」開啟 overlay",
+    "overlay_gate_go": "前往「遊戲與視窗」開啟 overlay",
     "stash_scroll_k": "觸發方式",
     "stash_scroll_note": "在遊戲裡按住 Ctrl 滾動滾輪切換倉庫頁籤。",
     "hk_group": {
       "price": "查價",
       "menu": "設定選單",
       "scan": "自動辨識",
-      "stash_chat": "倉庫與聊天",
       "regex": "正則",
       "stash_search": "倉庫搜尋",
       "regex_bookmark": "書籤",
-      "tools": "工具"
+      "tools": "工具",
+      "timer": "計時器",
+      "stash_prices": "倉庫價格"
     },
     "hk": {
       "menu_toggle": "叫出 / 收起",
-      "edit_in": "到「{page}」編輯",
       "unset": "未設定",
       "empty": "沒有項目。",
       "empty_stash_chat": "還沒有倉庫搜尋。",
@@ -1078,11 +1089,13 @@
       "window_only": "其他熱鍵只在 overlay 模式提供。",
       "poedb": "在 poedb 開啟物品",
       "wiki": "在 wiki 開啟物品",
+      "map_check": "地圖詞綴檢查",
       "timer_toggle": "計時器 開始 / 分段",
       "timer_reset": "計時器 歸零",
       "timer_pause": "計時器 暫停 / 繼續",
       "timer_undo": "計時器 撤銷分段",
-      "timer_skip": "計時器 跳過分段"
+      "timer_skip": "計時器 跳過分段",
+      "goto_page": "{page} ›"
     },
     "timer": {
       "section": "計時器",
@@ -1139,6 +1152,31 @@
     },
     "filters": {
       "expand": "展開詞綴"
+    },
+    "tab_startup": "啟動與更新",
+    "tab_stash": "倉庫",
+    "tab_chat": "聊天指令",
+    "tab_timer": "計時器",
+    "nav_group_features": "功能",
+    "section_files": "檔案與預覽",
+    "tab_lead": {
+      "general": "介面外觀與背景圖,改了立即套用",
+      "game": "查哪一款遊戲、哪一區,以及怎麼疊在遊戲上",
+      "hotkeys": "依功能分組;組名旁的連結會跳到該功能的設定頁",
+      "startup": "程式怎麼啟動、怎麼更新",
+      "price_check": "搜尋條件怎麼組、結果面板顯示什麼",
+      "stash": "倉庫價格、頁籤捲動、倉庫搜尋集中在這",
+      "chat": "按熱鍵把指令打進遊戲聊天框,只在疊在遊戲上時有作用",
+      "recognition": "截圖後在本機辨識褻瀆詞綴與符文塑形面板",
+      "timer": "練等分段計時,讀遊戲記錄自動分段",
+      "regex": "產生貼進遊戲搜尋框的字串,存成書籤一鍵貼上",
+      "dust": "哪些傳奇拆成精華粉最划算,價格來自 poe.ninja",
+      "log": "只存在這台電腦,回報問題時自己複製貼上",
+      "about": "版本、資料來源、社群與致謝"
+    },
+    "page_hotkeys": {
+      "label": "這頁的熱鍵",
+      "edit": "在熱鍵總表修改 ›"
     }
   }
 }

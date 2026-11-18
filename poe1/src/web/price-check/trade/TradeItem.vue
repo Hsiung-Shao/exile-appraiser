@@ -18,7 +18,7 @@
     <td v-if="item.stackSize" class="px-2 text-right">{{ result.stackSize }}</td>
     <td v-if="filters.itemLevel" class="px-2 whitespace-nowrap text-right">{{ result.itemLevel }}</td>
     <td v-if="item.category === 'Gem'" class="pl-2 whitespace-nowrap">{{ result.level }}</td>
-    <td v-if="filters.quality || item.category === 'Gem'" class="px-2 whitespace-nowrap text-blue-400 text-right">{{ result.quality }}</td>
+    <td v-if="(filters.quality && !filters.quality.disabled) || item.category === 'Gem'" class="px-2 whitespace-nowrap text-blue-400 text-right">{{ result.quality }}</td>
     <td class="pr-2 pl-4 whitespace-nowrap">
       <div class="inline-flex items-center">
         <div :class="[$style.accountStatus, $style[result.accountStatus]]"></div>
@@ -48,7 +48,7 @@
     <span v-if="item.stackSize" class="listing-meta">{{ t('ppz.listing.stock', { n: result.stackSize }) }}</span>
     <span v-if="filters.itemLevel" class="listing-meta">{{ t('ppz.listing.ilvl', { n: result.itemLevel }) }}</span>
     <span v-if="item.category === 'Gem'" class="listing-meta">{{ t('ppz.listing.gem_level', { n: result.level }) }}</span>
-    <span v-if="filters.quality || item.category === 'Gem'" class="listing-meta text-blue-400">{{ t('ppz.listing.quality', { n: result.quality }) }}</span>
+    <span v-if="(filters.quality && !filters.quality.disabled) || item.category === 'Gem'" class="listing-meta text-blue-400">{{ t('ppz.listing.quality', { n: result.quality }) }}</span>
     <span class="listing-time">
       <span :class="[$style.accountStatus, $style[result.accountStatus]]"></span>
       <span class="font-sans">{{ result.relativeDate }}</span>

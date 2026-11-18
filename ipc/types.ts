@@ -30,8 +30,11 @@ export interface ItemTextEvent {
   /** 鎖定查價(`hotkeyLocked`):overlay 取得焦點、面板可點擊,不隨滑鼠移開消失。 */
   focusOverlay: boolean
   /** 2026-11-09:`hotkeyPoedb` / 2026-11-13 `hotkeyWiki` 複製的物品 → renderer 開 poedb / wiki 頁,不開查價面板(省略 = 查價) */
-  target?: 'poedb' | 'wiki'
+  target?: ItemTextTarget
 }
+
+/** 2026-11-18:`map-check` = PoE1 地圖詞綴檢查(`hotkeyMapCheck`,overlay 取得焦點、不查價) */
+export type ItemTextTarget = 'poedb' | 'wiki' | 'map-check'
 
 /** APT `MAIN->OVERLAY::focus-change`。 */
 export interface FocusChangeEvent {
@@ -151,6 +154,8 @@ export interface HostConfigForMain {
   hotkeyPoedb?: string
   /** 2026-11-13(移植 APT / EE2 `openWiki`):游標下物品開 poewiki / poe2wiki 頁的熱鍵(註冊條件同 `hotkeyPoedb`) */
   hotkeyWiki?: string
+  /** 2026-11-18(移植 APT map-check):PoE1 地圖詞綴檢查熱鍵(預設空;只在 overlay + PoE1 註冊) */
+  hotkeyMapCheck?: string
   /** 2026-11-09(移植 APT 碼表):計時器開始 / 暫停、歸零熱鍵(預設空;只在 overlay 且 `timerDisplay` 不是 off 時註冊,不送任何按鍵) */
   hotkeyTimerToggle?: string
   hotkeyTimerReset?: string
@@ -396,6 +401,8 @@ export interface OverlayContentState {
   quick?: boolean
   /** 2026-10-08:APT 式懸浮選單(含速查表放大;舊 renderer 沒有這欄 = false) */
   menu?: boolean
+  /** 2026-11-18:PoE1 地圖詞綴檢查(舊 renderer 沒有這欄 = false) */
+  map?: boolean
 }
 
 /** WP-R2:設定頁顯示的掃描統計(`runeshape-stats`)。 */
@@ -474,13 +481,13 @@ export interface ConfigChangedEvent {
 }
 
 /**
- * 設定面板的分頁(`open-settings` 指定要開哪頁,如更新提醒開「關於」;查價標題列 ⚖ 開 `dust`)。
- * 第 39 步(設定頁資訊架構整理)起分兩組:設定(一般 / 遊戲 / 查價 / 倉庫與聊天 / 自動辨識 / 熱鍵 / 更新與關於)、
- * 工具(正則 / 拆粉排行 / 記錄)。舊值 `chat` 仍可送(`LegacySettingsTabId`),renderer `resolveSettingsTab` 映射到新分頁。
+ * 設定面板的分頁(`open-settings` 指定要開哪頁,如更新提醒開「啟動與更新」;查價標題列 ⚖ 開 `dust`)。
+ * 2026-11-18 重整成三組:設定(一般 / 遊戲與視窗 / 熱鍵 / 啟動與更新)、功能(查價 / 倉庫 / 聊天指令 / 自動辨識 / 計時器)、
+ * 工具(正則 / 拆粉排行 / 記錄與效能 / 關於)。舊值 `stash-chat` 仍可送(`LegacySettingsTabId`),renderer `resolveSettingsTab` 映射到新分頁。
  */
-export type SettingsTabId = 'general' | 'game' | 'price-check' | 'stash-chat' | 'hotkeys' | 'about' | 'recognition' | 'regex' | 'dust' | 'log'
-/** 第 39 步前的分頁 id(只剩 `chat` 改名;其餘沿用) */
-export type LegacySettingsTabId = 'chat'
+export type SettingsTabId = 'general' | 'game' | 'hotkeys' | 'startup' | 'price-check' | 'stash' | 'chat' | 'recognition' | 'timer' | 'regex' | 'dust' | 'log' | 'about'
+/** 已不存在的分頁 id(`stash-chat` 拆成倉庫 / 聊天指令) */
+export type LegacySettingsTabId = 'stash-chat'
 
 /** 第 28 步:設定 › 記錄。main 常駐環形緩衝(最近約 3000 行)的一筆;`seq` 遞增,renderer 以它去重 / 補洞。 */
 export type LogLevel = 'info' | 'warn' | 'error'
@@ -699,7 +706,7 @@ export interface HostApi {
   onLogLines?: (cb: (entries: LogEntry[]) => void) => () => void
   /** 第 28 步:開啟記錄資料夾(userData/logs)。瀏覽器預覽 shim 沒有這個方法(`preview: false`)。 */
   openLogFolder?: () => Promise<void>
-  /** 步 38:開啟設定資料夾(userData,內含 config.json)。托盤選單已移除該項,改由設定 › 關於提供;預覽 shim 沒有(`preview: false`)。 */
+  /** 步 38:開啟設定資料夾(userData,內含 config.json)。托盤選單已移除該項,改由設定 › 啟動與更新提供;預覽 shim 沒有(`preview: false`)。 */
   openConfigFolder?: () => Promise<void>
   /** 設定 › 一般 › 建立桌面捷徑(只有 Electron 視窗;dev = 開發模式不建立) */
   createDesktopShortcut?: () => Promise<{ ok: true, path: string } | { ok: false, reason: 'dev' | 'failed' }>

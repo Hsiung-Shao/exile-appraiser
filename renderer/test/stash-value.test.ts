@@ -168,8 +168,8 @@ describe('V13 關閉讀數量(設定與接線)', () => {
     expect(key.slice(key.indexOf('function scanConfigKey'))).toContain('cfg.stashReadQuantity')
     expect(read('../../main/src/main.ts')).toContain('readQuantity: hostCfg?.stashReadQuantity !== false')
   })
-  it('設定 › 自動辨識 › 倉庫價格卡 #extra 有開關;兩語字串', () => {
-    const rec = read('../src/web/settings/tabs/Recognition.vue')
+  it('設定 › 倉庫 › 倉庫價格卡 #extra 有開關;兩語字串', () => {
+    const rec = read('../src/web/settings/tabs/Stash.vue')
     expect(rec).toMatch(/kind="stash">[\s\S]*<template #extra>[\s\S]*v-model="config\.stashReadQuantity"[\s\S]*data-setting="stash-read-quantity"[\s\S]*<\/ocr-scan-section>/)
     for (const lang of ['cmn-Hant', 'en']) {
       const j = JSON.parse(read(`../src/i18n/${lang}.json`))

@@ -30,6 +30,7 @@ import { normRoute, presetRoute, type Route } from '../../../core/src/speedrun/r
 import { defaultListingLayout, normListingLayout } from './price-panel/listing-layout'
 import { DEFAULT_SHOW_MECHANISM, normShowMechanism } from './price-panel/mechanism-visibility'
 import { defaultOnlineFilterMemory, normOnlineFilterMemory } from './price-panel/online-filter-memory'
+import { normMapCheckBookmark, type MapCheckRef } from './map-check-bookmark'
 
 /** 介面字串語言(與客戶端語言 `language` 分開)。 */
 export type UiLanguage = 'cmn-Hant' | 'en'
@@ -177,6 +178,10 @@ export interface Config {
   hotkeyPoedb: string
   /** 2026-11-13(移植 APT / EE2 `openWiki`):游標下物品開 poewiki / poe2wiki 頁的熱鍵(預設空;註冊條件同 poedb) */
   hotkeyWiki: string
+  /** 2026-11-18(移植 APT map-check):PoE1 游標下地圖的詞綴檢查熱鍵(預設空;只在 overlay + PoE1) */
+  hotkeyMapCheck: string
+  /** 地圖詞綴檢查用的正則書籤(資料夾 + 名稱;PoE1;null = 沒選過 → 只有一個地圖書籤時自動用它;false = 明確選不上色)。檢查視窗裡換書籤也寫這裡。只在 renderer 用,不進 host-config */
+  mapCheckBookmark: MapCheckRef | null | false
   /** 2026-11-09(移植 APT 碼表):計時器開始 / 暫停、歸零熱鍵(預設空;只在 overlay 且 `timerDisplay` 不是 off) */
   hotkeyTimerToggle: string
   hotkeyTimerReset: string
@@ -340,7 +345,8 @@ export function normRuneshapeThresholds (v: unknown, def: Readonly<RuneshapeThre
 
 function createConfig (): Config {
   const base = {
-    configVersion: 1,
+    // 2 = 2026-11-18 章節自動分段預設開(舊檔遷移見 applyLoaded)
+    configVersion: 2,
     game: 'poe1' as Game,
     realm: 'intl' as Realm,
     language: 'cmn-Hant' as Language,
@@ -404,6 +410,8 @@ function createConfig (): Config {
     stashValueCard: null as OverlayPos | null,
     hotkeyPoedb: '',
     hotkeyWiki: '',
+    hotkeyMapCheck: '',
+    mapCheckBookmark: null as MapCheckRef | null | false,
     hotkeyTimerToggle: '',
     hotkeyTimerReset: '',
     timerDisplay: 'active' as TimerDisplay,
@@ -495,6 +503,8 @@ function serialize (): string {
     stashValueCard: config.stashValueCard,
     hotkeyPoedb: config.hotkeyPoedb,
     hotkeyWiki: config.hotkeyWiki,
+    hotkeyMapCheck: config.hotkeyMapCheck,
+    mapCheckBookmark: config.mapCheckBookmark,
     hotkeyTimerToggle: config.hotkeyTimerToggle,
     hotkeyTimerReset: config.hotkeyTimerReset,
     timerDisplay: config.timerDisplay,
@@ -641,6 +651,8 @@ function applyLoaded (raw: string) {
   // 2026-11-09:poedb / 計時器(舊設定檔沒有 / 壞值 → 空熱鍵、active、null)
   config.hotkeyPoedb = typeof loaded.hotkeyPoedb === 'string' ? loaded.hotkeyPoedb : fresh.hotkeyPoedb
   config.hotkeyWiki = typeof loaded.hotkeyWiki === 'string' ? loaded.hotkeyWiki : fresh.hotkeyWiki
+  config.hotkeyMapCheck = typeof loaded.hotkeyMapCheck === 'string' ? loaded.hotkeyMapCheck : fresh.hotkeyMapCheck
+  config.mapCheckBookmark = normMapCheckBookmark(loaded.mapCheckBookmark)
   config.hotkeyTimerToggle = typeof loaded.hotkeyTimerToggle === 'string' ? loaded.hotkeyTimerToggle : fresh.hotkeyTimerToggle
   config.hotkeyTimerReset = typeof loaded.hotkeyTimerReset === 'string' ? loaded.hotkeyTimerReset : fresh.hotkeyTimerReset
   config.timerDisplay = TIMER_DISPLAYS.includes(loaded.timerDisplay as TimerDisplay) ? loaded.timerDisplay as TimerDisplay : fresh.timerDisplay
@@ -657,6 +669,12 @@ function applyLoaded (raw: string) {
     poe1: keepRoute(config.speedrun?.poe1, normRoute(sr.poe1, 'poe1', routeLang)),
     poe2: keepRoute(config.speedrun?.poe2, normRoute(sr.poe2, 'poe2', routeLang))
   }
+  // 2026-11-18 使用者裁定章節自動分段預設開:舊檔存的 false 是舊預設,打開一次;之後使用者關掉照記住
+  if (!(typeof loaded.configVersion === 'number' && loaded.configVersion >= 2)) {
+    config.speedrun.poe1.autoSplit = true
+    config.speedrun.poe2.autoSplit = true
+  }
+  config.configVersion = 2
   config.clientLogPath = typeof loaded.clientLogPath === 'string' ? loaded.clientLogPath : ''
   config.speedrunRows = typeof loaded.speedrunRows === 'number' && Number.isFinite(loaded.speedrunRows)
     ? Math.min(20, Math.max(1, Math.round(loaded.speedrunRows)))
@@ -687,7 +705,7 @@ export function configContentsForRelaunch (): string {
   return serialize()
 }
 
-/** main 的 `Shortcuts.updateActions` 回傳(熱鍵註冊結果);設定頁「熱鍵」總表(與倉庫與聊天、正則書籤)顯示在對應欄位下方。 */
+/** main 的 `Shortcuts.updateActions` 回傳(熱鍵註冊結果);設定頁「熱鍵」總表(與倉庫 / 聊天指令頁、正則書籤)顯示在對應欄位下方。 */
 export type { HotkeyRegistration }
 export const hotkeyRegistration = shallowRef<HotkeyRegistration | null>(null)
 
@@ -739,6 +757,7 @@ export function hostConfigOf (c: Config, regexHotkeys: readonly RegexBookmarkHot
     hotkeyRegexQuick: c.hotkeyRegexQuick,
     hotkeyPoedb: c.hotkeyPoedb,
     hotkeyWiki: c.hotkeyWiki,
+    hotkeyMapCheck: c.hotkeyMapCheck,
     hotkeyTimerToggle: c.hotkeyTimerToggle,
     hotkeyTimerReset: c.hotkeyTimerReset,
     timerDisplay: c.timerDisplay,

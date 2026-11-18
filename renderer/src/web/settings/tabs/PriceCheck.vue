@@ -4,6 +4,7 @@
   面板顯示卡片沒有任何一項時整張不顯示。
 -->
 <template>
+  <page-hotkeys :ids="['quick', 'locked']" />
   <section class="card" data-setting="search-section">
     <span class="label">{{ t('ppz.section_search') }}</span>
     <div class="srow">
@@ -102,11 +103,12 @@ import { useI18n } from 'vue-i18n'
 import { AppConfig } from '@/web/Config'
 import { CURRENCY_VOLUME_OPTIONS, HOVER_OPTIONS, hasCurrencyVolume, hasDefaultCurrency, hasItemHover } from './price-check-options'
 import HelpTip from '../HelpTip.vue'
+import PageHotkeys from '../PageHotkeys.vue'
 import { poe1CurrencySetting, rememberPoe1 } from '../../price-panel/online-filter-memory'
 import { RELATED_SCALE_DEFAULT, RELATED_SCALE_MAX, RELATED_SCALE_MIN } from '../../related-items-scale'
 
 export default defineComponent({
-  components: { HelpTip },
+  components: { HelpTip, PageHotkeys },
   setup () {
     const { t } = useI18n()
     const config = AppConfig()

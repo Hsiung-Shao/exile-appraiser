@@ -49,6 +49,7 @@ describe('設定往返(S14)', () => {
       autoSplit: true
     }
     const raw = {
+      configVersion: 2,
       speedrun: { poe1: custom, poe2: { ...presetRoute('poe2', 'en'), attempts: 3, autoSplit: false } },
       clientLogPath: 'D:\\Games\\PoE\\logs\\Client.txt',
       speedrunRows: 8,
@@ -141,9 +142,9 @@ describe('熱鍵總表(S18)', () => {
     } as unknown as HotkeyConfigLike
   }
 
-  it('S18 overlay:tools 群組含 timerPause / timerUndo / timerSkip,欄位接對且為選填', () => {
+  it('S18 overlay:計時器群組含 timerPause / timerUndo / timerSkip,欄位接對且為選填', () => {
     for (const game of ['poe1', 'poe2'] as const) {
-      const g = hotkeyTable(fullConfig(game), { overlay: true }).find(x => x.id === 'tools')
+      const g = hotkeyTable(fullConfig(game), { overlay: true }).find(x => x.id === 'timer')
       expect(g, game).toBeDefined()
       const rows = g!.rows.filter(r => r.kind === 'edit') as any[]
       for (const [id, field] of [['timerPause', 'hotkeyTimerPause'], ['timerUndo', 'hotkeyTimerUndo'], ['timerSkip', 'hotkeyTimerSkip']]) {
@@ -155,9 +156,8 @@ describe('熱鍵總表(S18)', () => {
     }
   })
 
-  it('S18 window 模式:tools 群組不列這三個(計時器只在 overlay)', () => {
-    const g = hotkeyTable(fullConfig('poe2'), { overlay: false }).find(x => x.id === 'tools')
-    const ids = (g?.rows ?? []).map(r => r.id)
+  it('S18 window 模式:總表不列這三個(計時器只在 overlay)', () => {
+    const ids = hotkeyTable(fullConfig('poe2'), { overlay: false }).flatMap(g => g.rows).map(r => r.id)
     for (const id of ['timerPause', 'timerUndo', 'timerSkip']) expect(ids).not.toContain(id)
   })
 })
@@ -188,5 +188,24 @@ describe('審查修正(2026-11-10)', () => {
   })
   it('全新安裝的內建章節名跟系統介面語言(英文系統不是中文名)', () => {
     expect(src).toMatch(/speedrun: speedrunPresets\(systemUiLanguage\(\) === 'en' \? 'en' : 'cmn-Hant'\)/)
+  })
+})
+
+describe('章節自動分段預設開(2026-11-18)', () => {
+  it('全新設定:兩代自動分段開、自動開始關', () => {
+    const c = _roundTripForTest(null).config as any
+    for (const g of ['poe1', 'poe2']) expect([c.speedrun[g].autoSplit, c.speedrun[g].autoStart], g).toEqual([true, false])
+  })
+  it('舊設定檔(configVersion 1 / 沒有)存的 autoSplit false → 打開一次,autoStart 不動', () => {
+    for (const v of [undefined, 1]) {
+      const route = { ...presetRoute('poe1', 'cmn-Hant'), autoSplit: false, autoStart: true }
+      const c = rt({ configVersion: v, speedrun: { poe1: route, poe2: { ...route, splits: presetRoute('poe2', 'cmn-Hant').splits, golds: presetRoute('poe2', 'cmn-Hant').golds } } })
+      expect([c.speedrun.poe1.autoSplit, c.speedrun.poe2.autoSplit, c.speedrun.poe1.autoStart]).toEqual([true, true, true])
+      expect(c.configVersion).toBe(2)
+    }
+  })
+  it('configVersion 2 之後使用者關掉的照記住', () => {
+    const c = rt({ configVersion: 2, speedrun: { poe1: { ...presetRoute('poe1', 'cmn-Hant'), autoSplit: false } } })
+    expect(c.speedrun.poe1.autoSplit).toBe(false)
   })
 })

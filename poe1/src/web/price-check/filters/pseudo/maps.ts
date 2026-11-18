@@ -76,7 +76,7 @@ export function mapProps (bulk: boolean, ctx: FiltersCreationContext): void {
     areaProps({
       disabled: {
         itemQuantity: false,
-        atlasDrops: false,
+        atlasDrops: true, // exile-appraiser: 2026-11-18 使用者:保留但預設不勾
         itemRarity: hasValuableDrops,
         packSize: false
       }
@@ -130,7 +130,7 @@ export function chartProps (bulk: boolean, ctx: FiltersCreationContext): void {
   areaProps({
     disabled: {
       itemQuantity: false,
-      atlasDrops: false,
+      atlasDrops: true, // exile-appraiser: 2026-11-18 同地圖:保留但預設不勾
       itemRarity: false,
       packSize: false
     }

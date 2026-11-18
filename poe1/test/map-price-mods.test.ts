@@ -148,7 +148,7 @@ const MAPS: Record<string, MapExpectation> = {
   // 3.30 實機文字:新增「輿圖掉落物」,「更多聖甲蟲」改名「更多 綢帶」(2026-11-16)
   'map-t16-330-atlas-drops': {
     visible: [
-      ['property', 'Atlas Drops: +#%', false],
+      ['property', 'Atlas Drops: +#%', true], // 2026-11-18 使用者:保留但預設不勾
       // 有更多掉落(地圖 / 綢帶 / 通貨)→ 稀有度預設不勾
       ['property', 'Item Rarity: +#%', true],
       ['property', 'Monster Pack Size: +#%', false],

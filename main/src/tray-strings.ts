@@ -6,7 +6,7 @@
 export type TrayLang = 'cmn-Hant' | 'en'
 
 export interface TrayStrings {
-  /** 啟動瀏覽器預覽伺服器並用預設瀏覽器開設定頁(與設定「一般」分頁的按鈕同名)。 */
+  /** 啟動瀏覽器預覽伺服器並用預設瀏覽器開設定頁(與設定「啟動與更新」分頁的按鈕同名)。 */
   openInBrowser: string
   checkUpdate: string
   quit: string

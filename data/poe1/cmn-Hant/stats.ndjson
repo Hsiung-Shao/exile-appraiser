@@ -2870,7 +2870,7 @@
 {"ref":"Adds # to # Fire Damage to Attacks against Ignited Enemies","better":1,"matchers":[{"string":"對點燃敵人攻擊時附加 # 至 # 火焰傷害"}],"trade":{"ids":{"explicit":["explicit.stat_627339348"]}}}
 {"ref":"Adds # to # Fire Damage to Attacks against you","better":1,"matchers":[{"string":"對你的攻擊附加 # 至 # 火焰傷害"}],"trade":{"ids":{"explicit":["explicit.stat_2127433866"],"fractured":["fractured.stat_2127433866"],"crafted":["crafted.stat_2127433866"]}}}
 {"ref":"Adds # to # Fire Damage to Attacks for every 1% your Light Radius is above base value","better":1,"matchers":[{"string":"每增加1%照耀範圍，攻擊附加#至#火焰傷害"}],"trade":{"ids":{"explicit":["explicit.stat_1911822529"]}}}
-{"ref":"Adds # to # Fire Damage to Attacks per 10 Strength","better":1,"matchers":[{"string":"每 10 點力量攻擊附加 # 至 # 火焰傷害"}],"trade":{"ids":{"explicit":["explicit.stat_68673913"],"fractured":["fractured.stat_68673913"]}}}
+{"ref":"Adds # to # Fire Damage to Attacks per 10 Strength","better":1,"matchers":[{"string":"每 10 點力量攻擊附加 # 至 # 火焰傷害"}],"trade":{"ids":{"explicit":["explicit.stat_68673913"],"fractured":["fractured.stat_68673913"],"implicit":["implicit.stat_68673913"]}}}
 {"ref":"Adds # to # Fire Damage to Attacks with this Weapon per 10 Strength","better":1,"matchers":[{"string":"使用此武器攻擊，每 10 點力量附加 # 至 # 火焰傷害"}],"trade":{"ids":{"explicit":["explicit.stat_1060540099"],"implicit":["implicit.stat_1060540099"],"fractured":["fractured.stat_1060540099"]}}}
 {"ref":"Adds # to # Fire Damage to Hits against you","better":1,"matchers":[{"string":"對你的擊中附加 # 至 # 火焰傷害"}],"trade":{"ids":{"explicit":["explicit.stat_1905034712"],"fractured":["fractured.stat_1905034712"],"crafted":["crafted.stat_1905034712"]}}}
 {"ref":"Adds # to # Fire Damage to Hits with this Weapon against Blinded Enemies","better":1,"matchers":[{"string":"用此武器擊中被致盲的敵人附加 # 至 # 火焰傷害"}],"trade":{"ids":{"explicit":["explicit.stat_3977907993"]}}}
@@ -2960,14 +2960,14 @@
 {"ref":"Allocated Small Passive Skills in Radius grant nothing","better":1,"matchers":[{"string":"配置範圍內的小天賦不會獲得效果"}],"trade":{"ids":{"explicit":["explicit.stat_325204898"]}}}
 {"ref":"Allocates Acrimony","better":0,"anointments":[{"roll":1,"oils":"1,10,10"}],"matchers":[{"string":"配置 尖酸刻薄"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|25970"]}}}
 {"ref":"Allocates Acuity","better":0,"anointments":[{"roll":1,"oils":"1,8,10"}],"matchers":[{"string":"配置 心眼"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|49621"]}}}
-{"resolve":{"strat":"trivial-merge"},"stats":[{"ref":"Allocates Adamant","better":0,"anointments":[{"roll":1,"oils":"6,8,10"}],"matchers":[{"string":"配置 堅定不移"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|49416"]}}},{"ref":"Allocates Unfaltering","better":0,"anointments":[{"roll":1,"oils":"7,7,9"}],"matchers":[{"string":"配置 堅定不移"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|14001"]}}}]}
+{"resolve":{"strat":"trivial-merge"},"stats":[{"ref":"Allocates Adamant","better":0,"anointments":[{"roll":1,"oils":"6,8,10"}],"matchers":[{"string":"配置 堅定不移","superseded":true},{"string":"配置 堅若磐石"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|49416"]}}},{"ref":"Allocates Unfaltering","better":0,"anointments":[{"roll":1,"oils":"7,7,9"}],"matchers":[{"string":"配置 堅定不移"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|14001"]}}}]}
 {"ref":"Allocates Adaptive Steel","better":0,"anointments":[{"roll":1,"oils":"0,10,10"}],"matchers":[{"string":"配置 適性之鋼"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|14587"]}}}
 {"ref":"Allocates Adder's Touch","better":0,"anointments":[{"roll":1,"oils":"2,10,11"}],"matchers":[{"string":"配置 毒蛇之觸"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|32227"]}}}
 {"ref":"Allocates Adjacent Animosity","better":0,"anointments":[{"roll":1,"oils":"7,9,11"}],"matchers":[{"string":"配置 相鄰憎恨"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|31513"]}}}
 {"ref":"Allocates Admonisher","better":0,"anointments":[{"roll":1,"oils":"2,6,11"}],"matchers":[{"string":"配置 告誡者"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|50858"]}}}
 {"ref":"Allocates Aggressive Bastion","better":0,"anointments":[{"roll":1,"oils":"4,8,10"}],"matchers":[{"string":"配置 進擊的壁壘"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|861"]}}}
 {"ref":"Allocates Always Angry","better":0,"anointments":[{"roll":1,"oils":"0,6,12"}],"matchers":[{"string":"配置 保持憤怒"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|13739"]}}}
-{"ref":"Allocates Ambidexterity","better":0,"anointments":[{"roll":1,"oils":"3,6,10"}],"matchers":[{"string":"配置 卓越"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|15085"]}}}
+{"ref":"Allocates Ambidexterity","better":0,"anointments":[{"roll":1,"oils":"3,6,10"}],"matchers":[{"string":"配置 卓越","superseded":true},{"string":"配置 左右開弓"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|15085"]}}}
 {"ref":"Allocates Amplify","better":0,"anointments":[{"roll":1,"oils":"3,6,11"}],"matchers":[{"string":"配置 增幅"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|61308"]}}}
 {"ref":"Allocates Ancestral Fury if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 先祖之怒"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|38999"]}}}
 {"ref":"Allocates Ancestral Fury if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 先祖之怒"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|38999"]}}}
@@ -2976,7 +2976,7 @@
 {"ref":"Allocates Arcane Blessing if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 秘能庇護"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|40510"]}}}
 {"ref":"Allocates Arcane Blessing if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 秘能庇護"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|40510"]}}}
 {"ref":"Allocates Arcane Capacitor","better":0,"anointments":[{"roll":1,"oils":"8,10,13"}],"matchers":[{"string":"配置 秘能容器"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|51108"]}}}
-{"ref":"Allocates Arcane Chemistry","better":0,"anointments":[{"roll":1,"oils":"3,12,12"}],"matchers":[{"string":"配置 祕法學"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|21634"]}}}
+{"ref":"Allocates Arcane Chemistry","better":0,"anointments":[{"roll":1,"oils":"3,12,12"}],"matchers":[{"string":"配置 祕法學","superseded":true},{"string":"配置 秘法學"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|21634"]}}}
 {"ref":"Allocates Arcane Conservation","better":0,"anointments":[{"roll":1,"oils":"7,8,8"}],"matchers":[{"string":"配置 奧法封存"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|60085"]}}}
 {"ref":"Allocates Arcane Expanse","better":0,"anointments":[{"roll":1,"oils":"9,9,13"}],"matchers":[{"string":"配置 秘能擴張"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|53573"]}}}
 {"ref":"Allocates Arcane Focus","better":0,"anointments":[{"roll":1,"oils":"4,9,9"}],"matchers":[{"string":"配置 秘能之心"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|42795"]}}}
@@ -3000,14 +3000,14 @@
 {"ref":"Allocates Assassin if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 刺客"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|43122"]}}}
 {"ref":"Allocates Assassin if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 刺客"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|43122"]}}}
 {"ref":"Allocates Assassination","better":0,"anointments":[{"roll":1,"oils":"10,11,13"}],"matchers":[{"string":"配置 刺殺"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|28754"]}}}
-{"ref":"Allocates Assured Strike","better":0,"anointments":[{"roll":1,"oils":"1,7,10"}],"matchers":[{"string":"配置 珍重打擊"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|19730"]}}}
+{"ref":"Allocates Assured Strike","better":0,"anointments":[{"roll":1,"oils":"1,7,10"}],"matchers":[{"string":"配置 珍重打擊","superseded":true},{"string":"配置 必中之擊"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|19730"]}}}
 {"ref":"Allocates Asylum","better":0,"anointments":[{"roll":1,"oils":"7,8,12"}],"matchers":[{"string":"配置 避難所"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|4854"]}}}
 {"ref":"Allocates Atrophy","better":0,"anointments":[{"roll":1,"oils":"1,2,13"}],"matchers":[{"string":"配置 萎縮"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|53013"]}}}
 {"ref":"Allocates Augury of Penitence if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 懺悔之卜"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|40059"]}}}
 {"ref":"Allocates Augury of Penitence if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 懺悔之卜"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|40059"]}}}
 {"ref":"Allocates Avatar of the Hunt","better":0,"anointments":[{"roll":1,"oils":"1,11,11"}],"matchers":[{"string":"配置 狩獵之徵"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|36687"]}}}
-{"ref":"Allocates Avatar of the Wilds if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 獸性化身"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|55509"]}}}
-{"ref":"Allocates Avatar of the Wilds if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 獸性化身"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|55509"]}}}
+{"ref":"Allocates Avatar of the Wilds if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 獸性化身","superseded":true},{"string":"若禁忌烈焰上有符合的詞綴，配置 荒野化身"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|55509"]}}}
+{"ref":"Allocates Avatar of the Wilds if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 獸性化身","superseded":true},{"string":"若禁忌血肉上有符合的詞綴，配置 荒野化身"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|55509"]}}}
 {"ref":"Allocates Avidity if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 貪慾"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|44482"]}}}
 {"ref":"Allocates Avidity if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 貪慾"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|44482"]}}}
 {"ref":"Allocates Awe and Terror","better":0,"anointments":[{"roll":1,"oils":"7,7,11"}],"matchers":[{"string":"配置 敬畏與恐懼"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|40619"]}}}
@@ -3017,7 +3017,7 @@
 {"ref":"Allocates Bane of Legends if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 神話災難"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|62817"]}}}
 {"ref":"Allocates Bannerman","better":0,"anointments":[{"roll":1,"oils":"7,8,9"}],"matchers":[{"string":"配置 掌旗手"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|63033"]}}}
 {"ref":"Allocates Barbarism","better":0,"anointments":[{"roll":1,"oils":"11,11,13"}],"matchers":[{"string":"配置 野蠻"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|53118"]}}}
-{"ref":"Allocates Bastion Breaker","better":0,"anointments":[{"roll":1,"oils":"2,5,7"}],"matchers":[{"string":"配置 堡壘破壞者"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|65107"]}}}
+{"ref":"Allocates Bastion Breaker","better":0,"anointments":[{"roll":1,"oils":"2,5,7"}],"matchers":[{"string":"配置 堡壘破壞者","superseded":true},{"string":"配置 破壘者"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|65107"]}}}
 {"ref":"Allocates Bastion of Elements if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 元素壁壘"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|4917"]}}}
 {"ref":"Allocates Bastion of Elements if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 元素壁壘"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|4917"]}}}
 {"ref":"Allocates Bastion of Faith","better":0,"anointments":[{"roll":1,"oils":"0,9,9"}],"matchers":[{"string":"配置 信心堡壘"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|37512"]}}}
@@ -3040,7 +3040,7 @@
 {"ref":"Allocates Blood Siphon","better":0,"anointments":[{"roll":1,"oils":"6,11,12"}],"matchers":[{"string":"配置 血液抽取"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|25058"]}}}
 {"ref":"Allocates Bloodless","better":0,"anointments":[{"roll":1,"oils":"3,9,13"}],"matchers":[{"string":"配置 無血之體"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|6289"]}}}
 {"ref":"Allocates Bloodletting","better":0,"anointments":[{"roll":1,"oils":"6,6,12"}],"matchers":[{"string":"配置 出血"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|26294"]}}}
-{"ref":"Allocates Blunt Trauma","better":0,"anointments":[{"roll":1,"oils":"5,9,12"}],"matchers":[{"string":"配置 麻痺創傷"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|64395"]}}}
+{"ref":"Allocates Blunt Trauma","better":0,"anointments":[{"roll":1,"oils":"5,9,12"}],"matchers":[{"string":"配置 麻痺創傷","superseded":true},{"string":"配置 鈍器創傷"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|64395"]}}}
 {"ref":"Allocates Bomb Specialist if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 炸彈專家"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|47778"]}}}
 {"ref":"Allocates Bomb Specialist if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 炸彈專家"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|47778"]}}}
 {"ref":"Allocates Bone Barrier if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 骸骨屏障"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|14603"]}}}
@@ -3075,7 +3075,7 @@
 {"ref":"Allocates Chain Reaction if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 連鎖反應"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|38918"]}}}
 {"ref":"Allocates Champion if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 冠軍"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|39598"]}}}
 {"ref":"Allocates Champion if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 冠軍"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|39598"]}}}
-{"ref":"Allocates Champion of the Cause","better":0,"anointments":[{"roll":1,"oils":"5,9,13"}],"matchers":[{"string":"配置 起源"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|33718"]}}}
+{"ref":"Allocates Champion of the Cause","better":0,"anointments":[{"roll":1,"oils":"5,9,13"}],"matchers":[{"string":"配置 起源","superseded":true},{"string":"配置 大義鬥士"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|33718"]}}}
 {"ref":"Allocates Charisma","better":0,"anointments":[{"roll":1,"oils":"11,13,13"}],"matchers":[{"string":"配置 魅力"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|6799"]}}}
 {"ref":"Allocates Chieftain if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 酋長"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|57052"]}}}
 {"ref":"Allocates Chieftain if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 酋長"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|57052"]}}}
@@ -3087,7 +3087,7 @@
 {"ref":"Allocates Cleaving","better":0,"anointments":[{"roll":1,"oils":"2,3,10"}],"matchers":[{"string":"配置 劈砍"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|4940"]}}}
 {"ref":"Allocates Clever Construction","better":0,"anointments":[{"roll":1,"oils":"2,6,9"}],"matchers":[{"string":"配置 聰明的建設"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|55380"]}}}
 {"ref":"Allocates Clever Thief","better":0,"anointments":[{"roll":1,"oils":"1,4,7"}],"matchers":[{"string":"配置 聰穎盜賊"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|8001"]}}}
-{"ref":"Allocates Cloth and Chain","better":0,"anointments":[{"roll":1,"oils":"1,1,6"}],"matchers":[{"string":"配置 迅影秘術"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|21435"]}}}
+{"ref":"Allocates Cloth and Chain","better":0,"anointments":[{"roll":1,"oils":"1,1,6"}],"matchers":[{"string":"配置 迅影秘術","superseded":true},{"string":"配置 布衣與鎖甲"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|21435"]}}}
 {"ref":"Allocates Coldhearted Calculation","better":0,"anointments":[{"roll":1,"oils":"9,9,9"}],"matchers":[{"string":"配置 冷酷計算"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|24050"]}}}
 {"ref":"Allocates Colloidal Mixture","better":0,"anointments":[{"roll":1,"oils":"1,1,4"}],"matchers":[{"string":"配置 膠體混合物"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|34978"]}}}
 {"ref":"Allocates Combat Stamina","better":0,"anointments":[{"roll":1,"oils":"1,4,10"}],"matchers":[{"string":"配置 戰鬥精力"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|21413"]}}}
@@ -3096,10 +3096,10 @@
 {"ref":"Allocates Commander of Darkness if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 黑暗統御者"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|36017"]}}}
 {"ref":"Allocates Concussive Force","better":0,"anointments":[{"roll":1,"oils":"5,7,12"}],"matchers":[{"string":"配置 震爆之力"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|19794"]}}}
 {"ref":"Allocates Conjured Barrier","better":0,"anointments":[{"roll":1,"oils":"4,7,10"}],"matchers":[{"string":"配置 召喚屏障"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|45945"]}}}
-{"ref":"Allocates Constitution","better":0,"anointments":[{"roll":1,"oils":"5,8,13"}],"matchers":[{"string":"配置 構成"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|55485"]}}}
+{"ref":"Allocates Constitution","better":0,"anointments":[{"roll":1,"oils":"5,8,13"}],"matchers":[{"string":"配置 構成","superseded":true},{"string":"配置 體魄"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|55485"]}}}
 {"ref":"Allocates Contemplative Meditation","better":0,"anointments":[{"roll":1,"oils":"6,7,12"}],"matchers":[{"string":"配置 沉思冥想"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|20261"]}}}
-{"ref":"Allocates Conviction of Power if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 力量定罪"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|25651"]}}}
-{"ref":"Allocates Conviction of Power if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 力量定罪"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|25651"]}}}
+{"ref":"Allocates Conviction of Power if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 力量定罪","superseded":true},{"string":"若禁忌烈焰上有符合的詞綴，配置 力量信念"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|25651"]}}}
+{"ref":"Allocates Conviction of Power if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 力量定罪","superseded":true},{"string":"若禁忌血肉上有符合的詞綴，配置 力量信念"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|25651"]}}}
 {"ref":"Allocates Coordination","better":0,"anointments":[{"roll":1,"oils":"3,9,10"}],"matchers":[{"string":"配置 和諧之體"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|5823"]}}}
 {"ref":"Allocates Cornered Prey","better":0,"anointments":[{"roll":1,"oils":"3,3,7"}],"matchers":[{"string":"配置 甕中之鱉"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|45283"]}}}
 {"ref":"Allocates Corpse Pact if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 屍骨盟約"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|23572"]}}}
@@ -3126,7 +3126,7 @@
 {"ref":"Allocates Deathmarked if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 死亡印記"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|48239"]}}}
 {"ref":"Allocates Deathmarked if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 死亡印記"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|48239"]}}}
 {"ref":"Allocates Decay Ward","better":0,"anointments":[{"roll":1,"oils":"2,4,5"}],"matchers":[{"string":"配置 腐蝕之衛"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|21973"]}}}
-{"ref":"Allocates Deep Breaths","better":0,"anointments":[{"roll":1,"oils":"5,7,11"}],"matchers":[{"string":"配置 深呼吸"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|49445"]}}}
+{"ref":"Allocates Deep Breaths","better":0,"anointments":[{"roll":1,"oils":"5,7,11"}],"matchers":[{"string":"配置 深呼吸","superseded":true},{"string":"配置 深吸口氣"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|49445"]}}}
 {"ref":"Allocates Deep Thoughts","better":0,"anointments":[{"roll":1,"oils":"1,4,8"}],"matchers":[{"string":"配置 沉靜思維"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|24362"]}}}
 {"ref":"Allocates Deep Wisdom","better":0,"anointments":[{"roll":1,"oils":"2,5,5"}],"matchers":[{"string":"配置 沉靜智慧"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|27929"]}}}
 {"ref":"Allocates Defiance","better":0,"anointments":[{"roll":1,"oils":"3,5,10"}],"matchers":[{"string":"配置 反抗"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|49538"]}}}
@@ -3138,9 +3138,9 @@
 {"ref":"Allocates Deliberate Brutality","better":0,"anointments":[{"roll":1,"oils":"0,8,12"}],"matchers":[{"string":"配置 蓄意殘虐"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|56146"]}}}
 {"ref":"Allocates Demolitions Specialist if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 爆破天才"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|39834"]}}}
 {"ref":"Allocates Demolitions Specialist if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 爆破天才"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|39834"]}}}
-{"ref":"Allocates Depth Perception","better":0,"anointments":[{"roll":1,"oils":"3,4,5"}],"matchers":[{"string":"配置 潛意識"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|47484"]}}}
+{"ref":"Allocates Depth Perception","better":0,"anointments":[{"roll":1,"oils":"3,4,5"}],"matchers":[{"string":"配置 潛意識","superseded":true},{"string":"配置 深度知覺"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|47484"]}}}
 {"ref":"Allocates Dervish","better":0,"anointments":[{"roll":1,"oils":"6,9,10"}],"matchers":[{"string":"配置 修行之刃"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|25456"]}}}
-{"ref":"Allocates Destroyer","better":0,"anointments":[{"roll":1,"oils":"2,4,11"}],"matchers":[{"string":"配置 破壞者"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|34666"]}}}
+{"ref":"Allocates Destroyer","better":0,"anointments":[{"roll":1,"oils":"2,4,11"}],"matchers":[{"string":"配置 破壞者","superseded":true},{"string":"配置 摧毀者"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|34666"]}}}
 {"ref":"Allocates Destructive Apparatus","better":0,"anointments":[{"roll":1,"oils":"2,3,12"}],"matchers":[{"string":"配置 毀滅裝置"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|21602"]}}}
 {"ref":"Allocates Determined Survivor if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 堅定的倖存者"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|8419"]}}}
 {"ref":"Allocates Determined Survivor if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 堅定的倖存者"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|8419"]}}}
@@ -3149,13 +3149,13 @@
 {"ref":"Allocates Diamond Skin","better":0,"anointments":[{"roll":1,"oils":"2,5,11"}],"matchers":[{"string":"配置 珍鑽肌膚"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|65308"]}}}
 {"ref":"Allocates Dire Torment","better":0,"anointments":[{"roll":1,"oils":"6,9,11"}],"matchers":[{"string":"配置 悲慘折磨"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|9015"]}}}
 {"ref":"Allocates Dirty Techniques","better":0,"anointments":[{"roll":1,"oils":"3,11,13"}],"matchers":[{"string":"配置 三流手段"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|59766"]}}}
-{"ref":"Allocates Disciple of the Forbidden","better":0,"anointments":[{"roll":1,"oils":"10,10,10"}],"matchers":[{"string":"配置 禁忌紀律"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|9261"]}}}
+{"ref":"Allocates Disciple of the Forbidden","better":0,"anointments":[{"roll":1,"oils":"10,10,10"}],"matchers":[{"string":"配置 禁忌紀律","superseded":true},{"string":"配置 禁忌之徒"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|9261"]}}}
 {"ref":"Allocates Disciple of the Slaughter","better":0,"anointments":[{"roll":1,"oils":"3,4,13"}],"matchers":[{"string":"配置 屠宰者之使徒"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|58921"]}}}
 {"ref":"Allocates Disciple of the Unyielding","better":0,"anointments":[{"roll":1,"oils":"8,9,11"}],"matchers":[{"string":"配置 不屈之徒"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|64882"]}}}
 {"ref":"Allocates Discipline and Training","better":0,"anointments":[{"roll":1,"oils":"10,12,12"}],"matchers":[{"string":"配置 嚴峻訓練"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|41472"]}}}
 {"ref":"Allocates Discord Artisan","better":0,"anointments":[{"roll":1,"oils":"3,5,6"}],"matchers":[{"string":"配置 不諧匠師"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|35233"]}}}
 {"ref":"Allocates Disemboweling","better":0,"anointments":[{"roll":1,"oils":"4,8,13"}],"matchers":[{"string":"配置 開腸剖肚"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|58831"]}}}
-{"ref":"Allocates Disintegration","better":0,"anointments":[{"roll":1,"oils":"8,10,10"}],"matchers":[{"string":"配置 異變"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|52031"]}}}
+{"ref":"Allocates Disintegration","better":0,"anointments":[{"roll":1,"oils":"8,10,10"}],"matchers":[{"string":"配置 異變","superseded":true},{"string":"配置 崩解"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|52031"]}}}
 {"ref":"Allocates Dismembering","better":0,"anointments":[{"roll":1,"oils":"8,11,13"}],"matchers":[{"string":"配置 肢解"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|37647"]}}}
 {"ref":"Allocates Divine Fervour","better":0,"anointments":[{"roll":1,"oils":"4,5,7"}],"matchers":[{"string":"配置 聖情"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|30693"]}}}
 {"ref":"Allocates Divine Fury","better":0,"anointments":[{"roll":1,"oils":"3,3,10"}],"matchers":[{"string":"配置 聖之狂怒"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|44347"]}}}
@@ -3169,7 +3169,7 @@
 {"ref":"Allocates Dynamo","better":0,"anointments":[{"roll":1,"oils":"1,2,6"}],"matchers":[{"string":"配置 蓄電"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|24256"]}}}
 {"ref":"Allocates Eagle Eye","better":0,"anointments":[{"roll":1,"oils":"1,1,11"}],"matchers":[{"string":"配置 鷹眼"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|2225"]}}}
 {"ref":"Allocates Efficient Explosives","better":0,"anointments":[{"roll":1,"oils":"2,5,8"}],"matchers":[{"string":"配置 高能炸彈"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|44102"]}}}
-{"ref":"Allocates Elder Power","better":0,"anointments":[{"roll":1,"oils":"5,5,8"}],"matchers":[{"string":"配置 智慧之力"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|41476"]}}}
+{"ref":"Allocates Elder Power","better":0,"anointments":[{"roll":1,"oils":"5,5,8"}],"matchers":[{"string":"配置 智慧之力","superseded":true},{"string":"配置 尊師之力"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|41476"]}}}
 {"ref":"Allocates Elemental Focus","better":0,"anointments":[{"roll":1,"oils":"2,3,6"}],"matchers":[{"string":"配置 元素專注"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|42686"]}}}
 {"ref":"Allocates Elementalist if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 元素使"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|8281"]}}}
 {"ref":"Allocates Elementalist if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 元素使"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|8281"]}}}
@@ -3193,7 +3193,7 @@
 {"ref":"Allocates Essence Glutton if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 吞噬精華"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|3554"]}}}
 {"ref":"Allocates Essence Glutton if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 吞噬精華"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|3554"]}}}
 {"ref":"Allocates Essence Infusion","better":0,"anointments":[{"roll":1,"oils":"1,3,4"}],"matchers":[{"string":"配置 精髓灌注"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|23690"]}}}
-{"ref":"Allocates Essence Sap","better":0,"anointments":[{"roll":1,"oils":"5,8,10"}],"matchers":[{"string":"配置 靈魂虛空"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|65053"]}}}
+{"ref":"Allocates Essence Sap","better":0,"anointments":[{"roll":1,"oils":"5,8,10"}],"matchers":[{"string":"配置 靈魂虛空","superseded":true},{"string":"配置 精華抽取"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|65053"]}}}
 {"ref":"Allocates Essence Surge","better":0,"anointments":[{"roll":1,"oils":"5,12,13"}],"matchers":[{"string":"配置 精純之潮"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|62577"]}}}
 {"ref":"Allocates Ethereal Feast","better":0,"anointments":[{"roll":1,"oils":"3,12,13"}],"matchers":[{"string":"配置 虛空盛宴"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|15852"]}}}
 {"ref":"Allocates Exceptional Performance","better":0,"anointments":[{"roll":1,"oils":"1,3,10"}],"matchers":[{"string":"配置 卓越的表現"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|53042"]}}}
@@ -3207,18 +3207,18 @@
 {"ref":"Allocates Explosive Impact","better":0,"anointments":[{"roll":1,"oils":"4,6,11"}],"matchers":[{"string":"配置 暴烈衝擊"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|24324"]}}}
 {"ref":"Allocates Explosive Runes","better":0,"anointments":[{"roll":1,"oils":"3,6,6"}],"matchers":[{"string":"配置 爆裂魔符"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|29861"]}}}
 {"ref":"Allocates Faith and Steel","better":0,"anointments":[{"roll":1,"oils":"2,10,13"}],"matchers":[{"string":"配置 鋼之信仰"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|35958"]}}}
-{"ref":"Allocates Fangs of Frost","better":0,"anointments":[{"roll":1,"oils":"2,2,12"}],"matchers":[{"string":"配置 刺骨寒冰"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|57199"]}}}
+{"ref":"Allocates Fangs of Frost","better":0,"anointments":[{"roll":1,"oils":"2,2,12"}],"matchers":[{"string":"配置 刺骨寒冰","superseded":true},{"string":"配置 霜寒之牙"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|57199"]}}}
 {"ref":"Allocates Fangs of the Viper","better":0,"anointments":[{"roll":1,"oils":"1,5,6"}],"matchers":[{"string":"配置 毒蛇之牙"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|46408"]}}}
 {"ref":"Allocates Far Shot if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 狙擊"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|45313"]}}}
 {"ref":"Allocates Far Shot if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 狙擊"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|45313"]}}}
 {"ref":"Allocates Farsight","better":0,"anointments":[{"roll":1,"oils":"4,4,9"}],"matchers":[{"string":"配置 遠視"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|47743"]}}}
 {"ref":"Allocates Fatal Blade","better":0,"anointments":[{"roll":1,"oils":"3,11,11"}],"matchers":[{"string":"配置 致命之刃"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|1568"]}}}
-{"ref":"Allocates Fatal Flourish if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 致命繁榮"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|42469"]}}}
-{"ref":"Allocates Fatal Flourish if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 致命繁榮"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|42469"]}}}
+{"ref":"Allocates Fatal Flourish if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 致命繁榮","superseded":true},{"string":"若禁忌烈焰上有符合的詞綴，配置 致命揮舞"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|42469"]}}}
+{"ref":"Allocates Fatal Flourish if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 致命繁榮","superseded":true},{"string":"若禁忌血肉上有符合的詞綴，配置 致命揮舞"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|42469"]}}}
 {"ref":"Allocates Fatal Toxins","better":0,"anointments":[{"roll":1,"oils":"1,8,12"}],"matchers":[{"string":"配置 致命之毒"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|31359"]}}}
 {"ref":"Allocates Fearsome Force","better":0,"anointments":[{"roll":1,"oils":"5,6,9"}],"matchers":[{"string":"配置 恐怖之力"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|35685"]}}}
 {"ref":"Allocates Feline Swiftness","better":0,"anointments":[{"roll":1,"oils":"1,1,5"}],"matchers":[{"string":"配置 貓族迅捷"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|18357"]}}}
-{"ref":"Allocates Feller of Foes","better":0,"anointments":[{"roll":1,"oils":"3,10,11"}],"matchers":[{"string":"配置 開墾之敵"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|52090"]}}}
+{"ref":"Allocates Feller of Foes","better":0,"anointments":[{"roll":1,"oils":"3,10,11"}],"matchers":[{"string":"配置 開墾之敵","superseded":true},{"string":"配置 伐敵者"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|52090"]}}}
 {"ref":"Allocates Fending","better":0,"anointments":[{"roll":1,"oils":"2,2,4"}],"matchers":[{"string":"配置 自衛術"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|30160"]}}}
 {"ref":"Allocates Fervour","better":0,"anointments":[{"roll":1,"oils":"3,10,12"}],"matchers":[{"string":"配置 激情"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|48614"]}}}
 {"ref":"Allocates Field Medicine","better":0,"anointments":[{"roll":1,"oils":"7,9,10"}],"matchers":[{"string":"配置 野戰醫學"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|41137"]}}}
@@ -3268,14 +3268,14 @@
 {"ref":"Allocates Goliath","better":0,"anointments":[{"roll":1,"oils":"2,3,13"}],"matchers":[{"string":"配置 巨靈"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|38922"]}}}
 {"ref":"Allocates Gore Dancer if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 血腥舞者"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|29630"]}}}
 {"ref":"Allocates Gore Dancer if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 血腥舞者"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|29630"]}}}
-{"ref":"Allocates Graceful Assault","better":0,"anointments":[{"roll":1,"oils":"8,8,10"}],"matchers":[{"string":"配置 權貴攻擊"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|18703"]}}}
-{"ref":"Allocates Gratuitous Violence if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 免費暴力"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|27864"]}}}
-{"ref":"Allocates Gratuitous Violence if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 免費暴力"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|27864"]}}}
+{"ref":"Allocates Graceful Assault","better":0,"anointments":[{"roll":1,"oils":"8,8,10"}],"matchers":[{"string":"配置 權貴攻擊","superseded":true},{"string":"配置 優雅突襲"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|18703"]}}}
+{"ref":"Allocates Gratuitous Violence if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 免費暴力","superseded":true},{"string":"若禁忌烈焰上有符合的詞綴，配置 無端暴力"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|27864"]}}}
+{"ref":"Allocates Gratuitous Violence if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 免費暴力","superseded":true},{"string":"若禁忌血肉上有符合的詞綴，配置 無端暴力"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|27864"]}}}
 {"ref":"Allocates Grave Intentions","better":0,"anointments":[{"roll":1,"oils":"2,8,8"}],"matchers":[{"string":"配置 亡靈之誓"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|61982"]}}}
 {"ref":"Allocates Gravepact","better":0,"anointments":[{"roll":1,"oils":"6,10,10"}],"matchers":[{"string":"配置 亡靈之約"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|27308"]}}}
 {"ref":"Allocates Growth and Decay","better":0,"anointments":[{"roll":1,"oils":"1,5,13"}],"matchers":[{"string":"配置 成長與衰變"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|9864"]}}}
-{"resolve":{"strat":"trivial-merge"},"stats":[{"ref":"Allocates Guardian if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 守護者"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|30919"]}}},{"ref":"Allocates Warden if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 守護者"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|8656"]}}}]}
-{"resolve":{"strat":"trivial-merge"},"stats":[{"ref":"Allocates Guardian if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 守護者"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|30919"]}}},{"ref":"Allocates Warden if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 守護者"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|8656"]}}}]}
+{"resolve":{"strat":"trivial-merge"},"stats":[{"ref":"Allocates Guardian if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 守護者"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|30919"]}}},{"ref":"Allocates Warden if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 守護者","superseded":true},{"string":"若禁忌烈焰上有符合的詞綴，配置 守林人"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|8656"]}}}]}
+{"resolve":{"strat":"trivial-merge"},"stats":[{"ref":"Allocates Guardian if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 守護者"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|30919"]}}},{"ref":"Allocates Warden if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 守護者","superseded":true},{"string":"若禁忌血肉上有符合的詞綴，配置 守林人"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|8656"]}}}]}
 {"ref":"Allocates Hardened Scars","better":0,"anointments":[{"roll":1,"oils":"0,6,9"}],"matchers":[{"string":"配置 硬疤"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|56207"]}}}
 {"ref":"Allocates Harmony of Purpose if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 和諧之源"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|61372"]}}}
 {"ref":"Allocates Harmony of Purpose if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 和諧之源"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|61372"]}}}
@@ -3355,8 +3355,8 @@
 {"ref":"Allocates Juggernaut","better":0,"anointments":[{"roll":1,"oils":"3,5,11"}],"matchers":[{"string":"配置 戰神"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|33287"]}}}
 {"ref":"Allocates Juggernaut if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 勇士"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|61072"]}}}
 {"ref":"Allocates Juggernaut if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 勇士"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|61072"]}}}
-{"ref":"Allocates Kinetic Impacts","better":0,"anointments":[{"roll":1,"oils":"3,6,8"}],"matchers":[{"string":"配置 動能影響"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|35436"]}}}
-{"ref":"Allocates King of the Hill","better":0,"anointments":[{"roll":1,"oils":"4,8,12"}],"matchers":[{"string":"配置 強弩之弦"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|49459"]}}}
+{"ref":"Allocates Kinetic Impacts","better":0,"anointments":[{"roll":1,"oils":"3,6,8"}],"matchers":[{"string":"配置 動能影響","superseded":true},{"string":"配置 動能衝擊"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|35436"]}}}
+{"ref":"Allocates King of the Hill","better":0,"anointments":[{"roll":1,"oils":"4,8,12"}],"matchers":[{"string":"配置 強弩之弦","superseded":true},{"string":"配置 山丘之王"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|49459"]}}}
 {"ref":"Allocates Knife in the Back if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 背中之刃"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|21264"]}}}
 {"ref":"Allocates Knife in the Back if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 背中之刃"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|21264"]}}}
 {"ref":"Allocates Knowledge Barrier","better":0,"anointments":[{"roll":1,"oils":"0,11,12"}],"matchers":[{"string":"配置 知識屏障"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|1365"]}}}
@@ -3373,18 +3373,18 @@
 {"ref":"Allocates Liege of the Primordial if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 先祖諸王"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|56461"]}}}
 {"ref":"Allocates Life Raker","better":0,"anointments":[{"roll":1,"oils":"2,4,12"}],"matchers":[{"string":"配置 生靈收割者"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|28503"]}}}
 {"ref":"Allocates Light Eater","better":0,"anointments":[{"roll":1,"oils":"6,8,9"}],"matchers":[{"string":"配置 嗜光者"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|9567"]}}}
-{"ref":"Allocates Light of Divinity","better":0,"anointments":[{"roll":1,"oils":"8,9,9"}],"matchers":[{"string":"配置 神聖啟蒙"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|54694"]}}}
+{"ref":"Allocates Light of Divinity","better":0,"anointments":[{"roll":1,"oils":"8,9,9"}],"matchers":[{"string":"配置 神聖啟蒙","superseded":true},{"string":"配置 神聖之光"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|54694"]}}}
 {"ref":"Allocates Lightning Walker","better":0,"anointments":[{"roll":1,"oils":"2,2,10"}],"matchers":[{"string":"配置 雷靈之道"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|30225"]}}}
 {"ref":"Allocates Like Clockwork if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 規律化"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|51462"]}}}
 {"ref":"Allocates Like Clockwork if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 規律化"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|51462"]}}}
 {"ref":"Allocates Longshot","better":0,"anointments":[{"roll":1,"oils":"5,9,11"}],"matchers":[{"string":"配置 長射"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|8458"]}}}
 {"ref":"Allocates Lord of the Dead","better":0,"anointments":[{"roll":1,"oils":"4,9,12"}],"matchers":[{"string":"配置 亡靈之主"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|27611"]}}}
-{"ref":"Allocates Lust for Carnage","better":0,"anointments":[{"roll":1,"oils":"5,11,13"}],"matchers":[{"string":"配置 汲血者"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|63422"]}}}
+{"ref":"Allocates Lust for Carnage","better":0,"anointments":[{"roll":1,"oils":"5,11,13"}],"matchers":[{"string":"配置 汲血者","superseded":true},{"string":"配置 嗜殺之慾"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|63422"]}}}
 {"ref":"Allocates Magmatic Strikes","better":0,"anointments":[{"roll":1,"oils":"3,10,10"}],"matchers":[{"string":"配置 岩漿之擊"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|5430"]}}}
 {"ref":"Allocates Malicious Intent","better":0,"anointments":[{"roll":1,"oils":"7,7,12"}],"matchers":[{"string":"配置 惡之意"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|34591"]}}}
 {"ref":"Allocates Mana Flows","better":0,"anointments":[{"roll":1,"oils":"1,11,13"}],"matchers":[{"string":"配置 魔力之流"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|54776"]}}}
 {"ref":"Allocates Mark the Prey","better":0,"anointments":[{"roll":1,"oils":"2,7,10"}],"matchers":[{"string":"配置 標記獵物"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|32681"]}}}
-{"ref":"Allocates Marked for Death","better":0,"anointments":[{"roll":1,"oils":"2,7,12"}],"matchers":[{"string":"配置 死亡印記"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|41595"]}}}
+{"ref":"Allocates Marked for Death","better":0,"anointments":[{"roll":1,"oils":"2,7,12"}],"matchers":[{"string":"配置 死亡印記","superseded":true},{"string":"配置 標記死亡"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|41595"]}}}
 {"ref":"Allocates Marshal of Divinity if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 神志元帥"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|3458"]}}}
 {"ref":"Allocates Marshal of Divinity if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 神志元帥"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|3458"]}}}
 {"ref":"Allocates Martial Experience","better":0,"anointments":[{"roll":1,"oils":"1,4,6"}],"matchers":[{"string":"配置 武術經驗"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|27301"]}}}
@@ -3428,8 +3428,8 @@
 {"ref":"Allocates Multishot","better":0,"anointments":[{"roll":1,"oils":"7,10,12"}],"matchers":[{"string":"配置 多重射擊"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|13375"]}}}
 {"ref":"Allocates Mystic Bulwark","better":0,"anointments":[{"roll":1,"oils":"5,5,5"}],"matchers":[{"string":"配置 神幻壁壘"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|18174"]}}}
 {"ref":"Allocates Mystic Talents","better":0,"anointments":[{"roll":1,"oils":"0,6,11"}],"matchers":[{"string":"配置 神幻天賦"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|62596"]}}}
-{"ref":"Allocates Mystical Infusion if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 神秘化身"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|1945"]}}}
-{"ref":"Allocates Mystical Infusion if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 神秘化身"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|1945"]}}}
+{"ref":"Allocates Mystical Infusion if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 神秘化身","superseded":true},{"string":"若禁忌烈焰上有符合的詞綴，配置 神秘灌注"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|1945"]}}}
+{"ref":"Allocates Mystical Infusion if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 神秘化身","superseded":true},{"string":"若禁忌血肉上有符合的詞綴，配置 神秘灌注"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|1945"]}}}
 {"ref":"Allocates Mysticism","better":0,"anointments":[{"roll":1,"oils":"5,6,11"}],"matchers":[{"string":"配置 玄幻之意"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|44824"]}}}
 {"ref":"Allocates Natural Authority","better":0,"anointments":[{"roll":1,"oils":"2,12,13"}],"matchers":[{"string":"配置 自然權威"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|31257"]}}}
 {"ref":"Allocates Natural Remedies","better":0,"anointments":[{"roll":1,"oils":"7,11,12"}],"matchers":[{"string":"配置 自然療法"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|41420"]}}}
@@ -3445,7 +3445,7 @@
 {"ref":"Allocates Ngamahu, Flame's Advance if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 火徒．拿瑪乎"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|50692"]}}}
 {"ref":"Allocates Ngamahu, Flame's Advance if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 火徒．拿瑪乎"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|50692"]}}}
 {"ref":"Allocates Nightstalker","better":0,"anointments":[{"roll":1,"oils":"2,5,13"}],"matchers":[{"string":"配置 夜襲"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|56276"]}}}
-{"ref":"Allocates Nimbleness","better":0,"anointments":[{"roll":1,"oils":"3,9,9"}],"matchers":[{"string":"配置 巧語"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|9788"]}}}
+{"ref":"Allocates Nimbleness","better":0,"anointments":[{"roll":1,"oils":"3,9,9"}],"matchers":[{"string":"配置 巧語","superseded":true},{"string":"配置 輕巧"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|9788"]}}}
 {"ref":"Allocates Nine Lives if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 九命"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|27602"]}}}
 {"ref":"Allocates Nine Lives if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 九命"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|27602"]}}}
 {"ref":"Allocates No Forgiveness","better":0,"anointments":[{"roll":1,"oils":"0,10,13"}],"matchers":[{"string":"配置 絕不饒恕"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|20605"]}}}
@@ -3471,7 +3471,7 @@
 {"ref":"Allocates Overprepared","better":0,"anointments":[{"roll":1,"oils":"3,3,6"}],"matchers":[{"string":"配置 過度準備"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|27190"]}}}
 {"ref":"Allocates Overwhelm if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 鎮壓"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|17315"]}}}
 {"ref":"Allocates Overwhelm if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 鎮壓"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|17315"]}}}
-{"ref":"Allocates Pain Forger","better":0,"anointments":[{"roll":1,"oils":"1,8,8"}],"matchers":[{"string":"配置 偽痛"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|39657"]}}}
+{"ref":"Allocates Pain Forger","better":0,"anointments":[{"roll":1,"oils":"1,8,8"}],"matchers":[{"string":"配置 偽痛","superseded":true},{"string":"配置 苦痛鍛造者"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|39657"]}}}
 {"ref":"Allocates Path of the Hunter","better":0,"anointments":[{"roll":1,"oils":"1,4,4"}],"matchers":[{"string":"配置 獵人之路"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|19506"]}}}
 {"ref":"Allocates Path of the Savant","better":0,"anointments":[{"roll":1,"oils":"2,3,4"}],"matchers":[{"string":"配置 賢者之路"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|37078"]}}}
 {"ref":"Allocates Path of the Warrior","better":0,"anointments":[{"roll":1,"oils":"3,3,3"}],"matchers":[{"string":"配置 戰士之路"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|12702"]}}}
@@ -3487,7 +3487,7 @@
 {"ref":"Allocates Pious Path if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 廉簡之途"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|32816"]}}}
 {"ref":"Allocates Plaguebringer if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 瘟疫帶原者"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|11490"]}}}
 {"ref":"Allocates Plaguebringer if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 瘟疫帶原者"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|11490"]}}}
-{"ref":"Allocates Poisonous Fangs","better":0,"anointments":[{"roll":1,"oils":"1,3,6"}],"matchers":[{"string":"配置 迴轉死神"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|529"]}}}
+{"ref":"Allocates Poisonous Fangs","better":0,"anointments":[{"roll":1,"oils":"1,3,6"}],"matchers":[{"string":"配置 迴轉死神","superseded":true},{"string":"配置 劇毒之牙"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|529"]}}}
 {"ref":"Allocates Polymath if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 博學"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|55867"]}}}
 {"ref":"Allocates Polymath if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 博學"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|55867"]}}}
 {"ref":"Allocates Potency of Will","better":0,"anointments":[{"roll":1,"oils":"2,2,11"}],"matchers":[{"string":"配置 意志之力"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|1006"]}}}
@@ -3498,7 +3498,7 @@
 {"ref":"Allocates Precision","better":0,"anointments":[{"roll":1,"oils":"2,2,9"}],"matchers":[{"string":"配置 精準"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|6237"]}}}
 {"ref":"Allocates Prepared Response","better":0,"anointments":[{"roll":1,"oils":"1,2,2"}],"matchers":[{"string":"配置 預備反應"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|2599"]}}}
 {"ref":"Allocates Presage","better":0,"anointments":[{"roll":1,"oils":"3,7,13"}],"matchers":[{"string":"配置 預示"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|38246"]}}}
-{"ref":"Allocates Primal Manifestation","better":0,"anointments":[{"roll":1,"oils":"3,4,9"}],"matchers":[{"string":"配置 圖騰專精"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|63635"]}}}
+{"ref":"Allocates Primal Manifestation","better":0,"anointments":[{"roll":1,"oils":"3,4,9"}],"matchers":[{"string":"配置 圖騰專精","superseded":true},{"string":"配置 原始顯化"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|63635"]}}}
 {"ref":"Allocates Primal Spirit","better":0,"anointments":[{"roll":1,"oils":"2,6,10"}],"matchers":[{"string":"配置 原始精神"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|25178"]}}}
 {"ref":"Allocates Primeval Force","better":0,"anointments":[{"roll":1,"oils":"6,8,12"}],"matchers":[{"string":"配置 太古之力"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|36281"]}}}
 {"ref":"Allocates Prism Weave","better":0,"anointments":[{"roll":1,"oils":"2,11,11"}],"matchers":[{"string":"配置 綾彩交織"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|63944"]}}}
@@ -3531,10 +3531,10 @@
 {"ref":"Allocates Renowned Deeds","better":0,"anointments":[{"roll":1,"oils":"7,11,13"}],"matchers":[{"string":"配置 著名事蹟"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|58382"]}}}
 {"ref":"Allocates Replenishing Remedies","better":0,"anointments":[{"roll":1,"oils":"2,3,7"}],"matchers":[{"string":"配置 補藥"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|50690"]}}}
 {"ref":"Allocates Resourcefulness","better":0,"anointments":[{"roll":1,"oils":"4,11,11"}],"matchers":[{"string":"配置 足智多謀"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|41989"]}}}
-{"resolve":{"strat":"trivial-merge"},"stats":[{"ref":"Allocates Retaliation","better":0,"anointments":[{"roll":1,"oils":"4,9,11"}],"matchers":[{"string":"配置 復仇"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|12878"]}}},{"ref":"Allocates Vengeance","better":0,"anointments":[{"roll":1,"oils":"3,11,12"}],"matchers":[{"string":"配置 復仇"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|53840"]}}}]}
-{"ref":"Allocates Retribution","better":0,"anointments":[{"roll":1,"oils":"1,9,11"}],"matchers":[{"string":"配置 制裁"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|49254"]}}}
+{"resolve":{"strat":"trivial-merge"},"stats":[{"ref":"Allocates Retaliation","better":0,"anointments":[{"roll":1,"oils":"4,9,11"}],"matchers":[{"string":"配置 復仇","superseded":true},{"string":"配置 報復"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|12878"]}}},{"ref":"Allocates Vengeance","better":0,"anointments":[{"roll":1,"oils":"3,11,12"}],"matchers":[{"string":"配置 復仇"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|53840"]}}}]}
+{"ref":"Allocates Retribution","better":0,"anointments":[{"roll":1,"oils":"1,9,11"}],"matchers":[{"string":"配置 制裁","superseded":true},{"string":"配置 報應"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|49254"]}}}
 {"ref":"Allocates Revelry","better":0,"anointments":[{"roll":1,"oils":"3,8,10"}],"matchers":[{"string":"配置 狂歡"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|14813"]}}}
-{"ref":"Allocates Revenge of the Hunted","better":0,"anointments":[{"roll":1,"oils":"10,12,13"}],"matchers":[{"string":"配置 死亡通緝"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|53114"]}}}
+{"ref":"Allocates Revenge of the Hunted","better":0,"anointments":[{"roll":1,"oils":"10,12,13"}],"matchers":[{"string":"配置 死亡通緝","superseded":true},{"string":"配置 獵物的復仇"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|53114"]}}}
 {"ref":"Allocates Ribcage Crusher","better":0,"anointments":[{"roll":1,"oils":"5,10,10"}],"matchers":[{"string":"配置 碎胸者"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|24721"]}}}
 {"ref":"Allocates Ricochet if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 彈射"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|61627"]}}}
 {"ref":"Allocates Ricochet if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 彈射"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|61627"]}}}
@@ -3550,15 +3550,15 @@
 {"ref":"Allocates Roaring Challenge","better":0,"anointments":[{"roll":1,"oils":"1,2,4"}],"matchers":[{"string":"配置 咆哮挑戰"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|64226"]}}}
 {"ref":"Allocates Robust","better":0,"anointments":[{"roll":1,"oils":"1,4,5"}],"matchers":[{"string":"配置 堅固"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|31033"]}}}
 {"ref":"Allocates Runesmith","better":0,"anointments":[{"roll":1,"oils":"6,9,12"}],"matchers":[{"string":"配置 魔符匠"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|21389"]}}}
-{"ref":"Allocates Saboteur","better":0,"anointments":[{"roll":1,"oils":"1,5,5"}],"matchers":[{"string":"配置 怠工者"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|46965"]}}}
+{"ref":"Allocates Saboteur","better":0,"anointments":[{"roll":1,"oils":"1,5,5"}],"matchers":[{"string":"配置 怠工者","superseded":true},{"string":"配置 破壞者"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|46965"]}}}
 {"ref":"Allocates Saboteur if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 破壞者"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|58827"]}}}
 {"ref":"Allocates Saboteur if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 破壞者"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|58827"]}}}
 {"ref":"Allocates Sacrifice","better":0,"anointments":[{"roll":1,"oils":"5,6,8"}],"matchers":[{"string":"配置 獻祭"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|36915"]}}}
 {"ref":"Allocates Safeguard","better":0,"anointments":[{"roll":1,"oils":"4,6,10"}],"matchers":[{"string":"配置 庇護"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|6967"]}}}
 {"ref":"Allocates Sanctity","better":0,"anointments":[{"roll":1,"oils":"6,6,10"}],"matchers":[{"string":"配置 聖潔之力"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|26866"]}}}
 {"ref":"Allocates Sanctuary","better":0,"anointments":[{"roll":1,"oils":"3,5,5"}],"matchers":[{"string":"配置 庇護聖所"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|20832"]}}}
-{"ref":"Allocates Sanctuary if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 聖所"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|39790"]}}}
-{"ref":"Allocates Sanctuary if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 聖所"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|39790"]}}}
+{"ref":"Allocates Sanctuary if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 聖所","superseded":true},{"string":"若禁忌烈焰上有符合的詞綴，配置 庇護聖所"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|39790"]}}}
+{"ref":"Allocates Sanctuary if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 聖所","superseded":true},{"string":"若禁忌血肉上有符合的詞綴，配置 庇護聖所"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|39790"]}}}
 {"ref":"Allocates Sanctuary of Thought if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 意識聖殿"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|29026"]}}}
 {"ref":"Allocates Sanctuary of Thought if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 意識聖殿"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|29026"]}}}
 {"ref":"Allocates Sanctum of Thought","better":0,"anointments":[{"roll":1,"oils":"6,6,13"}],"matchers":[{"string":"配置 靈思聖殿"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|27137"]}}}
@@ -3576,13 +3576,13 @@
 {"ref":"Allocates Selective Precision","better":0,"anointments":[{"roll":1,"oils":"0,9,13"}],"matchers":[{"string":"配置 細選精準"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|24358"]}}}
 {"ref":"Allocates Sentinel","better":0,"anointments":[{"roll":1,"oils":"4,5,6"}],"matchers":[{"string":"配置 哨兵"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|19144"]}}}
 {"ref":"Allocates Serpent Stance","better":0,"anointments":[{"roll":1,"oils":"6,10,11"}],"matchers":[{"string":"配置 蛇影戰陣"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|22702"]}}}
-{"ref":"Allocates Serpentine Spellslinger","better":0,"anointments":[{"roll":1,"oils":"7,8,11"}],"matchers":[{"string":"配置 毒蛇法術回音"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|58032"]}}}
+{"ref":"Allocates Serpentine Spellslinger","better":0,"anointments":[{"roll":1,"oils":"7,8,11"}],"matchers":[{"string":"配置 毒蛇法術回音","superseded":true},{"string":"配置 毒蛇法師"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|58032"]}}}
 {"ref":"Allocates Settling Ash","better":0,"anointments":[{"roll":1,"oils":"1,7,13"}],"matchers":[{"string":"配置 沉澱灰燼"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|55194"]}}}
 {"ref":"Allocates Shadowed Blood if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 影血"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|29844"]}}}
 {"ref":"Allocates Shadowed Blood if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 影血"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|29844"]}}}
 {"ref":"Allocates Shaman's Dominion","better":0,"anointments":[{"roll":1,"oils":"1,6,12"}],"matchers":[{"string":"配置 薩滿領地"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|44562"]}}}
 {"ref":"Allocates Shamanistic Fury","better":0,"anointments":[{"roll":1,"oils":"2,3,8"}],"matchers":[{"string":"配置 薩滿之怒"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|53757"]}}}
-{"ref":"Allocates Shaper","better":0,"anointments":[{"roll":1,"oils":"1,9,9"}],"matchers":[{"string":"配置 聖杯"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|63976"]}}}
+{"ref":"Allocates Shaper","better":0,"anointments":[{"roll":1,"oils":"1,9,9"}],"matchers":[{"string":"配置 聖杯","superseded":true},{"string":"配置 塑界者"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|63976"]}}}
 {"ref":"Allocates Shaper of Flames if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 火焰雕塑者"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|53123"]}}}
 {"ref":"Allocates Shaper of Flames if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 火焰雕塑者"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|53123"]}}}
 {"ref":"Allocates Shaper of Storms if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 風暴雕塑者"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|27038"]}}}
@@ -3617,7 +3617,7 @@
 {"ref":"Allocates Spiked Bulwark","better":0,"anointments":[{"roll":1,"oils":"1,2,5"}],"matchers":[{"string":"配置 荊棘壁壘"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|10542"]}}}
 {"ref":"Allocates Spinecruncher","better":0,"anointments":[{"roll":1,"oils":"4,8,8"}],"matchers":[{"string":"配置 碎脊者"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|5126"]}}}
 {"ref":"Allocates Spirit of War","better":0,"anointments":[{"roll":1,"oils":"1,8,13"}],"matchers":[{"string":"配置 戰爭之靈"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|27422"]}}}
-{"ref":"Allocates Spirit Void","better":0,"anointments":[{"roll":1,"oils":"4,4,4"}],"matchers":[{"string":"配置 精華抽取"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|1382"]}}}
+{"ref":"Allocates Spirit Void","better":0,"anointments":[{"roll":1,"oils":"4,4,4"}],"matchers":[{"string":"配置 精華抽取","superseded":true},{"string":"配置 靈魂虛空"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|1382"]}}}
 {"ref":"Allocates Spiritual Aid","better":0,"anointments":[{"roll":1,"oils":"12,12,13"}],"matchers":[{"string":"配置 精神救助"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|4177"]}}}
 {"ref":"Allocates Spiritual Command","better":0,"anointments":[{"roll":1,"oils":"2,2,13"}],"matchers":[{"string":"配置 精神號令"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|43689"]}}}
 {"ref":"Allocates Split Shot","better":0,"anointments":[{"roll":1,"oils":"1,7,11"}],"matchers":[{"string":"配置 裂化射擊"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|7069"]}}}
@@ -3650,8 +3650,8 @@
 {"ref":"Allocates Throatseeker","better":0,"anointments":[{"roll":1,"oils":"3,8,11"}],"matchers":[{"string":"配置 割喉者"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|47306"]}}}
 {"ref":"Allocates Time of Need if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 緊急時刻"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|55146"]}}}
 {"ref":"Allocates Time of Need if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 緊急時刻"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|55146"]}}}
-{"ref":"Allocates Tireless","better":0,"anointments":[{"roll":1,"oils":"11,11,11"}],"matchers":[{"string":"配置 冷酷"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|65108"]}}}
-{"ref":"Allocates Titanic Impacts","better":0,"anointments":[{"roll":1,"oils":"3,4,11"}],"matchers":[{"string":"配置 巨大影響"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|32059"]}}}
+{"ref":"Allocates Tireless","better":0,"anointments":[{"roll":1,"oils":"11,11,11"}],"matchers":[{"string":"配置 冷酷","superseded":true},{"string":"配置 不倦"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|65108"]}}}
+{"ref":"Allocates Titanic Impacts","better":0,"anointments":[{"roll":1,"oils":"3,4,11"}],"matchers":[{"string":"配置 巨大影響","superseded":true},{"string":"配置 巨力衝擊"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|32059"]}}}
 {"ref":"Allocates Tolerance","better":0,"anointments":[{"roll":1,"oils":"9,9,11"}],"matchers":[{"string":"配置 寬容"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|10511"]}}}
 {"ref":"Allocates Totemic Zeal","better":0,"anointments":[{"roll":1,"oils":"4,4,8"}],"matchers":[{"string":"配置 熱情圖騰"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|63933"]}}}
 {"ref":"Allocates Toxic Delivery if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 毒物走私"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|19598"]}}}
@@ -3686,8 +3686,8 @@
 {"ref":"Allocates Unnatural Strength if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 超自然之力"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|65153"]}}}
 {"ref":"Allocates Unrelenting if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 殺無赦"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|56789"]}}}
 {"ref":"Allocates Unrelenting if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 殺無赦"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|56789"]}}}
-{"ref":"Allocates Unstable Infusion if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 不穩定化身"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|4242"]}}}
-{"ref":"Allocates Unstable Infusion if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 不穩定化身"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|4242"]}}}
+{"ref":"Allocates Unstable Infusion if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 不穩定化身","superseded":true},{"string":"若禁忌烈焰上有符合的詞綴，配置 不穩定灌注"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|4242"]}}}
+{"ref":"Allocates Unstable Infusion if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 不穩定化身","superseded":true},{"string":"若禁忌血肉上有符合的詞綴，配置 不穩定灌注"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|4242"]}}}
 {"ref":"Allocates Unstable Munitions","better":0,"anointments":[{"roll":1,"oils":"5,8,8"}],"matchers":[{"string":"配置 不穩定彈藥"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|59605"]}}}
 {"ref":"Allocates Unstoppable Hero if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 不敗英雄"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|33940"]}}}
 {"ref":"Allocates Unstoppable Hero if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 不敗英雄"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|33940"]}}}
@@ -3729,13 +3729,13 @@
 {"ref":"Allocates War of Attrition if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 消耗戰"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|758"]}}}
 {"ref":"Allocates Warrior Training","better":0,"anointments":[{"roll":1,"oils":"1,5,9"}],"matchers":[{"string":"配置 戰士訓練"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|64077"]}}}
 {"ref":"Allocates Warrior's Blood","better":0,"anointments":[{"roll":1,"oils":"5,5,10"}],"matchers":[{"string":"配置 戰士之血"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|24383"]}}}
-{"ref":"Allocates Wasting","better":0,"anointments":[{"roll":1,"oils":"2,12,12"}],"matchers":[{"string":"配置 浪費"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|44988"]}}}
+{"ref":"Allocates Wasting","better":0,"anointments":[{"roll":1,"oils":"2,12,12"}],"matchers":[{"string":"配置 浪費","superseded":true},{"string":"配置 衰竭"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|44988"]}}}
 {"ref":"Allocates Watchtowers","better":0,"anointments":[{"roll":1,"oils":"7,12,12"}],"matchers":[{"string":"配置 看守塔"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|15290"]}}}
 {"ref":"Allocates Way of the Warrior","better":0,"anointments":[{"roll":1,"oils":"0,10,11"}],"matchers":[{"string":"配置 戰士之道"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|38706"]}}}
 {"ref":"Allocates Weapon Artistry","better":0,"anointments":[{"roll":1,"oils":"1,3,8"}],"matchers":[{"string":"配置 舞刃宗師"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|7085"]}}}
 {"ref":"Allocates Weapon Master if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 武器大師"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|52575"]}}}
 {"ref":"Allocates Weapon Master if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 武器大師"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|52575"]}}}
-{"ref":"Allocates Weathered Hunter","better":0,"anointments":[{"roll":1,"oils":"2,3,5"}],"matchers":[{"string":"配置 夜之狩獵"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|52230"]}}}
+{"ref":"Allocates Weathered Hunter","better":0,"anointments":[{"roll":1,"oils":"2,3,5"}],"matchers":[{"string":"配置 夜之狩獵","superseded":true},{"string":"配置 飽經風霜的獵手"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|52230"]}}}
 {"ref":"Allocates Whirling Barrier","better":0,"anointments":[{"roll":1,"oils":"3,5,9"}],"matchers":[{"string":"配置 杖影屏障"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|42917"]}}}
 {"ref":"Allocates Whispers of Doom","better":0,"anointments":[{"roll":1,"oils":"13,13,13"}],"matchers":[{"string":"配置 滅世之語"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|22535"]}}}
 {"ref":"Allocates Wicked Blade","better":0,"anointments":[{"roll":1,"oils":"3,4,7"}],"matchers":[{"string":"配置 殘靈刀刃"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|12033"]}}}
@@ -3754,7 +3754,7 @@
 {"ref":"Allocates Worthy Causes if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 崇高志向"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|35750"]}}}
 {"ref":"Allocates Worthy Foe if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 可敬的對手"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|56967"]}}}
 {"ref":"Allocates Worthy Foe if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 可敬的對手"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|56967"]}}}
-{"ref":"Allocates Wrecking Ball","better":0,"anointments":[{"roll":1,"oils":"1,5,11"}],"matchers":[{"string":"配置 崩雷"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|49318"]}}}
+{"ref":"Allocates Wrecking Ball","better":0,"anointments":[{"roll":1,"oils":"1,5,11"}],"matchers":[{"string":"配置 崩雷","superseded":true},{"string":"配置 破壞球"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|49318"]}}}
 {"ref":"Allocates Written in Blood","better":0,"anointments":[{"roll":1,"oils":"2,8,13"}],"matchers":[{"string":"配置 血書"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|18769"]}}}
 {"ref":"Altar of Chaos","better":0,"mercenary":{"icon":"https://webtw.poecdn.com/gen/image/WzIxLDE0LHsiayI6IjJEQXJ0L1NraWxsSWNvbnMvSG91c2VCYXJkaXlhU2tpbGwifV0/8e78c633c6/HouseBardiyaSkill.png","supports":["DoT Multiplier","More Duration","Multiple Projectiles","Cooldown Recovery","Second Wind","Swift Affliction"]},"matchers":[{"string":"混沌祭壇"}],"trade":{"ids":{"pseudo":["mercenary.skill_50670"]}}}
 {"ref":"Always Hits Burning Enemies","better":1,"matchers":[{"string":"總是擊中燃燒敵人"}],"trade":{"ids":{"explicit":["explicit.stat_270993809"],"fractured":["fractured.stat_270993809"]}}}
@@ -4989,7 +4989,7 @@
 {"ref":"Grants Malachai's Endurance, Frenzy and Power for 6 seconds each, in sequence","better":1,"matchers":[{"string":"每 6 秒依序獲得瑪拉凱之耐力、瑪拉凱之狂怒和瑪拉凱之暴擊"}],"trade":{"ids":{"explicit":["explicit.stat_2918150296"],"implicit":["implicit.stat_2918150296"]}}}
 {"ref":"Grants Perfect Agony during effect","better":1,"matchers":[{"string":"效果持續時間內獲得絕對受難"}],"trade":{"ids":{"explicit":["explicit.stat_3741365813"]}}}
 {"ref":"Grants Summon Greater Harbinger of Brutality Skill","better":0,"matchers":[{"string":"獲得召喚高階殘暴神諭技能","superseded":true},{"string":"賦予 召喚高階暴虐神諭"}],"trade":{"ids":{"explicit":["explicit.effect_3184099572"]}}}
-{"ref":"Grants Summon Greater Harbinger of Directions Skill","better":0,"matchers":[{"string":"獲得召喚高階方位神諭技能","superseded":true},{"string":"賦予 召喚高階象限神諭"}],"trade":{"ids":{"explicit":["explicit.effect_603152644"]}}}
+{"ref":"Grants Summon Greater Harbinger of Directions Skill","better":0,"matchers":[{"string":"獲得召喚高階方位神諭技能","superseded":true},{"string":"賦予 召喚高階象限神諭"}],"trade":{"ids":{"explicit":["explicit.effect_603152644"],"implicit":["implicit.effect_603152644"]}}}
 {"ref":"Grants Summon Greater Harbinger of Focus Skill","better":0,"matchers":[{"string":"獲得召喚高階專注神諭技能","superseded":true},{"string":"賦予 召喚高階專注神諭"}],"trade":{"ids":{"explicit":["explicit.effect_1795027869"],"implicit":["implicit.effect_1795027869"]}}}
 {"ref":"Grants Summon Greater Harbinger of Storms Skill","better":0,"matchers":[{"string":"獲得召喚高階風暴神諭技能","superseded":true},{"string":"賦予 召喚高階風暴神諭"}],"trade":{"ids":{"explicit":["explicit.effect_3850673820"],"implicit":["implicit.effect_3850673820"]}}}
 {"ref":"Grants Summon Greater Harbinger of the Arcane Skill","better":0,"matchers":[{"string":"獲得召喚高階秘能神諭技能","superseded":true},{"string":"賦予 召喚高階奧術神諭"}],"trade":{"ids":{"explicit":["explicit.effect_293985888"]}}}
@@ -10811,3 +10811,5 @@
 {"ref":"Abyssal Spray Detonation","better":0,"mercenary":{},"matchers":[{"string":"深淵噴濺．引爆"}],"trade":{"ids":{"pseudo":["mercenary.skill_41822"]}}}
 {"ref":"Power of the Depths","better":0,"mercenary":{},"matchers":[{"string":"淵底之力"}],"trade":{"ids":{"pseudo":["mercenary.skill_54593"]}}}
 {"ref":"Vaal Smite","better":0,"mercenary":{},"matchers":[{"string":"瓦爾．雷鳴重擊"}],"trade":{"ids":{"pseudo":["mercenary.skill_40606"]}}}
+{"ref":"Allocates Instruments of Justice if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 正義之儀"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|3154"]}}}
+{"ref":"Allocates Instruments of Justice if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 正義之儀"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|3154"]}}}
