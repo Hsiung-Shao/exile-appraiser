@@ -1,5 +1,6 @@
 // 重算 selftest-report.json 的 poe1 列(pages / tenPicks / mapAilment),算法與 properties.test.ts / golden.test.ts 相同。
 // PobTools 已移除正則、C++ 報告不再產生(CLAUDE.md 規則 11:由 TS 實作算出後更新)。只動 poe1,poe2 列與 synthetic 不碰。
+// golden 裡沒有的新頁會加在最後(測試以 lang / game / page 查找,順序不影響)。
 //   npx tsx test/golden/recompute-poe1.ts            → 印出差異
 //   npx tsx test/golden/recompute-poe1.ts --write    → 寫回
 import fs from 'node:fs'
@@ -36,14 +37,24 @@ for (const lang of ['zh', 'en'] as const) {
       stuckByHidden: stuckBare.length, stuckByHiddenExamples: stuckBare.slice(0, 5)
     }
     const at = golden.pages.findIndex((g: any) => g.lang === lang && g.game === 'poe1' && g.page === page.id)
-    if (JSON.stringify(golden.pages[at]) !== JSON.stringify(row)) console.log('pages', JSON.stringify(golden.pages[at]), '\n   →', JSON.stringify(row))
-    golden.pages[at] = row
+    if (at < 0) {
+      console.log('pages 新頁', JSON.stringify(row))
+      golden.pages.push(row)
+    } else {
+      if (JSON.stringify(golden.pages[at]) !== JSON.stringify(row)) console.log('pages', JSON.stringify(golden.pages[at]), '\n   →', JSON.stringify(row))
+      golden.pages[at] = row
+    }
 
     const sel = samplePicks(0x5EED1234, page.entries.length, 10)
     const r = c.build(sel, 'any')
     let plain = 0
     for (const i of sel) plain += [...entryLines(page.entries[i], lang).texts[0]].length + 1
     const t = golden.tenPicks.find((g: any) => g.lang === lang && g.game === 'poe1' && g.page === page.id)
+    if (!t) {
+      console.log('tenPicks 新頁', lang, page.id, `${r.length}/${plain}`)
+      golden.tenPicks.push({ lang, game: 'poe1', page: page.id, length: r.length, plain })
+      continue
+    }
     if (t.length !== r.length || t.plain !== plain) console.log('tenPicks', lang, page.id, `${t.length}/${t.plain} → ${r.length}/${plain}`)
     t.length = r.length
     t.plain = plain

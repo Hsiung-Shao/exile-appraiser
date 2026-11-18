@@ -117,10 +117,17 @@ def read_i32_array(t: datzh.Table, row: int, off: int) -> list[int]:
 # - PassiveSkills 354 → 409:0–353 每個數值欄位位置相同(5706 條)→ 55 bytes 全在表尾;本產生器只讀 Id / Name / Stats。
 # - GrantedEffects 235 → 259:0–234 位置相同(12829 條)→ 24 bytes 全在表尾;讀 Id / IsSupport / ActiveSkill(0–114)。
 # - WorldAreas 662 → 646:數值欄位到 526 都相同(1922 條);讀 Id / Name / SpawnWeight_*(0–227)。
-VERIFIED_DRIFT: dict[str, tuple[int, int]] = {
-    "mods": (654, 692), "baseitemtypes": (374, 373), "passiveskills": (354, 409),
-    "grantedeffects": (235, 259), "worldareas": (662, 646),
+# 鍵含遊戲(1 = PoE1、2 = PoE2):兩代表名相同、驗證只對 PoE1 做過。
+VERIFIED_DRIFT: dict[tuple[int, str], tuple[int, int]] = {
+    (1, "mods"): (654, 692), (1, "baseitemtypes"): (374, 373), (1, "passiveskills"): (354, 409),
+    (1, "grantedeffects"): (235, 259), (1, "worldareas"): (662, 646),
 }
+
+# GGPK 不附繁中檔、改用英文檔代入的表(鍵含遊戲)。3.30.0.1:本機 Supabase poe1.ggpk_row_table 的 pair_note 記
+# 「GGPK 無繁中檔(以英文檔代入,視同 tc_identical)」,且 3.29.3.3 這些表中英檔逐位元相同。不在清單上的繁中檔缺了照舊報錯(抽取不完整)。
+TC_FROM_EN: frozenset[tuple[int, str]] = frozenset((1, n) for n in (
+    "bestiarycapturablemonsters", "heistareas", "heistcontracts", "heistnpcs", "passiveskilltattoos",
+    "passivetreeexpansionjewelsizes", "passivetreeexpansionskills", "skillgems", "stats"))
 
 
 class SchemaTables:
@@ -131,6 +138,7 @@ class SchemaTables:
 
     def __init__(self, schema_path: Path, game: int, data_en: Path, data_tc: Path):
         self.idx = datzh.schema_index(datzh.load_schema(schema_path), game)
+        self.game = game
         self.data_en, self.data_tc = data_en, data_tc
         self._cache: dict[tuple[str, bool], datzh.Table] = {}
 
@@ -141,12 +149,12 @@ class SchemaTables:
         key = (name.lower(), tc)
         if key not in self._cache:
             path = (self.data_tc if tc else self.data_en) / f"{name.lower()}.datc64"
-            # 3.30 GGPK 起沒有文字的表不再附繁中檔(pob-zh-engine 抽取與 Supabase ggpk_row_table 都記為「以英文檔代入,視同 tc_identical」)
-            if tc and not path.exists():
+            if tc and not path.exists() and (self.game, name.lower()) in TC_FROM_EN:
                 path = self.data_en / f"{name.lower()}.datc64"
+                print(f"note: {name} 沒有繁中檔,以英文檔代入(TC_FROM_EN)", file=sys.stderr)
             t = datzh.Table(path)
             want = datzh.schema_row_size(self.idx[name.lower()])
-            if strict and t.row_size != want and VERIFIED_DRIFT.get(name.lower()) != (want, t.row_size):
+            if strict and t.row_size != want and VERIFIED_DRIFT.get((self.game, name.lower())) != (want, t.row_size):
                 raise SystemExit(f"{name}: row size {t.row_size} != schema {want} "
                                  "(schema drift; numeric columns past the drift point are wrong)")
             self._cache[key] = t

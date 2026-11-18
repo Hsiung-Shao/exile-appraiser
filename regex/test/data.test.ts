@@ -33,6 +33,17 @@ const KIND: Record<string, 'mods' | 'names'> = {
 describe('shipped catalogues(data/regex)', () => {
   for (const game of ['poe1', 'poe2'] as const) {
     const cat = loadRegexCatalogueFile(game)
+    // 2026-11-18:3.30 clientstrings 帶 [Thread|綢帶] 標記,PoE1 產生器曾漏剝。讀原始檔(載入時的 normalizeLabel 會遮住漏剝)
+    it(`${game}: 資料檔與暫代檔的標籤都沒有 [ ] { } < > 標記`, () => {
+      const raw = (f: string) => JSON.parse(readFileSync(path.join(defaultRegexDataDir(), f), 'utf8'))
+      const bad: string[] = []
+      for (const [src, labels] of [[`regex_${game}.json`, raw(`regex_${game}.json`).labels], [`labels.${game}.json`, raw(`labels.${game}.json`).labels]] as const) {
+        for (const lang of ['zh', 'en'] as const) {
+          for (const [k, v] of Object.entries(labels?.[lang] ?? {})) if (/[[\]{}<>]/.test(String(v))) bad.push(`${src} ${lang}.${k} = ${v}`)
+        }
+      }
+      expect(bad).toEqual([])
+    })
     it(`${game}: schema 2, pages, kinds and entry counts`, () => {
       expect(cat.schema).toBe(2)
       expect(Object.fromEntries(cat.pages.map(p => [p.id, p.entries.length]))).toEqual(EXPECTED[game])
