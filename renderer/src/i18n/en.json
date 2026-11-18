@@ -494,7 +494,8 @@
       "label": "Hardware acceleration (GPU)",
       "note": "Off by default (same as before; drawn on the CPU). When on, drawing uses the GPU: scrolling and background images may be smoother, but the GPU is shared with the game. Turn it off again if anything looks wrong.",
       "restart_needed": "Takes effect after restart",
-      "restart_now": "Restart now"
+      "restart_now": "Restart now",
+      "sub": "Takes effect after restart"
     },
     "hotkey_hold": "Hold",
     "hotkey_none": "Not set",
@@ -572,7 +573,10 @@
       "auto_hint": "When on, new versions download in the background and install when you quit; when off, download and install them yourself.",
       "reminder": "Remind me when an update is available",
       "reminder_hint": "When a new version is available, a reminder appears in the bottom-right corner about every 10 minutes (Later or Skip this version). Nothing appears when you are up to date.",
-      "current": "Current version {version}"
+      "current": "Current version {version}",
+      "auto_sub": "Downloads in the background, installs when you quit",
+      "reminder_sub": "Bottom-right notice, about every 10 minutes",
+      "manual": "Check manually"
     },
     "menu": {
       "title": "ExileAppraiser",

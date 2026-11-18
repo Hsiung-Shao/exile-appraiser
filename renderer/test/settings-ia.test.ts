@@ -327,7 +327,7 @@ describe('條件隱藏', () => {
     expect(read(`${SETTINGS}/OverlayGate.vue`)).toContain("settingsTab.value = 'game'")
   })
   it('免安裝版不顯示自動更新開關;舊的「只在 overlay 有效」警告全部移除', () => {
-    expect(read(`${SETTINGS}/tabs/Startup.vue`)).toMatch(/<template v-if="info\?\.reason !== 'not-supported'">\s*<div class="chk-row">\s*<label class="chk"><input v-model="config\.autoUpdate"/)
+    expect(read(`${SETTINGS}/tabs/Startup.vue`)).toMatch(/<div v-if="info\?\.reason !== 'not-supported'" class="srow">[\s\S]{0,900}?<input v-model="config\.autoUpdate"/)
     for (const f of SETTINGS_FILES) {
       const s = read(f)
       for (const gone of ['chat-overlay-only', 'regex-quick-overlay-only', 'scan-hotkeys-moved', 'chat.overlay_only', 'quick_overlay_only', 'hotkeys_moved']) {

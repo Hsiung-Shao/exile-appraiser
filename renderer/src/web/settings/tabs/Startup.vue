@@ -6,75 +6,88 @@
   - 檔案與預覽:開啟設定資料夾、瀏覽器預覽(main 的 preview-server;docs/browser-preview.md)。
 -->
 <template>
+  <!-- 2026-11-18 照設計稿 P04-Startup:標題列右邊放狀態 + 目前版本;每列「名稱 + 一句說明 | 開關 / 按鈕」 -->
   <section class="card" data-about="update">
-    <span class="label">{{ t('ppz.about.section_update') }}</span>
-    <span class="update-status" :class="updateTone" :data-update-state="info?.state" :title="updateText">{{ updateText }}</span>
-    <p v-if="lastChecked" class="update-meta">{{ lastChecked }}</p>
-    <div class="btn-row">
-      <button class="btn sm" data-action="update-check" :disabled="!canCheck" @click="check">{{ t('ppz.update.check') }}</button>
-      <button v-if="showDownload" class="btn sm primary" data-action="update-download" @click="download">{{ t('ppz.update.download') }}</button>
-      <button v-if="showReleases" class="btn sm" data-action="update-releases" @click="open(releasesUrl)">{{ t('ppz.update.releases') }} ↗</button>
-      <button v-if="info?.state === 'downloaded'" class="btn sm primary" data-action="update-install" @click="install">{{ autoApply ? t('ppz.update.restart_now') : t('ppz.update.restart_install') }}</button>
+    <div class="card-head">
+      <span class="label">{{ t('ppz.about.section_update') }}</span>
+      <span class="grow" />
+      <span class="update-status" :class="updateTone" :data-update-state="info?.state" :title="updateText"><span class="dot" aria-hidden="true" />{{ updateText }}</span>
+      <span class="update-ver num" data-about="current-version" :title="t('ppz.update.current', { version })">{{ versionText }}</span>
     </div>
-    <template v-if="info?.reason !== 'not-supported'">
-      <div class="chk-row">
-        <label class="chk"><input v-model="config.autoUpdate" type="checkbox" data-setting="auto-update"><span>{{ t('ppz.update.auto') }}</span></label>
-        <help-tip id="auto-update" data-about="auto-update-hint" :text="t('ppz.update.auto_hint')" />
+    <div v-if="info?.reason !== 'not-supported'" class="srow">
+      <span class="k">{{ t('ppz.update.auto') }}<help-tip id="auto-update" data-about="auto-update-hint" :text="t('ppz.update.auto_hint')" /><small class="k-sub">{{ t('ppz.update.auto_sub') }}</small></span>
+      <div class="ctl">
+        <label class="scan-switch" :title="t('ppz.update.auto')"><input v-model="config.autoUpdate" type="checkbox" role="switch" :aria-checked="config.autoUpdate" :aria-label="t('ppz.update.auto')" data-setting="auto-update"><span class="scan-switch-track" aria-hidden="true"><span class="scan-switch-knob" /></span></label>
       </div>
-    </template>
+    </div>
     <!-- 第 34 步:有新版本時每 10 分鐘在右下角提醒(main/src/update-reminder.ts) -->
-    <div class="chk-row">
-      <label class="chk"><input v-model="config.updateReminder" type="checkbox" data-setting="update-reminder"><span>{{ t('ppz.update.reminder') }}</span></label>
-      <help-tip id="update-reminder" data-about="update-reminder-hint" :text="t('ppz.update.reminder_hint')" />
+    <div class="srow">
+      <span class="k">{{ t('ppz.update.reminder') }}<help-tip id="update-reminder" data-about="update-reminder-hint" :text="t('ppz.update.reminder_hint')" /><small class="k-sub">{{ t('ppz.update.reminder_sub') }}</small></span>
+      <div class="ctl">
+        <label class="scan-switch" :title="t('ppz.update.reminder')"><input v-model="config.updateReminder" type="checkbox" role="switch" :aria-checked="config.updateReminder" :aria-label="t('ppz.update.reminder')" data-setting="update-reminder"><span class="scan-switch-track" aria-hidden="true"><span class="scan-switch-knob" /></span></label>
+      </div>
+    </div>
+    <div class="srow">
+      <span class="k">{{ t('ppz.update.manual') }}</span>
+      <div class="ctl">
+        <button class="btn sm" data-action="update-check" :disabled="!canCheck" @click="check">{{ t('ppz.update.check') }}</button>
+        <button v-if="showDownload" class="btn sm primary" data-action="update-download" @click="download">{{ t('ppz.update.download') }}</button>
+        <button v-if="showReleases" class="btn sm" data-action="update-releases" @click="open(releasesUrl)">{{ t('ppz.update.releases') }} ↗</button>
+        <button v-if="info?.state === 'downloaded'" class="btn sm primary" data-action="update-install" @click="install">{{ autoApply ? t('ppz.update.restart_now') : t('ppz.update.restart_install') }}</button>
+        <span v-if="lastChecked" class="update-meta">{{ lastChecked }}</span>
+      </div>
     </div>
   </section>
 
   <section class="card" data-setting="startup">
-    <span class="label">{{ t('ppz.section_startup') }}</span>
-    <div class="chk-row">
-      <label class="chk"><input v-model="config.startupToast" type="checkbox" data-setting="startup-toast"><span>{{ t('ppz.startup_toast') }}</span></label>
+    <div class="card-head"><span class="label">{{ t('ppz.section_startup') }}</span></div>
+    <div class="srow">
+      <span class="k">{{ t('ppz.startup_toast') }}</span>
+      <div class="ctl">
+        <label class="scan-switch" :title="t('ppz.startup_toast')"><input v-model="config.startupToast" type="checkbox" role="switch" :aria-checked="config.startupToast" :aria-label="t('ppz.startup_toast')" data-setting="startup-toast"><span class="scan-switch-track" aria-hidden="true"><span class="scan-switch-knob" /></span></label>
+      </div>
     </div>
     <!-- 第五輪 30.5:硬體加速(預設關 = 改版前;main 在啟動時讀設定檔,改了要重新啟動才生效) -->
-    <div class="chk-row">
-      <label class="chk"><input v-model="config.hardwareAcceleration" type="checkbox" data-setting="hardware-acceleration"><span>{{ t('ppz.hw_accel.label') }}</span></label>
-      <help-tip id="hardware-acceleration" data-setting="hardware-acceleration-note" :text="t('ppz.hw_accel.note')" />
-    </div>
-    <div v-if="hwAccelPending" class="hw-restart" data-setting="hardware-acceleration-restart">
-      <span class="warn-text">{{ t('ppz.hw_accel.restart_needed') }}</span>
-      <button v-if="canRelaunch" class="btn sm" data-action="relaunch" :disabled="relaunching" @click="relaunch">{{ t('ppz.hw_accel.restart_now') }}</button>
+    <div class="srow">
+      <span class="k">{{ t('ppz.hw_accel.label') }}<help-tip id="hardware-acceleration" data-setting="hardware-acceleration-note" :text="t('ppz.hw_accel.note')" /><small class="k-sub">{{ t('ppz.hw_accel.sub') }}</small></span>
+      <div class="ctl">
+        <label class="scan-switch" :title="t('ppz.hw_accel.label')"><input v-model="config.hardwareAcceleration" type="checkbox" role="switch" :aria-checked="config.hardwareAcceleration" :aria-label="t('ppz.hw_accel.label')" data-setting="hardware-acceleration"><span class="scan-switch-track" aria-hidden="true"><span class="scan-switch-knob" /></span></label>
+        <template v-if="hwAccelPending">
+          <span class="warn-text" data-setting="hardware-acceleration-restart">{{ t('ppz.hw_accel.restart_needed') }}</span>
+          <button v-if="canRelaunch" class="btn sm" data-action="relaunch" :disabled="relaunching" @click="relaunch">{{ t('ppz.hw_accel.restart_now') }}</button>
+        </template>
+      </div>
     </div>
     <!-- 2026-11-16:建立桌面捷徑(只有 Electron 視窗;釘選到工作列只能由使用者在捷徑上按右鍵) -->
     <div v-if="canCreateShortcut" class="srow" data-setting="desktop-shortcut">
-      <span class="k">{{ t('ppz.desktop_shortcut.label') }}</span>
+      <span class="k">{{ t('ppz.desktop_shortcut.label') }}<help-tip id="desktop-shortcut" data-setting="desktop-shortcut-hint" :text="t('ppz.desktop_shortcut.hint')" /></span>
       <div class="ctl">
         <button class="btn sm" data-action="desktop-shortcut-create" :disabled="shortcutBusy" @click="createShortcut">{{ t('ppz.desktop_shortcut.button') }}</button>
         <span v-if="shortcutState" :class="shortcutState === 'done' ? 'note' : 'warn-text'" data-setting="desktop-shortcut-result" role="status">{{ shortcutText }}</span>
       </div>
     </div>
-    <p v-if="canCreateShortcut" class="lead" data-setting="desktop-shortcut-hint">{{ t('ppz.desktop_shortcut.hint') }}</p>
   </section>
 
   <section v-if="canOpenConfigFolder || hasHost" class="card" data-setting="files-preview">
-    <span class="label">{{ t('ppz.section_files') }}</span>
+    <div class="card-head"><span class="label">{{ t('ppz.section_files') }}</span></div>
     <div v-if="canOpenConfigFolder" class="srow" data-about="config-folder">
       <span class="k">{{ t('ppz.about.config_folder') }}</span>
       <div class="ctl">
-        <button class="btn ghost sm" data-action="config-open-folder" @click="openConfigFolder">{{ t('ppz.about.config_folder_open') }}</button>
+        <button class="btn sm" data-action="config-open-folder" @click="openConfigFolder">{{ t('ppz.about.config_folder_open') }}</button>
       </div>
     </div>
     <template v-if="hasHost">
-      <div class="card-head sub-head" data-setting="browser-preview">
-        <span class="sublabel">{{ t('ppz.preview.section') }}</span>
-        <help-tip v-if="!isPreview" id="browser-preview" :text="t('ppz.preview.hint')" />
-      </div>
       <template v-if="isPreview">
+        <div class="card-head sub-head" data-setting="browser-preview"><span class="sublabel">{{ t('ppz.preview.section') }}</span></div>
         <p class="preview-note" data-preview="active">{{ t('ppz.preview.active') }}</p>
         <p v-if="needsRestart" class="preview-note warn" data-preview="needs-restart">{{ t('ppz.preview.needs_restart') }}</p>
       </template>
       <template v-else>
-        <p class="lead">{{ t('ppz.preview.lead') }}</p>
-        <div class="btn-row">
-          <button class="btn sm" :disabled="previewBusy" data-action="open-preview" @click="openPreview">{{ t('ppz.preview.open') }}</button>
+        <div class="srow" data-setting="browser-preview">
+          <span class="k">{{ t('ppz.preview.section') }}<help-tip id="browser-preview" :text="t('ppz.preview.hint')" /><small class="k-sub">{{ t('ppz.preview.lead') }}</small></span>
+          <div class="ctl">
+            <button class="btn sm" :disabled="previewBusy" data-action="open-preview" @click="openPreview">{{ t('ppz.preview.open') }}</button>
+          </div>
         </div>
         <div v-if="previewUrl" class="srow stack">
           <div class="ctl preview-url">
@@ -185,6 +198,9 @@ export default defineComponent({
     return {
       t,
       config,
+      version: Host.version,
+      // 開發模式 / 純瀏覽器 Host.version = 'dev',不加 v
+      versionText: /^\d/.test(Host.version) ? `v${Host.version}` : Host.version,
       info,
       autoApply,
       updateText,
@@ -281,5 +297,50 @@ export default defineComponent({
 }
 .settings-panel .card-head.sub-head {
   margin: 0.8em 0 0.3em;
+}
+/* 2026-11-18 設計稿 P04-Startup:標題列右邊 = 狀態點 + 狀態 + 目前版本;名稱下一行小字說明 */
+.settings-panel [data-about="update"] .card-head .grow {
+  flex: 1;
+}
+.settings-panel [data-about="update"] .update-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  min-width: 0;
+  font-size: var(--fs-xs);
+  color: var(--ink-2);
+}
+.settings-panel [data-about="update"] .update-status .dot {
+  flex: none;
+  width: 0.5em;
+  height: 0.5em;
+  border-radius: 50%;
+  background: var(--ink-3);
+}
+.settings-panel [data-about="update"] .update-status.good .dot {
+  background: var(--ok);
+}
+.settings-panel [data-about="update"] .update-status.bad .dot {
+  background: var(--bad);
+}
+.settings-panel [data-about="update"] .update-status[data-update-state="not-available"] {
+  color: var(--ok);
+}
+.settings-panel [data-about="update"] .update-status[data-update-state="not-available"] .dot {
+  background: var(--ok);
+}
+.settings-panel .update-ver {
+  flex: none;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: var(--fs-xs);
+  color: var(--ink-1);
+}
+.settings-panel .srow > .k .k-sub {
+  display: block;
+  font-size: var(--fs-2xs);
+  color: var(--ink-3);
+}
+.settings-panel .srow > .ctl .update-meta {
+  margin: 0;
 }
 </style>
