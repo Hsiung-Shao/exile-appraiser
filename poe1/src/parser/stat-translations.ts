@@ -219,6 +219,16 @@ export function tryParseTranslation (
         : undefined
     }
   }
+
+  // exile-appraiser: 3.30 進階複製在帶入的名稱後加不帶資訊的「(...)」,位置與前面有沒有空白各句不同;
+  // 逐字比對不到時去掉它再比一次(資料端 make-index-files 讓這類寫法的無標記句也進索引)
+  const bare = stat.string.replace(/ ?\(\.\.\.\)/g, '')
+  if (bare === stat.string) return undefined
+  // 只接受「進階寫法本來就帶標記」的那條:去掉標記後剛好等於別條詞綴的句子不算
+  // (「全部 召喚幽魂 寶石等級」的一般詞綴、兩行的「數量加倍」被第一行搶走)
+  const found = tryParseTranslation({ ...stat, string: bare }, modType, itemCategory)
+  // 同一句常有兩個 matcher(被取代的無標記句 + 帶標記的進階寫法),所以看同字串的任一個
+  return found?.stat.matchers.some(m => m.string === found.translation.string && m.advanced?.includes('(...)')) ? found : undefined
 }
 
 export function getRollOrMinmaxAvg (values: number[]): number {

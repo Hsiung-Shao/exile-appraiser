@@ -77,6 +77,19 @@ describe('3.30 詞綴寫法(en)', () => {
     expect(item.statsByType[0].stat.trade.ids.explicit).toEqual(['explicit.stat_1190333629|3154'])
   })
 
+  it('D21b en:規則 27 的另一句 "Slaying Enemies has a #% increased chance to spawn a Beyond Portal" 解析成原詞綴', () => {
+    const item = parse(ringText('en', [['{ Suffix Modifier "of Testing" (Tier: 1) }', 'Slaying Enemies has a 100% increased chance to spawn a Beyond Portal']]))
+    expect(unknownOf(item)).toEqual([])
+    expect(item.statsByType[0].stat.trade.ids.explicit).toContain('explicit.stat_3036422124')
+  })
+
+  // 2026-11-18 使用者回報英文地圖無法查詢:「Map contains Al-Hezmin's Citadel(...)」名稱後沒空白,失敗代表進階寫法又對不上
+  it('D17x 英文實機地圖「Map contains Al-Hezmin\'s Citadel(...)」解析得到、帶交易站 id', () => {
+    const map = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-map-citadel.en.txt'), 'utf8'))
+    expect(unknownOf(map)).toEqual([])
+    expect(map.statsByType.find(s => s.stat.ref.startsWith("Map contains Al-Hezmin's Citadel"))?.stat.trade.ids.implicit).toEqual(['implicit.stat_2563183002|3'])
+  })
+
   it('D3 舊稀有度寫法仍可解析', () => {
     const item = parse(ringText('en', [['15% increased Rarity of Items found', '+68 to maximum Life']]))
     expect(unknownOf(item)).toEqual([])
@@ -387,6 +400,12 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     const item = parse(ringText('cmn-Hant', [['插槽中的寶石被等級 15 的 ​寒冰刺骨輔助 輔助', '+68 最大生命']]))
     const hit = item.statsByType.find(s => s.stat.ref === 'Socketed Gems are Supported by Level # Bonechill (Random Support Gem)')
     expect(hit?.stat.trade.ids.explicit).toEqual(['explicit.indexable_support_115', 'explicit.effect_3024539694'])
+  })
+
+  it('D21b 規則 27:交易站同一個 id 的另一句「擊殺敵人增加 #% 機率產生超越傳送門」(類型掃描 2026-11-18 找到,沒有實機樣本)解析成原詞綴', () => {
+    const item = parse(ringText('cmn-Hant', [['{ 後綴 "測試之"(階層：1) }', '擊殺敵人增加 100% 機率產生超越傳送門']]))
+    expect(unknownOf(item)).toEqual([])
+    expect(item.statsByType[0].stat.trade.ids.explicit).toContain('explicit.stat_3036422124')
   })
 
   it('D21 使用者 2026-11-15 貼的四張 3.30 實機地圖沒有未解析詞綴(0.3.9「區域內含有一座蜃景」沒掛隨機 id)', () => {
