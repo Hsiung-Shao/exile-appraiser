@@ -162,8 +162,8 @@ function getUniqueVariant (item: ParsedItem) {
       return 'Armour'
     }
   } else if (uniqueName === 'Bubonic Trail' || uniqueName === 'Lightpoacher' || uniqueName === 'Shroud of the Lightless' || uniqueName === 'Tombfist') {
-    const sockets = item.statsByType.find(m => m.type === 'explicit' && m.stat.ref === 'Has # Abyssal Sockets')!
-    const roll = sockets.sources[0].contributes!.value
+    // exile-appraiser: 2026-11-18 未鑑定時沒有這條詞綴(上游直接讀會拋錯)
+    const roll = item.statsByType.find(m => m.type === 'explicit' && m.stat.ref === 'Has # Abyssal Sockets')?.sources[0]?.contributes?.value
     if (roll === 2) {
       return '2 Jewels'
     } else if (roll === 1) {
@@ -208,8 +208,8 @@ function getUniqueVariant (item: ParsedItem) {
       return 'Physical'
     }
   } else if (uniqueName === 'Voices') {
-    const passives = item.statsByType.find(m => m.stat.ref === 'Adds # Small Passive Skills which grant nothing')!
-    const roll = passives.sources[0].contributes!.value
+    // exile-appraiser: 2026-11-18 未鑑定的 Voices 沒有這條詞綴(上游直接讀會拋錯、查價面板崩潰)
+    const roll = item.statsByType.find(m => m.stat.ref === 'Adds # Small Passive Skills which grant nothing')?.sources[0]?.contributes?.value
     if (roll === 7) {
       return '7 passives'
     } else if (roll === 5) {
