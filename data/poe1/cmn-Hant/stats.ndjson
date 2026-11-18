@@ -2395,12 +2395,12 @@
 {"ref":"+1 to maximum number of Raised Zombies per # Intelligence","better":1,"matchers":[{"string":"每#點智慧額外增加 1 個殭屍上限"}],"trade":{"ids":{"explicit":["explicit.stat_900892599"]}}}
 {"ref":"+1 to maximum number of Raised Zombies per # Strength","better":1,"matchers":[{"string":"每 # 點力量額外增加 1 個殭屍上限"}],"trade":{"ids":{"explicit":["explicit.stat_4056985119"]}}}
 {"ref":"1 Added Passive Skill is Adrenaline","better":1,"matchers":[{"string":"1 個附加天賦為腎上腺素"}],"trade":{"ids":{"explicit":["explicit.stat_4022743870"],"fractured":["fractured.stat_4022743870"]}}}
-{"ref":"1 Added Passive Skill is Advance Guard","better":1,"matchers":[{"string":"1 個附加天賦為進階守衛"}],"trade":{"ids":{"explicit":["explicit.stat_1625939562"],"fractured":["fractured.stat_1625939562"]}}}
+{"ref":"1 Added Passive Skill is Advance Guard","better":1,"matchers":[{"string":"1 個附加天賦為進階守衛","superseded":true},{"string":"1 個附加天賦為先鋒部隊"}],"trade":{"ids":{"explicit":["explicit.stat_1625939562"],"fractured":["fractured.stat_1625939562"]}}}
 {"ref":"1 Added Passive Skill is Aerialist","better":1,"matchers":[{"string":"1 個附加天賦為高空特技"}],"trade":{"ids":{"explicit":["explicit.stat_3848677307"],"fractured":["fractured.stat_3848677307"]}}}
 {"ref":"1 Added Passive Skill is Aerodynamics","better":1,"matchers":[{"string":"1 個附加天賦為氣動學"}],"trade":{"ids":{"explicit":["explicit.stat_4120556534"],"fractured":["fractured.stat_4120556534"]}}}
 {"ref":"1 Added Passive Skill is Agent of Destruction","better":1,"matchers":[{"string":"1 個附加天賦為破壞特工"}],"trade":{"ids":{"explicit":["explicit.stat_3122491961"],"fractured":["fractured.stat_3122491961"]}}}
 {"ref":"1 Added Passive Skill is Aggressive Defence","better":1,"matchers":[{"string":"1 個附加天賦為積極防禦"}],"trade":{"ids":{"explicit":["explicit.stat_4154008618"],"fractured":["fractured.stat_4154008618"]}}}
-{"ref":"1 Added Passive Skill is Alchemist","better":1,"matchers":[{"string":"1 個附加天賦為鍊金術師"}],"trade":{"ids":{"explicit":["explicit.stat_2912949210"],"fractured":["fractured.stat_2912949210"]}}}
+{"ref":"1 Added Passive Skill is Alchemist","better":1,"matchers":[{"string":"1 個附加天賦為鍊金術師","superseded":true},{"string":"1 個附加天賦為煉金術師"}],"trade":{"ids":{"explicit":["explicit.stat_2912949210"],"fractured":["fractured.stat_2912949210"]}}}
 {"ref":"1 Added Passive Skill is Ancestral Echo","better":1,"matchers":[{"string":"1 個附加天賦為先祖回響"}],"trade":{"ids":{"explicit":["explicit.stat_957679205"],"fractured":["fractured.stat_957679205"]}}}
 {"ref":"1 Added Passive Skill is Ancestral Guidance","better":1,"matchers":[{"string":"1 個附加天賦為先祖指引"}],"trade":{"ids":{"explicit":["explicit.stat_2387747995"],"fractured":["fractured.stat_2387747995"]}}}
 {"ref":"1 Added Passive Skill is Ancestral Inspiration","better":1,"matchers":[{"string":"1 個附加天賦為先祖啟發"}],"trade":{"ids":{"explicit":["explicit.stat_77045106"],"fractured":["fractured.stat_77045106"]}}}
@@ -2409,27 +2409,27 @@
 {"ref":"1 Added Passive Skill is Ancestral Reach","better":1,"matchers":[{"string":"1 個附加天賦為先祖所向"}],"trade":{"ids":{"explicit":["explicit.stat_3294884567"],"fractured":["fractured.stat_3294884567"]}}}
 {"ref":"1 Added Passive Skill is Antifreeze","better":1,"matchers":[{"string":"1 個附加天賦為抗凍"}],"trade":{"ids":{"explicit":["explicit.stat_2622946553"],"fractured":["fractured.stat_2622946553"]}}}
 {"ref":"1 Added Passive Skill is Antivenom","better":1,"matchers":[{"string":"1 個附加天賦為抗毒"}],"trade":{"ids":{"explicit":["explicit.stat_774369953"],"fractured":["fractured.stat_774369953"]}}}
-{"ref":"1 Added Passive Skill is Arcane Adept","better":1,"matchers":[{"string":"1 個附加天賦為祕能專精"}],"trade":{"ids":{"explicit":["explicit.stat_393565679"],"fractured":["fractured.stat_393565679"]}}}
-{"ref":"1 Added Passive Skill is Arcane Heroism","better":1,"matchers":[{"string":"1 個附加天賦為祕能英雄"}],"trade":{"ids":{"explicit":["explicit.stat_3901992019"],"fractured":["fractured.stat_3901992019"]}}}
-{"ref":"1 Added Passive Skill is Arcane Pyrotechnics","better":1,"matchers":[{"string":"1 個附加天賦為祕能煙花"}],"trade":{"ids":{"explicit":["explicit.stat_2043503530"],"fractured":["fractured.stat_2043503530"]}}}
+{"ref":"1 Added Passive Skill is Arcane Adept","better":1,"matchers":[{"string":"1 個附加天賦為祕能專精","superseded":true},{"string":"1 個附加天賦為秘能專精"}],"trade":{"ids":{"explicit":["explicit.stat_393565679"],"fractured":["fractured.stat_393565679"]}}}
+{"ref":"1 Added Passive Skill is Arcane Heroism","better":1,"matchers":[{"string":"1 個附加天賦為祕能英雄","superseded":true},{"string":"1 個附加天賦為秘能英雄"}],"trade":{"ids":{"explicit":["explicit.stat_3901992019"],"fractured":["fractured.stat_3901992019"]}}}
+{"ref":"1 Added Passive Skill is Arcane Pyrotechnics","better":1,"matchers":[{"string":"1 個附加天賦為祕能煙花","superseded":true},{"string":"1 個附加天賦為秘能煙花"}],"trade":{"ids":{"explicit":["explicit.stat_2043503530"],"fractured":["fractured.stat_2043503530"]}}}
 {"ref":"1 Added Passive Skill is Arcing Shot","better":1,"matchers":[{"string":"1 個附加天賦為弧射"}],"trade":{"ids":{"explicit":["explicit.stat_3212859169"],"fractured":["fractured.stat_3212859169"]}}}
 {"ref":"1 Added Passive Skill is Assert Dominance","better":1,"matchers":[{"string":"1 個附加天賦為維護地位"}],"trade":{"ids":{"explicit":["explicit.stat_4222265138"],"fractured":["fractured.stat_4222265138"]}}}
 {"ref":"1 Added Passive Skill is Astonishing Affliction","better":1,"matchers":[{"string":"1 個附加天賦為驚奇痛楚"}],"trade":{"ids":{"explicit":["explicit.stat_2428334013"],"fractured":["fractured.stat_2428334013"]}}}
 {"ref":"1 Added Passive Skill is Basics of Pain","better":1,"matchers":[{"string":"1 個附加天賦為苦痛之基"}],"trade":{"ids":{"explicit":["explicit.stat_3084359503"],"fractured":["fractured.stat_3084359503"]}}}
-{"ref":"1 Added Passive Skill is Battle-Hardened","better":1,"matchers":[{"string":"1 個附加天賦為固守戰場"}],"trade":{"ids":{"explicit":["explicit.stat_4188581520"],"fractured":["fractured.stat_4188581520"]}}}
+{"ref":"1 Added Passive Skill is Battle-Hardened","better":1,"matchers":[{"string":"1 個附加天賦為固守戰場","superseded":true},{"string":"1 個附加天賦為久經沙場"}],"trade":{"ids":{"explicit":["explicit.stat_4188581520"],"fractured":["fractured.stat_4188581520"]}}}
 {"ref":"1 Added Passive Skill is Battlefield Dominator","better":1,"matchers":[{"string":"1 個附加天賦為戰場統治者"}],"trade":{"ids":{"explicit":["explicit.stat_1499057234"],"fractured":["fractured.stat_1499057234"]}}}
 {"ref":"1 Added Passive Skill is Blacksmith","better":1,"matchers":[{"string":"1 個附加天賦為鐵匠"}],"trade":{"ids":{"explicit":["explicit.stat_1127706436"],"fractured":["fractured.stat_1127706436"]}}}
 {"ref":"1 Added Passive Skill is Blanketed Snow","better":1,"matchers":[{"string":"1 個附加天賦為拂雪"}],"trade":{"ids":{"explicit":["explicit.stat_1085167979"],"fractured":["fractured.stat_1085167979"]}}}
 {"ref":"1 Added Passive Skill is Blast-Freeze","better":1,"matchers":[{"string":"1 個附加天賦為爆凍"}],"trade":{"ids":{"explicit":["explicit.stat_693808153"],"fractured":["fractured.stat_693808153"]}}}
 {"ref":"1 Added Passive Skill is Blessed","better":1,"matchers":[{"string":"1 個附加天賦為祝福"}],"trade":{"ids":{"explicit":["explicit.stat_775689239"],"fractured":["fractured.stat_775689239"]}}}
 {"ref":"1 Added Passive Skill is Blessed Rebirth","better":1,"matchers":[{"string":"1 個附加的天賦為祝禱重生"}],"trade":{"ids":{"explicit":["explicit.stat_1424794574"],"fractured":["fractured.stat_1424794574"]}}}
-{"ref":"1 Added Passive Skill is Blizzard Caller","better":1,"matchers":[{"string":"1 個附加天賦為暴雪舵手"}],"trade":{"ids":{"explicit":["explicit.stat_3758712376"],"fractured":["fractured.stat_3758712376"]}}}
+{"ref":"1 Added Passive Skill is Blizzard Caller","better":1,"matchers":[{"string":"1 個附加天賦為暴雪舵手","superseded":true},{"string":"1 個附加天賦為喚雪者"}],"trade":{"ids":{"explicit":["explicit.stat_3758712376"],"fractured":["fractured.stat_3758712376"]}}}
 {"ref":"1 Added Passive Skill is Blood Artist","better":1,"matchers":[{"string":"1 個附加天賦為血腥藝術家"}],"trade":{"ids":{"explicit":["explicit.stat_2284771334"],"fractured":["fractured.stat_2284771334"]}}}
 {"ref":"1 Added Passive Skill is Bloodscent","better":1,"matchers":[{"string":"1 個附加天賦為血腥味"}],"trade":{"ids":{"explicit":["explicit.stat_3967765261"],"fractured":["fractured.stat_3967765261"]}}}
 {"ref":"1 Added Passive Skill is Blowback","better":1,"matchers":[{"string":"1 個附加天賦為後座力"}],"trade":{"ids":{"explicit":["explicit.stat_1612414696"],"fractured":["fractured.stat_1612414696"]}}}
 {"ref":"1 Added Passive Skill is Bodyguards","better":1,"matchers":[{"string":"1 個附加天賦為保鑣"}],"trade":{"ids":{"explicit":["explicit.stat_791125124"],"fractured":["fractured.stat_791125124"]}}}
 {"ref":"1 Added Passive Skill is Born of Chaos","better":1,"matchers":[{"string":"1 個附加天賦為混沌之誕"}],"trade":{"ids":{"explicit":["explicit.stat_2449392400"],"fractured":["fractured.stat_2449392400"]}}}
-{"ref":"1 Added Passive Skill is Brand Loyalty","better":1,"matchers":[{"string":"1 個附加天賦為品牌忠誠"}],"trade":{"ids":{"explicit":["explicit.stat_3198006994"],"fractured":["fractured.stat_3198006994"]}}}
+{"ref":"1 Added Passive Skill is Brand Loyalty","better":1,"matchers":[{"string":"1 個附加天賦為品牌忠誠","superseded":true},{"string":"1 個附加天賦為烙印忠誠"}],"trade":{"ids":{"explicit":["explicit.stat_3198006994"],"fractured":["fractured.stat_3198006994"]}}}
 {"ref":"1 Added Passive Skill is Brewed for Potency","better":1,"matchers":[{"string":"1 個附加天賦為釀造之力"}],"trade":{"ids":{"explicit":["explicit.stat_3250272113"],"fractured":["fractured.stat_3250272113"]}}}
 {"ref":"1 Added Passive Skill is Broadside","better":1,"matchers":[{"string":"1 個附加天賦為舷側砲"}],"trade":{"ids":{"explicit":["explicit.stat_2205982416"],"fractured":["fractured.stat_2205982416"]}}}
 {"ref":"1 Added Passive Skill is Brush with Death","better":1,"matchers":[{"string":"1 個附加天賦為死神之拂"}],"trade":{"ids":{"explicit":["explicit.stat_2900833792"],"fractured":["fractured.stat_2900833792"]}}}
@@ -2437,7 +2437,7 @@
 {"ref":"1 Added Passive Skill is Burden Projection","better":1,"matchers":[{"string":"1 個附加天賦為重擔投射"}],"trade":{"ids":{"explicit":["explicit.stat_2008682345"],"fractured":["fractured.stat_2008682345"]}}}
 {"ref":"1 Added Passive Skill is Burning Bright","better":1,"matchers":[{"string":"1 個附加天賦為燃燒閃耀"}],"trade":{"ids":{"explicit":["explicit.stat_4199056048"],"fractured":["fractured.stat_4199056048"]}}}
 {"ref":"1 Added Passive Skill is Calamitous","better":1,"matchers":[{"string":"1 個附加天賦為災難"}],"trade":{"ids":{"explicit":["explicit.stat_3359207393"],"fractured":["fractured.stat_3359207393"]}}}
-{"ref":"1 Added Passive Skill is Call to the Slaughter","better":1,"matchers":[{"string":"1 個附加天賦為屠殺惡夢"}],"trade":{"ids":{"explicit":["explicit.stat_3317068522"],"fractured":["fractured.stat_3317068522"]}}}
+{"ref":"1 Added Passive Skill is Call to the Slaughter","better":1,"matchers":[{"string":"1 個附加天賦為屠殺惡夢","superseded":true},{"string":"1 個附加天賦為屠戮召喚"}],"trade":{"ids":{"explicit":["explicit.stat_3317068522"],"fractured":["fractured.stat_3317068522"]}}}
 {"ref":"1 Added Passive Skill is Capacitor","better":1,"matchers":[{"string":"1 個附加天賦為容器"}],"trade":{"ids":{"explicit":["explicit.stat_4025536654"],"fractured":["fractured.stat_4025536654"]}}}
 {"ref":"1 Added Passive Skill is Careful Handling","better":1,"matchers":[{"string":"1 個附加天賦為細心掌控"}],"trade":{"ids":{"explicit":["explicit.stat_456502758"],"fractured":["fractured.stat_456502758"]}}}
 {"ref":"1 Added Passive Skill is Chilling Presence","better":1,"matchers":[{"string":"1 個附加天賦為冰緩光環"}],"trade":{"ids":{"explicit":["explicit.stat_2834490860"],"fractured":["fractured.stat_2834490860"]}}}
@@ -2449,9 +2449,9 @@
 {"ref":"1 Added Passive Skill is Cold-Blooded Killer","better":1,"matchers":[{"string":"1 個附加天賦為冷血殺手"}],"trade":{"ids":{"explicit":["explicit.stat_836566759"],"fractured":["fractured.stat_836566759"]}}}
 {"ref":"1 Added Passive Skill is Combat Rhythm","better":1,"matchers":[{"string":"1 個附加天賦為戰鬥韻律"}],"trade":{"ids":{"explicit":["explicit.stat_3122505794"],"fractured":["fractured.stat_3122505794"]}}}
 {"ref":"1 Added Passive Skill is Compound Injury","better":1,"matchers":[{"string":"1 個附加天賦為複合傷害"}],"trade":{"ids":{"explicit":["explicit.stat_4018305528"],"fractured":["fractured.stat_4018305528"]}}}
-{"ref":"1 Added Passive Skill is Conjured Wall","better":1,"matchers":[{"string":"1 個附加天賦為召喚之璧"}],"trade":{"ids":{"explicit":["explicit.stat_4105031548"],"fractured":["fractured.stat_4105031548"]}}}
+{"ref":"1 Added Passive Skill is Conjured Wall","better":1,"matchers":[{"string":"1 個附加天賦為召喚之璧","superseded":true},{"string":"1 個附加天賦為召喚之壁"}],"trade":{"ids":{"explicit":["explicit.stat_4105031548"],"fractured":["fractured.stat_4105031548"]}}}
 {"ref":"1 Added Passive Skill is Conservation of Energy","better":1,"matchers":[{"string":"1 個附加天賦為節能"}],"trade":{"ids":{"explicit":["explicit.stat_2083777017"],"fractured":["fractured.stat_2083777017"]}}}
-{"ref":"1 Added Passive Skill is Cooked Alive","better":1,"matchers":[{"string":"1 個附加天賦為現宰"}],"trade":{"ids":{"explicit":["explicit.stat_2938895712"],"fractured":["fractured.stat_2938895712"]}}}
+{"ref":"1 Added Passive Skill is Cooked Alive","better":1,"matchers":[{"string":"1 個附加天賦為現宰","superseded":true},{"string":"1 個附加天賦為活活烤熟"}],"trade":{"ids":{"explicit":["explicit.stat_2938895712"],"fractured":["fractured.stat_2938895712"]}}}
 {"ref":"1 Added Passive Skill is Corrosive Elements","better":1,"matchers":[{"string":"1 個附加天賦為腐蝕元素"}],"trade":{"ids":{"explicit":["explicit.stat_1777139212"],"fractured":["fractured.stat_1777139212"]}}}
 {"ref":"1 Added Passive Skill is Cremator","better":1,"matchers":[{"string":"1 個附加天賦為焚屍爐"}],"trade":{"ids":{"explicit":["explicit.stat_1153801980"],"fractured":["fractured.stat_1153801980"]}}}
 {"ref":"1 Added Passive Skill is Cry Wolf","better":1,"matchers":[{"string":"1 個附加天賦為狼嚎"}],"trade":{"ids":{"explicit":["explicit.stat_1821748178"],"fractured":["fractured.stat_1821748178"]}}}
@@ -2460,11 +2460,11 @@
 {"ref":"1 Added Passive Skill is Dark Ideation","better":1,"matchers":[{"string":"1 個附加天賦為黑暗觀念"}],"trade":{"ids":{"explicit":["explicit.stat_1603621602"],"fractured":["fractured.stat_1603621602"]}}}
 {"ref":"1 Added Passive Skill is Dark Messenger","better":1,"matchers":[{"string":"1 個附加天賦為黑暗信使"}],"trade":{"ids":{"explicit":["explicit.stat_3784610129"],"fractured":["fractured.stat_3784610129"]}}}
 {"ref":"1 Added Passive Skill is Darting Movements","better":1,"matchers":[{"string":"1 個附加天賦為猛突位移"}],"trade":{"ids":{"explicit":["explicit.stat_846491278"],"fractured":["fractured.stat_846491278"]}}}
-{"ref":"1 Added Passive Skill is Deadly Repartee","better":1,"matchers":[{"string":"1 個附加天賦為致命才能"}],"trade":{"ids":{"explicit":["explicit.stat_1013470938"],"fractured":["fractured.stat_1013470938"]}}}
+{"ref":"1 Added Passive Skill is Deadly Repartee","better":1,"matchers":[{"string":"1 個附加天賦為致命才能","superseded":true},{"string":"1 個附加天賦為致命還擊"}],"trade":{"ids":{"explicit":["explicit.stat_1013470938"],"fractured":["fractured.stat_1013470938"]}}}
 {"ref":"1 Added Passive Skill is Deep Chill","better":1,"matchers":[{"string":"1 個附加天賦為深層冰緩"}],"trade":{"ids":{"explicit":["explicit.stat_1703766309"],"fractured":["fractured.stat_1703766309"]}}}
 {"ref":"1 Added Passive Skill is Destructive Aspect","better":1,"matchers":[{"string":"1 個附加天賦為破壞面"}],"trade":{"ids":{"explicit":["explicit.stat_3860179422"],"fractured":["fractured.stat_3860179422"]}}}
 {"ref":"1 Added Passive Skill is Devastator","better":1,"matchers":[{"string":"1 個附加的天賦為毀滅者"}],"trade":{"ids":{"explicit":["explicit.stat_3711553948"],"fractured":["fractured.stat_3711553948"]}}}
-{"ref":"1 Added Passive Skill is Disciples","better":1,"matchers":[{"string":"1 個附加的天賦為紀律"}],"trade":{"ids":{"explicit":["explicit.stat_3177526694"],"fractured":["fractured.stat_3177526694"]}}}
+{"ref":"1 Added Passive Skill is Disciples","better":1,"matchers":[{"string":"1 個附加的天賦為紀律","superseded":true},{"string":"1 個附加的天賦為門徒"}],"trade":{"ids":{"explicit":["explicit.stat_3177526694"],"fractured":["fractured.stat_3177526694"]}}}
 {"ref":"1 Added Passive Skill is Disease Vector","better":1,"matchers":[{"string":"1 個附加的天賦為病原體"}],"trade":{"ids":{"explicit":["explicit.stat_183591019"],"fractured":["fractured.stat_183591019"]}}}
 {"ref":"1 Added Passive Skill is Disorienting Display","better":1,"matchers":[{"string":"1 個附加的天賦為迷茫之列"}],"trade":{"ids":{"explicit":["explicit.stat_3206911230"],"fractured":["fractured.stat_3206911230"]}}}
 {"ref":"1 Added Passive Skill is Disorienting Wounds","better":1,"matchers":[{"string":"1 個附加的天賦為迷茫之殤"}],"trade":{"ids":{"explicit":["explicit.stat_3351136461"],"fractured":["fractured.stat_3351136461"]}}}
@@ -2489,7 +2489,7 @@
 {"ref":"1 Added Passive Skill is Eternal Suffering","better":1,"matchers":[{"string":"1 個附加的天賦為永恆磨難"}],"trade":{"ids":{"explicit":["explicit.stat_2144634814"],"fractured":["fractured.stat_2144634814"]}}}
 {"ref":"1 Added Passive Skill is Evil Eye","better":1,"matchers":[{"string":"1 個附加的天賦為邪眼"}],"trade":{"ids":{"explicit":["explicit.stat_4291066912"],"fractured":["fractured.stat_4291066912"]}}}
 {"ref":"1 Added Passive Skill is Expansive Might","better":1,"matchers":[{"string":"1 個附加的天賦為擴展之力"}],"trade":{"ids":{"explicit":["explicit.stat_394918362"],"fractured":["fractured.stat_394918362"]}}}
-{"ref":"1 Added Passive Skill is Expendability","better":1,"matchers":[{"string":"1 個附加的天賦為擴展性"}],"trade":{"ids":{"explicit":["explicit.stat_2020075345"],"fractured":["fractured.stat_2020075345"]}}}
+{"ref":"1 Added Passive Skill is Expendability","better":1,"matchers":[{"string":"1 個附加的天賦為擴展性","superseded":true},{"string":"1 個附加的天賦為可犧牲性"}],"trade":{"ids":{"explicit":["explicit.stat_2020075345"],"fractured":["fractured.stat_2020075345"]}}}
 {"ref":"1 Added Passive Skill is Expert Sabotage","better":1,"matchers":[{"string":"1 個附加的天賦為破壞專精"}],"trade":{"ids":{"explicit":["explicit.stat_2084371547"],"fractured":["fractured.stat_2084371547"]}}}
 {"ref":"1 Added Passive Skill is Exploit Weakness","better":1,"matchers":[{"string":"1 個附加天賦為攻其之弱"}],"trade":{"ids":{"explicit":["explicit.stat_50129423"],"fractured":["fractured.stat_50129423"]}}}
 {"ref":"1 Added Passive Skill is Explosive Force","better":1,"matchers":[{"string":"1 個附加的天賦為爆破力"}],"trade":{"ids":{"explicit":["explicit.stat_2017927451"],"fractured":["fractured.stat_2017927451"]}}}
@@ -2498,8 +2498,8 @@
 {"ref":"1 Added Passive Skill is Eye to Eye","better":1,"matchers":[{"string":"1 個附加的天賦為對視"}],"trade":{"ids":{"explicit":["explicit.stat_392942015"],"fractured":["fractured.stat_392942015"]}}}
 {"ref":"1 Added Passive Skill is Fan of Blades","better":1,"matchers":[{"string":"1 個附加的天賦為刀鋒狂熱"}],"trade":{"ids":{"explicit":["explicit.stat_2484082827"],"fractured":["fractured.stat_2484082827"]}}}
 {"ref":"1 Added Passive Skill is Fan the Flames","better":1,"matchers":[{"string":"1 個附加的天賦為搧風點火"}],"trade":{"ids":{"explicit":["explicit.stat_2918755450"],"fractured":["fractured.stat_2918755450"]}}}
-{"ref":"1 Added Passive Skill is Fasting","better":1,"matchers":[{"string":"1 個附加的天賦為快速"}],"trade":{"ids":{"explicit":["explicit.stat_37078857"],"fractured":["fractured.stat_37078857"]}}}
-{"ref":"1 Added Passive Skill is Fearsome Warrior","better":1,"matchers":[{"string":"1 個附加的天賦為膽怯戰士"}],"trade":{"ids":{"explicit":["explicit.stat_3134222965"],"fractured":["fractured.stat_3134222965"]}}}
+{"ref":"1 Added Passive Skill is Fasting","better":1,"matchers":[{"string":"1 個附加的天賦為快速","superseded":true},{"string":"1 個附加的天賦為禁食"}],"trade":{"ids":{"explicit":["explicit.stat_37078857"],"fractured":["fractured.stat_37078857"]}}}
+{"ref":"1 Added Passive Skill is Fearsome Warrior","better":1,"matchers":[{"string":"1 個附加的天賦為膽怯戰士","superseded":true},{"string":"1 個附加的天賦為威武戰士"}],"trade":{"ids":{"explicit":["explicit.stat_3134222965"],"fractured":["fractured.stat_3134222965"]}}}
 {"ref":"1 Added Passive Skill is Feast of Flesh","better":1,"matchers":[{"string":"1 個附加的天賦為血肉盛宴"}],"trade":{"ids":{"explicit":["explicit.stat_2396755365"],"fractured":["fractured.stat_2396755365"]}}}
 {"ref":"1 Added Passive Skill is Feasting Fiends","better":1,"matchers":[{"string":"1 個附加的天賦為宴請邪魔"}],"trade":{"ids":{"explicit":["explicit.stat_383245807"],"fractured":["fractured.stat_383245807"]}}}
 {"ref":"1 Added Passive Skill is Feed the Fury","better":1,"matchers":[{"string":"1 個附加天賦為豢養狂怒"}],"trade":{"ids":{"explicit":["explicit.stat_3944525413"],"fractured":["fractured.stat_3944525413"]}}}
@@ -2551,7 +2551,7 @@
 {"ref":"1 Added Passive Skill is Martial Mastery","better":1,"matchers":[{"string":"1 個附加的天賦為武術精通"}],"trade":{"ids":{"explicit":["explicit.stat_1015189426"],"fractured":["fractured.stat_1015189426"]}}}
 {"ref":"1 Added Passive Skill is Martial Momentum","better":1,"matchers":[{"string":"1 個附加的天賦為武術氣勢"}],"trade":{"ids":{"explicit":["explicit.stat_2978494217"],"fractured":["fractured.stat_2978494217"]}}}
 {"ref":"1 Added Passive Skill is Martial Prowess","better":1,"matchers":[{"string":"1 個附加的天賦為武術英勇"}],"trade":{"ids":{"explicit":["explicit.stat_1152182658"],"fractured":["fractured.stat_1152182658"]}}}
-{"ref":"1 Added Passive Skill is Master of Command","better":1,"matchers":[{"string":"1 個附加的天賦為引導大師"}],"trade":{"ids":{"explicit":["explicit.stat_3257074218"],"fractured":["fractured.stat_3257074218"]}}}
+{"ref":"1 Added Passive Skill is Master of Command","better":1,"matchers":[{"string":"1 個附加的天賦為引導大師","superseded":true},{"string":"1 個附加的天賦為號令大師"}],"trade":{"ids":{"explicit":["explicit.stat_3257074218"],"fractured":["fractured.stat_3257074218"]}}}
 {"ref":"1 Added Passive Skill is Master of Fire","better":1,"matchers":[{"string":"1 個附加的天賦為火焰大師"}],"trade":{"ids":{"explicit":["explicit.stat_1462135249"],"fractured":["fractured.stat_1462135249"]}}}
 {"ref":"1 Added Passive Skill is Master of the Maelstrom","better":1,"matchers":[{"string":"1 個附加天賦為混亂大師"}],"trade":{"ids":{"explicit":["explicit.stat_185592058"],"fractured":["fractured.stat_185592058"]}}}
 {"ref":"1 Added Passive Skill is Master the Fundamentals","better":1,"matchers":[{"string":"1 個附加的天賦為精通基礎"}],"trade":{"ids":{"explicit":["explicit.stat_3585232432"],"fractured":["fractured.stat_3585232432"]}}}
@@ -2568,17 +2568,17 @@
 {"ref":"1 Added Passive Skill is Numbing Elixir","better":1,"matchers":[{"string":"1 個附加的天賦為無感不死藥"}],"trade":{"ids":{"explicit":["explicit.stat_1028754276"],"fractured":["fractured.stat_1028754276"]}}}
 {"ref":"1 Added Passive Skill is One with the Shield","better":1,"matchers":[{"string":"1 個附加的天賦為持盾者"}],"trade":{"ids":{"explicit":["explicit.stat_1976069869"],"fractured":["fractured.stat_1976069869"]}}}
 {"ref":"1 Added Passive Skill is Openness","better":1,"matchers":[{"string":"1 個附加的天賦為開放"}],"trade":{"ids":{"explicit":["explicit.stat_633943719"],"fractured":["fractured.stat_633943719"]}}}
-{"ref":"1 Added Passive Skill is Opportunistic Fusilade","better":1,"matchers":[{"string":"1 個附加的天賦為機會主義福斯雷"}],"trade":{"ids":{"explicit":["explicit.stat_4281625943"],"fractured":["fractured.stat_4281625943"]}}}
+{"ref":"1 Added Passive Skill is Opportunistic Fusilade","better":1,"matchers":[{"string":"1 個附加的天賦為機會主義福斯雷","superseded":true},{"string":"1 個附加的天賦為伺機齊射"}],"trade":{"ids":{"explicit":["explicit.stat_4281625943"],"fractured":["fractured.stat_4281625943"]}}}
 {"ref":"1 Added Passive Skill is Overlord","better":1,"matchers":[{"string":"1 個附加的天賦為封建霸主"}],"trade":{"ids":{"explicit":["explicit.stat_2250169390"],"fractured":["fractured.stat_2250169390"]}}}
-{"ref":"1 Added Passive Skill is Overshock","better":1,"matchers":[{"string":"1 個附加的天賦為過度震驚"}],"trade":{"ids":{"explicit":["explicit.stat_3777170562"],"fractured":["fractured.stat_3777170562"]}}}
+{"ref":"1 Added Passive Skill is Overshock","better":1,"matchers":[{"string":"1 個附加的天賦為過度震驚","superseded":true},{"string":"1 個附加的天賦為過度感電"}],"trade":{"ids":{"explicit":["explicit.stat_3777170562"],"fractured":["fractured.stat_3777170562"]}}}
 {"ref":"1 Added Passive Skill is Overwhelming Malice","better":1,"matchers":[{"string":"1 個附加的天賦為壓倒性的惡意"}],"trade":{"ids":{"explicit":["explicit.stat_770408103"],"fractured":["fractured.stat_770408103"]}}}
 {"ref":"1 Added Passive Skill is Paralysis","better":1,"matchers":[{"string":"1 個附加的天賦為麻痺"}],"trade":{"ids":{"explicit":["explicit.stat_4272503233"],"fractured":["fractured.stat_4272503233"]}}}
 {"ref":"1 Added Passive Skill is Peace Amidst Chaos","better":1,"matchers":[{"string":"1 個附加的天賦為混沌中的平靜"}],"trade":{"ids":{"explicit":["explicit.stat_1734275536"],"fractured":["fractured.stat_1734275536"]}}}
 {"ref":"1 Added Passive Skill is Peak Vigour","better":1,"matchers":[{"string":"1 個附加的天賦為活力之巔"}],"trade":{"ids":{"explicit":["explicit.stat_1722821275"],"fractured":["fractured.stat_1722821275"]}}}
-{"ref":"1 Added Passive Skill is Phlebotomist","better":1,"matchers":[{"string":"1 個附加天賦為放血屍"}],"trade":{"ids":{"explicit":["explicit.stat_3057154383"],"fractured":["fractured.stat_3057154383"]}}}
+{"ref":"1 Added Passive Skill is Phlebotomist","better":1,"matchers":[{"string":"1 個附加天賦為放血屍","superseded":true},{"string":"1 個附加天賦為放血師"}],"trade":{"ids":{"explicit":["explicit.stat_3057154383"],"fractured":["fractured.stat_3057154383"]}}}
 {"ref":"1 Added Passive Skill is Powerful Assault","better":1,"matchers":[{"string":"1 個附加的天賦為猛烈襲擊"}],"trade":{"ids":{"explicit":["explicit.stat_1005475168"],"fractured":["fractured.stat_1005475168"]}}}
 {"ref":"1 Added Passive Skill is Powerful Ward","better":1,"matchers":[{"string":"1 個附加的天賦為強力守衛"}],"trade":{"ids":{"explicit":["explicit.stat_164032122"],"fractured":["fractured.stat_164032122"]}}}
-{"ref":"1 Added Passive Skill is Practiced Caster","better":1,"matchers":[{"string":"1 個附加的天賦為見習術士"}],"trade":{"ids":{"explicit":["explicit.stat_3435403756"],"fractured":["fractured.stat_3435403756"]}}}
+{"ref":"1 Added Passive Skill is Practiced Caster","better":1,"matchers":[{"string":"1 個附加的天賦為見習術士","superseded":true},{"string":"1 個附加的天賦為熟練術士"}],"trade":{"ids":{"explicit":["explicit.stat_3435403756"],"fractured":["fractured.stat_3435403756"]}}}
 {"ref":"1 Added Passive Skill is Precise Focus","better":1,"matchers":[{"string":"1 個附加的天賦為精確專注"}],"trade":{"ids":{"explicit":["explicit.stat_2913581789"],"fractured":["fractured.stat_2913581789"]}}}
 {"ref":"1 Added Passive Skill is Precise Retaliation","better":1,"matchers":[{"string":"1 個附加的天賦為精確復仇"}],"trade":{"ids":{"explicit":["explicit.stat_2335364359"],"fractured":["fractured.stat_2335364359"]}}}
 {"ref":"1 Added Passive Skill is Pressure Points","better":1,"matchers":[{"string":"1 個附加的天賦為壓力點"}],"trade":{"ids":{"explicit":["explicit.stat_3391925584"],"fractured":["fractured.stat_3391925584"]}}}
@@ -2601,14 +2601,14 @@
 {"ref":"1 Added Passive Skill is Remarkable","better":1,"matchers":[{"string":"1 個附加的天賦為非凡"}],"trade":{"ids":{"explicit":["explicit.stat_691431951"],"fractured":["fractured.stat_691431951"]}}}
 {"ref":"1 Added Passive Skill is Rend","better":1,"matchers":[{"string":"1 個附加的天賦為撕裂"}],"trade":{"ids":{"explicit":["explicit.stat_4263287206"],"fractured":["fractured.stat_4263287206"]}}}
 {"ref":"1 Added Passive Skill is Renewal","better":1,"matchers":[{"string":"1 個附加的天賦為換新"}],"trade":{"ids":{"explicit":["explicit.stat_3607300552"],"fractured":["fractured.stat_3607300552"]}}}
-{"ref":"1 Added Passive Skill is Repeater","better":1,"matchers":[{"string":"1 個附加的天賦為背誦者"}],"trade":{"ids":{"explicit":["explicit.stat_2233272527"],"fractured":["fractured.stat_2233272527"]}}}
+{"ref":"1 Added Passive Skill is Repeater","better":1,"matchers":[{"string":"1 個附加的天賦為背誦者","superseded":true},{"string":"1 個附加的天賦為連發者"}],"trade":{"ids":{"explicit":["explicit.stat_2233272527"],"fractured":["fractured.stat_2233272527"]}}}
 {"ref":"1 Added Passive Skill is Replenishing Presence","better":1,"matchers":[{"string":"1 個附加的天賦為補充光環"}],"trade":{"ids":{"explicit":["explicit.stat_1496043857"],"fractured":["fractured.stat_1496043857"]}}}
 {"ref":"1 Added Passive Skill is Righteous Path","better":1,"matchers":[{"string":"1 個附加天賦為正道"}],"trade":{"ids":{"explicit":["explicit.stat_2620267328"],"fractured":["fractured.stat_2620267328"]}}}
 {"ref":"1 Added Passive Skill is Riot Queller","better":1,"matchers":[{"string":"1 個附加的天賦為暴動殺手"}],"trade":{"ids":{"explicit":["explicit.stat_254194892"],"fractured":["fractured.stat_254194892"]}}}
-{"ref":"1 Added Passive Skill is Rot-Resistant","better":1,"matchers":[{"string":"1 個附加的天賦為抗鏽"}],"trade":{"ids":{"explicit":["explicit.stat_713945233"],"fractured":["fractured.stat_713945233"]}}}
+{"ref":"1 Added Passive Skill is Rot-Resistant","better":1,"matchers":[{"string":"1 個附加的天賦為抗鏽","superseded":true},{"string":"1 個附加的天賦為抗腐"}],"trade":{"ids":{"explicit":["explicit.stat_713945233"],"fractured":["fractured.stat_713945233"]}}}
 {"ref":"1 Added Passive Skill is Rote Reinforcement","better":1,"matchers":[{"string":"1 個附加的天賦為加強記憶"}],"trade":{"ids":{"explicit":["explicit.stat_2478282326"],"fractured":["fractured.stat_2478282326"]}}}
-{"ref":"1 Added Passive Skill is Rotten Claws","better":1,"matchers":[{"string":"1 個附加的天賦為腐鏽之爪"}],"trade":{"ids":{"explicit":["explicit.stat_2289610642"],"fractured":["fractured.stat_2289610642"]}}}
-{"ref":"1 Added Passive Skill is Run Through","better":1,"matchers":[{"string":"1 個附加的天賦為迅速略過"}],"trade":{"ids":{"explicit":["explicit.stat_1488030420"],"fractured":["fractured.stat_1488030420"]}}}
+{"ref":"1 Added Passive Skill is Rotten Claws","better":1,"matchers":[{"string":"1 個附加的天賦為腐鏽之爪","superseded":true},{"string":"1 個附加的天賦為腐爛之爪"}],"trade":{"ids":{"explicit":["explicit.stat_2289610642"],"fractured":["fractured.stat_2289610642"]}}}
+{"ref":"1 Added Passive Skill is Run Through","better":1,"matchers":[{"string":"1 個附加的天賦為迅速略過","superseded":true},{"string":"1 個附加的天賦為一劍貫穿"}],"trade":{"ids":{"explicit":["explicit.stat_1488030420"],"fractured":["fractured.stat_1488030420"]}}}
 {"ref":"1 Added Passive Skill is Sadist","better":1,"matchers":[{"string":"1 個附加的天賦為施虐者"}],"trade":{"ids":{"explicit":["explicit.stat_3638731729"],"fractured":["fractured.stat_3638731729"]}}}
 {"ref":"1 Added Passive Skill is Sage","better":1,"matchers":[{"string":"1 個附加的天賦為哲人"}],"trade":{"ids":{"explicit":["explicit.stat_478147593"],"fractured":["fractured.stat_478147593"]}}}
 {"ref":"1 Added Passive Skill is Sap Psyche","better":1,"matchers":[{"string":"1 個附加的天賦為心靈乾枯"}],"trade":{"ids":{"explicit":["explicit.stat_715786975"],"fractured":["fractured.stat_715786975"]}}}
@@ -2629,7 +2629,7 @@
 {"ref":"1 Added Passive Skill is Sleepless Sentries","better":1,"matchers":[{"string":"1 個附加的天賦為無眠哨兵"}],"trade":{"ids":{"explicit":["explicit.stat_3993957711"],"fractured":["fractured.stat_3993957711"]}}}
 {"ref":"1 Added Passive Skill is Smite the Weak","better":1,"matchers":[{"string":"1 個附加的天賦為弱點打擊"}],"trade":{"ids":{"explicit":["explicit.stat_540300548"],"fractured":["fractured.stat_540300548"]}}}
 {"ref":"1 Added Passive Skill is Smoking Remains","better":1,"matchers":[{"string":"1 個附加的天賦為殘煙"}],"trade":{"ids":{"explicit":["explicit.stat_2322980282"],"fractured":["fractured.stat_2322980282"]}}}
-{"ref":"1 Added Passive Skill is Snaring Spirits","better":1,"matchers":[{"string":"1 個附加的天賦為咆嘯靈魂"}],"trade":{"ids":{"explicit":["explicit.stat_3319205340"],"fractured":["fractured.stat_3319205340"]}}}
+{"ref":"1 Added Passive Skill is Snaring Spirits","better":1,"matchers":[{"string":"1 個附加的天賦為咆嘯靈魂","superseded":true},{"string":"1 個附加的天賦為誘捕之靈"}],"trade":{"ids":{"explicit":["explicit.stat_3319205340"],"fractured":["fractured.stat_3319205340"]}}}
 {"ref":"1 Added Passive Skill is Snowstorm","better":1,"matchers":[{"string":"1 個附加的天賦為暴風雪"}],"trade":{"ids":{"explicit":["explicit.stat_1595367309"],"fractured":["fractured.stat_1595367309"]}}}
 {"ref":"1 Added Passive Skill is Special Reserve","better":1,"matchers":[{"string":"1 個附加的天賦為特別保留"}],"trade":{"ids":{"explicit":["explicit.stat_4235300427"],"fractured":["fractured.stat_4235300427"]}}}
 {"ref":"1 Added Passive Skill is Spiked Concoction","better":1,"matchers":[{"string":"1 個附加的天賦為尖刺混物"}],"trade":{"ids":{"explicit":["explicit.stat_3372255769"],"fractured":["fractured.stat_3372255769"]}}}
@@ -2641,7 +2641,7 @@
 {"ref":"1 Added Passive Skill is Storm's Hand","better":1,"matchers":[{"string":"1 個附加的天賦為風暴之手"}],"trade":{"ids":{"explicit":["explicit.stat_1122051203"],"fractured":["fractured.stat_1122051203"]}}}
 {"ref":"1 Added Passive Skill is Stormrider","better":1,"matchers":[{"string":"1 個附加的天賦為風暴馭者"}],"trade":{"ids":{"explicit":["explicit.stat_889728548"],"fractured":["fractured.stat_889728548"]}}}
 {"ref":"1 Added Passive Skill is Streamlined","better":1,"matchers":[{"string":"1 個附加的天賦為流線型"}],"trade":{"ids":{"explicit":["explicit.stat_1397498432"],"fractured":["fractured.stat_1397498432"]}}}
-{"ref":"1 Added Passive Skill is Strike Leader","better":1,"matchers":[{"string":"1 個附加的天賦為罷工領袖"}],"trade":{"ids":{"explicit":["explicit.stat_282062371"],"fractured":["fractured.stat_282062371"]}}}
+{"ref":"1 Added Passive Skill is Strike Leader","better":1,"matchers":[{"string":"1 個附加的天賦為罷工領袖","superseded":true},{"string":"1 個附加的天賦為先鋒領袖"}],"trade":{"ids":{"explicit":["explicit.stat_282062371"],"fractured":["fractured.stat_282062371"]}}}
 {"ref":"1 Added Passive Skill is Stubborn Student","better":1,"matchers":[{"string":"1 個附加的天賦為頑固學生"}],"trade":{"ids":{"explicit":["explicit.stat_2383914651"],"fractured":["fractured.stat_2383914651"]}}}
 {"ref":"1 Added Passive Skill is Student of Decay","better":1,"matchers":[{"string":"1 個附加的天賦為腐朽之徒"}],"trade":{"ids":{"explicit":["explicit.stat_3202667190"],"fractured":["fractured.stat_3202667190"]}}}
 {"ref":"1 Added Passive Skill is Sublime Form","better":1,"matchers":[{"string":"1 個附加天賦為昇華之型"}],"trade":{"ids":{"explicit":["explicit.stat_2251304016"],"fractured":["fractured.stat_2251304016"]}}}
@@ -2651,7 +2651,7 @@
 {"ref":"1 Added Passive Skill is Surprise Sabotage","better":1,"matchers":[{"string":"1 個附加的天賦為驚喜破壞"}],"trade":{"ids":{"explicit":["explicit.stat_3051562738"],"fractured":["fractured.stat_3051562738"]}}}
 {"ref":"1 Added Passive Skill is Tempered Arrowheads","better":1,"matchers":[{"string":"1 個附加的天賦為鍛煉的箭頭"}],"trade":{"ids":{"explicit":["explicit.stat_2631806437"],"fractured":["fractured.stat_2631806437"]}}}
 {"ref":"1 Added Passive Skill is Tempt the Storm","better":1,"matchers":[{"string":"1 個附加天賦為誘惑風暴"}],"trade":{"ids":{"explicit":["explicit.stat_348883745"],"fractured":["fractured.stat_348883745"]}}}
-{"ref":"1 Added Passive Skill is Thaumophage","better":1,"matchers":[{"string":"1 個附加的天賦為噬菌體"}],"trade":{"ids":{"explicit":["explicit.stat_177215332"],"fractured":["fractured.stat_177215332"]}}}
+{"ref":"1 Added Passive Skill is Thaumophage","better":1,"matchers":[{"string":"1 個附加的天賦為噬菌體","superseded":true},{"string":"1 個附加的天賦為噬法者"}],"trade":{"ids":{"explicit":["explicit.stat_177215332"],"fractured":["fractured.stat_177215332"]}}}
 {"ref":"1 Added Passive Skill is Thunderstruck","better":1,"matchers":[{"string":"1 個附加的天賦為雷擊"}],"trade":{"ids":{"explicit":["explicit.stat_1741700339"],"fractured":["fractured.stat_1741700339"]}}}
 {"ref":"1 Added Passive Skill is Titanic Swings","better":1,"matchers":[{"string":"1 個附加的天賦為泰坦揮擊"}],"trade":{"ids":{"explicit":["explicit.stat_2930275641"],"fractured":["fractured.stat_2930275641"]}}}
 {"ref":"1 Added Passive Skill is Touch of Cruelty","better":1,"matchers":[{"string":"1 個附加的天賦為殘酷之觸"}],"trade":{"ids":{"explicit":["explicit.stat_2780712583"],"fractured":["fractured.stat_2780712583"]}}}
@@ -2673,14 +2673,14 @@
 {"ref":"1 Added Passive Skill is Vital Focus","better":1,"matchers":[{"string":"1 個附加的天賦為活力專注"}],"trade":{"ids":{"explicit":["explicit.stat_2134141047"],"fractured":["fractured.stat_2134141047"]}}}
 {"ref":"1 Added Passive Skill is Vivid Hues","better":1,"matchers":[{"string":"1 個附加的天賦為生動色調"}],"trade":{"ids":{"explicit":["explicit.stat_3957006524"],"fractured":["fractured.stat_3957006524"]}}}
 {"ref":"1 Added Passive Skill is Volatile Presence","better":1,"matchers":[{"string":"1 個附加天賦為變動光環"}],"trade":{"ids":{"explicit":["explicit.stat_2350668735"],"fractured":["fractured.stat_2350668735"]}}}
-{"ref":"1 Added Passive Skill is Wall of Muscle","better":1,"matchers":[{"string":"1 個附加的天賦為肉璧"}],"trade":{"ids":{"explicit":["explicit.stat_1363668533"],"fractured":["fractured.stat_1363668533"]}}}
+{"ref":"1 Added Passive Skill is Wall of Muscle","better":1,"matchers":[{"string":"1 個附加的天賦為肉璧","superseded":true},{"string":"1 個附加的天賦為肉壁"}],"trade":{"ids":{"explicit":["explicit.stat_1363668533"],"fractured":["fractured.stat_1363668533"]}}}
 {"ref":"1 Added Passive Skill is Warning Call","better":1,"matchers":[{"string":"1 個附加的天賦為預警呼喚"}],"trade":{"ids":{"explicit":["explicit.stat_578355556"],"fractured":["fractured.stat_578355556"]}}}
 {"ref":"1 Added Passive Skill is Wasting Affliction","better":1,"matchers":[{"string":"1 個附加的天賦為耗盡苦難"}],"trade":{"ids":{"explicit":["explicit.stat_2066820199"],"fractured":["fractured.stat_2066820199"]}}}
 {"ref":"1 Added Passive Skill is Weight Advantage","better":1,"matchers":[{"string":"1 個附加的天賦為優勢權重"}],"trade":{"ids":{"explicit":["explicit.stat_2244243943"],"fractured":["fractured.stat_2244243943"]}}}
 {"ref":"1 Added Passive Skill is Wicked Pall","better":1,"matchers":[{"string":"1 個附加的天賦為邪惡棺木"}],"trade":{"ids":{"explicit":["explicit.stat_1616734644"],"fractured":["fractured.stat_1616734644"]}}}
 {"ref":"1 Added Passive Skill is Widespread Destruction","better":1,"matchers":[{"string":"1 個附加的天賦為毀滅擴散"}],"trade":{"ids":{"explicit":["explicit.stat_1678643716"],"fractured":["fractured.stat_1678643716"]}}}
 {"ref":"1 Added Passive Skill is Will Shaper","better":1,"matchers":[{"string":"1 個附加的天賦為意志雕塑"}],"trade":{"ids":{"explicit":["explicit.stat_1162352537"],"fractured":["fractured.stat_1162352537"]}}}
-{"ref":"1 Added Passive Skill is Wind-up","better":1,"matchers":[{"string":"1 個附加的天賦為風起"}],"trade":{"ids":{"explicit":["explicit.stat_1938661964"],"fractured":["fractured.stat_1938661964"]}}}
+{"ref":"1 Added Passive Skill is Wind-up","better":1,"matchers":[{"string":"1 個附加的天賦為風起","superseded":true},{"string":"1 個附加的天賦為蓄勢"}],"trade":{"ids":{"explicit":["explicit.stat_1938661964"],"fractured":["fractured.stat_1938661964"]}}}
 {"ref":"1 Added Passive Skill is Winter Prowler","better":1,"matchers":[{"string":"1 個附加的天賦為冬季竊賊"}],"trade":{"ids":{"explicit":["explicit.stat_755881431"],"fractured":["fractured.stat_755881431"]}}}
 {"ref":"1 Added Passive Skill is Wizardry","better":1,"matchers":[{"string":"1 個附加的天賦為巫術"}],"trade":{"ids":{"explicit":["explicit.stat_3078065247"],"fractured":["fractured.stat_3078065247"]}}}
 {"ref":"1 Added Passive Skill is Wound Aggravation","better":1,"matchers":[{"string":"1 個附加的天賦為創傷加劇"}],"trade":{"ids":{"explicit":["explicit.stat_69078820"],"fractured":["fractured.stat_69078820"]}}}
@@ -2870,7 +2870,7 @@
 {"ref":"Adds # to # Fire Damage to Attacks against Ignited Enemies","better":1,"matchers":[{"string":"對點燃敵人攻擊時附加 # 至 # 火焰傷害"}],"trade":{"ids":{"explicit":["explicit.stat_627339348"]}}}
 {"ref":"Adds # to # Fire Damage to Attacks against you","better":1,"matchers":[{"string":"對你的攻擊附加 # 至 # 火焰傷害"}],"trade":{"ids":{"explicit":["explicit.stat_2127433866"],"fractured":["fractured.stat_2127433866"],"crafted":["crafted.stat_2127433866"]}}}
 {"ref":"Adds # to # Fire Damage to Attacks for every 1% your Light Radius is above base value","better":1,"matchers":[{"string":"每增加1%照耀範圍，攻擊附加#至#火焰傷害"}],"trade":{"ids":{"explicit":["explicit.stat_1911822529"]}}}
-{"ref":"Adds # to # Fire Damage to Attacks per 10 Strength","better":1,"matchers":[{"string":"每 10 點力量攻擊附加 # 至 # 火焰傷害"}],"trade":{"ids":{"explicit":["explicit.stat_68673913"],"fractured":["fractured.stat_68673913"]}}}
+{"ref":"Adds # to # Fire Damage to Attacks per 10 Strength","better":1,"matchers":[{"string":"每 10 點力量攻擊附加 # 至 # 火焰傷害"}],"trade":{"ids":{"explicit":["explicit.stat_68673913"],"fractured":["fractured.stat_68673913"],"implicit":["implicit.stat_68673913"]}}}
 {"ref":"Adds # to # Fire Damage to Attacks with this Weapon per 10 Strength","better":1,"matchers":[{"string":"使用此武器攻擊，每 10 點力量附加 # 至 # 火焰傷害"}],"trade":{"ids":{"explicit":["explicit.stat_1060540099"],"implicit":["implicit.stat_1060540099"],"fractured":["fractured.stat_1060540099"]}}}
 {"ref":"Adds # to # Fire Damage to Hits against you","better":1,"matchers":[{"string":"對你的擊中附加 # 至 # 火焰傷害"}],"trade":{"ids":{"explicit":["explicit.stat_1905034712"],"fractured":["fractured.stat_1905034712"],"crafted":["crafted.stat_1905034712"]}}}
 {"ref":"Adds # to # Fire Damage to Hits with this Weapon against Blinded Enemies","better":1,"matchers":[{"string":"用此武器擊中被致盲的敵人附加 # 至 # 火焰傷害"}],"trade":{"ids":{"explicit":["explicit.stat_3977907993"]}}}
@@ -2960,14 +2960,14 @@
 {"ref":"Allocated Small Passive Skills in Radius grant nothing","better":1,"matchers":[{"string":"配置範圍內的小天賦不會獲得效果"}],"trade":{"ids":{"explicit":["explicit.stat_325204898"]}}}
 {"ref":"Allocates Acrimony","better":0,"anointments":[{"roll":1,"oils":"1,10,10"}],"matchers":[{"string":"配置 尖酸刻薄"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|25970"]}}}
 {"ref":"Allocates Acuity","better":0,"anointments":[{"roll":1,"oils":"1,8,10"}],"matchers":[{"string":"配置 心眼"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|49621"]}}}
-{"resolve":{"strat":"trivial-merge"},"stats":[{"ref":"Allocates Adamant","better":0,"anointments":[{"roll":1,"oils":"6,8,10"}],"matchers":[{"string":"配置 堅定不移"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|49416"]}}},{"ref":"Allocates Unfaltering","better":0,"anointments":[{"roll":1,"oils":"7,7,9"}],"matchers":[{"string":"配置 堅定不移"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|14001"]}}}]}
+{"resolve":{"strat":"trivial-merge"},"stats":[{"ref":"Allocates Adamant","better":0,"anointments":[{"roll":1,"oils":"6,8,10"}],"matchers":[{"string":"配置 堅定不移","superseded":true},{"string":"配置 堅若磐石"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|49416"]}}},{"ref":"Allocates Unfaltering","better":0,"anointments":[{"roll":1,"oils":"7,7,9"}],"matchers":[{"string":"配置 堅定不移"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|14001"]}}}]}
 {"ref":"Allocates Adaptive Steel","better":0,"anointments":[{"roll":1,"oils":"0,10,10"}],"matchers":[{"string":"配置 適性之鋼"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|14587"]}}}
 {"ref":"Allocates Adder's Touch","better":0,"anointments":[{"roll":1,"oils":"2,10,11"}],"matchers":[{"string":"配置 毒蛇之觸"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|32227"]}}}
 {"ref":"Allocates Adjacent Animosity","better":0,"anointments":[{"roll":1,"oils":"7,9,11"}],"matchers":[{"string":"配置 相鄰憎恨"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|31513"]}}}
 {"ref":"Allocates Admonisher","better":0,"anointments":[{"roll":1,"oils":"2,6,11"}],"matchers":[{"string":"配置 告誡者"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|50858"]}}}
 {"ref":"Allocates Aggressive Bastion","better":0,"anointments":[{"roll":1,"oils":"4,8,10"}],"matchers":[{"string":"配置 進擊的壁壘"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|861"]}}}
 {"ref":"Allocates Always Angry","better":0,"anointments":[{"roll":1,"oils":"0,6,12"}],"matchers":[{"string":"配置 保持憤怒"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|13739"]}}}
-{"ref":"Allocates Ambidexterity","better":0,"anointments":[{"roll":1,"oils":"3,6,10"}],"matchers":[{"string":"配置 卓越"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|15085"]}}}
+{"ref":"Allocates Ambidexterity","better":0,"anointments":[{"roll":1,"oils":"3,6,10"}],"matchers":[{"string":"配置 卓越","superseded":true},{"string":"配置 左右開弓"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|15085"]}}}
 {"ref":"Allocates Amplify","better":0,"anointments":[{"roll":1,"oils":"3,6,11"}],"matchers":[{"string":"配置 增幅"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|61308"]}}}
 {"ref":"Allocates Ancestral Fury if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 先祖之怒"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|38999"]}}}
 {"ref":"Allocates Ancestral Fury if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 先祖之怒"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|38999"]}}}
@@ -2976,7 +2976,7 @@
 {"ref":"Allocates Arcane Blessing if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 秘能庇護"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|40510"]}}}
 {"ref":"Allocates Arcane Blessing if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 秘能庇護"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|40510"]}}}
 {"ref":"Allocates Arcane Capacitor","better":0,"anointments":[{"roll":1,"oils":"8,10,13"}],"matchers":[{"string":"配置 秘能容器"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|51108"]}}}
-{"ref":"Allocates Arcane Chemistry","better":0,"anointments":[{"roll":1,"oils":"3,12,12"}],"matchers":[{"string":"配置 祕法學"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|21634"]}}}
+{"ref":"Allocates Arcane Chemistry","better":0,"anointments":[{"roll":1,"oils":"3,12,12"}],"matchers":[{"string":"配置 祕法學","superseded":true},{"string":"配置 秘法學"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|21634"]}}}
 {"ref":"Allocates Arcane Conservation","better":0,"anointments":[{"roll":1,"oils":"7,8,8"}],"matchers":[{"string":"配置 奧法封存"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|60085"]}}}
 {"ref":"Allocates Arcane Expanse","better":0,"anointments":[{"roll":1,"oils":"9,9,13"}],"matchers":[{"string":"配置 秘能擴張"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|53573"]}}}
 {"ref":"Allocates Arcane Focus","better":0,"anointments":[{"roll":1,"oils":"4,9,9"}],"matchers":[{"string":"配置 秘能之心"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|42795"]}}}
@@ -3000,14 +3000,14 @@
 {"ref":"Allocates Assassin if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 刺客"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|43122"]}}}
 {"ref":"Allocates Assassin if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 刺客"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|43122"]}}}
 {"ref":"Allocates Assassination","better":0,"anointments":[{"roll":1,"oils":"10,11,13"}],"matchers":[{"string":"配置 刺殺"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|28754"]}}}
-{"ref":"Allocates Assured Strike","better":0,"anointments":[{"roll":1,"oils":"1,7,10"}],"matchers":[{"string":"配置 珍重打擊"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|19730"]}}}
+{"ref":"Allocates Assured Strike","better":0,"anointments":[{"roll":1,"oils":"1,7,10"}],"matchers":[{"string":"配置 珍重打擊","superseded":true},{"string":"配置 必中之擊"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|19730"]}}}
 {"ref":"Allocates Asylum","better":0,"anointments":[{"roll":1,"oils":"7,8,12"}],"matchers":[{"string":"配置 避難所"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|4854"]}}}
 {"ref":"Allocates Atrophy","better":0,"anointments":[{"roll":1,"oils":"1,2,13"}],"matchers":[{"string":"配置 萎縮"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|53013"]}}}
 {"ref":"Allocates Augury of Penitence if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 懺悔之卜"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|40059"]}}}
 {"ref":"Allocates Augury of Penitence if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 懺悔之卜"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|40059"]}}}
 {"ref":"Allocates Avatar of the Hunt","better":0,"anointments":[{"roll":1,"oils":"1,11,11"}],"matchers":[{"string":"配置 狩獵之徵"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|36687"]}}}
-{"ref":"Allocates Avatar of the Wilds if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 獸性化身"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|55509"]}}}
-{"ref":"Allocates Avatar of the Wilds if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 獸性化身"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|55509"]}}}
+{"ref":"Allocates Avatar of the Wilds if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 獸性化身","superseded":true},{"string":"若禁忌烈焰上有符合的詞綴，配置 荒野化身"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|55509"]}}}
+{"ref":"Allocates Avatar of the Wilds if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 獸性化身","superseded":true},{"string":"若禁忌血肉上有符合的詞綴，配置 荒野化身"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|55509"]}}}
 {"ref":"Allocates Avidity if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 貪慾"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|44482"]}}}
 {"ref":"Allocates Avidity if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 貪慾"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|44482"]}}}
 {"ref":"Allocates Awe and Terror","better":0,"anointments":[{"roll":1,"oils":"7,7,11"}],"matchers":[{"string":"配置 敬畏與恐懼"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|40619"]}}}
@@ -3017,7 +3017,7 @@
 {"ref":"Allocates Bane of Legends if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 神話災難"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|62817"]}}}
 {"ref":"Allocates Bannerman","better":0,"anointments":[{"roll":1,"oils":"7,8,9"}],"matchers":[{"string":"配置 掌旗手"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|63033"]}}}
 {"ref":"Allocates Barbarism","better":0,"anointments":[{"roll":1,"oils":"11,11,13"}],"matchers":[{"string":"配置 野蠻"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|53118"]}}}
-{"ref":"Allocates Bastion Breaker","better":0,"anointments":[{"roll":1,"oils":"2,5,7"}],"matchers":[{"string":"配置 堡壘破壞者"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|65107"]}}}
+{"ref":"Allocates Bastion Breaker","better":0,"anointments":[{"roll":1,"oils":"2,5,7"}],"matchers":[{"string":"配置 堡壘破壞者","superseded":true},{"string":"配置 破壘者"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|65107"]}}}
 {"ref":"Allocates Bastion of Elements if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 元素壁壘"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|4917"]}}}
 {"ref":"Allocates Bastion of Elements if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 元素壁壘"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|4917"]}}}
 {"ref":"Allocates Bastion of Faith","better":0,"anointments":[{"roll":1,"oils":"0,9,9"}],"matchers":[{"string":"配置 信心堡壘"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|37512"]}}}
@@ -3040,7 +3040,7 @@
 {"ref":"Allocates Blood Siphon","better":0,"anointments":[{"roll":1,"oils":"6,11,12"}],"matchers":[{"string":"配置 血液抽取"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|25058"]}}}
 {"ref":"Allocates Bloodless","better":0,"anointments":[{"roll":1,"oils":"3,9,13"}],"matchers":[{"string":"配置 無血之體"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|6289"]}}}
 {"ref":"Allocates Bloodletting","better":0,"anointments":[{"roll":1,"oils":"6,6,12"}],"matchers":[{"string":"配置 出血"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|26294"]}}}
-{"ref":"Allocates Blunt Trauma","better":0,"anointments":[{"roll":1,"oils":"5,9,12"}],"matchers":[{"string":"配置 麻痺創傷"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|64395"]}}}
+{"ref":"Allocates Blunt Trauma","better":0,"anointments":[{"roll":1,"oils":"5,9,12"}],"matchers":[{"string":"配置 麻痺創傷","superseded":true},{"string":"配置 鈍器創傷"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|64395"]}}}
 {"ref":"Allocates Bomb Specialist if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 炸彈專家"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|47778"]}}}
 {"ref":"Allocates Bomb Specialist if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 炸彈專家"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|47778"]}}}
 {"ref":"Allocates Bone Barrier if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 骸骨屏障"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|14603"]}}}
@@ -3075,7 +3075,7 @@
 {"ref":"Allocates Chain Reaction if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 連鎖反應"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|38918"]}}}
 {"ref":"Allocates Champion if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 冠軍"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|39598"]}}}
 {"ref":"Allocates Champion if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 冠軍"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|39598"]}}}
-{"ref":"Allocates Champion of the Cause","better":0,"anointments":[{"roll":1,"oils":"5,9,13"}],"matchers":[{"string":"配置 起源"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|33718"]}}}
+{"ref":"Allocates Champion of the Cause","better":0,"anointments":[{"roll":1,"oils":"5,9,13"}],"matchers":[{"string":"配置 起源","superseded":true},{"string":"配置 大義鬥士"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|33718"]}}}
 {"ref":"Allocates Charisma","better":0,"anointments":[{"roll":1,"oils":"11,13,13"}],"matchers":[{"string":"配置 魅力"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|6799"]}}}
 {"ref":"Allocates Chieftain if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 酋長"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|57052"]}}}
 {"ref":"Allocates Chieftain if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 酋長"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|57052"]}}}
@@ -3087,7 +3087,7 @@
 {"ref":"Allocates Cleaving","better":0,"anointments":[{"roll":1,"oils":"2,3,10"}],"matchers":[{"string":"配置 劈砍"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|4940"]}}}
 {"ref":"Allocates Clever Construction","better":0,"anointments":[{"roll":1,"oils":"2,6,9"}],"matchers":[{"string":"配置 聰明的建設"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|55380"]}}}
 {"ref":"Allocates Clever Thief","better":0,"anointments":[{"roll":1,"oils":"1,4,7"}],"matchers":[{"string":"配置 聰穎盜賊"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|8001"]}}}
-{"ref":"Allocates Cloth and Chain","better":0,"anointments":[{"roll":1,"oils":"1,1,6"}],"matchers":[{"string":"配置 迅影秘術"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|21435"]}}}
+{"ref":"Allocates Cloth and Chain","better":0,"anointments":[{"roll":1,"oils":"1,1,6"}],"matchers":[{"string":"配置 迅影秘術","superseded":true},{"string":"配置 布衣與鎖甲"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|21435"]}}}
 {"ref":"Allocates Coldhearted Calculation","better":0,"anointments":[{"roll":1,"oils":"9,9,9"}],"matchers":[{"string":"配置 冷酷計算"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|24050"]}}}
 {"ref":"Allocates Colloidal Mixture","better":0,"anointments":[{"roll":1,"oils":"1,1,4"}],"matchers":[{"string":"配置 膠體混合物"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|34978"]}}}
 {"ref":"Allocates Combat Stamina","better":0,"anointments":[{"roll":1,"oils":"1,4,10"}],"matchers":[{"string":"配置 戰鬥精力"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|21413"]}}}
@@ -3096,10 +3096,10 @@
 {"ref":"Allocates Commander of Darkness if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 黑暗統御者"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|36017"]}}}
 {"ref":"Allocates Concussive Force","better":0,"anointments":[{"roll":1,"oils":"5,7,12"}],"matchers":[{"string":"配置 震爆之力"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|19794"]}}}
 {"ref":"Allocates Conjured Barrier","better":0,"anointments":[{"roll":1,"oils":"4,7,10"}],"matchers":[{"string":"配置 召喚屏障"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|45945"]}}}
-{"ref":"Allocates Constitution","better":0,"anointments":[{"roll":1,"oils":"5,8,13"}],"matchers":[{"string":"配置 構成"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|55485"]}}}
+{"ref":"Allocates Constitution","better":0,"anointments":[{"roll":1,"oils":"5,8,13"}],"matchers":[{"string":"配置 構成","superseded":true},{"string":"配置 體魄"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|55485"]}}}
 {"ref":"Allocates Contemplative Meditation","better":0,"anointments":[{"roll":1,"oils":"6,7,12"}],"matchers":[{"string":"配置 沉思冥想"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|20261"]}}}
-{"ref":"Allocates Conviction of Power if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 力量定罪"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|25651"]}}}
-{"ref":"Allocates Conviction of Power if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 力量定罪"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|25651"]}}}
+{"ref":"Allocates Conviction of Power if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 力量定罪","superseded":true},{"string":"若禁忌烈焰上有符合的詞綴，配置 力量信念"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|25651"]}}}
+{"ref":"Allocates Conviction of Power if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 力量定罪","superseded":true},{"string":"若禁忌血肉上有符合的詞綴，配置 力量信念"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|25651"]}}}
 {"ref":"Allocates Coordination","better":0,"anointments":[{"roll":1,"oils":"3,9,10"}],"matchers":[{"string":"配置 和諧之體"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|5823"]}}}
 {"ref":"Allocates Cornered Prey","better":0,"anointments":[{"roll":1,"oils":"3,3,7"}],"matchers":[{"string":"配置 甕中之鱉"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|45283"]}}}
 {"ref":"Allocates Corpse Pact if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 屍骨盟約"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|23572"]}}}
@@ -3126,7 +3126,7 @@
 {"ref":"Allocates Deathmarked if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 死亡印記"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|48239"]}}}
 {"ref":"Allocates Deathmarked if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 死亡印記"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|48239"]}}}
 {"ref":"Allocates Decay Ward","better":0,"anointments":[{"roll":1,"oils":"2,4,5"}],"matchers":[{"string":"配置 腐蝕之衛"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|21973"]}}}
-{"ref":"Allocates Deep Breaths","better":0,"anointments":[{"roll":1,"oils":"5,7,11"}],"matchers":[{"string":"配置 深呼吸"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|49445"]}}}
+{"ref":"Allocates Deep Breaths","better":0,"anointments":[{"roll":1,"oils":"5,7,11"}],"matchers":[{"string":"配置 深呼吸","superseded":true},{"string":"配置 深吸口氣"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|49445"]}}}
 {"ref":"Allocates Deep Thoughts","better":0,"anointments":[{"roll":1,"oils":"1,4,8"}],"matchers":[{"string":"配置 沉靜思維"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|24362"]}}}
 {"ref":"Allocates Deep Wisdom","better":0,"anointments":[{"roll":1,"oils":"2,5,5"}],"matchers":[{"string":"配置 沉靜智慧"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|27929"]}}}
 {"ref":"Allocates Defiance","better":0,"anointments":[{"roll":1,"oils":"3,5,10"}],"matchers":[{"string":"配置 反抗"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|49538"]}}}
@@ -3138,9 +3138,9 @@
 {"ref":"Allocates Deliberate Brutality","better":0,"anointments":[{"roll":1,"oils":"0,8,12"}],"matchers":[{"string":"配置 蓄意殘虐"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|56146"]}}}
 {"ref":"Allocates Demolitions Specialist if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 爆破天才"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|39834"]}}}
 {"ref":"Allocates Demolitions Specialist if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 爆破天才"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|39834"]}}}
-{"ref":"Allocates Depth Perception","better":0,"anointments":[{"roll":1,"oils":"3,4,5"}],"matchers":[{"string":"配置 潛意識"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|47484"]}}}
+{"ref":"Allocates Depth Perception","better":0,"anointments":[{"roll":1,"oils":"3,4,5"}],"matchers":[{"string":"配置 潛意識","superseded":true},{"string":"配置 深度知覺"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|47484"]}}}
 {"ref":"Allocates Dervish","better":0,"anointments":[{"roll":1,"oils":"6,9,10"}],"matchers":[{"string":"配置 修行之刃"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|25456"]}}}
-{"ref":"Allocates Destroyer","better":0,"anointments":[{"roll":1,"oils":"2,4,11"}],"matchers":[{"string":"配置 破壞者"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|34666"]}}}
+{"ref":"Allocates Destroyer","better":0,"anointments":[{"roll":1,"oils":"2,4,11"}],"matchers":[{"string":"配置 破壞者","superseded":true},{"string":"配置 摧毀者"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|34666"]}}}
 {"ref":"Allocates Destructive Apparatus","better":0,"anointments":[{"roll":1,"oils":"2,3,12"}],"matchers":[{"string":"配置 毀滅裝置"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|21602"]}}}
 {"ref":"Allocates Determined Survivor if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 堅定的倖存者"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|8419"]}}}
 {"ref":"Allocates Determined Survivor if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 堅定的倖存者"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|8419"]}}}
@@ -3149,13 +3149,13 @@
 {"ref":"Allocates Diamond Skin","better":0,"anointments":[{"roll":1,"oils":"2,5,11"}],"matchers":[{"string":"配置 珍鑽肌膚"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|65308"]}}}
 {"ref":"Allocates Dire Torment","better":0,"anointments":[{"roll":1,"oils":"6,9,11"}],"matchers":[{"string":"配置 悲慘折磨"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|9015"]}}}
 {"ref":"Allocates Dirty Techniques","better":0,"anointments":[{"roll":1,"oils":"3,11,13"}],"matchers":[{"string":"配置 三流手段"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|59766"]}}}
-{"ref":"Allocates Disciple of the Forbidden","better":0,"anointments":[{"roll":1,"oils":"10,10,10"}],"matchers":[{"string":"配置 禁忌紀律"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|9261"]}}}
+{"ref":"Allocates Disciple of the Forbidden","better":0,"anointments":[{"roll":1,"oils":"10,10,10"}],"matchers":[{"string":"配置 禁忌紀律","superseded":true},{"string":"配置 禁忌之徒"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|9261"]}}}
 {"ref":"Allocates Disciple of the Slaughter","better":0,"anointments":[{"roll":1,"oils":"3,4,13"}],"matchers":[{"string":"配置 屠宰者之使徒"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|58921"]}}}
 {"ref":"Allocates Disciple of the Unyielding","better":0,"anointments":[{"roll":1,"oils":"8,9,11"}],"matchers":[{"string":"配置 不屈之徒"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|64882"]}}}
 {"ref":"Allocates Discipline and Training","better":0,"anointments":[{"roll":1,"oils":"10,12,12"}],"matchers":[{"string":"配置 嚴峻訓練"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|41472"]}}}
 {"ref":"Allocates Discord Artisan","better":0,"anointments":[{"roll":1,"oils":"3,5,6"}],"matchers":[{"string":"配置 不諧匠師"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|35233"]}}}
 {"ref":"Allocates Disemboweling","better":0,"anointments":[{"roll":1,"oils":"4,8,13"}],"matchers":[{"string":"配置 開腸剖肚"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|58831"]}}}
-{"ref":"Allocates Disintegration","better":0,"anointments":[{"roll":1,"oils":"8,10,10"}],"matchers":[{"string":"配置 異變"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|52031"]}}}
+{"ref":"Allocates Disintegration","better":0,"anointments":[{"roll":1,"oils":"8,10,10"}],"matchers":[{"string":"配置 異變","superseded":true},{"string":"配置 崩解"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|52031"]}}}
 {"ref":"Allocates Dismembering","better":0,"anointments":[{"roll":1,"oils":"8,11,13"}],"matchers":[{"string":"配置 肢解"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|37647"]}}}
 {"ref":"Allocates Divine Fervour","better":0,"anointments":[{"roll":1,"oils":"4,5,7"}],"matchers":[{"string":"配置 聖情"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|30693"]}}}
 {"ref":"Allocates Divine Fury","better":0,"anointments":[{"roll":1,"oils":"3,3,10"}],"matchers":[{"string":"配置 聖之狂怒"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|44347"]}}}
@@ -3169,7 +3169,7 @@
 {"ref":"Allocates Dynamo","better":0,"anointments":[{"roll":1,"oils":"1,2,6"}],"matchers":[{"string":"配置 蓄電"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|24256"]}}}
 {"ref":"Allocates Eagle Eye","better":0,"anointments":[{"roll":1,"oils":"1,1,11"}],"matchers":[{"string":"配置 鷹眼"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|2225"]}}}
 {"ref":"Allocates Efficient Explosives","better":0,"anointments":[{"roll":1,"oils":"2,5,8"}],"matchers":[{"string":"配置 高能炸彈"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|44102"]}}}
-{"ref":"Allocates Elder Power","better":0,"anointments":[{"roll":1,"oils":"5,5,8"}],"matchers":[{"string":"配置 智慧之力"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|41476"]}}}
+{"ref":"Allocates Elder Power","better":0,"anointments":[{"roll":1,"oils":"5,5,8"}],"matchers":[{"string":"配置 智慧之力","superseded":true},{"string":"配置 尊師之力"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|41476"]}}}
 {"ref":"Allocates Elemental Focus","better":0,"anointments":[{"roll":1,"oils":"2,3,6"}],"matchers":[{"string":"配置 元素專注"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|42686"]}}}
 {"ref":"Allocates Elementalist if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 元素使"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|8281"]}}}
 {"ref":"Allocates Elementalist if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 元素使"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|8281"]}}}
@@ -3193,7 +3193,7 @@
 {"ref":"Allocates Essence Glutton if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 吞噬精華"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|3554"]}}}
 {"ref":"Allocates Essence Glutton if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 吞噬精華"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|3554"]}}}
 {"ref":"Allocates Essence Infusion","better":0,"anointments":[{"roll":1,"oils":"1,3,4"}],"matchers":[{"string":"配置 精髓灌注"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|23690"]}}}
-{"ref":"Allocates Essence Sap","better":0,"anointments":[{"roll":1,"oils":"5,8,10"}],"matchers":[{"string":"配置 靈魂虛空"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|65053"]}}}
+{"ref":"Allocates Essence Sap","better":0,"anointments":[{"roll":1,"oils":"5,8,10"}],"matchers":[{"string":"配置 靈魂虛空","superseded":true},{"string":"配置 精華抽取"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|65053"]}}}
 {"ref":"Allocates Essence Surge","better":0,"anointments":[{"roll":1,"oils":"5,12,13"}],"matchers":[{"string":"配置 精純之潮"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|62577"]}}}
 {"ref":"Allocates Ethereal Feast","better":0,"anointments":[{"roll":1,"oils":"3,12,13"}],"matchers":[{"string":"配置 虛空盛宴"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|15852"]}}}
 {"ref":"Allocates Exceptional Performance","better":0,"anointments":[{"roll":1,"oils":"1,3,10"}],"matchers":[{"string":"配置 卓越的表現"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|53042"]}}}
@@ -3207,18 +3207,18 @@
 {"ref":"Allocates Explosive Impact","better":0,"anointments":[{"roll":1,"oils":"4,6,11"}],"matchers":[{"string":"配置 暴烈衝擊"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|24324"]}}}
 {"ref":"Allocates Explosive Runes","better":0,"anointments":[{"roll":1,"oils":"3,6,6"}],"matchers":[{"string":"配置 爆裂魔符"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|29861"]}}}
 {"ref":"Allocates Faith and Steel","better":0,"anointments":[{"roll":1,"oils":"2,10,13"}],"matchers":[{"string":"配置 鋼之信仰"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|35958"]}}}
-{"ref":"Allocates Fangs of Frost","better":0,"anointments":[{"roll":1,"oils":"2,2,12"}],"matchers":[{"string":"配置 刺骨寒冰"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|57199"]}}}
+{"ref":"Allocates Fangs of Frost","better":0,"anointments":[{"roll":1,"oils":"2,2,12"}],"matchers":[{"string":"配置 刺骨寒冰","superseded":true},{"string":"配置 霜寒之牙"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|57199"]}}}
 {"ref":"Allocates Fangs of the Viper","better":0,"anointments":[{"roll":1,"oils":"1,5,6"}],"matchers":[{"string":"配置 毒蛇之牙"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|46408"]}}}
 {"ref":"Allocates Far Shot if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 狙擊"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|45313"]}}}
 {"ref":"Allocates Far Shot if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 狙擊"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|45313"]}}}
 {"ref":"Allocates Farsight","better":0,"anointments":[{"roll":1,"oils":"4,4,9"}],"matchers":[{"string":"配置 遠視"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|47743"]}}}
 {"ref":"Allocates Fatal Blade","better":0,"anointments":[{"roll":1,"oils":"3,11,11"}],"matchers":[{"string":"配置 致命之刃"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|1568"]}}}
-{"ref":"Allocates Fatal Flourish if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 致命繁榮"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|42469"]}}}
-{"ref":"Allocates Fatal Flourish if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 致命繁榮"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|42469"]}}}
+{"ref":"Allocates Fatal Flourish if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 致命繁榮","superseded":true},{"string":"若禁忌烈焰上有符合的詞綴，配置 致命揮舞"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|42469"]}}}
+{"ref":"Allocates Fatal Flourish if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 致命繁榮","superseded":true},{"string":"若禁忌血肉上有符合的詞綴，配置 致命揮舞"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|42469"]}}}
 {"ref":"Allocates Fatal Toxins","better":0,"anointments":[{"roll":1,"oils":"1,8,12"}],"matchers":[{"string":"配置 致命之毒"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|31359"]}}}
 {"ref":"Allocates Fearsome Force","better":0,"anointments":[{"roll":1,"oils":"5,6,9"}],"matchers":[{"string":"配置 恐怖之力"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|35685"]}}}
 {"ref":"Allocates Feline Swiftness","better":0,"anointments":[{"roll":1,"oils":"1,1,5"}],"matchers":[{"string":"配置 貓族迅捷"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|18357"]}}}
-{"ref":"Allocates Feller of Foes","better":0,"anointments":[{"roll":1,"oils":"3,10,11"}],"matchers":[{"string":"配置 開墾之敵"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|52090"]}}}
+{"ref":"Allocates Feller of Foes","better":0,"anointments":[{"roll":1,"oils":"3,10,11"}],"matchers":[{"string":"配置 開墾之敵","superseded":true},{"string":"配置 伐敵者"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|52090"]}}}
 {"ref":"Allocates Fending","better":0,"anointments":[{"roll":1,"oils":"2,2,4"}],"matchers":[{"string":"配置 自衛術"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|30160"]}}}
 {"ref":"Allocates Fervour","better":0,"anointments":[{"roll":1,"oils":"3,10,12"}],"matchers":[{"string":"配置 激情"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|48614"]}}}
 {"ref":"Allocates Field Medicine","better":0,"anointments":[{"roll":1,"oils":"7,9,10"}],"matchers":[{"string":"配置 野戰醫學"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|41137"]}}}
@@ -3268,14 +3268,14 @@
 {"ref":"Allocates Goliath","better":0,"anointments":[{"roll":1,"oils":"2,3,13"}],"matchers":[{"string":"配置 巨靈"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|38922"]}}}
 {"ref":"Allocates Gore Dancer if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 血腥舞者"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|29630"]}}}
 {"ref":"Allocates Gore Dancer if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 血腥舞者"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|29630"]}}}
-{"ref":"Allocates Graceful Assault","better":0,"anointments":[{"roll":1,"oils":"8,8,10"}],"matchers":[{"string":"配置 權貴攻擊"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|18703"]}}}
-{"ref":"Allocates Gratuitous Violence if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 免費暴力"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|27864"]}}}
-{"ref":"Allocates Gratuitous Violence if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 免費暴力"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|27864"]}}}
+{"ref":"Allocates Graceful Assault","better":0,"anointments":[{"roll":1,"oils":"8,8,10"}],"matchers":[{"string":"配置 權貴攻擊","superseded":true},{"string":"配置 優雅突襲"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|18703"]}}}
+{"ref":"Allocates Gratuitous Violence if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 免費暴力","superseded":true},{"string":"若禁忌烈焰上有符合的詞綴，配置 無端暴力"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|27864"]}}}
+{"ref":"Allocates Gratuitous Violence if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 免費暴力","superseded":true},{"string":"若禁忌血肉上有符合的詞綴，配置 無端暴力"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|27864"]}}}
 {"ref":"Allocates Grave Intentions","better":0,"anointments":[{"roll":1,"oils":"2,8,8"}],"matchers":[{"string":"配置 亡靈之誓"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|61982"]}}}
 {"ref":"Allocates Gravepact","better":0,"anointments":[{"roll":1,"oils":"6,10,10"}],"matchers":[{"string":"配置 亡靈之約"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|27308"]}}}
 {"ref":"Allocates Growth and Decay","better":0,"anointments":[{"roll":1,"oils":"1,5,13"}],"matchers":[{"string":"配置 成長與衰變"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|9864"]}}}
-{"resolve":{"strat":"trivial-merge"},"stats":[{"ref":"Allocates Guardian if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 守護者"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|30919"]}}},{"ref":"Allocates Warden if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 守護者"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|8656"]}}}]}
-{"resolve":{"strat":"trivial-merge"},"stats":[{"ref":"Allocates Guardian if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 守護者"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|30919"]}}},{"ref":"Allocates Warden if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 守護者"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|8656"]}}}]}
+{"resolve":{"strat":"trivial-merge"},"stats":[{"ref":"Allocates Guardian if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 守護者"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|30919"]}}},{"ref":"Allocates Warden if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 守護者","superseded":true},{"string":"若禁忌烈焰上有符合的詞綴，配置 守林人"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|8656"]}}}]}
+{"resolve":{"strat":"trivial-merge"},"stats":[{"ref":"Allocates Guardian if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 守護者"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|30919"]}}},{"ref":"Allocates Warden if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 守護者","superseded":true},{"string":"若禁忌血肉上有符合的詞綴，配置 守林人"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|8656"]}}}]}
 {"ref":"Allocates Hardened Scars","better":0,"anointments":[{"roll":1,"oils":"0,6,9"}],"matchers":[{"string":"配置 硬疤"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|56207"]}}}
 {"ref":"Allocates Harmony of Purpose if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 和諧之源"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|61372"]}}}
 {"ref":"Allocates Harmony of Purpose if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 和諧之源"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|61372"]}}}
@@ -3355,8 +3355,8 @@
 {"ref":"Allocates Juggernaut","better":0,"anointments":[{"roll":1,"oils":"3,5,11"}],"matchers":[{"string":"配置 戰神"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|33287"]}}}
 {"ref":"Allocates Juggernaut if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 勇士"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|61072"]}}}
 {"ref":"Allocates Juggernaut if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 勇士"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|61072"]}}}
-{"ref":"Allocates Kinetic Impacts","better":0,"anointments":[{"roll":1,"oils":"3,6,8"}],"matchers":[{"string":"配置 動能影響"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|35436"]}}}
-{"ref":"Allocates King of the Hill","better":0,"anointments":[{"roll":1,"oils":"4,8,12"}],"matchers":[{"string":"配置 強弩之弦"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|49459"]}}}
+{"ref":"Allocates Kinetic Impacts","better":0,"anointments":[{"roll":1,"oils":"3,6,8"}],"matchers":[{"string":"配置 動能影響","superseded":true},{"string":"配置 動能衝擊"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|35436"]}}}
+{"ref":"Allocates King of the Hill","better":0,"anointments":[{"roll":1,"oils":"4,8,12"}],"matchers":[{"string":"配置 強弩之弦","superseded":true},{"string":"配置 山丘之王"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|49459"]}}}
 {"ref":"Allocates Knife in the Back if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 背中之刃"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|21264"]}}}
 {"ref":"Allocates Knife in the Back if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 背中之刃"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|21264"]}}}
 {"ref":"Allocates Knowledge Barrier","better":0,"anointments":[{"roll":1,"oils":"0,11,12"}],"matchers":[{"string":"配置 知識屏障"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|1365"]}}}
@@ -3373,18 +3373,18 @@
 {"ref":"Allocates Liege of the Primordial if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 先祖諸王"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|56461"]}}}
 {"ref":"Allocates Life Raker","better":0,"anointments":[{"roll":1,"oils":"2,4,12"}],"matchers":[{"string":"配置 生靈收割者"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|28503"]}}}
 {"ref":"Allocates Light Eater","better":0,"anointments":[{"roll":1,"oils":"6,8,9"}],"matchers":[{"string":"配置 嗜光者"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|9567"]}}}
-{"ref":"Allocates Light of Divinity","better":0,"anointments":[{"roll":1,"oils":"8,9,9"}],"matchers":[{"string":"配置 神聖啟蒙"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|54694"]}}}
+{"ref":"Allocates Light of Divinity","better":0,"anointments":[{"roll":1,"oils":"8,9,9"}],"matchers":[{"string":"配置 神聖啟蒙","superseded":true},{"string":"配置 神聖之光"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|54694"]}}}
 {"ref":"Allocates Lightning Walker","better":0,"anointments":[{"roll":1,"oils":"2,2,10"}],"matchers":[{"string":"配置 雷靈之道"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|30225"]}}}
 {"ref":"Allocates Like Clockwork if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 規律化"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|51462"]}}}
 {"ref":"Allocates Like Clockwork if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 規律化"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|51462"]}}}
 {"ref":"Allocates Longshot","better":0,"anointments":[{"roll":1,"oils":"5,9,11"}],"matchers":[{"string":"配置 長射"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|8458"]}}}
 {"ref":"Allocates Lord of the Dead","better":0,"anointments":[{"roll":1,"oils":"4,9,12"}],"matchers":[{"string":"配置 亡靈之主"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|27611"]}}}
-{"ref":"Allocates Lust for Carnage","better":0,"anointments":[{"roll":1,"oils":"5,11,13"}],"matchers":[{"string":"配置 汲血者"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|63422"]}}}
+{"ref":"Allocates Lust for Carnage","better":0,"anointments":[{"roll":1,"oils":"5,11,13"}],"matchers":[{"string":"配置 汲血者","superseded":true},{"string":"配置 嗜殺之慾"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|63422"]}}}
 {"ref":"Allocates Magmatic Strikes","better":0,"anointments":[{"roll":1,"oils":"3,10,10"}],"matchers":[{"string":"配置 岩漿之擊"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|5430"]}}}
 {"ref":"Allocates Malicious Intent","better":0,"anointments":[{"roll":1,"oils":"7,7,12"}],"matchers":[{"string":"配置 惡之意"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|34591"]}}}
 {"ref":"Allocates Mana Flows","better":0,"anointments":[{"roll":1,"oils":"1,11,13"}],"matchers":[{"string":"配置 魔力之流"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|54776"]}}}
 {"ref":"Allocates Mark the Prey","better":0,"anointments":[{"roll":1,"oils":"2,7,10"}],"matchers":[{"string":"配置 標記獵物"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|32681"]}}}
-{"ref":"Allocates Marked for Death","better":0,"anointments":[{"roll":1,"oils":"2,7,12"}],"matchers":[{"string":"配置 死亡印記"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|41595"]}}}
+{"ref":"Allocates Marked for Death","better":0,"anointments":[{"roll":1,"oils":"2,7,12"}],"matchers":[{"string":"配置 死亡印記","superseded":true},{"string":"配置 標記死亡"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|41595"]}}}
 {"ref":"Allocates Marshal of Divinity if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 神志元帥"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|3458"]}}}
 {"ref":"Allocates Marshal of Divinity if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 神志元帥"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|3458"]}}}
 {"ref":"Allocates Martial Experience","better":0,"anointments":[{"roll":1,"oils":"1,4,6"}],"matchers":[{"string":"配置 武術經驗"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|27301"]}}}
@@ -3428,8 +3428,8 @@
 {"ref":"Allocates Multishot","better":0,"anointments":[{"roll":1,"oils":"7,10,12"}],"matchers":[{"string":"配置 多重射擊"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|13375"]}}}
 {"ref":"Allocates Mystic Bulwark","better":0,"anointments":[{"roll":1,"oils":"5,5,5"}],"matchers":[{"string":"配置 神幻壁壘"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|18174"]}}}
 {"ref":"Allocates Mystic Talents","better":0,"anointments":[{"roll":1,"oils":"0,6,11"}],"matchers":[{"string":"配置 神幻天賦"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|62596"]}}}
-{"ref":"Allocates Mystical Infusion if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 神秘化身"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|1945"]}}}
-{"ref":"Allocates Mystical Infusion if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 神秘化身"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|1945"]}}}
+{"ref":"Allocates Mystical Infusion if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 神秘化身","superseded":true},{"string":"若禁忌烈焰上有符合的詞綴，配置 神秘灌注"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|1945"]}}}
+{"ref":"Allocates Mystical Infusion if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 神秘化身","superseded":true},{"string":"若禁忌血肉上有符合的詞綴，配置 神秘灌注"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|1945"]}}}
 {"ref":"Allocates Mysticism","better":0,"anointments":[{"roll":1,"oils":"5,6,11"}],"matchers":[{"string":"配置 玄幻之意"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|44824"]}}}
 {"ref":"Allocates Natural Authority","better":0,"anointments":[{"roll":1,"oils":"2,12,13"}],"matchers":[{"string":"配置 自然權威"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|31257"]}}}
 {"ref":"Allocates Natural Remedies","better":0,"anointments":[{"roll":1,"oils":"7,11,12"}],"matchers":[{"string":"配置 自然療法"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|41420"]}}}
@@ -3445,7 +3445,7 @@
 {"ref":"Allocates Ngamahu, Flame's Advance if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 火徒．拿瑪乎"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|50692"]}}}
 {"ref":"Allocates Ngamahu, Flame's Advance if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 火徒．拿瑪乎"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|50692"]}}}
 {"ref":"Allocates Nightstalker","better":0,"anointments":[{"roll":1,"oils":"2,5,13"}],"matchers":[{"string":"配置 夜襲"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|56276"]}}}
-{"ref":"Allocates Nimbleness","better":0,"anointments":[{"roll":1,"oils":"3,9,9"}],"matchers":[{"string":"配置 巧語"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|9788"]}}}
+{"ref":"Allocates Nimbleness","better":0,"anointments":[{"roll":1,"oils":"3,9,9"}],"matchers":[{"string":"配置 巧語","superseded":true},{"string":"配置 輕巧"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|9788"]}}}
 {"ref":"Allocates Nine Lives if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 九命"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|27602"]}}}
 {"ref":"Allocates Nine Lives if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 九命"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|27602"]}}}
 {"ref":"Allocates No Forgiveness","better":0,"anointments":[{"roll":1,"oils":"0,10,13"}],"matchers":[{"string":"配置 絕不饒恕"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|20605"]}}}
@@ -3471,7 +3471,7 @@
 {"ref":"Allocates Overprepared","better":0,"anointments":[{"roll":1,"oils":"3,3,6"}],"matchers":[{"string":"配置 過度準備"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|27190"]}}}
 {"ref":"Allocates Overwhelm if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 鎮壓"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|17315"]}}}
 {"ref":"Allocates Overwhelm if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 鎮壓"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|17315"]}}}
-{"ref":"Allocates Pain Forger","better":0,"anointments":[{"roll":1,"oils":"1,8,8"}],"matchers":[{"string":"配置 偽痛"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|39657"]}}}
+{"ref":"Allocates Pain Forger","better":0,"anointments":[{"roll":1,"oils":"1,8,8"}],"matchers":[{"string":"配置 偽痛","superseded":true},{"string":"配置 苦痛鍛造者"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|39657"]}}}
 {"ref":"Allocates Path of the Hunter","better":0,"anointments":[{"roll":1,"oils":"1,4,4"}],"matchers":[{"string":"配置 獵人之路"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|19506"]}}}
 {"ref":"Allocates Path of the Savant","better":0,"anointments":[{"roll":1,"oils":"2,3,4"}],"matchers":[{"string":"配置 賢者之路"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|37078"]}}}
 {"ref":"Allocates Path of the Warrior","better":0,"anointments":[{"roll":1,"oils":"3,3,3"}],"matchers":[{"string":"配置 戰士之路"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|12702"]}}}
@@ -3487,7 +3487,7 @@
 {"ref":"Allocates Pious Path if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 廉簡之途"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|32816"]}}}
 {"ref":"Allocates Plaguebringer if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 瘟疫帶原者"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|11490"]}}}
 {"ref":"Allocates Plaguebringer if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 瘟疫帶原者"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|11490"]}}}
-{"ref":"Allocates Poisonous Fangs","better":0,"anointments":[{"roll":1,"oils":"1,3,6"}],"matchers":[{"string":"配置 迴轉死神"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|529"]}}}
+{"ref":"Allocates Poisonous Fangs","better":0,"anointments":[{"roll":1,"oils":"1,3,6"}],"matchers":[{"string":"配置 迴轉死神","superseded":true},{"string":"配置 劇毒之牙"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|529"]}}}
 {"ref":"Allocates Polymath if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 博學"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|55867"]}}}
 {"ref":"Allocates Polymath if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 博學"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|55867"]}}}
 {"ref":"Allocates Potency of Will","better":0,"anointments":[{"roll":1,"oils":"2,2,11"}],"matchers":[{"string":"配置 意志之力"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|1006"]}}}
@@ -3498,7 +3498,7 @@
 {"ref":"Allocates Precision","better":0,"anointments":[{"roll":1,"oils":"2,2,9"}],"matchers":[{"string":"配置 精準"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|6237"]}}}
 {"ref":"Allocates Prepared Response","better":0,"anointments":[{"roll":1,"oils":"1,2,2"}],"matchers":[{"string":"配置 預備反應"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|2599"]}}}
 {"ref":"Allocates Presage","better":0,"anointments":[{"roll":1,"oils":"3,7,13"}],"matchers":[{"string":"配置 預示"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|38246"]}}}
-{"ref":"Allocates Primal Manifestation","better":0,"anointments":[{"roll":1,"oils":"3,4,9"}],"matchers":[{"string":"配置 圖騰專精"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|63635"]}}}
+{"ref":"Allocates Primal Manifestation","better":0,"anointments":[{"roll":1,"oils":"3,4,9"}],"matchers":[{"string":"配置 圖騰專精","superseded":true},{"string":"配置 原始顯化"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|63635"]}}}
 {"ref":"Allocates Primal Spirit","better":0,"anointments":[{"roll":1,"oils":"2,6,10"}],"matchers":[{"string":"配置 原始精神"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|25178"]}}}
 {"ref":"Allocates Primeval Force","better":0,"anointments":[{"roll":1,"oils":"6,8,12"}],"matchers":[{"string":"配置 太古之力"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|36281"]}}}
 {"ref":"Allocates Prism Weave","better":0,"anointments":[{"roll":1,"oils":"2,11,11"}],"matchers":[{"string":"配置 綾彩交織"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|63944"]}}}
@@ -3531,10 +3531,10 @@
 {"ref":"Allocates Renowned Deeds","better":0,"anointments":[{"roll":1,"oils":"7,11,13"}],"matchers":[{"string":"配置 著名事蹟"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|58382"]}}}
 {"ref":"Allocates Replenishing Remedies","better":0,"anointments":[{"roll":1,"oils":"2,3,7"}],"matchers":[{"string":"配置 補藥"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|50690"]}}}
 {"ref":"Allocates Resourcefulness","better":0,"anointments":[{"roll":1,"oils":"4,11,11"}],"matchers":[{"string":"配置 足智多謀"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|41989"]}}}
-{"resolve":{"strat":"trivial-merge"},"stats":[{"ref":"Allocates Retaliation","better":0,"anointments":[{"roll":1,"oils":"4,9,11"}],"matchers":[{"string":"配置 復仇"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|12878"]}}},{"ref":"Allocates Vengeance","better":0,"anointments":[{"roll":1,"oils":"3,11,12"}],"matchers":[{"string":"配置 復仇"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|53840"]}}}]}
-{"ref":"Allocates Retribution","better":0,"anointments":[{"roll":1,"oils":"1,9,11"}],"matchers":[{"string":"配置 制裁"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|49254"]}}}
+{"resolve":{"strat":"trivial-merge"},"stats":[{"ref":"Allocates Retaliation","better":0,"anointments":[{"roll":1,"oils":"4,9,11"}],"matchers":[{"string":"配置 復仇","superseded":true},{"string":"配置 報復"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|12878"]}}},{"ref":"Allocates Vengeance","better":0,"anointments":[{"roll":1,"oils":"3,11,12"}],"matchers":[{"string":"配置 復仇"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|53840"]}}}]}
+{"ref":"Allocates Retribution","better":0,"anointments":[{"roll":1,"oils":"1,9,11"}],"matchers":[{"string":"配置 制裁","superseded":true},{"string":"配置 報應"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|49254"]}}}
 {"ref":"Allocates Revelry","better":0,"anointments":[{"roll":1,"oils":"3,8,10"}],"matchers":[{"string":"配置 狂歡"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|14813"]}}}
-{"ref":"Allocates Revenge of the Hunted","better":0,"anointments":[{"roll":1,"oils":"10,12,13"}],"matchers":[{"string":"配置 死亡通緝"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|53114"]}}}
+{"ref":"Allocates Revenge of the Hunted","better":0,"anointments":[{"roll":1,"oils":"10,12,13"}],"matchers":[{"string":"配置 死亡通緝","superseded":true},{"string":"配置 獵物的復仇"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|53114"]}}}
 {"ref":"Allocates Ribcage Crusher","better":0,"anointments":[{"roll":1,"oils":"5,10,10"}],"matchers":[{"string":"配置 碎胸者"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|24721"]}}}
 {"ref":"Allocates Ricochet if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 彈射"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|61627"]}}}
 {"ref":"Allocates Ricochet if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 彈射"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|61627"]}}}
@@ -3550,15 +3550,15 @@
 {"ref":"Allocates Roaring Challenge","better":0,"anointments":[{"roll":1,"oils":"1,2,4"}],"matchers":[{"string":"配置 咆哮挑戰"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|64226"]}}}
 {"ref":"Allocates Robust","better":0,"anointments":[{"roll":1,"oils":"1,4,5"}],"matchers":[{"string":"配置 堅固"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|31033"]}}}
 {"ref":"Allocates Runesmith","better":0,"anointments":[{"roll":1,"oils":"6,9,12"}],"matchers":[{"string":"配置 魔符匠"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|21389"]}}}
-{"ref":"Allocates Saboteur","better":0,"anointments":[{"roll":1,"oils":"1,5,5"}],"matchers":[{"string":"配置 怠工者"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|46965"]}}}
+{"ref":"Allocates Saboteur","better":0,"anointments":[{"roll":1,"oils":"1,5,5"}],"matchers":[{"string":"配置 怠工者","superseded":true},{"string":"配置 破壞者"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|46965"]}}}
 {"ref":"Allocates Saboteur if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 破壞者"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|58827"]}}}
 {"ref":"Allocates Saboteur if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 破壞者"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|58827"]}}}
 {"ref":"Allocates Sacrifice","better":0,"anointments":[{"roll":1,"oils":"5,6,8"}],"matchers":[{"string":"配置 獻祭"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|36915"]}}}
 {"ref":"Allocates Safeguard","better":0,"anointments":[{"roll":1,"oils":"4,6,10"}],"matchers":[{"string":"配置 庇護"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|6967"]}}}
 {"ref":"Allocates Sanctity","better":0,"anointments":[{"roll":1,"oils":"6,6,10"}],"matchers":[{"string":"配置 聖潔之力"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|26866"]}}}
 {"ref":"Allocates Sanctuary","better":0,"anointments":[{"roll":1,"oils":"3,5,5"}],"matchers":[{"string":"配置 庇護聖所"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|20832"]}}}
-{"ref":"Allocates Sanctuary if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 聖所"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|39790"]}}}
-{"ref":"Allocates Sanctuary if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 聖所"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|39790"]}}}
+{"ref":"Allocates Sanctuary if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 聖所","superseded":true},{"string":"若禁忌烈焰上有符合的詞綴，配置 庇護聖所"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|39790"]}}}
+{"ref":"Allocates Sanctuary if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 聖所","superseded":true},{"string":"若禁忌血肉上有符合的詞綴，配置 庇護聖所"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|39790"]}}}
 {"ref":"Allocates Sanctuary of Thought if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 意識聖殿"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|29026"]}}}
 {"ref":"Allocates Sanctuary of Thought if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 意識聖殿"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|29026"]}}}
 {"ref":"Allocates Sanctum of Thought","better":0,"anointments":[{"roll":1,"oils":"6,6,13"}],"matchers":[{"string":"配置 靈思聖殿"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|27137"]}}}
@@ -3576,13 +3576,13 @@
 {"ref":"Allocates Selective Precision","better":0,"anointments":[{"roll":1,"oils":"0,9,13"}],"matchers":[{"string":"配置 細選精準"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|24358"]}}}
 {"ref":"Allocates Sentinel","better":0,"anointments":[{"roll":1,"oils":"4,5,6"}],"matchers":[{"string":"配置 哨兵"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|19144"]}}}
 {"ref":"Allocates Serpent Stance","better":0,"anointments":[{"roll":1,"oils":"6,10,11"}],"matchers":[{"string":"配置 蛇影戰陣"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|22702"]}}}
-{"ref":"Allocates Serpentine Spellslinger","better":0,"anointments":[{"roll":1,"oils":"7,8,11"}],"matchers":[{"string":"配置 毒蛇法術回音"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|58032"]}}}
+{"ref":"Allocates Serpentine Spellslinger","better":0,"anointments":[{"roll":1,"oils":"7,8,11"}],"matchers":[{"string":"配置 毒蛇法術回音","superseded":true},{"string":"配置 毒蛇法師"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|58032"]}}}
 {"ref":"Allocates Settling Ash","better":0,"anointments":[{"roll":1,"oils":"1,7,13"}],"matchers":[{"string":"配置 沉澱灰燼"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|55194"]}}}
 {"ref":"Allocates Shadowed Blood if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 影血"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|29844"]}}}
 {"ref":"Allocates Shadowed Blood if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 影血"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|29844"]}}}
 {"ref":"Allocates Shaman's Dominion","better":0,"anointments":[{"roll":1,"oils":"1,6,12"}],"matchers":[{"string":"配置 薩滿領地"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|44562"]}}}
 {"ref":"Allocates Shamanistic Fury","better":0,"anointments":[{"roll":1,"oils":"2,3,8"}],"matchers":[{"string":"配置 薩滿之怒"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|53757"]}}}
-{"ref":"Allocates Shaper","better":0,"anointments":[{"roll":1,"oils":"1,9,9"}],"matchers":[{"string":"配置 聖杯"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|63976"]}}}
+{"ref":"Allocates Shaper","better":0,"anointments":[{"roll":1,"oils":"1,9,9"}],"matchers":[{"string":"配置 聖杯","superseded":true},{"string":"配置 塑界者"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|63976"]}}}
 {"ref":"Allocates Shaper of Flames if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 火焰雕塑者"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|53123"]}}}
 {"ref":"Allocates Shaper of Flames if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 火焰雕塑者"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|53123"]}}}
 {"ref":"Allocates Shaper of Storms if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 風暴雕塑者"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|27038"]}}}
@@ -3617,7 +3617,7 @@
 {"ref":"Allocates Spiked Bulwark","better":0,"anointments":[{"roll":1,"oils":"1,2,5"}],"matchers":[{"string":"配置 荊棘壁壘"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|10542"]}}}
 {"ref":"Allocates Spinecruncher","better":0,"anointments":[{"roll":1,"oils":"4,8,8"}],"matchers":[{"string":"配置 碎脊者"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|5126"]}}}
 {"ref":"Allocates Spirit of War","better":0,"anointments":[{"roll":1,"oils":"1,8,13"}],"matchers":[{"string":"配置 戰爭之靈"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|27422"]}}}
-{"ref":"Allocates Spirit Void","better":0,"anointments":[{"roll":1,"oils":"4,4,4"}],"matchers":[{"string":"配置 精華抽取"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|1382"]}}}
+{"ref":"Allocates Spirit Void","better":0,"anointments":[{"roll":1,"oils":"4,4,4"}],"matchers":[{"string":"配置 精華抽取","superseded":true},{"string":"配置 靈魂虛空"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|1382"]}}}
 {"ref":"Allocates Spiritual Aid","better":0,"anointments":[{"roll":1,"oils":"12,12,13"}],"matchers":[{"string":"配置 精神救助"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|4177"]}}}
 {"ref":"Allocates Spiritual Command","better":0,"anointments":[{"roll":1,"oils":"2,2,13"}],"matchers":[{"string":"配置 精神號令"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|43689"]}}}
 {"ref":"Allocates Split Shot","better":0,"anointments":[{"roll":1,"oils":"1,7,11"}],"matchers":[{"string":"配置 裂化射擊"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|7069"]}}}
@@ -3650,8 +3650,8 @@
 {"ref":"Allocates Throatseeker","better":0,"anointments":[{"roll":1,"oils":"3,8,11"}],"matchers":[{"string":"配置 割喉者"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|47306"]}}}
 {"ref":"Allocates Time of Need if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 緊急時刻"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|55146"]}}}
 {"ref":"Allocates Time of Need if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 緊急時刻"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|55146"]}}}
-{"ref":"Allocates Tireless","better":0,"anointments":[{"roll":1,"oils":"11,11,11"}],"matchers":[{"string":"配置 冷酷"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|65108"]}}}
-{"ref":"Allocates Titanic Impacts","better":0,"anointments":[{"roll":1,"oils":"3,4,11"}],"matchers":[{"string":"配置 巨大影響"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|32059"]}}}
+{"ref":"Allocates Tireless","better":0,"anointments":[{"roll":1,"oils":"11,11,11"}],"matchers":[{"string":"配置 冷酷","superseded":true},{"string":"配置 不倦"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|65108"]}}}
+{"ref":"Allocates Titanic Impacts","better":0,"anointments":[{"roll":1,"oils":"3,4,11"}],"matchers":[{"string":"配置 巨大影響","superseded":true},{"string":"配置 巨力衝擊"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|32059"]}}}
 {"ref":"Allocates Tolerance","better":0,"anointments":[{"roll":1,"oils":"9,9,11"}],"matchers":[{"string":"配置 寬容"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|10511"]}}}
 {"ref":"Allocates Totemic Zeal","better":0,"anointments":[{"roll":1,"oils":"4,4,8"}],"matchers":[{"string":"配置 熱情圖騰"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|63933"]}}}
 {"ref":"Allocates Toxic Delivery if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 毒物走私"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|19598"]}}}
@@ -3686,8 +3686,8 @@
 {"ref":"Allocates Unnatural Strength if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 超自然之力"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|65153"]}}}
 {"ref":"Allocates Unrelenting if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 殺無赦"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|56789"]}}}
 {"ref":"Allocates Unrelenting if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 殺無赦"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|56789"]}}}
-{"ref":"Allocates Unstable Infusion if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 不穩定化身"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|4242"]}}}
-{"ref":"Allocates Unstable Infusion if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 不穩定化身"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|4242"]}}}
+{"ref":"Allocates Unstable Infusion if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 不穩定化身","superseded":true},{"string":"若禁忌烈焰上有符合的詞綴，配置 不穩定灌注"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|4242"]}}}
+{"ref":"Allocates Unstable Infusion if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 不穩定化身","superseded":true},{"string":"若禁忌血肉上有符合的詞綴，配置 不穩定灌注"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|4242"]}}}
 {"ref":"Allocates Unstable Munitions","better":0,"anointments":[{"roll":1,"oils":"5,8,8"}],"matchers":[{"string":"配置 不穩定彈藥"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|59605"]}}}
 {"ref":"Allocates Unstoppable Hero if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 不敗英雄"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|33940"]}}}
 {"ref":"Allocates Unstoppable Hero if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 不敗英雄"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|33940"]}}}
@@ -3729,13 +3729,13 @@
 {"ref":"Allocates War of Attrition if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 消耗戰"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|758"]}}}
 {"ref":"Allocates Warrior Training","better":0,"anointments":[{"roll":1,"oils":"1,5,9"}],"matchers":[{"string":"配置 戰士訓練"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|64077"]}}}
 {"ref":"Allocates Warrior's Blood","better":0,"anointments":[{"roll":1,"oils":"5,5,10"}],"matchers":[{"string":"配置 戰士之血"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|24383"]}}}
-{"ref":"Allocates Wasting","better":0,"anointments":[{"roll":1,"oils":"2,12,12"}],"matchers":[{"string":"配置 浪費"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|44988"]}}}
+{"ref":"Allocates Wasting","better":0,"anointments":[{"roll":1,"oils":"2,12,12"}],"matchers":[{"string":"配置 浪費","superseded":true},{"string":"配置 衰竭"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|44988"]}}}
 {"ref":"Allocates Watchtowers","better":0,"anointments":[{"roll":1,"oils":"7,12,12"}],"matchers":[{"string":"配置 看守塔"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|15290"]}}}
 {"ref":"Allocates Way of the Warrior","better":0,"anointments":[{"roll":1,"oils":"0,10,11"}],"matchers":[{"string":"配置 戰士之道"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|38706"]}}}
 {"ref":"Allocates Weapon Artistry","better":0,"anointments":[{"roll":1,"oils":"1,3,8"}],"matchers":[{"string":"配置 舞刃宗師"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|7085"]}}}
 {"ref":"Allocates Weapon Master if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 武器大師"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|52575"]}}}
 {"ref":"Allocates Weapon Master if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 武器大師"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|52575"]}}}
-{"ref":"Allocates Weathered Hunter","better":0,"anointments":[{"roll":1,"oils":"2,3,5"}],"matchers":[{"string":"配置 夜之狩獵"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|52230"]}}}
+{"ref":"Allocates Weathered Hunter","better":0,"anointments":[{"roll":1,"oils":"2,3,5"}],"matchers":[{"string":"配置 夜之狩獵","superseded":true},{"string":"配置 飽經風霜的獵手"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|52230"]}}}
 {"ref":"Allocates Whirling Barrier","better":0,"anointments":[{"roll":1,"oils":"3,5,9"}],"matchers":[{"string":"配置 杖影屏障"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|42917"]}}}
 {"ref":"Allocates Whispers of Doom","better":0,"anointments":[{"roll":1,"oils":"13,13,13"}],"matchers":[{"string":"配置 滅世之語"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|22535"]}}}
 {"ref":"Allocates Wicked Blade","better":0,"anointments":[{"roll":1,"oils":"3,4,7"}],"matchers":[{"string":"配置 殘靈刀刃"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|12033"]}}}
@@ -3754,7 +3754,7 @@
 {"ref":"Allocates Worthy Causes if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 崇高志向"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|35750"]}}}
 {"ref":"Allocates Worthy Foe if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 可敬的對手"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|56967"]}}}
 {"ref":"Allocates Worthy Foe if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 可敬的對手"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|56967"]}}}
-{"ref":"Allocates Wrecking Ball","better":0,"anointments":[{"roll":1,"oils":"1,5,11"}],"matchers":[{"string":"配置 崩雷"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|49318"]}}}
+{"ref":"Allocates Wrecking Ball","better":0,"anointments":[{"roll":1,"oils":"1,5,11"}],"matchers":[{"string":"配置 崩雷","superseded":true},{"string":"配置 破壞球"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|49318"]}}}
 {"ref":"Allocates Written in Blood","better":0,"anointments":[{"roll":1,"oils":"2,8,13"}],"matchers":[{"string":"配置 血書"}],"trade":{"ids":{"enchant":["enchant.stat_2954116742|18769"]}}}
 {"ref":"Altar of Chaos","better":0,"mercenary":{"icon":"https://webtw.poecdn.com/gen/image/WzIxLDE0LHsiayI6IjJEQXJ0L1NraWxsSWNvbnMvSG91c2VCYXJkaXlhU2tpbGwifV0/8e78c633c6/HouseBardiyaSkill.png","supports":["DoT Multiplier","More Duration","Multiple Projectiles","Cooldown Recovery","Second Wind","Swift Affliction"]},"matchers":[{"string":"混沌祭壇"}],"trade":{"ids":{"pseudo":["mercenary.skill_50670"]}}}
 {"ref":"Always Hits Burning Enemies","better":1,"matchers":[{"string":"總是擊中燃燒敵人"}],"trade":{"ids":{"explicit":["explicit.stat_270993809"],"fractured":["fractured.stat_270993809"]}}}
@@ -4989,7 +4989,7 @@
 {"ref":"Grants Malachai's Endurance, Frenzy and Power for 6 seconds each, in sequence","better":1,"matchers":[{"string":"每 6 秒依序獲得瑪拉凱之耐力、瑪拉凱之狂怒和瑪拉凱之暴擊"}],"trade":{"ids":{"explicit":["explicit.stat_2918150296"],"implicit":["implicit.stat_2918150296"]}}}
 {"ref":"Grants Perfect Agony during effect","better":1,"matchers":[{"string":"效果持續時間內獲得絕對受難"}],"trade":{"ids":{"explicit":["explicit.stat_3741365813"]}}}
 {"ref":"Grants Summon Greater Harbinger of Brutality Skill","better":0,"matchers":[{"string":"獲得召喚高階殘暴神諭技能","superseded":true},{"string":"賦予 召喚高階暴虐神諭"}],"trade":{"ids":{"explicit":["explicit.effect_3184099572"]}}}
-{"ref":"Grants Summon Greater Harbinger of Directions Skill","better":0,"matchers":[{"string":"獲得召喚高階方位神諭技能","superseded":true},{"string":"賦予 召喚高階象限神諭"}],"trade":{"ids":{"explicit":["explicit.effect_603152644"]}}}
+{"ref":"Grants Summon Greater Harbinger of Directions Skill","better":0,"matchers":[{"string":"獲得召喚高階方位神諭技能","superseded":true},{"string":"賦予 召喚高階象限神諭"}],"trade":{"ids":{"explicit":["explicit.effect_603152644"],"implicit":["implicit.effect_603152644"]}}}
 {"ref":"Grants Summon Greater Harbinger of Focus Skill","better":0,"matchers":[{"string":"獲得召喚高階專注神諭技能","superseded":true},{"string":"賦予 召喚高階專注神諭"}],"trade":{"ids":{"explicit":["explicit.effect_1795027869"],"implicit":["implicit.effect_1795027869"]}}}
 {"ref":"Grants Summon Greater Harbinger of Storms Skill","better":0,"matchers":[{"string":"獲得召喚高階風暴神諭技能","superseded":true},{"string":"賦予 召喚高階風暴神諭"}],"trade":{"ids":{"explicit":["explicit.effect_3850673820"],"implicit":["implicit.effect_3850673820"]}}}
 {"ref":"Grants Summon Greater Harbinger of the Arcane Skill","better":0,"matchers":[{"string":"獲得召喚高階秘能神諭技能","superseded":true},{"string":"賦予 召喚高階奧術神諭"}],"trade":{"ids":{"explicit":["explicit.effect_293985888"]}}}
@@ -10328,11 +10328,11 @@
 {"ref":"Grants Level # Herald of Agony","better":1,"matchers":[{"string":"賦予等級 # 的 苦痛之捷"}],"trade":{"ids":{"scourge":["scourge.effect_237745710"]}}}
 {"ref":"Grants Level # Herald of Purity","better":1,"matchers":[{"string":"賦予等級 # 的 純淨之捷"}],"trade":{"ids":{"scourge":["scourge.effect_2054781369"]}}}
 {"ref":"1 Added Passive Skill is Burning Brutality","better":1,"matchers":[{"string":"1 個附加的天賦為燃燒殘暴"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|36736"]}}}
-{"ref":"1 Added Passive Skill is Light of Divinity","better":1,"matchers":[{"string":"1 個附加的天賦為神聖啟蒙"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|54694"]}}}
+{"ref":"1 Added Passive Skill is Light of Divinity","better":1,"matchers":[{"string":"1 個附加的天賦為神聖啟蒙","superseded":true},{"string":"1 個附加的天賦為神聖之光"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|54694"]}}}
 {"ref":"1 Added Passive Skill is Steelwood Stance","better":1,"matchers":[{"string":"1 個附加的天賦為鋼木之姿"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|36859"]}}}
 {"ref":"1 Added Passive Skill is Dervish","better":1,"matchers":[{"string":"1 個附加的天賦為修行之刃"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|25456"]}}}
-{"ref":"1 Added Passive Skill is Graceful Assault","better":1,"matchers":[{"string":"1 個附加的天賦為權貴攻擊"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|18703"]}}}
-{"ref":"1 Added Passive Skill is Assured Strike","better":1,"matchers":[{"string":"1 個附加的天賦為珍重打擊"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|19730"]}}}
+{"ref":"1 Added Passive Skill is Graceful Assault","better":1,"matchers":[{"string":"1 個附加的天賦為權貴攻擊","superseded":true},{"string":"1 個附加的天賦為優雅突襲"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|18703"]}}}
+{"ref":"1 Added Passive Skill is Assured Strike","better":1,"matchers":[{"string":"1 個附加的天賦為珍重打擊","superseded":true},{"string":"1 個附加的天賦為必中之擊"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|19730"]}}}
 {"ref":"1 Added Passive Skill is Practical Application","better":1,"matchers":[{"string":"1 個附加的天賦為化虛為實"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|8135"]}}}
 {"ref":"1 Added Passive Skill is Longshot","better":1,"matchers":[{"string":"1 個附加的天賦為長射"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|8458"]}}}
 {"ref":"1 Added Passive Skill is Herbalism","better":1,"matchers":[{"string":"1 個附加的天賦為藥草學"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|19858"]}}}
@@ -10354,7 +10354,7 @@
 {"ref":"1 Added Passive Skill is Spiritual Aid","better":1,"matchers":[{"string":"1 個附加的天賦為精神救助"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|4177"]}}}
 {"ref":"1 Added Passive Skill is Replenishing Remedies","better":1,"matchers":[{"string":"1 個附加的天賦為補藥"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|50690"]}}}
 {"ref":"1 Added Passive Skill is Blast Radius","better":1,"matchers":[{"string":"1 個附加的天賦為法術範圍增幅"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|15711"]}}}
-{"ref":"1 Added Passive Skill is Spirit Void","better":1,"matchers":[{"string":"1 個附加的天賦為精華抽取"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|1382"]}}}
+{"ref":"1 Added Passive Skill is Spirit Void","better":1,"matchers":[{"string":"1 個附加的天賦為精華抽取","superseded":true},{"string":"1 個附加的天賦為靈魂虛空"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|1382"]}}}
 {"ref":"1 Added Passive Skill is Quickstep","better":1,"matchers":[{"string":"1 個附加的天賦為疾步"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|2715"]}}}
 {"ref":"1 Added Passive Skill is Art of the Gladiator","better":1,"matchers":[{"string":"1 個附加的天賦為鬥士藝術"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|48807"]}}}
 {"ref":"1 Added Passive Skill is Righteous Fury","better":1,"matchers":[{"string":"1 個附加的天賦為正義怒火"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|55002"]}}}
@@ -10375,7 +10375,7 @@
 {"ref":"1 Added Passive Skill is Anointed Flesh","better":1,"matchers":[{"string":"1 個附加的天賦為聖油鮮肉"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|11820"]}}}
 {"ref":"1 Added Passive Skill is Invigorating Blaze","better":1,"matchers":[{"string":"1 個附加的天賦為振奮之焰"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|22133"]}}}
 {"ref":"1 Added Passive Skill is Forceful Skewering","better":1,"matchers":[{"string":"1 個附加的天賦為強勢刺穿"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|33582"]}}}
-{"ref":"1 Added Passive Skill is Tireless","better":1,"matchers":[{"string":"1 個附加的天賦為冷酷"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|65108"]}}}
+{"ref":"1 Added Passive Skill is Tireless","better":1,"matchers":[{"string":"1 個附加的天賦為冷酷","superseded":true},{"string":"1 個附加的天賦為不倦"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|65108"]}}}
 {"ref":"1 Added Passive Skill is Dreamer","better":1,"matchers":[{"string":"1 個附加的天賦為幻夢者"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|10835"]}}}
 {"ref":"1 Added Passive Skill is Enigmatic Defence","better":1,"matchers":[{"string":"1 個附加的天賦為謎樣防禦"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|7918"]}}}
 {"ref":"1 Added Passive Skill is Testudo","better":1,"matchers":[{"string":"1 個附加的天賦為龜甲盾"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|44207"]}}}
@@ -10383,14 +10383,14 @@
 {"ref":"1 Added Passive Skill is Brand Equity","better":1,"matchers":[{"string":"1 個附加的天賦為烙印正義"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|64355"]}}}
 {"ref":"1 Added Passive Skill is Thrill Killer","better":1,"matchers":[{"string":"1 個附加的天賦為驚險殺手"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|45067"]}}}
 {"ref":"1 Added Passive Skill is Decay Ward","better":1,"matchers":[{"string":"1 個附加的天賦為腐蝕之衛"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|21973"]}}}
-{"ref":"1 Added Passive Skill is Champion of the Cause","better":1,"matchers":[{"string":"1 個附加的天賦為起源"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|33718"]}}}
+{"ref":"1 Added Passive Skill is Champion of the Cause","better":1,"matchers":[{"string":"1 個附加的天賦為起源","superseded":true},{"string":"1 個附加的天賦為大義鬥士"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|33718"]}}}
 {"ref":"1 Added Passive Skill is Burst of Energy","better":1,"matchers":[{"string":"1 個附加的天賦為能量爆發"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|52030"]}}}
 {"ref":"1 Added Passive Skill is Frost Walker","better":1,"matchers":[{"string":"1 個附加的天賦為冰靈之道"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|44955"]}}}
 {"ref":"1 Added Passive Skill is Heavy Draw","better":1,"matchers":[{"string":"1 個附加的天賦為強弩"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|42720"]}}}
 {"ref":"1 Added Passive Skill is Crushing Reply","better":1,"matchers":[{"string":"1 個附加的天賦為粉碎回應"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|41305"]}}}
 {"ref":"1 Added Passive Skill is Contemplative Meditation","better":1,"matchers":[{"string":"1 個附加的天賦為沉思冥想"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|20261"]}}}
 {"ref":"1 Added Passive Skill is Combat Stamina","better":1,"matchers":[{"string":"1 個附加的天賦為戰鬥精力"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|21413"]}}}
-{"ref":"1 Added Passive Skill is Cloth and Chain","better":1,"matchers":[{"string":"1 個附加的天賦為迅影秘術"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|21435"]}}}
+{"ref":"1 Added Passive Skill is Cloth and Chain","better":1,"matchers":[{"string":"1 個附加的天賦為迅影秘術","superseded":true},{"string":"1 個附加的天賦為布衣與鎖甲"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|21435"]}}}
 {"ref":"1 Added Passive Skill is Blade Master","better":1,"matchers":[{"string":"1 個附加的天賦為刀劍宗師"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|25367"]}}}
 {"ref":"1 Added Passive Skill is Tolerance","better":1,"matchers":[{"string":"1 個附加的天賦為寬容"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|10511"]}}}
 {"ref":"1 Added Passive Skill is Annihilation","better":1,"matchers":[{"string":"1 個附加的天賦為橫掃千軍"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|53493"]}}}
@@ -10401,12 +10401,12 @@
 {"ref":"1 Added Passive Skill is Shaman's Dominion","better":1,"matchers":[{"string":"1 個附加的天賦為薩滿領地"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|44562"]}}}
 {"ref":"1 Added Passive Skill is High Voltage","better":1,"matchers":[{"string":"1 個附加的天賦為高壓伏特"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|58168"]}}}
 {"ref":"1 Added Passive Skill is Jagged Wounds","better":1,"matchers":[{"string":"1 個附加的天賦為鋸齒重創"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|41169"]}}}
-{"ref":"1 Added Passive Skill is Disciple of the Forbidden","better":1,"matchers":[{"string":"1 個附加的天賦為禁忌紀律"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|9261"]}}}
+{"ref":"1 Added Passive Skill is Disciple of the Forbidden","better":1,"matchers":[{"string":"1 個附加的天賦為禁忌紀律","superseded":true},{"string":"1 個附加的天賦為禁忌之徒"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|9261"]}}}
 {"ref":"1 Added Passive Skill is Soul of Steel","better":1,"matchers":[{"string":"1 個附加的天賦為堅鋼之靈"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|42009"]}}}
 {"ref":"1 Added Passive Skill is Infused Flesh","better":1,"matchers":[{"string":"1 個附加的天賦為注入肉體"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|37403"]}}}
 {"ref":"1 Added Passive Skill is Beacon of Hope","better":1,"matchers":[{"string":"1 個附加的天賦為希望信標"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|4354"]}}}
 {"ref":"1 Added Passive Skill is Spiritual Command","better":1,"matchers":[{"string":"1 個附加的天賦為精神號令"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|43689"]}}}
-{"ref":"1 Added Passive Skill is Wasting","better":1,"matchers":[{"string":"1 個附加的天賦為浪費"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|44988"]}}}
+{"ref":"1 Added Passive Skill is Wasting","better":1,"matchers":[{"string":"1 個附加的天賦為浪費","superseded":true},{"string":"1 個附加的天賦為衰竭"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|44988"]}}}
 {"ref":"1 Added Passive Skill is Path of the Warrior","better":1,"matchers":[{"string":"1 個附加的天賦為戰士之路"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|12702"]}}}
 {"ref":"1 Added Passive Skill is Arcane Potency","better":1,"matchers":[{"string":"1 個附加的天賦為秘能爆發"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|46842"]}}}
 {"ref":"1 Added Passive Skill is Arcane Sanctuary","better":1,"matchers":[{"string":"1 個附加的天賦為秘能聖所"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|46904"]}}}
@@ -10419,7 +10419,7 @@
 {"ref":"1 Added Passive Skill is Will of Blades","better":1,"matchers":[{"string":"1 個附加的天賦為刀刃意志"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|33903"]}}}
 {"ref":"1 Added Passive Skill is Swagger","better":1,"matchers":[{"string":"1 個附加的天賦為雙刃之舞"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|33725"]}}}
 {"ref":"1 Added Passive Skill is Bloodletting","better":1,"matchers":[{"string":"1 個附加的天賦為出血"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|26294"]}}}
-{"ref":"1 Added Passive Skill is Blunt Trauma","better":1,"matchers":[{"string":"1 個附加的天賦為麻痺創傷"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|64395"]}}}
+{"ref":"1 Added Passive Skill is Blunt Trauma","better":1,"matchers":[{"string":"1 個附加的天賦為麻痺創傷","superseded":true},{"string":"1 個附加的天賦為鈍器創傷"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|64395"]}}}
 {"ref":"1 Added Passive Skill is Master of the Arena","better":1,"matchers":[{"string":"1 個附加的天賦為決戰宗師"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|34009"]}}}
 {"ref":"1 Added Passive Skill is Hollow Effigy","better":1,"matchers":[{"string":"1 個附加的天賦為空洞雕像"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|33722"]}}}
 {"ref":"1 Added Passive Skill is Sanctum of Thought","better":1,"matchers":[{"string":"1 個附加的天賦為靈思聖殿"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|27137"]}}}
@@ -10468,20 +10468,20 @@
 {"ref":"1 Added Passive Skill is Arcane Guarding","better":1,"matchers":[{"string":"1 個附加的天賦為秘能守護"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|6770"]}}}
 {"ref":"1 Added Passive Skill is Growth and Decay","better":1,"matchers":[{"string":"1 個附加的天賦為成長與衰變"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|9864"]}}}
 {"ref":"1 Added Passive Skill is Powerful Bond","better":1,"matchers":[{"string":"1 個附加的天賦為強大之繫"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|46471"]}}}
-{"ref":"1 Added Passive Skill is Saboteur","better":1,"matchers":[{"string":"1 個附加的天賦為怠工者"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|46965"]}}}
+{"ref":"1 Added Passive Skill is Saboteur","better":1,"matchers":[{"string":"1 個附加的天賦為怠工者","superseded":true},{"string":"1 個附加的天賦為破壞者"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|46965"]}}}
 {"ref":"1 Added Passive Skill is Ballistics","better":1,"matchers":[{"string":"1 個附加的天賦為彈道學"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|50338"]}}}
-{"ref":"1 Added Passive Skill is Depth Perception","better":1,"matchers":[{"string":"1 個附加的天賦為潛意識"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|47484"]}}}
+{"ref":"1 Added Passive Skill is Depth Perception","better":1,"matchers":[{"string":"1 個附加的天賦為潛意識","superseded":true},{"string":"1 個附加的天賦為深度知覺"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|47484"]}}}
 {"ref":"1 Added Passive Skill is Foresight","better":1,"matchers":[{"string":"1 個附加的天賦為先見之明"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|3452"]}}}
 {"ref":"1 Added Passive Skill is Swift Venoms","better":1,"matchers":[{"string":"1 個附加的天賦為迅速猛毒"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|7263"]}}}
 {"ref":"1 Added Passive Skill is Perfectionist","better":1,"matchers":[{"string":"1 個附加的天賦為完美主義者"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|18707"]}}}
-{"ref":"1 Added Passive Skill is Constitution","better":1,"matchers":[{"string":"1 個附加的天賦為構成"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|55485"]}}}
+{"ref":"1 Added Passive Skill is Constitution","better":1,"matchers":[{"string":"1 個附加的天賦為構成","superseded":true},{"string":"1 個附加的天賦為體魄"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|55485"]}}}
 {"ref":"1 Added Passive Skill is Wild Hunger","better":1,"matchers":[{"string":"1 個附加的天賦為野性渴望"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|61039"]}}}
 {"ref":"1 Added Passive Skill is Vinespike Cordial","better":1,"matchers":[{"string":"1 個附加的天賦為荊刺之誠"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|203"]}}}
 {"ref":"1 Added Passive Skill is Inexorable","better":1,"matchers":[{"string":"1 個附加的天賦為無可避免"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|54629"]}}}
-{"ref":"1 Added Passive Skill is Revenge of the Hunted","better":1,"matchers":[{"string":"1 個附加的天賦為死亡通緝"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|53114"]}}}
+{"ref":"1 Added Passive Skill is Revenge of the Hunted","better":1,"matchers":[{"string":"1 個附加的天賦為死亡通緝","superseded":true},{"string":"1 個附加的天賦為獵物的復仇"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|53114"]}}}
 {"ref":"1 Added Passive Skill is Deliberate Brutality","better":1,"matchers":[{"string":"1 個附加的天賦為蓄意殘虐"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|56146"]}}}
 {"ref":"1 Added Passive Skill is Dark Arts","better":1,"matchers":[{"string":"1 個附加的天賦為黯黑藝術"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|39743"]}}}
-{"ref":"1 Added Passive Skill is King of the Hill","better":1,"matchers":[{"string":"1 個附加的天賦為強弩之弦"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|49459"]}}}
+{"ref":"1 Added Passive Skill is King of the Hill","better":1,"matchers":[{"string":"1 個附加的天賦為強弩之弦","superseded":true},{"string":"1 個附加的天賦為山丘之王"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|49459"]}}}
 {"ref":"1 Added Passive Skill is Void Barrier","better":1,"matchers":[{"string":"1 個附加的天賦為虛影屏障"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|48698"]}}}
 {"ref":"1 Added Passive Skill is Forces of Nature","better":1,"matchers":[{"string":"1 個附加的天賦為自然之力"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|4481"]}}}
 {"ref":"1 Added Passive Skill is Born to Fight","better":1,"matchers":[{"string":"1 個附加的天賦為為戰而生"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|58449"]}}}
@@ -10490,7 +10490,7 @@
 {"ref":"1 Added Passive Skill is Leader of the Pack","better":1,"matchers":[{"string":"1 個附加的天賦為群體領袖"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|58851"]}}}
 {"ref":"1 Added Passive Skill is Defiance","better":1,"matchers":[{"string":"1 個附加的天賦為反抗"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|49538"]}}}
 {"ref":"1 Added Passive Skill is Twin Terrors","better":1,"matchers":[{"string":"1 個附加的天賦為雙重懼刃"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|6"]}}}
-{"ref":"1 Added Passive Skill is Weathered Hunter","better":1,"matchers":[{"string":"1 個附加的天賦為夜之狩獵"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|52230"]}}}
+{"ref":"1 Added Passive Skill is Weathered Hunter","better":1,"matchers":[{"string":"1 個附加的天賦為夜之狩獵","superseded":true},{"string":"1 個附加的天賦為飽經風霜的獵手"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|52230"]}}}
 {"ref":"1 Added Passive Skill is Clever Construction","better":1,"matchers":[{"string":"1 個附加的天賦為聰明的建設"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|55380"]}}}
 {"ref":"1 Added Passive Skill is Hardened Scars","better":1,"matchers":[{"string":"1 個附加的天賦為硬疤"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|56207"]}}}
 {"ref":"1 Added Passive Skill is Influence","better":1,"matchers":[{"string":"1 個附加的天賦為影響"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|12143"]}}}
@@ -10530,16 +10530,16 @@
 {"ref":"1 Added Passive Skill is Mana Flows","better":1,"matchers":[{"string":"1 個附加的天賦為魔力之流"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|54776"]}}}
 {"ref":"1 Added Passive Skill is Successive Detonations","better":1,"matchers":[{"string":"1 個附加的天賦為連續爆破"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|45608"]}}}
 {"ref":"1 Added Passive Skill is Blade Barrier","better":1,"matchers":[{"string":"1 個附加的天賦為劍刃屏障"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|54268"]}}}
-{"ref":"1 Added Passive Skill is Pain Forger","better":1,"matchers":[{"string":"1 個附加的天賦為偽痛"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|39657"]}}}
+{"ref":"1 Added Passive Skill is Pain Forger","better":1,"matchers":[{"string":"1 個附加的天賦為偽痛","superseded":true},{"string":"1 個附加的天賦為苦痛鍛造者"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|39657"]}}}
 {"ref":"1 Added Passive Skill is Window of Opportunity","better":1,"matchers":[{"string":"1 個附加的天賦為機會之窗"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|4207"]}}}
 {"ref":"1 Added Passive Skill is Efficient Explosives","better":1,"matchers":[{"string":"1 個附加的天賦為高能炸彈"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|44102"]}}}
-{"ref":"1 Added Passive Skill is Poisonous Fangs","better":1,"matchers":[{"string":"1 個附加的天賦為迴轉死神"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|529"]}}}
-{"ref":"1 Added Passive Skill is Wrecking Ball","better":1,"matchers":[{"string":"1 個附加的天賦為崩雷"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|49318"]}}}
+{"ref":"1 Added Passive Skill is Poisonous Fangs","better":1,"matchers":[{"string":"1 個附加的天賦為迴轉死神","superseded":true},{"string":"1 個附加的天賦為劇毒之牙"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|529"]}}}
+{"ref":"1 Added Passive Skill is Wrecking Ball","better":1,"matchers":[{"string":"1 個附加的天賦為崩雷","superseded":true},{"string":"1 個附加的天賦為破壞球"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|49318"]}}}
 {"ref":"1 Added Passive Skill is Surveillance","better":1,"matchers":[{"string":"1 個附加的天賦為監視"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|544"]}}}
 {"ref":"1 Added Passive Skill is Cannibalistic Rite","better":1,"matchers":[{"string":"1 個附加的天賦為食人儀式"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|56359"]}}}
 {"ref":"1 Added Passive Skill is Grave Intentions","better":1,"matchers":[{"string":"1 個附加的天賦為亡靈之誓"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|61982"]}}}
 {"ref":"1 Added Passive Skill is Reflexes","better":1,"matchers":[{"string":"1 個附加的天賦為反射"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|44103"]}}}
-{"ref":"1 Added Passive Skill is Bastion Breaker","better":1,"matchers":[{"string":"1 個附加的天賦為堡壘破壞者"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|65107"]}}}
+{"ref":"1 Added Passive Skill is Bastion Breaker","better":1,"matchers":[{"string":"1 個附加的天賦為堡壘破壞者","superseded":true},{"string":"1 個附加的天賦為破壘者"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|65107"]}}}
 {"ref":"1 Added Passive Skill is Weapon Artistry","better":1,"matchers":[{"string":"1 個附加的天賦為舞刃宗師"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|7085"]}}}
 {"ref":"1 Added Passive Skill is Clever Thief","better":1,"matchers":[{"string":"1 個附加的天賦為聰穎盜賊"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|8001"]}}}
 {"ref":"1 Added Passive Skill is Holy Fire","better":1,"matchers":[{"string":"1 個附加的天賦為神聖之火"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|29049"]}}}
@@ -10567,7 +10567,7 @@
 {"ref":"1 Added Passive Skill is Spirit of War","better":1,"matchers":[{"string":"1 個附加的天賦為戰爭之靈"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|27422"]}}}
 {"ref":"1 Added Passive Skill is Forethought","better":1,"matchers":[{"string":"1 個附加的天賦為前瞻性"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|26960"]}}}
 {"ref":"1 Added Passive Skill is Divine Judgement","better":1,"matchers":[{"string":"1 個附加的天賦為聖之審判"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|13164"]}}}
-{"ref":"1 Added Passive Skill is Marked for Death","better":1,"matchers":[{"string":"1 個附加的天賦為死亡印記"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|41595"]}}}
+{"ref":"1 Added Passive Skill is Marked for Death","better":1,"matchers":[{"string":"1 個附加的天賦為死亡印記","superseded":true},{"string":"1 個附加的天賦為標記死亡"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|41595"]}}}
 {"ref":"1 Added Passive Skill is Cleansed Thoughts","better":1,"matchers":[{"string":"1 個附加的天賦為淨化思想"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|53759"]}}}
 {"ref":"1 Added Passive Skill is Soul Siphon","better":1,"matchers":[{"string":"1 個附加的天賦為靈魂吸收"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|52157"]}}}
 {"ref":"1 Added Passive Skill is Disciple of the Unyielding","better":1,"matchers":[{"string":"1 個附加的天賦為不屈之徒"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|64882"]}}}
@@ -10620,20 +10620,20 @@
 {"ref":"1 Added Passive Skill is Master of Wounds","better":1,"matchers":[{"string":"1 個附加的天賦為創傷大師"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|31473"]}}}
 {"ref":"1 Added Passive Skill is Inveterate","better":1,"matchers":[{"string":"1 個附加的天賦為根深蒂固"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|63251"]}}}
 {"ref":"1 Added Passive Skill is Command of Steel","better":1,"matchers":[{"string":"1 個附加的天賦為鋼鐵命令"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|57900"]}}}
-{"ref":"1 Added Passive Skill is Disintegration","better":1,"matchers":[{"string":"1 個附加的天賦為異變"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|52031"]}}}
+{"ref":"1 Added Passive Skill is Disintegration","better":1,"matchers":[{"string":"1 個附加的天賦為異變","superseded":true},{"string":"1 個附加的天賦為崩解"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|52031"]}}}
 {"ref":"1 Added Passive Skill is Utmost Intellect","better":1,"matchers":[{"string":"1 個附加的天賦為極度聰穎"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|55114"]}}}
 {"ref":"1 Added Passive Skill is Vengeant Cascade","better":1,"matchers":[{"string":"1 個附加的天賦為復仇浪湧"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|57006"]}}}
 {"ref":"1 Added Passive Skill is Lasting Tempest","better":1,"matchers":[{"string":"1 個附加的天賦為恆久風暴"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|56274"]}}}
 {"ref":"1 Added Passive Skill is Hasty Demise","better":1,"matchers":[{"string":"1 個附加的天賦為倉促消亡"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|52742"]}}}
 {"ref":"1 Added Passive Skill is Mind Drinker","better":1,"matchers":[{"string":"1 個附加的天賦為汲靈術"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|42804"]}}}
 {"ref":"1 Added Passive Skill is Fending","better":1,"matchers":[{"string":"1 個附加的天賦為自衛術"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|30160"]}}}
-{"ref":"1 Added Passive Skill is Lust for Carnage","better":1,"matchers":[{"string":"1 個附加的天賦為汲血者"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|63422"]}}}
+{"ref":"1 Added Passive Skill is Lust for Carnage","better":1,"matchers":[{"string":"1 個附加的天賦為汲血者","superseded":true},{"string":"1 個附加的天賦為嗜殺之慾"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|63422"]}}}
 {"ref":"1 Added Passive Skill is Excess Sustenance","better":1,"matchers":[{"string":"1 個附加的天賦為營養過剩"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|63453"]}}}
 {"ref":"1 Added Passive Skill is Heart of Darkness","better":1,"matchers":[{"string":"1 個附加的天賦為黑暗之心"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|48556"]}}}
 {"ref":"1 Added Passive Skill is Aggressive Bastion","better":1,"matchers":[{"string":"1 個附加的天賦為進擊的壁壘"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|861"]}}}
 {"ref":"1 Added Passive Skill is Master of Blades","better":1,"matchers":[{"string":"1 個附加的天賦為劍刃大師"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|47065"]}}}
 {"ref":"1 Added Passive Skill is Quick Recovery","better":1,"matchers":[{"string":"1 個附加的天賦為快速恢復"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|21330"]}}}
-{"ref":"1 Added Passive Skill is Destroyer","better":1,"matchers":[{"string":"1 個附加的天賦為破壞者"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|34666"]}}}
+{"ref":"1 Added Passive Skill is Destroyer","better":1,"matchers":[{"string":"1 個附加的天賦為破壞者","superseded":true},{"string":"1 個附加的天賦為摧毀者"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|34666"]}}}
 {"ref":"1 Added Passive Skill is Assassination","better":1,"matchers":[{"string":"1 個附加的天賦為刺殺"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|28754"]}}}
 {"ref":"1 Added Passive Skill is Prepared Response","better":1,"matchers":[{"string":"1 個附加的天賦為預備反應"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|2599"]}}}
 {"ref":"1 Added Passive Skill is Deadly Inclinations","better":1,"matchers":[{"string":"1 個附加的天賦為致命愛好"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|41307"]}}}
@@ -10651,14 +10651,14 @@
 {"ref":"1 Added Passive Skill is Ethereal Feast","better":1,"matchers":[{"string":"1 個附加的天賦為虛空盛宴"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|15852"]}}}
 {"ref":"1 Added Passive Skill is Flash Freeze","better":1,"matchers":[{"string":"1 個附加的天賦為閃現冰凍"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|17171"]}}}
 {"ref":"1 Added Passive Skill is Written in Blood","better":1,"matchers":[{"string":"1 個附加的天賦為血書"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|18769"]}}}
-{"ref":"1 Added Passive Skill is Ambidexterity","better":1,"matchers":[{"string":"1 個附加的天賦為卓越"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|15085"]}}}
+{"ref":"1 Added Passive Skill is Ambidexterity","better":1,"matchers":[{"string":"1 個附加的天賦為卓越","superseded":true},{"string":"1 個附加的天賦為左右開弓"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|15085"]}}}
 {"ref":"1 Added Passive Skill is Arcane Retaliation","better":1,"matchers":[{"string":"1 個附加的天賦為秘術報復"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|55381"]}}}
 {"ref":"1 Added Passive Skill is Mental Rapidity","better":1,"matchers":[{"string":"1 個附加的天賦為精神迅捷"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|9432"]}}}
 {"ref":"1 Added Passive Skill is Aspect of the Eagle","better":1,"matchers":[{"string":"1 個附加的天賦為鷹靈祝福"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|65224"]}}}
 {"ref":"1 Added Passive Skill is Flaying","better":1,"matchers":[{"string":"1 個附加的天賦為剝皮刃"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|36490"]}}}
-{"ref":"1 Added Passive Skill is Kinetic Impacts","better":1,"matchers":[{"string":"1 個附加的天賦為動能影響"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|35436"]}}}
+{"ref":"1 Added Passive Skill is Kinetic Impacts","better":1,"matchers":[{"string":"1 個附加的天賦為動能影響","superseded":true},{"string":"1 個附加的天賦為動能衝擊"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|35436"]}}}
 {"ref":"1 Added Passive Skill is Righteous Army","better":1,"matchers":[{"string":"1 個附加的天賦為正義軍團"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|19103"]}}}
-{"ref":"1 Added Passive Skill is Essence Sap","better":1,"matchers":[{"string":"1 個附加的天賦為靈魂虛空"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|65053"]}}}
+{"ref":"1 Added Passive Skill is Essence Sap","better":1,"matchers":[{"string":"1 個附加的天賦為靈魂虛空","superseded":true},{"string":"1 個附加的天賦為精華抽取"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|65053"]}}}
 {"ref":"1 Added Passive Skill is Careful Conservationist","better":1,"matchers":[{"string":"1 個附加的天賦為謹慎資源保護者"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|31585"]}}}
 {"ref":"1 Added Passive Skill is Disemboweling","better":1,"matchers":[{"string":"1 個附加的天賦為開腸剖肚"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|58831"]}}}
 {"ref":"1 Added Passive Skill is Totemic Zeal","better":1,"matchers":[{"string":"1 個附加的天賦為熱情圖騰"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|63933"]}}}
@@ -10680,14 +10680,14 @@
 {"ref":"1 Added Passive Skill is Arcane Focus","better":1,"matchers":[{"string":"1 個附加的天賦為秘能之心"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|42795"]}}}
 {"ref":"1 Added Passive Skill is Winter Spirit","better":1,"matchers":[{"string":"1 個附加的天賦為寒冬之靈"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|43385"]}}}
 {"ref":"1 Added Passive Skill is Fangs of the Viper","better":1,"matchers":[{"string":"1 個附加的天賦為毒蛇之牙"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|46408"]}}}
-{"ref":"1 Added Passive Skill is Deep Breaths","better":1,"matchers":[{"string":"1 個附加的天賦為深呼吸"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|49445"]}}}
-{"ref":"1 Added Passive Skill is Nimbleness","better":1,"matchers":[{"string":"1 個附加的天賦為巧語"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|9788"]}}}
+{"ref":"1 Added Passive Skill is Deep Breaths","better":1,"matchers":[{"string":"1 個附加的天賦為深呼吸","superseded":true},{"string":"1 個附加的天賦為深吸口氣"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|49445"]}}}
+{"ref":"1 Added Passive Skill is Nimbleness","better":1,"matchers":[{"string":"1 個附加的天賦為巧語","superseded":true},{"string":"1 個附加的天賦為輕巧"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|9788"]}}}
 {"ref":"1 Added Passive Skill is Settling Ash","better":1,"matchers":[{"string":"1 個附加的天賦為沉澱灰燼"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|55194"]}}}
 {"ref":"1 Added Passive Skill is Arcane Capacitor","better":1,"matchers":[{"string":"1 個附加的天賦為秘能容器"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|51108"]}}}
 {"ref":"1 Added Passive Skill is Heart of Ice","better":1,"matchers":[{"string":"1 個附加的天賦為冰雪之心"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|8833"]}}}
 {"ref":"1 Added Passive Skill is Druidic Rite","better":1,"matchers":[{"string":"1 個附加的天賦為德魯伊的儀式"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|51440"]}}}
 {"ref":"1 Added Passive Skill is Field Medicine","better":1,"matchers":[{"string":"1 個附加的天賦為野戰醫學"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|41137"]}}}
-{"ref":"1 Added Passive Skill is Feller of Foes","better":1,"matchers":[{"string":"1 個附加的天賦為開墾之敵"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|52090"]}}}
+{"ref":"1 Added Passive Skill is Feller of Foes","better":1,"matchers":[{"string":"1 個附加的天賦為開墾之敵","superseded":true},{"string":"1 個附加的天賦為伐敵者"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|52090"]}}}
 {"ref":"1 Added Passive Skill is Dance of Blades","better":1,"matchers":[{"string":"1 個附加的天賦為劍舞"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|29522"]}}}
 {"ref":"1 Added Passive Skill is Warrior Training","better":1,"matchers":[{"string":"1 個附加的天賦為戰士訓練"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|64077"]}}}
 {"ref":"1 Added Passive Skill is From the Shadows","better":1,"matchers":[{"string":"1 個附加的天賦為影刃"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|1405"]}}}
@@ -10702,7 +10702,7 @@
 {"ref":"1 Added Passive Skill is Primeval Force","better":1,"matchers":[{"string":"1 個附加的天賦為太古之力"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|36281"]}}}
 {"ref":"1 Added Passive Skill is Harvester of Foes","better":1,"matchers":[{"string":"1 個附加的天賦為勁敵收割"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|7440"]}}}
 {"ref":"1 Added Passive Skill is Blade of Cunning","better":1,"matchers":[{"string":"1 個附加的天賦為巧刃"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|57839"]}}}
-{"ref":"1 Added Passive Skill is Shaper","better":1,"matchers":[{"string":"1 個附加的天賦為聖杯"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|63976"]}}}
+{"ref":"1 Added Passive Skill is Shaper","better":1,"matchers":[{"string":"1 個附加的天賦為聖杯","superseded":true},{"string":"1 個附加的天賦為塑界者"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|63976"]}}}
 {"ref":"1 Added Passive Skill is Blast Waves","better":1,"matchers":[{"string":"1 個附加的天賦為爆炸浪潮"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|6233"]}}}
 {"ref":"1 Added Passive Skill is Fury Bolts","better":1,"matchers":[{"string":"1 個附加的天賦為破空彈"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|60002"]}}}
 {"ref":"1 Added Passive Skill is Savage Skewering","better":1,"matchers":[{"string":"1 個附加的天賦為野蠻穿刺"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|6783"]}}}
@@ -10713,7 +10713,7 @@
 {"ref":"1 Added Passive Skill is Unstable Munitions","better":1,"matchers":[{"string":"1 個附加的天賦為不穩定彈藥"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|59605"]}}}
 {"ref":"1 Added Passive Skill is Brinkmanship","better":1,"matchers":[{"string":"1 個附加的天賦為邊緣政策"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|20835"]}}}
 {"ref":"1 Added Passive Skill is One With Nature","better":1,"matchers":[{"string":"1 個附加的天賦為自然合一"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|15842"]}}}
-{"ref":"1 Added Passive Skill is Serpentine Spellslinger","better":1,"matchers":[{"string":"1 個附加的天賦為毒蛇法術回音"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|58032"]}}}
+{"ref":"1 Added Passive Skill is Serpentine Spellslinger","better":1,"matchers":[{"string":"1 個附加的天賦為毒蛇法術回音","superseded":true},{"string":"1 個附加的天賦為毒蛇法師"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|58032"]}}}
 {"ref":"1 Added Passive Skill is Heart of the Warrior","better":1,"matchers":[{"string":"1 個附加的天賦為戰士之心"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|61198"]}}}
 {"ref":"1 Added Passive Skill is Claws of the Magpie","better":1,"matchers":[{"string":"1 個附加的天賦為鵲爪"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|54791"]}}}
 {"ref":"1 Added Passive Skill is Soul Thief","better":1,"matchers":[{"string":"1 個附加的天賦為竊魂者"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|32176"]}}}
@@ -10734,7 +10734,7 @@
 {"ref":"1 Added Passive Skill is Adamant","better":1,"matchers":[{"string":"1 Added Passive Skill is Adamant"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|49416"]}}}
 {"ref":"1 Added Passive Skill is Sacrifice","better":1,"matchers":[{"string":"1 個附加的天賦為獻祭"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|36915"]}}}
 {"ref":"1 Added Passive Skill is Claws of the Hawk","better":1,"matchers":[{"string":"1 個附加的天賦為鷹爪功"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|15614"]}}}
-{"ref":"1 Added Passive Skill is Retribution","better":1,"matchers":[{"string":"1 個附加的天賦為制裁"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|49254"]}}}
+{"ref":"1 Added Passive Skill is Retribution","better":1,"matchers":[{"string":"1 個附加的天賦為制裁","superseded":true},{"string":"1 個附加的天賦為報應"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|49254"]}}}
 {"ref":"1 Added Passive Skill is Bladedancer","better":1,"matchers":[{"string":"1 個附加的天賦為舞劍者"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|65093"]}}}
 {"ref":"1 Added Passive Skill is Farsight","better":1,"matchers":[{"string":"1 個附加的天賦為遠視"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|47743"]}}}
 {"ref":"1 Added Passive Skill is Golem Commander","better":1,"matchers":[{"string":"1 個附加的天賦為魔像指揮官"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|34506"]}}}
@@ -10743,12 +10743,12 @@
 {"ref":"1 Added Passive Skill is Juggernaut","better":1,"matchers":[{"string":"1 個附加的天賦為戰神"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|33287"]}}}
 {"ref":"1 Added Passive Skill is Blacksmith's Clout","better":1,"matchers":[{"string":"1 個附加的天賦為鐵匠之擊"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|55772"]}}}
 {"ref":"1 Added Passive Skill is Unnatural Calm","better":1,"matchers":[{"string":"1 個附加的天賦為沉寂之心"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|50029"]}}}
-{"ref":"1 Added Passive Skill is Titanic Impacts","better":1,"matchers":[{"string":"1 個附加的天賦為巨大影響"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|32059"]}}}
+{"ref":"1 Added Passive Skill is Titanic Impacts","better":1,"matchers":[{"string":"1 個附加的天賦為巨大影響","superseded":true},{"string":"1 個附加的天賦為巨力衝擊"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|32059"]}}}
 {"ref":"1 Added Passive Skill is Eagle Eye","better":1,"matchers":[{"string":"1 個附加的天賦為鷹眼"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|2225"]}}}
 {"ref":"1 Added Passive Skill is Strong Arm","better":1,"matchers":[{"string":"1 個附加的天賦為強壯手臂"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|35663"]}}}
 {"ref":"1 Added Passive Skill is Mysticism","better":1,"matchers":[{"string":"1 個附加的天賦為玄幻之意"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|44824"]}}}
 {"ref":"1 Added Passive Skill is Fearsome Force","better":1,"matchers":[{"string":"1 個附加的天賦為恐怖之力"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|35685"]}}}
-{"ref":"1 Added Passive Skill is Fangs of Frost","better":1,"matchers":[{"string":"1 個附加的天賦為刺骨寒冰"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|57199"]}}}
+{"ref":"1 Added Passive Skill is Fangs of Frost","better":1,"matchers":[{"string":"1 個附加的天賦為刺骨寒冰","superseded":true},{"string":"1 個附加的天賦為霜寒之牙"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|57199"]}}}
 {"ref":"1 Added Passive Skill is Master Fletcher","better":1,"matchers":[{"string":"1 個附加的天賦為飛矢宗師"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|51881"]}}}
 {"ref":"1 Added Passive Skill is Instinct","better":1,"matchers":[{"string":"1 個附加的天賦為本能"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|24067"]}}}
 {"ref":"1 Added Passive Skill is Instability","better":1,"matchers":[{"string":"1 個附加的天賦為聚能之界"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|20528"]}}}
@@ -10759,7 +10759,7 @@
 {"ref":"1 Added Passive Skill is Fervour","better":1,"matchers":[{"string":"1 個附加的天賦為激情"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|48614"]}}}
 {"ref":"1 Added Passive Skill is Tenacity","better":1,"matchers":[{"string":"1 個附加的天賦為不屈不撓"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|52282"]}}}
 {"ref":"1 Added Passive Skill is Precision","better":1,"matchers":[{"string":"1 個附加的天賦為精準"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|6237"]}}}
-{"ref":"1 Added Passive Skill is Primal Manifestation","better":1,"matchers":[{"string":"1 個附加的天賦為圖騰專精"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|63635"]}}}
+{"ref":"1 Added Passive Skill is Primal Manifestation","better":1,"matchers":[{"string":"1 個附加的天賦為圖騰專精","superseded":true},{"string":"1 個附加的天賦為原始顯化"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|63635"]}}}
 {"ref":"1 Added Passive Skill is Static Blows","better":1,"matchers":[{"string":"1 個附加的天賦為充能之擊"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|26557"]}}}
 {"ref":"1 Added Passive Skill is Entropy","better":1,"matchers":[{"string":"1 個附加的天賦為亂世"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|51212"]}}}
 {"ref":"1 Added Passive Skill is Sanctity","better":1,"matchers":[{"string":"1 個附加的天賦為聖潔之力"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|26866"]}}}
@@ -10770,7 +10770,7 @@
 {"ref":"1 Added Passive Skill is Glory of Command","better":1,"matchers":[{"string":"1 個附加的天賦為號令榮耀"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|45350"]}}}
 {"ref":"1 Added Passive Skill is Colloidal Mixture","better":1,"matchers":[{"string":"1 個附加的天賦為膠體混合物"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|34978"]}}}
 {"ref":"1 Added Passive Skill is Overcharge","better":1,"matchers":[{"string":"1 個附加的天賦為強化聚能"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|34173"]}}}
-{"ref":"1 Added Passive Skill is Arcane Chemistry","better":1,"matchers":[{"string":"1 個附加的天賦為祕法學"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|21634"]}}}
+{"ref":"1 Added Passive Skill is Arcane Chemistry","better":1,"matchers":[{"string":"1 個附加的天賦為祕法學","superseded":true},{"string":"1 個附加的天賦為秘法學"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|21634"]}}}
 {"ref":"1 Added Passive Skill is Redemption","better":1,"matchers":[{"string":"1 個附加的天賦為救贖"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|15046"]}}}
 {"ref":"1 Added Passive Skill is Divine Fervour","better":1,"matchers":[{"string":"1 個附加的天賦為聖情"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|30693"]}}}
 {"ref":"1 Added Passive Skill is Prodigal Perfection","better":1,"matchers":[{"string":"1 個附加的天賦為完美浪子"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|10115"]}}}
@@ -10789,7 +10789,7 @@
 {"ref":"1 Added Passive Skill is Executioner","better":1,"matchers":[{"string":"1 個附加的天賦為處決者"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|10016"]}}}
 {"ref":"1 Added Passive Skill is Trial of the Faith","better":1,"matchers":[{"string":"1 個附加的天賦為信仰試煉"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|45657"]}}}
 {"ref":"1 Added Passive Skill is Potent Connections","better":1,"matchers":[{"string":"1 個附加的天賦為強大聯繫"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|44788"]}}}
-{"ref":"1 Added Passive Skill is Elder Power","better":1,"matchers":[{"string":"1 個附加的天賦為智慧之力"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|41476"]}}}
+{"ref":"1 Added Passive Skill is Elder Power","better":1,"matchers":[{"string":"1 個附加的天賦為智慧之力","superseded":true},{"string":"1 個附加的天賦為尊師之力"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|41476"]}}}
 {"ref":"1 Added Passive Skill is Wandslinger","better":1,"matchers":[{"string":"1 個附加的天賦為鬥杖者之力"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|22972"]}}}
 {"ref":"1 Added Passive Skill is Concussive Force","better":1,"matchers":[{"string":"1 個附加的天賦為震爆之力"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|19794"]}}}
 {"ref":"1 Added Passive Skill is Perfected Formula","better":1,"matchers":[{"string":"1 個附加的天賦為完美配方"}],"trade":{"ids":{"enchant":["enchant.stat_3599615742|26763"]}}}
@@ -10811,3 +10811,5 @@
 {"ref":"Abyssal Spray Detonation","better":0,"mercenary":{},"matchers":[{"string":"深淵噴濺．引爆"}],"trade":{"ids":{"pseudo":["mercenary.skill_41822"]}}}
 {"ref":"Power of the Depths","better":0,"mercenary":{},"matchers":[{"string":"淵底之力"}],"trade":{"ids":{"pseudo":["mercenary.skill_54593"]}}}
 {"ref":"Vaal Smite","better":0,"mercenary":{},"matchers":[{"string":"瓦爾．雷鳴重擊"}],"trade":{"ids":{"pseudo":["mercenary.skill_40606"]}}}
+{"ref":"Allocates Instruments of Justice if you have the matching modifier on Forbidden Flesh","better":0,"matchers":[{"string":"若禁忌血肉上有符合的詞綴，配置 正義之儀"}],"trade":{"ids":{"explicit":["explicit.stat_1190333629|3154"]}}}
+{"ref":"Allocates Instruments of Justice if you have the matching modifier on Forbidden Flame","better":0,"matchers":[{"string":"若禁忌烈焰上有符合的詞綴，配置 正義之儀"}],"trade":{"ids":{"explicit":["explicit.stat_2460506030|3154"]}}}

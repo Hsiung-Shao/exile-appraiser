@@ -322,9 +322,9 @@ function createFiltersInner (
       }
     }
   }
-  // exile-appraiser: 2026-11-18 使用者要求:武器 / 防具每個預設都有可輸入的品質條件(預設不勾,查詢不變)
+  // exile-appraiser: 2026-11-18 使用者要求:武器 / 防具每個預設都有可輸入的品質條件;品質 > 20 自動勾(同精確預設,GitHub issue #31),其餘預設不勾
   if (!filters.quality && (ARMOUR.has(item.category!) || WEAPON.has(item.category!))) {
-    filters.quality = { value: item.quality ?? 0, disabled: true }
+    filters.quality = { value: item.quality ?? 0, disabled: !(item.quality! > 20) }
   }
 
   if (item.sockets?.linked) {

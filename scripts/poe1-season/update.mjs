@@ -15,7 +15,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
-import { BETTER_OVERRIDES, eachStat, applyItemPlan, applyStatPlan, planDeadIds, planGems, planItems, planMercenaryBuilds, planMercenarySkills, planExtraZh, planNamedSlots, planZhForms, planCondForms, planEffectStats, planFillIds, planGrantsSkill, planMinionDoubled, planRandomSkillGem, planCitadel, planUniqueZhNames, planNewStats, planStatText, planSupportGemNames, planGrownPassives, planRoomNames, planTypeIds, planTradeBases, planTradeText, planUniques } from './lib.mjs'
+import { BETTER_OVERRIDES, eachStat, applyItemPlan, applyStatPlan, planDeadIds, planGems, planItems, planMercenaryBuilds, planMercenarySkills, planExtraZh, planNamedSlots, planZhForms, planCondForms, planEffectStats, planFillIds, planGrantsSkill, planMinionDoubled, planRandomSkillGem, planCitadel, planUniqueZhNames, planNewStats, planStatText, planSupportGemNames, planGrownPassives, planPassiveRenames, planForbiddenNotables, planRoomNames, planTypeIds, planTradeBases, planTradeText, planUniques } from './lib.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(HERE, '../..')
@@ -76,7 +76,8 @@ const citadels = planCitadel({ enStats: afterA.en, zhStats: afterA['cmn-Hant'], 
 const extraZh = planExtraZh({ zhStats: afterA['cmn-Hant'], ggpkNew: ggpk.stats.new })
 const namedSlots = planNamedSlots({ enStats: afterA.en, zhStats: afterA['cmn-Hant'], ggpkOld: ggpk.stats.old, ggpkNew: ggpk.stats.new })
 const roomNames = planRoomNames({ zhStats: afterA['cmn-Hant'], enStats: afterA.en, rooms: ggpk.rooms ?? [], renames: ggpk.renames ?? [] })
-const adds = [...ruleA.adds, ...ruleB.adds, ...gemNames.adds, ...minions.adds, ...skillGems.adds, ...citadels.adds, ...extraZh.adds, ...grants.adds, ...roomNames.adds, ...namedSlots.adds]
+const passiveRenames = planPassiveRenames({ zhStats: afterA['cmn-Hant'], renames: ggpk.passiveRenames ?? [] })
+const adds = [...passiveRenames.adds, ...ruleA.adds, ...ruleB.adds, ...gemNames.adds, ...minions.adds, ...skillGems.adds, ...citadels.adds, ...extraZh.adds, ...grants.adds, ...roomNames.adds, ...namedSlots.adds]
 const effects = planEffectStats({ enStats: rows(applyStatPlan(text['en/stats'], 'en', { adds })), zhStats: rows(applyStatPlan(text['cmn-Hant/stats'], 'cmn-Hant', { adds })), tradeStats, skills: ggpk.skills, supports: ggpk.supports ?? [], strings: ggpk.strings, taken: Object.values(planFillIds({ enStats: rows(applyStatPlan(text['en/stats'], 'en', { adds })), tradeStats })).flatMap(t => Object.values(t).flat()) })
 adds.push(...effects.adds)
 // 規則 20 排最後、看得到這一輪其他規則加的句子:它加的句子一律標 superseded,排前面會讓後面想把同一句當現行的規則被「已經有了」擋掉
@@ -100,12 +101,14 @@ const fill = planFillIds({ enStats: afterB, tradeStats })
 const typeIds = planTypeIds({ enStats: afterB, tradeStats })
 const grown = planGrownPassives({ enStats: afterB, zhStats: afterA['cmn-Hant'], tradeStats })
 newStats.push(...grown.newStats)
+const forbidden = planForbiddenNotables({ enStats: afterB, zhStats: afterA['cmn-Hant'], tradeStats, passives: ggpk.passives ?? [] })
+newStats.push(...forbidden.newStats)
 const mercSkills = planMercenarySkills({ enStats: afterB, tradeStats, skills: ggpk.mercSkills ?? [] })
 newStats.push(...mercSkills.newStats)
 const extraIds = { ...typeIds.extra }
 for (const [ref, ids] of [...Object.entries(grown.extra), ...Object.entries(mercSkills.extra)]) for (const [type, list] of Object.entries(ids)) ((extraIds[ref] ??= {})[type] ??= []).push(...list)
 const statPlan = { adds, replace: dead.replace, remove: dead.remove, newStats, better: BETTER_OVERRIDES, fill, extra: extraIds, option: roomNames.option }
-const rejects = [...ruleA.rejects.map(r => ({ rule: '改字 A', ...r })), ...ruleB.rejects.map(r => ({ rule: '改字 B', ...r })), ...dead.rejects.map(r => ({ rule: '失效 id', ...r })), ...gemNames.rejects.map(r => ({ rule: '輔助寶石名', ...r })), ...grants.rejects.map(r => ({ rule: '賦予技能', ...r })), ...zhForms.rejects.map(r => ({ rule: 'GGPK 繁中句子', ...r })), ...namedSlots.rejects.map(r => ({ rule: '帶入名稱的句型', ...r })), ...condForms.rejects.map(r => ({ rule: 'GGPK 數值寫法', ...r })), ...effects.rejects.map(r => ({ rule: 'effect 新 id', ...r })), ...typeIds.rejects.map(r => ({ rule: '掛上缺的類型 id', ...r })), ...grown.rejects.map(r => ({ rule: '洗出的塗油天賦', ...r })), ...bases.rejects.map(r => ({ rule: '新底材', ...r })), ...uniques.rejects.map(r => ({ rule: '新傳奇', ...r })), ...gems.rejects.map(r => ({ rule: '新變異寶石', ...r })), ...builds.rejects.map(r => ({ rule: '傭兵流派', ...r })), ...mercSkills.rejects.map(r => ({ rule: '傭兵技能', ...r }))]
+const rejects = [...ruleA.rejects.map(r => ({ rule: '改字 A', ...r })), ...ruleB.rejects.map(r => ({ rule: '改字 B', ...r })), ...dead.rejects.map(r => ({ rule: '失效 id', ...r })), ...gemNames.rejects.map(r => ({ rule: '輔助寶石名', ...r })), ...grants.rejects.map(r => ({ rule: '賦予技能', ...r })), ...zhForms.rejects.map(r => ({ rule: 'GGPK 繁中句子', ...r })), ...namedSlots.rejects.map(r => ({ rule: '帶入名稱的句型', ...r })), ...condForms.rejects.map(r => ({ rule: 'GGPK 數值寫法', ...r })), ...effects.rejects.map(r => ({ rule: 'effect 新 id', ...r })), ...typeIds.rejects.map(r => ({ rule: '掛上缺的類型 id', ...r })), ...grown.rejects.map(r => ({ rule: '洗出的塗油天賦', ...r })), ...forbidden.rejects.map(r => ({ rule: '禁忌珠寶新天賦', ...r })), ...passiveRenames.rejects.map(r => ({ rule: '天賦改名', ...r })), ...bases.rejects.map(r => ({ rule: '新底材', ...r })), ...uniques.rejects.map(r => ({ rule: '新傳奇', ...r })), ...gems.rejects.map(r => ({ rule: '新變異寶石', ...r })), ...builds.rejects.map(r => ({ rule: '傭兵流派', ...r })), ...mercSkills.rejects.map(r => ({ rule: '傭兵技能', ...r }))]
 
 const count = (list, lang) => list.filter(a => a.lang === lang).length
 const summary = [
@@ -116,6 +119,8 @@ const summary = [
   `effect 新 id(規則 15):新增 ${effects.newStats.length} 列、舊詞綴加新寫法 ${new Set(effects.adds.map(a => a.ref)).size} 條、拒收 ${effects.rejects.length}`,
   `掛上缺的類型 id(規則 16):${Object.values(typeIds.extra).flatMap(x => Object.values(x)).flat().length} 個 id、${Object.keys(typeIds.extra).length} 條詞綴、拒收 ${typeIds.rejects.length}`,
   `洗出的塗油天賦(規則 18):新增 ${grown.newStats.length} 列、掛到既有詞綴 ${Object.keys(grown.extra).length} 條、拒收 ${grown.rejects.length}`,
+  `天賦繁中改名(規則 25):繁中 +${passiveRenames.adds.length} 個 matcher、拒收 ${passiveRenames.rejects.length}`,
+  `禁忌珠寶新天賦(規則 26):新增 ${forbidden.newStats.length} 列、拒收 ${forbidden.rejects.length}`,
   `史記房間名(規則 17,含改名):+${roomNames.adds.length} 個 matcher、標成選項型 ${roomNames.option.length} 列`,
   `壁壘地圖(規則 19):en +${count(citadels.adds, 'en')} / 繁中 +${count(citadels.adds, 'cmn-Hant')} 個 matcher`,
   `輔助寶石名(規則 8):en +${count(gemNames.adds, 'en')} / 繁中 +${count(gemNames.adds, 'cmn-Hant')} 個 matcher`,

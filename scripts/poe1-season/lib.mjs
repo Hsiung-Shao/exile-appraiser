@@ -473,6 +473,71 @@ export function planGrownPassives ({ enStats, zhStats, tradeStats }) {
   return { newStats, extra, rejects }
 }
 
+/**
+ * 規則 25:天賦繁中改名(GGPK `passiveskills` 同一個 ident 新舊兩版英文名相同、繁中不同;3.30 Avatar of the Wilds 獸性化身 → 荒野化身,
+ * GitHub issue #34)。名字在「配置 X」/「天賦為X」結尾的繁中寫法(塗油、禁忌珠寶、腐敗之種)補新名,舊的標 superseded。
+ * 依詞綴 ref 裡的英文天賦名對(`Allocates X` / `1 Added Passive Skill is X` / 禁忌珠寶句);同一個天賦有兩種改名不猜。
+ * @returns {{ adds: any[], rejects: any[] }}
+ */
+export function planPassiveRenames ({ zhStats, renames }) {
+  const adds = []
+  const rejects = []
+  // 依詞綴 ref 的英文天賦名對:不同天賦可能共用舊繁中名,只看繁中名會換錯
+  const byEn = new Map()
+  for (const r of renames) {
+    if (r.from === r.zh) continue
+    const had = byEn.get(r.en)
+    if (had === undefined) byEn.set(r.en, r)
+    else if (had && (had.from !== r.from || had.zh !== r.zh)) { byEn.set(r.en, null); rejects.push({ reason: '同一個天賦有兩種改名', en: r.en }) }
+  }
+  for (const stat of eachStat(zhStats)) {
+    const en = /^(?:Allocates |1 Added Passive Skill is )(.+?)(?: if you have the matching modifier on Forbidden (?:Flame|Flesh))?$/.exec(stat.ref)?.[1]
+    const r = en && byEn.get(en)
+    if (!r) continue
+    for (const m of stat.matchers) {
+      if (m.superseded) continue
+      const hit = /(配置 |天賦為)(.+)$/.exec(m.string)
+      if (!hit || hit[2] !== r.from) continue
+      const string = m.string.slice(0, hit.index + hit[1].length) + r.zh
+      if (stat.matchers.some(x => x.string === string)) continue
+      const { superseded, ...rest } = m
+      adds.push({ lang: 'cmn-Hant', ref: stat.ref, matcher: { ...rest, string }, supersedes: [m.string] })
+    }
+  }
+  return { adds, rejects }
+}
+
+/**
+ * 規則 26:禁忌烈焰 / 禁忌血肉的新天賦(交易站「Allocates X if you have the matching modifier on Forbidden Flame|Flesh」有、
+ * 資料沒有;3.30 Instruments of Justice,GitHub issue #32)。繁中句型取資料裡同一種禁忌珠寶既有寫法的「…配置 」前段,
+ * 名字取 GGPK `passiveskills` 英文名唯一對到的繁中名;對不上的不猜。
+ * @returns {{ newStats: any[], rejects: any[] }}
+ */
+const FORBIDDEN_RE = /^Allocates (.+) if you have the matching modifier on Forbidden (Flame|Flesh)$/
+export function planForbiddenNotables ({ enStats, zhStats, tradeStats, passives }) {
+  const used = new Set()
+  for (const stat of eachStat(enStats)) for (const id of allIds(stat)) used.add(id)
+  const prefix = new Map()
+  for (const stat of eachStat(zhStats)) {
+    const which = FORBIDDEN_RE.exec(stat.ref)?.[2]
+    const head = which && stat.matchers.map(m => /^(.*配置 ).+$/.exec(m.string)?.[1]).find(Boolean)
+    if (head && !prefix.has(which)) prefix.set(which, head)
+  }
+  const zhOf = new Map()
+  for (const p of passives) zhOf.set(p.en, zhOf.has(p.en) && zhOf.get(p.en) !== p.zh ? null : p.zh)
+  const newStats = []
+  const rejects = []
+  for (const e of tradeStats) {
+    const hit = FORBIDDEN_RE.exec(e.text)
+    if (!hit || used.has(e.id)) continue
+    const zh = zhOf.get(hit[1])
+    const head = prefix.get(hit[2])
+    if (!zh || !head) { rejects.push({ reason: zh === null ? '天賦英文名對到兩個繁中名' : '找不到繁中天賦名或句型', id: e.id, to: e.text }); continue }
+    newStats.push({ ref: e.text, better: 0, en: [{ string: e.text }], zh: [{ string: head + zh }], ids: { explicit: [e.id] } })
+  }
+  return { newStats, rejects }
+}
+
 /** 交易站 id 是否仍有效(`X|n` 形式:X 是選項型 stat 且有選項 n 也算) */
 export function liveIdTest (tradeStats) {
   const ids = new Set(tradeStats.map(e => e.id))

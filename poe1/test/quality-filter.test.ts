@@ -56,4 +56,15 @@ describe('武器 / 防具的品質條件', () => {
     const { presets, active } = createPresets(noQ, OPTS)
     expect(presets.find(p => p.id === active)!.filters.quality).toEqual({ value: 0, disabled: true })
   })
+
+  // GitHub issue #31:品質 30% 的頭盔,想把品質和詞綴一起篩;失敗代表品質 > 20 時偽屬性預設沒自動勾品質
+  it('Q4 品質超過 20(issue #31 的 30% 頭盔)每個預設都自動勾品質、送 quality.min = 30', async () => {
+    await init('en')
+    const helm = parse(fs.readFileSync(path.resolve(__dirname, 'fixtures/quality/helmet-q30-issue-31.en.txt'), 'utf8'))
+    const { presets } = createPresets(helm, { ...OPTS, clientLanguage: 'en' as const })
+    for (const p of presets) {
+      expect(p.filters.quality, p.id).toEqual({ value: 30, disabled: false })
+      expect(quality(createTradeRequest(p).query), p.id).toEqual({ min: 30 })
+    }
+  }, 180_000)
 })
