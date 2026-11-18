@@ -22,8 +22,8 @@
           <option v-for="p in listed" :key="p.id" :value="p.id">{{ pageTitle(p) }}{{ pagePickCount(p) ? ` (${pagePickCount(p)})` : '' }}</option>
         </select>
         <div class="seg" data-regex="lang" :title="t('ppz.regex.lang_tip')">
-          <button :class="{ on: ui.lang === 'zh' }" data-value="zh" @click="setLang('zh')">{{ t('ppz.regex.lang_zh') }}</button>
-          <button :class="{ on: ui.lang === 'en' }" data-value="en" @click="setLang('en')">{{ t('ppz.regex.lang_en') }}</button>
+          <button :class="{ on: ui.lang === 'zh' }" data-value="zh" @click="setLang('zh')">{{ t('ppz.regex.lang_zh_short') }}</button>
+          <button :class="{ on: ui.lang === 'en' }" data-value="en" @click="setLang('en')">English</button>
         </div>
         <div class="seg" data-regex="mode">
           <button v-for="m in modes" :key="m" :class="{ on: ui.mode === m }" :data-value="m"
@@ -276,7 +276,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onBeforeUnmount, shallowRef, watch, type PropType } from 'vue'
+import { computed, defineComponent, nextTick, onBeforeUnmount, shallowRef, watch, type PropType } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { CUSTOM_BOOKMARK_LIMIT, charCount, isAlgoPage, isItemModPageId, lengthLevel, lineIn, type Mode, type RegexPage, type RegexTemplate } from '@exile-appraiser/regex'
 import { AppConfig, addStashSearchEntry } from '@/web/Config'
@@ -345,6 +345,17 @@ export default defineComponent({
       clearTimeout(stashTimer)
       clearTimeout(shareTimer)
       if (hasPendingSave()) void flushSave()
+    })
+
+    // 數值條件區收合 / 展開會換到另一欄(另一個元件實例):鍵盤焦點原本在它的標題鈕上時,跟到新的那一顆(審查 2026-11-18)
+    const sectionCollapsed = computed(() => {
+      const s = store.section.value
+      return !!s && isCollapsed(s.sectionOf ?? s.id)
+    })
+    watch(sectionCollapsed, () => {
+      const el = document.activeElement
+      if (!(el instanceof HTMLElement) || el.dataset.regex !== 'section-toggle') return
+      void nextTick(() => document.querySelector<HTMLElement>('.rx-panel [data-regex="section-toggle"]')?.focus())
     })
 
     const tplConfirm = shallowRef<RegexTemplate | null>(null)
@@ -433,10 +444,7 @@ export default defineComponent({
       setPanelView,
       setLang,
       /** 數值條件區收合時改畫在右欄當摘要(收合狀態以宿主頁為鍵,同 RegexNumericSection) */
-      sectionCollapsed: computed(() => {
-        const s = store.section.value
-        return !!s && isCollapsed(s.sectionOf ?? s.id)
-      }),
+      sectionCollapsed,
       setBilingual,
       retryCatalogue,
       dismissNotice,
@@ -549,17 +557,11 @@ export default defineComponent({
     position: sticky;
     top: 0;
   }
-  .rx-col .rx-rows {
-    height: clamp(260px, 62vh, 900px);
-  }
 }
 .rx-head {
   display: flex;
   flex-direction: column;
   min-width: 0;
-}
-.rx-out-more {
-  gap: 2px 4px;
 }
 .rx-out-more .btn.ghost {
   padding-inline: 6px;
@@ -595,12 +597,13 @@ export default defineComponent({
   overflow-y: auto;
   font-size: var(--fs-sm);
 }
-.rx-head-tools {
-  margin-top: 8px;
-}
 .rx-head-row .grow,
 .rx-out-row .grow {
   flex: 1;
+}
+/* 次要兩列排緊一點(要寫在 .rx-out-row 的 gap 之後才蓋得過) */
+.rx-out-row.rx-out-more {
+  gap: 2px 4px;
 }
 .rx-page {
   min-width: 120px;
