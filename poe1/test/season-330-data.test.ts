@@ -346,6 +346,12 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(item.statsByType[0].stat.trade.ids.explicit).toEqual(['explicit.stat_2460506030|55509'])
   })
 
+  it('D17w GitHub issue #35 的實機文字:禁忌烈焰「配置 無端暴力」(3.30 改名,舊名免費暴力)解析得到、帶交易站 id', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-35.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(item)).toEqual([])
+    expect(item.statsByType[0].stat.trade.ids.explicit).toEqual(['explicit.stat_1190333629|27864'])
+  })
+
   it('D17n GitHub issue #29 的實機文字:永恆珠寶「授銜7260個硬幣以紀念卡斯皮羅(...)」(3.30 句型)解析得到、帶交易站 id、數值 7260', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-29.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])

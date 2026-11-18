@@ -399,7 +399,7 @@ export default defineComponent({
   min-width: theme('width.5');
   padding-left: theme('spacing[1.5]');
   color: theme('colors.gray.500');
-  margin-top: -99px; /* not allowed to extend baseline */
+  /* exile-appraiser: 2026-11-18 拿掉上游的 margin-top: -99px:B 改版後父層是 items-center,負邊距把箭頭推到上一列(使用者回報傭兵契約書箭頭亂跳) */
 }
 
 .rollInput {
