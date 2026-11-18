@@ -494,7 +494,8 @@
       "label": "硬體加速(GPU)",
       "note": "預設關閉(與舊版相同,由 CPU 繪製)。開啟後改用 GPU 繪製,捲動與背景圖可能更順,但會與遊戲共用 GPU;畫面異常時請關回。",
       "restart_needed": "重新啟動後生效",
-      "restart_now": "立即重新啟動"
+      "restart_now": "立即重新啟動",
+      "sub": "改了要重新啟動"
     },
     "hotkey_hold": "按住",
     "hotkey_none": "未設定",
@@ -572,7 +573,10 @@
       "auto_hint": "開啟時在背景下載新版、結束程式時自動安裝;關閉則需手動下載與安裝。",
       "reminder": "有新版本時定期提醒",
       "reminder_hint": "有可更新的新版時,約每 10 分鐘在右下角提醒一次(可按「稍後」或「略過此版本」);沒有新版不會出現。",
-      "current": "目前版本 {version}"
+      "current": "目前版本 {version}",
+      "auto_sub": "背景下載,結束程式時套用",
+      "reminder_sub": "右下角提示,約每 10 分鐘一次",
+      "manual": "手動檢查"
     },
     "menu": {
       "title": "流亡鑑價",
