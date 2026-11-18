@@ -420,6 +420,11 @@ describe('2026-11-18 正則子分頁(產生器 / 書籤與快捷)', () => {
     const tab = read(`${SETTINGS}/tabs/Regex.vue`)
     expect(tab).toContain('<RegexPanel :part="regexView" />')
     expect(tab).toContain("watch(bookmarkReveal, (r) => { if (r) regexView.value = 'bookmarks' })")
+    // 審查修正:書籤子分頁也看得到操作結果 / 存檔失敗;「載入」切回產生器;PobTools 分享碼開產生器;懸浮選單書籤區開書籤子分頁
+    expect(panel).toContain(`<section v-if="part === 'bookmarks' && (notice || saveError)" class="card" data-regex="bm-notice">`)
+    expect(read('renderer/src/web/regex/RegexBookmarks.vue')).toMatch(/loadAndShow \(index: number\) \{\s*loadBookmark\(index\)\s*regexView\.value = 'generator'/)
+    expect(read('renderer/src/web/App.vue')).toMatch(/regexView\.value = 'generator'[^\n]*\n\s*openSettingsTo\('regex', `PobTools 正則分享碼/)
+    expect(read('renderer/src/web/overlay/FloatMenu.vue')).toMatch(/function gotoRegexBookmarks \(\) \{\s*regexView\.value = 'bookmarks'/)
     // 熱鍵總表點正則組 / 書籤列 → 書籤子分頁
     expect(read(`${SETTINGS}/tabs/Hotkeys.vue`)).toContain("if (id === 'regex') regexView.value = 'bookmarks'")
   })

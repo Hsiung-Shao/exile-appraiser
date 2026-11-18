@@ -89,7 +89,7 @@
               <button v-if="isCustom(x.b)" class="btn sm" data-regex="bm-edit" @click="openCustom(x.index)">{{ t('ppz.regex.bm_edit') }}</button>
               <template v-else>
                 <button class="btn sm" data-regex="bm-load" :title="x.b.game !== selGame ? t('ppz.regex.bm_load_other', { game: gameLabel(x.b.game) }) : ''"
-                  @click="loadBookmark(x.index)">{{ t('ppz.regex.bm_load') }}</button>
+                  @click="loadAndShow(x.index)">{{ t('ppz.regex.bm_load') }}</button>
                 <button class="btn sm" data-regex="bm-update" :disabled="x.b.game !== selGame"
                   :title="x.b.game !== selGame ? t('ppz.regex.bm_update_other', { game: gameLabel(x.b.game) }) : t('ppz.regex.bm_update_tip')"
                   @click="updateBookmark(x.index)">{{ t('ppz.regex.bm_update') }}</button>
@@ -193,6 +193,7 @@ import { useI18n } from 'vue-i18n'
 import { CUSTOM_BOOKMARK_LIMIT, FOLDER_NAME_MAX, charCount, customBookmark, folderCounts, isCustomBookmark, type RegexGame } from '@exile-appraiser/regex'
 import { AppConfig } from '@/web/Config'
 import { useSettingsFs } from '@/web/settings/settings-fs'
+import { regexView } from '@/web/settings/tabState'
 import HotkeyInput from '@/web/settings/HotkeyInput.vue'
 import { useHotkeyIssues } from '@/web/settings/useHotkeyIssues'
 import {
@@ -455,7 +456,11 @@ export default defineComponent({
       isDrop,
       onGripDown,
       pageTitle,
-      loadBookmark,
+      /** 2026-11-18 設定重整:載入後切回「產生器」子分頁(勾選與輸出在那裡;書籤子分頁看不到載入結果) */
+      loadAndShow (index: number) {
+        loadBookmark(index)
+        regexView.value = 'generator'
+      },
       updateBookmark,
       moveBookmarkStep,
       folderCount: (g: RegexGame, name: string) => folderCounts(store.ui, g).get(name) ?? 0,

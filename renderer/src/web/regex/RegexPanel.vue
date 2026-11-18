@@ -161,6 +161,14 @@
 
       </div>
 
+      <!-- 書籤子分頁看不到輸出卡片:書籤操作的結果 / 存檔失敗在這裡也顯示一份(2026-11-18 審查修正) -->
+      <section v-if="part === 'bookmarks' && (notice || saveError)" class="card" data-regex="bm-notice">
+        <div v-if="notice" class="rx-notice">
+          <span>{{ t(notice.key, notice.params ?? {}) }}</span>
+          <button class="btn ghost sm" @click="dismissNotice">{{ t('ppz.regex.dismiss') }}</button>
+        </div>
+        <p v-if="saveError" class="rx-bad">{{ t('ppz.regex.save_failed', { error: saveError }) }}</p>
+      </section>
       <RegexBookmarks v-show="part !== 'generator'" />
     </template>
 

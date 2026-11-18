@@ -157,7 +157,7 @@ export default defineComponent({
     const copied = shallowRef(false)
     onMounted(async () => {
       if (!Host.isElectron || Host.isPreview) return
-      try { previewUrl.value = await Host.getPreviewUrl() } catch {}
+      try { previewUrl.value = await Host.getPreviewUrl() } catch { /* 預覽伺服器還沒開 = 沒有網址,按鈕照常可按 */ }
     })
 
     // ---- 第五輪 30.5:硬體加速(啟動時套用的值;拿不到(預覽 / 純瀏覽器)= 開設定頁時的值)----
@@ -167,7 +167,7 @@ export default defineComponent({
       try {
         const v = await Host.hwAccelActive()
         if (typeof v === 'boolean') hwAccelAtStart.value = v
-      } catch {}
+      } catch { /* 拿不到啟動時的值 = 沿用開設定頁時的值 */ }
     })
     const shortcutBusy = shallowRef(false)
     const shortcutState = shallowRef<'' | 'done' | 'dev' | 'failed'>('')

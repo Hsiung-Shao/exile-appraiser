@@ -262,7 +262,7 @@ import { REALMS, isSupportedCombination } from '@exile-appraiser/core/realm'
 import { reloadPhase, reloadError, retryReload } from './loadState'
 import { reportIssue, copyIssueReport, reportStatus, type ReportContext } from './report'
 import { REPORT_INLINE_KEY, inlineReportError } from './report-inline'
-import { settingsTab } from './settings/tabState'
+import { regexView, settingsTab } from './settings/tabState'
 import { resolveSettingsTab } from './settings/settings-tabs'
 import { createBackdropGuard } from './settings/settings-window-geom'
 
@@ -577,6 +577,7 @@ export default defineComponent({
       const onRegexShare = (req: RegexShareRequest) => {
         // 快速面板開著就收起(不走 closeRegexQuick:那會把焦點還給遊戲)
         if (regexQuickOpen.value) { regexQuickOpen.value = false; console.log('[app] 關閉正則書籤快速面板(regex-share)') }
+        regexView.value = 'generator' // 套用結果在產生器子分頁
         openSettingsTo('regex', `PobTools 正則分享碼 #${req.id}`)
         void incomingShare.receive(req)
       }

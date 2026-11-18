@@ -43,7 +43,8 @@ export default defineComponent({
       return props.ids.flatMap(id => {
         const r = all.find(x => x.id === id)
         if (!r || r.kind !== 'edit') return []
-        const hk = r.hold ? mergeTwoHotkeys(normalizeHotkey(config.hotkeyHold), normalizeHotkey(config.hotkey)) : (config[r.field] ?? '')
+        // 快速查價主鍵清空 = 未設定(不要只剩按住鍵)
+        const hk = r.hold ? (config.hotkey ? mergeTwoHotkeys(normalizeHotkey(config.hotkeyHold), normalizeHotkey(config.hotkey)) : '') : (config[r.field] ?? '')
         return [{ id: r.id, label: r.label, keys: hotkeyKeys(hk) }]
       })
     })
