@@ -1,0 +1,26 @@
+Item Class: Maps
+Rarity: Rare
+Hypnotic Territory
+Map (Tier 16)
+--------
+Atlas Drops: +58% (augmented)
+Item Rarity: +34% (augmented)
+Monster Pack Size: +22% (augmented)
+--------
+Item Level: 83
+--------
+Monster Level: 83
+--------
+{ Implicit Modifier }
+Map contains Al-Hezmin's Citadel(...) — Unscalable Value
+--------
+{ Prefix Modifier "Enthralled" (Tier: 1) }
+Unique Bosses are Possessed
+{ Suffix Modifier "of Blinding" (Tier: 1) }
+Monsters Blind on Hit
+{ Suffix Modifier "of Exposure" (Tier: 1) — Elemental, Resistance }
+Players have -9(-12--9)% to all maximum Resistances
+{ Suffix Modifier "of Frenzy" (Tier: 1) }
+Monsters gain a Frenzy Charge on Hit
+--------
+Travel to a Map of this tier or lower by using this in a personal Map Device. Maps can only be used once.

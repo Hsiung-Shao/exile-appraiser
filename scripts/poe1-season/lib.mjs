@@ -864,7 +864,7 @@ export function planRandomSkillGem ({ enStats, zhStats }) {
 /**
  * 規則 19:「地圖含有 X 的壁壘」3.30 改成句型「Map contains {0}」:第二行(物品數量增加獎勵)拿掉,
  * 進階複製在名稱後加「(...)」(GitHub 回報 2026-11-16 的實機地圖:「地圖含有巴倫的壁壘(...) — 無法使用的值」)。
- * 多一個單行寫法 + 進階寫法,舊的兩行句標 superseded。英文沒有樣本,空白照規則 10 推出。
+ * 多一個單行寫法 + 進階寫法,舊的兩行句標 superseded。英文名稱後沒有空白(2026-11-18 使用者回報的實機樣本)。
  * @returns {{ adds: any[] }}
  */
 export function planCitadel ({ enStats, zhStats, ggpkNew }) {
@@ -877,12 +877,20 @@ export function planCitadel ({ enStats, zhStats, ggpkNew }) {
       if (!/^Map contains .+ Citadel\n/.test(stat.ref)) continue
       for (const m of stat.matchers) {
         const string = m.string.split('\n')[0]
-        if (m.superseded || !m.string.includes('\n') || !string.startsWith(head) || stat.matchers.some(x => x.string === string)) continue
+        if (m.superseded || !string.startsWith(head)) continue
+        if (!m.string.includes('\n')) {
+          // 2026-11-18 英文實機樣本名稱後沒有空白;之前推定的「Citadel (...)」補正,舊的標 superseded
+          if (m.advanced && m.advanced !== string + mark && !stat.matchers.some(x => x.advanced === string + mark)) {
+            adds.push({ lang, ref: stat.ref, matcher: { string, advanced: string + mark }, supersedes: [string] })
+          }
+          continue
+        }
+        if (stat.matchers.some(x => x.string === string)) continue
         adds.push({ lang, ref: stat.ref, matcher: { string, advanced: string + mark }, supersedes: [m.string] })
       }
     }
   }
-  plan(enStats, 'en', tpl.en, ' (...)')
+  plan(enStats, 'en', tpl.en, '(...)')
   plan(zhStats, 'cmn-Hant', tpl.zh, '(...)')
   return { adds }
 }

@@ -514,10 +514,22 @@ describe('planCitadel(規則 19)', () => {
     const plan = planCitadel({ enStats, zhStats, ggpkNew })
     const en = parseRows(applyStatPlan(toFile(enStats), 'en', plan))
     const zh = parseRows(applyStatPlan(toFile(zhStats), 'cmn-Hant', plan))
-    expect(en[0].matchers).toEqual([{ string: ref, superseded: true }, { string: "Map contains Baran's Citadel", advanced: "Map contains Baran's Citadel (...)" }])
+    expect(en[0].matchers).toEqual([{ string: ref, superseded: true }, { string: "Map contains Baran's Citadel", advanced: "Map contains Baran's Citadel(...)" }])
     expect(zh[0].matchers.at(-1)).toEqual({ string: '地圖含有巴倫的壁壘', advanced: '地圖含有巴倫的壁壘(...)' })
     expect(zh[0].matchers[0].superseded).toBe(true)
     expect(planCitadel({ enStats: en, zhStats: zh, ggpkNew }).adds).toEqual([])
+  })
+
+  // 2026-11-18 使用者回報英文實機:「Map contains Al-Hezmin's Citadel(...)」名稱後沒有空白;失敗代表舊的推定寫法沒補正
+  it('英文進階寫法多空白(舊推定)→ 補無空白寫法、舊的標 superseded,重跑為空', () => {
+    const ref = "Map contains Baran's Citadel\nItem Quantity increases amount of Rewards Baran drops by 20% of its value"
+    const enStats = [{ ref, better: 0, matchers: [{ string: ref, superseded: true }, { string: "Map contains Baran's Citadel", advanced: "Map contains Baran's Citadel (...)" }], trade: { ids: { implicit: ['implicit.x|1'] } } }]
+    const ggpkNew = [{ key: 'map_contains_citadel|#|stat_descriptions.txt|0', en: 'Map contains {0}', zh: '地圖含有{0}' }]
+    const plan = planCitadel({ enStats, zhStats: [], ggpkNew })
+    const en = parseRows(applyStatPlan(toFile(enStats), 'en', plan))
+    expect(en[0].matchers.at(-1)).toEqual({ string: "Map contains Baran's Citadel", advanced: "Map contains Baran's Citadel(...)" })
+    expect(en[0].matchers[1].superseded).toBe(true)
+    expect(planCitadel({ enStats: en, zhStats: [], ggpkNew }).adds).toEqual([])
   })
 })
 

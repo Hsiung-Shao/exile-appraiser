@@ -77,6 +77,13 @@ describe('3.30 詞綴寫法(en)', () => {
     expect(item.statsByType[0].stat.trade.ids.explicit).toEqual(['explicit.stat_1190333629|3154'])
   })
 
+  // 2026-11-18 使用者回報英文地圖無法查詢:「Map contains Al-Hezmin's Citadel(...)」名稱後沒空白,失敗代表進階寫法又對不上
+  it('D17x 英文實機地圖「Map contains Al-Hezmin\'s Citadel(...)」解析得到、帶交易站 id', () => {
+    const map = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-map-citadel.en.txt'), 'utf8'))
+    expect(unknownOf(map)).toEqual([])
+    expect(map.statsByType.find(s => s.stat.ref.startsWith("Map contains Al-Hezmin's Citadel"))?.stat.trade.ids.implicit).toEqual(['implicit.stat_2563183002|3'])
+  })
+
   it('D3 舊稀有度寫法仍可解析', () => {
     const item = parse(ringText('en', [['15% increased Rarity of Items found', '+68 to maximum Life']]))
     expect(unknownOf(item)).toEqual([])
