@@ -1,4 +1,4 @@
-// 設定 › 一般「建立桌面捷徑」的純邏輯(不 import electron;main.ts 注入 shell.writeShortcutLink 等)。
+// 設定 › 啟動與更新「建立桌面捷徑」的純邏輯(不 import electron;main.ts 注入 shell.writeShortcutLink 等)。
 // 釘選到工作列 Windows 不讓程式自己做,只能由使用者在捷徑上按右鍵。
 import path from 'node:path'
 

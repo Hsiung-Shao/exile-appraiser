@@ -224,7 +224,6 @@
       "trigger_mode": "Show prices",
       "trigger_auto": "Detect automatically",
       "trigger_hotkey": "On hotkey",
-      "trigger_hint": "Detect automatically: keeps checking whether the stash is open. On hotkey: no screen capture until you press the hotkey on the Fragment tab; press again or close the stash to hide. Set the hotkey under Stash prices in the Hotkeys table.",
       "timing": "OCR {ms} ms ({count} total)",
       "region": "OCR region",
       "region_hint": "OCR only reads this area to tell that the fragment tab is open and which sub-tab is shown; it should cover the General / Allflame / Eldritch buttons without cutting through the stash tab names above. Not set = the default position derived from the screen height. Slot positions are not affected. Putting the stash tab into a folder moves the buttons down; pick the area again or reset to default.",
@@ -467,7 +466,6 @@
     "section_game": "Game & realm",
     "section_search": "Search",
     "section_listing": "Listings & clipboard",
-    "section_hotkeys": "Hotkeys",
     "section_window": "Game window & overlay",
     "section_version": "Version",
     "section_data": "Data sources",
@@ -1093,7 +1091,6 @@
     },
     "hk": {
       "menu_toggle": "Show / hide",
-      "edit_in": "Edit in {page}",
       "unset": "Not set",
       "empty": "Nothing here.",
       "empty_stash_chat": "No stash searches yet.",

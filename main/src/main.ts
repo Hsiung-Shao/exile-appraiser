@@ -1901,7 +1901,7 @@ if (!skipStartup) app.whenReady().then(() => {
         if (err) throw new Error(err)
       }
     },
-    // 步 38:托盤「開啟設定資料夾」移到設定 › 關於;預覽端不開放
+    // 步 38:托盤「開啟設定資料夾」移到設定(2026-11-18 起在「啟動與更新」);預覽端不開放
     'config-open-folder': {
       kind: 'invoke',
       preview: false,
@@ -1910,7 +1910,7 @@ if (!skipStartup) app.whenReady().then(() => {
         if (err) throw new Error(err)
       }
     },
-    // 2026-11-16:設定 › 一般 › 建立桌面捷徑(會在使用者桌面寫檔 → 預覽端不開放)
+    // 2026-11-16:設定 › 啟動與更新 › 建立桌面捷徑(會在使用者桌面寫檔 → 預覽端不開放)
     'desktop-shortcut-create': {
       kind: 'invoke',
       preview: false,

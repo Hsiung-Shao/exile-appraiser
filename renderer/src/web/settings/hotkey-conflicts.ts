@@ -2,7 +2,7 @@
  * 設定頁的熱鍵衝突表(純函式;`renderer/test/chat-commands.test.ts` 測)。
  * 與 main `shortcut-actions.ts` 同一套規則:依註冊順序先到先得(查價 → 鎖定 → overlay → 褻瀆暫停 / 褻瀆框選 / 符文暫停 / 符文框選(PoE2)
  * 或倉庫價格暫停 / 倉庫框選(PoE1,2026-10-14)→ 聊天指令 → 倉庫搜尋),
- * 重複的後者不註冊;遊戲保留鍵(`ipc/reserved-hotkeys.ts`)一律不註冊。熱鍵總表、倉庫與聊天分頁、正則書籤共用。
+ * 重複的後者不註冊;遊戲保留鍵(`ipc/reserved-hotkeys.ts`)一律不註冊。熱鍵總表、倉庫 / 聊天指令分頁、正則書籤共用。
  * 例外(第 16 步):褻瀆暫停(`ocr`)與符文暫停(`runeshape`)相同 → main 合併成一個 `scan-toggle-both`,
  * 兩欄都標 `shared`(不是重複,設定頁顯示「與…共用,一次切換兩者」);只有兩欄都會註冊時才成立(條件同 `hotkeySlots`)。
  * 第 33 步:倉庫搜尋之後是正則書籤快速面板(`regexQuick`)與書籤個別熱鍵(`rxbm:<書籤索引>`,只列目前遊戲的;順序同 main)。

@@ -101,7 +101,7 @@
             <button class="btn primary sm rx-copy" data-regex="copy" :disabled="!shown" @click="copy">
               {{ copyState === 'ok' ? t('ppz.regex.copied') : copyState === 'fail' ? t('ppz.regex.copy_failed') : t('ppz.regex.copy') }}
             </button>
-            <!-- 2026-10-01:把目前字串加到「倉庫與聊天 › 倉庫搜尋」(熱鍵在那一頁設;第 39 步前分頁叫「聊天指令」) -->
+            <!-- 2026-10-01:把目前字串加到「倉庫 › 倉庫搜尋」(熱鍵在那一頁設;2026-11-18 前分頁叫「倉庫與聊天」) -->
             <button class="btn ghost sm" data-regex="add-stash" :disabled="!shown || shown.length > 250" :title="t('ppz.regex.add_stash_tip')" @click="addStash">
               {{ stashState === 'ok' ? t('ppz.regex.add_stash_done') : stashState === 'dup' ? t('ppz.regex.add_stash_dup') : t('ppz.regex.add_stash') }}
             </button>
