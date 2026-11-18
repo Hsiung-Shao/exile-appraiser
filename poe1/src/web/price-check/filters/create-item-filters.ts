@@ -322,6 +322,10 @@ function createFiltersInner (
       }
     }
   }
+  // exile-appraiser: 2026-11-18 使用者要求:武器 / 防具每個預設都有可輸入的品質條件(預設不勾,查詢不變)
+  if (!filters.quality && (ARMOUR.has(item.category!) || WEAPON.has(item.category!))) {
+    filters.quality = { value: item.quality ?? 0, disabled: true }
+  }
 
   if (item.sockets?.linked) {
     filters.linkedSockets = {

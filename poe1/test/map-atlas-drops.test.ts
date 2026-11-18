@@ -54,12 +54,18 @@ describe('3.30 地圖:輿圖掉落物與更多 綢帶', () => {
     expect((item as any).areaAtlasDrops).toBe(49)
   })
 
-  // 失敗代表:條件沒產生 / 預設沒勾 / 沒寫進 map_bonus
-  it('M2 輿圖掉落物送進查詢且預設勾選', () => {
-    expect(shape(filters)).toContainEqual(['property', 'Atlas Drops: +#%', false])
+  // 失敗代表:條件沒產生 / 預設被勾選 / 勾選後沒寫進 map_bonus(2026-11-18 使用者:保留但預設不選)
+  it('M2 輿圖掉落物保留但預設不勾,勾選後送 map_bonus', () => {
+    expect(shape(filters)).toContainEqual(['property', 'Atlas Drops: +#%', true])
     const f = filters.find(x => x.statRef === 'Atlas Drops: +#%')!
     expect(f.tradeId).toEqual(['item.map_atlas_drops'])
-    const min = request(item).query.filters?.map_filters?.filters?.map_bonus?.min
+    const { presets, active } = createPresets(item, OPTS)
+    const preset = presets.find(p => p.id === active) ?? presets[0]
+    const pf = (preset.stats as StatFilter[]).find(x => x.statRef === 'Atlas Drops: +#%')!
+    expect(pf.disabled).toBe(true)
+    expect((createTradeRequest(preset).query.filters as any)?.map_filters?.filters?.map_bonus).toBeUndefined()
+    pf.disabled = false
+    const min = (createTradeRequest(preset).query.filters as any)?.map_filters?.filters?.map_bonus?.min
     expect(typeof min).toBe('number')
     expect(min).toBeGreaterThan(0)
     expect(min).toBeLessThanOrEqual(49)
