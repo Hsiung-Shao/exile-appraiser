@@ -8,7 +8,7 @@
    "ItemDisplayMapQuantityIncrease": "物品數量",
    "ItemDisplayMapRarityIncrease": "物品稀有度",
    "ItemDisplayMapPackSizeIncrease": "怪物群大小",
-   "ItemDisplayMapScarabDropBonus": "更多聖甲蟲",
+   "ItemDisplayMapScarabDropBonus": "更多 [Thread|綢帶]",
    "ItemDisplayMapCurrencyDropBonus": "更多通貨",
    "ItemDisplayMapMapDropBonus": "更多地圖",
    "ItemDisplayMapDivinationCardDropBonus": "更多命運卡",
@@ -39,7 +39,7 @@
    "ItemDisplayMapQuantityIncrease": "Item Quantity",
    "ItemDisplayMapRarityIncrease": "Item Rarity",
    "ItemDisplayMapPackSizeIncrease": "Monster Pack Size",
-   "ItemDisplayMapScarabDropBonus": "More Scarabs",
+   "ItemDisplayMapScarabDropBonus": "More [Thread|Threads]",
    "ItemDisplayMapCurrencyDropBonus": "More Currency",
    "ItemDisplayMapMapDropBonus": "More Maps",
    "ItemDisplayMapDivinationCardDropBonus": "More Divination Cards",
@@ -1673,6 +1673,160 @@
      ]
     },
     {
+     "id": "MapContainsBeyondPaleFactionWorlds",
+     "zh": [
+      "區域內含有一名貝達特召喚者"
+     ],
+     "en": [
+      "Area contains an Evocator of Beidat"
+     ],
+     "g": 1,
+     "affixZh": "貝達特之",
+     "hiddenZh": [
+      "後綴 \"貝達特之\"(階層：#)",
+      "貝達特之地圖（階級#）"
+     ],
+     "hiddenEn": [
+      "Suffix Modifier \"of Beidat\" (Tier: #)",
+      "Map (Tier #) of Beidat"
+     ]
+    },
+    {
+     "id": "MapContainsBeyondFleshFactionWorlds",
+     "zh": [
+      "區域內含有一名戈沃召喚者"
+     ],
+     "en": [
+      "Area contains an Evocator of Ghorr"
+     ],
+     "g": 1,
+     "affixZh": "戈沃之",
+     "hiddenZh": [
+      "後綴 \"戈沃之\"(階層：#)",
+      "戈沃之地圖（階級#）"
+     ],
+     "hiddenEn": [
+      "Suffix Modifier \"of Ghorr\" (Tier: #)",
+      "Map (Tier #) of Ghorr"
+     ]
+    },
+    {
+     "id": "MapContainsBeyondDemonFactionWorlds",
+     "zh": [
+      "區域內含有一名克塔什召喚者"
+     ],
+     "en": [
+      "Area contains an Evocator of K'Tash"
+     ],
+     "g": 1,
+     "affixZh": "克塔什之",
+     "hiddenZh": [
+      "後綴 \"克塔什之\"(階層：#)",
+      "克塔什之地圖（階級#）"
+     ],
+     "hiddenEn": [
+      "Suffix Modifier \"of K'Tash\" (Tier: #)",
+      "Map (Tier #) of K'Tash"
+     ]
+    },
+    {
+     "id": "MapContainsSentinelApexWorlds",
+     "zh": [
+      "區域內含有一名埋藏的巔峰守望"
+     ],
+     "en": [
+      "Area contains a buried Apex Sentinel"
+     ],
+     "g": 1,
+     "affixZh": "出土科技之",
+     "hiddenZh": [
+      "後綴 \"出土科技之\"(階層：#)",
+      "出土科技之地圖（階級#）"
+     ],
+     "hiddenEn": [
+      "Suffix Modifier \"of Unearthed Technology\" (Tier: #)",
+      "Map (Tier #) of Unearthed Technology"
+     ]
+    },
+    {
+     "id": "MapContainsSentinelStalkerWorlds",
+     "zh": [
+      "區域內含有一名埋藏的纏擾守望"
+     ],
+     "en": [
+      "Area contains a buried Stalker Sentinel"
+     ],
+     "g": 1,
+     "affixZh": "出土科技之",
+     "hiddenZh": [
+      "後綴 \"出土科技之\"(階層：#)",
+      "出土科技之地圖（階級#）"
+     ],
+     "hiddenEn": [
+      "Suffix Modifier \"of Unearthed Technology\" (Tier: #)",
+      "Map (Tier #) of Unearthed Technology"
+     ]
+    },
+    {
+     "id": "MapContainsSentinelPandemoniumWorlds",
+     "zh": [
+      "區域內含有一名埋藏的騷動守望"
+     ],
+     "en": [
+      "Area contains a buried Pandemonium Sentinel"
+     ],
+     "g": 1,
+     "affixZh": "出土科技之",
+     "hiddenZh": [
+      "後綴 \"出土科技之\"(階層：#)",
+      "出土科技之地圖（階級#）"
+     ],
+     "hiddenEn": [
+      "Suffix Modifier \"of Unearthed Technology\" (Tier: #)",
+      "Map (Tier #) of Unearthed Technology"
+     ]
+    },
+    {
+     "id": "MapContainsMirageWorlds",
+     "zh": [
+      "區域內含有一座蜃景"
+     ],
+     "en": [
+      "Area contains a Mirage"
+     ],
+     "g": 1,
+     "affixZh": "澤洛克之",
+     "hiddenZh": [
+      "後綴 \"澤洛克之\"(階層：#)",
+      "澤洛克之地圖（階級#）"
+     ],
+     "hiddenEn": [
+      "Suffix Modifier \"of Zarokh\" (Tier: #)",
+      "Map (Tier #) of Zarokh"
+     ]
+    },
+    {
+     "id": "MapContainsDeliriumMirrorWorlds",
+     "zh": [
+      "區域內含有一面譫妄之鏡"
+     ],
+     "en": [
+      "Area contains a Mirror of Delirium"
+     ],
+     "g": 1,
+     "affixZh": "狂亂之、瘋狂之",
+     "hiddenZh": [
+      "後綴 \"狂亂之\"(階層：#)",
+      "狂亂之地圖（階級#）",
+      "後綴 \"瘋狂之\"(階層：#)",
+      "瘋狂之地圖（階級#）"
+     ],
+     "hiddenEn": [
+      "Suffix Modifier \"of Insanity\" (Tier: #)",
+      "Map (Tier #) of Insanity"
+     ]
+    },
+    {
      "id": "MapUberModElderNovas",
      "zh": [
       "區域內含有不穩定的惡魔觸手"
@@ -1710,6 +1864,25 @@
      "hiddenEn": [
       "Suffix Modifier \"of Marking\" (Tier: #)",
       "Map (Tier #) of Marking"
+     ]
+    },
+    {
+     "id": "MapContainsWildwoodWorlds",
+     "zh": [
+      "區域內含有翠綠荒林"
+     ],
+     "en": [
+      "Area contains the Viridian Wildwood"
+     ],
+     "g": 1,
+     "affixZh": "荒林之",
+     "hiddenZh": [
+      "後綴 \"荒林之\"(階層：#)",
+      "荒林之地圖（階級#）"
+     ],
+     "hiddenEn": [
+      "Suffix Modifier \"of the Woods\" (Tier: #)",
+      "Map (Tier #) of the Woods"
      ]
     },
     {
@@ -2033,12 +2206,10 @@
      "affixZh": "盲目之",
      "hiddenZh": [
       "後綴 \"盲目之\"(階層：#)",
-      "（ 被致盲有20%更少命中率和閃避值，持續4秒 ）",
       "盲目之地圖（階級#）"
      ],
      "hiddenEn": [
       "Suffix Modifier \"of Blinding\" (Tier: #)",
-      "(Being Blinded causes 20% less Accuracy Rating and Evasion Rating, for 4 seconds)",
       "Map (Tier #) of Blinding"
      ]
     },
@@ -2868,6 +3039,655 @@
      ]
     },
     {
+     "id": "MapBloodlinesModOnMagicsMapWorlds",
+     "zh": [
+      "增加#%此區域的輿圖掉落加成"
+     ],
+     "en": [
+      "#% increased Atlas Drops in this Area"
+     ],
+     "g": 2,
+     "affixZh": "儀式的、反抗者的、血統之、骷髏的",
+     "hiddenZh": [
+      "前綴 \"儀式的\"(階層：#)",
+      "儀式的地圖（階級#）",
+      "前綴 \"反抗者的\"(階層：#)",
+      "反抗者的地圖（階級#）",
+      "後綴 \"血統之\"(階層：#)",
+      "血統之地圖（階級#）",
+      "前綴 \"骷髏的\"(階層：#)",
+      "骷髏的地圖（階級#）",
+      "前綴 \"羊男的\"(階層：#)",
+      "羊男的地圖（階級#）",
+      "前綴 \"濕滑的\"(階層：#)",
+      "濕滑的地圖（階級#）",
+      "前綴 \"亡靈的\"(階層：#)",
+      "亡靈的地圖（階級#）",
+      "前綴 \"發散的\"(階層：#)",
+      "發散的地圖（階級#）",
+      "前綴 \"野性的\"(階層：#)",
+      "野性的地圖（階級#）",
+      "前綴 \"惡魔的\"(階層：#)",
+      "惡魔的地圖（階級#）",
+      "前綴 \"雙足的\"(階層：#)",
+      "雙足的地圖（階級#）",
+      "前綴 \"日耀的\"(階層：#)",
+      "日耀的地圖（階級#）",
+      "前綴 \"月影的\"(階層：#)",
+      "月影的地圖（階級#）",
+      "前綴 \"作祟的\"(階層：#)",
+      "作祟的地圖（階級#）",
+      "前綴 \"盛宴的\"(階層：#)",
+      "盛宴的地圖（階級#）",
+      "前綴 \"五花八門的\"(階層：#)",
+      "五花八門的地圖（階級#）",
+      "前綴 \"連鎖的\"(階層：#)",
+      "連鎖的地圖（階級#）",
+      "前綴 \"無咒的\"(階層：#)",
+      "法術",
+      "詛咒",
+      "法術,詛咒",
+      "法術, 詛咒",
+      "無咒的地圖（階級#）",
+      "後綴 \"猛毒之\"(階層：#)",
+      "混沌",
+      "異常狀態",
+      "混沌,異常狀態",
+      "混沌, 異常狀態",
+      "（ 中毒造成持續性混沌傷害，傷害取決於初始的物理和混沌傷害總和。中毒效果可以疊加 ）",
+      "猛毒之地圖（階級#）",
+      "後綴 \"平衡之\"(階層：#)",
+      "傷害",
+      "元素",
+      "傷害,元素",
+      "傷害, 元素",
+      "平衡之地圖（階級#）",
+      "前綴 \"孿生的\"(階層：#)",
+      "孿生的地圖（階級#）",
+      "前綴 \"堅定不移的\"(階層：#)",
+      "生命",
+      "堅定不移的地圖（階級#）",
+      "前綴 \"裂化的\"(階層：#)",
+      "裂化的地圖（階級#）",
+      "後綴 \"巨人之\"(階層：#)",
+      "巨人之地圖（階級#）",
+      "後綴 \"死亡之\"(階層：#)",
+      "暴擊",
+      "傷害,暴擊",
+      "傷害, 暴擊",
+      "死亡之地圖（階級#）",
+      "前綴 \"裝甲的\"(階層：#)",
+      "物理",
+      "裝甲的地圖（階級#）",
+      "前綴 \"豐饒的\"(階層：#)",
+      "豐饒的地圖（階級#）",
+      "前綴 \"殘暴的\"(階層：#)",
+      "殘暴的地圖（階級#）",
+      "前綴 \"燃燒的\"(階層：#)",
+      "火焰",
+      "傷害,物理,元素,火焰",
+      "傷害, 物理, 元素, 火焰",
+      "燃燒的地圖（階級#）",
+      "前綴 \"冷凍的\"(階層：#)",
+      "冰冷",
+      "傷害,物理,元素,冰冷",
+      "傷害, 物理, 元素, 冰冷",
+      "冷凍的地圖（階級#）",
+      "前綴 \"導電的\"(階層：#)",
+      "閃電",
+      "傷害,物理,元素,閃電",
+      "傷害, 物理, 元素, 閃電",
+      "導電的地圖（階級#）",
+      "前綴 \"褻瀆的\"(階層：#)",
+      "傷害,物理,混沌",
+      "傷害, 物理, 混沌",
+      "（凋零增加 6% 承受混沌傷害，至多可以堆疊 15 次）",
+      "褻瀆的地圖（階級#）",
+      "前綴 \"飄忽的\"(階層：#)",
+      "攻擊",
+      "速度",
+      "攻擊,法術,速度",
+      "攻擊, 法術, 速度",
+      "飄忽的地圖（階級#）",
+      "前綴 \"懲罰的\"(階層：#)",
+      "傷害,物理",
+      "傷害, 物理",
+      "懲罰的地圖（階級#）",
+      "前綴 \"反射的\"(階層：#)",
+      "反射的地圖（階級#）",
+      "後綴 \"窒息之\"(階層：#)",
+      "防禦",
+      "能量護盾",
+      "生命,防禦,能量護盾",
+      "生命, 防禦, 能量護盾",
+      "窒息之地圖（階級#）",
+      "後綴 \"烈焰之\"(階層：#)",
+      "傷害,元素,火焰",
+      "傷害, 元素, 火焰",
+      "烈焰之地圖（階級#）",
+      "後綴 \"冰之\"(階層：#)",
+      "（站立於冰冷地面將使你受到冰緩）",
+      "冰之地圖（階級#）",
+      "後綴 \"雷之\"(階層：#)",
+      "雷之地圖（階級#）",
+      "後綴 \"褻瀆之\"(階層：#)",
+      "傷害,混沌",
+      "傷害, 混沌",
+      "褻瀆之地圖（階級#）",
+      "後綴 \"元素要害之\"(階層：#)",
+      "（元素要害為咒術，減少 15% 全部元素抗性。持續 8 秒）",
+      "元素要害之地圖（階級#）",
+      "後綴 \"脆弱之\"(階層：#)",
+      "（脆弱為咒術，增加 15% 承受物理傷害，使擊中對目標 +25% 流血機率。脆弱持續 8 秒）",
+      "脆弱之地圖（階級#）",
+      "後綴 \"衰弱之\"(階層：#)",
+      "（衰弱為咒術，減少 10% 目標命中率和 15% 傷害，或 9% 對稀有或傳奇目標。衰弱持續 8 秒）",
+      "衰弱之地圖（階級#）",
+      "後綴 \"時空鎖鏈之\"(階層：#)",
+      "（時空鎖鏈為咒術，減少 15% 行動速度或 9% 對稀有或傳奇目標，並且使目標上的效果比平常慢 40% 失效。對玩家有 50% 更少效果並持續 5 秒）",
+      "時空鎖鏈之地圖（階級#）",
+      "後綴 \"瘀血之\"(階層：#)",
+      "魔力",
+      "生命,魔力,防禦,能量護盾",
+      "生命, 魔力, 防禦, 能量護盾",
+      "瘀血之地圖（階級#）",
+      "後綴 \"曝露之\"(階層：#)",
+      "抗性",
+      "元素,抗性",
+      "元素, 抗性",
+      "曝露之地圖（階級#）",
+      "前綴 \"霸主的\"(階層：#)",
+      "霸主的地圖（階級#）",
+      "前綴 \"泰坦的\"(階層：#)",
+      "泰坦的地圖（階級#）",
+      "後綴 \"凝血之\"(階層：#)",
+      "凝血之地圖（階級#）",
+      "後綴 \"隔絕之\"(階層：#)",
+      "元素,火焰,冰冷,閃電,異常狀態",
+      "元素, 火焰, 冰冷, 閃電, 異常狀態",
+      "（元素異常狀態包含點燃、焦灼、冰緩、冰凍、易碎、感電和殘喘）",
+      "隔絕之地圖（階級#）",
+      "後綴 \"堅韌之\"(階層：#)",
+      "堅韌之地圖（階級#）",
+      "後綴 \"乾旱之\"(階層：#)",
+      "乾旱之地圖（階級#）",
+      "前綴 \"魔抗的\"(階層：#)",
+      "魔抗的地圖（階級#）",
+      "前綴 \"重權的\"(階層：#)",
+      "重權的地圖（階級#）",
+      "前綴 \"憎惡的\"(階層：#)",
+      "憎惡的地圖（階級#）",
+      "前綴 \"無阻的\"(階層：#)",
+      "無阻的地圖（階級#）",
+      "元素,火焰,異常狀態",
+      "元素, 火焰, 異常狀態",
+      "（點燃根據技能的基礎火焰傷害，造成持續火焰傷害，持續4秒）",
+      "前綴 \"抵抗的\"(階層：#)",
+      "元素,混沌,抗性",
+      "元素, 混沌, 抗性",
+      "抵抗的地圖（階級#）",
+      "前綴 \"抗滲的\"(階層：#)",
+      "物理,混沌,攻擊,異常狀態",
+      "物理, 混沌, 攻擊, 異常狀態",
+      "抗滲的地圖（階級#）",
+      "後綴 \"腐鏽之\"(階層：#)",
+      "護甲",
+      "防禦,護甲",
+      "防禦, 護甲",
+      "腐鏽之地圖（階級#）",
+      "後綴 \"傾斜之\"(階層：#)",
+      "（ 阻止40% 來自被壓抑的擊中，並避免它們所施加異常狀態傷害 ）",
+      "傾斜之地圖（階級#）",
+      "後綴 \"無能之\"(階層：#)",
+      "無能之地圖（階級#）",
+      "後綴 \"狂怒之\"(階層：#)",
+      "狂怒之地圖（階級#）",
+      "後綴 \"耐久之\"(階層：#)",
+      "耐久之地圖（階級#）",
+      "後綴 \"暴擊之\"(階層：#)",
+      "暴擊之地圖（階級#）",
+      "前綴 \"穿刺的\"(階層：#)",
+      "（ 當被穿刺的敵人被擊中，穿刺會反射 10% 穿刺之擊所造成的物理傷害至敵人。穿刺持續 5 次擊中 ）",
+      "穿刺的地圖（階級#）",
+      "前綴 \"壓迫性的\"(階層：#)",
+      "壓迫性的地圖（階級#）",
+      "前綴 \"緩衝的\"(階層：#)",
+      "緩衝的地圖（階級#）",
+      "前綴 \"著迷的\"(階層：#)",
+      "著迷的地圖（階級#）",
+      "後綴 \"盲目之\"(階層：#)",
+      "盲目之地圖（階級#）",
+      "後綴 \"大屠殺之\"(階層：#)",
+      "（ 被癱瘓的敵人減少 30% 移動速度 ）",
+      "大屠殺之地圖（階級#）",
+      "後綴 \"阻抗之\"(階層：#)",
+      "（受阻礙的敵人減少 30% 移動速度 4 秒）",
+      "阻抗之地圖（階級#）",
+      "後綴 \"精神之\"(階層：#)",
+      "精神之地圖（階級#）",
+      "後綴 \"奉獻之\"(階層：#)",
+      "奉獻之地圖（階級#）",
+      "後綴 \"疲勞之\"(階層：#)",
+      "疲勞之地圖（階級#）",
+      "後綴 \"轉瞬之\"(階層：#)",
+      "轉瞬之地圖（階級#）",
+      "後綴 \"懷疑之\"(階層：#)",
+      "懷疑之地圖（階級#）",
+      "後綴 \"不精確之\"(階層：#)",
+      "不精確之地圖（階級#）",
+      "後綴 \"澤洛克之\"(階層：#)",
+      "澤洛克之地圖（階級#）",
+      "後綴 \"貝達特之\"(階層：#)",
+      "貝達特之地圖（階級#）",
+      "後綴 \"戈沃之\"(階層：#)",
+      "戈沃之地圖（階級#）",
+      "後綴 \"克塔什之\"(階層：#)",
+      "克塔什之地圖（階級#）",
+      "後綴 \"出土科技之\"(階層：#)",
+      "出土科技之地圖（階級#）",
+      "後綴 \"狂亂之\"(階層：#)",
+      "狂亂之地圖（階級#）",
+      "後綴 \"荒林之\"(階層：#)",
+      "荒林之地圖（階級#）",
+      "後綴 \"權利之\"(階層：#)",
+      "權利之地圖（階級#）",
+      "前綴 \"放大的\"(階層：#)",
+      "放大的地圖（階級#）",
+      "前綴 \"野蠻人的\"(階層：#)",
+      "野蠻人的地圖（階級#）",
+      "前綴 \"壓抑的\"(階層：#)",
+      "壓抑的地圖（階級#）",
+      "前綴 \"堅定的\"(階層：#)",
+      "堅定的地圖（階級#）",
+      "前綴 \"懲戒的\"(階層：#)",
+      "懲戒的地圖（階級#）",
+      "後綴 \"詛咒之\"(階層：#)",
+      "詛咒之地圖（階級#）",
+      "後綴 \"支配之\"(階層：#)",
+      "支配之地圖（階級#）",
+      "前綴 \"抓緊的\"(階層：#)",
+      "（ 至多 10 條藤蔓可以抓住你，每個藤蔓造成 8% 更少移動速度。移動時掙脫 ）",
+      "抓緊的地圖（階級#）",
+      "前綴 \"易爆之\"(階層：#)",
+      "易爆之地圖（階級#）",
+      "前綴 \"三相的\"(階層：#)",
+      "三相的地圖（階級#）",
+      "前綴 \"粗陋的\"(階層：#)",
+      "粗陋的地圖（階級#）",
+      "前綴 \"艦隊的\"(階層：#)",
+      "艦隊的地圖（階級#）",
+      "前綴 \"終極的\"(階層：#)",
+      "終極的地圖（階級#）",
+      "後綴 \"勇士之\"(階層：#)",
+      "勇士之地圖（階級#）",
+      "後綴 \"飲用之\"(階層：#)",
+      "飲用之地圖（階級#）",
+      "（護甲、閃避和能量護盾是標準防禦）",
+      "前綴 \"飢餓的\"(階層：#)",
+      "飢餓的地圖（階級#）",
+      "前綴 \"受保護的\"(階層：#)",
+      "受保護的地圖（階級#）",
+      "前綴 \"折磨的\"(階層：#)",
+      "（冰凍使敵人行動速度降至 0，使他們無法行動。根據擊中的冰冷傷害決定持續時間）",
+      "（感電根據擊中的閃電傷害總量，增加至多50%承受傷害，持續2秒）",
+      "折磨的地圖（階級#）",
+      "後綴 \"穿透之\"(階層：#)",
+      "穿透之地圖（階級#）",
+      "後綴 \"腐朽之\"(階層：#)",
+      "腐朽之地圖（階級#）",
+      "前綴 \"瓦爾多的\"(階層：#)",
+      "瓦爾多的地圖（階級#）",
+      "前綴 \"合成的\"(階層：#)",
+      "合成的地圖（階級#）",
+      "後綴 \"反抗之\"(階層：#)",
+      "反抗之地圖（階級#）",
+      "前綴 \"灼烙的\"(階層：#)",
+      "灼烙的地圖（階級#）",
+      "後綴 \"珍藏之\"(階層：#)",
+      "珍藏之地圖（階級#）",
+      "後綴 \"裂片之\"(階層：#)",
+      "裂片之地圖（階級#）",
+      "後綴 \"寶藏之\"(階層：#)",
+      "寶藏之地圖（階級#）",
+      "後綴 \"堅持之\"(階層：#)",
+      "堅持之地圖（階級#）",
+      "前綴 \"迷宮的\"(階層：#)",
+      "迷宮的地圖（階級#）",
+      "前綴 \"稀釋的\"(階層：#)",
+      "稀釋的地圖（階級#）",
+      "後綴 \"印記之\"(階層：#)",
+      "印記之地圖（階級#）",
+      "前綴 \"燃燒\"(階層：#)",
+      "燃燒地圖（階級#）",
+      "前綴 \"冰凍\"(階層：#)",
+      "冰凍地圖（階級#）",
+      "前綴 \"感電\"(階層：#)",
+      "感電地圖（階級#）",
+      "前綴 \"已複製\"(階層：#)",
+      "已複製地圖（階級#）",
+      "後綴 \"烈火之\"(階層：#)",
+      "烈火之地圖（階級#）",
+      "後綴 \"絕緣之\"(階層：#)",
+      "絕緣之地圖（階級#）",
+      "前綴 \"抗性的\"(階層：#)",
+      "抗性的地圖（階級#）",
+      "後綴 \"銹之\"(階層：#)",
+      "銹之地圖（階級#）",
+      "前綴 \"爆燃\"(階層：#)",
+      "爆燃地圖（階級#）",
+      "後綴 \"屠戮之\"(階層：#)",
+      "屠戮之地圖（階級#）",
+      "後綴 \"削弱之\"(階層：#)",
+      "削弱之地圖（階級#）",
+      "後綴 \"瘋狂之\"(階層：#)",
+      "瘋狂之地圖（階級#）",
+      "後綴 \"挑戰之\"(階層：#)",
+      "挑戰之地圖（階級#）"
+     ],
+     "hiddenEn": [
+      "Prefix Modifier \"Ceremonial\" (Tier: #)",
+      "Ceremonial Map (Tier #)",
+      "Prefix Modifier \"Antagonist's\" (Tier: #)",
+      "Antagonist's Map (Tier #)",
+      "Suffix Modifier \"of Bloodlines\" (Tier: #)",
+      "Map (Tier #) of Bloodlines",
+      "Prefix Modifier \"Skeletal\" (Tier: #)",
+      "Skeletal Map (Tier #)",
+      "Prefix Modifier \"Capricious\" (Tier: #)",
+      "Capricious Map (Tier #)",
+      "Prefix Modifier \"Slithering\" (Tier: #)",
+      "Slithering Map (Tier #)",
+      "Prefix Modifier \"Undead\" (Tier: #)",
+      "Undead Map (Tier #)",
+      "Prefix Modifier \"Emanant\" (Tier: #)",
+      "Emanant Map (Tier #)",
+      "Prefix Modifier \"Feral\" (Tier: #)",
+      "Feral Map (Tier #)",
+      "Prefix Modifier \"Demonic\" (Tier: #)",
+      "Demonic Map (Tier #)",
+      "Prefix Modifier \"Bipedal\" (Tier: #)",
+      "Bipedal Map (Tier #)",
+      "Prefix Modifier \"Solar\" (Tier: #)",
+      "Solar Map (Tier #)",
+      "Prefix Modifier \"Lunar\" (Tier: #)",
+      "Lunar Map (Tier #)",
+      "Prefix Modifier \"Haunting\" (Tier: #)",
+      "Haunting Map (Tier #)",
+      "Prefix Modifier \"Feasting\" (Tier: #)",
+      "Feasting Map (Tier #)",
+      "Prefix Modifier \"Multifarious\" (Tier: #)",
+      "Multifarious Map (Tier #)",
+      "Prefix Modifier \"Chaining\" (Tier: #)",
+      "Chaining Map (Tier #)",
+      "Prefix Modifier \"Hexproof\" (Tier: #)",
+      "Caster",
+      "Curse",
+      "Caster,Curse",
+      "Caster, Curse",
+      "Hexproof Map (Tier #)",
+      "Suffix Modifier \"of Venom\" (Tier: #)",
+      "Chaos",
+      "Ailment",
+      "Chaos,Ailment",
+      "Chaos, Ailment",
+      "(Poison deals Chaos Damage over time, based on the base Physical and Chaos Damage of the Skill. Multiple instances of Poison stack)",
+      "Map (Tier #) of Venom",
+      "Suffix Modifier \"of Balance\" (Tier: #)",
+      "Damage",
+      "Elemental",
+      "Damage,Elemental",
+      "Damage, Elemental",
+      "Map (Tier #) of Balance",
+      "Prefix Modifier \"Twinned\" (Tier: #)",
+      "Twinned Map (Tier #)",
+      "Prefix Modifier \"Unwavering\" (Tier: #)",
+      "Life",
+      "Unwavering Map (Tier #)",
+      "Prefix Modifier \"Splitting\" (Tier: #)",
+      "Splitting Map (Tier #)",
+      "Suffix Modifier \"of Giants\" (Tier: #)",
+      "Map (Tier #) of Giants",
+      "Suffix Modifier \"of Deadliness\" (Tier: #)",
+      "Critical",
+      "Damage,Critical",
+      "Damage, Critical",
+      "Map (Tier #) of Deadliness",
+      "Prefix Modifier \"Armoured\" (Tier: #)",
+      "Physical",
+      "Armoured Map (Tier #)",
+      "Prefix Modifier \"Fecund\" (Tier: #)",
+      "Fecund Map (Tier #)",
+      "Prefix Modifier \"Savage\" (Tier: #)",
+      "Savage Map (Tier #)",
+      "Prefix Modifier \"Burning\" (Tier: #)",
+      "Fire",
+      "Damage,Physical,Elemental,Fire",
+      "Damage, Physical, Elemental, Fire",
+      "Burning Map (Tier #)",
+      "Prefix Modifier \"Freezing\" (Tier: #)",
+      "Cold",
+      "Damage,Physical,Elemental,Cold",
+      "Damage, Physical, Elemental, Cold",
+      "Freezing Map (Tier #)",
+      "Prefix Modifier \"Shocking\" (Tier: #)",
+      "Lightning",
+      "Damage,Physical,Elemental,Lightning",
+      "Damage, Physical, Elemental, Lightning",
+      "Shocking Map (Tier #)",
+      "Prefix Modifier \"Profane\" (Tier: #)",
+      "Damage,Physical,Chaos",
+      "Damage, Physical, Chaos",
+      "(Withered applies 6% increased Chaos Damage Taken, and can be inflicted up to 15 times)",
+      "Profane Map (Tier #)",
+      "Prefix Modifier \"Fleet\" (Tier: #)",
+      "Attack",
+      "Speed",
+      "Attack,Caster,Speed",
+      "Attack, Caster, Speed",
+      "Fleet Map (Tier #)",
+      "Prefix Modifier \"Punishing\" (Tier: #)",
+      "Damage,Physical",
+      "Damage, Physical",
+      "Punishing Map (Tier #)",
+      "Prefix Modifier \"Mirrored\" (Tier: #)",
+      "Mirrored Map (Tier #)",
+      "Suffix Modifier \"of Smothering\" (Tier: #)",
+      "Defences",
+      "Energy Shield",
+      "Life,Defences,Energy Shield",
+      "Life, Defences, Energy Shield",
+      "Map (Tier #) of Smothering",
+      "Suffix Modifier \"of Flames\" (Tier: #)",
+      "Damage,Elemental,Fire",
+      "Damage, Elemental, Fire",
+      "Map (Tier #) of Flames",
+      "Suffix Modifier \"of Ice\" (Tier: #)",
+      "(You are Chilled while standing in Chilled Ground)",
+      "Map (Tier #) of Ice",
+      "Suffix Modifier \"of Lightning\" (Tier: #)",
+      "Map (Tier #) of Lightning",
+      "Suffix Modifier \"of Desecration\" (Tier: #)",
+      "Damage,Chaos",
+      "Damage, Chaos",
+      "Map (Tier #) of Desecration",
+      "Suffix Modifier \"of Elemental Weakness\" (Tier: #)",
+      "(Elemental Weakness is a Hex which inficts -15% to all Elemental Resistances. It lasts 8 seconds)",
+      "Map (Tier #) of Elemental Weakness",
+      "Suffix Modifier \"of Vulnerability\" (Tier: #)",
+      "(Vulnerability is a Hex which increases Physical Damage taken by 15% and causes Hits to have +25% chance to inflict Bleeding on the target. It lasts 8 seconds)",
+      "Map (Tier #) of Vulnerability",
+      "Suffix Modifier \"of Enfeeblement\" (Tier: #)",
+      "(Enfeeble is a Hex which reduces the targets' Accuracy Rating by 10% and Damage by 15%, or 9% on Rare or Unique targets. It lasts 8 seconds)",
+      "Map (Tier #) of Enfeeblement",
+      "Suffix Modifier \"of Temporal Chains\" (Tier: #)",
+      "(Temporal Chains is a Hex which reduces Action Speed by 15%, or 9% on Rare or Unique targets, and makes other effects on the target expire 40% slower. It has 50% less effect on Players and lasts 5 seconds)",
+      "Map (Tier #) of Temporal Chains",
+      "Suffix Modifier \"of Stasis\" (Tier: #)",
+      "Mana",
+      "Life,Mana,Defences,Energy Shield",
+      "Life, Mana, Defences, Energy Shield",
+      "Map (Tier #) of Stasis",
+      "Suffix Modifier \"of Exposure\" (Tier: #)",
+      "Resistance",
+      "Elemental,Resistance",
+      "Elemental, Resistance",
+      "Map (Tier #) of Exposure",
+      "Prefix Modifier \"Overlord's\" (Tier: #)",
+      "Overlord's Map (Tier #)",
+      "Prefix Modifier \"Titan's\" (Tier: #)",
+      "Titan's Map (Tier #)",
+      "Suffix Modifier \"of Congealment\" (Tier: #)",
+      "Map (Tier #) of Congealment",
+      "Suffix Modifier \"of Insulation\" (Tier: #)",
+      "Elemental,Fire,Cold,Lightning,Ailment",
+      "Elemental, Fire, Cold, Lightning, Ailment",
+      "(Elemental Ailments are Ignited, Scorched, Chilled, Frozen, Brittle, Shocked, and Sapped)",
+      "Map (Tier #) of Insulation",
+      "Suffix Modifier \"of Toughness\" (Tier: #)",
+      "Map (Tier #) of Toughness",
+      "Suffix Modifier \"of Drought\" (Tier: #)",
+      "Map (Tier #) of Drought",
+      "Prefix Modifier \"Hexwarded\" (Tier: #)",
+      "Hexwarded Map (Tier #)",
+      "Prefix Modifier \"Empowered\" (Tier: #)",
+      "Empowered Map (Tier #)",
+      "Prefix Modifier \"Abhorrent\" (Tier: #)",
+      "Abhorrent Map (Tier #)",
+      "Prefix Modifier \"Unstoppable\" (Tier: #)",
+      "Unstoppable Map (Tier #)",
+      "Prefix Modifier \"Conflagrating\" (Tier: #)",
+      "Elemental,Fire,Ailment",
+      "Elemental, Fire, Ailment",
+      "(Ignite deals Fire Damage over time, based on the base Fire Damage of the Skill, for 4 seconds)",
+      "Conflagrating Map (Tier #)",
+      "Prefix Modifier \"Resistant\" (Tier: #)",
+      "Elemental,Chaos,Resistance",
+      "Elemental, Chaos, Resistance",
+      "Resistant Map (Tier #)",
+      "Prefix Modifier \"Impervious\" (Tier: #)",
+      "Physical,Chaos,Attack,Ailment",
+      "Physical, Chaos, Attack, Ailment",
+      "Impervious Map (Tier #)",
+      "Suffix Modifier \"of Rust\" (Tier: #)",
+      "Armour",
+      "Defences,Armour",
+      "Defences, Armour",
+      "Map (Tier #) of Rust",
+      "Suffix Modifier \"of Miring\" (Tier: #)",
+      "(40% of Damage from Suppressed Hits and Ailments they inflict is prevented)",
+      "Map (Tier #) of Miring",
+      "Suffix Modifier \"of Impotence\" (Tier: #)",
+      "Map (Tier #) of Impotence",
+      "Suffix Modifier \"of Frenzy\" (Tier: #)",
+      "Map (Tier #) of Frenzy",
+      "Suffix Modifier \"of Endurance\" (Tier: #)",
+      "Map (Tier #) of Endurance",
+      "Suffix Modifier \"of Power\" (Tier: #)",
+      "Map (Tier #) of Power",
+      "Prefix Modifier \"Impaling\" (Tier: #)",
+      "(When an Impaled enemy is hit, the Impale reflects 10% of the physical damage of the Impaling hit to that enemy. Impale lasts for 5 hits or 8 seconds)",
+      "Impaling Map (Tier #)",
+      "Prefix Modifier \"Oppressive\" (Tier: #)",
+      "Oppressive Map (Tier #)",
+      "Prefix Modifier \"Buffered\" (Tier: #)",
+      "Buffered Map (Tier #)",
+      "Prefix Modifier \"Enthralled\" (Tier: #)",
+      "Enthralled Map (Tier #)",
+      "Suffix Modifier \"of Blinding\" (Tier: #)",
+      "Map (Tier #) of Blinding",
+      "Suffix Modifier \"of Carnage\" (Tier: #)",
+      "(Maimed enemies have 30% reduced Movement Speed)",
+      "Map (Tier #) of Carnage",
+      "Suffix Modifier \"of Impedance\" (Tier: #)",
+      "(Hinder reduces movement speed by 30% for 4 seconds)",
+      "Map (Tier #) of Impedance",
+      "Suffix Modifier \"of Enervation\" (Tier: #)",
+      "Map (Tier #) of Enervation",
+      "Suffix Modifier \"of Consecration\" (Tier: #)",
+      "Map (Tier #) of Consecration",
+      "Suffix Modifier \"of Fatigue\" (Tier: #)",
+      "Map (Tier #) of Fatigue",
+      "Suffix Modifier \"of Transience\" (Tier: #)",
+      "Map (Tier #) of Transience",
+      "Suffix Modifier \"of Doubt\" (Tier: #)",
+      "Map (Tier #) of Doubt",
+      "Suffix Modifier \"of Imprecision\" (Tier: #)",
+      "Map (Tier #) of Imprecision",
+      "Suffix Modifier \"of Zarokh\" (Tier: #)",
+      "Map (Tier #) of Zarokh",
+      "Suffix Modifier \"of Beidat\" (Tier: #)",
+      "Map (Tier #) of Beidat",
+      "Suffix Modifier \"of Ghorr\" (Tier: #)",
+      "Map (Tier #) of Ghorr",
+      "Suffix Modifier \"of K'Tash\" (Tier: #)",
+      "Map (Tier #) of K'Tash",
+      "Suffix Modifier \"of Unearthed Technology\" (Tier: #)",
+      "Map (Tier #) of Unearthed Technology",
+      "Suffix Modifier \"of Insanity\" (Tier: #)",
+      "Map (Tier #) of Insanity",
+      "Suffix Modifier \"of the Woods\" (Tier: #)",
+      "Map (Tier #) of the Woods",
+      "Prefix Modifier \"Magnifying\" (Tier: #)",
+      "Magnifying Map (Tier #)",
+      "Prefix Modifier \"Stalwart\" (Tier: #)",
+      "Stalwart Map (Tier #)",
+      "Suffix Modifier \"of Curses\" (Tier: #)",
+      "Map (Tier #) of Curses",
+      "Suffix Modifier \"of Domination\" (Tier: #)",
+      "Map (Tier #) of Domination",
+      "Prefix Modifier \"Grasping\" (Tier: #)",
+      "(Up to 10 Vines can grasp you, inflicting 8% less Movement Speed per Vine. Broken by moving)",
+      "Grasping Map (Tier #)",
+      "Prefix Modifier \"Volatile\" (Tier: #)",
+      "Volatile Map (Tier #)",
+      "Prefix Modifier \"Prismatic\" (Tier: #)",
+      "Prismatic Map (Tier #)",
+      "Prefix Modifier \"Ultimate\" (Tier: #)",
+      "Ultimate Map (Tier #)",
+      "Suffix Modifier \"of the Juggernaut\" (Tier: #)",
+      "Map (Tier #) of the Juggernaut",
+      "Suffix Modifier \"of Imbibing\" (Tier: #)",
+      "Map (Tier #) of Imbibing",
+      "(Armour, Evasion Rating and Energy Shield are the standard Defences)",
+      "Prefix Modifier \"Hungering\" (Tier: #)",
+      "Hungering Map (Tier #)",
+      "Prefix Modifier \"Protected\" (Tier: #)",
+      "Protected Map (Tier #)",
+      "Prefix Modifier \"Afflicting\" (Tier: #)",
+      "(Freeze lowers Enemy Action Speed to zero, preventing them from acting. Duration is based on the Cold Damage of the Hit)",
+      "(Shock increases Damage taken by up to 50%, depending on the amount of Lightning Damage in the hit, for 2 seconds)",
+      "Afflicting Map (Tier #)",
+      "Suffix Modifier \"of Penetration\" (Tier: #)",
+      "Map (Tier #) of Penetration",
+      "Suffix Modifier \"of Decaying\" (Tier: #)",
+      "Map (Tier #) of Decaying",
+      "Prefix Modifier \"Valdo's\" (Tier: #)",
+      "Valdo's Map (Tier #)",
+      "Prefix Modifier \"Synthetic\" (Tier: #)",
+      "Synthetic Map (Tier #)",
+      "Suffix Modifier \"of Defiance\" (Tier: #)",
+      "Map (Tier #) of Defiance",
+      "Prefix Modifier \"Searing\" (Tier: #)",
+      "Searing Map (Tier #)",
+      "Suffix Modifier \"of Collection\" (Tier: #)",
+      "Map (Tier #) of Collection",
+      "Suffix Modifier \"of Splinters\" (Tier: #)",
+      "Map (Tier #) of Splinters",
+      "Suffix Modifier \"of Treachery\" (Tier: #)",
+      "Map (Tier #) of Treachery",
+      "Suffix Modifier \"of Persistence\" (Tier: #)",
+      "Map (Tier #) of Persistence",
+      "Prefix Modifier \"Labyrinth's\" (Tier: #)",
+      "Labyrinth's Map (Tier #)",
+      "Prefix Modifier \"Diluted\" (Tier: #)",
+      "Diluted Map (Tier #)",
+      "Suffix Modifier \"of Marking\" (Tier: #)",
+      "Map (Tier #) of Marking",
+      "Suffix Modifier \"of Challenge\" (Tier: #)",
+      "Map (Tier #) of Challenge"
+     ]
+    },
+    {
      "id": "MapMonsterAreaOfEffect2MapWorlds",
      "zh": [
       "增加怪物 #% 範圍效果"
@@ -2975,7 +3795,7 @@
     "怪物群大小",
     "地圖掉落機率",
     "已找到金幣",
-    "更多聖甲蟲",
+    "更多 綢帶",
     "更多通貨",
     "更多命運卡",
     "更多地圖",
@@ -3314,7 +4134,7 @@
     "Monster Pack Size",
     "Map Drop Chance",
     "Gold Found",
-    "More Scarabs",
+    "More Threads",
     "More Currency",
     "More Divination Cards",
     "More Maps",
@@ -4950,12 +5770,10 @@
      "affixZh": "盲目之",
      "hiddenZh": [
       "後綴 \"盲目之\"(階層：#)",
-      "（ 被致盲有20%更少命中率和閃避值，持續4秒 ）",
       "盲目之探險日誌"
      ],
      "hiddenEn": [
       "Suffix Modifier \"of Blinding\" (Tier: #)",
-      "(Being Blinded causes 20% less Accuracy Rating and Evasion Rating, for 4 seconds)",
       "Expedition Logbook of Blinding"
      ]
     },
@@ -5476,6 +6294,369 @@
       "Chaos, Ailment",
       "(Poison deals Chaos Damage over time, based on the base Physical and Chaos Damage of the Skill. Multiple instances of Poison stack)",
       "Expedition Logbook of Venom"
+     ]
+    },
+    {
+     "id": "MapBurningGround1MapWorldsExpedition_",
+     "zh": [
+      "增加#%此區域的輿圖掉落加成"
+     ],
+     "en": [
+      "#% increased Atlas Drops in this Area"
+     ],
+     "g": 2,
+     "affixZh": "連鎖的、猛毒之、平衡之、堅定不移的",
+     "hiddenZh": [
+      "前綴 \"連鎖的\"(階層：#)",
+      "連鎖的探險日誌",
+      "後綴 \"猛毒之\"(階層：#)",
+      "混沌",
+      "異常狀態",
+      "混沌,異常狀態",
+      "混沌, 異常狀態",
+      "（ 中毒造成持續性混沌傷害，傷害取決於初始的物理和混沌傷害總和。中毒效果可以疊加 ）",
+      "猛毒之探險日誌",
+      "後綴 \"平衡之\"(階層：#)",
+      "傷害",
+      "元素",
+      "傷害,元素",
+      "傷害, 元素",
+      "平衡之探險日誌",
+      "前綴 \"堅定不移的\"(階層：#)",
+      "生命",
+      "堅定不移的探險日誌",
+      "前綴 \"裂化的\"(階層：#)",
+      "裂化的探險日誌",
+      "後綴 \"巨人之\"(階層：#)",
+      "巨人之探險日誌",
+      "後綴 \"死亡之\"(階層：#)",
+      "暴擊",
+      "傷害,暴擊",
+      "傷害, 暴擊",
+      "死亡之探險日誌",
+      "前綴 \"裝甲的\"(階層：#)",
+      "物理",
+      "裝甲的探險日誌",
+      "前綴 \"豐饒的\"(階層：#)",
+      "豐饒的探險日誌",
+      "前綴 \"殘暴的\"(階層：#)",
+      "殘暴的探險日誌",
+      "前綴 \"燃燒的\"(階層：#)",
+      "火焰",
+      "傷害,物理,元素,火焰",
+      "傷害, 物理, 元素, 火焰",
+      "燃燒的探險日誌",
+      "前綴 \"冷凍的\"(階層：#)",
+      "冰冷",
+      "傷害,物理,元素,冰冷",
+      "傷害, 物理, 元素, 冰冷",
+      "冷凍的探險日誌",
+      "前綴 \"導電的\"(階層：#)",
+      "閃電",
+      "傷害,物理,元素,閃電",
+      "傷害, 物理, 元素, 閃電",
+      "導電的探險日誌",
+      "前綴 \"褻瀆的\"(階層：#)",
+      "傷害,物理,混沌",
+      "傷害, 物理, 混沌",
+      "（凋零增加 6% 承受混沌傷害，至多可以堆疊 15 次）",
+      "褻瀆的探險日誌",
+      "前綴 \"飄忽的\"(階層：#)",
+      "攻擊",
+      "法術",
+      "速度",
+      "攻擊,法術,速度",
+      "攻擊, 法術, 速度",
+      "飄忽的探險日誌",
+      "前綴 \"懲罰的\"(階層：#)",
+      "傷害,物理",
+      "傷害, 物理",
+      "懲罰的探險日誌",
+      "前綴 \"反射的\"(階層：#)",
+      "反射的探險日誌",
+      "後綴 \"窒息之\"(階層：#)",
+      "防禦",
+      "能量護盾",
+      "生命,防禦,能量護盾",
+      "生命, 防禦, 能量護盾",
+      "窒息之探險日誌",
+      "後綴 \"烈焰之\"(階層：#)",
+      "傷害,元素,火焰",
+      "傷害, 元素, 火焰",
+      "烈焰之探險日誌",
+      "後綴 \"冰之\"(階層：#)",
+      "（站立於冰冷地面將使你受到冰緩）",
+      "冰之探險日誌",
+      "後綴 \"雷之\"(階層：#)",
+      "雷之探險日誌",
+      "後綴 \"褻瀆之\"(階層：#)",
+      "傷害,混沌",
+      "傷害, 混沌",
+      "褻瀆之探險日誌",
+      "後綴 \"元素要害之\"(階層：#)",
+      "詛咒",
+      "法術,詛咒",
+      "法術, 詛咒",
+      "（元素要害為咒術，減少 15% 全部元素抗性。持續 8 秒）",
+      "元素要害之探險日誌",
+      "後綴 \"脆弱之\"(階層：#)",
+      "（脆弱為咒術，增加 15% 承受物理傷害，使擊中對目標 +25% 流血機率。脆弱持續 8 秒）",
+      "脆弱之探險日誌",
+      "後綴 \"衰弱之\"(階層：#)",
+      "（衰弱為咒術，減少 10% 目標命中率和 15% 傷害，或 9% 對稀有或傳奇目標。衰弱持續 8 秒）",
+      "衰弱之探險日誌",
+      "後綴 \"時空鎖鏈之\"(階層：#)",
+      "（時空鎖鏈為咒術，減少 15% 行動速度或 9% 對稀有或傳奇目標，並且使目標上的效果比平常慢 40% 失效。對玩家有 50% 更少效果並持續 5 秒）",
+      "時空鎖鏈之探險日誌",
+      "後綴 \"瘀血之\"(階層：#)",
+      "魔力",
+      "生命,魔力,防禦,能量護盾",
+      "生命, 魔力, 防禦, 能量護盾",
+      "瘀血之探險日誌",
+      "後綴 \"曝露之\"(階層：#)",
+      "抗性",
+      "元素,抗性",
+      "元素, 抗性",
+      "曝露之探險日誌",
+      "後綴 \"堅韌之\"(階層：#)",
+      "堅韌之探險日誌",
+      "後綴 \"乾旱之\"(階層：#)",
+      "乾旱之探險日誌",
+      "前綴 \"魔抗的\"(階層：#)",
+      "魔抗的探險日誌",
+      "前綴 \"重權的\"(階層：#)",
+      "元素,火焰,冰冷,閃電,異常狀態",
+      "元素, 火焰, 冰冷, 閃電, 異常狀態",
+      "重權的探險日誌",
+      "前綴 \"無阻的\"(階層：#)",
+      "無阻的探險日誌",
+      "前綴 \"抵抗的\"(階層：#)",
+      "元素,混沌,抗性",
+      "元素, 混沌, 抗性",
+      "抵抗的探險日誌",
+      "前綴 \"抗滲的\"(階層：#)",
+      "物理,混沌,攻擊,異常狀態",
+      "物理, 混沌, 攻擊, 異常狀態",
+      "抗滲的探險日誌",
+      "後綴 \"腐鏽之\"(階層：#)",
+      "護甲",
+      "防禦,護甲",
+      "防禦, 護甲",
+      "腐鏽之探險日誌",
+      "後綴 \"傾斜之\"(階層：#)",
+      "（ 阻止40% 來自被壓抑的擊中，並避免它們所施加異常狀態傷害 ）",
+      "傾斜之探險日誌",
+      "後綴 \"無能之\"(階層：#)",
+      "無能之探險日誌",
+      "後綴 \"狂怒之\"(階層：#)",
+      "狂怒之探險日誌",
+      "後綴 \"耐久之\"(階層：#)",
+      "耐久之探險日誌",
+      "後綴 \"暴擊之\"(階層：#)",
+      "暴擊之探險日誌",
+      "前綴 \"穿刺的\"(階層：#)",
+      "（ 當被穿刺的敵人被擊中，穿刺會反射 10% 穿刺之擊所造成的物理傷害至敵人。穿刺持續 5 次擊中 ）",
+      "穿刺的探險日誌",
+      "前綴 \"壓迫性的\"(階層：#)",
+      "壓迫性的探險日誌",
+      "前綴 \"緩衝的\"(階層：#)",
+      "緩衝的探險日誌",
+      "後綴 \"盲目之\"(階層：#)",
+      "盲目之探險日誌",
+      "後綴 \"大屠殺之\"(階層：#)",
+      "（ 被癱瘓的敵人減少 30% 移動速度 ）",
+      "大屠殺之探險日誌",
+      "後綴 \"阻抗之\"(階層：#)",
+      "（受阻礙的敵人減少 30% 移動速度 4 秒）",
+      "阻抗之探險日誌",
+      "後綴 \"精神之\"(階層：#)",
+      "精神之探險日誌",
+      "後綴 \"奉獻之\"(階層：#)",
+      "奉獻之探險日誌",
+      "後綴 \"疲勞之\"(階層：#)",
+      "疲勞之探險日誌",
+      "後綴 \"轉瞬之\"(階層：#)",
+      "轉瞬之探險日誌",
+      "後綴 \"懷疑之\"(階層：#)",
+      "懷疑之探險日誌",
+      "後綴 \"不精確之\"(階層：#)",
+      "不精確之探險日誌"
+     ],
+     "hiddenEn": [
+      "Prefix Modifier \"Chaining\" (Tier: #)",
+      "Chaining Expedition Logbook",
+      "Suffix Modifier \"of Venom\" (Tier: #)",
+      "Chaos",
+      "Ailment",
+      "Chaos,Ailment",
+      "Chaos, Ailment",
+      "(Poison deals Chaos Damage over time, based on the base Physical and Chaos Damage of the Skill. Multiple instances of Poison stack)",
+      "Expedition Logbook of Venom",
+      "Suffix Modifier \"of Balance\" (Tier: #)",
+      "Damage",
+      "Elemental",
+      "Damage,Elemental",
+      "Damage, Elemental",
+      "Expedition Logbook of Balance",
+      "Prefix Modifier \"Unwavering\" (Tier: #)",
+      "Life",
+      "Unwavering Expedition Logbook",
+      "Prefix Modifier \"Splitting\" (Tier: #)",
+      "Splitting Expedition Logbook",
+      "Suffix Modifier \"of Giants\" (Tier: #)",
+      "Expedition Logbook of Giants",
+      "Suffix Modifier \"of Deadliness\" (Tier: #)",
+      "Critical",
+      "Damage,Critical",
+      "Damage, Critical",
+      "Expedition Logbook of Deadliness",
+      "Prefix Modifier \"Armoured\" (Tier: #)",
+      "Physical",
+      "Armoured Expedition Logbook",
+      "Prefix Modifier \"Fecund\" (Tier: #)",
+      "Fecund Expedition Logbook",
+      "Prefix Modifier \"Savage\" (Tier: #)",
+      "Savage Expedition Logbook",
+      "Prefix Modifier \"Burning\" (Tier: #)",
+      "Fire",
+      "Damage,Physical,Elemental,Fire",
+      "Damage, Physical, Elemental, Fire",
+      "Burning Expedition Logbook",
+      "Prefix Modifier \"Freezing\" (Tier: #)",
+      "Cold",
+      "Damage,Physical,Elemental,Cold",
+      "Damage, Physical, Elemental, Cold",
+      "Freezing Expedition Logbook",
+      "Prefix Modifier \"Shocking\" (Tier: #)",
+      "Lightning",
+      "Damage,Physical,Elemental,Lightning",
+      "Damage, Physical, Elemental, Lightning",
+      "Shocking Expedition Logbook",
+      "Prefix Modifier \"Profane\" (Tier: #)",
+      "Damage,Physical,Chaos",
+      "Damage, Physical, Chaos",
+      "(Withered applies 6% increased Chaos Damage Taken, and can be inflicted up to 15 times)",
+      "Profane Expedition Logbook",
+      "Prefix Modifier \"Fleet\" (Tier: #)",
+      "Attack",
+      "Caster",
+      "Speed",
+      "Attack,Caster,Speed",
+      "Attack, Caster, Speed",
+      "Fleet Expedition Logbook",
+      "Prefix Modifier \"Punishing\" (Tier: #)",
+      "Damage,Physical",
+      "Damage, Physical",
+      "Punishing Expedition Logbook",
+      "Prefix Modifier \"Mirrored\" (Tier: #)",
+      "Mirrored Expedition Logbook",
+      "Suffix Modifier \"of Smothering\" (Tier: #)",
+      "Defences",
+      "Energy Shield",
+      "Life,Defences,Energy Shield",
+      "Life, Defences, Energy Shield",
+      "Expedition Logbook of Smothering",
+      "Suffix Modifier \"of Flames\" (Tier: #)",
+      "Damage,Elemental,Fire",
+      "Damage, Elemental, Fire",
+      "Expedition Logbook of Flames",
+      "Suffix Modifier \"of Ice\" (Tier: #)",
+      "(You are Chilled while standing in Chilled Ground)",
+      "Expedition Logbook of Ice",
+      "Suffix Modifier \"of Lightning\" (Tier: #)",
+      "Expedition Logbook of Lightning",
+      "Suffix Modifier \"of Desecration\" (Tier: #)",
+      "Damage,Chaos",
+      "Damage, Chaos",
+      "Expedition Logbook of Desecration",
+      "Suffix Modifier \"of Elemental Weakness\" (Tier: #)",
+      "Curse",
+      "Caster,Curse",
+      "Caster, Curse",
+      "(Elemental Weakness is a Hex which inficts -15% to all Elemental Resistances. It lasts 8 seconds)",
+      "Expedition Logbook of Elemental Weakness",
+      "Suffix Modifier \"of Vulnerability\" (Tier: #)",
+      "(Vulnerability is a Hex which increases Physical Damage taken by 15% and causes Hits to have +25% chance to inflict Bleeding on the target. It lasts 8 seconds)",
+      "Expedition Logbook of Vulnerability",
+      "Suffix Modifier \"of Enfeeblement\" (Tier: #)",
+      "(Enfeeble is a Hex which reduces the targets' Accuracy Rating by 10% and Damage by 15%, or 9% on Rare or Unique targets. It lasts 8 seconds)",
+      "Expedition Logbook of Enfeeblement",
+      "Suffix Modifier \"of Temporal Chains\" (Tier: #)",
+      "(Temporal Chains is a Hex which reduces Action Speed by 15%, or 9% on Rare or Unique targets, and makes other effects on the target expire 40% slower. It has 50% less effect on Players and lasts 5 seconds)",
+      "Expedition Logbook of Temporal Chains",
+      "Suffix Modifier \"of Stasis\" (Tier: #)",
+      "Mana",
+      "Life,Mana,Defences,Energy Shield",
+      "Life, Mana, Defences, Energy Shield",
+      "Expedition Logbook of Stasis",
+      "Suffix Modifier \"of Exposure\" (Tier: #)",
+      "Resistance",
+      "Elemental,Resistance",
+      "Elemental, Resistance",
+      "Expedition Logbook of Exposure",
+      "Suffix Modifier \"of Toughness\" (Tier: #)",
+      "Expedition Logbook of Toughness",
+      "Suffix Modifier \"of Drought\" (Tier: #)",
+      "Expedition Logbook of Drought",
+      "Prefix Modifier \"Hexwarded\" (Tier: #)",
+      "Hexwarded Expedition Logbook",
+      "Prefix Modifier \"Empowered\" (Tier: #)",
+      "Elemental,Fire,Cold,Lightning,Ailment",
+      "Elemental, Fire, Cold, Lightning, Ailment",
+      "Empowered Expedition Logbook",
+      "Prefix Modifier \"Unstoppable\" (Tier: #)",
+      "Unstoppable Expedition Logbook",
+      "Prefix Modifier \"Resistant\" (Tier: #)",
+      "Elemental,Chaos,Resistance",
+      "Elemental, Chaos, Resistance",
+      "Resistant Expedition Logbook",
+      "Prefix Modifier \"Impervious\" (Tier: #)",
+      "Physical,Chaos,Attack,Ailment",
+      "Physical, Chaos, Attack, Ailment",
+      "Impervious Expedition Logbook",
+      "Suffix Modifier \"of Rust\" (Tier: #)",
+      "Armour",
+      "Defences,Armour",
+      "Defences, Armour",
+      "Expedition Logbook of Rust",
+      "Suffix Modifier \"of Miring\" (Tier: #)",
+      "(40% of Damage from Suppressed Hits and Ailments they inflict is prevented)",
+      "Expedition Logbook of Miring",
+      "Suffix Modifier \"of Impotence\" (Tier: #)",
+      "Expedition Logbook of Impotence",
+      "Suffix Modifier \"of Frenzy\" (Tier: #)",
+      "Expedition Logbook of Frenzy",
+      "Suffix Modifier \"of Endurance\" (Tier: #)",
+      "Expedition Logbook of Endurance",
+      "Suffix Modifier \"of Power\" (Tier: #)",
+      "Expedition Logbook of Power",
+      "Prefix Modifier \"Impaling\" (Tier: #)",
+      "(When an Impaled enemy is hit, the Impale reflects 10% of the physical damage of the Impaling hit to that enemy. Impale lasts for 5 hits or 8 seconds)",
+      "Impaling Expedition Logbook",
+      "Prefix Modifier \"Oppressive\" (Tier: #)",
+      "Oppressive Expedition Logbook",
+      "Prefix Modifier \"Buffered\" (Tier: #)",
+      "Buffered Expedition Logbook",
+      "Suffix Modifier \"of Blinding\" (Tier: #)",
+      "Expedition Logbook of Blinding",
+      "Suffix Modifier \"of Carnage\" (Tier: #)",
+      "(Maimed enemies have 30% reduced Movement Speed)",
+      "Expedition Logbook of Carnage",
+      "Suffix Modifier \"of Impedance\" (Tier: #)",
+      "(Hinder reduces movement speed by 30% for 4 seconds)",
+      "Expedition Logbook of Impedance",
+      "Suffix Modifier \"of Enervation\" (Tier: #)",
+      "Expedition Logbook of Enervation",
+      "Suffix Modifier \"of Consecration\" (Tier: #)",
+      "Expedition Logbook of Consecration",
+      "Suffix Modifier \"of Fatigue\" (Tier: #)",
+      "Expedition Logbook of Fatigue",
+      "Suffix Modifier \"of Transience\" (Tier: #)",
+      "Expedition Logbook of Transience",
+      "Suffix Modifier \"of Doubt\" (Tier: #)",
+      "Expedition Logbook of Doubt",
+      "Suffix Modifier \"of Imprecision\" (Tier: #)",
+      "Expedition Logbook of Imprecision"
      ]
     }
    ],
@@ -7185,10 +8366,10 @@
     {
      "id": "LocalLifeFlaskHinderNearbyEnemies1_",
      "zh": [
-      "若使用時不是滿血，阻礙附近敵人減少 #% 移動速度"
+      "若使用時不是滿血，阻礙 3 公尺內的敵人減少 #% 移動速度"
      ],
      "en": [
-      "Hinders nearby Enemies with #% reduced Movement Speed if used while not on Full Life"
+      "Hinders Enemies within 3 metres with #% reduced Movement Speed if used while not on Full Life"
      ],
      "g": 1,
      "affixZh": "干擾之、障礙物之、遮擋之、克制之",
@@ -7212,10 +8393,10 @@
     {
      "id": "LocalManaFlaskHinderNearbyEnemies1_",
      "zh": [
-      "若使用時不是滿魔，阻礙附近敵人減少 #% 移動速度"
+      "若使用時不是滿魔，阻礙 3 公尺內的敵人減少 #% 移動速度"
      ],
      "en": [
-      "Hinders nearby Enemies with #% reduced Movement Speed if used while not on Full Mana"
+      "Hinders Enemies within 3 metres with #% reduced Movement Speed if used while not on Full Mana"
      ],
      "g": 1,
      "affixZh": "干擾之、障礙物之、遮擋之、克制之",
@@ -8835,7 +10016,7 @@
       "#% to Melee Weapon Critical Strike Multiplier"
      ],
      "g": 1,
-     "affixZh": "怒火之、憤怒之、盛怒之、狂怒之",
+     "affixZh": "怒火之、憤怒之、狂怒之、狂暴之",
      "hiddenZh": [
       "後綴 \"怒火之\"(階層：#)",
       "傷害",
@@ -8844,8 +10025,8 @@
       "傷害,攻擊,暴擊",
       "傷害, 攻擊, 暴擊",
       "後綴 \"憤怒之\"(階層：#)",
-      "後綴 \"盛怒之\"(階層：#)",
       "後綴 \"狂怒之\"(階層：#)",
+      "後綴 \"狂暴之\"(階層：#)",
       "後綴 \"兇猛之\"(階層：#)"
      ],
      "hiddenEn": [
@@ -9315,8 +10496,8 @@
      "強盛之",
      "怒火之",
      "憤怒之",
-     "盛怒之",
      "狂怒之",
+     "狂暴之",
      "兇猛之",
      "技巧之",
      "輕鬆之",
@@ -9365,8 +10546,8 @@
      "強盛之",
      "怒火之",
      "憤怒之",
-     "盛怒之",
      "狂怒之",
+     "狂暴之",
      "兇猛之",
      "技巧之",
      "輕鬆之",
@@ -18750,13 +19931,13 @@
     "小型星團珠寶",
     "斧和劍傷害",
     "斧和劍傷害專精",
-    "錘和長仗傷害",
+    "錘和長杖傷害",
     "錘和長杖傷害專精",
     "匕首和爪傷害",
     "匕首和爪傷害專精",
-    "弓傷害",
+    "弓的傷害",
     "弓傷害專精",
-    "法仗傷害",
+    "法杖傷害",
     "法杖傷害專精",
     "雙手武器傷害",
     "雙手近戰武器傷害專精",
@@ -18805,7 +19986,7 @@
     "竭盡攻擊傷害",
     "戰吼增益效果專精",
     "暴擊率",
-    "暴擊專精",
+    "暴擊率專精",
     "召喚物生命",
     "召喚物生命專精",
     "範圍傷害",
@@ -20861,7 +22042,7 @@
      "hiddenZh": [
       "火焰, 召喚物, 法術, 魔像",
       "火焰,召喚物,法術,魔像",
-      "召喚烈焰魔像，啟動時會使你增加傷害和效果範圍。烈焰魔像會使出火焰放射，持續造成火焰傷害，及射出會爆炸的弧狀移動投射物。"
+      "召喚烈焰魔像，啟動時會使你增加傷害和範圍效果。烈焰魔像會使出火焰放射，持續造成火焰傷害，及射出會爆炸的弧狀移動投射物。"
      ],
      "hiddenEn": [
       "Fire, Minion, Spell, Golem",
@@ -21885,7 +23066,7 @@
      "hiddenZh": [
       "持續時間, 法術",
       "持續時間,法術",
-      "當你貧血時，這個接肢會定期對你施加增益效果，提供生命回復速度，並賦予一個耐力球。"
+      "當你貧血時，這個接肢會定期對你施加增益效果，提供生命恢復率，並賦予一個耐力球。"
      ],
      "hiddenEn": [
       "Duration, Spell",
@@ -22347,12 +23528,12 @@
      "hiddenZh": [
       "召喚物, 法術, 範圍效果, 連鎖, 混沌, 新星",
       "召喚物,法術,範圍效果,連鎖,混沌,新星",
-      "此法術會犧牲你附近或目標區域骷髏的生命，使骷髏附近造成混沌傷害。此效果會連鎖至你附近的骷髏。若你附近或目標附近沒有骷髏，則會犧牲你的生命來造成傷害。"
+      "此法術會犧牲你附近或目標區域你骷髏的生命，在骷髏附近造成混沌傷害。此效果會連鎖至附近你其他的骷髏。若你附近或目標附近沒有屬於你的骷髏，則會犧牲你的生命來造成傷害。"
      ],
      "hiddenEn": [
       "Minion, Spell, AoE, Chaining, Chaos, Nova",
       "Minion,Spell,AoE,Chaining,Chaos,Nova",
-      "This spell removes some life from one of your Skeleton minions near you or the targeted location to deal chaos damage in an area around it. This effect will chain to your other nearby skeletons. If you have no skeletons near you or the targeted location, it will sacrifice your own life to deal damage instead."
+      "This spell removes some life from one of your Skeleton minions near you or the targeted location to deal chaos damage in an area around it. This effect will chain beams to your other nearby skeletons. If you have no skeletons near you or the targeted location, it will sacrifice your own life to deal damage instead."
      ]
     },
     {
@@ -23415,7 +24596,7 @@
      "hiddenEn": [
       "Mine, Spell, AoE, Duration, Movement, Travel, Blink",
       "Mine,Spell,AoE,Duration,Movement,Travel,Blink",
-      "Throws a mine that will teleport you to it when detonated. It covers both your escape and arrival with a cloud of smoke that blinds enemies, and gives you a temporary buff to movement speed. Shares a cooldown with other Blink skills."
+      "Throws a mine that will teleport you to it when detonated. It covers both your escape and arrival with a cloud of smoke that Blinds enemies, and gives you a temporary buff to movement speed. Shares a cooldown with other Blink skills."
      ]
     },
     {
@@ -25359,6 +26540,26 @@
      ]
     },
     {
+     "id": "Metadata/Items/Gems/SkillGemArcaneLink",
+     "zh": [
+      "連結：秘能"
+     ],
+     "en": [
+      "Arcane Link"
+     ],
+     "g": 0,
+     "hiddenZh": [
+      "法術, 持續時間, 連結, 閃電, 秘能",
+      "法術,持續時間,連結,閃電,秘能",
+      "以一名友方玩家為目標施放一個增益效果，在一段時間內將你和他們連結起來。連結時，他們會根據你的魔力造成額外閃電傷害。如果目標在連結時死亡，你也會死亡。該技能不能被觸發，且不能被圖騰、陷阱或地雷使用。"
+     ],
+     "hiddenEn": [
+      "Spell, Duration, Link, Lightning, Arcane",
+      "Spell,Duration,Link,Lightning,Arcane",
+      "Targets an allied player to apply a buff which links you to them for a duration. While linked, they deal additional lightning damage based on your mana. If the target dies while linked, you will also die. This skill cannot be triggered, or used by Totems, Traps, or Mines."
+     ]
+    },
+    {
      "id": "Metadata/Items/Gems/SkillGemSoulLink",
      "zh": [
       "連結：靈魂"
@@ -26830,6 +28031,24 @@
      ]
     },
     {
+     "id": "Metadata/Items/Gems/SupportGemLethargy",
+     "zh": [
+      "倦怠輔助"
+     ],
+     "en": [
+      "Lethargy Support"
+     ],
+     "g": 1,
+     "hiddenZh": [
+      "輔助",
+      "輔助任何技能。"
+     ],
+     "hiddenEn": [
+      "Support",
+      "Supports any skill."
+     ]
+    },
+    {
      "id": "Metadata/Items/Gems/SupportGemBloodMagic",
      "zh": [
       "傲慢輔助"
@@ -27155,6 +28374,24 @@
       "Support, AoE, Trigger, Attack, Duration",
       "Support,AoE,Trigger,Attack,Duration",
       "Supports Wand Attacks, granting them a chance to trigger Kinetic Flux on kill. Cannot support triggered skills or skills used by things other than you. Cannot modify the skills of minions."
+     ]
+    },
+    {
+     "id": "Metadata/Items/Gems/SupportGemDestitution",
+     "zh": [
+      "匱乏輔助"
+     ],
+     "en": [
+      "Destitution Support"
+     ],
+     "g": 1,
+     "hiddenZh": [
+      "輔助",
+      "輔助任何能擊殺敵人的技能。"
+     ],
+     "hiddenEn": [
+      "Support",
+      "Supports any skill that can kill enemies."
      ]
     },
     {
@@ -27504,7 +28741,7 @@
      "hiddenZh": [
       "攻擊, 近戰, 重擊, 範圍效果, 輔助, 圖騰",
       "攻擊,近戰,重擊,範圍效果,輔助,圖騰",
-      "輔助重擊技能，使他們召喚一個先祖圖騰，在你靠近它時為你使用該技能。靠近它可以增加近戰技能的效果範圍。"
+      "輔助重擊技能，使他們召喚一個先祖圖騰，在你靠近它時為你使用該技能。靠近它可以增加近戰技能的範圍效果。"
      ],
      "hiddenEn": [
       "Attack, Melee, Slam, AoE, Support, Totem",
@@ -27733,6 +28970,26 @@
      ]
     },
     {
+     "id": "Metadata/Items/Gems/SupportGemDisempower",
+     "zh": [
+      "奪權輔助"
+     ],
+     "en": [
+      "Disempower Support"
+     ],
+     "g": 1,
+     "hiddenZh": [
+      "輔助",
+      "輔助任何技能寶石。",
+      "無法輔助非來自寶石的技能。"
+     ],
+     "hiddenEn": [
+      "Support",
+      "Supports any skill gem.",
+      "Cannot support skills that don't come from gems."
+     ]
+    },
+    {
      "id": "Metadata/Items/Gems/SupportGemGuardiansBlessing",
      "zh": [
       "守護者的祝福輔助"
@@ -27898,6 +29155,24 @@
       "Supports offering skills you use yourself.",
       "\"We spill forth, cleaving our flesh",
       "to theirs, until we become one.\""
+     ]
+    },
+    {
+     "id": "Metadata/Items/Gems/SupportGemMediocrity",
+     "zh": [
+      "平庸輔助"
+     ],
+     "en": [
+      "Mediocrity Support"
+     ],
+     "g": 1,
+     "hiddenZh": [
+      "輔助",
+      "輔助任何能擊中敵人的技能。"
+     ],
+     "hiddenEn": [
+      "Support",
+      "Supports any skill that hits enemies."
      ]
     },
     {
@@ -28658,6 +29933,44 @@
      ]
     },
     {
+     "id": "Metadata/Items/Gems/SupportGemConstriction",
+     "zh": [
+      "束縛輔助"
+     ],
+     "en": [
+      "Constriction Support"
+     ],
+     "g": 1,
+     "hiddenZh": [
+      "輔助",
+      "輔助任何技能寶石。",
+      "無法輔助非來自寶石的技能。"
+     ],
+     "hiddenEn": [
+      "Support",
+      "Supports any skill gem.",
+      "Cannot support skills that don't come from gems."
+     ]
+    },
+    {
+     "id": "Metadata/Items/Gems/SupportGemImpotence",
+     "zh": [
+      "枯竭輔助"
+     ],
+     "en": [
+      "Impotence Support"
+     ],
+     "g": 1,
+     "hiddenZh": [
+      "輔助",
+      "輔助任何能對敵人造成傷害的技能。"
+     ],
+     "hiddenEn": [
+      "Support",
+      "Supports any skill that can damage enemies."
+     ]
+    },
+    {
      "id": "Metadata/Items/Gems/SupportGemRapidDecay",
      "zh": [
       "極速苦痛輔助"
@@ -29149,6 +30462,24 @@
      ]
     },
     {
+     "id": "Metadata/Items/Gems/SupportGemNullification",
+     "zh": [
+      "無效輔助"
+     ],
+     "en": [
+      "Nullification Support"
+     ],
+     "g": 1,
+     "hiddenZh": [
+      "輔助",
+      "輔助任何能擊中敵人或施加元素異常狀態的技能。"
+     ],
+     "hiddenEn": [
+      "Support",
+      "Supports any skill that hits enemies or inflicts elemental ailments."
+     ]
+    },
+    {
      "id": "Metadata/Items/Gems/SupportGemUnboundAilments",
      "zh": [
       "無邊異能輔助"
@@ -29604,7 +30935,7 @@
      "hiddenZh": [
       "輔助, 戰吼, 持續時間",
       "輔助,戰吼,持續時間",
-      "輔助非觸發的戰吼。被輔助的戰吼會創造奉獻地面，但降低範圍效果和冷卻回復速度。"
+      "輔助非觸發的戰吼。被輔助的戰吼會創造奉獻地面，但降低範圍效果和冷卻恢復率。"
      ],
      "hiddenEn": [
       "Support, Warcry, Duration",
@@ -30058,6 +31389,26 @@
      ]
     },
     {
+     "id": "Metadata/Items/Gems/SupportGemTaxation",
+     "zh": [
+      "苛稅輔助"
+     ],
+     "en": [
+      "Taxation Support"
+     ],
+     "g": 1,
+     "hiddenZh": [
+      "輔助",
+      "輔助任何技能寶石。",
+      "無法輔助非來自寶石的技能。"
+     ],
+     "hiddenEn": [
+      "Support",
+      "Supports any skill gem.",
+      "Cannot support skills that don't come from gems."
+     ]
+    },
+    {
      "id": "Metadata/Items/Gems/SupportGemSadism",
      "zh": [
       "虐待輔助"
@@ -30143,6 +31494,26 @@
       "\"Not even stopping to look behind, I dove through the shimmering window...",
       "With not a minute to waste, I took a nearby tool and jammed it into the infernal",
       "device, where it hummed, ominously entrenched in my laboratory floor.\""
+     ]
+    },
+    {
+     "id": "Metadata/Items/Gems/SupportGemDiminishment",
+     "zh": [
+      "衰減輔助"
+     ],
+     "en": [
+      "Diminishment Support"
+     ],
+     "g": 1,
+     "hiddenZh": [
+      "輔助",
+      "輔助任何技能寶石。",
+      "無法輔助非來自寶石的技能。"
+     ],
+     "hiddenEn": [
+      "Support",
+      "Supports any skill gem.",
+      "Cannot support skills that don't come from gems."
      ]
     },
     {
@@ -31057,6 +32428,26 @@
      ]
     },
     {
+     "id": "Metadata/Items/Gems/SupportGemEncumbrance",
+     "zh": [
+      "負載輔助"
+     ],
+     "en": [
+      "Encumbrance Support"
+     ],
+     "g": 1,
+     "hiddenZh": [
+      "輔助",
+      "輔助任何技能寶石。",
+      "無法輔助非來自寶石的技能。"
+     ],
+     "hiddenEn": [
+      "Support",
+      "Supports any skill gem.",
+      "Cannot support skills that don't come from gems."
+     ]
+    },
+    {
      "id": "Metadata/Items/Gems/SupportGemAdditionalLevel",
      "zh": [
       "賦予輔助"
@@ -31074,6 +32465,42 @@
       "Exceptional, Support",
       "Exceptional,Support",
       "Supports any skill gem. Once this gem reaches level 2 or above, will raise the level of supported gems. Cannot support skills that don't come from gems."
+     ]
+    },
+    {
+     "id": "Metadata/Items/Gems/SupportGemPenance",
+     "zh": [
+      "贖罪輔助"
+     ],
+     "en": [
+      "Penance Support"
+     ],
+     "g": 1,
+     "hiddenZh": [
+      "輔助",
+      "輔助任何技能。"
+     ],
+     "hiddenEn": [
+      "Support",
+      "Supports any skill."
+     ]
+    },
+    {
+     "id": "Metadata/Items/Gems/SupportGemPoverty",
+     "zh": [
+      "赤貧輔助"
+     ],
+     "en": [
+      "Poverty Support"
+     ],
+     "g": 1,
+     "hiddenZh": [
+      "輔助",
+      "輔助任何能擊殺敵人的技能。"
+     ],
+     "hiddenEn": [
+      "Support",
+      "Supports any skill that can kill enemies."
      ]
     },
     {
@@ -31154,13 +32581,13 @@
      "hiddenZh": [
       "卓越, 法術, 召喚物, 輔助",
       "卓越,法術,召喚物,輔助",
-      "輔助非祝福的法術。",
+      "輔助法術。無法輔助立即或祝福法術。",
       "讓深藏於內的永恆尖嘯 從你悲泣的鮮血中流淌而出。"
      ],
      "hiddenEn": [
       "Exceptional, Spell, Minion, Support",
       "Exceptional,Spell,Minion,Support",
-      "Supports non-blessing spells.",
+      "Supports spells. Does not support instant or blessing spells.",
       "Let the eternal scream within",
       "flow from your weeping blood."
      ]
@@ -33977,6 +35404,26 @@
       "Trap, Spell, Duration, AoE, Fire",
       "Trap,Spell,Duration,AoE,Fire",
       "Throws a trap that explodes when triggered, dealing fire damage to surrounding enemies."
+     ]
+    },
+    {
+     "id": "Metadata/Items/Gems/SkillGemFireball#FireballAltX",
+     "zh": [
+      "火球．輻射"
+     ],
+     "en": [
+      "Fireball of Radiation"
+     ],
+     "g": 2,
+     "hiddenZh": [
+      "投射物, 法術, 範圍效果, 持續時間, 火焰",
+      "投射物,法術,範圍效果,持續時間,火焰",
+      "向前方釋放一顆火球，對其周圍範圍內的每個敵人施加一個短暫但強力的火焰持續傷害減益效果。"
+     ],
+     "hiddenEn": [
+      "Projectile, Spell, AoE, Duration, Fire",
+      "Projectile,Spell,AoE,Duration,Fire",
+      "Unleashes a ball of fire ahead that inflicts a short but powerful fire damage over time debuff to each enemy in an area around it."
      ]
     },
     {
@@ -37810,14 +39257,10 @@
     {
      "id": "Metadata/Items/Currency/AncestralTattooRongokurai6",
      "zh": [
-      "卡胡圖羅亞的忠誠紋身",
-      "受到傳奇敵人暴擊時，",
-      "觸發等級 # 的召喚卡胡圖羅亞之靈技能"
+      "卡胡圖羅亞的忠誠紋身"
      ],
      "en": [
-      "Loyalty Tattoo of Kahuturoa",
-      "Trigger level # Summon Spirit of Kahuturoa Skill when you take",
-      "a Critical Strike from a Unique Enemy"
+      "Loyalty Tattoo of Kahuturoa"
      ],
      "g": 0,
      "hiddenZh": [
@@ -37913,7 +39356,7 @@
      "id": "Metadata/Items/Currency/AncestralTattooTukohama7",
      "zh": [
       "圖克哈瑪馬坎加的紋身",
-      "增加 #% 生命恢復率"
+      "增加 #% 生命回復率"
      ],
      "en": [
       "Tattoo of the Tukohama Makanga",
@@ -38072,14 +39515,10 @@
     {
      "id": "Metadata/Items/Currency/AncestralTattooNgamahu6",
      "zh": [
-      "岡姆的忠誠紋身",
-      "有傳奇敵人在你的存在範圍內且有圖騰死亡時，",
-      "觸發等級 # 的召喚岡姆之靈技能"
+      "岡姆的忠誠紋身"
      ],
      "en": [
-      "Loyalty Tattoo of Kaom",
-      "Trigger level # Summon Spirit of Kaom Skill when a Totem dies while",
-      "a Unique Enemy is in your Presence"
+      "Loyalty Tattoo of Kaom"
      ],
      "g": 0,
      "hiddenZh": [
@@ -38214,12 +39653,10 @@
     {
      "id": "Metadata/Items/Currency/AncestralTattooKitava6",
      "zh": [
-      "烏圖拉的忠誠紋身",
-      "受到傳奇敵人的殘暴之擊時，觸發等級 # 的召喚烏圖拉之靈技能"
+      "烏圖拉的忠誠紋身"
      ],
      "en": [
-      "Loyalty Tattoo of Utula",
-      "Trigger level # Summon Spirit of Utula Skill on taking a Savage Hit from a Unique Enemy"
+      "Loyalty Tattoo of Utula"
      ],
      "g": 0,
      "hiddenZh": [
@@ -38376,12 +39813,10 @@
     {
      "id": "Metadata/Items/Currency/AncestralTattooValako6",
      "zh": [
-      "基洛阿瓦的忠誠紋身",
-      "格擋傳奇敵人的傷害時，觸發等級 # 的召喚基洛阿瓦之靈技能"
+      "基洛阿瓦的忠誠紋身"
      ],
      "en": [
-      "Loyalty Tattoo of Kiloava",
-      "Trigger level # Summon Spirit of Kiloava Skill when you Block Damage from a Unique Enemy"
+      "Loyalty Tattoo of Kiloava"
      ],
      "g": 1,
      "hiddenZh": [
@@ -39060,12 +40495,10 @@
     {
      "id": "Metadata/Items/Currency/AncestralTattooTasalio6",
      "zh": [
-      "萊基亞塔的忠誠紋身",
-      "對帶有印記的傳奇敵人造成暴擊時，觸發等級 # 的召喚萊基亞塔之靈技能"
+      "萊基亞塔的忠誠紋身"
      ],
      "en": [
-      "Loyalty Tattoo of Rakiata",
-      "Trigger level # Summon Spirit of Rakiata Skill on Critical Strike against Marked Unique Enemy"
+      "Loyalty Tattoo of Rakiata"
      ],
      "g": 2,
      "hiddenZh": [
@@ -39223,11 +40656,11 @@
      "id": "Metadata/Items/Currency/AncestralTattooSpecialSmallNode4",
      "zh": [
       "劫掠者的尊榮紋身",
-      "增加 #% 物品稀有度"
+      "#%物品稀有度"
      ],
      "en": [
       "Honoured Tattoo of the Pillager",
-      "#% increased Rarity of Items found"
+      "#% to Item Rarity"
      ],
      "g": 3,
      "hiddenZh": [
@@ -40001,7 +41434,7 @@
      "id": "Metadata/Items/Currency/RunegraftResurgence",
      "zh": [
       "復甦符文之結",
-      "秘能波動同時會增加#%你的生命恢復率"
+      "秘能波動同時會增加#%你的生命回復率"
      ],
      "en": [
       "Runegraft of Resurgence",
@@ -40028,12 +41461,12 @@
      "zh": [
       "忠誠符文之結",
       "你被施加元素異常狀態時，有#%機率",
-      "改為施加在附近的召喚物"
+      "改為施加在 4 公尺內的召喚物"
      ],
      "en": [
       "Runegraft of Loyalty",
       "#% chance for Elemental Ailments inflicted on you to",
-      "be inflicted on a nearby Minion instead"
+      "be inflicted on a Minion within 4 metres instead"
      ],
      "g": 7,
      "hiddenZh": [
@@ -40165,11 +41598,11 @@
      "id": "Metadata/Items/Currency/RunegraftSuffering",
      "zh": [
       "折磨符文之結",
-      "當你被異常狀態影響時，增加#%你施加的同種傷害型異常狀態的傷害"
+      "身上帶有某種傷害型異常狀態時，你施加的同種異常狀態增加 #% 傷害"
      ],
      "en": [
       "Runegraft of Suffering",
-      "#% increased Damage with Damaging Ailments you inflict while you are affected by the same Ailment"
+      "#% increased Damage with Damaging Ailments you inflict while you have that same Ailment on you"
      ],
      "g": 7,
      "hiddenZh": [
@@ -40640,10 +42073,14 @@
     {
      "id": "Metadata/Items/Currency/RunegraftSpellbound",
      "zh": [
-      "魔縛符文之結"
+      "魔縛符文之結",
+      "法術擁有等同於你已裝備雙手武器#%物理傷害",
+      "的附加法術傷害"
      ],
      "en": [
-      "Runegraft of the Spellbound"
+      "Runegraft of the Spellbound",
+      "Spells have Added Spell Damage equal to #% of Physical Damage of",
+      "your Equipped Two handed Weapon"
      ],
      "g": 7,
      "hiddenZh": [
@@ -41442,31 +42879,6 @@
      ]
     },
     {
-     "id": "HeistNPCChestDoubleMapFragment1",
-     "zh": [
-      "劫盜保險箱有 #% 機率複製內含的地圖碎片"
-     ],
-     "en": [
-      "Heist Chests have a #% chance to Duplicate contained Map Fragments"
-     ],
-     "g": 3,
-     "affixZh": "碎片之、件之、拼圖之、大會",
-     "hiddenZh": [
-      "後綴 \"碎片之\"(階層：#)",
-      "丟置",
-      "後綴 \"件之\"(階層：#)",
-      "後綴 \"拼圖之\"(階層：#)",
-      "後綴 \"大會\"(階層：#)"
-     ],
-     "hiddenEn": [
-      "Suffix Modifier \"of Fragments\" (Tier: #)",
-      "Drop",
-      "Suffix Modifier \"of Pieces\" (Tier: #)",
-      "Suffix Modifier \"of Puzzles\" (Tier: #)",
-      "Suffix Modifier \"of Assembly\" (Tier: #)"
-     ]
-    },
-    {
      "id": "HeistNPCChestDoubleCurrency1__",
      "zh": [
       "劫盜保險箱有 #% 機率複製內含的基礎通貨"
@@ -41569,31 +42981,6 @@
      ]
     },
     {
-     "id": "HeistNPCChestDoubleScarab1",
-     "zh": [
-      "劫盜保險箱有 #% 機率複製內含的聖甲蟲"
-     ],
-     "en": [
-      "Heist Chests have a #% chance to Duplicate contained Scarabs"
-     ],
-     "g": 3,
-     "affixZh": "銹之、拋光之、鍍金之、翅膀之",
-     "hiddenZh": [
-      "後綴 \"銹之\"(階層：#)",
-      "丟置",
-      "後綴 \"拋光之\"(階層：#)",
-      "後綴 \"鍍金之\"(階層：#)",
-      "後綴 \"翅膀之\"(階層：#)"
-     ],
-     "hiddenEn": [
-      "Suffix Modifier \"of Rust\" (Tier: #)",
-      "Drop",
-      "Suffix Modifier \"of Polish\" (Tier: #)",
-      "Suffix Modifier \"of Gilding\" (Tier: #)",
-      "Suffix Modifier \"of Wings\" (Tier: #)"
-     ]
-    },
-    {
      "id": "HeistNPCChestDoubleDelirium1",
      "zh": [
       "劫盜保險箱有 #% 機率複製內含的譫妄玉和裂片"
@@ -41619,30 +43006,28 @@
      ]
     },
     {
-     "id": "HeistNPCIncreasedQuantity1",
+     "id": "HeistNPCChestDoubleScarab1",
      "zh": [
-      "劫盜時增加 #% 物品掉落數量"
+      "劫盜寶箱有#%機率會複製含有的綢帶"
      ],
      "en": [
-      "#% increased Quantity of Items dropped in Heists"
+      "Heist Chests have a #% chance to Duplicate contained Threads"
      ],
      "g": 3,
-     "affixZh": "扒手的、小偷的、掠奪者的、蘭薩克的",
+     "affixZh": "銹之、拋光之、鍍金之、翅膀之",
      "hiddenZh": [
-      "前綴 \"扒手的\"(階層：#)",
+      "後綴 \"銹之\"(階層：#)",
       "丟置",
-      "前綴 \"小偷的\"(階層：#)",
-      "前綴 \"掠奪者的\"(階層：#)",
-      "前綴 \"蘭薩克的\"(階層：#)",
-      "前綴 \"幸運的\"(階層：#)"
+      "後綴 \"拋光之\"(階層：#)",
+      "後綴 \"鍍金之\"(階層：#)",
+      "後綴 \"翅膀之\"(階層：#)"
      ],
      "hiddenEn": [
-      "Prefix Modifier \"Pickpocket's\" (Tier: #)",
+      "Suffix Modifier \"of Rust\" (Tier: #)",
       "Drop",
-      "Prefix Modifier \"Thief's\" (Tier: #)",
-      "Prefix Modifier \"Looter's\" (Tier: #)",
-      "Prefix Modifier \"Ransacker's\" (Tier: #)",
-      "Prefix Modifier \"Lucky\" (Tier: #)"
+      "Suffix Modifier \"of Polish\" (Tier: #)",
+      "Suffix Modifier \"of Gilding\" (Tier: #)",
+      "Suffix Modifier \"of Wings\" (Tier: #)"
      ]
     },
     {
@@ -44511,10 +45896,6 @@
      "有品位的",
      "有文化的",
      "精緻的",
-     "扒手的",
-     "小偷的",
-     "掠奪者的",
-     "蘭薩克的",
      "彎曲的",
      "威利的",
      "難以理解的",
@@ -44616,10 +45997,6 @@
      "地點之",
      "地圖",
      "輿圖之",
-     "碎片之",
-     "件之",
-     "拼圖之",
-     "大會",
      "卡數",
      "甲板",
      "館藏",
@@ -44768,10 +46145,6 @@
      "地點之",
      "地圖",
      "輿圖之",
-     "碎片之",
-     "件之",
-     "拼圖之",
-     "大會",
      "卡數",
      "甲板",
      "館藏",
@@ -44983,10 +46356,6 @@
      "Tasteful",
      "Cultured",
      "Sophisticated",
-     "Pickpocket's",
-     "Thief's",
-     "Looter's",
-     "Ransacker's",
      "Devious",
      "Wiley",
      "Elusive",
@@ -45191,10 +46560,6 @@
      " of Locations",
      " of Maps",
      " of the Atlas",
-     " of Fragments",
-     " of Pieces",
-     " of Puzzles",
-     " of Assembly",
      " of Cards",
      " of Decks",
      " of Collections",
@@ -46578,12 +47943,10 @@
      "g": 1,
      "affixZh": "盲目之",
      "hiddenZh": [
-      "後綴 \"盲目之\"(階層：#)",
-      "（ 被致盲有20%更少命中率和閃避值，持續4秒 ）"
+      "後綴 \"盲目之\"(階層：#)"
      ],
      "hiddenEn": [
-      "Suffix Modifier \"of Blinding\" (Tier: #)",
-      "(Being Blinded causes 20% less Accuracy Rating and Evasion Rating, for 4 seconds)"
+      "Suffix Modifier \"of Blinding\" (Tier: #)"
      ]
     },
     {
@@ -48686,7 +50049,7 @@
       "允許前綴 #",
       "允許後綴 #",
       "固定詞綴不能被改變",
-      "增加 #% 變動詞綴大小"
+      "增加 #% 隨機詞綴幅度"
      ],
      "hiddenEn": [
       "# Prefix Modifier allowed",
@@ -48842,10 +50205,10 @@
      ],
      "g": 1,
      "hiddenZh": [
-      "增加 #% 物品稀有度"
+      "#%物品稀有度"
      ],
      "hiddenEn": [
-      "#% increased Rarity of Items found"
+      "#% to Item Rarity"
      ]
     },
     {
@@ -49548,7 +50911,7 @@
       "允許前綴 #",
       "允許後綴 #",
       "固定詞綴不能被改變",
-      "增加 #% 變動詞綴大小"
+      "增加 #% 隨機詞綴幅度"
      ],
      "hiddenEn": [
       "# Prefix Modifiers allowed",
@@ -50278,13 +51641,7 @@
      "en": [
       "Mechalarm Belt"
      ],
-     "g": 2,
-     "hiddenZh": [
-      "當你使用藥劑時，觸發等級 # 召喚嘲諷裝置"
-     ],
-     "hiddenEn": [
-      "Trigger Level # Summon Taunting Contraption when you use a Flask"
-     ]
+     "g": 2
     },
     {
      "id": "Metadata/Items/Belts/BeltAtlas2",
@@ -50392,10 +51749,10 @@
      ],
      "g": 2,
      "hiddenZh": [
-      "增加 #% 物品稀有度"
+      "#%物品稀有度"
      ],
      "hiddenEn": [
-      "#% increased Rarity of Items found"
+      "#% to Item Rarity"
      ]
     },
     {
@@ -54400,10 +55757,10 @@
      ],
      "g": 9,
      "hiddenZh": [
-      "增加 #% 持續傷害"
+      "#% 持續傷害加成"
      ],
      "hiddenEn": [
-      "#% increased Damage over Time"
+      "#% to Damage over Time Multiplier"
      ]
     },
     {
@@ -55735,6 +57092,16 @@
      "g": 12
     },
     {
+     "id": "Metadata/Items/Jewels/JewelBlighted",
+     "zh": [
+      "菌潮核心"
+     ],
+     "en": [
+      "Mycelium Core"
+     ],
+     "g": 12
+    },
+    {
      "id": "Metadata/Items/Jewels/JewelStr",
      "zh": [
       "赤紅珠寶"
@@ -56515,13 +57882,7 @@
      "en": [
       "Boom Mace"
      ],
-     "g": 16,
-     "hiddenZh": [
-      "使用此武器近戰擊中時，觸發等級 # 的熾熱衝擊"
-     ],
-     "hiddenEn": [
-      "Trigger Level # Fiery Impact on Melee Hit with this Weapon"
-     ]
+     "g": 16
     },
     {
      "id": "Metadata/Items/Weapons/OneHandWeapons/OneHandMaces/OneHandMace4",
@@ -56563,13 +57924,7 @@
      "en": [
       "Crack Mace"
      ],
-     "g": 16,
-     "hiddenZh": [
-      "使用此武器近戰擊中時，觸發等級 # 的熾熱衝擊"
-     ],
-     "hiddenEn": [
-      "Trigger Level # Fiery Impact on Melee Hit with this Weapon"
-     ]
+     "g": 16
     },
     {
      "id": "Metadata/Items/Weapons/OneHandWeapons/OneHandMaces/OneHandMace16",
@@ -56755,13 +58110,7 @@
      "en": [
       "Flare Mace"
      ],
-     "g": 16,
-     "hiddenZh": [
-      "使用此武器近戰擊中時，觸發等級 # 的熾熱衝擊"
-     ],
-     "hiddenEn": [
-      "Trigger Level # Fiery Impact on Melee Hit with this Weapon"
-     ]
+     "g": 16
     },
     {
      "id": "Metadata/Items/Weapons/OneHandWeapons/OneHandMaces/OneHandMaceM2",
@@ -57347,10 +58696,10 @@
      ],
      "g": 18,
      "hiddenZh": [
-      "增加 #% 圖騰放置速度"
+      "攻擊技能 # 召喚圖騰的最大數量"
      ],
      "hiddenEn": [
-      "#% increased Totem Placement speed"
+      "Attack Skills have # to maximum number of Summoned Totems"
      ]
     },
     {
@@ -58145,10 +59494,10 @@
      ],
      "g": 19,
      "hiddenZh": [
-      "增加 #% 物品稀有度"
+      "#%物品稀有度"
      ],
      "hiddenEn": [
-      "#% increased Rarity of Items found"
+      "#% to Item Rarity"
      ]
     },
     {
@@ -58447,11 +59796,9 @@
      ],
      "g": 20,
      "hiddenZh": [
-      "當你使用插槽中的技能時，觸發等級 # 的烈焰衝刺",
       "增加 #% 快行技能冷卻時間恢復率"
      ],
      "hiddenEn": [
-      "Trigger Level # Flame Dash when you use a Socketed Skill",
       "#% increased Cooldown Recovery Rate of Travel Skills"
      ]
     },
@@ -58497,11 +59844,9 @@
      ],
      "g": 20,
      "hiddenZh": [
-      "當你使用插槽中的技能時，觸發等級 # 的烈焰衝刺",
       "增加 #% 快行技能冷卻時間恢復率"
      ],
      "hiddenEn": [
-      "Trigger Level # Flame Dash when you use a Socketed Skill",
       "#% increased Cooldown Recovery Rate of Travel Skills"
      ]
     },
@@ -58561,13 +59906,7 @@
      "en": [
       "Flickerflame Blade"
      ],
-     "g": 20,
-     "hiddenZh": [
-      "當你使用插槽中的技能時，觸發等級 # 的烈焰衝刺"
-     ],
-     "hiddenEn": [
-      "Trigger Level # Flame Dash when you use a Socketed Skill"
-     ]
+     "g": 20
     },
     {
      "id": "Metadata/Items/Weapons/OneHandWeapons/Daggers/Dagger3",
@@ -62568,10 +63907,10 @@
      ],
      "g": 29,
      "hiddenZh": [
-      "使用時嘲諷附近敵人"
+      "使用時嘲諷 # 公尺內的敵人"
      ],
      "hiddenEn": [
-      "Taunts nearby Enemies on use"
+      "Taunts Enemies within # metres on use"
      ]
     },
     {
@@ -63475,1618 +64814,18 @@
    "note": "可捕捉的野獸名稱,依家族分組;獸獵寓言清單與倉庫裡的拓印獸魂玉都適用。產生的片段會避開其他野獸的名稱、種屬 / 群組 / 家族名與怪物詞綴名。",
    "limit": 250,
    "groups": [
-    "獸性",
     "飛沙",
-    "深潭",
-    "洞窟"
+    "荒野",
+    "洞窟",
+    "深潭"
    ],
    "groupsEn": [
-    "The Wilds",
     "The Sands",
-    "The Deep",
-    "The Caverns"
+    "The Wilds",
+    "The Caverns",
+    "The Deep"
    ],
    "entries": [
-    {
-     "id": "Metadata/Monsters/Monkeys/MonkeyBloodParasite",
-     "zh": [
-      "侵略魔猿"
-     ],
-     "en": [
-      "Infested Ape"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "狂猿",
-      "靈長動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Apes",
-      "Primates",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Monkeys/MonkeyBloodThrow",
-     "zh": [
-      "冥渡狂猿"
-     ],
-     "en": [
-      "Stygian Ape"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "狂猿",
-      "靈長動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Apes",
-      "Primates",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/BloodChieftain/MonkeyChiefBloodEnrage2",
-     "zh": [
-      "冥界銀背獸"
-     ],
-     "en": [
-      "Stygian Silverback"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "大酋長",
-      "靈長動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Ape Chieftains",
-      "Primates",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Lion/LionWolf3Champion",
-     "zh": [
-      "凍冰狼"
-     ],
-     "en": [
-      "Freezing Wolf"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "惡狼",
-      "犬科動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Wolves",
-      "Canines",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/LeagueBestiary/TigerBestiarySpiritBoss",
-     "zh": [
-      "初始之地費爾羅"
-     ],
-     "en": [
-      "Farrul, First of the Plains"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "猛虎",
-      "貓科動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Tigers",
-      "Felines",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/LeagueHarvest/Blue/HarvestGoatmanT3MemoryLine",
-     "zh": [
-      "原始之羊人"
-     ],
-     "en": [
-      "Primal Cystcaller"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "羊人",
-      "靈長動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Goatmen",
-      "Primates",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/LeagueHarvest/Blue/HarvestRhexT3MemoryLine",
-     "zh": [
-      "原始之野雛女酋"
-     ],
-     "en": [
-      "Primal Rhex Matriarch"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "卡魯獵犬",
-      "犬科動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Karui Hounds",
-      "Canines",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Beasts/BeastGroundSlam",
-     "zh": [
-      "叢林巨獸"
-     ],
-     "en": [
-      "Thicket Hulk"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "巨人",
-      "熊類動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Gargantuans",
-      "Ursae",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Beasts/BeastSlam",
-     "zh": [
-      "叢林猛獸"
-     ],
-     "en": [
-      "Forest Beast"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "巨人",
-      "熊類動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Gargantuans",
-      "Ursae",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/DropBear/DropBear2",
-     "zh": [
-      "地穴惡靈"
-     ],
-     "en": [
-      "Tunnelfiend"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "墜落熊",
-      "熊類動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Plummeting Ursae",
-      "Ursae",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Goatman/GoatmanLeapSlam",
-     "zh": [
-      "堅蹄羊人"
-     ],
-     "en": [
-      "Goatman"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "羊人",
-      "靈長動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Goatmen",
-      "Primates",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Goatman/GoatmanShamanFireChampion",
-     "zh": [
-      "堅蹄羊人咒炎者"
-     ],
-     "en": [
-      "Goatman Fire-raiser"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "羊人術師",
-      "靈長動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Goat Shamans",
-      "Primates",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Goatman/GoatmanShamanLightningChampion",
-     "zh": [
-      "堅蹄羊人喚空者"
-     ],
-     "en": [
-      "Bearded Skycaller"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "羊人術師",
-      "靈長動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Goat Shamans",
-      "Primates",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Goatman/GoatmanShamanFireball",
-     "zh": [
-      "堅蹄羊人術師"
-     ],
-     "en": [
-      "Goatman Shaman"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "羊人術師",
-      "靈長動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Goat Shamans",
-      "Primates",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/DropBear/DropBear",
-     "zh": [
-      "墮落之爪"
-     ],
-     "en": [
-      "Plummeting Ursa"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "墜落熊",
-      "熊類動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Plummeting Ursae",
-      "Ursae",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Hellion/HellionParasite",
-     "zh": [
-      "奴役地獄犬"
-     ],
-     "en": [
-      "Enslaved Hellion"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "地獄犬",
-      "貓科動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Hellions",
-      "Felines",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/BloodChieftain/MonkeyChiefBloodParasite",
-     "zh": [
-      "寄生獸"
-     ],
-     "en": [
-      "Host Chieftain"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "大酋長",
-      "靈長動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Ape Chieftains",
-      "Primates",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Goatman/MountainGoatmanLeapSlam2",
-     "zh": [
-      "山丘魔人"
-     ],
-     "en": [
-      "Hill Devil"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "羊人",
-      "靈長動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Goatmen",
-      "Primates",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Lynx/Lynx",
-     "zh": [
-      "山脊猞猁"
-     ],
-     "en": [
-      "Mountain Lynx"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "山貓",
-      "貓科動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Lynxes",
-      "Felines",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Bull/BullNoArmour",
-     "zh": [
-      "崩雪騎士"
-     ],
-     "en": [
-      "Avalanche Rider"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "野牛",
-      "非自然",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Bulls",
-      "Unnaturals",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Goatman/MountainGoatmanChampion",
-     "zh": [
-      "巨像破壞者"
-     ],
-     "en": [
-      "Colossus Crusher"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "羊人",
-      "靈長動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Goatmen",
-      "Primates",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Monkeys/MonkeyBloodEnrage",
-     "zh": [
-      "恐懼狂猿"
-     ],
-     "en": [
-      "Dread Primate"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "狂猿",
-      "靈長動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Apes",
-      "Primates",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Bull/Bull",
-     "zh": [
-      "戰鬥公牛"
-     ],
-     "en": [
-      "Fighting Bull"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "野牛",
-      "非自然",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Bulls",
-      "Unnaturals",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Beasts/BeastSkeleton",
-     "zh": [
-      "枯骨野獸"
-     ],
-     "en": [
-      "Skeletal Beast"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "巨人",
-      "熊類動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Gargantuans",
-      "Ursae",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Lion/LionWolf2",
-     "zh": [
-      "極地狼"
-     ],
-     "en": [
-      "Arctic Wolf"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "惡狼",
-      "犬科動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Wolves",
-      "Canines",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Hound/Hound",
-     "zh": [
-      "殘暴獵犬"
-     ],
-     "en": [
-      "Fury Hound"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "卡魯獵犬",
-      "犬科動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Karui Hounds",
-      "Canines",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Monkeys/MonkeyJuvenile",
-     "zh": [
-      "殺戮狂猿"
-     ],
-     "en": [
-      "Carnage Ape"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "狂猿",
-      "靈長動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Apes",
-      "Primates",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/BloodChieftain/MonkeyChiefBloodEnrage",
-     "zh": [
-      "殺戮酋長"
-     ],
-     "en": [
-      "Carnage Chieftain"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "大酋長",
-      "靈長動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Ape Chieftains",
-      "Primates",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Hellion/Hellion3",
-     "zh": [
-      "毀滅地獄犬"
-     ],
-     "en": [
-      "Ruins Hellion"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "地獄犬",
-      "貓科動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Hellions",
-      "Felines",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Beasts/BeastVulnerabilityCurse",
-     "zh": [
-      "毀甲巨獸"
-     ],
-     "en": [
-      "Armour Cruncher"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "巨人",
-      "熊類動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Gargantuans",
-      "Ursae",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Beasts/BeastCaveDegenAura",
-     "zh": [
-      "毒息巨獸"
-     ],
-     "en": [
-      "Shaggy Monstrosity"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "巨人",
-      "熊類動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Gargantuans",
-      "Ursae",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Hellion/HellionPuncture",
-     "zh": [
-      "沙丘獄犬"
-     ],
-     "en": [
-      "Dune Hellion"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "地獄犬",
-      "貓科動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Hellions",
-      "Felines",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Spiker/SpikerChrome",
-     "zh": [
-      "注鉻巨獸"
-     ],
-     "en": [
-      "Chrome-infused Goliath"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "巨獸",
-      "非自然",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Goliaths",
-      "Unnaturals",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Beasts/BeastCave",
-     "zh": [
-      "洞穴獸"
-     ],
-     "en": [
-      "Cave Beast"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "巨人",
-      "熊類動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Gargantuans",
-      "Ursae",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/PurgeHound/PurgeHound",
-     "zh": [
-      "淨化獵犬"
-     ],
-     "en": [
-      "Purge Hound"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "獵犬",
-      "犬科動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Hounds",
-      "Canines",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Hellion/HellionIce",
-     "zh": [
-      "深山地獄犬"
-     ],
-     "en": [
-      "Mountain Hellion"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "地獄犬",
-      "貓科動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Hellions",
-      "Felines",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Hellion/HellionIceExplodeOnDeath",
-     "zh": [
-      "深山地獄犬幻獸"
-     ],
-     "en": [
-      "Mountain Hellion Alpha"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "地獄犬",
-      "貓科動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Hellions",
-      "Felines",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Hellion/Hellion2",
-     "zh": [
-      "煉獄犬"
-     ],
-     "en": [
-      "Flame Hellion"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "地獄犬",
-      "貓科動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Hellions",
-      "Felines",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Hound/Hound2",
-     "zh": [
-      "爭戰獵犬"
-     ],
-     "en": [
-      "War Hound"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "卡魯獵犬",
-      "犬科動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Karui Hounds",
-      "Canines",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Bull/BullPhysical",
-     "zh": [
-      "牧金牛人"
-     ],
-     "en": [
-      "Grazing Taurus"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "野牛",
-      "非自然",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Bulls",
-      "Unnaturals",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Pitbull/Pitbull2",
-     "zh": [
-      "狠毒獵犬"
-     ],
-     "en": [
-      "Vicious Hound"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "鬥牛犬",
-      "犬科動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Pitbulls",
-      "Canines",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Beasts/BeastParasite",
-     "zh": [
-      "猛獸野瘋狂"
-     ],
-     "en": [
-      "Enraptured Beast"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "巨人",
-      "熊類動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Gargantuans",
-      "Ursae",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/DropBear/DropBear3Parasite",
-     "zh": [
-      "病態之爪"
-     ],
-     "en": [
-      "Infested Ursa"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "墜落熊",
-      "熊類動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Plummeting Ursae",
-      "Ursae",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/DropBear/DropBear2Parasite",
-     "zh": [
-      "病態地穴惡靈"
-     ],
-     "en": [
-      "Infested Tunnelfiend"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "墜落熊",
-      "熊類動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Plummeting Ursae",
-      "Ursae",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Lion/LionWolf3",
-     "zh": [
-      "白雪狼"
-     ],
-     "en": [
-      "Snow Wolf"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "惡狼",
-      "犬科動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Wolves",
-      "Canines",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Beasts/BeastCleave",
-     "zh": [
-      "碎骨獸"
-     ],
-     "en": [
-      "Bone Cruncher"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "巨人",
-      "熊類動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Gargantuans",
-      "Ursae",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/DropBear/DropBear3",
-     "zh": [
-      "綠蔭之爪"
-     ],
-     "en": [
-      "Woods Ursa"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "墜落熊",
-      "熊類動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Plummeting Ursae",
-      "Ursae",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Beasts/BeastSkeletonBlack",
-     "zh": [
-      "腐化獸"
-     ],
-     "en": [
-      "Corrupted Beast"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "巨人",
-      "熊類動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Gargantuans",
-      "Ursae",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Monkeys/MonkeyBlood",
-     "zh": [
-      "血面狂猿"
-     ],
-     "en": [
-      "Blood Ape"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "狂猿",
-      "靈長動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Apes",
-      "Primates",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/BloodChieftain/MonkeyChiefBlood",
-     "zh": [
-      "血面酋長"
-     ],
-     "en": [
-      "Blood Chieftain"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "大酋長",
-      "靈長動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Ape Chieftains",
-      "Primates",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Spiker/SpikerChrometouched",
-     "zh": [
-      "觸鉻巨獸"
-     ],
-     "en": [
-      "Chrome-touched Goliath"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "巨獸",
-      "非自然",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Goliaths",
-      "Unnaturals",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/LeagueBestiary/HellionBestiary2",
-     "zh": [
-      "費爾羅冰霜犬幻獸"
-     ],
-     "en": [
-      "Farric Frost Hellion Alpha"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "地獄犬",
-      "貓科動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Hellions",
-      "Felines",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/LeagueBestiary/PitbullBestiary",
-     "zh": [
-      "費爾羅坑穴獵犬"
-     ],
-     "en": [
-      "Farric Pit Hound"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "鬥牛犬",
-      "犬科動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Pitbulls",
-      "Canines",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/LeagueBestiary/LynxBestiary",
-     "zh": [
-      "費爾羅山貓幻獸"
-     ],
-     "en": [
-      "Farric Lynx Alpha"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "山貓",
-      "貓科動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Lynxes",
-      "Felines",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/LeagueBestiary/HoundBestiary",
-     "zh": [
-      "費爾羅岩漿獵犬"
-     ],
-     "en": [
-      "Farric Magma Hound"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "卡魯獵犬",
-      "犬科動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Karui Hounds",
-      "Canines",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/LeagueBestiary/BeastCaveBestiary",
-     "zh": [
-      "費爾羅巨人"
-     ],
-     "en": [
-      "Farric Gargantuan"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "巨人",
-      "熊類動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Gargantuans",
-      "Ursae",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/LeagueBestiary/BestiarySpiker",
-     "zh": [
-      "費爾羅巨獸"
-     ],
-     "en": [
-      "Farric Goliath"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "巨獸",
-      "非自然",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Goliaths",
-      "Unnaturals",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/LeagueBestiary/WolfBestiary",
-     "zh": [
-      "費爾羅惡狼幻獸"
-     ],
-     "en": [
-      "Farric Wolf Alpha"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "惡狼",
-      "犬科動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Wolves",
-      "Canines",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/LeagueBestiary/DropBearBestiary",
-     "zh": [
-      "費爾羅暴熊"
-     ],
-     "en": [
-      "Farric Ursa"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "墜落熊",
-      "熊類動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Plummeting Ursae",
-      "Ursae",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/LeagueBestiary/HellionBestiary",
-     "zh": [
-      "費爾羅烈焰犬幻獸"
-     ],
-     "en": [
-      "Farric Flame Hellion Alpha"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "地獄犬",
-      "貓科動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Hellions",
-      "Felines",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/LeagueBestiary/MonkeyBloodBestiary",
-     "zh": [
-      "費爾羅狂猿"
-     ],
-     "en": [
-      "Farric Ape"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "狂猿",
-      "靈長動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Apes",
-      "Primates",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/LeagueBestiary/TigerBestiary",
-     "zh": [
-      "費爾羅猛虎幻獸"
-     ],
-     "en": [
-      "Farric Tiger Alpha"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "猛虎",
-      "貓科動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Tigers",
-      "Felines",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/LeagueBestiary/GoatmanLeapSlamBestiary",
-     "zh": [
-      "費爾羅羊人"
-     ],
-     "en": [
-      "Farric Goatman"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "羊人",
-      "靈長動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Goatmen",
-      "Primates",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/LeagueBestiary/BestiaryMonkeyChiefBlood",
-     "zh": [
-      "費爾羅酋長"
-     ],
-     "en": [
-      "Farric Chieftain"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "大酋長",
-      "靈長動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Ape Chieftains",
-      "Primates",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/LeagueBestiary/BestiaryBull",
-     "zh": [
-      "費爾羅金牛人"
-     ],
-     "en": [
-      "Farric Taurus"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "野牛",
-      "非自然",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Bulls",
-      "Unnaturals",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Monkeys/MonkeyJuvenileThrow",
-     "zh": [
-      "遺塚狂猿"
-     ],
-     "en": [
-      "Barrow Ape"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "狂猿",
-      "靈長動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Apes",
-      "Primates",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Goatman/GoatmanLeapSlam2",
-     "zh": [
-      "重踏羊人"
-     ],
-     "en": [
-      "Goatman Stomper"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "羊人",
-      "靈長動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Goatmen",
-      "Primates",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/LeagueHarvest/Red/HarvestBrambleHulkT3MemoryLine",
-     "zh": [
-      "野性之叢林巨獸"
-     ],
-     "en": [
-      "Wild Brambleback"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "大酋長",
-      "非自然",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Ape Chieftains",
-      "Unnaturals",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/LeagueHarvest/Red/HarvestHellionT3MemoryLine",
-     "zh": [
-      "野性之地獄犬幻獸"
-     ],
-     "en": [
-      "Wild Hellion Alpha"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "地獄犬",
-      "貓科動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Hellions",
-      "Felines",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/LeagueHarvest/Red/HarvestBeastT3MemoryLine_",
-     "zh": [
-      "野性之毛刺看守獸"
-     ],
-     "en": [
-      "Wild Bristle Matron"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "巨人",
-      "熊類動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Gargantuans",
-      "Ursae",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Spiker/Spiker",
-     "zh": [
-      "針背巨獸"
-     ],
-     "en": [
-      "Porcupine Goliath"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "巨獸",
-      "非自然",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Goliaths",
-      "Unnaturals",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Hellion/HellionColosseumNoEmerge",
-     "zh": [
-      "鉤鏈地獄犬"
-     ],
-     "en": [
-      "Shackled Hellion"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "地獄犬",
-      "貓科動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Hellions",
-      "Felines",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Beasts/BeastCleaveEnduringCry",
-     "zh": [
-      "長毛碎骨獸"
-     ],
-     "en": [
-      "Hairy Bonecruncher"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "巨人",
-      "熊類動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Gargantuans",
-      "Ursae",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Goatman/GoatmanShamanLightning",
-     "zh": [
-      "長鬚咒靈"
-     ],
-     "en": [
-      "Bearded Shaman"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "羊人術師",
-      "靈長動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Goat Shamans",
-      "Primates",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Goatman/GoatmanLightningLeapSlamMaps",
-     "zh": [
-      "長鬚羊人"
-     ],
-     "en": [
-      "Bearded Devil"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "羊人",
-      "靈長動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Goatmen",
-      "Primates",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Goatman/MountainGoatmanLeapSlam3",
-     "zh": [
-      "高峰羊人"
-     ],
-     "en": [
-      "Alpine Devil"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "羊人",
-      "靈長動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Goatmen",
-      "Primates",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Goatman/MountainGoatmanShamanIceSpear",
-     "zh": [
-      "高峰術士"
-     ],
-     "en": [
-      "Alpine Shaman"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "羊人術師",
-      "靈長動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Goat Shamans",
-      "Primates",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Pitbull/Pitbull",
-     "zh": [
-      "鬥牛犬魔"
-     ],
-     "en": [
-      "Pitbull Demon"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "鬥牛犬",
-      "犬科動物",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Pitbulls",
-      "Canines",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/LeagueAzmeri/GullGoliathBestiary_",
-     "zh": [
-      "黑色莫里根"
-     ],
-     "en": [
-      "Black Mórrigan"
-     ],
-     "g": 0,
-     "hiddenZh": [
-      "巨獸",
-      "非自然",
-      "獸性"
-     ],
-     "hiddenEn": [
-      "Goliaths",
-      "Unnaturals",
-      "The Wilds"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/VultureParasite/VultureParasite",
-     "zh": [
-      "傀儡骨喙"
-     ],
-     "en": [
-      "Mindless Scavenger"
-     ],
-     "g": 1,
-     "hiddenZh": [
-      "禿鷹",
-      "飛禽動物",
-      "飛沙"
-     ],
-     "hiddenEn": [
-      "Vultures",
-      "Avians",
-      "The Sands"
-     ]
-    },
     {
      "id": "Metadata/Monsters/LeagueBestiary/MarakethBirdSpiritBoss",
      "zh": [
@@ -65095,246 +64834,7 @@
      "en": [
       "Saqawal, First of the Sky"
      ],
-     "g": 1,
-     "hiddenZh": [
-      "雛鳥",
-      "飛禽動物",
-      "飛沙"
-     ],
-     "hiddenEn": [
-      "Rhexes",
-      "Avians",
-      "The Sands"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Snake/SnakeSpit",
-     "zh": [
-      "原野毒吻"
-     ],
-     "en": [
-      "Glade Mamba"
-     ],
-     "g": 1,
-     "hiddenZh": [
-      "毒蛇",
-      "爬行動物",
-      "飛沙"
-     ],
-     "hiddenEn": [
-      "Snakes",
-      "Reptiles",
-      "The Sands"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/VultureParasite/VultureParasiteAqueduct",
-     "zh": [
-      "受汙染的禿鷹"
-     ],
-     "en": [
-      "Infested Vulture"
-     ],
-     "g": 1,
-     "hiddenZh": [
-      "禿鷹",
-      "飛禽動物",
-      "飛沙"
-     ],
-     "hiddenEn": [
-      "Vultures",
-      "Avians",
-      "The Sands"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Kiweth/Kiweth",
-     "zh": [
-      "叢林反芻鳥"
-     ],
-     "en": [
-      "Avian Retch"
-     ],
-     "g": 1,
-     "hiddenZh": [
-      "反芻鳥",
-      "飛禽動物",
-      "飛沙"
-     ],
-     "hiddenEn": [
-      "Retches",
-      "Avians",
-      "The Sands"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Snake/SnakeMeleeSpit",
-     "zh": [
-      "叢林眼鏡蛇"
-     ],
-     "en": [
-      "Bramble Cobra"
-     ],
-     "g": 1,
-     "hiddenZh": [
-      "毒蛇",
-      "爬行動物",
-      "飛沙"
-     ],
-     "hiddenEn": [
-      "Snakes",
-      "Reptiles",
-      "The Sands"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Snake/SnakeFlame",
-     "zh": [
-      "夜色毒蛇"
-     ],
-     "en": [
-      "Night Adder"
-     ],
-     "g": 1,
-     "hiddenZh": [
-      "毒蛇",
-      "爬行動物",
-      "飛沙"
-     ],
-     "hiddenEn": [
-      "Snakes",
-      "Reptiles",
-      "The Sands"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/MarakethBird/Bird2",
-     "zh": [
-      "大腹雛鳥"
-     ],
-     "en": [
-      "Maternal Rhex"
-     ],
-     "g": 1,
-     "hiddenZh": [
-      "雛鳥",
-      "飛禽動物",
-      "飛沙"
-     ],
-     "hiddenEn": [
-      "Rhexes",
-      "Avians",
-      "The Sands"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Snake/SnakeMeleeSpitParasite",
-     "zh": [
-      "寄生眼鏡蛇"
-     ],
-     "en": [
-      "Host Cobra"
-     ],
-     "g": 1,
-     "hiddenZh": [
-      "毒蛇",
-      "爬行動物",
-      "飛沙"
-     ],
-     "hiddenEn": [
-      "Snakes",
-      "Reptiles",
-      "The Sands"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Snake/SnakeFlameParasite",
-     "zh": [
-      "寄生蟒蛇"
-     ],
-     "en": [
-      "Host Adder"
-     ],
-     "g": 1,
-     "hiddenZh": [
-      "毒蛇",
-      "爬行動物",
-      "飛沙"
-     ],
-     "hiddenEn": [
-      "Snakes",
-      "Reptiles",
-      "The Sands"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Cockerel/CockerelBowMaps",
-     "zh": [
-      "射手之爪"
-     ],
-     "en": [
-      "Talon Archer"
-     ],
-     "g": 1,
-     "hiddenZh": [
-      "飛禽動物",
-      "飛沙"
-     ],
-     "hiddenEn": [
-      "Cockerels",
-      "Avians",
-      "The Sands"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/GemMonster/Iguana",
-     "zh": [
-      "彩羽龍蜥"
-     ],
-     "en": [
-      "Plumed Chimeral"
-     ],
-     "g": 1,
-     "hiddenZh": [
-      "龍蜥",
-      "爬行動物",
-      "飛沙"
-     ],
-     "hiddenEn": [
-      "Chimerals",
-      "Reptiles",
-      "The Sands"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Snake/SnakeScorpion2",
-     "zh": [
-      "感染巨蛇"
-     ],
-     "en": [
-      "Infested Serpent"
-     ],
-     "g": 1,
-     "hiddenZh": [
-      "毒蛇",
-      "爬行動物",
-      "飛沙"
-     ],
-     "hiddenEn": [
-      "Snakes",
-      "Reptiles",
-      "The Sands"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/MarakethBird/Bird1Fast",
-     "zh": [
-      "成年雛鳥"
-     ],
-     "en": [
-      "Adolescent Rhex"
-     ],
-     "g": 1,
+     "g": 0,
      "hiddenZh": [
       "雛鳥",
       "飛禽動物",
@@ -65354,7 +64854,7 @@
      "en": [
       "Saqawine Retch"
      ],
-     "g": 1,
+     "g": 0,
      "hiddenZh": [
       "反芻鳥",
       "飛禽動物",
@@ -65374,7 +64874,7 @@
      "en": [
       "Saqawine Blood Viper"
      ],
-     "g": 1,
+     "g": 0,
      "hiddenZh": [
       "毒蛇",
       "爬行動物",
@@ -65394,7 +64894,7 @@
      "en": [
       "Saqawine Rhoa"
      ],
-     "g": 1,
+     "g": 0,
      "hiddenZh": [
       "恐喙鳥",
       "飛禽動物",
@@ -65414,7 +64914,7 @@
      "en": [
       "Saqawine Cobra"
      ],
-     "g": 1,
+     "g": 0,
      "hiddenZh": [
       "毒蛇",
       "爬行動物",
@@ -65434,7 +64934,7 @@
      "en": [
       "Saqawine Vulture"
      ],
-     "g": 1,
+     "g": 0,
      "hiddenZh": [
       "禿鷹",
       "飛禽動物",
@@ -65454,7 +64954,7 @@
      "en": [
       "Saqawine Rhex"
      ],
-     "g": 1,
+     "g": 0,
      "hiddenZh": [
       "雛鳥",
       "飛禽動物",
@@ -65474,7 +64974,7 @@
      "en": [
       "Saqawine Chimeral"
      ],
-     "g": 1,
+     "g": 0,
      "hiddenZh": [
       "龍蜥",
       "爬行動物",
@@ -65483,404 +64983,6 @@
      "hiddenEn": [
       "Chimerals",
       "Reptiles",
-      "The Sands"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Rhoas/RhoaSkeleton",
-     "zh": [
-      "枯骨恐喙鳥"
-     ],
-     "en": [
-      "Bone Rhoa"
-     ],
-     "g": 1,
-     "hiddenZh": [
-      "恐喙鳥",
-      "飛禽動物",
-      "飛沙"
-     ],
-     "hiddenEn": [
-      "Rhoas",
-      "Avians",
-      "The Sands"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Snake/SnakeScorpionMultiShot",
-     "zh": [
-      "棘刺巨蛇"
-     ],
-     "en": [
-      "Barb Serpent"
-     ],
-     "g": 1,
-     "hiddenZh": [
-      "毒蛇",
-      "爬行動物",
-      "飛沙"
-     ],
-     "hiddenEn": [
-      "Snakes",
-      "Reptiles",
-      "The Sands"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/VultureParasite/VultureParasite2",
-     "zh": [
-      "殲滅禿鷹"
-     ],
-     "en": [
-      "Scavenging Vulture"
-     ],
-     "g": 1,
-     "hiddenZh": [
-      "禿鷹",
-      "飛禽動物",
-      "飛沙"
-     ],
-     "hiddenEn": [
-      "Vultures",
-      "Avians",
-      "The Sands"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Snake/SnakeBloodSpitter",
-     "zh": [
-      "毒素滑行者"
-     ],
-     "en": [
-      "Acid Slitherer"
-     ],
-     "g": 1,
-     "hiddenZh": [
-      "毒蛇",
-      "爬行動物",
-      "飛沙"
-     ],
-     "hiddenEn": [
-      "Snakes",
-      "Reptiles",
-      "The Sands"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/GemMonster/IguanaChrome",
-     "zh": [
-      "注鉻龍蜥"
-     ],
-     "en": [
-      "Chrome-infused Chimeral"
-     ],
-     "g": 1,
-     "hiddenZh": [
-      "龍蜥",
-      "爬行動物",
-      "飛沙"
-     ],
-     "hiddenEn": [
-      "Chimerals",
-      "Reptiles",
-      "The Sands"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Snake/SnakeScorpionMultiShot2_",
-     "zh": [
-      "流沙巨蛇"
-     ],
-     "en": [
-      "Sand Serpent"
-     ],
-     "g": 1,
-     "hiddenZh": [
-      "毒蛇",
-      "爬行動物",
-      "飛沙"
-     ],
-     "hiddenEn": [
-      "Snakes",
-      "Reptiles",
-      "The Sands"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/GemMonster/Iguana3",
-     "zh": [
-      "狂野龍蜥"
-     ],
-     "en": [
-      "Feral Chimeral"
-     ],
-     "g": 1,
-     "hiddenZh": [
-      "龍蜥",
-      "爬行動物",
-      "飛沙"
-     ],
-     "hiddenEn": [
-      "Chimerals",
-      "Reptiles",
-      "The Sands"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Kiweth/KiwethSeagull",
-     "zh": [
-      "狂食反芻鳥"
-     ],
-     "en": [
-      "Gluttonous Gull"
-     ],
-     "g": 1,
-     "hiddenZh": [
-      "反芻鳥",
-      "飛禽動物",
-      "飛沙"
-     ],
-     "hiddenEn": [
-      "Retches",
-      "Avians",
-      "The Sands"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Rhoas/RhoaParasite",
-     "zh": [
-      "病態恐喙鳥"
-     ],
-     "en": [
-      "Infested Rhoa"
-     ],
-     "g": 1,
-     "hiddenZh": [
-      "恐喙鳥",
-      "飛禽動物",
-      "飛沙"
-     ],
-     "hiddenEn": [
-      "Rhoas",
-      "Avians",
-      "The Sands"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/MarakethBird/ArmouredBird1",
-     "zh": [
-      "竄逃雛鳥"
-     ],
-     "en": [
-      "Escaped Rhex"
-     ],
-     "g": 1,
-     "hiddenZh": [
-      "雛鳥",
-      "飛禽動物",
-      "飛沙"
-     ],
-     "hiddenEn": [
-      "Rhexes",
-      "Avians",
-      "The Sands"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Snake/SnakeScorpion",
-     "zh": [
-      "脊刺巨蛇"
-     ],
-     "en": [
-      "Spine Serpent"
-     ],
-     "g": 1,
-     "hiddenZh": [
-      "毒蛇",
-      "爬行動物",
-      "飛沙"
-     ],
-     "hiddenEn": [
-      "Snakes",
-      "Reptiles",
-      "The Sands"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Rhoas/RhoaSkeletonBlack",
-     "zh": [
-      "腐化的恐喙鳥"
-     ],
-     "en": [
-      "Corrupted Rhoa"
-     ],
-     "g": 1,
-     "hiddenZh": [
-      "恐喙鳥",
-      "飛禽動物",
-      "飛沙"
-     ],
-     "hiddenEn": [
-      "Rhoas",
-      "Avians",
-      "The Sands"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/VultureParasite/VultureParasite3",
-     "zh": [
-      "腐敗禿鷹"
-     ],
-     "en": [
-      "Rotting Vulture"
-     ],
-     "g": 1,
-     "hiddenZh": [
-      "禿鷹",
-      "飛禽動物",
-      "飛沙"
-     ],
-     "hiddenEn": [
-      "Vultures",
-      "Avians",
-      "The Sands"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/GemMonster/IguanaChrometouched",
-     "zh": [
-      "觸鉻龍蜥"
-     ],
-     "en": [
-      "Chrome-touched Chimeral"
-     ],
-     "g": 1,
-     "hiddenZh": [
-      "龍蜥",
-      "爬行動物",
-      "飛沙"
-     ],
-     "hiddenEn": [
-      "Chimerals",
-      "Reptiles",
-      "The Sands"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Cockerel/Cockerel",
-     "zh": [
-      "邪靈公雞"
-     ],
-     "en": [
-      "Rooster Fiend"
-     ],
-     "g": 1,
-     "hiddenZh": [
-      "飛禽動物",
-      "飛沙"
-     ],
-     "hiddenEn": [
-      "Cockerels",
-      "Avians",
-      "The Sands"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/MarakethBird/Bird1",
-     "zh": [
-      "野雛"
-     ],
-     "en": [
-      "Wild Rhex"
-     ],
-     "g": 1,
-     "hiddenZh": [
-      "雛鳥",
-      "飛禽動物",
-      "飛沙"
-     ],
-     "hiddenEn": [
-      "Rhexes",
-      "Avians",
-      "The Sands"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Cockerel/CockerelUnarmed",
-     "zh": [
-      "野雞"
-     ],
-     "en": [
-      "Feral Fowl"
-     ],
-     "g": 1,
-     "hiddenZh": [
-      "飛禽動物",
-      "飛沙"
-     ],
-     "hiddenEn": [
-      "Cockerels",
-      "Avians",
-      "The Sands"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Rhoas/RhoaBigPale",
-     "zh": [
-      "陰暗恐喙鳥"
-     ],
-     "en": [
-      "Murk Runner"
-     ],
-     "g": 1,
-     "hiddenZh": [
-      "恐喙鳥",
-      "飛禽動物",
-      "飛沙"
-     ],
-     "hiddenEn": [
-      "Rhoas",
-      "Avians",
-      "The Sands"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Rhoas/RhoaBig",
-     "zh": [
-      "雄性恐喙鳥"
-     ],
-     "en": [
-      "Tercel Rhoa"
-     ],
-     "g": 1,
-     "hiddenZh": [
-      "恐喙鳥",
-      "飛禽動物",
-      "飛沙"
-     ],
-     "hiddenEn": [
-      "Rhoas",
-      "Avians",
-      "The Sands"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Rhoas/Rhoa",
-     "zh": [
-      "雌性恐喙鳥"
-     ],
-     "en": [
-      "Rhoa Mare"
-     ],
-     "g": 1,
-     "hiddenZh": [
-      "恐喙鳥",
-      "飛禽動物",
-      "飛沙"
-     ],
-     "hiddenEn": [
-      "Rhoas",
-      "Avians",
       "The Sands"
      ]
     },
@@ -65892,7 +64994,7 @@
      "en": [
       "Vivid Vulture"
      ],
-     "g": 1,
+     "g": 0,
      "hiddenZh": [
       "禿鷹",
       "飛禽動物",
@@ -65905,1003 +65007,423 @@
      ]
     },
     {
-     "id": "Metadata/Monsters/Squid/Squid3Sewer",
+     "id": "Metadata/Monsters/LeagueBestiary/TigerBestiarySpiritBoss",
      "zh": [
-      "下水道漂泊者"
+      "初始之地費爾羅"
      ],
      "en": [
-      "Sewer Drifter"
+      "Farrul, First of the Plains"
      ],
-     "g": 2,
+     "g": 1,
      "hiddenZh": [
-      "看守者",
-      "頭足動物",
-      "深潭"
+      "猛虎",
+      "貓科動物",
+      "荒野"
      ],
      "hiddenEn": [
-      "Watchers",
-      "Cephalopods",
-      "The Deep"
+      "Tigers",
+      "Felines",
+      "The Wilds"
      ]
     },
     {
-     "id": "Metadata/Monsters/Seawitch/SeaWitchScreech",
+     "id": "Metadata/Monsters/LeagueHarvest/Blue/HarvestGoatmanT3MemoryLine",
      "zh": [
-      "冥曲海妖"
+      "原始之羊人"
      ],
      "en": [
-      "Singing Siren"
+      "Primal Cystcaller"
      ],
-     "g": 2,
+     "g": 1,
      "hiddenZh": [
-      "海妖",
-      "頭足動物",
-      "深潭"
+      "羊人",
+      "靈長動物",
+      "荒野"
      ],
      "hiddenEn": [
-      "Sea Witches",
-      "Cephalopods",
-      "The Deep"
+      "Goatmen",
+      "Primates",
+      "The Wilds"
      ]
     },
     {
-     "id": "Metadata/Monsters/LeagueBestiary/NessaCrabBestiarySpiritBoss",
+     "id": "Metadata/Monsters/LeagueHarvest/Blue/HarvestRhexT3MemoryLine",
      "zh": [
-      "初始之潭奎爾珊"
+      "原始之野雛女酋"
      ],
      "en": [
-      "Craiceann, First of the Deep"
+      "Primal Rhex Matriarch"
      ],
-     "g": 2,
+     "g": 1,
      "hiddenZh": [
-      "奸細",
-      "甲殼動物",
-      "深潭"
+      "卡魯獵犬",
+      "犬科動物",
+      "荒野"
      ],
      "hiddenEn": [
-      "Lurchers",
-      "Crustaceans",
-      "The Deep"
+      "Karui Hounds",
+      "Canines",
+      "The Wilds"
      ]
     },
     {
-     "id": "Metadata/Monsters/Spawn/SpawnViperStrike",
+     "id": "Metadata/Monsters/LeagueBestiary/HellionBestiary2",
      "zh": [
-      "劇毒海蟲"
+      "費爾羅冰霜犬幻獸"
      ],
      "en": [
-      "Venomous Spawn"
+      "Farric Frost Hellion Alpha"
      ],
-     "g": 2,
+     "g": 1,
      "hiddenZh": [
-      "幼蟲",
-      "頭足動物",
-      "深潭"
+      "地獄犬",
+      "貓科動物",
+      "荒野"
      ],
      "hiddenEn": [
-      "Spawn",
-      "Cephalopods",
-      "The Deep"
+      "Hellions",
+      "Felines",
+      "The Wilds"
      ]
     },
     {
-     "id": "Metadata/Monsters/SandSpitters/SandSpitterPoison",
+     "id": "Metadata/Monsters/LeagueBestiary/PitbullBestiary",
      "zh": [
-      "劇毒食腐蟲"
+      "費爾羅坑穴獵犬"
      ],
      "en": [
-      "Toxic Crawler"
+      "Farric Pit Hound"
      ],
-     "g": 2,
+     "g": 1,
      "hiddenZh": [
-      "噴砂爪蟹",
-      "甲殼動物",
-      "深潭"
+      "鬥牛犬",
+      "犬科動物",
+      "荒野"
      ],
      "hiddenEn": [
-      "Sand Spitters",
-      "Crustaceans",
-      "The Deep"
+      "Pitbulls",
+      "Canines",
+      "The Wilds"
      ]
     },
     {
-     "id": "Metadata/Monsters/LeagueHarvest/Blue/HarvestNessaCrabT3MemoryLine_",
+     "id": "Metadata/Monsters/LeagueBestiary/LynxBestiary",
      "zh": [
-      "原始之粉碎之爪"
+      "費爾羅山貓幻獸"
      ],
      "en": [
-      "Primal Crushclaw"
+      "Farric Lynx Alpha"
      ],
-     "g": 2,
+     "g": 1,
      "hiddenZh": [
-      "巨蟹",
-      "甲殼動物",
-      "深潭"
+      "山貓",
+      "貓科動物",
+      "荒野"
      ],
      "hiddenEn": [
-      "Crabs",
-      "Crustaceans",
-      "The Deep"
+      "Lynxes",
+      "Felines",
+      "The Wilds"
      ]
     },
     {
-     "id": "Metadata/Monsters/CrabParasite/CrabParasiteLargeParasite",
+     "id": "Metadata/Monsters/LeagueBestiary/HoundBestiary",
      "zh": [
-      "受感染的蟹"
+      "費爾羅岩漿獵犬"
      ],
      "en": [
-      "Infested Crab"
+      "Farric Magma Hound"
      ],
-     "g": 2,
+     "g": 1,
      "hiddenZh": [
-      "巨蟹",
-      "甲殼動物",
-      "深潭"
+      "卡魯獵犬",
+      "犬科動物",
+      "荒野"
      ],
      "hiddenEn": [
-      "Crabs",
-      "Crustaceans",
-      "The Deep"
+      "Karui Hounds",
+      "Canines",
+      "The Wilds"
      ]
     },
     {
-     "id": "Metadata/Monsters/SandSpitters/SandSpitter2",
+     "id": "Metadata/Monsters/LeagueBestiary/BeastCaveBestiary",
      "zh": [
-      "噴石爪蟹"
+      "費爾羅巨人"
      ],
      "en": [
-      "Rock Spitter"
+      "Farric Gargantuan"
      ],
-     "g": 2,
+     "g": 1,
      "hiddenZh": [
-      "噴砂爪蟹",
-      "甲殼動物",
-      "深潭"
+      "巨人",
+      "熊類動物",
+      "荒野"
      ],
      "hiddenEn": [
-      "Sand Spitters",
-      "Crustaceans",
-      "The Deep"
+      "Gargantuans",
+      "Ursae",
+      "The Wilds"
      ]
     },
     {
-     "id": "Metadata/Monsters/LeagueBestiary/ParasiticSquidBestiary",
+     "id": "Metadata/Monsters/LeagueBestiary/BestiarySpiker",
      "zh": [
-      "奎爾珊之奴"
+      "費爾羅巨獸"
      ],
      "en": [
-      "Craicic Vassal"
+      "Farric Goliath"
      ],
-     "g": 2,
+     "g": 1,
      "hiddenZh": [
-      "章魚",
-      "頭足動物",
-      "深潭"
+      "巨獸",
+      "非自然",
+      "荒野"
      ],
      "hiddenEn": [
-      "Octopuses",
-      "Cephalopods",
-      "The Deep"
+      "Goliaths",
+      "Unnaturals",
+      "The Wilds"
      ]
     },
     {
-     "id": "Metadata/Monsters/LeagueBestiary/SandSpitterBestiary",
+     "id": "Metadata/Monsters/LeagueBestiary/WolfBestiary",
      "zh": [
-      "奎爾珊噴砂爪蟹"
+      "費爾羅惡狼幻獸"
      ],
      "en": [
-      "Craicic Sand Spitter"
+      "Farric Wolf Alpha"
      ],
-     "g": 2,
+     "g": 1,
      "hiddenZh": [
-      "噴砂爪蟹",
-      "甲殼動物",
-      "深潭"
+      "惡狼",
+      "犬科動物",
+      "荒野"
      ],
      "hiddenEn": [
-      "Sand Spitters",
-      "Crustaceans",
-      "The Deep"
+      "Wolves",
+      "Canines",
+      "The Wilds"
      ]
     },
     {
-     "id": "Metadata/Monsters/LeagueBestiary/CrabParasiteLargeBestiary_",
+     "id": "Metadata/Monsters/LeagueBestiary/DropBearBestiary",
      "zh": [
-      "奎爾珊殘暴的蟹"
+      "費爾羅暴熊"
      ],
      "en": [
-      "Craicic Savage Crab"
+      "Farric Ursa"
      ],
-     "g": 2,
+     "g": 1,
      "hiddenZh": [
-      "巨蟹",
-      "甲殼動物",
-      "深潭"
+      "墜落熊",
+      "熊類動物",
+      "荒野"
      ],
      "hiddenEn": [
-      "Crabs",
-      "Crustaceans",
-      "The Deep"
+      "Plummeting Ursae",
+      "Ursae",
+      "The Wilds"
      ]
     },
     {
-     "id": "Metadata/Monsters/LeagueBestiary/SeaWitchSpawnBestiary",
+     "id": "Metadata/Monsters/LeagueBestiary/HellionBestiary",
      "zh": [
-      "奎爾珊烏賊"
+      "費爾羅烈焰犬幻獸"
      ],
      "en": [
-      "Craicic Squid"
+      "Farric Flame Hellion Alpha"
      ],
-     "g": 2,
+     "g": 1,
      "hiddenZh": [
-      "海妖",
-      "頭足動物",
-      "深潭"
+      "地獄犬",
+      "貓科動物",
+      "荒野"
      ],
      "hiddenEn": [
-      "Sea Witches",
-      "Cephalopods",
-      "The Deep"
+      "Hellions",
+      "Felines",
+      "The Wilds"
      ]
     },
     {
-     "id": "Metadata/Monsters/LeagueBestiary/SquidBestiary",
+     "id": "Metadata/Monsters/LeagueBestiary/MonkeyBloodBestiary",
      "zh": [
-      "奎爾珊看守者"
+      "費爾羅狂猿"
      ],
      "en": [
-      "Craicic Watcher"
+      "Farric Ape"
      ],
-     "g": 2,
+     "g": 1,
      "hiddenZh": [
-      "看守者",
-      "頭足動物",
-      "深潭"
+      "狂猿",
+      "靈長動物",
+      "荒野"
      ],
      "hiddenEn": [
-      "Watchers",
-      "Cephalopods",
-      "The Deep"
+      "Apes",
+      "Primates",
+      "The Wilds"
      ]
     },
     {
-     "id": "Metadata/Monsters/LeagueBestiary/CrabSpiderBestiary",
+     "id": "Metadata/Monsters/LeagueBestiary/TigerBestiary",
      "zh": [
-      "奎爾珊蛛蛛蟹"
+      "費爾羅猛虎幻獸"
      ],
      "en": [
-      "Craicic Spider Crab"
+      "Farric Tiger Alpha"
      ],
-     "g": 2,
+     "g": 1,
      "hiddenZh": [
-      "蛛蛛蟹",
-      "甲殼動物",
-      "深潭"
+      "猛虎",
+      "貓科動物",
+      "荒野"
      ],
      "hiddenEn": [
-      "Spider Crabs",
-      "Crustaceans",
-      "The Deep"
+      "Tigers",
+      "Felines",
+      "The Wilds"
      ]
     },
     {
-     "id": "Metadata/Monsters/LeagueBestiary/FrogBestiary",
+     "id": "Metadata/Monsters/LeagueBestiary/GoatmanLeapSlamBestiary",
      "zh": [
-      "奎爾珊裂齒獸"
+      "費爾羅羊人"
      ],
      "en": [
-      "Craicic Maw"
+      "Farric Goatman"
      ],
-     "g": 2,
+     "g": 1,
      "hiddenZh": [
-      "裂齒獸",
-      "兩棲動物",
-      "深潭"
+      "羊人",
+      "靈長動物",
+      "荒野"
      ],
      "hiddenEn": [
-      "Maws",
-      "Amphibians",
-      "The Deep"
+      "Goatmen",
+      "Primates",
+      "The Wilds"
      ]
     },
     {
-     "id": "Metadata/Monsters/LeagueBestiary/ShieldCrabBestiary",
+     "id": "Metadata/Monsters/LeagueBestiary/BestiaryMonkeyChiefBlood",
      "zh": [
-      "奎爾珊重盾巨蟹"
+      "費爾羅酋長"
      ],
      "en": [
-      "Craicic Shield Crab"
+      "Farric Chieftain"
      ],
-     "g": 2,
+     "g": 1,
      "hiddenZh": [
-      "重盾巨蟹",
-      "甲殼動物",
-      "深潭"
+      "大酋長",
+      "靈長動物",
+      "荒野"
      ],
      "hiddenEn": [
-      "Shield Crabs",
-      "Crustaceans",
-      "The Deep"
+      "Ape Chieftains",
+      "Primates",
+      "The Wilds"
      ]
     },
     {
-     "id": "Metadata/Monsters/LeagueBestiary/GemFrogBestiary",
+     "id": "Metadata/Monsters/LeagueBestiary/BestiaryBull",
      "zh": [
-      "奎爾珊鳴蛙"
+      "費爾羅金牛人"
      ],
      "en": [
-      "Craicic Croaker"
+      "Farric Taurus"
      ],
-     "g": 2,
+     "g": 1,
      "hiddenZh": [
-      "寶石蛙",
-      "兩棲動物",
-      "深潭"
+      "野牛",
+      "非自然",
+      "荒野"
      ],
      "hiddenEn": [
-      "Gem Frogs",
-      "Amphibians",
-      "The Deep"
+      "Bulls",
+      "Unnaturals",
+      "The Wilds"
      ]
     },
     {
-     "id": "Metadata/Monsters/GemMonster/GemFrog3",
+     "id": "Metadata/Monsters/LeagueHarvest/Red/HarvestBrambleHulkT3MemoryLine",
      "zh": [
-      "寶庫財蛙"
+      "野性之叢林巨獸"
      ],
      "en": [
-      "Vaulting Croaker"
+      "Wild Brambleback"
      ],
-     "g": 2,
+     "g": 1,
      "hiddenZh": [
-      "寶石蛙",
-      "兩棲動物",
-      "深潭"
+      "大酋長",
+      "非自然",
+      "荒野"
      ],
      "hiddenEn": [
-      "Gem Frogs",
-      "Amphibians",
-      "The Deep"
+      "Ape Chieftains",
+      "Unnaturals",
+      "The Wilds"
      ]
     },
     {
-     "id": "Metadata/Monsters/GemMonster/GemFrog",
+     "id": "Metadata/Monsters/LeagueHarvest/Red/HarvestHellionT3MemoryLine",
      "zh": [
-      "幻想冥蛙"
+      "野性之地獄犬幻獸"
      ],
      "en": [
-      "Chimeric Croaker"
+      "Wild Hellion Alpha"
      ],
-     "g": 2,
+     "g": 1,
      "hiddenZh": [
-      "寶石蛙",
-      "兩棲動物",
-      "深潭"
+      "地獄犬",
+      "貓科動物",
+      "荒野"
      ],
      "hiddenEn": [
-      "Gem Frogs",
-      "Amphibians",
-      "The Deep"
+      "Hellions",
+      "Felines",
+      "The Wilds"
      ]
     },
     {
-     "id": "Metadata/Monsters/Frog/Frog",
+     "id": "Metadata/Monsters/LeagueHarvest/Red/HarvestBeastT3MemoryLine_",
      "zh": [
-      "惡臭裂齒獸"
+      "野性之毛刺看守獸"
      ],
      "en": [
-      "Fetid Maw"
+      "Wild Bristle Matron"
      ],
-     "g": 2,
+     "g": 1,
      "hiddenZh": [
-      "裂齒獸",
-      "兩棲動物",
-      "深潭"
+      "巨人",
+      "熊類動物",
+      "荒野"
      ],
      "hiddenEn": [
-      "Maws",
-      "Amphibians",
-      "The Deep"
+      "Gargantuans",
+      "Ursae",
+      "The Wilds"
      ]
     },
     {
-     "id": "Metadata/Monsters/CrabParasite/CrabParasiteLarge",
+     "id": "Metadata/Monsters/LeagueAzmeri/GullGoliathBestiary_",
      "zh": [
-      "殘暴的蟹"
+      "黑色莫里根"
      ],
      "en": [
-      "Savage Crab"
+      "Black Mórrigan"
      ],
-     "g": 2,
+     "g": 1,
      "hiddenZh": [
-      "巨蟹",
-      "甲殼動物",
-      "深潭"
+      "巨獸",
+      "非自然",
+      "荒野"
      ],
      "hiddenEn": [
-      "Crabs",
-      "Crustaceans",
-      "The Deep"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/SandSpitters/SandSpitterSewersMaps",
-     "zh": [
-      "汙穢食腐蟲"
-     ],
-     "en": [
-      "Sewage Crawler"
-     ],
-     "g": 2,
-     "hiddenZh": [
-      "噴砂爪蟹",
-      "甲殼動物",
-      "深潭"
-     ],
-     "hiddenEn": [
-      "Sand Spitters",
-      "Crustaceans",
-      "The Deep"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Frog/Frog3",
-     "zh": [
-      "污穢裂齒獸"
-     ],
-     "en": [
-      "Filth Maw"
-     ],
-     "g": 2,
-     "hiddenZh": [
-      "裂齒獸",
-      "兩棲動物",
-      "深潭"
-     ],
-     "hiddenEn": [
-      "Maws",
-      "Amphibians",
-      "The Deep"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/GemMonster/GemFrogChrome",
-     "zh": [
-      "注鉻蛙"
-     ],
-     "en": [
-      "Chrome-infused Croaker"
-     ],
-     "g": 2,
-     "hiddenZh": [
-      "寶石蛙",
-      "兩棲動物",
-      "深潭"
-     ],
-     "hiddenEn": [
-      "Gem Frogs",
-      "Amphibians",
-      "The Deep"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Spawn/SpawnPhaseRun",
-     "zh": [
-      "洞窟海蟲"
-     ],
-     "en": [
-      "Slimy Nemesis"
-     ],
-     "g": 2,
-     "hiddenZh": [
-      "幼蟲",
-      "頭足動物",
-      "深潭"
-     ],
-     "hiddenEn": [
-      "Spawn",
-      "Cephalopods",
-      "The Deep"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Seawitch/SeaWitchVulnerabilityCurse",
-     "zh": [
-      "海妖之僕"
-     ],
-     "en": [
-      "Merveil's Retainer"
-     ],
-     "g": 2,
-     "hiddenZh": [
-      "海妖",
-      "頭足動物",
-      "深潭"
-     ],
-     "hiddenEn": [
-      "Sea Witches",
-      "Cephalopods",
-      "The Deep"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Seawitch/SeaWitchSpawn",
-     "zh": [
-      "海妖之女"
-     ],
-     "en": [
-      "Merveil's Daughter"
-     ],
-     "g": 2,
-     "hiddenZh": [
-      "海妖",
-      "頭足動物",
-      "深潭"
-     ],
-     "hiddenEn": [
-      "Sea Witches",
-      "Cephalopods",
-      "The Deep"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Seawitch/SeaWitchSpawnTemporalChains",
-     "zh": [
-      "海妖愛女"
-     ],
-     "en": [
-      "Merveil's Chosen"
-     ],
-     "g": 2,
-     "hiddenZh": [
-      "海妖",
-      "頭足動物",
-      "深潭"
-     ],
-     "hiddenEn": [
-      "Sea Witches",
-      "Cephalopods",
-      "The Deep"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/ParasiticSquid/ParasiticSquid",
-     "zh": [
-      "海洋之奴"
-     ],
-     "en": [
-      "Brine Vassal"
-     ],
-     "g": 2,
-     "hiddenZh": [
-      "章魚",
-      "頭足動物",
-      "深潭"
-     ],
-     "hiddenEn": [
-      "Octopuses",
-      "Cephalopods",
-      "The Deep"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/ShieldCrabs/ShieldCrabColdConvertMaps",
-     "zh": [
-      "深潭甲蟹"
-     ],
-     "en": [
-      "Deep Crustacean"
-     ],
-     "g": 2,
-     "hiddenZh": [
-      "重盾巨蟹",
-      "甲殼動物",
-      "深潭"
-     ],
-     "hiddenEn": [
-      "Shield Crabs",
-      "Crustaceans",
-      "The Deep"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Squid/Squid",
-     "zh": [
-      "無靈之眼"
-     ],
-     "en": [
-      "Soulless Watcher"
-     ],
-     "g": 2,
-     "hiddenZh": [
-      "看守者",
-      "頭足動物",
-      "深潭"
-     ],
-     "hiddenEn": [
-      "Watchers",
-      "Cephalopods",
-      "The Deep"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/SandSpitters/SandSpitter3",
-     "zh": [
-      "狙影沙蟹"
-     ],
-     "en": [
-      "Crustacean Sniper"
-     ],
-     "g": 2,
-     "hiddenZh": [
-      "噴砂爪蟹",
-      "甲殼動物",
-      "深潭"
-     ],
-     "hiddenEn": [
-      "Sand Spitters",
-      "Crustaceans",
-      "The Deep"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Frog/FrogParasite",
-     "zh": [
-      "病態裂齒獸"
-     ],
-     "en": [
-      "Infested Maw"
-     ],
-     "g": 2,
-     "hiddenZh": [
-      "裂齒獸",
-      "兩棲動物",
-      "深潭"
-     ],
-     "hiddenEn": [
-      "Maws",
-      "Amphibians",
-      "The Deep"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/CrabParasite/CrabParasiteLargeSpawnParasite",
-     "zh": [
-      "病態食腐蟲"
-     ],
-     "en": [
-      "Infested Crawler"
-     ],
-     "g": 2,
-     "hiddenZh": [
-      "巨蟹",
-      "甲殼動物",
-      "深潭"
-     ],
-     "hiddenEn": [
-      "Crabs",
-      "Crustaceans",
-      "The Deep"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/CrabParasite/CrabParasiteBleachedLarge",
-     "zh": [
-      "白漆蝕腐蟲"
-     ],
-     "en": [
-      "Bleached Crawler"
-     ],
-     "g": 2,
-     "hiddenZh": [
-      "巨蟹",
-      "甲殼動物",
-      "深潭"
-     ],
-     "hiddenEn": [
-      "Crabs",
-      "Crustaceans",
-      "The Deep"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/BrineKing/BrineKingMinionBleached",
-     "zh": [
-      "磺石爪牙"
-     ],
-     "en": [
-      "Sulphurspawn"
-     ],
-     "g": 2,
-     "hiddenZh": [
-      "奸細",
-      "甲殼動物",
-      "深潭"
-     ],
-     "hiddenEn": [
-      "Lurchers",
-      "Crustaceans",
-      "The Deep"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Squid/Squid3",
-     "zh": [
-      "穴洞漂泊者"
-     ],
-     "en": [
-      "Cavern Drifter"
-     ],
-     "g": 2,
-     "hiddenZh": [
-      "看守者",
-      "頭足動物",
-      "深潭"
-     ],
-     "hiddenEn": [
-      "Watchers",
-      "Cephalopods",
-      "The Deep"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Seawitch/SeaWitchSpawnExploding",
-     "zh": [
-      "莫薇兒的侍女"
-     ],
-     "en": [
-      "Merveil's Attendant"
-     ],
-     "g": 2,
-     "hiddenZh": [
-      "海妖",
-      "頭足動物",
-      "深潭"
-     ],
-     "hiddenEn": [
-      "Sea Witches",
-      "Cephalopods",
-      "The Deep"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Seawitch/SeaWitchFrostBolt",
-     "zh": [
-      "莫薇兒的寵愛"
-     ],
-     "en": [
-      "Merveil's Blessed"
-     ],
-     "g": 2,
-     "hiddenZh": [
-      "海妖",
-      "頭足動物",
-      "深潭"
-     ],
-     "hiddenEn": [
-      "Sea Witches",
-      "Cephalopods",
-      "The Deep"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Seawitch/SeaWitch2",
-     "zh": [
-      "莫薇兒的幼女"
-     ],
-     "en": [
-      "Merveil's Favoured"
-     ],
-     "g": 2,
-     "hiddenZh": [
-      "海妖",
-      "頭足動物",
-      "深潭"
-     ],
-     "hiddenEn": [
-      "Sea Witches",
-      "Cephalopods",
-      "The Deep"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/NessaCrab/NessaCrabBleached",
-     "zh": [
-      "虐靈蝦獸"
-     ],
-     "en": [
-      "Waste Lurcher"
-     ],
-     "g": 2,
-     "hiddenZh": [
-      "奸細",
-      "甲殼動物",
-      "深潭"
-     ],
-     "hiddenEn": [
-      "Lurchers",
-      "Crustaceans",
-      "The Deep"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/GemMonster/GemFrogChrometouched",
-     "zh": [
-      "觸鉻蛙"
-     ],
-     "en": [
-      "Chrome-touched Croaker"
-     ],
-     "g": 2,
-     "hiddenZh": [
-      "寶石蛙",
-      "兩棲動物",
-      "深潭"
-     ],
-     "hiddenEn": [
-      "Gem Frogs",
-      "Amphibians",
-      "The Deep"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Spawn/Spawn",
-     "zh": [
-      "詛咒海蟲"
-     ],
-     "en": [
-      "Cursed Spawn"
-     ],
-     "g": 2,
-     "hiddenZh": [
-      "幼蟲",
-      "頭足動物",
-      "深潭"
-     ],
-     "hiddenEn": [
-      "Spawn",
-      "Cephalopods",
-      "The Deep"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/CrabParasite/CrabParasiteLargeBlue",
-     "zh": [
-      "迷幻的蟹"
-     ],
-     "en": [
-      "Enraptured Crab"
-     ],
-     "g": 2,
-     "hiddenZh": [
-      "巨蟹",
-      "甲殼動物",
-      "深潭"
-     ],
-     "hiddenEn": [
-      "Crabs",
-      "Crustaceans",
-      "The Deep"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/LeagueHarvest/Green/HarvestSquidT3MemoryLine_",
-     "zh": [
-      "靈現之看守者"
-     ],
-     "en": [
-      "Vivid Watcher"
-     ],
-     "g": 2,
-     "hiddenZh": [
-      "看守者",
-      "頭足動物",
-      "深潭"
-     ],
-     "hiddenEn": [
-      "Watchers",
-      "Cephalopods",
-      "The Deep"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/SandSpitters/SandSpitterFireMaps",
-     "zh": [
-      "食岩爪蟹"
-     ],
-     "en": [
-      "Granite Eater"
-     ],
-     "g": 2,
-     "hiddenZh": [
-      "噴砂爪蟹",
-      "甲殼動物",
-      "深潭"
-     ],
-     "hiddenEn": [
-      "Sand Spitters",
-      "Crustaceans",
-      "The Deep"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/SandSpitterEmerge/SandSpitterEmergeStandard",
-     "zh": [
-      "食礫爪蟹"
-     ],
-     "en": [
-      "Gravel Eater"
-     ],
-     "g": 2,
-     "hiddenZh": [
-      "噴砂爪蟹",
-      "甲殼動物",
-      "深潭"
-     ],
-     "hiddenEn": [
-      "Sand Spitters",
-      "Crustaceans",
-      "The Deep"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/SandSpitters/SandSpitterLightningMaps",
-     "zh": [
-      "黑曜沙蟹"
-     ],
-     "en": [
-      "Obsidian Eater"
-     ],
-     "g": 2,
-     "hiddenZh": [
-      "噴砂爪蟹",
-      "甲殼動物",
-      "深潭"
-     ],
-     "hiddenEn": [
-      "Sand Spitters",
-      "Crustaceans",
-      "The Deep"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/ParasiticSquid/ParasiticSquidWarp",
-     "zh": [
-      "黑黝軟獸"
-     ],
-     "en": [
-      "Swarthy Mollusc"
-     ],
-     "g": 2,
-     "hiddenZh": [
-      "章魚",
-      "頭足動物",
-      "深潭"
-     ],
-     "hiddenEn": [
-      "Octopuses",
-      "Cephalopods",
-      "The Deep"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Spiders/SpiderClimbDownViperStrike",
-     "zh": [
-      "伏擊毒蛛"
-     ],
-     "en": [
-      "Lurking Venom"
-     ],
-     "g": 3,
-     "hiddenZh": [
-      "毒蛛",
-      "蜘蛛",
-      "洞窟"
-     ],
-     "hiddenEn": [
-      "Spiders",
-      "Arachnids",
-      "The Caverns"
+      "Goliaths",
+      "Unnaturals",
+      "The Wilds"
      ]
     },
     {
@@ -66912,7 +65434,7 @@
      "en": [
       "Fenumus, First of the Night"
      ],
-     "g": 3,
+     "g": 2,
      "hiddenZh": [
       "蛛網毒蠍",
       "蜘蛛",
@@ -66920,661 +65442,6 @@
      ],
      "hiddenEn": [
       "Arachnoscorpions",
-      "Arachnids",
-      "The Caverns"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Spiders/SpiderThornViperStrike",
-     "zh": [
-      "劇毒毛蛛"
-     ],
-     "en": [
-      "Noxious Tarantula"
-     ],
-     "g": 3,
-     "hiddenZh": [
-      "毒蛛",
-      "蜘蛛",
-      "洞窟"
-     ],
-     "hiddenEn": [
-      "Spiders",
-      "Arachnids",
-      "The Caverns"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/RootSpiders/RootSpider",
-     "zh": [
-      "吞噬獸"
-     ],
-     "en": [
-      "Devourer"
-     ],
-     "g": 3,
-     "hiddenZh": [
-      "蜘蛛",
-      "洞窟"
-     ],
-     "hiddenEn": [
-      "Devourers",
-      "Arachnids",
-      "The Caverns"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Spiders/SpiderScale2",
-     "zh": [
-      "噴墨巨蛛"
-     ],
-     "en": [
-      "Ink Spinner"
-     ],
-     "g": 3,
-     "hiddenZh": [
-      "毒蛛",
-      "蜘蛛",
-      "洞窟"
-     ],
-     "hiddenEn": [
-      "Spiders",
-      "Arachnids",
-      "The Caverns"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Spiders/SpiderScaleViperStrike5",
-     "zh": [
-      "地穴潛伏者"
-     ],
-     "en": [
-      "Crypt Ambusher"
-     ],
-     "g": 3,
-     "hiddenZh": [
-      "毒蛛",
-      "蜘蛛",
-      "洞窟"
-     ],
-     "hiddenEn": [
-      "Spiders",
-      "Arachnids",
-      "The Caverns"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Spiders/SpiderScaleViperStrike",
-     "zh": [
-      "墮魂巨蛛"
-     ],
-     "en": [
-      "Corrupted Arach"
-     ],
-     "g": 3,
-     "hiddenZh": [
-      "毒蛛",
-      "蜘蛛",
-      "洞窟"
-     ],
-     "hiddenEn": [
-      "Spiders",
-      "Arachnids",
-      "The Caverns"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Parasite/Parasite",
-     "zh": [
-      "寄生蟲"
-     ],
-     "en": [
-      "Parasite"
-     ],
-     "g": 3,
-     "hiddenZh": [
-      "昆蟲",
-      "洞窟"
-     ],
-     "hiddenEn": [
-      "Parasites",
-      "Insects",
-      "The Caverns"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Spiders/SpiderSmall4",
-     "zh": [
-      "幼蛛"
-     ],
-     "en": [
-      "Hatchling"
-     ],
-     "g": 3,
-     "hiddenZh": [
-      "毒蛛",
-      "蜘蛛",
-      "洞窟"
-     ],
-     "hiddenEn": [
-      "Spiders",
-      "Arachnids",
-      "The Caverns"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Scorpion/WhiteScorpion",
-     "zh": [
-      "強酸毒蠍"
-     ],
-     "en": [
-      "Sulphuric Scorpion"
-     ],
-     "g": 3,
-     "hiddenZh": [
-      "毒蠍",
-      "蜘蛛",
-      "洞窟"
-     ],
-     "hiddenEn": [
-      "Scorpions",
-      "Arachnids",
-      "The Caverns"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/SandLeaper/SandLeaper3",
-     "zh": [
-      "感染掠蛛"
-     ],
-     "en": [
-      "Infested Skitterer"
-     ],
-     "g": 3,
-     "hiddenZh": [
-      "突躍獸",
-      "昆蟲",
-      "洞窟"
-     ],
-     "hiddenEn": [
-      "Leapers",
-      "Insects",
-      "The Caverns"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/SandLeaper/SandLeaper2",
-     "zh": [
-      "撥土者"
-     ],
-     "en": [
-      "Dirt Scrabbler"
-     ],
-     "g": 3,
-     "hiddenZh": [
-      "突躍獸",
-      "昆蟲",
-      "洞窟"
-     ],
-     "hiddenEn": [
-      "Leapers",
-      "Insects",
-      "The Caverns"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/SandLeaper/SandLeaper",
-     "zh": [
-      "撥塵者"
-     ],
-     "en": [
-      "Dust Scrabbler"
-     ],
-     "g": 3,
-     "hiddenZh": [
-      "突躍獸",
-      "昆蟲",
-      "洞窟"
-     ],
-     "hiddenEn": [
-      "Leapers",
-      "Insects",
-      "The Caverns"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Parasite/ParasitePlated",
-     "zh": [
-      "武裝寄生蟲"
-     ],
-     "en": [
-      "Plated Parasite"
-     ],
-     "g": 3,
-     "hiddenZh": [
-      "昆蟲",
-      "洞窟"
-     ],
-     "hiddenEn": [
-      "Parasites",
-      "Insects",
-      "The Caverns"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Parasite/ParasiteViscous",
-     "zh": [
-      "殘暴寄生蟲"
-     ],
-     "en": [
-      "Vicious Parasite"
-     ],
-     "g": 3,
-     "hiddenZh": [
-      "昆蟲",
-      "洞窟"
-     ],
-     "hiddenEn": [
-      "Parasites",
-      "Insects",
-      "The Caverns"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Spiders/SpiderPoisonChampion_",
-     "zh": [
-      "毒牙巨蛛"
-     ],
-     "en": [
-      "Virulent Spider"
-     ],
-     "g": 3,
-     "hiddenZh": [
-      "毒蛛",
-      "蜘蛛",
-      "洞窟"
-     ],
-     "hiddenEn": [
-      "Spiders",
-      "Arachnids",
-      "The Caverns"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Spiders/SpiderHair2",
-     "zh": [
-      "毛蛛之母"
-     ],
-     "en": [
-      "Brooding Tarantula"
-     ],
-     "g": 3,
-     "hiddenZh": [
-      "毒蛛",
-      "蜘蛛",
-      "洞窟"
-     ],
-     "hiddenEn": [
-      "Spiders",
-      "Arachnids",
-      "The Caverns"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/InsectMinion/InsectWildSewers",
-     "zh": [
-      "汙泥食腐蟲"
-     ],
-     "en": [
-      "Scum Crawler"
-     ],
-     "g": 3,
-     "hiddenZh": [
-      "昆蟲",
-      "洞窟"
-     ],
-     "hiddenEn": [
-      "Carrion Insects",
-      "Insects",
-      "The Caverns"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/SandLeaper/SandLeaper5",
-     "zh": [
-      "沙地掠蛛"
-     ],
-     "en": [
-      "Sand Skitterer"
-     ],
-     "g": 3,
-     "hiddenZh": [
-      "突躍獸",
-      "昆蟲",
-      "洞窟"
-     ],
-     "hiddenEn": [
-      "Leapers",
-      "Insects",
-      "The Caverns"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Scorpion/YellowScorpion",
-     "zh": [
-      "沙地毒蠍"
-     ],
-     "en": [
-      "Sand Scorpion"
-     ],
-     "g": 3,
-     "hiddenZh": [
-      "毒蠍",
-      "蜘蛛",
-      "洞窟"
-     ],
-     "hiddenEn": [
-      "Scorpions",
-      "Arachnids",
-      "The Caverns"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/SandLeaper/SandLeaper6",
-     "zh": [
-      "沙地突躍獸"
-     ],
-     "en": [
-      "Sand Leaper"
-     ],
-     "g": 3,
-     "hiddenZh": [
-      "突躍獸",
-      "昆蟲",
-      "洞窟"
-     ],
-     "hiddenEn": [
-      "Leapers",
-      "Insects",
-      "The Caverns"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Spiders/SpiderSmall",
-     "zh": [
-      "洞穴沙蛛"
-     ],
-     "en": [
-      "Cave Skitterer"
-     ],
-     "g": 3,
-     "hiddenZh": [
-      "毒蛛",
-      "蜘蛛",
-      "洞窟"
-     ],
-     "hiddenEn": [
-      "Spiders",
-      "Arachnids",
-      "The Caverns"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Spiders/SpiderScaleViperStrike3",
-     "zh": [
-      "深穴巨蛛"
-     ],
-     "en": [
-      "Crypt Weaver"
-     ],
-     "g": 3,
-     "hiddenZh": [
-      "毒蛛",
-      "蜘蛛",
-      "洞窟"
-     ],
-     "hiddenEn": [
-      "Spiders",
-      "Arachnids",
-      "The Caverns"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/SpiderPlated/SpiderPlated",
-     "zh": [
-      "混血蜘蛛"
-     ],
-     "en": [
-      "Hybrid Arachnid"
-     ],
-     "g": 3,
-     "hiddenZh": [
-      "蛛網毒蠍",
-      "蜘蛛",
-      "洞窟"
-     ],
-     "hiddenEn": [
-      "Arachnoscorpions",
-      "Arachnids",
-      "The Caverns"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Scorpion/BlackScorpion",
-     "zh": [
-      "漆黑毒蠍"
-     ],
-     "en": [
-      "Black Scorpion"
-     ],
-     "g": 3,
-     "hiddenZh": [
-      "毒蠍",
-      "蜘蛛",
-      "洞窟"
-     ],
-     "hiddenEn": [
-      "Scorpions",
-      "Arachnids",
-      "The Caverns"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/SpiderPlated/SpiderPlatedTailExplosion",
-     "zh": [
-      "熾熱蜘蛛"
-     ],
-     "en": [
-      "Scalding Arachnid"
-     ],
-     "g": 3,
-     "hiddenZh": [
-      "蛛網毒蠍",
-      "蜘蛛",
-      "洞窟"
-     ],
-     "hiddenEn": [
-      "Arachnoscorpions",
-      "Arachnids",
-      "The Caverns"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Spiders/SpiderHairParasite",
-     "zh": [
-      "狂怒猛蛛"
-     ],
-     "en": [
-      "Enraptured Arachnid"
-     ],
-     "g": 3,
-     "hiddenZh": [
-      "毒蛛",
-      "蜘蛛",
-      "洞窟"
-     ],
-     "hiddenEn": [
-      "Spiders",
-      "Arachnids",
-      "The Caverns"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Spiders/SpiderThorn",
-     "zh": [
-      "瓦爾遺靈"
-     ],
-     "en": [
-      "Vaal Recluse"
-     ],
-     "g": 3,
-     "hiddenZh": [
-      "毒蛛",
-      "蜘蛛",
-      "洞窟"
-     ],
-     "hiddenEn": [
-      "Spiders",
-      "Arachnids",
-      "The Caverns"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Spiders/SpiderScaleViperStrike4",
-     "zh": [
-      "異變魔蛛"
-     ],
-     "en": [
-      "Mutant Arach"
-     ],
-     "g": 3,
-     "hiddenZh": [
-      "毒蛛",
-      "蜘蛛",
-      "洞窟"
-     ],
-     "hiddenEn": [
-      "Spiders",
-      "Arachnids",
-      "The Caverns"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/SpiderPlague/SpiderPlague3",
-     "zh": [
-      "疫病蜘蛛"
-     ],
-     "en": [
-      "Plagued Arachnid"
-     ],
-     "g": 3,
-     "hiddenZh": [
-      "毒蛛",
-      "蜘蛛",
-      "洞窟"
-     ],
-     "hiddenEn": [
-      "Spiders",
-      "Arachnids",
-      "The Caverns"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/SandLeaper/SandLeaper4_",
-     "zh": [
-      "窪地蚱蜢"
-     ],
-     "en": [
-      "Lowlands Hopper"
-     ],
-     "g": 3,
-     "hiddenZh": [
-      "突躍獸",
-      "昆蟲",
-      "洞窟"
-     ],
-     "hiddenEn": [
-      "Leapers",
-      "Insects",
-      "The Caverns"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Spiders/SpiderWebChampion",
-     "zh": [
-      "網床之母"
-     ],
-     "en": [
-      "Webbed Spider"
-     ],
-     "g": 3,
-     "hiddenZh": [
-      "毒蛛",
-      "蜘蛛",
-      "洞窟"
-     ],
-     "hiddenEn": [
-      "Spiders",
-      "Arachnids",
-      "The Caverns"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Scorpion/BlackScorpionLarge",
-     "zh": [
-      "肉食毒蠍"
-     ],
-     "en": [
-      "Predatory Scorpion"
-     ],
-     "g": 3,
-     "hiddenZh": [
-      "毒蠍",
-      "蜘蛛",
-      "洞窟"
-     ],
-     "hiddenEn": [
-      "Scorpions",
-      "Arachnids",
-      "The Caverns"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Spiders/SpiderScalePoisonProjectile",
-     "zh": [
-      "腐化魔蛛"
-     ],
-     "en": [
-      "Corrupted Spitter"
-     ],
-     "g": 3,
-     "hiddenZh": [
-      "毒蛛",
-      "蜘蛛",
-      "洞窟"
-     ],
-     "hiddenEn": [
-      "Spiders",
-      "Arachnids",
-      "The Caverns"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Spiders/SpiderThornExplodeMinionsOnDeath1",
-     "zh": [
-      "艾爾卡莉之女"
-     ],
-     "en": [
-      "Arakaali's Daughter"
-     ],
-     "g": 3,
-     "hiddenZh": [
-      "毒蛛",
-      "蜘蛛",
-      "洞窟"
-     ],
-     "hiddenEn": [
-      "Spiders",
       "Arachnids",
       "The Caverns"
      ]
@@ -67587,8 +65454,9 @@
      "en": [
       "Fenumal Devourer"
      ],
-     "g": 3,
+     "g": 2,
      "hiddenZh": [
+      "吞噬獸",
       "蜘蛛",
       "洞窟"
      ],
@@ -67606,8 +65474,9 @@
      "en": [
       "Fenumal Queen"
      ],
-     "g": 3,
+     "g": 2,
      "hiddenZh": [
+      "食腐蟲后",
       "昆蟲",
       "洞窟"
      ],
@@ -67625,7 +65494,7 @@
      "en": [
       "Fenumal Scrabbler"
      ],
-     "g": 3,
+     "g": 2,
      "hiddenZh": [
       "突躍獸",
       "昆蟲",
@@ -67645,7 +65514,7 @@
      "en": [
       "Fenumal Scorpion"
      ],
-     "g": 3,
+     "g": 2,
      "hiddenZh": [
       "毒蠍",
       "蜘蛛",
@@ -67665,7 +65534,7 @@
      "en": [
       "Fenumal Hybrid Arachnid"
      ],
-     "g": 3,
+     "g": 2,
      "hiddenZh": [
       "蛛網毒蠍",
       "蜘蛛",
@@ -67685,7 +65554,7 @@
      "en": [
       "Fenumal Plagued Arachnid"
      ],
-     "g": 3,
+     "g": 2,
      "hiddenZh": [
       "毒蛛",
       "蜘蛛",
@@ -67705,66 +65574,7 @@
      "en": [
       "Fenumal Widow"
      ],
-     "g": 3,
-     "hiddenZh": [
-      "毒蛛",
-      "蜘蛛",
-      "洞窟"
-     ],
-     "hiddenEn": [
-      "Spiders",
-      "Arachnids",
-      "The Caverns"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Spiders/SpiderThornFlickerStrike",
-     "zh": [
-      "躍影巨蛛"
-     ],
-     "en": [
-      "Leaping Spider"
-     ],
-     "g": 3,
-     "hiddenZh": [
-      "毒蛛",
-      "蜘蛛",
-      "洞窟"
-     ],
-     "hiddenEn": [
-      "Spiders",
-      "Arachnids",
-      "The Caverns"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Parasite/ParasiteSpitting",
-     "zh": [
-      "酸液寄生蟲"
-     ],
-     "en": [
-      "Spitting Parasite"
-     ],
-     "g": 3,
-     "hiddenZh": [
-      "昆蟲",
-      "洞窟"
-     ],
-     "hiddenEn": [
-      "Parasites",
-      "Insects",
-      "The Caverns"
-     ]
-    },
-    {
-     "id": "Metadata/Monsters/Spiders/SpiderSmall2",
-     "zh": [
-      "長足巨蛛"
-     ],
-     "en": [
-      "Spindle Spider"
-     ],
-     "g": 3,
+     "g": 2,
      "hiddenZh": [
       "毒蛛",
       "蜘蛛",
@@ -67784,7 +65594,7 @@
      "en": [
       "Vivid Abberarach"
      ],
-     "g": 3,
+     "g": 2,
      "hiddenZh": [
       "蛛網毒蠍",
       "蜘蛛",
@@ -67797,79 +65607,243 @@
      ]
     },
     {
-     "id": "Metadata/Monsters/InsectMinion/InsectWildBurrow",
+     "id": "Metadata/Monsters/LeagueBestiary/NessaCrabBestiarySpiritBoss",
      "zh": [
-      "食腐掘地蟲"
+      "初始之潭奎爾珊"
      ],
      "en": [
-      "Carrion Burrower"
+      "Craiceann, First of the Deep"
      ],
      "g": 3,
      "hiddenZh": [
-      "昆蟲",
-      "洞窟"
+      "奸細",
+      "甲殼動物",
+      "深潭"
      ],
      "hiddenEn": [
-      "Carrion Insects",
-      "Insects",
-      "The Caverns"
+      "Lurchers",
+      "Crustaceans",
+      "The Deep"
      ]
     },
     {
-     "id": "Metadata/Monsters/InsectMinion/InsectWild",
+     "id": "Metadata/Monsters/LeagueHarvest/Blue/HarvestNessaCrabT3MemoryLine_",
      "zh": [
-      "食腐蟲"
+      "原始之粉碎之爪"
      ],
      "en": [
-      "Carrion Swarmer"
+      "Primal Crushclaw"
      ],
      "g": 3,
      "hiddenZh": [
-      "昆蟲",
-      "洞窟"
+      "巨蟹",
+      "甲殼動物",
+      "深潭"
      ],
      "hiddenEn": [
-      "Carrion Insects",
-      "Insects",
-      "The Caverns"
+      "Crabs",
+      "Crustaceans",
+      "The Deep"
      ]
     },
     {
-     "id": "Metadata/Monsters/InsectSpawner/InsectSpawner",
+     "id": "Metadata/Monsters/LeagueBestiary/ParasiticSquidBestiary",
      "zh": [
-      "食腐蟲后"
+      "奎爾珊之奴"
      ],
      "en": [
-      "Carrion Queen"
+      "Craicic Vassal"
      ],
      "g": 3,
      "hiddenZh": [
-      "昆蟲",
-      "洞窟"
+      "章魚",
+      "頭足動物",
+      "深潭"
      ],
      "hiddenEn": [
-      "Carrion Queens",
-      "Insects",
-      "The Caverns"
+      "Octopuses",
+      "Cephalopods",
+      "The Deep"
      ]
     },
     {
-     "id": "Metadata/Monsters/Parasite/Parasite2",
+     "id": "Metadata/Monsters/LeagueBestiary/SandSpitterBestiary",
      "zh": [
-      "饞癆寄生蟲"
+      "奎爾珊噴砂爪蟹"
      ],
      "en": [
-      "Ravenous Parasite"
+      "Craicic Sand Spitter"
      ],
      "g": 3,
      "hiddenZh": [
-      "昆蟲",
-      "洞窟"
+      "噴砂爪蟹",
+      "甲殼動物",
+      "深潭"
      ],
      "hiddenEn": [
-      "Parasites",
-      "Insects",
-      "The Caverns"
+      "Sand Spitters",
+      "Crustaceans",
+      "The Deep"
+     ]
+    },
+    {
+     "id": "Metadata/Monsters/LeagueBestiary/CrabParasiteLargeBestiary_",
+     "zh": [
+      "奎爾珊殘暴的蟹"
+     ],
+     "en": [
+      "Craicic Savage Crab"
+     ],
+     "g": 3,
+     "hiddenZh": [
+      "巨蟹",
+      "甲殼動物",
+      "深潭"
+     ],
+     "hiddenEn": [
+      "Crabs",
+      "Crustaceans",
+      "The Deep"
+     ]
+    },
+    {
+     "id": "Metadata/Monsters/LeagueBestiary/SeaWitchSpawnBestiary",
+     "zh": [
+      "奎爾珊烏賊"
+     ],
+     "en": [
+      "Craicic Squid"
+     ],
+     "g": 3,
+     "hiddenZh": [
+      "海妖",
+      "頭足動物",
+      "深潭"
+     ],
+     "hiddenEn": [
+      "Sea Witches",
+      "Cephalopods",
+      "The Deep"
+     ]
+    },
+    {
+     "id": "Metadata/Monsters/LeagueBestiary/SquidBestiary",
+     "zh": [
+      "奎爾珊看守者"
+     ],
+     "en": [
+      "Craicic Watcher"
+     ],
+     "g": 3,
+     "hiddenZh": [
+      "看守者",
+      "頭足動物",
+      "深潭"
+     ],
+     "hiddenEn": [
+      "Watchers",
+      "Cephalopods",
+      "The Deep"
+     ]
+    },
+    {
+     "id": "Metadata/Monsters/LeagueBestiary/CrabSpiderBestiary",
+     "zh": [
+      "奎爾珊蛛蛛蟹"
+     ],
+     "en": [
+      "Craicic Spider Crab"
+     ],
+     "g": 3,
+     "hiddenZh": [
+      "蛛蛛蟹",
+      "甲殼動物",
+      "深潭"
+     ],
+     "hiddenEn": [
+      "Spider Crabs",
+      "Crustaceans",
+      "The Deep"
+     ]
+    },
+    {
+     "id": "Metadata/Monsters/LeagueBestiary/FrogBestiary",
+     "zh": [
+      "奎爾珊裂齒獸"
+     ],
+     "en": [
+      "Craicic Maw"
+     ],
+     "g": 3,
+     "hiddenZh": [
+      "裂齒獸",
+      "兩棲動物",
+      "深潭"
+     ],
+     "hiddenEn": [
+      "Maws",
+      "Amphibians",
+      "The Deep"
+     ]
+    },
+    {
+     "id": "Metadata/Monsters/LeagueBestiary/ShieldCrabBestiary",
+     "zh": [
+      "奎爾珊重盾巨蟹"
+     ],
+     "en": [
+      "Craicic Shield Crab"
+     ],
+     "g": 3,
+     "hiddenZh": [
+      "重盾巨蟹",
+      "甲殼動物",
+      "深潭"
+     ],
+     "hiddenEn": [
+      "Shield Crabs",
+      "Crustaceans",
+      "The Deep"
+     ]
+    },
+    {
+     "id": "Metadata/Monsters/LeagueBestiary/GemFrogBestiary",
+     "zh": [
+      "奎爾珊鳴蛙"
+     ],
+     "en": [
+      "Craicic Croaker"
+     ],
+     "g": 3,
+     "hiddenZh": [
+      "寶石蛙",
+      "兩棲動物",
+      "深潭"
+     ],
+     "hiddenEn": [
+      "Gem Frogs",
+      "Amphibians",
+      "The Deep"
+     ]
+    },
+    {
+     "id": "Metadata/Monsters/LeagueHarvest/Green/HarvestSquidT3MemoryLine_",
+     "zh": [
+      "靈現之看守者"
+     ],
+     "en": [
+      "Vivid Watcher"
+     ],
+     "g": 3,
+     "hiddenZh": [
+      "看守者",
+      "頭足動物",
+      "深潭"
+     ],
+     "hiddenEn": [
+      "Watchers",
+      "Cephalopods",
+      "The Deep"
      ]
     }
    ],
@@ -67939,6 +65913,7 @@
     "迷霧之體",
     "枯骨呼喚者",
     "靈能之盾",
+    "多里亞尼的守禦",
     "惡靈之觸",
     "竭力呼喚者",
     "弱化呼喚者",
@@ -68251,6 +66226,7 @@
     "極恐精髓",
     "譫妄精髓",
     "荒蕪精髓",
+    "欺瞞精髓",
     "已雕塑",
     "已重塑",
     "地獄犬祝福",
@@ -68284,6 +66260,8 @@
     "異教徒之握",
     "逃兵之觸",
     "逃兵之握",
+    "代行人之觸",
+    "代行人之握",
     "凋落的",
     "時空扭曲",
     "極速風暴",
@@ -68422,7 +66400,17 @@
     "費爾羅的獸性之姿",
     "費爾羅的繁盛之姿",
     "費爾羅的荒野之姿",
-    "星界之觸"
+    "星界之觸",
+    "深淵隕石",
+    "柯戈之攫",
+    "DNT - UNUSED",
+    "深淵汲取者",
+    "深淵裂爆",
+    "耗損之井",
+    "索伏之使徒",
+    "托沃之使徒",
+    "烏爾尼托之使徒",
+    "艾許之使徒"
    ],
    "ambientEn": [
     "Right-click to add this to your bestiary.",
@@ -68490,6 +66478,7 @@
     "Shroud Walker",
     "Bringer of Bones",
     "Proximity Shield",
+    "Doryani's Safeguards",
     "Vile Touch",
     "Bringer of Weakness",
     "Bringer of Fragility",
@@ -68793,6 +66782,7 @@
     "Essence of Horror",
     "Essence of Delirium",
     "Essence of Desolation",
+    "Essence of Trickery",
     "Shaped",
     "Reshaped",
     "Aspect of the Hellion",
@@ -68827,6 +66817,8 @@
     "Heretic's Grip",
     "Deserter's Touch",
     "Deserter's Grip",
+    "Procurator's Touch",
+    "Procurator's Grip",
     "Blighted",
     "Spatial Distortion",
     "Cascading Storm",
@@ -68967,7 +66959,17 @@
     "Farrul's Farric Presence",
     "Farrul's Fertile Presence",
     "Farrul's Wild Presence",
-    "Astral-touched"
+    "Astral-touched",
+    "Abyssal Meteors",
+    "Kurgal's Grasp",
+    "DNT - UNUSED",
+    "Abyssal Siphoner",
+    "Abyssal Eruption",
+    "Wasting Well",
+    "Xoph's Chosen",
+    "Tul's Chosen",
+    "Uul-Netol's Chosen",
+    "Esh's Chosen"
    ],
    "nameWordsZh": {
     "prefix": [],
@@ -70581,10 +68583,10 @@
      ],
      "g": 0,
      "hiddenZh": [
-      "增加 #% 物品稀有度"
+      "#%物品稀有度"
      ],
      "hiddenEn": [
-      "#% increased Rarity of Items found"
+      "#% to Item Rarity"
      ]
     },
     {
@@ -70974,43 +68976,26 @@
       "#% 機率避免元素異常狀態",
       "#% 機率避免投射物",
       "增加 #% 圖騰傷害",
-      "插槽中寶石被等級 # 的砲塔圖騰輔助",
       "增加 #% 圖騰放置速度",
-      "獲得等級 # 誘餌圖騰技能",
       "增加 #% 施放速度",
-      "插槽中寶石被等級 # 的快速施放輔助",
       "施放時，有 #% 機率無視暈眩",
       "增加 #% 陷阱傷害",
-      "插槽中寶石被等級 # 的陷阱輔助",
-      "插槽中寶石被等級 # 的陷阱冷卻輔助",
       "增加 #% 陷阱投擲速度",
-      "此物品上寶石被等級 # 的陷阱及地雷傷害輔助",
       "擊中時有 #% 機率導致敵人致盲",
-      "插槽中寶石被等級 # 的致盲輔助",
       "插槽中的法術 #% 暴擊加成",
       "增加 #% 地雷傷害",
-      "此物品插槽中寶石被等級 # 的連鎖爆破地雷輔助",
       "增加 #% 冰冷異常狀態效果",
-      "插槽中寶石被等級 # 的急凍輔助",
       "增加 #% 閃電異常狀態效果",
-      "插槽中的寶石被等級 # 的亢奮輔助",
       "增加 #% 魔力恢復率",
       "每秒 # 基本魔力回復",
       "插槽中的法術 #% 暴擊率",
-      "附近敵人增加承受 #% 元素傷害",
+      "6 公尺內的敵人增加承受 #% 元素傷害",
       "增加 #% 承受的元素傷害",
       "擊殺時恢復 #% 魔力",
       "擊殺時恢復 #% 能量護盾",
       "增加 #% 智慧",
-      "插槽中寶石被等級 # 的物品稀有度增幅輔助",
-      "擊殺傳奇敵人增加 #% 掉落物品稀有度",
+      "#%擊殺傳奇敵人時的物品稀有度",
       "#% 法術暴擊率",
-      "獲得等級 # 的堅定技能",
-      "獲得等級 # 的優雅技能",
-      "獲得等級 # 的紀律技能",
-      "獲得等級 # 的迅捷技能",
-      "獲得等級 # 的活力技能",
-      "獲得等級 # 的清晰技能",
       "裝備和寶石減少 #% 能力值需求",
       "#% 冰冷傷害偷取生命",
       "#% 閃電傷害偷取生命",
@@ -71019,8 +69004,6 @@
       "增加 #% 技能的魔力保留效用",
       "擊殺時有 #% 機率獲得 1 顆暴擊、狂怒或耐力球",
       "增加 #% 全域暴擊率",
-      "獲得等級 # 冰霜之捷技能",
-      "獲得等級 # 閃電之捷技能",
       "攻擊擊中 # 承受物理傷害",
       "增加 #% 能量護盾恢復率",
       "任何藥劑效果持續時間內，增加 #% 移動速度",
@@ -71036,19 +69019,14 @@
       "你格擋時恢復 #% 生命",
       "格擋恢復 #% 最大魔力",
       "當你格擋時，恢復 #% 能量護盾",
-      "插槽中寶石被等級 # 的秘能波動輔助",
-      "插槽中寶石被等級 # 的近戰傷害擴散輔助",
       "增加 #% 範圍傷害",
       "增加 #% 攻擊速度",
-      "插槽中寶石被等級 # 的快速攻擊輔助",
       "#% 機率造成兩倍傷害",
       "增加 #% 暴擊率",
-      "插槽中寶石被等級 # 的增加暴擊率輔助",
       "若近期有擊殺，增加 #% 暴擊率",
       "#% 全域暴擊加成",
       "暴擊時 #% 機率獲得暴擊球",
       "擊中時有 #% 機率造成癱瘓",
-      "插槽中寶石被等級 # 的癱瘓輔助",
       "擊殺時有 #% 機率獲得 4 秒猛攻效果",
       "攻擊擊中時有 #% 機率造成致盲",
       "雙持時 #% 攻擊傷害格擋率",
@@ -71058,13 +69036,9 @@
       "若你近期有擊殺，增加 #% 施放速度",
       "增加 #% 法術暴擊率",
       "#% 機率使敵人冰凍、感電與點燃",
-      "插槽中寶石被等級 # 的元素擴散輔助",
       "增加 #% 中毒傷害",
-      "插槽中寶石被等級 # 的機率中毒輔助",
       "增加 #% 範圍效果",
-      "插槽中寶石被等級 # 的秘能爆發輔助",
       "增加 #% 投射物速度",
-      "插槽中寶石被等級 # 的齊射輔助",
       "此物品插槽中寶石額外連鎖 # 次",
       "# 最大耐力球",
       "# 最大狂怒球",
@@ -71096,43 +69070,26 @@
       "#% chance to Avoid Elemental Ailments",
       "#% chance to avoid Projectiles",
       "#% increased Totem Damage",
-      "Socketed Gems are Supported by Level # Ballista Totem",
       "#% increased Totem Placement speed",
-      "Grants Level # Decoy Totem Skill",
       "#% increased Cast Speed",
-      "Socketed Gems are Supported by Level # Faster Casting",
       "#% chance to Ignore Stuns while Casting",
       "#% increased Trap Damage",
-      "Socketed Gems are Supported by Level # Trap",
-      "Socketed Gems are Supported by Level # Advanced Traps",
       "#% increased Trap Throwing Speed",
-      "Socketed Gems are Supported by Level # Trap And Mine Damage",
       "#% Global chance to Blind Enemies on hit",
-      "Socketed Gems are supported by Level # Blind",
       "Socketed Spells have #% to Critical Strike Multiplier",
       "#% increased Mine Damage",
-      "Socketed Gems are Supported by Level # Blastchain Mine",
       "#% increased Effect of Cold Ailments",
-      "Socketed Gems are Supported by Level # Hypothermia",
       "#% increased Effect of Lightning Ailments",
-      "Socketed Gems are Supported by Level # Innervate",
       "#% increased Mana Regeneration Rate",
       "Regenerate # Mana per second",
       "Socketed Spells have #% to Critical Strike Chance",
-      "Nearby Enemies take #% increased Elemental Damage",
+      "Enemies within 6 metres take #% increased Elemental Damage",
       "#% increased Elemental Damage taken",
       "Recover #% of Mana on Kill",
       "Recover #% of Energy Shield on Kill",
       "#% increased Intelligence",
-      "Socketed Gems are Supported by Level # Item Rarity",
-      "#% increased Rarity of Items found from Slain Unique Enemies",
+      "#% to Item Rarity from Slain Unique Enemies",
       "#% to Spell Critical Strike Chance",
-      "Grants Level # Determination Skill",
-      "Grants Level # Grace Skill",
-      "Grants Level # Discipline Skill",
-      "Grants Level # Haste Skill",
-      "Grants Level # Vitality Skill",
-      "Grants Level # Clarity Skill",
       "Items and Gems have #% reduced Attribute Requirements",
       "#% of Cold Damage Leeched as Life",
       "#% of Lightning Damage Leeched as Life",
@@ -71141,8 +69098,6 @@
       "#% increased Mana Reservation Efficiency of Skills",
       "#% chance to gain a Power, Frenzy or Endurance Charge on Kill",
       "#% increased Global Critical Strike Chance",
-      "Grants Level # Herald of Ice Skill",
-      "Grants Level # Herald of Thunder Skill",
       "# Physical Damage taken from Attack Hits",
       "#% increased Energy Shield Recovery rate",
       "#% increased Mana Recovery rate",
@@ -71159,19 +69114,14 @@
       "Recover #% of Life when you Block",
       "Recover #% of your maximum Mana when you Block",
       "Recover #% of Energy Shield when you Block",
-      "Socketed Gems are Supported by Level # Arcane Surge",
-      "Socketed Gems are supported by Level # Melee Splash",
       "#% increased Area Damage",
       "#% increased Attack Speed",
-      "Socketed Gems are Supported by Level # Faster Attacks",
       "#% chance to deal Double Damage",
       "#% increased Critical Strike Chance",
-      "Socketed Gems are Supported by Level # Increased Critical Strikes",
       "#% increased Critical Strike Chance if you have Killed Recently",
       "#% to Global Critical Strike Multiplier",
       "#% chance to gain a Power Charge on Critical Strike",
       "#% chance to Maim on Hit",
-      "Socketed Gems are Supported by Level # Maim",
       "#% chance to gain Onslaught for 4 seconds on Kill",
       "#% chance to Blind Enemies on Hit with Attacks",
       "#% Chance to Block Attack Damage while Dual Wielding",
@@ -71181,13 +69131,9 @@
       "#% increased Cast Speed if you've Killed Recently",
       "#% increased Spell Critical Strike Chance",
       "#% chance to Freeze, Shock and Ignite",
-      "Socketed Gems are Supported by Level # Elemental Proliferation",
       "#% increased Damage with Poison",
-      "Socketed Gems are Supported by Level # Chance to Poison",
       "#% increased Area of Effect",
-      "Socketed Gems are Supported by Level # Spell Cascade",
       "#% increased Projectile Speed",
-      "Socketed Gems are Supported by Level # Volley",
       "Socketed Gems Chain # additional times",
       "# to Maximum Endurance Charges",
       "# to Maximum Frenzy Charges",
@@ -71228,13 +69174,9 @@
      "hiddenZh": [
       "不被冰緩地面影響",
       "不被燃燒地面影響",
-      "插槽中寶石被等級 # 的生命偷取輔助",
-      "插槽中寶石被等級 # 的魔力偷取輔助",
       "增加 #% 投射物傷害",
-      "插槽中寶石被等級 # 的投射物減速輔助",
       "擊殺時有 #% 機率獲得 1 顆狂怒球",
       "增加 #% 範圍效果",
-      "插槽中寶石被等級 # 的增大範圍輔助",
       "擊殺時有 #% 機率獲得 1 顆暴擊球",
       "法術附加 # 至 # 冰冷傷害",
       "法術附加 # 至 # 閃電傷害",
@@ -71256,42 +69198,28 @@
       "每用法術擊中一個敵人，獲得 # 魔力",
       "對冰緩或冰凍的敵人附加 # 至 # 冰冷傷害",
       "對感電的敵人附加 # 至 # 閃電傷害",
-      "獲得等級 # 的恫嚇戰吼技能",
       "增加 #% 元素傷害",
       "增加 #% 裝備的胸甲的能量護盾",
       "# 召喚圖騰的最大數量",
       "增加 #% 物理傷害",
-      "插槽中寶石被等級 # 的附加火焰傷害輔助",
       "攻擊技能增加 #% 元素傷害",
-      "此物品上寶石被等級 # 的元素傷害攻擊輔助",
       "獲得 #% 物理傷害的火焰傷害",
       "插槽中的技能造成 #% 更多攻擊傷害",
       "插槽中的技能造成 #% 更多法術傷害",
       "使用此武器攻擊，每 10 點力量附加 # 至 # 火焰傷害",
       "每 10 點敏捷，使用此武器攻擊附加 # 至 # 冰冷傷害",
       "使用此武器攻擊，每 10 點智慧附加 # 至 # 閃電傷害",
-      "此物品上寶石被等級 # 的暴擊時施放輔助",
-      "插槽中寶石被等級 # 的近戰擊殺時施放輔助",
-      "插槽中寶石被等級 # 的引導時施放輔助",
       "增加 #% 法術傷害",
-      "插槽中寶石被等級 # 精準破壞輔助",
-      "插槽中寶石被等級 # 的元素集中輔助",
       "增加 #% 冰冷傷害",
-      "插槽中寶石被等級 # 的冰冷穿透輔助",
       "增加 #% 閃電傷害",
-      "插槽中寶石被等級 # 的閃電穿透輔助",
       "獲得等同 #% 元素傷害的額外混沌傷害"
      ],
      "hiddenEn": [
       "Unaffected by Chilled Ground",
       "Unaffected by Burning Ground",
-      "Socketed Gems are supported by Level # Life Leech",
-      "Socketed Gems are Supported by Level # Mana Leech",
       "#% increased Projectile Damage",
-      "Socketed Gems are Supported by Level # Slower Projectiles",
       "#% chance to gain a Frenzy Charge on Kill",
       "#% increased Area of Effect",
-      "Socketed Gems are Supported by Level # Increased Area of Effect",
       "#% chance to gain a Power Charge on Kill",
       "Adds # to # Cold Damage to Spells",
       "Adds # to # Lightning Damage to Spells",
@@ -71313,30 +69241,20 @@
       "Gain # Mana per Enemy Hit with Spells",
       "Adds # to # Cold Damage against Chilled or Frozen Enemies",
       "Adds # to # Lightning Damage against Shocked Enemies",
-      "Grants Level # Intimidating Cry Skill",
       "#% increased Elemental Damage",
       "#% increased Energy Shield from Equipped Body Armour",
       "# to maximum number of Summoned Totems",
       "#% increased Physical Damage",
-      "Socketed Gems are Supported by Level # Added Fire Damage",
       "#% increased Elemental Damage with Attack Skills",
-      "Socketed Gems are supported by Level # Elemental Damage with Attacks",
       "Gain #% of Physical Damage as Extra Fire Damage",
       "Socketed Skills deal #% more Attack Damage",
       "Socketed Skills deal #% more Spell Damage",
       "Adds # to # Fire Damage to Attacks with this Weapon per 10 Strength",
       "Adds # to # Cold Damage to Attacks with this Weapon per 10 Dexterity",
       "Adds # to # Lightning Damage to Attacks with this Weapon per 10 Intelligence",
-      "Socketed Gems are supported by Level # Cast On Critical Strike",
-      "Socketed Gems are Supported by Level # Cast On Melee Kill",
-      "Socketed Gems are Supported by Level # Cast While Channelling",
       "#% increased Spell Damage",
-      "Socketed Gems are Supported by Level # Controlled Destruction",
-      "Socketed Gems are Supported by Level # Elemental Focus",
       "#% increased Cold Damage",
-      "Socketed Gems are Supported by Level # Cold Penetration",
       "#% increased Lightning Damage",
-      "Socketed Gems are Supported by Level # Lightning Penetration",
       "Gain #% of Elemental Damage as Extra Chaos Damage"
      ],
      "key": "The Shaper's#AddedColdDamagePerDexterityTwoHandedUber1"
@@ -71973,21 +69891,15 @@
      ],
      "g": 0,
      "hiddenZh": [
-      "此物品插槽中寶石被等級 # 的護體輔助",
       "不被感電地面影響",
       "不被腐化地面影響",
       "#% 機率擊殺時獲得 1 顆耐力球",
       "增加 #% 投射物速度",
-      "插槽中寶石被等級 # 的快速投射輔助",
       "擊殺時有 #% 機率獲得 1 顆狂怒球",
       "增加 #% 範圍傷害",
-      "插槽中寶石被等級 # 的集中效應輔助",
       "增加 #% 最大魔力",
       "增加 #% 召喚物所造成的傷害",
-      "此物品上寶石被等級 # 的召喚物傷害輔助",
       "召喚物增加 #% 最大生命",
-      "插槽中寶石被等級 # 的召喚物生命輔助",
-      "插槽中寶石被等級 # 的持續時間縮短輔助",
       "法術附加 # 至 # 火焰傷害",
       "法術附加 # 至 # 物理傷害",
       "法術附加 # 至 # 混沌傷害",
@@ -72007,27 +69919,16 @@
       "每用攻擊擊中一個敵人，獲得 # 魔力",
       "對點燃的敵人附加 # 至 # 火焰傷害",
       "近戰擊中造成暈眩有 #% 機率護體",
-      "獲得等級 # 堅決戰吼技能",
-      "獲得等級 # 激勵戰吼技能",
       "增加 #% 全域物理傷害",
       "#% 機率使用 200% 護甲防禦",
       "每顆狂怒球附加 # 至 # 冰冷傷害",
       "近期若你有格擋則 # 護甲",
       "每 1% 攻擊傷害格擋率，增加 #% 傷害",
-      "插槽中寶石被等級 # 的近戰擊暈獲得耐力球輔助",
-      "插槽中寶石被等級 # 的氣勢輔助",
-      "插槽中寶石被等級 # 的暴擊獲得暴擊球輔助",
-      "插槽中寶石被等級 # 的啟發輔助",
       "增加 #% 物理傷害",
-      "插槽中寶石被等級 # 的近戰物理傷害輔助",
-      "插槽中寶石被等級 # 的殘虐輔助",
-      "插槽中寶石被等級 # 的殘暴輔助",
       "使用此武器的擊中 #% 流血持續傷害加成",
       "此武器造成的中毒 #% 持續傷害加成",
       "增加 #% 法術傷害",
-      "插槽中寶石被等級 # 的效能輔助",
       "增加 #% 火焰傷害",
-      "插槽中寶石被等級 # 的火焰穿透輔助",
       "每 16 點力量增加 #% 法術傷害",
       "每 16 點敏捷增加 #% 法術傷害",
       "每 16 點智慧增加 #% 法術傷害",
@@ -72035,21 +69936,15 @@
       "每 10 智慧增加 #% 法術傷害"
      ],
      "hiddenEn": [
-      "Socketed Gems are Supported by Level # Fortify",
       "Unaffected by Shocked Ground",
       "Unaffected by Desecrated Ground",
       "#% chance to gain an Endurance Charge on Kill",
       "#% increased Projectile Speed",
-      "Socketed Gems are supported by Level # Faster Projectiles",
       "#% chance to gain a Frenzy Charge on Kill",
       "#% increased Area Damage",
-      "Socketed Gems are Supported by Level # Concentrated Effect",
       "#% increased maximum Mana",
       "Minions deal #% increased Damage",
-      "Socketed Gems are Supported by Level # Minion Damage",
       "Minions have #% increased maximum Life",
-      "Socketed Gems are Supported by Level # Minion Life",
-      "Socketed Gems are Supported by Level # Less Duration",
       "Adds # to # Fire Damage to Spells",
       "Adds # to # Physical Damage to Spells",
       "Adds # to # Chaos Damage to Spells",
@@ -72069,27 +69964,16 @@
       "Gain # Mana per Enemy Hit with Attacks",
       "Adds # to # Fire Damage against Ignited Enemies",
       "Melee Hits which Stun have #% chance to Fortify",
-      "Grants Level # Enduring Cry Skill",
-      "Grants Level # Rallying Cry Skill",
       "#% increased Global Physical Damage",
       "#% chance to Defend with 200% of Armour",
       "# to # Added Cold Damage per Frenzy Charge",
       "# Armour if you've Blocked Recently",
       "#% increased Damage per 1% Chance to Block Attack Damage",
-      "Socketed Gems are Supported by Level # Endurance Charge on Melee Stun",
-      "Socketed Gems are Supported by Level # Momentum",
-      "Socketed Gems are Supported by Level # Power Charge On Critical Strike",
-      "Socketed Gems are Supported by Level # Inspiration",
       "#% increased Physical Damage",
-      "Socketed Gems are Supported by Level # Melee Physical Damage",
-      "Socketed Gems are Supported by Level # Brutality",
-      "Socketed Gems are Supported by Level # Ruthless",
       "#% to Damage over Time Multiplier for Bleeding from Hits with this Weapon",
       "#% to Damage over Time Multiplier for Poison inflicted with this Weapon",
       "#% increased Spell Damage",
-      "Socketed Gems are Supported by Level # Efficacy",
       "#% increased Fire Damage",
-      "Socketed Gems are Supported by Level # Fire Penetration",
       "#% increased Spell Damage per 16 Strength",
       "#% increased Spell Damage per 16 Dexterity",
       "#% increased Spell Damage per 16 Intelligence",
@@ -73719,7 +71603,7 @@
       "被釋放輔助的技能 # 封印最大數量",
       "此物品插槽中輔助寶石等級 #",
       "你和你的召喚物避免 #% 反射的元素傷害",
-      "附近敵人被致盲",
+      "3.5 公尺內的敵人被致盲",
       "攻擊技能增加 #% 元素傷害",
       "增加 #% 閃避值",
       "擊中冰緩敵人增加 #% 傷害",
@@ -73751,7 +71635,7 @@
       "Skills supported by Unleash have # to maximum number of Seals",
       "# to Level of Socketed Support Gems",
       "You and your Minions prevent #% of Reflected Elemental Damage",
-      "Nearby Enemies are Blinded",
+      "Enemies within 3.5 metres are Blinded",
       "#% increased Elemental Damage with Attack Skills",
       "#% increased Evasion Rating",
       "#% increased Damage with Hits against Chilled Enemies",
@@ -73927,10 +71811,10 @@
      ],
      "g": 0,
      "hiddenZh": [
-      "增加 #% 物品稀有度"
+      "#%物品稀有度"
      ],
      "hiddenEn": [
-      "#% increased Rarity of Items found"
+      "#% to Item Rarity"
      ]
     },
     {
@@ -74595,10 +72479,10 @@
      ],
      "g": 0,
      "hiddenZh": [
-      "增加 #% 物品稀有度"
+      "#%物品稀有度"
      ],
      "hiddenEn": [
-      "#% increased Rarity of Items found"
+      "#% to Item Rarity"
      ]
     },
     {
@@ -75546,15 +73430,13 @@
       "攻擊附加 # 至 # 火焰傷害",
       "附加 # 至 # 火焰傷害",
       "法術附加 # 至 # 火焰傷害",
-      "增加 #% 燃燒傷害",
-      "插槽中寶石被等級 # 的燃燒輔助"
+      "增加 #% 燃燒傷害"
      ],
      "hiddenEn": [
       "Adds # to # Fire Damage to Attacks",
       "Adds # to # Fire Damage",
       "Adds # to # Fire Damage to Spells",
-      "#% increased Burning Damage",
-      "Socketed Gems are Supported by Level # Combustion"
+      "#% increased Burning Damage"
      ]
     },
     {
@@ -77337,7 +75219,7 @@
       "增加 #% 來自偷取每秒最大總生命恢復",
       "增加 #% 最大魔力",
       "承受 #% 的擊中物理傷害視為閃電傷害",
-      "附近敵人 #% 閃電抗性",
+      "6 公尺內的敵人 #% 閃電抗性",
       "#% 閃電抗性",
       "你站立時，你 4 公尺內的會有奉獻地面",
       "你擊殺的敵人有 #% 機率爆炸，造成他們最大生命十分之一的物理傷害",
@@ -77372,7 +75254,7 @@
       "#% increased Maximum total Life Recovery per second from Leech",
       "#% increased maximum Mana",
       "#% of Physical Damage from Hits taken as Lightning Damage",
-      "Nearby Enemies have #% to Lightning Resistance",
+      "Enemies within 6 metres have #% to Lightning Resistance",
       "#% to Lightning Resistance",
       "You have Consecrated Ground around you while stationary",
       "Enemies you Kill have a #% chance to Explode, dealing a tenth of their maximum Life as Physical Damage",
@@ -77925,7 +75807,7 @@
       "傷害型異常狀態造成傷害加速 #%"
      ],
      "hiddenEn": [
-      "Damaging Ailments deal damage #% faster"
+      "Damaging Ailments deal damage #% Faster"
      ]
     },
     {
@@ -78040,10 +75922,10 @@
      ],
      "g": 0,
      "hiddenZh": [
-      "恐喙鳥羽之餌"
+      "#"
      ],
      "hiddenEn": [
-      "Rhoa Feather Lure"
+      "#"
      ]
     },
     {
@@ -80096,13 +77978,7 @@
      "en": [
       "Ghostly Arms"
      ],
-     "g": 0,
-     "hiddenZh": [
-      "以此武器攻擊時觸發等級 # 的幽魂火炮"
-     ],
-     "hiddenEn": [
-      "Trigger level # Ghostly Artillery when you Attack with this Weapon"
-     ]
+     "g": 0
     },
     {
      "id": "SpellDamageOnTwoHandWeapon6",
@@ -80299,10 +78175,10 @@
      ],
      "g": 0,
      "hiddenZh": [
-      "增加 #% 物品稀有度"
+      "#%物品稀有度"
      ],
      "hiddenEn": [
-      "#% increased Rarity of Items found"
+      "#% to Item Rarity"
      ]
     },
     {
@@ -80504,22 +78380,6 @@
      ]
     },
     {
-     "id": "AbyssMaimedEnemiesDamageOverTimeJewel1",
-     "zh": [
-      "亂砍之"
-     ],
-     "en": [
-      "of Mangling"
-     ],
-     "g": 1,
-     "hiddenZh": [
-      "被你癱瘓的敵人增加 #% 承受持續傷害"
-     ],
-     "hiddenEn": [
-      "Enemies Maimed by you take #% increased Damage Over Time"
-     ]
-    },
-    {
      "id": "IncreasedCastSpeed1",
      "zh": [
       "人才之"
@@ -80688,7 +78548,7 @@
       "#% chance to Poison on Hit",
       "#% increased Poison Duration",
       "Attacks have #% chance to cause Bleeding",
-      "Bleeding you inflict deals Damage #% faster",
+      "Bleeding you inflict deals Damage #% Faster",
       "#% Global chance to Blind Enemies on hit",
       "Attacks have #% chance to Maim on Hit",
       "#% chance to Hinder Enemies on Hit with Spells",
@@ -80878,12 +78738,12 @@
      ],
      "g": 1,
      "hiddenZh": [
-      "若使用時不是滿魔，阻礙附近敵人減少 #% 移動速度",
-      "若使用時不是滿血，阻礙附近敵人減少 #% 移動速度"
+      "若使用時不是滿魔，阻礙 3 公尺內的敵人減少 #% 移動速度",
+      "若使用時不是滿血，阻礙 3 公尺內的敵人減少 #% 移動速度"
      ],
      "hiddenEn": [
-      "Hinders nearby Enemies with #% reduced Movement Speed if used while not on Full Mana",
-      "Hinders nearby Enemies with #% reduced Movement Speed if used while not on Full Life"
+      "Hinders Enemies within 3 metres with #% reduced Movement Speed if used while not on Full Mana",
+      "Hinders Enemies within 3 metres with #% reduced Movement Speed if used while not on Full Life"
      ]
     },
     {
@@ -82638,49 +80498,36 @@
      "g": 1,
      "hiddenZh": [
       "增加 #% 技能效果持續時間",
-      "插槽中寶石被等級 # 的持續時間延長輔助",
       "#% 機率避免被暈眩",
       "增加 #% 圖騰傷害",
-      "插槽中寶石被等級 # 的法術圖騰輔助",
       "增加 #% 圖騰放置速度",
       "全部殭屍復甦寶石等級 #",
       "全部骷髏寶石等級 #",
       "全部喚醒幽魂寶石等級 #",
       "增加 #% 攻擊速度",
-      "插槽中寶石被等級 # 的快速攻擊輔助",
       "增加 #% 攻擊與施放速度",
       "增加 #% 近戰傷害",
       "# 米近戰打擊距離",
       "增加 #% 中毒傷害",
-      "插槽中寶石被等級 # 的機率中毒輔助",
       "增加 #% 流血傷害",
-      "插槽中寶石被等級 # 的機率流血輔助",
       "增加 #% 全域命中值",
-      "插槽中寶石被等級 # 的額外命中輔助",
       "#% 攻擊傷害格擋率",
       "插槽中的攻擊 #% 暴擊加成",
       "增加 #% 敵人點燃持續時間",
-      "插槽中寶石被等級 # 的犧牲輔助",
       "增加 #% 燃燒傷害",
-      "插槽中寶石被等級 # 的燃燒傷害輔助",
       "#% 法術傷害格擋率",
       "插槽中的攻擊 #% 暴擊率",
-      "附近敵人增加承受 #% 物理傷害",
+      "6 公尺內的敵人增加承受 #% 物理傷害",
       "增加 #% 承受的物理傷害",
       "擊殺時恢復 #% 生命",
       "增加 #% 力量",
       "增加 #% 敏捷",
       "攻擊有 #% 機率造成暴擊",
-      "獲得等級 # 的雷霆技能",
-      "獲得等級 # 的憤怒技能",
-      "獲得等級 # 的憎恨技能",
-      "獲得等級 # 的忌妒技能",
       "#% 火焰傷害偷取生命",
       "#% 物理傷害偷取生命",
       "增加 #% 所有屬性",
       "增加 #% 來自偷取每秒最大總生命恢復",
       "#% 全域暴擊加成",
-      "獲得等級 # 灰燼之捷技能",
       "#% 全部元素抗性",
       "增加 #% 生命恢復率",
       "任何藥劑效果持續時間內，#% 混沌抗性",
@@ -82692,16 +80539,11 @@
       "攻擊有 #% 機率造成流血",
       "擊殺時有 #% 機率獲得 4 秒迷蹤效果",
       "擊中稀有或傳奇敵人時有 #% 機率獲得一顆狂怒球",
-      "插槽中寶石被等級 # 的受傷時施放輔助",
-      "若附近至少有 5 個敵人，#% 攻擊傷害格擋率",
-      "插槽中寶石被等級 # 的先祖怒嚎輔助",
+      "若 5 公尺內至少有 5 名敵人，#% 攻擊傷害格擋率",
       "增加 #% 範圍效果",
-      "插槽中寶石被等級 # 的多重打擊輔助",
-      "插槽中寶石被等級 # 的氣勢輔助",
       "若你近期有擊殺，增加 #% 攻擊速度",
       "增加 #% 暴擊率",
       "若近期沒有造成暴擊，#% 暴擊加成",
-      "插槽中寶石被等級 # 的增加暴擊傷害輔助",
       "擊中時 #% 機率造成流血",
       "擊殺時有 #% 機率獲得不潔之力 3 秒",
       "攻擊擊中時有 #% 機率造成致盲",
@@ -82711,16 +80553,11 @@
       "# 米武器距離",
       "技能發射 1 個額外投射物",
       "增加 #% 施放速度",
-      "插槽中寶石被等級 # 的施放迴響輔助",
       "施放時，有 #% 機率無視暈眩",
       "#% 機率使敵人冰凍、感電與點燃",
-      "插槽中寶石被等級 # 的無邊異能輔助",
       "增加 #% 中毒持續時間",
-      "插槽中寶石被等級 # 的暴擊苦痛輔助",
       "增加 #% 範圍傷害",
-      "插槽中寶石被等級 # 的增大範圍輔助",
       "增加 #% 投射物傷害",
-      "插槽中的寶石被等級#的多重投射物輔助",
       "格擋時有 #% 機率獲得暴擊球",
       "每顆暴擊球增加 #% 傷害",
       "每200命中值增加 #% 投射物攻擊傷害",
@@ -82743,49 +80580,36 @@
      ],
      "hiddenEn": [
       "#% increased Skill Effect Duration",
-      "Socketed Gems are Supported by Level # More Duration",
       "#% chance to Avoid being Stunned",
       "#% increased Totem Damage",
-      "Socketed Gems are Supported by Level # Spell Totem",
       "#% increased Totem Placement speed",
       "# to Level of all Raise Zombie Gems",
       "# to Level of all Summon Skeletons Gems",
       "# to Level of all Raise Spectre Gems",
       "#% increased Attack Speed",
-      "Socketed Gems are Supported by Level # Faster Attacks",
       "#% increased Attack and Cast Speed",
       "#% increased Melee Damage",
       "# metres to Melee Strike Range",
       "#% increased Damage with Poison",
-      "Socketed Gems are Supported by Level # Chance to Poison",
       "#% increased Damage with Bleeding",
-      "Socketed Gems are Supported by Level # Chance To Bleed",
       "#% increased Global Accuracy Rating",
-      "Socketed Gems are supported by Level # Additional Accuracy",
       "#% Chance to Block Attack Damage",
       "Socketed Attacks have #% to Critical Strike Multiplier",
       "#% increased Ignite Duration on Enemies",
-      "Socketed Gems are Supported by Level # Immolate",
       "#% increased Burning Damage",
-      "Socketed Gems are Supported by Level # Burning Damage",
       "#% Chance to Block Spell Damage",
       "Socketed Attacks have #% to Critical Strike Chance",
-      "Nearby Enemies take #% increased Physical Damage",
+      "Enemies within 6 metres take #% increased Physical Damage",
       "#% increased Physical Damage taken",
       "Recover #% of Life on Kill",
       "#% increased Strength",
       "#% increased Dexterity",
       "Attacks have #% to Critical Strike Chance",
-      "Grants Level # Wrath Skill",
-      "Grants Level # Anger Skill",
-      "Grants Level # Hatred Skill",
-      "Grants Level # Envy Skill",
       "#% of Fire Damage Leeched as Life",
       "#% of Physical Damage Leeched as Life",
       "#% increased Attributes",
       "#% increased Maximum total Life Recovery per second from Leech",
       "#% to Global Critical Strike Multiplier",
-      "Grants Level # Herald of Ash Skill",
       "#% to all Elemental Resistances",
       "#% increased Life Recovery rate",
       "#% to Chaos Resistance during any Flask Effect",
@@ -82797,16 +80621,11 @@
       "Attacks have #% chance to cause Bleeding",
       "#% chance to gain Phasing for 4 seconds on Kill",
       "#% chance to gain a Frenzy Charge when you Hit a Rare or Unique Enemy",
-      "Socketed Gems are Supported by Level # Cast when Damage Taken",
-      "#% Chance to Block Attack Damage if there are at least 5 nearby Enemies",
-      "Socketed Gems are Supported by Level # Ancestral Call",
+      "#% Chance to Block Attack Damage if there are at least 5 Enemies within 6 metres",
       "#% increased Area of Effect",
-      "Socketed Gems are supported by Level # Multistrike",
-      "Socketed Gems are Supported by Level # Momentum",
       "#% increased Attack Speed if you've Killed Recently",
       "#% increased Critical Strike Chance",
       "#% to Critical Strike Multiplier if you haven't dealt a Critical Strike Recently",
-      "Socketed Gems are supported by Level # Increased Critical Damage",
       "#% chance to cause Bleeding on Hit",
       "#% chance to gain Unholy Might for 3 seconds on Kill",
       "#% chance to Blind Enemies on Hit with Attacks",
@@ -82816,16 +80635,11 @@
       "# metres to Weapon Range",
       "Skills fire an additional Projectile",
       "#% increased Cast Speed",
-      "Socketed Gems are Supported by Level # Spell Echo",
       "#% chance to Ignore Stuns while Casting",
       "#% chance to Freeze, Shock and Ignite",
-      "Socketed Gems are Supported by Level # Unbound Ailments",
       "#% increased Poison Duration",
-      "Socketed Gems are Supported by Level # Critical Strike Affliction",
       "#% increased Area Damage",
-      "Socketed Gems are Supported by Level # Increased Area of Effect",
       "#% increased Projectile Damage",
-      "Socketed Gems are Supported by Level # Multiple Projectiles",
       "#% chance to gain a Power Charge when you Block",
       "#% increased Damage per Power Charge",
       "#% increased Projectile Attack Damage per 200 Accuracy Rating",
@@ -83091,13 +80905,13 @@
      "g": 1,
      "hiddenZh": [
       "減少 #% 承受的暴擊傷害",
-      "若使用時不是滿魔，阻礙附近敵人減少 #% 移動速度",
-      "若使用時不是滿血，阻礙附近敵人減少 #% 移動速度"
+      "若使用時不是滿魔，阻礙 3 公尺內的敵人減少 #% 移動速度",
+      "若使用時不是滿血，阻礙 3 公尺內的敵人減少 #% 移動速度"
      ],
      "hiddenEn": [
       "You take #% reduced Extra Damage from Critical Strikes",
-      "Hinders nearby Enemies with #% reduced Movement Speed if used while not on Full Mana",
-      "Hinders nearby Enemies with #% reduced Movement Speed if used while not on Full Life"
+      "Hinders Enemies within 3 metres with #% reduced Movement Speed if used while not on Full Mana",
+      "Hinders Enemies within 3 metres with #% reduced Movement Speed if used while not on Full Life"
      ]
     },
     {
@@ -83415,7 +81229,7 @@
       "# 米近戰打擊距離",
       "#% 攻擊傷害格擋率",
       "撲殺",
-      "附近敵人 #% 火焰抗性",
+      "6 公尺內的敵人 #% 火焰抗性",
       "#% 火焰抗性",
       "#% 全域暴擊加成",
       "增加 #% 魔力恢復率",
@@ -83471,7 +81285,7 @@
       "# metres to Melee Strike Range",
       "#% Chance to Block Attack Damage",
       "Culling Strike",
-      "Nearby Enemies have #% to Fire Resistance",
+      "Enemies within 6 metres have #% to Fire Resistance",
       "#% to Fire Resistance",
       "#% to Global Critical Strike Multiplier",
       "#% increased Mana Regeneration Rate",
@@ -83702,6 +81516,22 @@
      ]
     },
     {
+     "id": "MinionAttackAndCastSpeed7",
+     "zh": [
+      "惱火之"
+     ],
+     "en": [
+      "of Infuriation"
+     ],
+     "g": 1,
+     "hiddenZh": [
+      "召喚物增加 #% 攻擊和施放速度"
+     ],
+     "hiddenEn": [
+      "Minions have #% increased Attack and Cast Speed"
+     ]
+    },
+    {
      "id": "ChanceToAvoidElementalStatusAilments4",
      "zh": [
       "意願之"
@@ -83756,20 +81586,17 @@
       "憤怒之"
      ],
      "en": [
-      "of Anger",
-      "of Infuriation"
+      "of Anger"
      ],
      "g": 1,
      "hiddenZh": [
       "#% 全域暴擊加成",
       "#% 弓暴擊加成",
-      "召喚物增加 #% 攻擊和施放速度",
       "憤怒增加 #% 魔力保留效用"
      ],
      "hiddenEn": [
       "#% to Global Critical Strike Multiplier",
       "#% to Critical Strike Multiplier with Bows",
-      "Minions have #% increased Attack and Cast Speed",
       "Anger has #% increased Mana Reservation Efficiency"
      ]
     },
@@ -84046,12 +81873,12 @@
      ],
      "g": 1,
      "hiddenZh": [
-      "增加 #% 物品稀有度",
-      "卡魯石魚鉤"
+      "#%物品稀有度",
+      "#"
      ],
      "hiddenEn": [
-      "#% increased Rarity of Items found",
-      "Karui Stone Hook"
+      "#% to Item Rarity",
+      "#"
      ]
     },
     {
@@ -84080,10 +81907,10 @@
      ],
      "g": 1,
      "hiddenZh": [
-      "增加 #% 物品稀有度"
+      "#%物品稀有度"
      ],
      "hiddenEn": [
-      "#% increased Rarity of Items found"
+      "#% to Item Rarity"
      ]
     },
     {
@@ -84096,10 +81923,10 @@
      ],
      "g": 1,
      "hiddenZh": [
-      "增加 #% 物品稀有度"
+      "#%物品稀有度"
      ],
      "hiddenEn": [
-      "#% increased Rarity of Items found"
+      "#% to Item Rarity"
      ]
     },
     {
@@ -84339,7 +82166,7 @@
       "擊殺時 #% 機率獲得 4 秒猛攻",
       "增加 #% 全域命中值",
       "擊中時有 #% 機率導致敵人致盲",
-      "附近敵人 #% 冰冷抗性",
+      "6 公尺內的敵人 #% 冰冷抗性",
       "#% 冰冷抗性",
       "增加 #% 技能的魔力保留效用",
       "#% 機率使用火焰傷害擊中敵人造成點燃效果",
@@ -84393,7 +82220,7 @@
       "#% chance to gain Onslaught for 4 seconds on Kill",
       "#% increased Global Accuracy Rating",
       "#% Global chance to Blind Enemies on hit",
-      "Nearby Enemies have #% to Cold Resistance",
+      "Enemies within 6 metres have #% to Cold Resistance",
       "#% to Cold Resistance",
       "#% increased Mana Reservation Efficiency of Skills",
       "#% chance to Ignite",
@@ -85005,7 +82832,7 @@
      ],
      "g": 1,
      "hiddenZh": [
-      "增加 #% 生命恢復率"
+      "增加 #% 生命回復率"
      ],
      "hiddenEn": [
       "#% increased Life Regeneration rate"
@@ -85022,7 +82849,7 @@
      ],
      "g": 1,
      "hiddenZh": [
-      "增加 #% 生命恢復率",
+      "增加 #% 生命回復率",
       "#% 最大全部抗性"
      ],
      "hiddenEn": [
@@ -85205,7 +83032,7 @@
      ],
      "g": 1,
      "hiddenZh": [
-      "增加 #% 生命恢復率"
+      "增加 #% 生命回復率"
      ],
      "hiddenEn": [
       "#% increased Life Regeneration rate"
@@ -86025,22 +83852,6 @@
      ]
     },
     {
-     "id": "AbyssBlindedEnemiesCriticalStrikeChanceJewel1",
-     "zh": [
-      "烏雲之"
-     ],
-     "en": [
-      "of Clouding"
-     ],
-     "g": 1,
-     "hiddenZh": [
-      "被你致盲的敵人減少 #% 暴擊率"
-     ],
-     "hiddenEn": [
-      "Enemies Blinded by you have #% reduced Critical Strike Chance"
-     ]
-    },
-    {
      "id": "FlaskBuffArmourWhileHealing2",
      "zh": [
       "烏龜之"
@@ -86416,8 +84227,7 @@
       "狂怒之"
      ],
      "en": [
-      "of Rage",
-      "of Fury"
+      "of Rage"
      ],
      "g": 1,
      "hiddenZh": [
@@ -86427,8 +84237,7 @@
      "hiddenEn": [
       "#% to Global Critical Strike Multiplier",
       "#% to Critical Strike Multiplier with Bows"
-     ],
-     "key": "of Rage#CriticalMultiplier3"
+     ]
     },
     {
      "id": "AbyssAttackSpeedJewel1_",
@@ -86578,13 +84387,13 @@
       "若你近期有造成暴擊，你獲得流順之風",
       "你造成的點燃傷害加速 #%",
       "你造成的流血傷害加速 #%",
-      "你造成的中毒傷害加速 #%",
+      "你造成的中毒傷害加快#%",
       "增加 #% 敏捷",
       "#% 火焰持續傷害加成",
       "#% 冰冷持續傷害加成",
       "#% 混沌持續傷害加成",
       "#% 物理持續傷害加成",
-      "附近敵人 #% 混沌抗性",
+      "6 公尺內的敵人 #% 混沌抗性",
       "#% 混沌抗性",
       "增加 #% 智慧",
       "你每 8 秒會獲得 3 秒點燃匯流",
@@ -86627,15 +84436,15 @@
       "#% chance to Avoid Bleeding",
       "#% chance to Avoid being Poisoned",
       "You have Tailwind if you have dealt a Critical Strike Recently",
-      "Ignites you inflict deal Damage #% faster",
-      "Bleeding you inflict deals Damage #% faster",
-      "Poisons you inflict deal Damage #% faster",
+      "Ignites you inflict deal Damage #% Faster",
+      "Bleeding you inflict deals Damage #% Faster",
+      "Poisons you inflict deal Damage #% Faster",
       "#% increased Dexterity",
       "#% to Fire Damage over Time Multiplier",
       "#% to Cold Damage over Time Multiplier",
       "#% to Chaos Damage over Time Multiplier",
       "#% to Physical Damage over Time Multiplier",
-      "Nearby Enemies have #% to Chaos Resistance",
+      "Enemies within 6 metres have #% to Chaos Resistance",
       "#% to Chaos Resistance",
       "#% increased Intelligence",
       "You have Igniting Conflux for 3 seconds every 8 seconds",
@@ -86971,17 +84780,6 @@
      "hiddenEn": [
       "#% to maximum Cold Resistance"
      ]
-    },
-    {
-     "id": "TinctureCriticalStrikeMultiplier3",
-     "zh": [
-      "盛怒之"
-     ],
-     "en": [
-      "of Rage"
-     ],
-     "g": 1,
-     "key": "of Rage#TinctureCriticalStrikeMultiplier3"
     },
     {
      "id": "MinionLifeWeapon4__",
@@ -87695,22 +85493,19 @@
      "key": "of Precision#PercentIncreasedAccuracyJewel"
     },
     {
-     "id": "AbyssHinderedEnemiesLifeRegenerationRateJewel1",
+     "id": "LifeRegenerationRate1",
      "zh": [
       "精神之"
      ],
      "en": [
-      "of Esprit",
-      "of Enervation"
+      "of Esprit"
      ],
      "g": 1,
      "hiddenZh": [
-      "增加 #% 生命恢復率",
-      "被你阻礙的敵人減少 #% 生命恢復率"
+      "增加 #% 生命回復率"
      ],
      "hiddenEn": [
-      "#% increased Life Regeneration rate",
-      "Enemies Hindered by you have #% reduced Life Regeneration rate"
+      "#% increased Life Regeneration rate"
      ]
     },
     {
@@ -87973,10 +85768,10 @@
      ],
      "g": 1,
      "hiddenZh": [
-      "增加 #% 物品稀有度"
+      "#%物品稀有度"
      ],
      "hiddenEn": [
-      "#% increased Rarity of Items found"
+      "#% to Item Rarity"
      ]
     },
     {
@@ -88124,22 +85919,6 @@
      ]
     },
     {
-     "id": "AbyssSelfCurseEffectOnConsecratedGroundJewel1__",
-     "zh": [
-      "聖所之"
-     ],
-     "en": [
-      "of the Sanctum"
-     ],
-     "g": 1,
-     "hiddenZh": [
-      "站在奉獻地面上時，減少 #% 你身上詛咒的效果"
-     ],
-     "hiddenEn": [
-      "#% reduced Effect of Curses on you while on Consecrated Ground"
-     ]
-    },
-    {
      "id": "IncreasedAttackSpeed4",
      "zh": [
       "聲望之"
@@ -88154,22 +85933,6 @@
      ],
      "hiddenEn": [
       "#% increased Attack Speed"
-     ]
-    },
-    {
-     "id": "AbyssAvoidElementalAilmentsWhileElusiveJewel1",
-     "zh": [
-      "脫逃之"
-     ],
-     "en": [
-      "of Escape"
-     ],
-     "g": 1,
-     "hiddenZh": [
-      "你有靈巧時有 #% 機率避免元素異常狀態"
-     ],
-     "hiddenEn": [
-      "#% chance to Avoid Elemental Ailments while you have Elusive"
      ]
     },
     {
@@ -88254,22 +86017,6 @@
      ],
      "hiddenEn": [
       "#% increased Mana Regeneration Rate"
-     ]
-    },
-    {
-     "id": "AbyssIntimidatedEnemiesStunDurationJewel1",
-     "zh": [
-      "艱鉅之"
-     ],
-     "en": [
-      "of Daunting"
-     ],
-     "g": 1,
-     "hiddenZh": [
-      "被你威嚇的敵人，增加 #% 對他們的暈眩持續時間"
-     ],
-     "hiddenEn": [
-      "Enemies Intimidated by you have #% increased duration of stuns against them"
      ]
     },
     {
@@ -88469,13 +86216,7 @@
      "en": [
       "of the Convocation"
      ],
-     "g": 1,
-     "hiddenZh": [
-      "獲得等級 # 的號召技能"
-     ],
-     "hiddenEn": [
-      "Grants Level # Convocation Skill"
-     ]
+     "g": 1
     },
     {
      "id": "FlaskBuffSpellEnergyShieldLeechWhileHealing4",
@@ -88886,22 +86627,6 @@
      ],
      "hiddenEn": [
       "#% to Fire Damage over Time Multiplier"
-     ]
-    },
-    {
-     "id": "AbyssWitheredEnemiesAllResistanceJewel1___",
-     "zh": [
-      "語言之"
-     ],
-     "en": [
-      "of Languishing"
-     ],
-     "g": 1,
-     "hiddenZh": [
-      "被你凋零的敵人 #% 全部抗性"
-     ],
-     "hiddenEn": [
-      "Enemies Withered by you have #% to all Resistances"
      ]
     },
     {
@@ -89472,12 +87197,12 @@
      ],
      "g": 1,
      "hiddenZh": [
-      "若使用時不是滿魔，阻礙附近敵人減少 #% 移動速度",
-      "若使用時不是滿血，阻礙附近敵人減少 #% 移動速度"
+      "若使用時不是滿魔，阻礙 3 公尺內的敵人減少 #% 移動速度",
+      "若使用時不是滿血，阻礙 3 公尺內的敵人減少 #% 移動速度"
      ],
      "hiddenEn": [
-      "Hinders nearby Enemies with #% reduced Movement Speed if used while not on Full Mana",
-      "Hinders nearby Enemies with #% reduced Movement Speed if used while not on Full Life"
+      "Hinders Enemies within 3 metres with #% reduced Movement Speed if used while not on Full Mana",
+      "Hinders Enemies within 3 metres with #% reduced Movement Speed if used while not on Full Life"
      ]
     },
     {
@@ -90025,13 +87750,13 @@
      "g": 1,
      "hiddenZh": [
       "減少 #% 承受的暴擊傷害",
-      "若使用時不是滿魔，阻礙附近敵人減少 #% 移動速度",
-      "若使用時不是滿血，阻礙附近敵人減少 #% 移動速度"
+      "若使用時不是滿魔，阻礙 3 公尺內的敵人減少 #% 移動速度",
+      "若使用時不是滿血，阻礙 3 公尺內的敵人減少 #% 移動速度"
      ],
      "hiddenEn": [
       "You take #% reduced Extra Damage from Critical Strikes",
-      "Hinders nearby Enemies with #% reduced Movement Speed if used while not on Full Mana",
-      "Hinders nearby Enemies with #% reduced Movement Speed if used while not on Full Life"
+      "Hinders Enemies within 3 metres with #% reduced Movement Speed if used while not on Full Mana",
+      "Hinders Enemies within 3 metres with #% reduced Movement Speed if used while not on Full Life"
      ]
     },
     {
@@ -90284,7 +88009,7 @@
      ],
      "g": 1,
      "hiddenZh": [
-      "增加 #% 生命恢復率"
+      "增加 #% 生命回復率"
      ],
      "hiddenEn": [
       "#% increased Life Regeneration rate"
@@ -90934,7 +88659,7 @@
     "允許前綴 #",
     "允許後綴 #",
     "固定詞綴不能被改變",
-    "增加 #% 變動詞綴大小",
+    "增加 #% 隨機詞綴幅度",
     "尖角魔符",
     "投射物穿透 # 個額外目標",
     "山貓魔符",
@@ -90945,7 +88670,7 @@
     "巨顎魔符",
     "增加 #% 攻擊與施放速度",
     "帝金護身符",
-    "增加 #% 物品稀有度",
+    "#%物品稀有度",
     "幻爪魔符",
     "增加 #% 全域暴擊率",
     "恐喙鳥魔符",
@@ -91057,7 +88782,6 @@
     "扣鏈腰帶",
     "# 最大能量護盾",
     "機械腰帶",
-    "當你使用藥劑時，觸發等級 # 召喚嘲諷裝置",
     "水晶腰帶",
     "皮革腰帶",
     "# 最大生命",
@@ -91436,7 +89160,6 @@
     "鐵鍛護手",
     "阻擾手套",
     "靈藥手套",
-    "增加 #% 持續傷害",
     "青銅護手",
     "飛龍鱗護手",
     "魅影護手",
@@ -91566,6 +89289,7 @@
     "巨型星團珠寶",
     "永恆珠寶",
     "翠綠珠寶",
+    "菌潮核心",
     "赤紅珠寶",
     "鈷藍珠寶",
     "不朽生命藥劑",
@@ -91639,7 +89363,6 @@
     "戰錘",
     "朽木之棒",
     "爆裂之錘",
-    "使用此武器近戰擊中時，觸發等級 # 的熾熱衝擊",
     "石錘",
     "破岩錘",
     "碎裂之錘",
@@ -91701,7 +89424,7 @@
     "沉頓箭袋",
     "攻擊附加 # 至 # 物理傷害",
     "火炮箭袋",
-    "增加 #% 圖騰放置速度",
+    "攻擊技能 # 召喚圖騰的最大數量",
     "火焰箭袋",
     "攻擊附加 # 至 # 火焰傷害",
     "火靈箭袋",
@@ -91804,7 +89527,6 @@
     "戰亂劍",
     "殘暴短匕",
     "煉獄之刃",
-    "當你使用插槽中的技能時，觸發等級 # 的烈焰衝刺",
     "增加 #% 快行技能冷卻時間恢復率",
     "白金波刃",
     "皇家雙刃匕",
@@ -92094,7 +89816,7 @@
     "灰岩藥劑",
     "真銀藥劑",
     "石化藥劑",
-    "使用時嘲諷附近敵人",
+    "使用時嘲諷 # 公尺內的敵人",
     "石英藥劑",
     "硫磺藥劑",
     "使用時製造奉獻地面",
@@ -92260,7 +89982,7 @@
     "Mandible Talisman",
     "#% increased Attack and Cast Speed",
     "Gold Amulet",
-    "#% increased Rarity of Items found",
+    "#% to Item Rarity",
     "Hexclaw Talisman",
     "#% increased Global Critical Strike Chance",
     "Rhoa Talisman",
@@ -92373,7 +90095,6 @@
     "Chain Belt",
     "# to maximum Energy Shield",
     "Mechalarm Belt",
-    "Trigger Level # Summon Taunting Contraption when you use a Flask",
     "Crystal Belt",
     "Leather Belt",
     "# to maximum Life",
@@ -92756,7 +90477,6 @@
     "Iron Gauntlets",
     "Thwarting Gauntlets",
     "Apothecary's Gloves",
-    "#% increased Damage over Time",
     "Bronze Gauntlets",
     "Wyvernscale Gauntlets",
     "Phantom Mitts",
@@ -92886,6 +90606,7 @@
     "Large Cluster Jewel",
     "Timeless Jewel",
     "Viridian Jewel",
+    "Mycelium Core",
     "Crimson Jewel",
     "Cobalt Jewel",
     "Divine Life Flask",
@@ -92956,7 +90677,6 @@
     "War Hammer",
     "Driftwood Club",
     "Boom Mace",
-    "Trigger Level # Fiery Impact on Melee Hit with this Weapon",
     "Stone Hammer",
     "Rock Breaker",
     "Crack Mace",
@@ -93018,7 +90738,7 @@
     "Heavy Arrow Quiver",
     "Adds # to # Physical Damage to Attacks",
     "Artillery Quiver",
-    "#% increased Totem Placement speed",
+    "Attack Skills have # to maximum number of Summoned Totems",
     "Cured Quiver",
     "Adds # to # Fire Damage to Attacks",
     "Fire Arrow Quiver",
@@ -93122,7 +90842,6 @@
     "Boot Blade",
     "Slaughter Knife",
     "Infernal Blade",
-    "Trigger Level # Flame Dash when you use a Socketed Skill",
     "#% increased Cooldown Recovery Rate of Travel Skills",
     "Platinum Kris",
     "Royal Skean",
@@ -93416,7 +91135,7 @@
     "Bismuth Flask",
     "Silver Flask",
     "Basalt Flask",
-    "Taunts nearby Enemies on use",
+    "Taunts Enemies within # metres on use",
     "Quartz Flask",
     "Sulphur Flask",
     "Creates Consecrated Ground on Use",
@@ -94459,12 +92178,6 @@
      "守衛之",
      "迷蹤之",
      "邪力之",
-     "聖所之",
-     "脫逃之",
-     "烏雲之",
-     "語言之",
-     "亂砍之",
-     "艱鉅之",
      "尊師之",
      "塑者之",
      "尊師的",
@@ -94513,6 +92226,7 @@
      "煽動之",
      "教唆之",
      "挑釁之",
+     "惱火之",
      "紀律者的",
      "管理者之",
      "教區牧師之",
@@ -94644,7 +92358,6 @@
      "強化之",
      "釋放之",
      "強盛之",
-     "盛怒之",
      "兇猛之",
      "行刑之",
      "終結之",
@@ -95129,12 +92842,6 @@
      "守衛之",
      "迷蹤之",
      "邪力之",
-     "聖所之",
-     "脫逃之",
-     "烏雲之",
-     "語言之",
-     "亂砍之",
-     "艱鉅之",
      "尊師之",
      "塑者之",
      "塑者的",
@@ -95166,6 +92873,7 @@
      "煽動之",
      "教唆之",
      "挑釁之",
+     "惱火之",
      "管理者之",
      "教區牧師之",
      "堅管者之",
@@ -95251,7 +92959,6 @@
      "強化之",
      "釋放之",
      "強盛之",
-     "盛怒之",
      "兇猛之",
      "行刑之",
      "終結之",
@@ -95838,6 +93545,7 @@
      "巨型星團珠寶",
      "永恆珠寶",
      "翠綠珠寶",
+     "菌潮核心",
      "赤紅珠寶",
      "鈷藍珠寶",
      "不朽生命藥劑",
@@ -97513,6 +95221,7 @@
      "Large Cluster Jewel",
      "Timeless Jewel",
      "Viridian Jewel",
+     "Mycelium Core",
      "Crimson Jewel",
      "Cobalt Jewel",
      "Divine Life Flask",
@@ -98489,13 +96198,6 @@
      " of Guarding",
      " of Phasing",
      " of Unholy Might",
-     " of the Sanctum",
-     " of Escape",
-     " of Enervation",
-     " of Clouding",
-     " of Languishing",
-     " of Mangling",
-     " of Daunting",
      " of the Elder",
      " of Shaping",
      " of Atrophy",
@@ -99204,6 +96906,7 @@
      " Large Cluster Jewel",
      " Timeless Jewel",
      " Viridian Jewel",
+     " Mycelium Core",
      " Crimson Jewel",
      " Cobalt Jewel",
      " Divine Life Flask",
