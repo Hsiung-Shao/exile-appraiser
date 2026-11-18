@@ -720,7 +720,7 @@ export default defineComponent({
       menuOpenTab (tab: SettingsTabId) { openSettingsTo(tab, '懸浮選單') },
       regexBookmarkBar: computed(() => AppConfig().regexBookmarkBar),
       /** 書籤列沒有書籤時「前往正則」 */
-      openRegexTab () { settingsTab.value = 'regex' },
+      openRegexTab () { regexView.value = 'generator'; settingsTab.value = 'regex' },
       onSettingsLayerPointerDown,
       onSettingsLayerClick,
       toggleSettings () {

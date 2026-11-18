@@ -268,7 +268,7 @@ export default defineComponent({
       const ok = m.index < 0 ? saveCustomBookmark(m.game, m.name, m.text) : updateCustomBookmark(m.index, m.name, m.text)
       if (ok) customModal.value = null
     }
-    // 輸出區「存成自訂書籤」:切到那一代並帶入字串
+    /** 依目前勾選存成書籤(書籤卡片的按鈕,與產生器的「存成書籤」經 bookmarkSaveRequest) */
     function openSave () {
       const p = store.page.value
       if (!p) return
@@ -276,6 +276,7 @@ export default defineComponent({
       void focusInput(nameInput)
     }
     watch(bookmarkSaveRequest, () => { openSave() })
+    // 輸出區「存成自訂書籤」:切到那一代並帶入字串
     watch(customBookmarkDraft, (d) => {
       if (!d) return
       customBookmarkDraft.value = null

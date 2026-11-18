@@ -106,7 +106,8 @@
               {{ stashState === 'ok' ? t('ppz.regex.add_stash_done') : stashState === 'dup' ? t('ppz.regex.add_stash_dup') : t('ppz.regex.add_stash') }}
             </button>
             <!-- 2026-11-18:依目前勾選存成書籤(同書籤卡片的「存成書籤」;產生器子分頁看不到書籤卡片,在這裡也放一顆) -->
-            <button class="btn ghost sm" data-regex="save-picks" :disabled="!page || !pagePickCount(page)" :title="t('ppz.regex.bm_save_need')" @click="bookmarkSaveRequest++">
+            <button class="btn ghost sm" data-regex="save-picks" :disabled="!page || !pagePickCount(page)"
+              :title="page && pagePickCount(page) ? t('ppz.regex.bm_save_tip', { game: gameLabel(selGame) }) : t('ppz.regex.bm_save_need')" @click="bookmarkSaveRequest++">
               {{ t('ppz.regex.bm_save') }}
             </button>
             <!-- 2026-11-12:把目前字串存成自訂字串書籤(固定字串;對話框在 RegexBookmarks.vue) -->

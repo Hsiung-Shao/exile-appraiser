@@ -82,7 +82,7 @@ describe('分頁表與舊 id 映射', () => {
     expect(app).toContain("openSettingsTo('recognition', `框選結束:${c.outcome}`)")
     expect(app).not.toContain("openSettingsTo('hotkeys'")
     expect(app).toContain("openSettingsTo('dust', '⚖')")
-    expect(app).toContain("openRegexTab () { settingsTab.value = 'regex' }")
+    expect(app).toContain("openRegexTab () { regexView.value = 'generator'; settingsTab.value = 'regex' }")
     // 更新提醒「立即更新」(可下載)開到啟動與更新(更新卡片在那裡)
     expect(read('main/src/main.ts')).toContain("openSettings('startup')")
     // 預覽網址 #tab= 接受的 id = 新的全部 + 舊的 stash-chat
