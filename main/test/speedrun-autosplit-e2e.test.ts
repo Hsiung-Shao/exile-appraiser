@@ -74,8 +74,8 @@ describe('真實 Client.txt 行 → 自動開始 / 自動分段', () => {
     expect(run.phase).toBe('running')
     expect(run.index).toBe(1)
   })
-  it('自動分段關著(內建預設)→ 進城不分段', async () => {
-    const route = presetRoute('poe1', 'cmn-Hant')
+  it('使用者關掉自動分段 → 進城不分段', async () => {
+    const route = { ...presetRoute('poe1', 'cmn-Hant'), autoSplit: false }
     const run = createRun(route, () => 0)
     run.start()
     expect(autoAction(run, route, '1_2_town')).toBeNull()

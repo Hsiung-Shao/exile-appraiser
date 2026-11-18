@@ -76,9 +76,9 @@ describe('內建路線', () => {
   it('S2 預設值:自動開始 / 分段開、attempts 0、無 PB、金段全 null、段名非空', () => {
     for (const game of ['poe1', 'poe2'] as const) {
       const r = presetRoute(game, 'cmn-Hant')
-      // 使用者 2026-11-10 裁定:預設關閉
+      // 使用者 2026-11-18 裁定:章節自動分段預設開,自動開始仍關
       expect(r.autoStart).toBe(false)
-      expect(r.autoSplit).toBe(false)
+      expect(r.autoSplit).toBe(true)
       expect(r.attempts).toBe(0)
       expect(r.pb).toBeNull()
       expect(r.golds).toEqual(r.splits.map(() => null))

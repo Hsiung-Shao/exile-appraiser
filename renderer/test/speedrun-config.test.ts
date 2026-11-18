@@ -49,6 +49,7 @@ describe('設定往返(S14)', () => {
       autoSplit: true
     }
     const raw = {
+      configVersion: 2,
       speedrun: { poe1: custom, poe2: { ...presetRoute('poe2', 'en'), attempts: 3, autoSplit: false } },
       clientLogPath: 'D:\\Games\\PoE\\logs\\Client.txt',
       speedrunRows: 8,
@@ -188,5 +189,24 @@ describe('審查修正(2026-11-10)', () => {
   })
   it('全新安裝的內建章節名跟系統介面語言(英文系統不是中文名)', () => {
     expect(src).toMatch(/speedrun: speedrunPresets\(systemUiLanguage\(\) === 'en' \? 'en' : 'cmn-Hant'\)/)
+  })
+})
+
+describe('章節自動分段預設開(2026-11-18)', () => {
+  it('全新設定:兩代自動分段開、自動開始關', () => {
+    const c = _roundTripForTest(null).config as any
+    for (const g of ['poe1', 'poe2']) expect([c.speedrun[g].autoSplit, c.speedrun[g].autoStart], g).toEqual([true, false])
+  })
+  it('舊設定檔(configVersion 1 / 沒有)存的 autoSplit false → 打開一次,autoStart 不動', () => {
+    for (const v of [undefined, 1]) {
+      const route = { ...presetRoute('poe1', 'cmn-Hant'), autoSplit: false, autoStart: true }
+      const c = rt({ configVersion: v, speedrun: { poe1: route, poe2: { ...route, splits: presetRoute('poe2', 'cmn-Hant').splits, golds: presetRoute('poe2', 'cmn-Hant').golds } } })
+      expect([c.speedrun.poe1.autoSplit, c.speedrun.poe2.autoSplit, c.speedrun.poe1.autoStart]).toEqual([true, true, true])
+      expect(c.configVersion).toBe(2)
+    }
+  })
+  it('configVersion 2 之後使用者關掉的照記住', () => {
+    const c = rt({ configVersion: 2, speedrun: { poe1: { ...presetRoute('poe1', 'cmn-Hant'), autoSplit: false } } })
+    expect(c.speedrun.poe1.autoSplit).toBe(false)
   })
 })
