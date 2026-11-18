@@ -225,7 +225,6 @@
       "trigger_mode": "Show prices",
       "trigger_auto": "Detect automatically",
       "trigger_hotkey": "On hotkey",
-      "trigger_hint": "Detect automatically: keeps checking whether the stash is open. On hotkey: no screen capture until you press the hotkey on the Fragment tab; press again or close the stash to hide. Set the hotkey under Stash prices in the Hotkeys table.",
       "timing": "OCR {ms} ms ({count} total)",
       "region": "OCR region",
       "region_hint": "OCR only reads this area to tell that the fragment tab is open and which sub-tab is shown; it should cover the General / Allflame / Eldritch buttons without cutting through the stash tab names above. Not set = the default position derived from the screen height. Slot positions are not affected. Putting the stash tab into a folder moves the buttons down; pick the area again or reset to default.",
@@ -248,7 +247,9 @@
       "picker": {
         "help": "Frame the fragment tab sub-tab buttons (General / Allflame / Eldritch)",
         "sub": "Do not cut through the stash tab names above; the dashed box is the area in use. A stash tab in a folder moves the buttons down: pick again or reset to default"
-      }
+      },
+      "trigger_auto_desc": "Shows prices whenever the stash is open",
+      "trigger_hotkey_desc": "No capture until you press the stash prices hotkey"
     },
     "runeshape": {
       "section": "Runeshape",
@@ -449,15 +450,23 @@
     },
     "tab_regex": "Regex",
     "tab_dust": "Disenchant ranking",
-    "tab_log": "Log",
-    "tab_about": "Updates & about",
+    "map_check": {
+      "bookmark": "Regex bookmark for map check",
+      "pick_bookmark": "Pick a bookmark…",
+      "no_bookmark": "No map mod bookmark yet: tick mods on the Map mods / Heist contracts / Logbook page in Settings › Regex and save a bookmark (exclude mode = red, include = green).",
+      "default_label": "Map check bookmark",
+      "default_none": "(no colours)",
+      "default_lead": "The map check hotkey colours a map's mods with this bookmark: ticked mods are red in exclude mode, green in include mode. You can switch it in the check window too.",
+      "card_title": "Map mod check"
+    },
+    "tab_log": "Log & performance",
+    "tab_about": "About",
     "quit_app": "Quit",
     "coming_soon": "Coming soon",
     "section_interface": "Interface",
     "section_game": "Game & realm",
     "section_search": "Search",
     "section_listing": "Listings & clipboard",
-    "section_hotkeys": "Hotkeys",
     "section_window": "Game window & overlay",
     "section_version": "Version",
     "section_data": "Data sources",
@@ -679,7 +688,7 @@
       "add_stash": "Add to stash search",
       "add_stash_done": "Added",
       "add_stash_dup": "Already in list",
-      "add_stash_tip": "Add this string to Settings › Stash & chat › Stash search, then set its hotkey there (the stash search box takes up to 250 characters)",
+      "add_stash_tip": "Add this string to Settings › Stash › Stash search, then set its hotkey there (the stash search box takes up to 250 characters)",
       "out_zh": "Output: 繁體中文",
       "out_en": "Output: English",
       "lang_tip": "Which client language the string is for. The two produce completely different fragments and are not interchangeable.",
@@ -901,7 +910,9 @@
       "incoming_err_file-read": "Cannot read the share code file: {detail}.",
       "incoming_err_file-too-large": "The share code file is too large: {detail}.",
       "incoming_err_decode": "Cannot apply the share code: {detail}",
-      "incoming_err_not-loaded": "The {detail} lists failed to load; cannot apply."
+      "incoming_err_not-loaded": "The {detail} lists failed to load; cannot apply.",
+      "view_generator": "Generator",
+      "view_bookmarks": "Bookmarks & shortcuts"
     },
     "log": {
       "filter": "Filter",
@@ -930,7 +941,7 @@
       "stash_dump_failed": "Save failed: {msg}",
       "stash_dump_not_showing": "The stash price overlay isn't showing: open the General or Threads sub-tab of the fragment stash tab in game first.",
       "stash_dump_timeout": "No stash capture arrived (timed out): make sure the fragment stash tab is open and the game is in front, then try again.",
-      "stash_dump_disabled": "Stash prices are disabled: turn them on under Recognition first.",
+      "stash_dump_disabled": "Stash prices are disabled: turn them on in the Stash page first.",
       "stash_dump_not_poe1": "Only the PoE1 stash is supported.",
       "stash_dump_not_intl": "Stash prices are only available on the international realm.",
       "stash_dump_paused": "Stash prices are paused (pause hotkey): resume first.",
@@ -1053,8 +1064,7 @@
       "tw_unavailable": "poe.ninja has no Taiwan realm prices",
       "error": "poe.ninja fetch failed: {error}"
     },
-    "tab_game": "Game",
-    "tab_stash_chat": "Stash & chat",
+    "tab_game": "Game & window",
     "tab_recognition": "Auto recognition",
     "nav_group_settings": "Settings",
     "nav_group_tools": "Tools",
@@ -1066,22 +1076,22 @@
     "trade_captcha_help": "If price checks are blocked by a Cloudflare challenge, open the trade site here and complete it.",
     "item_hover_help": "In overlay mode it appears to the left of the panel; in window mode above or below the row.",
     "overlay_gate": "The features on this page are only available in overlay mode.",
-    "overlay_gate_go": "Turn on overlay in Game",
+    "overlay_gate_go": "Turn on overlay in Game & window",
     "stash_scroll_k": "Trigger",
     "stash_scroll_note": "Hold Ctrl and scroll in game to switch stash tabs.",
     "hk_group": {
       "price": "Price check",
       "menu": "Settings menu",
       "scan": "Auto recognition",
-      "stash_chat": "Stash & chat",
       "regex": "Regex",
       "stash_search": "Stash search",
       "regex_bookmark": "Bookmark",
-      "tools": "Tools"
+      "tools": "Tools",
+      "timer": "Timer",
+      "stash_prices": "Stash prices"
     },
     "hk": {
       "menu_toggle": "Show / hide",
-      "edit_in": "Edit in {page}",
       "unset": "Not set",
       "empty": "Nothing here.",
       "empty_stash_chat": "No stash searches yet.",
@@ -1090,11 +1100,13 @@
       "window_only": "Other hotkeys are only available in overlay mode.",
       "poedb": "Open item on poedb",
       "wiki": "Open item on the wiki",
+      "map_check": "Check map mods",
       "timer_toggle": "Timer start / split",
       "timer_reset": "Timer reset",
       "timer_pause": "Timer pause / resume",
       "timer_undo": "Timer undo split",
-      "timer_skip": "Timer skip split"
+      "timer_skip": "Timer skip split",
+      "goto_page": "{page} ›"
     },
     "timer": {
       "section": "Timer",
@@ -1151,6 +1163,31 @@
     },
     "filters": {
       "expand": "Show mods"
+    },
+    "tab_startup": "Startup & updates",
+    "tab_stash": "Stash",
+    "tab_chat": "Chat commands",
+    "tab_timer": "Timer",
+    "nav_group_features": "Features",
+    "section_files": "Files & preview",
+    "tab_lead": {
+      "general": "Appearance and background image, applied right away",
+      "game": "Which game and realm to check, and how to sit on top of the game",
+      "hotkeys": "Grouped by feature; the link next to a group opens that feature's page",
+      "startup": "How the app starts and updates",
+      "price_check": "How searches are built and what the result panel shows",
+      "stash": "Stash prices, tab scrolling and stash search in one place",
+      "chat": "Type commands into the game chat with a hotkey (overlay mode only)",
+      "recognition": "Reads desecration and runeshaping panels from screen captures on this PC",
+      "timer": "Split timer for levelling, auto-split from the game log",
+      "regex": "Build search strings for the game and paste bookmarks with one key",
+      "dust": "Which uniques are worth disenchanting, priced by poe.ninja",
+      "log": "Kept on this PC only; copy and paste it yourself when reporting a problem",
+      "about": "Version, data sources, community and credits"
+    },
+    "page_hotkeys": {
+      "label": "Hotkeys on this page",
+      "edit": "Change in the hotkey table ›"
     }
   }
 }

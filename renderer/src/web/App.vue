@@ -201,6 +201,8 @@
     <stash-prices v-if="isOverlay" :interactive="floatMenuOpen" />
     <!-- 2026-11-09:計時器(移植 APT 碼表;懸浮選單開著時可拖曳、按按鈕) -->
     <timer-widget v-if="isOverlay" :interactive="floatMenuOpen" />
+    <!-- 2026-11-18:PoE1 地圖詞綴檢查(移植 APT map-check;熱鍵 hotkeyMapCheck,overlay 取得焦點期間顯示) -->
+    <map-check-layer v-if="isOverlay && mapCheckItem" :item="mapCheckItem" :side="mapCheckSide" :item-key="mapCheckSeq" />
     <!-- WP-S2:在遊戲畫面上框選 OCR 區域(開著時忽略背景點擊) -->
     <ocr-region-picker v-if="isOverlay" />
   </div>
@@ -223,6 +225,8 @@ import * as Poe2 from '@poe2-entry'
 import { dataLanguage, loadedGame } from './games/active'
 import { poe1Adapter } from '@exile-appraiser/poe1'
 import { poedbUrl, wikiUrl } from '@poe1/item-check/poedb'
+import { isMapLike } from '@poe1/map-check/common'
+import MapCheckLayer from './overlay/MapCheckLayer.vue'
 import { openItemOnPoedb } from './poedb-open'
 import { timerAction, timerArea } from './overlay/timer-state'
 import TimerWidget from './overlay/TimerWidget.vue'
@@ -258,7 +262,7 @@ import { REALMS, isSupportedCombination } from '@exile-appraiser/core/realm'
 import { reloadPhase, reloadError, retryReload } from './loadState'
 import { reportIssue, copyIssueReport, reportStatus, type ReportContext } from './report'
 import { REPORT_INLINE_KEY, inlineReportError } from './report-inline'
-import { settingsTab } from './settings/tabState'
+import { regexView, settingsTab } from './settings/tabState'
 import { resolveSettingsTab } from './settings/settings-tabs'
 import { createBackdropGuard } from './settings/settings-window-geom'
 
@@ -271,7 +275,7 @@ const PANEL_WIDTH_EM = 28.75
 const LEGACY_FS_SCALE = 1.23
 
 export default defineComponent({
-  components: { UiErrorBox, ErrorBoundary, BgLayer, SettingsWindow, OcrBadges, OcrRegionPicker, RuneshapePrices, StashPrices, RegexBookmarkBar, RegexQuickPanel, FloatMenu, TimerWidget },
+  components: { UiErrorBox, ErrorBoundary, BgLayer, SettingsWindow, OcrBadges, OcrRegionPicker, RuneshapePrices, StashPrices, RegexBookmarkBar, RegexQuickPanel, FloatMenu, TimerWidget, MapCheckLayer },
   setup () {
     const { t, te } = useI18n()
     const leagues = useLeagues()
@@ -284,6 +288,39 @@ export default defineComponent({
     const regexQuickOpen = shallowRef(false)
     /** 2026-10-08:APT 式懸浮選單(overlay 限定;overlay/FloatMenu.vue) */
     const floatMenuOpen = shallowRef(false)
+    /** 2026-11-18:PoE1 地圖詞綴檢查(overlay 限定;null = 沒開) */
+    const mapCheckItem = shallowRef<ParsedItem | null>(null)
+    const mapCheckSide = shallowRef<'stash' | 'inventory'>('stash')
+    const mapCheckSeq = shallowRef(0)
+    function closeMapCheck (reason: string) {
+      if (!mapCheckItem.value) return
+      mapCheckItem.value = null
+      console.log(`[map-check] 收起(${reason})`)
+    }
+    /** 地圖詞綴檢查熱鍵:只在 PoE1;不是地圖類物品什麼都不做(使用者 2026-11-18 裁定) */
+    async function openMapCheck (e: ItemTextEvent) {
+      // 熱鍵已讓 overlay 取得焦點;不顯示就一律還給遊戲(快速查價面板開著也一樣:它本來就沒有焦點,main 也已移除它的滑鼠追蹤)
+      if (loadedGame.value !== 'poe1') { Host.focusGame(); return }
+      try {
+        await poe1Adapter.prepareItemText(e.clipboard, AppConfig().realm)
+      } catch (err) {
+        console.error('[map-check] 換語系資料失敗,改用目前的資料集解析', err)
+      }
+      const p = parseClipboard(e.clipboard)
+      if (!p.isOk() || !isMapLike(p.value)) {
+        console.log(`[map-check] 不是地圖類物品,不顯示(${p.isOk() ? p.value.category ?? p.value.info.refName : p.error})`)
+        Host.focusGame()
+        return
+      }
+      hidePanel('地圖詞綴檢查')
+      showSettings.value = false
+      regexQuickOpen.value = false
+      floatMenuOpen.value = false
+      mapCheckSide.value = (e.position.x - window.screenX) > window.innerWidth / 2 ? 'inventory' : 'stash'
+      mapCheckSeq.value++
+      mapCheckItem.value = p.value
+      console.log(`[map-check] 顯示 ${p.value.info.refName} side=${mapCheckSide.value}`)
+    }
     const itemKey = shallowRef(0)
     // 429 Retry-After:面板頂端 --warn 細條倒數;2026-10-15 提升成共用(懸浮選單標題列的限流點也用)
     const rateLimitWait = useRateLimitWait()
@@ -388,6 +425,11 @@ export default defineComponent({
         })
         return
       }
+      if (e.target === 'map-check') {
+        void openMapCheck(e)
+        return
+      }
+      closeMapCheck('查價')
       if (isOverlay && !e.focusOverlay) {
         // everything in CSS pixels(照 APT PriceCheckWindow.vue)
         const width = panelWidth.value
@@ -506,7 +548,8 @@ export default defineComponent({
             hidePanel(`focus-change game=${state.game} overlay=false`)
             closeRegexQuick('focus-change')
             closeFloatMenu('focus-change')
-          } else if (state.usingHotkey && !panelShown.value) {
+            closeMapCheck('focus-change')
+          } else if (state.usingHotkey && !panelShown.value && !mapCheckItem.value) {
             // overlayKey 叫出 overlay 但沒有物品:APT 式懸浮選單(2026-10-08 使用者裁定;點「設定」才開設定視窗)
             parsed.value = null
             floatMenuOpen.value = true
@@ -534,6 +577,7 @@ export default defineComponent({
       const onRegexShare = (req: RegexShareRequest) => {
         // 快速面板開著就收起(不走 closeRegexQuick:那會把焦點還給遊戲)
         if (regexQuickOpen.value) { regexQuickOpen.value = false; console.log('[app] 關閉正則書籤快速面板(regex-share)') }
+        regexView.value = 'generator' // 套用結果在產生器子分頁
         openSettingsTo('regex', `PobTools 正則分享碼 #${req.id}`)
         void incomingShare.receive(req)
       }
@@ -580,6 +624,11 @@ export default defineComponent({
         closeFloatMenu('點背景')
         return
       }
+      if (mapCheckItem.value) {
+        closeMapCheck('點背景')
+        Host.focusGame()
+        return
+      }
       if (AppConfig().overlayBackgroundClose) {
         hidePanel('點背景')
         Host.focusGame()
@@ -611,7 +660,7 @@ export default defineComponent({
       }, { immediate: true })
       // 第五輪 30.4:overlay 上有沒有東西要畫 → main 閒置隱藏 overlay 視窗(overlay/overlay-content.ts;內容相同不重送)
       let lastContentKey = ''
-      watch(() => overlayContentOf({ panel: panelShown.value, settings: settingsVisible.value, picker: regionPickerOpen.value, quick: regexQuickOpen.value, menu: floatMenuOpen.value }, overlayLayers), (c) => {
+      watch(() => overlayContentOf({ panel: panelShown.value, settings: settingsVisible.value, picker: regionPickerOpen.value, quick: regexQuickOpen.value, menu: floatMenuOpen.value, map: mapCheckItem.value !== null }, overlayLayers), (c) => {
         const key = overlayContentKey(c)
         if (key === lastContentKey) return
         lastContentKey = key
@@ -622,6 +671,7 @@ export default defineComponent({
     // 換遊戲後舊物品是另一個 parser 的結果,不能交給新遊戲的 CheckedItem
     watch(loadedGame, (game) => {
       parsed.value = null
+      mapCheckItem.value = null
       console.log(`[app] 已切換到 ${game}`)
     })
 
@@ -660,6 +710,9 @@ export default defineComponent({
       closeRegexQuick,
       floatMenuOpen,
       closeFloatMenu,
+      mapCheckItem,
+      mapCheckSide,
+      mapCheckSeq,
       menuToggleSettings,
       /** 懸浮選單的書籤貼進遊戲了:焦點 main 已交還遊戲,選單收起 */
       onMenuPasted () { closeFloatMenu('pasted') },
@@ -667,7 +720,7 @@ export default defineComponent({
       menuOpenTab (tab: SettingsTabId) { openSettingsTo(tab, '懸浮選單') },
       regexBookmarkBar: computed(() => AppConfig().regexBookmarkBar),
       /** 書籤列沒有書籤時「前往正則」 */
-      openRegexTab () { settingsTab.value = 'regex' },
+      openRegexTab () { regexView.value = 'generator'; settingsTab.value = 'regex' },
       onSettingsLayerPointerDown,
       onSettingsLayerClick,
       toggleSettings () {

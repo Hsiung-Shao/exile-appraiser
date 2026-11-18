@@ -295,7 +295,7 @@ describe('S20 倉庫卡片走統一樣板(T4 / T5)', () => {
     for (const k of [':data-setting="spec.ds.status"', ':data-action="spec.ds.stats"', ':data-setting="spec.ds.enabled"', 'role="switch"']) expect(head, k).toContain(k)
     expect(card).toMatch(/class="scan-extra"[\s\S]*<slot name="extra" \/>/)
     expect(card).toContain('t(spec.i18n.clear)')
-    const rec = read('../src/web/settings/tabs/Recognition.vue')
+    const rec = read('../src/web/settings/tabs/Stash.vue')
     const stash = rec.slice(rec.indexOf('kind="stash"'), rec.indexOf('</ocr-scan-section>', rec.indexOf('kind="stash"')))
     expect(stash).toContain('data-setting="stash-tw"')
     expect(stash).toContain('<template #top>')

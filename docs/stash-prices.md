@@ -35,7 +35,7 @@
    fixture `strip-general-1440*.png`;140 / 150 起算都失敗,170 起算在 1432 / 1440 × 是否在資料夾四種情況都讀到 ≥ 3 顆)。
    認到 ≥ 1 顆按鈕但判定失敗時記一行 `[stash] 沒找到子頁按鈕…`(最多每 30 秒一次)。
    **使用者可自訂 OCR 區域**(2026-10-14 使用者要求,同褻瀆 / 符文的框選):設定 `stashRegion`(client 比例,null = 上述預設),
-   設定 › 自動辨識 › 倉庫價格「在遊戲上框選」/「還原預設」,框選層目標 `stash`(沒框過時參考框顯示預設區域 `defaultStripRegion`)。
+   設定 › 倉庫 › 倉庫價格「在遊戲上框選」/「還原預設」,框選層目標 `stash`(沒框過時參考框顯示預設區域 `defaultStripRegion`)。
    **自訂區域有上限**(code review R1):換成 client 像素後與 `stripZone`(按鈕可能出現的範圍:x 0 – h×37/60、
    y 120/1440·h – 268/1440·h;不加資料夾偏移:資料夾內按鈕文字下緣約 260 仍在內,再往下是聖甲蟲第一列自己的徽章,
    實機截圖 122–268 繁中 / 資料夾 / 英文都認到 ≥ 3 顆)取交集;交集為空 → 預設 `stripRect`;被縮小 / 完全在範圍外時記一行
@@ -75,8 +75,8 @@
 `renderer/src/web/overlay/StashPrices.vue` + `stash-view.ts`:徽章貼在格子下緣、格寬內置中;外觀沿用 `.rs-badge`、`config.ocrBadgeStyle`
 的 `--badge-*` 變數與三段價格色(`badgeStyleVars(…, 'stash')`);門檻 `stashThresholds`(混沌石,預設 5 / 50);≥ 1 神聖石改神聖石。
 價格單位:混沌石 **C**、神聖石 **D**(2026-10-14 使用者指定,兩語相同)。名稱那一行 = 辨識檢視(`stashShowNames`,預設開)。
-設定在 **設定 › 自動辨識**(2026-10-14 使用者回報放在「倉庫與聊天」找不到,搬過來;自動辨識頁 PoE1 起也顯示,同日移到左選單「工具」組第一個):PoE1 時只有共用卡片、
-「倉庫價格」卡片與「徽章外觀」(字體 / 大小 / 外框與 PoE2 共用 `ocrBadgeStyle`;價格門檻改綁 `stashThresholds`,單位 C,預覽顯示 C / D);褻瀆 / 符文卡片只在 PoE2。
+設定在 **設定 › 倉庫**(2026-11-18 設定重整:倉庫相關集中一頁,自動辨識頁只在 PoE2;2026-10-14 ~ 11-18 曾在「自動辨識」):倉庫頁頂端是倉庫價格的熱鍵唯讀列,接著共用 OCR 卡片(`OcrSharedSection.vue`)、
+「倉庫價格」卡片(顯示方式為兩張選項卡)與「徽章外觀」(字體 / 大小 / 外框與 PoE2 共用 `ocrBadgeStyle`;價格門檻改綁 `stashThresholds`,單位 C,預覽顯示 C / D);褻瀆 / 符文卡片只在 PoE2。
 倉庫價格卡片與褻瀆 / 符文**同一個元件** `OcrScanSection.vue kind="stash"`(2026-10-14 統一樣板;差異在 `settings/scan-card-specs.ts` `SCAN_SPECS.stash`:
 統計 = `Host.stashStats` 每 2 秒輪詢、區域清除鈕 =「還原預設」、沒框過顯示預設按鈕列;台服警告在 `#top`、顯示物品名稱 `stashShowNames` 在 `#extra`;
 `stash-*` data-setting 錨點不變)。舊的 `StashPricesSection.vue` 已刪除。懸浮選單的開關列(PoE1)也可直接開關倉庫價格與格子名稱。
@@ -88,7 +88,7 @@
 + 右下角通知「倉庫價格:已暫停 / 已啟動」(`scanToastMessage` kind `stash`);框選熱鍵送 `ocr-region-pick { target: 'stash' }`。兩者都不送任何按鍵。
 
 ### 熱鍵顯示模式(2026-10-15)
-設定 › 自動辨識 › 倉庫價格「顯示方式」= `stashTriggerMode`:`auto`(預設;舊設定檔 / 壞值也是 auto)= 上述一直偵測;`hotkey` = 平常**不擷取**,按 `hotkeyStashToggle` 才偵測。
+設定 › 倉庫 › 倉庫價格「顯示方式」= `stashTriggerMode`:`auto`(預設;舊設定檔 / 壞值也是 auto)= 上述一直偵測;`hotkey` = 平常**不擷取**,按 `hotkeyStashToggle` 才偵測。
 - 設定走 Config → host-config(`HOST_CONFIG_IMMEDIATE_KEYS` 與 main `scanConfigKey` 都有這欄,守門 `renderer/test/host-config-sync.test.ts`)→ `StashScanConfig.triggerMode`。
 - `StashScan` 的 `armed`:hotkey 模式沒 armed → `stashBlock` 回 `not-armed`(判斷在 `user-paused` 之後;屬停止類 = 收疊層、不排 tick、0 擷取)。
 - `arm()`:armed、清差分基準與使用者暫停、立刻 `poke()`;armed 期間沒顯示也照設定間隔(不套閒置 3 秒下限)。
@@ -101,14 +101,14 @@
 
 ## 只支援國際服(2026-10-15 使用者裁定)
 台服(`realm` tw)時 main `StashScan` 完全不掃描(不讀按鈕、不讀數量):`stashBlock` 回 `not-intl`(收掉疊層、不排計時器);
-host-config 帶 `realm`(`HOST_CONFIG_IMMEDIATE_KEYS`、main `scanConfigKey` 都有 → 切換時立刻 poke)。設定 › 自動辨識 › 倉庫價格狀態「只支援國際服」(`ppz.stash.status_not_intl`),
+host-config 帶 `realm`(`HOST_CONFIG_IMMEDIATE_KEYS`、main `scanConfigKey` 都有 → 切換時立刻 poke)。設定 › 倉庫 › 倉庫價格狀態「只支援國際服」(`ppz.stash.status_not_intl`),
 懸浮選單倉庫列在台服停用並顯示同樣說明(`ppz.menu.stash_tw`)。測試 `main/test/stash-scan.test.ts` S21、`renderer/test/stash-value.test.ts` V16。
 
 ## 價格
 `usePoeninja().priceOf(refName)`;poe.ninja 類別 Fragment 原本就有,綢帶在 3.30 新類別 **`Thread`**(2026-11-18 加進 `NINJA_CATEGORIES`,錄製檔 `core/test/recordings/ninja/exchange_Thread.json`,Covens 聯盟)(Scarab 2026-11-08 因 3.30 移除而不抓)(曾為不滅之火補 `AllflameEmber`,刪除不滅之火時一併撤回)。層顯示時 `queuePricesFetch()`。
 
 ## 倉庫價值(2026-10-15,讀堆疊數量)
-設計稿 `StashValue`(https://claude.ai/artifact/8G1wDzZxwYDtEMv3KU7U81)。設定 › 自動辨識 › 倉庫價格「讀取堆疊數量並計算總價」`stashReadQuantity`(預設開;
+設計稿 `StashValue`(https://claude.ai/artifact/8G1wDzZxwYDtEMv3KU7U81)。設定 › 倉庫 › 倉庫價格「讀取堆疊數量並計算總價」`stashReadQuantity`(預設開;
 在 `HOST_CONFIG_IMMEDIATE_KEYS` 與 main `scanConfigKey`)。
 
 - **判讀(core `src/stash/quantity.ts`,純函式)**:不用 WinOCR(研究:拼圖法 57–77%)。裁切 x = 格 x − 3、寬 = 格寬 × 0.85,y = 格 y、高 = 格高 × 0.65 →

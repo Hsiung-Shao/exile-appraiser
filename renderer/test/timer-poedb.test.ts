@@ -119,14 +119,16 @@ describe('熱鍵總表與衝突檢查(T13)', () => {
     } as HotkeyConfigLike
   }
 
-  it('T13 overlay:tools 群組依序列 poedb / timerToggle / timerReset,欄位接對', () => {
+  it('T13 overlay:工具 + 計時器群組依序列 poedb / timerToggle / timerReset,欄位接對(2026-11-18 計時器自成一組)', () => {
     for (const game of ['poe1', 'poe2'] as const) {
-      const g = hotkeyTable(fullConfig(game), { overlay: true }).find(x => x.id === 'tools')
-      expect(g, game).toBeDefined()
-      expect(g!.rows.map(r => r.kind === 'edit' ? [r.id, r.field, r.optional === true] : r.id)).toEqual([
+      const groups = hotkeyTable(fullConfig(game), { overlay: true })
+      expect(groups.map(x => x.id).slice(-2), game).toEqual(['tools', 'timer'])
+      expect(groups.filter(x => x.id === 'tools' || x.id === 'timer').flatMap(x => x.rows).map(r => r.kind === 'edit' ? [r.id, r.field, r.optional === true] : r.id)).toEqual([
         ['poedb', 'hotkeyPoedb', true],
         // 2026-11-13:物品開 wiki
         ['wiki', 'hotkeyWiki', true],
+        // 2026-11-18:PoE1 地圖詞綴檢查
+        ...(game === 'poe1' ? [['map-check', 'hotkeyMapCheck', true]] : []),
         ['timerToggle', 'hotkeyTimerToggle', true],
         ['timerReset', 'hotkeyTimerReset', true],
         // 2026-11-10 speedrun:暫停 / 撤銷 / 跳過
@@ -226,8 +228,8 @@ describe('審查修正(2026-11-09)', () => {
   })
   it('計時器顯示關閉時,熱鍵列標 needs(總表顯示「功能關閉中」)', () => {
     const cfg = { hotkey: 'D', hotkeyHold: 'Ctrl', hotkeyLocked: '', overlayKey: '', game: 'poe1', hotkeyOcrReveal: '', hotkeyOcrRegion: '', hotkeyRuneshapeToggle: '', commands: [], stashSearch: [] } as unknown as HotkeyConfigLike
-    const g = hotkeyTable(cfg, { overlay: true }).find(x => x.id === 'tools')!
-    expect(g.rows.map(r => r.kind === 'edit' ? r.needs ?? null : null)).toEqual([null, null, 'timerDisplay', 'timerDisplay', 'timerDisplay', 'timerDisplay', 'timerDisplay'])
+    const rows = hotkeyTable(cfg, { overlay: true }).filter(x => x.id === 'tools' || x.id === 'timer').flatMap(x => x.rows)
+    expect(rows.map(r => r.kind === 'edit' ? r.needs ?? null : null)).toEqual([null, null, null, 'timerDisplay', 'timerDisplay', 'timerDisplay', 'timerDisplay', 'timerDisplay'])
     expect(read('renderer/src/web/settings/tabs/Hotkeys.vue')).toContain("needs === 'timerDisplay' ? config.timerDisplay === 'off'")
   })
 })

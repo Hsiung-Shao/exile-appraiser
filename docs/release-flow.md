@@ -2,7 +2,7 @@
 
 自動更新由 `main/src/AppUpdater.ts`(electron-updater,GitHub provider;狀態機在 `updater-core.ts`)負責:
 啟動後檢查一次、之後每 2 小時(第 34 步,原本 16 小時;已下載 / 下載中 / `--no-updates` / 開發模式不重新檢查,失敗只記 log),讀 `https://github.com/Hsiung-Shao/exile-appraiser/releases/latest` 的 `latest.yml`。
-- **設定 `autoUpdate`(預設開,設定 › 關於)+ 安裝版**:檢查到新版就在背景下載 → 關於頁顯示「已下載 vX,結束程式時自動套用」
+- **設定 `autoUpdate`(預設開,設定 › 啟動與更新)+ 安裝版**:檢查到新版就在背景下載 → 啟動與更新頁顯示「已下載 vX,結束程式時自動套用」
   → 使用者**正常結束**程式(托盤「結束」、設定「結束程式」、`--quit`)時靜默執行安裝程式,下次啟動即新版;
   「立即重啟並更新」= `quitAndInstall(true, true)`(靜默安裝後自動啟動)。前提與取捨見 AppUpdater.ts 檔頭(2026-09-30 使用者裁定)。
 - **`autoUpdate` 關**:原本的手動流程(有新版 → 按下載 → 按「重新啟動並安裝」,顯示安裝程式畫面)。
@@ -97,12 +97,12 @@
 純邏輯 `main/src/update-reminder.ts`(`main/test/update-reminder.test.ts`),視窗在 `main.ts` `showUpdateReminder`。
 - 觸發(`reminderTarget`,版號取自 updater 回報的 `version`,不是寫死):
   `downloaded`(`autoUpdate` 開會自動下載完)→「立即更新」= 安裝(`autoUpdate` 開 = `quitAndInstall(true, true)`,關 = 顯示安裝程式);
-  `available` 安裝版(`autoUpdate` 關)→「立即更新」= 開設定 › 關於並開始下載;`available` portable(`not-supported`,檢查照做,只是不能就地安裝)→「前往 Releases」開 Release 頁。
+  `available` 安裝版(`autoUpdate` 關)→「立即更新」= 開設定 › 啟動與更新並開始下載;`available` portable(`not-supported`,檢查照做,只是不能就地安裝)→「前往 Releases」開 Release 頁。
   `initial` / `not-available` / `downloading` / `--no-updates` → 不提醒;`checking` / `error`(定期重新檢查中、網路斷)沿用上一個目標。
 - 時機(`UpdateReminderScheduler`):偵測到新版(或版號 / 動作改變)立刻一次,之後每 10 分鐘;「稍後」與約 5 秒自動淡出都是 10 分鐘後再來;
   滑鼠停在提醒上時暫停淡出(main 每 200 ms 看游標、CSS `:hover` 暫停動畫);「略過此版本」= 存設定 `updateSkippedVersion`,同版號不再提醒,更新的版號照常。
   畫面上已有其他提示(啟動提示、遊戲啟動提示、辨識開關通知、正則貼上提示)→ 延後 1.5 秒重試;提醒顯示中來了其他提示 → 提醒收回、等那個提示結束再出現(同位置不疊兩個)。
-  按「立即更新」安裝 / 程式結束中 → 停止。設定 › 關於「有新版本時定期提醒」(`updateReminder`,預設開,舊設定檔沒有 = 開)關掉 → 不提醒。`--preview` 啟動、selftest 不提醒。
+  按「立即更新」安裝 / 程式結束中 → 停止。設定 › 啟動與更新「有新版本時定期提醒」(`updateReminder`,預設開,舊設定檔沒有 = 開)關掉 → 不提醒。`--preview` 啟動、selftest 不提醒。
 - 視窗:同啟動提示的外殼(無框、透明、置頂、`focusable: false` + `showInactive` 不搶遊戲焦點),但**可點擊**(不設點擊穿透);
   頁面仍無腳本、CSP `default-src 'none'`;三個按鈕是連到 `https://ppz-reminder.invalid/{now,later,skip}` 的連結,main `will-navigate` 攔下(preventDefault)判斷按了哪個,永遠不會真的連線。
   ⚠ 不可改回同頁錨點 `#…`:data: URL 頁面的錨點導覽不發 `did-navigate-in-page`(dev 實測按鈕完全沒反應)。

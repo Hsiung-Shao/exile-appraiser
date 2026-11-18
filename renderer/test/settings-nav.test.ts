@@ -89,11 +89,11 @@ function makeSettings (opts: { browser: FakeBrowser | null, game?: 'poe1' | 'poe
 }
 
 describe('返回連結狀態', () => {
-  const b: SettingsBack = { from: 'hotkeys', target: 'stash-chat', scroll: 120 }
+  const b: SettingsBack = { from: 'hotkeys', target: 'stash', scroll: 120 }
   it('只在跳到的那一頁保留;切到別的分頁(含回到來源頁)就清掉', () => {
-    expect(nextBack(b, 'stash-chat')).toBe(b)
-    for (const t of SETTINGS_TABS.map(x => x.id).filter(x => x !== 'stash-chat')) expect(nextBack(b, t)).toBeNull()
-    expect(nextBack(null, 'stash-chat')).toBeNull()
+    expect(nextBack(b, 'stash')).toBe(b)
+    for (const t of SETTINGS_TABS.map(x => x.id).filter(x => x !== 'stash')) expect(nextBack(b, t)).toBeNull()
+    expect(nextBack(null, 'stash')).toBeNull()
     expect(nextBack({ from: 'regex', target: 'regex', scroll: 0 }, 'regex')).toBeNull()
   })
 })
@@ -127,7 +127,7 @@ describe('三種情境', () => {
     it(`${mode}:熱鍵總表跳到倉庫與聊天 / 正則 → 返回連結回到熱鍵(捲回原位)、左選單照常、切到別頁連結消失`, () => {
       const browser = mode === 'preview' ? new FakeBrowser('#tab=hotkeys') : null
       const w = makeSettings({ browser, start: 'hotkeys' })
-      for (const target of ['stash-chat', 'regex'] as const) {
+      for (const target of ['stash', 'regex'] as const) {
         w.select('hotkeys')
         w.s.scroll = 340
         w.jump(target)
@@ -159,8 +159,8 @@ describe('瀏覽器預覽的上一頁 / 下一頁', () => {
     expect(br.entries).toHaveLength(1)
     expect(br.location.hash).toBe('#tab=hotkeys')
     w.s.scroll = 500
-    w.jump('stash-chat')
-    expect(br.entries.map(e => e.hash)).toEqual(['#tab=hotkeys', '#tab=stash-chat'])
+    w.jump('stash')
+    expect(br.entries.map(e => e.hash)).toEqual(['#tab=hotkeys', '#tab=stash'])
     br.back()
     expect(br.left).toBe(false)
     expect(w.s.tab).toBe('hotkeys')
@@ -168,8 +168,8 @@ describe('瀏覽器預覽的上一頁 / 下一頁', () => {
     expect(w.backLink()).toBeNull()
     expect(br.entries).toHaveLength(2) // 套回來的不再 push
     br.forward()
-    expect(w.s.tab).toBe('stash-chat')
-    expect(w.backLink()).toEqual({ from: 'hotkeys', target: 'stash-chat', scroll: 500 })
+    expect(w.s.tab).toBe('stash')
+    expect(w.backLink()).toEqual({ from: 'hotkeys', target: 'stash', scroll: 500 })
     expect(br.entries).toHaveLength(2)
   })
 
@@ -180,11 +180,11 @@ describe('瀏覽器預覽的上一頁 / 下一頁', () => {
     expect(before.left).toBe(true)
     const br = new FakeBrowser('#tab=hotkeys')
     const w = makeSettings({ browser: br, start: 'hotkeys' })
-    w.jump('stash-chat')
+    w.jump('stash')
     w.select('general')
     w.select('regex')
     br.back(); expect(w.s.tab).toBe('general')
-    br.back(); expect(w.s.tab).toBe('stash-chat')
+    br.back(); expect(w.s.tab).toBe('stash')
     expect(w.backLink()?.from).toBe('hotkeys')
     br.back(); expect(w.s.tab).toBe('hotkeys')
     expect(br.left).toBe(false)
@@ -207,14 +207,16 @@ describe('瀏覽器預覽的上一頁 / 下一頁', () => {
     expect(br.location.hash).toBe('#tab=general')
     w.select('general')
     expect(br.entries).toHaveLength(1)
-    br.typeHash('#tab=chat')
-    expect(w.s.tab).toBe('stash-chat')
-    expect(br.location.hash).toBe('#tab=stash-chat')
+    br.typeHash('#tab=stash-chat') // 2026-11-18 拆成倉庫 / 聊天指令,舊 id → 倉庫
+    expect(w.s.tab).toBe('stash')
+    expect(br.location.hash).toBe('#tab=stash')
     const n = br.entries.length
-    w.select('stash-chat')
+    w.select('stash')
     expect(br.entries).toHaveLength(n)
-    br.typeHash('#tab=recognition') // 2026-10-14 起 PoE1 也有自動辨識(倉庫價格)
-    expect(w.s.tab).toBe('recognition')
+    br.typeHash('#tab=recognition') // 2026-11-18 起自動辨識只在 PoE2;PoE1 的倉庫價格在倉庫頁
+    expect(w.s.tab).toBe('stash')
+    br.typeHash('#tab=chat')
+    expect(w.s.tab).toBe('chat')
     br.typeHash('#tab=nope') // 不認得 → 一般
     expect(w.s.tab).toBe('general')
   })

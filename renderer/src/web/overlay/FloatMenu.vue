@@ -115,7 +115,7 @@
             <button v-for="g in games" :key="g" type="button" :class="{ on: listGame === g }" :aria-pressed="listGame === g ? 'true' : 'false'"
               :data-game="g" @click="setListGame(g)">{{ gameLabel(g) }}</button>
           </span>
-          <button type="button" class="fm-link" data-action="menu-goto-regex" @click="emit('open-tab', 'regex')">{{ t('ppz.menu.goto_regex') }} ↗</button>
+          <button type="button" class="fm-link" data-action="menu-goto-regex" @click="gotoRegexBookmarks">{{ t('ppz.menu.goto_regex') }} ↗</button>
         </div>
         <p class="fm-hint">{{ t(action === 'paste' ? 'ppz.menu.bm_hint_paste' : 'ppz.menu.bm_hint_copy') }}</p>
         <template v-if="bmGroups.length">
@@ -233,6 +233,7 @@ import type { SettingsTabId } from '@ipc/types'
 import { tradeSession as poe1TradeSession } from '@poe1/trade/common'
 import { poe2TradeSession } from '@poe2-entry'
 import { AppConfig } from '@/web/Config'
+import { regexView } from '@/web/settings/tabState'
 import { Host } from '@/web/background/IPC'
 import { useLeagues } from '@/web/background/Leagues'
 import { usePoeninja } from '@/web/background/Prices'
@@ -261,6 +262,11 @@ const emit = defineEmits<{
   /** 跳到設定的某一頁(「前往正則」2026-10-14、「拆粉排行」2026-10-15) */
   (e: 'open-tab', tab: SettingsTabId): void
 }>()
+/** 書籤區「前往正則」→ 正則的「書籤與快捷」子分頁(2026-11-18 設定重整) */
+function gotoRegexBookmarks () {
+  regexView.value = 'bookmarks'
+  emit('open-tab', 'regex')
+}
 
 const { t } = useI18n()
 const config = AppConfig()

@@ -1,55 +1,16 @@
 <!--
-  設定 › 倉庫與聊天(第 39 步整理;原「聊天指令」分頁 2026-10-01 + 原「熱鍵與視窗」的倉庫頁籤捲動)。
+  設定 › 聊天指令(2026-11-18 設定重整:原「倉庫與聊天」拆成「倉庫」(Stash.vue:倉庫搜尋 / 頁籤捲動 / 倉庫價格)與本頁)。
   聊天指令移植自 Awakened PoE Trade `renderer/src/web/settings/chat.vue`(MIT,Copyright (c) 2020 Alexander Drozdov;
   `LICENSES/awakened-poe-trade.MIT`)。exile-appraiser 改動:
   - 版面改成 pobtools 的卡片 / 列;HotkeyInput 用本專案的(keydown 組字串、Esc / Backspace / Delete 清除)。
-  - 倉庫搜尋(APT 的 stash-search widget 只取熱鍵部分):熱鍵 → Ctrl+F → 貼上 → Enter;Poe Regex 頁「加到倉庫搜尋」帶入。
-  - 倉庫頁籤捲動(第 15 步,移植 APT hotkeys.vue 的 stashScroll):Ctrl + 滾輪 / 停用(main/src/stash-scroll.ts)。
   - 每列顯示熱鍵問題(遊戲保留鍵 / 與其他熱鍵重複 / 被其他程式佔用),規則同 main(`hotkey-conflicts.ts`);
-    倉庫搜尋熱鍵與項目綁在一起,留在這一頁編輯,「熱鍵」總表唯讀列出並可跳來這裡;
-    聊天指令熱鍵在總表也能直接編輯(2026-10-05,同一個 `config.commands[i].hotkey`,兩處即時同步),指令文字只在這一頁改。
-  - 三個功能都只在 overlay 模式(main `shortcut-actions.ts` / `stash-scroll.ts`)→ 設定不是 overlay 時整頁只顯示一句說明 + 前往「遊戲」。
+    聊天指令熱鍵只在這一頁編輯(2026-10-14 使用者裁定,熱鍵總表不列,衝突檢查仍涵蓋)。
+  - 只在 overlay 模式(main `shortcut-actions.ts`)→ 設定不是 overlay 時整頁只顯示一句說明 + 前往「遊戲」。
+  - `.chat-row` 等列樣式也給倉庫頁的倉庫搜尋用(unscoped)。
 -->
 <template>
   <overlay-gate v-if="!config.overlayMode" />
   <template v-else>
-    <section class="card" data-setting="stash-search">
-      <div class="card-head">
-        <span class="label">{{ t('ppz.chat.stash_section') }}</span>
-      </div>
-      <p class="lead">{{ t('ppz.chat.stash_hint') }}</p>
-      <p v-if="!config.stashSearch.length" class="foot" data-setting="stash-empty">{{ t('ppz.chat.stash_empty') }}</p>
-      <div v-for="(s, i) in config.stashSearch" :key="`s${i}`" class="chat-row" :data-stash-row="i">
-        <input v-model.trim="s.text" class="input sm chat-text num" maxlength="250" :placeholder="t('ppz.chat.stash_placeholder')" :data-setting="`stash-text-${i}`" spellcheck="false">
-        <div class="chat-ctl">
-          <span class="dim chat-len">{{ s.text.length }}/250</span>
-          <hotkey-input v-model="s.hotkey" optional class="chat-hotkey" :data-setting="`stash-hotkey-${i}`" />
-          <button class="btn ghost sm" :data-action="`stash-remove-${i}`" @click="config.stashSearch.splice(i, 1)">{{ t('ppz.chat.remove') }}</button>
-        </div>
-        <span v-if="issueText(`stash:${i}`, s.hotkey)" class="err" :data-issue="`stash:${i}`">{{ issueText(`stash:${i}`, s.hotkey) }}</span>
-      </div>
-      <div class="chat-add">
-        <button class="btn sm" data-action="stash-add" :disabled="config.stashSearch.length >= max" @click="config.stashSearch.push({ text: '', hotkey: '' })">+ {{ t('ppz.chat.stash_add') }}</button>
-      </div>
-    </section>
-
-    <section class="card" data-setting="stash-scroll-section">
-      <div class="card-head">
-        <span class="label">{{ t('ppz.stash_scroll') }}</span>
-        <help-tip id="stash-scroll" data-setting="stash-scroll-hint" :text="t('ppz.stash_scroll_hint')" />
-      </div>
-      <div class="srow">
-        <span class="k">{{ t('ppz.stash_scroll_k') }}</span>
-        <div class="ctl">
-          <select v-model="config.stashScroll" class="select sm" data-setting="stash-scroll">
-            <option :value="true">{{ t('ppz.stash_scroll_ctrl_wheel') }}</option>
-            <option :value="false">{{ t('ppz.stash_scroll_off') }}</option>
-          </select>
-        </div>
-        <span class="note">{{ t('ppz.stash_scroll_note') }}</span>
-      </div>
-    </section>
-
     <section class="card" data-setting="chat-commands">
       <div class="card-head">
         <span class="label">{{ t('ppz.chat.section') }}</span>

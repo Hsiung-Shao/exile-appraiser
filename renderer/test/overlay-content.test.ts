@@ -10,7 +10,7 @@ const read = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.met
 describe('overlayContentOf / overlayContentKey', () => {
   it('App 狀態 + 徽章層合成回報;鍵逐欄不同', () => {
     const c = overlayContentOf({ panel: true, settings: false, picker: false }, { reveal: false, rune: true })
-    expect(c).toEqual({ panel: true, settings: false, picker: false, reveal: false, rune: true, stash: false, quick: false, menu: false, timer: false })
+    expect(c).toEqual({ panel: true, settings: false, picker: false, reveal: false, rune: true, stash: false, quick: false, menu: false, timer: false, map: false })
     // PoE1 倉庫價格疊層
     expect(overlayContentOf({ panel: false, settings: false, picker: false }, { reveal: false, rune: false, stash: true }).stash).toBe(true)
     // 第 33 步:快速面板
@@ -34,7 +34,7 @@ describe('接線守門', () => {
     const i = app.indexOf('Host.overlayContent(c)')
     expect(i).toBeGreaterThan(-1)
     const block = app.slice(app.lastIndexOf('if (isOverlay) {', i), i)
-    expect(block).toContain('overlayContentOf({ panel: panelShown.value, settings: settingsVisible.value, picker: regionPickerOpen.value, quick: regexQuickOpen.value, menu: floatMenuOpen.value }, overlayLayers)')
+    expect(block).toContain('overlayContentOf({ panel: panelShown.value, settings: settingsVisible.value, picker: regionPickerOpen.value, quick: regexQuickOpen.value, menu: floatMenuOpen.value, map: mapCheckItem.value !== null }, overlayLayers)')
     expect(block).toContain('if (key === lastContentKey) return')
     expect(block).toContain('{ immediate: true }')
   })

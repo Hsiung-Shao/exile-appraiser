@@ -16,8 +16,8 @@ A price checker for Path of Exile 1 and 2: hover an item in game, press a hotkey
 
 | File | What it is |
 |---|---|
-| `ExileAppraiser-Setup-<version>.exe` | **Installer — recommended.** By default installs for the current user into your user folder, needs no administrator rights, and creates shortcuts (you can also choose the install location). **Only the installed version updates itself**: new versions download in the background and are applied when you quit the app; you can turn this off in Settings › Updates & about. |
-| `ExileAppraiser-<version>-portable.exe` | Portable build; just double-click to run. **Does not update itself**; Settings › Updates & about tells you when a new version is out, and "Open Releases" takes you to the download page. |
+| `ExileAppraiser-Setup-<version>.exe` | **Installer — recommended.** By default installs for the current user into your user folder, needs no administrator rights, and creates shortcuts (you can also choose the install location). **Only the installed version updates itself**: new versions download in the background and are applied when you quit the app; you can turn this off in Settings › Startup & updates. |
+| `ExileAppraiser-<version>-portable.exe` | Portable build; just double-click to run. **Does not update itself**; Settings › Startup & updates tells you when a new version is out, and "Open Releases" takes you to the download page. |
 | `ExileAppraiser-Setup-<version>.exe.blockmap` | Used by the auto-updater (delta download: only the changed parts are fetched). **You don't need to download it.** |
 | `latest.yml` | Used by the auto-updater (version info and file hash check). **You don't need to download it.** |
 | Source code (zip / tar.gz) | Source archive added automatically by GitHub. Not needed to use the app. |
@@ -87,26 +87,29 @@ A price checker for Path of Exile 1 and 2: hover an item in game, press a hotkey
 
 ### 1. First launch
 
-- The app runs in the background with no main window. A notice at the bottom right of the screen briefly shows that it is running, together with the price-check hotkey (can be turned off in Settings › General).
+- The app runs in the background with no main window. A notice at the bottom right of the screen briefly shows that it is running, together with the price-check hotkey (can be turned off in Settings › Startup & updates).
 - The app icon lives in the **system tray** (bottom right of the taskbar). Its right-click menu has only: Open settings in browser, the version (greyed out, not clickable), Check for updates, Quit; double-click the icon to bring up the settings window.
 - Ways to open Settings:
   - double-click the tray icon (or right-click → "Open settings in browser" to use a browser);
   - in game, with no price panel open, press **`Shift + Space`** to bring up the [floating menu](#floating-menu) and click "Settings";
   - the gear ⚙ in the price panel's title bar.
-- The menu on the left of the Settings window has two groups:
+- The menu on the left of the Settings window has three groups; "Hotkeys on this page" at the top of a feature page lists the hotkeys it uses and links to the hotkey table to change them:
 
 | Group | Tab | What's in it |
 |---|---|---|
-| Settings | General | Interface language, theme, font size, background image, startup notice, hardware acceleration, browser preview |
-| | Game | Game, realm, client language, league, trade site check, game window titles, auto-switch, overlay mode |
-| | Price check | Stat value tolerance, default price currency, panel display, listings & clipboard |
-| | Stash & chat | Stash search, stash tab scrolling, chat commands |
-| | Hotkeys | Every hotkey in one table (duplicates and keys taken by other programs are flagged right away) |
-| | Updates & about | Automatic updates, update reminders, open config folder, supported game versions |
-| Tools | Auto recognition | Shared OCR settings, stash prices (PoE1), desecrated mods / runeshape (PoE2), badge appearance |
-| | Regex | Poe Regex search string builder and bookmarks |
+| Settings | General | Interface language, theme, accent colour, font size, background image |
+| | Game & window | Game, realm, client language, league, trade site check, game window titles, auto-switch, overlay mode |
+| | Hotkeys | Every hotkey in one table, grouped by feature (duplicates and keys taken by other programs are flagged right away) |
+| | Startup & updates | Automatic updates, update reminders, startup notice, hardware acceleration, desktop shortcut, open config folder, browser preview |
+| Features | Price check | Stat value tolerance, default price currency, panel display, listings & clipboard |
+| | Stash | Stash prices (PoE1), stash tab scrolling, stash search |
+| | Chat commands | One-key chat commands |
+| | Auto recognition | Desecrated mods / runeshape (PoE2 only), badge appearance |
+| | Timer | Split timer, auto-split from the game log |
+| Tools | Regex | "Generator" sub-tab: search string builder; "Bookmarks & shortcuts" sub-tab: bookmarks, map mod check, bookmark bar |
 | | Disenchant ranking | Dust efficiency of every unique (PoE1) |
-| | Log | App log and performance recording |
+| | Log & performance | App log and performance recording |
+| | About | Supported game versions, data sources, links and support, credits |
 
 ### 2. Basic settings
 
@@ -134,7 +137,7 @@ Default hotkeys (all changeable in **Settings › Hotkeys**: click a field and p
 | Settings menu | `Shift + Space` | With a price panel open, moves focus between the game and the overlay; with no price panel, shows / hides the [floating menu](#floating-menu). |
 | Desecration: pause / resume | `Ctrl + Shift + R` | Pauses and resumes PoE2 Well of Souls auto-recognition. |
 
-The desecration select-area, runeshape, stash prices and regex quick panel hotkeys are unset by default; assign them on the same tab when you need them. Hotkeys for individual bookmarks and stash search are set on the Regex and Stash & chat tabs; this tab only lists them and jumps there when clicked. Unset hotkeys are shown in grey; red means a conflict or a key that could not be registered.
+The desecration select-area, runeshape, stash prices and regex quick panel hotkeys are unset by default; assign them on the same tab when you need them. Hotkeys for individual bookmarks and stash search are set on the Regex and Stash tabs; this tab only lists them and jumps there when clicked. Unset hotkeys are shown in grey; red means a conflict or a key that could not be registered.
 
 Steps:
 
@@ -202,7 +205,7 @@ Close it with ✕, a click outside, `Esc` or `Shift + Space` again; it also clos
 
 When the **fragment stash tab** is open on its "General" sub-tab, every cell gets a poe.ninja price (C = Chaos Orb, D = Divine Orb); hovering a cell enlarges just that one.
 
-**Requirements**: PoE1, overlay mode, international realm (poe.ninja has no Taiwan prices, so stash prices are not shown there). Settings are in **Settings › Auto recognition › Stash prices (PoE1 fragment tab)**; on by default.
+**Requirements**: PoE1, overlay mode, international realm (poe.ninja has no Taiwan prices, so stash prices are not shown there). Settings are in **Settings › Stash › Stash prices (PoE1 fragment tab)**; on by default.
 
 - **Stash value**: stack sizes are read from each cell, badges show the subtotal, and a "Tab value" card shows the total. Cells whose count could not be read are marked "?" and cells without a price are marked "N/A"; neither counts toward the total. Counts come from screen recognition and can be wrong; the game is always right.
 - **Show prices**: "Detect automatically" (appears whenever the stash is open) or "On hotkey" (no screenshots at all until you press the "Stash prices: start / pause" hotkey; hides itself when the stash closes). Set the hotkey in Settings › Hotkeys.
@@ -216,7 +219,7 @@ When the **fragment stash tab** is open on its "General" sub-tab, every cell get
 
 The Well of Souls three-option reveal panel cannot be copied as text, so the app reads the screen with Windows' built-in text recognition (OCR).
 
-**Requirements**: PoE2, overlay mode, a **Traditional Chinese or English game client**, and the matching Windows OCR language pack: **Chinese (Traditional, Taiwan) / zh-Hant-TW** for the Traditional Chinese client, **English (United States) / en-US** for the English client. The recognition language follows the client language by default; with a Chinese UI and an English game you can set "Recognition language" to English under the shared settings of Settings › Auto recognition (independent of the UI and client languages; shared by stash prices, desecration and runeshape).
+**Requirements**: PoE2, overlay mode, a **Traditional Chinese or English game client**, and the matching Windows OCR language pack: **Chinese (Traditional, Taiwan) / zh-Hant-TW** for the Traditional Chinese client, **English (United States) / en-US** for the English client. The recognition language follows the client language by default; with a Chinese UI and an English game you can set "Recognition language" to English under the shared settings of Settings › Auto recognition (on PoE1: Settings › Stash) (independent of the UI and client languages; shared by stash prices, desecration and runeshape).
 
 **Install the OCR language pack** (once; English Windows usually has the English pack built in):
 
@@ -311,7 +314,7 @@ Found in **Settings › Regex**.
 
 ### Chat commands, stash search and stash tab scrolling
 
-All of these are in **Settings › Stash & chat**.
+Stash search and tab scrolling are in **Settings › Stash**; chat commands are in **Settings › Chat commands**.
 
 - **Chat commands**: defaults are `F5` = `/hideout` and `F9` = `/exit`; `@last ty`, `/invite @last` and others can get their own hotkeys. `@last` = the last player who whispered you. Without "Send immediately" the text is only pasted into the chat box so you can edit it and press Enter.
 - **Stash search**: a hotkey types a saved string into the stash search box. "Add to stash search" on the Regex tab fills one in for you.
@@ -359,7 +362,7 @@ The listing card's "Online" menu remembers your last choice (see [Reading the pr
 - Selecting an area around the panel is usually faster and more accurate; select again if the panel moves (resolution or UI scale changes).
 - Traditional Chinese and English game clients are supported; the OCR language pack is chosen by "Recognition language" in Settings › Auto recognition (follows the client language by default, or set Traditional Chinese / English manually to match what the game screen actually shows).
 - The runeshape "Uniques" tab lists only generic rewards (no `1x`-style prefix) and currently gets no badges (same for both languages).
-- If stash price badges do not appear, select the OCR region (the sub-tab button row) in Settings › Auto recognition › Stash prices, or reset it to default. When reporting a stash recognition problem, click "Save stash capture" in Settings › Log to attach what the app actually saw.
+- If stash price badges do not appear, select the OCR region (the sub-tab button row) in Settings › Stash › Stash prices, or reset it to default. When reporting a stash recognition problem, click "Save stash capture" in Settings › Log to attach what the app actually saw.
 </details>
 
 <details>
@@ -372,13 +375,13 @@ The listing card's "Online" menu remembers your last choice (see [Reading the pr
 <details>
 <summary><b>Where are settings stored?</b></summary>
 
-Changes are saved automatically to `%APPDATA%\exile-appraiser\config.json`. "Open config folder" in Settings › Updates & about opens that folder.
+Changes are saved automatically to `%APPDATA%\exile-appraiser\config.json`. "Open config folder" in Settings › Startup & updates opens that folder.
 </details>
 
 <details>
 <summary><b>How do I turn off automatic updates or update reminders?</b></summary>
 
-Settings › Updates & about → untick "Automatic updates". You then click "Download" yourself when a new version is out and, once it finishes, "Restart and install". The portable build never updates itself.
+Settings › Startup & updates → untick "Automatic updates". You then click "Download" yourself when a new version is out and, once it finishes, "Restart and install". The portable build never updates itself.
 
 While a new version is waiting, a reminder appears at the bottom right (about every 10 minutes) offering to update now, later or skip that version; to stop the reminders, untick "Remind me when an update is available" on the same tab.
 </details>

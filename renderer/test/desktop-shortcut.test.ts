@@ -7,8 +7,8 @@ const read = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.met
 const KEYS = ['label', 'button', 'done', 'failed', 'dev', 'hint'] as const
 
 describe('S10 設定頁桌面捷徑', () => {
-  it('General.vue 有帶 data-action 的按鈕', () => {
-    expect(read('../src/web/settings/tabs/General.vue')).toContain('data-action="desktop-shortcut-create"')
+  it('Startup.vue(啟動與更新)有帶 data-action 的按鈕', () => {
+    expect(read('../src/web/settings/tabs/Startup.vue')).toContain('data-action="desktop-shortcut-create"')
   })
   for (const lang of ['cmn-Hant', 'en'] as const) {
     it(`${lang}:六個字串鍵都存在且非空`, () => {

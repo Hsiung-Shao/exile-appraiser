@@ -6,6 +6,8 @@
 |---|---|---|
 | 正則 › 自訂字串書籤(新增 / 編輯 / 存檔 / 刪除) | [regex-custom-bookmark.md](regex-custom-bookmark.md) | `check-custom-bookmark.mjs` |
 | 正則 › 萃取物詞綴頁、物品基底的萃取物分類(選頁 / 勾選 / 輸出字串) | [regex-tincture-page.md](regex-tincture-page.md) | `check-tincture-page.mjs` |
+| 設定視窗重整(三組選單 / 頁首 / 搬家的卡片 / 這頁的熱鍵 / 熱鍵總表跳轉 / 正則子分頁) | [settings-ia.md](settings-ia.md) | `check-settings-ia.mjs` |
+| 地圖詞綴檢查的書籤設定(正則 › 書籤與快捷) | [map-check-settings.md](map-check-settings.md) | `check-map-check.mjs` |
 
 待補(純瀏覽器做得到、尚未寫):正則清單勾選 → 輸出字串、書籤資料夾、設定分頁導覽、拆粉排行表。
 純瀏覽器做不到(見 `../SKILL.md`):查價、熱鍵、貼進遊戲、OCR、overlay。

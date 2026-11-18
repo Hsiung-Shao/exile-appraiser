@@ -141,9 +141,9 @@ describe('熱鍵總表(S18)', () => {
     } as unknown as HotkeyConfigLike
   }
 
-  it('S18 overlay:tools 群組含 timerPause / timerUndo / timerSkip,欄位接對且為選填', () => {
+  it('S18 overlay:計時器群組含 timerPause / timerUndo / timerSkip,欄位接對且為選填', () => {
     for (const game of ['poe1', 'poe2'] as const) {
-      const g = hotkeyTable(fullConfig(game), { overlay: true }).find(x => x.id === 'tools')
+      const g = hotkeyTable(fullConfig(game), { overlay: true }).find(x => x.id === 'timer')
       expect(g, game).toBeDefined()
       const rows = g!.rows.filter(r => r.kind === 'edit') as any[]
       for (const [id, field] of [['timerPause', 'hotkeyTimerPause'], ['timerUndo', 'hotkeyTimerUndo'], ['timerSkip', 'hotkeyTimerSkip']]) {
@@ -155,9 +155,8 @@ describe('熱鍵總表(S18)', () => {
     }
   })
 
-  it('S18 window 模式:tools 群組不列這三個(計時器只在 overlay)', () => {
-    const g = hotkeyTable(fullConfig('poe2'), { overlay: false }).find(x => x.id === 'tools')
-    const ids = (g?.rows ?? []).map(r => r.id)
+  it('S18 window 模式:總表不列這三個(計時器只在 overlay)', () => {
+    const ids = hotkeyTable(fullConfig('poe2'), { overlay: false }).flatMap(g => g.rows).map(r => r.id)
     for (const id of ['timerPause', 'timerUndo', 'timerSkip']) expect(ids).not.toContain(id)
   })
 })

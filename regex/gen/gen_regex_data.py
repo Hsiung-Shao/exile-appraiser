@@ -1281,7 +1281,8 @@ def main() -> int:
     if args.schema >= 2:
         doc["source"] = ("GGPK Mods/Stats/Tags/Words/BaseItemTypes/SkillGems/... + "
                          "tools/ggpk_zh/out/poe1/{stats,tables}")
-        doc["labels"] = labels_doc(ctx.ex.cs, LABEL_IDS)
+        # 3.30 起 clientstrings 也帶 [Key|Display] 標記(ItemDisplayMapScarabDropBonus = 更多 [Thread|綢帶]),與 PoE2 一樣剝掉
+        doc["labels"] = labels_doc(ctx.ex.cs, LABEL_IDS, strip_markup)
     doc["pages"] = pages
     write_doc(args.out, doc)
     print("wrote", args.out, args.out.stat().st_size, "bytes",

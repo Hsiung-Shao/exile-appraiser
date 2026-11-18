@@ -39,7 +39,7 @@ describe('rebuildTrayMenu 範本', () => {
   })
 })
 
-describe('開啟設定資料夾移到設定 › 關於', () => {
+describe('開啟設定資料夾在設定 › 啟動與更新(2026-11-18 從關於搬過去)', () => {
   it('config-open-folder:invoke + preview: false;不在預覽方法表', () => {
     const m = /'config-open-folder':\s*\{[\s\S]*?\n    \},/.exec(main)?.[0] ?? ''
     expect(m).toContain("kind: 'invoke'")
@@ -47,9 +47,9 @@ describe('開啟設定資料夾移到設定 › 關於', () => {
     expect(Object.values(HOST_METHOD_CHANNELS)).not.toContain('config-open-folder')
     expect(bootScript({ prefix: '/t/' + 'a'.repeat(32) + '/', version: '1.0.0' })).not.toContain('"openConfigFolder"')
   })
-  it('preload / About.vue / 兩語系 i18n 都有入口', () => {
+  it('preload / Startup.vue / 兩語系 i18n 都有入口', () => {
     expect(read('../src/preload.ts')).toContain("ipcRenderer.invoke('config-open-folder')")
-    expect(read('../../renderer/src/web/settings/tabs/About.vue')).toContain('data-action="config-open-folder"')
+    expect(read('../../renderer/src/web/settings/tabs/Startup.vue')).toContain('data-action="config-open-folder"')
     for (const lang of ['cmn-Hant', 'en']) {
       const about = JSON.parse(read(`../../renderer/src/i18n/${lang}.json`)).ppz.about
       expect(about.config_folder).toBeTruthy()

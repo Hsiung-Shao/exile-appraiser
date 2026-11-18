@@ -28,9 +28,10 @@ describe('萃取物(Tincture)資料', () => {
     expect(bad.map(e => e.id)).toEqual([])
   })
 
-  it('T2 36 個萃取物詞綴名都對得到詞綴行', () => {
+  it('T2 35 個萃取物詞綴名都對得到詞綴行', () => {
     const names = (affixNames?.entries ?? []).filter(e => e.id.startsWith('Tincture'))
-    expect(names.length).toBe(36)
+    // 3.30 GGPK 改名:of Rage 盛怒之 → 狂怒之、of Fury 狂怒之 → 狂暴之;「狂怒之 / of Rage」與其他同名詞綴併成一列(id 不是 Tincture 開頭)
+    expect(names.length).toBe(35)
     const ents = page?.entries ?? []
     const missing = names.filter(n =>
       !ents.some(e => e.hiddenZh.some(l => l.includes(`"${n.zh[0]}"`))) ||
