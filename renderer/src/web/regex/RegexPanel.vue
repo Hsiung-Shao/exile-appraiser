@@ -545,7 +545,8 @@ export default defineComponent({
 .rx-side {
   order: -1;
 }
-@container rx-panel (min-width: 46em) {
+/* 52em:右欄 21em 之外清單至少還有約 30em(46em 時清單只剩 24em,太擠) */
+@container rx-panel (min-width: 52em) {
   .rx-gen {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 21em;
