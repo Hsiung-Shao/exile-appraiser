@@ -44,6 +44,7 @@ const parsers: Array<
 > = [
   parseUnidentified,
   { virtual: parseSuperior },
+  { virtual: parseFated },
   { virtual: parseFoulborn },
   { virtual: parseVisceraTier },
   { virtual: parseVestigial },
@@ -631,8 +632,11 @@ function parseFoil (section: string[], item: ParsedItem) {
 }
 
 function parseUnidentified (section: string[], item: ParsedItem) {
-  if (section[0] === _$.UNIDENTIFIED) {
+  // exile-appraiser: 3.30 起未鑑定物品可帶階級「未鑑定(階級 5)」(GitHub issue #37)
+  const tier = _$.UNIDENTIFIED_TIER.exec(section[0])
+  if (section[0] === _$.UNIDENTIFIED || tier) {
     item.isUnidentified = true
+    if (tier) item.unidentifiedTier = Number(tier[1])
     return 'SECTION_PARSED'
   }
   return 'SECTION_SKIPPED'
@@ -1135,6 +1139,15 @@ function parseSuperior (item: ParserState) {
     if (_$.ITEM_SUPERIOR.test(item.name)) {
       item.name = _$.ITEM_SUPERIOR.exec(item.name)![1]
     }
+  }
+}
+
+// exile-appraiser: 3.30 未鑑定物品名稱可帶「命運」前綴(clientstrings FatedItem),底材名不含(GitHub issue #37)
+function parseFated (item: ParserState) {
+  const m = item.isUnidentified ? _$.FATED_NAME.exec(item.name) : null
+  if (m && !ITEM_BY_TRANSLATED('ITEM', item.name)?.length && ITEM_BY_TRANSLATED('ITEM', m[1])?.length) {
+    item.name = m[1]
+    item.isFated = true
   }
 }
 

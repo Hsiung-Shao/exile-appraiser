@@ -427,10 +427,13 @@ export function planEffectStats ({ enStats, zhStats, tradeStats, skills, support
  * (逐條比對 `audit-trade-ids.mjs` 的「沒引用 A / B」:同一條詞綴少掛了某個類型的 id)。
  * 只收文字(ref 或現行英文 matcher,寬鬆鍵)相同且唯一的那一條;同文字不只一條、選項型 id(`X|n`)、
  * 在合併群組裡的詞綴(類型會影響群組內選哪一條)、雜湊與該詞綴既有 id 不同的都拒收。
+ * 例外(GitHub issue #38 巫會之后冠):3.30 臟器的固定詞綴用自己的 stat(GGPK stat 鍵含 `viscera`,一般臟器與后冠各一個),
+ * 句子與既有詞綴逐字相同、交易站另給固定詞綴 id → 雜湊不同也掛上;同一句有兩個 id 就兩個都掛(物品文字分不出是哪一個,查詢兩個都送)。
  * @returns {{ extra: Record<string, Record<string, string[]>>, rejects: any[] }}
  */
 export const TYPE_ID_GROUPS = ['explicit', 'implicit', 'fractured', 'crafted']
-export function planTypeIds ({ enStats, tradeStats }) {
+export function planTypeIds ({ enStats, tradeStats, ggpkNew = /** @type {any[]} */ ([]) }) {
+  const visceraTexts = new Set(ggpkNew.filter(r => r.key.split('|')[0].includes('viscera')).map(r => cmpKey(toMatcherText(r.en))))
   const used = new Set()
   const grouped = new Set()
   const hashOf = (id) => id.slice(id.indexOf('.') + 1)
@@ -464,7 +467,7 @@ export function planTypeIds ({ enStats, tradeStats }) {
     else if (grouped.has(refs[0])) reject('在合併群組裡')
     // 交易站會把同一句話給兩個不同的 stat(例:地圖的「#% more Monster Life」);只收與該詞綴既有 id 同一個雜湊的(= 同一個 stat 少掛了某個類型),
     // 雜湊不同就不確定是不是同一條,任何類型都不掛(審查 2026-11-15:只擋同類型會讓破裂 / 固定掛到另一個 stat)
-    else if (!hashes.get(refs[0])?.has(hashOf(e.id))) reject('與既有 id 不是同一個 stat')
+    else if (!hashes.get(refs[0])?.has(hashOf(e.id)) && !(type === 'implicit' && visceraTexts.has(cmpKey(noLocal(e.text))))) reject('與既有 id 不是同一個 stat')
     else if (!((extra[refs[0]] ??= {})[type] ??= []).includes(e.id)) extra[refs[0]][type].push(e.id)
   }
   return { extra, rejects }
@@ -979,7 +982,9 @@ export const EXTRA_ZH_MATCHERS = [
   // 傭兵輔助 3.30 改名(GGPK mercenarysupports;issue #21–23 只有階層 2 的實機樣本)
   { ref: 'Lesser Increased Area of Effect', zh: '低階增加範圍效果', advanced: '低階增加範圍效果(階層：1)', current: true, old: '低階增加效果範圍', verified: 'GGPK mercenarysupports' },
   { ref: 'Increased Area of Effect', zh: '增加範圍效果', advanced: '增加範圍效果(階層：2)', current: true, old: '增加效果範圍', verified: 'GGPK mercenarysupports + issue #21' },
-  { ref: 'Greater Area of Effect', zh: '高階範圍效果', advanced: '高階範圍效果(階層：3)', current: true, old: '高階效果範圍', verified: 'GGPK mercenarysupports' }
+  { ref: 'Greater Area of Effect', zh: '高階範圍效果', advanced: '高階範圍效果(階層：3)', current: true, old: '高階效果範圍', verified: 'GGPK mercenarysupports' },
+  // GitHub issue #36 黑暗君主:句型帶入的是技能名「異蛛復甦」(GGPK activeskills raise_spiders),專案原本的「召喚蜘蛛」是增益名
+  { ref: 'Maximum number of Raised Spiders is Doubled\nCannot have Minions other than Raised Spiders', zh: '異蛛復甦的最大數量加倍\n無法擁有異蛛復甦以外的召喚物', advanced: '異蛛復甦(...)的最大數量加倍\n無法擁有異蛛復甦(...)以外的召喚物', current: true, old: '召喚蜘蛛的最大數量加倍\n無法擁有召喚蜘蛛以外的召喚物', verified: 'GGPK activeskills raise_spiders + issue #36' }
 ]
 
 /** 規則 11:`EXTRA_ZH_MATCHERS` → 繁中多一個 matcher @returns {{ adds: any[] }} */

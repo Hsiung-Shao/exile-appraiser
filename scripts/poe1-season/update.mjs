@@ -101,7 +101,7 @@ const zhNames = planUniqueZhNames({ zhItems: rows(text['cmn-Hant/items']), words
 const itemPlan = { ...items, bases: bases.adds, uniques: uniques.adds, gems: gems.adds, zhNames, builds: builds.adds }
 const betterFix = [...eachStat(afterB)].filter(s => s.ref in BETTER_OVERRIDES && s.better !== BETTER_OVERRIDES[s.ref]).length
 const fill = planFillIds({ enStats: afterB, tradeStats })
-const typeIds = planTypeIds({ enStats: afterB, tradeStats })
+const typeIds = planTypeIds({ enStats: afterB, tradeStats, ggpkNew: ggpk.stats.new })
 const grown = planGrownPassives({ enStats: afterB, zhStats: afterA['cmn-Hant'], tradeStats })
 newStats.push(...grown.newStats)
 const forbidden = planForbiddenNotables({ enStats: afterB, zhStats: afterA['cmn-Hant'], tradeStats, passives: ggpk.passives ?? [] })

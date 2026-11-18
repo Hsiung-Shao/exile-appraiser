@@ -75,6 +75,9 @@ export interface ParsedItem {
   }
   stackSize?: { value: number, max: number }
   isUnidentified: boolean
+  // exile-appraiser: 3.30「未鑑定(階級 N)」與名稱前的「命運」(GitHub issue #37)
+  unidentifiedTier?: number
+  isFated?: boolean
   isCorrupted: boolean
   isUnmodifiable?: boolean
   isMirrored?: boolean

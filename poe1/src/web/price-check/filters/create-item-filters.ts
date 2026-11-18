@@ -465,8 +465,11 @@ function createFiltersInner (
   if (item.isUnidentified) {
     filters.unidentified = {
       value: true,
-      disabled: (item.rarity !== ItemRarity.Unique)
+      // exile-appraiser: 3.30 帶階級 / 命運的未鑑定物品,價值就在「未鑑定」→ 預設帶上(GitHub issue #37)
+      disabled: (item.rarity !== ItemRarity.Unique && item.unidentifiedTier == null && !item.isFated)
     }
+    if (item.unidentifiedTier != null) filters.unidentifiedTier = { value: item.unidentifiedTier, disabled: false }
+    if (item.isFated) filters.fated = { disabled: false }
   }
 
   if (item.isVeiled) {
