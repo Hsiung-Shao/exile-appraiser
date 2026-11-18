@@ -83,7 +83,8 @@ describe('3.30 詞綴寫法(en)', () => {
     expect(item.statsByType[0].stat.trade.ids.explicit).toContain('explicit.stat_3036422124')
   })
 
-  // #36–#38 的英文樣本不是實機剪貼簿:照繁中實機文字的結構、用 GGPK 英文字串組的
+  // #36–#38 的英文樣本不是實機剪貼簿:照繁中實機文字的結構、用 GGPK 英文字串組的。
+  // #36 的名稱「Raised Spiders」沿用既有英文資料與交易站文字;英文客戶端若像繁中改帶技能名(Raise Spiders)這條守不到,要等實機樣本
   it('D17y en:#36 黑暗君主「Raised Spiders (...)」、#38 后冠的臟器固定詞綴都解析得到', () => {
     const monarch = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-36.en.txt'), 'utf8'))
     expect(unknownOf(monarch)).toEqual([])

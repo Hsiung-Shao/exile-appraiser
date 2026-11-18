@@ -426,7 +426,8 @@ export function createTradeRequest (filters: ItemFilters, stats: FilterOrGroup[]
   if (filters.unidentified && !filters.unidentified.disabled) {
     propSet(query.filters, 'misc_filters.filters.identified.option', String(false))
   }
-  // exile-appraiser: 3.30 未鑑定階級與「命運」(GitHub issue #37)
+  // exile-appraiser: 3.30 未鑑定階級與「命運」(GitHub issue #37)。欄位名取自兩區的 /api/trade/data/filters(2026-11-19 實抓:
+  // 國際服 unidentified_tier "Unidentified Tier" / fated "Fated",台服「未鑑定階級」/「命定」,都在 misc_filters)
   if (filters.unidentifiedTier && !filters.unidentifiedTier.disabled) {
     propSet(query.filters, 'misc_filters.filters.unidentified_tier.min', filters.unidentifiedTier.value)
   }

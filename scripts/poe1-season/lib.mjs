@@ -428,12 +428,12 @@ export function planEffectStats ({ enStats, zhStats, tradeStats, skills, support
  * 只收文字(ref 或現行英文 matcher,寬鬆鍵)相同且唯一的那一條;同文字不只一條、選項型 id(`X|n`)、
  * 在合併群組裡的詞綴(類型會影響群組內選哪一條)、雜湊與該詞綴既有 id 不同的都拒收。
  * 例外(GitHub issue #38 巫會之后冠):3.30 臟器的固定詞綴用自己的 stat(GGPK stat 鍵含 `viscera`,一般臟器與后冠各一個),
- * 句子與既有詞綴逐字相同、交易站另給固定詞綴 id → 雜湊不同也掛上;同一句有兩個 id 就兩個都掛(物品文字分不出是哪一個,查詢兩個都送)。
+ * (整個單字比對:`local_display_grants_skill_evisceration` 不算),句子與既有詞綴逐字相同、交易站另給固定詞綴 id → 雜湊不同也掛上;同一句有兩個 id 就兩個都掛(物品文字分不出是哪一個,查詢兩個都送)。
  * @returns {{ extra: Record<string, Record<string, string[]>>, rejects: any[] }}
  */
 export const TYPE_ID_GROUPS = ['explicit', 'implicit', 'fractured', 'crafted']
 export function planTypeIds ({ enStats, tradeStats, ggpkNew = /** @type {any[]} */ ([]) }) {
-  const visceraTexts = new Set(ggpkNew.filter(r => r.key.split('|')[0].includes('viscera')).map(r => cmpKey(toMatcherText(r.en))))
+  const visceraTexts = new Set(ggpkNew.filter(r => r.key.split('|')[0].split(' ').some(id => /(^|_)viscera(_|$)/.test(id))).map(r => cmpKey(toMatcherText(r.en))))
   const used = new Set()
   const grouped = new Set()
   const hashOf = (id) => id.slice(id.indexOf('.') + 1)
