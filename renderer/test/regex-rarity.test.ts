@@ -48,7 +48,12 @@ describe('條件列接線', () => {
     const i = panel.indexOf('<template v-else-if="itemPage">')
     expect(i).toBeGreaterThan(0)
     const block = panel.slice(i, panel.indexOf('</template>', i))
-    expect(block.indexOf('<RegexNumericSection v-if="section"')).toBeGreaterThan(0)
+    // 2026-11-18 設計稿 P10:展開時在清單上方,收合時改畫在右欄(aside)當摘要
+    expect(block.indexOf('<RegexNumericSection v-if="section && !sectionCollapsed"')).toBeGreaterThan(0)
+    const side = panel.slice(panel.indexOf('<aside class="rx-side">'), panel.indexOf('</aside>'))
+    // 條件要與左欄互補:物品詞綴數值頁(itemPage)收合後也要畫得出來,否則兩邊都不顯示、展不開
+    expect(side).toContain('<RegexNumericSection v-if="section && sectionCollapsed && panelView === \x27page\x27 && (itemPage || !algoPage)"')
+    expect(side).toContain('data-regex="output"')
     expect(block.indexOf('<RegexItemModList')).toBeGreaterThan(block.indexOf('<RegexNumericSection'))
   })
   it('設定視窗內新樣式不用 rem', () => {

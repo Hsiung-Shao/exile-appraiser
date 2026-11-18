@@ -503,6 +503,16 @@ describe('planTypeIds(規則 16)', () => {
     expect(out[1].trade.ids).toEqual({ explicit: ['explicit.stat_2'], fractured: ['fractured.stat_2'] })
     expect(planTypeIds({ enStats: out, tradeStats }).extra).toEqual({})
   })
+
+  it('GGPK 有臟器專用 stat(鍵含 viscera)的同一句:雜湊不同的固定詞綴 id 也掛上,同句兩個都掛;其他類型照舊拒收(issue #38)', () => {
+    // 鍵只是含這幾個字母(evisceration)的不算臟器專用 stat
+    const other = [{ key: 'local_display_grants_skill_evisceration|#|stat_descriptions.txt|0', en: '{0}% increased Foo', zh: '' }]
+    expect(planTypeIds({ enStats: [stat('#% increased Foo', [{ string: '#% increased Foo' }], { explicit: ['explicit.stat_8'] })], tradeStats, ggpkNew: other }).extra['#% increased Foo']?.implicit).toBeUndefined()
+    const ggpkNew = [{ key: 'from_queen_viscera_foo_+%_final|1|#|stat_descriptions.txt|0', en: '{0}% increased Foo', zh: '' }]
+    const plan = planTypeIds({ enStats: [stat('#% increased Foo', [{ string: '#% increased Foo' }])], tradeStats: [...tradeStats, { id: 'implicit.stat_9', text: '#% increased Foo' }], ggpkNew })
+    expect(plan.extra).toEqual({ '#% increased Foo': { implicit: ['implicit.stat_1', 'implicit.stat_9'] } })
+    expect(plan.rejects.map((r: any) => r.id)).toEqual(['explicit.stat_8', 'fractured.stat_8'])
+  })
 })
 
 describe('planCitadel(規則 19)', () => {

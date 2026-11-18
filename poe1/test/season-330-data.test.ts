@@ -83,6 +83,22 @@ describe('3.30 詞綴寫法(en)', () => {
     expect(item.statsByType[0].stat.trade.ids.explicit).toContain('explicit.stat_3036422124')
   })
 
+  // #36–#38 的英文樣本不是實機剪貼簿:照繁中實機文字的結構、用 GGPK 英文字串組的。
+  // #36 的名稱「Raised Spiders」沿用既有英文資料與交易站文字;英文客戶端若像繁中改帶技能名(Raise Spiders)這條守不到,要等實機樣本
+  it('D17y en:#36 黑暗君主「Raised Spiders (...)」、#38 后冠的臟器固定詞綴都解析得到', () => {
+    const monarch = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-36.en.txt'), 'utf8'))
+    expect(unknownOf(monarch)).toEqual([])
+    expect(monarch.statsByType.at(-1)!.stat.trade.ids.explicit).toEqual(['explicit.stat_56473917|5'])
+    const crown = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-38.en.txt'), 'utf8'))
+    expect(unknownOf(crown)).toEqual([])
+    expect(crown.statsByType[0].stat.trade.ids.implicit).toEqual(['implicit.stat_2994988431', 'implicit.stat_3376335115'])
+  })
+
+  it('D17z en:#37「Superior Fated Titan Plate」+「Unidentified (Tier 5)」解析成泰坦之鎧、帶階級與命運', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-37.en.txt'), 'utf8'))
+    expect([item.info.refName, item.isUnidentified, item.unidentifiedTier, item.isFated]).toEqual(['Titan Plate', true, 5, true])
+  })
+
   // 2026-11-18 使用者回報英文地圖無法查詢:「Map contains Al-Hezmin's Citadel(...)」名稱後沒空白,失敗代表進階寫法又對不上
   it('D17x 英文實機地圖「Map contains Al-Hezmin\'s Citadel(...)」解析得到、帶交易站 id', () => {
     const map = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-map-citadel.en.txt'), 'utf8'))
@@ -105,6 +121,37 @@ describe('3.30 詞綴寫法(en)', () => {
 })
 
 describe('3.30 詞綴寫法(cmn-Hant)', () => {
+  it('D17y GitHub issue #36 的實機文字:黑暗君主「異蛛復甦(...)的最大數量加倍」(繁中帶入的是技能名)解析成交易站的蜘蛛選項', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-36.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(item)).toEqual([])
+    expect(item.statsByType.at(-1)!.stat.trade.ids.explicit).toEqual(['explicit.stat_56473917|5'])
+  })
+
+  it('D17z GitHub issue #37 的實機文字:「精良的 命運 泰坦之鎧」+「未鑑定(階級 5)」解析得到,查詢帶未鑑定、階級、命運', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-37.cmn-Hant.txt'), 'utf8'))
+    expect([item.info.refName, item.isUnidentified, item.unidentifiedTier, item.isFated]).toEqual(['Titan Plate', true, 5, true])
+    const preset = createPresets(item, { league: 'Standard', currency: null, collapseListings: 'api', activateStockFilter: false, searchStatRange: 10, useEn: false, merchantOnly: false }).presets[0]
+    const misc = (createTradeRequest(preset.filters, preset.stats).query.filters as any).misc_filters.filters
+    expect([misc.identified, misc.unidentified_tier, misc.fated]).toEqual([{ option: 'false' }, { min: 5 }, { option: 'true' }])
+  })
+
+  it('D17z2 沒有階級的未鑑定稀有物品照舊:不帶階級 / 命運,未鑑定條件預設不送', () => {
+    const text = fs.readFileSync(path.join(HERE, 'docs/3.30-issue-37.cmn-Hant.txt'), 'utf8').replace('精良的 命運 ', '精良的 ').replace('未鑑定(階級 5)', '未鑑定')
+    const item = parse(text)
+    expect([item.info.refName, item.isUnidentified, item.unidentifiedTier, item.isFated]).toEqual(['Titan Plate', true, undefined, undefined])
+    const preset = createPresets(item, { league: 'Standard', currency: null, collapseListings: 'api', activateStockFilter: false, searchStatRange: 10, useEn: false, merchantOnly: false }).presets[0]
+    expect(JSON.stringify(createTradeRequest(preset.filters, preset.stats).query)).not.toMatch(/identified|fated/)
+  })
+
+  it('D17zz GitHub issue #38 的實機文字:巫會之后冠「有 12(10-12)% 更多最大物理攻擊傷害」(臟器專用 stat)解析得到,兩個固定詞綴 id 都送', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-38.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(item)).toEqual([])
+    expect(item.statsByType[0].stat.trade.ids.implicit).toEqual(['implicit.stat_2994988431', 'implicit.stat_3376335115'])
+    const preset = createPresets(item, { league: 'Standard', currency: null, collapseListings: 'api', activateStockFilter: false, searchStatRange: 10, useEn: false, merchantOnly: false }).presets[0]
+    const count = createTradeRequest(preset.filters, preset.stats).query.stats.find(g => g.type === 'count')!
+    expect(count.filters.map(f => f.id)).toEqual(['implicit.stat_2994988431', 'implicit.stat_3376335115'])
+  })
+
   beforeAll(async () => {
     await loadForLang('cmn-Hant')
   })

@@ -11,3 +11,4 @@
 
 待補(純瀏覽器做得到、尚未寫):正則清單勾選 → 輸出字串、書籤資料夾、設定分頁導覽、拆粉排行表。
 純瀏覽器做不到(見 `../SKILL.md`):查價、熱鍵、貼進遊戲、OCR、overlay。
+| 正則頁版面(兩欄門檻 / 數值條件換欄與焦點 / 書籤頁兩張小卡) | [regex-layout.md](regex-layout.md) | `check-regex-layout.mjs` |

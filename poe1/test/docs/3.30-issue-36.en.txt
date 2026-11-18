@@ -1,0 +1,22 @@
+Item Class: Helmets
+Rarity: Unique
+The Dark Monarch
+Lich's Circlet
+--------
+Energy Shield: 217 (augmented)
+--------
+Requirements:
+Level: 84
+Int: 224
+--------
+Sockets: B-B W
+--------
+Item Level: 86
+--------
+{ Unique Modifier — Defences, Energy Shield }
++86(50-100) to maximum Energy Shield
+{ Unique Modifier — Chaos, Resistance }
++34(27-37)% to Chaos Resistance
+{ Unique Modifier }
+Maximum number of Raised Spiders (...) is Doubled
+Cannot have Minions other than Raised Spiders (...) — Unscalable Value

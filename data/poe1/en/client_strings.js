@@ -42,6 +42,9 @@ export default {
   CORRUPTED: 'Corrupted',
   CORRUPTED_TWICE: 'Twice Corrupted',
   UNIDENTIFIED: 'Unidentified',
+  // 3.30: unidentified items may carry a tier (clientstrings ItemPopupUnidentified + ItemTierDisplay) and a "Fated" name prefix (FatedItem)
+  UNIDENTIFIED_TIER: /^Unidentified ?\(Tier (\d+)\)$/,
+  FATED_NAME: /^Fated (.*)$/,
   ITEM_SUPERIOR: /^Superior (.*)$/,
   MAP_BLIGHTED: /^Blighted (.*)$/,
   MAP_BLIGHT_RAVAGED: /^Blight-ravaged (.*)$/,

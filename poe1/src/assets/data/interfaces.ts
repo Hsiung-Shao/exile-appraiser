@@ -178,6 +178,9 @@ export interface TranslationDict {
   CORRUPTED: string
   CORRUPTED_TWICE: string
   UNIDENTIFIED: string
+  // exile-appraiser: 3.30 未鑑定階級與「命運」物品(GitHub issue #37)
+  UNIDENTIFIED_TIER: RegExp
+  FATED_NAME: RegExp
   ITEM_SUPERIOR: RegExp
   MAP_BLIGHTED: RegExp
   MAP_BLIGHT_RAVAGED: RegExp

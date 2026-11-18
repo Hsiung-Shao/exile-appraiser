@@ -68,6 +68,7 @@ python C:\Users\jerry\.claude\scripts\evidence_gate.py <證據目錄> --source-r
 | `check-cli-output.mjs` | 無頭查價輸出的斷言(必含字串、沒有 ⚠);純瀏覽器拿不到聯盟清單(CORS)→ 貼物品文字後查價面板是空的,查價條件改用這個留證據 | `npm run check -- <物品> --realm both > <證據目錄>/x.txt` 後 `node .claude/skills/verify/check-cli-output.mjs <證據目錄> x.txt <字串>...` |
 | `check-season-data.mjs` | PoE1 賽季資料更新旅程(`features/poe1-season-data.md`)的斷言:正則頁新寫法 + 無頭查價 | `node .claude/skills/verify/check-season-data.mjs <證據目錄>` |
 | `check-stash-330.mjs` | PoE1 3.30 碎片倉庫頁(一般 / 綢帶)疊層:使用者截圖貼回 2560×1440 → 真 WinOcr 走 runtime 同一條子頁偵測 → 每格讀數量對人工判讀,輸出標註圖;不開遊戲、不送輸入。破壞點:`detect.ts` `buttonRects` 起點改回 116 + 168k | `node .claude/skills/verify/check-stash-330.mjs <證據目錄> --general <一般頁截圖> --threads <綢帶頁截圖>` |
+| `dump-regex-layout.js` + `check-regex-layout.mjs` | 正則頁版面旅程(`features/regex-layout.md`):視窗寬 840 與 1000 各量一次(欄位位置、數值條件換欄、焦點、書籤頁),斷言兩欄門檻。破壞點:`RegexPanel.vue` 的 `52em` 改 `46em` | 貼 `dump-regex-layout.js` 進 `javascript_tool` → 存 `state-840.json` / `state-1000.json` → `node .claude/skills/verify/check-regex-layout.mjs <證據目錄>` |
 
 ## 破壞對照(新旅程第一次建立時要做)
 

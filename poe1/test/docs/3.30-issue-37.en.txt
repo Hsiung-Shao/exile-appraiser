@@ -1,0 +1,15 @@
+Item Class: Body Armours
+Rarity: Rare
+Superior Fated Titan Plate
+--------
+Quality: +20% (augmented)
+Armour: 1063 (augmented)
+--------
+Requirements:
+Str: 222 (unmet)
+--------
+Sockets: B-W-R-W-W-W
+--------
+Item Level: 85
+--------
+Unidentified (Tier 5)

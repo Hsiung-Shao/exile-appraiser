@@ -76,6 +76,9 @@ export interface ItemFilters {
     value: true
     disabled: boolean
   }
+  // exile-appraiser: 3.30 未鑑定階級與「命運」(交易站 misc_filters.unidentified_tier / fated)
+  unidentifiedTier?: FilterNumeric
+  fated?: { disabled: boolean }
   veiled?: {
     statRefs: string[]
     disabled: boolean

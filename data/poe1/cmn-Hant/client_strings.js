@@ -42,6 +42,9 @@ export default {
   CORRUPTED: '已汙染',
   CORRUPTED_TWICE: '二次汙染',
   UNIDENTIFIED: '未鑑定',
+  // 3.30:未鑑定物品可帶階級(clientstrings ItemPopupUnidentified + ItemTierDisplay),名稱前可帶「命運」(FatedItem)
+  UNIDENTIFIED_TIER: /^未鑑定 ?\(階級 (\d+)\)$/,
+  FATED_NAME: /^命運 (.*)$/,
   ITEM_SUPERIOR: /^精良的 (.*)$/,
   MAP_BLIGHTED: /^凋落的 (.*)$/,
   MAP_BLIGHT_RAVAGED: /^凋落蔓延的 (.*)$/,
