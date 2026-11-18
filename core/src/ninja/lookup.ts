@@ -122,6 +122,7 @@ const CATEGORY_SLUG: Record<string, string> = {
   Map: 'maps',
   Tattoo: 'tattoos',
   Omen: 'omens',
+  Thread: 'threads',
   Runegraft: 'runegrafts',
   DivinationCard: 'divination-cards',
   UniqueJewel: 'unique-jewels',

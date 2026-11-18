@@ -14,23 +14,14 @@ import {
 import { stashHotkeyAction } from '../src/shortcut-actions'
 import { stashArmMissToastMessage } from '../src/startup-toast'
 import { buttonRects, type TextLine } from '../../core/src/stash/detect'
+import { clientLines } from '../../core/test/stash/ocr-330'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(HERE, '../..')
-const FIX_DIR = path.join(ROOT, 'core/test/stash/fixtures/ocr')
 const H = 1432
 const W = 2546
 
-interface FixtureEntry { file: string, clientH: number, cropX: number, cropY: number }
-const INDEX = JSON.parse(fs.readFileSync(path.join(FIX_DIR, 'index.json'), 'utf8')) as { fixtures: FixtureEntry[] }
-function clientLines (name: string): TextLine[] {
-  const f = INDEX.fixtures.find(x => x.file === name)
-  if (!f) throw new Error(`找不到 fixture ${name}`)
-  const snap = JSON.parse(fs.readFileSync(path.join(FIX_DIR, name.replace(/\.png$/, '.ocr.json')), 'utf8')) as { scale: number, lines: TextLine[] }
-  const s = snap.scale
-  return snap.lines.map(l => ({ text: l.text, x: l.x / s + f.cropX, y: l.y / s + f.cropY, w: l.w / s, h: l.h / s }))
-}
-// 3.29 碎片頁按鈕列(四顆按鈕都在;聖甲蟲子頁 2026-11-07 起不畫,這裡只用它的按鈕文字位置,亮度另給)
+// 碎片頁按鈕列(3.29 實機 OCR,按鈕行搬到 3.30 位置;亮度另給)
 const STRIP_LINES = clientLines('strip-scarabs-1432.png')
 
 function fakeClock () {
@@ -59,7 +50,7 @@ function fakeClock () {
 }
 
 const fp = (v: number): Fingerprint => ({ w: 64, h: 12, data: new Uint8Array(64 * 12).fill(v) })
-const GENERAL_BRIGHT = [160, 140, 140, 140]
+const GENERAL_BRIGHT = [160, 140, 140]
 
 function harness (mode: 'auto' | 'hotkey' = 'hotkey') {
   const clk = fakeClock()

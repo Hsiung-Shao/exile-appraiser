@@ -1,7 +1,7 @@
 /**
  * 倉庫子頁版面(Exile-UI stash-ninja.ahk 座標表):版面資料、換算、命中判定。
  * oracle = 測試內獨立實作的 Exile-UI 原式(不讀 core/src/stash 實作)。
- * 實測基準:core/test/stash/annotations.json(使用者錄影,client 高 1432)。
+ * 實測基準:core/test/stash/annotations.json(使用者 3.29 錄影,client 高 1432)→ 用凍結的 3.29 版面 `layout329()` 比對。
  */
 import { describe, expect, it } from 'vitest'
 import fs from 'node:fs'
@@ -11,6 +11,7 @@ import {
   STASH_SUBTABS, cellBox, cellGap, cellRects, hitCell, parseStashLayouts,
   type CellRect, type StashLayoutFile, type StashSubtab
 } from '../src/stash/layout'
+import { layout329 } from './stash/layout-329'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const read = (p: string): string => fs.readFileSync(path.join(ROOT, p), 'utf8')
@@ -34,8 +35,8 @@ function itemNames (lang: 'en' | 'cmn-Hant'): Map<string, string> {
 }
 
 // ---- oracle:Exile-UI stash-ninja.ahk 原式 ----
-function oBox (_s: StashSubtab, h: number): number {
-  return Math.floor(h / 24)
+function oBox (s: StashSubtab, h: number): number {
+  return Math.floor(h / (s === 'threads' ? 20 : 24))
 }
 function oGap (_s: StashSubtab, h: number): number {
   return Math.round(h / 72)
@@ -58,15 +59,14 @@ function oRects (file: StashLayoutFile, s: StashSubtab, h: number, yOffset = 0):
 const layouts = (): StashLayoutFile => parseStashLayouts(RAW_LAYOUTS)
 
 describe('S1 版面資料', () => {
-  it('只剩一般頁:60 格 refName 在英繁 items.ndjson 都有、不重複(不滅之火、聖甲蟲已移除)', () => {
+  it('3.30 一般 52 格 + 綢帶 10 格,refName 在英繁 items.ndjson 都有、不重複', () => {
     const file = layouts()
-    expect([...STASH_SUBTABS]).toEqual(['general'])
-    // 不滅之火 2026-10-14 使用者決定不做、聖甲蟲 2026-11-07 因 3.30 移除:資料檔只剩一般頁
-    expect(Object.keys(file.subtabs)).toEqual(['general'])
-    expect(Object.keys(file.buttons)).toEqual(['general'])
+    expect([...STASH_SUBTABS]).toEqual(['general', 'threads'])
+    expect(Object.keys(file.subtabs)).toEqual(['general', 'threads'])
+    expect(Object.keys(file.buttons)).toEqual(['general', 'threads'])
     const en = itemNames('en')
     const zh = itemNames('cmn-Hant')
-    const counts = { general: 60 }
+    const counts = { general: 52, threads: 10 }
     for (const s of STASH_SUBTABS) {
       const cells = file.subtabs[s]
       expect(cells.length, s).toBe(counts[s])
@@ -82,8 +82,8 @@ describe('S1 版面資料', () => {
 })
 
 describe('S2 實測格框', () => {
-  it('1432 高度下格中心與錄影量到的中心兩軸差 ≤ 6 px', () => {
-    const file = layouts()
+  it('1432 高度下格中心與 3.29 錄影量到的中心兩軸差 ≤ 6 px', () => {
+    const file = layout329()
     expect(ANN.clientH).toBe(1432)
     expect(ANN.slots.length).toBeGreaterThan(0)
     for (const sl of ANN.slots) {
@@ -131,8 +131,8 @@ describe('S3 換算與 Exile-UI 規則相同', () => {
 })
 
 describe('S4 錄影說明框', () => {
-  it('滑鼠位置命中的格子繁中名 = 說明框標題', () => {
-    const file = layouts()
+  it('滑鼠位置命中的格子繁中名 = 說明框標題(3.29 錄影)', () => {
+    const file = layout329()
     const zh = itemNames('cmn-Hant')
     expect(ANN.hover.length).toBeGreaterThan(0)
     for (const hv of ANN.hover) {
@@ -176,9 +176,10 @@ describe('S4c parseStashLayouts 擋壞格式', () => {
   const good = (): any => ({
     schema: 1,
     base: 1440,
-    buttons: { general: { x: 1, y: 1 } },
+    buttons: { general: { x: 1, y: 1 }, threads: { x: 2, y: 1 } },
     subtabs: {
-      general: [{ x: 10, y: 10, refName: 'A' }, { x: 0, y: 0, refName: 'B' }]
+      general: [{ x: 10, y: 10, refName: 'A' }, { x: 0, y: 0, refName: 'B' }],
+      threads: [{ x: 10, y: 10, refName: 'C' }]
     }
   })
 

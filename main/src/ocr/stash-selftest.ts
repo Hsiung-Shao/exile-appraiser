@@ -17,11 +17,11 @@ const argValue = (argv: string[], prefix: string) => argv.find(a => a.startsWith
 const argAfter = (argv: string[], flag: string) => { const i = argv.indexOf(flag); return i >= 0 ? argv[i + 1] : undefined }
 
 export async function runStashSelftest (png: string, argv: string[]): Promise<number> {
-  if (!png || !fs.existsSync(png)) { console.error('[stash-selftest] 用法:--stash-selftest <png> [--out <png>] [--stash-y-offset=N]'); return 2 }
+  if (!png || !fs.existsSync(png)) { console.error('[stash-selftest] 用法:--stash-selftest <png> [--out <png>] [--stash-y-offset=N] [--stash-subtab=general|threads]'); return 2 }
   const layouts = loadStashLayouts()
   const templates = loadStashDigitTemplates()
   if (!layouts || !templates) { console.error('[stash-selftest] 讀不到版面或數字模板'); return 1 }
-  const subtab: StashSubtab = 'general'
+  const subtab: StashSubtab = argValue(argv, '--stash-subtab=') === 'threads' ? 'threads' : 'general'
   const yOffset = Number(argValue(argv, '--stash-y-offset=') ?? 0) || 0
   const img = nativeImage.createFromPath(path.resolve(png))
   const size = img.getSize()

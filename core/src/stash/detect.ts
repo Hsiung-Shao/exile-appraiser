@@ -9,18 +9,17 @@ export interface Rect { x: number, y: number, w: number, h: number }
 export interface TextLine { text: string, x: number, y: number, w: number, h: number }
 
 /**
- * 用來判定碎片頁開著的子頁按鈕文字,左到右(GGPK clientstrings `FragmentStashSubTab{Other,Betrayal,Eldritch}`)。
- * 只有第一顆「一般」有版面;不滅之火(2026-10-14 使用者決定不做)、異能只當偵測錨點。
- * 聖甲蟲(`FragmentStashSubTabScarab`)2026-11-07 起不比對:3.30 移除聖甲蟲,按鈕列可能少一顆、其他按鈕左移。
+ * 3.30 碎片頁的子頁按鈕文字,左到右(GGPK clientstrings `FragmentStashSubTab{Other,Threads,Eldritch}`;繁中依使用者 3.30 截圖)。
+ * 一般、綢帶有版面;異能只當偵測錨點。
  */
 export const SUBTAB_LABELS: Record<StashTextLang, readonly [string, string, string]> = {
-  zh: ['一般', '不滅之火', '異能'],
-  en: ['General', 'Allflame', 'Eldritch']
+  zh: ['一般', '綢帶', '異能'],
+  en: ['General', 'Threads', 'Eldritch']
 }
 /** 「一般」固定在最左的按鈕槽 */
 export const GENERAL_SLOT = 0
-/** 按鈕槽數(3.29 = 一般 / 聖甲蟲 / 不滅之火 / 異能 四顆) */
-export const BUTTON_SLOTS = 4
+/** 按鈕槽數(3.30 = 一般 / 綢帶 / 異能;按鈕槽 k 就是第 k 個標籤) */
+export const BUTTON_SLOTS = 3
 /** 至少認到幾顆按鈕文字才算碎片頁(目前子頁的文字 OCR 常漏讀 → 允許漏一顆) */
 export const MIN_BUTTONS = 2
 
@@ -59,13 +58,16 @@ export function stripZone (clientW: number, clientH: number): Rect {
   return { x: x0, y, w: Math.min(Math.max(0, clientW - x0), Math.floor(clientH * 37 / 60)), h: at(268, clientH) - y }
 }
 
-/** 四個按鈕槽(左到右;3.30 少一顆時最右那槽是空的) */
-export function buttonRects (clientH: number, yOffset = 0, x0 = 0): [Rect, Rect, Rect, Rect] {
+/**
+ * 三個按鈕槽(左到右)。x 起點 202、間距 166 = Exile-UI 3.30 `tab_fragments` / `tab_threads`;
+ * 第三顆(異能)照同間距推(三顆置中,中心與 3.29 四顆同在約 444)。
+ */
+export function buttonRects (clientH: number, yOffset = 0, x0 = 0): [Rect, Rect, Rect] {
   const y = at(186, clientH) + yOffset
   const w = at(152, clientH)
   const h = at(36, clientH)
-  const r = (k: number): Rect => ({ x: x0 + at(116 + 168 * k, clientH), y, w, h })
-  return [r(0), r(1), r(2), r(3)]
+  const r = (k: number): Rect => ({ x: x0 + at(202 + 166 * k, clientH), y, w, h })
+  return [r(0), r(1), r(2)]
 }
 
 export interface ButtonMatch {
@@ -74,7 +76,7 @@ export interface ButtonMatch {
   matched: number
   /** 整體下移量(client 像素;0 或 `folderOffset`) */
   yOffset: number
-  /** 命中的按鈕槽(0–3,左到右遞增;沒找到 = []) */
+  /** 命中的按鈕槽(0–2,左到右遞增;沒找到 = []) */
   slots: number[]
 }
 
@@ -84,8 +86,8 @@ const X_TOLERANCE = 40
 const SNAP_TOLERANCE = 12
 
 /**
- * 按鈕文字 → 碎片頁開著?(2026-11-07 放寬,為 3.30 拿掉聖甲蟲按鈕預作準備)
- * 每個標籤可落在四個按鈕槽任一個(x 容差 40/1440),命中的槽位要照標籤順序左到右遞增、至少 `MIN_BUTTONS` 顆;
+ * 按鈕文字 → 碎片頁開著?
+ * 每個標籤可落在三個按鈕槽任一個(x 容差 40/1440),命中的槽位要照標籤順序左到右遞增、至少 `MIN_BUTTONS` 顆;
  * 「一般」只能在最左那槽。
  * 不在資料夾(偏移 0)與資料夾內(`folderOffset`)**各算一輪**,每輪只收文字中心在該按鈕列高度 ± 12/1440 的行:
  * 頁籤列(自訂區域框到的倉庫頁籤、資料夾內的資料夾頁籤 —— 後者正好與偏移 0 的按鈕列同高)若有同名文字(「一般」),
@@ -133,20 +135,19 @@ export function percentile (gray: Uint8Array, q: number): number {
   return s[Math.floor(q * (s.length - 1))]
 }
 
-/** 子頁判定要比亮度的按鈕槽:「一般」那槽 + 其他有認到文字的槽(3.30 空著的槽不比) */
-export function compareSlots (match: ButtonMatch): number[] {
-  return [GENERAL_SLOT, ...match.slots.filter(s => s !== GENERAL_SLOT)]
-}
-
 /** 目前子頁的按鈕文字較亮(真實錄影:p99 158–162 vs 其他 141–144) */
 const ACTIVE_MARGIN = 8
 
+/** 按鈕槽 → 子頁(異能沒有版面 → null) */
+const SLOT_SUBTABS: ReadonlyArray<StashSubtab | null> = ['general', 'threads', null]
+
 /**
- * p99 依 `compareSlots` 的順序:[一般, ...其他有文字的槽]。一般比其他每一顆都亮 ≥ 8 → 'general';
- * 其他子頁(3.29 的聖甲蟲 / 不滅之火、異能)或判不出 → null(不畫)。
+ * p99 依按鈕槽順序(一般 / 綢帶 / 異能;三顆都比,目前子頁的文字常被 OCR 漏讀)。
+ * 最亮的那顆比其他每一顆都亮 ≥ 8 → 該槽的子頁;異能或判不出 → null(不畫)。
  */
 export function activeSubtab (p99: readonly number[]): StashSubtab | null {
   if (p99.length < 2) return null
-  const second = Math.max(...p99.slice(1))
-  return p99[0] - second >= ACTIVE_MARGIN ? 'general' : null
+  const top = p99.indexOf(Math.max(...p99))
+  const second = Math.max(...p99.filter((_, i) => i !== top))
+  return p99[top] - second >= ACTIVE_MARGIN ? SLOT_SUBTABS[top] ?? null : null
 }

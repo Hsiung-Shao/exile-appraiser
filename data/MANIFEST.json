@@ -20,9 +20,9 @@
     },
     "data/poe1/stash": {
       "repo": "Lailloken/Exile-UI data/global/[stash-ninja] tabs.json",
-      "path": "https://github.com/Lailloken/Exile-UI/blob/67d1a3637e97b791072129f0cf890e22f385b237/data/global/%5Bstash-ninja%5D%20tabs.json",
-      "commit": "67d1a3637e97b791072129f0cf890e22f385b237",
-      "generatedAt": "2026-11-07T09:30:18.588Z"
+      "path": "https://github.com/Lailloken/Exile-UI/blob/8942b9da13f2fe6ba15a894db1a763bfa5d0b137/data/global/%5Bstash-ninja%5D%20tabs.json",
+      "commit": "8942b9da13f2fe6ba15a894db1a763bfa5d0b137",
+      "generatedAt": "2026-11-17T17:54:36.845Z"
     },
     "data/poe1/stash/digit-templates.json": {
       "repo": "本 repo core/test/stash/fixtures/qty(使用者 2000×1125 截圖 + 人工判讀 truth.json;scripts/build-stash-digit-templates.mjs 產生)",
@@ -179,8 +179,8 @@
       "bytes": 14634
     },
     "data/poe1/stash/layouts.json": {
-      "sha256": "65f023734665e56f2ef8c8436e3a4eaee17e2d9f3a0049ae19b14936c4933535",
-      "bytes": 3492
+      "sha256": "e056d18eff11367a87c236de54da9251431990f206e106bfb65f6e1a6b47463f",
+      "bytes": 3644
     },
     "data/poe1/trade/tw/stats.json": {
       "sha256": "e2b28ea0ad0f6a5b96ac87773dc27a5a921cad76ebf1e9709f659e5962aeb8b2",

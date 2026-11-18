@@ -30,9 +30,10 @@ async function layoutMod () {
 /** 產生模板 JSON 字串(不寫檔) */
 export async function buildTemplatesJson (fixDir = FIXTURE_DIR) {
   const { buildDigitTemplates, qtyCrop, digitSamples } = await core()
-  const { parseStashLayouts, cellRects } = await layoutMod()
+  const { cellRects } = await layoutMod()
   const truth = JSON.parse(fs.readFileSync(path.join(fixDir, 'truth.json'), 'utf8'))
-  const layouts = parseStashLayouts(JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'poe1', 'stash', 'layouts.json'), 'utf8')))
+  // 訓練截圖是 3.29 拍的 → 用凍結的 3.29 版面(3.30 一般頁改版,2026-11-18;只有一般頁,不過 parseStashLayouts 的子頁檢查)
+  const layouts = JSON.parse(fs.readFileSync(path.join(ROOT, 'core', 'test', 'stash', 'fixtures', 'layout-3.29.json'), 'utf8'))
   const clientH = truth.clientH
   /** @type {Array<{ d: number, v: Float64Array }>} */
   const samples = []

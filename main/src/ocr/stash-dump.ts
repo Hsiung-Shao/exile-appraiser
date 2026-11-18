@@ -7,6 +7,7 @@
  */
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import type { StashSubtab } from '../../../core/src/stash/layout'
 
 export interface DumpRect { x: number, y: number, w: number, h: number }
 
@@ -29,7 +30,7 @@ export interface StashDumpCell {
 export interface StashDumpData {
   /** 擷取時間(clock) */
   ts: number
-  subtab: 'general'
+  subtab: StashSubtab
   yOffset: number
   client: { w: number, h: number }
   /** 擷取影像左上在 client 內的位置 */

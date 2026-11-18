@@ -9,19 +9,12 @@ import { fileURLToPath } from 'node:url'
 import type { ScanCapture, ScanClock, ScanEnv } from '../src/ocr/panel-scan'
 import { STASH_IDLE_INTERVAL_MS, StashScan, type StashScanConfig } from '../src/ocr/stash-scan'
 import { buttonRects, type TextLine } from '../../core/src/stash/detect'
+import { clientLines } from '../../core/test/stash/ocr-330'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
-const FIX_DIR = path.join(HERE, '../../core/test/stash/fixtures/ocr')
 const H = 1432
 const W = 2546
-interface FixtureEntry { file: string, cropX: number, cropY: number }
-const INDEX = JSON.parse(fs.readFileSync(path.join(FIX_DIR, 'index.json'), 'utf8')) as { fixtures: FixtureEntry[] }
-function clientLines (name: string): TextLine[] {
-  const f = INDEX.fixtures.find(x => x.file === name)!
-  const snap = JSON.parse(fs.readFileSync(path.join(FIX_DIR, name.replace(/\.png$/, '.ocr.json')), 'utf8')) as { scale: number, lines: TextLine[] }
-  return snap.lines.map(l => ({ text: l.text, x: l.x / snap.scale + f.cropX, y: l.y / snap.scale + f.cropY, w: l.w / snap.scale, h: l.h / snap.scale }))
-}
-// 3.29 碎片頁按鈕列(四顆按鈕都在;聖甲蟲子頁 2026-11-07 起不畫,這裡只用它的按鈕文字位置,亮度另給)
+// 碎片頁按鈕列(3.29 實機 OCR,按鈕行搬到 3.30 位置;亮度另給)
 const STRIP_LINES = clientLines('strip-scarabs-1432.png')
 
 function fakeClock () {

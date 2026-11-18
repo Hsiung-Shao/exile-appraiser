@@ -302,7 +302,7 @@ export interface StashScanEvent {
   seq: number
   ts: number
   reason: 'show' | 'hide'
-  subtab: 'general' | null
+  subtab: 'general' | 'threads' | null
   yOffset: number
   client: { w: number, h: number }
   /** OCR 耗時(ms;有跑 OCR 的那一次才有) */
@@ -328,7 +328,7 @@ export interface StashStats {
   /** 最近一次被擋下的原因;null = 正在掃描 */
   block: string | null
   showing: boolean
-  subtab: 'general' | null
+  subtab: 'general' | 'threads' | null
   /** 最近一次 OCR 的耗時(ms) */
   lastOcrMs: number | null
   ocrCount: number

@@ -4,8 +4,8 @@
  *
  * 物品身分**不靠 OCR**(格子裡只有圖示 + 數量):固定版面表(`data/poe1/stash/layouts.json`)依位置對應,renderer 畫每格徽章。
  * 這裡只看倉庫面板頂端的子頁按鈕列(`core/src/stash/detect.ts` `stripRect`;使用者自訂區域 `region` 夾在 `stripZone` 內):
- *   擷取 → 按鈕列灰階縮圖與上次 OCR 時比對,沒變就不 OCR → 有變化才 OCR(×3)→ `findSubtabButtons`(一般 / 不滅之火 / 異能 至少 2 顆、
- *   落在四個按鈕槽且順序左到右;由文字高度推資料夾偏移)→ 一般與其他有文字的槽 p99 亮度 → `activeSubtab`(只有「一般」較亮才畫)→ 狀態變了才送 `stash-scan-result`。
+ *   擷取 → 按鈕列灰階縮圖與上次 OCR 時比對,沒變就不 OCR → 有變化才 OCR(×3)→ `findSubtabButtons`(一般 / 綢帶 / 異能 至少 2 顆、
+ *   落在三個按鈕槽且順序左到右;由文字高度推資料夾偏移)→ 三顆按鈕 p99 亮度 → `activeSubtab`(一般或綢帶最亮才畫)→ 狀態變了才送 `stash-scan-result`。
  * 沒找到按鈕:游標停在已顯示子頁的格子上(遊戲說明框可能蓋住按鈕列,`holdOnMiss`)→ 維持原狀,但連續最多 `STASH_HOLD_LIMIT` 次;
  * 否則連續 2 次才送 `hide`。疊層顯示中沒找到按鈕時作廢差分基準(下一 tick 一定重 OCR,畫面靜止也收得掉);沒顯示時照常差分。
  *
@@ -23,7 +23,7 @@
  */
 import type { OcrRegion, RuneshapeUiState, StashScanEvent, StashStats } from '@ipc/types'
 import type { OcrTextLang, OcrTextLine } from '../../../poe2/src/desecration/ocr-text'
-import { activeSubtab, buttonRects, compareSlots, findSubtabButtons, percentile, stripRect, stripZone, type Rect } from '../../../core/src/stash/detect'
+import { activeSubtab, buttonRects, findSubtabButtons, percentile, stripRect, stripZone, type Rect } from '../../../core/src/stash/detect'
 import { cellRects, stashLeft, type StashLayoutFile, type StashSubtab } from '../../../core/src/stash/layout'
 import {
   QTY_PARAMS, qtyCropRect, qtyMapSignature, qtyShapeChanged, qtySignatureChanged, qtyWhiteMap, readCellQuantity,
@@ -728,11 +728,11 @@ export class StashScan {
     let subtab: StashSubtab | null = null
     if (cap.gray) {
       const rects = buttonRects(client.h, match.yOffset, stashLeft(client.w, client.h))
-      const p99 = compareSlots(match).map(k => percentile(cap.gray!(toImage(rects[k], cap.offset)), 0.99))
+      const p99 = rects.map(r => percentile(cap.gray!(toImage(r, cap.offset)), 0.99))
       subtab = activeSubtab(p99)
     }
     if (!subtab) {
-      // 一般以外的子頁 / 判不出目前子頁 → 不畫。熱鍵模式不解除(一個 tick 判不出就要使用者再按太嚴):比照沒偵測到倉庫由 countArmMiss 累計
+      // 異能 / 判不出目前子頁 → 不畫。熱鍵模式不解除(一個 tick 判不出就要使用者再按太嚴):比照沒偵測到倉庫由 countArmMiss 累計
       const sent = this.hide(client, ms, { keepArmed: true })
       return { kind: 'ocr', found: true, subtab: null, held: false, sent, ms }
     }

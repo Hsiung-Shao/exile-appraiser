@@ -1,7 +1,7 @@
 /**
  * PoE1 倉庫價格疊層:按鈕列掃描(StashScan)與游標換格(StashCursor)。
  * 只依規格寫(不讀 main/src/ocr/stash-scan.ts、main/src/stash-cursor.ts 實作);假時鐘 / 假擷取 / 假 OCR / 假游標,不碰 Electron。
- * 輸入:core/test/stash/fixtures/ocr 的真實 OCR 快照(client 高 1432)、data/poe1/stash/layouts.json。
+ * 輸入:core/test/stash/fixtures/ocr 的真實 OCR 快照(client 高 1432;3.29 拍的,按鈕行由 core/test/stash/ocr-330.ts 搬到 3.30 位置)、data/poe1/stash/layouts.json。
  */
 import { describe, expect, it } from 'vitest'
 import fs from 'node:fs'
@@ -15,25 +15,14 @@ import {
 import { STASH_CURSOR_INTERVAL_MS, StashCursor, stashPanelContains } from '../src/stash-cursor'
 import { buttonRects, stripRect, stripZone, type TextLine } from '../../core/src/stash/detect'
 import { cellRects, parseStashLayouts, stashLeft, type StashLayoutFile } from '../../core/src/stash/layout'
+import { clientLines } from '../../core/test/stash/ocr-330'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(HERE, '../..')
-const FIX_DIR = path.join(ROOT, 'core/test/stash/fixtures/ocr')
 const H = 1432
 const W = 2546
 
-interface FixtureEntry { file: string, clientH: number, cropX: number, cropY: number }
-const INDEX = JSON.parse(fs.readFileSync(path.join(FIX_DIR, 'index.json'), 'utf8')) as { fixtures: FixtureEntry[] }
-
-/** OCR 快照 → client 座標的行(測試的 offset = 0,影像像素 = client) */
-function clientLines (name: string): TextLine[] {
-  const f = INDEX.fixtures.find(x => x.file === name)
-  if (!f) throw new Error(`找不到 fixture ${name}`)
-  const snap = JSON.parse(fs.readFileSync(path.join(FIX_DIR, name.replace(/\.png$/, '.ocr.json')), 'utf8')) as { scale: number, lines: TextLine[] }
-  const s = snap.scale
-  return snap.lines.map(l => ({ text: l.text, x: l.x / s + f.cropX, y: l.y / s + f.cropY, w: l.w / s, h: l.h / s }))
-}
-// 3.29 碎片頁按鈕列(四顆按鈕都在;聖甲蟲子頁 2026-11-07 起不畫,這裡只用它的按鈕文字位置,亮度另給)
+// 碎片頁按鈕列(三顆按鈕文字都讀到;亮度另給)
 const STRIP_LINES = clientLines('strip-scarabs-1432.png')
 const TOOLTIP_LINES = clientLines('strip-tooltip-1432.png')
 
@@ -66,12 +55,11 @@ function fakeClock () {
 
 const fp = (v: number): Fingerprint => ({ w: 64, h: 12, data: new Uint8Array(64 * 12).fill(v) })
 
-/** 亮度:第 k 顆按鈕的 p99;[一般, 聖甲蟲, 不滅之火, 異能](3.29 四顆;只有一般畫) */
+/** 亮度:第 k 顆按鈕的 p99;[一般, 綢帶, 異能](3.30;異能不畫) */
 const BRIGHT = {
-  general: [160, 140, 140, 140],
-  scarabs: [140, 160, 140, 140],
-  allflame: [140, 140, 160, 140],
-  eldritch: [140, 140, 140, 160]
+  general: [160, 140, 140],
+  threads: [140, 160, 140],
+  eldritch: [140, 140, 160]
 } as const
 
 function harness () {
@@ -213,11 +201,11 @@ describe('S9b 狀態轉換只送一次', () => {
     expect(await h.scan.tick()).toMatchObject({ kind: 'ocr', found: true, subtab: 'general', sent: null })
     expect(h.events).toHaveLength(1)
 
-    h.state.bright = [...BRIGHT.scarabs]
+    h.state.bright = [...BRIGHT.threads]
     h.changeFrame()
-    // 3.29 聖甲蟲子頁(2026-11-07 刪除)仍畫 → 一般頁的格子價格疊在聖甲蟲上
-    expect(await h.scan.tick()).toMatchObject({ found: true, subtab: null, sent: 'hide' })
-    expect(h.showingCalls.at(-1)).toEqual({ showing: false, st: { subtab: null, yOffset: 0, clientH: H } })
+    // 換子頁沒重送 → 一般頁的格子價格疊在綢帶頁上
+    expect(await h.scan.tick()).toMatchObject({ found: true, subtab: 'threads', sent: 'show' })
+    expect(h.showingCalls.at(-1)).toEqual({ showing: true, st: { subtab: 'threads', yOffset: 0, clientH: H } })
 
     h.state.bright = [...BRIGHT.general]
     h.changeFrame()

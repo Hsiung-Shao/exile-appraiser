@@ -44,9 +44,9 @@ export interface NinjaCategories {
  */
 export const NINJA_CATEGORIES: Record<NinjaGame, NinjaCategories> = {
   poe1: {
-    // Scarab 2026-11-08 移除(3.30 拿掉聖甲蟲)
+    // Scarab 2026-11-08 移除(3.30 拿掉聖甲蟲);Thread 2026-11-18 加入(3.30 綢帶,倉庫碎片頁「綢帶」子頁)
     exchange: ['Currency', 'Fragment', 'Oil', 'Essence', 'Fossil', 'Resonator', 'DeliriumOrb',
-      'Tattoo', 'Omen', 'Runegraft', 'DivinationCard'],
+      'Tattoo', 'Omen', 'Runegraft', 'DivinationCard', 'Thread'],
     item: ['SkillGem', 'Map', 'UniqueMap', 'UniqueWeapon', 'UniqueArmour', 'UniqueAccessory', 'UniqueJewel', 'UniqueFlask']
   },
   poe2: {
