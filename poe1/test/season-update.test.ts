@@ -1231,7 +1231,7 @@ describe('planMercenarySkills(規則 24:交易站有、資料沒有的傭兵技�
 
 describe('planPassiveRenames(規則 25:天賦繁中改名)', () => {
   // GitHub issue #34:3.30 Avatar of the Wilds 繁中「獸性化身」→「荒野化身」
-  it('名字在「配置 X」/「天賦為X」結尾的寫法補新名、舊的標 superseded;再跑一次不重複', () => {
+  it('名字在「配置 X」結尾的寫法補新名、舊的標 superseded;再跑一次不重複', () => {
     const zhStats = [
       stat('Allocates Avatar of the Wilds if you have the matching modifier on Forbidden Flame', [{ string: '若禁忌烈焰上有符合的詞綴，配置 獸性化身' }]),
       stat('Allocates Avatar of the Wilds', [{ string: '配置 獸性化身' }]),
@@ -1245,6 +1245,12 @@ describe('planPassiveRenames(規則 25:天賦繁中改名)', () => {
     ])
     const out = parseRows(applyStatPlan(toFile(zhStats), 'cmn-Hant', { adds: plan.adds }))
     expect(planPassiveRenames({ zhStats: out, renames }).adds).toEqual([])
+  })
+
+  // 審查第 2 輪:星團「1 個附加天賦為 X」是寫死名稱(GGPK 3.30 仍是舊名),不能跟著改
+  it('星團珠寶「1 Added Passive Skill is X」不改名', () => {
+    const zhStats = [stat('1 Added Passive Skill is Advance Guard', [{ string: '1 個附加天賦為進階守衛' }])]
+    expect(planPassiveRenames({ zhStats, renames: [{ en: 'Advance Guard', from: '進階守衛', zh: '先鋒部隊' }] }).adds).toEqual([])
   })
 
   it('只換英文名相符的天賦:另一個天賦共用舊繁中名但沒改名 → 不動;同一個天賦兩種改名 → 拒收', () => {
