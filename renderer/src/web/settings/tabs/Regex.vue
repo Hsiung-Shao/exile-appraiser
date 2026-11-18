@@ -7,22 +7,26 @@
   RegexPanel 兩個子分頁都掛著(只切 v-show),書籤對話框(Teleport)從產生器的「存成自訂書籤」也開得起來。
 -->
 <template>
-  <div class="seg sub-tabs" role="tablist" data-setting="regex-view">
-    <button v-for="v in views" :key="v.id" type="button" role="tab" :class="{ on: regexView === v.id }" :aria-selected="regexView === v.id"
+  <!-- 2026-11-18 設計稿 P10 / P11:子分頁是底線樣式 -->
+  <div class="tabs sub-tabs" role="tablist" data-setting="regex-view">
+    <button v-for="v in views" :key="v.id" type="button" role="tab" class="tab" :class="{ on: regexView === v.id }" :aria-selected="regexView === v.id"
       :data-value="v.id" @click="regexView = v.id">{{ v.label }}</button>
   </div>
   <template v-if="regexView === 'bookmarks'">
     <page-hotkeys :ids="['regexQuick', 'map-check']" />
-    <map-check-card v-if="config.game === 'poe1'" />
-    <section class="card" data-setting="regex-quick">
-      <div class="card-head">
-        <span class="label">{{ t('ppz.regex.quick_section') }}</span>
-        <help-tip id="regex-quick" :text="t('ppz.regex.quick_section_hint')" />
-      </div>
-      <div class="chk-row">
-        <label class="chk"><input v-model="config.regexBookmarkBar" type="checkbox" data-setting="regex-bookmark-bar"><span>{{ t('ppz.regex.quick_bar_toggle') }}</span></label>
-      </div>
-    </section>
+    <!-- 設計稿 P11:地圖詞綴檢查與書籤列兩張小卡並排(窄時上下排);書籤列用開關 -->
+    <div class="rx-bm-cards">
+      <map-check-card v-if="config.game === 'poe1'" />
+      <section class="card" data-setting="regex-quick">
+        <div class="card-head">
+          <span class="label">{{ t('ppz.regex.quick_section') }}</span>
+          <help-tip id="regex-quick" :text="t('ppz.regex.quick_section_hint')" />
+          <span class="grow" />
+          <label class="scan-switch" :title="t('ppz.regex.quick_bar_toggle')"><input v-model="config.regexBookmarkBar" type="checkbox" role="switch" :aria-checked="config.regexBookmarkBar" :aria-label="t('ppz.regex.quick_bar_toggle')" data-setting="regex-bookmark-bar"><span class="scan-switch-track" aria-hidden="true"><span class="scan-switch-knob" /></span></label>
+        </div>
+        <p class="lead">{{ t('ppz.regex.quick_bar_toggle') }}</p>
+      </section>
+    </div>
   </template>
   <RegexPanel :part="regexView" />
 </template>
@@ -59,7 +63,17 @@ export default defineComponent({
 
 <style>
 .settings-panel .sub-tabs {
-  align-self: flex-start;
   flex-shrink: 0;
+}
+.settings-panel .rx-bm-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(18em, 100%), 1fr));
+  gap: 12px;
+}
+.settings-panel .rx-bm-cards .card-head .grow {
+  flex: 1;
+}
+.settings-panel .rx-bm-cards .lead {
+  margin: 0;
 }
 </style>

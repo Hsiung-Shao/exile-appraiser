@@ -10,22 +10,21 @@
 -->
 <template>
   <div class="rx-panel" data-regex="panel" :data-game="selGame" :data-page="page?.id ?? ''" :data-view="panelView">
-    <section v-show="part !== 'bookmarks'" class="card rx-head" data-regex="header">
+    <!-- 2026-11-18 設計稿 P10-RegexGen:控制列不包卡片(遊戲 / 清單 / 語言 / 模式);合併檢視與雙語放在右側 -->
+    <div v-show="part !== 'bookmarks'" class="rx-head" data-regex="header">
       <div class="rx-head-row">
         <div class="seg" data-regex="game">
           <button v-for="g in games" :key="g" :class="{ on: selGame === g }" :data-value="g"
             @click="switchGame(g)">{{ gameLabel(g) }}</button>
         </div>
-        <div v-if="catalogue" class="seg" data-regex="view">
-          <button :class="{ on: panelView === 'combined' }" data-value="combined" @click="setPanelView('combined')">
-            {{ t('ppz.regex.view_combined', { n: pickedPages.length }) }}
-          </button>
-          <button :class="{ on: panelView === 'page' }" data-value="page" @click="setPanelView('page')">{{ t('ppz.regex.view_page') }}</button>
-        </div>
         <select v-if="catalogue" class="select sm rx-page" data-regex="page" :value="page?.id"
           @change="switchPage(($event.target as HTMLSelectElement).value)">
           <option v-for="p in listed" :key="p.id" :value="p.id">{{ pageTitle(p) }}{{ pagePickCount(p) ? ` (${pagePickCount(p)})` : '' }}</option>
         </select>
+        <div class="seg" data-regex="lang" :title="t('ppz.regex.lang_tip')">
+          <button :class="{ on: ui.lang === 'zh' }" data-value="zh" @click="setLang('zh')">{{ t('ppz.regex.lang_zh') }}</button>
+          <button :class="{ on: ui.lang === 'en' }" data-value="en" @click="setLang('en')">{{ t('ppz.regex.lang_en') }}</button>
+        </div>
         <div class="seg" data-regex="mode">
           <button v-for="m in modes" :key="m" :class="{ on: ui.mode === m }" :data-value="m"
             :title="m === 'none' ? t('ppz.regex.mode_none_tip') : ''" @click="setMode(m)">{{ t(`ppz.regex.mode_${m}`) }}</button>
@@ -37,20 +36,15 @@
             @change="setBilingual(($event.target as HTMLInputElement).checked)">
           {{ t('ppz.regex.bilingual') }}
         </label>
-      </div>
-      <div v-if="catalogue" class="rx-head-row rx-head-tools">
-        <select class="select sm rx-tpl" data-regex="template" :value="''" @change="onTemplate">
-          <option value="" disabled>{{ t('ppz.regex.template_ph', { n: myTemplates.length }) }}</option>
-          <option v-for="tp in myTemplates" :key="tp.id" :value="tp.id">{{ uiEn ? tp.name.en : tp.name.zh }}</option>
-        </select>
-        <button class="btn sm" data-regex="share-copy" :disabled="!anyPicked && !ui.custom.length && !ui.excludes.length"
-          :title="t('ppz.regex.share_copy_tip')" @click="copyShare">
-          {{ shareState === 'ok' ? t('ppz.regex.copied') : shareState === 'fail' ? t('ppz.regex.copy_failed') : t('ppz.regex.share_copy') }}
-        </button>
-        <button class="btn sm" data-regex="share-paste" :title="t('ppz.regex.share_paste_tip')" @click="openPaste">{{ t('ppz.regex.share_paste') }}</button>
+        <div v-if="catalogue" class="seg" data-regex="view">
+          <button :class="{ on: panelView === 'page' }" data-value="page" @click="setPanelView('page')">{{ t('ppz.regex.view_page') }}</button>
+          <button :class="{ on: panelView === 'combined' }" data-value="combined" @click="setPanelView('combined')">
+            {{ t('ppz.regex.view_combined', { n: pickedPages.length }) }}
+          </button>
+        </div>
       </div>
       <p v-if="page && panelView === 'page' && pageNote" class="rx-note">{{ pageNote }}</p>
-    </section>
+    </div>
 
     <section v-if="!catalogue" class="card" :class="{ bad: slot.phase === 'error' }" data-regex="status">
       <p v-if="slot.phase === 'error'" class="rx-bad">
@@ -61,64 +55,78 @@
     </section>
 
     <template v-if="page && out">
+      <!-- 2026-11-18 設計稿 P10-RegexGen:左欄清單、右欄輸出 + 數值條件摘要(容器夠寬才分兩欄,窄時右欄疊到清單上方) -->
       <div v-show="part !== 'bookmarks'" class="rx-gen">
-        <RegexCombined v-if="panelView === 'combined'" />
-        <template v-else-if="itemPage">
-          <!-- 第 40 步:物品詞綴數值頁頂端的稀有度 / 汙染條件區 -->
-          <RegexNumericSection v-if="section" :key="section.id" :section="section" />
-          <RegexItemModList :key="itemPage.id" :page="itemPage" />
-        </template>
-        <RegexAlgoList v-else-if="algoPage" :page="algoPage" />
-        <template v-else>
-          <RegexNumericSection v-if="section" :key="section.id" :section="section" />
-          <RegexList />
-        </template>
+        <div class="rx-col">
+          <RegexCombined v-if="panelView === 'combined'" />
+          <template v-else-if="itemPage">
+            <!-- 第 40 步:物品詞綴數值頁頂端的稀有度 / 汙染條件區;收合時改畫在右欄當摘要 -->
+            <RegexNumericSection v-if="section && !sectionCollapsed" :key="section.id" :section="section" />
+            <RegexItemModList :key="itemPage.id" :page="itemPage" />
+          </template>
+          <RegexAlgoList v-else-if="algoPage" :page="algoPage" />
+          <template v-else>
+            <RegexNumericSection v-if="section && !sectionCollapsed" :key="section.id" :section="section" />
+            <RegexList />
+          </template>
+        </div>
 
+        <aside class="rx-side">
         <section class="card rx-out" data-regex="output" :data-scope="scope">
           <div class="rx-out-row">
             <span class="label rx-out-label">{{ t('ppz.regex.output_hint') }}</span>
             <span class="grow" />
-            <div class="seg" data-regex="out-scope" :title="t('ppz.regex.out_scope_tip')">
-              <button :class="{ on: scope === 'combined' }" data-value="combined" @click="setOutScope('combined')">{{ t('ppz.regex.scope_combined') }}</button>
-              <button :class="{ on: scope === 'page' }" data-value="page" @click="setOutScope('page')">{{ t('ppz.regex.scope_page') }}</button>
-            </div>
+            <span class="num rx-len" :class="lenLevel" data-regex="length" :data-level="lenLevel" :data-len="shownLen"
+              :title="t('ppz.regex.length', { len: shownLen, limit: shownLimit })">{{ shownLen }} / {{ shownLimit }}</span>
           </div>
           <!-- 2026-11-12:輸出框可直接改 / 自己寫(原樣使用、不經驗證);「還原」回到勾選產生的字串 -->
-          <textarea class="input rx-query selectable" rows="3" spellcheck="false" data-regex="query"
-            :value="shown" :placeholder="t('ppz.regex.query_placeholder')"
+          <textarea class="input rx-query selectable" rows="5" spellcheck="false" data-regex="query"
+            :value="shown" :placeholder="t('ppz.regex.query_placeholder')" :aria-label="t('ppz.regex.output_hint')"
             @input="onQueryInput" @keydown.enter.prevent
             @focus="manual === null && ($event.target as HTMLTextAreaElement).select()" />
+          <span class="rx-query-hint">{{ t('ppz.regex.query_hint') }}</span>
           <div class="rx-out-row">
-            <span class="num rx-len" :class="lenLevel" data-regex="length" :data-level="lenLevel" :data-len="shownLen">
-              {{ t('ppz.regex.length', { len: shownLen, limit: shownLimit }) }}
-            </span>
-            <span v-if="manual === null && scope === 'combined' && out.perPage.length + (out.custom.length ? 1 : 0) + (out.excludes.length ? 1 : 0) > 1"
-              class="rx-parts" data-regex="parts">
-              {{ partsText }}
-            </span>
-            <span v-if="lenLevel === 'bad'" class="rx-bad" data-regex="over-limit">{{ t(manual === null ? 'ppz.regex.over_limit' : 'ppz.regex.bm_custom_over') }}</span>
-            <span class="grow" />
             <button class="btn primary sm rx-copy" data-regex="copy" :disabled="!shown" @click="copy">
               {{ copyState === 'ok' ? t('ppz.regex.copied') : copyState === 'fail' ? t('ppz.regex.copy_failed') : t('ppz.regex.copy') }}
+            </button>
+            <!-- 2026-11-18:依目前勾選存成書籤(同書籤卡片的「存成書籤」;產生器子分頁看不到書籤卡片,在這裡也放一顆) -->
+            <button class="btn sm" data-regex="save-picks" :disabled="!page || !pagePickCount(page)"
+              :title="page && pagePickCount(page) ? t('ppz.regex.bm_save_tip', { game: gameLabel(selGame) }) : t('ppz.regex.bm_save_need')" @click="bookmarkSaveRequest++">
+              {{ t('ppz.regex.bm_save') }}
+            </button>
+            <button class="btn ghost sm" data-regex="share-copy" :disabled="!anyPicked && !ui.custom.length && !ui.excludes.length"
+              :title="t('ppz.regex.share_copy_tip')" @click="copyShare">
+              {{ shareState === 'ok' ? t('ppz.regex.copied') : shareState === 'fail' ? t('ppz.regex.copy_failed') : t('ppz.regex.share_code') }}
+            </button>
+          </div>
+          <!-- 設計稿沒有畫的既有功能,收在次要一列 -->
+          <div class="rx-out-row rx-out-more">
+            <!-- 2026-11-12:把目前字串存成自訂字串書籤(固定字串;對話框在 RegexBookmarks.vue) -->
+            <button class="btn ghost sm" data-regex="save-custom" :disabled="!shown" :title="t('ppz.regex.bm_save_output_tip')" @click="saveCustom">
+              {{ t('ppz.regex.bm_save_output') }}
             </button>
             <!-- 2026-10-01:把目前字串加到「倉庫 › 倉庫搜尋」(熱鍵在那一頁設;2026-11-18 前分頁叫「倉庫與聊天」) -->
             <button class="btn ghost sm" data-regex="add-stash" :disabled="!shown || shown.length > 250" :title="t('ppz.regex.add_stash_tip')" @click="addStash">
               {{ stashState === 'ok' ? t('ppz.regex.add_stash_done') : stashState === 'dup' ? t('ppz.regex.add_stash_dup') : t('ppz.regex.add_stash') }}
             </button>
-            <!-- 2026-11-18:依目前勾選存成書籤(同書籤卡片的「存成書籤」;產生器子分頁看不到書籤卡片,在這裡也放一顆) -->
-            <button class="btn ghost sm" data-regex="save-picks" :disabled="!page || !pagePickCount(page)"
-              :title="page && pagePickCount(page) ? t('ppz.regex.bm_save_tip', { game: gameLabel(selGame) }) : t('ppz.regex.bm_save_need')" @click="bookmarkSaveRequest++">
-              {{ t('ppz.regex.bm_save') }}
-            </button>
-            <!-- 2026-11-12:把目前字串存成自訂字串書籤(固定字串;對話框在 RegexBookmarks.vue) -->
-            <button class="btn ghost sm" data-regex="save-custom" :disabled="!shown" :title="t('ppz.regex.bm_save_output_tip')" @click="saveCustom">
-              {{ t('ppz.regex.bm_save_output') }}
-            </button>
-            <select class="select sm" data-regex="lang" :value="ui.lang" :title="t('ppz.regex.lang_tip')"
-              @change="onLang">
-              <option value="zh">{{ t('ppz.regex.out_zh') }}</option>
-              <option value="en">{{ t('ppz.regex.out_en') }}</option>
+            <button class="btn ghost sm" data-regex="share-paste" :title="t('ppz.regex.share_paste_tip')" @click="openPaste">{{ t('ppz.regex.share_paste') }}</button>
+          </div>
+          <div class="rx-out-row rx-out-more">
+            <select class="select sm rx-tpl" data-regex="template" :value="''" @change="onTemplate">
+              <option value="" disabled>{{ t('ppz.regex.template_ph', { n: myTemplates.length }) }}</option>
+              <option v-for="tp in myTemplates" :key="tp.id" :value="tp.id">{{ uiEn ? tp.name.en : tp.name.zh }}</option>
             </select>
+            <div class="seg" data-regex="out-scope" :title="t('ppz.regex.out_scope_tip')">
+              <button :class="{ on: scope === 'combined' }" data-value="combined" @click="setOutScope('combined')">{{ t('ppz.regex.scope_combined') }}</button>
+              <button :class="{ on: scope === 'page' }" data-value="page" @click="setOutScope('page')">{{ t('ppz.regex.scope_page') }}</button>
+            </div>
+          </div>
+          <div v-if="lenLevel === 'bad' || (manual === null && scope === 'combined' && out.perPage.length + (out.custom.length ? 1 : 0) + (out.excludes.length ? 1 : 0) > 1)" class="rx-out-row">
+            <span v-if="manual === null && scope === 'combined' && out.perPage.length + (out.custom.length ? 1 : 0) + (out.excludes.length ? 1 : 0) > 1"
+              class="rx-parts" data-regex="parts">
+              {{ partsText }}
+            </span>
+            <span v-if="lenLevel === 'bad'" class="rx-bad" data-regex="over-limit">{{ t(manual === null ? 'ppz.regex.over_limit' : 'ppz.regex.bm_custom_over') }}</span>
           </div>
           <p v-if="manual !== null" class="dim rx-conflict-line" data-regex="manual-hint">
             {{ t('ppz.regex.manual_hint') }}
@@ -159,7 +167,9 @@
             </details>
           </template>
         </section>
-
+        <!-- 數值條件收合時在右欄只列已設定的條件(設計稿的摘要小卡);點標題展開回清單上方編輯 -->
+        <RegexNumericSection v-if="section && sectionCollapsed && panelView === 'page' && (itemPage || !algoPage)" :key="section.id" :section="section" />
+        </aside>
       </div>
 
       <!-- 書籤子分頁看不到輸出卡片:書籤操作的結果 / 存檔失敗在這裡也顯示一份(2026-11-18 審查修正) -->
@@ -278,7 +288,7 @@ import RegexCombined from './RegexCombined.vue'
 import RegexBookmarks from './RegexBookmarks.vue'
 import RegexNumericSection from './RegexNumericSection.vue'
 import {
-  GAMES, applyShareCode, applyTemplate, bookmarkSaveRequest, customBookmarkDraft, dismissNotice, ensureStarted, flushSave, gameLabel, hasPendingSave, makeShareCode,
+  GAMES, applyShareCode, applyTemplate, bookmarkSaveRequest, customBookmarkDraft, dismissNotice, ensureStarted, flushSave, gameLabel, hasPendingSave, isCollapsed, makeShareCode,
   pagePickCount, retryCatalogue, setBilingual, setLang, setMode, setOutScope, setPanelView, switchGame, switchPage, useRegexStore
 } from './store'
 import { incomingShare } from './incoming'
@@ -421,9 +431,12 @@ export default defineComponent({
       setMode,
       setOutScope,
       setPanelView,
-      onLang (e: Event) {
-        setLang((e.target as HTMLSelectElement).value === 'en' ? 'en' : 'zh')
-      },
+      setLang,
+      /** 數值條件區收合時改畫在右欄當摘要(收合狀態以宿主頁為鍵,同 RegexNumericSection) */
+      sectionCollapsed: computed(() => {
+        const s = store.section.value
+        return !!s && isCollapsed(s.sectionOf ?? s.id)
+      }),
       setBilingual,
       retryCatalogue,
       dismissNotice,
@@ -504,9 +517,59 @@ export default defineComponent({
   gap: 10px;
   min-width: 0;
 }
-/* 產生器子分頁的包裝:不佔版面(子元素照舊是 .rx-panel 的直接排版對象) */
+/* 2026-11-18 設計稿 P10:左清單 / 右輸出。窄時單欄,右欄(輸出)疊在清單上方;尺寸用 em(跟設定視窗獨立字級) */
+.rx-panel {
+  container: rx-panel / inline-size;
+}
 .rx-gen {
-  display: contents;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.rx-col,
+.rx-side {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.rx-side {
+  order: -1;
+}
+@container rx-panel (min-width: 46em) {
+  .rx-gen {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 21em;
+    align-items: start;
+    gap: 12px;
+  }
+  .rx-side {
+    order: 0;
+    position: sticky;
+    top: 0;
+  }
+  .rx-col .rx-rows {
+    height: clamp(260px, 62vh, 900px);
+  }
+}
+.rx-head {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.rx-out-more {
+  gap: 2px 4px;
+}
+.rx-out-more .btn.ghost {
+  padding-inline: 6px;
+  color: var(--ink-2);
+}
+.rx-query-hint {
+  margin-top: -2px;
+  font-size: var(--fs-2xs);
+  color: var(--ink-3);
+  text-align: right;
 }
 .rx-head-row,
 .rx-out-row {
