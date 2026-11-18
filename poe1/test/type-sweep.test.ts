@@ -57,7 +57,7 @@ function itemText (lang: Lang, cls: string, klass: string, base: string, type: M
   if (type === 'explicit') L.push('--------', zh ? '{ 前綴 "測試的"(階層：1) }' : '{ Prefix Modifier "Testing" (Tier: 1) }', line)
   // 探險日誌一定有區域段(區域名 / 陣營 / 帶「 (implicit)」的區域詞綴,`parseLogbookArea` 要 ≥ 3 行),沒有的話組查詢會拋錯;
   // 第 3 行是對不到任何詞綴的湊數行(被略過),區域段只剩陣營
-  if (cls === 'ExpeditionLogbook') L.push('--------', 'Testing Grounds', zh ? '豔陽騎士' : 'Knights of the Sun', 'Testing Grounds (implicit)')
+  if (cls === 'ExpeditionLogbook') L.push('--------', zh ? '地區等級: 83' : 'Area Level: 83', '--------', 'Testing Grounds', zh ? '豔陽騎士' : 'Knights of the Sun', 'Testing Grounds (implicit)')
   return L.join('\n') + '\n'
 }
 
@@ -109,7 +109,7 @@ function probe (lang: Lang, cls: string, klass: string, base: string, type: ModT
   try {
     return queryProbe(r.value, refs, type, lang, out)
   } catch (e) {
-    // 合成的物品缺了實機一定有的段落(探險日誌的區域)時,組查詢會拋錯;記成一種缺口
+    // 合成的物品缺了實機一定有的段落時,組查詢會拋錯;記成一種缺口
     return { ...out, query: 'crash', crash: String(e) }
   }
 }
