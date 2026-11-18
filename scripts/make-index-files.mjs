@@ -43,7 +43,7 @@ function makePoe1IndexFiles (DATA_DIR) {
           for (const matcher of stat.matchers) {
             if (matcher.advanced) {
               lineStarts.matchers.push({ start, hash: Number(fnv1a(matcher.advanced, { size: 32 })) })
-              // 進階寫法只多了「(...)」的句子,無標記句也進索引(解析器去掉標記後重比);已被別列佔用的句子不搶
+              // 進階寫法帶「(...)」的句子,無標記句也進索引(解析器去掉標記後重比);已被別列佔用的句子不搶
               if (matcher.advanced.includes('(...)')) bare.push({ start, hash: Number(fnv1a(matcher.string, { size: 32 })) })
             } else {
               lineStarts.matchers.push({ start, hash: Number(fnv1a(matcher.string, { size: 32 })) })

@@ -79,6 +79,24 @@ describe('(...) 標記容忍(en)', () => {
   it('T2c 行尾接「 — Unscalable Value」結果相同', () => {
     expectImplicit('en', "Map contains Baran's Citadel(...) — Unscalable Value", `${CITADEL}|1`)
   })
+
+  // 審查 2026-11-18:去掉標記後不可以撞到別條詞綴的句子
+  const ringText = (lines: string[]): string => [
+    "Item Class: Rings", "Rarity: Rare", "Doom Loop", "Opal Ring", "--------", "Item Level: 84", "--------",
+    "{ Prefix Modifier \"Testing\" (Tier: 1) }", ...lines
+  ].join('\n') + '\n'
+
+  it("R1 兩行的「召喚物數量加倍」不被第一行的容錯拆開", () => {
+    const item = parse(ringText(["Maximum number of Animated Weapons(...) is Doubled", "Cannot have Minions other than Animated Weapons(...)"]))
+    expect(item.unknownModifiers.map(u => u.text)).toEqual([])
+    expect(item.statsByType.map(s => s.stat.trade.ids.explicit)).toEqual([["explicit.stat_56473917|1"]])
+  })
+
+  it("R2 標記位置對不上隨機技能寶石時,不改配成一般的「全部 X 寶石等級」", () => {
+    const item = parse(ringText(["+1 to Level of all Raise Spectre Gems(...)"]))
+    expect(item.statsByType.flatMap(s => s.stat.trade.ids.explicit ?? [])).not.toContain("explicit.stat_3235814433")
+    expect(item.unknownModifiers.map(u => u.text)).toEqual(["+1 to Level of all Raise Spectre Gems(...)"])
+  })
 })
 
 describe('(...) 標記容忍(cmn-Hant)', () => {
