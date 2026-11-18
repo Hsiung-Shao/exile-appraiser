@@ -30,15 +30,15 @@
       "lang": "zh",
       "game": "poe1",
       "page": "map_mods",
-      "length": 34,
-      "plain": 124
+      "length": 27,
+      "plain": 134
     },
     {
       "lang": "zh",
       "game": "poe1",
       "page": "logbook_mods",
-      "length": 24,
-      "plain": 131
+      "length": 27,
+      "plain": 136
     },
     {
       "lang": "zh",
@@ -65,22 +65,22 @@
       "lang": "zh",
       "game": "poe1",
       "page": "gem_names",
-      "length": 37,
-      "plain": 63
+      "length": 33,
+      "plain": 70
     },
     {
       "lang": "zh",
       "game": "poe1",
       "page": "tattoos",
-      "length": 25,
+      "length": 24,
       "plain": 90
     },
     {
       "lang": "zh",
       "game": "poe1",
       "page": "heist_equipment_mods",
-      "length": 33,
-      "plain": 210
+      "length": 29,
+      "plain": 192
     },
     {
       "lang": "zh",
@@ -93,22 +93,22 @@
       "lang": "zh",
       "game": "poe1",
       "page": "vendor_bases",
-      "length": 33,
+      "length": 32,
       "plain": 51
     },
     {
       "lang": "zh",
       "game": "poe1",
       "page": "beasts",
-      "length": 32,
-      "plain": 59
+      "length": 30,
+      "plain": 75
     },
     {
       "lang": "zh",
       "game": "poe1",
       "page": "magic_affixes",
       "length": 32,
-      "plain": 43
+      "plain": 40
     },
     {
       "lang": "zh",
@@ -163,15 +163,15 @@
       "lang": "en",
       "game": "poe1",
       "page": "map_mods",
-      "length": 43,
-      "plain": 410
+      "length": 50,
+      "plain": 416
     },
     {
       "lang": "en",
       "game": "poe1",
       "page": "logbook_mods",
-      "length": 43,
-      "plain": 388
+      "length": 39,
+      "plain": 453
     },
     {
       "lang": "en",
@@ -198,8 +198,8 @@
       "lang": "en",
       "game": "poe1",
       "page": "gem_names",
-      "length": 65,
-      "plain": 204
+      "length": 63,
+      "plain": 217
     },
     {
       "lang": "en",
@@ -212,8 +212,8 @@
       "lang": "en",
       "game": "poe1",
       "page": "heist_equipment_mods",
-      "length": 23,
-      "plain": 626
+      "length": 53,
+      "plain": 585
     },
     {
       "lang": "en",
@@ -226,21 +226,21 @@
       "lang": "en",
       "game": "poe1",
       "page": "vendor_bases",
-      "length": 52,
-      "plain": 128
+      "length": 49,
+      "plain": 172
     },
     {
       "lang": "en",
       "game": "poe1",
       "page": "beasts",
-      "length": 50,
-      "plain": 164
+      "length": 44,
+      "plain": 191
     },
     {
       "lang": "en",
       "game": "poe1",
       "page": "magic_affixes",
-      "length": 45,
+      "length": 44,
       "plain": 115
     },
     {
@@ -298,10 +298,10 @@
       "lang": "zh",
       "game": "poe1",
       "page": "map_mods",
-      "entries": 122,
+      "entries": 132,
       "ambientLines": 337,
-      "findable": 122,
-      "tried": 122,
+      "findable": 132,
+      "tried": 132,
       "stuckExamples": [],
       "stuckByHidden": 0,
       "stuckByHiddenExamples": []
@@ -310,10 +310,10 @@
       "lang": "zh",
       "game": "poe1",
       "page": "logbook_mods",
-      "entries": 62,
+      "entries": 63,
       "ambientLines": 107,
-      "findable": 62,
-      "tried": 62,
+      "findable": 63,
+      "tried": 63,
       "stuckExamples": [],
       "stuckByHidden": 0,
       "stuckByHiddenExamples": []
@@ -378,10 +378,10 @@
       "lang": "zh",
       "game": "poe1",
       "page": "gem_names",
-      "entries": 891,
+      "entries": 905,
       "ambientLines": 21,
-      "findable": 446,
-      "tried": 446,
+      "findable": 453,
+      "tried": 453,
       "stuckExamples": [],
       "stuckByHidden": 0,
       "stuckByHiddenExamples": []
@@ -402,10 +402,10 @@
       "lang": "zh",
       "game": "poe1",
       "page": "heist_equipment_mods",
-      "entries": 141,
+      "entries": 139,
       "ambientLines": 232,
-      "findable": 122,
-      "tried": 141,
+      "findable": 120,
+      "tried": 139,
       "stuckExamples": [
         "增加 #% 暴擊率",
         "玩家和他們的召喚物附加 # 至 # 冰冷傷害",
@@ -434,7 +434,7 @@
       "lang": "zh",
       "game": "poe1",
       "page": "vendor_bases",
-      "entries": 1067,
+      "entries": 1068,
       "ambientLines": 53,
       "findable": 534,
       "tried": 534,
@@ -446,10 +446,10 @@
       "lang": "zh",
       "game": "poe1",
       "page": "beasts",
-      "entries": 220,
-      "ambientLines": 549,
-      "findable": 220,
-      "tried": 220,
+      "entries": 51,
+      "ambientLines": 563,
+      "findable": 51,
+      "tried": 51,
       "stuckExamples": [],
       "stuckByHidden": 0,
       "stuckByHiddenExamples": []
@@ -458,10 +458,10 @@
       "lang": "zh",
       "game": "poe1",
       "page": "magic_affixes",
-      "entries": 1185,
-      "ambientLines": 1313,
-      "findable": 593,
-      "tried": 593,
+      "entries": 1179,
+      "ambientLines": 1310,
+      "findable": 590,
+      "tried": 590,
       "stuckExamples": [],
       "stuckByHidden": 0,
       "stuckByHiddenExamples": []
@@ -568,35 +568,28 @@
       "lang": "en",
       "game": "poe1",
       "page": "map_mods",
-      "entries": 122,
+      "entries": 132,
       "ambientLines": 338,
-      "findable": 119,
-      "tried": 122,
+      "findable": 130,
+      "tried": 132,
       "stuckExamples": [
         "Unique Boss has #% increased Area of Effect",
-        "Players have #% less Accuracy Rating",
         "Monsters have #% increased Area of Effect"
       ],
-      "stuckByHidden": 1,
-      "stuckByHiddenExamples": [
-        "Players have #% less Accuracy Rating"
-      ]
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
     },
     {
       "lang": "en",
       "game": "poe1",
       "page": "logbook_mods",
-      "entries": 62,
+      "entries": 63,
       "ambientLines": 107,
-      "findable": 61,
-      "tried": 62,
-      "stuckExamples": [
-        "Players have #% less Accuracy Rating"
-      ],
-      "stuckByHidden": 1,
-      "stuckByHiddenExamples": [
-        "Players have #% less Accuracy Rating"
-      ]
+      "findable": 63,
+      "tried": 63,
+      "stuckExamples": [],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
     },
     {
       "lang": "en",
@@ -607,7 +600,7 @@
       "findable": 81,
       "tried": 82,
       "stuckExamples": [
-        "Hinders nearby Enemies with #% reduced Movement Speed if used while not on Full Life"
+        "Hinders Enemies within 3 metres with #% reduced Movement Speed if used while not on Full Life"
       ],
       "stuckByHidden": 0,
       "stuckByHiddenExamples": []
@@ -657,10 +650,10 @@
       "lang": "en",
       "game": "poe1",
       "page": "gem_names",
-      "entries": 891,
+      "entries": 905,
       "ambientLines": 21,
-      "findable": 432,
-      "tried": 446,
+      "findable": 441,
+      "tried": 453,
       "stuckExamples": [
         "Glacial Hammer",
         "Volcanic Fissure",
@@ -687,10 +680,10 @@
       "lang": "en",
       "game": "poe1",
       "page": "heist_equipment_mods",
-      "entries": 141,
+      "entries": 139,
       "ambientLines": 234,
-      "findable": 112,
-      "tried": 141,
+      "findable": 110,
+      "tried": 139,
       "stuckExamples": [
         "Players and their Minions have # to # added Cold Damage",
         "Players and their Minions have # to # added Fire Damage",
@@ -707,21 +700,17 @@
       "page": "heist_contracts",
       "entries": 107,
       "ambientLines": 152,
-      "findable": 106,
+      "findable": 107,
       "tried": 107,
-      "stuckExamples": [
-        "Players have #% less Accuracy Rating"
-      ],
-      "stuckByHidden": 1,
-      "stuckByHiddenExamples": [
-        "Players have #% less Accuracy Rating"
-      ]
+      "stuckExamples": [],
+      "stuckByHidden": 0,
+      "stuckByHiddenExamples": []
     },
     {
       "lang": "en",
       "game": "poe1",
       "page": "vendor_bases",
-      "entries": 1067,
+      "entries": 1068,
       "ambientLines": 58,
       "findable": 534,
       "tried": 534,
@@ -733,10 +722,10 @@
       "lang": "en",
       "game": "poe1",
       "page": "beasts",
-      "entries": 220,
-      "ambientLines": 543,
-      "findable": 220,
-      "tried": 220,
+      "entries": 51,
+      "ambientLines": 557,
+      "findable": 51,
+      "tried": 51,
       "stuckExamples": [],
       "stuckByHidden": 0,
       "stuckByHiddenExamples": []
@@ -745,10 +734,10 @@
       "lang": "en",
       "game": "poe1",
       "page": "magic_affixes",
-      "entries": 1185,
-      "ambientLines": 1320,
-      "findable": 560,
-      "tried": 593,
+      "entries": 1179,
+      "ambientLines": 1317,
+      "findable": 561,
+      "tried": 590,
       "stuckExamples": [
         "Chilled",
         "Frozen",
@@ -869,7 +858,7 @@
   ],
   "mapAilment": {
     "query": "\"免元\"",
-    "bareExtra": 10,
+    "bareExtra": 11,
     "bareAmbient": 0
   }
 }

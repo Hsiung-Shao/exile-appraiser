@@ -14,6 +14,7 @@
   - 熱鍵衝突提示(`rxbm:<索引>`)只算目前遊戲(main 只註冊目前遊戲的書籤熱鍵),另一代的書籤不顯示衝突。
   2026-11-12 自訂字串書籤(`isCustomBookmark`:保留頁 `@custom`,字串在 `keys[0]`):標題列「自訂書籤」/ 輸出區「存成自訂書籤」(store `customBookmarkDraft`)
   開同一個對話框;該列沒有「載入」「更新」,改「編輯」。其餘(熱鍵、資料夾、排序、改名、刪除)與一般書籤相同。docs/regex-port.md「自訂字串書籤」。
+  2026-11-18:PoE1 分頁多一列「地圖檢查書籤」(設定 `mapCheckBookmark`;地圖詞綴檢查熱鍵依它上色,`map-check-bookmark.ts`)。
   第 40 步:PobTools 送來的書籤加入後(store `bookmarkReveal`)→ 分頁切到那一代、捲到這張卡片、新書籤短暫醒目(`.revealed`)。
 -->
 <template>
@@ -33,6 +34,17 @@
         :title="pickedTotal ? t('ppz.regex.bm_save_tip', { game: gameLabel(selGame) }) : t('ppz.regex.bm_save_need')" @click="openSave">{{ t('ppz.regex.bm_save') }}</button>
     </div>
     <p v-if="tab !== selGame" class="rx-bm-other" data-regex="bm-other-note">{{ t('ppz.regex.bm_other_note', { game: gameLabel(tab), cur: gameLabel(selGame) }) }}</p>
+    <div v-if="tab === 'poe1'" class="srow" data-regex="bm-map-check">
+      <span class="k">{{ t('ppz.map_check.default_label') }}</span>
+      <div class="ctl">
+        <select class="select sm" :value="mapCheckValue" :aria-label="t('ppz.map_check.default_label')"
+          @change="setMapCheckBookmark(($event.target as HTMLSelectElement).value)">
+          <option value="">{{ t('ppz.map_check.default_none') }}</option>
+          <option v-for="(label, i) in mapCheckLabels" :key="i" :value="String(i)">{{ label }}</option>
+        </select>
+      </div>
+    </div>
+    <p v-if="tab === 'poe1'" class="rx-bm-other">{{ t('ppz.map_check.default_lead') }}</p>
     <p v-if="!counts[tab] && !folderTotal" class="rx-bm-empty">{{ t('ppz.regex.bm_empty', { game: gameLabel(tab) }) }}</p>
     <div v-else ref="groupsEl" class="rx-bm-groups" :class="{ dragging: !!drag?.active }" data-regex="bm-groups">
       <div v-for="(g, gi) in grouped.groups" :key="`g:${g.folder}`" class="rx-bm-group"
@@ -200,6 +212,7 @@ import {
   setBookmarkHotkey, updateBookmark, useRegexStore, bookmarkReveal, customBookmarkDraft, saveCustomBookmark, updateCustomBookmark
 } from './store'
 import type { RegexBookmark } from '@exile-appraiser/regex'
+import { bookmarkLabels, mapCheckBookmarks, mapCheckRefOf, pickMapCheckBookmark } from '../map-check-bookmark'
 
 /** 拖曳來源 */
 type DragSrc = { kind: 'bm', index: number } | { kind: 'folder', name: string }
@@ -427,6 +440,18 @@ export default defineComponent({
       games: GAMES,
       FOLDER_NAME_MAX,
       ui: store.ui,
+      mapCheckLabels: computed(() => bookmarkLabels(mapCheckBookmarks(store.ui.bookmarks))),
+      /** 選項值 = 清單索引;沒選過且只有一個 → 顯示那一個(自動選);選「不上色」存 false */
+      mapCheckValue: computed(() => {
+        const list = mapCheckBookmarks(store.ui.bookmarks)
+        const b = pickMapCheckBookmark(list, config.mapCheckBookmark)
+        return b ? String(list.indexOf(b)) : ''
+      }),
+      setMapCheckBookmark (v: string) {
+        const list = mapCheckBookmarks(store.ui.bookmarks)
+        const b = v === '' ? undefined : list[Number(v)]
+        config.mapCheckBookmark = b ? mapCheckRefOf(b, list) : false
+      },
       selGame: store.selGame,
       currentGame: computed(() => config.game),
       tab,

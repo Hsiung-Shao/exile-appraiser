@@ -204,7 +204,7 @@ describe('熱鍵總表', () => {
       expect(r.optional === true, r.field).toBe(def === '')
       expect(OPTIONAL_HOTKEY_FIELDS.includes(r.field), r.field).toBe(def === '')
     }
-    expect([...OPTIONAL_HOTKEY_FIELDS].sort()).toEqual(['hotkeyOcrRegion', 'hotkeyPoedb', 'hotkeyRegexQuick', 'hotkeyRuneshapeRegion', 'hotkeyRuneshapeToggle', 'hotkeyStashRegion', 'hotkeyStashToggle', 'hotkeyTimerPause', 'hotkeyTimerReset', 'hotkeyTimerSkip', 'hotkeyTimerToggle', 'hotkeyTimerUndo', 'hotkeyWiki'])
+    expect([...OPTIONAL_HOTKEY_FIELDS].sort()).toEqual(['hotkeyMapCheck', 'hotkeyOcrRegion', 'hotkeyPoedb', 'hotkeyRegexQuick', 'hotkeyRuneshapeRegion', 'hotkeyRuneshapeToggle', 'hotkeyStashRegion', 'hotkeyStashToggle', 'hotkeyTimerPause', 'hotkeyTimerReset', 'hotkeyTimerSkip', 'hotkeyTimerToggle', 'hotkeyTimerUndo', 'hotkeyWiki'])
     // PoE1 倉庫價格兩個熱鍵同樣預設空 = 選填
     const p1 = hotkeyTable(fullConfig('poe1'), { overlay: true }).flatMap(g => g.rows).flatMap(r => r.kind === 'edit' ? [r] : [])
     for (const r of p1) expect(r.optional === true, r.field).toBe((config as unknown as Record<string, unknown>)[r.field] === '')

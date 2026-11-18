@@ -56,6 +56,8 @@ export interface HotkeyConfigLike {
   /** 2026-11-09:物品開 poedb、計時器(計時器在 `timerDisplay` off 時 main 不註冊) */
   hotkeyPoedb?: string
   hotkeyWiki?: string
+  /** 2026-11-18:PoE1 地圖詞綴檢查(只在 overlay + PoE1) */
+  hotkeyMapCheck?: string
   hotkeyTimerToggle?: string
   hotkeyTimerReset?: string
   hotkeyTimerPause?: string
@@ -82,6 +84,7 @@ export function hotkeySlots (c: HotkeyConfigLike): HotkeySlot[] {
     if (c.runeshapeEnabled) slots.push({ id: 'runeshape', hotkey: c.hotkeyRuneshapeToggle })
     slots.push({ id: 'runeRegion', hotkey: c.hotkeyRuneshapeRegion ?? '' })
   } else {
+    slots.push({ id: 'map-check', hotkey: c.hotkeyMapCheck ?? '' })
     slots.push({ id: 'stashToggle', hotkey: c.hotkeyStashToggle ?? '' })
     slots.push({ id: 'stashRegion', hotkey: c.hotkeyStashRegion ?? '' })
   }
@@ -123,4 +126,29 @@ export function hotkeyIssues (slots: HotkeySlot[]): Map<string, HotkeyIssue> {
     else owner.set(s.hotkey, s.id)
   }
   return out
+}
+
+/**
+ * 衝突對象的顯示名稱(i18n 鍵;`useHotkeyIssues` 的「與「X」重複」)。每個固定 slot id 都要有(守門 `renderer/test/hotkey-slot-labels.test.ts`);
+ * 動態列(`cmd:` / `stash:` / `rxbm:`)顯示指令 / 書籤文字。文字與熱鍵總表(`hotkey-table.ts`)同一組鍵。
+ */
+export const SLOT_LABEL: Readonly<Record<string, string>> = {
+  quick: 'ppz.hotkey',
+  locked: 'ppz.hotkey_locked',
+  overlay: 'ppz.overlay_key',
+  ocr: 'ppz.scan.slot_reveal_pause',
+  region: 'ppz.scan.slot_reveal_region',
+  runeshape: 'ppz.scan.slot_rune_pause',
+  runeRegion: 'ppz.scan.slot_rune_region',
+  stashToggle: 'ppz.scan.slot_stash_pause',
+  stashRegion: 'ppz.scan.slot_stash_region',
+  regexQuick: 'ppz.regex.quick_hotkey',
+  poedb: 'ppz.hk.poedb',
+  wiki: 'ppz.hk.wiki',
+  'map-check': 'ppz.hk.map_check',
+  timerToggle: 'ppz.hk.timer_toggle',
+  timerReset: 'ppz.hk.timer_reset',
+  timerPause: 'ppz.hk.timer_pause',
+  timerUndo: 'ppz.hk.timer_undo',
+  timerSkip: 'ppz.hk.timer_skip'
 }

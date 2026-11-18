@@ -448,6 +448,14 @@
     },
     "tab_regex": "Regex",
     "tab_dust": "Disenchant ranking",
+    "map_check": {
+      "bookmark": "Regex bookmark for map check",
+      "pick_bookmark": "Pick a bookmark…",
+      "no_bookmark": "No map mod bookmark yet: tick mods on the Map mods / Heist contracts / Logbook page in Settings › Regex and save a bookmark (exclude mode = red, include = green).",
+      "default_label": "Map check bookmark",
+      "default_none": "(no colours)",
+      "default_lead": "The map check hotkey colours a map's mods with this bookmark: ticked mods are red in exclude mode, green in include mode. You can switch it in the check window too."
+    },
     "tab_log": "Log",
     "tab_about": "Updates & about",
     "quit_app": "Quit",
@@ -1089,6 +1097,7 @@
       "window_only": "Other hotkeys are only available in overlay mode.",
       "poedb": "Open item on poedb",
       "wiki": "Open item on the wiki",
+      "map_check": "Check map mods",
       "timer_toggle": "Timer start / split",
       "timer_reset": "Timer reset",
       "timer_pause": "Timer pause / resume",

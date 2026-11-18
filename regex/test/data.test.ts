@@ -13,10 +13,12 @@ import path from 'node:path'
 const EXPECTED = {
   poe1: {
     // 2026-11-13 聖甲蟲頁整頁刪除(3.30 移除聖甲蟲,使用者裁定)
-    map_mods: 122, logbook_mods: 62, flask_mods: 82, tincture_mods: 17, cluster_jewel: 388,
-    gem_names: 891, tattoos: 132, heist_equipment_mods: 141, heist_contracts: 107, vendor_bases: 1067, // 2026-11-13 萃取物:新頁 17 列、基底 +10
+    // 2026-11-18 GGPK 3.30.0.1 重產:地圖 122 → 132、日誌 62 → 63、寶石 891 → 905、劫盜裝備 141 → 139、基底 1067 → 1068、
+    // 野獸 220 → 51(3.30 停用 431 種,使用者裁定照新版只收)、詞綴名 1185 → 1179
+    map_mods: 132, logbook_mods: 63, flask_mods: 82, tincture_mods: 17, cluster_jewel: 388,
+    gem_names: 905, tattoos: 132, heist_equipment_mods: 139, heist_contracts: 107, vendor_bases: 1068, // 2026-11-13 萃取物:新頁 17 列、基底 +10
     // 2026-11-04 對照 poe.re 補頁;詞綴名含藥劑 / 珠寶 / 深淵珠寶 / 藥酒,英文同名分列
-    beasts: 220, magic_affixes: 1185
+    beasts: 51, magic_affixes: 1179
   },
   poe2: {
     // tablet_mods 81 → 83:2026-10-09 GGPK 0.5.5.4.2 重抽補上探險「炸藥範圍」「瓦爾遺物」
@@ -31,6 +33,17 @@ const KIND: Record<string, 'mods' | 'names'> = {
 describe('shipped catalogues(data/regex)', () => {
   for (const game of ['poe1', 'poe2'] as const) {
     const cat = loadRegexCatalogueFile(game)
+    // 2026-11-18:3.30 clientstrings 帶 [Thread|綢帶] 標記,PoE1 產生器曾漏剝。讀原始檔(載入時的 normalizeLabel 會遮住漏剝)
+    it(`${game}: 資料檔與暫代檔的標籤都沒有 [ ] { } < > 標記`, () => {
+      const raw = (f: string) => JSON.parse(readFileSync(path.join(defaultRegexDataDir(), f), 'utf8'))
+      const bad: string[] = []
+      for (const [src, labels] of [[`regex_${game}.json`, raw(`regex_${game}.json`).labels], [`labels.${game}.json`, raw(`labels.${game}.json`).labels]] as const) {
+        for (const lang of ['zh', 'en'] as const) {
+          for (const [k, v] of Object.entries(labels?.[lang] ?? {})) if (/[[\]{}<>]/.test(String(v))) bad.push(`${src} ${lang}.${k} = ${v}`)
+        }
+      }
+      expect(bad).toEqual([])
+    })
     it(`${game}: schema 2, pages, kinds and entry counts`, () => {
       expect(cat.schema).toBe(2)
       expect(Object.fromEntries(cat.pages.map(p => [p.id, p.entries.length]))).toEqual(EXPECTED[game])
@@ -149,26 +162,27 @@ describe('PoE1 野獸頁與詞綴名頁', () => {
   const affixes = poe1.pages.find(p => p.id === 'magic_affixes')
   const byZh0 = (p: RegexPage | undefined, zh0: string) => p?.entries.find(x => x.zh[0] === zh0)
   const hasEn = (e: RegexEntry | undefined, s: string) => !!e && e.en.some(l => l.includes(s))
-  const cave = byZh0(beasts, '洞穴獸')
+  // 3.30 停用了 431 種野獸(含 3.29 用來當範例的洞穴獸),只剩 51 種可捕捉(使用者 2026-11-18 裁定照新版只收)
+  const cave = byZh0(beasts, '費爾羅巨人')
   const optimistic = byZh0(affixes, '樂觀的')
   const lynx = byZh0(affixes, '山貓之')
 
-  it('B1 野獸頁收錄可捕捉野獸:條目 200–280 筆,有洞穴獸與費爾羅猛虎幻獸', () => {
+  it('B1 野獸頁收錄可捕捉野獸:條目 40–70 筆,有費爾羅巨人與費爾羅猛虎幻獸', () => {
     expect(beasts, '找不到 beasts 頁').toBeDefined()
     const n = beasts?.entries.length ?? 0
-    expect(n >= 200 && n <= 280, `條目數 ${n}`).toBe(true)
-    expect(cave, '找不到 zh[0]=洞穴獸').toBeDefined()
-    expect(hasEn(cave, 'Cave Beast'), `en=${JSON.stringify(cave?.en)}`).toBe(true)
+    expect(n >= 40 && n <= 70, `條目數 ${n}`).toBe(true)
+    expect(cave, '找不到 zh[0]=費爾羅巨人').toBeDefined()
+    expect(hasEn(cave, 'Farric Gargantuan'), `en=${JSON.stringify(cave?.en)}`).toBe(true)
     const tiger = byZh0(beasts, '費爾羅猛虎幻獸')
     expect(tiger, '找不到 zh[0]=費爾羅猛虎幻獸').toBeDefined()
     expect(hasEn(tiger, 'Farric Tiger Alpha'), `en=${JSON.stringify(tiger?.en)}`).toBe(true)
   })
 
-  it('B2 野獸的種屬 / 群組 / 家族進 hidden:洞穴獸 hiddenZh 含巨人、熊類動物、獸性,hiddenEn 含 Gargantuans、Ursae、The Wilds', () => {
-    expect(cave, '找不到 zh[0]=洞穴獸').toBeDefined()
+  it('B2 野獸的種屬 / 群組 / 家族進 hidden:費爾羅巨人 hiddenZh 含巨人、熊類動物、荒野,hiddenEn 含 Gargantuans、Ursae、The Wilds', () => {
+    expect(cave, '找不到 zh[0]=費爾羅巨人').toBeDefined()
     const hz = cave?.hiddenZh ?? []
     const he = cave?.hiddenEn ?? []
-    for (const s of ['巨人', '熊類動物', '獸性']) expect(hz.some(l => l.includes(s)), `hiddenZh 缺 ${s}:${JSON.stringify(hz)}`).toBe(true)
+    for (const s of ['巨人', '熊類動物', '荒野']) expect(hz.some(l => l.includes(s)), `hiddenZh 缺 ${s}:${JSON.stringify(hz)}`).toBe(true)
     for (const s of ['Gargantuans', 'Ursae', 'The Wilds']) expect(he.some(l => l.includes(s)), `hiddenEn 缺 ${s}:${JSON.stringify(he)}`).toBe(true)
   })
 
@@ -202,8 +216,8 @@ describe('PoE1 野獸頁與詞綴名頁', () => {
     expect(has(lynx?.hiddenEn, '# to Dexterity'), `hiddenEn=${JSON.stringify(lynx?.hiddenEn)}`).toBe(true)
   })
 
-  it('M4 單選片段不中別的條目:洞穴獸、樂觀的各單選,片段非空且 verify ok', () => {
-    for (const [page, e, name] of [[beasts, cave, '洞穴獸'], [affixes, optimistic, '樂觀的']] as const) {
+  it('M4 單選片段不中別的條目:費爾羅巨人、樂觀的各單選,片段非空且 verify ok', () => {
+    for (const [page, e, name] of [[beasts, cave, '費爾羅巨人'], [affixes, optimistic, '樂觀的']] as const) {
       expect(page && e, `找不到 ${name} 或其頁`).toBeTruthy()
       if (!page || !e) continue
       const i = page.entries.indexOf(e)

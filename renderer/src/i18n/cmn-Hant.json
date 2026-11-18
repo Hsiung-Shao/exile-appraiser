@@ -448,6 +448,14 @@
     },
     "tab_regex": "正則",
     "tab_dust": "拆粉排行",
+    "map_check": {
+      "bookmark": "地圖檢查用的正則書籤",
+      "pick_bookmark": "選一個書籤…",
+      "no_bookmark": "還沒有地圖詞綴書籤:到 設定 › 正則 的地圖詞綴 / 劫盜契約 / 探險日誌頁勾好詞綴存成書籤(排除模式 = 標紅,包含 = 標綠)。",
+      "default_label": "地圖檢查書籤",
+      "default_none": "(不上色)",
+      "default_lead": "對地圖按「地圖詞綴檢查」熱鍵時用這個書籤上色:排除模式勾到的標紅、包含模式勾到的標綠;檢查視窗裡也能換。"
+    },
     "tab_log": "記錄",
     "tab_about": "更新與關於",
     "quit_app": "結束程式",
@@ -1077,6 +1085,7 @@
       "window_only": "其他熱鍵只在 overlay 模式提供。",
       "poedb": "在 poedb 開啟物品",
       "wiki": "在 wiki 開啟物品",
+      "map_check": "地圖詞綴檢查",
       "timer_toggle": "計時器 開始 / 分段",
       "timer_reset": "計時器 歸零",
       "timer_pause": "計時器 暫停 / 繼續",
