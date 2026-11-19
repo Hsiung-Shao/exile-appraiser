@@ -1373,6 +1373,8 @@ function parseUltimatum (section: string[], item: ParserState) {
       // ⚠ 這條回推路徑目前沒有實物樣本可驗,只有 GGPK 的資料結構佐證
       //   (ultimatumitemisedrewards 對 ExchangeUnique 沒有靜態 RewardText)。
       item.ultimatum.reward = rewardByText.get(rewardMatch[1]) ?? 'ExchangeUnique'
+      // 2026-11-19 英文實機樣本(Reward: Headhunter)證實這一行就是傳奇名;交易站另有 ultimatum_output 收它
+      if (item.ultimatum.reward === 'ExchangeUnique') item.ultimatum.rewardUnique = rewardMatch[1]
       continue
     }
   }

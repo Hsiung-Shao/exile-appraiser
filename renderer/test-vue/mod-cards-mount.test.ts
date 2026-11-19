@@ -146,5 +146,47 @@ describe('詞綴卡片掛載', () => {
       expect(text(card(container, 'pseudo'))).toContain(`來自 ${pseudoRow.sources.length} 條詞綴`)
       app.unmount()
     })
+
+    // 2026-11-19 使用者回報札娜的獨創「少一條」(其實在已隱藏裡);失敗代表開關沒寫藏了幾條
+    it(`${game}:「已隱藏」開關顯示藏了幾條`, async () => {
+      const { item, preset } = build()
+      const rows = preset.stats.filter((s: any) => !s.group)
+      rows[0].hidden = 'filters.hide_const_roll'
+      rows[1].hidden = 'filters.hide_const_roll'
+      const n = preset.stats.filter((s: any) => s.group ? s.meta.hidden : s.hidden).length
+      expect(n).toBeGreaterThanOrEqual(2)
+      const { container, app } = renderBlock(game, comp, preset, item)
+      await nextTick()
+      const toggle = findAll(container, byAttr('data-action', 'hidden-visible'))[0]
+      expect(text(toggle).replace(/\s+/g, ' ').trim()).toMatch(new RegExp(`隱藏 ${n}$`))
+      app.unmount()
+    })
+  }
+})
+
+// 2026-11-19 雕刻獎勵是指定傳奇:面板寫出是哪一件;資料查不到(不送)時寫物品上的原文
+describe('雕刻獎勵傳奇的顯示', () => {
+  const ult = (reward: string) => `Item Class: Misc Map Items
+Rarity: Currency
+Inscribed Ultimatum
+--------
+Challenge: Defeat waves of enemies
+Area Level: 83
+Requires Sacrifice: Gruthkul's Pelt
+Reward: ${reward}
+--------
+50% increased Monster Damage
+`
+  for (const reward of ['Headhunter', 'Not A Real Unique']) {
+    // 失敗代表:面板只寫「傳奇物品」,看不出是哪一件
+    it(`獎勵 ${reward} 寫在條件膠囊上`, async () => {
+      const item = poe1Parse(ult(reward))._unsafeUnwrap()
+      const { presets, active } = poe1CreatePresets(item, OPTS)
+      const preset = presets.find(p => p.id === active)!
+      const { container, app } = renderBlock('poe1', Poe1FiltersBlock, preset, item)
+      await nextTick()
+      expect(text(container)).toContain(`:${reward}`)
+      app.unmount()
+    })
   }
 })

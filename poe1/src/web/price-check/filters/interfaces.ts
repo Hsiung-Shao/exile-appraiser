@@ -92,6 +92,8 @@ export interface ItemFilters {
     challenge?: string
     reward?: string
     sacrifice?: string
+    /** 獎勵的傳奇名(交易站 `ultimatum_output`),查得到資料列才填 */
+    rewardUnique?: string
     disabled: boolean
   }
   sentinelCharge?: FilterNumeric

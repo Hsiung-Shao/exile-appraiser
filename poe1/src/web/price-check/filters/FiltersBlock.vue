@@ -121,8 +121,9 @@
       <div class="flex items-center gap-x-4 mt-2">
         <button type="button" @click="statsVisibility.disabled = !statsVisibility.disabled" :class="$style.footBtn"
           >{{ t('filters.collapse') }} <i class="fas fa-chevron-up pl-1 text-xs"></i></button>
-        <ui-toggle v-if="filteredStats.length !== stats.length"
-          v-model="showHidden" class="text-gray-400">{{ t('filters.hidden_toggle') }}</ui-toggle>
+        <!-- exile-appraiser: 2026-11-19 開關後面寫藏了幾條(使用者回報「少一條」其實在已隱藏裡) -->
+        <ui-toggle v-if="filteredStats.length !== stats.length" data-action="hidden-visible"
+          v-model="showHidden" class="text-gray-400">{{ t('filters.hidden_toggle') }} {{ hiddenCount }}</ui-toggle>
         <!-- exile-appraiser: 2026-10-16「機制」開關(設定 showMechanism;關著時只有非一般模式的列顯示機制按鈕) -->
         <ui-toggle data-action="mechanism-visible"
           :model-value="showMechanism" @update:model-value="setShowMechanism"
@@ -226,6 +227,7 @@ export default defineComponent({
       t,
       statsVisibility,
       showHidden,
+      hiddenCount: computed(() => props.stats.filter(s => s.group ? Boolean(s.meta.hidden) : Boolean(s.hidden)).length),
       showFilterSources,
       rawCollapsed,
       showMechanism,
@@ -259,7 +261,9 @@ export default defineComponent({
         if (!ultimatum) return ''
         const parts: string[] = []
         if (ultimatum.challenge) parts.push(t(`ultimatum.${ultimatum.challenge}`))
-        if (ultimatum.reward) parts.push(t(`ultimatum.${ultimatum.reward}`))
+        // exile-appraiser: 2026-11-19 獎勵是指定傳奇時寫出是哪一件;資料查不到(不送)時顯示物品上的原文,看得出缺口
+        const rewardUnique = ultimatum.rewardUnique ?? props.item.ultimatum?.rewardUnique
+        if (ultimatum.reward) parts.push(t(`ultimatum.${ultimatum.reward}`) + (rewardUnique ? `:${rewardUnique}` : ''))
         if (ultimatum.sacrifice) parts.push(ultimatum.sacrifice)
         return parts.join(' · ')
       }),

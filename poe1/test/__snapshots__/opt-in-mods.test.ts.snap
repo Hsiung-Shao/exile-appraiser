@@ -1,0 +1,190 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`上游不列的詞綴改成可勾選、預設不勾 > 契約書:實際生效的預設查詢與拿掉這些詞綴的同一件物品相同 1`] = `
+{
+  "filters": {
+    "heist_filters": {
+      "filters": {
+        "heist_lockpicking": {
+          "min": 3,
+        },
+      },
+    },
+    "map_filters": {
+      "filters": {
+        "area_level": {
+          "min": 83,
+        },
+      },
+    },
+    "misc_filters": {
+      "filters": {
+        "corrupted": {
+          "option": "false",
+        },
+        "fractured_item": {
+          "option": "false",
+        },
+        "mirrored": {
+          "option": "false",
+        },
+        "split": {
+          "option": "false",
+        },
+      },
+    },
+    "trade_filters": {
+      "filters": {
+        "collapse": {
+          "option": "true",
+        },
+        "price": {
+          "option": "chaos_divine",
+        },
+      },
+    },
+    "type_filters": {
+      "filters": {
+        "category": {
+          "option": "heistmission.contract",
+        },
+        "rarity": {
+          "option": "nonunique",
+        },
+      },
+    },
+  },
+  "stats": [],
+  "status": {
+    "option": "available",
+  },
+}
+`;
+
+exports[`上游不列的詞綴改成可勾選、預設不勾 > 藍圖:實際生效的預設查詢與拿掉這些詞綴的同一件物品相同 1`] = `
+{
+  "filters": {
+    "heist_filters": {
+      "filters": {
+        "heist_max_wings": {
+          "min": 4,
+        },
+        "heist_wings": {
+          "min": 1,
+        },
+      },
+    },
+    "map_filters": {
+      "filters": {
+        "area_level": {
+          "min": 83,
+        },
+      },
+    },
+    "misc_filters": {
+      "filters": {
+        "corrupted": {
+          "option": "false",
+        },
+        "fractured_item": {
+          "option": "false",
+        },
+        "mirrored": {
+          "option": "false",
+        },
+        "split": {
+          "option": "false",
+        },
+      },
+    },
+    "trade_filters": {
+      "filters": {
+        "collapse": {
+          "option": "true",
+        },
+        "price": {
+          "option": "chaos_divine",
+        },
+      },
+    },
+    "type_filters": {
+      "filters": {
+        "rarity": {
+          "option": "nonunique",
+        },
+      },
+    },
+  },
+  "stats": [
+    {
+      "filters": [
+        {
+          "disabled": false,
+          "id": "pseudo.pseudo_number_of_enchant_mods",
+          "value": {},
+        },
+      ],
+      "type": "not",
+    },
+  ],
+  "status": {
+    "option": "available",
+  },
+  "type": "Blueprint: Bunker",
+}
+`;
+
+exports[`上游不列的詞綴改成可勾選、預設不勾 > 魔偶:實際生效的預設查詢與拿掉這些詞綴的同一件物品相同 1`] = `
+{
+  "filters": {
+    "misc_filters": {
+      "filters": {
+        "corrupted": {
+          "option": "false",
+        },
+        "fractured_item": {
+          "option": "false",
+        },
+        "mirrored": {
+          "option": "false",
+        },
+        "split": {
+          "option": "false",
+        },
+      },
+    },
+    "trade_filters": {
+      "filters": {
+        "collapse": {
+          "option": "true",
+        },
+      },
+    },
+    "type_filters": {
+      "filters": {
+        "rarity": {
+          "option": "nonunique",
+        },
+      },
+    },
+  },
+  "stats": [
+    {
+      "filters": [
+        {
+          "disabled": false,
+          "id": "explicit.stat_3036422124",
+          "value": {
+            "min": 100,
+          },
+        },
+      ],
+      "type": "and",
+    },
+  ],
+  "status": {
+    "option": "available",
+  },
+  "type": "Minor Idol",
+}
+`;
