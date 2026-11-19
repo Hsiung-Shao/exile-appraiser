@@ -66,6 +66,19 @@ describe('上游不列的詞綴改成可勾選、預設不勾', () => {
       for (const r of rows) for (const id of r.tradeId) expect(sent).not.toContain(id)
     })
 
+    // 失敗代表:收進新列時動到原本的預設條件(職業等級、側廂、魔偶原本的詞綴…)
+    it(`${name}:實際生效的預設查詢與拿掉這些詞綴的同一件物品相同`, () => {
+      const without = text.split('\n').filter((l, i, a) => !optIn.some(r => l.replace(/\d+/g, '#') === r) &&
+        !(l.startsWith('{') && optIn.some(r => (a[i + 1] ?? '').replace(/\d+/g, '#') === r))).join('\n')
+      expect(without).not.toBe(text)
+      const effective = (q: any) => JSON.stringify({ ...q, stats: (q.stats as any[]).filter(g => !g.disabled)
+        .map(g => ({ ...g, filters: g.filters.filter((f: any) => !f.disabled) })).filter(g => g.filters.length || g.type === 'not') })
+      const base = effective(createTradeRequest(activePreset(parse(without))).query)
+      expect(effective(createTradeRequest(activePreset(parse(text))).query)).toBe(base)
+      // 拿掉後的物品不受這次改動影響,鎖住它 = 程式整體改壞(兩邊一起變)也抓得到
+      expect(JSON.parse(base)).toMatchSnapshot()
+    })
+
     // 失敗代表:勾了也沒送(列只是擺好看)
     it(`${name}:勾選後送出該詞綴`, () => {
       const preset = activePreset(parse(text))

@@ -33,7 +33,8 @@ export function createExactStatFilters (
 
   // exile-appraiser: 上游不列的詞綴(劫盜契約 / 藍圖的隨機、魔偶的固定)收進來但預設不勾 = 預設查詢不變(2026-11-19 使用者裁定)
   const isHeist = item.category === ItemCategory.HeistContract || item.category === ItemCategory.HeistBlueprint
-  const optInTags: FilterTag[] = isHeist ? [FilterTag.Explicit] : item.category === ItemCategory.Idol ? [FilterTag.Implicit] : []
+  // 看詞綴來源、不看 filter.tag(tag 會因選項 / 汙染等變成 Variant、Corrupted…);來源全是這類才關,合併列不動
+  const optInTypes: ModifierType[] = isHeist ? [ModifierType.Explicit] : item.category === ItemCategory.Idol ? [ModifierType.Implicit] : []
 
   const keepByType = [ModifierType.Pseudo, ModifierType.Fractured, ModifierType.Enchant, ModifierType.Necropolis, ModifierType.Imbued]
 
@@ -164,7 +165,7 @@ export function createExactStatFilters (
   }
 
   for (const filter of ctx.filters) {
-    if (!filter.not && optInTags.includes(filter.tag)) filter.disabled = true
+    if (!filter.not && filter.sources.length && filter.sources.every(s => optInTypes.includes(s.modifier.info.type))) filter.disabled = true
   }
 
   return ctx.filters

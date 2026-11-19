@@ -163,3 +163,30 @@ describe('詞綴卡片掛載', () => {
     })
   }
 })
+
+// 2026-11-19 雕刻獎勵是指定傳奇:面板寫出是哪一件;資料查不到(不送)時寫物品上的原文
+describe('雕刻獎勵傳奇的顯示', () => {
+  const ult = (reward: string) => `Item Class: Misc Map Items
+Rarity: Currency
+Inscribed Ultimatum
+--------
+Challenge: Defeat waves of enemies
+Area Level: 83
+Requires Sacrifice: Gruthkul's Pelt
+Reward: ${reward}
+--------
+50% increased Monster Damage
+`
+  for (const reward of ['Headhunter', 'Not A Real Unique']) {
+    // 失敗代表:面板只寫「傳奇物品」,看不出是哪一件
+    it(`獎勵 ${reward} 寫在條件膠囊上`, async () => {
+      const item = poe1Parse(ult(reward))._unsafeUnwrap()
+      const { presets, active } = poe1CreatePresets(item, OPTS)
+      const preset = presets.find(p => p.id === active)!
+      const { container, app } = renderBlock('poe1', Poe1FiltersBlock, preset, item)
+      await nextTick()
+      expect(text(container)).toContain(`:${reward}`)
+      app.unmount()
+    })
+  }
+})
