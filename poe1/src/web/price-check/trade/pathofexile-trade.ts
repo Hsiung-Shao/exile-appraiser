@@ -186,6 +186,7 @@ interface TradeRequest {
           ultimatum_reward?: { option?: string }
           // 這兩個在交易站是自由文字(沒有下拉選項),填的是物品名
           ultimatum_input?: { option?: string }
+          ultimatum_output?: { option?: string }
         }
       }
       heist_filters?: {
@@ -452,6 +453,9 @@ export function createTradeRequest (filters: ItemFilters, stats: FilterOrGroup[]
     }
     if (filters.ultimatum.sacrifice) {
       propSet(query.filters, 'ultimatum_filters.filters.ultimatum_input.option', filters.ultimatum.sacrifice)
+    }
+    if (filters.ultimatum.rewardUnique) {
+      propSet(query.filters, 'ultimatum_filters.filters.ultimatum_output.option', filters.ultimatum.rewardUnique)
     }
   }
 

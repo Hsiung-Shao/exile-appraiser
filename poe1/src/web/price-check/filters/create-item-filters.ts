@@ -176,10 +176,14 @@ function createFiltersInner (
              ITEM_BY_TRANSLATED('UNIQUE', item.ultimatum.sacrifice) ??
              ITEM_BY_TRANSLATED('DIVINATION_CARD', item.ultimatum.sacrifice))?.[0]
           : undefined
+        const rewardUnique = item.ultimatum.rewardUnique
+          ? ITEM_BY_TRANSLATED('UNIQUE', item.ultimatum.rewardUnique)?.[0]
+          : undefined
         filters.ultimatum = {
           challenge: item.ultimatum.challenge,
           reward: item.ultimatum.reward,
           sacrifice: sacrificed ? t(opts, sacrificed) : undefined,
+          rewardUnique: rewardUnique ? t(opts, rewardUnique) : undefined,
           disabled: false
         }
       }

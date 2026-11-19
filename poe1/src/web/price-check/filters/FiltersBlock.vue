@@ -261,7 +261,8 @@ export default defineComponent({
         if (!ultimatum) return ''
         const parts: string[] = []
         if (ultimatum.challenge) parts.push(t(`ultimatum.${ultimatum.challenge}`))
-        if (ultimatum.reward) parts.push(t(`ultimatum.${ultimatum.reward}`))
+        // exile-appraiser: 2026-11-19 獎勵是指定傳奇時寫出是哪一件
+        if (ultimatum.reward) parts.push(t(`ultimatum.${ultimatum.reward}`) + (ultimatum.rewardUnique ? `:${ultimatum.rewardUnique}` : ''))
         if (ultimatum.sacrifice) parts.push(ultimatum.sacrifice)
         return parts.join(' · ')
       }),

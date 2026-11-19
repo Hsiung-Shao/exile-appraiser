@@ -107,6 +107,8 @@ export interface ParsedItem {
   ultimatum?: {
     challenge?: 'Exterminate' | 'Survival' | 'Defense' | 'Conquer'
     reward?: 'DoubleCurrency' | 'DoubleDivCards' | 'MirrorRare' | 'ExchangeUnique'
+    /** `ExchangeUnique` 時「獎勵: X」的 X(物品上的傳奇名,客戶端語言;2026-11-19) */
+    rewardUnique?: string
     /**
      * 「需求獻祭」要交出去的東西。數量已剝除,所以這裡是純物品名
      * (`寶石匠的稜鏡`、`沙塵之影`);獎勵是「複製稀有物品」那種時,
