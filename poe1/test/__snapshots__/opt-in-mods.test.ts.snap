@@ -3,9 +3,18 @@
 exports[`上游不列的詞綴改成可勾選、預設不勾 > 契約書:實際生效的預設查詢與拿掉這些詞綴的同一件物品相同 1`] = `
 {
   "filters": {
+    "heist_filters": {
+      "filters": {
+        "heist_lockpicking": {
+          "min": 3,
+        },
+      },
+    },
     "map_filters": {
       "filters": {
-        "area_level": {},
+        "area_level": {
+          "min": 83,
+        },
       },
     },
     "misc_filters": {

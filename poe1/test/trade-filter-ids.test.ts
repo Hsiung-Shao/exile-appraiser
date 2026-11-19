@@ -11,6 +11,13 @@ const src = fs.readFileSync(path.join(ROOT, 'src/web/price-check/trade/pathofexi
 describe('查詢用到的篩選欄位', () => {
   const used = [...new Set([...src.matchAll(/'([a-z_]+_filters)\.filters\.([a-z_]+)/g)].map(m => `${m[1]}.${m[2]}`))]
 
+  // 失敗代表:有 propSet 改用反引號 / 變數組路徑,上面的 regex 會靜默漏掉
+  it('每個 propSet(query.filters, …) 都是單引號字面路徑', () => {
+    const calls = src.match(/propSet\(query\.filters,/g)?.length ?? 0
+    expect(calls).toBeGreaterThan(50)
+    expect([...src.matchAll(/propSet\(query\.filters, '[a-z_]+_filters\.filters\.[a-z_]+/g)].length).toBe(calls)
+  })
+
   // 失敗代表:抓不到欄位(寫法改了),守門形同虛設
   it('程式裡找得到雕刻四個欄位', () => {
     for (const id of ['ultimatum_challenge', 'ultimatum_reward', 'ultimatum_input', 'ultimatum_output']) {

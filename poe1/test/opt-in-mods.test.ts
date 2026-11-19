@@ -15,7 +15,8 @@ const MODS = (lines: string[]) => lines.flatMap((l, i) => [`{ ${i % 2 ? '後綴'
 const head = (klass: string, base: string) => [`物品種類: ${klass}`, '稀有度: 稀有', '末日循環', base, '--------', '物品等級: 84']
 const ITEMS: Record<string, { text: string, optIn: string[] }> = {
   契約書: {
-    text: [...head('契約書', '契約書：碉堡'), '--------', ...MODS(['增加 16% 此區域物品數量', '怪物的技能附加 2 次連鎖'])].join('\n'),
+    // 職業需求與地區等級同一段(parseHeistContract);少了它就驗不到職業等級的預設條件
+    text: [...head('契約書', '契約書：碉堡'), '--------', '地區等級: 83', '需要 開鎖 (等級 3)', '--------', ...MODS(['增加 16% 此區域物品數量', '怪物的技能附加 2 次連鎖'])].join('\n'),
     optIn: ['增加 #% 此區域物品數量', '怪物的技能附加 # 次連鎖']
   },
   藍圖: {
