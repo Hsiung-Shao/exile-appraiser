@@ -59,6 +59,16 @@ describe('timerFocus 切窗暫停', () => {
     expect(appRun.value.phase).toBe('running')
   })
 
+  it('away 之後 main 送 back(回到自己的面板)→ 自動繼續;手動暫停時 back 不繼續', () => {
+    appRun.value.start()
+    timerAction('away' as any)
+    timerAction('back' as any)
+    expect(appRun.value.phase).toBe('running')
+    timerAction('pause')
+    timerAction('back' as any)
+    expect(appRun.value.phase).toBe('paused')
+  })
+
   it('T11 手動暫停後失焦再回來 → 仍是暫停(不替使用者繼續)', () => {
     appRun.value.start()
     vi.advanceTimersByTime(1000)

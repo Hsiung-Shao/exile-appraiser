@@ -75,7 +75,7 @@ export function timerFocus (focused: boolean): void {
 
 export function timerAction (a: TimerAction): void {
   // main:overlay 視窗失焦且焦點不在遊戲(從自己的面板切到別的視窗;這條路沒有 focus-change)
-  if (a === 'away') { timerFocus(false); return }
+  if (a === 'away' || a === 'back') { timerFocus(a === 'back'); return }
   const run = appRun.value
   focusPausedRun = null
   switch (a) {

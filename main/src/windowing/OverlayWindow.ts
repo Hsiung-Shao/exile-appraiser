@@ -40,6 +40,8 @@ export class OverlayWindow {
         if (this.isInteractable && !this.poeWindow.isActive && !this.window.isDestroyed() && !this.window.isFocused()) this.send('timer-action', 'away')
       }, 200)
     })
+    // 從別的視窗直接點回自己的面板(不是回遊戲)→ 繼續(審查 2026-11-20 第 2 輪)
+    this.window.on('focus', () => { if (this.isInteractable) this.send('timer-action', 'back') })
   }
 
   assertOverlayActive = () => {
