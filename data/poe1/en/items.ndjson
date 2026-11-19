@@ -5649,3 +5649,9 @@
 {"name":"Arcane Link","refName":"Arcane Link","namespace":"GEM","gem":{"maxLevel":20}}
 {"name":"Hallowed Descry","refName":"Hallowed Descry","namespace":"ITEM"}
 {"name":"Chaplain of the Well","refName":"Chaplain of the Well","namespace":"MERCENARY_BUILD","icon":"","mercenaryBuild":{"skills":[]}}
+{"name":"Enshrouded Body Armour","refName":"Enshrouded Body Armour","namespace":"ITEM"}
+{"name":"Enshrouded Boots","refName":"Enshrouded Boots","namespace":"ITEM"}
+{"name":"Enshrouded Gloves","refName":"Enshrouded Gloves","namespace":"ITEM"}
+{"name":"Enshrouded Helmet","refName":"Enshrouded Helmet","namespace":"ITEM"}
+{"name":"Enshrouded Quiver","refName":"Enshrouded Quiver","namespace":"ITEM"}
+{"name":"Enshrouded Shield","refName":"Enshrouded Shield","namespace":"ITEM"}

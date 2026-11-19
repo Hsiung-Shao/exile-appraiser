@@ -5654,3 +5654,9 @@
 {"name":"連結：秘能","refName":"Arcane Link","namespace":"GEM","gem":{"maxLevel":20}}
 {"name":"神聖視界","refName":"Hallowed Descry","namespace":"ITEM"}
 {"name":"淵井之軍","refName":"Chaplain of the Well","namespace":"MERCENARY_BUILD","icon":"","mercenaryBuild":{"skills":[]}}
+{"name":"壟罩的胸甲","refName":"Enshrouded Body Armour","namespace":"ITEM"}
+{"name":"壟罩的鞋子","refName":"Enshrouded Boots","namespace":"ITEM"}
+{"name":"壟罩的手套","refName":"Enshrouded Gloves","namespace":"ITEM"}
+{"name":"壟罩的頭盔","refName":"Enshrouded Helmet","namespace":"ITEM"}
+{"name":"壟罩的箭袋","refName":"Enshrouded Quiver","namespace":"ITEM"}
+{"name":"壟罩的盾牌","refName":"Enshrouded Shield","namespace":"ITEM"}
