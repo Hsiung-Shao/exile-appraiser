@@ -18,10 +18,14 @@
 - **每個遊戲一個 run,建立後不換**(`timer-state.ts`):run 每次操作才取目前的路線,不綁路線物件身分 → 設定檔被瀏覽器預覽重新套用、設定頁改名都不會重設進行中的計時;只有分段數改了才重設(對不上新清單)。「清除紀錄」會先重設進行中的計時(否則快照會把紀錄寫回去)。
 - Client.txt 變小(被清空 / 截斷)→ 從頭讀;遊戲附著時同一路徑也重開(檔案可能被刪掉重建)。
 - `autosplit.ts`:沒在跑 + 自動開始 + 進起跑區 → 開始;跑著 + 自動分段 + 進**目前這段**的觸發區 → 分段(重回之前的城鎮不觸發)。
+- **切窗自動暫停**(2026-11-20 使用者裁定;`timer-state.ts` `timerFocus`,App.vue 在 `focus-change` 以 `game || overlay` 呼叫):遊戲與自己的 overlay 都沒有焦點 → 暫停,回來自動繼續;只繼續因切窗而暫停的(手動暫停、暫停後又手動操作過的不動)。切窗暫停中進了目前這段的觸發區(讀圖時切出去)照樣分段,分完仍暫停。overlay 拿著焦點時直接切到別的視窗沒有 `focus-change` → `OverlayWindow` 在自己的視窗 blur 200 ms 後仍不在遊戲時送 `timer-action` `away`、焦點回到 overlay 視窗時送 `back`(不改 overlay 狀態;overlay 自己開的系統檔案對話框 / 驗證視窗也算離開)。暫停記的是哪個 run(`focusPausedRun`)。沒有開關。**自訂路線若含 `2_6_town` / `2_11_endgame_town`,基塔弗訊息也會讓那兩段提早約 20 秒分段,舊紀錄不會自動清**(只轉換沒改過的內建路線)。遊戲內 Esc 暫停不同步(Client.txt 沒有那一行;使用者裁定不做)。
 
 ## 路線(`routes.ts`,存設定 `speedrun.{poe1,poe2}`)
 - 區域 id 來自使用者本機 Client.txt 實測(兩代)與 PoE2 GGPK `worldareas`。
-- PoE1:第 1–10 章,分段觸發 = 進下一章城鎮 `1_2_town` … `1_5_town`、`2_6_town` … `2_10_town`,第 10 章 = 打完基塔弗進 `2_11_endgame_town`;起跑區 `1_1_1`。
+- PoE1(2026-11-20 使用者裁定照 speedrun 社群斷點;LiveSplit PoE 元件以「第一次進入指定區域」分段,speedrun.com 第 5 / 10 章以基塔弗抗性懲罰訊息為終點):分段觸發 = 打完王後第一個進入的區域(使用者 Client.txt 5 輪實測)——
+  第 1–4、7、8 章 = 下一章第一張圖 `1_2_1`、`1_3_1`、`1_4_1`、`1_5_1`、`2_8_1`、`2_9_1`(比進城早約 40 秒–1 分鐘);第 6、9 章打完直接進城 `2_7_town`、`2_10_town`;
+  第 5、10 章 = 基塔弗訊息(`client-log.ts` `parseKitavaLine`:系統訊息行 `] : …奇塔弗…殘酷 / 無情…`,繁中與英文,字串取自 GGPK clientstrings;轉成 `2_6_town` / `2_11_endgame_town` 的區域事件,比進城早約 20 秒),其他語言認不到訊息 → 進城才分段;訊息分段後段落已前進,進城不會重複分段。起跑區 `1_1_1`。
+  舊設定檔(`configVersion` < 3)裡**沒改過**的舊內建路線(十段全是城鎮)載入時換成新斷點一次,PB / 金段作廢(`migratePoe1TownPreset`);改過的、之後自己選回城鎮的不動。
 - PoE2:第 1–4 章 + 間章 1–3:`G2_town`、`G3_town`、`G4_town`、`P1_Town`、`P2_Town`、`P3_Town`、`G_Endgame_Town`;起跑區 `G1_1`。**間章順序是依名稱推定,待使用者實機確認**。
 - **自動開始預設關閉**(使用者 2026-11-10 裁定:沒用計時器的人不會被自動開始)。
 - **章節自動分段預設開啟**(使用者 2026-11-18 裁定,推翻 11-10 的預設關;起因是使用者跑 3.30 劇情時開關沒開、過章節不分段)。只在跑著時才分段,不會自己開始計時;開著就會監看 Client.txt(仍需 overlay + 計時器不是關閉 + 遊戲附著)。
@@ -40,6 +44,7 @@
 
 ## 測試
 `core/test/speedrun.test.ts`(S1–S10、S15、S17)、`main/test/game-log.test.ts`(S11–S13)、`main/test/speedrun-hotkeys.test.ts`(S16)、`renderer/test/speedrun-config.test.ts`(S14、S18)、`renderer/test-vue/speedrun-widget-mount.test.ts`(畫面)。
+2026-11-20:`core/test/speedrun-breakpoints.test.ts`(基塔弗訊息、新斷點、舊路線轉換)、`main/test/game-log-kitava.test.ts`(訊息 → 分段,不重複、聊天不誤觸)、`renderer/test/timer-focus.test.ts`(切窗暫停、設定轉換)。
 
 ## 待使用者實機確認
-進城自動分段的時機、PoE2 間章順序、Client.txt 自動找路徑(遊戲裝在 E 槽)、overlay 上的版面與顏色。
+新斷點的分段時機(第一張圖、基塔弗訊息)、切窗暫停與回來繼續(含從自己的面板直接切到別的視窗)、PoE2 間章順序、Client.txt 自動找路徑(遊戲裝在 E 槽)、overlay 上的版面與顏色。

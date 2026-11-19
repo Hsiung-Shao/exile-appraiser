@@ -33,6 +33,15 @@ export class OverlayWindow {
     this.poeWindow.on('active-change', this.handlePoeWindowActiveChange)
     this.poeWindow.onAttach(this.handleOverlayAttached)
     this.window.webContents.on('before-input-event', this.handleExtraCommands)
+    // exile-appraiser(2026-11-20 計時器切窗暫停):overlay 拿著焦點時切到別的視窗,遊戲早就不是 active → 沒有 focus-change。
+    // 等 200 ms 讓「焦點還給遊戲」先完成(那條路會把 isInteractable 清掉),仍在外面才通知計時器;不改 overlay 狀態
+    this.window.on('blur', () => {
+      setTimeout(() => {
+        if (this.isInteractable && !this.poeWindow.isActive && !this.window.isDestroyed() && !this.window.isFocused()) this.send('timer-action', 'away')
+      }, 200)
+    })
+    // 從別的視窗直接點回自己的面板(不是回遊戲)→ 繼續(審查 2026-11-20 第 2 輪)
+    this.window.on('focus', () => { if (this.isInteractable) this.send('timer-action', 'back') })
   }
 
   assertOverlayActive = () => {

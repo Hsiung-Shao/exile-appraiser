@@ -201,7 +201,7 @@ describe('章節自動分段預設開(2026-11-18)', () => {
       const route = { ...presetRoute('poe1', 'cmn-Hant'), autoSplit: false, autoStart: true }
       const c = rt({ configVersion: v, speedrun: { poe1: route, poe2: { ...route, splits: presetRoute('poe2', 'cmn-Hant').splits, golds: presetRoute('poe2', 'cmn-Hant').golds } } })
       expect([c.speedrun.poe1.autoSplit, c.speedrun.poe2.autoSplit, c.speedrun.poe1.autoStart]).toEqual([true, true, true])
-      expect(c.configVersion).toBe(2)
+      expect(c.configVersion).toBe(3)
     }
   })
   it('configVersion 2 之後使用者關掉的照記住', () => {

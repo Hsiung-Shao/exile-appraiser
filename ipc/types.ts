@@ -172,7 +172,8 @@ export interface HostConfigForMain {
 }
 
 /** 2026-11-10 speedrun 計時器熱鍵(main → renderer `timer-action`) */
-export type TimerAction = 'toggle' | 'reset' | 'pause' | 'undo' | 'skip'
+/** `away` / `back` 不是熱鍵:main 在 overlay 視窗失焦且焦點不在遊戲時送 away、焦點回到 overlay 時送 back(切窗暫停,2026-11-20) */
+export type TimerAction = 'toggle' | 'reset' | 'pause' | 'undo' | 'skip' | 'away' | 'back'
 /** Client.txt 進入區域(main → renderer `game-area`) */
 export interface GameAreaEvent { area: string, level: number }
 /** Client.txt 監看狀態(設定頁) */

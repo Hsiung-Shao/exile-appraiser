@@ -50,7 +50,7 @@ describe('內建路線', () => {
   const KNOWN = new Set([
     '1_1_1', '1_1_town', '1_2_town', '1_3_town', '1_4_town', '1_5_town', '2_6_town', '2_7_town', '2_8_town', '2_9_town',
     '2_10_town', '2_11_endgame_town', 'G1_1', 'G1_town', 'G2_town', 'G3_town', 'G4_town', 'P1_Town', 'P2_Town', 'P3_Town',
-    'G_Endgame_Town'
+    'G_Endgame_Town', '1_2_1', '1_3_1', '1_4_1', '1_5_1', '2_8_1', '2_9_1'
   ])
 
   it('S2 兩代每段 area 與 startArea 都在實測清單,段數 10 / 7', () => {
@@ -66,7 +66,7 @@ describe('內建路線', () => {
 
   it('S2 area 依序與合約相同(順序錯會讓自動分段對錯段)', () => {
     expect(presetRoute('poe1', 'en').splits.map(s => s.area)).toEqual(
-      ['1_2_town', '1_3_town', '1_4_town', '1_5_town', '2_6_town', '2_7_town', '2_8_town', '2_9_town', '2_10_town', '2_11_endgame_town'])
+      ['1_2_1', '1_3_1', '1_4_1', '1_5_1', '2_6_town', '2_7_town', '2_8_1', '2_9_1', '2_10_town', '2_11_endgame_town'])
     expect(presetRoute('poe1', 'en').startArea).toBe('1_1_1')
     expect(presetRoute('poe2', 'en').splits.map(s => s.area)).toEqual(
       ['G2_town', 'G3_town', 'G4_town', 'P1_Town', 'P2_Town', 'P3_Town', 'G_Endgame_Town'])
@@ -355,7 +355,7 @@ describe('自動開始 / 分段', () => {
     expect(autoAction(run, route, '1_1_1')).toBeNull()
   })
 
-  it('S10 PoE1 跑第 3 段時:進 1_2_town(前面的城)→ null;進 1_4_town → split', () => {
+  it('S10 PoE1 跑第 3 段時:進 1_2_1(前面的觸發區)→ null;進 1_4_1 → split', () => {
     const c = clock()
     const route = { ...presetRoute('poe1', 'en'), autoSplit: true }
     const run = createRun(route, c.now)
@@ -363,8 +363,8 @@ describe('自動開始 / 分段', () => {
     run.split()
     run.split()
     expect(run.index).toBe(2)
-    expect(autoAction(run, route, '1_2_town')).toBeNull()
-    expect(autoAction(run, route, '1_4_town')).toBe('split')
+    expect(autoAction(run, route, '1_2_1')).toBeNull()
+    expect(autoAction(run, route, '1_4_1')).toBe('split')
   })
 
   it('S10 autoSplit 關閉 → null', () => {
