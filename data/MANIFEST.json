@@ -9,7 +9,7 @@
     "data/poe1": {
       "repo": "ExileAppraiser 自己維護(底 = apt-patched 384d1c5;scripts/poe1-season/update.mjs 以 GGPK 3.30.0 build 3.30.0.1 + 國際服交易站資料更新)",
       "path": "data/poe1",
-      "generatedAt": "2026-11-19T12:33:28.804Z",
+      "generatedAt": "2026-11-19T12:41:10.145Z",
       "fetchedAt": "2026-11-18T17:18:12.321Z"
     },
     "data/poe1/item-classes": {
@@ -123,16 +123,16 @@
       "bytes": 1556950
     },
     "data/poe1/cmn-Hant/stats-matcher.index.bin": {
-      "sha256": "2fc46ccefabcbd0ac24d82b0676711fed58646d515c1e5354c3acd614fa88138",
-      "bytes": 118200
+      "sha256": "a1044ac79f5504effdc1b0bd1adf0ca0d2d1cd61a53767d013f88d9888f7606d",
+      "bytes": 117920
     },
     "data/poe1/cmn-Hant/stats-ref.index.bin": {
-      "sha256": "8434a89973a88bd9c103db723cc834fc3bd691c56ef0c56fe4515488888a1ee3",
+      "sha256": "e95d17e4a5956da479c6fa5751d19109daf41f9eaacc74e4e7935ae0ad98f8fc",
       "bytes": 87424
     },
     "data/poe1/cmn-Hant/stats.ndjson": {
-      "sha256": "7a47b3a0b6f9e58e5b382ab341fc1213a73950d9f368b502a9738acee25d9749",
-      "bytes": 2942478
+      "sha256": "dcdf665564e61c2527db0bbcb292bbcebb823cae1d725c0dd4550c8cc773dee8",
+      "bytes": 2940205
     },
     "data/poe1/en/app_i18n.json": {
       "sha256": "6a115ec1d07d08c944a67c2d34aa44a4a6487eb426549646cb491857189b2def",

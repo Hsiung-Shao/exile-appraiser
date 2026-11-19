@@ -1275,23 +1275,38 @@ describe('planPassiveRenames(規則 25:天賦繁中改名)', () => {
     expect(planPassiveRenames({ zhStats, renames: [{ en: 'Advance Guard', from: '進階守衛', zh: '先鋒部隊' }] }).adds).toEqual([])
   })
 
-  // GitHub issue #39:腐敗之種洗出的天賦(規則 18 的列,只有 enchant id)帶入的是新名
-  it('腐敗之種的「1 Added Passive Skill is X」(只有 enchant id)補新名、舊的標 superseded;再跑一次不重複', () => {
-    const zhStats = [stat('1 Added Passive Skill is Bastion Breaker', [{ string: '1 個附加的天賦為堡壘破壞者' }], { enchant: ['enchant.stat_3599615742|65107'] })]
-    const renames = [{ en: 'Bastion Breaker', from: '堡壘破壞者', zh: '破壘者' }]
+  // GitHub issue #39:腐敗之種洗出的天賦(規則 18 的列,只有 enchant id)帶入的是新名;這個物品 3.30 才有,舊名從沒出現過 → 直接換掉
+  const grown = (en: string, zh: string, n: number) => stat('1 Added Passive Skill is ' + en, [{ string: '1 個附加的天賦為' + zh }], { enchant: ['enchant.stat_3599615742|' + n] })
+  const namesAfter = (zhStats: any[], renames: any[]) => {
     const plan = planPassiveRenames({ zhStats, renames })
-    expect(plan.adds).toEqual([{ lang: 'cmn-Hant', ref: zhStats[0].ref, matcher: { string: '1 個附加的天賦為破壘者' }, supersedes: ['1 個附加的天賦為堡壘破壞者'] }])
     const out = parseRows(applyStatPlan(toFile(zhStats), 'cmn-Hant', { adds: plan.adds }))
-    expect(out[0].matchers).toEqual([{ string: '1 個附加的天賦為堡壘破壞者', superseded: true }, { string: '1 個附加的天賦為破壘者' }])
     expect(planPassiveRenames({ zhStats: out, renames }).adds).toEqual([])
+    return { names: out.map((s: any) => s.matchers.map((m: any) => m.string)), rejects: plan.rejects.map((r: any) => r.en) }
+  }
+
+  it('腐敗之種的「1 Added Passive Skill is X」(只有 enchant id)換成新名、舊名不留;再跑一次不重複', () => {
+    expect(namesAfter([grown('Bastion Breaker', '堡壘破壞者', 65107)], [{ en: 'Bastion Breaker', from: '堡壘破壞者', zh: '破壘者' }]))
+      .toEqual({ names: [['1 個附加的天賦為破壘者']], rejects: [] })
   })
 
-  it('新名寫法已是另一條詞綴的句子(含同一輪新增的)→ 拒收(一個字串只能指向一列)', () => {
-    const e = (n: number) => ({ enchant: [`enchant.stat_3599615742|${n}`] })
-    const zhStats = [stat('1 Added Passive Skill is A', [{ string: '1 個附加的天賦為甲' }], e(1)), stat('1 Added Passive Skill is B', [{ string: '1 個附加的天賦為乙' }], e(2)),
-      stat('1 Added Passive Skill is C', [{ string: '1 個附加的天賦為丙' }], e(3)), stat('1 Added Passive Skill is D', [{ string: '1 個附加的天賦為丁' }], e(4))]
-    const plan = planPassiveRenames({ zhStats, renames: [{ en: 'A', from: '甲', zh: '乙' }, { en: 'C', from: '丙', zh: '戊' }, { en: 'D', from: '丁', zh: '戊' }] })
-    expect([plan.adds.map((a: any) => a.ref), plan.rejects.map((r: any) => r.en)]).toEqual([['1 Added Passive Skill is C'], ['A', 'D']])
+  // 審查第 2 輪:3.30 有互換(靈魂虛空 ↔ 精華抽取)與連鎖改名(怠工者 → 破壞者 → 摧毀者),留舊名會把新名配到另一個天賦
+  it('互換與連鎖改名:每列只剩自己的新名,一個字串不會指向兩列', () => {
+    const zhStats = [grown('Saboteur', '怠工者', 1), grown('Destroyer', '破壞者', 2), grown('Essence Sap', '靈魂虛空', 3), grown('Spirit Void', '精華抽取', 4)]
+    const renames = [{ en: 'Saboteur', from: '怠工者', zh: '破壞者' }, { en: 'Destroyer', from: '破壞者', zh: '摧毀者' }, { en: 'Essence Sap', from: '靈魂虛空', zh: '精華抽取' }, { en: 'Spirit Void', from: '精華抽取', zh: '靈魂虛空' }]
+    expect(namesAfter(zhStats, renames)).toEqual({ names: [['1 個附加的天賦為破壞者'], ['1 個附加的天賦為摧毀者'], ['1 個附加的天賦為精華抽取'], ['1 個附加的天賦為靈魂虛空']], rejects: [] })
+  })
+
+  it('新名是沒改名那一列的句子、或兩列改成同名 → 拒收,原句不動', () => {
+    const zhStats = [grown('A', '甲', 1), grown('B', '乙', 2), grown('C', '丙', 3), grown('D', '丁', 4)]
+    expect(namesAfter(zhStats, [{ en: 'A', from: '甲', zh: '乙' }, { en: 'C', from: '丙', zh: '戊' }, { en: 'D', from: '丁', zh: '戊' }]))
+      .toEqual({ names: [['1 個附加的天賦為甲'], ['1 個附加的天賦為乙'], ['1 個附加的天賦為丙'], ['1 個附加的天賦為丁']], rejects: ['A', 'C', 'D'] })
+  })
+
+  // 審查第 2 輪:塗油 / 禁忌珠寶那條路不做撞名檢查(從舊資料重跑的結果要與現有資料相同)
+  it('「配置 X」互換改名照舊各自補新名', () => {
+    const zhStats = [stat('Allocates Essence Sap', [{ string: '配置 靈魂虛空' }]), stat('Allocates Spirit Void', [{ string: '配置 精華抽取' }])]
+    const plan = planPassiveRenames({ zhStats, renames: [{ en: 'Essence Sap', from: '靈魂虛空', zh: '精華抽取' }, { en: 'Spirit Void', from: '精華抽取', zh: '靈魂虛空' }] })
+    expect([plan.adds.map((a: any) => a.matcher.string), plan.rejects]).toEqual([['配置 精華抽取', '配置 靈魂虛空'], []])
   })
 
   it('只換英文名相符的天賦:另一個天賦共用舊繁中名但沒改名 → 不動;同一個天賦兩種改名 → 拒收', () => {
