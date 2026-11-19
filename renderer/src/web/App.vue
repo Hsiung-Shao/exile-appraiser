@@ -228,7 +228,7 @@ import { poedbUrl, wikiUrl } from '@poe1/item-check/poedb'
 import { isMapLike } from '@poe1/map-check/common'
 import MapCheckLayer from './overlay/MapCheckLayer.vue'
 import { openItemOnPoedb } from './poedb-open'
-import { timerAction, timerArea } from './overlay/timer-state'
+import { timerAction, timerArea, timerFocus } from './overlay/timer-state'
 import TimerWidget from './overlay/TimerWidget.vue'
 import type { ItemTextLanguage } from '@exile-appraiser/core/games/adapter'
 import { TRADE_PATHS } from '@exile-appraiser/core/realm'
@@ -543,6 +543,8 @@ export default defineComponent({
         unsubscribers.push(Host.onHideWidget(() => { hidePanel('hide-exclusive-widget') }))
         unsubscribers.push(Host.onFocusChange((state) => {
           overlayActive.value = state.overlay
+          // 2026-11-20:切到別的視窗 → 計時器暫停,回來繼續(自己的 overlay 拿焦點不算)
+          timerFocus(state.game || state.overlay)
           if (state.overlay === false) {
             // APT: wmFlags 'hide-on-blur'
             hidePanel(`focus-change game=${state.game} overlay=false`)

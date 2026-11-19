@@ -53,8 +53,28 @@ watch(routeShape, (now, before) => {
   if (now.areas !== before.areas || (now.cleared && !before.cleared && baseHad)) run.reset()
 })
 
+/** 這次暫停是切窗造成的(回到遊戲才自動繼續;手動操作過就不算) */
+let focusPaused = false
+
+/**
+ * 2026-11-20 使用者裁定:遊戲與自己的 overlay 都沒有焦點(切到別的視窗)→ 暫停,回來自動繼續。
+ * 手動暫停的不自動繼續。
+ */
+export function timerFocus (focused: boolean): void {
+  const run = appRun.value
+  if (!focused) {
+    if (run.phase !== 'running') return
+    run.pause()
+    focusPaused = true
+  } else if (focusPaused) {
+    focusPaused = false
+    run.resume()
+  }
+}
+
 export function timerAction (a: TimerAction): void {
   const run = appRun.value
+  focusPaused = false
   switch (a) {
     case 'toggle':
       // LiveSplit:沒在跑 = 開始、暫停中 = 繼續、跑著 = 分段;跑完要先重設
@@ -75,8 +95,14 @@ export function timerAction (a: TimerAction): void {
 /** Client.txt 進入區域 → 自動開始 / 自動分段 */
 export function timerArea (area: string): void {
   const run = appRun.value
-  const act = autoAction(run, currentRoute(), area)
+  // 切窗暫停中(常在讀圖時切出去)進了目標區:照樣分段,分完仍暫停
+  const away = focusPaused && run.phase === 'paused'
+  const act = autoAction(away ? { phase: 'running', index: run.index } : run, currentRoute(), area)
   if (act === 'start') run.start()
-  else if (act === 'split') run.split()
+  else if (act === 'split') {
+    if (away) run.resume()
+    run.split()
+    if (away) run.pause()
+  }
   if (act) console.log(`[speedrun] 自動${act === 'start' ? '開始' : '分段'}:${area}`)
 }

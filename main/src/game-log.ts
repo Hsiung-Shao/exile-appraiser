@@ -5,7 +5,7 @@
  * 只讀檔、不送任何輸入;沒有 setTarget 就沒有監看(關著零成本)。
  */
 import path from 'node:path'
-import { parseAreaLine } from '../../core/src/speedrun/client-log'
+import { parseAreaLine, parseKitavaLine } from '../../core/src/speedrun/client-log'
 
 export interface LogFile { size (): Promise<number>, read (buf: Buffer, position: number): Promise<number>, close (): Promise<void> }
 export interface GameLogDeps {
@@ -101,8 +101,12 @@ export class GameLogWatcher {
     let data = st.rest.length ? Buffer.concat([st.rest, chunk]) : Buffer.from(chunk)
     let nl: number
     while ((nl = data.indexOf(0x0a)) >= 0) {
-      const hit = parseAreaLine(data.subarray(0, nl).toString('utf8'))
+      const line = data.subarray(0, nl).toString('utf8')
+      const hit = parseAreaLine(line)
+      const kitava = hit ? null : parseKitavaLine(line)
+      if (kitava) this.deps.log?.(`[speedrun] 基塔弗訊息 → 視同進入 ${kitava}`)
       if (hit) this.deps.onArea(hit)
+      else if (kitava) this.deps.onArea({ area: kitava, level: 0 })
       data = data.subarray(nl + 1)
     }
     st.rest = Buffer.from(data)

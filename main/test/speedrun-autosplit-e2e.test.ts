@@ -11,9 +11,11 @@ const POE1 = [
   '2026/11/14 03:08:36 784596937 1186a803 [DEBUG Client 35540] Generating level 1 area "1_1_1" with seed 930780934',
   '2026/11/14 03:11:40 784780000 1186a803 [DEBUG Client 35540] Generating level 13 area "1_1_town" with seed 1',
   '2026/11/14 03:11:41 784780500 cffb06be [INFO Client 35540] : 你已進入：獅眼守望。',
+  '2026/11/14 03:45:15 786795921 1186a803 [DEBUG Client 35540] Generating level 13 area "1_2_1" with seed 2271321137',
   '2026/11/14 03:46:31 786871765 1186a803 [DEBUG Client 35540] Generating level 23 area "1_2_town" with seed 1',
   '2026/11/14 04:08:37 788198156 1186a803 [DEBUG Client 35540] Generating level 13 area "1_1_town" with seed 1',
   '2026/11/14 04:10:50 788330906 1186a803 [DEBUG Client 35540] Generating level 23 area "1_2_town" with seed 1',
+  '2026/11/14 04:33:40 789700718 1186a803 [DEBUG Client 35540] Generating level 23 area "1_3_1" with seed 905554702',
   '2026/11/14 04:34:58 789778375 1186a803 [DEBUG Client 35540] Generating level 33 area "1_3_town" with seed 1'
 ]
 const POE2 = [
@@ -63,11 +65,11 @@ async function play (game: SpeedrunGame, lines: string[]) {
 }
 
 describe('真實 Client.txt 行 → 自動開始 / 自動分段', () => {
-  it('PoE1:進第 2 章城鎮分第 1 段、第 3 章城鎮分第 2 段,回頭進舊城鎮不多分', async () => {
+  it('PoE1:進第 2 章第一張圖分第 1 段、第 3 章第一張圖分第 2 段,之後進城與回頭不多分', async () => {
     const run = await play('poe1', POE1)
     expect(run.phase).toBe('running')
     expect(run.index).toBe(2)
-    expect(run.splitTimes.slice(0, 2)).toEqual([3000, 6000])
+    expect(run.splitTimes.slice(0, 2)).toEqual([3000, 7000])
   })
   it('PoE2:進 G2_town 分第 1 段', async () => {
     const run = await play('poe2', POE2)
