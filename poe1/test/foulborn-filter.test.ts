@@ -37,5 +37,13 @@ describe('穢生篩選', () => {
       expect(text).not.toBe(TEXT)
       expect(query(text, realm).filters.misc_filters.filters.mutated).toEqual({ option: 'true' })
     })
+
+    // 失敗代表:未鑑定(看不出是不是穢生)被當成一般版,排除了穢生版掛單
+    it(`${realm}:未鑑定傳奇不送 mutated`, () => {
+      const text = TEXT.replace('\n朝氣之靈\n', '\n').trimEnd() + '\n--------\n未鑑定\n'
+      const item = parseClipboard(text)._unsafeUnwrap()
+      expect(item.isUnidentified).toBe(true)
+      expect(query(text, realm).filters.misc_filters?.filters.mutated).toBeUndefined()
+    })
   }
 })
