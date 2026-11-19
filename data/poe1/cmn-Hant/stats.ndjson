@@ -9174,7 +9174,7 @@
 {"ref":"You and Allies within 5 metres deal # to # additional Cold Damage","better":1,"matchers":[{"string":"你和你5公尺範圍內的友方造成#至#附加冰冷傷害"}],"trade":{"ids":{"implicit":["implicit.stat_2567747215"]}}}
 {"ref":"+#% to Item Rarity from Hiveborn Monsters","better":1,"matchers":[{"string":"#%巢裔怪物掉落的物品稀有度"}],"trade":{"ids":{"explicit":["explicit.stat_3967804254"]}}}
 {"ref":"Killing Blows Consume corpses to Recover # Life and # Mana","better":1,"matchers":[{"string":"最後一擊會消耗屍體並恢復#生命和#魔力"}],"trade":{"ids":{"implicit":["implicit.stat_1218107074"]}}}
-{"ref":"Socketed Gems deal #% more damage per Socketed Skill Gem","better":1,"matchers":[{"string":"Socketed Gems deal #% more damage per Socketed Skill Gem"},{"string":"每鑲嵌一顆技能寶石，插槽中的寶石即造成#%更多傷害"}],"trade":{"ids":{"explicit":["explicit.stat_2876425796"]}}}
+{"ref":"Socketed Gems deal #% more damage per Socketed Skill Gem","better":1,"matchers":[{"string":"Socketed Gems deal #% more damage per Socketed Skill Gem","superseded":true},{"string":"每鑲嵌一顆技能寶石，插槽中的寶石即造成#%更多傷害"}],"trade":{"ids":{"explicit":["explicit.stat_2876425796"]}}}
 {"ref":"Socketed Support Gems have no effect","better":0,"matchers":[{"string":"插槽中的輔助寶石沒有效果"}],"trade":{"ids":{"explicit":["explicit.stat_1521791684"]}}}
 {"ref":"#% chance for a damaging Retaliation skill to\nbecome usable for every 100 life removed this way","better":1,"matchers":[{"string":"你每以此方式移除100生命，\n反擊技能即有#%機率變為可用"}],"trade":{"ids":{"explicit":["explicit.stat_86321750"]}}}
 {"ref":"Area contains the Viridian Wildwood","better":0,"matchers":[{"string":"區域內含有翠綠荒林"}],"trade":{"ids":{"explicit":["explicit.stat_1975119765"],"fractured":["fractured.stat_1975119765"]}}}

@@ -1412,6 +1412,13 @@ export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove
       if (a.drops) stat.matchers = stat.matchers.filter(m => !a.drops.includes(m.string)) // 規則 25:腐敗之種的列直接換掉舊句
       changed = true
     }
+    // 繁中資料裡暫放的英文句(當時 GGPK 還沒有繁中):同列有了繁中現行寫法就標 superseded,
+    // 否則正則「物品詞綴數值」頁把它當兩種寫法而排除(審查 2026-11-20)
+    if (lang === 'cmn-Hant' && stat.matchers?.some(m => !m.superseded && /[一-鿿]/.test(m.string))) {
+      for (const m of stat.matchers) {
+        if (!m.superseded && /[A-Za-z]{3}/.test(m.string) && !/[^\x00-\x7f]/.test(m.string)) { m.superseded = true; changed = true }
+      }
+    }
     for (const [type, ids] of Object.entries(stat.trade?.ids ?? {})) {
       const next = uniq(ids.filter(id => !gone.has(id)).map(id => replace[id] ?? id))
       if (next.length === ids.length && next.every((id, i) => id === ids[i])) continue
