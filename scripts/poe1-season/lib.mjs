@@ -523,7 +523,8 @@ export function planGrownPassives ({ enStats, zhStats, tradeStats }) {
 /**
  * 規則 25:天賦繁中改名(GGPK `passiveskills` 同一個 ident 新舊兩版英文名相同、繁中不同;3.30 Avatar of the Wilds 獸性化身 → 荒野化身,
  * GitHub issue #34)。名字在「配置 X」結尾的繁中寫法(塗油、禁忌珠寶)補新名,舊的標 superseded。
- * 依詞綴 ref 裡的英文天賦名對(`Allocates X` / 禁忌珠寶句;星團「1 Added Passive Skill is X」是寫死名稱、不改);同一個天賦有兩種改名不猜。
+ * 依詞綴 ref 裡的英文天賦名對(`Allocates X` / 禁忌珠寶句);同一個天賦有兩種改名不猜。
+ * 腐敗之種洗出的天賦(「1 Added Passive Skill is X」只有 enchant id 的列)也帶入新名(issue #39):直接換掉舊句;星團珠寶那幾列(帶 explicit id)是寫死名稱、不改。
  * @returns {{ adds: any[], rejects: any[] }}
  */
 export function planPassiveRenames ({ zhStats, renames }) {
@@ -551,6 +552,32 @@ export function planPassiveRenames ({ zhStats, renames }) {
       const { superseded, ...rest } = m
       adds.push({ lang: 'cmn-Hant', ref: stat.ref, matcher: { ...rest, string }, supersedes: [m.string] })
     }
+  }
+  // 腐敗之種洗出的天賦(規則 18 的列:「1 Added Passive Skill is X」、只有 enchant id;GitHub issue #39)帶入的也是新名。
+  // 這個物品 3.30 才有,舊名從沒出現過 → 直接換掉舊句(drops),不留 superseded:3.30 有互換 / 連鎖改名
+  // (靈魂虛空 ↔ 精華抽取、怠工者 → 破壞者 → 摧毀者),留著會把新名配到另一個天賦。
+  const GROWN_ZH = '附加的天賦為'
+  const taken = new Set()
+  /** @type {{ stat: any, m: any, r: any, string: string }[]} */
+  let swaps = []
+  for (const stat of eachStat(zhStats)) {
+    for (const m of stat.matchers) taken.add(m.string)
+    const r = stat.trade?.ids?.explicit ? undefined : byEn.get(/^1 Added Passive Skill is (.+)$/.exec(stat.ref)?.[1])
+    for (const m of r ? stat.matchers : []) if (m.string.endsWith(GROWN_ZH + r.from)) swaps.push({ stat, m, r, string: m.string.slice(0, -r.from.length) + r.zh })
+  }
+  // 一個字串只能指向一列:新名不能是留下來的句子(同一輪被換掉的不算),也不能有兩列換成同一句;拒收一列可能連帶讓別列撞名 → 反覆到不變
+  const all = swaps
+  for (;;) {
+    const gone = new Set(swaps.map(s => s.m.string))
+    const dup = new Map()
+    for (const s of swaps) dup.set(s.string, (dup.get(s.string) ?? 0) + 1)
+    const ok = swaps.filter(s => dup.get(s.string) === 1 && (!taken.has(s.string) || gone.has(s.string)))
+    if (ok.length === swaps.length) break
+    swaps = ok
+  }
+  for (const s of all) {
+    if (!swaps.includes(s)) rejects.push({ reason: '新名寫法已是另一條詞綴的句子', en: s.r.en, to: s.string })
+    else adds.push({ lang: 'cmn-Hant', ref: s.stat.ref, matcher: { ...s.m, string: s.string }, drops: [s.m.string] })
   }
   return { adds, rejects }
 }
@@ -1368,6 +1395,7 @@ export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove
         for (const m of exact.length ? exact : (sameFlags.length === 1 ? sameFlags : [])) m.superseded = true
       }
       stat.matchers.push(a.matcher)
+      if (a.drops) stat.matchers = stat.matchers.filter(m => !a.drops.includes(m.string)) // 規則 25:腐敗之種的列直接換掉舊句
       changed = true
     }
     for (const [type, ids] of Object.entries(stat.trade?.ids ?? {})) {

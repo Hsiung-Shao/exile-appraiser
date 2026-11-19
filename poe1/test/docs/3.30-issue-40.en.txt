@@ -1,0 +1,23 @@
+Item Class: Utility Flasks
+Rarity: Magic
+Abecedarian's Silver Flask of the Owl
+--------
+Lasts 3.80 (augmented) Seconds
+Consumes 40 of 60 Charges on use
+Currently has 0 Charges
+Onslaught
+--------
+Requirements:
+Level: 67
+--------
+Item Level: 85
+--------
+Used when Charges reach full (enchant)
+--------
+{ Prefix Modifier "Abecedarian's" (Tier: 3) }
+37(38-33)% reduced Duration
+25% increased effect
+{ Suffix Modifier "of the Owl" (Tier: 1) }
+60(65-60)% reduced Effect of Curses on you during Effect
+--------
+Right click to drink. Can only hold charges while in belt. Refills as you kill monsters.

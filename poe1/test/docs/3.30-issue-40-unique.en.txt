@@ -1,0 +1,23 @@
+Item Class: Utility Flasks
+Rarity: Unique
+Cinderswallow Urn
+Silver Flask
+--------
+Lasts 6.00 Seconds
+Consumes 40 of 60 Charges on use
+Currently has 60 Charges
+Onslaught
+--------
+Requirements:
+Level: 22
+--------
+Item Level: 85
+--------
+Used when Charges reach full (enchant)
+--------
++10 to Maximum Charges
+Recharges 1 Charge when you Consume an Ignited corpse
+15% increased Charges per use
+Enemies Ignited by you during Effect take 10% increased Damage
+--------
+Right click to drink.
