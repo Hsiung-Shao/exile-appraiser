@@ -143,7 +143,7 @@ interface TradeRequest {
           fated?: FilterBoolean
           stack_size?: FilterRange
           memory_level?: FilterRange
-          foulborn_item?: FilterBoolean
+          mutated?: FilterBoolean
           vestigial?: FilterBoolean
         }
       }
@@ -363,13 +363,13 @@ export function createTradeRequest (filters: ItemFilters, stats: FilterOrGroup[]
   if (filters.split?.disabled) {
     propSet(query.filters, 'misc_filters.filters.split.option', String(false))
   }
-  if (filters.foulborn?.value === false) {
-    propSet(query.filters, 'misc_filters.filters.foulborn_item.option', String(false))
+  // exile-appraiser: 上游送的 `foulborn_item` 已不存在(交易站忽略),現在叫 `mutated`(顯示「Foulborn」);
+  // 2026-11-19 實測 Headhunter:不帶 / 帶 foulborn_item 都 10000+ 筆,mutated true 277 筆 = 原本會混進穢生版。
+  // 與殘存同理兩個方向都送:只送 false 的話查穢生版會連普通版一起撈回來
+  if (filters.foulborn) {
+    propSet(query.filters, 'misc_filters.filters.mutated.option', String(filters.foulborn.value))
   }
-  // 與上面的 foulborn 不同,這裡**兩個方向都送**。foulborn 只送 false 是因為
-  // `foulborn_item` 這個篩選器四個 realm 都已經不存在了(實測 intl/tw/kr/cn 皆無),
-  // 送了也是被忽略;`vestigial` 則四個 realm 都在。只送 false 的話,查一件殘存傳奇
-  // 會連普通版一起撈回來,而兩者價格差很多。
+  // 只送 false 的話,查一件殘存傳奇會連普通版一起撈回來,而兩者價格差很多
   if (filters.vestigial) {
     propSet(query.filters, 'misc_filters.filters.vestigial.option', String(filters.vestigial.value))
   }

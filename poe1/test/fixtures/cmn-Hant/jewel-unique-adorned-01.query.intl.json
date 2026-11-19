@@ -29,7 +29,7 @@
         },
         "misc_filters": {
           "filters": {
-            "foulborn_item": {
+            "mutated": {
               "option": "false"
             },
             "vestigial": {
