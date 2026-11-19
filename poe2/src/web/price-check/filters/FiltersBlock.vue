@@ -334,9 +334,10 @@
         </button>
         <ui-toggle
           v-if="filteredStats.length !== stats.length"
+          data-action="hidden-visible"
           v-model="showHidden"
           class="text-gray-400"
-          >{{ t(hiddenLabel) }}</ui-toggle
+          >{{ t(hiddenLabel) }} {{ hiddenCount }}</ui-toggle
         >
         <!-- exile-appraiser: 2026-10-16「機制」開關(設定 showMechanism;關著時只有非一般模式的列顯示機制按鈕) -->
         <ui-toggle
@@ -530,6 +531,8 @@ export default defineComponent({
       t,
       statsVisibility,
       showHidden,
+      // exile-appraiser: 2026-11-19 開關後面寫藏了幾條
+      hiddenCount: computed(() => props.stats.filter((s) => s.hidden).length),
       showFilterSources,
       rawCollapsed,
       showMechanism,

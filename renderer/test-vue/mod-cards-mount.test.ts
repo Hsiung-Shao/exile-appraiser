@@ -146,5 +146,20 @@ describe('詞綴卡片掛載', () => {
       expect(text(card(container, 'pseudo'))).toContain(`來自 ${pseudoRow.sources.length} 條詞綴`)
       app.unmount()
     })
+
+    // 2026-11-19 使用者回報札娜的獨創「少一條」(其實在已隱藏裡);失敗代表開關沒寫藏了幾條
+    it(`${game}:「已隱藏」開關顯示藏了幾條`, async () => {
+      const { item, preset } = build()
+      const rows = preset.stats.filter((s: any) => !s.group)
+      rows[0].hidden = 'filters.hide_const_roll'
+      rows[1].hidden = 'filters.hide_const_roll'
+      const n = preset.stats.filter((s: any) => s.group ? s.meta.hidden : s.hidden).length
+      expect(n).toBeGreaterThanOrEqual(2)
+      const { container, app } = renderBlock(game, comp, preset, item)
+      await nextTick()
+      const toggle = findAll(container, byAttr('data-action', 'hidden-visible'))[0]
+      expect(text(toggle).replace(/\s+/g, ' ').trim()).toMatch(new RegExp(`隱藏 ${n}$`))
+      app.unmount()
+    })
   }
 })
