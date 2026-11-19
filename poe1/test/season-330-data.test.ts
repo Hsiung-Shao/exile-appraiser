@@ -94,6 +94,14 @@ describe('3.30 詞綴寫法(en)', () => {
     expect(crown.statsByType[0].stat.trade.ids.implicit).toEqual(['implicit.stat_2994988431', 'implicit.stat_3376335115'])
   })
 
+  it('D17zb GitHub issue #40 的實機文字:藥劑附魔「Used when Charges reach full」直接列出(不收在已隱藏)、預設不勾', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-40.en.txt'), 'utf8'))
+    expect(unknownOf(item)).toEqual([])
+    const preset = createPresets(item, { league: 'Standard', currency: null, collapseListings: 'api', activateStockFilter: false, searchStatRange: 10, useEn: false, merchantOnly: false }).presets[0]
+    const row = preset.stats.flatMap(f => 'tradeId' in f ? [f] : []).find(f => f.tradeId.includes('enchant.stat_3287581721'))!
+    expect([row.hidden, row.disabled]).toEqual([undefined, true])
+  })
+
   it('D17z en:#37「Superior Fated Titan Plate」+「Unidentified (Tier 5)」解析成泰坦之鎧、帶階級與命運', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-37.en.txt'), 'utf8'))
     expect([item.info.refName, item.isUnidentified, item.unidentifiedTier, item.isFated]).toEqual(['Titan Plate', true, 5, true])
@@ -404,6 +412,13 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(unknownOf(item)).toEqual([])
     expect(item.statsByType[0].stat.ref).toBe('Allocates Avatar of the Wilds if you have the matching modifier on Forbidden Flame')
     expect(item.statsByType[0].stat.trade.ids.explicit).toEqual(['explicit.stat_2460506030|55509'])
+  })
+
+  it('D17wb GitHub issue #39 的實機文字:腐敗之種「1 個附加的天賦為破壘者」(3.30 天賦新名,舊名堡壘破壞者)解析得到、帶交易站 id', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-39.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(item)).toEqual([])
+    const hit = item.statsByType.find(s => s.stat.ref === '1 Added Passive Skill is Bastion Breaker')
+    expect(hit?.stat.trade.ids.enchant).toContain('enchant.stat_3599615742|65107')
   })
 
   it('D17w GitHub issue #35 的實機文字:禁忌烈焰「配置 無端暴力」(3.30 改名,舊名免費暴力)解析得到、帶交易站 id', () => {

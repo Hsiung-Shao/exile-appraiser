@@ -1269,10 +1269,21 @@ describe('planPassiveRenames(規則 25:天賦繁中改名)', () => {
     expect(planPassiveRenames({ zhStats: out, renames }).adds).toEqual([])
   })
 
-  // 審查第 2 輪:星團「1 個附加天賦為 X」是寫死名稱(GGPK 3.30 仍是舊名),不能跟著改
-  it('星團珠寶「1 Added Passive Skill is X」不改名', () => {
-    const zhStats = [stat('1 Added Passive Skill is Advance Guard', [{ string: '1 個附加天賦為進階守衛' }])]
-    expect(planPassiveRenames({ zhStats, renames: [{ en: 'Advance Guard', from: '進階守衛', zh: '先鋒部隊' }] }).adds).toEqual([])
+  // 星團珠寶是寫死名稱(GGPK 3.30 仍是舊名)→ 舊句維持現行;腐敗之種同一句帶入的是新名(GitHub issue #39)→ 補新名、標 superseded
+  it('「1 Added Passive Skill is X」補新名寫法、舊句不標 superseded;再跑一次不重複', () => {
+    const zhStats = [stat('1 Added Passive Skill is Advance Guard', [{ string: '1 個附加的天賦為進階守衛' }])]
+    const renames = [{ en: 'Advance Guard', from: '進階守衛', zh: '先鋒部隊' }]
+    const plan = planPassiveRenames({ zhStats, renames })
+    expect(plan.adds).toEqual([{ lang: 'cmn-Hant', ref: zhStats[0].ref, matcher: { string: '1 個附加的天賦為先鋒部隊', superseded: true } }])
+    const out = parseRows(applyStatPlan(toFile(zhStats), 'cmn-Hant', { adds: plan.adds }))
+    expect(out[0].matchers).toEqual([{ string: '1 個附加的天賦為進階守衛' }, { string: '1 個附加的天賦為先鋒部隊', superseded: true }])
+    expect(planPassiveRenames({ zhStats: out, renames }).adds).toEqual([])
+  })
+
+  it('新名寫法已是另一個天賦的句子 → 拒收(一個字串只能指向一列)', () => {
+    const zhStats = [stat('1 Added Passive Skill is A', [{ string: '1 個附加的天賦為甲' }]), stat('1 Added Passive Skill is B', [{ string: '1 個附加的天賦為乙' }])]
+    const plan = planPassiveRenames({ zhStats, renames: [{ en: 'A', from: '甲', zh: '乙' }] })
+    expect([plan.adds, plan.rejects.map((r: any) => r.en)]).toEqual([[], ['A']])
   })
 
   it('只換英文名相符的天賦:另一個天賦共用舊繁中名但沒改名 → 不動;同一個天賦兩種改名 → 拒收', () => {

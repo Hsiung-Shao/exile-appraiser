@@ -523,7 +523,8 @@ export function planGrownPassives ({ enStats, zhStats, tradeStats }) {
 /**
  * 規則 25:天賦繁中改名(GGPK `passiveskills` 同一個 ident 新舊兩版英文名相同、繁中不同;3.30 Avatar of the Wilds 獸性化身 → 荒野化身,
  * GitHub issue #34)。名字在「配置 X」結尾的繁中寫法(塗油、禁忌珠寶)補新名,舊的標 superseded。
- * 依詞綴 ref 裡的英文天賦名對(`Allocates X` / 禁忌珠寶句;星團「1 Added Passive Skill is X」是寫死名稱、不改);同一個天賦有兩種改名不猜。
+ * 依詞綴 ref 裡的英文天賦名對(`Allocates X` / 禁忌珠寶句);同一個天賦有兩種改名不猜。
+ * 「1 Added Passive Skill is X」只補新名寫法(標 superseded)、舊句不動:星團珠寶仍是舊名,腐敗之種帶入新名(issue #39)。
  * @returns {{ adds: any[], rejects: any[] }}
  */
 export function planPassiveRenames ({ zhStats, renames }) {
@@ -537,9 +538,21 @@ export function planPassiveRenames ({ zhStats, renames }) {
     if (had === undefined) byEn.set(r.en, r)
     else if (had && (had.from !== r.from || had.zh !== r.zh)) { byEn.set(r.en, null); rejects.push({ reason: '同一個天賦有兩種改名', en: r.en }) }
   }
+  const taken = new Set()
+  for (const stat of eachStat(zhStats)) for (const m of stat.matchers) taken.add(m.string)
   for (const stat of eachStat(zhStats)) {
-    // 只收「Allocates X」(塗油、禁忌珠寶:名稱由 passiveskills 動態帶入);星團「1 Added Passive Skill is X」是寫死名稱的句子,3.30 仍是舊名
-    const en = /^Allocates (.+?)(?: if you have the matching modifier on Forbidden (?:Flame|Flesh))?$/.exec(stat.ref)?.[1]
+    // 「1 Added Passive Skill is X」:星團珠寶是寫死名稱的句子(3.30 仍是舊名),腐敗之種同一句帶入的是新名(GitHub issue #39)
+    // → 兩種遊戲裡都有:補新名寫法並標 superseded,舊句維持現行
+    const grown = byEn.get(/^1 Added Passive Skill is (.+)$/.exec(stat.ref)?.[1])
+    for (const m of grown ? stat.matchers : []) {
+      if (m.superseded || !m.string.endsWith(`為${grown.from}`)) continue
+      const string = m.string.slice(0, -grown.from.length) + grown.zh
+      if (stat.matchers.some(x => x.string === string)) continue
+      if (taken.has(string)) rejects.push({ reason: '新名寫法已是另一條詞綴的句子', en: grown.en, to: string })
+      else adds.push({ lang: 'cmn-Hant', ref: stat.ref, matcher: { ...m, string, superseded: true } })
+    }
+    // 「Allocates X」(塗油、禁忌珠寶:名稱由 passiveskills 動態帶入)
+    const en =/^Allocates (.+?)(?: if you have the matching modifier on Forbidden (?:Flame|Flesh))?$/.exec(stat.ref)?.[1]
     const r = en && byEn.get(en)
     if (!r) continue
     for (const m of stat.matchers) {

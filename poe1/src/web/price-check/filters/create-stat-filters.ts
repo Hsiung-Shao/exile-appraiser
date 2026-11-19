@@ -619,7 +619,7 @@ function applyFlaskRules (filters: StatFilter[]) {
   const usedEnkindling = filters.find(filter => filter.statRef === 'Gains no Charges during Flask Effect')
   for (const filter of filters) {
     if (filter.tag === FilterTag.Enchant && !usedEnkindling) {
-      filter.hidden = 'hide_harvest_and_instilling'
+      // exile-appraiser: 上游在這裡把附魔收進「已隱藏」;改成直接列出、預設不勾(GitHub issue #40)
       filter.disabled = true
     }
   }
