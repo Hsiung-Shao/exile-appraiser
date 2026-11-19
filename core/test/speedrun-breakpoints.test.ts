@@ -54,6 +54,16 @@ describe('parseKitavaLine', () => {
   })
 })
 
+describe('parseKitavaLine 不被名字或聊天內文誤觸(審查 2026-11-20)', () => {
+  it('角色名含 Kitava 與 Cruel 的升級 / 進區域系統訊息 → null', () => {
+    expect(kitava(`${HEAD} : KitavaIsCruel (Marauder) is now level 45`)).toBeNull()
+    expect(kitava(`${HEAD} : Kitava_Merciless has joined the area.`)).toBeNull()
+  })
+  it('聊天內文自己含「] : 」與整句訊息 → null', () => {
+    expect(kitava(`${HEAD} #Bob: [x] : You have been permanently weakened by Kitava's cruel affliction.`)).toBeNull()
+  })
+})
+
 describe('PoE1 預設分段點', () => {
   it('T6 兩種語言的 poe1 區域依序為新清單', () => {
     for (const lang of ['cmn-Hant', 'en'] as const) expect(areasOf(presetRoute('poe1', lang)), lang).toEqual(NEW_POE1)

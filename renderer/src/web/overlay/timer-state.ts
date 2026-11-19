@@ -54,7 +54,7 @@ watch(routeShape, (now, before) => {
 })
 
 /** 這次暫停是切窗造成的(回到遊戲才自動繼續;手動操作過就不算) */
-let focusPaused = false
+let focusPausedRun: Run | null = null
 
 /**
  * 2026-11-20 使用者裁定:遊戲與自己的 overlay 都沒有焦點(切到別的視窗)→ 暫停,回來自動繼續。
@@ -65,16 +65,19 @@ export function timerFocus (focused: boolean): void {
   if (!focused) {
     if (run.phase !== 'running') return
     run.pause()
-    focusPaused = true
-  } else if (focusPaused) {
-    focusPaused = false
-    run.resume()
+    focusPausedRun = run
+  } else if (focusPausedRun) {
+    // 記的是哪個 run(每個遊戲一個):中途換了遊戲也只繼續當初暫停的那個
+    focusPausedRun.resume()
+    focusPausedRun = null
   }
 }
 
 export function timerAction (a: TimerAction): void {
+  // main:overlay 視窗失焦且焦點不在遊戲(從自己的面板切到別的視窗;這條路沒有 focus-change)
+  if (a === 'away') { timerFocus(false); return }
   const run = appRun.value
-  focusPaused = false
+  focusPausedRun = null
   switch (a) {
     case 'toggle':
       // LiveSplit:沒在跑 = 開始、暫停中 = 繼續、跑著 = 分段;跑完要先重設
@@ -96,7 +99,7 @@ export function timerAction (a: TimerAction): void {
 export function timerArea (area: string): void {
   const run = appRun.value
   // 切窗暫停中(常在讀圖時切出去)進了目標區:照樣分段,分完仍暫停
-  const away = focusPaused && run.phase === 'paused'
+  const away = focusPausedRun === run && run.phase === 'paused'
   const act = autoAction(away ? { phase: 'running', index: run.index } : run, currentRoute(), area)
   if (act === 'start') run.start()
   else if (act === 'split') {

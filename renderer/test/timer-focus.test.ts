@@ -50,6 +50,15 @@ describe('timerFocus 切窗暫停', () => {
     expect(appRun.value.elapsed()).toBe(3000)
   })
 
+  it('main 送 away(從自己的面板切到別的視窗)→ 暫停,回到遊戲自動繼續(審查 2026-11-20)', () => {
+    appRun.value.start()
+    vi.advanceTimersByTime(1000)
+    timerAction('away' as any)
+    expect(appRun.value.phase).toBe('paused')
+    timerFocus(true)
+    expect(appRun.value.phase).toBe('running')
+  })
+
   it('T11 手動暫停後失焦再回來 → 仍是暫停(不替使用者繼續)', () => {
     appRun.value.start()
     vi.advanceTimersByTime(1000)
