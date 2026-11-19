@@ -1,0 +1,77 @@
+import { beforeAll, describe, expect, it } from 'vitest'
+import { init, loadForLang } from '@/assets/data'
+import { parseClipboard } from '@/parser'
+import type { ParsedItem } from '@/parser/ParsedItem'
+import type { FilterOrGroup, StatFilter } from '@/web/price-check/filters/interfaces'
+import { createPresets, createTradeRequest } from '../src/index'
+
+// 2026-11-19 使用者裁定「改成可勾選」:劫盜契約 / 藍圖的隨機詞綴、魔偶的固定詞綴,上游不列(勾都勾不到);
+// 收進來但預設不勾 = 預設查詢不變。樣本照類型掃描的寫法組(不是實機剪貼簿)
+const OPTS = {
+  league: 'Standard', realm: 'intl' as const, clientLanguage: 'cmn-Hant' as const, searchStatRange: 10,
+  currency: null, collapseListings: 'api' as const, activateStockFilter: false, merchantOnly: false
+}
+const MODS = (lines: string[]) => lines.flatMap((l, i) => [`{ ${i % 2 ? '後綴' : '前綴'} "測試的"(階層：1) }`, l])
+const head = (klass: string, base: string) => [`物品種類: ${klass}`, '稀有度: 稀有', '末日循環', base, '--------', '物品等級: 84']
+const ITEMS: Record<string, { text: string, optIn: string[] }> = {
+  契約書: {
+    text: [...head('契約書', '契約書：碉堡'), '--------', ...MODS(['增加 16% 此區域物品數量', '怪物的技能附加 2 次連鎖'])].join('\n'),
+    optIn: ['增加 #% 此區域物品數量', '怪物的技能附加 # 次連鎖']
+  },
+  藍圖: {
+    text: [...head('藍圖', '藍圖：碉堡'), '--------', '地區等級: 83', '已揭露側廂: 1/4', '--------', ...MODS(['增加 16% 此區域物品數量', '怪物的技能附加 2 次連鎖'])].join('\n'),
+    optIn: ['增加 #% 此區域物品數量', '怪物的技能附加 # 次連鎖']
+  },
+  魔偶: {
+    text: [...head('魔偶', '次要魔偶'), '--------', '{ 固定詞綴 }', '增加 2% 你地圖中掉落的地圖', '--------', ...MODS(['擊殺敵人增加 100% 機率產生超越傳送門'])].join('\n'),
+    optIn: ['增加 #% 你地圖中掉落的地圖']
+  }
+}
+
+const rowsOf = (stats: FilterOrGroup[]): StatFilter[] => stats.flatMap(s => s.group ? s.stats : [s])
+// 不勾的列仍寫進查詢、帶 `disabled: true`(交易站當成沒勾);算「送出」只看有效的
+const sentIds = (q: any): string[] => (q.stats as any[]).filter(g => g.type !== 'not' && !g.disabled)
+  .flatMap(g => g.filters.filter((f: any) => !f.disabled).map((f: any) => f.id))
+
+function parse (text: string): ParsedItem {
+  const r = parseClipboard(text + '\n')
+  if (r.isErr()) throw new Error(`解析失敗:${r.error}`)
+  return r.value
+}
+function activePreset (item: ParsedItem) {
+  const { presets, active } = createPresets(item, OPTS)
+  return presets.find(p => p.id === active)!
+}
+const optInRows = (stats: FilterOrGroup[], refs: string[]) => rowsOf(stats).filter(f => refs.includes(f.text))
+
+describe('上游不列的詞綴改成可勾選、預設不勾', () => {
+  beforeAll(async () => {
+    await init('cmn-Hant')
+    await loadForLang('cmn-Hant')
+  }, 180_000)
+
+  for (const [name, { text, optIn }] of Object.entries(ITEMS)) {
+    // 失敗代表:這類詞綴仍然不列(使用者勾不到)
+    it(`${name}:詞綴都有自己的列`, () => {
+      const rows = optInRows(activePreset(parse(text)).stats, optIn)
+      expect(rows.map(r => r.text).sort()).toEqual([...optIn].sort())
+    })
+
+    // 失敗代表:新列預設勾起來,預設查詢變了(這類詞綴全部當條件送出常常 0 筆)
+    it(`${name}:新列預設不勾,預設查詢不帶它們`, () => {
+      const preset = activePreset(parse(text))
+      const rows = optInRows(preset.stats, optIn)
+      expect(rows.every(r => r.disabled)).toBe(true)
+      const sent = sentIds(createTradeRequest(preset).query)
+      for (const r of rows) for (const id of r.tradeId) expect(sent).not.toContain(id)
+    })
+
+    // 失敗代表:勾了也沒送(列只是擺好看)
+    it(`${name}:勾選後送出該詞綴`, () => {
+      const preset = activePreset(parse(text))
+      const row = optInRows(preset.stats, optIn)[0]
+      row.disabled = false
+      expect(sentIds(createTradeRequest(preset).query)).toContain(row.tradeId[0])
+    })
+  }
+})

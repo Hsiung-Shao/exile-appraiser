@@ -31,13 +31,16 @@ export function createExactStatFilters (
     item.category === ItemCategory.Invitation
   ) return []
 
+  // exile-appraiser: 上游不列的詞綴(劫盜契約 / 藍圖的隨機、魔偶的固定)收進來但預設不勾 = 預設查詢不變(2026-11-19 使用者裁定)
+  const isHeist = item.category === ItemCategory.HeistContract || item.category === ItemCategory.HeistBlueprint
+  const optInTags: FilterTag[] = isHeist ? [FilterTag.Explicit] : item.category === ItemCategory.Idol ? [FilterTag.Implicit] : []
+
   const keepByType = [ModifierType.Pseudo, ModifierType.Fractured, ModifierType.Enchant, ModifierType.Necropolis, ModifierType.Imbued]
 
   if (
     !item.influences.length &&
     !item.isFractured &&
     item.category !== ItemCategory.Tincture &&
-    item.category !== ItemCategory.Idol &&
     item.category !== ItemCategory.Chart
   ) {
     keepByType.push(ModifierType.Implicit)
@@ -46,14 +49,13 @@ export function createExactStatFilters (
   if (item.rarity === ItemRarity.Magic && (
     item.category !== ItemCategory.ClusterJewel &&
     item.category !== ItemCategory.Map &&
-    item.category !== ItemCategory.HeistContract &&
-    item.category !== ItemCategory.HeistBlueprint &&
     item.category !== ItemCategory.Chart &&
     item.category !== ItemCategory.Sentinel
   )) {
     keepByType.push(ModifierType.Explicit)
   } else if (item.rarity === ItemRarity.Rare && (
     item.category === ItemCategory.Idol ||
+    isHeist ||
     // 稀有地圖的詞綴上游整批不收,所以「釋界干擾玩家」「區域內含有不穩定的惡魔觸手」
     // 這些決定要不要買的詞綴**連勾都勾不到**。收進來但預設不勾(見下方地圖分支),
     // 送出的查詢因此與收之前逐字相同,只是多了可勾的選項。
@@ -159,6 +161,10 @@ export function createExactStatFilters (
     enableAllFilters(ctx.filters)
   } else if (item.category === ItemCategory.Idol) {
     enableGoodRolledFilters(ctx.filters, 0.66)
+  }
+
+  for (const filter of ctx.filters) {
+    if (!filter.not && optInTags.includes(filter.tag)) filter.disabled = true
   }
 
   return ctx.filters
