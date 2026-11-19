@@ -1,0 +1,25 @@
+Item Class: Helmets
+Rarity: Unique
+Forbidden Shako
+Great Crown
+--------
+Armour: 160
+Energy Shield: 33
+--------
+Requirements:
+Level: 68
+Str: 59
+Int: 59
+--------
+Sockets: W 
+--------
+Item Level: 85
+--------
+{ Unique Modifier — Gem }
+Socketed Gems are Supported by Level 7(1-10) Sacred Wisps(...) — Unscalable Value
+{ Unique Modifier — Gem }
+Socketed Gems are Supported by Level 30(25-35) Efficacy(...) — Unscalable Value
+{ Unique Modifier — Attribute }
++25(25-30) to all Attributes
+--------
+The Azmeri must never touch the tears of the gods, lest Viridi weep.
