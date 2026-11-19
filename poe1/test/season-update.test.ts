@@ -1269,21 +1269,29 @@ describe('planPassiveRenames(規則 25:天賦繁中改名)', () => {
     expect(planPassiveRenames({ zhStats: out, renames }).adds).toEqual([])
   })
 
-  // 星團珠寶是寫死名稱(GGPK 3.30 仍是舊名)→ 舊句維持現行;腐敗之種同一句帶入的是新名(GitHub issue #39)→ 補新名、標 superseded
-  it('「1 Added Passive Skill is X」補新名寫法、舊句不標 superseded;再跑一次不重複', () => {
-    const zhStats = [stat('1 Added Passive Skill is Advance Guard', [{ string: '1 個附加的天賦為進階守衛' }])]
-    const renames = [{ en: 'Advance Guard', from: '進階守衛', zh: '先鋒部隊' }]
+  // 審查第 2 輪:星團「1 個附加天賦為 X」(帶 explicit id)是寫死名稱(GGPK 3.30 仍是舊名),不能跟著改
+  it('星團珠寶「1 Added Passive Skill is X」不改名', () => {
+    const zhStats = [stat('1 Added Passive Skill is Advance Guard', [{ string: '1 個附加天賦為進階守衛' }])]
+    expect(planPassiveRenames({ zhStats, renames: [{ en: 'Advance Guard', from: '進階守衛', zh: '先鋒部隊' }] }).adds).toEqual([])
+  })
+
+  // GitHub issue #39:腐敗之種洗出的天賦(規則 18 的列,只有 enchant id)帶入的是新名
+  it('腐敗之種的「1 Added Passive Skill is X」(只有 enchant id)補新名、舊的標 superseded;再跑一次不重複', () => {
+    const zhStats = [stat('1 Added Passive Skill is Bastion Breaker', [{ string: '1 個附加的天賦為堡壘破壞者' }], { enchant: ['enchant.stat_3599615742|65107'] })]
+    const renames = [{ en: 'Bastion Breaker', from: '堡壘破壞者', zh: '破壘者' }]
     const plan = planPassiveRenames({ zhStats, renames })
-    expect(plan.adds).toEqual([{ lang: 'cmn-Hant', ref: zhStats[0].ref, matcher: { string: '1 個附加的天賦為先鋒部隊', superseded: true } }])
+    expect(plan.adds).toEqual([{ lang: 'cmn-Hant', ref: zhStats[0].ref, matcher: { string: '1 個附加的天賦為破壘者' }, supersedes: ['1 個附加的天賦為堡壘破壞者'] }])
     const out = parseRows(applyStatPlan(toFile(zhStats), 'cmn-Hant', { adds: plan.adds }))
-    expect(out[0].matchers).toEqual([{ string: '1 個附加的天賦為進階守衛' }, { string: '1 個附加的天賦為先鋒部隊', superseded: true }])
+    expect(out[0].matchers).toEqual([{ string: '1 個附加的天賦為堡壘破壞者', superseded: true }, { string: '1 個附加的天賦為破壘者' }])
     expect(planPassiveRenames({ zhStats: out, renames }).adds).toEqual([])
   })
 
-  it('新名寫法已是另一個天賦的句子 → 拒收(一個字串只能指向一列)', () => {
-    const zhStats = [stat('1 Added Passive Skill is A', [{ string: '1 個附加的天賦為甲' }]), stat('1 Added Passive Skill is B', [{ string: '1 個附加的天賦為乙' }])]
-    const plan = planPassiveRenames({ zhStats, renames: [{ en: 'A', from: '甲', zh: '乙' }] })
-    expect([plan.adds, plan.rejects.map((r: any) => r.en)]).toEqual([[], ['A']])
+  it('新名寫法已是另一條詞綴的句子(含同一輪新增的)→ 拒收(一個字串只能指向一列)', () => {
+    const e = (n: number) => ({ enchant: [`enchant.stat_3599615742|${n}`] })
+    const zhStats = [stat('1 Added Passive Skill is A', [{ string: '1 個附加的天賦為甲' }], e(1)), stat('1 Added Passive Skill is B', [{ string: '1 個附加的天賦為乙' }], e(2)),
+      stat('1 Added Passive Skill is C', [{ string: '1 個附加的天賦為丙' }], e(3)), stat('1 Added Passive Skill is D', [{ string: '1 個附加的天賦為丁' }], e(4))]
+    const plan = planPassiveRenames({ zhStats, renames: [{ en: 'A', from: '甲', zh: '乙' }, { en: 'C', from: '丙', zh: '戊' }, { en: 'D', from: '丁', zh: '戊' }] })
+    expect([plan.adds.map((a: any) => a.ref), plan.rejects.map((r: any) => r.en)]).toEqual([['1 Added Passive Skill is C'], ['A', 'D']])
   })
 
   it('只換英文名相符的天賦:另一個天賦共用舊繁中名但沒改名 → 不動;同一個天賦兩種改名 → 拒收', () => {

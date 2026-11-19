@@ -102,6 +102,15 @@ describe('3.30 詞綴寫法(en)', () => {
     expect([row.hidden, row.disabled]).toEqual([undefined, true])
   })
 
+  // 樣本不是實機剪貼簿:照 #40 的附魔行組的傳奇藥劑(審查 2026-11-19:附魔不再隱藏後不能被「傳奇 ≤ 3 條全勾」勾上)
+  it('D17zc 傳奇藥劑的附魔列出但不勾,也不影響其他詞綴的自動勾選', () => {
+    const text = fs.readFileSync(path.join(HERE, 'docs/3.30-issue-40-unique.en.txt'), 'utf8')
+    const opts = { league: 'Standard', currency: null, collapseListings: 'api' as const, activateStockFilter: false, searchStatRange: 10, useEn: false, merchantOnly: false }
+    const on = (t: string) => createPresets(parse(t), opts).presets[0].stats.flatMap(f => 'tradeId' in f ? [f] : []).filter(f => !f.disabled).map(f => f.tradeId[0])
+    expect(on(text)).not.toContain('enchant.stat_3287581721')
+    expect(on(text)).toEqual(on(text.split(/\r?\n/).filter((l, k, a) => !l.includes('(enchant)') && !a[k - 1]?.includes('(enchant)')).join('\n')))
+  })
+
   it('D17z en:#37「Superior Fated Titan Plate」+「Unidentified (Tier 5)」解析成泰坦之鎧、帶階級與命運', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-37.en.txt'), 'utf8'))
     expect([item.info.refName, item.isUnidentified, item.unidentifiedTier, item.isFated]).toEqual(['Titan Plate', true, 5, true])

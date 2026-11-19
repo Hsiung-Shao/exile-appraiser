@@ -496,10 +496,12 @@ function filterAdjustmentForNegate (
 function finalFilterTweaks (ctx: FiltersCreationContext) {
   const { item } = ctx
 
+  // exile-appraiser: 藥劑附魔不再 hidden(issue #40)→ 下面「傳奇 ≤ 3 條全勾」要另外跳過它,維持上游的勾選結果
+  let flaskOff: StatFilter[] = []
   if (item.category === ItemCategory.ClusterJewel && item.rarity !== ItemRarity.Unique) {
     applyClusterJewelRules(ctx.filters, false)
   } else if (item.category === ItemCategory.Flask) {
-    applyFlaskRules(ctx.filters)
+    flaskOff = applyFlaskRules(ctx.filters)
     applyFlaskHybridMod(ctx)
   }
 
@@ -575,9 +577,10 @@ function finalFilterTweaks (ctx: FiltersCreationContext) {
 
   if (item.rarity === ItemRarity.Unique) {
     // exile-appraiser: 2026-10-16 新列出的原始詞綴列(revealed)不計入
-    const countVisible = ctx.filters.reduce((cnt, filter) => (filter.hidden || filter.revealed) ? cnt : cnt + 1, 0)
+    const countVisible = ctx.filters.reduce((cnt, filter) => (filter.hidden || filter.revealed || flaskOff.includes(filter)) ? cnt : cnt + 1, 0)
     if (countVisible <= 3) {
       enableAllFilters(ctx.filters)
+      for (const filter of flaskOff) filter.disabled = true
     }
   }
 }
@@ -615,14 +618,12 @@ function applyClusterJewelRules (filters: StatFilter[], exact: boolean) {
   }
 }
 
-function applyFlaskRules (filters: StatFilter[]) {
+function applyFlaskRules (filters: StatFilter[]): StatFilter[] {
   const usedEnkindling = filters.find(filter => filter.statRef === 'Gains no Charges during Flask Effect')
-  for (const filter of filters) {
-    if (filter.tag === FilterTag.Enchant && !usedEnkindling) {
-      // exile-appraiser: 上游在這裡把附魔收進「已隱藏」;改成直接列出、預設不勾(GitHub issue #40)
-      filter.disabled = true
-    }
-  }
+  // exile-appraiser: 上游在這裡把附魔收進「已隱藏」;改成直接列出、預設不勾(GitHub issue #40)。回傳被關掉的列
+  const off = usedEnkindling ? [] : filters.filter(filter => filter.tag === FilterTag.Enchant)
+  for (const filter of off) filter.disabled = true
+  return off
 }
 
 // TODO
