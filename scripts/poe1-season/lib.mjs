@@ -1178,8 +1178,7 @@ export function planCondForms ({ enStats, zhStats, ggpkNew }) {
             // 兩句都看得出增加 / 減少時,方向不同才該相反(GGPK 有「增加 #% 效果。使用時 -1% 此數值」這種條件帶負號、字面仍是增加的)
             const da = direction(m.string); const db = direction(text)
             if (da && db && (da !== db) !== diff[0]) { reject('增加 / 減少與數值條件矛盾'); continue }
-            // 交易站那條詞綴沒有數值(ref 不含 #)→ 補帶 # 的寫法會讓查詢多送一個交易站不認的數值
-            if (!en.ref.includes('#') && newUsed.size) { reject('交易站的詞綴沒有數值'); continue }
+            // 交易站那條詞綴沒有數值(ref 不含 #)也補帶 # 的寫法:交易站照樣收數值(2026-11-20 實測巫會之后冠 implicit.stat_1916233589:不帶值 357 筆、min 13 → 169、min 500 → 0;上游資料也有 133 條這種詞綴)
             let value
             if (!newUsed.size) {
               // stat 值 → ref 方向:基準句顯示前取負號與基準 matcher 的 negate 各翻一次

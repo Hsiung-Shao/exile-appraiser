@@ -1105,15 +1105,15 @@ describe('planCondForms(規則 21:同一條詞綴依數值的其他寫法)', () 
     expect(plan.rejects.map((r: any) => [r.reason, r.to])).toEqual([['GGPK 沒有 handlers', '# from A'], ['與既有寫法同形', 'D #']])
   })
 
-  it('句子的增加 / 減少與推出的 negate 矛盾、交易站詞綴沒有數值卻補帶 # 的寫法 → 拒收', () => {
+  it('句子的增加 / 減少與推出的 negate 矛盾 → 拒收;交易站詞綴沒有數值也補帶 # 的寫法(2026-11-20 實測交易站收數值)', () => {
     const enStats = [stat('#% increased effect', [{ string: '#% increased effect' }]), stat('Area has Encounter', [{ string: 'Area has Encounter' }])]
     const ggpkNew = [
       row(g('eff', '1|#'), '{0}% increased effect', ''), row(g('eff', '#|-1'), '{0}% increased effect, decaying', '', NEG),
       row(g('enc', '100|#'), 'Area has Encounter', ''), row(g('enc', '1|99'), 'Area has {0}% chance for Encounter', '')
     ]
     const plan = planCondForms({ enStats, zhStats: [], ggpkNew })
-    expect(plan.adds).toEqual([])
-    expect(plan.rejects.map((r: any) => r.reason)).toEqual(['增加 / 減少與數值條件矛盾', '交易站的詞綴沒有數值'])
+    expect(plan.adds.map((a: any) => [a.ref, a.matcher.string])).toEqual([['Area has Encounter', 'Area has #% chance for Encounter']])
+    expect(plan.rejects.map((r: any) => r.reason)).toEqual(['增加 / 減少與數值條件矛盾'])
   })
 
   it('資料的寫法在 GGPK 屬於好幾組(通用抗性也是希望之絃專屬 stat 的一句)→ 不補那些組的其他句子', () => {

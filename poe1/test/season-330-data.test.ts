@@ -144,6 +144,14 @@ describe('3.30 詞綴寫法(en)', () => {
     const shown = translateStatWithRoll(calc, statSourcesTotal(calc.sources, 'sum'))
     expect(shown.string).toBe('#% to Item Rarity')
   })
+
+  // 英文樣本照 GGPK 句子組的,不是實機
+  it('D17wf 巫會之后冠「對魔力回復率的增減同時會以 12% 的數值套用至能量護盾充能率」解析得到、帶數值(英文)', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-crown-mana-es.en.txt'), 'utf8'))
+    expect(unknownOf(item)).toEqual([])
+    const hit = item.statsByType.find(s => s.stat.trade.ids.implicit?.includes('implicit.stat_1916233589'))
+    expect(hit?.sources[0].stat.roll?.value).toBe(12)
+  })
 })
 
 describe('3.30 詞綴寫法(cmn-Hant)', () => {
@@ -473,7 +481,15 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(item.statsByType.flatMap(s => s.stat.trade.ids.implicit ?? [])).toContain('implicit.stat_1214601201')
   })
 
-  it('D17w GitHub issue #35 的實機文字:禁忌烈焰「配置 無端暴力」(3.30 改名,舊名免費暴力)解析得到、帶交易站 id', () => {
+  // 使用者 2026-11-20 貼的回報(0.3.15 台服):兩行、帶數值的寫法資料沒有;英文樣本照 GGPK 句子組的,不是實機
+  it('D17wf 巫會之后冠「對魔力回復率的增減同時會以 12% 的數值套用至能量護盾充能率」解析得到、帶數值(繁中)', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-crown-mana-es.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(item)).toEqual([])
+    const hit = item.statsByType.find(s => s.stat.trade.ids.implicit?.includes('implicit.stat_1916233589'))
+    expect(hit?.sources[0].stat.roll?.value).toBe(12)
+  })
+
+  it('D17w GitHub issue #35的實機文字:禁忌烈焰「配置 無端暴力」(3.30 改名,舊名免費暴力)解析得到、帶交易站 id', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-35.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
     expect(item.statsByType[0].stat.trade.ids.explicit).toEqual(['explicit.stat_1190333629|27864'])

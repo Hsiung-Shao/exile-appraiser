@@ -8849,7 +8849,7 @@
 {"ref":"You can Cast an additional Brand","better":1,"matchers":[{"string":"你可以施放 # 個額外烙印"},{"string":"你可以施放 1 個額外烙印","value":1}],"trade":{"ids":{"explicit":["explicit.stat_708630863"]}}}
 {"ref":"You can catch Corrupted Fish","better":1,"matchers":[{"string":"你可以捕獲汙染魚"}],"trade":{"ids":{"implicit":["implicit.stat_2451060005"]}}}
 {"ref":"You can catch Exotic Fish","better":1,"matchers":[{"string":"你可以捕獲外來魚種"}],"trade":{"ids":{"explicit":["explicit.stat_1471580517"]}}}
-{"ref":"You can have an additional Tincture active","better":1,"matchers":[{"string":"你可以額外啟用 1 個萃取物","superseded":true},{"string":"你可以啟用額外一個萃取物"}],"trade":{"ids":{"explicit":["explicit.stat_3806798486"]}}}
+{"ref":"You can have an additional Tincture active","better":1,"matchers":[{"string":"你可以額外啟用 1 個萃取物","superseded":true},{"string":"你可以啟用額外一個萃取物"},{"string":"你可以啟用額外#個萃取物","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_3806798486"]}}}
 {"ref":"You can have an Offering of each type","better":1,"matchers":[{"string":"你可以擁有每種奉獻效果"}],"trade":{"ids":{"explicit":["explicit.stat_230941555"]}}}
 {"ref":"You can have two Offerings of different types","better":1,"matchers":[{"string":"你可擁有兩種不同種類的奉獻"}],"trade":{"ids":{"explicit":["explicit.stat_3639765866"]}}}
 {"ref":"You can inflict an additional Ignite on each Enemy","better":1,"matchers":[{"string":"你可以對敵人造成額外 # 個點燃效果"},{"string":"你可以對敵人造成額外 1 個點燃效果","value":1}],"trade":{"ids":{"explicit":["explicit.stat_2837603657"]}}}
@@ -9195,7 +9195,7 @@
 {"ref":"Sapphire Flasks applied to you have #% increased Effect","better":1,"matchers":[{"string":"增加#%作用於你的藍玉藥劑效果"},{"string":"減少#%作用於你的藍玉藥劑效果","negate":true,"superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_1982347220"]}}}
 {"ref":"Grants Level 20 Summon Shaper Memory\nGrants Level 20 #, which will be used by Shaper Memory","better":0,"matchers":[{"string":"賦予等級 20 召喚塑界者的記憶\n賦予等級 20 #， 供塑界者的記憶使用"},{"string":"賦予等級 20 召喚塑界者的記憶\n賦予等級 20 #，供塑界者的記憶使用"},{"string":"賦予等級 20 召喚塑界者的記憶\n賦予等級 20 塑界者的毀滅，供塑界者的記憶使用","advanced":"賦予等級 20 召喚塑界者的記憶\n賦予等級 20 塑界者的毀滅(...)， 供塑界者的記憶使用","value":1,"superseded":true},{"string":"賦予等級 20 召喚塑界者的記憶\n賦予等級 20 塑界者的憤怒，供塑界者的記憶使用","advanced":"賦予等級 20 召喚塑界者的記憶\n賦予等級 20 塑界者的憤怒(...)， 供塑界者的記憶使用","value":2,"superseded":true},{"string":"賦予等級 20 召喚塑界者的記憶\n賦予等級 20 塑界者的絕望，供塑界者的記憶使用","advanced":"賦予等級 20 召喚塑界者的記憶\n賦予等級 20 塑界者的絕望(...)， 供塑界者的記憶使用","value":3,"superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_367775264"]}}}
 {"ref":"Topaz Flasks applied to you have #% increased Effect","better":1,"matchers":[{"string":"增加#%作用於你的黃玉藥劑效果"},{"string":"減少#%作用於你的黃玉藥劑效果","negate":true,"superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_806147232"]}}}
-{"ref":"Debilitate Enemies you Hit that are on Full Life for 4 seconds","better":0,"matchers":[{"string":"你擊中滿血敵人時施加虛弱，持續4秒"}],"trade":{"ids":{"implicit":["implicit.stat_1373673887"]}}}
+{"ref":"Debilitate Enemies you Hit that are on Full Life for 4 seconds","better":0,"matchers":[{"string":"你擊中滿血敵人時施加虛弱，持續4秒"},{"string":"你擊中滿血敵人時有#%機率施加虛弱，持續4秒","superseded":true}],"trade":{"ids":{"implicit":["implicit.stat_1373673887"]}}}
 {"ref":"#% increased Armour from Equipped Body Armour","better":1,"matchers":[{"string":"增加#%來自裝備胸甲的護甲值"},{"string":"減少#%來自裝備胸甲的護甲值","negate":true,"superseded":true}],"trade":{"ids":{"implicit":["implicit.stat_2840285057"]}}}
 {"ref":"#% increased Armour from Equipped Helmet","better":1,"matchers":[{"string":"增加#%來自裝備頭盔的護甲"},{"string":"減少#%來自裝備頭盔的護甲","negate":true,"superseded":true}],"trade":{"ids":{"implicit":["implicit.stat_1633157811"]}}}
 {"ref":"#% increased Armour from Equipped Helmet, Body Armour, Gloves, and Boots","better":1,"matchers":[{"string":"增加#%來自裝備頭盔、胸甲、手套、和鞋子的護甲"},{"string":"減少#%來自裝備頭盔、胸甲、手套、和鞋子的護甲","negate":true,"superseded":true}],"trade":{"ids":{"implicit":["implicit.stat_3209419976"]}}}
@@ -9236,10 +9236,10 @@
 {"ref":"#% increased Life Recovery rate per 5% missing Unreserved Life","better":1,"matchers":[{"string":"每損失5%未保留生命，增加#%生命回復率"},{"string":"每損失5%未保留生命，減少#%生命回復率","negate":true,"superseded":true}],"trade":{"ids":{"implicit":["implicit.stat_3193713651"]}}}
 {"ref":"#% increased Life Recovery rate while Recouping Life","better":1,"matchers":[{"string":"補償生命時，增加#%生命恢復率"},{"string":"補償生命時，減少#%生命恢復率","negate":true,"superseded":true}],"trade":{"ids":{"implicit":["implicit.stat_738897289"]}}}
 {"ref":"Increases and Reductions to Light Radius also apply to Life Regeneration Rate at #% value","better":1,"matchers":[{"string":"對照明範圍的增減同時會以#%的數值套用至生命回復率"}],"trade":{"ids":{"implicit":["implicit.stat_3708520172"]}}}
-{"ref":"Trigger Level 20 Lesser Raise Spiders on Kill","better":0,"matchers":[{"string":"擊殺時觸發等級20的低階異蛛復甦"}],"trade":{"ids":{"implicit":["implicit.stat_32458272"]}}}
+{"ref":"Trigger Level 20 Lesser Raise Spiders on Kill","better":0,"matchers":[{"string":"擊殺時觸發等級20的低階異蛛復甦"},{"string":"擊殺時有#%機率觸發等級1的低階異蛛復甦","superseded":true}],"trade":{"ids":{"implicit":["implicit.stat_32458272"]}}}
 {"ref":"Trigger level 20 Temporal Mirage on using a Movement Attack","better":0,"matchers":[{"string":"在使用快行攻擊後，觸發等級20的瞬時幻影"}],"trade":{"ids":{"explicit":["explicit.stat_3500769326"]}}}
 {"ref":"Every fourth time you cast each Spell, Damage of its Hits is Lucky","better":0,"matchers":[{"string":"你每第四次施放各個法術時，其擊中傷害會很幸運"}],"trade":{"ids":{"explicit":["explicit.stat_2100268747"]}}}
-{"ref":"Increases and Reductions to Mana Regeneration Rate also apply to Energy Shield Recharge Rate","better":0,"matchers":[{"string":"對魔力回復率的增減同時會以套用至能量護盾充能率"}],"trade":{"ids":{"implicit":["implicit.stat_1916233589"]}}}
+{"ref":"Increases and Reductions to Mana Regeneration Rate also apply to Energy Shield Recharge Rate","better":0,"matchers":[{"string":"對魔力回復率的增減同時會以套用至能量護盾充能率"},{"string":"對魔力回復率的增減同時會以#%的數值\n套用至能量護盾充能率","superseded":true}],"trade":{"ids":{"implicit":["implicit.stat_1916233589"]}}}
 {"ref":"Deified","better":0,"matchers":[{"string":"神化"}],"trade":{"ids":{"enchant":["enchant.stat_2987875489"]}}}
 {"ref":"# Monster Packs in Area are substituted with Syndicate Members\nPack Monsters revive after Final Map Boss has been slain","better":1,"matchers":[{"string":"區域內的#群怪物會被替換為永生密教成員\n怪物群中的怪物會於最終地圖頭目被擊殺時復活"}],"trade":{"ids":{"enchant":["enchant.stat_434437344"]}}}
 {"ref":"# Monster Packs in Area are substituted with a single meaty Monster","better":1,"matchers":[{"string":"區域內的#群怪物會被替換為一名皮糙肉厚的怪物"}],"trade":{"ids":{"enchant":["enchant.stat_1776086971"]}}}
@@ -9260,8 +9260,8 @@
 {"ref":"Trigger Level 20 Goreblossom after spending #% of your Maximum Life on Spells","better":1,"matchers":[{"string":"於法術消耗#%最大生命後，觸發等級20的湛血盛放"}],"trade":{"ids":{"explicit":["explicit.stat_4034618287"]}}}
 {"ref":"Curse Enemies with Frostbite on Hit if 5 Redeemer Items are Equipped","better":0,"matchers":[{"string":"若裝備 5 種救贖者之物，擊中敵人時施加凍傷"}],"trade":{"ids":{"implicit":["implicit.stat_1012433600"]}}}
 {"ref":"Ruby Flasks applied to you have #% increased Effect","better":1,"matchers":[{"string":"增加#%作用於你的紅玉藥劑效果"},{"string":"減少#%作用於你的紅玉藥劑效果","negate":true,"superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_758685542"]}}}
-{"ref":"Gain Bitterblood equal to Life spent","better":0,"matchers":[{"string":"獲得等同於消耗生命的苦澀之血"}],"trade":{"ids":{"explicit":["explicit.stat_3945412713"]}}}
-{"ref":"Maximum Bitterblood is equal to your Maximum Life","better":0,"matchers":[{"string":"最大苦澀之血等同於你的最大生命"}],"trade":{"ids":{"explicit":["explicit.stat_3664562804"]}}}
+{"ref":"Gain Bitterblood equal to Life spent","better":0,"matchers":[{"string":"獲得等同於消耗生命的苦澀之血"},{"string":"獲得等同於#%消耗生命的苦澀之血","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_3945412713"]}}}
+{"ref":"Maximum Bitterblood is equal to your Maximum Life","better":0,"matchers":[{"string":"最大苦澀之血等同於你的最大生命"},{"string":"最大苦澀之血等同於你#%的最大生命","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_3664562804"]}}}
 {"ref":"#% increased Damage against Beasts","better":1,"matchers":[{"string":"增加#%對野獸造成的傷害"},{"string":"減少#%對野獸造成的傷害","negate":true,"superseded":true}],"trade":{"ids":{"implicit":["implicit.stat_4276479762"]}}}
 {"ref":"Enemies you Kill have a #% chance to Explode, dealing a tenth of their maximum Life as Damage of a Random Element","better":1,"matchers":[{"string":"你所擊殺的敵人有#%機率爆炸，造成等同於其最大生命十分之一的隨機元素傷害"}],"trade":{"ids":{"implicit":["implicit.stat_2360921519"]}}}
 {"ref":"Blinding a non-Blinded Pinnacle Atlas Boss with this Weapon will\nsteal a Modifier for this item (# Modifier remaining)","better":1,"matchers":[{"string":"以此武器致盲一名未致盲的輿圖巔峰頭目時會\n為此物品偷取一條詞綴(剩餘#條詞綴)"}],"trade":{"ids":{"explicit":["explicit.stat_699502241"]}}}
@@ -9510,7 +9510,7 @@
 {"ref":"1 Added Passive Skill is Supercharge","better":0,"matchers":[{"string":"1 個附加的天賦為超負荷"}],"trade":{"ids":{"explicit":["explicit.stat_3226074658"],"fractured":["fractured.stat_3226074658"]}}}
 {"ref":"1 Added Passive Skill is Forbidden Words","better":0,"matchers":[{"string":"1 個附加的天賦為禁咒"}],"trade":{"ids":{"explicit":["explicit.stat_2454339320"],"fractured":["fractured.stat_2454339320"]}}}
 {"ref":"1 Added Passive Skill is Wish for Death","better":0,"matchers":[{"string":"1 個附加的天賦為求死"}],"trade":{"ids":{"explicit":["explicit.stat_608164368"],"fractured":["fractured.stat_608164368"]}}}
-{"ref":"Lose an Eaten Soul every second while no Unique Enemy is in your Presence","better":0,"matchers":[{"string":"沒有傳奇敵人在你的視線時，每秒失去 1 吞噬靈魂"}],"trade":{"ids":{"explicit":["explicit.stat_1331907976"]}}}
+{"ref":"Lose an Eaten Soul every second while no Unique Enemy is in your Presence","better":0,"matchers":[{"string":"沒有傳奇敵人在你的視線時，每秒失去 1 吞噬靈魂"},{"string":"沒有傳奇敵人在你的視線時，每 # 秒失去 1 吞噬靈魂","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_1331907976"]}}}
 {"ref":"Socketed Gems are Supported by Level # Hextoad","better":1,"matchers":[{"string":"插槽中的寶石被等級#的咒蟾輔助"}],"trade":{"ids":{"explicit":["explicit.stat_2172297405"]}}}
 {"ref":"Socketed Gems are Supported by Level # Invert the Rules","better":1,"matchers":[{"string":"插槽中的寶石被等級#的規則逆反輔助"}],"trade":{"ids":{"explicit":["explicit.stat_2475469642"]}}}
 {"ref":"Socketed Gems are Supported by Level # Pyre","better":1,"matchers":[{"string":"插槽中的寶石被等級#的火葬輔助"}],"trade":{"ids":{"explicit":["explicit.stat_165595385"]}}}
@@ -9542,7 +9542,7 @@
 {"ref":"With at least 40 Dexterity in Radius, Ethereal Knives fires an additional Projectile","better":0,"matchers":[{"string":"若範圍內含 40 點敏捷，\n虛空匕首額外發射 1 個投射物"}],"trade":{"ids":{"explicit":["explicit.stat_2822821681"]}}}
 {"ref":"While your Passive Skill Tree connects to the Marauder's starting location, you gain:\n#% of Life Regenerated per second","better":1,"matchers":[{"string":"當你天賦樹和野蠻人起始點相連，你獲得：\n每秒回復 #% 生命"}],"trade":{"ids":{"explicit":["explicit.stat_76458612"]}}}
 {"ref":"While your Passive Skill Tree connects to a class' starting location, you gain:\nMarauder: Melee Skills have #% increased Area of Effect\nDuelist: #% of Attack Damage Leeched as Life\nRanger: #% increased Movement Speed\nShadow: +#% to Critical Strike Chance\nWitch: #% of Mana Regenerated per second\nTemplar: Damage Penetrates #% Elemental Resistances\nScion: +# to All Attributes","better":1,"matchers":[{"string":"當你天賦樹和職業起始點相連，你獲得:\n野蠻人:近戰技能增加 #% 範圍效果\n決鬥者:#% 攻擊傷害偷取生命\n遊俠:增加 #% 移動速度\n暗影刺客:#% 暴擊率\n女巫:每秒回復 #% 最大魔\n聖堂武僧:傷害穿透 #% 元素抗性\n貴族:# 全能力"}],"trade":{"ids":{"explicit":["explicit.stat_769192511"]}}}
-{"ref":"With at least 40 Intelligence in Radius, Spark fires an additional Projectile","better":0,"matchers":[{"string":"若範圍內含 40 點智慧，電球發射一個額外投射物"}],"trade":{"ids":{"explicit":["explicit.stat_1650632809"]}}}
+{"ref":"With at least 40 Intelligence in Radius, Spark fires an additional Projectile","better":0,"matchers":[{"string":"若範圍內含 40 點智慧，電球發射一個額外投射物"},{"string":"若範圍內含 40 點智慧，電球發射 # 個額外投射物","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_1650632809"]}}}
 {"ref":"With 40 total Dexterity and Strength in Radius, Spectral Shield Throw Chains +# times","better":1,"matchers":[{"string":"若範圍內總共有 40 點敏捷和力量，盾靈投擲連鎖 # 次"}],"trade":{"ids":{"explicit":["explicit.stat_2105355711"]}}}
 {"ref":"With 40 total Dexterity and Strength in Radius, Spectral Shield Throw fires #% more Shard Projectiles","better":1,"matchers":[{"string":"若範圍內總共有 40 點敏捷和力量，盾靈投擲發射 #% 更多碎片投射物"},{"string":"若範圍內總共有 40 點敏捷和力量，盾靈投擲發射 #% 更少碎片投射物","negate":true,"superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_894768849"]}}}
 {"ref":"Hits with this Weapon Overwhelm #% Physical Damage Reduction","better":1,"matchers":[{"string":"使用此武器擊中鎮壓 #% 物理傷害減免"}],"trade":{"ids":{"explicit":["explicit.stat_3579673398"],"fractured":["fractured.stat_3579673398"]}}}
@@ -9805,7 +9805,7 @@
 {"ref":"Imprisoned Monsters have an additional Essence","better":0,"matchers":[{"string":"精髓怪物額外持有 1 個精髓"}],"trade":{"ids":{"explicit":["explicit.stat_679682964"]}}}
 {"ref":"Essences found in this Area are a higher level","better":0,"matchers":[{"string":"此區域所尋獲的精髓將為高階精髓"}],"trade":{"ids":{"explicit":["explicit.stat_2996332612"]}}}
 {"ref":"Essences found in your Maps are a tier higher","better":0,"matchers":[{"string":"你地圖中掉落的精髓高 1 階"}],"trade":{"ids":{"explicit":["explicit.stat_1506277901"]}}}
-{"ref":"Essences found are a tier higher","better":0,"matchers":[{"string":"掉落的精髓高 1 階"}],"trade":{"ids":{"explicit":["explicit.stat_1506277901"]}}}
+{"ref":"Essences found are a tier higher","better":0,"matchers":[{"string":"掉落的精髓高 1 階"},{"string":"掉落的精髓有 #% 機率高 1 階","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_1506277901"]}}}
 {"ref":"Your Maps have #% increased chance to contain an Expedition Encounter","better":1,"matchers":[{"string":"你的地圖增加 #% 機率含有 1 個探險事件"}],"trade":{"ids":{"explicit":["explicit.stat_1561678231"]}}}
 {"ref":"The first Strongbox Opened in this Area is guarded by an additional Rare Monster","better":0,"matchers":[{"string":"開啟的第一個保險箱額外受到 1 個稀有怪物的保護"}],"trade":{"ids":{"explicit":["explicit.stat_648923098"]}}}
 {"ref":"A Beyond Unique drops when the first Unique Monster from Beyond is slain","better":0,"matchers":[{"string":"擊殺的第一個超越頭目額外掉落 1 個超越傳奇物品"}],"trade":{"ids":{"explicit":["explicit.stat_1928796626"]}}}
@@ -9982,7 +9982,7 @@
 {"ref":"Monsters' Attack Hits inflict Bleeding","better":0,"matchers":[{"string":"怪物的攻擊擊中造成流血"}],"trade":{"ids":{"explicit":["explicit.stat_1091321491"]}}}
 {"ref":"Monsters have #% increased Ignite Duration","better":1,"matchers":[{"string":"怪物增加 #% 點燃持續時間"},{"string":"怪物減少 #% 點燃持續時間","negate":true,"superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_2849040018"]}}}
 {"ref":"Monsters are Immune to randomly chosen Elemental Ailments or Stun","better":0,"matchers":[{"string":"怪物免疫隨機的元素異常狀態或暈眩"}],"trade":{"ids":{"explicit":["explicit.stat_2355312681"]}}}
-{"ref":"Cannot Leech Life from Monsters","better":0,"matchers":[{"string":"不能偷取怪物生命"}],"trade":{"ids":{"explicit":["explicit.stat_526251910"],"fractured":["fractured.stat_526251910"]}}}
+{"ref":"Cannot Leech Life from Monsters","better":0,"matchers":[{"string":"不能偷取怪物生命"},{"string":"怪物 #% 生命偷取抗性","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_526251910"],"fractured":["fractured.stat_526251910"]}}}
 {"ref":"+#% Monster Mana Leech Resistance","better":1,"matchers":[{"string":"怪物 #% 魔力偷取抗性"},{"string":"不能偷取怪物魔力","value":100,"superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_918170065"],"fractured":["fractured.stat_918170065"]}}}
 {"ref":"Monsters near Shrines are Chilled","better":0,"matchers":[{"string":"神殿附近的怪物受到冰緩"}],"trade":{"ids":{"explicit":["explicit.stat_2473016979"]}}}
 {"ref":"Monsters inflict Petrification for # seconds on hit","better":1,"matchers":[{"string":"怪物擊中時造成石化 # 秒"}],"trade":{"ids":{"explicit":["explicit.stat_3437613601"]}}}
@@ -10050,7 +10050,7 @@
 {"ref":"Players cannot Recharge Energy Shield","better":0,"matchers":[{"string":"玩家不能充能能量護盾"}],"trade":{"ids":{"explicit":["explicit.stat_1888489569"],"fractured":["fractured.stat_1888489569"]}}}
 {"ref":"Players cannot Suppress Spell Damage","better":0,"matchers":[{"string":"玩家不能壓抑法術傷害"}],"trade":{"ids":{"explicit":["explicit.stat_3203905334"],"fractured":["fractured.stat_3203905334"]}}}
 {"ref":"Players have +#% chance to Evade Attack Hits while in Nightmare","better":1,"matchers":[{"string":"在夢魘時，玩家有 #% 閃避攻擊擊中率"}],"trade":{"ids":{"scourge":["scourge.stat_3078099912"]}}}
-{"ref":"Players gain an additional Vaal Soul on Kill","better":0,"matchers":[{"string":"玩家擊殺時額外獲得 1 個瓦爾靈魂"}],"trade":{"ids":{"enchant":["enchant.stat_3416709884"]}}}
+{"ref":"Players gain an additional Vaal Soul on Kill","better":0,"matchers":[{"string":"玩家擊殺時額外獲得 1 個瓦爾靈魂"},{"string":"玩家擊殺時，有 #% 機率額外獲得 1 個瓦爾靈魂","superseded":true}],"trade":{"ids":{"enchant":["enchant.stat_3416709884"]}}}
 {"ref":"Players deal #% increased Damage with Hits to Breach Monsters","better":1,"matchers":[{"string":"玩家對裂痕怪物擊中增加 #% 傷害"}],"trade":{"ids":{"explicit":["explicit.stat_2908391015"]}}}
 {"ref":"Players take #% reduced Damage from Breach Monsters","better":1,"matchers":[{"string":"裂痕怪物對玩家所造成減少 #%"},{"string":"裂痕怪物對玩家所造成傷害增加 #%","negate":true,"superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_1755438602"]}}}
 {"ref":"Players with at least 50 Rampage Kills take #% reduced Damage","better":1,"matchers":[{"string":"玩家持有至少 50 暴怒層數時承受傷害減少 #%"},{"string":"玩家持有至少 50 暴怒層數時承受傷害增加 #%","negate":true,"superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_3045094957"]}}}

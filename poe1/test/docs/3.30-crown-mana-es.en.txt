@@ -1,0 +1,12 @@
+Item Class: Viscera
+Coven Queen's Crown
+--------
+Head
+--------
+Item Level: 85
+--------
+{ Implicit Modifier }
+Increases and Reductions to Mana Regeneration Rate also apply to Energy
+Shield Recharge Rate at 12(10-15)% of their value
+{ Implicit Modifier }
+Immune to Hinder
