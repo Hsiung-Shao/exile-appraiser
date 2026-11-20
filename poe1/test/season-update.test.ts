@@ -1116,6 +1116,14 @@ describe('planCondForms(規則 21:同一條詞綴依數值的其他寫法)', () 
     expect(plan.rejects.map((r: any) => r.reason)).toEqual(['增加 / 減少與數值條件矛盾'])
   })
 
+  // 2026-11-20:繁中既有寫法把數字寫死(「區域含有 1 個保險箱」)→ 同一條詞綴自己的寫死句不算同形,要補帶 # 的寫法(否則英文解析得到、繁中解析不到)
+  it('同一條詞綴自己把數字寫死的句子不擋帶 # 的寫法;別條詞綴有同形句(上一個測試的 D 5)仍拒收', () => {
+    const enStats = [stat('Area has a Box', [{ string: 'Area has 1 Box' }])]
+    const ggpkNew = [row(g('box', '1'), 'Area has 1 Box', ''), row(g('box', '2|#'), 'Area has {0} Box', '')]
+    const plan = planCondForms({ enStats, zhStats: [], ggpkNew })
+    expect(plan.adds.map((a: any) => [a.ref, a.matcher.string, a.matcher.superseded])).toEqual([['Area has a Box', 'Area has # Box', true]])
+  })
+
   it('資料的寫法在 GGPK 屬於好幾組(通用抗性也是希望之絃專屬 stat 的一句)→ 不補那些組的其他句子', () => {
     const enStats = [stat('+#% to all Elemental Resistances', [{ string: '#% to all Elemental Resistances' }])]
     const ggpkNew = [
