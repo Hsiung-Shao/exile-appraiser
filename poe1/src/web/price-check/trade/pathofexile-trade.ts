@@ -1049,14 +1049,24 @@ function appendAndFilter (
   if (stat.tradeId.length === 1) {
     defaultAndGroup.filters.push(tradeIdToQuery(stat.tradeId[0], stat))
   } else {
-    allGroups.push({
-      type: 'count',
-      value: { min: 1 },
-      disabled: stat.disabled,
-      filters: everyTradeIdToQuery(stat)
-    })
+    // exile-appraiser: 多 id 詞綴(任一 id 成立)全部併成同一個 count 群組,min = 有勾的詞綴數(GitHub issue #48)。
+    // 上游每條各開一組;匿名查詢 3 條這種詞綴各一組就被交易站以 Query is too complex 拒絕,併成一組送得出去
+    // (2026-11-20 實測:兩條分開送與併組 min 2 都是 7172 筆)。前提:一件物品上同一條詞綴只會中其中一個 id。
+    let group = allGroups.find(g => anyIdGroups.has(g))
+    if (!group) {
+      group = { type: 'count', value: { min: 1 }, disabled: true, filters: [] }
+      anyIdGroups.add(group)
+      allGroups.push(group)
+    }
+    group.filters.push(...everyTradeIdToQuery(stat))
+    if (!stat.disabled) {
+      group.value!.min = group.disabled ? 1 : group.value!.min! + 1
+      group.disabled = false
+    }
   }
 }
+
+const anyIdGroups = new WeakSet<TradeStatGroup>()
 
 function everyTradeIdToQuery (stat: BareStatFilter) {
   return stat.tradeId.map(id => tradeIdToQuery(id, stat))
