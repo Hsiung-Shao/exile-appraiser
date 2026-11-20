@@ -77,6 +77,15 @@ describe('3.30 詞綴寫法(en)', () => {
     expect(item.statsByType[0].stat.trade.ids.explicit).toEqual(['explicit.stat_1190333629|3154'])
   })
 
+  it('D17z en:#43 禁忌軍帽「Sacred Wisps(...)」、#41 壟罩的胸甲都解析得到(照 GGPK 字串組,不是實機)', () => {
+    const shako = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-43.en.txt'), 'utf8'))
+    expect(unknownOf(shako)).toEqual([])
+    const ids = shako.statsByType.flatMap(s => s.stat.trade.ids.explicit ?? [])
+    expect(ids).toContain('explicit.indexable_support_163')
+    expect(ids).toContain('explicit.indexable_support_91')
+    expect(parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-41.en.txt'), 'utf8')).info.refName).toBe('Enshrouded Body Armour')
+  })
+
   it('D21b en:規則 27 的另一句 "Slaying Enemies has a #% increased chance to spawn a Beyond Portal" 解析成原詞綴', () => {
     const item = parse(ringText('en', [['{ Suffix Modifier "of Testing" (Tier: 1) }', 'Slaying Enemies has a 100% increased chance to spawn a Beyond Portal']]))
     expect(unknownOf(item)).toEqual([])
@@ -437,6 +446,31 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     const item = parse(fs.readFileSync(path.join(HERE, `docs/3.30-issue-${n}.cmn-Hant.txt`), 'utf8'))
     expect(item.info.refName).toBe(refName)
     expect(item.info.tradeTag).toBe(tradeTag)
+  })
+
+  it('D17wc GitHub issue #43 #44 的實機文字:禁忌軍帽「被等級 7 的 聖潔妖精(...) 輔助」(短名 + 標記)解析得到、帶交易站 id', () => {
+    for (const lang of ['cmn-Hant']) {
+      const item = parse(fs.readFileSync(path.join(HERE, `docs/3.30-issue-43.${lang}.txt`), 'utf8'))
+      expect(unknownOf(item), lang).toEqual([])
+      const ids = item.statsByType.flatMap(s => s.stat.trade.ids.explicit ?? [])
+      expect(ids, lang).toContain('explicit.indexable_support_163')
+      expect(ids, lang).toContain('explicit.indexable_support_91')
+      expect(item.statsByType.find(s => s.stat.ref.includes('Sacred Wisps'))?.sources[0].stat.roll?.value, lang).toBe(7)
+    }
+  })
+
+  it('D17wd GitHub issue #41 的實機文字:壟罩的胸甲(3.30 壟罩物品,交易站 enshrouded 群組)認得出底材', () => {
+    for (const lang of ['cmn-Hant']) {
+      const item = parse(fs.readFileSync(path.join(HERE, `docs/3.30-issue-41.${lang}.txt`), 'utf8'))
+      expect(item.info.refName, lang).toBe('Enshrouded Body Armour')
+      expect(item.itemLevel, lang).toBe(85)
+    }
+  })
+
+  it('D17we GitHub issue #42 的實機文字:巫會之后冠「6(5-7)% 更多最大生命」(臟器固定詞綴)解析得到', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-42.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(item)).toEqual([])
+    expect(item.statsByType.flatMap(s => s.stat.trade.ids.implicit ?? [])).toContain('implicit.stat_1214601201')
   })
 
   it('D17w GitHub issue #35 的實機文字:禁忌烈焰「配置 無端暴力」(3.30 改名,舊名免費暴力)解析得到、帶交易站 id', () => {

@@ -21,19 +21,30 @@ export interface Route {
 
 interface PresetSplit { area: string, zh: string, en: string }
 
+// 2026-11-20 使用者裁定照 speedrun 社群斷點:打完王後第一個進入的區域(使用者 log 5 輪實測)。
+// 第 1–4、7、8 章 = 下一章第一張圖(比進城早);第 6、9 章打完直接進城;
+// 第 5、10 章的基塔弗訊息由 client-log `parseKitavaLine` 轉成這裡的城鎮 id(認不到訊息時進城才分段)。
 const POE1_SPLITS: PresetSplit[] = [
-  { area: '1_2_town', zh: '第 1 章', en: 'Act 1' },
-  { area: '1_3_town', zh: '第 2 章', en: 'Act 2' },
-  { area: '1_4_town', zh: '第 3 章', en: 'Act 3' },
-  { area: '1_5_town', zh: '第 4 章', en: 'Act 4' },
+  { area: '1_2_1', zh: '第 1 章', en: 'Act 1' },
+  { area: '1_3_1', zh: '第 2 章', en: 'Act 2' },
+  { area: '1_4_1', zh: '第 3 章', en: 'Act 3' },
+  { area: '1_5_1', zh: '第 4 章', en: 'Act 4' },
   { area: '2_6_town', zh: '第 5 章', en: 'Act 5' },
   { area: '2_7_town', zh: '第 6 章', en: 'Act 6' },
-  { area: '2_8_town', zh: '第 7 章', en: 'Act 7' },
-  { area: '2_9_town', zh: '第 8 章', en: 'Act 8' },
+  { area: '2_8_1', zh: '第 7 章', en: 'Act 7' },
+  { area: '2_9_1', zh: '第 8 章', en: 'Act 8' },
   { area: '2_10_town', zh: '第 9 章', en: 'Act 9' },
   // 打完基塔弗回到的終局城鎮(使用者 log 實測)
   { area: '2_11_endgame_town', zh: '第 10 章', en: 'Act 10' }
 ]
+/** 2026-11-20 前的內建路線(全部進城才分段) */
+const POE1_OLD_AREAS = ['1_2_town', '1_3_town', '1_4_town', '1_5_town', '2_6_town', '2_7_town', '2_8_town', '2_9_town', '2_10_town', '2_11_endgame_town']
+
+/** 沒改過的舊內建路線 → 新斷點(邊界移動,PB / 金段作廢);改過的原物件回傳 */
+export function migratePoe1TownPreset (route: Route): Route {
+  if (route.splits.length !== POE1_OLD_AREAS.length || route.splits.some((s, i) => s.area !== POE1_OLD_AREAS[i])) return route
+  return replaceSplits(route, route.splits.map((s, i) => ({ ...s, area: POE1_SPLITS[i].area })))
+}
 // PoE2:進下一個城鎮 = 這段結束;間章順序依 GGPK 名稱推定(待使用者實機確認,清單可編輯)
 const POE2_SPLITS: PresetSplit[] = [
   { area: 'G2_town', zh: '第 1 章', en: 'Act 1' },
@@ -51,7 +62,8 @@ export const PRESET_TOWN_AREAS: Record<SpeedrunGame, Array<{ area: string, zh: s
   poe1: [
     ...['1_1_town', '1_2_town', '1_3_town', '1_4_town', '1_5_town'].map((area, i) => ({ area, zh: `第 ${i + 1} 章城鎮`, en: `Act ${i + 1} town` })),
     ...['2_6_town', '2_7_town', '2_8_town', '2_9_town', '2_10_town'].map((area, i) => ({ area, zh: `第 ${i + 6} 章城鎮`, en: `Act ${i + 6} town` })),
-    { area: '2_11_endgame_town', zh: '終局城鎮', en: 'Endgame town' }
+    { area: '2_11_endgame_town', zh: '終局城鎮', en: 'Endgame town' },
+    ...[2, 3, 4, 5, 8, 9].map(n => ({ area: `${n > 5 ? 2 : 1}_${n}_1`, zh: `第 ${n} 章第一張圖`, en: `Act ${n} first area` }))
   ],
   // 名稱取自 PoE2 GGPK worldareas(繁中 / 英文)
   poe2: [

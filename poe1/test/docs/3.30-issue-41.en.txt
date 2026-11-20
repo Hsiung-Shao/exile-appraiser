@@ -1,0 +1,8 @@
+Item Class: Enshrouded Items
+Enshrouded Body Armour
+--------
+Original Unique: Bronn's Lithe
+--------
+Item Level: 85
+--------
+Enshrouded items can be transformed within the Domain of Timeless Conflict.

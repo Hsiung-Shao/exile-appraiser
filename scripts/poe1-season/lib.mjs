@@ -791,7 +791,9 @@ export function planUniques ({ enItems, tradeItems, words }) {
 }
 
 /** 交易站 items 群組 → 新底材那一列要帶的 craftable 類別(null = 不帶);沒列的群組不自動加(拒收) */
-export const TRADE_BASE_GROUPS = { jewel: 'Jewel', viscera: null }
+export const TRADE_BASE_GROUPS = { jewel: 'Jewel', viscera: null, enshrouded: null }
+/** 整組都收的群組:不限 GGPK 這一版才新增(壟罩物品在上一個快照就有,但資料一直沒收;GitHub issue #41) */
+const TRADE_WHOLE_GROUPS = new Set(['enshrouded'])
 
 /**
  * 規則 7:GGPK 新版新增、且交易站 items 清單列為底材的物品(3.30:臟器、菌潮核心)。
@@ -802,12 +804,14 @@ export function planTradeBases ({ enItems, baseOld, baseNew, tradeItems }) {
   const have = new Set(enItems.map(i => i.refName))
   const oldPaths = new Set(baseOld.map(r => r.path))
   const fresh = groupBy(baseNew.filter(r => !oldPaths.has(r.path)), r => r.en)
+  const whole = groupBy(baseNew, r => r.en)
   const adds = []
   const rejects = []
   for (const e of tradeItems) {
-    if (e.flags?.unique || have.has(e.type) || !fresh.has(e.type)) continue
+    const pool = TRADE_WHOLE_GROUPS.has(e.group) ? whole : fresh
+    if (e.flags?.unique || have.has(e.type) || !pool.has(e.type)) continue
     have.add(e.type)
-    const zh = uniq(fresh.get(e.type).map(r => r.zh))
+    const zh = uniq(pool.get(e.type).map(r => r.zh))
     if (!(e.group in TRADE_BASE_GROUPS)) rejects.push({ reason: '這個交易站群組沒有新增規則', id: e.type, to: e.group })
     else if (zh.length !== 1) rejects.push({ reason: 'GGPK 沒有唯一的繁中名', id: e.type, candidates: zh })
     else adds.push({ refName: e.type, zh: zh[0], category: TRADE_BASE_GROUPS[e.group] })
@@ -945,6 +949,16 @@ export function planRandomSkillGem ({ enStats, zhStats }) {
   const adds = []
   for (const [lang, stats] of [['en', enStats], ['cmn-Hant', zhStats]]) {
     for (const stat of eachStat(stats)) {
+      // 「插槽中的寶石被等級 # 的 X 輔助」(Random Support Gem):禁忌軍帽 3.30 仍是短名,進階複製的範圍
+      // 「(高階多重投射-聖徒)」變成「(...)」(GitHub issue #43 #44)。短名句已被全名句取代 → 新的進階寫法也標 superseded;英文照舊寫法推出
+      if (stat.ref.endsWith('(Random Support Gem)')) {
+        for (const m of stat.matchers) {
+          const advanced = m.advanced?.replace(/\([^()]*-[^()]*\)(?= 輔助$|$)/, '(...)')
+          if (!advanced || advanced === m.advanced || stat.matchers.some(x => x.advanced === advanced)) continue
+          adds.push({ lang, ref: stat.ref, matcher: { string: m.string, advanced, superseded: true } })
+        }
+        continue
+      }
       if (!stat.ref.endsWith('(Random Skill Gem)')) continue
       for (const m of stat.matchers) {
         const advanced = m.advanced?.replace(/\([^()]*\)(?= 寶石等級| Gems)/, '(...)')
@@ -1418,6 +1432,13 @@ export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove
       stat.matchers.push(a.matcher)
       if (a.drops) stat.matchers = stat.matchers.filter(m => !a.drops.includes(m.string)) // 規則 25:腐敗之種的列直接換掉舊句
       changed = true
+    }
+    // 繁中資料裡暫放的英文句(當時 GGPK 還沒有繁中):同列有了繁中現行寫法就標 superseded,
+    // 否則正則「物品詞綴數值」頁把它當兩種寫法而排除(審查 2026-11-20)
+    if (lang === 'cmn-Hant' && stat.matchers?.some(m => !m.superseded && /[一-鿿]/.test(m.string))) {
+      for (const m of stat.matchers) {
+        if (!m.superseded && /[A-Za-z]{3}/.test(m.string) && !/[^\x00-\x7f]/.test(m.string)) { m.superseded = true; changed = true }
+      }
     }
     for (const [type, ids] of Object.entries(stat.trade?.ids ?? {})) {
       const next = uniq(ids.filter(id => !gone.has(id)).map(id => replace[id] ?? id))

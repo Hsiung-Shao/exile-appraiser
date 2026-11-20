@@ -26,7 +26,7 @@ import { normSettingsFontSize, normSettingsWindow, type SettingsWindowRect } fro
 import { RELATED_SCALE_DEFAULT, normRelatedItemsScale } from './related-items-scale'
 import { normFloatMenuPos, normOverlayPos, type FloatMenuPos, type OverlayPos } from './overlay/float-menu-geom'
 import { TIMER_DISPLAYS, type TimerDisplay } from './overlay/timer-display'
-import { normRoute, presetRoute, type Route } from '../../../core/src/speedrun/routes'
+import { migratePoe1TownPreset, normRoute, presetRoute, type Route } from '../../../core/src/speedrun/routes'
 import { defaultListingLayout, normListingLayout } from './price-panel/listing-layout'
 import { DEFAULT_SHOW_MECHANISM, normShowMechanism } from './price-panel/mechanism-visibility'
 import { defaultOnlineFilterMemory, normOnlineFilterMemory } from './price-panel/online-filter-memory'
@@ -346,7 +346,7 @@ export function normRuneshapeThresholds (v: unknown, def: Readonly<RuneshapeThre
 function createConfig (): Config {
   const base = {
     // 2 = 2026-11-18 章節自動分段預設開(舊檔遷移見 applyLoaded)
-    configVersion: 2,
+    configVersion: 3,
     game: 'poe1' as Game,
     realm: 'intl' as Realm,
     language: 'cmn-Hant' as Language,
@@ -674,7 +674,11 @@ function applyLoaded (raw: string) {
     config.speedrun.poe1.autoSplit = true
     config.speedrun.poe2.autoSplit = true
   }
-  config.configVersion = 2
+  // 2026-11-20 PoE1 內建斷點改成社群斷點:沒改過的舊內建路線換一次(紀錄作廢);之後使用者自己選回城鎮的不動
+  if (!(typeof loaded.configVersion === 'number' && loaded.configVersion >= 3)) {
+    config.speedrun.poe1 = migratePoe1TownPreset(config.speedrun.poe1)
+  }
+  config.configVersion = 3
   config.clientLogPath = typeof loaded.clientLogPath === 'string' ? loaded.clientLogPath : ''
   config.speedrunRows = typeof loaded.speedrunRows === 'number' && Number.isFinite(loaded.speedrunRows)
     ? Math.min(20, Math.max(1, Math.round(loaded.speedrunRows)))
