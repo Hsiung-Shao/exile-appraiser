@@ -9301,16 +9301,16 @@
 {"ref":"Contains a Forge that can Combine Crucible Passive Skill Trees, including on Unique and Corrupted Items","better":0,"matchers":[{"string":"含有 1 個額外鍛造，可以融合熔火天賦樹，包括傳奇和已汙染物品"}],"trade":{"ids":{"implicit":["implicit.stat_422450559"]}}}
 {"ref":"Area contains # additional Afarud Commander Monster Marker","better":1,"matchers":[{"string":"區域內包含#個額外阿法魯德指揮官怪物標記"}],"trade":{"ids":{"implicit":["implicit.stat_1669429179"]}}}
 {"ref":"Area contains # additional Afarud Monster Markers","better":1,"matchers":[{"string":"區域內包含#個額外阿法魯德怪物標記"}],"trade":{"ids":{"implicit":["implicit.stat_3936576079"]}}}
-{"ref":"Area contains an Invasion Boss","better":0,"matchers":[{"string":"區域含有 1 個侵略頭目"}],"trade":{"ids":{"implicit":["implicit.stat_3849207804"]}}}
-{"ref":"Area contains up to 1 Monster imprisoned by Essences","better":0,"matchers":[{"string":"區域含有 1 個受精髓禁錮的怪物"}],"trade":{"ids":{"implicit":["implicit.stat_1050286373"]}}}
-{"ref":"Area contains a Perandus Chest","better":0,"matchers":[{"string":"此區域含有 1 個普蘭德斯保險箱"}],"trade":{"ids":{"implicit":["implicit.stat_49787903"]}}}
-{"ref":"Area contains a Silver Coin","better":0,"matchers":[{"string":"區域含有 1 枚銀幣"}],"trade":{"ids":{"implicit":["implicit.stat_585159631"]}}}
-{"ref":"Area contains a Rogue Exile","better":0,"matchers":[{"string":"區域含有 1 位盜賊流亡者"}],"trade":{"ids":{"implicit":["implicit.stat_548865797"]}}}
-{"ref":"Area contains up to 1 Shrine","better":0,"matchers":[{"string":"區域含有 1 座神殿"}],"trade":{"ids":{"implicit":["implicit.stat_2878321598"]}}}
-{"ref":"Area contains a Strongbox","better":0,"matchers":[{"string":"區域含有 1 個保險箱"}],"trade":{"ids":{"implicit":["implicit.stat_2570943032"]}}}
-{"ref":"Area contains a Monster possessed by an Ancient Talisman","better":0,"matchers":[{"string":"區域含有 1 個受魔符附身的怪物"}],"trade":{"ids":{"implicit":["implicit.stat_1900164129"]}}}
-{"ref":"Area contains a Tormented Spirit","better":0,"matchers":[{"string":"區域含有 1 個罪魂"}],"trade":{"ids":{"implicit":["implicit.stat_2949489150"]}}}
-{"ref":"Area contains at least 1 Warband Pack","better":0,"matchers":[{"string":"區域含有至少 1 個軍團"}],"trade":{"ids":{"implicit":["implicit.stat_3907094951"]}}}
+{"ref":"Area contains an Invasion Boss","better":0,"matchers":[{"string":"區域含有 1 個侵略頭目"},{"string":"區域含有 # 個侵略頭目","superseded":true}],"trade":{"ids":{"implicit":["implicit.stat_3849207804"]}}}
+{"ref":"Area contains up to 1 Monster imprisoned by Essences","better":0,"matchers":[{"string":"區域含有 1 個受精髓禁錮的怪物"},{"string":"區域含有 # 個受精髓禁錮的怪物","superseded":true}],"trade":{"ids":{"implicit":["implicit.stat_1050286373"]}}}
+{"ref":"Area contains a Perandus Chest","better":0,"matchers":[{"string":"此區域含有 1 個普蘭德斯保險箱"},{"string":"此區域含有 # 個普蘭德斯保險箱","superseded":true}],"trade":{"ids":{"implicit":["implicit.stat_49787903"]}}}
+{"ref":"Area contains a Silver Coin","better":0,"matchers":[{"string":"區域含有 1 枚銀幣"},{"string":"區域含有 # 枚銀幣","superseded":true}],"trade":{"ids":{"implicit":["implicit.stat_585159631"]}}}
+{"ref":"Area contains a Rogue Exile","better":0,"matchers":[{"string":"區域含有 1 位盜賊流亡者"},{"string":"區域含有 # 位盜賊流亡者","superseded":true}],"trade":{"ids":{"implicit":["implicit.stat_548865797"]}}}
+{"ref":"Area contains up to 1 Shrine","better":0,"matchers":[{"string":"區域含有 1 座神殿"},{"string":"區域含有 # 座神殿","superseded":true}],"trade":{"ids":{"implicit":["implicit.stat_2878321598"]}}}
+{"ref":"Area contains a Strongbox","better":0,"matchers":[{"string":"區域含有 1 個保險箱"},{"string":"區域含有 # 個保險箱","superseded":true}],"trade":{"ids":{"implicit":["implicit.stat_2570943032"]}}}
+{"ref":"Area contains a Monster possessed by an Ancient Talisman","better":0,"matchers":[{"string":"區域含有 1 個受魔符附身的怪物"},{"string":"區域含有 # 個受魔符附身的怪物","superseded":true}],"trade":{"ids":{"implicit":["implicit.stat_1900164129"]}}}
+{"ref":"Area contains a Tormented Spirit","better":0,"matchers":[{"string":"區域含有 1 個罪魂"},{"string":"區域含有 # 個罪魂","superseded":true}],"trade":{"ids":{"implicit":["implicit.stat_2949489150"]}}}
+{"ref":"Area contains at least 1 Warband Pack","better":0,"matchers":[{"string":"區域含有至少 1 個軍團"},{"string":"區域含有至少 # 個軍團","superseded":true}],"trade":{"ids":{"implicit":["implicit.stat_3907094951"]}}}
 {"ref":"Natural inhabitants of this area have been removed","better":0,"matchers":[{"string":"此區域原生怪物被移除"}],"trade":{"ids":{"implicit":["implicit.stat_2656027173"]}}}
 {"ref":"Quality applies to Pack Size instead of Item Quantity","better":0,"matchers":[{"string":"品質套用在怪物群大小，而不是物品數量"}],"trade":{"ids":{"implicit":["implicit.stat_3036505016"]}}}
 {"ref":"#% increased Melee Damage per 20 Intelligence","better":1,"matchers":[{"string":"每20智慧增加#%近戰傷害"}],"trade":{"ids":{"implicit":["implicit.stat_2645167381"]}}}
@@ -9539,7 +9539,7 @@
 {"ref":"Cannot gain Life during effect","better":0,"matchers":[{"string":"效果持續時間內不能獲得生命"}],"trade":{"ids":{"explicit":["explicit.stat_1731620212"]}}}
 {"ref":"#% increased Damage Over Time during Effect","better":1,"matchers":[{"string":"效果持續時間內，增加 #% 持續傷害"},{"string":"效果持續時間內，減少 #% 持續傷害","negate":true,"superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_1140739168"]}}}
 {"ref":"Consumes Socketed Uncorrupted Support Gems when they reach Maximum Level\nCan Consume # additional Uncorrupted Support Gems","better":1,"matchers":[{"string":"當插槽內未汙染的輔助寶石達到最大等級時吞噬該寶石\n可以再吞噬 # 顆額外未汙染的輔助寶石"},{"string":"當插槽內未汙染的輔助寶石達到最大等級時吞噬該寶石\n可以吞噬 # 顆未汙染的輔助寶石\n尚未吞噬任何寶石","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_3221550523"]}}}
-{"ref":"With at least 40 Dexterity in Radius, Ethereal Knives fires an additional Projectile","better":0,"matchers":[{"string":"若範圍內含 40 點敏捷，\n虛空匕首額外發射 1 個投射物"}],"trade":{"ids":{"explicit":["explicit.stat_2822821681"]}}}
+{"ref":"With at least 40 Dexterity in Radius, Ethereal Knives fires an additional Projectile","better":0,"matchers":[{"string":"若範圍內含 40 點敏捷，\n虛空匕首額外發射 1 個投射物"},{"string":"若範圍內含 40 點敏捷，\n虛空匕首額外發射 # 個投射物","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_2822821681"]}}}
 {"ref":"While your Passive Skill Tree connects to the Marauder's starting location, you gain:\n#% of Life Regenerated per second","better":1,"matchers":[{"string":"當你天賦樹和野蠻人起始點相連，你獲得：\n每秒回復 #% 生命"}],"trade":{"ids":{"explicit":["explicit.stat_76458612"]}}}
 {"ref":"While your Passive Skill Tree connects to a class' starting location, you gain:\nMarauder: Melee Skills have #% increased Area of Effect\nDuelist: #% of Attack Damage Leeched as Life\nRanger: #% increased Movement Speed\nShadow: +#% to Critical Strike Chance\nWitch: #% of Mana Regenerated per second\nTemplar: Damage Penetrates #% Elemental Resistances\nScion: +# to All Attributes","better":1,"matchers":[{"string":"當你天賦樹和職業起始點相連，你獲得:\n野蠻人:近戰技能增加 #% 範圍效果\n決鬥者:#% 攻擊傷害偷取生命\n遊俠:增加 #% 移動速度\n暗影刺客:#% 暴擊率\n女巫:每秒回復 #% 最大魔\n聖堂武僧:傷害穿透 #% 元素抗性\n貴族:# 全能力"}],"trade":{"ids":{"explicit":["explicit.stat_769192511"]}}}
 {"ref":"With at least 40 Intelligence in Radius, Spark fires an additional Projectile","better":0,"matchers":[{"string":"若範圍內含 40 點智慧，電球發射一個額外投射物"},{"string":"若範圍內含 40 點智慧，電球發射 # 個額外投射物","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_1650632809"]}}}
@@ -9560,7 +9560,7 @@
 {"ref":"#% increased Reservation of Skills per 250 total Attributes","better":1,"matchers":[{"string":"每 250 點總能力值，增加 #% 技能保留"},{"string":"每 250 點總能力值，減少 #% 技能保留","negate":true,"superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_3229976559"]}}}
 {"ref":"#% increased Reservation of Curse Aura Skills","better":1,"matchers":[{"string":"增加 #% 詛咒光環技能的保留"},{"string":"減少 #% 詛咒光環技能的保留","negate":true,"superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_3292930705"]}}}
 {"ref":"#% increased Mana Reservation Efficiency of Skills that throw Mines","better":1,"matchers":[{"string":"增加 #% 投擲地雷技能的魔力保留效用"}],"trade":{"ids":{"explicit":["explicit.stat_2265342288"]}}}
-{"ref":"Manifest Dancing Dervish also manifests a copy of Dancing Dervish","better":0,"matchers":[{"string":"幻化狂舞德爾維希同時會幻化 1 個複製狂舞德爾維希"}],"trade":{"ids":{"explicit":["explicit.stat_1820083363"]}}}
+{"ref":"Manifest Dancing Dervish also manifests a copy of Dancing Dervish","better":0,"matchers":[{"string":"幻化狂舞德爾維希同時會幻化 1 個複製狂舞德爾維希"},{"string":"幻化狂舞德爾維希同時會幻化 # 個複製狂舞德爾維希","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_1820083363"]}}}
 {"ref":"Monsters and Chests in your Maps have #% chance to drop Items with +1 to Item Level","better":1,"matchers":[{"string":"你地圖中的怪物和保險箱掉落的物品有 #% 機率 +1 物品等級"}],"trade":{"ids":{"explicit":["explicit.stat_1238581103"]}}}
 {"ref":"Your Maps have #% increased chance to contain an Abyss","better":1,"matchers":[{"string":"你的地圖增加 #% 機率含有 1 個深淵"}],"trade":{"ids":{"explicit":["explicit.stat_4111037980"]}}}
 {"ref":"Abyss Jewels dropped by Abyssal Troves have a #% chance to be Rare and Corrupted","better":1,"matchers":[{"string":"深淵寶庫所掉落的深淵珠寶有 #% 機率為稀有且已汙染"}],"trade":{"ids":{"explicit":["explicit.stat_286869897"]}}}
@@ -9586,7 +9586,7 @@
 {"ref":"Area contains a Unique Strongbox","better":0,"matchers":[{"string":"區域含有 1 個傳奇保險箱"}],"trade":{"ids":{"explicit":["explicit.stat_194037675"]}}}
 {"ref":"Your Maps contain # additional Clusters of Mysterious Barrels","better":1,"matchers":[{"string":"你的地圖含有額外 # 組神祕木桶"}],"trade":{"ids":{"explicit":["explicit.stat_2343561786"],"fractured":["fractured.stat_2343561786"],"enchant":["enchant.stat_1207515735","enchant.stat_4019701925","enchant.stat_1669553893","enchant.stat_1080470148"]}}}
 {"ref":"Area contains # additional Clusters of Mysterious Barrels","better":1,"matchers":[{"string":"區域含有額外 # 組神秘木桶"}],"trade":{"ids":{"explicit":["explicit.stat_2343561786"],"fractured":["fractured.stat_2343561786"],"enchant":["enchant.stat_1207515735","enchant.stat_4019701925","enchant.stat_1669553893","enchant.stat_1080470148"]}}}
-{"ref":"Area contains a Rare Monster with Inner Treasure","better":0,"matchers":[{"string":"區域含有額外 1 個珍寶之魂稀有怪物"}],"trade":{"ids":{"explicit":["explicit.stat_3057529096"]}}}
+{"ref":"Area contains a Rare Monster with Inner Treasure","better":0,"matchers":[{"string":"區域含有額外 1 個珍寶之魂稀有怪物"},{"string":"區域含有額外 # 個珍寶之魂稀有怪物","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_3057529096"]}}}
 {"ref":"Armour Items found in your Maps have #% chance to have 20% Quality","better":1,"matchers":[{"string":"你地圖中掉落的護甲有 #% 機率有 20% 品質"}],"trade":{"ids":{"explicit":["explicit.stat_4109767878"]}}}
 {"ref":"Immortal Syndicate Members in your Maps have #% chance to grant double Experience","better":1,"matchers":[{"string":"你地圖中永生密教成員有 #% 機率獲得 2 倍經驗"}],"trade":{"ids":{"explicit":["explicit.stat_3467824501"]}}}
 {"ref":"Monsters from Beyond create Desecrated Ground\n Beyond Bosses cannot spawn","better":0,"matchers":[{"string":"來自超越的怪物製造褻瀆地面\n不能產生超越頭目"}],"trade":{"ids":{"explicit":["explicit.stat_2624514051"]}}}
@@ -9599,8 +9599,8 @@
 {"ref":"Cost of Building and Upgrading Blight Towers in your Maps is doubled","better":0,"matchers":[{"string":"你地圖中凋落防守塔的建造和升級消耗為 2 倍"}],"trade":{"ids":{"enchant":["enchant.stat_3804597710"]}}}
 {"ref":"Cost of Building and Upgrading Blight Towers is doubled","better":0,"matchers":[{"string":"凋落防守塔的建造和升級費用為 2 倍"}],"trade":{"ids":{"enchant":["enchant.stat_3804597710"]}}}
 {"ref":"Encounter duration is # seconds shorter","better":1,"matchers":[{"string":"事件持續時間減少 # 秒"}],"trade":{"ids":{"enchant":["enchant.stat_3122413716"]}}}
-{"ref":"When a Bloodline Pack is Slain, it drops a Basic Currency Item","better":0,"matchers":[{"string":"當擊殺血族怪物群時，會掉落 1 個基礎通貨"}],"trade":{"ids":{"explicit":["explicit.stat_200299748"]}}}
-{"ref":"When a Bloodline Pack is Slain, it drops a Rare Item","better":0,"matchers":[{"string":"擊殺血族怪群掉落額外 1 個稀有物品"}],"trade":{"ids":{"explicit":["explicit.stat_2309624770"]}}}
+{"ref":"When a Bloodline Pack is Slain, it drops a Basic Currency Item","better":0,"matchers":[{"string":"當擊殺血族怪物群時，會掉落 1 個基礎通貨"},{"string":"當擊殺血族怪物群時，會掉落 # 個基礎通貨","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_200299748"]}}}
+{"ref":"When a Bloodline Pack is Slain, it drops a Rare Item","better":0,"matchers":[{"string":"擊殺血族怪群掉落額外 1 個稀有物品"},{"string":"擊殺血族怪群掉落額外 # 個稀有物品","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_2309624770"]}}}
 {"ref":"Map Bosses are accompanied by Bodyguards","better":0,"matchers":[{"string":"地圖頭目身旁有保鑣"}],"trade":{"ids":{"enchant":["enchant.stat_3481854423"]}}}
 {"ref":"Unique Boss is accompanied by Bodyguards","better":0,"matchers":[{"string":"傳奇頭目伴隨著護衛"}],"trade":{"ids":{"enchant":["enchant.stat_3481854423"]}}}
 {"ref":"Map Bosses are accompanied by a mysterious Harbinger","better":0,"matchers":[{"string":"地圖頭目身旁有神祕的神諭"}],"trade":{"ids":{"enchant":["enchant.stat_397012377"]}}}
@@ -9673,12 +9673,12 @@
 {"ref":"Chests have #% increased Item Quantity","better":1,"matchers":[{"string":"箱子增加 #% 物品數量"},{"string":"箱子減少 #% 物品數量","negate":true,"superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_1502389239"]}}}
 {"ref":"Chests have #% increased Item Rarity","better":1,"matchers":[{"string":"箱子增加 #% 物品稀有度"},{"string":"箱子減少 #% 物品稀有度","negate":true,"superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_3457143479"]}}}
 {"ref":"Area contains # additional Rare Monsters that create Frost Walls and Flee","better":1,"matchers":[{"string":"區域含有 # 個額外會製造冰牆和脫逃的稀有怪物"}],"trade":{"ids":{"explicit":["explicit.stat_2180070554"]}}}
-{"ref":"Area contains an additional Regal Harbinger","better":0,"matchers":[{"string":"區域含有 1 個額外富豪神諭"}],"trade":{"ids":{"explicit":["explicit.stat_3982634141"]}}}
+{"ref":"Area contains an additional Regal Harbinger","better":0,"matchers":[{"string":"區域含有 1 個額外富豪神諭"},{"string":"區域含有 # 個額外富豪神諭","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_3982634141"]}}}
 {"ref":"Area contains # additional packs of Untainted Wild Animals","better":1,"matchers":[{"string":"區域含有 # 群額外未玷汙的野性動物"}],"trade":{"ids":{"explicit":["explicit.stat_162627873"]}}}
-{"ref":"Area contains an additional Wild Harvest Boss","better":0,"matchers":[{"string":"區域含有 1 個額外野性豐收頭目"}],"trade":{"ids":{"explicit":["explicit.stat_204196526"]}}}
-{"ref":"Area contains an additional Primal Harvest Boss","better":0,"matchers":[{"string":"區域含有 1 個額外原始豐收頭目"}],"trade":{"ids":{"explicit":["explicit.stat_3831356603"]}}}
-{"ref":"Area contains an additional Vivid Harvest Boss","better":0,"matchers":[{"string":"區域含有 1 個額外靈現豐收頭目"}],"trade":{"ids":{"explicit":["explicit.stat_2319738353"]}}}
-{"ref":"Area contains a Gigantic Rogue Exile","better":0,"matchers":[{"string":"區域含有 1 個巨型賊流亡者"}],"trade":{"ids":{"explicit":["explicit.stat_2814396031"]}}}
+{"ref":"Area contains an additional Wild Harvest Boss","better":0,"matchers":[{"string":"區域含有 1 個額外野性豐收頭目"},{"string":"區域含有 # 個額外野性豐收頭目","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_204196526"]}}}
+{"ref":"Area contains an additional Primal Harvest Boss","better":0,"matchers":[{"string":"區域含有 1 個額外原始豐收頭目"},{"string":"區域含有 # 個額外原始豐收頭目","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_3831356603"]}}}
+{"ref":"Area contains an additional Vivid Harvest Boss","better":0,"matchers":[{"string":"區域含有 1 個額外靈現豐收頭目"},{"string":"區域含有 # 個額外靈現豐收頭目","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_2319738353"]}}}
+{"ref":"Area contains a Gigantic Rogue Exile","better":0,"matchers":[{"string":"區域含有 1 個巨型賊流亡者"},{"string":"區域含有 # 個巨型賊流亡者","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_2814396031"]}}}
 {"ref":"Area contains Sirus' Deatomisation Storms","better":0,"matchers":[{"string":"區域含有賽勒斯的超毀滅風暴"}],"trade":{"ids":{"explicit":["explicit.stat_129937324"]}}}
 {"ref":"Area contains # additional pack of four Map Bosses","better":1,"matchers":[{"string":"區域含有額外 # 群 4 個地圖頭目"}],"trade":{"ids":{"explicit":["explicit.stat_290923864"]}}}
 {"ref":"Area contains an additional Clutching Talisman","better":0,"matchers":[{"string":"區域額外含有 1 個咒箍魔符"}],"trade":{"ids":{"explicit":["explicit.stat_2270693644"]}}}
@@ -9696,11 +9696,11 @@
 {"ref":"Area contains additional packs of Restless Dead","better":0,"matchers":[{"string":"區域含有額外不息亡者"}],"trade":{"ids":{"explicit":["explicit.stat_2264039874"]}}}
 {"ref":"Area contains an additional Three Rat Talisman","better":0,"matchers":[{"string":"區域含有額外 1 個三鼠魔符"}],"trade":{"ids":{"explicit":["explicit.stat_2530071726"]}}}
 {"ref":"Your Maps are haunted by an additional Tormented Betrayer","better":0,"matchers":[{"string":"你的地圖被 1 個額外苦痛反叛者糾纏"}],"trade":{"ids":{"enchant":["enchant.stat_504023787"]}}}
-{"ref":"Area is haunted by an additional Tormented Betrayer","better":0,"matchers":[{"string":"區域被 1 個額外苦痛反叛者糾纏"}],"trade":{"ids":{"enchant":["enchant.stat_504023787"]}}}
+{"ref":"Area is haunted by an additional Tormented Betrayer","better":0,"matchers":[{"string":"區域被 1 個額外苦痛反叛者糾纏"},{"string":"區域被 # 個額外苦痛反叛者糾纏","superseded":true}],"trade":{"ids":{"enchant":["enchant.stat_504023787"]}}}
 {"ref":"Your Maps are haunted by an additional Tormented Graverobber","better":0,"matchers":[{"string":"你的地圖被 1 個額外苦痛盜墓者糾纏"}],"trade":{"ids":{"enchant":["enchant.stat_1463704577"]}}}
-{"ref":"Area is haunted by an additional Tormented Graverobber","better":0,"matchers":[{"string":"區域被 1 個額外苦痛盜墓者糾纏"}],"trade":{"ids":{"enchant":["enchant.stat_1463704577"]}}}
+{"ref":"Area is haunted by an additional Tormented Graverobber","better":0,"matchers":[{"string":"區域被 1 個額外苦痛盜墓者糾纏"},{"string":"區域被 # 個額外苦痛盜墓者糾纏","superseded":true}],"trade":{"ids":{"enchant":["enchant.stat_1463704577"]}}}
 {"ref":"Your Maps are haunted by an additional Tormented Heretic","better":0,"matchers":[{"string":"你的地圖被 1 個額外苦痛異教徒糾纏"}],"trade":{"ids":{"enchant":["enchant.stat_373209496"]}}}
-{"ref":"Area is haunted by an additional Tormented Heretic","better":0,"matchers":[{"string":"區域被 1 個額外苦痛異教徒糾纏"}],"trade":{"ids":{"enchant":["enchant.stat_373209496"]}}}
+{"ref":"Area is haunted by an additional Tormented Heretic","better":0,"matchers":[{"string":"區域被 1 個額外苦痛異教徒糾纏"},{"string":"區域被 # 個額外苦痛異教徒糾纏","superseded":true}],"trade":{"ids":{"enchant":["enchant.stat_373209496"]}}}
 {"ref":"Area contains an additional Unique Talisman","better":0,"matchers":[{"string":"區域額外含有 1 個傳奇魔符"}],"trade":{"ids":{"explicit":["explicit.stat_3956623857"]}}}
 {"ref":"Area contains a Chayula Breach","better":0,"matchers":[{"string":"區域含有 1 個夏烏拉裂痕"}],"trade":{"ids":{"explicit":["explicit.stat_370321141"]}}}
 {"ref":"A Strongbox in this Area is Corrupted","better":0,"matchers":[{"string":"區域內 1 個保險箱受到汙染"}],"trade":{"ids":{"explicit":["explicit.stat_2517911661"]}}}
@@ -9790,7 +9790,7 @@
 {"ref":"Area contains unbridged gaps to cross","better":0,"matchers":[{"string":"地圖含有未橋接的裂縫"}],"trade":{"ids":{"explicit":["explicit.stat_860864690"]}}}
 {"ref":"Players in Area are driven mad","better":0,"matchers":[{"string":"區域內玩家被逼瘋"}],"trade":{"ids":{"explicit":["explicit.stat_3084283832"]}}}
 {"ref":"Strongbox Monsters are Enraged","better":0,"matchers":[{"string":"保險箱的怪物受到激怒"},{"string":"保險箱的怪物受到激怒效果影響"}],"trade":{"ids":{"enchant":["enchant.stat_3123392503"]}}}
-{"ref":"Unique Boss drops an additional Map","better":0,"matchers":[{"string":"傳奇頭目掉落 1 個額外地圖"}],"trade":{"ids":{"explicit":["explicit.stat_655278200"]}}}
+{"ref":"Unique Boss drops an additional Map","better":0,"matchers":[{"string":"傳奇頭目掉落 1 個額外地圖"},{"string":"傳奇頭目掉落 # 個額外地圖","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_655278200"]}}}
 {"ref":"Does not consume Sextant Uses","better":0,"matchers":[{"string":"不消耗六分儀使用次數"}],"trade":{"ids":{"enchant":["enchant.stat_989837434"]}}}
 {"ref":"#% chance on completing a Map influenced by a Conqueror of the Atlas\nto gain double progress towards locating their Citadel","better":1,"matchers":[{"string":"完成輿圖征服者勢力地圖，有 #% 機率獲得 2 倍定位他們壁壘位置的進度"}],"trade":{"ids":{"explicit":["explicit.stat_4162516667"]}}}
 {"ref":"Maps have a #% chance to drop as a random Unique Map instead in your Maps","better":1,"matchers":[{"string":"你地圖中的地圖有 #% 機率改為掉落 1 張隨機傳奇地圖"}],"trade":{"ids":{"explicit":["explicit.stat_1750700932"]}}}
@@ -9802,13 +9802,13 @@
 {"ref":"Items found in your Maps have #% chance to have the maximum number of Sockets","better":1,"matchers":[{"string":"你地圖中掉落的物品有 #% 機率為最大插槽數量"}],"trade":{"ids":{"explicit":["explicit.stat_4092986415"]}}}
 {"ref":"Monsters Imprisoned by Essences have a #% chance to contain a Remnant of Corruption","better":1,"matchers":[{"string":"被精髓囚禁的怪物有 #% 機率含有 1 個遺忘的污染器皿"}],"trade":{"ids":{"explicit":["explicit.stat_1439991839"],"enchant":["enchant.stat_1439991839"]}}}
 {"ref":"Essences found in this Area are Corrupted","better":0,"matchers":[{"string":"此區域尋獲的精髓已被腐化"}],"trade":{"ids":{"explicit":["explicit.stat_1384838464"]}}}
-{"ref":"Imprisoned Monsters have an additional Essence","better":0,"matchers":[{"string":"精髓怪物額外持有 1 個精髓"}],"trade":{"ids":{"explicit":["explicit.stat_679682964"]}}}
+{"ref":"Imprisoned Monsters have an additional Essence","better":0,"matchers":[{"string":"精髓怪物額外持有 1 個精髓"},{"string":"精髓怪物額外持有 # 個精髓","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_679682964"]}}}
 {"ref":"Essences found in this Area are a higher level","better":0,"matchers":[{"string":"此區域所尋獲的精髓將為高階精髓"}],"trade":{"ids":{"explicit":["explicit.stat_2996332612"]}}}
 {"ref":"Essences found in your Maps are a tier higher","better":0,"matchers":[{"string":"你地圖中掉落的精髓高 1 階"}],"trade":{"ids":{"explicit":["explicit.stat_1506277901"]}}}
 {"ref":"Essences found are a tier higher","better":0,"matchers":[{"string":"掉落的精髓高 1 階"},{"string":"掉落的精髓有 #% 機率高 1 階","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_1506277901"]}}}
 {"ref":"Your Maps have #% increased chance to contain an Expedition Encounter","better":1,"matchers":[{"string":"你的地圖增加 #% 機率含有 1 個探險事件"}],"trade":{"ids":{"explicit":["explicit.stat_1561678231"]}}}
-{"ref":"The first Strongbox Opened in this Area is guarded by an additional Rare Monster","better":0,"matchers":[{"string":"開啟的第一個保險箱額外受到 1 個稀有怪物的保護"}],"trade":{"ids":{"explicit":["explicit.stat_648923098"]}}}
-{"ref":"A Beyond Unique drops when the first Unique Monster from Beyond is slain","better":0,"matchers":[{"string":"擊殺的第一個超越頭目額外掉落 1 個超越傳奇物品"}],"trade":{"ids":{"explicit":["explicit.stat_1928796626"]}}}
+{"ref":"The first Strongbox Opened in this Area is guarded by an additional Rare Monster","better":0,"matchers":[{"string":"開啟的第一個保險箱額外受到 1 個稀有怪物的保護"},{"string":"開啟的第一個保險箱額外受到 # 個稀有怪物的保護","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_648923098"]}}}
+{"ref":"A Beyond Unique drops when the first Unique Monster from Beyond is slain","better":0,"matchers":[{"string":"擊殺的第一個超越頭目額外掉落 1 個超越傳奇物品"},{"string":"擊殺的第一個超越頭目額外掉落 # 個超越傳奇物品","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_1928796626"]}}}
 {"ref":"Your Maps are Alluring","better":0,"matchers":[{"string":"你的地圖吸引人"}],"trade":{"ids":{"enchant":["enchant.stat_2862290356"]}}}
 {"ref":"Area is Alluring","better":0,"matchers":[{"string":"此區域吸引人"}],"trade":{"ids":{"enchant":["enchant.stat_2862290356"]}}}
 {"ref":"# Flask Charges recovered every 3 seconds","better":1,"matchers":[{"string":"每 3 秒恢復 # 藥劑充能"}],"trade":{"ids":{"explicit":["explicit.stat_3228973398"]}}}
@@ -9891,10 +9891,10 @@
 {"ref":"#% increased Quantity of Items dropped in Incursions in your Maps","better":1,"matchers":[{"string":"增加 #% 你地圖中穿越掉落的物品數量"}],"trade":{"ids":{"explicit":["explicit.stat_725617492"]}}}
 {"ref":"Items found in your Conqueror Maps have #% increased chance to be Influenced","better":1,"matchers":[{"string":"你征服者地圖中掉落的物品增加 #% 機率為勢力"}],"trade":{"ids":{"explicit":["explicit.stat_1986702303"]}}}
 {"ref":"Invasion Bosses are Duplicated","better":0,"matchers":[{"string":"侵略頭目成雙出現"}],"trade":{"ids":{"explicit":["explicit.stat_442509523"]}}}
-{"ref":"Invasion Bosses drop an additional Vaal Orb","better":0,"matchers":[{"string":"侵略頭目額外掉落 1 個瓦爾寶珠"}],"trade":{"ids":{"explicit":["explicit.stat_899928542"]}}}
+{"ref":"Invasion Bosses drop an additional Vaal Orb","better":0,"matchers":[{"string":"侵略頭目額外掉落 1 個瓦爾寶珠"},{"string":"侵略頭目額外掉落 # 個瓦爾寶珠","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_899928542"]}}}
 {"ref":"Items dropped by Invasion Bosses are fully Linked","better":0,"matchers":[{"string":"侵略頭目所掉落的物品為最大連線"}],"trade":{"ids":{"explicit":["explicit.stat_2004028089"]}}}
-{"ref":"Items dropped by Invasion Bosses have an additional Socket","better":0,"matchers":[{"string":"侵略頭目掉落的物品有額外 1 個插槽"}],"trade":{"ids":{"explicit":["explicit.stat_444117960"]}}}
-{"ref":"Invasion Bosses are guarded by a Magic Pack","better":0,"matchers":[{"string":"侵略頭目被 1 群魔法怪物守護著"}],"trade":{"ids":{"explicit":["explicit.stat_3209835461"]}}}
+{"ref":"Items dropped by Invasion Bosses have an additional Socket","better":0,"matchers":[{"string":"侵略頭目掉落的物品有額外 1 個插槽"},{"string":"侵略頭目掉落的物品有額外 # 個插槽","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_444117960"]}}}
+{"ref":"Invasion Bosses are guarded by a Magic Pack","better":0,"matchers":[{"string":"侵略頭目被 1 群魔法怪物守護著"},{"string":"侵略頭目被 # 群魔法怪物守護著","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_3209835461"]}}}
 {"ref":"Area is a Maze","better":0,"matchers":[{"string":"迷宮地圖"}],"trade":{"ids":{"explicit":["explicit.stat_1959271744"]}}}
 {"ref":"Quality bonus of your Maps also applies to Rarity of Items found","better":0,"matchers":[{"string":"你地圖的品質加成同時套用至掉落物品的稀有度"}],"trade":{"ids":{"enchant":["enchant.stat_4265846487"]}}}
 {"ref":"This Map's Quality also applies to Rarity of Items found","better":0,"matchers":[{"string":"該地圖的品質加成將同時套用在掉落物品稀有度上"}],"trade":{"ids":{"enchant":["enchant.stat_4265846487"]}}}
@@ -9914,8 +9914,8 @@
 {"ref":"Strongboxes are Magic","better":0,"matchers":[{"string":"保險箱皆為魔法"}],"trade":{"ids":{"explicit":["explicit.stat_1037449707"]}}}
 {"ref":"Warbands have #% more Quantity of Items Dropped","better":1,"matchers":[{"string":"軍團有 #% 更多物品掉落數量"}],"trade":{"ids":{"explicit":["explicit.stat_121093551"]}}}
 {"ref":"Warbands have #% more Rarity of Items Dropped","better":1,"matchers":[{"string":"軍團有 #% 更多掉落物品稀有度"}],"trade":{"ids":{"explicit":["explicit.stat_751847284"]}}}
-{"ref":"A Monster in this Area will summon Abaxoth when Slain","better":0,"matchers":[{"string":"區域內 1 個怪物將會在死亡後召喚阿巴薩斯"}],"trade":{"ids":{"explicit":["explicit.stat_1669870438"]}}}
-{"ref":"A Monster in this Area will summon a Unique Monster from Beyond when Slain","better":0,"matchers":[{"string":"區域內 1 個怪物將會在死亡後召喚超越頭目"}],"trade":{"ids":{"explicit":["explicit.stat_4077883829"]}}}
+{"ref":"A Monster in this Area will summon Abaxoth when Slain","better":0,"matchers":[{"string":"區域內 1 個怪物將會在死亡後召喚阿巴薩斯"},{"string":"區域內 # 個怪物將會在死亡後召喚阿巴薩斯","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_1669870438"]}}}
+{"ref":"A Monster in this Area will summon a Unique Monster from Beyond when Slain","better":0,"matchers":[{"string":"區域內 1 個怪物將會在死亡後召喚超越頭目"},{"string":"區域內 # 個怪物將會在死亡後召喚超越頭目","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_4077883829"]}}}
 {"ref":"The first time a Player reaches # Rampage Kills in this Area, they will encounter a Powerful Monster","better":1,"matchers":[{"string":"此區域內玩家首次達到 # 層暴怒時召喚出強大的怪物"}],"trade":{"ids":{"explicit":["explicit.stat_329336318"]}}}
 {"ref":"Your Maps have #% increased chance to contain a Legion Encounter","better":1,"matchers":[{"string":"你的地圖增加 #% 機率含有 1 個戰亂事件"}],"trade":{"ids":{"explicit":["explicit.stat_310950600"]}}}
 {"ref":"Legion Monsters in your Maps have #% more Life","better":1,"matchers":[{"string":"你地圖中的戰亂怪物有 #% 更多生命"}],"trade":{"ids":{"enchant":["enchant.stat_1829593182"]}}}
@@ -9990,16 +9990,16 @@
 {"ref":"Monsters reflect #% of Physical Damage","better":1,"matchers":[{"string":"怪物反射 #% 物理傷害"}],"trade":{"ids":{"explicit":["explicit.stat_3464419871"],"fractured":["fractured.stat_3464419871"]}}}
 {"ref":"Monsters Reflect Hexes","better":0,"matchers":[{"string":"怪物反射咒術"}],"trade":{"ids":{"explicit":["explicit.stat_1341845920"]}}}
 {"ref":"Monsters have #% increased Effect of Shock","better":1,"matchers":[{"string":"怪物增加 #% 感電效果"},{"string":"怪物減少 #% 感電效果","negate":true,"superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_2029018782"]}}}
-{"ref":"Monsters initially carrying a Talisman drop an additional Rare Item","better":0,"matchers":[{"string":"起初就受魔符附身的怪物將會掉落額外 1 個稀有物品"}],"trade":{"ids":{"explicit":["explicit.stat_1819739544"]}}}
+{"ref":"Monsters initially carrying a Talisman drop an additional Rare Item","better":0,"matchers":[{"string":"起初就受魔符附身的怪物將會掉落額外 1 個稀有物品"},{"string":"起初就受魔符附身的怪物將會掉落額外 # 個稀有物品","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_1819739544"]}}}
 {"ref":"Monsters prevent +#% of Suppressed Spell Damage","better":1,"matchers":[{"string":"怪物防止 #% 壓抑法術傷害"},{"string":"怪物 #% 防止壓抑法術傷害的總量","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_1260060682"]}}}
-{"ref":"Monsters with Silver Coins drop an additional Silver Coin","better":0,"matchers":[{"string":"持有銀幣的怪物額外掉落 1 枚銀幣"}],"trade":{"ids":{"explicit":["explicit.stat_3679287686"]}}}
+{"ref":"Monsters with Silver Coins drop an additional Silver Coin","better":0,"matchers":[{"string":"持有銀幣的怪物額外掉落 1 枚銀幣"},{"string":"持有銀幣的怪物額外掉落 # 枚銀幣","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_3679287686"]}}}
 {"ref":"Monsters are Unaffected by Curses","better":0,"matchers":[{"string":"怪物不被詛咒影響"}],"trade":{"ids":{"explicit":["explicit.stat_1472832594"]}}}
-{"ref":"Monsters with Silver Coins drop an additional Basic Currency Item","better":0,"matchers":[{"string":"有銀幣的怪物掉落 1 個額外基礎通貨"}],"trade":{"ids":{"explicit":["explicit.stat_1183247801"]}}}
+{"ref":"Monsters with Silver Coins drop an additional Basic Currency Item","better":0,"matchers":[{"string":"有銀幣的怪物掉落 1 個額外基礎通貨"},{"string":"有銀幣的怪物掉落 # 個額外基礎通貨","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_1183247801"]}}}
 {"ref":"Monsters with Silver Coins drop an additional Rare Item","better":0,"matchers":[{"string":"持有銀幣的怪物額外掉落 1 個稀有物品"}],"trade":{"ids":{"explicit":["explicit.stat_3877259945"]}}}
 {"ref":"Area's inhabitants are lying in ambush","better":0,"matchers":[{"string":"區域內怪物都處於伏擊狀態"}],"trade":{"ids":{"enchant":["enchant.stat_112276874"]}}}
 {"ref":"Players have #% increased Movement Speed for each Poison on them","better":1,"matchers":[{"string":"每個中毒效果增加玩家 #% 移動速度"},{"string":"每個中毒效果減少玩家 #% 移動速度","negate":true,"superseded":true}],"trade":{"ids":{"enchant":["enchant.stat_453789911"]}}}
-{"ref":"Area contains a Bearers of the Guardian Bloodline Pack","better":0,"matchers":[{"string":"區域包含 1 個衛者之責血族群"}],"trade":{"ids":{"explicit":["explicit.stat_3387914367"]}}}
-{"ref":"Area contains a Voidspawn of Abaxoth Bloodline Pack","better":0,"matchers":[{"string":"區域包含 1 個阿巴薩斯之子血族群"}],"trade":{"ids":{"explicit":["explicit.stat_2978408106"]}}}
+{"ref":"Area contains a Bearers of the Guardian Bloodline Pack","better":0,"matchers":[{"string":"區域包含 1 個衛者之責血族群"},{"string":"區域包含 # 個衛者之責血族群","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_3387914367"]}}}
+{"ref":"Area contains a Voidspawn of Abaxoth Bloodline Pack","better":0,"matchers":[{"string":"區域包含 1 個阿巴薩斯之子血族群"},{"string":"區域包含 # 個阿巴薩斯之子血族群","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_2978408106"]}}}
 {"ref":"Players do not gain Experience","better":0,"matchers":[{"string":"玩家不會獲得經驗"}],"trade":{"ids":{"explicit":["explicit.stat_3781201833"]}}}
 {"ref":"Non-Unique Equipment found in Area drops as Currency instead","better":0,"matchers":[{"string":"此區域掉落的非傳奇裝備改為掉落通貨"}],"trade":{"ids":{"explicit":["explicit.stat_449526948"]}}}
 {"ref":"Monsters Fracture","better":0,"matchers":[{"string":"怪物分裂"}],"trade":{"ids":{"explicit":["explicit.stat_637101875"],"fractured":["fractured.stat_637101875"]}}}
@@ -10022,7 +10022,7 @@
 {"ref":"An additional Shaper Guardian Map drops on Completing your Maps (Tier 14+)","better":0,"matchers":[{"string":"完成你的地圖 (階級 14+) 時，掉落 1 個額外塑界者守護者地圖"}],"trade":{"ids":{"enchant":["enchant.stat_493747147"]}}}
 {"ref":"An additional Shaper Guardian Map drops on Completing Area (Tier 14+)","better":0,"matchers":[{"string":"完成區域 (階級 14+) 時，掉落 1 張額外塑界者守護者地圖"}],"trade":{"ids":{"enchant":["enchant.stat_493747147"]}}}
 {"ref":"An additional Map drops on Completing your Maps","better":0,"matchers":[{"string":"完成此你的地圖時額外掉落 1 張地圖"}],"trade":{"ids":{"enchant":["enchant.stat_696413077"]}}}
-{"ref":"An additional Map drops on Completing Area","better":0,"matchers":[{"string":"完成此區域額外掉落 1 張地圖"}],"trade":{"ids":{"enchant":["enchant.stat_696413077"]}}}
+{"ref":"An additional Map drops on Completing Area","better":0,"matchers":[{"string":"完成此區域額外掉落 1 張地圖"},{"string":"完成此區域額外掉落 # 張地圖","superseded":true}],"trade":{"ids":{"enchant":["enchant.stat_696413077"]}}}
 {"ref":"#% increased Pack Size in your Unidentified Maps","better":1,"matchers":[{"string":"增加 #% 你未鑑定地圖的怪物群大小"}],"trade":{"ids":{"enchant":["enchant.stat_2130041903"]}}}
 {"ref":"Area is inhabited by Bandits","better":0,"matchers":[{"string":"區域含有許多強盜"}],"trade":{"ids":{"explicit":["explicit.stat_643741006"]}}}
 {"ref":"Area is inhabited by Bone Husks","better":0,"matchers":[{"string":"區域含有許多削骨者"}],"trade":{"ids":{"explicit":["explicit.stat_2798324429"]}}}
@@ -10101,12 +10101,12 @@
 {"ref":"#% increased Rampage Streak Duration","better":1,"matchers":[{"string":"增加 #% 暴怒持續時間"},{"string":"減少 #% 暴怒持續時間","negate":true,"superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_1406039617"]}}}
 {"ref":"If this Area contains any Unique Monsters, one is Possessed","better":0,"matchers":[{"string":"若區域含有任何傳奇怪物，其中 1 個將會受到附身"}],"trade":{"ids":{"explicit":["explicit.stat_1945607273"]}}}
 {"ref":"Rare Monsters from Breaches have a #% chance to Drop a Breach Ring","better":1,"matchers":[{"string":"區域的稀有裂痕怪物有 #% 機率掉落裂痕戒指"}],"trade":{"ids":{"explicit":["explicit.stat_4157714333"]}}}
-{"ref":"Rare Breach Monsters drop an additional Splinter","better":0,"matchers":[{"string":"稀有裂痕怪物會額外掉落 1 個裂片"}],"trade":{"ids":{"explicit":["explicit.stat_3097206473"]}}}
+{"ref":"Rare Breach Monsters drop an additional Splinter","better":0,"matchers":[{"string":"稀有裂痕怪物會額外掉落 1 個裂片"},{"string":"稀有裂痕怪物會額外掉落 # 個裂片","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_3097206473"]}}}
 {"ref":"Rare Maps found in your Maps have #% chance to be Corrupted","better":1,"matchers":[{"string":"你地圖中發現的稀有地圖有 #% 機會為已汙染"}],"trade":{"ids":{"explicit":["explicit.stat_1293790340"]}}}
 {"ref":"Rare Monsters have Essence effects","better":0,"matchers":[{"string":"稀有怪物有精髓效果"}],"trade":{"ids":{"explicit":["explicit.stat_2220602676"]}}}
 {"ref":"Rare Monsters are Hindered, with #% reduced Movement Speed","better":1,"matchers":[{"string":"稀有怪受到阻礙，減少 #% 移動速度"},{"string":"稀有怪受到阻礙，增加 #% 移動速度","negate":true,"superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_3628993863"]}}}
 {"ref":"Rare Monsters have #% chance to drop a Rare Prismatic Ring","better":1,"matchers":[{"string":"稀有怪物有 #% 機率掉落 1 個稀有三相戒指"},{"string":"稀有怪物會掉落 1 個稀有三相戒指","value":100,"superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_3266549586"]}}}
-{"ref":"Rare Monsters drop an additional Rare Item","better":0,"matchers":[{"string":"稀有怪物額外掉落 1 個稀有物品"}],"trade":{"ids":{"explicit":["explicit.stat_3190223614"]}}}
+{"ref":"Rare Monsters drop an additional Rare Item","better":0,"matchers":[{"string":"稀有怪物額外掉落 1 個稀有物品"},{"string":"稀有怪物額外掉落 # 個稀有物品","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_3190223614"]}}}
 {"ref":"Rare Monsters have #% chance to spawn a Duplicate of Map Boss on Death","better":1,"matchers":[{"string":"稀有怪物死亡時有 #% 機率產生地圖頭目的複製體"}],"trade":{"ids":{"explicit":["explicit.stat_118849615"]}}}
 {"ref":"Rare and Unique Monsters remove #% of Life, Mana and Energy Shield from Players or their Minions on Hit","better":1,"matchers":[{"string":"稀有與傳奇怪物被擊中時，玩家和召喚物的生命、魔力和能量護盾減少 #%"}],"trade":{"ids":{"explicit":["explicit.stat_3270788481"],"fractured":["fractured.stat_3270788481"]}}}
 {"ref":"Rare and Unique monsters spawn a Tormented Spirit on reaching Low Life","better":0,"matchers":[{"string":"稀有與傳奇怪物貧血時產生 1 個罪魂"}],"trade":{"ids":{"explicit":["explicit.stat_1864874865"]}}}
@@ -10131,7 +10131,7 @@
 {"ref":"Rogue Exiles each have a Rogue Exile ally","better":0,"matchers":[{"string":"盜賊流亡者成對出現"}],"trade":{"ids":{"explicit":["explicit.stat_2653164718"]}}}
 {"ref":"Rogue Exiles deal #% increased Damage","better":1,"matchers":[{"string":"盜賊流亡者所造成傷害增加 #%"},{"string":"盜賊流亡者所造成傷害減少 #%","negate":true,"superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_1080855680"],"enchant":["enchant.stat_1080855680"]}}}
 {"ref":"Rogue Exiles drop # additional Basic Currency Items","better":1,"matchers":[{"string":"盜賊流亡者掉落 # 個額外基礎通貨"}],"trade":{"ids":{"explicit":["explicit.stat_600723636"]}}}
-{"ref":"Rogue Exiles drop an additional Jewel","better":0,"matchers":[{"string":"盜賊流亡者額外掉落 1 顆珠寶"}],"trade":{"ids":{"explicit":["explicit.stat_4143730600"],"enchant":["enchant.stat_4143730600"]}}}
+{"ref":"Rogue Exiles drop an additional Jewel","better":0,"matchers":[{"string":"盜賊流亡者額外掉落 1 顆珠寶"},{"string":"盜賊流亡者額外掉落 # 顆珠寶","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_4143730600"],"enchant":["enchant.stat_4143730600"]}}}
 {"ref":"Items dropped by Rogue Exiles are Corrupted","better":0,"matchers":[{"string":"盜賊流亡者所掉落的物品受到汙染"}],"trade":{"ids":{"explicit":["explicit.stat_663447087"]}}}
 {"ref":"Items dropped by Rogue Exiles are Mirrored","better":0,"matchers":[{"string":"盜賊流亡者所掉落的物品為已複製"}],"trade":{"ids":{"explicit":["explicit.stat_2047177714"]}}}
 {"ref":"Items dropped by Rogue Exiles are fully Linked","better":0,"matchers":[{"string":"盜賊流亡者所掉落的物品為最大連線"}],"trade":{"ids":{"explicit":["explicit.stat_898094766"]}}}
@@ -10153,7 +10153,7 @@
 {"ref":"#% increased chance for Strongboxes in your Maps to be Unique","better":1,"matchers":[{"string":"你地圖中的保險箱增加 #% 機率為傳奇"}],"trade":{"ids":{"explicit":["explicit.stat_2731689292"]}}}
 {"ref":"#% increased chance for Strongboxes in Area to be Unique","better":1,"matchers":[{"string":"區域內的保險箱增加 #% 機率為傳奇"},{"string":"區域內的保險箱減少 #% 機率為傳奇","negate":true,"superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_2731689292"]}}}
 {"ref":"Strongboxes in your Maps will each contain an additional random Rare Item","better":0,"matchers":[{"string":"你地圖中的每個保險箱含有 1 個額外隨機稀有道具"}],"trade":{"ids":{"explicit":["explicit.stat_3089506271"]}}}
-{"ref":"Strongboxes each contain an additional random Rare Item","better":0,"matchers":[{"string":"保險箱額外包含 1 個稀有物品"}],"trade":{"ids":{"explicit":["explicit.stat_3089506271"]}}}
+{"ref":"Strongboxes each contain an additional random Rare Item","better":0,"matchers":[{"string":"保險箱額外包含 1 個稀有物品"},{"string":"保險箱額外包含 # 個稀有物品","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_3089506271"]}}}
 {"ref":"Gems contained in Strongboxes in your Maps are Duplicated","better":0,"matchers":[{"string":"你地圖中來自保險箱的寶石為 2 倍"}],"trade":{"ids":{"explicit":["explicit.stat_1992708227"]}}}
 {"ref":"Strongboxes in Area have #% chance to contain an additional Vaal Orb","better":1,"matchers":[{"string":"保險箱有 #% 機率額外含有 1 顆瓦爾寶珠"}],"trade":{"ids":{"explicit":["explicit.stat_607308532"]}}}
 {"ref":"Sulphite Veins and Chests in your Maps have #% chance to be guarded by Sulphite-hoarding Monsters","better":1,"matchers":[{"string":"你地圖中的硫酸礦脈和保險箱有 #% 機率被硫酸堆積怪物守衛"}],"trade":{"ids":{"explicit":["explicit.stat_413137939"]}}}
@@ -10178,10 +10178,10 @@
 {"ref":"Monsters have #% chance to have a Volatile Core","better":1,"matchers":[{"string":"怪物有 #% 機率有核息"}],"trade":{"ids":{"explicit":["explicit.stat_4222719527"]}}}
 {"ref":"Legion Monsters in Area have a Volatile Core","better":0,"matchers":[{"string":"區域內的戰亂怪物有核息"}],"trade":{"ids":{"explicit":["explicit.stat_2416852492"]}}}
 {"ref":"Talismans found in this Area are Rare","better":0,"matchers":[{"string":"此區域尋獲的魔符為稀有魔符"}],"trade":{"ids":{"explicit":["explicit.stat_1401233515"]}}}
-{"ref":"Talismans found in this Area are 1 Tier higher","better":0,"matchers":[{"string":"此區域尋獲的魔符將會高 1 階級"}],"trade":{"ids":{"explicit":["explicit.stat_2800333900"]}}}
+{"ref":"Talismans found in this Area are 1 Tier higher","better":0,"matchers":[{"string":"此區域尋獲的魔符將會高 1 階級"},{"string":"此區域尋獲的魔符將會高 # 階級","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_2800333900"]}}}
 {"ref":"#% increased frequency of Tempest effects","better":1,"matchers":[{"string":"區域的風暴頻率增加 #%"},{"string":"區域的風暴頻率減少 #%","negate":true,"superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_478341845"]}}}
 {"ref":"Your Maps have +#% chance to be haunted by a Tormented Spirit","better":1,"matchers":[{"string":"你的地圖 #% 機率被罪魂糾纏"}],"trade":{"ids":{"explicit":["explicit.stat_2750973094"]}}}
-{"ref":"Tormented Spirits drop 1 additional Rare Item","better":0,"matchers":[{"string":"罪魂額外掉落 1 件物品"}],"trade":{"ids":{"explicit":["explicit.stat_4268822436"]}}}
+{"ref":"Tormented Spirits drop 1 additional Rare Item","better":0,"matchers":[{"string":"罪魂額外掉落 1 件物品"},{"string":"罪魂額外掉落 # 件物品","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_4268822436"]}}}
 {"ref":"Tormented Spirits can Possess Players for 20 seconds\nTormented Spirits cannot Possess Monsters","better":0,"matchers":[{"string":"罪魂可以附身玩家 20 秒\n罪魂不能附身怪物"}],"trade":{"ids":{"explicit":["explicit.stat_3249943883"]}}}
 {"ref":"#% chance for Exalted Orbs to drop as 3 Exalted Orbs instead in your Maps","better":1,"matchers":[{"string":"你地圖中的崇高石有 #% 機率改為掉落 3 顆崇高石"}],"trade":{"ids":{"explicit":["explicit.stat_1825047276"]}}}
 {"ref":"Players and their Minions deal no damage for 3 out of every 10 seconds","better":0,"matchers":[{"string":"每 10 秒玩家和其召喚物有 3 秒不會造成傷害"}],"trade":{"ids":{"explicit":["explicit.stat_2408625104"],"fractured":["fractured.stat_2408625104"]}}}
@@ -10197,9 +10197,9 @@
 {"ref":"Area has #% chance to contain Gifts of the Red Queen per Mortal Fragment used","better":1,"matchers":[{"string":"每個使用的凡人碎片，使區域有 #% 機率含有赤紅皇后之贈"}],"trade":{"ids":{"enchant":["enchant.stat_1076056376"]}}}
 {"ref":"Your Maps have a #% chance to contain Gifts of the Sacrificed per Sacrifice Fragment used","better":1,"matchers":[{"string":"每個使用的奉獻碎片，使你的地圖有 #% 機率含有奉獻之贈"}],"trade":{"ids":{"enchant":["enchant.stat_2649372092"]}}}
 {"ref":"Area has #% chance to contain Gifts of the Sacrificed per Sacrifice Fragment used","better":1,"matchers":[{"string":"每個使用的奉獻碎片，使區域有 #% 機率含有奉獻之贈"}],"trade":{"ids":{"enchant":["enchant.stat_2649372092"]}}}
-{"ref":"Warbands in the Area have an additional Elite Member","better":0,"matchers":[{"string":"此區域的軍團將會額外包含 1 位精英"}],"trade":{"ids":{"explicit":["explicit.stat_3628411738"]}}}
-{"ref":"Warbands in this Area have an additional Member","better":0,"matchers":[{"string":"此區域的軍團將會額外包含 1 位嘍囉"}],"trade":{"ids":{"explicit":["explicit.stat_4072582319"]}}}
-{"ref":"Warbands in the Area have an additional Support Member","better":0,"matchers":[{"string":"此區域的軍團將會額外包含 1 位輔助者"}],"trade":{"ids":{"explicit":["explicit.stat_1773553795"]}}}
+{"ref":"Warbands in the Area have an additional Elite Member","better":0,"matchers":[{"string":"此區域的軍團將會額外包含 1 位精英"},{"string":"此區域的軍團將會額外包含 # 位精英","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_3628411738"]}}}
+{"ref":"Warbands in this Area have an additional Member","better":0,"matchers":[{"string":"此區域的軍團將會額外包含 1 位嘍囉"},{"string":"此區域的軍團將會額外包含 # 位嘍囉","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_4072582319"]}}}
+{"ref":"Warbands in the Area have an additional Support Member","better":0,"matchers":[{"string":"此區域的軍團將會額外包含 1 位輔助者"},{"string":"此區域的軍團將會額外包含 # 位輔助者","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_1773553795"]}}}
 {"ref":"Your Maps contain # additional packs of Elder Fiends","better":1,"matchers":[{"string":"你的地圖中含 # 個額外異界尊師惡魔群"}],"trade":{"ids":{"explicit":["explicit.stat_2608186870"]}}}
 {"ref":"Area contains # additional packs of Elder Fiends","better":1,"matchers":[{"string":"區域內含 # 個額外異界尊師惡魔群"}],"trade":{"ids":{"explicit":["explicit.stat_2608186870"]}}}
 {"ref":"Your Maps contains # additional packs of Shaper Creations","better":1,"matchers":[{"string":"你的地圖含有 # 群額外塑界者創造物"}],"trade":{"ids":{"explicit":["explicit.stat_2528440851"]}}}
@@ -10232,7 +10232,7 @@
 {"ref":"This Map's Modifiers to Atlas Drops also apply to Item Rarity","better":0,"matchers":[{"string":"此地圖影響輿圖掉落加成的詞綴會同時套用至物品稀有度"}],"trade":{"ids":{"explicit":["explicit.stat_436556261"],"fractured":["fractured.stat_436556261"]}}}
 {"ref":"#% increased Movement Speed while Poisoned","better":1,"matchers":[{"string":"中毒時增加 #% 移動速度"},{"string":"中毒時減少 #% 移動速度","negate":true,"superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_3265807022"]}}}
 {"ref":"Non-Aura Vaal Skills require #% reduced Souls Per Use","better":1,"matchers":[{"string":"非光環瓦爾技能每次使用減少 #% 靈魂需求"},{"string":"非光環瓦爾技能每次使用增加 #% 靈魂需求","negate":true,"superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_3533432197"],"fractured":["fractured.stat_3533432197"]}}}
-{"ref":"Throw an additional Mine","better":0,"matchers":[{"string":"放置 1 個額外的地雷"}],"trade":{"ids":{"explicit":["explicit.stat_2395088636"]}}}
+{"ref":"Throw an additional Mine","better":0,"matchers":[{"string":"放置 1 個額外的地雷"},{"string":"放置 # 個額外的地雷","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_2395088636"]}}}
 {"ref":"#% increased Physical Damage with One Handed Melee Weapons","better":1,"matchers":[{"string":"持近戰單手武器時增加 #% 物理傷害"},{"string":"持近戰單手武器時減少 #% 物理傷害","negate":true,"superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_1334465904"],"fractured":["fractured.stat_1334465904"]}}}
 {"ref":"Your Warcries open Chests","better":0,"matchers":[{"string":"你的戰吼開啟保險箱"}],"trade":{"ids":{"explicit":["explicit.stat_3452963763"],"fractured":["fractured.stat_3452963763"]}}}
 {"ref":"Hits Overwhelm #% of Physical Damage Reduction while you have Sacrificial Zeal","better":1,"matchers":[{"string":"你有犧牲狂熱時，擊中鎮壓 #% 物理傷害減免"}],"trade":{"ids":{"explicit":["explicit.stat_1415418540"]}}}

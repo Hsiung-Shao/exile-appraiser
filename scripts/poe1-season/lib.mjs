@@ -1144,7 +1144,13 @@ export function planCondForms ({ enStats, zhStats, ggpkNew }) {
     const byText = new Map()
     for (const rows of groups.values()) for (const r of rows) if (textOf(r)) (byText.get(exactKey(textOf(r))) ?? byText.set(exactKey(textOf(r)), []).get(exactKey(textOf(r)))).push(r)
     const texts = new Set([...eachStat(stats)].flatMap(s => [...matcherExact(s)]))
-    const shapes = new Set([...texts].map(shape))
+    // 同形(只差數字)的既有寫法裡最多有幾個 #
+    const hashCount = (t) => t.split('#').length - 1
+    /** 同形寫法 → 擁有它的詞綴 ref → 其中最多的 # 數 */
+    const shapes = new Map()
+    const own = (sh, ref) => shapes.get(sh)?.get(ref) ?? -1
+    const note = (t, ref) => { const m = shapes.get(shape(t)) ?? shapes.set(shape(t), new Map()).get(shape(t)); m.set(ref, Math.max(m.get(ref) ?? 0, hashCount(t))) }
+    for (const s of eachStat(stats)) for (const t of matcherExact(s)) note(t, s.ref)
     const refs = refsByMatcher(stats)
     const idOf = statsByRef(enStats)
     for (const stat of eachStat(stats)) {
@@ -1189,8 +1195,10 @@ export function planCondForms ({ enStats, zhStats, ggpkNew }) {
               if ([...base.handlers, ...r.handlers].some(h => h[0] !== 'negate')) { reject('數值有換算,固定值對不準'); continue }
               value *= toRef
             }
-            if (shapes.has(shape(text))) { reject('與既有寫法同形'); continue }
-            shapes.add(shape(text))
+            // 既有同形寫法的 # 一樣多 → 多餘;既有的把數字寫死(繁中「區域含有 1 個保險箱」)而新句帶 # → 要補(否則英文解析得到、繁中解析不到)
+            // 別條詞綴有同形寫法 → 分不出是哪一條,照舊拒收
+            if ([...(shapes.get(shape(text))?.keys() ?? [])].some(ref => ref !== stat.ref) || own(shape(text), stat.ref) >= hashCount(text)) { reject('與既有寫法同形'); continue }
+            note(text, stat.ref)
             const negate = value === undefined && Boolean(m.negate) !== diff[0]
             adds.push({ lang, ref: stat.ref, matcher: { string: text, ...(negate ? { negate: true } : {}), ...(value !== undefined ? { value } : {}), superseded: true } })
           }
