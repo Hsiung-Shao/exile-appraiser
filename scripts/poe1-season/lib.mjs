@@ -432,7 +432,18 @@ export function planEffectStats ({ enStats, zhStats, tradeStats, skills, support
  * @returns {{ extra: Record<string, Record<string, string[]>>, rejects: any[] }}
  */
 export const TYPE_ID_GROUPS = ['explicit', 'implicit', 'fractured', 'crafted']
-export function planTypeIds ({ enStats, tradeStats, ggpkNew = /** @type {any[]} */ ([]) }) {
+/**
+ * 交易站同一類型、文字逐字相同的另一個 id(雜湊不同),實測有物品的才列在這裡 → 掛在既有 id 後面,查詢兩個都送。
+ * 依據:2026-11-20 在 Standard 逐一搜尋 86 個這種 id,只有這 18 個有結果(其餘 68 個 0 筆,不掛:多送一個條件沒有好處)。
+ * 新賽季交易站多出同文 id 時,先實際搜尋有結果再加進來。
+ */
+export const LIVE_TWIN_IDS = new Set([
+  'explicit.stat_389725673', 'explicit.stat_3665534869', 'explicit.stat_28550326', 'explicit.stat_3408601861', 'explicit.stat_1934713036',
+  'explicit.stat_165218607', 'explicit.stat_156080652', 'explicit.stat_3848992177', 'explicit.stat_3904501306', 'explicit.stat_1029319062',
+  'explicit.stat_2916634441', 'explicit.stat_1888494262', 'explicit.stat_335507772', 'explicit.stat_4082662318',
+  'implicit.stat_2902845638', 'implicit.stat_335507772', 'enchant.stat_865263728', 'enchant.stat_945725535'
+])
+export function planTypeIds ({ enStats, tradeStats, ggpkNew = /** @type {any[]} */ ([]), twins = LIVE_TWIN_IDS }) {
   const visceraTexts = new Set(ggpkNew.filter(r => r.key.split('|')[0].split(' ').some(id => /(^|_)viscera(_|$)/.test(id))).map(r => cmpKey(toMatcherText(r.en))))
   const used = new Set()
   const grouped = new Set()
@@ -446,7 +457,8 @@ export function planTypeIds ({ enStats, tradeStats, ggpkNew = /** @type {any[]} 
       if (!stat.matchers) continue
       if (row.stats) grouped.add(stat.ref)
       for (const id of allIds(stat)) used.add(id)
-      for (const id of allIds(stat)) (hashes.get(stat.ref) ?? hashes.set(stat.ref, new Set()).get(stat.ref)).add(hashOf(id))
+      // twins 的雜湊不算這條詞綴的 stat:否則下一輪會把同雜湊、沒實測過的其他類型 id 也帶進來
+      for (const id of allIds(stat)) if (!twins.has(id)) (hashes.get(stat.ref) ?? hashes.set(stat.ref, new Set()).get(stat.ref)).add(hashOf(id))
       for (const k of [cmpKey(stat.ref), ...liveOf(stat).map(m => cmpKey(m.string))]) {
         if (!refsByText.has(k)) refsByText.set(k, new Set())
         refsByText.get(k).add(stat.ref)
@@ -458,7 +470,7 @@ export function planTypeIds ({ enStats, tradeStats, ggpkNew = /** @type {any[]} 
   const rejects = []
   for (const e of tradeStats) {
     const type = typeOf(e.id)
-    if (!TYPE_ID_GROUPS.includes(type) || used.has(e.id)) continue
+    if (!(TYPE_ID_GROUPS.includes(type) || twins.has(e.id)) || used.has(e.id)) continue
     const refs = [...(refsByText.get(cmpKey(noLocal(e.text))) ?? [])]
     if (!refs.length) continue // 資料完全沒有這條詞綴(逐條比對的 C 類),不在這條規則的範圍
     const reject = (reason) => rejects.push({ reason, id: e.id, to: e.text, candidates: refs })
@@ -467,7 +479,7 @@ export function planTypeIds ({ enStats, tradeStats, ggpkNew = /** @type {any[]} 
     else if (grouped.has(refs[0])) reject('在合併群組裡')
     // 交易站會把同一句話給兩個不同的 stat(例:地圖的「#% more Monster Life」);只收與該詞綴既有 id 同一個雜湊的(= 同一個 stat 少掛了某個類型),
     // 雜湊不同就不確定是不是同一條,任何類型都不掛(審查 2026-11-15:只擋同類型會讓破裂 / 固定掛到另一個 stat)
-    else if (!hashes.get(refs[0])?.has(hashOf(e.id)) && !(type === 'implicit' && visceraTexts.has(cmpKey(noLocal(e.text))))) reject('與既有 id 不是同一個 stat')
+    else if (!twins.has(e.id) && !hashes.get(refs[0])?.has(hashOf(e.id)) && !(type === 'implicit' && visceraTexts.has(cmpKey(noLocal(e.text))))) reject('與既有 id 不是同一個 stat')
     else if (!((extra[refs[0]] ??= {})[type] ??= []).includes(e.id)) extra[refs[0]][type].push(e.id)
   }
   return { extra, rejects }

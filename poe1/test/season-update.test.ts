@@ -513,6 +513,40 @@ describe('planTypeIds(規則 16)', () => {
     expect(plan.extra).toEqual({ '#% increased Foo': { implicit: ['implicit.stat_1', 'implicit.stat_9'] } })
     expect(plan.rejects.map((r: any) => r.id)).toEqual(['explicit.stat_8', 'fractured.stat_8'])
   })
+
+  // twins = 與既有 id 文字相同、雜湊不同,但實測交易站有物品的 id
+  const reason = (plan: any, id: string) => plan.rejects.find((r: any) => r.id === id)?.reason
+  const twinsPlan = () => planTypeIds({ enStats: rows, tradeStats, twins: new Set(['explicit.stat_8']) })
+
+  it('B1 列在 twins 的同文 id 掛在既有 id 後面', () => {
+    const plan = twinsPlan()
+    expect(plan.extra['#% increased Foo'].explicit).toEqual(['explicit.stat_8'])
+    const out = parseRows(applyStatPlan(toFile(rows), 'en', { extra: plan.extra }))
+    expect(out[0].trade.ids.explicit).toEqual(['explicit.stat_1', 'explicit.stat_8'])
+    expect(plan.rejects.map((r: any) => r.id)).not.toContain('explicit.stat_8')
+  })
+
+  it('B2 沒列在 twins 的同文 id 照舊拒收', () => {
+    expect(reason(twinsPlan(), 'fractured.stat_8')).toBe('與既有 id 不是同一個 stat')
+  })
+
+  it('B3 列在 twins 的 enchant id 也掛上', () => {
+    const plan = planTypeIds({ enStats: rows, tradeStats, twins: new Set(['enchant.stat_1']) })
+    expect(plan.extra['#% increased Foo'].enchant).toEqual(['enchant.stat_1'])
+  })
+
+  it('B4 選項型、合併群組、同文多條即使列在 twins 也拒收', () => {
+    const ids = ['crafted.stat_3', 'explicit.stat_4|7', 'implicit.stat_5']
+    const plan = planTypeIds({ enStats: rows, tradeStats, twins: new Set(ids) })
+    expect(ids.map(id => reason(plan, id))).toEqual(['同文字的詞綴不只一條', '選項型 id', '在合併群組裡'])
+    expect(JSON.stringify(plan.extra)).not.toMatch(/crafted\.stat_3|explicit\.stat_4|implicit\.stat_5/)
+  })
+
+  it('B5 套用後再跑一次沒有新增', () => {
+    const twins = new Set(['explicit.stat_8'])
+    const out = parseRows(applyStatPlan(toFile(rows), 'en', { extra: twinsPlan().extra }))
+    expect(JSON.stringify(planTypeIds({ enStats: out, tradeStats, twins }).extra)).not.toContain('explicit.stat_8')
+  })
 })
 
 describe('planCitadel(規則 19)', () => {
