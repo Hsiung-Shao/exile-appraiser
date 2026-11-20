@@ -8,7 +8,7 @@
  *   沒引用 B  文字資料裡有,id 沒有
  *   沒引用 C  資料完全沒有
  *
- * 用法:node scripts/poe1-season/audit-trade-ids.mjs --stats <stats.json> [--report <out.md>]
+ * 用法:node scripts/poe1-season/audit-trade-ids.mjs [--stats <stats.json>] [--report <out.md>]
  *   <stats.json> = 先存下來的 /api/trade/data/stats 回應(要帶瀏覽器 User-Agent 才抓得到)
  */
 import fs from 'node:fs'
@@ -17,11 +17,11 @@ import { fileURLToPath } from 'node:url'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const arg = (name) => { const i = process.argv.indexOf(name); return i === -1 ? undefined : process.argv[i + 1] }
-const statsFile = arg('--stats')
-if (!statsFile) { console.error('缺 --stats <stats.json>'); process.exit(2) }
+// 省略 --stats = 版控裡的快照(poe1/test/trade-id-audit.test.ts 鎖的那一份;update.mjs --save-trade 存下來的 stats.json 原樣放進去)
+const statsFile = arg('--stats') ?? path.join(ROOT, 'poe1/test/docs/trade-stats-3.30.json')
 
 const norm = (s) => s.replace(/\s*\n\s*/g, '\n').replace(/[+-]?#/g, '#').replace(/ \(Local\)$/, '').toLowerCase().trim()
-const read = (lang) => fs.readFileSync(path.join(ROOT, 'data/poe1', lang, 'stats.ndjson'), 'utf8')
+export const read = (lang) => fs.readFileSync(path.join(ROOT, 'data/poe1', lang, 'stats.ndjson'), 'utf8')
   .split(/\r?\n/).filter(Boolean).map(l => JSON.parse(l)).flatMap(r => r.stats ?? [r])
 
 export function audit (trade, en, zh) {
