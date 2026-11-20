@@ -450,6 +450,5 @@
  "MiscMapItem|implicit|Players' Vaal Skills do not apply Soul Gain Prevention|query|zh": "no-row",
  "MiscMapItem|implicit|Unique Monsters drop Corrupted Items|query|en": "no-row",
  "MiscMapItem|implicit|Unique Monsters drop Corrupted Items|query|zh": "no-row",
- "Quiver|implicit|Arrows Pierce an additional Target|same": "中英查詢不同",
- "sample|3.30-issue-46.cmn-Hant.txt": "解析失敗 item.unknown"
+ "Quiver|implicit|Arrows Pierce an additional Target|same": "中英查詢不同"
 }

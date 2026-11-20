@@ -5654,3 +5654,5 @@
 {"name":"連結：秘能","refName":"Arcane Link","namespace":"GEM","gem":{"maxLevel":20}}
 {"name":"神聖視界","refName":"Hallowed Descry","namespace":"ITEM"}
 {"name":"淵井之軍","refName":"Chaplain of the Well","namespace":"MERCENARY_BUILD","icon":"","mercenaryBuild":{"skills":[]}}
+{"name":"Originator's Exalted Orb","refName":"Originator's Exalted Orb","namespace":"ITEM","tradeTag":"originators-exalted-orb","exchangeable":true,"icon":"https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvU2VjcmV0c29mdGhlQXRsYXMvT3JpZ2luYXRvcnNFeGFsdGVkT3JiIiwic2NhbGUiOjF9XQ/49732248b0/OriginatorsExaltedOrb.png"}
+{"name":"Primordial Exalted Orb","refName":"Primordial Exalted Orb","namespace":"ITEM","tradeTag":"primordial-exalted-orb","exchangeable":true,"icon":"https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvU3Ryb25naG9sZHMvUHJpbW9yZGlhbEV4YWx0ZWRPcmIiLCJzY2FsZSI6MX1d/e885112ad7/PrimordialExaltedOrb.png"}

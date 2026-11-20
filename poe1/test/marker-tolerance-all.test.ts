@@ -190,7 +190,8 @@ describe('(...) 標記容忍全量(cmn-Hant)', () => {
   })
 
   it('N2 資料沒有的英文名仍回 item.unknown', () => {
-    const r = parseClipboard(readDoc('3.30-issue-46.cmn-Hant.txt'))
+    // 主對話裁決(2026-11-20):#46 的通貨資料更新後已收進來,改用不存在的名稱
+    const r = parseClipboard(readDoc('3.30-issue-46.cmn-Hant.txt').replace("Originator's Exalted Orb", 'Nonexistent Test Orb'))
     expect(r.isErr()).toBe(true)
     if (r.isErr()) expect(r.error).toBe('item.unknown')
   })

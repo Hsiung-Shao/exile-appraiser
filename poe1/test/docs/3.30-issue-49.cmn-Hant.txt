@@ -1,0 +1,9 @@
+物品種類: 可堆疊通貨
+稀有度: 通貨
+Primordial Exalted Orb
+--------
+堆疊數量: 1 / 20
+--------
+A collection of unknown exotic Exalted Orbs
+--------
+Right click to reveal a random Exalted Orb.

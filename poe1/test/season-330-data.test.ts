@@ -430,6 +430,15 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(hit?.stat.trade.ids.enchant).toContain('enchant.stat_3599615742|65107')
   })
 
+  it.each([
+    ['46', "Originator's Exalted Orb", 'originators-exalted-orb'],
+    ['49', 'Primordial Exalted Orb', 'primordial-exalted-orb']
+  ])('D17wc GitHub issue #%s 的實機文字:繁中客戶端顯示英文名的新通貨 %s 解析得到', (n, refName, tradeTag) => {
+    const item = parse(fs.readFileSync(path.join(HERE, `docs/3.30-issue-${n}.cmn-Hant.txt`), 'utf8'))
+    expect(item.info.refName).toBe(refName)
+    expect(item.info.tradeTag).toBe(tradeTag)
+  })
+
   it('D17w GitHub issue #35 的實機文字:禁忌烈焰「配置 無端暴力」(3.30 改名,舊名免費暴力)解析得到、帶交易站 id', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-35.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
