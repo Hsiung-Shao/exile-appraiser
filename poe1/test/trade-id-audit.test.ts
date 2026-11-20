@@ -46,3 +46,30 @@ describe('交易站 id 逐條比對', () => {
     }
   })
 })
+
+describe('稽核的文字比對', () => {
+  // 一筆詞綴:ref 與唯一的英文 matcher 都是 text,繁中同 ref 有現行 matcher,ids 引用 id
+  const stat = (text: string, type: string, id: string) => ({
+    ref: text, matchers: [{ string: text }], trade: { ids: { [type]: [id] } },
+  })
+  const run = (tradeText: string, dataText: string, type: string, id: string) => {
+    const zh = { ref: dataText, matchers: [{ string: '繁中句' }], trade: { ids: {} } }
+    return (audit([{ id, text: tradeText }], [stat(dataText, type, id)], [zh]) as Array<{ verdict: string }>)[0].verdict
+  }
+
+  it.each([
+    ['+#% Chance to Block (Shields)', '+#% Chance to Block', 'explicit', 'explicit.stat_1'],
+    ['+#% Chance to Block Attack Damage while wielding a Staff (Staves)', '+#% Chance to Block Attack Damage while wielding a Staff', 'explicit', 'explicit.stat_2'],
+    ['#% increased Experience gain (Maps)', '#% increased Experience gain', 'explicit', 'explicit.stat_3'],
+    ['Multiple Projectiles (Tier 1)', 'Multiple Projectiles', 'mercenary', 'mercenary.support_1'],
+  ])('B5 交易站文字結尾的物品類別後綴視為同一句:%s', (tradeText, dataText, type, id) => {
+    expect(run(tradeText, dataText, type, id)).toBe('ok')
+  })
+
+  it.each([
+    ['Your Maps contain Ritual Altars', 'Areas contain Ritual Altars', 'explicit', 'explicit.stat_4'],
+    ['+#% Chance to Block (Legacy)', '+#% Chance to Block', 'explicit', 'explicit.stat_5'],
+  ])('B6 真的不同的句子仍是文字不符:%s', (tradeText, dataText, type, id) => {
+    expect(run(tradeText, dataText, type, id)).toBe('文字不符')
+  })
+})
