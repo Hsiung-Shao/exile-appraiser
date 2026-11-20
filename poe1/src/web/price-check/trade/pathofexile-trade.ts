@@ -884,6 +884,14 @@ async function dropIdsUnknownToRealm (ctx: TradeContext, body: TradeRequest): Pr
   const stats = body.query.stats.flatMap((g, i) => {
     const kept = g.filters.filter(f => ok(f.id))
     if (kept.length === g.filters.length) return [g]
+    // exile-appraiser: 併組的多 id 詞綴逐條處理:每條只拿掉台服沒有的 id;一個 id 都不剩的那條等於沒送(併組前它自成一組、整組拿掉),不算進 min
+    const parts = anyIdGroups.get(g)?.map(p => ({ ...p, filters: p.filters.filter(f => ok(f.id)) })).filter(p => p.filters.length)
+    if (parts) {
+      const next = parts.flatMap(p => p.filters)
+      dropped.push(...g.filters.filter(f => !next.includes(f)).map(f => f.id))
+      const on = parts.filter(p => !p.disabled).length
+      return next.length ? [{ ...g, value: { min: Math.max(1, on) }, disabled: on === 0, filters: next }] : []
+    }
     // 可以只拿掉一部分的:and / not(各條件獨立)與「count、只有 min 1」(同一條詞綴的新舊 id,任一成立)。
     // 其他帶數量的群組(count 有 max 或 min > 1、傭兵加權…)少了一個 id 語意就變了、甚至湊不到 min → 整組拿掉
     const partial = g.type === 'and' || g.type === 'not' ||
@@ -1048,17 +1056,28 @@ function appendAndFilter (
 ): void {
   if (stat.tradeId.length === 1) {
     defaultAndGroup.filters.push(tradeIdToQuery(stat.tradeId[0], stat))
+  } else if (!stat.tradeId.some(id => id.includes('.effect_'))) {
+    // 上游:每條多 id 詞綴各開一組
+    allGroups.push({
+      type: 'count',
+      value: { min: 1 },
+      disabled: stat.disabled,
+      filters: everyTradeIdToQuery(stat)
+    })
   } else {
-    // exile-appraiser: 多 id 詞綴(任一 id 成立)全部併成同一個 count 群組,min = 有勾的詞綴數(GitHub issue #48)。
-    // 上游每條各開一組;匿名查詢 3 條這種詞綴各一組就被交易站以 Query is too complex 拒絕,併成一組送得出去
-    // (2026-11-20 實測:兩條分開送與併組 min 2 都是 7172 筆)。前提:一件物品上同一條詞綴只會中其中一個 id。
+    // exile-appraiser: 帶 effect_ 新 id 的多 id 詞綴(同一條詞綴的新舊索引,任一 id 成立)併成同一個 count 群組,min = 有勾的詞綴數(GitHub issue #48)。
+    // 匿名查詢 3 條這種詞綴各一組就被交易站以 Query is too complex 拒絕,併成一組送得出去
+    // (2026-11-20 實測:兩條分開送與併組 min 2 都是 7172 筆)。前提:一件物品上同一條詞綴只會中其中一個 id
+    // —— 新舊索引成立;其他多 id(同文的另一個 stat、繁中同字的兩條詞綴、合併群組)可能兩個都中,照上游各自一組(審查 2026-11-20)。
     let group = allGroups.find(g => anyIdGroups.has(g))
     if (!group) {
       group = { type: 'count', value: { min: 1 }, disabled: true, filters: [] }
-      anyIdGroups.add(group)
+      anyIdGroups.set(group, [])
       allGroups.push(group)
     }
-    group.filters.push(...everyTradeIdToQuery(stat))
+    const filters = everyTradeIdToQuery(stat)
+    anyIdGroups.get(group)!.push({ disabled: stat.disabled, filters })
+    group.filters.push(...filters)
     if (!stat.disabled) {
       group.value!.min = group.disabled ? 1 : group.value!.min! + 1
       group.disabled = false
@@ -1066,7 +1085,8 @@ function appendAndFilter (
   }
 }
 
-const anyIdGroups = new WeakSet<TradeStatGroup>()
+/** 併組 → 每條詞綴各自的 filters(台服過濾 dropIdsUnknownToRealm 逐條處理用;靠物件身分,查詢物件不能在中途複製) */
+const anyIdGroups = new WeakMap<TradeStatGroup, Array<{ disabled: boolean, filters: TradeStatGroup['filters'] }>>()
 
 function everyTradeIdToQuery (stat: BareStatFilter) {
   return stat.tradeId.map(id => tradeIdToQuery(id, stat))
