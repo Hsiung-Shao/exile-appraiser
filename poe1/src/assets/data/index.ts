@@ -183,6 +183,7 @@ async function loadStats (language: string) {
     const statOrGroup = JSON.parse(ndjson.slice(start, end)) as StatOrGroup
     const stats = ('stats' in statOrGroup) ? statOrGroup.stats : [statOrGroup]
     if (!stats.some(stat =>
+      // exile-appraiser: 比對走 matcherHas(認得索引的 \0 鍵)
       stat.matchers.some(m => matcherHas(m, matchStr)))
     ) {
       // console.log('fnv1a32 collision')
@@ -198,6 +199,7 @@ async function loadStats (language: string) {
     let stat: Stat
     if ('stats' in statOrGroup) {
       const stats = statOrGroup.stats.filter(stat =>
+        // exile-appraiser: 比對走 matcherHas(認得索引的 \0 鍵)
         stat.matchers.some(m => matcherHas(m, matchStr)))
       if (stats.length !== 1) return undefined
       stat = stats[0]
@@ -205,6 +207,7 @@ async function loadStats (language: string) {
       stat = statOrGroup
     }
     const matcher = stat.matchers.find(m =>
+      // exile-appraiser: 比對走 matcherHas(認得索引的 \0 鍵)
       matcherHas(m, matchStr))!
     return { stat, matcher }
   }

@@ -1780,14 +1780,27 @@ function parseStatsFromMod (lines: string[], item: ParsedItem, modifier: ParsedM
   // 放在第二輪:第一輪已經用完整句子比過,這裡只碰本來會變成未解析的行,不會搶走多行詞綴的第一行。
   // 限制:資料裡只有一般列、沒有帶標記那一列的名稱,會認成一般列(以前是未解析)
   const MARKER = / ?\(\.\.\.\)/g
-  const left = run(lines)
-  const bare = left.map(line => line.replace(MARKER, ''))
-  const stillLeft = new Set(left.some((line, i) => line !== bare[i]) ? run(bare) : bare)
-
-  item.unknownModifiers.push(...left.filter((_, i) => stillLeft.has(bare[i])).map(line => ({
-    text: line,
-    type: modifier.info.type
-  })))
+  // 以「原本相鄰」的未解析行為一段(中間隔著已解析的行就分開,不把不相鄰的兩行湊成多行詞綴)
+  const segments: string[][] = []
+  let at = 0
+  let prev = -2
+  for (const line of run(lines)) {
+    const i = lines.indexOf(line, at)
+    if (i === prev + 1) segments[segments.length - 1].push(line)
+    else segments.push([line])
+    prev = i
+    at = i + 1
+  }
+  for (const seg of segments) {
+    const bare = seg.map(line => line.replace(MARKER, ''))
+    // 剩下的是 bare 的有序子序列,依序對回原文(未解析顯示帶標記的原文)
+    let j = 0
+    for (const rest of seg.some((line, i) => line !== bare[i]) ? run(bare) : bare) {
+      j = bare.indexOf(rest, j)
+      item.unknownModifiers.push({ text: seg[j], type: modifier.info.type })
+      j += 1
+    }
+  }
 }
 
 /**

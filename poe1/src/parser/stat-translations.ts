@@ -259,6 +259,7 @@ function findAndResolveTranslation (
 
   if (stat) {
     const matcher = stat.matchers.find(m =>
+      // exile-appraiser: 比對走 matcherHas(認得索引的 \0 鍵)
       matcherHas(m, matchStr))
     if (!matcher) return undefined
     return { stat, matcher }
@@ -287,6 +288,7 @@ export function _resolveTranslation (
   if (resolve.strat === 'trivial-merge') {
     const withMatchStr = (matchStr.length)
       ? onTradeStats.filter(stat =>
+          // exile-appraiser: 比對走 matcherHas(認得索引的 \0 鍵)
           stat.matchers.some(m => matcherHas(m, matchStr)))
       : onTradeStats
     if (!withMatchStr.length) return undefined
@@ -299,6 +301,7 @@ export function _resolveTranslation (
   } else if (resolve.strat === 'percent-merge') {
     const pctStat = stats[resolve.kind.indexOf('percent')]
     const matcher = pctStat.matchers.find(m =>
+      // exile-appraiser: 比對走 matcherHas(認得索引的 \0 鍵)
       matcherHas(m, matchStr))
     const roll100 = (matcher !== undefined && matcher.value === 100)
     if (roll100) {
@@ -308,11 +311,13 @@ export function _resolveTranslation (
       return pctStat
     }
     return stats.find(stat =>
+      // exile-appraiser: 比對走 matcherHas(認得索引的 \0 鍵)
       stat.matchers.some(m => matcherHas(m, matchStr)))
   } else if (resolve.strat === 'flag-merge') {
     // exile-appraiser: 句子裡沒有數字(繁中「箭矢穿透一個額外目標」)時 roll 是 undefined,
     // 改取命中那句 matcher 自帶的 value;上游直接放棄 → 整條變成無法辨識
     const rollOrFixed = roll ?? stats.flatMap(stat => stat.matchers)
+      // exile-appraiser: 比對走 matcherHas(認得索引的 \0 鍵)
       .find(m => (matcherHas(m, matchStr)) && m.value !== undefined)?.value
     if (rollOrFixed === undefined) return undefined
     const valStat = stats[resolve.kind.indexOf('value')]
