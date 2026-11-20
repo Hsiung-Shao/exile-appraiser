@@ -29,6 +29,15 @@ export let ITEMS_ITERATOR: (includes: string, andIncludes?: string[]) => Generat
 export let ALTQ_GEM_NAMES: () => Generator<string> = function * () {}
 export let REPLICA_UNIQUE_NAMES: () => Generator<string> = function * () {}
 
+// exile-appraiser: 名稱標記 = 括號內沒有 # 的片段(舊的具名括號、3.30 的「(...)」),連同前面一個空白去掉;
+// 與 scripts/make-index-files.mjs 的同名函式逐字相同
+export const stripNameMarkers = (s: string): string => s.replace(/ ?\([^)#]*\)/g, '')
+/** `s` 以 \0 開頭 = 去掉標記後的句子,只比帶標記的進階寫法(索引的 \0 鍵)。 */
+export function matcherHas (m: StatMatcher, s: string): boolean {
+  if (s[0] !== '\0') return m.string === s || m.advanced === s
+  return m.advanced !== undefined && m.advanced !== s.slice(1) && stripNameMarkers(m.advanced) === s.slice(1)
+}
+
 export let STAT_BY_MATCH_STR: (name: string) => { matcher: StatMatcher, stat: Stat } | undefined = () => undefined
 export let STAT_BY_MATCH_STR_V2: (name: string) => StatOrGroup | undefined = () => undefined
 export let STAT_BY_REF_V2: (name: string) => StatOrGroup | undefined = () => undefined
@@ -174,7 +183,7 @@ async function loadStats (language: string) {
     const statOrGroup = JSON.parse(ndjson.slice(start, end)) as StatOrGroup
     const stats = ('stats' in statOrGroup) ? statOrGroup.stats : [statOrGroup]
     if (!stats.some(stat =>
-      stat.matchers.some(m => m.string === matchStr || m.advanced === matchStr))
+      stat.matchers.some(m => matcherHas(m, matchStr)))
     ) {
       // console.log('fnv1a32 collision')
       return undefined
@@ -189,14 +198,14 @@ async function loadStats (language: string) {
     let stat: Stat
     if ('stats' in statOrGroup) {
       const stats = statOrGroup.stats.filter(stat =>
-        stat.matchers.some(m => m.string === matchStr || m.advanced === matchStr))
+        stat.matchers.some(m => matcherHas(m, matchStr)))
       if (stats.length !== 1) return undefined
       stat = stats[0]
     } else {
       stat = statOrGroup
     }
     const matcher = stat.matchers.find(m =>
-      m.string === matchStr || m.advanced === matchStr)!
+      matcherHas(m, matchStr))!
     return { stat, matcher }
   }
 

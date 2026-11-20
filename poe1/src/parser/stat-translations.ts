@@ -1,4 +1,4 @@
-import { CLIENT_STRINGS as _$, STAT_BY_MATCH_STR_V2 } from '@/assets/data'
+import { CLIENT_STRINGS as _$, STAT_BY_MATCH_STR_V2, matcherHas } from '@/assets/data'
 import type { StatMatcher, Stat, StatGroup } from '@/assets/data'
 import type { ModifierType } from './modifiers'
 import { type ItemCategory, ARMOUR, WEAPON, HEIST_EQUIPMENT } from './meta'
@@ -221,14 +221,11 @@ export function tryParseTranslation (
   }
 
   // exile-appraiser: 3.30 進階複製在帶入的名稱後加不帶資訊的「(...)」,位置與前面有沒有空白各句不同;
-  // 逐字比對不到時去掉它再比一次(資料端 make-index-files 讓這類寫法的無標記句也進索引)
-  const bare = stat.string.replace(/ ?\(\.\.\.\)/g, '')
-  if (bare === stat.string) return undefined
-  // 只接受「進階寫法本來就帶標記」的那條:去掉標記後剛好等於別條詞綴的句子不算
-  // (「全部 召喚幽魂 寶石等級」的一般詞綴、兩行的「數量加倍」被第一行搶走)
-  const found = tryParseTranslation({ ...stat, string: bare }, modType, itemCategory)
-  // 同一句常有兩個 matcher(被取代的無標記句 + 帶標記的進階寫法),所以看同字串的任一個
-  return found?.stat.matchers.some(m => m.string === found.translation.string && m.advanced?.includes('(...)')) ? found : undefined
+  // 逐字比對不到時去掉它,改查索引的 \0 鍵(make-index-files:進階寫法帶名稱標記的句子,標記是舊具名括號的也算)。
+  // \0 鍵只指到帶標記的列,去掉標記後剛好等於別條詞綴的句子不會被搶走
+  // (「全部 召喚幽魂 寶石等級」的一般詞綴、英文「Supported by Level # Efficacy」的固定輔助)
+  if (stat.string[0] === '\0' || !stat.string.includes('(...)')) return undefined
+  return tryParseTranslation({ ...stat, string: '\0' + stat.string.replace(/ ?\(\.\.\.\)/g, '') }, modType, itemCategory)
 }
 
 export function getRollOrMinmaxAvg (values: number[]): number {
@@ -262,7 +259,7 @@ function findAndResolveTranslation (
 
   if (stat) {
     const matcher = stat.matchers.find(m =>
-      m.string === matchStr || m.advanced === matchStr)
+      matcherHas(m, matchStr))
     if (!matcher) return undefined
     return { stat, matcher }
   }
@@ -290,7 +287,7 @@ export function _resolveTranslation (
   if (resolve.strat === 'trivial-merge') {
     const withMatchStr = (matchStr.length)
       ? onTradeStats.filter(stat =>
-          stat.matchers.some(m => m.string === matchStr || m.advanced === matchStr))
+          stat.matchers.some(m => matcherHas(m, matchStr)))
       : onTradeStats
     if (!withMatchStr.length) return undefined
     const merged = withMatchStr[0]
@@ -302,7 +299,7 @@ export function _resolveTranslation (
   } else if (resolve.strat === 'percent-merge') {
     const pctStat = stats[resolve.kind.indexOf('percent')]
     const matcher = pctStat.matchers.find(m =>
-      m.string === matchStr || m.advanced === matchStr)
+      matcherHas(m, matchStr))
     const roll100 = (matcher !== undefined && matcher.value === 100)
     if (roll100) {
       const otherStat = stats[resolve.kind.indexOf('value')]
@@ -311,12 +308,12 @@ export function _resolveTranslation (
       return pctStat
     }
     return stats.find(stat =>
-      stat.matchers.some(m => m.string === matchStr || m.advanced === matchStr))
+      stat.matchers.some(m => matcherHas(m, matchStr)))
   } else if (resolve.strat === 'flag-merge') {
     // exile-appraiser: 句子裡沒有數字(繁中「箭矢穿透一個額外目標」)時 roll 是 undefined,
     // 改取命中那句 matcher 自帶的 value;上游直接放棄 → 整條變成無法辨識
     const rollOrFixed = roll ?? stats.flatMap(stat => stat.matchers)
-      .find(m => (m.string === matchStr || m.advanced === matchStr) && m.value !== undefined)?.value
+      .find(m => (matcherHas(m, matchStr)) && m.value !== undefined)?.value
     if (rollOrFixed === undefined) return undefined
     const valStat = stats[resolve.kind.indexOf('value')]
     const flagStat = stats[resolve.kind.indexOf('flag')]

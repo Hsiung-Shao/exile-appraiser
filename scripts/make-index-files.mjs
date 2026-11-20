@@ -11,6 +11,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 //   node scripts/make-index-files.mjs --game poe2  → data/poe2(ee2-patched 的索引演算法,見 makePoe2IndexFiles)
 const LANGUAGES = ['en', 'cmn-Hant']
 
+/** 去掉名稱標記(括號內沒有 #)與它前面的一個空白;與 poe1/src/assets/data/index.ts 的同名函式逐字相同。 @param {string} s */
+const stripNameMarkers = (s) => s.replace(/ ?\([^)#]*\)/g, '')
+
 /** @param {'poe1' | 'poe2'} game */
 export function makeIndexFiles (game = 'poe1') {
   if (game === 'poe2') return makePoe2IndexFiles(path.resolve(__dirname, '../data/poe2'))
@@ -31,7 +34,7 @@ function makePoe1IndexFiles (DATA_DIR) {
     {
       const ndjson = fs.readFileSync(path.join(DATA_DIR, `${lang}/stats.ndjson`), { encoding: 'utf-8' })
       /** @type{Array<{ hash: number, start: number }>} */
-      const bare = []
+      const plain = []
       let start = 0
       while (start !== ndjson.length) {
         const end = ndjson.indexOf('\n', start)
@@ -43,8 +46,12 @@ function makePoe1IndexFiles (DATA_DIR) {
           for (const matcher of stat.matchers) {
             if (matcher.advanced) {
               lineStarts.matchers.push({ start, hash: Number(fnv1a(matcher.advanced, { size: 32 })) })
-              // 進階寫法帶「(...)」的句子,無標記句也進索引(解析器去掉標記後重比);已被別列佔用的句子不搶
-              if (matcher.advanced.includes('(...)')) bare.push({ start, hash: Number(fnv1a(matcher.string, { size: 32 })) })
+              // 進階寫法帶名稱標記(舊的具名括號或 3.30 的「(...)」)的句子,另以「\0 + 去掉標記的句子」進索引:
+              // 實機標記的寫法與位置各句不同,解析器去掉「(...)」後用這個鍵查;\0 開頭不與一般句子互搶
+              const bare = stripNameMarkers(matcher.advanced)
+              if (bare !== matcher.advanced && !('mercenary' in stat)) lineStarts.matchers.push({ start, hash: Number(fnv1a('\0' + bare, { size: 32 })) })
+              // 進階寫法帶「(...)」的句子,實機也有完全不帶標記的(未鑑定地圖的壁壘)→ 無標記句也進索引;已被別列佔用的句子不搶
+              if (matcher.advanced.includes('(...)')) plain.push({ start, hash: Number(fnv1a(matcher.string, { size: 32 })) })
             } else {
               lineStarts.matchers.push({ start, hash: Number(fnv1a(matcher.string, { size: 32 })) })
             }
@@ -53,7 +60,7 @@ function makePoe1IndexFiles (DATA_DIR) {
         start = (end + 1)
       }
       const taken = new Set(lineStarts.matchers.map(m => m.hash))
-      for (const m of bare) if (!taken.has(m.hash)) { taken.add(m.hash); lineStarts.matchers.push(m) }
+      for (const m of plain) if (!taken.has(m.hash)) { taken.add(m.hash); lineStarts.matchers.push(m) }
     }
 
     {

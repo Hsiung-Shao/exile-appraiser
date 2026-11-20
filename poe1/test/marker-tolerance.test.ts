@@ -92,10 +92,12 @@ describe('(...) 標記容忍(en)', () => {
     expect(item.statsByType.map(s => s.stat.trade.ids.explicit)).toEqual([["explicit.stat_56473917|1"]])
   })
 
-  it("R2 標記位置對不上隨機技能寶石時,不改配成一般的「全部 X 寶石等級」", () => {
+  // 2026-11-20 使用者裁定容錯放寬:標記位置不同也認,但要認成帶標記的那一列(原本斷言留在未解析)
+  it("R2 標記位置不同時配到隨機技能寶石,不改配成一般的「全部 X 寶石等級」", () => {
     const item = parse(ringText(["+1 to Level of all Raise Spectre Gems(...)"]))
     expect(item.statsByType.flatMap(s => s.stat.trade.ids.explicit ?? [])).not.toContain("explicit.stat_3235814433")
-    expect(item.unknownModifiers.map(u => u.text)).toEqual(["+1 to Level of all Raise Spectre Gems(...)"])
+    expect(item.unknownModifiers.map(u => u.text)).toEqual([])
+    expect(item.statsByType.map(s => s.stat.ref)).toEqual(["+# to Level of all Raise Spectre Gems (Random Skill Gem)"])
   })
 })
 

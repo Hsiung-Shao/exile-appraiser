@@ -285,27 +285,32 @@ function normalizeName (item: ParserState) {
 }
 
 function findInDatabase (item: ParserState) {
+  // exile-appraiser: 遊戲還沒翻譯的物品,繁中客戶端直接顯示英文名 → 繁中名找不到時改查英文名(同一份資料的 refName 索引)
+  const byName = (ns: BaseType['namespace'], name: string): BaseType[] | undefined => {
+    const found = ITEM_BY_TRANSLATED(ns, name)
+    return found?.length ? found : ITEM_BY_REF(ns, name)
+  }
   let info: BaseType[] | undefined
   if (item.category === ItemCategory.DivinationCard) {
-    info = ITEM_BY_TRANSLATED('DIVINATION_CARD', item.name)
+    info = byName('DIVINATION_CARD', item.name)
   } else if (item.category === ItemCategory.CapturedBeast) {
-    info = ITEM_BY_TRANSLATED('CAPTURED_BEAST', item.baseType ?? item.name)
+    info = byName('CAPTURED_BEAST', item.baseType ?? item.name)
   } else if (item.category === ItemCategory.Gem) {
-    info = ITEM_BY_TRANSLATED('GEM', item.name)
+    info = byName('GEM', item.name)
   } else if (item.category === ItemCategory.MetamorphSample) {
-    info = ITEM_BY_TRANSLATED('ITEM', item.name)
+    info = byName('ITEM', item.name)
   } else if (item.category === ItemCategory.Voidstone) {
     info = ITEM_BY_REF('ITEM', 'Charged Compass')
   } else if (item.rarity === ItemRarity.Unique && !item.isUnidentified) {
-    info = ITEM_BY_TRANSLATED('UNIQUE', item.name)
+    info = byName('UNIQUE', item.name)
   } else {
-    info = ITEM_BY_TRANSLATED('ITEM', item.baseType ?? item.name)
+    info = byName('ITEM', item.baseType ?? item.name)
   }
   if (!info?.length) {
     return err('item.unknown')
   }
   if (info[0].unique) {
-    const baseTypes = ITEM_BY_TRANSLATED('ITEM', item.baseType!)
+    const baseTypes = byName('ITEM', item.baseType!)
     if (!baseTypes?.length) return err('item.unknown')
 
     // 上游只看 `baseTypes[0].refName`,但**一個顯示名可以對到多個英文底材**:
@@ -1756,19 +1761,30 @@ function parseStatsFromMod (lines: string[], item: ParsedItem, modifier: ParsedM
     return
   }
 
-  const statIterator = linesToStatStrings(lines)
-  let stat = statIterator.next()
-  while (!stat.done) {
-    const parsedStat = tryParseTranslation(stat.value, modifier.info.type, item.category)
-    if (parsedStat) {
-      modifier.stats.push(parsedStat)
-      stat = statIterator.next(true)
-    } else {
-      stat = statIterator.next(false)
+  const run = (lines: string[]): string[] => {
+    const statIterator = linesToStatStrings(lines)
+    let stat = statIterator.next()
+    while (!stat.done) {
+      const parsedStat = tryParseTranslation(stat.value, modifier.info.type, item.category)
+      if (parsedStat) {
+        modifier.stats.push(parsedStat)
+        stat = statIterator.next(true)
+      } else {
+        stat = statIterator.next(false)
+      }
     }
+    return stat.value
   }
 
-  item.unknownModifiers.push(...stat.value.map(line => ({
+  // exile-appraiser: 第一輪認不出的行,去掉 3.30 的「(...)」再比一次(2026-11-20 使用者裁定:全部詞綴都容錯)。
+  // 放在第二輪:第一輪已經用完整句子比過,這裡只碰本來會變成未解析的行,不會搶走多行詞綴的第一行。
+  // 限制:資料裡只有一般列、沒有帶標記那一列的名稱,會認成一般列(以前是未解析)
+  const MARKER = / ?\(\.\.\.\)/g
+  const left = run(lines)
+  const bare = left.map(line => line.replace(MARKER, ''))
+  const stillLeft = new Set(left.some((line, i) => line !== bare[i]) ? run(bare) : bare)
+
+  item.unknownModifiers.push(...left.filter((_, i) => stillLeft.has(bare[i])).map(line => ({
     text: line,
     type: modifier.info.type
   })))
