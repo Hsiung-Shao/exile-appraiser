@@ -545,7 +545,19 @@ describe('planTypeIds(規則 16)', () => {
   it('B5 套用後再跑一次沒有新增', () => {
     const twins = new Set(['explicit.stat_8'])
     const out = parseRows(applyStatPlan(toFile(rows), 'en', { extra: twinsPlan().extra }))
-    expect(JSON.stringify(planTypeIds({ enStats: out, tradeStats, twins }).extra)).not.toContain('explicit.stat_8')
+    // 審查修正(2026-11-20):twins 的雜湊不能把同雜湊的其他類型 id 帶進來 → 整個 extra 要是空的
+    const again = planTypeIds({ enStats: out, tradeStats, twins })
+    expect(again.extra).toEqual({})
+    expect(again.rejects.map((r: any) => r.id)).toContain('fractured.stat_8')
+  })
+
+  it('B6 twins 只對得到被取代的舊寫法也掛上;完全對不到要列入拒收', () => {
+    const old = [stat('Old Form (Tag)', [{ string: 'Old Form #', superseded: true }, { string: 'New Form #' }])]
+    const trade = [{ id: 'explicit.stat_50', text: 'Old Form #' }, { id: 'explicit.stat_51', text: 'Nowhere #' }]
+    const plan = planTypeIds({ enStats: old, tradeStats: trade, twins: new Set(['explicit.stat_50', 'explicit.stat_51']) })
+    expect(plan.extra).toEqual({ 'Old Form (Tag)': { explicit: ['explicit.stat_50'] } })
+    expect(plan.rejects.map((r: any) => [r.id, r.reason])).toEqual([['explicit.stat_51', 'twins 找不到同文字的詞綴']])
+    expect(planTypeIds({ enStats: old, tradeStats: trade, twins: new Set() }).extra).toEqual({})
   })
 })
 

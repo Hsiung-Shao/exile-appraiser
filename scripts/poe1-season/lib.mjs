@@ -452,6 +452,8 @@ export function planTypeIds ({ enStats, tradeStats, ggpkNew = /** @type {any[]} 
   const hashes = new Map()
   /** @type {Map<string, Set<string>>} */
   const refsByText = new Map()
+  /** @type {Map<string, Set<string>>} */
+  const refsByOldText = new Map()
   for (const row of enStats) {
     for (const stat of row.stats ?? [row]) {
       if (!stat.matchers) continue
@@ -463,6 +465,8 @@ export function planTypeIds ({ enStats, tradeStats, ggpkNew = /** @type {any[]} 
         if (!refsByText.has(k)) refsByText.set(k, new Set())
         refsByText.get(k).add(stat.ref)
       }
+      // twins 另外認被取代的舊寫法(交易站文字常停在舊句:「… Supported by Level # Predator」)
+      for (const m of stat.matchers) if (m.superseded) (refsByOldText.get(cmpKey(m.string)) ?? refsByOldText.set(cmpKey(m.string), new Set()).get(cmpKey(m.string))).add(stat.ref)
     }
   }
   /** @type {Record<string, Record<string, string[]>>} */
@@ -471,8 +475,13 @@ export function planTypeIds ({ enStats, tradeStats, ggpkNew = /** @type {any[]} 
   for (const e of tradeStats) {
     const type = typeOf(e.id)
     if (!(TYPE_ID_GROUPS.includes(type) || twins.has(e.id)) || used.has(e.id)) continue
-    const refs = [...(refsByText.get(cmpKey(noLocal(e.text))) ?? [])]
-    if (!refs.length) continue // 資料完全沒有這條詞綴(逐條比對的 C 類),不在這條規則的範圍
+    const key = cmpKey(noLocal(e.text))
+    const refs = [...(refsByText.get(key) ?? (twins.has(e.id) ? refsByOldText.get(key) : undefined) ?? [])]
+    if (!refs.length) {
+      // 資料完全沒有這條詞綴(逐條比對的 C 類),不在這條規則的範圍;列名的 twins 對不到要報出來
+      if (twins.has(e.id)) rejects.push({ reason: 'twins 找不到同文字的詞綴', id: e.id, to: e.text, candidates: [] })
+      continue
+    }
     const reject = (reason) => rejects.push({ reason, id: e.id, to: e.text, candidates: refs })
     if (refs.length > 1) reject('同文字的詞綴不只一條')
     else if (e.id.includes('|')) reject('選項型 id')
