@@ -1781,6 +1781,7 @@ function parseStatsFromMod (lines: string[], item: ParsedItem, modifier: ParsedM
   // 限制:資料裡只有一般列、沒有帶標記那一列的名稱,會認成一般列(以前是未解析)
   const MARKER = / ?\(\.\.\.\)/g
   // 以「原本相鄰」的未解析行為一段(中間隔著已解析的行就分開,不把不相鄰的兩行湊成多行詞綴)
+  // shortcut: 以 indexOf 反推位置,同一條詞綴裡同一行原文出現兩次時可能判錯相鄰;遇到這種樣本再讓 linesToStatStrings 回傳索引
   const segments: string[][] = []
   let at = 0
   let prev = -2
