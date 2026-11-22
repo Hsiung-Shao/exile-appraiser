@@ -43,7 +43,8 @@ describe('GitHub issue #62 / #63', () => {
   it('#63 實機契約書:預設不提醒;只勾一個技能 + 一個輔助不提醒;勾兩個技能(各帶輔助)後提醒', () => {
     const preset = presetOf('63')
     expect(queryComplexity(createTradeRequest(preset.filters, preset.stats).query)).toBeNull()
-    const one = preset.stats.find((s): s is FilterGroup => s.group === 'mercenary')!
+    // 挑輔助最多的群組(煉獄之擊):沒勾的輔助若被算進去就會超過 4
+    const one = preset.stats.filter((s): s is FilterGroup => s.group === 'mercenary').sort((x, y) => y.stats.length - x.stats.length)[0]
     one.meta.disabled = false
     one.stats.find(s => s.tradeId[0].startsWith('mercenary.support_'))!.disabled = false
     expect(queryComplexity(createTradeRequest(preset.filters, preset.stats).query)).toBeNull()
