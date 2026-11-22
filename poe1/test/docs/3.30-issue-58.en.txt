@@ -1,0 +1,40 @@
+Item Class: Daggers
+Rarity: Unique
+Goredrill
+Skinning Knife
+--------
+Dagger
+Physical Damage: 10-32 (augmented)
+Critical Strike Chance: 10.40% (augmented)
+Attacks per Second: 1.45
+Weapon Range: 1 metre
+--------
+Requirements:
+Level: 5
+Dex: 16
+--------
+Sockets: B-G W 
+--------
+Item Level: 83
+--------
+{ Implicit Modifier — Critical }
+45(40-45)% increased Global Critical Strike Chance
+--------
+{ Unique Modifier — Damage, Physical, Attack }
+62(50-70)% increased Physical Damage
+{ Unique Modifier — Damage, Physical, Attack }
+Adds 2(1-2) to 3(3-5) Physical Damage
+{ Unique Modifier — Physical, Attack, Ailment }
+50% chance to cause Bleeding on Critical Strike — Unscalable Value
+(Bleeding deals Physical Damage over time, based on the base Physical Damage of the Skill. Damage is 200% higher while moving)
+{ Unique Modifier — Attribute }
++11(10-15) to Dexterity
+{ Unique Modifier — Attack, Critical }
+30% increased Critical Strike Chance
+{ Unique Modifier — Damage, Attack }
+40% increased Attack Damage against Bleeding Enemies
+--------
+A tap on the shoulder
+A peck on the cheek
+A sip of your wine
+So red and so sleek

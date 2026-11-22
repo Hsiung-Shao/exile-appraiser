@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toMatcherText, planStatText, planTradeText, planOtherTradeTexts, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planRandomSkillGem, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, planRoomNames, planCitadel, planExtraZh, planZhForms, planCondForms, planMercenaryBuilds, planNamedSlots, planMercenarySkills, EXTRA_ZH_MATCHERS, planGrownPassives, planPassiveRenames, planForbiddenNotables, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
+import { toMatcherText, planStatText, planTradeText, planOtherTradeTexts, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planRandomSkillGem, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, planRoomNames, planCitadel, planExtraZh, planZhForms, planCondForms, planMercenaryBuilds, planNamedSlots, planTimelessJewels, planFixedCase, planMercenarySkills, EXTRA_ZH_MATCHERS, planGrownPassives, planPassiveRenames, planForbiddenNotables, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
 
 /**
  * 賽季更新腳本的純函式測試(合成輸入,不讀 data/)。
@@ -1449,5 +1449,38 @@ describe('planOtherTradeTexts(規則 27:交易站同一個 id 的另一句資料
     const en = parseRows(applyStatPlan(toFile(enStats), 'en', plan))
     const zh = parseRows(applyStatPlan(toFile(zhStats), 'cmn-Hant', plan))
     expect(planOtherTradeTexts({ enStats: en, zhStats: zh, tradeStats, ggpkNew }).adds).toEqual([])
+  })
+})
+
+describe('planTimelessJewels(規則 28:永恆珠寶征服者名取 GGPK 表)', () => {
+  const ggpkNew = [{
+    key: 'local_unique_jewel_alternate_tree_version local_unique_jewel_alternate_tree_seed local_unique_jewel_alternate_tree_keystone local_unique_jewel_alternate_tree_internal_revision|2 # # #|stat_descriptions.txt|0',
+    en: 'Commanded leadership over {1} warriors under {2}\nPassives in radius are Conquered by the {0}',
+    zh: '{2}指揮領導超過{1}名戰士\n範圍內的天賦臣服於{0}'
+  }]
+  const old = { string: '艾古亞指揮領導超過 # 戰士\n範圍內的天賦臣服於卡魯', advanced: '艾古亞指揮領導超過 # 戰士(艾古亞-萊基亞塔)\n範圍內的天賦臣服於卡魯' }
+  const zh = () => [stat('Commanded leadership over # warriors under Akoya', [old])]
+
+  it('句型多一個「名」、名稱取征服者表,進階句在名稱後加「(...)」,舊句被取代', () => {
+    const p = planTimelessJewels({ zhStats: zh(), ggpkNew, conquerors: [{ en: 'Akoya', zh: '艾古亞' }] })
+    expect(p.adds).toEqual([{ lang: 'cmn-Hant', ref: 'Commanded leadership over # warriors under Akoya', matcher: { string: '艾古亞指揮領導超過#名戰士\n範圍內的天賦臣服於卡魯', advanced: '艾古亞(...)指揮領導超過#名戰士\n範圍內的天賦臣服於卡魯' }, supersedes: [old.string] }])
+  })
+
+  it('征服者表沒有這個名字 → 拒收、不改', () => {
+    const p = planTimelessJewels({ zhStats: zh(), ggpkNew, conquerors: [] })
+    expect(p.adds).toEqual([])
+    expect(p.rejects).toHaveLength(1)
+  })
+})
+
+describe('planFixedCase(規則 29:寫死數值的句子只差大小寫)', () => {
+  const ggpkNew = [{ key: 'local_chance_to_bleed_on_crit_50%|#|stat_descriptions.txt|0', en: '50% chance to cause Bleeding on Critical Strike', zh: '暴擊時有 50% 機率造成流血' }]
+  it('只差大小寫 → 補帶 value 的寫法、標 superseded', () => {
+    const en = [stat('#% chance to Cause Bleeding on Critical Strike', [{ string: '#% chance to Cause Bleeding on Critical Strike' }])]
+    expect(planFixedCase({ enStats: en, ggpkNew }).adds).toEqual([{ lang: 'en', ref: '#% chance to Cause Bleeding on Critical Strike', matcher: { string: '50% chance to cause Bleeding on Critical Strike', value: 50, superseded: true } }])
+  })
+  it('逐字相同(解析器本來就接得住)→ 不補', () => {
+    const en = [stat('#% chance to cause Bleeding on Critical Strike', [{ string: '#% chance to cause Bleeding on Critical Strike' }])]
+    expect(planFixedCase({ enStats: en, ggpkNew }).adds).toEqual([])
   })
 })

@@ -1,7 +1,7 @@
 // renderer/src/web/background/host-fetch.ts:AbortSignal → requestId + fetchAbort(IPC http-abort)的轉接。
 // 假 host(不需要 Electron / 瀏覽器);另驗 core 的 withRetryAfter 不會把中止 / 逾時錯誤當成可重試。
 import { describe, expect, it, vi } from 'vitest'
-import { fetchViaHost, newRequestId } from '../src/web/background/host-fetch'
+import { fetchViaHost, newRequestId, toResponse } from '../src/web/background/host-fetch'
 import { withRetryAfter, type HttpFetch } from '@exile-appraiser/core/http'
 import { NINJA_TIMEOUT_MS, createNinjaClient } from '@exile-appraiser/core/ninja'
 
@@ -169,5 +169,15 @@ describe('ninja client 把 signal 交給 http(換聯盟中止會傳到 main)', (
     pending2.get('https://poe.ninja/x')!.resolve(RESULT)
     await p
     expect(calls2[0].init.timeoutMs).toBe(120_000)
+  })
+})
+
+describe('toResponse(GitHub issue #45:交易站回 HTML)', () => {
+  it('回應是 HTML → json() 丟出看得懂的說明(含 HTTP 狀態)', async () => {
+    const res = toResponse({ status: 503, statusText: '', headers: [], body: '<html>\n<head>' })
+    await expect(res.json()).rejects.toThrow(/交易站回傳網頁而不是資料\(HTTP 503\)/)
+  })
+  it('一般 JSON 照常解析', async () => {
+    expect(await toResponse({ status: 200, statusText: 'OK', headers: [], body: '{"total":1}' }).json()).toEqual({ total: 1 })
   })
 })

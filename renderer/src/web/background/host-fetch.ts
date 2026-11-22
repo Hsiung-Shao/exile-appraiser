@@ -43,3 +43,14 @@ export async function fetchViaHost (host: Pick<HostApi, 'fetch' | 'fetchAbort'>,
     signal.removeEventListener('abort', onAbort)
   }
 }
+
+export function toResponse (r: HostFetchResult): Response {
+  const res = new Response(r.body, { status: r.status, statusText: r.statusText, headers: r.headers })
+  // 交易站維護中 / 被 Cloudflare 擋時回 HTML,json() 的「Unexpected token '<'」看不懂(GitHub issue #45)→ 換成說明
+  if (/^\s*</.test(r.body)) {
+    res.json = async () => {
+      throw new Error(`交易站回傳網頁而不是資料(HTTP ${r.status}),可能正在維護或被 Cloudflare 擋下,請稍後再試 / The trade site returned a web page instead of data (HTTP ${r.status}); it may be under maintenance or blocked by Cloudflare, try again later`)
+    }
+  }
+  return res
+}

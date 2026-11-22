@@ -28,7 +28,8 @@ const RULES: FilterRule[] = [
   { ref: stat('Has Room: Temple Nexus (Tier 3)'), remove: true },
   { ref: stat('Has Room: Explosives Room (Tier 1)'), remove: true, explosivesRoom: true },
   { ref: stat('Has Room: Demolition Lab (Tier 2)'), remove: true, explosivesRoom: true },
-  { ref: stat('Has Room: Shrine of Unmaking (Tier 3)'), remove: true, explosivesRoom: true },
+  // exile-appraiser: 上游整列移除;使用者要能勾(GitHub issue #62)→ 保留、預設不勾(本函式開頭全部 disabled)
+  { ref: stat('Has Room: Shrine of Unmaking (Tier 3)'), explosivesRoom: true },
 
   // TierApex
   { ref: stat('Has Room: Apex of Atzoatl'), disabled: false },

@@ -87,7 +87,12 @@ def main():
         "where o.version_id = ? and n.version_id = ? and o.tbl = 'passiveskills' and o.col = 'Name' "
         'and o.en = n.en and o.zh_tw <> n.zh_tw order by n.en', (old, new))]
 
-    data = {'old': meta(old), 'new': meta(new), 'builds': builds, 'mercSkills': merc_skills, 'words': words, 'gems': gems, 'skills': skills, 'supports': supports, 'rooms': rooms, 'renames': renames, 'strings': strings, 'passives': passives, 'passiveRenames': passive_renames,
+    # 永恆珠寶的征服者名(規則 28;句型 {2} 帶入,3.30 才進資料庫)
+    conquerors = [{'en': en, 'zh': zh} for en, zh in c.execute(
+        "select distinct en, zh_tw from cell where version_id = ? and tbl = 'alternatetreeversionkeystones' and col = 'Conqueror' "
+        'and zh_tw is not null order by en, zh_tw', (new,))]
+
+    data = {'old': meta(old), 'new': meta(new), 'conquerors': conquerors, 'builds': builds, 'mercSkills': merc_skills, 'words': words, 'gems': gems, 'skills': skills, 'supports': supports, 'rooms': rooms, 'renames': renames, 'strings': strings, 'passives': passives, 'passiveRenames': passive_renames,
             'stats': {'old': stats(old), 'new': stats(new)},
             'base': {'old': base(old), 'new': base(new)}}
     with open(out, 'w', encoding='utf-8', newline='\n') as f:

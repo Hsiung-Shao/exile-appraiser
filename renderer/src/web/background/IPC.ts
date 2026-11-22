@@ -8,23 +8,19 @@
  * - 瀏覽器預覽(main 的 preview-server,docs/browser-preview.md):boot script 造的 `window.host` shim(`isPreview: true`),
  *   方法經 RPC 到 main,與 Electron 內行為相同(設定寫同一份 config.json);視窗控制類是 no-op。
  */
-import type { HostApi, HostFetchResult, ItemTextEvent, HostConfigForMain, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId, ClientLogStatus, GameAreaEvent, TimerAction } from '@ipc/types'
+import type { HostApi, ItemTextEvent, HostConfigForMain, FocusChangeEvent, TrackAreaOpts, WindowMode, GameId, ClientLogStatus, GameAreaEvent, TimerAction } from '@ipc/types'
 import type { ConfigChangedEvent, HotkeyRegistration, OcrAvailability, OcrRegionPickTarget, RevealScanEvent, SettingsTabId, LegacySettingsTabId, UpdaterInfo } from '@ipc/types'
 import type { LogEntry, LogSnapshot, PerfRendererReport, PerfState, PerfStateEvent, RuneshapeScanEvent, RuneshapeStats, RuneshapeUiState, ScanMaskReport, OverlayContentState, StashCursorEvent, StashDumpResult, StashScanEvent, StashStats } from '@ipc/types'
 import type { RegexBookmarkRunEvent, RegexPasteRequest, RegexPasteResult, RegexShareRequest } from '@ipc/types'
 import { shallowRef } from 'vue'
 import type { HttpFetch } from '@exile-appraiser/core/http'
 import { withRetryAfter } from '@exile-appraiser/core/http'
-import { fetchViaHost, type ProxyInit } from './host-fetch'
+import { fetchViaHost, toResponse, type ProxyInit } from './host-fetch'
 import { perfHooks } from '../perf/renderer-perf'
 
 const LS_KEY = 'exile-appraiser.config'
 const LS_REGEX_KEY = 'exile-appraiser.regex_state'
 const LS_DUST_KEY = 'exile-appraiser.dust_ui'
-
-function toResponse (r: HostFetchResult): Response {
-  return new Response(r.body, { status: r.status, statusText: r.statusText, headers: r.headers })
-}
 
 class HostTransport {
   get isElectron (): boolean { return window.host != null }

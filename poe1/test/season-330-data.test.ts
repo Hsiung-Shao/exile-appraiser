@@ -55,6 +55,13 @@ describe('3.30 詞綴寫法(en)', () => {
     expect(parse(ringText('en', [LIFE_EN, ['Corrupted']])).isCorrupted).toBe(true)
   })
 
+  it('D17wj GitHub issue #58 的實機文字:Goredrill「50% chance to cause Bleeding on Critical Strike」(小寫 cause)解析得到、數值 50', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-58.en.txt'), 'utf8'))
+    expect(unknownOf(item)).toEqual([])
+    const hit = item.statsByType.find(s => s.stat.trade.ids.explicit?.includes('explicit.stat_513681673'))
+    expect(hit?.sources[0].stat.roll?.value).toBe(50)
+  })
+
   it('D1 新稀有度寫法 "+15% to Item Rarity" 解析成原詞綴', () => {
     const item = parse(ringText('en', [['+15% to Item Rarity', '+68 to maximum Life']]))
     expect(unknownOf(item)).toEqual([])
@@ -449,6 +456,7 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
 
   it.each([
     ['46', "Originator's Exalted Orb", 'originators-exalted-orb'],
+    ['57', "Originator's Exalted Orb", 'originators-exalted-orb'],
     ['49', 'Primordial Exalted Orb', 'primordial-exalted-orb']
   ])('D17wc GitHub issue #%s 的實機文字:繁中客戶端顯示英文名的新通貨 %s 解析得到', (n, refName, tradeTag) => {
     const item = parse(fs.readFileSync(path.join(HERE, `docs/3.30-issue-${n}.cmn-Hant.txt`), 'utf8'))
@@ -487,6 +495,31 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(unknownOf(item)).toEqual([])
     const hit = item.statsByType.find(s => s.stat.trade.ids.implicit?.includes('implicit.stat_1916233589'))
     expect(hit?.sources[0].stat.roll?.value).toBe(12)
+  })
+
+  it.each([
+    ['65', 'explicit.pseudo_timeless_jewel_maxarius', 7453],
+    ['60', 'explicit.pseudo_timeless_jewel_akoya', 15442]
+  ])('D17wg GitHub issue #%s 的實機文字:永恆珠寶 3.30 句型 + 新征服者譯名解析得到、帶交易站 id 與數值', (n, id, value) => {
+    const item = parse(fs.readFileSync(path.join(HERE, `docs/3.30-issue-${n}.cmn-Hant.txt`), 'utf8'))
+    expect(unknownOf(item)).toEqual([])
+    const hit = item.statsByType.find(s => s.stat.trade.ids.explicit?.includes(id))
+    expect(hit?.sources[0].stat.roll?.value).toBe(value)
+  })
+
+  it('D17wh GitHub issue #61 的實機文字:黑暗君主「幻靈武器(...)的最大數量加倍」解析得到、帶交易站選項 id', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-61.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(item)).toEqual([])
+    expect(item.statsByType.flatMap(s => s.stat.trade.ids.explicit ?? [])).toContain('explicit.stat_56473917|1')
+  })
+
+  it('D17wi GitHub issue #59 的實機文字:自私牧羊人「賦予等級 20 的 禁咒」(3.30 句型)與「獲得等級 20 的禁咒」都解析得到', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-59.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(item)).toEqual([])
+    // 兩行對到同一條詞綴 → 一個篩選,舊 id 與 effect 新 id 都送
+    const grants = item.statsByType.filter(s => s.stat.ref === 'Grants level # Affliction')
+    expect(grants).toHaveLength(1)
+    expect(grants[0].stat.trade.ids.explicit).toEqual(['explicit.stat_3486646279', 'explicit.effect_459241192'])
   })
 
   it('D17w GitHub issue #35 的實機文字:禁忌烈焰「配置 無端暴力」(3.30 改名,舊名免費暴力)解析得到、帶交易站 id', () => {

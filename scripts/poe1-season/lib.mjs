@@ -399,12 +399,25 @@ export function planEffectStats ({ enStats, zhStats, tradeStats, skills, support
   const newStats = new Map()
   const adds = []
   const rejects = []
+  const ownerOf = new Map([...eachStat(enStats)].flatMap(s => allIds(s).map(id => [id, s])))
   for (const e of tradeStats) {
-    if (!e.id.includes('.effect_') || used.has(e.id)) continue
-    if (newStats.has(e.text)) { (newStats.get(e.text).ids[typeOf(e.id)] ??= []).push(e.id); continue }
+    if (!e.id.includes('.effect_')) continue
+    if (!used.has(e.id) && newStats.has(e.text)) { (newStats.get(e.text).ids[typeOf(e.id)] ??= []).push(e.id); continue }
     const kind = kinds.find(k => k.tpl && k.re.test(e.text))
     const name = kind?.re.exec(e.text)?.[1]
     const zhNames = kind ? zhNamesOf(kind.names, name) : []
+    if (used.has(e.id)) {
+      // 規則 14 依同文(不分大小寫)把 effect id 掛到舊句(「Grants level # Affliction」)時,3.30 句型的寫法沒進資料
+      // (GitHub issue #59:自私牧羊人「賦予等級 20 的 禁咒」)→ 補上、標 superseded(舊句仍是現行寫法)
+      const owner = ownerOf.get(e.id)
+      const ownerZh = owner && (zhByRef.get(owner.ref) ?? [])[0]
+      if (!owner || !ownerZh || !kind || zhNames.length !== 1) continue
+      const en = toMatcherText(fillTpl(kind.tpl.en, name))
+      const zh = toMatcherText(fillTpl(kind.tpl.zh, zhNames[0]))
+      if (!owner.matchers.some(m => m.string === en)) adds.push({ lang: 'en', ref: owner.ref, matcher: { string: en, superseded: true } })
+      if (!ownerZh.matchers.some(m => m.string === zh)) adds.push({ lang: 'cmn-Hant', ref: owner.ref, matcher: { string: zh, superseded: true } })
+      continue
+    }
     if (!kind || zhNames.length !== 1) { rejects.push({ reason: 'GGPK 沒有唯一的技能 / 寶石繁中名', id: e.id, to: e.text, candidates: zhNames }); continue }
     const en = fillTpl(kind.tpl.en, name)
     const zh = fillTpl(kind.tpl.zh, zhNames[0])
@@ -1046,7 +1059,9 @@ export const EXTRA_ZH_MATCHERS = [
   { ref: 'Increased Area of Effect', zh: '增加範圍效果', advanced: '增加範圍效果(階層：2)', current: true, old: '增加效果範圍', verified: 'GGPK mercenarysupports + issue #21' },
   { ref: 'Greater Area of Effect', zh: '高階範圍效果', advanced: '高階範圍效果(階層：3)', current: true, old: '高階效果範圍', verified: 'GGPK mercenarysupports' },
   // GitHub issue #36 黑暗君主:句型帶入的是技能名「異蛛復甦」(GGPK activeskills raise_spiders),專案原本的「召喚蜘蛛」是增益名
-  { ref: 'Maximum number of Raised Spiders is Doubled\nCannot have Minions other than Raised Spiders', zh: '異蛛復甦的最大數量加倍\n無法擁有異蛛復甦以外的召喚物', advanced: '異蛛復甦(...)的最大數量加倍\n無法擁有異蛛復甦(...)以外的召喚物', current: true, old: '召喚蜘蛛的最大數量加倍\n無法擁有召喚蜘蛛以外的召喚物', verified: 'GGPK activeskills raise_spiders + issue #36' }
+  { ref: 'Maximum number of Raised Spiders is Doubled\nCannot have Minions other than Raised Spiders', zh: '異蛛復甦的最大數量加倍\n無法擁有異蛛復甦以外的召喚物', advanced: '異蛛復甦(...)的最大數量加倍\n無法擁有異蛛復甦(...)以外的召喚物', current: true, old: '召喚蜘蛛的最大數量加倍\n無法擁有召喚蜘蛛以外的召喚物', verified: 'GGPK activeskills raise_spiders + issue #36' },
+  // GitHub issue #61:3.30 帶入的名稱取 GGPK miniondoublingstattypes,其他 15 種與專案相同,只有幻化武器 → 幻靈武器
+  { ref: 'Maximum number of Animated Weapons is Doubled\nCannot have Minions other than Animated Weapons', zh: '幻靈武器的最大數量加倍\n無法擁有幻靈武器以外的召喚物', advanced: '幻靈武器(...)的最大數量加倍\n無法擁有幻靈武器(...)以外的召喚物', current: true, old: '幻化武器的最大數量加倍\n無法擁有幻化武器以外的召喚物', verified: 'GGPK miniondoublingstattypes + issue #61' },
 ]
 
 /** 規則 11:`EXTRA_ZH_MATCHERS` → 繁中多一個 matcher @returns {{ adds: any[] }} */
@@ -1309,6 +1324,70 @@ export function planNamedSlots ({ enStats, zhStats, ggpkOld, ggpkNew }) {
     }
   }
   return { adds, rejects }
+}
+
+/**
+ * 規則 28:永恆珠寶 3.30 改成句型「{2}指揮領導超過{1}名戰士\n範圍內的天賦臣服於{0}」,{2} 是 GGPK `alternatetreeversionkeystones`
+ * 的征服者名(3.30 也改了譯名:瑪薩里歐斯 → 馬克薩留斯)。規則 22 從舊句抓名稱,舊句與句型字不同(少「名」)或名稱改了就補不到
+ * (GitHub issue #60 #64 #65)→ 名稱改由英文 ref 對征服者表、陣營名取繁中現行句的第二行;進階句在征服者名後加「(...)」(實機樣本)。
+ * @param {{ zhStats: any[], ggpkNew: any[], conquerors?: Array<{ en: string, zh: string }> }} input
+ * @returns {{ adds: any[], rejects: any[] }}
+ */
+export function planTimelessJewels ({ zhStats, ggpkNew, conquerors = [] }) {
+  const zhOf = groupBy(conquerors, c => c.en)
+  const lines = (t) => toMatcherText(t).split('\n')
+  const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const tpls = ggpkNew.filter(r => r.key.startsWith('local_unique_jewel_alternate_tree_version ') && r.key.includes('|stat_descriptions.txt|') && r.zh && r.en.includes('{2}'))
+    .map(r => {
+      const en = r.en.replace(/\\n/g, '\n').split('\n')[0]
+      return { re: new RegExp(`^${esc(en).replace('\\{1\\}', '#').replace('\\{2\\}', '(.+)')}$`), zh: r.zh.replace(/\\n/g, '\n') }
+    })
+  const adds = []
+  const rejects = []
+  const done = new Set()
+  for (const stat of eachStat(zhStats)) {
+    for (const t of tpls) {
+      const name = t.re.exec(stat.ref)?.[1]
+      if (!name || done.has(stat.ref)) continue
+      done.add(stat.ref)
+      const zhNames = uniq((zhOf.get(name) ?? []).map(c => c.zh))
+      // 陣營名:新句型的 {0} 那一行對繁中現行句的同一行
+      const [zh1, zh2] = t.zh.split('\n')
+      const factionRe = new RegExp(`^${esc(zh2).replace('\\{0\\}', '(.+)')}$`)
+      const factions = uniq(liveOf(stat).map(m => factionRe.exec(lines(m.string)[1] ?? '')?.[1]).filter(Boolean))
+      if (zhNames.length !== 1 || factions.length !== 1) { rejects.push({ reason: '征服者 / 陣營繁中名不唯一', ref: stat.ref, lang: 'cmn-Hant', candidates: [...zhNames, ...factions] }); continue }
+      const fill = (n) => toMatcherText(`${zh1}\n${zh2}`.replace('{2}', n).replace('{0}', factions[0]))
+      const matcher = { string: fill(zhNames[0]), advanced: fill(`${zhNames[0]}(...)`) }
+      if (stat.matchers.some(m => m.string === matcher.string && m.advanced === matcher.advanced && !m.superseded)) continue
+      adds.push({ lang: 'cmn-Hant', ref: stat.ref, matcher, supersedes: liveOf(stat).map(m => m.string) })
+    }
+  }
+  return { adds, rejects }
+}
+
+/**
+ * 規則 29:數值寫死的獨立 stat 與通用詞綴只差大小寫(Goredrill「50% chance to cause Bleeding on Critical Strike」=
+ * `local_chance_to_bleed_on_crit_50%`,通用句是「#% chance to Cause …」;GitHub issue #58)→ 補一個帶 value 的寫法、標 superseded。
+ * 只收數字恰好一個、對到的通用寫法恰好一條、且沒有 negate 的;繁中同形的寫法本來就由 # 接住,不必補。
+ * @returns {{ adds: any[] }}
+ */
+export function planFixedCase ({ enStats, ggpkNew }) {
+  const texts = new Set([...eachStat(enStats)].flatMap(s => [...matcherExact(s)]))
+  const byShape = groupBy([...eachStat(enStats)].flatMap(s => liveOf(s).filter(m => m.value === undefined && !m.negate && m.string.includes('#')).map(m => ({ s, m }))), x => cmpKey(x.m.string))
+  const adds = []
+  for (const r of ggpkNew) {
+    if (!r.key.split('|').some(p => ITEM_STAT_FILES.includes(p)) || /[{}[\]]/.test(r.en)) continue
+    const en = toMatcherText(r.en)
+    const nums = en.match(/\d+(?:\.\d+)?/g)
+    if (nums?.length !== 1 || texts.has(en)) continue
+    const hashed = en.replace(/\d+(?:\.\d+)?/, '#')
+    const hits = byShape.get(cmpKey(hashed)) ?? []
+    // 逐字相同(含正負號寫法)= 解析器本來就由 # 寫法接住,不是這種情況
+    if (hits.length !== 1 || [hashed, toMatcherText(hashed)].includes(hits[0].m.string.trim())) continue
+    texts.add(en)
+    adds.push({ lang: 'en', ref: hits[0].s.ref, matcher: { string: en, value: Number(nums[0]), superseded: true } })
+  }
+  return { adds }
 }
 
 /**

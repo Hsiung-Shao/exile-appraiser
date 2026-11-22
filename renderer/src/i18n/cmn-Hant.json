@@ -51,6 +51,7 @@
         "chaos": "混沌石",
         "divine": "神聖石"
       },
+      "too_complex_merc": "傭兵條件(技能與勾的輔助)共 {0} 條,交易站匿名查詢大約只接受 {1} 條,會被拒絕(Query is too complex)。請少勾幾個輔助或技能。",
       "too_complex": "條件共 {0} 條,超過交易站大約能接受的 {1} 條,可能會被拒絕(Query is too complex)。請減少勾選的輔助寶石,或關掉 6 連結。"
     },
     "desecration": {

@@ -51,6 +51,7 @@
         "chaos": "Chaos",
         "divine": "Divine"
       },
+      "too_complex_merc": "{0} mercenary conditions (skills and checked supports); anonymous trade searches accept only about {1}, so it will be rejected (Query is too complex). Uncheck some supports or skills.",
       "too_complex": "{0} conditions, more than the roughly {1} the trade site accepts; it may reject the search (Query is too complex). Uncheck some support gems or turn off 6-link."
     },
     "desecration": {
