@@ -7,10 +7,11 @@ export const QUERY_FILTER_LIMIT = 30
 /** 匿名查詢時啟用的 `mercenary` 型群組條件合計上限(技能 + 勾的輔助,每個技能一組) */
 export const MERCENARY_FILTER_LIMIT = 4
 
-interface QueryLike { stats: Array<{ type?: string, disabled?: boolean, filters: unknown[] }> }
+interface QueryLike { stats: Array<{ type?: string, disabled?: boolean, filters: Array<{ disabled?: boolean }> }> }
 
+// 傭兵 AND 群組會放進全部輔助、沒勾的那條帶 disabled → 只算啟用群組裡啟用的條件
 const enabled = (query: QueryLike, type?: string) =>
-  query.stats.reduce((n, g) => n + (g.disabled || (type && g.type !== type) ? 0 : g.filters.length), 0)
+  query.stats.reduce((n, g) => n + (g.disabled || (type && g.type !== type) ? 0 : g.filters.filter(f => !f.disabled).length), 0)
 
 /** 送出的查詢裡有啟用的群組共有幾條條件 */
 export function countQueryFilters (query: QueryLike): number {

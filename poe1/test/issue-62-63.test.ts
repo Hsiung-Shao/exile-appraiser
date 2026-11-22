@@ -36,10 +36,16 @@ describe('GitHub issue #62 / #63', () => {
     expect(queryComplexity(q(4))).toBeNull()
     expect(queryComplexity(q(5))).toEqual({ kind: 'mercenary', count: 5, limit: 4 })
     expect(queryComplexity(q(9, true))).toBeNull()
+    // 啟用群組裡沒勾的條件(disabled)不算
+    expect(queryComplexity({ stats: [{ type: 'mercenary', filters: [{}, {}, { disabled: true }, { disabled: true }, { disabled: true }] }] })).toBeNull()
   })
 
-  it('#63 實機契約書:預設不提醒;勾兩個技能(各帶輔助)後提醒', () => {
+  it('#63 實機契約書:預設不提醒;只勾一個技能 + 一個輔助不提醒;勾兩個技能(各帶輔助)後提醒', () => {
     const preset = presetOf('63')
+    expect(queryComplexity(createTradeRequest(preset.filters, preset.stats).query)).toBeNull()
+    const one = preset.stats.find((s): s is FilterGroup => s.group === 'mercenary')!
+    one.meta.disabled = false
+    one.stats.find(s => s.tradeId[0].startsWith('mercenary.support_'))!.disabled = false
     expect(queryComplexity(createTradeRequest(preset.filters, preset.stats).query)).toBeNull()
     const skills = preset.stats.filter((s): s is FilterGroup => s.group === 'mercenary').slice(0, 2)
     for (const g of skills) {

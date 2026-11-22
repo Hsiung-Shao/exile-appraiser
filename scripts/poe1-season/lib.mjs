@@ -1384,6 +1384,8 @@ export function planFixedCase ({ enStats, ggpkNew }) {
     const hits = byShape.get(cmpKey(hashed)) ?? []
     // 逐字相同(含正負號寫法)= 解析器本來就由 # 寫法接住,不是這種情況
     if (hits.length !== 1 || [hashed, toMatcherText(hashed)].includes(hits[0].m.string.trim())) continue
+    // 只收「代回數字後只差大小寫」的:cmpKey 還會收斂空白、去掉 # 前的正負號,負數句會配到 +# 句而 value 少了負號
+    if (hits[0].m.string.trim().replace('#', nums[0]).toLowerCase() !== en.toLowerCase()) continue
     texts.add(en)
     adds.push({ lang: 'en', ref: hits[0].s.ref, matcher: { string: en, value: Number(nums[0]), superseded: true } })
   }
