@@ -456,10 +456,12 @@ export const LIVE_TWIN_IDS = new Set([
   'explicit.stat_2916634441', 'explicit.stat_1888494262', 'explicit.stat_335507772', 'explicit.stat_4082662318',
   'implicit.stat_2902845638', 'implicit.stat_335507772', 'enchant.stat_865263728', 'enchant.stat_945725535'
 ])
-// trivial-merge 群組裡每條的 ref / matchers / 正負都相同 = 同一句的兩個 stat,解析時 id 會合併送出 → 依 ref 掛上不會掛錯條(GitHub issue #67)
+// trivial-merge 群組裡每條的 ref / matchers / 正負都相同 = 同一句的兩個 stat,解析時 id 會合併送出 → 依 ref 掛上不會掛錯條(GitHub issue #67);
+// id 依 ref 兩語都掛 → 繁中那組也要相同(猛攻、焦灼地面兩組英文相同、繁中不同,繁中解析只選一條)
 const twinGroup = (row) => row.resolve?.strat === 'trivial-merge' && row.stats.length > 1 &&
   new Set(row.stats.map(s => JSON.stringify([s.ref, s.matchers, !!s.trade?.inverted]))).size === 1
-export function planTypeIds ({ enStats, tradeStats, ggpkNew = /** @type {any[]} */ ([]), twins = LIVE_TWIN_IDS }) {
+export function planTypeIds ({ enStats, zhStats = /** @type {any[] | undefined} */ (undefined), tradeStats, ggpkNew = /** @type {any[]} */ ([]), twins = LIVE_TWIN_IDS }) {
+  const zhTwins = zhStats && new Set(zhStats.filter(r => r.stats && twinGroup(r)).map(r => r.stats[0].ref))
   const visceraTexts = new Set(ggpkNew.filter(r => r.key.split('|')[0].split(' ').some(id => /(^|_)viscera(_|$)/.test(id))).map(r => cmpKey(toMatcherText(r.en))))
   const used = new Set()
   const grouped = new Set()
@@ -473,7 +475,7 @@ export function planTypeIds ({ enStats, tradeStats, ggpkNew = /** @type {any[]} 
   for (const row of enStats) {
     for (const stat of row.stats ?? [row]) {
       if (!stat.matchers) continue
-      if (row.stats && !twinGroup(row)) grouped.add(stat.ref)
+      if (row.stats && !(twinGroup(row) && (!zhTwins || zhTwins.has(stat.ref)))) grouped.add(stat.ref)
       for (const id of allIds(stat)) used.add(id)
       // twins 的雜湊不算這條詞綴的 stat:否則下一輪會把同雜湊、沒實測過的其他類型 id 也帶進來
       for (const id of allIds(stat)) if (!twins.has(id)) (hashes.get(stat.ref) ?? hashes.set(stat.ref, new Set()).get(stat.ref)).add(hashOf(id))

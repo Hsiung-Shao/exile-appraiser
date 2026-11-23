@@ -524,6 +524,15 @@ describe('planTypeIds(規則 16)', () => {
     expect(out[0].stats.map((s: any) => s.trade.ids.implicit)).toEqual([['implicit.stat_41', 'implicit.stat_42'], ['implicit.stat_41', 'implicit.stat_42']])
     const inverted = [{ resolve: { strat: 'trivial-merge' }, stats: [blind({ explicit: ['explicit.stat_41'] }, { trade: { ids: { explicit: ['explicit.stat_41'] }, inverted: true } }), blind({ explicit: ['explicit.stat_42'] })] }]
     expect(planTypeIds({ enStats: inverted, tradeStats: ts }).rejects.map((r: any) => r.reason)).toEqual(['在合併群組裡', '在合併群組裡'])
+    // 同 ref、matchers 不同的群組照舊拒收
+    const diff = [{ resolve: { strat: 'trivial-merge' }, stats: [blind({ explicit: ['explicit.stat_41'] }), { ...stat('Blind #', [{ string: 'Blind other #' }], { explicit: ['explicit.stat_42'] }) }] }]
+    expect(planTypeIds({ enStats: diff, tradeStats: ts }).extra).toEqual({})
+    // 英文相同、繁中兩條寫法不同(繁中解析只選一條)→ 拒收
+    const zh = (s: string, ids: Record<string, string[]>) => stat('Blind #', [{ string: s }], ids)
+    const zhDiff = [{ resolve: { strat: 'trivial-merge' }, stats: [zh('致盲 #', { explicit: ['explicit.stat_41'] }), zh('致盲效果 #', { explicit: ['explicit.stat_42'] })] }]
+    const zhSame = [{ resolve: { strat: 'trivial-merge' }, stats: [zh('致盲 #', { explicit: ['explicit.stat_41'] }), zh('致盲 #', { explicit: ['explicit.stat_42'] })] }]
+    expect(planTypeIds({ enStats: twin, zhStats: zhDiff, tradeStats: ts }).extra).toEqual({})
+    expect(planTypeIds({ enStats: twin, zhStats: zhSame, tradeStats: ts }).extra).toEqual(plan.extra)
   })
 
   // twins = 與既有 id 文字相同、雜湊不同,但實測交易站有物品的 id

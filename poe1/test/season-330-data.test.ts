@@ -516,7 +516,7 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(hit?.sources[0].stat.roll?.value).toBe(40)
   })
 
-  it('D17wh GitHub issue #61的實機文字:黑暗君主「幻靈武器(...)的最大數量加倍」解析得到、帶交易站選項 id', () => {
+  it('D17wh GitHub issue #61 的實機文字:黑暗君主「幻靈武器(...)的最大數量加倍」解析得到、帶交易站選項 id', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-61.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
     expect(item.statsByType.flatMap(s => s.stat.trade.ids.explicit ?? [])).toContain('explicit.stat_56473917|1')
