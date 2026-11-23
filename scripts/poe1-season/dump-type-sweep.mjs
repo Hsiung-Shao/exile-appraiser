@@ -255,6 +255,7 @@ const uniqueMods = rowsOf('mods').filter(m => m.en.GenerationType === 3 && ITEM_
     const k = m[`StatsKey${n}`]
     if (k != null) stats.push({ stat_id: rStats.get(k).en.Id, min: m[`Stat${n}Min`], max: m[`Stat${n}Max`] })
   }
+  // shortcut: 只看 stat_descriptions.txt(上面只匯了它與地圖描述檔),萃取物等其他描述檔的句子會靜默掉出掃描;要掃時把檔案加進 descs 查詢
   return { id: m.Id, stats: stats.map(s => s.stat_id), lines: [...linesOfStats(stats, ['stat_descriptions.txt']), ...grantLines(m)] }
 }).filter(m => m.lines.length)
 
@@ -277,7 +278,14 @@ const pobUniques = [...group(pob, r => `${r.src_file}|${r.src_line}`).values()].
   return mkUnique(sName ?? rs.find(r => r.field === 'name')?.en_text, sBase ?? rs.find(r => r.field === 'base')?.en_text, rs.filter(r => r.field === 'lines').map(r => r.en_text))
 }).concat(Object.values(STAT_UNIQUE).map(([n, b]) => mkUnique(n, b, []))).filter(u => u.base && !SKIP.has(u.base.item_class))
 const uniquesOfLine = group(pobUniques.flatMap(u => u.lines.map(l => ({ l, u }))), r => r.l)
-/** 物品大類:同一句在同一大類裡解析結果相同(局部 / 全域詞綴只在大類之間不同),每大類只放一個類別,避免同一句重複幾十次 */
+/** 物品大類:每大類只放對到最多傳奇的一個類別,避免同一句重複幾十次(推論:局部 / 全域詞綴大多只在大類之間不同,箭袋 / 盾的少數例外靠下面的樣本類別補) */
+// 有實機傳奇樣本(GitHub issue 的剪貼簿)的類別一律保留,樣本才對得到掃描
+const SAMPLE_CLASSES = new Set(fs.readdirSync(path.join(ROOT, 'poe1/test/docs')).filter(f => /^3\.30-issue-.*\.txt$/.test(f)).flatMap(f => {
+  const text = fs.readFileSync(path.join(ROOT, 'poe1/test/docs', f), 'utf8')
+  if (!/^(稀有度|Rarity): (傳奇|Unique)\r?$/m.test(text)) return []
+  const klass = text.split(/\r?\n/)[0].replace(/^(Item Class|物品種類): /, '')
+  return classes.filter(c => c.en === klass || c.zh === klass).map(c => c.ident.replace(/ /g, ''))
+}))
 const KIND = (/** @type {string} */ cls) => /Flask|Tincture/.test(cls) ? 'flask' : /Jewel/.test(cls) ? 'jewel' : /^(Amulet|Ring|Belt)$/.test(cls) ? 'jewellery'
   : /^(Body Armour|Boots|Gloves|Helmet|Shield|Quiver)$/.test(cls) ? 'armour' : 'weapon'
 let unmatched = 0
@@ -301,7 +309,8 @@ for (const [ix, counts] of lineClasses) {
     const cur = best.get(KIND(cls))
     if (!cur || n > cur[1]) best.set(KIND(cls), [cls, n])
   }
-  for (const [cls] of best.values()) (uniqueSets.get(cls) ?? uniqueSets.set(cls, new Set()).get(cls)).add(ix)
+  const keep = new Set([...best.values()].map(([cls]) => cls).concat([...counts.keys()].filter(cls => SAMPLE_CLASSES.has(cls.replace(/ /g, '')))))
+  for (const cls of keep) (uniqueSets.get(cls) ?? uniqueSets.set(cls, new Set()).get(cls)).add(ix)
 }
 for (const [cls, set] of [...uniqueSets].sort(([a], [b]) => a.localeCompare(b))) {
   const name = className.get(cls) ?? className.get(cls.replace(/ /g, ''))

@@ -292,8 +292,8 @@ describe('類型掃描:每類物品會出現的詞綴中英都解析得到、查
     })
     for (const s of sampleRows) {
       if (s.error) gaps[`sample|${s.file}`] = `解析失敗 ${s.error}`
-      // 樣本被合計吃掉(物理傷害 + 附加物理併成 DPS)取決於同件的其他詞綴,單詞綴的掃描比不了
-      else if (!('rarityDiffers' in s && s.rarityDiffers) && s.query !== 'eaten' && !['class-not-in-sweep', 'not-in-sweep'].includes(s.sweep) && s.sweep !== s.query) gaps[`sample|${s.file}|${s.type}|${s.ref}`] = `樣本 ${s.query}、掃描 ${s.sweep}`
+      // 樣本被合計吃掉、掃描卻送出:要看底材有沒有那項防禦 / 傷害(掃描挑的傳奇底材不一定有),不算缺口
+      else if (!('rarityDiffers' in s && s.rarityDiffers) && !(s.query === 'eaten' && s.sweep === 'sent') &&!['class-not-in-sweep', 'not-in-sweep'].includes(s.sweep) && s.sweep !== s.query) gaps[`sample|${s.file}|${s.type}|${s.ref}`] = `樣本 ${s.query}、掃描 ${s.sweep}`
     }
     if (process.env.SWEEP_REPORT) {
       fs.writeFileSync(process.env.SWEEP_REPORT, JSON.stringify({
