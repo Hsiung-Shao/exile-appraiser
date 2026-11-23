@@ -17,6 +17,11 @@ const NEW_ID = 'indexable_support_128'
 const OLD_ID = `${NEW_ID}|Socketed Gems are Supported by Level # Added Chaos Damage (Random Support Gem)`
 
 describe('物品詞綴數值頁:併列前的舊項目 id 照樣還原', () => {
+  it('前提:退路靠「物品詞綴數值頁的 en[0] = ref」判斷是不是同一句(改成顯示模板,退路會靜默失效)', () => {
+    const data = loadItemModData('poe1')
+    expect(page.entries.every((e, i) => e.en[0] === data.entries[i].ref)).toBe(true)
+  })
+
   it('前提:現行資料只有新 id、沒有舊 id', () => {
     expect(page.entries.some(e => e.id === NEW_ID)).toBe(true)
     expect(page.entries.some(e => e.id === OLD_ID)).toBe(false)

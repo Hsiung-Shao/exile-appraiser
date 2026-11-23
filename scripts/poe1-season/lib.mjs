@@ -1131,6 +1131,9 @@ export function planZhForms ({ enStats, zhStats, ggpkNew }) {
  * 沒有 # 的寫法代表的固定值:確切的數(`N`)或「至少 A」(`100|#` = 必定)。
  * `#|B`(任意負值都顯示同一句,例:劫盜寶箱「含有更有價值的傳奇物品」)沒有固定值,不取
  */
+/** 數字換成 # 的句子(判斷兩句是不是只差數字) */
+const digitless = (/** @type {string} */ t) => t.replace(/\d+(?:\.\d+)?/g, '#')
+
 function condValue (token) {
   if (/^-?\d+(\.\d+)?$/.test(token)) return Number(token)
   const m = /^([\d.]+)\|#$/.exec(token)
@@ -1210,14 +1213,18 @@ export function planCondForms ({ enStats, zhStats, ggpkNew }) {
               // stat 值 → ref 方向:基準句顯示前取負號與基準 matcher 的 negate 各翻一次
               const toRef = neg(base, 0) !== Boolean(m.negate) ? -1 : 1
               value = condValue(r.conds[0])
-              if (!value || baseUsed.size === 0) { reject('沒有數字的寫法對不到固定值'); continue }
+              // 基準句也沒有數字(資料現行句本身寫死,低階異蛛復甦「觸發等級 20」)時,基準句的條件要也是固定值、且兩句去掉數字後逐字相同
+              // (只差數字 = 同一句的不同數值;「區域含有阿爾瓦 / 埃哈」這種用數值選不同對象的不收)
+              if (!value || (baseUsed.size === 0 && (!condValue(base.conds[0]) || digitless(text) !== digitless(exactKey(textOf(base)))))) { reject('沒有數字的寫法對不到固定值'); continue }
               // 除以十、毫秒轉秒等換算:條件是換算前的值,value 對不準
               if ([...base.handlers, ...r.handlers].some(h => h[0] !== 'negate')) { reject('數值有換算,固定值對不準'); continue }
               value *= toRef
             }
             // 既有同形寫法的 # 一樣多 → 多餘;既有的把數字寫死(繁中「區域含有 1 個保險箱」)而新句帶 # → 要補(否則英文解析得到、繁中解析不到)
             // 別條詞綴有同形寫法 → 分不出是哪一條,照舊拒收
-            if ([...(shapes.get(shape(text))?.keys() ?? [])].some(ref => ref !== stat.ref) || own(shape(text), stat.ref) >= hashCount(text)) { reject('與既有寫法同形'); continue }
+            // 新句是寫死數字的固定值(帶 value、沒有 #)時,同形的既有寫法接不住它(數字逐字比),不算多餘
+            const literal = value !== undefined && hashCount(text) === 0 && baseUsed.size === 0
+            if ([...(shapes.get(shape(text))?.keys() ?? [])].some(ref => ref !== stat.ref) || (!literal && own(shape(text), stat.ref) >= hashCount(text))) { reject('與既有寫法同形'); continue }
             note(text, stat.ref)
             const negate = value === undefined && Boolean(m.negate) !== diff[0]
             adds.push({ lang, ref: stat.ref, matcher: { string: text, ...(negate ? { negate: true } : {}), ...(value !== undefined ? { value } : {}), superseded: true } })
@@ -1526,11 +1533,13 @@ export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove
   const moved = new Map()
   for (const line of merged.split(/\r?\n/)) {
     const row = line.trim() && JSON.parse(line)
-    if (row && !row.stats && intoOf.has(row.ref)) (moved.get(intoOf.get(row.ref)) ?? moved.set(intoOf.get(row.ref), []).get(intoOf.get(row.ref))).push(row)
+    const ref = row && wholeRefOf(row)
+    if (ref && intoOf.has(ref)) (moved.get(intoOf.get(ref)) ?? moved.set(intoOf.get(ref), []).get(intoOf.get(ref))).push(...(row.stats ?? [row]))
   }
   const same = (/** @type {any} */ x, /** @type {any} */ m) => x.string === m.string && x.advanced === m.advanced && Boolean(x.negate) === Boolean(m.negate) && x.value === m.value
   return rewriteLines(merged, (row) => {
-    if (!row.stats && intoOf.has(row.ref)) return DROP_ROW
+    const whole = wholeRefOf(row)
+    if (whole && intoOf.has(whole)) return DROP_ROW
     let changed = false
     for (const stat of row.stats ?? [row]) {
       for (const from of moved.get(stat.ref) ?? []) {
@@ -1556,15 +1565,24 @@ export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove
  * 規則 30:同一句的兩列(英文現行寫法相同,一列的交易站 id 是另一列的子集)併成 id 多的那列。
  * 3.30 前的固定輔助列(只有 `indexable_support_N`、繁中是舊譯)和隨機輔助列(`indexable_support_N` + 固定輔助的 `effect_*`)
  * 英文同句:索引讓檔案裡先出現的那列勝出 → 英文解析成固定列、繁中(只有隨機列有 3.30 寫法)解析成隨機列,中英不一致,
- * 英文也少送固定輔助的 id(類型掃描 2026-11-24;使用者裁定兩個 id 都送)。只收沒有群組的列,兩語都要有兩列;
+ * 英文也少送固定輔助的 id(類型掃描 2026-11-24;使用者裁定兩個 id 都送)。兩語都要有兩列;
  * better / trade.option 不同、ref 出現不只一列、連鎖(into 本身也要併走)的不併。
+ * 「一列」也可以是同一 ref 重複的群組(上游的 trivial-merge,Fire Penetration 等 4 組);另外 into 的 ref 剛好是 from 加
+ * ` (Random Support Gem)` 的配對即使 id 不是子集也併(固定列用舊的固定輔助 id,Flamewood 等 5 組)—— 併列後 id 取聯集
+ * (`applyStatPlan` 的 merge 會搬 id)。` (Random Skill Gem)` 不併:「全部 X 寶石等級」一般列與隨機列是不同的 id,
+ * 帶 (...) 標記的是隨機列、不能送一般列的 id(marker-tolerance R2 的既有設計;使用者裁定「兩個 id 都送」只針對輔助寶石)。
  * @returns {{ merge: Array<{ from: string, into: string }> }}
  */
 export function planMergeDuplicates ({ enStats, zhStats }) {
-  const refCount = groupBy(enStats.flatMap(r => r.stats ?? [r]), s => s.ref)
-  const top = enStats.filter(r => !r.stats && r.matchers && refCount.get(r.ref).length === 1)
-  const zhCount = groupBy(zhStats.flatMap(r => r.stats ?? [r]), s => s.ref)
-  const zhRefs = new Set(zhStats.filter(r => !r.stats && zhCount.get(r.ref).length === 1).map(r => r.ref))
+  /** 每個「單位」= 一列頂層 stat 或同一 ref 的群組;ref 在全檔只屬於這個單位才收 */
+  const unitsOf = (/** @type {any[]} */ list) => {
+    const refCount = groupBy(list.flatMap(r => r.stats ?? [r]), s => s.ref)
+    return list.map(r => ({ ref: wholeRefOf(r), stats: r.stats ?? [r] }))
+      .filter(u => u.ref && u.stats[0].matchers && refCount.get(u.ref).length === u.stats.length)
+      .map(u => ({ ...u.stats[0], ref: /** @type {string} */ (u.ref), trade: { ...u.stats[0].trade, ids: mergeIds(u.stats) } }))
+  }
+  const top = unitsOf(enStats)
+  const zhRefs = new Set(unitsOf(zhStats).map(u => u.ref))
   /** @type {Map<string, Set<any>>} */
   const byString = new Map()
   for (const s of top) for (const m of s.matchers) (byString.get(m.string) ?? byString.set(m.string, new Set()).get(m.string)).add(s)
@@ -1573,13 +1591,28 @@ export function planMergeDuplicates ({ enStats, zhStats }) {
     const ia = allIds(a)
     const live = liveOf(a).map(m => m.string)
     if (!ia.length || !live.length || !zhRefs.has(a.ref)) continue
+    const pair = (/** @type {any} */ b) => b.ref === `${a.ref} (Random Support Gem)`
     const into = [...new Set(live.flatMap(x => [...(byString.get(x) ?? [])]))].filter(b => b !== a && zhRefs.has(b.ref) &&
       b.better === a.better && Boolean(b.trade?.option) === Boolean(a.trade?.option) &&
-      allIds(b).length > ia.length && ia.every(i => allIds(b).includes(i)) && live.every(x => b.matchers.some(m => m.string === x)))
+      (pair(b) || (allIds(b).length > ia.length && ia.every(i => allIds(b).includes(i)))) && live.every(x => b.matchers.some(m => m.string === x)))
     if (into.length === 1) merge.push({ from: a.ref, into: into[0].ref })
   }
   const froms = new Set(merge.map(m => m.from))
   return { merge: merge.filter(m => !froms.has(m.into)) }
+}
+
+/** 頂層 stat 的 ref;群組裡全部同一個 ref(重複列)也算;其他群組 = null */
+function wholeRefOf (/** @type {any} */ row) {
+  if (!row.stats) return row.ref ?? null
+  return row.stats.length && row.stats.every((/** @type {any} */ s) => s.ref === row.stats[0].ref) ? row.stats[0].ref : null
+}
+
+/** 幾個 stat 的交易站 id 依類型取聯集 */
+function mergeIds (/** @type {any[]} */ stats) {
+  /** @type {Record<string, string[]>} */
+  const out = {}
+  for (const s of stats) for (const [type, ids] of Object.entries(s.trade?.ids ?? {})) out[type] = uniq([...(out[type] ?? []), ...ids])
+  return out
 }
 
 function applyStatPlanNoMerge (fileText, lang, { adds = [], replace = {}, remove = [], newStats = [], better = {}, fill = {}, extra = {}, option = [] } = {}) {

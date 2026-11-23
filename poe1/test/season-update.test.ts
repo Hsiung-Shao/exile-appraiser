@@ -1549,10 +1549,24 @@ describe('planMergeDuplicates + applyStatPlan merge(規則 30:同一句的兩列
     expect(outEn[0].matchers.at(-1)).toEqual({ string: 'Socketed Gems are Supported by Level # X', superseded: true })
   })
 
-  it('id 不是子集(兩列各有別的 id)或繁中只有一列 → 不併', () => {
-    const other = stat('Socketed Gems are Supported by Level # X (Random Support Gem)', [{ string: 'Socketed Gems are Supported by Level # X' }], { explicit: ['explicit.indexable_support_2', 'explicit.effect_9'] })
-    expect(planMergeDuplicates({ enStats: [en()[0], other], zhStats: zh() }).merge).toEqual([])
+  it('id 不是子集、ref 也不是「+ (Random Support Gem)」配對,或繁中只有一列 → 不併', () => {
+    const other = stat('Y', [{ string: 'Socketed Gems are Supported by Level # X' }, { string: 'y' }], { explicit: ['explicit.indexable_support_2', 'explicit.effect_9'] })
+    expect(planMergeDuplicates({ enStats: [en()[0], other], zhStats: [zh()[0], stat('Y', [{ string: 'y' }])] }).merge).toEqual([])
     expect(planMergeDuplicates({ enStats: en(), zhStats: [zh()[1]] }).merge).toEqual([])
+  })
+
+  it('ref 是「+ (Random Support Gem)」配對時 id 不是子集也併,id 取聯集;同一 ref 重複的群組整組併掉', () => {
+    const fixedOld = stat('Socketed Gems are Supported by Level # X', [{ string: 'Socketed Gems are Supported by Level # X' }], { explicit: ['explicit.stat_old'] })
+    const enIn = [fixedOld, en()[1]]
+    const { merge } = planMergeDuplicates({ enStats: enIn, zhStats: zh() })
+    expect(merge).toEqual([{ from: fixedOld.ref, into: en()[1].ref }])
+    expect(parseRows(applyStatPlan(toFile(enIn), 'en', { merge }))[0].trade.ids.explicit).toEqual(['explicit.indexable_support_1', 'explicit.effect_9', 'explicit.stat_old'])
+    const group = (s: any) => ({ resolve: { strat: 'trivial-merge' }, stats: [s, s] })
+    const g = planMergeDuplicates({ enStats: [group(en()[0]), en()[1]], zhStats: [group(zh()[0]), zh()[1]] })
+    expect(g.merge).toEqual(merge)
+    const out = parseRows(applyStatPlan(toFile([group(zh()[0]), zh()[1]]), 'cmn-Hant', { merge: g.merge }))
+    expect(out.map(r => r.ref)).toEqual([en()[1].ref])
+    expect(out[0].matchers.filter((m: any) => m.string === '插槽中寶石被等級 # 的X輔助')).toHaveLength(1)
   })
 
   it('better 不同、連鎖(into 也要併走)→ 不併', () => {
