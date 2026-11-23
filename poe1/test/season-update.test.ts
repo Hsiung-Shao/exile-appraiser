@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toMatcherText, planStatText, planTradeText, planOtherTradeTexts, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planRandomSkillGem, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, planRoomNames, planCitadel, planExtraZh, planZhForms, planCondForms, planMercenaryBuilds, planNamedSlots, planTimelessJewels, planFixedCase, planMercenarySkills, EXTRA_ZH_MATCHERS, planGrownPassives, planPassiveRenames, planForbiddenNotables, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
+import { toMatcherText, planStatText, planTradeText, planOtherTradeTexts, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planRandomSkillGem, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, planRoomNames, planCitadel, planExtraZh, planZhForms, planCondForms, planMercenaryBuilds, planNamedSlots, planTimelessJewels, planFixedCase, planMercenarySkills, EXTRA_ZH_MATCHERS, planGrownPassives, planPassiveRenames, planForbiddenNotables, planMergeDuplicates, planFlagMerge, planIndexableSkills, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
 
 /**
  * 賽季更新腳本的純函式測試(合成輸入,不讀 data/)。
@@ -716,6 +716,22 @@ describe('planNewStats', () => {
     expect(out[0].zh).toEqual([{ string: '獲得 # 甲' }])
   })
 
+  it('別條詞綴只有寫死數字的同形句(沒有 #)不擋新增:解析器先比原數字;同形句帶 # 照擋(使用者 2026-11-24 裁定放寬)', () => {
+    const k = 'minion_um_ms|#|stat_descriptions.txt|0'
+    const rows = [row(k, 'Minions gain Unholy Might for {0} seconds on Kill', '殺敵時召喚物獲得不潔之力持續 {0} 秒')]
+    const trade = [{ id: 'explicit.stat_9', text: 'Minions gain Unholy Might for # seconds on Kill' }]
+    const literal = [stat('Minions have #% chance to gain Unholy Might for 4 seconds on Kill', [{ string: 'Minions gain Unholy Might for 4 seconds on Kill' }])]
+    expect(planNewStats({ enStats: literal, ggpkOld: rows, ggpkNew: rows, tradeStats: trade }).map((s: any) => s.ref)).toEqual(['Minions gain Unholy Might for # seconds on Kill'])
+    const hashed = [stat('Other', [{ string: 'Minions gain Unholy Might for # seconds on Kill' }], { explicit: ['explicit.stat_8'] })]
+    expect(planNewStats({ enStats: hashed, ggpkOld: rows, ggpkNew: rows, tradeStats: trade })).toEqual([])
+    // 繁中:寫死數字的同形句不擋;新句繁中與既有句逐字相同則擋(同一個繁中字串只能指向一列)
+    const zhLiteral = [stat('L', [{ string: '殺敵時召喚物獲得不潔之力持續 4 秒' }])]
+    expect(planNewStats({ enStats: [], zhStats: zhLiteral, ggpkOld: rows, ggpkNew: rows, tradeStats: trade })).toHaveLength(1)
+    const lit = [row(k, 'Minions gain Unholy Might for 4 seconds on Kill', '殺敵時召喚物獲得不潔之力持續 4 秒')]
+    const tradeLit = [{ id: 'explicit.stat_9', text: 'Minions gain Unholy Might for 4 seconds on Kill' }]
+    expect(planNewStats({ enStats: [], zhStats: zhLiteral, ggpkOld: lit, ggpkNew: lit, tradeStats: tradeLit })).toEqual([])
+  })
+
   it('舊版就有的地圖 / 輿圖詞綴(stat id 全部 map_ 開頭,或出自地圖 / 輿圖描述檔)交易站有 id 也收(使用者 2026-11-15 要求)', () => {
     const old = [
       row('map_monsters_foo_+%|#|stat_descriptions.txt|0', 'Monsters have {0}% more Foo', '怪物有 {0}% 更多甲'),
@@ -1026,6 +1042,20 @@ describe('planCondForms(規則 21:同一條詞綴依數值的其他寫法)', () 
       { lang: 'en', ref: '#% chance to Impale', matcher: { string: 'Always Impale', value: 100, superseded: true } },
       { lang: 'cmn-Hant', ref: '#% increased Speed', matcher: { string: '減少 #% 速度', negate: true, superseded: true } },
       { lang: 'cmn-Hant', ref: '#% chance to Impale', matcher: { string: '必定穿刺', value: 100, superseded: true } }
+    ])
+  })
+
+  it('基準句也寫死數字、兩句只差數字 → 補帶 value 的寫法;用數值選不同對象(字不同)的不收', () => {
+    const ids = { implicit: ['implicit.stat_1'] }
+    const enStats = [stat('Trigger Level 20 Spiders on Kill', [{ string: 'Trigger Level 20 Spiders on Kill' }], ids), stat('Area contains Alva', [{ string: 'Area contains Alva' }], ids)]
+    const ggpkNew = [
+      row(g('spiders_%', '200'), 'Trigger Level 20 Spiders on Kill', '擊殺時觸發等級20的異蛛'),
+      row(g('spiders_%', '100'), 'Trigger Level 1 [Spiders::1|Spiders] on Kill', '擊殺時觸發等級1的[Spiders::1|異蛛]'),
+      row(g('master_index', '3'), 'Area contains Alva', '區域含有阿爾瓦'),
+      row(g('master_index', '1'), 'Area contains Einhar', '區域含有埃哈')
+    ]
+    expect(planCondForms({ enStats, zhStats: [], ggpkNew }).adds).toEqual([
+      { lang: 'en', ref: 'Trigger Level 20 Spiders on Kill', matcher: { string: 'Trigger Level 1 Spiders on Kill', value: 100, superseded: true } }
     ])
   })
 
@@ -1491,6 +1521,126 @@ describe('planTimelessJewels(規則 28:永恆珠寶征服者名取 GGPK 表)', (
     const p = planTimelessJewels({ zhStats: zh(), ggpkNew, conquerors: [] })
     expect(p.adds).toEqual([])
     expect(p.rejects).toHaveLength(1)
+  })
+
+  const factions = { 2: { en: 'Karui', zh: '卡魯' } }
+  const kiloava = { id: 'explicit.pseudo_timeless_jewel_kiloava', text: 'Commanded leadership over # warriors under Kiloava' }
+  it('陣營名有給 GGPK 表就用它,不沿用資料現行句的舊譯', () => {
+    const old2 = { string: '艾古亞指揮領導超過#名戰士\n範圍內的天賦臣服於卡魯族', advanced: '艾古亞(...)指揮領導超過#名戰士\n範圍內的天賦臣服於卡魯族' }
+    const p = planTimelessJewels({ zhStats: [stat('Commanded leadership over # warriors under Akoya', [old2])], ggpkNew, conquerors: [{ en: 'Akoya', zh: '艾古亞' }], factions })
+    expect(p.adds.map(a => a.matcher.string)).toEqual(['艾古亞指揮領導超過#名戰士\n範圍內的天賦臣服於卡魯'])
+    expect(p.adds[0].supersedes).toEqual([old2.string])
+  })
+
+  it('交易站有、資料沒有的征服者 → 新增一列,兩語照 GGPK 句型', () => {
+    const p = planTimelessJewels({ zhStats: [], enStats: [], ggpkNew, conquerors: [{ en: 'Kiloava', zh: '基洛阿瓦' }], factions, tradeStats: [kiloava] })
+    expect(p.newStats).toEqual([{
+      ref: kiloava.text, better: 0, ids: { explicit: [kiloava.id] },
+      en: [{ string: 'Commanded leadership over # warriors under Kiloava\nPassives in radius are Conquered by the Karui', advanced: 'Commanded leadership over # warriors under Kiloava(...)\nPassives in radius are Conquered by the Karui' }],
+      zh: [{ string: '基洛阿瓦指揮領導超過#名戰士\n範圍內的天賦臣服於卡魯', advanced: '基洛阿瓦(...)指揮領導超過#名戰士\n範圍內的天賦臣服於卡魯' }]
+    }])
+  })
+
+  it('交易站沿用舊名(renames)→ 兩語補遊戲顯示的新名、ref 與 id 不動', () => {
+    const oldEn = { string: 'Commanded leadership over # warriors under Kiloava\nPassives in radius are Conquered by the Karui' }
+    const p = planTimelessJewels({ zhStats: [stat(kiloava.text, [{ string: '舊' }])], enStats: [stat(kiloava.text, [oldEn])], ggpkNew, conquerors: [{ en: 'Akoya', zh: '艾古亞' }], factions, tradeStats: [kiloava], renames: { Kiloava: 'Akoya' } })
+    expect(p.adds.map(a => [a.lang, a.ref, a.matcher.string])).toEqual([
+      ['cmn-Hant', kiloava.text, '艾古亞指揮領導超過#名戰士\n範圍內的天賦臣服於卡魯'],
+      ['en', kiloava.text, 'Commanded leadership over # warriors under Akoya\nPassives in radius are Conquered by the Karui']
+    ])
+    expect(p.newStats).toEqual([])
+  })
+
+  it('陣營表缺這個版本、或與英文現行句的陣營不同 → 拒收並寫原因,不默默跳過', () => {
+    const p1 = planTimelessJewels({ zhStats: [], ggpkNew, conquerors: [{ en: 'Kiloava', zh: '基洛阿瓦' }], factions: {}, tradeStats: [kiloava] })
+    expect(p1.newStats).toEqual([])
+    expect(p1.rejects.map(r => r.reason)).toEqual(['GGPK 缺陣營名(version 2)'])
+    const en = [stat(kiloava.text, [{ string: 'Commanded leadership over # warriors under Kiloava\nPassives in radius are Conquered by the Karui' }])]
+    const p2 = planTimelessJewels({ zhStats: [stat(kiloava.text, [{ string: '舊' }])], enStats: en, ggpkNew, conquerors: [{ en: 'Kiloava', zh: '基洛阿瓦' }], factions: { 2: { en: 'Vaal', zh: '瓦爾' } }, tradeStats: [kiloava] })
+    expect(p2.adds).toEqual([])
+    expect(p2.rejects.map(r => r.reason)).toEqual(['GGPK 陣營名 Vaal 與英文現行句不同'])
+  })
+})
+
+describe('planMergeDuplicates + applyStatPlan merge(規則 30:同一句的兩列併成 id 多的那列)', () => {
+  const fixed = (m: any[]) => stat('Socketed Gems are Supported by Level # X', m, { explicit: ['explicit.indexable_support_1'] })
+  const random = (m: any[]) => stat('Socketed Gems are Supported by Level # X (Random Support Gem)', m, { explicit: ['explicit.indexable_support_1', 'explicit.effect_9'] })
+  const en = () => [fixed([{ string: 'Socketed Gems are Supported by Level # X' }]), random([{ string: 'Socketed Gems are Supported by Level # X', advanced: 'Socketed Gems are Supported by Level # X(...)', superseded: true }, { string: 'Socketed Gems are Supported by Level # X Support' }])]
+  const zh = () => [fixed([{ string: '插槽中寶石被等級 # 的X輔助' }]), random([{ string: '插槽中的寶石被等級 # 的 X 輔助' }])]
+
+  it('英文現行句相同、id 是子集 → 併進 id 多的那列;兩語都刪掉 from 列,寫法以 superseded 搬過去', () => {
+    const { merge } = planMergeDuplicates({ enStats: en(), zhStats: zh() })
+    expect(merge).toEqual([{ from: 'Socketed Gems are Supported by Level # X', into: 'Socketed Gems are Supported by Level # X (Random Support Gem)' }])
+    const outZh = parseRows(applyStatPlan(toFile(zh()), 'cmn-Hant', { merge }))
+    expect(outZh.map(r => r.ref)).toEqual(['Socketed Gems are Supported by Level # X (Random Support Gem)'])
+    expect(outZh[0].matchers).toEqual([{ string: '插槽中的寶石被等級 # 的 X 輔助' }, { string: '插槽中寶石被等級 # 的X輔助', superseded: true }])
+    const outEn = parseRows(applyStatPlan(toFile(en()), 'en', { merge }))
+    expect(outEn).toHaveLength(1)
+    expect(outEn[0].matchers.at(-1)).toEqual({ string: 'Socketed Gems are Supported by Level # X', superseded: true })
+  })
+
+  it('id 不是子集、ref 也不是「+ (Random Support Gem)」配對,或繁中只有一列 → 不併', () => {
+    const other = stat('Y', [{ string: 'Socketed Gems are Supported by Level # X' }, { string: 'y' }], { explicit: ['explicit.indexable_support_2', 'explicit.effect_9'] })
+    expect(planMergeDuplicates({ enStats: [en()[0], other], zhStats: [zh()[0], stat('Y', [{ string: 'y' }])] }).merge).toEqual([])
+    expect(planMergeDuplicates({ enStats: en(), zhStats: [zh()[1]] }).merge).toEqual([])
+  })
+
+  it('ref 是「+ (Random Support Gem)」配對時 id 不是子集也併,id 取聯集;同一 ref 重複的群組整組併掉', () => {
+    const fixedOld = stat('Socketed Gems are Supported by Level # X', [{ string: 'Socketed Gems are Supported by Level # X' }], { explicit: ['explicit.stat_old'] })
+    const enIn = [fixedOld, en()[1]]
+    const { merge } = planMergeDuplicates({ enStats: enIn, zhStats: zh() })
+    expect(merge).toEqual([{ from: fixedOld.ref, into: en()[1].ref }])
+    expect(parseRows(applyStatPlan(toFile(enIn), 'en', { merge }))[0].trade.ids.explicit).toEqual(['explicit.indexable_support_1', 'explicit.effect_9', 'explicit.stat_old'])
+    const group = (s: any) => ({ resolve: { strat: 'trivial-merge' }, stats: [s, s] })
+    const g = planMergeDuplicates({ enStats: [group(en()[0]), en()[1]], zhStats: [group(zh()[0]), zh()[1]] })
+    expect(g.merge).toEqual(merge)
+    const out = parseRows(applyStatPlan(toFile([group(zh()[0]), zh()[1]]), 'cmn-Hant', { merge: g.merge }))
+    expect(out.map(r => r.ref)).toEqual([en()[1].ref])
+    expect(out[0].matchers.filter((m: any) => m.string === '插槽中寶石被等級 # 的X輔助')).toHaveLength(1)
+  })
+
+  it('better 不同、連鎖(into 也要併走)→ 不併', () => {
+    const [a, b] = en()
+    expect(planMergeDuplicates({ enStats: [{ ...a, better: -1 }, b], zhStats: zh() }).merge).toEqual([])
+    // a → b(a 的現行句在 b)、b → c(b 的現行句「… X Support」在 c,a 的不在)= 連鎖:a 不併,只留 b → c
+    const c = stat('C', [{ string: 'Socketed Gems are Supported by Level # X Support' }], { explicit: ['explicit.indexable_support_1', 'explicit.effect_9', 'explicit.effect_10'] })
+    const zhC = [...zh(), stat('C', [{ string: 'c' }])]
+    expect(planMergeDuplicates({ enStats: [a, b, c], zhStats: zhC }).merge).toEqual([{ from: b.ref, into: 'C' }])
+  })
+
+  it('同一輪掛到 from 列的 id 一起搬進 into,不跟著被刪', () => {
+    const merge = [{ from: 'Socketed Gems are Supported by Level # X', into: 'Socketed Gems are Supported by Level # X (Random Support Gem)' }]
+    const out = parseRows(applyStatPlan(toFile(en()), 'en', { merge, extra: { 'Socketed Gems are Supported by Level # X': { implicit: ['implicit.effect_9'] } } }))
+    expect(out[0].trade.ids).toEqual({ explicit: ['explicit.indexable_support_1', 'explicit.effect_9'], implicit: ['implicit.effect_9'] })
+  })
+})
+
+describe('planFlagMerge(規則 31:flag-merge 的旗標句補進數值列)', () => {
+  const group = (val: any[], flag: any[]) => ({ resolve: { strat: 'flag-merge', kind: ['value', 'flag'] }, stats: [stat('V #', val), stat('V 20', flag)] })
+  it('旗標句與數值列的寫法不同形 → 帶 value 補進數值列;同形(含只差 +)不補', () => {
+    const zh = [group([{ string: '你凍結的敵人增加 #% 承受傷害' }], [{ string: '被你冰凍的敵人額外承受 20% 傷害', value: 20 }])]
+    expect(planFlagMerge({ enStats: [], zhStats: zh }).adds).toEqual([{ lang: 'cmn-Hant', ref: 'V #', matcher: { string: '被你冰凍的敵人額外承受 20% 傷害', value: 20, superseded: true } }])
+    const en = [group([{ string: '#% to Maximum Effect of Shock' }], [{ string: '+40% to Maximum Effect of Shock', value: 40 }])]
+    expect(planFlagMerge({ enStats: en, zhStats: [] }).adds).toEqual([])
+  })
+})
+
+describe('planIndexableSkills(規則 32:交易站新上架的隨機技能寶石等級)', () => {
+  const ggpkNew = [{ key: 'random_skill_gem_level_+_level random_skill_gem_level_+_index|1|# #|stat_descriptions.txt|0', en: '+{0} to Level of all {1} Gems', zh: '全部 {1} 寶石等級 +{0}' }]
+  const trade = [{ id: 'explicit.indexable_skill_288', text: '+# to Level of all Arcane Link Gems' }]
+  it('資料沒有這個 id → 新增一列,兩語照 GGPK 句型、進階句名稱後加「(...)」', () => {
+    expect(planIndexableSkills({ enStats: [], tradeStats: trade, ggpkNew, skills: [{ en: 'Arcane Link', zh: '連結：秘能' }] }).newStats).toEqual([{
+      ref: '+# to Level of all Arcane Link Gems (Random Skill Gem)', better: 1, ids: { explicit: ['explicit.indexable_skill_288'] },
+      en: [{ string: '# to Level of all Arcane Link Gems', advanced: '# to Level of all Arcane Link(...) Gems' }],
+      zh: [{ string: '全部 連結：秘能 寶石等級 #', advanced: '全部 連結：秘能(...) 寶石等級 #' }]
+    }])
+  })
+  it('已有這個 id 不新增;英文名對到兩個繁中名 → 拒收', () => {
+    const have = [stat('x', [{ string: 'x' }], { explicit: ['explicit.indexable_skill_288'] })]
+    expect(planIndexableSkills({ enStats: have, tradeStats: trade, ggpkNew, skills: [{ en: 'Arcane Link', zh: '甲' }] }).newStats).toEqual([])
+    expect(planIndexableSkills({ enStats: [], tradeStats: trade, ggpkNew, skills: [{ en: 'Arcane Link', zh: '甲' }, { en: 'Arcane Link', zh: '乙' }] }).rejects).toHaveLength(1)
+    const plain = [stat('+# to Level of all Arcane Link Gems', [{ string: '# to Level of all Arcane Link Gems' }], { explicit: ['explicit.stat_9'] })]
+    expect(planIndexableSkills({ enStats: plain, tradeStats: trade, ggpkNew, skills: [{ en: 'Arcane Link', zh: '甲' }] }).rejects.map(r => r.reason)).toEqual(['英文句已是別條詞綴的寫法'])
   })
 })
 

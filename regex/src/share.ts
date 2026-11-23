@@ -11,7 +11,7 @@
 // 解碼 / 正規化的結果一律是 v2。舊版程式(只認 v1)讀 v2 會明確回「版本不符」,不會靜默丟掉數值條件。
 import type { Mode } from './gen'
 import type { RegexGame, RegexPage } from './data'
-import { applyPageKeys, isAlgoPage, sanitizeValue, sectionPageOf } from './pages'
+import { algoEntryIndex, applyPageKeys, isAlgoPage, sanitizeValue, sectionPageOf } from './pages'
 import type { AlgoValue } from './pages/types'
 import { SECTION_HOSTS, unionKeys } from './sections'
 
@@ -284,7 +284,10 @@ export function resolveState (s: ShareState, pages: readonly RegexPage[]): Resol
     if (!targets.length) { if (!out.unknownPages.includes(id)) out.unknownPages.push(id); continue }
     for (const page of targets) {
       const m: Record<string, AlgoValue> = {}
-      for (const [eid, v] of Object.entries(ents)) if (page.entries.some(e => e.id === eid)) m[eid] = { ...v }
+      for (const [eid, v] of Object.entries(ents)) {
+        const i = isAlgoPage(page) ? algoEntryIndex(page, eid) : -1
+        if (i >= 0) m[page.entries[i].id] = { ...v }
+      }
       out.values[page.id] = m
     }
   }

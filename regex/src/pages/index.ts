@@ -84,13 +84,51 @@ export function pageKeysOf (page: RegexPage, picked: readonly number[]): { keys:
   return { keys, alt }
 }
 
+/**
+ * 併列後 id 整個換掉、`X|ref` 退路接不到的舊項目 id → 現行 id(PoE1 物品詞綴數值頁:規則 30 的「+ (Random Support Gem)」配對,
+ * 固定列用的是舊的固定輔助 stat id;2026-11-24 以併列前後兩版資料逐條算出)
+ */
+const RENAMED_ENTRY_IDS: Readonly<Record<string, string>> = {
+  stat_285773939: 'indexable_support_154', // Flamewood
+  stat_3227145554: 'indexable_support_133', // Impending Doom
+  stat_4096329121: 'indexable_support_168', // Living Lightning
+  stat_254728692: 'indexable_support_33', // Pierce
+  stat_2910545715: 'indexable_support_148' // Prismatic Burst
+}
+
+/**
+ * 演算法頁的項目 id → 索引。找不到、且是 `X|ref`(物品詞綴數值頁同一個交易站 id 的第二條)時退回 `X`:
+ * 資料把同一句的兩列併成一列後(PoE1 規則 30,2026-11-24),原本第二條的 id 由 `X|ref` 變成 `X`,舊存檔 / 書籤 / 分享碼照樣還原。
+ * 只在 `X` 那條的英文 ref 就是舊 id 裡的 ref 時才退(同 stat 另一句被排除 / 改名時不能套到別句);
+ * 以最後一個 `|` 切(選項型 id 本身含 `|`,ref 不含)。
+ */
+export function algoEntryIndex (page: AlgoPage, id: string): number {
+  const i = page.entries.findIndex(e => e.id === id)
+  if (i < 0 && Object.hasOwn(RENAMED_ENTRY_IDS, id)) return page.entries.findIndex(e => e.id === RENAMED_ENTRY_IDS[id])
+  const cut = id.lastIndexOf('|')
+  if (i >= 0 || cut < 0) return i
+  const ref = id.slice(cut + 1)
+  return page.entries.findIndex(e => e.id === id.slice(0, cut) && e.en[0] === ref)
+}
+
+/** 存下來的數值(項目 id → 值)換成這一頁現行的 id;還原不到的照原鍵留著(其他頁共用同一個存放鍵) */
+export function remapAlgoValues<T> (page: AlgoPage, values: Readonly<Record<string, T>>): Record<string, T> {
+  const out: Record<string, T> = {}
+  for (const [id, v] of Object.entries(values)) {
+    const i = algoEntryIndex(page, id)
+    const key = i >= 0 ? page.entries[i].id : id
+    if (!(key in out) || key === id) out[key] = v
+  }
+  return out
+}
+
 /** 鍵 → 勾選索引 + 還原不到的數量;語料頁同 applyKeys */
 export function applyPageKeys (page: RegexPage, keys: readonly string[], alt: readonly string[] = []): { picked: number[], missed: number } {
   if (!isAlgoPage(page)) return applyKeys(page, keys, alt)
   const picked = new Set<number>()
   let missed = 0
   for (const k of keys) {
-    const i = page.entries.findIndex(e => e.id === k)
+    const i = algoEntryIndex(page, k)
     if (i >= 0) picked.add(i)
     else missed++
   }

@@ -26,13 +26,15 @@ import type { FilterOrGroup, StatFilter } from '@/web/price-check/filters/interf
  * 兩份清單都**只能變少**:修好後 `UPDATE_FIXTURES=1` 重寫並 review 差異;清單外的新缺口 = 紅。
  * `SWEEP_REPORT=<檔>` 另寫每一句的明細(原句、解析結果、查詢片段)給報告用。
  * 句子是照 GGPK 組的,不是實機剪貼簿。
+ * `Unique <類別>` 是傳奇專屬詞綴:組成「稀有度: 傳奇 + 傳奇名稱 + { 傳奇詞綴 }」,其餘相同。
  */
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const GAPS_FILE = path.join(HERE, 'docs/type-sweep-gaps.json')
 const QUERY_GAPS_FILE = path.join(HERE, 'docs/type-sweep-query-gaps.json')
 const sweep = JSON.parse(fs.readFileSync(path.join(HERE, 'docs/type-sweep.json'), 'utf8')) as {
   lines: Array<[string, string]>
-  classes: Record<string, { class: [string, string] | null, bases: Array<[string, string]>, explicit: number[], implicit: number[] }>
+  // `Unique <類別>`:傳奇專屬詞綴,uniques 與 bases 同位置(傳奇名稱 + 它的底材)
+  classes: Record<string, { class: [string, string] | null, bases: Array<[string, string]>, uniques?: Array<[string, string]>, explicit: number[], implicit: number[] }>
 }
 const TRADE_IDS = new Set((JSON.parse(fs.readFileSync(path.join(HERE, 'docs/trade-stat-ids-3.30.json'), 'utf8')) as { ids: string[] }).ids)
 const CATALOG = JSON.parse(fs.readFileSync(path.join(HERE, 'docs/trade-catalog-3.30.json'), 'utf8')) as { categories: string[], types: string[] }
@@ -41,20 +43,41 @@ const TYPES = new Set(CATALOG.types)
 type Lang = 'en' | 'cmn-Hant'
 type ModType = 'explicit' | 'implicit'
 
-function itemText (lang: Lang, cls: string, klass: string, base: string, type: ModType | null, line: string): string {
+const WEAPONS = /^(FishingRod|Claw|Dagger|Rune Dagger|Wand|(One|Two) Hand (Sword|Axe|Mace)|Thrusting One Hand Sword|Bow|Staff|Warstaff|Sceptre)$/
+const ARMOURS = /^(Body Armour|Boots|Gloves|Helmet|Shield)$/
+/**
+ * 武器 / 防具的屬性段(寫法照實機剪貼簿,例 3.30-issue-45 / 36):有了它局部詞綴才會像實機一樣併進 DPS / 防禦合計(eaten)。
+ * 防具三種防禦都給:哪一種會被局部詞綴吃掉看詞綴本身,不必挑底材
+ */
+function propertyLines (zh: boolean, cls: string): string[] {
+  if (WEAPONS.test(cls)) return ['--------', zh ? '物理傷害: 10-20' : 'Physical Damage: 10-20', zh ? '暴擊率: 5.00%' : 'Critical Strike Chance: 5.00%', zh ? '每秒攻擊次數: 1.50' : 'Attacks per Second: 1.50']
+  if (!ARMOURS.test(cls)) return []
+  return ['--------', ...cls === 'Shield' ? [zh ? '格擋率: 25%' : 'Chance to Block: 25%'] : [],
+    zh ? '護甲: 100' : 'Armour: 100', zh ? '閃避值: 100' : 'Evasion Rating: 100', zh ? '能量護盾: 50' : 'Energy Shield: 50']
+}
+
+/** 一件物品的身分:底材,傳奇另帶名稱 */
+interface Pick { base: string, unique?: string }
+
+function itemText (lang: Lang, cls: string, klass: string, pick: Pick, type: ModType | null, line: string): string {
   const zh = lang === 'cmn-Hant'
   const tier = cls === 'Map' ? (zh ? '（階級 16）' : ' (Tier 16)') : ''
   // 遊戲裡沒有稀有藥劑:藥劑組成魔法(名稱只寫底材)
-  const magic = cls.endsWith('Flask')
+  const magic = !pick.unique && cls.endsWith('Flask')
   const L = [
     zh ? `物品種類: ${klass}` : `Item Class: ${klass}`,
-    ...magic ? [zh ? '稀有度: 魔法' : 'Rarity: Magic'] : [zh ? '稀有度: 稀有' : 'Rarity: Rare', zh ? '末日循環' : 'Doom Loop'], base + tier,
+    ...pick.unique
+      ? [zh ? '稀有度: 傳奇' : 'Rarity: Unique', pick.unique]
+      : magic ? [zh ? '稀有度: 魔法' : 'Rarity: Magic'] : [zh ? '稀有度: 稀有' : 'Rarity: Rare', zh ? '末日循環' : 'Doom Loop'],
+    pick.base + tier,
+    ...propertyLines(zh, cls.replace(/^Unique /, '')),
     '--------', zh ? '物品等級: 84' : 'Item Level: 84'
   ]
   // 劫盜藍圖一定有「區域等級 + 已揭露側廂」這一段(client_strings AREA_LEVEL / HEIST_WINGS_REVEALED),沒有的話組查詢會拋錯
   if (cls === 'HeistBlueprint') L.push('--------', zh ? '地區等級: 83' : 'Area Level: 83', zh ? '已揭露側廂: 1/4' : 'Wings Revealed: 1/4')
   if (type === 'implicit') L.push('--------', zh ? '{ 固定詞綴 }' : '{ Implicit Modifier }', line)
-  if (type === 'explicit') L.push('--------', zh ? '{ 前綴 "測試的"(階層：1) }' : '{ Prefix Modifier "Testing" (Tier: 1) }', line)
+  if (type === 'explicit' && pick.unique) L.push('--------', zh ? '{ 傳奇詞綴 }' : '{ Unique Modifier }', line)
+  else if (type === 'explicit') L.push('--------', zh ? '{ 前綴 "測試的"(階層：1) }' : '{ Prefix Modifier "Testing" (Tier: 1) }', line)
   // 探險日誌一定有區域段(區域名 / 陣營 / 帶「 (implicit)」的區域詞綴,`parseLogbookArea` 要 ≥ 3 行),沒有的話組查詢會拋錯;
   // 第 3 行是對不到任何詞綴的湊數行(被略過),區域段只剩陣營
   if (cls === 'ExpeditionLogbook') L.push('--------', zh ? '地區等級: 83' : 'Area Level: 83', '--------', 'Testing Grounds', zh ? '豔陽騎士' : 'Knights of the Sun', 'Testing Grounds (implicit)')
@@ -98,7 +121,7 @@ interface Probe {
 }
 
 /** 一句:解析 → 預設 preset 勾選這條詞綴自己的列 → 組查詢 */
-function probe (lang: Lang, cls: string, klass: string, base: string, type: ModType, line: string): Probe {
+function probe (lang: Lang, cls: string, klass: string, base: Pick, type: ModType, line: string): Probe {
   const r = parseClipboard(itemText(lang, cls, klass, base, type, line))
   if (r.isErr()) return { parse: 'error' }
   if (r.value.unknownModifiers.length) return { parse: 'unknown' }
@@ -153,20 +176,21 @@ function queryProbe (item: ParsedItem, refs: Set<string>, type: ModType, lang: L
   return out
 }
 
-/** 每類挑第一個本專案認得的底材(GGPK 裡有很多舊底材 / 未上架底材) */
-function pickBase (lang: Lang, cls: string): string | undefined {
+/** 每類挑第一個本專案認得的底材(GGPK 裡有很多舊底材 / 未上架底材);傳奇類別挑第一個認得的傳奇 */
+function pickBase (lang: Lang, cls: string): Pick | undefined {
   const c = sweep.classes[cls]
   const at = lang === 'en' ? 0 : 1
   // 3.30 地圖只剩一個底材「地圖」;GGPK 的類別名「異界地圖」不是剪貼簿上的寫法
   if (cls === 'Map') { c.class = ['Maps', '地圖']; c.bases = [['Map', '地圖']] }
   if (!c.class) return undefined
-  return c.bases.map(b => b[at]).find(b => parseClipboard(itemText(lang, cls, c.class![at], b, null, '')).isOk())
+  return c.bases.map((b, i) => ({ base: b[at], unique: c.uniques?.[i][at] }))
+    .find(p => parseClipboard(itemText(lang, cls, c.class![at], p, null, '')).isOk())
 }
 
 /** 第 6 段:不帶詞綴的一件,預設查詢的類別 + 改查基底後的基底名稱 */
-function classProbe (lang: Lang, cls: string, klass: string, base: string): { category?: string, type?: string, crash?: string } {
+function classProbe (lang: Lang, cls: string, klass: string, base: Pick): { category?: string, type?: string, crash?: string } {
   const r = parseClipboard(itemText(lang, cls, klass, base, null, ''))
-  if (r.isErr()) throw new Error(`${cls} 底材 ${base} 解析失敗`) // pickBase 已確認過能解析
+  if (r.isErr()) throw new Error(`${cls} 底材 ${base.base} 解析失敗`) // pickBase 已確認過能解析
   let presets, active
   try { ({ presets, active } = createPresets(r.value, opts(lang))) } catch (e) { return { crash: String(e) } }
   const preset = presets.find(p => p.id === active)!
@@ -196,8 +220,10 @@ async function run (lang: Lang) {
   for (const file of fs.readdirSync(path.join(HERE, 'docs')).filter(f => f.startsWith('3.30-issue-') && f.endsWith(`.${lang}.txt`))) {
     const text = fs.readFileSync(path.join(HERE, 'docs', file), 'utf8')
     const klass = text.split(/\r?\n/)[0].replace(/^(Item Class|物品種類): /, '')
-    const cls = Object.keys(sweep.classes).find(k => sweep.classes[k].class?.[at] === klass)
     const r = parseClipboard(text)
+    // 傳奇樣本對傳奇類別、其他對一般類別
+    const unique = r.isOk() && r.value.rarity === 'Unique'
+    const cls = Object.keys(sweep.classes).find(k => sweep.classes[k].class?.[at] === klass && !!sweep.classes[k].uniques === unique)
     if (r.isErr()) { samples.push({ file, lang, cls, error: String(r.error) }); continue }
     for (const s of r.value.statsByType) {
       if ((s.type !== 'explicit' && s.type !== 'implicit') || !(s.type in s.stat.trade.ids)) continue
@@ -274,8 +300,8 @@ describe('類型掃描:每類物品會出現的詞綴中英都解析得到、查
     const sampleRows = samples.map(s => {
       if (s.error || !s.cls) return { ...s, sweep: s.error ? 'error' : 'class-not-in-sweep' }
       const seen = [...results[s.lang].entries()].filter(([k, p]) => k.startsWith(`${s.cls}|${s.type}|`) && p.parse.split(' + ').includes(s.ref!)).map(([, p]) => p.query)
-      // 掃描組的是稀有(藥劑魔法);傳奇的篩選組法不同(不併偽屬性),稀有度不同就只記下、不比
-      const rarityDiffers = s.rarity !== (s.cls!.endsWith('Flask') ? 'Magic' : 'Rare')
+      // 掃描組的是稀有(藥劑魔法)或傳奇;稀有度不同(篩選組法不同)就只記下、不比
+      const rarityDiffers = s.rarity !== (sweep.classes[s.cls!].uniques ? 'Unique' : s.cls!.endsWith('Flask') ? 'Magic' : 'Rare')
       return { ...s, rarityDiffers, sweep: seen.length ? [...new Set(seen)].sort().join(',') : 'not-in-sweep' }
     })
     for (const s of sampleRows) {
