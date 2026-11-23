@@ -553,6 +553,15 @@ describe('V22 空虛斷片例外(2026-11-24 使用者裁定)', () => {
       expect([r.qty, r.reason]).toEqual([null, 'missed-digit'])
     }
   })
+  it('例外只略過 ①:三位數拿不到延伸裁切區時仍回疑似漏讀', async () => {
+    const img = await loadImage('a')
+    const H = img.height
+    const i = SA.values.findIndex(v => v >= 100)
+    const crop = qtyCrop(img, rectsOf('a', H)[i], H, TEMPLATES.baseClientH)
+    const ext = (): ReturnType<typeof qtyCrop> => qtyCrop(img, rectsOf('a', H)[i], H, TEMPLATES.baseClientH, undefined, 8)
+    expect(decodeQtyCrop(crop, TEMPLATES, ext, true).qty).toBe(SA.values[i])
+    expect(decodeQtyCrop(crop, TEMPLATES, () => null, true).reason).toBe('missed-digit')
+  })
   it('掃描與自測都把物品名傳進判讀(接線守門)', () => {
     expect(fs.readFileSync(path.join(ROOT, 'main/src/ocr/stash-scan.ts'), 'utf8')).toContain('refName: rects[i].refName')
     expect(fs.readFileSync(path.join(ROOT, 'main/src/ocr/stash-selftest.ts'), 'utf8').match(/refName: r\.refName/g)).toHaveLength(2)

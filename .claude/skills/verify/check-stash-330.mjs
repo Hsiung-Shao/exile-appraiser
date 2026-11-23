@@ -109,7 +109,7 @@ try {
     let unknown = 0
     const svg = []
     for (const r of rects) {
-      const res = core.readCellQuantity(img, r, templates, { clientH: H })
+      const res = core.readCellQuantity(img, r, templates, { clientH: H, refName: r.refName })
       const want = TRUTH[tab][r.refName] ?? 0
       const got = res.reason === 'empty' ? 0 : res.qty
       if (got === want) right++
