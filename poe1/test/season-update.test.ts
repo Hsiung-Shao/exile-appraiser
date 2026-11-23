@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toMatcherText, planStatText, planTradeText, planOtherTradeTexts, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planRandomSkillGem, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, planRoomNames, planCitadel, planExtraZh, planZhForms, planCondForms, planMercenaryBuilds, planNamedSlots, planTimelessJewels, planFixedCase, planMercenarySkills, EXTRA_ZH_MATCHERS, planGrownPassives, planPassiveRenames, planForbiddenNotables, planMergeDuplicates, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
+import { toMatcherText, planStatText, planTradeText, planOtherTradeTexts, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planRandomSkillGem, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, planRoomNames, planCitadel, planExtraZh, planZhForms, planCondForms, planMercenaryBuilds, planNamedSlots, planTimelessJewels, planFixedCase, planMercenarySkills, EXTRA_ZH_MATCHERS, planGrownPassives, planPassiveRenames, planForbiddenNotables, planMergeDuplicates, planFlagMerge, planIndexableSkills, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
 
 /**
  * 賽季更新腳本的純函式測試(合成輸入,不讀 data/)。
@@ -1596,6 +1596,33 @@ describe('planMergeDuplicates + applyStatPlan merge(規則 30:同一句的兩列
     const merge = [{ from: 'Socketed Gems are Supported by Level # X', into: 'Socketed Gems are Supported by Level # X (Random Support Gem)' }]
     const out = parseRows(applyStatPlan(toFile(en()), 'en', { merge, extra: { 'Socketed Gems are Supported by Level # X': { implicit: ['implicit.effect_9'] } } }))
     expect(out[0].trade.ids).toEqual({ explicit: ['explicit.indexable_support_1', 'explicit.effect_9'], implicit: ['implicit.effect_9'] })
+  })
+})
+
+describe('planFlagMerge(規則 31:flag-merge 的旗標句補進數值列)', () => {
+  const group = (val: any[], flag: any[]) => ({ resolve: { strat: 'flag-merge', kind: ['value', 'flag'] }, stats: [stat('V #', val), stat('V 20', flag)] })
+  it('旗標句與數值列的寫法不同形 → 帶 value 補進數值列;同形(含只差 +)不補', () => {
+    const zh = [group([{ string: '你凍結的敵人增加 #% 承受傷害' }], [{ string: '被你冰凍的敵人額外承受 20% 傷害', value: 20 }])]
+    expect(planFlagMerge({ enStats: [], zhStats: zh }).adds).toEqual([{ lang: 'cmn-Hant', ref: 'V #', matcher: { string: '被你冰凍的敵人額外承受 20% 傷害', value: 20, superseded: true } }])
+    const en = [group([{ string: '#% to Maximum Effect of Shock' }], [{ string: '+40% to Maximum Effect of Shock', value: 40 }])]
+    expect(planFlagMerge({ enStats: en, zhStats: [] }).adds).toEqual([])
+  })
+})
+
+describe('planIndexableSkills(規則 32:交易站新上架的隨機技能寶石等級)', () => {
+  const ggpkNew = [{ key: 'random_skill_gem_level_+_level random_skill_gem_level_+_index|1|# #|stat_descriptions.txt|0', en: '+{0} to Level of all {1} Gems', zh: '全部 {1} 寶石等級 +{0}' }]
+  const trade = [{ id: 'explicit.indexable_skill_288', text: '+# to Level of all Arcane Link Gems' }]
+  it('資料沒有這個 id → 新增一列,兩語照 GGPK 句型、進階句名稱後加「(...)」', () => {
+    expect(planIndexableSkills({ enStats: [], tradeStats: trade, ggpkNew, skills: [{ en: 'Arcane Link', zh: '連結：秘能' }] }).newStats).toEqual([{
+      ref: '+# to Level of all Arcane Link Gems (Random Skill Gem)', better: 1, ids: { explicit: ['explicit.indexable_skill_288'] },
+      en: [{ string: '# to Level of all Arcane Link Gems', advanced: '# to Level of all Arcane Link(...) Gems' }],
+      zh: [{ string: '全部 連結：秘能 寶石等級 #', advanced: '全部 連結：秘能(...) 寶石等級 #' }]
+    }])
+  })
+  it('已有這個 id 不新增;英文名對到兩個繁中名 → 拒收', () => {
+    const have = [stat('x', [{ string: 'x' }], { explicit: ['explicit.indexable_skill_288'] })]
+    expect(planIndexableSkills({ enStats: have, tradeStats: trade, ggpkNew, skills: [{ en: 'Arcane Link', zh: '甲' }] }).newStats).toEqual([])
+    expect(planIndexableSkills({ enStats: [], tradeStats: trade, ggpkNew, skills: [{ en: 'Arcane Link', zh: '甲' }, { en: 'Arcane Link', zh: '乙' }] }).rejects).toHaveLength(1)
   })
 })
 

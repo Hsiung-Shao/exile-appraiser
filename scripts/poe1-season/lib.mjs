@@ -1055,6 +1055,8 @@ export const EXTRA_ZH_MATCHERS = [
   { ref: 'Map Bosses have #% chance to be surrounded by Tormented Spirits', zh: '地圖頭目有 #% 機率受罪魂包圍', current: true, old: '地圖頭目有 #% 機率被罪魂圍繞' },
   // 希望之絃(GitHub issue #20):抗性是傳奇自己的合併 stat,繁中沒有空白、「全」不是「全部」(GGPK `{1:+d}%全元素抗性`)
   { ref: '+#% to all Elemental Resistances', zh: '#%全元素抗性', verified: 'GGPK unique_thread_of_hope_base_resist_all_elements_% + issue #20' },
+  // 寫死數值的獨立 stat(25% / 50%),繁中多一個「有」;英文與通用句同形,由 # 接住(類型掃描 2026-11-24)
+  { ref: '#% chance to cause Bleeding on Hit', zh: '擊中時有 #% 機率造成流血', verified: 'GGPK local_chance_to_bleed_on_hit_25% / _50%' },
   // 範圍名稱是 clientstrings JewelRadiusMassive「巨大」,專案原句「極大」對不到
   { ref: 'Only affects Passives in Massive Ring', zh: '只會影響巨大範圍內的天賦', advanced: '只會影響巨大範圍內的天賦', current: true, old: '只會影響極大範圍內的天賦', verified: 'GGPK clientstrings JewelRadiusMassive + issue #20' },
   // 進階複製的「巨大(...)」:大範圍有實機截圖(2026-11-18「只會影響大(...)範圍內的天賦」),巨大是同理推論;英文由規則 22 補了
@@ -1400,6 +1402,61 @@ export function planTimelessJewels ({ zhStats, enStats = [], ggpkNew, conquerors
  * 掛單的 explicitMods 印「…sacrificed in the name of Mazcotl」(使用者回報的繁中瑪茲科特爾輝煌的虛榮查不到)。
  */
 export const CONQUEROR_RENAMES = { Ahuana: 'Mazcotl' }
+
+/**
+ * 規則 32:交易站新上架的隨機技能寶石等級詞綴(`explicit.indexable_skill_N`「+# to Level of all X Gems」)資料沒有 →
+ * 新增一列 `… (Random Skill Gem)`:句型取 GGPK `random_skill_gem_level_+_level random_skill_gem_level_+_index`,
+ * X 的繁中取 GGPK `indexableskillgems`(英文名唯一對到的);進階句在 X 後加「(...)」,同既有列(3.30「連結:秘能」,類型掃描 2026-11-24)。
+ * @returns {{ newStats: any[], rejects: any[] }}
+ */
+const INDEXABLE_SKILL_RE = /^\+# to Level of all (.+) Gems$/
+export function planIndexableSkills ({ enStats, tradeStats, ggpkNew, skills }) {
+  const used = usedIds(enStats)
+  const tpl = ggpkNew.find(r => r.key.startsWith('random_skill_gem_level_+_level random_skill_gem_level_+_index|') && r.key.includes('|stat_descriptions.txt|') && r.en.startsWith('+{0}') && r.zh)
+  const zhOf = new Map()
+  for (const s of skills) zhOf.set(s.en, zhOf.has(s.en) && zhOf.get(s.en) !== s.zh ? null : s.zh)
+  const newStats = []
+  const rejects = []
+  for (const e of tradeStats) {
+    const name = /^explicit\.indexable_skill_\d+$/.test(e.id) && !used.has(e.id) ? INDEXABLE_SKILL_RE.exec(e.text)?.[1] : undefined
+    if (!name) continue
+    const zh = zhOf.get(name)
+    if (!zh || !tpl) { rejects.push({ reason: zh === null ? '寶石英文名對到兩個繁中名' : '找不到繁中寶石名或句型', id: e.id, to: e.text }); continue }
+    const fill = (/** @type {string} */ t, /** @type {string} */ n) => toMatcherText(t.replace('{1}', n))
+    newStats.push({
+      ref: `${e.text} (Random Skill Gem)`, better: 1, ids: { explicit: [e.id] },
+      en: [{ string: fill(tpl.en, name), advanced: fill(tpl.en, `${name}(...)`) }],
+      zh: [{ string: fill(tpl.zh, zh), advanced: fill(tpl.zh, `${zh}(...)`) }]
+    })
+  }
+  return { newStats, rejects }
+}
+
+/**
+ * 規則 31:`flag-merge` 群組(帶數值的一列 + 寫死數值的旗標列)解析時一律回傳帶數值那列,再到那列找相符的寫法
+ * (`poe1/src/parser/stat-translations.ts` `_resolveTranslation`)。英文兩句同形(只差數字)找得到;
+ * 繁中兩句字不同時(「你凍結的敵人增加 #% 承受傷害」/「被你冰凍的敵人額外承受 20% 傷害」)旗標那句就解析不到
+ * (類型掃描 2026-11-24)→ 旗標列的寫法,帶數值那列沒有同形(數字當 #)的,帶 value 補進帶數值那列、標 superseded
+ * (繁中「箭矢穿透一個額外目標」早就是這樣)。
+ * @returns {{ adds: any[] }}
+ */
+export function planFlagMerge ({ enStats, zhStats }) {
+  const adds = []
+  for (const [lang, rows] of /** @type {const} */ ([['en', enStats], ['cmn-Hant', zhStats]])) {
+    for (const row of rows) {
+      if (row.resolve?.strat !== 'flag-merge') continue
+      const val = row.stats[row.resolve.kind.indexOf('value')]
+      const flag = row.stats[row.resolve.kind.indexOf('flag')]
+      for (const m of flag.matchers) {
+        // 數字前的正負號解析器本來就去掉(「+40% 最大感電效果」由「#% 最大感電效果」接住)
+        const bare = (/** @type {string} */ t) => shape(t).replace(/[+-]#/g, '#')
+        if (m.value === undefined || val.matchers.some((/** @type {any} */ x) => bare(x.string) === bare(m.string))) continue
+        adds.push({ lang, ref: val.ref, matcher: { ...m, superseded: true } })
+      }
+    }
+  }
+  return { adds }
+}
 
 /**
  * 規則 29:數值寫死的獨立 stat 與通用詞綴只差大小寫(Goredrill「50% chance to cause Bleeding on Critical Strike」=

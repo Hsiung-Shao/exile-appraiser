@@ -97,7 +97,12 @@ def main():
         "select row, en, zh_tw from cell where version_id = ? and tbl = 'alternatetreeversions' and col = 'Name' "
         'and zh_tw is not null order by row', (new,))}
 
-    data = {'old': meta(old), 'new': meta(new), 'conquerors': conquerors, 'factions': factions, 'builds': builds, 'mercSkills': merc_skills, 'words': words, 'gems': gems, 'skills': skills, 'supports': supports, 'rooms': rooms, 'renames': renames, 'strings': strings, 'passives': passives, 'passiveRenames': passive_renames,
+    # 可索引技能寶石名(規則 32;「全部 X 寶石等級」隨機技能寶石詞綴的 X)
+    indexable_skills = [{'en': en, 'zh': zh} for en, zh in c.execute(
+        "select distinct en, zh_tw from cell where version_id = ? and tbl = 'indexableskillgems' and col = 'Name1' "
+        'and zh_tw is not null order by en, zh_tw', (new,))]
+
+    data = {'old': meta(old), 'new': meta(new), 'conquerors': conquerors, 'factions': factions, 'indexableSkills': indexable_skills, 'builds': builds, 'mercSkills': merc_skills, 'words': words, 'gems': gems, 'skills': skills, 'supports': supports, 'rooms': rooms, 'renames': renames, 'strings': strings, 'passives': passives, 'passiveRenames': passive_renames,
             'stats': {'old': stats(old), 'new': stats(new)},
             'base': {'old': base(old), 'new': base(new)}}
     with open(out, 'w', encoding='utf-8', newline='\n') as f:
