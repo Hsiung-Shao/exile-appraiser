@@ -500,7 +500,8 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
   it.each([
     ['65', 'explicit.pseudo_timeless_jewel_maxarius', 7453],
     ['60', 'explicit.pseudo_timeless_jewel_akoya', 15442],
-    ['68', 'explicit.pseudo_timeless_jewel_rakiata', 11182]
+    ['68', 'explicit.pseudo_timeless_jewel_rakiata', 11182],
+    ['70', 'explicit.pseudo_timeless_jewel_maxarius', 2437]
   ])('D17wg GitHub issue #%s 的實機文字:永恆珠寶 3.30 句型 + 新征服者譯名解析得到、帶交易站 id 與數值', (n, id, value) => {
     const item = parse(fs.readFileSync(path.join(HERE, `docs/3.30-issue-${n}.cmn-Hant.txt`), 'utf8'))
     expect(unknownOf(item)).toEqual([])
