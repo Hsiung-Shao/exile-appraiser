@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toMatcherText, planStatText, planTradeText, planOtherTradeTexts, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planRandomSkillGem, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, planRoomNames, planCitadel, planExtraZh, planZhForms, planCondForms, planMercenaryBuilds, planNamedSlots, planTimelessJewels, planFixedCase, planMercenarySkills, EXTRA_ZH_MATCHERS, planGrownPassives, planPassiveRenames, planForbiddenNotables, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
+import { toMatcherText, planStatText, planTradeText, planOtherTradeTexts, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planRandomSkillGem, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, planRoomNames, planCitadel, planExtraZh, planZhForms, planCondForms, planMercenaryBuilds, planNamedSlots, planTimelessJewels, planFixedCase, planMercenarySkills, EXTRA_ZH_MATCHERS, planGrownPassives, planPassiveRenames, planForbiddenNotables, planMergeDuplicates, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
 
 /**
  * 賽季更新腳本的純函式測試(合成輸入,不讀 data/)。
@@ -1491,6 +1491,58 @@ describe('planTimelessJewels(規則 28:永恆珠寶征服者名取 GGPK 表)', (
     const p = planTimelessJewels({ zhStats: zh(), ggpkNew, conquerors: [] })
     expect(p.adds).toEqual([])
     expect(p.rejects).toHaveLength(1)
+  })
+
+  const factions = { 2: { en: 'Karui', zh: '卡魯' } }
+  const kiloava = { id: 'explicit.pseudo_timeless_jewel_kiloava', text: 'Commanded leadership over # warriors under Kiloava' }
+  it('陣營名有給 GGPK 表就用它,不沿用資料現行句的舊譯', () => {
+    const old2 = { string: '艾古亞指揮領導超過#名戰士\n範圍內的天賦臣服於卡魯族', advanced: '艾古亞(...)指揮領導超過#名戰士\n範圍內的天賦臣服於卡魯族' }
+    const p = planTimelessJewels({ zhStats: [stat('Commanded leadership over # warriors under Akoya', [old2])], ggpkNew, conquerors: [{ en: 'Akoya', zh: '艾古亞' }], factions })
+    expect(p.adds.map(a => a.matcher.string)).toEqual(['艾古亞指揮領導超過#名戰士\n範圍內的天賦臣服於卡魯'])
+    expect(p.adds[0].supersedes).toEqual([old2.string])
+  })
+
+  it('交易站有、資料沒有的征服者 → 新增一列,兩語照 GGPK 句型', () => {
+    const p = planTimelessJewels({ zhStats: [], enStats: [], ggpkNew, conquerors: [{ en: 'Kiloava', zh: '基洛阿瓦' }], factions, tradeStats: [kiloava] })
+    expect(p.newStats).toEqual([{
+      ref: kiloava.text, better: 0, ids: { explicit: [kiloava.id] },
+      en: [{ string: 'Commanded leadership over # warriors under Kiloava\nPassives in radius are Conquered by the Karui', advanced: 'Commanded leadership over # warriors under Kiloava(...)\nPassives in radius are Conquered by the Karui' }],
+      zh: [{ string: '基洛阿瓦指揮領導超過#名戰士\n範圍內的天賦臣服於卡魯', advanced: '基洛阿瓦(...)指揮領導超過#名戰士\n範圍內的天賦臣服於卡魯' }]
+    }])
+  })
+
+  it('交易站沿用舊名(renames)→ 兩語補遊戲顯示的新名、ref 與 id 不動', () => {
+    const oldEn = { string: 'Commanded leadership over # warriors under Kiloava\nPassives in radius are Conquered by the Karui' }
+    const p = planTimelessJewels({ zhStats: [stat(kiloava.text, [{ string: '舊' }])], enStats: [stat(kiloava.text, [oldEn])], ggpkNew, conquerors: [{ en: 'Akoya', zh: '艾古亞' }], factions, tradeStats: [kiloava], renames: { Kiloava: 'Akoya' } })
+    expect(p.adds.map(a => [a.lang, a.ref, a.matcher.string])).toEqual([
+      ['cmn-Hant', kiloava.text, '艾古亞指揮領導超過#名戰士\n範圍內的天賦臣服於卡魯'],
+      ['en', kiloava.text, 'Commanded leadership over # warriors under Akoya\nPassives in radius are Conquered by the Karui']
+    ])
+    expect(p.newStats).toEqual([])
+  })
+})
+
+describe('planMergeDuplicates + applyStatPlan merge(規則 30:同一句的兩列併成 id 多的那列)', () => {
+  const fixed = (m: any[]) => stat('Socketed Gems are Supported by Level # X', m, { explicit: ['explicit.indexable_support_1'] })
+  const random = (m: any[]) => stat('Socketed Gems are Supported by Level # X (Random Support Gem)', m, { explicit: ['explicit.indexable_support_1', 'explicit.effect_9'] })
+  const en = () => [fixed([{ string: 'Socketed Gems are Supported by Level # X' }]), random([{ string: 'Socketed Gems are Supported by Level # X', advanced: 'Socketed Gems are Supported by Level # X(...)', superseded: true }, { string: 'Socketed Gems are Supported by Level # X Support' }])]
+  const zh = () => [fixed([{ string: '插槽中寶石被等級 # 的X輔助' }]), random([{ string: '插槽中的寶石被等級 # 的 X 輔助' }])]
+
+  it('英文現行句相同、id 是子集 → 併進 id 多的那列;兩語都刪掉 from 列,寫法以 superseded 搬過去', () => {
+    const { merge } = planMergeDuplicates({ enStats: en(), zhStats: zh() })
+    expect(merge).toEqual([{ from: 'Socketed Gems are Supported by Level # X', into: 'Socketed Gems are Supported by Level # X (Random Support Gem)' }])
+    const outZh = parseRows(applyStatPlan(toFile(zh()), 'cmn-Hant', { merge }))
+    expect(outZh.map(r => r.ref)).toEqual(['Socketed Gems are Supported by Level # X (Random Support Gem)'])
+    expect(outZh[0].matchers).toEqual([{ string: '插槽中的寶石被等級 # 的 X 輔助' }, { string: '插槽中寶石被等級 # 的X輔助', superseded: true }])
+    const outEn = parseRows(applyStatPlan(toFile(en()), 'en', { merge }))
+    expect(outEn).toHaveLength(1)
+    expect(outEn[0].matchers.at(-1)).toEqual({ string: 'Socketed Gems are Supported by Level # X', superseded: true })
+  })
+
+  it('id 不是子集(兩列各有別的 id)或繁中只有一列 → 不併', () => {
+    const other = stat('Socketed Gems are Supported by Level # X (Random Support Gem)', [{ string: 'Socketed Gems are Supported by Level # X' }], { explicit: ['explicit.indexable_support_2', 'explicit.effect_9'] })
+    expect(planMergeDuplicates({ enStats: [en()[0], other], zhStats: zh() }).merge).toEqual([])
+    expect(planMergeDuplicates({ enStats: en(), zhStats: [zh()[1]] }).merge).toEqual([])
   })
 })
 

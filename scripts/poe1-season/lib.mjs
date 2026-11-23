@@ -1334,41 +1334,62 @@ export function planNamedSlots ({ enStats, zhStats, ggpkOld, ggpkNew }) {
 /**
  * 規則 28:永恆珠寶 3.30 改成句型「{2}指揮領導超過{1}名戰士\n範圍內的天賦臣服於{0}」,{2} 是 GGPK `alternatetreeversionkeystones`
  * 的征服者名(3.30 也改了譯名:瑪薩里歐斯 → 馬克薩留斯)。規則 22 從舊句抓名稱,舊句與句型字不同(少「名」)或名稱改了就補不到
- * (GitHub issue #60 #64 #65)→ 名稱改由英文 ref 對征服者表、陣營名取繁中現行句的第二行;進階句在征服者名後加「(...)」(實機樣本)。
- * @param {{ zhStats: any[], ggpkNew: any[], conquerors?: Array<{ en: string, zh: string }> }} input
- * @returns {{ adds: any[], rejects: any[] }}
+ * (GitHub issue #60 #64 #65)→ 名稱改由英文 ref 對征服者表;進階句在征服者名後加「(...)」(實機樣本)。
+ * 陣營名取 GGPK `alternatetreeversions`(`factions`,鍵 = 句型條件的版本號;沒給時退回繁中現行句的第二行):
+ * 3.30 深淵永恆珠寶是「深淵」,資料沿用的「深淵族」不是 GGPK 寫法(類型掃描 2026-11-24)。
+ * 交易站每個征服者一個 id(`explicit.pseudo_timeless_jewel_*`):資料沒有那一列就新增(InternalVersion 0 的舊版征服者 Zerphi 等),
+ * 有就補兩語缺的寫法。交易站的名字與遊戲顯示不同的列在 `CONQUEROR_RENAMES`。
+ * @param {{ zhStats: any[], enStats?: any[], ggpkNew: any[], conquerors?: Array<{ en: string, zh: string }>, factions?: Record<string, { en: string, zh: string }>, tradeStats?: any[], renames?: Record<string, string> }} input
+ * @returns {{ adds: any[], newStats: any[], rejects: any[] }}
  */
-export function planTimelessJewels ({ zhStats, ggpkNew, conquerors = [] }) {
+export function planTimelessJewels ({ zhStats, enStats = [], ggpkNew, conquerors = [], factions, tradeStats = [], renames = CONQUEROR_RENAMES }) {
   const zhOf = groupBy(conquerors, c => c.en)
   const lines = (t) => toMatcherText(t).split('\n')
   const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
   const tpls = ggpkNew.filter(r => r.key.startsWith('local_unique_jewel_alternate_tree_version ') && r.key.includes('|stat_descriptions.txt|') && r.zh && r.en.includes('{2}'))
     .map(r => {
-      const en = r.en.replace(/\\n/g, '\n').split('\n')[0]
-      return { re: new RegExp(`^${esc(en).replace('\\{1\\}', '#').replace('\\{2\\}', '(.+)')}$`), zh: r.zh.replace(/\\n/g, '\n') }
+      const en = r.en.replace(/\\n/g, '\n')
+      return { version: r.key.split('|')[1].split(' ')[0], en, re: new RegExp(`^${esc(en.split('\n')[0]).replace('\\{1\\}', '#').replace('\\{2\\}', '(.+)')}$`), zh: r.zh.replace(/\\n/g, '\n') }
     })
+  const byRef = (/** @type {any[]} */ list) => new Map([...eachStat(list)].map(s => [s.ref, s]))
+  const zhByRef = byRef(zhStats)
+  const enByRef = byRef(enStats)
+  const tradeOf = new Map(tradeStats.filter(e => e.id.startsWith('explicit.pseudo_timeless_jewel_')).map(e => [e.text, e.id]))
   const adds = []
+  const newStats = []
   const rejects = []
-  const done = new Set()
-  for (const stat of eachStat(zhStats)) {
-    for (const t of tpls) {
-      const name = t.re.exec(stat.ref)?.[1]
-      if (!name || done.has(stat.ref)) continue
-      done.add(stat.ref)
-      const zhNames = uniq((zhOf.get(name) ?? []).map(c => c.zh))
-      // 陣營名:新句型的 {0} 那一行對繁中現行句的同一行
-      const [zh1, zh2] = t.zh.split('\n')
-      const factionRe = new RegExp(`^${esc(zh2).replace('\\{0\\}', '(.+)')}$`)
-      const factions = uniq(liveOf(stat).map(m => factionRe.exec(lines(m.string)[1] ?? '')?.[1]).filter(Boolean))
-      if (zhNames.length !== 1 || factions.length !== 1) { rejects.push({ reason: '征服者 / 陣營繁中名不唯一', ref: stat.ref, lang: 'cmn-Hant', candidates: [...zhNames, ...factions] }); continue }
-      const fill = (n) => toMatcherText(`${zh1}\n${zh2}`.replace('{2}', n).replace('{0}', factions[0]))
-      const matcher = { string: fill(zhNames[0]), advanced: fill(`${zhNames[0]}(...)`) }
-      if (stat.matchers.some(m => m.string === matcher.string && m.advanced === matcher.advanced && !m.superseded)) continue
-      adds.push({ lang: 'cmn-Hant', ref: stat.ref, matcher, supersedes: liveOf(stat).map(m => m.string) })
+  for (const ref of uniq([...zhByRef.keys(), ...tradeOf.keys()])) {
+    const t = tpls.find(x => x.re.test(ref))
+    if (!t) continue
+    const name = /** @type {string} */ (t.re.exec(ref)?.[1])
+    const shown = renames[name] ?? name
+    const zhNames = uniq((zhOf.get(shown) ?? []).map(c => c.zh))
+    const zhStat = zhByRef.get(ref)
+    const [zh1, zh2] = t.zh.split('\n')
+    const factionRe = new RegExp(`^${esc(zh2).replace('\\{0\\}', '(.+)')}$`)
+    const faction = factions?.[t.version] ?? (zhStat && { zh: uniq(liveOf(zhStat).map(m => factionRe.exec(lines(m.string)[1] ?? '')?.[1]).filter(Boolean)).join('|'), en: undefined })
+    if (zhNames.length !== 1 || !faction?.zh || faction.zh.includes('|')) { rejects.push({ reason: '征服者 / 陣營繁中名不唯一', ref, lang: 'cmn-Hant', candidates: [...zhNames, faction?.zh] }); continue }
+    const fill = (/** @type {string} */ tpl, /** @type {string} */ n, /** @type {string} */ f) => toMatcherText(tpl.replace('{2}', n).replace('{0}', f))
+    const zhMatcher = { string: fill(t.zh, zhNames[0], faction.zh), advanced: fill(t.zh, `${zhNames[0]}(...)`, faction.zh) }
+    const enMatcher = faction.en && { string: fill(t.en, shown, faction.en), advanced: fill(t.en, `${shown}(...)`, faction.en) }
+    if (!zhStat && !enByRef.has(ref)) {
+      if (tradeOf.has(ref) && enMatcher) newStats.push({ ref, better: 0, en: [enMatcher], zh: [zhMatcher], ids: { explicit: [tradeOf.get(ref)] } })
+      continue
+    }
+    for (const [lang, stat, matcher] of /** @type {const} */ ([['cmn-Hant', zhStat, zhMatcher], ['en', enByRef.get(ref), enMatcher]])) {
+      if (!stat || !matcher || stat.matchers.some(m => m.string === matcher.string && m.advanced === matcher.advanced && !m.superseded)) continue
+      adds.push({ lang, ref, matcher, supersedes: liveOf(stat).map(m => m.string) })
     }
   }
-  return { adds, rejects }
+  return { adds, newStats, rejects }
 }
+
+/**
+ * 交易站沿用舊名、遊戲顯示新名的征服者(交易站名 → 遊戲名)。
+ * Ahuana → Mazcotl:GGPK 3.30 瓦爾征服者已沒有 Ahuana;2026-11-24 以 `explicit.pseudo_timeless_jewel_ahuana` 搜國際服 Standard,
+ * 掛單的 explicitMods 印「…sacrificed in the name of Mazcotl」(使用者回報的繁中瑪茲科特爾輝煌的虛榮查不到)。
+ */
+export const CONQUEROR_RENAMES = { Ahuana: 'Mazcotl' }
 
 /**
  * 規則 29:數值寫死的獨立 stat 與通用詞綴只差大小寫(Goredrill「50% chance to cause Bleeding on Critical Strike」=
@@ -1466,15 +1487,19 @@ export function planUniqueZhNames ({ zhItems, words }) {
   return out
 }
 
+/** `rewriteLines` 的 edit 回傳這個值 = 刪掉這一列 */
+const DROP_ROW = Symbol('drop')
+
 /** 逐列改寫 ndjson:只重寫有變動的列,保留原行尾 */
 function rewriteLines (fileText, edit, appended = []) {
   const eol = fileText.includes('\r\n') ? '\r\n' : '\n'
   const lines = fileText.split(eol)
   const tail = lines[lines.length - 1] === '' ? [lines.pop()] : []
-  const out = lines.map(line => {
-    if (!line.trim()) return line
+  const out = lines.flatMap(line => {
+    if (!line.trim()) return [line]
     const obj = JSON.parse(line)
-    return edit(obj) ? JSON.stringify(obj) : line
+    const r = edit(obj)
+    return r === DROP_ROW ? [] : [r ? JSON.stringify(obj) : line]
   })
   return [...out, ...appended.map(o => JSON.stringify(o)), ...tail].join(eol)
 }
@@ -1483,9 +1508,59 @@ function rewriteLines (fileText, edit, appended = []) {
  * 套用詞綴計畫(adds / replace / remove / newStats)到一份 stats.ndjson 文字
  * @param {string} fileText
  * @param {'en' | 'cmn-Hant'} lang
- * @param {{ adds?: any[], replace?: Record<string, string>, remove?: string[], newStats?: any[], better?: Record<string, number>, fill?: Record<string, Record<string, string[]>>, extra?: Record<string, Record<string, string[]>>, option?: string[] }} [plan]
+ * @param {{ adds?: any[], replace?: Record<string, string>, remove?: string[], newStats?: any[], better?: Record<string, number>, fill?: Record<string, Record<string, string[]>>, extra?: Record<string, Record<string, string[]>>, option?: string[], merge?: Array<{ from: string, into: string }> }} [plan]
  */
-export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove = [], newStats = [], better = {}, fill = {}, extra = {}, option = [] } = {}) {
+export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove = [], newStats = [], better = {}, fill = {}, extra = {}, option = [], merge = [] } = {}) {
+  const merged = applyStatPlanNoMerge(fileText, lang, { adds, replace, remove, newStats, better, fill, extra, option })
+  if (!merge.length) return merged
+  // 併列(規則 30):from 那一列整列刪掉,它的寫法以 superseded 搬進 into(兩種寫法都還解析得到,索引改指 into)
+  const intoOf = new Map(merge.map(m => [m.from, m.into]))
+  /** @type {Map<string, any[]>} */
+  const moved = new Map()
+  for (const line of merged.split(/\r?\n/)) {
+    const row = line.trim() && JSON.parse(line)
+    if (row && !row.stats && intoOf.has(row.ref)) (moved.get(intoOf.get(row.ref)) ?? moved.set(intoOf.get(row.ref), []).get(intoOf.get(row.ref))).push(...row.matchers)
+  }
+  return rewriteLines(merged, (row) => {
+    if (!row.stats && intoOf.has(row.ref)) return DROP_ROW
+    let changed = false
+    for (const stat of row.stats ?? [row]) {
+      for (const m of moved.get(stat.ref) ?? []) {
+        if (stat.matchers.some(x => x.string === m.string && x.advanced === m.advanced)) continue
+        stat.matchers.push({ ...m, superseded: true })
+        changed = true
+      }
+    }
+    return changed
+  })
+}
+
+/**
+ * 規則 30:同一句的兩列(英文現行寫法相同,一列的交易站 id 是另一列的子集)併成 id 多的那列。
+ * 3.30 前的固定輔助列(只有 `indexable_support_N`、繁中是舊譯)和隨機輔助列(`indexable_support_N` + 固定輔助的 `effect_*`)
+ * 英文同句:索引讓檔案裡先出現的那列勝出 → 英文解析成固定列、繁中(只有隨機列有 3.30 寫法)解析成隨機列,中英不一致,
+ * 英文也少送固定輔助的 id(類型掃描 2026-11-24;使用者裁定兩個 id 都送)。只收沒有群組的列,兩語都要有兩列。
+ * @returns {{ merge: Array<{ from: string, into: string }> }}
+ */
+export function planMergeDuplicates ({ enStats, zhStats }) {
+  const top = enStats.filter(r => !r.stats && r.matchers)
+  const zhRefs = new Set(zhStats.filter(r => !r.stats).map(r => r.ref))
+  /** @type {Map<string, Set<any>>} */
+  const byString = new Map()
+  for (const s of top) for (const m of s.matchers) (byString.get(m.string) ?? byString.set(m.string, new Set()).get(m.string)).add(s)
+  const merge = []
+  for (const a of top) {
+    const ia = allIds(a)
+    const live = liveOf(a).map(m => m.string)
+    if (!ia.length || !live.length || !zhRefs.has(a.ref)) continue
+    const into = [...new Set(live.flatMap(x => [...(byString.get(x) ?? [])]))].filter(b => b !== a && zhRefs.has(b.ref) &&
+      allIds(b).length > ia.length && ia.every(i => allIds(b).includes(i)) && live.every(x => b.matchers.some(m => m.string === x)))
+    if (into.length === 1) merge.push({ from: a.ref, into: into[0].ref })
+  }
+  return { merge }
+}
+
+function applyStatPlanNoMerge (fileText, lang, { adds = [], replace = {}, remove = [], newStats = [], better = {}, fill = {}, extra = {}, option = [] } = {}) {
   const addsByRef = groupBy(adds.filter(a => a.lang === lang), a => a.ref)
   const gone = new Set(remove)
   const existingRefs = new Set()

@@ -217,6 +217,12 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(refsOf(item)).toContain(RARITY_REF)
   })
 
+  it('D8b 輝煌的虛榮「瑪茲科特爾」(使用者 2026-11-24 回報查不到)解析成交易站沿用舊名的 ahuana id', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-glorious-vanity-mazcotl.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(item)).toEqual([])
+    expect(item.statsByType.map(s => s.stat.trade.ids.explicit?.[0])).toContain('explicit.pseudo_timeless_jewel_ahuana')
+  })
+
   it('D8 3.30 新傳奇藥劑(使用者 2026-11-14 回報的實機剪貼簿)解析得到', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-dreadmaidens-sacrament.cmn-Hant.txt'), 'utf8'))
     expect(item.info.refName).toBe("Dreadmaidens' Sacrament")
