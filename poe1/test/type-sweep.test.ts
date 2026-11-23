@@ -43,7 +43,7 @@ const TYPES = new Set(CATALOG.types)
 type Lang = 'en' | 'cmn-Hant'
 type ModType = 'explicit' | 'implicit'
 
-const WEAPONS = /^(Claw|Dagger|Rune Dagger|Wand|(One|Two) Hand (Sword|Axe|Mace)|Thrusting One Hand Sword|Bow|Staff|Warstaff|Sceptre)$/
+const WEAPONS = /^(FishingRod|Claw|Dagger|Rune Dagger|Wand|(One|Two) Hand (Sword|Axe|Mace)|Thrusting One Hand Sword|Bow|Staff|Warstaff|Sceptre)$/
 const ARMOURS = /^(Body Armour|Boots|Gloves|Helmet|Shield)$/
 /**
  * 武器 / 防具的屬性段(寫法照實機剪貼簿,例 3.30-issue-45 / 36):有了它局部詞綴才會像實機一樣併進 DPS / 防禦合計(eaten)。
