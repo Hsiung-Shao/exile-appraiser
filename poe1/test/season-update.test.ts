@@ -724,6 +724,12 @@ describe('planNewStats', () => {
     expect(planNewStats({ enStats: literal, ggpkOld: rows, ggpkNew: rows, tradeStats: trade }).map((s: any) => s.ref)).toEqual(['Minions gain Unholy Might for # seconds on Kill'])
     const hashed = [stat('Other', [{ string: 'Minions gain Unholy Might for # seconds on Kill' }], { explicit: ['explicit.stat_8'] })]
     expect(planNewStats({ enStats: hashed, ggpkOld: rows, ggpkNew: rows, tradeStats: trade })).toEqual([])
+    // 繁中:寫死數字的同形句不擋;新句繁中與既有句逐字相同則擋(同一個繁中字串只能指向一列)
+    const zhLiteral = [stat('L', [{ string: '殺敵時召喚物獲得不潔之力持續 4 秒' }])]
+    expect(planNewStats({ enStats: [], zhStats: zhLiteral, ggpkOld: rows, ggpkNew: rows, tradeStats: trade })).toHaveLength(1)
+    const lit = [row(k, 'Minions gain Unholy Might for 4 seconds on Kill', '殺敵時召喚物獲得不潔之力持續 4 秒')]
+    const tradeLit = [{ id: 'explicit.stat_9', text: 'Minions gain Unholy Might for 4 seconds on Kill' }]
+    expect(planNewStats({ enStats: [], zhStats: zhLiteral, ggpkOld: lit, ggpkNew: lit, tradeStats: tradeLit })).toEqual([])
   })
 
   it('舊版就有的地圖 / 輿圖詞綴(stat id 全部 map_ 開頭,或出自地圖 / 輿圖描述檔)交易站有 id 也收(使用者 2026-11-15 要求)', () => {

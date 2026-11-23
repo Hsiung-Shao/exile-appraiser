@@ -710,6 +710,8 @@ export function planNewStats ({ enStats, zhStats = /** @type {any[]} */ ([]), gg
   // 寫死數字的既有寫法(沒有 #)不算:解析器先試保留原數字(PLACEHOLDER_MAP 的 [[0], []]),精確句先比中、不會被新的 # 句搶走
   const shapesOf = (/** @type {any[]} */ list) => new Set([...eachStat(list)].flatMap(s => s.matchers.filter((/** @type {any} */ m) => m.string.includes('#')).map((/** @type {any} */ m) => shape(m.string))))
   const zhShapes = shapesOf(zhStats)
+  // 繁中逐字相同(含寫死數字的句子)一律擋:同一個繁中字串只能指向一列(英文由下面的 known 擋)
+  const zhExact = new Set([...eachStat(zhStats)].flatMap(s => s.matchers.map((/** @type {any} */ m) => cmpKey(m.string))))
   const enShapes = shapesOf(enStats)
   const tradeByText = groupBy(tradeStats.filter(e => !e.id.startsWith('pseudo.')), e => cmpKey(noLocal(e.text)))
   // 同一句話在一般描述檔也有(例:輿圖天賦與裝備都有「召喚物有 #% 機率造成雙倍傷害」)→ 交易站的 id 可能是裝備那條,不算地圖詞綴
@@ -735,7 +737,7 @@ export function planNewStats ({ enStats, zhStats = /** @type {any[]} */ ([]), gg
     // 交易站列為隨機 / 固定 / 破裂 / 工藝詞綴(= 會出現在物品上、可以查)也收
     const itemMod = row.key.split('|').includes('stat_descriptions.txt') && entries.some(e => /^(explicit|implicit|fractured|crafted)\.stat_/.test(e.id))
     if (oldKeys.has(row.key) && !entries.every(e => e.id.startsWith('implicit.')) && !(isAreaStatKey(row.key) && !generalTexts.has(k)) && !itemMod) continue
-    if (row.zh && zhShapes.has(shape(toMatcherText(row.zh)))) continue
+    if (row.zh && (zhShapes.has(shape(toMatcherText(row.zh))) || zhExact.has(cmpKey(toMatcherText(row.zh))))) continue
     if (enShapes.has(shape(toMatcherText(row.en)))) continue
     const zh = row.zh && cmpKey(row.zh) !== k ? toMatcherText(row.zh) : null
     if (!out.has(k)) {
