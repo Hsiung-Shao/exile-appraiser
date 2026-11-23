@@ -514,6 +514,18 @@ describe('planTypeIds(規則 16)', () => {
     expect(plan.rejects.map((r: any) => r.id)).toEqual(['explicit.stat_8', 'fractured.stat_8'])
   })
 
+  it('trivial-merge 群組裡兩條完全相同(同句兩個 stat)→ 各自同雜湊的固定詞綴 id 掛上,兩條都帶;有一條正負相反的群組照舊拒收(issue #67)', () => {
+    const blind = (ids: Record<string, string[]>, extra: any = {}) => ({ ...stat('Blind #', [{ string: 'Blind #' }], ids), ...extra })
+    const ts = [{ id: 'implicit.stat_41', text: 'Blind #' }, { id: 'implicit.stat_42', text: 'Blind #' }]
+    const twin = [{ resolve: { strat: 'trivial-merge' }, stats: [blind({ explicit: ['explicit.stat_41'] }), blind({ explicit: ['explicit.stat_42'] })] }]
+    const plan = planTypeIds({ enStats: twin, tradeStats: ts })
+    expect(plan.extra).toEqual({ 'Blind #': { implicit: ['implicit.stat_41', 'implicit.stat_42'] } })
+    const out = parseRows(applyStatPlan(toFile(twin), 'en', { extra: plan.extra }))
+    expect(out[0].stats.map((s: any) => s.trade.ids.implicit)).toEqual([['implicit.stat_41', 'implicit.stat_42'], ['implicit.stat_41', 'implicit.stat_42']])
+    const inverted = [{ resolve: { strat: 'trivial-merge' }, stats: [blind({ explicit: ['explicit.stat_41'] }, { trade: { ids: { explicit: ['explicit.stat_41'] }, inverted: true } }), blind({ explicit: ['explicit.stat_42'] })] }]
+    expect(planTypeIds({ enStats: inverted, tradeStats: ts }).rejects.map((r: any) => r.reason)).toEqual(['在合併群組裡', '在合併群組裡'])
+  })
+
   // twins = 與既有 id 文字相同、雜湊不同,但實測交易站有物品的 id
   const reason = (plan: any, id: string) => plan.rejects.find((r: any) => r.id === id)?.reason
   const twinsPlan = () => planTypeIds({ enStats: rows, tradeStats, twins: new Set(['explicit.stat_8']) })

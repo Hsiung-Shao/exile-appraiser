@@ -439,7 +439,7 @@ export function planEffectStats ({ enStats, zhStats, tradeStats, skills, support
  * 規則 16:交易站有、專案沒有任何詞綴引用的 id(隨機 / 固定 / 破裂 / 工藝),而專案裡有文字相同的詞綴 → 把 id 掛上去
  * (逐條比對 `audit-trade-ids.mjs` 的「沒引用 A / B」:同一條詞綴少掛了某個類型的 id)。
  * 只收文字(ref 或現行英文 matcher,寬鬆鍵)相同且唯一的那一條;同文字不只一條、選項型 id(`X|n`)、
- * 在合併群組裡的詞綴(類型會影響群組內選哪一條)、雜湊與該詞綴既有 id 不同的都拒收。
+ * 在合併群組裡的詞綴(類型會影響群組內選哪一條;例外:trivial-merge 且群組內每條完全相同,見 `twinGroup`)、雜湊與該詞綴既有 id 不同的都拒收。
  * 例外(GitHub issue #38 巫會之后冠):3.30 臟器的固定詞綴用自己的 stat(GGPK stat 鍵含 `viscera`,一般臟器與后冠各一個),
  * (整個單字比對:`local_display_grants_skill_evisceration` 不算),句子與既有詞綴逐字相同、交易站另給固定詞綴 id → 雜湊不同也掛上;同一句有兩個 id 就兩個都掛(物品文字分不出是哪一個,查詢兩個都送)。
  * @returns {{ extra: Record<string, Record<string, string[]>>, rejects: any[] }}
@@ -456,6 +456,9 @@ export const LIVE_TWIN_IDS = new Set([
   'explicit.stat_2916634441', 'explicit.stat_1888494262', 'explicit.stat_335507772', 'explicit.stat_4082662318',
   'implicit.stat_2902845638', 'implicit.stat_335507772', 'enchant.stat_865263728', 'enchant.stat_945725535'
 ])
+// trivial-merge 群組裡每條的 ref / matchers / 正負都相同 = 同一句的兩個 stat,解析時 id 會合併送出 → 依 ref 掛上不會掛錯條(GitHub issue #67)
+const twinGroup = (row) => row.resolve?.strat === 'trivial-merge' && row.stats.length > 1 &&
+  new Set(row.stats.map(s => JSON.stringify([s.ref, s.matchers, !!s.trade?.inverted]))).size === 1
 export function planTypeIds ({ enStats, tradeStats, ggpkNew = /** @type {any[]} */ ([]), twins = LIVE_TWIN_IDS }) {
   const visceraTexts = new Set(ggpkNew.filter(r => r.key.split('|')[0].split(' ').some(id => /(^|_)viscera(_|$)/.test(id))).map(r => cmpKey(toMatcherText(r.en))))
   const used = new Set()
@@ -470,7 +473,7 @@ export function planTypeIds ({ enStats, tradeStats, ggpkNew = /** @type {any[]} 
   for (const row of enStats) {
     for (const stat of row.stats ?? [row]) {
       if (!stat.matchers) continue
-      if (row.stats) grouped.add(stat.ref)
+      if (row.stats && !twinGroup(row)) grouped.add(stat.ref)
       for (const id of allIds(stat)) used.add(id)
       // twins 的雜湊不算這條詞綴的 stat:否則下一輪會把同雜湊、沒實測過的其他類型 id 也帶進來
       for (const id of allIds(stat)) if (!twins.has(id)) (hashes.get(stat.ref) ?? hashes.set(stat.ref, new Set()).get(stat.ref)).add(hashOf(id))

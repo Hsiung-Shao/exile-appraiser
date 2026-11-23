@@ -499,7 +499,8 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
 
   it.each([
     ['65', 'explicit.pseudo_timeless_jewel_maxarius', 7453],
-    ['60', 'explicit.pseudo_timeless_jewel_akoya', 15442]
+    ['60', 'explicit.pseudo_timeless_jewel_akoya', 15442],
+    ['68', 'explicit.pseudo_timeless_jewel_rakiata', 11182]
   ])('D17wg GitHub issue #%s 的實機文字:永恆珠寶 3.30 句型 + 新征服者譯名解析得到、帶交易站 id 與數值', (n, id, value) => {
     const item = parse(fs.readFileSync(path.join(HERE, `docs/3.30-issue-${n}.cmn-Hant.txt`), 'utf8'))
     expect(unknownOf(item)).toEqual([])
@@ -507,7 +508,15 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(hit?.sources[0].stat.roll?.value).toBe(value)
   })
 
-  it('D17wh GitHub issue #61 的實機文字:黑暗君主「幻靈武器(...)的最大數量加倍」解析得到、帶交易站選項 id', () => {
+  it('D17wk GitHub issue #67 的實機文字:巫會之后冠「對致盲的敵人增加 # 擊中和異常狀態傷害」(同文兩個 stat 的合併群組)帶兩個固定詞綴 id', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-67.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(item)).toEqual([])
+    const hit = item.statsByType.find(s => s.stat.ref === '#% increased Damage with Hits and Ailments against Blinded Enemies')
+    expect(hit?.stat.trade.ids.implicit).toEqual(['implicit.stat_3565956680', 'implicit.stat_3503466234'])
+    expect(hit?.sources[0].stat.roll?.value).toBe(40)
+  })
+
+  it('D17wh GitHub issue #61的實機文字:黑暗君主「幻靈武器(...)的最大數量加倍」解析得到、帶交易站選項 id', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-61.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
     expect(item.statsByType.flatMap(s => s.stat.trade.ids.explicit ?? [])).toContain('explicit.stat_56473917|1')
