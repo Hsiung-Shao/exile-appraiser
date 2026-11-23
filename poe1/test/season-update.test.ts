@@ -1520,6 +1520,16 @@ describe('planTimelessJewels(規則 28:永恆珠寶征服者名取 GGPK 表)', (
     ])
     expect(p.newStats).toEqual([])
   })
+
+  it('陣營表缺這個版本、或與英文現行句的陣營不同 → 拒收並寫原因,不默默跳過', () => {
+    const p1 = planTimelessJewels({ zhStats: [], ggpkNew, conquerors: [{ en: 'Kiloava', zh: '基洛阿瓦' }], factions: {}, tradeStats: [kiloava] })
+    expect(p1.newStats).toEqual([])
+    expect(p1.rejects.map(r => r.reason)).toEqual(['GGPK 缺陣營名(version 2)'])
+    const en = [stat(kiloava.text, [{ string: 'Commanded leadership over # warriors under Kiloava\nPassives in radius are Conquered by the Karui' }])]
+    const p2 = planTimelessJewels({ zhStats: [stat(kiloava.text, [{ string: '舊' }])], enStats: en, ggpkNew, conquerors: [{ en: 'Kiloava', zh: '基洛阿瓦' }], factions: { 2: { en: 'Vaal', zh: '瓦爾' } }, tradeStats: [kiloava] })
+    expect(p2.adds).toEqual([])
+    expect(p2.rejects.map(r => r.reason)).toEqual(['GGPK 陣營名 Vaal 與英文現行句不同'])
+  })
 })
 
 describe('planMergeDuplicates + applyStatPlan merge(規則 30:同一句的兩列併成 id 多的那列)', () => {
@@ -1543,6 +1553,20 @@ describe('planMergeDuplicates + applyStatPlan merge(規則 30:同一句的兩列
     const other = stat('Socketed Gems are Supported by Level # X (Random Support Gem)', [{ string: 'Socketed Gems are Supported by Level # X' }], { explicit: ['explicit.indexable_support_2', 'explicit.effect_9'] })
     expect(planMergeDuplicates({ enStats: [en()[0], other], zhStats: zh() }).merge).toEqual([])
     expect(planMergeDuplicates({ enStats: en(), zhStats: [zh()[1]] }).merge).toEqual([])
+  })
+
+  it('better 不同、連鎖(into 也要併走)→ 不併', () => {
+    const [a, b] = en()
+    expect(planMergeDuplicates({ enStats: [{ ...a, better: -1 }, b], zhStats: zh() }).merge).toEqual([])
+    const c = stat('C', [{ string: 'Socketed Gems are Supported by Level # X' }, { string: 'Socketed Gems are Supported by Level # X Support' }], { explicit: ['explicit.indexable_support_1', 'explicit.effect_9', 'explicit.effect_10'] })
+    const zhC = [...zh(), stat('C', [{ string: 'c' }])]
+    expect(planMergeDuplicates({ enStats: [a, b, c], zhStats: zhC }).merge.map(m => m.from)).not.toContain('Socketed Gems are Supported by Level # X')
+  })
+
+  it('同一輪掛到 from 列的 id 一起搬進 into,不跟著被刪', () => {
+    const merge = [{ from: 'Socketed Gems are Supported by Level # X', into: 'Socketed Gems are Supported by Level # X (Random Support Gem)' }]
+    const out = parseRows(applyStatPlan(toFile(en()), 'en', { merge, extra: { 'Socketed Gems are Supported by Level # X': { implicit: ['implicit.effect_9'] } } }))
+    expect(out[0].trade.ids).toEqual({ explicit: ['explicit.indexable_support_1', 'explicit.effect_9'], implicit: ['implicit.effect_9'] })
   })
 })
 
