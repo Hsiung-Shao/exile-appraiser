@@ -537,6 +537,28 @@ describe('V21 3.30 一般頁原生擷取與「9」樣本(2026-11-24)', () => {
   })
 })
 
+describe('V22 空虛斷片例外(2026-11-24 使用者裁定)', () => {
+  // 圖示的白色斜光緊貼「1」→ 漏讀檢查 ① 誤擋;只對這個物品略過 ①
+  const set = (): typeof NT.sets[number] => NT.sets.find(s => s.tab === 'general330')!
+  it('帶物品名「Fragment of Emptiness」時讀成 1', async () => {
+    const s = set()
+    const r = readCellQuantity(await loadNative(s), s.cells[41].rect, TEMPLATES, { clientH: NT.clientH, mask: s.masks, refName: 'Fragment of Emptiness' })
+    expect([r.qty, r.reason]).toEqual([1, 'ok'])
+  })
+  it('不帶物品名或別的物品名時仍回疑似漏讀', async () => {
+    const s = set()
+    const img = await loadNative(s)
+    for (const refName of [undefined, 'Fragment of Terror']) {
+      const r = readCellQuantity(img, s.cells[41].rect, TEMPLATES, { clientH: NT.clientH, refName })
+      expect([r.qty, r.reason]).toEqual([null, 'missed-digit'])
+    }
+  })
+  it('掃描與自測都把物品名傳進判讀(接線守門)', () => {
+    expect(fs.readFileSync(path.join(ROOT, 'main/src/ocr/stash-scan.ts'), 'utf8')).toContain('refName: rects[i].refName')
+    expect(fs.readFileSync(path.join(ROOT, 'main/src/ocr/stash-selftest.ts'), 'utf8').match(/refName: r\.refName/g)).toHaveLength(2)
+  })
+})
+
 describe('V6 模板資料可重現', () => {
   it('build 腳本重跑輸出逐位元組相同、MANIFEST 相符、記錄來源截圖 sha256', async () => {
     const mod = await import(/* @vite-ignore */ pathToFileURL(path.join(ROOT, 'scripts/build-stash-digit-templates.mjs')).href) as { buildTemplatesJson: () => Promise<string>, MANIFEST_PREFIX: string }

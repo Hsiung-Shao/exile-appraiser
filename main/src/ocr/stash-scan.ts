@@ -845,7 +845,7 @@ export class StashScan {
       }
       cs.masked = undefined
       if (!st.want.has(i) && cs.clean && !qtySignatureChanged(qtyMapSignature(cs.clean, inCrop), sig)) continue
-      const r = readCellQuantity(px, cell, templates, { clientH: shown.clientH, mask: inCrop })
+      const r = readCellQuantity(px, cell, templates, { clientH: shown.clientH, mask: inCrop, refName: rects[i].refName })
       if (r.reason === 'masked') {
         // 數字延伸到遮罩底下(例如位數變多):當成蓋住,等 peek
         cs.band = r.band
