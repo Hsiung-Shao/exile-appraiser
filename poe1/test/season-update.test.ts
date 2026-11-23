@@ -1374,6 +1374,25 @@ describe('planPassiveRenames(規則 25:天賦繁中改名)', () => {
     expect(planPassiveRenames({ zhStats: out, renames }).adds).toEqual([])
   })
 
+  // 開季差異掃描 3.29.3 → 3.30.0d:不可能的逃脫的基石名也是動態帶入(天賦 hash),3.30 精準科技 → 精準技巧、惡毒牢房 → 邪惡結界
+  it('不可能的逃脫「範圍 X 內未連結的天賦」補新基石名、舊的標 superseded;再跑一次不重複', () => {
+    const ref = 'Passive Skills in Radius of Precise Technique can be Allocated\nwithout being connected to your tree\nPassage'
+    const zhStats = [stat(ref, [{ string: '天賦樹中在範圍精準科技內未連結的天賦仍然可以配置\n通途' }])]
+    const renames = [{ en: 'Precise Technique', from: '精準科技', zh: '精準技巧' }]
+    const plan = planPassiveRenames({ zhStats, renames })
+    expect(plan.adds).toEqual([
+      { lang: 'cmn-Hant', ref, matcher: { string: '天賦樹中在範圍精準技巧內未連結的天賦仍然可以配置\n通途' }, supersedes: ['天賦樹中在範圍精準科技內未連結的天賦仍然可以配置\n通途'] }
+    ])
+    const out = parseRows(applyStatPlan(toFile(zhStats), 'cmn-Hant', { adds: plan.adds }))
+    expect(planPassiveRenames({ zhStats: out, renames }).adds).toEqual([])
+  })
+
+  it('不可能的逃脫:繁中句裡找不到舊名(已是別的寫法)就不動', () => {
+    const ref = 'Passive Skills in Radius of Precise Technique can be Allocated\nwithout being connected to your tree\nPassage'
+    const zhStats = [stat(ref, [{ string: '天賦樹中在範圍別的名字內未連結的天賦仍然可以配置\n通途' }])]
+    expect(planPassiveRenames({ zhStats, renames: [{ en: 'Precise Technique', from: '精準科技', zh: '精準技巧' }] }).adds).toEqual([])
+  })
+
   // 審查第 2 輪:星團「1 個附加天賦為 X」(帶 explicit id)是寫死名稱(GGPK 3.30 仍是舊名),不能跟著改
   it('星團珠寶「1 Added Passive Skill is X」不改名', () => {
     const zhStats = [stat('1 Added Passive Skill is Advance Guard', [{ string: '1 個附加天賦為進階守衛' }])]

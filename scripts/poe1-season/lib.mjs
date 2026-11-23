@@ -561,7 +561,7 @@ export function planGrownPassives ({ enStats, zhStats, tradeStats }) {
 
 /**
  * 規則 25:天賦繁中改名(GGPK `passiveskills` 同一個 ident 新舊兩版英文名相同、繁中不同;3.30 Avatar of the Wilds 獸性化身 → 荒野化身,
- * GitHub issue #34)。名字在「配置 X」結尾的繁中寫法(塗油、禁忌珠寶)補新名,舊的標 superseded。
+ * GitHub issue #34)。名字在「配置 X」結尾的繁中寫法(塗油、禁忌珠寶)與不可能的逃脫「範圍 X 內未連結」(開季差異掃描)補新名,舊的標 superseded。
  * 依詞綴 ref 裡的英文天賦名對(`Allocates X` / 禁忌珠寶句);同一個天賦有兩種改名不猜。
  * 腐敗之種洗出的天賦(「1 Added Passive Skill is X」只有 enchant id 的列)也帶入新名(issue #39):直接換掉舊句;星團珠寶那幾列(帶 explicit id)是寫死名稱、不改。
  * @returns {{ adds: any[], rejects: any[] }}
@@ -577,16 +577,24 @@ export function planPassiveRenames ({ zhStats, renames }) {
     if (had === undefined) byEn.set(r.en, r)
     else if (had && (had.from !== r.from || had.zh !== r.zh)) { byEn.set(r.en, null); rejects.push({ reason: '同一個天賦有兩種改名', en: r.en }) }
   }
+  // 名稱由 passiveskills 動態帶入的句型:英文 ref 取天賦名、繁中句取名稱所在位置(前綴, 名稱, 後綴)
+  // 星團「1 Added Passive Skill is X」是寫死名稱的句子,3.30 仍是舊名 → 不在這裡
+  const DYNAMIC = [
+    // 塗油、禁忌珠寶「配置 X」
+    { en: /^Allocates (.+?)(?: if you have the matching modifier on Forbidden (?:Flame|Flesh))?$/, zh: /(配置 )(.+)()$/ },
+    // 不可能的逃脫「天賦樹中在範圍 X 內未連結的天賦…」(開季差異掃描 3.29.3 → 3.30.0d)
+    { en: /^Passive Skills in Radius of (.+) can be Allocated\n/, zh: /(範圍)(.+?)(內未連結)/ }
+  ]
   for (const stat of eachStat(zhStats)) {
-    // 只收「Allocates X」(塗油、禁忌珠寶:名稱由 passiveskills 動態帶入);星團「1 Added Passive Skill is X」是寫死名稱的句子,3.30 仍是舊名
-    const en = /^Allocates (.+?)(?: if you have the matching modifier on Forbidden (?:Flame|Flesh))?$/.exec(stat.ref)?.[1]
-    const r = en && byEn.get(en)
-    if (!r) continue
+    const form = DYNAMIC.find(f => f.en.test(stat.ref))
+    const r = form && byEn.get(/** @type {RegExpExecArray} */ (form.en.exec(stat.ref))[1])
+    if (!form || !r) continue
     for (const m of stat.matchers) {
       if (m.superseded) continue
-      const hit = /(配置 )(.+)$/.exec(m.string)
+      const hit = form.zh.exec(m.string)
       if (!hit || hit[2] !== r.from) continue
-      const string = m.string.slice(0, hit.index + hit[1].length) + r.zh
+      const at = hit.index + hit[1].length
+      const string = m.string.slice(0, at) + r.zh + m.string.slice(at + hit[2].length)
       if (stat.matchers.some(x => x.string === string)) continue
       const { superseded, ...rest } = m
       adds.push({ lang: 'cmn-Hant', ref: stat.ref, matcher: { ...rest, string }, supersedes: [m.string] })
