@@ -37,6 +37,12 @@ describe('PoE2 GitHub issue 的實機文字', () => {
     expect(rollsOf(item, '# to Level of all Cold Spell Skills')).toEqual([5])
   })
 
+  it('#66 卡瑪薩頭冠「+2全部召喚物技能等級」解析成原詞綴(回報沒附原文,樣本只有詞綴行取自標題;同 #24 的寫法,v0.3.12 起已修)', () => {
+    const item = read('issue-66.cmn-Hant.txt')
+    expect(unknownOf(item)).toEqual([])
+    expect(rollsOf(item, '# to Level of all Minion Skills')).toEqual([2])
+  })
+
   it('#3 史瓦林「賦予技能: 舉盾」(不帶等級的寫法,譯名與帶等級的「賦予技能: 等級 # 舉盾」一致)不再是未解析;這條沒有交易站 id,不進篩選(同舊譯名)', () => {
     const item = read('issue-3.cmn-Hant.txt')
     expect(unknownOf(item)).toEqual([])
