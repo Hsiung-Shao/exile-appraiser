@@ -93,15 +93,21 @@ const NAME = {
 /** 名稱槽的數值是索引:範圍內每個值都組一句(上限避免把整張表展開) */
 const NAME_RANGE_MAX = 400
 // 伺服器端才骰的天賦 hash(客戶端 mods 表只有佔位值):禁忌珠寶 = 昇華大天賦、不可能的逃脫 = 基石
-// shortcut: 天賦池是推論的篩選(輿圖 / 自訂昇華節點 / 布雷克爾子樹 / 多選一節點除外;昇華只收六個職業,貴族的昇華與血脈等非職業節點不收),
-// 不是遊戲公布的清單;有誤判會以缺口出現
+// 篩選:輿圖 / 自訂昇華節點 / 布雷克爾子樹 / 多選一節點除外,昇華只收六個職業;再只留交易站這條詞綴的選項清單裡有的名字
+// (GGPK 客戶端沒有「能骰出哪些」,交易站選項是唯一的完整清單)
+const TRADE_STATS = JSON.parse(fs.readFileSync(path.join(ROOT, 'poe1/test/docs/trade-stats-3.30.json'), 'utf8')).result.flatMap((/** @type {any} */ g) => g.entries)
+// 存檔把每個選項展開成一筆(`id|hash`、句子帶名字),名字從句型擷取
+const optionNames = (/** @type {RegExp} */ re) => new Set(TRADE_STATS.map((/** @type {any} */ e) => re.exec(e.text)?.[1]).filter(Boolean))
+const forbiddenNames = optionNames(/^Allocates (.+) if you have the matching modifier on Forbidden (?:Flesh|Flame)$/)
+const escapeNames = optionNames(/^Passive Skills in Radius of (.+) can be Allocated\n/)
 const ascendancies = new Map(rowsOf('ascendancy').map(r => [r.ix, r]))
 // SkillType 1 = 輿圖天賦;Id `AscendancyCustom*` = 不在一般昇華樹上的自訂節點(血脈、劫盜展品之類)
 const passiveRows = [...passives.values()].flat().filter(r => !r.en.IsJustIcon && !r.en.IsMultipleChoiceOption && r.en.Name &&
   r.en.SkillType === 0 && !r.en.Id.startsWith('AscendancyCustom') && r.en.BrequelSubTree == null && !r.en.IsBrequelWomb)
 const ascNotables = passiveRows.filter(r => r.en.IsNotable && !r.en.IsAscendancyStartingNode && !r.en.IsMultipleChoice &&
-  ascendancies.has(r.en.AscendancyKey) && ascendancies.get(r.en.AscendancyKey).en.Character !== 2).map(r => r.en.PassiveSkillGraphId)
-const keystoneHashes = passiveRows.filter(r => r.en.AscendancyKey == null && r.en.IsKeystone).map(r => r.en.PassiveSkillGraphId)
+  ascendancies.has(r.en.AscendancyKey) && ascendancies.get(r.en.AscendancyKey).en.Character !== 2 && forbiddenNames.has(r.en.Name)).map(r => r.en.PassiveSkillGraphId)
+const keystoneHashes = passiveRows.filter(r => r.en.AscendancyKey == null && r.en.IsKeystone && escapeNames.has(r.en.Name)).map(r => r.en.PassiveSkillGraphId)
+if (!ascNotables.length || !keystoneHashes.length) throw new Error('交易站選項清單對不到禁忌珠寶 / 不可能的逃脫的天賦(存檔格式變了?)')
 /** @type {Record<string, number[]>} */
 const VALUE_POOL = {
   unique_jewel_grants_notable_hash_part_1: ascNotables,
@@ -178,7 +184,8 @@ function nameCombos (/** @type {any[][]} */ handlers, /** @type {string[]} */ id
     const vs = VALUE_POOL[ids[k]] ?? (hi - lo <= NAME_RANGE_MAX ? Array.from({ length: hi - lo + 1 }, (_, i) => lo + i) : [shown[k]])
     combos = combos.flatMap(c => vs.flatMap(v => {
       const names = NAME[h](v, shown)
-      return names.length ? names.map(n => c.map((x, i) => i === k ? n : x)) : [c.map((x, i) => i === k ? v : x)]
+      // 查不到名稱(索引超出表)= 遊戲不會印出這一句,不組
+      return names.map(n => c.map((x, i) => i === k ? n : x))
     }))
   }
   return combos
@@ -256,7 +263,9 @@ const uniqueMods = rowsOf('mods').filter(m => m.en.GenerationType === 3 && ITEM_
     if (k != null) stats.push({ stat_id: rStats.get(k).en.Id, min: m[`Stat${n}Min`], max: m[`Stat${n}Max`] })
   }
   // shortcut: 只看 stat_descriptions.txt(上面只匯了它與地圖描述檔),萃取物等其他描述檔的句子會靜默掉出掃描;要掃時把檔案加進 descs 查詢
-  return { id: m.Id, stats: stats.map(s => s.stat_id), lines: [...linesOfStats(stats, ['stat_descriptions.txt']), ...grantLines(m)] }
+  // 賦予技能句只在詞綴自己沒有描述檔句子時才組:有的話物品上印的是描述檔那句(「Triggers Level 20 X when Equipped」之類)
+  const own = linesOfStats(stats, ['stat_descriptions.txt'])
+  return { id: m.Id, stats: stats.map(s => s.stat_id), lines: own.length ? own : grantLines(m) }
 }).filter(m => m.lines.length)
 
 // PoB 的傳奇:名稱 + 底材 + 每一行英文;數字(含範圍)一律當 #,句尾「 Skill」(3.29 的賦予技能寫法)拿掉
@@ -291,15 +300,23 @@ const KIND = (/** @type {string} */ cls) => /Flask|Tincture/.test(cls) ? 'flask'
 let unmatched = 0
 /** 每一句 → 類別 → 對到幾個傳奇 @type {Map<number, Map<string, number>>} */
 const lineClasses = new Map()
+/** `--explain <檔>`:每一句來自哪些詞綴、對到哪些 PoB 傳奇(查缺口來源用) @type {Map<number, { mods: Set<string>, uniques: Set<string> }>} */
+const explain = new Map()
 for (const m of uniqueMods) {
-  const hits = m.lines.flatMap(l => (uniquesOfLine.get(norm(l.en.split('\n')[0])) ?? []).map(r => r.u.base.item_class))
-  for (const s of m.stats) if (s in STAT_UNIQUE) hits.push(baseOf.get(STAT_UNIQUE[/** @type {keyof typeof STAT_UNIQUE} */ (s)][1]).item_class)
+  const matched = m.lines.flatMap(l => (uniquesOfLine.get(norm(l.en.split('\n')[0])) ?? []).map(r => r.u))
+  for (const s of m.stats) if (s in STAT_UNIQUE) matched.push(mkUnique(...STAT_UNIQUE[/** @type {keyof typeof STAT_UNIQUE} */ (s)], []))
+  const hits = matched.map(u => u.base.item_class)
   if (!hits.length) { unmatched += 1; continue }
   for (const l of m.lines) {
     const counts = lineClasses.get(add(l)) ?? lineClasses.set(add(l), new Map()).get(add(l))
     for (const cls of hits) counts.set(cls, (counts.get(cls) ?? 0) + 1)
+    const e = explain.get(add(l)) ?? explain.set(add(l), { mods: new Set(), uniques: new Set() }).get(add(l))
+    e.mods.add(m.id)
+    for (const u of matched) e.uniques.add(u.name)
   }
 }
+const EXPLAIN = flag('--explain', '')
+if (EXPLAIN) fs.writeFileSync(EXPLAIN, JSON.stringify(Object.fromEntries([...explain].map(([ix, e]) => [lines[ix][0], { mods: [...e.mods], uniques: [...e.uniques] }]))))
 /** @type {Map<string, Set<number>>} */
 const uniqueSets = new Map()
 for (const [ix, counts] of lineClasses) {
@@ -312,19 +329,42 @@ for (const [ix, counts] of lineClasses) {
   const keep = new Set([...best.values()].map(([cls]) => cls).concat([...counts.keys()].filter(cls => SAMPLE_CLASSES.has(cls.replace(/ /g, '')))))
   for (const cls of keep) (uniqueSets.get(cls) ?? uniqueSets.set(cls, new Set()).get(cls)).add(ix)
 }
+// 傳奇的詞綴在物品上印成哪一段,GGPK 客戶端沒有;看交易站 3.30 stats 存檔:只有 implicit id 的放固定詞綴段,
+// 只有附魔等其他類型 id 的不收(附魔不在掃描範圍),有 explicit 或完全沒有 id 的放傳奇詞綴段
+const tradeTypes = (() => {
+  // 交易站只列「increased」與單數寫法:減少 / 複數也當成同一句
+  const nk = (/** @type {string} */ s) => s.toLowerCase().replace(/\d+(?:\.\d+)?/g, '#').replace(/[+-]#/g, '#').replace(/\breduced\b/g, 'increased')
+    .replace(/\bmodifiers\b/g, 'modifier').replace(/\s+/g, ' ').trim()
+  /** @type {Map<string, Set<string>>} */
+  const m = new Map()
+  const put = (/** @type {string} */ text, /** @type {string} */ id) => (m.get(nk(text)) ?? m.set(nk(text), new Set()).get(nk(text))).add(id.split('.')[0])
+  for (const e of TRADE_STATS) {
+    put(e.text, e.id)
+    for (const o of e.option?.options ?? []) put(e.text.replace('#', o.text), e.id)
+  }
+  return (/** @type {string} */ en) => m.get(nk(en)) ?? m.get(nk(en.split('\n')[0])) ?? new Set()
+})()
+let enchantOnly = 0
 for (const [cls, set] of [...uniqueSets].sort(([a], [b]) => a.localeCompare(b))) {
   const name = className.get(cls) ?? className.get(cls.replace(/ /g, ''))
+  const explicit = []; const implicit = []
+  for (const ix of [...set].sort((a, b) => a - b)) {
+    const t = tradeTypes(lines[ix][0])
+    if (t.has('explicit') || !t.size) explicit.push(ix)
+    else if (t.has('implicit')) implicit.push(ix)
+    else enchantOnly += 1
+  }
   // 代表物品:這類的傳奇裡有繁中名的前 30 個(測試挑第一個解析器認得的)
   const picks = [...new Map(pobUniques.filter(u => u.base.item_class === cls && u.zhName && u.base.zh).map(u => [u.name, u])).values()].slice(0, 30)
   out[`Unique ${cls}`] = {
     class: name ? [name.en, name.zh] : null,
     bases: picks.map(u => [u.base.en, u.base.zh]),
     uniques: picks.map(u => [u.name, u.zhName]),
-    explicit: [...set].sort((a, b) => a - b),
-    implicit: []
+    explicit,
+    implicit
   }
 }
-console.log(`傳奇詞綴:${uniqueMods.length} 條有句子,${unmatched} 條對不到 PoB 的傳奇(不進掃描)`)
+console.log(`傳奇詞綴:${uniqueMods.length} 條有句子,${unmatched} 條對不到 PoB 的傳奇(不進掃描),${enchantOnly} 句(類別 × 句)交易站只有附魔等 id(不進掃描)`)
 
 fs.writeFileSync(OUT, JSON.stringify({ relVersion: REL, textVersion: TXT, lines, classes: out }) + '\n')
 console.log(`寫入 ${path.relative(ROOT, OUT)}:${Object.keys(out).length} 類、${lines.length} 句`)
