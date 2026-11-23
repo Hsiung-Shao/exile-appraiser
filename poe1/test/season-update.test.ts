@@ -1623,6 +1623,8 @@ describe('planIndexableSkills(規則 32:交易站新上架的隨機技能寶石�
     const have = [stat('x', [{ string: 'x' }], { explicit: ['explicit.indexable_skill_288'] })]
     expect(planIndexableSkills({ enStats: have, tradeStats: trade, ggpkNew, skills: [{ en: 'Arcane Link', zh: '甲' }] }).newStats).toEqual([])
     expect(planIndexableSkills({ enStats: [], tradeStats: trade, ggpkNew, skills: [{ en: 'Arcane Link', zh: '甲' }, { en: 'Arcane Link', zh: '乙' }] }).rejects).toHaveLength(1)
+    const plain = [stat('+# to Level of all Arcane Link Gems', [{ string: '# to Level of all Arcane Link Gems' }], { explicit: ['explicit.stat_9'] })]
+    expect(planIndexableSkills({ enStats: plain, tradeStats: trade, ggpkNew, skills: [{ en: 'Arcane Link', zh: '甲' }] }).rejects.map(r => r.reason)).toEqual(['英文句已是別條詞綴的寫法'])
   })
 })
 

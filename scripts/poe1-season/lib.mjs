@@ -1412,6 +1412,7 @@ export const CONQUEROR_RENAMES = { Ahuana: 'Mazcotl' }
 const INDEXABLE_SKILL_RE = /^\+# to Level of all (.+) Gems$/
 export function planIndexableSkills ({ enStats, tradeStats, ggpkNew, skills }) {
   const used = usedIds(enStats)
+  const taken = new Set([...eachStat(enStats)].flatMap(s => s.matchers.map((/** @type {any} */ m) => m.string)))
   const tpl = ggpkNew.find(r => r.key.startsWith('random_skill_gem_level_+_level random_skill_gem_level_+_index|') && r.key.includes('|stat_descriptions.txt|') && r.en.startsWith('+{0}') && r.zh)
   const zhOf = new Map()
   for (const s of skills) zhOf.set(s.en, zhOf.has(s.en) && zhOf.get(s.en) !== s.zh ? null : s.zh)
@@ -1423,6 +1424,8 @@ export function planIndexableSkills ({ enStats, tradeStats, ggpkNew, skills }) {
     const zh = zhOf.get(name)
     if (!zh || !tpl) { rejects.push({ reason: zh === null ? '寶石英文名對到兩個繁中名' : '找不到繁中寶石名或句型', id: e.id, to: e.text }); continue }
     const fill = (/** @type {string} */ t, /** @type {string} */ n) => toMatcherText(t.replace('{1}', n))
+    // 英文句已是別列的寫法(一般列「+# to Level of all X Gems」)→ 新列會和它搶索引、中英解析到不同列,不收
+    if (taken.has(fill(tpl.en, name))) { rejects.push({ reason: '英文句已是別條詞綴的寫法', id: e.id, to: e.text }); continue }
     newStats.push({
       ref: `${e.text} (Random Skill Gem)`, better: 1, ids: { explicit: [e.id] },
       en: [{ string: fill(tpl.en, name), advanced: fill(tpl.en, `${name}(...)`) }],
