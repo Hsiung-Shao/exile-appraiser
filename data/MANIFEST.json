@@ -25,10 +25,10 @@
       "generatedAt": "2026-11-17T17:54:36.845Z"
     },
     "data/poe1/stash/digit-templates.json": {
-      "repo": "本 repo core/test/stash/fixtures/qty(使用者 2000×1125 截圖 + 人工判讀 truth.json;scripts/build-stash-digit-templates.mjs 產生)",
+      "repo": "本 repo core/test/stash/fixtures/qty(使用者 2000×1125 截圖 + 人工判讀 truth.json)+ qty-native 原生擷取的「9」樣本;scripts/build-stash-digit-templates.mjs 產生",
       "path": "core/test/stash/fixtures/qty",
       "fetchedAt": "2026-10-14T13:28:00.000Z",
-      "generatedAt": "2026-10-15T03:22:09.088Z"
+      "generatedAt": "2026-11-23T19:27:24.838Z"
     },
     "data/poe1/trade": {
       "repo": "GGG trade data API(pathofexile.tw,PoE1)",
@@ -175,8 +175,8 @@
       "bytes": 40521
     },
     "data/poe1/stash/digit-templates.json": {
-      "sha256": "d9c1e12cfc235e8aa83dda6fdb8aa8bca6ab4a153b2a328eabceec3da3910430",
-      "bytes": 14634
+      "sha256": "c874622ecdfbfc86a87b1668128bd6a3f859deaababc71b1ad157610bac4e672",
+      "bytes": 15186
     },
     "data/poe1/stash/layouts.json": {
       "sha256": "e056d18eff11367a87c236de54da9251431990f206e106bfb65f6e1a6b47463f",
