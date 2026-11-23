@@ -36,7 +36,7 @@ describe('物品詞綴數值頁:併列前的舊項目 id 照樣還原', () => {
 
   it('id 整個換掉的 5 組(固定列用舊的固定輔助 stat id)照對照表還原', () => {
     const at = (id: string) => page.entries.findIndex(e => e.id === id)
-    for (const [old, now, name] of [['stat_285773939', 'indexable_support_154', 'Flamewood'], ['stat_254728692', 'indexable_support_33', 'Pierce'], ['stat_2910545715', 'indexable_support_148', 'Prismatic Burst']]) {
+    for (const [old, now, name] of [['stat_285773939', 'indexable_support_154', 'Flamewood'], ['stat_3227145554', 'indexable_support_133', 'Impending Doom'], ['stat_4096329121', 'indexable_support_168', 'Living Lightning'], ['stat_254728692', 'indexable_support_33', 'Pierce'], ['stat_2910545715', 'indexable_support_148', 'Prismatic Burst']]) {
       expect(at(now), name).toBeGreaterThanOrEqual(0)
       expect(page.entries[at(now)].en[0], name).toContain(name)
       expect(applyPageKeys(page, [old]), name).toEqual({ picked: [at(now)], missed: 0 })

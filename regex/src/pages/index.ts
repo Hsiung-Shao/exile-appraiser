@@ -104,7 +104,7 @@ const RENAMED_ENTRY_IDS: Readonly<Record<string, string>> = {
  */
 export function algoEntryIndex (page: AlgoPage, id: string): number {
   const i = page.entries.findIndex(e => e.id === id)
-  if (i < 0 && id in RENAMED_ENTRY_IDS) return page.entries.findIndex(e => e.id === RENAMED_ENTRY_IDS[id])
+  if (i < 0 && Object.hasOwn(RENAMED_ENTRY_IDS, id)) return page.entries.findIndex(e => e.id === RENAMED_ENTRY_IDS[id])
   const cut = id.lastIndexOf('|')
   if (i >= 0 || cut < 0) return i
   const ref = id.slice(cut + 1)

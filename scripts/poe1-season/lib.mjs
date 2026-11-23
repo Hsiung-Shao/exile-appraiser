@@ -1601,7 +1601,7 @@ export function planMergeDuplicates ({ enStats, zhStats }) {
 /** 頂層 stat 的 ref;群組裡全部同一個 ref(重複列)也算;其他群組 = null */
 function wholeRefOf (/** @type {any} */ row) {
   if (!row.stats) return row.ref ?? null
-  // 只收上游的 trivial-merge(完全重複的列);select / percent-merge 群組的成員是不同 id,不能當成一列
+  // 只收上游的 trivial-merge(同一句的幾列,解析器本來就把成員 id 併起來送);select / percent-merge 群組依物品選其中一個 id,不能當成一列
   return row.resolve?.strat === 'trivial-merge' && row.stats.length && row.stats.every((/** @type {any} */ s) => s.ref === row.stats[0].ref) ? row.stats[0].ref : null
 }
 
