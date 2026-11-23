@@ -255,7 +255,8 @@ export function ensureItemMods (game: RegexGame): Promise<boolean> {
       const next = markRaw({ ...cat, pages: cat.pages.map(p => (p.id === id ? page : p)) })
       catalogues[game].cat = next
       // 存下來的數值若還用舊的項目 id(資料併列前的 `X|ref`)換成現行 id,不然勾選還原得到、數值卻回到預設
-      if (ui.numeric[numericKeyOf(id)]) ui.numeric[numericKeyOf(id)] = remapAlgoValues(page, ui.numeric[numericKeyOf(id)])
+      const numKey = numericKeyOf(id)
+      if (ui.numeric[numKey]) ui.numeric[numKey] = remapAlgoValues(page, ui.numeric[numKey])
       st.ms = Math.round(performance.now() - t0)
       st.count = data.entries.length
       st.formsMissing = formsMissing

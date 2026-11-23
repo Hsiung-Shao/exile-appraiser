@@ -87,11 +87,15 @@ export function pageKeysOf (page: RegexPage, picked: readonly number[]): { keys:
 /**
  * 演算法頁的項目 id → 索引。找不到、且是 `X|ref`(物品詞綴數值頁同一個交易站 id 的第二條)時退回 `X`:
  * 資料把同一句的兩列併成一列後(PoE1 規則 30,2026-11-24),原本第二條的 id 由 `X|ref` 變成 `X`,舊存檔 / 書籤 / 分享碼照樣還原。
+ * 只在 `X` 那條的英文 ref 就是舊 id 裡的 ref 時才退(同 stat 另一句被排除 / 改名時不能套到別句);
+ * 以最後一個 `|` 切(選項型 id 本身含 `|`,ref 不含)。
  */
 export function algoEntryIndex (page: AlgoPage, id: string): number {
   const i = page.entries.findIndex(e => e.id === id)
-  const cut = id.indexOf('|')
-  return i >= 0 || cut < 0 ? i : page.entries.findIndex(e => e.id === id.slice(0, cut))
+  const cut = id.lastIndexOf('|')
+  if (i >= 0 || cut < 0) return i
+  const ref = id.slice(cut + 1)
+  return page.entries.findIndex(e => e.id === id.slice(0, cut) && e.en[0] === ref)
 }
 
 /** 存下來的數值(項目 id → 值)換成這一頁現行的 id;還原不到的照原鍵留著(其他頁共用同一個存放鍵) */

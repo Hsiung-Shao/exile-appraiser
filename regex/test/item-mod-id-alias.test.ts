@@ -29,6 +29,11 @@ describe('物品詞綴數值頁:併列前的舊項目 id 照樣還原', () => {
     expect(applyPageKeys(page, ['explicit.no_such|x'])).toEqual({ picked: [], missed: 1 })
   })
 
+  it('`X` 那條的 ref 與舊 id 裡的不同(同 stat 的另一句被排除 / 改名)→ 不退,算還原不到', () => {
+    expect(algoEntryIndex(page, `${NEW_ID}|Socketed Gems are Supported by Level # Added Cold Damage (Random Support Gem)`)).toBe(-1)
+    expect(applyPageKeys(page, [`${NEW_ID}|別的句子`])).toEqual({ picked: [], missed: 1 })
+  })
+
   it('數值:舊 id 的值換到新 id;現行 id 已有值時不被舊值蓋掉', () => {
     expect(remapAlgoValues(page, { [OLD_ID]: { min: 3 } })).toEqual({ [NEW_ID]: { min: 3 } })
     expect(remapAlgoValues(page, { [OLD_ID]: { min: 3 }, [NEW_ID]: { min: 9 } })).toEqual({ [NEW_ID]: { min: 9 } })
