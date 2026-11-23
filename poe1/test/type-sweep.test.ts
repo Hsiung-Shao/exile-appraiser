@@ -90,6 +90,9 @@ function itemText (lang: Lang, cls: string, klass: string, pick: Pick, type: Mod
   else if (type === 'explicit') L.push('--------', zh ? '{ 前綴 "測試的"(階層：1) }' : '{ Prefix Modifier "Testing" (Tier: 1) }', line)
   // 探險日誌一定有區域段(區域名 / 陣營 / 帶「 (implicit)」的區域詞綴,`parseLogbookArea` 要 ≥ 3 行),沒有的話組查詢會拋錯;
   // 第 3 行是對不到任何詞綴的湊數行(被略過),區域段只剩陣營
+  // 3.30 海圖一定有「區域名 + 區域等級」這一段(`parseChart` 讀 section[0] 當區域),沒有的話組查詢讀不到 mapArea 而拋錯;
+  // 區域要挑海圖區域(items 的 AREA 帶 `area` 欄位的那 16 個),一般地圖區域沒有 area 欄位
+  if (cls === 'DeepwaterChart') L.push('--------', zh ? '深海平原' : 'Abyssal Plain', zh ? '區域等級: 83' : 'Area Level: 83')
   if (cls === 'ExpeditionLogbook') L.push('--------', zh ? '地區等級: 83' : 'Area Level: 83', '--------', 'Testing Grounds', zh ? '豔陽騎士' : 'Knights of the Sun', 'Testing Grounds (implicit)')
   return L.join('\n') + '\n'
 }
