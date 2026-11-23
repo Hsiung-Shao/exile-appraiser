@@ -530,6 +530,10 @@ describe('V21 3.30 一般頁原生擷取與「9」樣本(2026-11-24)', () => {
     console.log(`[V21 N5 留一含原生 9] 池 ${contributing.length} 格,正確 ${t.ok},錯 ${t.wrong.length} ${t.wrong.join('; ')},不確定 ${t.unknown.length} ${t.unknown.join('; ')}`)
     expect(t.wrong).toEqual([])
     expect(t.unknown.length).toBeLessThanOrEqual(8)
+    // 原生含 9 的格不靠自己的樣本也要讀對(N2 / N3 是拿訓練資料驗訓練資料,泛化由這裡鎖)
+    const nines = contributing.map((c, i) => ({ c, r: out[i].r })).filter(x => x.c.clientH === NT.clientH)
+    expect(nines.length).toBeGreaterThanOrEqual(5)
+    expect(nines.filter(x => x.r.qty !== x.c.truth).map(x => `${x.c.truth}→${x.r.qty}`)).toEqual([])
   })
 })
 
