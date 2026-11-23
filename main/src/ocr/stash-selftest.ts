@@ -39,13 +39,13 @@ export async function runStashSelftest (png: string, argv: string[]): Promise<nu
   const tPix = performance.now() - t0
   const results: QtyResult[] = []
   const t1 = performance.now()
-  for (const r of rects) results.push(readCellQuantity(px, { x: r.x - px.x, y: r.y - px.y, w: r.w, h: r.h }, templates, { clientH }))
+  for (const r of rects) results.push(readCellQuantity(px, { x: r.x - px.x, y: r.y - px.y, w: r.w, h: r.h }, templates, { clientH, refName: r.refName }))
   const tRead = performance.now() - t1
   // 計時(暖機後再量 3 次取最快)
   let best = Infinity
   for (let k = 0; k < 3; k++) {
     const s = performance.now()
-    for (const r of rects) readCellQuantity(px, { x: r.x - px.x, y: r.y - px.y, w: r.w, h: r.h }, templates, { clientH })
+    for (const r of rects) readCellQuantity(px, { x: r.x - px.x, y: r.y - px.y, w: r.w, h: r.h }, templates, { clientH, refName: r.refName })
     best = Math.min(best, performance.now() - s)
   }
 

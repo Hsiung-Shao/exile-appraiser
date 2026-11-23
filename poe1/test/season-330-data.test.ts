@@ -217,6 +217,19 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(refsOf(item)).toContain(RARITY_REF)
   })
 
+  it('D8c 巫會之后冠「擊殺時觸發等級1的低階異蛛復甦」(使用者 2026-11-24 回報)解析成同一個 id、value 100(交易站 magnitude 100)', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-coven-queens-crown-spiders.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(item)).toEqual([])
+    const s = item.statsByType.find(x => x.stat.trade.ids.implicit?.includes('implicit.stat_32458272'))
+    expect(s?.sources[0].stat.roll?.value).toBe(100)
+  })
+
+  it('D8b 輝煌的虛榮「瑪茲科特爾」(使用者 2026-11-24 回報查不到)解析成交易站沿用舊名的 ahuana id', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-glorious-vanity-mazcotl.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(item)).toEqual([])
+    expect(item.statsByType.map(s => s.stat.trade.ids.explicit?.[0])).toContain('explicit.pseudo_timeless_jewel_ahuana')
+  })
+
   it('D8 3.30 新傳奇藥劑(使用者 2026-11-14 回報的實機剪貼簿)解析得到', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-dreadmaidens-sacrament.cmn-Hant.txt'), 'utf8'))
     expect(item.info.refName).toBe("Dreadmaidens' Sacrament")

@@ -33,7 +33,7 @@ import {
   encodeShare, hostIdOf, isAlgoPage, isSectionPage, listedPages, mergeLabels, numericKeyOf, pageKeysOf, parseLabels,
   parseRegexCatalogue, parseRegexState, parseTemplates, picksFor, resolveState, resolvedValues, savedPicksOf, sectionPageOf,
   serializeRegexState, shareStateOf, visibleRows, bookmarkHotkeys, regexStateSchemaOf, ITEM_MOD_PAGE_IDS, buildItemModData,
-  isItemModPageId, itemModPage, parseItemModForms, parseStatsNdjson,
+  isItemModPageId, itemModPage, parseItemModForms, parseStatsNdjson, remapAlgoValues,
   addFolder, deleteFolder, groupBookmarks, moveBookmark, moveBookmarkBy, moveFolderBy, moveFolderTo, normalizeFolders, renameFolder,
   setFolderCollapsed,
   type FolderResult, type GroupedBookmarks,
@@ -254,6 +254,9 @@ export function ensureItemMods (game: RegexGame): Promise<boolean> {
       const page = itemModPage(game, data)
       const next = markRaw({ ...cat, pages: cat.pages.map(p => (p.id === id ? page : p)) })
       catalogues[game].cat = next
+      // 存下來的數值若還用舊的項目 id(資料併列前的 `X|ref`)換成現行 id,不然勾選還原得到、數值卻回到預設
+      const numKey = numericKeyOf(id)
+      if (ui.numeric[numKey]) ui.numeric[numKey] = remapAlgoValues(page, ui.numeric[numKey])
       st.ms = Math.round(performance.now() - t0)
       st.count = data.entries.length
       st.formsMissing = formsMissing

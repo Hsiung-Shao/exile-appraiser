@@ -3,6 +3,7 @@
 // 然後重寫 MANIFEST 的 data/poe1/stash/digit-templates.json 前綴。
 //   node scripts/build-stash-digit-templates.mjs           → 產生 + 寫 MANIFEST
 //   node scripts/build-stash-digit-templates.mjs --check   → 只比對(與現有檔不同 exit 1),不寫檔
+// 另加 core/test/stash/fixtures/qty-native/(原生 1440 擷取)裡 truth.trainDigits 列的數字樣本(2026-11-24)。
 // 規則(與 core/src/stash/quantity.ts 同一套,訓練函式就在那裡):
 //   * 每格裁切區縮放到基準 client 高(= truth.json 的 clientH)→ 數字連通元件數 = 真值位數的格才採用 → 每位 11×15 白色程度、正規化
 //   * 每個數字的樣本平均後正規化,值四捨五入到 5 位小數;輸出記來源截圖 sha256(不含時間戳,逐位元組可重現)。
@@ -73,6 +74,19 @@ export async function buildTemplatesJson (fixDir = FIXTURE_DIR) {
       samples.push(...digitSamples(qtyCrop(img, r, clientH, clientH), t))
     })
   }
+  // 原生擷取(2026-11-24,fixtures/qty-native):只收 truth.trainDigits 列的數字(目前只有 9:原訓練 3 個樣本,實機 39 → 30);
+  // 影像是原生 client 高,qtyCrop 縮到基準高再取樣。全部數字都收會多出不確定,所以不收。
+  const nativeDir = path.join(fixDir, '..', 'qty-native')
+  const native = JSON.parse(fs.readFileSync(path.join(nativeDir, 'truth.json'), 'utf8'))
+  for (const s of native.trainDigits?.length ? native.sets : []) {
+    const buf = fs.readFileSync(path.join(nativeDir, s.file))
+    sources.push({ file: `core/test/stash/fixtures/qty-native/${s.file}`, sha256: crypto.createHash('sha256').update(buf).digest('hex') })
+    const { data, info } = await sharp(buf).removeAlpha().raw().toBuffer({ resolveWithObject: true })
+    const img = { data, width: info.width, height: info.height, channels: info.channels }
+    for (const c of s.cells) {
+      samples.push(...digitSamples(qtyCrop(img, c.rect, native.clientH, clientH), c.truth).filter((/** @type {{ d: number }} */ x) => native.trainDigits.includes(x.d)))
+    }
+  }
   const t = buildDigitTemplates(samples, clientH)
   return serialize({ ...t, sources })
 }
@@ -101,7 +115,7 @@ if (isMain) {
   console.log(`寫入 ${path.relative(ROOT, OUT)}(${json.length} B)`)
   execFileSync(process.execPath, [
     path.join(ROOT, 'scripts', 'verify-data-manifest.mjs'), '--write', '--prefix', MANIFEST_PREFIX,
-    '--source', '本 repo core/test/stash/fixtures/qty(使用者 2000×1125 截圖 + 人工判讀 truth.json;scripts/build-stash-digit-templates.mjs 產生)',
+    '--source', '本 repo core/test/stash/fixtures/qty(使用者 2000×1125 截圖 + 人工判讀 truth.json)+ qty-native 原生擷取的「9」樣本;scripts/build-stash-digit-templates.mjs 產生',
     '--path', 'core/test/stash/fixtures/qty',
     '--fetched-at', '2026-10-14T13:28:00.000Z'
   ], { stdio: 'inherit' })

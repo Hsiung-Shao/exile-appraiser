@@ -5,7 +5,7 @@
 // 存檔 / 書籤 / 分享碼則以宿主頁 id 為鍵(sections.ts)。
 import type { Mode } from './gen'
 import type { RegexGame, RegexPage } from './data'
-import { applyPageKeys, combineOrder, isSectionPage, pageKeysOf, sectionPageOf } from './pages'
+import { algoEntryIndex, applyPageKeys, combineOrder, isSectionPage, pageKeysOf, remapAlgoValues, sectionPageOf } from './pages'
 import { isAlgoPage, type AlgoValue } from './pages/types'
 import type { CombineSel } from './combine'
 import { numericKeyOf, planMerge } from './sections'
@@ -126,10 +126,15 @@ export function bookmarkApplyOf (pages: readonly RegexPage[], b: RegexBookmark):
     const rs = applyPageKeys(sec, num ?? [])
     out.picks[sec.id] = rs.picked
     out.missed += rs.missed
-    if (b.numeric && num?.length) out.values[numericKeyOf(sec.id)] = { ...b.numeric }
+    if (b.numeric && num?.length) out.values[numericKeyOf(sec.id)] = remapAlgoValues(sec, b.numeric)
   }
   // 演算法頁本身的值(宿主有條件區時與它共用同一個存放鍵,合併)
-  if (b.numeric && isAlgoPage(page)) out.values[page.id] = { ...(out.values[page.id] ?? {}), ...b.numeric }
+  if (b.numeric && isAlgoPage(page)) {
+    const m = { ...(out.values[page.id] ?? {}), ...remapAlgoValues(page, b.numeric) }
+    // 條件區那份照原鍵留下的舊 id,宿主頁已換成新 id → 刪掉,不然下次存書籤又寫回去
+    for (const k of Object.keys(m)) { const i = algoEntryIndex(page, k); if (i >= 0 && page.entries[i].id !== k) delete m[k] }
+    out.values[page.id] = m
+  }
   return out
 }
 

@@ -349,7 +349,7 @@ function candidates (crop: QtyCrop, tpl: TemplatePack): Cand[] {
  * 一格的數量(基準尺寸裁切區已備妥)。`ext` = 同一原點、往右多取 `QTY_PARAMS.extW` 基準像素的裁切區(只在漏讀檢查 ① 超出裁切區時才呼叫;
  * 省略 / 回 null(影像外)→ 不確定)
  */
-export function decodeQtyCrop (crop: QtyCrop, templates: DigitTemplates, ext?: () => QtyCrop | null): QtyResult & { chain?: Array<{ x: number, y: number, d: number }>, neighbor?: number, bandBase?: { x: number, y: number, w: number, h: number } } {
+export function decodeQtyCrop (crop: QtyCrop, templates: DigitTemplates, ext?: () => QtyCrop | null, skipResid = false): QtyResult & { chain?: Array<{ x: number, y: number, d: number }>, neighbor?: number, bandBase?: { x: number, y: number, w: number, h: number } } {
   const P = QTY_PARAMS
   const cands = candidates(crop, templatesOf(templates))
   cands.sort((a, b) => b.sc - a.sc)
@@ -453,7 +453,7 @@ export function decodeQtyCrop (crop: QtyCrop, templates: DigitTemplates, ext?: (
   if (raw.length > 1 && raw[0] === '0') return { qty: null, reason: 'leading-zero', ...base }
   if (confidence < P.minScore || margin < P.minMargin) return { qty: null, reason: 'low-confidence', ...base }
   if (confidence < P.lowScore && margin < P.lowScoreMargin) return { qty: null, reason: 'low-confidence', ...base }
-  if (!rc || fourth || resid >= P.residCount || (chain.length < P.maxDigits && neighbor >= P.neighborMass)) return { qty: null, reason: 'missed-digit', ...base }
+  if (!rc || fourth || (!skipResid && resid >= P.residCount) || (chain.length < P.maxDigits && neighbor >= P.neighborMass)) return { qty: null, reason: 'missed-digit', ...base }
   // 堆疊數不可能是 0:單獨的「0」是誤讀(不當成空格)
   if (raw === '0') return { qty: null, reason: 'zero', ...base }
   return { qty: Number(raw), reason: 'ok', ...base }
@@ -463,11 +463,20 @@ function round3 (v: number): number {
   return Math.round(v * 1000) / 1000
 }
 
+/**
+ * 漏讀檢查 ①(末位右側的純白像素)的例外:圖示本身有白色緊貼數字、每次都被誤擋的物品(使用者 2026-11-24 裁定逐格加)。
+ * 筆畫量檢查 ② 照舊。量過無法用通用規則分辨:空虛斷片的斜光 8–14 個純白像素,真的下一位「5」也只有 4–6 個、位置重疊。
+ * shortcut: 這格堆到 10 以上且第二位沒被認成候選時會少讀一位;出現實例就拿掉這條。
+ */
+export const QTY_RESID_EXEMPT: ReadonlySet<string> = new Set(['Fragment of Emptiness'])
+
 export interface QtyReadOptions {
   /** 遊戲 client 高(實體像素) */
   clientH: number
   /** 我們畫在遊戲上的東西(影像像素);蓋到數字的格回 `masked` */
   mask?: readonly QtyRect[]
+  /** 這一格的物品(英文全名);在 `QTY_RESID_EXEMPT` 裡的略過漏讀檢查 ① */
+  refName?: string
 }
 
 function insideImage (img: QtyImage, r: { x: number, y: number, w: number, h: number }): boolean {
@@ -483,7 +492,7 @@ export function readCellQuantity (img: QtyImage, cell: QtyRect, templates: Digit
     const er = qtyCropRect(cell, opts.clientH, templates.baseClientH, QTY_PARAMS.extW)
     return insideImage(img, er) ? qtyCrop(img, cell, opts.clientH, templates.baseClientH, opts.mask, QTY_PARAMS.extW) : null
   }
-  const r = decodeQtyCrop(crop, templates, ext)
+  const r = decodeQtyCrop(crop, templates, ext, opts.refName != null && QTY_RESID_EXEMPT.has(opts.refName))
   const out: QtyResult = { qty: r.qty, confidence: r.confidence, margin: r.margin, reason: r.reason }
   if (r.raw != null) out.raw = r.raw
   if (r.bandBase) {

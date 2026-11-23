@@ -21,7 +21,7 @@ export type { NumOptions, NumRange, ReadableOptions } from './numeric'
 export { PAGE_KINDS, isCorpusPage, mergeLabels, normalizeLabel, parseLabels } from './data'
 export type { PageKind, RegexLabels } from './data'
 export {
-  NUMERIC_LABEL_KEYS, VENDOR_LABEL_KEYS, algoPages, applyPageKeys, combineOrder, defaultValue, entryKey, hostIdOf, isAlgoPage,
+  NUMERIC_LABEL_KEYS, VENDOR_LABEL_KEYS, algoEntryIndex, algoPages, applyPageKeys, remapAlgoValues, combineOrder, defaultValue, entryKey, hostIdOf, isAlgoPage,
   isSectionPage, isTierNameLine, labelBase, linkColors, linkedSockets, listedPages, mapTierFragment, numericPages, pageKeysOf,
   propertyFragment, rangeOp, rarityFragment, strictPropertyFragment, sanitizeValue, sectionPageOf, socketColorCount, valueUsable, vendorPages, wholeLine
 } from './pages'
