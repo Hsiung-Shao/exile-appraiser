@@ -1029,6 +1029,20 @@ describe('planCondForms(規則 21:同一條詞綴依數值的其他寫法)', () 
     ])
   })
 
+  it('基準句也寫死數字、兩句只差數字 → 補帶 value 的寫法;用數值選不同對象(字不同)的不收', () => {
+    const ids = { implicit: ['implicit.stat_1'] }
+    const enStats = [stat('Trigger Level 20 Spiders on Kill', [{ string: 'Trigger Level 20 Spiders on Kill' }], ids), stat('Area contains Alva', [{ string: 'Area contains Alva' }], ids)]
+    const ggpkNew = [
+      row(g('spiders_%', '200'), 'Trigger Level 20 Spiders on Kill', '擊殺時觸發等級20的異蛛'),
+      row(g('spiders_%', '100'), 'Trigger Level 1 [Spiders::1|Spiders] on Kill', '擊殺時觸發等級1的[Spiders::1|異蛛]'),
+      row(g('master_index', '3'), 'Area contains Alva', '區域含有阿爾瓦'),
+      row(g('master_index', '1'), 'Area contains Einhar', '區域含有埃哈')
+    ]
+    expect(planCondForms({ enStats, zhStats: [], ggpkNew }).adds).toEqual([
+      { lang: 'en', ref: 'Trigger Level 20 Spiders on Kill', matcher: { string: 'Trigger Level 1 Spiders on Kill', value: 100, superseded: true } }
+    ])
+  })
+
   it('資料的「減少」那句沒有 negate(stat 本身是減少)→ 補的「增加」帶 negate;已有就不補', () => {
     const enStats = [stat('#% reduced Cost', [{ string: '#% reduced Cost' }])]
     const ggpkNew = [row(g('cost_-%', '1|#'), '{0}% reduced Cost', '減少 {0}% 消耗'), row(g('cost_-%', '#|-1'), '{0}% increased Cost', '增加 {0}% 消耗', NEG)]

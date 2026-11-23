@@ -1131,9 +1131,6 @@ export function planZhForms ({ enStats, zhStats, ggpkNew }) {
  * 沒有 # 的寫法代表的固定值:確切的數(`N`)或「至少 A」(`100|#` = 必定)。
  * `#|B`(任意負值都顯示同一句,例:劫盜寶箱「含有更有價值的傳奇物品」)沒有固定值,不取
  */
-/** 數字換成 # 的句子(判斷兩句是不是只差數字) */
-const digitless = (/** @type {string} */ t) => t.replace(/\d+(?:\.\d+)?/g, '#')
-
 function condValue (token) {
   if (/^-?\d+(\.\d+)?$/.test(token)) return Number(token)
   const m = /^([\d.]+)\|#$/.exec(token)
@@ -1215,7 +1212,7 @@ export function planCondForms ({ enStats, zhStats, ggpkNew }) {
               value = condValue(r.conds[0])
               // 基準句也沒有數字(資料現行句本身寫死,低階異蛛復甦「觸發等級 20」)時,基準句的條件要也是固定值、且兩句去掉數字後逐字相同
               // (只差數字 = 同一句的不同數值;「區域含有阿爾瓦 / 埃哈」這種用數值選不同對象的不收)
-              if (!value || (baseUsed.size === 0 && (!condValue(base.conds[0]) || digitless(text) !== digitless(exactKey(textOf(base)))))) { reject('沒有數字的寫法對不到固定值'); continue }
+              if (!value || (baseUsed.size === 0 && (!condValue(base.conds[0]) || shape(text) !== shape(exactKey(textOf(base)))))) { reject('沒有數字的寫法對不到固定值'); continue }
               // 除以十、毫秒轉秒等換算:條件是換算前的值,value 對不準
               if ([...base.handlers, ...r.handlers].some(h => h[0] !== 'negate')) { reject('數值有換算,固定值對不準'); continue }
               value *= toRef
@@ -1604,7 +1601,8 @@ export function planMergeDuplicates ({ enStats, zhStats }) {
 /** 頂層 stat 的 ref;群組裡全部同一個 ref(重複列)也算;其他群組 = null */
 function wholeRefOf (/** @type {any} */ row) {
   if (!row.stats) return row.ref ?? null
-  return row.stats.length && row.stats.every((/** @type {any} */ s) => s.ref === row.stats[0].ref) ? row.stats[0].ref : null
+  // 只收上游的 trivial-merge(完全重複的列);select / percent-merge 群組的成員是不同 id,不能當成一列
+  return row.resolve?.strat === 'trivial-merge' && row.stats.length && row.stats.every((/** @type {any} */ s) => s.ref === row.stats[0].ref) ? row.stats[0].ref : null
 }
 
 /** 幾個 stat 的交易站 id 依類型取聯集 */
