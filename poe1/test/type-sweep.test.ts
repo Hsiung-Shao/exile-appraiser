@@ -43,6 +43,19 @@ const TYPES = new Set(CATALOG.types)
 type Lang = 'en' | 'cmn-Hant'
 type ModType = 'explicit' | 'implicit'
 
+const WEAPONS = /^(Claw|Dagger|Rune Dagger|Wand|(One|Two) Hand (Sword|Axe|Mace)|Thrusting One Hand Sword|Bow|Staff|Warstaff|Sceptre)$/
+const ARMOURS = /^(Body Armour|Boots|Gloves|Helmet|Shield)$/
+/**
+ * 武器 / 防具的屬性段(寫法照實機剪貼簿,例 3.30-issue-45 / 36):有了它局部詞綴才會像實機一樣併進 DPS / 防禦合計(eaten)。
+ * 防具三種防禦都給:哪一種會被局部詞綴吃掉看詞綴本身,不必挑底材
+ */
+function propertyLines (zh: boolean, cls: string): string[] {
+  if (WEAPONS.test(cls)) return ['--------', zh ? '物理傷害: 10-20' : 'Physical Damage: 10-20', zh ? '暴擊率: 5.00%' : 'Critical Strike Chance: 5.00%', zh ? '每秒攻擊次數: 1.50' : 'Attacks per Second: 1.50']
+  if (!ARMOURS.test(cls)) return []
+  return ['--------', ...cls === 'Shield' ? [zh ? '格擋率: 25%' : 'Chance to Block: 25%'] : [],
+    zh ? '護甲: 100' : 'Armour: 100', zh ? '閃避值: 100' : 'Evasion Rating: 100', zh ? '能量護盾: 50' : 'Energy Shield: 50']
+}
+
 /** 一件物品的身分:底材,傳奇另帶名稱 */
 interface Pick { base: string, unique?: string }
 
@@ -57,6 +70,7 @@ function itemText (lang: Lang, cls: string, klass: string, pick: Pick, type: Mod
       ? [zh ? '稀有度: 傳奇' : 'Rarity: Unique', pick.unique]
       : magic ? [zh ? '稀有度: 魔法' : 'Rarity: Magic'] : [zh ? '稀有度: 稀有' : 'Rarity: Rare', zh ? '末日循環' : 'Doom Loop'],
     pick.base + tier,
+    ...propertyLines(zh, cls.replace(/^Unique /, '')),
     '--------', zh ? '物品等級: 84' : 'Item Level: 84'
   ]
   // 劫盜藍圖一定有「區域等級 + 已揭露側廂」這一段(client_strings AREA_LEVEL / HEIST_WINGS_REVEALED),沒有的話組查詢會拋錯
@@ -292,9 +306,7 @@ describe('類型掃描:每類物品會出現的詞綴中英都解析得到、查
     })
     for (const s of sampleRows) {
       if (s.error) gaps[`sample|${s.file}`] = `解析失敗 ${s.error}`
-      // 樣本被合計吃掉、掃描卻送出:掃描組的物品沒有武器 / 防禦屬性行,局部詞綴不會併進 DPS / 防禦合計,這條路掃描測不到,不算缺口
-      // shortcut: 要測合計路徑得讓 itemText 補屬性行(會連一般類別的結果一起變),之後再做
-      else if (!('rarityDiffers' in s && s.rarityDiffers) && !(s.query === 'eaten' && s.sweep === 'sent') && !['class-not-in-sweep', 'not-in-sweep'].includes(s.sweep) && s.sweep !== s.query) gaps[`sample|${s.file}|${s.type}|${s.ref}`] = `樣本 ${s.query}、掃描 ${s.sweep}`
+      else if (!('rarityDiffers' in s && s.rarityDiffers) && !['class-not-in-sweep', 'not-in-sweep'].includes(s.sweep) && s.sweep !== s.query) gaps[`sample|${s.file}|${s.type}|${s.ref}`] = `樣本 ${s.query}、掃描 ${s.sweep}`
     }
     if (process.env.SWEEP_REPORT) {
       fs.writeFileSync(process.env.SWEEP_REPORT, JSON.stringify({
