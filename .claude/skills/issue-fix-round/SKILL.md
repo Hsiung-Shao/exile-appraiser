@@ -1,11 +1,21 @@
 ---
 name: issue-fix-round
-description: ExileAppraiser 一輪 GitHub issue 回報修正(詞綴未解析、查到 0 筆、Query is too complex、查價失敗)到備好發版的固定流程。使用者說「修 issue」「處理回報」「#NN 顯示未解析」「新的一批 issue」、或要把一批回報整理成下一版時使用。整理自 v0.3.14–v0.3.17 的實際做法。
+description: ExileAppraiser 一輪 GitHub issue 回報修正(詞綴未解析、查到 0 筆、Query is too complex、查價失敗)到備好發版的固定流程。使用者說「修 issue」「處理回報」「#NN 顯示未解析」「新的一批 issue」、或要把一批回報整理成下一版時使用;新賽季 / 小改版 GGPK 出來、說「開季」「主動掃描」「比對新舊兩季」時也用(先跑差異掃描再修)。整理自 v0.3.14–v0.3.18 的實際做法。
 ---
 
 # 一輪 issue 修正(到備好發版)
 
 依據:v0.3.16 → v0.3.17(commit `7cb953b`…`d737ee8`,issue #45 #57–#70)與前幾輪的做法。細節規則仍以 CLAUDE.md 規則 1 為準,本檔只講**順序與檢查點**。
+
+## 開季 / 小改版:先主動掃描,再等回報
+
+新版 GGPK 出來時不等 issue(使用者 2026-11-24 裁定),照 CLAUDE.md 規則 1「開季主動掃描」:
+
+1. 請 PobTools 對話抽 GGPK 並匯入本機 Supabase(同一個 version_id 要有 `ggpk_stat` / `ggpk_cell` / `ggpk_row` / `rel_*`);本專案不自己匯入。抽取前確認遊戲沒開(開著會靜默沿用舊 cache)。
+2. `update.mjs --write` 到摘要全 0。
+3. `node scripts/poe1-season/dump-type-sweep.mjs --diff <舊>,<新>` → `poe1/test/docs/type-sweep-diff.json`。
+4. 在 `poe1/`:`UPDATE_FIXTURES=1 DIFF_SWEEP_REPORT=../docs/poe1-season/<新版>-diff-sweep.md npx vitest run test/type-sweep.test.ts`,看報告與 `type-sweep-diff{-gaps,-query-gaps}.json` 的 diff。
+5. 報告裡的缺口當成「沒人回報的 issue」,從第 2 步(先寫失敗測試)開始逐批修;缺口清單只能變少。
 
 ## 0. 收件與分類
 

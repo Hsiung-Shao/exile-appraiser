@@ -13,18 +13,24 @@
 // 賦予技能(GrantedEffectsPerLevelKeys)以 clientstrings 句型 + 技能 / 輔助名組成。
 // 「哪個傳奇掛哪條詞綴」GGPK 客戶端沒有,借 PoB Uniques(pob_record,3.29 版 PoB)的英文行對應:數字一律當 #,對到哪些傳奇就進那些傳奇底材的類別。
 // shortcut: PoB 沒收的傳奇 / 英文改寫過的句子對不到、不進掃描(數量印在最後);PoB 更新後重匯 pob_record 再重跑。
+//
+// 開季差異掃描:
+//   node scripts/poe1-season/dump-type-sweep.mjs --diff <舊 version>,<新 version> [--diff-rel <version>] [--out poe1/test/docs/type-sweep-diff.json]
+// 兩邊各自從 Supabase 的同一個 version 讀關聯表 / 句子 / row 資料(`poe1.ggpk_row`,不讀 --rows),
+// 只留「新版這類物品有、舊版這類沒有」的句子(sweep-diff.mjs `diffSweep`),每句標 new-mod / changed / new-spawn。
+// `--diff-rel` = 兩邊都用這個 version 的關聯表(新版關聯表還沒匯入時,先比句子改字與傳奇詞綴)。
 import { execFileSync } from 'node:child_process'
 import * as fs from 'node:fs'
 import { DatabaseSync } from 'node:sqlite'
 import * as path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { diffSweep } from './sweep-diff.mjs'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const args = process.argv.slice(2)
 const flag = (/** @type {string} */ n, /** @type {string} */ d) => args.includes(n) ? args[args.indexOf(n) + 1] : d
-const REL = Number(flag('--rel-version', '3'))
-const TXT = Number(flag('--text-version', '4'))
-const OUT = path.resolve(ROOT, flag('--out', 'poe1/test/docs/type-sweep.json'))
+const DIFF = flag('--diff', '')
+const OUT = path.resolve(ROOT, flag('--out', DIFF ? 'poe1/test/docs/type-sweep-diff.json' : 'poe1/test/docs/type-sweep.json'))
 const ROWS = flag('--rows', 'D:/codeproject/Pob2/pob-zh-engine/tools/ggpk_zh/db/ggpk_rows_3.30.0.1.sqlite')
 
 /** @returns {any[]} */
@@ -39,6 +45,18 @@ const GEN_TYPE = { prefix: 'explicit', suffix: 'explicit', corrupted: 'implicit'
 /** 地圖類的句子先看地圖描述檔(同一個 stat 在地圖上的寫法不同) */
 const FILES_OF = (/** @type {string} */ domain) => /area/.test(domain) ? ['map_stat_descriptions.txt', 'stat_descriptions.txt'] : ['stat_descriptions.txt']
 
+/** row 資料:預設讀 --rows 的 sqlite;差異掃描讀 Supabase 指定 version(舊版沒有的表 = 空) */
+const sqliteRows = () => {
+  const rdb = new DatabaseSync(ROWS, { readOnly: true })
+  return (/** @type {string} */ t) => rdb.prepare('select row_ix, en, zh_tw from row where tbl = ? order by row_ix').all(t)
+    .map((/** @type {any} */ r) => ({ ix: r.row_ix, en: JSON.parse(r.en), zh: r.zh_tw ? JSON.parse(r.zh_tw) : {} }))
+}
+const supabaseRows = (/** @type {number} */ v) => (/** @type {string} */ t) =>
+  sql(`select row_ix ix, en, coalesce(zh_tw, '{}') zh from poe1.ggpk_row where version_id = ${v} and tbl = '${t}' order by row_ix`)
+
+// 整個產生流程以一個 version 為單位(差異掃描跑兩次);內文沿用原本的頂層寫法,未重新縮排
+/** @param {number} REL 關聯表 version @param {number} TXT 句子 / 名稱 version @param {(t: string) => { ix: number, en: any, zh: any }[]} rowsOf */
+function build (REL, TXT, rowsOf) {
 const bases = sql(`select b.item_id, b.item_class, b.domain, c.en, c.zh_tw zh from poe1.rel_base_item b
   join poe1.ggpk_cell c on c.version_id = ${TXT} and c.tbl = 'baseitemtypes' and c.col = 'Name' and c.ident = b.item_id
   where b.version_id = ${REL} and b.domain not like 'unknown%' and b.domain <> 'dummy'`)
@@ -62,10 +80,6 @@ const spawnOf = group(spawn, r => r.mod_id)
 const statsOf = group(modStat, r => r.mod_id)
 const modById = new Map(mods.map(m => [m.mod_id, m]))
 
-const rdb = new DatabaseSync(ROWS, { readOnly: true })
-/** @returns {{ ix: number, en: any, zh: any }[]} */
-const rowsOf = (/** @type {string} */ t) => rdb.prepare('select row_ix, en, zh_tw from row where tbl = ? order by row_ix').all(t)
-  .map((/** @type {any} */ r) => ({ ix: r.row_ix, en: JSON.parse(r.en), zh: r.zh_tw ? JSON.parse(r.zh_tw) : {} }))
 const nm = (/** @type {any} */ r, col = 'Name') => ({ en: r.en[col], zh: r.zh[col] || r.en[col] })
 /** 名稱槽:描述檔 handler → 依數值查名稱(可能好幾個:同一個征服者槽在不同 InternalVersion 有不同人) */
 const byIndex = (/** @type {string} */ t, col = 'Index') => group(rowsOf(t), r => String(r.en[col]))
@@ -143,7 +157,7 @@ function linesOfMod (/** @type {string} */ modId, /** @type {string} */ domain) 
 }
 /** @param {{ stat_id: string, min: number | string, max: number | string }[]} stats @param {string[]} files */
 function linesOfStats (stats, files) {
-  /** @type {{ en: string, zh: string }[]} */
+  /** @type {{ en: string, zh: string, key: string }[]} */
   const out = []
   const done = new Set()
   for (const pick of ['min', 'max']) {
@@ -164,7 +178,8 @@ function linesOfStats (stats, files) {
       // 顯示前取負號的數值(handlers 的 negate,第幾個從 1 起算)
       const shown = vals.map((/** @type {number} */ v, /** @type {number} */ i) => (row.handlers ?? []).some((/** @type {any[]} */ h) => h[0] === 'negate' && Number(h[1]) === i + 1) ? -v : v)
       for (const named of nameCombos(row.handlers ?? [], b.ids, shown, stats)) {
-        const line = { en: fill(row.en, named, 'en'), zh: fill(row.zh, named, 'zh') }
+        // key = 描述句鍵(差異掃描判斷「同一個 stat 改字」用)
+        const line = { en: fill(row.en, named, 'en'), zh: fill(row.zh, named, 'zh'), key: `${b.file}|${b.ids.join(' ')}|${row.cond}` }
         if (!done.has(line.en)) { done.add(line.en); out.push(line) }
       }
     }
@@ -196,11 +211,16 @@ const out = {}
 /** @type {string[][]} */
 const lines = []
 const lineIx = new Map()
-const add = (/** @type {{en: string, zh: string}} */ l) => {
+/** 與 lines 同索引:這一句來自哪些詞綴 id、哪些描述句鍵 @type {{ mods: Set<string>, stats: Set<string> }[]} */
+const meta = []
+const add = (/** @type {{en: string, zh: string, key?: string}} */ l, /** @type {string} */ modId) => {
   // 只差數字的句子算同一句(解析器不看數值大小),留第一個當樣本
   const k = JSON.stringify([l.en, l.zh]).replace(/\d+(?:\.\d+)?/g, '#')
-  if (!lineIx.has(k)) { lineIx.set(k, lines.length); lines.push([l.en, l.zh]) }
-  return lineIx.get(k)
+  if (!lineIx.has(k)) { lineIx.set(k, lines.length); lines.push([l.en, l.zh]); meta.push({ mods: new Set(), stats: new Set() }) }
+  const ix = lineIx.get(k)
+  meta[ix].mods.add(modId)
+  if (l.key) meta[ix].stats.add(l.key)
+  return ix
 }
 const modsByDomain = group(mods.filter(m => m.gen in GEN_TYPE), m => m.domain)
 const implOf = group(baseImpl, r => r.item_id)
@@ -217,10 +237,10 @@ for (const [cls, list] of group(bases, b => b.item_class)) {
       // 標籤權重由上往下第一個物品有的標籤決定;權重 0 = 這個底材不會出現
       const hit = (spawnOf.get(m.mod_id) ?? []).find(s => tags.has(s.tag_id))
       if (!hit || Number(hit.weight) <= 0) continue
-      for (const l of linesOfMod(m.mod_id, m.domain)) sets[GEN_TYPE[m.gen]].add(add(l))
+      for (const l of linesOfMod(m.mod_id, m.domain)) sets[GEN_TYPE[m.gen]].add(add(l, m.mod_id))
     }
     for (const i of implOf.get(b.item_id) ?? []) {
-      for (const l of linesOfMod(i.mod_id, modById.get(i.mod_id)?.domain ?? b.domain)) sets.implicit.add(add(l))
+      for (const l of linesOfMod(i.mod_id, modById.get(i.mod_id)?.domain ?? b.domain)) sets.implicit.add(add(l, i.mod_id))
     }
   }
   if (!sets.explicit.size && !sets.implicit.size) continue
@@ -308,9 +328,10 @@ for (const m of uniqueMods) {
   const hits = matched.map(u => u.base.item_class)
   if (!hits.length) { unmatched += 1; continue }
   for (const l of m.lines) {
-    const counts = lineClasses.get(add(l)) ?? lineClasses.set(add(l), new Map()).get(add(l))
+    const ix = add(l, m.id)
+    const counts = lineClasses.get(ix) ?? lineClasses.set(ix, new Map()).get(ix)
     for (const cls of hits) counts.set(cls, (counts.get(cls) ?? 0) + 1)
-    const e = explain.get(add(l)) ?? explain.set(add(l), { mods: new Set(), uniques: new Set() }).get(add(l))
+    const e = explain.get(ix) ?? explain.set(ix, { mods: new Set(), uniques: new Set() }).get(ix)
     e.mods.add(m.id)
     for (const u of matched) e.uniques.add(u.name)
   }
@@ -365,7 +386,27 @@ for (const [cls, set] of [...uniqueSets].sort(([a], [b]) => a.localeCompare(b)))
   }
 }
 console.log(`傳奇詞綴:${uniqueMods.length} 條有句子,${unmatched} 條對不到 PoB 的傳奇(不進掃描),${enchantOnly} 句(類別 × 句)交易站只有附魔等 id(不進掃描)`)
+return { lines, classes: out, meta: meta.map(m => ({ mods: [...m.mods].sort(), stats: [...m.stats].sort() })) }
+}
 
-fs.writeFileSync(OUT, JSON.stringify({ relVersion: REL, textVersion: TXT, lines, classes: out }) + '\n')
-console.log(`寫入 ${path.relative(ROOT, OUT)}:${Object.keys(out).length} 類、${lines.length} 句`)
-for (const [k, v] of Object.entries(out)) console.log(`  ${k}: 底材 ${v.bases.length}、隨機 ${v.explicit.length}、固定 ${v.implicit.length}`)
+/** @type {{ lines: string[][], classes: Record<string, any> }} */
+let result
+if (DIFF) {
+  const [oldV, newV] = DIFF.split(',').map(Number)
+  const rel = flag('--diff-rel', '')
+  const gameVersion = (/** @type {number} */ v) => sql(`select game_version from poe1.ggpk_version where id = ${v}`)[0]?.game_version ?? String(v)
+  const before = build(rel ? Number(rel) : oldV, oldV, supabaseRows(oldV))
+  const after = build(rel ? Number(rel) : newV, newV, supabaseRows(newV))
+  const d = diffSweep(before, after)
+  result = { diff: { old: gameVersion(oldV), new: gameVersion(newV), versions: [oldV, newV], rel: rel ? Number(rel) : null }, ...d }
+  const count = (/** @type {string} */ o) => d.origins.filter(x => x === o).length
+  console.log(`差異:${d.lines.length} 句(new-mod ${count('new-mod')}、changed ${count('changed')}、new-spawn ${count('new-spawn')})`)
+} else {
+  const REL = Number(flag('--rel-version', '3'))
+  const TXT = Number(flag('--text-version', '4'))
+  const { lines, classes } = build(REL, TXT, sqliteRows())
+  result = { relVersion: REL, textVersion: TXT, lines, classes }
+}
+fs.writeFileSync(OUT, JSON.stringify(result) + '\n')
+console.log(`寫入 ${path.relative(ROOT, OUT)}:${Object.keys(result.classes).length} 類、${result.lines.length} 句`)
+for (const [k, v] of Object.entries(result.classes)) console.log(`  ${k}: 底材 ${v.bases.length}、隨機 ${v.explicit.length}、固定 ${v.implicit.length}`)
