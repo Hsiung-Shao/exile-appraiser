@@ -707,8 +707,10 @@ const NEW_STAT_SKIP = new Set(['monster level: #'].map(t => cmpKey(t)))
 export function planNewStats ({ enStats, zhStats = /** @type {any[]} */ ([]), ggpkOld, ggpkNew, tradeStats }) {
   const oldKeys = new Set(ggpkOld.map(r => r.key))
   // 繁中新句與既有 matcher 同形(shape)→ 不加
-  const zhShapes = new Set([...eachStat(zhStats)].flatMap(s => s.matchers.map(m => shape(m.string))))
-  const enShapes = new Set([...eachStat(enStats)].flatMap(s => s.matchers.map(m => shape(m.string))))
+  // 寫死數字的既有寫法(沒有 #)不算:解析器先試保留原數字(PLACEHOLDER_MAP 的 [[0], []]),精確句先比中、不會被新的 # 句搶走
+  const shapesOf = (/** @type {any[]} */ list) => new Set([...eachStat(list)].flatMap(s => s.matchers.filter((/** @type {any} */ m) => m.string.includes('#')).map((/** @type {any} */ m) => shape(m.string))))
+  const zhShapes = shapesOf(zhStats)
+  const enShapes = shapesOf(enStats)
   const tradeByText = groupBy(tradeStats.filter(e => !e.id.startsWith('pseudo.')), e => cmpKey(noLocal(e.text)))
   // 同一句話在一般描述檔也有(例:輿圖天賦與裝備都有「召喚物有 #% 機率造成雙倍傷害」)→ 交易站的 id 可能是裝備那條,不算地圖詞綴
   const generalTexts = new Set(ggpkNew.filter(r => !isAreaStatKey(r.key)).map(r => cmpKey(r.en)))

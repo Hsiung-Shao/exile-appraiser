@@ -716,6 +716,16 @@ describe('planNewStats', () => {
     expect(out[0].zh).toEqual([{ string: '獲得 # 甲' }])
   })
 
+  it('別條詞綴只有寫死數字的同形句(沒有 #)不擋新增:解析器先比原數字;同形句帶 # 照擋(使用者 2026-11-24 裁定放寬)', () => {
+    const k = 'minion_um_ms|#|stat_descriptions.txt|0'
+    const rows = [row(k, 'Minions gain Unholy Might for {0} seconds on Kill', '殺敵時召喚物獲得不潔之力持續 {0} 秒')]
+    const trade = [{ id: 'explicit.stat_9', text: 'Minions gain Unholy Might for # seconds on Kill' }]
+    const literal = [stat('Minions have #% chance to gain Unholy Might for 4 seconds on Kill', [{ string: 'Minions gain Unholy Might for 4 seconds on Kill' }])]
+    expect(planNewStats({ enStats: literal, ggpkOld: rows, ggpkNew: rows, tradeStats: trade }).map((s: any) => s.ref)).toEqual(['Minions gain Unholy Might for # seconds on Kill'])
+    const hashed = [stat('Other', [{ string: 'Minions gain Unholy Might for # seconds on Kill' }], { explicit: ['explicit.stat_8'] })]
+    expect(planNewStats({ enStats: hashed, ggpkOld: rows, ggpkNew: rows, tradeStats: trade })).toEqual([])
+  })
+
   it('舊版就有的地圖 / 輿圖詞綴(stat id 全部 map_ 開頭,或出自地圖 / 輿圖描述檔)交易站有 id 也收(使用者 2026-11-15 要求)', () => {
     const old = [
       row('map_monsters_foo_+%|#|stat_descriptions.txt|0', 'Monsters have {0}% more Foo', '怪物有 {0}% 更多甲'),
