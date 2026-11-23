@@ -102,6 +102,12 @@ describe('類型掃描差異', () => {
     expect(d.origins).toEqual(['new-spawn', 'new-spawn', 'new-spawn'])
   })
 
+  it('DS2e 舊版存在但沒進掃描的詞綴(allMods 有)不算 new-mod', () => {
+    // m5 舊版就有(例:domain 沒命名被濾掉),只是沒產出句子
+    const d = diffSweep({ ...OLD, allMods: ['m1', 'm2', 'm3', 'm4', 'm5'] }, NEW) as any
+    expect(d.origins[d.lines.findIndex((l: [string, string]) => l[0] === 'Brand new mod')]).toBe('new-spawn')
+  })
+
   it('DS2d 沒有任何差異時回傳空結果', () => {
     const d = diffSweep(OLD, OLD) as any
     expect(d.lines).toEqual([])
@@ -169,6 +175,12 @@ describe('類型掃描差異報告', () => {
       expect(hit.length).toBeGreaterThan(0)
       for (const x of hit) for (const n of notes) expect(x).not.toContain(n)
     }
+  })
+
+  it('DS6 找不到底材的類別:每句標「未驗」並算進有缺口句數', () => {
+    const r: string = buildReport({ diff, gaps: { 'ring|base': '找不到認得的底材:en,cmn-Hant' }, queryGaps: {} })
+    for (const l of lines) expect(r.split('\n').find(x => x.includes(l[0]))).toContain('未驗')
+    expect(r).toMatch(/有缺口 \| 5 \|/)
   })
 
   it('DS6 沒有任何缺口時不出現缺口說明、仍列出全部句子', () => {

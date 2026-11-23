@@ -386,7 +386,9 @@ for (const [cls, set] of [...uniqueSets].sort(([a], [b]) => a.localeCompare(b)))
   }
 }
 console.log(`傳奇詞綴:${uniqueMods.length} 條有句子,${unmatched} 條對不到 PoB 的傳奇(不進掃描),${enchantOnly} 句(類別 × 句)交易站只有附魔等 id(不進掃描)`)
-return { lines, classes: out, meta: meta.map(m => ({ mods: [...m.mods].sort(), stats: [...m.stats].sort() })) }
+// allMods = 這個版本存在的全部詞綴(差異掃描判斷 new-mod;沒進掃描的也算「舊版就有」)
+const allMods = [...new Set([...mods.map(m => m.mod_id), ...rowsOf('mods').map(r => r.en.Id)])].sort()
+return { lines, classes: out, meta: meta.map(m => ({ mods: [...m.mods].sort(), stats: [...m.stats].sort() })), allMods }
 }
 
 /** @type {{ lines: string[][], classes: Record<string, any> }} */

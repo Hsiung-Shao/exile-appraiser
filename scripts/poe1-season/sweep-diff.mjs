@@ -3,7 +3,7 @@
 // 測試 poe1/test/type-sweep-diff.test.ts;用法見 dump-type-sweep.mjs 檔頭「開季差異掃描」。
 
 /** @typedef {{ class: any, bases: any[], uniques?: any[], explicit: number[], implicit: number[] }} SweepClass */
-/** @typedef {{ lines: [string, string][], classes: Record<string, SweepClass>, meta: { mods: string[], stats: string[] }[] }} Sweep */
+/** @typedef {{ lines: [string, string][], classes: Record<string, SweepClass>, meta: { mods: string[], stats: string[] }[], allMods?: string[] }} Sweep */
 
 /** 只差數字算同一句(與 dump-type-sweep.mjs `add()` 相同的鍵) */
 export const sweepKey = (/** @type {string} */ en, /** @type {string} */ zh) => JSON.stringify([en, zh]).replace(/\d+(?:\.\d+)?/g, '#')
@@ -14,7 +14,8 @@ export const sweepKey = (/** @type {string} */ en, /** @type {string} */ zh) => 
  */
 export function diffSweep (oldSweep, newSweep) {
   const keyOf = (/** @type {Sweep} */ s, /** @type {number} */ ix) => sweepKey(...s.lines[ix])
-  const oldMods = new Set(oldSweep.meta.flatMap(m => m.mods))
+  // 舊版存在的全部詞綴(含沒進掃描的,例如 domain 沒命名被濾掉);沒給就退回掃描裡有句子的詞綴
+  const oldMods = new Set(oldSweep.allMods ?? oldSweep.meta.flatMap(m => m.mods))
   /** 舊版每個描述句鍵印出過的句子 @type {Map<string, Set<string>>} */
   const oldStatKeys = new Map()
   oldSweep.meta.forEach((m, ix) => { for (const s of m.stats) (oldStatKeys.get(s) ?? oldStatKeys.set(s, new Set()).get(s))?.add(keyOf(oldSweep, ix)) })
@@ -64,8 +65,10 @@ export function buildReport ({ diff, gaps, queryGaps }) {
   /** 句子層級的缺口說明:鍵 `<類別>|<段>|<英文>` 或其後再接 `|<段>|<語言>` / `|same` */
   const notesOf = (/** @type {string} */ cls, /** @type {string} */ type, /** @type {string} */ en) => {
     const base = `${cls}|${type}|${en}`
-    return [...Object.entries(gaps), ...Object.entries(queryGaps)]
-      .filter(([k]) => k === base || k.startsWith(base + '|')).map(([k, n]) => `${k.slice(base.length + 1) || '解析'}:${n}`)
+    // 找不到底材的類別整類沒跑解析與查詢(一語缺也算)→ 每句標未驗,不能看起來像通過
+    const noBase = gaps[`${cls}|base`] ? [`未驗:${gaps[`${cls}|base`]}`] : []
+    return noBase.concat([...Object.entries(gaps), ...Object.entries(queryGaps)]
+      .filter(([k]) => k === base || k.startsWith(base + '|')).map(([k, n]) => `${k.slice(base.length + 1) || '解析'}:${n}`))
   }
   /** @type {{ ix: number, cls: string, type: string, notes: string[] }[]} */
   const rows = []
