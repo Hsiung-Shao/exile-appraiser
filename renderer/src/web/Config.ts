@@ -136,6 +136,8 @@ export interface Config {
   updateReminder: boolean
   /** 第 34 步:提醒裡按「略過此版本」的版號(main 經 `update-reminder-skip` 事件寫進來;同版號不再提醒,新版號照常)。 */
   updateSkippedVersion: string | null
+  /** 2026-11-23:啟動遊戲時自動開啟本程式(預設 false;main/src/game-autolaunch.ts 依此安裝 / 移除登入時啟動的背景監看)。 */
+  autoLaunchWithGame: boolean
   /**
    * 第五輪 30.5:硬體加速(預設 false = 改版前一律關)。main 在 app ready 前同步讀設定檔決定(main/src/hw-accel.ts),
    * 改了要重新啟動才生效;不進 host-config。
@@ -395,6 +397,7 @@ function createConfig (): Config {
     startupToast: true,
     updateReminder: true,
     updateSkippedVersion: null as string | null,
+    autoLaunchWithGame: false,
     hardwareAcceleration: false,
     commands: defaultCommands(),
     stashSearch: [] as StashSearchEntry[],
@@ -488,6 +491,7 @@ function serialize (): string {
     startupToast: config.startupToast,
     updateReminder: config.updateReminder,
     updateSkippedVersion: config.updateSkippedVersion,
+    autoLaunchWithGame: config.autoLaunchWithGame,
     hardwareAcceleration: config.hardwareAcceleration,
     commands: config.commands,
     stashSearch: config.stashSearch,
@@ -627,6 +631,8 @@ function applyLoaded (raw: string) {
   // 第 34 步:更新提醒(舊設定檔沒有 → 開;只有明確 false 才關)、略過的版號(壞值 → null)
   config.updateReminder = loaded.updateReminder !== false
   config.updateSkippedVersion = normSkippedVersion(loaded.updateSkippedVersion)
+  // 2026-11-23:啟動遊戲時自動開啟:舊設定檔沒有 → 關;只有明確 true 才開
+  config.autoLaunchWithGame = loaded.autoLaunchWithGame === true
   // 第五輪 30.5:硬體加速:舊設定檔沒有 → 關(改版前行為);只有明確 true 才開
   config.hardwareAcceleration = loaded.hardwareAcceleration === true
   // 聊天指令:舊設定檔沒有 → APT 預設六條;倉庫搜尋 → 空
@@ -755,6 +761,7 @@ export function hostConfigOf (c: Config, regexHotkeys: readonly RegexBookmarkHot
     startupToast: c.startupToast,
     updateReminder: c.updateReminder,
     updateSkippedVersion: c.updateSkippedVersion,
+    autoLaunchWithGame: c.autoLaunchWithGame,
     commands: c.commands.map(x => ({ ...x })),
     stashSearch: c.stashSearch.map(s => ({ ...s })),
     stashScroll: c.stashScroll,

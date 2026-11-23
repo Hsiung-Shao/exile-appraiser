@@ -20,7 +20,7 @@ describe('設定 › 啟動與更新', () => {
 
   // 失敗代表:又回到單行勾選框,不是設計稿的「名稱 + 說明 | 開關」兩欄列
   it('自動更新、新版提醒、啟動提示、硬體加速都是兩欄列裡的開關', () => {
-    for (const key of ['autoUpdate', 'updateReminder', 'startupToast', 'hardwareAcceleration']) {
+    for (const key of ['autoUpdate', 'updateReminder', 'startupToast', 'hardwareAcceleration', 'autoLaunchWithGame']) {
       expect(vue, key).toMatch(new RegExp(`<div[^>]*class="srow"[^>]*>\\s*<span class="k">[\\s\\S]{0,900}?<label class="scan-switch"[^>]*>\\s*<input v-model="config\\.${key}" type="checkbox" role="switch"`))
     }
     expect(vue).not.toContain('class="chk"')

@@ -482,6 +482,11 @@
       "font_help": "Inside the settings window you can also use Ctrl + wheel or Ctrl + = / Ctrl + - to adjust it, and Ctrl + 0 to follow the global size again (settings window only; unrelated to in-game stash tab scrolling)."
     },
     "startup_toast": "Show a \"running in the background\" notice at startup",
+    "game_autolaunch": {
+      "label": "Open with the game",
+      "sub": "Start ExileAppraiser when you launch the game from Steam or a launcher",
+      "hint": "When on, a very lightweight background watcher runs at Windows sign-in (checks every 5 seconds whether the game is running) and starts this app when the game opens. Closing the app mid-session will not reopen it. Turning this off removes the watcher. If you move the portable build, toggle it again."
+    },
     "desktop_shortcut": {
       "label": "Desktop shortcut",
       "button": "Create desktop shortcut",

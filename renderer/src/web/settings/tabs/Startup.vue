@@ -2,7 +2,7 @@
   設定 › 啟動與更新(2026-11-18 設定重整:原本分在「一般」(啟動、瀏覽器預覽)與「更新與關於」(更新、設定資料夾)):
   - 更新:狀態(main/src/AppUpdater.ts 經 Host.getUpdaterInfo / onUpdaterState)、檢查 / 下載 / 安裝、自動更新(免安裝版不顯示)、新版提醒(第 34 步)。
     更新字串沿用上游 `updates.*`,上游沒有的放 `ppz.update.*`。
-  - 啟動:啟動提示、硬體加速(第五輪 30.5,改了要重新啟動)、建立桌面捷徑(2026-11-16)。
+  - 啟動:啟動提示、硬體加速(第五輪 30.5,改了要重新啟動)、啟動遊戲時自動開啟(2026-11-23)、建立桌面捷徑(2026-11-16)。
   - 檔案與預覽:開啟設定資料夾、瀏覽器預覽(main 的 preview-server;docs/browser-preview.md)。
 -->
 <template>
@@ -56,6 +56,13 @@
           <span class="warn-text" data-setting="hardware-acceleration-restart">{{ t('ppz.hw_accel.restart_needed') }}</span>
           <button v-if="canRelaunch" class="btn sm" data-action="relaunch" :disabled="relaunching" @click="relaunch">{{ t('ppz.hw_accel.restart_now') }}</button>
         </template>
+      </div>
+    </div>
+    <!-- 2026-11-23:啟動遊戲時自動開啟(main/src/game-autolaunch.ts:開 = 安裝登入時啟動的背景監看、關 = 移除) -->
+    <div class="srow">
+      <span class="k">{{ t('ppz.game_autolaunch.label') }}<help-tip id="game-autolaunch" data-setting="game-autolaunch-hint" :text="t('ppz.game_autolaunch.hint')" /><small class="k-sub">{{ t('ppz.game_autolaunch.sub') }}</small></span>
+      <div class="ctl">
+        <label class="scan-switch" :title="t('ppz.game_autolaunch.label')"><input v-model="config.autoLaunchWithGame" type="checkbox" role="switch" :aria-checked="config.autoLaunchWithGame" :aria-label="t('ppz.game_autolaunch.label')" data-setting="game-autolaunch"><span class="scan-switch-track" aria-hidden="true"><span class="scan-switch-knob" /></span></label>
       </div>
     </div>
     <!-- 2026-11-16:建立桌面捷徑(只有 Electron 視窗;釘選到工作列只能由使用者在捷徑上按右鍵) -->

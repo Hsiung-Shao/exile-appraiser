@@ -47,7 +47,8 @@ import { APP_USER_MODEL_ID, createDesktopShortcut } from './desktop-shortcut'
 import { DEFAULT_SCAN_INTERVAL_MS, RuneshapeScan } from './ocr/runeshape-scan'
 import { StashScan } from './ocr/stash-scan'
 import { DEFAULT_CLIENT_LOGS, GameLogWatcher, resolveClientLogPath } from './game-log'
-import { execFile } from 'node:child_process'
+import { execFile, spawn } from 'node:child_process'
+import { applyGameAutoLaunch } from './game-autolaunch'
 import { isStashCaptureFile, saveStashDump, type StashDumpData } from './ocr/stash-dump'
 import { StashCursor } from './stash-cursor'
 import { loadStashDigitTemplates, loadStashLayouts } from './stash-layout-data'
@@ -1484,6 +1485,30 @@ if (!skipStartup) app.whenReady().then(() => {
   poeWindow?.onDetach(() => { syncGameLog() })
   app.on('will-quit', () => { void gameLog.dispose() })
 
+  // 2026-11-23:啟動遊戲時自動開啟(開 = 安裝登入時啟動的背景監看,關 = 移除;main/src/game-autolaunch.ts)。
+  // 每次 host-config 都會來 → 只在值變了(含這次啟動第一次)才動檔案;預覽端也是同一份設定,照樣套用
+  let lastAutoLaunch: boolean | null = null
+  const syncGameAutoLaunch = (enabled: boolean) => {
+    if (enabled === lastAutoLaunch) return
+    lastAutoLaunch = enabled
+    const r = applyGameAutoLaunch(enabled, {
+      isPackaged: app.isPackaged,
+      env: process.env,
+      execPath: process.execPath,
+      userDataDir: app.getPath('userData'),
+      startupDir: path.join(app.getPath('appData'), 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'Startup'),
+      systemRoot: process.env.SystemRoot || 'C:\Windows',
+      exists: p => fsSync.existsSync(p),
+      readFile: p => { try { return fsSync.readFileSync(p) } catch { return null } },
+      writeFile: (p, data) => { fsSync.writeFileSync(p, data) },
+      mkdir: p => { fsSync.mkdirSync(p, { recursive: true }) },
+      remove: p => { fsSync.rmSync(p, { force: true }) },
+      writeShortcut: (p, op, o) => shell.writeShortcutLink(p, op, o),
+      spawnDetached: (exe, args) => { spawn(exe, args, { detached: true, stdio: 'ignore', windowsHide: true }).unref() }
+    })
+    if (r.ok ? r.action !== 'none' : true) console.log(`[game-autolaunch] ${enabled ? '開' : '關'}:${r.ok ? r.action : r.reason}`)
+  }
+
   let lastScanKey: string | null = null
   const onHostConfig = (ctx: HandlerCtx, cfg: HostConfigForMain): HotkeyRegistration => {
     const result = shortcuts.updateActions(cfg)
@@ -1509,6 +1534,7 @@ if (!skipStartup) app.whenReady().then(() => {
     if (cfg.uiLanguage === 'en' || cfg.uiLanguage === 'cmn-Hant') rebuildTrayMenu(cfg.uiLanguage)
     // 先套用 autoUpdate 再做第一次檢查(舊 renderer / 缺欄位 → 預設開)
     updater.setAutoUpdate(cfg.autoUpdate !== false)
+    syncGameAutoLaunch(cfg.autoLaunchWithGame === true)
     // 第 34 步:更新提醒開關 / 略過的版號(舊 renderer / 缺欄位 = 開、沒有略過);Electron 視窗的設定到了才解除擋住(預覽啟動一律擋)
     reminder.setConfig({ enabled: cfg.updateReminder !== false, skippedVersion: cfg.updateSkippedVersion ?? null })
     if (ctx.source !== 'preview') reminder.setBlocked(PREVIEW_ON_START)

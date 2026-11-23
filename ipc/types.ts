@@ -134,6 +134,8 @@ export interface HostConfigForMain {
   updateReminder?: boolean
   /** 第 34 步:提醒裡按「略過此版本」的版號(同版號不再提醒;null = 沒有略過)。 */
   updateSkippedVersion?: string | null
+  /** 2026-11-23:啟動遊戲時自動開啟本程式(預設 false;開 = main 安裝登入時啟動的背景監看,關 = 移除;main/src/game-autolaunch.ts)。 */
+  autoLaunchWithGame?: boolean
   /** 2026-10-01:聊天指令熱鍵(兩個遊戲皆可;只在 overlay 模式、遊戲前景時註冊)。 */
   commands?: ChatCommand[]
   /** 2026-10-01:倉庫搜尋一鍵輸入熱鍵(同上)。 */
