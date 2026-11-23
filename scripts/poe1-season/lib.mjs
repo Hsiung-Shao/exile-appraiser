@@ -1563,7 +1563,8 @@ export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove
 export function planMergeDuplicates ({ enStats, zhStats }) {
   const refCount = groupBy(enStats.flatMap(r => r.stats ?? [r]), s => s.ref)
   const top = enStats.filter(r => !r.stats && r.matchers && refCount.get(r.ref).length === 1)
-  const zhRefs = new Set(zhStats.filter(r => !r.stats).map(r => r.ref))
+  const zhCount = groupBy(zhStats.flatMap(r => r.stats ?? [r]), s => s.ref)
+  const zhRefs = new Set(zhStats.filter(r => !r.stats && zhCount.get(r.ref).length === 1).map(r => r.ref))
   /** @type {Map<string, Set<any>>} */
   const byString = new Map()
   for (const s of top) for (const m of s.matchers) (byString.get(m.string) ?? byString.set(m.string, new Set()).get(m.string)).add(s)

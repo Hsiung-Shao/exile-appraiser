@@ -1558,9 +1558,10 @@ describe('planMergeDuplicates + applyStatPlan merge(規則 30:同一句的兩列
   it('better 不同、連鎖(into 也要併走)→ 不併', () => {
     const [a, b] = en()
     expect(planMergeDuplicates({ enStats: [{ ...a, better: -1 }, b], zhStats: zh() }).merge).toEqual([])
-    const c = stat('C', [{ string: 'Socketed Gems are Supported by Level # X' }, { string: 'Socketed Gems are Supported by Level # X Support' }], { explicit: ['explicit.indexable_support_1', 'explicit.effect_9', 'explicit.effect_10'] })
+    // a → b(a 的現行句在 b)、b → c(b 的現行句「… X Support」在 c,a 的不在)= 連鎖:a 不併,只留 b → c
+    const c = stat('C', [{ string: 'Socketed Gems are Supported by Level # X Support' }], { explicit: ['explicit.indexable_support_1', 'explicit.effect_9', 'explicit.effect_10'] })
     const zhC = [...zh(), stat('C', [{ string: 'c' }])]
-    expect(planMergeDuplicates({ enStats: [a, b, c], zhStats: zhC }).merge.map(m => m.from)).not.toContain('Socketed Gems are Supported by Level # X')
+    expect(planMergeDuplicates({ enStats: [a, b, c], zhStats: zhC }).merge).toEqual([{ from: b.ref, into: 'C' }])
   })
 
   it('同一輪掛到 from 列的 id 一起搬進 into,不跟著被刪', () => {
