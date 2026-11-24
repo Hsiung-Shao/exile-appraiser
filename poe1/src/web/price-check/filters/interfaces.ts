@@ -79,6 +79,8 @@ export interface ItemFilters {
   // exile-appraiser: 3.30 未鑑定階級與「命運」(交易站 misc_filters.unidentified_tier / fated)
   unidentifiedTier?: FilterNumeric
   fated?: { disabled: boolean }
+  // exile-appraiser: 3.30「二次汙染」(交易站 misc_filters.twice_corrupted)
+  twiceCorrupted?: { disabled: boolean }
   veiled?: {
     statRefs: string[]
     disabled: boolean

@@ -91,6 +91,9 @@ export function translateStatWithRoll (
 ) {
   // exile-appraiser: 顯示用現行寫法 —— 被取代的舊寫法排到後面(只有舊寫法時照舊用它)
   const all = calc.stat.matchers
+  // exile-appraiser: 解析時改寫過的寫法(stat-translations PERCENT_VALUE_REFS:另一個數字寫回字串)照它顯示
+  const own = calc.sources.find(s => s.stat.stat.ref === calc.stat.ref)?.stat.translation
+  if (own && !all.includes(own)) return { string: own.string, negate: own.negate || false, dp: calc.stat.dp }
   const matchers = [...all.filter(m => !m.superseded), ...all.filter(m => m.superseded)]
   let translation: StatMatcher | undefined
   if (!roll) {

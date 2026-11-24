@@ -578,15 +578,18 @@ export function planPassiveRenames ({ zhStats, renames }) {
     else if (had && (had.from !== r.from || had.zh !== r.zh)) { byEn.set(r.en, null); rejects.push({ reason: '同一個天賦有兩種改名', en: r.en }) }
   }
   for (const stat of eachStat(zhStats)) {
-    // 只收「Allocates X」(塗油、禁忌珠寶:名稱由 passiveskills 動態帶入);星團「1 Added Passive Skill is X」是寫死名稱的句子,3.30 仍是舊名
-    const en = /^Allocates (.+?)(?: if you have the matching modifier on Forbidden (?:Flame|Flesh))?$/.exec(stat.ref)?.[1]
+    // 只收名稱由 passiveskills 動態帶入的:「Allocates X」(塗油、禁忌珠寶)、逃脫不能「Passive Skills in Radius of X …」;
+    // 星團「1 Added Passive Skill is X」是寫死名稱的句子,3.30 仍是舊名
+    const allocates = /^Allocates (.+?)(?: if you have the matching modifier on Forbidden (?:Flame|Flesh))?$/.exec(stat.ref)?.[1]
+    const en = allocates ?? /^Passive Skills in Radius of (.+) can be Allocated\n/.exec(stat.ref)?.[1]
     const r = en && byEn.get(en)
     if (!r) continue
+    const zhRe = allocates ? /(配置 )(.+)$/ : /(天賦樹中在範圍)(.+?)(?=內未連結的天賦)/
     for (const m of stat.matchers) {
       if (m.superseded) continue
-      const hit = /(配置 )(.+)$/.exec(m.string)
+      const hit = zhRe.exec(m.string)
       if (!hit || hit[2] !== r.from) continue
-      const string = m.string.slice(0, hit.index + hit[1].length) + r.zh
+      const string = m.string.slice(0, hit.index + hit[1].length) + r.zh + m.string.slice(hit.index + hit[0].length)
       if (stat.matchers.some(x => x.string === string)) continue
       const { superseded, ...rest } = m
       adds.push({ lang: 'cmn-Hant', ref: stat.ref, matcher: { ...rest, string }, supersedes: [m.string] })

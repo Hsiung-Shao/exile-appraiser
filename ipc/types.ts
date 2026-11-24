@@ -610,7 +610,7 @@ export interface HostApi {
    */
   bgPick?: () => Promise<string | null>
   /** 懸浮選單速查表(2026-10-08):同 bgPick,存 `userData/cheatsheets/`,由 `app://sheet/<檔名>`(預覽 `<prefix>sheet/<檔名>`)載入。 */
-  sheetPick?: () => Promise<string | null>
+  sheetPick?: (keep?: string[]) => Promise<string | null>
   /** main 建立視窗時決定的模式(啟動後不變)。 */
   readonly windowMode: WindowMode
   onFocusChange: (cb: (e: FocusChangeEvent) => void) => () => void

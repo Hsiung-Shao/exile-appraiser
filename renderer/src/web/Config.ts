@@ -167,6 +167,8 @@ export interface Config {
   floatMenu: FloatMenuPos | null
   /** 2026-10-08:懸浮選單的速查表圖片檔名(`userData/cheatsheets/`;空 = 沒匯入)。規則同背景圖 `normBgFile`。 */
   cheatSheet: string
+  /** 2026-11-24:匯入過的速查表檔名清單(可存多張;`cheatSheet` = 目前顯示的那張)。舊設定檔沒有 → 由 `cheatSheet` 帶入。 */
+  cheatSheets: string[]
   /** 2026-10-08:速查表放大框釘住後調整的大小 / 位置(CSS px,同 settingsWindow 規則;放開才寫)。null = 選單旁到畫面邊的預設。 */
   cheatSheetZoom: SettingsWindowRect | null
   /**
@@ -406,6 +408,7 @@ function createConfig (): Config {
     regexBookmarkBar: true,
     floatMenu: null as FloatMenuPos | null,
     cheatSheet: '',
+    cheatSheets: [] as string[],
     cheatSheetZoom: null as SettingsWindowRect | null,
     stashValueCard: null as OverlayPos | null,
     hotkeyPoedb: '',
@@ -499,6 +502,7 @@ function serialize (): string {
     regexBookmarkBar: config.regexBookmarkBar,
     floatMenu: config.floatMenu,
     cheatSheet: config.cheatSheet,
+    cheatSheets: config.cheatSheets,
     cheatSheetZoom: config.cheatSheetZoom,
     stashValueCard: config.stashValueCard,
     hotkeyPoedb: config.hotkeyPoedb,
@@ -645,6 +649,7 @@ function applyLoaded (raw: string) {
   // 2026-10-08:懸浮選單位置 / 速查表(舊設定檔沒有 → 左上角預設 / 沒匯入;壞值同)
   config.floatMenu = normFloatMenuPos(loaded.floatMenu)
   config.cheatSheet = normBgFile(loaded.cheatSheet)
+  config.cheatSheets = normCheatSheets(loaded.cheatSheets, config.cheatSheet)
   config.cheatSheetZoom = normSettingsWindow(loaded.cheatSheetZoom)
   // 2026-10-15 H2:倉庫價值卡位置(舊設定檔沒有 / 壞值 → null = 面板底部預設)
   config.stashValueCard = normOverlayPos(loaded.stashValueCard)
@@ -860,4 +865,11 @@ export async function initConfig (): Promise<void> {
   }, { immediate: true })
   // 視窗關閉 / 重新載入前,把等待中(debounce 內)的設定送出
   if (typeof window !== 'undefined') window.addEventListener('pagehide', () => { hostConfigSync.flush() })
+}
+
+/** 速查表清單:合法檔名、去重、最多 20 張;目前那張不在清單裡就補上(舊設定檔只有 `cheatSheet`) */
+export function normCheatSheets (v: unknown, current: string): string[] {
+  const out = (Array.isArray(v) ? v : []).map(normBgFile).filter((x, i, a) => x && a.indexOf(x) === i)
+  if (current && !out.includes(current)) out.unshift(current)
+  return out.slice(0, 20)
 }

@@ -1374,6 +1374,14 @@ describe('planPassiveRenames(規則 25:天賦繁中改名)', () => {
     expect(planPassiveRenames({ zhStats: out, renames }).adds).toEqual([])
   })
 
+  it('逃脫不能「天賦樹中在範圍 X 內未連結的天賦…」換新名(精準科技 → 精準技巧)、舊的標 superseded', () => {
+    const ref = 'Passive Skills in Radius of Precise Technique can be Allocated\nwithout being connected to your tree\nPassage'
+    const zhStats = [stat(ref, [{ string: '天賦樹中在範圍精準科技內未連結的天賦仍然可以配置\n通途' }])]
+    const renames = [{ en: 'Precise Technique', from: '精準科技', zh: '精準技巧' }]
+    const plan = planPassiveRenames({ zhStats, renames })
+    expect(plan.adds).toEqual([{ lang: 'cmn-Hant', ref, matcher: { string: '天賦樹中在範圍精準技巧內未連結的天賦仍然可以配置\n通途' }, supersedes: ['天賦樹中在範圍精準科技內未連結的天賦仍然可以配置\n通途'] }])
+  })
+
   // 審查第 2 輪:星團「1 個附加天賦為 X」(帶 explicit id)是寫死名稱(GGPK 3.30 仍是舊名),不能跟著改
   it('星團珠寶「1 Added Passive Skill is X」不改名', () => {
     const zhStats = [stat('1 Added Passive Skill is Advance Guard', [{ string: '1 個附加天賦為進階守衛' }])]

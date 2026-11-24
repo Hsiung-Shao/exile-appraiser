@@ -64,6 +64,11 @@ export function * linesToStatStrings (lines: string[]): Generator<StatString, st
   return notParsedLines.filter(line => line.length)
 }
 
+const PERCENT_VALUE_REFS = new Set([
+  '#% chance to Trigger Socketed Spells when you Spend at least # Life on an\nUpfront Cost to Use or Trigger a Skill, with a 0.1 second Cooldown',
+  '#% chance to Trigger Socketed Spells when you Spend at least # Mana on an\nUpfront Cost to Use or Trigger a Skill, with a 0.1 second Cooldown'
+])
+
 const PLACEHOLDER_MAP = [
   // 0 # -> max 0 #
   [[]],
@@ -138,7 +143,7 @@ export function tryParseTranslation (
   itemCategory: ItemCategory | undefined
 ): ParsedStat | undefined {
   for (const combination of _statPlaceholderGenerator(stat.string)) {
-    const found = findAndResolveTranslation({
+    let found = findAndResolveTranslation({
       matchStr: combination.stat,
       modType: modType,
       itemCategory: itemCategory,
@@ -158,6 +163,20 @@ export function tryParseTranslation (
           stat.bounds.min *= -1
           stat.bounds.max *= -1
         }
+      }
+    }
+
+    // exile-appraiser: 兩個數字分屬兩個 stat 的詞綴,交易站只索引「#%」那個(2026-11-24 實測:奇塔弗之渴望 min=max=50 才有結果,
+    // 平均值 125 / 75 都是 0)。中英數字順序不同,以 matcher 裡哪個 # 後面接 % 決定
+    if (combination.values.length === 2 && PERCENT_VALUE_REFS.has(found.stat.ref)) {
+      const text = found.matcher.string
+      const pct = [...text.matchAll(/#/g)].findIndex(m => text[m.index + 1] === '%')
+      if (pct >= 0) {
+        // 另一個數字寫回顯示字串(面板會把每個 # 都填成同一個值)
+        let i = -1
+        const string = text.replace(/#/g, () => (++i === pct) ? '#' : String(combination.values[i].roll))
+        found = { ...found, matcher: { ...found.matcher, string } }
+        combination.values = [combination.values[pct]]
       }
     }
 
