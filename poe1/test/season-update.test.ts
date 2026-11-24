@@ -1255,6 +1255,32 @@ describe('planCondForms(規則 21:同一條詞綴依數值的其他寫法)', () 
     expect(planCondForms({ enStats, zhStats, ggpkNew }).adds.filter((x: any) => x.ref === 'Maps allow # rerolls')).toEqual([])
   })
 
+  // 審查第 3 輪:繁中「區域含有 2 個箱」與剛補的「1 個箱」同形被擋,但寫死的 1 接不住 2 → 英文「2 Boxes」也要丟
+  it('輿圖基準:只差寫死數字的句子不算涵蓋', () => {
+    const a = (ids: string, cond: string) => `${ids}|${cond}|atlas_stat_descriptions.txt|0`
+    const enStats = [stat('Maps contain # Box', [{ string: 'Maps contain # Box' }])]
+    const zhStats = [stat('Maps contain # Box', [{ string: '地圖含有 # 個箱' }])]
+    const ggpkNew = [
+      row(a('box', '#'), 'Maps contain {0} Box', '地圖含有 {0} 個箱'),
+      row(g('box', '1'), 'Area contains 1 additional Box', '區域含有 1 個箱'),
+      row(g('box', '2'), 'Area contains 2 additional Boxes', '區域含有 2 個箱')
+    ]
+    const plan = planCondForms({ enStats, zhStats, ggpkNew })
+    expect(plan.adds.map((x: any) => `${x.lang}:${x.matcher.string}`).sort()).toEqual(['cmn-Hant:區域含有 1 個箱', 'en:Area contains 1 additional Box'])
+    expect(plan.rejects).toContainEqual({ reason: '另一語言沒補到同一句', ref: 'Maps contain # Box', lang: 'en', to: 'Area contains 2 additional Boxes' })
+  })
+
+  // 審查第 3 輪:另一語言的同一句逐字屬於別一列 → 解析會落到那列,不算涵蓋
+  it('輿圖基準:另一語言的句子屬於別一列時不算涵蓋', () => {
+    const a = (ids: string, cond: string) => `${ids}|${cond}|atlas_stat_descriptions.txt|0`
+    const enStats = [stat('Maps have # Altars', [{ string: 'Maps have # Altars' }])]
+    const zhStats = [stat('Maps have # Altars', [{ string: '地圖 # 祭壇' }, { string: '區域 # 祭壇' }]), stat('Area Altars', [{ string: '區域 # 祭壇' }], { explicit: ['explicit.stat_2'] })]
+    const ggpkNew = [row(a('altar', '#'), 'Maps have {0} Altars', '地圖 {0} 祭壇'), row(g('altar', '#'), 'Area has {0} Altars', '區域 {0} 祭壇')]
+    const plan = planCondForms({ enStats, zhStats, ggpkNew })
+    expect(plan.adds).toEqual([])
+    expect(plan.rejects).toContainEqual({ reason: '另一語言沒補到同一句', ref: 'Maps have # Altars', lang: 'en', to: 'Area has # Altars' })
+  })
+
   // 這次大多數的新寫法走這條:輿圖句是增加、沒有 negate,物品句是減少、帶 negate
   it('輿圖基準:物品的「減少」句帶 negate', () => {
     const a = (ids: string, cond: string) => `${ids}|${cond}|atlas_stat_descriptions.txt|0`

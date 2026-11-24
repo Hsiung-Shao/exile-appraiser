@@ -1273,14 +1273,25 @@ export function planCondForms ({ enStats, zhStats, ggpkNew }) {
     }
   }
   // 輿圖基準補的寫法:另一語言的同一句 GGPK 句子也要解析得到同一列才收(審查 2026-11-24:最後通牒、神諭只補一邊 = 中英送不同 id)。
-  // 「解析得到」= 那一列最後的寫法(原有 + 留下的新增)有逐字相同、或同形且 # 不少的句子;丟掉一條可能讓別條失去涵蓋 → 重複到不變。
+  // 「解析得到」= 那一列最後的寫法(原有 + 留下的新增)有逐字相同、或句中每個數字在同位置都是 # 的句子(只差寫死數字的不算:
+  // 「區域含有 1 個」接不住「區域含有 2 個」,審查第 3 輪);句子逐字屬於別一列的不算。丟掉一條可能讓別條失去涵蓋 → 重複到不變。
   // shortcut: 被丟掉的新增在迴圈裡已佔住 texts / shapes,同一語言其他列不會再補那句;目前資料沒有實例,出現再改成丟掉後重跑。
   const own0 = { en: statsByRef(enStats), 'cmn-Hant': statsByRef(zhStats) }
+  const owners = Object.fromEntries(Object.entries(own0).map(([lang, byRef]) => {
+    const m = new Map()
+    for (const [ref, list] of byRef) for (const s of list) for (const t of matcherExact(s)) m.set(t, (m.get(t) ?? new Set()).add(ref))
+    return [lang, m]
+  }))
+  const NUM = /(\d+(?:\.\d+)?|#)/
+  const covers = (m, text) => {
+    const a = m.split(NUM); const b = text.split(NUM)
+    return a.length === b.length && a.every((p, i) => i % 2 === 0 ? p === b[i] : p === '#' || p === b[i])
+  }
   let kept = adds
   for (let changed = true; changed;) {
     changed = false
     const finalOf = (lang, ref) => [...(own0[lang].get(ref) ?? []).flatMap(s => [...matcherExact(s)]), ...kept.filter(a => a.lang === lang && a.ref === ref).map(a => a.matcher.string)]
-    const parses = (lang, ref, text) => !!text && finalOf(lang, ref).some(m => m === text || (shape(m) === shape(text) && m.split("#").length >= text.split("#").length))
+    const parses = (lang, ref, text) => !!text && ![...(owners[lang].get(text) ?? [])].some(o => o !== ref) && finalOf(lang, ref).some(m => covers(m, text))
     const next = kept.filter(a => {
       const r = atlasPair.get(a)
       const other = a.lang === 'en' ? 'cmn-Hant' : 'en'
