@@ -24,7 +24,7 @@ import * as fs from 'node:fs'
 import { DatabaseSync } from 'node:sqlite'
 import * as path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { diffSweep } from './sweep-diff.mjs'
+import { diffSweep, fill, lineShape, sweepKey } from './sweep-diff.mjs'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const args = process.argv.slice(2)
@@ -140,24 +140,13 @@ function condOk (/** @type {string} */ tok, /** @type {number} */ v) {
   const [a, b] = tok.split('|')
   return (a === '#' || v >= Number(a)) && (b === '#' || v <= Number(b.replace('#', '')))
 }
-/** `[連結|顯示文字]` 留顯示文字;`{0}` 換數值(`{0:+d}` 帶正負號)或名稱 */
-function fill (/** @type {string} */ text, /** @type {Array<number | { en: string, zh: string }>} */ vals, /** @type {'en' | 'zh'} */ lang) {
-  let seq = -1
-  return text.replace(/\\n/g, '\n').replace(/\[[^\]|]*\|([^\]]*)\]/g, '$1').replace(/\[([^\]]*)\]/g, '$1')
-    .replace(/\{(\d*)(?::([^}]*))?\}/g, (_, i, fmt) => {
-      seq += 1
-      const v = vals[i === '' ? seq : Number(i)] ?? 0
-      if (typeof v === 'object') return v[lang]
-      return (fmt ?? '').includes('+') && v >= 0 ? `+${v}` : String(v)
-    })
-}
 /** 一個詞綴 → 它印出來的句子(數值各取下限與上限一次) */
 function linesOfMod (/** @type {string} */ modId, /** @type {string} */ domain) {
   return linesOfStats(statsOf.get(modId) ?? [], FILES_OF(domain))
 }
 /** @param {{ stat_id: string, min: number | string, max: number | string }[]} stats @param {string[]} files */
 function linesOfStats (stats, files) {
-  /** @type {{ en: string, zh: string, key: string }[]} */
+  /** @type {{ en: string, zh: string, key: string, shape: string }[]} */
   const out = []
   const done = new Set()
   for (const pick of ['min', 'max']) {
@@ -179,7 +168,7 @@ function linesOfStats (stats, files) {
       const shown = vals.map((/** @type {number} */ v, /** @type {number} */ i) => (row.handlers ?? []).some((/** @type {any[]} */ h) => h[0] === 'negate' && Number(h[1]) === i + 1) ? -v : v)
       for (const named of nameCombos(row.handlers ?? [], b.ids, shown, stats)) {
         // key = 描述句鍵(差異掃描判斷「同一個 stat 改字」用)
-        const line = { en: fill(row.en, named, 'en'), zh: fill(row.zh, named, 'zh'), key: `${b.file}|${b.ids.join(' ')}|${row.cond}` }
+        const line = { en: fill(row.en, named, 'en'), zh: fill(row.zh, named, 'zh'), key: `${b.file}|${b.ids.join(' ')}|${row.cond}`, shape: lineShape(row.en, row.zh, named) }
         if (!done.has(line.en)) { done.add(line.en); out.push(line) }
       }
     }
@@ -213,10 +202,10 @@ const lines = []
 const lineIx = new Map()
 /** 與 lines 同索引:這一句來自哪些詞綴 id、哪些描述句鍵 @type {{ mods: Set<string>, stats: Set<string> }[]} */
 const meta = []
-const add = (/** @type {{en: string, zh: string, key?: string}} */ l, /** @type {string} */ modId) => {
-  // 只差數字的句子算同一句(解析器不看數值大小),留第一個當樣本
-  const k = JSON.stringify([l.en, l.zh]).replace(/\d+(?:\.\d+)?/g, '#')
-  if (!lineIx.has(k)) { lineIx.set(k, lines.length); lines.push([l.en, l.zh]); meta.push({ mods: new Set(), stats: new Set() }) }
+const add = (/** @type {{en: string, zh: string, key?: string, shape?: string}} */ l, /** @type {string} */ modId) => {
+  // 只差代入數值的句子算同一句(解析器不看數值大小),留第一個當樣本;寫死的數字不同是兩句(2026-11-25 野變 per 15 / Eldritch per 100)
+  const k = l.shape ?? sweepKey(l.en, l.zh)
+  if (!lineIx.has(k)) { lineIx.set(k, lines.length); lines.push([l.en, l.zh]); meta.push({ mods: new Set(), stats: new Set(), shape: k }) }
   const ix = lineIx.get(k)
   meta[ix].mods.add(modId)
   if (l.key) meta[ix].stats.add(l.key)
@@ -388,7 +377,7 @@ for (const [cls, set] of [...uniqueSets].sort(([a], [b]) => a.localeCompare(b)))
 console.log(`傳奇詞綴:${uniqueMods.length} 條有句子,${unmatched} 條對不到 PoB 的傳奇(不進掃描),${enchantOnly} 句(類別 × 句)交易站只有附魔等 id(不進掃描)`)
 // allMods = 這個版本存在的全部詞綴(差異掃描判斷 new-mod;沒進掃描的也算「舊版就有」)
 const allMods = [...new Set([...mods.map(m => m.mod_id), ...rowsOf('mods').map(r => r.en.Id)])].sort()
-return { lines, classes: out, meta: meta.map(m => ({ mods: [...m.mods].sort(), stats: [...m.stats].sort() })), allMods }
+return { lines, classes: out, meta: meta.map(m => ({ mods: [...m.mods].sort(), stats: [...m.stats].sort(), shape: m.shape })), allMods }
 }
 
 /** @type {{ lines: string[][], classes: Record<string, any> }} */

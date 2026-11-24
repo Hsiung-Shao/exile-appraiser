@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildReport, diffSweep, sweepKey } from '../../scripts/poe1-season/sweep-diff.mjs'
+import { buildReport, diffSweep, lineShape, sweepKey } from '../../scripts/poe1-season/sweep-diff.mjs'
 
 /**
  * 類型掃描差異(`scripts/poe1-season/sweep-diff.mjs`):新舊兩份掃描只留「新版才有」的句子,並標來源。
@@ -187,5 +187,24 @@ describe('類型掃描差異報告', () => {
     const r: string = buildReport({ diff, gaps: {}, queryGaps: {} })
     expect(r).not.toContain('GAPNOTE')
     for (const l of lines) expect(r).toContain(l[0])
+  })
+
+  // 2026-11-25:「1% … per 15 Dexterity」(野變)與「3% … per 100 Dexterity」(Eldritch 固定)被當成同一句,傳奇類別拿到錯的句子
+  it('DS7 只有模板代入的數字算「只差數字」,句子本身寫死的數字不同就是兩句', () => {
+    const per15 = lineShape('{0}% increased Damage per 15 Dexterity', '每 15 點敏捷增加 {0}% 傷害', [1])
+    const per100 = lineShape('{0}% increased Damage per 100 Dexterity', '每 100 點敏捷增加 {0}% 傷害', [3])
+    expect(per15).not.toBe(per100)
+    // 同一個模板代入不同數值 = 同一句
+    expect(lineShape('{0:+d} to maximum Life', '{0:+d} 最大生命', [10])).toBe(lineShape('{0:+d} to maximum Life', '{0:+d} 最大生命', [99]))
+    // 正負號不同是兩句(負值寫法是另一個要測的情況)
+    expect(lineShape('{0:+d} to maximum Life', '{0:+d} 最大生命', [10])).not.toBe(lineShape('{0:+d} to maximum Life', '{0:+d} 最大生命', [-10]))
+    // 代入名稱的槽:名稱不同是不同句
+    expect(lineShape('Grants {0}', '賦予{0}', [{ en: 'A', zh: '甲' }])).not.toBe(lineShape('Grants {0}', '賦予{0}', [{ en: 'B', zh: '乙' }]))
+  })
+
+  it('DS7 差異比對用 meta 的 shape:寫死數字改了算新句', () => {
+    const s = (en: string, zh: string, shape: string): any => ({ lines: [L(en, zh)], classes: { ring: cls([0]) }, meta: [{ mods: ['m'], stats: ['d|s|c'], shape }] })
+    const d = diffSweep(s('1% per 15 Dex', '每 15', 'A'), s('3% per 100 Dex', '每 100', 'B')) as any
+    expect(d.lines).toEqual([L('3% per 100 Dex', '每 100')])
   })
 })

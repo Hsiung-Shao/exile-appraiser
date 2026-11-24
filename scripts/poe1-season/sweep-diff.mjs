@@ -3,9 +3,28 @@
 // 測試 poe1/test/type-sweep-diff.test.ts;用法見 dump-type-sweep.mjs 檔頭「開季差異掃描」。
 
 /** @typedef {{ class: any, bases: any[], uniques?: any[], explicit: number[], implicit: number[] }} SweepClass */
-/** @typedef {{ lines: [string, string][], classes: Record<string, SweepClass>, meta: { mods: string[], stats: string[] }[], allMods?: string[] }} Sweep */
+/** @typedef {{ lines: [string, string][], classes: Record<string, SweepClass>, meta: { mods: string[], stats: string[], shape?: string }[], allMods?: string[] }} Sweep */
 
-/** 只差數字算同一句(與 dump-type-sweep.mjs `add()` 相同的鍵) */
+/** `[連結|顯示文字]` 留顯示文字;`{0}` 換數值(`{0:+d}` 帶正負號)或名稱 */
+export function fill (/** @type {string} */ text, /** @type {Array<number | string | { en: string, zh: string }>} */ vals, /** @type {'en' | 'zh'} */ lang) {
+  let seq = -1
+  return text.replace(/\\n/g, '\n').replace(/\[[^\]|]*\|([^\]]*)\]/g, '$1').replace(/\[([^\]]*)\]/g, '$1')
+    .replace(/\{(\d*)(?::([^}]*))?\}/g, (_, i, fmt) => {
+      seq += 1
+      const v = vals[i === '' ? seq : Number(i)] ?? 0
+      if (typeof v === 'object') return v[lang]
+      return (fmt ?? '').includes('+') && typeof v === 'number' && v >= 0 ? `+${v}` : String(v)
+    })
+}
+
+/** 去重鍵:只有模板代入的數值換成 #,句子本身寫死的數字與代入的名稱照留(「per 15 / per 100 Dexterity」是兩句) */
+export const lineShape = (/** @type {string} */ en, /** @type {string} */ zh, /** @type {Array<number | { en: string, zh: string }>} */ vals) => {
+  // 代入一個不會撞到的數字再換成 #:正負號(含 `{0:+d}` 的 +)照留,「+30% / -30% 火焰抗性」仍是兩句
+  const h = vals.map(v => typeof v === 'object' ? v : v < 0 ? -987654321 : 987654321)
+  return JSON.stringify([fill(en, h, 'en'), fill(zh, h, 'zh')]).replace(/987654321/g, '#')
+}
+
+/** 只差數字算同一句(沒有模板的句子用這個;有模板的用 meta 的 shape) */
 export const sweepKey = (/** @type {string} */ en, /** @type {string} */ zh) => JSON.stringify([en, zh]).replace(/\d+(?:\.\d+)?/g, '#')
 
 /**
@@ -13,7 +32,7 @@ export const sweepKey = (/** @type {string} */ en, /** @type {string} */ zh) => 
  * @returns {{ lines: [string, string][], classes: Record<string, SweepClass>, origins: string[], meta: Sweep['meta'] }}
  */
 export function diffSweep (oldSweep, newSweep) {
-  const keyOf = (/** @type {Sweep} */ s, /** @type {number} */ ix) => sweepKey(...s.lines[ix])
+  const keyOf = (/** @type {Sweep} */ s, /** @type {number} */ ix) => s.meta?.[ix]?.shape ?? sweepKey(...s.lines[ix])
   // 舊版存在的全部詞綴(含沒進掃描的,例如 domain 沒命名被濾掉);沒給就退回掃描裡有句子的詞綴
   const oldMods = new Set(oldSweep.allMods ?? oldSweep.meta.flatMap(m => m.mods))
   /** 舊版每個描述句鍵印出過的句子 @type {Map<string, Set<string>>} */
