@@ -1691,4 +1691,22 @@ describe('planDropNoIdStats(規則 33:刪掉沒有交易站 id 的聖甲蟲與�
     const out = parseRows(applyStatPlan(toFile(rows), 'en', { drop: planDropNoIdStats({ enStats: rows }).drop }))
     expect(out.map(r => r.ref)).toEqual(['Grants Level # Vengeance Skill', 'Scarabs dropped in Area are Titanic'])
   })
+  // 失敗代表:同 ref 另一列 / 群組成員有 id 也被整個刪掉(審查第 1 輪)
+  it('同一個 ref 只要有一筆有 id 就不刪(頂層兩列、trivial-merge 群組)', () => {
+    const ref = 'Scarabs dropped in your Maps have #% increased chance to be Titanic Scarabs'
+    const twin = [stat(ref, [{ string: 'a' }], {}), stat(ref, [{ string: 'b' }])]
+    expect(planDropNoIdStats({ enStats: twin }).drop).toEqual([])
+    const group = [{ resolve: { strat: 'trivial-merge' }, stats: [stat(ref, [{ string: 'a' }], {}), stat(ref, [{ string: 'b' }])] }]
+    expect(planDropNoIdStats({ enStats: group }).drop).toEqual([])
+  })
+  // 失敗代表:同一輪 fill / extra 正要補上 id 的列被刪(這是它唯一能恢復的路)
+  it('同一輪要補 id 的 ref 不刪', () => {
+    expect(planDropNoIdStats({ enStats: rows, keep: ["Area contains an additional Smuggler's Cache"] }).drop)
+      .toEqual(['Scarabs dropped in your Maps have #% increased chance to be Titanic Scarabs'])
+  })
+  // 失敗代表:繁中檔沒跟著刪(兩語列數不一致)
+  it('繁中檔同樣整列刪掉', () => {
+    const out = parseRows(applyStatPlan(toFile(rows), 'cmn-Hant', { drop: planDropNoIdStats({ enStats: rows }).drop }))
+    expect(out.map(r => r.ref)).toEqual(['Grants Level # Vengeance Skill', 'Scarabs dropped in Area are Titanic'])
+  })
 })

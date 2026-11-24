@@ -1501,19 +1501,25 @@ export function planFixedCase ({ enStats, ggpkNew }) {
 }
 
 /**
- * 交易站的叫法 ≠ 遊戲內名稱、而且上游那一列是壞的(matcher 帶「Has Room: 」前綴、沒有 option → 遊戲文字永遠對不到):
- * ref → 遊戲內英文名(GGPK incursionrooms;2026-11-16 逐列比對 87 個房間只有這一列)
- */
-/**
  * 規則 33:刪掉沒有交易站 id 的聖甲蟲詞綴與地圖區域詞綴(使用者 2026-11-24 裁定)。
  * 沒有 id 的列解析器永遠認不得(`tryParseTranslation` 要 trade.ids 有該類型);3.30 已移除聖甲蟲,
  * 區域詞綴(走私者的祕寶、額外隨機聖甲蟲效果)交易站也沒有 id。其他沒有 id 的列(舊寫法的輔助 / 賦予技能)不動。
+ * 同一個 ref 每一筆都沒 id 才刪(頂層重複列、群組成員);同一輪 fill / extra 要補 id 的(keep)不刪。
+ * @param {{ enStats: any[], keep?: string[] }} input
  * @returns {{ drop: string[] }}
  */
-export function planDropNoIdStats ({ enStats }) {
-  return { drop: uniq([...eachStat(enStats)].filter(s => !allIds(s).length && (s.fromAreaMods || /\bScarabs?\b/.test(s.ref))).map(s => s.ref)) }
+export function planDropNoIdStats ({ enStats, keep = [] }) {
+  const skip = new Set(keep)
+  return {
+    drop: [...statsByRef(enStats)].filter(([ref, list]) => !skip.has(ref) && list.every(s => !allIds(s).length) &&
+      list.some(s => s.fromAreaMods || /\bScarabs?\b/.test(ref))).map(([ref]) => ref)
+  }
 }
 
+/**
+ * 交易站的叫法 ≠ 遊戲內名稱、而且上游那一列是壞的(matcher 帶「Has Room: 」前綴、沒有 option → 遊戲文字永遠對不到):
+ * ref → 遊戲內英文名(GGPK incursionrooms;2026-11-16 逐列比對 87 個房間只有這一列)
+ */
 export const ROOM_GAME_NAMES = { 'Has Room: Splinter Research Lab (Tier 1)': 'Anomaly Research Lab' }
 
 /**
