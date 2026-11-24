@@ -27,6 +27,17 @@ describe('多行詞綴先配最長的', () => {
     expect(refs).toEqual([DOEDRE.join('\n').replace('Level 20', 'Level #')])
   })
 
+  // 失敗代表:最長優先跨過 `{ }` 標頭,把兩條獨立詞綴併成合一的那條(審查 2026-11-25)。
+  // 已知歧義:一般複製沒有標頭,這兩行相鄰時會解析成合一的 stat_798009319(文字分不出來;舊程式反過來一律拆開)
+  it('進階複製分成兩個標頭時仍是兩條單行詞綴', () => {
+    const SPEED = ["Monsters' Action Speed cannot be modified to below Base Value", "Monsters' Movement Speed cannot be modified to below Base Value"]
+    const r = parseClipboard(['Item Class: Maps', 'Rarity: Rare', 'Doom Loop', 'Map (Tier 16)', '--------', 'Item Level: 84', '--------',
+      '{ Prefix Modifier "Testing" (Tier: 1) }', SPEED[0], '{ Suffix Modifier "of Testing" (Tier: 1) }', SPEED[1]].join('\n') + '\n')
+    if (r.isErr()) throw new Error(String(r.error))
+    expect(r.value.unknownModifiers).toEqual([])
+    expect(r.value.statsByType.map(s => s.stat.ref).sort()).toEqual([...SPEED].sort())
+  })
+
   // 失敗代表:改成最長優先後,單獨一行的同一條詞綴反而解析不到
   it('只有一行時仍解析成單行那條', () => {
     expect(parse('Boots', 'The Red Trail', 'Titan Greaves', [COUNT_MAX[0]])).toEqual({ refs: [COUNT_MAX[0]], unknown: [] })
