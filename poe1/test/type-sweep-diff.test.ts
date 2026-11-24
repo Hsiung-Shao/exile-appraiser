@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildReport, diffSweep, lineShape, sweepKey } from '../../scripts/poe1-season/sweep-diff.mjs'
+import { buildReport, diffSweep, lineShape, pobLineFits, sweepKey } from '../../scripts/poe1-season/sweep-diff.mjs'
 
 /**
  * 類型掃描差異(`scripts/poe1-season/sweep-diff.mjs`):新舊兩份掃描只留「新版才有」的句子,並標來源。
@@ -206,5 +206,17 @@ describe('類型掃描差異報告', () => {
     const s = (en: string, zh: string, shape: string): any => ({ lines: [L(en, zh)], classes: { ring: cls([0]) }, meta: [{ mods: ['m'], stats: ['d|s|c'], shape }] })
     const d = diffSweep(s('1% per 15 Dex', '每 15', 'A'), s('3% per 100 Dex', '每 100', 'B')) as any
     expect(d.lines).toEqual([L('3% per 100 Dex', '每 100')])
+  })
+
+  // 審查 2026-11-25:傳奇對應也把數字一律當 #,薩爾的揚音等的「per 50 / per 200」對到 Divergent 詞綴的「per 100 / per 400」
+  it('DS8 PoB 傳奇行只在寫死的數字相同時對得上詞綴', () => {
+    expect(pobLineFits('#% increased Damage per 15 Dexterity', '1% increased Damage per 15 Dexterity')).toBe(true)
+    expect(pobLineFits('#% increased Damage per 100 Dexterity', '1% increased Damage per 15 Dexterity')).toBe(false)
+    // PoB 的範圍寫法、正負號、大小寫、結尾「 Skill」照舊算同一句
+    expect(pobLineFits('+#% to Fire Resistance', '+(30-40)% to Fire Resistance')).toBe(true)
+    expect(pobLineFits('#% reduced Mana Cost', '(10-20)% reduced Mana Cost')).toBe(true)
+    expect(pobLineFits('-# to Maximum Rage', '-(5-3) to maximum Rage')).toBe(true)
+    expect(pobLineFits('Grants Level # Anger Skill', 'Grants Level 20 Anger')).toBe(true)
+    expect(pobLineFits('Arrows Pierce # additional Targets', 'Arrows Pierce 2 additional Targets, up to 50%')).toBe(false)
   })
 })

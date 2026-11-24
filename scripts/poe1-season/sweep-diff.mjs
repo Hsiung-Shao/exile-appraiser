@@ -24,6 +24,16 @@ export const lineShape = (/** @type {string} */ en, /** @type {string} */ zh, /*
   return JSON.stringify([fill(en, h, 'en'), fill(zh, h, 'zh')]).replace(/987654321/g, '#')
 }
 
+const pobNorm = (/** @type {string} */ s) => s.toLowerCase().replace(/\(-?[\d.]+--?[\d.]+\)/g, '#').replace(/[+-](?=[#\d])/g, '').replace(/ skill$/, '').trim()
+/**
+ * PoB 傳奇行(實際數值或「(a-b)」範圍)對不對得上這句詞綴的 shape(lineShape 的英文):
+ * shape 的 # 可對任何數字,句子本身寫死的數字要相同(野變 per 15 ≠ Eldritch per 100);正負號、大小寫、結尾「 Skill」不看
+ */
+export function pobLineFits (/** @type {string} */ shapeEn, /** @type {string} */ pobLine) {
+  const parts = pobNorm(shapeEn).split('#').map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+  return new RegExp(`^${parts.join('(?:#|\\d+(?:\\.\\d+)?)')}$`).test(pobNorm(pobLine))
+}
+
 /** 只差數字算同一句(沒有模板的句子用這個;有模板的用 meta 的 shape) */
 export const sweepKey = (/** @type {string} */ en, /** @type {string} */ zh) => JSON.stringify([en, zh]).replace(/\d+(?:\.\d+)?/g, '#')
 

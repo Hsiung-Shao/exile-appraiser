@@ -24,7 +24,7 @@ import * as fs from 'node:fs'
 import { DatabaseSync } from 'node:sqlite'
 import * as path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { diffSweep, fill, lineShape, sweepKey } from './sweep-diff.mjs'
+import { diffSweep, fill, lineShape, pobLineFits, sweepKey } from './sweep-diff.mjs'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const args = process.argv.slice(2)
@@ -205,7 +205,14 @@ const meta = []
 const add = (/** @type {{en: string, zh: string, key?: string, shape?: string}} */ l, /** @type {string} */ modId) => {
   // 只差代入數值的句子算同一句(解析器不看數值大小),留第一個當樣本;寫死的數字不同是兩句(2026-11-25 野變 per 15 / Eldritch per 100)
   const k = l.shape ?? sweepKey(l.en, l.zh)
-  if (!lineIx.has(k)) { lineIx.set(k, lines.length); lines.push([l.en, l.zh]); meta.push({ mods: new Set(), stats: new Set(), shape: k }) }
+  // 文字完全相同的也算同一句(寫死數值的獨立 stat 與模板句印出同一句,shape 不同)
+  const text = JSON.stringify([l.en, l.zh])
+  if (!lineIx.has(k)) {
+    const same = lineIx.get(text)
+    if (same !== undefined) lineIx.set(k, same)
+    else { lineIx.set(k, lines.length); lines.push([l.en, l.zh]); meta.push({ mods: new Set(), stats: new Set(), shape: k }) }
+  }
+  if (!lineIx.has(text)) lineIx.set(text, lineIx.get(k))
   const ix = lineIx.get(k)
   meta[ix].mods.add(modId)
   if (l.key) meta[ix].stats.add(l.key)
@@ -290,12 +297,12 @@ const STAT_UNIQUE = {
   unique_jewel_grants_notable_hash_part_2: ['Forbidden Flame', 'Crimson Jewel'],
   local_unique_jewel_disconnected_passives_can_be_allocated_around_keystone_hash: ['Impossible Escape', 'Viridian Jewel']
 }
-const mkUnique = (/** @type {string | undefined} */ name, /** @type {string | undefined} */ base, /** @type {string[]} */ ls) => ({ name, zhName: name && wordZh.get(name), base: base && baseOf.get(base), lines: ls.map(norm) })
+const mkUnique = (/** @type {string | undefined} */ name, /** @type {string | undefined} */ base, /** @type {string[]} */ ls) => ({ name, zhName: name && wordZh.get(name), base: base && baseOf.get(base), lines: ls.map(norm), raw: ls })
 const pobUniques = [...group(pob, r => `${r.src_file}|${r.src_line}`).values()].map(rs => {
   const [sName, sBase] = POB_SPECIAL[/** @type {keyof typeof POB_SPECIAL} */ (rs[0].src_file)] ?? []
   return mkUnique(sName ?? rs.find(r => r.field === 'name')?.en_text, sBase ?? rs.find(r => r.field === 'base')?.en_text, rs.filter(r => r.field === 'lines').map(r => r.en_text))
 }).concat(Object.values(STAT_UNIQUE).map(([n, b]) => mkUnique(n, b, []))).filter(u => u.base && !SKIP.has(u.base.item_class))
-const uniquesOfLine = group(pobUniques.flatMap(u => u.lines.map(l => ({ l, u }))), r => r.l)
+const uniquesOfLine = group(pobUniques.flatMap(u => u.lines.map((l, i) => ({ l, u, raw: u.raw[i] }))), r => r.l)
 /** 物品大類:每大類只放對到最多傳奇的一個類別,避免同一句重複幾十次(推論:局部 / 全域詞綴大多只在大類之間不同,箭袋 / 盾的少數例外靠下面的樣本類別補) */
 // 有實機傳奇樣本(GitHub issue 的剪貼簿)的類別一律保留,樣本才對得到掃描
 const SAMPLE_CLASSES = new Set(fs.readdirSync(path.join(ROOT, 'poe1/test/docs')).filter(f => /^3\.30-issue-.*\.txt$/.test(f)).flatMap(f => {
@@ -312,7 +319,9 @@ const lineClasses = new Map()
 /** `--explain <檔>`:每一句來自哪些詞綴、對到哪些 PoB 傳奇(查缺口來源用) @type {Map<number, { mods: Set<string>, uniques: Set<string> }>} */
 const explain = new Map()
 for (const m of uniqueMods) {
-  const matched = m.lines.flatMap(l => (uniquesOfLine.get(norm(l.en.split('\n')[0])) ?? []).map(r => r.u))
+  // norm 把數字一律當 #;有 shape 的句子再要求寫死的數字相同(審查 2026-11-25:per 50 / per 200 的傳奇對到 Divergent 詞綴的 per 100 / per 400)
+  const matched = m.lines.flatMap(l => (uniquesOfLine.get(norm(l.en.split('\n')[0])) ?? [])
+    .filter(r => !('shape' in l) || pobLineFits(JSON.parse(String(l.shape))[0].split('\n')[0], r.raw)).map(r => r.u))
   for (const s of m.stats) if (s in STAT_UNIQUE) matched.push(mkUnique(...STAT_UNIQUE[/** @type {keyof typeof STAT_UNIQUE} */ (s)], []))
   const hits = matched.map(u => u.base.item_class)
   if (!hits.length) { unmatched += 1; continue }
