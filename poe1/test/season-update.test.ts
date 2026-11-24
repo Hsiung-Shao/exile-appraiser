@@ -1200,18 +1200,44 @@ describe('planCondForms(規則 21:同一條詞綴依數值的其他寫法)', () 
       stat('Altars allow # rerolls in your Maps', [{ string: 'Altars in your Maps allow # rerolls' }, { string: 'Altars in your Maps allow a reroll', value: 1 }]),
       stat('Boxes in your Maps are Rare', [{ string: 'Boxes in your Maps are Rare' }])
     ]
+    const zhStats = [stat('Altars allow # rerolls in your Maps', [{ string: '地圖神壇重骰 # 次' }, { string: '地圖神壇重骰 1 次', value: 1 }])]
     const ggpkNew = [
-      row(a('rerolls', '2|#'), 'Altars in your Maps allow {0} rerolls', ''),
-      row(a('rerolls', '1'), 'Altars in your Maps allow a reroll', ''),
-      row(g('rerolls', '2|#'), 'Altars in Area allow {0} rerolls', ''),
-      row(g('rerolls', '1'), 'Altars in Area allow a reroll', ''),
+      row(a('rerolls', '2|#'), 'Altars in your Maps allow {0} rerolls', '地圖神壇重骰 {0} 次'),
+      row(a('rerolls', '1'), 'Altars in your Maps allow a reroll', '地圖神壇重骰 1 次'),
+      row(g('rerolls', '2|#'), 'Altars in Area allow {0} rerolls', '區域神壇重骰 {0} 次'),
+      row(g('rerolls', '1'), 'Altars in Area allow a reroll', '區域神壇重骰 1 次'),
       row(a('boxes_rare', '#'), 'Boxes in your Maps are Rare', ''),
       row(a('boxes_min', '2'), 'Boxes in your Maps are Rare', ''),
       row(g('boxes_rare', '#'), 'Boxes in Area are Rare', '')
     ]
-    expect(planCondForms({ enStats, zhStats: [], ggpkNew }).adds.map((x: any) => x.matcher)).toEqual([
-      { string: 'Altars in Area allow # rerolls', superseded: true },
-      { string: 'Altars in Area allow a reroll', value: 1, superseded: true }
+    expect(planCondForms({ enStats, zhStats, ggpkNew }).adds).toEqual([
+      { lang: 'en', ref: 'Altars allow # rerolls in your Maps', matcher: { string: 'Altars in Area allow # rerolls', superseded: true } },
+      { lang: 'en', ref: 'Altars allow # rerolls in your Maps', matcher: { string: 'Altars in Area allow a reroll', value: 1, superseded: true } },
+      // 繁中「1 次」與「# 次」同形,由 # 接住(算已涵蓋,英文的 a reroll 照收)
+      { lang: 'cmn-Hant', ref: 'Altars allow # rerolls in your Maps', matcher: { string: '區域神壇重骰 # 次', superseded: true } }
+    ])
+  })
+
+  // 審查 2026-11-24:最後通牒(繁中被同形擋下、英文補了)/ 神諭(反過來)→ 只補一邊 = 中英送不同 id
+  it('輿圖基準:只有一個語言補得到的寫法兩邊都不補', () => {
+    const a = (ids: string, cond: string) => `${ids}|${cond}|atlas_stat_descriptions.txt|0`
+    const enStats = [stat('Maps have #% Ritual', [{ string: 'Maps have #% Ritual' }])]
+    const zhStats = [stat('Maps have #% Ritual', [{ string: '地圖 #% 祭祀' }]), stat('Area contains Ritual', [{ string: '區域含有祭祀' }], { explicit: ['explicit.stat_2'] })]
+    const ggpkNew = [row(a('ritual', '1|99'), 'Maps have {0}% Ritual', '地圖 {0}% 祭祀'), row(g('ritual', '100|#'), 'Area contains Ritual', '區域含有祭祀')]
+    const plan = planCondForms({ enStats, zhStats, ggpkNew })
+    expect(plan.adds).toEqual([])
+    expect(plan.rejects).toContainEqual({ reason: '另一語言沒補到同一句', ref: 'Maps have #% Ritual', lang: 'en', to: 'Area contains Ritual' })
+  })
+
+  // 這次大多數的新寫法走這條:輿圖句是增加、沒有 negate,物品句是減少、帶 negate
+  it('輿圖基準:物品的「減少」句帶 negate', () => {
+    const a = (ids: string, cond: string) => `${ids}|${cond}|atlas_stat_descriptions.txt|0`
+    const enStats = [stat('#% increased Pack Size in your Maps', [{ string: '#% increased Pack Size in your Maps' }])]
+    const zhStats = [stat('#% increased Pack Size in your Maps', [{ string: '地圖增加 #% 群大小' }])]
+    const ggpkNew = [row(a('pack_+%', '1|#'), '{0}% increased Pack Size in your Maps', '地圖增加 {0}% 群大小'), row(g('pack_+%', '#|-1'), '{0}% reduced Pack Size', '減少 {0}% 群大小', NEG)]
+    expect(planCondForms({ enStats, zhStats, ggpkNew }).adds.map((x: any) => x.matcher)).toEqual([
+      { string: '#% reduced Pack Size', negate: true, superseded: true },
+      { string: '減少 #% 群大小', negate: true, superseded: true }
     ])
   })
 

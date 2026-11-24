@@ -9715,7 +9715,7 @@
 {"ref":"Players have Level 20 Dash Skill","better":0,"matchers":[{"string":"玩家有等級 20 的幻步技能"}],"trade":{"ids":{"explicit":["explicit.stat_1413930902"]}}}
 {"ref":"Area has patches of Shocked Ground","better":0,"matchers":[{"string":"區域內有數道感電地面"}],"trade":{"ids":{"explicit":["explicit.stat_3477720557"],"fractured":["fractured.stat_3477720557"]}}}
 {"ref":"Area has patches of Awakeners' Desolation","better":0,"matchers":[{"string":"區域含有數道喚醒者的荒蕪"}],"trade":{"ids":{"explicit":["explicit.stat_563277852"],"fractured":["fractured.stat_563277852"]}}}
-{"ref":"Harbingers in your Maps have #% chance to drop an additional Stack of Currency Shards","better":1,"matchers":[{"string":"你地圖中的神諭有 #% 機率掉落 1 個額外堆疊的通貨碎片"},{"string":"你地圖中的神諭有 #% 機率掉落 1 個額外有疊層的通貨碎片"},{"string":"神諭有 #% 機率掉落 1 個額外有疊層的通貨碎片","superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_1413020589"]}}}
+{"ref":"Harbingers in your Maps have #% chance to drop an additional Stack of Currency Shards","better":1,"matchers":[{"string":"你地圖中的神諭有 #% 機率掉落 1 個額外堆疊的通貨碎片"},{"string":"你地圖中的神諭有 #% 機率掉落 1 個額外有疊層的通貨碎片"}],"trade":{"ids":{"explicit":["explicit.stat_1413020589"]}}}
 {"ref":"Harbingers in your Maps have #% increased Cooldown Recovery Rate","better":1,"matchers":[{"string":"你地圖中的神諭增加 #% 冷卻時間恢復率"}],"trade":{"ids":{"explicit":["explicit.stat_1972294007"]}}}
 {"ref":"Harbingers have #% increased Cooldown Recovery Rate","better":1,"matchers":[{"string":"神諭增加 #% 冷卻時間恢復率"},{"string":"神諭減少 #% 冷卻時間恢復率","negate":true,"superseded":true}],"trade":{"ids":{"explicit":["explicit.stat_1972294007"]}}}
 {"ref":"Harbingers in your Maps drop rarer Currency Shards","better":0,"matchers":[{"string":"你地圖中的神諭掉落更稀有的通貨碎片"}],"trade":{"ids":{"explicit":["explicit.stat_3448022820"]}}}
