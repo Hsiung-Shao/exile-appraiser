@@ -604,8 +604,20 @@ const sheetImgStyle = computed(() => {
   const v = sheetView.value
   return v.scale === 1 ? undefined : { transform: `translate(${v.x}px, ${v.y}px) scale(${v.scale})` }
 })
-const viewBox = () => ({ w: zoomView.value?.clientWidth ?? 0, h: zoomView.value?.clientHeight ?? 0 })
-watch([() => config.cheatSheet, pinned], () => { sheetView.value = { scale: 1, x: 0, y: 0 } })
+/** 框大小 + 圖實際畫出的大小(object-fit: contain,圖還沒載好就當填滿框) */
+const viewBox = () => {
+  const w = zoomView.value?.clientWidth ?? 0
+  const h = zoomView.value?.clientHeight ?? 0
+  const img = zoomView.value?.querySelector('img')
+  if (!img?.naturalWidth || !img.naturalHeight) return { w, h }
+  const fit = Math.min(w / img.naturalWidth, h / img.naturalHeight)
+  return { w, h, cw: img.naturalWidth * fit, ch: img.naturalHeight * fit }
+}
+let panDetach: (() => void) | null = null
+watch([() => config.cheatSheet, pinned], () => {
+  panDetach?.()
+  sheetView.value = { scale: 1, x: 0, y: 0 }
+})
 watch(zoomRect, () => { void nextTick(() => { sheetView.value = sheetViewFit(sheetView.value, viewBox()) }) })
 function zoomBy (factor: number, at?: { x: number, y: number }) {
   const box = viewBox()
@@ -631,22 +643,29 @@ function onSheetPanDown (e: PointerEvent) {
   try { target.setPointerCapture(e.pointerId) } catch { /* 合成事件沒有對應的指標 */ }
   let last = { x: e.clientX, y: e.clientY }
   panning.value = true
-  const onMove = (ev: PointerEvent) => {
-    if (ev.pointerId !== e.pointerId) return
-    sheetView.value = sheetPan(sheetView.value, ev.clientX - last.x, ev.clientY - last.y, viewBox())
-    last = { x: ev.clientX, y: ev.clientY }
-  }
-  const done = (ev: PointerEvent) => {
-    if (ev.pointerId !== e.pointerId) return
+  // 收尾:放開 / 取消 / 失去指標(審查 2026-11-25:漏掉 pointerup 時 panning 卡住、沒按鍵也在拖)/ 收起或換圖
+  const cleanup = () => {
     panning.value = false
+    panDetach = null
     target.removeEventListener('pointermove', onMove)
     target.removeEventListener('pointerup', done)
     target.removeEventListener('pointercancel', done)
+    target.removeEventListener('lostpointercapture', cleanup)
     try { target.releasePointerCapture(e.pointerId) } catch { /* 指標已被釋放 */ }
   }
+  const onMove = (ev: PointerEvent) => {
+    if (ev.pointerId !== e.pointerId) return
+    if (ev.buttons === 0) { cleanup(); return }
+    sheetView.value = sheetPan(sheetView.value, ev.clientX - last.x, ev.clientY - last.y, viewBox())
+    last = { x: ev.clientX, y: ev.clientY }
+  }
+  const done = (ev: PointerEvent) => { if (ev.pointerId === e.pointerId) cleanup() }
+  panDetach?.()
+  panDetach = cleanup
   target.addEventListener('pointermove', onMove)
   target.addEventListener('pointerup', done)
   target.addEventListener('pointercancel', done)
+  target.addEventListener('lostpointercapture', cleanup)
 }
 function removeSheet () {
   config.cheatSheets = config.cheatSheets.filter(x => x !== config.cheatSheet)
@@ -686,6 +705,7 @@ onUnmounted(() => {
   window.removeEventListener('keydown', onKey, true)
   ro?.disconnect()
   zoomDetach?.()
+  panDetach?.()
   if (ratePoll) clearInterval(ratePoll)
   for (const off of rateSubs.values()) off()
   rateSubs.clear()

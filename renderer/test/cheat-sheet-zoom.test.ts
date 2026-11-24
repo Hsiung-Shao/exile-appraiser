@@ -39,6 +39,20 @@ describe('放大縮放', () => {
   })
 })
 
+// 審查 2026-11-25:圖片 object-fit: contain,框比圖高時上下有留白;夾的是圖實際畫出的範圍,不是 img 元素
+describe('留白(object-fit: contain)', () => {
+  const WIDE = { w: 400, h: 300, cw: 400, ch: 100 } // 圖畫成 400×100,上下各留 100
+  // 失敗代表:放大後能把圖拖到只剩留白(使用者看到一片黑)
+  it('放大後上下不能拖出留白,圖比框小的方向置中', () => {
+    const v = sheetZoomAt(FIT, 2, { x: 200, y: 150 }, WIDE) // 圖高 200 < 框高 300 → 垂直置中
+    expect(v.y).toBeCloseTo((300 - 100 * 2) / 2 - 100 * 2)
+    expect(sheetPan(v, 0, 500, WIDE).y).toBeCloseTo(v.y)
+    const v4 = sheetZoomAt(FIT, 4, { x: 200, y: 150 }, WIDE) // 圖高 400 > 框高 300
+    expect(sheetPan(v4, 0, 9999, WIDE).y).toBeCloseTo(-100 * 4) // 圖上緣對齊框上緣
+    expect(sheetPan(v4, 0, -9999, WIDE).y).toBeCloseTo(300 - 200 * 4) // 圖下緣對齊框下緣
+  })
+})
+
 describe('一次匯入多張', () => {
   // 失敗代表:選了多張只加進一張,或重複加
   it('全部加進清單、去重,目前顯示最後一張', () => {
