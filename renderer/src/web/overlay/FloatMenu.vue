@@ -212,6 +212,21 @@
     <div class="fm-zoom-head" :class="{ movable: pinned }" data-menu="sheet-zoom-drag" @pointerdown="onZoomHeadDown">
       <span class="fm-zoom-title">{{ t('ppz.menu.sheet_title') }}</span>
       <span class="fm-hint">{{ t(pinned ? 'ppz.menu.sheet_pinned_hint' : 'ppz.menu.sheet_peek_hint') }}</span>
+      <template v-if="pinned">
+        <button type="button" class="fm-x" :aria-label="t('ppz.menu.sheet_zoom_out')" :title="t('ppz.menu.sheet_zoom_out')" :disabled="sheetView.scale <= 1"
+          data-action="sheet-zoom-out" @click="zoomBy(0.8)">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14" /></svg>
+        </button>
+        <span class="fm-zoom-pct" data-menu="sheet-zoom-pct">{{ Math.round(sheetView.scale * 100) }}%</span>
+        <button type="button" class="fm-x" :aria-label="t('ppz.menu.sheet_zoom_in')" :title="t('ppz.menu.sheet_zoom_in')" :disabled="sheetView.scale >= SHEET_ZOOM_MAX"
+          data-action="sheet-zoom-in" @click="zoomBy(1.25)">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14" /></svg>
+        </button>
+        <button type="button" class="fm-x" :aria-label="t('ppz.menu.sheet_zoom_fit')" :title="t('ppz.menu.sheet_zoom_fit')" :disabled="sheetView.scale <= 1"
+          data-action="sheet-zoom-fit" @click="sheetView = { scale: 1, x: 0, y: 0 }">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></svg>
+        </button>
+      </template>
       <button v-if="pinned && config.cheatSheetZoom" type="button" class="fm-x" :aria-label="t('ppz.menu.sheet_reset_size')" :title="t('ppz.menu.sheet_reset_size')"
         data-action="sheet-zoom-reset" @click="resetZoomRect">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4v6h6" /><path d="M20 12a8 8 0 1 1-2.3-5.7L4 10" /></svg>
@@ -220,7 +235,11 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
       </button>
     </div>
-    <img class="fm-zoom-img" :src="sheetUrl ?? undefined" alt="" draggable="false">
+    <!-- 2026-11-25:釘住後滾輪以游標為中心放大(100%–800%)、放大後拖曳移動、雙擊 100% ↔ 200%;不記住倍率 -->
+    <div ref="zoomView" class="fm-zoom-view" :class="{ grab: pinned && sheetView.scale > 1, grabbing: panning }" data-menu="sheet-zoom-view"
+      @wheel.prevent="onSheetWheel" @pointerdown="onSheetPanDown" @dblclick="onSheetDbl">
+      <img class="fm-zoom-img" :src="sheetUrl ?? undefined" alt="" draggable="false" :style="sheetImgStyle">
+    </div>
     <template v-if="pinned">
       <div v-for="e in zoomEdges" :key="e" class="fm-rz" :class="'rz-' + e" :data-resize="e" :style="{ cursor: edgeCursor(e) }"
         @pointerdown="beginZoomDrag($event, e)" />
@@ -250,7 +269,7 @@ import { bookmarkGroupsOf, gameLabel, setBookmarkFolderCollapsed, useRegexStore 
 import { copyRegexBookmark, quickRunning, runRegexBookmark } from '@/web/regex/quick'
 import { sharedPreviewCache } from './float-menu-preview-shared'
 import { quickNoticeKey } from '@/web/regex/quick-geom'
-import { BUILTIN_CHEAT_SHEET, bookmarkActionFor, cheatSheetUrl, floatMenuPlace, floatMenuPosOf, sheetZoomRect, type FloatMenuToggleKey } from './float-menu-geom'
+import { BUILTIN_CHEAT_SHEET, SHEET_ZOOM_MAX, addSheetFiles, bookmarkActionFor, cheatSheetUrl, floatMenuPlace, floatMenuPosOf, sheetPan, sheetViewFit, sheetZoomAt, sheetZoomRect, type FloatMenuToggleKey, type SheetView } from './float-menu-geom'
 import { MENU_CHIPS, filterMenuItems, menuItemsOf, menuKey, menuRows, rateDotOf, type MenuChip, type MenuItem, type MenuTool } from './float-menu-items'
 import { floatMenuChip, floatMenuQuery, floatMenuSection, floatMenuSel } from './float-menu-state'
 import { marketRateOf } from './market-rate'
@@ -569,11 +588,65 @@ function selectSheet (file: string) {
   sheetBroken.value = false
 }
 async function pickSheet () {
-  const name = normBgFile(await Host.sheetPick([...config.cheatSheets]))
-  if (name) {
-    if (!config.cheatSheets.includes(name)) config.cheatSheets = [...config.cheatSheets, name].slice(-20)
-    selectSheet(name)
+  // 2026-11-25:對話框可多選,全部加進清單、顯示最後一張
+  const names = (await Host.sheetPick([...config.cheatSheets])).map(normBgFile).filter(Boolean)
+  const r = addSheetFiles(config.cheatSheets, names)
+  if (!r.current) return
+  config.cheatSheets = r.list
+  selectSheet(r.current)
+}
+
+// 釘住後的再放大:不記住倍率,換圖 / 收起就回到整張
+const zoomView = ref<HTMLElement | null>(null)
+const sheetView = shallowRef<SheetView>({ scale: 1, x: 0, y: 0 })
+const panning = shallowRef(false)
+const sheetImgStyle = computed(() => {
+  const v = sheetView.value
+  return v.scale === 1 ? undefined : { transform: `translate(${v.x}px, ${v.y}px) scale(${v.scale})` }
+})
+const viewBox = () => ({ w: zoomView.value?.clientWidth ?? 0, h: zoomView.value?.clientHeight ?? 0 })
+watch([() => config.cheatSheet, pinned], () => { sheetView.value = { scale: 1, x: 0, y: 0 } })
+watch(zoomRect, () => { void nextTick(() => { sheetView.value = sheetViewFit(sheetView.value, viewBox()) }) })
+function zoomBy (factor: number, at?: { x: number, y: number }) {
+  const box = viewBox()
+  sheetView.value = sheetZoomAt(sheetView.value, factor, at ?? { x: box.w / 2, y: box.h / 2 }, box)
+}
+function pointIn (e: MouseEvent) {
+  const r = zoomView.value!.getBoundingClientRect()
+  return { x: e.clientX - r.left, y: e.clientY - r.top }
+}
+function onSheetWheel (e: WheelEvent) {
+  if (!pinned.value || !zoomView.value || !e.deltaY) return
+  zoomBy(e.deltaY < 0 ? 1.25 : 0.8, pointIn(e))
+}
+function onSheetDbl (e: MouseEvent) {
+  if (!pinned.value || !zoomView.value) return
+  if (sheetView.value.scale > 1) sheetView.value = { scale: 1, x: 0, y: 0 }
+  else zoomBy(2, pointIn(e))
+}
+function onSheetPanDown (e: PointerEvent) {
+  if (!pinned.value || e.button !== 0 || sheetView.value.scale <= 1) return
+  e.preventDefault()
+  const target = e.currentTarget as HTMLElement
+  try { target.setPointerCapture(e.pointerId) } catch { /* 合成事件沒有對應的指標 */ }
+  let last = { x: e.clientX, y: e.clientY }
+  panning.value = true
+  const onMove = (ev: PointerEvent) => {
+    if (ev.pointerId !== e.pointerId) return
+    sheetView.value = sheetPan(sheetView.value, ev.clientX - last.x, ev.clientY - last.y, viewBox())
+    last = { x: ev.clientX, y: ev.clientY }
   }
+  const done = (ev: PointerEvent) => {
+    if (ev.pointerId !== e.pointerId) return
+    panning.value = false
+    target.removeEventListener('pointermove', onMove)
+    target.removeEventListener('pointerup', done)
+    target.removeEventListener('pointercancel', done)
+    try { target.releasePointerCapture(e.pointerId) } catch { /* 指標已被釋放 */ }
+  }
+  target.addEventListener('pointermove', onMove)
+  target.addEventListener('pointerup', done)
+  target.addEventListener('pointercancel', done)
 }
 function removeSheet () {
   config.cheatSheets = config.cheatSheets.filter(x => x !== config.cheatSheet)
@@ -1067,5 +1140,9 @@ button.fm-row:hover:not(:disabled), .fm-row.sel { background: var(--surface-hove
 .fm-rz.rz-sw { bottom: 0; left: 0; width: 12px; height: 12px; }
 .fm-rz.rz-se { bottom: 0; right: 0; width: 12px; height: 12px; }
 .fm-zoom-head .fm-hint { flex: 1; text-align: right; padding: 0; }
-.fm-zoom-img { flex: 1; min-height: 0; width: 100%; object-fit: contain; }
+.fm-zoom-view { flex: 1; min-height: 0; position: relative; overflow: hidden; }
+.fm-zoom-view.grab { cursor: grab; }
+.fm-zoom-view.grabbing { cursor: grabbing; }
+.fm-zoom-img { display: block; width: 100%; height: 100%; object-fit: contain; transform-origin: 0 0; }
+.fm-zoom-pct { min-width: 3.2em; text-align: center; font-variant-numeric: tabular-nums; color: var(--ink-2); font-size: var(--fs-sm); }
 </style>

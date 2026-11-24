@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head><meta charset="utf-8"><title>verify sheet</title></head>
+  <body>
+    <!-- 暫時的驗證頁(不 commit):假 host(overlay 模式)讓懸浮選單在純瀏覽器裡叫得出來 -->
+    <div id="app"></div>
+    <script>
+      window.__cbs = {}
+      window.__picks = []
+      var real = {
+        version: 'verify', windowMode: 'overlay', isPreview: false,
+        loadConfig: function () { return Promise.resolve(localStorage.getItem('zz.config')) },
+        saveConfig: function (c) { localStorage.setItem('zz.config', c); return Promise.resolve() },
+        regexStateLoad: function () { return Promise.resolve(null) },
+        updateHostConfig: function () { return Promise.resolve({ ok: true }) },
+        sheetPick: function (keep) { window.__lastKeep = keep; return Promise.resolve(window.__picks) }
+      }
+      window.host = new Proxy(real, {
+        get: function (t, p) {
+          if (p in t) return t[p]
+          if (typeof p === 'string' && /^on[A-Z]/.test(p)) return function (cb) { window.__cbs[p] = cb; return function () {} }
+          if (typeof p !== 'string' || p === 'then') return undefined
+          return function () { return Promise.resolve(undefined) }
+        },
+        has: function () { return true }
+      })
+    </script>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
