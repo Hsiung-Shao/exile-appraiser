@@ -211,11 +211,14 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(JSON.stringify(createTradeRequest(preset.filters, preset.stats).query)).not.toMatch(/twice_corrupted/)
   })
 
-  it('D17v 實機文字:穢生 奇塔弗之渴望「至少200前期生命…有50%機率觸發」只取機率 50(交易站只索引 #%,不是兩數平均 125)', () => {
+  it('D17v2 實機文字:穢生 奇塔弗之渴望「至少200前期生命…有50%機率觸發」只取機率 50(交易站只索引 #%,不是兩數平均 125)', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-foulborn-kitavas-thirst.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
     const src = item.statsByType.find(s => s.stat.ref.includes('# Life on an'))!.sources[0]
     expect([src.stat.roll?.value, src.stat.translation.string.split('\n')[0]]).toEqual([50, '在消耗至少200前期生命以使用或觸發技能時，有#%機率觸發'])
+    const preset = createPresets(item, { league: 'Standard', currency: null, collapseListings: 'api', activateStockFilter: false, searchStatRange: 10, useEn: false, merchantOnly: false }).presets[0]
+    const f = preset.stats.find((x: any) => x.tradeId?.includes('explicit.stat_2513998383')) as any
+    expect([f.text.split('\n')[0], f.roll?.value]).toEqual(['在消耗至少200前期生命以使用或觸發技能時，有#%機率觸發', 50])
   })
 
   it('D17u 實機文字:逃脫不能「範圍精準技巧」(3.30 改名)+「通途 — 無法使用的值」解析成精準技巧選項', () => {
