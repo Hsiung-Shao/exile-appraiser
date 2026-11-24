@@ -26,6 +26,12 @@ const ITEMS: Record<string, { text: string, optIn: string[] }> = {
   魔偶: {
     text: [...head('魔偶', '次要魔偶'), '--------', '{ 固定詞綴 }', '增加 2% 你地圖中掉落的地圖', '--------', ...MODS(['擊殺敵人增加 100% 機率產生超越傳送門'])].join('\n'),
     optIn: ['增加 #% 你地圖中掉落的地圖']
+  },
+  // 2026-11-24 使用者裁定:3.30 海圖比照稀有地圖;區域段同類型掃描(parseChart 讀區域名 + 區域等級)
+  海圖: {
+    text: [...head('海圖', '珊瑚林海圖'), '--------', '{ 固定詞綴 }', '航程詞綴會於測繪後揭露', '--------',
+      ...MODS(['+21% 怪物物理傷害減免', '10% 更多怪物生命']), '--------', '深海平原', '區域等級: 83'].join('\n'),
+    optIn: ['航程詞綴會於測繪後揭露', '#% 怪物物理傷害減免', '#% 更多怪物生命']
   }
 }
 
@@ -88,4 +94,13 @@ describe('上游不列的詞綴改成可勾選、預設不勾', () => {
       expect(sentIds(createTradeRequest(preset).query)).toContain(row.tradeId[0])
     })
   }
+
+  // 2026-11-24 使用者裁定:海圖的新列比照稀有地圖收進「已隱藏」;失敗代表新列攤在面板上
+  it('海圖:新列收進已隱藏,且只藏不勾的列', () => {
+    const stats = rowsOf(activePreset(parse(ITEMS.海圖.text)).stats)
+    const rows = optInRows(stats, ITEMS.海圖.optIn)
+    expect(rows.every(r => r.hidden === 'filters.hide_map_random_mod')).toBe(true)
+    // 被藏卻仍勾選 = 看不見的查詢條件
+    expect(stats.filter(r => r.hidden === 'filters.hide_map_random_mod' && !r.disabled)).toEqual([])
+  })
 })

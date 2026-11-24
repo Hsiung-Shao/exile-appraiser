@@ -6,6 +6,7 @@ import { init } from '@/assets/data'
 import { parseClipboard, type ParsedItem } from '@/parser'
 import { createPresets, createTradeRequest } from '../src/index'
 import type { FilterOrGroup, StatFilter } from '@/web/price-check/filters/interfaces'
+import { buildReport } from '../../scripts/poe1-season/sweep-diff.mjs'
 
 /**
  * 類型掃描:每一類物品「會出現的詞綴」(GGPK 詞綴表,`scripts/poe1-season/dump-type-sweep.mjs` 產生的
@@ -29,13 +30,22 @@ import type { FilterOrGroup, StatFilter } from '@/web/price-check/filters/interf
  * `Unique <類別>` 是傳奇專屬詞綴:組成「稀有度: 傳奇 + 傳奇名稱 + { 傳奇詞綴 }」,其餘相同。
  */
 const HERE = path.dirname(fileURLToPath(import.meta.url))
-const GAPS_FILE = path.join(HERE, 'docs/type-sweep-gaps.json')
-const QUERY_GAPS_FILE = path.join(HERE, 'docs/type-sweep-query-gaps.json')
-const sweep = JSON.parse(fs.readFileSync(path.join(HERE, 'docs/type-sweep.json'), 'utf8')) as {
+interface Sweep {
   lines: Array<[string, string]>
   // `Unique <類別>`:傳奇專屬詞綴,uniques 與 bases 同位置(傳奇名稱 + 它的底材)
   classes: Record<string, { class: [string, string] | null, bases: Array<[string, string]>, uniques?: Array<[string, string]>, explicit: number[], implicit: number[] }>
 }
+/**
+ * 兩組掃描走同一條管線:
+ * - 類型掃描(`docs/type-sweep.json`,含實機樣本對照)
+ * - 開季差異掃描(`docs/type-sweep-diff.json`,`dump-type-sweep.mjs --diff 舊,新`:只有新版才有的句子);
+ *   `DIFF_SWEEP_REPORT=<檔>` 另寫 Markdown 報告(`scripts/poe1-season/sweep-diff.mjs` `buildReport`)
+ */
+const SUITES = [
+  { title: '類型掃描', file: 'type-sweep.json', gaps: 'type-sweep-gaps.json', queryGaps: 'type-sweep-query-gaps.json', samples: true, min: 1000 },
+  { title: '開季差異掃描', file: 'type-sweep-diff.json', gaps: 'type-sweep-diff-gaps.json', queryGaps: 'type-sweep-diff-query-gaps.json', samples: false, min: 100 }
+]
+type Suite = typeof SUITES[number]
 const TRADE_IDS = new Set((JSON.parse(fs.readFileSync(path.join(HERE, 'docs/trade-stat-ids-3.30.json'), 'utf8')) as { ids: string[] }).ids)
 const CATALOG = JSON.parse(fs.readFileSync(path.join(HERE, 'docs/trade-catalog-3.30.json'), 'utf8')) as { categories: string[], types: string[] }
 const CATEGORIES = new Set(CATALOG.categories)
@@ -80,6 +90,9 @@ function itemText (lang: Lang, cls: string, klass: string, pick: Pick, type: Mod
   else if (type === 'explicit') L.push('--------', zh ? '{ 前綴 "測試的"(階層：1) }' : '{ Prefix Modifier "Testing" (Tier: 1) }', line)
   // 探險日誌一定有區域段(區域名 / 陣營 / 帶「 (implicit)」的區域詞綴,`parseLogbookArea` 要 ≥ 3 行),沒有的話組查詢會拋錯;
   // 第 3 行是對不到任何詞綴的湊數行(被略過),區域段只剩陣營
+  // 3.30 海圖一定有「區域名 + 區域等級」這一段(`parseChart` 讀 section[0] 當區域),沒有的話組查詢讀不到 mapArea 而拋錯;
+  // 區域要挑海圖區域(items 的 AREA 帶 `area` 欄位的那 16 個),一般地圖區域沒有 area 欄位
+  if (cls === 'DeepwaterChart') L.push('--------', zh ? '深海平原' : 'Abyssal Plain', zh ? '區域等級: 83' : 'Area Level: 83')
   if (cls === 'ExpeditionLogbook') L.push('--------', zh ? '地區等級: 83' : 'Area Level: 83', '--------', 'Testing Grounds', zh ? '豔陽騎士' : 'Knights of the Sun', 'Testing Grounds (implicit)')
   return L.join('\n') + '\n'
 }
@@ -177,7 +190,7 @@ function queryProbe (item: ParsedItem, refs: Set<string>, type: ModType, lang: L
 }
 
 /** 每類挑第一個本專案認得的底材(GGPK 裡有很多舊底材 / 未上架底材);傳奇類別挑第一個認得的傳奇 */
-function pickBase (lang: Lang, cls: string): Pick | undefined {
+function pickBase (sweep: Sweep, lang: Lang, cls: string): Pick | undefined {
   const c = sweep.classes[cls]
   const at = lang === 'en' ? 0 : 1
   // 3.30 地圖只剩一個底材「地圖」;GGPK 的類別名「異界地圖」不是剪貼簿上的寫法
@@ -201,119 +214,129 @@ function classProbe (lang: Lang, cls: string, klass: string, base: Pick): { cate
   return { category, type }
 }
 
-const results: Record<Lang, Map<string, Probe>> = { en: new Map(), 'cmn-Hant': new Map() }
-const classResults: Record<Lang, Map<string, ReturnType<typeof classProbe>>> = { en: new Map(), 'cmn-Hant': new Map() }
-const noBase: Record<Lang, string[]> = { en: [], 'cmn-Hant': [] }
+function sweepSuite (cfg: Suite) {
+  const sweep = JSON.parse(fs.readFileSync(path.join(HERE, 'docs', cfg.file), 'utf8')) as Sweep
+  const results: Record<Lang, Map<string, Probe>> = { en: new Map(), 'cmn-Hant': new Map() }
+  const classResults: Record<Lang, Map<string, ReturnType<typeof classProbe>>> = { en: new Map(), 'cmn-Hant': new Map() }
+  const noBase: Record<Lang, string[]> = { en: [], 'cmn-Hant': [] }
 
-async function run (lang: Lang) {
-  await init(lang)
-  const at = lang === 'en' ? 0 : 1
-  for (const [cls, c] of Object.entries(sweep.classes)) {
-    const base = pickBase(lang, cls)
-    if (!base) { noBase[lang].push(cls); continue }
-    classResults[lang].set(cls, classProbe(lang, cls, c.class![at], base))
-    for (const type of ['explicit', 'implicit'] as const) {
-      for (const ix of c[type]) results[lang].set(`${cls}|${type}|${sweep.lines[ix][0]}`, probe(lang, cls, c.class![at], base, type, sweep.lines[ix][at]))
+  async function run (lang: Lang) {
+    await init(lang)
+    const at = lang === 'en' ? 0 : 1
+    for (const [cls, c] of Object.entries(sweep.classes)) {
+      const base = pickBase(sweep, lang, cls)
+      if (!base) { noBase[lang].push(cls); continue }
+      classResults[lang].set(cls, classProbe(lang, cls, c.class![at], base))
+      for (const type of ['explicit', 'implicit'] as const) {
+        for (const ix of c[type]) results[lang].set(`${cls}|${type}|${sweep.lines[ix][0]}`, probe(lang, cls, c.class![at], base, type, sweep.lines[ix][at]))
+      }
+    }
+    // 實機樣本(GitHub issue 回報的剪貼簿)走同一條管線,每條詞綴記下第 3 段的結論(只在類型掃描比對)
+    for (const file of cfg.samples ? fs.readdirSync(path.join(HERE, 'docs')).filter(f => f.startsWith('3.30-issue-') && f.endsWith(`.${lang}.txt`)) : []) {
+      const text = fs.readFileSync(path.join(HERE, 'docs', file), 'utf8')
+      const klass = text.split(/\r?\n/)[0].replace(/^(Item Class|物品種類): /, '')
+      const r = parseClipboard(text)
+      // 傳奇樣本對傳奇類別、其他對一般類別
+      const unique = r.isOk() && r.value.rarity === 'Unique'
+      const cls = Object.keys(sweep.classes).find(k => sweep.classes[k].class?.[at] === klass && !!sweep.classes[k].uniques === unique)
+      if (r.isErr()) { samples.push({ file, lang, cls, error: String(r.error) }); continue }
+      for (const s of r.value.statsByType) {
+        if ((s.type !== 'explicit' && s.type !== 'implicit') || !(s.type in s.stat.trade.ids)) continue
+        const p = queryProbeSafe(r.value, new Set([s.stat.ref]), s.type, lang)
+        samples.push({ file, lang, cls, type: s.type, ref: s.stat.ref, rarity: r.value.rarity, query: p.query })
+      }
     }
   }
-  // 實機樣本(GitHub issue 回報的剪貼簿)走同一條管線,每條詞綴記下第 3 段的結論
-  for (const file of fs.readdirSync(path.join(HERE, 'docs')).filter(f => f.startsWith('3.30-issue-') && f.endsWith(`.${lang}.txt`))) {
-    const text = fs.readFileSync(path.join(HERE, 'docs', file), 'utf8')
-    const klass = text.split(/\r?\n/)[0].replace(/^(Item Class|物品種類): /, '')
-    const r = parseClipboard(text)
-    // 傳奇樣本對傳奇類別、其他對一般類別
-    const unique = r.isOk() && r.value.rarity === 'Unique'
-    const cls = Object.keys(sweep.classes).find(k => sweep.classes[k].class?.[at] === klass && !!sweep.classes[k].uniques === unique)
-    if (r.isErr()) { samples.push({ file, lang, cls, error: String(r.error) }); continue }
-    for (const s of r.value.statsByType) {
-      if ((s.type !== 'explicit' && s.type !== 'implicit') || !(s.type in s.stat.trade.ids)) continue
-      const p = queryProbeSafe(r.value, new Set([s.stat.ref]), s.type, lang)
-      samples.push({ file, lang, cls, type: s.type, ref: s.stat.ref, rarity: r.value.rarity, query: p.query })
-    }
+
+  const samples: Array<{ file: string, lang: Lang, cls?: string, error?: string, type?: ModType, ref?: string, rarity?: string, query?: string }> = []
+  function queryProbeSafe (item: ParsedItem, refs: Set<string>, type: ModType, lang: Lang): Probe {
+    try { return queryProbe(item, refs, type, lang, { parse: [...refs].join(' + ') }) } catch (e) { return { parse: '', query: 'crash', crash: String(e) } }
   }
-}
 
-const samples: Array<{ file: string, lang: Lang, cls?: string, error?: string, type?: ModType, ref?: string, rarity?: string, query?: string }> = []
-function queryProbeSafe (item: ParsedItem, refs: Set<string>, type: ModType, lang: Lang): Probe {
-  try { return queryProbe(item, refs, type, lang, { parse: [...refs].join(' + ') }) } catch (e) { return { parse: '', query: 'crash', crash: String(e) } }
-}
+  const GAP = new Set(['error', 'unknown', 'dropped'])
 
-const GAP = new Set(['error', 'unknown', 'dropped'])
+  /** 鎖定:清單外的新缺口(或同一句變成另一種缺口)= 紅;已修好的要拿掉 */
+  function expectLocked (file: string, gaps: Record<string, string>) {
+    if (process.env.UPDATE_FIXTURES) fs.writeFileSync(file, JSON.stringify(gaps, null, 1) + '\n')
+    const known = JSON.parse(fs.readFileSync(file, 'utf8')) as Record<string, string>
+    expect(Object.entries(gaps).filter(([k, v]) => known[k] !== v)).toEqual([])
+    expect(Object.keys(known).filter(k => !(k in gaps))).toEqual([])
+  }
 
-/** 鎖定:清單外的新缺口(或同一句變成另一種缺口)= 紅;已修好的要拿掉 */
-function expectLocked (file: string, gaps: Record<string, string>) {
-  if (process.env.UPDATE_FIXTURES) fs.writeFileSync(file, JSON.stringify(gaps, null, 1) + '\n')
-  const known = JSON.parse(fs.readFileSync(file, 'utf8')) as Record<string, string>
-  expect(Object.entries(gaps).filter(([k, v]) => known[k] !== v)).toEqual([])
-  expect(Object.keys(known).filter(k => !(k in gaps))).toEqual([])
-}
+  // 第 1–2 段的缺口,差異報告要用
+  let parseGaps: Record<string, string> = {}
+  describe(`${cfg.title}:每類物品會出現的詞綴中英都解析得到、查詢送得出去`, () => {
+    it('英文', async () => { await run('en'); expect(results.en.size).toBeGreaterThan(cfg.min) })
+    it('繁中', async () => { await run('cmn-Hant'); expect(results['cmn-Hant'].size).toBeGreaterThan(cfg.min) })
 
-describe('類型掃描:每類物品會出現的詞綴中英都解析得到、查詢送得出去', () => {
-  it('英文', async () => { await run('en'); expect(results.en.size).toBeGreaterThan(1000) })
-  it('繁中', async () => { await run('cmn-Hant'); expect(results['cmn-Hant'].size).toBeGreaterThan(1000) })
-
-  it('解析與中英一致:缺口不超出已知清單(只能變少)', () => {
-    const gaps: Record<string, string> = {}
-    for (const cls of new Set([...noBase.en, ...noBase['cmn-Hant']])) gaps[`${cls}|base`] = `找不到認得的底材:${['en', 'cmn-Hant'].filter(l => noBase[l as Lang].includes(cls)).join(',')}`
-    for (const key of [...results.en.keys()].sort()) {
-      const en = results.en.get(key)!.parse
-      const zh = results['cmn-Hant'].get(key)?.parse
-      if (zh === undefined) continue // 那一類繁中沒有底材,已記在上面
-      if (GAP.has(en) || GAP.has(zh)) gaps[key] = `en:${GAP.has(en) ? en : 'ok'} zh:${GAP.has(zh) ? zh : 'ok'}`
-      else if (en !== zh) gaps[key] = `mismatch en:${en} zh:${zh}`
-    }
-    expectLocked(GAPS_FILE, gaps)
-  })
-
-  it('查詢(第 3–6 段):缺口不超出已知清單(只能變少)', () => {
-    const gaps: Record<string, string> = {}
-    const report: any[] = []
-    for (const key of [...results.en.keys()].sort()) {
-      const both = { en: results.en.get(key)!, zh: results['cmn-Hant'].get(key) }
-      if (!both.zh) continue
-      report.push({ key, ...both })
-      for (const [lang, p] of Object.entries(both) as Array<[string, Probe]>) {
-        if (GAP.has(p.parse)) continue // 第 1 段的缺口,後面不再算
-        if (p.query === 'no-row' || p.query === 'not-sent') gaps[`${key}|query|${lang}`] = p.query
-        if (p.query === 'crash') gaps[`${key}|query|${lang}`] = `crash ${p.crash}`
-        if (p.badIds) gaps[`${key}|id|${lang}`] = `不在存檔:${p.badIds.join(' ')}`
-        if (p.badType) gaps[`${key}|idType|${lang}`] = `來源 ${key.split('|')[1]}、送 ${p.badType.join(' ')}`
+    it('解析與中英一致:缺口不超出已知清單(只能變少)', () => {
+      const gaps: Record<string, string> = parseGaps = {}
+      for (const cls of new Set([...noBase.en, ...noBase['cmn-Hant']])) gaps[`${cls}|base`] = `找不到認得的底材:${['en', 'cmn-Hant'].filter(l => noBase[l as Lang].includes(cls)).join(',')}`
+      for (const key of [...results.en.keys()].sort()) {
+        const en = results.en.get(key)!.parse
+        const zh = results['cmn-Hant'].get(key)?.parse
+        if (zh === undefined) continue // 那一類繁中沒有底材,已記在上面
+        if (GAP.has(en) || GAP.has(zh)) gaps[key] = `en:${GAP.has(en) ? en : 'ok'} zh:${GAP.has(zh) ? zh : 'ok'}`
+        else if (en !== zh) gaps[key] = `mismatch en:${en} zh:${zh}`
       }
-      if (!GAP.has(both.en.parse) && !GAP.has(both.zh.parse) && both.en.parse === both.zh.parse && both.en.request !== both.zh.request) {
-        gaps[`${key}|same`] = '中英查詢不同'
-      }
-    }
-    for (const cls of classResults.en.keys()) {
-      for (const lang of ['en', 'cmn-Hant'] as const) {
-        const c = classResults[lang].get(cls)
-        if (!c) continue
-        if (c.crash) { gaps[`${cls}|category|${lang}`] = `crash ${c.crash}`; continue }
-        if (c.category !== undefined && !CATEGORIES.has(c.category)) gaps[`${cls}|category|${lang}`] = `類別不在存檔:${c.category}`
-        if (c.type === undefined) gaps[`${cls}|type|${lang}`] = '改查基底後查詢沒有基底名稱'
-        else if (!TYPES.has(c.type)) gaps[`${cls}|type|${lang}`] = `基底不在存檔:${c.type}`
-      }
-      const en = classResults.en.get(cls)!
-      const zh = classResults['cmn-Hant'].get(cls)
-      if (zh && (en.category !== zh.category || en.type !== zh.type)) gaps[`${cls}|class-same`] = `中英不同 en:${en.category}/${en.type} zh:${zh.category}/${zh.type}`
-    }
-    // 實機樣本對照:同類別、同來源、解析成同一條詞綴的掃描句子,第 3 段結論要相同(掃描母體沒有的只寫進報告)
-    const sampleRows = samples.map(s => {
-      if (s.error || !s.cls) return { ...s, sweep: s.error ? 'error' : 'class-not-in-sweep' }
-      const seen = [...results[s.lang].entries()].filter(([k, p]) => k.startsWith(`${s.cls}|${s.type}|`) && p.parse.split(' + ').includes(s.ref!)).map(([, p]) => p.query)
-      // 掃描組的是稀有(藥劑魔法)或傳奇;稀有度不同(篩選組法不同)就只記下、不比
-      const rarityDiffers = s.rarity !== (sweep.classes[s.cls!].uniques ? 'Unique' : s.cls!.endsWith('Flask') ? 'Magic' : 'Rare')
-      return { ...s, rarityDiffers, sweep: seen.length ? [...new Set(seen)].sort().join(',') : 'not-in-sweep' }
+      expectLocked(path.join(HERE, 'docs', cfg.gaps), gaps)
     })
-    for (const s of sampleRows) {
-      if (s.error) gaps[`sample|${s.file}`] = `解析失敗 ${s.error}`
-      else if (!('rarityDiffers' in s && s.rarityDiffers) && !['class-not-in-sweep', 'not-in-sweep'].includes(s.sweep) && s.sweep !== s.query) gaps[`sample|${s.file}|${s.type}|${s.ref}`] = `樣本 ${s.query}、掃描 ${s.sweep}`
-    }
-    if (process.env.SWEEP_REPORT) {
-      fs.writeFileSync(process.env.SWEEP_REPORT, JSON.stringify({
-        samples: sampleRows,
-        lines: report, classes: Object.fromEntries([...classResults.en.keys()].map(c => [c, { en: classResults.en.get(c), zh: classResults['cmn-Hant'].get(c) }]))
-      }))
-    }
-    expectLocked(QUERY_GAPS_FILE, gaps)
+
+    it('查詢(第 3–6 段):缺口不超出已知清單(只能變少)', () => {
+      const gaps: Record<string, string> = {}
+      const report: any[] = []
+      for (const key of [...results.en.keys()].sort()) {
+        const both = { en: results.en.get(key)!, zh: results['cmn-Hant'].get(key) }
+        if (!both.zh) continue
+        report.push({ key, ...both })
+        for (const [lang, p] of Object.entries(both) as Array<[string, Probe]>) {
+          if (GAP.has(p.parse)) continue // 第 1 段的缺口,後面不再算
+          if (p.query === 'no-row' || p.query === 'not-sent') gaps[`${key}|query|${lang}`] = p.query
+          if (p.query === 'crash') gaps[`${key}|query|${lang}`] = `crash ${p.crash}`
+          if (p.badIds) gaps[`${key}|id|${lang}`] = `不在存檔:${p.badIds.join(' ')}`
+          if (p.badType) gaps[`${key}|idType|${lang}`] = `來源 ${key.split('|')[1]}、送 ${p.badType.join(' ')}`
+        }
+        if (!GAP.has(both.en.parse) && !GAP.has(both.zh.parse) && both.en.parse === both.zh.parse && both.en.request !== both.zh.request) {
+          gaps[`${key}|same`] = '中英查詢不同'
+        }
+      }
+      for (const cls of classResults.en.keys()) {
+        for (const lang of ['en', 'cmn-Hant'] as const) {
+          const c = classResults[lang].get(cls)
+          if (!c) continue
+          if (c.crash) { gaps[`${cls}|category|${lang}`] = `crash ${c.crash}`; continue }
+          if (c.category !== undefined && !CATEGORIES.has(c.category)) gaps[`${cls}|category|${lang}`] = `類別不在存檔:${c.category}`
+          if (c.type === undefined) gaps[`${cls}|type|${lang}`] = '改查基底後查詢沒有基底名稱'
+          else if (!TYPES.has(c.type)) gaps[`${cls}|type|${lang}`] = `基底不在存檔:${c.type}`
+        }
+        const en = classResults.en.get(cls)!
+        const zh = classResults['cmn-Hant'].get(cls)
+        if (zh && (en.category !== zh.category || en.type !== zh.type)) gaps[`${cls}|class-same`] = `中英不同 en:${en.category}/${en.type} zh:${zh.category}/${zh.type}`
+      }
+      // 實機樣本對照:同類別、同來源、解析成同一條詞綴的掃描句子,第 3 段結論要相同(掃描母體沒有的只寫進報告)
+      const sampleRows = samples.map(s => {
+        if (s.error || !s.cls) return { ...s, sweep: s.error ? 'error' : 'class-not-in-sweep' }
+        const seen = [...results[s.lang].entries()].filter(([k, p]) => k.startsWith(`${s.cls}|${s.type}|`) && p.parse.split(' + ').includes(s.ref!)).map(([, p]) => p.query)
+        // 掃描組的是稀有(藥劑魔法)或傳奇;稀有度不同(篩選組法不同)就只記下、不比
+        const rarityDiffers = s.rarity !== (sweep.classes[s.cls!].uniques ? 'Unique' : s.cls!.endsWith('Flask') ? 'Magic' : 'Rare')
+        return { ...s, rarityDiffers, sweep: seen.length ? [...new Set(seen)].sort().join(',') : 'not-in-sweep' }
+      })
+      for (const s of sampleRows) {
+        if (s.error) gaps[`sample|${s.file}`] = `解析失敗 ${s.error}`
+        else if (!('rarityDiffers' in s && s.rarityDiffers) && !['class-not-in-sweep', 'not-in-sweep'].includes(s.sweep) && s.sweep !== s.query) gaps[`sample|${s.file}|${s.type}|${s.ref}`] = `樣本 ${s.query}、掃描 ${s.sweep}`
+      }
+      if (!cfg.samples && process.env.DIFF_SWEEP_REPORT) {
+        fs.writeFileSync(process.env.DIFF_SWEEP_REPORT, buildReport({ diff: sweep as any, gaps: parseGaps, queryGaps: gaps }))
+      }
+      if (cfg.samples && process.env.SWEEP_REPORT) {
+        fs.writeFileSync(process.env.SWEEP_REPORT, JSON.stringify({
+          samples: sampleRows,
+          lines: report, classes: Object.fromEntries([...classResults.en.keys()].map(c => [c, { en: classResults.en.get(c), zh: classResults['cmn-Hant'].get(c) }]))
+        }))
+      }
+      expectLocked(path.join(HERE, 'docs', cfg.queryGaps), gaps)
+    })
   })
-})
+}
+
+for (const cfg of SUITES) sweepSuite(cfg)

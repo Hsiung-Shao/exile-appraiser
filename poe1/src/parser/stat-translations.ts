@@ -45,7 +45,8 @@ export function * linesToStatStrings (lines: string[]): Generator<StatString, st
       continue
     }
 
-    for (let end = start; end < lines.length; end += 1) {
+    // exile-appraiser: 最長優先(上游最短優先):英文第一行單獨也是一條詞綴時,多行詞綴會被拆開(「視為有最大數量的球」、德瑞肖像,2026-11-25 傳奇類型掃描)
+    for (let end = lines.length - 1; end >= start; end -= 1) {
       let str = lines.slice(start, end + 1).join('\n')
 
       const unscalable = str.endsWith(_$.UNSCALABLE_VALUE)

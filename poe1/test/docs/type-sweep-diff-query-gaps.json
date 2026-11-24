@@ -1,0 +1,8 @@
+{
+ "DeepwaterChart|explicit|Monsters gain an Endurance Charge on Hit|same": "中英查詢不同",
+ "DeepwaterChart|explicit|Monsters have 50% chance to gain an Endurance Charge on Hit|same": "中英查詢不同",
+ "ExpeditionLogbook|implicit|100% increased Explicit Modifier magnitudes|query|en": "no-row",
+ "ExpeditionLogbook|implicit|100% increased Explicit Modifier magnitudes|query|zh": "no-row",
+ "MiscMapItem|implicit|100% increased Explicit Modifier magnitudes|query|en": "no-row",
+ "MiscMapItem|implicit|100% increased Explicit Modifier magnitudes|query|zh": "no-row"
+}

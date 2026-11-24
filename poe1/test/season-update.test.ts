@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toMatcherText, planStatText, planTradeText, planOtherTradeTexts, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planRandomSkillGem, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, planRoomNames, planCitadel, planExtraZh, planZhForms, planCondForms, planMercenaryBuilds, planNamedSlots, planTimelessJewels, planFixedCase, planMercenarySkills, EXTRA_ZH_MATCHERS, planGrownPassives, planPassiveRenames, planForbiddenNotables, planMergeDuplicates, planFlagMerge, planIndexableSkills, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
+import { toMatcherText, planStatText, planTradeText, planOtherTradeTexts, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planRandomSkillGem, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, planRoomNames, planCitadel, planExtraZh, planZhForms, planCondForms, planMercenaryBuilds, planNamedSlots, planTimelessJewels, planFixedCase, planMercenarySkills, EXTRA_ZH_MATCHERS, planGrownPassives, planPassiveRenames, planForbiddenNotables, planMergeDuplicates, planFlagMerge, planIndexableSkills, planDropNoIdStats, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
 
 /**
  * 賽季更新腳本的純函式測試(合成輸入,不讀 data/)。
@@ -1192,6 +1192,129 @@ describe('planCondForms(規則 21:同一條詞綴依數值的其他寫法)', () 
     expect(out[0].matchers).toEqual([{ string: '#% increased Speed' }, { string: '#% reduced Speed', negate: true, superseded: true }])
     expect(planCondForms({ enStats: out, zhStats: [], ggpkNew }).adds).toEqual([])
   })
+
+  // 輿圖聖物(類型掃描 2026-11-24):資料只收了輿圖天賦的「in your Maps」,物品上印的是 stat_descriptions 的「in Area」
+  it('資料的寫法只在輿圖描述檔 → 補物品描述檔同一個 stat 的寫法;輿圖句屬於兩個 stat 的不收', () => {
+    const a = (ids: string, cond: string) => `${ids}|${cond}|atlas_stat_descriptions.txt|0`
+    const enStats = [
+      stat('Altars allow # rerolls in your Maps', [{ string: 'Altars in your Maps allow # rerolls' }, { string: 'Altars in your Maps allow a reroll', value: 1 }]),
+      stat('Boxes in your Maps are Rare', [{ string: 'Boxes in your Maps are Rare' }])
+    ]
+    const zhStats = [stat('Altars allow # rerolls in your Maps', [{ string: '地圖神壇重骰 # 次' }, { string: '地圖神壇重骰 1 次', value: 1 }])]
+    const ggpkNew = [
+      row(a('rerolls', '2|#'), 'Altars in your Maps allow {0} rerolls', '地圖神壇重骰 {0} 次'),
+      row(a('rerolls', '1'), 'Altars in your Maps allow a reroll', '地圖神壇重骰 1 次'),
+      row(g('rerolls', '2|#'), 'Altars in Area allow {0} rerolls', '區域神壇重骰 {0} 次'),
+      row(g('rerolls', '1'), 'Altars in Area allow a reroll', '區域神壇重骰 1 次'),
+      row(a('boxes_rare', '#'), 'Boxes in your Maps are Rare', ''),
+      row(a('boxes_min', '2'), 'Boxes in your Maps are Rare', ''),
+      row(g('boxes_rare', '#'), 'Boxes in Area are Rare', '')
+    ]
+    expect(planCondForms({ enStats, zhStats, ggpkNew }).adds).toEqual([
+      { lang: 'en', ref: 'Altars allow # rerolls in your Maps', matcher: { string: 'Altars in Area allow # rerolls', superseded: true } },
+      { lang: 'en', ref: 'Altars allow # rerolls in your Maps', matcher: { string: 'Altars in Area allow a reroll', value: 1, superseded: true } },
+      // 繁中「1 次」與「# 次」同形,由 # 接住(算已涵蓋,英文的 a reroll 照收)
+      { lang: 'cmn-Hant', ref: 'Altars allow # rerolls in your Maps', matcher: { string: '區域神壇重骰 # 次', superseded: true } }
+    ])
+  })
+
+  // 審查 2026-11-24:最後通牒(繁中被同形擋下、英文補了)/ 神諭(反過來)→ 只補一邊 = 中英送不同 id
+  it('輿圖基準:只有一個語言補得到的寫法兩邊都不補', () => {
+    const a = (ids: string, cond: string) => `${ids}|${cond}|atlas_stat_descriptions.txt|0`
+    const enStats = [stat('Maps have #% Ritual', [{ string: 'Maps have #% Ritual' }])]
+    const zhStats = [stat('Maps have #% Ritual', [{ string: '地圖 #% 祭祀' }]), stat('Area contains Ritual', [{ string: '區域含有祭祀' }], { explicit: ['explicit.stat_2'] })]
+    const ggpkNew = [row(a('ritual', '1|99'), 'Maps have {0}% Ritual', '地圖 {0}% 祭祀'), row(g('ritual', '100|#'), 'Area contains Ritual', '區域含有祭祀')]
+    const plan = planCondForms({ enStats, zhStats, ggpkNew })
+    expect(plan.adds).toEqual([])
+    expect(plan.rejects).toContainEqual({ reason: '另一語言沒補到同一句', ref: 'Maps have #% Ritual', lang: 'en', to: 'Area contains Ritual' })
+  })
+
+  // 審查第 2 輪:繁中單複數同字,第二個 GGPK 鍵由本輪剛補的那句接住 → 英文複數句也要收
+  it('輿圖基準:另一語言由本輪新補的同一句接住也算涵蓋', () => {
+    const a = (ids: string, cond: string) => `${ids}|${cond}|atlas_stat_descriptions.txt|0`
+    const enStats = [stat('Maps contain # Sergeant', [{ string: 'Maps contain # Sergeant' }, { string: 'Maps contain # Sergeants' }])]
+    const zhStats = [stat('Maps contain # Sergeant', [{ string: '地圖 # 中士' }])]
+    const ggpkNew = [
+      row(a('sgt', '1'), 'Maps contain {0} Sergeant', '地圖 {0} 中士'), row(a('sgt', '2|#'), 'Maps contain {0} Sergeants', '地圖 {0} 中士'),
+      row(g('sgt', '1'), 'Legion contain {0} Sergeant', '戰亂 {0} 中士'), row(g('sgt', '2|#'), 'Legion contain {0} Sergeants', '戰亂 {0} 中士')
+    ]
+    expect(planCondForms({ enStats, zhStats, ggpkNew }).adds.map((x: any) => `${x.lang}:${x.matcher.string}`).sort()).toEqual(
+      ['cmn-Hant:戰亂 # 中士', 'en:Legion contain # Sergeant', 'en:Legion contain # Sergeants'])
+  })
+
+  // 審查第 2 輪:繁中「1 次」靠本輪補的「# 次」接住,但「# 次」因英文那句被擋而丟掉 → 英文「a reroll」也要丟
+  it('輿圖基準:涵蓋它的新寫法被丟掉時,靠它涵蓋的另一語言寫法也丟', () => {
+    const a = (ids: string, cond: string) => `${ids}|${cond}|atlas_stat_descriptions.txt|0`
+    const enStats = [stat('Maps allow # rerolls', [{ string: 'Maps allow # rerolls' }, { string: 'Maps allow a reroll', value: 1 }]), stat('Other', [{ string: 'Area allow # rerolls' }], { explicit: ['explicit.stat_2'] })]
+    const zhStats = [stat('Maps allow # rerolls', [{ string: '地圖重骰 # 次' }])]
+    const ggpkNew = [
+      row(a('rr', '2|#'), 'Maps allow {0} rerolls', '地圖重骰 {0} 次'), row(a('rr', '1'), 'Maps allow a reroll', '地圖重骰 1 次'),
+      row(g('rr', '2|#'), 'Area allow {0} rerolls', '區域重骰 {0} 次'), row(g('rr', '1'), 'Area allow a reroll', '區域重骰 1 次')
+    ]
+    // Other 自己走非輿圖路徑補「a reroll」,與這裡無關
+    expect(planCondForms({ enStats, zhStats, ggpkNew }).adds.filter((x: any) => x.ref === 'Maps allow # rerolls')).toEqual([])
+  })
+
+  // 審查第 3 輪:繁中「區域含有 2 個箱」與剛補的「1 個箱」同形被擋,但寫死的 1 接不住 2 → 英文「2 Boxes」也要丟
+  it('輿圖基準:只差寫死數字的句子不算涵蓋', () => {
+    const a = (ids: string, cond: string) => `${ids}|${cond}|atlas_stat_descriptions.txt|0`
+    const enStats = [stat('Maps contain # Box', [{ string: 'Maps contain # Box' }])]
+    const zhStats = [stat('Maps contain # Box', [{ string: '地圖含有 # 個箱' }])]
+    const ggpkNew = [
+      row(a('box', '#'), 'Maps contain {0} Box', '地圖含有 {0} 個箱'),
+      row(g('box', '1'), 'Area contains 1 additional Box', '區域含有 1 個箱'),
+      row(g('box', '2'), 'Area contains 2 additional Boxes', '區域含有 2 個箱')
+    ]
+    const plan = planCondForms({ enStats, zhStats, ggpkNew })
+    expect(plan.adds.map((x: any) => `${x.lang}:${x.matcher.string}`).sort()).toEqual(['cmn-Hant:區域含有 1 個箱', 'en:Area contains 1 additional Box'])
+    expect(plan.rejects).toContainEqual({ reason: '另一語言沒補到同一句', ref: 'Maps contain # Box', lang: 'en', to: 'Area contains 2 additional Boxes' })
+  })
+
+  // 審查第 3 輪:另一語言的同一句逐字屬於別一列 → 解析會落到那列,不算涵蓋
+  it('輿圖基準:另一語言的句子屬於別一列時不算涵蓋', () => {
+    const a = (ids: string, cond: string) => `${ids}|${cond}|atlas_stat_descriptions.txt|0`
+    const enStats = [stat('Maps have # Altars', [{ string: 'Maps have # Altars' }])]
+    const zhStats = [stat('Maps have # Altars', [{ string: '地圖 # 祭壇' }, { string: '區域 # 祭壇' }]), stat('Area Altars', [{ string: '區域 # 祭壇' }], { explicit: ['explicit.stat_2'] })]
+    const ggpkNew = [row(a('altar', '#'), 'Maps have {0} Altars', '地圖 {0} 祭壇'), row(g('altar', '#'), 'Area has {0} Altars', '區域 {0} 祭壇')]
+    const plan = planCondForms({ enStats, zhStats, ggpkNew })
+    expect(plan.adds).toEqual([])
+    expect(plan.rejects).toContainEqual({ reason: '另一語言沒補到同一句', ref: 'Maps have # Altars', lang: 'en', to: 'Area has # Altars' })
+  })
+
+  // 這次大多數的新寫法走這條:輿圖句是增加、沒有 negate,物品句是減少、帶 negate
+  it('輿圖基準:物品的「減少」句帶 negate', () => {
+    const a = (ids: string, cond: string) => `${ids}|${cond}|atlas_stat_descriptions.txt|0`
+    const enStats = [stat('#% increased Pack Size in your Maps', [{ string: '#% increased Pack Size in your Maps' }])]
+    const zhStats = [stat('#% increased Pack Size in your Maps', [{ string: '地圖增加 #% 群大小' }])]
+    const ggpkNew = [row(a('pack_+%', '1|#'), '{0}% increased Pack Size in your Maps', '地圖增加 {0}% 群大小'), row(g('pack_+%', '#|-1'), '{0}% reduced Pack Size', '減少 {0}% 群大小', NEG)]
+    expect(planCondForms({ enStats, zhStats, ggpkNew }).adds.map((x: any) => x.matcher)).toEqual([
+      { string: '#% reduced Pack Size', negate: true, superseded: true },
+      { string: '減少 #% 群大小', negate: true, superseded: true }
+    ])
+  })
+
+  // 漆黑神殿:「區域含有…」另有自己的一列(同一個 id),輿圖那列不該再收它的寫法
+  it('物品描述檔的寫法已屬於別一列 → 輿圖那列不補', () => {
+    const a = (ids: string, cond: string) => `${ids}|${cond}|atlas_stat_descriptions.txt|0`
+    const enStats = [stat('Your Maps contain a Shrine', [{ string: 'Your Maps contain a Shrine' }]), stat('Area contains a Shrine', [{ string: 'Area contains a Shrine' }])]
+    const ggpkNew = [row(a('shrines', '1'), 'Your Maps contain a Shrine', ''), row(g('shrines', '1'), 'Area contains a Shrine', ''), row(g('shrines', '2|#'), 'Area contains {0} Shrines', '')]
+    expect(planCondForms({ enStats, zhStats: [], ggpkNew }).adds.filter((x: any) => x.ref === 'Your Maps contain a Shrine')).toEqual([])
+  })
+
+  it('物品描述檔已有基準句時照舊只用它(不改用輿圖句)', () => {
+    const a = (ids: string, cond: string) => `${ids}|${cond}|atlas_stat_descriptions.txt|0`
+    const enStats = [stat('# Foo', [{ string: '# Foo' }])]
+    const ggpkNew = [row(g('foo', '#'), '{0} Foo', ''), row(a('foo', '#'), '{0} Foo', ''), row(a('foo', '1'), 'One Foo in your Maps', '')]
+    expect(planCondForms({ enStats, zhStats: [], ggpkNew }).adds).toEqual([])
+  })
+
+  // 熔爐 3.30:值 1 = 未被汙染的傳奇、值 2 = 任何傳奇,交易站同一個 id;逐 stat 人工確認過才放行
+  it('VALUE_SELECT_STATS 的 stat:用數值選寫法的句子也補(帶 value)', () => {
+    const ids = 'map_crucible_contains_forge_that_can_apply_weapon_tree_to_unique'
+    const enStats = [stat('Furnace for an Uncorrupted Unique', [{ string: 'Furnace for an Uncorrupted Unique' }])]
+    const ggpkNew = [row(g(ids, '1'), 'Furnace for an Uncorrupted Unique', ''), row(g(ids, '2'), 'Furnace for a Unique', '')]
+    expect(planCondForms({ enStats, zhStats: [], ggpkNew }).adds.map((x: any) => x.matcher)).toEqual([{ string: 'Furnace for a Unique', value: 2, superseded: true }])
+  })
 })
 
 describe('planMercenaryBuilds(規則 23:新的傭兵流派)', () => {
@@ -1374,12 +1497,23 @@ describe('planPassiveRenames(規則 25:天賦繁中改名)', () => {
     expect(planPassiveRenames({ zhStats: out, renames }).adds).toEqual([])
   })
 
-  it('逃脫不能「天賦樹中在範圍 X 內未連結的天賦…」換新名(精準科技 → 精準技巧)、舊的標 superseded', () => {
+  // 開季差異掃描 3.29.3 → 3.30.0d:不可能的逃脫的基石名也是動態帶入(天賦 hash),3.30 精準科技 → 精準技巧、惡毒牢房 → 邪惡結界
+  it('不可能的逃脫「範圍 X 內未連結的天賦」補新基石名、舊的標 superseded;再跑一次不重複', () => {
     const ref = 'Passive Skills in Radius of Precise Technique can be Allocated\nwithout being connected to your tree\nPassage'
     const zhStats = [stat(ref, [{ string: '天賦樹中在範圍精準科技內未連結的天賦仍然可以配置\n通途' }])]
     const renames = [{ en: 'Precise Technique', from: '精準科技', zh: '精準技巧' }]
     const plan = planPassiveRenames({ zhStats, renames })
-    expect(plan.adds).toEqual([{ lang: 'cmn-Hant', ref, matcher: { string: '天賦樹中在範圍精準技巧內未連結的天賦仍然可以配置\n通途' }, supersedes: ['天賦樹中在範圍精準科技內未連結的天賦仍然可以配置\n通途'] }])
+    expect(plan.adds).toEqual([
+      { lang: 'cmn-Hant', ref, matcher: { string: '天賦樹中在範圍精準技巧內未連結的天賦仍然可以配置\n通途' }, supersedes: ['天賦樹中在範圍精準科技內未連結的天賦仍然可以配置\n通途'] }
+    ])
+    const out = parseRows(applyStatPlan(toFile(zhStats), 'cmn-Hant', { adds: plan.adds }))
+    expect(planPassiveRenames({ zhStats: out, renames }).adds).toEqual([])
+  })
+
+  it('不可能的逃脫:繁中句裡找不到舊名(已是別的寫法)就不動', () => {
+    const ref = 'Passive Skills in Radius of Precise Technique can be Allocated\nwithout being connected to your tree\nPassage'
+    const zhStats = [stat(ref, [{ string: '天賦樹中在範圍別的名字內未連結的天賦仍然可以配置\n通途' }])]
+    expect(planPassiveRenames({ zhStats, renames: [{ en: 'Precise Technique', from: '精準科技', zh: '精準技巧' }] }).adds).toEqual([])
   })
 
   // 審查第 2 輪:星團「1 個附加天賦為 X」(帶 explicit id)是寫死名稱(GGPK 3.30 仍是舊名),不能跟著改
@@ -1661,5 +1795,41 @@ describe('planFixedCase(規則 29:寫死數值的句子只差大小寫)', () => 
   it('逐字相同(解析器本來就接得住)→ 不補', () => {
     const en = [stat('#% chance to cause Bleeding on Critical Strike', [{ string: '#% chance to cause Bleeding on Critical Strike' }])]
     expect(planFixedCase({ enStats: en, ggpkNew }).adds).toEqual([])
+  })
+})
+
+describe('planDropNoIdStats(規則 33:刪掉沒有交易站 id 的聖甲蟲與區域詞綴)', () => {
+  const rows = [
+    { ...stat('Scarabs dropped in your Maps have #% increased chance to be Titanic Scarabs', [{ string: 'x' }], {}) },
+    { ...stat("Area contains an additional Smuggler's Cache", [{ string: 'y' }], {}), fromAreaMods: 'yes' },
+    stat('Grants Level # Vengeance Skill', [{ string: 'z' }], {}),
+    stat('Scarabs dropped in Area are Titanic', [{ string: 'w' }])
+  ]
+  // 失敗代表:使用者裁定刪除的列沒被刪,或刪到別的列(沒 id 的其他列、有 id 的聖甲蟲列)
+  it('只挑沒有 id 的聖甲蟲列與區域列', () => {
+    expect(planDropNoIdStats({ enStats: rows }).drop.sort()).toEqual(["Area contains an additional Smuggler's Cache", 'Scarabs dropped in your Maps have #% increased chance to be Titanic Scarabs'])
+  })
+  // 失敗代表:applyStatPlan 沒有整列刪掉(兩語都要刪,索引才不會指到不存在的列)
+  it('applyStatPlan 整列刪掉、其他列不動', () => {
+    const out = parseRows(applyStatPlan(toFile(rows), 'en', { drop: planDropNoIdStats({ enStats: rows }).drop }))
+    expect(out.map(r => r.ref)).toEqual(['Grants Level # Vengeance Skill', 'Scarabs dropped in Area are Titanic'])
+  })
+  // 失敗代表:同 ref 另一列 / 群組成員有 id 也被整個刪掉(審查第 1 輪)
+  it('同一個 ref 只要有一筆有 id 就不刪(頂層兩列、trivial-merge 群組)', () => {
+    const ref = 'Scarabs dropped in your Maps have #% increased chance to be Titanic Scarabs'
+    const twin = [stat(ref, [{ string: 'a' }], {}), stat(ref, [{ string: 'b' }])]
+    expect(planDropNoIdStats({ enStats: twin }).drop).toEqual([])
+    const group = [{ resolve: { strat: 'trivial-merge' }, stats: [stat(ref, [{ string: 'a' }], {}), stat(ref, [{ string: 'b' }])] }]
+    expect(planDropNoIdStats({ enStats: group }).drop).toEqual([])
+  })
+  // 失敗代表:同一輪 fill / extra 正要補上 id 的列被刪(這是它唯一能恢復的路)
+  it('同一輪要補 id 的 ref 不刪', () => {
+    expect(planDropNoIdStats({ enStats: rows, keep: ["Area contains an additional Smuggler's Cache"] }).drop)
+      .toEqual(['Scarabs dropped in your Maps have #% increased chance to be Titanic Scarabs'])
+  })
+  // 失敗代表:繁中檔沒跟著刪(兩語列數不一致)
+  it('繁中檔同樣整列刪掉', () => {
+    const out = parseRows(applyStatPlan(toFile(rows), 'cmn-Hant', { drop: planDropNoIdStats({ enStats: rows }).drop }))
+    expect(out.map(r => r.ref)).toEqual(['Grants Level # Vengeance Skill', 'Scarabs dropped in Area are Titanic'])
   })
 })

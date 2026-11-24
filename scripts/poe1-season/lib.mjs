@@ -561,7 +561,7 @@ export function planGrownPassives ({ enStats, zhStats, tradeStats }) {
 
 /**
  * 規則 25:天賦繁中改名(GGPK `passiveskills` 同一個 ident 新舊兩版英文名相同、繁中不同;3.30 Avatar of the Wilds 獸性化身 → 荒野化身,
- * GitHub issue #34)。名字在「配置 X」結尾的繁中寫法(塗油、禁忌珠寶)補新名,舊的標 superseded。
+ * GitHub issue #34)。名字在「配置 X」結尾的繁中寫法(塗油、禁忌珠寶)與不可能的逃脫「範圍 X 內未連結」(開季差異掃描)補新名,舊的標 superseded。
  * 依詞綴 ref 裡的英文天賦名對(`Allocates X` / 禁忌珠寶句);同一個天賦有兩種改名不猜。
  * 腐敗之種洗出的天賦(「1 Added Passive Skill is X」只有 enchant id 的列)也帶入新名(issue #39):直接換掉舊句;星團珠寶那幾列(帶 explicit id)是寫死名稱、不改。
  * @returns {{ adds: any[], rejects: any[] }}
@@ -577,19 +577,24 @@ export function planPassiveRenames ({ zhStats, renames }) {
     if (had === undefined) byEn.set(r.en, r)
     else if (had && (had.from !== r.from || had.zh !== r.zh)) { byEn.set(r.en, null); rejects.push({ reason: '同一個天賦有兩種改名', en: r.en }) }
   }
+  // 名稱由 passiveskills 動態帶入的句型:英文 ref 取天賦名、繁中句取名稱所在位置(前綴, 名稱, 後綴)
+  // 星團「1 Added Passive Skill is X」是寫死名稱的句子,3.30 仍是舊名 → 不在這裡
+  const DYNAMIC = [
+    // 塗油、禁忌珠寶「配置 X」
+    { en: /^Allocates (.+?)(?: if you have the matching modifier on Forbidden (?:Flame|Flesh))?$/, zh: /(配置 )(.+)()$/ },
+    // 不可能的逃脫「天賦樹中在範圍 X 內未連結的天賦…」(開季差異掃描 3.29.3 → 3.30.0d)
+    { en: /^Passive Skills in Radius of (.+) can be Allocated\n/, zh: /(範圍)(.+?)(內未連結)/ }
+  ]
   for (const stat of eachStat(zhStats)) {
-    // 只收名稱由 passiveskills 動態帶入的:「Allocates X」(塗油、禁忌珠寶)、逃脫不能「Passive Skills in Radius of X …」;
-    // 星團「1 Added Passive Skill is X」是寫死名稱的句子,3.30 仍是舊名
-    const allocates = /^Allocates (.+?)(?: if you have the matching modifier on Forbidden (?:Flame|Flesh))?$/.exec(stat.ref)?.[1]
-    const en = allocates ?? /^Passive Skills in Radius of (.+) can be Allocated\n/.exec(stat.ref)?.[1]
-    const r = en && byEn.get(en)
-    if (!r) continue
-    const zhRe = allocates ? /(配置 )(.+)$/ : /(天賦樹中在範圍)(.+?)(?=內未連結的天賦)/
+    const form = DYNAMIC.find(f => f.en.test(stat.ref))
+    const r = form && byEn.get(/** @type {RegExpExecArray} */ (form.en.exec(stat.ref))[1])
+    if (!form || !r) continue
     for (const m of stat.matchers) {
       if (m.superseded) continue
-      const hit = zhRe.exec(m.string)
+      const hit = form.zh.exec(m.string)
       if (!hit || hit[2] !== r.from) continue
-      const string = m.string.slice(0, hit.index + hit[1].length) + r.zh + m.string.slice(hit.index + hit[0].length)
+      const at = hit.index + hit[1].length
+      const string = m.string.slice(0, at) + r.zh + m.string.slice(at + hit[2].length)
       if (stat.matchers.some(x => x.string === string)) continue
       const { superseded, ...rest } = m
       adds.push({ lang: 'cmn-Hant', ref: stat.ref, matcher: { ...rest, string }, supersedes: [m.string] })
@@ -1064,6 +1069,9 @@ export const EXTRA_ZH_MATCHERS = [
   { ref: '+#% to all Elemental Resistances', zh: '#%全元素抗性', verified: 'GGPK unique_thread_of_hope_base_resist_all_elements_% + issue #20' },
   // 寫死數值的獨立 stat(25% / 50%),繁中多一個「有」;英文與通用句同形,由 # 接住(類型掃描 2026-11-24)
   { ref: '#% chance to cause Bleeding on Hit', zh: '擊中時有 #% 機率造成流血', verified: 'GGPK local_chance_to_bleed_on_hit_25% / _50%' },
+  // 輿圖聖物「區域內的保險箱至少為稀有」(類型掃描 2026-11-24):英文同一句在 GGPK 屬於 map_strongboxes_at_least_rare 與 _minimum_rarity
+  // 兩個 stat(繁中不同),規則 21 分不出;聖物詞綴用的是前者
+  { ref: 'Strongboxes in your Maps are at least Rare', zh: '區域內的保險箱至少為稀有', verified: 'GGPK stat_descriptions map_strongboxes_at_least_rare(輿圖聖物詞綴)' },
   // 範圍名稱是 clientstrings JewelRadiusMassive「巨大」,專案原句「極大」對不到
   { ref: 'Only affects Passives in Massive Ring', zh: '只會影響巨大範圍內的天賦', advanced: '只會影響巨大範圍內的天賦', current: true, old: '只會影響極大範圍內的天賦', verified: 'GGPK clientstrings JewelRadiusMassive + issue #20' },
   // 進階複製的「巨大(...)」:大範圍有實機截圖(2026-11-18「只會影響大(...)範圍內的天賦」),巨大是同理推論;英文由規則 22 補了
@@ -1140,6 +1148,14 @@ export function planZhForms ({ enStats, zhStats, ggpkNew }) {
  * 沒有 # 的寫法代表的固定值:確切的數(`N`)或「至少 A」(`100|#` = 必定)。
  * `#|B`(任意負值都顯示同一句,例:劫盜寶箱「含有更有價值的傳奇物品」)沒有固定值,不取
  */
+const ATLAS_FILE = 'atlas_stat_descriptions.txt'
+
+/**
+ * 用數值選寫法、但交易站同一個 id 的 stat(逐個人工確認過才列):規則 21 照樣補帶 value 的寫法。
+ * 熔爐:值 1 =「未被汙染的傳奇物品」、值 2 =「傳奇物品」(3.30 新寫法),交易站只列前者的字(explicit.stat_245814726)
+ */
+const VALUE_SELECT_STATS = new Set(['map_crucible_contains_forge_that_can_apply_weapon_tree_to_unique'])
+
 function condValue (token) {
   if (/^-?\d+(\.\d+)?$/.test(token)) return Number(token)
   const m = /^([\d.]+)\|#$/.exec(token)
@@ -1159,19 +1175,29 @@ function condValue (token) {
  * @returns {{ adds: any[], rejects: any[] }}
  */
 export function planCondForms ({ enStats, zhStats, ggpkNew }) {
-  const groups = groupBy(ggpkNew.filter(r => r.key.split('|').some(p => ITEM_STAT_FILES.includes(p))).map(r => {
+  const rows = ggpkNew.filter(r => r.key.split('|').some(p => ITEM_STAT_FILES.includes(p) || p === ATLAS_FILE)).map(r => {
     const parts = r.key.split('|')
     const file = parts.findIndex(p => p.endsWith('.txt'))
-    return { ...r, ids: parts[0], conds: parts.slice(1, file).join('|').split(' '), group: `${parts[0]}|${parts[file]}` }
-  }), r => r.group)
+    return { ...r, ids: parts[0], file: parts[file], conds: parts.slice(1, file).join('|').split(' '), group: `${parts[0]}|${parts[file]}` }
+  })
+  const groups = groupBy(rows.filter(r => r.file !== ATLAS_FILE), r => r.group)
+  const atlas = groupBy(rows.filter(r => r.file === ATLAS_FILE), r => r.group)
+  const itemByIds = groupBy(rows.filter(r => r.file !== ATLAS_FILE), r => r.ids)
   // 連結標記 [TentacleSmash::{0}|Tentacle Whip] 裡的 {0} 不是數值,先換成顯示文字
   const used = (text) => new Set([...text.replace(/\[[^\]|]*\|([^\]]*)\]/g, '$1').matchAll(/\{(\d*)(?::[^}]*)?\}/g)].map((m, i) => Number(m[1] === '' ? i : m[1])))
   const adds = []
   const rejects = []
+  /** 輿圖基準補的寫法 → 它來自的 GGPK 句子(兩語對照用) */
+  const atlasPair = new Map()
   for (const [lang, stats] of /** @type {const} */ ([['en', enStats], ['cmn-Hant', zhStats]])) {
     const textOf = (r) => lang === 'en' ? r.en : r.zh
-    const byText = new Map()
-    for (const rows of groups.values()) for (const r of rows) if (textOf(r)) (byText.get(exactKey(textOf(r))) ?? byText.set(exactKey(textOf(r)), []).get(exactKey(textOf(r)))).push(r)
+    const indexText = (src) => {
+      const byText = new Map()
+      for (const list of src.values()) for (const r of list) if (textOf(r)) (byText.get(exactKey(textOf(r))) ?? byText.set(exactKey(textOf(r)), []).get(exactKey(textOf(r)))).push(r)
+      return byText
+    }
+    const byText = indexText(groups)
+    const byAtlas = indexText(atlas)
     const texts = new Set([...eachStat(stats)].flatMap(s => [...matcherExact(s)]))
     // 同形(只差數字)的既有寫法裡最多有幾個 #
     const hashCount = (t) => t.split('#').length - 1
@@ -1187,11 +1213,15 @@ export function planCondForms ({ enStats, zhStats, ggpkNew }) {
       if (!en || !allIds(en).some(id => TYPE_ID_GROUPS.includes(typeOf(id)) || id.startsWith('enchant.'))) continue
       for (const m of liveOf(stat)) {
         if ((refs.get(cmpKey(m.string))?.size ?? 0) > 1) continue // 同一句是好幾條詞綴的寫法,不知道新句該掛哪一條
-        const bases = byText.get(m.string.trim()) ?? []
+        // 物品描述檔找不到才退回輿圖描述檔(輿圖天賦的「in your Maps」),目標仍是物品描述檔同一個 stat 的句子(輿圖聖物上印「in Area」)
+        const bases = byText.get(m.string.trim()) ?? byAtlas.get(m.string.trim()) ?? []
         // 同一句在 GGPK 屬於好幾組(通用的「全元素抗性」也是希望之絃專屬 stat 的一句)→ 不知道是哪一組,不拿來當基準
         if (new Set(bases.map(b => b.group)).size > 1) continue
+        // 輿圖基準:物品描述檔那幾句已有別一列在收(漆黑神殿「區域含有…」自己一列)→ 寫法歸那一列,這列不補
+        const ownedElsewhere = (b) => (itemByIds.get(b.ids) ?? []).some(r => textOf(r) && [...(refs.get(cmpKey(exactKey(textOf(r)))) ?? [])].some(ref => ref !== stat.ref))
+        if (bases.some(b => b.file === ATLAS_FILE && ownedElsewhere(b))) continue
         for (const base of bases) {
-          for (const r of groups.get(base.group)) {
+          for (const r of base.file === ATLAS_FILE ? itemByIds.get(base.ids) ?? [] : groups.get(base.group)) {
             if (!textOf(r)) continue
             const text = exactKey(textOf(r))
             if (texts.has(text) || cmpKey(text) === cmpKey(r.en) !== (lang === 'en')) continue
@@ -1221,7 +1251,7 @@ export function planCondForms ({ enStats, zhStats, ggpkNew }) {
               value = condValue(r.conds[0])
               // 基準句也沒有數字(資料現行句本身寫死,低階異蛛復甦「觸發等級 20」)時,基準句的條件要也是固定值、且兩句去掉數字後逐字相同
               // (只差數字 = 同一句的不同數值;「區域含有阿爾瓦 / 埃哈」這種用數值選不同對象的不收)
-              if (!value || (baseUsed.size === 0 && (!condValue(base.conds[0]) || shape(text) !== shape(exactKey(textOf(base)))))) { reject('沒有數字的寫法對不到固定值'); continue }
+              if (!value || (baseUsed.size === 0 && !VALUE_SELECT_STATS.has(base.ids) && (!condValue(base.conds[0]) || shape(text) !== shape(exactKey(textOf(base)))))) { reject('沒有數字的寫法對不到固定值'); continue }
               // 除以十、毫秒轉秒等換算:條件是換算前的值,value 對不準
               if ([...base.handlers, ...r.handlers].some(h => h[0] !== 'negate')) { reject('數值有換算,固定值對不準'); continue }
               value *= toRef
@@ -1230,16 +1260,49 @@ export function planCondForms ({ enStats, zhStats, ggpkNew }) {
             // 別條詞綴有同形寫法 → 分不出是哪一條,照舊拒收
             // 新句是寫死數字的固定值(帶 value、沒有 #)時,同形的既有寫法接不住它(數字逐字比),不算多餘
             const literal = value !== undefined && hashCount(text) === 0 && baseUsed.size === 0
-            if ([...(shapes.get(shape(text))?.keys() ?? [])].some(ref => ref !== stat.ref) || (!literal && own(shape(text), stat.ref) >= hashCount(text))) { reject('與既有寫法同形'); continue }
+            if ([...(shapes.get(shape(text))?.keys() ?? [])].some(ref => ref !== stat.ref)) { reject('與既有寫法同形'); continue }
+            if (!literal && own(shape(text), stat.ref) >= hashCount(text)) { reject('與既有寫法同形'); continue }
             note(text, stat.ref)
             const negate = value === undefined && Boolean(m.negate) !== diff[0]
-            adds.push({ lang, ref: stat.ref, matcher: { string: text, ...(negate ? { negate: true } : {}), ...(value !== undefined ? { value } : {}), superseded: true } })
+            const add = { lang, ref: stat.ref, matcher: { string: text, ...(negate ? { negate: true } : {}), ...(value !== undefined ? { value } : {}), superseded: true } }
+            adds.push(add)
+            if (base.file === ATLAS_FILE) atlasPair.set(add, r)
           }
         }
       }
     }
   }
-  return { adds, rejects }
+  // 輿圖基準補的寫法:另一語言的同一句 GGPK 句子也要解析得到同一列才收(審查 2026-11-24:最後通牒、神諭只補一邊 = 中英送不同 id)。
+  // 「解析得到」= 那一列最後的寫法(原有 + 留下的新增)有逐字相同、或句中每個數字在同位置都是 # 的句子(只差寫死數字的不算:
+  // 「區域含有 1 個」接不住「區域含有 2 個」,審查第 3 輪);句子逐字屬於別一列的不算。丟掉一條可能讓別條失去涵蓋 → 重複到不變。
+  // shortcut: 被丟掉的新增在迴圈裡已佔住 texts / shapes,同一語言其他列不會再補那句;目前資料沒有實例,出現再改成丟掉後重跑。
+  const own0 = { en: statsByRef(enStats), 'cmn-Hant': statsByRef(zhStats) }
+  const owners = Object.fromEntries(Object.entries(own0).map(([lang, byRef]) => {
+    const m = new Map()
+    for (const [ref, list] of byRef) for (const s of list) for (const t of matcherExact(s)) m.set(t, (m.get(t) ?? new Set()).add(ref))
+    return [lang, m]
+  }))
+  const NUM = /(\d+(?:\.\d+)?|#)/
+  const covers = (m, text) => {
+    const a = m.split(NUM); const b = text.split(NUM)
+    return a.length === b.length && a.every((p, i) => i % 2 === 0 ? p === b[i] : p === '#' || p === b[i])
+  }
+  let kept = adds
+  for (let changed = true; changed;) {
+    changed = false
+    const finalOf = (lang, ref) => [...(own0[lang].get(ref) ?? []).flatMap(s => [...matcherExact(s)]), ...kept.filter(a => a.lang === lang && a.ref === ref).map(a => a.matcher.string)]
+    const parses = (lang, ref, text) => !!text && ![...(owners[lang].get(text) ?? [])].some(o => o !== ref) && finalOf(lang, ref).some(m => covers(m, text))
+    const next = kept.filter(a => {
+      const r = atlasPair.get(a)
+      const other = a.lang === 'en' ? 'cmn-Hant' : 'en'
+      if (!r || parses(other, a.ref, exactKey((other === 'en' ? r.en : r.zh) ?? ''))) return true
+      rejects.push({ reason: '另一語言沒補到同一句', ref: a.ref, lang: a.lang, to: a.matcher.string })
+      return false
+    })
+    changed = next.length !== kept.length
+    kept = next
+  }
+  return { adds: kept, rejects }
 }
 
 /**
@@ -1496,6 +1559,22 @@ export function planFixedCase ({ enStats, ggpkNew }) {
 }
 
 /**
+ * 規則 33:刪掉沒有交易站 id 的聖甲蟲詞綴與地圖區域詞綴(使用者 2026-11-24 裁定)。
+ * 沒有 id 的列解析器永遠認不得(`tryParseTranslation` 要 trade.ids 有該類型);3.30 已移除聖甲蟲,
+ * 區域詞綴(走私者的祕寶、額外隨機聖甲蟲效果)交易站也沒有 id。其他沒有 id 的列(舊寫法的輔助 / 賦予技能)不動。
+ * 同一個 ref 每一筆都沒 id 才刪(頂層重複列、群組成員);同一輪 fill / extra 要補 id 的(keep)不刪。
+ * @param {{ enStats: any[], keep?: string[] }} input
+ * @returns {{ drop: string[] }}
+ */
+export function planDropNoIdStats ({ enStats, keep = [] }) {
+  const skip = new Set(keep)
+  return {
+    drop: [...statsByRef(enStats)].filter(([ref, list]) => !skip.has(ref) && list.every(s => !allIds(s).length) &&
+      list.some(s => s.fromAreaMods || /\bScarabs?\b/.test(ref))).map(([ref]) => ref)
+  }
+}
+
+/**
  * 交易站的叫法 ≠ 遊戲內名稱、而且上游那一列是壞的(matcher 帶「Has Room: 」前綴、沒有 option → 遊戲文字永遠對不到):
  * ref → 遊戲內英文名(GGPK incursionrooms;2026-11-16 逐列比對 87 個房間只有這一列)
  */
@@ -1585,10 +1664,12 @@ function rewriteLines (fileText, edit, appended = []) {
  * 套用詞綴計畫(adds / replace / remove / newStats)到一份 stats.ndjson 文字
  * @param {string} fileText
  * @param {'en' | 'cmn-Hant'} lang
- * @param {{ adds?: any[], replace?: Record<string, string>, remove?: string[], newStats?: any[], better?: Record<string, number>, fill?: Record<string, Record<string, string[]>>, extra?: Record<string, Record<string, string[]>>, option?: string[], merge?: Array<{ from: string, into: string }> }} [plan]
+ * @param {{ drop?: string[], adds?: any[], replace?: Record<string, string>, remove?: string[], newStats?: any[], better?: Record<string, number>, fill?: Record<string, Record<string, string[]>>, extra?: Record<string, Record<string, string[]>>, option?: string[], merge?: Array<{ from: string, into: string }> }} [plan]
  */
-export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove = [], newStats = [], better = {}, fill = {}, extra = {}, option = [], merge = [] } = {}) {
-  const merged = applyStatPlanNoMerge(fileText, lang, { adds, replace, remove, newStats, better, fill, extra, option })
+export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove = [], newStats = [], better = {}, fill = {}, extra = {}, option = [], merge = [], drop = [] } = {}) {
+  let merged = applyStatPlanNoMerge(fileText, lang, { adds, replace, remove, newStats, better, fill, extra, option })
+  // 規則 33:整列刪掉(群組只刪全組同一個 ref 的)
+  if (drop.length) { const gone = new Set(drop); merged = rewriteLines(merged, (row) => gone.has(wholeRefOf(row) ?? '') ? DROP_ROW : false) }
   if (!merge.length) return merged
   // 併列(規則 30):from 那一列整列刪掉,它的寫法以 superseded、交易站 id 原樣搬進 into(兩種寫法都還解析得到,索引改指 into;
   // 同一輪其他規則掛到 from 的 id 也一起搬,不會跟著被刪)
