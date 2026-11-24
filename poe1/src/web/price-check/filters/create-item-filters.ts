@@ -349,6 +349,8 @@ function createFiltersInner (
       exact: forAdornedJewel
     }
   }
+  // exile-appraiser: 3.30 二次汙染是另一個價位 → 預設帶上
+  if (item.isTwiceCorrupted) filters.twiceCorrupted = { disabled: false }
 
   if (forAdornedJewel) {
     filters.rarity = {
@@ -552,6 +554,8 @@ function createGemFilters (
   filters.corrupted = {
     value: item.isCorrupted
   }
+  // exile-appraiser: 3.30 二次汙染的寶石(例:二次汙染的啟蒙)
+  if (item.isTwiceCorrupted) filters.twiceCorrupted = { disabled: false }
 
   if (!item.imbuedGem && item.isCorrupted && item.gemLevel! >= 20) {
     filters.imbuedGem = {

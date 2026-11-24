@@ -1681,9 +1681,10 @@ if (!skipStartup) app.whenReady().then(() => {
 
   /**
    * 檔案對話框選圖(只列 png / jpg / webp)→ 複製到 `dir`(檔名 = 清理後原名 + 內容雜湊,backgrounds.ts)→ 回傳檔名(取消 / 失敗回 null)。
-   * 只複製選到的那一個檔;成功後刪掉資料夾裡其他舊圖(只刪合法檔名的檔)。背景圖(bg-pick)與速查表(sheet-pick)共用,各自一個資料夾
+   * 只複製選到的那一個檔;成功後刪掉資料夾裡其他舊圖(只刪合法檔名、不在 `keep` 裡的檔)。背景圖(bg-pick)與速查表(sheet-pick)共用,各自一個資料夾
+   * (速查表可存多張:renderer 傳目前清單當 `keep`)
    */
-  const pickImageInto = async (dir: string, tag: string, title: string): Promise<string | null> => {
+  const pickImageInto = async (dir: string, tag: string, title: string, keep: readonly string[] = []): Promise<string | null> => {
     const opts = {
       title,
       properties: ['openFile' as const],
@@ -1701,7 +1702,7 @@ if (!skipStartup) app.whenReady().then(() => {
       if (!dest) return null
       await fs.writeFile(dest, data)
       for (const f of await fs.readdir(dir)) {
-        if (f !== name && normBgFile(f)) await fs.rm(path.join(dir, f), { force: true }).catch(() => {})
+        if (f !== name && normBgFile(f) && !keep.includes(f)) await fs.rm(path.join(dir, f), { force: true }).catch(() => {})
       }
       console.log(`[${tag}] 圖片 → ${name}(${data.length} bytes)`)
       return name
@@ -1886,7 +1887,11 @@ if (!skipStartup) app.whenReady().then(() => {
       }
     },
     // 懸浮選單的速查表圖片(2026-10-08):流程與背景圖相同,存 userData/cheatsheets(另開資料夾,bg-pick 會清自己的資料夾)
-    'sheet-pick': { kind: 'invoke', preview: false, fn: () => pickImageInto(SHEET_DIR(), 'sheet', 'Cheat sheet image') },
+    'sheet-pick': {
+      kind: 'invoke',
+      preview: false,
+      fn: (_ctx, keep: unknown) => pickImageInto(SHEET_DIR(), 'sheet', 'Cheat sheet image', Array.isArray(keep) ? keep.map(normBgFile).filter(Boolean) : [])
+    },
     // 第 28 步:設定 › 記錄。log-get 回快照({ entries, lastSeq },帶 sinceSeq 只回較新的;預覽端可用 = 輪詢);
     // log-subscribe(send)= 記錄分頁開著才讓 main 送 log-lines 即時追加;開資料夾只給 Electron 視窗
     'log-get': { kind: 'invoke', fn: (_ctx, sinceSeq?: unknown) => appLog.snapshot(typeof sinceSeq === 'number' ? sinceSeq : undefined) },
