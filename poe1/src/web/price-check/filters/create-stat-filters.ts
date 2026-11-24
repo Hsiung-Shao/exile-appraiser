@@ -34,15 +34,18 @@ export function createExactStatFilters (
   // exile-appraiser: 上游不列的詞綴(劫盜契約 / 藍圖的隨機、魔偶的固定)收進來但預設不勾 = 預設查詢不變(2026-11-19 使用者裁定)
   const isHeist = item.category === ItemCategory.HeistContract || item.category === ItemCategory.HeistBlueprint
   // 看詞綴來源、不看 filter.tag(tag 會因選項 / 汙染等變成 Variant、Corrupted…);來源全是這類才關,合併列不動
-  const optInTypes: ModifierType[] = isHeist ? [ModifierType.Explicit] : item.category === ItemCategory.Idol ? [ModifierType.Implicit] : []
+  // 3.30 海圖的固定 / 隨機詞綴同樣收進來、預設不勾(2026-11-24 使用者裁定:比照稀有地圖)
+  const isChart = item.category === ItemCategory.Chart
+  const optInTypes: ModifierType[] = isHeist ? [ModifierType.Explicit]
+    : item.category === ItemCategory.Idol ? [ModifierType.Implicit]
+      : isChart ? [ModifierType.Explicit, ModifierType.Implicit] : []
 
   const keepByType = [ModifierType.Pseudo, ModifierType.Fractured, ModifierType.Enchant, ModifierType.Necropolis, ModifierType.Imbued]
 
   if (
     !item.influences.length &&
     !item.isFractured &&
-    item.category !== ItemCategory.Tincture &&
-    item.category !== ItemCategory.Chart
+    item.category !== ItemCategory.Tincture
   ) {
     keepByType.push(ModifierType.Implicit)
   }
@@ -54,7 +57,7 @@ export function createExactStatFilters (
     item.category !== ItemCategory.Sentinel
   )) {
     keepByType.push(ModifierType.Explicit)
-  } else if (item.rarity === ItemRarity.Rare && (
+  } else if (isChart || item.rarity === ItemRarity.Rare && (
     item.category === ItemCategory.Idol ||
     isHeist ||
     // 稀有地圖的詞綴上游整批不收,所以「釋界干擾玩家」「區域內含有不穩定的惡魔觸手」
