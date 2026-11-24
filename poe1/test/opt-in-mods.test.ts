@@ -94,4 +94,13 @@ describe('上游不列的詞綴改成可勾選、預設不勾', () => {
       expect(sentIds(createTradeRequest(preset).query)).toContain(row.tradeId[0])
     })
   }
+
+  // 2026-11-24 使用者裁定:海圖的新列比照稀有地圖收進「已隱藏」;失敗代表新列攤在面板上
+  it('海圖:新列收進已隱藏,且只藏不勾的列', () => {
+    const stats = rowsOf(activePreset(parse(ITEMS.海圖.text)).stats)
+    const rows = optInRows(stats, ITEMS.海圖.optIn)
+    expect(rows.every(r => r.hidden === 'filters.hide_map_random_mod')).toBe(true)
+    // 被藏卻仍勾選 = 看不見的查詢條件
+    expect(stats.filter(r => r.hidden === 'filters.hide_map_random_mod' && !r.disabled)).toEqual([])
+  })
 })

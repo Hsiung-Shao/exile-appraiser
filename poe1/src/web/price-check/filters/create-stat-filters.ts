@@ -168,7 +168,11 @@ export function createExactStatFilters (
   }
 
   for (const filter of ctx.filters) {
-    if (!filter.not && filter.sources.length && filter.sources.every(s => optInTypes.includes(s.modifier.info.type))) filter.disabled = true
+    if (!filter.not && filter.sources.length && filter.sources.every(s => optInTypes.includes(s.modifier.info.type))) {
+      filter.disabled = true
+      // 海圖比照稀有地圖收進「已隱藏」(2026-11-24 使用者裁定);只藏剛停用的列
+      if (isChart) filter.hidden = 'filters.hide_map_random_mod'
+    }
   }
 
   return ctx.filters
