@@ -1504,6 +1504,16 @@ export function planFixedCase ({ enStats, ggpkNew }) {
  * 交易站的叫法 ≠ 遊戲內名稱、而且上游那一列是壞的(matcher 帶「Has Room: 」前綴、沒有 option → 遊戲文字永遠對不到):
  * ref → 遊戲內英文名(GGPK incursionrooms;2026-11-16 逐列比對 87 個房間只有這一列)
  */
+/**
+ * 規則 33:刪掉沒有交易站 id 的聖甲蟲詞綴與地圖區域詞綴(使用者 2026-11-24 裁定)。
+ * 沒有 id 的列解析器永遠認不得(`tryParseTranslation` 要 trade.ids 有該類型);3.30 已移除聖甲蟲,
+ * 區域詞綴(走私者的祕寶、額外隨機聖甲蟲效果)交易站也沒有 id。其他沒有 id 的列(舊寫法的輔助 / 賦予技能)不動。
+ * @returns {{ drop: string[] }}
+ */
+export function planDropNoIdStats ({ enStats }) {
+  return { drop: uniq([...eachStat(enStats)].filter(s => !allIds(s).length && (s.fromAreaMods || /\bScarabs?\b/.test(s.ref))).map(s => s.ref)) }
+}
+
 export const ROOM_GAME_NAMES = { 'Has Room: Splinter Research Lab (Tier 1)': 'Anomaly Research Lab' }
 
 /**
@@ -1590,10 +1600,12 @@ function rewriteLines (fileText, edit, appended = []) {
  * 套用詞綴計畫(adds / replace / remove / newStats)到一份 stats.ndjson 文字
  * @param {string} fileText
  * @param {'en' | 'cmn-Hant'} lang
- * @param {{ adds?: any[], replace?: Record<string, string>, remove?: string[], newStats?: any[], better?: Record<string, number>, fill?: Record<string, Record<string, string[]>>, extra?: Record<string, Record<string, string[]>>, option?: string[], merge?: Array<{ from: string, into: string }> }} [plan]
+ * @param {{ drop?: string[], adds?: any[], replace?: Record<string, string>, remove?: string[], newStats?: any[], better?: Record<string, number>, fill?: Record<string, Record<string, string[]>>, extra?: Record<string, Record<string, string[]>>, option?: string[], merge?: Array<{ from: string, into: string }> }} [plan]
  */
-export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove = [], newStats = [], better = {}, fill = {}, extra = {}, option = [], merge = [] } = {}) {
-  const merged = applyStatPlanNoMerge(fileText, lang, { adds, replace, remove, newStats, better, fill, extra, option })
+export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove = [], newStats = [], better = {}, fill = {}, extra = {}, option = [], merge = [], drop = [] } = {}) {
+  let merged = applyStatPlanNoMerge(fileText, lang, { adds, replace, remove, newStats, better, fill, extra, option })
+  // 規則 33:整列刪掉(群組只刪全組同一個 ref 的)
+  if (drop.length) { const gone = new Set(drop); merged = rewriteLines(merged, (row) => gone.has(wholeRefOf(row) ?? '') ? DROP_ROW : false) }
   if (!merge.length) return merged
   // 併列(規則 30):from 那一列整列刪掉,它的寫法以 superseded、交易站 id 原樣搬進 into(兩種寫法都還解析得到,索引改指 into;
   // 同一輪其他規則掛到 from 的 id 也一起搬,不會跟著被刪)

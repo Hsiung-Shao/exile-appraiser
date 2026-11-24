@@ -290,7 +290,7 @@ describe('多種寫法仲裁(item-mod-forms.json)', () => {
     // 2026-10-10 仲裁後(舊值:poe2 entries 1198 / multi_form 135;poe1 entries 4785 / multi_form 87)
     expect(DATA.poe2.entries.length).toBe(1294)
     expect(DATA.poe2.excluded.multi_form).toBe(33)
-    expect(DATA.poe1.entries.length).toBe(5336) // 2026-11-24 規則 32 新增「全部 連結：秘能 寶石等級」+1; 2026-11-24 規則 30 擴充(同 ref 重複群組、(Random Support Gem) 配對)再併 9 列 -9; 2026-11-24 規則 30 併掉 76 列固定 / 隨機輔助同句的重複列 -76; 2026-11-22 交易站新列聖潔守望輔助 +1; 2026-11-20 3.30.0c 新列 +5; 2026-11-15 交易站新列「# Prefix Modifier cannot be changed」+1; 2026-11-14 資料更新到 3.30(見 item-mods.test.ts 的說明)
+    expect(DATA.poe1.entries.length).toBe(5337) // 2026-11-24 交易站新列殲滅輔助 +1(規則 15); 2026-11-24 規則 32 新增「全部 連結：秘能 寶石等級」+1; 2026-11-24 規則 30 擴充(同 ref 重複群組、(Random Support Gem) 配對)再併 9 列 -9; 2026-11-24 規則 30 併掉 76 列固定 / 隨機輔助同句的重複列 -76; 2026-11-22 交易站新列聖潔守望輔助 +1; 2026-11-20 3.30.0c 新列 +5; 2026-11-15 交易站新列「# Prefix Modifier cannot be changed」+1; 2026-11-14 資料更新到 3.30(見 item-mods.test.ts 的說明)
     expect(DATA.poe1.excluded.multi_form).toBe(30)
     for (const g of GAMES) {
       const d = DATA[g]
@@ -300,7 +300,7 @@ describe('多種寫法仲裁(item-mod-forms.json)', () => {
   })
 
   it('T10 沒有仲裁參數時行為同舊版', () => {
-    const old: Record<Game, { entries: number, multi: number }> = { poe2: { entries: 1198, multi: 135 }, poe1: { entries: 5269, multi: 102 } }
+    const old: Record<Game, { entries: number, multi: number }> = { poe2: { entries: 1198, multi: 135 }, poe1: { entries: 5270, multi: 102 } }
     for (const g of GAMES) {
       const d = (buildItemModData as any)(g, STATS[`${g}.zh`], STATS[`${g}.en`]) as ItemModData
       expect(d.entries.length, `${g} entries`).toBe(old[g].entries)

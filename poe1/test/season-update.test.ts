@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toMatcherText, planStatText, planTradeText, planOtherTradeTexts, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planRandomSkillGem, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, planRoomNames, planCitadel, planExtraZh, planZhForms, planCondForms, planMercenaryBuilds, planNamedSlots, planTimelessJewels, planFixedCase, planMercenarySkills, EXTRA_ZH_MATCHERS, planGrownPassives, planPassiveRenames, planForbiddenNotables, planMergeDuplicates, planFlagMerge, planIndexableSkills, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
+import { toMatcherText, planStatText, planTradeText, planOtherTradeTexts, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planRandomSkillGem, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, planRoomNames, planCitadel, planExtraZh, planZhForms, planCondForms, planMercenaryBuilds, planNamedSlots, planTimelessJewels, planFixedCase, planMercenarySkills, EXTRA_ZH_MATCHERS, planGrownPassives, planPassiveRenames, planForbiddenNotables, planMergeDuplicates, planFlagMerge, planIndexableSkills, planDropNoIdStats, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
 
 /**
  * 賽季更新腳本的純函式測試(合成輸入,不讀 data/)。
@@ -1672,5 +1672,23 @@ describe('planFixedCase(規則 29:寫死數值的句子只差大小寫)', () => 
   it('逐字相同(解析器本來就接得住)→ 不補', () => {
     const en = [stat('#% chance to cause Bleeding on Critical Strike', [{ string: '#% chance to cause Bleeding on Critical Strike' }])]
     expect(planFixedCase({ enStats: en, ggpkNew }).adds).toEqual([])
+  })
+})
+
+describe('planDropNoIdStats(規則 33:刪掉沒有交易站 id 的聖甲蟲與區域詞綴)', () => {
+  const rows = [
+    { ...stat('Scarabs dropped in your Maps have #% increased chance to be Titanic Scarabs', [{ string: 'x' }], {}) },
+    { ...stat("Area contains an additional Smuggler's Cache", [{ string: 'y' }], {}), fromAreaMods: 'yes' },
+    stat('Grants Level # Vengeance Skill', [{ string: 'z' }], {}),
+    stat('Scarabs dropped in Area are Titanic', [{ string: 'w' }])
+  ]
+  // 失敗代表:使用者裁定刪除的列沒被刪,或刪到別的列(沒 id 的其他列、有 id 的聖甲蟲列)
+  it('只挑沒有 id 的聖甲蟲列與區域列', () => {
+    expect(planDropNoIdStats({ enStats: rows }).drop.sort()).toEqual(["Area contains an additional Smuggler's Cache", 'Scarabs dropped in your Maps have #% increased chance to be Titanic Scarabs'])
+  })
+  // 失敗代表:applyStatPlan 沒有整列刪掉(兩語都要刪,索引才不會指到不存在的列)
+  it('applyStatPlan 整列刪掉、其他列不動', () => {
+    const out = parseRows(applyStatPlan(toFile(rows), 'en', { drop: planDropNoIdStats({ enStats: rows }).drop }))
+    expect(out.map(r => r.ref)).toEqual(['Grants Level # Vengeance Skill', 'Scarabs dropped in Area are Titanic'])
   })
 })
