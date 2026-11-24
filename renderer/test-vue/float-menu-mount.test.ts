@@ -198,6 +198,29 @@ describe('F7 選單掛載(PoE2)', () => {
     app.unmount()
   })
 
+  it('速查表多張:清單有匯入過的 → 內建 + 每張一顆切換鈕;點了換那張、點內建回內建(清單不變)', async () => {
+    reset()
+    const config = AppConfig()
+    config.cheatSheets = ['a-0a1b2c3d.png', 'b-1a2b3c4d.webp']
+    config.cheatSheet = 'a-0a1b2c3d.png'
+    const { container, errors, app } = render()
+    await settle()
+    click(byAction(container, 'menu-sheet')[0])
+    await settle()
+    expect(errors).toEqual([])
+    const tabs = () => findAll(one(container, 'data-menu', 'sheet-tabs'), byAttr('data-sheet'))
+    expect(tabs().map(n => [text(n), n.attrs['aria-checked']])).toEqual([['內建 3.29 版', 'false'], ['a.png', 'true'], ['b.webp', 'false']])
+    click(tabs()[2])
+    await settle()
+    expect(config.cheatSheet).toBe('b-1a2b3c4d.webp')
+    expect(tabs().map(n => n.attrs['aria-checked'])).toEqual(['false', 'false', 'true'])
+    click(tabs()[0])
+    await settle()
+    expect([config.cheatSheet, config.cheatSheets]).toEqual(['', ['a-0a1b2c3d.png', 'b-1a2b3c4d.webp']])
+    config.cheatSheets = []
+    app.unmount()
+  })
+
   it('辨識開關依目前遊戲:PoE2 褻瀆 / 符文、PoE1 倉庫價格 / 格子名稱;點了寫入設定、標開 / 關', async () => {
     const config = AppConfig()
     const saved = { game: config.game, reveal: config.revealAutoEnabled, rune: config.runeshapeEnabled, stash: config.stashPricesEnabled, names: config.stashShowNames, qty: config.stashReadQuantity }

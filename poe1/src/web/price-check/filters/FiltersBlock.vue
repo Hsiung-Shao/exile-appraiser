@@ -37,6 +37,8 @@
         :filter="filters.unidentifiedTier" :name="t('item.unidentified_tier')" />
       <filter-btn-logical v-if="filters.fated"
         :filter="filters.fated" :text="t('item.fated')" />
+      <filter-btn-logical v-if="filters.twiceCorrupted"
+        :filter="filters.twiceCorrupted" :text="t('item.twice_corrupted')" />
       <filter-btn-logical v-if="filters.veiled"
         :filter="filters.veiled" :text="t('item.veiled')" />
       <filter-btn-logical v-if="filters.foil"

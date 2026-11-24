@@ -168,6 +168,11 @@
 
         <!-- 速查表(工具列展開) -->
         <div v-if="section === 'sheet'" class="fm-sheet" data-menu="sheet">
+          <!-- 2026-11-24:可存多張,內建 + 匯入過的逐張切換 -->
+          <div v-if="config.cheatSheets.length" class="fm-chips fm-sheet-tabs" role="radiogroup" :aria-label="t('ppz.menu.sheet_title')" data-menu="sheet-tabs">
+            <button v-for="s in sheetChoices" :key="s.file" type="button" role="radio" class="fm-chip" :class="{ on: s.file === config.cheatSheet }"
+              :aria-checked="s.file === config.cheatSheet ? 'true' : 'false'" :title="s.label" :data-sheet="s.file || 'builtin'" @click="selectSheet(s.file)">{{ s.label }}</button>
+          </div>
           <template v-if="sheetUrl && !sheetBroken">
             <button type="button" class="fm-thumb" :aria-label="t('ppz.menu.sheet_zoom')" data-action="sheet-pin"
               @mouseenter="peek = true" @mouseleave="peek = false" @click="pinned = true">
@@ -555,14 +560,23 @@ function resetZoomRect () {
   console.log('[menu] 速查表大小 / 位置還原為預設')
 }
 
+const sheetChoices = computed(() => [
+  { file: '', label: t('ppz.menu.sheet_builtin', { version: BUILTIN_CHEAT_SHEET.version }) },
+  ...config.cheatSheets.map(file => ({ file, label: file.replace(/-[0-9a-f]{8}(\.\w+)$/, '$1') }))
+])
+function selectSheet (file: string) {
+  config.cheatSheet = file
+  sheetBroken.value = false
+}
 async function pickSheet () {
-  const name = normBgFile(await Host.sheetPick())
+  const name = normBgFile(await Host.sheetPick([...config.cheatSheets]))
   if (name) {
-    config.cheatSheet = name
-    sheetBroken.value = false
+    if (!config.cheatSheets.includes(name)) config.cheatSheets = [...config.cheatSheets, name].slice(-20)
+    selectSheet(name)
   }
 }
 function removeSheet () {
+  config.cheatSheets = config.cheatSheets.filter(x => x !== config.cheatSheet)
   config.cheatSheet = ''
   pinned.value = false
   peek.value = false
@@ -995,6 +1009,7 @@ button.fm-row:hover:not(:disabled), .fm-row.sel { background: var(--surface-hove
 }
 .fm-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .fm-sheet-row { display: flex; align-items: center; gap: 0.45em; }
+.fm-sheet-tabs .fm-chip { max-width: 12em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .fm-sheet-name {
   flex: 1;
   min-width: 0;

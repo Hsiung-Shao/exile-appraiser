@@ -55,6 +55,18 @@ describe('3.30 詞綴寫法(en)', () => {
     expect(parse(ringText('en', [LIFE_EN, ['Corrupted']])).isCorrupted).toBe(true)
   })
 
+  it('D23b en:Twice Corrupted 才帶 isTwiceCorrupted', () => {
+    expect(parse(ringText('en', [LIFE_EN, ['Twice Corrupted']])).isTwiceCorrupted).toBe(true)
+    expect(parse(ringText('en', [LIFE_EN, ['Corrupted']])).isTwiceCorrupted).toBeUndefined()
+  })
+
+  it('D23c en:奇塔弗之渴望(魔力版)兩個數字只取機率送交易站(交易站只索引 #%)', () => {
+    const item = parse(ringText('en', [['50% chance to Trigger Socketed Spells when you Spend at least 100 Mana on an', 'Upfront Cost to Use or Trigger a Skill, with a 0.1 second Cooldown']]))
+    expect(unknownOf(item)).toEqual([])
+    const src = item.statsByType[0].sources[0]
+    expect([src.stat.roll?.value, src.stat.translation.string.startsWith('#% chance') && src.stat.translation.string.includes('at least 100 Mana')]).toEqual([50, true])
+  })
+
   it('D17wj GitHub issue #58 的實機文字:Goredrill「50% chance to cause Bleeding on Critical Strike」(小寫 cause)解析得到、數值 50', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-58.en.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
@@ -182,6 +194,37 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect([item.info.refName, item.isUnidentified, item.unidentifiedTier, item.isFated]).toEqual(['Titan Plate', true, undefined, undefined])
     const preset = createPresets(item, { league: 'Standard', currency: null, collapseListings: 'api', activateStockFilter: false, searchStatRange: 10, useEn: false, merchantOnly: false }).presets[0]
     expect(JSON.stringify(createTradeRequest(preset.filters, preset.stats).query)).not.toMatch(/identified|fated/)
+  })
+
+  it('D17t 實機文字:「二次汙染」的啟蒙輔助 → 已汙染且查詢帶 twice_corrupted', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-twice-corrupted-gem.cmn-Hant.txt'), 'utf8'))
+    expect([item.info.refName, item.isCorrupted, item.isTwiceCorrupted]).toEqual(['Enlighten Support', true, true])
+    const preset = createPresets(item, { league: 'Standard', currency: null, collapseListings: 'api', activateStockFilter: false, searchStatRange: 10, useEn: false, merchantOnly: false }).presets[0]
+    const misc = (createTradeRequest(preset.filters, preset.stats).query.filters as any).misc_filters.filters
+    expect(misc.twice_corrupted).toEqual({ option: 'true' })
+  })
+
+  it('D17t2 只有「已汙染」的寶石不帶 twice_corrupted', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-twice-corrupted-gem.cmn-Hant.txt'), 'utf8').replace('二次汙染', '已汙染'))
+    expect([item.isCorrupted, item.isTwiceCorrupted]).toEqual([true, undefined])
+    const preset = createPresets(item, { league: 'Standard', currency: null, collapseListings: 'api', activateStockFilter: false, searchStatRange: 10, useEn: false, merchantOnly: false }).presets[0]
+    expect(JSON.stringify(createTradeRequest(preset.filters, preset.stats).query)).not.toMatch(/twice_corrupted/)
+  })
+
+  it('D17v2 實機文字:穢生 奇塔弗之渴望「至少200前期生命…有50%機率觸發」只取機率 50(交易站只索引 #%,不是兩數平均 125)', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-foulborn-kitavas-thirst.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(item)).toEqual([])
+    const src = item.statsByType.find(s => s.stat.ref.includes('# Life on an'))!.sources[0]
+    expect([src.stat.roll?.value, src.stat.translation.string.split('\n')[0]]).toEqual([50, '在消耗至少200前期生命以使用或觸發技能時，有#%機率觸發'])
+    const preset = createPresets(item, { league: 'Standard', currency: null, collapseListings: 'api', activateStockFilter: false, searchStatRange: 10, useEn: false, merchantOnly: false }).presets[0]
+    const f = preset.stats.find((x: any) => x.tradeId?.includes('explicit.stat_2513998383')) as any
+    expect([f.text.split('\n')[0], f.roll?.value]).toEqual(['在消耗至少200前期生命以使用或觸發技能時，有#%機率觸發', 50])
+  })
+
+  it('D17u 實機文字:逃脫不能「範圍精準技巧」(3.30 改名)+「通途 — 無法使用的值」解析成精準技巧選項', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-impossible-escape.cmn-Hant.txt'), 'utf8'))
+    expect(unknownOf(item)).toEqual([])
+    expect(item.statsByType.map(s => s.stat.trade.ids.explicit)).toEqual([['explicit.stat_2422708892|63620']])
   })
 
   it('D17zz GitHub issue #38 的實機文字:巫會之后冠「有 12(10-12)% 更多最大物理攻擊傷害」(臟器專用 stat)解析得到,兩個固定詞綴 id 都送', () => {

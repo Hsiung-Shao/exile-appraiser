@@ -141,6 +141,7 @@ interface TradeRequest {
           identified?: FilterBoolean
           unidentified_tier?: FilterRange
           fated?: FilterBoolean
+          twice_corrupted?: FilterBoolean
           stack_size?: FilterRange
           memory_level?: FilterRange
           mutated?: FilterBoolean
@@ -434,6 +435,10 @@ export function createTradeRequest (filters: ItemFilters, stats: FilterOrGroup[]
   }
   if (filters.fated && !filters.fated.disabled) {
     propSet(query.filters, 'misc_filters.filters.fated.option', String(true))
+  }
+  // exile-appraiser: 3.30 二次汙染(交易站 filters 國際服 twice_corrupted「Twice Corrupted」/ 台服「雙重腐化」)
+  if (filters.twiceCorrupted && !filters.twiceCorrupted.disabled) {
+    propSet(query.filters, 'misc_filters.filters.twice_corrupted.option', String(true))
   }
 
   if (filters.areaLevel && !filters.areaLevel.disabled) {
