@@ -62,6 +62,40 @@ export function floatMenuPlace (
 /** 拖曳後的 CSS px 左上角 → 存檔用比例(先夾進畫面;小數 4 位) */
 export const floatMenuPosOf = overlayPosOf
 
+/** 速查表釘住後的再放大(2026-11-25):scale 1 = 整張縮進框;x / y = 圖層左上角相對框的位移(CSS px,≤ 0) */
+export interface SheetView { scale: number, x: number, y: number }
+export const SHEET_ZOOM_MAX = 8
+/** 框大小;cw / ch = 圖實際畫出的大小(object-fit: contain 置中,省略 = 填滿框) */
+export interface SheetBox { w: number, h: number, cw?: number, ch?: number }
+const clampView = (v: SheetView, box: SheetBox): SheetView => {
+  const scale = Math.min(SHEET_ZOOM_MAX, Math.max(1, v.scale))
+  if (scale === 1) return { scale: 1, x: 0, y: 0 }
+  // 夾的是圖實際畫出的範圍(審查 2026-11-25:不扣留白會拖到一片空白):比框小的方向置中,比框大的方向邊緣不離開框
+  const lim = (n: number, size: number, c: number) => {
+    const off = (size - c) / 2
+    if (c * scale <= size) return (size - c * scale) / 2 - off * scale
+    return Math.min(-off * scale, Math.max(size - (off + c) * scale, n)) + 0 // + 0:-0 → 0
+  }
+  return { scale, x: lim(v.x, box.w, box.cw ?? box.w), y: lim(v.y, box.h, box.ch ?? box.h) }
+}
+/** 以 `at`(框內座標)為中心乘上 factor:游標下的那一點放大後仍在游標下 */
+export function sheetZoomAt (v: SheetView, factor: number, at: { x: number, y: number }, box: SheetBox): SheetView {
+  const scale = Math.min(SHEET_ZOOM_MAX, Math.max(1, v.scale * factor))
+  const k = scale / v.scale
+  return clampView({ scale, x: at.x - (at.x - v.x) * k, y: at.y - (at.y - v.y) * k }, box)
+}
+/** 拖曳移動(沒放大時不動) */
+export const sheetPan = (v: SheetView, dx: number, dy: number, box: SheetBox): SheetView =>
+  clampView({ scale: v.scale, x: v.x + dx, y: v.y + dy }, box)
+/** 框大小變了(拉邊角)時把位移夾回 */
+export const sheetViewFit = clampView
+
+/** 一次匯入多張:去重加在後面、最多 20 張(留最新的),目前顯示最後一張;沒選檔 current = null */
+export function addSheetFiles (list: readonly string[], picked: readonly string[]): { list: string[], current: string | null } {
+  const next = [...list, ...[...new Set(picked)].filter(f => !list.includes(f))]
+  return { list: next.slice(-20), current: picked.length ? picked[picked.length - 1] : null }
+}
+
 /**
  * 速查表放大框:選單右側(選單在畫面右半 = 左側)到畫面邊緣,上下留邊。
  * 回傳 CSS px 矩形;圖片在框內等比例縮放(object-fit: contain)。

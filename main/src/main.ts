@@ -1680,36 +1680,40 @@ if (!skipStartup) app.whenReady().then(() => {
   }
 
   /**
-   * 檔案對話框選圖(只列 png / jpg / webp)→ 複製到 `dir`(檔名 = 清理後原名 + 內容雜湊,backgrounds.ts)→ 回傳檔名(取消 / 失敗回 null)。
-   * 只複製選到的那一個檔;成功後刪掉資料夾裡其他舊圖(只刪合法檔名、不在 `keep` 裡的檔)。背景圖(bg-pick)與速查表(sheet-pick)共用,各自一個資料夾
-   * (速查表可存多張:renderer 傳目前清單當 `keep`)
+   * 檔案對話框選圖(只列 png / jpg / webp)→ 複製到 `dir`(檔名 = 清理後原名 + 內容雜湊,backgrounds.ts)→ 回傳檔名清單(取消 / 全部失敗回 [])。
+   * 有複製成功才刪掉資料夾裡其他舊圖(只刪合法檔名、不在 `keep` 也不是這次選的檔)。背景圖(bg-pick,單選)與速查表(sheet-pick)共用,各自一個資料夾
+   * (速查表可存多張:renderer 傳目前清單當 `keep`;2026-11-25 起對話框可多選)
    */
-  const pickImageInto = async (dir: string, tag: string, title: string, keep: readonly string[] = []): Promise<string | null> => {
+  const pickImagesInto = async (dir: string, tag: string, title: string, keep: readonly string[] = [], multi = false): Promise<string[]> => {
     const opts = {
       title,
-      properties: ['openFile' as const],
+      properties: multi ? ['openFile', 'multiSelections'] as Array<'openFile' | 'multiSelections'> : ['openFile' as const],
       filters: [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp'] }]
     }
     const res = win && !win.isDestroyed() ? await dialog.showOpenDialog(win, opts) : await dialog.showOpenDialog(opts)
-    if (res.canceled || !res.filePaths[0]) return null
-    const src = res.filePaths[0]
-    try {
-      const data = await fs.readFile(src)
-      const name = storedBgName(src, data)
-      if (!name) { console.warn(`[${tag}] 不支援的檔案類型`); return null }
-      await fs.mkdir(dir, { recursive: true })
-      const dest = resolveBgPath(dir, name)
-      if (!dest) return null
-      await fs.writeFile(dest, data)
-      for (const f of await fs.readdir(dir)) {
-        if (f !== name && normBgFile(f) && !keep.includes(f)) await fs.rm(path.join(dir, f), { force: true }).catch(() => {})
+    if (res.canceled || !res.filePaths.length) return []
+    const names: string[] = []
+    for (const src of res.filePaths) {
+      try {
+        const data = await fs.readFile(src)
+        const name = storedBgName(src, data)
+        if (!name) { console.warn(`[${tag}] 不支援的檔案類型:${path.basename(src)}`); continue }
+        await fs.mkdir(dir, { recursive: true })
+        const dest = resolveBgPath(dir, name)
+        if (!dest) continue
+        await fs.writeFile(dest, data)
+        console.log(`[${tag}] 圖片 → ${name}(${data.length} bytes)`)
+        names.push(name)
+      } catch (e) {
+        console.error(`[${tag}] 複製圖片失敗:${path.basename(src)}`, e)
       }
-      console.log(`[${tag}] 圖片 → ${name}(${data.length} bytes)`)
-      return name
-    } catch (e) {
-      console.error(`[${tag}] 複製圖片失敗`, e)
-      return null
     }
+    if (names.length) {
+      for (const f of await fs.readdir(dir).catch(() => [] as string[])) {
+        if (!names.includes(f) && normBgFile(f) && !keep.includes(f)) await fs.rm(path.join(dir, f), { force: true }).catch(() => {})
+      }
+    }
+    return names
   }
 
   // ---- 所有 IPC handler 的登錄表(ipcMain 與瀏覽器預覽共用;見 host-handlers.ts) ----
@@ -1874,7 +1878,7 @@ if (!skipStartup) app.whenReady().then(() => {
     },
     // 自訂背景圖:檔案對話框選圖(只列 png / jpg / webp)→ 複製到 userData/backgrounds → 回傳檔名(取消 / 失敗回 null)。
     // 只複製選到的那一個檔;成功後刪掉資料夾裡其他舊的背景圖(只刪合法檔名的檔)。預覽端不開放(對話框在桌面上)
-    'bg-pick': { kind: 'invoke', preview: false, fn: () => pickImageInto(BG_DIR(), 'bg', 'Background image') },
+    'bg-pick': { kind: 'invoke', preview: false, fn: async () => (await pickImagesInto(BG_DIR(), 'bg', 'Background image'))[0] ?? null },
     // 2026-11-10 speedrun:Client.txt 監看狀態 / 手動選檔(只回路徑,設定由 renderer 寫;預覽端不開放)
     'client-log-status': { kind: 'invoke', preview: false, fn: async () => { await gameLogQueue; return clientLogStatus } },
     'client-log-pick': {
@@ -1890,7 +1894,7 @@ if (!skipStartup) app.whenReady().then(() => {
     'sheet-pick': {
       kind: 'invoke',
       preview: false,
-      fn: (_ctx, keep: unknown) => pickImageInto(SHEET_DIR(), 'sheet', 'Cheat sheet image', Array.isArray(keep) ? keep.map(normBgFile).filter(Boolean) : [])
+      fn: (_ctx, keep: unknown) => pickImagesInto(SHEET_DIR(), 'sheet', 'Cheat sheet image', Array.isArray(keep) ? keep.map(normBgFile).filter(Boolean) : [], true)
     },
     // 第 28 步:設定 › 記錄。log-get 回快照({ entries, lastSeq },帶 sinceSeq 只回較新的;預覽端可用 = 輪詢);
     // log-subscribe(send)= 記錄分頁開著才讓 main 送 log-lines 即時追加;開資料夾只給 Electron 視窗

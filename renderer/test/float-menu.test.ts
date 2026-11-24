@@ -136,7 +136,7 @@ describe('接線守門', () => {
   })
   it('sheet-pick:preview: false、另開資料夾;app://sheet/ 與預覽路由', () => {
     const main = read('main/src/main.ts')
-    expect(main).toMatch(/'sheet-pick': \{\s+kind: 'invoke',\s+preview: false,\s+fn: \(_ctx, keep: unknown\) => pickImageInto\(SHEET_DIR\(\)/)
+    expect(main).toMatch(/'sheet-pick': \{\s+kind: 'invoke',\s+preview: false,\s+fn: \(_ctx, keep: unknown\) => pickImagesInto\(SHEET_DIR\(\)/)
     expect(main).toContain("url.host === 'bg' || url.host === 'sheet'")
     expect(main).toContain('sheetDir: SHEET_DIR()')
     expect(read('main/src/backgrounds.ts')).toContain("SHEET_DIR_NAME = 'cheatsheets'")
