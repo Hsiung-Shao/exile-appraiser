@@ -1,12 +1,12 @@
 // 類型掃描的輸入:依物品類型列出「這類物品會出現的詞綴句子」(中英各一句),給 poe1/test/type-sweep.test.ts 用。
 //
-//   node scripts/poe1-season/dump-type-sweep.mjs [--rel-version 3] [--text-version 4] [--out poe1/test/docs/type-sweep.json]
+//   node scripts/poe1-season/dump-type-sweep.mjs [--rel-version 5] [--text-version 5] [--out poe1/test/docs/type-sweep.json]
 //
 // 來源是維護者本機的 GGPK 版本庫(docker `supabase_db_pobtools-ggpk-db`,只讀):
 //   哪類物品會出現哪些詞綴 = rel_mod(domain / 產生方式)+ rel_mod_spawn(標籤權重)+ rel_base_item(_tag / _implicit)
 //   句子 = ggpk_stat(描述檔;依詞綴數值挑條件相符的那一句)
 // 句子是照 GGPK 組的,不是實機剪貼簿:數值只取詞綴上下限,顯示前的換算(除以 60 之類)沒做 —— 解析器不看數值大小。
-// shortcut: 關聯表只匯到 3.29.3(--rel-version),3.30 才有的詞綴不在裡面;import-rel 補上 3.30 後改 --rel-version。
+// 2026-11-24 起預設讀 Supabase version 5(3.30.0d,含關聯表);新賽季匯入後改這兩個預設值。
 //
 // 傳奇專屬詞綴(classes 的 `Unique <類別>`):GGPK 3.30 的 mods 表(--rows 的 row 資料庫,GenerationType 3)
 // 依同一套描述檔組句;名稱槽(天賦 hash、征服者、可索引輔助 / 技能寶石、珠寶範圍、召喚物類型)以同一個資料庫的表代入,
@@ -404,8 +404,8 @@ if (DIFF) {
   const count = (/** @type {string} */ o) => d.origins.filter(x => x === o).length
   console.log(`差異:${d.lines.length} 句(new-mod ${count('new-mod')}、changed ${count('changed')}、new-spawn ${count('new-spawn')})`)
 } else {
-  const REL = Number(flag('--rel-version', '3'))
-  const TXT = Number(flag('--text-version', '4'))
+  const REL = Number(flag('--rel-version', '5'))
+  const TXT = Number(flag('--text-version', '5'))
   const { lines, classes } = build(REL, TXT, sqliteRows())
   result = { relVersion: REL, textVersion: TXT, lines, classes }
 }
