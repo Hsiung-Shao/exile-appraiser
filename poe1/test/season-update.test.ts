@@ -1229,6 +1229,32 @@ describe('planCondForms(規則 21:同一條詞綴依數值的其他寫法)', () 
     expect(plan.rejects).toContainEqual({ reason: '另一語言沒補到同一句', ref: 'Maps have #% Ritual', lang: 'en', to: 'Area contains Ritual' })
   })
 
+  // 審查第 2 輪:繁中單複數同字,第二個 GGPK 鍵由本輪剛補的那句接住 → 英文複數句也要收
+  it('輿圖基準:另一語言由本輪新補的同一句接住也算涵蓋', () => {
+    const a = (ids: string, cond: string) => `${ids}|${cond}|atlas_stat_descriptions.txt|0`
+    const enStats = [stat('Maps contain # Sergeant', [{ string: 'Maps contain # Sergeant' }, { string: 'Maps contain # Sergeants' }])]
+    const zhStats = [stat('Maps contain # Sergeant', [{ string: '地圖 # 中士' }])]
+    const ggpkNew = [
+      row(a('sgt', '1'), 'Maps contain {0} Sergeant', '地圖 {0} 中士'), row(a('sgt', '2|#'), 'Maps contain {0} Sergeants', '地圖 {0} 中士'),
+      row(g('sgt', '1'), 'Legion contain {0} Sergeant', '戰亂 {0} 中士'), row(g('sgt', '2|#'), 'Legion contain {0} Sergeants', '戰亂 {0} 中士')
+    ]
+    expect(planCondForms({ enStats, zhStats, ggpkNew }).adds.map((x: any) => `${x.lang}:${x.matcher.string}`).sort()).toEqual(
+      ['cmn-Hant:戰亂 # 中士', 'en:Legion contain # Sergeant', 'en:Legion contain # Sergeants'])
+  })
+
+  // 審查第 2 輪:繁中「1 次」靠本輪補的「# 次」接住,但「# 次」因英文那句被擋而丟掉 → 英文「a reroll」也要丟
+  it('輿圖基準:涵蓋它的新寫法被丟掉時,靠它涵蓋的另一語言寫法也丟', () => {
+    const a = (ids: string, cond: string) => `${ids}|${cond}|atlas_stat_descriptions.txt|0`
+    const enStats = [stat('Maps allow # rerolls', [{ string: 'Maps allow # rerolls' }, { string: 'Maps allow a reroll', value: 1 }]), stat('Other', [{ string: 'Area allow # rerolls' }], { explicit: ['explicit.stat_2'] })]
+    const zhStats = [stat('Maps allow # rerolls', [{ string: '地圖重骰 # 次' }])]
+    const ggpkNew = [
+      row(a('rr', '2|#'), 'Maps allow {0} rerolls', '地圖重骰 {0} 次'), row(a('rr', '1'), 'Maps allow a reroll', '地圖重骰 1 次'),
+      row(g('rr', '2|#'), 'Area allow {0} rerolls', '區域重骰 {0} 次'), row(g('rr', '1'), 'Area allow a reroll', '區域重骰 1 次')
+    ]
+    // Other 自己走非輿圖路徑補「a reroll」,與這裡無關
+    expect(planCondForms({ enStats, zhStats, ggpkNew }).adds.filter((x: any) => x.ref === 'Maps allow # rerolls')).toEqual([])
+  })
+
   // 這次大多數的新寫法走這條:輿圖句是增加、沒有 negate,物品句是減少、帶 negate
   it('輿圖基準:物品的「減少」句帶 negate', () => {
     const a = (ids: string, cond: string) => `${ids}|${cond}|atlas_stat_descriptions.txt|0`

@@ -1187,10 +1187,8 @@ export function planCondForms ({ enStats, zhStats, ggpkNew }) {
   const used = (text) => new Set([...text.replace(/\[[^\]|]*\|([^\]]*)\]/g, '$1').matchAll(/\{(\d*)(?::[^}]*)?\}/g)].map((m, i) => Number(m[1] === '' ? i : m[1])))
   const adds = []
   const rejects = []
-  /** 輿圖基準補的寫法 → `ref|GGPK 鍵`(兩語對照用) */
+  /** 輿圖基準補的寫法 → 它來自的 GGPK 句子(兩語對照用) */
   const atlasPair = new Map()
-  /** 輿圖基準:這一語言已由同一列涵蓋的 `語言|ref|GGPK 鍵` */
-  const atlasCovered = new Set()
   for (const [lang, stats] of /** @type {const} */ ([['en', enStats], ['cmn-Hant', zhStats]])) {
     const textOf = (r) => lang === 'en' ? r.en : r.zh
     const indexText = (src) => {
@@ -1226,10 +1224,6 @@ export function planCondForms ({ enStats, zhStats, ggpkNew }) {
           for (const r of base.file === ATLAS_FILE ? itemByIds.get(base.ids) ?? [] : groups.get(base.group)) {
             if (!textOf(r)) continue
             const text = exactKey(textOf(r))
-            const pairKey = `${stat.ref}|${r.key}`
-            // 這一列自己已收(逐字或同形帶 #)= 這一語言已涵蓋,兩語對照時算有補
-            const cover = () => { if (base.file === ATLAS_FILE) atlasCovered.add(`${lang}|${pairKey}`) }
-            if (texts.has(text) && (refs.get(cmpKey(text))?.has(stat.ref) ?? false)) cover()
             if (texts.has(text) || cmpKey(text) === cmpKey(r.en) !== (lang === 'en')) continue
             texts.add(text)
             const reject = (reason) => rejects.push({ reason, ref: stat.ref, lang, to: text })
@@ -1267,27 +1261,36 @@ export function planCondForms ({ enStats, zhStats, ggpkNew }) {
             // 新句是寫死數字的固定值(帶 value、沒有 #)時,同形的既有寫法接不住它(數字逐字比),不算多餘
             const literal = value !== undefined && hashCount(text) === 0 && baseUsed.size === 0
             if ([...(shapes.get(shape(text))?.keys() ?? [])].some(ref => ref !== stat.ref)) { reject('與既有寫法同形'); continue }
-            if (!literal && own(shape(text), stat.ref) >= hashCount(text)) { cover(); reject('與既有寫法同形'); continue }
+            if (!literal && own(shape(text), stat.ref) >= hashCount(text)) { reject('與既有寫法同形'); continue }
             note(text, stat.ref)
             const negate = value === undefined && Boolean(m.negate) !== diff[0]
             const add = { lang, ref: stat.ref, matcher: { string: text, ...(negate ? { negate: true } : {}), ...(value !== undefined ? { value } : {}), superseded: true } }
             adds.push(add)
-            if (base.file === ATLAS_FILE) atlasPair.set(add, pairKey)
+            if (base.file === ATLAS_FILE) atlasPair.set(add, r)
           }
         }
       }
     }
   }
-  // 輿圖基準補的寫法要兩語都補到同一句 GGPK 句子才收:只補一邊 = 中英解析成不同詞綴、送不同 id(審查 2026-11-24:最後通牒、神諭)
-  const paired = (lang) => new Set([...atlasPair].filter(([a]) => a.lang === lang).map(([, k]) => k))
-  const both = { en: paired('en'), 'cmn-Hant': paired('cmn-Hant') }
-  const kept = adds.filter(a => {
-    const k = atlasPair.get(a)
-    const other = a.lang === 'en' ? 'cmn-Hant' : 'en'
-    if (k === undefined || both[other].has(k) || atlasCovered.has(`${other}|${k}`)) return true
-    rejects.push({ reason: '另一語言沒補到同一句', ref: a.ref, lang: a.lang, to: a.matcher.string })
-    return false
-  })
+  // 輿圖基準補的寫法:另一語言的同一句 GGPK 句子也要解析得到同一列才收(審查 2026-11-24:最後通牒、神諭只補一邊 = 中英送不同 id)。
+  // 「解析得到」= 那一列最後的寫法(原有 + 留下的新增)有逐字相同、或同形且 # 不少的句子;丟掉一條可能讓別條失去涵蓋 → 重複到不變。
+  // shortcut: 被丟掉的新增在迴圈裡已佔住 texts / shapes,同一語言其他列不會再補那句;目前資料沒有實例,出現再改成丟掉後重跑。
+  const own0 = { en: statsByRef(enStats), 'cmn-Hant': statsByRef(zhStats) }
+  let kept = adds
+  for (let changed = true; changed;) {
+    changed = false
+    const finalOf = (lang, ref) => [...(own0[lang].get(ref) ?? []).flatMap(s => [...matcherExact(s)]), ...kept.filter(a => a.lang === lang && a.ref === ref).map(a => a.matcher.string)]
+    const parses = (lang, ref, text) => !!text && finalOf(lang, ref).some(m => m === text || (shape(m) === shape(text) && m.split("#").length >= text.split("#").length))
+    const next = kept.filter(a => {
+      const r = atlasPair.get(a)
+      const other = a.lang === 'en' ? 'cmn-Hant' : 'en'
+      if (!r || parses(other, a.ref, exactKey((other === 'en' ? r.en : r.zh) ?? ''))) return true
+      rejects.push({ reason: '另一語言沒補到同一句', ref: a.ref, lang: a.lang, to: a.matcher.string })
+      return false
+    })
+    changed = next.length !== kept.length
+    kept = next
+  }
   return { adds: kept, rejects }
 }
 
