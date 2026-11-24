@@ -201,6 +201,8 @@
  "MiscMapItem|explicit|Area has patches of desecrated ground|query|zh": "no-row",
  "MiscMapItem|explicit|Buffs on Players expire 20% faster|query|en": "no-row",
  "MiscMapItem|explicit|Buffs on Players expire 20% faster|query|zh": "no-row",
+ "MiscMapItem|explicit|Contains a Furnace that adds a Crucible Passive Skill Tree to a Unique Item|query|en": "no-row",
+ "MiscMapItem|explicit|Contains a Furnace that adds a Crucible Passive Skill Tree to a Unique Item|query|zh": "no-row",
  "MiscMapItem|explicit|Contains a Furnace that adds a Crucible Passive Skill Tree to an Uncorrupted Unique Item|query|en": "no-row",
  "MiscMapItem|explicit|Contains a Furnace that adds a Crucible Passive Skill Tree to an Uncorrupted Unique Item|query|zh": "no-row",
  "MiscMapItem|explicit|Contains a Furnace that removes a Crucible Passive Skill Tree from a Non-Unique Item|query|en": "no-row",

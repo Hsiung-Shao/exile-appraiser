@@ -1192,6 +1192,51 @@ describe('planCondForms(規則 21:同一條詞綴依數值的其他寫法)', () 
     expect(out[0].matchers).toEqual([{ string: '#% increased Speed' }, { string: '#% reduced Speed', negate: true, superseded: true }])
     expect(planCondForms({ enStats: out, zhStats: [], ggpkNew }).adds).toEqual([])
   })
+
+  // 輿圖聖物(類型掃描 2026-11-24):資料只收了輿圖天賦的「in your Maps」,物品上印的是 stat_descriptions 的「in Area」
+  it('資料的寫法只在輿圖描述檔 → 補物品描述檔同一個 stat 的寫法;輿圖句屬於兩個 stat 的不收', () => {
+    const a = (ids: string, cond: string) => `${ids}|${cond}|atlas_stat_descriptions.txt|0`
+    const enStats = [
+      stat('Altars allow # rerolls in your Maps', [{ string: 'Altars in your Maps allow # rerolls' }, { string: 'Altars in your Maps allow a reroll', value: 1 }]),
+      stat('Boxes in your Maps are Rare', [{ string: 'Boxes in your Maps are Rare' }])
+    ]
+    const ggpkNew = [
+      row(a('rerolls', '2|#'), 'Altars in your Maps allow {0} rerolls', ''),
+      row(a('rerolls', '1'), 'Altars in your Maps allow a reroll', ''),
+      row(g('rerolls', '2|#'), 'Altars in Area allow {0} rerolls', ''),
+      row(g('rerolls', '1'), 'Altars in Area allow a reroll', ''),
+      row(a('boxes_rare', '#'), 'Boxes in your Maps are Rare', ''),
+      row(a('boxes_min', '2'), 'Boxes in your Maps are Rare', ''),
+      row(g('boxes_rare', '#'), 'Boxes in Area are Rare', '')
+    ]
+    expect(planCondForms({ enStats, zhStats: [], ggpkNew }).adds.map((x: any) => x.matcher)).toEqual([
+      { string: 'Altars in Area allow # rerolls', superseded: true },
+      { string: 'Altars in Area allow a reroll', value: 1, superseded: true }
+    ])
+  })
+
+  // 漆黑神殿:「區域含有…」另有自己的一列(同一個 id),輿圖那列不該再收它的寫法
+  it('物品描述檔的寫法已屬於別一列 → 輿圖那列不補', () => {
+    const a = (ids: string, cond: string) => `${ids}|${cond}|atlas_stat_descriptions.txt|0`
+    const enStats = [stat('Your Maps contain a Shrine', [{ string: 'Your Maps contain a Shrine' }]), stat('Area contains a Shrine', [{ string: 'Area contains a Shrine' }])]
+    const ggpkNew = [row(a('shrines', '1'), 'Your Maps contain a Shrine', ''), row(g('shrines', '1'), 'Area contains a Shrine', ''), row(g('shrines', '2|#'), 'Area contains {0} Shrines', '')]
+    expect(planCondForms({ enStats, zhStats: [], ggpkNew }).adds.filter((x: any) => x.ref === 'Your Maps contain a Shrine')).toEqual([])
+  })
+
+  it('物品描述檔已有基準句時照舊只用它(不改用輿圖句)', () => {
+    const a = (ids: string, cond: string) => `${ids}|${cond}|atlas_stat_descriptions.txt|0`
+    const enStats = [stat('# Foo', [{ string: '# Foo' }])]
+    const ggpkNew = [row(g('foo', '#'), '{0} Foo', ''), row(a('foo', '#'), '{0} Foo', ''), row(a('foo', '1'), 'One Foo in your Maps', '')]
+    expect(planCondForms({ enStats, zhStats: [], ggpkNew }).adds).toEqual([])
+  })
+
+  // 熔爐 3.30:值 1 = 未被汙染的傳奇、值 2 = 任何傳奇,交易站同一個 id;逐 stat 人工確認過才放行
+  it('VALUE_SELECT_STATS 的 stat:用數值選寫法的句子也補(帶 value)', () => {
+    const ids = 'map_crucible_contains_forge_that_can_apply_weapon_tree_to_unique'
+    const enStats = [stat('Furnace for an Uncorrupted Unique', [{ string: 'Furnace for an Uncorrupted Unique' }])]
+    const ggpkNew = [row(g(ids, '1'), 'Furnace for an Uncorrupted Unique', ''), row(g(ids, '2'), 'Furnace for a Unique', '')]
+    expect(planCondForms({ enStats, zhStats: [], ggpkNew }).adds.map((x: any) => x.matcher)).toEqual([{ string: 'Furnace for a Unique', value: 2, superseded: true }])
+  })
 })
 
 describe('planMercenaryBuilds(規則 23:新的傭兵流派)', () => {

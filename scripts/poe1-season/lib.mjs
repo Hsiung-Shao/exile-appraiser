@@ -1069,6 +1069,9 @@ export const EXTRA_ZH_MATCHERS = [
   { ref: '+#% to all Elemental Resistances', zh: '#%全元素抗性', verified: 'GGPK unique_thread_of_hope_base_resist_all_elements_% + issue #20' },
   // 寫死數值的獨立 stat(25% / 50%),繁中多一個「有」;英文與通用句同形,由 # 接住(類型掃描 2026-11-24)
   { ref: '#% chance to cause Bleeding on Hit', zh: '擊中時有 #% 機率造成流血', verified: 'GGPK local_chance_to_bleed_on_hit_25% / _50%' },
+  // 輿圖聖物「區域內的保險箱至少為稀有」(類型掃描 2026-11-24):英文同一句在 GGPK 屬於 map_strongboxes_at_least_rare 與 _minimum_rarity
+  // 兩個 stat(繁中不同),規則 21 分不出;聖物詞綴用的是前者
+  { ref: 'Strongboxes in your Maps are at least Rare', zh: '區域內的保險箱至少為稀有', verified: 'GGPK stat_descriptions map_strongboxes_at_least_rare(輿圖聖物詞綴)' },
   // 範圍名稱是 clientstrings JewelRadiusMassive「巨大」,專案原句「極大」對不到
   { ref: 'Only affects Passives in Massive Ring', zh: '只會影響巨大範圍內的天賦', advanced: '只會影響巨大範圍內的天賦', current: true, old: '只會影響極大範圍內的天賦', verified: 'GGPK clientstrings JewelRadiusMassive + issue #20' },
   // 進階複製的「巨大(...)」:大範圍有實機截圖(2026-11-18「只會影響大(...)範圍內的天賦」),巨大是同理推論;英文由規則 22 補了
@@ -1145,6 +1148,14 @@ export function planZhForms ({ enStats, zhStats, ggpkNew }) {
  * 沒有 # 的寫法代表的固定值:確切的數(`N`)或「至少 A」(`100|#` = 必定)。
  * `#|B`(任意負值都顯示同一句,例:劫盜寶箱「含有更有價值的傳奇物品」)沒有固定值,不取
  */
+const ATLAS_FILE = 'atlas_stat_descriptions.txt'
+
+/**
+ * 用數值選寫法、但交易站同一個 id 的 stat(逐個人工確認過才列):規則 21 照樣補帶 value 的寫法。
+ * 熔爐:值 1 =「未被汙染的傳奇物品」、值 2 =「傳奇物品」(3.30 新寫法),交易站只列前者的字(explicit.stat_245814726)
+ */
+const VALUE_SELECT_STATS = new Set(['map_crucible_contains_forge_that_can_apply_weapon_tree_to_unique'])
+
 function condValue (token) {
   if (/^-?\d+(\.\d+)?$/.test(token)) return Number(token)
   const m = /^([\d.]+)\|#$/.exec(token)
@@ -1164,19 +1175,27 @@ function condValue (token) {
  * @returns {{ adds: any[], rejects: any[] }}
  */
 export function planCondForms ({ enStats, zhStats, ggpkNew }) {
-  const groups = groupBy(ggpkNew.filter(r => r.key.split('|').some(p => ITEM_STAT_FILES.includes(p))).map(r => {
+  const rows = ggpkNew.filter(r => r.key.split('|').some(p => ITEM_STAT_FILES.includes(p) || p === ATLAS_FILE)).map(r => {
     const parts = r.key.split('|')
     const file = parts.findIndex(p => p.endsWith('.txt'))
-    return { ...r, ids: parts[0], conds: parts.slice(1, file).join('|').split(' '), group: `${parts[0]}|${parts[file]}` }
-  }), r => r.group)
+    return { ...r, ids: parts[0], file: parts[file], conds: parts.slice(1, file).join('|').split(' '), group: `${parts[0]}|${parts[file]}` }
+  })
+  const groups = groupBy(rows.filter(r => r.file !== ATLAS_FILE), r => r.group)
+  const atlas = groupBy(rows.filter(r => r.file === ATLAS_FILE), r => r.group)
+  const itemByIds = groupBy(rows.filter(r => r.file !== ATLAS_FILE), r => r.ids)
   // 連結標記 [TentacleSmash::{0}|Tentacle Whip] 裡的 {0} 不是數值,先換成顯示文字
   const used = (text) => new Set([...text.replace(/\[[^\]|]*\|([^\]]*)\]/g, '$1').matchAll(/\{(\d*)(?::[^}]*)?\}/g)].map((m, i) => Number(m[1] === '' ? i : m[1])))
   const adds = []
   const rejects = []
   for (const [lang, stats] of /** @type {const} */ ([['en', enStats], ['cmn-Hant', zhStats]])) {
     const textOf = (r) => lang === 'en' ? r.en : r.zh
-    const byText = new Map()
-    for (const rows of groups.values()) for (const r of rows) if (textOf(r)) (byText.get(exactKey(textOf(r))) ?? byText.set(exactKey(textOf(r)), []).get(exactKey(textOf(r)))).push(r)
+    const indexText = (src) => {
+      const byText = new Map()
+      for (const list of src.values()) for (const r of list) if (textOf(r)) (byText.get(exactKey(textOf(r))) ?? byText.set(exactKey(textOf(r)), []).get(exactKey(textOf(r)))).push(r)
+      return byText
+    }
+    const byText = indexText(groups)
+    const byAtlas = indexText(atlas)
     const texts = new Set([...eachStat(stats)].flatMap(s => [...matcherExact(s)]))
     // 同形(只差數字)的既有寫法裡最多有幾個 #
     const hashCount = (t) => t.split('#').length - 1
@@ -1192,11 +1211,15 @@ export function planCondForms ({ enStats, zhStats, ggpkNew }) {
       if (!en || !allIds(en).some(id => TYPE_ID_GROUPS.includes(typeOf(id)) || id.startsWith('enchant.'))) continue
       for (const m of liveOf(stat)) {
         if ((refs.get(cmpKey(m.string))?.size ?? 0) > 1) continue // 同一句是好幾條詞綴的寫法,不知道新句該掛哪一條
-        const bases = byText.get(m.string.trim()) ?? []
+        // 物品描述檔找不到才退回輿圖描述檔(輿圖天賦的「in your Maps」),目標仍是物品描述檔同一個 stat 的句子(輿圖聖物上印「in Area」)
+        const bases = byText.get(m.string.trim()) ?? byAtlas.get(m.string.trim()) ?? []
         // 同一句在 GGPK 屬於好幾組(通用的「全元素抗性」也是希望之絃專屬 stat 的一句)→ 不知道是哪一組,不拿來當基準
         if (new Set(bases.map(b => b.group)).size > 1) continue
+        // 輿圖基準:物品描述檔那幾句已有別一列在收(漆黑神殿「區域含有…」自己一列)→ 寫法歸那一列,這列不補
+        const ownedElsewhere = (b) => (itemByIds.get(b.ids) ?? []).some(r => textOf(r) && [...(refs.get(cmpKey(exactKey(textOf(r)))) ?? [])].some(ref => ref !== stat.ref))
+        if (bases.some(b => b.file === ATLAS_FILE && ownedElsewhere(b))) continue
         for (const base of bases) {
-          for (const r of groups.get(base.group)) {
+          for (const r of base.file === ATLAS_FILE ? itemByIds.get(base.ids) ?? [] : groups.get(base.group)) {
             if (!textOf(r)) continue
             const text = exactKey(textOf(r))
             if (texts.has(text) || cmpKey(text) === cmpKey(r.en) !== (lang === 'en')) continue
@@ -1226,7 +1249,7 @@ export function planCondForms ({ enStats, zhStats, ggpkNew }) {
               value = condValue(r.conds[0])
               // 基準句也沒有數字(資料現行句本身寫死,低階異蛛復甦「觸發等級 20」)時,基準句的條件要也是固定值、且兩句去掉數字後逐字相同
               // (只差數字 = 同一句的不同數值;「區域含有阿爾瓦 / 埃哈」這種用數值選不同對象的不收)
-              if (!value || (baseUsed.size === 0 && (!condValue(base.conds[0]) || shape(text) !== shape(exactKey(textOf(base)))))) { reject('沒有數字的寫法對不到固定值'); continue }
+              if (!value || (baseUsed.size === 0 && !VALUE_SELECT_STATS.has(base.ids) && (!condValue(base.conds[0]) || shape(text) !== shape(exactKey(textOf(base)))))) { reject('沒有數字的寫法對不到固定值'); continue }
               // 除以十、毫秒轉秒等換算:條件是換算前的值,value 對不準
               if ([...base.handlers, ...r.handlers].some(h => h[0] !== 'negate')) { reject('數值有換算,固定值對不準'); continue }
               value *= toRef
