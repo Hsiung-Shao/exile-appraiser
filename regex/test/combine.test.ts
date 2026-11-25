@@ -51,7 +51,7 @@ describe('combine:單一語料頁 = Corpus.build 逐字相同', () => {
   }
 })
 
-describe('combine:地圖詞綴 3 條 + 階級 ≥16 + 物品數量 ≥80 + 6L', () => {
+describe('combine:地圖詞綴 3 條 + 階級 ≥16 + 輿圖掉落物 ≥80 + 6L', () => {
   const ids = ['MapMonsterFast2MapWorlds', 'MapMonsterDamage2MapWorlds', 'MapMonsterChaosDamage2MapWorlds']
   for (const lang of ['zh', 'en'] as const) {
     it(`${lang}:合成一串,聯集 corpus Verify ok,長度 = 各段合計`, () => {
@@ -62,7 +62,7 @@ describe('combine:地圖詞綴 3 條 + 階級 ≥16 + 物品數量 ≥80 + 6L', 
         mode: 'any',
         pages: [
           { page: mapMods, picks },
-          { page: mapNum, picks: [idx(mapNum, 'tier'), idx(mapNum, 'quantity')], values: { tier: { min: 16 }, quantity: { min: 80 } } },
+          { page: mapNum, picks: [idx(mapNum, 'tier'), idx(mapNum, 'atlas_drops')], values: { tier: { min: 16 }, atlas_drops: { min: 80 } } },
           { page: vendor, picks: [idx(vendor, 'links')], values: { links: { choice: '6' } } }
         ]
       })
@@ -70,8 +70,8 @@ describe('combine:地圖詞綴 3 條 + 階級 ≥16 + 物品數量 ≥80 + 6L', 
       // 含空白 → 整個 term 加引號。R10:階級 ≥16 到最高階 17 為止;百分比行「標籤: \+?N%」
       const tier = lang === 'zh' ? '"階級 *1[67]）"' : '"Tier 1[67]\\)"'
       const qty = lang === 'zh'
-        ? '"物品數量: \\+?([89][0-9]|[1-9][0-9]{2,})%"'
-        : '"Item Quantity: \\+?([89][0-9]|[1-9][0-9]{2,})%"'
+        ? '"輿圖掉落物: \\+?([89][0-9]|[1-9][0-9]{2,})%"'
+        : '"Atlas Drops: \\+?([89][0-9]|[1-9][0-9]{2,})%"'
       const six = '(-[rgbwa]){5}'
       expect(r.query).toBe(`${single.query} ${tier} ${qty} ${six}`)
       expect(r.length).toBe(charCount(r.query))
@@ -148,13 +148,13 @@ describe('combine:衝突偵測', () => {
       game: 'poe1', id: 'fake', kind: 'mods', title: 'fake', titleEn: 'fake', note: '', limit: 250, groups: ['g'], groupsEn: ['g'],
       entries: [
         // 第 35 步起片段要求「標籤 + 冒號」,假詞綴行做成同樣格式才誤中
-        { id: 'a', g: 0, t17: false, affixZh: '', zh: ['地圖掉落物品數量: +#%'], en: ['x'], hiddenZh: [], hiddenEn: [] },
+        { id: 'a', g: 0, t17: false, affixZh: '', zh: ['地圖輿圖掉落物: +#%'], en: ['x'], hiddenZh: [], hiddenEn: [] },
         { id: 'b', g: 0, t17: false, affixZh: '', zh: ['怪物移動速度'], en: ['y'], hiddenZh: [], hiddenEn: [] }
       ],
       ambientZh: [], ambientEn: [], namePrefixZh: [], nameSuffixZh: [], namePrefixEn: [], nameSuffixEn: []
     }
-    const r = combine({ lang: 'zh', mode: 'any', pages: [{ page: fake, picks: [1] }, { page: mapNum, picks: [idx(mapNum, 'quantity')], values: { quantity: { min: 80 } } }] })
-    expect(r.conflicts.some(c => c.kind === 'fragment' && c.entry === 'quantity')).toBe(true)
+    const r = combine({ lang: 'zh', mode: 'any', pages: [{ page: fake, picks: [1] }, { page: mapNum, picks: [idx(mapNum, 'atlas_drops')], values: { atlas_drops: { min: 80 } } }] })
+    expect(r.conflicts.some(c => c.kind === 'fragment' && c.entry === 'atlas_drops')).toBe(true)
   })
   it('排除詞命中已勾選的詞綴(any 模式)→ exclude 衝突', () => {
     const i = mapMods.entries.findIndex(e => e.zh[0].includes('反射'))

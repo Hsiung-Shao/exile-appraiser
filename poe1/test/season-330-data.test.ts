@@ -196,6 +196,22 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(JSON.stringify(createTradeRequest(preset.filters, preset.stats).query)).not.toMatch(/identified|fated/)
   })
 
+  // Discord 回報(2026-11-26):回報者版本早於 v0.3.14,目前版本解析正常,只補樣本
+  it.each([
+    ['3.30-discord-fated-helmet', 'Ursine Pelt', undefined],
+    ['3.30-discord-fated-sceptre', 'Carnal Sceptre', 5]
+  ])('D17z3 Discord 實機文字 %s:命運未鑑定稀有物品解析得到底材', (file, ref, tier) => {
+    const item = parse(fs.readFileSync(path.join(HERE, `docs/${file}.cmn-Hant.txt`), 'utf8'))
+    expect([item.info.refName, item.isUnidentified, item.unidentifiedTier, item.isFated, item.unknownModifiers]).toEqual([ref, true, tier, true, []])
+  })
+
+  it('D17z4 Discord 實機文字:中型星團珠寶「1 個附加的天賦為風暴之眼 — 無法使用的值」解析得到兩個大天賦', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-discord-cluster-notables.cmn-Hant.txt'), 'utf8'))
+    expect(item.unknownModifiers).toEqual([])
+    const ids = item.statsByType.flatMap(s => s.stat.trade.ids.explicit ?? [])
+    expect(ids).toEqual(expect.arrayContaining(['explicit.stat_3818661553', 'explicit.stat_770408103']))
+  })
+
   it('D17t 實機文字:「二次汙染」的啟蒙輔助 → 已汙染且查詢帶 twice_corrupted', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-twice-corrupted-gem.cmn-Hant.txt'), 'utf8'))
     expect([item.info.refName, item.isCorrupted, item.isTwiceCorrupted]).toEqual(['Enlighten Support', true, true])

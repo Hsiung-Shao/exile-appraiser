@@ -20,9 +20,10 @@ interface NumSpec {
 const ALL_OPS: RangeOp[] = ['ge', 'le', 'range']
 
 // 更多聖甲蟲(`ItemDisplayMapScarabDropBonus`)2026-11-08 移除:3.30 拿掉聖甲蟲。舊存檔勾過它 → 還原時算進 missed
+// 物品數量(`quantity`)2026-11-26 換成輿圖掉落物(`atlas_drops`):3.30 地圖拿掉物品數量(Discord 回報)。舊存檔勾過它 → 算進 missed
 const POE1_MAP: NumSpec[] = [
   { id: 'tier', key: 'ItemDisplayMapTier', digits: 2, percent: false, def: { min: 16 }, lo: 1, hi: 17 },
-  { id: 'quantity', key: 'ItemDisplayMapQuantityIncrease', digits: 3, percent: true, def: { min: 80 } },
+  { id: 'atlas_drops', key: 'ItemDisplayMapDropScalingBonus', digits: 3, percent: true, def: { min: 80 } },
   { id: 'rarity', key: 'ItemDisplayMapRarityIncrease', digits: 3, percent: true, def: { min: 80 } },
   { id: 'pack', key: 'ItemDisplayMapPackSizeIncrease', digits: 3, percent: true, def: { min: 30 } },
   { id: 'currency', key: 'ItemDisplayMapCurrencyDropBonus', digits: 3, percent: true, def: { min: 50 } },
@@ -98,7 +99,7 @@ export function numericPages (game: RegexGame, labels: RegexLabels | null): Algo
     title: poe1 ? '地圖數值條件' : '換界石數值條件',
     titleEn: poe1 ? 'Map values' : 'Waystone values',
     note: poe1
-      ? '地圖屬性行(階級、物品數量、稀有度…)的數值條件,每條各自一個 term(同時成立)。標籤取自 GGPK clientstrings;寫法依社群實用格式「標籤: +N%」(半形 / 全形冒號、+ 可有可無),階級比對名稱「（階級 N）」。'
+      ? '地圖屬性行(階級、輿圖掉落物、稀有度…)的數值條件,每條各自一個 term(同時成立)。標籤取自 GGPK clientstrings;寫法依社群實用格式「標籤: +N%」(半形 / 全形冒號、+ 可有可無),階級比對名稱「（階級 N）」。'
       : '換界石屬性行(階級、稀有度、怪群大小…)的數值條件,每條各自一個 term(同時成立)。標籤取自 GGPK clientstrings;寫法依社群實用格式「標籤: +N%」(半形 / 全形冒號、+ 可有可無),階級比對名稱「（階級 N）」。',
     limit: 250,
     groups: ['數值'],

@@ -336,11 +336,11 @@ describe('R10-F 條件片段縮短(PoE2 / PoE1 皆「標籤: 值」)', () => {
     expect(f.startsWith('怪群大小: ')).toBe(true)
     expect(f).not.toContain(' *%')
   })
-  it('F9 PoE1 也用新格式:稀有度 度: 稀、物品數量「物品數量: 」開頭、階級 ≥16 → 階級 *1[67])', () => {
+  it('F9 PoE1 也用新格式:稀有度 度: 稀、輿圖掉落物「輿圖掉落物: 」開頭、階級 ≥16 → 階級 *1[67])', () => {
     expect(sectionTerms(maps, mn, mR, choice(['rare']), 'zh')).toEqual(['度: 稀'])
-    const q = mn.entries[idx(mn, 'quantity')].fragment(min(60), 'zh')!
+    const q = mn.entries[idx(mn, 'atlas_drops')].fragment(min(60), 'zh')!
     expect(q).not.toContain('[:：]')
-    expect(q.startsWith('物品數量: ')).toBe(true)
+    expect(q.startsWith('輿圖掉落物: ')).toBe(true)
     const t = mn.entries[idx(mn, 'tier')]
     expect(t.input.kind === 'range' && t.input.hi).toBe(17)
     expect(t.fragment(min(16), 'zh')).toBe('階級 *1[67]）')
@@ -388,12 +388,13 @@ describe('R10-S 真實物品全文(test/fixtures/regex_samples)', () => {
     expect(with16).toBeGreaterThanOrEqual(2)
     expect(low).toBe(2)
   })
-  it('S3 PoE1 物品數量 ≥60% 片段:+68/+70/+84/+61/+75/+192 命中、+58/+55/+52 不中', () => {
-    const f = mn.entries[idx(mn, 'quantity')].fragment(min(60), 'zh')!
-    const pre = '物品數量: +'
-    const qty = items1.map(it => { const l = it.find(x => x.startsWith(pre)); return l ? parseInt(l.slice(pre.length), 10) : -1 })
+  it('S3 PoE1 輿圖掉落物 ≥60% 片段(3.29 樣本的物品數量行換成輿圖掉落物標籤):+68/+70/+84/+61/+75/+192 命中、+58/+55/+52 不中', () => {
+    const f = mn.entries[idx(mn, 'atlas_drops')].fragment(min(60), 'zh')!
+    const pre = '輿圖掉落物: +'
+    const drops = items1.map(it => it.map(l => l.replace('物品數量: +', pre)))
+    const qty = drops.map(it => { const l = it.find(x => x.startsWith(pre)); return l ? parseInt(l.slice(pre.length), 10) : -1 })
     expect(qty).toEqual([68, 70, 84, 52, 61, 58, 55, 75, 192])
-    items1.forEach((it, i) => expect(holdsFor(f, it), `第 ${i + 1} 件 +${qty[i]}%`).toBe(qty[i] >= 60))
+    drops.forEach((it, i) => expect(holdsFor(f, it), `第 ${i + 1} 件 +${qty[i]}%`).toBe(qty[i] >= 60))
   })
 })
 

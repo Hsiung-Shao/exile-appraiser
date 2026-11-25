@@ -65,8 +65,8 @@
         <div class="flex-1 min-w-0 flex items-start gap-x-2">
           <span v-if="filter.not"
             :class="[$style['tag'], $style['tag-not']]">{{ t('filters.tag_not') }}</span>
-          <span v-if="showTag && tag === 'pseudo'" :class="$style.sub">{{ t('ppz.mod_cards.from_n', [filter.sources.length]) }}</span>
-          <span v-else-if="showTag"
+          <span v-if="showTag && tag === 'pseudo' && filter.sources.length" :class="$style.sub">{{ t('ppz.mod_cards.from_n', [filter.sources.length]) }}</span>
+          <span v-else-if="showTag && tag !== 'pseudo'"
             :class="[$style['tag'], $style[`tag-${tag}`]]">{{ t(`filters.tag_${tag.replace('-', '_')}`) }}{{ (filter.sources.length > 1) ? ` x ${filter.sources.length}` : null }}</span>
           <filter-modifier-tiers :filter="filter" :item="item" />
           <filter-modifier-options v-if="rollOptions"

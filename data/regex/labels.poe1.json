@@ -1,7 +1,7 @@
 {
  "schema": 1,
  "game": "poe1",
- "source": "pob-zh-engine tools/ggpk_zh/out/poe1/tables/clientstrings.json(clientstrings,欄 Text;meta game_version 3.30.0)",
+ "source": "pob-zh-engine tools/ggpk_zh/out/poe1/tables/clientstrings.json(clientstrings,欄 Text;meta game_version 3.30.0d)",
  "note": "暫代檔:PobTools regex_poe*.json 升到 schema 2 自帶 labels 後,regex/src/data.ts 優先讀資料檔內的 labels。{0} 已換成 #。",
  "labels": {
   "zh": {
@@ -13,6 +13,7 @@
    "ItemDisplayMapCurrencyDropBonus": "更多通貨",
    "ItemDisplayMapMapDropBonus": "更多地圖",
    "ItemDisplayMapDivinationCardDropBonus": "更多命運卡",
+   "ItemDisplayMapDropScalingBonus": "輿圖掉落物",
    "ItemLevelPopup": "物品等級：#",
    "Quality": "品質",
    "ItemDisplayStringSockets": "插槽",
@@ -42,6 +43,7 @@
    "ItemDisplayMapCurrencyDropBonus": "More Currency",
    "ItemDisplayMapMapDropBonus": "More Maps",
    "ItemDisplayMapDivinationCardDropBonus": "More Divination Cards",
+   "ItemDisplayMapDropScalingBonus": "Atlas Drops",
    "ItemLevelPopup": "Item Level: #",
    "Quality": "Quality",
    "ItemDisplayStringSockets": "Sockets",
