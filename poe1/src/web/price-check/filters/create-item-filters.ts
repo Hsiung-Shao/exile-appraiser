@@ -137,12 +137,8 @@ function createFiltersInner (
       baseType: item.info.name,
       baseTypeTrade: t(opts, item.info)
     }
-    if (item.info.refName === 'Chronicle of Atzoatl') {
-      filters.areaLevel = {
-        value: floorToBracket(item.areaLevel!, [1, 68, 73, 75, 78, 80]),
-        disabled: false
-      }
-    } else if (item.info.refName === 'Mirrored Tablet') {
+    // exile-appraiser: 史記照原值查(上游截到 80 檔,84 的會混進 80 的價格;GitHub issue #75)
+    if (item.info.refName === 'Chronicle of Atzoatl' || item.info.refName === 'Mirrored Tablet') {
       filters.areaLevel = {
         value: item.areaLevel!,
         disabled: false

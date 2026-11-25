@@ -56,3 +56,11 @@ describe('GitHub issue #62 / #63', () => {
     expect(queryComplexity(createTradeRequest(preset.filters, preset.stats).query)?.kind).toBe('mercenary')
   })
 })
+
+describe('GitHub issue #75', () => {
+  it('#75 史記地區等級 84 照原值查,不往下截成 80', () => {
+    const preset = presetOf('75')
+    expect(preset.filters.areaLevel?.value).toBe(84)
+    expect(createTradeRequest(preset.filters, preset.stats).query.filters.map_filters.filters.area_level.min).toBe(84)
+  })
+})
