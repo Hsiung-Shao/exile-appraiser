@@ -351,20 +351,21 @@ describe('sections:範本 / templates.json', () => {
   it('舊格式範本(map_numeric)讀入轉成 sections,輸出與舊版相同', () => {
     const raw = {
       id: 'legacy', game: 'poe1', mode: 'any',
-      pages: { map_mods: ['#% more Monster Life'], map_numeric: ['tier', 'quantity'] },
-      numeric: { map_numeric: { tier: { min: 16 }, quantity: { min: 80 } } },
+      pages: { map_mods: ['#% more Monster Life'], map_numeric: ['tier', 'atlas_drops'] },
+      numeric: { map_numeric: { tier: { min: 16 }, atlas_drops: { min: 80 } } },
       custom: [], excludes: []
     }
     const r = parseTemplates({ templates: [raw] })
     expect(r.errors).toEqual([])
     const t = r.templates[0]
     expect(t.state.pages).toEqual({ map_mods: ['#% more Monster Life'] })
-    expect(t.state.sections).toEqual({ map_mods: ['tier', 'quantity'] })
-    expect(t.state.numeric).toEqual({ map_mods: { tier: { min: 16 }, quantity: { min: 80 } } })
+    expect(t.state.sections).toEqual({ map_mods: ['tier', 'atlas_drops'] })
+    expect(t.state.numeric).toEqual({ map_mods: { tier: { min: 16 }, atlas_drops: { min: 80 } } })
     for (const lang of ['zh', 'en'] as const) {
       const want = oldComboCombined(all.poe1, raw as never, lang)
       expect(newComboCombined(all.poe1, t.state, lang).c.query).toBe(want.query)
       expect(want.query).toMatch(/階級|Tier/)
+      expect(want.query).toMatch(/輿圖掉落物|Atlas Drops/)
     }
   })
   it('出貨的 templates.json 沒有引用舊頁 id(不需改檔)', async () => {
