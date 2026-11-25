@@ -31,6 +31,8 @@ export async function precheck ({ game, versions, dockerOk, tableCounts }) {
   else {
     const counts = await tableCounts()
     for (const t of NEED_TABLES) if (!(counts[t] > 0)) errors.push(`Supabase 最新 version 的 ${t} 沒有資料:請先在 PobTools 匯入`)
+    // 本機已抽新版、Supabase 還停在舊版 = 差異掃描會默默重跑上一季
+    if (neu && counts.gameVersion && counts.gameVersion !== neu.gameVersion) errors.push(`Supabase 最新 version 是 ${counts.gameVersion},本機 GGPK 是 ${neu.gameVersion}:請先在 PobTools 把新版匯入 Supabase`)
   }
   return { ok: errors.length === 0, errors, warnings, old, new: neu }
 }

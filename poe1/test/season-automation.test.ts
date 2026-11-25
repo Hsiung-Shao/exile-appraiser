@@ -109,6 +109,14 @@ describe('precheck(S7 S8)', () => {
     expect(r.errors.length).toBeGreaterThan(0)
   })
 
+  it('Supabase 最新版與本機 GGPK 新版不同時停下(新版還沒匯入)', async () => {
+    const r = await lib.precheck({ game: 'poe1', versions: two, ...base, tableCounts: async () => ({ ...okCounts, gameVersion: '3.29.3' }) })
+    expect(r.ok).toBe(false)
+    expect(r.errors.join('\n')).toMatch(/3\.29\.3[\s\S]*3\.30\.0d[\s\S]*PobTools/)
+    const same = await lib.precheck({ game: 'poe1', versions: two, ...base, tableCounts: async () => ({ ...okCounts, gameVersion: '3.30.0d' }) })
+    expect(same.ok).toBe(true)
+  })
+
   it('docker 不可用時 ok 為 false', async () => {
     const r = await lib.precheck({ game: 'poe1', versions: two, ...base, dockerOk: async () => false })
     expect(r.ok).toBe(false)
