@@ -9,8 +9,8 @@
     "data/poe1": {
       "repo": "ExileAppraiser 自己維護(底 = apt-patched 384d1c5;scripts/poe1-season/update.mjs 以 GGPK 3.30.0d build 3.30.0.4 + 國際服交易站資料更新)",
       "path": "data/poe1",
-      "generatedAt": "2026-11-24T19:06:51.662Z",
-      "fetchedAt": "2026-11-24T19:06:48.608Z"
+      "generatedAt": "2026-11-25T11:41:35.728Z",
+      "fetchedAt": "2026-11-25T07:21:53.708Z"
     },
     "data/poe1/item-classes": {
       "repo": "PoE1 GGPK itemclasses(Name 欄)+ clientstrings(Text 欄白名單)+ alternatequalitytypes(Description 欄)+ keywordpopups(Term 欄白名單);game_version 3.29.3;來源檔 sha256 itemclasses ae5f620c8167bf60ddeb638ffe631616d6fe199c57dea97efde2b2ebd81858d3 / clientstrings 1a00ded04f9f1ce888bceae162fc60ef2aeedb8aeeb7222b97e8990cb0ae59ec / alternatequalitytypes efd5f26dbf3b4401a41b5e92121eb9944204a63e42da93d6d974a69130ce32f5 / keywordpopups 417507ab455ddda0ba6d5284a537f081d4c2e161212c6ce77ba88d57eb881555",
@@ -76,7 +76,7 @@
       "repo": "poe2db.tw / poedb.tw 仲裁(regex/scripts/data/item-mod-forms-arb.json → regex/scripts/gen-item-mod-forms.mjs 產生;產出檔 arbSha256 = 原始結果檔雜湊)",
       "path": "regex/scripts/data/item-mod-forms-arb.json",
       "fetchedAt": "2026-10-10",
-      "generatedAt": "2026-11-13T21:49:31.827Z"
+      "generatedAt": "2026-11-25T11:41:35.890Z"
     },
     "data/regex/labels.poe1.json": {
       "repo": "clientstrings(pob-zh-engine tools/ggpk_zh/out/poe1/tables/clientstrings.json(clientstrings,欄 Text;meta game_version 3.30.0);regex/scripts/gen-labels.mjs 產生)",
@@ -123,16 +123,16 @@
       "bytes": 1558080
     },
     "data/poe1/cmn-Hant/stats-matcher.index.bin": {
-      "sha256": "64ed109524f2995295dd922b4cf7bf0f3f474ac7de04a10dc4562d2d9ea4b387",
+      "sha256": "f4b4cf0de9720c2d3111d96199268917b7f035c6476aff4cc707e2a58bc8fd04",
       "bytes": 135104
     },
     "data/poe1/cmn-Hant/stats-ref.index.bin": {
-      "sha256": "e68871b20ca38f41f6470e9d65b04a5043b07807a6618ca59923513cbcb5f271",
+      "sha256": "4ac71d9ef4e1a0aefb8fe5c0ea34c7cd2c7d67a3502c5f28be529dd730c45bc3",
       "bytes": 86688
     },
     "data/poe1/cmn-Hant/stats.ndjson": {
-      "sha256": "bc2a2713db9a16258bb57d3ce9d7b1eb50b68a7ff7d69ed2704c14000187aee5",
-      "bytes": 2968073
+      "sha256": "21f537722c017eec90b3ebcb39bd8436326ebcc702f6b99e43c0e297ea91b5ce",
+      "bytes": 2968222
     },
     "data/poe1/en/app_i18n.json": {
       "sha256": "340d4d143e9ccaa0673a032dbdc7206cc0afd90bc03581037b36d60a1453c5b8",
@@ -155,16 +155,16 @@
       "bytes": 1559675
     },
     "data/poe1/en/stats-matcher.index.bin": {
-      "sha256": "1b0723b52d1d23ce368ab7cbc4367813e9ad3a8ca593168f5a45e9602d65e790",
+      "sha256": "a011c76239c4cb09245ede45258b359c6b5da42567fd82ea77ad455eb6765456",
       "bytes": 134648
     },
     "data/poe1/en/stats-ref.index.bin": {
-      "sha256": "fa5072b2d7d7ca7d242dca48ca01e6e75c2b3b270176c596d3ca9dec4cc5c225",
+      "sha256": "fe4c59870b2f5f73db251e8a624fa4d067368a8683f308f0bc53f8b50af1a14c",
       "bytes": 86688
     },
     "data/poe1/en/stats.ndjson": {
-      "sha256": "d7d4683cceadbbfa2bd5f0dca8e976e6717d6b2b5151b84847f5f80217863c48",
-      "bytes": 3092857
+      "sha256": "c1020c6e5747e4bcae3ffe9f0c0536e7af5c0a9df9ed9bee5c18101669c7ae8d",
+      "bytes": 3093006
     },
     "data/poe1/item-classes/item-classes.json": {
       "sha256": "590944932aac9e73cc513bdedb85f0b3ba748732ab3fe77eaf229bac810898a5",
