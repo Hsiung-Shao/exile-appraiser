@@ -139,7 +139,8 @@ function createFiltersInner (
     }
     if (item.info.refName === 'Chronicle of Atzoatl') {
       filters.areaLevel = {
-        value: floorToBracket(item.areaLevel!, [1, 68, 73, 75, 78, 80]),
+        // exile-appraiser: 2026-11-26 使用者回報 83 顯示成 80 → 照物品上的數值(上游取到 [1, 68, 73, 75, 78, 80] 檔位)
+        value: item.areaLevel!,
         disabled: false
       }
     } else if (item.info.refName === 'Mirrored Tablet') {

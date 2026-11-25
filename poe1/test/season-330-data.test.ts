@@ -205,6 +205,14 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect([item.info.refName, item.isUnidentified, item.unidentifiedTier, item.isFated, item.unknownModifiers]).toEqual([ref, true, tier, true, []])
   })
 
+  it('D17z5 實機文字:阿茲瓦特史記「地區等級: 83」→ 地區等級條件就是 83,不往下取到 80', () => {
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-chronicle-area-83.cmn-Hant.txt'), 'utf8'))
+    expect([item.info.refName, item.areaLevel]).toEqual(['Chronicle of Atzoatl', 83])
+    const preset = createPresets(item, { league: 'Standard', currency: null, collapseListings: 'api', activateStockFilter: false, searchStatRange: 10, useEn: false, merchantOnly: false }).presets[0]
+    expect(preset.filters.areaLevel).toEqual({ value: 83, disabled: false })
+    expect((createTradeRequest(preset.filters, preset.stats).query.filters as any).map_filters.filters.area_level).toEqual({ min: 83 })
+  })
+
   it('D17z4 Discord 實機文字:中型星團珠寶「1 個附加的天賦為風暴之眼 — 無法使用的值」解析得到兩個大天賦', () => {
     const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-discord-cluster-notables.cmn-Hant.txt'), 'utf8'))
     expect(item.unknownModifiers).toEqual([])
