@@ -137,7 +137,7 @@ function createFiltersInner (
       baseType: item.info.name,
       baseTypeTrade: t(opts, item.info)
     }
-    // exile-appraiser: 史記照原值查(上游截到 80 檔,84 的會混進 80 的價格;GitHub issue #75)
+    // exile-appraiser: 地區等級照物品原值當最低值查,不截成固定檔位(低等級的會混進價格;GitHub issue #75)
     if (item.info.refName === 'Chronicle of Atzoatl' || item.info.refName === 'Mirrored Tablet') {
       filters.areaLevel = {
         value: item.areaLevel!,
@@ -250,7 +250,7 @@ function createFiltersInner (
       baseTypeTrade: t(opts, item.info)
     }
     filters.areaLevel = {
-      value: floorToBracket(item.areaLevel!, [1, 68, 73, 78, 81, 83]),
+      value: item.areaLevel!,
       disabled: false
     }
   } else if (item.category === ItemCategory.Chart) {
