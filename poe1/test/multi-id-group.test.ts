@@ -9,7 +9,7 @@ import type { FilterPreset } from '@/web/price-check/filters/interfaces'
 import { runFixture } from './helpers/fixture-harness'
 
 // GitHub issue #48:多 id 詞綴各自成組會被交易站以 Query is too complex 拒絕 → 併成同一個 count 群組
-const SAMPLE = path.join(path.dirname(fileURLToPath(import.meta.url)), 'docs/3.30-issue-48.cmn-Hant.txt')
+const SAMPLE = path.join(path.dirname(fileURLToPath(import.meta.url)), 'docs/issue-48.cmn-Hant.txt')
 const OPTS = { league: 'Standard', currency: null, collapseListings: 'api' as const, activateStockFilter: false, searchStatRange: 10, useEn: false, merchantOnly: false }
 const SUPPORT_IDS = [
   'explicit.indexable_support_64', 'explicit.effect_174595432',

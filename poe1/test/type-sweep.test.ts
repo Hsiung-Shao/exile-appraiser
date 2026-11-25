@@ -1,6 +1,7 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { readTradeIds } from './trade-snapshot'
 import { describe, expect, it } from 'vitest'
 import { init } from '@/assets/data'
 import { parseClipboard, type ParsedItem } from '@/parser'
@@ -18,11 +19,11 @@ import { buildReport } from '../../scripts/poe1-season/sweep-diff.mjs'
  *    → 1、2 段鎖在 `docs/type-sweep-gaps.json`
  * 3. 進得了查詢:預設 preset 裡勾選這條詞綴的列後,查詢真的有它的 id(no-row = 沒有自己的列、not-sent = 勾了沒送)。
  *    被偽屬性 / 合計吃掉的(列標 fromAggregate)不算缺口,另計數量與吃掉它的那一條
- * 4. id 存在:查詢裡每個 stat id(含選項)都在交易站 stats 存檔(`docs/trade-stat-ids-3.30.json`);
+ * 4. id 存在:查詢裡每個 stat id(含選項)都在交易站 stats 存檔(`docs/trade-stats.json`,`trade-snapshot.ts` `readTradeIds`);
  *    這條詞綴自己的列送的 id 類型(id 前綴)= 句子的來源(explicit / implicit)
  * 5. 中英查詢相同:同一句勾選後中英兩份查詢逐字相同
  * 6. 物品類別與基底:每類一件(不帶詞綴)預設查詢的類別、改查基底後的基底名稱都在 items / filters 存檔
- *    (`docs/trade-catalog-3.30.json`)
+ *    (`docs/trade-catalog.json`)
  *    → 3–6 段鎖在 `docs/type-sweep-query-gaps.json`
  * 兩份清單都**只能變少**:修好後 `UPDATE_FIXTURES=1` 重寫並 review 差異;清單外的新缺口 = 紅。
  * `SWEEP_REPORT=<檔>` 另寫每一句的明細(原句、解析結果、查詢片段)給報告用。
@@ -46,8 +47,8 @@ const SUITES = [
   { title: '開季差異掃描', file: 'type-sweep-diff.json', gaps: 'type-sweep-diff-gaps.json', queryGaps: 'type-sweep-diff-query-gaps.json', samples: false, min: 100 }
 ]
 type Suite = typeof SUITES[number]
-const TRADE_IDS = new Set((JSON.parse(fs.readFileSync(path.join(HERE, 'docs/trade-stat-ids-3.30.json'), 'utf8')) as { ids: string[] }).ids)
-const CATALOG = JSON.parse(fs.readFileSync(path.join(HERE, 'docs/trade-catalog-3.30.json'), 'utf8')) as { categories: string[], types: string[] }
+const TRADE_IDS = readTradeIds()
+const CATALOG = JSON.parse(fs.readFileSync(path.join(HERE, 'docs/trade-catalog.json'), 'utf8')) as { categories: string[], types: string[] }
 const CATEGORIES = new Set(CATALOG.categories)
 const TYPES = new Set(CATALOG.types)
 type Lang = 'en' | 'cmn-Hant'
@@ -56,7 +57,7 @@ type ModType = 'explicit' | 'implicit'
 const WEAPONS = /^(FishingRod|Claw|Dagger|Rune Dagger|Wand|(One|Two) Hand (Sword|Axe|Mace)|Thrusting One Hand Sword|Bow|Staff|Warstaff|Sceptre)$/
 const ARMOURS = /^(Body Armour|Boots|Gloves|Helmet|Shield)$/
 /**
- * 武器 / 防具的屬性段(寫法照實機剪貼簿,例 3.30-issue-45 / 36):有了它局部詞綴才會像實機一樣併進 DPS / 防禦合計(eaten)。
+ * 武器 / 防具的屬性段(寫法照實機剪貼簿,例 issue-45 / 36):有了它局部詞綴才會像實機一樣併進 DPS / 防禦合計(eaten)。
  * 防具三種防禦都給:哪一種會被局部詞綴吃掉看詞綴本身,不必挑底材
  */
 function propertyLines (zh: boolean, cls: string): string[] {
@@ -232,7 +233,7 @@ function sweepSuite (cfg: Suite) {
       }
     }
     // 實機樣本(GitHub issue 回報的剪貼簿)走同一條管線,每條詞綴記下第 3 段的結論(只在類型掃描比對)
-    for (const file of cfg.samples ? fs.readdirSync(path.join(HERE, 'docs')).filter(f => f.startsWith('3.30-issue-') && f.endsWith(`.${lang}.txt`)) : []) {
+    for (const file of cfg.samples ? fs.readdirSync(path.join(HERE, 'docs')).filter(f => f.startsWith('issue-') && f.endsWith(`.${lang}.txt`)) : []) {
       const text = fs.readFileSync(path.join(HERE, 'docs', file), 'utf8')
       const klass = text.split(/\r?\n/)[0].replace(/^(Item Class|物品種類): /, '')
       const r = parseClipboard(text)

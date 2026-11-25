@@ -18,7 +18,7 @@ import { fileURLToPath } from 'node:url'
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const arg = (name) => { const i = process.argv.indexOf(name); return i === -1 ? undefined : process.argv[i + 1] }
 // 省略 --stats = 版控裡的快照(poe1/test/trade-id-audit.test.ts 鎖的那一份;update.mjs --save-trade 存下來的 stats.json 原樣放進去)
-const statsFile = arg('--stats') ?? path.join(ROOT, 'poe1/test/docs/trade-stats-3.30.json')
+const statsFile = arg('--stats') ?? path.join(ROOT, 'poe1/test/docs/trade-stats.json')
 
 const norm = (s) => s.replace(/\s*\n\s*/g, '\n').replace(/[+-]?#/g, '#').replace(/ \((Local|Shields|Staves|Maps|Tier \d+)\)$/, '').toLowerCase().trim()
 export const read = (lang) => fs.readFileSync(path.join(ROOT, 'data/poe1', lang, 'stats.ndjson'), 'utf8')

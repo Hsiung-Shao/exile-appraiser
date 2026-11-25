@@ -12,7 +12,7 @@ import type { FilterGroup, StatFilter } from '@/web/price-check/filters/interfac
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const OPTS = { league: 'Standard', currency: null, collapseListings: 'api' as const, activateStockFilter: false, searchStatRange: 10, useEn: false, merchantOnly: false }
 const presetOf = (n: string) => {
-  const r = parseClipboard(fs.readFileSync(path.join(HERE, `docs/3.30-issue-${n}.cmn-Hant.txt`), 'utf8'))
+  const r = parseClipboard(fs.readFileSync(path.join(HERE, `docs/issue-${n}.cmn-Hant.txt`), 'utf8'))
   if (r.isErr()) throw new Error(r.error)
   return createPresets(r.value, OPTS).presets[0]
 }

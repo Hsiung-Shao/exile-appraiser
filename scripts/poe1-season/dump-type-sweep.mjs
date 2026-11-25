@@ -109,7 +109,7 @@ const NAME_RANGE_MAX = 400
 // 伺服器端才骰的天賦 hash(客戶端 mods 表只有佔位值):禁忌珠寶 = 昇華大天賦、不可能的逃脫 = 基石
 // 篩選:輿圖 / 自訂昇華節點 / 布雷克爾子樹 / 多選一節點除外,昇華只收六個職業;再只留交易站這條詞綴的選項清單裡有的名字
 // (GGPK 客戶端沒有「能骰出哪些」,交易站選項是唯一的完整清單)
-const TRADE_STATS = JSON.parse(fs.readFileSync(path.join(ROOT, 'poe1/test/docs/trade-stats-3.30.json'), 'utf8')).result.flatMap((/** @type {any} */ g) => g.entries)
+const TRADE_STATS = JSON.parse(fs.readFileSync(path.join(ROOT, 'poe1/test/docs/trade-stats.json'), 'utf8')).result.flatMap((/** @type {any} */ g) => g.entries)
 // 存檔把每個選項展開成一筆(`id|hash`、句子帶名字),名字從句型擷取
 const optionNames = (/** @type {RegExp} */ re) => new Set(TRADE_STATS.map((/** @type {any} */ e) => re.exec(e.text)?.[1]).filter(Boolean))
 const forbiddenNames = optionNames(/^Allocates (.+) if you have the matching modifier on Forbidden (?:Flesh|Flame)$/)

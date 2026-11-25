@@ -1,9 +1,9 @@
 // 類型掃描第 6 段(查詢的類別 / 基底欄位)的離線對照:把存下來的交易站 `/api/trade/data/items` 與
-// `/api/trade/data/filters` 縮成「有哪些基底名稱、有哪些類別選項、有哪些篩選欄位(`群組.欄位`)」,寫進 poe1/test/docs/trade-catalog-3.30.json。
+// `/api/trade/data/filters` 縮成「有哪些基底名稱、有哪些類別選項、有哪些篩選欄位(`群組.欄位`)」,寫進 poe1/test/docs/trade-catalog.json。
 //
 //   node scripts/poe1-season/dump-trade-catalog.mjs --items <items.json> --filters <filters.json> --items-date YYYY-MM-DD --filters-date YYYY-MM-DD
 //
-// 只讀存檔,不連網。stat id 另有 poe1/test/docs/trade-stat-ids-3.30.json。
+// 只讀存檔,不連網。stat id 由 poe1/test/docs/trade-stats.json 推出(poe1/test/trade-snapshot.ts)。
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -33,6 +33,6 @@ const out = {
   // 查詢送的 `X_filters.filters.Y` 要在這裡找得到(poe1/test/trade-filter-ids.test.ts)
   filters: filters.result.flatMap((/** @type {any} */ g) => g.filters.map((/** @type {any} */ f) => `${g.id}.${f.id}`)).sort()
 }
-const OUT = path.join(ROOT, 'poe1/test/docs/trade-catalog-3.30.json')
+const OUT = path.join(ROOT, 'poe1/test/docs/trade-catalog.json')
 fs.writeFileSync(OUT, JSON.stringify(out, null, 1) + '\n')
 console.log(`寫入 ${path.relative(ROOT, OUT)}:類別 ${out.categories.length}、基底 ${out.types.length}、篩選欄位 ${out.filters.length}`)

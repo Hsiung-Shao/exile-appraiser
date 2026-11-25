@@ -10,7 +10,7 @@ import { audit, read } from '../../scripts/poe1-season/audit-trade-ids.mjs'
  * 整類不支援的類型(delve / ultimatum / crucible)本專案完全沒有,不逐條鎖,只鎖「沒有任何一條 ok」。
  */
 const HERE = path.dirname(fileURLToPath(import.meta.url))
-const SNAPSHOT = path.join(HERE, 'docs/trade-stats-3.30.json')
+const SNAPSHOT = path.join(HERE, 'docs/trade-stats.json')
 const GAPS_FILE = path.join(HERE, 'docs/trade-id-audit-gaps.json')
 const UNSUPPORTED = ['delve', 'ultimatum', 'crucible']
 

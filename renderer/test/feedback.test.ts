@@ -143,7 +143,7 @@ describe('openIssue', () => {
   })
 
   it('實機稀有手套(GitHub issue #9):整份放不下時物品原文從尾端截短,名稱、詞綴區與版號都還在網址裡', async () => {
-    const clip = readFileSync(new URL('../../poe1/test/docs/3.30-warlock-gloves-accuracy.cmn-Hant.txt', import.meta.url), 'utf8')
+    const clip = readFileSync(new URL('../../poe1/test/docs/warlock-gloves-accuracy.cmn-Hant.txt', import.meta.url), 'utf8')
     const r = recorder()
     const report = buildReport(input({ clipboard: clip, error: '未解析詞綴 / Unrecognized modifier: +587(481-600) 點命中' }))
     const res = await openIssue(report, r.deps)

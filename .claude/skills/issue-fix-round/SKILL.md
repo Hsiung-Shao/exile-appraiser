@@ -36,12 +36,12 @@ gh issue view <N> --repo Hsiung-Shao/exile-appraiser
 
 ## 1. 存樣本、重現
 
-- 物品原文存成 **CRLF** 檔:PoE1 `poe1/test/docs/3.30-issue-<N>.<cmn-Hant|en>.txt`、PoE2 `poe2/test/docs/issue-<N>.cmn-Hant.txt`。回報沒附原文時,用標題 / 截圖組最小樣本並在測試標題註明。
-- 重現:`npm run check -- poe1/test/docs/3.30-issue-<N>.cmn-Hant.txt --realm both`(PoE2 加 `--game poe2`),看 ⚠ 未解析清單與 payload。
+- 物品原文存成 **CRLF** 檔:PoE1 `poe1/test/docs/issue-<N>.<cmn-Hant|en>.txt`、PoE2 `poe2/test/docs/issue-<N>.cmn-Hant.txt`。回報沒附原文時,用標題 / 截圖組最小樣本並在測試標題註明。
+- 重現:`npm run check -- poe1/test/docs/issue-<N>.cmn-Hant.txt --realm both`(PoE2 加 `--game poe2`),看 ⚠ 未解析清單與 payload。
 
 ## 2. 先寫失敗測試(對的紅)
 
-- **實機樣本測試**:PoE1 加在 `poe1/test/season-330-data.test.ts`(沿用 `D17w?` 編號、`unknownOf(item)` 為空 + 交易站 id + 數值),PoE2 加在 `poe2/test/issues-0.5.test.ts`。
+- **實機樣本測試**:PoE1 加在 `poe1/test/season-data.test.ts`(沿用 `D17w?` 編號、`unknownOf(item)` 為空 + 交易站 id + 數值),PoE2 加在 `poe2/test/issues-0.5.test.ts`。
 - **規則單元測試**:改 `scripts/poe1-season/lib.mjs` 的規則時在 `poe1/test/season-update.test.ts` 對應 `describe` 加一條,**必附反例**(該拒收的情況照舊拒收)。第 b245737 次審查就是因為少了「matchers 不同 / 繁中不同」反例而被抓。
 - 程式類:就近加測試檔(例 `poe1/test/issue-62-63.test.ts`),樣本要選**舊算法會誤報**的情況(d490492:改勾輔助最多的群組才攔得住回歸)。
 - 跑 `npx vitest run <檔>` 確認紅在斷言,不是 import / 路徑錯。
@@ -52,7 +52,7 @@ gh issue view <N> --repo Hsiung-Shao/exile-appraiser
 
 1. **產生**:`scripts/poe1-season/lib.mjs` 新增或放寬規則(規則 28 永恆珠寶、29 只差大小寫、16 例外…),寫進 CLAUDE.md 規則 1 一段。
 2. **容錯**:解析器(「(...)」、英文名退回)— 只有一整類句子都受影響才動。
-3. **交易站 id**:同文另一個 id 實測有物品 → `LIVE_TWIN_IDS`;新 id 補進 `poe1/test/docs/trade-stat-ids-3.30.json`(只加尾端)。
+3. **交易站 id**:同文另一個 id 實測有物品 → `LIVE_TWIN_IDS`;交易站快照 `poe1/test/docs/trade-stats.json` 換成 `--save-trade` 存下的最新 `stats.json`(id 由它推出)。
 4. **例外**:`EXTRA_ZH_MATCHERS` 逐條列依據(GGPK 找不到時帶 `verified`)。
 
 然後重產資料(**不手改 ndjson**,worktree 裡 `--from` 給絕對路徑):

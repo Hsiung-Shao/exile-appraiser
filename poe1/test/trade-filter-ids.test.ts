@@ -2,10 +2,10 @@ import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-// 查詢寫進 `X_filters.filters.Y` 的每個欄位都要在交易站 /api/trade/data/filters 存檔裡(trade-catalog-3.30.json `filters`);
+// 查詢寫進 `X_filters.filters.Y` 的每個欄位都要在交易站 /api/trade/data/filters 存檔裡(trade-catalog.json `filters`);
 // 2026-11-19 雕刻補 `ultimatum_output` 時,這個 id 只靠一份 scratchpad 存檔確認,改成在 repo 守住
 const ROOT = path.resolve(__dirname, '..')
-const catalog = JSON.parse(fs.readFileSync(path.join(ROOT, 'test/docs/trade-catalog-3.30.json'), 'utf8')) as { filters: string[] }
+const catalog = JSON.parse(fs.readFileSync(path.join(ROOT, 'test/docs/trade-catalog.json'), 'utf8')) as { filters: string[] }
 const src = fs.readFileSync(path.join(ROOT, 'src/web/price-check/trade/pathofexile-trade.ts'), 'utf8')
 
 describe('查詢用到的篩選欄位', () => {

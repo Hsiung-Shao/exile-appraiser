@@ -1,6 +1,7 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { readTradeIds } from './trade-snapshot'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { init, loadForLang } from '@/assets/data'
 import { parseClipboard } from '@/parser'
@@ -17,7 +18,6 @@ import { createTradeRequest } from '@/web/price-check/trade/pathofexile-trade'
  */
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const DATA_DIR = path.resolve(HERE, '../../data/poe1')
-const TRADE_IDS_FILE = path.join(HERE, 'docs/trade-stat-ids-3.30.json')
 
 /** 以稀有戒指為範本,把詞綴區段換成指定行。sections 之間用分隔線隔開。 */
 function ringText (lang: 'en' | 'cmn-Hant', sections: string[][]): string {
@@ -68,7 +68,7 @@ describe('3.30 詞綴寫法(en)', () => {
   })
 
   it('D17wj GitHub issue #58 的實機文字:Goredrill「50% chance to cause Bleeding on Critical Strike」(小寫 cause)解析得到、數值 50', () => {
-    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-58.en.txt'), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/issue-58.en.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
     const hit = item.statsByType.find(s => s.stat.trade.ids.explicit?.includes('explicit.stat_513681673'))
     expect(hit?.sources[0].stat.roll?.value).toBe(50)
@@ -91,18 +91,18 @@ describe('3.30 詞綴寫法(en)', () => {
   })
 
   it('D17v GitHub issue #32 的實機文字:禁忌烈焰「Allocates Instruments of Justice」(交易站 3.30 新給 id)解析得到、帶交易站 id', () => {
-    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-32.en.txt'), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/issue-32.en.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
     expect(item.statsByType[0].stat.trade.ids.explicit).toEqual(['explicit.stat_1190333629|3154'])
   })
 
   it('D17z en:#43 禁忌軍帽「Sacred Wisps(...)」、#41 壟罩的胸甲都解析得到(照 GGPK 字串組,不是實機)', () => {
-    const shako = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-43.en.txt'), 'utf8'))
+    const shako = parse(fs.readFileSync(path.join(HERE, 'docs/issue-43.en.txt'), 'utf8'))
     expect(unknownOf(shako)).toEqual([])
     const ids = shako.statsByType.flatMap(s => s.stat.trade.ids.explicit ?? [])
     expect(ids).toContain('explicit.indexable_support_163')
     expect(ids).toContain('explicit.indexable_support_91')
-    expect(parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-41.en.txt'), 'utf8')).info.refName).toBe('Enshrouded Body Armour')
+    expect(parse(fs.readFileSync(path.join(HERE, 'docs/issue-41.en.txt'), 'utf8')).info.refName).toBe('Enshrouded Body Armour')
   })
 
   it('D21b en:規則 27 的另一句 "Slaying Enemies has a #% increased chance to spawn a Beyond Portal" 解析成原詞綴', () => {
@@ -114,16 +114,16 @@ describe('3.30 詞綴寫法(en)', () => {
   // #36–#38 的英文樣本不是實機剪貼簿:照繁中實機文字的結構、用 GGPK 英文字串組的。
   // #36 的名稱「Raised Spiders」沿用既有英文資料與交易站文字;英文客戶端若像繁中改帶技能名(Raise Spiders)這條守不到,要等實機樣本
   it('D17y en:#36 黑暗君主「Raised Spiders (...)」、#38 后冠的臟器固定詞綴都解析得到', () => {
-    const monarch = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-36.en.txt'), 'utf8'))
+    const monarch = parse(fs.readFileSync(path.join(HERE, 'docs/issue-36.en.txt'), 'utf8'))
     expect(unknownOf(monarch)).toEqual([])
     expect(monarch.statsByType.at(-1)!.stat.trade.ids.explicit).toEqual(['explicit.stat_56473917|5'])
-    const crown = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-38.en.txt'), 'utf8'))
+    const crown = parse(fs.readFileSync(path.join(HERE, 'docs/issue-38.en.txt'), 'utf8'))
     expect(unknownOf(crown)).toEqual([])
     expect(crown.statsByType[0].stat.trade.ids.implicit).toEqual(['implicit.stat_2994988431', 'implicit.stat_3376335115'])
   })
 
   it('D17zb GitHub issue #40 的實機文字:藥劑附魔「Used when Charges reach full」直接列出(不收在已隱藏)、預設不勾', () => {
-    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-40.en.txt'), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/issue-40.en.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
     const preset = createPresets(item, { league: 'Standard', currency: null, collapseListings: 'api', activateStockFilter: false, searchStatRange: 10, useEn: false, merchantOnly: false }).presets[0]
     const row = preset.stats.flatMap(f => 'tradeId' in f ? [f] : []).find(f => f.tradeId.includes('enchant.stat_3287581721'))!
@@ -132,7 +132,7 @@ describe('3.30 詞綴寫法(en)', () => {
 
   // 樣本不是實機剪貼簿:照 #40 的附魔行組的傳奇藥劑(審查 2026-11-19:附魔不再隱藏後不能被「傳奇 ≤ 3 條全勾」勾上)
   it('D17zc 傳奇藥劑的附魔列出但不勾,也不影響其他詞綴的自動勾選', () => {
-    const text = fs.readFileSync(path.join(HERE, 'docs/3.30-issue-40-unique.en.txt'), 'utf8')
+    const text = fs.readFileSync(path.join(HERE, 'docs/issue-40-unique.en.txt'), 'utf8')
     const opts = { league: 'Standard', currency: null, collapseListings: 'api' as const, activateStockFilter: false, searchStatRange: 10, useEn: false, merchantOnly: false }
     const on = (t: string) => createPresets(parse(t), opts).presets[0].stats.flatMap(f => 'tradeId' in f ? [f] : []).filter(f => !f.disabled).map(f => f.tradeId[0])
     expect(on(text)).not.toContain('enchant.stat_3287581721')
@@ -140,13 +140,13 @@ describe('3.30 詞綴寫法(en)', () => {
   })
 
   it('D17z en:#37「Superior Fated Titan Plate」+「Unidentified (Tier 5)」解析成泰坦之鎧、帶階級與命運', () => {
-    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-37.en.txt'), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/issue-37.en.txt'), 'utf8'))
     expect([item.info.refName, item.isUnidentified, item.unidentifiedTier, item.isFated]).toEqual(['Titan Plate', true, 5, true])
   })
 
   // 2026-11-18 使用者回報英文地圖無法查詢:「Map contains Al-Hezmin's Citadel(...)」名稱後沒空白,失敗代表進階寫法又對不上
   it('D17x 英文實機地圖「Map contains Al-Hezmin\'s Citadel(...)」解析得到、帶交易站 id', () => {
-    const map = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-map-citadel.en.txt'), 'utf8'))
+    const map = parse(fs.readFileSync(path.join(HERE, 'docs/map-citadel.en.txt'), 'utf8'))
     expect(unknownOf(map)).toEqual([])
     expect(map.statsByType.find(s => s.stat.ref.startsWith("Map contains Al-Hezmin's Citadel"))?.stat.trade.ids.implicit).toEqual(['implicit.stat_2563183002|3'])
   })
@@ -166,7 +166,7 @@ describe('3.30 詞綴寫法(en)', () => {
 
   // 英文樣本照 GGPK 句子組的,不是實機
   it('D17wf 巫會之后冠「對魔力回復率的增減同時會以 12% 的數值套用至能量護盾充能率」解析得到、帶數值(英文)', () => {
-    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-crown-mana-es.en.txt'), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/crown-mana-es.en.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
     const hit = item.statsByType.find(s => s.stat.trade.ids.implicit?.includes('implicit.stat_1916233589'))
     expect(hit?.sources[0].stat.roll?.value).toBe(12)
@@ -175,13 +175,13 @@ describe('3.30 詞綴寫法(en)', () => {
 
 describe('3.30 詞綴寫法(cmn-Hant)', () => {
   it('D17y GitHub issue #36 的實機文字:黑暗君主「異蛛復甦(...)的最大數量加倍」(繁中帶入的是技能名)解析成交易站的蜘蛛選項', () => {
-    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-36.cmn-Hant.txt'), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/issue-36.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
     expect(item.statsByType.at(-1)!.stat.trade.ids.explicit).toEqual(['explicit.stat_56473917|5'])
   })
 
   it('D17z GitHub issue #37 的實機文字:「精良的 命運 泰坦之鎧」+「未鑑定(階級 5)」解析得到,查詢帶未鑑定、階級、命運', () => {
-    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-37.cmn-Hant.txt'), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/issue-37.cmn-Hant.txt'), 'utf8'))
     expect([item.info.refName, item.isUnidentified, item.unidentifiedTier, item.isFated]).toEqual(['Titan Plate', true, 5, true])
     const preset = createPresets(item, { league: 'Standard', currency: null, collapseListings: 'api', activateStockFilter: false, searchStatRange: 10, useEn: false, merchantOnly: false }).presets[0]
     const misc = (createTradeRequest(preset.filters, preset.stats).query.filters as any).misc_filters.filters
@@ -189,7 +189,7 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
   })
 
   it('D17z2 沒有階級的未鑑定稀有物品照舊:不帶階級 / 命運,未鑑定條件預設不送', () => {
-    const text = fs.readFileSync(path.join(HERE, 'docs/3.30-issue-37.cmn-Hant.txt'), 'utf8').replace('精良的 命運 ', '精良的 ').replace('未鑑定(階級 5)', '未鑑定')
+    const text = fs.readFileSync(path.join(HERE, 'docs/issue-37.cmn-Hant.txt'), 'utf8').replace('精良的 命運 ', '精良的 ').replace('未鑑定(階級 5)', '未鑑定')
     const item = parse(text)
     expect([item.info.refName, item.isUnidentified, item.unidentifiedTier, item.isFated]).toEqual(['Titan Plate', true, undefined, undefined])
     const preset = createPresets(item, { league: 'Standard', currency: null, collapseListings: 'api', activateStockFilter: false, searchStatRange: 10, useEn: false, merchantOnly: false }).presets[0]
@@ -197,7 +197,7 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
   })
 
   it('D17t 實機文字:「二次汙染」的啟蒙輔助 → 已汙染且查詢帶 twice_corrupted', () => {
-    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-twice-corrupted-gem.cmn-Hant.txt'), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/twice-corrupted-gem.cmn-Hant.txt'), 'utf8'))
     expect([item.info.refName, item.isCorrupted, item.isTwiceCorrupted]).toEqual(['Enlighten Support', true, true])
     const preset = createPresets(item, { league: 'Standard', currency: null, collapseListings: 'api', activateStockFilter: false, searchStatRange: 10, useEn: false, merchantOnly: false }).presets[0]
     const misc = (createTradeRequest(preset.filters, preset.stats).query.filters as any).misc_filters.filters
@@ -205,14 +205,14 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
   })
 
   it('D17t2 只有「已汙染」的寶石不帶 twice_corrupted', () => {
-    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-twice-corrupted-gem.cmn-Hant.txt'), 'utf8').replace('二次汙染', '已汙染'))
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/twice-corrupted-gem.cmn-Hant.txt'), 'utf8').replace('二次汙染', '已汙染'))
     expect([item.isCorrupted, item.isTwiceCorrupted]).toEqual([true, undefined])
     const preset = createPresets(item, { league: 'Standard', currency: null, collapseListings: 'api', activateStockFilter: false, searchStatRange: 10, useEn: false, merchantOnly: false }).presets[0]
     expect(JSON.stringify(createTradeRequest(preset.filters, preset.stats).query)).not.toMatch(/twice_corrupted/)
   })
 
   it('D17v2 實機文字:穢生 奇塔弗之渴望「至少200前期生命…有50%機率觸發」只取機率 50(交易站只索引 #%,不是兩數平均 125)', () => {
-    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-foulborn-kitavas-thirst.cmn-Hant.txt'), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/foulborn-kitavas-thirst.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
     const src = item.statsByType.find(s => s.stat.ref.includes('# Life on an'))!.sources[0]
     expect([src.stat.roll?.value, src.stat.translation.string.split('\n')[0]]).toEqual([50, '在消耗至少200前期生命以使用或觸發技能時，有#%機率觸發'])
@@ -222,13 +222,13 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
   })
 
   it('D17u 實機文字:逃脫不能「範圍精準技巧」(3.30 改名)+「通途 — 無法使用的值」解析成精準技巧選項', () => {
-    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-impossible-escape.cmn-Hant.txt'), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/impossible-escape.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
     expect(item.statsByType.map(s => s.stat.trade.ids.explicit)).toEqual([['explicit.stat_2422708892|63620']])
   })
 
   it('D17zz GitHub issue #38 的實機文字:巫會之后冠「有 12(10-12)% 更多最大物理攻擊傷害」(臟器專用 stat)解析得到,兩個固定詞綴 id 都送', () => {
-    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-38.cmn-Hant.txt'), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/issue-38.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
     expect(item.statsByType[0].stat.trade.ids.implicit).toEqual(['implicit.stat_2994988431', 'implicit.stat_3376335115'])
     const preset = createPresets(item, { league: 'Standard', currency: null, collapseListings: 'api', activateStockFilter: false, searchStatRange: 10, useEn: false, merchantOnly: false }).presets[0]
@@ -261,36 +261,36 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
   })
 
   it('D8c 巫會之后冠「擊殺時觸發等級1的低階異蛛復甦」(使用者 2026-11-24 回報)解析成同一個 id、value 100(交易站 magnitude 100)', () => {
-    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-coven-queens-crown-spiders.cmn-Hant.txt'), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/coven-queens-crown-spiders.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
     const s = item.statsByType.find(x => x.stat.trade.ids.implicit?.includes('implicit.stat_32458272'))
     expect(s?.sources[0].stat.roll?.value).toBe(100)
   })
 
   it('D8b 輝煌的虛榮「瑪茲科特爾」(使用者 2026-11-24 回報查不到)解析成交易站沿用舊名的 ahuana id', () => {
-    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-glorious-vanity-mazcotl.cmn-Hant.txt'), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/glorious-vanity-mazcotl.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
     expect(item.statsByType.map(s => s.stat.trade.ids.explicit?.[0])).toContain('explicit.pseudo_timeless_jewel_ahuana')
   })
 
   it('D8 3.30 新傳奇藥劑(使用者 2026-11-14 回報的實機剪貼簿)解析得到', () => {
-    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-dreadmaidens-sacrament.cmn-Hant.txt'), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/dreadmaidens-sacrament.cmn-Hant.txt'), 'utf8'))
     expect(item.info.refName).toBe("Dreadmaidens' Sacrament")
     expect(item.info.unique?.base).toBe('Basalt Flask')
     expect(refsOf(item)).toContain('Gain # Charge when you are Hit by an Enemy')
   })
 
   it('D9 3.30 臟器與新珠寶底材的傳奇(使用者 2026-11-14 回報的實機剪貼簿)解析得到', () => {
-    const organ = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-gladiators-heart.cmn-Hant.txt'), 'utf8'))
+    const organ = parse(fs.readFileSync(path.join(HERE, 'docs/gladiators-heart.cmn-Hant.txt'), 'utf8'))
     expect(organ.info.refName).toBe("Gladiator's Heart")
-    expect(parse(fs.readFileSync(path.join(HERE, 'docs/3.30-despots-fist.cmn-Hant.txt'), 'utf8')).info.refName).toBe("Despot's Fist")
-    const seed = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-putrid-seed.cmn-Hant.txt'), 'utf8'))
+    expect(parse(fs.readFileSync(path.join(HERE, 'docs/despots-fist.cmn-Hant.txt'), 'utf8')).info.refName).toBe("Despot's Fist")
+    const seed = parse(fs.readFileSync(path.join(HERE, 'docs/putrid-seed.cmn-Hant.txt'), 'utf8'))
     expect(seed.info.refName).toBe('Putrid Seed')
     expect(seed.info.unique?.base).toBe('Mycelium Core')
   })
 
   it('D11 3.30 新傳奇胸甲(使用者 2026-11-14 回報的范迪戈之革):沒有未解析詞綴,新詞綴不是只找相同數值', () => {
-    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-hide-of-the-vendigo.cmn-Hant.txt'), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/hide-of-the-vendigo.cmn-Hant.txt'), 'utf8'))
     expect(item.info.refName).toBe('Hide of the Vendigo')
     expect(unknownOf(item)).toEqual([])
     const speed = item.statsByType.find(s => s.stat.ref === "#% increased Attack Speed if you've used an Attack Movement Skill Recently")
@@ -298,25 +298,25 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
   })
 
   it('D12 臟器名稱帶「高階」前綴(使用者 2026-11-14 回報)解析成原臟器', () => {
-    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-greater-hollowed-skull.cmn-Hant.txt'), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/greater-hollowed-skull.cmn-Hant.txt'), 'utf8'))
     expect(item.info.refName).toBe('Hollowed Skull')
   })
 
   it('D13 3.30 新變異寶石 火球．輻射(使用者 2026-11-14 回報)解析得到,帶交易站分支', () => {
-    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-fireball-of-radiation.cmn-Hant.txt'), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/fireball-of-radiation.cmn-Hant.txt'), 'utf8'))
     expect(item.info.refName).toBe('Fireball of Radiation')
     expect(item.info.tradeDisc).toBe('alt_x')
     expect(item.info.gem).toMatchObject({ transfigured: true, normalVariant: 'Fireball' })
   })
 
   it('D14 黑暗君主(使用者 2026-11-15 回報):「喚醒幽魂(...)的最大數量加倍」3.30 進階寫法解析得到', () => {
-    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-the-dark-monarch.cmn-Hant.txt'), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/the-dark-monarch.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
     expect(refsOf(item)).toContain('Maximum number of Raised Spectres is Doubled\nCannot have Minions other than Raised Spectres')
   })
 
   it('D15 臟器的固定詞綴(使用者 2026-11-15 回報的五件)解析成帶交易站 implicit id 的詞綴', () => {
-    const items = fs.readFileSync(path.join(HERE, 'docs/3.30-viscera.cmn-Hant.txt'), 'utf8').split(/\r?\n====\r?\n/).map(parse)
+    const items = fs.readFileSync(path.join(HERE, 'docs/viscera.cmn-Hant.txt'), 'utf8').split(/\r?\n====\r?\n/).map(parse)
     const want: Array<[string, string, string, number]> = [
       ["Noble's Head", '#% more Damage against Undead Monsters', 'implicit.stat_2844915624', 8],
       ['Crescent Blade', '#% of Physical Damage from Hits taken as Cold Damage', 'implicit.stat_1871056256', 6],
@@ -334,7 +334,7 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
   })
 
   it('D16 帶入名稱前的零寬空白 U+200B(GitHub issue #4 / #7 的實機文字)不影響解析', () => {
-    const text = fs.readFileSync(path.join(HERE, 'docs/3.30-reverberation-rod.cmn-Hant.txt'), 'utf8')
+    const text = fs.readFileSync(path.join(HERE, 'docs/reverberation-rod.cmn-Hant.txt'), 'utf8')
     const real = text.replace(/的 (?=\S+輔助 輔助)/g, '的 ​')
     expect(real).not.toBe(text)
     const item = parse(real)
@@ -343,15 +343,15 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
   })
 
   it('D17 GitHub issue #8 / #9 的實機物品:傳奇繁中改名(馬拉凱的輪迴)與「+# 點命中」寫法', () => {
-    const loop = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-malachais-loop.cmn-Hant.txt'), 'utf8'))
+    const loop = parse(fs.readFileSync(path.join(HERE, 'docs/malachais-loop.cmn-Hant.txt'), 'utf8'))
     expect(loop.info.refName).toBe("Malachai's Loop")
-    const gloves = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-warlock-gloves-accuracy.cmn-Hant.txt'), 'utf8'))
+    const gloves = parse(fs.readFileSync(path.join(HERE, 'docs/warlock-gloves-accuracy.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(gloves)).toEqual([])
     expect(refsOf(gloves)).toContain('+# to Accuracy Rating')
   })
 
   it('D17b 珠寶「+#% 單手近戰武器暴擊加成」寫法(使用者 2026-11-15 實機珠寶)解析得到', () => {
-    const jewel = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-viridian-jewel-1h-crit-multi.cmn-Hant.txt'), 'utf8'))
+    const jewel = parse(fs.readFileSync(path.join(HERE, 'docs/viridian-jewel-1h-crit-multi.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(jewel)).toEqual([])
     expect(refsOf(jewel)).toContain('+#% to Critical Strike Multiplier with One Handed Melee Weapons')
   })
@@ -365,7 +365,7 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
   })
 
   it('D17d 箭袋固定詞綴「箭矢穿透一個額外目標」(句子沒有數字,使用者 2026-11-16 實機箭袋)解析得到並帶兩個固定詞綴 id', () => {
-    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-penetrating-quiver.cmn-Hant.txt'), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/penetrating-quiver.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
     const hit = item.statsByType.find(s => s.stat.ref === 'Arrows Pierce an additional Target')
     expect(hit?.type).toBe('implicit')
@@ -373,7 +373,7 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
   })
 
   it('D17e 3.30 壁壘地圖的固定詞綴(進階複製「地圖含有巴倫的壁壘(...)」,2026-11-16 回報的實機地圖)解析得到並帶選項 id', () => {
-    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-map-baran-citadel.cmn-Hant.txt'), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/map-baran-citadel.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
     const hit = item.statsByType.find(s => s.stat.ref.startsWith("Map contains Baran's Citadel"))
     expect(hit?.type).toBe('implicit')
@@ -390,7 +390,7 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
   })
 
   it('D17g GitHub issue #18–#23 的實機文字(0.3.11 仍未解析):隨機技能寶石「(...)」、新寶石 連結：秘能、希望之絃、傭兵輔助改名', () => {
-    const read = (n: number): ParsedItem => parse(fs.readFileSync(path.join(HERE, `docs/3.30-issue-${n}.cmn-Hant.txt`), 'utf8'))
+    const read = (n: number): ParsedItem => parse(fs.readFileSync(path.join(HERE, `docs/issue-${n}.cmn-Hant.txt`), 'utf8'))
     const amulet = read(18)
     expect(unknownOf(amulet)).toEqual([])
     expect(amulet.statsByType.find(s => s.stat.ref === '+# to Level of all Summon Reaper Gems (Random Skill Gem)')?.stat.trade.ids.explicit).toEqual(['explicit.indexable_skill_246'])
@@ -409,10 +409,10 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     const lines = parse(ringText('cmn-Hant', [['增加 21(20-21)% 生命回復率', '賦予等級 30 的 ​精準 — 無法使用的值']]))
     expect(unknownOf(lines)).toEqual([])
     expect(refsOf(lines)).toContain('Grants Level # Precision Skill')
-    const organ = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-6.cmn-Hant.txt'), 'utf8'))
+    const organ = parse(fs.readFileSync(path.join(HERE, 'docs/issue-6.cmn-Hant.txt'), 'utf8'))
     expect(organ.info.refName).toBe('Prosthetic Leg')
     expect(unknownOf(organ)).toEqual([])
-    const map = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-17.cmn-Hant.txt'), 'utf8'))
+    const map = parse(fs.readFileSync(path.join(HERE, 'docs/issue-17.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(map)).toEqual([])
     expect(map.statsByType.find(s => s.stat.ref.startsWith("Map contains Al-Hezmin's Citadel"))?.stat.trade.ids.implicit).toEqual(['implicit.stat_2563183002|3'])
   })
@@ -427,7 +427,7 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
   })
 
   it('D17j 惡鬼轉世還沒吞噬寶石的寫法(使用者 2026-11-17 貼的實機文字;規則 21)解析成原詞綴、數值 4', () => {
-    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-reborn-hunger.cmn-Hant.txt'), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/reborn-hunger.cmn-Hant.txt'), 'utf8'))
     expect(item.info.refName).toBe('The Hungry Loop')
     expect(unknownOf(item)).toEqual([])
     const hit = item.statsByType.find(s => s.stat.ref.startsWith('Consumes Socketed Uncorrupted Support Gems'))
@@ -444,14 +444,14 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
   })
 
   it('D17l 規則 21 的負值寫法沒有 negate handler({0:+d},遊戲直接印負號)→ 數值照原樣為負,不被翻成正(審查 2026-11-17)', () => {
-    const text = fs.readFileSync(path.join(HERE, 'docs/3.30-issue-17.cmn-Hant.txt'), 'utf8').replace('增加怪物 100% 範圍效果', '怪物 -5% 防止壓抑法術傷害的總量')
+    const text = fs.readFileSync(path.join(HERE, 'docs/issue-17.cmn-Hant.txt'), 'utf8').replace('增加怪物 100% 範圍效果', '怪物 -5% 防止壓抑法術傷害的總量')
     const item = parse(text)
     expect(unknownOf(item)).toEqual([])
     expect(item.statsByType.find(s => s.stat.ref === 'Monsters prevent +#% of Suppressed Spell Damage')?.sources[0].stat.roll?.value).toBe(-5)
   })
 
   it('D17m GitHub issue #26 的實機文字:3.30 新流派「淵井之軍」的契約書解析得到、篩選建得出來、查詢帶這個流派的類型', () => {
-    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-26.cmn-Hant.txt'), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/issue-26.cmn-Hant.txt'), 'utf8'))
     expect(item.mercenaryBuild?.refName).toBe('Chaplain of the Well')
     expect(unknownOf(item)).toEqual([])
     const preset = createPresets(item, { league: 'Standard', currency: null, collapseListings: 'api', activateStockFilter: false, searchStatRange: 10, useEn: false, merchantOnly: false }).presets[0]
@@ -470,14 +470,14 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
   })
 
   it('D17q 希望之絃「只會影響大(...)範圍內的天賦」(使用者 2026-11-18 截圖;文字照截圖改寫 issue #20 的實機樣本)解析成大範圍', () => {
-    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-thread-of-hope-large.cmn-Hant.txt'), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/thread-of-hope-large.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
     expect(item.statsByType.find(s => s.stat.ref === 'Only affects Passives in Large Ring')?.stat.trade.ids.explicit).toEqual(['explicit.stat_3642528642|3'])
     expect(item.statsByType.find(s => s.stat.ref === '+#% to all Elemental Resistances')?.sources[0].stat.roll?.value).toBe(-12)
   })
 
   it('D17r 希望之絃「只會影響巨大(...)範圍內的天賦」與 issue #20 的無括號寫法都解析成巨大範圍(大範圍有「(...)」的實機截圖,巨大是同理推論)', () => {
-    const text = fs.readFileSync(path.join(HERE, 'docs/3.30-issue-20.cmn-Hant.txt'), 'utf8')
+    const text = fs.readFileSync(path.join(HERE, 'docs/issue-20.cmn-Hant.txt'), 'utf8')
     for (const t of [text, text.replace('只會影響巨大範圍內的天賦', '只會影響巨大(...)範圍內的天賦')]) {
       const item = parse(t)
       expect(unknownOf(item)).toEqual([])
@@ -486,25 +486,25 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
   })
 
   it('D17s 淵井之軍契約書(使用者 2026-11-18 貼的實機文字):3.30 的新傭兵技能(深淵噴濺、深淵噴濺．引爆、淵底之力、瓦爾．雷鳴重擊)都解析得到', () => {
-    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-warrant-chaplain-2.cmn-Hant.txt'), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/warrant-chaplain-2.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
     expect(item.mercenarySkills?.map(g => g[0].stat.ref)).toEqual(['Abyssal Spray', 'Abyssal Spray Detonation', 'Power of the Depths', 'Vaal Smite', 'Envy', 'Flame Dash'])
   })
 
   it('D17t 傭兵契約書裡認不得的技能整段列為未解析,不再靜默丟掉(規則 7)', () => {
-    const text = fs.readFileSync(path.join(HERE, 'docs/3.30-warrant-chaplain-2.cmn-Hant.txt'), 'utf8').replace('烈焰衝刺', '不存在的技能').replace('忌妒', '另一個不存在的技能')
+    const text = fs.readFileSync(path.join(HERE, 'docs/warrant-chaplain-2.cmn-Hant.txt'), 'utf8').replace('烈焰衝刺', '不存在的技能').replace('忌妒', '另一個不存在的技能')
     expect(unknownOf(parse(text))).toEqual(expect.arrayContaining(['不存在的技能', '高階快速施放(階層：3) [不存在的技能]', '另一個不存在的技能']))
   })
 
   it('D17u GitHub issue #34 的實機文字:禁忌血肉「配置 荒野化身」(3.30 天賦繁中改名,舊名獸性化身)解析得到、帶交易站 id', () => {
-    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-34.cmn-Hant.txt'), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/issue-34.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
     expect(item.statsByType[0].stat.ref).toBe('Allocates Avatar of the Wilds if you have the matching modifier on Forbidden Flame')
     expect(item.statsByType[0].stat.trade.ids.explicit).toEqual(['explicit.stat_2460506030|55509'])
   })
 
   it('D17wb GitHub issue #39 的實機文字:腐敗之種「1 個附加的天賦為破壘者」(3.30 天賦新名,舊名堡壘破壞者)解析得到、帶交易站 id', () => {
-    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-39.cmn-Hant.txt'), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/issue-39.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
     const hit = item.statsByType.find(s => s.stat.ref === '1 Added Passive Skill is Bastion Breaker')
     expect(hit?.stat.trade.ids.enchant).toContain('enchant.stat_3599615742|65107')
@@ -515,14 +515,14 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     ['57', "Originator's Exalted Orb", 'originators-exalted-orb'],
     ['49', 'Primordial Exalted Orb', 'primordial-exalted-orb']
   ])('D17wc GitHub issue #%s 的實機文字:繁中客戶端顯示英文名的新通貨 %s 解析得到', (n, refName, tradeTag) => {
-    const item = parse(fs.readFileSync(path.join(HERE, `docs/3.30-issue-${n}.cmn-Hant.txt`), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, `docs/issue-${n}.cmn-Hant.txt`), 'utf8'))
     expect(item.info.refName).toBe(refName)
     expect(item.info.tradeTag).toBe(tradeTag)
   })
 
   it('D17wc GitHub issue #43 #44 的實機文字:禁忌軍帽「被等級 7 的 聖潔妖精(...) 輔助」(短名 + 標記)解析得到、帶交易站 id', () => {
     for (const lang of ['cmn-Hant']) {
-      const item = parse(fs.readFileSync(path.join(HERE, `docs/3.30-issue-43.${lang}.txt`), 'utf8'))
+      const item = parse(fs.readFileSync(path.join(HERE, `docs/issue-43.${lang}.txt`), 'utf8'))
       expect(unknownOf(item), lang).toEqual([])
       const ids = item.statsByType.flatMap(s => s.stat.trade.ids.explicit ?? [])
       expect(ids, lang).toContain('explicit.indexable_support_163')
@@ -533,21 +533,21 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
 
   it('D17wd GitHub issue #41 的實機文字:壟罩的胸甲(3.30 壟罩物品,交易站 enshrouded 群組)認得出底材', () => {
     for (const lang of ['cmn-Hant']) {
-      const item = parse(fs.readFileSync(path.join(HERE, `docs/3.30-issue-41.${lang}.txt`), 'utf8'))
+      const item = parse(fs.readFileSync(path.join(HERE, `docs/issue-41.${lang}.txt`), 'utf8'))
       expect(item.info.refName, lang).toBe('Enshrouded Body Armour')
       expect(item.itemLevel, lang).toBe(85)
     }
   })
 
   it('D17we GitHub issue #42 的實機文字:巫會之后冠「6(5-7)% 更多最大生命」(臟器固定詞綴)解析得到', () => {
-    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-42.cmn-Hant.txt'), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/issue-42.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
     expect(item.statsByType.flatMap(s => s.stat.trade.ids.implicit ?? [])).toContain('implicit.stat_1214601201')
   })
 
   // 使用者 2026-11-20 貼的回報(0.3.15 台服):兩行、帶數值的寫法資料沒有;英文樣本照 GGPK 句子組的,不是實機
   it('D17wf 巫會之后冠「對魔力回復率的增減同時會以 12% 的數值套用至能量護盾充能率」解析得到、帶數值(繁中)', () => {
-    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-crown-mana-es.cmn-Hant.txt'), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/crown-mana-es.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
     const hit = item.statsByType.find(s => s.stat.trade.ids.implicit?.includes('implicit.stat_1916233589'))
     expect(hit?.sources[0].stat.roll?.value).toBe(12)
@@ -559,14 +559,14 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     ['68', 'explicit.pseudo_timeless_jewel_rakiata', 11182],
     ['70', 'explicit.pseudo_timeless_jewel_maxarius', 2437]
   ])('D17wg GitHub issue #%s 的實機文字:永恆珠寶 3.30 句型 + 新征服者譯名解析得到、帶交易站 id 與數值', (n, id, value) => {
-    const item = parse(fs.readFileSync(path.join(HERE, `docs/3.30-issue-${n}.cmn-Hant.txt`), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, `docs/issue-${n}.cmn-Hant.txt`), 'utf8'))
     expect(unknownOf(item)).toEqual([])
     const hit = item.statsByType.find(s => s.stat.trade.ids.explicit?.includes(id))
     expect(hit?.sources[0].stat.roll?.value).toBe(value)
   })
 
   it('D17wk GitHub issue #67 的實機文字:巫會之后冠「對致盲的敵人增加 # 擊中和異常狀態傷害」(同文兩個 stat 的合併群組)帶兩個固定詞綴 id', () => {
-    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-67.cmn-Hant.txt'), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/issue-67.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
     const hit = item.statsByType.find(s => s.stat.ref === '#% increased Damage with Hits and Ailments against Blinded Enemies')
     expect(hit?.stat.trade.ids.implicit).toEqual(['implicit.stat_3565956680', 'implicit.stat_3503466234'])
@@ -574,13 +574,13 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
   })
 
   it('D17wh GitHub issue #61 的實機文字:黑暗君主「幻靈武器(...)的最大數量加倍」解析得到、帶交易站選項 id', () => {
-    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-61.cmn-Hant.txt'), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/issue-61.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
     expect(item.statsByType.flatMap(s => s.stat.trade.ids.explicit ?? [])).toContain('explicit.stat_56473917|1')
   })
 
   it('D17wi GitHub issue #59 的實機文字:自私牧羊人「賦予等級 20 的 禁咒」(3.30 句型)與「獲得等級 20 的禁咒」都解析得到', () => {
-    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-59.cmn-Hant.txt'), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/issue-59.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
     // 兩行對到同一條詞綴 → 一個篩選,舊 id 與 effect 新 id 都送
     const grants = item.statsByType.filter(s => s.stat.ref === 'Grants level # Affliction')
@@ -589,13 +589,13 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
   })
 
   it('D17w GitHub issue #35 的實機文字:禁忌烈焰「配置 無端暴力」(3.30 改名,舊名免費暴力)解析得到、帶交易站 id', () => {
-    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-35.cmn-Hant.txt'), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/issue-35.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
     expect(item.statsByType[0].stat.trade.ids.explicit).toEqual(['explicit.stat_1190333629|27864'])
   })
 
   it('D17n GitHub issue #29 的實機文字:永恆珠寶「授銜7260個硬幣以紀念卡斯皮羅(...)」(3.30 句型)解析得到、帶交易站 id、數值 7260', () => {
-    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-issue-29.cmn-Hant.txt'), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/issue-29.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
     const hit = item.statsByType.find(s => s.stat.ref === 'Commissioned # coins to commemorate Caspiro')
     expect(hit?.stat.trade.ids.explicit).toEqual(['explicit.pseudo_timeless_jewel_caspiro'])
@@ -611,7 +611,7 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
   })
 
   it('D18 破裂的「+#%物品稀有度」(使用者 2026-11-15 貼的實機手套)解析成原詞綴並帶破裂 id', () => {
-    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-fractured-rarity-gloves.cmn-Hant.txt'), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/fractured-rarity-gloves.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
     const hit = item.statsByType.find(s => s.stat.ref === RARITY_REF)
     expect(hit?.type).toBe('fractured')
@@ -638,11 +638,11 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
   })
 
   it('D21 使用者 2026-11-15 貼的四張 3.30 實機地圖沒有未解析詞綴(0.3.9「區域內含有一座蜃景」沒掛隨機 id)', () => {
-    const mirage = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-map-mirage.cmn-Hant.txt'), 'utf8'))
+    const mirage = parse(fs.readFileSync(path.join(HERE, 'docs/map-mirage.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(mirage)).toEqual([])
     expect(mirage.statsByType.find(s => s.stat.ref === 'Area contains an Empowered Mirage which covers the entire Map')?.stat.trade.ids.explicit).toContain('explicit.stat_2436559047')
     for (const f of ['buried-sentinel', 'katash-summoner', 'always-ignite']) {
-      expect(unknownOf(parse(fs.readFileSync(path.join(HERE, `docs/3.30-map-${f}.cmn-Hant.txt`), 'utf8'))), f).toEqual([])
+      expect(unknownOf(parse(fs.readFileSync(path.join(HERE, `docs/map-${f}.cmn-Hant.txt`), 'utf8'))), f).toEqual([])
     }
   })
 
@@ -650,17 +650,17 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
     expect(parse(ringText('cmn-Hant', [LIFE_ZH, ['二次汙染']])).isCorrupted).toBe(true)
     expect(parse(ringText('cmn-Hant', [LIFE_ZH, ['已汙染']])).isCorrupted).toBe(true)
     expect(parse(ringText('cmn-Hant', [LIFE_ZH])).isCorrupted).toBe(false)
-    expect(parse(fs.readFileSync(path.join(HERE, 'docs/3.30-map-mirage.cmn-Hant.txt'), 'utf8')).isCorrupted).toBe(true)
+    expect(parse(fs.readFileSync(path.join(HERE, 'docs/map-mirage.cmn-Hant.txt'), 'utf8')).isCorrupted).toBe(true)
   })
 
   it('D24 軍閥行軍(GitHub issue #15,台服 0.3.9 的實機文字)「插槽中的寶石被等級 25 的 神聖祝福輔助 輔助」解析得到並帶 effect_ id', () => {
-    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-march-of-the-legion.cmn-Hant.txt'), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/march-of-the-legion.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
     expect(item.statsByType.flatMap(s => s.stat.trade.ids.explicit ?? [])).toContain('explicit.effect_3161048706')
   })
 
   it('D25 臟器「巫會之后冠」(使用者 2026-11-15 貼的實機文字):三條固定詞綴都解析得到(0.3.9 海洋球那條沒掛固定 id)', () => {
-    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-coven-queens-crown.cmn-Hant.txt'), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/coven-queens-crown.cmn-Hant.txt'), 'utf8'))
     expect(item.info.refName).toBe("Coven Queen's Crown")
     expect(unknownOf(item)).toEqual([])
     const brine = item.statsByType.find(s => s.stat.ref === '#% chance to gain a Brine Charge instead of an Endurance Charge')
@@ -676,7 +676,7 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
   })
 
   it('D27 傳奇珠寶「腐敗之種」(使用者 2026-11-15 貼的實機文字):洗出的四個塗油天賦解析成附魔詞綴、帶選項型 id', () => {
-    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-putrid-seed.cmn-Hant.txt'), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/putrid-seed.cmn-Hant.txt'), 'utf8'))
     expect(item.info.refName).toBe('Putrid Seed')
     expect(unknownOf(item)).toEqual([])
     const grown = item.statsByType.filter(s => s.stat.ref.startsWith('1 Added Passive Skill is '))
@@ -689,7 +689,7 @@ describe('3.30 詞綴寫法(cmn-Hant)', () => {
   })
 
   it('D10「插槽中的寶石被等級 # 的 X輔助 輔助」3.30 寫法(使用者 2026-11-14 回報的混響)沒有未解析詞綴', () => {
-    const item = parse(fs.readFileSync(path.join(HERE, 'docs/3.30-reverberation-rod.cmn-Hant.txt'), 'utf8'))
+    const item = parse(fs.readFileSync(path.join(HERE, 'docs/reverberation-rod.cmn-Hant.txt'), 'utf8'))
     expect(unknownOf(item)).toEqual([])
     for (const gem of ['Spell Echo', 'Controlled Destruction', 'Arcane Surge']) {
       expect(refsOf(item)).toContain(`Socketed Gems are Supported by Level # ${gem} (Random Support Gem)`)
@@ -732,13 +732,8 @@ describe('3.30 資料檔', () => {
   })
 
   it('D4 stats.ndjson 不再引用交易站已移除的 id', () => {
-    const snap = JSON.parse(fs.readFileSync(TRADE_IDS_FILE, 'utf8')) as { ids: string[], options: Record<string, string[]> }
-    const valid = new Set(snap.ids)
-    const isValid = (id: string): boolean => {
-      if (valid.has(id)) return true
-      const m = /^(.*)\|(.+)$/.exec(id)
-      return m != null && (snap.options[m[1]] ?? []).includes(m[2])
-    }
+    const valid = readTradeIds()
+    const isValid = (id: string): boolean => valid.has(id)
     const dead = new Set<string>()
     for (const lang of ['en', 'cmn-Hant']) {
       for (const row of readNdjson(lang, 'stats.ndjson')) {
