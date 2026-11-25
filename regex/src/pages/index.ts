@@ -4,6 +4,7 @@ import { applyKeys, collectKeys, keyOf, zhLine } from '../state'
 import { numericPages } from './numeric-pages'
 import { vendorPages } from './vendor-pages'
 import { conditionSections } from '../rarity'
+import { RENAMED_ENTRY_IDS } from './renamed-entry-ids'
 import { isAlgoPage, type AlgoEntry, type AlgoPage, type AlgoValue } from './types'
 
 export * from './types'
@@ -84,17 +85,6 @@ export function pageKeysOf (page: RegexPage, picked: readonly number[]): { keys:
   return { keys, alt }
 }
 
-/**
- * 併列後 id 整個換掉、`X|ref` 退路接不到的舊項目 id → 現行 id(PoE1 物品詞綴數值頁:規則 30 的「+ (Random Support Gem)」配對,
- * 固定列用的是舊的固定輔助 stat id;2026-11-24 以併列前後兩版資料逐條算出)
- */
-const RENAMED_ENTRY_IDS: Readonly<Record<string, string>> = {
-  stat_285773939: 'indexable_support_154', // Flamewood
-  stat_3227145554: 'indexable_support_133', // Impending Doom
-  stat_4096329121: 'indexable_support_168', // Living Lightning
-  stat_254728692: 'indexable_support_33', // Pierce
-  stat_2910545715: 'indexable_support_148' // Prismatic Burst
-}
 
 /**
  * 演算法頁的項目 id → 索引。找不到、且是 `X|ref`(物品詞綴數值頁同一個交易站 id 的第二條)時退回 `X`:

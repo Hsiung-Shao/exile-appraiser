@@ -1,8 +1,8 @@
 {
  "source": "www.pathofexile.com /api/trade/data/{items,filters}",
  "fetchedAt": {
-  "items": "2026-11-18",
-  "filters": "2026-11-19"
+  "items": "2026-11-25",
+  "filters": "2026-11-25"
  },
  "categories": [
   "accessory",
@@ -2951,9 +2951,11 @@
   "Orb of Unravelling",
   "Orbala's Fifth Adventure",
   "Organic Ring",
+  "Originator's Exalted Orb",
   "Ornate Incubator",
   "Ornate Mace",
   "Ornate Quiver",
+  "Ornate Quiver|legacy",
   "Ornate Ringmail",
   "Ornate Spiked Shield",
   "Ornate Sword",
@@ -3165,6 +3167,7 @@
   "Primitive Ape",
   "Primitive Chaotic Resonator",
   "Primitive Staff",
+  "Primordial Exalted Orb",
   "Primordial Fragment",
   "Primordial Rhoa",
   "Primordial Staff",

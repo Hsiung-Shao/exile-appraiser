@@ -1,6 +1,7 @@
 // PoE1 賽季資料更新的純函式(update.mjs 用;測試 poe1/test/season-update.test.ts)。
 // 對接一律用語言無關鍵:GGPK stat 鍵、交易站 stat id、Metadata 路徑、stats 的 ref。
 // matcher 只加不刪、不換順序;判不準的一律不改資料、放進 rejects 給報告。
+import fs from 'node:fs'
 
 /** GGPK / 交易站文字 → matcher 文字(數值寫 #,# 前的正負號去掉) */
 export function toMatcherText (text) {
@@ -446,16 +447,10 @@ export function planEffectStats ({ enStats, zhStats, tradeStats, skills, support
  */
 export const TYPE_ID_GROUPS = ['explicit', 'implicit', 'fractured', 'crafted']
 /**
- * 交易站同一類型、文字逐字相同的另一個 id(雜湊不同),實測有物品的才列在這裡 → 掛在既有 id 後面,查詢兩個都送。
- * 依據:2026-11-20 在 Standard 逐一搜尋 86 個這種 id,只有這 18 個有結果(其餘 68 個 0 筆,不掛:多送一個條件沒有好處)。
- * 新賽季交易站多出同文 id 時,先實際搜尋有結果再加進來。
+ * 交易站同一類型、文字逐字相同的另一個 id(雜湊不同),實測有物品的才掛在既有 id 後面,查詢兩個都送。
+ * 清單在 live-twin-ids.json(2026-11-25 起由 scripts/season/probe-twin-ids.mjs 實測後寫入;原本寫在這裡)。
  */
-export const LIVE_TWIN_IDS = new Set([
-  'explicit.stat_389725673', 'explicit.stat_3665534869', 'explicit.stat_28550326', 'explicit.stat_3408601861', 'explicit.stat_1934713036',
-  'explicit.stat_165218607', 'explicit.stat_156080652', 'explicit.stat_3848992177', 'explicit.stat_3904501306', 'explicit.stat_1029319062',
-  'explicit.stat_2916634441', 'explicit.stat_1888494262', 'explicit.stat_335507772', 'explicit.stat_4082662318',
-  'implicit.stat_2902845638', 'implicit.stat_335507772', 'enchant.stat_865263728', 'enchant.stat_945725535'
-])
+export const LIVE_TWIN_IDS = new Set(JSON.parse(fs.readFileSync(new URL('./live-twin-ids.json', import.meta.url), 'utf8')).live)
 // trivial-merge 群組裡每條的 ref / matchers / 正負都相同 = 同一句的兩個 stat,解析時 id 會合併送出 → 依 ref 掛上不會掛錯條(GitHub issue #67);
 // id 依 ref 兩語都掛 → 繁中那組也要相同(猛攻、焦灼地面兩組英文相同、繁中不同,繁中解析只選一條)
 const twinGroup = (row) => row.resolve?.strat === 'trivial-merge' && row.stats.length > 1 &&

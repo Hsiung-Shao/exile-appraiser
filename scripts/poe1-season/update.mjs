@@ -16,6 +16,10 @@ import path from 'node:path'
 import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { BETTER_OVERRIDES, eachStat, applyItemPlan, applyStatPlan, planDeadIds, planGems, planItems, planMercenaryBuilds, planMercenarySkills, planExtraZh, planNamedSlots, planTimelessJewels, planFixedCase, planFlagMerge, planIndexableSkills, planDropNoIdStats, planZhForms, planCondForms, planEffectStats, planFillIds, planGrantsSkill, planMinionDoubled, planRandomSkillGem, planCitadel, planUniqueZhNames, planNewStats, planStatText, planSupportGemNames, planGrownPassives, planPassiveRenames, planForbiddenNotables, planMergeDuplicates, planRoomNames, planTypeIds, planTradeBases, planTradeText, planOtherTradeTexts, planUniques } from './lib.mjs'
+import { CATALOG_FILE, writeTradeCatalog } from './dump-trade-catalog.mjs'
+import { setGameVersion } from '../season/lib.mjs'
+
+const TRADE_STATS_FILE = path.join(path.dirname(fileURLToPath(import.meta.url)), '../../poe1/test/docs/trade-stats.json')
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(HERE, '../..')
@@ -43,9 +47,16 @@ execFileSync(flag('--python') ?? 'python', [path.join(HERE, 'dump_ggpk.py'), DB,
 const ggpk = JSON.parse(fs.readFileSync(tmp, 'utf8'))
 fs.rmSync(tmp)
 
-async function trade (/** @type {string} */ name) {
+/** 交易站回應原文(`--write` 時寫成測試用的快照) */
+const tradeBody = /** @type {Record<string, any>} */ ({})
+async function trade (/** @type {string} */ name, optional = false) {
   const dir = flag('--trade-dir')
-  if (dir) return JSON.parse(fs.readFileSync(path.join(dir, `${name}.json`), 'utf8')).result
+  if (dir) {
+    const f = path.join(dir, `${name}.json`)
+    if (optional && !fs.existsSync(f)) return null
+    tradeBody[name] = JSON.parse(fs.readFileSync(f, 'utf8'))
+    return tradeBody[name].result
+  }
   const res = await fetch(TRADE + name, { headers: { 'User-Agent': UA } })
   if (!res.ok) throw new Error(`交易站 ${name} 回 ${res.status}`)
   const body = await res.json()
@@ -53,12 +64,14 @@ async function trade (/** @type {string} */ name) {
     fs.mkdirSync(String(flag('--save-trade')), { recursive: true })
     fs.writeFileSync(path.join(String(flag('--save-trade')), `${name}.json`), JSON.stringify(body))
   }
+  tradeBody[name] = body
   return body.result
 }
 const tradeStats = (await trade('stats')).flatMap(g => g.entries)
 const tradeStatic = (await trade('static')).flatMap(g => g.entries)
 const tradeItems = (await trade('items')).flatMap(g => g.entries.map(e => ({ ...e, group: g.id })))
-const fetchedAt = new Date().toISOString()
+await trade('filters', true) // 只給 trade-catalog.json 用;舊的 --trade-dir 存檔沒有就跳過
+const fetchedAt = flag('--trade-dir') ? fs.statSync(path.join(String(flag('--trade-dir')), 'stats.json')).mtime.toISOString() : new Date().toISOString()
 
 const file = (lang, name) => path.join(ROOT, 'data/poe1', lang, `${name}.ndjson`)
 const text = Object.fromEntries(LANGS.flatMap(lang => ['stats', 'items'].map(name => [`${lang}/${name}`, fs.readFileSync(file(lang, name), 'utf8')])))
@@ -176,6 +189,11 @@ if (!args.includes('--write')) {
   console.log('(沒帶 --write,沒有寫任何資料檔)')
   process.exit(0)
 }
+// 物品詞綴數值頁改名對照要拿寫入前的資料比(regex/scripts/gen-renamed-entry-ids.ts)
+const before = fs.mkdtempSync(path.join(os.tmpdir(), 'poe1-season-before-'))
+for (const lang of LANGS) fs.cpSync(file(lang, 'stats'), path.join(before, 'poe1', lang, 'stats.ndjson'))
+fs.cpSync(path.join(ROOT, 'data/regex/item-mod-forms.json'), path.join(before, 'regex/item-mod-forms.json'))
+
 for (const lang of LANGS) {
   fs.writeFileSync(file(lang, 'stats'), applyStatPlan(text[`${lang}/stats`], lang, statPlan))
   fs.writeFileSync(file(lang, 'items'), applyItemPlan(text[`${lang}/items`], lang, itemPlan))
@@ -185,3 +203,32 @@ node(['scripts/make-index-files.mjs'])
 node(['scripts/verify-data-manifest.mjs', '--write', '--prefix', 'data/poe1',
   '--source', `ExileAppraiser 自己維護(底 = apt-patched 384d1c5;scripts/poe1-season/update.mjs 以 GGPK ${ggpk.new.gameVersion} build ${ggpk.new.ggpkBuild} + 國際服交易站資料更新)`,
   '--path', 'data/poe1', '--fetched-at', fetchedAt])
+
+// ---- 跟著資料一起要更新的檔(2026-11-25 起自動,原本人工)----
+const auto = []
+fs.writeFileSync(TRADE_STATS_FILE, JSON.stringify(tradeBody.stats))
+auto.push(`交易站 stats 快照 ${path.relative(ROOT, TRADE_STATS_FILE)}`)
+if (tradeBody.filters) {
+  const day = fetchedAt.slice(0, 10)
+  writeTradeCatalog(tradeBody.items, tradeBody.filters, day, day)
+  auto.push(`交易站類別 / 基底 ${path.relative(ROOT, CATALOG_FILE)}`)
+} else auto.push('(--trade-dir 沒有 filters.json,trade-catalog.json 沒更新)')
+node(['regex/scripts/gen-item-mod-forms.mjs'])
+// 來源是仲裁檔(不隨賽季變),fetchedAt 沿用 MANIFEST 原值;其他欄位 verify-data-manifest 自己沿用
+const formsAt = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/MANIFEST.json'), 'utf8')).sources['data/regex/item-mod-forms.json']?.fetchedAt ?? fetchedAt
+node(['scripts/verify-data-manifest.mjs', '--write', '--prefix', 'data/regex/item-mod-forms.json', '--fetched-at', formsAt])
+auto.push('物品詞綴數值頁多種寫法 data/regex/item-mod-forms.json')
+execFileSync(process.execPath, [path.join(ROOT, 'node_modules/tsx/dist/cli.mjs'), 'regex/scripts/gen-renamed-entry-ids.ts', '--game', 'poe1', '--before', path.join(before, 'regex')], { cwd: ROOT, stdio: 'inherit' })
+fs.rmSync(before, { recursive: true, force: true })
+auto.push('物品詞綴數值頁改名對照 regex/src/pages/renamed-entry-ids.ts')
+const gv = path.join(ROOT, 'renderer/src/web/settings/game-versions.ts')
+fs.writeFileSync(gv, setGameVersion(fs.readFileSync(gv, 'utf8'), 'poe1', ggpk.new.gameVersion))
+auto.push(`關於頁支援遊戲版本 poe1 = ${ggpk.new.gameVersion}`)
+
+const gemRejects = gems.rejects.filter(r => /NEW_GEM_MAX_LEVEL/.test(r.reason)).map(r => r.id)
+console.log(['', '自動更新的檔:', ...auto.map(s => `  - ${s}`), '',
+  '需要人工看:',
+  `  - 拒收 ${rejects.length} 條(--report 看明細)`,
+  gemRejects.length ? `  - 新的一般寶石要補等級上限 NEW_GEM_MAX_LEVEL:${gemRejects.join('、')}` : '  - NEW_GEM_MAX_LEVEL:沒有要補的',
+  `  - EXTRA_ZH_MATCHERS / LIVE_TWIN_IDS 等例外表維持人工(另一種寫法、同文另一個 id 要實測:scripts/season/probe-twin-ids.mjs)`
+].join('\n'))

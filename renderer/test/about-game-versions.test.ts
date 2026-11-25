@@ -12,7 +12,9 @@ const vue = () => read('renderer/src/web/settings/tabs/About.vue')
 
 describe('關於頁:支援遊戲版本', () => {
   it('兩代版號都有', () => {
-    expect(SUPPORTED_GAME_VERSIONS).toEqual({ poe1: '3.30.0', poe2: '0.5.5e' })
+    // 2026-11-25 起由兩代 update.mjs --write 依 GGPK 版本自動寫(例 3.30.0d),只鎖格式
+    expect(Object.keys(SUPPORTED_GAME_VERSIONS)).toEqual(['poe1', 'poe2'])
+    for (const v of Object.values(SUPPORTED_GAME_VERSIONS)) expect(v).toMatch(/^\d+\.\d+\.\d+[a-z]?$/)
   })
   it('字串兩語:區塊標題與說明,不含 vue-i18n 特殊字元', () => {
     for (const lang of ['cmn-Hant', 'en']) {

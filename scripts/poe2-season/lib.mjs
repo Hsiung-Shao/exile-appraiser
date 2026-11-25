@@ -2,6 +2,9 @@
 // 2026-11-18 起 data/poe2 由本專案維護(底 = ee2-patched fc7de73);PoE1 的對應腳本在 scripts/poe1-season。
 // 這一版沒有新的 PoE2 GGPK 快照可比(使用者 2026-11-18:PoE2 目前沒有更新,以現有資料調整),
 // 規則只依實機樣本(GitHub issue 的剪貼簿)與資料本身的佐證;matcher 只加不刪,判不準的不改。
+// 另有與 PoE1 共用的 planGeneric(2026-11-25),本機有兩個 PoE2 GGPK 版本時才生效。
+
+import { planDeadIds, planFillIds, planStatText } from '../poe1-season/lib.mjs'
 
 /**
  * PoE2 資料檔的序列化格式 = Python `json.dumps(obj, ensure_ascii=False)`(ee2-patched 的產生器):
@@ -78,4 +81,21 @@ export function applyStatPlan (fileText, lang, { adds = [] } = {}) {
     }
     return changed ? pyDumps(stat) : line
   }).join(eol)
+}
+
+/**
+ * 與 PoE1 同一套的通用規則(2026-11-25,使用者裁定 PoE1 / PoE2 處理方式相同):改字 A、失效 id、補交易站 id。
+ * 本機 PoE2 GGPK 只有一個版本時(新舊相同)一律不動,行為與改版前相同。
+ * replace = [舊 id, 新 id][];update.mjs 目前只寫 adds,其餘非空就停下(PoE2 寫檔器還不會改 id)。
+ */
+export function planGeneric ({ enStats, zhStats, ggpkOld, ggpkNew, tradeStats }) {
+  const empty = { adds: [], replace: [], remove: [], fill: {} }
+  if (sameGgpk(ggpkOld, ggpkNew)) return empty
+  const { adds } = planStatText({ enStats, zhStats, ggpkOld, ggpkNew })
+  const dead = planDeadIds({ enStats, tradeStats })
+  return { adds, replace: Object.entries(dead.replace), remove: dead.remove, fill: planFillIds({ enStats, tradeStats }) }
+}
+
+function sameGgpk (a, b) {
+  return a === b || (a.length === b.length && a.every((r, i) => r.key === b[i].key && r.en === b[i].en && r.zh === b[i].zh))
 }

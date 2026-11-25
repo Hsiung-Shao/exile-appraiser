@@ -1,0 +1,24 @@
+{
+ "note": "交易站同一類型、文字逐字相同的另一個 id(雜湊不同),實測有物品的才列在 live → 掛在既有 id 後面,查詢兩個都送。checkedEmpty = 實測 0 筆、下次不再搜。由 scripts/season/probe-twin-ids.mjs --write 維護;2026-11-20 起始 18 個(Standard 逐一搜尋 86 個)。",
+ "live": [
+  "explicit.stat_389725673",
+  "explicit.stat_3665534869",
+  "explicit.stat_28550326",
+  "explicit.stat_3408601861",
+  "explicit.stat_1934713036",
+  "explicit.stat_165218607",
+  "explicit.stat_156080652",
+  "explicit.stat_3848992177",
+  "explicit.stat_3904501306",
+  "explicit.stat_1029319062",
+  "explicit.stat_2916634441",
+  "explicit.stat_1888494262",
+  "explicit.stat_335507772",
+  "explicit.stat_4082662318",
+  "implicit.stat_2902845638",
+  "implicit.stat_335507772",
+  "enchant.stat_865263728",
+  "enchant.stat_945725535"
+ ],
+ "checkedEmpty": []
+}

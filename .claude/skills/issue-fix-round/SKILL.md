@@ -12,9 +12,9 @@ description: ExileAppraiser 一輪 GitHub issue 回報修正(詞綴未解析、�
 新版 GGPK 出來時不等 issue(使用者 2026-11-24 裁定),照 CLAUDE.md 規則 1「開季主動掃描」:
 
 1. 請 PobTools 對話抽 GGPK 並匯入本機 Supabase(同一個 version_id 要有 `ggpk_stat` / `ggpk_cell` / `ggpk_row` / `rel_*`);本專案不自己匯入。抽取前確認遊戲沒開(開著會靜默沿用舊 cache)。
-2. `update.mjs --write` 到摘要全 0。
-3. `node scripts/poe1-season/dump-type-sweep.mjs --diff <舊>,<新>` → `poe1/test/docs/type-sweep-diff.json`。
-4. 在 `poe1/`:`UPDATE_FIXTURES=1 DIFF_SWEEP_REPORT=../docs/poe1-season/<新版>-diff-sweep.md npx vitest run test/type-sweep.test.ts`,看報告與 `type-sweep-diff{-gaps,-query-gaps}.json` 的 diff。
+2. `node scripts/season.mjs --game poe1 --from D:/codeproject/Pob2/pob-zh-engine`(先不帶 `--write` 看前置檢查與摘要)→ 帶 `--write` 跑完整流程:資料重跑到不再變、差異掃描、正則、物品種類、連網快照、npm test、正則鎖定數字差異(PoE2 換 `--game poe2`)。
+3. 看總結的 ✗、update 摘要「需要人工看」、更新報告拒收表、`type-sweep-diff{-gaps,-query-gaps}.json` 與 git diff。
+4. 同文另一個交易站 id:`node scripts/season/probe-twin-ids.mjs` 看報告,確認後 `--write`,再跑一次 `update.mjs --write`。
 5. 報告裡的缺口當成「沒人回報的 issue」,從第 2 步(先寫失敗測試)開始逐批修;缺口清單只能變少。
 
 ## 0. 收件與分類
@@ -88,7 +88,7 @@ git diff --shortstat
 
 ## 6. 備好發版(不發、不 push)
 
-1. 版號(只有修正 → patch):root、`main/`、`core/`、`poe1/`、`poe2/`、`regex/`、`renderer/` 的 `package.json` 一起改,`npm install` 更新 `package-lock.json`;`npm run check-user-agent`。
+1. 版號(只有修正 → patch):`node scripts/bump-version.mjs <版號>`(7 個 `package.json` + `package-lock.json`);`npm run check-user-agent`。
 2. `docs/release-notes/v<版號>.md`:照 `release-notes-zh` skill,**玩家看得懂的症狀**為標題(「顯示為未解析」「查到 0 筆」),不寫規則編號;交易站新列等資料變動放「調整」。
 3. `docs/release-flow.md` 發版紀錄加一行(issue 範圍、規則編號、只補測試的註明),commit `v<版號>:版號、更新說明、發版紀錄`。
 4. 停下來問使用者「發不發」;發版步驟照 `docs/release-flow.md`。
