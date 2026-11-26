@@ -9,8 +9,8 @@
     "data/poe1": {
       "repo": "ExileAppraiser 自己維護(底 = apt-patched 384d1c5;scripts/poe1-season/update.mjs 以 GGPK 3.30.0d build 3.30.0.4 + 國際服交易站資料更新)",
       "path": "data/poe1",
-      "generatedAt": "2026-11-24T19:06:51.662Z",
-      "fetchedAt": "2026-11-24T19:06:48.608Z"
+      "generatedAt": "2026-11-26T15:34:13.086Z",
+      "fetchedAt": "2026-11-26T15:34:05.784Z"
     },
     "data/poe1/item-classes": {
       "repo": "PoE1 GGPK itemclasses(Name 欄)+ clientstrings(Text 欄白名單)+ alternatequalitytypes(Description 欄)+ keywordpopups(Term 欄白名單);game_version 3.29.3;來源檔 sha256 itemclasses ae5f620c8167bf60ddeb638ffe631616d6fe199c57dea97efde2b2ebd81858d3 / clientstrings 1a00ded04f9f1ce888bceae162fc60ef2aeedb8aeeb7222b97e8990cb0ae59ec / alternatequalitytypes efd5f26dbf3b4401a41b5e92121eb9944204a63e42da93d6d974a69130ce32f5 / keywordpopups 417507ab455ddda0ba6d5284a537f081d4c2e161212c6ce77ba88d57eb881555",
@@ -103,12 +103,12 @@
       "bytes": 143495
     },
     "data/poe1/cmn-Hant/app_i18n.json": {
-      "sha256": "5e749a11ae54767e437d2b419370646afbe1cac5dc4aebec146bd72cb5997b85",
-      "bytes": 15922
+      "sha256": "f3034ab64145923206f5fb03b167c56ba8d4884bba3a093822c098e45e38f1db",
+      "bytes": 15973
     },
     "data/poe1/cmn-Hant/client_strings.js": {
-      "sha256": "dcf2e91dbc9eb3a1fbe1396344ff6aba74f36dee2997afe44d017542388313c3",
-      "bytes": 9517
+      "sha256": "ab85b10a82a8c692e591802aacc7d2d3652f2ff52caca1a791a6c68e653c767d",
+      "bytes": 9751
     },
     "data/poe1/cmn-Hant/items-name.index.bin": {
       "sha256": "ca23ee9ccca9874985bfc54645f027c6359c4f76002faff9ddc9b991374a45c1",
@@ -123,24 +123,24 @@
       "bytes": 1558080
     },
     "data/poe1/cmn-Hant/stats-matcher.index.bin": {
-      "sha256": "64ed109524f2995295dd922b4cf7bf0f3f474ac7de04a10dc4562d2d9ea4b387",
-      "bytes": 135104
+      "sha256": "39d3f8fc50835b9d9de1a465d0805a9571ff61d5b3689c43161c4f09e8d4ed27",
+      "bytes": 135160
     },
     "data/poe1/cmn-Hant/stats-ref.index.bin": {
-      "sha256": "e68871b20ca38f41f6470e9d65b04a5043b07807a6618ca59923513cbcb5f271",
-      "bytes": 86688
+      "sha256": "df9a87ef931258b71e05cbb3cfd9815ca60be558a20ffdf0d3bfa7872325c41a",
+      "bytes": 86744
     },
     "data/poe1/cmn-Hant/stats.ndjson": {
-      "sha256": "bc2a2713db9a16258bb57d3ce9d7b1eb50b68a7ff7d69ed2704c14000187aee5",
-      "bytes": 2968073
+      "sha256": "c813d818d92459f3f1d426652707486b6201a3cbf19e7ce13f9bb9deddfde751",
+      "bytes": 2970031
     },
     "data/poe1/en/app_i18n.json": {
-      "sha256": "340d4d143e9ccaa0673a032dbdc7206cc0afd90bc03581037b36d60a1453c5b8",
-      "bytes": 15325
+      "sha256": "bca7876bee90bbebf59110eb0f6952a861fed08f0e92e336b87631a6def00fcf",
+      "bytes": 15377
     },
     "data/poe1/en/client_strings.js": {
-      "sha256": "8e9aecca8ef1e8d39f79d379c152c512519e7c3eac45c26c5d28bed817d73553",
-      "bytes": 9498
+      "sha256": "57ed38cdf2879549dd2490d9724d6628c7380133d66916bb9ce6100e5c3627c6",
+      "bytes": 9664
     },
     "data/poe1/en/items-name.index.bin": {
       "sha256": "eb7127ce24c209880ed7d061ada1616aec30202e52551b5473d61b543491e614",
@@ -155,16 +155,16 @@
       "bytes": 1559675
     },
     "data/poe1/en/stats-matcher.index.bin": {
-      "sha256": "1b0723b52d1d23ce368ab7cbc4367813e9ad3a8ca593168f5a45e9602d65e790",
-      "bytes": 134648
+      "sha256": "ee4428ff9dd9615af24c96a8776d62a92f74f23d00363946e2ffae64dace341c",
+      "bytes": 134704
     },
     "data/poe1/en/stats-ref.index.bin": {
-      "sha256": "fa5072b2d7d7ca7d242dca48ca01e6e75c2b3b270176c596d3ca9dec4cc5c225",
-      "bytes": 86688
+      "sha256": "f6b3707eeb330539345ca68bd093ae3d50d3674155a6e3456ef279ea596bea70",
+      "bytes": 86744
     },
     "data/poe1/en/stats.ndjson": {
-      "sha256": "d7d4683cceadbbfa2bd5f0dca8e976e6717d6b2b5151b84847f5f80217863c48",
-      "bytes": 3092857
+      "sha256": "267f7813fdb551d4de9ac65ade36a925450baf6091c0d431872afeb6137920f5",
+      "bytes": 3095083
     },
     "data/poe1/item-classes/item-classes.json": {
       "sha256": "590944932aac9e73cc513bdedb85f0b3ba748732ab3fe77eaf229bac810898a5",

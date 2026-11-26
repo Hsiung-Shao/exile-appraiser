@@ -137,6 +137,10 @@ function createFiltersInner (
       baseType: item.info.name,
       baseTypeTrade: t(opts, item.info)
     }
+    // exile-appraiser: 2026-11-26 GitHub issue #76 寶石匠的稜鏡:已儲存經驗照物品原值當最低值查(經驗少的混進來價格差很多)
+    if (item.storedExperience != null) {
+      filters.storedExperience = { value: item.storedExperience, disabled: false }
+    }
     // exile-appraiser: 地區等級照物品原值當最低值查,不截成固定檔位(低等級的會混進價格;GitHub issue #75)
     if (item.info.refName === 'Chronicle of Atzoatl' || item.info.refName === 'Mirrored Tablet') {
       filters.areaLevel = {

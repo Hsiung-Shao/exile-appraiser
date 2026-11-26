@@ -15,7 +15,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
-import { BETTER_OVERRIDES, eachStat, applyItemPlan, applyStatPlan, planDeadIds, planGems, planItems, planMercenaryBuilds, planMercenarySkills, planExtraZh, planNamedSlots, planTimelessJewels, planFixedCase, planFlagMerge, planIndexableSkills, planDropNoIdStats, planZhForms, planCondForms, planEffectStats, planFillIds, planGrantsSkill, planMinionDoubled, planRandomSkillGem, planCitadel, planUniqueZhNames, planNewStats, planStatText, planSupportGemNames, planGrownPassives, planPassiveRenames, planForbiddenNotables, planMergeDuplicates, planRoomNames, planTypeIds, planTradeBases, planTradeText, planOtherTradeTexts, planUniques } from './lib.mjs'
+import { BETTER_OVERRIDES, eachStat, applyItemPlan, applyStatPlan, planDeadIds, planGems, planItems, planMercenaryBuilds, planMercenarySkills, planSplitStats, planExtraZh, planNamedSlots, planTimelessJewels, planFixedCase, planFlagMerge, planIndexableSkills, planDropNoIdStats, planZhForms, planCondForms, planEffectStats, planFillIds, planGrantsSkill, planMinionDoubled, planRandomSkillGem, planCitadel, planUniqueZhNames, planNewStats, planStatText, planSupportGemNames, planGrownPassives, planPassiveRenames, planForbiddenNotables, planMergeDuplicates, planRoomNames, planTypeIds, planTradeBases, planTradeText, planOtherTradeTexts, planUniques } from './lib.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(HERE, '../..')
@@ -113,11 +113,13 @@ const indexableSkills = planIndexableSkills({ enStats: afterB, tradeStats, ggpkN
 newStats.push(...indexableSkills.newStats)
 const mercSkills = planMercenarySkills({ enStats: afterB, tradeStats, skills: ggpk.mercSkills ?? [] })
 newStats.push(...mercSkills.newStats)
+const splits = planSplitStats({ enStats: afterB, zhStats: afterA['cmn-Hant'], ggpkNew: ggpk.stats.new })
+newStats.push(...splits.newStats)
 const extraIds = { ...typeIds.extra }
 for (const [ref, ids] of [...Object.entries(grown.extra), ...Object.entries(mercSkills.extra)]) for (const [type, list] of Object.entries(ids)) ((extraIds[ref] ??= {})[type] ??= []).push(...list)
 const merges = planMergeDuplicates({ enStats: afterB, zhStats: rows(applyStatPlan(text['cmn-Hant/stats'], 'cmn-Hant', { adds })) })
 const statPlan = { adds, replace: dead.replace, remove: dead.remove, newStats, better: BETTER_OVERRIDES, fill, extra: extraIds, option: roomNames.option, merge: merges.merge, drop: planDropNoIdStats({ enStats: afterB, keep: [...Object.keys(fill), ...Object.keys(extraIds)] }).drop }
-const rejects = [...ruleA.rejects.map(r => ({ rule: '改字 A', ...r })), ...ruleB.rejects.map(r => ({ rule: '改字 B', ...r })), ...dead.rejects.map(r => ({ rule: '失效 id', ...r })), ...gemNames.rejects.map(r => ({ rule: '輔助寶石名', ...r })), ...grants.rejects.map(r => ({ rule: '賦予技能', ...r })), ...zhForms.rejects.map(r => ({ rule: 'GGPK 繁中句子', ...r })), ...namedSlots.rejects.map(r => ({ rule: '帶入名稱的句型', ...r })), ...timeless.rejects.map(r => ({ rule: '永恆珠寶征服者', ...r })), ...condForms.rejects.map(r => ({ rule: 'GGPK 數值寫法', ...r })), ...otherTexts.rejects.map(r => ({ rule: '交易站另一句', ...r })), ...effects.rejects.map(r => ({ rule: 'effect 新 id', ...r })), ...typeIds.rejects.map(r => ({ rule: '掛上缺的類型 id', ...r })), ...grown.rejects.map(r => ({ rule: '洗出的塗油天賦', ...r })), ...forbidden.rejects.map(r => ({ rule: '禁忌珠寶新天賦', ...r })), ...indexableSkills.rejects.map(r => ({ rule: '隨機技能寶石等級', ...r })), ...passiveRenames.rejects.map(r => ({ rule: '天賦改名', ...r })), ...bases.rejects.map(r => ({ rule: '新底材', ...r })), ...uniques.rejects.map(r => ({ rule: '新傳奇', ...r })), ...gems.rejects.map(r => ({ rule: '新變異寶石', ...r })), ...builds.rejects.map(r => ({ rule: '傭兵流派', ...r })), ...mercSkills.rejects.map(r => ({ rule: '傭兵技能', ...r }))]
+const rejects = [...ruleA.rejects.map(r => ({ rule: '改字 A', ...r })), ...ruleB.rejects.map(r => ({ rule: '改字 B', ...r })), ...dead.rejects.map(r => ({ rule: '失效 id', ...r })), ...gemNames.rejects.map(r => ({ rule: '輔助寶石名', ...r })), ...grants.rejects.map(r => ({ rule: '賦予技能', ...r })), ...zhForms.rejects.map(r => ({ rule: 'GGPK 繁中句子', ...r })), ...namedSlots.rejects.map(r => ({ rule: '帶入名稱的句型', ...r })), ...timeless.rejects.map(r => ({ rule: '永恆珠寶征服者', ...r })), ...condForms.rejects.map(r => ({ rule: 'GGPK 數值寫法', ...r })), ...otherTexts.rejects.map(r => ({ rule: '交易站另一句', ...r })), ...effects.rejects.map(r => ({ rule: 'effect 新 id', ...r })), ...typeIds.rejects.map(r => ({ rule: '掛上缺的類型 id', ...r })), ...grown.rejects.map(r => ({ rule: '洗出的塗油天賦', ...r })), ...forbidden.rejects.map(r => ({ rule: '禁忌珠寶新天賦', ...r })), ...indexableSkills.rejects.map(r => ({ rule: '隨機技能寶石等級', ...r })), ...passiveRenames.rejects.map(r => ({ rule: '天賦改名', ...r })), ...bases.rejects.map(r => ({ rule: '新底材', ...r })), ...uniques.rejects.map(r => ({ rule: '新傳奇', ...r })), ...gems.rejects.map(r => ({ rule: '新變異寶石', ...r })), ...builds.rejects.map(r => ({ rule: '傭兵流派', ...r })), ...mercSkills.rejects.map(r => ({ rule: '傭兵技能', ...r })), ...splits.rejects.map(r => ({ rule: '合併 stat 拆成單欄', ...r }))]
 
 const count = (list, lang) => list.filter(a => a.lang === lang).length
 const summary = [
@@ -135,6 +137,7 @@ const summary = [
   `輔助寶石名(規則 8):en +${count(gemNames.adds, 'en')} / 繁中 +${count(gemNames.adds, 'cmn-Hant')} 個 matcher`,
   `永恆珠寶征服者(規則 28):en +${count(timeless.adds, 'en')} / 繁中 +${count(timeless.adds, 'cmn-Hant')}、新增 ${timeless.newStats.length} 列、拒收 ${timeless.rejects.length};數值寫死只差大小寫(規則 29):en +${count(fixedCase.adds, 'en')}`,
   `帶入名稱的句型(規則 22):en +${count(namedSlots.adds, 'en')} / 繁中 +${count(namedSlots.adds, 'cmn-Hant')} 個 matcher、拒收 ${namedSlots.rejects.length}`,
+  `合併 stat 的單欄寫法(規則 34):新增 ${splits.newStats.length} 列、拒收 ${splits.rejects.length}`,
   `GGPK 數值寫法(規則 21):en +${count(condForms.adds, 'en')} / 繁中 +${count(condForms.adds, 'cmn-Hant')} 個 matcher、拒收 ${condForms.rejects.length}`,
   `GGPK 繁中句子(規則 20):+${zhForms.adds.length} 個 matcher、拒收 ${zhForms.rejects.length}`,
   `交易站同 id 的另一句(規則 27):en +${count(otherTexts.adds, 'en')} / 繁中 +${count(otherTexts.adds, 'cmn-Hant')} 個 matcher、拒收 ${otherTexts.rejects.length}`,

@@ -464,6 +464,11 @@ export function createTradeRequest (filters: ItemFilters, stats: FilterOrGroup[]
     }
   }
 
+  // exile-appraiser: 2026-11-26 GitHub issue #76
+  if (filters.storedExperience && !filters.storedExperience.disabled) {
+    propSet(query.filters, 'misc_filters.filters.stored_experience.min', filters.storedExperience.value)
+  }
+
   if (filters.sentinelCharge && !filters.sentinelCharge.disabled) {
     propSet(query.filters, 'sentinel_filters.filters.sentinel_durability.min', filters.sentinelCharge.value)
   }

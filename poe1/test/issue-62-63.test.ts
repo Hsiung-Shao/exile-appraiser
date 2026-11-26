@@ -61,7 +61,7 @@ describe('GitHub issue #75', () => {
   it('#75 史記地區等級 84 照原值查,不往下截成 80', () => {
     const preset = presetOf('75')
     expect(preset.filters.areaLevel?.value).toBe(84)
-    expect(createTradeRequest(preset.filters, preset.stats).query.filters.map_filters.filters.area_level.min).toBe(84)
+    expect((createTradeRequest(preset.filters, preset.stats).query as any).filters.map_filters.filters.area_level.min).toBe(84)
   })
 
   it('#75 探險日誌地區等級 82 照原值查,不往下截成 81', () => {
@@ -71,6 +71,6 @@ describe('GitHub issue #75', () => {
     if (r.isErr()) throw new Error(r.error)
     const preset = createPresets(r.value, OPTS).presets[0]
     expect(preset.filters.areaLevel?.value).toBe(82)
-    expect(createTradeRequest(preset.filters, preset.stats).query.filters.map_filters.filters.area_level.min).toBe(82)
+    expect((createTradeRequest(preset.filters, preset.stats).query as any).filters.map_filters.filters.area_level.min).toBe(82)
   })
 })

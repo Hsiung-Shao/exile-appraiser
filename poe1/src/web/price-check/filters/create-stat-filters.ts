@@ -195,7 +195,8 @@ export function initUiModFilters (
       } else {
         return calc
       }
-    })
+    // exile-appraiser: 2026-11-26 GitHub issue #77:只解析、交易站沒有 id 的詞綴(資料的 id 清單是空的,例:純才 3.30 單職業寫法)不產生篩選列
+    }).filter(calc => calc.stat.trade.ids[calc.type]?.length !== 0)
   }
 
   // exile-appraiser: 2026-10-16 被防禦 / DPS 合計與偽屬性合計吃掉的詞綴不再丟掉,另列自己的列(fromAggregate)

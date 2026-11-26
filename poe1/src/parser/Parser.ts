@@ -83,6 +83,7 @@ const parsers: Array<
   parseMirrored,
   parseSplit,
   parseSentinelCharge,
+  parseStoredExperience,
   parseScryingOrb,
   parseMercenary,
   parseLogbookArea,
@@ -1089,6 +1090,18 @@ function parseSentinelCharge (section: string[], item: ParsedItem) {
     }
   }
   return 'SECTION_SKIPPED'
+}
+
+// exile-appraiser: 2026-11-26 GitHub issue #76:寶石匠的稜鏡的「Stored Experience: 500,000,000」(千分位逗號;繁中冒號全形 / 半形都收)
+function parseStoredExperience (section: string[], item: ParsedItem) {
+  const label = _$.STORED_EXPERIENCE
+  if (item.category !== ItemCategory.Currency || !label) return 'PARSER_SKIPPED'
+  if (section.length !== 1) return 'SECTION_SKIPPED'
+  const head = label.replace(/[:：]\s*$/, '')
+  const m = section[0].startsWith(head) ? /^[:：]\s*([\d,]+)$/.exec(section[0].slice(head.length)) : null
+  if (!m) return 'SECTION_SKIPPED'
+  item.storedExperience = Number(m[1].replace(/,/g, ''))
+  return 'SECTION_PARSED'
 }
 
 function parseScryingOrb (section: string[], item: ParsedItem) {

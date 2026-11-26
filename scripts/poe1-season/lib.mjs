@@ -1559,6 +1559,43 @@ export function planFixedCase ({ enStats, ggpkNew }) {
 }
 
 /**
+ * 規則 34(2026-11-26,GitHub issue #77 純才):GGPK 一組多 stat 的詞綴,資料只收了「全部欄位都有值」的合併寫法(交易站也只有這個 id),
+ * 但 3.30 物品上每個欄位各自成一條詞綴、印的是「只有一個欄位有值」的寫法(純才 7 職業各一條:
+ * 「當你天賦樹和決鬥者起始點相連，你獲得:\n1% 攻擊傷害偷取生命」)→ 每種單欄寫法新增一列,**不掛交易站 id**(只解析、不送查詢;
+ * 交易站沒有單職業的 id,而合併 id 的數值對不上單一欄位)。
+ * 否則表頭那行認不得、第二行會被當成通用詞綴(攻擊偷取生命、暴擊率…)送出錯的 id。
+ * 條件:同一組(stat ids + 描述檔)有合併寫法(每個欄位都是 #、至少 3 個 stat)且資料有這句;單欄寫法 = 恰一個 #、其餘 0。
+ * @returns {{ newStats: any[], rejects: any[] }}
+ */
+export function planSplitStats ({ enStats, zhStats, ggpkNew }) {
+  const rows = ggpkNew.filter(r => r.key.split('|').includes('stat_descriptions.txt')).map(r => {
+    const parts = r.key.split('|')
+    const file = parts.findIndex(p => p.endsWith('.txt'))
+    return { ...r, ids: parts[0], conds: parts.slice(1, file).join('|').split(' '), group: `${parts[0]}|${parts[file]}` }
+  })
+  const known = new Set([...eachStat(enStats)].flatMap(s => [...matcherExact(s)].map(t => cmpKey(t))))
+  const zhKnown = new Set([...eachStat(zhStats)].flatMap(s => [...matcherExact(s)].map(t => cmpKey(t))))
+  const newStats = []
+  const rejects = []
+  for (const list of groupBy(rows, r => r.group).values()) {
+    const whole = list.find(r => r.conds.length >= 3 && r.conds.every(c => c === '#'))
+    if (!whole || !known.has(cmpKey(exactKey(whole.en)))) continue
+    for (const r of list) {
+      if (r.conds.filter(c => c === '#').length !== 1 || !r.conds.every(c => c === '#' || c === '0')) continue
+      const en = exactKey(r.en)
+      if (known.has(cmpKey(en))) continue
+      const zh = r.zh ? exactKey(r.zh) : ''
+      if (!zh || zhKnown.has(cmpKey(zh))) { rejects.push({ reason: zh ? '繁中已是別條詞綴的寫法' : 'GGPK 沒有繁中', ref: en }); continue }
+      known.add(cmpKey(en))
+      zhKnown.add(cmpKey(zh))
+      // 解析器只收「這個詞綴類型有 id 鍵」的詞綴 → 掛空的 explicit 清單:解析得到,組查詢時沒有 id 就略過(create-stat-filters)
+      newStats.push({ ref: en, better: betterOf(en), en: [{ string: en }], zh: [{ string: zh }], ids: { explicit: [] } })
+    }
+  }
+  return { newStats, rejects }
+}
+
+/**
  * 規則 33:刪掉沒有交易站 id 的聖甲蟲詞綴與地圖區域詞綴(使用者 2026-11-24 裁定)。
  * 沒有 id 的列解析器永遠認不得(`tryParseTranslation` 要 trade.ids 有該類型);3.30 已移除聖甲蟲,
  * 區域詞綴(走私者的祕寶、額外隨機聖甲蟲效果)交易站也沒有 id。其他沒有 id 的列(舊寫法的輔助 / 賦予技能)不動。

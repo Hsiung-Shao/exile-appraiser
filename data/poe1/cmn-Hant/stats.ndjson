@@ -10725,3 +10725,10 @@
 {"ref":"Minions gain Unholy Might for # seconds on Kill","better":1,"matchers":[{"string":"殺敵時召喚物獲得不潔之力持續 # 秒"}],"trade":{"ids":{"explicit":["explicit.stat_3835570161"]}}}
 {"ref":"You gain Onslaught for # seconds on Kill","better":1,"matchers":[{"string":"擊殺時獲得 # 秒猛攻"}],"trade":{"ids":{"explicit":["explicit.stat_1195849808"]}}}
 {"ref":"Socketed Gems are Supported by Level # Annihilation Support","better":1,"matchers":[{"string":"插槽中的寶石被等級 # 的 湮滅輔助 輔助"}],"trade":{"ids":{"explicit":["explicit.effect_3251718963"]}}}
+{"ref":"While your Passive Skill Tree connects to the Marauder's starting location, you gain:\nMelee Skills have #% increased Area of Effect","better":1,"matchers":[{"string":"當你天賦樹和野蠻人起始點相連，你獲得:\n近戰技能增加 #% 範圍效果"}],"trade":{"ids":{"explicit":[]}}}
+{"ref":"While your Passive Skill Tree connects to the Duelist's starting location, you gain:\n#% of Attack Damage Leeched as Life","better":1,"matchers":[{"string":"當你天賦樹和決鬥者起始點相連，你獲得:\n#% 攻擊傷害偷取生命"}],"trade":{"ids":{"explicit":[]}}}
+{"ref":"While your Passive Skill Tree connects to the Ranger's starting location, you gain:\n#% increased Movement Speed","better":1,"matchers":[{"string":"當你天賦樹和遊俠起始點相連，你獲得:\n增加 #% 移動速度"}],"trade":{"ids":{"explicit":[]}}}
+{"ref":"While your Passive Skill Tree connects to the Shadow's starting location, you gain:\n#% to Critical Strike Chance","better":1,"matchers":[{"string":"當你天賦樹和暗影刺客起始點相連，你獲得:\n#% 暴擊率"}],"trade":{"ids":{"explicit":[]}}}
+{"ref":"While your Passive Skill Tree connects to the Witch's starting location, you gain:\n#% of Mana Regenerated per second","better":1,"matchers":[{"string":"當你天賦樹和女巫起始點相連，你獲得:\n每秒回復 #% 最大魔力"}],"trade":{"ids":{"explicit":[]}}}
+{"ref":"While your Passive Skill Tree connects to the Templar's starting location, you gain:\nDamage Penetrates #% Elemental Resistances","better":1,"matchers":[{"string":"當你天賦樹和聖堂武僧起始點相連，你獲得:\n傷害穿透 #% 元素抗性"}],"trade":{"ids":{"explicit":[]}}}
+{"ref":"While your Passive Skill Tree connects to the Scion's starting location, you gain:\n# to All Attributes","better":1,"matchers":[{"string":"當你天賦樹和貴族起始點相連，你獲得:\n# 全能力"}],"trade":{"ids":{"explicit":[]}}}
