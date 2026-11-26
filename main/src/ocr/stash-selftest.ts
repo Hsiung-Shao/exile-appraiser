@@ -12,6 +12,7 @@ import { app, BrowserWindow, nativeImage } from 'electron'
 import { type StashSubtab } from '../../../core/src/stash/layout'
 import { fitStashGrid, formulaGrid, gridRects, type StashGrid } from '../../../core/src/stash/fit'
 import { stashSearchImageRect } from '../../../core/src/stash/detect'
+import { STASH_FIT_SIZE_RANGE } from './stash-scan'
 import { QTY_PARAMS, readCellQuantity, type QtyResult } from '../../../core/src/stash/quantity'
 import { loadStashDigitTemplates, loadStashLayouts } from '../stash-layout-data'
 import { rawPixels } from './capture'
@@ -36,7 +37,7 @@ export async function runStashSelftest (png: string, argv: string[]): Promise<nu
     const gray = new Uint8Array(bgra.width * bgra.height)
     for (let i = 0; i < gray.length; i++) gray[i] = Math.round(0.299 * bgra.data[i * 4 + 2] + 0.587 * bgra.data[i * 4 + 1] + 0.114 * bgra.data[i * 4])
     const tf = performance.now()
-    const fit = fitStashGrid({ gray, w: bgra.width, h: bgra.height }, layouts, { clientH: size.height })
+    const fit = fitStashGrid({ gray, w: bgra.width, h: bgra.height }, layouts, { clientH: size.height, sizeRange: STASH_FIT_SIZE_RANGE, quickReject: true })
     const ms = (performance.now() - tf).toFixed(0)
     if (fit) {
       subtab = fit.subtab

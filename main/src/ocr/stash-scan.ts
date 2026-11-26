@@ -23,9 +23,9 @@
  * 停用 / 不是 PoE1 → 不排(等 `poke()`);其他原因 10 秒保底。不送任何鍵盤 / 滑鼠輸入。
  */
 import type { OcrRegion, RuneshapeUiState, StashScanEvent, StashStats } from '@ipc/types'
-import { fitStashGrid, formulaGrid, gridRects, scoreGrid, MIN_FIT_SCORE, type FitPrior, type FitResult, type GrayImage, type StashGrid } from '../../../core/src/stash/fit'
+import { fitStashGrid, formulaGrid, gridRects, minFitScore, scoreGrid, type FitPrior, type FitResult, type GrayImage, type StashGrid } from '../../../core/src/stash/fit'
 import type { StashLayoutFile, StashSubtab } from '../../../core/src/stash/layout'
-import { stashSearchImageRect } from '../../../core/src/stash/detect'
+import { isLegacyStashRegion, stashSearchImageRect } from '../../../core/src/stash/detect'
 import {
   QTY_PARAMS, qtyCropRect, qtyMapSignature, qtyShapeChanged, qtySignatureChanged, qtyWhiteMap, readCellQuantity,
   type DigitTemplates, type QtyRect, type QtyWhiteMap
@@ -681,7 +681,7 @@ export class StashScan {
     if (key !== this.lastCapKey) {
       this.lastCapKey = key
       const ratio = client.w / client.h
-      this.deps.log?.(`[stash] 擷取:client ${client.w}×${client.h}(寬高比 ${ratio.toFixed(3)}${Math.abs(ratio - 16 / 9) > 0.01 ? ',不是 16:9' : ''})、擷取圖 ${cap.size.w}×${cap.size.h}、偏移 ${cap.offset.x},${cap.offset.y}、搜尋範圍 ${area.x},${area.y} ${area.width}×${area.height}${cfg.region ? '(依自訂區域)' : ''}`)
+      this.deps.log?.(`[stash] 擷取:client ${client.w}×${client.h}(寬高比 ${ratio.toFixed(3)}${Math.abs(ratio - 16 / 9) > 0.01 ? ',不是 16:9' : ''})、擷取圖 ${cap.size.w}×${cap.size.h}、偏移 ${cap.offset.x},${cap.offset.y}、搜尋範圍 ${area.x},${area.y} ${area.width}×${area.height}${cfg.region ? (isLegacyStashRegion(cfg.region) ? '(自訂區域是舊版的按鈕列,框不住格子,改用預設範圍)' : '(依自訂區域)') : ''}`)
     }
     const prev = this.baseline?.key === key ? this.baseline.fp : null
     // 畫面沒變:狀態不會變
@@ -693,7 +693,9 @@ export class StashScan {
     if (!cap.gray || area.width <= 0 || area.height <= 0) return { kind: 'error', message: '擷取不支援灰階或搜尋範圍在畫面外' }
 
     const t0 = performance.now()
-    const img: GrayImage = { gray: cap.gray(area), w: area.width, h: area.height }
+    // 我們自己的徽章 / 價值卡(遮罩,擷取影像座標)換成搜尋範圍座標:擬合時碰到的邊條不算(code review B3)
+    const masks = (cap.maskRects ?? []).map(m => ({ x: m.x - area.x, y: m.y - area.y, w: m.w, h: m.h }))
+    const img: GrayImage = { gray: cap.gray(area), w: area.width, h: area.height, masks }
     // 影像(搜尋範圍)↔ client:client = 影像 + 範圍左上 + 擷取偏移
     const ox = area.x + cap.offset.x
     const oy = area.y + cap.offset.y
@@ -702,11 +704,14 @@ export class StashScan {
     if (sh && sh.clientW === client.w && sh.clientH === client.h) {
       // 顯示中:先以快取位置驗證(說明框 / 數量變化不必整個重搜)
       const score = (this.deps.verify ?? scoreGrid)(img, layouts, sh.subtab, shiftGrid(sh.grid, -ox, -oy))
-      if (score >= MIN_FIT_SCORE) found = { subtab: sh.subtab, grid: sh.grid, score }
+      if (score >= minFitScore(layouts, sh.subtab)) found = { subtab: sh.subtab, grid: sh.grid, score }
     }
-    if (!found) {
+    // 顯示中驗證不過、但游標停在格子上(遊戲說明框蓋住一大片格子):不重搜,走下面的維持(code review B1:
+    // 被蓋住時重搜可能對上別的子頁 / 跳到錯的位置)
+    const holdNow = !found && sh != null && this.holdStreak < STASH_HOLD_LIMIT && this.deps.holdOnMiss?.() === true
+    if (!found && !holdNow) {
       // 格長 ±8%(介面只隨 client 高度縮放)+ 預檢:倉庫沒開時每次擷取都會跑,4K 一次完整擬合約 0.2 秒、預檢約 0.03 秒(main 執行緒)
-      const r = (this.deps.fit ?? fitStashGrid)(img, layouts, { clientH: sh?.grid.H ?? client.h, sizeRange: STASH_FIT_SIZE_RANGE, quickReject: true })
+      const r = (this.deps.fit ?? fitStashGrid)(img, layouts, { clientH: sh && sh.clientW === client.w && sh.clientH === client.h ? sh.grid.H : client.h, sizeRange: STASH_FIT_SIZE_RANGE, quickReject: true })
       if (r) found = { subtab: r.subtab, grid: shiftGrid(r.grid, ox, oy), score: r.score, scores: r.scores }
       this.ocrCount++
       this.counters.ocrRuns++
@@ -748,11 +753,13 @@ export class StashScan {
       this.updateQuantities(cap)
       return { kind: 'fit', found: true, subtab, held: false, sent: null, ms }
     }
+    // 同子頁只是位置小幅修正(重搜後差幾 px):不當成剛打開(fresh 會略過「游標停在格上不讀」,說明框還開著時會讀錯;code review I3)
+    const fresh = this.shown?.subtab !== subtab
     this.shown = { subtab, grid: found.grid, clientW: client.w, clientH: client.h }
-    this.qty = null
+    if (fresh) this.qty = null
     const sc = found.scores ? `一般 ${found.scores.general.toFixed(2)} / 綢帶 ${found.scores.threads.toFixed(2)}` : found.score.toFixed(2)
     this.deps.log?.(`[stash] 擬合:${subtab},分數 ${sc},${ms} ms,${fmtGrid(found.grid)}(舊公式 ${fmtGrid(formulaGrid(layouts, subtab, client.w, client.h))}),${this.gridSummary(layouts, subtab, found.grid)}`)
-    const q = this.readQuantities(cap, true)
+    const q = this.readQuantities(cap, fresh)
     this.emit('show', client, ms, { qtyMs: q?.ms })
     return { kind: 'fit', found: true, subtab, held: false, sent: 'show', ms }
   }

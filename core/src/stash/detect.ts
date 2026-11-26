@@ -14,14 +14,26 @@ function intersect (a: Rect, b: Rect): Rect | null {
 }
 
 /**
+ * 舊版(2026-11-26 前)存的 `stashRegion` 是「子頁按鈕列」:高度約 0.1 × client 高(y 120–268 / 1440),框不住格子區
+ * (格子區高約 0.5 × client 高)→ 當成沒框過(用預設),否則升級後永遠偵測不到(code review B4)。
+ */
+export function isLegacyStashRegion (region: Rect | null | undefined): boolean {
+  return region != null && region.h < LEGACY_REGION_MAX_H
+}
+/** 高度低於這個比例的區域不可能框住格子區(一般頁 1440 基準格子區 266–1047 ≈ 0.54) */
+const LEGACY_REGION_MAX_H = 0.25
+
+/**
  * 倉庫格子可能出現的範圍(client 像素)。倉庫面板在畫面左側(超寬螢幕補黑邊 `stashLeft`):
  * 預設 x「黑邊 − 5% 高」起寬 70% 高、y 10%–85% 高(1440 基準格子區約 x 47–840、y 266–1000,資料夾內再下移 47;
- * 刻意放寬,給非 16:9 / UI 縮放留餘地)。使用者框過區域(client 比例)→ 用那塊再各邊外擴 10%(只當先驗,框歪一點也找得到)。
+ * 刻意放寬,給非 16:9 / UI 縮放留餘地)。使用者框過區域(client 比例)→ 用那塊再各邊外擴 10%(只當先驗,框歪一點也找得到);
+ * 舊版的按鈕列區域(`isLegacyStashRegion`)當成沒框過。
  */
 export function stashSearchClientRect (client: { w: number, h: number }, region?: Rect | null): Rect {
   const full: Rect = { x: 0, y: 0, w: client.w, h: client.h }
-  if (region && region.w > 0 && region.h > 0) {
-    const r: Rect = { x: region.x * client.w, y: region.y * client.h, w: region.w * client.w, h: region.h * client.h }
+  if (region && region.w > 0 && region.h > 0 && !isLegacyStashRegion(region)) {
+    // 寬度上限 = client 高(倉庫面板寬約 0.62 × 高;框整個超寬畫面時擬合在 main 執行緒要一秒以上,code review I1)
+    const r: Rect = { x: region.x * client.w, y: region.y * client.h, w: Math.min(region.w * client.w, client.h), h: region.h * client.h }
     const mx = r.w * 0.1
     const my = r.h * 0.1
     const g = intersect({ x: Math.floor(r.x - mx), y: Math.floor(r.y - my), w: Math.ceil(r.w + 2 * mx), h: Math.ceil(r.h + 2 * my) }, full)

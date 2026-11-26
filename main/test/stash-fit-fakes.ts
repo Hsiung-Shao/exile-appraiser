@@ -6,7 +6,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { formulaGrid, gridRects, type FitResult, type StashGrid } from '../../core/src/stash/fit'
+import { formulaGrid, gridRects, type FitPrior, type FitResult, type GrayImage, type StashGrid } from '../../core/src/stash/fit'
 import { parseStashLayouts, STASH_SUBTABS, type StashLayoutFile, type StashSubtab } from '../../core/src/stash/layout'
 import type { PhysRect } from '../src/ocr/strategy'
 
@@ -24,6 +24,10 @@ export function createFitFakes (layouts: StashLayoutFile, getOffset: () => { x: 
     area: null as PhysRect | null,
     areas: [] as PhysRect[],
     fits: 0,
+    /** 每次 fit / verify 收到的影像(看 masks)與 fit 的先驗 */
+    fitImgs: [] as GrayImage[],
+    verifyImgs: [] as GrayImage[],
+    priors: [] as FitPrior[],
     verifies: 0,
     /** 非 null = verify 一律回這個分數(測門檻邊界) */
     verifyScore: null as number | null,
@@ -47,8 +51,10 @@ export function createFitFakes (layouts: StashLayoutFile, getOffset: () => { x: 
       s.areas.push({ ...rect })
       return new Uint8Array(1)
     },
-    fit (_img: unknown, file: StashLayoutFile, _prior: unknown): FitResult | null {
+    fit (img: GrayImage, file: StashLayoutFile, prior: FitPrior): FitResult | null {
       s.fits++
+      s.fitImgs.push(img)
+      s.priors.push(prior)
       s.duringFit?.()
       const t = s.target
       if (!t) return null
@@ -57,8 +63,9 @@ export function createFitFakes (layouts: StashLayoutFile, getOffset: () => { x: 
       const scores = Object.fromEntries(STASH_SUBTABS.map(st => [st, st === t.subtab ? 1 : 0])) as Record<StashSubtab, number>
       return { subtab: t.subtab, rects, score: 1, scores, box: rects[0]?.w ?? 0, grid }
     },
-    verify (_img: unknown, _file: StashLayoutFile, subtab: StashSubtab, grid: StashGrid): number {
+    verify (img: GrayImage, _file: StashLayoutFile, subtab: StashSubtab, grid: StashGrid): number {
       s.verifies++
+      s.verifyImgs.push(img)
       if (s.verifyScore != null) return s.verifyScore
       const t = s.target
       if (!t || t.subtab !== subtab) return 0

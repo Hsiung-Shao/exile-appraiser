@@ -69,7 +69,10 @@ function harness (opts: { qty?: boolean } = {}) {
     offset: { x: 0, y: 0 },
     size: null as { w: number, h: number } | null,
     layouts: LAYOUTS as typeof LAYOUTS | null,
-    pixelRects: [] as Array<{ x: number, y: number, width: number, height: number }>
+    pixelRects: [] as Array<{ x: number, y: number, width: number, height: number }>,
+    /** 擷取影像座標的遮罩(我們自己畫的徽章) */
+    maskRects: [] as Array<{ x: number, y: number, w: number, h: number }>,
+    qtyPaused: false
   }
   const fits = createFitFakes(LAYOUTS, () => state.offset)
   fits.show('general', W, H)
@@ -90,6 +93,7 @@ function harness (opts: { qty?: boolean } = {}) {
         fingerprint: () => state.frame,
         recognize: async () => { state.recognizes++; throw new Error('倉庫偵測不該呼叫 OCR') },
         gray: fits.gray,
+        maskRects: state.maskRects.map(m => ({ ...m })),
         ...(opts.qty
           ? {
               pixels: (rect) => {
@@ -105,6 +109,7 @@ function harness (opts: { qty?: boolean } = {}) {
     verify: fits.verify,
     qty: { layouts: () => state.layouts, templates: () => opts.qty ? TEMPLATES : null },
     holdOnMiss: () => state.hold,
+    qtyPaused: () => state.qtyPaused,
     onShowingChange: (showing, st) => { showingCalls.push({ showing, st: { ...st } }) },
     log: (m) => { logs.push(m) }
   })
@@ -135,8 +140,8 @@ describe('S8 說明框遮住格子仍保留', () => {
     }
     expect(h.events.map(e => e.reason)).toEqual(['show'])
     expect(h.scan.showing).toBe(true)
-    // 第一次顯示擬合 1 次;之後每次先驗證快取位置(不過)再整個重擬合
-    expect(h.fits.s.fits).toBe(6)
+    // 第一次顯示擬合 1 次;之後每次只驗證快取位置(不過),游標在格上時不重搜(見 R4)
+    expect(h.fits.s.fits).toBe(1)
     expect(h.fits.s.verifies).toBe(5)
   })
 })
@@ -655,7 +660,7 @@ describe('S18 搜尋範圍(格子可能出現的區塊)', () => {
     // 差分基準沒綁區域 → 換區域後沿用舊結果、不重看
     const h = harness()
     await h.scan.tick()
-    h.cfg.region = { x: 0, y: 0.1, w: 0.4, h: 0.1 }
+    h.cfg.region = { x: 0, y: 0.1, w: 0.4, h: 0.3 }
     expect(await h.scan.tick()).toMatchObject({ kind: 'fit' })
     expect(h.fits.s.verifies).toBe(1)
     expect(h.fits.s.areas).toHaveLength(2)
@@ -668,9 +673,9 @@ describe('S18 搜尋範圍(格子可能出現的區塊)', () => {
     await h.scan.tick()
     // 忘了減偏移 → 範圍偏 10 / 20 px
     expect(h.fits.s.areas[0]).toEqual({ x: 0, y: 123, width: 993, height: 1074 })
-    h.cfg.region = { x: 0.1, y: 0.1, w: 0.2, h: 0.05 }
+    h.cfg.region = { x: 0.1, y: 0.1, w: 0.2, h: 0.3 }
     await h.scan.tick()
-    expect(h.fits.s.areas[1]).toEqual({ x: 193, y: 116, width: 612, height: 86 })
+    expect(h.fits.s.areas[1]).toEqual({ x: 193, y: 80, width: 612, height: 516 })
   })
 })
 
@@ -893,9 +898,83 @@ describe('S1–S5 格子擬合流程', () => {
 
   it('S5 cfg.region 有值 → 搜尋範圍 = 那塊外擴 10%(cap.gray 收到的 rect)', async () => {
     const h = harness()
-    h.cfg.region = { x: 0.1, y: 0.1, w: 0.2, h: 0.05 }
+    h.cfg.region = { x: 0.1, y: 0.1, w: 0.2, h: 0.3 }
     await h.scan.tick()
-    // client 比例 → 像素 {254.6, 143.2, 509.2, 71.6},各邊外擴 10% 後取整
-    expect(h.fits.s.areas[0]).toEqual({ x: 203, y: 136, width: 612, height: 86 })
+    // client 比例 → 像素 {254.6, 143.2, 509.2, 429.6},各邊外擴 10% 後取整
+    expect(h.fits.s.areas[0]).toEqual({ x: 203, y: 100, width: 612, height: 516 })
+  })
+})
+
+describe('code review 回歸', () => {
+  it('R4 顯示中 verify 低於門檻且游標在格上 → 不重新 fit,held、不送新 show', async () => {
+    const h = harness()
+    await showGeneral(h)
+    h.fits.s.verifyScore = MIN_FIT_SCORE - 0.01
+    h.state.hold = true
+    h.changeFrame()
+    // 說明框蓋住格子時重搜可能跳到別的子頁 / 錯位置
+    expect(await h.scan.tick()).toMatchObject({ kind: 'fit', found: false, held: true, sent: null })
+    expect(h.fits.s.fits).toBe(1)
+    expect(h.fits.s.verifies).toBe(1)
+    expect(h.events).toHaveLength(1)
+    expect(h.scan.showing).toBe(true)
+  })
+
+  it('R5 顯示中 client 2560×1440 → 1920×1080:重新 fit 的先驗 clientH = 1080', async () => {
+    const h = harness()
+    h.state.client = { w: 2560, h: 1440 }
+    h.env.bounds = { x: 0, y: 0, width: 2560, height: 1440 }
+    h.fits.show('general', 2560, 1440)
+    await showGeneral(h)
+    expect(h.fits.s.priors[0].clientH).toBe(1440)
+    h.state.client = { w: 1920, h: 1080 }
+    h.env.bounds = { x: 0, y: 0, width: 1920, height: 1080 }
+    h.fits.show('general', 1920, 1080)
+    h.changeFrame()
+    await h.scan.tick()
+    // 沿用舊 grid.H(1440)當先驗 → 新尺寸的格長落在搜尋範圍外
+    expect(h.fits.s.fits).toBe(2)
+    expect(h.fits.s.priors[1].clientH).toBe(1080)
+  })
+
+  it('R6 同子頁位置小改(x+3)且游標在格上:送新 grid 的 show,這個 tick 不讀數量', async () => {
+    const h = harness({ qty: true })
+    await showGeneral(h)
+    const reads = h.state.pixelRects.length
+    expect(reads).toBeGreaterThan(0)
+    const skips = h.scan.counters.qtyCursorSkips
+    h.state.qtyPaused = true
+    h.fits.s.target = { subtab: 'general', grid: { ...GRID, x: GRID.x + 3 } }
+    h.changeFrame()
+    expect(await h.scan.tick()).toMatchObject({ kind: 'fit', found: true, subtab: 'general', sent: 'show' })
+    expect(h.fits.s.fits).toBe(2)
+    expect(h.events).toHaveLength(2)
+    expect(h.events[1].grid).toEqual({ ...GRID, x: GRID.x + 3 })
+    // 當成剛打開 → 略過「游標停在格上不讀」,說明框還開著時把說明框讀成數量
+    expect(h.state.pixelRects).toHaveLength(reads)
+    expect(h.scan.counters.qtyCursorSkips).toBe(skips + 1)
+  })
+
+  it('R7 cap.maskRects 換成搜尋範圍座標後傳給 fit / verify(img.masks)', async () => {
+    const h = harness()
+    h.state.maskRects = [{ x: 500, y: 400, w: 40, h: 20 }]
+    await h.scan.tick()
+    const a = h.fits.s.areas[0]
+    expect(a.y).toBeGreaterThan(0)
+    // 沒換座標 → 我們自己的徽章邊條在搜尋範圍裡位置錯,擬合被徽章干擾
+    const want = { x: 500 - a.x, y: 400 - a.y, w: 40, h: 20 }
+    expect(h.fits.s.fitImgs[0].masks).toContainEqual(want)
+    h.changeFrame()
+    await h.scan.tick()
+    expect(h.fits.s.verifyImgs[0].masks).toContainEqual(want)
+  })
+
+  it('R8 舊版 region(按鈕列,h < 0.25)→ 搜尋範圍 = 預設範圍,擷取 log 註明舊版', async () => {
+    const h = harness()
+    h.cfg.region = { x: 0.08, y: 0.083, w: 0.35, h: 0.103 }
+    await h.scan.tick()
+    // 舊按鈕列框不住格子 → 升級後永遠偵測不到
+    expect(h.fits.s.areas[0]).toEqual({ x: 0, y: 143, width: 1003, height: 1074 })
+    expect(h.logs.some(l => l.includes('[stash] 擷取:') && l.includes('舊版'))).toBe(true)
   })
 })

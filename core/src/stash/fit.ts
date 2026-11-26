@@ -4,7 +4,13 @@
 // 零依賴:main(esbuild)以相對路徑 import。
 import { cellBox, cellRects, stashLeft, STASH_SUBTABS, type CellRect, type StashLayoutFile, type StashSubtab } from './layout'
 
-export interface GrayImage { gray: Uint8Array, w: number, h: number }
+export interface GrayImage {
+  gray: Uint8Array
+  w: number
+  h: number
+  /** 我們自己畫在畫面上的東西(徽章 / 價值卡;影像座標):碰到的邊條當成看不到(擷取截得到 overlay,徽章會把格位邊緣蓋亮) */
+  masks?: ReadonlyArray<{ x: number, y: number, w: number, h: number }>
+}
 export interface FitPrior {
   /** 遊戲 client 高度;先驗格長 = cellBox(subtab, clientH),搜尋 ±25% */
   clientH: number
@@ -49,7 +55,7 @@ export function formulaGrid (file: StashLayoutFile, subtab: StashSubtab, clientW
 /** 已知位置驗證一次(快取命中時用,便宜):回傳同 `FitResult.score` 的分數 */
 export function scoreGrid (img: GrayImage, file: StashLayoutFile, subtab: StashSubtab, g: StashGrid): number {
   const L = relLayout(file, subtab, g.H)
-  return evalAt(ctxOf(img), L, g.x + Math.round(L.box * FORMULA_DX), g.y).score
+  return evalAt(ctxOf(img, true), L, g.x + Math.round(L.box * FORMULA_DX), g.y).score
 }
 
 /** 格位「內側比外側暗」至少這麼多灰階才算對上 */
@@ -58,6 +64,16 @@ export const SLOT_CONTRAST = 12
 export const SLOT_INNER_MAX = 30
 /** 過門檻格數比例至少這麼多才算這一頁(說明框蓋住一部分格子仍要過) */
 export const MIN_FIT_SCORE = 0.4
+/**
+ * 至少要「淨對上」這麼多格(分數 × 格數):綢帶只有 10 格,0.4 = 4 格在一般遊戲畫面 / 聖甲蟲頁這類格子畫面上很容易碰巧對上
+ * (code review 量到隨機暗色方塊紋理 8/36 誤判);綢帶因此要 ≥ 0.8,一般(52 格)仍是 0.4
+ */
+export const MIN_FIT_CELLS = 8
+
+/** 這份版面算對上的最低分數 */
+export function minFitScore (file: StashLayoutFile, subtab: StashSubtab): number {
+  return Math.max(MIN_FIT_SCORE, MIN_FIT_CELLS / file.subtabs[subtab].length)
+}
 /** 擬合格框 → 公式格框的水平校正(格長比例) */
 export const FORMULA_DX = 0.045
 /** 預檢門檻 = MIN_FIT_SCORE × 這個比例(粗搜位置誤差最多格長 1/16,分數會比細修後低) */
@@ -68,11 +84,24 @@ const COARSE_CELLS = 14
 const TOP_K = 6
 
 /** 積分影像(多一列一行;Float64 避免 4K 溢位) */
-export function integral (img: GrayImage): Float64Array {
+// 積分影像緩衝重用(4K 搜尋範圍一張約 20 MB;每次擷取都配置會讓 GC 很忙)。main 單執行緒、擬合同步跑完,不會同時用到兩份
+let intBuf: Float64Array | null = null
+let maskBuf: Float64Array | null = null
+
+export function integral (img: GrayImage, reuse = false): Float64Array {
   const W = img.w + 1
-  const s = new Float64Array(W * (img.h + 1))
+  const n = W * (img.h + 1)
+  let s: Float64Array
+  if (reuse) {
+    if (!intBuf || intBuf.length < n) intBuf = new Float64Array(n)
+    s = intBuf
+    s.fill(0, 0, W)
+  } else {
+    s = new Float64Array(n)
+  }
   for (let y = 0; y < img.h; y++) {
     let row = 0
+    s[(y + 1) * W] = 0
     for (let x = 0; x < img.w; x++) {
       row += img.gray[y * img.w + x]
       s[(y + 1) * W + x + 1] = s[y * W + x + 1] + row
@@ -81,7 +110,18 @@ export function integral (img: GrayImage): Float64Array {
   return s
 }
 
-interface Ctx { s: Float64Array, W: number, w: number, h: number }
+/** `m` = 遮罩的積分(被遮像素數);沒有遮罩 = undefined */
+interface Ctx { s: Float64Array, W: number, w: number, h: number, m?: Float64Array }
+
+/** 這條邊條碰到遮罩 */
+function masked (c: Ctx, x0: number, y0: number, x1: number, y1: number): boolean {
+  const m = c.m
+  if (!m) return false
+  x0 = Math.max(0, x0); y0 = Math.max(0, y0); x1 = Math.min(c.w, x1); y1 = Math.min(c.h, y1)
+  if (x1 <= x0 || y1 <= y0) return false
+  const W = c.W
+  return m[y1 * W + x1] - m[y0 * W + x1] - m[y1 * W + x0] + m[y0 * W + x0] > 0
+}
 
 function mean (c: Ctx, x0: number, y0: number, x1: number, y1: number): number {
   x0 = Math.max(0, x0); y0 = Math.max(0, y0); x1 = Math.min(c.w, x1); y1 = Math.min(c.h, y1)
@@ -122,15 +162,16 @@ function slotAt (c: Ctx, g: Geo, x: number, y: number): number {
   let d = Infinity
   let n = 0
   // 影像外(擷取被裁)的邊不算;內側太亮(圖示蓋到邊)的邊也不算,但至少要兩邊可看
+  // 遮罩蓋到的邊(我們自己的徽章)也不算
   let i = mean(c, x + g.xm, y + a, x + b - a, y + t)
   let o = mean(c, x + g.xm, y - o1, x + b - a, y - o0)
-  if (i === i && o === o && i <= SLOT_INNER_MAX) { n++; d = Math.min(d, o - i) }
+  if (i === i && o === o && i <= SLOT_INNER_MAX && !masked(c, x + g.xm, y - o1, x + b - a, y + t)) { n++; d = Math.min(d, o - i) }
   i = mean(c, x + b - t, y + a, x + b - a, y + g.ym)
   o = mean(c, x + b + o0, y + a, x + b + o1, y + g.ym)
-  if (i === i && o === o && i <= SLOT_INNER_MAX) { n++; d = Math.min(d, o - i) }
+  if (i === i && o === o && i <= SLOT_INNER_MAX && !masked(c, x + b - t, y + a, x + b + o1, y + g.ym)) { n++; d = Math.min(d, o - i) }
   i = mean(c, x + a, y + g.yl0, x + t, y + g.yl1)
   o = mean(c, x - o1, y + g.yl0, x - o0, y + g.yl1)
-  if (i === i && o === o && i <= SLOT_INNER_MAX) { n++; d = Math.min(d, o - i) }
+  if (i === i && o === o && i <= SLOT_INNER_MAX && !masked(c, x - o1, y + g.yl0, x + t, y + g.yl1)) { n++; d = Math.min(d, o - i) }
   return n >= 2 ? d : 0
 }
 
@@ -262,8 +303,29 @@ function fitOne (c: Ctx, file: StashLayoutFile, subtab: StashSubtab, prior: FitP
   return best && { score: best.score, H: best.H, x: best.x, y: best.y }
 }
 
-function ctxOf (img: GrayImage): Ctx {
-  return { s: integral(img), W: img.w + 1, w: img.w, h: img.h }
+function ctxOf (img: GrayImage, reuse = false): Ctx {
+  const c: Ctx = { s: integral(img, reuse), W: img.w + 1, w: img.w, h: img.h }
+  if (img.masks?.length) {
+    const W = img.w + 1
+    const n = W * (img.h + 1)
+    const m = reuse ? (maskBuf && maskBuf.length >= n ? maskBuf : (maskBuf = new Float64Array(n))) : new Float64Array(n)
+    m.fill(0, 0, n)
+    // 先在 (y+1, x+1) 標記被遮像素,再原地累加成積分
+    for (const r of img.masks) {
+      const x0 = Math.max(0, Math.floor(r.x)); const y0 = Math.max(0, Math.floor(r.y))
+      const x1 = Math.min(img.w, Math.ceil(r.x + r.w)); const y1 = Math.min(img.h, Math.ceil(r.y + r.h))
+      for (let y = y0; y < y1; y++) m.fill(1, (y + 1) * W + x0 + 1, (y + 1) * W + x1 + 1)
+    }
+    for (let y = 1; y <= img.h; y++) {
+      let row = 0
+      for (let x = 1; x < W; x++) {
+        row += m[y * W + x]
+        m[y * W + x] = m[(y - 1) * W + x] + row
+      }
+    }
+    c.m = m
+  }
+  return c
 }
 
 export function rectsAt (file: StashLayoutFile, subtab: StashSubtab, H: number, x: number, y: number): CellRect[] {
@@ -272,11 +334,11 @@ export function rectsAt (file: StashLayoutFile, subtab: StashSubtab, H: number, 
 }
 
 export function fitStashGrid (img: GrayImage, layouts: StashLayoutFile, prior: FitPrior): FitResult | null {
-  const c = ctxOf(img)
+  const c = ctxOf(img, true)
   const res = STASH_SUBTABS.map(st => ({ st, f: fitOne(c, layouts, st, prior), n: layouts.subtabs[st].length }))
   const scores = Object.fromEntries(res.map(r => [r.st, r.f?.score ?? 0])) as Record<StashSubtab, number>
   // 過門檻的版面裡取「對上的格數」最多的:綢帶只有 10 格,一般頁上也找得到一塊像它的格子,但一般版面能多解釋好幾十格
-  const ok = res.filter(r => r.f && r.f.score >= MIN_FIT_SCORE).sort((p, q) => q.f!.score * q.n - p.f!.score * p.n)
+  const ok = res.filter(r => r.f && r.f.score >= minFitScore(layouts, r.st)).sort((p, q) => q.f!.score * q.n - p.f!.score * p.n)
   const win = ok[0]
   if (!win?.f) return null
   // 對齊 Exile-UI 公式格框的慣例(數字模板裁切區、徽章位置都以它為準):擬合到的格位框比公式框偏右約格長 4.5%

@@ -8,7 +8,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import sharp, { type Color, type Sharp } from 'sharp'
-import { fitStashGrid, type GrayImage } from '../src/stash/fit'
+import { fitStashGrid, minFitScore, scoreGrid, type GrayImage } from '../src/stash/fit'
+import { defaultStashRegion, isLegacyStashRegion, stashSearchClientRect } from '../src/stash/detect'
 import { cellRects, parseStashLayouts, type CellRect, type StashLayoutFile } from '../src/stash/layout'
 import { layout329 } from './stash/layout-329'
 
@@ -184,4 +185,88 @@ describe('倉庫碎片頁格位擬合', () => {
     // 兩次結果互相也要幾乎一致(搜尋範圍只是縮小,最佳解仍在範圍內)
     expect(badCells(r!.rects as CellRect[], full!.rects)).toEqual([])
   }, T)
+})
+
+// ── code review 回歸 ─────────────────────────────────────────────
+
+/** 固定種子 PRNG(mulberry32),測試可重現 */
+function prng (seed: number): () => number {
+  let a = seed >>> 0
+  return () => {
+    a = (a + 0x6D2B79F5) >>> 0
+    let t = a
+    t = Math.imul(t ^ (t >>> 15), t | 1)
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+function fillRect (g: GrayImage, b: Box, v: number): void {
+  const x0 = Math.max(0, Math.round(b.x))
+  const y0 = Math.max(0, Math.round(b.y))
+  const x1 = Math.min(g.w, Math.round(b.x + b.w))
+  const y1 = Math.min(g.h, Math.round(b.y + b.h))
+  for (let y = y0; y < y1; y++) g.gray.fill(v, y * g.w + x0, y * g.w + Math.max(x0, x1))
+}
+
+describe('code review 回歸', () => {
+  it('R1 隨機暗色方塊紋理(36 張)不判成倉庫:全部回 null', () => {
+    const rnd = prng(20261126)
+    const int = (lo: number, hi: number): number => lo + Math.floor(rnd() * (hi - lo + 1))
+    const hits: string[] = []
+    for (let n = 0; n < 36; n++) {
+      const img: GrayImage = { gray: new Uint8Array(760 * 810), w: 760, h: 810 }
+      img.gray.fill(int(40, 60))
+      const count = int(40, 120)
+      for (let i = 0; i < count; i++) {
+        const s = int(30, 70)
+        const x = int(-s / 2, 760 - s / 2)
+        const y = int(-s / 2, 810 - s / 2)
+        const t = int(1, 2)
+        fillRect(img, { x: x - t, y: y - t, w: s + 2 * t, h: s + 2 * t }, int(50, 70)) // 亮外框
+        fillRect(img, { x, y, w: s, h: s }, int(5, 20)) // 暗方塊
+      }
+      const r = fitStashGrid(img, LAYOUT_330, { clientH: 1080, sizeRange: 0.08, quickReject: true })
+      if (r) hits.push(`#${n} → ${r.subtab} score ${r.score.toFixed(2)}`)
+    }
+    expect(hits).toEqual([])
+  }, T)
+
+  it('R2 自己的徽章(深底 + 亮橫線)蓋在格位邊緣:帶 masks 仍擬合成 general,未被裁的格子差 ≤ 5 px', async () => {
+    const masks = (SET_330 as unknown as { masks: Box[] }).masks
+    const base = await toGray(sharp(FILE_330))
+    // 只取有交集於影像的遮罩;價值卡(y=799)在影像外,不畫也不傳
+    const inImg = masks.filter(m => m.x + m.w > 0 && m.y < base.h && m.x < base.w && m.y + m.h > 0)
+    expect(inImg.length).toBeGreaterThanOrEqual(50)
+    const gray = new Uint8Array(base.gray)
+    const img: GrayImage = { gray, w: base.w, h: base.h, masks: inImg }
+    for (const m of inImg) {
+      fillRect(img, m, 15) // 徽章深底
+      fillRect(img, { x: m.x, y: m.y + Math.floor(m.h / 2) - 1, w: m.w, h: 2 }, 230) // 亮橫線(文字)
+    }
+    const r = fitStashGrid(img, LAYOUT_330, { clientH: 1440, sizeRange: 0.08, quickReject: true })
+    expect(r).not.toBeNull()
+    expect(r!.subtab).toBe('general')
+    expect(r!.rects).toHaveLength(52)
+    // 最後一列(y = 662,高 60)被影像下緣裁掉,不比對(同 F2 的疑義)
+    const clipped = new Set<number>()
+    TRUTH_330.forEach((b, i) => { if (b.y + b.h > img.h) clipped.add(i) })
+    expect(badCells(r!.rects, TRUTH_330, clipped)).toEqual([])
+    expect(scoreGrid(img, LAYOUT_330, 'general', r!.grid)).toBeGreaterThanOrEqual(minFitScore(LAYOUT_330, 'general'))
+  }, T)
+
+  it('R3 舊版按鈕列區域當成沒框過;高度夠的區域不算舊版', () => {
+    const client = { w: 2560, h: 1440 }
+    const legacy = { x: 0.08, y: 0.083, w: 0.35, h: 0.103 }
+    expect(isLegacyStashRegion(legacy)).toBe(true)
+    expect(stashSearchClientRect(client, legacy)).toEqual(stashSearchClientRect(client))
+    expect(stashSearchClientRect(client, legacy)).toEqual(stashSearchClientRect(client, null))
+    const real = { x: 0.02, y: 0.1, w: 0.4, h: 0.5 }
+    expect(isLegacyStashRegion(real)).toBe(false)
+    expect(isLegacyStashRegion(null)).toBe(false)
+    // 真正框過的區域要被採用(結果不同於預設),證明不是一律回預設
+    expect(stashSearchClientRect(client, real)).not.toEqual(stashSearchClientRect(client))
+    // 預設區域換算比例後再當區域傳入不會被當成舊版
+    expect(isLegacyStashRegion(defaultStashRegion(client.w, client.h))).toBe(false)
+  })
 })
