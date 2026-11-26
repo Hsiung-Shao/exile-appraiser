@@ -16,10 +16,13 @@ import { useLeagues } from '../src/web/background/Leagues'
 import { usePoeninja } from '../src/web/background/Prices'
 import { loadedGame } from '../src/web/games/active'
 import StashPrices from '../src/web/overlay/StashPrices.vue'
+import { parseStashLayouts, type StashSubtab } from '../../core/src/stash/layout'
+import { formulaGrid } from '../../core/src/stash/fit'
 import { mount, findAll, byAttr, type MiniNode } from './mini-dom'
 
 const ROOT = path.resolve(__dirname, '../..')
 const LEAGUE = 'Allflame'
+const LAYOUTS = parseStashLayouts(JSON.parse(fs.readFileSync(path.join(ROOT, 'data/poe1/stash/layouts.json'), 'utf8')))
 const THREADS = [
   'Ultimatum Thread', 'Ritual Thread', 'Legion Thread', 'Incursion Thread', 'Expedition Thread',
   'Breach Thread', 'Blight Thread', 'Betrayal Thread', 'Bestiary Thread', 'Abyss Thread'
@@ -80,11 +83,22 @@ function render () {
 }
 
 let seq = 0
-function show (subtab: string) {
-  scanCb!({ seq: ++seq, ts: 0, reason: 'show', subtab: subtab as 'general', yOffset: 0, client: { w: 1280, h: 900 } })
+function show (subtab: string, withGrid = true) {
+  const st = subtab as StashSubtab
+  scanCb!({ seq: ++seq, ts: 0, reason: 'show', subtab: st, ...(withGrid ? { grid: formulaGrid(LAYOUTS, st, 1280, 900) } : {}), client: { w: 1280, h: 900 } })
 }
 
 describe('T11 疊層畫出綢帶頁徽章', () => {
+  it('show 沒帶 grid → 不畫(沒有格子位置就不猜)', async () => {
+    const { container, app, errors } = render()
+    await settle()
+    show('threads', false)
+    await settle(40)
+    // 沒 grid 仍用舊公式畫 → 疊層位置沒有依據
+    expect(all(container, 'badge')).toHaveLength(0)
+    expect(errors).toEqual([])
+    app.unmount()
+  })
   it('show threads → 10 枚徽章、是 10 種綢帶、都有 poe.ninja 價格', async () => {
     const { container, app, errors } = render()
     await settle()

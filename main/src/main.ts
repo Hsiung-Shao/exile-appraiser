@@ -912,7 +912,7 @@ if (!skipStartup) app.whenReady().then(() => {
       intervalMs: hostCfg?.revealIntervalMs ?? DEFAULT_SCAN_INTERVAL_MS
     }),
     env: scanEnv,
-    ocrBusy: () => runeshapeScan.busy || stashScan.busy,
+    ocrBusy: () => runeshapeScan.busy,
     capture: scanCapture,
     locateOcr: sharedLocateOcr,
     // 面板定位 / 判定用 tiers.json 的模板 skeleton(第一次掃描才讀;第 22 步:每種語言各一份)
@@ -935,7 +935,7 @@ if (!skipStartup) app.whenReady().then(() => {
     }),
     env: scanEnv,
     textLang: ocrTextLang,
-    ocrBusy: () => revealScan.busy || stashScan.busy,
+    ocrBusy: () => revealScan.busy,
     capture: scanCapture,
     locateOcr: sharedLocateOcr,
     drawPending: () => scanMask.pending(Date.now()),
@@ -953,7 +953,7 @@ if (!skipStartup) app.whenReady().then(() => {
     // 換格 → renderer 重畫徽章(沒有 ack):倉庫掃描等下一份遮罩報告才讀數量
     send: (e) => { send('stash-cursor', e); stashScan.cursorMoved() }
   })
-  // PoE1 倉庫價格疊層:偵測碎片頁開著 / 目前子頁(只 OCR 子頁按鈕列;物品身分靠固定版面,不 OCR)
+  // PoE1 倉庫價格疊層:偵測碎片頁開著 / 目前子頁 / 格子位置(2026-11-26 起畫面上擬合格位方框,不 OCR;物品身分靠固定版面)
   // 2026-10-15 顯示方式:auto = 一直偵測;hotkey = 按倉庫價格熱鍵才偵測(舊設定 / 壞值 = auto)
   const stashTriggerMode = (): 'auto' | 'hotkey' => hostCfg?.stashTriggerMode === 'hotkey' ? 'hotkey' : 'auto'
   stashScan = new StashScan({
@@ -969,13 +969,11 @@ if (!skipStartup) app.whenReady().then(() => {
     // 熱鍵顯示模式:按了熱鍵卻連續幾次沒偵測到倉庫 → 已停止偵測,提示一次
     onArmMiss: () => { presentToast(stashArmMissToastMessage(toastLang(hostCfg?.uiLanguage)), gameToastArea()) },
     env: scanEnv,
-    textLang: ocrTextLang,
-    ocrBusy: () => revealScan.busy || runeshapeScan.busy,
     capture: scanCapture,
     // overlay screenshot 全黑鎖存(全螢幕獨占)期間不擷取(否則每 tick 走 getSources 卡 main 300–480 ms)
     captureBlackMs: () => clientCapture.blackLatchRemainingMs(),
     holdOnMiss: () => stashCursor.onCell(),
-    onShowingChange: (showing, st) => { stashCursor.setShown(showing && st.subtab ? { subtab: st.subtab, yOffset: st.yOffset, clientH: st.clientH } : null) },
+    onShowingChange: (showing, st) => { stashCursor.setShown(showing && st.subtab && st.grid ? { subtab: st.subtab, grid: st.grid } : null) },
     log: (msg) => { console.log(msg) },
     // 2026-10-15 倉庫價值:讀每格堆疊數量(版面 + 數字模板;游標停在格上不讀;每個事件等 renderer 回報遮罩才擷取下一張)
     qty: { layouts: () => loadStashLayouts(), templates: () => loadStashDigitTemplates() },

@@ -1,13 +1,14 @@
 /**
  * PoE1 倉庫價格疊層的徽章排版(純函式;`StashPrices.vue` 用)。
- * 固定版面(`data/poe1/stash/layouts.json`,core `cellRects`)× main 的 `stash-scan-result`(子頁 + 資料夾偏移 + client 大小)
+ * 固定版面(`data/poe1/stash/layouts.json`)× main 的 `stash-scan-result`(子頁 + 擬合出的格子位置 `grid`(core `fit.ts` `gridRects`)+ client 大小)
  * → 每格一枚徽章:貼在格子下緣、格寬內置中;內容 = 名稱(辨識檢視,可關)+ poe.ninja 價格(呈現照符文塑形徽章:
  * 混沌石計價、≥ 1 神聖石改神聖石、三段顏色 `priceTier`、低信心「?」)。
  * 游標停在某格(`stash-cursor`)→ 只留那一格,放大並帶完整名稱,其他格隱藏(不蓋住遊戲說明框)。
  * 2026-10-15 倉庫價值:有每格數量(main 讀堆疊數量)時徽章改顯示小計 = 單價 × 數量(三段色 / C・D 依小計);數量讀不到 → 只顯示單價 +「?」、
  * 不計入總價;空格(0)不畫(停格時才畫);`peek`(main 要用乾淨畫面重讀被蓋住的數字)→ 格子徽章全部收起。整頁總價 `stashPageValue`。
  */
-import { cellRects, stashLeft, type StashLayoutFile, type StashSubtab } from '../../../../core/src/stash/layout'
+import { cellRects, type StashLayoutFile, type StashSubtab } from '../../../../core/src/stash/layout'
+import { gridRects, type StashGrid } from '../../../../core/src/stash/fit'
 import { QTY_PARAMS } from '../../../../core/src/stash/quantity'
 import type { PriceOfResult } from '../background/price-of'
 import { overlayPlace, type OverlayPos } from './float-menu-geom'
@@ -58,7 +59,8 @@ export function stashPriceUnit (chaos: number, divineRate: number | undefined): 
 export interface StashLayoutInput {
   file: StashLayoutFile
   subtab: StashSubtab
-  yOffset: number
+  /** main 擬合出的格子位置(client 實體像素) */
+  grid: StashGrid
   client: { w: number, h: number }
   viewport: { w: number, h: number }
   /** refName → 顯示名稱(繁中 / 英文);沒有 = refName */
@@ -85,7 +87,7 @@ export function layoutStashBadges (inp: StashLayoutInput): StashBadgeView[] {
   if (inp.peek) return []
   const out: StashBadgeView[] = []
   const q = inp.quantities
-  cellRects(inp.file, inp.subtab, inp.client.h, inp.yOffset, stashLeft(inp.client.w, inp.client.h)).forEach((c, i) => {
+  gridRects(inp.file, inp.subtab, inp.grid).forEach((c, i) => {
     const hovered = inp.hover === c.refName
     if (inp.hover != null && !hovered) return
     const qty = q ? (q[i] ?? null) : undefined
@@ -175,17 +177,21 @@ export function stashPageValue (inp: Pick<StashLayoutInput, 'file' | 'subtab' | 
  */
 export const STASH_VALUE_BAND_1440 = { x0: 24, x1: 888 - 24, y0: 1066, y1: 1146 } as const
 
-export function stashValueCardPos (inp: Pick<StashLayoutInput, 'file' | 'subtab' | 'yOffset' | 'client' | 'viewport'>): { left: number, top: number, maxWidth: number, maxHeight: number } | null {
+export function stashValueCardPos (inp: Pick<StashLayoutInput, 'file' | 'subtab' | 'grid' | 'client' | 'viewport'>): { left: number, top: number, maxWidth: number, maxHeight: number } | null {
   if (!(inp.client.w > 0 && inp.client.h > 0)) return null
   const sx = inp.viewport.w / inp.client.w
   const sy = inp.viewport.h / inp.client.h
-  const k = inp.client.h / 1440
+  // 面板原點 = 擬合位置 − 版面第一格在面板內的位置(換算高度 H 下);資料夾偏移、黑邊都已含在擬合位置裡
+  const H = inp.grid.H
+  const k = H / 1440
+  const f0 = cellRects(inp.file, inp.subtab, H)[0]
+  const x0 = inp.grid.x - f0.x
+  const y0 = inp.grid.y - f0.y
   const b = STASH_VALUE_BAND_1440
-  const top = Math.ceil(b.y0 * k) + inp.yOffset
-  const bottom = Math.floor(b.y1 * k) + inp.yOffset
-  const x0 = stashLeft(inp.client.w, inp.client.h)
+  const top = Math.ceil(b.y0 * k) + y0
+  const bottom = Math.floor(b.y1 * k) + y0
   const left = Math.ceil(b.x0 * k) + x0
-  const right = Math.min(Math.floor(b.x1 * k), Math.floor(inp.client.h * 37 / 60)) + x0
+  const right = Math.min(Math.floor(b.x1 * k), Math.floor(H * 37 / 60)) + x0
   return { left: left * sx, top: top * sy, maxWidth: (right - left) * sx, maxHeight: (bottom - top) * sy }
 }
 

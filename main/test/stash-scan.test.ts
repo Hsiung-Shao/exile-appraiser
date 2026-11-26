@@ -1,7 +1,8 @@
 /**
- * PoE1 倉庫價格疊層:按鈕列掃描(StashScan)與游標換格(StashCursor)。
- * 只依規格寫(不讀 main/src/ocr/stash-scan.ts、main/src/stash-cursor.ts 實作);假時鐘 / 假擷取 / 假 OCR / 假游標,不碰 Electron。
- * 輸入:core/test/stash/fixtures/ocr 的真實 OCR 快照(client 高 1432;3.29 拍的,按鈕行由 core/test/stash/ocr-330.ts 搬到 3.30 位置)、data/poe1/stash/layouts.json。
+ * PoE1 倉庫價格疊層:格子擬合掃描(StashScan)與游標換格(StashCursor)。
+ * 2026-11-26 起偵測 = 在搜尋範圍灰階上擬合格位方框(core fit.ts),不再 OCR 子頁按鈕列。
+ * 只依規格寫;假時鐘 / 假擷取 / 假 fit·verify(`stash-fit-fakes.ts`,用 target 控制有沒有對上)/ 假游標,不碰 Electron。
+ * 版面:data/poe1/stash/layouts.json(3.30)。
  */
 import { describe, expect, it } from 'vitest'
 import fs from 'node:fs'
@@ -13,20 +14,17 @@ import {
   STASH_CLEARING_BLOCKS, STASH_HOLD_LIMIT, STASH_MISS_LIMIT, StashScan, stashBlock, type StashScanConfig
 } from '../src/ocr/stash-scan'
 import { STASH_CURSOR_INTERVAL_MS, StashCursor, stashPanelContains } from '../src/stash-cursor'
-import { buttonRects, stripRect, stripZone, type TextLine } from '../../core/src/stash/detect'
-import { cellRects, parseStashLayouts, stashLeft, type StashLayoutFile } from '../../core/src/stash/layout'
-import { clientLines } from '../../core/test/stash/ocr-330'
+import { formulaGrid, gridRects, MIN_FIT_SCORE } from '../../core/src/stash/fit'
+import { stashLeft } from '../../core/src/stash/layout'
+import { parseDigitTemplates, qtyCropRect } from '../../core/src/stash/quantity'
+import { LAYOUTS_330 as LAYOUTS, createFitFakes } from './stash-fit-fakes'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(HERE, '../..')
 const H = 1432
 const W = 2546
-
-// 碎片頁按鈕列(三顆按鈕文字都讀到;亮度另給)
-const STRIP_LINES = clientLines('strip-scarabs-1432.png')
-const TOOLTIP_LINES = clientLines('strip-tooltip-1432.png')
-
-const LAYOUTS: StashLayoutFile = parseStashLayouts(JSON.parse(fs.readFileSync(path.join(ROOT, 'data/poe1/stash/layouts.json'), 'utf8')))
+const GRID = formulaGrid(LAYOUTS, 'general', W, H)
+const TEMPLATES = parseDigitTemplates(JSON.parse(fs.readFileSync(path.join(ROOT, 'data/poe1/stash/digit-templates.json'), 'utf8')))
 
 function fakeClock () {
   let t = 0
@@ -55,42 +53,33 @@ function fakeClock () {
 
 const fp = (v: number): Fingerprint => ({ w: 64, h: 12, data: new Uint8Array(64 * 12).fill(v) })
 
-/** 亮度:第 k 顆按鈕的 p99;[一般, 綢帶, 異能](3.30;異能不畫) */
-const BRIGHT = {
-  general: [160, 140, 140],
-  threads: [140, 160, 140],
-  eldritch: [140, 140, 160]
-} as const
-
-function harness () {
+/** `qty` = 帶數字模板(會讀數量,假 pixels 全空白);預設不讀數量(templates 回 null) */
+function harness (opts: { qty?: boolean } = {}) {
   const clk = fakeClock()
   const cfg: StashScanConfig = { enabled: true, game: 'poe1', intervalMs: 500 }
   const env: ScanEnv = { overlay: true, gameActive: true, bounds: { x: 100, y: 50, width: W, height: H } }
   const state = {
-    busy: false,
     hold: false,
     frame: fp(10),
-    lines: STRIP_LINES as TextLine[],
-    bright: [...BRIGHT.general] as number[],
     client: { w: W, h: H },
     captures: 0,
-    ocrs: 0,
-    grays: 0,
-    ocrRects: [] as Array<{ x: number, y: number, width: number, height: number }>,
+    /** 偵測不該呼叫 OCR:被呼叫就記一次並 throw */
+    recognizes: 0,
     /** 擷取偏移(client → 影像);size 省略 = client 大小 */
     offset: { x: 0, y: 0 },
     size: null as { w: number, h: number } | null,
-    /** OCR 進行中(await 期間)要發生的事,例如按暫停熱鍵 */
-    duringRecognize: null as (() => void) | null
+    layouts: LAYOUTS as typeof LAYOUTS | null,
+    pixelRects: [] as Array<{ x: number, y: number, width: number, height: number }>
   }
+  const fits = createFitFakes(LAYOUTS, () => state.offset)
+  fits.show('general', W, H)
   const logs: string[] = []
   const events: StashScanEvent[] = []
-  const showingCalls: Array<{ showing: boolean, st: { subtab: unknown, yOffset: number, clientH: number } }> = []
+  const showingCalls: Array<{ showing: boolean, st: { subtab: unknown, grid: unknown, clientH: number } }> = []
   const scan = new StashScan({
     clock: clk.clock,
     config: () => cfg,
     env: () => env,
-    ocrBusy: () => state.busy,
     capture: async (): Promise<ScanCapture> => {
       state.captures++
       const client = { ...state.client }
@@ -99,146 +88,152 @@ function harness () {
         offset: { ...state.offset },
         client,
         fingerprint: () => state.frame,
-        recognize: async (rect) => {
-          state.ocrs++
-          state.ocrRects.push({ ...rect })
-          state.duringRecognize?.()
-          return { lines: state.lines.map(l => ({ ...l })), ms: 42 }
-        },
-        gray: (rect) => {
-          state.grays++
-          // 依 x 對到第幾顆按鈕(yOffset 只影響 y;超寬螢幕要扣左側黑邊)
-          const x0 = stashLeft(client.w, client.h)
-          const k = buttonRects(client.h, 0).findIndex(b => Math.abs(b.x + x0 - rect.x) <= 1)
-          return new Uint8Array(32).fill(k >= 0 ? state.bright[k] : 0)
-        }
+        recognize: async () => { state.recognizes++; throw new Error('倉庫偵測不該呼叫 OCR') },
+        gray: fits.gray,
+        ...(opts.qty
+          ? {
+              pixels: (rect) => {
+                state.pixelRects.push({ ...rect })
+                return { data: new Uint8Array(rect.width * rect.height * 4), width: rect.width, height: rect.height, channels: 4, x: rect.x, y: rect.y }
+              }
+            }
+          : {})
       }
     },
     send: (e) => { events.push(e) },
-    textLang: () => 'zh',
+    fit: fits.fit,
+    verify: fits.verify,
+    qty: { layouts: () => state.layouts, templates: () => opts.qty ? TEMPLATES : null },
     holdOnMiss: () => state.hold,
     onShowingChange: (showing, st) => { showingCalls.push({ showing, st: { ...st } }) },
     log: (m) => { logs.push(m) }
   })
-  /** 換畫面(縮圖不同 → 一定重 OCR) */
+  /** 換畫面(縮圖不同 → 一定重新比對) */
   let frameV = 10
   const changeFrame = () => { frameV = (frameV + 37) % 250; state.frame = fp(frameV) }
-  return { scan, events, showingCalls, cfg, env, state, clk, changeFrame, logs }
+  return { scan, events, showingCalls, cfg, env, state, clk, changeFrame, logs, fits }
 }
 
 type Hn = ReturnType<typeof harness>
 async function showGeneral (h: Hn) {
   const r = await h.scan.tick()
-  expect(r).toMatchObject({ kind: 'ocr', found: true, subtab: 'general', sent: 'show' })
+  expect(r).toMatchObject({ kind: 'fit', found: true, subtab: 'general', sent: 'show' })
   expect(h.scan.showing).toBe(true)
 }
 
-describe('S8 說明框遮住按鈕仍保留', () => {
-  it('已顯示後連續 5 次沒找到按鈕且游標在面板內 → held、不送 hide', async () => {
+describe('S8 說明框遮住格子仍保留', () => {
+  it('已顯示後連續 5 次沒對上格子且游標在格上 → held、不送 hide', async () => {
     const h = harness()
     await showGeneral(h)
-    h.state.lines = TOOLTIP_LINES
+    h.fits.none()
     h.state.hold = true
     for (let i = 0; i < 5; i++) {
       h.changeFrame()
       const r = await h.scan.tick()
       // 沒看 holdOnMiss、或 held 仍累計次數 → 第 2 次就送 hide
-      expect(r, `第 ${i + 1} 次`).toMatchObject({ kind: 'ocr', found: false, held: true, sent: null })
+      expect(r, `第 ${i + 1} 次`).toMatchObject({ kind: 'fit', found: false, held: true, sent: null })
     }
     expect(h.events.map(e => e.reason)).toEqual(['show'])
     expect(h.scan.showing).toBe(true)
-    expect(h.state.ocrs).toBe(6)
+    // 第一次顯示擬合 1 次;之後每次先驗證快取位置(不過)再整個重擬合
+    expect(h.fits.s.fits).toBe(6)
+    expect(h.fits.s.verifies).toBe(5)
   })
 })
 
 describe('S9 關倉庫後清除', () => {
-  it(`游標不在面板內:第 1 次沒找到不送、第 ${STASH_MISS_LIMIT} 次送 hide`, async () => {
+  it(`游標不在面板內:第 1 次沒對上不送、第 ${STASH_MISS_LIMIT} 次送 hide`, async () => {
     expect(STASH_MISS_LIMIT).toBe(2)
     const h = harness()
     await showGeneral(h)
-    expect(h.showingCalls.at(-1)).toEqual({ showing: true, st: { subtab: 'general', yOffset: 0, clientH: H } })
-    h.state.lines = TOOLTIP_LINES
+    expect(h.showingCalls.at(-1)).toEqual({ showing: true, st: { subtab: 'general', grid: GRID, clientH: H } })
+    h.fits.none()
     h.state.hold = false
     h.changeFrame()
-    // 一次沒找到就清 → 說明框閃一下疊層就消失
-    expect(await h.scan.tick()).toMatchObject({ kind: 'ocr', found: false, held: false, sent: null })
+    // 一次沒對上就清 → 說明框閃一下疊層就消失
+    expect(await h.scan.tick()).toMatchObject({ kind: 'fit', found: false, held: false, sent: null })
     expect(h.events).toHaveLength(1)
     h.changeFrame()
     // 沒累計 / 門檻寫錯 → 不送 hide,疊層殘留
-    expect(await h.scan.tick()).toMatchObject({ kind: 'ocr', found: false, sent: 'hide' })
+    expect(await h.scan.tick()).toMatchObject({ kind: 'fit', found: false, sent: 'hide' })
     expect(h.events.map(e => e.reason)).toEqual(['show', 'hide'])
     expect(h.events[1].seq).toBeGreaterThan(h.events[0].seq)
     expect(h.scan.showing).toBe(false)
     expect(h.showingCalls.at(-1)?.showing).toBe(false)
   })
-  it('沒找到後又找到 → 累計歸零', async () => {
+  it('沒對上後又對上 → 累計歸零', async () => {
     const h = harness()
     await showGeneral(h)
-    h.state.lines = TOOLTIP_LINES
+    h.fits.none()
     h.changeFrame()
     await h.scan.tick()
-    h.state.lines = STRIP_LINES
+    h.fits.show('general', W, H)
     h.changeFrame()
     await h.scan.tick()
-    h.state.lines = TOOLTIP_LINES
+    h.fits.none()
     h.changeFrame()
-    // 找到時沒清累計 → 這次就送 hide
+    // 對上時沒清累計 → 這次就送 hide
     expect(await h.scan.tick()).toMatchObject({ found: false, sent: null })
     expect(h.events.map(e => e.reason)).toEqual(['show'])
   })
 })
 
 describe('S9b 狀態轉換只送一次', () => {
-  it('同子頁不重送、換到聖甲蟲 / 異能送 hide、回一般送 show、client 大小變了重送', async () => {
+  it('同子頁不重送、換綢帶 / 回一般送 show、對不上(異能頁)連 2 次 hide、client 大小變了重送', async () => {
     const h = harness()
     await showGeneral(h)
     const ev0 = h.events[0]
-    // 事件內容錯(client / yOffset / ocrMs)→ renderer 疊層畫錯位置
-    expect(ev0).toMatchObject({ reason: 'show', subtab: 'general', yOffset: 0, client: { w: W, h: H }, ocrMs: 42 })
+    // 事件內容錯(client / grid)→ renderer 疊層畫錯位置
+    expect(ev0).toMatchObject({ reason: 'show', subtab: 'general', grid: GRID, client: { w: W, h: H } })
+    expect(typeof ev0.ocrMs).toBe('number')
 
     h.changeFrame()
-    // 每次 OCR 都重送 → renderer 疊層閃爍
-    expect(await h.scan.tick()).toMatchObject({ kind: 'ocr', found: true, subtab: 'general', sent: null })
+    // 每次比對都重送 → renderer 疊層閃爍
+    expect(await h.scan.tick()).toMatchObject({ kind: 'fit', found: true, subtab: 'general', sent: null })
     expect(h.events).toHaveLength(1)
 
-    h.state.bright = [...BRIGHT.threads]
+    h.fits.show('threads', W, H)
     h.changeFrame()
     // 換子頁沒重送 → 一般頁的格子價格疊在綢帶頁上
     expect(await h.scan.tick()).toMatchObject({ found: true, subtab: 'threads', sent: 'show' })
-    expect(h.showingCalls.at(-1)).toEqual({ showing: true, st: { subtab: 'threads', yOffset: 0, clientH: H } })
+    expect(h.showingCalls.at(-1)).toEqual({ showing: true, st: { subtab: 'threads', grid: formulaGrid(LAYOUTS, 'threads', W, H), clientH: H } })
 
-    h.state.bright = [...BRIGHT.general]
+    h.fits.show('general', W, H)
     h.changeFrame()
     expect(await h.scan.tick()).toMatchObject({ subtab: 'general', sent: 'show' })
-    expect(h.events.at(-1)).toMatchObject({ reason: 'show', subtab: 'general' })
-    expect(h.showingCalls.at(-1)).toEqual({ showing: true, st: { subtab: 'general', yOffset: 0, clientH: H } })
+    expect(h.events.at(-1)).toMatchObject({ reason: 'show', subtab: 'general', grid: GRID })
+    expect(h.showingCalls.at(-1)).toEqual({ showing: true, st: { subtab: 'general', grid: GRID, clientH: H } })
 
-    h.state.bright = [...BRIGHT.eldritch]
+    h.fits.none()
     h.changeFrame()
-    // 異能(沒版面)仍顯示舊子頁 → 格子價格錯誤
-    expect(await h.scan.tick()).toMatchObject({ found: true, subtab: null, sent: 'hide' })
-    expect(h.events.at(-1)?.reason).toBe('hide')
+    // 異能(沒版面、對不上)一次不收,連 2 次才收;收起事件不帶 grid
+    expect(await h.scan.tick()).toMatchObject({ found: false, sent: null })
+    h.changeFrame()
+    expect(await h.scan.tick()).toMatchObject({ found: false, sent: 'hide' })
+    expect(h.events.at(-1)).toMatchObject({ reason: 'hide', subtab: null })
+    expect(h.events.at(-1)?.grid).toBeUndefined()
     expect(h.scan.showing).toBe(false)
 
-    h.state.bright = [...BRIGHT.general]
+    h.fits.show('general', W, H)
     h.changeFrame()
     expect(await h.scan.tick()).toMatchObject({ subtab: 'general', sent: 'show' })
     const n = h.events.length
 
     h.state.client = { w: W - 200, h: H }
+    h.fits.show('general', W - 200, H)
     h.changeFrame()
     // 沒比 client 大小 → 遊戲改視窗大小後疊層仍用舊尺寸
     expect(await h.scan.tick()).toMatchObject({ subtab: 'general', sent: 'show' })
     expect(h.events).toHaveLength(n + 1)
     expect(h.events.at(-1)?.client).toEqual({ w: W - 200, h: H })
   })
-  it('資料夾內(按鈕下移 folderOffset)→ show 帶 yOffset', async () => {
+  it('資料夾內(格子整體下移)→ show 帶下移後的 grid', async () => {
     const h = harness()
     const off = Math.floor(47 / 1440 * H)
-    h.state.lines = STRIP_LINES.map(l => ({ ...l, y: l.y + off }))
-    // 沒把 yOffset 帶進事件 / 亮度取樣沒加偏移(這裡亮度依 x 對,所以只驗事件)→ 疊層差一列
+    h.fits.show('general', W, H, off)
+    // 沒把擬合出的 grid 帶進事件(又退回舊公式)→ 疊層差一列
     expect(await h.scan.tick()).toMatchObject({ found: true, subtab: 'general', sent: 'show' })
-    expect(h.events[0].yOffset).toBe(off)
+    expect(h.events[0].grid).toEqual({ ...GRID, y: GRID.y + off })
   })
 })
 
@@ -261,7 +256,7 @@ describe('S9c 擋下條件與收起', () => {
     expect(stashBlock(okCfg, okEnv, ui0)).toBeNull()
   })
   it('會清疊層的原因只有 disabled / not-poe1 / not-intl / not-overlay / no-window / user-paused / not-armed', () => {
-    // 失焦也清 → 切出遊戲再回來疊層要重新 OCR 才出現(not-armed = 2026-10-15 熱鍵顯示模式未觸發)
+    // 失焦也清 → 切出遊戲再回來疊層要重新比對才出現(not-armed = 2026-10-15 熱鍵顯示模式未觸發)
     expect([...STASH_CLEARING_BLOCKS].sort()).toEqual(['disabled', 'no-window', 'not-armed', 'not-intl', 'not-overlay', 'not-poe1', 'user-paused'])
   })
   it('顯示中改成停用 → blocked 並送 hide', async () => {
@@ -288,54 +283,55 @@ describe('S9c 擋下條件與收起', () => {
     const h = harness()
     h.scan.setUiState({ panel: false, settings: true, picker: false })
     expect(await h.scan.tick()).toEqual({ kind: 'blocked', block: 'ui-open' })
-    expect(h.state.ocrs).toBe(0)
+    expect(h.state.captures).toBe(0)
+    expect(h.fits.s.fits).toBe(0)
   })
 })
 
-describe('S9d 畫面沒變不 OCR', () => {
-  it('縮圖相同 → unchanged、只 OCR 一次;縮圖改變 → 再 OCR', async () => {
+describe('S9d 畫面沒變不重新比對', () => {
+  it('縮圖相同 → unchanged、不 fit 也不 verify;縮圖改變 → 只 verify', async () => {
     const h = harness()
     await showGeneral(h)
-    // 沒做差分 → 每 500 ms 跑一次 OCR,CPU 浪費
+    // 沒做差分 → 每 500 ms 都比對一次,CPU 浪費
     expect(await h.scan.tick()).toEqual({ kind: 'unchanged' })
-    expect(h.state.ocrs).toBe(1)
+    expect(h.fits.s.fits).toBe(1)
+    expect(h.fits.s.verifies).toBe(0)
     h.changeFrame()
-    expect(await h.scan.tick()).toMatchObject({ kind: 'ocr' })
-    expect(h.state.ocrs).toBe(2)
+    expect(await h.scan.tick()).toMatchObject({ kind: 'fit' })
+    expect(h.fits.s.fits).toBe(1)
+    expect(h.fits.s.verifies).toBe(1)
   })
-  it('縮圖相同但 client 大小改變 → 仍重新 OCR', async () => {
+  it('縮圖相同但 client 大小改變 → 仍重新擬合', async () => {
     const h = harness()
     await showGeneral(h)
     h.state.client = { w: W - 100, h: H }
+    h.fits.show('general', W - 100, H)
     // 差分沒比 client → 換解析度後疊層停在舊尺寸
-    expect(await h.scan.tick()).toMatchObject({ kind: 'ocr' })
-    expect(h.state.ocrs).toBe(2)
+    expect(await h.scan.tick()).toMatchObject({ kind: 'fit' })
+    expect(h.fits.s.fits).toBe(2)
   })
 })
 
-describe('S11 共用 OCR 互斥', () => {
-  it('ocrBusy 為真 → busy、不呼叫 recognize', async () => {
+describe('S11 版面沒載入', () => {
+  it('layouts 回 null → busy、不擷取也不擬合;載入後恢復', async () => {
     const h = harness()
-    h.state.busy = true
-    // 不檢查互斥 → 與褻瀆 / 符文同時用同一個 WinOcr 行程
+    h.state.layouts = null
+    // 版面沒載入就偵測 → 沒有版面可擬合
     expect(await h.scan.tick()).toEqual({ kind: 'busy' })
-    expect(h.state.ocrs).toBe(0)
+    expect(h.state.captures).toBe(0)
+    expect(h.fits.s.fits).toBe(0)
     expect(h.events).toHaveLength(0)
-    h.state.busy = false
-    expect(await h.scan.tick()).toMatchObject({ kind: 'ocr', sent: 'show' })
+    h.state.layouts = LAYOUTS
+    expect(await h.scan.tick()).toMatchObject({ kind: 'fit', sent: 'show' })
   })
-  it('main.ts 三個掃描的 ocrBusy 互相包含', () => {
+  it('main.ts 的 StashScan 不再接 WinOcr(沒有 ocrBusy / textLang)', () => {
     const src = fs.readFileSync(path.join(ROOT, 'main/src/main.ts'), 'utf8')
-    const busyOf = (ctor: string): string => {
-      const m = new RegExp(`new ${ctor}\\(\\{[\\s\\S]*?ocrBusy:\\s*([^\\n]*)`).exec(src)
-      if (!m) throw new Error(`main.ts 找不到 ${ctor} 的 ocrBusy`)
-      return m[1]
-    }
-    // 漏接一邊 → 倉庫掃描與另兩個同時 OCR
-    expect(busyOf('RevealScan')).toContain('stashScan.busy')
-    expect(busyOf('RuneshapeScan')).toContain('stashScan.busy')
-    expect(busyOf('StashScan')).toContain('revealScan.busy')
-    expect(busyOf('StashScan')).toContain('runeshapeScan.busy')
+    const i = src.indexOf('stashScan = new StashScan({')
+    expect(i).toBeGreaterThan(0)
+    const block = src.slice(i, src.indexOf('\n  })', i))
+    // 倉庫偵測改格子擬合後不用 OCR → 留著會白白與褻瀆 / 符文互相等待
+    expect(block).not.toContain('ocrBusy')
+    expect(block).not.toContain('textLang')
   })
 })
 
@@ -363,7 +359,7 @@ describe('S11b 停用後不再排程', () => {
     h.env.gameActive = true
     h.scan.poke()
     await h.clk.advance(1)
-    expect(h.state.ocrs).toBe(1)
+    expect(h.fits.s.fits).toBe(1)
     expect(h.scan.snapshot().block).toBeNull()
     const q = h.clk.pending()
     expect(q).toHaveLength(1)
@@ -399,7 +395,7 @@ describe('S12 游標換格才送事件', () => {
     const at = (cx: number, cy: number) => { st.cursor = { x: bounds.x + cx, y: bounds.y + cy } }
     return { clk, st, cur, sent, at, bounds }
   }
-  const cells = cellRects(LAYOUTS, 'general', H, 0)
+  const cells = gridRects(LAYOUTS, 'general', GRID)
 
   it('同一格內移動只送一次、換格再送、移到格外送 null', async () => {
     expect(STASH_CURSOR_INTERVAL_MS).toBe(80)
@@ -407,7 +403,7 @@ describe('S12 游標換格才送事件', () => {
     const a = cells[0]
     const b = cells.find(r => r.refName !== a.refName)!
     c.at(a.x + 2, a.y + 2)
-    c.cur.setShown({ subtab: 'general', yOffset: 0, clientH: H })
+    c.cur.setShown({ subtab: 'general', grid: GRID })
     expect(c.cur.polling).toBe(true)
     await c.clk.advance(STASH_CURSOR_INTERVAL_MS * 2)
     // 沒減 bounds 左上 / 版面換算錯 → refName 錯
@@ -432,7 +428,7 @@ describe('S12 游標換格才送事件', () => {
     const c = cursorHarness()
     const a = cells[0]
     c.at(a.x + 2, a.y + 2)
-    c.cur.setShown({ subtab: 'general', yOffset: 0, clientH: H })
+    c.cur.setShown({ subtab: 'general', grid: GRID })
     await c.clk.advance(STASH_CURSOR_INTERVAL_MS * 2)
     expect(c.sent).toEqual([{ refName: a.refName }])
     c.st.active = false
@@ -450,7 +446,7 @@ describe('S12 游標換格才送事件', () => {
   it('setShown(null) 後不再輪詢', async () => {
     const c = cursorHarness()
     const a = cells[0]
-    c.cur.setShown({ subtab: 'general', yOffset: 0, clientH: H })
+    c.cur.setShown({ subtab: 'general', grid: GRID })
     await c.clk.advance(STASH_CURSOR_INTERVAL_MS * 2)
     c.cur.setShown(null)
     expect(c.cur.polling).toBe(false)
@@ -463,18 +459,18 @@ describe('S12 游標換格才送事件', () => {
   it('遊戲不在前景時 setShown 不開始輪詢', () => {
     const c = cursorHarness()
     c.st.active = false
-    c.cur.setShown({ subtab: 'general', yOffset: 0, clientH: H })
+    c.cur.setShown({ subtab: 'general', grid: GRID })
     expect(c.cur.polling).toBe(false)
   })
-  it('資料夾偏移:格子跟著 yOffset 下移', async () => {
+  it('格子位置整體下移(資料夾內):游標判定跟著 grid', async () => {
     const c = cursorHarness()
     const off = Math.floor(47 / 1440 * H)
-    const shifted = cellRects(LAYOUTS, 'general', H, off)
-    const a = shifted[0]
+    const grid = { ...GRID, y: GRID.y + off }
+    const a = gridRects(LAYOUTS, 'general', grid)[0]
     c.at(a.x + 2, a.y + a.h - 2)
-    c.cur.setShown({ subtab: 'general', yOffset: off, clientH: H })
+    c.cur.setShown({ subtab: 'general', grid })
     await c.clk.advance(STASH_CURSOR_INTERVAL_MS * 2)
-    // 忘了加 yOffset → 對到格外或上一列
+    // 沒用 grid 的 y(又退回舊公式)→ 對到格外或上一列
     expect(c.sent).toEqual([{ refName: a.refName }])
     c.cur.stop()
   })
@@ -506,7 +502,7 @@ describe('S12b 面板範圍判定', () => {
       layouts: () => LAYOUTS,
       send: () => {}
     })
-    cur.setShown({ subtab: 'general', yOffset: 0, clientH: H })
+    cur.setShown({ subtab: 'general', grid: GRID })
     const xl = Math.floor(H * 37 / 60)
     // 沒減 bounds 左上 → 偏 100 / 50 px
     st.cursor = { x: 100 + xl - 1, y: 50 + 10 }
@@ -521,16 +517,16 @@ describe('S12b 面板範圍判定', () => {
   })
 })
 
-describe('S9e 沒找到按鈕後畫面靜止仍收起(B1)', () => {
-  it('已顯示、沒找到按鈕後縮圖不再改變、游標不在格上 → 第 2 個 tick 送 hide', async () => {
+describe('S9e 沒對上格子後畫面靜止仍收起(B1)', () => {
+  it('已顯示、沒對上後縮圖不再改變、游標不在格上 → 第 2 個 tick 送 hide', async () => {
     const h = harness()
     await showGeneral(h)
-    h.state.lines = TOOLTIP_LINES
+    h.fits.none()
     h.state.hold = false
     h.changeFrame()
-    expect(await h.scan.tick()).toMatchObject({ kind: 'ocr', found: false, sent: null })
-    // 沒找到時也更新差分基準 → 這裡走 unchanged,疊層永遠收不掉
-    expect(await h.scan.tick()).toMatchObject({ kind: 'ocr', found: false, sent: 'hide' })
+    expect(await h.scan.tick()).toMatchObject({ kind: 'fit', found: false, sent: null })
+    // 沒對上時也更新差分基準 → 這裡走 unchanged,疊層永遠收不掉
+    expect(await h.scan.tick()).toMatchObject({ kind: 'fit', found: false, sent: 'hide' })
     expect(h.events.map(e => e.reason)).toEqual(['show', 'hide'])
   })
 })
@@ -540,7 +536,7 @@ describe('S8b 維持有上限(B2b)', () => {
     expect(STASH_HOLD_LIMIT).toBe(5)
     const h = harness()
     await showGeneral(h)
-    h.state.lines = TOOLTIP_LINES
+    h.fits.none()
     h.state.hold = true
     for (let i = 0; i < STASH_HOLD_LIMIT; i++) {
       h.changeFrame()
@@ -553,22 +549,22 @@ describe('S8b 維持有上限(B2b)', () => {
     expect(await h.scan.tick()).toMatchObject({ found: false, held: false, sent: 'hide' })
     expect(h.events.map(e => e.reason)).toEqual(['show', 'hide'])
   })
-  it('找到按鈕後 held 次數歸零', async () => {
+  it('對上格子後 held 次數歸零', async () => {
     const h = harness()
     await showGeneral(h)
     h.state.hold = true
+    h.fits.none()
     for (let i = 0; i < STASH_HOLD_LIMIT - 1; i++) {
-      h.state.lines = TOOLTIP_LINES
       h.changeFrame()
       await h.scan.tick()
     }
-    h.state.lines = STRIP_LINES
+    h.fits.show('general', W, H)
     h.changeFrame()
     expect(await h.scan.tick()).toMatchObject({ found: true })
-    h.state.lines = TOOLTIP_LINES
+    h.fits.none()
     for (let i = 0; i < STASH_HOLD_LIMIT; i++) {
       h.changeFrame()
-      // 找到時沒歸零 → 這裡提早不維持
+      // 對上時沒歸零 → 這裡提早不維持
       expect(await h.scan.tick(), `第 ${i + 1} 次`).toMatchObject({ found: false, held: true, sent: null })
     }
   })
@@ -589,17 +585,17 @@ describe('S12c 游標在格上判定(B2a)', () => {
     const at = (cx: number, cy: number) => { st.cursor = { x: bounds.x + cx, y: bounds.y + cy } }
     return { cur, at }
   }
-  const cells = cellRects(LAYOUTS, 'general', H, 0)
+  const cells = gridRects(LAYOUTS, 'general', GRID)
 
-  it('格上為真;頁籤列 / 格子之間為假(仍在面板內)', () => {
+  it('格上為真;格子上方的頁籤區 / 格子之間為假(仍在面板內)', () => {
     const c = onCellHarness()
-    c.cur.setShown({ subtab: 'general', yOffset: 0, clientH: H })
+    c.cur.setShown({ subtab: 'general', grid: GRID })
     const a = cells[0]
     c.at(a.x + 2, a.y + 2)
     expect(c.cur.onCell()).toBe(true)
     // 用整個面板判定 → 點別的頁籤時也維持,徽章錯畫在別頁
-    const tab = buttonRects(H, 0)[1]
-    c.at(tab.x + 5, tab.y + 5)
+    expect(a.y).toBeGreaterThan(40)
+    c.at(a.x + 5, a.y - 30)
     expect(c.cur.inPanel()).toBe(true)
     expect(c.cur.onCell()).toBe(false)
     const b = cells.find(r => r.y === a.y && r.x > a.x + a.w)!
@@ -615,7 +611,7 @@ describe('S12c 游標在格上判定(B2a)', () => {
     const a = cells[0]
     c.at(a.x + 2, a.y + 2)
     expect(c.cur.onCell()).toBe(false)
-    c.cur.setShown({ subtab: 'general', yOffset: 0, clientH: H })
+    c.cur.setShown({ subtab: 'general', grid: GRID })
     expect(c.cur.onCell()).toBe(true)
     c.cur.setShown(null)
     expect(c.cur.onCell()).toBe(false)
@@ -631,103 +627,50 @@ describe('S9f host-config 未到不掃描(I2)', () => {
   it('main.ts 的 StashScan enabled 要求 hostCfg 已到', () => {
     const src = fs.readFileSync(path.join(ROOT, 'main/src/main.ts'), 'utf8')
     const m = /new StashScan\(\{[\s\S]*?enabled:\s*([^\n]*)/.exec(src)
-    // 只寫 hostCfg?.stashPricesEnabled !== false → 啟動空窗 PoE2 使用者也被擷取 + OCR
+    // 只寫 hostCfg?.stashPricesEnabled !== false → 啟動空窗 PoE2 使用者也被擷取
     expect(m?.[1]).toContain('hostCfg != null')
   })
 })
 
-describe('S9g 沒顯示時沒找到也照常差分(N1)', () => {
-  it('沒顯示時連續沒找到、縮圖不變 → 第 2 個 tick 回 unchanged、recognize 只呼叫一次', async () => {
+describe('S9g 沒顯示時沒對上也照常差分(N1)', () => {
+  it('沒顯示時連續沒對上、縮圖不變 → 第 2 個 tick 回 unchanged、fit 只呼叫一次', async () => {
     const h = harness()
-    h.state.lines = TOOLTIP_LINES
-    expect(await h.scan.tick()).toMatchObject({ kind: 'ocr', found: false, sent: null })
-    // 沒找到一律作廢基準 → 平常玩遊戲每 tick 都 OCR ×3
+    h.fits.none()
+    expect(await h.scan.tick()).toMatchObject({ kind: 'fit', found: false, sent: null })
+    // 沒對上一律作廢基準 → 平常玩遊戲每 tick 都擬合
     expect(await h.scan.tick()).toEqual({ kind: 'unchanged' })
-    expect(h.state.ocrs).toBe(1)
+    expect(h.fits.s.fits).toBe(1)
     expect(h.events).toHaveLength(0)
   })
 })
 
-describe('S18 使用者框選的倉庫 OCR 區域', () => {
-  it('沒框區域 → OCR 預設按鈕列(stripRect)', async () => {
-    // 預設路徑被改壞 → 沒框過的使用者偵測不到碎片頁
+describe('S18 搜尋範圍(格子可能出現的區塊)', () => {
+  it('沒框區域 → 搜尋範圍 = 預設(x 從黑邊前一點、y 10%–85% 高、寬 70% 高)', async () => {
+    // 預設範圍被改壞 → 沒框過的使用者偵測不到碎片頁
     const h = harness()
     await h.scan.tick()
-    const s = stripRect(H)
-    expect(h.state.ocrRects[0]).toEqual({ x: s.x, y: s.y, width: s.w, height: s.h })
+    expect(h.fits.s.areas[0]).toEqual({ x: 0, y: 143, width: 1003, height: 1074 })
   })
-  it('框了區域 → OCR 使用者的區域(client 比例換成像素)', async () => {
-    // 忽略 cfg.region → 使用者框了也沒用
-    const h = harness()
-    h.cfg.region = { x: 0.1, y: 0.1, w: 0.2, h: 0.05 }
-    await h.scan.tick()
-    expect(h.state.ocrRects[0]).toEqual({ x: Math.round(0.1 * W), y: Math.round(0.1 * H), width: Math.round(0.2 * W), height: Math.round(0.05 * H) })
-  })
-  it('改了區域 → 縮圖相同也重新 OCR', async () => {
+  it('改了區域 → 縮圖相同也重新比對(不走 unchanged)', async () => {
     // 差分基準沒綁區域 → 換區域後沿用舊結果、不重看
     const h = harness()
     await h.scan.tick()
     h.cfg.region = { x: 0, y: 0.1, w: 0.4, h: 0.1 }
-    await h.scan.tick()
-    expect(h.state.ocrs).toBe(2)
+    expect(await h.scan.tick()).toMatchObject({ kind: 'fit' })
+    expect(h.fits.s.verifies).toBe(1)
+    expect(h.fits.s.areas).toHaveLength(2)
   })
-})
-
-describe('S18b 自訂區域夾在按鈕可能出現的範圍內(R1)', () => {
-  const zone = stripZone(W, H)
-  const asPhys = (r: { x: number, y: number, w: number, h: number }) => ({ x: r.x, y: r.y, width: r.w, height: r.h })
-  it('全畫面區域 → OCR 矩形 = stripZone,且只記一次 log', async () => {
-    const h = harness()
-    h.cfg.region = { x: 0, y: 0, w: 1, h: 1 }
-    await h.scan.tick()
-    // 沒上限 → 整張畫面 ×3 OCR
-    expect(h.state.ocrRects[0]).toEqual(asPhys(zone))
-    h.changeFrame()
-    await h.scan.tick()
-    expect(h.state.ocrRects[1]).toEqual(asPhys(zone))
-    expect(h.logs.filter(m => m.includes('自訂 OCR 區域超出按鈕列範圍'))).toHaveLength(1)
-  })
-  it('還原預設後再框回同一個區域 → 再記一次 log', async () => {
-    const h = harness()
-    h.cfg.region = { x: 0, y: 0, w: 1, h: 1 }
-    await h.scan.tick()
-    h.cfg.region = null
-    h.changeFrame()
-    await h.scan.tick()
-    h.cfg.region = { x: 0, y: 0, w: 1, h: 1 }
-    h.changeFrame()
-    await h.scan.tick()
-    // 還原預設沒清記錄 → 使用者重新框同值看不到提示
-    expect(h.logs.filter(m => m.includes('自訂 OCR 區域超出按鈕列範圍'))).toHaveLength(2)
-  })
-  it('部分超出 → 取交集', async () => {
-    const h = harness()
-    h.cfg.region = { x: 0.1, y: 0.1, w: 0.5, h: 0.05 }
-    await h.scan.tick()
-    const x = Math.round(0.1 * W)
-    const y = Math.round(0.1 * H)
-    // 只夾一邊 / 沒夾 → 寬度超出倉庫面板
-    expect(h.state.ocrRects[0]).toEqual({ x, y, width: zone.x + zone.w - x, height: Math.round(0.05 * H) })
-  })
-  it('完全在範圍外 → 改用預設 stripRect', async () => {
-    const h = harness()
-    h.cfg.region = { x: 0.5, y: 0.5, w: 0.2, h: 0.2 }
-    await h.scan.tick()
-    // 交集為空仍 OCR 使用者區域 → 永遠找不到按鈕
-    expect(h.state.ocrRects[0]).toEqual(asPhys(stripRect(H)))
-  })
-  it('擷取偏移不為 0 → 自訂區域與預設都減掉偏移', async () => {
+  it('擷取偏移不為 0 → 搜尋範圍(預設與自訂)都換成影像座標', async () => {
     const h = harness()
     h.state.offset = { x: 10, y: 20 }
     h.state.size = { w: W - 10, h: H - 20 }
+    h.fits.show('general', W, H)
+    await h.scan.tick()
+    // 忘了減偏移 → 範圍偏 10 / 20 px
+    expect(h.fits.s.areas[0]).toEqual({ x: 0, y: 123, width: 993, height: 1074 })
     h.cfg.region = { x: 0.1, y: 0.1, w: 0.2, h: 0.05 }
     await h.scan.tick()
-    // 交集後忘了換成影像座標 → 偏 10 / 20 px
-    expect(h.state.ocrRects[0]).toEqual({ x: Math.round(0.1 * W) - 10, y: Math.round(0.1 * H) - 20, width: Math.round(0.2 * W), height: Math.round(0.05 * H) })
-    h.cfg.region = null
-    await h.scan.tick()
-    const s = stripRect(H)
-    expect(h.state.ocrRects[1]).toEqual({ x: 0, y: s.y - 20, width: s.w - 10, height: s.h })
+    expect(h.fits.s.areas[1]).toEqual({ x: 193, y: 116, width: 612, height: 86 })
   })
 })
 
@@ -749,22 +692,22 @@ describe('S19 使用者暫停熱鍵(T21)', () => {
     expect(h.clk.pending()).toEqual([])
     expect(h.scan.snapshot().block).toBe('user-paused')
   })
-  it('繼續 → 立刻重看並恢復 OCR', async () => {
+  it('繼續 → 立刻重看並恢復偵測', async () => {
     const h = harness()
     h.scan.start(1_000_000)
     h.scan.toggleUserPause()
     await h.clk.advance(1)
-    expect(h.state.ocrs).toBe(0)
+    expect(h.fits.s.fits).toBe(0)
     expect(h.scan.toggleUserPause()).toBe(false)
     await h.clk.advance(1)
     // 繼續後沒 poke → 要等很久才恢復
-    expect(h.state.ocrs).toBe(1)
+    expect(h.fits.s.fits).toBe(1)
     expect(h.scan.showing).toBe(true)
     h.scan.stop()
   })
-  it('OCR 進行中按暫停 → 那一輪不送 show、疊層不留著', async () => {
+  it('擬合進行中按暫停 → 那一輪不送 show、疊層不留著', async () => {
     const h = harness()
-    h.state.duringRecognize = () => { h.scan.toggleUserPause() }
+    h.fits.s.duringFit = () => { h.scan.toggleUserPause() }
     await h.scan.tick()
     expect(h.events.map(e => e.reason)).not.toContain('show')
     expect(h.scan.showing).toBe(false)
@@ -828,33 +771,131 @@ describe('S22 超寬螢幕黑邊(遊戲畫面 2.4:1、左右補黑)', () => {
   const WIDE = 5120
   const X0 = stashLeft(WIDE, H)
 
-  it('按鈕文字右移黑邊寬時仍找到一般頁,OCR 區域從黑邊右側開始', async () => {
+  it('格子在黑邊右側:搜尋範圍從黑邊附近開始並涵蓋格子,show 的 grid 在黑邊右側', async () => {
     const h = harness()
     h.state.client = { w: WIDE, h: H }
     h.env.bounds = { x: 0, y: 0, width: WIDE, height: H }
-    h.state.lines = STRIP_LINES.map(l => ({ ...l, x: l.x + X0 }))
-    // 沒套黑邊 → 掃描條在黑邊上、按鈕比對不到
+    const t = h.fits.show('general', WIDE, H)
+    // 沒套黑邊 → 搜尋範圍在黑邊上、格子不在範圍內
     await showGeneral(h)
-    expect(h.state.ocrRects[0].x).toBe(X0)
+    expect(t.grid.x).toBeGreaterThanOrEqual(X0)
+    expect(h.events[0].grid).toEqual(t.grid)
+    const area = h.fits.s.areas[0]
+    expect(area.x).toBeLessThanOrEqual(X0)
+    expect(area.x).toBeGreaterThan(X0 - H * 0.1)
+    const cells = gridRects(LAYOUTS, 'general', t.grid)
+    expect(Math.min(...cells.map(c => c.x))).toBeGreaterThanOrEqual(area.x)
+    expect(Math.max(...cells.map(c => c.x + c.w))).toBeLessThanOrEqual(area.x + area.width)
   })
 
-  it('游標判定扣掉黑邊:停在右移後的格子上送該格', async () => {
+  it('grid 帶黑邊位移:游標判定照 grid(不再另外扣黑邊)', async () => {
     const clk = fakeClock()
     const bounds = { x: 0, y: 0, width: WIDE, height: H }
-    const cell = cellRects(LAYOUTS, 'general', H, 0)[0]
+    const grid = formulaGrid(LAYOUTS, 'general', WIDE, H)
+    const cell = gridRects(LAYOUTS, 'general', grid)[0]
+    expect(cell.x).toBeGreaterThanOrEqual(X0)
     const sent: Array<{ refName: string | null }> = []
     const cur = new StashCursor({
       clock: clk.clock,
-      cursor: () => ({ x: cell.x + X0 + 2, y: cell.y + 2 }),
+      cursor: () => ({ x: cell.x + 2, y: cell.y + 2 }),
       bounds: () => bounds,
       active: () => true,
       layouts: () => LAYOUTS,
       send: (e) => { sent.push(e) }
     })
-    cur.setShown({ subtab: 'general', yOffset: 0, clientH: H })
+    cur.setShown({ subtab: 'general', grid })
     await clk.advance(STASH_CURSOR_INTERVAL_MS * 2)
     expect(sent).toEqual([{ refName: cell.refName }])
     expect(cur.inPanel()).toBe(true)
     cur.stop()
+  })
+})
+
+describe('S1–S5 格子擬合流程', () => {
+  it('S1 顯示後同畫面變化:只呼叫 verify、不重呼叫 fit', async () => {
+    const h = harness()
+    await showGeneral(h)
+    expect(h.fits.s.fits).toBe(1)
+    for (let i = 0; i < 3; i++) {
+      h.changeFrame()
+      // 快取位置還對得上卻重新擬合 → 每個變化都整個重搜,CPU 爆
+      expect(await h.scan.tick()).toMatchObject({ kind: 'fit', found: true, sent: null })
+    }
+    expect(h.fits.s.fits).toBe(1)
+    expect(h.fits.s.verifies).toBe(3)
+    expect(h.events).toHaveLength(1)
+  })
+
+  it('S2 verify 分數低於 MIN_FIT_SCORE → 重新 fit,送出新 grid', async () => {
+    const h = harness()
+    await showGeneral(h)
+    // 倉庫往下移了(例如開 / 關資料夾):快取位置對不上
+    const moved = h.fits.show('general', W, H, 47)
+    expect(moved.grid.y).not.toBe(GRID.y)
+    h.changeFrame()
+    expect(await h.scan.tick()).toMatchObject({ kind: 'fit', found: true, subtab: 'general', sent: 'show' })
+    expect(h.fits.s.verifies).toBe(1)
+    expect(h.fits.s.fits).toBe(2)
+    expect(h.events).toHaveLength(2)
+    expect(h.events[1].grid).toEqual(moved.grid)
+    expect(h.showingCalls.at(-1)?.st.grid).toEqual(moved.grid)
+  })
+
+  it('S2b 門檻邊界:分數 = MIN_FIT_SCORE 沿用快取、略低於才重 fit', async () => {
+    const h = harness()
+    await showGeneral(h)
+    h.fits.s.verifyScore = MIN_FIT_SCORE
+    h.changeFrame()
+    // 門檻用 > 而不是 ≥ → 剛好壓線也重擬合
+    expect(await h.scan.tick()).toMatchObject({ found: true, sent: null })
+    expect(h.fits.s.fits).toBe(1)
+    h.fits.s.verifyScore = MIN_FIT_SCORE - 0.01
+    h.changeFrame()
+    await h.scan.tick()
+    expect(h.fits.s.fits).toBe(2)
+  })
+
+  it('S3 偵測不呼叫 recognize(OCR)', async () => {
+    const h = harness()
+    // 假擷取的 recognize 一呼叫就 throw → 呼叫了 tick 會回 error
+    const r = await h.scan.tick()
+    expect(r).toMatchObject({ kind: 'fit', found: true, sent: 'show' })
+    h.changeFrame()
+    expect(await h.scan.tick()).toMatchObject({ kind: 'fit' })
+    h.fits.none()
+    h.changeFrame()
+    expect(await h.scan.tick()).toMatchObject({ kind: 'fit', found: false })
+    expect(h.state.recognizes).toBe(0)
+  })
+
+  it('S4 送出的 grid = fit 的影像 grid + 搜尋範圍左上 + 擷取偏移(帶偏移與黑邊);讀數量用這個 grid 的格框', async () => {
+    const WIDE = 5120
+    const OFF = { x: 10, y: 20 }
+    const h = harness({ qty: true })
+    h.state.client = { w: WIDE, h: H }
+    h.state.offset = OFF
+    h.state.size = { w: WIDE - OFF.x, h: H - OFF.y }
+    h.env.bounds = { x: 0, y: 0, width: WIDE, height: H }
+    const t = h.fits.show('general', WIDE, H)
+    expect(await h.scan.tick()).toMatchObject({ found: true, sent: 'show' })
+    const area = h.fits.s.areas[0]
+    // 忘了加搜尋範圍左上或擷取偏移 → 格子整體偏移
+    expect(h.events[0].grid).toEqual(t.grid)
+    // 讀數量:擷取像素區涵蓋「client 格框 − 擷取偏移」的數字裁切區
+    const px = h.state.pixelRects[0]
+    expect(px).toBeDefined()
+    const crops = gridRects(LAYOUTS, 'general', h.events[0].grid!)
+      .map(r => qtyCropRect({ x: r.x - OFF.x, y: r.y - OFF.y, w: r.w, h: r.h }, t.grid.H, TEMPLATES.baseClientH))
+    expect(px.x).toBe(Math.floor(Math.min(...crops.map(c => c.x))) - 2)
+    expect(px.y).toBe(Math.floor(Math.min(...crops.map(c => c.y))) - 2)
+    expect(px.y + px.height).toBe(Math.ceil(Math.max(...crops.map(c => c.y + c.h))) + 2)
+  })
+
+  it('S5 cfg.region 有值 → 搜尋範圍 = 那塊外擴 10%(cap.gray 收到的 rect)', async () => {
+    const h = harness()
+    h.cfg.region = { x: 0.1, y: 0.1, w: 0.2, h: 0.05 }
+    await h.scan.tick()
+    // client 比例 → 像素 {254.6, 143.2, 509.2, 71.6},各邊外擴 10% 後取整
+    expect(h.fits.s.areas[0]).toEqual({ x: 203, y: 136, width: 612, height: 86 })
   })
 })

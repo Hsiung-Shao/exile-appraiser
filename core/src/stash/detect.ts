@@ -1,153 +1,45 @@
-// PoE1 倉庫碎片頁的偵測純函式:OCR 子頁按鈕列 → 是不是碎片頁、整體上下偏移(倉庫頁放在資料夾內時下移);
-// 按鈕亮度 → 目前在哪個子頁。版面位置以 1440 基準等比換算(與 layout.ts 同一套,Exile-UI stash-ninja 的規則)。
+// PoE1 倉庫碎片頁的偵測範圍(純函式)。2026-11-26 起偵測改成格子擬合(`fit.ts`),不再 OCR 子頁按鈕列;
+// 這裡只剩「格子可能出現在畫面哪一塊」:main 擬合的搜尋範圍、設定頁 / 框選層顯示的預設區域共用同一個算法。
 // 零依賴:main(esbuild)以相對路徑 import。
-import { stashLeft, type StashSubtab } from './layout'
+import { stashLeft } from './layout'
 
-export type StashTextLang = 'zh' | 'en'
 export interface Rect { x: number, y: number, w: number, h: number }
-/** client 實體像素 */
-export interface TextLine { text: string, x: number, y: number, w: number, h: number }
 
-/**
- * 3.30 碎片頁的子頁按鈕文字,左到右(GGPK clientstrings `FragmentStashSubTab{Other,Threads,Eldritch}`;繁中依使用者 3.30 截圖)。
- * 一般、綢帶有版面;異能只當偵測錨點。
- */
-export const SUBTAB_LABELS: Record<StashTextLang, readonly [string, string, string]> = {
-  zh: ['一般', '綢帶', '異能'],
-  en: ['General', 'Threads', 'Eldritch']
-}
-/** 「一般」固定在最左的按鈕槽 */
-export const GENERAL_SLOT = 0
-/** 按鈕槽數(3.30 = 一般 / 綢帶 / 異能;按鈕槽 k 就是第 k 個標籤) */
-export const BUTTON_SLOTS = 3
-/** 至少認到幾顆按鈕文字才算碎片頁(目前子頁的文字 OCR 常漏讀 → 允許漏一顆) */
-export const MIN_BUTTONS = 2
-
-const BASE = 1440
-const at = (v: number, h: number) => Math.floor(v / BASE * h)
-
-/**
- * OCR 掃描條(按鈕列 ± 資料夾偏移;寬 = 倉庫面板寬 h × 37/60)。y 170–268 / 1440(上緣 170 = 倉庫頁籤字下緣:切到頁籤字的一半時
- * Windows OCR 排版錯亂、按鈕只讀到 0–1 顆,使用者 2560×1440 實機截圖重現,2026-10-14):按鈕文字中心 201、資料夾內 +47 = 248
- * (文字下緣約 260 仍在內);下緣 268 不再往下(2026-10-14 依當時聖甲蟲頁第一列徽章頂端約 269 定的,維持不動)。
- */
-export function stripRect (clientH: number, x0 = 0): Rect {
-  const y = at(170, clientH)
-  return { x: x0, y, w: Math.floor(clientH * 37 / 60), h: at(268, clientH) - y }
+function intersect (a: Rect, b: Rect): Rect | null {
+  const x0 = Math.max(a.x, b.x)
+  const y0 = Math.max(a.y, b.y)
+  const x1 = Math.min(a.x + a.w, b.x + b.w)
+  const y1 = Math.min(a.y + a.h, b.y + b.h)
+  return x1 > x0 && y1 > y0 ? { x: x0, y: y0, w: x1 - x0, h: y1 - y0 } : null
 }
 
-/** 預設掃描條換成 client 比例(設定頁 / 框選層顯示「目前區域」用;使用者沒框過時 main 用的就是這一塊) */
-export function defaultStripRegion (clientW: number, clientH: number): { x: number, y: number, w: number, h: number } {
-  const s = stripRect(clientH, stashLeft(clientW, clientH))
+/**
+ * 倉庫格子可能出現的範圍(client 像素)。倉庫面板在畫面左側(超寬螢幕補黑邊 `stashLeft`):
+ * 預設 x「黑邊 − 5% 高」起寬 70% 高、y 10%–85% 高(1440 基準格子區約 x 47–840、y 266–1000,資料夾內再下移 47;
+ * 刻意放寬,給非 16:9 / UI 縮放留餘地)。使用者框過區域(client 比例)→ 用那塊再各邊外擴 10%(只當先驗,框歪一點也找得到)。
+ */
+export function stashSearchClientRect (client: { w: number, h: number }, region?: Rect | null): Rect {
+  const full: Rect = { x: 0, y: 0, w: client.w, h: client.h }
+  if (region && region.w > 0 && region.h > 0) {
+    const r: Rect = { x: region.x * client.w, y: region.y * client.h, w: region.w * client.w, h: region.h * client.h }
+    const mx = r.w * 0.1
+    const my = r.h * 0.1
+    const g = intersect({ x: Math.floor(r.x - mx), y: Math.floor(r.y - my), w: Math.ceil(r.w + 2 * mx), h: Math.ceil(r.h + 2 * my) }, full)
+    if (g) return g
+  }
+  const h = client.h
+  const x0 = Math.max(0, Math.floor(stashLeft(client.w, h) - h * 0.05))
+  return intersect({ x: x0, y: Math.floor(h * 0.1), w: Math.ceil(h * 0.7), h: Math.ceil(h * 0.75) }, full) ?? full
+}
+
+/** 預設搜尋範圍換成 client 比例(設定頁 / 框選層顯示「目前區域」用;使用者沒框過時 main 用的就是這一塊) */
+export function defaultStashRegion (clientW: number, clientH: number): Rect {
+  const s = stashSearchClientRect({ w: clientW, h: clientH })
   return { x: s.x / clientW, y: s.y / clientH, w: s.w / clientW, h: s.h / clientH }
 }
 
-/** 倉庫頁在資料夾內時,整個內容下移(Exile-UI `in_folder` = +47 / 1440) */
-export function folderOffset (clientH: number): number {
-  return at(47, clientH)
-}
-
-/**
- * 子頁按鈕可能出現的範圍(client 像素):x 黑邊寬 `stashLeft` 起 h × 37/60 寬、y 120 – 268 / 1440。
- * 使用者自訂 OCR 區域的上限(框太大 → 整張 ×3 OCR、也截到自己的徽章)。下緣不加資料夾偏移:資料夾內按鈕文字下緣約 260 仍在內,
- * 再往下是格子區(實機截圖:122–268 繁中 / 資料夾 / 英文都認到 ≥ 3 顆)。
- */
-export function stripZone (clientW: number, clientH: number): Rect {
-  const y = at(120, clientH)
-  const x0 = stashLeft(clientW, clientH)
-  return { x: x0, y, w: Math.min(Math.max(0, clientW - x0), Math.floor(clientH * 37 / 60)), h: at(268, clientH) - y }
-}
-
-/**
- * 三個按鈕槽(左到右)。x 起點 202、間距 166 = Exile-UI 3.30 `tab_fragments` / `tab_threads`;
- * 第三顆(異能)照同間距推(三顆置中,中心與 3.29 四顆同在約 444)。
- */
-export function buttonRects (clientH: number, yOffset = 0, x0 = 0): [Rect, Rect, Rect] {
-  const y = at(186, clientH) + yOffset
-  const w = at(152, clientH)
-  const h = at(36, clientH)
-  const r = (k: number): Rect => ({ x: x0 + at(202 + 166 * k, clientH), y, w, h })
-  return [r(0), r(1), r(2)]
-}
-
-export interface ButtonMatch {
-  found: boolean
-  /** 命中的按鈕顆數(0–3) */
-  matched: number
-  /** 整體下移量(client 像素;0 或 `folderOffset`) */
-  yOffset: number
-  /** 命中的按鈕槽(0–2,左到右遞增;沒找到 = []) */
-  slots: number[]
-}
-
-/** 按鈕文字的垂直中心(1440 基準;真實錄影量到 199.6–202.6) */
-const TEXT_CENTER_Y = 201
-const X_TOLERANCE = 40
-const SNAP_TOLERANCE = 12
-
-/**
- * 按鈕文字 → 碎片頁開著?
- * 每個標籤可落在三個按鈕槽任一個(x 容差 40/1440),命中的槽位要照標籤順序左到右遞增、至少 `MIN_BUTTONS` 顆;
- * 「一般」只能在最左那槽。
- * 不在資料夾(偏移 0)與資料夾內(`folderOffset`)**各算一輪**,每輪只收文字中心在該按鈕列高度 ± 12/1440 的行:
- * 頁籤列(自訂區域框到的倉庫頁籤、資料夾內的資料夾頁籤 —— 後者正好與偏移 0 的按鈕列同高)若有同名文字(「一般」),
- * 不會和真的按鈕混在一起配槽(code review 2026-11-07)。兩輪都找到取命中多的;都沒找到回報命中最多的那輪顆數。
- */
-export function findSubtabButtons (lines: readonly TextLine[], clientH: number, lang: StashTextLang, x0 = 0): ButtonMatch {
-  const labels = SUBTAB_LABELS[lang]
-  const centersX = buttonRects(clientH, 0, x0).map(r => r.x + r.w / 2)
-  const xTol = X_TOLERANCE / BASE * clientH
-  const tol = SNAP_TOLERANCE / BASE * clientH
-  let best: ButtonMatch = { found: false, matched: 0, yOffset: 0, slots: [] }
-  for (const snap of [0, folderOffset(clientH)]) {
-    const rowY = TEXT_CENTER_Y / BASE * clientH + snap
-    const hits: Array<{ slot: number, k: number }> = []
-    for (let k = 0; k < labels.length; k++) {
-      let pick: { slot: number, d: number } | null = null
-      for (const l of lines) {
-        // 不分大小寫:英文介面的按鈕是小型大寫字,OCR 讀成全大寫(GENERAL / ALLFLAME…;使用者實機截圖,2026-10-14)
-        if (l.text.replace(/\s+/g, '').toUpperCase() !== labels[k].toUpperCase()) continue
-        if (Math.abs(l.y + l.h / 2 - rowY) > tol) continue
-        const cx = l.x + l.w / 2
-        for (let slot = 0; slot < BUTTON_SLOTS; slot++) {
-          const d = Math.abs(cx - centersX[slot])
-          if (d <= xTol && (!pick || d < pick.d)) pick = { slot, d }
-        }
-      }
-      if (pick) hits.push({ slot: pick.slot, k })
-    }
-    const matched = hits.length
-    const ok = matched >= MIN_BUTTONS &&
-      !hits.some(h => h.k === 0 && h.slot !== GENERAL_SLOT) &&
-      hits.every((h, i) => i === 0 || h.slot > hits[i - 1].slot)
-    // 失敗也照實回報 matched:stash-scan 只在 matched > 0 時記「沒找到子頁按鈕」與 OCR 文字(3.30 實機回報查原因用)
-    const res: ButtonMatch = ok
-      ? { found: true, matched, yOffset: snap, slots: hits.map(h => h.slot) }
-      : { found: false, matched, yOffset: 0, slots: [] }
-    if (res.found ? (!best.found || matched > best.matched) : (!best.found && matched > best.matched)) best = res
-  }
-  return best
-}
-
-export function percentile (gray: Uint8Array, q: number): number {
-  if (!gray.length) return 0
-  const s = Array.from(gray).sort((a, b) => a - b)
-  return s[Math.floor(q * (s.length - 1))]
-}
-
-/** 目前子頁的按鈕文字較亮(真實錄影:p99 158–162 vs 其他 141–144) */
-const ACTIVE_MARGIN = 8
-
-/** 按鈕槽 → 子頁(異能沒有版面 → null) */
-const SLOT_SUBTABS: ReadonlyArray<StashSubtab | null> = ['general', 'threads', null]
-
-/**
- * p99 依按鈕槽順序(一般 / 綢帶 / 異能;三顆都比,目前子頁的文字常被 OCR 漏讀)。
- * 最亮的那顆比其他每一顆都亮 ≥ 8 → 該槽的子頁;異能或判不出 → null(不畫)。
- */
-export function activeSubtab (p99: readonly number[]): StashSubtab | null {
-  if (p99.length < 2) return null
-  const top = p99.indexOf(Math.max(...p99))
-  const second = Math.max(...p99.filter((_, i) => i !== top))
-  return p99[top] - second >= ACTIVE_MARGIN ? SLOT_SUBTABS[top] ?? null : null
+/** 搜尋範圍換成擷取影像矩形(減擷取偏移、夾在影像內;完全在影像外 = 0 × 0) */
+export function stashSearchImageRect (size: { w: number, h: number }, region: Rect | null | undefined, client: { w: number, h: number }, offset: { x: number, y: number }): Rect {
+  const c = stashSearchClientRect(client, region)
+  return intersect({ x: c.x - offset.x, y: c.y - offset.y, w: c.w, h: c.h }, { x: 0, y: 0, w: size.w, h: size.h }) ?? { x: 0, y: 0, w: 0, h: 0 }
 }

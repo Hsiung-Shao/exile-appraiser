@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 import type { PerfRendererReport } from '@ipc/types'
 import type { Fingerprint, ScanCapture, ScanEnv } from '../src/ocr/panel-scan'
 import { StashScan, type StashScanConfig } from '../src/ocr/stash-scan'
+import { LAYOUTS_330, createFitFakes } from './stash-fit-fakes'
 import {
   PerfMonitor, RendererPerfAccumulator, bgActiveFromConfigText, deriveScenario, formatPerfSummary, perfSummarySections,
   stashSnapshotOf, type PerfTimers, type ScanSnapshot, type ScenarioInput
@@ -44,18 +45,23 @@ function stashHarness () {
   const cfg: StashScanConfig = { enabled: false, game: 'poe1', intervalMs: 1000 }
   const env: ScanEnv = { overlay: true, gameActive: true, bounds: { x: 0, y: 0, width: 2560, height: 1440 } }
   const st = { busy: false, frame: 10 }
+  // 畫面上沒有倉庫:fit 一律對不上(只量計數)
+  const fits = createFitFakes(LAYOUTS_330)
   const fp = (): Fingerprint => ({ w: 64, h: 12, data: new Uint8Array(64 * 12).fill(st.frame) })
   const scan = new StashScan({
     clock: { now: () => 0, setTimeout: () => 1, clearTimeout: () => {} },
     config: () => cfg,
     env: () => env,
-    ocrBusy: () => st.busy,
+    qty: { layouts: () => st.busy ? null : LAYOUTS_330, templates: () => null },
+    fit: fits.fit,
+    verify: fits.verify,
     capture: async (): Promise<ScanCapture> => ({
       size: { w: 2560, h: 1440 },
       offset: { x: 0, y: 0 },
       client: { w: 2560, h: 1440 },
       fingerprint: fp,
-      recognize: async () => ({ lines: [], ms: 5 })
+      recognize: async () => { throw new Error('倉庫偵測不該呼叫 OCR') },
+      gray: fits.gray
     }),
     send: () => {},
     log: () => {}
@@ -66,17 +72,17 @@ function stashHarness () {
 // ---------------------------------------------------------------------------------------------------------------------
 
 describe('T14 perf 含倉庫掃描', () => {
-  it('StashScan 計數只 ++:被擋 / 擷取 / 沒變 / 忙碌 / OCR 次數', async () => {
+  it('StashScan 計數只 ++:被擋 / 擷取 / 沒變 / 忙碌(版面沒載入)/ 擬合次數', async () => {
     const h = stashHarness()
     await h.scan.tick()
     await h.scan.tick()
     expect(h.scan.blockCounts).toEqual({ disabled: 2 })
     expect(h.scan.counters.captures).toBe(0)
     h.cfg.enabled = true
-    await h.scan.tick() // 擷取 + OCR(沒有基準)
+    await h.scan.tick() // 擷取 + 擬合(沒有基準)
     await h.scan.tick() // 擷取,畫面沒變
     h.st.busy = true
-    await h.scan.tick() // WinOcr 忙碌,不擷取
+    await h.scan.tick() // 版面沒載入,不擷取
     expect(h.scan.counters).toEqual({ ticks: 5, captures: 2, ocrRuns: 1, skippedUnchanged: 1, skippedBusy: 1, qtyRuns: 0, qtyCells: 0, qtyPeeks: 0, qtyCursorSkips: 0, qtyMasked: 0, maskWaits: 0 })
   })
 

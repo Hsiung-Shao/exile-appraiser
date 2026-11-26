@@ -1,6 +1,6 @@
 /**
  * PoE1 倉庫價格「熱鍵顯示」模式(H1,測試規格 K1–K8):`stashTriggerMode: 'hotkey'` 時平常不擷取,按熱鍵(`arm()`)才開始掃描。
- * 假時鐘 / 假擷取 / 假 OCR(寫法同 stash-scan.test.ts),不碰 Electron、不送任何輸入。
+ * 假時鐘 / 假擷取 / 假 fit·verify(寫法同 stash-scan.test.ts),不碰 Electron、不送任何輸入。
  */
 import { describe, expect, it } from 'vitest'
 import fs from 'node:fs'
@@ -13,16 +13,12 @@ import {
 } from '../src/ocr/stash-scan'
 import { stashHotkeyAction } from '../src/shortcut-actions'
 import { stashArmMissToastMessage } from '../src/startup-toast'
-import { buttonRects, type TextLine } from '../../core/src/stash/detect'
-import { clientLines } from '../../core/test/stash/ocr-330'
+import { LAYOUTS_330 as LAYOUTS, createFitFakes } from './stash-fit-fakes'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(HERE, '../..')
 const H = 1432
 const W = 2546
-
-// 碎片頁按鈕列(3.29 實機 OCR,按鈕行搬到 3.30 位置;亮度另給)
-const STRIP_LINES = clientLines('strip-scarabs-1432.png')
 
 function fakeClock () {
   let t = 0
@@ -50,13 +46,14 @@ function fakeClock () {
 }
 
 const fp = (v: number): Fingerprint => ({ w: 64, h: 12, data: new Uint8Array(64 * 12).fill(v) })
-const GENERAL_BRIGHT = [160, 140, 140]
 
 function harness (mode: 'auto' | 'hotkey' = 'hotkey') {
   const clk = fakeClock()
   const cfg: StashScanConfig = { enabled: true, game: 'poe1', intervalMs: 500, triggerMode: mode }
   const env: ScanEnv = { overlay: true, gameActive: true, bounds: { x: 100, y: 50, width: W, height: H } }
-  const state = { lines: STRIP_LINES as TextLine[], frame: fp(10), captures: 0, captureAt: [] as number[], ocrs: 0, dark: false }
+  const state = { frame: fp(10), captures: 0, captureAt: [] as number[] }
+  const fits = createFitFakes(LAYOUTS)
+  fits.show('general', W, H)
   const events: StashScanEvent[] = []
   const logs: string[] = []
   let armMiss = 0
@@ -64,7 +61,6 @@ function harness (mode: 'auto' | 'hotkey' = 'hotkey') {
     clock: clk.clock,
     config: () => cfg,
     env: () => env,
-    ocrBusy: () => false,
     capture: async (): Promise<ScanCapture> => {
       state.captures++
       state.captureAt.push(clk.now())
@@ -74,21 +70,20 @@ function harness (mode: 'auto' | 'hotkey' = 'hotkey') {
         offset: { x: 0, y: 0 },
         client,
         fingerprint: () => state.frame,
-        recognize: async () => { state.ocrs++; return { lines: state.lines.map(l => ({ ...l })), ms: 42 } },
-        gray: (rect) => {
-          const k = buttonRects(client.h, 0).findIndex(b => Math.abs(b.x - rect.x) <= 1)
-          return new Uint8Array(32).fill(!state.dark && k >= 0 ? GENERAL_BRIGHT[k] : 0)
-        }
+        recognize: async () => { throw new Error('倉庫偵測不該呼叫 OCR') },
+        gray: fits.gray
       }
     },
     send: (e) => { events.push(e) },
-    textLang: () => 'zh',
+    fit: fits.fit,
+    verify: fits.verify,
+    qty: { layouts: () => LAYOUTS, templates: () => null },
     log: (m) => { logs.push(m) },
     onArmMiss: () => { armMiss++ }
   })
   let frameV = 10
   const changeFrame = () => { frameV = (frameV + 37) % 250; state.frame = fp(frameV) }
-  return { scan, cfg, env, state, events, logs, clk, changeFrame, armMiss: () => armMiss }
+  return { scan, cfg, env, state, events, logs, clk, changeFrame, fits, armMiss: () => armMiss }
 }
 
 describe('K1 熱鍵模式未觸發不截圖', () => {
@@ -134,7 +129,7 @@ describe('K2 按熱鍵後開始掃描', () => {
   })
   it('armed 但還沒偵測到倉庫時也用設定間隔(不套閒置 3 秒下限)', async () => {
     const h = harness()
-    h.state.lines = []
+    h.fits.none()
     h.scan.start(0)
     await h.clk.advance(100)
     h.scan.arm()
@@ -147,13 +142,13 @@ describe('K2 按熱鍵後開始掃描', () => {
 })
 
 describe('K3 倉庫關掉自動解除', () => {
-  it('顯示中偵測不到按鈕列達上限 → hide、armed = false、之後不再擷取', async () => {
+  it('顯示中對不上格子達上限 → hide、armed = false、之後不再擷取', async () => {
     const h = harness()
     h.scan.start(0)
     h.scan.arm()
     await h.clk.advance(0)
     expect(h.scan.showing).toBe(true)
-    h.state.lines = []
+    h.fits.none()
     h.changeFrame()
     await h.clk.advance(2000)
     expect(h.events.map(e => e.reason)).toEqual(['show', 'hide'])
@@ -171,7 +166,7 @@ describe('K4 按了沒倉庫自動解除', () => {
   it(`arm 後連 ${STASH_ARM_MISS_LIMIT} 次沒偵測到 → 解除 + 提示一次、不再擷取`, async () => {
     expect(STASH_ARM_MISS_LIMIT).toBe(3)
     const h = harness()
-    h.state.lines = []
+    h.fits.none()
     h.scan.start(0)
     h.scan.arm()
     await h.clk.advance(0)
@@ -187,13 +182,13 @@ describe('K4 按了沒倉庫自動解除', () => {
     expect(h.armMiss()).toBe(1)
     expect(h.events).toEqual([])
   })
-  it('畫面靜止(差分沒變不 OCR)也算沒偵測到', async () => {
+  it('畫面靜止(差分沒變不重新擬合)也算沒偵測到', async () => {
     const h = harness()
-    h.state.lines = []
+    h.fits.none()
     h.scan.start(0)
     h.scan.arm()
     await h.clk.advance(2000)
-    expect(h.state.ocrs).toBe(1)
+    expect(h.fits.s.fits).toBe(1)
     expect(h.scan.armed).toBe(false)
     expect(h.armMiss()).toBe(1)
   })
@@ -240,14 +235,14 @@ describe('K5 顯示中再按收起', () => {
 describe('K6 auto 模式行為不變', () => {
   it('auto:不用 arm 就掃描,沒顯示時間隔 = 閒置下限;arm / 沒偵測到都不提示', async () => {
     const h = harness('auto')
-    h.state.lines = []
+    h.fits.none()
     h.scan.start(0)
     await h.clk.advance(0)
     expect(h.state.captures).toBe(1)
     expect(h.clk.pending()).toEqual([STASH_IDLE_INTERVAL_MS])
     await h.clk.advance(30_000)
     expect(h.armMiss()).toBe(0)
-    h.state.lines = STRIP_LINES
+    h.fits.show('general', W, H)
     h.changeFrame()
     await h.clk.advance(STASH_IDLE_INTERVAL_MS)
     expect(h.scan.showing).toBe(true)
@@ -283,7 +278,7 @@ describe('K8 功能關著按熱鍵', () => {
   })
 })
 
-describe('K9 模式切換與子頁判不出', () => {
+describe('K9 模式切換', () => {
   it('hotkey → auto → hotkey 切換後沒按熱鍵就不擷取、不提示沒偵測到倉庫', async () => {
     const h = harness()
     h.scan.start(0)
@@ -294,7 +289,7 @@ describe('K9 模式切換與子頁判不出', () => {
     h.scan.poke()
     await h.clk.advance(0)
     // auto 模式下倉庫關掉(auto 的收起不解除)
-    h.state.lines = []
+    h.fits.none()
     h.changeFrame()
     await h.clk.advance(10_000)
     expect(h.scan.showing).toBe(false)
@@ -305,33 +300,5 @@ describe('K9 模式切換與子頁判不出', () => {
     expect(h.scan.armed).toBe(false)
     expect(h.state.captures).toBe(n)
     expect(h.armMiss()).toBe(0)
-  })
-  it('顯示中一個 tick 子頁按鈕亮度全 0 → 暫時收起但仍 armed,恢復後重新顯示', async () => {
-    const h = harness()
-    h.scan.start(0)
-    h.scan.arm()
-    await h.clk.advance(0)
-    expect(h.scan.showing).toBe(true)
-    h.state.dark = true
-    h.changeFrame()
-    await h.clk.advance(500)
-    expect(h.events.map(e => e.reason)).toEqual(['show', 'hide'])
-    expect(h.scan.armed).toBe(true)
-    h.state.dark = false
-    h.changeFrame()
-    await h.clk.advance(500)
-    expect(h.events.map(e => e.reason)).toEqual(['show', 'hide', 'show'])
-    expect(h.scan.showing).toBe(true)
-    expect(h.armMiss()).toBe(0)
-  })
-  it('子頁一直判不出 → 比照沒偵測到倉庫,累計達上限解除並提示', async () => {
-    const h = harness()
-    h.state.dark = true
-    h.scan.start(0)
-    h.scan.arm()
-    await h.clk.advance(0)
-    await h.clk.advance(500 * STASH_ARM_MISS_LIMIT)
-    expect(h.scan.armed).toBe(false)
-    expect(h.armMiss()).toBe(1)
   })
 })

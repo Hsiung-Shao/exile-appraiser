@@ -6,7 +6,8 @@
  * → 掃描沒找到按鈕時維持原狀);`inPanel()`(整個倉庫面板,含頁籤列)保留但不拿來維持(點別的倉庫頁籤時會誤留)。
  */
 import type { StashCursorEvent } from '@ipc/types'
-import { cellRects, hitCell, stashLeft, type CellRect, type StashLayoutFile, type StashSubtab } from '../../core/src/stash/layout'
+import { hitCell, stashLeft, type CellRect, type StashLayoutFile, type StashSubtab } from '../../core/src/stash/layout'
+import { gridRects, type StashGrid } from '../../core/src/stash/fit'
 import type { ScanClock } from './ocr/panel-scan'
 import type { PhysRect } from './ocr/strategy'
 
@@ -40,7 +41,7 @@ export class StashCursor {
   private readonly deps: StashCursorDeps
   private readonly clock: ScanClock
   private timer: unknown = null
-  private state: { subtab: StashSubtab, yOffset: number, clientH: number } | null = null
+  private state: { subtab: StashSubtab, grid: StashGrid } | null = null
   private cells: CellRect[] = []
   private last: string | null = null
 
@@ -52,11 +53,11 @@ export class StashCursor {
   /** 計時器有沒有在跑(測試 / perf 用) */
   get polling (): boolean { return this.timer != null }
 
-  /** 疊層顯示狀態改變(null = 收起) */
-  setShown (state: { subtab: StashSubtab, yOffset: number, clientH: number } | null): void {
+  /** 疊層顯示狀態改變(null = 收起);`grid` = 掃描擬合出的格子位置(client 實體像素) */
+  setShown (state: { subtab: StashSubtab, grid: StashGrid } | null): void {
     this.state = state
     const file = state ? this.deps.layouts() : null
-    this.cells = state && file ? cellRects(file, state.subtab, state.clientH, state.yOffset) : []
+    this.cells = state && file ? gridRects(file, state.subtab, state.grid) : []
     this.refresh()
   }
 
@@ -80,7 +81,7 @@ export class StashCursor {
   /** 游標在倉庫面板內(倉庫座標;沒有遊戲視窗 = 否) */
   inPanel (): boolean {
     const p = this.clientPoint()
-    return p != null && stashPanelContains(p.h, p.x, p.y)
+    return p != null && stashPanelContains(p.h, p.x - stashLeft(p.w, p.h), p.y)
   }
 
   /** 游標停在已顯示子頁的某一格(疊層沒顯示 / 沒有遊戲視窗 = 否) */
@@ -90,12 +91,12 @@ export class StashCursor {
     return p != null && hitCell(this.cells, p.x, p.y) != null
   }
 
-  private clientPoint (): { x: number, y: number, h: number } | null {
+  /** 游標的 client 座標(cells 是擬合出的 client 座標,不必再扣黑邊) */
+  private clientPoint (): { x: number, y: number, w: number, h: number } | null {
     const b = this.deps.bounds()
     if (!b || !(b.width > 0 && b.height > 0)) return null
     const c = this.deps.cursor()
-    // 倉庫座標(扣掉超寬螢幕左側黑邊;cells 以 x0 = 0 算)
-    return { x: c.x - b.x - stashLeft(b.width, b.height), y: c.y - b.y, h: b.height }
+    return { x: c.x - b.x, y: c.y - b.y, w: b.width, h: b.height }
   }
 
   private loop (ms: number): void {

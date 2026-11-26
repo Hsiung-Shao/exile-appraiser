@@ -61,6 +61,7 @@ import { computed, defineComponent, onMounted, onUnmounted, ref, shallowRef, wat
 import { useI18n } from 'vue-i18n'
 import type { StashScanEvent } from '@ipc/types'
 import type { StashSubtab } from '../../../../core/src/stash/layout'
+import type { StashGrid } from '../../../../core/src/stash/fit'
 import { AppConfig } from '../Config'
 import { Host } from '../background/IPC'
 import { usePoeninja } from '../background/Prices'
@@ -85,7 +86,7 @@ export default defineComponent({
     const cardEl = ref<HTMLElement | null>(null)
     const config = AppConfig()
     const ninja = usePoeninja()
-    const shown = shallowRef<{ subtab: StashSubtab, yOffset: number, client: { w: number, h: number } } | null>(null)
+    const shown = shallowRef<{ subtab: StashSubtab, grid: StashGrid, client: { w: number, h: number } } | null>(null)
     /** 每格數量(main 讀的;省略 = 不讀數量) */
     const quantities = shallowRef<Array<number | null> | undefined>(undefined)
     const peek = shallowRef(false)
@@ -96,7 +97,7 @@ export default defineComponent({
     let twNoticeShown = false
 
     function onScan (e: StashScanEvent) {
-      if (e.reason !== 'show' || !e.subtab || loadedGame.value !== 'poe1') {
+      if (e.reason !== 'show' || !e.subtab || !e.grid || loadedGame.value !== 'poe1') {
         if (shown.value) console.log('[stash] 收起疊層')
         shown.value = null
         quantities.value = undefined
@@ -108,8 +109,9 @@ export default defineComponent({
       peek.value = e.peek === true
       const prev = shown.value
       // 同子頁只是數量 / peek 更新:不重設、不重複記錄
-      if (prev && prev.subtab === e.subtab && prev.yOffset === e.yOffset && prev.client.w === e.client.w && prev.client.h === e.client.h) return
-      shown.value = { subtab: e.subtab, yOffset: e.yOffset, client: e.client }
+      const g = e.grid
+      if (prev && prev.subtab === e.subtab && prev.grid.H === g.H && prev.grid.x === g.x && prev.grid.y === g.y && prev.client.w === e.client.w && prev.client.h === e.client.h) return
+      shown.value = { subtab: e.subtab, grid: g, client: e.client }
       viewport.value = { w: window.innerWidth, h: window.innerHeight }
       void loadStashData()
       if (config.realm === 'tw') {
@@ -122,7 +124,7 @@ export default defineComponent({
       } else {
         ninja.queuePricesFetch()
       }
-      console.log(`[stash] 顯示疊層:${e.subtab}(偏移 ${e.yOffset},client ${e.client.w}×${e.client.h}${e.quantities ? `,數量 ${e.quantities.filter(q => q != null && q > 0).length} 格` : ''})`)
+      console.log(`[stash] 顯示疊層:${e.subtab}(第一格 ${Math.round(g.x)},${Math.round(g.y)},client ${e.client.w}×${e.client.h}${e.quantities ? `,數量 ${e.quantities.filter(q => q != null && q > 0).length} 格` : ''})`)
     }
 
     const names = (refName: string) => config.uiLanguage === 'cmn-Hant' ? stashData.value?.zh.get(refName) : refName
@@ -134,7 +136,7 @@ export default defineComponent({
       return layoutStashBadges({
         file: data.file,
         subtab: s.subtab,
-        yOffset: s.yOffset,
+        grid: s.grid,
         client: s.client,
         viewport: viewport.value,
         names,
@@ -186,7 +188,7 @@ export default defineComponent({
       if (!v || !s || !data || config.realm === 'tw') return null
       // peek(main 要用乾淨畫面重讀被蓋住的數字)→ 卡片也收起、不進遮罩回報;卡片被拖到格子上時那幾格才讀得到(拖曳中例外)
       if (peek.value && !cardDragging.value) return null
-      const def = stashValueCardPos({ file: data.file, subtab: s.subtab, yOffset: s.yOffset, client: s.client, viewport: viewport.value })
+      const def = stashValueCardPos({ file: data.file, subtab: s.subtab, grid: s.grid, client: s.client, viewport: viewport.value })
       if (!def) return null
       // 拖曳草稿 > 存的位置(顯示時夾回、不回寫)> 面板底部預設;草稿也算進來 → 遮罩回報跟著新位置(useScanLayer drawn 含 card)
       const placed = stashValueCardPlace(def, config.stashValueCard, viewport.value, cardSize.value)

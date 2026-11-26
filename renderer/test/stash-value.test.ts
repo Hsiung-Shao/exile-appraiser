@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { cellRects, parseStashLayouts, type StashLayoutFile } from '../../core/src/stash/layout'
+import { formulaGrid } from '../../core/src/stash/fit'
 import { layoutStashBadges, stashPageValue, stashValueCardPos, type StashLayoutInput } from '../src/web/overlay/stash-view'
 import { stashValueText } from '../src/web/overlay/stash-value'
 import type { PriceOfResult } from '../src/web/background/price-of'
@@ -23,7 +24,7 @@ function input (p: Partial<StashLayoutInput> = {}): StashLayoutInput {
   return {
     file: FILE,
     subtab: 'general',
-    yOffset: 0,
+    grid: formulaGrid(FILE, 'general', 2000, 1125),
     client: { w: 2000, h: 1125 },
     viewport: { w: 2000, h: 1125 },
     names: r => r,
@@ -223,7 +224,7 @@ describe('V17 本頁價值卡放在倉庫面板底部', () => {
     // 介面縮放 150%:CSS px = client px / 1.5
     for (const scale of [1, 1.5]) {
       const viewport = { w: client.w / scale, h: client.h / scale }
-      const pos = stashValueCardPos({ file: FILE, subtab, yOffset, client, viewport })!
+      const pos = stashValueCardPos({ file: FILE, subtab, grid: formulaGrid(FILE, subtab, client.w, client.h, yOffset), client, viewport })!
       const sx = viewport.w / client.w
       const sy = viewport.h / client.h
       const cells = cellRects(FILE, subtab, h, yOffset)

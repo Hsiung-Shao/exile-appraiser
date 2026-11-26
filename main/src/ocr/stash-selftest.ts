@@ -1,6 +1,7 @@
 /**
- * 倉庫價值(2026-10-15):`--stash-selftest <png> [--out <png>] [--stash-y-offset=N]`
- * 無頭跑「讀格子堆疊數量」:截圖當成整個遊戲 client(高 = 圖高、擷取偏移 0)→ 固定版面每格 → 與執行期同一條路(`rawPixels` 取格子區像素 →
+ * 倉庫價值(2026-10-15):`--stash-selftest <png> [--out <png>] [--stash-formula] [--stash-y-offset=N] [--stash-subtab=general|threads]`
+ * 無頭跑「找格子 + 讀格子堆疊數量」:截圖當成整個遊戲 client(高 = 圖高、擷取偏移 0)→ 格子擬合(2026-11-26,與執行期同一個 `fitStashGrid`;
+ * 對不上或帶 `--stash-formula` 才退回舊公式 + `--stash-y-offset` / `--stash-subtab`)→ 每格 → 與執行期同一條路(`rawPixels` 取格子區像素 →
  * core `readCellQuantity`),印每格數量、原因與耗時;同資料夾有 `truth.json`(core/test/stash/fixtures/qty 格式)就一併算準確度。
  * `--out` = 標註圖(每格數量疊在格上:綠 = 讀到、黃 = 讀不到、灰 = 空格;有真值時錯的標紅),用離屏視窗畫完 `capturePage()` 存 PNG。
  * 不拿單一實例鎖、不送任何輸入、不擷取螢幕。版面一律是碎片頁「一般」(聖甲蟲 2026-11-07 刪除)。
@@ -8,7 +9,9 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { app, BrowserWindow, nativeImage } from 'electron'
-import { cellRects, stashLeft, type StashSubtab } from '../../../core/src/stash/layout'
+import { type StashSubtab } from '../../../core/src/stash/layout'
+import { fitStashGrid, formulaGrid, gridRects, type StashGrid } from '../../../core/src/stash/fit'
+import { stashSearchImageRect } from '../../../core/src/stash/detect'
 import { QTY_PARAMS, readCellQuantity, type QtyResult } from '../../../core/src/stash/quantity'
 import { loadStashDigitTemplates, loadStashLayouts } from '../stash-layout-data'
 import { rawPixels } from './capture'
@@ -17,17 +20,35 @@ const argValue = (argv: string[], prefix: string) => argv.find(a => a.startsWith
 const argAfter = (argv: string[], flag: string) => { const i = argv.indexOf(flag); return i >= 0 ? argv[i + 1] : undefined }
 
 export async function runStashSelftest (png: string, argv: string[]): Promise<number> {
-  if (!png || !fs.existsSync(png)) { console.error('[stash-selftest] 用法:--stash-selftest <png> [--out <png>] [--stash-y-offset=N] [--stash-subtab=general|threads]'); return 2 }
+  if (!png || !fs.existsSync(png)) { console.error('[stash-selftest] 用法:--stash-selftest <png> [--out <png>] [--stash-formula] [--stash-y-offset=N] [--stash-subtab=general|threads]'); return 2 }
   const layouts = loadStashLayouts()
   const templates = loadStashDigitTemplates()
   if (!layouts || !templates) { console.error('[stash-selftest] 讀不到版面或數字模板'); return 1 }
-  const subtab: StashSubtab = argValue(argv, '--stash-subtab=') === 'threads' ? 'threads' : 'general'
+  let subtab: StashSubtab = argValue(argv, '--stash-subtab=') === 'threads' ? 'threads' : 'general'
   const yOffset = Number(argValue(argv, '--stash-y-offset=') ?? 0) || 0
   const img = nativeImage.createFromPath(path.resolve(png))
   const size = img.getSize()
   if (!size.width || !size.height) { console.error(`[stash-selftest] 讀不到圖片 ${png}`); return 1 }
-  const clientH = size.height
-  const rects = cellRects(layouts, subtab, clientH, yOffset, stashLeft(size.width, clientH))
+  let grid: StashGrid = formulaGrid(layouts, subtab, size.width, size.height, yOffset)
+  if (!argv.includes('--stash-formula')) {
+    const area = stashSearchImageRect({ w: size.width, h: size.height }, null, { w: size.width, h: size.height }, { x: 0, y: 0 })
+    const bgra = rawPixels(img, { x: area.x, y: area.y, width: area.w, height: area.h })
+    const gray = new Uint8Array(bgra.width * bgra.height)
+    for (let i = 0; i < gray.length; i++) gray[i] = Math.round(0.299 * bgra.data[i * 4 + 2] + 0.587 * bgra.data[i * 4 + 1] + 0.114 * bgra.data[i * 4])
+    const tf = performance.now()
+    const fit = fitStashGrid({ gray, w: bgra.width, h: bgra.height }, layouts, { clientH: size.height })
+    const ms = (performance.now() - tf).toFixed(0)
+    if (fit) {
+      subtab = fit.subtab
+      grid = { H: fit.grid.H, x: fit.grid.x + bgra.x, y: fit.grid.y + bgra.y }
+      console.log(`[stash-selftest] 擬合:${subtab},分數 一般 ${fit.scores.general.toFixed(2)} / 綢帶 ${fit.scores.threads.toFixed(2)},格長 ${fit.box},換算高度 ${grid.H.toFixed(1)},第一格 ${grid.x},${grid.y}(${ms} ms;舊公式第一格 ${formulaGrid(layouts, subtab, size.width, size.height, yOffset).x},${formulaGrid(layouts, subtab, size.width, size.height, yOffset).y})`)
+    } else {
+      console.log(`[stash-selftest] 擬合:沒對上(${ms} ms),改用舊公式`)
+    }
+  }
+  // 數字模板依格長對應的 client 高度縮放(擬合的 H)
+  const clientH = grid.H
+  const rects = gridRects(layouts, subtab, grid)
   // 與 StashScan 相同:一次取整個格子區的像素,格子換成區域內座標
   const bx0 = Math.max(0, Math.min(...rects.map(r => r.x)) - 8)
   const by0 = Math.max(0, Math.min(...rects.map(r => r.y)) - 2)
@@ -57,7 +78,7 @@ export async function runStashSelftest (png: string, argv: string[]): Promise<nu
       // 第二批起(truth.more)依檔名找;沒有就用該子頁的第一批真值
       const more = Array.isArray(j.more) ? (j.more as Array<{ tab?: string, file?: string, values?: unknown }>).find(m => m.file === path.basename(png) && m.tab === subtab) : undefined
       const arr = more?.values ?? j[subtab]
-      if (Array.isArray(arr) && arr.length === rects.length && j.clientH === clientH) truth = arr as number[]
+      if (Array.isArray(arr) && arr.length === rects.length && j.clientH === size.height) truth = arr as number[]
     } catch { /* 沒有可用的真值就只印讀數 */ }
   }
   let ok = 0
@@ -69,7 +90,7 @@ export async function runStashSelftest (png: string, argv: string[]): Promise<nu
     if (truth) { if (r.qty === t) ok++; else if (r.qty == null) unknown++; else wrong++ }
     console.log(`[stash-selftest] #${i} ${rects[i].refName}:${r.qty ?? '-'}(${r.reason}${r.raw ? ` raw ${r.raw}` : ''},conf ${r.confidence} / ${r.margin})${truth ? ` 真值 ${String(t)} ${mark}` : ''}`)
   })
-  console.log(`[stash-selftest] ${path.basename(png)} ${subtab} client 高 ${clientH}:${rects.length} 格,取像素 ${tPix.toFixed(1)} ms,第一次讀 ${tRead.toFixed(1)} ms,暖機後 ${best.toFixed(1)} ms`)
+  console.log(`[stash-selftest] ${path.basename(png)} ${subtab} client 高 ${size.height}:${rects.length} 格,取像素 ${tPix.toFixed(1)} ms,第一次讀 ${tRead.toFixed(1)} ms,暖機後 ${best.toFixed(1)} ms`)
   if (truth) console.log(`[stash-selftest] 準確度:正確 ${ok} / ${rects.length},錯 ${wrong},不確定 ${unknown}`)
 
   const out = argAfter(argv, '--out') ?? argValue(argv, '--out=')

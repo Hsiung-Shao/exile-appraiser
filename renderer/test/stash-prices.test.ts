@@ -2,13 +2,14 @@
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { cellRects, parseStashLayouts, type StashLayoutFile } from '../../core/src/stash/layout'
+import { cellBox, cellRects, parseStashLayouts, type StashLayoutFile } from '../../core/src/stash/layout'
+import { formulaGrid, gridRects } from '../../core/src/stash/fit'
 import { layoutStashBadges, stashPriceUnit, stashValueCardPos, type StashLayoutInput } from '../src/web/overlay/stash-view'
 import type { PriceOfResult } from '../src/web/background/price-of'
 import { badgeStyleVars, defaultOcrBadgeStyle } from '../src/web/overlay/badge-style'
 import { _roundTripForTest } from '../src/web/Config'
 import { REGION_PICKER_SPECS, regionToSave } from '../src/web/overlay/ocr-reveal'
-import { defaultStripRegion } from '../../core/src/stash/detect'
+import { defaultStashRegion } from '../../core/src/stash/detect'
 import { overlayContentKey, overlayContentOf, overlayLayers } from '../src/web/overlay/overlay-content'
 import { SCAN_SPECS, stashScanStatus } from '../src/web/settings/scan-card-specs'
 
@@ -21,7 +22,7 @@ function input (p: Partial<StashLayoutInput> = {}): StashLayoutInput {
   return {
     file: FILE,
     subtab: 'general',
-    yOffset: 0,
+    grid: formulaGrid(FILE, 'general', 1432, 2012),
     client: { w: 1432, h: 2012 },
     viewport: { w: 716, h: 1006 },
     names: r => `名稱:${r}`,
@@ -47,12 +48,22 @@ describe('S13 格子矩形換成 CSS 位置', () => {
     expect(out[0].top).toBeCloseTo((r.y + r.h) * 0.5, 6)
     expect(out[0].width).toBeCloseTo(r.w * 0.5, 6)
   })
-  it('yOffset 47 時 top 跟著下移', () => {
+  it('grid 整體下移 47(資料夾內)時 top 跟著下移', () => {
     const r = cellRects(FILE, 'general', 2012, 47)[0]
-    const out = layoutStashBadges({ ...input({ yOffset: 47 }), placement: 'current' })
-    // 沒把偏移傳給 cellRects 會停在原位
+    const out = layoutStashBadges({ ...input({ grid: formulaGrid(FILE, 'general', 1432, 2012, 47) }), placement: 'current' })
+    // 沒用 grid 的位置會停在原位
     expect(out[0].top).toBeCloseTo((r.y + r.h) * 0.5, 6)
     expect(out[0].top - layoutStashBadges({ ...input(), placement: 'current' })[0].top).toBeCloseTo(47 * 0.5, 6)
+  })
+  it('擬合出的 grid 與 client 高度公式不同(格長 / 位置都不同)→ 徽章照 grid 排', () => {
+    const grid = { H: 2012 * 1.1, x: 100.5, y: 200 }
+    const r = gridRects(FILE, 'general', grid)[0]
+    const out = layoutStashBadges({ ...input({ grid }), placement: 'current' })
+    // 仍照 client 高度換算格長 → 擬合結果被忽略,徽章對不上實際格子
+    expect(r.w).not.toBe(cellBox('general', 2012))
+    expect(out[0].width).toBeCloseTo(r.w * 0.5, 6)
+    expect(out[0].left).toBeCloseTo((r.x + r.w / 2) * 0.5, 6)
+    expect(out[0].top).toBeCloseTo((r.y + r.h) * 0.5, 6)
   })
   it('client 寬或高為 0 → 空陣列', () => {
     // 沒擋 0 會除以 0 產生 Infinity / NaN 位置
@@ -181,11 +192,11 @@ describe('S18e 自訂倉庫 OCR 區域(設定 / 框選層)', () => {
     expect(JSON.parse(rt.serialized).stashRegion).toEqual(r)
     expect(_roundTripForTest(JSON.stringify({ stashRegion: { x: 'a' } })).config.stashRegion).toBeNull()
   })
-  it('框選層有「倉庫」目標:寫 stashRegion,沒框過時顯示預設按鈕列', () => {
+  it('框選層有「倉庫」目標:寫 stashRegion,沒框過時顯示預設搜尋範圍', () => {
     // 沒有這個目標 → 設定頁的框選鈕框到別的功能的區域
     const spec = REGION_PICKER_SPECS.stash
     expect(spec.field).toBe('stashRegion')
-    expect(spec.defaultRegion?.({ w: 2560, h: 1440 })).toEqual(defaultStripRegion(2560, 1440))
+    expect(spec.defaultRegion?.({ w: 2560, h: 1440 })).toEqual(defaultStashRegion(2560, 1440))
     expect(REGION_PICKER_SPECS.reveal.defaultRegion).toBeUndefined()
   })
   it('設定卡片(統一樣板)有區域列、框選鈕與還原預設', () => {
@@ -308,11 +319,13 @@ describe('S22 超寬螢幕黑邊', () => {
     const x0 = 832
     const wide = { client: { w: 5120, h: 1440 }, viewport: { w: 2560, h: 720 } }
     const narrow = { client: { w: 2560, h: 1440 }, viewport: { w: 1280, h: 720 } }
-    const a = layoutStashBadges({ ...input(narrow), placement: 'current' })
-    const b = layoutStashBadges({ ...input(wide), placement: 'current' })
+    const narrowIn = input({ ...narrow, grid: formulaGrid(FILE, 'general', 2560, 1440) })
+    const wideIn = input({ ...wide, grid: formulaGrid(FILE, 'general', 5120, 1440) })
+    const a = layoutStashBadges({ ...narrowIn, placement: 'current' })
+    const b = layoutStashBadges({ ...wideIn, placement: 'current' })
     expect(b.map(v => v.left)).toEqual(a.map(v => v.left + x0 * 0.5))
-    const ca = stashValueCardPos(input(narrow))!
-    const cb = stashValueCardPos(input(wide))!
+    const ca = stashValueCardPos(narrowIn)!
+    const cb = stashValueCardPos(wideIn)!
     expect(cb).toEqual({ ...ca, left: ca.left + x0 * 0.5 })
   })
 })

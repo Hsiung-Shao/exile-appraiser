@@ -10,6 +10,7 @@ import {
   STASH_BADGE_PLACEMENT, STASH_MASK_PAD_CSS_PX, layoutStashBadges, stashBadgeBandOverlaps, stashValueCardPlace
 } from '../src/web/overlay/stash-view'
 import { parseStashLayouts } from '../../core/src/stash/layout'
+import { formulaGrid } from '../../core/src/stash/fit'
 
 const ROOT = path.resolve(__dirname, '../..')
 const read = (p: string) => fs.readFileSync(path.join(ROOT, p), 'utf8')
@@ -115,7 +116,7 @@ describe('Q1 徽章不進數字帶(兩候選的幾何)', () => {
   it('layoutStashBadges:current 不帶擺法欄位;fit 帶 maxHeight、below 把 top 移到數字帶下緣;省略 = below', () => {
     const file = parseStashLayouts(JSON.parse(read('data/poe1/stash/layouts.json')))
     const base = {
-      file, subtab: 'general' as const, yOffset: 0, client: { w: 2560, h: 1440 }, viewport: { w: 2560, h: 1440 },
+      file, subtab: 'general' as const, grid: formulaGrid(file, 'general', 2560, 1440), client: { w: 2560, h: 1440 }, viewport: { w: 2560, h: 1440 },
       names: () => undefined, priceOf: () => ({ status: 'no-price' as const }), divineRate: undefined,
       thresholds: { low: 1, high: 10 } as never, hover: null
     }
@@ -134,7 +135,7 @@ describe('Q1 徽章不進數字帶(兩候選的幾何)', () => {
   it('省略擺法時依名稱開關:名稱關(單行)= below,名稱開(兩行)= current', () => {
     const file = parseStashLayouts(JSON.parse(read('data/poe1/stash/layouts.json')))
     const base = {
-      file, subtab: 'general' as const, yOffset: 0, client: { w: 2560, h: 1440 }, viewport: { w: 2560, h: 1440 },
+      file, subtab: 'general' as const, grid: formulaGrid(file, 'general', 2560, 1440), client: { w: 2560, h: 1440 }, viewport: { w: 2560, h: 1440 },
       names: () => undefined, priceOf: () => ({ status: 'no-price' as const }), divineRate: undefined,
       thresholds: { low: 1, high: 10 } as never, hover: null
     }

@@ -301,7 +301,7 @@ export type RevealScanEvent = PanelScanEvent
 
 /**
  * PoE1 倉庫價格疊層:`stash-scan-result`(main `ocr/stash-scan.ts`;main → overlay;**不送瀏覽器預覽**)。
- * - `show`:碎片頁開著、目前子頁 `subtab`(只有一般;聖甲蟲 2026-11-07 因 3.30 移除而刪除),整體下移 `yOffset`(client 實體像素;倉庫頁在資料夾內 = 47/1440·h)。
+ * - `show`:碎片頁開著、目前子頁 `subtab`(一般 / 綢帶),格子位置 `grid`(2026-11-26 起由畫面擬合;client 實體像素,`core/src/stash/fit.ts` `gridRects` 還原每格)。
  * - `hide`:碎片頁關了 / 換到其他頁 / 子頁不是一般(3.29 的聖甲蟲 / 不滅之火、異能)或判不出 / 停用、不是 PoE1 overlay、沒有遊戲視窗。
  */
 export interface StashScanEvent {
@@ -309,7 +309,8 @@ export interface StashScanEvent {
   ts: number
   reason: 'show' | 'hide'
   subtab: 'general' | 'threads' | null
-  yOffset: number
+  /** 只在 `show`:版面照換算高度 `H` 換算、第一格左上 = (x, y)(client 實體像素) */
+  grid?: { H: number, x: number, y: number }
   client: { w: number, h: number }
   /** OCR 耗時(ms;有跑 OCR 的那一次才有) */
   ocrMs?: number
