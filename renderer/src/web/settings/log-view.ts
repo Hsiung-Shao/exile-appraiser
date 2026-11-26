@@ -24,9 +24,25 @@ export function isErrorLine (e: Pick<LogEntry, 'level' | 'text'>): boolean {
  * 子字串比對,所以 renderer 轉印行(`[renderer] [app] 解析…`)也算。
  */
 const OCR_TAGS = ['[ocr', '[reveal-scan]', '[runeshape]', '[capture]', '[scan-mask]', '[desecration]', '[stash]']
-const TRADE_TAGS = ['[app] 解析', '[trade', '[ninja]', '[http]', '[poe1]', '[poe2]']
-// 2026-11-10:speedrun 計時器(熱鍵 / Client.txt 自動分段)歸在熱鍵篩選
-const HOTKEY_TAGS = ['[shortcuts]', '[uiohook', '[speedrun]', '[timer]']
+const TRADE_TAGS = ['[app] 解析', '[app] 收到物品文字', '[trade', '[ninja]', '[http]', '[poe1]', '[poe2]']
+// 2026-11-10:speedrun 計時器(熱鍵 / Client.txt 自動分段)歸在熱鍵篩選;2026-11-26 剪貼簿輪詢也算(熱鍵查價讀不到物品)
+const HOTKEY_TAGS = ['[shortcuts]', '[uiohook', '[speedrun]', '[timer]', '[ClipboardPoller]']
+
+/** 匯出記錄檔的設定摘要行(查價 / 倉庫辨識相關;不含 accountName 等帳號資料) */
+export function logExportSummary (c: {
+  game: string, realm: string, language: string, uiLanguage: string, overlayMode: boolean, windowTitleBy: Record<string, string>,
+  hotkeyHold: string, hotkey: string, hotkeyLocked: string, overlayKey: string, restoreClipboard: boolean,
+  leagueBy: Record<string, Partial<Record<string, string>>>,
+  stashPricesEnabled: boolean, stashTriggerMode: string, stashReadQuantity: boolean, stashPricesIntervalMs: number,
+  stashRegion: unknown, hardwareAcceleration: boolean
+}, dataLanguage: string | null): string[] {
+  return [
+    `遊戲 ${c.game}、伺服器 ${c.realm}、客戶端語言 ${c.language}${dataLanguage && dataLanguage !== c.language ? `(目前資料 ${dataLanguage})` : ''}、介面語言 ${c.uiLanguage}`,
+    `聯盟 ${c.leagueBy[c.game]?.[c.realm] ?? '(未選)'}、overlay ${c.overlayMode}、視窗標題「${c.windowTitleBy[c.game] ?? ''}」、硬體加速 ${c.hardwareAcceleration}`,
+    `查價熱鍵 ${c.hotkeyHold} + ${c.hotkey}、鎖定查價 ${c.hotkeyLocked || '(無)'}、overlay 鍵 ${c.overlayKey || '(無)'}、還原剪貼簿 ${c.restoreClipboard}`,
+    `倉庫價格 ${c.stashPricesEnabled ? '開' : '關'}、顯示方式 ${c.stashTriggerMode}、讀數量 ${c.stashReadQuantity}、間隔 ${c.stashPricesIntervalMs} ms、自訂區域 ${c.stashRegion ? JSON.stringify(c.stashRegion) : '無'}`
+  ]
+}
 
 const hasAny = (text: string, tags: readonly string[]) => tags.some(t => text.includes(t))
 

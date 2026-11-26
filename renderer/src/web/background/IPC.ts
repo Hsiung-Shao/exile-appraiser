@@ -246,6 +246,9 @@ class HostTransport {
   /** 開記錄資料夾:只有 Electron 視窗(預覽 / 純瀏覽器沒有) */
   get canOpenLogFolder (): boolean { return !this.isPreview && typeof window.host?.openLogFolder === 'function' }
   async openLogFolder (): Promise<void> { if (this.canOpenLogFolder) await window.host?.openLogFolder?.() }
+  /** 匯出記錄檔:只有 Electron 視窗;回傳存的路徑,取消回 null */
+  get canExportLog (): boolean { return !this.isPreview && typeof window.host?.exportLog === 'function' }
+  async exportLog (summary: string[]): Promise<string | null> { return this.canExportLog ? (await window.host?.exportLog?.(summary)) ?? null : null }
   /** 開設定資料夾:只有 Electron 視窗(預覽 / 純瀏覽器沒有) */
   get canOpenConfigFolder (): boolean { return !this.isPreview && typeof window.host?.openConfigFolder === 'function' }
   async openConfigFolder (): Promise<void> { if (this.canOpenConfigFolder) await window.host?.openConfigFolder?.() }

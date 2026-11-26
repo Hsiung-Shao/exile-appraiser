@@ -31,6 +31,19 @@ interface ReadSession {
   poll?: Promise<string>
 }
 
+/**
+ * 2026-11-26 診斷:輪詢逾時時剪貼簿裡是什麼(分辨「遊戲沒複製」與「複製了但認不出是物品」)。
+ * 剪貼簿可能是使用者的密碼等私人內容:只記長度、是否跟按鍵前相同;第一行像「標頭: 值」(物品文字的樣子)才記前 24 字。
+ */
+export function describeClipboard (text: string, before: string | undefined): string {
+  if (!text) return '剪貼簿是空的(遊戲沒有複製任何東西)'
+  const same = before !== undefined && text === before ? '、與按鍵前相同(遊戲沒有複製)' : ''
+  const first = text.split(/\r?\n/, 1)[0]
+  // 物品文字一定有好幾行;單行的「帳號: 密碼」這類不記
+  const header = text.split('\n').length >= 3 && /^[^:：]{1,24}[:：] ?\S/.test(first) ? `、第一行「${first.slice(0, 24)}」不是支援的物品標頭` : ''
+  return `剪貼簿 ${text.length} 字元${same}${header}`
+}
+
 const sleep = (ms: number) => new Promise<void>((resolve) => { setTimeout(resolve, ms) })
 
 export class HostClipboard {
@@ -100,16 +113,18 @@ export class HostClipboard {
     try {
       await s.armed
       s.deadline = Date.now() + POLL_LIMIT
+      let reads = 0
       for (;;) {
         await sleep(POLL_DELAY)
         const textAfter = await this.io.readText()
+        reads++
         if (isPoeItem(textAfter)) {
           await this.finish(s)
           return textAfter
         }
         if (Date.now() >= s.deadline) {
           await this.finish(s)
-          console.warn('[ClipboardPoller] No item text found.')
+          console.warn(`[ClipboardPoller] No item text found.(讀了 ${reads} 次,${describeClipboard(textAfter, s.textBefore)})`)
           throw new Error('Reading clipboard timed out')
         }
       }

@@ -56,7 +56,8 @@ import { ScanMaskStore, sanitizeMaskReport } from './ocr/scan-mask'
 import { isAppNavigation, isExternalWebUrl } from './external-links'
 import { BG_DIR_NAME, SHEET_DIR_NAME, bgContentType, bgCorsHeaders, bgFileFromPath, normBgFile, resolveBgPath, storedBgName } from './backgrounds'
 import { createFontLister } from './system-fonts'
-import { AppLog, LogFileWriter, captureConsole, consoleMethodForLevel, type LogEntry } from './app-log'
+import { AppLog, LogFileWriter, buildLogExport, captureConsole, consoleMethodForLevel, dateStamp, formatLogEntry, pickExportLogFiles, timeStamp, type LogEntry } from './app-log'
+import os from 'node:os'
 import { PerfMonitor, RendererPerfAccumulator, bgActiveFromConfigText, formatPerfSummary, isPerfFile, perfFileName, perfSummarySections, scanSnapshotOf, stashSnapshotOf, type ScenarioInput } from './perf/perf-monitor'
 import {
   TOAST_FADE_MS, TOAST_VISIBLE_MS, isFirstRunAfterUpdate, parseLastRun, priceCheckHotkeyLabel, scanToastMessage, serializeLastRun,
@@ -1908,6 +1909,41 @@ if (!skipStartup) app.whenReady().then(() => {
         await fs.mkdir(dir, { recursive: true })
         const err = await shell.openPath(dir)
         if (err) throw new Error(err)
+      }
+    },
+    // 2026-11-26:匯出記錄檔(使用者回報「查價沒反應」時把一份檔案傳給我們):環境摘要(renderer 給設定摘要)+ 今天與昨天的記錄檔。
+    // 存檔對話框選位置(預設桌面),寫完在檔案總管標出來;取消回 null。預覽端不開放(對話框在桌面上)
+    'log-export': {
+      kind: 'invoke',
+      preview: false,
+      fn: async (_ctx, summary: unknown) => {
+        const now = Date.now()
+        const opts = {
+          title: 'Export log',
+          defaultPath: path.join(app.getPath('desktop'), `exile-appraiser-log-${dateStamp(now)}-${timeStamp(now).slice(0, 8).replace(/:/g, '')}.txt`),
+          filters: [{ name: 'Text', extensions: ['txt'] }]
+        }
+        const res = win && !win.isDestroyed() ? await dialog.showSaveDialog(win, opts) : await dialog.showSaveDialog(opts)
+        if (res.canceled || !res.filePath) return null
+        await logWriter.idle() // 剛記的幾行也寫進檔案再讀
+        const dir = LOG_DIR()
+        const names = pickExportLogFiles(await fs.readdir(dir).catch(() => [] as string[]), now)
+        const parts: string[] = []
+        for (const name of names) {
+          try { parts.push(`----- ${name} -----\n${await fs.readFile(path.join(dir, name), 'utf8')}`) } catch (e) { parts.push(`----- ${name}(讀取失敗:${String(e)})-----`) }
+        }
+        // 記錄檔寫不進去時(磁碟滿 / 被鎖)退回記憶體裡最近的行
+        if (!parts.length) parts.push(`----- 記憶體內最近 ${appLog.snapshot().entries.length} 行 -----\n${appLog.snapshot().entries.map(formatLogEntry).join('\n')}`)
+        const header = [
+          `匯出時間 ${dateStamp(now)} ${timeStamp(now)}`,
+          `版本 ${app.getVersion()}${app.isPackaged ? '' : '(開發版)'}、Electron ${process.versions.electron}、Windows ${os.release()} ${process.arch}、語系 ${app.getLocale()}`,
+          `視窗模式 ${windowMode}、遊戲視窗 ${poeWindow ? (poeWindow.isActive ? '在前景' : '不在前景') : '未附著'}`,
+          ...(Array.isArray(summary) ? summary.filter((s): s is string => typeof s === 'string').slice(0, 60).map(s => s.slice(0, 400)) : [])
+        ]
+        await fs.writeFile(res.filePath, buildLogExport(header, parts.join('\n')), 'utf8')
+        console.log(`[log] 已匯出記錄檔 ${path.basename(res.filePath)}(${names.length} 個檔)`)
+        shell.showItemInFolder(res.filePath)
+        return res.filePath
       }
     },
     // 步 38:托盤「開啟設定資料夾」移到設定(2026-11-18 起在「啟動與更新」);預覽端不開放

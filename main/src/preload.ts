@@ -95,6 +95,7 @@ const api: HostApi = {
   logSubscribe: (on: boolean) => { ipcRenderer.send('log-subscribe', on) },
   onLogLines: (cb: (entries: LogEntry[]) => void) => subscribe('log-lines', cb),
   openLogFolder: () => ipcRenderer.invoke('log-open-folder'),
+  exportLog: (summary: string[]) => ipcRenderer.invoke('log-export', summary),
   // 步 38:設定 › 啟動與更新 › 開啟設定資料夾(userData;只有 Electron 視窗)
   openConfigFolder: () => ipcRenderer.invoke('config-open-folder'),
   // 設定 › 啟動與更新 › 建立桌面捷徑(只有 Electron 視窗)

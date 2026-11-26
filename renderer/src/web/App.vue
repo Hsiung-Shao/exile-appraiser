@@ -415,6 +415,8 @@ export default defineComponent({
     }
 
     function handleItemText (e: ItemTextEvent) {
+      // 2026-11-26 診斷:main 記了「讀到物品文字」但這行沒出現 = 事件沒送到畫面(視窗重新載入 / 卡住)
+      console.log(`[app] 收到物品文字 ${e.clipboard.length} 字元${e.target ? ` target=${e.target}` : ''}(game=${loadedGame.value}、資料 ${dataLanguage.value ?? '未載入'}、設定開著 ${showSettings.value})`)
       if (e.target === 'poedb' || e.target === 'wiki') {
         const site = e.target
         void openItemOnPoedb(e.clipboard, {

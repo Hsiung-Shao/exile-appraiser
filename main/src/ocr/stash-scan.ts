@@ -298,6 +298,9 @@ export class StashScan {
   /** 「沒找到按鈕」診斷記錄的上次時間(節流) */
   private lastMissLogAt = -Infinity
   private lastClampLogKey: string | null = null
+  /** 2026-11-26 診斷:上次記下的設定 / 擷取幾何(有變才記) */
+  private lastCfgKey: string | null = null
+  private lastCapKey: string | null = null
   private ocrCount = 0
   private userPaused = false
   /** 熱鍵顯示模式:按了熱鍵(`arm()`)還沒解除 */
@@ -461,7 +464,7 @@ export class StashScan {
   hotkeyPress (): 'armed' | 'hidden' {
     if (this.shown) {
       this.deps.log?.('[stash] 熱鍵:收起倉庫價格')
-      this.hide({ w: this.shown.clientW, h: this.shown.clientH })
+      this.hide({ w: this.shown.clientW, h: this.shown.clientH }, undefined, { why: '熱鍵' })
       this.disarm()
       return 'hidden'
     }
@@ -492,7 +495,7 @@ export class StashScan {
     this.userPaused = !this.userPaused
     this.baseline = null
     this.deps.log?.(`[stash] 使用者${this.userPaused ? '暫停' : '繼續'}倉庫價格`)
-    if (this.userPaused && this.shown) this.hide({ w: this.shown.clientW, h: this.shown.clientH })
+    if (this.userPaused && this.shown) this.hide({ w: this.shown.clientW, h: this.shown.clientH }, undefined, { why: '使用者暫停' })
     this.poke()
     return this.userPaused
   }
@@ -600,8 +603,9 @@ export class StashScan {
   }
 
   /** `keepArmed`:暫時收起(判不出子頁),熱鍵模式不解除;沒顯示的 tick 由 `countArmMiss` 累計 */
-  private hide (client: { w: number, h: number }, ocrMs?: number, opts: { keepArmed?: boolean } = {}): StashScanEvent['reason'] | null {
+  private hide (client: { w: number, h: number }, ocrMs?: number, opts: { keepArmed?: boolean, why?: string } = {}): StashScanEvent['reason'] | null {
     if (!this.shown) return null
+    this.deps.log?.(`[stash] 收起倉庫價格(${opts.why ?? '未註明'})`)
     this.shown = null
     this.qty = null
     if (this.dumpReq) this.dumpReq.finish({ ok: false, reason: 'not-showing' })
@@ -655,7 +659,7 @@ export class StashScan {
     this.blockCounts[block] = (this.blockCounts[block] ?? 0) + 1
     this.baseline = null
     if (STASH_CLEARING_BLOCKS.has(block) && this.shown) {
-      this.hide({ w: this.shown.clientW, h: this.shown.clientH })
+      this.hide({ w: this.shown.clientW, h: this.shown.clientH }, undefined, { why: `停止:${block}` })
     }
     return retryMs != null ? { kind: 'blocked', block, retryMs } : { kind: 'blocked', block }
   }
@@ -664,6 +668,11 @@ export class StashScan {
     this.syncTriggerMode()
     const cfg = this.deps.config()
     const env = this.deps.env()
+    const cfgKey = `${cfg.enabled}|${cfg.game}|${cfg.realm ?? 'intl'}|${cfg.triggerMode ?? 'auto'}|${cfg.intervalMs}|${cfg.readQuantity !== false}|${cfg.region ? `${cfg.region.x},${cfg.region.y},${cfg.region.w},${cfg.region.h}` : '-'}`
+    if (cfgKey !== this.lastCfgKey) {
+      this.lastCfgKey = cfgKey
+      this.deps.log?.(`[stash] 設定:${cfg.enabled ? '開' : '關'}、${cfg.game}、${cfg.realm ?? 'intl'}、顯示方式 ${cfg.triggerMode ?? 'auto'}、間隔 ${cfg.intervalMs} ms、讀數量 ${cfg.readQuantity !== false}、自訂區域 ${cfg.region ? JSON.stringify(cfg.region) : '無'}`)
+    }
     const block = stashBlock(cfg, env, this.ui, this.userPaused, this.isArmed)
     if (block) return this.blockedResult(block)
     // overlay screenshot 全黑鎖存(全螢幕獨占):overlay 畫不出來,擷取只會走每次卡 main 300–480 ms 的 getSources → 不擷取
@@ -684,6 +693,10 @@ export class StashScan {
     const strip = ocr.rect
     const fp = cap.fingerprint(strip)
     const key = `${client.w}x${client.h}@${cap.offset.x},${cap.offset.y}|${strip.x},${strip.y},${strip.width},${strip.height}`
+    if (key !== this.lastCapKey) {
+      this.lastCapKey = key
+      this.deps.log?.(`[stash] 擷取:client ${client.w}×${client.h}、擷取圖 ${cap.size.w}×${cap.size.h}、偏移 ${cap.offset.x},${cap.offset.y}、按鈕列 OCR 區 ${strip.x},${strip.y} ${strip.width}×${strip.height}`)
+    }
     const prev = this.baseline?.key === key ? this.baseline.fp : null
     // 畫面沒變:狀態不會變(子頁 / 開關都會改變按鈕列)
     if (prev && !isChanged(this.diff(prev, fp), DEFAULT_DIFF_THRESHOLDS) && !isLargeChange(prev, fp)) {
@@ -704,10 +717,11 @@ export class StashScan {
     if (!match.found) {
       // 診斷:認到 ≥ 1 顆但判定失敗(像碎片頁但沒過門檻 / 偏移對不上)時記下 OCR 文字,最多每 30 秒一次(實機回報「徽章沒出現」時查得到原因)
       const now = this.clock.now()
-      if (match.matched > 0 && now - this.lastMissLogAt >= STASH_MISS_LOG_MS) {
+      // 2026-11-26:認到 0 顆也記(使用者回報倉庫徽章不出現時,分辨「OCR 沒讀到字」與「讀到字但對不上」)
+      if (now - this.lastMissLogAt >= STASH_MISS_LOG_MS) {
         this.lastMissLogAt = now
-        this.deps.log?.(`[stash] 沒找到子頁按鈕(認到 ${match.matched} 顆,client ${client.w}×${client.h}):` +
-          clientLines.map(l => l.text.replace(/\s+/g, '')).join(' | ').slice(0, 200))
+        this.deps.log?.(`[stash] 沒找到子頁按鈕(認到 ${match.matched} 顆,OCR ${clientLines.length} 行 ${ms} ms,語言 ${lang},client ${client.w}×${client.h}):` +
+          (clientLines.map(l => l.text.replace(/\s+/g, '')).join(' | ').slice(0, 200) || '(沒有文字)'))
       }
       // 疊層顯示中(含 held / miss 累計期間)作廢差分基準(B1):畫面靜止也要重 OCR,否則 miss 累計不到上限、疊層收不掉;
       // 沒顯示時照常記下這次縮圖(N1):平常玩遊戲畫面沒變就不 OCR
@@ -718,7 +732,7 @@ export class StashScan {
         return { kind: 'ocr', found: false, subtab: this.shown!.subtab, held: true, sent: null, ms }
       }
       this.missStreak++
-      const sent = this.missStreak >= STASH_MISS_LIMIT ? this.hide(client, ms) : null
+      const sent = this.missStreak >= STASH_MISS_LIMIT ? this.hide(client, ms, { why: `連續 ${this.missStreak} 次沒找到子頁按鈕(倉庫關了?)` }) : null
       return { kind: 'ocr', found: false, subtab: null, held: false, sent, ms }
     }
     this.baseline = { key, fp }
@@ -726,14 +740,21 @@ export class StashScan {
     this.holdStreak = 0
 
     let subtab: StashSubtab | null = null
+    let p99s: number[] = []
     if (cap.gray) {
       const rects = buttonRects(client.h, match.yOffset, stashLeft(client.w, client.h))
       const p99 = rects.map(r => percentile(cap.gray!(toImage(r, cap.offset)), 0.99))
+      p99s = p99
       subtab = activeSubtab(p99)
     }
     if (!subtab) {
       // 異能 / 判不出目前子頁 → 不畫。熱鍵模式不解除(一個 tick 判不出就要使用者再按太嚴):比照沒偵測到倉庫由 countArmMiss 累計
-      const sent = this.hide(client, ms, { keepArmed: true })
+      const now = this.clock.now()
+      if (now - this.lastMissLogAt >= STASH_MISS_LOG_MS) {
+        this.lastMissLogAt = now
+        this.deps.log?.(`[stash] 找到子頁按鈕但判不出目前是哪一頁(異能頁不畫):按鈕亮度 p99 ${p99s.map(v => Math.round(v)).join(' / ') || '(沒有灰階資料)'}`)
+      }
+      const sent = this.hide(client, ms, { keepArmed: true, why: '判不出目前子頁' })
       return { kind: 'ocr', found: true, subtab: null, held: false, sent, ms }
     }
     // tick 進行中(await 期間)使用者按了暫停 → 不畫(下一輪被 user-paused 擋下並收掉)

@@ -707,6 +707,8 @@ export interface HostApi {
   onLogLines?: (cb: (entries: LogEntry[]) => void) => () => void
   /** 第 28 步:開啟記錄資料夾(userData/logs)。瀏覽器預覽 shim 沒有這個方法(`preview: false`)。 */
   openLogFolder?: () => Promise<void>
+  /** 2026-11-26:匯出記錄檔(存檔對話框;`summary` = 設定摘要行)。回傳存的路徑,取消回 null。預覽 shim 沒有(`preview: false`)。 */
+  exportLog?: (summary: string[]) => Promise<string | null>
   /** 步 38:開啟設定資料夾(userData,內含 config.json)。托盤選單已移除該項,改由設定 › 啟動與更新提供;預覽 shim 沒有(`preview: false`)。 */
   openConfigFolder?: () => Promise<void>
   /** 設定 › 一般 › 建立桌面捷徑(只有 Electron 視窗;dev = 開發模式不建立) */

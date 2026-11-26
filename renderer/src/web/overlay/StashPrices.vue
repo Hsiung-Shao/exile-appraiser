@@ -148,6 +148,20 @@ export default defineComponent({
       })
     })
 
+    // 2026-11-26 診斷:顯示中的徽章狀態有變才記一行(分辨「沒有價格資料」「版面沒載入」「台服」)
+    let lastBadgeLog = ''
+    watch(badges, (list) => {
+      const s = shown.value
+      if (!s) { lastBadgeLog = ''; return }
+      const n = (st: StashBadgeView['status']) => list.filter(b => b.status === st).length
+      const line = stashData.value
+        ? `${s.subtab}:${list.length} 格,有價格 ${n('ok')}、沒有價格 ${n('no-price')}、讀取中 ${n('loading')}、沒有價格來源 ${n('no-source')}(poe.ninja 快照 ${ninja.snapshot.value ? '有' : '無'}、聯盟 ${config.leagueBy.poe1?.[config.realm] ?? '未選'})`
+        : `${s.subtab}:版面資料還沒載入`
+      if (line === lastBadgeLog) return
+      lastBadgeLog = line
+      console.log(`[stash] 徽章 ${line}`)
+    })
+
     /** 整頁價值(有數量才有) */
     const pageValue = computed(() => {
       const s = shown.value
