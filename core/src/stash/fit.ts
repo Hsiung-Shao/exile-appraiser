@@ -164,23 +164,27 @@ function slotAt (c: Ctx, g: Geo, x: number, y: number): number {
   let d = Infinity
   let n = 0
   let m = 0
+  // 看得到(在影像內、沒被遮)的邊數;內側太亮的邊看得到但沒對上
+  let seen = 0
   // 影像外(擷取被裁)的邊不算;內側太亮(圖示蓋到邊)的邊也不算,但至少要兩邊可看。
   // 遮罩蓋到的邊(我們自己的徽章)也不算:有邊被遮時一邊可看就夠,一邊都看不到 = 這格「看不到」(NaN,不進分母;
   // 第 2 輪審查 N1:全寬兩行徽章蓋住左右兩邊,當成沒對上會讓驗證永遠不過、重搜把格子推歪)
   let i = mean(c, x + g.xm, y + a, x + b - a, y + t)
   let o = mean(c, x + g.xm, y - o1, x + b - a, y - o0)
   if (masked(c, x + g.xm, y - o1, x + b - a, y + t)) m++
-  else if (i === i && o === o && i <= SLOT_INNER_MAX) { n++; d = Math.min(d, o - i) }
+  else if (i === i && o === o) { seen++; if (i <= SLOT_INNER_MAX) { n++; d = Math.min(d, o - i) } }
   i = mean(c, x + b - t, y + a, x + b - a, y + g.ym)
   o = mean(c, x + b + o0, y + a, x + b + o1, y + g.ym)
   if (masked(c, x + b - t, y + a, x + b + o1, y + g.ym)) m++
-  else if (i === i && o === o && i <= SLOT_INNER_MAX) { n++; d = Math.min(d, o - i) }
+  else if (i === i && o === o) { seen++; if (i <= SLOT_INNER_MAX) { n++; d = Math.min(d, o - i) } }
   i = mean(c, x + a, y + g.yl0, x + t, y + g.yl1)
   o = mean(c, x - o1, y + g.yl0, x - o0, y + g.yl1)
   if (masked(c, x - o1, y + g.yl0, x + t, y + g.yl1)) m++
-  else if (i === i && o === o && i <= SLOT_INNER_MAX) { n++; d = Math.min(d, o - i) }
+  else if (i === i && o === o) { seen++; if (i <= SLOT_INNER_MAX) { n++; d = Math.min(d, o - i) } }
   if (n >= (m ? 1 : 2)) return d
-  return m && n === 0 ? NaN : 0
+  // 只有每條邊都被遮或在影像外才算「看不到」;看得到但內側太亮 = 沒對上(第 3 輪審查:原本也當成看不到,
+  // 換頁 / 關倉庫後只剩碰巧又暗的幾格計分,錯的畫面也驗證得過,舊徽章卡在畫面上)
+  return m && seen === 0 ? NaN : 0
 }
 
 interface Rel { rel: Array<[number, number]>, nb: Array<[number, number]>, box: number, names: string[], geo: Geo }

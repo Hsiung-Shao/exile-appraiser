@@ -92,6 +92,21 @@ describe('StashScan 沒顯示時放慢掃描', () => {
     expect(h.gaps().every(g => g === 1000)).toBe(true)
   })
 
+  it('顯示中位置驗證不過而收起後,下一次重找用設定間隔(換子頁不必多等閒置下限)', async () => {
+    // 第 3 輪審查:原本收起後套 3 秒閒置下限,換子頁要 4.5 秒才出現新子頁
+    const h = harness(1000)
+    h.fits.show('general', W, H)
+    h.scan.start(0)
+    await h.clk.advance(2_000)
+    expect(h.scan.showing).toBe(true)
+    h.fits.show('threads', W, H)
+    // 驗證不過 2 次(各 1000 ms)→ 收起 → 1000 ms 後重找並顯示綢帶 = 3000 ms;套閒置下限會是 5000 ms
+    let t = 0
+    while (h.scan.snapshot().subtab !== 'threads' && t < 10_000) { await h.clk.advance(500); t += 500 }
+    expect(h.scan.snapshot().subtab).toBe('threads')
+    expect(t).toBeLessThanOrEqual(3000)
+  })
+
   // 設定間隔上限 3000(clampScanInterval)→ 5000 實際 = 3000;沒顯示不會比使用者設定更短
   it('使用者設 5000 ms(夾成上限 3000)時沒顯示是 3000 ms', async () => {
     const h = harness(5000)

@@ -37,8 +37,9 @@
    自訂區域寬度上限 = client 高,從「黑邊 − 5% 高」與框的左緣取右邊那個起算(超寬螢幕從最左邊框起也找得到)。
 2. 顯示中先以快取的格子位置驗證(core `fit.ts` `scoreGrid`,一次評分,便宜);分數 ≥ `minFitScore`(一般 0.4、綢帶 0.8)就沿用。
    被我們自己的徽章遮罩擋到看不到的格不算(分子分母都不計;名稱開時兩行徽章撐到格寬、會蓋住格子左右兩邊)。
+   「看不到」只限每條邊都被遮或在影像外;看得到但內側太亮 = 沒對上(否則換頁 / 關倉庫後只剩碰巧又暗的幾格計分,舊徽章卡在畫面上)。
    **顯示中一律不重搜**:驗證不過 = 一次沒對上(游標停在格上維持,否則連續 2 次收起,熱鍵模式不在這裡解除);
-   收起後下一個 tick 才在沒有自己徽章的畫面上重找(帶著徽章重搜只剩上緣可看,實測整片偏 17–52 px)。代價:換子頁要先收起再出現(約 2–3 個 tick)。
+   收起後下一個 tick 才在沒有自己徽章的畫面上重找(帶著徽章重搜只剩上緣可看,實測整片偏 17–52 px)。代價:換子頁要先收起再出現(驗證不過 2 個 tick + 收起後用設定間隔重找,不套 3 秒閒置下限 = 預設約 3 秒)。
    顯示中 client 大小改變 → 立刻收起,下一個 tick 以新高度重找。
 3. 沒顯示時整個擬合(`fitStashGrid`):對「一般 / 綢帶」兩份版面,搜尋換算高度 H(格長 = `cellBox(H)`;常駐掃描只搜先驗 ±8% `STASH_FIT_SIZE_RANGE`,
    PoE1 介面只隨 client 高度縮放)與第一格位置,讓每格落在方框上:
@@ -93,7 +94,7 @@
 - `StashScan` 的 `armed`:hotkey 模式沒 armed → `stashBlock` 回 `not-armed`(判斷在 `user-paused` 之後;屬停止類 = 收疊層、不排 tick、0 擷取)。
 - `arm()`:armed、清差分基準與使用者暫停、立刻 `poke()`;armed 期間沒顯示也照設定間隔(不套閒置 3 秒下限)。
 - 解除:疊層收起(倉庫關掉 = 連續沒對上格子、再按熱鍵、或停止類原因)時自動解除;**判不出目前子頁的暫時收起不解除**(code review:一個 tick 判不出就要再按太嚴),比照沒偵測到倉庫由下述 miss 累計;
-  **顯示模式改變(hotkey ↔ auto)一律解除**(`syncTriggerMode`:host-config 的 `poke()` 與每個 tick 開頭;auto 的收起不解除,否則切回 hotkey 時殘留 armed 會沒按熱鍵就擷取並跳提示);arm 後連續 `STASH_ARM_MISS_LIMIT`(3)個 tick 沒顯示(沒對上格子 / 畫面沒變 / 不是碎片頁)→ 解除 + `onArmMiss` → main 右下角提示「倉庫價格:沒有偵測到倉庫」(`stashArmMissToastMessage`,跟 `uiLanguage`)。
+  **顯示模式改變(hotkey ↔ auto)一律解除**(`syncTriggerMode`:host-config 的 `poke()` 與每個 tick 開頭;auto 的收起不解除,否則切回 hotkey 時殘留 armed 會沒按熱鍵就擷取並跳提示);arm 後連續 `STASH_ARM_MISS_LIMIT`(3)個 tick 沒顯示(沒對上格子 / 畫面沒變 / 不是碎片頁)→ 解除;這次 arm 後**顯示過**倉庫(= 關倉庫,2026-11-26 起位置驗證不過的收起不在當下解除)→ 安靜解除,**從沒顯示過**才 `onArmMiss` → main 右下角提示「倉庫價格:沒有偵測到倉庫」(`stashArmMissToastMessage`,跟 `uiLanguage`)。
 - 熱鍵(`main.ts` `onStashToggle` → `stashHotkeyAction(enabled, mode)`):auto = 暫停 / 繼續(不變);hotkey = `StashScan.hotkeyPress()`(沒顯示 = arm、顯示中 = 收起並解除,不另外通知);
   功能關著 = 照舊送 `stash-enable`,hotkey 模式另外先 `arm()`(設定送達前 `stashBlock` 仍是 `disabled`,armed 保留到 host-config 的 `poke()`)。
 - 狀態列:`not-armed` =「等待熱鍵(熱鍵)」;`capture-black` =「擷取全黑(獨占全螢幕)」。

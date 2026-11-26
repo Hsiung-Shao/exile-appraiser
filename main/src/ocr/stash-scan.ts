@@ -286,6 +286,10 @@ export class StashScan {
   private userPaused = false
   /** 熱鍵顯示模式:按了熱鍵(`arm()`)還沒解除 */
   private isArmed = false
+  /** 這次 arm 之後顯示過倉庫(關倉庫時安靜解除、不提示「沒有偵測到倉庫」) */
+  private shownSinceArm = false
+  /** 剛因位置對不上 / client 大小改變收起:下一次重找用設定間隔,不套閒置下限(換子頁不必多等 3 秒) */
+  private refindSoon = false
   /** arm 之後連續沒偵測到倉庫的 tick 數 */
   private armMisses = 0
   /** 上次看到的顯示模式(`syncTriggerMode`;改變 = 解除 armed) */
@@ -428,6 +432,7 @@ export class StashScan {
   /** 熱鍵顯示模式:開始掃描(清差分基準、立刻重看;停用中也保留,啟用後的 `poke()` 就會掃描)。順便清掉使用者暫停 */
   arm (): void {
     this.isArmed = true
+    this.shownSinceArm = false
     this.armMisses = 0
     this.userPaused = false
     this.baseline = null
@@ -555,7 +560,7 @@ export class StashScan {
         const blockedDelay = res.kind === 'blocked' && res.retryMs != null ? Math.min(BLOCKED_FALLBACK_MS, res.retryMs) : BLOCKED_FALLBACK_MS
         const interval = clampScanInterval(this.deps.config().intervalMs)
         // 沒顯示時套閒置下限;熱鍵模式 armed(使用者剛按熱鍵在等倉庫)照設定間隔
-        if (this.timer == null) this.schedule(blocked ? blockedDelay : this.shown || hotkey ? interval : Math.max(interval, STASH_IDLE_INTERVAL_MS))
+        if (this.timer == null) this.schedule(blocked ? blockedDelay : this.shown || hotkey || this.refindSoon ? interval : Math.max(interval, STASH_IDLE_INTERVAL_MS))
       })
     }, ms)
   }
@@ -624,7 +629,10 @@ export class StashScan {
     if (res.kind !== 'fit' && res.kind !== 'unchanged') return
     if (!this.hotkeyMode()) return
     if (++this.armMisses < STASH_ARM_MISS_LIMIT) return
+    const shownBefore = this.shownSinceArm
     this.disarm()
+    // 這次按熱鍵後顯示過倉庫 = 倉庫關掉了:安靜解除(CLAUDE.md「倉庫關掉 hide() 自動解除」);從沒顯示過才提示
+    if (shownBefore) { this.deps.log?.('[stash] 熱鍵:倉庫已關閉,停止偵測'); return }
     this.deps.log?.(`[stash] 熱鍵:連續 ${STASH_ARM_MISS_LIMIT} 次沒有偵測到倉庫,停止偵測`)
     this.deps.onArmMiss?.()
   }
@@ -710,6 +718,7 @@ export class StashScan {
       // 顯示中 client 大小變了:舊位置一定不對,立刻收起,下一個 tick 重找
       const ms = Math.round(performance.now() - t0)
       this.baseline = null
+      this.refindSoon = true
       const sent = this.hide(client, ms, { keepArmed: true, why: `client 大小改變(${sh.clientW}×${sh.clientH} → ${client.w}×${client.h}),重找格子` })
       return { kind: 'fit', found: false, subtab: null, held: false, sent, ms }
     }
@@ -719,6 +728,7 @@ export class StashScan {
     // - 第 2 輪審查 N1:徽章顯示名稱時撐到格寬、蓋住格子左右兩邊,帶著徽章重搜只剩上緣可看,實測整片偏 17–52 px
     // 代價:換子頁要先收起再出現(約 2–3 個 tick)
     if (!found && !sh) {
+      this.refindSoon = false
       // 格長 ±8%(介面只隨 client 高度縮放)+ 預檢:倉庫沒開時每次擷取都會跑,4K 一次完整擬合約 0.2 秒、預檢約 0.03 秒(main 執行緒)
       const r = (this.deps.fit ?? fitStashGrid)(img, layouts, { clientH: client.h, sizeRange: STASH_FIT_SIZE_RANGE, quickReject: true })
       if (r) found = { subtab: r.subtab, grid: shiftGrid(r.grid, ox, oy), score: r.score, scores: r.scores }
@@ -745,6 +755,7 @@ export class StashScan {
       }
       this.missStreak++
       // 熱鍵模式不在這裡解除:可能只是換子頁,收起後重找;真的沒倉庫由 countArmMiss 累計解除
+      if (this.shown && this.missStreak >= STASH_MISS_LIMIT) this.refindSoon = true
       const sent = this.missStreak >= STASH_MISS_LIMIT ? this.hide(client, ms, { keepArmed: true, why: `連續 ${this.missStreak} 次沒對上倉庫格子(倉庫關了 / 換到別頁?)` }) : null
       return { kind: 'fit', found: false, subtab: null, held: false, sent, ms }
     }
@@ -763,13 +774,13 @@ export class StashScan {
       this.updateQuantities(cap)
       return { kind: 'fit', found: true, subtab, held: false, sent: null, ms }
     }
-    // 同子頁只是位置小幅修正(重搜後差幾 px):不當成剛打開(fresh 會略過「游標停在格上不讀」,說明框還開著時會讀錯;code review I3)
-    const fresh = this.shown?.subtab !== subtab
+    // 顯示中不重搜 → 走到這裡一定是剛打開(沒顯示 → 顯示),數量全部重讀
     this.shown = { subtab, grid: found.grid, clientW: client.w, clientH: client.h }
-    if (fresh) this.qty = null
+    this.shownSinceArm = true
+    this.qty = null
     const sc = found.scores ? `一般 ${found.scores.general.toFixed(2)} / 綢帶 ${found.scores.threads.toFixed(2)}` : found.score.toFixed(2)
     this.deps.log?.(`[stash] 擬合:${subtab},分數 ${sc},${ms} ms,${fmtGrid(found.grid)}(舊公式 ${fmtGrid(formulaGrid(layouts, subtab, client.w, client.h))}),${this.gridSummary(layouts, subtab, found.grid)}`)
-    const q = this.readQuantities(cap, fresh)
+    const q = this.readQuantities(cap, true)
     this.emit('show', client, ms, { qtyMs: q?.ms })
     return { kind: 'fit', found: true, subtab, held: false, sent: 'show', ms }
   }

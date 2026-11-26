@@ -165,7 +165,8 @@ describe('K3 倉庫關掉自動解除', () => {
     await h.clk.advance(30_000)
     expect(h.state.captures).toBe(n)
     expect(h.scan.snapshot().block).toBe('not-armed')
-    expect(h.armMiss()).toBe(1)
+    // 這次按熱鍵後顯示過倉庫 = 倉庫關掉:安靜解除,不提示「沒有偵測到倉庫」(第 3 輪審查;CLAUDE.md 既有規則)
+    expect(h.armMiss()).toBe(0)
   })
   it('hide 後重找對上(換子頁)→ 仍 armed、再送 show、不提示', async () => {
     const h = harness()

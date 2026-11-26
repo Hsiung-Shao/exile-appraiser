@@ -257,6 +257,29 @@ describe('code review 回歸', () => {
     // 已知限制:左右兩邊被遮時只剩上緣,左右錯位驗不出來;碎片頁面板不會左右移動,換頁 / 關倉庫時底下內容整個變了才會發生
     expect(scoreGrid(img, LAYOUT_330, 'general', { ...clean.grid, y: clean.grid.y + 15 })).toBeLessThan(minFitScore(LAYOUT_330, 'general'))
   }, T)
+  it('R2c 全寬兩行徽章還在、底下換成別的格子頁:快取的一般頁位置驗證不過(各種擺放位置)', async () => {
+    // 第 3 輪審查:看得到但內側太亮的邊原本也當成「看不到」→ 只剩碰巧又暗的幾格計分,錯的畫面也過、舊徽章卡在畫面上
+    const page = await toGray(sharp(path.join(FIX, 'qty-native/scarabs-1440.png')))
+    const passed: string[] = []
+    for (let dy = -40; dy <= 40; dy += 20) {
+      for (let dx = -40; dx <= 40; dx += 20) {
+        const grid = { H: 1440, x: TRUTH_330[0].x + dx, y: TRUTH_330[0].y + dy }
+        const rects = LAYOUT_330.subtabs.general.map((_, i) => TRUTH_330[i]).map(b => ({ ...b, x: b.x + dx, y: b.y + dy }))
+        const masks = rects.map(b => {
+          const top = b.y + Math.round(b.h * 0.45) - 3
+          return { x: b.x - 3, y: top, w: b.w + 6, h: b.y + b.h + 14 - top }
+        })
+        const img: GrayImage = { gray: new Uint8Array(page.gray), w: page.w, h: page.h, masks }
+        for (const m of masks) {
+          fillRect(img, m, 15)
+          fillRect(img, { x: m.x, y: m.y + 8, w: m.w, h: 2 }, 230)
+        }
+        const sc = scoreGrid(img, LAYOUT_330, 'general', grid)
+        if (sc >= minFitScore(LAYOUT_330, 'general')) passed.push(`${dx},${dy} → ${sc.toFixed(2)}`)
+      }
+    }
+    expect(passed).toEqual([])
+  }, T)
   it('R2 自己的徽章(深底 + 亮橫線)蓋在格位邊緣:帶 masks 仍擬合成 general,未被裁的格子差 ≤ 5 px', async () => {
     const masks = (SET_330 as unknown as { masks: Box[] }).masks
     const base = await toGray(sharp(FILE_330))
