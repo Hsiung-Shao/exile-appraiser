@@ -1,6 +1,6 @@
 <!--
   PoE1 倉庫價格疊層(Stash-Ninja 式,參考 Exile-UI,MIT;只在 overlay 掛,與符文塑形徽章層同級、呈現照符文徽章)。
-  - 收 main 的 `stash-scan-result`(main/src/ocr/stash-scan.ts:OCR 碎片頁子頁按鈕列 → 目前子頁 + 資料夾偏移):
+  - 收 main 的 `stash-scan-result`(main/src/ocr/stash-scan.ts:格子擬合 → 目前子頁 + 格子位置 `grid`):
     `show` → 固定版面(stash-data.ts)每格一枚徽章(stash-view.ts `layoutStashBadges`);`hide` → 清掉。
   - 徽章 = 名稱(辨識檢視,設定 `stashShowNames`)+ poe.ninja 單價(混沌石,≥ 1 神聖石改神聖石;三段顏色 `stashThresholds`,
     外觀變數 `config.ocrBadgeStyle` 與符文共用)。台服沒有 poe.ninja → 只顯示名稱,並提示一次。

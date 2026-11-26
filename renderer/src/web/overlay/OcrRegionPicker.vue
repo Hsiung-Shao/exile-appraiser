@@ -83,7 +83,7 @@ export default defineComponent({
     // WP-R2:框哪一種區域(欄位 / 確認後動作 / 標題)由 spec 決定
     const spec = computed(() => regionPickerSpec(regionPickerTarget.value))
     const savedRegion = computed(() => config[spec.value.field])
-    /** 參考框 / 初始框:已存的區域;沒存過但有預設區域(倉庫按鈕列)→ 預設區域 */
+    /** 參考框 / 初始框:已存的區域;沒存過但有預設區域(倉庫面板區)→ 預設區域 */
     const shownRegion = computed(() => savedRegion.value ?? spec.value.defaultRegion?.(vpSize.value) ?? null)
     const lastRegion = computed(() => spec.value.showLastDetected ? lastDetectedRegion.value : null)
     const savedBox = computed(() => shownRegion.value ? fromRegion(shownRegion.value, vpSize.value) : null)

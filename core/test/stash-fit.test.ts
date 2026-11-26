@@ -210,6 +210,11 @@ function fillRect (g: GrayImage, b: Box, v: number): void {
 }
 
 describe('code review 回歸', () => {
+  it('R0 3.29 聖甲蟲頁(另一種格位畫面)用執行期參數不判成倉庫', async () => {
+    // 交叉審查 3:這張真實擷取在 e2dbb20 被判成綢帶(0.5)
+    const img = await toGray(sharp(path.join(FIX, 'qty-native/scarabs-1440.png')))
+    expect(fitStashGrid(img, LAYOUT_330, { clientH: 1440, sizeRange: 0.08, quickReject: true })).toBeNull()
+  }, T)
   it('R1 隨機暗色方塊紋理(36 張)不判成倉庫:全部回 null', () => {
     const rnd = prng(20261126)
     const int = (lo: number, hi: number): number => lo + Math.floor(rnd() * (hi - lo + 1))

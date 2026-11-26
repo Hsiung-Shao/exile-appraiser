@@ -103,7 +103,7 @@ export interface Config {
   runeshapeThresholds: RuneshapeThresholds
   /** PoE1 倉庫價格疊層(碎片頁「一般」;預設開;只在 PoE1 + overlay 有作用)。 */
   stashPricesEnabled: boolean
-  /** PoE1 倉庫價格疊層:子頁按鈕列掃描間隔 ms(100–3000,預設 1000)。 */
+  /** PoE1 倉庫價格疊層:掃描間隔 ms(100–3000,預設 1000)。 */
   stashPricesIntervalMs: number
   /** PoE1 倉庫價格疊層:倉庫格子大概範圍(client 比例;2026-11-26 起只當格子擬合的搜尋範圍;null = 預設 core `defaultStashRegion`)。舊版存的按鈕列區域照讀,會被外擴當成搜尋範圍(太小 → 找不到格子,請還原預設或重新框選)。 */
   stashRegion: OcrRegion | null

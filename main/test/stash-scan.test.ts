@@ -554,6 +554,22 @@ describe('S8b 維持有上限(B2b)', () => {
     expect(await h.scan.tick()).toMatchObject({ found: false, held: false, sent: 'hide' })
     expect(h.events.map(e => e.reason)).toEqual(['show', 'hide'])
   })
+  it('游標一直停在格上:超過維持上限也不重搜、不改判成綢帶,照常收起', async () => {
+    const h = harness()
+    await showGeneral(h)
+    const fitsBefore = h.fits.fits
+    h.state.hold = true
+    // 快取的一般頁位置驗證不過(說明框蓋住),而重搜會對上綢帶
+    h.fits.show('threads', W, H)
+    h.fits.verifyScore = 0
+    for (let i = 0; i < STASH_HOLD_LIMIT + 2; i++) {
+      h.changeFrame()
+      await h.scan.tick()
+    }
+    expect(h.fits.fits).toBe(fitsBefore)
+    expect(h.events.map(e => e.reason)).toEqual(['show', 'hide'])
+    expect(h.events.some(e => e.subtab === 'threads')).toBe(false)
+  })
   it('對上格子後 held 次數歸零', async () => {
     const h = harness()
     await showGeneral(h)

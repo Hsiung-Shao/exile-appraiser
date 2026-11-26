@@ -112,7 +112,7 @@ export interface HostConfigForMain {
   stashPricesEnabled?: boolean
   /** PoE1 倉庫價格疊層掃描間隔(ms,100–3000,預設 1000) */
   stashPricesIntervalMs?: number
-  /** PoE1 倉庫價格疊層 OCR 區域(client 比例;null / 省略 = 預設碎片頁按鈕列) */
+  /** PoE1 倉庫價格疊層搜尋區域(client 比例;倉庫格子大概範圍,只當擬合的先驗;null / 省略 = 預設倉庫面板區,舊版按鈕列區域也當預設) */
   stashRegion?: OcrRegion | null
   /** 2026-10-15:倉庫價值 —— 讀每格堆疊數量算小計 / 整頁總價(預設開;舊 renderer 沒有這欄 = 開;main `StashScan` 依此決定讀不讀數量) */
   stashReadQuantity?: boolean

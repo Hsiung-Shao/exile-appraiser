@@ -90,7 +90,7 @@ export const SCAN_SPECS: Readonly<Record<ScanCardKind, ScanSpec>> = {
       timing: 'runeshape-timing'
     }
   },
-  // PoE1 倉庫價格疊層(碎片頁):OCR 區域沒框過 = 預設按鈕列(不是「未設定」),清除 = 還原預設;狀態每 2 秒讀一次
+  // PoE1 倉庫價格疊層(碎片頁):搜尋區域沒框過 = 預設倉庫面板區(不是「未設定」),清除 = 還原預設;狀態每 2 秒讀一次
   stash: {
     game: 'poe1',
     enabled: 'stashPricesEnabled',

@@ -272,7 +272,7 @@ export const regionPickerClosed = shallowRef<{ source: RegionPickerSource | null
 
 // ---- WP-R2:框選層參數化(同一個 OcrRegionPicker.vue 框兩種區域) ----
 
-/** 框哪一種區域:`reveal` = 靈魂之井揭露面板(WP-S2);`runeshape` = 符文塑形面板(WP-R2);`stash` = PoE1 倉庫碎片頁按鈕列(2026-10-14) */
+/** 框哪一種區域:`reveal` = 靈魂之井揭露面板(WP-S2);`runeshape` = 符文塑形面板(WP-R2);`stash` = PoE1 倉庫碎片頁格子大概範圍(2026-10-14;2026-11-26 前是按鈕列) */
 export type RegionPickerTarget = 'reveal' | 'runeshape' | 'stash'
 
 export interface RegionPickerSpec {

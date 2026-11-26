@@ -85,7 +85,7 @@ export function stashBlock (cfg: StashScanConfig, env: ScanEnv, ui: RuneshapeUiS
 }
 
 /**
- * 疊層沒顯示(不在倉庫 / 還沒認到按鈕列)時的最短 tick 間隔(使用者 2026-10-15 裁定):間隔 = max(設定間隔, 這個值);
+ * 疊層沒顯示(不在倉庫 / 還沒對上格子)時的最短 tick 間隔(使用者 2026-10-15 裁定):間隔 = max(設定間隔, 這個值);
  * 顯示中照設定間隔,偵測到倉庫的那個 tick 之後立刻回到設定間隔
  */
 export const STASH_IDLE_INTERVAL_MS = 3000
@@ -706,9 +706,9 @@ export class StashScan {
       const score = (this.deps.verify ?? scoreGrid)(img, layouts, sh.subtab, shiftGrid(sh.grid, -ox, -oy))
       if (score >= minFitScore(layouts, sh.subtab)) found = { subtab: sh.subtab, grid: sh.grid, score }
     }
-    // 顯示中驗證不過、但游標停在格子上(遊戲說明框蓋住一大片格子):不重搜,走下面的維持(code review B1:
-    // 被蓋住時重搜可能對上別的子頁 / 跳到錯的位置)
-    const holdNow = !found && sh != null && this.holdStreak < STASH_HOLD_LIMIT && this.deps.holdOnMiss?.() === true
+    // 顯示中驗證不過、但游標停在格子上(遊戲說明框蓋住一大片格子):不重搜,走下面的維持;超過維持上限照常收起
+    // (code review B1 / 交叉審查 1:被蓋住時重搜可能對上別的子頁 / 跳到錯的位置,而且之後只驗證錯的那頁就卡住)
+    const holdNow = !found && sh != null && this.deps.holdOnMiss?.() === true
     if (!found && !holdNow) {
       // 格長 ±8%(介面只隨 client 高度縮放)+ 預檢:倉庫沒開時每次擷取都會跑,4K 一次完整擬合約 0.2 秒、預檢約 0.03 秒(main 執行緒)
       const r = (this.deps.fit ?? fitStashGrid)(img, layouts, { clientH: sh && sh.clientW === client.w && sh.clientH === client.h ? sh.grid.H : client.h, sizeRange: STASH_FIT_SIZE_RANGE, quickReject: true })
