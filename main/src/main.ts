@@ -1020,6 +1020,12 @@ if (!skipStartup) app.whenReady().then(() => {
         return
       }
       if (windowMode === 'window') showNear(e.position)
+      // 2026-11-26 診斷:物品送到哪個視窗、它看不看得到(查價「沒有畫面」時分辨沒送到 / 視窗被藏 / 最小化)
+      if (win && !win.isDestroyed()) {
+        console.log(`[main] 物品文字送往${windowMode === 'window' ? '獨立視窗' : ' overlay'}:視窗${win.isVisible() ? '顯示中' : '隱藏'}${win.isMinimized() ? '、最小化' : ''}、位置 ${win.getBounds().x},${win.getBounds().y} ${win.getBounds().width}×${win.getBounds().height}`)
+      } else {
+        console.warn('[main] 物品文字沒有視窗可送(主視窗不存在)')
+      }
     },
     // 2026-10-01:原本「按一次辨識一次」→ 暫停 / 繼續褻瀆自動辨識
     // 第 16 步:切換後在右下角提示目前狀態(同一個提示視窗,連按更新內容)

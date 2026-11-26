@@ -24,7 +24,7 @@ export function isErrorLine (e: Pick<LogEntry, 'level' | 'text'>): boolean {
  * 子字串比對,所以 renderer 轉印行(`[renderer] [app] 解析…`)也算。
  */
 const OCR_TAGS = ['[ocr', '[reveal-scan]', '[runeshape]', '[capture]', '[scan-mask]', '[desecration]', '[stash]']
-const TRADE_TAGS = ['[app] 解析', '[app] 收到物品文字', '[trade', '[ninja]', '[http]', '[poe1]', '[poe2]']
+const TRADE_TAGS = ['[app] 解析', '[app] 收到物品文字', '[app] 查價面板', '[main] 物品文字', '[trade', '[ninja]', '[http]', '[poe1]', '[poe2]']
 // 2026-11-10:speedrun 計時器(熱鍵 / Client.txt 自動分段)歸在熱鍵篩選;2026-11-26 剪貼簿輪詢也算(熱鍵查價讀不到物品)
 const HOTKEY_TAGS = ['[shortcuts]', '[uiohook', '[speedrun]', '[timer]', '[ClipboardPoller]']
 

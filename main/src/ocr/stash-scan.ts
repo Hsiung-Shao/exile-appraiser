@@ -91,6 +91,20 @@ export const STASH_IDLE_INTERVAL_MS = 3000
 /** 熱鍵顯示模式:按熱鍵後連續幾次沒偵測到倉庫(沒顯示的 tick)就解除並提示 */
 export const STASH_ARM_MISS_LIMIT = 3
 
+/** 2026-11-26 診斷:被擋下原因的白話說明(記錄給人看;代碼仍照印,效能摘要 / 測試用代碼) */
+export const STASH_BLOCK_TEXT: Record<StashBlock, string> = {
+  disabled: '設定裡倉庫價格是關的',
+  'not-poe1': '目前遊戲不是 PoE1',
+  'not-intl': '台服沒有 poe.ninja 價格,不掃描',
+  'user-paused': '按了暫停熱鍵',
+  'not-armed': '顯示方式是「熱鍵」,還沒按熱鍵',
+  'not-overlay': '沒有使用 overlay 模式(視窗模式不畫倉庫價格)',
+  'no-window': '找不到遊戲視窗(遊戲沒開、或視窗標題設定不符)',
+  'game-inactive': '遊戲不在前景',
+  'ui-open': '查價面板 / 設定 / 框選層開著',
+  'capture-black': '遊戲畫面擷取全黑,可能是全螢幕獨占;期滿 / 遊戲 attach / 視窗改變後再試'
+}
+
 /** 「沒找到子頁按鈕」診斷記錄的最小間隔 */
 export const STASH_MISS_LOG_MS = 30_000
 
@@ -649,12 +663,21 @@ export class StashScan {
     this.deps.onArmMiss?.()
   }
 
+  /** 診斷:這個子頁的格子落在 client 哪個範圍(對照擷取畫面看位置偏不偏) */
+  private gridSummary (subtab: StashSubtab, yOffset: number, client: { w: number, h: number }): string {
+    const layouts = this.deps.qty?.layouts() ?? null
+    if (!layouts) return '版面資料沒載入(不讀數量)'
+    const r = cellRects(layouts, subtab, client.h, yOffset, stashLeft(client.w, client.h))
+    if (!r.length) return '這個子頁沒有格子'
+    const x0 = Math.min(...r.map(c => c.x)); const y0 = Math.min(...r.map(c => c.y))
+    const x1 = Math.max(...r.map(c => c.x + c.w)); const y1 = Math.max(...r.map(c => c.y + c.h))
+    return `${r.length} 格,格子區 ${Math.round(x0)},${Math.round(y0)} – ${Math.round(x1)},${Math.round(y1)}`
+  }
+
   /** 被擋下:記錄狀態(lastBlock / log / 計數)、作廢差分基準;停止類原因收掉疊層(暫停類留著) */
   private blockedResult (block: StashBlock, retryMs?: number): StashTickResult {
     if (block !== this.lastBlock) {
-      this.deps.log?.(block === 'capture-black'
-        ? '[stash] 暫停:capture-black(遊戲畫面擷取全黑,可能是全螢幕獨占;期滿 / 遊戲 attach / 視窗改變後再試)'
-        : `[stash] 暫停:${block}`)
+      this.deps.log?.(`[stash] 暫停:${block}(${STASH_BLOCK_TEXT[block]})`)
     }
     this.lastBlock = block
     this.blockCounts[block] = (this.blockCounts[block] ?? 0) + 1
@@ -696,7 +719,9 @@ export class StashScan {
     const key = `${client.w}x${client.h}@${cap.offset.x},${cap.offset.y}|${strip.x},${strip.y},${strip.width},${strip.height}`
     if (key !== this.lastCapKey) {
       this.lastCapKey = key
-      this.deps.log?.(`[stash] 擷取:client ${client.w}×${client.h}、擷取圖 ${cap.size.w}×${cap.size.h}、偏移 ${cap.offset.x},${cap.offset.y}、按鈕列 OCR 區 ${strip.x},${strip.y} ${strip.width}×${strip.height}`)
+      const ratio = client.w / client.h
+      // 版面以 client 高度換算、左緣 stashLeft;非 16:9 時位置最容易偏(已知只在 16:9 實機確認過)
+      this.deps.log?.(`[stash] 擷取:client ${client.w}×${client.h}(寬高比 ${ratio.toFixed(3)}${Math.abs(ratio - 16 / 9) > 0.01 ? ',不是 16:9' : ''},倉庫左緣 x ${Math.round(stashLeft(client.w, client.h))})、擷取圖 ${cap.size.w}×${cap.size.h}、偏移 ${cap.offset.x},${cap.offset.y}、按鈕列 OCR 區 ${strip.x},${strip.y} ${strip.width}×${strip.height}`)
     }
     const prev = this.baseline?.key === key ? this.baseline.fp : null
     // 畫面沒變:狀態不會變(子頁 / 開關都會改變按鈕列)
@@ -771,7 +796,7 @@ export class StashScan {
     }
     this.shown = { subtab, yOffset: match.yOffset, clientW: client.w, clientH: client.h }
     this.qty = null
-    this.deps.log?.(`[stash] 碎片頁:${subtab}${match.yOffset ? `(資料夾偏移 ${match.yOffset})` : ''},OCR ${ms} ms`)
+    this.deps.log?.(`[stash] 碎片頁:${subtab}${match.yOffset ? `(資料夾偏移 ${match.yOffset})` : ''},OCR ${ms} ms,${this.gridSummary(subtab, match.yOffset, client)}`)
     const q = this.readQuantities(cap, true)
     this.emit('show', client, ms, { qtyMs: q?.ms })
     return { kind: 'ocr', found: true, subtab, held: false, sent: 'show', ms }

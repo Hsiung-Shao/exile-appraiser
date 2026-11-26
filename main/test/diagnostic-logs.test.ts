@@ -12,6 +12,7 @@ vi.mock('electron', () => ({
 import { buildLogExport, logFileName, maskHomeDir, pickExportLogFiles } from '../src/app-log'
 import { describeClipboard } from '../src/HostClipboard'
 import { httpLogLine } from '../src/http'
+import { STASH_BLOCK_TEXT } from '../src/ocr/stash-scan'
 import { logExportSummary, matchesFilter } from '../../renderer/src/web/settings/log-view'
 
 const at = (y: number, mo: number, d: number, h = 12) => new Date(y, mo - 1, d, h).getTime()
@@ -120,6 +121,8 @@ describe('設定摘要與篩選', () => {
   it('新記錄行歸到查價 / 熱鍵篩選', () => {
     expect(matchesFilter({ level: 'info', text: '[renderer] [app] 收到物品文字 300 字元' }, 'trade')).toBe(true)
     expect(matchesFilter({ level: 'warn', text: '[ClipboardPoller] No item text found.' }, 'hotkey')).toBe(true)
+    expect(matchesFilter({ level: 'info', text: '[main] 物品文字送往獨立視窗:視窗隱藏' }, 'trade')).toBe(true)
+    expect(matchesFilter({ level: 'info', text: '[renderer] [app] 查價面板收起(獨立視窗)' }, 'trade')).toBe(true)
   })
 })
 
@@ -141,5 +144,15 @@ describe('接線守門', () => {
     for (const h of hides) expect(h, h).toContain('why:')
     expect(scan).toContain('cfgKey !== this.lastCfgKey')
     expect(scan).toContain('key !== this.lastCapKey')
+  })
+  it('倉庫被擋下的每種原因都有白話說明', () => {
+    for (const b of ['disabled', 'not-poe1', 'not-intl', 'user-paused', 'not-armed', 'not-overlay', 'no-window', 'game-inactive', 'ui-open', 'capture-black'] as const) {
+      expect(STASH_BLOCK_TEXT[b], b).toBeTruthy()
+    }
+  })
+  it('查價:物品送出後記視窗狀態、面板顯示 / 收起有記錄', () => {
+    const i = main.indexOf("send('item-text', e)")
+    expect(main.slice(i, i + 1500)).toMatch(/showNear\(e\.position\)[\s\S]*物品文字送往/)
+    expect(read('../../renderer/src/web/App.vue')).toContain('watch(panelVisible')
   })
 })
