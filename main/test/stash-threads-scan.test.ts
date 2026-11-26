@@ -66,44 +66,54 @@ describe('T9 掃描判出綢帶頁後送綢帶格子', () => {
     expect(h.events[0]).toMatchObject({ reason: 'show', subtab: 'threads', grid: G_THREADS, client: { w: W, h: H } })
     expect(h.scan.showing).toBe(true)
   })
-  it('一般 → 綢帶 → 一般 各送一次 show,對不上(異能)連 2 次送 hide', async () => {
+  it('一般 → 綢帶 → 一般:各先收起(驗證不過 2 次)再送新子頁的 show,對不上(異能)連 2 次送 hide', async () => {
     const h = harness()
+    const tickN = async (n: number) => {
+      let r
+      for (let i = 0; i < n; i++) { h.changeFrame(); r = await h.scan.tick() }
+      return r
+    }
     h.fits.show('general', W, H)
     expect(await h.scan.tick()).toMatchObject({ subtab: 'general', sent: 'show' })
 
     h.fits.show('threads', W, H)
-    h.changeFrame()
-    // 同一次顯示中換子頁沒重送 → renderer 仍畫一般頁的格子
-    expect(await h.scan.tick()).toMatchObject({ subtab: 'threads', sent: 'show' })
-    expect(h.events.map(e => [e.reason, e.subtab])).toEqual([['show', 'general'], ['show', 'threads']])
-    expect(h.events[1].grid).toEqual(G_THREADS)
+    // 顯示中不重搜:2 次對不上 → hide,下一個 tick 才擬合出綢帶
+    expect(await tickN(2)).toMatchObject({ found: false, sent: 'hide' })
+    expect(await tickN(1)).toMatchObject({ subtab: 'threads', sent: 'show' })
+    // 換子頁後沒送新子頁的 show → renderer 仍畫一般頁的格子
+    expect(h.events.map(e => [e.reason, e.subtab])).toEqual([['show', 'general'], ['hide', null], ['show', 'threads']])
+    expect(h.events[2].grid).toEqual(G_THREADS)
 
-    h.changeFrame()
     // 同子頁不重送
-    expect(await h.scan.tick()).toMatchObject({ subtab: 'threads', sent: null })
-    expect(h.events).toHaveLength(2)
+    expect(await tickN(1)).toMatchObject({ subtab: 'threads', sent: null })
+    expect(h.events).toHaveLength(3)
 
     h.fits.show('general', W, H)
-    h.changeFrame()
-    expect(await h.scan.tick()).toMatchObject({ subtab: 'general', sent: 'show' })
+    expect(await tickN(2)).toMatchObject({ found: false, sent: 'hide' })
+    expect(await tickN(1)).toMatchObject({ subtab: 'general', sent: 'show' })
     expect(h.events.at(-1)).toMatchObject({ reason: 'show', subtab: 'general', grid: G_GENERAL })
 
     h.fits.none()
-    h.changeFrame()
-    expect(await h.scan.tick()).toMatchObject({ found: false, sent: null })
-    h.changeFrame()
-    expect(await h.scan.tick()).toMatchObject({ found: false, sent: 'hide' })
+    expect(await tickN(1)).toMatchObject({ found: false, sent: null })
+    expect(await tickN(1)).toMatchObject({ found: false, sent: 'hide' })
     expect(h.events.at(-1)).toMatchObject({ reason: 'hide', subtab: null })
   })
-  it('換子頁時快取位置驗證不過(驗證只看目前顯示的子頁)→ 重新擬合', async () => {
+  it('換子頁時驗證只看目前顯示的子頁,顯示中不 fit;收起後才 fit 出新子頁', async () => {
     const h = harness()
     h.fits.show('general', W, H)
     await h.scan.tick()
     h.fits.show('threads', W, H)
     h.changeFrame()
     await h.scan.tick()
-    // 驗證用了新子頁 / 沒重擬合 → 疊層停在一般頁
-    expect(h.fits.s.verifies).toBe(1)
+    h.changeFrame()
+    await h.scan.tick()
+    // 顯示中重 fit / 驗證用了新子頁 → 沒收起就直接換,或疊層停在一般頁
+    expect(h.fits.s.verifies).toBe(2)
+    expect(h.fits.s.fits).toBe(1)
+    expect(h.scan.showing).toBe(false)
+    h.changeFrame()
+    await h.scan.tick()
     expect(h.fits.s.fits).toBe(2)
+    expect(h.events.at(-1)).toMatchObject({ reason: 'show', subtab: 'threads' })
   })
 })

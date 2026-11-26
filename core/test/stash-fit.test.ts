@@ -237,6 +237,26 @@ describe('code review 回歸', () => {
     expect(hits).toEqual([])
   }, T)
 
+  it('R2b 全寬兩行徽章(遮罩蓋住格子左右兩邊):快取位置仍驗證得過', async () => {
+    // 第 2 輪審查 N1:顯示名稱時徽章撐到格寬、遮罩外擴 3 px,蓋住格子 y 0.45–1.0 的左右兩邊 → 只剩上緣可看。
+    // 帶著這種徽章重搜本來就定不準(只剩上緣,水平方向不唯一)→ main 顯示中不重搜、先收起徽章再找(main/test 守門)
+    const base = await toGray(sharp(FILE_330))
+    const clean = fitStashGrid(base, LAYOUT_330, { clientH: 1440, sizeRange: 0.08, quickReject: true })!
+    const masks = TRUTH_330.map(b => {
+      const top = b.y + Math.round(b.h * 0.45) - 3
+      return { x: b.x - 3, y: top, w: b.w + 6, h: b.y + b.h + 14 - top }
+    })
+    const img: GrayImage = { gray: new Uint8Array(base.gray), w: base.w, h: base.h, masks }
+    for (const m of masks) {
+      fillRect(img, m, 15)
+      fillRect(img, { x: m.x, y: m.y + 8, w: m.w, h: 2 }, 230)
+      fillRect(img, { x: m.x, y: m.y + 20, w: m.w, h: 2 }, 230)
+    }
+    expect(scoreGrid(img, LAYOUT_330, 'general', clean.grid)).toBeGreaterThanOrEqual(minFitScore(LAYOUT_330, 'general'))
+    // 上下錯一格長的 1/4 驗證不過(看不到的格不算,但錯位置不能也過)。
+    // 已知限制:左右兩邊被遮時只剩上緣,左右錯位驗不出來;碎片頁面板不會左右移動,換頁 / 關倉庫時底下內容整個變了才會發生
+    expect(scoreGrid(img, LAYOUT_330, 'general', { ...clean.grid, y: clean.grid.y + 15 })).toBeLessThan(minFitScore(LAYOUT_330, 'general'))
+  }, T)
   it('R2 自己的徽章(深底 + 亮橫線)蓋在格位邊緣:帶 masks 仍擬合成 general,未被裁的格子差 ≤ 5 px', async () => {
     const masks = (SET_330 as unknown as { masks: Box[] }).masks
     const base = await toGray(sharp(FILE_330))

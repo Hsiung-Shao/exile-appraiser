@@ -55,7 +55,9 @@ export function formulaGrid (file: StashLayoutFile, subtab: StashSubtab, clientW
 /** 已知位置驗證一次(快取命中時用,便宜):回傳同 `FitResult.score` 的分數 */
 export function scoreGrid (img: GrayImage, file: StashLayoutFile, subtab: StashSubtab, g: StashGrid): number {
   const L = relLayout(file, subtab, g.H)
-  return evalAt(ctxOf(img, true), L, g.x + Math.round(L.box * FORMULA_DX), g.y).score
+  const c = ctxOf(img, true)
+  c.skipUnseen = true
+  return evalAt(c, L, g.x + Math.round(L.box * FORMULA_DX), g.y).score
 }
 
 /** 格位「內側比外側暗」至少這麼多灰階才算對上 */
@@ -111,7 +113,7 @@ export function integral (img: GrayImage, reuse = false): Float64Array {
 }
 
 /** `m` = 遮罩的積分(被遮像素數);沒有遮罩 = undefined */
-interface Ctx { s: Float64Array, W: number, w: number, h: number, m?: Float64Array }
+interface Ctx { s: Float64Array, W: number, w: number, h: number, m?: Float64Array, skipUnseen?: boolean }
 
 /** 這條邊條碰到遮罩 */
 function masked (c: Ctx, x0: number, y0: number, x1: number, y1: number): boolean {
@@ -161,18 +163,24 @@ function slotAt (c: Ctx, g: Geo, x: number, y: number): number {
   const { b, a, t, o0, o1 } = g
   let d = Infinity
   let n = 0
-  // 影像外(擷取被裁)的邊不算;內側太亮(圖示蓋到邊)的邊也不算,但至少要兩邊可看
-  // 遮罩蓋到的邊(我們自己的徽章)也不算
+  let m = 0
+  // 影像外(擷取被裁)的邊不算;內側太亮(圖示蓋到邊)的邊也不算,但至少要兩邊可看。
+  // 遮罩蓋到的邊(我們自己的徽章)也不算:有邊被遮時一邊可看就夠,一邊都看不到 = 這格「看不到」(NaN,不進分母;
+  // 第 2 輪審查 N1:全寬兩行徽章蓋住左右兩邊,當成沒對上會讓驗證永遠不過、重搜把格子推歪)
   let i = mean(c, x + g.xm, y + a, x + b - a, y + t)
   let o = mean(c, x + g.xm, y - o1, x + b - a, y - o0)
-  if (i === i && o === o && i <= SLOT_INNER_MAX && !masked(c, x + g.xm, y - o1, x + b - a, y + t)) { n++; d = Math.min(d, o - i) }
+  if (masked(c, x + g.xm, y - o1, x + b - a, y + t)) m++
+  else if (i === i && o === o && i <= SLOT_INNER_MAX) { n++; d = Math.min(d, o - i) }
   i = mean(c, x + b - t, y + a, x + b - a, y + g.ym)
   o = mean(c, x + b + o0, y + a, x + b + o1, y + g.ym)
-  if (i === i && o === o && i <= SLOT_INNER_MAX && !masked(c, x + b - t, y + a, x + b + o1, y + g.ym)) { n++; d = Math.min(d, o - i) }
+  if (masked(c, x + b - t, y + a, x + b + o1, y + g.ym)) m++
+  else if (i === i && o === o && i <= SLOT_INNER_MAX) { n++; d = Math.min(d, o - i) }
   i = mean(c, x + a, y + g.yl0, x + t, y + g.yl1)
   o = mean(c, x - o1, y + g.yl0, x - o0, y + g.yl1)
-  if (i === i && o === o && i <= SLOT_INNER_MAX && !masked(c, x - o1, y + g.yl0, x + t, y + g.yl1)) { n++; d = Math.min(d, o - i) }
-  return n >= 2 ? d : 0
+  if (masked(c, x - o1, y + g.yl0, x + t, y + g.yl1)) m++
+  else if (i === i && o === o && i <= SLOT_INNER_MAX) { n++; d = Math.min(d, o - i) }
+  if (n >= (m ? 1 : 2)) return d
+  return m && n === 0 ? NaN : 0
 }
 
 interface Rel { rel: Array<[number, number]>, nb: Array<[number, number]>, box: number, names: string[], geo: Geo }
@@ -203,13 +211,17 @@ function sumAt (c: Ctx, pts: ReadonlyArray<[number, number]>, g: Geo, x: number,
   let pass = 0
   let sum = 0
   const n = idx ? idx.length : pts.length
+  let cnt = n
   for (let k = 0; k < n; k++) {
     const p = pts[idx ? idx[k] : k]
     const d = slotAt(c, g, x + p[0], y + p[1])
+    // 被遮罩擋到看不到的格:驗證已知位置時不算(分子分母都不計);搜尋時算沒對上
+    // (搜尋時排除會讓「格子剛好落在徽章上」的錯位置分母變小、分數虛高,實測整片偏 32 px)
+    if (d !== d) { if (c.skipUnseen) cnt--; continue }
     if (d >= SLOT_CONTRAST) pass++
     sum += d <= 0 ? 0 : d >= SLOT_CONTRAST * 3 ? SLOT_CONTRAST * 3 : d
   }
-  return { pass, sum, n }
+  return { pass, sum, n: cnt }
 }
 
 /** 目標值 = 格位平均對比 − 鄰位平均對比;score = 格位過門檻比例 − 鄰位過門檻比例 */
@@ -217,7 +229,8 @@ function evalAt (c: Ctx, L: Rel, x: number, y: number, idx?: readonly number[], 
   const a = sumAt(c, L.rel, L.geo, x, y, idx)
   const n = sumAt(c, L.nb, L.geo, x, y, nbIdx)
   const nn = Math.max(1, n.n)
-  return { score: a.pass / a.n - n.pass / nn, v: a.sum / a.n - n.sum / nn }
+  const an = Math.max(1, a.n)
+  return { score: a.pass / an - n.pass / nn, v: a.sum / an - n.sum / nn }
 }
 
 /** 版面外框寬高(相對第一格左上) */

@@ -142,7 +142,7 @@ describe('K2 按熱鍵後開始掃描', () => {
 })
 
 describe('K3 倉庫關掉自動解除', () => {
-  it('顯示中對不上格子達上限 → hide、armed = false、之後不再擷取', async () => {
+  it('顯示中對不上格子達上限 → hide 但仍 armed;之後連續沒偵測到達上限才解除、不再擷取', async () => {
     const h = harness()
     h.scan.start(0)
     h.scan.arm()
@@ -150,14 +150,36 @@ describe('K3 倉庫關掉自動解除', () => {
     expect(h.scan.showing).toBe(true)
     h.fits.none()
     h.changeFrame()
-    await h.clk.advance(2000)
+    await h.clk.advance(1000)
     expect(h.events.map(e => e.reason)).toEqual(['show', 'hide'])
+    // 對不上可能只是換子頁(收起後重找),熱鍵模式不在收起時解除(2026-11-26 N1)
+    expect(h.scan.armed).toBe(true)
+    // 收起後沒顯示的 tick 累計(收起那個 tick 也算一次),達 STASH_ARM_MISS_LIMIT 才解除
+    h.changeFrame()
+    await h.clk.advance(500)
+    expect(h.scan.armed).toBe(true)
+    h.changeFrame()
+    await h.clk.advance(500)
     expect(h.scan.armed).toBe(false)
     const n = h.state.captures
     await h.clk.advance(30_000)
     expect(h.state.captures).toBe(n)
     expect(h.scan.snapshot().block).toBe('not-armed')
-    // 倉庫關掉收起不是「沒偵測到倉庫」,不提示
+    expect(h.armMiss()).toBe(1)
+  })
+  it('hide 後重找對上(換子頁)→ 仍 armed、再送 show、不提示', async () => {
+    const h = harness()
+    h.scan.start(0)
+    h.scan.arm()
+    await h.clk.advance(0)
+    h.fits.show('threads', W, H)
+    h.changeFrame()
+    await h.clk.advance(1000)
+    expect(h.events.map(e => e.reason)).toEqual(['show', 'hide'])
+    h.changeFrame()
+    await h.clk.advance(500)
+    expect(h.events.map(e => e.reason)).toEqual(['show', 'hide', 'show'])
+    expect(h.scan.armed).toBe(true)
     expect(h.armMiss()).toBe(0)
   })
 })

@@ -229,7 +229,7 @@
       "trigger_hotkey": "On hotkey",
       "timing": "Detection {ms} ms ({count} total)",
       "region": "Search area",
-      "region_hint": "Slots are only searched inside this area; frame the whole slot area, a rough box is fine (10% extra is searched around it). Not set = the default stash panel area on the left of the screen. An area framed for the old sub-tab button row is too small: reset to default or frame again.",
+      "region_hint": "Slots are only searched inside this area; frame the whole slot area, a rough box is fine (10% extra is searched around it). Not set = the default stash panel area on the left of the screen. An area framed for the old sub-tab button row is ignored and the default area is used.",
       "region_default": "Default (stash panel on the left)",
       "region_reset": "Reset to default",
       "read_quantity": "Stash value (read stack sizes and total)",

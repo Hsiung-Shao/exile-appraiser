@@ -1,8 +1,8 @@
 // 實跑驗證:PoE1 3.30 碎片倉庫頁(一般 / 綢帶)疊層的偵測與格子。不開遊戲、不送任何輸入。
 // 輸入 = 使用者 3.30 截圖(倉庫面板裁圖,1440 高 client 的 1:1 像素)。流程:
-//   1. 真 Windows OCR 讀裁圖上緣 → 「一般」按鈕文字中心 → 推出裁圖在 2560×1440 client 的位置,貼回黑畫布;
-//   2. 依 runtime 同一條路:stripRect 裁掃描條 ×3 JPEG q95 → WinOcr → findSubtabButtons → 三顆按鈕 p99 → activeSubtab;
-//   3. 該子頁的 cellRects 每格 readCellQuantity,對人工判讀;
+//   1. 真 Windows OCR 讀裁圖上緣 → 按鈕文字中心 → 推出裁圖在 2560×1440 client 的位置,貼回黑畫布(OCR 只用來定位裁圖);
+//   2. 依 runtime 同一條路:預設搜尋範圍 → 格子擬合 fitStashGrid(執行期參數)→ 子頁 + 格子位置;
+//   3. 該子頁的 gridRects 每格 readCellQuantity,對人工判讀;
 //   4. 輸出標註圖(格框 + 讀數)與 run.log / exit_code.txt。
 // 用法:node .claude/skills/verify/check-stash-330.mjs <證據目錄> --general <一般頁截圖> --threads <綢帶頁截圖>
 import { appendFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'

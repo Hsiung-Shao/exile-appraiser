@@ -583,7 +583,8 @@ export class StashScan {
     return ev
   }
 
-  private hide (client: { w: number, h: number }, ocrMs?: number, opts: { why?: string } = {}): StashScanEvent['reason'] | null {
+  /** `keepArmed`:暫時收起(位置驗證不過、收起後重找),熱鍵模式不解除 */
+  private hide (client: { w: number, h: number }, ocrMs?: number, opts: { keepArmed?: boolean, why?: string } = {}): StashScanEvent['reason'] | null {
     if (!this.shown) return null
     this.deps.log?.(`[stash] 收起倉庫價格(${opts.why ?? '未註明'})`)
     this.shown = null
@@ -592,7 +593,7 @@ export class StashScan {
     this.missStreak = 0
     this.holdStreak = 0
     // 熱鍵顯示模式:疊層收起(倉庫關掉 / 再按熱鍵 / 停止類原因)= 解除,下次要再按熱鍵
-    if (this.isArmed && this.hotkeyMode()) this.disarm()
+    if (this.isArmed && this.hotkeyMode() && opts.keepArmed !== true) this.disarm()
     this.emit('hide', client, ocrMs)
     return 'hide'
   }
@@ -705,13 +706,21 @@ export class StashScan {
       // 顯示中:先以快取位置驗證(說明框 / 數量變化不必整個重搜)
       const score = (this.deps.verify ?? scoreGrid)(img, layouts, sh.subtab, shiftGrid(sh.grid, -ox, -oy))
       if (score >= minFitScore(layouts, sh.subtab)) found = { subtab: sh.subtab, grid: sh.grid, score }
+    } else if (sh) {
+      // 顯示中 client 大小變了:舊位置一定不對,立刻收起,下一個 tick 重找
+      const ms = Math.round(performance.now() - t0)
+      this.baseline = null
+      const sent = this.hide(client, ms, { keepArmed: true, why: `client 大小改變(${sh.clientW}×${sh.clientH} → ${client.w}×${client.h}),重找格子` })
+      return { kind: 'fit', found: false, subtab: null, held: false, sent, ms }
     }
-    // 顯示中驗證不過、但游標停在格子上(遊戲說明框蓋住一大片格子):不重搜,走下面的維持;超過維持上限照常收起
-    // (code review B1 / 交叉審查 1:被蓋住時重搜可能對上別的子頁 / 跳到錯的位置,而且之後只驗證錯的那頁就卡住)
-    const holdNow = !found && sh != null && this.deps.holdOnMiss?.() === true
-    if (!found && !holdNow) {
+    // 顯示中一律不重搜:驗證不過 = 一次「沒對上」(游標停在格上 → 維持;否則連續 2 次收起),收起後下一個 tick 在
+    // 沒有自己徽章的畫面上重找。
+    // - code review B1 / 交叉審查 1:說明框蓋住時重搜可能對上別的子頁 / 跳到錯的位置,之後只驗證錯的那頁就卡住
+    // - 第 2 輪審查 N1:徽章顯示名稱時撐到格寬、蓋住格子左右兩邊,帶著徽章重搜只剩上緣可看,實測整片偏 17–52 px
+    // 代價:換子頁要先收起再出現(約 2–3 個 tick)
+    if (!found && !sh) {
       // 格長 ±8%(介面只隨 client 高度縮放)+ 預檢:倉庫沒開時每次擷取都會跑,4K 一次完整擬合約 0.2 秒、預檢約 0.03 秒(main 執行緒)
-      const r = (this.deps.fit ?? fitStashGrid)(img, layouts, { clientH: sh && sh.clientW === client.w && sh.clientH === client.h ? sh.grid.H : client.h, sizeRange: STASH_FIT_SIZE_RANGE, quickReject: true })
+      const r = (this.deps.fit ?? fitStashGrid)(img, layouts, { clientH: client.h, sizeRange: STASH_FIT_SIZE_RANGE, quickReject: true })
       if (r) found = { subtab: r.subtab, grid: shiftGrid(r.grid, ox, oy), score: r.score, scores: r.scores }
       this.ocrCount++
       this.counters.ocrRuns++
@@ -735,7 +744,8 @@ export class StashScan {
         return { kind: 'fit', found: false, subtab: this.shown!.subtab, held: true, sent: null, ms }
       }
       this.missStreak++
-      const sent = this.missStreak >= STASH_MISS_LIMIT ? this.hide(client, ms, { why: `連續 ${this.missStreak} 次沒對上倉庫格子(倉庫關了 / 換到別頁?)` }) : null
+      // 熱鍵模式不在這裡解除:可能只是換子頁,收起後重找;真的沒倉庫由 countArmMiss 累計解除
+      const sent = this.missStreak >= STASH_MISS_LIMIT ? this.hide(client, ms, { keepArmed: true, why: `連續 ${this.missStreak} 次沒對上倉庫格子(倉庫關了 / 換到別頁?)` }) : null
       return { kind: 'fit', found: false, subtab: null, held: false, sent, ms }
     }
     this.baseline = { key, fp }

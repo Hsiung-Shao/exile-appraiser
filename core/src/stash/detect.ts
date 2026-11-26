@@ -32,8 +32,11 @@ const LEGACY_REGION_MAX_H = 0.25
 export function stashSearchClientRect (client: { w: number, h: number }, region?: Rect | null): Rect {
   const full: Rect = { x: 0, y: 0, w: client.w, h: client.h }
   if (region && region.w > 0 && region.h > 0 && !isLegacyStashRegion(region)) {
-    // 寬度上限 = client 高(倉庫面板寬約 0.62 × 高;框整個超寬畫面時擬合在 main 執行緒要一秒以上,code review I1)
-    const r: Rect = { x: region.x * client.w, y: region.y * client.h, w: Math.min(region.w * client.w, client.h), h: region.h * client.h }
+    // 寬度上限 = client 高,從「黑邊 − 5% 高」與框的左緣取右邊那個起算(倉庫面板寬約 0.62 × 高;框整個超寬畫面時
+    // 擬合在 main 執行緒要一秒以上,code review I1;超寬螢幕從最左邊框起時面板在黑邊之後,第 2 輪 N3)
+    const left = Math.max(region.x * client.w, stashLeft(client.w, client.h) - client.h * 0.05)
+    const right = Math.min(region.x * client.w + region.w * client.w, left + client.h)
+    const r: Rect = { x: left, y: region.y * client.h, w: Math.max(1, right - left), h: region.h * client.h }
     const mx = r.w * 0.1
     const my = r.h * 0.1
     const g = intersect({ x: Math.floor(r.x - mx), y: Math.floor(r.y - my), w: Math.ceil(r.w + 2 * mx), h: Math.ceil(r.h + 2 * my) }, full)

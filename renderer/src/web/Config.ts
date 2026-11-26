@@ -105,7 +105,7 @@ export interface Config {
   stashPricesEnabled: boolean
   /** PoE1 倉庫價格疊層:掃描間隔 ms(100–3000,預設 1000)。 */
   stashPricesIntervalMs: number
-  /** PoE1 倉庫價格疊層:倉庫格子大概範圍(client 比例;2026-11-26 起只當格子擬合的搜尋範圍;null = 預設 core `defaultStashRegion`)。舊版存的按鈕列區域照讀,會被外擴當成搜尋範圍(太小 → 找不到格子,請還原預設或重新框選)。 */
+  /** PoE1 倉庫價格疊層:倉庫格子大概範圍(client 比例;2026-11-26 起只當格子擬合的搜尋範圍;null = 預設 core `defaultStashRegion`)。舊版存的按鈕列區域(高 < 0.25,core `isLegacyStashRegion`)照讀但不採用,main 改用預設範圍。 */
   stashRegion: OcrRegion | null
   /** PoE1 倉庫價格疊層:徽章上顯示物品名稱(辨識檢視;預設開)。 */
   stashShowNames: boolean

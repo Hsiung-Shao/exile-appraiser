@@ -184,7 +184,7 @@ describe('S9 關倉庫後清除', () => {
 })
 
 describe('S9b 狀態轉換只送一次', () => {
-  it('同子頁不重送、換綢帶 / 回一般送 show、對不上(異能頁)連 2 次 hide、client 大小變了重送', async () => {
+  it('同子頁不重送、換綢帶 / 回一般先收起再送 show、對不上(異能頁)連 2 次 hide、client 大小變了先收起再重送', async () => {
     const h = harness()
     await showGeneral(h)
     const ev0 = h.events[0]
@@ -198,12 +198,18 @@ describe('S9b 狀態轉換只送一次', () => {
     expect(h.events).toHaveLength(1)
 
     h.fits.show('threads', W, H)
+    // 顯示中不重搜:驗證不過 2 次 → 收起,下一個 tick 才擬合出綢帶(2026-11-26 N1)
     h.changeFrame()
-    // 換子頁沒重送 → 一般頁的格子價格疊在綢帶頁上
+    expect(await h.scan.tick()).toMatchObject({ found: false, sent: null })
+    h.changeFrame()
+    expect(await h.scan.tick()).toMatchObject({ found: false, sent: 'hide' })
+    h.changeFrame()
+    // 換子頁沒送新子頁的 show → 一般頁的格子價格疊在綢帶頁上
     expect(await h.scan.tick()).toMatchObject({ found: true, subtab: 'threads', sent: 'show' })
     expect(h.showingCalls.at(-1)).toEqual({ showing: true, st: { subtab: 'threads', grid: formulaGrid(LAYOUTS, 'threads', W, H), clientH: H } })
 
     h.fits.show('general', W, H)
+    for (let i = 0; i < 2; i++) { h.changeFrame(); await h.scan.tick() }
     h.changeFrame()
     expect(await h.scan.tick()).toMatchObject({ subtab: 'general', sent: 'show' })
     expect(h.events.at(-1)).toMatchObject({ reason: 'show', subtab: 'general', grid: GRID })
@@ -227,9 +233,12 @@ describe('S9b 狀態轉換只送一次', () => {
     h.state.client = { w: W - 200, h: H }
     h.fits.show('general', W - 200, H)
     h.changeFrame()
-    // 沒比 client 大小 → 遊戲改視窗大小後疊層仍用舊尺寸
+    // client 大小變了:舊位置一定不對,立刻收起;沒比 client 大小 → 遊戲改視窗大小後疊層仍用舊尺寸
+    expect(await h.scan.tick()).toEqual(expect.objectContaining({ kind: 'fit', found: false, sent: 'hide' }))
+    expect(h.scan.showing).toBe(false)
+    h.changeFrame()
     expect(await h.scan.tick()).toMatchObject({ subtab: 'general', sent: 'show' })
-    expect(h.events).toHaveLength(n + 1)
+    expect(h.events).toHaveLength(n + 2)
     expect(h.events.at(-1)?.client).toEqual({ w: W - 200, h: H })
   })
   it('資料夾內(格子整體下移)→ show 帶下移後的 grid', async () => {
@@ -306,14 +315,16 @@ describe('S9d 畫面沒變不重新比對', () => {
     expect(h.fits.s.fits).toBe(1)
     expect(h.fits.s.verifies).toBe(1)
   })
-  it('縮圖相同但 client 大小改變 → 仍重新擬合', async () => {
+  it('縮圖相同但 client 大小改變 → 仍重新偵測:先收起,下一個 tick 重新擬合', async () => {
     const h = harness()
     await showGeneral(h)
     h.state.client = { w: W - 100, h: H }
     h.fits.show('general', W - 100, H)
     // 差分沒比 client → 換解析度後疊層停在舊尺寸
-    expect(await h.scan.tick()).toMatchObject({ kind: 'fit' })
+    expect(await h.scan.tick()).toMatchObject({ kind: 'fit', found: false, sent: 'hide' })
+    expect(await h.scan.tick()).toMatchObject({ kind: 'fit', found: true, sent: 'show' })
     expect(h.fits.s.fits).toBe(2)
+    expect(h.events.at(-1)?.client).toEqual({ w: W - 100, h: H })
   })
 })
 
@@ -847,22 +858,28 @@ describe('S1–S5 格子擬合流程', () => {
     expect(h.events).toHaveLength(1)
   })
 
-  it('S2 verify 分數低於 MIN_FIT_SCORE → 重新 fit,送出新 grid', async () => {
+  it('S2 verify 不過:顯示中不 fit、連 2 次收起,下一個 tick fit 並送新 grid', async () => {
     const h = harness()
     await showGeneral(h)
     // 倉庫往下移了(例如開 / 關資料夾):快取位置對不上
     const moved = h.fits.show('general', W, H, 47)
     expect(moved.grid.y).not.toBe(GRID.y)
     h.changeFrame()
+    // 顯示中重搜 → 帶著我們自己的徽章擬合會整片偏掉(第 2 輪審查 N1)
+    expect(await h.scan.tick()).toMatchObject({ kind: 'fit', found: false, sent: null })
+    h.changeFrame()
+    expect(await h.scan.tick()).toMatchObject({ kind: 'fit', found: false, sent: 'hide' })
+    expect(h.fits.s.fits).toBe(1)
+    expect(h.fits.s.verifies).toBe(2)
+    h.changeFrame()
     expect(await h.scan.tick()).toMatchObject({ kind: 'fit', found: true, subtab: 'general', sent: 'show' })
-    expect(h.fits.s.verifies).toBe(1)
     expect(h.fits.s.fits).toBe(2)
-    expect(h.events).toHaveLength(2)
-    expect(h.events[1].grid).toEqual(moved.grid)
+    expect(h.events.map(e => e.reason)).toEqual(['show', 'hide', 'show'])
+    expect(h.events[2].grid).toEqual(moved.grid)
     expect(h.showingCalls.at(-1)?.st.grid).toEqual(moved.grid)
   })
 
-  it('S2b 門檻邊界:分數 = MIN_FIT_SCORE 沿用快取、略低於才重 fit', async () => {
+  it('S2b 門檻邊界:分數 = MIN_FIT_SCORE 沿用快取、略低於算一次沒對上', async () => {
     const h = harness()
     await showGeneral(h)
     h.fits.s.verifyScore = MIN_FIT_SCORE
@@ -872,8 +889,12 @@ describe('S1–S5 格子擬合流程', () => {
     expect(h.fits.s.fits).toBe(1)
     h.fits.s.verifyScore = MIN_FIT_SCORE - 0.01
     h.changeFrame()
-    await h.scan.tick()
-    expect(h.fits.s.fits).toBe(2)
+    expect(await h.scan.tick()).toMatchObject({ found: false, held: false, sent: null })
+    // 顯示中不重搜
+    expect(h.fits.s.fits).toBe(1)
+    h.changeFrame()
+    expect(await h.scan.tick()).toMatchObject({ found: false, sent: 'hide' })
+    expect(h.fits.s.fits).toBe(1)
   })
 
   it('S3 偵測不呼叫 recognize(OCR)', async () => {
@@ -936,7 +957,7 @@ describe('code review 回歸', () => {
     expect(h.scan.showing).toBe(true)
   })
 
-  it('R5 顯示中 client 2560×1440 → 1920×1080:重新 fit 的先驗 clientH = 1080', async () => {
+  it('R5 顯示中 client 2560×1440 → 1920×1080:先收起,下一個 tick 重新 fit 的先驗 clientH = 1080', async () => {
     const h = harness()
     h.state.client = { w: 2560, h: 1440 }
     h.env.bounds = { x: 0, y: 0, width: 2560, height: 1440 }
@@ -947,28 +968,55 @@ describe('code review 回歸', () => {
     h.env.bounds = { x: 0, y: 0, width: 1920, height: 1080 }
     h.fits.show('general', 1920, 1080)
     h.changeFrame()
-    await h.scan.tick()
+    expect(await h.scan.tick()).toMatchObject({ found: false, sent: 'hide' })
+    expect(h.fits.s.fits).toBe(1)
+    h.changeFrame()
+    expect(await h.scan.tick()).toMatchObject({ found: true, sent: 'show' })
     // 沿用舊 grid.H(1440)當先驗 → 新尺寸的格長落在搜尋範圍外
     expect(h.fits.s.fits).toBe(2)
     expect(h.fits.s.priors[1].clientH).toBe(1080)
   })
 
-  it('R6 同子頁位置小改(x+3)且游標在格上:送新 grid 的 show,這個 tick 不讀數量', async () => {
+  it('R6 位置對不上且游標在格上(說明框蓋住):held、不 fit、不讀數量、不送新 show', async () => {
     const h = harness({ qty: true })
     await showGeneral(h)
     const reads = h.state.pixelRects.length
     expect(reads).toBeGreaterThan(0)
-    const skips = h.scan.counters.qtyCursorSkips
     h.state.qtyPaused = true
+    h.state.hold = true
     h.fits.s.target = { subtab: 'general', grid: { ...GRID, x: GRID.x + 3 } }
     h.changeFrame()
-    expect(await h.scan.tick()).toMatchObject({ kind: 'fit', found: true, subtab: 'general', sent: 'show' })
-    expect(h.fits.s.fits).toBe(2)
-    expect(h.events).toHaveLength(2)
-    expect(h.events[1].grid).toEqual({ ...GRID, x: GRID.x + 3 })
-    // 當成剛打開 → 略過「游標停在格上不讀」,說明框還開著時把說明框讀成數量
+    // 顯示中位置小改也不直接重搜;游標在格上時說明框可能蓋住數字,不能讀
+    expect(await h.scan.tick()).toMatchObject({ kind: 'fit', found: false, held: true, sent: null })
+    expect(h.fits.s.fits).toBe(1)
+    expect(h.events).toHaveLength(1)
     expect(h.state.pixelRects).toHaveLength(reads)
-    expect(h.scan.counters.qtyCursorSkips).toBe(skips + 1)
+  })
+
+  it('R6b 位置小改(x+3)且游標不在格上:收起後重 fit,送新 grid 的 show', async () => {
+    const h = harness({ qty: true })
+    await showGeneral(h)
+    h.fits.s.target = { subtab: 'general', grid: { ...GRID, x: GRID.x + 3 } }
+    for (let i = 0; i < 2; i++) { h.changeFrame(); await h.scan.tick() }
+    h.changeFrame()
+    expect(await h.scan.tick()).toMatchObject({ found: true, subtab: 'general', sent: 'show' })
+    expect(h.events.map(e => e.reason)).toEqual(['show', 'hide', 'show'])
+    expect(h.events[2].grid).toEqual({ ...GRID, x: GRID.x + 3 })
+  })
+
+  it('R9 顯示中 verify 不過、游標不在格上:那 2 個 tick 不呼叫 fit(顯示中不重搜)', async () => {
+    const h = harness()
+    await showGeneral(h)
+    h.fits.s.verifyScore = 0
+    h.state.hold = false
+    for (let i = 0; i < 2; i++) {
+      h.changeFrame()
+      await h.scan.tick()
+      // 顯示中重搜 → 帶著我們的徽章擬合,實測整片偏 17–52 px
+      expect(h.fits.s.fits, `第 ${i + 1} 個 tick`).toBe(1)
+    }
+    expect(h.fits.s.verifies).toBe(2)
+    expect(h.events.map(e => e.reason)).toEqual(['show', 'hide'])
   })
 
   it('R7 cap.maskRects 換成搜尋範圍座標後傳給 fit / verify(img.masks)', async () => {
