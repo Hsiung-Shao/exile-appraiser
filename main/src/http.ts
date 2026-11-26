@@ -144,8 +144,10 @@ export async function hostFetch (url: string, init: HostFetchInit = {}, abortKey
         body
       }
     })(), ctrl.signal, abortError)
-    const line = httpLogLine(method, parsed, result, Date.now() - started)
-    if (line) (result.status >= 400 ? console.warn : console.log)(line)
+    try {
+      const line = httpLogLine(method, parsed, result, Date.now() - started)
+      if (line) (result.status >= 400 ? console.warn : console.log)(line)
+    } catch { /* 記錄只是旁觀,不能讓成功的請求變失敗 */ }
     return result
   } catch (e) {
     // 中止 = renderer 換了物品 / 關了面板,不算問題

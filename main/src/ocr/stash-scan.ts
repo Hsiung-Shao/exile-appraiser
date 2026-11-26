@@ -297,6 +297,7 @@ export class StashScan {
   private lastOcrMs: number | null = null
   /** 「沒找到按鈕」診斷記錄的上次時間(節流) */
   private lastMissLogAt = -Infinity
+  private lastSubtabLogAt = -Infinity
   private lastClampLogKey: string | null = null
   /** 2026-11-26 診斷:上次記下的設定 / 擷取幾何(有變才記) */
   private lastCfgKey: string | null = null
@@ -717,8 +718,9 @@ export class StashScan {
     if (!match.found) {
       // 診斷:認到 ≥ 1 顆但判定失敗(像碎片頁但沒過門檻 / 偏移對不上)時記下 OCR 文字,最多每 30 秒一次(實機回報「徽章沒出現」時查得到原因)
       const now = this.clock.now()
-      // 2026-11-26:認到 0 顆也記(使用者回報倉庫徽章不出現時,分辨「OCR 沒讀到字」與「讀到字但對不上」)
-      if (now - this.lastMissLogAt >= STASH_MISS_LOG_MS) {
+      // 2026-11-26:顯示中 / 熱鍵模式等倉庫時認到 0 顆也記(分辨「OCR 沒讀到字」與「讀到字但對不上」);
+      // 平常沒開倉庫的 0 顆不記(一般遊玩畫面一直變,會洗版、也會記到別的玩家名稱)
+      if ((match.matched > 0 || this.shown != null || this.isArmed) && now - this.lastMissLogAt >= STASH_MISS_LOG_MS) {
         this.lastMissLogAt = now
         this.deps.log?.(`[stash] 沒找到子頁按鈕(認到 ${match.matched} 顆,OCR ${clientLines.length} 行 ${ms} ms,語言 ${lang},client ${client.w}×${client.h}):` +
           (clientLines.map(l => l.text.replace(/\s+/g, '')).join(' | ').slice(0, 200) || '(沒有文字)'))
@@ -750,8 +752,8 @@ export class StashScan {
     if (!subtab) {
       // 異能 / 判不出目前子頁 → 不畫。熱鍵模式不解除(一個 tick 判不出就要使用者再按太嚴):比照沒偵測到倉庫由 countArmMiss 累計
       const now = this.clock.now()
-      if (now - this.lastMissLogAt >= STASH_MISS_LOG_MS) {
-        this.lastMissLogAt = now
+      if (now - this.lastSubtabLogAt >= STASH_MISS_LOG_MS) {
+        this.lastSubtabLogAt = now
         this.deps.log?.(`[stash] 找到子頁按鈕但判不出目前是哪一頁(異能頁不畫):按鈕亮度 p99 ${p99s.map(v => Math.round(v)).join(' / ') || '(沒有灰階資料)'}`)
       }
       const sent = this.hide(client, ms, { keepArmed: true, why: '判不出目前子頁' })

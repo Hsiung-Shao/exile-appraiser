@@ -40,7 +40,9 @@ export function describeClipboard (text: string, before: string | undefined): st
   const same = before !== undefined && text === before ? '、與按鍵前相同(遊戲沒有複製)' : ''
   const first = text.split(/\r?\n/, 1)[0]
   // 物品文字一定有好幾行;單行的「帳號: 密碼」這類不記
-  const header = text.split('\n').length >= 3 && /^[^:：]{1,24}[:：] ?\S/.test(first) ? `、第一行「${first.slice(0, 24)}」不是支援的物品標頭` : ''
+  // 只記冒號前的標頭名(值可能是密碼)
+  const m = text.split('\n').length >= 3 ? /^([^:：]{1,24})[:：] ?\S/.exec(first) : null
+  const header = m ? `、第一行標頭「${m[1]}」不是支援的物品標頭` : ''
   return `剪貼簿 ${text.length} 字元${same}${header}`
 }
 

@@ -153,6 +153,8 @@ export default defineComponent({
     watch(badges, (list) => {
       const s = shown.value
       if (!s) { lastBadgeLog = ''; return }
+      // 滑鼠停格(只留一格)/ peek(全收)時格數會跳,不記
+      if (hover.value != null || peek.value) return
       const n = (st: StashBadgeView['status']) => list.filter(b => b.status === st).length
       const line = stashData.value
         ? `${s.subtab}:${list.length} 格,有價格 ${n('ok')}、沒有價格 ${n('no-price')}、讀取中 ${n('loading')}、沒有價格來源 ${n('no-source')}(poe.ninja 快照 ${ninja.snapshot.value ? '有' : '無'}、聯盟 ${config.leagueBy.poe1?.[config.realm] ?? '未選'})`

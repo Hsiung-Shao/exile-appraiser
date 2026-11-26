@@ -73,6 +73,14 @@ export function pickExportLogFiles (names: readonly string[], nowMs: number, day
     .map(f => f.name)
 }
 
+/** 匯出檔把使用者資料夾(路徑含 Windows 使用者名稱)換成 `%USERPROFILE%`;Windows 路徑不分大小寫,`\` 與 `/` 兩種寫法都換 */
+export function maskHomeDir (text: string, home: string): string {
+  if (!home) return text
+  const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const re = new RegExp([home, home.replace(/\\/g, '/')].map(esc).join('|'), 'gi')
+  return text.replace(re, '%USERPROFILE%')
+}
+
 /** 匯出檔內容:環境摘要 + 記錄;記錄超過上限只留最後 `maxBytes`(從下一個換行開始,不留半行) */
 export function buildLogExport (header: readonly string[], log: string, maxBytes = LOG_EXPORT_MAX_BYTES): string {
   let body = log

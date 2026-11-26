@@ -56,7 +56,7 @@ import { ScanMaskStore, sanitizeMaskReport } from './ocr/scan-mask'
 import { isAppNavigation, isExternalWebUrl } from './external-links'
 import { BG_DIR_NAME, SHEET_DIR_NAME, bgContentType, bgCorsHeaders, bgFileFromPath, normBgFile, resolveBgPath, storedBgName } from './backgrounds'
 import { createFontLister } from './system-fonts'
-import { AppLog, LogFileWriter, buildLogExport, captureConsole, consoleMethodForLevel, dateStamp, formatLogEntry, pickExportLogFiles, timeStamp, type LogEntry } from './app-log'
+import { AppLog, LogFileWriter, buildLogExport, captureConsole, consoleMethodForLevel, dateStamp, formatLogEntry, maskHomeDir, pickExportLogFiles, timeStamp, type LogEntry } from './app-log'
 import os from 'node:os'
 import { PerfMonitor, RendererPerfAccumulator, bgActiveFromConfigText, formatPerfSummary, isPerfFile, perfFileName, perfSummarySections, scanSnapshotOf, stashSnapshotOf, type ScenarioInput } from './perf/perf-monitor'
 import {
@@ -1940,7 +1940,8 @@ if (!skipStartup) app.whenReady().then(() => {
           `視窗模式 ${windowMode}、遊戲視窗 ${poeWindow ? (poeWindow.isActive ? '在前景' : '不在前景') : '未附著'}`,
           ...(Array.isArray(summary) ? summary.filter((s): s is string => typeof s === 'string').slice(0, 60).map(s => s.slice(0, 400)) : [])
         ]
-        await fs.writeFile(res.filePath, buildLogExport(header, parts.join('\n')), 'utf8')
+        // 記錄裡的路徑含 Windows 使用者名稱 → 換成 %USERPROFILE%
+        await fs.writeFile(res.filePath, maskHomeDir(buildLogExport(header, parts.join('\n')), os.homedir()), 'utf8')
         console.log(`[log] 已匯出記錄檔 ${path.basename(res.filePath)}(${names.length} 個檔)`)
         shell.showItemInFolder(res.filePath)
         return res.filePath

@@ -9,7 +9,7 @@ vi.mock('electron', () => ({
   session: { defaultSession: { fetch: () => Promise.reject(new Error('no')), webRequest: { onHeadersReceived: () => {} } } }
 }))
 
-import { buildLogExport, logFileName, pickExportLogFiles } from '../src/app-log'
+import { buildLogExport, logFileName, maskHomeDir, pickExportLogFiles } from '../src/app-log'
 import { describeClipboard } from '../src/HostClipboard'
 import { httpLogLine } from '../src/http'
 import { logExportSummary, matchesFilter } from '../../renderer/src/web/settings/log-view'
@@ -39,6 +39,10 @@ describe('匯出記錄檔:內容', () => {
     expect(t.indexOf('版本 0.3.19')).toBeLessThan(t.indexOf('line1'))
     expect(t).toContain('line2')
   })
+  it('使用者資料夾換成 %USERPROFILE%(不分大小寫、兩種斜線)', () => {
+    expect(maskHomeDir('config=C:\\Users\\Bob\\AppData\\x c:/users/bob/y', 'C:\\Users\\Bob'))
+      .toBe('config=%USERPROFILE%\\AppData\\x %USERPROFILE%/y')
+  })
   it('超過上限只留最後面、從完整一行開始', () => {
     const log = Array.from({ length: 100 }, (_, i) => `row-${i}`).join('\n')
     const t = buildLogExport([], log, 60)
@@ -57,10 +61,15 @@ describe('剪貼簿逾時摘要', () => {
     expect(describeClipboard('hello', 'hello')).toContain('與按鍵前相同')
   })
   it('像物品標頭才記第一行(其他語言客戶端)', () => {
-    expect(describeClipboard('Classe d\'objet: Bottes\nRareté: Rare\nFoo', '')).toContain('第一行「Classe')
+    expect(describeClipboard('Classe d\'objet: Bottes\nRareté: Rare\nFoo', '')).toContain('第一行標頭「Classe d\'objet」')
   })
   it('單行「帳號: 密碼」不記內容', () => {
     expect(describeClipboard('password: hunter2', '')).not.toContain('hunter2')
+  })
+  it('多行、第一行是「password: 值」只記標頭名', () => {
+    const d = describeClipboard('password: hunter2\nuser: x\nurl: y', '')
+    expect(d).not.toContain('hunter2')
+    expect(d).toContain('「password」')
   })
   it('一般文字(可能是密碼)不記內容', () => {
     const d = describeClipboard('my secret password 123', '')
