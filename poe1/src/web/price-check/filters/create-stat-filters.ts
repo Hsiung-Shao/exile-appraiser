@@ -89,7 +89,8 @@ export function createExactStatFilters (
   valdoBadMods(ctx)
 
   ctx.filters.push(
-    ...ctx.statsByType.map(mod => calculatedStatToFilter(mod, ctx.searchInRange, item))
+    // exile-appraiser: 2026-11-26 交易站 id 清單為空的詞綴(規則 34)不產生篩選列(空 tradeId 會讓組查詢拋錯)
+    ...ctx.statsByType.filter(mod => mod.stat.trade.ids[mod.type]?.length !== 0).map(mod => calculatedStatToFilter(mod, ctx.searchInRange, item))
   )
 
   if (item.info.refName === 'Chronicle of Atzoatl') {
