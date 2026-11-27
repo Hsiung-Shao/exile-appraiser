@@ -109,7 +109,8 @@ export function createRun (routeOf: Route | (() => Route), now: () => number): R
     jumpTo (j: number): void {
       if (this.phase !== 'running' || j <= this.index || j >= R().splits.length) return
       for (let i = this.index; i < j; i++) this.splitTimes[i] = null
-      this.jumpFrom = this.index
+      // 已在中途開始狀態再跳:保留第一次的起點(撤銷回那裡才算完整)
+      if (!this.partial) this.jumpFrom = this.index
       this.index = j
       this.partial = true
     },

@@ -131,3 +131,25 @@ describe('審查修正:撤銷回到跳段之前', () => {
     expect(route.pb).not.toBeNull()
   })
 })
+
+describe('審查修正第 2 輪:連跳兩次', () => {
+  it('T15 撤銷後再跳一次,撤銷回第二次起點不清 partial、跑完不寫個人最佳', () => {
+    const c = clock()
+    const route = mk(5, null)
+    const run = createRun(route, c.now)
+    run.start()
+    run.jumpTo(2)
+    c.advance(1000)
+    run.split()
+    run.undo()
+    run.jumpTo(3)
+    c.advance(1000)
+    run.split()
+    run.undo()
+    run.undo()
+    expect(run.index).toBe(2)
+    expect(run.partial).toBe(true)
+    for (let i = 2; i < 5; i++) { c.advance(1000); run.split() }
+    expect(route.pb).toBeNull()
+  })
+})
