@@ -335,6 +335,14 @@ describe('計時中從別的頁面改紀錄(審查第 1 輪)', () => {
     // 只改名(保留紀錄)仍相容
     expect(compatible(old, replaceSplits(route, route.splits.map(s => ({ ...s, name: s.name + '!' }))))).toBe(true)
   })
+  it('R5 全手動段刪一段再加一段,舊紀錄算分段不同', () => {
+    const route = mk(3)
+    route.splits.forEach(s => { s.area = null })
+    const old = rec(route)
+    const removed = replaceSplits(route, route.splits.slice(1))
+    const added = replaceSplits(removed, [...removed.splits, { name: 'W', area: null }])
+    expect(compatible(old, added)).toBe(false)
+  })
   it('R4 調錯順序再調回來(區域不同的段),舊紀錄恢復相容', () => {
     const route = mk(3)
     const old = rec(route)

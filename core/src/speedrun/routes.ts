@@ -148,8 +148,9 @@ export function replaceSplits (route: Route, splits: SplitDef[], keepRecords = t
     splits: splits.map(s => ({ ...s })),
     pb: same && route.pb ? [...route.pb] : null,
     // 調順序而區域序列沒變(區域相同的段互換):從區域看不出來,改序號讓舊紀錄算分段不同。
-    // 區域序列有變的不加(區域本身就分得出來;點錯再調回來,舊紀錄恢復相容;審查 2026-11-28 第 2 輪)
-    ...(!keepRecords && sameAreas ? { shapeGen: (route.shapeGen ?? 0) + 1 } : {}),
+    // 區域序列有變的不加(區域本身就分得出來;點錯再調回來,舊紀錄恢復相容;審查 2026-11-28 第 2 輪)。
+    // 刪段一律加:全手動段(區域都是空)刪一段再加一段,區域序列會跟舊的一樣(第 3 輪)
+    ...((!keepRecords && sameAreas) || splits.length < route.splits.length ? { shapeGen: (route.shapeGen ?? 0) + 1 } : {}),
     golds: same ? [...route.golds] : splits.map(() => null)
   }
 }
