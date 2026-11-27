@@ -25,6 +25,7 @@
       <span class="tm-title">{{ t(config.game === 'poe2' ? 'ppz.timer.route_poe2' : 'ppz.timer.route_poe1') }}</span>
       <span class="tm-att num">#{{ route.attempts }}</span>
     </div>
+    <div v-if="compareName" class="tm-cmp" data-timer="compare">{{ t('ppz.timer.compare_with', { name: compareName }) }}</div>
     <ol class="tm-rows">
       <li v-for="r in rows" :key="r.i" class="tm-row" :class="{ cur: r.current, done: r.done }" :data-split="r.i">
         <span class="tm-name">{{ r.name }}</span>
@@ -62,6 +63,7 @@ import { alertCrossed } from '../../../../core/src/timer/simple'
 import { overlayLayers } from './overlay-content'
 import { overlayPlace, overlayPosOf } from './float-menu-geom'
 import { Host } from '../background/IPC'
+import { compatible, recordLabel } from '../../../../core/src/speedrun/history'
 import { comparison, deltaAt, formatDelta, formatRunTime, isGoldSegment, segmentTime } from '../../../../core/src/speedrun/run'
 
 const props = defineProps<{ interactive: boolean }>()
@@ -70,6 +72,14 @@ const config = AppConfig()
 
 const run = computed(() => appRun.value)
 const route = computed(() => currentRoute())
+/** 比較對象的名稱(2026-11-28);跟個人最佳比時不顯示 */
+const compareName = computed(() => {
+  const rt = route.value
+  // shortcut: 計時中才改比較對象時,這次仍跟開始時那筆比,名稱卻顯示新選的;要精確就把 id 存進 run.base
+  if (run.value.phase !== 'idle' && run.value.base.ref == null) return ''
+  const rec = rt.compare == null ? undefined : rt.history?.find(r => r.id === rt.compare)
+  return rec && compatible(rec, rt) ? recordLabel(rec) : ''
+})
 
 const simpleMode = computed(() => config.timerMode !== 'speedrun')
 const phase = computed(() => simpleMode.value ? simpleTimer.phase : run.value.phase)
@@ -160,7 +170,8 @@ const mainTone = computed(() => {
   const pb = comparison(r, route.value).pb
   if (r.phase === 'finished') {
     const total = r.splitTimes[r.splitTimes.length - 1]
-    const pbTotal = pb?.[pb.length - 1]
+    // 金色只給新個人最佳:跟開始時的 PB 比,不跟比較對象比(2026-11-28)
+    const pbTotal = r.base.pb?.[r.base.pb.length - 1]
     // 新個人最佳(比舊 PB 快或還沒有 PB)金色;慢了紅色
     return total == null ? 'ok' : pbTotal == null || total < pbTotal ? 'gold' : total > pbTotal ? 'bad' : 'ok'
   }
@@ -263,6 +274,7 @@ onUnmounted(() => {
 .num { font-family: ui-monospace, Consolas, monospace; font-variant-numeric: tabular-nums; }
 .tm-head { display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 0.25em; border-bottom: 1px solid rgb(255 255 255 / 0.12); }
 .tm-title { font-weight: 600; }
+.tm-cmp { font-size: 0.75em; color: var(--ink-2); margin: -0.1em 0 0.2em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tm-att { opacity: 0.6; }
 .tm-rows { list-style: none; margin: 0.2em 0 0; padding: 0; }
 .tm-row { display: grid; grid-template-columns: 1fr auto 4.6em; gap: 0.5em; padding: 0.12em 0.3em; border-radius: 0.25em; }

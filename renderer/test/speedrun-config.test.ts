@@ -46,7 +46,10 @@ describe('設定往返(S14)', () => {
       golds: [60_000, 40_000, 50_000],
       attempts: 7,
       autoStart: false,
-      autoSplit: true
+      autoSplit: true,
+      // 2026-11-28 每次嘗試的紀錄 + 比較對象也要往返不變
+      history: [{ id: 'r1', name: '弓箭手', at: 1_800_000_000_000, splitTimes: [60_000, 100_000, 150_000], finished: true, partial: false, shape: '3#1_2_town||1_4_town' }],
+      compare: 'r1'
     }
     const raw = {
       configVersion: 2,

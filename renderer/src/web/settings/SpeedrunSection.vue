@@ -72,6 +72,7 @@
         <button class="btn ghost sm" @click="confirming = false">{{ t('ppz.timer.cancel') }}</button>
       </template>
     </div>
+    <speedrun-history />
   </div>
 </template>
 
@@ -84,6 +85,7 @@ import { Host } from '@/web/background/IPC'
 import { PRESET_TOWN_AREAS, presetRoute, replaceSplits, type SplitDef } from '../../../../core/src/speedrun/routes'
 import { formatRunTime, sumOfBest } from '../../../../core/src/speedrun/run'
 import { appRun } from '@/web/overlay/timer-state'
+import SpeedrunHistory from './SpeedrunHistory.vue'
 
 const { t, locale } = useI18n()
 const config = AppConfig()

@@ -2,6 +2,7 @@
 // 區域 id 取自使用者本機 Client.txt 實測(PoE1 / PoE2)與 PoE2 GGPK `worldareas`;
 // PoE1 沒有本機 GGPK 表 → 城鎮選單只顯示「第 N 章城鎮」與 id,不自行翻譯地名。
 // 零依賴:main(esbuild)以相對路徑 import。
+import { normHistory, type RunRecord } from './history'
 
 export type SpeedrunGame = 'poe1' | 'poe2'
 /** area null = 只能手動分段 */
@@ -17,6 +18,10 @@ export interface Route {
   attempts: number
   autoStart: boolean
   autoSplit: boolean
+  /** 2026-11-28 每次嘗試的紀錄(舊到新;history.ts) */
+  history: RunRecord[]
+  /** 比較對象紀錄 id;null = 跟個人最佳比 */
+  compare: string | null
 }
 
 interface PresetSplit { area: string, zh: string, en: string }
@@ -88,7 +93,9 @@ export function presetRoute (game: SpeedrunGame, lang: 'cmn-Hant' | 'en'): Route
     attempts: 0,
     // 使用者裁定:自動開始預設關(2026-11-10);章節自動分段預設開(2026-11-18,推翻 11-10 的預設關)
     autoStart: false,
-    autoSplit: true
+    autoSplit: true,
+    history: [],
+    compare: null
   }
 }
 
@@ -111,6 +118,7 @@ export function normRoute (v: unknown, game: SpeedrunGame, lang: 'cmn-Hant' | 'e
   }
   const n = splits.length
   const pb = Array.isArray(o.pb) && o.pb.length === n && o.pb.every(isTime) ? [...o.pb] as Array<number | null> : null
+  const history = normHistory(o.history)
   const golds = Array.isArray(o.golds) && o.golds.length === n && o.golds.every(isTime) ? [...o.golds] as Array<number | null> : splits.map(() => null)
   return {
     splits,
@@ -119,7 +127,9 @@ export function normRoute (v: unknown, game: SpeedrunGame, lang: 'cmn-Hant' | 'e
     golds,
     attempts: typeof o.attempts === 'number' && Number.isInteger(o.attempts) && o.attempts >= 0 ? o.attempts : 0,
     autoStart: typeof o.autoStart === 'boolean' ? o.autoStart : def.autoStart,
-    autoSplit: typeof o.autoSplit === 'boolean' ? o.autoSplit : def.autoSplit
+    autoSplit: typeof o.autoSplit === 'boolean' ? o.autoSplit : def.autoSplit,
+    history,
+    compare: typeof o.compare === 'string' && history.some(r => r.id === o.compare) ? o.compare : null
   }
 }
 

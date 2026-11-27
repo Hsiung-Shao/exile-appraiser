@@ -11,7 +11,7 @@ const clock = () => {
 const poe1 = (): Route => ({ ...presetRoute('poe1', 'cmn-Hant'), autoSplit: true })
 const mk = (n: number, pb: Route['pb']): Route => ({
   splits: Array.from({ length: n }, (_, i) => ({ name: `S${i}`, area: `a${i}` })),
-  startArea: 'start_area',
+  startArea: 'start_area', history: [], compare: null,
   pb,
   golds: Array(n).fill(null),
   attempts: 0,

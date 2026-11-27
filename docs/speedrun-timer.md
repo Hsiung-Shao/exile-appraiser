@@ -9,6 +9,14 @@
 - 非 speedrun 不讀 Client.txt(host-config `speedrunAutoLog` 一律 false)、不做切窗自動暫停(倒數常拿來計遊戲外的事)、不自動分段。
 - 音效 `timerSound: { file, volume }`:file 空 = 內建(WebAudio 合成三聲 880 Hz 嗶,不帶音檔);設定頁「匯入音效…」→ IPC `sound-pick`(`preview: false`)複製到 `userData/timer-sounds/`(另開資料夾;只留最後匯入的一個;檔名規則同背景圖、只收 mp3 / ogg / wav / m4a,最大 20 MB)→ `app://sound/<檔>`(預覽 `<prefix>sound/<檔>`)。音量 0–1,試聽按鈕;匯入檔播放失敗(被刪 / 格式不支援)退回內建嗶聲。`app://` 協定註冊加 `stream: true`(自訂協定的 `<audio>` 需要)。overlay 視窗設 `autoplayPolicy: 'no-user-gesture-required'`(點擊穿透時沒有使用者互動)。
 
+## 每次嘗試的紀錄(2026-11-28 使用者要求)
+- 每次嘗試都存一筆(`core/src/speedrun/history.ts`,存在路線 `history`,跟設定檔一起存):分過一段就新增,之後每次分段 / 撤銷更新同一筆;撤銷到一段都沒有 → 拿掉;只開始沒分段就重設不存。
+- 名稱空白 = 開始時間 `MM-DD HH:mm`,設定 › 計時器 › 紀錄可直接改;可展開看各段累計與段時間;刪除要再按一次確定(進行中那筆不能刪)。
+- 比較(`route.compare`):計時器差值改跟那筆比(開始時存快照 `base.ref`;計時中才改的下一次生效),計時器多一行「比較:名稱」;**誰是 PB 照舊**(跑完比開始時的 PB 快才換,跑完的金色也只給新 PB)。刪掉比較對象 → 回到跟 PB 比。
+- 設為個人最佳:只限跑完、不是中途開始、分段結構相同,且計時器沒在跑(進行中的那次會用開始時的快照把 PB 寫回去)。
+- 分段結構(段數 / 觸發區域,`routeShape`)改了:舊紀錄保留但標「分段不同」,只能看和刪,不能比較 / 設 PB。「清除紀錄」只清 PB / 金段 / 次數,不刪這些紀錄。
+- 每條路線最多 `HISTORY_LIMIT` 500 筆,滿了刪最舊的(比較對象除外)。實跑旅程 `.claude/skills/verify/features/speedrun-history.md`;測試 `core/test/speedrun-history.test.ts`。
+
 ## 中途開始(2026-11-28 修正)
 原本 `autoAction` 只比對「目前這段」的觸發區,角色已在第 3 章才按開始時目前段是第 1 段 → 之後進的都是後面章節的區域,永遠不分段。
 現在:**這次還沒分過任何一段**時,進入目前段之後任一段的觸發區 → 跳到那段並分段(`run.jumpTo`:中間段記成沒有時間)。分過一段之後只認目前這段(回舊城鎮仍不觸發)。

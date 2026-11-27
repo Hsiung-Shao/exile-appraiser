@@ -7,9 +7,11 @@
 // 規則:這段比快照的金段快 → 金段;前一段被跳過的段時間不可靠,不算。跑完且總時間比快照 PB 快(或沒有 PB)→ PB = 這次的累計。
 // 狀態放在物件欄位上(方法透過 this 改),renderer 用 reactive() 包起來就追得到。零依賴。
 import type { Route } from './routes'
+import { addRecord, compareTimes, routeShape } from './history'
 
 export type RunPhase = 'idle' | 'running' | 'paused' | 'finished'
-export interface RecordSnapshot { pb: Array<number | null> | null, golds: Array<number | null> }
+/** pb = 開始時的個人最佳(決定新 PB);ref = 畫面比較對象(2026-11-28 可選一筆紀錄;null = 跟 pb 比) */
+export interface RecordSnapshot { pb: Array<number | null> | null, golds: Array<number | null>, ref?: Array<number | null> | null }
 export interface Run {
   readonly phase: RunPhase
   /** 目前在跑第幾段(0 起);finished 時 = splits.length */
@@ -20,6 +22,8 @@ export interface Run {
   readonly base: RecordSnapshot
   /** 2026-11-28:這次是中途開始(自動分段跳過了前面幾段)→ 跑完不寫個人最佳(總時間少了前面幾章) */
   readonly partial: boolean
+  /** 2026-11-28 這次嘗試的紀錄 id(路線 history 裡那一筆) */
+  readonly attemptId: string | null
   start (): void
   /** 跳到第 j 段(中間段記成沒有時間);之後照常 split() 記第 j 段 */
   jumpTo (j: number): void
@@ -44,6 +48,10 @@ export function createRun (routeOf: Route | (() => Route), now: () => number): R
     splitTimes: blank(),
     base: { pb: null, golds: [] } as RecordSnapshot,
     partial: false,
+    attemptId: null as string | null,
+    /** 這次開始的時間點與分段結構(紀錄用) */
+    attemptAt: 0,
+    attemptShape: '',
     /** 跳段前的段落(撤銷回到這裡以前 = 不再是中途開始) */
     jumpFrom: 0,
     /** 暫停前累計的毫秒 */
@@ -68,11 +76,28 @@ export function createRun (routeOf: Route | (() => Route), now: () => number): R
       const total = this.phase === 'finished' ? this.splitTimes[this.splitTimes.length - 1] : null
       const pbTotal = this.base.pb?.[this.base.pb.length - 1]
       R().pb = !this.partial && total != null && (pbTotal == null || total < pbTotal) ? [...this.splitTimes] : this.base.pb && [...this.base.pb]
+      this.record()
+    },
+    /** 這次嘗試的紀錄:新增或更新;一段都沒時間(撤銷到底)→ 拿掉 */
+    record (): void {
+      const r = R()
+      if (!this.attemptId) return
+      // 沒經過 normRoute 的舊路線物件沒有 history
+      const h = r.history ?? (r.history = [])
+      const i = h.findIndex(x => x.id === this.attemptId)
+      if (this.splitTimes.every(t => t == null)) { if (i >= 0) h.splice(i, 1); return }
+      const fields = { splitTimes: [...this.splitTimes], finished: this.phase === 'finished', partial: this.partial }
+      if (i >= 0) Object.assign(h[i], fields)
+      else addRecord(r, { id: this.attemptId, name: '', at: this.attemptAt, shape: this.attemptShape, ...fields })
     },
     start (): void {
       if (this.phase !== 'idle') return
       const r = R()
-      this.base = { pb: r.pb && [...r.pb], golds: r.splits.map((_, i) => r.golds[i] ?? null) }
+      this.base = { pb: r.pb && [...r.pb], golds: r.splits.map((_, i) => r.golds[i] ?? null), ref: compareTimes(r) }
+      this.attemptAt = now()
+      // 次數 + 時間:同一毫秒開始兩次也不撞(attempts 下面才 +1)
+      this.attemptId = `${this.attemptAt.toString(36)}-${r.attempts.toString(36)}`
+      this.attemptShape = routeShape(r)
       this.splitTimes = blank()
       this.index = 0
       this.partial = false
@@ -135,9 +160,13 @@ export function createRun (routeOf: Route | (() => Route), now: () => number): R
   return run
 }
 
-/** 畫面比較用的紀錄:跑著(含暫停 / 跑完)= 開始時的快照;沒在跑 = 路線目前的紀錄 */
+/**
+ * 畫面比較用的紀錄:跑著(含暫停 / 跑完)= 開始時的快照;沒在跑 = 路線目前的紀錄。
+ * `pb` 欄位 = 比較對象的累計時間(選了合用的紀錄就是那筆,否則個人最佳);金段不受比較對象影響。
+ */
 export function comparison (run: Run, route: Route): RecordSnapshot {
-  return run.phase === 'idle' ? { pb: route.pb, golds: route.golds } : run.base
+  if (run.phase === 'idle') return { pb: compareTimes(route) ?? route.pb, golds: route.golds }
+  return { pb: run.base.ref ?? run.base.pb, golds: run.base.golds }
 }
 
 export function deltaAt (run: Run, route: Route, i: number): number | null {

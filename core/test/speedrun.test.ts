@@ -12,7 +12,7 @@ const clock = () => {
 // 自訂路線:每段名稱 S0、S1…,預設無 PB / 金段
 const mk = (areas: Array<string | null>, extra: Partial<Route> = {}): Route => ({
   splits: areas.map((a, i) => ({ name: `S${i}`, area: a })),
-  startArea: 'start_area',
+  startArea: 'start_area', history: [], compare: null,
   pb: null,
   golds: areas.map(() => null),
   attempts: 0,
