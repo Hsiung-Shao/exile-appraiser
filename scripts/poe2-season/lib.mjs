@@ -107,3 +107,68 @@ export function staleUniqueKeys (fileText, trade) {
   const live = new Set(rows.filter(r => trade.has(key(r))).map(r => `${r.name}|${r.unique.base}`))
   return new Set(rows.filter(r => !trade.has(key(r)) && live.has(`${r.name}|${r.unique.base}`)).map(key))
 }
+
+/**
+ * 通用規則 planGeneric(S13,PoE1 / PoE2 共用的設計):新舊兩版 GGPK 同一個 key 的文字變了,資料要跟著。
+ * - 繁中變了(zh):新句**加**進同一條詞綴,舊句標 superseded(只加不刪,同 planExtraZh 的寫法)。
+ * - 英文變了(en):英文是 GGPK 的比對鍵,舊句要**換掉** → replace(from → to)。
+ * - key 只在舊版出現(GGPK 拿掉了):列在 remove。只報告、不自動刪(matcher 只加不刪是專案規則)。
+ * 只處理有交易站 id 的詞綴(id 在 tradeStats 找得到):沒有 id 搜不到,改了也沒有用。新舊版相同 → 全部空。
+ * @param {{ enStats: any[], zhStats: any[], ggpkOld: Array<{key:string,en:string,zh:string}>, ggpkNew: Array<{key:string,en:string,zh:string}>, tradeStats: Array<{id:string}> }} o
+ * @returns {{ adds: any[], replace: any[], remove: any[] }}
+ */
+export function planGeneric ({ enStats, zhStats, ggpkOld, ggpkNew, tradeStats }) {
+  const plan = { adds: [], replace: [], remove: [] }
+  const tradeIds = new Set(tradeStats.map(t => t.id))
+  const newByKey = new Map(ggpkNew.map(r => [r.key, r]))
+  const enRefs = (/** @type {string} */ text) => enStats.filter(s => s.matchers.some((/** @type {any} */ m) => m.string === text)).map(s => s.ref)
+  const searchable = (/** @type {string} */ ref) => {
+    const s = enStats.find(x => x.ref === ref)
+    return Object.values(s?.trade?.ids ?? {}).flat().some(id => tradeIds.has(/** @type {string} */ (id)))
+  }
+  for (const o of ggpkOld) {
+    const n = newByKey.get(o.key)
+    if (n && o.en === n.en && o.zh === n.zh) continue
+    for (const ref of enRefs(o.en)) {
+      if (!searchable(ref)) continue
+      if (!n) {
+        plan.remove.push({ lang: 'en', ref, string: o.en })
+        const zh = zhStats.find(s => s.ref === ref && s.matchers.some((/** @type {any} */ m) => m.string === o.zh))
+        if (zh) plan.remove.push({ lang: 'cmn-Hant', ref, string: o.zh })
+        continue
+      }
+      if (o.en !== n.en) plan.replace.push({ lang: 'en', ref, from: o.en, to: n.en })
+      if (o.zh !== n.zh) {
+        const zh = zhStats.find(s => s.ref === ref && s.matchers.some((/** @type {any} */ m) => m.string === o.zh))
+        if (zh && !zh.matchers.some((/** @type {any} */ m) => m.string === n.zh)) plan.adds.push({ lang: 'cmn-Hant', ref, matcher: { string: n.zh }, supersedes: o.zh })
+      }
+    }
+  }
+  return plan
+}
+
+/**
+ * 套用 planGeneric 的 replace 到一份 stats.ndjson 文字(只改有變動的列,保留行尾)。
+ * 新句已經存在於同一條詞綴 → 不替換,舊句改標 superseded(避免同一條詞綴出現兩句一樣的寫法)。
+ * @param {string} fileText
+ * @param {'en' | 'cmn-Hant'} lang
+ * @param {Array<{lang: string, ref: string, from: string, to: string}>} replace
+ */
+export function applyGenericReplace (fileText, lang, replace) {
+  const mine = replace.filter(r => r.lang === lang)
+  if (!mine.length) return fileText
+  const eol = fileText.includes('\r\n') ? '\r\n' : '\n'
+  return fileText.split(eol).map(line => {
+    if (!line.trim()) return line
+    const stat = JSON.parse(line)
+    let changed = false
+    for (const r of mine.filter(r => r.ref === stat.ref)) {
+      const from = stat.matchers.find((/** @type {any} */ m) => m.string === r.from)
+      if (!from) continue
+      if (stat.matchers.some((/** @type {any} */ m) => m.string === r.to)) from.superseded = true
+      else from.string = r.to
+      changed = true
+    }
+    return changed ? pyDumps(stat) : line
+  }).join(eol)
+}

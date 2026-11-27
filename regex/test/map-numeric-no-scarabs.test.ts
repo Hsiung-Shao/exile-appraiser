@@ -56,21 +56,21 @@ describe('地圖數值區沒有更多聖甲蟲', () => {
   it('3.30 實機地圖樣本:輿圖掉落物 ≥60 片段只中 +68 / +81,英文 +58 不中', () => {
     const e = mapNum.entries.find(x => x.id === 'atlas_drops')!
     const docs = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../poe1/test/docs')
-    const got = fs.readdirSync(docs).filter(f => /^3\.30-map-.*\.txt$/.test(f)).sort().map(f => {
+    const got = fs.readdirSync(docs).filter(f => /^map-.*\.txt$/.test(f)).sort().map(f => {
       const lang = f.endsWith('.en.txt') ? 'en' : 'zh'
       const lines = fs.readFileSync(path.join(docs, f), 'utf8').split(/\r?\n/)
       const re = new RegExp(e.fragment({ min: 60 }, lang)!, 'i')
       return [f, lines.some(l => re.test(l))]
     })
     expect(got).toEqual([
-      ['3.30-map-always-ignite.cmn-Hant.txt', false],
-      ['3.30-map-baran-citadel.cmn-Hant.txt', true],
-      ['3.30-map-buried-sentinel.cmn-Hant.txt', false],
-      ['3.30-map-citadel.en.txt', false],
-      ['3.30-map-katash-summoner.cmn-Hant.txt', false],
-      ['3.30-map-mirage.cmn-Hant.txt', true]
+      ['map-always-ignite.cmn-Hant.txt', false],
+      ['map-baran-citadel.cmn-Hant.txt', true],
+      ['map-buried-sentinel.cmn-Hant.txt', false],
+      ['map-citadel.en.txt', false],
+      ['map-katash-summoner.cmn-Hant.txt', false],
+      ['map-mirage.cmn-Hant.txt', true]
     ])
-    const en = fs.readFileSync(path.join(docs, '3.30-map-citadel.en.txt'), 'utf8').split(/\r?\n/)
+    const en = fs.readFileSync(path.join(docs, 'map-citadel.en.txt'), 'utf8').split(/\r?\n/)
     expect(en.some(l => new RegExp(e.fragment({ min: 50 }, 'en')!, 'i').test(l))).toBe(true)
   })
 })
