@@ -188,6 +188,10 @@ function makePoe2IndexFiles (DATA_DIR) {
     const statsByRef = []
     /** @type{Array<{ hash: number, start: number }>} */
     const matchers = []
+    // exile-appraiser: 有進階寫法的一般句只在沒被別條詞綴佔用時才進索引(2026-11-27:隨機基石詞綴的一般句
+    // 「Blood Magic」等跟獨立基石同字,落到隨機基石那條、送錯 id;同 PoE1 的 plain)
+    /** @type{Array<{ hash: number, start: number }>} */
+    const plain = []
     const ndjson = fs.readFileSync(path.join(DATA_DIR, `${lang}/stats.ndjson`), { encoding: 'utf-8' })
     let start = 0
     while (start !== ndjson.length) {
@@ -195,13 +199,15 @@ function makePoe2IndexFiles (DATA_DIR) {
       const stat = JSON.parse(ndjson.slice(start, end))
       statsByRef.push({ start, hash: Number(fnv1a(stat.ref, { size: 32 })) })
       for (const matcher of stat.matchers) {
-        matchers.push({ start, hash: Number(fnv1a(matcher.string, { size: 32 })) })
+        ;(matcher.advanced ? plain : matchers).push({ start, hash: Number(fnv1a(matcher.string, { size: 32 })) })
         if (matcher.advanced) {
           matchers.push({ start, hash: Number(fnv1a(matcher.advanced, { size: 32 })) })
         }
       }
       start = end + 1
     }
+    const taken = new Set(matchers.map(m => m.hash))
+    for (const m of plain) if (!taken.has(m.hash)) matchers.push(m)
     statsByRef.sort((a, b) => a.hash - b.hash)
     fs.writeFileSync(path.join(DATA_DIR, lang, 'stats-ref.index.bin'), toIndex(statsByRef))
     matchers.sort((a, b) => a.hash - b.hash)

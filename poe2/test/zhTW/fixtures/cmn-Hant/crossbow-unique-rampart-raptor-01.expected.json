@@ -18,22 +18,6 @@
       "unique": {
         "base": "Tense Crossbow"
       }
-    },
-    {
-      "name": "壁壘猛禽",
-      "namespace": "UNIQUE",
-      "refName": "Rampart Raptor",
-      "unique": {
-        "base": "Runeforged Tense Crossbow"
-      }
-    },
-    {
-      "name": "壁壘猛禽",
-      "namespace": "UNIQUE",
-      "refName": "Rampart Raptor",
-      "unique": {
-        "base": "Runemastered Tense Crossbow"
-      }
     }
   ],
   "isCorrupted": false,

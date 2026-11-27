@@ -461,8 +461,20 @@ const DEFENCES = [
   ['armourES', 'es', QUALITY_STATS.ENERGY_SHIELD]
 ] as const
 
+// exile-appraiser: 同名武器底材(資料沒有武器數值)的基礎物理傷害平均值,取自 GGPK weapontypes 3.30
+// shortcut: 只有已知的同名組,新賽季出現新的同名武器要補(same-name-bases.test 的同名掃描會提醒)
+const SAME_NAME_WEAPON_PHYS: Record<string, number> = {
+  'Wyrmbone Rapier': (13 + 51) / 2,
+  'Dragonbone Rapier': (19 + 75) / 2
+}
+
 function pickByDefenceBase (variants: BaseType[], item: ParsedItem): BaseType | undefined {
   const present = DEFENCES.filter(([prop]) => item[prop])
+  if (!present.length && item.weaponPHYSICAL && variants.every(v => v.refName in SAME_NAME_WEAPON_PHYS)) {
+    // 龍骨細劍 = Wyrmbone / Dragonbone Rapier:扣掉品質與本地詞綴後取基礎物理傷害最近的
+    const base = calcDefenceBase(item.weaponPHYSICAL, QUALITY_STATS.PHYSICAL_DAMAGE, item)
+    return variants.reduce((a, b) => Math.abs(SAME_NAME_WEAPON_PHYS[a.refName] - base) <= Math.abs(SAME_NAME_WEAPON_PHYS[b.refName] - base) ? a : b)
+  }
   if (!present.length) return undefined
   let best: BaseType | undefined
   let bestDist = Infinity
