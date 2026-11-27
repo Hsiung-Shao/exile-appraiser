@@ -1681,16 +1681,17 @@ export function planUniqueZhNames ({ zhItems, words }) {
   return out
 }
 
-/** `rewriteLines` 的 edit 回傳這個值 = 刪掉這一列 */
 /**
  * 規則 35:不同詞綴(交易站 id 不同)共用同一句繁中 → 解析器把兩條的 id 一起送(trivial-merge)或挑錯列,查詢混進別的詞綴
- * (2026-11-27 使用者回報:貴族「配置 守護者」禁忌珠寶連守林人一起查)。判得準的就從錯的那條刪掉這句:
+ * (2026-11-27 使用者回報:貴族「配置 守護者」禁忌珠寶連守林人一起查)。判得準的就從錯的那條刪掉這個寫法:
  * - 一條現行、其他是 superseded 舊句(3.30 改名:守林人舊名「守護者」= 守護者現行名)→ 刪舊句
- * - 都是現行:GGPK 新版物品描述檔裡發出這句的描述,只對得上部分詞綴的英文 → 刪對不上的(「生命恢復率」3.30 只屬於 Life Recovery)
- * 同一列的 flag-merge / percent-merge / select 群組(本來就是同一句的兩種寫法)、同 ref 的重複列不管;刪了會一句不剩的不刪;
- * 判不準的(遊戲本身同字,例:魔力恢復率)列在 ambiguous,解析器兩個 id 都送。
- * 這是 matcher「只加不刪」的例外:被刪的句子會把查詢帶到別的詞綴,留著比認不得更糟。
- * @returns {{ drops: Array<{ ref: string, string: string }>, ambiguous: Array<{ string: string, refs: string[] }> }}
+ * - 都是現行:GGPK 新版物品描述檔裡發出這句的描述,只對得上部分詞綴的英文 → 刪對不上的(「生命恢復率」3.30 只屬於 Life Recovery);
+ *   對不上的那條英文在 GGPK 物品描述檔找不到(沒有證據)→ 不刪
+ * 比的是解析器實際查的字串(有進階寫法的是進階寫法;make-index-files);
+ * 同一個群組(flag-merge / percent-merge / select)與同 ref 的重複列是同一句的不同寫法,不互刪;
+ * 刪了會沒有現行寫法的不刪;判不準的(遊戲本身同字,例:魔力恢復率;全部都是舊句)列在 ambiguous,解析器兩個 id 都送。
+ * 這是 matcher「只加不刪」的例外:被刪的寫法會把查詢帶到別的詞綴,留著比認不得更糟。
+ * @returns {{ drops: Array<{ ref: string, string: string, advanced?: string }>, ambiguous: Array<{ string: string, refs: string[] }> }}
  */
 export function planSharedZh ({ enStats, zhStats, ggpkNew }) {
   const items = ggpkNew.filter(r => r.key.split('|').some(p => ITEM_STAT_FILES.includes(p)))
@@ -1700,26 +1701,39 @@ export function planSharedZh ({ enStats, zhStats, ggpkNew }) {
   /** @type {Map<string, Set<string>>} */
   const enDesc = new Map()
   for (const s of eachStat(enStats)) for (const m of s.matchers) for (const r of byEn.get(exactKey(m.string)) ?? []) (enDesc.get(s.ref) ?? enDesc.set(s.ref, new Set()).get(s.ref)).add(descOf(r))
+  // 帶「(...)」的一般句只在沒被別列佔用時才進索引(不搶位),不算撞名
+  const keysOf = (/** @type {any} */ m) => [m.advanced ?? m.string]
   const owners = []
   zhStats.forEach((row, rowIx) => {
-    for (const s of row.stats ?? [row]) for (const m of s.matchers ?? []) owners.push({ s, m, rowIx, strat: row.resolve?.strat })
+    // 同一個非 trivial-merge 群組算同一個單位(不互刪);其他以 ref 為單位
+    const unit = (/** @type {any} */ s) => row.stats && row.resolve?.strat !== 'trivial-merge' ? `#${rowIx}` : s.ref
+    for (const s of row.stats ?? [row]) for (const m of s.matchers ?? []) for (const key of keysOf(m)) owners.push({ s, m, key, unit: unit(s) })
   })
   const idsKey = (/** @type {any} */ s) => allIds(s).map(i => i.replace(/^\{[^}]*\}/, '')).sort().join(' ')
-  const drops = []
+  /** @type {Map<any, Set<any>>} 每個 stat 要刪的寫法 */
+  const gone = new Map()
   const ambiguous = []
-  for (const [string, list] of groupBy(owners, o => o.m.string)) {
-    if (new Set(list.map(o => o.s.ref)).size < 2 || new Set(list.map(o => idsKey(o.s))).size < 2) continue
-    if (new Set(list.map(o => o.rowIx)).size === 1 && list[0].strat !== 'trivial-merge') continue
+  for (const [string, list] of groupBy(owners, o => o.key)) {
+    if (new Set(list.map(o => o.unit)).size < 2 || new Set(list.map(o => idsKey(o.s))).size < 2) continue
     const live = list.filter(o => !o.m.superseded)
-    const liveRefs = new Set(live.map(o => o.s.ref))
-    let gone = live.length ? list.filter(o => o.m.superseded && !liveRefs.has(o.s.ref)) : []
-    if (liveRefs.size > 1) {
+    const liveUnits = new Set(live.map(o => o.unit))
+    if (!live.length) { ambiguous.push({ string, refs: uniq(list.map(o => o.s.ref)) }); continue }
+    let out = list.filter(o => o.m.superseded && !liveUnits.has(o.unit))
+    if (liveUnits.size > 1) {
       const descs = new Set((byZh.get(exactKey(string)) ?? []).map(descOf))
-      const ok = new Set([...liveRefs].filter(ref => [...(enDesc.get(ref) ?? [])].some(d => descs.has(d))))
-      if (ok.size && ok.size < liveRefs.size) gone = [...gone, ...live.filter(o => !ok.has(o.s.ref))]
-      else ambiguous.push({ string, refs: [...liveRefs] })
+      const fits = (/** @type {any} */ o) => [...(enDesc.get(o.s.ref) ?? [])].some(d => descs.has(d))
+      const bad = live.filter(o => !fits(o))
+      // 有對得上的、對不上的都有英文證據(GGPK 找得到,只是不是這個描述)才刪
+      if (bad.length && bad.length < live.length && bad.every(o => enDesc.get(o.s.ref)?.size)) out = [...out, ...bad]
+      else ambiguous.push({ string, refs: [...new Set(live.map(o => o.s.ref))] })
     }
-    for (const o of gone) if (o.s.matchers.length > 1) drops.push({ ref: o.s.ref, string })
+    for (const o of out) (gone.get(o.s) ?? gone.set(o.s, new Set()).get(o.s)).add(o.m)
+  }
+  const drops = []
+  for (const [s, ms] of gone) {
+    // 刪完要留一個現行寫法(否則正則頁沒有模板、解析可能只剩撞名的句子)
+    if (!s.matchers.some((/** @type {any} */ m) => !ms.has(m) && !m.superseded)) { ambiguous.push({ string: [...ms][0].string, refs: [s.ref] }); continue }
+    for (const m of ms) drops.push({ ref: s.ref, string: m.string, ...(m.advanced ? { advanced: m.advanced } : {}) })
   }
   return { drops, ambiguous }
 }
@@ -1757,8 +1771,9 @@ export function planPresenceForms ({ zhStats, drops = [] }) {
 
 /**
  * 規則 37:「… are Supported by level # <輔助寶石>」(交易站 stat_4089743927 的選項列,天賦樹 / 頭盔 / 手套 / 鞋子)
- * 繁中名稱與 GGPK 輔助寶石名(去掉「輔助」)不同 → 補換成 GGPK 名稱的寫法(進階寫法一起換)、舊句標 superseded。
- * 起因:Cast On Critical Strike 寫成「暈眩時施放」(= Cast when Stunned 的名字),兩條混查;舊句由規則 35 刪掉。
+ * 繁中名稱與 GGPK 輔助寶石名(去掉「輔助」)不同 → 補換成 GGPK 名稱的寫法(進階寫法一起換),標 superseded、舊句仍是現行。
+ * 這個句子 GGPK 沒有句型、遊戲用哪份名稱沒有實機樣本;台服交易站把 Cast On Critical Strike 選項也寫成「暈眩時施放」
+ * (= Cast when Stunned),所以舊句不動(規則 35 判不準、兩個 id 都送),GGPK 名稱只當第二寫法。
  * 找不到或同一個英文對到兩個繁中名稱的不猜。
  * @returns {{ adds: any[], rejects: any[] }}
  */
@@ -1777,12 +1792,13 @@ export function planSupportedByNames ({ zhStats, supports }) {
       const string = hit[1] + zhs[0] + hit[3]
       if (stat.matchers.some(x => x.string === string)) continue
       const { superseded, ...rest } = m
-      adds.push({ lang: 'cmn-Hant', ref: stat.ref, matcher: { ...rest, string, ...(m.advanced ? { advanced: m.advanced.replace(`的${hit[2]}`, `的${zhs[0]}`) } : {}) }, supersedes: [m.string] })
+      adds.push({ lang: 'cmn-Hant', ref: stat.ref, matcher: { ...rest, string, ...(m.advanced ? { advanced: m.advanced.replace(`的${hit[2]}`, `的${zhs[0]}`) } : {}), superseded: true } })
     }
   }
   return { adds, rejects }
 }
 
+/** `rewriteLines` 的 edit 回傳這個值 = 刪掉這一列 */
 const DROP_ROW = Symbol('drop')
 
 /** 逐列改寫 ndjson:只重寫有變動的列,保留原行尾 */
@@ -1803,7 +1819,7 @@ function rewriteLines (fileText, edit, appended = []) {
  * 套用詞綴計畫(adds / replace / remove / newStats)到一份 stats.ndjson 文字
  * @param {string} fileText
  * @param {'en' | 'cmn-Hant'} lang
- * @param {{ dropMatchers?: Array<{ ref: string, string: string }>, drop?: string[], adds?: any[], replace?: Record<string, string>, remove?: string[], newStats?: any[], better?: Record<string, number>, fill?: Record<string, Record<string, string[]>>, extra?: Record<string, Record<string, string[]>>, option?: string[], merge?: Array<{ from: string, into: string }> }} [plan]
+ * @param {{ dropMatchers?: Array<{ ref: string, string: string, advanced?: string }>, drop?: string[], adds?: any[], replace?: Record<string, string>, remove?: string[], newStats?: any[], better?: Record<string, number>, fill?: Record<string, Record<string, string[]>>, extra?: Record<string, Record<string, string[]>>, option?: string[], merge?: Array<{ from: string, into: string }> }} [plan]
  */
 export function applyStatPlan (fileText, lang, { dropMatchers = [], ...plan } = {}) {
   const text = applyStatPlanMerged(fileText, lang, plan)
@@ -1813,9 +1829,9 @@ export function applyStatPlan (fileText, lang, { dropMatchers = [], ...plan } = 
   return rewriteLines(text, (row) => {
     let changed = false
     for (const stat of row.stats ?? [row]) {
-      const strings = new Set((gone.get(stat.ref) ?? []).map(d => d.string))
-      const keep = stat.matchers?.filter(m => !strings.has(m.string)) ?? []
-      if (!strings.size || !keep.length || keep.length === stat.matchers.length) continue
+      const list = gone.get(stat.ref) ?? []
+      const keep = stat.matchers?.filter(m => !list.some(d => d.string === m.string && (d.advanced ?? null) === (m.advanced ?? null))) ?? []
+      if (!list.length || !keep.length || keep.length === stat.matchers.length) continue
       stat.matchers = keep
       changed = true
     }

@@ -1853,12 +1853,38 @@ describe('planSharedZh(規則 35:不同詞綴共用同一句繁中)', () => {
   const SHARED = '增加 #% 生命恢復率'
   const zhLife = () => [stat(LR, [{ string: SHARED }], A), stat(LG, [{ string: SHARED }, { string: '增加 #% 生命回復率' }], B)]
   const enLife = () => [stat(LR, [{ string: LR }], A), stat(LG, [{ string: LG }], B)]
-  const row = (id: string, en: string) => ({ key: `${id}|1|#|stat_descriptions.txt|0`, en, zh: '增加 {0}% 生命恢復率', handlers: [] })
+  const row = (id: string, en: string, zh = '增加 {0}% 生命恢復率') => ({ key: `${id}|1|#|stat_descriptions.txt|0`, en, zh, handlers: [] })
   // 失敗代表:沒依 GGPK 描述(只有 life_recovery 發出這句)判斷歸屬,或丟錯那條
   it('T2 兩條都現行、GGPK 只有其中一條的英文描述發出這句 → 丟另一條', () => {
-    const ggpkNew = [row('life_recovery_rate_+%', '{0}% increased Life Recovery rate')]
+    const ggpkNew = [row('life_recovery_rate_+%', '{0}% increased Life Recovery rate'), row('life_regeneration_rate_+%', '{0}% increased Life Regeneration rate', '增加 {0}% 生命回復率')]
     const plan = planSharedZh({ enStats: enLife(), zhStats: zhLife(), ggpkNew })
     expect(plan.drops).toEqual([{ ref: LG, string: SHARED }])
+  })
+  // 失敗代表:沒有英文證據的那條也被刪(可能只在別的描述檔同字)
+  it('T2 對不上的那條英文在 GGPK 物品描述檔找不到 → 不刪、列入 ambiguous', () => {
+    const plan = planSharedZh({ enStats: enLife(), zhStats: zhLife(), ggpkNew: [row('life_recovery_rate_+%', '{0}% increased Life Recovery rate')] })
+    expect(plan.drops).toEqual([])
+    expect(plan.ambiguous).toHaveLength(1)
+  })
+  // 失敗代表:撞名只比 string,刪到另一條唯一的進階寫法
+  it('T7 有進階寫法時以進階寫法比對:string 相同但進階寫法不同不算撞名', () => {
+    const zhStats = [stat('X', [{ string: S, advanced: S + '(...)' }], A), stat('Y', [{ string: S, superseded: true }, { string: '別句' }], B)]
+    expect(planSharedZh({ enStats: [], zhStats, ggpkNew: [] }).drops).toEqual([])
+  })
+  // 失敗代表:刪光現行寫法、只剩舊句(正則頁沒有模板,摘要永遠不歸零)
+  it('T8 刪完沒有現行寫法 → 不刪、列入 ambiguous', () => {
+    const ggpkNew = [row('life_recovery_rate_+%', '{0}% increased Life Recovery rate'), row('life_regeneration_rate_+%', '{0}% increased Life Regeneration rate', '增加 {0}% 生命回復率')]
+    const zhStats = [stat(LR, [{ string: SHARED }], A), stat(LG, [{ string: SHARED }, { string: '舊', superseded: true }], B)]
+    const plan = planSharedZh({ enStats: enLife(), zhStats, ggpkNew })
+    expect(plan.drops).toEqual([])
+    expect(plan.ambiguous).toHaveLength(1)
+  })
+  // 失敗代表:全部都是舊句的撞名沒有出現在報告
+  it('T9 共用的全部是舊句 → 不刪、列入 ambiguous', () => {
+    const zhStats = [stat('X', [{ string: S, superseded: true }, { string: 'a' }], A), stat('Y', [{ string: S, superseded: true }, { string: 'b' }], B)]
+    const plan = planSharedZh({ enStats: [], zhStats, ggpkNew: [] })
+    expect(plan.drops).toEqual([])
+    expect(plan.ambiguous).toHaveLength(1)
   })
   // 失敗代表:兩條都對得上時硬丟一條(會弄壞其中一條詞綴)
   it('T3 GGPK 兩條都對得上 → 不丟、列入 ambiguous', () => {
@@ -1942,13 +1968,13 @@ describe('planSupportedByNames(規則 37:輔助寶石名稱跟 GGPK 一致)', ()
     advanced: `插槽中的技能被等級 # 的${name}(高階多重投射-聖徒)輔助`
   }])
   // 失敗代表:繁中名稱沒換成 GGPK 名稱,或進階寫法沒一起換
-  it('S1 名稱與 GGPK 不同 → 補 string 與 advanced 都換名稱的 matcher,supersedes 舊 string', () => {
+  // 審查(2026-11-27):台服交易站也把這個選項寫成「暈眩時施放」,遊戲用哪份名稱沒有樣本 → 舊句維持現行,GGPK 名稱只當第二寫法
+  it('S1 名稱與 GGPK 不同 → 補 string 與 advanced 都換名稱的第二寫法(標 superseded),舊句不動', () => {
     const plan = planSupportedByNames({ zhStats: [zhRow('暈眩時施放')], supports })
     expect(plan.adds).toEqual([{
       lang: 'cmn-Hant',
       ref: REF,
-      matcher: { string: '插槽中的技能被等級 # 的暴擊時施放輔助', advanced: '插槽中的技能被等級 # 的暴擊時施放(高階多重投射-聖徒)輔助' },
-      supersedes: ['插槽中的技能被等級 # 的暈眩時施放輔助']
+      matcher: { string: '插槽中的技能被等級 # 的暴擊時施放輔助', advanced: '插槽中的技能被等級 # 的暴擊時施放(高階多重投射-聖徒)輔助', superseded: true }
     }])
     expect(plan.rejects).toEqual([])
   })
@@ -1976,6 +2002,12 @@ describe('applyStatPlan dropMatchers(規則 35:刪掉被別條詞綴共用的舊
     stat('C', [{ string: 'x' }, { string: 'y' }])
   ]
   // 失敗代表:沒刪到(含群組列裡的 stat),或動到別的 matcher / 別列
+  // 失敗代表:同一句、進階寫法不同的兩個寫法被一起刪
+  it('D4 指定 advanced 時只刪 string 與 advanced 都相同的那個寫法', () => {
+    const input = toFile([stat('A', [{ string: 'x', advanced: 'x1' }, { string: 'x', advanced: 'x2' }])])
+    const out = parseRows(applyStatPlan(input, 'cmn-Hant', { dropMatchers: [{ ref: 'A', string: 'x', advanced: 'x1' }] }))
+    expect(out[0].matchers).toEqual([{ string: 'x', advanced: 'x2' }])
+  })
   it('D1 刪掉指定 ref 的那個 matcher(含群組列),其他逐字不變', () => {
     const input = toFile(rows())
     const out = applyStatPlan(input, 'cmn-Hant', { dropMatchers: [{ ref: 'A', string: 'x' }, { ref: 'B', string: 'x' }] })
