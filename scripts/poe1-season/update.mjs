@@ -15,7 +15,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
-import { BETTER_OVERRIDES, eachStat, applyItemPlan, applyStatPlan, planDeadIds, planGems, planItems, planMercenaryBuilds, planMercenarySkills, planSplitStats, planExtraZh, planNamedSlots, planTimelessJewels, planFixedCase, planFlagMerge, planIndexableSkills, planDropNoIdStats, planZhForms, planCondForms, planEffectStats, planFillIds, planGrantsSkill, planMinionDoubled, planRandomSkillGem, planCitadel, planUniqueZhNames, planNewStats, planStatText, planSupportGemNames, planGrownPassives, planPassiveRenames, planForbiddenNotables, planMergeDuplicates, planRoomNames, planTypeIds, planTradeBases, planTradeText, planOtherTradeTexts, planUniques } from './lib.mjs'
+import { BETTER_OVERRIDES, eachStat, applyItemPlan, applyStatPlan, planDeadIds, planGems, planItems, planMercenaryBuilds, planMercenarySkills, planSplitStats, planExtraZh, planNamedSlots, planTimelessJewels, planFixedCase, planFlagMerge, planIndexableSkills, planDropNoIdStats, planZhForms, planCondForms, planEffectStats, planFillIds, planGrantsSkill, planMinionDoubled, planRandomSkillGem, planCitadel, planUniqueZhNames, planNewStats, planStatText, planSupportGemNames, planGrownPassives, planPassiveRenames, planForbiddenNotables, planMergeDuplicates, planSharedZh, planPresenceForms, planSupportedByNames, planRoomNames, planTypeIds, planTradeBases, planTradeText, planOtherTradeTexts, planUniques } from './lib.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(HERE, '../..')
@@ -80,7 +80,10 @@ const fixedCase = planFixedCase({ enStats: afterA.en, ggpkNew: ggpk.stats.new })
 const flagMerge = planFlagMerge({ enStats: afterA.en, zhStats: afterA['cmn-Hant'] })
 const roomNames = planRoomNames({ zhStats: afterA['cmn-Hant'], enStats: afterA.en, rooms: ggpk.rooms ?? [], renames: ggpk.renames ?? [] })
 const passiveRenames = planPassiveRenames({ zhStats: afterA['cmn-Hant'], renames: ggpk.passiveRenames ?? [] })
-const adds = [...passiveRenames.adds, ...ruleA.adds, ...ruleB.adds, ...gemNames.adds, ...minions.adds, ...skillGems.adds, ...citadels.adds, ...extraZh.adds, ...grants.adds, ...roomNames.adds, ...namedSlots.adds, ...timeless.adds, ...fixedCase.adds, ...flagMerge.adds]
+const supportedBy = planSupportedByNames({ zhStats: afterA['cmn-Hant'], supports: ggpk.supports ?? [] })
+// 規則 36 的基底要先扣掉規則 35 會刪的句子(「生命恢復率」不再是 Life Regeneration 的寫法)
+const presence = planPresenceForms({ zhStats: afterA['cmn-Hant'], drops: planSharedZh({ enStats: afterA.en, zhStats: afterA['cmn-Hant'], ggpkNew: ggpk.stats.new }).drops })
+const adds = [...supportedBy.adds, ...presence.adds, ...passiveRenames.adds, ...ruleA.adds, ...ruleB.adds, ...gemNames.adds, ...minions.adds, ...skillGems.adds, ...citadels.adds, ...extraZh.adds, ...grants.adds, ...roomNames.adds, ...namedSlots.adds, ...timeless.adds, ...fixedCase.adds, ...flagMerge.adds]
 const effects = planEffectStats({ enStats: rows(applyStatPlan(text['en/stats'], 'en', { adds })), zhStats: rows(applyStatPlan(text['cmn-Hant/stats'], 'cmn-Hant', { adds })), tradeStats, skills: ggpk.skills, supports: ggpk.supports ?? [], strings: ggpk.strings, taken: Object.values(planFillIds({ enStats: rows(applyStatPlan(text['en/stats'], 'en', { adds })), tradeStats })).flatMap(t => Object.values(t).flat()) })
 adds.push(...effects.adds)
 // 規則 20 排最後、看得到這一輪其他規則加的句子:它加的句子一律標 superseded,排前面會讓後面想把同一句當現行的規則被「已經有了」擋掉
@@ -119,7 +122,9 @@ const extraIds = { ...typeIds.extra }
 for (const [ref, ids] of [...Object.entries(grown.extra), ...Object.entries(mercSkills.extra)]) for (const [type, list] of Object.entries(ids)) ((extraIds[ref] ??= {})[type] ??= []).push(...list)
 const merges = planMergeDuplicates({ enStats: afterB, zhStats: rows(applyStatPlan(text['cmn-Hant/stats'], 'cmn-Hant', { adds })) })
 const statPlan = { adds, replace: dead.replace, remove: dead.remove, newStats, better: BETTER_OVERRIDES, fill, extra: extraIds, option: roomNames.option, merge: merges.merge, drop: planDropNoIdStats({ enStats: afterB, keep: [...Object.keys(fill), ...Object.keys(extraIds)] }).drop }
-const rejects = [...ruleA.rejects.map(r => ({ rule: '改字 A', ...r })), ...ruleB.rejects.map(r => ({ rule: '改字 B', ...r })), ...dead.rejects.map(r => ({ rule: '失效 id', ...r })), ...gemNames.rejects.map(r => ({ rule: '輔助寶石名', ...r })), ...grants.rejects.map(r => ({ rule: '賦予技能', ...r })), ...zhForms.rejects.map(r => ({ rule: 'GGPK 繁中句子', ...r })), ...namedSlots.rejects.map(r => ({ rule: '帶入名稱的句型', ...r })), ...timeless.rejects.map(r => ({ rule: '永恆珠寶征服者', ...r })), ...condForms.rejects.map(r => ({ rule: 'GGPK 數值寫法', ...r })), ...otherTexts.rejects.map(r => ({ rule: '交易站另一句', ...r })), ...effects.rejects.map(r => ({ rule: 'effect 新 id', ...r })), ...typeIds.rejects.map(r => ({ rule: '掛上缺的類型 id', ...r })), ...grown.rejects.map(r => ({ rule: '洗出的塗油天賦', ...r })), ...forbidden.rejects.map(r => ({ rule: '禁忌珠寶新天賦', ...r })), ...indexableSkills.rejects.map(r => ({ rule: '隨機技能寶石等級', ...r })), ...passiveRenames.rejects.map(r => ({ rule: '天賦改名', ...r })), ...bases.rejects.map(r => ({ rule: '新底材', ...r })), ...uniques.rejects.map(r => ({ rule: '新傳奇', ...r })), ...gems.rejects.map(r => ({ rule: '新變異寶石', ...r })), ...builds.rejects.map(r => ({ rule: '傭兵流派', ...r })), ...mercSkills.rejects.map(r => ({ rule: '傭兵技能', ...r })), ...splits.rejects.map(r => ({ rule: '合併 stat 拆成單欄', ...r }))]
+// 規則 35 最後做:看得到這一輪全部規則(含規則 36 / 37 標成 superseded 的舊句)加完的結果
+const shared = Object.fromEntries(LANGS.map(lang => [lang, planSharedZh({ enStats: rows(applyStatPlan(text['en/stats'], 'en', statPlan)), zhStats: rows(applyStatPlan(text[`${lang}/stats`], lang, statPlan)), ggpkNew: lang === 'en' ? [] : ggpk.stats.new })]))
+const rejects = [...ruleA.rejects.map(r => ({ rule: '改字 A', ...r })), ...ruleB.rejects.map(r => ({ rule: '改字 B', ...r })), ...dead.rejects.map(r => ({ rule: '失效 id', ...r })), ...gemNames.rejects.map(r => ({ rule: '輔助寶石名', ...r })), ...grants.rejects.map(r => ({ rule: '賦予技能', ...r })), ...zhForms.rejects.map(r => ({ rule: 'GGPK 繁中句子', ...r })), ...namedSlots.rejects.map(r => ({ rule: '帶入名稱的句型', ...r })), ...timeless.rejects.map(r => ({ rule: '永恆珠寶征服者', ...r })), ...condForms.rejects.map(r => ({ rule: 'GGPK 數值寫法', ...r })), ...otherTexts.rejects.map(r => ({ rule: '交易站另一句', ...r })), ...effects.rejects.map(r => ({ rule: 'effect 新 id', ...r })), ...typeIds.rejects.map(r => ({ rule: '掛上缺的類型 id', ...r })), ...grown.rejects.map(r => ({ rule: '洗出的塗油天賦', ...r })), ...forbidden.rejects.map(r => ({ rule: '禁忌珠寶新天賦', ...r })), ...indexableSkills.rejects.map(r => ({ rule: '隨機技能寶石等級', ...r })), ...passiveRenames.rejects.map(r => ({ rule: '天賦改名', ...r })), ...supportedBy.rejects.map(r => ({ rule: '輔助寶石名稱', ...r })), ...bases.rejects.map(r => ({ rule: '新底材', ...r })), ...uniques.rejects.map(r => ({ rule: '新傳奇', ...r })), ...gems.rejects.map(r => ({ rule: '新變異寶石', ...r })), ...builds.rejects.map(r => ({ rule: '傭兵流派', ...r })), ...mercSkills.rejects.map(r => ({ rule: '傭兵技能', ...r })), ...splits.rejects.map(r => ({ rule: '合併 stat 拆成單欄', ...r }))]
 
 const count = (list, lang) => list.filter(a => a.lang === lang).length
 const summary = [
@@ -148,6 +153,8 @@ const summary = [
   `新詞綴:${newStats.length} 列;方向校正 ${betterFix} 條;補交易站 id ${Object.keys(fill).length} 條`,
   `傭兵技能(規則 24):新增 ${mercSkills.newStats.length} 列、掛到既有技能 ${Object.keys(mercSkills.extra).length} 條、拒收 ${mercSkills.rejects.length}`,
   `物品:改名 ${items.renames.length}、新增 ${items.adds.length}、新底材 ${bases.adds.length}、新傳奇 ${uniques.adds.length}、新變異寶石 ${gems.adds.length}、傭兵流派 ${builds.adds.length}、傳奇繁中改名 ${zhNames.length}`,
+  `輔助寶石名稱(規則 37):繁中 +${supportedBy.adds.length};頭目面前跟基底(規則 36):繁中 +${presence.adds.length}`,
+  `共用同一句(規則 35):刪 en ${shared.en.drops.length} / 繁中 ${shared['cmn-Hant'].drops.length} 句;判不準(兩個 id 都送)en ${shared.en.ambiguous.length} / 繁中 ${shared['cmn-Hant'].ambiguous.length}`,
   `拒收(沒改資料):${rejects.length}`
 ]
 console.log(summary.join('\n'))
@@ -167,6 +174,8 @@ if (flag('--report')) {
     '## 失效 id:替換', table(['舊 id', '新 id'], Object.entries(dead.replace)), '',
     '## 失效 id:移除', dead.remove.length ? dead.remove.map(i => `\`${i}\``).join(' ') : '(無)', '',
     '## 新增 matcher', table(['語系', 'ref', '新 matcher', '旗標'], adds.map(a => [a.lang, a.ref, a.matcher.string, [a.matcher.negate && 'negate', a.matcher.value !== undefined && `value ${a.matcher.value}`].filter(Boolean).join(' ')])), '',
+    '## 共用同一句:刪掉的', table(['語系', 'ref', '句子'], LANGS.flatMap(lang => shared[lang].drops.map(d => [lang, d.ref, d.string]))), '',
+    '## 共用同一句:判不準(兩個 id 都送)', table(['語系', '句子', '詞綴'], LANGS.flatMap(lang => shared[lang].ambiguous.map(a => [lang, a.string, a.refs.join(' / ')]))), '',
     '## 拒收(沒改資料,需要人看)', table(['規則', '原因', 'ref / id', '語系', '內容'], rejects.map(r => [r.rule, r.reason, r.ref ?? r.id, r.lang, r.to ?? (r.candidates ?? []).join(' ')])), ''
   ].join('\n')
   const out = path.resolve(ROOT, String(flag('--report')))
@@ -180,7 +189,7 @@ if (!args.includes('--write')) {
   process.exit(0)
 }
 for (const lang of LANGS) {
-  fs.writeFileSync(file(lang, 'stats'), applyStatPlan(text[`${lang}/stats`], lang, statPlan))
+  fs.writeFileSync(file(lang, 'stats'), applyStatPlan(text[`${lang}/stats`], lang, { ...statPlan, dropMatchers: shared[lang].drops }))
   fs.writeFileSync(file(lang, 'items'), applyItemPlan(text[`${lang}/items`], lang, itemPlan))
 }
 const node = (/** @type {string[]} */ a) => execFileSync(process.execPath, a, { cwd: ROOT, stdio: 'inherit' })

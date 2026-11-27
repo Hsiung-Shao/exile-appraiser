@@ -102,9 +102,9 @@ describe('排除統計(資料同步後數字變了要看過再改)', () => {
       // 2026-10-08:假掰(The Adorned)補上遊戲內寫法 → 該條有兩種繁中寫法,改列 multi_form(4786 → 4785、86 → 87)
       // 2026-10-10:多種寫法改查 poe2db / poedb 仲裁檔 data/regex/item-mod-forms.json(4785 → 4854、multi_form 87 → 12;
       // 原卡在 multi_form 的條目往下走,改由 multiline +2、too_long +4 排除)
-      entries: 5337,
+      entries: 5338, // 2026-11-27 規則 35 刪掉 Life Regeneration 錯掛的「生命恢復率」→ 只剩一種寫法、改為可選 +1;
       merged: 34,
-      excluded: { decimal: 149, multi_value: 2470, multi_form: 30, multiline: 170, missing_lang: 0, no_unique: 4, too_long: 237 }
+      excluded: { decimal: 149, multi_value: 2470, multi_form: 29, multiline: 170, missing_lang: 0, no_unique: 4, too_long: 237 } // multi_form -1 同上
     })
     expect(summary(DATA.poe2)).toEqual({
       itemStats: 1847,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toMatcherText, planStatText, planTradeText, planOtherTradeTexts, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planRandomSkillGem, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, planRoomNames, planCitadel, planExtraZh, planZhForms, planCondForms, planMercenaryBuilds, planNamedSlots, planTimelessJewels, planFixedCase, planMercenarySkills, EXTRA_ZH_MATCHERS, planGrownPassives, planPassiveRenames, planForbiddenNotables, planMergeDuplicates, planFlagMerge, planIndexableSkills, planDropNoIdStats, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
+import { toMatcherText, planStatText, planTradeText, planOtherTradeTexts, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planRandomSkillGem, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, planRoomNames, planCitadel, planExtraZh, planZhForms, planCondForms, planMercenaryBuilds, planNamedSlots, planTimelessJewels, planFixedCase, planMercenarySkills, EXTRA_ZH_MATCHERS, planGrownPassives, planPassiveRenames, planForbiddenNotables, planMergeDuplicates, planFlagMerge, planIndexableSkills, planDropNoIdStats, planSharedZh, planPresenceForms, planSupportedByNames, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
 
 /**
  * 賽季更新腳本的純函式測試(合成輸入,不讀 data/)。
@@ -1831,5 +1831,169 @@ describe('planDropNoIdStats(規則 33:刪掉沒有交易站 id 的聖甲蟲與�
   it('繁中檔同樣整列刪掉', () => {
     const out = parseRows(applyStatPlan(toFile(rows), 'cmn-Hant', { drop: planDropNoIdStats({ enStats: rows }).drop }))
     expect(out.map(r => r.ref)).toEqual(['Grants Level # Vengeance Skill', 'Scarabs dropped in Area are Titanic'])
+  })
+})
+
+describe('planSharedZh(規則 35:不同詞綴共用同一句繁中)', () => {
+  const A = { explicit: ['explicit.stat_A'] }
+  const B = { explicit: ['explicit.stat_B'] }
+  const S = '若禁忌血肉上有符合的詞綴，配置 守護者'
+  // 失敗代表:舊名那條(superseded)沒被丟,現行那條被誤丟
+  it('T1 一條現行、一條 superseded 共用同句 → 丟 superseded 那條的這句', () => {
+    const zhStats = [
+      stat('Allocates Guardian if you have the matching modifier on Forbidden Flesh', [{ string: S }], A),
+      stat('Allocates Warden if you have the matching modifier on Forbidden Flesh', [{ string: S, superseded: true }, { string: '其他寫法' }], B)
+    ]
+    const plan = planSharedZh({ enStats: [], zhStats, ggpkNew: [] })
+    expect(plan.drops).toEqual([{ ref: zhStats[1].ref, string: S }])
+  })
+
+  const LR = '#% increased Life Recovery rate'
+  const LG = '#% increased Life Regeneration rate'
+  const SHARED = '增加 #% 生命恢復率'
+  const zhLife = () => [stat(LR, [{ string: SHARED }], A), stat(LG, [{ string: SHARED }, { string: '增加 #% 生命回復率' }], B)]
+  const enLife = () => [stat(LR, [{ string: LR }], A), stat(LG, [{ string: LG }], B)]
+  const row = (id: string, en: string) => ({ key: `${id}|1|#|stat_descriptions.txt|0`, en, zh: '增加 {0}% 生命恢復率', handlers: [] })
+  // 失敗代表:沒依 GGPK 描述(只有 life_recovery 發出這句)判斷歸屬,或丟錯那條
+  it('T2 兩條都現行、GGPK 只有其中一條的英文描述發出這句 → 丟另一條', () => {
+    const ggpkNew = [row('life_recovery_rate_+%', '{0}% increased Life Recovery rate')]
+    const plan = planSharedZh({ enStats: enLife(), zhStats: zhLife(), ggpkNew })
+    expect(plan.drops).toEqual([{ ref: LG, string: SHARED }])
+  })
+  // 失敗代表:兩條都對得上時硬丟一條(會弄壞其中一條詞綴)
+  it('T3 GGPK 兩條都對得上 → 不丟、列入 ambiguous', () => {
+    const ggpkNew = [row('life_recovery_rate_+%', '{0}% increased Life Recovery rate'), row('life_regeneration_rate_+%', '{0}% increased Life Regeneration rate')]
+    const plan = planSharedZh({ enStats: enLife(), zhStats: zhLife(), ggpkNew })
+    expect(plan.drops).toEqual([])
+    expect(plan.ambiguous).toHaveLength(1)
+  })
+  it('T3 GGPK 沒有資料 → 不丟、列入 ambiguous', () => {
+    const plan = planSharedZh({ enStats: enLife(), zhStats: zhLife(), ggpkNew: [] })
+    expect(plan.drops).toEqual([])
+    expect(plan.ambiguous).toHaveLength(1)
+  })
+  // 失敗代表:旗標群組(本來就是同一句的兩種寫法)被當成衝突
+  it('T4 兩條在同一個 flag-merge 群組列裡 → 不丟、也不算 ambiguous', () => {
+    const zhStats = [{ resolve: { strat: 'flag-merge' }, stats: zhLife() }]
+    const plan = planSharedZh({ enStats: enLife(), zhStats, ggpkNew: [row('life_recovery_rate_+%', '{0}% increased Life Recovery rate')] })
+    expect(plan.drops).toEqual([])
+    expect(plan.ambiguous).toEqual([])
+  })
+  // 失敗代表:同一句的重複列(同 ref)被當成兩條不同詞綴互丟
+  it('T5 兩條 ref 相同 → 不理會', () => {
+    const zhStats = [stat(LR, [{ string: SHARED }], A), stat(LR, [{ string: SHARED, superseded: true }, { string: '別句' }], B)]
+    const plan = planSharedZh({ enStats: [], zhStats, ggpkNew: [] })
+    expect(plan.drops).toEqual([])
+    expect(plan.ambiguous).toEqual([])
+  })
+  // 失敗代表:丟掉後該詞綴一個寫法都不剩,解析器認不得它
+  it('T6 丟掉會讓該詞綴一個 matcher 都不剩 → 不丟', () => {
+    const zhStats = [stat('Allocates Guardian', [{ string: S }], A), stat('Allocates Warden', [{ string: S, superseded: true }], B)]
+    expect(planSharedZh({ enStats: [], zhStats, ggpkNew: [] }).drops).toEqual([])
+  })
+})
+
+describe('planPresenceForms(規則 36:頭目面前詞綴跟著基底詞綴的現行寫法)', () => {
+  const BASE = '#% increased Life Regeneration rate'
+  const U = 'While a Unique Enemy is in your Presence, ' + BASE
+  const P = 'While a Pinnacle Atlas Boss is in your Presence, ' + BASE
+  const drops = [{ ref: BASE, string: '增加 #% 生命恢復率' }]
+  const base = () => stat(BASE, [{ string: '增加 #% 生命恢復率' }, { string: '增加 #% 生命回復率' }])
+  // 失敗代表:基底改了現行寫法,頭目面前那條還停在舊句(或把 drops 要丟的舊句當成現行)
+  it('P1 基底現行寫法有、頭目面前那條沒有 → 補上,supersedes 列出舊句(傳奇 / 巔峰兩種前綴)', () => {
+    const zhStats = [
+      base(),
+      stat(U, [{ string: '在傳奇頭目面前時，增加 #% 生命恢復率' }]),
+      stat(P, [{ string: '在巔峰頭目面前時，增加 #% 生命恢復率' }])
+    ]
+    expect(planPresenceForms({ zhStats, drops }).adds).toEqual([
+      { lang: 'cmn-Hant', ref: U, matcher: { string: '在傳奇頭目面前時，增加 #% 生命回復率' }, supersedes: ['在傳奇頭目面前時，增加 #% 生命恢復率'] },
+      { lang: 'cmn-Hant', ref: P, matcher: { string: '在巔峰頭目面前時，增加 #% 生命回復率' }, supersedes: ['在巔峰頭目面前時，增加 #% 生命恢復率'] }
+    ])
+  })
+  // 失敗代表:旗標(negate)沒照基底那句
+  it('P1 旗標 negate 照基底那句', () => {
+    const zhStats = [
+      stat(BASE, [{ string: '減少 #% 生命回復率', negate: true }]),
+      stat(U, [{ string: '在傳奇頭目面前時，減少 #% 生命恢復率', negate: true }])
+    ]
+    const adds = planPresenceForms({ zhStats, drops: [] }).adds
+    expect(adds).toHaveLength(1)
+    expect(adds[0].matcher).toEqual({ string: '在傳奇頭目面前時，減少 #% 生命回復率', negate: true })
+    expect(adds[0].supersedes).toEqual(['在傳奇頭目面前時，減少 #% 生命恢復率'])
+  })
+  // 失敗代表:已經一致還重複補
+  it('P2 已經一致 → 沒有 adds', () => {
+    const zhStats = [base(), stat(U, [{ string: '在傳奇頭目面前時，增加 #% 生命回復率' }])]
+    expect(planPresenceForms({ zhStats, drops }).adds).toEqual([])
+  })
+  // 失敗代表:找不到基底還硬補
+  it('P3 資料裡沒有基底 ref → 沒有 adds', () => {
+    const zhStats = [stat(U, [{ string: '在傳奇頭目面前時，增加 #% 生命恢復率' }])]
+    expect(planPresenceForms({ zhStats, drops }).adds).toEqual([])
+  })
+})
+
+describe('planSupportedByNames(規則 37:輔助寶石名稱跟 GGPK 一致)', () => {
+  const REF = 'Skills Socketed in your Helmet are Supported by level # Cast On Critical Strike'
+  const supports = [{ en: 'Cast On Critical Strike Support', zh: '暴擊時施放輔助' }]
+  const zhRow = (name: string) => stat(REF, [{
+    string: `插槽中的技能被等級 # 的${name}輔助`,
+    advanced: `插槽中的技能被等級 # 的${name}(高階多重投射-聖徒)輔助`
+  }])
+  // 失敗代表:繁中名稱沒換成 GGPK 名稱,或進階寫法沒一起換
+  it('S1 名稱與 GGPK 不同 → 補 string 與 advanced 都換名稱的 matcher,supersedes 舊 string', () => {
+    const plan = planSupportedByNames({ zhStats: [zhRow('暈眩時施放')], supports })
+    expect(plan.adds).toEqual([{
+      lang: 'cmn-Hant',
+      ref: REF,
+      matcher: { string: '插槽中的技能被等級 # 的暴擊時施放輔助', advanced: '插槽中的技能被等級 # 的暴擊時施放(高階多重投射-聖徒)輔助' },
+      supersedes: ['插槽中的技能被等級 # 的暈眩時施放輔助']
+    }])
+    expect(plan.rejects).toEqual([])
+  })
+  // 失敗代表:已一致還重複補
+  it('S2 名稱已一致 → 沒有 adds', () => {
+    expect(planSupportedByNames({ zhStats: [zhRow('暴擊時施放')], supports }).adds).toEqual([])
+  })
+  // 失敗代表:對不上或有歧義時硬挑一個名稱
+  it('S3 supports 找不到該寶石 → 不加、進 rejects', () => {
+    const plan = planSupportedByNames({ zhStats: [zhRow('暈眩時施放')], supports: [{ en: 'Other Support', zh: '別的輔助' }] })
+    expect(plan.adds).toEqual([])
+    expect(plan.rejects).toHaveLength(1)
+  })
+  it('S3 同一個英文對到兩個不同繁中 → 不加、進 rejects', () => {
+    const plan = planSupportedByNames({ zhStats: [zhRow('暈眩時施放')], supports: [...supports, { en: 'Cast On Critical Strike Support', zh: '爆擊施放輔助' }] })
+    expect(plan.adds).toEqual([])
+    expect(plan.rejects).toHaveLength(1)
+  })
+})
+
+describe('applyStatPlan dropMatchers(規則 35:刪掉被別條詞綴共用的舊句)', () => {
+  const rows = () => [
+    stat('A', [{ string: 'x' }, { string: 'y' }]),
+    { resolve: { strat: 'trivial-merge' }, stats: [stat('B', [{ string: 'x' }, { string: 'z' }]), stat('B2', [{ string: 'q' }])] },
+    stat('C', [{ string: 'x' }, { string: 'y' }])
+  ]
+  // 失敗代表:沒刪到(含群組列裡的 stat),或動到別的 matcher / 別列
+  it('D1 刪掉指定 ref 的那個 matcher(含群組列),其他逐字不變', () => {
+    const input = toFile(rows())
+    const out = applyStatPlan(input, 'cmn-Hant', { dropMatchers: [{ ref: 'A', string: 'x' }, { ref: 'B', string: 'x' }] })
+    const exp: any[] = rows()
+    exp[0].matchers = [{ string: 'y' }]
+    exp[1].stats[0].matchers = [{ string: 'z' }]
+    expect(parseRows(out)).toEqual(exp)
+    // C 列(沒被點名)的原文逐字相同
+    expect(out.split(/\r?\n/)[2]).toBe(input.split(/\r?\n/)[2])
+  })
+  // 失敗代表:刪到一個 matcher 都不剩,詞綴解析不到
+  it('D2 不會刪到一個 matcher 都不剩', () => {
+    const input = toFile([stat('A', [{ string: 'x' }]), stat('C', [{ string: 'y' }])])
+    expect(parseRows(applyStatPlan(input, 'cmn-Hant', { dropMatchers: [{ ref: 'A', string: 'x' }] }))).toEqual(parseRows(input))
+  })
+  // 失敗代表:沒有計畫卻改寫了檔案
+  it('D3 dropMatchers 是空的 → 檔案逐字相同', () => {
+    const input = toFile(rows())
+    expect(applyStatPlan(input, 'cmn-Hant', { dropMatchers: [] })).toBe(input)
   })
 })
