@@ -438,6 +438,14 @@ export function calculatedStatToFilter(
     roll: undefined,
     disabled,
   };
+  // exile-appraiser: 2026-11-28 沒有數字的反向寫法:沒有 roll,translateStatWithRoll 會挑到正向那句(使用者回報「不幸」顯示成「幸運」);
+  // 解析時對到的那句在 sources 的 translation 裡 → 照它顯示,查詢只查負值
+  const negated = !roll && sources.length > 0 &&
+    sources.every((s) => s.stat.translation.negate && s.stat.translation.value == null);
+  if (negated && !filter.option) {
+    filter.text = sources[0].stat.translation.string;
+    filter.negatedFlag = true;
+  }
 
   if (type === ModifierType.Implicit) {
     if (sources.some((s) => s.modifier.info.generation === "eldritch")) {

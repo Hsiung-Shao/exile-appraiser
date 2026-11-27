@@ -1518,7 +1518,8 @@ function tradeIdToQuery(id: string, stat: StatFilter) {
 
   return {
     id: tradeId,
-    value: {
+    // exile-appraiser: 2026-11-28 沒有數字的反向寫法(不幸 / 厄運)= 同一個 id 的負值(實查交易站 max -1 有物品、min 1 沒有)
+    value: !roll && stat.negatedFlag ? { max: -1 } : {
       ...getMinMax(roll),
       // option: stat.option != null ? stat.option.value : undefined,
     },
