@@ -66,10 +66,12 @@ describe('沒有數字的反向詞綴(繁中)', () => {
   it('L5 同類的反向寫法都適用(文字是反向原句、查詢帶 max -1)', () => {
     const rows = fs.readFileSync(path.join(ROOT, 'data/poe2/cmn-Hant/stats.ndjson'), 'utf8').split(/\r?\n/).filter(Boolean).map(l => JSON.parse(l))
     const cases = rows.flatMap((s: any) => (s.matchers ?? [])
-      .filter((m: any) => m.negate && m.value == null && !m.string.includes('#') && !m.superseded)
+      // 同一條詞綴另有正向寫法的才算(只有一種寫法的「沒有能力值需求」交易站是正值,見 L6)
+      .filter((m: any) => m.negate && m.value == null && !m.string.includes('#') && !m.superseded &&
+        s.matchers.some((x: any) => !x.negate && x.value == null && x.string !== m.string))
       .map((m: any) => ({ text: m.string as string, ids: Object.values(s.trade?.ids ?? {}).flat() as string[] })))
       .filter(c => c.ids.length)
-    expect(cases.length).toBeGreaterThanOrEqual(7)
+    expect(cases.length).toBe(6)
     const bad: string[] = []
     for (const c of cases) {
       let got: { row: StatFilter, f: any }
@@ -79,6 +81,19 @@ describe('沒有數字的反向詞綴(繁中)', () => {
       if (got.row.text !== c.text || got.f?.value?.max !== -1) bad.push(`${c.text}:文字「${got.row.text}」、查詢 ${JSON.stringify(got.f?.value)}`)
     }
     expect(bad).toEqual([])
+  })
+})
+
+describe('只有一種寫法的「沒有能力值需求」(繁中)', () => {
+  beforeAll(async () => {
+    setupTests({ language: 'cmn-Hant' })
+    await init('cmn-Hant')
+  }, 180_000)
+
+  // 審查第 1 輪:資料只有標 negate 的一句,實查交易站 min 1 有 2685 筆、max -1 為 0 筆
+  it('L6 裝備沒有能力值需求不帶 max -1', () => {
+    const { f } = rowAndQuery(parse(item(['裝備沒有能力值需求'], ZH_HEAD)), ['explicit.stat_2480151124'])
+    expect(f.value?.max ?? null).toBe(null)
   })
 })
 

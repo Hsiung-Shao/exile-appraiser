@@ -272,5 +272,5 @@ Tailwind 3.4 → 4.3 的批次改名,poe1 / poe2 / renderer 共約 49 個 `.vue`
 
 ## 沒有數字的反向詞綴(2026-11-28,使用者回報)
 - 「敵人擊中你的閃電傷害相當不幸」這類沒有數字、資料裡標 `negate` 的寫法(PoE2 共 8 條,PoE1 沒有):上游沒有 roll 時 `translateStatWithRoll` 挑正向那句 → 畫面顯示「相當幸運」、查詢不帶範圍(幸運與不幸都查到)。
-- `create-stat-filters.ts`:沒有 roll 且每個來源對到的都是反向寫法 → 文字用來源的那句、標 `negatedFlag`;`pathofexile-trade.ts` `tradeIdToQuery`:`negatedFlag` 送 `value: { max: -1 }`(交易站同一個 id 以負值表示不幸;2026-11-28 實查 Standard:max -1 有 10000 筆、min 1 為 0 筆)。正向寫法不變(查詢快照 0 差異)。
+- `create-stat-filters.ts`:沒有 roll 且每個來源對到的都是反向寫法 → 文字用來源的那句、標 `negatedFlag`;`pathofexile-trade.ts` `tradeIdToQuery`:`negatedFlag` 送 `value: { max: -1 }`(交易站同一個 id 以負值表示不幸;2026-11-28 實查 Standard:max -1 有 10000 筆、min 1 為 0 筆)。正向寫法不變(查詢快照 0 差異)。同一條詞綴要另有一句正向寫法才算反向(審查第 1 輪:「裝備 / 技能寶石沒有能力值需求」資料只有標 negate 的一句,實查交易站全是正值 min 1 有 2685 / 2654 筆、max -1 為 0 筆);實際適用 6 條(7 個 id),2026-11-28 逐一實查 Standard 都是「正值 = 幸運、負值 = 不幸 / 厄運」:閃電 / 貧血 / 效果期間閃電 / 物理只有負值物品,格擋與招架只有正值物品(目前市場沒有厄運的)。同一 stat 兩個以上來源時 `statSourcesTotal` 會給 roll,不適用。
 - 測試 `poe2/test/web/price-check/filters/negated-flag-stats.test.ts`(全部 8 條反向寫法、中英一致)。

@@ -440,8 +440,11 @@ export function calculatedStatToFilter(
   };
   // exile-appraiser: 2026-11-28 沒有數字的反向寫法:沒有 roll,translateStatWithRoll 會挑到正向那句(使用者回報「不幸」顯示成「幸運」);
   // 解析時對到的那句在 sources 的 translation 裡 → 照它顯示,查詢只查負值
+  // 同一條詞綴另有正向寫法才算(「裝備沒有能力值需求」資料只有標 negate 的一句,交易站卻是正值;審查 2026-11-28)。
+  // shortcut: 同一個 stat 兩個以上來源時 statSourcesTotal 會給 roll,這裡不生效;遇到實際樣本再處理
   const negated = !roll && sources.length > 0 &&
-    sources.every((s) => s.stat.translation.negate && s.stat.translation.value == null);
+    sources.every((s) => s.stat.translation.negate && s.stat.translation.value == null &&
+      stat.matchers.some((m) => !m.negate && m.value == null && m.string !== s.stat.translation.string));
   if (negated && !filter.option) {
     filter.text = sources[0].stat.translation.string;
     filter.negatedFlag = true;
