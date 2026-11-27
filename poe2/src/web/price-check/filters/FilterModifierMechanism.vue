@@ -22,9 +22,9 @@ import type { ParsedItem } from "@/parser";
 import type { StatFilter } from "./interfaces";
 import { FRACTURED_FILTERS_KEY } from "./fractured-toggle";
 import {
-  mechanismDefault,
   mechanismMode,
   mechanismOptions,
+  mechanismVisible,
   selectMechanism,
   type MechanismMode,
 } from "./mechanism-toggle";
@@ -50,7 +50,7 @@ export default defineComponent({
     const mode = computed(() => mechanismMode(props.filter));
     const { show } = useShowMechanism();
     const options = computed(() =>
-      props.filter.hidden != null || (!show.value && mode.value === mechanismDefault(props.filter))
+      !mechanismVisible(props.filter, show.value)
         ? []
         : mechanismOptions(props.filter, props.item).map((value) => ({
             value,
