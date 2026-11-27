@@ -137,14 +137,15 @@ const rows = computed(() => {
     let delta = ''
     let deltaTone = ''
     if (done) {
-      const d = deltaAt(r, rt, i)
+      // 中途開始(partial):累計少了前面幾章,跟 PB 累計比沒有意義 → 不顯示差值(金段照常)
+      const d = r.partial ? null : deltaAt(r, rt, i)
       // 跟開始時的快照比(紀錄已隨分段寫進路線)
       const gold = isGoldSegment(r, rt, i)
       if (d != null) { delta = formatDelta(d); deltaTone = gold ? 'gold' : d <= 0 ? 'ok' : 'bad' } else if (gold) { delta = '★'; deltaTone = 'gold' }
     } else if (current) {
       // 跑著的段:比個人最佳慢了才顯示即時差值
       const pb = comparison(r, rt).pb?.[i]
-      if (pb != null && elapsed.value > pb) { delta = formatDelta(elapsed.value - pb); deltaTone = 'bad' }
+      if (!r.partial && pb != null && elapsed.value > pb) { delta = formatDelta(elapsed.value - pb); deltaTone = 'bad' }
     }
     const t0 = done ? r.splitTimes[i] : comparison(r, rt).pb?.[i] ?? null
     return { i, name: s.name, done, current, delta, deltaTone, time: t0 == null ? '—' : formatRunTime(t0) }
@@ -154,6 +155,8 @@ const rows = computed(() => {
 const mainTone = computed(() => {
   const r = run.value
   if (r.phase === 'idle' || r.phase === 'paused') return 'muted'
+  // 中途開始:不寫個人最佳,也不跟 PB 比顏色
+  if (r.partial) return 'ok'
   const pb = comparison(r, route.value).pb
   if (r.phase === 'finished') {
     const total = r.splitTimes[r.splitTimes.length - 1]

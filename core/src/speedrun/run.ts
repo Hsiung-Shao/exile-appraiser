@@ -44,6 +44,8 @@ export function createRun (routeOf: Route | (() => Route), now: () => number): R
     splitTimes: blank(),
     base: { pb: null, golds: [] } as RecordSnapshot,
     partial: false,
+    /** 跳段前的段落(撤銷回到這裡以前 = 不再是中途開始) */
+    jumpFrom: 0,
     /** 暫停前累計的毫秒 */
     acc: 0,
     /** 這段開始跑的時間點 */
@@ -95,6 +97,7 @@ export function createRun (routeOf: Route | (() => Route), now: () => number): R
       if (this.phase === 'finished') this.phase = 'running'
       this.index--
       this.splitTimes[this.index] = null
+      if (this.index <= this.jumpFrom) this.partial = false
       this.apply()
     },
     skip (): void {
@@ -106,6 +109,7 @@ export function createRun (routeOf: Route | (() => Route), now: () => number): R
     jumpTo (j: number): void {
       if (this.phase !== 'running' || j <= this.index || j >= R().splits.length) return
       for (let i = this.index; i < j; i++) this.splitTimes[i] = null
+      this.jumpFrom = this.index
       this.index = j
       this.partial = true
     },

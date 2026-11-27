@@ -166,7 +166,8 @@ if (OCR_SELFTEST != null) {
 const APP_SCHEME = 'app'
 protocol.registerSchemesAsPrivileged([{
   scheme: APP_SCHEME,
-  privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true }
+  // stream:2026-11-28 計時器音效 `<audio src="app://sound/…">` 需要(自訂協定的媒體載入)
+  privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true, stream: true }
 }])
 
 /** 自訂背景圖的資料夾(`userData/backgrounds`;backgrounds.ts) */

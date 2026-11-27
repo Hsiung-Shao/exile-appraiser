@@ -12,7 +12,7 @@ function beep (volume: number): void {
   const AC = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
   if (!AC) return
   ctx ??= new AC()
-  void ctx.resume?.()
+  void ctx.resume?.().catch(() => {})
   const t0 = ctx.currentTime
   for (let i = 0; i < 3; i++) {
     const osc = ctx.createOscillator()
@@ -45,8 +45,10 @@ export function playTimerSound (file: string, volume: number): void {
     if (!url) { beep(v); return }
     const a = new Audio(url)
     a.volume = v
-    void a.play().catch((e: unknown) => { console.warn(`[timer] 音效播放失敗:${String(e)}`) })
+    // 檔案被刪 / 格式不支援:退回內建嗶聲(倒數靜音 = 提醒失效)
+    void a.play().catch((e: unknown) => { console.warn(`[timer] 音效播放失敗,改用內建:${String(e)}`); beep(v) })
   } catch (e) {
-    console.warn(`[timer] 音效播放失敗:${String(e)}`)
+    console.warn(`[timer] 音效播放失敗,改用內建:${String(e)}`)
+    beep(v)
   }
 }

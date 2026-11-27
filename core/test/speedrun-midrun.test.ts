@@ -110,3 +110,24 @@ describe('中途開始(partial)不寫個人最佳', () => {
     expect(route.pb).toEqual([1_000, 2_000, 3_000, 4_000])
   })
 })
+
+describe('審查修正:撤銷回到跳段之前', () => {
+  it('T14 撤銷到跳段起點 → partial 清掉,照常跑完會寫個人最佳', () => {
+    const c = clock()
+    const route = mk(3, null)
+    const run = createRun(route, c.now)
+    run.start()
+    run.jumpTo(2)
+    c.advance(1000)
+    run.split()
+    expect(run.phase).toBe('finished')
+    run.undo()
+    expect(run.partial).toBe(true)
+    run.undo()
+    run.undo()
+    expect(run.index).toBe(0)
+    expect(run.partial).toBe(false)
+    for (let i = 0; i < 3; i++) { c.advance(1000); run.split() }
+    expect(route.pb).not.toBeNull()
+  })
+})

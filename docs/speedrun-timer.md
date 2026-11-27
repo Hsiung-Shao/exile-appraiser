@@ -7,12 +7,12 @@
 - 一般計時器與倒數共用一個碼表(core `src/timer/simple.ts` `createSimpleTimer`;`timer-state.ts` `simpleTimer`),切模式時重設。熱鍵 / 懸浮選單「開始 / 分段」= 開始 → 暫停 → 繼續;倒數歸零後再按 = 重新開始;暫停 / 重設照常;撤銷 / 跳過分段只有 speedrun 有作用。
 - 倒數時長 `timerCountdownSec`(1–86400 秒,預設 300);歸零時畫面變紅、播一次音效(`check()` 只在轉換那次回 true)。一般計時器每 `timerAlertMin` 分鐘播一次(`alertCrossed`;0 = 不提醒)。檢查放在 TimerWidget 每 50 ms 的更新裡(overlay 模式一直掛著)。
 - 非 speedrun 不讀 Client.txt(host-config `speedrunAutoLog` 一律 false)、不做切窗自動暫停(倒數常拿來計遊戲外的事)、不自動分段。
-- 音效 `timerSound: { file, volume }`:file 空 = 內建(WebAudio 合成三聲 880 Hz 嗶,不帶音檔);設定頁「匯入音效…」→ IPC `sound-pick`(`preview: false`)複製到 `userData/timer-sounds/`(另開資料夾;只留最後匯入的一個;檔名規則同背景圖、只收 mp3 / ogg / wav / m4a,最大 20 MB)→ `app://sound/<檔>`(預覽 `<prefix>sound/<檔>`)。音量 0–1,試聽按鈕。overlay 視窗設 `autoplayPolicy: 'no-user-gesture-required'`(點擊穿透時沒有使用者互動)。
+- 音效 `timerSound: { file, volume }`:file 空 = 內建(WebAudio 合成三聲 880 Hz 嗶,不帶音檔);設定頁「匯入音效…」→ IPC `sound-pick`(`preview: false`)複製到 `userData/timer-sounds/`(另開資料夾;只留最後匯入的一個;檔名規則同背景圖、只收 mp3 / ogg / wav / m4a,最大 20 MB)→ `app://sound/<檔>`(預覽 `<prefix>sound/<檔>`)。音量 0–1,試聽按鈕;匯入檔播放失敗(被刪 / 格式不支援)退回內建嗶聲。`app://` 協定註冊加 `stream: true`(自訂協定的 `<audio>` 需要)。overlay 視窗設 `autoplayPolicy: 'no-user-gesture-required'`(點擊穿透時沒有使用者互動)。
 
 ## 中途開始(2026-11-28 修正)
 原本 `autoAction` 只比對「目前這段」的觸發區,角色已在第 3 章才按開始時目前段是第 1 段 → 之後進的都是後面章節的區域,永遠不分段。
 現在:**這次還沒分過任何一段**時,進入目前段之後任一段的觸發區 → 跳到那段並分段(`run.jumpTo`:中間段記成沒有時間)。分過一段之後只認目前這段(回舊城鎮仍不觸發)。
-跳過段的那次標 `partial`:**跑完不寫個人最佳**(總時間少了前面幾章);金段照常(跳過後的第一段因前一段沒時間不算,之後的段照算)。重設 / 開始清掉旗標。
+跳過段的那次標 `partial`:**跑完不寫個人最佳**(總時間少了前面幾章);金段照常(跳過後的第一段因前一段沒時間不算,之後的段照算)。重設 / 開始清掉旗標;撤銷到跳段前的那段也清掉(審查修正)。partial 時畫面不顯示與 PB 累計的差值、跑完不顯示金色(段時間與金段照常)。
 測試 `core/test/speedrun-midrun.test.ts`(T1–T5)。
 
 ## 畫面(overlay,`renderer/src/web/overlay/TimerWidget.vue`)
