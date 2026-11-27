@@ -9,7 +9,7 @@
     "data/poe1": {
       "repo": "ExileAppraiser 自己維護(底 = apt-patched 384d1c5;scripts/poe1-season/update.mjs 以 GGPK 3.30.0d build 3.30.0.4 + 國際服交易站資料更新)",
       "path": "data/poe1",
-      "generatedAt": "2026-11-27T09:09:59.252Z",
+      "generatedAt": "2026-11-27T23:16:11.510Z",
       "fetchedAt": "2026-11-27T09:09:55.932Z"
     },
     "data/poe1/item-classes": {
@@ -123,16 +123,16 @@
       "bytes": 1558080
     },
     "data/poe1/cmn-Hant/stats-matcher.index.bin": {
-      "sha256": "1863badf918adb5d971976103c25d42af82efb1437106887708edf0c59ecea63",
+      "sha256": "8b61593a6ae31325d01bfa220c20d24d5170e66e4aa2345fabc63fb063caf94b",
       "bytes": 135136
     },
     "data/poe1/cmn-Hant/stats-ref.index.bin": {
-      "sha256": "90c50cc78c7bf4e674ec494ede1ddf3a3bc36385982c893ec91e84571d5a1e0f",
+      "sha256": "d92b19ad1ea09d5173087e995d50ed97982b75d6b79540498d9da7f549be0578",
       "bytes": 86744
     },
     "data/poe1/cmn-Hant/stats.ndjson": {
-      "sha256": "5f73e1af0280c2de4d6f9f8f4f3fb8c7beca62d025465e84458eb4d311e7da60",
-      "bytes": 2970161
+      "sha256": "e27040ef6c1e1589efbd192fedaf7cc5edcdc49de0f14fc25726595cbd5462dc",
+      "bytes": 2970310
     },
     "data/poe1/en/app_i18n.json": {
       "sha256": "bca7876bee90bbebf59110eb0f6952a861fed08f0e92e336b87631a6def00fcf",
@@ -155,16 +155,16 @@
       "bytes": 1559675
     },
     "data/poe1/en/stats-matcher.index.bin": {
-      "sha256": "ee4428ff9dd9615af24c96a8776d62a92f74f23d00363946e2ffae64dace341c",
+      "sha256": "ea0c8d640d23f82b04dc298356dfc72c5546f67381bab45162ffd43e734b1992",
       "bytes": 134704
     },
     "data/poe1/en/stats-ref.index.bin": {
-      "sha256": "f6b3707eeb330539345ca68bd093ae3d50d3674155a6e3456ef279ea596bea70",
+      "sha256": "5d38913da32b8a4ee343d3fde2c3cefa7a1fccfcefc500756699b59190323d01",
       "bytes": 86744
     },
     "data/poe1/en/stats.ndjson": {
-      "sha256": "267f7813fdb551d4de9ac65ade36a925450baf6091c0d431872afeb6137920f5",
-      "bytes": 3095083
+      "sha256": "14ca291d08b585c5d4e5affb1ec9a09e72c4264d48cd30e8d1a0118cfdd5c195",
+      "bytes": 3095232
     },
     "data/poe1/item-classes/item-classes.json": {
       "sha256": "590944932aac9e73cc513bdedb85f0b3ba748732ab3fe77eaf229bac810898a5",

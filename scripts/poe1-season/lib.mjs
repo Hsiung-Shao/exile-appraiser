@@ -1,6 +1,7 @@
 // PoE1 賽季資料更新的純函式(update.mjs 用;測試 poe1/test/season-update.test.ts)。
 // 對接一律用語言無關鍵:GGPK stat 鍵、交易站 stat id、Metadata 路徑、stats 的 ref。
 // matcher 只加不刪、不換順序;判不準的一律不改資料、放進 rejects 給報告。
+import fs from 'node:fs'
 // 例外:規則 35(planSharedZh)刪掉被別條詞綴共用、判定錯掛的句子 —— 留著會把查詢帶到別的詞綴。
 
 /** GGPK / 交易站文字 → matcher 文字(數值寫 #,# 前的正負號去掉) */

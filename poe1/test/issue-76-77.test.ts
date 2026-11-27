@@ -24,11 +24,11 @@ beforeAll(async () => {
 
 describe('GitHub issue #77 純才(繁中實機樣本)', () => {
   it('3.30 單職業寫法全部認得,沒有未解析詞綴', () => {
-    const item = parse('3.30-issue-77.cmn-Hant.txt')
+    const item = parse('issue-77.cmn-Hant.txt')
     expect(item.unknownModifiers.map(m => m.text)).toEqual([])
   })
   it('第二行不再被當成通用詞綴送出錯的 id(攻擊偷取生命、暴擊率…)', () => {
-    const preset = createPresets(parse('3.30-issue-77.cmn-Hant.txt'), OPTS).presets[0]
+    const preset = createPresets(parse('issue-77.cmn-Hant.txt'), OPTS).presets[0]
     const ids = (preset.stats as StatFilter[]).flatMap(f => f.tradeId ?? [])
     expect(ids).toEqual([])
     const q = createTradeRequest(preset.filters, preset.stats).query
@@ -38,7 +38,7 @@ describe('GitHub issue #77 純才(繁中實機樣本)', () => {
 
 describe('GitHub issue #76 寶石匠的稜鏡(繁中,依 GGPK 字串組的樣本)', () => {
   it('解析已儲存經驗(千分位逗號)並以原值當最低值查', () => {
-    const item = parse('3.30-issue-76-synth.cmn-Hant.txt')
+    const item = parse('issue-76-synth.cmn-Hant.txt')
     expect(item.storedExperience).toBe(500_000_000)
     const preset = createPresets(item, OPTS).presets[0]
     expect(preset.filters.storedExperience).toEqual({ value: 500_000_000, disabled: false })
