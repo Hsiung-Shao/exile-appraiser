@@ -19,7 +19,7 @@ import { useShowMechanism } from '@/web/price-panel/useShowMechanism'
 import type { ParsedItem } from '@/parser'
 import type { FilterOrGroup, StatFilter } from './interfaces'
 import { FRACTURED_FILTERS_KEY } from './fractured-toggle'
-import { mechanismDefault, mechanismMode, mechanismOptions, selectMechanism, type MechanismMode } from './mechanism-toggle'
+import { mechanismMode, mechanismOptions, mechanismVisible, selectMechanism, type MechanismMode } from './mechanism-toggle'
 
 export default defineComponent({
   components: { ModSeg },
@@ -38,7 +38,7 @@ export default defineComponent({
     const { t } = useI18n()
     const mode = computed(() => mechanismMode(props.filter))
     const { show } = useShowMechanism()
-    const options = computed(() => (props.filter.hidden != null || (!show.value && mode.value === mechanismDefault(props.filter)))
+    const options = computed(() => !mechanismVisible(props.filter, show.value)
       ? []
       : mechanismOptions(props.filter, props.item).map(value => ({
         value,

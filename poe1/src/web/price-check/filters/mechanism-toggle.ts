@@ -123,6 +123,15 @@ export function mechanismDefault (filter: StatFilter): MechanismMode {
 }
 
 /**
+ * 機制按鈕要不要畫:「機制」開關開著、模式被改過,或來源本身是破裂的列
+ * (2026-11-28 使用者回報:破裂暴擊率的武器找不到「查破裂」的切換)。
+ */
+export function mechanismVisible (filter: StatFilter, show: boolean): boolean {
+  if (filter.hidden != null) return false
+  return show || mechanismMode(filter) !== mechanismDefault(filter) || excludableSource(filter) === 'fractured'
+}
+
+/**
  * 選一個機制。破裂 / 工藝:tradeId 換成該機制 ids、勾選、其他送同一組 ids 的列取消勾選;
  * 一般 / 不限:換回 explicit(勾選狀態不動),一般另標 `mechanismExclude`。不適用或沒有這個選項時什麼都不做。
  */
