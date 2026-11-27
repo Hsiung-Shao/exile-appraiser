@@ -18,7 +18,11 @@ export interface Run {
   readonly splitTimes: Array<number | null>
   /** 這次開始時路線的 PB / 金段(畫面比較用);idle 時沒有意義 */
   readonly base: RecordSnapshot
+  /** 2026-11-28:這次是中途開始(自動分段跳過了前面幾段)→ 跑完不寫個人最佳(總時間少了前面幾章) */
+  readonly partial: boolean
   start (): void
+  /** 跳到第 j 段(中間段記成沒有時間);之後照常 split() 記第 j 段 */
+  jumpTo (j: number): void
   split (): void
   undo (): void
   skip (): void
@@ -39,6 +43,7 @@ export function createRun (routeOf: Route | (() => Route), now: () => number): R
     index: 0,
     splitTimes: blank(),
     base: { pb: null, golds: [] } as RecordSnapshot,
+    partial: false,
     /** 暫停前累計的毫秒 */
     acc: 0,
     /** 這段開始跑的時間點 */
@@ -60,7 +65,7 @@ export function createRun (routeOf: Route | (() => Route), now: () => number): R
       R().golds = golds
       const total = this.phase === 'finished' ? this.splitTimes[this.splitTimes.length - 1] : null
       const pbTotal = this.base.pb?.[this.base.pb.length - 1]
-      R().pb = total != null && (pbTotal == null || total < pbTotal) ? [...this.splitTimes] : this.base.pb && [...this.base.pb]
+      R().pb = !this.partial && total != null && (pbTotal == null || total < pbTotal) ? [...this.splitTimes] : this.base.pb && [...this.base.pb]
     },
     start (): void {
       if (this.phase !== 'idle') return
@@ -68,6 +73,7 @@ export function createRun (routeOf: Route | (() => Route), now: () => number): R
       this.base = { pb: r.pb && [...r.pb], golds: r.splits.map((_, i) => r.golds[i] ?? null) }
       this.splitTimes = blank()
       this.index = 0
+      this.partial = false
       this.acc = 0
       this.since = now()
       this.phase = 'running'
@@ -97,6 +103,12 @@ export function createRun (routeOf: Route | (() => Route), now: () => number): R
       this.splitTimes[this.index] = null
       this.index++
     },
+    jumpTo (j: number): void {
+      if (this.phase !== 'running' || j <= this.index || j >= R().splits.length) return
+      for (let i = this.index; i < j; i++) this.splitTimes[i] = null
+      this.index = j
+      this.partial = true
+    },
     pause (): void {
       if (this.phase !== 'running') return
       this.acc = this.elapsed()
@@ -110,6 +122,7 @@ export function createRun (routeOf: Route | (() => Route), now: () => number): R
     reset (): void {
       this.phase = 'idle'
       this.index = 0
+      this.partial = false
       this.acc = 0
       this.splitTimes = blank()
     }

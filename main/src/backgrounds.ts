@@ -20,6 +20,24 @@ export const BG_DIR_NAME = 'backgrounds'
  */
 export const SHEET_DIR_NAME = 'cheatsheets'
 
+/**
+ * 2026-11-28 計時器音效(碼表提醒 / 倒數歸零):使用者匯入的音訊檔。規則同背景圖,只換副檔名白名單;另開資料夾。
+ * 載入 `app://sound/<檔名>` / 預覽 `<prefix>sound/<檔名>`。
+ */
+export const SOUND_DIR_NAME = 'timer-sounds'
+export const SOUND_EXTENSIONS = ['mp3', 'ogg', 'wav', 'm4a'] as const
+const SOUND_FILE_RE = /^[^\\/:*?"<>|.\x00-\x1f][^\\/:*?"<>|\x00-\x1f]{0,199}\.(mp3|ogg|wav|m4a)$/i
+
+/** 合法的音效檔名;不合法 → '' */
+export function normSoundFile (v: unknown): string {
+  return typeof v === 'string' && SOUND_FILE_RE.test(v) && !v.includes('..') ? v : ''
+}
+
+export function soundContentType (file: string): string {
+  const ext = path.extname(file).toLowerCase()
+  return ext === '.wav' ? 'audio/wav' : ext === '.ogg' ? 'audio/ogg' : ext === '.m4a' ? 'audio/mp4' : 'audio/mpeg'
+}
+
 /** 允許的副檔名(小寫,不含點) */
 export const BG_EXTENSIONS = ['png', 'jpg', 'jpeg', 'webp'] as const
 
@@ -31,8 +49,8 @@ export function normBgFile (v: unknown): string {
 }
 
 /** 背景檔名 → backgrounds 資料夾內的絕對路徑;檔名不合法或解析後跳出資料夾 → null */
-export function resolveBgPath (dir: string, file: unknown): string | null {
-  const name = normBgFile(file)
+export function resolveBgPath (dir: string, file: unknown, norm: (v: unknown) => string = normBgFile): string | null {
+  const name = norm(file)
   if (!name) return null
   const base = path.resolve(dir)
   const full = path.resolve(base, name)
@@ -80,16 +98,20 @@ export function bgContentType (file: string): string {
  * 使用者選的圖 → 存進 backgrounds 資料夾的檔名:原檔名(去掉路徑與不允許的字元、開頭的點,最多 60 字)
  * + `-` + 內容 sha256 前 8 碼 + 小寫副檔名。副檔名不在白名單 → null。
  */
-export function storedBgName (sourcePath: string, content: Uint8Array): string | null {
+export function storedBgName (sourcePath: string, content: Uint8Array, exts: readonly string[] = BG_EXTENSIONS, norm: (v: unknown) => string = normBgFile, fallback = 'background'): string | null {
   const ext = path.extname(sourcePath).slice(1).toLowerCase()
-  if (!(BG_EXTENSIONS as readonly string[]).includes(ext)) return null
+  if (!exts.includes(ext)) return null
   const stem = path.basename(sourcePath, path.extname(sourcePath))
     .replace(/[\\/:*?"<>|\x00-\x1f]/g, '_')
     .replace(/\.{2,}/g, '_')
     .replace(/^[.\s]+/, '')
     .trim()
-    .slice(0, 60) || 'background'
+    .slice(0, 60) || fallback
   const hash = createHash('sha256').update(content).digest('hex').slice(0, 8)
   const name = `${stem}-${hash}.${ext}`
-  return normBgFile(name) || `background-${hash}.${ext}`
+  return norm(name) || `${fallback}-${hash}.${ext}`
+}
+
+export function storedSoundName (sourcePath: string, content: Uint8Array): string | null {
+  return storedBgName(sourcePath, content, SOUND_EXTENSIONS, normSoundFile, 'sound')
 }

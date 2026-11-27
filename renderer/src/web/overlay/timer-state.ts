@@ -9,8 +9,28 @@ import { AppConfig } from '../Config'
 import { createRun, type Run } from '../../../../core/src/speedrun/run'
 import { autoAction } from '../../../../core/src/speedrun/autosplit'
 import type { Route } from '../../../../core/src/speedrun/routes'
+import { createSimpleTimer, type SimpleTimer } from '../../../../core/src/timer/simple'
 
 export { TIMER_DISPLAYS, timerVisible, type TimerDisplay } from './timer-display'
+
+/** 2026-11-28 一般計時器 / 倒數計時(兩個模式共用一個;切模式時重設,見下方 watch) */
+export const simpleTimer = reactive(createSimpleTimer(() => Date.now())) as SimpleTimer
+watch(() => AppConfig().timerMode, () => { simpleTimer.reset() })
+
+/** 非 speedrun:開始 = 從 0 開始(倒數用設定的時長);跑著 = 暫停;暫停中 = 繼續 */
+function simpleAction (a: TimerAction): void {
+  const c = AppConfig()
+  const t = simpleTimer
+  if (a === 'toggle') {
+    if (t.phase === 'idle' || t.phase === 'finished') t.start(c.timerMode === 'countdown' ? c.timerCountdownSec * 1000 : null)
+    else if (t.phase === 'running') t.pause()
+    else t.resume()
+  } else if (a === 'pause') {
+    if (t.phase === 'running') t.pause()
+    else if (t.phase === 'paused') t.resume()
+  } else if (a === 'reset') t.reset()
+  // undo / skip 只有 speedrun 有
+}
 
 /** 目前遊戲的路線(設定裡的 reactive 物件;run 直接改它的 PB / 金段 → 設定檔跟著存) */
 export function currentRoute (): Route {
@@ -61,6 +81,8 @@ let focusPausedRun: Run | null = null
  * 手動暫停的不自動繼續。
  */
 export function timerFocus (focused: boolean): void {
+  // 切窗暫停只給 speedrun(倒數常拿來計遊戲外的事,切出去不該停)
+  if (AppConfig().timerMode !== 'speedrun') return
   const run = appRun.value
   if (!focused) {
     if (run.phase !== 'running') return
@@ -76,6 +98,7 @@ export function timerFocus (focused: boolean): void {
 export function timerAction (a: TimerAction): void {
   // main:overlay 視窗失焦且焦點不在遊戲(從自己的面板切到別的視窗;這條路沒有 focus-change)
   if (a === 'away' || a === 'back') { timerFocus(a === 'back'); return }
+  if (AppConfig().timerMode !== 'speedrun') { simpleAction(a); return }
   const run = appRun.value
   focusPausedRun = null
   switch (a) {
@@ -97,13 +120,16 @@ export function timerAction (a: TimerAction): void {
 
 /** Client.txt 進入區域 → 自動開始 / 自動分段 */
 export function timerArea (area: string): void {
+  if (AppConfig().timerMode !== 'speedrun') return
   const run = appRun.value
   // 切窗暫停中(常在讀圖時切出去)進了目標區:照樣分段,分完仍暫停
   const away = focusPausedRun === run && run.phase === 'paused'
-  const act = autoAction(away ? { phase: 'running', index: run.index } : run, currentRoute(), area)
+  const act = autoAction(away ? { phase: 'running', index: run.index, splitTimes: run.splitTimes } : run, currentRoute(), area)
   if (act === 'start') run.start()
-  else if (act === 'split') {
+  else if (act) {
     if (away) run.resume()
+    // 中途開始:還沒分過任何一段就進了後面的目標區 → 跳到那段(中間段記成跳過,這次不寫個人最佳)
+    if (act.split > run.index) { console.log(`[speedrun] 中途開始:跳過 ${act.split - run.index} 段`); run.jumpTo(act.split) }
     run.split()
     if (away) run.pause()
   }

@@ -28,7 +28,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import crypto from 'node:crypto'
 import type { AddressInfo, Socket } from 'node:net'
-import { bgContentType, bgFileFromPath, resolveBgPath } from './backgrounds'
+import { bgContentType, bgFileFromPath, normSoundFile, resolveBgPath, soundContentType } from './backgrounds'
 
 export interface PreviewCtx { source: 'preview', clientId: string }
 export type PreviewHandler = (ctx: PreviewCtx, ...args: any[]) => unknown
@@ -98,6 +98,8 @@ export interface PreviewServerOptions {
   bgDir?: string
   /** 懸浮選單速查表資料夾(`userData/cheatsheets`);`<prefix>sheet/<檔名>`,規則同 bgDir。省略 = 沒有這條路由 */
   sheetDir?: string
+  /** 2026-11-28 計時器音效資料夾(`userData/timer-sounds`);`<prefix>sound/<檔名>`,只准音訊檔名。省略 = 沒有這條路由 */
+  soundDir?: string
   /** channel → handler(只含開放給預覽端的)。 */
   handlers: Readonly<Record<string, PreviewHandler>>
   version: string
@@ -510,8 +512,9 @@ export async function startPreviewServer (opts: PreviewServerOptions): Promise<P
 
   /** 自訂背景圖 / 速查表(token 之後的 `bg/<檔名>` / `sheet/<檔名>`;檔名不合法 / 跳出資料夾 / 不存在一律 404) */
   const serveBg = async (req: http.IncomingMessage, res: http.ServerResponse, rest: string, headOnly: boolean, dir: string | undefined, route: string) => {
+    const sound = route === 'sound/'
     const name = dir ? bgFileFromPath(rest.slice(route.length)) : null
-    const file = name == null || !dir ? null : resolveBgPath(dir, name)
+    const file = name == null || !dir ? null : sound ? resolveBgPath(dir, name, normSoundFile) : resolveBgPath(dir, name)
     if (!file) return respond(res, 404, 'not found')
     let st: Awaited<ReturnType<typeof fs.stat>>
     try {
@@ -521,7 +524,7 @@ export async function startPreviewServer (opts: PreviewServerOptions): Promise<P
       return respond(res, 404, 'not found')
     }
     // 網址在 token 之後(換 token = 換網址,不會拿到別的伺服器的快取);同名檔被換掉時 ETag 跟著變
-    await sendFile(req, res, file, st, bgContentType(file), 'no-cache', headOnly)
+    await sendFile(req, res, file, st, sound ? soundContentType(file) : bgContentType(file), 'no-cache', headOnly)
   }
 
   const server = http.createServer((req, res) => {
@@ -552,6 +555,7 @@ export async function startPreviewServer (opts: PreviewServerOptions): Promise<P
     if (req.method !== 'GET' && req.method !== 'HEAD') return respond(res, 405, 'method not allowed')
     if (rest.startsWith('bg/')) return void serveBg(req, res, rest, req.method === 'HEAD', opts.bgDir, 'bg/')
     if (rest.startsWith('sheet/')) return void serveBg(req, res, rest, req.method === 'HEAD', opts.sheetDir, 'sheet/')
+    if (rest.startsWith('sound/')) return void serveBg(req, res, rest, req.method === 'HEAD', opts.soundDir, 'sound/')
     void serveStatic(req, res, '/' + rest, req.method === 'HEAD')
   })
   server.on('connection', (sock) => {

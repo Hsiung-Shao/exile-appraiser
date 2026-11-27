@@ -612,6 +612,8 @@ export interface HostApi {
   bgPick?: () => Promise<string | null>
   /** 懸浮選單速查表(2026-10-08):同 bgPick,存 `userData/cheatsheets/`,由 `app://sheet/<檔名>`(預覽 `<prefix>sheet/<檔名>`)載入。 */
   sheetPick?: (keep?: string[]) => Promise<string[] | string | null>
+  /** 2026-11-28 計時器音效:選一個音訊檔,存 `userData/timer-sounds/`(只留這一個),由 `app://sound/<檔名>`(預覽 `<prefix>sound/<檔名>`)載入;取消 / 失敗 = null */
+  soundPick?: () => Promise<string | null>
   /** main 建立視窗時決定的模式(啟動後不變)。 */
   readonly windowMode: WindowMode
   onFocusChange: (cb: (e: FocusChangeEvent) => void) => () => void

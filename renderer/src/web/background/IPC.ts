@@ -178,6 +178,10 @@ class HostTransport {
     return r == null ? [] : Array.isArray(r) ? r : [r]
   }
 
+  /** 2026-11-28 計時器音效:同上,存 userData/timer-sounds(只留一個);取消 / 失敗 / 預覽 → null */
+  get canPickSound (): boolean { return !this.isPreview && typeof window.host?.soundPick === 'function' }
+  async soundPick (): Promise<string | null> { return this.canPickSound ? (await window.host?.soundPick?.()) ?? null : null }
+
   // ---- 自動更新(main/src/AppUpdater.ts)。純瀏覽器沒有更新器:一律「不支援」。 ----
   async getUpdaterInfo (): Promise<UpdaterInfo> {
     if (window.host) return window.host.getUpdaterInfo()
