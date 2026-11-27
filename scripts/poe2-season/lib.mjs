@@ -79,3 +79,28 @@ export function applyStatPlan (fileText, lang, { adds = [] } = {}) {
     return changed ? pyDumps(stat) : line
   }).join(eol)
 }
+
+/**
+ * 規則 P3:同名同底材的傳奇有兩種英文拼法(Brynabas / Byrnabas、Splinter of Loratta / Lorrata,上游留下的舊拼法列),
+ * 一列在國際服交易站 items、另一列不在 → 刪掉不在的那列(名稱查詢收齊同名後會取到它,查不到掛單;2026-11-27 code review)。
+ * 交易站沒有同名同底材的拼法時不刪(那是交易站缺的傳奇,不是舊拼法)。只刪整行,其他行逐字不變。
+ * 要刪哪幾列以繁中檔算(英文檔兩種拼法的 name 不同),兩語刪同一批 `refName|底材`。
+ * @param {string} fileText items.ndjson
+ * @param {Set<string>} trade 交易站傳奇 `名稱|底材`
+ * @param {Set<string>} [stale] 要刪的 `refName|底材`;省略 = 用這份檔自己的名稱算
+ */
+export function dropStaleUniqueSpellings (fileText, trade, stale = staleUniqueKeys(fileText, trade)) {
+  const eol = fileText.includes('\r\n') ? '\r\n' : '\n'
+  return fileText.split(eol).filter(l => {
+    const r = l.trim() ? JSON.parse(l) : null
+    return !(r?.unique && stale.has(`${r.refName}|${r.unique.base}`))
+  }).join(eol)
+}
+
+/** @param {string} fileText @param {Set<string>} trade @returns {Set<string>} */
+export function staleUniqueKeys (fileText, trade) {
+  const rows = fileText.split(/\r?\n/).filter(l => l.trim()).map(l => JSON.parse(l)).filter(r => r.unique)
+  const key = (/** @type {any} */ r) => `${r.refName}|${r.unique.base}`
+  const live = new Set(rows.filter(r => trade.has(key(r))).map(r => `${r.name}|${r.unique.base}`))
+  return new Set(rows.filter(r => !trade.has(key(r)) && live.has(`${r.name}|${r.unique.base}`)).map(key))
+}

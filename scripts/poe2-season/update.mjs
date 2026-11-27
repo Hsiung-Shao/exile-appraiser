@@ -10,7 +10,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
-import { applyStatPlan, planExtraZh, planLeadingNumber } from './lib.mjs'
+import { applyStatPlan, dropStaleUniqueSpellings, planExtraZh, planLeadingNumber, staleUniqueKeys } from './lib.mjs'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const LANGS = /** @type {const} */ (['en', 'cmn-Hant'])
@@ -23,9 +23,16 @@ const leading = planLeadingNumber({ zhStats })
 const extra = planExtraZh({ zhStats })
 const adds = [...leading.adds, ...extra.adds]
 
+// 規則 P3:交易站沒有的舊拼法傳奇列(交易站 items 快照 data/poe2/trade/intl/items.json)
+const itemsFile = (/** @type {string} */ lang) => path.join(ROOT, 'data/poe2', lang, 'items.ndjson')
+const tradeItems = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/poe2/trade/intl/items.json'), 'utf8')).result
+const tradeUniques = new Set(tradeItems.flatMap((/** @type {any} */ g) => g.entries).filter((/** @type {any} */ e) => e.flags?.unique).map((/** @type {any} */ e) => `${e.name}|${e.type}`))
+const stale = staleUniqueKeys(fs.readFileSync(itemsFile('cmn-Hant'), 'utf8'), tradeUniques)
+
 const summary = [
   `數字移到前面(規則 P1):繁中 +${leading.adds.length} 個 matcher`,
-  `另一種繁中寫法(規則 P2):繁中 +${extra.adds.length} 個 matcher`
+  `另一種繁中寫法(規則 P2):繁中 +${extra.adds.length} 個 matcher`,
+  `交易站沒有的舊拼法傳奇(規則 P3):兩語各刪 ${stale.size} 列${stale.size ? `(${[...stale].join('、')})` : ''}`
 ]
 console.log(summary.join('\n'))
 
@@ -34,6 +41,7 @@ if (!process.argv.includes('--write')) {
   process.exit(0)
 }
 for (const lang of LANGS) fs.writeFileSync(file(lang), applyStatPlan(text[lang], lang, { adds }))
+for (const lang of LANGS) fs.writeFileSync(itemsFile(lang), dropStaleUniqueSpellings(fs.readFileSync(itemsFile(lang), 'utf8'), tradeUniques, stale))
 const node = (/** @type {string[]} */ a) => execFileSync(process.execPath, a, { cwd: ROOT, stdio: 'inherit' })
 node(['scripts/make-index-files.mjs', '--game', 'poe2'])
 node(['scripts/verify-data-manifest.mjs', '--write', '--prefix', 'data/poe2',

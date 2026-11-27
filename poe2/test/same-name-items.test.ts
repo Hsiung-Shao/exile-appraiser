@@ -26,6 +26,26 @@ describe("同名物品查詢收齊每一筆", () => {
     });
   }
 
+  // 失敗代表:同名同底材的傳奇留著交易站沒有的舊拼法列(收齊同名後可能取到它,查不到掛單;規則 P3)
+  it("同名同底材的傳奇,每一列的英文名都在交易站", async () => {
+    const fs = await import("node:fs");
+    const path = await import("node:path");
+    const dir = path.resolve(__dirname, "../../data/poe2");
+    const trade = JSON.parse(fs.readFileSync(path.join(dir, "trade/intl/items.json"), "utf8")).result
+      .flatMap((g: { entries: Array<{ name?: string, type: string, flags?: { unique?: boolean } }> }) => g.entries)
+      .filter((e: { flags?: { unique?: boolean } }) => e.flags?.unique)
+      .map((e: { name?: string, type: string }) => `${e.name}|${e.type}`);
+    const set = new Set<string>(trade);
+    type Row = { name: string, refName: string, unique?: { base: string } };
+    const rows = (fs.readFileSync(path.join(dir, "cmn-Hant/items.ndjson"), "utf8").split(/\r?\n/).filter(Boolean)
+      .map((l: string) => JSON.parse(l)) as Row[]).filter((r) => r.unique);
+    const groups = new Map<string, Row[]>();
+    for (const r of rows) { const k = `${r.name}|${r.unique!.base}`; (groups.get(k) ?? groups.set(k, []).get(k)!).push(r); }
+    const bad = [...groups.values()].filter((g) => new Set(g.map((r) => r.refName)).size > 1)
+      .flatMap((g) => g.filter((r) => !set.has(`${r.refName}|${r.unique!.base}`)).map((r) => r.refName));
+    expect(bad).toEqual([]);
+  });
+
   it("傳奇十字弓(壁壘猛禽)的底材 緊繃十字弓 只留 Tense Crossbow 那個變體", () => {
     const text = ["物品種類: 十字弓", "稀有度: 傳奇", "壁壘猛禽", "緊繃十字弓", "--------", "物品等級: 80"].join("\r\n") + "\r\n";
     const r = parseClipboard(text);

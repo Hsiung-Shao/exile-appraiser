@@ -2,7 +2,7 @@ import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { pyDumps, planLeadingNumber, planExtraZh, EXTRA_ZH_MATCHERS, applyStatPlan } from '../../scripts/poe2-season/lib.mjs'
+import { pyDumps, planLeadingNumber, planExtraZh, EXTRA_ZH_MATCHERS, applyStatPlan, dropStaleUniqueSpellings } from '../../scripts/poe2-season/lib.mjs'
 
 /** PoE2 賽季腳本的純函式測試(合成輸入;最後一條讀真實 data/poe2 驗序列化)。 */
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -59,5 +59,19 @@ describe('planExtraZh(逐條列出的另一種繁中寫法,依實機樣本)', ()
     const out = parseRows(applyStatPlan(toFile(zhStats), 'cmn-Hant', plan))
     expect(out[0].matchers).toEqual([{ string: '賦予技能: 展開護盾', superseded: true }, { string: '賦予技能: 舉盾' }])
     expect(planExtraZh({ zhStats: out }).adds).toEqual([])
+  })
+})
+
+// 2026-11-27 同類掃描:同名同底材的傳奇有兩種拼法(Brynabas / Byrnabas),名稱查詢收齊後取到交易站沒有的那個
+describe('dropStaleUniqueSpellings(規則 P3:刪掉交易站沒有的舊拼法傳奇列)', () => {
+  const row = (name: string, refName: string, base: string) => JSON.stringify({ name, refName, namespace: 'UNIQUE', unique: { base } })
+  const trade = new Set(['Byrnabas|Wide Belt'])
+  it('同名同底材、另一列在交易站 → 刪掉不在交易站的那列,其他行逐字不變', () => {
+    const text = [row('布萊納巴斯', 'Brynabas', 'Wide Belt'), row('布萊納巴斯', 'Byrnabas', 'Wide Belt'), row('別的', 'Other', 'Wide Belt')].join('\n') + '\n'
+    expect(dropStaleUniqueSpellings(text, trade)).toBe([row('布萊納巴斯', 'Byrnabas', 'Wide Belt'), row('別的', 'Other', 'Wide Belt')].join('\n') + '\n')
+  })
+  it('沒有同名同底材的交易站拼法 → 不刪(交易站缺的傳奇不是舊拼法)', () => {
+    const text = [row('死亡之聲', 'Deathrattle', 'Twig Focus'), row('死亡之聲', 'Death Articulated', 'Ornate Gauntlets')].join('\n') + '\n'
+    expect(dropStaleUniqueSpellings(text, trade)).toBe(text)
   })
 })
