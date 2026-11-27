@@ -797,8 +797,8 @@ export function createTradeRequest(
     );
   }
 
+  // exile-appraiser: 2026-11-28 使用者裁定(比照 PoE1):按鈕顯示「已汙染」就只查已汙染(上游只在 exact 時送 true,其餘 = 不限)
   if (
-    (filters.corrupted?.value === false || filters.corrupted?.exact) &&
     filters.corrupted &&
     (!filters.sanctified || (filters.sanctified && filters.sanctified.disabled))
   ) {

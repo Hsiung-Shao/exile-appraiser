@@ -24,6 +24,13 @@
               "option": "true"
             }
           }
+        },
+        "misc_filters": {
+          "filters": {
+            "corrupted": {
+              "option": "true"
+            }
+          }
         }
       },
       "name": "巨光譜",
