@@ -83,6 +83,26 @@ function raceAbort<T> (p: Promise<T>, signal: AbortSignal, onAbort: () => Error)
   })
 }
 
+/**
+ * 2026-11-26 診斷(使用者回報「查價沒反應」):交易站的請求每筆一行(狀態、耗時、限流狀態);poe.ninja 一次更新幾十筆,只記失敗。
+ * 失敗時附回應開頭:HTML = Cloudflare 擋下 / 維護頁,JSON = 交易站的錯誤訊息(Query is too complex 等)。回 null = 不記。
+ */
+export function httpLogLine (method: string, url: URL, res: Pick<HostFetchResult, 'status' | 'headers' | 'body'>, ms: number): string | null {
+  const bad = res.status >= 400
+  if (!bad && url.host === 'poe.ninja') return null
+  const rl = res.headers.find(([k]) => k.toLowerCase() === 'x-rate-limit-ip-state')?.[1]
+  let hint = ''
+  if (bad) {
+    const head = res.body.trimStart()
+    hint = head.startsWith('<')
+      ? `,回應是 HTML(${/cloudflare|cf-ray|challenge/i.test(head) ? '可能是 Cloudflare 驗證' : '可能是維護 / 錯誤頁'})`
+      : `,回應 ${head.slice(0, 160).replace(/\s+/g, ' ')}`
+  }
+  // fetch 端點的路徑是 10 個掛單 id,只留開頭
+  const p = url.pathname.length > 80 ? `${url.pathname.slice(0, 80)}…` : url.pathname
+  return `[http] ${method} ${url.host}${p} → ${res.status}(${ms} ms${rl ? `,限流 ${rl}` : ''})${hint}`
+}
+
 export async function hostFetch (url: string, init: HostFetchInit = {}, abortKey?: string): Promise<HostFetchResult> {
   const parsed = new URL(url)
   if (parsed.protocol !== 'https:' || !ALLOWED_HOSTS.has(parsed.host)) {
@@ -103,8 +123,10 @@ export async function hostFetch (url: string, init: HostFetchInit = {}, abortKey
   const abortError = () => new Error(timedOut
     ? `request timed out after ${timeoutMs} ms: ${parsed.host}${parsed.pathname}`
     : `request aborted: ${parsed.host}${parsed.pathname}`)
+  const started = Date.now()
+  const method = init.method ?? 'GET'
   try {
-    return await raceAbort((async () => {
+    const result = await raceAbort((async () => {
       const res = await session.defaultSession.fetch(url, {
         method: init.method ?? 'GET',
         headers,
@@ -122,6 +144,17 @@ export async function hostFetch (url: string, init: HostFetchInit = {}, abortKey
         body
       }
     })(), ctrl.signal, abortError)
+    try {
+      const line = httpLogLine(method, parsed, result, Date.now() - started)
+      if (line) (result.status >= 400 ? console.warn : console.log)(line)
+    } catch { /* 記錄只是旁觀,不能讓成功的請求變失敗 */ }
+    return result
+  } catch (e) {
+    // 中止 = renderer 換了物品 / 關了面板,不算問題
+    if (!(e instanceof Error && e.message.startsWith('request aborted'))) {
+      console.warn(`[http] ${method} ${parsed.host}${parsed.pathname} 失敗(${Date.now() - started} ms):${e instanceof Error ? e.message : String(e)}`)
+    }
+    throw e
   } finally {
     clearTimeout(timer)
     if (abortKey !== undefined && inflight.get(abortKey) === ctrl) inflight.delete(abortKey)

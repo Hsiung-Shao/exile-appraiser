@@ -351,20 +351,21 @@ describe('sections:範本 / templates.json', () => {
   it('舊格式範本(map_numeric)讀入轉成 sections,輸出與舊版相同', () => {
     const raw = {
       id: 'legacy', game: 'poe1', mode: 'any',
-      pages: { map_mods: ['#% more Monster Life'], map_numeric: ['tier', 'quantity'] },
-      numeric: { map_numeric: { tier: { min: 16 }, quantity: { min: 80 } } },
+      pages: { map_mods: ['#% more Monster Life'], map_numeric: ['tier', 'atlas_drops'] },
+      numeric: { map_numeric: { tier: { min: 16 }, atlas_drops: { min: 80 } } },
       custom: [], excludes: []
     }
     const r = parseTemplates({ templates: [raw] })
     expect(r.errors).toEqual([])
     const t = r.templates[0]
     expect(t.state.pages).toEqual({ map_mods: ['#% more Monster Life'] })
-    expect(t.state.sections).toEqual({ map_mods: ['tier', 'quantity'] })
-    expect(t.state.numeric).toEqual({ map_mods: { tier: { min: 16 }, quantity: { min: 80 } } })
+    expect(t.state.sections).toEqual({ map_mods: ['tier', 'atlas_drops'] })
+    expect(t.state.numeric).toEqual({ map_mods: { tier: { min: 16 }, atlas_drops: { min: 80 } } })
     for (const lang of ['zh', 'en'] as const) {
       const want = oldComboCombined(all.poe1, raw as never, lang)
       expect(newComboCombined(all.poe1, t.state, lang).c.query).toBe(want.query)
       expect(want.query).toMatch(/階級|Tier/)
+      expect(want.query).toMatch(/輿圖掉落物|Atlas Drops/)
     }
   })
   it('出貨的 templates.json 沒有引用舊頁 id(不需改檔)', async () => {
@@ -380,18 +381,18 @@ describe('sections:收合摘要(view.ts)', () => {
   const e = (id: string) => sec.entries.find(x => x.id === id)!
   it('condText:≥ / ≤ / 區間、百分比、不成立', () => {
     expect(condText(e('tier'), { min: 16 }, 'zh')).toBe('≥16')
-    expect(condText(e('quantity'), { min: 80 }, 'zh')).toBe('≥80%')
-    expect(condText(e('quantity'), { max: 40 }, 'en')).toBe('≤40%')
+    expect(condText(e('atlas_drops'), { min: 80 }, 'zh')).toBe('≥80%')
+    expect(condText(e('atlas_drops'), { max: 40 }, 'en')).toBe('≤40%')
     expect(condText(e('rarity'), { min: 50, max: 120 }, 'zh')).toBe('50–120%')
     expect(condText(e('rarity'), {}, 'zh')).toBeNull()
     expect(condText(e('rarity'), { min: 90, max: 10 }, 'zh')).toBeNull()
   })
   it('sectionSummary:只列勾選、列順序、名稱依介面語言', () => {
     const tierIdx = sec.entries.indexOf(e('tier'))
-    const qtyIdx = sec.entries.indexOf(e('quantity'))
-    const vals: Record<string, AlgoValue> = { quantity: { min: 80 } }
-    const got = sectionSummary(sec, [qtyIdx, tierIdx], x => vals[x.id] ?? x.input.def, 'zh')
-    expect(got.map(x => x.id)).toEqual(['tier', 'quantity'])
+    const dropIdx = sec.entries.indexOf(e('atlas_drops'))
+    const vals: Record<string, AlgoValue> = { atlas_drops: { min: 80 } }
+    const got = sectionSummary(sec, [dropIdx, tierIdx], x => vals[x.id] ?? x.input.def, 'zh')
+    expect(got.map(x => x.id)).toEqual(['tier', 'atlas_drops'])
     expect(got[0]).toEqual({ id: 'tier', label: e('tier').zh[0], cond: '≥16' })
     expect(got[1].cond).toBe('≥80%')
     expect(sectionSummary(sec, [tierIdx], x => x.input.def, 'en')[0].label).toBe(e('tier').en[0])

@@ -54,9 +54,10 @@ import { loadStashDigitTemplates, loadStashLayouts } from './stash-layout-data'
 import { SharedCapture, SharedLocateOcr } from './ocr/panel-scan'
 import { ScanMaskStore, sanitizeMaskReport } from './ocr/scan-mask'
 import { isAppNavigation, isExternalWebUrl } from './external-links'
-import { BG_DIR_NAME, SHEET_DIR_NAME, bgContentType, bgCorsHeaders, bgFileFromPath, normBgFile, resolveBgPath, storedBgName } from './backgrounds'
+import { BG_DIR_NAME, SHEET_DIR_NAME, SOUND_DIR_NAME, bgContentType, bgCorsHeaders, bgFileFromPath, normBgFile, normSoundFile, resolveBgPath, soundContentType, storedBgName, storedSoundName } from './backgrounds'
 import { createFontLister } from './system-fonts'
-import { AppLog, LogFileWriter, captureConsole, consoleMethodForLevel, type LogEntry } from './app-log'
+import { AppLog, LogFileWriter, buildLogExport, captureConsole, consoleMethodForLevel, dateStamp, formatLogEntry, maskHomeDir, pickExportLogFiles, timeStamp, type LogEntry } from './app-log'
+import os from 'node:os'
 import { PerfMonitor, RendererPerfAccumulator, bgActiveFromConfigText, formatPerfSummary, isPerfFile, perfFileName, perfSummarySections, scanSnapshotOf, stashSnapshotOf, type ScenarioInput } from './perf/perf-monitor'
 import {
   TOAST_FADE_MS, TOAST_VISIBLE_MS, isFirstRunAfterUpdate, parseLastRun, priceCheckHotkeyLabel, scanToastMessage, serializeLastRun,
@@ -165,13 +166,16 @@ if (OCR_SELFTEST != null) {
 const APP_SCHEME = 'app'
 protocol.registerSchemesAsPrivileged([{
   scheme: APP_SCHEME,
-  privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true }
+  // stream:2026-11-28 計時器音效 `<audio src="app://sound/…">` 需要(自訂協定的媒體載入)
+  privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true, stream: true }
 }])
 
 /** 自訂背景圖的資料夾(`userData/backgrounds`;backgrounds.ts) */
 const BG_DIR = () => path.join(app.getPath('userData'), BG_DIR_NAME)
 /** 懸浮選單的速查表圖片(`userData/cheatsheets`;規則同背景圖,另開資料夾) */
 const SHEET_DIR = () => path.join(app.getPath('userData'), SHEET_DIR_NAME)
+/** 2026-11-28 計時器音效(`userData/timer-sounds`;只准音訊檔名,另開資料夾) */
+const SOUND_DIR = () => path.join(app.getPath('userData'), SOUND_DIR_NAME)
 
 /**
  * `app://app/…` = renderer/dist(只有正式版;開發模式走 Vite);`app://bg/<檔名>` = 自訂背景圖(兩種模式都有)。
@@ -182,6 +186,14 @@ function installAppProtocol (serveRenderer: boolean) {
   const root = __dirname
   protocol.handle(APP_SCHEME, (request) => {
     const url = new URL(request.url)
+    if (url.host === 'sound') {
+      const name = bgFileFromPath(url.pathname)
+      const file = name == null ? null : resolveBgPath(SOUND_DIR(), name, normSoundFile)
+      if (!file) return new Response('not found', { status: 404 })
+      return net.fetch(pathToFileURL(file).toString()).then(r => r.ok
+        ? new Response(r.body, { status: 200, headers: { 'Content-Type': soundContentType(file), 'Cache-Control': 'no-cache' } })
+        : new Response('not found', { status: 404 }))
+    }
     if (url.host === 'bg' || url.host === 'sheet') {
       const name = bgFileFromPath(url.pathname)
       const file = name == null ? null : resolveBgPath(url.host === 'bg' ? BG_DIR() : SHEET_DIR(), name)
@@ -325,7 +337,9 @@ const WEB_PREFERENCES = ():BrowserWindowConstructorOptions['webPreferences'] => 
   contextIsolation: true,
   sandbox: true,
   nodeIntegration: false,
-  spellcheck: false
+  spellcheck: false,
+  // 2026-11-28 計時器音效:overlay 平常沒有使用者互動(點擊穿透),倒數歸零 / 碼表提醒要能直接播
+  autoplayPolicy: 'no-user-gesture-required'
 })
 
 function createWindow (mode: WindowMode): BrowserWindow {
@@ -911,7 +925,7 @@ if (!skipStartup) app.whenReady().then(() => {
       intervalMs: hostCfg?.revealIntervalMs ?? DEFAULT_SCAN_INTERVAL_MS
     }),
     env: scanEnv,
-    ocrBusy: () => runeshapeScan.busy || stashScan.busy,
+    ocrBusy: () => runeshapeScan.busy,
     capture: scanCapture,
     locateOcr: sharedLocateOcr,
     // 面板定位 / 判定用 tiers.json 的模板 skeleton(第一次掃描才讀;第 22 步:每種語言各一份)
@@ -934,7 +948,7 @@ if (!skipStartup) app.whenReady().then(() => {
     }),
     env: scanEnv,
     textLang: ocrTextLang,
-    ocrBusy: () => revealScan.busy || stashScan.busy,
+    ocrBusy: () => revealScan.busy,
     capture: scanCapture,
     locateOcr: sharedLocateOcr,
     drawPending: () => scanMask.pending(Date.now()),
@@ -952,7 +966,7 @@ if (!skipStartup) app.whenReady().then(() => {
     // 換格 → renderer 重畫徽章(沒有 ack):倉庫掃描等下一份遮罩報告才讀數量
     send: (e) => { send('stash-cursor', e); stashScan.cursorMoved() }
   })
-  // PoE1 倉庫價格疊層:偵測碎片頁開著 / 目前子頁(只 OCR 子頁按鈕列;物品身分靠固定版面,不 OCR)
+  // PoE1 倉庫價格疊層:偵測碎片頁開著 / 目前子頁 / 格子位置(2026-11-26 起畫面上擬合格位方框,不 OCR;物品身分靠固定版面)
   // 2026-10-15 顯示方式:auto = 一直偵測;hotkey = 按倉庫價格熱鍵才偵測(舊設定 / 壞值 = auto)
   const stashTriggerMode = (): 'auto' | 'hotkey' => hostCfg?.stashTriggerMode === 'hotkey' ? 'hotkey' : 'auto'
   stashScan = new StashScan({
@@ -968,13 +982,11 @@ if (!skipStartup) app.whenReady().then(() => {
     // 熱鍵顯示模式:按了熱鍵卻連續幾次沒偵測到倉庫 → 已停止偵測,提示一次
     onArmMiss: () => { presentToast(stashArmMissToastMessage(toastLang(hostCfg?.uiLanguage)), gameToastArea()) },
     env: scanEnv,
-    textLang: ocrTextLang,
-    ocrBusy: () => revealScan.busy || runeshapeScan.busy,
     capture: scanCapture,
     // overlay screenshot 全黑鎖存(全螢幕獨占)期間不擷取(否則每 tick 走 getSources 卡 main 300–480 ms)
     captureBlackMs: () => clientCapture.blackLatchRemainingMs(),
     holdOnMiss: () => stashCursor.onCell(),
-    onShowingChange: (showing, st) => { stashCursor.setShown(showing && st.subtab ? { subtab: st.subtab, yOffset: st.yOffset, clientH: st.clientH } : null) },
+    onShowingChange: (showing, st) => { stashCursor.setShown(showing && st.subtab && st.grid ? { subtab: st.subtab, grid: st.grid } : null) },
     log: (msg) => { console.log(msg) },
     // 2026-10-15 倉庫價值:讀每格堆疊數量(版面 + 數字模板;游標停在格上不讀;每個事件等 renderer 回報遮罩才擷取下一張)
     qty: { layouts: () => loadStashLayouts(), templates: () => loadStashDigitTemplates() },
@@ -1019,6 +1031,12 @@ if (!skipStartup) app.whenReady().then(() => {
         return
       }
       if (windowMode === 'window') showNear(e.position)
+      // 2026-11-26 診斷:物品送到哪個視窗、它看不看得到(查價「沒有畫面」時分辨沒送到 / 視窗被藏 / 最小化)
+      if (win && !win.isDestroyed()) {
+        console.log(`[main] 物品文字送往${windowMode === 'window' ? '獨立視窗' : ' overlay'}:視窗${win.isVisible() ? '顯示中' : '隱藏'}${win.isMinimized() ? '、最小化' : ''}、位置 ${win.getBounds().x},${win.getBounds().y} ${win.getBounds().width}×${win.getBounds().height}`)
+      } else {
+        console.warn('[main] 物品文字沒有視窗可送(主視窗不存在)')
+      }
     },
     // 2026-10-01:原本「按一次辨識一次」→ 暫停 / 繼續褻瀆自動辨識
     // 第 16 步:切換後在右下角提示目前狀態(同一個提示視窗,連按更新內容)
@@ -1222,6 +1240,7 @@ if (!skipStartup) app.whenReady().then(() => {
       bgDir: BG_DIR(),
       // 懸浮選單速查表:`<prefix>sheet/<檔名>`
       sheetDir: SHEET_DIR(),
+      soundDir: SOUND_DIR(),
       handlers: previewHandlers(table),
       version: app.getVersion(),
       log: (m) => { console.log(m) },
@@ -1896,6 +1915,35 @@ if (!skipStartup) app.whenReady().then(() => {
       preview: false,
       fn: (_ctx, keep: unknown) => pickImagesInto(SHEET_DIR(), 'sheet', 'Cheat sheet image', Array.isArray(keep) ? keep.map(normBgFile).filter(Boolean) : [], true)
     },
+    // 2026-11-28 計時器音效:選一個音訊檔 → 複製到 userData/timer-sounds(檔名 = 清理後原名 + 雜湊)→ 回檔名;成功後刪掉資料夾裡其他舊檔。預覽端不開放
+    'sound-pick': {
+      kind: 'invoke',
+      preview: false,
+      fn: async () => {
+        const opts = { title: 'Timer sound', properties: ['openFile' as const], filters: [{ name: 'Audio', extensions: ['mp3', 'ogg', 'wav', 'm4a'] }] }
+        const res = win && !win.isDestroyed() ? await dialog.showOpenDialog(win, opts) : await dialog.showOpenDialog(opts)
+        const src = res.canceled ? undefined : res.filePaths[0]
+        if (!src) return null
+        try {
+          const data = await fs.readFile(src)
+          if (data.length > 20 * 1024 * 1024) { console.warn(`[timer] 音效檔太大(${data.length} bytes),不匯入`); return null }
+          const name = storedSoundName(src, data)
+          const dir = SOUND_DIR()
+          const dest = name ? resolveBgPath(dir, name, normSoundFile) : null
+          if (!name || !dest) { console.warn(`[timer] 不支援的音效檔:${path.basename(src)}`); return null }
+          await fs.mkdir(dir, { recursive: true })
+          await fs.writeFile(dest, data)
+          for (const f of await fs.readdir(dir).catch(() => [] as string[])) {
+            if (f !== name && normSoundFile(f)) await fs.rm(path.join(dir, f), { force: true }).catch(() => {})
+          }
+          console.log(`[timer] 音效 → ${name}(${data.length} bytes)`)
+          return name
+        } catch (e) {
+          console.error(`[timer] 匯入音效失敗:${path.basename(src)}`, e)
+          return null
+        }
+      }
+    },
     // 第 28 步:設定 › 記錄。log-get 回快照({ entries, lastSeq },帶 sinceSeq 只回較新的;預覽端可用 = 輪詢);
     // log-subscribe(send)= 記錄分頁開著才讓 main 送 log-lines 即時追加;開資料夾只給 Electron 視窗
     'log-get': { kind: 'invoke', fn: (_ctx, sinceSeq?: unknown) => appLog.snapshot(typeof sinceSeq === 'number' ? sinceSeq : undefined) },
@@ -1908,6 +1956,42 @@ if (!skipStartup) app.whenReady().then(() => {
         await fs.mkdir(dir, { recursive: true })
         const err = await shell.openPath(dir)
         if (err) throw new Error(err)
+      }
+    },
+    // 2026-11-26:匯出記錄檔(使用者回報「查價沒反應」時把一份檔案傳給我們):環境摘要(renderer 給設定摘要)+ 今天與昨天的記錄檔。
+    // 存檔對話框選位置(預設桌面),寫完在檔案總管標出來;取消回 null。預覽端不開放(對話框在桌面上)
+    'log-export': {
+      kind: 'invoke',
+      preview: false,
+      fn: async (_ctx, summary: unknown) => {
+        const now = Date.now()
+        const opts = {
+          title: 'Export log',
+          defaultPath: path.join(app.getPath('desktop'), `exile-appraiser-log-${dateStamp(now)}-${timeStamp(now).slice(0, 8).replace(/:/g, '')}.txt`),
+          filters: [{ name: 'Text', extensions: ['txt'] }]
+        }
+        const res = win && !win.isDestroyed() ? await dialog.showSaveDialog(win, opts) : await dialog.showSaveDialog(opts)
+        if (res.canceled || !res.filePath) return null
+        await logWriter.idle() // 剛記的幾行也寫進檔案再讀
+        const dir = LOG_DIR()
+        const names = pickExportLogFiles(await fs.readdir(dir).catch(() => [] as string[]), now)
+        const parts: string[] = []
+        for (const name of names) {
+          try { parts.push(`----- ${name} -----\n${await fs.readFile(path.join(dir, name), 'utf8')}`) } catch (e) { parts.push(`----- ${name}(讀取失敗:${String(e)})-----`) }
+        }
+        // 記錄檔寫不進去時(磁碟滿 / 被鎖)退回記憶體裡最近的行
+        if (!parts.length) parts.push(`----- 記憶體內最近 ${appLog.snapshot().entries.length} 行 -----\n${appLog.snapshot().entries.map(formatLogEntry).join('\n')}`)
+        const header = [
+          `匯出時間 ${dateStamp(now)} ${timeStamp(now)}`,
+          `版本 ${app.getVersion()}${app.isPackaged ? '' : '(開發版)'}、Electron ${process.versions.electron}、Windows ${os.release()} ${process.arch}、語系 ${app.getLocale()}`,
+          `視窗模式 ${windowMode}、遊戲視窗 ${poeWindow ? (poeWindow.isActive ? '在前景' : '不在前景') : '未附著'}`,
+          ...(Array.isArray(summary) ? summary.filter((s): s is string => typeof s === 'string').slice(0, 60).map(s => s.slice(0, 400)) : [])
+        ]
+        // 記錄裡的路徑含 Windows 使用者名稱 → 換成 %USERPROFILE%
+        await fs.writeFile(res.filePath, maskHomeDir(buildLogExport(header, parts.join('\n')), os.homedir()), 'utf8')
+        console.log(`[log] 已匯出記錄檔 ${path.basename(res.filePath)}(${names.length} 個檔)`)
+        shell.showItemInFolder(res.filePath)
+        return res.filePath
       }
     },
     // 步 38:托盤「開啟設定資料夾」移到設定(2026-11-18 起在「啟動與更新」);預覽端不開放

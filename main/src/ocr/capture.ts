@@ -200,7 +200,7 @@ export function rawPixels (img: NativeImage, rect: PhysRect): { data: Uint8Array
   return { data: new Uint8Array(bmp.buffer, bmp.byteOffset, bmp.length), width: s.width, height: s.height, channels: 4, x, y }
 }
 
-/** PoE1 倉庫價格疊層:影像某塊原解析度灰階(按鈕文字亮度判定目前子頁;不縮放、不遮罩 —— 按鈕列不會有我們畫的徽章) */
+/** PoE1 倉庫價格疊層:影像某塊原解析度灰階(格子擬合用;不縮放、不遮罩 —— 自己的徽章由擬合依 `maskRects` 略過,見 core `fit.ts` `GrayImage.masks`) */
 export function grayPixels (img: NativeImage, rect: PhysRect): Uint8Array {
   const size = img.getSize()
   const x = Math.max(0, Math.min(size.width - 1, Math.round(rect.x)))

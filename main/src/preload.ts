@@ -58,6 +58,7 @@ const api: HostApi = {
   bgPick: () => ipcRenderer.invoke('bg-pick'),
   // 懸浮選單速查表(檔案對話框選圖 → 複製到 userData/cheatsheets)
   sheetPick: (keep?: string[]) => ipcRenderer.invoke('sheet-pick', keep),
+  soundPick: () => ipcRenderer.invoke('sound-pick'),
   // 靈魂之井揭露面板(褻瀆)自動辨識
   onRevealScanResult: (cb: (e: RevealScanEvent) => void) => subscribe('reveal-scan-result', cb),
   revealStats: () => ipcRenderer.invoke('reveal-stats'),
@@ -95,6 +96,7 @@ const api: HostApi = {
   logSubscribe: (on: boolean) => { ipcRenderer.send('log-subscribe', on) },
   onLogLines: (cb: (entries: LogEntry[]) => void) => subscribe('log-lines', cb),
   openLogFolder: () => ipcRenderer.invoke('log-open-folder'),
+  exportLog: (summary: string[]) => ipcRenderer.invoke('log-export', summary),
   // 步 38:設定 › 啟動與更新 › 開啟設定資料夾(userData;只有 Electron 視窗)
   openConfigFolder: () => ipcRenderer.invoke('config-open-folder'),
   // 設定 › 啟動與更新 › 建立桌面捷徑(只有 Electron 視窗)

@@ -187,27 +187,30 @@ async function loadItems(language: string) {
       ns: BaseType["namespace"],
       name: string,
     ): BaseType[] | undefined {
-      let start = dataBinarySearch(
-        index,
-        Number(fnv1a(`${ns}::${name}`, { size: 32 })),
-        0,
-        INDEX_WIDTH,
-      );
-      if (start === -1) return undefined;
-      start = index[start * INDEX_WIDTH + 1];
+      const hash = Number(fnv1a(`${ns}::${name}`, { size: 32 }));
+      let pos = dataBinarySearch(index, hash, 0, INDEX_WIDTH);
+      if (pos === -1) return undefined;
+      // exile-appraiser: 同一個名稱可能有好幾筆索引(繁中同名不同物品:絕望 = Despair / Desperation),
+      // 二分搜尋只落到其中一筆 → 往前找到第一筆,收齊同 hash 的每一筆(2026-11-27 同類掃描)
+      while (pos > 0 && index[(pos - 1) * INDEX_WIDTH] === hash) pos -= 1;
       const out: BaseType[] = [];
-      while (start !== ndjson.length) {
-        const end = ndjson.indexOf("\n", start);
-        const record = JSON.parse(ndjson.slice(start, end)) as BaseType;
-        if (record.namespace === ns && record[prop] === name) {
-          out.push(record);
-          if (!record.disc && !record.unique) break;
-        } else {
-          break;
+      const seen = new Set<number>();
+      for (; pos * INDEX_WIDTH < index.length && index[pos * INDEX_WIDTH] === hash; pos += 1) {
+        let start = index[pos * INDEX_WIDTH + 1];
+        while (start !== ndjson.length && !seen.has(start)) {
+          seen.add(start);
+          const end = ndjson.indexOf("\n", start);
+          const record = JSON.parse(ndjson.slice(start, end)) as BaseType;
+          if (record.namespace === ns && record[prop] === name) {
+            out.push(record);
+            if (!record.disc && !record.unique) break;
+          } else {
+            break;
+          }
+          start = end + 1;
         }
-        start = end + 1;
       }
-      return out;
+      return out.length ? out : undefined;
     };
   }
 

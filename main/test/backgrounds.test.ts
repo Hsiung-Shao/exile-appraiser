@@ -5,7 +5,7 @@ import fs from 'node:fs'
 import http from 'node:http'
 import os from 'node:os'
 import path from 'node:path'
-import { bgContentType, bgCorsHeaders, bgFileFromPath, normBgFile, resolveBgPath, storedBgName } from '../src/backgrounds'
+import { bgContentType, bgCorsHeaders, bgFileFromPath, normBgFile, normSoundFile, resolveBgPath, storedBgName, storedSoundName } from '../src/backgrounds'
 import { startPreviewServer, type PreviewServer } from '../src/preview-server'
 
 describe('bgCorsHeaders(app://bg/ 回應;效能修正第 10 步)', () => {
@@ -158,5 +158,27 @@ describe('預覽伺服器 /bg/ 路由(token 保護、同一套防穿越)', () =>
     } finally {
       await s2.close('test end')
     }
+  })
+})
+
+describe('T12 計時器音效檔名(只收音訊、不跳出資料夾)', () => {
+  it('T12 合法音訊檔名原樣通過', () => {
+    for (const f of ['a.mp3', '鈴聲 (1).ogg', 'x.wav', 'y.m4a']) expect(normSoundFile(f)).toBe(f)
+  })
+  it('T12 非音訊 / 路徑字元 / 隱藏檔 / 非字串 → 空字串', () => {
+    for (const f of ['../x.mp3', 'a.png', '.x.mp3', 'a/b.wav', 'a\b.wav', 'a..mp3', '', 123, null, undefined]) expect(normSoundFile(f)).toBe('')
+  })
+  it('T12 resolveBgPath 帶 normSoundFile:合法在資料夾內、非音訊 / 穿越 → null', () => {
+    const dir = path.resolve(os.tmpdir(), 'ea-sound-test', 'timer-sounds')
+    expect(resolveBgPath(dir, 'a.mp3', normSoundFile)).toBe(path.join(dir, 'a.mp3'))
+    expect(resolveBgPath(dir, 'a.png', normSoundFile)).toBeNull()
+    expect(resolveBgPath(dir, '../x.mp3', normSoundFile)).toBeNull()
+  })
+  it('T12 storedSoundName:副檔名小寫 + 雜湊 8 碼且自身合法;非音訊 → null', () => {
+    const data = new Uint8Array([1, 2, 3])
+    const n = storedSoundName('C:/x/ding.WAV', data)!
+    expect(n).toMatch(/^ding-[0-9a-f]{8}\.wav$/)
+    expect(normSoundFile(n)).toBe(n)
+    expect(storedSoundName('x.png', data)).toBeNull()
   })
 })

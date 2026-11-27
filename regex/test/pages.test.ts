@@ -160,16 +160,16 @@ describe('演算法頁組成', () => {
       }
     })
   }
-  it('PoE1 階級 ≥16 / 物品數量 ≥80 / 稀有度 的實際片段(第 35 步嚴格寫法)', () => {
+  it('PoE1 階級 ≥16 / 輿圖掉落物 ≥80 / 稀有度 的實際片段(第 35 步嚴格寫法)', () => {
     const p = algoPages('poe1', parseLabels(fs.readFileSync(path.join(defaultRegexDataDir(), 'labels.poe1.json'), 'utf8')))[0] as AlgoPage
     const tier = p.entries.find(e => e.id === 'tier')!
-    const qty = p.entries.find(e => e.id === 'quantity')!
+    const qty = p.entries.find(e => e.id === 'atlas_drops')!
     const rar = p.entries.find(e => e.id === 'item_rarity_class')!
     // R10:階級 ≥ N 到最高階(PoE1 17)為止;百分比行「標籤: \+?N%」;稀有度列單獨(沒有語料)= 短寫「度: 稀」
     expect(tier.fragment({ min: 16 }, 'zh')).toBe('階級 *1[67]）')
     expect(tier.fragment({ min: 16 }, 'en')).toBe('Tier 1[67]\\)')
-    expect(qty.fragment({ min: 80 }, 'zh')).toBe('物品數量: \\+?([89][0-9]|[1-9][0-9]{2,})%')
-    expect(qty.fragment({ min: 80 }, 'en')).toBe('Item Quantity: \\+?([89][0-9]|[1-9][0-9]{2,})%')
+    expect(qty.fragment({ min: 80 }, 'zh')).toBe('輿圖掉落物: \\+?([89][0-9]|[1-9][0-9]{2,})%')
+    expect(qty.fragment({ min: 80 }, 'en')).toBe('Atlas Drops: \\+?([89][0-9]|[1-9][0-9]{2,})%')
     expect(rar.fragment({ choice: 'rare' }, 'zh')).toBe('度: 稀')
     expect(rar.fragment({ choice: 'normal' }, 'zh')).toBe('度: 普')
     expect(rar.fragment({ choice: 'unique' }, 'en')).toBe('y: u')

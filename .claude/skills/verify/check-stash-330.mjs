@@ -1,8 +1,8 @@
 // 實跑驗證:PoE1 3.30 碎片倉庫頁(一般 / 綢帶)疊層的偵測與格子。不開遊戲、不送任何輸入。
 // 輸入 = 使用者 3.30 截圖(倉庫面板裁圖,1440 高 client 的 1:1 像素)。流程:
-//   1. 真 Windows OCR 讀裁圖上緣 → 「一般」按鈕文字中心 → 推出裁圖在 2560×1440 client 的位置,貼回黑畫布;
-//   2. 依 runtime 同一條路:stripRect 裁掃描條 ×3 JPEG q95 → WinOcr → findSubtabButtons → 三顆按鈕 p99 → activeSubtab;
-//   3. 該子頁的 cellRects 每格 readCellQuantity,對人工判讀;
+//   1. 真 Windows OCR 讀裁圖上緣 → 按鈕文字中心 → 推出裁圖在 2560×1440 client 的位置,貼回黑畫布(OCR 只用來定位裁圖);
+//   2. 依 runtime 同一條路:預設搜尋範圍 → 格子擬合 fitStashGrid(執行期參數)→ 子頁 + 格子位置;
+//   3. 該子頁的 gridRects 每格 readCellQuantity,對人工判讀;
 //   4. 輸出標註圖(格框 + 讀數)與 run.log / exit_code.txt。
 // 用法:node .claude/skills/verify/check-stash-330.mjs <證據目錄> --general <一般頁截圖> --threads <綢帶頁截圖>
 import { appendFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
@@ -27,6 +27,7 @@ const bundled = await build({
   stdin: {
     contents: [
       "export * from './core/src/stash/detect'",
+      "export * from './core/src/stash/fit'",
       "export * from './core/src/stash/layout'",
       "export * from './core/src/stash/quantity'"
     ].join('\n'),
@@ -83,33 +84,27 @@ try {
       .composite([{ input: src, left: px, top: py }]).png().toBuffer()
     writeFileSync(path.join(dir, `client-${tab}.png`), client)
 
-    // 2. 子頁偵測(runtime 同一條路)
-    const strip = core.stripRect(H, core.stashLeft(W, H))
-    const stripPng = await sharp(client).extract({ left: strip.x, top: strip.y, width: strip.w, height: strip.h }).png().toBuffer()
-    const lines = (await ocrLines(stripPng, 3)).map(l => ({ ...l, x: l.x + strip.x, y: l.y + strip.y }))
-    log.push(`INFO ${tab}:掃描條 OCR ${lines.map(l => `「${l.text}」@(${Math.round(l.x)},${Math.round(l.y)})`).join(' ')}`)
-    const match = core.findSubtabButtons(lines, H, 'zh', core.stashLeft(W, H))
-    check(match.found, `${tab}:findSubtabButtons found(槽位 ${JSON.stringify(match.slots)},命中 ${match.matched})`)
-    const gray = await sharp(client).greyscale().raw().toBuffer()
-    const p99 = core.buttonRects(H, match.yOffset, core.stashLeft(W, H)).map(r => {
-      const px2 = new Uint8Array(r.w * r.h)
-      let n = 0
-      for (let y = r.y; y < r.y + r.h; y++) for (let x = r.x; x < r.x + r.w; x++) px2[n++] = gray[y * W + x]
-      return core.percentile(px2, 0.99)
-    })
-    const sub = core.activeSubtab(p99)
-    check(sub === tab, `${tab}:三顆按鈕 p99 ${JSON.stringify(p99)} → activeSubtab = ${sub}`)
+    // 2. 子頁 + 格子位置(runtime 同一條路:搜尋範圍 → 格子擬合,參數同 main STASH_FIT_SIZE_RANGE / quickReject)
+    const area = core.stashSearchImageRect({ w: W, h: H }, null, { w: W, h: H }, { x: 0, y: 0 })
+    const grayAll = await sharp(client).greyscale().raw().toBuffer()
+    const gArea = new Uint8Array(area.w * area.h)
+    for (let y = 0; y < area.h; y++) gArea.set(grayAll.subarray((area.y + y) * W + area.x, (area.y + y) * W + area.x + area.w), y * area.w)
+    const fit = core.fitStashGrid({ gray: gArea, w: area.w, h: area.h }, layouts, { clientH: H, sizeRange: 0.08, quickReject: true })
+    log.push(`INFO ${tab}:擬合 ${fit ? `${fit.subtab} 分數 一般 ${fit.scores.general.toFixed(2)} / 綢帶 ${fit.scores.threads.toFixed(2)} 格長 ${fit.box}` : '沒對上'}`)
+    check(fit?.subtab === tab, `${tab}:格子擬合判成 ${fit?.subtab ?? 'null'}`)
+    if (!fit) continue
+    const grid = { H: fit.grid.H, x: fit.grid.x + area.x, y: fit.grid.y + area.y }
 
     // 3. 每格數量
     const raw = await sharp(client).raw().toBuffer({ resolveWithObject: true })
     const img = { data: raw.data, width: raw.info.width, height: raw.info.height, channels: raw.info.channels }
-    const rects = core.cellRects(layouts, tab, H, match.yOffset, core.stashLeft(W, H))
+    const rects = core.gridRects(layouts, tab, grid)
     let right = 0
     let wrong = 0
     let unknown = 0
     const svg = []
     for (const r of rects) {
-      const res = core.readCellQuantity(img, r, templates, { clientH: H, refName: r.refName })
+      const res = core.readCellQuantity(img, r, templates, { clientH: grid.H, refName: r.refName })
       const want = TRUTH[tab][r.refName] ?? 0
       const got = res.reason === 'empty' ? 0 : res.qty
       if (got === want) right++

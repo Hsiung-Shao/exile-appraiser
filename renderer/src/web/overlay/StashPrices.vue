@@ -1,6 +1,6 @@
 <!--
   PoE1 倉庫價格疊層(Stash-Ninja 式,參考 Exile-UI,MIT;只在 overlay 掛,與符文塑形徽章層同級、呈現照符文徽章)。
-  - 收 main 的 `stash-scan-result`(main/src/ocr/stash-scan.ts:OCR 碎片頁子頁按鈕列 → 目前子頁 + 資料夾偏移):
+  - 收 main 的 `stash-scan-result`(main/src/ocr/stash-scan.ts:格子擬合 → 目前子頁 + 格子位置 `grid`):
     `show` → 固定版面(stash-data.ts)每格一枚徽章(stash-view.ts `layoutStashBadges`);`hide` → 清掉。
   - 徽章 = 名稱(辨識檢視,設定 `stashShowNames`)+ poe.ninja 單價(混沌石,≥ 1 神聖石改神聖石;三段顏色 `stashThresholds`,
     外觀變數 `config.ocrBadgeStyle` 與符文共用)。台服沒有 poe.ninja → 只顯示名稱,並提示一次。
@@ -61,6 +61,7 @@ import { computed, defineComponent, onMounted, onUnmounted, ref, shallowRef, wat
 import { useI18n } from 'vue-i18n'
 import type { StashScanEvent } from '@ipc/types'
 import type { StashSubtab } from '../../../../core/src/stash/layout'
+import type { StashGrid } from '../../../../core/src/stash/fit'
 import { AppConfig } from '../Config'
 import { Host } from '../background/IPC'
 import { usePoeninja } from '../background/Prices'
@@ -85,7 +86,7 @@ export default defineComponent({
     const cardEl = ref<HTMLElement | null>(null)
     const config = AppConfig()
     const ninja = usePoeninja()
-    const shown = shallowRef<{ subtab: StashSubtab, yOffset: number, client: { w: number, h: number } } | null>(null)
+    const shown = shallowRef<{ subtab: StashSubtab, grid: StashGrid, client: { w: number, h: number } } | null>(null)
     /** 每格數量(main 讀的;省略 = 不讀數量) */
     const quantities = shallowRef<Array<number | null> | undefined>(undefined)
     const peek = shallowRef(false)
@@ -96,7 +97,7 @@ export default defineComponent({
     let twNoticeShown = false
 
     function onScan (e: StashScanEvent) {
-      if (e.reason !== 'show' || !e.subtab || loadedGame.value !== 'poe1') {
+      if (e.reason !== 'show' || !e.subtab || !e.grid || loadedGame.value !== 'poe1') {
         if (shown.value) console.log('[stash] 收起疊層')
         shown.value = null
         quantities.value = undefined
@@ -108,8 +109,9 @@ export default defineComponent({
       peek.value = e.peek === true
       const prev = shown.value
       // 同子頁只是數量 / peek 更新:不重設、不重複記錄
-      if (prev && prev.subtab === e.subtab && prev.yOffset === e.yOffset && prev.client.w === e.client.w && prev.client.h === e.client.h) return
-      shown.value = { subtab: e.subtab, yOffset: e.yOffset, client: e.client }
+      const g = e.grid
+      if (prev && prev.subtab === e.subtab && prev.grid.H === g.H && prev.grid.x === g.x && prev.grid.y === g.y && prev.client.w === e.client.w && prev.client.h === e.client.h) return
+      shown.value = { subtab: e.subtab, grid: g, client: e.client }
       viewport.value = { w: window.innerWidth, h: window.innerHeight }
       void loadStashData()
       if (config.realm === 'tw') {
@@ -122,7 +124,7 @@ export default defineComponent({
       } else {
         ninja.queuePricesFetch()
       }
-      console.log(`[stash] 顯示疊層:${e.subtab}(偏移 ${e.yOffset},client ${e.client.w}×${e.client.h}${e.quantities ? `,數量 ${e.quantities.filter(q => q != null && q > 0).length} 格` : ''})`)
+      console.log(`[stash] 顯示疊層:${e.subtab}(第一格 ${Math.round(g.x)},${Math.round(g.y)},client ${e.client.w}×${e.client.h}${e.quantities ? `,數量 ${e.quantities.filter(q => q != null && q > 0).length} 格` : ''})`)
     }
 
     const names = (refName: string) => config.uiLanguage === 'cmn-Hant' ? stashData.value?.zh.get(refName) : refName
@@ -134,7 +136,7 @@ export default defineComponent({
       return layoutStashBadges({
         file: data.file,
         subtab: s.subtab,
-        yOffset: s.yOffset,
+        grid: s.grid,
         client: s.client,
         viewport: viewport.value,
         names,
@@ -146,6 +148,22 @@ export default defineComponent({
         peek: peek.value,
         showNames: config.stashShowNames
       })
+    })
+
+    // 2026-11-26 診斷:顯示中的徽章狀態有變才記一行(分辨「沒有價格資料」「版面沒載入」「台服」)
+    let lastBadgeLog = ''
+    watch(badges, (list) => {
+      const s = shown.value
+      if (!s) { lastBadgeLog = ''; return }
+      // 滑鼠停格(只留一格)/ peek(全收)時格數會跳,不記
+      if (hover.value != null || peek.value) return
+      const n = (st: StashBadgeView['status']) => list.filter(b => b.status === st).length
+      const line = stashData.value
+        ? `${s.subtab}:${list.length} 格,有價格 ${n('ok')}、沒有價格 ${n('no-price')}、讀取中 ${n('loading')}、沒有價格來源 ${n('no-source')}(poe.ninja 快照 ${ninja.snapshot.value ? '有' : '無'}、聯盟 ${config.leagueBy.poe1?.[config.realm] ?? '未選'})`
+        : `${s.subtab}:版面資料還沒載入`
+      if (line === lastBadgeLog) return
+      lastBadgeLog = line
+      console.log(`[stash] 徽章 ${line}`)
     })
 
     /** 整頁價值(有數量才有) */
@@ -170,7 +188,7 @@ export default defineComponent({
       if (!v || !s || !data || config.realm === 'tw') return null
       // peek(main 要用乾淨畫面重讀被蓋住的數字)→ 卡片也收起、不進遮罩回報;卡片被拖到格子上時那幾格才讀得到(拖曳中例外)
       if (peek.value && !cardDragging.value) return null
-      const def = stashValueCardPos({ file: data.file, subtab: s.subtab, yOffset: s.yOffset, client: s.client, viewport: viewport.value })
+      const def = stashValueCardPos({ file: data.file, subtab: s.subtab, grid: s.grid, client: s.client, viewport: viewport.value })
       if (!def) return null
       // 拖曳草稿 > 存的位置(顯示時夾回、不回寫)> 面板底部預設;草稿也算進來 → 遮罩回報跟著新位置(useScanLayer drawn 含 card)
       const placed = stashValueCardPlace(def, config.stashValueCard, viewport.value, cardSize.value)

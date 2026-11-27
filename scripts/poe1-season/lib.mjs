@@ -1,7 +1,7 @@
 // PoE1 賽季資料更新的純函式(update.mjs 用;測試 poe1/test/season-update.test.ts)。
 // 對接一律用語言無關鍵:GGPK stat 鍵、交易站 stat id、Metadata 路徑、stats 的 ref。
 // matcher 只加不刪、不換順序;判不準的一律不改資料、放進 rejects 給報告。
-import fs from 'node:fs'
+// 例外:規則 35(planSharedZh)刪掉被別條詞綴共用、判定錯掛的句子 —— 留著會把查詢帶到別的詞綴。
 
 /** GGPK / 交易站文字 → matcher 文字(數值寫 #,# 前的正負號去掉) */
 export function toMatcherText (text) {
@@ -1554,6 +1554,43 @@ export function planFixedCase ({ enStats, ggpkNew }) {
 }
 
 /**
+ * 規則 34(2026-11-26,GitHub issue #77 純才):GGPK 一組多 stat 的詞綴,資料只收了「全部欄位都有值」的合併寫法(交易站也只有這個 id),
+ * 但 3.30 物品上每個欄位各自成一條詞綴、印的是「只有一個欄位有值」的寫法(純才 7 職業各一條:
+ * 「當你天賦樹和決鬥者起始點相連，你獲得:\n1% 攻擊傷害偷取生命」)→ 每種單欄寫法新增一列,**不掛交易站 id**(只解析、不送查詢;
+ * 交易站沒有單職業的 id,而合併 id 的數值對不上單一欄位)。
+ * 否則表頭那行認不得、第二行會被當成通用詞綴(攻擊偷取生命、暴擊率…)送出錯的 id。
+ * 條件:同一組(stat ids + 描述檔)有合併寫法(每個欄位都是 #、至少 3 個 stat)且資料有這句;單欄寫法 = 恰一個 #、其餘 0。
+ * @returns {{ newStats: any[], rejects: any[] }}
+ */
+export function planSplitStats ({ enStats, zhStats, ggpkNew }) {
+  const rows = ggpkNew.filter(r => r.key.split('|').includes('stat_descriptions.txt')).map(r => {
+    const parts = r.key.split('|')
+    const file = parts.findIndex(p => p.endsWith('.txt'))
+    return { ...r, ids: parts[0], conds: parts.slice(1, file).join('|').split(' '), group: `${parts[0]}|${parts[file]}` }
+  })
+  const known = new Set([...eachStat(enStats)].flatMap(s => [...matcherExact(s)].map(t => cmpKey(t))))
+  const zhKnown = new Set([...eachStat(zhStats)].flatMap(s => [...matcherExact(s)].map(t => cmpKey(t))))
+  const newStats = []
+  const rejects = []
+  for (const list of groupBy(rows, r => r.group).values()) {
+    const whole = list.find(r => r.conds.length >= 3 && r.conds.every(c => c === '#'))
+    if (!whole || !known.has(cmpKey(exactKey(whole.en)))) continue
+    for (const r of list) {
+      if (r.conds.filter(c => c === '#').length !== 1 || !r.conds.every(c => c === '#' || c === '0')) continue
+      const en = exactKey(r.en)
+      if (known.has(cmpKey(en))) continue
+      const zh = r.zh ? exactKey(r.zh) : ''
+      if (!zh || zhKnown.has(cmpKey(zh))) { rejects.push({ reason: zh ? '繁中已是別條詞綴的寫法' : 'GGPK 沒有繁中', ref: en }); continue }
+      known.add(cmpKey(en))
+      zhKnown.add(cmpKey(zh))
+      // 解析器只收「這個詞綴類型有 id 鍵」的詞綴 → 掛空的 explicit 清單:解析得到,組查詢時沒有 id 就略過(create-stat-filters)
+      newStats.push({ ref: en, better: betterOf(en), en: [{ string: en }], zh: [{ string: zh }], ids: { explicit: [] } })
+    }
+  }
+  return { newStats, rejects }
+}
+
+/**
  * 規則 33:刪掉沒有交易站 id 的聖甲蟲詞綴與地圖區域詞綴(使用者 2026-11-24 裁定)。
  * 沒有 id 的列解析器永遠認不得(`tryParseTranslation` 要 trade.ids 有該類型);3.30 已移除聖甲蟲,
  * 區域詞綴(走私者的祕寶、額外隨機聖甲蟲效果)交易站也沒有 id。其他沒有 id 的列(舊寫法的輔助 / 賦予技能)不動。
@@ -1638,6 +1675,97 @@ export function planUniqueZhNames ({ zhItems, words }) {
   return out
 }
 
+/**
+ * 規則 35:不同詞綴(交易站 id 不同)共用同一句繁中 → 解析器把兩條的 id 一起送(trivial-merge)或挑錯列,查詢混進別的詞綴
+ * (2026-11-27 使用者回報:貴族「配置 守護者」禁忌珠寶連守林人一起查)。判得準的就從錯的那條刪掉這個寫法:
+ * - 一條現行、其他是 superseded 舊句(3.30 改名:守林人舊名「守護者」= 守護者現行名)→ 刪舊句
+ * - 都是現行:GGPK 新版物品描述檔裡發出這句的描述,只對得上部分詞綴的英文 → 刪對不上的(「生命恢復率」3.30 只屬於 Life Recovery);
+ *   對不上的那條英文在 GGPK 物品描述檔找不到(沒有證據)→ 不刪
+ * 比的是解析器實際查的字串(有進階寫法的是進階寫法;make-index-files);
+ * 同一個群組(flag-merge / percent-merge / select)與同 ref 的重複列是同一句的不同寫法,不互刪;
+ * 刪了會沒有現行寫法的不刪;判不準的(遊戲本身同字,例:魔力恢復率;全部都是舊句)列在 ambiguous,解析器兩個 id 都送。
+ * 這是 matcher「只加不刪」的例外:被刪的寫法會把查詢帶到別的詞綴,留著比認不得更糟。
+ * @returns {{ drops: Array<{ ref: string, string: string, advanced?: string }>, ambiguous: Array<{ string: string, refs: string[] }> }}
+ */
+export function planSharedZh ({ enStats, zhStats, ggpkNew }) {
+  const items = ggpkNew.filter(r => r.key.split('|').some(p => ITEM_STAT_FILES.includes(p)))
+  const descOf = (/** @type {any} */ r) => r.key.split('|')[0]
+  const byEn = groupBy(items.filter(r => r.en), r => exactKey(r.en))
+  const byZh = groupBy(items.filter(r => r.zh), r => exactKey(r.zh))
+  /** @type {Map<string, Set<string>>} */
+  const enDesc = new Map()
+  for (const s of eachStat(enStats)) for (const m of s.matchers) for (const r of byEn.get(exactKey(m.string)) ?? []) (enDesc.get(s.ref) ?? enDesc.set(s.ref, new Set()).get(s.ref)).add(descOf(r))
+  // 帶「(...)」的一般句只在沒被別列佔用時才進索引(不搶位),不算撞名
+  const keysOf = (/** @type {any} */ m) => [m.advanced ?? m.string]
+  const owners = []
+  zhStats.forEach((row, rowIx) => {
+    // 同一個非 trivial-merge 群組算同一個單位(不互刪);其他以 ref 為單位
+    const unit = (/** @type {any} */ s) => row.stats && row.resolve?.strat !== 'trivial-merge' ? `#${rowIx}` : s.ref
+    for (const s of row.stats ?? [row]) for (const m of s.matchers ?? []) for (const key of keysOf(m)) owners.push({ s, m, key, unit: unit(s) })
+  })
+  const idsKey = (/** @type {any} */ s) => allIds(s).map(i => i.replace(/^\{[^}]*\}/, '')).sort().join(' ')
+  /** @type {Map<any, Set<any>>} 每個 stat 要刪的寫法 */
+  const gone = new Map()
+  const ambiguous = []
+  for (const [string, list] of groupBy(owners, o => o.key)) {
+    if (new Set(list.map(o => o.unit)).size < 2 || new Set(list.map(o => idsKey(o.s))).size < 2) continue
+    // 沒有共同的 id 類型(一條只有 implicit、一條只有 explicit;只有 pseudo)解析器依類型挑得開,不會混查
+    const typesOf = (/** @type {any} */ o) => Object.keys(o.s.trade?.ids ?? {}).filter(t => t !== 'pseudo')
+    if (!list.some((a, i) => list.slice(i + 1).some(b => typesOf(a).some(t => typesOf(b).includes(t))))) continue
+    const live = list.filter(o => !o.m.superseded)
+    const liveUnits = new Set(live.map(o => o.unit))
+    if (!live.length) { ambiguous.push({ string, refs: uniq(list.map(o => o.s.ref)) }); continue }
+    let out = list.filter(o => o.m.superseded && !liveUnits.has(o.unit))
+    if (liveUnits.size > 1) {
+      const descs = new Set((byZh.get(exactKey(string)) ?? []).map(descOf))
+      const fits = (/** @type {any} */ o) => [...(enDesc.get(o.s.ref) ?? [])].some(d => descs.has(d))
+      const bad = live.filter(o => !fits(o))
+      // 有對得上的、對不上的都有英文證據(GGPK 找得到,只是不是這個描述)才刪
+      if (bad.length && bad.length < live.length && bad.every(o => enDesc.get(o.s.ref)?.size)) out = [...out, ...bad]
+      else ambiguous.push({ string, refs: [...new Set(live.map(o => o.s.ref))] })
+    }
+    for (const o of out) (gone.get(o.s) ?? gone.set(o.s, new Set()).get(o.s)).add(o.m)
+  }
+  const drops = []
+  for (const [s, ms] of gone) {
+    // 刪完要留一個現行寫法(否則正則頁沒有模板、解析可能只剩撞名的句子)
+    if (!s.matchers.some((/** @type {any} */ m) => !ms.has(m) && !m.superseded)) { ambiguous.push({ string: [...ms][0].string, refs: [s.ref] }); continue }
+    for (const m of ms) drops.push({ ref: s.ref, string: m.string, ...(m.advanced ? { advanced: m.advanced } : {}) })
+  }
+  return { drops, ambiguous }
+}
+
+/**
+ * 規則 36:頭目面前的詞綴(`While a Unique Enemy | Pinnacle Atlas Boss is in your Presence, <基底>`,伊爾奇特固定詞綴)
+ * 是遊戲把前綴接在基底句上組成的,GGPK 沒有整句 → 繁中跟著資料裡基底詞綴的現行寫法(扣掉規則 35 要刪的)。
+ * 3.30 基底「生命恢復率」改成「生命回復率」,頭目面前那幾條還是舊句、又跟 Life Recovery 那條同字。舊句標 superseded。
+ * @param {{ zhStats: any[], drops?: Array<{ ref: string, string: string }> }} input
+ * @returns {{ adds: any[] }}
+ */
+export function planPresenceForms ({ zhStats, drops = [] }) {
+  const gone = new Set(drops.map(d => `${d.ref}\n${d.string}`))
+  const byRef = statsByRef(zhStats)
+  const flagKey = (/** @type {any} */ m) => `${Boolean(m.negate)}|${m.value}`
+  const adds = []
+  for (const stat of eachStat(zhStats)) {
+    const base = /^While a (?:Unique Enemy|Pinnacle Atlas Boss) is in your Presence, (.+)$/s.exec(stat.ref)?.[1]
+    const baseStats = base ? byRef.get(base) : undefined
+    // 基底是同 ref 的好幾列(焦灼地面:固定詞綴「留下」/ 傳奇「掉落」)→ 不知道頭目面前接的是哪一句,不猜
+    if (baseStats?.length !== 1) continue
+    const prefix = liveOf(stat).map(m => /^.+?時，/.exec(m.string)?.[0]).find(Boolean)
+    if (!prefix) continue
+    const baseLive = baseStats.flatMap(s => liveOf(s).filter(m => !gone.has(`${base}\n${m.string}`)))
+    const wanted = new Set(baseLive.map(m => prefix + m.string))
+    for (const b of baseLive) {
+      const string = prefix + b.string
+      if (stat.matchers.some(m => m.string === string)) continue
+      const supersedes = liveOf(stat).filter(m => flagKey(m) === flagKey(b) && !wanted.has(m.string)).map(m => m.string)
+      adds.push({ lang: 'cmn-Hant', ref: stat.ref, matcher: { string, ...flagsOf(b) }, supersedes })
+    }
+  }
+  return { adds }
+}
+
 /** `rewriteLines` 的 edit 回傳這個值 = 刪掉這一列 */
 const DROP_ROW = Symbol('drop')
 
@@ -1659,9 +1787,27 @@ function rewriteLines (fileText, edit, appended = []) {
  * 套用詞綴計畫(adds / replace / remove / newStats)到一份 stats.ndjson 文字
  * @param {string} fileText
  * @param {'en' | 'cmn-Hant'} lang
- * @param {{ drop?: string[], adds?: any[], replace?: Record<string, string>, remove?: string[], newStats?: any[], better?: Record<string, number>, fill?: Record<string, Record<string, string[]>>, extra?: Record<string, Record<string, string[]>>, option?: string[], merge?: Array<{ from: string, into: string }> }} [plan]
+ * @param {{ dropMatchers?: Array<{ ref: string, string: string, advanced?: string }>, drop?: string[], adds?: any[], replace?: Record<string, string>, remove?: string[], newStats?: any[], better?: Record<string, number>, fill?: Record<string, Record<string, string[]>>, extra?: Record<string, Record<string, string[]>>, option?: string[], merge?: Array<{ from: string, into: string }> }} [plan]
  */
-export function applyStatPlan (fileText, lang, { adds = [], replace = {}, remove = [], newStats = [], better = {}, fill = {}, extra = {}, option = [], merge = [], drop = [] } = {}) {
+export function applyStatPlan (fileText, lang, { dropMatchers = [], ...plan } = {}) {
+  const text = applyStatPlanMerged(fileText, lang, plan)
+  if (!dropMatchers.length) return text
+  // 規則 35:刪掉被別條詞綴共用、判定錯掛的句子(最後做:併列搬過來的句子也算);不刪到一句不剩
+  const gone = groupBy(dropMatchers, d => d.ref)
+  return rewriteLines(text, (row) => {
+    let changed = false
+    for (const stat of row.stats ?? [row]) {
+      const list = gone.get(stat.ref) ?? []
+      const keep = stat.matchers?.filter(m => !list.some(d => d.string === m.string && (d.advanced ?? null) === (m.advanced ?? null))) ?? []
+      if (!list.length || !keep.length || keep.length === stat.matchers.length) continue
+      stat.matchers = keep
+      changed = true
+    }
+    return changed
+  })
+}
+
+function applyStatPlanMerged (fileText, lang, { adds = [], replace = {}, remove = [], newStats = [], better = {}, fill = {}, extra = {}, option = [], merge = [], drop = [] } = {}) {
   let merged = applyStatPlanNoMerge(fileText, lang, { adds, replace, remove, newStats, better, fill, extra, option })
   // 規則 33:整列刪掉(群組只刪全組同一個 ref 的)
   if (drop.length) { const gone = new Set(drop); merged = rewriteLines(merged, (row) => gone.has(wholeRefOf(row) ?? '') ? DROP_ROW : false) }

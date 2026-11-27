@@ -86,6 +86,8 @@ export interface ParsedItem {
   isSplit?: boolean
   influences: ItemInfluence[]
   sentinelCharge?: number
+  /** exile-appraiser: 2026-11-26 GitHub issue #76 寶石匠的稜鏡等通貨的「已儲存經驗」 */
+  storedExperience?: number
   isSynthesised?: boolean
   isFractured?: boolean
   isVeiled?: boolean

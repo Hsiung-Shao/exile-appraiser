@@ -1,7 +1,7 @@
 /**
  * 倉庫價值(2026-10-15):StashScan 讀每格堆疊數量 V7 / V8 / V13 + 徽章蓋住數字時的 peek。
  * 假時鐘不需要(直接呼叫 tick);擷取 = core/test/stash/fixtures/qty 的真實截圖(client 700×1125,倉庫不在資料夾),
- * 按鈕列 OCR 給合成行(按鈕位置照 core `buttonRects`)。不碰 Electron。
+ * 格子擬合用假 fit / verify(回 `formulaGrid` 對應的 grid = 與舊公式格框相同,`stash-fit-fakes.ts`)。不碰 Electron。
  * 2026-11-07 聖甲蟲子頁刪除:只掃一般頁;一般頁截圖沒有三位數,三位數格從數字樣本 A(3.29 聖甲蟲頁截圖)的 #24「100」貼過來。
  */
 import { beforeAll, describe, expect, it } from 'vitest'
@@ -13,10 +13,10 @@ import type { StashScanEvent } from '@ipc/types'
 import type { Fingerprint, ScanCapture, ScanClock, ScanEnv } from '../src/ocr/panel-scan'
 import { MASK_LINGER_MS, ScanMaskStore } from '../src/ocr/scan-mask'
 import { STASH_PEEK_TIMEOUT_MS, StashScan, type StashScanConfig } from '../src/ocr/stash-scan'
-import { SUBTAB_LABELS, buttonRects, type TextLine } from '../../core/src/stash/detect'
 import { cellRects, type StashSubtab } from '../../core/src/stash/layout'
 import { layout329 } from '../../core/test/stash/layout-329'
 import { parseDigitTemplates, qtyCropRect } from '../../core/src/stash/quantity'
+import { createFitFakes } from './stash-fit-fakes'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const FIX = path.join(ROOT, 'core/test/stash/fixtures/qty')
@@ -44,14 +44,6 @@ beforeAll(async () => {
   IMAGES[`a@${BASE_H}`] = { data: new Uint8Array(data), width: info.width, height: info.height }
 })
 
-/** 合成按鈕列 OCR 行(一般 / 不滅之火 / 異能 在 0–2 號槽、偏移 0) */
-function buttonLines (H: number): TextLine[] {
-  return SUBTAB_LABELS.zh.map((text, k) => {
-    const r = buttonRects(H, 0)[k]
-    return { text, x: r.x + r.w / 2 - 20, y: Math.floor(201 / 1440 * H) - 8, w: 40, h: 16 }
-  })
-}
-const BRIGHT: Record<StashSubtab, number[]> = { general: [160, 140, 140, 140] }
 /** 一般頁 #0 = 10、#16 = 64(換數字用);數字樣本 A #24 = 100(三位數) */
 const Q0 = 10
 const Q16 = 64
@@ -80,6 +72,8 @@ function harness (tab: StashSubtab = 'general', opts: { H?: number, store?: bool
     strip: fp(10),
     now: 10_000
   }
+  const fits = createFitFakes(LAYOUTS)
+  fits.show(tab, W, H)
   const timers: Array<{ ms: number }> = []
   const clock: ScanClock = {
     now: () => state.now,
@@ -98,7 +92,6 @@ function harness (tab: StashSubtab = 'general', opts: { H?: number, store?: bool
     clock,
     config: () => cfg,
     env: () => env,
-    ocrBusy: () => false,
     capture: async (): Promise<ScanCapture> => {
       const img = state.img
       return {
@@ -106,11 +99,8 @@ function harness (tab: StashSubtab = 'general', opts: { H?: number, store?: bool
         offset: { x: 0, y: 0 },
         client: { w: W, h: H },
         fingerprint: () => state.strip,
-        recognize: async () => ({ lines: buttonLines(H), ms: 30 }),
-        gray: (rect) => {
-          const k = buttonRects(H, 0).findIndex(b => Math.abs(b.x - rect.x) <= 1)
-          return new Uint8Array(32).fill(k >= 0 ? BRIGHT[state.tab][k] : 0)
-        },
+        recognize: async () => { throw new Error('倉庫偵測不該呼叫 OCR') },
+        gray: fits.gray,
         pixels: (rect) => {
           const x = Math.max(0, Math.round(rect.x))
           const y = Math.max(0, Math.round(rect.y))
@@ -130,7 +120,8 @@ function harness (tab: StashSubtab = 'general', opts: { H?: number, store?: bool
       opts.onEvent?.(e)
       if (opts.autoAck) report(e.reason === 'show' && !e.peek && opts.badgesOf ? opts.badgesOf(e) : [], e.seq)
     },
-    textLang: () => 'zh',
+    fit: fits.fit,
+    verify: fits.verify,
     qty: { layouts: () => LAYOUTS, templates: () => TEMPLATES },
     qtyPaused: () => state.cursorOnCell,
     drawPending: () => store ? store.pending(state.now) : state.pending

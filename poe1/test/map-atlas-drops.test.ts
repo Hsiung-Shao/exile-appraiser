@@ -9,7 +9,7 @@ import type { StatFilter } from '@/web/price-check/filters/interfaces'
 import { createPresets, createTradeRequest } from '../src/index'
 
 /**
- * 3.30 地圖新增「輿圖掉落物」、「更多聖甲蟲」改名「更多 綢帶」(2026-11-16)。
+ * 3.30 地圖新增「輿圖掉落物」、「更多聖甲蟲」改名「更多 綢帶」(2026-11-16;2026-11-26 起綢帶只讀不送)。
  * 樣本是使用者實機貼上的繁中文字;英文客戶端那張是合成的(見下方 M7),沒有實機樣本。
  */
 const FIXTURE = path.resolve(__dirname, 'fixtures/filter-visibility/map-t16-330-atlas-drops.txt')
@@ -76,16 +76,16 @@ describe('3.30 地圖:輿圖掉落物與更多 綢帶', () => {
     expect(item.mapMoreScarabs).toBe(35)
   })
 
-  // 失敗代表:綢帶沒送 pseudo,或沒算進更多掉落(稀有度仍勾選)
-  it('M4 綢帶送 pseudo 並算更多掉落', () => {
+  // 2026-11-26 使用者裁定:More Scarabs 是 3.30 已刪除的聖甲蟲條件(Discord 回報)→ 綢帶不送、不算更多掉落
+  // 失敗代表:綢帶又被送成 More Scarabs pseudo
+  it('M4 綢帶不送 pseudo,也不再出現 More Scarabs 列', () => {
     const s = shape(filters)
-    expect(s).toContainEqual(['pseudo', 'More Scarabs: #%', false])
-    expect(s).toContainEqual(['property', 'Item Rarity: +#%', true])
-    expect(statIds(request(item))).toContain('pseudo.pseudo_map_more_scarab_drops')
+    expect(s.some(x => x[1] === 'More Scarabs: #%')).toBe(false)
+    expect(statIds(request(item))).not.toContain('pseudo.pseudo_map_more_scarab_drops')
   })
 
-  // 失敗代表:只有綢帶時不算更多掉落(把其他更多掉落行拿掉,稀有度應仍不勾)
-  it('M4b 只有綢帶(沒有其他更多掉落)時稀有度仍預設不勾', () => {
+  // 失敗代表:綢帶仍被當成更多掉落(只有綢帶時稀有度應預設勾選)
+  it('M4b 只有綢帶(沒有其他更多掉落)時稀有度預設勾選', () => {
     const text = fs.readFileSync(FIXTURE, 'utf8')
       .replace(/^更多地圖: .*\r?\n/m, '').replace(/^更多通貨: .*\r?\n/m, '')
     const only = parse(text)
@@ -93,7 +93,7 @@ describe('3.30 地圖:輿圖掉落物與更多 綢帶', () => {
     expect(only.mapMoreCurrency).toBeUndefined()
     expect(only.mapMoreScarabs).toBe(35)
     const fs2 = createExactStatFilters(only, only.statsByType, { searchStatRange: 10 })
-    expect(shape(fs2)).toContainEqual(['property', 'Item Rarity: +#%', true])
+    expect(shape(fs2)).toContainEqual(['property', 'Item Rarity: +#%', false])
   })
 
   it('M2b 輿圖掉落物排在物品稀有度之前', () => {

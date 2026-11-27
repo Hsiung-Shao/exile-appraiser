@@ -1,6 +1,7 @@
 {
   "version": "0.0.1",
   "configurations": [
-    { "name": "renderer", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev:renderer"], "port": 5173 }
+    { "name": "renderer", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev:renderer"], "port": 5173 },
+    { "name": "renderer-5174", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev", "--workspace", "renderer", "--", "--port", "5174", "--strictPort"], "port": 5174 }
   ]
 }

@@ -25,7 +25,7 @@ import { defaultOcrBadgeStyle, normOcrBadgeStyle, type OcrBadgeStyle } from './o
 import { normSettingsFontSize, normSettingsWindow, type SettingsWindowRect } from './settings/settings-window-geom'
 import { RELATED_SCALE_DEFAULT, normRelatedItemsScale } from './related-items-scale'
 import { normFloatMenuPos, normOverlayPos, type FloatMenuPos, type OverlayPos } from './overlay/float-menu-geom'
-import { TIMER_DISPLAYS, type TimerDisplay } from './overlay/timer-display'
+import { TIMER_DISPLAYS, TIMER_MODES, clampInt, normTimerSound, type TimerDisplay, type TimerMode, type TimerSound } from './overlay/timer-display'
 import { migratePoe1TownPreset, normRoute, presetRoute, type Route } from '../../../core/src/speedrun/routes'
 import { defaultListingLayout, normListingLayout } from './price-panel/listing-layout'
 import { DEFAULT_SHOW_MECHANISM, normShowMechanism } from './price-panel/mechanism-visibility'
@@ -103,9 +103,9 @@ export interface Config {
   runeshapeThresholds: RuneshapeThresholds
   /** PoE1 倉庫價格疊層(碎片頁「一般」;預設開;只在 PoE1 + overlay 有作用)。 */
   stashPricesEnabled: boolean
-  /** PoE1 倉庫價格疊層:子頁按鈕列掃描間隔 ms(100–3000,預設 1000)。 */
+  /** PoE1 倉庫價格疊層:掃描間隔 ms(100–3000,預設 1000)。 */
   stashPricesIntervalMs: number
-  /** PoE1 倉庫價格疊層:OCR 區域(client 比例;null = 預設碎片頁按鈕列,core `defaultStripRegion`)。 */
+  /** PoE1 倉庫價格疊層:倉庫格子大概範圍(client 比例;2026-11-26 起只當格子擬合的搜尋範圍;null = 預設 core `defaultStashRegion`)。舊版存的按鈕列區域(高 < 0.25,core `isLegacyStashRegion`)照讀但不採用,main 改用預設範圍。 */
   stashRegion: OcrRegion | null
   /** PoE1 倉庫價格疊層:徽章上顯示物品名稱(辨識檢視;預設開)。 */
   stashShowNames: boolean
@@ -201,6 +201,14 @@ export interface Config {
   clientLogPath: string
   /** 計時器顯示的分段列數(1–20) */
   speedrunRows: number
+  /** 2026-11-28 計時器模式(speedrun / 一般計時器 / 倒數計時);非 speedrun 不讀 Client.txt */
+  timerMode: TimerMode
+  /** 倒數計時時長(秒,1–86400) */
+  timerCountdownSec: number
+  /** 一般計時器每幾分鐘響一次提醒(0 = 不提醒,最多 600) */
+  timerAlertMin: number
+  /** 一般計時器提醒 / 倒數歸零的音效 */
+  timerSound: TimerSound
   // ---- 相容上游元件的推導屬性 ----
   readonly useIntlSite: boolean
   /** 上游元件讀的字級;= `fsBase`(不進檔)。 */
@@ -424,7 +432,11 @@ function createConfig (): Config {
     hotkeyTimerSkip: '',
     speedrun: speedrunPresets(systemUiLanguage() === 'en' ? 'en' : 'cmn-Hant'),
     clientLogPath: '',
-    speedrunRows: 5
+    speedrunRows: 5,
+    timerMode: 'speedrun' as TimerMode,
+    timerCountdownSec: 300,
+    timerAlertMin: 0,
+    timerSound: normTimerSound(undefined)
   }
   return {
     ...base,
@@ -518,7 +530,11 @@ function serialize (): string {
     hotkeyTimerSkip: config.hotkeyTimerSkip,
     speedrun: config.speedrun,
     clientLogPath: config.clientLogPath,
-    speedrunRows: config.speedrunRows
+    speedrunRows: config.speedrunRows,
+    timerMode: config.timerMode,
+    timerCountdownSec: config.timerCountdownSec,
+    timerAlertMin: config.timerAlertMin,
+    timerSound: config.timerSound
   }, null, 2)
 }
 
@@ -688,6 +704,10 @@ function applyLoaded (raw: string) {
   config.speedrunRows = typeof loaded.speedrunRows === 'number' && Number.isFinite(loaded.speedrunRows)
     ? Math.min(20, Math.max(1, Math.round(loaded.speedrunRows)))
     : fresh.speedrunRows
+  config.timerMode = TIMER_MODES.includes(loaded.timerMode as TimerMode) ? loaded.timerMode as TimerMode : fresh.timerMode
+  config.timerCountdownSec = clampInt(loaded.timerCountdownSec, 1, 86400, fresh.timerCountdownSec)
+  config.timerAlertMin = clampInt(loaded.timerAlertMin, 0, 600, fresh.timerAlertMin)
+  config.timerSound = normTimerSound(loaded.timerSound)
 }
 
 /** 測試用:套用一份設定檔內容後回傳序列化結果(`renderer/test/runeshape-config.test.ts`) */
@@ -773,7 +793,7 @@ export function hostConfigOf (c: Config, regexHotkeys: readonly RegexBookmarkHot
     hotkeyTimerPause: c.hotkeyTimerPause,
     hotkeyTimerUndo: c.hotkeyTimerUndo,
     hotkeyTimerSkip: c.hotkeyTimerSkip,
-    speedrunAutoLog: c.speedrun[c.game].autoStart || c.speedrun[c.game].autoSplit,
+    speedrunAutoLog: c.timerMode === 'speedrun' && (c.speedrun[c.game].autoStart || c.speedrun[c.game].autoSplit),
     clientLogPath: c.clientLogPath,
     // 第 33 步:書籤個別熱鍵存在 regex_state.json(regex/store.ts 讀檔後寫入這個 ref);main 只註冊目前遊戲的
     regexBookmarkHotkeys: regexHotkeys.map(b => ({ ...b }))

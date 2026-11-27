@@ -9,7 +9,7 @@
  * `@poe2-entry` 只做型別匯入(renderer vitest 沒有別名);core 的倉庫預設區域以相對路徑匯入實值。
  */
 import { shallowRef } from 'vue'
-import { defaultStripRegion } from '../../../../core/src/stash/detect'
+import { defaultStashRegion } from '../../../../core/src/stash/detect'
 import type { Poe2RevealCandidate, Poe2RevealResult } from '@poe2-entry'
 import type { OcrRegion, RevealScanEvent, RuneshapeStats } from '@ipc/types'
 import { displayOcrText } from '../ocr-lang'
@@ -272,7 +272,7 @@ export const regionPickerClosed = shallowRef<{ source: RegionPickerSource | null
 
 // ---- WP-R2:框選層參數化(同一個 OcrRegionPicker.vue 框兩種區域) ----
 
-/** 框哪一種區域:`reveal` = 靈魂之井揭露面板(WP-S2);`runeshape` = 符文塑形面板(WP-R2);`stash` = PoE1 倉庫碎片頁按鈕列(2026-10-14) */
+/** 框哪一種區域:`reveal` = 靈魂之井揭露面板(WP-S2);`runeshape` = 符文塑形面板(WP-R2);`stash` = PoE1 倉庫碎片頁格子大概範圍(2026-10-14;2026-11-26 前是按鈕列) */
 export type RegionPickerTarget = 'reveal' | 'runeshape' | 'stash'
 
 export interface RegionPickerSpec {
@@ -318,7 +318,7 @@ export const REGION_PICKER_SPECS: Readonly<Record<RegionPickerTarget, RegionPick
     afterConfirm: 'focus-game',
     showLastDetected: false,
     // viewport 與遊戲 client 同比例(overlay 蓋滿 client)→ 比例相同
-    defaultRegion: (vp) => defaultStripRegion(vp.w, vp.h)
+    defaultRegion: (vp) => defaultStashRegion(vp.w, vp.h)
   }
 }
 

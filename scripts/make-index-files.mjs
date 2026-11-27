@@ -164,12 +164,10 @@ function makePoe1IndexFiles (DATA_DIR) {
 }
 
 /**
- * PoE2:**逐字照 ee2-patched `renderer/src/assets/make-index-files.mjs`**(E 的 `*.index.bin` 是 gitignore 的,
- * 解析器與它的回歸網都是對這套演算法產生的索引驗過的),與 poe1 版有兩處刻意不同:
- * - stats:每個 matcher 的 `string` 一律進索引,`advanced` 另外再進一筆(poe1 版是二擇一;PoE2 stats 無群組列)。
- * - items:名稱索引與 refName 索引共用 `namespace::refName` 去重(上游原樣;poe1 版的同 refName 多譯名修正沒有搬過來,
- *   E 端也沒有這個修正,搬了會讓本 repo 的解析結果與 E 的回歸網分岔)。
- * 驗證方式:對 E 跑過 `npm run make-index-files` 的索引做 byte 比對(同一份 ndjson → 同一份 bin)。
+ * PoE2:底是 ee2-patched `renderer/src/assets/make-index-files.mjs`(2026-11-18 起資料由本專案維護,已不與 E 比對),與 poe1 版的差異:
+ * - stats:沒有進階寫法的 `string`、以及 `advanced` 都進索引;有進階寫法的 `string` 只在沒被別條佔用時才進
+ *   (2026-11-27:隨機基石的一般句「Blood Magic」等跟獨立基石同字;PoE2 stats 無群組列)。
+ * - items:名稱索引與 refName 索引共用 `namespace::refName` 去重;同名不同 refName 各一筆,查詢端(`ITEM_BY_TRANSLATED`)收齊同 hash 的每一筆。
  * @param {string} DATA_DIR
  */
 function makePoe2IndexFiles (DATA_DIR) {
@@ -188,6 +186,10 @@ function makePoe2IndexFiles (DATA_DIR) {
     const statsByRef = []
     /** @type{Array<{ hash: number, start: number }>} */
     const matchers = []
+    // exile-appraiser: 有進階寫法的一般句只在沒被別條詞綴佔用時才進索引(2026-11-27:隨機基石詞綴的一般句
+    // 「Blood Magic」等跟獨立基石同字,落到隨機基石那條、送錯 id;同 PoE1 的 plain)
+    /** @type{Array<{ hash: number, start: number }>} */
+    const plain = []
     const ndjson = fs.readFileSync(path.join(DATA_DIR, `${lang}/stats.ndjson`), { encoding: 'utf-8' })
     let start = 0
     while (start !== ndjson.length) {
@@ -195,13 +197,15 @@ function makePoe2IndexFiles (DATA_DIR) {
       const stat = JSON.parse(ndjson.slice(start, end))
       statsByRef.push({ start, hash: Number(fnv1a(stat.ref, { size: 32 })) })
       for (const matcher of stat.matchers) {
-        matchers.push({ start, hash: Number(fnv1a(matcher.string, { size: 32 })) })
+        ;(matcher.advanced ? plain : matchers).push({ start, hash: Number(fnv1a(matcher.string, { size: 32 })) })
         if (matcher.advanced) {
           matchers.push({ start, hash: Number(fnv1a(matcher.advanced, { size: 32 })) })
         }
       }
       start = end + 1
     }
+    const taken = new Set(matchers.map(m => m.hash))
+    for (const m of plain) if (!taken.has(m.hash)) { taken.add(m.hash); matchers.push(m) }
     statsByRef.sort((a, b) => a.hash - b.hash)
     fs.writeFileSync(path.join(DATA_DIR, lang, 'stats-ref.index.bin'), toIndex(statsByRef))
     matchers.sort((a, b) => a.hash - b.hash)

@@ -1,0 +1,30 @@
+Item Class: Jewels
+Rarity: Unique
+Pure Talent
+Viridian Jewel
+--------
+Limited to: 1
+--------
+Item Level: 85
+--------
+{ Unique Modifier }
+While your Passive Skill Tree connects to the Duelist's starting location, you gain:
+1% of Attack Damage Leeched as Life
+{ Unique Modifier }
+While your Passive Skill Tree connects to the Shadow's starting location, you gain:
++0.5% to Critical Strike Chance
+{ Unique Modifier }
+While your Passive Skill Tree connects to the Witch's starting location, you gain:
+0.5% of Mana Regenerated per second
+{ Unique Modifier }
+While your Passive Skill Tree connects to the Templar's starting location, you gain:
+Damage Penetrates 5% Elemental Resistances
+{ Unique Modifier }
+While your Passive Skill Tree connects to the Scion's starting location, you gain:
++25 to All Attributes
+{ Unique Modifier }
+While your Passive Skill Tree connects to the Marauder's starting location, you gain:
+Melee Skills have 25% increased Area of Effect
+{ Unique Modifier }
+While your Passive Skill Tree connects to the Ranger's starting location, you gain:
+7% increased Movement Speed

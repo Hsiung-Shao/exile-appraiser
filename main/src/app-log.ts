@@ -59,6 +59,40 @@ export function parseLogFileDay (name: string): number | null {
   return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])).getTime()
 }
 
+/** 匯出記錄檔(設定 › 記錄「匯出記錄檔」)最多帶多少位元組的記錄內容;超過只留最後面 */
+export const LOG_EXPORT_MAX_BYTES = 30 * 1024 * 1024
+
+/** 匯出要帶的記錄檔:今天與前 `days - 1` 天,依日期由舊到新、同一天 `.1`(較舊的那段)在前 */
+export function pickExportLogFiles (names: readonly string[], nowMs: number, days = 2): string[] {
+  const today = parseLogFileDay(logFileName(nowMs))!
+  const from = today - (days - 1) * 86_400_000 - 3_600_000 // 夏令時間差一小時也算進來
+  return names
+    .map(name => ({ name, day: parseLogFileDay(name) }))
+    .filter((f): f is { name: string, day: number } => f.day != null && f.day >= from && f.day <= today)
+    .sort((a, b) => a.day - b.day || Number(b.name.endsWith('.1')) - Number(a.name.endsWith('.1')))
+    .map(f => f.name)
+}
+
+/** 匯出檔把使用者資料夾(路徑含 Windows 使用者名稱)換成 `%USERPROFILE%`;Windows 路徑不分大小寫,`\` 與 `/` 兩種寫法都換 */
+export function maskHomeDir (text: string, home: string): string {
+  if (!home) return text
+  const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const re = new RegExp([home, home.replace(/\\/g, '/')].map(esc).join('|'), 'gi')
+  return text.replace(re, '%USERPROFILE%')
+}
+
+/** 匯出檔內容:環境摘要 + 記錄;記錄超過上限只留最後 `maxBytes`(從下一個換行開始,不留半行) */
+export function buildLogExport (header: readonly string[], log: string, maxBytes = LOG_EXPORT_MAX_BYTES): string {
+  let body = log
+  if (Buffer.byteLength(body, 'utf8') > maxBytes) {
+    const buf = Buffer.from(body, 'utf8')
+    const tail = buf.subarray(buf.length - maxBytes).toString('utf8')
+    const nl = tail.indexOf('\n')
+    body = `…(前面省略,只留最後 ${Math.round(maxBytes / 1024 / 1024)} MB)\n${nl >= 0 ? tail.slice(nl + 1) : tail}`
+  }
+  return ['===== ExileAppraiser 記錄匯出 =====', ...header, '===== 記錄 =====', body].join('\n')
+}
+
 // ---------------------------------------------------------------------------------------------------------------------
 
 export class LogRing {

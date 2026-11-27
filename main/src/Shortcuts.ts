@@ -147,6 +147,7 @@ export class Shortcuts {
     console.log(`[shortcuts] 動作:${this.actions.map(a => `${a.shortcut}=${a.action.type}${a.action.type === 'copy-item' && a.action.focusOverlay ? '(locked)' : ''}`).join(', ')}`)
 
     if (this.isRegistered) this.unregister()
+    if (!this.shouldBeRegistered) console.log('[shortcuts] 遊戲視窗不在前景(或還沒找到遊戲視窗),等遊戲回到前景才註冊熱鍵')
     this.lastResult = this.shouldBeRegistered ? this.register() : { ok: true }
     return this.lastResult
   }

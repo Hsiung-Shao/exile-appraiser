@@ -1,21 +1,14 @@
 /**
  * PoE1 倉庫掃描:疊層沒顯示(不在倉庫)時 tick 間隔 = max(設定間隔, 3000 ms);顯示中照設定間隔。
- * 假時鐘 + 假擷取 + 真實 OCR 快照(core/test/stash/fixtures/ocr);不碰 Electron、不送輸入。
+ * 假時鐘 + 假擷取 + 假 fit·verify;不碰 Electron、不送輸入。
  */
 import { describe, expect, it } from 'vitest'
-import fs from 'node:fs'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
 import type { ScanCapture, ScanClock, ScanEnv } from '../src/ocr/panel-scan'
 import { STASH_IDLE_INTERVAL_MS, StashScan, type StashScanConfig } from '../src/ocr/stash-scan'
-import { buttonRects, type TextLine } from '../../core/src/stash/detect'
-import { clientLines } from '../../core/test/stash/ocr-330'
+import { LAYOUTS_330 as LAYOUTS, createFitFakes } from './stash-fit-fakes'
 
-const HERE = path.dirname(fileURLToPath(import.meta.url))
 const H = 1432
 const W = 2546
-// 碎片頁按鈕列(3.29 實機 OCR,按鈕行搬到 3.30 位置;亮度另給)
-const STRIP_LINES = clientLines('strip-scarabs-1432.png')
 
 function fakeClock () {
   let t = 0
@@ -46,12 +39,12 @@ function harness (intervalMs: number) {
   const clk = fakeClock()
   const cfg: StashScanConfig = { enabled: true, game: 'poe1', intervalMs }
   const env: ScanEnv = { overlay: true, gameActive: true, bounds: { x: 0, y: 0, width: W, height: H } }
-  const state = { lines: [] as TextLine[], frame: 10, captureAt: [] as number[] }
+  const state = { frame: 10, captureAt: [] as number[] }
+  const fits = createFitFakes(LAYOUTS)
   const scan = new StashScan({
     clock: clk.clock,
     config: () => cfg,
     env: () => env,
-    ocrBusy: () => false,
     capture: async (): Promise<ScanCapture> => {
       state.captureAt.push(clk.now())
       state.frame = (state.frame + 37) % 250 // 每次畫面都不同 → 一定 OCR
@@ -62,18 +55,17 @@ function harness (intervalMs: number) {
         offset: { x: 0, y: 0 },
         client,
         fingerprint: () => ({ w: 64, h: 12, data: new Uint8Array(64 * 12).fill(v) }),
-        recognize: async () => ({ lines: state.lines.map(l => ({ ...l })), ms: 5 }),
-        gray: (rect) => {
-          const k = buttonRects(client.h, 0).findIndex(b => Math.abs(b.x - rect.x) <= 1)
-          return new Uint8Array(32).fill(k === 0 ? 160 : 140)
-        }
+        recognize: async () => { throw new Error('倉庫偵測不該呼叫 OCR') },
+        gray: fits.gray
       }
     },
     send: () => {},
-    textLang: () => 'zh'
+    fit: fits.fit,
+    verify: fits.verify,
+    qty: { layouts: () => LAYOUTS, templates: () => null }
   })
   const gaps = () => state.captureAt.slice(1).map((t, i) => t - state.captureAt[i])
-  return { scan, state, clk, gaps }
+  return { scan, state, clk, gaps, fits }
 }
 
 describe('StashScan 沒顯示時放慢掃描', () => {
@@ -92,12 +84,27 @@ describe('StashScan 沒顯示時放慢掃描', () => {
 
   it('偵測到倉庫後立刻回到設定間隔 1000 ms', async () => {
     const h = harness(1000)
-    h.state.lines = STRIP_LINES
+    h.fits.show('general', W, H)
     h.scan.start(0)
     await h.clk.advance(5_000)
     h.scan.stop()
     expect(h.scan.showing).toBe(true)
     expect(h.gaps().every(g => g === 1000)).toBe(true)
+  })
+
+  it('顯示中位置驗證不過而收起後,下一次重找用設定間隔(換子頁不必多等閒置下限)', async () => {
+    // 第 3 輪審查:原本收起後套 3 秒閒置下限,換子頁要 4.5 秒才出現新子頁
+    const h = harness(1000)
+    h.fits.show('general', W, H)
+    h.scan.start(0)
+    await h.clk.advance(2_000)
+    expect(h.scan.showing).toBe(true)
+    h.fits.show('threads', W, H)
+    // 驗證不過 2 次(各 1000 ms)→ 收起 → 1000 ms 後重找並顯示綢帶 = 3000 ms;套閒置下限會是 5000 ms
+    let t = 0
+    while (h.scan.snapshot().subtab !== 'threads' && t < 10_000) { await h.clk.advance(500); t += 500 }
+    expect(h.scan.snapshot().subtab).toBe('threads')
+    expect(t).toBeLessThanOrEqual(3000)
   })
 
   // 設定間隔上限 3000(clampScanInterval)→ 5000 實際 = 3000;沒顯示不會比使用者設定更短

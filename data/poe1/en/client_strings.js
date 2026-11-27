@@ -72,6 +72,8 @@ export default {
   QUALITY_DIVERGENT: /^Divergent (.*)$/,
   QUALITY_PHANTASMAL: /^Phantasmal (.*)$/,
   AREA_LEVEL: 'Area Level: ',
+  // exile-appraiser: 2026-11-26 GitHub issue #76 寶石匠的稜鏡等(GGPK clientstrings ItemDisplayStoredExperience)
+  STORED_EXPERIENCE: 'Stored Experience: ',
   HEIST_WINGS_REVEALED: 'Wings Revealed: ',
   HEIST_BLUEPRINT_TARGET: 'Heist Target: ',
   HEIST_BLUEPRINT_ENCHANTS: 'Enchanted Armaments',

@@ -1,0 +1,9 @@
+Item Class: Stackable Currency
+Rarity: Currency
+Facetor's Lens
+--------
+Stored Experience: 500,000,000
+--------
+Adds stored experience to a gem, up to its maximum level
+--------
+Right click this item then left click a gem to apply it.

@@ -56,3 +56,21 @@ describe('GitHub issue #62 / #63', () => {
     expect(queryComplexity(createTradeRequest(preset.filters, preset.stats).query)?.kind).toBe('mercenary')
   })
 })
+
+describe('GitHub issue #75', () => {
+  it('#75 史記地區等級 84 照原值查,不往下截成 80', () => {
+    const preset = presetOf('75')
+    expect(preset.filters.areaLevel?.value).toBe(84)
+    expect((createTradeRequest(preset.filters, preset.stats).query as any).filters.map_filters.filters.area_level.min).toBe(84)
+  })
+
+  it('#75 探險日誌地區等級 82 照原值查,不往下截成 81', () => {
+    const text = ['物品種類: 探險日誌', '稀有度: 魔法', '探險日誌', '--------', '物品等級: 82', '--------', '地區等級: 82',
+      '--------', 'Testing Grounds', '豔陽騎士', 'Testing Grounds (implicit)'].join('\r\n') + '\r\n'
+    const r = parseClipboard(text)
+    if (r.isErr()) throw new Error(r.error)
+    const preset = createPresets(r.value, OPTS).presets[0]
+    expect(preset.filters.areaLevel?.value).toBe(82)
+    expect((createTradeRequest(preset.filters, preset.stats).query as any).filters.map_filters.filters.area_level.min).toBe(82)
+  })
+})

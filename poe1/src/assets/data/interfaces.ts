@@ -218,6 +218,8 @@ export interface TranslationDict {
    * 沒有第二種寫法的語系不必提供。
    */
   AREA_LEVEL_ALT?: string
+  /** exile-appraiser: 2026-11-26 GitHub issue #76「Stored Experience: 」(寶石匠的稜鏡);沒有 = 不解析 */
+  STORED_EXPERIENCE?: string
   HEIST_WINGS_REVEALED: string
   HEIST_BLUEPRINT_TARGET: string
   HEIST_BLUEPRINT_ENCHANTS: string

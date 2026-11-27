@@ -76,6 +76,8 @@ export default {
   // Heist / Expedition 系用「地區等級」,海圖與聖域研究用「區域等級」。
   // 上游只收了前者,導致後兩類物品的 areaLevel 永遠讀不到。
   AREA_LEVEL_ALT: '區域等級: ',
+  // exile-appraiser: 2026-11-26 GitHub issue #76(GGPK clientstrings ItemDisplayStoredExperience「已儲存經驗：」;剪貼簿冒號寫法未實機確認,解析時全形 / 半形都收)
+  STORED_EXPERIENCE: '已儲存經驗: ',
   HEIST_WINGS_REVEALED: '已揭露側廂: ',
   HEIST_BLUEPRINT_TARGET: '劫盜目標：',
   HEIST_BLUEPRINT_ENCHANTS: '附魔裝備',

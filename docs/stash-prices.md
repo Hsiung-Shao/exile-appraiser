@@ -26,41 +26,42 @@
 - 驗證:使用者錄影(client 2012×1432 / 1976×1432,倉庫不在資料夾)三子頁逐格對齊;13 格滑鼠說明框名稱與版面對照一致
   (`core/test/stash/annotations.json`);預測框比實際底框約偏右下 2–5 px(Exile-UI 原式,不另校正)。
 
-## OCR 只做偵測
-`main/src/ocr/stash-scan.ts` `StashScan`(預設每 1 秒;與褻瀆 / 符文共用 WinOcr、擷取):
-1. 擷取遊戲 client,取**子頁按鈕列**(`stripRect`:x 0 – h×37/60、y 170–268 / 1440)的灰階縮圖;與上次**找到按鈕**時相同 → 不 OCR。
-   範圍:按鈕文字中心 201、資料夾內 +47 = 248(文字下緣約 260 仍在條內);下緣不超過聖甲蟲第一列徽章頂端(約 269),
-   免得換格 / 價格載入改變縮圖而重 OCR(2026-10-14 code review I1,原本 140–300)。**上緣 170 = 倉庫頁籤字下緣**:
-   上緣切到頁籤字的一半時 Windows OCR 排版錯亂、按鈕只讀到 0–1 顆(使用者 2560×1440 實機截圖重現「徽章沒出現」,
-   fixture `strip-general-1440*.png`;140 / 150 起算都失敗,170 起算在 1432 / 1440 × 是否在資料夾四種情況都讀到 ≥ 3 顆)。
-   認到 ≥ 1 顆按鈕但判定失敗時記一行 `[stash] 沒找到子頁按鈕…`(最多每 30 秒一次)。
-   **使用者可自訂 OCR 區域**(2026-10-14 使用者要求,同褻瀆 / 符文的框選):設定 `stashRegion`(client 比例,null = 上述預設),
-   設定 › 倉庫 › 倉庫價格「在遊戲上框選」/「還原預設」,框選層目標 `stash`(沒框過時參考框顯示預設區域 `defaultStripRegion`)。
-   **自訂區域有上限**(code review R1):換成 client 像素後與 `stripZone`(按鈕可能出現的範圍:x 0 – h×37/60、
-   y 120/1440·h – 268/1440·h;不加資料夾偏移:資料夾內按鈕文字下緣約 260 仍在內,再往下是聖甲蟲第一列自己的徽章,
-   實機截圖 122–268 繁中 / 資料夾 / 英文都認到 ≥ 3 顆)取交集;交集為空 → 預設 `stripRect`;被縮小 / 完全在範圍外時記一行
-   `[stash] 自訂 OCR 區域超出按鈕列範圍,已縮到 …`(同一個區域值只記一次;還原預設後再框回同值會再記)。最後減擷取偏移並夾在影像內。
-   自訂區域**不會**自動跟著資料夾下移(預設掃描條會):倉庫頁放進資料夾後要重新框選或還原預設,設定頁與框選層字串有寫(R2)。
-   區域只決定 OCR 讀哪一塊;按鈕位置判定、資料夾偏移、每格位置仍照固定版面。疊層顯示中沒找到按鈕時作廢基準 → 下一 tick 一定重 OCR(B1);沒顯示時照常記基準,畫面靜止不 OCR(N1)。
-2. OCR ×3 → `findSubtabButtons`:去空白後整行等於按鈕文字(**不分大小寫**:英文介面按鈕是小型大寫字,OCR 讀成 GENERAL / THREADS…,實機截圖 fixture `strip-general-1440-en.png`)。
-   **3.30(2026-11-18)**:標籤 一般 / 綢帶 / 異能(GGPK clientstrings `FragmentStashSubTab{Other,Threads,Eldritch}`;General / Threads / Eldritch),
-   **三個按鈕槽** x = 202 + 166k / 1440(前兩顆 = Exile-UI `tab_fragments` / `tab_threads`,第三顆照同間距推);其餘規則(至少 2 顆、左到右、一般在 0 號槽、兩種高度各算一輪)不變。
-   沒有 3.30 的實機 OCR 快照:測試把 3.29 快照的按鈕行搬到新槽位(`core/test/stash/ocr-330.ts`),雜訊 / 頁籤行原樣保留。以下 2026-11-07 的四槽描述已不適用。
-   **2026-11-07 放寬(為 3.30 拿掉聖甲蟲按鈕預作準備,使用者裁定)**:只比對 一般 / 不滅之火 / 異能(GGPK clientstrings `FragmentStashSubTab{Other,Betrayal,Eldritch}`;
-   General / Allflame / Eldritch),聖甲蟲不再比對;每個標籤可落在四個按鈕槽(x = 116 + 168k / 1440,容差 40)任一個,命中槽位須照標籤順序左到右遞增、
-   **至少 2 顆**(目前子頁的「一般」OCR 常漏讀);「一般」只能在 0 號槽;只收按鈕列高度(文字中心 201 或資料夾內 248 / 1440,容差 12)的文字,
-   不在資料夾 / 資料夾內兩種高度各算一輪(資料夾頁籤列正好與不在資料夾的按鈕列同高);
-   自訂區域框到頁籤列、或資料夾頁籤剛好叫「一般」時,同名文字不會搶走槽位(code review 2026-11-07)。3.29 四顆 → 命中槽 0 / 2 / 3;3.30 若少一顆、其他左移 → 0 / 1 / 2 也認得。
-   **待 3.30 實機確認**:按鈕列實際樣子(若「一般」不在最左,或按鈕間距改變,需依截圖再調)。
-3. 資料夾偏移:不在資料夾(0)與資料夾內(47/1440·h)各算一輪,每輪只收文字中心在該按鈕列高度(201 或 248 / 1440)± 12/1440 的行;找到的那輪就是偏移,兩輪都沒找到 = 沒找到(2026-11-07 起;原本是全部文字取中位數再吸附)。
-4. 目前子頁:**三顆按鈕都比**灰階 p99(目前子頁的文字常被 OCR 漏讀,不能只比有文字的槽;`compareSlots` 已刪),最亮那顆比其他每一顆都亮至少 8
-   (3.29 錄影:目前子頁 158–162、其他 141–144)→ 0 號 = 一般、1 號 = 綢帶;異能最亮或差距不足 → 不畫。
-5. 沒找到按鈕:游標停在已顯示子頁的**格子上**(`StashCursor.onCell()`;遊戲說明框只在游標停在物品格上才出現,常蓋住按鈕列)→ 維持,
-   但連續最多 `STASH_HOLD_LIMIT` = 5 次,之後照常累計(游標停在格上按 Esc 關倉庫時不卡住);找到按鈕時歸零。否則連續 2 次才收起。
-   不用整個倉庫面板(`inPanel()`,含頁籤列)判定:點別的倉庫頁籤時游標在面板內,碎片頁徽章會錯畫在別頁上(code review B2)。
-   副作用:說明框蓋住按鈕列且游標停在同一格超過約 5 次掃描,疊層會先收起,游標移開、按鈕列露出後再出現。
+## 偵測:格子擬合(2026-11-26 起,取代按鈕列 OCR)
+使用者 2026-11-26 裁定(方案 B):按鈕列 OCR + 依 client 高度推算座標的缺點太多(非 16:9 / UI 縮放 / 黑邊算錯整片偏掉、介面語言、
+說明框蓋住按鈕列、OCR 漏讀、子頁只靠約 15 灰階的亮度差)。改成**把版面表本身當錨點**:碎片頁每個格位都畫成固定的深色方框(數量 0 也畫)。
+
+`main/src/ocr/stash-scan.ts` `StashScan`(預設每 1 秒;不用 WinOcr,與褻瀆 / 符文共用擷取):
+1. 擷取遊戲 client,取**搜尋範圍**(core `detect.ts` `stashSearchClientRect`:x「黑邊 − 5% 高」起寬 70% 高、y 10%–85% 高;
+   使用者框過 `stashRegion` → 那塊各邊外擴 10%,只當先驗)的灰階縮圖;與上次相同 → 不算。框選層目標 `stash` 沒框過時顯示預設 `defaultStashRegion`。
+   舊版存的「按鈕列」區域(高 < 0.25 × client 高,`isLegacyStashRegion`)當成沒框過,改用預設範圍,擷取 log 註明。
+   自訂區域寬度上限 = client 高,從「黑邊 − 5% 高」與框的左緣取右邊那個起算(超寬螢幕從最左邊框起也找得到)。
+2. 顯示中先以快取的格子位置驗證(core `fit.ts` `scoreGrid`,一次評分,便宜);分數 ≥ `minFitScore`(一般 0.4、綢帶 0.8)就沿用。
+   被我們自己的徽章遮罩擋到看不到的格不算(分子分母都不計;名稱開時兩行徽章撐到格寬、會蓋住格子左右兩邊)。
+   「看不到」只限每條邊都被遮或在影像外;看得到但內側太亮 = 沒對上(否則換頁 / 關倉庫後只剩碰巧又暗的幾格計分,舊徽章卡在畫面上)。
+   **顯示中一律不重搜**:驗證不過 = 一次沒對上(游標停在格上維持,否則連續 2 次收起,熱鍵模式不在這裡解除);
+   收起後下一個 tick 才在沒有自己徽章的畫面上重找(帶著徽章重搜只剩上緣可看,實測整片偏 17–52 px)。代價:換子頁要先收起再出現(驗證不過 2 個 tick + 收起後用設定間隔重找,不套 3 秒閒置下限 = 預設約 3 秒)。
+   顯示中 client 大小改變 → 立刻收起,下一個 tick 以新高度重找。
+3. 沒顯示時整個擬合(`fitStashGrid`):對「一般 / 綢帶」兩份版面,搜尋換算高度 H(格長 = `cellBox(H)`;常駐掃描只搜先驗 ±8% `STASH_FIT_SIZE_RANGE`,
+   PoE1 介面只隨 client 高度縮放)與第一格位置,讓每格落在方框上:
+   - 一格的分數 = 方框內側(深藍,灰階約 5–15)比外側(格間底色約 35–50)暗多少,看上緣右 2/3、右緣上 2/3、左緣中段三段**取最小**
+     (避開左上數量白字與下緣我們自己的價格徽章;內側太亮(圖示蓋到邊)的邊不算、至少要兩邊);≥ 12 且內側 ≤ 30 算對上。
+   - 版面分數 = 對上的格數比例 − **鄰位**(每格上下左右隔一格、不與任何格重疊的位置)對上的比例:綢帶只有 10 格,不扣鄰位的話任何整齊的格子都對得上。
+   - 門檻 `minFitScore` = max(0.4, 8 / 格數)(綢帶 10 格要 0.8:0.4 = 4 格在隨機格子畫面 / 聖甲蟲頁上會碰巧對上);兩份都過時取「對上格數」多的。
+   - 擬合 / 驗證都略過碰到遮罩(`GrayImage.masks`,我們自己的徽章 / 價值卡)的邊條;搜尋時看不到的格算沒對上(排除會讓錯位置分數虛高)。
+   - 粗搜(位置每格長 1/8、只看 14 格)→ 細修兩段(位置每 1/3 步、縮放每 0.4% → 逐像素、縮放 ±0.2%)。
+   - **預檢**(`quickReject`):先只用先驗格長粗搜一次,取樣格分數都低於門檻 × 0.6 → 直接回 null(倉庫沒開時每次擷取都會跑)。
+   - 擬合到的格位框比 Exile-UI 公式框偏右約格長 4.5%(fixture 量到),輸出時減回去(`FORMULA_DX`),數字模板裁切區與徽章位置都沿用公式框慣例。
+   耗時(本機,搜尋範圍大小):1080p 倉庫開著約 0.19 秒、4K 約 0.2 秒;倉庫沒開(預檢擋下)1080p 約 0.013 秒、4K 約 0.03 秒(合成雜訊,真實遊戲畫面待量)。都在 main 執行緒。
+4. 送出 `show` 帶 `grid {H, x, y}`(client 實體像素);renderer(`stash-view.ts`)、游標(`stash-cursor.ts`)、讀數量都以 `gridRects` 還原格框,
+   數字模板依 `grid.H` 縮放。log 一行 `[stash] 擬合:<子頁>,分數 一般 x / 綢帶 y,… 第一格 …(舊公式 …)`,可直接比對新舊位置差多少。
+5. 沒對上:游標停在已顯示子頁的**格子上**(`StashCursor.onCell()`;遊戲說明框只在游標停在物品格上才出現)→ 維持(不重搜),
+   但連續最多 `STASH_HOLD_LIMIT` = 5 次,之後照常累計;對上時歸零。否則連續 2 次才收起。顯示中 / 熱鍵等待時記一行 `[stash] 沒對上倉庫格子…`(30 秒一次)。
+   疊層顯示中沒對上時作廢差分基準 → 下一 tick 一定重算;沒顯示時照常記基準,畫面靜止不重算。
+   - 「異能」頁:兩份版面都對不上 → 不畫(與舊行為相同)。
+   - 驗證:`core/test/stash-fit.test.ts`(F1–F9:3.29 / 3.30 真實擷取、縮放 0.75–1.11、左右黑邊、平移、資料夾下移、蓋住三成、負樣本、空面板)、
+     讀數量用擬合格框 52/52 與原本相同。綢帶頁沒有真實截圖(門檻未驗)。
 6. host-config 還沒送到 main 前不掃描(`enabled: hostCfg != null && …`;否則 PoE2 使用者啟動空窗也會擷取 + OCR)。
-7. **沒顯示時放慢**(2026-10-15 使用者裁定):疊層沒顯示(不在倉庫 / 還沒認到按鈕列)時 tick 間隔 = max(設定間隔, `STASH_IDLE_INTERVAL_MS` 3000 ms);
+7. **沒顯示時放慢**(2026-10-15 使用者裁定):疊層沒顯示(不在倉庫 / 還沒對上格子)時 tick 間隔 = max(設定間隔, `STASH_IDLE_INTERVAL_MS` 3000 ms);
    顯示中照設定間隔,偵測到倉庫後下一個 tick 起立刻回到設定間隔(最壞開倉庫後約 3 秒才出現疊層)。
 8. **擷取全黑時不掃描**(2026-10-15 效能審查):overlay `screenshot()` 因「全黑」鎖存時(全螢幕獨占,overlay 本來就畫不出來;`overlay-shot.ts`)
    擷取只會走每次卡 main 300–480 ms 的 getSources → 被擋原因 `capture-black`(暫停類,疊層不收;計入 `blockCounts`),不擷取;
@@ -78,7 +79,7 @@
 設定在 **設定 › 倉庫**(2026-11-18 設定重整:倉庫相關集中一頁,自動辨識頁只在 PoE2;2026-10-14 ~ 11-18 曾在「自動辨識」):倉庫頁頂端是倉庫價格的熱鍵唯讀列,接著共用 OCR 卡片(`OcrSharedSection.vue`)、
 「倉庫價格」卡片(顯示方式為兩張選項卡)與「徽章外觀」(字體 / 大小 / 外框與 PoE2 共用 `ocrBadgeStyle`;價格門檻改綁 `stashThresholds`,單位 C,預覽顯示 C / D);褻瀆 / 符文卡片只在 PoE2。
 倉庫價格卡片與褻瀆 / 符文**同一個元件** `OcrScanSection.vue kind="stash"`(2026-10-14 統一樣板;差異在 `settings/scan-card-specs.ts` `SCAN_SPECS.stash`:
-統計 = `Host.stashStats` 每 2 秒輪詢、區域清除鈕 =「還原預設」、沒框過顯示預設按鈕列;台服警告在 `#top`、顯示物品名稱 `stashShowNames` 在 `#extra`;
+統計 = `Host.stashStats` 每 2 秒輪詢、區域清除鈕 =「還原預設」、沒框過顯示預設搜尋範圍(倉庫面板);台服警告在 `#top`、顯示物品名稱 `stashShowNames` 在 `#extra`;
 `stash-*` data-setting 錨點不變)。舊的 `StashPricesSection.vue` 已刪除。懸浮選單的開關列(PoE1)也可直接開關倉庫價格與格子名稱。
 
 ## 熱鍵(2026-10-14 使用者補充)
@@ -92,15 +93,15 @@
 - 設定走 Config → host-config(`HOST_CONFIG_IMMEDIATE_KEYS` 與 main `scanConfigKey` 都有這欄,守門 `renderer/test/host-config-sync.test.ts`)→ `StashScanConfig.triggerMode`。
 - `StashScan` 的 `armed`:hotkey 模式沒 armed → `stashBlock` 回 `not-armed`(判斷在 `user-paused` 之後;屬停止類 = 收疊層、不排 tick、0 擷取)。
 - `arm()`:armed、清差分基準與使用者暫停、立刻 `poke()`;armed 期間沒顯示也照設定間隔(不套閒置 3 秒下限)。
-- 解除:疊層收起(倉庫關掉 = 連續沒找到按鈕、再按熱鍵、或停止類原因)時自動解除;**判不出目前子頁的暫時收起不解除**(code review:一個 tick 判不出就要再按太嚴),比照沒偵測到倉庫由下述 miss 累計;
-  **顯示模式改變(hotkey ↔ auto)一律解除**(`syncTriggerMode`:host-config 的 `poke()` 與每個 tick 開頭;auto 的收起不解除,否則切回 hotkey 時殘留 armed 會沒按熱鍵就擷取並跳提示);arm 後連續 `STASH_ARM_MISS_LIMIT`(3)個 tick 沒顯示(沒找到按鈕 / 畫面沒變 / 不是碎片頁)→ 解除 + `onArmMiss` → main 右下角提示「倉庫價格:沒有偵測到倉庫」(`stashArmMissToastMessage`,跟 `uiLanguage`)。
+- 解除:疊層收起(倉庫關掉 = 連續沒對上格子、再按熱鍵、或停止類原因)時自動解除;**判不出目前子頁的暫時收起不解除**(code review:一個 tick 判不出就要再按太嚴),比照沒偵測到倉庫由下述 miss 累計;
+  **顯示模式改變(hotkey ↔ auto)一律解除**(`syncTriggerMode`:host-config 的 `poke()` 與每個 tick 開頭;auto 的收起不解除,否則切回 hotkey 時殘留 armed 會沒按熱鍵就擷取並跳提示);arm 後連續 `STASH_ARM_MISS_LIMIT`(3)個 tick 沒顯示(沒對上格子 / 畫面沒變 / 不是碎片頁)→ 解除;這次 arm 後**顯示過**倉庫(= 關倉庫,2026-11-26 起位置驗證不過的收起不在當下解除)→ 安靜解除,**從沒顯示過**才 `onArmMiss` → main 右下角提示「倉庫價格:沒有偵測到倉庫」(`stashArmMissToastMessage`,跟 `uiLanguage`)。
 - 熱鍵(`main.ts` `onStashToggle` → `stashHotkeyAction(enabled, mode)`):auto = 暫停 / 繼續(不變);hotkey = `StashScan.hotkeyPress()`(沒顯示 = arm、顯示中 = 收起並解除,不另外通知);
   功能關著 = 照舊送 `stash-enable`,hotkey 模式另外先 `arm()`(設定送達前 `stashBlock` 仍是 `disabled`,armed 保留到 host-config 的 `poke()`)。
 - 狀態列:`not-armed` =「等待熱鍵(熱鍵)」;`capture-black` =「擷取全黑(獨占全螢幕)」。
 - 測試 `main/test/stash-hotkey-mode.test.ts`(K1–K6、K8、K9 模式切換 / 子頁判不出)、`renderer/test/stash-trigger-mode.test.ts`(K7)。
 
 ## 只支援國際服(2026-10-15 使用者裁定)
-台服(`realm` tw)時 main `StashScan` 完全不掃描(不讀按鈕、不讀數量):`stashBlock` 回 `not-intl`(收掉疊層、不排計時器);
+台服(`realm` tw)時 main `StashScan` 完全不掃描(不找格子、不讀數量):`stashBlock` 回 `not-intl`(收掉疊層、不排計時器);
 host-config 帶 `realm`(`HOST_CONFIG_IMMEDIATE_KEYS`、main `scanConfigKey` 都有 → 切換時立刻 poke)。設定 › 倉庫 › 倉庫價格狀態「只支援國際服」(`ppz.stash.status_not_intl`),
 懸浮選單倉庫列在台服停用並顯示同樣說明(`ppz.menu.stash_tw`)。測試 `main/test/stash-scan.test.ts` S21、`renderer/test/stash-value.test.ts` V16。
 
@@ -189,17 +190,16 @@ host-config 帶 `realm`(`HOST_CONFIG_IMMEDIATE_KEYS`、main `scanConfigKey` 都�
   停止原因(停用 / 不是 PoE1 / 台服 / 暫停熱鍵 / 非 overlay / 沒有遊戲視窗)、疊層沒顯示、「倉庫價值」關閉 → 立刻回原因;
   掃描暫停中(設定視窗開著 / 遊戲失焦 —— 從設定頁按一定是這種)等 30 秒(`STASH_DUMP_WAIT_UI_MS`):關掉設定回到倉庫後下一個 tick 存;否則等 3 秒(`STASH_DUMP_TIMEOUT_MS`)。等待中再按 = 同一個請求;疊層收起 → `not-showing`。
 - 內容(`main/src/ocr/stash-dump.ts`,存在 `userData/logs/`):`stash-capture-<YYYYMMDD-HHmmss>-<子頁>.png` = 讀數量那一塊 `cap.pixels`(所有格的數字裁切區外框 + 右側延伸 `QTY_PARAMS.extW`,原解析度 BGRA → `nativeImage` 無損 PNG,**沒有**遮罩填色,徽章照原樣在畫面上);
-  同名 `.json` = 版本號、client 尺寸、擷取偏移、像素區原點 `origin`(擷取影像座標)、子頁、yOffset、`baseClientH`、遮罩矩形、每格 `rect` / `crop`(像素區座標)/ `value` / `pending` / `why`(讀不到的原因、讀到的字、分數 / 差)。
+  同名 `.json` = 版本號、client 尺寸、擷取偏移、像素區原點 `origin`(擷取影像座標)、子頁、格子位置 `grid`、`baseClientH`、遮罩矩形、每格 `rect` / `crop`(像素區座標)/ `value` / `pending` / `why`(讀不到的原因、讀到的字、分數 / 差)。
   存完寫一行 `[stash] 已存擷取畫面 <檔名>`。
 - 清理:記錄檔的 `purgeOld` 只認 `exile-appraiser-<日期>.log`;啟動時另以 `isStashCaptureFile` 跑一次 `LogFileWriter.purgeOld`,刪 7 天前的擷取檔。
 - 效能:沒按時只多 `dumpReq` 一個 null 判斷;測試 `main/test/stash-dump.test.ts`、`renderer/test/stash-dump.test.ts`。
 
 ## 測試
-3.30(2026-11-18):`core/test/stash-330.test.ts`(T1–T3 版面、T5–T8 按鈕與子頁)、`core/test/ninja-thread.test.ts`(T10)、`main/test/stash-threads-scan.test.ts`(T9)、`renderer/test-vue/stash-threads-mount.test.ts`(T11)。
+3.30(2026-11-18):`core/test/stash-330.test.ts`(T1–T3 版面;T5–T8 按鈕與子頁 2026-11-26 隨按鈕 OCR 刪除)、`core/test/ninja-thread.test.ts`(T10)、`main/test/stash-threads-scan.test.ts`(T9)、`renderer/test-vue/stash-threads-mount.test.ts`(T11)。
 `core/test/stash-quantity.test.ts`(V1–V6、V14 code review:4 位數 / 單獨 0 / 超出影像 / 已知錯讀;V18 第二批、V19 原生擷取)、`main/test/stash-quantity-scan.test.ts`(V7 / V8 / V13 / peek;code review:游標換格競態、peek 時序與放棄、陰影不算變化、數字帶)、`renderer/test/stash-value.test.ts`(V9 / V10 / V13)、
 `renderer/test-vue/stash-prices-mount.test.ts`(V11)、`renderer/test-vue/float-menu-mount.test.ts`(V12);
-`core/test/stash-layout.test.ts`(S1–S4c)、`core/test/stash-detect.test.ts`(S5–S7,真實 OCR 快照 `core/test/stash/fixtures/ocr/`,
-`node scripts/ocr-fixture.mjs --set stash` 產生)、`main/test/stash-scan.test.ts`(S8–S12c、S9e–S9g、S19 暫停熱鍵)、`main/test/shortcut-actions.test.ts`(倉庫價格熱鍵)、`renderer/test/stash-prices.test.ts`(S13–S17,含 S14d 單位 C / D;S20 統一樣板)、`renderer/test/settings-ia.test.ts`(自動辨識頁兩代顯示)。
+`core/test/stash-layout.test.ts`(S1–S4c)、`core/test/stash-fit.test.ts`(格子擬合 F1–F9;`stash-detect.test.ts` 與按鈕列 OCR 快照 2026-11-26 刪除)、`main/test/stash-scan.test.ts`(S8–S12c、S9e–S9g、S19 暫停熱鍵)、`main/test/shortcut-actions.test.ts`(倉庫價格熱鍵)、`renderer/test/stash-prices.test.ts`(S13–S17,含 S14d 單位 C / D;S20 統一樣板)、`renderer/test/settings-ia.test.ts`(自動辨識頁兩代顯示)。
 
 ## 實機確認
 - **已確認(2026-10-14,使用者 2560×1440、倉庫不在資料夾)**:繁中介面與英文介面的一般 / 聖甲蟲子頁都出現徽章與價格;滑鼠停格只留該格;倉庫頁在資料夾內;自訂 OCR 區域框選。
@@ -210,4 +210,4 @@ host-config 帶 `realm`(`HOST_CONFIG_IMMEDIATE_KEYS`、main `scanConfigKey` 都�
   **待使用者實機確認**。測試 `core/test/stash-ultrawide.test.ts`、`main/test/stash-scan.test.ts` S22、`renderer/test/stash-prices.test.ts` S22。
 - **3.30 待使用者實機確認(2026-11-18)**:一般頁 52 格與綢帶頁 10 格的徽章位置、一般 ↔ 綢帶切換時疊層跟著換、一般頁第 6 列第 1 格是「黑帆船」、
   綢帶頁的堆疊數量(數字模板是用碎片格大小訓練的,綢帶格較大,推論照比例縮放可用,未驗)、第三顆按鈕「異能」位置(照間距推)。
-- **待確認**:其他解析度 / 非 16:9(使用者可用自訂 OCR 區域自行校正)。說明框遮住按鈕:使用者判斷以目前辨識速度幾乎不會發生,不另處理(保留維持上限 5 次的保護)。
+- **待確認**:格子擬合在真實遊戲的其他解析度 / 非 16:9 / 200% 縮放(使用者 2026-11-26 提供 3840×2160 200% 截圖,原檔待放進 fixture)。說明框遮住按鈕:使用者判斷以目前辨識速度幾乎不會發生,不另處理(保留維持上限 5 次的保護)。

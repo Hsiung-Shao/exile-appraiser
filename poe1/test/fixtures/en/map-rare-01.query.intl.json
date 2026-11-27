@@ -17,13 +17,6 @@
               "disabled": false
             },
             {
-              "id": "pseudo.pseudo_map_more_scarab_drops",
-              "value": {
-                "min": 47
-              },
-              "disabled": false
-            },
-            {
               "id": "pseudo.pseudo_map_more_currency_drops",
               "value": {
                 "min": 42

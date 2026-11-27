@@ -352,7 +352,8 @@ export function createTradeRequest (filters: ItemFilters, stats: FilterOrGroup[]
     }
   }
 
-  if (filters.corrupted?.value === false || filters.corrupted?.exact) {
+  // exile-appraiser: 2026-11-28 使用者裁定:按鈕顯示「已汙染」就只查已汙染(上游只在 exact 時送 true,其餘 = 不限)
+  if (filters.corrupted) {
     propSet(query.filters, 'misc_filters.filters.corrupted.option', String(filters.corrupted.value))
   }
   if (filters.fractured?.value === false) {
@@ -462,6 +463,11 @@ export function createTradeRequest (filters: ItemFilters, stats: FilterOrGroup[]
     if (filters.ultimatum.rewardUnique) {
       propSet(query.filters, 'ultimatum_filters.filters.ultimatum_output.option', filters.ultimatum.rewardUnique)
     }
+  }
+
+  // exile-appraiser: 2026-11-26 GitHub issue #76
+  if (filters.storedExperience && !filters.storedExperience.disabled) {
+    propSet(query.filters, 'misc_filters.filters.stored_experience.min', filters.storedExperience.value)
   }
 
   if (filters.sentinelCharge && !filters.sentinelCharge.disabled) {

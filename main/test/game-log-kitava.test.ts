@@ -44,7 +44,7 @@ async function play (advanceTo: number, lines: string[]) {
       areas.push(`${e.area}:${e.level}`)
       const act = autoAction(run, route, e.area)
       if (act === 'start') run.start()
-      else if (act === 'split') run.split()
+      else if (act) { if (act.split > run.index) run.jumpTo(act.split); run.split() }
     }
   })
   await w.setTarget('Client.txt')

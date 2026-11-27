@@ -83,6 +83,7 @@ const parsers: Array<
   parseMirrored,
   parseSplit,
   parseSentinelCharge,
+  parseStoredExperience,
   parseScryingOrb,
   parseMercenary,
   parseLogbookArea,
@@ -460,8 +461,20 @@ const DEFENCES = [
   ['armourES', 'es', QUALITY_STATS.ENERGY_SHIELD]
 ] as const
 
+// exile-appraiser: 同名武器底材(資料沒有武器數值)的基礎物理傷害平均值,取自 GGPK weapontypes 3.30
+// shortcut: 只有已知的同名組,新賽季出現新的同名武器要補(same-name-bases.test 的同名掃描會提醒)
+const SAME_NAME_WEAPON_PHYS: Record<string, number> = {
+  'Wyrmbone Rapier': (13 + 51) / 2,
+  'Dragonbone Rapier': (19 + 75) / 2
+}
+
 function pickByDefenceBase (variants: BaseType[], item: ParsedItem): BaseType | undefined {
   const present = DEFENCES.filter(([prop]) => item[prop])
+  if (!present.length && item.weaponPHYSICAL && variants.every(v => v.refName in SAME_NAME_WEAPON_PHYS)) {
+    // 龍骨細劍 = Wyrmbone / Dragonbone Rapier:扣掉品質與本地詞綴後取基礎物理傷害最近的
+    const base = calcDefenceBase(item.weaponPHYSICAL, QUALITY_STATS.PHYSICAL_DAMAGE, item)
+    return variants.reduce((a, b) => Math.abs(SAME_NAME_WEAPON_PHYS[a.refName] - base) <= Math.abs(SAME_NAME_WEAPON_PHYS[b.refName] - base) ? a : b)
+  }
   if (!present.length) return undefined
   let best: BaseType | undefined
   let bestDist = Infinity
@@ -1089,6 +1102,18 @@ function parseSentinelCharge (section: string[], item: ParsedItem) {
     }
   }
   return 'SECTION_SKIPPED'
+}
+
+// exile-appraiser: 2026-11-26 GitHub issue #76:寶石匠的稜鏡的「Stored Experience: 500,000,000」(千分位逗號;繁中冒號全形 / 半形都收)
+function parseStoredExperience (section: string[], item: ParsedItem) {
+  const label = _$.STORED_EXPERIENCE
+  if (item.category !== ItemCategory.Currency || !label) return 'PARSER_SKIPPED'
+  if (section.length !== 1) return 'SECTION_SKIPPED'
+  const head = label.replace(/[:：]\s*$/, '')
+  const m = section[0].startsWith(head) ? /^[:：]\s*([\d,]+)$/.exec(section[0].slice(head.length)) : null
+  if (!m) return 'SECTION_SKIPPED'
+  item.storedExperience = Number(m[1].replace(/,/g, ''))
+  return 'SECTION_PARSED'
 }
 
 function parseScryingOrb (section: string[], item: ParsedItem) {

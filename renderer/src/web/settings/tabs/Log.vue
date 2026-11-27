@@ -4,7 +4,7 @@
     讓 main 把 `log-lines` 即時追加(~200 ms 一批;只在這個分頁開著才送)。瀏覽器預覽收不到事件 → 每 2 秒用 `sinceSeq` 輪詢。
   - 虛擬捲動(../../virtual-window.ts):等寬字型、單行列,列高依設定視窗有效字級(useSettingsFs)算成整數 px。
   - 篩選(log-view.ts 純函式):全部 / 錯誤 / OCR / 查價 / 熱鍵 + 關鍵字;自動捲到底(往上捲暫停,捲回底部恢復)。
-  - 按鈕:複製目前篩選結果、開啟記錄資料夾(只有 Electron 視窗)、清除畫面(只清畫面,不刪檔;模組層級記住,切分頁不復原)。
+  - 按鈕:複製目前篩選結果、匯出記錄檔(2026-11-26:今天與昨天的記錄 + 設定摘要存成一個檔,給使用者回報用;只有 Electron 視窗)、開啟記錄資料夾(只有 Electron 視窗)、清除畫面(只清畫面,不刪檔;模組層級記住,切分頁不復原)。
   - 錯誤行(error 等級 / `[renderer-error]` / 含 failed、失敗、Error)用 --bad 上色,warn 等級用 --warn。
   - 隱私:記錄只存本機(userData/logs),不自動上傳;要回報問題時自己複製貼上。
   - 除錯「存下倉庫擷取畫面」(倉庫價值數量辨識重訓用;只有 Electron 視窗):IPC `stash-dump` → main 存下一次倉庫擷取的
@@ -24,6 +24,7 @@
     </div>
     <div class="lg-bar">
       <button class="btn sm" type="button" data-action="log-copy" :disabled="!filtered.length" @click="copy">{{ t('ppz.log.copy') }}</button>
+      <button v-if="canExport" class="btn sm" type="button" data-action="log-export" :disabled="exporting" :title="t('ppz.log.export_tip')" @click="exportFile">{{ t('ppz.log.export') }}</button>
       <button v-if="canOpenFolder" class="btn ghost sm" type="button" data-action="log-open-folder" @click="openFolder">{{ t('ppz.log.open_folder') }}</button>
       <button class="btn ghost sm" type="button" data-action="log-clear" :disabled="!entries.length" @click="clear">{{ t('ppz.log.clear') }}</button>
       <span class="grow" />
@@ -67,9 +68,11 @@ import { Host } from '@/web/background/IPC'
 import { useSettingsFs } from '@/web/settings/settings-fs'
 import PerfSection from './PerfSection.vue'
 import { stashDumpMessage } from '../stash-dump-view'
+import { AppConfig } from '@/web/Config'
+import { dataLanguage } from '@/web/games/active'
 import { rafThrottle, windowEndIdx, windowStartIdx } from '../../virtual-window'
 import {
-  LOG_FILTERS, filterLogEntries, formatLogText, isAtBottom, isErrorLine, logTime, mergeLogEntries, oneLine, type LogFilterId
+  LOG_FILTERS, filterLogEntries, formatLogText, isAtBottom, isErrorLine, logExportSummary, logTime, mergeLogEntries, oneLine, type LogFilterId
 } from '../log-view'
 
 const OVERSCAN = 12
@@ -82,6 +85,7 @@ const keyword = ref('')
 const entries = shallowRef<LogEntry[]>([])
 const filtered = computed(() => filterLogEntries(entries.value, filter.value, keyword.value))
 const canOpenFolder = Host.canOpenLogFolder
+const canExport = Host.canExportLog
 const canPerf = Host.canPerf
 const canStashDump = Host.canStashDump
 
@@ -219,6 +223,20 @@ async function openFolder () {
   try { await Host.openLogFolder() } catch (e) {
     say(t('ppz.log.open_failed'), true)
     console.warn('[log] 開啟記錄資料夾失敗', e)
+  }
+}
+const exporting = ref(false)
+async function exportFile () {
+  if (exporting.value) return
+  exporting.value = true
+  try {
+    const file = await Host.exportLog(logExportSummary(AppConfig(), dataLanguage.value ?? null))
+    if (file) say(t('ppz.log.exported', { file }))
+  } catch (e) {
+    say(t('ppz.log.export_failed', { msg: e instanceof Error ? e.message : String(e) }), true)
+    console.warn('[log] 匯出記錄檔失敗', e)
+  } finally {
+    exporting.value = false
   }
 }
 const dumping = ref(false)

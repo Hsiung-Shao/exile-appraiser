@@ -797,8 +797,8 @@ export function createTradeRequest(
     );
   }
 
+  // exile-appraiser: 2026-11-28 使用者裁定(比照 PoE1):按鈕顯示「已汙染」就只查已汙染(上游只在 exact 時送 true,其餘 = 不限)
   if (
-    (filters.corrupted?.value === false || filters.corrupted?.exact) &&
     filters.corrupted &&
     (!filters.sanctified || (filters.sanctified && filters.sanctified.disabled))
   ) {
@@ -1518,7 +1518,8 @@ function tradeIdToQuery(id: string, stat: StatFilter) {
 
   return {
     id: tradeId,
-    value: {
+    // exile-appraiser: 2026-11-28 沒有數字的反向寫法(不幸 / 厄運)= 同一個 id 的負值(實查交易站 max -1 有物品、min 1 沒有)
+    value: !roll && stat.negatedFlag ? { max: -1 } : {
       ...getMinMax(roll),
       // option: stat.option != null ? stat.option.value : undefined,
     },

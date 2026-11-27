@@ -6,15 +6,26 @@
   - 位置 `timerPos`(overlay 比例;放開才寫);null = 畫面上方中間。顯示時機 `timerDisplay`(`timerVisible`)。
   - 回報遮罩外框給 OCR(scan-mask 來源 timer)、顯示中寫 `overlayLayers.timer`(30.4 閒置隱藏)。
   - 只在跑著時每 50 ms 更新畫面(停著 / 暫停不開計時器)。不送任何輸入。
+  - 2026-11-28 三種模式(`timerMode`):speedrun = 上面的分段畫面;一般計時器 / 倒數計時 = 標題 + 大字時間(倒數顯示剩餘),
+    倒數歸零、一般計時器每 `timerAlertMin` 分鐘播 `timerSound`(timer-sound.ts;檢查放在 50 ms 更新裡)。
 -->
 <template>
   <div v-if="visible" ref="el" class="tm" :class="{ movable: interactive, dragging }" :style="{ left: place.left + 'px', top: place.top + 'px' }"
     data-timer="widget" :title="interactive ? t('ppz.timer.drag') : undefined"
     @pointerdown="onDown" @pointermove="onMove" @pointerup="onUp" @pointercancel="onUp">
+    <template v-if="simpleMode">
+      <div class="tm-head">
+        <span class="tm-title">{{ t(config.timerMode === 'countdown' ? 'ppz.timer.mode_countdown' : 'ppz.timer.mode_stopwatch') }}</span>
+      </div>
+      <div class="tm-main num" :class="simpleTone" data-timer="main">{{ formatRunTime(simpleShown) }}</div>
+      <div v-if="simpleTimer.phase === 'idle' && !interactive" class="tm-hint">{{ t('ppz.timer.start_hint_simple') }}</div>
+    </template>
+    <template v-else>
     <div class="tm-head">
       <span class="tm-title">{{ t(config.game === 'poe2' ? 'ppz.timer.route_poe2' : 'ppz.timer.route_poe1') }}</span>
       <span class="tm-att num">#{{ route.attempts }}</span>
     </div>
+    <div v-if="compareName" class="tm-cmp" data-timer="compare">{{ t('ppz.timer.compare_with', { name: compareName }) }}</div>
     <ol class="tm-rows">
       <li v-for="r in rows" :key="r.i" class="tm-row" :class="{ cur: r.current, done: r.done }" :data-split="r.i">
         <span class="tm-name">{{ r.name }}</span>
@@ -30,6 +41,7 @@
       <span v-if="prevSegDelta != null">{{ t('ppz.timer.prev_segment') }} <b class="num" :class="prevSegDelta <= 0 ? 'ok' : 'bad'">{{ formatDelta(prevSegDelta) }}</b></span>
     </div>
     <div v-if="run.phase === 'idle' && !interactive" class="tm-hint">{{ t('ppz.timer.start_hint') }}</div>
+    </template>
     <div v-if="interactive" class="tm-ctrl">
       <button type="button" class="tm-btn" data-action="timer-toggle" :aria-label="t('ppz.timer.menu_toggle')" :title="t('ppz.timer.menu_toggle')"
         @pointerdown.stop @click="timerAction('toggle')"><i class="fas fa-play" aria-hidden="true"></i></button>
@@ -45,10 +57,13 @@
 import { computed, onUnmounted, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { AppConfig } from '../Config'
-import { appRun, currentRoute, timerAction, timerVisible } from './timer-state'
+import { appRun, currentRoute, simpleTimer, timerAction, timerVisible } from './timer-state'
+import { playTimerSound } from './timer-sound'
+import { alertCrossed } from '../../../../core/src/timer/simple'
 import { overlayLayers } from './overlay-content'
 import { overlayPlace, overlayPosOf } from './float-menu-geom'
 import { Host } from '../background/IPC'
+import { compatible, recordLabel } from '../../../../core/src/speedrun/history'
 import { comparison, deltaAt, formatDelta, formatRunTime, isGoldSegment, segmentTime } from '../../../../core/src/speedrun/run'
 
 const props = defineProps<{ interactive: boolean }>()
@@ -57,15 +72,48 @@ const config = AppConfig()
 
 const run = computed(() => appRun.value)
 const route = computed(() => currentRoute())
+/** 比較對象的名稱(2026-11-28);跟個人最佳比時不顯示 */
+const compareName = computed(() => {
+  const rt = route.value
+  // shortcut: 計時中才改比較對象時,這次仍跟開始時那筆比,名稱卻顯示新選的;要精確就把 id 存進 run.base
+  if (run.value.phase !== 'idle' && run.value.base.ref == null) return ''
+  const rec = rt.compare == null ? undefined : rt.history?.find(r => r.id === rt.compare)
+  return rec && compatible(rec, rt) ? recordLabel(rec) : ''
+})
 
-// 只在跑著時每 50 ms 更新(停著不開計時器)
+const simpleMode = computed(() => config.timerMode !== 'speedrun')
+const phase = computed(() => simpleMode.value ? simpleTimer.phase : run.value.phase)
+
+// 只在跑著時每 50 ms 更新(停著不開計時器);非 speedrun 順便檢查倒數歸零 / 提醒點 → 播音效
 const now = shallowRef(Date.now())
 let tick: ReturnType<typeof setInterval> | null = null
-watch(() => run.value.phase, (phase) => {
+let lastSimple = 0
+function onTick () {
+  now.value = Date.now()
+  if (!simpleMode.value) return
+  const e = simpleTimer.elapsed()
+  const ring = config.timerMode === 'countdown' ? simpleTimer.check() : alertCrossed(lastSimple, e, config.timerAlertMin * 60_000)
+  lastSimple = e
+  if (ring) {
+    console.log(`[timer] ${config.timerMode === 'countdown' ? '倒數歸零' : '提醒'}:播放音效`)
+    playTimerSound(config.timerSound.file, config.timerSound.volume)
+  }
+}
+watch(phase, (p) => {
   if (tick) clearInterval(tick)
-  tick = phase === 'running' ? setInterval(() => { now.value = Date.now() }, 50) : null
+  lastSimple = simpleTimer.elapsed()
+  tick = p === 'running' ? setInterval(onTick, 50) : null
   now.value = Date.now()
 }, { immediate: true })
+const simpleElapsed = computed(() => { void now.value; void simpleTimer.phase; return simpleTimer.elapsed() })
+/** 倒數顯示剩餘、碼表顯示經過 */
+const simpleShown = computed(() => {
+  void simpleElapsed.value
+  // 倒數還沒開始:顯示設定的時長
+  if (config.timerMode === 'countdown' && simpleTimer.phase === 'idle') return config.timerCountdownSec * 1000
+  return simpleTimer.remaining() ?? simpleElapsed.value
+})
+const simpleTone = computed(() => simpleTimer.phase === 'finished' ? 'bad' : simpleTimer.phase === 'running' ? 'ok' : 'muted')
 
 const elapsed = computed(() => { void now.value; void run.value.phase; void run.value.index; return run.value.elapsed() })
 /** 目前段之前最後一個有時間的累計(跳過的段不算) */
@@ -99,14 +147,15 @@ const rows = computed(() => {
     let delta = ''
     let deltaTone = ''
     if (done) {
-      const d = deltaAt(r, rt, i)
+      // 中途開始(partial):累計少了前面幾章,跟 PB 累計比沒有意義 → 不顯示差值(金段照常)
+      const d = r.partial ? null : deltaAt(r, rt, i)
       // 跟開始時的快照比(紀錄已隨分段寫進路線)
       const gold = isGoldSegment(r, rt, i)
       if (d != null) { delta = formatDelta(d); deltaTone = gold ? 'gold' : d <= 0 ? 'ok' : 'bad' } else if (gold) { delta = '★'; deltaTone = 'gold' }
     } else if (current) {
       // 跑著的段:比個人最佳慢了才顯示即時差值
       const pb = comparison(r, rt).pb?.[i]
-      if (pb != null && elapsed.value > pb) { delta = formatDelta(elapsed.value - pb); deltaTone = 'bad' }
+      if (!r.partial && pb != null && elapsed.value > pb) { delta = formatDelta(elapsed.value - pb); deltaTone = 'bad' }
     }
     const t0 = done ? r.splitTimes[i] : comparison(r, rt).pb?.[i] ?? null
     return { i, name: s.name, done, current, delta, deltaTone, time: t0 == null ? '—' : formatRunTime(t0) }
@@ -116,10 +165,13 @@ const rows = computed(() => {
 const mainTone = computed(() => {
   const r = run.value
   if (r.phase === 'idle' || r.phase === 'paused') return 'muted'
+  // 中途開始:不寫個人最佳,也不跟 PB 比顏色
+  if (r.partial) return 'ok'
   const pb = comparison(r, route.value).pb
   if (r.phase === 'finished') {
     const total = r.splitTimes[r.splitTimes.length - 1]
-    const pbTotal = pb?.[pb.length - 1]
+    // 金色只給新個人最佳:跟開始時的 PB 比,不跟比較對象比(2026-11-28)
+    const pbTotal = r.base.pb?.[r.base.pb.length - 1]
     // 新個人最佳(比舊 PB 快或還沒有 PB)金色;慢了紅色
     return total == null ? 'ok' : pbTotal == null || total < pbTotal ? 'gold' : total > pbTotal ? 'bad' : 'ok'
   }
@@ -127,7 +179,9 @@ const mainTone = computed(() => {
   return target != null && elapsed.value > target ? 'bad' : 'ok'
 })
 
-const visible = computed(() => timerVisible(config.timerDisplay, run.value.phase !== 'idle', elapsed.value))
+const visible = computed(() => simpleMode.value
+  ? timerVisible(config.timerDisplay, simpleTimer.phase !== 'idle', simpleElapsed.value)
+  : timerVisible(config.timerDisplay, run.value.phase !== 'idle', elapsed.value))
 watch(visible, (v) => { overlayLayers.timer = v }, { immediate: true })
 
 const view = shallowRef({ w: window.innerWidth, h: window.innerHeight })
@@ -220,6 +274,7 @@ onUnmounted(() => {
 .num { font-family: ui-monospace, Consolas, monospace; font-variant-numeric: tabular-nums; }
 .tm-head { display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 0.25em; border-bottom: 1px solid rgb(255 255 255 / 0.12); }
 .tm-title { font-weight: 600; }
+.tm-cmp { font-size: 0.75em; color: var(--ink-2); margin: -0.1em 0 0.2em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tm-att { opacity: 0.6; }
 .tm-rows { list-style: none; margin: 0.2em 0 0; padding: 0; }
 .tm-row { display: grid; grid-template-columns: 1fr auto 4.6em; gap: 0.5em; padding: 0.12em 0.3em; border-radius: 0.25em; }

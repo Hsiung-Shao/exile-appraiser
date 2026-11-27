@@ -112,7 +112,7 @@ export interface HostConfigForMain {
   stashPricesEnabled?: boolean
   /** PoE1 倉庫價格疊層掃描間隔(ms,100–3000,預設 1000) */
   stashPricesIntervalMs?: number
-  /** PoE1 倉庫價格疊層 OCR 區域(client 比例;null / 省略 = 預設碎片頁按鈕列) */
+  /** PoE1 倉庫價格疊層搜尋區域(client 比例;倉庫格子大概範圍,只當擬合的先驗;null / 省略 = 預設倉庫面板區,舊版按鈕列區域也當預設) */
   stashRegion?: OcrRegion | null
   /** 2026-10-15:倉庫價值 —— 讀每格堆疊數量算小計 / 整頁總價(預設開;舊 renderer 沒有這欄 = 開;main `StashScan` 依此決定讀不讀數量) */
   stashReadQuantity?: boolean
@@ -301,7 +301,7 @@ export type RevealScanEvent = PanelScanEvent
 
 /**
  * PoE1 倉庫價格疊層:`stash-scan-result`(main `ocr/stash-scan.ts`;main → overlay;**不送瀏覽器預覽**)。
- * - `show`:碎片頁開著、目前子頁 `subtab`(只有一般;聖甲蟲 2026-11-07 因 3.30 移除而刪除),整體下移 `yOffset`(client 實體像素;倉庫頁在資料夾內 = 47/1440·h)。
+ * - `show`:碎片頁開著、目前子頁 `subtab`(一般 / 綢帶),格子位置 `grid`(2026-11-26 起由畫面擬合;client 實體像素,`core/src/stash/fit.ts` `gridRects` 還原每格)。
  * - `hide`:碎片頁關了 / 換到其他頁 / 子頁不是一般(3.29 的聖甲蟲 / 不滅之火、異能)或判不出 / 停用、不是 PoE1 overlay、沒有遊戲視窗。
  */
 export interface StashScanEvent {
@@ -309,7 +309,8 @@ export interface StashScanEvent {
   ts: number
   reason: 'show' | 'hide'
   subtab: 'general' | 'threads' | null
-  yOffset: number
+  /** 只在 `show`:版面照換算高度 `H` 換算、第一格左上 = (x, y)(client 實體像素) */
+  grid?: { H: number, x: number, y: number }
   client: { w: number, h: number }
   /** OCR 耗時(ms;有跑 OCR 的那一次才有) */
   ocrMs?: number
@@ -611,6 +612,8 @@ export interface HostApi {
   bgPick?: () => Promise<string | null>
   /** 懸浮選單速查表(2026-10-08):同 bgPick,存 `userData/cheatsheets/`,由 `app://sheet/<檔名>`(預覽 `<prefix>sheet/<檔名>`)載入。 */
   sheetPick?: (keep?: string[]) => Promise<string[] | string | null>
+  /** 2026-11-28 計時器音效:選一個音訊檔,存 `userData/timer-sounds/`(只留這一個),由 `app://sound/<檔名>`(預覽 `<prefix>sound/<檔名>`)載入;取消 / 失敗 = null */
+  soundPick?: () => Promise<string | null>
   /** main 建立視窗時決定的模式(啟動後不變)。 */
   readonly windowMode: WindowMode
   onFocusChange: (cb: (e: FocusChangeEvent) => void) => () => void
@@ -707,6 +710,8 @@ export interface HostApi {
   onLogLines?: (cb: (entries: LogEntry[]) => void) => () => void
   /** 第 28 步:開啟記錄資料夾(userData/logs)。瀏覽器預覽 shim 沒有這個方法(`preview: false`)。 */
   openLogFolder?: () => Promise<void>
+  /** 2026-11-26:匯出記錄檔(存檔對話框;`summary` = 設定摘要行)。回傳存的路徑,取消回 null。預覽 shim 沒有(`preview: false`)。 */
+  exportLog?: (summary: string[]) => Promise<string | null>
   /** 步 38:開啟設定資料夾(userData,內含 config.json)。托盤選單已移除該項,改由設定 › 啟動與更新提供;預覽 shim 沒有(`preview: false`)。 */
   openConfigFolder?: () => Promise<void>
   /** 設定 › 一般 › 建立桌面捷徑(只有 Electron 視窗;dev = 開發模式不建立) */

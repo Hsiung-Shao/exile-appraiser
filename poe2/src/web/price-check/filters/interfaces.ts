@@ -159,6 +159,8 @@ export interface StatFilter {
   noMechanism?: boolean;
   // mechanismExclude = 使用者在機制選擇選了「一般」(預設「不限」= 不排除;2026-10-18)
   mechanismExclude?: boolean;
+  // exile-appraiser: 2026-11-28 沒有數字的反向寫法(「…相當不幸」「…帶來厄運」):交易站同一個 id、不幸 = 負值 → 查詢送 max -1
+  negatedFlag?: boolean;
 }
 
 export const _INTERNAL_TRADE_IDS = [

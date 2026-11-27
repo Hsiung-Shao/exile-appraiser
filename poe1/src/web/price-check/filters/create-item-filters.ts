@@ -137,12 +137,12 @@ function createFiltersInner (
       baseType: item.info.name,
       baseTypeTrade: t(opts, item.info)
     }
-    if (item.info.refName === 'Chronicle of Atzoatl') {
-      filters.areaLevel = {
-        value: floorToBracket(item.areaLevel!, [1, 68, 73, 75, 78, 80]),
-        disabled: false
-      }
-    } else if (item.info.refName === 'Mirrored Tablet') {
+    // exile-appraiser: 2026-11-26 GitHub issue #76 寶石匠的稜鏡:已儲存經驗照物品原值當最低值查(經驗少的混進來價格差很多)
+    if (item.storedExperience != null) {
+      filters.storedExperience = { value: item.storedExperience, disabled: false }
+    }
+    // exile-appraiser: 地區等級照物品原值當最低值查,不截成固定檔位(低等級的會混進價格;GitHub issue #75)
+    if (item.info.refName === 'Chronicle of Atzoatl' || item.info.refName === 'Mirrored Tablet') {
       filters.areaLevel = {
         value: item.areaLevel!,
         disabled: false
@@ -254,7 +254,7 @@ function createFiltersInner (
       baseTypeTrade: t(opts, item.info)
     }
     filters.areaLevel = {
-      value: floorToBracket(item.areaLevel!, [1, 68, 73, 78, 81, 83]),
+      value: item.areaLevel!,
       disabled: false
     }
   } else if (item.category === ItemCategory.Chart) {

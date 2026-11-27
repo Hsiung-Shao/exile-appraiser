@@ -1,6 +1,6 @@
 /**
  * 倉庫價值除錯:「存下倉庫擷取畫面」(設定 › 記錄按鈕 → IPC `stash-dump` → StashScan 下一次顯示中的擷取存檔)。
- * 假時鐘 / 假擷取 / 假寫檔,不碰 Electron;版面與數字模板用 repo 的真資料。
+ * 假時鐘 / 假擷取 / 假 fit·verify / 假寫檔,不碰 Electron;版面與數字模板用 repo 的真資料。
  */
 import { describe, expect, it } from 'vitest'
 import fs from 'node:fs'
@@ -11,29 +11,26 @@ import type { Fingerprint, ScanCapture, ScanClock, ScanEnv } from '../src/ocr/pa
 import { STASH_DUMP_TIMEOUT_MS, STASH_DUMP_WAIT_UI_MS, StashScan, type StashScanConfig } from '../src/ocr/stash-scan'
 import { isStashCaptureFile, saveStashDump, stashCaptureBaseName, type StashDumpData } from '../src/ocr/stash-dump'
 import { LogFileWriter, parseLogFileDay, type LogFs } from '../src/app-log'
-import { SUBTAB_LABELS, buttonRects, type TextLine } from '../../core/src/stash/detect'
-import { cellRects, parseStashLayouts, type StashSubtab } from '../../core/src/stash/layout'
+import { formulaGrid, gridRects } from '../../core/src/stash/fit'
 import { parseDigitTemplates } from '../../core/src/stash/quantity'
+import { LAYOUTS_330 as LAYOUTS, createFitFakes } from './stash-fit-fakes'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const read = (p: string) => fs.readFileSync(path.join(ROOT, p), 'utf8')
-const LAYOUTS = parseStashLayouts(JSON.parse(read('data/poe1/stash/layouts.json')))
 const TEMPLATES = parseDigitTemplates(JSON.parse(read('data/poe1/stash/digit-templates.json')))
 const H = 1125
 const W = 2000
 const OFF = { x: 7, y: 3 }
+const GRID = formulaGrid(LAYOUTS, 'general', W, H)
 
-function buttonLines (): TextLine[] {
-  // 3.30 可能的按鈕列:一般 / 不滅之火 / 異能 依序在 0–2 號槽
-  return SUBTAB_LABELS.zh.map((text, k) => ({ r: buttonRects(H, 0)[k], text })).map(({ r, text }) => ({ text, x: r.x + r.w / 2 - 20, y: Math.floor(201 / 1440 * H) - 8, w: 40, h: 16 }))
-}
-const BRIGHT: Record<StashSubtab, number[]> = { general: [160, 140, 140, 140] }
 const FP: Fingerprint = { w: 64, h: 12, data: new Uint8Array(64 * 12).fill(10) }
 
 function harness (opts: { save?: boolean, cfg?: Partial<StashScanConfig> } = {}) {
   const cfg: StashScanConfig = { enabled: true, game: 'poe1', intervalMs: 1000, readQuantity: true, ...opts.cfg }
   const env: ScanEnv = { overlay: true, gameActive: true, bounds: { x: 0, y: 0, width: W, height: H } }
-  const state = { now: 50_000, cursorOnCell: false, masks: [] as Array<{ x: number, y: number, w: number, h: number }>, ocrFound: true, fp: FP }
+  const state = { now: 50_000, cursorOnCell: false, masks: [] as Array<{ x: number, y: number, w: number, h: number }>, fp: FP }
+  const fits = createFitFakes(LAYOUTS, () => OFF)
+  fits.show('general', W, H)
   const timers: Array<{ fn: () => void, ms: number, at: number, done: boolean }> = []
   const clock: ScanClock = {
     now: () => state.now,
@@ -52,17 +49,13 @@ function harness (opts: { save?: boolean, cfg?: Partial<StashScanConfig> } = {})
     clock,
     config: () => cfg,
     env: () => env,
-    ocrBusy: () => false,
     capture: async (): Promise<ScanCapture> => ({
       size: { w: W - OFF.x, h: H - OFF.y },
       offset: OFF,
       client: { w: W, h: H },
       fingerprint: () => state.fp,
-      recognize: async () => ({ lines: state.ocrFound ? buttonLines().map(l => ({ ...l, x: l.x - OFF.x, y: l.y - OFF.y })) : [], ms: 20 }),
-      gray: (rect) => {
-        const k = buttonRects(H, 0).findIndex(b => Math.abs(b.x - OFF.x - rect.x) <= 1)
-        return new Uint8Array(32).fill(k >= 0 ? BRIGHT.general[k] : 0)
-      },
+      recognize: async () => { throw new Error('倉庫偵測不該呼叫 OCR') },
+      gray: fits.gray,
       pixels: (rect) => {
         const x = Math.max(0, Math.round(rect.x))
         const y = Math.max(0, Math.round(rect.y))
@@ -73,7 +66,8 @@ function harness (opts: { save?: boolean, cfg?: Partial<StashScanConfig> } = {})
       maskRects: state.masks.map(m => ({ ...m }))
     }),
     send: (e) => { events.push(e) },
-    textLang: () => 'zh',
+    fit: fits.fit,
+    verify: fits.verify,
     log: (m) => { logs.push(m) },
     qty: { layouts: () => LAYOUTS, templates: () => TEMPLATES },
     qtyPaused: () => state.cursorOnCell,
@@ -81,10 +75,10 @@ function harness (opts: { save?: boolean, cfg?: Partial<StashScanConfig> } = {})
       ? {}
       : { saveDump: async (d: StashDumpData) => { saved.push(d); return `C:\\u\\logs\\${stashCaptureBaseName(d.ts, d.subtab)}.png` } })
   })
-  return { scan, cfg, env, state, timers, advance, saved, logs, events }
+  return { scan, cfg, env, state, timers, advance, saved, logs, events, fits }
 }
 
-/** 先讓疊層顯示(蟲甲子頁) */
+/** 先讓疊層顯示(一般頁) */
 async function showing (h: ReturnType<typeof harness>) {
   await h.scan.tick()
   expect(h.scan.showing).toBe(true)
@@ -137,7 +131,7 @@ describe('saveStashDump 寫檔', () => {
     const d: StashDumpData = {
       ts: new Date(2026, 9, 15, 12, 34, 56).getTime(),
       subtab: 'general',
-      yOffset: 0,
+      grid: { H: 1440, x: 47, y: 266 },
       client: { w: 2560, h: 1440 },
       offset: { x: 0, y: 0 },
       origin: { x: 10, y: 20 },
@@ -157,7 +151,7 @@ describe('saveStashDump 寫檔', () => {
     expect(writes['stash-capture-20261015-123456-general.png']).toEqual(new Uint8Array([137, 80]))
     const meta = JSON.parse(writes['stash-capture-20261015-123456-general.json'] as string)
     expect(meta).toMatchObject({
-      version: '0.1.2', subtab: 'general', yOffset: 0, client: { w: 2560, h: 1440 }, offset: { x: 0, y: 0 },
+      version: '0.1.2', subtab: 'general', grid: { H: 1440, x: 47, y: 266 }, client: { w: 2560, h: 1440 }, offset: { x: 0, y: 0 },
       origin: { x: 10, y: 20 }, image: { width: 2, height: 3 }, baseClientH: 1125, masks: [{ x: 1, y: 1, w: 1, h: 1 }]
     })
     expect(meta.cells[0]).toMatchObject({ refName: 'Fragment', value: null, why: { reason: 'low-confidence', raw: '19' } })
@@ -194,8 +188,8 @@ describe('StashScan.requestDump', () => {
     const res = await p
     expect(h.saved).toHaveLength(1)
     const d = h.saved[0]
-    expect(d).toMatchObject({ subtab: 'general', yOffset: 0, client: { w: W, h: H }, offset: OFF, baseClientH: TEMPLATES.baseClientH })
-    const rects = cellRects(LAYOUTS, 'general', H, 0)
+    expect(d).toMatchObject({ subtab: 'general', grid: GRID, client: { w: W, h: H }, offset: OFF, baseClientH: TEMPLATES.baseClientH })
+    const rects = gridRects(LAYOUTS, 'general', GRID)
     expect(d.cells).toHaveLength(rects.length)
     // 格子矩形 = 像素區座標(client − 擷取偏移 − 像素區原點)
     expect(d.cells[0].rect).toEqual({ x: rects[0].x - OFF.x - d.origin.x, y: rects[0].y - OFF.y - d.origin.y, w: rects[0].w, h: rects[0].h })
@@ -271,8 +265,8 @@ describe('StashScan.requestDump', () => {
     const h = harness()
     await showing(h)
     const p = h.scan.requestDump()
-    // 關掉倉庫:按鈕列畫面變了、OCR 找不到按鈕;游標在格上 → 這幾個 tick 不讀數量(不會先存檔)
-    h.state.ocrFound = false
+    // 關掉倉庫:畫面變了、擬合對不上;游標在格上 → 這幾個 tick 不讀數量(不會先存檔)
+    h.fits.none()
     h.state.cursorOnCell = true
     h.state.fp = { ...FP, data: new Uint8Array(FP.data.length).fill(200) }
     for (let i = 0; i < 4 && h.scan.showing; i++) await h.scan.tick()

@@ -19,6 +19,7 @@ import { loadedGame } from '../src/web/games/active'
 import StashPrices from '../src/web/overlay/StashPrices.vue'
 import { stashValue } from '../src/web/overlay/stash-value'
 import { cellRects, parseStashLayouts } from '../../core/src/stash/layout'
+import { formulaGrid } from '../../core/src/stash/fit'
 import { mount, text, findAll, byAttr, type MiniNode } from './mini-dom'
 
 const ROOT = path.resolve(__dirname, '../..')
@@ -116,7 +117,7 @@ function drag (n: MiniNode, from: { x: number, y: number }, to: { x: number, y: 
 
 let seq = 0
 function show (quantities?: Array<number | null>, peek?: boolean, subtab: 'general' = 'general') {
-  scanCb!({ seq: ++seq, ts: 0, reason: 'show', subtab, yOffset: 0, client: { w: 1280, h: 900 }, quantities, ...(peek ? { peek } : {}) })
+  scanCb!({ seq: ++seq, ts: 0, reason: 'show', subtab, grid: formulaGrid(LAYOUTS, subtab, 1280, 900), client: { w: 1280, h: 900 }, quantities, ...(peek ? { peek } : {}) })
 }
 
 describe('V11 倉庫價值疊層', () => {

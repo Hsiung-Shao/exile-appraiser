@@ -29,6 +29,9 @@
         },
         "misc_filters": {
           "filters": {
+            "corrupted": {
+              "option": "true"
+            },
             "mutated": {
               "option": "false"
             },

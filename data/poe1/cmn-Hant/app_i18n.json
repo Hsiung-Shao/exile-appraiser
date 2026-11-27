@@ -83,6 +83,7 @@
     "quality": "品質：{0}",
     "memory_strands": "記憶絲縷：{0}",
     "gem_level": "等級：{0}",
+    "stored_experience": "已儲存經驗：{0}",
     "sentinel_charge": "充能：{0}",
     "find_in_stash": "在倉庫中尋找",
     "parse_error": "解析物品時發生錯誤",

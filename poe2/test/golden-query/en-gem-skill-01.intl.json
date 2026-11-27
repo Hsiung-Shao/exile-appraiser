@@ -18,6 +18,13 @@
               "option": "true"
             }
           }
+        },
+        "misc_filters": {
+          "filters": {
+            "corrupted": {
+              "option": "true"
+            }
+          }
         }
       },
       "type": "Fireball"

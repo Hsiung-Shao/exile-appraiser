@@ -14,8 +14,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
-import { applyStatPlan, planExtraZh, planGeneric, planLeadingNumber } from './lib.mjs'
-import { setGameVersion } from '../season/lib.mjs'
+import { applyStatPlan, dropStaleUniqueSpellings, planExtraZh, planLeadingNumber, staleUniqueKeys } from './lib.mjs'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const args = process.argv.slice(2)
@@ -30,26 +29,16 @@ const leading = planLeadingNumber({ zhStats })
 const extra = planExtraZh({ zhStats })
 const adds = [...leading.adds, ...extra.adds]
 
-let ggpk = null
-let generic = { adds: [], replace: [], remove: [], fill: {} }
-if (flag('--from')) {
-  const db = path.join(path.resolve(String(flag('--from'))), 'tools/ggpk2_zh/db/ggpk2_zh.sqlite')
-  const tmp = path.join(os.tmpdir(), `poe2-season-${process.pid}.json`)
-  execFileSync(flag('--python') ?? 'python', [path.join(ROOT, 'scripts/poe1-season/dump_ggpk.py'), db, tmp], { stdio: 'inherit' })
-  ggpk = JSON.parse(fs.readFileSync(tmp, 'utf8'))
-  fs.rmSync(tmp)
-  const tradeStats = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/poe2/trade/intl/stats.json'), 'utf8')).result.flatMap((/** @type {any} */ g) => g.entries)
-  generic = planGeneric({ enStats: rows(text.en), zhStats, ggpkOld: ggpk.stats.old, ggpkNew: ggpk.stats.new, tradeStats })
-  adds.push(...generic.adds)
-}
+// 規則 P3:交易站沒有的舊拼法傳奇列(交易站 items 快照 data/poe2/trade/intl/items.json)
+const itemsFile = (/** @type {string} */ lang) => path.join(ROOT, 'data/poe2', lang, 'items.ndjson')
+const tradeItems = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/poe2/trade/intl/items.json'), 'utf8')).result
+const tradeUniques = new Set(tradeItems.flatMap((/** @type {any} */ g) => g.entries).filter((/** @type {any} */ e) => e.flags?.unique).map((/** @type {any} */ e) => `${e.name}|${e.type}`))
+const stale = staleUniqueKeys(fs.readFileSync(itemsFile('cmn-Hant'), 'utf8'), tradeUniques)
 
 const summary = [
   `數字移到前面(規則 P1):繁中 +${leading.adds.length} 個 matcher`,
   `另一種繁中寫法(規則 P2):繁中 +${extra.adds.length} 個 matcher`,
-  ...(ggpk
-    ? [`GGPK ${ggpk.old.gameVersion}(v${ggpk.old.id})→ ${ggpk.new.gameVersion}(v${ggpk.new.id})${ggpk.old.id === ggpk.new.id ? ':只有一個版本,通用規則不動' : ''}`,
-        `通用規則(與 PoE1 共用):改字 +${generic.adds.length} 個 matcher、失效 id 替換 ${generic.replace.length} / 移除 ${generic.remove.length}、補交易站 id ${Object.keys(generic.fill).length} 條`]
-    : [])
+  `交易站沒有的舊拼法傳奇(規則 P3):兩語各刪 ${stale.size} 列${stale.size ? `(${[...stale].join('、')})` : ''}`
 ]
 console.log(summary.join('\n'))
 
@@ -63,6 +52,7 @@ if (generic.replace.length || generic.remove.length || Object.keys(generic.fill)
   process.exit(1)
 }
 for (const lang of LANGS) fs.writeFileSync(file(lang), applyStatPlan(text[lang], lang, { adds }))
+for (const lang of LANGS) fs.writeFileSync(itemsFile(lang), dropStaleUniqueSpellings(fs.readFileSync(itemsFile(lang), 'utf8'), tradeUniques, stale))
 const node = (/** @type {string[]} */ a) => execFileSync(process.execPath, a, { cwd: ROOT, stdio: 'inherit' })
 node(['scripts/make-index-files.mjs', '--game', 'poe2'])
 node(['scripts/verify-data-manifest.mjs', '--write', '--prefix', 'data/poe2',

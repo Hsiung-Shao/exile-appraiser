@@ -19,6 +19,7 @@
 // multi 相鄰頁配對因頁序位移換了 24 → 30 鍵(舊配對全刪、新配對全新增);既有鍵值 0 變動。
 // 2026-11-18 PoE1 正則資料以 GGPK 3.30.0.1 重產後重產:1062 鍵中 278 鍵變,全是資料有變的 poe1 語料頁(map / logbook / gem / tattoos /
 // heist_equipment / heist_contracts / vendor_bases / beasts / magic_affixes)與 poe1 multi;poe2、演算法頁、flask / cluster / tincture 0 變動。
+// 2026-11-26 PoE1 地圖數值區「物品數量」換成「輿圖掉落物」後重產:72 鍵變 = poe1|map_numeric 36 + poe1 multi 36(數值頁勾 [0,1] = 階級 / 輿圖掉落物);其他鍵 0 變動。
 // 重生(僅在演算法有意改動時):`PERF_EQ_WRITE=1 npx vitest run test/perf-equivalence.test.ts`
 import { createHash } from 'node:crypto'
 import fs from 'node:fs'

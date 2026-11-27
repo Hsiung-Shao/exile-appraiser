@@ -3,11 +3,12 @@
  * 不 import electron(main vitest 以假時鐘 / 假擷取測)。
  *
  * 物品身分**不靠 OCR**(格子裡只有圖示 + 數量):固定版面表(`data/poe1/stash/layouts.json`)依位置對應,renderer 畫每格徽章。
- * 這裡只看倉庫面板頂端的子頁按鈕列(`core/src/stash/detect.ts` `stripRect`;使用者自訂區域 `region` 夾在 `stripZone` 內):
- *   擷取 → 按鈕列灰階縮圖與上次 OCR 時比對,沒變就不 OCR → 有變化才 OCR(×3)→ `findSubtabButtons`(一般 / 綢帶 / 異能 至少 2 顆、
- *   落在三個按鈕槽且順序左到右;由文字高度推資料夾偏移)→ 三顆按鈕 p99 亮度 → `activeSubtab`(一般或綢帶最亮才畫)→ 狀態變了才送 `stash-scan-result`。
- * 沒找到按鈕:游標停在已顯示子頁的格子上(遊戲說明框可能蓋住按鈕列,`holdOnMiss`)→ 維持原狀,但連續最多 `STASH_HOLD_LIMIT` 次;
- * 否則連續 2 次才送 `hide`。疊層顯示中沒找到按鈕時作廢差分基準(下一 tick 一定重 OCR,畫面靜止也收得掉);沒顯示時照常差分。
+ * 2026-11-26 起不讀按鈕列(使用者裁定方案 B):**格子擬合**(core `fit.ts` `fitStashGrid`)—— 碎片頁每個格位都畫成固定的深色方框,
+ * 在倉庫面板可能出現的範圍(core `detect.ts` `stashSearchClientRect`;使用者框的區域優先)搜尋格長與位移,讓版面表的格子落在方框上;
+ * 對上的子頁 = 目前子頁,格子位置 = 擬合結果(`StashGrid`,client 實體像素),不再依 client 高度公式推算 → 不受畫面比例 / UI 縮放 / 介面語言影響。
+ *   擷取 → 搜尋範圍灰階縮圖與上次比對,沒變就不算 → 有變化:顯示中先以快取位置驗證(`scoreGrid`,便宜),不過才整個重新擬合 → 狀態變了才送 `stash-scan-result`。
+ * 沒對上:游標停在已顯示子頁的格子上(遊戲說明框蓋住格子,`holdOnMiss`)→ 維持原狀,但連續最多 `STASH_HOLD_LIMIT` 次;
+ * 否則連續 2 次才送 `hide`。疊層顯示中沒對上時作廢差分基準(下一 tick 一定重算,畫面靜止也收得掉);沒顯示時照常差分。
  *
  * 2026-10-15 倉庫價值:顯示中且開著「讀取堆疊數量」(`readQuantity`)時,同一張擷取對版面每格讀左上角的堆疊數量
  * (core `quantity.ts` 數字模板比對,不用 WinOCR):第一次顯示讀全部格;之後每格以便宜的簽章(數字區白色程度)比對,變了才重讀那一格;
@@ -18,13 +19,13 @@
  * 每個事件都等 renderer 回報遮罩(ack,`drawPending`)才擷取下一張;游標換格(`stash-cursor`,renderer 只畫停的那格 ↔ 畫回全部)沒有 ack →
  * 換格後等下一份倉庫遮罩報告(最多 `MASK_LINGER_MS`)才讀數量。
  *
- * 與褻瀆 / 符文塑形共用 WinOcr(別的掃描忙碌就丟這個 tick)與擷取(`SharedCapture`)。被擋下時的排程同 `panel-scan.ts`:
+ * 不用 WinOcr;與褻瀆 / 符文塑形共用擷取(`SharedCapture`)。被擋下時的排程同 `panel-scan.ts`:
  * 停用 / 不是 PoE1 → 不排(等 `poke()`);其他原因 10 秒保底。不送任何鍵盤 / 滑鼠輸入。
  */
 import type { OcrRegion, RuneshapeUiState, StashScanEvent, StashStats } from '@ipc/types'
-import type { OcrTextLang, OcrTextLine } from '../../../poe2/src/desecration/ocr-text'
-import { activeSubtab, buttonRects, findSubtabButtons, percentile, stripRect, stripZone, type Rect } from '../../../core/src/stash/detect'
-import { cellRects, stashLeft, type StashLayoutFile, type StashSubtab } from '../../../core/src/stash/layout'
+import { fitStashGrid, formulaGrid, gridRects, minFitScore, scoreGrid, type FitPrior, type FitResult, type GrayImage, type StashGrid } from '../../../core/src/stash/fit'
+import type { StashLayoutFile, StashSubtab } from '../../../core/src/stash/layout'
+import { isLegacyStashRegion, stashSearchImageRect } from '../../../core/src/stash/detect'
 import {
   QTY_PARAMS, qtyCropRect, qtyMapSignature, qtyShapeChanged, qtySignatureChanged, qtyWhiteMap, readCellQuantity,
   type DigitTemplates, type QtyRect, type QtyWhiteMap
@@ -33,7 +34,7 @@ import {
   BLOCKED_FALLBACK_MS, clampScanInterval, isChanged, isLargeChange, DEFAULT_DIFF_THRESHOLDS,
   type Fingerprint, type ScanCapture, type ScanClock, type ScanEnv
 } from './panel-scan'
-import { regionSearchRect, type PhysRect } from './strategy'
+import type { PhysRect } from './strategy'
 import { MASK_ACK_TIMEOUT_MS, MASK_LINGER_MS } from './scan-mask'
 import type { StashDumpData } from './stash-dump'
 import type { StashDumpResult } from '@ipc/types'
@@ -42,7 +43,7 @@ export interface StashScanConfig {
   enabled: boolean
   game: 'poe1' | 'poe2'
   intervalMs: number
-  /** 使用者框的 OCR 區域(client 比例;2026-10-14 使用者要求可自訂);null / 省略 = 預設按鈕列 `stripRect` */
+  /** 使用者框的倉庫格子大概範圍(client 比例;2026-11-26 起只當擬合的搜尋範圍);null / 省略 = 預設(core `stashSearchClientRect`) */
   region?: OcrRegion | null
   /** 2026-10-15:讀每格堆疊數量(倉庫價值);省略 = 開 */
   readQuantity?: boolean
@@ -84,27 +85,42 @@ export function stashBlock (cfg: StashScanConfig, env: ScanEnv, ui: RuneshapeUiS
 }
 
 /**
- * 疊層沒顯示(不在倉庫 / 還沒認到按鈕列)時的最短 tick 間隔(使用者 2026-10-15 裁定):間隔 = max(設定間隔, 這個值);
+ * 疊層沒顯示(不在倉庫 / 還沒對上格子)時的最短 tick 間隔(使用者 2026-10-15 裁定):間隔 = max(設定間隔, 這個值);
  * 顯示中照設定間隔,偵測到倉庫的那個 tick 之後立刻回到設定間隔
  */
 export const STASH_IDLE_INTERVAL_MS = 3000
 /** 熱鍵顯示模式:按熱鍵後連續幾次沒偵測到倉庫(沒顯示的 tick)就解除並提示 */
 export const STASH_ARM_MISS_LIMIT = 3
 
-/** 「沒找到子頁按鈕」診斷記錄的最小間隔 */
+/** 2026-11-26 診斷:被擋下原因的白話說明(記錄給人看;代碼仍照印,效能摘要 / 測試用代碼) */
+export const STASH_BLOCK_TEXT: Record<StashBlock, string> = {
+  disabled: '設定裡倉庫價格是關的',
+  'not-poe1': '目前遊戲不是 PoE1',
+  'not-intl': '台服沒有 poe.ninja 價格,不掃描',
+  'user-paused': '按了暫停熱鍵',
+  'not-armed': '顯示方式是「熱鍵」,還沒按熱鍵',
+  'not-overlay': '沒有使用 overlay 模式(視窗模式不畫倉庫價格)',
+  'no-window': '找不到遊戲視窗(遊戲沒開、或視窗標題設定不符)',
+  'game-inactive': '遊戲不在前景',
+  'ui-open': '查價面板 / 設定 / 框選層開著',
+  'capture-black': '遊戲畫面擷取全黑,可能是全螢幕獨占;期滿 / 遊戲 attach / 視窗改變後再試'
+}
+
+/** 常駐掃描的格長搜尋範圍(先驗 ±比例) */
+export const STASH_FIT_SIZE_RANGE = 0.08
+
+/** 「沒對上格子」診斷記錄的最小間隔 */
 export const STASH_MISS_LOG_MS = 30_000
 
-/** 連續幾次沒找到按鈕(且沒被維持)才收掉 */
+/** 連續幾次沒對上格子(且沒被維持)才收掉 */
 export const STASH_MISS_LIMIT = 2
-/** 連續維持(held)上限:超過後照常累計 miss(游標停在格上按 Esc 關倉庫時不卡住);找到按鈕歸零 */
+/** 連續維持(held)上限:超過後照常累計 miss(游標停在格上按 Esc 關倉庫時不卡住);對上歸零 */
 export const STASH_HOLD_LIMIT = 5
 
 export interface StashScanDeps {
   clock?: ScanClock
   config: () => StashScanConfig
   env: () => ScanEnv
-  /** 別的掃描正在用共用的 WinOcr */
-  ocrBusy: () => boolean
   capture: (bounds: PhysRect) => Promise<ScanCapture>
   /**
    * overlay screenshot 「全黑」鎖存還剩幾毫秒(main `GameClientCapture.blackLatchRemainingMs`);> 0 → 這個 tick 不擷取(`capture-black`),
@@ -112,16 +128,18 @@ export interface StashScanDeps {
    */
   captureBlackMs?: () => number
   send: (ev: StashScanEvent) => void
-  /** OCR 語言(按鈕文字繁中 / 英文) */
-  textLang?: () => OcrTextLang
-  /** 游標停在疊層的格子上(說明框可能蓋住按鈕列 → 沒找到不算 miss,最多 `STASH_HOLD_LIMIT` 次);省略 = 否 */
+  /** 格子擬合(預設 core `fitStashGrid`;測試注入假的) */
+  fit?: (img: GrayImage, layouts: StashLayoutFile, prior: FitPrior) => FitResult | null
+  /** 已知位置驗證(預設 core `scoreGrid`;測試注入假的) */
+  verify?: (img: GrayImage, layouts: StashLayoutFile, subtab: StashSubtab, grid: StashGrid) => number
+  /** 游標停在疊層的格子上(說明框可能蓋住格子 → 沒對上不算 miss,最多 `STASH_HOLD_LIMIT` 次);省略 = 否 */
   holdOnMiss?: () => boolean
   /** 顯示狀態改變(main 依此開關游標輪詢) */
-  onShowingChange?: (showing: boolean, state: { subtab: StashSubtab | null, yOffset: number, clientH: number }) => void
+  onShowingChange?: (showing: boolean, state: { subtab: StashSubtab | null, grid: StashGrid | null, clientH: number }) => void
   log?: (msg: string) => void
   /** 熱鍵顯示模式:按熱鍵後連續 `STASH_ARM_MISS_LIMIT` 次沒偵測到倉庫 → 已解除(main 顯示「沒有偵測到倉庫」提示) */
   onArmMiss?: () => void
-  /** 讀堆疊數量要的版面與數字模板(省略 / 任一回 null = 不讀數量) */
+  /** 版面(擬合與讀數量共用;layouts 回 null = 不偵測)與數字模板(回 null = 不讀數量) */
   qty?: { layouts: () => StashLayoutFile | null, templates: () => DigitTemplates | null }
   /** 游標停在格子上 → 這個 tick 不讀數量(遊戲說明框 / 游標上的物品可能蓋住格子);省略 = 否 */
   qtyPaused?: () => boolean
@@ -224,7 +242,7 @@ export type StashTickResult =
   | { kind: 'busy' }
   | { kind: 'unchanged' }
   | { kind: 'mask-wait' }
-  | { kind: 'ocr', found: boolean, subtab: StashSubtab | null, held: boolean, sent: StashScanEvent['reason'] | null, ms: number }
+  | { kind: 'fit', found: boolean, subtab: StashSubtab | null, held: boolean, sent: StashScanEvent['reason'] | null, ms: number }
   | { kind: 'error', message: string }
 
 const REAL_CLOCK: ScanClock = {
@@ -233,51 +251,14 @@ const REAL_CLOCK: ScanClock = {
   clearTimeout: (h) => { clearTimeout(h as ReturnType<typeof setTimeout>) }
 }
 
-/** client 矩形 → 擷取影像矩形(減掉擷取偏移) */
-function toImage (r: Rect, offset: { x: number, y: number }): PhysRect {
-  return { x: r.x - offset.x, y: r.y - offset.y, width: r.w, height: r.h }
+/** 搜尋範圍換成擷取影像矩形(core `stashSearchImageRect`,PhysRect 形狀) */
+export function stashSearchRect (size: { w: number, h: number }, region: OcrRegion | null | undefined, client: { w: number, h: number }, offset: { x: number, y: number }): PhysRect {
+  const r = stashSearchImageRect(size, region, client, offset)
+  return { x: r.x, y: r.y, width: r.w, height: r.h }
 }
 
-function intersect (a: Rect, b: Rect): Rect | null {
-  const x0 = Math.max(a.x, b.x)
-  const y0 = Math.max(a.y, b.y)
-  const x1 = Math.min(a.x + a.w, b.x + b.w)
-  const y1 = Math.min(a.y + a.h, b.y + b.h)
-  return x1 > x0 && y1 > y0 ? { x: x0, y: y0, w: x1 - x0, h: y1 - y0 } : null
-}
-
-/**
- * 這個 tick 要 OCR 的影像矩形:使用者框的區域(client 比例)換成 client 像素後與 `stripZone`(按鈕可能出現的範圍)取交集;
- * 沒框 / 交集為空 → 預設 `stripRect`。最後減擷取偏移並夾在影像內。`clamped` = 使用者區域被縮小(交集 ≠ 原區域)。
- */
-export function stashOcrRect (
-  size: { w: number, h: number },
-  region: OcrRegion | null | undefined,
-  client: { w: number, h: number },
-  offset: { x: number, y: number }
-): { rect: PhysRect, clamped: Rect | null, outside: boolean } {
-  let r: Rect = stripRect(client.h, stashLeft(client.w, client.h))
-  let clamped: Rect | null = null
-  let outside = false
-  // client 像素(regionSearchRect 以 client 當影像、偏移 0 → 規則與其他掃描相同)
-  const user = regionSearchRect(client, region, { client, offset: { x: 0, y: 0 } })
-  if (user) {
-    const u: Rect = { x: user.x, y: user.y, w: user.width, h: user.height }
-    const inZone = intersect(u, stripZone(client.w, client.h))
-    if (inZone) {
-      r = inZone
-      if (inZone.x !== u.x || inZone.y !== u.y || inZone.w !== u.w || inZone.h !== u.h) clamped = inZone
-    } else {
-      outside = true
-    }
-  }
-  const img = intersect(toImageRect(r, offset), { x: 0, y: 0, w: size.w, h: size.h }) ?? toImageRect(r, offset)
-  return { rect: { x: img.x, y: img.y, width: img.w, height: img.h }, clamped, outside }
-}
-
-function toImageRect (r: Rect, offset: { x: number, y: number }): Rect {
-  return { x: r.x - offset.x, y: r.y - offset.y, w: r.w, h: r.h }
-}
+const shiftGrid = (g: StashGrid, dx: number, dy: number): StashGrid => ({ H: g.H, x: g.x + dx, y: g.y + dy })
+const fmtGrid = (g: StashGrid) => `換算高度 ${Math.round(g.H)}、第一格 ${Math.round(g.x)},${Math.round(g.y)}`
 
 export class StashScan {
   private readonly deps: StashScanDeps
@@ -292,16 +273,23 @@ export class StashScan {
   private missStreak = 0
   private holdStreak = 0
   private seq = 0
-  private shown: { subtab: StashSubtab, yOffset: number, clientW: number, clientH: number } | null = null
+  /** `grid` = client 實體像素 */
+  private shown: { subtab: StashSubtab, grid: StashGrid, clientW: number, clientH: number } | null = null
   private lastBlock: StashBlock | null = null
   private lastOcrMs: number | null = null
-  /** 「沒找到按鈕」診斷記錄的上次時間(節流) */
+  /** 「沒對上格子」診斷記錄的上次時間(節流) */
   private lastMissLogAt = -Infinity
-  private lastClampLogKey: string | null = null
+  /** 2026-11-26 診斷:上次記下的設定 / 擷取幾何(有變才記) */
+  private lastCfgKey: string | null = null
+  private lastCapKey: string | null = null
   private ocrCount = 0
   private userPaused = false
   /** 熱鍵顯示模式:按了熱鍵(`arm()`)還沒解除 */
   private isArmed = false
+  /** 這次 arm 之後顯示過倉庫(關倉庫時安靜解除、不提示「沒有偵測到倉庫」) */
+  private shownSinceArm = false
+  /** 剛因位置對不上 / client 大小改變收起:下一次重找用設定間隔,不套閒置下限(換子頁不必多等 3 秒) */
+  private refindSoon = false
   /** arm 之後連續沒偵測到倉庫的 tick 數 */
   private armMisses = 0
   /** 上次看到的顯示模式(`syncTriggerMode`;改變 = 解除 armed) */
@@ -324,7 +312,7 @@ export class StashScan {
     this.clock = deps.clock ?? REAL_CLOCK
   }
 
-  /** 擷取 / OCR 進行中(共用 WinOcr 的其他掃描據此丟 tick) */
+  /** 擷取 / 擬合進行中 */
   get busy (): boolean { return this.inFlight }
   get showing (): boolean { return this.shown != null }
   /** 掃描迴圈是否啟動(效能診斷:沒啟動 = 'stopped') */
@@ -388,7 +376,7 @@ export class StashScan {
 
   /** 這次讀數量的像素區存檔(`readQuantities` 讀完後;值 / 原因 = 這個 tick 讀完的結果) */
   private dumpCapture (
-    shown: { subtab: StashSubtab, yOffset: number, clientW: number, clientH: number },
+    shown: { subtab: StashSubtab, grid: StashGrid, clientW: number, clientH: number },
     cap: ScanCapture,
     px: { data: Uint8Array, width: number, height: number, channels: number, x: number, y: number },
     rects: ReadonlyArray<{ refName: string }>,
@@ -408,7 +396,7 @@ export class StashScan {
     const data: StashDumpData = {
       ts: this.clock.now(),
       subtab: shown.subtab,
-      yOffset: shown.yOffset,
+      grid: { ...shown.grid },
       client: { w: shown.clientW, h: shown.clientH },
       offset: { ...cap.offset },
       origin: { x: px.x, y: px.y },
@@ -444,6 +432,7 @@ export class StashScan {
   /** 熱鍵顯示模式:開始掃描(清差分基準、立刻重看;停用中也保留,啟用後的 `poke()` 就會掃描)。順便清掉使用者暫停 */
   arm (): void {
     this.isArmed = true
+    this.shownSinceArm = false
     this.armMisses = 0
     this.userPaused = false
     this.baseline = null
@@ -461,7 +450,7 @@ export class StashScan {
   hotkeyPress (): 'armed' | 'hidden' {
     if (this.shown) {
       this.deps.log?.('[stash] 熱鍵:收起倉庫價格')
-      this.hide({ w: this.shown.clientW, h: this.shown.clientH })
+      this.hide({ w: this.shown.clientW, h: this.shown.clientH }, undefined, { why: '熱鍵' })
       this.disarm()
       return 'hidden'
     }
@@ -492,7 +481,7 @@ export class StashScan {
     this.userPaused = !this.userPaused
     this.baseline = null
     this.deps.log?.(`[stash] 使用者${this.userPaused ? '暫停' : '繼續'}倉庫價格`)
-    if (this.userPaused && this.shown) this.hide({ w: this.shown.clientW, h: this.shown.clientH })
+    if (this.userPaused && this.shown) this.hide({ w: this.shown.clientW, h: this.shown.clientH }, undefined, { why: '使用者暫停' })
     this.poke()
     return this.userPaused
   }
@@ -571,7 +560,7 @@ export class StashScan {
         const blockedDelay = res.kind === 'blocked' && res.retryMs != null ? Math.min(BLOCKED_FALLBACK_MS, res.retryMs) : BLOCKED_FALLBACK_MS
         const interval = clampScanInterval(this.deps.config().intervalMs)
         // 沒顯示時套閒置下限;熱鍵模式 armed(使用者剛按熱鍵在等倉庫)照設定間隔
-        if (this.timer == null) this.schedule(blocked ? blockedDelay : this.shown || hotkey ? interval : Math.max(interval, STASH_IDLE_INTERVAL_MS))
+        if (this.timer == null) this.schedule(blocked ? blockedDelay : this.shown || hotkey || this.refindSoon ? interval : Math.max(interval, STASH_IDLE_INTERVAL_MS))
       })
     }, ms)
   }
@@ -582,7 +571,7 @@ export class StashScan {
       ts: this.clock.now(),
       reason,
       subtab: reason === 'show' ? this.shown!.subtab : null,
-      yOffset: reason === 'show' ? this.shown!.yOffset : 0,
+      ...(reason === 'show' ? { grid: { ...this.shown!.grid } } : {}),
       client,
       ...(ocrMs != null ? { ocrMs } : {})
     }
@@ -595,13 +584,14 @@ export class StashScan {
     }
     this.deps.send(ev)
     // 只有數量變了(同子頁):顯示狀態沒變,不通知(游標輪詢不用重設)
-    if (!opts.qtyOnly) this.deps.onShowingChange?.(reason === 'show', { subtab: ev.subtab, yOffset: ev.yOffset, clientH: client.h })
+    if (!opts.qtyOnly) this.deps.onShowingChange?.(reason === 'show', { subtab: ev.subtab, grid: ev.grid ?? null, clientH: client.h })
     return ev
   }
 
-  /** `keepArmed`:暫時收起(判不出子頁),熱鍵模式不解除;沒顯示的 tick 由 `countArmMiss` 累計 */
-  private hide (client: { w: number, h: number }, ocrMs?: number, opts: { keepArmed?: boolean } = {}): StashScanEvent['reason'] | null {
+  /** `keepArmed`:暫時收起(位置驗證不過、收起後重找),熱鍵模式不解除 */
+  private hide (client: { w: number, h: number }, ocrMs?: number, opts: { keepArmed?: boolean, why?: string } = {}): StashScanEvent['reason'] | null {
     if (!this.shown) return null
+    this.deps.log?.(`[stash] 收起倉庫價格(${opts.why ?? '未註明'})`)
     this.shown = null
     this.qty = null
     if (this.dumpReq) this.dumpReq.finish({ ok: false, reason: 'not-showing' })
@@ -632,30 +622,40 @@ export class StashScan {
     }
   }
 
-  /** 熱鍵顯示模式:armed 但這個 tick 結束時沒顯示(沒找到按鈕 / 畫面沒變 / 不是碎片頁)→ 累計;達上限解除並提示 */
+  /** 熱鍵顯示模式:armed 但這個 tick 結束時沒顯示(沒對上格子 / 畫面沒變 / 不是碎片頁)→ 累計;達上限解除並提示 */
   private countArmMiss (res: StashTickResult): void {
     if (!this.isArmed) return
     if (this.shown) { this.armMisses = 0; return }
-    if (res.kind !== 'ocr' && res.kind !== 'unchanged') return
+    if (res.kind !== 'fit' && res.kind !== 'unchanged') return
     if (!this.hotkeyMode()) return
     if (++this.armMisses < STASH_ARM_MISS_LIMIT) return
+    const shownBefore = this.shownSinceArm
     this.disarm()
+    // 這次按熱鍵後顯示過倉庫 = 倉庫關掉了:安靜解除(CLAUDE.md「倉庫關掉 hide() 自動解除」);從沒顯示過才提示
+    if (shownBefore) { this.deps.log?.('[stash] 熱鍵:倉庫已關閉,停止偵測'); return }
     this.deps.log?.(`[stash] 熱鍵:連續 ${STASH_ARM_MISS_LIMIT} 次沒有偵測到倉庫,停止偵測`)
     this.deps.onArmMiss?.()
+  }
+
+  /** 診斷:格子落在 client 哪個範圍(對照擷取畫面看位置偏不偏) */
+  private gridSummary (layouts: StashLayoutFile, subtab: StashSubtab, grid: StashGrid): string {
+    const r = gridRects(layouts, subtab, grid)
+    if (!r.length) return '這個子頁沒有格子'
+    const x0 = Math.min(...r.map(c => c.x)); const y0 = Math.min(...r.map(c => c.y))
+    const x1 = Math.max(...r.map(c => c.x + c.w)); const y1 = Math.max(...r.map(c => c.y + c.h))
+    return `${r.length} 格、格長 ${r[0].w} px,格子區 ${Math.round(x0)},${Math.round(y0)} – ${Math.round(x1)},${Math.round(y1)}`
   }
 
   /** 被擋下:記錄狀態(lastBlock / log / 計數)、作廢差分基準;停止類原因收掉疊層(暫停類留著) */
   private blockedResult (block: StashBlock, retryMs?: number): StashTickResult {
     if (block !== this.lastBlock) {
-      this.deps.log?.(block === 'capture-black'
-        ? '[stash] 暫停:capture-black(遊戲畫面擷取全黑,可能是全螢幕獨占;期滿 / 遊戲 attach / 視窗改變後再試)'
-        : `[stash] 暫停:${block}`)
+      this.deps.log?.(`[stash] 暫停:${block}(${STASH_BLOCK_TEXT[block]})`)
     }
     this.lastBlock = block
     this.blockCounts[block] = (this.blockCounts[block] ?? 0) + 1
     this.baseline = null
     if (STASH_CLEARING_BLOCKS.has(block) && this.shown) {
-      this.hide({ w: this.shown.clientW, h: this.shown.clientH })
+      this.hide({ w: this.shown.clientW, h: this.shown.clientH }, undefined, { why: `停止:${block}` })
     }
     return retryMs != null ? { kind: 'blocked', block, retryMs } : { kind: 'blocked', block }
   }
@@ -664,13 +664,19 @@ export class StashScan {
     this.syncTriggerMode()
     const cfg = this.deps.config()
     const env = this.deps.env()
+    const cfgKey = `${cfg.enabled}|${cfg.game}|${cfg.realm ?? 'intl'}|${cfg.triggerMode ?? 'auto'}|${cfg.intervalMs}|${cfg.readQuantity !== false}|${cfg.region ? `${cfg.region.x},${cfg.region.y},${cfg.region.w},${cfg.region.h}` : '-'}`
+    if (cfgKey !== this.lastCfgKey) {
+      this.lastCfgKey = cfgKey
+      this.deps.log?.(`[stash] 設定:${cfg.enabled ? '開' : '關'}、${cfg.game}、${cfg.realm ?? 'intl'}、顯示方式 ${cfg.triggerMode ?? 'auto'}、間隔 ${cfg.intervalMs} ms、讀數量 ${cfg.readQuantity !== false}、自訂區域 ${cfg.region ? JSON.stringify(cfg.region) : '無'}`)
+    }
     const block = stashBlock(cfg, env, this.ui, this.userPaused, this.isArmed)
     if (block) return this.blockedResult(block)
     // overlay screenshot 全黑鎖存(全螢幕獨占):overlay 畫不出來,擷取只會走每次卡 main 300–480 ms 的 getSources → 不擷取
     const blackMs = this.deps.captureBlackMs?.() ?? 0
     if (blackMs > 0) return this.blockedResult('capture-black', blackMs)
     if (this.lastBlock) { this.deps.log?.('[stash] 繼續掃描'); this.lastBlock = null }
-    if (this.deps.ocrBusy()) { this.counters.skippedBusy++; return { kind: 'busy' } }
+    const layouts = this.deps.qty?.layouts() ?? null
+    if (!layouts) { this.counters.skippedBusy++; return { kind: 'busy' } }
     // renderer 還沒畫完上一個事件(遮罩沒 ack)→ 擷取可能截到還沒遮的徽章
     if (this.deps.drawPending?.()) { this.counters.maskWaits++; return { kind: 'mask-wait' } }
 
@@ -678,80 +684,105 @@ export class StashScan {
     this.counters.captures++
     const cap = await this.deps.capture(env.bounds!)
     const client = cap.client
-    // 使用者框的區域優先,但夾在按鈕可能出現的範圍內(R1:框整個畫面 → 整張 ×3 OCR、也截到自己的徽章);交集為空 → 預設按鈕列
-    const ocr = stashOcrRect(cap.size, cfg.region, client, cap.offset)
-    this.logRegionClamp(cfg.region, ocr)
-    const strip = ocr.rect
-    const fp = cap.fingerprint(strip)
-    const key = `${client.w}x${client.h}@${cap.offset.x},${cap.offset.y}|${strip.x},${strip.y},${strip.width},${strip.height}`
+    const area = stashSearchRect(cap.size, cfg.region, client, cap.offset)
+    const fp = cap.fingerprint(area)
+    const key = `${client.w}x${client.h}@${cap.offset.x},${cap.offset.y}|${area.x},${area.y},${area.width},${area.height}`
+    if (key !== this.lastCapKey) {
+      this.lastCapKey = key
+      const ratio = client.w / client.h
+      this.deps.log?.(`[stash] 擷取:client ${client.w}×${client.h}(寬高比 ${ratio.toFixed(3)}${Math.abs(ratio - 16 / 9) > 0.01 ? ',不是 16:9' : ''})、擷取圖 ${cap.size.w}×${cap.size.h}、偏移 ${cap.offset.x},${cap.offset.y}、搜尋範圍 ${area.x},${area.y} ${area.width}×${area.height}${cfg.region ? (isLegacyStashRegion(cfg.region) ? '(自訂區域是舊版的按鈕列,框不住格子,改用預設範圍)' : '(依自訂區域)') : ''}`)
+    }
     const prev = this.baseline?.key === key ? this.baseline.fp : null
-    // 畫面沒變:狀態不會變(子頁 / 開關都會改變按鈕列)
+    // 畫面沒變:狀態不會變
     if (prev && !isChanged(this.diff(prev, fp), DEFAULT_DIFF_THRESHOLDS) && !isLargeChange(prev, fp)) {
       this.counters.skippedUnchanged++
       if (this.shown) this.updateQuantities(cap)
       return { kind: 'unchanged' }
     }
-    if (this.deps.ocrBusy()) { this.counters.skippedBusy++; return { kind: 'busy' } }
+    if (!cap.gray || area.width <= 0 || area.height <= 0) return { kind: 'error', message: '擷取不支援灰階或搜尋範圍在畫面外' }
 
-    const { lines, ms } = await cap.recognize(strip, 3)
-    this.ocrCount++
-    this.counters.ocrRuns++
+    const t0 = performance.now()
+    // 我們自己的徽章 / 價值卡(遮罩,擷取影像座標)換成搜尋範圍座標:擬合時碰到的邊條不算(code review B3)
+    const masks = (cap.maskRects ?? []).map(m => ({ x: m.x - area.x, y: m.y - area.y, w: m.w, h: m.h }))
+    const img: GrayImage = { gray: cap.gray(area), w: area.width, h: area.height, masks }
+    // 影像(搜尋範圍)↔ client:client = 影像 + 範圍左上 + 擷取偏移
+    const ox = area.x + cap.offset.x
+    const oy = area.y + cap.offset.y
+    let found: { subtab: StashSubtab, grid: StashGrid, score: number, scores?: Record<StashSubtab, number> } | null = null
+    const sh = this.shown
+    if (sh && sh.clientW === client.w && sh.clientH === client.h) {
+      // 顯示中:先以快取位置驗證(說明框 / 數量變化不必整個重搜)
+      const score = (this.deps.verify ?? scoreGrid)(img, layouts, sh.subtab, shiftGrid(sh.grid, -ox, -oy))
+      if (score >= minFitScore(layouts, sh.subtab)) found = { subtab: sh.subtab, grid: sh.grid, score }
+    } else if (sh) {
+      // 顯示中 client 大小變了:舊位置一定不對,立刻收起,下一個 tick 重找
+      const ms = Math.round(performance.now() - t0)
+      this.baseline = null
+      this.refindSoon = true
+      const sent = this.hide(client, ms, { keepArmed: true, why: `client 大小改變(${sh.clientW}×${sh.clientH} → ${client.w}×${client.h}),重找格子` })
+      return { kind: 'fit', found: false, subtab: null, held: false, sent, ms }
+    }
+    // 顯示中一律不重搜:驗證不過 = 一次「沒對上」(游標停在格上 → 維持;否則連續 2 次收起),收起後下一個 tick 在
+    // 沒有自己徽章的畫面上重找。
+    // - code review B1 / 交叉審查 1:說明框蓋住時重搜可能對上別的子頁 / 跳到錯的位置,之後只驗證錯的那頁就卡住
+    // - 第 2 輪審查 N1:徽章顯示名稱時撐到格寬、蓋住格子左右兩邊,帶著徽章重搜只剩上緣可看,實測整片偏 17–52 px
+    // 代價:換子頁要先收起再出現(約 2–3 個 tick)
+    if (!found && !sh) {
+      this.refindSoon = false
+      // 格長 ±8%(介面只隨 client 高度縮放)+ 預檢:倉庫沒開時每次擷取都會跑,4K 一次完整擬合約 0.2 秒、預檢約 0.03 秒(main 執行緒)
+      const r = (this.deps.fit ?? fitStashGrid)(img, layouts, { clientH: client.h, sizeRange: STASH_FIT_SIZE_RANGE, quickReject: true })
+      if (r) found = { subtab: r.subtab, grid: shiftGrid(r.grid, ox, oy), score: r.score, scores: r.scores }
+      this.ocrCount++
+      this.counters.ocrRuns++
+    }
+    const ms = Math.round(performance.now() - t0)
     this.lastOcrMs = ms
-    const clientLines = lines.map((l: OcrTextLine) => ({ text: l.text, x: l.x + cap.offset.x, y: l.y + cap.offset.y, w: l.w, h: l.h }))
-    const lang = this.deps.textLang?.() ?? 'zh'
-    const match = findSubtabButtons(clientLines, client.h, lang, stashLeft(client.w, client.h))
 
-    if (!match.found) {
-      // 診斷:認到 ≥ 1 顆但判定失敗(像碎片頁但沒過門檻 / 偏移對不上)時記下 OCR 文字,最多每 30 秒一次(實機回報「徽章沒出現」時查得到原因)
+    if (!found) {
       const now = this.clock.now()
-      if (match.matched > 0 && now - this.lastMissLogAt >= STASH_MISS_LOG_MS) {
+      // 顯示中 / 熱鍵模式等倉庫時才記(平常玩遊戲畫面一直變,會洗版)
+      if ((this.shown != null || this.isArmed) && now - this.lastMissLogAt >= STASH_MISS_LOG_MS) {
         this.lastMissLogAt = now
-        this.deps.log?.(`[stash] 沒找到子頁按鈕(認到 ${match.matched} 顆,client ${client.w}×${client.h}):` +
-          clientLines.map(l => l.text.replace(/\s+/g, '')).join(' | ').slice(0, 200))
+        this.deps.log?.(`[stash] 沒對上倉庫格子(${ms} ms,client ${client.w}×${client.h},搜尋範圍 ${area.width}×${area.height}):碎片頁沒開、在異能頁、或格子被大片遮住`)
       }
-      // 疊層顯示中(含 held / miss 累計期間)作廢差分基準(B1):畫面靜止也要重 OCR,否則 miss 累計不到上限、疊層收不掉;
-      // 沒顯示時照常記下這次縮圖(N1):平常玩遊戲畫面沒變就不 OCR
+      // 疊層顯示中(含 held / miss 累計期間)作廢差分基準:畫面靜止也要重算,否則 miss 累計不到上限、疊層收不掉;
+      // 沒顯示時照常記下這次縮圖:平常玩遊戲畫面沒變就不算
       this.baseline = this.shown ? null : { key, fp }
       const held = this.shown != null && this.holdStreak < STASH_HOLD_LIMIT && this.deps.holdOnMiss?.() === true
       if (held) {
         this.holdStreak++
-        return { kind: 'ocr', found: false, subtab: this.shown!.subtab, held: true, sent: null, ms }
+        return { kind: 'fit', found: false, subtab: this.shown!.subtab, held: true, sent: null, ms }
       }
       this.missStreak++
-      const sent = this.missStreak >= STASH_MISS_LIMIT ? this.hide(client, ms) : null
-      return { kind: 'ocr', found: false, subtab: null, held: false, sent, ms }
+      // 熱鍵模式不在這裡解除:可能只是換子頁,收起後重找;真的沒倉庫由 countArmMiss 累計解除
+      if (this.shown && this.missStreak >= STASH_MISS_LIMIT) this.refindSoon = true
+      const sent = this.missStreak >= STASH_MISS_LIMIT ? this.hide(client, ms, { keepArmed: true, why: `連續 ${this.missStreak} 次沒對上倉庫格子(倉庫關了 / 換到別頁?)` }) : null
+      return { kind: 'fit', found: false, subtab: null, held: false, sent, ms }
     }
     this.baseline = { key, fp }
     this.missStreak = 0
     this.holdStreak = 0
-
-    let subtab: StashSubtab | null = null
-    if (cap.gray) {
-      const rects = buttonRects(client.h, match.yOffset, stashLeft(client.w, client.h))
-      const p99 = rects.map(r => percentile(cap.gray!(toImage(r, cap.offset)), 0.99))
-      subtab = activeSubtab(p99)
-    }
-    if (!subtab) {
-      // 異能 / 判不出目前子頁 → 不畫。熱鍵模式不解除(一個 tick 判不出就要使用者再按太嚴):比照沒偵測到倉庫由 countArmMiss 累計
-      const sent = this.hide(client, ms, { keepArmed: true })
-      return { kind: 'ocr', found: true, subtab: null, held: false, sent, ms }
-    }
     // tick 進行中(await 期間)使用者按了暫停 → 不畫(下一輪被 user-paused 擋下並收掉)
     if (this.userPaused) return this.blockedResult('user-paused')
     // 熱鍵顯示模式:await 期間收起 / 解除了 → 不畫
     if (cfg.triggerMode === 'hotkey' && !this.isArmed) return this.blockedResult('not-armed')
-    const same = this.shown && this.shown.subtab === subtab && this.shown.yOffset === match.yOffset &&
+    const subtab = found.subtab
+    const g0 = this.shown?.grid
+    const same = this.shown && g0 && this.shown.subtab === subtab && g0.H === found.grid.H && g0.x === found.grid.x && g0.y === found.grid.y &&
       this.shown.clientW === client.w && this.shown.clientH === client.h
     if (same) {
       this.updateQuantities(cap)
-      return { kind: 'ocr', found: true, subtab, held: false, sent: null, ms }
+      return { kind: 'fit', found: true, subtab, held: false, sent: null, ms }
     }
-    this.shown = { subtab, yOffset: match.yOffset, clientW: client.w, clientH: client.h }
+    // 顯示中不重搜 → 走到這裡一定是剛打開(沒顯示 → 顯示),數量全部重讀
+    this.shown = { subtab, grid: found.grid, clientW: client.w, clientH: client.h }
+    this.shownSinceArm = true
     this.qty = null
-    this.deps.log?.(`[stash] 碎片頁:${subtab}${match.yOffset ? `(資料夾偏移 ${match.yOffset})` : ''},OCR ${ms} ms`)
+    const sc = found.scores ? `一般 ${found.scores.general.toFixed(2)} / 綢帶 ${found.scores.threads.toFixed(2)}` : found.score.toFixed(2)
+    this.deps.log?.(`[stash] 擬合:${subtab},分數 ${sc},${ms} ms,${fmtGrid(found.grid)}(舊公式 ${fmtGrid(formulaGrid(layouts, subtab, client.w, client.h))}),${this.gridSummary(layouts, subtab, found.grid)}`)
     const q = this.readQuantities(cap, true)
     this.emit('show', client, ms, { qtyMs: q?.ms })
-    return { kind: 'ocr', found: true, subtab, held: false, sent: 'show', ms }
+    return { kind: 'fit', found: true, subtab, held: false, sent: 'show', ms }
   }
 
   /** 顯示中:讀數量(只讀變了的格);數量 / peek 狀態跟上次送的不同 → 再送一次同子頁的 show。開關關掉 → 送一次不帶數量的 show */
@@ -784,8 +815,9 @@ export class StashScan {
       if (this.dumpReq) this.dumpReq.finish({ ok: false, reason: cfg.readQuantity === false ? 'qty-off' : 'no-data' })
       return null
     }
-    const key = `${shown.subtab}|${shown.yOffset}|${shown.clientW}x${shown.clientH}@${cap.offset.x},${cap.offset.y}`
-    const rects = cellRects(layouts, shown.subtab, shown.clientH, shown.yOffset, stashLeft(shown.clientW, shown.clientH))
+    const g = shown.grid
+    const key = `${shown.subtab}|${g.H},${g.x},${g.y}|${shown.clientW}x${shown.clientH}@${cap.offset.x},${cap.offset.y}`
+    const rects = gridRects(layouts, shown.subtab, g)
     if (fresh || this.qty?.key !== key) {
       this.qty = {
         key, cells: rects.map(() => ({})), values: rects.map(() => null), want: new Set(rects.keys()),
@@ -801,11 +833,13 @@ export class StashScan {
     const t0 = performance.now()
     // 影像座標(client − 擷取偏移);一次取整個格子區的像素
     const img = rects.map(r => ({ x: r.x - cap.offset.x, y: r.y - cap.offset.y, w: r.w, h: r.h }))
-    const crops = img.map(r => qtyCropRect(r, shown.clientH, templates.baseClientH))
+    // 數字模板依「格長對應的 client 高度」縮放(= 擬合的 H;16:9 時約等於 client 高度)
+    const qH = g.H
+    const crops = img.map(r => qtyCropRect(r, qH, templates.baseClientH))
     const bx0 = Math.floor(Math.min(...crops.map(c => c.x))) - 2
     const by0 = Math.floor(Math.min(...crops.map(c => c.y))) - 2
     // 右界含漏讀檢查的延伸裁切(`QTY_PARAMS.extW` 基準像素):否則最右欄的三位數延伸區出界 → 永遠不確定
-    const bx1 = Math.ceil(Math.max(...crops.map(c => c.x + c.w)) + QTY_PARAMS.extW * (shown.clientH / templates.baseClientH)) + 2
+    const bx1 = Math.ceil(Math.max(...crops.map(c => c.x + c.w)) + QTY_PARAMS.extW * (qH / templates.baseClientH)) + 2
     const by1 = Math.ceil(Math.max(...crops.map(c => c.y + c.h))) + 2
     const px = cap.pixels({ x: bx0, y: by0, width: bx1 - bx0, height: by1 - by0 })
     if (st.org && (st.org.x !== px.x || st.org.y !== px.y)) {
@@ -825,7 +859,7 @@ export class StashScan {
       const cs = st.cells[i]
       // 裁切區內的遮罩(徽章像素一律不算、也不拿來讀);蓋到數字帶才算「蓋住數字」
       const inCrop = hits(masks, c)
-      const cur = qtyWhiteMap(px, cell, shown.clientH, templates.baseClientH)
+      const cur = qtyWhiteMap(px, cell, qH, templates.baseClientH)
       const sig = qtyMapSignature(cur, inCrop)
       if (hits(inCrop, cs.band ?? c).length) {
         this.counters.qtyMasked++
@@ -845,7 +879,7 @@ export class StashScan {
       }
       cs.masked = undefined
       if (!st.want.has(i) && cs.clean && !qtySignatureChanged(qtyMapSignature(cs.clean, inCrop), sig)) continue
-      const r = readCellQuantity(px, cell, templates, { clientH: shown.clientH, mask: inCrop, refName: rects[i].refName })
+      const r = readCellQuantity(px, cell, templates, { clientH: qH, mask: inCrop, refName: rects[i].refName })
       if (r.reason === 'masked') {
         // 數字延伸到遮罩底下(例如位數變多):當成蓋住,等 peek
         cs.band = r.band
@@ -905,21 +939,6 @@ export class StashScan {
       if (unread) this.deps.log?.(`[stash] 數量未讀 ${unread.split(';').length} 格(${shown.subtab}):${unread}`)
     }
     return { ms }
-  }
-
-  /** 自訂區域被縮小 / 完全在範圍外:同一個區域值只記一次 */
-  private logRegionClamp (region: OcrRegion | null | undefined, ocr: { clamped: Rect | null, outside: boolean }): void {
-    if (!region) { this.lastClampLogKey = null; return }
-    if (!ocr.clamped && !ocr.outside) return
-    const key = `${region.x},${region.y},${region.w},${region.h}`
-    if (key === this.lastClampLogKey) return
-    this.lastClampLogKey = key
-    if (ocr.clamped) {
-      const c = ocr.clamped
-      this.deps.log?.(`[stash] 自訂 OCR 區域超出按鈕列範圍,已縮到 ${c.x},${c.y} ${c.w}×${c.h}(client px)`)
-    } else {
-      this.deps.log?.('[stash] 自訂 OCR 區域完全不在按鈕列範圍內,改用預設位置')
-    }
   }
 
   private diff (a: Fingerprint, b: Fingerprint): { mean: number, changedRatio: number } | null {

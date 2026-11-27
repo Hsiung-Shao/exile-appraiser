@@ -14,8 +14,8 @@ const sample: ShareState = {
   game: 'poe1',
   mode: 'none',
   pages: { map_mods: ['#% more Monster Life', 'Monsters Blind on Hit'] },
-  sections: { map_mods: ['tier', 'quantity'] },
-  numeric: { map_mods: { tier: { min: 16 }, quantity: { min: 80, max: 150 } } },
+  sections: { map_mods: ['tier', 'atlas_drops'] },
+  numeric: { map_mods: { tier: { min: 16 }, atlas_drops: { min: 80, max: 150 } } },
   custom: ['自訂 一', 'Custom "two"'],
   excludes: ['反射', '無法回復']
 }
@@ -64,14 +64,14 @@ describe('分享碼', () => {
     expect(r.missed).toBe(2)
     expect(r.picks.map_mods.length).toBe(2)
     expect(r.picks.map_numeric.length).toBe(2)
-    expect(r.values.map_numeric.quantity).toEqual({ min: 80, max: 150 })
+    expect(r.values.map_numeric.atlas_drops).toEqual({ min: 80, max: 150 })
   })
   it('勾選 → 分享碼 → 清空 → 貼上:同一串 query', async () => {
     const pages = loadAllPagesFor('poe1')
     const mm = pages.find(p => p.id === 'map_mods')!
     const mn = pages.find(p => p.id === 'map_numeric')!
     const picks = { map_mods: [3, 17, 40], map_numeric: [0, 1] }
-    const values = { tier: { min: 16 }, quantity: { min: 80 } }
+    const values = { tier: { min: 16 }, atlas_drops: { min: 80 } }
     const before = combine({ lang: 'zh', mode: 'any', pages: [{ page: mm, picks: picks.map_mods }, { page: mn, picks: picks.map_numeric, values }], excludes: ['反射'] })
     const code = await encodeShare({
       v: 2, game: 'poe1', mode: 'any',

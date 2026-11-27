@@ -111,11 +111,11 @@
 
         <div class="flex-1 flex flex-col gap-1">
           <div class="flex-1 flex items-start gap-x-2">
-            <span v-if="showTag && tag === 'pseudo'" :class="$style.sub">{{
+            <span v-if="showTag && tag === 'pseudo' && filter.sources.length" :class="$style.sub">{{
               t("ppz.mod_cards.from_n", [filter.sources.length])
             }}</span>
             <span
-              v-else-if="showTag"
+              v-else-if="showTag && tag !== 'pseudo'"
               :class="[$style['tag'], $style[`tag-${tag}`]]"
               >{{ t(`filters.tag_${tag.replace("-", "_")}`)
               }}{{

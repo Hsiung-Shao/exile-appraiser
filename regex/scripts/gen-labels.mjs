@@ -28,7 +28,7 @@ const KEYS = {
   poe1: [
     'ItemDisplayMapTier', 'ItemDisplayMapQuantityIncrease', 'ItemDisplayMapRarityIncrease', 'ItemDisplayMapPackSizeIncrease',
     'ItemDisplayMapScarabDropBonus', 'ItemDisplayMapCurrencyDropBonus', 'ItemDisplayMapMapDropBonus',
-    'ItemDisplayMapDivinationCardDropBonus',
+    'ItemDisplayMapDivinationCardDropBonus', 'ItemDisplayMapDropScalingBonus',
     'ItemLevelPopup', 'Quality', 'ItemDisplayStringSockets', 'ItemPopupCorrupted', 'ItemPopupDoubleCorrupted', 'Level',
     'ItemPopupShaperItem', 'ItemPopupElderItem', 'ItemPopupCrusaderItem', 'ItemPopupRedeemerItem',
     'ItemPopupHunterItem', 'ItemPopupWarlordItem', 'ItemPopupSearingExarchItem', 'ItemPopupEaterofWorldsItem',

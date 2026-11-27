@@ -2,6 +2,7 @@
 // 區域 id 取自使用者本機 Client.txt 實測(PoE1 / PoE2)與 PoE2 GGPK `worldareas`;
 // PoE1 沒有本機 GGPK 表 → 城鎮選單只顯示「第 N 章城鎮」與 id,不自行翻譯地名。
 // 零依賴:main(esbuild)以相對路徑 import。
+import { normHistory, type RunRecord } from './history'
 
 export type SpeedrunGame = 'poe1' | 'poe2'
 /** area null = 只能手動分段 */
@@ -17,6 +18,12 @@ export interface Route {
   attempts: number
   autoStart: boolean
   autoSplit: boolean
+  /** 2026-11-28 每次嘗試的紀錄(舊到新;history.ts) */
+  history: RunRecord[]
+  /** 比較對象紀錄 id;null = 跟個人最佳比 */
+  compare: string | null
+  /** 調過順序的次數(紀錄的分段結構簽章用;沒有 = 0) */
+  shapeGen?: number
 }
 
 interface PresetSplit { area: string, zh: string, en: string }
@@ -88,7 +95,9 @@ export function presetRoute (game: SpeedrunGame, lang: 'cmn-Hant' | 'en'): Route
     attempts: 0,
     // 使用者裁定:自動開始預設關(2026-11-10);章節自動分段預設開(2026-11-18,推翻 11-10 的預設關)
     autoStart: false,
-    autoSplit: true
+    autoSplit: true,
+    history: [],
+    compare: null
   }
 }
 
@@ -111,6 +120,7 @@ export function normRoute (v: unknown, game: SpeedrunGame, lang: 'cmn-Hant' | 'e
   }
   const n = splits.length
   const pb = Array.isArray(o.pb) && o.pb.length === n && o.pb.every(isTime) ? [...o.pb] as Array<number | null> : null
+  const history = normHistory(o.history)
   const golds = Array.isArray(o.golds) && o.golds.length === n && o.golds.every(isTime) ? [...o.golds] as Array<number | null> : splits.map(() => null)
   return {
     splits,
@@ -119,7 +129,10 @@ export function normRoute (v: unknown, game: SpeedrunGame, lang: 'cmn-Hant' | 'e
     golds,
     attempts: typeof o.attempts === 'number' && Number.isInteger(o.attempts) && o.attempts >= 0 ? o.attempts : 0,
     autoStart: typeof o.autoStart === 'boolean' ? o.autoStart : def.autoStart,
-    autoSplit: typeof o.autoSplit === 'boolean' ? o.autoSplit : def.autoSplit
+    autoSplit: typeof o.autoSplit === 'boolean' ? o.autoSplit : def.autoSplit,
+    history,
+    compare: typeof o.compare === 'string' && history.some(r => r.id === o.compare) ? o.compare : null,
+    ...(typeof o.shapeGen === 'number' && Number.isInteger(o.shapeGen) && o.shapeGen > 0 ? { shapeGen: o.shapeGen } : {})
   }
 }
 
@@ -128,11 +141,16 @@ export function normRoute (v: unknown, game: SpeedrunGame, lang: 'cmn-Hant' | 'e
  * `keepRecords` false = 一律作廢(調順序:兩段區域相同時互換也會錯位;使用者 2026-11-10 裁定)
  */
 export function replaceSplits (route: Route, splits: SplitDef[], keepRecords = true): Route {
-  const same = keepRecords && splits.length === route.splits.length && splits.every((s, i) => s.area === route.splits[i].area)
+  const sameAreas = splits.length === route.splits.length && splits.every((s, i) => s.area === route.splits[i].area)
+  const same = keepRecords && sameAreas
   return {
     ...route,
     splits: splits.map(s => ({ ...s })),
     pb: same && route.pb ? [...route.pb] : null,
+    // 調順序而區域序列沒變(區域相同的段互換):從區域看不出來,改序號讓舊紀錄算分段不同。
+    // 區域序列有變的不加(區域本身就分得出來;點錯再調回來,舊紀錄恢復相容;審查 2026-11-28 第 2 輪)。
+    // 刪段一律加:全手動段(區域都是空)刪一段再加一段,區域序列會跟舊的一樣(第 3 輪)
+    ...((!keepRecords && sameAreas) || splits.length < route.splits.length ? { shapeGen: (route.shapeGen ?? 0) + 1 } : {}),
     golds: same ? [...route.golds] : splits.map(() => null)
   }
 }

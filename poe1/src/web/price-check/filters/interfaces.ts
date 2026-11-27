@@ -99,6 +99,8 @@ export interface ItemFilters {
     disabled: boolean
   }
   sentinelCharge?: FilterNumeric
+  /** exile-appraiser: 2026-11-26 GitHub issue #76 已儲存經驗(交易站 misc_filters.stored_experience) */
+  storedExperience?: FilterNumeric
   trade: {
     offline: boolean
     onlineInLeague: boolean

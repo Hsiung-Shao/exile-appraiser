@@ -31,7 +31,8 @@ export interface StashDumpData {
   /** 擷取時間(clock) */
   ts: number
   subtab: StashSubtab
-  yOffset: number
+  /** 擬合出的格子位置(client 實體像素) */
+  grid: { H: number, x: number, y: number }
   client: { w: number, h: number }
   /** 擷取影像左上在 client 內的位置 */
   offset: { x: number, y: number }
@@ -79,7 +80,7 @@ export function stashDumpMeta (d: StashDumpData, version: string): Record<string
     version,
     ts: d.ts,
     subtab: d.subtab,
-    yOffset: d.yOffset,
+    grid: d.grid,
     client: d.client,
     offset: d.offset,
     origin: d.origin,

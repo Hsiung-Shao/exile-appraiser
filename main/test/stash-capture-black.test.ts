@@ -6,6 +6,7 @@ import { describe, expect, it, vi } from 'vitest'
 import type { StashScanEvent } from '@ipc/types'
 import type { ScanCapture, ScanClock, ScanEnv } from '../src/ocr/panel-scan'
 import { StashScan, type StashScanConfig } from '../src/ocr/stash-scan'
+import { LAYOUTS_330 } from './stash-fit-fakes'
 import { createGameClientCapture, LATCH_AFTER, LATCH_RETRY_MS, type CropImage, type PhysRect } from '../src/ocr/overlay-shot'
 
 interface Img extends CropImage<Img> { tag: string }
@@ -91,7 +92,6 @@ function scanHarness () {
     clock: clk.clock,
     config: () => cfg,
     env: () => env,
-    ocrBusy: () => false,
     captureBlackMs: () => state.blackMs,
     capture: async (): Promise<ScanCapture> => {
       state.captures++
@@ -106,6 +106,9 @@ function scanHarness () {
       }
     },
     send: (e) => { events.push(e) },
+    fit: () => null,
+    verify: () => 0,
+    qty: { layouts: () => LAYOUTS_330, templates: () => null },
     log: (m) => { logs.push(m) }
   })
   return { scan, state, logs, events, clk }
@@ -166,8 +169,8 @@ describe('StashScan 全黑鎖存時不擷取', () => {
       clock: h.clk.clock,
       config: () => ({ enabled: true, game: 'poe1', intervalMs: 1000 }),
       env: () => ({ overlay: true, gameActive: true, bounds: { x: 0, y: 0, width: 2546, height: 1432 } }),
-      ocrBusy: () => false,
       capture: async () => { h.state.captures++; throw new Error('stop') },
+      qty: { layouts: () => LAYOUTS_330, templates: () => null },
       send: () => {}
     })
     await scan.tick()

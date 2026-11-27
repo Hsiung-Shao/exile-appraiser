@@ -415,6 +415,8 @@ export default defineComponent({
     }
 
     function handleItemText (e: ItemTextEvent) {
+      // 2026-11-26 診斷:main 記了「讀到物品文字」但這行沒出現 = 事件沒送到畫面(視窗重新載入 / 卡住)
+      console.log(`[app] 收到物品文字 ${e.clipboard.length} 字元${e.target ? ` target=${e.target}` : ''}(game=${loadedGame.value}、資料 ${dataLanguage.value ?? '未載入'}、設定開著 ${showSettings.value})`)
       if (e.target === 'poedb' || e.target === 'wiki') {
         const site = e.target
         void openItemOnPoedb(e.clipboard, {
@@ -639,6 +641,10 @@ export default defineComponent({
 
     // WP-S2:開框選層(設定頁按鈕或熱鍵)→ 關掉設定 / 查價面板,整個遊戲畫面留給框選;
     // 由設定開的,使用者確認 / 取消 / 清除後回到設定的自動辨識分頁(失焦結束的不回)
+    // 2026-11-26 診斷:查價面板實際顯示 / 收起(「按了沒畫面」時分辨沒收到物品與面板被藏)
+    watch(panelVisible, (v) => {
+      console.log(`[app] 查價面板${v ? '顯示' : '收起'}(${isOverlay ? 'overlay' : '獨立視窗'}${settingsVisible.value ? '、設定開著' : ''})`)
+    })
     watch(regionPickerOpen, (open) => {
       if (open) {
         showSettings.value = false
