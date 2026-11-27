@@ -141,13 +141,15 @@ export function normRoute (v: unknown, game: SpeedrunGame, lang: 'cmn-Hant' | 'e
  * `keepRecords` false = 一律作廢(調順序:兩段區域相同時互換也會錯位;使用者 2026-11-10 裁定)
  */
 export function replaceSplits (route: Route, splits: SplitDef[], keepRecords = true): Route {
-  const same = keepRecords && splits.length === route.splits.length && splits.every((s, i) => s.area === route.splits[i].area)
+  const sameAreas = splits.length === route.splits.length && splits.every((s, i) => s.area === route.splits[i].area)
+  const same = keepRecords && sameAreas
   return {
     ...route,
     splits: splits.map(s => ({ ...s })),
     pb: same && route.pb ? [...route.pb] : null,
-    // 調順序:舊紀錄對不上新順序(區域相同的段互換也一樣)
-    ...(keepRecords ? {} : { shapeGen: (route.shapeGen ?? 0) + 1 }),
+    // 調順序而區域序列沒變(區域相同的段互換):從區域看不出來,改序號讓舊紀錄算分段不同。
+    // 區域序列有變的不加(區域本身就分得出來;點錯再調回來,舊紀錄恢復相容;審查 2026-11-28 第 2 輪)
+    ...(!keepRecords && sameAreas ? { shapeGen: (route.shapeGen ?? 0) + 1 } : {}),
     golds: same ? [...route.golds] : splits.map(() => null)
   }
 }
