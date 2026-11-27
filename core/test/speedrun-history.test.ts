@@ -302,3 +302,37 @@ describe('嘗試紀錄', () => {
     expect(compatible(rec(a), changed)).toBe(false)
   })
 })
+
+// 2026-11-28 審查第 1 輪:瀏覽器預覽的設定頁看不到 Electron 那邊正在跑的計時 → 防護要在 core
+describe('計時中從別的頁面改紀錄(審查第 1 輪)', () => {
+  it('R1 計時中外部設了新 PB,下一次分段不會用開始時的快照蓋回去', () => {
+    const c = clock()
+    const route = mk(3, { pb: [10_000, 20_000, 30_000] })
+    const run = createRun(route, c.now)
+    run.start()
+    c.advance(50_000); run.split()
+    route.pb = [1_000, 2_000, 3_000]
+    c.advance(50_000); run.split()
+    expect(route.pb).toEqual([1_000, 2_000, 3_000])
+  })
+  it('R2 計時中外部刪掉這次的紀錄,下一次分段不會加回來', () => {
+    const c = clock()
+    const route = mk(3)
+    const run = createRun(route, c.now)
+    run.start()
+    c.advance(5_000); run.split()
+    deleteRecord(route, route.history[0].id)
+    c.advance(5_000); run.split()
+    expect(route.history).toHaveLength(0)
+  })
+  it('R3 調順序(不保留紀錄)後,舊紀錄算分段不同,即使兩段區域相同', () => {
+    const route = mk(3)
+    route.splits[1].area = null
+    route.splits[2].area = null
+    const old = rec(route)
+    const swapped = replaceSplits(route, [route.splits[0], route.splits[2], route.splits[1]], false)
+    expect(compatible(old, swapped)).toBe(false)
+    // 只改名(保留紀錄)仍相容
+    expect(compatible(old, replaceSplits(route, route.splits.map(s => ({ ...s, name: s.name + '!' }))))).toBe(true)
+  })
+})

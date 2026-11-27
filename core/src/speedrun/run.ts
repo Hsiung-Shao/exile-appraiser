@@ -52,6 +52,10 @@ export function createRun (routeOf: Route | (() => Route), now: () => number): R
     /** 這次開始的時間點與分段結構(紀錄用) */
     attemptAt: 0,
     attemptShape: '',
+    /** 這次寫過紀錄了(之後找不到 = 被使用者刪掉,不再加回來) */
+    recorded: false,
+    /** apply 上次寫進路線的 PB;路線上的跟它不同 = 別的頁面改了 PB(審查 2026-11-28) */
+    wrotePb: null as Array<number | null> | null,
     /** 跳段前的段落(撤銷回到這裡以前 = 不再是中途開始) */
     jumpFrom: 0,
     /** 暫停前累計的毫秒 */
@@ -67,6 +71,9 @@ export function createRun (routeOf: Route | (() => Route), now: () => number): R
     },
     /** 快照 + 這次的分段 → 路線的 PB / 金段 */
     apply (): void {
+      // 計時中從別的頁面(瀏覽器預覽的設定)設了 PB:改用新的當基準,不用開始時的快照蓋回去
+      const cur = R().pb
+      if (!samePb(cur, this.wrotePb)) this.base.pb = cur && [...cur]
       const golds = [...this.base.golds]
       for (let i = 0; i < golds.length; i++) {
         const seg = segmentTime(this, i)
@@ -76,6 +83,7 @@ export function createRun (routeOf: Route | (() => Route), now: () => number): R
       const total = this.phase === 'finished' ? this.splitTimes[this.splitTimes.length - 1] : null
       const pbTotal = this.base.pb?.[this.base.pb.length - 1]
       R().pb = !this.partial && total != null && (pbTotal == null || total < pbTotal) ? [...this.splitTimes] : this.base.pb && [...this.base.pb]
+      this.wrotePb = R().pb && [...R().pb!]
       this.record()
     },
     /** 這次嘗試的紀錄:新增或更新;一段都沒時間(撤銷到底)→ 拿掉 */
@@ -85,7 +93,10 @@ export function createRun (routeOf: Route | (() => Route), now: () => number): R
       // 沒經過 normRoute 的舊路線物件沒有 history
       const h = r.history ?? (r.history = [])
       const i = h.findIndex(x => x.id === this.attemptId)
-      if (this.splitTimes.every(t => t == null)) { if (i >= 0) h.splice(i, 1); return }
+      if (this.splitTimes.every(t => t == null)) { if (i >= 0) h.splice(i, 1); this.recorded = false; return }
+      // 寫過又找不到 = 使用者刪了進行中的這筆(可能從瀏覽器預覽的設定頁):這次不再記
+      if (i < 0 && this.recorded) { this.attemptId = null; return }
+      this.recorded = true
       const fields = { splitTimes: [...this.splitTimes], finished: this.phase === 'finished', partial: this.partial }
       if (i >= 0) Object.assign(h[i], fields)
       else addRecord(r, { id: this.attemptId, name: '', at: this.attemptAt, shape: this.attemptShape, ...fields })
@@ -98,6 +109,8 @@ export function createRun (routeOf: Route | (() => Route), now: () => number): R
       // 次數 + 時間:同一毫秒開始兩次也不撞(attempts 下面才 +1)
       this.attemptId = `${this.attemptAt.toString(36)}-${r.attempts.toString(36)}`
       this.attemptShape = routeShape(r)
+      this.recorded = false
+      this.wrotePb = this.base.pb && [...this.base.pb]
       this.splitTimes = blank()
       this.index = 0
       this.partial = false
@@ -159,6 +172,9 @@ export function createRun (routeOf: Route | (() => Route), now: () => number): R
   }
   return run
 }
+
+const samePb = (a: Array<number | null> | null, b: Array<number | null> | null) =>
+  a === b || (a != null && b != null && a.length === b.length && a.every((v, i) => v === b[i]))
 
 /**
  * 畫面比較用的紀錄:跑著(含暫停 / 跑完)= 開始時的快照;沒在跑 = 路線目前的紀錄。

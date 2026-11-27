@@ -21,8 +21,9 @@ export interface RunRecord {
 /** 每條路線最多幾筆;滿了刪最舊的(比較對象除外) */
 export const HISTORY_LIMIT = 500
 
-export function routeShape (route: Pick<Route, 'splits'>): string {
-  return `${route.splits.length}#` + route.splits.map(s => s.area ?? '').join('|')
+/** 段數 + 各段區域;調過順序(`shapeGen`)也算不同(兩段區域相同時互換,區域看不出來;審查 2026-11-28) */
+export function routeShape (route: Pick<Route, 'splits' | 'shapeGen'>): string {
+  return (route.shapeGen ? `${route.shapeGen}@` : '') + `${route.splits.length}#` + route.splits.map(s => s.area ?? '').join('|')
 }
 
 export function recordTotal (rec: RunRecord): number | null {

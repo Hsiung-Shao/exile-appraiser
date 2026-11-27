@@ -22,6 +22,8 @@ export interface Route {
   history: RunRecord[]
   /** 比較對象紀錄 id;null = 跟個人最佳比 */
   compare: string | null
+  /** 調過順序的次數(紀錄的分段結構簽章用;沒有 = 0) */
+  shapeGen?: number
 }
 
 interface PresetSplit { area: string, zh: string, en: string }
@@ -129,7 +131,8 @@ export function normRoute (v: unknown, game: SpeedrunGame, lang: 'cmn-Hant' | 'e
     autoStart: typeof o.autoStart === 'boolean' ? o.autoStart : def.autoStart,
     autoSplit: typeof o.autoSplit === 'boolean' ? o.autoSplit : def.autoSplit,
     history,
-    compare: typeof o.compare === 'string' && history.some(r => r.id === o.compare) ? o.compare : null
+    compare: typeof o.compare === 'string' && history.some(r => r.id === o.compare) ? o.compare : null,
+    ...(typeof o.shapeGen === 'number' && Number.isInteger(o.shapeGen) && o.shapeGen > 0 ? { shapeGen: o.shapeGen } : {})
   }
 }
 
@@ -143,6 +146,8 @@ export function replaceSplits (route: Route, splits: SplitDef[], keepRecords = t
     ...route,
     splits: splits.map(s => ({ ...s })),
     pb: same && route.pb ? [...route.pb] : null,
+    // 調順序:舊紀錄對不上新順序(區域相同的段互換也一樣)
+    ...(keepRecords ? {} : { shapeGen: (route.shapeGen ?? 0) + 1 }),
     golds: same ? [...route.golds] : splits.map(() => null)
   }
 }
