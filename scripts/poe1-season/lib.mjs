@@ -1717,7 +1717,7 @@ export function planSharedZh ({ enStats, zhStats, ggpkNew }) {
     if (new Set(list.map(o => o.unit)).size < 2 || new Set(list.map(o => idsKey(o.s))).size < 2) continue
     // 沒有共同的 id 類型(一條只有 implicit、一條只有 explicit;只有 pseudo)解析器依類型挑得開,不會混查
     const typesOf = (/** @type {any} */ o) => Object.keys(o.s.trade?.ids ?? {}).filter(t => t !== 'pseudo')
-    if (!typesOf(list[0]).some(t => list.every(o => typesOf(o).includes(t)))) continue
+    if (!list.some((a, i) => list.slice(i + 1).some(b => typesOf(a).some(t => typesOf(b).includes(t))))) continue
     const live = list.filter(o => !o.m.superseded)
     const liveUnits = new Set(live.map(o => o.unit))
     if (!live.length) { ambiguous.push({ string, refs: uniq(list.map(o => o.s.ref)) }); continue }
