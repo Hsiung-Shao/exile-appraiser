@@ -364,7 +364,7 @@ describe('自動開始 / 分段', () => {
     run.split()
     expect(run.index).toBe(2)
     expect(autoAction(run, route, '1_2_1')).toBeNull()
-    expect(autoAction(run, route, '1_4_1')).toBe('split')
+    expect(autoAction(run, route, '1_4_1')).toEqual({ split: 2 })
   })
 
   it('S10 autoSplit 關閉 → null', () => {
@@ -384,11 +384,13 @@ describe('自動開始 / 分段', () => {
     expect(autoAction(run, route, '1_1_1')).toBeNull()
   })
 
-  it('S10 手動分段(area 為 null)的那一段不會被自動分段觸發', () => {
-    const route = mk([null, 'x_town'])
+  it('S10 手動分段(area 為 null)的那一段不會被自動分段觸發;還沒分過時進下一段目標區 → 跳過它(2026-11-28 中途開始)', () => {
+    const route = mk([null, 'x_town', 'y_town'])
     const run = createRun(route, clock().now)
     run.start()
-    expect(autoAction(run, route, 'x_town')).toBeNull()
+    expect(autoAction(run, route, 'x_town')).toEqual({ split: 1 })
+    run.split()
+    expect(autoAction(run, route, 'y_town')).toBeNull()
   })
 
   it('S10 跑完(finished)後不再回 split', () => {

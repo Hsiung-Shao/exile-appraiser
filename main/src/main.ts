@@ -54,7 +54,7 @@ import { loadStashDigitTemplates, loadStashLayouts } from './stash-layout-data'
 import { SharedCapture, SharedLocateOcr } from './ocr/panel-scan'
 import { ScanMaskStore, sanitizeMaskReport } from './ocr/scan-mask'
 import { isAppNavigation, isExternalWebUrl } from './external-links'
-import { BG_DIR_NAME, SHEET_DIR_NAME, bgContentType, bgCorsHeaders, bgFileFromPath, normBgFile, resolveBgPath, storedBgName } from './backgrounds'
+import { BG_DIR_NAME, SHEET_DIR_NAME, SOUND_DIR_NAME, bgContentType, bgCorsHeaders, bgFileFromPath, normBgFile, normSoundFile, resolveBgPath, soundContentType, storedBgName, storedSoundName } from './backgrounds'
 import { createFontLister } from './system-fonts'
 import { AppLog, LogFileWriter, buildLogExport, captureConsole, consoleMethodForLevel, dateStamp, formatLogEntry, maskHomeDir, pickExportLogFiles, timeStamp, type LogEntry } from './app-log'
 import os from 'node:os'
@@ -166,13 +166,16 @@ if (OCR_SELFTEST != null) {
 const APP_SCHEME = 'app'
 protocol.registerSchemesAsPrivileged([{
   scheme: APP_SCHEME,
-  privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true }
+  // stream:2026-11-28 計時器音效 `<audio src="app://sound/…">` 需要(自訂協定的媒體載入)
+  privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true, stream: true }
 }])
 
 /** 自訂背景圖的資料夾(`userData/backgrounds`;backgrounds.ts) */
 const BG_DIR = () => path.join(app.getPath('userData'), BG_DIR_NAME)
 /** 懸浮選單的速查表圖片(`userData/cheatsheets`;規則同背景圖,另開資料夾) */
 const SHEET_DIR = () => path.join(app.getPath('userData'), SHEET_DIR_NAME)
+/** 2026-11-28 計時器音效(`userData/timer-sounds`;只准音訊檔名,另開資料夾) */
+const SOUND_DIR = () => path.join(app.getPath('userData'), SOUND_DIR_NAME)
 
 /**
  * `app://app/…` = renderer/dist(只有正式版;開發模式走 Vite);`app://bg/<檔名>` = 自訂背景圖(兩種模式都有)。
@@ -183,6 +186,14 @@ function installAppProtocol (serveRenderer: boolean) {
   const root = __dirname
   protocol.handle(APP_SCHEME, (request) => {
     const url = new URL(request.url)
+    if (url.host === 'sound') {
+      const name = bgFileFromPath(url.pathname)
+      const file = name == null ? null : resolveBgPath(SOUND_DIR(), name, normSoundFile)
+      if (!file) return new Response('not found', { status: 404 })
+      return net.fetch(pathToFileURL(file).toString()).then(r => r.ok
+        ? new Response(r.body, { status: 200, headers: { 'Content-Type': soundContentType(file), 'Cache-Control': 'no-cache' } })
+        : new Response('not found', { status: 404 }))
+    }
     if (url.host === 'bg' || url.host === 'sheet') {
       const name = bgFileFromPath(url.pathname)
       const file = name == null ? null : resolveBgPath(url.host === 'bg' ? BG_DIR() : SHEET_DIR(), name)
@@ -326,7 +337,9 @@ const WEB_PREFERENCES = ():BrowserWindowConstructorOptions['webPreferences'] => 
   contextIsolation: true,
   sandbox: true,
   nodeIntegration: false,
-  spellcheck: false
+  spellcheck: false,
+  // 2026-11-28 計時器音效:overlay 平常沒有使用者互動(點擊穿透),倒數歸零 / 碼表提醒要能直接播
+  autoplayPolicy: 'no-user-gesture-required'
 })
 
 function createWindow (mode: WindowMode): BrowserWindow {
@@ -1227,6 +1240,7 @@ if (!skipStartup) app.whenReady().then(() => {
       bgDir: BG_DIR(),
       // 懸浮選單速查表:`<prefix>sheet/<檔名>`
       sheetDir: SHEET_DIR(),
+      soundDir: SOUND_DIR(),
       handlers: previewHandlers(table),
       version: app.getVersion(),
       log: (m) => { console.log(m) },
@@ -1900,6 +1914,35 @@ if (!skipStartup) app.whenReady().then(() => {
       kind: 'invoke',
       preview: false,
       fn: (_ctx, keep: unknown) => pickImagesInto(SHEET_DIR(), 'sheet', 'Cheat sheet image', Array.isArray(keep) ? keep.map(normBgFile).filter(Boolean) : [], true)
+    },
+    // 2026-11-28 計時器音效:選一個音訊檔 → 複製到 userData/timer-sounds(檔名 = 清理後原名 + 雜湊)→ 回檔名;成功後刪掉資料夾裡其他舊檔。預覽端不開放
+    'sound-pick': {
+      kind: 'invoke',
+      preview: false,
+      fn: async () => {
+        const opts = { title: 'Timer sound', properties: ['openFile' as const], filters: [{ name: 'Audio', extensions: ['mp3', 'ogg', 'wav', 'm4a'] }] }
+        const res = win && !win.isDestroyed() ? await dialog.showOpenDialog(win, opts) : await dialog.showOpenDialog(opts)
+        const src = res.canceled ? undefined : res.filePaths[0]
+        if (!src) return null
+        try {
+          const data = await fs.readFile(src)
+          if (data.length > 20 * 1024 * 1024) { console.warn(`[timer] 音效檔太大(${data.length} bytes),不匯入`); return null }
+          const name = storedSoundName(src, data)
+          const dir = SOUND_DIR()
+          const dest = name ? resolveBgPath(dir, name, normSoundFile) : null
+          if (!name || !dest) { console.warn(`[timer] 不支援的音效檔:${path.basename(src)}`); return null }
+          await fs.mkdir(dir, { recursive: true })
+          await fs.writeFile(dest, data)
+          for (const f of await fs.readdir(dir).catch(() => [] as string[])) {
+            if (f !== name && normSoundFile(f)) await fs.rm(path.join(dir, f), { force: true }).catch(() => {})
+          }
+          console.log(`[timer] 音效 → ${name}(${data.length} bytes)`)
+          return name
+        } catch (e) {
+          console.error(`[timer] 匯入音效失敗:${path.basename(src)}`, e)
+          return null
+        }
+      }
     },
     // 第 28 步:設定 › 記錄。log-get 回快照({ entries, lastSeq },帶 sinceSeq 只回較新的;預覽端可用 = 輪詢);
     // log-subscribe(send)= 記錄分頁開著才讓 main 送 log-lines 即時追加;開資料夾只給 Electron 視窗

@@ -2,6 +2,19 @@
 
 使用者實測 11-09 的單純碼表後要求「參考 speedrun 計時器」,選了:分段、與個人最佳比較、自動分段、外觀與毫秒;分段 = 內建章節可編輯。
 
+## 三種模式(2026-11-28,使用者要求)
+設定 › 計時器 頂端「模式」:`timerMode` = `speedrun`(本文其他各節)/ `stopwatch` 一般計時器 / `countdown` 倒數計時。
+- 一般計時器與倒數共用一個碼表(core `src/timer/simple.ts` `createSimpleTimer`;`timer-state.ts` `simpleTimer`),切模式時重設。熱鍵 / 懸浮選單「開始 / 分段」= 開始 → 暫停 → 繼續;倒數歸零後再按 = 重新開始;暫停 / 重設照常;撤銷 / 跳過分段只有 speedrun 有作用。
+- 倒數時長 `timerCountdownSec`(1–86400 秒,預設 300);歸零時畫面變紅、播一次音效(`check()` 只在轉換那次回 true)。一般計時器每 `timerAlertMin` 分鐘播一次(`alertCrossed`;0 = 不提醒)。檢查放在 TimerWidget 每 50 ms 的更新裡(overlay 模式一直掛著)。
+- 非 speedrun 不讀 Client.txt(host-config `speedrunAutoLog` 一律 false)、不做切窗自動暫停(倒數常拿來計遊戲外的事)、不自動分段。
+- 音效 `timerSound: { file, volume }`:file 空 = 內建(WebAudio 合成三聲 880 Hz 嗶,不帶音檔);設定頁「匯入音效…」→ IPC `sound-pick`(`preview: false`)複製到 `userData/timer-sounds/`(另開資料夾;只留最後匯入的一個;檔名規則同背景圖、只收 mp3 / ogg / wav / m4a,最大 20 MB)→ `app://sound/<檔>`(預覽 `<prefix>sound/<檔>`)。音量 0–1,試聽按鈕;匯入檔播放失敗(被刪 / 格式不支援)退回內建嗶聲。`app://` 協定註冊加 `stream: true`(自訂協定的 `<audio>` 需要)。overlay 視窗設 `autoplayPolicy: 'no-user-gesture-required'`(點擊穿透時沒有使用者互動)。
+
+## 中途開始(2026-11-28 修正)
+原本 `autoAction` 只比對「目前這段」的觸發區,角色已在第 3 章才按開始時目前段是第 1 段 → 之後進的都是後面章節的區域,永遠不分段。
+現在:**這次還沒分過任何一段**時,進入目前段之後任一段的觸發區 → 跳到那段並分段(`run.jumpTo`:中間段記成沒有時間)。分過一段之後只認目前這段(回舊城鎮仍不觸發)。
+跳過段的那次標 `partial`:**跑完不寫個人最佳**(總時間少了前面幾章);金段照常(跳過後的第一段因前一段沒時間不算,之後的段照算)。重設 / 開始清掉旗標;撤銷到跳段前的那段也清掉(審查修正)。partial 時畫面不顯示與 PB 累計的差值、跑完不顯示金色(段時間與金段照常)。
+測試 `core/test/speedrun-midrun.test.ts`(T1–T5)。
+
 ## 畫面(overlay,`renderer/src/web/overlay/TimerWidget.vue`)
 - 版面參考 LiveSplit:路線名 + 嘗試次數 → 分段列(名稱 | 與個人最佳的差值 | 累計;還沒跑到的段顯示 PB 累計)→「總時間」標籤 + 大字主計時 `M:SS.cc`(全程累計,最後一段分段後停住)→ 本段 / 上一段差值。
 - 目前段放在倒數第二列;列數 = 設定 `speedrunRows`(1–20,預設 5)。
@@ -17,7 +30,7 @@
 - 撤銷分段回到上一段(跑完後撤銷,跑完到撤銷之間的時間照算);跳過分段把這段記成沒有時間(最後一段不能跳)。
 - **每個遊戲一個 run,建立後不換**(`timer-state.ts`):run 每次操作才取目前的路線,不綁路線物件身分 → 設定檔被瀏覽器預覽重新套用、設定頁改名都不會重設進行中的計時;只有分段數改了才重設(對不上新清單)。「清除紀錄」會先重設進行中的計時(否則快照會把紀錄寫回去)。
 - Client.txt 變小(被清空 / 截斷)→ 從頭讀;遊戲附著時同一路徑也重開(檔案可能被刪掉重建)。
-- `autosplit.ts`:沒在跑 + 自動開始 + 進起跑區 → 開始;跑著 + 自動分段 + 進**目前這段**的觸發區 → 分段(重回之前的城鎮不觸發)。
+- `autosplit.ts`:沒在跑 + 自動開始 + 進起跑區 → 開始;跑著 + 自動分段 + 進**目前這段**的觸發區 → 分段(重回之前的城鎮不觸發);還沒分過任何一段時也認後面的段(見「中途開始」)。
 - **切窗自動暫停**(2026-11-20 使用者裁定;`timer-state.ts` `timerFocus`,App.vue 在 `focus-change` 以 `game || overlay` 呼叫):遊戲與自己的 overlay 都沒有焦點 → 暫停,回來自動繼續;只繼續因切窗而暫停的(手動暫停、暫停後又手動操作過的不動)。切窗暫停中進了目前這段的觸發區(讀圖時切出去)照樣分段,分完仍暫停。overlay 拿著焦點時直接切到別的視窗沒有 `focus-change` → `OverlayWindow` 在自己的視窗 blur 200 ms 後仍不在遊戲時送 `timer-action` `away`、焦點回到 overlay 視窗時送 `back`(不改 overlay 狀態;overlay 自己開的系統檔案對話框 / 驗證視窗也算離開)。暫停記的是哪個 run(`focusPausedRun`)。沒有開關。**自訂路線若含 `2_6_town` / `2_11_endgame_town`,基塔弗訊息也會讓那兩段提早約 20 秒分段,舊紀錄不會自動清**(只轉換沒改過的內建路線)。遊戲內 Esc 暫停不同步(Client.txt 沒有那一行;使用者裁定不做)。
 
 ## 路線(`routes.ts`,存設定 `speedrun.{poe1,poe2}`)
@@ -44,6 +57,7 @@
 
 ## 測試
 `core/test/speedrun.test.ts`(S1–S10、S15、S17)、`main/test/game-log.test.ts`(S11–S13)、`main/test/speedrun-hotkeys.test.ts`(S16)、`renderer/test/speedrun-config.test.ts`(S14、S18)、`renderer/test-vue/speedrun-widget-mount.test.ts`(畫面)。
+2026-11-28:`core/test/speedrun-midrun.test.ts`、`core/test/simple-timer.test.ts`、`renderer/test/timer-modes.test.ts`、`main/test/backgrounds.test.ts`(音效檔名)。
 2026-11-20:`core/test/speedrun-breakpoints.test.ts`(基塔弗訊息、新斷點、舊路線轉換)、`main/test/game-log-kitava.test.ts`(訊息 → 分段,不重複、聊天不誤觸)、`renderer/test/timer-focus.test.ts`(切窗暫停、設定轉換)。
 
 ## 待使用者實機確認

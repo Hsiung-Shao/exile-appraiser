@@ -9,6 +9,7 @@
 | 設定視窗重整(三組選單 / 頁首 / 搬家的卡片 / 這頁的熱鍵 / 熱鍵總表跳轉 / 正則子分頁) | [settings-ia.md](settings-ia.md) | `check-settings-ia.mjs` |
 | 地圖詞綴檢查的書籤設定(正則 › 書籤與快捷) | [map-check-settings.md](map-check-settings.md) | `check-map-check.mjs` |
 | 懸浮選單 › 速查表(一次匯入多張 / 釘住後滾輪、拖曳、按鈕放大;假 host overlay) | [cheat-sheet.md](cheat-sheet.md) | `check-cheat-sheet.mjs` |
+| 計時器三種模式(設定頁切模式 / 倒數時長 / 試聽;假 host overlay 碼表與倒數歸零) | [timer-modes.md](timer-modes.md) | `check-timer-modes.mjs` |
 
 待補(純瀏覽器做得到、尚未寫):正則清單勾選 → 輸出字串、書籤資料夾、設定分頁導覽、拆粉排行表。
 純瀏覽器做不到(見 `../SKILL.md`):查價、熱鍵、貼進遊戲、OCR、overlay。

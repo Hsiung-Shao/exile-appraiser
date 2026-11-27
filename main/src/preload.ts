@@ -58,6 +58,7 @@ const api: HostApi = {
   bgPick: () => ipcRenderer.invoke('bg-pick'),
   // 懸浮選單速查表(檔案對話框選圖 → 複製到 userData/cheatsheets)
   sheetPick: (keep?: string[]) => ipcRenderer.invoke('sheet-pick', keep),
+  soundPick: () => ipcRenderer.invoke('sound-pick'),
   // 靈魂之井揭露面板(褻瀆)自動辨識
   onRevealScanResult: (cb: (e: RevealScanEvent) => void) => subscribe('reveal-scan-result', cb),
   revealStats: () => ipcRenderer.invoke('reveal-stats'),
