@@ -1715,6 +1715,9 @@ export function planSharedZh ({ enStats, zhStats, ggpkNew }) {
   const ambiguous = []
   for (const [string, list] of groupBy(owners, o => o.key)) {
     if (new Set(list.map(o => o.unit)).size < 2 || new Set(list.map(o => idsKey(o.s))).size < 2) continue
+    // 沒有共同的 id 類型(一條只有 implicit、一條只有 explicit;只有 pseudo)解析器依類型挑得開,不會混查
+    const typesOf = (/** @type {any} */ o) => Object.keys(o.s.trade?.ids ?? {}).filter(t => t !== 'pseudo')
+    if (!typesOf(list[0]).some(t => list.every(o => typesOf(o).includes(t)))) continue
     const live = list.filter(o => !o.m.superseded)
     const liveUnits = new Set(live.map(o => o.unit))
     if (!live.length) { ambiguous.push({ string, refs: uniq(list.map(o => o.s.ref)) }); continue }
@@ -1767,35 +1770,6 @@ export function planPresenceForms ({ zhStats, drops = [] }) {
     }
   }
   return { adds }
-}
-
-/**
- * 規則 37:「… are Supported by level # <輔助寶石>」(交易站 stat_4089743927 的選項列,天賦樹 / 頭盔 / 手套 / 鞋子)
- * 繁中名稱與 GGPK 輔助寶石名(去掉「輔助」)不同 → 補換成 GGPK 名稱的寫法(進階寫法一起換),標 superseded、舊句仍是現行。
- * 這個句子 GGPK 沒有句型、遊戲用哪份名稱沒有實機樣本;台服交易站把 Cast On Critical Strike 選項也寫成「暈眩時施放」
- * (= Cast when Stunned),所以舊句不動(規則 35 判不準、兩個 id 都送),GGPK 名稱只當第二寫法。
- * 找不到或同一個英文對到兩個繁中名稱的不猜。
- * @returns {{ adds: any[], rejects: any[] }}
- */
-export function planSupportedByNames ({ zhStats, supports }) {
-  const names = groupBy(supports, s => s.en)
-  const adds = []
-  const rejects = []
-  for (const stat of eachStat(zhStats)) {
-    const en = / are Supported by level # (.+)$/.exec(stat.ref)?.[1]
-    if (!en) continue
-    const zhs = uniq((names.get(`${en} Support`) ?? []).map(s => s.zh.replace(/輔助$/, '')))
-    if (zhs.length !== 1) { rejects.push({ reason: zhs.length ? '輔助寶石有兩個繁中名' : 'GGPK 找不到輔助寶石', ref: stat.ref, candidates: zhs }); continue }
-    for (const m of liveOf(stat)) {
-      const hit = /^(.*等級 # 的)(.+?)((?:\([^)]*\))?輔助)$/.exec(m.string)
-      if (!hit || hit[2] === zhs[0]) continue
-      const string = hit[1] + zhs[0] + hit[3]
-      if (stat.matchers.some(x => x.string === string)) continue
-      const { superseded, ...rest } = m
-      adds.push({ lang: 'cmn-Hant', ref: stat.ref, matcher: { ...rest, string, ...(m.advanced ? { advanced: m.advanced.replace(`的${hit[2]}`, `的${zhs[0]}`) } : {}), superseded: true } })
-    }
-  }
-  return { adds, rejects }
 }
 
 /** `rewriteLines` 的 edit 回傳這個值 = 刪掉這一列 */

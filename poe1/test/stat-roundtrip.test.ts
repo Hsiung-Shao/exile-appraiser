@@ -82,7 +82,9 @@ describe('全量逐條往返:每條詞綴的每個寫法都解析回自己、只
     })
   }
 
-  it('缺口不超出已知清單(只能變少)', () => {
+  it('缺口不超出已知清單(只能變少)', async () => {
+    // 單獨跑這一條(-t)時自己掃,不靠前兩條填 found(否則 UPDATE_FIXTURES 會寫出空清單)
+    if (!Object.keys(found).length) for (const lang of ['en', 'cmn-Hant'] as const) Object.assign(found, (await sweep(lang)).gaps)
     if (process.env.UPDATE_FIXTURES) fs.writeFileSync(GAPS, JSON.stringify(Object.fromEntries(Object.entries(found).sort()), null, 1) + '\n')
     const known = JSON.parse(fs.readFileSync(GAPS, 'utf8')) as Record<string, string>
     const fresh = Object.entries(found).filter(([k, v]) => known[k] !== v)

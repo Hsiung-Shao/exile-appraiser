@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toMatcherText, planStatText, planTradeText, planOtherTradeTexts, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planRandomSkillGem, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, planRoomNames, planCitadel, planExtraZh, planZhForms, planCondForms, planMercenaryBuilds, planNamedSlots, planTimelessJewels, planFixedCase, planMercenarySkills, EXTRA_ZH_MATCHERS, planGrownPassives, planPassiveRenames, planForbiddenNotables, planMergeDuplicates, planFlagMerge, planIndexableSkills, planDropNoIdStats, planSharedZh, planPresenceForms, planSupportedByNames, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
+import { toMatcherText, planStatText, planTradeText, planOtherTradeTexts, planDeadIds, planItems, applyStatPlan, applyItemPlan, planUniques, planTradeBases, planSupportGemNames, planGems, planMinionDoubled, planRandomSkillGem, planNewStats, planGrantsSkill, planFillIds, planEffectStats, planTypeIds, planRoomNames, planCitadel, planExtraZh, planZhForms, planCondForms, planMercenaryBuilds, planNamedSlots, planTimelessJewels, planFixedCase, planMercenarySkills, EXTRA_ZH_MATCHERS, planGrownPassives, planPassiveRenames, planForbiddenNotables, planMergeDuplicates, planFlagMerge, planIndexableSkills, planDropNoIdStats, planSharedZh, planPresenceForms, betterOf, BETTER_OVERRIDES } from '../../scripts/poe1-season/lib.mjs'
 
 /**
  * 賽季更新腳本的純函式測試(合成輸入,不讀 data/)。
@@ -1957,41 +1957,6 @@ describe('planPresenceForms(規則 36:頭目面前詞綴跟著基底詞綴的現
   it('P3 資料裡沒有基底 ref → 沒有 adds', () => {
     const zhStats = [stat(U, [{ string: '在傳奇頭目面前時，增加 #% 生命恢復率' }])]
     expect(planPresenceForms({ zhStats, drops }).adds).toEqual([])
-  })
-})
-
-describe('planSupportedByNames(規則 37:輔助寶石名稱跟 GGPK 一致)', () => {
-  const REF = 'Skills Socketed in your Helmet are Supported by level # Cast On Critical Strike'
-  const supports = [{ en: 'Cast On Critical Strike Support', zh: '暴擊時施放輔助' }]
-  const zhRow = (name: string) => stat(REF, [{
-    string: `插槽中的技能被等級 # 的${name}輔助`,
-    advanced: `插槽中的技能被等級 # 的${name}(高階多重投射-聖徒)輔助`
-  }])
-  // 失敗代表:繁中名稱沒換成 GGPK 名稱,或進階寫法沒一起換
-  // 審查(2026-11-27):台服交易站也把這個選項寫成「暈眩時施放」,遊戲用哪份名稱沒有樣本 → 舊句維持現行,GGPK 名稱只當第二寫法
-  it('S1 名稱與 GGPK 不同 → 補 string 與 advanced 都換名稱的第二寫法(標 superseded),舊句不動', () => {
-    const plan = planSupportedByNames({ zhStats: [zhRow('暈眩時施放')], supports })
-    expect(plan.adds).toEqual([{
-      lang: 'cmn-Hant',
-      ref: REF,
-      matcher: { string: '插槽中的技能被等級 # 的暴擊時施放輔助', advanced: '插槽中的技能被等級 # 的暴擊時施放(高階多重投射-聖徒)輔助', superseded: true }
-    }])
-    expect(plan.rejects).toEqual([])
-  })
-  // 失敗代表:已一致還重複補
-  it('S2 名稱已一致 → 沒有 adds', () => {
-    expect(planSupportedByNames({ zhStats: [zhRow('暴擊時施放')], supports }).adds).toEqual([])
-  })
-  // 失敗代表:對不上或有歧義時硬挑一個名稱
-  it('S3 supports 找不到該寶石 → 不加、進 rejects', () => {
-    const plan = planSupportedByNames({ zhStats: [zhRow('暈眩時施放')], supports: [{ en: 'Other Support', zh: '別的輔助' }] })
-    expect(plan.adds).toEqual([])
-    expect(plan.rejects).toHaveLength(1)
-  })
-  it('S3 同一個英文對到兩個不同繁中 → 不加、進 rejects', () => {
-    const plan = planSupportedByNames({ zhStats: [zhRow('暈眩時施放')], supports: [...supports, { en: 'Cast On Critical Strike Support', zh: '爆擊施放輔助' }] })
-    expect(plan.adds).toEqual([])
-    expect(plan.rejects).toHaveLength(1)
   })
 })
 
