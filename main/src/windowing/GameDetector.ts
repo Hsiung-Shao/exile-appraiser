@@ -78,7 +78,33 @@ export interface GameDetectorOpts {
   clearTimeout?: (h: unknown) => void
 }
 
-async function listWindowNamesDefault (): Promise<string[]> {
+/** macOS:用 Accessibility(System Events)列出所有前台 app 的視窗標題(含最小化視窗), 失敗回 null。 */
+const MAC_JXA = `
+const se = Application('System Events');
+const out = [];
+for (const arr of se.processes.whose({ backgroundOnly: false }).windows.name()) {
+  for (const n of arr) if (typeof n === 'string' && n !== '') out.push(n);
+}
+JSON.stringify(out);`
+function macWindowTitles (): Promise<string[] | null> {
+  return new Promise((resolve) => {
+    execFile('osascript', ['-l', 'JavaScript', '-e', MAC_JXA],
+      { timeout: 8000, encoding: 'utf8' },
+      (err, stdout) => {
+        if (err) { console.warn('[detect] osascript 取視窗標題失敗(檢查 輔助使用 權限)', err.message); resolve(null); return }
+        try {
+          const v: unknown = JSON.parse(stdout.trim())
+          resolve(Array.isArray(v) ? v.filter((n): n is string => typeof n === 'string') : null)
+        } catch { resolve(null) }
+      })
+  })
+}
+
+export async function listWindowNamesDefault (): Promise<string[]> {
+  if (process.platform === 'darwin') {
+    const names = await macWindowTitles()
+    if (names) return names
+  }
   const sources = await desktopCapturer.getSources({
     types: ['window'],
     thumbnailSize: { width: 0, height: 0 },
