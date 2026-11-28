@@ -98,10 +98,11 @@ describe('PresentMon', () => {
     expect(S.parsePresentMonCsv('')).toBeNull()
   })
   it('findPresentMon:PATH 上的 PresentMon.exe 或 PresentMon-*.exe', () => {
-    const p = ['C:\\a', 'C:\\b'].join(path.delimiter)
+    const [a, b] = [path.resolve('a'), path.resolve('b')]
+    const p = [a, b].join(path.delimiter)
     expect(S.findPresentMon(p, () => false, () => [])).toBeNull()
-    expect(S.findPresentMon(p, (f: string) => f === path.join('C:\\b', 'PresentMon.exe'), () => [])).toBe(path.join('C:\\b', 'PresentMon.exe'))
-    expect(S.findPresentMon(p, () => false, (d: string) => d === 'C:\\a' ? ['PresentMon-2.3.0-x64.exe'] : [])).toBe(path.join('C:\\a', 'PresentMon-2.3.0-x64.exe'))
+    expect(S.findPresentMon(p, (f) => f === path.join(b, 'PresentMon.exe'), () => [])).toBe(path.join(b, 'PresentMon.exe'))
+    expect(S.findPresentMon(p, () => false, (d: string) => d === a ? ['PresentMon-2.3.0-x64.exe'] : [])).toBe(path.join(a, 'PresentMon-2.3.0-x64.exe'))
   })
 })
 

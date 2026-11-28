@@ -80,9 +80,9 @@ describe('bgFileFromPath(app://bg/<檔名> 的 pathname)', () => {
 describe('storedBgName:複製進資料夾的檔名', () => {
   const data = new Uint8Array([1, 2, 3])
   it('原檔名清理 + 內容雜湊 8 碼 + 小寫副檔名;同內容同名', () => {
-    const a = storedBgName('C:\\Users\\me\\Pictures\\My Wall.PNG', data)!
+    const a = storedBgName(path.join(os.tmpdir(), 'me', 'Pictures', 'My Wall.PNG'), data)!
     expect(a).toMatch(/^My Wall-[0-9a-f]{8}\.png$/)
-    expect(storedBgName('D:\\other\\My Wall.PNG', data)).toBe(a)
+    expect(storedBgName(path.join(os.tmpdir(), 'other', 'My Wall.PNG'), data)).toBe(a)
     expect(normBgFile(a)).toBe(a)
   })
   it('不允許的副檔名 → null;奇怪的原檔名也產生合法檔名', () => {

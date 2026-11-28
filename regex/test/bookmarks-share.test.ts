@@ -152,7 +152,10 @@ describe('docs/regex-share-cli.md 的範例(給 PobTools 對拍)', () => {
       const d = await decodeBookmarks(codes[i])
       expect(d.warnings).toEqual([])
       expect(canonicalBookmarkPackJson(d.pack)).toBe(jsons[i])
-      expect(await encodeBookmarks(d.pack)).toBe(codes[i])
+      // gzip 位元組因平台 / zlib 而異(標頭 OS 位元組:Windows 0x0a、Linux 0x03、macOS 0x13;arm64 的 deflate 輸出也可能不同), 只比對重新編碼後解得回同一份 JSON
+      const re = await decodeBookmarks(await encodeBookmarks(d.pack))
+      expect(re.warnings).toEqual([])
+      expect(canonicalBookmarkPackJson(re.pack)).toBe(jsons[i])
     }
   })
 })
